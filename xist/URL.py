@@ -17,7 +17,7 @@ class URL:
 	"""
 	This class represents XSC URLs.
 	Every instance has the following instance variables:
-	scheme -- The scheme (e.g. "http" or "ftp"); there a two special schemes: "server" for server relative URLs and "project" for project relative URLs
+	scheme -- The scheme (e.g. "http" or "ftp"); there's a special scheme "server" for server relative URLs
 	server -- The server name
 	port -- The port number
 	path -- The path to the file as a list of strings
@@ -28,6 +28,16 @@ class URL:
 	fragment -- The fragment
 	These variables form a URL in the following way
 	<scheme>://<server>:<port>/<path>/<file>.<ext>;<params>?<query>#<fragment>
+
+	There is one additional feature supported by this class: path markers
+	A path marker is a directory name beginning with *. A path marker is
+	not treated as a real directory name, but marks a position in a path.
+	When you combine two URLs and the second URL begins with a path marker
+	the path will be relative to the directory path to the left of the same
+	path marker in the first URL. Example:
+		URL("/foo/bar/*root/cgi/baz.py") + URL("*root/cgi2/baz2.py")
+	will be an URL equivalent to
+		URL("/foo/bar/*root/cgi2/baz2.py")
 	"""
 	def __init__(self,url = None,scheme = None,server = None,port = None,path = None,file = None,ext = None,parameters = None,query = None,fragment = None):
 		# initialize the defaults
@@ -79,41 +89,54 @@ class URL:
 		self.__optimize()
 
 	def __fromString(self,url):
-		if url == ":":
-			self.scheme = "project"
-		else:
-			(self.scheme,self.server,self.path,self.parameters,self.query,self.fragment) = urlparse.urlparse(url)
-			if self.scheme == "": # do we have a local file?
-				if len(self.path):
-					if self.path[0] == "/": # this is a server relative URL
-						self.path = self.path[1:] # drop the empty string in front of the first "/" ...
-						self.scheme = "server" # ... and use a special scheme for that
-					elif self.path[0] == ":": # project relative, i.e. relative to the current directory
-						self.path = self.path[1:] # drop of the ":" ...
-						self.scheme = "project" # special scheme name
-			elif self.scheme == "http":
-				if len(self.path):
-					self.path = self.path[1:] # if we had a http, the path from urlparse started with "/" too
-			pos = string.rfind(self.server,":")
+		(self.scheme,self.server,self.path,self.parameters,self.query,self.fragment) = urlparse.urlparse(url)
+		if self.scheme == "": # do we have a local file?
+			if len(self.path):
+				if self.path[0] == "/": # this is a server relative URL
+					self.path = self.path[1:] # drop the empty string in front of the first "/" ...
+					self.scheme = "server" # ... and use a special scheme for that
+		elif self.scheme == "http":
+			if len(self.path):
+				self.path = self.path[1:] # if we had a http, the path from urlparse started with "/" too
+		pos = string.rfind(self.server,":")
+		if pos != -1:
+			self.port = string.atoi(self.server[pos+1:])
+			self.server = self.server[:pos]
+		self.path = string.split(self.path,"/")
+		self.file = self.path[-1]
+		self.path = self.path[:-1]
+
+		if self.scheme in [ "ftp" , "http" , "https" , "server", "" ]:
+			pos = string.rfind(self.file,".")
 			if pos != -1:
-				self.port = string.atoi(self.server[pos+1:])
-				self.server = self.server[:pos]
-			self.path = string.split(self.path,"/")
-			self.file = self.path[-1]
-			self.path = self.path[:-1]
+				self.ext = self.file[pos+1:]
+				self.file = self.file[:pos]
 
-			if self.scheme in [ "ftp" , "http" , "https" , "server", "project" , "" ]:
-				pos = string.rfind(self.file,".")
-				if pos != -1:
-					self.ext = self.file[pos+1:]
-					self.file = self.file[:pos]
+		self.scheme = self.scheme or None
+		self.server = self.server or None
+		self.file = self.file or None
+		self.parameters = self.parameters or None
+		self.query = self.query or None
+		self.fragment = self.fragment or None
 
-			self.scheme = self.scheme or None
-			self.server = self.server or None
-			self.file = self.file or None
-			self.parameters = self.parameters or None
-			self.query = self.query or None
-			self.fragment = self.fragment or None
+	def isPathMarker(self,dir):
+		"""
+		isPathMarker(self,dir) -> bool
+		
+		returns if the directory name dir is a path marker.
+		"""
+		if len(dir) and dir[0] == "*":
+			return 1
+		else:
+			return 0
+
+	def isNoPathMarker(self,dir):
+		"""
+		isNoPathMarker(self,dir) -> bool
+		
+		returns not isPathMarker(self,dir)
+		"""
+		return not self.isPathMarker(dir)
 
 	def __repr__(self):
 		v = []
@@ -144,37 +167,39 @@ class URL:
 		if self.port:
 			server = server + ":" + str(self.port)
 
-		path = self.path[:]
+		path = []
+		if scheme == "server":
+			scheme = "" # remove our own private scheme name
+			path.append("") # make sure that there's a "/" at the start
+		for dir in self.path:
+			if not self.isPathMarker(dir):
+				path.append(dir)
 
 		file = self.file or ""
 		if self.ext:
 			file = file + "." + self.ext
 		path.append(file)
 
-		if scheme == "project":
-			scheme = "" # remove our own private scheme name
-		elif scheme == "server":
-			scheme = "" # remove our own private scheme name
-			path[:0] = [ "" ] # make sure that there's a "/" at the start
-
 		return urlparse.urlunparse((scheme,server,string.join(path,"/"),self.parameters or "",self.query or "",self.fragment or ""))
 
 	def __join(self,other):
 		if not other.scheme:
-			self.path.extend(other.path)
+			if len(other.path) and self.isPathMarker(other.path[0]):
+				for i in xrange(len(self.path)-1):
+					if self.isPathMarker(self.path[i]) and self.path[i] == other.path[0]:
+						self.path[i:] = other.path
+						break
+				else:
+					self.path.extend(other.path)
+			else:
+				self.path.extend(other.path)
 			self.file       = other.file or self.file
 			self.ext        = other.ext or self.ext
 			self.parameters = other.parameters
 			self.query      = other.query
 			self.fragment   = other.fragment
-		elif other.scheme == "project" or other.scheme == "server":
-			if self.scheme == "project": # if we were project relative, and the other one was server relative ...
-				self.scheme = other.scheme # ... then now we're server relative too
-			else:
-				if other.scheme == "project":
-					self.path.extend(other.path)
-				else:
-					self.path = other.path[:]
+		elif other.scheme == "server":
+			self.path.extend(other.path)
 			self.file       = other.file
 			self.ext        = other.ext
 			self.parameters = other.parameters
@@ -188,8 +213,8 @@ class URL:
 	def __add__(self,other):
 		"""
 		joins two URLs together. When the second URL is
-		absolute (i.e. contains a scheme other that "server",
-		"project" or "", you'll get a copy of the second URL.
+		absolute (i.e. contains a scheme other than "server"
+		or "", you'll get a copy of the second URL.
 		"""
 		return self.clone().__join(URL(other))
 
@@ -205,9 +230,7 @@ class URL:
 		return URL(scheme = self.scheme,server = self.server,port = self.port,path = self.path,file = self.file,ext = self.ext,parameters = self.parameters,query = self.query,fragment = self.fragment)
 
 	def isRemote(self):
-		if self.scheme == "project":
-			return 0
-		elif self.scheme == "":
+		if self.scheme == "":
 			return 0
 		elif self.scheme == "server" and self.server == "localhost":
 			return 0
@@ -222,10 +245,14 @@ class URL:
 		because although the file you've read might have been
 		remote, the parsed XSC file that you output, probably
 		isn't.
+
+		Note too, that the returned URL will not have any path markers
+		in it.
 		"""
 		new = other + self
-		if (not new.scheme) or new.scheme == "project":
-			otherpath = other.path[:]
+		new.path = filter(new.isNoPathMarker,new.path)
+		if not new.scheme:
+			otherpath = filter(other.isNoPathMarker,other.path)
 			while len(otherpath) and len(new.path) and otherpath[0]==new.path[0]: # throw away identical directories in both paths (we don't have to go up from file and down to path for these identical directories)
 				del otherpath[0]
 				del new.path[0]
