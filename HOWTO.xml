@@ -288,6 +288,8 @@ and you can test for the language with the element
 </doc:programlisting>
 </item>
 </ulist>
+<par>Additional arguments are passed when a converter is created in the context of
+a <pyref module="make"><module>make</module></pyref> script.</par>
 </doc:section>
 
 <doc:section><doc:title>Attributes</doc:title>
