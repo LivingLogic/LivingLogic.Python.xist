@@ -8,7 +8,7 @@ and borrows some features and ideas from it. It also borrows the basic ideas
 or <app moreinfo="http://dustman.net/andy/python/HyperText/">HyperText</app>.</par>
 
 <section><title>Overview</title>
-<par>&xist; can be used as a compiler that reads an input file
+<par>&xist; can be used as a compiler that reads an input &xml; file
 and generates a transformed output file, or it could be used for generating
 &xml; dynamically inside a web server (but note that handling object trees
 <em>is</em> slower than simply sending constant output strings).
@@ -63,7 +63,7 @@ The definition of &html; can be found in
 <pyref module="ll.xist.ns.html"><module>ll.xist.ns.html</module></pyref>
 for example.</par>
 
-<par>Every element class has a constructor of the form</par>
+<par>Every element class has a constructor of the form:</par>
 <prog>
 __init__(self, *content, **attrs)
 </prog>
@@ -256,16 +256,16 @@ node = node.convert(
 <par>You can pass the following five arguments to the
 <pyref module="ll.xist.converters" class="Converter"><class>Converter</class></pyref> constructor:</par>
 <dlist>
-<term><arg>root</arg></term><item><arg>root</arg> (which defaults to <lit>None</lit>) is the root &url; for the conversion process. When you want
-to resolve a link in some of your own <method>convert</method> methods, the &url; must be interpreted relative
-to this root &url; (You can use
+<term><arg>root</arg></term><item><arg>root</arg> (which defaults to <lit>None</lit>) is the root &url;
+for the conversion process. When you want to resolve a link in some of your own <method>convert</method> methods,
+the &url; must be interpreted relative to this root &url; (You can use
 <pyref module="ll.xist.xsc" class="URLAttr" method="forInput"><method>URLAttr.forInput</method></pyref>
 for that).</item>
-<term><arg>mode</arg></term><item><arg>mode</arg> (which defaults to <lit>None</lit>) works the same way as modes in &xslt;. You can use this
-for implementing different conversion modes.</item>
-<term><arg>stage</arg></term><item><arg>stage</arg> (which defaults to <lit>"deliver"</lit>) allows you to implement multi stage conversion:
-Suppose that you want to deliver a dynamically constructed web page with &xist; that contains
-results from a database query and the current time. The data in the database changes
+<term><arg>mode</arg></term><item><arg>mode</arg> (which defaults to <lit>None</lit>) works the same way as modes in &xslt;.
+You can use this for implementing different conversion modes.</item>
+<term><arg>stage</arg></term><item><arg>stage</arg> (which defaults to <lit>"deliver"</lit>)
+allows you to implement multi stage conversion: Suppose that you want to deliver a dynamically constructed web page with &xist;
+that contains results from a database query and the current time. The data in the database changes
 infrequently, so it doesn't make sense to do the query on every request. The query is done
 every few minutes and the resulting &html; tree is stored in the servlet
 (using any of the available Python servlet technologies). For this conversion the
@@ -274,10 +274,12 @@ query when <lit><arg>stage</arg>=="cache"</lit>. Your time display element would
 when <lit><arg>stage</arg>=="deliver"</lit> and simply returns itself when
 <lit><arg>stage</arg>=="cache"</lit>, so it would still be part of the cached &xml; tree
 and would be converted to &html; on every request.</item>
-<term><arg>target</arg></term><item><arg>target</arg> (which defaults to <pyref module="ll.xist.ns.html"><module>ll.xist.ns.html</module></pyref>) specifies what the output should be.
-Values must be <pyref module="ll.xist.xsc" class="Namespace">namespace subclasses</pyref> (see below for an explanation of namespaces).</item>
-<term><arg>lang</arg></term><item><par><arg>lang</arg> (which defaults to <lit>None</lit>) is the language in which the result tree should be.
-This can be used in the <method>convert</method> method
+<term><arg>target</arg></term><item><arg>target</arg> (which defaults to
+<pyref module="ll.xist.ns.html"><module>ll.xist.ns.html</module></pyref>) specifies what the output should be.
+Values must be <pyref module="ll.xist.xsc" class="Namespace">namespace subclasses</pyref>
+(see below for an explanation of namespaces).</item>
+<term><arg>lang</arg></term><item><par><arg>lang</arg> (which defaults to <lit>None</lit>) is the language
+in which the result tree should be. This can be used in the <method>convert</method> method
 to implement different conversions for different languages, e.g.:</par>
 <prog>
 class note(xsc.Element):
@@ -305,31 +307,10 @@ class note(xsc.Element):
 </prog>
 </item>
 </dlist>
+
 <par>Additional arguments are passed when a converter is created in the context of
 a <pyref module="ll.make"><module>make</module></pyref> script.</par>
-</section>
 
-<section><title>Namespace objects</title>
-<par>Now that you've defined your own elements, you have to
-tell the parser about them, so they can be instantiated when
-a file is parsed. This is done with namespace classes. At the end
-of your Python module after all the classes are defined, create a
-namespace class that collects all the class objects from the
-local scope:</par>
-<example>
-<prog>
-class xmlns(xsc.Namespace):
-	xmlname = "foo"
-	xmlurl = "http://www.foo.net/foo"
-xmlns.update(vars())
-</prog>
-</example>
-
-<par>For an explanation of the arguments see the
-<pyref module="ll.xist.xsc" class="Namespace" method="__init__"><class>Namespace</class> constructor</pyref>.</par>
-
-<par>All defined namespace classes will automatically be registered with the
-parser, so all defined elements will be used when parsing files.</par>
 </section>
 
 <section><title>Attributes</title>
@@ -558,6 +539,284 @@ is such an attribute, so we'll get:</par>
 
 </section>
 
+<section><title>Namespaces</title>
+
+<par>Now that you've defined your own elements, you have to
+tell the parser about them, so they can be instantiated when
+a file is parsed. This is done with namespace classes.</par>
+
+<par>Namespace classes can be thought of as object oriented versions of
+&xml; namespaces. Two class attributes can be used to configure the namespace:
+<lit>xmlname</lit> specifies the default namespace prefix to use for the namespace
+and <lit>xmlurl</lit> is the namespace name. All element classes nested inside the
+namespace class belong to the namespace.</par>
+
+<par>It's also possible to define your namespace class without any nested element classes.
+and later add those classes to the namespace with the class method
+<pyref module="ll.xist.xsc" class="Namespace" method="update"><method>update</method></pyref>,
+which expects a dictionary as an argument. All objects found in the values of the
+dictionary will be added to the namespace as attributes. So you can put the namespace class
+at the end of your Python module after all the element classes are defined and
+add all the objects from the local scope to the namespace. Your complete namespace
+might looks like this:</par>
+<example><title>Defining and populating a namespace</title>
+<prog>
+class python(xsc.Element):
+	empty = True
+
+	def convert(self, converter):
+		return html.a(
+			"Python",
+			href="http://www.python.org/"
+		)
+
+class cool(xsc.Element):
+	empty = False
+
+	def convert(self, converter):
+		return html.b(self.content, " is cool!")
+
+class xmlns(xsc.Namespace):
+	xmlname = "foo"
+	xmlurl = "http://www.foo.net/foo"
+xmlns.update(vars())
+</prog>
+</example>
+
+<par>All defined namespace classes will be registered with the parser automatically,
+so all elements belonging to the namespace will be used when parsing files.</par>
+
+<section><title>Namespaces as modules</title>
+
+<par>It is convenient to define all classes that belong to one namespace in one
+Python module. However this means that the resulting module will only contain
+one <z>interresting</z> object: the namespace class. To make using this class
+more convenient, it's possible to turn the namespace class into a module by
+using the class method <pyref module="ll.xist.xsc" class="Namespace" method="makemod"><method>makemod</method></pyref>
+instead of <method>update</method>:</par>
+
+<example><title>Turning a namespace into a module</title>
+<prog>
+class python(xsc.Element):
+	empty = True
+
+	def convert(self, converter):
+		return html.a(
+			"Python",
+			href="http://www.python.org/"
+		)
+
+class cool(xsc.Element):
+	empty = False
+
+	def convert(self, converter):
+		return html.b(self.content, " is cool!")
+
+class xmlns(xsc.Namespace):
+	xmlname = "foo"
+	xmlurl = "http://www.foo.net/foo"
+xmlns.<em>makemod</em>(vars())
+</prog>
+</example>
+
+<par>Suppose that the above code is in the file <filename>foo.py</filename>.
+Doing an <lit>import foo</lit> will then give you the namespace class instead
+of the module:</par>
+<prog>
+&gt;&gt;&gt; import foo
+&gt;&gt;&gt; foo
+&lt;foo:xmlns namespace name=u"foo" url=u"http://www.foo.net/foo" \
+   with 2 elements from "foo.py" at 0x87654321&gt;&&FIXME
+&gt;&gt;&gt; foo.python
+&lt;foo:python element at 0x87654321&gt;&&FIXME
+</prog>
+</section>
+
+<section><title>Subclassing namespaces</title>
+<par>Each element class that belongs to a namespace can access its
+namespace via the class attribute <lit>xmlns</lit>. When you can subclass
+namespace classes, the elements in the base namespace will be automatically
+subclasses too. Of course you can explicitly subclass an element class too.
+The following example should show the usefulness of this feature. Define
+your base namespace like this and put it into <filename>navns.py</filename>:</par>
+
+<prog>
+from ll.xist import xsc
+from ll.xist.ns import html
+
+links = [
+	("Python", "http://www.python.org/"),
+	("Perl", "http://www.perl.org/"),
+	("PHP", "http://www.php.net/"),
+	("Java", "http://java.sun.com/")
+]
+
+class navigation(xsc.Element):
+	empty = True
+
+	def convert(self.converter):
+		node = self.xmlns.links()
+		for (name, url) in links:
+			node.append(
+				self.xmlns.link(
+					name,
+					href=url
+				)
+			)
+		return node.convert(converter)
+
+class links(xsc.Element):
+	empty = False
+
+	def convert(self, converter):
+		node = self.content
+		return node.convert(converter)
+
+class link(xsc.Element):
+	empty = False
+	class Attrs(xsc.Element.Attrs):
+		class href(xsc.URLAttr): pass
+
+	def convert(self, converter):
+		node = html.div(
+			self.content,
+			href=self["href"]
+		)
+		return node.convert(converter)
+
+class xmlns(xsc.Namespace):
+	xmlname = "nav"
+	xmlurl = "http://www.example.com/nav"
+xmlns.makemod(vars())
+</prog>
+
+<par>This namespace defines a navigation element that generates <lit>div</lit>s
+with links to various homepages for programming languages. We can use it like this:</par>
+<prog>
+&gt;&gt;&gt; import navns
+&gt;&gt;&gt; print navns.nav().conv().asBytes()
+&lt;div&gt;&lt;a href="http://www.python.org/"&gt;Python&lt;/a&gt;&lt;/div&gt;
+&lt;div&gt;&lt;a href="http://www.perl.org/"&gt;Perl&lt;/a&gt;&lt;/div&gt;
+&lt;div&gt;&lt;a href="http://www.php.net/"&gt;PHP&lt;/a&gt;&lt;/div&gt;
+&lt;div&gt;&lt;a href="http://java.sun.com/"&gt;Java&lt;/a&gt;&lt;/div&gt;
+</prog>
+<par>(Of course the output will all be on one line.)</par>
+
+<par>Now we can define a derived namespace (in the file <filename>nav2ns.py/filename>)
+that overwrites the element classes <class>links</class> and <class>link</class>
+to change how the navigation looks:</par>
+
+<prog>
+import navns
+
+class xmlns(navns):
+	class links(nav.links):
+		def convert(self, converter):
+			node = html.table(
+				self.content,
+				border=0,
+				cellpadding=0,
+				cellspacing=0,
+				class_="navigation"
+			)
+			return node.convert(converter)
+
+	class link(nav.link):
+		def convert(self, converter):
+			node = html.tr(
+				html.td(
+					html.a(
+						self.content,
+						href=self["href"]
+					)
+				)
+			)
+			return node.convert(converter)
+</prog>
+
+<par>When we use the navigation element from the derived namespace we'll get
+the following output:</par>
+
+<prog>
+&gt;&gt;&gt; import foo
+&gt;&gt;&gt; print foo.nav().conv().asBytes()
+&lt;table border="0" cellpadding="0" cellspacing="0" class="navigation"&gt;
+&lt;tr&gt;&lt;td&gt;&lt;a href="http://www.python.org/"&gt;Python&lt;/a&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;&lt;a href="http://www.perl.org/"&gt;Perl&lt;/a&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;&lt;a href="http://www.php.net/"&gt;PHP&lt;/a&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;&lt;a href="http://java.sun.com/"&gt;Java&lt;/a&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;/table&gt;
+</prog>
+<par>(again all on one line.)</par>
+
+</section>
+
+<section><title>Namespaces as conversion targets</title>
+
+<par>The <arg>converter</arg> argument passed to the <method>convert</method> method
+has an attribute <lit>target</lit> which is a namespace class and specifies the target
+namespace to which <self/> should be converted.</par>
+
+<par>You can check which conversion is wanted with <function>issubclass</function>.
+Once this is determined you can use element classes from the target to create the
+required &xml; object tree. This makes it possible to customize the conversion by
+passing a derived namespace to the <method>convert</method> method. We have to change
+or example namespace from above like this</par>
+
+<prog>
+import navns
+
+class xmlns(navns):
+	class links(nav.links):
+		def convert(self, converter):
+			node = converter.target.table(
+				self.content,
+				border=0,
+				cellpadding=0,
+				cellspacing=0,
+				class_="navigation"
+			)
+			return node.convert(converter)
+
+	class link(nav.link):
+		def convert(self, converter):
+			target = converter.target
+			node = target.tr(
+				target.td(
+					target.a(
+						self.content,
+						href=self["href"]
+					)
+				)
+			)
+			return node.convert(converter)
+</prog>
+
+<par>What we might want to do is have all links (i.e. all <class>ll.xist.ns.html.a</class>
+elements) generated with an attribute <lit>target="_top"</lit>. For this we derive
+a new namespace from <class>ll.xist.ns.html</class> and overwrite the <class>a</class>
+element:</par>
+
+<prog>
+from ll.xist.ns import html
+
+class xmlns(html):
+	class a(html.a):
+		def convert(self, converter):
+			node = html.a(
+				self.content,
+				self.attr,
+				target="_top"
+			)
+			return node.convert(converter)
+</prog>
+
+<par>Now we can pass this namespace as the conversion target and all links
+will have a <lit>target="top"</lit>.</par>
+</section>
+
+</section>
+
 <section><title>Entities</title>
 
 <par>In the same way as defining new element types, you can define new
@@ -583,7 +842,8 @@ class xml(xsc.Entity):
 		return html.abbr(
 			"XML",
 			title="Extensible Markup Language",
-			lang="en")
+			lang="en"
+		)
 	def __unicode__(self):
 		return u"XML"
 </prog>
