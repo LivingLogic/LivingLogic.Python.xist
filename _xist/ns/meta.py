@@ -30,7 +30,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
 from xist import xsc
-import html
+import ihtml, html
 
 class contenttype(html.meta):
 	"""
@@ -48,7 +48,10 @@ class contenttype(html.meta):
 	del attrHandlers["content"]
 
 	def convert(self, converter):
-		e = html.meta(self.attrs)
+		if converter.target=="ihtml":
+			e = ihtml.meta(self.attrs)
+		else:
+			e = html.meta(self.attrs)
 		e["http-equiv"] = "Content-Type"
 		e["content"] = "text/html"
 		return e.convert(converter)
