@@ -92,9 +92,6 @@ class body(xsc.Element):
 	attrHandlers.update({"onload": xsc.TextAttr, "onunload": xsc.TextAttr})
 	attrHandlers.update({"background": xsc.URLAttr, "bgcolor": xsc.ColorAttr, "text": xsc.ColorAttr, "link": xsc.ColorAttr, "vlink": xsc.ColorAttr, "alink": xsc.ColorAttr, "leftmargin": xsc.TextAttr, "topmargin": xsc.TextAttr, "marginwidth": xsc.TextAttr, "marginheight": xsc.TextAttr}) # deprecated
 
-	def asHTML(self):
-		if self.hasAttr("
-
 class div(xsc.Element):
 	"""
 	generic language/style container
