@@ -10,8 +10,7 @@
 
 """
 <par>Contains the global attributes for the &xml; namespace (like <lit>xml:lang</lit>),
-and classes for <markup>&lt;?xml <rep>...</rep>?></markup> and
-<markup>&lt;?xml-stylesheet <rep>...</rep>?></markup>.</par>
+and classes for the &xml; declaration.</par>
 """
 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
@@ -60,8 +59,8 @@ class XMLStyleSheet(xsc.ProcInst):
 
 class declaration(xsc.Element):
 	"""
-	<par>The &xml; declaration instruction as an element. This makes it
-	possible to generate a header from within an &xml; file.
+	<par>The &xml; declaration as an element. This makes it possible to generate
+	a declaration from within an &xml; file.
 	"""
 	model = sims.Empty()
 

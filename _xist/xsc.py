@@ -2129,25 +2129,27 @@ _Attrs = Attrs
 
 class Element(Node):
 	"""
-	<par>This class represents &xml;/&xist; elements. All elements
-	implemented by the user must be derived from this class.</par>
+	<par>This class represents &xml;/&xist; elements. All elements implemented
+	by the user must be derived from this class.</par>
 
-	<par>If you not only want to construct a &dom; tree via a Python script
-	(by directly instantiating these classes), but to read an &xml; file
-	you must register the element class with the parser, this can be done
-	by deriving <pyref class="Namespace"><class>Namespace</class></pyref>
-	classes.</par>
+	<par>If you not only want to construct a tree via a Python script (by
+	directly instantiating these classes), but to read an &xml; file you must
+	register the element class with the parser, this can be done by deriving
+	<pyref class="Namespace"><class>Namespace</class></pyref> classes.</par>
 
-	<par>Every element class should have two class variables:
-	<lit>model</lit>: this is an object that is used for validating the
-	content of the element. See the module <pyref module="ll.xist.sims"><module>ll.xist.sims</module></pyref>
+	<par>Every element class should have two class variables:</par>
+	<dlist>
+	<term><lit>model</lit></term><item>This is an object that is used for
+	validating the content of the element. See the module
+	<pyref module="ll.xist.sims"><module>ll.xist.sims</module></pyref>
 	for more info. If <lit>model</lit> is <lit>None</lit> validation will
-	be skipped, otherwise it will be performed when parsing or publishing.</par>
+	be skipped, otherwise it will be performed when parsing or publishing.</item>
 
-	<par><lit>Attrs</lit>, which is a class derived from
+	<term><lit>Attrs</lit></term><item>This is a class derived from
 	<pyref class="Element.Attrs"><class>Element.Attrs</class></pyref>
 	and should define all attributes as classes nested inside this
-	<class>Attrs</class> class.</par>
+	<class>Attrs</class> class.</item>
+	</dlist>
 	"""
 
 	model = None
