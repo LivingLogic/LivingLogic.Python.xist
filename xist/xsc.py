@@ -286,6 +286,9 @@ class XSCNode:
 	def _strattrquotes(self,content):
 		return self._stransi(xsc.repransiquotes,'"') + content + self._stransi(xsc.repransiquotes,'"')
 
+	def _strpi(self,target,data):
+		return self._strtag(self._stransi(xsc.repransipiquestion,"?") + self._stransi(xsc.repransipitarget,target) + " " + self._stransi(xsc.repransipidata,data) + self._stransi(xsc.repransipiquestion,"?"))
+
 	def __str__(self):
 		return self.dostr()
  
@@ -527,11 +530,27 @@ class XSCDocType(XSCNode):
 	def _dorepr(self):
 		return self._strtag("!DOCTYPE " + self.content)
 
-	def _doreprtree(self,nest = 0):
+	def _doreprtree(self,nest,elementno):
 		return [[nest,self.startlineno,elementno,self._strtag("!DOCTYPE " + self.content)]]
 
 	def dostr(self):
 		return "<!DOCTYPE " + self.content + ">"
+
+class XSCProcInst(XSCNode):
+	"""processing instructions"""
+
+	def __init__(self,target,content = ""):
+		self.target = target
+		self.content = content
+
+	def _dorepr(self):
+		return self._strpi(self.target,self.content)
+
+	def _doreprtree(self,nest,elementno):
+		return [[nest,self.startlineno,elementno,self._strpi(self.target,self.content)]]
+
+	def dostr(self):
+		return "<?" + self.target + " " + self.content + "?>"
 
 class XSCElement(XSCNode):
 	"""XML elements"""
@@ -703,8 +722,10 @@ class XSCHandler(saxlib.HandlerBase):
 	def endDocument(self):
 		self.root = self.nesting[0] # we're finished parsing and the XSCFrag that we put at the bottom of the stack is our document root
 
-	def processingInstruction(self,target,remainder):
-		pass
+	def processingInstruction(self,target,data):
+		e = XSCProcInst(target,data)
+		e.startlineno = self.lineno
+		self.nesting[-1].append(e) # add the new PI to the content of the innermost element
 
 	def startElement(self, name, attrs):
   		lowername = string.lower(name)
@@ -866,6 +887,9 @@ class XSC:
 		self.repransiattrname = "33"
 		self.repransitext = ""
 		self.repransiquotes = "36"
+		self.repransipiquestion = "36"
+		self.repransipitarget = "36"
+		self.repransipidata = "36"
 		self.reprtree = 1
 		self.ignorelinefeed = 0
 		self.parser = saxexts.make_parser()
