@@ -2,7 +2,7 @@
 
 # Setup script for XIST
 
-__version__ = "$Revision$"[11:-2]
+__version__ = tuple(map(int,"$Revision$"[11:-2].split(".")))
 # $Source$
 
 from distutils.core import setup, Extension
