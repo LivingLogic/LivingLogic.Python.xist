@@ -576,7 +576,7 @@ class hr(xsc.Element):
 	"""
 	empty = 1
 	attrHandlers = xsc.appendDict(coreattrs,events)
-	attrHandlers = xsc.appendDict(attrHandlers,{ "noshade" : xsc.TextAttr } ) # deprecated
+	attrHandlers = xsc.appendDict(attrHandlers,{ "noshade" : xsc.TextAttr , "size" : xsc.TextAttr } ) # deprecated
 xsc.registerElement(hr)
 
 # The pain, the pain ...
