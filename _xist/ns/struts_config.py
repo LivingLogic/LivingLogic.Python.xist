@@ -20,7 +20,8 @@
 ## IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 """
-<doc:par>Namespace module for struts-config: <code>http://jakarta.apache.org/struts/dtds/struts-config_1_0.dtd</code>.</doc:par>
+<doc:par>Namespace module for <a href="http://jakarta.apache.org/struts/">Struts</a>
+configuration files: <lit><a href="http://jakarta.apache.org/struts/dtds/struts-config_1_0.dtd">http://jakarta.apache.org/struts/dtds/struts-config_1_0.dtd</a></lit>.</doc:par>
 """
 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))

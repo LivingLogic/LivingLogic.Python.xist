@@ -20,7 +20,9 @@
 ## IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 """
-<doc:par>A module that allows you to embed struts html custom tag library.</doc:par>
+<doc:par>A module that allows you to embed tags from
+the <a href="http://jakarta.apache.org/struts/">Struts</a>
+html custom tag library.</doc:par>
 """
 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
@@ -50,7 +52,7 @@ class base(Element):
 
 class MouseElement(Element):
 	"""
-	common base class for all the struts elements which have mouse-attributes
+	common base class for all the struts elements which have mouse attributes
 	"""
 	attrHandlers = {"accesskey": xsc.TextAttr, "onblur": xsc.TextAttr, "onchange": xsc.TextAttr, "onclick": xsc.TextAttr}
 	attrHandlers.update({"ondblclick": xsc.TextAttr, "onfocus": xsc.TextAttr, "onkeydown": xsc.TextAttr, "onkeypress": xsc.TextAttr})
