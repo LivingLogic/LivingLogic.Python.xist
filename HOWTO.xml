@@ -536,7 +536,7 @@ you can change that with <function>warnings.filterwarnings</function>):</par>
 
 <section><title>Required attributes</title>
 <par>Finally it's possible to specify that an attribute is required.
-This will only be checked when parsing or publishing. To specify that an
+This again will only be checked when parsing or publishing. To specify that an
 attribute is required simply add the class attribute <lit>required</lit>
 with the value <lit>True</lit>. The attribute <lit>alt</lit> of the
 class <pyref module="ll.xist.ns.html" class="img"><class>ll.xist.ns.html.img</class></pyref>
@@ -635,7 +635,7 @@ and
 <pyref module="ll.xist.xsc" class="Node" method="asBytes"><method>asBytes</method></pyref>
 returns an 8bit &xml; string. You can specify the encoding with the
 parameter <arg>encoding</arg> (with <lit>"us-ascii"</lit> being the default).
-Unencodable characters will be escaped with numeric character references when possible
+Unencodable characters will be escaped with character references when possible
 (i.e. inside text nodes, for comments or processing instructions you'll get
 an exception):</par>
 
@@ -835,7 +835,7 @@ return a reversed or sorted version of an element or fragment:</par>
 
 <par>The method <pyref module="ll.xist.xsc" class="Node" method="mapped"><method>mapped</method></pyref>
 recursively walks the tree and generates a new tree, where all the nodes are mapped
-through a function. For example to replace <lit>Python</lit> with <lit>Parrot</lit>
+through a function. An example: To replace <lit>Python</lit> with <lit>Parrot</lit>
 in every text node on the <link href="http://www.python.org/">Python page</link>, do the following:</par>
 
 <programlisting>
@@ -900,8 +900,8 @@ omit the <arg>base</arg> argument, so it will default to the
 will still point back to their original location, or you
 might want to use the empty &url; <lit>URL()</lit> as the
 base, so you'll get all &url; in the page as they are.</item>
-<item><par>When &xist; is used a a compiler for static pages, you'll
-read source &xml; files, do a conversion and write the
+<item><par>When &xist; is used as a compiler for static pages, you're
+going to read source &xml; files, do a conversion and write the
 result to a new target file. In this case you should probably
 use the &url; of the target file for both parsing and
 publishing. Let's assume we have an &url; <lit>#top</lit>
@@ -957,15 +957,15 @@ So to make an image twice as wide and high do the following:</par>
 <section><title>Embedding Python code</title>
 <par>It's possible to embed Python code into &xist; &xml; files. For this
 &xist; supports two new processing instructions:
-<pyref module="ll.xist.ns.code" class="Exec"><lit>code:exec</lit></pyref>
-and <pyref module="ll.xist.ns.code" class="Eval"><lit>code:eval</lit></pyref> (in the module
-<pyref module="ll.xist.ns.code"><module>xist.ns.code</module></pyref>. The content of
-<pyref module="ll.xist.ns.code" class="Exec"><lit>code:exec</lit></pyref> will be
+<pyref module="ll.xist.ns.code" class="exec_"><lit>exec_</lit></pyref>
+and <pyref module="ll.xist.ns.code" class="eval_"><lit>eval_</lit></pyref> (in the module
+<pyref module="ll.xist.ns.code"><module>ll.xist.ns.code</module></pyref>. The content of
+<pyref module="ll.xist.ns.code" class="exec_"><lit>exec_</lit></pyref> will be
 executed when the processing instruction node is instantiated, i.e. when the
 &xml; file is parsed, so anything you do there will be available afterwards.</par>
 
 <par>The result of a call to <pyref module="ll.xist.xsc" class="Node" method="convert"><method>convert</method></pyref>
-for a <pyref module="ll.xist.ns.code" class="Eval"><lit>code:eval</lit></pyref> processing instruction is whatever the
+for a <pyref module="ll.xist.ns.code" class="eval_"><lit>eval_</lit></pyref> processing instruction is whatever the
 Python code in the content returns. The processing instruction content is treated as the body
 of a function, so you can put multiple return statements there.
 The converter is available as the parameter <arg>converter</arg> inside
