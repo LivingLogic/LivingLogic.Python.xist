@@ -370,6 +370,10 @@ class XSCFrag(XSCNode):
 		"""returns a slice of the content of the fragment"""
 		return XSCFrag(self.content[index1:index2])
 
+	def __setslice__(self,index1,index2,sequence):
+		"""modifies a slice of the content of the fragment"""
+		self.content[index1:index2] = map(ToNode,sequence)
+
 	def __delslice__(self,index1,index2):
 		"""removes a slice of the content of the fragment"""
 		del self.content[index1:index2]
@@ -555,6 +559,10 @@ class XSCElement(XSCNode):
 	def __getslice__(self,index1,index2):
 		"""returns a slice of the content of the element"""
 		return self.content[index1:index2]
+
+	def __setslice__(self,index1,index2,sequence):
+		"""modifies a slice of the content of the element"""
+		self.content[index1:index2] = sequence
 
 	def __delslice__(self,index1,index2):
 		"""removes a slice of the content of the element"""
