@@ -39,7 +39,7 @@ entities are missing; any volunteers for implementing 375 classes?)</li>
 </li>
 
 <li><filename>sql.py</filename> has been removed from &xist;, but is available
-as a <a href="*/sql/index.html">separate module</a>.</li>
+as a <a href="root:sql/index.html">separate module</a>.</li>
 
 <li>The parsing interface has been changed. Parsing is now done
 with the function <function>parseFile</function>, <function>parseString</function>,
@@ -152,6 +152,10 @@ write the following &xml;:
 &lt;/if&gt;
 </programlisting>
 </li>
+<li>URL handling has be conpletely changed and is much, much simpler now.
+There are no more path markers. To specify an URL that is relative to the
+current directory use the scheme <code>root</code> (e.g. 
+<code>root:main.css</code>.</li>
 </ul>
 </section>
 

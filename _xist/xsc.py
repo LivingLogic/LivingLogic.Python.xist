@@ -180,18 +180,18 @@ of the object.</dbl:para>
 <dbl:para>Using this new element is simple
 <dbl:example title="Using the new element">
 <dbl:programlisting>
-node = cool("Python")
-node = node.conv()
+>>> node = cool("Python")
+>>> print node.conv().asBytes()
+&lt;b>Python is cool!&lt;/b>
 </dbl:programlisting>
 </dbl:example>
-This gives the same object tree as
-<dbl:programlisting>
-node = html.b("Python", " is cool!")
-</dbl:programlisting>
 (<dbl:pyref module="xist.xsc" class="Node" method="conv">conv</dbl:pyref> simply
 calls
 <dbl:pyref module="xist.xsc" class="Node" method="convert">convert</dbl:pyref>
-with an argument. We'll come to converters in a minute.)
+with an argument. We'll come to converters in a minute. 
+<dbl:pyref module="xist.xsc" class="Node" method="asBytes">asBytes</dbl:pyref>
+is a method that converts to node to a string. This method will be explained
+when we discuss the publishing interface.)
 </dbl:para>
 
 <dbl:para>Note that it is vital for your own <pyref method="convert">convert</pyref>
@@ -206,32 +206,28 @@ class python(xsc.Element):
 	def convert(self, converter):
 		return html.a("Python", href="http://www.python.org/")
 </dbl:programlisting>
-Now the following code:
+Now we can do the following:
 <dbl:programlisting>
-node = cool(python())
-node = node.conv()
+>>> node = cool(python())
+>>> print node.conv().asBytes()
+&lt;b>&lt;a href="http://www.python.org/">Python&lt;/a> is cool!&lt;/b>
 </dbl:programlisting>
-gives a tree equivalent to
-<dbl:programlisting>
-node = html.b(
-	html.a("Python", href="http://www.python.org/"),
-	" is cool!"
-)
-</dbl:programlisting>
-but it would give something like:
-<dbl:programlisting>
-node = html.b(
-	python(),
-	" is cool!"
-)
-</dbl:programlisting>
-if the element <pyref class="cool">cool</pyref> was written like this:
+But if we forget to call
+<pyref module="xist.xsc" class="Node" method="convert">convert</pyref>
+for our own content, i.e. if the element <pyref class="cool">cool</pyref> 
+was written like this:
 <dbl:programlisting>
 class cool(xsc.Element):
 	empty = 0
 
 	def convert(self, converter):
 		return html.b(self.content, " is cool!")
+</dbl:programlisting>
+we would get:
+<dbl:programlisting>
+>>> node = cool(python())
+>>> print node.conv().asBytes()
+&lt;b>&lt;python /> is cool!&lt;/b>
 </dbl:programlisting>
 </dbl:para>
 
@@ -283,7 +279,7 @@ free to use it in your own classes.
 
 <dbl:section><dbl:title>Attributes</dbl:title>
 <dbl:para>Every element can be used as a attribute mapping so if <code>node</code>
-is an <pyref module="xist.xsc" class="Element">Element</pyref> (that supports the
+is an <pyref module="xist.xsc" class="Element">Element</pyref> that supports the
 attribute <code>spam</code> the following can be
 done:
 <example title="Working with attributes">
@@ -335,19 +331,45 @@ Such attributes will be ignored when publishing.
 or <markup>&lt;img/&gt;</markup> do in &html;) or not.</li>
 <li>what attributes the element supports and of which type they are.</li>
 </ol>
-Specifying the content model is done with the class attribute <code>empty</code>.
+</dbl:para>
+
+<dbl:para>Specifying the content model is done with the class attribute <code>empty</code>.
 Set it to <code>0</code>, when your element may have content and to <code>1</code>
-if it may not.
+if it may not.</dbl:para>
+
+<dbl:para>To specify the attributes for the element, use the class
+attribute <pyref>attrHandlers</pyref>, which must be a dictionary
+mapping attribute names to attribute classes. We could extend our
+example element in the following way:
+<dbl:example title="Using attributes">
+<dbl:programlisting>
+class cool(xsc.Element):
+	empty = 0
+	attrHandlers = {"adj": xsc.TextAttr}
+
+	def convert(self, converter):
+		node = xsc.Frag(self.content, " is")
+		if self.hasAttr("adj"):
+			node.append(" ", html.em(self["adj"]))
+		node.append(" cool!")
+		return node.convert(converter)
+</dbl:programlisting>
+</dbl:example>
+and use it like this
+<dbl:programlisting>
+>>> node = cool(python(), adj="totally")
+>>> print node.conv().asBytes()
+&lt;a href="http://www.python.org/">Python&lt;/a> is &lt;em>totally&lt;/em> cool!
+</dbl:programlisting>
 </dbl:para>
 </dbl:section>
 
 <dbl:section><dbl:title>Namespace objects</dbl:title>
-<dbl:para>So how does the parser know which classes to
-instantiate?</dbl:para>
-To be able to use your own classes in XML files, you have
-to tell the parser about them. This is done with
-namespace objects (see the docstring for the Namespace class).
-What you have to do is construct a namespace object for all the
+<dbl:para>Now that you've defined your own elements, you have to
+tell the parser about them, so they can be instantiated when
+a file is parsed. This is done with namespace objects 
+(see the docstring for the Namespace class). What you have to do 
+is construct a namespace object for all the
 elements in your module:
 <example>
 <programlisting>
@@ -358,150 +380,54 @@ namespace = xsc.Namespace(
 )
 </programlisting>
 </example>
+All namespace objects will automatically be registered with the
+parser. Now all newly defined elements will be used when parsing
+files.</dbl:para>
 </dbl:section>
-This object can be converted to a printable unicode string with
-the method asString():
-	print e.asString()
+</dbl:section>
 
-In XIST you're not limited to the HTML element types.
-You can define your own! To be able to convert these
-new element types to a HTML object tree, you must implement
-the method convert, and you must derive your class from
-xsc.Element as in the following example:
+<dbl:section><dbl:title>Publishing &dom; trees</dbl:title>
+</dbl:section>
 
-Using this element is as simple as this:
-<programlisting>
-	e = cool()
-	print e.convert().asString()
-</programlisting>
-
-(The additional argument converter allows you to implement
-different processing modes or stages)
-
-The class variable empty in the above example specifies
-that the element type has an empty content model (like 
-<markup>&lt;br/&gt;</markup> or <markup>&lt;img/&gt;</markup>).
-
-
-URLs, path markers and the URL stack
-====================================
+<dbl:section><dbl:title>Miscellaneous</dbl:title>
+<dbl:section><dbl:title>URLs</dbl:title>
 XIST has a class for URLs (URL.URL) which is a thin
 wrapper around urlparse's features. You can add URLs
 via +, e.g.
 	URL("http://www.foo.org/") + URL("/images/bar.png")
 yields an URL object equivalent to
 	URL("http://www.foo.org/images/bar.png").
+</dbl:section>
 
-Path markers
-------------
-XIST supports so called "path markers". Any directory
-name in an URL starting with "*" is not a real directory
-name, but marks a position in the path. When you add
-two URLs and the second one starts with a path marker,
-the second URL will be considered relative to the part
-of the path before the first occurence of the same path
-marker in the first URL. Example:
-	URL("http://www.foo.org/gurk/*root/hurz/hinz.html") + URL("*root/kunz/hinz.png")
-yields the following URL
-	URL("http://www.foo.org/gurk/*root/kunz/hinz.png")
-which is equivalent to
-	URL("http://www.foo.org/gurk/kunz/hinz.png").
-You can use this feature to simplify the handling of
-deeply nested directory structures.
-
-The URL stack
--------------
-XIST maintains a stack of URLs that is used in parsing files.
-
-Whenever you parse an XML file via xsc.xsc.parse(name),
-the URL corresponding to name will be pushed onto the stack.
-All URL attributes (e.g. the href in <markup>&lt;a&gt;</markup>, or the src in <markup>&lt;img&gt;</markup>)
-encountered during the parsing of the file will be interpreted
-relative to the URL on top of the stack. After parsing the file
-the URL will be popped of the stack again. This means that
-all URLs will point to the correct location.
-
-When an URL is pushed onto the stack the URL itself will be
-interpreted relative to the old one on top of the stack.
-XIST itself always pushes "*/" onto the stack when starting
-up. ("*/" is a nameless path marker that allows you to easily
-return to the root of your directory tree)
-
-Example:
-When you parse a file "foo/bar/baz.xml" via
-<programlisting>
-element = xsc.xsc.parse("foo/bar/baz.xml")
-</programlisting>
-and this file contains an image
-<programlisting>
-&lt;img src="*/images/gurk.png"/&gt;
-</programlisting>
-the following will happen:
-The URL "foo/bar/baz.xml" will be pushed onto the stack.
-As the stack already contains the URL "*/", this will
-result in a new stacktop "*/foo/bar/baz.xml". Now when
-the image is encountered, the stacktop and the image
-URL will be added together to yield
-	"*/images/gurk.png".
-
-Output of URLs
---------------
-So what happens with the URL "*/images/gurk.png" in the
-above example, when the element is converted to a string?
-All URLs encountered during this conversion will be made
-relative to the URL on the stacktop and output in this
-way. This means the following:
-You have to manually push the URL of the file you read
-onto the stack:
-	xsc.xsc.pushURL("foo/bar/baz.xml")
-and then the image URL "*/images/gurk.png" from above
-will be output as "../../images/gurk.png".
-(And don't forget to pop the URL again with xsc.xsc.popURL())
-
-There is another situation where you will want to manually
-push an URL onto the stack: When some of your own elements
-generate new URLs in their convert() methods. As this
-conversion happens sometime after the file is parsed, the URL
-of the file is already gone from the stack. But of course
-you will want new URLs to be interpreted relative to the file
-name in which the element was encountered. So you have to push
-the URL to the stack manually. Of course all these steps can
-be combined into the following:
-	url = "foo/bar/baz.xml"
-	element = xsc.xsc.parse(url)
-	xsc.xsc.pushURL(url)
-	str = element.convert().asString()
-	xsc.xsc.popURL()
-
-Automatic generation of image size attributes
-=============================================
-The module special contains an element autoimg, that extends
+<dbl:section><dbl:title>Automatic generation of image size attributes</dbl:title>
+<dbl:para>The module special contains an element autoimg, that extends
 html.img. When converted to HTML via the convert() method the
 size of the image will be determined and the HEIGHT
-and WIDTH attributes will be set accordingly.
+and WIDTH attributes will be set accordingly.</dbl:para>
 
-This is not the whole truth. When the WIDTH or HEIGHT attribute
+<dbl:para>This is not the whole truth. When the WIDTH or HEIGHT attribute
 is already specified, the following happens:
 %-formatting is used on the attribute value, the width and
 height of the image is passed to the % operator as a dictionary
 with the keys "width" and "height". The resulting string is
 eval()uated and it's result is used for the attribute. So to make
 an image twice as wide and high do the following:
-<programlisting>
+<dbl:programlisting>
 &lt;img src="foo.png" width="%(width)d*2" height="%(height)d*2"/&gt;
-</programlisting>
+</dbl:programlisting></dbl:para>
+</dbl:section>
 
 <dbl:section><dbl:title>Embedding Python code</dbl:title>
-<para>It's possible to embed Python code into &xist; &xml; files. For this
+<dbl:para>It's possible to embed Python code into &xist; &xml; files. For this
 &xist; supports two new processing instruction targets: <markup>xsc:exec</markup> 
 and <markup>xsc:eval</markup>. The content of <markup>xsc:exec</markup> will be 
 executed when the processing instruction node is instantiated, i.e. when the 
-&xml; file is parsed, so anything you do there will be available afterwards.</para>
+&xml; file is parsed, so anything you do there will be available afterwards.</dbl:para>
 
-<para>The result of a call to <function>convert</function> for a <markup>xsc:eval</markup> 
-processing instruction is whatever the Python code in the content returns. 
-For example, consider the following &xml; file:
-<programlisting>
+<dbl:para>The result of a call to <pyref module="xist.xsc" class="None" method="convert">convert</pyref> 
+for a <markup>xsc:eval</markup> processing instruction is whatever the 
+Python code in the content returns. For example, consider the following &xml; file:
+<dbl:programlisting>
 &lt;?xsc:exec
 	# sum
 	def gauss(top=100):
@@ -511,15 +437,17 @@ For example, consider the following &xml; file:
 		return sum
 ?&gt;
 &lt;b&gt;&lt;?xsc:eval return gauss()?&gt;&lt;/b&gt;
-</programlisting>
-Parsing this file and converting it to &html; results in the following:
-<programlisting>
-&lt;b&gt;5050&lt;/b&gt;
-</programlisting>
-</para>
+</dbl:programlisting>
+Parsing this file and calling 
+<pyref module="xist.xsc" class="None" method="convert">convert</pyref> results in the following:
+<dbl:programlisting>
+&lt;b>5050&lt;/b>
+</dbl:programlisting>
+</dbl:para>
 
-<para>For further information see the class <classname>ProcInst</classname> 
-and it's two derived classes <classname>Eval</classname> and <classname>Exec</classname>.</para>
+<dbl:para>For further information see the class <pyref module="xist.xsc" class="ProcInst">ProcInst</pyref> 
+and it's two derived classes <pyref module="xist.xsc" class="Eval">Eval</pyref> and 
+<pyref module="xist.xsc" class="Exec">Exec</pyref>.</dbl:para>
 """
 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
@@ -527,7 +455,10 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 
 import os, string, types, sys, stat, urllib, random
 
-import Image
+try:
+	import Image
+except ImportError:
+	Image = None
 
 import procinst, url, presenters, publishers, converters, errors, options, utils, helpers
 
@@ -856,6 +787,19 @@ class Node:
 		node.startLoc = self.startLoc
 		node.endLoc = self.endLoc
 		return node
+
+	def _publishName(self, publisher):
+		if self.publishPrefix is not None:
+			publishPrefix = self.publishPrefix
+		else:
+			publishPrefix = publisher.publishPrefix
+		if publishPrefix and hasattr(self, "namespace"):
+			publisher.publish(self.namespace.prefix) # must be registered to work
+			publisher.publish(u":")
+		if hasattr(self, "name"):
+			publisher.publish(self.name)
+		else:
+			publisher.publish(self.__class__.__name__)
 
 	def mapped(self, function):
 		"""
@@ -1362,9 +1306,8 @@ class ProcInst(CharacterData):
 	by other classes derived from <code>ProcInst</code>.</par>
 	"""
 
-	def __init__(self, target, content=u""):
-		self._target = helpers.unistr(target)
-		CharacterData.__init__(self, content)
+	# we don't need a constructor, because we don't have to store the target, 
+	# because the target is our classname
 
 	def convert(self, converter):
 		return self
@@ -1383,14 +1326,7 @@ class ProcInst(CharacterData):
 		if self._content.find(u"?>")!=-1:
 			raise errors.IllegalProcInstFormatError(self)
 		publisher.publish(u"<?")
-		if self.publishPrefix is not None:
-			publishPrefix = self.publishPrefix
-		else:
-			publishPrefix = publisher.publishPrefix
-		if publishPrefix:
-			publisher.publish(self.namespace.prefix) # must be registered to work
-			publisher.publish(u" ")
-		publisher.publish(self._target)
+		self._publishName(publisher)
 		publisher.publish(u" ")
 		publisher.publish(self._content)
 		publisher.publish(u"?>")
@@ -1420,7 +1356,7 @@ class Exec(PythonCode):
 	register = 1
 
 	def __init__(self, content=u""):
-		ProcInst.__init__(self, u"exec", content)
+		ProcInst.__init__(self, content)
 		code = utils.Code(self._content, 1)
 		exec code.asString() in procinst.__dict__ # requires Python 2.0b2 (and doesn't really work)
 
@@ -1446,7 +1382,7 @@ class Eval(PythonCode):
 	register = 1
 
 	def __init__(self, content=u""):
-		ProcInst.__init__(self, u"eval", content)
+		ProcInst.__init__(self, content)
 
 	def convert(self, converter):
 		"""
@@ -1468,7 +1404,7 @@ class XML(ProcInst):
 	publishPrefix = 0
 
 	def __init__(self, content=u""):
-		ProcInst.__init__(self, u"xml", content)
+		ProcInst.__init__(self, content)
 
 	def publish(self, publisher):
 		encodingfound = utils.findAttr(self._content, u"encoding")
@@ -1501,7 +1437,7 @@ class XMLStyleSheet(ProcInst):
 	publishPrefix = 0
 
 	def __init__(self, content=u""):
-		ProcInst.__init__(self, u"xml-stylesheet", content)
+		ProcInst.__init__(self, content)
 
 class Element(Node):
 	"""
@@ -1649,14 +1585,7 @@ class Element(Node):
 		if publisher.inAttr:
 			raise errors.IllegalAttrNodeError(self)
 		publisher.publish(u"<")
-		if self.publishPrefix is not None:
-			publishPrefix = self.publishPrefix
-		else:
-			publishPrefix = publisher.publishPrefix
-		if publishPrefix:
-			publisher.publish(self.namespace.prefix) # requires that the element is registered via registerElement()
-			publisher.publish(u":")
-		publisher.publish(self.name) # requires that the element is registered via registerElement()
+		self._publishName(publisher)
 		self._publishAttrs(publisher)
 		if len(self):
 			if self.empty:
@@ -1664,10 +1593,7 @@ class Element(Node):
 			publisher.publish(u">")
 			self.content.publish(publisher)
 			publisher.publish(u"</")
-			if publishPrefix:
-				publisher.publish(self.namespace.prefix) # requires that the element is registered via registerElement()
-				publisher.publish(u":")
-			publisher.publish(self.name)
+			self._publishName(publisher)
 			publisher.publish(u">")
 		else:
 			if publisher.XHTML in (0, 1):
@@ -1677,10 +1603,7 @@ class Element(Node):
 					publisher.publish(u">")
 				else:
 					publisher.publish(u"></")
-					if publishPrefix:
-						publisher.publish(self.namespace.prefix) # requires that the element is registered via registerElement()
-						publisher.publish(u":")
-					publisher.publish(self.name)
+					self._publishName(publisher)
 					publisher.publish(u">")
 			elif publisher.XHTML == 2:
 				publisher.publish(u"/>")
@@ -1934,14 +1857,7 @@ class Entity(Node):
 
 	def publish(self, publisher):
 		publisher.publish(u"&")
-		if self.publishPrefix is not None:
-			publishPrefix = self.publishPrefix
-		else:
-			publishPrefix = publisher.publishPrefix
-		if publishPrefix:
-			publisher.publish(self.namespace.prefix) # requires that the entity is registered via Namespace.register()
-			publisher.publish(u":")
-		publisher.publish(self.name) # requires that the entity is registered via Namespace.register()
+		self._publishName(publisher)
 		publisher.publish(u";")
 
 class CharRef(Entity):
@@ -2069,7 +1985,7 @@ class URLAttr(Attr):
 
 	def publish(self, publisher):
 		u = self.asURL()
-		if u.scheme is None and (len(u)==0 or url._isNoPathMarker(u[0])):
+		if u.scheme is None:
 			return Text(u.asPlainString()).publish(publisher)
 		else:
 			return Text(u.relativeTo(publisher.base).asPlainString()).publish(publisher)
@@ -2098,7 +2014,7 @@ class URLAttr(Attr):
 	def forInput(self):
 		u = self.base + self.asURL()
 		if u.scheme == "server":
-			u = u.relativeTo(url.URL(scheme="http", server=options.server))
+			u = url.URL(scheme="http", server=options.server) + u
 		return u
 
 	def ImageSize(self):
@@ -2106,19 +2022,20 @@ class URLAttr(Attr):
 		returns the size of an image as a tuple or None if the image shouldn't be read
 		"""
 
-		url = self.forInput()
 		size = None
-		if url.isRetrieve():
-			try:
-				(filename, headers) = url.retrieve()
-				if headers.maintype == "image":
-					img = Image.open(filename)
-					size = img.size
-					del img
-				urllib.urlcleanup()
-			except IOError:
-				urllib.urlcleanup()
-				raise errors.FileNotFoundError(url)
+		if Image is not None:
+			url = self.forInput()
+			if url.isRetrieve():
+				try:
+					(filename, headers) = url.retrieve()
+					if headers.maintype == "image":
+						img = Image.open(filename)
+						size = img.size
+						del img
+					urllib.urlcleanup()
+				except IOError:
+					urllib.urlcleanup()
+					raise errors.FileNotFoundError(url)
 		return size
 
 	def FileSize(self):

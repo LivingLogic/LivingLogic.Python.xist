@@ -68,7 +68,7 @@ def make(args):
 	"""
 	(options, args) = getopt.getopt(args, "p:i:o:e:x:m:f:r:n:F:t:s:l:", ["path=", "import=", "output=", "encoding=", "xhtml=", "mode=", "files=", "spacefiles=", "parser=", "namespace=", "target=", "stage=", "lang="])
 
-	globaloutname = url.URL("*/")
+	globaloutname = url.URL(scheme=u"root")
 	encoding = None
 	XHTML = None
 	mode = None

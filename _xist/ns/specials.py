@@ -137,10 +137,10 @@ class x(xsc.Element):
 class pixel(html_.img):
 	"""
 	element for single pixel images, the default is the image
-	"*/Images/Pixels/dot_clear.gif", but you can specify the color
+	"root:Images/Pixels/dot_clear.gif", but you can specify the color
 	as a six digit hex string, which will be used as the filename,
 	i.e. <pixel color="000000"/> results in
-	<img src="*/Images/Pixels/000000.gif">.
+	<img src="root:Images/Pixels/000000.gif">.
 
 	In addition to that you can specify width and height attributes
 	(and every other allowed attribute for the img element) as usual.
@@ -165,7 +165,7 @@ class pixel(html_.img):
 			e["width"] = 1
 		if not e.hasAttr("height"):
 			e["height"] = 1
-		e["src"] = ("*/Images/Pixels/", color, ".gif")
+		e["src"] = ("root:Images/Pixels/", color, ".gif")
 
 		return e.convert(converter)
 

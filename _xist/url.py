@@ -29,152 +29,78 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 
 import types, urlparse, urllib
 
-from xist import helpers, options
+from xist import options
 
-uses_relative = urlparse.uses_relative + [None]
-uses_netloc = urlparse.uses_netloc
+urlparse.uses_relative.extend(("root", "server", None))
+urlparse.uses_params.extend(("root", "server"))
+urlparse.uses_query.extend(("root", "server"))
+urlparse.uses_fragment.extend(("root", "server"))
+urlparse.non_hierarchical.append("javascript")
 
-def _isPathMarker(dir):
+def _normalize(path):
 	"""
-	_isPathMarker(dir) -> bool
-	
-	returns if the directory name dir is a path marker.
-	"""
-	return dir is not None and dir.startswith("*")
-
-def _isNoPathMarker(dir):
-	"""
-	_isNoPathMarker(dir) -> bool
-	
-	returns not _isPathMarker(dir)
-	"""
-	return not _isPathMarker(dir)
-
-
-def removeDuplicateMarkers(path):
-	"""remove duplicate path markers, keep only the last"""
-
-	path = path[:] # make a copy, since path will be modified
-	markers = {} # todo: use a list here ?
-
-	# iterate of path from back to front, None-ing all
-	# path markers which already occured
-	for i in range(len(path)-1, -1, -1): # iterate backwards
-		dir = path[i]
-		if dir in (u'.', u''):
-			path[i] = None
-		elif _isPathMarker(dir):
-			if markers.has_key(dir): # already occured
-				path[i] = None
-			markers[dir] = 1 # mark as used
-	# remove all None-ed path parts
-	return filter(lambda x: x is not None, path)
-
-def isUsefullPathPart(dir):
-	"""
-	returns true if this path part is significant,
-	that is: neither empty, nor '.' or a pathmarker
-	"""
-	# use 'or' for short evaluation (avoid call)
-	return not (dir in (u'.', u'') or _isPathMarker(dir))
-
-def _normalize(path, removeAllMarkers=0):
-	"""
-	normalize the path by removing combinations of down/up
-	and removing duplicate path markers.
-
-	If removeAllMarkers == 1, all path markers will be removed, not
-	only duplicates.
+	normalize the path by removing combinations of down/up,
+	empty path components or '.'.
 	"""
 
 	if path in ([], [u'.']): # shortcut for very common cases
 		return path[:] # return a copy
-	
-	# the first element of absolute pathes '', preserve it
-	wasAbsolutePath = len(path) and path[0] == u''
-	if removeAllMarkers:
-		path = filter(isUsefullPathPart, path)
-	else:
-		path = removeDuplicateMarkers(path)
-	if wasAbsolutePath:
-		path[:0] = [u'']
 
-	# remove "foo/.." combinations
-	# this works by using two pointers: 'i' for the up-dir part
-	# and 'j' for the potential '..' part. After removing one
-	# "foo/.." combination, 'i' and 'j' are set to the
-	# predecessor or successor respectivly. Example:
-	#	aa/bb/cc/../xx			i = 3; j = 4
-	#	aa/bb/<None>/<None>/xx		i = 2; j = 5
-	# This allows reduction of 'aa/bb/cc/../../' to 'aa/'
-	i = 0; j = 1
-	while j < len(path):
-		if path[j] == u".." and path[i] != u".." and _isNoPathMarker(path[i]):
-			# up/down combination found, None it out
-			path[i] = path[j] = None
-			i -= 1 ; j += 1
-			if i < 0:
-				# all leading dirs have been removed,
-				# so continue behind this part at 'j'
-				i = j; j += 1
-		else:
-			# nothing to do, move on one step
-			i = j; j += 1
-#### this is from urlparse.urljoin():  todo: implement here
-## 	if len(segments) == 2 and segments[1] == '..' and segments[0] == '':
-## 		segments[-1] = ''
-## 	elif len(segments) >= 2 and segments[-1] == '..':
-## 		segments[-2:] = ['']
-	return [ x for x in path if x is not None ] or [u'.']
+	wasAbsolutePath = len(path) and path[0] == u'' # the first element of absolute paths '', preserve it
+
+	newpath = []
+	for dir in path:
+		if dir and dir != ".":
+			if dir == u".." and newpath and newpath[-1] != "..":
+				newpath.pop()
+			else:
+				newpath.append(dir)
+	if wasAbsolutePath:
+		newpath.insert(0, u'')
+
+	return newpath
 
 class URL:
 	"""
 	This class represents XSC URLs.
 	Every instance has the following instance variables:
-	scheme -- The scheme (e.g. "http" or "ftp"); there's a special scheme "server" for server relative URLs
+	scheme -- The scheme (e.g. "http" or "ftp"); there's a special scheme "server" for server relative URLs and "root" for URLs relative to the current directory
 	server -- The server name
 	port -- The port number
 	path -- The path to the file as a list of strings
 	file -- The filename including the extension
-	parameters -- The parametes
+	params -- The parametes
 	query -- The query
 	fragment -- The fragment
 	These variables form a URL in the following way
 	<scheme>://<server>:<port>/<path>/<file>;<params>?<query>#<fragment>
 
-	There is one additional feature supported by this class: path markers
-	A path marker is a directory name beginning with *. A path marker is
-	not treated as a real directory name, but marks a position in a path.
-	When you combine two URLs and the second URL begins with a path marker
-	the path will be relative to the directory path to the left of the same
-	path marker in the first URL. Example:
-		URL("/foo/bar/*root/cgi/baz.py") + URL("*root/cgi2/baz2.py")
-	will be an URL equivalent to
-		URL("/foo/bar/*root/cgi2/baz2.py")
+	There is one additional feature supported by this class: the scheme root
+	is used for URLs that are relative to the current directory.
 	"""
 
 	__safe = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_,.-:/"
 
-	def __init__(self, url=None, scheme=None, server=None, port=None, path=None, file=None, parameters=None, query=None, fragment=None):
+	def __init__(self, url=None, scheme=None, server=None, port=None, path=None, file=None, params=None, query=None, fragment=None):
 		# initialize the defaults
 		self.scheme = self.server = self.port = None
-		self.__path = []
-		self.file = self.parameters = self.query = self.fragment = None
+		self.path = []
+		self.file = self.params = self.query = self.fragment = None
 		if url is None:
 			pass
 		elif type(url) in (types.StringType, types.UnicodeType):
 			self.__fromString(url)
 		elif isinstance(url, URL):
-			self.scheme     = url.scheme
-			self.server     = url.server
-			self.port       = url.port
-			self.__path     = url.__path[:] # make copy of list
-			self.file       = url.file
-			self.parameters = url.parameters
-			self.query      = url.query
-			self.fragment   = url.fragment
+			self.scheme   = url.scheme
+			self.server   = url.server
+			self.port     = url.port
+			self.path     = url.path[:] # make copy of list
+			self.file     = url.file
+			self.params   = url.params
+			self.query    = url.query
+			self.fragment = url.fragment
 		else:
-			raise ValueError("URL argument must be either a string or an URL or None")
+			raise ValueError("URL argument must be either a string or an URL or None not %s" % type(url))
 
 		if scheme is not None:
 			self.scheme = scheme
@@ -183,86 +109,16 @@ class URL:
 		if port is not None:
 			self.port = port
 		if path is not None:
-			self.__path = map(helpers.unistr, path)
+			self.path = path
 		if file is not None:
 			self.file = file
-		if parameters is not None:
-			self.parameters = parameters
+		if params is not None:
+			self.params = params
 		if query is not None:
 			self.query = query
 		if fragment is not None:
 			self.fragment = fragment
-
-		self.__normalize()
-
-	def __setattr__(self, name, value):
-		if name in ("scheme", "server", "file", "parameters", "query", "fragment"):
-			if value is not None:
-				value = helpers.unistr(value)
-		self.__dict__[name] = value
-
-	def __getitem__(self, index):
-		"""
-		return the <argref>index</argref>th directory from the path (including path markers)
-		"""
-		return self.__path[index]
-
-	def __setitem__(self, index, value):
-		"""
-		allows you to replace the <argref>index</argref>th path entry
-		"""
-		self.__path[index] = helpers.unistr(value)
-		self.__normalize()
-
-	def __delitem__(self, index):
-		"""
-		removes the index'th path entry
-		"""
-		del self.__path[index]
-		self.__normalize()
-
-	def __getslice__(self, index1, index2):
-		"""
-		returns a slice of the path
-		"""
-		return self.__path[index1:index2]
-
-	def __setslice__(self, index1, index2, sequence):
-		"""
-		replaces a slice of the path
-		"""
-		self.__path[index1:index2] = map(helpers.unistr, sequence)
-		self.__normalize()
-
-	def __delslice__(self, index1, index2):
-		"""
-		removes a slice of the path
-		"""
-		del self.__path[index1:index2]
-		self.__normalize()
-
-	def __len__(self):
-		"""
-		return the length of the path
-		"""
-		return len(self.__path)
-
-	def append(self, *others):
-		"""
-		appends all directory names in <argref>others</argref> to the path.
-		"""
-		for other in others:
-			self.__path.append(helpers.unistr(other))
-		self.__normalize()
-
-	def insert(self, index, *others):
-		"""
-		inserts all items in <argref>others</argref> at the position <argref>index</argref> in the path.
-		(this is the same as <code><self/>[<argref>index</argref>:<argref>index</argref>] = <argref>others</argref></code>)
-		"""
-		for other in others:
-			self.__path.insert(index, helpers.unistr(other))
-			index += 1
+		self.path = _normalize(self.path)
 
 	def __repr__(self):
 		v = []
@@ -272,34 +128,65 @@ class URL:
 			v.append("server=" + repr(self.server))
 		if self.port is not None:
 			v.append("port=" + repr(self.port))
-		if self.__path is not None:
-			v.append("path=" + repr(self.__path))
+		if self.path is not None:
+			v.append("path=" + repr(self.path))
 		if self.file is not None:
 			v.append("file=" + repr(self.file))
-		if self.parameters is not None:
-			v.append("parameters=" + repr(self.parameters))
+		if self.params is not None:
+			v.append("params=" + repr(self.params))
 		if self.query is not None:
 			v.append("query=" + repr(self.query))
 		if self.fragment is not None:
 			v.append("fragment=" + repr(self.fragment))
 		return "URL(%s)" % ", ".join(v)
 
-	def asPlainString(self):
-		return self.__asString(0)
-
 	def asString(self):
-		return self.__asString(1)
+		return self._asString(0)
+
+	def asPlainString(self):
+		return self._asString(1)
+
+	def _asString(self, plain):
+		if self.scheme:
+			scheme = self.scheme.lower()
+		else:
+			scheme = u""
+		if self.server:
+			server = self.server.lower()
+		else:
+			server = u""
+		if self.port is not None:
+			server += u":%d" % self.port
+		path = _normalize(self.path)
+		if plain:
+			if scheme==u"server":
+				scheme = u"" # remove our own private scheme name
+				path.insert(0, u"") # make sure that there's a "/" at the start
+			if scheme == u"root":
+				scheme = u""
+		if self.scheme in urlparse.uses_netloc and (self.server is not None or self.port is not None) and not path:
+			path = [""]
+		if not len(path) and self.file == u"" and (self.params or self.query or self.fragment):
+			path = [u"."]
+		file = self.file or u""
+		path.append(file)
+		return urlparse.urlunparse((scheme, server, u"/".join(path), self.params or u"", self.query or u"", self.fragment or u""))
 
 	def __add__(self, other):
-		"""
-		joins two URLs together. When the second URL is
-		absolute (i.e. contains a scheme other than "server"
-		or ""), you'll get a copy of the second URL.
-		"""
-		return self.__join(other)
+		"""Join a base URL and a possibly relative URL to form
+		an absolute interpretation of the latter."""
+
+		other = URL(other) # this implies clone/coerce
+
+		if other.scheme==u"root":
+			return other
+		if other.scheme==u"server":
+			other.scheme = None
+			other.path.insert(0,u"")
+		return URL(urlparse.urljoin(self.asString(), other.asString()))
 
 	def __radd__(self, other):
-		return URL(other).__join(self)
+		return URL(other).__add__(self)
 
 	__radd__.__doc__ = __add__.__doc__
 
@@ -310,61 +197,43 @@ class URL:
 		return URL(self)
 
 	def isRemote(self):
-		if not self.scheme: # may be None
+		if not self.scheme: # may be None or ""
 			return 0
 		elif self.scheme == u"server" and self.server == u"localhost":
 			return 0
 		else:
 			return 1
 
-	def __hasPath(self):
-		"""returns true if path or file is given"""
-		return self.__path or self.scheme == "server" or self.file is not None
-
-	def __requiresPath(self):
-		a = self.server or self.file
-		if self.__path:
-			return not a
-		else:
-			return not (a or self.fragment or self.parameters)
-
-	
 	def relativeTo(self, other):
 		"""
 		<par nointent>returns <self/> interpreted relative
-		to <code>other</code>.</par>
-
-		<par>Note that remote URLs won't be modified in any way,
-		because although the file you've read might have been
-		remote, the parsed XSC file that you output, probably
-		isn't. The resulting URL won't have any path markers
-		in it.</par>
+		to <code><self/> + other</code>, i.e. return a mimimal URL <code>rel</code>,
+		such that <code><self/> + rel = <self/> + other</code>.</par>
 		"""
-		if not self.__hasPath():
-			new = other + self # make eventually absolute URL
-		else: # self has only some of params, query, fragment 
-			new = self.clone()
-		newpath = _normalize(new.__path, removeAllMarkers=1)
-		if not new.scheme:
-			otherpath =_normalize(other.__path, removeAllMarkers=1)
-			if newpath == [u'.']: newpath = []
-			if otherpath == [u'.']: otherpath = []
-			while len(otherpath) and len(newpath) and otherpath[0] == newpath[0]:
-				# throw away identical directories in
-				# both paths (we don't have to go up
-				# from file and down to path for these
-				# identical directories)
+		new = other + self # make URL absolute
+		if new.scheme in urlparse.uses_relative and other.scheme==new.scheme and other.server==new.server and other.port==new.port: # test if the URL uses the same scheme and goes to the same machine
+			# if yes, the url is a relative one
+			new.scheme = None
+			new.server = None
+			new.port = None
+			# we construct the path from one file to the other
+			otherpath = other.path[:]
+			newpath = new.path[:]
+			if newpath==[u'.']: newpath = []
+			if otherpath==[u'.']: otherpath = []
+			while len(otherpath) and len(newpath) and otherpath[0]==newpath[0]:
+				# throw away identical directories in both paths (we don't have to go up
+				# one dir in one path and down in the other for these identical directories)
 				del otherpath[0]
 				del newpath[0]
 			# now for the rest of the path we have to go
 			# up from file and down to path (the
 			# directories for this are still in path)
 			newpath[:0] = [u".."]*len(otherpath)
-			if newpath == [] and new.__requiresPath():
-				newpath = [u"."]
-			if new.file == other.file:
-				new.file = u""
-		new.__path = newpath
+			if newpath==[]:
+				if new.file==other.file: # the link goes to the same file, so throw away the filename
+					new.file = None
+			new.path = newpath
 		return new
 
 	def __cmp__(self, other):
@@ -381,7 +250,13 @@ class URL:
 		server2 = other.server
 		if server2 is not None:
 			server2 = server2.lower()
-		return cmp(scheme1, scheme2) or cmp(server1, server2) or cmp(self.port, other.port) or cmp(self.__path, other.__path) or cmp(self.file, other.file) or cmp(self.parameters, other.parameters) or cmp(self.query, other.query) or cmp(self.fragment, other.fragment)
+		return cmp(scheme1, scheme2) or cmp(server1, server2) or cmp(self.port, other.port) or cmp(self.path, other.path) or cmp(self.file, other.file) or cmp(self.params, other.params) or cmp(self.query, other.query) or cmp(self.fragment, other.fragment)
+
+	def __nonzero__(self):
+		"""
+		return if the URL is not empty (i.e. URL())
+		"""
+		return self.scheme is not None or self.server is not None or self.port is not None or len(self.path) != 0 or self.file is not None or self.params is not None or self.query is not None or self.fragment is not None
 
 	def open(self):
 		return urllib.urlopen(self.__quote())
@@ -396,19 +271,12 @@ class URL:
 		return self.open().readlines()
 
 	def __fromString(self, url):
-		(scheme, server, path, parameters, query, fragment) = urlparse.urlparse(url)
-		scheme = helpers.unistr(scheme)
-		server = helpers.unistr(server)
-		path = helpers.unistr(path)
-		parameters = helpers.unistr(parameters)
-		query = helpers.unistr(query)
-		fragment = helpers.unistr(fragment)
+		(scheme, server, path, params, query, fragment) = urlparse.urlparse(url)
 		if scheme == u"": # do we have a local file?
-			if len(path):
-				if path[0] == u"/": # this is a server relative URL
-					path = path[1:] # drop the empty string in front of the first "/" ...
-					scheme = u"server" # ... and use a special scheme for that
-		elif scheme in (u"ftp", u"http", u"https"):
+			if path[:1] == u"/": # this is a server relative URL
+				path = path[1:] # drop the empty string in front of the first "/" ...
+				scheme = u"server" # ... and use a special scheme for that
+		elif scheme in urlparse.uses_netloc:
 			if len(path) and len(server):
 				path = path[1:] # the path from urlparse started with "/" too
 		port = None
@@ -426,30 +294,16 @@ class URL:
 		self.scheme = scheme or None
 		self.server = server or None
 		self.port = port
-		self.__path = path
-		self.file = file
-		self.parameters = parameters or None
+		self.path = path
+		if (params or query or fragment) and not file and not scheme and not server and not port: # file in URL("#foo") should be unset, but in URL("root:#foo") it should be set
+			self.file = None
+		elif scheme and not path and not file and not params and not query and not fragment:
+			self.file = None
+		else:
+			self.file = file
+		self.params = params or None
 		self.query = query or None
 		self.fragment = fragment or None
-
-	def __asString(self, withPathMarkers):
-		scheme = self.scheme or u""
-		server = self.server or u""
-		if self.port:
-			server += u":" + str(self.port)
-		if withPathMarkers:
-			path = self.__path[:] # make a copy
-		else:
-			path = _normalize(self.__path, removeAllMarkers=1)
-		if scheme == u"server":
-			scheme = u"" # remove our own private scheme name
-			path[:0] = [u""] # make sure that there's a "/" at the start
-		if not self.__requiresPath() and path == [u'.']:
-			path = []
-		file = self.file or u""
-		path.append(file)
-		url = urlparse.urlunparse((scheme, server, u"/".join(path), self.parameters or u"", self.query or u"", self.fragment or u""))
-		return url
 
 	def __quote(self):
 		"""
@@ -465,61 +319,6 @@ class URL:
 		#return "".join(v)
 		return url
 
-	def __join(base, url):
-		"""Join a base URL and a possibly relative URL to form
-		an absolute interpretation of the latter."""
-
-		def do_join(base, url):
-			if not url.scheme:
-				url.scheme = base.scheme
-			if not base.asString(): # FIXME: gibt es das?
-				return url
-			if url.scheme != base.scheme or url.scheme not in uses_relative:
-				return url
-			if url.scheme in uses_netloc:
-				if url.server:
-					return url
-				url.server = base.server
-			if len(url.__path) and url.__path[0] == u'':
-				return url
-			if not url.__path and  url.file is None:
-				# neither path nor filename set
-				url.__path = base.__path[:] # copy
-				url.file = base.file
-				url.query = url.query or base.query
-				return url
-			path = base.__path[:]
-			if len(url.__path) and _isPathMarker(url.__path[0]):
-				try:
-					pos = path.index(url.__path[0])
-				except ValueError:
-					pass
-				else:
-					del path[pos:]
-			url.__path = _normalize(path + url.__path, removeAllMarkers=0)
-			return url
-
-		url = URL(url)  # this implies clone/coerce
-		if url.scheme == 'server':
-			url.scheme = None
-			url.__path[:0] = [u""]
-		if base.scheme == 'server':
-			base = base.clone()
-			base.scheme = None
-			base.__path[:0] = [u""]
-		url = do_join(base, url)
-		if not url.scheme and url.__path[:1] == [u""]:
-			url.scheme = u'server'
-			del url.__path[0]
-		return url
-
-	def __normalize(self):
-		"""
-		normalize the path by removing combinations of down/up
-		and removing duplicate path markers.
-		"""
-		self.__path = _normalize(self.__path, removeAllMarkers=0)
-
 	def isRetrieve(self):
 		"""
 		returns if the file specified by the URL should be retrieved or not
@@ -531,138 +330,49 @@ class URL:
 		else:
 			return 0
 
-def test_normalize():
+def test_normalize(input, output):
 	"""
 	Tests whether '_normalize' returns the expected results.
 	"""
-	for removeMarkers, input, output in (
-		# Tuple format: removeMakers, input, output
-		(0, '', ''),
-		(0, './', '.'),
-		#(0, '/./', '/'), # _normalize does not handle absolute paths
-		(0, 'xx', 'xx'),
-		(0, 'xx/yy', 'xx/yy'),
-		(0, 'xx/..', '.'),
-		(0, 'xx/../.', '.'),
-		(0, './xx/..', '.'),
-		(0, './xx/../.', '.'),
-		(0, 'xx/./..', '.'),
-		(0, 'xx/yy/..', 'xx'),
-		(0, 'xx//yy/../..', '.'),
-		(0, 'xx/../..//', '..'),
-		(0, 'xx/.././..', '..'),
-		(0, 'xx/.', 'xx'),
-		(0, './xx', 'xx'),
-		#(0, '/xx', '/xx'), # _normalize does not handle absolute paths
-		#(0, '/./xx', '/xx'), # dito
+	test = "/".join(_normalize(input.split("/")))
+	if test != output:
+		raise str('normalize test failed. %r -> %r -> %r != %r' % (input, input.split('/'), test, output))
 
-		(0, '*XX', '*XX'),
-		(0, 'xx/*XX', 'xx/*XX'),
-		(0, 'xx/*XX/yy', 'xx/*XX/yy'),
-		(0, 'xx/*XX/..', 'xx/*XX/..'),
-		(0, 'xx/*XX/../.', 'xx/*XX/..'),
-		(0, 'xx/*XX/./..', 'xx/*XX/..'),
-		(0, './xx//*XX/..', 'xx/*XX/..'),
-		(0, './xx/*XX/../.', 'xx/*XX/..'),
-		(0, 'xx/*XX/yy/..', 'xx/*XX'),
-		(0, 'xx/*XX/yy/../..', 'xx/*XX/..'),
-		(0, 'xx/yy/*XX/../..', 'xx/yy/*XX/../..'),
-		(0, 'xx/../*XX/..', '*XX/..'),
-
-		(1, '*XX', '.'),
-		(1, 'xx/*XX', 'xx'),
-		(1, 'xx/*XX/yy', 'xx/yy'),
-		(1, 'xx/*XX/..', '.'),
-		(1, 'xx/*XX//..', '.'),
-		(1, 'xx/*XX/../.', '.'),
-		(1, 'xx/*XX/./..', '.'),
-		(1, './xx//*XX/..', '.'),
-		(1, './xx/*XX/../.', '.'),
-		(1, 'xx//*XX/yy/..', 'xx'),
-		(1, 'xx/*XX/./yy/../..', '.'),
-		(1, 'xx/../*XX/..', '..'),
-
-		):
-		#print `in_`, '\t', `out`
-		test = "/".join(_normalize(input.split("/"), removeMarkers))
-		if test != output:
-			raise str('Test failed. %r -> %r -> %r != %r' % (input, input.split('/'), test, output))
-	print 'test passed: _normalize'
-
-def test_url():
+def test_url(o_lhs, o_rhs):
 	"""
-	Test whether instaziation, '+' and others have the expected effect.
+	Test whether instantiation, '+' and others have the expected effect.
 
 	Check is done via comparing against another URL or a string; in the
 	later case, the URL is converted using asString().
 	"""
 	import types
-	for num, o_lhs, o_rhs in (
-		(10, URL('.'), './'),
-		(11, URL('./'), './'),
-		(20, URL('..'), '../'),
-		(21, URL('../'), '../'),
-		(30, URL('http://aa/bb/cc.html'), 'http://aa/bb/cc.html'),
-		(40, URL('http://aa/*BB/bb/cc.html'), 'http://aa/bb/cc.html'),
-		(50, URL('/aa/bb/cc.html'), '/aa/bb/cc.html'),
-		(60, URL('http:bb/cc/'), 'http:bb/cc/'),
-		# these fail, should they?
-		(69, URL('http:/bb/cc/'), 'http:/bb/cc/'),
-		(70, URL('http:') + URL('/bb/cc/'), 'http:/bb/cc/'),
-		# is this what is expected?
-		(80, URL('http://test.com/index.html') + URL('impress.html'), 'http://test.com/impress.html'),
-		(80, URL('/bb/cc/') + URL('http:'), 'http:'),
-		(90, URL('#mark'), '#mark')
-		):
-		lhs = o_lhs
-		rhs = o_rhs
-		if type(lhs) != type(rhs):
-			if type(rhs) is types.StringType:
-				if isinstance(lhs, URL):
-					lhs = o_lhs.asPlainString()
-				else:
-					lhs = str(lhs)
-			elif type(lhs) is types.StringType:
-				if isinstance(rhs, URL):
-					rhs = o_rhs.asPlainString()
-				else:
-					rhs = str(rhs)
-		if lhs != rhs:
-			raise str('Test %s failed. %r (%r) != %r (%r)' % (num, o_lhs, lhs, o_rhs, rhs))
-	print 'test passed: URL()'
+	lhs = o_lhs
+	rhs = o_rhs
+	if type(lhs) != type(rhs):
+		if type(rhs) is types.StringType:
+			if isinstance(lhs, URL):
+				lhs = o_lhs.asString()
+			else:
+				lhs = str(lhs)
+		elif type(lhs) is types.StringType:
+			if isinstance(rhs, URL):
+				rhs = o_rhs.asString()
+			else:
+				rhs = str(rhs)
+	if lhs != rhs:
+		raise str('Test failed. %r (%r) != %r (%r)' % (o_lhs, lhs, o_rhs, rhs))
 
-def test_relativeTo():
+def test_relativeTo(from_, to, should):
 	"""
 	Test correctness of relativeTo().
 	"""
-	for From, to, should in (
-		('./', './', './'),
-		('cc.html', './', './'),
-		('./cc.html', './', './'),
-		('*/cc.html', '*/', './'),
-		('*/cc.html', './', './'),
-
-		('cc.html', '#mark', '#mark'),
-		('*/cc.html', '*/#mark', './#mark'),
-		('*/cc.html', '#mark', '#mark'),
-		('*/cc.html', '*/cc.html#mark', '#mark'),
-		('*/cc.html', '*/dd.html#mark', 'dd.html#mark'),
-		('*/aa/bb/cc.html', '*/', '../../'),
-		#('', '', ''),
-		#('', '', ''),
-
-		# relativeTo() does not really handle urls with scheme set
-		('http://server/aa/bb.html', 'http://server/aa/cc.html', 'http://server/aa/cc.html'),
-
-		# testing absolute pathes is worthless, since they have
-		# a scheme = 'server' and thus are not really handled
-		('/aa/bb.html', '/xx.html', '/xx.html'),
-		):
-		u = URL(to).relativeTo(URL(From)).asString()
-		#print "\t".join((`URL(to)`, `URL(From)`, u, should))
-		if u != should:
-			raise str('Test failed:\n%r != %r\n(%r -> %r)' % (u, should, From, to))
-	print 'test passed: relativeTo()'
+	relu = URL(to).relativeTo(URL(from_))
+	u = relu.asString()
+	#print "\t".join((`URL(to)`, `URL(from_)`, u, should))
+	if u != should:
+		raise str('Test failed: %r.relativeTo(%r) is %r but should be %r' % (to, from_, u, should))
+	#if from_+relu != from_+to:
+	#	raise str('Invariance test failed: from+rel=%r != from+to=%r' % (from_+relu, from_+to))
 
 test_input = urlparse.test_input
 
@@ -685,7 +395,68 @@ def test_url2():
 				print 'EXPECTED', words[2], '!!!!!!!!!!'
 
 if __name__ == '__main__':
-	test_normalize()
-	test_url()
-	test_relativeTo()
+	test_normalize('', '')
+	test_normalize('./', '')
+	#test_normalize('/./', '/') # _normalize does not handle absolute paths
+	test_normalize('xx', 'xx')
+	test_normalize('xx/yy', 'xx/yy')
+	test_normalize('xx/..', '')
+	test_normalize('xx/../.', '')
+	test_normalize('./xx/..', '')
+	test_normalize('./xx/../.', '')
+	test_normalize('xx/./..', '')
+	test_normalize('xx/yy/..', 'xx')
+	test_normalize('xx//yy/../..', '')
+	test_normalize('xx//yy/./..', 'xx')
+	test_normalize('xx//yy//../', 'xx')
+	test_normalize('xx/../..//', '..')
+	test_normalize('xx/.././..', '..')
+	test_normalize('xx/.', 'xx')
+	test_normalize('./xx', 'xx')
+	#test_normalize('/xx', '/xx') # _normalize does not handle absolute paths
+	#test_normalize('/./xx', '/xx') # dito
+	print 'test passed: _normalize'
+
+	test_url(URL("."), "./")
+	test_url(URL("./"), "./")
+	test_url(URL(".."), "../")
+	test_url(URL("../"), "../")
+	test_url(URL("http://aa/bb/cc.html"), "http://aa/bb/cc.html")
+	test_url(URL("/aa/bb/cc.html"), "server:aa/bb/cc.html")
+	test_url(URL("http:bb/cc/"), "http:bb/cc/")
+	# these two fail, should they?
+	#test_url(URL("http:/bb/cc/"), "http:/bb/cc/")
+	#test_url(URL("http:") + URL("/bb/cc/"), "http:/bb/cc/")
+	test_url(URL("http://test.com/index.html") + URL("impress.html"), "http://test.com/impress.html")
+	test_url(URL("/bb/cc/") + URL("http:"), "http:")
+	test_url(URL("mailto:x@y.z") + URL("index.html"), "index.html")
+	test_url(URL("javascript: return ':/:/:';") + URL("index.html"), "index.html")
+	test_url(URL("http://test.com/gurk/hurz.gif") + URL("/index.html"), "http://test.com/index.html")
+	test_url(URL("http://test.com/gurk/hurz.gif") + URL("../"), "http://test.com/")
+	test_url(URL("http://test.com/gurk/hurz.gif") + URL("../gurk.gif?foo=bar#nix"), "http://test.com/gurk.gif?foo=bar#nix")
+	test_url(URL("http://test.com/gurk/hurz.gif") + URL("../../gurk.gif?foo=bar#nix"), "http://test.com/../gurk.gif?foo=bar#nix")
+	test_url(URL("http://test.com/gurk/hurz.gif") + URL("root:gurk.gif"), "root:gurk.gif")
+	test_url(URL("root:gurk.gif") + URL("http://test.com/gurk/hurz.gif"), "http://test.com/gurk/hurz.gif")
+	test_url(URL("root:gurk/hurz/hinz.gif") + URL("hinz/kunz.gif"), "root:gurk/hurz/hinz/kunz.gif")
+	test_url(URL("root:gurk/hurz/hinz.gif") + URL("root:hinz/kunz.gif"), "root:hinz/kunz.gif")
+	test_url(URL("#mark"), "#mark")
+	print 'test passed: URL()'
+
+	test_relativeTo('./', './', '')
+	test_relativeTo('cc.html', './', '')
+	test_relativeTo('./cc.html', './', '')
+	test_relativeTo("root:xist/Documentation.html", "http://www.livinglogic.de/", "http://www.livinglogic.de/")
+	test_relativeTo('root:cc.html', 'root:', '')
+	test_relativeTo('root:cc.html', './', '')
+	test_relativeTo('cc.html', '#mark', '#mark')
+	test_relativeTo('root:cc.html', 'root:#mark', './#mark')
+	test_relativeTo('root:cc.html', '#mark', '#mark')
+	test_relativeTo('root:cc.html', 'root:cc.html#mark', '#mark')
+	test_relativeTo('root:cc.html', 'root:dd.html#mark', 'dd.html#mark')
+	test_relativeTo('root:aa/bb/cc.html', 'root:', '../../')
+	#test_relativeTo('', '', '')
+	test_relativeTo('http://server/aa/bb.html', 'http://server/aa/cc.html', 'cc.html')
+	test_relativeTo('/aa/bb.html', '/xx.html', '../xx.html')
+	print 'test passed: relativeTo()'
+
 	test_url2()

@@ -96,7 +96,7 @@ class stylesheet(html.link):
 	"""
 	<par noindent>can be used for a <code>&lt;link rel="stylesheet" type="text/css" href="..."/&gt;</code>.</par>
 
-	<par>Usage is simple: <code>&lt;meta:stylesheet href="*/stylesheets/main.css"/&gt;</code></par>
+	<par>Usage is simple: <code>&lt;meta:stylesheet href="root:stylesheets/main.css"/&gt;</code></par>
 	"""
 	empty = 1
 	attrHandlers = html.link.attrHandlers.copy()

@@ -68,7 +68,7 @@ class Publisher:
 		<par>publishPrefix specifies if the prefix from element name should be output too.</par>
 		"""
 		if base is None:
-			base = url.URL("*/")
+			base = url.URL(scheme="root")
 		self.base = base
 		if encoding is None:
 			encoding = options.outputEncoding

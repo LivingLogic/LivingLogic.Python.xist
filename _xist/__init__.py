@@ -15,6 +15,8 @@ Python classes provide a conversion method to transform the &xml; tree (e.g. int
 <li>Supports separation of layout and logic,</li>
 <li>Can be used together with <a href="http://www.modpython.org/">mod_python</a>,
 <a href="http://pywx.idyll.org/">PyWX</a> or <a href="http://webware.sourceforge.net/">Webware</a> to generate dynamic pages,</li>
+<li>Fully supports Unicode,</li>
+<li>Provides features to use &xist; together with &jsp;/struts,</li>
 <li>Simplifies handling of deeply nested directory trees,</li>
 <li>Automatically generates <code>HEIGHT</code> and <code>WIDTH</code> attributes for images.</li>
 </ul>
