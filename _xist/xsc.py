@@ -1760,23 +1760,12 @@ class Entity(Node):
 	"""
 	<par noindent>Class for entities. Derive your own entities from
 	it and implement <code>convert()</code> and <code>asPlainString()</code>.</par>
-
-	<par>If this entity is a simple character reference, you don't have to implement
-	those functions. Simply set the class attribute <code>codepoint</code>, and
-	you're done.</par>
 	"""
-
-	def convert(self, converter=None):
-		node = Text(unichr(self.codepoint))
-		return self._decorateNode(node)
 
 	def compact(self):
 		return self
 
 	clone = compact
-
-	def asPlainString(self):
-		return unichr(self.codepoint)
 
 	def present(self, presenter):
 		presenter.presentEntity(self)
@@ -1796,11 +1785,26 @@ class Entity(Node):
 		publisher.publish(self.name) # requires that the entity is registered via Namespace.register()
 		publisher.publish(u";")
 
-	def find(self, type=None, subtype=0, attrs=None, test=None, searchchildren=0, searchattrs=0):
-		node = Frag()
-		if self._matches(type, subtype, attrs, test):
-			node.append(self)
-		return node
+class CharRef(Entity):
+	"""
+	<par>A simple character reference, the codepoint is in the class attribute
+	<pyref attribute="codepoint">codepoint</pyref>.</par>
+	"""
+
+	def convert(self, converter=None):
+		node = Text(unichr(self.codepoint))
+		return self._decorateNode(node)
+
+	def compact(self):
+		return self
+
+	clone = compact
+
+	def asPlainString(self):
+		return unichr(self.codepoint)
+
+	def _doreprtree(self, nest, elementno, presenter):
+		return [[nest, self.startLoc, elementno, self._dorepr(presenter)]]
 
 class Null(Node):
 	"""
@@ -2005,8 +2009,9 @@ class Namespace:
 		self.uri = helpers.unistr(uri)
 		self.elementsByName = {} # dictionary for mapping element names to classes
 		self.entitiesByName = {} # dictionary for mapping entity names to classes
-		self.entitiesByNumber = {} # dictionary for mapping entity code points to classes
 		self.procInstsByName = {} # dictionary for mapping processing instruction target names to classes
+		self.charrefsByName = {} # dictionary for mapping character reference names to classes
+		self.charrefsByNumber = {} # dictionary for mapping character reference code points to classes
 		self.register(thing)
 		namespaceRegistry.register(self)
 
@@ -2038,8 +2043,14 @@ class Namespace:
 		if t is types.ClassType:
 			iselement = thing is not Element and issubclass(thing, Element)
 			isentity = thing is not Entity and issubclass(thing, Entity)
+			if isentity:
+				ischarref = thing is not CharRef and issubclass(thing, CharRef)
+				if ischarref:
+					isentity = 0
+			else:
+				ischarref = 0
 			isprocinst = thing is not ProcInst and issubclass(thing, ProcInst)
-			if iselement or isentity or isprocinst:
+			if iselement or isentity or ischarref or isprocinst:
 				# if the class attribute register is 0, the class won't be registered
 				# and if the class already has a namespace attribute, it is already registered, so it won't be registered again
 				# (we're accessing __dict__ here, because we don't want the attribute from the base class object)
@@ -2056,10 +2067,9 @@ class Namespace:
 							self.elementsByName[name] = thing
 						elif isentity:
 							self.entitiesByName[name] = thing
-							try:
-								self.entitiesByNumber.setdefault(thing.codepoint, []).append(thing)
-							except AttributeError: # no codepoint attribute in the class, so this isn't a char ref
-								pass
+						elif ischarref:
+							self.charrefsByName[name] = thing
+							self.charrefsByNumber.setdefault(thing.codepoint, []).append(thing)
 						else: # if isprocinst:
 							self.procInstsByName[name] = thing
 		elif t is types.DictionaryType:
@@ -2147,10 +2157,19 @@ class Namespaces:
 
 	def entityFromName(self, name):
 		"""
-		returns the entity class for the name name (which might include a namespace).
+		returns the entity or charref class for the name name (which might include a namespace).
 		"""
 		name = self.__splitName(name)
-		for namespace in self.__allNamespaces():
+		namespaces = self.__allNamespaces()
+		# try the charrefs first
+		for namespace in namespaces:
+			if name[0] is None or name[0] == namespace.prefix:
+				try:
+					return namespace.charrefsByName[name[1]]
+				except KeyError: # no charref in this namespace with this name
+					pass
+		# no charrefs => try the entities now
+		for namespace in namespaces:
 			if name[0] is None or name[0] == namespace.prefix:
 				try:
 					return namespace.entitiesByName[name[1]]
@@ -2171,22 +2190,22 @@ class Namespaces:
 					pass
 		raise errors.IllegalProcInstError(name) # processing instructions with this name couldn't be found
 
-	def entityFromNumber(self, number):
+	def charrefFromNumber(self, number):
 		"""
-		returns the first entity class for the codepoint number.
+		returns the first charref class for the codepoint number.
 		"""
 		for namespace in self.__allNamespaces():
 			try:
-				return namespace.entitiesByNumber[number][0]
+				return namespace.charrefsByNumber[number][0]
 			except KeyError:
 				pass
 		return None
 
 # C0 Controls and Basic Latin
-class quot(Entity): "quotation mark = APL quote, U+0022 ISOnum"; codepoint = 34
-class amp(Entity): "ampersand, U+0026 ISOnum"; codepoint = 38
-class lt(Entity): "less-than sign, U+003C ISOnum"; codepoint = 60
-class gt(Entity): "greater-than sign, U+003E ISOnum"; codepoint = 62
+class quot(CharRef): "quotation mark = APL quote, U+0022 ISOnum"; codepoint = 34
+class amp(CharRef): "ampersand, U+0026 ISOnum"; codepoint = 38
+class lt(CharRef): "less-than sign, U+003C ISOnum"; codepoint = 60
+class gt(CharRef): "greater-than sign, U+003E ISOnum"; codepoint = 62
 
 namespace = Namespace("xsc", "", vars())
 

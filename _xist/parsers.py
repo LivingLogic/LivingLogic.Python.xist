@@ -222,11 +222,46 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 	def finish_starttag(self, name, attrs):
 		newattrs = sax.xmlreader.AttributesImpl(attrs)
 		for (attrname, attrvalue) in attrs.items():
-			newattrs._attrs[attrname] = attrvalue
+			newattrs._attrs[attrname] = self.__string2Fragment(attrvalue)
 		self.content_handler.startElement(name, newattrs)
 
 	def finish_endtag(self, name):
 		self.content_handler.endElement(name)
+
+	def __string2Fragment(self, text):
+		"""
+		parses a string that might contain entities into a fragment
+		with text nodes, entities and character references.
+		"""
+		if text is None:
+			return xsc.Null
+		node = xsc.Frag()
+		while 1:
+			try:
+				i = text.index("&")
+				if i != 0:
+					node.append(text[:i])
+					text = text[i:]
+				try:
+					i = text.index(";")
+					if text[1] == "#":
+						if text[2] == "x":
+							node.append(unichr(int(text[3:i], 16)))
+						else:
+							node.append(unichr(int(text[2:i])))
+					else:
+						try:
+							node.append(self.content_handler.namespaces.entityFromName(text[1:i])())
+						except KeyError:
+							raise errors.UnknownEntityError(text[1:i])
+					text = text[i+1:]
+				except ValueError:
+					raise errors.MalformedCharRefError(text)
+			except ValueError:
+				if len(text):
+					node.append(text)
+				break
+		return node
 
 ExpatParser = expatreader.ExpatParser
 
@@ -251,13 +286,7 @@ class Handler:
 
 	def parse(self, source):
 		self.source = source
-		try:
-			self.parser.parse(source)
-		except saxlib.SAXParseException, ex:
-			raise saxlib.SAXParseException("parse error: %s" % ex, ex, self)
-		except errors.Error, ex:
-			ex.location = self.getLocation()
-			raise
+		self.parser.parse(source)
 
 	def setDocumentLocator(self, locator):
 		self._locator = locator
@@ -277,7 +306,7 @@ class Handler:
 	def startElement(self, name, attrs):
 		node = self.namespaces.elementFromName(name)()
 		for name in attrs.keys():
-			node[name] = self.__string2Fragment(attrs[name])
+			node[name] = attrs[name]
 			if isinstance(node[name], xsc.URLAttr):
 				base = url_.URL("*/") + url_.URL(self.source.getSystemId())
 				node[name].base = base
@@ -307,7 +336,11 @@ class Handler:
 		self.__appendNode(self.namespaces.procInstFromName(target)(data))
 
 	def entity(self, name):
-		self.__appendNode(self.namespaces.entityFromName(name)())
+		node = self.namespaces.entityFromName(name)()
+		if isinstance(node, xsc.CharRef):
+			self.characters(unichr(node.codepoint))
+		else:
+			self.__appendNode(node)
 
 	def error(self, exception):
 		"Handle a recoverable error."
@@ -315,10 +348,14 @@ class Handler:
 
 	def fatalError(self, exception):
 		"Handle a non-recoverable error."
+		if isinstance(exception, errors.Error):
+			exception.location = self.getLocation()
 		raise exception
 
 	def warning(self, exception):
 		"Handle a warning."
+		if isinstance(exception, errors.Error):
+			exception.location = self.getLocation()
 		print exception
 
 	def getLocation(self):
@@ -327,42 +364,6 @@ class Handler:
 	def __appendNode(self, node):
 		node.startLoc = self.getLocation()
 		self.__nesting[-1].append(node) # add the new node to the content of the innermost element (or fragment)
-
-	def __string2Fragment(self, text):
-		"""
-		parses a string that might contain entities into a fragment
-		with text nodes and character references (and other stuff,
-		if the string contains entities).
-		"""
-		if text is None:
-			return xsc.Null
-		node = xsc.Frag()
-		while 1:
-			try:
-				i = text.index("&")
-				if i != 0:
-					node.append(text[:i])
-					text = text[i:]
-				try:
-					i = text.index(";")
-					if text[1] == "#":
-						if text[2] == "x":
-							node.append(xsc.Text(unichr(int(text[3:i], 16))))
-						else:
-							node.append(xsc.Text(unichr(int(text[2:i]))))
-					else:
-						try:
-							node.append(self.namespaces.entityFromName(text[1:i])())
-						except KeyError:
-							raise errors.UnknownEntityError(text[1:i])
-					text = text[i+1:]
-				except ValueError:
-					raise errors.MalformedCharRefError(text)
-			except ValueError:
-				if len(text):
-					node.append(text)
-				break
-		return node
 
 def parse(source, parser=None, namespaces=None):
 	handler = Handler(parser, namespaces)

@@ -251,7 +251,7 @@ class MalformedCharRefError(Error):
 
 class IllegalEntityError(Error):
 	"""
-	exception that is raised, when an illegal entity is encountered
+	exception that is raised, when an illegal entity or charref is encountered
 	(i.e. one that wasn't registered via Namespace.register)
 	"""
 
@@ -263,21 +263,23 @@ class IllegalEntityError(Error):
 		# List the entities sorted by name
 		all = {}
 		for namespace in xsc.namespaceRegistry.byPrefix.values():
+			for charref in namespace.charrefsByName.values():
+				all[(charref.name, charref.namespace.prefix)] = charref
 			for entity in namespace.entitiesByName.values():
 				all[(entity.name, entity.namespace.prefix)] = entity
 
-		allkeys = all.keys()
-		allkeys.sort()
+		allKeys = all.keys()
+		allKeys.sort()
 		allAsList = []
-		for key in allkeys:
+		for key in allKeys:
 			entity = all[key]
 			allAsList.append(str(presenters.strEntity(entity)))
 
 		s = Error.__str__(self) + "entity %s not allowed. " % presenters.strEntityName(self.name[0], self.name[1])
 		if allAsList:
-			s = s + "Allowed entities are: " + ", ".join(allAsList) + "."
+			s = s + "Allowed entities and charrefs are: " + ", ".join(allAsList) + "."
 		else:
-			s = s + "There are no allowed entities."
+			s = s + "There are no allowed entities or charrefs."
 		return s
 
 class IllegalCommentContentError(Error):

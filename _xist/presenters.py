@@ -111,12 +111,6 @@ class EnvTextForText(EnvText):
 	"""
 	color = getColorsFromEnv("XSC_REPRANSI_TEXT", (0x7, 0x7))
 
-class EnvTextForCharRef(EnvText):
-	"""
-	ANSI escape sequence to be used for character references
-	"""
-	color = getColorsFromEnv("XSC_REPRANSI_CHARREF", (0xf, 0x5))
-
 class EnvTextForNamespace(EnvText):
 	"""
 	ANSI escape sequence to be used for namespaces
@@ -133,7 +127,7 @@ class EnvTextForEntityName(EnvText):
 	"""
 	ANSI escape sequence to be used for entity names
 	"""
-	color = getColorsFromEnv("XSC_REPRANSI_ENTITYNAME", (0xf, 0xc))
+	color = getColorsFromEnv("XSC_REPRANSI_ENTITYNAME", (0x5, 0x5))
 
 class EnvTextForAttrName(EnvText):
 	"""
@@ -218,11 +212,11 @@ class EscInlineText(ansistyle.EscapedText):
 					ascharref = 1
 			if ascharref:
 				charcode = ord(char)
-				entity = xsc.defaultNamespaces.entityFromNumber(charcode)
+				entity = xsc.defaultNamespaces.charrefFromNumber(charcode)
 				if entity is not None:
-					return EnvTextForCharRef("&", entity.name, ";")
+					return EnvTextForEntityName("&", entity.name, ";")
 				else:
-					return EnvTextForCharRef("&#", str(charcode), ";")
+					return EnvTextForEntityName("&#", str(charcode), ";")
 		return char
 
 class EscInlineAttr(EscInlineText):
@@ -318,18 +312,12 @@ def strElementWithBrackets(node, slash=0):
 	return ansistyle.Text(strBracketOpen(), strElement(node, slash), strBracketClose())
 
 def strEntityName(namespacename=None, entityname=None):
-	s = ansistyle.Text("&")
+	s = EnvTextForEntityName("&")
 	if namespacename is not None:
-		s.append(
-			EnvTextForNamespace(EscInlineText(namespacename)),
-			EnvTextForColon(":")
-		)
+		s.append(EscInlineText(namespacename), ":")
 	if entityname is None:
 		entityname = "unnamed"
-	s.append(
-		EnvTextForEntityName(EscInlineText(entityname)),
-		";"
-	)
+	s.append(EscInlineText(entityname), ";")
 	return s
 
 def strEntity(node):

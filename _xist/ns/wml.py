@@ -318,8 +318,8 @@ class pre(xsc.Element):
 
 
 # Entities in DTD
-class nbsp(xsc.Entity): "no-break space = non-breaking space, U+00A0 ISOnum"; codepoint = 160
-class shy(xsc.Entity): "soft hyphen = discretionary hyphen, U+00AD ISOnum"; codepoint = 173
+class nbsp(xsc.CharRef): "no-break space = non-breaking space, U+00A0 ISOnum"; codepoint = 160
+class shy(xsc.CharRef): "soft hyphen = discretionary hyphen, U+00AD ISOnum"; codepoint = 173
 
 # register all the classes we've defined so far
 namespace = xsc.Namespace("wml", "http://www.wapforum.org/DTD/wml13.dtd", vars())

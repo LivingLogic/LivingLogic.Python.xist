@@ -303,10 +303,10 @@ class redirectpage(xsc.Element):
 		return e.convert(converter)
 
 # Control characters (not part of HTML)
-class lf(xsc.Entity): "line feed"; codepoint = 10
-class cr(xsc.Entity): "carriage return"; codepoint = 13
-class tab(xsc.Entity): "horizontal tab"; codepoint = 9
-class esc(xsc.Entity): "escape"; codepoint = 27
+class lf(xsc.CharRef): "line feed"; codepoint = 10
+class cr(xsc.CharRef): "carriage return"; codepoint = 13
+class tab(xsc.CharRef): "horizontal tab"; codepoint = 9
+class esc(xsc.CharRef): "escape"; codepoint = 27
 
 class PHP(xsc.ProcInst):
 	"""
