@@ -12,7 +12,7 @@
 <par>An &xist; namespace module that contains definitions for all the elements in DocBook 4.12</par>
 """
 
-__version__ = "$Revision$"[11:-2]
+__version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
 from ll.xist import xsc, sims
