@@ -105,7 +105,7 @@ class StringInputSource(InputSource):
 		if isinstance(text, unicode):
 			encoding = "utf-8"
 			text = text.encode(encoding)
-		if isinstance(tidy, bool):
+		if isinstance(tidy, int):
 			if tidy:
 				tidy = {}
 			else:
@@ -140,7 +140,7 @@ class URLInputSource(InputSource):
 		sysid = id.url
 		self.setSystemId(sysid)
 		resource = id.openread(headers=headers, data=data)
-		if isinstance(tidy, bool):
+		if isinstance(tidy, int):
 			if tidy:
 				tidy = {}
 			else:
