@@ -244,7 +244,7 @@ node = node.convert(
 )
 </prog>
 
-<par>You can pass the following five arguments to the
+<par>You can pass the following six arguments to the
 <pyref module="ll.xist.converters" class="Converter"><class>Converter</class></pyref> constructor:</par>
 <dlist>
 <term><arg>root</arg></term><item><arg>root</arg> (which defaults to <lit>None</lit>) is the root &url;
@@ -362,7 +362,7 @@ Such attributes will be ignored when publishing.</par>
 <par>When you define a new element you have to specify two things:</par>
 
 <olist>
-<item>If the element has an empty content model (like <markup>&lt;br/&gt;</markup>
+<item>Whether the element has an empty content model (like <markup>&lt;br/&gt;</markup>
 or <markup>&lt;img/&gt;</markup> do in &html;) or not.</item>
 <item>what attributes the element supports and of which type they are.</item>
 </olist>
@@ -582,7 +582,7 @@ so all elements belonging to the namespace will be used when parsing files.</par
 
 <par>It is convenient to define all classes that belong to one namespace in one
 Python module. However this means that the resulting module will only contain
-one <z>interresting</z> object: the namespace class. To make using this class
+one <z>interesting</z> object: the namespace class. To make using this class
 more convenient, it's possible to turn the namespace class into a module by
 using the class method <pyref module="ll.xist.xsc" class="Namespace" method="makemod"><method>makemod</method></pyref>
 instead of <method>update</method>:</par>
@@ -636,7 +636,7 @@ your base namespace like this and put it into <filename>navns.py</filename>:</pa
 from ll.xist import xsc
 from ll.xist.ns import html
 
-links = [
+languages = [
 	("Python", "http://www.python.org/"),
 	("Perl", "http://www.perl.org/"),
 	("PHP", "http://www.php.net/"),
@@ -646,9 +646,9 @@ links = [
 class navigation(xsc.Element):
 	empty = True
 
-	def convert(self.converter):
+	def convert(self, converter):
 		node = self.xmlns.links()
-		for (name, url) in links:
+		for (name, url) in languages:
 			node.append(
 				self.xmlns.link(
 					name,
@@ -671,8 +671,10 @@ class link(xsc.Element):
 
 	def convert(self, converter):
 		node = html.div(
-			self.content,
-			href=self["href"]
+			html.a(
+				self.content,
+				href=self["href"]
+			)
 		)
 		return node.convert(converter)
 
@@ -686,7 +688,7 @@ xmlns.makemod(vars())
 with links to various homepages for programming languages. We can use it like this:</par>
 <prog>
 &gt;&gt;&gt; import navns
-&gt;&gt;&gt; print navns.nav().conv().asBytes()
+&gt;&gt;&gt; print navns.navigation().conv().asBytes()
 &lt;div&gt;&lt;a href="http://www.python.org/"&gt;Python&lt;/a&gt;&lt;/div&gt;
 &lt;div&gt;&lt;a href="http://www.perl.org/"&gt;Perl&lt;/a&gt;&lt;/div&gt;
 &lt;div&gt;&lt;a href="http://www.php.net/"&gt;PHP&lt;/a&gt;&lt;/div&gt;
@@ -699,10 +701,13 @@ that overwrites the element classes <class>links</class> and <class>link</class>
 to change how the navigation looks:</par>
 
 <prog>
+from ll.xist import xsc
+from ll.xist.ns import html
+
 import navns
 
 class xmlns(navns):
-	class links(nav.links):
+	class links(navns.links):
 		def convert(self, converter):
 			node = html.table(
 				self.content,
@@ -713,7 +718,7 @@ class xmlns(navns):
 			)
 			return node.convert(converter)
 
-	class link(nav.link):
+	class link(navns.link):
 		def convert(self, converter):
 			node = html.tr(
 				html.td(
@@ -724,14 +729,15 @@ class xmlns(navns):
 				)
 			)
 			return node.convert(converter)
+xmlns.makemod(vars())
 </prog>
 
 <par>When we use the navigation element from the derived namespace we'll get
 the following output:</par>
 
 <prog>
-&gt;&gt;&gt; import foo
-&gt;&gt;&gt; print foo.nav().conv().asBytes()
+&gt;&gt;&gt; import nav2ns
+&gt;&gt;&gt; print nav2ns.navigation().conv().asBytes()
 &lt;table border="0" cellpadding="0" cellspacing="0" class="navigation"&gt;
 &lt;tr&gt;&lt;td&gt;&lt;a href="http://www.python.org/"&gt;Python&lt;/a&gt;&lt;/td&gt;&lt;/tr&gt;
 &lt;tr&gt;&lt;td&gt;&lt;a href="http://www.perl.org/"&gt;Perl&lt;/a&gt;&lt;/td&gt;&lt;/tr&gt;
@@ -753,7 +759,7 @@ namespace to which <self/> should be converted.</par>
 Once this is determined you can use element classes from the target to create the
 required &xml; object tree. This makes it possible to customize the conversion by
 passing a derived namespace to the <method>convert</method> method. We have to change
-or example namespace from above like this</par>
+our example namespace from above like this</par>
 
 <prog>
 import navns
@@ -797,14 +803,14 @@ class xmlns(html):
 		def convert(self, converter):
 			node = html.a(
 				self.content,
-				self.attr,
+				self.attrs,
 				target="_top"
 			)
 			return node.convert(converter)
 </prog>
 
 <par>Now we can pass this namespace as the conversion target and all links
-will have a <lit>target="top"</lit>.</par>
+will have a <lit>target="_top"</lit>.</par>
 </section>
 
 </section>
@@ -815,8 +821,9 @@ will have a <lit>target="top"</lit>.</par>
 entities. But to be able to use the new entities in an &xml; file
 you have to use a parser that supports reporting undefined
 entities to the application via <method>skippedEntity</method>
-(<pyref module="ll.xist.parsers" class="SGMLOPParser"><class>SGMLOPParser</class></pyref>
-in the module <pyref module="ll.xist.parsers"><module>ll.xist.parsers</module></pyref> does that).</par>
+(<pyref module="ll.xist.parsers" class="SGMLOPParser"><class>SGMLOPParser</class></pyref> and
+<pyref module="ll.xist.parsers" class="ExpatParser"><class>ExpatParser</class></pyref>
+in the module <pyref module="ll.xist.parsers"><module>ll.xist.parsers</module></pyref> do that).</par>
 
 <par>In addition to the <pyref module="ll.xist.xsc" class="Node" method="convert"><method>convert</method></pyref>
 method you may implement the method
@@ -919,7 +926,7 @@ characters in position 0-2: ordinal not in range(128)
 </prog>
 
 <par>Another useful parameter is <arg>xhtml</arg>,
-it specifies if you want pure &html; or &xhtml; as output:</par>
+it specifies whether you want pure &html; or &xhtml; as output:</par>
 
 <dlist>
 <term><lit>xhtml==0</lit></term><item>This will give you pure &html;, i.e. no final <lit>/</lit>
@@ -961,7 +968,7 @@ an instance of <pyref module="ll.xist.publishers" class="Publisher"><class>ll.xi
 a <pyref module="ll.xist.xsc" class="Frag"><class>Frag</class></pyref> with the nodes it finds.
 You pass a callable object to <method>find</method> which is used for determining which part of the
 tree should be searched and which nodes should be returned.</par>
-<par><module>ll.xist.xsc</module> provided several useful predefined classes for that.
+<par><module>ll.xist.xsc</module> provides several useful predefined classes for that.
 <pyref module="ll.xist.xsc" class="FindType"><class>FindType</class></pyref> will search only
 the first level of the tree and will return any node that is an instance of one of the classes
 passed to the constructor. So if you have an instance of <class>ll.xist.ns.html.ul</class>
@@ -1119,8 +1126,8 @@ return a reversed or sorted version of an element or fragment:</par>
 <prog>
 &gt;&gt;&gt; from ll.xist import xsc
 &gt;&gt;&gt; from ll.xist.ns import html
-&gt;&gt;&gt; def sort(n1, n1):
-...    return cmp(unicode(n1), uncode(n2))
+&gt;&gt;&gt; def sort(n1, n2):
+...    return cmp(unicode(n1), unicode(n2))
 &gt;&gt;&gt; node = html.div(8,4,2,1,9,6,3,0,7,5)
 &gt;&gt;&gt; print node.sorted(sort). \
 ...    reversed().withsep(",").asBytes()
@@ -1243,7 +1250,7 @@ are not set already.</par>
 &xist; supports two new processing instructions:
 <pyref module="ll.xist.ns.code" class="pyexec"><lit>pyexec</lit></pyref>
 and <pyref module="ll.xist.ns.code" class="pyeval"><lit>pyeval</lit></pyref> (in the module
-<pyref module="ll.xist.ns.code"><module>ll.xist.ns.code</module></pyref>. The content of
+<pyref module="ll.xist.ns.code"><module>ll.xist.ns.code</module></pyref>). The content of
 <pyref module="ll.xist.ns.code" class="pyexec"><lit>pyexec</lit></pyref> will be
 executed when the processing instruction node is instantiated, i.e. when the
 &xml; file is parsed, so anything you do there will be available afterwards.</par>

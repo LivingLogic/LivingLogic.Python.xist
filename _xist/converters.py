@@ -84,8 +84,8 @@ class Converter(object):
 		__setroot,
 		__delroot,
 		"""
-		<par>The conversion mode. This corresponds directy with the mode in &xslt;.
-		The default is <lit>None</lit>.</par>
+		<par>The root &url; for the conversion. Resolving &url;s during the conversion process should be done
+		relative to <lit>root</lit>.</par>
 		"""
 	)
 
