@@ -79,6 +79,20 @@ class edit(element):
 		return e.asHTML()
 xsc.registerElement(edit)
 
+class memo(element):
+	attr_handlers = xsc.appendDict(element.attr_handlers,html.textarea.attr_handlers }
+
+	def asHTML(self):
+		e = html.textarea()
+		if self.has_attr("value"):
+			e.append(self["value"])
+		for attr in self.attrs.keys():
+			if attr != "value":
+				e[attr] = self[attr]
+
+		return e.asHTML()
+xsc.registerElement(memo)
+
 class static(element):
 	def asHTML(self):
 		if self.has_attr("value"):
