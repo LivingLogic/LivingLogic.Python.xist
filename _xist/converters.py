@@ -240,7 +240,7 @@ class Converter(object):
 			target = self.target
 		if lang is None:
 			lang = self.lang
-		if makection is None:
+		if makeaction is None:
 			makeaction = self.makeaction
 		if maketarget is None:
 			maketarget = self.maketarget
