@@ -125,7 +125,7 @@ in the <module>ll.xist.ns.xndl</module> namespace.</item>
 instead of an alias for <class>xml.sax.expatreader.ExpatParser</class>
 that now reports unknown entity references to the application (if
 loading of external entities is switch off, which is done by
-<class>ll.xist.parsers.Handler</class>).</item>
+<class>ll.xist.parsers.Handler</class> and only outside of attributes).</item>
 </ulist>
 </section>
 
