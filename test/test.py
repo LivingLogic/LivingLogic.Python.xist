@@ -576,5 +576,17 @@ class XISTTestCase(unittest.TestCase):
 		# FIXME this depends on dict iteration order
 		self.assertEquals(node.asBytes(prefixes=prefixes, elementmode=2, procinstmode=2), """<s:wrap procinstns="http://www.php.net/" xmlns:s="http://xmlns.livinglogic.de/xist/ns/specials"><?php x?></s:wrap>""")
 
+	def test_publishboolattr(self):
+		node = html.td("?", nowrap=True)
+		self.assertEquals(node.asBytes(xhtml=0), """<td nowrap>?</td>""")
+		self.assertEquals(node.asBytes(xhtml=1), """<td nowrap="nowrap">?</td>""")
+		self.assertEquals(node.asBytes(xhtml=2), """<td nowrap="nowrap">?</td>""")
+
+	def test_publishempty(self):
+		node = xsc.Frag(html.br(), html.div())
+		self.assertEquals(node.asBytes(xhtml=0), """<br><div></div>""")
+		self.assertEquals(node.asBytes(xhtml=1), """<br /><div></div>""")
+		self.assertEquals(node.asBytes(xhtml=2), """<br/><div/>""")
+
 if __name__ == "__main__":
 	unittest.main()
