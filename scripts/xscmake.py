@@ -124,7 +124,7 @@ def make(args):
 			inname = url.URL(file)
 			outname = globaloutname.clone()
 			if not outname.file:
-				outname += inname
+				outname /= inname
 			outname.file = mapExt(inname.file)
 			if not outname.file:
 				outname.file = "noname.html"
