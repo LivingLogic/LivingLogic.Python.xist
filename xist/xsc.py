@@ -1383,6 +1383,10 @@ class Element(Node):
 		return v
 
 	def _publishAttrs(self, publisher):
+		"""
+		publishes the attributes. Factored out, so that it
+		can be reused.
+		"""
 		for attrname in self.attrs.keys():
 			publisher.publish(u" ")
 			publisher.publish(attrname)
