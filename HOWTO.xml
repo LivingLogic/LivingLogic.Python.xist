@@ -120,16 +120,16 @@ provides several functions:</par>
 <programlisting>
 def parseString(text, systemId="STRING",
 	base=None, handler=None, parser=None,
-	prefixes=None, defaultEncoding="utf-8", tidy=False)
+	prefixes=None, encoding="utf-8", tidy=False)
 
 def parseURL(id,
 	base=None, handler=None, parser=None,
-	prefixes=None, defaultEncoding="utf-8", tidy=False,
+	prefixes=None, encoding="utf-8", tidy=False,
 	headers=None, data=None)
 
 def parseFile(filename,
 	base=None, handler=None, parser=None,
-	prefixes=None, defaultEncoding="utf-8", tidy=False)
+	prefixes=None, encoding="utf-8", tidy=False)
 </programlisting>
 <par><pyref module="ll.xist.parsers" function="parseString"><function>parseString</function></pyref>
 is for parsing strings (8bit and Unicode) and
@@ -766,7 +766,7 @@ nodes should be searched too.</item>
 &gt;&gt;&gt; from ll.xist.ns import html
 &gt;&gt;&gt; node = parsers.parseURL(
 ...   "http://www.python.org/",
-...   defaultEncoding="iso-8859-1",
+...   encoding="iso-8859-1",
 ...   tidy=True)
 &gt;&gt;&gt; links = node.find(
 ...    type=html.a,
@@ -851,7 +851,7 @@ def p2p(node):
 
 node = parsers.parseURL(
 	"http://www.python.org/",
-	defaultEncoding="iso-8859-1",
+	encoding="iso-8859-1",
 	tidy=True)
 node.mapped(p2p).write(
 	open("parrot_index.html", "wb"))

@@ -49,10 +49,10 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 	This is a rudimentary, buggy, halfworking, untested SAX2 drivers for sgmlop.
 	And I didn't even know, what I was doing, but it seems to work.
 	"""
-	def __init__(self, namespaceHandling=0, bufsize=2**16-20, defaultEncoding="utf-8"):
+	def __init__(self, namespaceHandling=0, bufsize=2**16-20, encoding="utf-8"):
 		sax.xmlreader.IncrementalParser.__init__(self, bufsize)
-		self.bufsize = bufsize
-		self.defaultEncoding = defaultEncoding
+		self.encoding = encoding
+		self._parser = None
 		self.reset()
 
 	def _whichparser(self):
@@ -62,50 +62,49 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 		return unicode(data, self.encoding).replace(u"\r\n", u"\n").replace(u"\r", u"\n")
 
 	def reset(self):
-		self.parser = self._whichparser()
-		self._parsing = 0
+		self.close()
 		self.source = None
 		self.lineNumber = -1
 
 	def feed(self, data):
-		if not self._parsing:
+		if self._parser is None:
+			self._parser = self._whichparser()
+			self._parser.register(self)
 			self._cont_handler.startDocument()
-			self._parsing = 1
-		self.parser.feed(data)
+		self._parser.feed(data)
 
 	def close(self):
-		self._parsing = 0
-		self.parser.close()
-		self._cont_handler.endDocument()
+		if self._parser is not None:
+			self._parser.close()
+			self._parser.register(None)
+			self._parser = None
+			self._cont_handler.endDocument()
 
 	def parse(self, source):
 		self.source = source
 		file = source.getByteStream()
-		self.encoding = source.getEncoding()
-		if self.encoding is None:
-			self.encoding = self.defaultEncoding
-		self._parsing = 1
+		encoding = source.getEncoding()
+		if encoding is not None:
+			self.encoding = encoding
 		self._cont_handler.setDocumentLocator(self)
 		self._cont_handler.startDocument()
 		self.lineNumber = 1
 		# nothing done for the column number, because otherwise parsing would be much to slow.
 		self.headerJustRead = 0 # will be used for skipping whitespace after the XML header
 
-		self.parser.register(self)
 		try:
 			while 1:
-				data = file.read(self.bufsize)
+				data = file.read(self._bufsize)
 				if not data:
 					break
 				while 1:
 					pos = data.find("\n")
 					if pos==-1:
 						break
-					self.parser.feed(data[:pos+1])
+					self.feed(data[:pos+1])
 					data = data[pos+1:]
 					self.lineNumber += 1
-				self.parser.feed(data)
-			self.close()
+				self.feed(data)
 		except SystemExit:
 			raise
 		except KeyboardInterrupt:
@@ -115,7 +114,7 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 				self._err_handler.fatalError(exc)
 			else:
 				raise
-		self.parser.register(None)
+		self.close()
 		self.source = None
 		del self.encoding
 
@@ -124,7 +123,7 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 		return -1
 
 	def getLineNumber(self):
-		if self.parser is None:
+		if self._parser is None:
 			return -1
 		return self.lineNumber
 
@@ -152,7 +151,7 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 			super(SGMLOPParser, self).setFeature(name, state)
 
 	def handle_comment(self, data):
-		self._cont_handler.comment(unicode(data, self.encoding))
+		self._cont_handler.comment(self._makestring(data))
 		self.headerJustRead = 0
 
 	# don't define handle_charref or handle_cdata, so we will get those through handle_data
@@ -160,7 +159,7 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 	# sgmlop: unicode characters i.e. "&#8364;" don't work.
 
 	def handle_charref(self, data):
-		data = unicode(data, self.encoding)
+		data = self._makestring(data)
 		if data[:1] == "x":
 			data = unichr(int(data[1:], 16))
 		else:
@@ -170,14 +169,14 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 			self.headerJustRead = 0
 
 	def handle_data(self, data):
-		data = unicode(data, self.encoding).replace(u"\r\n", u"\n").replace(u"\r", u"\n")
+		data = self._makestring(data)
 		if not self.headerJustRead or not data.isspace():
 			self._cont_handler.characters(data)
 			self.headerJustRead = 0
 
 	def handle_proc(self, target, data):
-		target = unicode(target, self.encoding)
-		data = unicode(data, self.encoding)
+		target = self._makestring(target)
+		data = self._makestring(data)
 		if target!=u'xml': # Don't report <?xml?> as a processing instruction
 			self._cont_handler.processingInstruction(target, data)
 			self.headerJustRead = 0
@@ -299,8 +298,8 @@ class HTMLParser(BadEntityParser):
 	headElements = ("title", "base", "script", "style", "meta", "link", "object") # Elements that may appear in the <head>
 	minimizedElements = {"p": ("p",), "td": ("td", "th"), "th": ("td", "th")} # elements that can't be nested, so a start tag automatically closes a previous end tag
 
-	def __init__(self, namespaceHandling=0, bufsize=2**16-20, defaultEncoding="iso-8859-1"):
-		SGMLOPParser.__init__(self, namespaceHandling, bufsize, defaultEncoding)
+	def __init__(self, namespaceHandling=0, bufsize=2**16-20, encoding="iso-8859-1"):
+		SGMLOPParser.__init__(self, namespaceHandling, bufsize, encoding)
 
 	def _whichparser(self):
 		return sgmlop.SGMLParser()
@@ -600,11 +599,11 @@ def parse(source, handler=None, parser=None, prefixes=None):
 	handler.close()
 	return result
 
-def parseString(text, systemId="STRING", base=None, handler=None, parser=None, prefixes=None, defaultEncoding="utf-8", tidy=False):
-	return parse(sources.StringInputSource(text, systemId=systemId, base=base, defaultEncoding=defaultEncoding, tidy=tidy), handler=handler, parser=parser, prefixes=prefixes)
+def parseString(text, systemId="STRING", base=None, handler=None, parser=None, prefixes=None, encoding="utf-8", tidy=False):
+	return parse(sources.StringInputSource(text, systemId=systemId, base=base, encoding=encoding, tidy=tidy), handler=handler, parser=parser, prefixes=prefixes)
 
-def parseURL(id, base=None, handler=None, parser=None, prefixes=None, defaultEncoding="utf-8", tidy=False, headers=None, data=None):
-	return parse(sources.URLInputSource(id, base=base, defaultEncoding=defaultEncoding, tidy=tidy, headers=headers, data=data), handler=handler, parser=parser, prefixes=prefixes)
+def parseURL(id, base=None, handler=None, parser=None, prefixes=None, encoding="utf-8", tidy=False, headers=None, data=None):
+	return parse(sources.URLInputSource(id, base=base, encoding=encoding, tidy=tidy, headers=headers, data=data), handler=handler, parser=parser, prefixes=prefixes)
 
-def parseFile(filename, base=None, handler=None, parser=None, prefixes=None, defaultEncoding="utf-8", tidy=False):
-	return parseURL(url.Filename(filename), base=base, defaultEncoding=defaultEncoding, tidy=tidy, handler=handler, parser=parser, prefixes=prefixes)
+def parseFile(filename, base=None, handler=None, parser=None, prefixes=None, encoding="utf-8", tidy=False):
+	return parseURL(url.Filename(filename), base=base, encoding=encoding, tidy=tidy, handler=handler, parser=parser, prefixes=prefixes)

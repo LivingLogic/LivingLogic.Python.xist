@@ -48,7 +48,7 @@ class StringInputSource(InputSource):
 	An <class>InputSource</class> where the data is read from
 	a string.
 	"""
-	def __init__(self, text, systemId="STRING", base=None, defaultEncoding="utf-8", tidy=False):
+	def __init__(self, text, systemId="STRING", base=None, encoding="utf-8", tidy=False):
 		"""
 		<par>Create a new <class>StringInputSource</class> instance. Arguments are:</par>
 		<ulist>
@@ -56,7 +56,7 @@ class StringInputSource(InputSource):
 		<item><arg>systemId</arg>: The system id to be used;</item>
 		<item><arg>base</arg>: The base &url; (it will be prepended
 		to all &url;s created during the parsing of this input source);</item>
-		<item><arg>defaultEncoding</arg>: The encoding to be used when
+		<item><arg>encoding</arg>: The encoding to be used when
 		no &xml; header can the found in the input source (this is not
 		supported by all parsers);</item>
 		<item><arg>tidy</arg>: allows you to specify, whether
@@ -67,22 +67,22 @@ class StringInputSource(InputSource):
 		InputSource.__init__(self, base)
 		self.setSystemId(systemId)
 		if isinstance(text, unicode):
-			defaultEncoding = "utf-8"
-			text = text.encode(defaultEncoding)
+			encoding = "utf-8"
+			text = text.encode(encoding)
 		if tidy:
 			(nerrors, nwarnings, outputdata, errordata) = Tidy.tidy(text, numeric_entities=1, output_xhtml=1, output_xml=1, quiet=1, tidy_mark=0, wrap=0)
 			if nerrors>0:
 				raise saxlib.SAXException("can't tidy %r (%d errors, %d warnings):\n%s" % (systemId, nerrors, nwarnings, errordata))
 			text = outputdata
 		self.setByteStream(StringIO.StringIO(text))
-		self.setEncoding(defaultEncoding)
+		self.setEncoding(encoding)
 
 class URLInputSource(InputSource):
 	"""
 	An <class>InputSource</class> where the data is read from
 	an &url;.
 	"""
-	def __init__(self, id, base=None, defaultEncoding="utf-8", tidy=False, headers=None, data=None):
+	def __init__(self, id, base=None, encoding="utf-8", tidy=False, headers=None, data=None):
 		"""
 		<par>Create a new <class>StringInputSource</class> instance. Arguments are:</par>
 		<ulist>
@@ -106,7 +106,7 @@ class URLInputSource(InputSource):
 				raise SAXParseException("can't tidy %r: %r" % (url, errordata))
 			resource = StringIO.StringIO(outputdata)
 		self.setByteStream(resource)
-		self.setEncoding(defaultEncoding)
+		self.setEncoding(encoding)
 
 	def setTimeout(self, secs):
 		if timeoutsocket is not None:

@@ -15,11 +15,13 @@ A new method <method>with</method> has been added, with does
 the opposite of <method>without</method>, i.e. it removes all
 attributes that are not specified as parameters.</item>
 <item>The Python name of each <class>Node</class> subclass
-is now available as the class attribute <lit>pyname</li>.</item>
+is now available as the class attribute <lit>pyname</lit>.</item>
 <item>To continue the great renaming <method>withSep</method>
 has been renamed to <method>withsep</method>.</item>
 <item>The namespace name for the <module>ll.xist.ns.struts_html</module>
 module has been fixed.</item>
+<item>The argument <arg>defaultEncoding</arg> for the various
+parsing functions has been renamed to <arg>encoding</arg>.</item>
 </ulist>
 </section>
 

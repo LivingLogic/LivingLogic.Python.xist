@@ -128,12 +128,12 @@ def parse(source, handler=None, ignoreCharset=0):
 	handler.close()
 	return result
 
-def parseString(text, systemId="STRING", base=None, handler=None, defaultEncoding="utf-8", ignoreCharset=0):
-	return parse(sources.StringInputSource(text, systemId=systemId, base=base, defaultEncoding=defaultEncoding), handler=handler, ignoreCharset=ignoreCharset)
+def parseString(text, systemId="STRING", base=None, handler=None, encoding="utf-8", ignoreCharset=0):
+	return parse(sources.StringInputSource(text, systemId=systemId, base=base, encoding=encoding), handler=handler, ignoreCharset=ignoreCharset)
 
-def parseURL(id, base=None, handler=None, defaultEncoding="utf-8", ignoreCharset=0, headers=None, data=None):
-	return parse(sources.URLInputSource(id, base=base, defaultEncoding=defaultEncoding, headers=headers, data=data), handler=handler, ignoreCharset=ignoreCharset)
+def parseURL(id, base=None, handler=None, encoding="utf-8", ignoreCharset=0, headers=None, data=None):
+	return parse(sources.URLInputSource(id, base=base, encoding=encoding, headers=headers, data=data), handler=handler, ignoreCharset=ignoreCharset)
 
-def parseFile(filename, base=None, handler=None, defaultEncoding="utf-8", ignoreCharset=0):
-	return parseURL(url.Filename(filename), base=base, defaultEncoding=defaultEncoding, handler=handler, ignoreCharset=ignoreCharset)
+def parseFile(filename, base=None, handler=None, encoding="utf-8", ignoreCharset=0):
+	return parseURL(url.Filename(filename), base=base, encoding=encoding, handler=handler, ignoreCharset=ignoreCharset)
 
