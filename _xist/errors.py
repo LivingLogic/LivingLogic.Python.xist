@@ -34,8 +34,8 @@ import types, warnings
 
 import xsc, presenters
 
-def warn(warning):
-	warnings.warn(str(warning), UserWarning, 3) # stacklevel==3, i.e. report the caller of our caller
+def warn(warning, level=3): # stacklevel==3, i.e. report the caller of our caller
+	warnings.warn(str(warning), UserWarning, level)
 
 class Error(Exception):
 	"""
