@@ -412,7 +412,6 @@ class HTMLParser(SGMLOPParser):
 
 ExpatParser = expatreader.ExpatParser
 
-level = 0
 class Handler(object):
 	"""
 	contains the parser and the options and functions for handling XML files
