@@ -26,7 +26,7 @@ from ll.xist import xsc, sims
 class media_usage(xsc.Element.Attrs):
 	class media_usage(xsc.TextAttr):
 		xmlname = "media-usage"
-		values = ("auto", "paginate", "bounded-in-one-dimension", "unbounded")
+		values = (u"auto", u"paginate", u"bounded-in-one-dimension", u"unbounded")
 
 
 class src(xsc.Element.Attrs):
@@ -42,7 +42,7 @@ class color_profile_name(xsc.Element.Attrs):
 class rendering_intent(xsc.Element.Attrs):
 	class rendering_intent(xsc.TextAttr):
 		xmlname = "rendering-intent"
-		values = ("auto", "perceptual", "relative-colorimetric", "saturation", "absolute-colorimetric", "inherit")
+		values = (u"auto", u"perceptual", u"relative-colorimetric", u"saturation", u"absolute-colorimetric", u"inherit")
 
 
 class country(xsc.Element.Attrs):
@@ -63,7 +63,7 @@ class language(xsc.Element.Attrs):
 class letter_value(xsc.Element.Attrs):
 	class letter_value(xsc.TextAttr):
 		xmlname = "letter-value"
-		values = ("auto", "alphabetic", "traditional")
+		values = (u"auto", u"alphabetic", u"traditional")
 
 
 class grouping_separator(xsc.Element.Attrs):
@@ -84,7 +84,7 @@ class initial_page_number(xsc.Element.Attrs):
 class force_page_count(xsc.Element.Attrs):
 	class force_page_count(xsc.TextAttr):
 		xmlname = "force-page-count"
-		values = ("auto", "even", "odd", "end-on-even", "end-on-odd", "no-force", "inherit")
+		values = (u"auto", u"even", u"odd", u"end-on-even", u"end-on-odd", u"no-force", u"inherit")
 
 
 class master_reference(xsc.Element.Attrs):
@@ -105,19 +105,19 @@ class maximum_repeats(xsc.Element.Attrs):
 class page_position(xsc.Element.Attrs):
 	class page_position(xsc.TextAttr):
 		xmlname = "page-position"
-		values = ("first", "last", "rest", "any", "inherit")
+		values = (u"first", u"last", u"rest", u"any", u"inherit")
 
 
 class odd_or_even(xsc.Element.Attrs):
 	class odd_or_even(xsc.TextAttr):
 		xmlname = "odd-or-even"
-		values = ("odd", "even", "any", "inherit")
+		values = (u"odd", u"even", u"any", u"inherit")
 
 
 class blank_or_not_blank(xsc.Element.Attrs):
 	class blank_or_not_blank(xsc.TextAttr):
 		xmlname = "blank-or-not-blank"
-		values = ("blank", "not-blank", "any", "inherit")
+		values = (u"blank", u"not-blank", u"any", u"inherit")
 
 
 class size(xsc.Element.Attrs):
@@ -138,13 +138,13 @@ class page_width(size):
 class reference_orientation(xsc.Element.Attrs):
 	class reference_orientation(xsc.TextAttr):
 		xmlname = "reference-orientation"
-		values = (0, 90, 180, 270, -90, -180, -270, "inherit")
+		values = (0, 90, 180, 270, -90, -180, -270, u"inherit")
 
 
 class writing_mode(xsc.Element.Attrs):
 	class writing_mode(xsc.TextAttr):
 		xmlname = "writing-mode"
-		values = ("lr-tb", "rl-tb", "tb-rl", "lr", "rl", "tb", "inherit")
+		values = (u"lr-tb", u"rl-tb", u"tb-rl", u"lr", u"rl", u"tb", u"inherit")
 
 
 class clip(xsc.Element.Attrs):
@@ -165,12 +165,12 @@ class column_gap(xsc.Element.Attrs):
 class display_align(xsc.Element.Attrs):
 	class display_align(xsc.TextAttr):
 		xmlname = "display-align"
-		values = ("auto", "before", "center", "after", "inherit")
+		values = (u"auto", u"before", u"center", u"after", u"inherit")
 
 
 class overflow(xsc.Element.Attrs):
 	class overflow(xsc.TextAttr):
-		values = ("visible", "hidden", "scroll", "error-if-overflow", "auto", "inherit")
+		values = (u"visible", u"hidden", u"scroll", u"error-if-overflow", u"auto", u"inherit")
 
 
 class region_name(xsc.Element.Attrs):
@@ -185,7 +185,7 @@ class extent(xsc.Element.Attrs):
 
 class precedence(xsc.Element.Attrs):
 	class precedence(xsc.TextAttr):
-		values = ("true", "false", "inherit")
+		values = (u"true", u"false", u"inherit")
 
 
 class flow_name(xsc.Element.Attrs):
@@ -205,31 +205,31 @@ class line_height(xsc.Element.Attrs):
 
 class visibility(xsc.Element.Attrs):
 	class visibility(xsc.TextAttr):
-		values = ("visible", "hidden", "collapse", "inherit")
+		values = (u"visible", u"hidden", u"collapse", u"inherit")
 
 
 class page_break_after(xsc.Element.Attrs):
 	class page_break_after(xsc.TextAttr):
 		xmlname = "page-break-after"
-		values = ("auto", "always", "avoid", "left", "right", "inherit")
+		values = (u"auto", u"always", u"avoid", u"left", u"right", u"inherit")
 
 
 class break_after(page_break_after):
 	class break_after(xsc.TextAttr):
 		xmlname = "break-after"
-		values = (" auto", "column", "page", "even-page", "odd-page", "inherit")
+		values = (u"auto", u"column", u"page", u"even-page", u"odd-page", u"inherit")
 
 
 class page_break_before(xsc.Element.Attrs):
 	class page_break_before(xsc.TextAttr):
 		xmlname = "page-break-before"
-		values = ("auto", "always", "avoid", "left", "right", "inherit")
+		values = (u"auto", u"always", u"avoid", u"left", u"right", u"inherit")
 
 
 class break_before(page_break_before):
 	class break_before(xsc.TextAttr):
 		xmlname = "break-before"
-		values = (" auto", "column", "page", "even-page", "odd-page", "inherit")
+		values = (u"auto", u"column", u"page", u"even-page", u"odd-page", u"inherit")
 
 
 class text_depth(xsc.Element.Attrs):
@@ -245,7 +245,7 @@ class text_altitude(xsc.Element.Attrs):
 class hyphenation_keep(xsc.Element.Attrs):
 	class hyphenation_keep(xsc.Element.Attrs):
 		xmlname = "hyphenation-keep"
-		values = ("auto", "column", "page", "inherit")
+		values = (u"auto", u"column", u"page", u"inherit")
 
 
 class hyphenation_ladder_count(xsc.Element.Attrs):
@@ -256,13 +256,13 @@ class hyphenation_ladder_count(xsc.Element.Attrs):
 class intrusion_displace(xsc.Element.Attrs):
 	class intrusion_displace(xsc.TextAttr):
 		xmlname = "intrusion-displace"
-		values = ("auto", "none", "line", "indent", "block", "inherit")
+		values = (u"auto", u"none", u"line", u"indent", u"block", u"inherit")
 
 
 class page_break_inside(xsc.Element.Attrs):
 	class page_break_inside(xsc.TextAttr):
 		xmlname = "page-break-inside"
-		values = ("avoid", "auto", "inherit")
+		values = (u"avoid", u"auto", u"inherit")
 
 
 class keep_together(page_break_inside):
@@ -306,25 +306,25 @@ class last_line_end_indent(xsc.Element.Attrs):
 class white_space(xsc.Element.Attrs):
 	class white_space(xsc.TextAttr):
 		xmlname = "white-space"
-		values = ("normal", "pre", "nowrap", "inherit")
+		values = (u"normal", u"pre", u"nowrap", u"inherit")
 
 
 class linefeed_treatment(white_space):
 	class linefeed_treatment(xsc.TextAttr):
 		xmlname = "linefeed-treatment"
-		values = ("ignore", "preserve", "treat-as-space", "treat-as-zero-width-space", "inherit")
+		values = (u"ignore", u"preserve", u"treat-as-space", u"treat-as-zero-width-space", u"inherit")
 
 
 class line_height_shift_adjustment(xsc.Element.Attrs):
 	class line_height_shift_adjustment(xsc.TextAttr):
 		xmlname = "line-height-shift-adjustment"
-		values = ("consider-shifts", "disregard-shifts", "inherit")
+		values = (u"consider-shifts", u"disregard-shifts", u"inherit")
 
 
 class line_stacking_strategy(xsc.Element.Attrs):
 	class line_stacking_strategy(xsc.TextAttr):
 		xmlname = "line-stacking-strategy"
-		values = ("line-height", "font-height", "max-height", "inherit")
+		values = (u"line-height", u"font-height", u"max-height", u"inherit")
 
 
 class orphans(xsc.Element.Attrs):
@@ -335,12 +335,12 @@ class orphans(xsc.Element.Attrs):
 class white_space_treatment(white_space):
 	class white_space_treatment(xsc.TextAttr):
 		xmlname = "white-space-treatment"
-		values = ("ignore", "preserve", "ignore-if-before-linefeed", "ignore-if-after-linefeed", "ignore-if-surrounding-linefeed", "inherit")
+		values = (u"ignore", u"preserve", u"ignore-if-before-linefeed", u"ignore-if-after-linefeed", u"ignore-if-surrounding-linefeed", u"inherit")
 
 
 class span(xsc.Element.Attrs):
 	class span(xsc.TextAttr):
-		values = ("none", "all", "inherit")
+		values = (u"none", u"all", u"inherit")
 
 
 class text_align(xsc.Element.Attrs):
@@ -351,7 +351,7 @@ class text_align(xsc.Element.Attrs):
 class text_align_last(xsc.Element.Attrs):
 	class text_align_last(xsc.TextAttr):
 		xmlname = "text-align-last"
-		values = ("relative", "start", "center", "end", "justify", "inside", "outside", "left", "right", "inherit")
+		values = (u"relative", u"start", u"center", u"end", u"justify", u"inside", u"outside", u"left", u"right", u"inherit")
 
 
 class text_indent(xsc.Element.Attrs):
@@ -362,7 +362,7 @@ class text_indent(xsc.Element.Attrs):
 class white_space_collapse(white_space):
 	class white_space_collapse(xsc.TextAttr):
 		xmlname = "white-space-collapse"
-		values = ("false", "true", "inherit")
+		values = (u"false", u"true", u"inherit")
 
 
 class widows(xsc.Element.Attrs):
@@ -373,13 +373,13 @@ class widows(xsc.Element.Attrs):
 class wrap_option(white_space):
 	class wrap_option(xsc.TextAttr):
 		xmlname = "wrap-option"
-		values = ("no-wrap", "wrap", "inherit")
+		values = (u"no-wrap", u"wrap", u"inherit")
 
 
 class score_spaces(xsc.Element.Attrs):
 	class score_spaces(xsc.TextAttr):
 		xmlname = "score-spaces"
-		values = ("true", "false", "inherit")
+		values = (u"true", u"false", u"inherit")
 
 
 class text_decoration(xsc.Element.Attrs):
@@ -404,13 +404,13 @@ class content_type(xsc.Element.Attrs):
 
 class scaling(xsc.Element.Attrs):
 	class scaling(xsc.TextAttr):
-		values = ("uniform", "non-uniform", "inherit")
+		values = (u"uniform", u"non-uniform", u"inherit")
 
 
 class scaling_method(xsc.Element.Attrs):
 	class scaling_method(xsc.TextAttr):
 		xmlname = "scaling-method"
-		values = ("auto", "integer-pixels", "resample-any-method", "inherit")
+		values = (u"auto", u"integer-pixels", u"resample-any-method", u"inherit")
 
 
 class id(xsc.Element.Attrs):
@@ -421,13 +421,13 @@ class id(xsc.Element.Attrs):
 class leader_alignment(xsc.Element.Attrs):
 	class leader_alignment(xsc.TextAttr):
 		xmlname = "leader-alignment"
-		values = ("none", "reference-area", "page", "inherit")
+		values = (u"none", u"reference-area", u"page", u"inherit")
 
 
 class leader_pattern(xsc.Element.Attrs):
 	class leader_pattern(xsc.TextAttr):
 		xmlname = "leader-pattern"
-		values = ("space", "rule", "dots", "use-content", "inherit")
+		values = (u"space", u"rule", u"dots", u"use-content", u"inherit")
 
 
 class leader_pattern_width(xsc.Element.Attrs):
@@ -449,7 +449,7 @@ class leader_length(xsc.Element.Attrs):
 class rule_style(xsc.Element.Attrs):
 	class rule_style(xsc.TextAttr):
 		xmlname = "rule-style"
-		values = ("none", "dotted", "dashed", "solid", "double", "groove", "ridge", "inherit")
+		values = (u"none", u"dotted", u"dashed", u"solid", u"double", u"groove", u"ridge", u"inherit")
 
 
 class rule_thickness(xsc.Element.Attrs):
@@ -465,7 +465,7 @@ class ref_id(xsc.Element.Attrs):
 class caption_side(xsc.Element.Attrs):
 	class caption_side(xsc.TextAttr):
 		xmlname = "caption-side"
-		values = ("before", "after", "start", "end", "top", "bottom", "left", "right", "inherit")
+		values = (u"before", u"after", u"start", u"end", u"top", u"bottom", u"left", u"right", u"inherit")
 
 
 class border_after_precedence(xsc.Element.Attrs):
@@ -491,7 +491,7 @@ class border_end_precedence(xsc.Element.Attrs):
 class border_collapse(xsc.Element.Attrs):
 	class border_collapse(xsc.TextAttr):
 		xmlname = "border-collapse"
-		values = ("collapse", "collapse-with-precedence", "separate", "inherit")
+		values = (u"collapse", u"collapse-with-precedence", u"separate", u"inherit")
 
 
 class border_separation(xsc.Element.Attrs):
@@ -508,19 +508,19 @@ class border_separation(xsc.Element.Attrs):
 class table_layout(xsc.Element.Attrs):
 	class table_layout(xsc.TextAttr):
 		xmlname = "table-layout"
-		values = ("auto", "fixed", "inherit")
+		values = (u"auto", u"fixed", u"inherit")
 
 
 class table_omit_footer_at_break(xsc.Element.Attrs):
 	class table_omit_footer_at_break(xsc.TextAttr):
 		xmlname = "table-omit-footer-at-break"
-		values = ("true", "false")
+		values = (u"true", u"false")
 
 
 class table_omit_header_at_break(xsc.Element.Attrs):
 	class table_omit_header_at_break(xsc.TextAttr):
 		xmlname = "table-omit-header-at-break"
-		values = ("true", "false")
+		values = (u"true", u"false")
 
 
 class column_number(xsc.Element.Attrs):
@@ -546,25 +546,25 @@ class number_columns_spanned(xsc.Element.Attrs):
 class relative_align(xsc.Element.Attrs):
 	class relative_align(xsc.TextAttr):
 		xmlname = "relative-align"
-		values = ("before", "baseline", "inherit")
+		values = (u"before", u"baseline", u"inherit")
 
 
 class empty_cells(xsc.Element.Attrs):
 	class empty_cells(xsc.TextAttr):
 		xmlname = "empty-cells"
-		values = ("show", "hide", "inherit")
+		values = (u"show", u"hide", u"inherit")
 
 
 class ends_row(xsc.Element.Attrs):
 	class ends_row(xsc.TextAttr):
 		xmlname = "ends-row"
-		values = ("true", "false")
+		values = (u"true", u"false")
 
 
 class starts_row(xsc.Element.Attrs):
 	class starts_row(xsc.TextAttr):
 		xmlname = "starts-row"
-		values = ("true", "false")
+		values = (u"true", u"false")
 
 
 class number_rows_spanned(xsc.Element.Attrs):
@@ -595,7 +595,7 @@ class external_destination(xsc.Element.Attrs):
 class indicate_destination(xsc.Element.Attrs):
 	class indicate_destination(xsc.TextAttr):
 		xmlname = "indicate-destination"
-		values = ("true", "false")
+		values = (u"true", u"false")
 
 
 class internal_destination(xsc.Element.Attrs):
@@ -606,19 +606,19 @@ class internal_destination(xsc.Element.Attrs):
 class show_destination(xsc.Element.Attrs):
 	class show_destination(xsc.TextAttr):
 		xmlname = "show-destination"
-		values = ("replace", "new")
+		values = (u"replace", u"new")
 
 
 class auto_restore(xsc.Element.Attrs):
 	class auto_restore(xsc.TextAttr):
 		xmlname = "auto-restore"
-		values = ("true", "false")
+		values = (u"true", u"false")
 
 
 class starting_state(xsc.Element.Attrs):
 	class starting_state(xsc.TextAttr):
 		xmlname = "starting-state"
-		values = ("show", "hide")
+		values = (u"show", u"hide")
 
 
 class switch_to(xsc.Element.Attrs):
@@ -654,17 +654,17 @@ class case_title(xsc.Element.Attrs):
 class active_state(xsc.Element.Attrs):
 	class active_state(xsc.TextAttr):
 		xmlname = "active-state"
-		values = ("link", "visited", "active", "hover", "focus")
+		values = (u"link", u"visited", u"active", u"hover", u"focus")
 
 
 class float(xsc.Element.Attrs):
 	class float(xsc.TextAttr):
-		values = ("start", "end", "left", "right", "both", "none", "inherit")
+		values = (u"start", u"end", u"left", u"right", u"both", u"none", u"inherit")
 
 
 class clear(xsc.Element.Attrs):
 	class clear(xsc.TextAttr):
-		values = ("start", "end", "left", "right", "both", "none", "inherit")
+		values = (u"start", u"end", u"left", u"right", u"both", u"none", u"inherit")
 
 
 class marker_class_name(xsc.Element.Attrs):
@@ -714,14 +714,14 @@ class common_border_padding_background_properties(xsc.Element.Attrs):
 		pass
 	class background_attachment(xsc.TextAttr):
 		xmlname = "background-attachment"
-		values = ("scroll", "fixed", "inherit")
+		values = (u"scroll", u"fixed", u"inherit")
 	class background_color(xsc.ColorAttr):
 		xmlname = "background-color"
 	class background_image(xsc.URLAttr):
 		xmlname = "background-image"
 	class background_repeat(xsc.TextAttr):
 		xmlname = "background-repeat"
-		values = ("repeat", "repeat-x", "repeat-y", "no-repeat", "inherit")
+		values = (u"repeat", u"repeat-x", u"repeat-y", u"no-repeat", u"inherit")
 	class background_position(xsc.TextAttr):
 		xmlname = "background-position"
 	class background_position_horizontal(xsc.TextAttr):
@@ -740,7 +740,7 @@ class common_border_padding_background_properties(xsc.Element.Attrs):
 		xmlname = "border-before-color"
 	class border_before_style(xsc.TextAttr):
 		xmlname = "border-before-style"
-		values = ("none", "hidden", "dotted", "dashed", "solid", "double", "groove", "ridge", "inset", "outset", "inherit")
+		values = (u"none", u"hidden", u"dotted", u"dashed", u"solid", u"double", u"groove", u"ridge", u"inset", u"outset", u"inherit")
 	class border_before_width(xsc.TextAttr):
 		xmlname = "border-before-width"
 	class border_before_width_length(xsc.TextAttr):
@@ -751,7 +751,7 @@ class common_border_padding_background_properties(xsc.Element.Attrs):
 		xmlname = "border-after-color"
 	class border_after_style(xsc.TextAttr):
 		xmlname = "border-after-style"
-		values = ("none", "hidden", "dotted", "dashed", "solid", "double", "groove", "ridge", "inset", "outset", "inherit")
+		values = (u"none", u"hidden", u"dotted", u"dashed", u"solid", u"double", u"groove", u"ridge", u"inset", u"outset", u"inherit")
 	class border_after_width(xsc.TextAttr):
 		xmlname = "border-after-width"
 	class border_after_width_length(xsc.TextAttr):
@@ -762,7 +762,7 @@ class common_border_padding_background_properties(xsc.Element.Attrs):
 		xmlname = "border-start-color"
 	class border_start_style(xsc.TextAttr):
 		xmlname = "border-start-style"
-		values = ("none", "hidden", "dotted", "dashed", "solid", "double", "groove", "ridge", "inset", "outset", "inherit")
+		values = (u"none", u"hidden", u"dotted", u"dashed", u"solid", u"double", u"groove", u"ridge", u"inset", u"outset", u"inherit")
 	class border_start_width(xsc.TextAttr):
 		xmlname = "border-start-width"
 	class border_start_width_length(xsc.TextAttr):
@@ -773,7 +773,7 @@ class common_border_padding_background_properties(xsc.Element.Attrs):
 		xmlname = "border-end-color"
 	class border_end_style(xsc.TextAttr):
 		xmlname = "border-end-style"
-		values = ("none", "hidden", "dotted", "dashed", "solid", "double", "groove", "ridge", "inset", "outset", "inherit")
+		values = (u"none", u"hidden", u"dotted", u"dashed", u"solid", u"double", u"groove", u"ridge", u"inset", u"outset", u"inherit")
 	class border_end_width(xsc.TextAttr):
 		xmlname = "border-end-width"
 	class border_end_width_length(xsc.TextAttr):
@@ -786,7 +786,7 @@ class common_border_padding_background_properties(xsc.Element.Attrs):
 		xmlname = "border-top-color"
 	class border_top_style(xsc.TextAttr):
 		xmlname = "border-top-style"
-		values = ("none", "hidden", "dotted", "dashed", "solid", "double", "groove", "ridge", "inset", "outset", "inherit")
+		values = (u"none", u"hidden", u"dotted", u"dashed", u"solid", u"double", u"groove", u"ridge", u"inset", u"outset", u"inherit")
 	class border_top_width(xsc.TextAttr):
 		xmlname = "border-top-width"
 	class border_bottom(xsc.TextAttr):
@@ -795,7 +795,7 @@ class common_border_padding_background_properties(xsc.Element.Attrs):
 		xmlname = "border-bottom-color"
 	class border_bottom_style(xsc.TextAttr):
 		xmlname = "border-bottom-style"
-		values = ("none", "hidden", "dotted", "dashed", "solid", "double", "groove", "ridge", "inset", "outset", "inherit")
+		values = (u"none", u"hidden", u"dotted", u"dashed", u"solid", u"double", u"groove", u"ridge", u"inset", u"outset", u"inherit")
 	class border_bottom_width(xsc.TextAttr):
 		xmlname = "border-bottom-width"
 	class border_left(xsc.TextAttr):
@@ -804,7 +804,7 @@ class common_border_padding_background_properties(xsc.Element.Attrs):
 		xmlname = "border-left-color"
 	class border_left_style(xsc.TextAttr):
 		xmlname = "border-left-style"
-		values = ("none", "hidden", "dotted", "dashed", "solid", "double", "groove", "ridge", "inset", "outset", "inherit")
+		values = (u"none", u"hidden", u"dotted", u"dashed", u"solid", u"double", u"groove", u"ridge", u"inset", u"outset", u"inherit")
 	class border_left_width(xsc.TextAttr):
 		xmlname = "border-left-width"
 	class border_right(xsc.TextAttr):
@@ -813,7 +813,7 @@ class common_border_padding_background_properties(xsc.Element.Attrs):
 		xmlname = "border-right-color"
 	class border_right_style(xsc.TextAttr):
 		xmlname = "border-right-style"
-		values = ("none", "hidden", "dotted", "dashed", "solid", "double", "groove", "ridge", "inset", "outset", "inherit")
+		values = (u"none", u"hidden", u"dotted", u"dashed", u"solid", u"double", u"groove", u"ridge", u"inset", u"outset", u"inherit")
 	class border_right_width(xsc.TextAttr):
 		xmlname = "border-right-width"
 	class padding(xsc.TextAttr):
@@ -870,10 +870,10 @@ class common_aural_properties(xsc.Element.Attrs):
 	class pitch_range(xsc.TextAttr): xmlname = "pitch-range"
 	class play_during(xsc.TextAttr): xmlname = "play-during"
 	class richness(xsc.TextAttr): pass
-	class speak(xsc.TextAttr): values = ("normal", "none", "spell-out", "inherit")
-	class speak_header(xsc.TextAttr): xmlname = "speak-header"; values = ("once", "always", "inherit")
-	class speak_numeral(xsc.TextAttr): xmlname = "speak-numeral"; values = ("digits", "continuous", "inherit")
-	class speak_punctuation(xsc.TextAttr): xmlname = "speak-punctuation"; values = ("code", "none", "inherit")
+	class speak(xsc.TextAttr): values = (u"normal", u"none", u"spell-out", u"inherit")
+	class speak_header(xsc.TextAttr): xmlname = "speak-header"; values = (u"once", u"always", u"inherit")
+	class speak_numeral(xsc.TextAttr): xmlname = "speak-numeral"; values = (u"digits", u"continuous", u"inherit")
+	class speak_punctuation(xsc.TextAttr): xmlname = "speak-punctuation"; values = (u"code", u"none", u"inherit")
 	class speech_rate(xsc.TextAttr): xmlname = "speech-rate"
 	class stress(xsc.TextAttr): pass
 	class voice_family(xsc.TextAttr): xmlname = "voice-family"
@@ -887,28 +887,28 @@ class common_font_properties(xsc.Element.Attrs):
 		xmlname = "font-family"
 	class font_selection_strategy(xsc.TextAttr):
 		xmlname = "font-selection-strategy"
-		values = ("auto", "character-by-character", "inherit")
+		values = (u"auto", u"character-by-character", u"inherit")
 	class font_size(xsc.TextAttr):
 		xmlname = "font-size"
 	class font_stretch(xsc.TextAttr):
 		xmlname = "font-stretch"
-		values = ("normal", "wider", "narrower", "ultra-condensed", "extra-condensed", "condensed", "semi-condensed", "semi-expanded", "expanded", "extra-expanded", "ultra-expanded", "inherit")
+		values = (u"normal", u"wider", u"narrower", u"ultra-condensed", u"extra-condensed", u"condensed", u"semi-condensed", u"semi-expanded", u"expanded", u"extra-expanded", u"ultra-expanded", u"inherit")
 	class font_size_adjust(xsc.TextAttr):
 		xmlname = "font-size-adjust"
 	class font_style(xsc.TextAttr):
 		xmlname = "font-style"
-		values = ("normal", "italic", "oblique", "backslant", "inherit")
+		values = (u"normal", u"italic", u"oblique", u"backslant", u"inherit")
 	class font_variant(xsc.TextAttr):
 		xmlname = "font-variant"
-		values = ("normal", "small-caps", "inherit")
+		values = (u"normal", u"small-caps", u"inherit")
 	class font_weight(xsc.TextAttr):
 		xmlname = "font-weight"
-		values = ("normal", "bold", "bolder", "lighter", 100, 200, 300, 400, 500, 600, 700, 800, 900, "inherit")
+		values = (u"normal", u"bold", u"bolder", u"lighter", 100, 200, 300, 400, 500, 600, 700, 800, 900, u"inherit")
 
 
 class common_hyphenation_properties(country, language):
 	class script(xsc.TextAttr): pass
-	class hyphenate(xsc.TextAttr): values = ("false", "true", "inherit")
+	class hyphenate(xsc.TextAttr): values = (u"false", u"true", u"inherit")
 	class hyphenation_character(xsc.TextAttr): xmlname = "hyphenation-character"
 	class hyphenation_push_character_count(xsc.TextAttr): xmlname = "hyphenation-push-character-count"
 	class hyphenation_remain_character_count(xsc.TextAttr): xmlname = "hyphenation-remain-character-count"
@@ -916,19 +916,19 @@ class common_hyphenation_properties(country, language):
 
 class position(xsc.Element.Attrs):
 	class position(xsc.TextAttr):
-		values = ("static", "relative", "absolute", "fixed")
+		values = (u"static", u"relative", u"absolute", u"fixed")
 
 
 class common_relative_position_properties(position):
 	class relative_position(xsc.TextAttr):
 		xmlname = "relative-position"
-		values = ("static", "relative", "inherit")
+		values = (u"static", u"relative", u"inherit")
 
 
 class common_absolute_position_properties(position):
 	class absolute_position(xsc.TextAttr):
 		xmlname = "absolute-position"
-		values = ("auto", "absolute", "fixed", "inherit")
+		values = (u"auto", u"absolute", u"fixed", u"inherit")
 	class top(xsc.TextAttr):
 		pass
 	class right(xsc.TextAttr):
@@ -989,7 +989,7 @@ class letter_spacing(xsc.Element.Attrs):
 class unicode_bidi(xsc.Element.Attrs):
 	class unicode_bidi(xsc.TextAttr):
 		xmlname = "unicode-bidi"
-		values = ("normal", "embed", "bidi-override", "inherit")
+		values = (u"normal", u"embed", u"bidi-override", u"inherit")
 
 
 class word_spacing(xsc.Element.Attrs):
@@ -1010,13 +1010,13 @@ class alignment_adjust(vertical_align):
 class treat_as_word_space(xsc.Element.Attrs):
 	class treat_as_word_space(xsc.TextAttr):
 		xmlname = "treat-as-word-space"
-		values = ("auto", "true", "false", "inherit")
+		values = (u"auto", u"true", u"false", u"inherit")
 
 
 class alignment_baseline(vertical_align):
 	class alignment_baseline(xsc.TextAttr):
 		xmlname = "alignment-baseline"
-		values = ("auto", "baseline", "before-edge", "text-before-edge", "middle", "central", "after-edge", "text-after-edge", "ideographic", "alphabetic", "hanging", "mathematical", "inherit")
+		values = (u"auto", u"baseline", u"before-edge", u"text-before-edge", u"middle", u"central", u"after-edge", u"text-after-edge", u"ideographic", u"alphabetic", u"hanging", u"mathematical", u"inherit")
 
 
 class baseline_shift(vertical_align):
@@ -1032,7 +1032,7 @@ class character(xsc.Element.Attrs):
 class dominant_baseline(vertical_align):
 	class dominant_baseline(xsc.TextAttr):
 		xmlname = "dominant-baseline"
-		values = ("auto", "use-script", "no-change", "reset-size", "ideographic", "alphabetic", "hanging", "mathematical", "central", "middle", "text-after-edge", "text-before-edge", "inherit")
+		values = (u"auto", u"use-script", u"no-change", u"reset-size", u"ideographic", u"alphabetic", u"hanging", u"mathematical", u"central", u"middle", u"text-after-edge", u"text-before-edge", u"inherit")
 
 
 class glyph_orientation_horizontal(xsc.Element.Attrs):
@@ -1048,7 +1048,7 @@ class glyph_orientation_vertical(xsc.Element.Attrs):
 class suppress_at_line_break(xsc.Element.Attrs):
 	class suppress_at_line_break(xsc.TextAttr):
 		xmlname = "suppress-at-line-break"
-		values = ("auto", "suppress", "retain", "inherit")
+		values = (u"auto", u"suppress", u"retain", u"inherit")
 
 
 class text_decoration(xsc.Element.Attrs):
@@ -1064,7 +1064,7 @@ class text_shadow(xsc.Element.Attrs):
 class text_transform(xsc.Element.Attrs):
 	class text_transform(xsc.TextAttr):
 		xmlname = "text-transform"
-		values = ("capitalize", "uppercase", "lowercase", "none", "inherit")
+		values = (u"capitalize", u"uppercase", u"lowercase", u"none", u"inherit")
 
 
 class retrieve_class_name(xsc.Element.Attrs):
@@ -1075,19 +1075,19 @@ class retrieve_class_name(xsc.Element.Attrs):
 class retrieve_position(xsc.Element.Attrs):
 	class retrieve_position(xsc.TextAttr):
 		xmlname = "retrieve-position"
-		values = ("first-starting-within-page", "first-including-carryover", "last-starting-within-page", "last-ending-within-page")
+		values = (u"first-starting-within-page", u"first-including-carryover", u"last-starting-within-page", u"last-ending-within-page")
 
 
 class retrieve_boundary(xsc.Element.Attrs):
 	class retrieve_boundary(xsc.TextAttr):
 		xmlname = "retrieve-boundary"
-		values = ("page", "page-sequence", "document")
+		values = (u"page", u"page-sequence", u"document")
 
 
 class usage_context_of_suppress_at_line_break(xsc.Element.Attrs):
 	class usage_context_of_suppress_at_line_break(xsc.TextAttr):
 		xmlname = "usage-context-of-suppress-at-line-break"
-		values = ("auto", "observe", "ignore", "inherit")
+		values = (u"auto", u"observe", u"ignore", u"inherit")
 
 
 ###

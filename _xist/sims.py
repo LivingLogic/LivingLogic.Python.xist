@@ -192,7 +192,7 @@ class Elements(object):
 		self.elements = elements
 
 	def __repr__(self):
-		return "Elements(%s)" % ", ".join(["%s.%s" % (cls.__module__, cls.__name__) for cls in self.elements]) # FIXME: Use a GE in 2.4
+		return "Elements(%s)" % ", ".join("%s.%s" % (cls.__module__, cls.__name__) for cls in self.elements)
 
 	def checkvalid(self, node):
 		"""
@@ -205,8 +205,7 @@ class Elements(object):
 					warnings.warn(IllegalTextWarning(node, child))
 				elif isinstance(child, xsc.Element) and node.xmlns is not None and not isinstance(child, self.elements):
 					if ns is None:
-						# FIXME: Drop the list comprehension in 2.4
-						ns = tuple([el.xmlns for el in self.elements if el.xmlns is not None])
+						ns = tuple(el.xmlns for el in self.elements if el.xmlns is not None)
 					if child.xmlns is not None and issubclass(child.xmlns, ns):
 						warnings.warn(WrongElementWarning(node, child, self.elements))
 
@@ -226,7 +225,7 @@ class ElementsOrText(Elements):
 		self.elements = elements
 
 	def __repr__(self):
-		return "ElementsOrText(%s)" % ", ".join(["%s.%s" % (cls.__module__, cls.__name__) for cls in self.elements]) # FIXME: Use a GE in 2.4
+		return "ElementsOrText(%s)" % ", ".join("%s.%s" % (cls.__module__, cls.__name__) for cls in self.elements)
 
 	def checkvalid(self, node):
 		"""
@@ -237,8 +236,7 @@ class ElementsOrText(Elements):
 			for child in node.content:
 				if isinstance(child, xsc.Element) and node.xmlns is not None and not isinstance(child, self.elements):
 					if ns is None:
-						# FIXME: Drop the list comprehension in 2.4
-						ns = tuple([el.xmlns for el in self.elements if el.xmlns is not None])
+						ns = tuple(el.xmlns for el in self.elements if el.xmlns is not None)
 					if child.xmlns is not None and issubclass(child.xmlns, ns):
 						warnings.warn(WrongElementWarning(node, child, self.elements))
 

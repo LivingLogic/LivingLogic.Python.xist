@@ -23,7 +23,7 @@ from ll.xist.ns import xml
 
 
 # common attributes types
-class DirAttr(xsc.TextAttr): "direction for weak/neutral text"; values = ("ltr", "rtl")
+class DirAttr(xsc.TextAttr): "direction for weak/neutral text"; values = (u"ltr", u"rtl")
 class ContentTypeAttr(xsc.TextAttr): "media type, as per [RFC2045]"
 class ContentTypesAttr(xsc.TextAttr): "comma-separated list of media types, as per [RFC2045]"
 class CharsetAttr(xsc.TextAttr): "a character encoding, as per [RFC2045]"
@@ -41,19 +41,19 @@ class FrameTargetAttr(xsc.TextAttr): "render in this frame"
 class LengthAttr(xsc.TextAttr): "<rep>nn</rep> for pixels or <rep>nn%</rep> for percentage length"
 class MultiLengthAttr(xsc.TextAttr): "pixel, percentage, or relative"
 class PixelsAttr(xsc.IntAttr): "integer representing length in pixels"
-class ShapeAttr(xsc.TextAttr): "image shapes"; values = ("rect", "circle", "poly", "default")
+class ShapeAttr(xsc.TextAttr): "image shapes"; values = (u"rect", u"circle", u"poly", u"default")
 class CoordsAttr(xsc.TextAttr): "comma separated list of lengths"
-class ImgAlignAttr(xsc.TextAttr): "image alignment"; values = ("top", "middle", "bottom", "left", "right", "absmiddle")
+class ImgAlignAttr(xsc.TextAttr): "image alignment"; values = (u"top", u"middle", u"bottom", u"left", u"right", u"absmiddle")
 class ColorAttr(xsc.ColorAttr): "a color using sRGB: #RRGGBB as Hex values"
-class TextAlignAttr(xsc.TextAttr): "text alignment"; values = ("left", "right", "center", "justify")
+class TextAlignAttr(xsc.TextAttr): "text alignment"; values = (u"left", u"right", u"center", u"justify")
 class OLStyleAttr(xsc.TextAttr): values = "1aAiI"
-class ULStyleAttr(xsc.TextAttr): values = ("disc", "square", "circle")
-class InputTypeAttr(xsc.TextAttr): values = ("text", "password", "checkbox", "radio", "submit", "reset", "file", "hidden", "image", "button")
-class TRulesAttr(xsc.TextAttr): values = ("none", "groups", "rows", "cols", "all")
-class TAlignAttr(xsc.TextAttr): values = ("left", "right", "center")
-class CAlignAttr(xsc.TextAttr): values = ("top", "bottom", "left", "right")
-class TFrameAttr(xsc.TextAttr): values = ("void", "above", "below", "hsides", "lhs", "rhs", "vsides", "box", "border")
-class ScopeAttr(xsc.TextAttr): values = ("row", "col", "rowgroup", "colgroup")
+class ULStyleAttr(xsc.TextAttr): values = (u"disc", u"square", u"circle")
+class InputTypeAttr(xsc.TextAttr): values = (u"text", u"password", u"checkbox", u"radio", u"submit", u"reset", u"file", u"hidden", u"image", u"button")
+class TRulesAttr(xsc.TextAttr): values = (u"none", u"groups", u"rows", u"cols", u"all")
+class TAlignAttr(xsc.TextAttr): values = (u"left", u"right", u"center")
+class CAlignAttr(xsc.TextAttr): values = (u"top", u"bottom", u"left", u"right")
+class TFrameAttr(xsc.TextAttr): values = (u"void", u"above", u"below", u"hsides", u"lhs", u"rhs", u"vsides", u"box", u"border")
+class ScopeAttr(xsc.TextAttr): values = (u"row", u"col", u"rowgroup", u"colgroup")
 
 
 # common attributes sets
@@ -211,16 +211,16 @@ class meta(xsc.Element):
 		class scheme(xsc.TextAttr): pass
 
 	def publish(self, publisher):
-		if "http_equiv" in self.attrs:
-			ctype = unicode(self["http_equiv"]).lower()
-			if ctype == u"content-type" and "content" in self.attrs:
-				(contenttype, options) = cgi.parse_header(unicode(self["content"]))
+		if u"http_equiv" in self.attrs:
+			ctype = unicode(self[u"http_equiv"]).lower()
+			if ctype == u"content-type" and u"content" in self.attrs:
+				(contenttype, options) = cgi.parse_header(unicode(self[u"content"]))
 				if u"charset" not in options or options[u"charset"] != publisher.encoding:
 					options[u"charset"] = publisher.encoding
 					node = self.__class__(
 						self.attrs,
-						http_equiv="Content-Type",
-						content=(contenttype, u"; ", u"; ".join([ "%s=%s" % option for option in options.items()])) # FIXME: Use a GE in 2.4
+						http_equiv=u"Content-Type",
+						content=(contenttype, u"; ", u"; ".join("%s=%s" % option for option in options.items()))
 					)
 					node.publish(publisher)
 					return
@@ -289,7 +289,7 @@ class iframe(xsc.Element):
 		class marginwidth(PixelsAttr): pass
 		class marginheight(PixelsAttr): pass
 		class noresize(xsc.BoolAttr): pass # deprecated
-		class scrolling(xsc.TextAttr): values = ("yes", "no", "auto")
+		class scrolling(xsc.TextAttr): values = (u"yes", u"no", u"auto")
 		class align(ImgAlignAttr): pass
 		class height(LengthAttr): pass
 		class width(LengthAttr): pass
@@ -472,7 +472,7 @@ class hr(xsc.Element):
 	"""
 	model = sims.Empty()
 	class Attrs(allattrs):
-		class align(xsc.TextAttr): values = ("left", "right", "center")
+		class align(xsc.TextAttr): values = (u"left", u"right", u"center")
 		class noshade(xsc.BoolAttr): pass
 		class size(PixelsAttr): pass
 		class width(LengthAttr): pass # deprecated
@@ -563,7 +563,7 @@ class br(xsc.Element):
 	"""
 	model = sims.Empty()
 	class Attrs(coreattrs):
-		class clear(xsc.TextAttr): values = ("left", "all", "right", "none")
+		class clear(xsc.TextAttr): values = (u"left", u"all", u"right", u"none")
 
 
 class em(xsc.Element):
@@ -789,7 +789,7 @@ class param(xsc.Element):
 		class id(xsc.IDAttr): pass
 		class name(xsc.TextAttr): required = True
 		class value(xsc.TextAttr): pass
-		class valuetype(xsc.TextAttr): values = ("data", "ref", "object")
+		class valuetype(xsc.TextAttr): values = (u"data", u"ref", u"object")
 		class type(ContentTypeAttr): pass
 
 
@@ -867,7 +867,7 @@ class form(xsc.Element):
 	"""
 	class Attrs(allattrs):
 		class action(xsc.URLAttr): required = True
-		class method(xsc.TextAttr): values = ("get", "post")
+		class method(xsc.TextAttr): values = (u"get", u"post")
 		class name(xsc.TextAttr): pass
 		class enctype(ContentTypeAttr): pass
 		class onsubmit(ScriptAttr): pass
@@ -959,7 +959,7 @@ class textarea(xsc.Element):
 		class readonly(xsc.BoolAttr): pass
 		class onselect(ScriptAttr): pass
 		class onchange(ScriptAttr): pass
-		class wrap(xsc.TextAttr): values = ("virtual", "physical", "off") # deprecated
+		class wrap(xsc.TextAttr): values = (u"virtual", u"physical", u"off") # deprecated
 
 
 class fieldset(xsc.Element):
@@ -976,7 +976,7 @@ class legend(xsc.Element):
 	"""
 	class Attrs(allattrs):
 		class accesskey(xsc.TextAttr): pass
-		class align(xsc.TextAttr): values = ("top", "bottom", "left", "right")
+		class align(xsc.TextAttr): values = (u"top", u"bottom", u"left", u"right")
 
 
 class button(xsc.Element):
@@ -986,7 +986,7 @@ class button(xsc.Element):
 	class Attrs(allattrs, focusattrs):
 		class name(xsc.TextAttr): pass
 		class value(xsc.TextAttr): pass
-		class type(xsc.TextAttr): values = ("button", "submit", "reset")
+		class type(xsc.TextAttr): values = (u"button", u"submit", u"reset")
 		class disabled(xsc.BoolAttr): pass
 
 

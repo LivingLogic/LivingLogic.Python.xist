@@ -67,7 +67,7 @@ class _pixelbase(html.img):
 			The pixel color as a three digit hex value or <lit>spc</lit> to
 			get a transparent pixel.
 			"""
-			default = "spc"
+			default = u"spc"
 
 			def checkvalid(self):
 				if len(self) and not self.isfancy():
@@ -75,7 +75,7 @@ class _pixelbase(html.img):
 					if content != u"spc":
 						if len(content) == 3:
 							for c in content:
-								if c not in "0369cf":
+								if c not in u"0369cf":
 									warnings.warn(errors.IllegalAttrValueWarning(self))
 						else:
 							warnings.warn(errors.IllegalAttrValueWarning(self))
@@ -108,8 +108,8 @@ class pixel(_pixelbase):
 	def convert(self, converter):
 		self.attrs.checkvalid()
 		e = converter.target.img(
-			self.attrs.without(["color"]),
-			src=("root:px/", self["color"], ".gif")
+			self.attrs.without([u"color"]),
+			src=(u"root:px/", self[u"color"], u".gif")
 		)
 		return e.convert(converter)
 
@@ -126,8 +126,8 @@ class autoimg(html.img):
 			e = target.img(self.attrs.convert(converter))
 		else:
 			raise ValueError("unknown conversion target %r" % target)
-		src = self["src"].convert(converter).forInput(converter.root)
-		e._addimagesizeattributes(src, "width", "height")
+		src = self[u"src"].convert(converter).forInput(converter.root)
+		e._addimagesizeattributes(src, u"width", u"height")
 		return e
 
 
@@ -144,10 +144,10 @@ class autopixel(_pixelbase):
 		if not issubclass(target, (ihtml, html)):
 			raise ValueError("unknown conversion target %r" % target)
 		self.attrs.checkvalid()
-		e = target.img(self.attrs.without(["color"]))
-		src = self["src"].convert(converter).forInput(converter.root)
-		e._addimagesizeattributes(src, "width", "height")
-		e["src"] = ("root:px/", self["color"], ".gif")
+		e = target.img(self.attrs.without([u"color"]))
+		src = self[u"src"].convert(converter).forInput(converter.root)
+		e._addimagesizeattributes(src, u"width", u"height")
+		e[u"src"] = (u"root:px/", self[u"color"], u".gif")
 		return e
 
 
@@ -160,9 +160,9 @@ class autoinput(html.input):
 	def convert(self, converter):
 		target = converter.target
 		e = target.input(self.content, self.attrs)
-		if u"type" in self.attrs and unicode(self["type"].convert(converter)) == u"image":
-			src = self["src"].convert(converter).forInput(converter.root)
-			e._addimagesizeattributes(src, "size", None) # no height
+		if u"type" in self.attrs and unicode(self[u"type"].convert(converter)) == u"image":
+			src = self[u"src"].convert(converter).forInput(converter.root)
+			e._addimagesizeattributes(src, u"size", None) # no height
 		return e.convert(converter)
 
 
@@ -178,8 +178,8 @@ class redirectpage(xsc.Element):
 
 	def convert(self, converter):
 		target = converter.target
-		(title, text) = self.langs.get(converter.lang, self.langs["en"])
-		url = self["href"]
+		(title, text) = self.langs.get(converter.lang, self.langs[u"en"])
+		url = self[u"href"]
 		e = target.html(
 			target.head(
 				meta.contenttype(),
@@ -202,7 +202,7 @@ class javascript(html.script):
 
 	def convert(self, converter):
 		target = converter.target
-		e = target.script(self.content, self.attrs, language="javascript", type="text/javascript")
+		e = target.script(self.content, self.attrs, language=u"javascript", type=u"text/javascript")
 		return e.convert(converter)
 
 
@@ -212,30 +212,30 @@ class flash(xsc.Element):
 		class src(xsc.URLAttr): required = True
 		class width(xsc.IntAttr): required = True
 		class height(xsc.IntAttr): required = True
-		class quality(xsc.TextAttr): default = "high"
+		class quality(xsc.TextAttr): default = u"high"
 		class bgcolor(xsc.ColorAttr): pass
 
 	def convert(self, converter):
 		target = converter.target
 		e = target.object(
-			target.param(name="movie", value=self["src"]),
+			target.param(name=u"movie", value=self[u"src"]),
 			target.embed(
-				src=self["src"],
-				quality=self["quality"],
-				bgcolor=self["bgcolor"],
-				width=self["width"],
-				height=self["height"],
-				type="application/x-shockwave-flash",
-				pluginspage="http://www.macromedia.com/shockwave/download/index.cgi?P1_Prod_Version=ShockwaveFlash"
+				src=self[u"src"],
+				quality=self[u"quality"],
+				bgcolor=self[u"bgcolor"],
+				width=self[u"width"],
+				height=self[u"height"],
+				type=u"application/x-shockwave-flash",
+				pluginspage=u"http://www.macromedia.com/shockwave/download/index.cgi?P1_Prod_Version=ShockwaveFlash"
 			),
-			classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000",
-			codebase="http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=5,0,0,0",
-			width=self["width"],
-			height=self["height"]
+			classid=u"clsid:D27CDB6E-AE6D-11cf-96B8-444553540000",
+			codebase=u"http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=5,0,0,0",
+			width=self[u"width"],
+			height=self[u"height"]
 		)
 
 		# copy optional attributes
-		for attrname in ("quality", "bgcolor"):
+		for attrname in (u"quality", u"bgcolor"):
 			if attrname in self.attrs:
 				e.insert(0, target.param(name=attrname, value=self[attrname]))
 
@@ -251,35 +251,35 @@ class quicktime(xsc.Element):
 		class width(xsc.IntAttr): required = True
 		class height(xsc.IntAttr): required = True
 		class bgcolor(xsc.ColorAttr): pass
-		class controller(xsc.ColorAttr): values = ("true", "false")
-		class autoplay(xsc.ColorAttr): values = ("true", "false")
+		class controller(xsc.ColorAttr): values = (u"true", u"false")
+		class autoplay(xsc.ColorAttr): values = (u"true", u"false")
 		class border(xsc.IntAttr): pass
 
 	def convert(self, converter):
 		target = converter.target
 		e = target.object(
-			target.param(name="src", value=self["src"]),
-			target.param(name="type", value="video/quicktime"),
-			target.param(name="pluginspage", value="http://www.apple.com/quicktime/download/indext.html"),
+			target.param(name=u"src", value=self[u"src"]),
+			target.param(name=u"type", value=u"video/quicktime"),
+			target.param(name=u"pluginspage", value=u"http://www.apple.com/quicktime/download/indext.html"),
 			target.embed(
-				src=self["src"],
-				href=self["href"],
-				target=self["target"],
-				bgcolor=self["bgcolor"],
-				width=self["width"],
-				height=self["height"],
-				type="video/quicktime",
-				border=self["border"],
-				pluginspage="http://www.apple.com/quicktime/download/indext.html"
+				src=self[u"src"],
+				href=self[u"href"],
+				target=self[u"target"],
+				bgcolor=self[u"bgcolor"],
+				width=self[u"width"],
+				height=self[u"height"],
+				type=u"video/quicktime",
+				border=self[u"border"],
+				pluginspage=u"http://www.apple.com/quicktime/download/indext.html"
 			),
-			classid="clsid:02BF25D5-8C17-4B23-BC80-D3488ABDDC6B",
-			codebase="http://www.apple.com/qtactivex/qtplugin.cab#version=6,0,2,0",
-			width=self["width"],
-			height=self["height"]
+			classid=u"clsid:02BF25D5-8C17-4B23-BC80-D3488ABDDC6B",
+			codebase=u"http://www.apple.com/qtactivex/qtplugin.cab#version=6,0,2,0",
+			width=self[u"width"],
+			height=self[u"height"]
 		)
 
 		# copy optional attributes
-		for attrname in ("href", "target", "bgcolor", "controller", "autoplay"):
+		for attrname in (u"href", u"target", u"bgcolor", u"controller", u"autoplay"):
 			if attrname in self.attrs:
 				e.insert(0, target.param(name=attrname, value=self[attrname]))
 

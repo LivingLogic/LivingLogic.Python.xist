@@ -392,81 +392,81 @@ class Presenter:
 	string representation of a node to be printed on the screen.</par>
 	"""
 
+	@xsc.notimplemented
 	def present(self, node):
 		"""
 		<par>create a string presentation for <arg>node</arg> and return the resulting string.</par>
 		"""
 		pass
-	present = xsc.notimplemented(present) # FIXME: @notimplemented in Py2.4
 	
+	@xsc.notimplemented
 	def presentText(self, node):
 		"""
 		<par>present a <pyref module="ll.xist.xsc" class="Text"><class>Text</class></pyref> node.</par>
 		"""
-	presentText = xsc.notimplemented(presentText) # FIXME: @notimplemented in Py2.4
 
+	@xsc.notimplemented
 	def presentFrag(self, node):
 		"""
 		<par>present a <pyref module="ll.xist.xsc" class="Frag"><class>Frag</class></pyref> node.</par>
 		"""
 		pass
-	presentFrag = xsc.notimplemented(presentFrag) # FIXME: @notimplemented in Py2.4
 
+	@xsc.notimplemented
 	def presentComment(self, node):
 		"""
 		<par>present a <pyref module="ll.xist.xsc" class="Comment"><class>Comment</class></pyref> node.</par>
 		"""
 		pass
-	presentComment = xsc.notimplemented(presentComment) # FIXME: @notimplemented in Py2.4
 
+	@xsc.notimplemented
 	def presentDocType(self, node):
 		"""
 		<par>present a <pyref module="ll.xist.xsc" class="DocType"><class>DocType</class></pyref> node.</par>
 		"""
 		pass
-	presentDocType = xsc.notimplemented(presentDocType) # FIXME: @notimplemented in Py2.4
 
+	@xsc.notimplemented
 	def presentProcInst(self, node):
 		"""
 		<par>present a <pyref module="ll.xist.xsc" class="ProcInst"><class>ProcInst</class></pyref> node.</par>
 		"""
 		pass
-	presentProcInst = xsc.notimplemented(presentProcInst) # FIXME: @notimplemented in Py2.4
 
+	@xsc.notimplemented
 	def presentAttrs(self, node):
 		"""
 		<par>present an <pyref module="ll.xist.xsc" class="Attrs"><class>Attrs</class></pyref> node.</par>
 		"""
 		pass
-	presentAttrs = xsc.notimplemented(presentAttrs) # FIXME: @notimplemented in Py2.4
 
+	@xsc.notimplemented
 	def presentElement(self, node):
 		"""
 		<par>present an <pyref module="ll.xist.xsc" class="Element"><class>Element</class></pyref> node.</par>
 		"""
 		pass
-	presentElement = xsc.notimplemented(presentElement) # FIXME: @notimplemented in Py2.4
 
+	@xsc.notimplemented
 	def presentEntity(self, node):
 		"""
 		<par>present a <pyref module="ll.xist.xsc" class="Entity"><class>Entity</class></pyref> node.</par>
 		"""
 		pass
-	presentEntity = xsc.notimplemented(presentEntity) # FIXME: @notimplemented in Py2.4
 
+	@xsc.notimplemented
 	def presentNull(self, node):
 		"""
 		<par>present the <class>Null</class> node.</par>
 		"""
 		pass
-	presentNull = xsc.notimplemented(presentNull) # FIXME: @notimplemented in Py2.4
 
+	@xsc.notimplemented
 	def presentAttr(self, node):
 		"""
 		<par>present an <pyref module="ll.xist.xsc" class="Attr"><class>Attr</class></pyref> node.</par>
 		"""
 		pass
-	presentAttr = xsc.notimplemented(presentAttr) # FIXME: @notimplemented in Py2.4
 
 
 class PlainPresenter(Presenter):

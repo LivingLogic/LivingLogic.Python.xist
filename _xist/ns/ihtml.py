@@ -340,16 +340,16 @@ class meta(xsc.Element):
 			"Designates content type (Fixed <lit>to text/html; charset=SHIFT_JIS</lit>) (2.0)"
 
 	def publish(self, publisher):
-		if self.attrs.has("http_equiv"):
-			ctype = unicode(self["http_equiv"]).lower()
-			if ctype == u"content-type" and self.attrs.has("content"):
-				(contenttype, options) = cgi.parse_header(unicode(self["content"]))
+		if "http_equiv" in self.attrs:
+			ctype = unicode(self[u"http_equiv"]).lower()
+			if ctype == u"content-type" and u"content" in self.attrs:
+				(contenttype, options) = cgi.parse_header(unicode(self[u"content"]))
 				if u"charset" not in options or options[u"charset"] != publisher.encoding:
 					options[u"charset"] = publisher.encoding
 					node = self.__class__(
 						self.attrs,
-						http_equiv="Content-Type",
-						content=(contenttype, u"; ", u"; ".join([ "%s=%s" % option for option in options.items()])) # FIXME: Use a GE in 2.4
+						http_equiv=u"Content-Type",
+						content=(contenttype, u"; ", u"; ".join(u"%s=%s" % option for option in options.items()))
 					)
 					node.publish(publisher)
 					return

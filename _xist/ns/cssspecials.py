@@ -29,8 +29,8 @@ class opacity(css.prop):
 
 	def convert(self, converter):
 		e = xsc.Frag(
-			css.filter("alpha(opacity=", self.content, ")"),
-			css._moz_opacity(self.content, "%")
+			css.filter(u"alpha(opacity=", self.content, u")"),
+			css._moz_opacity(self.content, u"%")
 		)
 		return e.convert(converter)
 
@@ -42,7 +42,7 @@ class verdana(css.prop):
 	"""
 
 	def convert(self, converter):
-		e = css.font_family('"Verdana", "Tahoma", "Arial", "XHelvetica", "Helvetica", sans-serif')
+		e = css.font_family(u'"Verdana", "Tahoma", "Arial", "XHelvetica", "Helvetica", sans-serif')
 		return e.convert(converter)
 
 
@@ -53,7 +53,7 @@ class arialnarrow(css.prop):
 	"""
 
 	def convert(self, converter):
-		e = css.font_family('"Arial Narrow", "Tahoma", "Arial", "Verdana", "XHelvetica", "Helvetica", sans-serif')
+		e = css.font_family(u'"Arial Narrow", "Tahoma", "Arial", "Verdana", "XHelvetica", "Helvetica", sans-serif')
 		return e.convert(converter)
 
 

@@ -34,15 +34,15 @@ class contenttype(html.meta):
 		http_equiv = None
 		name = None
 		content = None
-		class mimetype(xsc.TextAttr): default = "text/html"
+		class mimetype(xsc.TextAttr): default = u"text/html"
 
 	def convert(self, converter):
 		target = converter.target
 		if issubclass(target, ihtml) or issubclass(target, html):
 			e = target.meta(
-				self.attrs.without(["mimetype"]),
-				http_equiv="Content-Type",
-				content=self["mimetype"],
+				self.attrs.without([u"mimetype"]),
+				http_equiv=u"Content-Type",
+				content=self[u"mimetype"],
 			)
 		else:
 			raise ValueError("unknown conversion target %r" % target)
@@ -67,10 +67,10 @@ class contentscripttype(html.meta):
 
 	def convert(self, converter):
 		attrs = self.attrs.copy()
-		del attrs["type"]
+		del attrs[u"type"]
 		e = html.meta(attrs)
-		e["http_equiv"] = "Content-Script-Type"
-		e["content"] = self["type"]
+		e[u"http_equiv"] = u"Content-Script-Type"
+		e[u"content"] = self[u"type"]
 		return e.convert(converter)
 
 
@@ -88,8 +88,8 @@ class keywords(html.meta):
 
 	def convert(self, converter):
 		e = html.meta(self.attrs)
-		e["name"] = "keywords"
-		e["content"] = self.content
+		e[u"name"] = u"keywords"
+		e[u"content"] = self.content
 		return e.convert(converter)
 
 
@@ -107,8 +107,8 @@ class description(html.meta):
 
 	def convert(self, converter):
 		e = html.meta(self.attrs)
-		e["name"] = "description"
-		e["content"] = self.content
+		e[u"name"] = u"description"
+		e[u"content"] = self.content
 		return e.convert(converter)
 
 
@@ -123,7 +123,7 @@ class stylesheet(html.link):
 		type = None
 
 	def convert(self, converter):
-		e = html.link(self.attrs, rel="stylesheet", type="text/css")
+		e = html.link(self.attrs, rel=u"stylesheet", type=u"text/css")
 		return e.convert(converter)
 
 
@@ -137,7 +137,7 @@ class made(html.link):
 		rel = None
 
 	def convert(self, converter):
-		e = html.link(self.attrs, rel="made", href=("mailto:", self["href"]))
+		e = html.link(self.attrs, rel=u"made", href=(u"mailto:", self[u"href"]))
 		return e.convert(converter)
 
 
@@ -155,12 +155,12 @@ class author(xsc.Element):
 
 	def convert(self, converter):
 		e = xsc.Frag()
-		if "name" in self.attrs:
-			e.append(html.meta(name="author", content=self["name"]))
-			if "lang" in self.attrs:
-				e[-1]["lang"] = self["lang"]
-		if "email" in self.attrs:
-			e.append(html.link(rel="made", href=("mailto:", self["email"])))
+		if u"name" in self.attrs:
+			e.append(html.meta(name=u"author", content=self[u"name"]))
+			if u"lang" in self.attrs:
+				e[-1][u"lang"] = self[u"lang"]
+		if u"email" in self.attrs:
+			e.append(html.link(rel=u"made", href=(u"mailto:", self[u"email"])))
 		return e.convert(converter)
 
 
@@ -175,7 +175,7 @@ class refresh(xsc.Element):
 		class href(xsc.URLAttr): pass
 
 	def convert(self, converter):
-		e = html.meta(http_equiv="Refresh", content=(self["secs"], "; url=", self["href"]))
+		e = html.meta(http_equiv=u"Refresh", content=(self[u"secs"], u"; url=", self[u"href"]))
 		return e.convert(converter)
 
 

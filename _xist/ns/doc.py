@@ -14,7 +14,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # import __builtin__ to use property, which is also defined here
 import types, inspect, warnings, __builtin__
 
-from ll.xist import xsc, parsers, sims, errors
+from ll.xist import xsc, parsers, sims, errors, xfind
 from ll.xist.ns import html, text, docbook, fo, specials, xml
 
 
@@ -31,48 +31,48 @@ class base(xsc.Element):
 			self.sections = [0]
 			self.lists = []
 
-			self.llblue = "#006499"
-			self.llgreen = "#9fc94d"
+			self.llblue = u"#006499"
+			self.llgreen = u"#9fc94d"
 
-			self.ttfont = "CourierNew, monospace"
-			self.hdfont = "ArialNarrow, Arial, sans-serif"
-			self.font = "PalatinoLinotype, serif"
+			self.ttfont = u"CourierNew, monospace"
+			self.hdfont = u"ArialNarrow, Arial, sans-serif"
+			self.font = u"PalatinoLinotype, serif"
 
 			self.indentcount = 0
 
 			self.vspaceattrs = {
-				"space_before": "0pt",
-				"space_after_minimum": "4pt",
-				"space_after_optimum": "6pt",
-				"space_after_maximum": "12pt",
-				"space_after_conditionality": "discard",
+				u"space_before": u"0pt",
+				u"space_after_minimum": u"4pt",
+				u"space_after_optimum": u"6pt",
+				u"space_after_maximum": u"12pt",
+				u"space_after_conditionality": u"discard",
 			}
 
 			self.linkattrs = {
-				"color": "blue",
-				"text_decoration": "underline"
+				u"color": u"blue",
+				u"text_decoration": u"underline"
 			}
 
 			self.codeattrs = {
-				"font_family": self.ttfont
+				u"font_family": self.ttfont
 			}
 
 			self.repattrs = {
-				"font_style": "italic"
+				u"font_style": u"italic"
 			}
 
 			self.emattrs = {
-				"font_weight": "bold"
+				u"font_weight": u"bold"
 			}
 
 		def dedent(self):
-			return "-0.7cm"
+			return u"-0.7cm"
 
 		def indent(self):
-			return "%.1fcm" % (0.7*self.indentcount)
+			return u"%.1fcm" % (0.7*self.indentcount)
 
 		def labelindent(self):
-			return "%.1fcm" % (0.7*self.indentcount-0.4)
+			return u"%.1fcm" % (0.7*self.indentcount-0.4)
 
 	def convert(self, converter):
 		target = converter.target
@@ -122,7 +122,7 @@ class abbr(inline):
 		class lang(xsc.TextAttr): pass
 
 	def convert_docbook(self, converter):
-		e = converter.target.abbrev(self.content, lang=self["lang"])
+		e = converter.target.abbrev(self.content, lang=self[u"lang"])
 		return e.convert(converter)
 
 	def convert_html(self, converter):
@@ -143,7 +143,7 @@ class tab(xsc.Element):
 	register = False
 
 	def convert(self, converter):
-		e = converter.target.span(u"\xB7\xA0\xA0", class_="tab")
+		e = converter.target.span(u"\xB7\xA0\xA0", class_=u"tab")
 		return e.convert(converter)
 
 
@@ -172,13 +172,13 @@ class litblock(block):
 
 	def convert_text(self, converter):
 		target = converter.target
-		e = target.pre(class_="prog")
+		e = target.pre(class_=u"prog")
 		for child in self.content:
 			child = child.convert(converter)
 			if isinstance(child, xsc.Text):
 				for c in child.content:
 					if c==u"\t":
-						c = "   "
+						c = u"   "
 					e.append(c)
 			else:
 				e.append(child)
@@ -192,9 +192,9 @@ class litblock(block):
 		e = target.block(
 			context.vspaceattrs,
 			context.codeattrs,
-			text_align="left",
-			line_height="130%",
-			font_size="90%",
+			text_align=u"left",
+			line_height=u"130%",
+			font_size=u"90%",
 			start_indent=context.indent(),
 			end_indent=context.indent()
 		)
@@ -208,11 +208,11 @@ class litblock(block):
 					if c==u" ":
 						c = u"\xa0" # transform spaces into nbsps
 					if c==u"\t":
-						c = target.inline(u"\u25ab", 3*u"\xa0", color="rgb(50%, 50%, 50%)")
+						c = target.inline(u"\u25ab\xa0\xa0\xa0", color="rgb(50%, 50%, 50%)")
 					if c==u"\n":
 						if not collect and not first: # fix empty lines (but not the first one)
 							collect.append(u"\ufeff")
-							collect["line_height"] = "60%" # reduce the line-height
+							collect[u"line_height"] = u"60%" # reduce the line-height
 						e.append(collect)
 						collect = target.block()
 						first = False
@@ -230,7 +230,7 @@ class prog(litblock):
 	"""
 	A literal listing of all or part of a program
 	"""
-	cssclass = "prog"
+	cssclass = u"prog"
 
 	def convert_docbook(self, converter):
 		e = converter.target.programlisting(self.content)
@@ -241,7 +241,7 @@ class tty(litblock):
 	"""
 	A dump of a shell session
 	"""
-	cssclass = "tty"
+	cssclass = u"tty"
 
 	def convert_docbook(self, converter):
 		e = converter.target.screen(self.content)
@@ -258,7 +258,7 @@ class prompt(inline):
 		return e.convert(converter)
 
 	def convert_html(self, converter):
-		e = converter.target.code(self.content, class_="prompt")
+		e = converter.target.code(self.content, class_=u"prompt")
 		return e.convert(converter)
 
 	def convert_fo(self, converter):
@@ -276,7 +276,7 @@ class input(inline):
 		return e.convert(converter)
 
 	def convert_html(self, converter):
-		e = converter.target.code(self.content, class_="input")
+		e = converter.target.code(self.content, class_=u"input")
 		return e.convert(converter)
 
 	def convert_fo(self, converter):
@@ -300,7 +300,7 @@ class rep(inline):
 		return e.convert(converter)
 
 	def convert_html(self, converter):
-		e = converter.target.var(self.content, class_="rep")
+		e = converter.target.var(self.content, class_=u"rep")
 		return e.convert(converter)
 
 	def convert_fo(self, converter):
@@ -334,7 +334,7 @@ class option(code):
 		return e.convert(converter)
 
 	def convert_html(self, converter):
-		e = converter.target.code(self.content, class_="option")
+		e = converter.target.code(self.content, class_=u"option")
 		return e.convert(converter)
 
 
@@ -349,7 +349,7 @@ class lit(code):
 		return e.convert(converter)
 
 	def convert_html(self, converter):
-		e = converter.target.code(self.content, class_="literal")
+		e = converter.target.code(self.content, class_=u"literal")
 		return e.convert(converter)
 
 
@@ -364,7 +364,7 @@ class function(code):
 		return e.convert(converter)
 
 	def convert_html(self, converter):
-		e = converter.target.code(self.content, class_="function")
+		e = converter.target.code(self.content, class_=u"function")
 		return e.convert(converter)
 
 
@@ -379,7 +379,7 @@ class method(code):
 		return e.convert(converter)
 
 	def convert_html(self, converter):
-		e = converter.target.code(self.content, class_="method")
+		e = converter.target.code(self.content, class_=u"method")
 		return e.convert(converter)
 
 
@@ -390,11 +390,11 @@ class property(code):
 	model = sims.ElementsOrText(rep)
 
 	def convert_docbook(self, converter):
-		e = converter.target.varname(self.content, role="property")
+		e = converter.target.varname(self.content, role=u"property")
 		return e.convert(converter)
 
 	def convert_html(self, converter):
-		e = converter.target.code(self.content, class_="property")
+		e = converter.target.code(self.content, class_=u"property")
 		return e.convert(converter)
 
 
@@ -410,7 +410,7 @@ class class_(code):
 		return e.convert(converter)
 
 	def convert_html(self, converter):
-		e = converter.target.code(self.content, class_="class")
+		e = converter.target.code(self.content, class_=u"class")
 		return e.convert(converter)
 
 
@@ -425,7 +425,7 @@ class markup(code):
 		return e.convert(converter)
 
 	def convert_html(self, converter):
-		e = converter.target.code(self.content, class_="markup")
+		e = converter.target.code(self.content, class_=u"markup")
 		return e.convert(converter)
 
 
@@ -440,7 +440,7 @@ class arg(code):
 		return e.convert(converter)
 
 	def convert_html(self, converter):
-		e = converter.target.code(self.content, class_="arg")
+		e = converter.target.code(self.content, class_=u"arg")
 		return e.convert(converter)
 
 
@@ -451,11 +451,11 @@ class module(code):
 	model = sims.ElementsOrText(rep)
 
 	def convert_docbook(self, converter):
-		e = converter.target.classname(self.content, role="module")
+		e = converter.target.classname(self.content, role=u"module")
 		return e.convert(converter)
 
 	def convert_html(self, converter):
-		e = converter.target.code(self.content, class_="module")
+		e = converter.target.code(self.content, class_=u"module")
 		return e.convert(converter)
 
 
@@ -470,7 +470,7 @@ class parameter(code):
 		return e.convert(converter)
 
 	def convert_html(self, converter):
-		e = converter.target.code(self.content, class_="parameter")
+		e = converter.target.code(self.content, class_=u"parameter")
 		return e.convert(converter)
 
 
@@ -485,7 +485,7 @@ class filename(code):
 		return e.convert(converter)
 
 	def convert_html(self, converter):
-		e = converter.target.code(self.content, class_="filename")
+		e = converter.target.code(self.content, class_=u"filename")
 		return e.convert(converter)
 
 
@@ -496,7 +496,7 @@ class dirname(code):
 	model = sims.ElementsOrText(rep)
 
 	def convert_docbook(self, converter):
-		e = converter.target.filename(self.content, class_="directory")
+		e = converter.target.filename(self.content, class_=u"directory")
 		return e.convert(converter)
 
 
@@ -507,11 +507,11 @@ class username(code):
 	model = sims.ElementsOrText(rep)
 
 	def convert_docbook(self, converter):
-		e = converter.target.literal(self.content, role="username")
+		e = converter.target.literal(self.content, role=u"username")
 		return e.convert(converter)
 
 	def convert_html(self, converter):
-		e = converter.target.code(self.content, class_="username")
+		e = converter.target.code(self.content, class_=u"username")
 		return e.convert(converter)
 
 
@@ -522,11 +522,11 @@ class hostname(code):
 	model = sims.ElementsOrText(rep)
 
 	def convert_docbook(self, converter):
-		e = converter.target.literal(self.content, role="hostname")
+		e = converter.target.literal(self.content, role=u"hostname")
 		return e.convert(converter)
 
 	def convert_html(self, converter):
-		e = converter.target.code(self.content, class_="hostname")
+		e = converter.target.code(self.content, class_=u"hostname")
 		return e.convert(converter)
 
 
@@ -539,22 +539,22 @@ class app(inline):
 		class moreinfo(xsc.URLAttr): pass
 
 	def convert_docbook(self, converter):
-		e = converter.target.application(self.content, moreinfo=self["moreinfo"])
+		e = converter.target.application(self.content, moreinfo=self[u"moreinfo"])
 		return e.convert(converter)
 
 	def convert_html(self, converter):
-		if "moreinfo" in self.attrs:
-			e = converter.target.a(self.content, class_="app", href=self["moreinfo"])
+		if u"moreinfo" in self.attrs:
+			e = converter.target.a(self.content, class_=u"app", href=self[u"moreinfo"])
 		else:
-			e = converter.target.span(self.content, class_="app")
+			e = converter.target.span(self.content, class_=u"app")
 		return e.convert(converter)
 
 	def convert_fo(self, converter):
-		if "moreinfo" in self.attrs:
+		if u"moreinfo" in self.attrs:
 			e = converter.target.basic_link(
 				self.content,
 				converter[self].linkattrs,
-				external_destination=self["moreinfo"]
+				external_destination=self[u"moreinfo"]
 			)
 		else:
 			e = self.content
@@ -591,7 +591,7 @@ class section(block):
 		class id(xsc.IDAttr): pass
 
 	def convert_docbook(self, converter):
-		e = converter.target.section(self.content, role=self["role"], id=self["id"])
+		e = converter.target.section(self.content, role=self[u"role"], id=self[u"id"])
 		return e.convert(converter)
 
 	def convert_html(self, converter):
@@ -601,19 +601,19 @@ class section(block):
 		level = len(context.sections)
 		context.sections.append(0) # for numbering the subsections
 		ts = xsc.Frag()
-		cs = html.div(class_="content")
+		cs = html.div(class_=u"content")
 		for child in self:
 			if isinstance(child, title):
 				ts.append(child)
 			else:
 				cs.append(child)
-		e = target.div(class_=("section level", level), id=self["id"])
-		if "role" in self.attrs:
-			e["class_"].append(" ", self.attrs["role"])
-		#if "id" in self.attrs:
-		#	e.append(target.a(name=self["id"], id=self["id"]))
+		e = target.div(class_=(u"section level", level), id=self[u"id"])
+		if u"role" in self.attrs:
+			e[u"class_"].append(u" ", self.attrs[u"role"])
+		#if u"id" in self.attrs:
+		#	e.append(target.a(name=self[u"id"], id=self[u"id"]))
 		try:
-			hclass = target.element("h%d" % level)
+			hclass = target.element(u"h%d" % level)
 		except LookupError: # ouch, we're nested to deep (a getter in a property in a class in a class)
 			hclass = target.h6
 		for t in ts:
@@ -632,11 +632,11 @@ class section(block):
 		ts = xsc.Frag()
 		cs = xsc.Frag()
 		props = [
-			# size,   before, after
-			("30pt", "30pt", "2pt"),
-			("22pt", "20pt", "2pt"),
-			("16pt", "15pt", "2pt"),
-			("12pt", "15pt", "2pt")
+			# size,    before,  after
+			(u"30pt", u"30pt", u"2pt"),
+			(u"22pt", u"20pt", u"2pt"),
+			(u"16pt", u"15pt", u"2pt"),
+			(u"12pt", u"15pt", u"2pt")
 		]
 		for child in self.content:
 			if isinstance(child, title):
@@ -644,7 +644,7 @@ class section(block):
 			else:
 				cs.append(child)
 		p = props[min(len(context.sections)-1, len(props)-1)]
-		isref = unicode(self["role"].convert(converter)) in ("class", "method", "property", "function", "module")
+		isref = unicode(self[u"role"].convert(converter)) in (u"class", u"method", u"property", u"function", u"module")
 
 		number = None
 		if isref:
@@ -653,8 +653,8 @@ class section(block):
 		else:
 			if len(context.sections)>2:
 				number = (
-					".".join([str(x) for x in context.sections[1:-1]]), # FIXME: Use a GE in 2.4
-					". "
+					u".".join(unicode(s) for s in context.sections[1:-1]),
+					u". "
 				)
 			text_indent = None
 
@@ -662,24 +662,24 @@ class section(block):
 			if context.sections[0]==1:
 				break_before = None
 			else:
-				break_before = "page"
+				break_before = u"page"
 			tattrs = fo.block.Attrs(
 				font_family=context.hdfont,
 				color=context.llblue,
-				text_align="center",
-				font_size="36pt",
-				space_after="30pt",
+				text_align=u"center",
+				font_size=u"36pt",
+				space_after=u"30pt",
 				break_before=break_before,
-				keep_with_next_within_page="always",
+				keep_with_next_within_page=u"always",
 			)
 		else:
 			tattrs = fo.block.Attrs(
 				font_size=p[0],
 				space_before=p[1],
 				space_after=p[2],
-				text_align="left",
+				text_align=u"left",
 				font_family=context.hdfont,
-				keep_with_next_within_page="always",
+				keep_with_next_within_page=u"always",
 				text_indent=text_indent
 			)
 		e = fo.block(
@@ -703,18 +703,18 @@ class par(block):
 		class type(xsc.TextAttr): pass
 
 	def convert_docbook(self, converter):
-		e = converter.target.para(self.content, role=self["type"])
+		e = converter.target.para(self.content, role=self[u"type"])
 		return e.convert(converter)
 
 	def convert_html(self, converter):
-		e = converter.target.p(self.content, class_=self["type"])
+		e = converter.target.p(self.content, class_=self[u"type"])
 		return e.convert(converter)
 
 	def convert_fo(self, converter):
 		e = fo.block(
 			self.content,
 			converter[self].vspaceattrs,
-			line_height="130%"
+			line_height=u"130%"
 		)
 		return e.convert(converter)
 
@@ -736,7 +736,7 @@ class term(base):
 	def convert_fo(self, converter):
 		e = converter.target.block(
 			self.content,
-			font_style="italic"
+			font_style=u"italic"
 		)
 		return e.convert(converter)
 
@@ -748,7 +748,7 @@ class item(base):
 	model = sims.ElementsOrText(block, inline) # if it contains no block elements, the content will be promoted to a paragraph
 
 	def convert_docbook(self, converter):
-		if self.content.find(xsc.FindType(block)):
+		if xfind.count(self/block):
 			content = self.content
 		else:
 			content = converter.target.para(self.content)
@@ -828,7 +828,7 @@ class ulist(list):
 	def convert_fo(self, converter):
 		context = converter[self]
 		context.lists.append(["ulist", 0])
-		e = converter.target.list_block(self.content, line_height="130%")
+		e = converter.target.list_block(self.content, line_height=u"130%")
 		e = e.convert(converter)
 		del context.lists[-1]
 		return e
@@ -854,7 +854,7 @@ class olist(list):
 	def convert_fo(self, converter):
 		context = converter[self]
 		context.lists.append(["olist", 0])
-		e = converter.target.list_block(self.content, line_height="130%")
+		e = converter.target.list_block(self.content, line_height=u"130%")
 		e = e.convert(converter)
 		del context.lists[-1]
 		return e
@@ -914,7 +914,7 @@ class example(block):
 				e.append(child)
 
 		if ts:
-			e.append(target.div(ts, class_="example-title"))
+			e.append(target.div(ts, class_=u"example-title"))
 
 		return e.convert(converter)
 
@@ -928,7 +928,7 @@ class example(block):
 		return e.convert(converter)
 
 	def convert_fo(self, converter):
-		# FIXME handle title
+		# FIXME: handle title
 		e = xsc.Frag()
 		for child in self.content:
 			if not isinstance(child, title):
@@ -949,19 +949,16 @@ class self(code):
 	model = sims.Empty()
 
 	def convert_docbook(self, converter):
-		e = converter.target.varname("self")
+		e = converter.target.varname(u"self")
 		return e.convert(converter)
 
 	def convert_html(self, converter):
-		e = converter.target.code("self", class_="self")
+		e = converter.target.code(u"self", class_=u"self")
 		return e.convert(converter)
 
 	def convert_fo(self, converter):
-		e = converter.target.inline("self", converter[self].codeattrs)
+		e = converter.target.inline(u"self", converter[self].codeattrs)
 		return e.convert(converter)
-
-	def __unicode__(self):
-		return u"self"
 
 self_ = self
 
@@ -979,19 +976,16 @@ class cls(inline):
 	model = sims.Empty()
 
 	def convert_docbook(self, converter):
-		e = converter.target.varname("cls")
+		e = converter.target.varname(u"cls")
 		return e.convert(converter)
 
 	def convert_html(self, converter):
-		e = converter.target.code("cls", class_="cls")
+		e = converter.target.code(u"cls", class_=u"cls")
 		return e.convert(converter)
 
 	def convert_fo(self, converter):
-		e = converter.target.inline("cls", converter[self].codeattrs)
+		e = converter.target.inline(u"cls", converter[self].codeattrs)
 		return e.convert(converter)
-
-	def __unicode__(self):
-		return u"cls"
 
 
 class link(inline):
@@ -1004,19 +998,19 @@ class link(inline):
 		class hreflang(xsc.TextAttr): pass
 
 	def convert_docbook(self, converter):
-		e = converter.target.link(self.content, linkend=self["href"])
+		e = converter.target.link(self.content, linkend=self[u"href"])
 		return e.convert(converter)
 
 	def convert_html(self, converter):
-		e = converter.target.a(self.content, href=self["href"], hreflang=self["hreflang"])
+		e = converter.target.a(self.content, href=self[u"href"], hreflang=self[u"hreflang"])
 		return e.convert(converter)
 
 	def convert_fo(self, converter):
-		if "href" in self.attrs:
+		if u"href" in self.attrs:
 			e = converter.target.basic_link(
 				self.content,
 				converter[self].linkattrs,
-				external_destination=self["href"]
+				external_destination=self[u"href"]
 			)
 		else:
 			e = self.content
@@ -1032,19 +1026,19 @@ class xref(inline):
 		class ref(xsc.TextAttr): pass
 
 	def convert_docbook(self, converter):
-		e = converter.target.link(self.content, linkend=self["ref"])
+		e = converter.target.link(self.content, linkend=self[u"ref"])
 		return e.convert(converter)
 
 	def convert_html(self, converter):
-		e = converter.target.a(self.content, href=("#", self["ref"]))
+		e = converter.target.a(self.content, href=(u"#", self[u"ref"]))
 		return e.convert(convertert)
 
 	def convert_fo(self, converter):
-		if "href" in self.attrs:
+		if u"href" in self.attrs:
 			e = converter.target.basic_link(
 				self.content,
 				converter[self].linkattrs,
-				internal_destination=self["ref"]
+				internal_destination=self[u"ref"]
 			)
 		else:
 			e = self.content
@@ -1062,14 +1056,14 @@ class email(inline):
 		return e.convert(converter)
 
 	def convert_html(self, converter):
-		e = converter.target.a(self.content, href=("mailto:", self.content))
+		e = converter.target.a(self.content, href=(u"mailto:", self.content))
 		return e.convert(converter)
 
 	def convert_fo(self, converter):
 		e = converter.target.basic_link(
 			self.content,
 			converter[self].linkattrs,
-			external_destination=("mailto:", self.content)
+			external_destination=(u"mailto:", self.content)
 		)
 		return e.convert(converter)
 
@@ -1104,7 +1098,7 @@ class pyref(inline):
 	model = sims.ElementsOrText(inline)
 	class Attrs(xsc.Element.Attrs):
 		class module(xsc.TextAttr): pass
-		class class_(xsc.TextAttr): xmlname = "class"
+		class class_(xsc.TextAttr): xmlname = u"class"
 		class method(xsc.TextAttr): pass
 		class property(xsc.TextAttr): pass
 		class function(xsc.TextAttr): pass
@@ -1119,25 +1113,25 @@ class pyref(inline):
 		context = converter[self]
 		if issubclass(target, xmlns): # our own namespace
 			return self.convert_doc(converter)
-		if "function" in self.attrs:
-			function = unicode(self["function"].convert(converter))
+		if u"function" in self.attrs:
+			function = unicode(self[u"function"].convert(converter))
 		else:
 			function = None
-		if "method" in self.attrs:
-			method = unicode(self["method"].convert(converter))
+		if u"method" in self.attrs:
+			method = unicode(self[u"method"].convert(converter))
 		else:
 			method = None
-		if "property" in self.attrs:
-			prop = unicode(self["property"].convert(converter))
+		if u"property" in self.attrs:
+			prop = unicode(self[u"property"].convert(converter))
 		else:
 			prop = None
-		if "class_" in self.attrs:
-			class__ = unicode(self["class_"].convert(converter)).replace(u".", u"-")
+		if u"class_" in self.attrs:
+			class__ = unicode(self[u"class_"].convert(converter)).replace(u".", u"-")
 		else:
 			class__ = None
-		if "module" in self.attrs:
-			module = unicode(self["module"].convert(converter))
-			if module.startswith("ll."):
+		if u"module" in self.attrs:
+			module = unicode(self[u"module"].convert(converter))
+			if module.startswith(u"ll."):
 				module = module[3:].replace(u".", u"/")
 			else:
 				module = None
@@ -1148,18 +1142,18 @@ class pyref(inline):
 		if issubclass(target, html):
 			if function is not None:
 				if module is not None:
-					e = target.a(e, href=(context.base, module, "/index.html#", function))
+					e = target.a(e, href=(context.base, module, u"/index.html#", function))
 			elif method is not None:
 				if class__ is not None and module is not None:
-					e = target.a(e, href=(context.base, module, "/index.html#", class__, "-", method))
+					e = target.a(e, href=(context.base, module, u"/index.html#", class__, "-", method))
 			elif prop is not None:
 				if class__ is not None and module is not None:
-					e = target.a(e, href=(context.base, module, "/index.html#", class__, "-", prop))
+					e = target.a(e, href=(context.base, module, u"/index.html#", class__, "-", prop))
 			elif class__ is not None:
 				if module is not None:
-					e = target.a(e, href=(context.base, module, "/index.html#", class__))
+					e = target.a(e, href=(context.base, module, u"/index.html#", class__))
 			elif module is not None:
-				e = target.a(e, href=(context.base, module, "/index.html"))
+				e = target.a(e, href=(context.base, module, u"/index.html"))
 		return e.convert(converter)
 
 
@@ -1225,26 +1219,26 @@ def getdoc(cls, thing):
 	refs = node.find(xsc.FindTypeAll(pyref))
 	if inspect.ismethod(thing):
 		for ref in refs:
-			if "module" not in ref.attrs:
-				ref["module"] = cls._getmodulename(thing)
-				if "class_" not in ref.attrs:
-					ref["class_"] = thing.im_class.__name__
-					if "method" not in ref.attrs:
-						ref["method"] = thing.__name__
+			if u"module" not in ref.attrs:
+				ref[u"module"] = cls._getmodulename(thing)
+				if u"class_" not in ref.attrs:
+					ref[u"class_"] = thing.im_class.__name__
+					if u"method" not in ref.attrs:
+						ref[u"method"] = thing.__name__
 	elif inspect.isfunction(thing):
 		for ref in refs:
-			if "module" not in ref.attrs:
-				ref["module"] = cls._getmodulename(thing)
+			if u"module" not in ref.attrs:
+				ref[u"module"] = cls._getmodulename(thing)
 	elif inspect.isclass(thing):
 		for ref in refs:
-			if "module" not in ref.attrs:
-				ref["module"] = cls._getmodulename(thing)
-				if "class_" not in ref.attrs:
-					ref["class_"] = thing.__name__
+			if u"module" not in ref.attrs:
+				ref[u"module"] = cls._getmodulename(thing)
+				if u"class_" not in ref.attrs:
+					ref[u"class_"] = thing.__name__
 	elif inspect.ismodule(thing):
 		for ref in refs:
-			if "module" not in ref.attrs:
-				ref["module"] = thing.__name__
+			if u"module" not in ref.attrs:
+				ref[u"module"] = thing.__name__
 	return node
 getdoc = classmethod(getdoc)
 
@@ -1266,25 +1260,22 @@ canonicalOrder = [
 ]
 
 
-def _cmpname(cls, (obj1, name1), (obj2, name2)):
-	names = [ name1 or obj1.__name__, name2 or obj2.__name__ ]
-	sorts = []
-	for name in names:
-		try:
-			pos = cls.canonicalOrder.index(name)
-		except ValueError:
-			if name.startswith("__"):
-				if name.endswith("__"):
-					pos = 1000
-				else:
-					pos = 4000
-			elif name.startswith("_"):
-				pos = 3000
+def _namekey(cls, (obj, name)):
+	name = name or obj.__name__
+	try:
+		pos = cls.canonicalOrder.index(name)
+	except ValueError:
+		if name.startswith("__"):
+			if name.endswith("__"):
+				pos = 1000
 			else:
-				pos = 2000
-		sorts.append((pos, name))
-	return cmp(sorts[0], sorts[1])
-_cmpname = classmethod(_cmpname)
+				pos = 4000
+		elif name.startswith("_"):
+			pos = 3000
+		else:
+			pos = 2000
+	return (pos, name)
+_namekey = classmethod(_namekey)
 
 
 def _codeheader(cls, thing, name, type):
@@ -1306,20 +1297,20 @@ def _codeheader(cls, thing, name, type):
 				sig.append(cls.arg(args[i]))
 		else:
 			if sig:
-				sig.append(", ")
+				sig.append(u", ")
 			sig.append(cls.arg(args[i]))
 		if i >= offset:
-			sig.append("=", cls.lit(repr(defaults[i-offset])))
+			sig.append(u"=", cls.lit(repr(defaults[i-offset])))
 	if varargs:
 		if sig:
-			sig.append(", ")
-		sig.append("*", cls.arg(varargs))
+			sig.append(u", ")
+		sig.append(u"*", cls.arg(varargs))
 	if varkw:
 		if sig:
-			sig.append(", ")
-		sig.append("**", cls.arg(varkw))
+			sig.append(u", ")
+		sig.append(u"**", cls.arg(varkw))
 	sig.insert(0, type(name), u"\u200b(") # use "ZERO WIDTH SPACE" to allow linebreaks
-	sig.append(")")
+	sig.append(u")")
 	return sig
 _codeheader = classmethod(_codeheader)
 
@@ -1335,59 +1326,59 @@ def explain(cls, thing, name=None, context=[]):
 	the other entries will be class names.</par>
 	"""
 
-	visibility = "public"
+	visibility = u"public"
 	testname = name or thing.__name__
 	if testname.startswith("_"):
-		visibility = "protected"
+		visibility = u"protected"
 		if testname.startswith("__"):
-			visibility = "private"
+			visibility = u"private"
 			if testname.endswith("__"):
-				visibility = "special"
+				visibility = u"special"
 
 	doc = cls.getdoc(thing)
 	if doc is xsc.Null:
-		hasdoc = "nodoc"
+		hasdoc = u"nodoc"
 	else:
-		hasdoc = "doc"
+		hasdoc = u"doc"
 
 	if inspect.ismethod(thing):
 		name = name or thing.__name__
 		context = context + [(thing, name)]
 		(args, varargs, varkw, defaults) = inspect.getargspec(thing.im_func)
-		id = "-".join([info[1] for info in context[1:]]) or None # FIXME: Use a GE in 2.4
+		id = "-".join(info[1] for info in context[1:]) or None
 		sig = xsc.Frag()
 		if name != thing.__name__ and not (thing.__name__.startswith("__") and name=="_" + thing.im_class.__name__ + thing.__name__):
-			sig.append(cls.method(name), " = ")
-		sig.append("def ", cls._codeheader(thing.im_func, thing.__name__, cls.method), ":")
-		return cls.section(cls.title(sig), doc, role=(visibility, " method ", hasdoc), id=id or None)
+			sig.append(cls.method(name), u" = ")
+		sig.append(u"def ", cls._codeheader(thing.im_func, thing.__name__, cls.method), u":")
+		return cls.section(cls.title(sig), doc, role=(visibility, u" method ", hasdoc), id=id or None)
 	elif inspect.isfunction(thing):
 		name = name or thing.__name__
 		context = context + [(thing, name)]
-		id = "-".join([info[1] for info in context[1:]]) or None # FIXME: Use a GE in 2.4
+		id = u"-".join(info[1] for info in context[1:]) or None
 		sig = xsc.Frag(
-			"def ",
+			u"def ",
 			cls._codeheader(thing, name, cls.function),
-			":"
+			u":"
 		)
-		return cls.section(cls.title(sig), doc, role=(visibility, " function ", hasdoc), id=id)
+		return cls.section(cls.title(sig), doc, role=(visibility, u" function ", hasdoc), id=id)
 	elif isinstance(thing, __builtin__.property):
 		context = context + [(thing, name)]
-		id = "-".join([info[1] for info in context[1:]]) or None # FIXME: Use a GE in 2.4
+		id = u"-".join(info[1] for info in context[1:]) or None
 		sig = xsc.Frag(
-			"property ", name, ":"
+			u"property ", name, u":"
 		)
-		node = cls.section(cls.title(sig), doc, role=(visibility, " property ", hasdoc), id=id)
+		node = cls.section(cls.title(sig), doc, role=(visibility, u" property ", hasdoc), id=id)
 		if thing.fget is not None:
-			node.append(cls.explain(thing.fget, "__get__", context))
+			node.append(cls.explain(thing.fget, u"__get__", context))
 		if thing.fset is not None:
-			node.append(cls.explain(thing.fset, "__set__", context))
+			node.append(cls.explain(thing.fset, u"__set__", context))
 		if thing.fdel is not None:
-			node.append(cls.explain(thing.fdel, "__delete__", context))
+			node.append(cls.explain(thing.fdel, u"__delete__", context))
 		return node
 	elif inspect.isclass(thing):
 		name = name or thing.__name__
 		context = context + [(thing, name)]
-		id = "-".join([info[1] for info in context[1:]]) or None # FIXME: Use a GE in 2.4
+		id = "-".join(info[1] for info in context[1:]) or None
 		bases = xsc.Frag()
 		if len(thing.__bases__):
 			for baseclass in thing.__bases__:
@@ -1399,24 +1390,24 @@ def explain(cls, thing, name=None, context=[]):
 					except AttributeError:
 						baseclassname = baseclass.__name__
 					if thing.__module__ != baseclass.__module__:
-						baseclassname4text = baseclass.__module__ + "." + baseclassname
+						baseclassname4text = baseclass.__module__ + u"." + baseclassname
 					else:
 						baseclassname4text = baseclassname
 					#baseclassname4text = u".\u200b".join(baseclassname4text.split("."))
 					ref = cls.pyref(cls.class_(baseclassname4text), module=baseclass.__module__, class_=baseclassname)
 				bases.append(ref)
-			bases = bases.withsep(", ")
+			bases = bases.withsep(u", ")
 			bases.insert(0, u"\u200b(") # use "ZERO WIDTH SPACE" to allow linebreaks
-			bases.append(")")
+			bases.append(u")")
 		node = cls.section(
 			cls.title(
-				"class ",
+				u"class ",
 				cls.class_(name),
 				bases,
-				":"
+				u":"
 			),
 			doc,
-			role=(visibility, " class ", hasdoc),
+			role=(visibility, u" class ", hasdoc),
 			id=id
 		)
 		# find methods, properties and classes, but filter out those methods that are attribute getters, setters or deleters
@@ -1437,13 +1428,13 @@ def explain(cls, thing, name=None, context=[]):
 				else:
 					methods.append((obj, varname))
 		if len(methods):
-			methods.sort(cls._cmpname)
+			methods.sort(key=cls._namekey)
 			node.append([cls.explain(obj, varname, context) for (obj, varname) in methods])
 		if len(properties):
-			properties.sort(cls._cmpname)
+			properties.sort(key=cls._namekey)
 			node.append([cls.explain(obj, varname, context) for (obj, varname) in properties])
 		if len(classes):
-			classes.sort(cls._cmpname)
+			classes.sort(key=cls._namekey)
 			for (subclass, subname) in classes:
 				for (superclass, supername) in context:
 					if subclass is superclass: # avoid endless recursion for __outerclass__ which references a class further up in the context path.
@@ -1455,9 +1446,9 @@ def explain(cls, thing, name=None, context=[]):
 		name = name or thing.__name__
 		context = [(thing, name)]
 		node = cls.section(
-			cls.title("Module ", cls.module(name)),
+			cls.title(u"Module ", cls.module(name)),
 			doc,
-			role=(visibility, " module ", hasdoc),
+			role=(visibility, u" module ", hasdoc),
 		)
 
 		functions = []
@@ -1469,12 +1460,12 @@ def explain(cls, thing, name=None, context=[]):
 			elif inspect.isclass(obj) and not (issubclass(obj, xsc.Namespace) and hasattr(obj, "__file__")):
 				classes.append((obj, varname))
 		if len(classes):
-			classes.sort(cls._cmpname)
+			classes.sort(key=cls._namekey)
 			node.append(
 				[cls.explain(obj, name, context) for (obj, name) in classes],
 			)
 		if len(functions):
-			functions.sort(cls._cmpname)
+			functions.sort(key=cls._namekey)
 			node.append(
 				[cls.explain(obj, name, context) for (obj, name) in functions],
 			)
@@ -1498,50 +1489,50 @@ class fodoc(base):
 		converter.pop()
 
 		e = xsc.Frag(
-			xml.XML10(), "\n",
+			xml.XML10(), u"\n",
 			fo.root(
 				fo.layout_master_set(
 					fo.simple_page_master(
 						fo.region_body(
-							region_name="xsl-region-body",
-							margin_bottom="3cm"
+							region_name=u"xsl-region-body",
+							margin_bottom=u"3cm"
 						),
 						fo.region_after(
-							region_name="xsl-region-after",
-							extent="2cm"
+							region_name=u"xsl-region-after",
+							extent=u"2cm"
 						),
-						master_name="default",
-						page_height="29.7cm",
-						page_width="21cm",
-						margin_top="1cm",
-						margin_bottom="1cm",
-						margin_left="2.5cm",
-						margin_right="1cm"
+						master_name=u"default",
+						page_height=u"29.7cm",
+						page_width=u"21cm",
+						margin_top=u"1cm",
+						margin_bottom=u"1cm",
+						margin_left=u"2.5cm",
+						margin_right=u"1cm"
 					)
 				),
 				fo.page_sequence(
 					fo.static_content(
 						fo.block(
 							fo.page_number(),
-							border_before_width="0.1pt",
-							border_before_color="#000",
-							border_before_style="solid",
-							padding_before="4pt",
-							text_align="center"
+							border_before_width=u"0.1pt",
+							border_before_color=u"#000",
+							border_before_style=u"solid",
+							padding_before=u"4pt",
+							text_align=u"center"
 						),
-						flow_name="xsl-region-after"
+						flow_name=u"xsl-region-after"
 					),
 					fo.flow(
 						e,
-						flow_name="xsl-region-body"
+						flow_name=u"xsl-region-body"
 					),
-					master_reference="default"
+					master_reference=u"default"
 				),
 				font_family=context.font,
-				font_size="10pt",
-				text_align="justify",
-				line_height="normal",
-				language="en",
+				font_size=u"10pt",
+				text_align=u"justify",
+				line_height=u"normal",
+				language=u"en",
 				orphans=2,
 				widows=3
 			)

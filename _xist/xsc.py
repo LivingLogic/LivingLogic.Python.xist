@@ -101,8 +101,7 @@ def notimplemented(function):
 		raise NotImplementedError("method %s() not implemented in %r" % (function.__name__, self.__class__))
 	wrapper.__dict__.update(function.__dict__)
 	wrapper.__doc__ = function.__doc__
-	# FIXME: Add the following in Py2.4
-	# wrapper.__name__ = function.__name__
+	wrapper.__name__ = function.__name__
 	return wrapper
 
 
@@ -356,6 +355,7 @@ class Node(Base):
 			presenter = presenters.defaultPresenterClass()
 		return presenter.present(self)
 
+	@notimplemented
 	def present(self, presenter):
 		"""
 		<par><method>present</method> is used as a central dispatch method for
@@ -365,7 +365,6 @@ class Node(Base):
 		instead.</par>
 		"""
 		# Subclasses of Node implement this method by calling the appropriate present* method in the publisher (i.e. double dispatch)
-	present = notimplemented(present) # FIXME: @notimplemented in Py2.4
 
 	def conv(self, converter=None, root=None, mode=None, stage=None, target=None, lang=None, function=None, makeaction=None, maketarget=None):
 		"""
@@ -384,6 +383,7 @@ class Node(Base):
 			converter.pop()
 			return node
 
+	@notimplemented
 	def convert(self, converter):
 		"""
 		<par>implementation of the conversion method. When you define your own
@@ -393,8 +393,8 @@ class Node(Base):
 		<par>This method must return an instance of <class>Node</class>.</par>
 		"""
 		pass
-	convert = notimplemented(convert) # FIXME: @notimplemented in Py2.4
 
+	@notimplemented
 	def __unicode__(self):
 		"""
 		<par>Return the character content of <self/> as a unicode string.
@@ -405,7 +405,6 @@ class Node(Base):
 		a plain string representation of the node is required.</par>
 		"""
 		pass
-	__unicode__ = notimplemented(__unicode__) # FIXME: @notimplemented in Py2.4
 
 	def __str__(self):
 		"""
@@ -442,7 +441,7 @@ class Node(Base):
 		stdin.close()
 		text = stdout.read()
 		stdout.close()
-		text = "\n".join([ line.rstrip() for line in text.splitlines()]) # FIXME: Use GE in 2.4
+		text = "\n".join(line.rstrip() for line in text.splitlines())
 		return text
 
 	def __int__(self):
@@ -466,9 +465,9 @@ class Node(Base):
 		"""
 		s = unicode(self)
 		for c in ignore:
-			s = s.replace(c, "")
-		if decimal != ".":
-			s = s.replace(decimal, ".")
+			s = s.replace(c, u"")
+		if decimal != u".":
+			s = s.replace(decimal, u".")
 		return float(s)
 
 	def __float__(self):
@@ -554,6 +553,7 @@ class Node(Base):
 		"""
 		pass
 
+	@notimplemented
 	def publish(self, publisher):
 		"""
 		Generate unicode strings for the node, and pass the strings to
@@ -564,7 +564,6 @@ class Node(Base):
 		<par>The encoding and xhtml specification are taken from the <arg>publisher</arg>.</par>
 		"""
 		pass
-	publish = notimplemented(publish) # FIXME: @notimplemented in Py2.4
 
 	def asString(self, base=None, publisher=None, **publishargs):
 		"""
@@ -802,7 +801,7 @@ class CharacterData(Node):
 	__slots__ = ("__content",)
 
 	def __init__(self, *content):
-		self.__content = u"".join([unicode(x) for x in content]) # FIXME: Use GE in 2.4
+		self.__content = u"".join(unicode(x) for x in content)
 
 	def __getcontent(self):
 		return self.__content
@@ -1015,7 +1014,7 @@ class Frag(Node, list):
 
 	def clone(self):
 		node = self._create()
-		list.extend(node, [ child.clone() for child in self ]) # FIXME: Use GE in 2.4
+		list.extend(node, (child.clone() for child in self))
 		return self._decoratenode(node)
 
 	def __copy__(self):
@@ -1034,14 +1033,14 @@ class Frag(Node, list):
 		if memo is None:
 			memo = {}
 		memo[id(self)] = node
-		list.extend(node, [ copy.deepcopy(child, memo) for child in self ]) # FIXME: Use GE in 2.4
+		list.extend(node, (copy.deepcopy(child, memo) for child in self))
 		return self._decoratenode(node)
 
 	def present(self, presenter):
 		presenter.presentFrag(self)
 
 	def __unicode__(self):
-		return u"".join([ unicode(child) for child in self ]) # FIXME: Use GE in 2.4
+		return u"".join(unicode(child) for child in self)
 
 	def __eq__(self, other):
 		return self.__class__ is other.__class__ and list.__eq__(self, other)
@@ -1222,7 +1221,7 @@ class Frag(Node, list):
 		true will be copied.</par>
 		"""
 		node = self._create()
-		list.extend(node, [ child for child in self if function(child) ]) # FIXME: Use GE in 2.4
+		list.extend(node, (child for child in self if function(child)))
 		return node
 
 	def shuffled(self):
@@ -1435,7 +1434,7 @@ class Attr(Frag):
 			if "values" in dict:
 				values = dict["values"]
 				if values is not None:
-					dict["values"] = tuple([unicode(entry) for entry in dict["values"]]) # FIXME: Use GE in 2.4
+					dict["values"] = tuple(unicode(entry) for entry in dict["values"])
 			return Frag.__metaclass__.__new__(cls, name, bases, dict)
 
 		def __repr__(self):
@@ -1832,15 +1831,15 @@ class Attrs(Node, dict):
 
 	def checkvalid(self):
 		# collect required attributes
-		attrs = {} # FIXME: Use a set with Python 2.4
+		attrs = set()
 		for (key, value) in self.iteralloweditems():
 			if value.required:
-				attrs[key] = None
+				attrs.add(key)
 		# Check each attribute and remove it from the list of required ones
 		for (attrname, attrvalue) in self.iteritems():
 			attrvalue.checkvalid()
 			try:
-				del attrs[attrname]
+				attrs.remove(attrname)
 			except KeyError:
 				pass
 		# are there any required attributes remaining that haven't been specified? => warn about it
@@ -1871,6 +1870,27 @@ class Attrs(Node, dict):
 	def isallowed(cls, name, xml=False):
 		return name in cls._attrs[xml]
 	isallowed = classmethod(isallowed)
+
+	def __getattribute__(self, name):
+		sup = super(Attrs, self)
+		if name in sup.__getattribute__("_attrs")[False]: # avoid recursion
+			return self.__getitem__(name)
+		else:
+			return sup.__getattribute__(name)
+
+	def __setattr__(self, name, value):
+		sup = super(Attrs, self)
+		if name in sup.__getattribute__("_attrs")[False]: # avoid recursion
+			return self.__setitem__(name, value)
+		else:
+			return sup.__setattr__(name, value)
+
+	def __detattr__(self, name):
+		sup = super(Attrs, self)
+		if name in sup.__getattribute__("_attrs")[False]: # avoid recursion
+			return self.__detitem__(name)
+		else:
+			return sup.__delattr__(name)
 
 	def __getitem__(self, name):
 		return self.attr(name)
@@ -2211,7 +2231,7 @@ class Element(Node):
 			if isinstance(name, tuple):
 				return name[0].Attrs.allowedattr(name[1], xml=xml) # ask namespace about global attribute
 			else:
-				# FIXME reimplemented here, because super does not work
+				# FIXME: reimplemented here, because super does not work
 				try:
 					return cls._attrs[xml][name]
 				except KeyError:
@@ -2855,7 +2875,7 @@ class NSPool(dict):
 	<par>A pool may only have one namespace class for one namespace name.</par>
 	"""
 	def __init__(self, *args):
-		dict.__init__(self, [(arg.xmlurl, arg) for arg in args]) # FIXME: Use GE in 2.4
+		dict.__init__(self, ((arg.xmlurl, arg) for arg in args))
 
 	def add(self, ns):
 		"""
@@ -2906,7 +2926,7 @@ class Prefixes(dict):
 			self[prefix] = ns
 
 	def __repr__(self):
-		return "<%s.%s %s at 0x%x>" % (self.__module__, self.__class__.__name__, " ".join(["%s=%r" % (key or "None", value) for (key, value) in self.iteritems()]), id(self)) # FIXME: Use GE in 2.4
+		return "<%s.%s %s at 0x%x>" % (self.__module__, self.__class__.__name__, " ".join("%s=%r" % (key or "None", value) for (key, value) in self.iteritems()), id(self))
 
 	def __getitem__(self, prefix):
 		return self.setdefault(prefix, [])
@@ -2970,7 +2990,7 @@ class Prefixes(dict):
 		<par>If the processing instruction can't be found or is ambigous
 		issue a warning (which defaults to an exception) and return <lit>None</lit>.
 		"""
-		candidates = {} # FIXME: Use a set in Python 2.4
+		candidates = set()
 		for nss in self.itervalues():
 			for ns in nss:
 				try:
@@ -2979,9 +2999,9 @@ class Prefixes(dict):
 					pass
 				else:
 					if procinst.register:
-						candidates[procinst] = True
+						candidates.add(procinst)
 		if len(candidates)==1:
-			return candidates.popitem()[0]
+			return candidates.pop()
 		elif len(candidates)==0:
 			warnings.warn(self.IllegalProcInstWarning(name, xml=True)) # processing instructions with this name couldn't be found
 		else:
@@ -2994,7 +3014,7 @@ class Prefixes(dict):
 		<par>If the entity can't be found or is ambigous issue a warning
 		(which defaults to an exception) and return <lit>None</lit>.
 		"""
-		candidates = {} # FIXME: Use a set in Python 2.4
+		candidates = set()
 		for nss in self.itervalues():
 			for ns in nss:
 				try:
@@ -3003,9 +3023,9 @@ class Prefixes(dict):
 					pass
 				else:
 					if entity.register:
-						candidates[entity] = True
+						candidates.add(entity)
 		if len(candidates)==1:
-			return candidates.popitem()[0]
+			return candidates.pop()
 		elif len(candidates)==0:
 			warnings.warn(self.IllegalEntityWarning(name, xml=True)) # entities with this name couldn't be found
 		else:
@@ -3018,7 +3038,7 @@ class Prefixes(dict):
 		<par>If the character reference can't be found or is ambigous issue a warning
 		(which defaults to an exception) and return <lit>None</lit>.
 		"""
-		candidates = {} # FIXME: Use a set in Python 2.4
+		candidates = set()
 		for nss in self.itervalues():
 			for ns in nss:
 				try:
@@ -3027,9 +3047,9 @@ class Prefixes(dict):
 					pass
 				else:
 					if charref.register:
-						candidates[charref] = True
+						candidates.add(charref)
 		if len(candidates)==1:
-			return candidates.popitem()[0]
+			return candidates.pop()
 		elif len(candidates)==0:
 			warnings.warn(self.IllegalCharRefWarning(name, xml=True)) # character references with this name/codepoint couldn't be found
 		else:

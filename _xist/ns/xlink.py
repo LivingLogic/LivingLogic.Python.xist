@@ -24,14 +24,14 @@ class xmlns(xsc.Namespace):
 	xmlurl  = "http://www.w3.org/1999/xlink"
 
 	class Attrs(xsc.Namespace.Attrs):
-		class type(xsc.TextAttr): values = ("simple", "extended", "locator", "arc", "resource", "title")
+		class type(xsc.TextAttr): values = (u"simple", u"extended", u"locator", u"arc", u"resource", u"title")
 		class href(xsc.URLAttr): pass
 		class role(xsc.URLAttr): pass
 		class arcrole(xsc.URLAttr): pass
 		class title(xsc.TextAttr): pass
-		class show(xsc.TextAttr): values = ("new", "replace", "embed", "other", "none")
+		class show(xsc.TextAttr): values = (u"new", u"replace", u"embed", u"other", u"none")
 		class label(xsc.TextAttr): pass
-		class actuate(xsc.TextAttr): values = ("onLoad", "onRequest", "other", "none")
+		class actuate(xsc.TextAttr): values = (u"onLoad", u"onRequest", u"other", u"none")
 		class from_(xsc.TextAttr): xmlname = "from"
 		class to(xsc.TextAttr): pass
 xmlns.makemod(vars())

@@ -27,9 +27,9 @@ class XML(xsc.ProcInst):
 
 	def publish(self, publisher):
 		content = self.content
-		encodingfound = utils.findAttr(content, u"encoding")
-		versionfound = utils.findAttr(content, u"version")
-		standalonefound = utils.findAttr(content, u"standalone")
+		encodingfound = utils.findattr(content, u"encoding")
+		versionfound = utils.findattr(content, u"version")
+		standalonefound = utils.findattr(content, u"standalone")
 		if publisher.encoding != encodingfound: # if self has the wrong encoding specification (or none), we construct a new XML ProcInst and publish that (this doesn't lead to infinite recursion, because the next call will skip it)
 			node = XML(u"version='%s' encoding='%s'" % (versionfound, publisher.encoding))
 			if standalonefound is not None:
@@ -47,7 +47,7 @@ class XML10(XML):
 	register = False # don't register this ProcInst, because it will never be parsed from a file, this is just a convenience class
 
 	def __init__(self):
-		super(XML10, self).__init__('version="1.0"')
+		super(XML10, self).__init__(u'version="1.0"')
 
 
 class XMLStyleSheet(xsc.ProcInst):
@@ -77,7 +77,7 @@ class xmlns(xsc.Namespace):
 		class space(xsc.TextAttr):
 			xmlprefix = "xml"
 			needsxmlns = 1
-			values = ("default", "preserve")
+			values = (u"default", u"preserve")
 		class lang(xsc.TextAttr):
 			xmlprefix = "xml"
 			needsxmlns = 1

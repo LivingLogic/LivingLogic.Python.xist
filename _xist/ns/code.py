@@ -25,7 +25,7 @@ class Code(object):
 	def __init__(self, text, ignorefirst=False):
 		# get the individual lines; ignore "\r" as this would mess up whitespace handling later
 		# use list comprehension to get a list and not a Frag
-		lines = [ line for line in text.replace("\r", "").splitlines() ]
+		lines = [ line for line in text.replace(u"\r", u"").splitlines() ]
 		# split of the whitespace at the beginning of each line
 		for i in xrange(len(lines)):
 			line = lines[i]
@@ -64,18 +64,18 @@ class Code(object):
 
 	def indent(self):
 		for line in self.lines:
-			line[0] = "\t" + line[0]
+			line[0] = u"\t" + line[0]
 
-	def funcify(self, name="__"):
+	def funcify(self, name=u"__"):
 		self.indent()
-		self.lines.insert(0, [u"", u"def " + name + u"(converter):"])
+		self.lines.insert(0, [u"", u"def %s(converter):" % name])
 
 	def asString(self):
 		v = []
 		for line in self.lines:
 			v += line
-			v += "\n"
-		return "".join(v)
+			v += u"\n"
+		return u"".join(v)
 
 
 class pyexec(xsc.ProcInst):

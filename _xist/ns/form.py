@@ -26,7 +26,7 @@ class checkbox(html.input):
 		type = None
 
 	def convert(self, converter):
-		e = html.input(self.attrs, type="checkbox")
+		e = html.input(self.attrs, type=u"checkbox")
 		return e.convert(converter)
 
 
@@ -35,7 +35,7 @@ class edit(html.input):
 		type = None
 
 	def convert(self, converter):
-		e = html.input(self.attrs, type="text")
+		e = html.input(self.attrs, type=u"text")
 		return e.convert(converter)
 
 
@@ -44,7 +44,7 @@ class radio(html.input):
 		type = None
 
 	def convert(self, converter):
-		e = html.input(self.attrs, type="radio")
+		e = html.input(self.attrs, type=u"radio")
 		return e.convert(converter)
 
 
@@ -53,7 +53,7 @@ class submit(html.input):
 		type = None
 
 	def convert(self, converter):
-		e = html.input(self.attrs, type="submit")
+		e = html.input(self.attrs, type=u"submit")
 		return e.convert(converter)
 
 
@@ -62,7 +62,7 @@ class memo(html.textarea):
 		class value(xsc.TextAttr): pass
 
 	def convert(self, converter):
-		e = html.textarea(self["value"], self.attr.without(["value"]))
+		e = html.textarea(self[u"value"], self.attr.without([u"value"]))
 		return e.convert(converter)
 
 
@@ -74,7 +74,7 @@ class hidden(html.input):
 		return u""
 
 	def convert(self, converter):
-		e = html.input(self.attrs, type="hidden")
+		e = html.input(self.attrs, type=u"hidden")
 		return e.convert(converter)
 
 

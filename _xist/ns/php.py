@@ -27,35 +27,35 @@ class php(xsc.ProcInst):
 
 class expression(php):
 	def convert(self, converter):
-		return php(u"print " + self.content + ";")
+		return self.xmlns.php(u"print ", self.content, u";")
 
 
 class If(php):
 	xmlname = "if"
 
 	def convert(self, converter):
-		return php(u"if (" + self.content + "){")
+		return self.xmlns.php(u"if (", self.content, u"){")
 
 
 class Else(php):
 	xmlname = "else"
 
 	def convert(self, converter):
-		return php(u"}else{")
+		return self.xmlns.php(u"}else{")
 
 
 class ElIf(php):
 	xmlname = "elif"
 
 	def convert(self, converter):
-		return php(u"}else if (" + self.content + "){")
+		return self.xmlns.php(u"}else if (", self.content, u"){")
 
 
 class End(php):
 	xmlname = "end"
 
 	def convert(self, converter):
-		return php(u"}")
+		return self.xmlns.php(u"}")
 
 
 class block(xsc.Element):
@@ -63,9 +63,9 @@ class block(xsc.Element):
 
 	def convert(self, converter):
 		e = xsc.Frag(
-			php(u"{"),
+			self.xmlns.php(u"{"),
 			self.content,
-			php(u"}")
+			self.xmlns.php(u"}")
 		)
 		return e.convert(converter)
 

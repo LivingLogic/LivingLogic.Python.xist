@@ -497,7 +497,7 @@ class Parser(object):
 		(There might be false node on the stack, because we are inside
 		of illegal elements).
 		"""
-		for (node, prefixes) in self._nesting[::-1]: # FIXME: Use reversed in Py2.4
+		for (node, prefixes) in reversed(self._nesting):
 			if node is not None:
 				return node
 

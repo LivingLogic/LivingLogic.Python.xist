@@ -37,418 +37,417 @@ class base(xsc.Entity):
 
 
 class rmi(base):
-	content = "RMI"
-	title = "Remote Method Invocation"
-	lang = "en"
-
+	content = u"RMI"
+	title = u"Remote Method Invocation"
+	lang = u"en"
 
 
 class jini(base):
-	content = "JINI"
-	title = "Java Intelligent Network Infrastructure"
-	lang = "en"
+	content = u"JINI"
+	title = u"Java Intelligent Network Infrastructure"
+	lang = u"en"
 
 
 class jfc(base):
-	content = "JFC"
-	title = "Java Foundation Classes"
-	lang = "en"
+	content = u"JFC"
+	title = u"Java Foundation Classes"
+	lang = u"en"
 
 
 class awt(base):
-	content = "AWT"
-	title = "Abstract Window Toolkit"
-	lang = "en"
+	content = u"AWT"
+	title = u"Abstract Window Toolkit"
+	lang = u"en"
 
 
 class jdbc(base):
-	content = "JDBC"
-	title = "Java Database Connectivity"
-	lang = "en"
+	content = u"JDBC"
+	title = u"Java Database Connectivity"
+	lang = u"en"
 
 
 class jndi(base):
-	content = "JNDI"
-	title = "Java Naming and Directory Interface"
-	lang = "en"
+	content = u"JNDI"
+	title = u"Java Naming and Directory Interface"
+	lang = u"en"
 
 
 class jpda(base):
-	content = "JPDA"
-	title = "Java Platform Debugger Architecture"
-	lang = "en"
+	content = u"JPDA"
+	title = u"Java Platform Debugger Architecture"
+	lang = u"en"
 
 
 class jvmpi(base):
-	content = "JVMPI"
-	title = "Java Virtual Machine Profiler Interface"
-	lang = "en"
+	content = u"JVMPI"
+	title = u"Java Virtual Machine Profiler Interface"
+	lang = u"en"
 
 
 class jni(base):
-	content = "JNI"
-	title = "Java Native Interface"
-	lang = "en"
+	content = u"JNI"
+	title = u"Java Native Interface"
+	lang = u"en"
 
 
 class ejb(base):
-	content = "EJB"
-	title = "Enterprice Java Beans"
-	lang = "en"
+	content = u"EJB"
+	title = u"Enterprice Java Beans"
+	lang = u"en"
 
 
 class jnlp(base):
-	content = "JNLP"
-	title = "Java Network Launch Protocol"
-	lang = "en"
+	content = u"JNLP"
+	title = u"Java Network Launch Protocol"
+	lang = u"en"
 
 
 class jaoe(base):
-	content = "JAOE"
-	title = "Java Acronym Overflow Error"
-	lang = "en"
+	content = u"JAOE"
+	title = u"Java Acronym Overflow Error"
+	lang = u"en"
 
 
 class jgl(base):
-	content = "JGL"
-	title = "Java Generic Library"
-	lang = "en"
+	content = u"JGL"
+	title = u"Java Generic Library"
+	lang = u"en"
 
 
 class sgml(base):
-	content = "SGML"
-	title = "Standard Generalized Markup Language"
-	lang = "en"
+	content = u"SGML"
+	title = u"Standard Generalized Markup Language"
+	lang = u"en"
 
 
 class html(base):
-	content = "HTML"
-	title = "Hypertext Markup Language"
-	lang = "en"
+	content = u"HTML"
+	title = u"Hypertext Markup Language"
+	lang = u"en"
 
 
 class xhtml(base):
-	content = "XHTML"
+	content = u"XHTML"
 
 
 class xml(base):
-	content = "XML"
-	title = "Extensible Markup Language"
-	lang = "en"
+	content = u"XML"
+	title = u"Extensible Markup Language"
+	lang = u"en"
 
 
 class css(base):
-	content = "CSS"
-	title = "Cascading Style Sheet"
-	lang = "en"
+	content = u"CSS"
+	title = u"Cascading Style Sheet"
+	lang = u"en"
 
 
 class cgi(base):
-	content = "CGI"
-	title = "Common Gateway Interface"
-	lang = "en"
+	content = u"CGI"
+	title = u"Common Gateway Interface"
+	lang = u"en"
 
 
 class www(base):
-	content = "WWW"
-	title = "World Wide Web"
-	lang = "en"
+	content = u"WWW"
+	title = u"World Wide Web"
+	lang = u"en"
 
 
 class pdf(base):
-	content = "PDF"
-	title = "Protable Document Format"
-	lang = "en"
+	content = u"PDF"
+	title = u"Protable Document Format"
+	lang = u"en"
 
 
 class url(base):
-	content = "URL"
-	title = "Uniform Resource Locator"
-	lang = "en"
+	content = u"URL"
+	title = u"Uniform Resource Locator"
+	lang = u"en"
 
 
 class http(base):
-	content = "HTTP"
-	title = "Hypertext Transfer Protocol"
-	lang = "en"
+	content = u"HTTP"
+	title = u"Hypertext Transfer Protocol"
+	lang = u"en"
 
 
 class smtp(base):
-	content = "SMTP"
-	title = "Simple Mail Transfer Protocol"
-	lang = "en"
+	content = u"SMTP"
+	title = u"Simple Mail Transfer Protocol"
+	lang = u"en"
 
 
 class ftp(base):
-	content = "FTP"
-	title = "File Transfer Protocol"
-	lang = "en"
+	content = u"FTP"
+	title = u"File Transfer Protocol"
+	lang = u"en"
 
 
 class pop3(base):
-	content = "POP3"
-	title = "Post Office Protocol 3"
-	lang = "en"
+	content = u"POP3"
+	title = u"Post Office Protocol 3"
+	lang = u"en"
 
 
 class cvs(base):
-	content = "CVS"
-	title = "Concurrent Versions System"
-	lang = "en"
+	content = u"CVS"
+	title = u"Concurrent Versions System"
+	lang = u"en"
 
 
 class faq(base):
-	content = "FAQ"
-	title = "Frequently Asked Question"
-	lang = "en"
+	content = u"FAQ"
+	title = u"Frequently Asked Question"
+	lang = u"en"
 
 
 class gnu(base):
-	content = "GNU"
-	title = "GNU's Not UNIX"
-	lang = "en"
+	content = u"GNU"
+	title = u"GNU's Not UNIX"
+	lang = u"en"
 
 
 class dns(base):
-	content = "DNS"
-	title = "Domain Name Service"
-	lang = "en"
+	content = u"DNS"
+	title = u"Domain Name Service"
+	lang = u"en"
 
 
 class ppp(base):
-	content = "PPP"
-	title = "Point To Point Protocol"
-	lang = "en"
+	content = u"PPP"
+	title = u"Point To Point Protocol"
+	lang = u"en"
 
 
 class isdn(base):
-	content = "ISDN"
-	title = "Integrated Services Digital Network"
-	lang = "en"
+	content = u"ISDN"
+	title = u"Integrated Services Digital Network"
+	lang = u"en"
 
 
 class corba(base):
-	content = "CORBA"
-	title = "Common Object Request Broker Architecture"
-	lang = "en"
+	content = u"CORBA"
+	title = u"Common Object Request Broker Architecture"
+	lang = u"en"
 
 
 class wap(base):
-	content = "WAP"
-	title = "Wireless Application Protocol"
-	lang = "en"
+	content = u"WAP"
+	title = u"Wireless Application Protocol"
+	lang = u"en"
 
 
 class wml(base):
-	content = "WML"
-	title = "Wireless Markup Language"
-	lang = "en"
+	content = u"WML"
+	title = u"Wireless Markup Language"
+	lang = u"en"
 
 
 class mac(base):
-	content = "MAC"
-	title = "Media Access Control"
-	lang = "en"
+	content = u"MAC"
+	title = u"Media Access Control"
+	lang = u"en"
 
 
 class nat(base):
-	content = "NAT"
-	title = "Network Address Translation"
-	lang = "en"
+	content = u"NAT"
+	title = u"Network Address Translation"
+	lang = u"en"
 
 
 class sql(base):
-	content = "SQL"
-	title = "Structured Query Language"
-	lang = "en"
+	content = u"SQL"
+	title = u"Structured Query Language"
+	lang = u"en"
 
 
 class xsl(base):
-	content = "XSL"
-	title = "Extensible Stylesheet Language"
-	lang = "en"
+	content = u"XSL"
+	title = u"Extensible Stylesheet Language"
+	lang = u"en"
 
 
 class xslt(base):
-	content = "XSLT"
-	title = "Extensible Stylesheet Language For Transformations"
-	lang = "en"
+	content = u"XSLT"
+	title = u"Extensible Stylesheet Language For Transformations"
+	lang = u"en"
 
 
 class smil(base):
-	content = "SMIL"
-	title = "Synchronized Multimedia Integration Language"
-	lang = "en"
+	content = u"SMIL"
+	title = u"Synchronized Multimedia Integration Language"
+	lang = u"en"
 
 
 class dtd(base):
-	content = "DTD"
-	title = "Document Type Definiton"
-	lang = "en"
+	content = u"DTD"
+	title = u"Document Type Definiton"
+	lang = u"en"
 
 
 class dom(base):
-	content = "DOM"
-	title = "Document Object Model"
-	lang = "en"
+	content = u"DOM"
+	title = u"Document Object Model"
+	lang = u"en"
 
 
 class api(base):
-	content = "API"
-	title = "Application Programming Interface"
-	lang = "en"
+	content = u"API"
+	title = u"Application Programming Interface"
+	lang = u"en"
 
 
 class sax(base):
-	content = "SAX"
-	title = ("Simple ", api(), " for ", xml())
-	lang = "en"
+	content = u"SAX"
+	title = u("Simple ", api(), u" for ", xml())
+	lang = u"en"
 
 
 class dbms(base):
-	content = "DBMS"
-	title = "Database Management System"
-	lang = "en"
+	content = u"DBMS"
+	title = u"Database Management System"
+	lang = u"en"
 
 
 class ansi(base):
-	content = "ANSI"
-	title = "American National Standards Institute"
-	lang = "en"
+	content = u"ANSI"
+	title = u"American National Standards Institute"
+	lang = u"en"
 
 
 class jsp(base):
-	content = "JSP"
-	title = "Java Server Pages"
-	lang = "en"
+	content = u"JSP"
+	title = u"Java Server Pages"
+	lang = u"en"
 
 
 class ascii(base):
-	content = "ASCII"
-	title = "American Standard Code for Information Interchange"
-	lang = "en"
+	content = u"ASCII"
+	title = u"American Standard Code for Information Interchange"
+	lang = u"en"
 
 
 class sms(base):
-	content = "SMS"
-	title = "Small Message Service"
-	lang = "en"
+	content = u"SMS"
+	title = u"Small Message Service"
+	lang = u"en"
 
 
 class p2p(base):
-	content = "P2P"
-	title = "Peer To Peer"
-	lang = "en"
+	content = u"P2P"
+	title = u"Peer To Peer"
+	lang = u"en"
 
 
 class gif(base):
-	content = "GIF"
-	title = "Graphics Interchange Format"
-	lang = "en"
+	content = u"GIF"
+	title = u"Graphics Interchange Format"
+	lang = u"en"
 
 
 class png(base):
-	content = "PNG"
-	title = "Portable Network Graphics"
-	lang = "en"
+	content = u"PNG"
+	title = u"Portable Network Graphics"
+	lang = u"en"
 
 
 class uddi(base):
-	content = "UDDI"
-	title = "Universal Description, Discovery and Integration"
-	lang = "en"
+	content = u"UDDI"
+	title = u"Universal Description, Discovery and Integration"
+	lang = u"en"
 
 
 class wsdl(base):
-	content = "WSDL"
-	title = "Web Services Description Language"
-	lang = "en"
+	content = u"WSDL"
+	title = u"Web Services Description Language"
+	lang = u"en"
 
 
 class cdrom(base):
-	content = "CDROM"
+	content = u"CDROM"
 
 
 class snmp(base):
-	content = "SNMP"
-	title = "Simple Network Management Protocol"
-	lang = "en"
+	content = u"SNMP"
+	title = u"Simple Network Management Protocol"
+	lang = u"en"
 
 
 class ssl(base):
-	content = "SSL"
-	title = "Secure Socket Layer"
-	lang = "en"
+	content = u"SSL"
+	title = u"Secure Socket Layer"
+	lang = u"en"
 
 
 class vrml(base):
-	content = "VRML"
-	title = "Virtual Reality Modelling Language"
-	lang = "en"
+	content = u"VRML"
+	title = u"Virtual Reality Modelling Language"
+	lang = u"en"
 
 
 class tco(base):
-	content = "TCO"
-	title = "Total Cost of Ownership"
-	lang = "en"
+	content = u"TCO"
+	title = u"Total Cost of Ownership"
+	lang = u"en"
 
 
 class crm(base):
-	content = "CRM"
-	title = "Customer Relationship Management"
-	lang = "en"
+	content = u"CRM"
+	title = u"Customer Relationship Management"
+	lang = u"en"
 
 
 class cms(base):
-	content = "CMS"
-	title = "Content Management System"
-	lang = "en"
+	content = u"CMS"
+	title = u"Content Management System"
+	lang = u"en"
 
 
 class bnf(base):
-	content = "BNF"
-	title = "Backus Naur Form"
-	lang = "en"
+	content = u"BNF"
+	title = u"Backus Naur Form"
+	lang = u"en"
 
 
 class mime(base):
-	content = "MIME"
-	title = "Multipurpose Internet Mail Extensions"
-	lang = "en"
+	content = u"MIME"
+	title = u"Multipurpose Internet Mail Extensions"
+	lang = u"en"
 
 
 class wysiwyg(base):
-	content = "WYSIWYG"
-	title = "What You See Is What You Get"
-	lang = "en"
+	content = u"WYSIWYG"
+	title = u"What You See Is What You Get"
+	lang = u"en"
 
 
 class hsc(base):
-	content = "HSC"
+	content = u"HSC"
 
 
 class xist(base):
-	content = "XIST"
+	content = U"XIST"
 
 
 class xist4c(base):
-	content = "XIST4C"
+	content = u"XIST4C"
 
 
 class php(base):
-	content = "PHP"
+	content = u"PHP"
 
 
 class svg(base):
-	content = "SVG"
-	title = "Scalable Vector Graphics"
-	lang = "en"
+	content = u"SVG"
+	title = u"Scalable Vector Graphics"
+	lang = u"en"
 
 
 class utc(base):
-	content = "UTC"
-	title = "Coordinated Universal Time"
-	lang = "en"
+	content = u"UTC"
+	title = u"Coordinated Universal Time"
+	lang = u"en"
 
 
 class xmlns(xsc.Namespace):

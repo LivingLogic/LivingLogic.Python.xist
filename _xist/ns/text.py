@@ -69,35 +69,35 @@ class HeaderFormattingMixin(object):
 
 
 class h1(HeaderFormattingMixin, html_.h1):
-	abovetext = "#"
-	belowtext = "#"
+	abovetext = u"#"
+	belowtext = u"#"
 	base = html_.h1
 
 
 class h2(HeaderFormattingMixin, html_.h2):
-	abovetext = "="
-	belowtext = "="
+	abovetext = u"="
+	belowtext = u"="
 	base = html_.h2
 
 
 class h3(HeaderFormattingMixin, html_.h3):
-	abovetext = "-"
-	belowtext = "-"
+	abovetext = u"-"
+	belowtext = u"-"
 	base = html_.h3
 
 
 class h4(HeaderFormattingMixin, html_.h4):
-	belowtext = "#"
+	belowtext = u"#"
 	base = html_.h4
 
 
 class h5(HeaderFormattingMixin, html_.h5):
-	belowtext = "="
+	belowtext = u"="
 	base = html_.h5
 
 
 class h6(HeaderFormattingMixin, html_.h6):
-	belowtext = "-"
+	belowtext = u"-"
 	base = html_.h6
 
 

@@ -106,7 +106,7 @@ class Finder(object):
 
 	def __repr__(self):
 		if self.operators:
-			ops = "/" + "/".join([repr(op) for op in self.operators])  # FIXME: Use a GE in Python 2.4
+			ops = "/" + "/".join(repr(op) for op in self.operators)
 		else:
 			ops = ""
 		return "<%s.%s object for %r%s at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.iterator, ops, id(self))

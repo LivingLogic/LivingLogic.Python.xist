@@ -28,11 +28,8 @@ class z(xsc.Element):
 	model = sims.Any()
 
 	def convert(self, converter):
-		e = xsc.Frag(u"\u201c", self.content.convert(converter), u"\u201d")
-		return e
-
-	def __unicode__(self):
-		return u"»" + unicode(self.content) + u"«"
+		e = xsc.Frag(u"\u201c", self.content, u"\u201d")
+		return e.convert(converter)
 
 
 class filesize(xsc.Element):
@@ -45,11 +42,11 @@ class filesize(xsc.Element):
 		class href(xsc.URLAttr): pass
 
 	def convert(self, converter):
-		size = self["href"].convert(converter).contentlength(root=converter.root)
+		size = self[u"href"].convert(converter).contentlength(root=converter.root)
 		if size is not None:
 			return xsc.Text(size)
 		else:
-			return xsc.Text("?")
+			return xsc.Text(u"?")
 
 
 class filetime(xsc.Element):
@@ -67,11 +64,11 @@ class filetime(xsc.Element):
 			"""
 			<par>A <function>strftime</function> compatible formatstring for formatting the timestamp.</par>
 			"""
-			default = "%d. %b. %Y, %H:%M"
+			default = u"%d. %b. %Y, %H:%M"
 
 	def convert(self, converter):
-		format = str(self["format"].convert(converter))
-		return xsc.Text(self["href"].convert(converter).lastmodified(root=converter.root).strftime(format))
+		format = unicode(self[u"format"].convert(converter))
+		return xsc.Text(self[u"href"].convert(converter).lastmodified(root=converter.root).strftime(format))
 
 
 class time(xsc.Element):
@@ -86,15 +83,15 @@ class time(xsc.Element):
 			"""
 			<par>A <function>strftime</function> compatible formatstring for formatting the timestamp.</par>
 			"""
-			default = "%d. %b. %Y, %H:%M"
+			default = u"%d. %b. %Y, %H:%M"
 		class utc(xsc.BoolAttr):
 			"""
 			<par>Should &utc; be used or local time?</par>
 			"""
 
 	def convert(self, converter):
-		format = str(self["format"].convert(converter))
-		if "utc" in self.attrs:
+		format = unicode(self[u"format"].convert(converter))
+		if u"utc" in self.attrs:
 			f = datetime.datetime.utcnow
 		else:
 			f = datetime.datetime.now
@@ -102,11 +99,11 @@ class time(xsc.Element):
 		return xsc.Text(f().strftime(format))
 
 
-class x(xsc.Element):
+class ignore(xsc.Element):
 	"""
 	<par>Element that will be ignored when converted.</par>
 
-	<par><class>x</class> can be used to comment out stuff.
+	<par><class>ignore</class> can be used to comment out stuff.
 	The content of the element must of course still be wellformed.</par>
 	"""
 	model = sims.Any()
@@ -121,7 +118,7 @@ class include(xsc.Element):
 		class src(xsc.URLAttr): pass
 
 	def convert(self, converter):
-		e = parsers.parseURL(self["src"].forInput())
+		e = parsers.parseURL(self[u"src"].forInput())
 
 		return e.convert(converter)
 
@@ -131,11 +128,11 @@ class loremipsum(xsc.Element):
 	class Attrs(xsc.Element.Attrs):
 		class len(xsc.IntAttr): pass
 
-	text = "Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diem nonummy nibh euismod tincidnut ut lacreet dolore magna aliguam erat volutpat. Ut wisis enim ad minim veniam, quis nostrud exerci tution ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis te feugifacilisi. Duis antem dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zril delinit au gue duis dolore te feugat nulla facilisi."
+	text = u"Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diem nonummy nibh euismod tincidnut ut lacreet dolore magna aliguam erat volutpat. Ut wisis enim ad minim veniam, quis nostrud exerci tution ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis te feugifacilisi. Duis antem dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zril delinit au gue duis dolore te feugat nulla facilisi."
 
 	def convert(self, converter):
-		if self.attrs.has("len"):
-			text = self.text[:int(self["len"].convert(converter))]
+		if u"len" in self.attrs:
+			text = self.text[:int(self[u"len"].convert(converter))]
 		else:
 			text = self.text
 		return xsc.Text(text)

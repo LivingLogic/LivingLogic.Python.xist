@@ -21,7 +21,7 @@ from ll import url as url_
 import xsc
 
 
-def findAttr(content, name):
+def findattr(content, name):
 	startpos = content.find(name)
 	if startpos != -1:
 		startpos = startpos+len(name)

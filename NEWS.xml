@@ -1,4 +1,15 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
+<section><title>Changes in ?.? (released ??/??/????)</title>
+<ulist>
+<item>&xist; requires Python 2.4 now.</item>
+<item><class>ll.xist.ns.specials.x</class> has been renamed to
+<class>ll.xist.ns.specials.ignore</class>.</item>
+<item><class>ll.xist.utils.findAttr</class> has been renamed to
+<class>ll.xist.utils.findattr</class>.</item>
+</ulist>
+</section>
+
+
 <section><title>Changes in 2.7 (released 11/24/2004)</title>
 <ulist>
 <item>The transparent pixel used by <class>ll.xist.ns.htmlspecials.pixel</class>

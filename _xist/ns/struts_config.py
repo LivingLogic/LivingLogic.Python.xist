@@ -47,11 +47,11 @@ class action(ElementWithID):
 		class path(xsc.TextAttr): required = True
 		class prefix(xsc.TextAttr): pass
 		class roles(xsc.TextAttr): pass
-		class scope(xsc.TextAttr): values = ("request", "session")
+		class scope(xsc.TextAttr): values = (u"request", u"session")
 		class suffix(xsc.TextAttr): pass
 		class type(xsc.TextAttr): pass
-		class unknown(xsc.TextAttr): values = ("true", "false", "yes", "no")
-		class validate(xsc.TextAttr): values = ("true", "false", "yes", "no")
+		class unknown(xsc.TextAttr): values = (u"true", u"false", u"yes", u"no")
+		class validate(xsc.TextAttr): values = (u"true", u"false", u"yes", u"no")
 
 
 class action_mappings(ElementWithID):
@@ -67,12 +67,12 @@ class controller(ElementWithID):
 		class contentType(xsc.TextAttr): pass
 		class debug(xsc.TextAttr): pass
 		class forwardPattern(xsc.TextAttr): pass
-		class inputForward(xsc.TextAttr): values = ("true", "false", "yes", "no")
-		class locale(xsc.TextAttr): values = ("true", "false", "yes", "no")
+		class inputForward(xsc.TextAttr): values = (u"true", u"false", u"yes", u"no")
+		class locale(xsc.TextAttr): values = (u"true", u"false", u"yes", u"no")
 		class maxFileSize(xsc.TextAttr): pass
 		class memFileSize(xsc.TextAttr): pass
 		class multipartClass(xsc.TextAttr): pass
-		class nocache(xsc.TextAttr): values = ("true", "false", "yes", "no")
+		class nocache(xsc.TextAttr): values = (u"true", u"false", u"yes", u"no")
 		class pagePattern(xsc.TextAttr): pass
 		class processorClass(xsc.TextAttr): pass
 		class tempDir(xsc.TextAttr): pass
@@ -113,7 +113,7 @@ class form_bean(ElementWithID):
 	xmlname = "form-bean"
 	class Attrs(ElementWithID.Attrs):
 		class className(xsc.TextAttr): pass
-		class dynamic(xsc.TextAttr): values = ("true", "false", "yes", "no")
+		class dynamic(xsc.TextAttr): values = (u"true", u"false", u"yes", u"no")
 		class name(xsc.TextAttr): required = True
 		class type(xsc.TextAttr): required = True
 
@@ -137,10 +137,10 @@ class form_property(xsc.Element):
 class forward(ElementWithID):
 	class Attrs(ElementWithID.Attrs):
 		class className(xsc.TextAttr): pass
-		class contextRelative(xsc.TextAttr): values = ("true", "false", "yes", "no")
+		class contextRelative(xsc.TextAttr): values = (u"true", u"false", u"yes", u"no")
 		class name(xsc.TextAttr): required = True
 		class path(xsc.TextAttr): required = True
-		class redirect(xsc.TextAttr): values = ("true", "false", "yes", "no")
+		class redirect(xsc.TextAttr): values = (u"true", u"false", u"yes", u"no")
 
 
 class global_exceptions(ElementWithID):
@@ -167,7 +167,7 @@ class message_resources(ElementWithID):
 		class className(xsc.TextAttr): pass
 		class factory(xsc.TextAttr): pass
 		class key(xsc.TextAttr): pass
-		class null(xsc.TextAttr): values = ("true", "false", "yes", "no")
+		class null(xsc.TextAttr): values = (u"true", u"false", u"yes", u"no")
 		class parameter(xsc.TextAttr): required = True
 
 

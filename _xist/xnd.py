@@ -83,7 +83,7 @@ class Base(object):
 		options = Options(**options)
 		lines = []
 		self._aspy(lines, 0, [], options)
-		return "\n".join(["%s%s" % (level*options.indent, text) for (level, text) in lines]) # FIXME: Use a GE in 2.4
+		return "\n".join("%s%s" % (level*options.indent, text) for (level, text) in lines)
 
 	def _addlines(self, newlines, lines):
 		l = len(newlines)
@@ -211,8 +211,7 @@ class Namespace(Base):
 					for line in newlines:
 						lines.append([0, "%s = %s" % line])
 				elif options.model == "once":
-					# FIXME: Use sort(key=...) in 2.4
-					newlines.sort(lambda l1, l2: cmp(l1[1], l2[1]))
+					newlines.sort(key=lambda l: l[1])
 					for (i, line) in enumerate(newlines):
 						(var, code) = line
 						if i != len(newlines)-1 and code == newlines[i+1][1]:
@@ -304,7 +303,7 @@ class Element(Base):
 				else:
 					nogroup.append(attr)
 			if groups:
-				base = ", ".join([group.pyname for group in groups]) # FIXME: Use a GE in 2.4
+				base = ", ".join(group.pyname for group in groups)
 			else:
 				base = "xsc.Element.Attrs"
 			newlines.append([level+1, "class Attrs(%s):" % base])
@@ -366,7 +365,7 @@ class Attr(Base):
 		if self.pyname != self.name:
 			newlines.append([level+1, "xmlname = %s" % self.simplify(self.name)])
 		if self.values:
-			values = "(%s)" % ", ".join([ str(self.simplify(value)) for value in self.values ]) # FIXME: Use a GE in 2.4
+			values = "(%s)" % ", ".join(str(self.simplify(value)) for value in self.values)
 			newlines.append([level+1, "values = %s" % (values, )])
 		if self.default and options.defaults:
 			newlines.append([level+1, "default = %s" % self.simplify(self.default)])

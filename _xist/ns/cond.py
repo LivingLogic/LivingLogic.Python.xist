@@ -82,17 +82,17 @@ class If(xsc.Element):
 
 	def __testCond(self, node, converter):
 		result = True
-		if node.attrs.has("cond"):
-			cond = unicode(node["cond"].convert(converter))
+		if u"cond" in node.attrs:
+			cond = unicode(node[u"cond"].convert(converter))
 			result = eval(cond, sandbox.__dict__)
-		if result and node.attrs.has("mode"):
-			result = unicode(node["mode"].convert(converter)) == converter.mode
-		if result and node.attrs.has("target"):
-			result = unicode(node["target"].convert(converter)) == converter.target
-		if result and node.attrs.has("stage"):
-			result = unicode(node["stage"].convert(converter)) == converter.stage
-		if result and node.attrs.has("lang"):
-			result = unicode(node["lang"].convert(converter)) == converter.lang
+		if result and u"mode" in node.attrs:
+			result = unicode(node[u"mode"].convert(converter)) == converter.mode
+		if result and u"target" in node.attrs:
+			result = unicode(node[u"target"].convert(converter)) == converter.target
+		if result and u"stage" in node.attrs:
+			result = unicode(node[u"stage"].convert(converter)) == converter.stage
+		if result and u"lang" in node.attrs:
+			result = unicode(node[u"lang"].convert(converter)) == converter.lang
 		return result
 
 

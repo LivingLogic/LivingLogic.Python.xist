@@ -39,7 +39,7 @@ class atimport(xsc.Element):
 		self.content.publish(publisher)
 		publisher.write(u'")')
 		if "media" in self.attrs:
-			publisher.write(u" " + unicode(self["media"]))
+			publisher.write(u" " + unicode(self[u"media"]))
 		publisher.write(u";")
 
 
@@ -79,7 +79,7 @@ class prop(xsc.Element):
 	def publish(self, publisher):
 		publisher.write(u"%s: " % self.xmlname[True])
 		self.content.publish(publisher)
-		if "important" in self.attrs:
+		if u"important" in self.attrs:
 			publisher.write(u" !important")
 		publisher.write(u";")
 
@@ -1050,7 +1050,7 @@ class atpage(xsc.Element):
 
 	def publish(self, publisher):
 		publisher.write(u"@page ")
-		publisher.write(unicode(self["sel"]))
+		publisher.write(unicode(self[u"sel"]))
 		publisher.write(u"\n{\n")
 		self.content.publish(publisher)
 		publisher.write(u"\n}")
@@ -2055,11 +2055,10 @@ class atmedia(xsc.Element):
 		publisher.write(u"@media ")
 		publisher.write(unicode(self["media"]))
 		publisher.write(u"\n{")
-		imports = self.content.find(xsc.FindType(atimport))
-		for i in imports:
+		for i in self/atimport:
 			publisher.write(u"\n\t")
 			i.publish(publisher)
-		for child in self.content.walk(xsc.FindType(rule)):
+		for child in self/rule:
 			publisher.write(u"\n\t")
 			child.publish(publisher)
 		publisher.write(u"\n}")
@@ -2075,13 +2074,13 @@ class css(xsc.Element):
 		publisher.pusherrors("cssescapereplace")
 		# publish the imports first
 		first = True
-		for i in self.content.walk(xsc.FindType(atimport)):
+		for i in self/atimport:
 			if first:
 				first = False
 			else:
 				publisher.write(u"\n")
 			i.publish(publisher)
-		for child in self.content.walk(xsc.FindType(rule, atmedia)):
+		for child in self/atmedia:
 			if first:
 				first = False
 			else:

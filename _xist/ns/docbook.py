@@ -39,7 +39,7 @@ class conformance(xsc.Element.Attrs):
 
 
 class dir(xsc.Element.Attrs):
-	class dir(xsc.TextAttr): values = ("ltr", "rtl", "lro", "rlo")
+	class dir(xsc.TextAttr): values = (u"ltr", u"rtl", u"lro", u"rlo")
 
 
 class id(xsc.Element.Attrs):
@@ -87,11 +87,11 @@ class xreflabel(xsc.Element.Attrs):
 
 
 class moreinfo(xsc.Element.Attrs):
-	class moreinfo(xsc.TextAttr): values = ("refentry", "none")
+	class moreinfo(xsc.TextAttr): values = (u"refentry", u"none")
 
 
 class continuation(xsc.Element.Attrs):
-	class continuation(xsc.TextAttr): values = ("continues", "restarts")
+	class continuation(xsc.TextAttr): values = (u"continues", u"restarts")
 
 
 class format(xsc.Element.Attrs):
@@ -103,7 +103,7 @@ class language(xsc.Element.Attrs):
 
 
 class linenumbering(xsc.Element.Attrs):
-	class linenumbering(xsc.TextAttr): values = ("numbered", "unnumbered")
+	class linenumbering(xsc.TextAttr): values = (u"numbered", u"unnumbered")
 
 
 class startinglinenumber(xsc.Element.Attrs):
@@ -139,15 +139,15 @@ class otherunits(xsc.Element.Attrs):
 
 
 class units(xsc.Element.Attrs):
-	class units(xsc.TextAttr): values = ("calspair", "linecolumn", "linerange", "linecolumnpair", "other")
+	class units(xsc.TextAttr): values = (u"calspair", u"linecolumn", u"linerange", u"linecolumnpair", u"other")
 
 
 class choice(xsc.Element.Attrs):
-	class choice(xsc.TextAttr): values = ("opt", "req", "plain")
+	class choice(xsc.TextAttr): values = (u"opt", u"req", u"plain")
 
 
 class rep(xsc.Element.Attrs):
-	class rep(xsc.TextAttr): values = ("norepeat", "repeat")
+	class rep(xsc.TextAttr): values = (u"norepeat", u"repeat")
 
 
 class entityref(xsc.Element.Attrs):
@@ -159,7 +159,7 @@ class fileref(xsc.Element.Attrs):
 
 
 class format2(xsc.Element.Attrs):
-	class format(xsc.TextAttr): values = ("BMP", "CGM-CHAR", "CGM-BINARY", "CGM-CLEAR", "DITROFF", "DVI", "EPS", "EQN", "FAX", "GIF", "GIF87a", "GIF89a", "JPG", "JPEG", "IGES", "PCX", "PIC", "PNG", "PS", "SGML", "TBL", "TEX", "TIFF", "WMF", "WPG", "SVG", "PDF", "SWF", "linespecific")
+	class format(xsc.TextAttr): values = (u"BMP", u"CGM-CHAR", u"CGM-BINARY", u"CGM-CLEAR", u"DITROFF", u"DVI", u"EPS", u"EQN", u"FAX", u"GIF", u"GIF87a", u"GIF89a", u"JPG", u"JPEG", u"IGES", u"PCX", u"PIC", u"PNG", u"PS", u"SGML", u"TBL", u"TEX", u"TIFF", u"WMF", u"WPG", u"SVG", u"PDF", u"SWF", u"linespecific")
 
 
 class srccredit(xsc.Element.Attrs):
@@ -168,8 +168,8 @@ class srccredit(xsc.Element.Attrs):
 
 class class_(xsc.Element.Attrs):
 	class class_(xsc.TextAttr):
-		xmlname = "class"
-		values = ("uri", "doi", "isbn", "issn", "libraryofcongress", "pubnumber", "other")
+		xmlname = u"class"
+		values = (u"uri", u"doi", u"isbn", u"issn", u"libraryofcongress", u"pubnumber", u"other")
 
 
 class otherclass(xsc.Element.Attrs):
@@ -241,7 +241,7 @@ class title2(xsc.Element.Attrs):
 
 
 class align(xsc.Element.Attrs):
-	class align(xsc.TextAttr): values = ("left", "center", "right", "justify", "char")
+	class align(xsc.TextAttr): values = (u"left", u"center", u"right", u"justify", u"char")
 
 
 class char(xsc.Element.Attrs):
@@ -257,7 +257,7 @@ class span(xsc.Element.Attrs):
 
 
 class valign(xsc.Element.Attrs):
-	class valign(xsc.TextAttr): values = ("top", "middle", "bottom", "baseline")
+	class valign(xsc.TextAttr): values = (u"top", u"middle", u"bottom", u"baseline")
 
 
 class width(xsc.Element.Attrs):
@@ -265,7 +265,7 @@ class width(xsc.Element.Attrs):
 
 
 class align2(xsc.Element.Attrs):
-	class align(xsc.TextAttr): values = ("left", "right", "center", "justify", "char")
+	class align(xsc.TextAttr): values = (u"left", u"right", u"center", u"justify", u"char")
 
 
 class colname(xsc.Element.Attrs):
@@ -291,7 +291,7 @@ class linkend(xsc.Element.Attrs):
 class class4(xsc.Element.Attrs):
 	class class_(xsc.TextAttr):
 		xmlname = "class"
-		values = ("graphicdesigner", "productioneditor", "copyeditor", "technicaleditor", "translator", "other")
+		values = (u"graphicdesigner", u"productioneditor", u"copyeditor", u"technicaleditor", u"translator", u"other")
 
 
 class nameend(xsc.Element.Attrs):
@@ -307,7 +307,7 @@ class spanname(xsc.Element.Attrs):
 
 
 class valign2(xsc.Element.Attrs):
-	class valign(xsc.TextAttr): values = ("top", "middle", "bottom")
+	class valign(xsc.TextAttr): values = (u"top", u"middle", u"bottom")
 
 
 class cols(xsc.Element.Attrs):
@@ -347,7 +347,7 @@ class otherterm(xsc.Element.Attrs):
 
 
 class align3(xsc.Element.Attrs):
-	class align(xsc.TextAttr): values = ("left", "right", "center")
+	class align(xsc.TextAttr): values = (u"left", u"right", u"center")
 
 
 class contentdepth(xsc.Element.Attrs):
@@ -375,7 +375,7 @@ class type2(xsc.Element.Attrs):
 
 
 class align4(xsc.Element.Attrs):
-	class align(xsc.TextAttr): values = ("left", "center", "right")
+	class align(xsc.TextAttr): values = (u"left", u"center", u"right")
 
 
 class bgcolor(xsc.Element.Attrs):
@@ -395,15 +395,15 @@ class cellspacing(xsc.Element.Attrs):
 
 
 class frame(xsc.Element.Attrs):
-	class frame(xsc.TextAttr): values = ("void", "above", "below", "hsides", "lhs", "rhs", "vsides", "box", "border", "top", "bottom", "topbot", "all", "sides", "none")
+	class frame(xsc.TextAttr): values = (u"void", u"above", u"below", u"hsides", u"lhs", u"rhs", u"vsides", u"box", u"border", u"top", u"bottom", u"topbot", u"all", u"sides", u"none")
 
 
 class orient(xsc.Element.Attrs):
-	class orient(xsc.TextAttr): values = ("port", "land")
+	class orient(xsc.TextAttr): values = (u"port", u"land")
 
 
 class rules(xsc.Element.Attrs):
-	class rules(xsc.TextAttr): values = ("none", "groups", "rows", "cols", "all")
+	class rules(xsc.TextAttr): values = (u"none", u"groups", u"rows", u"cols", u"all")
 
 
 class shortentry(xsc.Element.Attrs):
@@ -423,11 +423,11 @@ class tocentry2(xsc.Element.Attrs):
 
 
 class spacing(xsc.Element.Attrs):
-	class spacing(xsc.TextAttr): values = ("normal", "compact")
+	class spacing(xsc.TextAttr): values = (u"normal", u"compact")
 
 
 class action2(xsc.Element.Attrs):
-	class action(xsc.TextAttr): values = ("click", "double-click", "press", "seq", "simul", "other")
+	class action(xsc.TextAttr): values = (u"click", u"double-click", u"press", u"seq", u"simul", u"other")
 
 
 class otheraction(xsc.Element.Attrs):
@@ -445,11 +445,11 @@ class xrefstyle(xsc.Element.Attrs):
 class class5(xsc.Element.Attrs):
 	class class_(xsc.TextAttr):
 		xmlname = "class"
-		values = ("service", "trade", "registered", "copyright")
+		values = (u"service", u"trade", u"registered", u"copyright")
 
 
 class performance(xsc.Element.Attrs):
-	class performance(xsc.TextAttr): values = ("optional", "required")
+	class performance(xsc.TextAttr): values = (u"optional", u"required")
 
 
 class abbr(xsc.Element.Attrs):
@@ -481,7 +481,7 @@ class rowspan(xsc.Element.Attrs):
 
 
 class scope(xsc.Element.Attrs):
-	class scope(xsc.TextAttr): values = ("row", "col", "rowgroup", "colgroup")
+	class scope(xsc.TextAttr): values = (u"row", u"col", u"rowgroup", u"colgroup")
 
 
 class abbrev(xsc.Element):
@@ -553,7 +553,7 @@ class application(xsc.Element):
 	class Attrs(arch, condition, conformance, dir, id, lang, moreinfo, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		class class_(xsc.TextAttr):
 			xmlname = "class"
-			values = ("hardware", "software")
+			values = (u"hardware", u"software")
 
 
 class area(xsc.Element):
@@ -580,7 +580,7 @@ class article(xsc.Element):
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, status, userlevel, vendor, xreflabel):
 		class class_(xsc.TextAttr):
 			xmlname = "class"
-			values = ("journalarticle", "productsheet", "whitepaper", "techreport", "specification", "faq")
+			values = (u"journalarticle", u"productsheet", u"whitepaper", u"techreport", u"specification", u"faq")
 		class parentbook(xsc.TextAttr): pass
 
 
@@ -638,8 +638,8 @@ class bibliocoverage(xsc.Element):
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		class otherspatial(xsc.TextAttr): pass
 		class othertemporal(xsc.TextAttr): pass
-		class spatial(xsc.TextAttr): values = ("dcmipoint", "iso3166", "dcmibox", "tgn", "otherspatial")
-		class temporal(xsc.TextAttr): values = ("dcmiperiod", "w3c-dtf", "othertemporal")
+		class spatial(xsc.TextAttr): values = (u"dcmipoint", u"iso3166", u"dcmibox", u"tgn", u"otherspatial")
+		class temporal(xsc.TextAttr): values = (u"dcmiperiod", u"w3c-dtf", u"othertemporal")
 
 
 class bibliodiv(xsc.Element):
@@ -685,7 +685,7 @@ class bibliomset(xsc.Element):
 class bibliorelation(xsc.Element):
 	class Attrs(arch, class_, condition, conformance, dir, id, lang, os, otherclass, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		class othertype(xsc.TextAttr): pass
-		class type(xsc.TextAttr): values = ("isversionof", "hasversion", "isreplacedby", "replaces", "isrequiredby", "requires", "ispartof", "haspart", "isreferencedby", "references", "isformatof", "hasformat", "othertype")
+		class type(xsc.TextAttr): values = (u"isversionof", u"hasversion", u"isreplacedby", u"replaces", u"isrequiredby", u"requires", u"ispartof", u"haspart", u"isreferencedby", u"references", u"isformatof", u"hasformat", u"othertype")
 
 
 class biblioset(xsc.Element):
@@ -720,7 +720,7 @@ class bookinfo(xsc.Element):
 
 class bridgehead(xsc.Element):
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
-		class renderas(xsc.TextAttr): values = ("other", "sect1", "sect2", "sect3", "sect4", "sect5")
+		class renderas(xsc.TextAttr): values = (u"other", u"sect1", u"sect2", u"sect3", u"sect4", u"sect5")
 
 
 class callout(xsc.Element):
@@ -735,7 +735,7 @@ class calloutlist(xsc.Element):
 
 class caption(xsc.Element):
 	class Attrs(arch, class2, condition, conformance, dir, id, lang, onclick, ondblclick, onkeydown, onkeypress, onkeyup, onmousedown, onmousemove, onmouseout, onmouseover, onmouseup, os, remap, revision2, revisionflag, role, security, style, title2, userlevel, vendor, xreflabel):
-		class align(xsc.TextAttr): values = ("top", "bottom", "left", "right")
+		class align(xsc.TextAttr): values = (u"top", u"bottom", u"left", u"right")
 
 
 class caution(xsc.Element):
@@ -770,7 +770,7 @@ class citerefentry(xsc.Element):
 
 class citetitle(xsc.Element):
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
-		class pubwork(xsc.TextAttr): values = ("article", "book", "chapter", "part", "refentry", "section", "journal", "series", "set", "manuscript", "cdrom", "dvd", "wiki", "gopher", "bbs", "emailmessage", "webpage", "newsposting")
+		class pubwork(xsc.TextAttr): values = (u"article", u"book", u"chapter", u"part", u"refentry", u"section", u"journal", u"series", u"set", u"manuscript", u"cdrom", u"dvd", u"wiki", u"gopher", u"bbs", u"emailmessage", u"webpage", u"newsposting")
 
 
 class city(xsc.Element):
@@ -787,7 +787,7 @@ class classsynopsis(xsc.Element):
 	class Attrs(arch, condition, conformance, dir, id, lang, language, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		class class_(xsc.TextAttr):
 			xmlname = "class"
-			values = ("class", "interface")
+			values = (u"class", u"interface")
 
 
 class classsynopsisinfo(xsc.Element):
@@ -936,7 +936,7 @@ class database(xsc.Element):
 	class Attrs(arch, condition, conformance, dir, id, lang, moreinfo, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		class class_(xsc.TextAttr):
 			xmlname = "class"
-			values = ("name", "table", "field", "key1", "key2", "record", "index", "view", "primarykey", "secondarykey", "foreignkey", "altkey", "procedure", "datatype", "constraint", "rule", "user", "group")
+			values = (u"name", u"table", u"field", u"key1", u"key2", u"record", u"index", u"view", u"primarykey", u"secondarykey", u"foreignkey", u"altkey", u"procedure", u"datatype", u"constraint", u"rule", u"user", u"group")
 
 
 class date(xsc.Element):
@@ -1049,7 +1049,7 @@ class filename(xsc.Element):
 	class Attrs(arch, condition, conformance, dir, id, lang, moreinfo, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		class class_(xsc.TextAttr):
 			xmlname = "class"
-			values = ("headerfile", "partition", "devicefile", "libraryfile", "directory", "extension", "symlink")
+			values = (u"headerfile", u"partition", u"devicefile", u"libraryfile", u"directory", u"extension", u"symlink")
 		class path(xsc.TextAttr): pass
 
 
@@ -1267,9 +1267,9 @@ class indexterm(xsc.Element):
 	class Attrs(arch, condition, conformance, dir, id, lang, os, pagenum, remap, revision2, revisionflag, role, security, type2, userlevel, vendor, xreflabel):
 		class class_(xsc.TextAttr):
 			xmlname = "class"
-			values = ("singular", "startofrange", "endofrange")
-		class scope(xsc.TextAttr): values = ("all", "global", "local")
-		class significance(xsc.TextAttr): values = ("preferred", "normal")
+			values = (u"singular", u"startofrange", u"endofrange")
+		class scope(xsc.TextAttr): values = (u"all", u"global", u"local")
+		class significance(xsc.TextAttr): values = (u"preferred", u"normal")
 		class startref(xsc.TextAttr): pass
 		class zone(xsc.TextAttr): pass
 
@@ -1361,7 +1361,7 @@ class jobtitle(xsc.Element):
 
 class keycap(xsc.Element):
 	class Attrs(arch, condition, conformance, dir, id, lang, moreinfo, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
-		class function(xsc.TextAttr): values = ("alt", "control", "shift", "meta", "escape", "enter", "tab", "backspace", "command", "option", "space", "delete", "insert", "up", "down", "left", "right", "home", "end", "pageup", "pagedown", "other")
+		class function(xsc.TextAttr): values = (u"alt", u"control", u"shift", u"meta", u"escape", u"enter", u"tab", u"backspace", u"command", u"option", u"space", u"delete", u"insert", u"up", u"down", u"left", u"right", u"home", u"end", u"pageup", u"pagedown", u"other")
 		class otherfunction(xsc.TextAttr): pass
 
 
@@ -1429,7 +1429,7 @@ class literallayout(xsc.Element):
 	class Attrs(arch, condition, conformance, continuation, dir, format, id, lang, language, linenumbering, os, remap, revision2, revisionflag, role, security, startinglinenumber, userlevel, vendor, width, xreflabel):
 		class class_(xsc.TextAttr):
 			xmlname = "class"
-			values = ("monospaced", "normal")
+			values = (u"monospaced", u"normal")
 
 
 class lot(xsc.Element):
@@ -1456,7 +1456,7 @@ class medialabel(xsc.Element):
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		class class_(xsc.TextAttr):
 			xmlname = "class"
-			values = ("cartridge", "cdrom", "disk", "tape")
+			values = (u"cartridge", u"cdrom", u"disk", u"tape")
 
 
 class mediaobject(xsc.Element):
@@ -1486,7 +1486,7 @@ class methodname(xsc.Element):
 
 class methodparam(xsc.Element):
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, rep, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
-		class choice(xsc.TextAttr): values = ("opt", "req", "plain")
+		class choice(xsc.TextAttr): values = (u"opt", u"req", u"plain")
 
 
 class methodsynopsis(xsc.Element):
@@ -1615,9 +1615,9 @@ class optional(xsc.Element):
 
 class orderedlist(xsc.Element):
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, spacing, userlevel, vendor, xreflabel):
-		class continuation(xsc.TextAttr): values = ("continues", "restarts")
-		class inheritnum(xsc.TextAttr): values = ("inherit", "ignore")
-		class numeration(xsc.TextAttr): values = ("arabic", "upperalpha", "loweralpha", "upperroman", "lowerroman")
+		class continuation(xsc.TextAttr): values = (u"continues", u"restarts")
+		class inheritnum(xsc.TextAttr): values = (u"inherit", u"ignore")
+		class numeration(xsc.TextAttr): values = (u"arabic", u"upperalpha", u"loweralpha", u"upperroman", u"lowerroman")
 
 
 class orgdiv(xsc.Element):
@@ -1629,7 +1629,7 @@ class orgname(xsc.Element):
 	class Attrs(arch, condition, conformance, dir, id, lang, os, otherclass, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		class class_(xsc.TextAttr):
 			xmlname = "class"
-			values = ("corporation", "nonprofit", "consortium", "informal", "other")
+			values = (u"corporation", u"nonprofit", u"consortium", u"informal", u"other")
 
 
 class otheraddr(xsc.Element):
@@ -1659,14 +1659,14 @@ class para(xsc.Element):
 
 class paramdef(xsc.Element):
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
-		class choice(xsc.TextAttr): values = ("opt", "req")
+		class choice(xsc.TextAttr): values = (u"opt", u"req")
 
 
 class parameter(xsc.Element):
 	class Attrs(arch, condition, conformance, dir, id, lang, moreinfo, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		class class_(xsc.TextAttr):
 			xmlname = "class"
-			values = ("command", "function", "option")
+			values = (u"command", u"function", u"option")
 
 
 class part(xsc.Element):
@@ -1806,7 +1806,7 @@ class qandaentry(xsc.Element):
 
 class qandaset(xsc.Element):
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
-		class defaultlabel(xsc.TextAttr): values = ("qanda", "number", "none")
+		class defaultlabel(xsc.TextAttr): values = (u"qanda", u"number", u"none")
 
 
 class question(xsc.Element):
@@ -1943,7 +1943,7 @@ class replaceable(xsc.Element):
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		class class_(xsc.TextAttr):
 			xmlname = "class"
-			values = ("command", "function", "option", "parameter")
+			values = (u"command", u"function", u"option", u"parameter")
 
 
 class returnvalue(xsc.Element):
@@ -2018,7 +2018,7 @@ class secondaryie(xsc.Element):
 
 class sect1(xsc.Element):
 	class Attrs(arch, condition, conformance, dir, id, label2, lang, os, remap, revision2, revisionflag, role, security, status, userlevel, vendor, xreflabel):
-		class renderas(xsc.TextAttr): values = ("sect2", "sect3", "sect4", "sect5")
+		class renderas(xsc.TextAttr): values = (u"sect2", u"sect3", u"sect4", u"sect5")
 
 
 class sect1info(xsc.Element):
@@ -2028,7 +2028,7 @@ class sect1info(xsc.Element):
 
 class sect2(xsc.Element):
 	class Attrs(arch, condition, conformance, dir, id, label2, lang, os, remap, revision2, revisionflag, role, security, status, userlevel, vendor, xreflabel):
-		class renderas(xsc.TextAttr): values = ("sect1", "sect3", "sect4", "sect5")
+		class renderas(xsc.TextAttr): values = (u"sect1", u"sect3", u"sect4", u"sect5")
 
 
 class sect2info(xsc.Element):
@@ -2038,7 +2038,7 @@ class sect2info(xsc.Element):
 
 class sect3(xsc.Element):
 	class Attrs(arch, condition, conformance, dir, id, label2, lang, os, remap, revision2, revisionflag, role, security, status, userlevel, vendor, xreflabel):
-		class renderas(xsc.TextAttr): values = ("sect1", "sect2", "sect4", "sect5")
+		class renderas(xsc.TextAttr): values = (u"sect1", u"sect2", u"sect4", u"sect5")
 
 
 class sect3info(xsc.Element):
@@ -2048,7 +2048,7 @@ class sect3info(xsc.Element):
 
 class sect4(xsc.Element):
 	class Attrs(arch, condition, conformance, dir, id, label2, lang, os, remap, revision2, revisionflag, role, security, status, userlevel, vendor, xreflabel):
-		class renderas(xsc.TextAttr): values = ("sect1", "sect2", "sect3", "sect5")
+		class renderas(xsc.TextAttr): values = (u"sect1", u"sect2", u"sect3", u"sect5")
 
 
 class sect4info(xsc.Element):
@@ -2058,7 +2058,7 @@ class sect4info(xsc.Element):
 
 class sect5(xsc.Element):
 	class Attrs(arch, condition, conformance, dir, id, label2, lang, os, remap, revision2, revisionflag, role, security, status, userlevel, vendor, xreflabel):
-		class renderas(xsc.TextAttr): values = ("sect1", "sect2", "sect3", "sect4")
+		class renderas(xsc.TextAttr): values = (u"sect1", u"sect2", u"sect3", u"sect4")
 
 
 class sect5info(xsc.Element):
@@ -2145,7 +2145,7 @@ class sgmltag(xsc.Element):
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		class class_(xsc.TextAttr):
 			xmlname = "class"
-			values = ("attribute", "attvalue", "element", "endtag", "emptytag", "genentity", "numcharref", "paramentity", "pi", "xmlpi", "starttag", "sgmlcomment", "prefix", "namespace", "localname")
+			values = (u"attribute", u"attvalue", u"element", u"endtag", u"emptytag", u"genentity", u"numcharref", u"paramentity", u"pi", u"xmlpi", u"starttag", u"sgmlcomment", u"prefix", u"namespace", u"localname")
 		class namespace(xsc.TextAttr): pass
 
 
@@ -2177,7 +2177,7 @@ class simpara(xsc.Element):
 class simplelist(xsc.Element):
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		class columns(xsc.TextAttr): pass
-		class type(xsc.TextAttr): values = ("inline", "vert", "horiz")
+		class type(xsc.TextAttr): values = (u"inline", u"vert", u"horiz")
 
 
 class simplemsgentry(xsc.Element):
@@ -2293,7 +2293,7 @@ class systemitem(xsc.Element):
 	class Attrs(arch, condition, conformance, dir, id, lang, moreinfo, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		class class_(xsc.TextAttr):
 			xmlname = "class"
-			values = ("constant", "event", "eventhandler", "domainname", "fqdomainname", "ipaddress", "netmask", "etheraddress", "groupname", "library", "macro", "osname", "filesystem", "resource", "systemname", "username", "newsgroup", "process", "service", "server", "daemon")
+			values = (u"constant", u"event", u"eventhandler", u"domainname", u"fqdomainname", u"ipaddress", u"netmask", u"etheraddress", u"groupname", u"library", u"macro", u"osname", u"filesystem", u"resource", u"systemname", u"username", u"newsgroup", u"process", u"service", u"server", u"daemon")
 
 
 class table(xsc.Element):

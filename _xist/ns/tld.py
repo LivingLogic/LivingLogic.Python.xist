@@ -46,18 +46,18 @@ class attribute(xsc.Element):
 	class Attrs(IdAttrs): pass
 
 	def asxnd(self):
-		e = xnd.Attr(unicode(xfind.first(self/name).content), "xsc.TextAttr")
-		isRequired = None
+		e = xnd.Attr(unicode(xfind.first(self/name).content), u"xsc.TextAttr")
+		required = None
 		node = xfind.first(self/required, None)
 		if node is not None:
-			value = str(node[0].content)
-			if value in ('true', 'yes'):
-				isRequired = True
-			elif value in ('false', 'no'):
-				isRequired = None
+			value = unicode(node[0].content)
+			if value in (u"true", u"yes"):
+				required = True
+			elif value in (u"false", u"no"):
+				required = None
 			else:
-				raise ValueError('value %s not allowed for tag <required>' % value)
-		e.required = isRequired
+				raise ValueError("value %s not allowed for tag <required>" % value)
+		e.required = required
 		return e
 
 
@@ -152,17 +152,17 @@ class tag(xsc.Element):
 
 	def asxnd(self):
 		e = xnd.Element(unicode(xfind.first(self/name).content))
-		isEmpty = None
+		empty = None
 		node = xfind.first(self/bodycontent, None)
 		if node is not None:
-			value = str(node[0].content)
-			if value in ('tagdependent', 'JSP'):
-				isempty = False
-			elif value == 'empty':
-				isempty = True
+			value = unicode(node[0].content)
+			if value in (u"tagdependent", u"JSP"):
+				empty = False
+			elif value == u"empty":
+				empty = True
 			else:
 				raise ValueError("value %s is not allowed for tag <bodycontent>" % value)
-		if isempty:
+		if empty:
 			e.modeltype = "sims.Empty"
 		else:
 			e.modeltype = "sims.Any"
