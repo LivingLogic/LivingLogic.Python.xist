@@ -295,13 +295,15 @@ def strElementName(namespacename=None, elementname=None, slash=0):
 	return s
 
 def strElementNameWithBrackets(namespacename=None, elementname=None, slash=0):
-	return ansistyle.Text(strBracketOpen(), strElementName(namespacename, elementname, slash), EnvTextForBracket(">"))
+	return ansistyle.Text(strBracketOpen(), strElementName(namespacename, elementname, slash), strBracketClose())
 
 def strElementClass(class_, slash=0):
-	if hasattr(class_, "namespace") and class_.presentPrefix!=0:
-		namespacename = class_.namespace.prefix
-	else:
-		namespacename = None
+	namespacename = None
+	if class_.presentPrefix!=0:
+		if hasattr(class_, "namespace"):
+			namespacename = class_.namespace.prefix
+		elif class_.__module__=="xist.xsc":
+			namespacename = "xsc"
 	if hasattr(class_, "name"):
 		elementname = class_.name
 	else:
@@ -435,13 +437,14 @@ class NormalPresenter:
 		)
 
 	def _appendAttrs(self, dict):
-		for attr in dict.keys():
-			self.buffer.append(" ", strAttrName(attr))
-			value = dict[attr]
-			if len(value):
+		self.inAttr = 1
+		for (attrname, attrvalue) in dict.items():
+			self.buffer.append(" ", strAttrName(attrname))
+			if len(attrvalue):
 				self.buffer.append("=", strQuote())
-				value.present(self)
+				attrvalue.present(self)
 				self.buffer.append(strQuote())
+		self.inAttr = 0
 
 	def presentElement(self, node):
 		if node.empty:
@@ -539,22 +542,8 @@ class TreePresenter:
 
 	def presentFrag(self, node):
 		if self.inAttr:
-			pass
-		else:
-			if len(node):
-				self.lines.append([node.startLoc, self.currentPath[:], len(self.currentPath), strElementNameWithBrackets("xsc", "Frag", 0)])
-				self.currentPath.append(0)
-				for child in node:
-					child.present(self)
-					self.currentPath[-1] += 1
-				del self.currentPath[-1]
-				self.lines.append([node.endLoc, self.currentPath[:], len(self.currentPath), strElementNameWithBrackets("xsc", "Frag", -1)])
-			else:
-				self.lines.append([node.startLoc, self.currentPath[:], len(self.currentPath), strElementNameWithBrackets("xsc", "Frag", 1)])
-
-	def presentElement(self, node):
-		if self.inAttr:
-			pass
+			for child in node:
+				child.present(self)
 		else:
 			if len(node):
 				self.lines.append([node.startLoc, self.currentPath[:], len(self.currentPath), strElementWithBrackets(node, 0)])
@@ -567,25 +556,46 @@ class TreePresenter:
 			else:
 				self.lines.append([node.startLoc, self.currentPath[:], len(self.currentPath), strElementWithBrackets(node, 1)])
 
-	def presentText(self, node):
+	def _appendAttrs(self, text, dict):
+		self.inAttr = 1
+		for (attrname, attrvalue) in dict.items():
+			text.append(" ", strAttrName(attrname))
+			if len(attrvalue):
+				text.append("=", strQuote())
+				attrvalue.present(self)
+				text.append(self.buffer, strQuote())
+				#self.buffer = None
+		self.inAttr = 0
+
+	def presentElement(self, node):
 		if self.inAttr:
 			pass
 		else:
-			lines = []
-			content = node._content
-			while 1:
-				pos = content.find(u"\n")
-				if pos == -1:
-					if len(content):
-						lines.append(content)
-					break
-				lines.append(content[:pos+1])
-				content = content[pos+1:]
+			s = ansistyle.Text(strBracketOpen(), strElement(node))
+			self._appendAttrs(s, node.attrs)
+			if len(node):
+				s.append(strBracketClose())
+				self.lines.append([node.startLoc, self.currentPath[:], len(self.currentPath), s])
+				self.currentPath.append(0)
+				for child in node:
+					child.present(self)
+					self.currentPath[-1] += 1
+				del self.currentPath[-1]
+				self.lines.append([node.endLoc, self.currentPath[:], len(self.currentPath), strElementWithBrackets(node, -1)])
+			else:
+				s.append(strSlash(), strBracketClose())
+				self.lines.append([node.startLoc, self.currentPath[:], len(self.currentPath), s])
+
+	def presentText(self, node):
+		if self.inAttr:
+			self.buffer.append(strTextInAttr(node._content))
+		else:
+			lines = node._content.splitlines(1)
 			self._doMultiLine(node, lines, self.strTextLineOutsideAttr)
 
 	def presentEntity(self, node):
 		if self.inAttr:
-			pass
+			self.buffer.append(strEntity(node))
 		else:
 			self.lines.append([node.startLoc, self.currentPath[:], len(self.currentPath), strEntity(node)])
 
@@ -608,5 +618,15 @@ class TreePresenter:
 			tail = ansistyle.Text(strCommentMarker(), strBracketClose())
 			lines = node._content.splitlines()
 			self._doMultiLine(node, lines, self.strCommentTextLine, head, tail)
+
+	def presentAttr(self, node):
+		if self.inAttr:
+			self.buffer = EnvTextForAttrValue()
+		self.presentFrag(node)
+
+	def presentURLAttr(self, node):
+		if self.inAttr:
+			self.buffer = EnvTextForURL()
+		self.presentFrag(node)
 
 defaultPresenterClass = NormalPresenter

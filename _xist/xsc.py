@@ -1967,9 +1967,7 @@ class Attr(Frag):
 	"""
 
 	def present(self, presenter):
-		presenter.inAttr = 1
 		presenter.presentAttr(self)
-		presenter.inAttr = 0
 
 	def publish(self, publisher):
 		if publisher.inAttr:
