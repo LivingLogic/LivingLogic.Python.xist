@@ -573,6 +573,7 @@ class Parser(object):
 		return self._parse(stream, base, sysid, self.encoding)
 
 	def parseFile(self, name, base=None, sysid=None):
+		name = os.path.expanduser(name)
 		stream = open(name, "r")
 		if base is None:
 			base = url.File(name)
