@@ -623,7 +623,7 @@ class XSCAttrs(XSCNode):
 
 	def __setitem__(self,index,value):
 		"""insert an attribute with the name index and the value value into the attribute dictionary"""
-		# values are converted to Nodes first and then wrapped into the attribute nodes as specified via the attr_handlers dictionary
+		# values are contructed via the attribute classes specified in the attr_handlers dictionary, which do the conversion
 		lowerindex = string.lower(index)
 		if self.attr_handlers.has_key(lowerindex):
 			self.__content[lowerindex] = self.attr_handlers[lowerindex](value) # pack the attribute into an attribute object
@@ -875,9 +875,19 @@ class XSCAttr(XSCNode):
 	"""
 
 	def __init__(self,_content):
-		while isinstance(_content,XSCAttr):
-			_content = _content._content
-		self._content = _content
+		self._content = str(ToNode(_content))
+
+	def __add__(self,other):
+		if other != None:
+			return self.__class__(self._content+str(ToNode(other)))
+		else:
+			return self
+
+	def __radd__(self,other):
+		if other != None:
+			return self.__class__(str(ToNode(other))+self._content)
+		else:
+			return self
 
 class XSCTextAttr(XSCAttr):
 	"""
@@ -996,7 +1006,7 @@ class XSCURLAttr(XSCAttr):
 			if scheme == "project": # make the path relative to the directory of the file
 				path[:0] = [".."] * (len(file)-1) # go up from the file directory to the current directory
 				# now we have an URL that is relative to the file directory
-			path[:0] = file[:-1] # make it relative to the current directory by adding the diretories of file
+			path[:0] = file[:-1] # make it relative to the current directory by adding the directories of file
 			# now optimize the path by removing combinations of down/up
 			while 1:
 				for i in xrange(len(path)):

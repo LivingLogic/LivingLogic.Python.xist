@@ -35,6 +35,23 @@ class page(XSCElement):
 		return XSCDocType('HTML PUBLIC "-//W3C//DTD HTML 4.0 transitional//EN"')+html(h+b)
 RegisterElement("page",page)
 
+class blankpage(XSCElement):
+	empty = 0
+	attr_handlers = { "title" : XSCTextAttr , "notinsitemap" : XSCTextAttr }
+
+	def asHTML(self):
+		e = html(
+			head(
+				title(self["title"])+
+				script(type="text/javascript",language="Javascript",src=":javascripts/main.js")+
+				link(src="made",href="mailto:html@bnbt.de")
+			)+
+			plainbody(self.content,bgcolor="white")
+		)
+
+		return e.asHTML()
+RegisterElement("blankpage",blankpage)
+
 class links(XSCElement):
 	empty = 0
 RegisterElement("links",links)

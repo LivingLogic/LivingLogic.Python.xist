@@ -83,7 +83,7 @@ class pixel(img):
 			color = self["color"]
 		else:
 			color = "dot_clear"
-		e["src"] = [":Images/Pixels/" , color , ".gif" ]
+		e["src"] = [ ":images/pixels/" , color , ".gif" ]
 
 		return e.asHTML()
 RegisterElement("pixel",pixel)
