@@ -175,8 +175,8 @@ and WIDTH attribute accordingly.
 
 This is not the whole truth. When the WIDTH or HEIGHT attribute
 is already specified, the following happens:
-%-formatting is used on the attribute value, and the width and
-height of the image is passed to the & operator as a dictionary
+%-formatting is used on the attribute value, the width and
+height of the image is passed to the % operator as a dictionary
 with the keys "width" and "height". The resulting string is
 eval()uated and it's result is used for the attribute. So to make
 an image twice as wide and high do the following:
