@@ -597,7 +597,7 @@ class embed(xsc.Element):
 	generic embedded object (Internet Exploder)
 	"""
 	empty = 0
-	attrHandlers = {"width": xsc.TextAttr, "height": xsc.TextAttr, "src": xsc.URLAttr, "controller": xsc.TextAttr, "href": xsc.URLAttr, "target": xsc.TextAttr, "border": xsc.IntAttr, "pluginspage": xsc.URLAttr})
+	attrHandlers = {"width": xsc.TextAttr, "height": xsc.TextAttr, "src": xsc.URLAttr, "controller": xsc.TextAttr, "href": xsc.URLAttr, "target": xsc.TextAttr, "border": xsc.IntAttr, "pluginspage": xsc.URLAttr}
 
 class map(xsc.Element):
 	"""
