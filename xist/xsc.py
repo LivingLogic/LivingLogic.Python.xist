@@ -1076,7 +1076,8 @@ class URLAttr(Attr):
 				path[0] = path[0][1:] # drop of the ":" ...
 				scheme = "project" # special scheme name
 		else:
-			del path[0] # if we had a http, the path from urlparse started with "/" too
+			if scheme == "http":
+				del path[0] # if we had a http, the path from urlparse started with "/" too
 		return (scheme,server,path,parameters,query,fragment)
 
 	def _dorepr(self):
