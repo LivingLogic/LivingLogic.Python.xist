@@ -27,7 +27,7 @@ class XSCException:
 		return "Something wonderful has happened"
 
 class XSCEmptyElementWithContent(XSCException):
-	"this element is specified to be empty, but has content"
+	"exception that is raised, when an element has content, but it shouldn't (i.e. close==0)"
 
 	def __init__(self,element):
 		self.element = element
@@ -36,7 +36,7 @@ class XSCEmptyElementWithContent(XSCException):
 		return "the element '" + self.element.name + "' is specified to be empty, but has content"
 
 class XSCIllegalAttribute(XSCException):
-	"this element has an attribute that is not allowed"
+	"exception that is raised, when an element has an illegal attribute (i.e. one that isn't contained in it's attr_handlers)"
 
 	def __init__(self,attrs,attr):
 		self.attrs = attrs
@@ -46,7 +46,7 @@ class XSCIllegalAttribute(XSCException):
 		return "The attribute '" + self.attr + "' is not allowed here. The only allowed attributes are: " + str(self.attrs.attr_handlers.keys())
 
 class XSCIllegalElement(XSCException):
-	"this element is not allowed"
+	"exception that is raised, when an illegal element is encountered (i.e. one that isn't registered via RegisterElement"
 
 	def __init__(self,elementname):
 		self.elementname = elementname
@@ -55,7 +55,7 @@ class XSCIllegalElement(XSCException):
 		return "The element '" + self.elementname + "' is not allowed. The only allowed elements are: " + str(element_handlers.keys())
 
 class XSCImageSizeFormat(XSCException):
-	"Can't format or evaluate image size attribute"
+	"exception that is raised, when XSC can't format or evaluate image size attributes"
 
 	def __init__(self,element,attr):
 		self.element = element
@@ -65,7 +65,7 @@ class XSCImageSizeFormat(XSCException):
 		return "the value '" + str(self.element[self.attr]) + "' for the image size attribute '" + self.attr + "' of the element '" + self.element.name + "' can't be formatted or evaluated"
 
 class XSCFileNotFound(XSCException):
-	"Can't open image for getting image size"
+	"exception that is raised, when XSC can't open an image for getting image size"
 
 	def __init__(self,url):
 		self.url = url
@@ -74,7 +74,7 @@ class XSCFileNotFound(XSCException):
 		return "the image file '" + self.url + "' can't be opened"
 
 class XSCIllegalObject(XSCException):
-	"illegal object found in XSC tree"
+	"exception that is raised, when XSC finds an illegal object found in its obejct tree"
 
 	def __init__(self,object):
 		self.url = url
