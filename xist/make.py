@@ -75,16 +75,14 @@ def make():
 				outname.ext = {"hsc": "html", "shsc": "shtml", "phsc": "phtml", "xsc": "html", "sxsc": "shtml", "pxsc": "phtml"}[inname.ext]
 			except KeyError:
 				outname.ext = "html"
-			print >> sys.stderr, "XSC(encoding=%r, XHTML=%r): converting %r" % (encoding, XHTML, str(inname)),
 			e_in = xsc.xsc.parse(inname)
 			xsc.xsc.pushURL(inname)
-			print >> sys.stderr, "to %r ..." % str(outname),
 			e_out = e_in.asHTML()
 			p = publishers.BytePublisher(encoding=encoding, XHTML=XHTML)
 			e_out.publish(p)
 			s_out = p.asBytes()
 			__forceopen(outname.asString(), "wb").write(s_out)
-			print >> sys.stderr, xsc._stransi("1", str(len(s_out)))
+			print >> sys.stderr, "XSC(encoding=%r, XHTML=%r): converted %r to %r: %s" % (encoding, XHTML, str(inname), str(outname), xsc._stransi("1", str(len(s_out))))
 			xsc.xsc.popURL()
 	else:
 		sys.stderr.write("XSC: no files to convert.\n")
