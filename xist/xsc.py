@@ -1599,7 +1599,7 @@ class Element(Node):
 		node = self.__class__()
 		node.content = self.content.compact()
 		for attr in self.attrs.keys():
-			node[attr] = self[attr].compact()
+			node.attrs[attr] = self.attrs[attr].compact()
 		return self._decorateNode(node)
 
 	def find(self, type=None, subtype=0, attrs=None, test=None, searchchildren=0, searchattrs=0):
