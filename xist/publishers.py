@@ -51,7 +51,7 @@ class Publisher:
 		by the environment variable XSC_OUTPUT_XHTML and can of course be
 		changed dynamically.</par>
 
-		<par>usePrefixe specifies if the prefix from element name should be output too.</par>
+		<par>usePrefix specifies if the prefix from element name should be output too.</par>
 		"""
 		self.escape = None
 		self.inAttr = 0
