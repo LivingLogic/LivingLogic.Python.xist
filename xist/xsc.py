@@ -717,7 +717,12 @@ class Node:
 
 	def asFloat(self,decimal = "."):
 		"""
+		asFloat(self,decimal = ".") -> float
+
 		returns this node converted to a float.
+
+		decimal specifies which decimal separator is used in the value
+		(e.g. "." (the default) or ",").
 		"""
 		s = self.asPlainString()
 		if decimal != ".":
