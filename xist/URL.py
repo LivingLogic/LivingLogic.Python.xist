@@ -162,8 +162,8 @@ class URL:
 	def __join(self,other):
 		if not other.scheme:
 			self.path.extend(other.path)
-			self.file       = other.file
-			self.ext        = other.ext
+			self.file       = other.file or self.file
+			self.ext        = other.ext or self.ext
 			self.parameters = other.parameters
 			self.query      = other.query
 			self.fragment   = other.fragment
