@@ -313,14 +313,21 @@ class _XFindBase(object):
 class XFinder(object):
 	"""
 	An <class>XFinder</class> object is a <z>parsed</z> XFind expression.
-	The expression <lit><rep>a</rep>/<rep>a</rep>/<rep>a</rep>/<rep>d</rep></lit>
-	will return an <class>XFinder</class> object if <lit><rep>a</rep></lit> is
-	either a <pyref class="Node"><class>Node</class></pyref> object or a
-	<class>XFinder</class> object.
+	The expression <lit><rep>a</rep>/<rep>b</rep>/<rep>c</rep> will return an
+	<class>XFinder</class> object if <lit><rep>a</rep></lit> is either a
+	<pyref class="Node"><class>Node</class></pyref> object or an
+	<class>XFinder</class> object and <lit><rep>b</rep></lit> and <lit><rep>c</rep></lit>
+	are either subclasses of <pyref class="Node"><class>Node</class></pyref>
+	or filter objects from <pyref module="ll.xist.xfind"><module>ll.xist.xfind</module></pyref>
 	"""
 	__slots__ = ("iterator", "operators")
 
 	def __init__(self, iterator, *operators):
+		# Wrap node in an iterator
+		if isinstance(iterator, Node):
+			def iterone(node):
+				yield node
+			iterator = iterone(iterator)
 		self.iterator = iterator
 		self.operators = operators
 
@@ -892,15 +899,11 @@ class Node(Base):
 		raise errors.NodeNotFoundError()
 
 	def __div__(self, other):
-		def _iterone(node):
-			yield node
-		return XFinder(_iterone(self), other)
+		return XFinder(self, other)
 
 	def __floordiv__(self, other):
-		def _iterone(node):
-			yield node
 		from ll.xist import xfind
-		return XFinder(_iterone(self), xfind.all, other)
+		return XFinder(self, xfind.all, other)
 
 	def compact(self):
 		"""
