@@ -414,7 +414,17 @@ def getDoc(thing):
 
 	doc = "\n".join(lines)
 
-	node = parsers.parseString(doc)
+	if inspect.ismethod(thing):
+		systemId = "METHOD-DOCSTRING(%s.%s.%s)" % (inspect.getmodule(thing).__name__, thing.__class__.__name__, thing.__name__)
+	elif inspect.isfunction(thing):
+		systemId = "FUNCTION-DOCSTRING(%s.%s)" % (inspect.getmodule(thing).__name__, thing.__name__)
+	elif inspect.isclass(thing):
+		systemId = "CLASS-DOCSTRING(%s.%s)" % (inspect.getmodule(thing).__name__, thing.__name__)
+	elif inspect.ismodule(thing):
+		systemId = "MODULE-DOCSTRING(%s)" % inspect.getmodule(thing).__name__
+	else:
+		systemId = "DOCSTRING"
+	node = parsers.parseString(doc, systemId=systemId)
 	if not node.find(type=par): # optimization: one paragraph docstrings don't need a <doc:par> element.
 		node = par(node)
 
