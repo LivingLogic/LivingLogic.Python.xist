@@ -20,8 +20,8 @@
 ## IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 """
-Module that uses the links browser (http://links.browser.org/)
-to generate a text version of a docbook fragment.
+Module that uses the w3m browser to generate a text version
+of a docbook fragment.
 Usage: python docbooklite2text.py spam.xml spam.txt
        to generate spam.txt from spam.xml
 """
@@ -35,7 +35,7 @@ from xist import xsc, parsers
 from xist.ns import html, docbooklite as dbl
 
 def dookbooklite2text(infilename, outfilename, title):
-	tmpfilename = "temp_links_%d.html" % os.getpid()
+	print infilename, outfilename, title
 
 	e = parsers.parseFile(infilename, namespaces=xsc.Namespaces(dbl))
 
@@ -49,9 +49,9 @@ def dookbooklite2text(infilename, outfilename, title):
 		)
 	)
 
-	e.convert().write(open(tmpfilename, "wb"))
+	e.convert().write(open(outfilename, "wb")) # misuse the output file as a temporary file
 
-	(stdin, stdout) = os.popen2("links -dump %s" % tmpfilename)
+	(stdin, stdout) = os.popen2("w3m -T text/html -dump %s" % outfilename)
 
 	stdin.close()
 
@@ -61,8 +61,9 @@ def dookbooklite2text(infilename, outfilename, title):
 
 if __name__ == "__main__":
 	title = None
-	(options, args) = getopt.getopt(sys.argv, "t:", ["title="])
+	(options, args) = getopt.getopt(sys.argv[1:], "t:", ["title="])
 
+	print options, args
 	for (option, value) in options:
 		if option=="-t" or option=="--title":
 			title = value
