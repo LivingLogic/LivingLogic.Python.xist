@@ -9,8 +9,9 @@
 ## See xist/__init__.py for the license
 
 """
-<par>An &xist; module that contains elements that describe &xist; namespace
-module and generate a skeleton implementation of this module.</par>
+<par>An &xist; module that contains classes for describing &xist; namespace
+modules. From that info a skeleton implementation of the namespace module
+can be generated.</par>
 """
 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
