@@ -80,6 +80,7 @@ class FileInputSource(InputSource):
 
 def openURLwithHeaders(url, headers):
 	if len(headers):
+		print headers
 		urlopener = urllib.FancyURLopener()
 		urlopener.addheaders = headers
 		return urlopener.open(url)
@@ -582,8 +583,8 @@ def parseFile(file, base=None, handler=None, parser=None, namespaces=None, defau
 	return parse(FileInputSource(file, base=base, defaultEncoding=defaultEncoding), handler=handler, parser=parser, namespaces=namespaces)
 
 def parseURL(url, base=None, handler=None, parser=None, namespaces=None, defaultEncoding="utf-8", headers=[]):
-	return parse(URLInputSource(url, base=base, defaultEncoding=defaultEncoding, headers=[]), handler=handler, parser=parser, namespaces=namespaces)
+	return parse(URLInputSource(url, base=base, defaultEncoding=defaultEncoding, headers=headers), handler=handler, parser=parser, namespaces=namespaces)
 
 def parseTidyURL(url, base=None, handler=None, parser=None, namespaces=None, defaultEncoding="utf-8", headers=[]):
-	return parse(TidyURLInputSource(url, base=base, defaultEncoding=defaultEncoding, headers=[]), handler=handler, parser=parser, namespaces=namespaces)
+	return parse(TidyURLInputSource(url, base=base, defaultEncoding=defaultEncoding, headers=headers), handler=handler, parser=parser, namespaces=namespaces)
 
