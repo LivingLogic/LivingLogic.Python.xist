@@ -1088,7 +1088,7 @@ class Comment(Node):
 		return self._doreprtreeMultiLine(nest,elementno,head,tail,self.content,strCommentText,0,encoding = encoding,ansi = ansi)
 
 	def publish(self,publisher,encoding = None,XHTML = None):
-		if self.content.find("--")!=-1:
+		if self.content.find("--")!=-1 or self.content[-1:]=="-":
 			raise IllegalCommentError(self.startloc,self)
 		publisher("<!--",self._encode(self.content,encoding,0),"-->")
 
