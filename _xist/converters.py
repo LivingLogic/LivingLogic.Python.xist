@@ -145,7 +145,7 @@ class Converter(object):
 
 	class makeaction(ll.propclass):
 		"""
-		<par>If an &xist; conversion is done by an <pyref module="ll.make" class="XISTAction"><class>XISTAction</class></pyref>
+		<par>If an &xist; conversion is done by an <pyref module="ll.make" class="XISTConvertAction"><class>XISTConvertAction</class></pyref>
 		this property will hold the action object during that conversion. If you're not using the
 		<pyref module="ll.make"><module>make</module></pyref> module you can simply ignore this property. The default is <lit>None</lit>.</par>
 		"""
@@ -160,7 +160,7 @@ class Converter(object):
 
 	class maketarget(ll.propclass):
 		"""
-		<par>If an &xist; conversion is done by an <pyref module="ll.make" class="XISTAction"><class>XISTAction</class></pyref>
+		<par>If an &xist; conversion is done by an <pyref module="ll.make" class="XISTConvertAction"><class>XISTConvertAction</class></pyref>
 		this property will hold the <pyref module="ll.make" class="Target"><class>Target</class></pyref> object during that conversion.
 		If you're not using the <pyref module="ll.make"><module>make</module></pyref> module you can simply ignore this property.
 		The default is <lit>None</lit>.</par>
@@ -176,7 +176,7 @@ class Converter(object):
 
 	class makeproject(ll.propclass):
 		"""
-		<par>If an &xist; conversion is done by an <pyref module="ll.make" class="XISTAction"><class>XISTAction</class></pyref>
+		<par>If an &xist; conversion is done by an <pyref module="ll.make" class="XISTConvertAction"><class>XISTConvertAction</class></pyref>
 		this property will hold the <pyref module="ll.make" class="Project"><class>Project</class></pyref> object during that conversion.
 		If you're not using the <pyref module="ll.make"><module>make</module></pyref> module you can simply ignore this property.
 		"""
@@ -216,10 +216,12 @@ class Converter(object):
 
 	def __getitem__(self, obj):
 		"""
-		<par>Return a context object for <arg>obj</arg>, which should be the
-		class object of an element type. Every element type that defines its own
+		<par>Return a context object for <arg>obj</arg>, which should be an
+		<pyref module="ll.xist.xsc" class="Node"><class>Node</class></pyref> or
+		<pyref module="ll.xist.xsc" class="Namespace"><class>Namespace</class></pyref> subclass.
+		Each of these classes that defines its own
 		<pyref module="ll.xist.xsc" class="Element.Context"><class>Context</class></pyref>
-		class gets a unique instance of this class. This instance will be creates
+		class gets a unique instance of this class. This instance will be created
 		on the first access and the element can store information there that needs
 		to be available across calls to
 		<pyref module="ll.xist.xsc" class="Node" method="convert"><method>convert</method></pyref>.</par>
