@@ -334,7 +334,7 @@ class XISTTestCase(unittest.TestCase):
 		self.assert_(node.hasattr("lang"))
 		self.assert_(node.hasattr((xml, "lang")))
 		self.assert_(node.hasattr((xml.xmlns, "lang")))
-		self.assert_(node.hasattr((xml.xmlns.xmlurl, "lang")))
+		self.assert_(node.hasattr((xml.xmlns.xmlname, "lang")))
 
 		keys = node.attrs.keys()
 		keys.sort()

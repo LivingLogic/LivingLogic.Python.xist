@@ -2094,7 +2094,7 @@ class Element(Node):
 							publisher.publish(u":")
 							publisher.publish(prefix)
 						publisher.publish(u"=\"")
-						publisher.publish(ns.xmlurl)
+						publisher.publish(ns.xmlname)
 						publisher.publish(u"\"")
 				# delete the note, so the next element won't create the attributes again
 				del publisher.publishxmlns
@@ -2559,7 +2559,7 @@ class Namespace(Base):
 	class Attrs(_Attrs):
 		pass
 
-	def __init__(self, xmlprefix, xmlurl, thing=None):
+	def __init__(self, xmlprefix, xmlname, thing=None):
 		"""
 		<par>Create a new <class>Namespace</class> instance.</par>
 
@@ -2573,9 +2573,9 @@ class Namespace(Base):
 		<lit>register</lit> to <lit>0</lit>.
 		"""
 		self.xmlprefix = unicode(xmlprefix)
-		if xmlurl is not None: # may be None, which mean no "xmlns:..." has to be used.
-			xmlurl = unicode(xmlurl)
-		self.xmlurl = xmlurl
+		if xmlname is not None: # may be None, which mean no "xmlns:..." has to be used.
+			xmlname = unicode(xmlname)
+		self.xmlname = xmlname
 		self.elementsByName = {} # dictionary for mapping element names to classes
 		self.entitiesByName = {} # dictionary for mapping entity names to classes
 		self.procinstsByName = {} # dictionary for mapping processing instruction target names to classes
@@ -2630,16 +2630,16 @@ class Namespace(Base):
 			counts = " with " + ", ".join(counts)
 		else:
 			counts = ""
-		return "<%s.%s instance xmlprefix=%r xmlurl=%r%s at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.xmlprefix, self.xmlurl, counts, id(self))
+		return "<%s.%s instance xmlprefix=%r xmlname=%r%s at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.xmlprefix, self.xmlname, counts, id(self))
 
 	def __eq__(self, other):
-		return self.xmlprefix==other.xmlprefix and self.xmlurl==other.xmlurl
+		return self.xmlprefix==other.xmlprefix and self.xmlname==other.xmlname
 
 	def __ne__(self, other):
 		return not self==other
 
 	def __hash__(self):
-		return hash(self.xmlprefix) ^ hash(self.xmlurl)
+		return hash(self.xmlprefix) ^ hash(self.xmlname)
 
 class NamespaceRegistry(object):
 	"""
@@ -2652,7 +2652,7 @@ class NamespaceRegistry(object):
 
 	def register(self, namespace):
 		self.byPrefix.setdefault(namespace.xmlprefix, []).insert(0, namespace)
-		self.byURL.setdefault(namespace.xmlurl, []).insert(0, namespace)
+		self.byURL.setdefault(namespace.xmlname, []).insert(0, namespace)
 		self.all.insert(0, namespace)
 
 namespaceRegistry = NamespaceRegistry()
@@ -2984,7 +2984,7 @@ class OldPrefixes(Prefixes):
 	def __init__(self):
 		super(OldPrefixes, self).__init__()
 		for ns in namespaceRegistry.all:
-			if ns.xmlurl == "http://www.w3.org/XML/1998/namespace":
+			if ns.xmlname == "http://www.w3.org/XML/1998/namespace":
 				self.addElementPrefixMapping("xml", ns, mode="append")
 				self.addProcInstPrefixMapping(None, ns, mode="append")
 			else:
