@@ -283,10 +283,6 @@ class Node(Base):
 		"""
 		raise NotImplementedError("__unicode__ method not implemented in %s" % self.__class__.__name__)
 
-	def asPlainString(self):
-		errors.warn(DeprecationWarning("asPlainString() is deprecated, use unicode() (or str()) instead"))
-		return unicode(self)
-
 	def __str__(self):
 		return str(unicode(self))
 
@@ -1963,24 +1959,7 @@ class Element(Node):
 				del dict["name"]
 			if "attrHandlers" in dict:
 				errors.warn(DeprecationWarning("attrHandlers is deprecated, use a nested Attrs class instead"))
-				# make it work anyway
-				if "Attrs" in dict:
-					base = dict["Attrs"]
-				else:
-					base = Element.Attrs
-				newdict = {}
-				for (key, value) in dict["attrHandlers"].iteritems():
-					newdict[key] = new.classobj(key, (value, ), {})
-				dict["Attrs"] = new.classobj("Attrs", (base, ), newdict)
-			cls = Node.__metaclass__.__new__(cls, name, bases, dict)
-			# make the attrHandlers dictionary available for derived classes that want to use it
-			attrHandlers = {}
-			for key in dir(cls.Attrs):
-				value = getattr(cls.Attrs, key)
-				if issubclasses(value, Attr) and value.register:
-					attrHandlers[key] = value
-			cls.attrHandlers = attrHandlers
-			return cls
+			return Node.__metaclass__.__new__(cls, name, bases, dict)
 		def __repr__(self):
 			return "<element class %s/%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
 
