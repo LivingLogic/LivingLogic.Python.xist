@@ -598,8 +598,8 @@ class CharacterData(Node):
 class Text(CharacterData):
 	"""
 	<doc:par>text node. The characters <markup>&lt;</markup>, <markup>&gt;</markup>, <markup>&amp;</markup>
-	(and <markup>"</markup> inside attributes) will be "escaped" with the
-	appropriate character entities.</doc:par>
+	(and <markup>"</markup> inside attributes) will be <z>escaped</z> with the
+	appropriate character entities when this node is published.</doc:par>
 	"""
 
 	def __init__(self, content=u""):
