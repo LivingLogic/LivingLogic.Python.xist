@@ -196,7 +196,7 @@ class template(xsc.Element):
 
 		if retrievedb:
 			db = _getDB(self)
-			query = db.query(str(self["query"].asHTML()))
+			query = db.query(self["query"].asHTML().asPlainString())
 
 			for record in query.dictresult():
 				t = self.__fill2(tt.clone(),record) # make a new target, because we'll put the data in there
