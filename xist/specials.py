@@ -398,6 +398,18 @@ class corba(xsc.Entity):
 	def asPlainString(self):
 		return u"CORBA"
 
+class wap(xsc.Entity):
+	def asHTML(self):
+		return html_.span(html_.abbr("WAP", title="Wireless Application Protocol", lang="en"), class_="caps")
+	def asPlainString(self):
+		return u"WAP"
+
+class wml(xsc.Entity):
+	def asHTML(self):
+		return html_.span(html_.abbr("WML", title="Wireless Markup Language", lang="en"), class_="caps")
+	def asPlainString(self):
+		return u"WML"
+
 class PHP(xsc.ProcInst):
 	"""
 	PHP processing instruction (must be used with a target)
