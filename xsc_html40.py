@@ -459,6 +459,11 @@ class font(XSCElement): # deprecated
 	attr_handlers = { "face" : XSCFrag , "size" : XSCFrag , "color" : XSCFrag }
 RegisterElement("font",font)
 
+class applet(XSCElement): # deprecated
+	empty = 0
+	attr_handlers = { "archive" : XSCurl , "code" : XSCurl , "width" : XSCFrag , "height" : XSCFrag }
+RegisterElement("applet",applet)
+
 if __name__ == "__main__":
 	try:
 		print str(xsc.parseFile(sys.argv[1]).asHTML())
