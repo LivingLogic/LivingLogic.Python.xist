@@ -104,18 +104,30 @@ enterattrs = 2342
 ###
 
 class FindType(object):
+	"""
+	Tree traversal filter, that find nodes of a certain type on the first level
+	of the tree without decending further down.
+	"""
 	def __init__(self, *types):
 		self.types = types
 	def __call__(self, node):
 		return (isinstance(node, self.types), )
 
 class FindTypeAll(object):
+	"""
+	Tree traversal filter, that find nodes of a certain type searching the complete tree
+	"""
 	def __init__(self, *types):
 		self.types = types
 	def __call__(self, node):
 		return (isinstance(node, self.types), entercontent)
 
-class FindTypeFirst(object):
+class FindTypeTop(object):
+	"""
+	Tree traversal filter, that find nodes of a certain type searching the complete tree,
+	but traversal of a the children of a node is skipped if this node is of the specified
+	type.
+	"""
 	def __init__(self, *types):
 		self.types = types
 	def __call__(self, node):
