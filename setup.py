@@ -18,5 +18,5 @@ setup(
 	packages = ['xist', 'xist.ns'],
 	package_dir = {"xist": "_xist"},
 	ext_modules = [Extension("xist.helpers", ["_xist/helpers.c"])],
-	scripts = ["scripts/dtd2xsc.py", "scripts/docbooklite2text.py", "scripts/xscmake.py" ]
+	scripts = ["scripts/dtd2xsc.py", "scripts/dbl2txt.py", "scripts/xscmake.py" ]
 )
