@@ -158,9 +158,9 @@ class autoimg(html.img):
 	"""
 	def convert(self, converter):
 		if converter.target=="ihtml":
-			e = ihtml.img(self.attrs)
+			e = ihtml.img(self.attrs.convert(converter))
 		else:
-			e = html.img(self.attrs)
+			e = html.img(self.attrs.convert(converter))
 		e._addImageSizeAttributes(converter.root, "src", "width", "height")
 		return e.convert(converter)
 
