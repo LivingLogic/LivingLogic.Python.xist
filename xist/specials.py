@@ -62,7 +62,7 @@ class z(xsc.Element):
 	empty = 0
 
 	def asHTML(self):
-		e = "«" + self.content + "»"
+		e = xsc.Frag("«",self.content,"»")
 
 		return e.asHTML()
 xsc.registerElement(z)
@@ -154,7 +154,7 @@ class pixel(html.img):
 				color = self["color"]
 			else:
 				e[attr] = self[attr]
-		e["src"] = ":images/pixels/" + color + ".gif"
+		e["src"] = (":images/pixels/",color,".gif")
 
 		return e.asHTML()
 xsc.registerElement(pixel)

@@ -556,20 +556,6 @@ class Node:
 	repransinamespace = "31"
 	repransiname = ""
 
-	def __add__(self,other):
-		newother = ToNode(other)
-		if not isinstance(newother,Null):
-			return Frag(self) + newother
-		else:
-			return self
-
-	def __radd__(self,other):
-		newother = ToNode(other)
-		if not isinstance(newother,Null):
-			return Frag(newother) + self
-		else:
-			return self
-
 	def __repr__(self):
 		if xsc.reprtree == 1:
 			return self.reprtree()
@@ -874,35 +860,14 @@ class Frag(Node):
 		for child in _content:
 			self.append(child)
 
-	def __add__(self,other):
-		res = self.__class__(self.__content) # "virtual" copy
-		newother = ToNode(other)
-		if not isinstance(newother,Null):
-			if isinstance(newother,Frag):
-				for child in newother:
-					res.append(child)
-			else:
-				res.append(newother)
-		return res
-
-	def __radd__(self,other):
-		res = self.__class__(self.__content) # "virtual" copy
-		newother = ToNode(other)
-		if not isinstance(newother,Null):
-			if isinstance(newother,Frag):
-				res.__content = newother.__content + res.__content
-			else:
-				res.__content.insert(0,newother)
-		return res
-
 	def asHTML(self):
-		e = self.__class__([])
+		e = self.__class__()
 		for child in self:
 			e.append(child.asHTML())
 		return e
 
 	def clone(self):
-		e = self.__class__([])
+		e = self.__class__()
 		for child in self:
 			e.append(child.clone())
 		return e
@@ -962,7 +927,10 @@ class Frag(Node):
 		"""
 		returns a slice of the content of the fragment
 		"""
-		return self.__class__(self.__content[index1:index2])
+		e = self.__class__()
+		for child in self.__content[index1:index2]:
+			e.append(child)
+		return e
 
 	def __setslice__(self,index1,index2,sequence):
 		"""
@@ -1248,13 +1216,17 @@ class Element(Node):
 			raise EmptyElementWithContentError(xsc.parser.lineno,self)
 
 	def asHTML(self):
-		e = self.__class__(self.content.asHTML()) # "virtual" copy constructor
+		e = self.__class__() # "virtual" copy constructor
+		for child in self:
+			e.append(child.asHTML())
 		for attr in self.attrs.keys():
 			e[attr] = self[attr].asHTML()
 		return e
 
 	def clone(self):
-		e = self.__class__(self.content.clone()) # "virtual" copy constructor
+		e = self.__class__() # "virtual" copy constructor
+		for child in self:
+			e.append(child.clone())
 		for attr in self.attrs.keys():
 			e[attr] = self[attr].clone()
 		return e
@@ -1335,9 +1307,11 @@ class Element(Node):
 			# values are contructed via the attribute classes specified in the attrHandlers dictionary, which do the conversion
 			lowerindex = string.lower(index)
 			try:
-				self.attrs[lowerindex] = self.attrHandlers[lowerindex](value) # pack the attribute into an attribute object
+				attr = self.attrHandlers[lowerindex]() # pack the attribute into an attribute object
 			except KeyError:
 				raise IllegalAttributeError(xsc.parser.lineno,self,index)
+			attr.extend(value)
+			self.attrs[lowerindex] = attr
 		else:
 			self.content[index] = value
 
@@ -1366,15 +1340,25 @@ class Element(Node):
 			return self.attrHandlers[string.lower(attr)](default) # pack the attribute into an attribute object
 
 	def __getslice__(self,index1,index2):
-		"""returns a copy of the element that contains a slice of the content"""
-		return self.__class__(self.content[index1:index2],self.attrs)
+		"""
+		returns a copy of the element that contains a slice of the content
+		"""
+		e = self.__class__()
+		for child in self.content[index1:index2]:
+			e.append(child)
+		for attr in self.attrs.keys():
+			e[attr] = self[attr]
 
 	def __setslice__(self,index1,index2,sequence):
-		"""modifies a slice of the content of the element"""
+		"""
+		modifies a slice of the content of the element
+		"""
 		self.content[index1:index2] = sequence
 
 	def __delslice__(self,index1,index2):
-		"""removes a slice of the content of the element"""
+		"""
+		removes a slice of the content of the element
+		"""
 		del self.content[index1:index2]
 
 	def __len__(self):
@@ -1406,7 +1390,7 @@ class Element(Node):
 			if size[0] != -1: # the width was retrieved so we can use it
 				if self.has_attr(widthattr):
 					try:
-						self[widthattr] = str(eval(self[widthattr].asPlainString() % sizedict))
+						self[widthattr] = eval(self[widthattr].asPlainString() % sizedict)
 					except:
 						raise ImageSizeFormatError(xsc.parser.lineno,self,widthattr)
 				else:
@@ -1414,21 +1398,26 @@ class Element(Node):
 			if size[1] != -1: # the height was retrieved so we can use it
 				if self.has_attr(heightattr):
 					try:
-						self[heightattr] = str(eval(self[heightattr].asPlainString() % sizedict))
+						self[heightattr] = eval(self[heightattr].asPlainString() % sizedict)
 					except:
 						raise ImageSizeFormatError(xsc.parser.lineno,self,heightattr)
 				else:
 					self[heightattr] = str(size[1])
 
 	def compact(self):
-		return self.__class__(self.content.compact(),self.attrs)
+		e = self.__class__()
+		for child in self:
+			e.append(child.compact())
+		for attr in self.attrs.keys():
+			e[attr] = self[attr].compact()
+		return e
 
 	def nodes(self,type = None,subtype = 0,children = 0,attrs = 0):
 		e = Frag()
 		if attrs:
 			for attr in self.attrs.keys():
-				e = e + self[attr].nodes(type,subtype,children,attr)
-		e = e + self.content.nodes(type,subtype,children,attrs)
+				e.extend(self[attr].nodes(type,subtype,children,attr))
+		e.extend(self.content.nodes(type,subtype,children,attrs))
 		return e
 
 class Null(Element):
@@ -1441,20 +1430,16 @@ class Null(Element):
 	def asHTML(self):
 		return Null()
 
-	clone = asHTML
+	clone = compact = asHTML
 
 	def __str__(self):
 		return ""
 
 	def _dorepr(self):
-		# constructs a string of this Text with syntaxhighlighting. Special characters will be output as CharRefs (with special highlighting)
 		return self._str(slash = 1,ansi = ansi)
 
 	def _doreprtree(self,nest,elementno,ansi = None):
 		return [[nest,self.startlineno,elementno,self._dorepr(ansi)]]
-
-	def compact(self):
-		return Null()
 
 def registerElement(element):
 	"""
@@ -1524,8 +1509,8 @@ class URLAttr(Attr):
 
 	repransiurl = "32"
 
-	def __init__(self,_content = []):
-		Attr.__init__(self,_content)
+	def __init__(self,*_content):
+		apply(Attr.__init__,(self,) + _content)
 		self.base = xsc.filename[-1]
 
 	def _str(self,content = None,brackets = None,slash = None,ansi = None):
@@ -1545,6 +1530,11 @@ class URLAttr(Attr):
 
 	def clone(self):
 		e = Attr.clone(self)
+		e.base = self.base.clone()
+		return e
+
+	def compact(self):
+		e = Attr.compact(self)
 		e.base = self.base.clone()
 		return e
 
@@ -1654,12 +1644,6 @@ class Parser(xmllib.XMLParser):
 		except KeyError:
 			raise UnknownEntityError(xsc.parser.lineno,name)
 
-	def attributes2Fragments(self,attrs):
-		newattrs = {}
-		for attr in attrs.keys():
-			newattrs[attr] = string2Fragment(attrs[attr])
-		return newattrs
-
 	def elementFromName(self,name):
 		"""
 		returns the element class for the name name (which might include a namespace).
@@ -1685,8 +1669,9 @@ class Parser(xmllib.XMLParser):
 		return element
 
 	def unknown_starttag(self,name,attrs):
-		element = self.elementFromName(name)
-		e = element([],self.attributes2Fragments(attrs))
+		e = self.elementFromName(name)()
+		for attr in attrs.keys():
+			e[attr] = string2Fragment(attrs[attr])
 		self.__appendNode(e)
 		self.nesting.append(e) # push new innermost element onto the stack
 

@@ -73,7 +73,7 @@ class lookupcombobox(control):
 
 		if retrievedb:
 			db = _getDB(self)
-			query = db.query(self["query"].asPlainString()
+			query = db.query(self["query"].asPlainString())
 			displayfield = self["displayfield"].asHTML().asPlainString()
 			valuefield = self["valuefield"].asHTML().asPlainString()
 			for tuple in query.dictresult():
@@ -83,7 +83,6 @@ class lookupcombobox(control):
 					o["selected"] = None
 				e.append(o)
 		else:
-			e = html.select(name = self["name"])
 			e.append(html.option("dummy"))
 		return str(e.asHTML())
 xsc.registerElement(lookupcombobox)
