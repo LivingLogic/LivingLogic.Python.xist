@@ -18,26 +18,6 @@ import xsc, options, utils
 
 strescapes = {'<': 'lt', '>': 'gt', '&': 'amp', '"': 'quot'}
 
-def encodedLegal(encoding, c):
-	if c in strescapes.keys():
-		return "\x02"
-	else:
-		try:
-			unichr(c).encode(encoding)
-		except UnicodeError:
-			return "\x01"
-		return "\x00"
-
-def encodedIllegal(encoding, c):
-	if c in strescapes.keys():
-		return "\x01"
-	else:
-		try:
-			unichr(c).encode(encoding)
-		except UnicodeError:
-			return "\x01"
-		return "\x00"
-
 class Publisher:
 	"""
 	base class for all publishers.
@@ -94,47 +74,36 @@ class Publisher:
 		using character references for <code>&amp;lt;</code> etc. and non encodabel characters
 		is legal.
 		"""
-		try:
-			map = self.mapsLegal[self.encoding]
-		except KeyError:
-			map = array.array("c")
-			for i in xrange(65535):
-				map.append(encodedLegal(self.encoding, i))
-			self.mapsLegal[self.encoding] = map
+		for c in strescapes.keys():
+			text = text.replace(c, u"&" + strescapes[c] + u";")
 
-		v = []
-		for c in text:
-			i = ord(c)
-			test = map[i]
-			if test=="\x00":
-				 v.append(c)
-			elif test=="\x01":
-				v.append(u"&#" + str(i) + u";")
-			else:
-				v.append(u"&" + strescapes[i] + u";")
-		return u"".join(v)
+		try:
+			text.encode(self.encoding)
+			return text
+		except UnicodeError:
+			v = []
+			for c in text:
+				try:
+					c.encode(self.encoding)
+					v.append(c)
+				except UnicodeError:
+					v.append(u"&#" + str(ord(c)) + u";")
+			return u"".join(v)
 
 	def _encodeIllegal(self, text):
 		"""
 		encodes the text <argref>text</argref> with the encoding <code><self/>.encoding</code>.
 		anything that requires a character reference (e.g. element names) is illegal.
 		"""
-		try:
-			map = self.mapsIllegal[self.encoding]
-		except KeyError:
-			map = array.array("c")
-			for i in xrange(65535):
-				map.append(encodedIllegal(self.encoding, i))
-			self.mapsIllegal[self.encoding] = map
-
-		v = []
-		for c in text:
-			i = ord(c)
-			if map[i]:
+		for c in strescapes.keys():
+			if c in text:
 				raise EncodingImpossibleError(self.startloc, self.encoding, text, c)
-			else:
-				v.append(c)
-		return u"".join(v)
+
+		try:
+			text.encode(self.encoding)
+			return text
+		except UnicodeError:
+			raise EncodingImpossibleError(self.startloc, self.encoding, text, "")
 
 class FilePublisher(Publisher):
 	"""
