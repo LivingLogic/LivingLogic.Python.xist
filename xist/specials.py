@@ -269,104 +269,104 @@ class html(xsc.Entity):
 	def asHTML(self):
 		return html_.abbr("HTML",title="Hypertext Markup Language",lang="en")
 	def asPlainString(self):
-		return "HTML"
+		return u"HTML"
 
 class xml(xsc.Entity):
 	def asHTML(self):
 		return html_.abbr("XML",title="Extensible Markup Language",lang="en")
 	def asPlainString(self):
-		return "XML"
+		return u"XML"
 
 class css(xsc.Entity):
 	def asHTML(self):
 		return html_.abbr("CSS",title="Cascading Style Sheet",lang="en")
 	def asPlainString(self):
-		return "CSS"
+		return u"CSS"
 
 class cgi(xsc.Entity):
 	def asHTML(self):
 		return html_.abbr("CGI",title="Common Gateway Interface",lang="en")
 	def asPlainString(self):
-		return "CGI"
+		return u"CGI"
 
 class www(xsc.Entity):
 	def asHTML(self):
 		return html_.abbr("WWW",title="World Wide Web",lang="en")
 	def asPlainString(self):
-		return "WWW"
+		return u"WWW"
 
 class pdf(xsc.Entity):
 	def asHTML(self):
 		return html_.abbr("PDF",title="Protable Document Format",lang="en")
 	def asPlainString(self):
-		return "PDF"
+		return u"PDF"
 
 class url(xsc.Entity):
 	def asHTML(self):
 		return html_.abbr("URL",title="Uniform Resource Locator",lang="en")
 	def asPlainString(self):
-		return "URL"
+		return u"URL"
 
 class http(xsc.Entity):
 	def asHTML(self):
 		return html_.abbr("HTTP",title="Hypertext Transfer Protocol",lang="en")
 	def asPlainString(self):
-		return "HTTP"
+		return u"HTTP"
 
 class smtp(xsc.Entity):
 	def asHTML(self):
 		return html_.abbr("SMTP",title="Simple Mail Transfer Protocol",lang="en")
 	def asPlainString(self):
-		return "SMTP"
+		return u"SMTP"
 
 class ftp(xsc.Entity):
 	def asHTML(self):
 		return html_.abbr("FTP",title="File Transfer Protocol",lang="en")
 	def asPlainString(self):
-		return "FTP"
+		return u"FTP"
 
 class pop3(xsc.Entity):
 	def asHTML(self):
 		return html_.abbr("POP3",title="Post Office Protocol 3",lang="en")
 	def asPlainString(self):
-		return "POP3"
+		return u"POP3"
 
 class cvs(xsc.Entity):
 	def asHTML(self):
 		return html_.abbr("CVS",title="Concurrent Versions System",lang="en")
 	def asPlainString(self):
-		return "CVS"
+		return u"CVS"
 
 class faq(xsc.Entity):
 	def asHTML(self):
 		return html_.abbr("FAQ",title="Frequently Asked Question",lang="en")
 	def asPlainString(self):
-		return "FAQ"
+		return u"FAQ"
 
 class gnu(xsc.Entity):
 	def asHTML(self):
 		return html_.abbr("GNU",title="GNU's Not UNIX",lang="en")
 		# we could do it ;): return html_.abbr("GNU",title=(self,"'s Not UNIX"),lang="en")
 	def asPlainString(self):
-		return "GNU"
+		return u"GNU"
 
 class dns(xsc.Entity):
 	def asHTML(self):
 		return html_.abbr("DNS",title="Domain Name Service",lang="en")
 	def asPlainString(self):
-		return "DNS"
+		return u"DNS"
 
 class ppp(xsc.Entity):
 	def asHTML(self):
 		return html_.abbr("PPP",title="Domain Name Service",lang="en")
 	def asPlainString(self):
-		return "PPP"
+		return u"PPP"
 
 class isdn(xsc.Entity):
 	def asHTML(self):
 		return html_.abbr("ISDN",title="Integrated Services Digital Network",lang="en")
 	def asPlainString(self):
-		return "ISDN"
+		return u"ISDN"
 
 namespace = xsc.Namespace("specials","http://www.livinglogic.de/DTDs/specials.dtd",vars())
 
