@@ -133,8 +133,7 @@ def make(args):
 			t2 = time.time()
 			e_out = e_in.convert(converter)
 			t3 = time.time()
-			p = publishers.FilePublisher(fileutils.Filename(outname.asPlainString()).open("wb", 65536), base=outname, encoding=encoding, xhtml=xhtml)
-			e_out.publish(p)
+			e_out.write(fileutils.Filename(outname.asPlainString()).open("wb", 65536), base=outname, encoding=encoding, xhtml=xhtml)
 			t4 = time.time()
 			size = p.tell()
 			sys.stderr.write(
