@@ -16,7 +16,7 @@ descriptor (<lit>.tld</lit>) (&xml;) file format/syntax.</par>
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-from ll.xist import xsc, xnd
+from ll.xist import xsc, sims, xnd
 
 
 class IdAttrs(xsc.Element.Attrs):
@@ -252,6 +252,22 @@ class uri(xsc.Element):
 	"""
 	empty = False
 	class Attrs(IdAttrs): pass
+
+
+taglib.model = sims.Elements(info, tag, jspversion, shortname, tlibversion, uri)
+attribute.model = sims.Elements(rtexprvalue, required, name)
+tag.model = sims.Elements(tagclass, info, name, bodycontent, attribute, teiclass)
+bodycontent.model = \
+info.model = \
+jspversion.model = \
+name.model = \
+required.model = \
+rtexprvalue.model = \
+shortname.model = \
+tagclass.model = \
+teiclass.model = \
+tlibversion.model = \
+uri.model = sims.NoElements()
 
 
 class xmlns(xsc.Namespace):
