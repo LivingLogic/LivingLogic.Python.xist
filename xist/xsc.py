@@ -904,6 +904,15 @@ class XSCColorAttr(XSCAttr):
 	def __init__(self,_content):
 		XSCAttr.__init__(self,_content)
 
+	def _dorepr(self):
+		return _stransi(xsc.repransitextattrs,str(self._content))
+
+	def _doreprtree(self,nest,elementno):
+		return [[nest,self.startlineno,elementno,self._dorepr()]]
+
+	def __str__(self):
+		return self._content
+
 	def asHTML(self):
 		return XSCColorAttr(self._content)
 
