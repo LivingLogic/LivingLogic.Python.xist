@@ -332,6 +332,11 @@ class FormAttrDecorator(specials.AttrDecorator):
 		pass
 	decoratable = (html.form,)
 
+class TextAreaAttrDecorator(specials.AttrDecorator):
+	class Attrs(html.textarea.Attrs):
+		pass
+	decoratable = (html.textarea,)
+
 class xmlns(xsc.Namespace):
 	xmlname = "htmlspecials"
 	xmlurl = "http://xmlns.livinglogic.de/xist/ns/htmlspecials"
