@@ -953,14 +953,12 @@ class Frag(Node):
 
 	def asHTML(self):
 		node = self.__class__()
-		for child in self:
-			node.append(child.asHTML())
+		node.__content = [ child.asHTML() for child in self.__content ]
 		return self._decorateNode(node)
 
 	def clone(self):
 		node = self.__class__()
-		for child in self:
-			node.append(child.clone())
+		node.__content = [ child.clone() for child in self.__content ]
 		return self._decorateNode(node)
 
 	def _dorepr(self, ansi=None):
@@ -1114,7 +1112,7 @@ class Frag(Node):
 			node.append(child.compact())
 		return self._decorateNode(node)
 
-	def withSeparator(self, separator, clone = 0):
+	def withSeparator(self, separator, clone=0):
 		"""
 		returns a version of <self/> with a separator node between the nodes of <self/>.
 
@@ -1316,6 +1314,16 @@ class XML(ProcInst):
 			return
 		ProcInst.publish(self, publisher)
 
+class XMLStyleSheet(ProcInst):
+	"""
+	XML stylesheet declaration
+	"""
+
+	name = "xml-stylesheet"
+
+	def __init__(self, content=u""):
+		ProcInst.__init__(self, u"xml-stylesheet", content)
+
 class Element(Node):
 	"""
 	<par noindent>This class represents XML/XSC elements. All elements
@@ -1392,13 +1400,15 @@ class Element(Node):
 			raise errors.EmptyElementWithContentError(self)
 
 	def asHTML(self):
-		node = self.__class__(self.content.asHTML()) # "virtual" copy constructor
+		node = self.__class__() # "virtual" copy constructor
+		node.content = self.content.asHTML() # this is faster than passing it in the constructor (no ToNode call)
 		for attr in self.attrs.keys():
 			node[attr] = self[attr].asHTML()
 		return self._decorateNode(node)
 
 	def clone(self):
-		node = self.__class__(self.content.clone()) # "virtual" copy constructor
+		node = self.__class__() # "virtual" copy constructor
+		node.content = self.content.clone() # this is faster than passing it in the constructor (no ToNode call)
 		for attr in self.attrs.keys():
 			node[attr] = self[attr].clone()
 		return self._decorateNode(node)
@@ -1611,7 +1621,11 @@ class Element(Node):
 class Entity(Node):
 	"""
 	<par noindent>Class for entities. Derive your own entities from
-	it and implement <code>asHTML()</code> and <code>asPlainString()</code>.
+	it and implement <code>asHTML()</code> and <code>asPlainString()</code>.</par>
+
+	<par>If this entity is a simple character reference, you don't have to implement
+	those functions. Simply set the class attribute <code>codepoint</code>, and
+	you're done.</par>
 	"""
 
 	def asHTML(self):
