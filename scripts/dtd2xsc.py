@@ -31,7 +31,7 @@ from ll.xist import xsc, parsers
 from ll.xist.ns import xndl
 
 
-def dtd2xsc(dtdurl, outurl, verbose, xmlname, xmlurl, shareattrs, asmod):
+def dtd2xsc(dtdurl, outurl, verbose, xmlname, xmlurl, shareattrs, asmod, defaults):
 	if verbose:
 		print "Parsing DTD %s ..." % dtdurl
 	d = dtdparser.load_dtd(dtdurl.url)
@@ -48,7 +48,7 @@ def dtd2xsc(dtdurl, outurl, verbose, xmlname, xmlurl, shareattrs, asmod):
 	if verbose:
 		print "Writing to %s ..." % outurl
 	file = outurl.openwrite()
-	file.write(data.aspy(asmod=asmod))
+	file.write(data.aspy(asmod=asmod, defaults=defaults))
 	file.close()
 
 
@@ -58,8 +58,9 @@ if __name__ == "__main__":
 	p.add_option("-v", "--verbose", action="store_true", dest="verbose")
 	p.add_option("-p", "--prefix", dest="xmlname", help="the XML prefix for this namespace", default="prefix", metavar="PREFIX")
 	p.add_option("-u", "--url", dest="xmlurl", help="the XML namespace name", metavar="URL")
-	p.add_option("-s", "--shareattrs", dest="shareattrs", help="Should identical attributes be shared among elements?", choices=("none", "dupes", "all"), default="dupes")
+	p.add_option("-a", "--shareattrs", dest="shareattrs", help="Should identical attributes be shared among elements?", choices=("none", "dupes", "all"), default="dupes")
 	p.add_option("-m", "--asmod", action="store_true", dest="asmod", help="Call makemod() instead of update() for creating the namespace")
+	p.add_option("-d", "--defaults", action="store_true", dest="defaults", help="Output default values for attributes")
 
 	(options, args) = p.parse_args()
 	if len(args) != 1:
@@ -70,4 +71,4 @@ if __name__ == "__main__":
 		output = url.File(input.withExt("py").file)
 	else:
 		output = url.URL(options.output)
-	dtd2xsc(input, output, options.verbose, options.xmlname, options.xmlurl, options.shareattrs, options.asmod)
+	dtd2xsc(input, output, options.verbose, options.xmlname, options.xmlurl, options.shareattrs, options.asmod, options.defaults)

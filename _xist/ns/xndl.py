@@ -81,11 +81,11 @@ class Base(object):
 		return value
 	simplify = classmethod(simplify)
 
-	def aspy(self, encoding=None, indent="\t", asmod=True):
+	def aspy(self, encoding=None, indent="\t", asmod=True, defaults=False):
 		if encoding is None:
 			encoding = sys.getdefaultencoding()
 		lines = []
-		self._aspy(lines, encoding, 0, [], asmod)
+		self._aspy(lines, encoding, 0, [], asmod, defaults)
 		return "\n".join(["%s%s" % (level*indent, text) for (level, text) in lines])
 
 	def _addlines(self, newlines, lines):
@@ -103,7 +103,7 @@ class Doc(Base):
 		Base.__init__(self, None)
 		self.content = content
 
-	def _aspy(self, lines, encoding, level, names, asmod):
+	def _aspy(self, lines, encoding, level, names, asmod, defaults, schema):
 		lines.append([level, '"""'])
 		for line in self.content.asBytes(encoding=encoding).split("\n"):
 			lines.append([level, line])
@@ -136,14 +136,14 @@ class Namespace(Base):
 						attrgroupset[attr.shared] = True
 		return attrgroups
 
-	def _aspy(self, lines, encoding, level, names, asmod):
+	def _aspy(self, lines, encoding, level, names, asmod, defaults, schema):
 		lines.append([level, "#!/usr/bin/env python"])
 		lines.append([level, "# -*- coding: %s -*-" % encoding])
 		lines.append([0, ""])
 		lines.append([0, ""])
 
 		if self.doc is not None:
-			self.doc._aspy(lines, encoding, level, names, asmod)
+			self.doc._aspy(lines, encoding, level, names, asmod, defaults)
 			lines.append([0, ""])
 
 		lines.append([level, "__version__ = \"%sRevision%s\"[11:-2]" % ("$", "$")])
@@ -163,13 +163,13 @@ class Namespace(Base):
 		for attrgroup in attrgroups:
 			lines.append([0, ""])
 			lines.append([0, ""])
-			attrgroup._aspy(lines, encoding, level, names, asmod)
+			attrgroup._aspy(lines, encoding, level, names, asmod, defaults)
 
 		# output elements
 		for node in self.content:
 			lines.append([0, ""])
 			lines.append([0, ""])
-			node._aspy(lines, encoding, level, names, asmod)
+			node._aspy(lines, encoding, level, names, asmod, defaults)
 
 		lines.append([0, ""])
 		lines.append([0, ""])
@@ -218,13 +218,13 @@ class Element(Base):
 		self.empty = empty
 		self.attrs = attrs
 
-	def _aspy(self, lines, encoding, level, names, asmod):
+	def _aspy(self, lines, encoding, level, names, asmod, defaults, schema):
 		name = self.name
 		pyname = self.pyname(names)
 		lines.append([level, "class %s(xsc.Element):" % pyname])
 		newlines = []
 		if self.doc is not None:
-			self.doc._aspy(newlines, encoding, level+1, names, asmod)
+			self.doc._aspy(newlines, encoding, level+1, names, asmod, defaults)
 		if pyname != name:
 			newlines.append([level+1, "xmlname = %s" % self.simplify(name)])
 		if self.empty:
@@ -253,7 +253,7 @@ class Element(Base):
 			if nogroup:
 				localnames = []
 				for attr in nogroup:
-					attr._aspy(newlines, encoding, level+2, localnames, asmod)
+					attr._aspy(newlines, encoding, level+2, localnames, asmod, defaults)
 			else:
 				newlines.append([level+2, "pass"])
 		self._addlines(newlines, lines)
@@ -268,12 +268,12 @@ class AttrGroup(Base):
 		Base.__init__(self, name)
 		self.attrs = attrs
 
-	def _aspy(self, lines, encoding, level, names, asmod):
+	def _aspy(self, lines, encoding, level, names, asmod, defaults, schema):
 		name = self.pyname(names)
 		lines.append([level, "class %s(xsc.Element.Attrs):" % name])
 		localnames = []
 		for attr in self.attrs:
-			attr._aspy(lines, encoding, level+1, localnames, asmod)
+			attr._aspy(lines, encoding, level+1, localnames, asmod, defaults)
 
 
 class Attr(Base):
@@ -286,19 +286,19 @@ class Attr(Base):
 		self.values = values
 		self.shared = None # if this attribute is part of a group shared will point to this group
 
-	def _aspy(self, lines, encoding, level, names, asmod):
+	def _aspy(self, lines, encoding, level, names, asmod, defaults, schema):
 		name = self.name
 		pyname = self.pyname(names)
 		lines.append([level, "class %s(xsc.%s):" % (pyname, self.type)])
 		newlines = []
 		if self.doc is not None:
-			self.doc._aspy(newlines, encoding, level+1, asmod)
+			self.doc._aspy(newlines, encoding, level+1, asmod, defaults)
 		if pyname != name:
 			newlines.append([level+1, "xmlname = %s" % self.simplify(name)])
 		if self.values:
 			values = "(%s)" % ", ".join([ str(self.simplify(value)) for value in self.values ])
 			newlines.append([level+1, "values = %s" % (values, )])
-		if self.default:
+		if self.default and defaults:
 			newlines.append([level+1, "default = %s" % self.simplify(self.default)])
 		if self.required:
 			newlines.append([level+1, "required = True"])
@@ -317,13 +317,13 @@ class ProcInst(Base):
 		Base.__init__(self, name)
 		self.doc = doc
 
-	def _aspy(self, lines, encoding, level, names, asmod):
+	def _aspy(self, lines, encoding, level, names, asmod, defaults, schema):
 		name = self.name
 		pyname = self.pyname(names)
 		lines.append([level, "class %s(xsc.ProcInst):" % pyname])
 		newlines = []
 		if self.doc is not None:
-			self.doc._aspy(newlines, encoding, level+1, names, asmod)
+			self.doc._aspy(newlines, encoding, level+1, names, asmod, defaults)
 		if pyname != name:
 			newlines.append([level+1, "xmlname = %s" % self.simplify(name)])
 		self._addlines(newlines, lines)
@@ -334,13 +334,13 @@ class Entity(Base):
 		Base.__init__(self, name)
 		self.doc = doc
 
-	def _aspy(self, lines, encoding, level, names, asmod):
+	def _aspy(self, lines, encoding, level, names, asmod, defaults, schema):
 		name = self.name
 		pyname = self.pyname(names)
 		lines.append([level, "class %s(xsc.Entity):" % pyname])
 		newlines = []
 		if self.doc is not None:
-			self.doc._aspy(newlines, encoding, level+1, names, asmod)
+			self.doc._aspy(newlines, encoding, level+1, names, asmod, defaults)
 		if pyname != name:
 			newlines.append([level+1, "xmlname = %s" % self.simplify(name)])
 		self._addlines(newlines, lines)
@@ -351,13 +351,13 @@ class CharRef(Entity):
 		Entity.__init__(self, name, doc)
 		self.codepoint = codepoint
 
-	def _aspy(self, lines, encoding, level, names, asmod):
+	def _aspy(self, lines, encoding, level, names, asmod, defaults, schema):
 		name = self.name
 		pyname = self.pyname(names)
 		lines.append([level, "class %s(xsc.CharRef):" % pyname])
 		newlines = []
 		if self.doc is not None:
-			self.doc._aspy(newlines, encoding, level+1, names, asmod)
+			self.doc._aspy(newlines, encoding, level+1, names, asmod, defaults)
 		if pyname != name:
 			newlines.append([level+1, "xmlname = %s" % self.simplify(name)])
 		newlines.append([level+1, "codepoint = 0x%04x" % self.codepoint])

@@ -16,7 +16,7 @@
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-from ll.xist import xsc, utils
+from ll.xist import xsc
 from ll.xist.ns import xml
 
 
