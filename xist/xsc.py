@@ -1257,17 +1257,57 @@ class Element(Node):
 				v.append([nest,self.endloc,elementno,self._str(brackets = 1,slash = -1,ansi = ansi)])
 		return v
 
-	def asString(self,XHTML = None):
+	def _asStringWithImageSize(self,XHTML = None,imgattr = None,widthattr = None,heightattr = None):
+		"""
+		<par noindent>generates a string representing the element and adds width and height attributes in the process
+		The URL for the image is fetched for the attribute named <argref>imgattr</argref>.
+		If the attributes are already there, they are taken as a formatting template with the size
+		passed in as a dictionary with the keys <code>"width"</code> and <code>"height"</code>,
+		i.e. you could make your image twice as wide with <code>width="2*%(width)d"</code>.</par>
+
+		<par>If <argref>imgattr</argref> is <code>None</code> no image size attribute generation
+		will be done.</par>
+		"""
+
 		v = []
 		v.append("<")
 		v.append(self.elementname) # requires that the element is registered via registerElement()
+		if imgattr is not None:
+			size = self[imgattr].asHTML().ImageSize()
+			sizedict = { "width": size[0], "height": size[1] }
+		else:
+			size = None
 		for attr in self.attrs.keys():
 			v.append(' ')
 			v.append(attr)
 			value = self[attr]
 			if len(value):
 				v.append('="')
-				v.append(value.asString(XHTML))
+				if size is not None and attr==widthattr:
+					try:
+						v.append(str(eval(self[widthattr].asPlainString() % sizedict)))
+					except:
+						raise ImageSizeFormatError(self,widthattr)
+				elif size is not None and attr==heightattr:
+					try:
+						v.append(str(eval(self[heightattr].asPlainString() % sizedict)))
+					except:
+						raise ImageSizeFormatError(self,heightattr)
+				else:
+					v.append(value.asString(XHTML))
+				v.append('"')
+		if size is not None:
+			if not self.hasAttr(widthattr):
+				v.append(' ')
+				v.append(widthattr)
+				v.append('="')
+				v.append(str(size[0]))
+				v.append('"')
+		if not self.hasAttr(heightattr):
+				v.append(' ')
+				v.append(heightattr)
+				v.append('="')
+				v.append(str(size[1]))
 				v.append('"')
 		if len(self):
 			if self.empty:
@@ -1295,6 +1335,9 @@ class Element(Node):
 				raise ValueError("XHTML must be 0, 1, 2 or None")
 
 		return string.join(v,"")
+
+	def asString(self,XHTML = None):
+		return self._asStringWithImageSize(XHTML)
 
 	def __getitem__(self,index):
 		"""
@@ -1396,33 +1439,6 @@ class Element(Node):
 				v.append(value._dorepr(ansi = ansi))
 				v.append(strQuote(ansi = ansi))
 		return string.join(v,"")
-
-	def addImageSizeAttributes(self,imgattr,widthattr = "width",heightattr = "height"):
-		"""
-		add width and height attributes to the element for the image that can be found in the attribute
-		<argref>imgattr</argref>. If the attributes are already there, they are taken as a formatting
-		template with the size passed in as a dictionary with the keys <code>"width"</code> and <code>"height"</code>,
-		i.e. you could make your image twice as wide with <code>width="%(width)d*2"</code>.
-		"""
-
-		if self.hasAttr(imgattr):
-			size = self[imgattr].ImageSize()
-			sizedict = { "width": size[0], "height": size[1] }
-			if size is not None: # the size was retrieved so we can use it
-				if self.hasAttr(widthattr):
-					try:
-						self[widthattr] = eval(self[widthattr].asPlainString() % sizedict)
-					except:
-						raise ImageSizeFormatError(self,widthattr)
-				else:
-					self[widthattr] = size[0]
-				if self.hasAttr(heightattr):
-					try:
-						self[heightattr] = eval(self[heightattr].asPlainString() % sizedict)
-					except:
-						raise ImageSizeFormatError(self,heightattr)
-				else:
-					self[heightattr] = size[1]
 
 	def compact(self):
 		node = self.__class__(self.content.compact())

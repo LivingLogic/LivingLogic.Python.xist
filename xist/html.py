@@ -487,11 +487,8 @@ class img(xsc.Element):
 	attrHandlers = xsc.appendDict(attrs,{ "src" : xsc.URLAttr , "alt" : xsc.TextAttr , "longdesc" : xsc.TextAttr , "width" : xsc.TextAttr , "height" : xsc.TextAttr , "usemap" : xsc.TextAttr , "ismap" : xsc.TextAttr })
 	attrHandlers = xsc.appendDict(attrHandlers,{ "name" : xsc.TextAttr , "border" : xsc.TextAttr , "align" : xsc.TextAttr , "hspace" : xsc.TextAttr , "vspace" : xsc.TextAttr , "lowsrc" : xsc.URLAttr }) # deprecated
 
-	def asHTML(self):
-		e = self.clone()
-		e.addImageSizeAttributes("src")
-
-		return e
+	def asString(self,XHTML = None):
+		return self._asStringWithImageSize(XHTML,"src","width","height")
 
 	def asPlainString(self):
 		if self.hasAttr("alt"):
