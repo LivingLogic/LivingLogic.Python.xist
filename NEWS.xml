@@ -28,7 +28,7 @@ node = html.table(
 )
 </prog>
 </example>
-<p>you can now use the following:</p>
+<par>you can now use the following:</par>
 <example>
 <prog>
 node = html.table(class_="example")(
