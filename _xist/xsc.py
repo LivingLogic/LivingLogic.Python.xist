@@ -1849,7 +1849,7 @@ class Element(Node):
 		assert isinstance(node, Node), "the mapped method returned the illegal object %r (type %r) when mapping %r" % (node, type(node), self)
 		if node is self:
 			node = self.__class__(*self.content.mapped(function))
-			node.attrs = self.attrs
+			node.attrs = self.attrs.copy()
 		return node
 
 	def normalized(self):
