@@ -18,25 +18,25 @@ the source distribution.</item>
 </doc:section>
 
 <doc:section><doc:title>Installation</doc:title>
-<doc:para>&xist; uses <app>distutils</app>, so installation
+<doc:par>&xist; uses <app>distutils</app>, so installation
 is rather simple. Execute the following command:
 <programlisting>
 python setup.py install
 </programlisting>
 This will copy *.py files, compile *.c files and install everything
 in the <filename class="directory">site-packages</filename>
-directory as an <code>xist</code> package.</doc:para>
+directory as an <code>xist</code> package.</doc:par>
 
-<doc:para>For Windows a binary distribution is provided. To install it,
-double click it, and follow the instructions.</doc:para>
+<doc:par>For Windows a binary distribution is provided. To install it,
+double click it, and follow the instructions.</doc:par>
 
-<doc:para>If you have difficulties installing this software, send a problem report
+<doc:par>If you have difficulties installing this software, send a problem report
 to Walter Dörwald (<a href="mailto:walter@livinglogic.de">walter@livinglogic.de</a>)
-describing the problem.</doc:para>
+describing the problem.</doc:par>
 </doc:section>
 
 <doc:section><doc:title>Character encoding</doc:title>
-<doc:para>When you pass an 8bit string in the constructor
+<doc:par>When you pass an 8bit string in the constructor
 of an &xist; element, these strings have to
 be converted to Unicode. &xist; assumes that these 8bit strings
 are in the system default encoding, which is &ascii;.
@@ -48,11 +48,11 @@ import sys
 sys.setdefaultencoding(<replaceable>"iso-8859-1"</replaceable>)
 </doc:programlisting>
 (or any other encoding name that you want to use
-instead of <code>"iso-8859-1"</code>).</doc:para>
+instead of <code>"iso-8859-1"</code>).</doc:par>
 </doc:section>
 
 <doc:section><doc:title>Display hook</doc:title>
-<doc:para>
+<doc:par>
 Currently &xist; nodes do not have a fancy <method>__repr__</method>
 method implemented, but the <method>repr</method> method
 can be used to generate two different display formats (this is extensible
@@ -74,14 +74,14 @@ def displayhook(object):
 
 sys.displayhook = displayhook
 </doc:programlisting>
-</doc:para>
+</doc:par>
 </doc:section>
 
 <doc:section><doc:title>Syntax highlighting</doc:title>
-<doc:para>If you want syntax highlighting in your &xist; tree
+<doc:par>If you want syntax highlighting in your &xist; tree
 dumps and have an &ansi; color capable terminal,
 set the environment variable <lit>XSC_REPRANSI</lit>
 to <lit>1</lit> or <lit>2</lit> depending on whether
 you have a light or dark background color. Setting <lit>XSC_REPRANSI</lit>
-to <lit>0</lit> turns off syntax highlighting.</doc:para>
+to <lit>0</lit> turns off syntax highlighting.</doc:par>
 </doc:section>
