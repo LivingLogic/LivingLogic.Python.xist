@@ -290,7 +290,7 @@ class Node(Base):
 		<pyref module="ll.xist.presenters"><module>ll.xist.presenters</module></pyref>)
 		to return a string representation.</par>
 		"""
-		return self.repr(presenters.defaultPresenterClass())
+		return self.repr(presenters.defaultpresenter)
 
 	def __ne__(self, other):
 		return not self==other
@@ -345,7 +345,7 @@ class Node(Base):
 		(or one of the subclasses).</par>
 		"""
 		if presenter is None:
-			presenter = presenters.defaultPresenterClass()
+			presenter = presenters.defaultpresenter
 		return presenter.present(self)
 
 	@ll.notimplemented
