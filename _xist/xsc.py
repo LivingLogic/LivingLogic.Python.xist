@@ -124,8 +124,10 @@ class Node(Base):
 
 	class __metaclass__(Base.__metaclass__):
 		def __new__(cls, name, bases, dict):
-			if "xmlname" not in dict:
-				dict["xmlname"] = name.split(".")[-1]
+			if "xmlname" in dict:
+				dict["xmlname"] = unicode(dict["xmlname"])
+			else:
+				dict["xmlname"] = unicode(name.split(".")[-1])
 			dict["xmlns"] = None
 			if "register" not in dict:
 				dict["register"] = True
