@@ -242,5 +242,16 @@ class XISTTestCase(unittest.TestCase):
 		output += u"".join([u"\\%x".upper() % i for i in xrange(128, sys.maxunicode+1)])
 		self.assertEqual(helpers.escapeCSS(input, "ascii"), output)
 
+	def test_attrsclone(self):
+		class newa(html.a):
+			def convert(self, converter):
+				attrs = self.attrs.clone()
+				attrs["href"].insert(0, "foo")
+				e = html.a(self.content, attrs)
+				return e.convert(converter)
+		e = newa("gurk", href="hurz")
+		e = e.conv().conv()
+		self.assertEqual(e["href"], "foohurz")
+
 if __name__ == "__main__":
 	unittest.main()

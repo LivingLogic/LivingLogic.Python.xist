@@ -501,6 +501,16 @@ class Node(object):
 		"""
 		yield self
 
+	def walkPath(self, before=1, after=0):
+		"""
+		<doc:par>walk the tree. This method is a generator and for each node
+		in the tree generates a list with the <z>path</z> to the node, i.e.
+		the node and all its ancestor nodes.</doc:par>
+		<doc:par>For <arg>before</arg> and <arg>after</arg> see
+		<pyref method="walk"><method>walk</method></pyref>.</doc:par>
+		"""
+		yield [self]
+
 class CharacterData(Node):
 	"""
 	<doc:par>base class for &xml; character data (text, proc insts, comment, doctype etc.)</doc:par>
@@ -929,6 +939,15 @@ class Frag(Node, list):
 		if after:
 			yield self
 
+	def walkPath(self, before=1, after=0):
+		if before:
+			yield [self]
+		for child in self:
+			for grandchildPath in child.walkpath(before, after):
+				yield [self] + grandchildPath
+		if after:
+			yield [self]
+
 class Comment(CharacterData):
 	"""
 	a comment node
@@ -1074,6 +1093,7 @@ class Attrs(Node, dict):
 	def clone(self):
 		node = self.__class__(self.handlers)
 		for (key, value) in dict.items(self):
+			### dict.__setitem__(node, key, value.clone())
 			dict.__setitem__(node, key, value)
 		return node
 
@@ -1573,6 +1593,18 @@ class Element(Node):
 				yield grandchild
 		if after:
 			yield self
+
+	def walkPath(self, before=1, after=0):
+		if before:
+			yield [self]
+		for child in self.attrs.values():
+			for grandchildPath in child.walkPath(before, after):
+				yield [self] + grandchildPath
+		for child in self.content:
+			for grandchildPath in child.walkPath(before, after):
+				yield [self] + grandchildPath
+		if after:
+			yield [self]
 
 class Entity(Node):
 	"""
