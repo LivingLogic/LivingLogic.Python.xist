@@ -319,7 +319,7 @@ class Node(Base):
 
 	def __long__(self):
 		"""
-		returns this node converted to an integer.
+		returns this node converted to a long integer.
 		"""
 		return long(unicode(self))
 
@@ -345,9 +345,9 @@ class Node(Base):
 
 	def __complex__(self):
 		"""
-		returns this node converted to an integer.
+		returns this node converted to a complex number.
 		"""
-		return long(unicode(self))
+		return complex(unicode(self))
 
 	def needsxmlns(self, publisher=None):
 		"""
