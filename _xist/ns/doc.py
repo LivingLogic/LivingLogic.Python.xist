@@ -1312,101 +1312,6 @@ def explain(cls, thing, name=None, context=[]):
 	return xsc.Null
 explain = classmethod(explain)
 
-class DOC2FO(object):
-	def __init__(self):
-		self.llblue = "#006499"
-		self.llgreen = "#9fc94d"
-
-		self.ttfont = "CourierNew, monospace"
-		#self.ttfont = "monospace"
-		self.hdfont = "ArialNarrow, Arial, sans-serif"
-		self.hdcolor = "#000"
-		#self.hdfont = "sans-serif"
-		#self.hdfont = "Microgramma"
-		self.font = "Times New Roman, serif"
-		self.font = "Microgramma"
-		self.font = "PalatinoLinotype"
-
-		self.linkcolor = "blue"
-
-		self.indentcount = 0
-
-		self.vspaceattrs = {
-			"space_before": "0pt",
-			"space_after_minimum": "4pt",
-			"space_after_optimum": "6pt",
-			"space_after_maximum": "12pt",
-			"space_after_conditionality": "discard",
-		}
-
-		self.lists = []
-		self.sections = [0]
-
-	def dedent(self):
-		return "-0.7cm"
-
-	def indent(self):
-		return "%.1fcm" % (0.7*self.indentcount)
-
-	def labelindent(self):
-		return "%.1fcm" % (0.7*self.indentcount-0.4)
-
-	def map_pyref(self, node, converter):
-		node = node.content.mapped(self.mapped, converter)
-		return node
-
-	def mapped(self, node, converter):
-		if isinstance(node, section):
-			node = self.map_section(node, converter)
-		elif isinstance(node, par):
-			node = self.map_par(node, converter)
-		elif isinstance(node, ulist):
-			node = self.map_ulist(node, converter)
-		elif isinstance(node, olist):
-			node = self.map_olist(node, converter)
-		elif isinstance(node, dlist):
-			node = self.map_dlist(node, converter)
-		elif isinstance(node, term):
-			node = self.map_term(node, converter)
-		elif isinstance(node, item):
-			node = self.map_item(node, converter)
-		elif isinstance(node, example):
-			node = self.map_example(node, converter)
-		elif isinstance(node, prog):
-			node = self.map_prog(node, converter)
-		elif isinstance(node, specials.z):
-			node = self.map_z(node, converter)
-		elif isinstance(node, abbr):
-			node = self.map_abbr(node, converter)
-		elif isinstance(node, em):
-			node = self.map_em(node, converter)
-		elif isinstance(node, (module, class_, method, lit, function, markup, arg, option, property)):
-			node = self.map_code(node, converter)
-		elif isinstance(node, dirname):
-			node = self.map_dirname(node, converter)
-		elif isinstance(node, filename):
-			node = self.map_filename(node, converter)
-		elif isinstance(node, rep):
-			node = self.map_ref(node, converter)
-		elif isinstance(node, self_):
-			node = self.map_self(node, converter)
-		elif isinstance(node, cls):
-			node = self.map_cls(node, converter)
-		elif isinstance(node, app):
-			return self.map_app(node, converter)
-		elif isinstance(node, link):
-			return self.map_link(node, converter)
-		elif isinstance(node, email):
-			return self.map_email(node, converter)
-		elif isinstance(node, pyref):
-			return self.map_pyref(node, converter)
-		elif isinstance(node, xsc.Element):
-			from ll.xist import presenters
-			print "unconvertable node %r at %s" % (node, node.startloc)
-			print node.repr(presenters.CodePresenter())
-			node = self.mapped(node.content, converter)
-		return node
-
 class fodoc(xsc.Element):
 	empty = False
 
@@ -1475,4 +1380,3 @@ class xmlns(xsc.Namespace):
 	xmlname = "doc"
 	xmlurl = "http://xmlns.livinglogic.de/xist/ns/doc"
 xmlns.makemod(vars())
-
