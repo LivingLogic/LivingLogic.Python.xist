@@ -57,6 +57,16 @@ class XMLStyleSheet(xsc.ProcInst):
 
 	needsxmlns = 0
 
+class header(xsc.Element):
+	"""
+	<par>The &xml; header processing instruction as an element. This makes it
+	possible to generate a header from within an &xml; file.
+	"""
+	empty = True
+
+	def convert(self, converter):
+		return XML10()
+
 class xmlns(xsc.Namespace):
 	xmlname = "xml"
 	xmlurl = "http://www.w3.org/XML/1998/namespace"
