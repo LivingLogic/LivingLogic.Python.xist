@@ -159,13 +159,15 @@ class XSCElement(XSCNode):
 
 		# construct the attribute dictionary, keys are the attribute names, values are the various nodes for the differnet attribute type; checks that only attributes that are allow are used (raises an exception otherwise)"
 		for attr in attrs.keys():
-			if self.attr_handlers.has_key(attr):
-				self.attrs[attr] = self.attr_handlers[attr](attrs[attr])
+			lowerattr = string.lower(attr)
+			if self.attr_handlers.has_key(lowerattr):
+				self.attrs[lowerattr] = self.attr_handlers[lowerattr](attrs[attr])
 			else:
 				raise EHSCIllegalAttribute(self,attr)
 		for attr in restattrs.keys():
-			if self.attr_handlers.has_key(attr):
-				self.attrs[attr] = self.attr_handlers[attr](restattrs[attr])
+			lowerattr = string.lower(attr)
+			if self.attr_handlers.has_key(lowerattr):
+				self.attrs[lowerattr] = self.attr_handlers[lowerattr](restattrs[attr])
 			else:
 				raise EHSCIllegalAttribute(self,attr)
 
