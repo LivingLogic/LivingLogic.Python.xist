@@ -138,11 +138,9 @@ class par(html.div):
 
 class autoimg(html.img):
 	"""
-	<par>An image were width and height attributes are automatically generated.
-	If the attributes are already there, they are taken as a
-	formatting template with the size passed in as a dictionary with the keys
-	<lit>width</lit> and <lit>height</lit>, i.e. you could make your image twice
-	as wide with <lit>width="2*%(width)d"</lit>.</par>
+	<par>An image were width and height attributes are automatically generated.</par>
+	
+	<par>If the attributes are already there, they won't be modified.</par>
 	"""
 	def convert(self, converter):
 		target = converter.target
