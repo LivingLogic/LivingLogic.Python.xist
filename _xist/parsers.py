@@ -1,4 +1,5 @@
 #! /usr/bin/env python
+			del node
 
 ## Copyright 1999-2001 by LivingLogic AG, Bayreuth, Germany.
 ## Copyright 1999-2001 by Walter Dörwald
@@ -80,7 +81,6 @@ class FileInputSource(InputSource):
 
 def openURLwithHeaders(url, headers):
 	if len(headers):
-		print headers
 		urlopener = urllib.FancyURLopener()
 		urlopener.addheaders = headers
 		return urlopener.open(url)
