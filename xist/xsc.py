@@ -937,23 +937,34 @@ def RegisterElement(name,element):
 	_element_handlers[name] = element
 	element.name = name
 
-class XSCTextAttr(XSCNode):
+class XSCAttr(XSCNode):
+	"""
+	Base classes of all attribute classes
+	"""
+
+	def __init__(self,_content):
+		if isinstance(_content,XSCAttr):
+			self.__init__(_content._content)
+		else:
+			self._content = _content
+
+class XSCTextAttr(XSCAttr):
 	"""
 	Attribute class that is used for normal text attributes.
 	"""
 
 	def __init__(self,_content):
-		self.__content = _content
+		XSCAttr.__init__(self,_content)
 
 	def _dorepr(self):
-		return _stransi(xsc.repransitextattrs,str(self.__content))
+		return _stransi(xsc.repransitextattrs,str(self._content))
 
 	def _doreprtree(self,nest,elementno):
 		return [[nest,self.startlineno,elementno,self._dorepr()]]
 
 	def __str__(self):
 		v = []
-		for i in self.__content:
+		for i in self._content:
 			if i == '"':
 				v.append("&quot;")
 			elif ord(i)>=128:
@@ -963,26 +974,20 @@ class XSCTextAttr(XSCNode):
 		return string.join(v,"")
 
 	def asHTML(self):
-		return XSCTextAttr(self.__content)
+		return XSCTextAttr(self._content)
 
-class XSCColorAttr(XSCTextAttr):
+class XSCColorAttr(XSCAttr):
 	"""
 	Attribute class that is used for a color attributes.
 	"""
 
 	def __init__(self,_content):
-		XSCTextAttr.__init__(self)
-
-	def _dorepr(self):
-		return _stransi(xsc.repransitextattrs,str(self.__content))
-
-	def _doreprtree(self,nest,elementno):
-		return [[nest,self.startlineno,elementno,self._dorepr()]]
+		XSCAttr.__init__(self,_content)
 
 	def asHTML(self):
-		return XSCColorAttr(self.__content)
+		return XSCColorAttr(self._content)
 
-class XSCURLAttr(XSCNode):
+class XSCURLAttr(XSCAttr):
 	"""
 	Attribute class that is used for URLs.
 
@@ -1008,6 +1013,7 @@ class XSCURLAttr(XSCNode):
 	"""
 
 	def __init__(self,_content):
+		XSCAttr.__init__(self,_content)
 		url = str(_content)
 		(self.scheme,self.server,self.path,self.parameters,self.query,self.fragment) = urlparse.urlparse(url)
 		self.path = string.split(self.path,"/")
