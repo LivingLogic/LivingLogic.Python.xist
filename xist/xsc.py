@@ -1816,10 +1816,12 @@ class XSC:
 		"""
 		Parses a string and returns the resulting XSC
 		"""
+		self.pushURL("STRING")
 		lines = string.split(text,"\n")
 		for i in xrange(len(lines)):
 			lines[i] = lines[i] + "\n"
 		element = self.__parseLines(lines)
+		self.popURL()
 		return element
 
 	def parse(self,url):
