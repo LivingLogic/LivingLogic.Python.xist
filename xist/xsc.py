@@ -587,7 +587,7 @@ class Node:
 		self.publish(publisher)
 		return publisher.asBytes()
 
-	def write(self, file encoding=None, XHTML=None):
+	def write(self, file, encoding=None, XHTML=None):
 		"""
 		<par noindent>writes the element to the file like
 		object <argref>file</argref></par>
@@ -2116,14 +2116,20 @@ def make():
 	and writes it to args[2]
 	"""
 
-	(options, args) = getopt.getopt(sys.argv[1:], "i:o:", ["include=", "output="])
+	(options, args) = getopt.getopt(sys.argv[1:], "i:o:e:x:", ["include=", "output=", "encoding=", "xhtml="])
 
 	globaloutname = URL("*/")
+	encoding = None
+	XHTML = None
 	for (option, value) in options:
 		if option=="-i" or option=="--include":
 			__import__(value)
 		elif option=="-o" or option=="--output":
 			globaloutname = URL(value)
+		elif option=="-e" or option=="--encoding":
+			encoding = value
+		elif option=="-x" or option=="--xhtml":
+			XHTML = int(value)
 
 	if args:
 		for file in args:
@@ -2137,12 +2143,12 @@ def make():
 				outname.ext = {"hsc": "html" ,"shsc" : "shtml", "phsc": "phtml", "xsc": "html", "sxsc": "shtml", "pxsc" : "phtml"}[inname.ext]
 			except KeyError:
 				outname.ext = "html"
-			print >> sys.stderr, "XSC: converting %r" % str(inname),
+			print >> sys.stderr, "XSC(encoding=%r, XHTML=%r): converting %r" % (encoding, XHTML, str(inname)),
 			e_in = xsc.parse(inname)
 			xsc.pushURL(inname)
 			print >> sys.stderr, "to %r ..." % str(outname),
 			e_out = e_in.asHTML()
-			p = publishers.BytePublisher()
+			p = publishers.BytePublisher(encoding=encoding, XHTML=XHTML)
 			e_out.publish(p)
 			s_out = p.asBytes()
 			__forceopen(outname.asString(), "wb").write(s_out)
