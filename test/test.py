@@ -1282,6 +1282,19 @@ class XISTTest(unittest.TestCase):
 			self.assert_(src["id"][1] is not dst["id"][1])
 			self.assert_(dst["id"][1] is dst["id"][2])
 
+	def check_sortreverse(self, method):
+		for class_ in (xsc.Frag, html.div):
+			node = class_(3, 2, 1)
+			node2 = getattr(node, method)()
+			self.assertEqual(node, class_(3, 2, 1))
+			self.assertEqual(node2, class_(1, 2, 3))
+
+	def test_sorted(self):
+		self.check_sortreverse("sorted")
+
+	def test_reversed(self):
+		self.check_sortreverse("reversed")
+
 class PublishTest(unittest.TestCase):
 	def test_publishelement(self):
 		node = html.html()
@@ -1514,19 +1527,6 @@ class ParseTest(unittest.TestCase):
 
 def test_main():
 	unittest.main()
-
-	def check_sortreverse(self, method):
-		for class_ in (xsc.Frag, html.div):
-			node = class_(3, 2, 1)
-			node2 = getattr(node, method)()
-			self.assertEqual(node, class_(3, 2, 1))
-			self.assertEqual(node2, class_(1, 2, 3))
-
-	def test_sorted(self):
-		self.check_sortreverse("sorted")
-
-	def test_reversed(self):
-		self.check_sortreverse("reversed")
 
 if __name__ == "__main__":
 	test_main()
