@@ -1194,17 +1194,22 @@ class ProcInst(Node):
 		if self.content.find("?>")!=-1:
 			raise IllegalProcInstError(self.startloc,self)
 		if self.target == "xml": # XML, so we have to put the correct encoding in there
+			encodingfound = None
 			startpos = self.content.find("encoding")
-			print "="*80,"startpos",startpos
 			if startpos != -1:
-				startpos = startpos + 9
+				startpos = startpos+9
 				char = self.content[startpos]
-				print "="*80,"char",char
-				endpos = self.content.find(char,startpos+1)
-				print "="*80,"endpos",endpos
+				startpos = startpos+1
+				endpos = self.content.find(char,startpos)
 				if endpos != -1:
-					encodingfound = self.content[startpos+1:endpos]
-					print "="*80,encodingfound
+					encodingfound = self.content[startpos:endpos]
+			if encodingfound is not None and encoding != encodingfound:
+				e = self.clone()
+				if encoding is None:
+					encoding = outputEncoding
+				e.content = self.content[:startpos] + encoding + self.content[endpos:]
+				e.publish(publisher,encoding,XHTML)
+				return
 		publisher("<?",self._encode(self.target,encoding,0)," ",self._encode(self.content,encoding,0),"?>")
 
 	def compact(self):

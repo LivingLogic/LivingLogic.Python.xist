@@ -14,6 +14,16 @@ Elements and entities are no longer registered one by one. Now
 you can build Namespace objects which are used for searching.
 For more info, see the source.
 
+Image size calculation has been remove from html.img and html.input.
+Use specials.autoimg and specials.autoinput for that.
+
+New in 0.3.9
+------------
+sgmlop will now be found either via
+	import sgmlop
+or via
+	from xml.parsers import sgmlop
+
 New in 0.3.8
 ------------
 Fixed a bug in URLAttr.publish, which prevented URLAttr from working
