@@ -444,6 +444,12 @@ class xsl(xsc.Entity):
 	def asPlainString(self):
 		return u"XSL"
 
+class smil(xsc.Entity):
+	def asHTML(self):
+		return html.span(html.abbr("SMIL", title="Synchronized Multimedia Integration Language", lang="en"), class_="caps")
+	def asPlainString(self):
+		return u"SMIL"
+
 class PHP(xsc.ProcInst):
 	"""
 	PHP processing instruction (must be used with a target)
