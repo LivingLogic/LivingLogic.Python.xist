@@ -788,8 +788,23 @@ class Frag(Node, list):
 		return s
 	_str = classmethod(_str)
 
+	def _create(self):
+		"""
+		<par>internal helper that is used to create an empty clone of <self/>.
+		This is overwritten by <pyref class="Attr"><class>Attr</class></pyref>
+		to insure that attributes don't get initialized with the default
+		value when used in various methods that create new attributes.</par>
+		"""
+		return self.__class__()
+
+	def clear(self):
+		"""
+		makes <self/> empty.
+		"""
+		del self[:]
+
 	def convert(self, converter):
-		node = self.__class__() # virtual constructor => attributes (which are derived from Frag) will be handled correctly)
+		node = self._create()
 		for child in self:
 			convertedchild = child.convert(converter)
 			assert isinstance(convertedchild, Node), "the convert method returned the illegal object %r (type %r) when converting %r" % (convertedchild, type(convertedchild), self)
@@ -797,7 +812,7 @@ class Frag(Node, list):
 		return self._decorateNode(node)
 
 	def clone(self):
-		node = self.__class__() # virtual constructor => attributes (which are derived from Frag) will be handled correctly)
+		node = self._create()
 		list.extend(node, [ child.clone() for child in self ])
 		return self._decorateNode(node)
 
@@ -876,7 +891,7 @@ class Frag(Node, list):
 		"""
 		returns a slice of the content of the fragment
 		"""
-		node = self.__class__()
+		node = self._create()
 		list.extend(node, list.__getslice__(self, index1, index2))
 		return node
 
@@ -894,7 +909,7 @@ class Frag(Node, list):
 		the content of <self/>. Note that no copies of the content will be generated, so
 		this is a <z>shallow <method>__mul__</method></z>.
 		"""
-		node = self.__class__()
+		node = self._create()
 		list.extend(node, list.__mul__(self, factor))
 		return node
 
@@ -903,7 +918,7 @@ class Frag(Node, list):
 		returns a <pyref class="Frag"><class>Frag</class></pyref> with <arg>factor</arg> times
 		the content of <self/>.
 		"""
-		node = self.__class__()
+		node = self._create()
 		list.extend(node, list.__mul__(factor, self))
 		return node
 
@@ -944,7 +959,7 @@ class Frag(Node, list):
 		return node
 
 	def compact(self):
-		node = self.__class__()
+		node = self._create()
 		for child in self:
 			compactedchild = child.compact()
 			assert isinstance(compactedchild, Node), "the compact method returned the illegal object %r (type %r) when compacting %r" % (compactedchild, type(compactedchild), child)
@@ -959,7 +974,7 @@ class Frag(Node, list):
 		<par>if <lit><arg>clone</arg>==0</lit> one node will be inserted several times,
 		if <lit><arg>clone</arg>==1</lit> clones of this node will be used.</par>
 		"""
-		node = Frag()
+		node = self._create()
 		newseparator = ToNode(separator)
 		for child in self:
 			if len(node):
@@ -975,7 +990,7 @@ class Frag(Node, list):
 		a comparison function returning -1, 0, 1 respectively and defaults to comparing the
 		<pyref class="Node" method="__unicode__"><class>__unicode__</class></pyref> value.</par>
 		"""
-		node = Frag()
+		node = self._create()
 		list.extend(node, list.__getslice__(self, 0, sys.maxint))
 		list.sort(node, compare)
 		return node
@@ -984,7 +999,7 @@ class Frag(Node, list):
 		"""
 		<par>returns a reversed version of the <self/>.</par>
 		"""
-		node = Frag()
+		node = self._create()
 		list.extend(node, list.__getslice__(self, 0, sys.maxint))
 		list.reverse(node)
 		return node
@@ -993,7 +1008,7 @@ class Frag(Node, list):
 		"""
 		<par>returns a filtered version of the <self/>.</par>
 		"""
-		node = Frag()
+		node = self._create()
 		list.extend(node, [ child for child in self if function(child) ])
 		return node
 
@@ -1002,7 +1017,7 @@ class Frag(Node, list):
 		<par>return a shuffled version of <self/>.</par>
 		"""
 		content = list.__getslice__(self, 0, sys.maxint)
-		node = Frag()
+		node = self._create()
 		while content:
 			index = random.randrange(len(content))
 			list.append(node, content[index])
@@ -1013,11 +1028,13 @@ class Frag(Node, list):
 		node = function(self)
 		assert isinstance(node, Node), "the mapped method returned the illegal object %r (type %r) when mapping %r" % (node, type(node), self)
 		if node is self:
-			node = Frag(*[ child.mapped(function) for child in self])
+			node = self._create()
+			for child in self:
+				node.append(child.mapped(function))
 		return node
 
 	def normalized(self):
-		node = Frag()
+		node = self._create()
 		lasttypeOK = 0
 		for child in self:
 			normalizedchild = child.normalized()
@@ -1030,7 +1047,7 @@ class Frag(Node, list):
 		return node
 
 	def pretty(self, level=0, indent="\t"):
-		node = Frag()
+		node = self._create()
 		i = 0
 		for child in self:
 			if i:
@@ -1265,12 +1282,19 @@ class Attr(Frag):
 			else:
 				dict["values"] = None
 			return Frag.__metaclass__.__new__(cls, name, bases, dict)
+		def __repr__(self):
+			return "<attribute class %s/%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
 
 	def __init__(self, *content):
 		# if the constructor has been called without arguments, use the default
 		if not content:
 			content = self.__class__.default.clone()
 		super(Attr, self).__init__(*content)
+
+	def _create(self):
+		node = super(Attr, self)._create()
+		node.clear()
+		return node
 
 	def isfancy(self):
 		"""
@@ -1510,14 +1534,26 @@ class Attrs(Node, dict):
 		return s
 	_str = classmethod(_str)
 
+	def _create(self):
+		node = self.__class__() # "virtual" constructor
+		node.clear()
+		return node
+
+	def clear(self):
+		"""
+		makes <self/> empty. (This also removes default attributes)
+		"""
+		for (key, value) in self.items():
+			value.clear()
+
 	def clone(self):
-		node = self.__class__()
+		node = self._create()
 		for (key, value) in dict.items(self):
 			dict.__setitem__(node, key, value.clone())
 		return node
 
 	def convert(self, converter):
-		node = self.__class__() # "virtual" constructor
+		node = self._create()
 		for (attrname, attrvalue) in self.items():
 			convertedattr = attrvalue.convert(converter)
 			assert isinstance(convertedattr, Node), "the convert method returned the illegal object %r (type %r) when converting the attribute %s with the value %r" % (convertedchild, type(convertedchild), presenters.strAttrName(attrname), child)
@@ -1525,7 +1561,7 @@ class Attrs(Node, dict):
 		return node
 
 	def compact(self):
-		node = self.__class__()
+		node = self._create()
 		for (attrname, attrvalue) in self.items():
 			convertedattr = attrvalue.compact()
 			assert isinstance(convertedattr, Node), "the compact method returned the illegal object %r (type %r) when compacting the attribute %s with the value %r" % (convertedchild, type(convertedchild), presenters.strAttrName(attrname), child)
@@ -1533,7 +1569,7 @@ class Attrs(Node, dict):
 		return node
 
 	def normalized(self):
-		node = self.__class__()
+		node = self._create()
 		for (attrname, attrvalue) in self.items():
 			convertedattr = attrvalue.normalized()
 			assert isinstance(convertedattr, Node), "the normalized method returned the illegal object %r (type %r) when normalizing the attribute %s with the value %r" % (convertedchild, type(convertedchild), presenters.strAttrName(attrname), child)
@@ -1730,7 +1766,7 @@ class Attrs(Node, dict):
 		removed. A name in <arg>nameseq</arg> that is not in <self/> will not raise
 		an exception (if it is allowed).</par>
 		"""
-		node = self.__class__()
+		node = self._create()
 		for (key, value) in self.items():
 			if key not in nameseq:
 				node[key] = value
@@ -1843,7 +1879,7 @@ class Element(Node):
 			for removing all global attributes from this namespace and <lit>None</lit>
 			for removing all global attributes.</par>
 			"""
-			node = self.__class__()
+			node = self._create()
 			localnames = []
 			globalnames = []
 			namespaces = []
@@ -1918,6 +1954,10 @@ class Element(Node):
 		return s
 	_str = classmethod(_str)
 
+	def checkValid(self):
+		if self.empty and len(self):
+			raise errors.EmptyElementWithContentError(self)
+
 	def append(self, *items):
 		"""
 		<par>appends to content (see <pyref class="Frag" method="append"><method>Frag.append</method></pyref>
@@ -1925,8 +1965,7 @@ class Element(Node):
 		"""
 
 		self.content.append(*items)
-		if self.empty and len(self):
-			raise errors.EmptyElementWithContentError(self)
+		self.checkValid()
 
 	def insert(self, index, *items):
 		"""
@@ -1934,8 +1973,7 @@ class Element(Node):
 		for more info)</par>
 		"""
 		self.content.insert(index, *items)
-		if self.empty and len(self):
-			raise errors.EmptyElementWithContentError(self)
+		self.checkValid()
 
 	def convert(self, converter):
 		node = self.__class__() # "virtual" constructor

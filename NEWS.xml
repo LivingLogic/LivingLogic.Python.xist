@@ -21,6 +21,13 @@ found in a style attribute.</item>
 </ulist>
 </section>
 
+<section><title>Changes in 1.5.3 (released 09/25/2002)</title>
+<ulist>
+<item>Added new processing instruction class <class>ll.xist.ns.php.expression</class>
+that generates a &php; <lit>print</lit> statement from its content.</item>
+</ulist>
+</section>
+
 <section><title>Changes in 1.5.2 (released 09/19/2002)</title>
 <ulist>
 <item>Removed the <lit>value</lit> magic from

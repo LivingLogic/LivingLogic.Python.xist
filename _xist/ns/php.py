@@ -35,6 +35,10 @@ class php(xsc.ProcInst):
 	(must be used with an explicit target php to work with &xml;)</par>
 	"""
 
+class expression(php):
+	def convert(self, converter):
+		return php(u"print " + self.content + ";")
+	
 class If(php):
 	xmlname = "if"
 

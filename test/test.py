@@ -4,7 +4,7 @@
 import sys, unittest
 
 from ll.xist import xsc, parsers, presenters, converters, helpers, errors
-from ll.xist.ns import wml, ihtml, html, css, specials, xml
+from ll.xist.ns import wml, ihtml, html, css, abbr, specials, xml
 
 class XISTTestCase(unittest.TestCase):
 	def check_lenunicode(self, node, _len, content):
@@ -111,7 +111,7 @@ class XISTTestCase(unittest.TestCase):
 			xsc.Comment("gurk"),
 			"hurz",
 			html.nbsp(),
-			specials.xist(),
+			abbr.xist(),
 			None,
 			1,
 			2.0,
@@ -132,7 +132,7 @@ class XISTTestCase(unittest.TestCase):
 						xml.XML10(),
 						"hurz",
 						html.nbsp(),
-						specials.xist(),
+						abbr.xist(),
 						None,
 						1,
 						2.0,
@@ -459,6 +459,36 @@ class XISTTestCase(unittest.TestCase):
 		node = parsers.parseString(xml, prefixes=prefixes)
 		node = node.find(type=xsc.Element, subtype=True)[0].compact() # get rid of the Frag and whitespace
 		self.assertEquals(node, check)
+
+	def test_fragattrdefault(self):
+		class testelem(xsc.Element):
+			class Attrs(xsc.Element.Attrs):
+				class testattr(xsc.TextAttr):
+					default = 42
+
+		node = testelem()
+		self.assertEquals(unicode(node["testattr"]), "42")
+		self.assertEquals(unicode(node.conv()["testattr"]), "42")
+
+		node["testattr"].clear()
+		self.assert_(not node.hasAttr("testattr"))
+		self.assert_(not node.conv().hasAttr("testattr"))
+
+		node = testelem(testattr=23)
+		self.assertEquals(unicode(node["testattr"]), "23")
+		self.assertEquals(unicode(node.conv()["testattr"]), "23")
+
+		del node["testattr"]
+		self.assertEquals(unicode(node["testattr"]), "42")
+		self.assertEquals(unicode(node.conv()["testattr"]), "42")
+
+		node["testattr"] = None
+		self.assert_(not node.hasAttr("testattr"))
+		self.assert_(not node.conv().hasAttr("testattr"))
+
+		node = testelem(testattr=None)
+		self.assert_(not node.hasAttr("testattr"))
+		self.assert_(not node.conv().hasAttr("testattr"))
 
 	def test_xmlns(self):
 		pass
