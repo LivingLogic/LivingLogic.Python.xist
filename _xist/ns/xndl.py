@@ -318,7 +318,7 @@ class Entity(Base):
 		if self.doc is not None:
 			self.doc._aspy(newlines, encoding, level+1, names)
 		if pyname != name:
-			newlines.append([level+1, "xmlname = %r" % self.simplify(name)])
+			newlines.append([level+1, "xmlname = %s" % self.simplify(name)])
 		self._addlines(newlines, lines)
 
 class CharRef(Entity):
@@ -334,7 +334,7 @@ class CharRef(Entity):
 		if self.doc is not None:
 			self.doc._aspy(newlines, encoding, level+1)
 		if pyname != name:
-			newlines.append([level+1, "xmlname = %r" % self.simplify(name)])
+			newlines.append([level+1, "xmlname = %s" % self.simplify(name)])
 		newlines.append([level+1, "codepoint = 0x%04x" % self.codepoint])
 		self._addlines(newlines, lines)
 
@@ -345,17 +345,17 @@ class xndl(xsc.Element):
 		class url(xsc.TextAttr): default = "... insert namespace name here ..."
 
 	def asdata(self):
-		docs = self.find(type=xndl.doc)
+		docs = self.find(type=doc)
 		if len(docs):
-			doc = Doc(docs[0])
+			docs = Doc(docs[0])
 		else:
-			doc = None
+			docs = None
 
 		return Namespace(
 			name=unicode(self["name"]),
-			doc=doc,
+			doc=docs,
 			url=unicode(self["url"]) or None,
-			content=[ node.asdata() for node in self.find(type=(xndl.element, xndl.procinst, xndl.entity, xndl.charref)) ]
+			content=[ node.asdata() for node in self.find(type=(element, procinst, entity, charref)) ]
 		)
 
 class doc(xsc.Element):
@@ -371,17 +371,17 @@ class element(xsc.Element):
 		class empty(xsc.BoolAttr): pass
 
 	def asdata(self):
-		docs = self.find(type=xndl.doc)
+		docs = self.find(type=doc)
 		if len(docs):
-			doc = Doc(docs[0])
+			docs = Doc(docs[0])
 		else:
-			doc = None
+			docs = None
 
 		return Element(
 			name=unicode(self["name"]),
-			doc=doc,
+			doc=docs,
 			empty=self.attrs.has("empty"),
-			attrs=[ attr.asdata() for attr in self.find(type=xndl.attr) ]
+			attrs=[ a.asdata() for a in self.find(type=attr) ]
 		)
 
 class attr(xsc.Element):
@@ -395,18 +395,18 @@ class attr(xsc.Element):
 		class default(xsc.TextAttr): pass
 
 	def asdata(self):
-		docs = self.find(type=xndl.doc)
+		docs = self.find(type=doc)
 		if len(docs):
-			doc = Doc(docs[0])
+			docs = Doc(docs[0])
 		else:
-			doc = None
+			docs = None
 		return Attr(
 			name=unicode(self["name"]),
-			doc=doc,
+			doc=docs,
 			type=str(self["type"]),
 			required=self.attrs.has("required"),
 			default=unicode(self["default"]) or None,
-			values=[ unicode(value) for value in self.find(type=xndl.value) ]
+			values=[ unicode(v) for v in self.find(type=value) ]
 		)
 
 class value(xsc.Element):
@@ -419,14 +419,14 @@ class procinst(xsc.Element):
 
 	def asdata(self):
 		name = unicode(self["target"])
-		docs = self.find(type=xndl.doc)
+		docs = self.find(type=doc)
 		if len(docs):
-			doc = docs[0]
+			docs = docs[0]
 		else:
-			doc = None
+			docs = None
 		return ProcInst(
 			name=name,
-			doc=doc
+			doc=docs
 		)
 
 class entity(xsc.Element):
@@ -436,14 +436,14 @@ class entity(xsc.Element):
 
 	def asdata(self):
 		name = unicode(self["name"])
-		docs = self.find(type=xndl.doc)
+		docs = self.find(type=doc)
 		if len(docs):
-			doc = docs[0]
+			docs = docs[0]
 		else:
-			doc = None
+			docs = None
 		return Entity(
 			name=unicode(self["name"]),
-			doc=doc
+			doc=docs
 		)
 
 class charref(xsc.Element):
@@ -453,14 +453,14 @@ class charref(xsc.Element):
 		class codepoint(xsc.IntAttr): required = True
 
 	def asdata(self):
-		docs = self.find(type=xndl.doc)
+		docs = self.find(type=doc)
 		if len(docs):
-			doc = docs[0]
+			docs = docs[0]
 		else:
-			doc = None
+			docs = None
 		return CharRef(
 			name=unicode(self["name"]),
-			doc=doc,
+			doc=docs,
 			codepoint=int(self["codepoint"])
 		)
 

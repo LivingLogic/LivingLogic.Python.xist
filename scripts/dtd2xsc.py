@@ -22,11 +22,9 @@ import sys, os.path
 
 from xml.parsers.xmlproc import dtdparser
 
-import optik
-
 from ll import url
 from ll.xist import xsc, parsers
-from ll.xist.ns.xndl import xndl
+from ll.xist.ns import xndl
 
 def dtd2xsc(dtdfilename, outfilename=None):
 	# get name of dtd without extension
