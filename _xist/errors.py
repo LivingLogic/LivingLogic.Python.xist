@@ -181,28 +181,10 @@ class IllegalAttrNodeError(Error):
 	def __str__(self):
 		return "illegal node of type %s found inside attribute" % self.node.__class__.__name__
 
-class ImageSizeFormatError(Error):
+class ImageSizeFormatWarning(UserWarning):
 	"""
-	exception that is raised, when XSC can't format or evaluate image size attributes
+	warning that is raised, when XSC can't format or evaluate image size attributes
 	"""
-
-	def __init__(self, element, attrname):
-		self.element = element
-		self.attrname = attrname
-
-	def __str__(self):
-		return "the value %s for the image size attribute %s of the element %s can't be formatted or evaluated" % (presenters.strAttrValue(self.element[self.attrname].asPlainString()), presenters.strAttrName(self.attrname), presenters.strElementWithBrackets(self.element))
-
-class FileNotFoundError(Error):
-	"""
-	exception that is raised, when XSC can't open a file.
-	"""
-
-	def __init__(self, url):
-		self.url = url
-
-	def __str__(self):
-		return "file %s can't be opened" % presenters.strURL(self.url.asString())
 
 class IllegalObjectError(Error):
 	"""

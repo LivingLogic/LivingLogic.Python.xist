@@ -27,7 +27,7 @@ classes and functions.
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-import os, types, sys, stat, urllib, random
+import os, types, sys, stat, urllib, random, warnings
 
 import url, presenters, publishers, converters, errors, options, utils, helpers
 
@@ -1109,8 +1109,15 @@ class Element(Node):
 								self[attr] = s
 							except TypeError: # ignore "not all argument converted"
 								pass
-							except:
-								raise errors.ImageSizeFormatError(self, attr)
+							except Exception, exc:
+								warnings.warn(
+									"the value %s for the image size attribute %s of the element %s can't be formatted or evaluated: %s. The attribute will be dropped." %
+										(presenters.strAttrValue(self[attr].asPlainString()),
+										 presenters.strAttrName(attr),
+										 presenters.strElementWithBrackets(self),
+										 exc),
+									errors.ImageSizeFormatWarning)
+								del self[attr]
 						else:
 							self[attr] = size[attr==heightattr]
 

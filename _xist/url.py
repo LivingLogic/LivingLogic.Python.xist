@@ -42,6 +42,9 @@ urlparse.uses_query.extend(("root", "server"))
 urlparse.uses_fragment.extend(("root", "server"))
 urlparse.non_hierarchical.append("javascript")
 
+class FileNotFoundWarning(UserWarning):
+	pass
+
 def _normalize(path):
 	"""
 	normalize the path by removing combinations of down/up,
@@ -64,9 +67,6 @@ def _normalize(path):
 		newpath.insert(0, u'')
 
 	return newpath
-
-class URLWarning(UserWarning):
-	pass
 
 class URL:
 	"""
@@ -359,7 +359,7 @@ class URL:
 				size = os.stat(filename)[stat.ST_SIZE]
 			except (IOError, OSError), exc:
 				urllib.urlcleanup()
-				warnings.warn(str(exc), URLWarning)
+				warnings.warn("can't determine file size: %s" % exc, FileNotFoundWarning)
 			else:
 				urllib.urlcleanup()
 		return size
@@ -379,7 +379,7 @@ class URL:
 						del img
 				except (IOError, OSError), exc:
 					urllib.urlcleanup()
-					warnings.warn(str(exc), URLWarning)
+					warnings.warn("can't determine image size: %s" % exc, FileNotFoundWarning)
 				else:
 					urllib.urlcleanup()
 		return size
