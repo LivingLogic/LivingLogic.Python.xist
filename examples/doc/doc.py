@@ -80,7 +80,7 @@ def explain(thing):
 		for a in sig.ordinary_args():
 			_a = elements.arg(name = a)
 			if defaults.has_key(a):
-				_a["default"] = str(defaults[a])
+				_a["default"] = repr(defaults[a])
 			xmlsig.append(_a)
 		if specials.has_key('positional'):
 			xmlsig.append(elements.arg(name = specials['positional'],type="positional"))
