@@ -959,6 +959,18 @@ class Frag(Node):
 			node.append(child)
 		return node
 
+	def sort(self, sorter=None):
+		"""
+		returns a sorted version of the <self/>. <argref>sorter</argref> is
+		a comparison function returning -1, 0, 1 respectively.
+		"""
+		if sorter==None:
+			sorter = lambda node1, node2: cmp(node1.asPlainString(), node2.asPlainString())
+		node = Frag()
+		node.__content = self.__content[:]
+		node.__content.sort(sorter)
+		return node
+
 class Comment(Node, StringMixIn):
 	"""
 	a comment node
@@ -1525,6 +1537,14 @@ class Element(Node):
 		for (attr, value) in fromDict.items():
 			if not self.hasAttr(attr):
 				self[attr] = value
+
+	def sort(self, sorter=None):
+		"""
+		returns a sorted version of <self/>.
+		"""
+		node = self.__class__(**self.attrs)
+		node.content = self.content.sort()
+		return node
 
 class Entity(Node):
 	"""
