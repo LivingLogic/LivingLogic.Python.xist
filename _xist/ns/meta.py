@@ -20,9 +20,9 @@
 ## IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 """
-<dbl:para>An &xist; module that contains elements that simplify handling
+<doc:par>An &xist; module that contains elements that simplify handling
 meta data. All elements in this module will generate a <pyref module="xist.ns.html" class="meta">html.meta</pyref>
-element when converted.</dbl:para>
+element when converted.</doc:par>
 """
 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
@@ -33,10 +33,10 @@ import html
 
 class contenttype(html.meta):
 	"""
-	<dbl:para>can be used for a <code>&lt;meta http-equiv="Content-Type" content="text/html"/&gt;</code>, where
-	the character set will be automatically inserted on a call to <code>publish()</code>.</dbl:para>
+	<doc:par>can be used for a <markup>&lt;meta http-equiv="Content-Type" content="text/html"/&gt;</markup>, where
+	the character set will be automatically inserted on a call to <pyref module="xist.xsc" class="Node" method="publish">publish</pyref>.</doc:par>
 
-	<dbl:para>Usage is simple: <code>&lt;meta:contenttype/&gt;</code></dbl:para>
+	<doc:par>Usage is simple: <code>&lt;meta:contenttype/&gt;</code></doc:par>
 	"""
 	empty = 1
 	attrHandlers = html.meta.attrHandlers.copy()
@@ -53,9 +53,9 @@ class contenttype(html.meta):
 
 class keywords(html.meta):
 	"""
-	<dbl:para>can be used for a <code>&lt;meta name="keywords" content="..."/&gt;</code>.</dbl:para>
+	<doc:par>can be used for a <markup>&lt;meta name="keywords" content="..."/&gt;</markup>.</doc:par>
 
-	<dbl:para>Usage is simple: <code>&lt;meta:keywords&gt;foo, bar&lt;/meta:keywords&gt;</code></dbl:para>
+	<doc:par>Usage is simple: <markup>&lt;meta:keywords&gt;foo, bar&lt;/meta:keywords&gt;</markup></doc:par>
 	"""
 	empty = 0
 	attrHandlers = html.meta.attrHandlers.copy()
@@ -72,9 +72,9 @@ class keywords(html.meta):
 
 class description(html.meta):
 	"""
-	<par noindent>can be used for a <code>&lt;meta name="description" content="..."/&gt;</code>.</par>
+	<doc:par>can be used for a <markup>&lt;meta name="description" content="..."/&gt;</markup>.</doc:par>
 
-	<par>Usage is simple: <code>&lt;meta:description&gt;foo, bar&lt;/meta:description&gt;</code></par>
+	<doc:par>Usage is simple: <markup>&lt;meta:description&gt;foo, bar&lt;/meta:description&gt;</markup></doc:par>
 	"""
 	empty = 0
 	attrHandlers = html.meta.attrHandlers.copy()
@@ -91,9 +91,9 @@ class description(html.meta):
 
 class stylesheet(html.link):
 	"""
-	<par noindent>can be used for a <code>&lt;link rel="stylesheet" type="text/css" href="..."/&gt;</code>.</par>
+	<doc:par>can be used for a <markup>&lt;link rel="stylesheet" type="text/css" href="..."/&gt;</markup>.</doc:par>
 
-	<par>Usage is simple: <code>&lt;meta:stylesheet href="root:stylesheets/main.css"/&gt;</code></par>
+	<doc:par>Usage is simple: <markup>&lt;meta:stylesheet href="root:stylesheets/main.css"/&gt;</markup></doc:par>
 	"""
 	empty = 1
 	attrHandlers = html.link.attrHandlers.copy()
@@ -108,9 +108,9 @@ class stylesheet(html.link):
 
 class made(html.link):
 	"""
-	<par noindent>can be used for a <code>&lt;link rel="made" href="mailto:..."/&gt;</code>.</par>
+	<doc:par>can be used for a <markup>&lt;link rel="made" href="mailto:..."/&gt;</markup>.</doc:par>
 
-	<par>Usage is simple: <code>&lt;meta:made href="foobert@bar.org"/&gt;</code>.</par>
+	<doc:par>Usage is simple: <markup>&lt;meta:made href="foobert@bar.org"/&gt;</markup>.</doc:par>
 	"""
 	empty = 1
 	attrHandlers = html.link.attrHandlers.copy()
@@ -124,8 +124,9 @@ class made(html.link):
 
 class author(xsc.Element):
 	"""
-	<par noindent>can be used to embed author information in the header.
-	It will generate &lt;link rel="made"/&gt; and &lt;meta name="author"/&gt; elements.</par>
+	<doc:par>can be used to embed author information in the header.
+	It will generate <markup>&lt;link rel="made"/&gt;</markup> and
+	<markup>&lt;meta name="author"/&gt;</markup> elements.</doc:par>
 	"""
 	empty = 1
 	attrHandlers = {"lang": xsc.TextAttr, "name": xsc.TextAttr, "email": xsc.TextAttr}
@@ -142,7 +143,7 @@ class author(xsc.Element):
 
 class refresh(xsc.Element):
 	"""
-	<par noindent> a refresh header.</par>
+	<doc:par> a refresh header.</doc:par>
 	"""
 	empty = 0
 	attrHandlers = {"secs": xsc.IntAttr, "href": xsc.URLAttr}

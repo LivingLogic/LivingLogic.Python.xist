@@ -11,7 +11,7 @@ from xist import xsc
 
 class scriptlet(xsc.ProcInst):
 	"""
-	will be published as <% data %>
+	will be published as <markup>&lt;% data %&gt;</markup>
 	"""
 	def publish(self, publisher):
 		publisher.publish(u"<% ")
@@ -20,7 +20,7 @@ class scriptlet(xsc.ProcInst):
 
 class expression(xsc.ProcInst):
 	"""
-	will be published as <%= data %>
+	will be published as <markup>&lt;%= data %&gt;</markup>
 	"""
 
 	def publish(self, publisher):
@@ -30,7 +30,7 @@ class expression(xsc.ProcInst):
 
 class declaration(xsc.ProcInst):
 	"""
-	will be published as <%! data %>
+	will be published as <markup>&lt;%! data %&gt;</markup>
 	"""
 
 	def publish(self, publisher):

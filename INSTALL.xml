@@ -10,13 +10,13 @@ To use &xist; you need the following software packages:
 <a href="http://www.pythonware.com/products/pil/">http://www.pythonware.com/products/pil/</a>)</li>
 <li>FileUtils (available from <a href="root:fileutils/index.html">http://www.livinglogic.de/Python/fileutils/</a>),</li>
 <li>ANSIStyle (available from <a href="root:ansistyle/index.html">http://www.livinglogic.de/Python/ansistyle/</a>),</li>
-<li>and a C compiler supported by <application>distutils</application>, if you want to install
+<li>and a C compiler supported by <app>distutils</app>, if you want to install
 the source distribution.</li>
 </ol>
 </doc:section>
 
 <doc:section><doc:title>Installation</doc:title>
-<doc:para>&xist; uses <application>distutils</application>, so installation
+<doc:para>&xist; uses <app>distutils</app>, so installation
 is rather simple. Execute the following command:
 <programlisting>
 python setup.py install

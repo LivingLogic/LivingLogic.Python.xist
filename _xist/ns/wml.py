@@ -99,7 +99,7 @@ class access(xsc.Element):
 
 class meta(xsc.Element):
 	"""
-	specifies deck-specific meta information within a <head> block
+	specifies deck-specific meta information within a <pyref class="head">head</pyref> block
 	"""
 	empty = 1
 	attrHandlers = coreattrs.copy()
@@ -168,7 +168,7 @@ class optgroup(xsc.Element):
 
 class option(xsc.Element):
 	"""
-	creates options within a <select> list
+	creates options within a <pyref class="select">select</pyref> list
 	"""
 	empty = 0
 	attrHandlers = coreattrs.copy()
@@ -208,7 +208,8 @@ class img(xsc.Element):
 
 class anchor(xsc.Element):
 	"""
-	creates an anchor (also called a link) associated with <go>, <prev> or <refresh> tasks
+	creates an anchor (also called a link) associated with <pyref class="go">go</pyref>, <pyref class="prev">prev</pyref>
+	or <pyref class="refresh">refresh</pyref> tasks
 	"""
 	empty = 0
 	attrHandlers = coreattrs.copy()
@@ -246,49 +247,49 @@ class td(xsc.Element):
 
 class em(xsc.Element):
 	"""
-	displays all text between <em> and </em> formatted with emphasis
+	displays all text between <markup>&lt;em&gt;</markup> and <markup>&lt;/em&gt;</markup> formatted with emphasis
 	"""
 	empty = 0
 	attrHandlers = coreattrs.copy()
 
 class strong(xsc.Element):
 	"""
-	displays all text between <strong> and </strong> formatted with strong emphasis
+	displays all text between <markup>&lt;strong&gt;</markup> and <markup>&lt;/strong&gt;</markup> formatted with strong emphasis
 	"""
 	empty = 0
 	attrHandlers = coreattrs.copy()
 
 class b(xsc.Element):
 	"""
-	displays all text between <b> and </b> in bold text
+	displays all text between <markup>&lt;b&gt;</markup> and <markup>&lt;/b&gt;</markup> in bold text
 	"""
 	empty = 0
 	attrHandlers = coreattrs.copy()
 
 class i(xsc.Element):
 	"""
-	displays all text between <i> and </i> in italic text
+	displays all text between <markup>&lt;i&gt;</markup> and <markup>&lt;/i&gt;</markup> in italic text
 	"""
 	empty = 0
 	attrHandlers = coreattrs.copy()
 
 class u(xsc.Element):
 	"""
-	displays all text between <u> and </u> as underlined text
+	displays all text between <markup>&lt;u&gt;</markup> and <markup>&lt;/u&gt;</markup> as underlined text
 	"""
 	empty = 0
 	attrHandlers = coreattrs.copy()
 
 class big(xsc.Element):
 	"""
-	displays all text between <big> and </big> in a large font
+	displays all text between <markup>&lt;big&gt;</markup> and <markup>&lt;/big&gt;</markup> in a large font
 	"""
 	empty = 0
 	attrHandlers = coreattrs.copy()
 
 class small(xsc.Element):
 	"""
-	displays all text between <small> and </small> in a small font
+	displays all text between <markup>&lt;small&gt;</markup> and <markup>&lt;/small&gt;</markup> in a small font
 	"""
 	empty = 0
 	attrHandlers = coreattrs.copy()

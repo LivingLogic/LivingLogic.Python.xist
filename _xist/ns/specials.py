@@ -39,9 +39,9 @@ class xist(xsc.Entity):
 
 class plaintable(html_.table):
 	"""
-	a HTML table where the values of the attributes cellpadding, cellspacing and
+	<doc:par>a &html; table where the values of the attributes cellpadding, cellspacing and
 	border default to 0 (which can be overwritten via the class variable
-	<code>defaults</code>).
+	<code>defaults</code>).</doc:par>
 	"""
 	empty = 0
 	defaults = {"cellpadding": 0, "cellspacing": 0, "border": 0}
@@ -53,9 +53,9 @@ class plaintable(html_.table):
 
 class plainbody(html_.body):
 	"""
-	a HTML body where the attributes leftmargin, topmargin, marginheight and
+	<doc:par>a &html; body where the attributes leftmargin, topmargin, marginheight and
 	marginwidth default to 0 (which can be overwritten via the class variable
-	<code>defaults</code>).
+	<code>defaults</code>).</doc:par>
 	"""
 	empty = 0
 	defaults = {"leftmargin": 0, "topmargin": 0, "marginheight": 0, "marginwidth": 0}
@@ -67,7 +67,7 @@ class plainbody(html_.body):
 
 class z(xsc.Element):
 	"""
-	puts it's content into french quotes
+	<doc:par>puts it's content into french quotes</doc:par>
 	"""
 	empty = 0
 
@@ -81,8 +81,8 @@ class z(xsc.Element):
 
 class filesize(xsc.Element):
 	"""
-	the size (in bytes) of the file whose URL is the attribute href
-	as a text node.
+	<doc:par>the size (in bytes) of the file whose URL is the attribute href
+	as a text node.</doc:par>
 	"""
 	empty = 1
 	attrHandlers = {"href": xsc.URLAttr}
@@ -96,8 +96,8 @@ class filesize(xsc.Element):
 
 class filetime(xsc.Element):
 	"""
-	the time of the last modification of the file whose URL is in the attibute href
-	as a text node.
+	<doc:par>the time of the last modification of the file whose URL is in the attibute href
+	as a text node.</doc:par>
 	"""
 	empty = 1
 	attrHandlers = {"href": xsc.URLAttr, "format": xsc.TextAttr}
@@ -107,9 +107,9 @@ class filetime(xsc.Element):
 
 class time(xsc.Element):
 	"""
-	the current time (i.e. the time when convert() is called). You can specify the
-	format of the string in the attribute format, which is a strftime() compatible
-	string.
+	<doc:par>the current time (i.e. the time when <pyref method="convert">convert</pyref> is called).
+	You can specify the format of the string in the attribute format, which is a <code>strftime</code>
+	compatible string.</doc:par>
 	"""
 	empty = 1
 	attrHandlers = {"format": xsc.TextAttr}
@@ -124,8 +124,9 @@ class time(xsc.Element):
 
 class x(xsc.Element):
 	"""
-	element whose content will be ignored when converted to HTML:
-	this can be used to comment out stuff.
+	<doc:par>element whose content will be ignored when converted to &html;:
+	this can be used to comment out stuff. The content of the element must
+	of course still be weelformed and parsable.</doc:par>
 	"""
 	empty = 0
 
@@ -134,14 +135,14 @@ class x(xsc.Element):
 
 class pixel(html_.img):
 	"""
-	element for single pixel images, the default is the image
-	"root:Images/Pixels/dot_clear.gif", but you can specify the color
+	<doc:par>element for single pixel images, the default is the image
+	<filename>root:Images/Pixels/dot_clear.gif</filename>, but you can specify the color
 	as a six digit hex string, which will be used as the filename,
-	i.e. <pixel color="000000"/> results in
-	<img src="root:Images/Pixels/000000.gif">.
+	i.e. <markup>&lt;pixel color="000000"/&gt;</markup> results in
+	<markup>&lt;img src="root:Images/Pixels/000000.gif"&gt;</markup>.</doc:par>
 
-	In addition to that you can specify width and height attributes
-	(and every other allowed attribute for the img element) as usual.
+	<doc:par>In addition to that you can specify width and height attributes
+	(and every other allowed attribute for the img element) as usual.</doc:par>
 	"""
 
 	empty = 1
@@ -169,10 +170,10 @@ class pixel(html_.img):
 
 class caps(xsc.Element):
 	"""
-	returns a fragment that contains the content string converted to caps and small caps.
+	<doc:par>returns a fragment that contains the content string converted to caps and small caps.
 	This is done by converting all lowercase letters to uppercase and packing them into a
-	<span class="nini">...</span>. This element is meant to be a workaround until all
-	browsers support the CSS feature "font-variant: small-caps".
+	<markup>&lt;span class="nini"&gt;...&lt;/span&gt;</markup>. This element is meant to be a workaround until all
+	browsers support the CSS feature "font-variant: small-caps".</doc:par>
 	"""
 	empty = 0
 
@@ -249,11 +250,11 @@ class par(html_.div):
 
 class autoimg(html_.img):
 	"""
-	<par noindent>An image were width and height attributes are automatically generated.
+	<doc:par>An image were width and height attributes are automatically generated.
 	If the attributes are already there, they are taken as a
 	formatting template with the size passed in as a dictionary with the keys
 	<code>width</code> and <code>height</code>, i.e. you could make your image twice
-	as wide with <code>width="2*%(width)d"</code>.</par>
+	as wide with <code>width="2*%(width)d"</code>.</doc:par>
 	"""
 	def convert(self, converter):
 		e = html_.img(self.attrs)
@@ -262,9 +263,9 @@ class autoimg(html_.img):
 
 class autoinput(html_.input):
 	"""
-	Extends <classref module="html">input</classref>
+	<doc:par>Extends <pyref module="xist.ns.html" class="input">input</pyref>
 	with the ability to automatically set the size, if this element
-	has <code>type=="image"</code>.
+	has <code>type=="image"</code>.</doc:par>
 	"""
 	def convert(self, converter):
 		if self.hasAttr("type") and self["type"].convert(converter).asPlainString() == u"image":
@@ -307,9 +308,10 @@ class redirectpage(xsc.Element):
 
 class wrap(xsc.Element):
 	"""
-	a wrapper element that returns its content.
+	<doc:par>a wrapper element that returns its content.
 	This is e.g. useful if you want to parse a
-	file that start with 
+	file that starts with
+	<pyref module="xist.ns.jsp">&jsp;</pyref> processing instructions</doc:par>
 	"""
 	empty = 0
 
@@ -318,7 +320,7 @@ class wrap(xsc.Element):
 
 class javascript(xsc.Element):
 	"""
-	<par noindent>can be used for javascript.</par>
+	<doc:par>can be used for javascript.</doc:par>
 	"""
 	empty = 0
 	attrHandlers = {"src": xsc.TextAttr}
@@ -335,7 +337,8 @@ class esc(xsc.CharRef): "escape"; codepoint = 27
 
 class php(xsc.ProcInst):
 	"""
-	PHP processing instruction (must be used with the target php to work with XML)
+	<doc:par>PHP processing instruction
+	(must be used with an explicit target php to work with &xml;)</doc:par>
 	"""
 
 namespace = xsc.Namespace("specials", "http://www.livinglogic.de/DTDs/specials.dtd", vars())

@@ -1,13 +1,13 @@
 #! /usr/bin/env python
 
 """
-<dbl:para>&xist; is an &xml; based extensible &html; generator written in Python.
+<doc:par>&xist; is an &xml; based extensible &html; generator written in Python.
 &xist; is also a &dom; parser (built on top of &sax;2) with a very simple and
 pythonesque tree &api;. Every &xml; element type corresponds to a Python class and these
 Python classes provide a conversion method to transform the &xml; tree (e.g. into
-&html;). &xist; can be considered <z>object oriented &xsl;</z>.</dbl:para>
+&html;). &xist; can be considered <z>object oriented &xsl;</z>.</doc:par>
 
-<dbl:para>Some of the significant features of &xist; include:
+<doc:par>Some of the significant features of &xist; include:
 <ul>
 <li>Easily extensible with new &xml; elements,</li>
 <li>Can be used for offline or online page generation,</li>
@@ -20,16 +20,16 @@ Python classes provide a conversion method to transform the &xml; tree (e.g. int
 <li>Simplifies handling of deeply nested directory trees,</li>
 <li>Automatically generates <code>HEIGHT</code> and <code>WIDTH</code> attributes for images.</li>
 </ul>
-</dbl:para>
+</doc:par>
 
-<dbl:para>&xist; was written as a replacement for the
+<doc:par>&xist; was written as a replacement for the
 <a href="http://www.giga.or.at/~agi/hsc/">&html; preprocessor HSC</a>,
-and borrows some features and ideas from it.</dbl:para>
+and borrows some features and ideas from it.</doc:par>
 
-<dbl:para>It also borrows the basic ideas (&xml;/&html; elements as Python
+<doc:par>It also borrows the basic ideas (&xml;/&html; elements as Python
 objects) from
 <a href="http://starship.python.net/crew/friedrich/HTMLgen/html/main.html">HTMLgen</a>
-and <a href="http://dustman.net/andy/python/HyperText/">HyperText</a>.</dbl:para>
+and <a href="http://dustman.net/andy/python/HyperText/">HyperText</a>.</doc:par>
 """
 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))

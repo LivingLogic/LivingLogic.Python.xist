@@ -131,7 +131,7 @@ use <a href="http://java.sun.com/products/jsp/">&jsp;</a> and
 
 <li>A new method <function>asText</function> was added, that returns
 the node as a formatted plain &ascii; text (this requires that
-<a href="http://ei5nazha.yz.yamagata-u.ac.jp/~aito/w3m/eng/"><application>w3m</application></a>
+<app moreinfo="http://ei5nazha.yz.yamagata-u.ac.jp/~aito/w3m/eng/">w3m</app>
 is installed.)</li>
 
 <li><filename>make.py</filename> has been renamed to

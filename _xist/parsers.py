@@ -20,13 +20,11 @@
 ## IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 """
-This file contains everything you need to parse XIST DOMs from files, strings, URLs etc.
+<doc:par>This file contains everything you need to parse XIST DOMs from files, strings, URLs etc.</doc:par>
 
-It contains different SAX2 parser driver classes (mostly for sgmlop, everything else
+<doc:par>It contains different SAX2 parser driver classes (mostly for sgmlop, everything else
 is from PyXML). It includes a HTMLParser that uses sgmlop to parse HTML and emit
-SAX2 events.
-
-It also contains various classes derived from xml.sax.xmlreader.InputSource.
+SAX2 events. It also contains various classes derived from xml.sax.xmlreader.InputSource.</doc:par>
 """
 
 import sys, os, os.path, types, cStringIO as StringIO, urllib
@@ -49,7 +47,9 @@ from ns import html
 class StringInputSource(sax.xmlreader.InputSource):
 	def __init__(self, text, base=None, defaultEncoding="utf-8"):
 		sax.xmlreader.InputSource.__init__(self)
-		self.setSystemId("STRING")
+		if base is None:
+			base = "STRING"
+		self.setSystemId(base)
 		if type(text) is types.UnicodeType:
 			defaultEncoding = "utf-8"
 			text = text.encode(defaultEncoding)
@@ -59,9 +59,9 @@ class StringInputSource(sax.xmlreader.InputSource):
 class FileInputSource(sax.xmlreader.InputSource):
 	def __init__(self, filename, base=None, defaultEncoding="utf-8"):
 		sax.xmlreader.InputSource.__init__(self)
-		if base is not None:
-			filename = base
-		self.setSystemId(str(filename))
+		if base is None:
+			base = filename
+		self.setSystemId(str(base))
 		self.setByteStream(fileutils.Filename(filename).open("rb"))
 		self.setEncoding(defaultEncoding)
 
@@ -69,7 +69,7 @@ class URLInputSource(sax.xmlreader.InputSource):
 	def __init__(self, url, defaultEncoding="utf-8"):
 		sax.xmlreader.InputSource.__init__(self)
 		if isinstance(url, url_.URL):
-			url = url.asPlainString()
+			url = url.asString()
 		self.setSystemId(url)
 		if type(url) is types.UnicodeType:
 			url = url.encode("utf-8")

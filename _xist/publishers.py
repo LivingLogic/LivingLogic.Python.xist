@@ -38,34 +38,35 @@ class Publisher:
 
 	def __init__(self, base=None, encoding=None, xhtml=None, publishPrefix=0):
 		"""
-		<par><argref>base</argref> specifies the url to which the result
-		will be output.</par>
+		<doc:par><pyref arg="base">base</pyref> specifies the url to which the result
+		will be output.</doc:par>
 
-		<par><argref>encoding</argref> specifies the encoding to be used.
+		<doc:par><pyref arg="encoding">encoding</pyref> specifies the encoding to be used.
 		The encoding itself (i.e. calling <code>encode</code> on the
-		unicode strings) must be done by <methodref>publish</methodref>
-		and not by <methodref class="xsc.Node">publish</methodref>.</par>
+		unicode strings) must be done by <pyref method="publish">xist.publishers.Publisher.publish</pyref>
+		and not by <pyref module="xist.xsc" class="Node">xist.xsc.Node.publish</pyref>.</doc:par>
 
-		<par>The only exception is in the case of encodings that can't encode
+		<doc:par>The only exception is in the case of encodings that can't encode
 		the full range of unicode characters like <code>us-ascii</code>
 		or <code>iso-8859-1</code>. In this case non encodable characters will be replaced
 		by characters references (if possible, if not (e.g. in comments or processing
 		instructions) an exception will be raised) before they are passed to
-		<methodref>publish</methodref>.</par>
+		<pyref method="publish">publish</pyref>.</doc:par>
 
-		<par>With the parameter <argref>xhtml</argref> you can specify if you want HTML output
+		<doc:par>With the parameter <pyref arg="xhtml">xhtml</pyref> you can specify if you want &html; output
 		(i.e. elements with a content model EMPTY as <code>&lt;foo&gt;</code>) with
-		<code><argref>xhtml</argref>==0</code>, or XHTML output that is compatible with HTML browsers
+		<code><pyref arg="xhtml">xhtml</pyref>==0</code>, or XHTML output that is compatible with &html; browsers
 		(element with an empty content model as <code>&lt;foo /&gt;</code> and others that
 		just happen to be empty as <code>&lt;foo&gt;&lt;/foo&gt;</code>) with
-		<code><argref>xhtml</argref>==1</code> or just plain XHTML with
-		<code><argref>xhtml</argref>==2</code> (all empty elements as <code>&lt;foo/&gt;</code>).
-		When you use the default (None) that value of the global variable
-		outputXHTML will be used, which defaults to 1, but can be overwritten
-		by the environment variable XSC_OUTPUT_XHTML and can of course be
-		changed dynamically.</par>
+		<code><pyref arg="xhtml">xhtml</pyref>==1</code> or just plain XHTML with
+		<code><pyref arg="xhtml">xhtml</pyref>==2</code> (all empty elements as <code>&lt;foo/&gt;</code>).
+		When you use the default (<code>None</code>) that value of the global variable
+		<code>outputXHTML</code> will be used, which defaults to 1, but can be overwritten
+		by the environment variable <code>XSC_OUTPUT_XHTML</code> and can of course be
+		changed dynamically.</doc:par>
 
-		<par>publishPrefix specifies if the prefix from element name should be output too.</par>
+		<doc:par><pyref arg="publishPrefix">publishPrefix</pyref> specifies if the prefix from element name
+		should be output too.</doc:par>
 		"""
 		if base is None:
 			base = url.URL(scheme="root")
@@ -126,7 +127,7 @@ class StringPublisher(Publisher):
 	"""
 	collects all strings in an array.
 	The joined strings are available via
-	<methodref>asString</methodref>
+	<pyref module="xist.publishers" class="StringPublisher" method="asString">asString</pyref>
 	"""
 
 	def __init__(self, base=None, xhtml=None, publishPrefix=0):
@@ -146,7 +147,7 @@ class BytePublisher(Publisher):
 	"""
 	collects all strings in an array.
 	The joined strings are available via
-	<methodref>asBytes</methodref> as a byte
+	<pyref method="asBytes">asBytes</pyref> as a byte
 	string suitable for writing to a file.
 	"""
 
