@@ -1464,7 +1464,7 @@ class URLAttr(Attr):
 		if url.scheme == "server":
 			url = url.relativeTo(URL(scheme = "http",server = xsc.server))
 		else:
-			url = url.relativeTo(xsc.infilename)
+			url = url.relativeTo(xsc.filename[-1])
 		return url
 
 	def ImageSize(self):
@@ -1632,14 +1632,16 @@ class XSC:
 	def __init__(self):
 		self.filename = [ URL(scheme = "project") ]
 		self.server = "localhost"
-		self.infilename = URL(scheme = "project") # this is the filename that we are reading and will be set via make()
 		self.reprtree = 1
 		self.parser = Parser()
 
-	def __pushName(self,name):
-		self.filename.append(URL(name))
+	def pushName(self,name):
+		url = URL(name,forceproject = 1)
+		if len(self.filename):
+			url = self.filename[-1] + url
+		self.filename.append(url)
 
-	def __popName(self):
+	def popName(self):
 		self.filename.pop()
 
 	def parseString(self,string):
@@ -1655,13 +1657,12 @@ class XSC:
 		"""
 		Reads and parses a XML file from an URL and returns the resulting XSC
 		"""
-		self.__pushName(url)
+		self.pushName(url)
 		self.parser.reset()
-		url = reduce(lambda x,y: x+y,self.filename,URL())
-		print url
-		self.parser.feed(urllib.urlopen(str(url)).read())
+		name = str(xsc.filename[-1])
+		self.parser.feed(urllib.urlopen(name).read())
 		self.parser.close()
-		self.__popName()
+		self.popName()
 		return self.parser.root
 
 	def __repr__(self):
@@ -1686,6 +1687,18 @@ def __forceopen(name,mode):
 		os.makedirs(name[:found])
 		return open(name,mode)
 
+def extXSC2HTML(ext):
+	try:
+		return { "hsc" : "html" , "shsc" : "shtml" , "phsc" : "phtml" , "xsc" : "html" , "sxsc" : "shtml" , "pxsc" : "phtml"}[ext]
+	except KeyError:
+		return ext
+
+def extHTML2XSC(ext):
+	try:
+		return { "html" : "hsc" , "shtml" : "shsc" , "phtml" : "phsc"}[ext]
+	except KeyError:
+		return ext
+
 def make():
 	"""
 	use XSC as a compiler script, i.e. read an input file from args[1]
@@ -1694,18 +1707,22 @@ def make():
 
 	infilename = URL(sys.argv[1])
 	outfilename = URL(sys.argv[2])
-	xsc.infilename = infilename
-	if outfilename.file and not len(outfilename.file):
-		if infilename.file and infilename.file[-3:] == "hsc" or infilename.file[-3:] == "xsc":
-			outfilename.file = infilename.file[:-3] + "html"
-		else:
-			outfilename.file = infilename.file
+	if not outfilename.file:
+		outfilename = outfilename + infilename
+		if not outfilename.file:
+			outfilename.file = "noname"
+	try:
+		outfilename.ext = { "hsc" : "html" , "shsc" : "shtml" , "phsc" : "phtml" , "xsc" : "html" , "sxsc" : "shtml" , "pxsc" : "phtml"}[infilename.ext]
+	except KeyError:
+		outfilename.ext = "html"
+	print 'XSC: converting "' + str(infilename) + '"' + ' to "' + str(outfilename) + '"...'
 	e_in = xsc.parse(infilename)
+	xsc.pushName(infilename)
 	e_out = e_in.asHTML()
 	__forceopen(str(outfilename),"wb").write(str(e_out))
+	xsc.popName()
 
 xsc = XSC()
 
 if __name__ == "__main__":
 	make()
-

@@ -17,24 +17,28 @@ class URL:
 	This class represents XSC URLs.
 	Every instance has the following instance variables:
 	scheme -- The scheme (e.g. "http" or "ftp"); there a two special schemes: "server" for server relative URLs and "project" for project relative URLs
-	server -- The server name (including a portnumber if present)
+	server -- The server name
+	port -- The port number
 	path -- The path to the file as a list of strings
-	file -- The filename
+	file -- The filename without extension
+	ext -- The file extension
 	parameters -- The parametes
 	query -- The query
 	fragment -- The fragment
 	These variables form a URL in the following way
 	<scheme>://<server>/<path>/<file>;<params>?<query>#<fragment>
 	"""
-	def __init__(self,url = None,scheme = None,server = None,path = None,file = None,parameters = None,query = None,fragment = None):
+	def __init__(self,url = None,scheme = None,server = None,port = None,path = None,file = None,ext = None,parameters = None,query = None,fragment = None,forceproject = 0):
 		# initialize the defaults
-		self.scheme = ""
-		self.server = ""
+		self.scheme = None
+		self.server = None
+		self.port = None
 		self.path = []
-		self.file = ""
-		self.parameters = ""
-		self.query = ""
-		self.fragment = ""
+		self.file = None
+		self.ext = None
+		self.parameters = None
+		self.query = None
+		self.fragment = None
 		if url is None:
 			pass
 		elif type(url) == types.StringType:
@@ -42,8 +46,10 @@ class URL:
 		elif type(url) == types.InstanceType and isinstance(url,URL):
 			self.scheme     = url.scheme
 			self.server     = url.server
+			self.port       = url.port
 			self.path       = url.path[:]
 			self.file       = url.file
+			self.ext        = url.ext
 			self.parameters = url.parameters
 			self.query      = url.query
 			self.fragment   = url.fragment
@@ -54,8 +60,12 @@ class URL:
 			self.scheme = scheme
 		if server is not None:
 			self.server = server
+		if port is not None:
+			self.port = port
 		if path is not None:
 			self.path = path[:]
+		if ext is not None:
+			self.ext = ext
 		if file is not None:
 			self.file = file
 		if parameters is not None:
@@ -64,17 +74,15 @@ class URL:
 			self.query = query
 		if fragment is not None:
 			self.fragment = fragment
+
+		if forceproject and not self.scheme:
+			self.scheme = "project"
+
 		self.__optimize()
 
 	def __fromString(self,url):
 		if url == ":":
 			self.scheme = "project"
-			self.server = None
-			self.path = []
-			self.file = None
-			self.parameters = None
-			self.query = None
-			self.fragment = None
 		else:
 			(self.scheme,self.server,self.path,self.parameters,self.query,self.fragment) = urlparse.urlparse(url)
 			if self.scheme == "": # do we have a local file?
@@ -88,9 +96,19 @@ class URL:
 			elif self.scheme == "http":
 				if len(self.path):
 					self.path = self.path[1:] # if we had a http, the path from urlparse started with "/" too
+			pos = string.rfind(self.server,":")
+			if pos != -1:
+				self.port = string.atoi(self.server[pos+1:])
+				self.server = self.server[:pos]
 			self.path = string.split(self.path,"/")
 			self.file = self.path[-1]
 			self.path = self.path[:-1]
+
+			if self.scheme in [ "ftp" , "http" , "https" , "server", "project" , "" ]:
+				pos = string.rfind(self.file,".")
+				if pos != -1:
+					self.ext = self.file[pos+1:]
+					self.file = self.file[:pos]
 
 			self.scheme = self.scheme or None
 			self.server = self.server or None
@@ -105,10 +123,14 @@ class URL:
 			v.append("scheme=" + repr(self.scheme))
 		if self.server:
 			v.append("server=" + repr(self.server))
+		if self.port:
+			v.append("port=" + repr(self.port))
 		if self.path:
 			v.append("path=" + repr(self.path))
 		if self.file:
 			v.append("file=" + repr(self.file))
+		if self.ext:
+			v.append("ext=" + repr(self.ext))
 		if self.parameters:
 			v.append("parameters=" + repr(self.parameters))
 		if self.query:
@@ -118,20 +140,32 @@ class URL:
 		return "URL(" + string.join(v,", ") + ")"
 
 	def __str__(self):
+		scheme = self.scheme or ""
+
+		server = self.server or ""
+		if self.port:
+			server = server + ":" + str(self.port)
+
 		path = self.path[:]
-		path.append(self.file or "")
-		scheme = self.scheme
+
+		file = self.file or ""
+		if self.ext:
+			file = file + "." + self.ext
+		path.append(file)
+
 		if scheme == "project":
 			scheme = "" # remove our own private scheme name
 		elif scheme == "server":
 			scheme = "" # remove our own private scheme name
 			path[:0] = [ "" ] # make sure that there's a "/" at the start
-		return urlparse.urlunparse((scheme or "",self.server or "",string.join(path,"/"),self.parameters or "",self.query or "",self.fragment or ""))
+
+		return urlparse.urlunparse((scheme,server,string.join(path,"/"),self.parameters or "",self.query or "",self.fragment or ""))
 
 	def __join(self,other):
 		if not other.scheme:
 			self.path.extend(other.path)
 			self.file       = other.file
+			self.ext        = other.ext
 			self.parameters = other.parameters
 			self.query      = other.query
 			self.fragment   = other.fragment
@@ -140,6 +174,7 @@ class URL:
 				self.scheme = other.scheme # ... then now we're server relative too
 			self.path       = other.path[:]
 			self.file       = other.file
+			self.ext        = other.ext
 			self.parameters = other.parameters
 			self.query      = other.query
 			self.fragment   = other.fragment
@@ -152,7 +187,7 @@ class URL:
 		"""
 		joins two URLs together. When the second URL is
 		absolute (i.e. contains a scheme other that "server",
-		"project" or "", you'll get a copy off the second URL.
+		"project" or "", you'll get a copy of the second URL.
 		"""
 		return self.clone().__join(URL(other))
 
@@ -165,7 +200,7 @@ class URL:
 		"""
 		returns an identical clone of this URL.
 		"""
-		return URL(scheme = self.scheme,server = self.server,path = self.path,file = self.file,parameters = self.parameters,query = self.query,fragment = self.fragment)
+		return URL(scheme = self.scheme,server = self.server,port = self.port,path = self.path,file = self.file,ext = self.ext,parameters = self.parameters,query = self.query,fragment = self.fragment)
 
 	def isRemote(self):
 		if self.scheme == "project":
@@ -197,7 +232,7 @@ class URL:
 		return new
 
 	def __cmp__(self,other):
-		return cmp(self.scheme,other.scheme) or cmp(self.server,other.server) or cmp(self.path,other.path) or cmp(self.file,other.file) or cmp(self.parameters,other.parameters) or cmp(self.query,other.query) or cmp(self.fragment,other.fragment)
+		return cmp(self.scheme,other.scheme) or cmp(self.server,other.server) or cmp(self.port,other.port) or cmp(self.path,other.path) or cmp(self.file,other.file) or cmp(self.ext,other.ext) or cmp(self.parameters,other.parameters) or cmp(self.query,other.query) or cmp(self.fragment,other.fragment)
 
 	def __optimize(self):
 		"""

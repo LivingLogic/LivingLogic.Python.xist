@@ -207,7 +207,7 @@ class include(xsc.Element):
 	attrHandlers = { "src" : xsc.URLAttr }
 
 	def asHTML(self):
-		e = xsc.xsc.parseFile(self["src"].forInput())
+		e = xsc.xsc.parse(self["src"].forInput())
 
 		return e.asHTML()
 xsc.registerElement(include)
