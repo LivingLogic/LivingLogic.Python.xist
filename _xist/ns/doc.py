@@ -1116,7 +1116,7 @@ def getdoc(cls, thing):
 	text = "\n".join(lines)
 
 	if inspect.ismethod(thing):
-		sysid = "METHOD-DOCSTRING(%s.%s.%s)" % (cls._getmodulename(thing), thing.__class__.__name__, thing.__name__)
+		sysid = "METHOD-DOCSTRING(%s.%s.%s)" % (cls._getmodulename(thing), thing.im_class.__name__, thing.__name__)
 	elif inspect.isfunction(thing):
 		sysid = "FUNCTION-DOCSTRING(%s.%s)" % (cls._getmodulename(thing), thing.__name__)
 	elif inspect.isclass(thing):
