@@ -229,6 +229,9 @@ class Handler:
 		self.source = source
 		self.parser.parse(source)
 
+	def setDocumentLocator(self, locator):
+		self._locator = locator
+
 	def startDocument(self):
 		# our nodes do not have a parent link, therefore we have to store the active
 		# path through the tree in a stack (which we call nesting, because stack is
@@ -236,7 +239,6 @@ class Handler:
 
 		# after we've finished parsing, the Frag that we put at the bottom of the stack will be our document root
 		self.__nesting = [ xsc.Frag() ]
-		self.lineno = 1
 
 	def endDocument(self):
 		self.root = self.__nesting[0]
@@ -291,7 +293,7 @@ class Handler:
 			return 0
 
 	def getLocation(self):
-		return xsc.Location(self.filenames[-1], self.lineno)
+		return xsc.Location(url.URL(self._locator.getSystemId()), self._locator.getLineNumber(), self._locator.getColumnNumber())
 
 	def __appendNode(self, node):
 		node.startloc = self.getLocation()

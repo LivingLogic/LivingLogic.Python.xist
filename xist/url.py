@@ -378,7 +378,7 @@ class URL:
 		return new
 
 	def __cmp__(self, other):
-		assert isinstance(other, URL), 'URLs can only be compared with URLs'
+		assert isinstance(other, URL), "URLs can only be compared with URLs"
 		scheme1 = self.scheme
 		if scheme1 is not None:
 			scheme1 = scheme1.lower()

@@ -1933,7 +1933,7 @@ class Location:
 	specifies a position in an XML file.
 	"""
 
-	def __init__(self, url=None, row=None, col=None):
+	def __init__(self, url=None, row=-1, col=-1):
 		self.url = url
 		self.row = row
 		self.col = col
@@ -1942,7 +1942,7 @@ class Location:
 		if self.url is not None:
 			s = '"' + self.url.asString() + '" ('
 			s += "L" + str(self.row)
-			if self.col is not None:
+			if self.col!=-1:
 				s += "C" + str(self.col)
 			s += ")"
 			return s
