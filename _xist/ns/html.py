@@ -31,7 +31,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 
 import cgi # for parse_header
 
-from xist import xsc
+from xist import xsc, utils
 
 # common attributes
 coreattrs  = {"id": xsc.TextAttr, "class": xsc.TextAttr, "style": xsc.TextAttr, "title": xsc.TextAttr}
@@ -138,12 +138,13 @@ class meta(xsc.Element):
 				if not options.has_key(u"charset") or options[u"charset"] != publisher.encoding:
 					options[u"charset"] = publisher.encoding
 					node = meta(
+						self.attrs,
 						http_equiv="Content-Type",
 						content=(contenttype, u"; ", u"; ".join([ "%s=%s" % option for option in options.items()]))
 					)
 					node.publish(publisher)
 					return
-		xsc.Element.publish(self, publisher)
+		super(meta, self).publish(publisher)
 
 class body(xsc.Element):
 	"""

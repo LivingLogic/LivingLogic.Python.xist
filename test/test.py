@@ -1,7 +1,7 @@
-import unittest
+import sys, unittest
 
-from xist import xsc, presenters, converters
-from xist.ns import html, specials
+from xist import xsc, parsers, presenters, converters, helpers
+from xist.ns import wml, ihtml, html, css, specials
 
 class XISTTestCase(unittest.TestCase):
 	def check_lenunicode(self, node, _len, content):
@@ -161,6 +161,86 @@ class XISTTestCase(unittest.TestCase):
 		node.sorted()
 		node.mapped(self.mappedmapper)
 		node.shuffled()
+
+	def test_locationeq(self):
+		l1 = xsc.Location(sysID="gurk", pubID="http://gurk.com", lineNumber=42, columnNumber=666)
+		l2 = xsc.Location(sysID="gurk", pubID="http://gurk.com", lineNumber=42, columnNumber=666)
+		l3 = xsc.Location(sysID="hurz", pubID="http://gurk.com", lineNumber=42, columnNumber=666)
+		l4 = xsc.Location(sysID="gurk", pubID="http://hurz.com", lineNumber=42, columnNumber=666)
+		l5 = xsc.Location(sysID="gurk", pubID="http://gurk.com", lineNumber=43, columnNumber=666)
+		l6 = xsc.Location(sysID="gurk", pubID="http://gurk.com", lineNumber=43, columnNumber=667)
+		l7 = xsc.Location(sysID="gurk", pubID="http://gurk.com")
+		self.assertEqual(l1, l2)
+		self.assertNotEqual(l1, l3)
+		self.assertNotEqual(l1, l4)
+		self.assertNotEqual(l1, l5)
+		self.assertNotEqual(l1, l6)
+		self.assertNotEqual(l1, l7)
+
+	def test_locationoffset(self):
+		l1 = xsc.Location(sysID="gurk", pubID="http://gurk.com", lineNumber=42, columnNumber=666)
+		self.assertEqual(l1, l1.offset(0))
+		l2 = l1.offset(1)
+		self.assertEqual(l1.getSystemId(), l2.getSystemId())
+		self.assertEqual(l1.getPublicId(), l2.getPublicId())
+		self.assertEqual(l1.getLineNumber()+1, l2.getLineNumber())
+
+	def test_parselocationsgmlop(self):
+		node = parsers.parseString("<z>gurk&amp;hurz&#42;hinz&#x666;hunz</z>", parser=parsers.SGMLOPParser())
+		self.assertEqual(len(node), 1)
+		self.assertEqual(len(node[0]), 1)
+		self.assertEqual(node[0][0].startLoc.getSystemId(), "STRING")
+		self.assertEqual(node[0][0].startLoc.getLineNumber(), 1)
+
+	def test_parselocationexpat(self):
+		node = parsers.parseString("<z>gurk&amp;hurz&#42;hinz&#x666;hunz</z>", parser=parsers.ExpatParser())
+		self.assertEqual(len(node), 1)
+		self.assertEqual(len(node[0]), 1)
+		self.assertEqual(node[0][0].startLoc.getSystemId(), "STRING")
+		self.assertEqual(node[0][0].startLoc.getLineNumber(), 1)
+		self.assertEqual(node[0][0].startLoc.getColumnNumber(), 3)
+
+	def check_namespace(self, module):
+		for obj in module.__dict__.values():
+			if issubclass(obj.__class__, type) and issubclass(obj, xsc.Node):
+				obj().conv().asBytes()
+
+	def test_html(self):
+		self.check_namespace(html)
+
+	def test_ihtml(self):
+		self.check_namespace(ihtml)
+
+	def test_wml(self):
+		self.check_namespace(wml)
+
+	def test_css(self):
+		self.check_namespace(css)
+
+	def test_helpersescapeText(self):
+		input = u"".join([unichr(i) for i in xrange(sys.maxunicode+1)])
+		output = u"".join([unichr(i) for i in xrange(128)])
+		output = output.replace(u"&", u"&amp;")
+		output = output.replace(u"<", u"&lt;")
+		output = output.replace(u">", u"&gt;")
+		output += u"".join([u"&#%d;" % i for i in xrange(128, sys.maxunicode+1)])
+		self.assertEqual(helpers.escapeText(input, "ascii"), output)
+
+	def test_helpersescapeAttr(self):
+		input = u"".join([unichr(i) for i in xrange(sys.maxunicode+1)])
+		output = u"".join([unichr(i) for i in xrange(128)])
+		output = output.replace(u"&", u"&amp;")
+		output = output.replace(u"<", u"&lt;")
+		output = output.replace(u">", u"&gt;")
+		output = output.replace(u'"', u"&quot;")
+		output += u"".join([u"&#%d;" % i for i in xrange(128, sys.maxunicode+1)])
+		self.assertEqual(helpers.escapeAttr(input, "ascii"), output)
+
+	def test_helpersescapeCSS(self):
+		input = u"".join([unichr(i) for i in xrange(sys.maxunicode+1)])
+		output = u"".join([unichr(i) for i in xrange(128)])
+		output += u"".join([u"\\%x".upper() % i for i in xrange(128, sys.maxunicode+1)])
+		self.assertEqual(helpers.escapeCSS(input, "ascii"), output)
 
 if __name__ == "__main__":
 	unittest.main()

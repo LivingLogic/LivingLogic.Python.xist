@@ -80,6 +80,8 @@ class Publisher:
 		self.xhtml = xhtml
 		self.publishPrefix = publishPrefix
 		self.inAttr = 0
+		self.__textFilters = [ helpers.escapeText ]
+		self.__currentTextFilter = helpers.escapeText
 
 	def publish(self, text):
 		"""
@@ -90,13 +92,28 @@ class Publisher:
 		pass
 
 	def publishText(self, text):
-		if self.inAttr:
-			self.publish(helpers.escapeAttr(text, self.encoding))
-		else:
-			self.publish(helpers.escapeText(text, self.encoding))
+		"""
+		<doc:par>is used to publish text data. This uses the current
+		text filter, which is responsible for escaping characters.</doc:par>
+		"""
+		self.publish(self.__currentTextFilter(text, self.encoding))
 
 	def _publishableURL(self, url):
 		return url.relativeTo(self.base)
+
+	def pushTextFilter(self, filter):
+		"""
+		<doc:par>pushes a new text filter function.</doc:par>
+		"""
+		self.__textFilters.append(filter)
+		self.__currentTextFilter = filter
+
+	def popTextFilter(self):
+		self.__textFilters.pop()
+		if self.__textFilters:
+			self.__currentTextFilter = self.__textFilters[-1]
+		else:
+			self.__currentTextFilter = None
 
 class FilePublisher(Publisher):
 	"""

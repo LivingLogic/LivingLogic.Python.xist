@@ -1665,9 +1665,11 @@ class Attr(Frag):
 	def publish(self, publisher):
 		if publisher.inAttr:
 			raise errors.IllegalAttrNodeError(self)
-		publisher.inAttr = 1
+		publisher.inAttr += 1
+		publisher.pushTextFilter(helpers.escapeAttr)
 		Frag.publish(self, publisher)
-		publisher.inAttr = 0
+		publisher.popTextFilter()
+		publisher.inAttr -= 1
 
 	def __lt__(self, other):
 		return unicode(self) < other
@@ -2059,10 +2061,8 @@ class Location(object):
 		(and the column number is reset to 1).</doc:par>
 		"""
 		if offset==0:
-			columnNumber = -1
-		else:
-			columnNumber = 1
-		return Location(sysID=self.__sysID, pubID=self.__pubID, lineNumber=self.__lineNumber+offset, columnNumber=columnNumber)
+			return self
+		return Location(sysID=self.__sysID, pubID=self.__pubID, lineNumber=self.__lineNumber+offset, columnNumber=1)
 
 	def __str__(self):
 		# get and format the system ID
@@ -2090,3 +2090,9 @@ class Location(object):
 	def __repr__(self):
 		return "<%s object sysID=%r, pubID=%r, lineNumber=%r, columnNumber=%r at %08x>" % \
 			(self.__class__.__name__, self.getSystemId(), self.getPublicId(), self.getLineNumber(), self.getColumnNumber(), id(self))
+
+	def __eq__(self, other):
+		return self.__class__ is other.__class__ and self.getPublicId()==other.getPublicId() and self.getSystemId()==other.getSystemId() and self.getLineNumber()==other.getLineNumber() and self.getColumnNumber()==other.getColumnNumber()
+
+	def __ne__(self, other):
+		return not self==other

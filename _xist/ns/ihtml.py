@@ -27,6 +27,8 @@ i-mode compatible &html;.</doc:par>
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
+import cgi # for parse_header
+
 from xist import xsc
 
 class a(xsc.Element):
@@ -284,8 +286,33 @@ class meta(xsc.Element):
 	empty = 1
 	attrHandlers = {
 		"http-equiv": xsc.TextAttr, # Designates the HTTP header fields you want to emulate. (Fixed to <lit>Content-Type</lit>) (2.0)
+		"http_equiv": xsc.TextAttr, # copy of the above
 		"content": xsc.TextAttr # Designates content type (Fixed <lit>to text/html; charset=SHIFT_JIS</lit>) (2.0)
 	}
+
+	def __init__(self, *_content, **_attrs):
+		# we have two names for one and the same attribute http_equiv and http-equiv
+		xsc.Element.__init__(self, *_content, **_attrs)
+		if self.hasAttr("http_equiv"):
+			if not self.hasAttr("http-equiv"):
+				self["http-equiv"] = self["http_equiv"]
+			del self["http_equiv"]
+
+	def publish(self, publisher):
+		if self.hasAttr("http-equiv"):
+			ctype = unicode(self["http-equiv"]).lower()
+			if ctype == u"content-type" and self.hasAttr("content"):
+				(contenttype, options) = cgi.parse_header(unicode(self["content"]))
+				if not options.has_key(u"charset") or options[u"charset"] != publisher.encoding:
+					options[u"charset"] = publisher.encoding
+					node = meta(
+						self.attrs,
+						http_equiv="Content-Type",
+						content=(contenttype, u"; ", u"; ".join([ "%s=%s" % option for option in options.items()]))
+					)
+					node.publish(publisher)
+					return
+		super(meta, self).publish(publisher)
 
 class object(xsc.Element):
 	empty = 1
