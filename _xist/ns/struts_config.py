@@ -44,6 +44,7 @@ class data_sources(xsc.Element):
 class data_source(xsc.Element):
 	empty = 0
 	name = "data-source"
+	attrHandlers = {"key": xsc.TextAttr, "type": xsc.TextAttr}
 
 class set_property(xsc.Element):
 	empty = 0
