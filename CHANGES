@@ -6,7 +6,7 @@ When the member "elementname" in the element class is set before calling
 registerElement(), this element name will be used for the element. This
 allows custom name even when used registerAllElements().
 
-Comparison of scheme and server in URLs is done caseinsensitive (as RFC 2068)
+Comparison of scheme and server in URLs is done case insensitive (as RFC 2068
 requires.)
 
 New in 0.3.4
