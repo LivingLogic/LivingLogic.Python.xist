@@ -267,10 +267,53 @@ class flash(xsc.Element):
 			height=self["height"]
 		)
 
-		if "quality" in self.attrs:
-			e.insert(0, target.param(name="quality", value=self["quality"]))
-		if "bgcolor" in self.attrs:
-			e.insert(0, target.param(name="bgcolor", value=self["bgcolor"]))
+		# copy optional attributes
+		for attrname in ("quality", "bgcolor"):
+			if attrname in self.attrs:
+				e.insert(0, target.param(name=attrname, value=self[attrname]))
+
+		return e.convert(converter)
+
+class quicktime(xsc.Element):
+	empty = True
+	class Attrs(xsc.Element.Attrs):
+		class src(xsc.URLAttr): required = True
+		class href(xsc.URLAttr): pass
+		class target(xsc.TextAttr): pass
+		class width(xsc.IntAttr): required = True
+		class height(xsc.IntAttr): required = True
+		class bgcolor(xsc.ColorAttr): pass
+		class controller(xsc.ColorAttr): values=("true", "false")
+		class autoplay(xsc.ColorAttr): values=("true", "false")
+		class border(xsc.IntAttr): pass
+
+	def convert(self, converter):
+		target = converter.target
+		e = target.object(
+			target.param(name="src", value=self["src"]),
+			target.param(name="type", value="video/quicktime"),
+			target.param(name="pluginspage", value="http://www.apple.com/quicktime/download/indext.html"),
+			target.embed(
+				src=self["src"],
+				href=self["href"],
+				target=self["target"],
+				bgcolor=self["bgcolor"],
+				width=self["width"],
+				height=self["height"],
+				type="video/quicktime",
+				border=self["border"],
+				pluginspage="http://www.apple.com/quicktime/download/indext.html"
+			),
+			classid="clsid:02BF25D5-8C17-4B23-BC80-D3488ABDDC6B",
+			codebase="http://www.apple.com/qtactivex/qtplugin.cab#version=6,0,2,0",
+			width=self["width"],
+			height=self["height"]
+		)
+
+		# copy optional attributes
+		for attrname in ("href", "target", "bgcolor", "controller", "autoplay"):
+			if attrname in self.attrs:
+				e.insert(0, target.param(name=attrname, value=self[attrname]))
 
 		return e.convert(converter)
 
