@@ -26,6 +26,9 @@ most cases).</doc:par>
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-__all__ = ["html", "wml", "abbr", "cond", "docbook", "doc", "form", "jsp", "meta", "ruby", "specials"]
-
+__all__ = [
+	"html", "wml", "docbook", "ruby",
+	"jsp", "struts_html", "struts_config",
+	"specials", "abbr", "cond", "doc", "form", "meta"
+]
 
