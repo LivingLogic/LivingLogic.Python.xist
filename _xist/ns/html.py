@@ -721,7 +721,7 @@ class button(xsc.Element):
 	"""
 	push button
 	"""
-	empty = 1
+	empty = 0
 	attrHandlers = attrs.copy()
 	attrHandlers.update({"name": xsc.TextAttr, "value": xsc.TextAttr, "type": xsc.TextAttr, "disabled": xsc.TextAttr, "tabindex": xsc.TextAttr, "accesskey": xsc.TextAttr, "onfocus": xsc.TextAttr, "onblur": xsc.TextAttr})
 
