@@ -36,7 +36,6 @@ import options
 import xsc
 import url
 
-import inputsources
 import parsers
 
 providers = [] # provider stack

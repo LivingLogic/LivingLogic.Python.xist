@@ -27,6 +27,7 @@ sgmlop driver, everything else is from PyXML) and various classes derived from
 xml.sax.xmlreader.InputSource.
 """
 
+import sys
 import types
 import cStringIO as StringIO
 import urllib
@@ -39,6 +40,9 @@ from xml.sax import expatreader
 #	import timeoutsocket
 #except ImportError:
 timeoutsocket = None
+
+import xsc
+import url
 
 class StringInputSource(sax.xmlreader.InputSource):
 	def __init__(self, text):
@@ -56,13 +60,13 @@ class FileInputSource(sax.xmlreader.InputSource):
 	def __init__(self, filename):
 		sax.xmlreader.InputSource.__init__(self)
 		self.setSystemId(filename)
-		self.setByteStream(open(file, "r"))
+		self.setByteStream(open(filename, "r"))
 
 class URLInputSource(sax.xmlreader.InputSource):
 	def __init__(self, url):
 		sax.xmlreader.InputSource.__init__(self)
 		self.setSystemId(url)
-		self.setByteStream(urllib.urlopen(url))
+		self.setByteStream(urllib.urlopen(url.asString()))
 
 	def setTimeout(self, secs):
 		if timeoutsocket is not None:
@@ -71,7 +75,6 @@ class URLInputSource(sax.xmlreader.InputSource):
 	def getTimeout(self):
 		if timeoutsocket is not None:
 			timeoutsocket.getDefaultSocketTimeout()
-
 
 class TidyURLInputSource(sax.xmlreader.InputSource):
 	def __init__(self, url):
@@ -113,6 +116,7 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 
 	def __init__(self, naespaceHandling=0, bufsize=2**16-20):
 		sax.xmlreader.IncrementalParser.__init__(self, bufsize)
+		self.bufsize = bufsize
 		self.reset()
 
 	def setErrorHandler(self, handler):
@@ -165,7 +169,10 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 	def finish_starttag(self, name, attrs):
 		newattrs = sax.xmlreader.AttributesImpl(attrs)
 		for (attrname, attrvalue) in attrs.items():
-			newattrs._attrs[unicode(attrname, self.encoding)] = unicode(attrvalue, self.encoding)
+			attrname = unicode(attrname, self.encoding)
+			if attrvalue is not None:
+				attrvalue = unicode(attrvalue, self.encoding)
+			newattrs._attrs[attrname] = attrvalue
 		self.content_handler.startElement(unicode(name, self.encoding), newattrs)
 
 	def finish_endtag(self,name):
@@ -194,7 +201,7 @@ class Handler:
 
 	def __init__(self, parser=None, namespaces=None):
 		if parser is None:
-			parser = parsers.SGMLOPParser()
+			parser = SGMLOPParser()
 		self.parser = parser
 
 		if namespaces is None:
@@ -203,6 +210,11 @@ class Handler:
 
 		self.server = "localhost"
 		self.filenames = [url.URL("*/")]
+
+		parser.setErrorHandler(self)
+		parser.setContentHandler(self)
+		parser.setDTDHandler(self)
+		parser.setEntityResolver(self)
 
 	def pushURL(self, u):
 		u = url.URL(u)
@@ -213,17 +225,30 @@ class Handler:
 	def popURL(self):
 		self.filenames.pop()
 
+	def parse(self, source):
+		self.source = source
+		self.parser.parse(source)
+
 	def startDocument(self):
+		# our nodes do not have a parent link, therefore we have to store the active
+		# path through the tree in a stack (which we call nesting, because stack is
+		# already used by the base class (there is no base class anymore, but who cares))
+
+		# after we've finished parsing, the Frag that we put at the bottom of the stack will be our document root
 		self.__nesting = [ xsc.Frag() ]
 		self.lineno = 1
 
 	def endDocument(self):
-		pass
+		self.root = self.__nesting[0]
+		self.__nesting = None
 
 	def startElement(self, name, attrs):
 		node = self.namespaces.elementFromName(name)()
 		for name in attrs.keys():
 			node[name] = self.__string2Fragment(attrs[name])
+			if isinstance(node[name], xsc.URLAttr):
+				base = url.URL("*/") + url.URL(self.source.getSystemId())
+				node[name].base = base
 		self.__appendNode(node)
 		self.__nesting.append(node) # push new innermost element onto the stack
 
@@ -242,7 +267,7 @@ class Handler:
 	def comment(self, content):
 		self.__appendNode(xsc.Comment(content))
 
-	def processsingInstruction(self, target, data):
+	def processingInstruction(self, target, data):
 		self.__appendNode(self.namespaces.procInstFromName(target)(data))
 
 	def entity(self, name):
@@ -313,23 +338,7 @@ class Handler:
 				break
 		return node
 
-def parse(inputsource, namespaces=None, parser=None)
+def parse(source, namespaces=None, parser=None):
 	handler = Handler(parser, namespaces)
-	try:
-		self.pushURL(url)
-
-		# our nodes do not have a parent link, therefore we have to store the active
-		# path through the tree in a stack (which we call nesting, because stack is
-		# already used by the base class (there is no base class anymore, but who cares))
-
-		# after we've finished parsing, the Frag that we put at the bottom of the stack will be our document root
-		parser = self.parser()
-		parser.setErrorHandler(self)
-		parser.setContentHandler(self)
-		parser.setDTDHandler(self)
-		parser.setEntityResolver(self)
-		parser.parse(inputsource)
-		root = self.__nesting[0]
-	finally:
-		self.popURL()
-	return root
+	handler.parse(source)
+	return handler.root

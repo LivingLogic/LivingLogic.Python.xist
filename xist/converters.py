@@ -28,5 +28,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
 class Converter:
-	def __init__(self, mode=None):
+	def __init__(self, mode=None, stage=None, target=None):
 		self.mode = mode
+		self.stage = stage
+		self.target = target

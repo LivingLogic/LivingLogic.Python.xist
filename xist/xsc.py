@@ -456,25 +456,25 @@ class Node:
 		self.publish(publisher)
 		return publisher.asString()
 
-	def asBytes(self, encoding=None, XHTML=None, usePrefix=0):
+	def asBytes(self, base=None, encoding=None, XHTML=None, usePrefix=0):
 		"""
 		<par noindent>returns this element as a byte string suitable for writing
 		to an HTML file or printing from a CGI script.</par>
 
 		<par>For the parameters see <funcref>publish</funcref>.</par>
 		"""
-		publisher = publishers.BytePublisher(encoding=encoding, XHTML=XHTML, usePrefix=usePrefix)
+		publisher = publishers.BytePublisher(base=base, encoding=encoding, XHTML=XHTML, usePrefix=usePrefix)
 		self.publish(publisher)
 		return publisher.asBytes()
 
-	def write(self, file, encoding=None, XHTML=None, usePrefix=0):
+	def write(self, file, base=None, encoding=None, XHTML=None, usePrefix=0):
 		"""
 		<par noindent>writes the element to the file like
 		object <argref>file</argref></par>
 
 		<par>For the parameters see <funcref>publish</funcref>.</par>
 		"""
-		publisher = publishers.FilePublisher(file, encoding=encoding, XHTML=XHTML, usePrefix=usePrefix)
+		publisher = publishers.FilePublisher(file, base=base, encoding=encoding, XHTML=XHTML, usePrefix=usePrefix)
 		self.publish(publisher)
 
 	def find(self, type=None, subtype=0, attrs=None, test=None, searchchildren=0, searchattrs=0):
@@ -793,7 +793,8 @@ class Frag(Node):
 		for child in self.__content:
 			convertedchild = child.convert(converter)
 			assert isinstance(convertedchild, Node), "the convert method returned the illegal object %r when converting %r" % (convertedchild, child)
-			node.__content.append(convertedchild)
+			if convertedchild is not Null:
+				node.__content.append(convertedchild)
 		return self._decorateNode(node)
 
 	def clone(self):
@@ -830,13 +831,15 @@ class Frag(Node):
 		If <argref>index</argref> is a list <code>__getitem__</code> will work
 		recursively. If <argref>index</argref> is empty, <self/> will be returned.
 		"""
-		try:
+		if type(index) in (types.IntType, types.LongType):
 			return self.__content[index]
-		except TypeError: # assume index is a list
+		elif type(index) is types.ListType:
 			node = self
 			for subindex in index:
 				node = node[subindex]
 			return node
+		else:
+			raise TypeError("index must be int, long or string not %s" % type(index).__name__)
 
 	def __setitem__(self, index, value):
 		"""
@@ -1272,10 +1275,7 @@ class Element(Node):
 
 	def convert(self, converter=None):
 		node = self.__class__() # "virtual" copy constructor
-		for child in self.content:
-			convertedchild = child.convert(converter)
-			assert isinstance(convertedchild, Node), "the convert method returned the illegal object %r when converting %r" % (convertedchild, child)
-			node.content.append(convertedchild)
+		node.content = self.content.convert(converter)
 		for attrname in self.attrs.keys():
 			attr = self.attrs[attrname]
 			convertedattr = attr.convert(converter)
@@ -1652,7 +1652,7 @@ class URLAttr(Attr):
 	"""
 
 	def __init__(self, *_content):
-		self.base = providers.getURL()
+		self.base = url.URL()
 		Attr.__init__(self, *_content)
 
 	def _str(self, content=None, brackets=None, slash=None, ansi=None):
@@ -1663,7 +1663,7 @@ class URLAttr(Attr):
 		presenter.presentURLAttr(self)
 
 	def publish(self, publisher):
-		Text(self.forOutput().asPlainString()).publish(publisher)
+		return Text(self.asURL().relativeTo(publisher.base).asPlainString()).publish(publisher)
 
 	def convert(self, converter=None):
 		node = Attr.convert(self, converter)
@@ -1692,9 +1692,6 @@ class URLAttr(Attr):
 			u = u.relativeTo(url.URL(scheme="http", server=xsc.server))
 		return u
 
-	def forOutput(self):
-		return self.asURL().relativeTo(providers.getURL())
-
 	def ImageSize(self):
 		"""
 		returns the size of an image as a tuple or None if the image shouldn't be read
@@ -1702,7 +1699,7 @@ class URLAttr(Attr):
 
 		url = self.forInput()
 		size = None
-		if xsc.isRetrieve(url):
+		if 1: # FIXME xsc.isRetrieve(url):
 			try:
 				(filename, headers) = url.retrieve()
 				if headers.maintype == "image":
@@ -1723,7 +1720,7 @@ class URLAttr(Attr):
 		url = self.forInput()
 
 		size = None
-		if xsc.isRetrieve(url):
+		if 1: # FIXME xsc.isRetrieve(url):
 			try:
 				(filename, headers) = url.retrieve()
 				size = os.stat(filename)[stat.ST_SIZE]
@@ -1950,11 +1947,3 @@ class Location:
 
 	def __repr__(self):
 		return "Location(%r, %r, %r)" % (self.url, self.row, self.col)
-
-###
-###
-###
-
-xsc = providers.XSC()
-
-providers.providers.append(xsc)

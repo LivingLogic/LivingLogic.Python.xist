@@ -28,7 +28,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
 import sys, types, array, codecs
-import xsc, options, utils, errors
+import xsc, options, utils, errors, url
 from helpers import *
 
 class Publisher:
@@ -36,8 +36,11 @@ class Publisher:
 	base class for all publishers.
 	"""
 
-	def __init__(self, encoding=None, XHTML=None, usePrefix=0):
+	def __init__(self, base=None, encoding=None, XHTML=None, usePrefix=0):
 		"""
+		<par><argref>base</argref> specifies the url to which the result
+		will be output.</par>
+
 		<par><argref>encoding</argref> specifies the encoding to be used.
 		The encoding itself (i.e. calling <code>encode</code> on the
 		unicode strings) must be done by <methodref>publish</methodref>
@@ -64,17 +67,19 @@ class Publisher:
 
 		<par>usePrefix specifies if the prefix from element name should be output too.</par>
 		"""
-		self.escape = None
-		self.inAttr = 0
+		if base is None:
+			base = url.URL("*/")
+		self.base = base
 		if encoding is None:
 			encoding = options.outputEncoding
 		self.encoding = encoding
 		if XHTML is None:
 			XHTML = options.outputXHTML
 		if XHTML<0 or XHTML>2:
-			raise ValueError("XHTML must be 0, 1 or 2")
+			raise ValueError("XHTML must be 0, 1 or 2, not %r" % (XHTML,))
 		self.XHTML = XHTML
 		self.usePrefix = usePrefix
+		self.inAttr = 0
 
 	def publish(self, text):
 		"""
@@ -94,8 +99,8 @@ class FilePublisher(Publisher):
 	"""
 	writes the strings to a file.
 	"""
-	def __init__(self, file, encoding=None, XHTML=None, usePrefix=0):
-		Publisher.__init__(self, encoding=encoding, XHTML=XHTML, usePrefix=usePrefix)
+	def __init__(self, file, base=None, encoding=None, XHTML=None, usePrefix=0):
+		Publisher.__init__(self, base=base, encoding=encoding, XHTML=XHTML, usePrefix=usePrefix)
 		(encode, decode, streamReaderClass, streamWriterClass) = codecs.lookup(self.encoding)
 		self.file = streamWriterClass(file)
 
@@ -112,8 +117,8 @@ class PrintPublisher(FilePublisher):
 	"""
 	writes the strings to <code>sys.stdout</code>.
 	"""
-	def __init__(self, encoding=None, XHTML=None, usePrefix=0):
-		FilePublisher.__init__(self, sys.stdout, encoding=encoding, XHTML=XHTML, usePrefix=usePrefix)
+	def __init__(self, base=None, encoding=None, XHTML=None, usePrefix=0):
+		FilePublisher.__init__(self, sys.stdout, base=base, encoding=encoding, XHTML=XHTML, usePrefix=usePrefix)
 
 class StringPublisher(Publisher):
 	"""
@@ -122,8 +127,8 @@ class StringPublisher(Publisher):
 	<methodref>asString</methodref>
 	"""
 
-	def __init__(self, XHTML=None, usePrefix=0):
-		Publisher.__init__(self, encoding="utf16", XHTML=XHTML, usePrefix=usePrefix)
+	def __init__(self, base=None, XHTML=None, usePrefix=0):
+		Publisher.__init__(self, base=base, encoding="utf16", XHTML=XHTML, usePrefix=usePrefix)
 		self.texts = []
 
 	def publish(self, text):
@@ -143,8 +148,8 @@ class BytePublisher(Publisher):
 	string suitable for writing to a file.
 	"""
 
-	def __init__(self, encoding=None, XHTML=None, usePrefix=0):
-		Publisher.__init__(self, encoding=encoding, XHTML=XHTML, usePrefix=usePrefix)
+	def __init__(self, base=None, encoding=None, XHTML=None, usePrefix=0):
+		Publisher.__init__(self, base=base, encoding=encoding, XHTML=XHTML, usePrefix=usePrefix)
 		self.texts = []
 
 	def publish(self, text):
