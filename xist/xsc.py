@@ -11,7 +11,7 @@ import string
 import types
 import exceptions
 import sys
-import _socket
+import socket
 
 # for file size checking
 import stat
@@ -1653,7 +1653,7 @@ class XSC:
 	def is_remote(self,url):
 		(scheme,server,path,parameters,query,fragment) = urlparse.urlparse(url)
 		if scheme != "":
-			if server != "localhost" and server != _socket.gethostname():
+			if server != "localhost" and server != socket.gethostname():
 				return 1
 		return 0
 
