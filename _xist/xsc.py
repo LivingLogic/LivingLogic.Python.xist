@@ -441,7 +441,7 @@ class Node(Base):
 		"""
 		return str(unicode(self))
 
-	def asText(self, monochrome=1, squeezeBlankLines=0, lineNumbers=0, width=72):
+	def asText(self, monochrome=True, squeezeBlankLines=False, lineNumbers=False, width=72):
 		"""
 		<par>Return the node as a formatted plain &ascii; string.
 		Note that this really only make sense for &html; trees.</par>
@@ -450,16 +450,16 @@ class Node(Base):
 		"""
 
 		options = ""
-		if monochrome==1:
+		if monochrome:
 			options += " -M"
-		if squeezeBlankLines==1:
+		if squeezeBlankLines:
 			options += " -S"
-		if lineNumbers==1:
+		if lineNumbers:
 			options += " -num"
-		if width!=80:
+		if width != 80:
 			options += " -cols %d" % width
 
-		text = self.asBytes(encoding="us-ascii")
+		text = self.asBytes(encoding="iso-8859-1")
 
 		(stdin, stdout) = os.popen2("w3m %s -T text/html -dump" % options)
 
