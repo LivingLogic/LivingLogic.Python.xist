@@ -1131,6 +1131,23 @@ class XISTTest(unittest.TestCase):
 		self.assertEquals(unicode(node["href"]), u"gurk2")
 		self.assertEquals(node.attrs.has("id"), False)
 
+		class Gurk(xsc.Element):
+			empty = True
+			class Attrs(xsc.Element.Attrs):
+				class gurk(xsc.TextAttr): pass
+				class hurz(xsc.TextAttr): default = "hinz+kunz"
+
+		node1 = Gurk()
+		node2 = Gurk(hurz=None)
+		node1.attrs.update(node2.attrs)
+		self.assert_("hurz" not in node1.attrs)
+
+		node = Gurk(Gurk(hurz=None).attrs)
+		self.assert_("hurz" not in node.attrs)
+
+		attrs = Gurk.Attrs(Gurk.Attrs(hurz=None))
+		self.assert_("hurz" not in attrs)
+
 	def test_classrepr(self):
 		repr(xsc.Base)
 		repr(xsc.Node)

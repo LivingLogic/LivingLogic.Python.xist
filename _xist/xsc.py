@@ -1784,11 +1784,7 @@ class Attrs(Node, dict):
 
 	def __init__(self, content=None, **attrs):
 		dict.__init__(self)
-		if content is not None:
-			for (attrname, attrvalue) in content.iteritems():
-				self[attrname] = attrvalue
-		for (attrname, attrvalue) in attrs.iteritems():
-			self[attrname] = attrvalue
+		self.update(content, **attrs)
 
 	def __eq__(self, other):
 		return self.__class__ is other.__class__ and dict.__eq__(self, other)
@@ -1966,13 +1962,21 @@ class Attrs(Node, dict):
 			dict.__setitem__(self, self._allowedattrkey(name, xml=xml), attr)
 		return attr
 
+	def _iterallitems(self):
+		return dict.iteritems(self)
+
 	def update(self, *args, **kwargs):
 		"""
 		Copies attributes over from all mappings in <arg>args</arg> and from <arg>kwargs</arg>.
 		"""
 		for mapping in args + (kwargs,):
-			for (attrname, attrvalue) in mapping.iteritems():
-				self[attrname] = attrvalue
+			if mapping is not None:
+				try:
+					for (attrname, attrvalue) in mapping._iterallitems():
+						self[attrname] = attrvalue
+				except AttributeError:
+					for (attrname, attrvalue) in mapping.iteritems():
+						self[attrname] = attrvalue
 
 	def updateexisting(self, *args, **kwargs):
 		"""
@@ -1980,9 +1984,15 @@ class Attrs(Node, dict):
 		but only if they exist in <self/>.
 		"""
 		for mapping in args + (kwargs,):
-			for (attrname, attrvalue) in mapping.iteritems():
-				if self.has(attrname):
-					self[attrname] = attrvalue
+			if mapping is not None:
+				try:
+					for (attrname, attrvalue) in mapping._iterallitems():
+						if attrname in self:
+							self[attrname] = attrvalue
+				except AttributeError:
+					for (attrname, attrvalue) in mapping.iteritems():
+						if attrname in self:
+							self[attrname] = attrvalue
 
 	def updatenew(self, *args, **kwargs):
 		"""
@@ -1992,9 +2002,15 @@ class Attrs(Node, dict):
 		args = list(args)
 		args.reverse()
 		for mapping in [kwargs] + args: # Iterate in reverse order, so the last entry wins
-			for (attrname, attrvalue) in mapping.iteritems():
-				if not self.has(attrname):
-					self[attrname] = attrvalue
+			if mapping is not None:
+				try:
+					for (attrname, attrvalue) in mapping._iterallitems():
+						if attrname not in self:
+							self[attrname] = attrvalue
+				except AttributeError:
+					for (attrname, attrvalue) in mapping.iteritems():
+						if attrname not in self:
+							self[attrname] = attrvalue
 
 	def copydefaults(self, fromMapping):
 		errors.warn(DeprecationWarning("Attrs.copydefaults() is deprecated, use Attrs.updateexisting() instead"))
@@ -2266,8 +2282,7 @@ class Element(Node):
 		newcontent = []
 		for child in content:
 			if isinstance(child, dict):
-				for (attrname, attrvalue) in child.iteritems():
-					self.attrs[attrname] = attrvalue
+				self.attrs.update(child)
 			else:
 				newcontent.append(child)
 		self.content = Frag(*newcontent)
