@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
-<!DOCTYPE quotations SYSTEM "quotations.dtd">
+<?xml-stylesheet href="xml-quotations.css"?>
+
+<!DOCTYPE quotations SYSTEM "quotations.dtd" [
+  <!ENTITY ccedil "&#231;">
+]>
 
 <quotations>
 
@@ -75,7 +79,7 @@ Frankly, I'd rather not try to compete with Perl in the
 areas where Perl is best -- it's a battle that's impossible to win,
 and I don't think it is a good idea to strive for the number of
 obscure options and shortcuts that Perl has acquired through the years.
-<source>Guido van Rossum, 07 Jul 1992</source>
+<source>Guido van Rossum, 7 Jul 1992</source>
 </quotation>
 
 <quotation>
@@ -84,7 +88,7 @@ good idea it takes about 1 minute and five lines to program something
 that almost does what you want. Then it takes only an hour to extend
 the script to 300 lines, after which it still does almost what you
 want.
-<source>Jack Jansen, 08 Jul 1992
+<source>Jack Jansen, 8 Jul 1992
 </source>
 </quotation>
 
@@ -173,7 +177,7 @@ Note that because of its semantics, 'del' <em>can't</em> be a function: "del
 a" deletes 'a' from the current namespace. A function can't delete
 something from the calling namespace (except when written by Steve
 Majewski :-).
-<source>Guido van Rossum, 01 Aug 1994 
+<source>Guido van Rossum, 1 Aug 1994 
 </source>
 </quotation>
 
@@ -246,7 +250,7 @@ Non-masochists, please delete this article NOW.
 <quotation>
 If Perl weren't
 around, I'd probably be using Python right now.  
-<source>Tom Christiansen in comp.lang.perl, 02 Jun 95</source>
+<source>Tom Christiansen in comp.lang.perl, 2 Jun 95</source>
 </quotation>
 
 <quotation>
@@ -346,13 +350,13 @@ be an obstacle for the Java marketing people.)
 
 <quotation>
 A little girl goes into a pet show and asks for a wabbit. The shop
-keeper looks down at her, smiles and says
+keeper looks down at her, smiles and says:
 <br/>
 "Would you like a lovely fluffy little white rabbit, or a cutesy
-wootesly little brown rabbit"
+wootesly little brown rabbit?"
 <br/>
-"Actually", says the little girl, "I don't think my python would notice"
-<source>Nick Leaton, 04 Dec 1996
+"Actually", says the little girl, "I don't think my python would notice."
+<source>Told by Nick Leaton, 4 Dec 1996
 </source>
 </quotation>
 
@@ -408,7 +412,7 @@ Guido how to walk funny.
 vacations are spent in the Bahamas. Guido is currently working on a
 system which will allow him to make more releases of Python; thus
 octupling the number of vacations he takes in a year.
-<source>Matthew Lewis Carroll Smith, 04 Apr 1997
+<source>Matthew Lewis Carroll Smith, 4 Apr 1997
 </source>
 </quotation>
 
@@ -555,7 +559,7 @@ wee snakelet frolicking in the lush Amsterdam jungle.
 
 <quotation>
 The infinities aren't contagious except in that they often appear that way
-due to to their large size.
+due to their large size.
 <source>Tim Peters on the IEEE 754 floating point standard, 27 Apr 1998</source>
 </quotation>
 
@@ -911,7 +915,7 @@ Take the "public" modifier off
    that guy in Titanic and your TCP/IP protocol and your heads filled
    with all that Cartesian dualism these days and ... well, I just don't
    get you kids. &lt;shakes head ruefully again&gt;
-<source>A.M. Kuchling, 01 Oct 1998</source> 
+<source>A.M. Kuchling, 1 Oct 1998</source> 
 </quotation>
 
 <quotation>
@@ -926,6 +930,12 @@ E.g., at the REBOL prompt I typed
 <br/>
    now-<em>that's</em>-user-friendly&lt;wink&gt;-ly y'rs
 <source>Tim Peters, 24 Sep 1998</source> 
+</quotation>
+
+<quotation>
+I've reinvented the idea of variables and types as in a programming
+language, something I do on every project. 
+<source>Greg Ward, September 1998</source> 
 </quotation>
 
 <quotation>
@@ -1017,7 +1027,7 @@ We did requirements and task analysis, iterative design,
 My customers consider it a marketable skill that I
  a) think for myself
  b) share my thoughts with them.
-<source>Paul Prescod, 02 Nov 1998</source> 
+<source>Paul Prescod, 2 Nov 1998</source> 
 </quotation>
 
 <quotation>
@@ -1040,7 +1050,7 @@ you're working.
 <br/>
 
 Maybe it gets us a little closer to art.
-<source>Ivan Van Laningham, 03 Nov 1998</source> 
+<source>Ivan Van Laningham, 3 Nov 1998</source> 
 </quotation>
 
 <quotation>
@@ -1414,43 +1424,43 @@ or two to get that (not necessarily my own, though).
 </quotation>
 
 <quotation>
-    Beautiful is better than ugly.
+1.    Beautiful is better than ugly.
 <br />
-    Explicit is better than implicit.
+2.    Explicit is better than implicit.
 <br />
-    Simple is better than complex.
+3.    Simple is better than complex.
 <br />
-    Complex is better than complicated.
+4.    Complex is better than complicated.
 <br />
-    Flat is better than nested.
+5.    Flat is better than nested.
 <br />
-    Sparse is better than dense.
+6.    Sparse is better than dense.
 <br />
-    Readability counts.
+7.    Readability counts.
 <br />
-    Special cases aren't special enough to break the rules.
+8.    Special cases aren't special enough to break the rules.
 <br />
-    Although practicality beats purity.
+9.    Although practicality beats purity.
 <br />
-    Errors should never pass silently.
+10.    Errors should never pass silently.
 <br />
-    Unless explicitly silenced.
+11.    Unless explicitly silenced.
 <br />
-    In the face of ambiguity, refuse the temptation to guess.
+12.    In the face of ambiguity, refuse the temptation to guess.
 <br />
-    There should be one-- and preferably only one --obvious way to do it.
+13.    There should be one -- and preferably only one -- obvious way to do it.
 <br />
-    Although that way may not be obvious at first unless you're Dutch.
+14.    Although that way may not be obvious at first unless you're Dutch.
 <br />
-    Now is better than never.
+15.    Now is better than never.
 <br />
-    Although never is often better than <em>right</em> now.
+16.    Although never is often better than <em>right</em> now.
 <br />
-    If the implementation is hard to explain, it's a bad idea.
+17.    If the implementation is hard to explain, it's a bad idea.
 <br />
-    If the implementation is easy to explain, it may be a good idea.
+18.    If the implementation is easy to explain, it may be a good idea.
 <br />
-    Namespaces are one honking great idea -- let's do more of those!
+19.    Namespaces are one honking great idea -- let's do more of those!
 <br />
 <source>Tim Peters' 19 Pythonic Theses, 4 Jun 1999</source>
 </quotation>
@@ -1462,6 +1472,16 @@ or two to get that (not necessarily my own, though).
 "11,523 to be exact.  After that, dicts drink to excess and show up for work
 late the morning after.  We don't like to talk about it, though."
 <source>Aahz Maruch and Tim Peters, 8 Jun 1999</source>
+</quotation>
+
+<quotation>
+Stackless Python 0.2, a plug-in replacement for the Python core that does
+not use the C stack, has been announced by Christian Tismer as the best
+ way
+to prove that it was possible without a major rewrite to the core. Neel
+Krishnaswami commented to Christian, "This is very neat, and you are
+completely deranged".
+<source>From Linux Weekly News, 17 Jul 1999</source>
 </quotation>
 
 <quotation>
@@ -1485,7 +1505,549 @@ behavior, aka class).
 <source>Jim Fulton on the term "pluggable brains", 5 Jul 1999</source>
 </quotation>
 
+<quotation>
+This is good. It means that while Ionesco is dead, his spirit
+lives on.
+<source>Gordon McMillan on how Windows attaches meaning to 3-character
+file extensions, 30 Jul 1999</source> 
+</quotation>
+
+<quotation>
+(On the statement <code>print "42 monkeys"+"1 snake"</code>)
+BTW, both perl and Python get this wrong.  Perl gives 43 and Python
+gives "42 monkeys1 snake", when the answer is clearly "41 monkeys and
+1 fat snake". 
+<source>Jim Fulton, 10 Aug 1999
+</source>
+</quotation>
+
+<quotation>
+I expect that what you really object to is the absence
+of control structures other than goto, and the LT/GE/etc spelling of
+comparison operators.  That was common enough in its day, and even by the
+time Pascal came around the keypunch I used still didn't have a semicolon
+key.  It looks ugly in retrospect only because it is &lt;wink&gt;.
+<source>Tim Peters on SNOBOL4, 17 Aug 1999</source> 
+</quotation>
+
+<quotation>
+Theory and reality rarely are kissing cousins.
+<source>Christopher Petrilli, 1 Sep 1999</source> 
+</quotation>
+
+<quotation>
+Features generally don't exist in isolation, and you have to look at all the
+consequences, not just the one that attracts you at first sight.
+<source>Tim Peters, 3 Sep 1999</source> 
+</quotation>
+
+<quotation>
+The danger in this line of thinking is not realizing that the
+computational effort involved in big NP complete problems
+is *so* huge that even in optimized micro-code, the
+algorithm might take a million years to run.
+Tweezers or shovel -- it makes little difference when you
+are trying to move a universe...
+<source>Sean McGrath, 4 Sep 1999</source> 
+</quotation>
+
+<quotation>
+On a scale of one to ten I'd give it a tim.
+<source>William Tanksley, 13 Sep 1999</source> 
+</quotation>
+
+<quotation>
+Statistical analysis shows that the junk
+    looks like human text, which clearly shows
+    that it is actually used in some yet unknown
+    way.
+    (docstrings?)
+<source>Fredrik Lundh, writing about junk DNA, 05 Oct 1999</source> 
+</quotation>
+
+<quotation>
+If I engineer code that I expect to be in use for N
+years, I make damn sure that every internal limit is at least 10x larger
+than the largest I can conceive of a user making reasonable use of at the
+end of those N years.  The invariable result is that the N years pass, and
+fewer than half of the users have bumped into the limit &lt;0.5 wink&gt;.
+<source>Tim Peters, 11 Nov 1999</source> 
+</quotation>
+
+<quotation>
+I don't think the bytecodehacks, while sufficiently dark and useless
+to be a tim-ism, qualify me in any way for a Pythonic Wizard Hat...
+<source>Michael Hudson, 16 Nov 1999</source> 
+</quotation>
+
+<quotation>
+The bottom tier is what
+a certain class of wanker would call "business objects" ...
+<source>Greg Ward, 9 Dec 1999</source> 
+</quotation>
+
+<quotation>
+Since I've done fewer than my normal quota of futile things this
+week, I thought I'd post to remind people that ...
+<source>Phil Austin, 9 Dec 1999</source> 
+</quotation>
+
+<quotation>
+There are useful diagrams in UML, (eg, the state and
+transition diagrams). Unfortunately, the one most tools use to
+generate code (and draw from reverse engineering) has
+everything to do with language structure, and nothing to do
+with what actually happens at runtime. To put it bluntly:
+people spend most of their time designing the wrong thing.
+Worse, they get it wrong, but it's carved in stone now; so the
+final system is either needlessly complex and marginally
+functional, or bears no resemblance to the "design".
+<source>Gordon McMillan, 15 Dec 1999</source> 
+</quotation>
+
+<quotation>
+The secret to good performance is to prototype and prototype,
+then code the bottlenecks in a faster language. The secret to
+large systems is to prototype and prototype, until you've got
+clean separation of the system into managable pieces, then
+code in whatever language most suits the need of each piece.
+<source>Gordon McMillan, 15 Dec 1999</source> 
+</quotation>
+
+<quotation>
+When Jim [Fulton] says "tricky" it means your brain could explode.
+<source>Michel Pelletier, 15 Dec 1999</source> 
+</quotation>
+
+<quotation>
+You have start-tags,
+attributes, end-tags and character data. We have all
+seen "XML applications" and "XML parsers" which handle
+this gang-of-four concepts.  ... 
+Now we can peer over the parapet and shout
+"your parser smells of elderberries" or
+"I wave my mixed content at your ankles",
+as long as we like but the simple
+gang-of-four base apps will not go away.
+<source>Sean McGrath, 19 Dec 1999</source> 
+</quotation>
+
+<quotation>
+Abstraction is one of those notions that Python tosses out the
+window, yet expresses very well.
+<source>Gordon McMillan, 6 Jan 2000</source> 
+</quotation>
+
+<quotation>
+The set of naming conventions has a cardinality equal to the
+number of Python users.
+<source>Gordon McMillan, 6 Jan 2000</source> 
+</quotation>
+
+<quotation>
+It's not the mail volume that bothers me -- I can ignore 100s of
+messages a day very quickly.  It's the time it takes to respond to all
+of them.
+<source>Guido van Rossum, 20 Jan 2000</source> 
+</quotation>
+
+<quotation>
+   This is the way of Haskell or
+Design by Contract of Eiffel. This one is like wearing a XV century
+armor, you walk very safely but in a very tiring way. 
+<source>Manuel Gutierrez Algaba, 26 Jan 2000</source>
+</quotation>
+
+<quotation>
+Life's better without braces.
+<source>Unofficial motto of IPC8, coined by Bruce Eckel</source>
+</quotation>
+
+<quotation>
+"Aggressive" means "sometimes wrong".
+<source>John Aycock at IPC8, during his "Agressive Type Inferencing" talk</source>
+</quotation>
+
+<quotation>
+Do I do everything in C++ and teach a course in advanced swearing?
+<source>David Beazley at IPC8, on choosing a language for teaching</source>
+</quotation>
+
+<quotation>
+Alice is 3D Logo on steroids.
+<source>Randy Pausch at IPC8</source>
+</quotation>
+
+<quotation>
+I was willing to grant this one at once, but, now that I look back at it
+all -- the loyalty oaths, the relentless self-criticism sessions, the
+midnight visits from the Ministry of Love -- I'm afraid what we really have
+here is unspeakably more sinister.  
+<source>Tim Peters after a reference to "Python's cult-like
+following", 2 Feb 2000</source>
+</quotation>
+
+<quotation>
+Guido (like us!) is a bit schizophrenic here:  he wants to be a benevolent
+dictator, but also wants to treat people like grownups.  This probably
+worked better before Python got a large American audience &lt;0.9 wink&gt;. 
+<source>Tim Peters, 10 Feb 2000</source>
+</quotation>
+
+<quotation>
+I have formal proofs that any change of the indentation rules results
+in 35% increase of the page faults for only 63.7% of the cache misses.
+The net effect is an overall slowdown of 10%.
+<source>Vladimir Marangozov after Yet Another indentation flamewar, 16 Feb 2000</source>
+</quotation>
+
+<quotation>
+... let me just say that my least-favourite Python
+error message is "SyntaxError: invalid syntax", which somehow manages to
+be both overly terse and redundant at the same time.
+<source>Greg Ward, 15 Feb 2000</source>
+</quotation>
+
+<quotation>
+See, functional programmers are an insular lot. You rarely see
+them in public, except at parades when they all have antler-
+hats and silly shoes on. So they completely missed the
+infamous "goto considered harmful" thread and didn't even
+realize they were doing anything wrong.
+
+<br/>
+
+Now, let's pretend you're writing a 'bot that can pass as a
+functional programmer. There's a complex protocol here.
+When two functional programmers see each other on the
+street, they recognize each other by the antler hats. But in
+certain parts of the Midwest, regular people wear antler hats,
+too. So there's a protocol. First a &lt;wink wink&gt;. Then the
+secret handshake. Then you sniff each other's armpits and
+stamp your foot 3 times.
+
+<br/>
+
+OK, so you've written a bot, and it works fine on the street.
+Now you send it to a cocktail party. It sees a potential
+functional programmer and gives the &lt;wink wink&gt;. Now it tries
+to move into position to do the secret handshake, but
+discovers that it's antler-hat is entangled with someone else's.
+Oops. &lt;wink wink&gt; at the new guy. Handshake. But before it
+can sniff, the first one has moved up for his handshake. Ay yi
+yi. Your bot crashes and is exposed.
+
+<br/>
+
+So now you rewrite your bot to use a finite state machine so it
+can handle multiple sessions. That means throwing out all the
+code that worked on the street. But if you'd used
+continuations, it would be a relatively minor adjustment of that
+code. 'Course you wouldn't have had to write the bot to begin
+with.
+
+<source>Gordon McMillan,  18 Feb 2000  </source>
+</quotation>
+
+<quotation>
+IIRC, Guido went to CNRI to work on bots and agents or something
+similar. Could the timbot and the effbot be an offshoot of that?
+Next, he's going to start a company with timbot and effbot as the main
+products. Van Rossum's Universal Robots?
+<source>Bernhard Herzog,  21 Feb 2000 </source>
+</quotation>
+
+<quotation>
+So those are the extremes:  Boehm-Demers-Weiser avoids blame by refusing to do anything.
+Java avoids blame by exposing an impossibly baroque implementation-driven
+finalization model.  Scheme avoids blame by refusing to do anything "by
+magic", but helps you to shoot yourself with the weapon of your choice.
+The bad news is that I don't know of a scheme <em>not</em> at an extreme!
+<source>Tim Peters on the knotty problem of finalizers and cycles, 3 Mar 2000 </source>
+</quotation>
+
+<quotation>
+It's extremely un-Pythonic to let things leak (despite that it has let
+things leak for a decade &lt;wink&gt;), but also extremely un-Pythonic to make
+some wild-ass guess.
+<source>Tim Peters on garbage collection, 3 Mar 2000 </source>
+</quotation>
+
+<quotation>
+IOW, the only people who lose under this scheme are the
+ones begging to lose, and their "loss" consists of taking responsibility.
+<source>Tim Peters, 3 Mar 2000 </source>
+</quotation>
+
+<quotation>
+An axiom is accepted without proof:  we have plenty of proof that there's no
+thoroughly good answer (i.e., every language that has ever addressed this
+issue -- along with every language that ever will &lt;wink&gt;).
+<source>Tim Peters on garbage collection, 3 Mar 2000 </source>
+</quotation>
+
+<quotation>
+I can see the FAQ now...
+<br/>
+   Q1.1.2.3: Why can't I divide integers?
+<br/>   
+   A: You drooling moron!  You need a 10-page owners manual and
+   instructional video to handle the notational complexity of
+   Tic-Tacs, don't you?  As every schoolboy knows, the integers are a
+   <em>ring</em>, not a field, you simpering simpleton.  Oh wait!  Let me
+   guess!  I have to spell it out for you, you festering wombat boil.
+   You can't divide integers by integers and get integers.  Understand
+   now?  Now go out there and don't do it.  And read Herstein, while
+   you're at it.
+<source>Johann Hibschman, 4 Mar 2000 </source>
+</quotation>
+
+<quotation>
+Actually, I believe you understand me fine,
+you'd just rather not believe it:  floating point sucks, rationals suck,
+refusing to allow int division sucks, the constructive reals suck, symbolic
+manipulation sucks, ..., but all in different ways for different reasons.
+Every one bristles with its own brands of both shallow and deep "surprises".
+So it goes -- seeking to represent the infinite by the finite is an
+inherently unreachable goal.  This is also why people die &lt;wink&gt;.
+<source>Tim Peters, 4 Mar 2000 </source>
+</quotation>
+
+<quotation>
+The reason I'm right is that I said there won't be any <em>single</em>
+"survivor" of the evolutionary struggle,  and that the efforts to crown
+one's favorite as such are just so much noise.  The software ecosystem
+of the foreseeable future will always have its own form of "diversity": 
+there will be lions <em>and</em> elephants <em>and</em> fish <em>and</em> seals <em>and</em> birds, 
+because there will be many diverse "habitats" where the particular
+adaptations of each will be needed/advantageous.
+<br/>
+The reasoned debates (as opposed to religious wars) may lead to lions
+with opposable thumbs,  or elephants that can see in the infrared,  but
+there will never be a 2000-pound fish with a mane and wings.  Well,  not
+outside the lab,  anyway.
+<source>Ran, 5 Mar 2000 </source>
+</quotation>
+
+<quotation>
+"Complexity" seems to be a lot like "energy":  you can <em>transfer</em> it
+from the end user to one/some of the other players,  but the total
+amount seems to remain pretty much constant for a given task.
+<source>Ran, 5 Mar 2000 </source>
+</quotation>
+
+<quotation>
+LaTeX2HTML is pain.
+<source>Fred Drake in a documentation checkin message, 14 Mar 2000 </source>
+</quotation>
+
+<quotation>
+Here, have some cycles of reversed kielbasa.  And ten (10 (0xa (101010b)))
+Usenet Points, redeemable in comp.lang.python for increased local
+prestige.  Some prestige may depend upon your own actions.  Local Prestige
+may or may not have any effect on your actual life (or lack thereof).
+<source>William Tanksley, 21 Mar 2000 </source>
+</quotation>
+
+<quotation>
+Mucking with
+builtins is fun the way huffing dry erase markers is fun.  Things are
+very pretty at first, but eventually the brain cell lossage will more
+than outweigh that cheap thrill.
+<source>Barry Warsaw, 23 Mar 2000 </source>
+</quotation>
+
+<quotation>
+&gt;Have you ever looked at the output of a <code>bib | tbl | eqn</code> pipeline?
+<br/>
+Are you kids still using that as a pick-up line?
+<source>Roy Smith and Cameron Laird, 4 Apr 2000</source>
+</quotation>
+
+<quotation>
+This
+is like getting lost in a dictionary.  What does quincuncial mean anyhow?
+<source>Dennis Hamilton, 4 Apr 2000</source>
+</quotation>
+
+<quotation>
+UTF-8 has a certain purity in that it equally annoys every nation, and is
+nobody's default encoding. 
+<source>Andy Robinson, 10 Apr 2000</source>
+</quotation>
+
+<quotation>
+"Now if we could
+figure
+out where python programmers are from, someone could write a book and get
+rich."
+<br/>
+"Yorkshire."
+<source>Quinn Dunkan and Warren Postma, 11 Apr 2000</source>
+</quotation>
+
+<quotation>
+   If I didn't have my part-time performance art
+   income to help pay the bills, I could never
+   afford to support my programming lifestyle.
+<source>Jeff Bauer, 21 Apr 2000</source>
+</quotation>
+
+<quotation>
+  Of course, this brought me face to face once again with Python's
+  <foreign>pons asinorum</foreign>, the significance of whitespace.
+<source>Eric S. Raymond, in the <cite>Linux Journal</cite>'s Python supplement</source>
+</quotation>
+
+<quotation>
+Surprisingly enough, Python has taught me more about Lisp than Lisp
+ever did ;-).
+   <source>Glyph Lefkowitz, 03 May 2000</source>
+</quotation>
+
+<quotation>
+ How about we notate the hungarian notation with the type of hungarian
+   notation, you know, hungarian meta notation: HWND
+   aWin32ApiHandleDefinedInWindowsDotH_hwndWindowHandle;
+   <source>Warren Postma, 4 May 2000</source>
+</quotation>
+
+<quotation>
+Note that Python's licence is in fact the MIT X11 licence, with MIT
+filed off and CNRI written in its place in crayon.
+   <source>A.M. Kuchling, 5 May 2000</source>
+</quotation>
+
+<quotation>
+Once you've read and
+understood _The Art of the Metaobject Protocol_ you are one quarter of
+the way to provisional wizard status. (The other three-fourths are b)
+understanding Haskell's monads, c) grokking Prolog, and d) becoming
+handy with a combinator-based language by implementing a Forth.)
+   <source>Neel Krishnaswami, 9 May 2000</source>
+</quotation>
+
+<quotation>
+"The future" has
+arrived but they forgot to update the docs.
+<source>R. David Murray, 9 May 2000</source>
+</quotation>
+
+<quotation>
+/* This algorithm is from a book written before the invention of
+     structured programming... */
+   <source>Comment in parser/pgen.c, noted by Michael Hudson</source>
+</quotation>
+
+<quotation>
+For more information please see my unpublished manuscript
+on steam driven turing machines. [2000pp in crayon donated to
+the harvard library -- they never told me whether they filed it
+under mathematics, philosophy, logic, mechanical engineering,
+or computational science]
+   <source>Aaron Watters, 12 May 2000</source>
+</quotation>
+
+<quotation>
+Me?  I hate the whole lambda calculus, not because of what it is, but
+because of what many people think it is.  They think that it's the whole
+of computer science, the ultimate way to express and reason about
+programs, when in reality it's merely a shabby and incomplete model of how
+Fortran fails to work.  The first thing SICP has to do is teach everyone
+how bad the lambda calculus model is -- as part of teaching them about a
+language allegedly based on lambda calculus.
+<br/>
+I'm sorry, was my bias showing again?  :-)
+<source>William Tanksley, 13 May 2000</source>
+</quotation>
+
+<quotation>
+ I never got beyond starting the data-structures in C++, I never got
+beyond seeing how it would work in Scheme. I finished it in one
+Python-filled afternoon, and discovered the idea sucked big time.  I
+was glad I did it in Python, because it only cost me one afternoon to
+discover the idea sucks.  
+<source>Moshe Zadka, 13 May 2000</source>
+</quotation>
+
+<quotation>
+In truth, we use 'j' to represent sqrt(-1) for exactly the same reason
+we use a convention for the direction of current which is exactly the
+opposite of the direction the electrons actually travel: because it
+drives physicists crazy.  (And if we pick up a few mathematicians or
+whatever along the way, well, that's just gravy. ;-)
+<source>Grant R. Griffin, 14 May 2000</source>
+</quotation>
+
+<quotation>
+Unicode: everyone wants it, until they get it.
+<source>Barry Warsaw, 16 May 2000</source>
+</quotation>
+
+<quotation>
+I saw a hack you sent me a few months ago and approved of its
+intent and was saddened by its necessity.
+<source>Jim Fulton, 16 May 2000</source>
+</quotation>
+
+<quotation>
+Suspicions are most easily dispelled/confirmed via evidence, and
+taking the trouble to do this has the pleasant side-effect that you
+can either cease expending effort worrying, or move directly to taking
+positive action to correct the problem.
+<source>Neel Krishnaswami, 21 May 2000</source>
+</quotation>
+
+<quotation>
+Thanks to the
+overnight turnaround and the early interpreter's habit of
+returning nothing at all useful if faced with a shortage of )s,
+one could easily detect the LISP users:  they tended to walk
+around with cards full of )))))))... in their shirt pockets, to be
+slapped onto the end of submitted card decks:  one at least
+got something back if there were too many )s.
+<source>John W. Baxter, 21 May 2000</source>
+</quotation>
+
+<quotation>
+Python: embodies a harmony of chocolate kisses with hints of jasmine
+and rose. Trussardi's wild new fragrance.
+<source>From <cite>Marie Claire</cite>, Australian edition, May 2000;
+noted by Fiona Czuczman</source>
+</quotation>
+
+<quotation>
+In arts, compromises yield mediocre results.  The personality and vision
+of the artist has to go through.  I like to see Python as a piece of art.
+I just hope the artist will not get too tainted by usability studies.
+<source>Fran&ccedil;ois Pinard, 22 May 2000</source>
+</quotation>
+
+<quotation>
+ In fact, I've never seen an argument about which I
+cared less.  I'm completely case insensitivity insensitive.
+<source>William Tanksley, 23 May 2000</source>
+</quotation>
+
+<quotation>
+They boo-ed when Dylan went electric.
+But for me its about the instincts of a designer, and the faith of a fan.
+Not science.
+So much the better.
+<source>Arthur Siegel, 23 May 2000</source>
+</quotation>
+
+<quotation>
+Burroughs did something very odd with COBOL at one point (and no, it
+wasn't The Naked Lunch).
+<source>Will Rose, 27 May 2000</source>
+</quotation>
+
+<quotation>
+Code generators are hacks. Sometimes necessary hacks, but hacks
+nevertheless.
+<source>Paul Prescod, 7 Jun 2000</source>
+</quotation>
 
 </quotations>
-
 

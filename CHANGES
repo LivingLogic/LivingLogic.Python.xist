@@ -25,6 +25,9 @@ which keeps the path in a consistent state.
 >>> u
 URL(scheme='server', path=['bar'], file='baz', ext='gif')
 
+findNodes() has an additional argument test, which can be a test function that
+will be called when the node passes all other tests.
+
 New in 0.3.4
 ------------
 
