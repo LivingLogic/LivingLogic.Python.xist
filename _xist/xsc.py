@@ -3604,12 +3604,12 @@ class Namespace(Base):
 		cache = cls._getcache()
 		try:
 			if isinstance(name, (int, long)):
-				charrefs = cache._charrefs[2][name]
+				charrefs = cache[3][2][name]
 				if len(charrefs) > 1:
 					raise errors.AmbiguousCharRefError(name, xml)
 				return charrefs[0]
 			else:
-				return cache._charrefs[xml][name]
+				return cache[3][xml][name]
 		except KeyError:
 			raise errors.IllegalCharRefError(name, xml=xml)
 	charref = classmethod(charref)
