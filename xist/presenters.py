@@ -340,27 +340,14 @@ def strAttrName(attrname):
 def strAttrValue(attrvalue):
 	return EnvTextForAttrValue(EscInlineAttr(attrvalue))
 
-class Presenter:
-	"""
-	base class for all presenters.
-	"""
-
-	def __init__(self):
-		pass
-
-	def reset(self):
-		self.buffer = ansistyle.Stream(ansistyle.StringBuffer())
-		self.inAttr = 0
-
-
-class NormalPresenter(Presenter):
+class NormalPresenter:
 	def beginPresentation(self):
 		self.buffer = ansistyle.Text()
 		self.inAttr = 0
 
 	def endPresentation(self):
 		result = str(self.buffer)
-		self.reset()
+		self.buffer = None
 		return result
 
 	def presentText(self, node):
@@ -404,7 +391,7 @@ class NormalPresenter(Presenter):
 			strBracketClose()
 		)
 
-	def _writeAttrs(self, dict):
+	def _appendAttrs(self, dict):
 		for attr in dict.keys():
 			self.buffer.append(" ", strAttrName(attr))
 			value = dict[attr]
@@ -416,11 +403,11 @@ class NormalPresenter(Presenter):
 	def presentElement(self, node):
 		if node.empty:
 			self.buffer.append(strBracketOpen(), strElement(node))
-			self._writeAttrs(node.attrs)
+			self._appendAttrs(node.attrs)
 			self.buffer.append(strSlash(), strBracketClose())
 		else:
 			self.buffer.append(strBracketOpen(), strElement(node))
-			self._writeAttrs(node.attrs)
+			self._appendAttrs(node.attrs)
 			self.buffer.append(strBracketClose())
 			for child in node:
 				child.present(self)
@@ -433,13 +420,20 @@ class NormalPresenter(Presenter):
 		self.buffer.append(strBracketOpen(), strElement(node), strSlash(), strBracketClose())
 
 	def presentAttr(self, node):
-		self.inAttr = 1
 		xsc.Frag.present(node, self)
-		self.inAttr = 0
 
 	def presentURLAttr(self, node):
-		self.inAttr = 1
 		self.buffer.append(strURL(node.asString()))
+
+class TreePresenter:
+	def beginPresentation(self):
 		self.inAttr = 0
+		self.lines = []
+
+	def endPresentation(self):
+		buffer = ansistyle.Text()
+		result = str(self.buffer)
+		self.buffer = None
+		return result
 
 defaultPresenterClass = NormalPresenter
