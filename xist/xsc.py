@@ -789,13 +789,11 @@ class Frag(Node):
 			self.extend(child)
 
 	def convert(self, converter=None):
-		if __debug__:
-			for child in self.__content:
-				convertedchild = child.convert()
-				if not isinstance(convertedchild, Node):
-					raise AssertionError("the convert method returned the illegal object %r when converting %r" % (convertedchild, child))
 		node = self.__class__() # virtual constructor => attributes (which are derived from Frag) will be handled correctly)
-		node.__content = [ child.convert(converter) for child in self.__content ]
+		for child in self.__content:
+			convertedchild = child.convert(converter)
+			assert isinstance(convertedchild, Node), "the convert method returned the illegal object %r when converting %r" % (convertedchild, child)
+			node.__content.append(convertedchild)
 		return self._decorateNode(node)
 
 	def clone(self):
@@ -1284,9 +1282,15 @@ class Element(Node):
 				if not isinstance(convertedattr, Node):
 					raise AssertionError("the convert method returned the illegal object %r when converting the attribute %s with the value %r" % (convertedattr, presenters.strAttrName(attrname), attr))
 		node = self.__class__() # "virtual" copy constructor
-		node.content = self.content.convert(converter) # this is faster than passing it in the constructor (no ToNode call)
-		for attr in self.attrs.keys():
-			node.attrs[attr] = self.attrs[attr].convert(converter)
+		for child in self.content:
+			convertedchild = child.convert(converter)
+			assert isinstance(convertedchild, Node), "the convert method returned the illegal object %r when converting %r" % (convertedchild, child)
+			node.content.append(convertedchild)
+		for attrname in self.attrs.keys():
+			attr = self.attrs[attrname]
+			convertedattr = attr.convert(converter)
+			assert isinstance(convertedattr, Node), "the convert method returned the illegal object %r when converting the attribute %s with the value %r" % (convertedchild, presenters.strAttrName(attrname), child)
+			node.attrs[attr] = convertedattr
 		return self._decorateNode(node)
 
 	def clone(self):
