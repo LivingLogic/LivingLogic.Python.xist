@@ -639,29 +639,36 @@ class Node(Base):
 		"""
 		<par>Return an iterator for traversing the tree rooted at <self/>.</par>
 
-		<par><arg>filter</arg> is used for specifying whether or not a node should be yielded
-		and when the children of this node should be traversed.
-		If <arg>filter</arg> is callable, it will be called for each node visited during
-		the traversal and must return a sequence of <z>node handling options</z>. Otherwise
-		(i.e. if <arg>filter</arg> is not callable) <arg>filter</arg> must be a sequence of
-		node handling options that will be used for all visited nodes.</par>
+		<par><arg>filter</arg> is used for specifying whether or not a node should
+		be yielded and when the children of this node should be traversed. If
+		<arg>filter</arg> is callable, it will be called for each node visited
+		during the traversal and must return a sequence of <z>node handling
+		options</z>. Otherwise (i.e. if <arg>filter</arg> is not callable)
+		<arg>filter</arg> must be a sequence of node handling options that will
+		be used for all visited nodes.</par>
 
 		<par>Entries in this sequence can be the following:</par>
 
 		<dlist>
-		<term><lit>True</lit></term><item>This tells <method>walk</method> to yield this node from the iterator.</item>
-		<term><lit>False</lit></term><item>Don't yield this node from the iterator (or simply leave this entry away).</item>
-		<term><lit>enterattrs</lit></term><item>This is a global constant in <module>ll.xist.xsc</module> and
-		tells <method>walk</method> to traverse the attributes of this node (if it's an
-		<pyref class="Element"><class>Element</class></pyref>, otherwise this option will be ignored).</item>
-		<term><lit>entercontent</lit></term><item>This is a global constant in <module>ll.xist.xsc</module> and
-		tells <method>walk</method> to traverse the child nodes of this node (if it's an
-		<pyref class="Element"><class>Element</class></pyref>, otherwise this option will be ignored).</item>
+		<term><lit>True</lit></term><item>This tells <method>walk</method> to
+		yield this node from the iterator.</item>
+		<term><lit>False</lit></term><item>Don't yield this node from the iterator
+		(or simply leave this entry away).</item>
+		<term><lit>enterattrs</lit></term><item>This is a global constant in
+		<module>ll.xist.xsc</module> and tells <method>walk</method> to traverse
+		the attributes of this node (if it's an
+		<pyref class="Element"><class>Element</class></pyref>, otherwise this
+		option will be ignored).</item>
+		<term><lit>entercontent</lit></term><item>This is a global constant in
+		<module>ll.xist.xsc</module> and tells <method>walk</method> to traverse
+		the child nodes of this node (if it's an
+		<pyref class="Element"><class>Element</class></pyref>, otherwise this
+		option will be ignored).</item>
 		</dlist>
 
-		<par>These options will be executed in the order they are specified in the sequence, so
-		to get a top down traversal of a tree (without entering attributes), the following call
-		can be made:</par>
+		<par>These options will be executed in the order they are specified in the
+		sequence, so to get a top down traversal of a tree (without entering
+		attributes), the following call can be made:</par>
 
 		<prog>
 		<rep>node</rep>.walk((True, xsc.entercontent))
@@ -674,27 +681,31 @@ class Node(Base):
 		</prog>
 
 		<par><arg>filterpath</arg> specifies how <arg>filter</arg> will be called:
-		If <arg>filterpath</arg> is false, <method>walk</method> will pass the node itself
-		to the filter function, if <arg>filterpath</arg> is true, a list containing the complete
-		path from the root node to the node to be tested will be passed to <arg>filter</arg>.</par>
+		If <arg>filterpath</arg> is false, <method>walk</method> will pass the
+		node itself to the filter function, if <arg>filterpath</arg> is true, a
+		list containing the complete path from the root node to the node to be
+		tested will be passed to <arg>filter</arg>.</par>
 
-		<par><arg>walkpath</arg> works similar to <arg>filterpath</arg> and specifies whether
-		the node or a path to the node will be yielded from the iterator.</par>
+		<par><arg>walkpath</arg> works similar to <arg>filterpath</arg> and
+		specifies whether the node or a path to the node will be yielded from the
+		iterator.</par>
 		"""
 		return xfind.Finder(self._walk(filter, [], filterpath, walkpath))
 
 	def find(self, filter=(True, entercontent), filterpath=False):
 		"""
-		Return a <pyref class="Frag"><class>Frag</class></pyref> containing all nodes
-		found by the filter function <arg>filter</arg>. See <pyref method="walk"><method>walk</method></pyref>
-		for an explanation of the arguments.
+		Return a <pyref class="Frag"><class>Frag</class></pyref> containing all
+		nodes found by the filter function <arg>filter</arg>. See
+		<pyref method="walk"><method>walk</method></pyref> for an explanation of
+		the arguments.
 		"""
 		return Frag(list(self.walk(filter, filterpath, False)))
 
 	def findfirst(self, filter=(True, entercontent), filterpath=False):
 		"""
 		Return the first node found by the filter function <arg>filter</arg>.
-		See <pyref method="walk"><method>walk</method></pyref> for an explanation of the arguments.
+		See <pyref method="walk"><method>walk</method></pyref> for an explanation
+		of the arguments.
 		"""
 		for item in self.walk(filter, filterpath, False):
 			return item
@@ -714,15 +725,16 @@ class Node(Base):
 
 	def compact(self):
 		"""
-		returns a version of <self/>, where textnodes or character references that contain
-		only linefeeds are removed, i.e. potentially needless whitespace is removed.
+		Return a version of <self/>, where textnodes or character references that
+		contain only linefeeds are removed, i.e. potentially needless whitespace
+		is removed.
 		"""
 		return self
 
 	def _decoratenode(self, node):
 		"""
-		<par>decorate the <pyref class="Node"><class>Node</class></pyref>
-		<arg>node</arg> with the same location information as <self/>.</par>
+		Decorate the <pyref class="Node"><class>Node</class></pyref>
+		<arg>node</arg> with the same location information as <self/>.
 		"""
 
 		node.startloc = self.startloc
@@ -731,13 +743,15 @@ class Node(Base):
 
 	def mapped(self, function, converter):
 		"""
-		<par>Return the node mapped through the function <arg>function</arg>.
-		This call works recursively (for <pyref class="Frag"><class>Frag</class></pyref>
+		<par>Return the node mapped through the function <arg>function</arg>. This
+		call works recursively (for <pyref class="Frag"><class>Frag</class></pyref>
 		and <pyref class="Element"><class>Element</class></pyref>).</par>
-		<par>When you want an unmodified node you simply can return <self/>. <method>mapped</method>
-		will make a copy of it and fill the content recursively. Note that element attributes
-		will not be mapped. When you return a different node from <function>function</function>
-		this node will be incorporated into the result as-is.</par>
+
+		<par>When you want an unmodified node you simply can return <self/>.
+		<method>mapped</method> will make a copy of it and fill the content
+		recursively. Note that element attributes will not be mapped. When you
+		return a different node from <function>function</function> this node will
+		be incorporated into the result as-is.
 		"""
 		node = function(self, converter)
 		assert isinstance(node, Node), "the mapped method returned the illegal object %r (type %r) when mapping %r" % (node, type(node), self)
@@ -760,14 +774,14 @@ class Node(Base):
 
 	def __rmul__(self, factor):
 		"""
-		<par>returns a <pyref class="Frag"><class>Frag</class></pyref> with
+		<par>Return a <pyref class="Frag"><class>Frag</class></pyref> with
 		<arg>factor</arg> times the node as an entry.</par>
 		"""
 		return Frag(*[self]*factor)
 
 	def pretty(self, level=0, indent="\t"):
 		"""
-		<par>Returns a prettyfied version of <self/>, i.e. one with properly
+		<par>Return a prettyfied version of <self/>, i.e. one with properly
 		nested and indented tags (as far as possible). If an element has mixed
 		content (i.e. <pyref class="Text"><class>Text</class></pyref> and
 		non-<pyref class="Text"><class>Text</class></pyref> nodes) the content
