@@ -130,10 +130,7 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 		self.reset()
 
 	def reset(self):
-		try:
-			self.parser = sgmlop.XMLUnicodeParser()
-		except AttributeError:
-			self.parser = sgmlop.XMLParser()
+		self.parser = sgmlop.XMLParser()
 		self._parsing = 0
 		self.encoding = self.defaultEncoding
 		self.source = None
