@@ -461,7 +461,8 @@ and <lit>expat</lit>.</item>
 <item><filename>xscmake.py</filename> has a new option <option>-n</option>/<option>--namespace</option>
 that can be used for appending <class>Namespace</class>
 objects to the <class>Namespaces</class> object used by <filename>xscmake.py</filename>.
-<example title="Using the --namespace option">
+<example>
+<title>Using the --namespace option</title>
 <programlisting>
 xscmake.py -n html -n spam eggs.xsc
 </programlisting>
@@ -736,7 +737,8 @@ will.
 <item>Make functionality has been moved to <filename>make.py</filename>, as certain modules can't
 be used as the main script, because reimporting them in processing
 instructions won't work. Now you can simply call
-<example title="The new make script">
+<example
+<title>The new make script</title>
 <programlisting>make.py --import xist.html --import spam eggs.xsc</programlisting>
 </example>
 </item>
