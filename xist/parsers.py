@@ -232,8 +232,8 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 			newattrs._attrs[attrname] = attrvalue
 		self.content_handler.startElement(unicode(name, self.encoding), newattrs)
 
-	def finish_endtag(self,name):
-		self.content_handler.endElement(unicode(name, self.encoding))
+	def finish_endtag(self, name):
+		self.content_handler.endElement(name)
 
 ExpatParser = expatreader.ExpatParser
 
