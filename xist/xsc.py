@@ -417,7 +417,9 @@ def string2Fragment(s):
 def ToNode(value):
 	t = type(value)
 	if t == types.InstanceType:
-		if isinstance(value,Frag):
+		if isinstance(value,Attr): # repack the attribute in a fragment, and we have a valid XSC node
+			return ToNode(value.content)
+		elif isinstance(value,Frag):
 			l = len(value)
 			if l==1:
 				return ToNode(value[0]) # recursively try to simplify the tree
@@ -425,8 +427,6 @@ def ToNode(value):
 				return Null()
 			else:
 				return value
-		elif isinstance(value,Attr): # unpack the attribute, and we have a valid XSC node
-			return value.content
 		elif isinstance(value,Node):
 			return value
 	elif t in [ types.StringType,types.IntType,types.LongType,types.FloatType ]:
@@ -738,7 +738,9 @@ class Frag(Node):
 		t = type(_content)
 		if t == types.InstanceType:
 			if isinstance(_content,Frag):
-				self.__content = _content
+				self.__content = []
+				for child in _content:
+					self.append(child)
 			elif isinstance(_content,Null):
 				self.__content = []
 			else:
@@ -777,7 +779,7 @@ class Frag(Node):
 		return e
 
 	def clone(self):
-		e = Frag()
+		e = self.__class__(self)
 		for child in self:
 			e.append(child.clone())
 		return e
@@ -1225,7 +1227,7 @@ class Element(Node):
 			v.append(" ")
 			v.append(_strattrname(attr))
 			value = self[attr]
-			if not isinstance(value.content,Null):
+			if len(value):
 				v.append('=')
 				v.append(_stransi(repransiquote,'"'))
 				v.append(value._dorepr())
@@ -1301,7 +1303,7 @@ def registerElement(element):
 	else:
 		_elementHandlers[name[1]] = { name[0] : element }
 
-class Attr(Node):
+class Attr(Frag):
 	"""
 	Base classes of all attribute classes.
 
@@ -1314,36 +1316,13 @@ class Attr(Node):
 	a fragment consisting only of text and character references.
 	"""
 
-	def __init__(self,_content):
-		self.content = ToNode(_content)
-
-	def __add__(self,other):
-		newother = ToNode(other)
-		if not isinstance(newother,Null):
-			return self.__class__(self.content+newother)
-		else:
-			return self
-
-	def __radd__(self,other):
-		newother = ToNode(other)
-		if not isinstance(newother,Null):
-			return self.__class__(newother+self.content)
-		else:
-			return self
-
-	def clone(self):
-		return self.__class__(self.content.clone()) # "virtual copy constructor"
-
 class TextAttr(Attr):
 	"""
 	Attribute class that is used for normal text attributes.
 	"""
 
-	def __init__(self,_content):
-		Attr.__init__(self,_content)
-
 	def _dorepr(self):
-		return _stransi(repransiattrvalue,str(self.content))
+		return _stransi(repransiattrvalue,Attr._dorepr(self))
 
 	def _doreprtree(self,nest,elementno):
 		return [[nest,self.startlineno,elementno,self._dorepr()]]
@@ -1360,9 +1339,6 @@ class ColorAttr(Attr):
 	"""
 
 	repransitext = ""
-
-	def __init__(self,_content):
-		Attr.__init__(self,_content)
 
 	def _dorepr(self):
 		return _stransi(repransiattrvalue,str(self.content))
@@ -1381,9 +1357,7 @@ class URL(Node):
 		if type(url) == types.StringType:
 			self.__fromString(url)
 		elif type(url) == types.InstanceType:
-			if isinstance(url,URLAttr):
-				self.__fromString(str(url.content))
-			elif isinstance(url,URL):
+			if isinstance(url,URL):
 				self.scheme     = url.scheme
 				self.server     = url.server
 				self.path       = url.path[:]
@@ -1391,6 +1365,10 @@ class URL(Node):
 				self.parameters = url.parameters
 				self.query      = url.query
 				self.fragment   = url.fragment
+			elif isinstance(url,Text):
+				self.__fromString(url.content)
+			elif isinstance(url,CharRef):
+				self.__fromString(chr(url.content))
 			else:
 				raise "Nix"
 
@@ -1431,6 +1409,7 @@ class URL(Node):
 	def __repr__(self):
 		sep = "/" # use the normal URL separator by default
 		path = self.path[:]
+		path.append(self.file)
 		if self.scheme == "" or self.scheme == "project":
 			# replace URL syntax with the path syntax on our system (won't do anything under UNIX, replaces / with  \ under Windows)
 			for i in range(len(path)):
@@ -1442,6 +1421,7 @@ class URL(Node):
 
 	def __str__(self):
 		path = self.path[:]
+		path.append(self.file)
 		scheme = self.scheme
 		if scheme == "project":
 			scheme = "" # remove our own private scheme name
@@ -1455,10 +1435,8 @@ class URL(Node):
 		newother = URL(other)
 
 		if newother.scheme == "":
-			if len(new.path) and new.path[-1] != "": # if this as only a dir
-				new.path[-1:]  = newother.path[:]
-			else:
-				new.path.extend(newother.path[:])
+			new.path.extend(newother.path[:])
+			new.file       = newother.file
 			new.parameters = newother.parameters
 			new.query      = newother.query
 			new.fragment   = newother.fragment
@@ -1466,6 +1444,7 @@ class URL(Node):
 			if new.scheme == "project": # if we were project relative, and the other one was server relative ...
 				new.scheme = newother.scheme # ... then now we're server relative too
 			new.path       = newother.path[:]
+			new.file       = newother.file
 			new.parameters = newother.parameters
 			new.query      = newother.query
 			new.fragment   = newother.fragment
@@ -1475,7 +1454,7 @@ class URL(Node):
 		return new
 
 	def clone(self):
-		return URL(scheme = self.scheme,server = self.server,path = self.path,parameters = self.parameters,query = self.query,fragment = self.fragment)
+		return URL(scheme = self.scheme,server = self.server,path = self.path,file = self.file,parameters = self.parameters,query = self.query,fragment = self.fragment)
 		
 	def relativeTo(self,other):
 		"""
@@ -1537,10 +1516,10 @@ class URLAttr(Attr):
 
 	def __init__(self,_content):
 		Attr.__init__(self,_content)
-		self.content = str(xsc.filename[-1] + self)
+		self.insert(0,xsc.filename[-1])
 
 	def _dorepr(self):
-		return repr(URL(self))
+		return repr(reduce(lambda x,y: x.joined(y),self))
 
 	def _doreprtree(self,nest,elementno):
 		return [[nest,self.startlineno,elementno,self._dorepr()]]
@@ -1552,13 +1531,13 @@ class URLAttr(Attr):
 		return URLAttr(self.content.asHTML())
 
 	def forInput(self):
-		url = URL(self)
+		url = reduce(lambda x,y: x.joined(y),self)
 		if url.scheme == "server":
 			url = url.relativeTo(URL(scheme = "http",server = xsc.server))
 		return str(url)
 
 	def forOutput(self):
-		url = URL(self)
+		url = reduce(lambda x,y: x.joined(y),self)
 		if url.scheme == "server":
 			url = url.relativeTo(URL(scheme = "http",server = xsc.server))
 		else:
