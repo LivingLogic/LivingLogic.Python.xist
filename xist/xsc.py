@@ -715,11 +715,14 @@ class Node:
 		"""
 		return string.atoi(self.asPlainString())
 
-	def asFloat(self):
+	def asFloat(self,decimal = "."):
 		"""
 		returns this node converted to a float.
 		"""
-		return string.atof(self.asPlainString())
+		s = self.asPlainString()
+		if decimal != ".":
+			s = string.replace(s,decimal,".")
+		return string.atof(s)
 
 	def asString(self,XHTML = None):
 		"""
