@@ -14,6 +14,17 @@ startup script. For more info see the
 renamed to <lit>__ns__</lit>.</par>
 </section>
 
+<section><title>Other minor changes</title>
+<par><class>ll.xist.ns.specials.x</class> has been renamed to
+<class>ll.xist.ns.specials.ignore</class>.</par>
+<par><class>ll.xist.xfind.item</class> no longer handles slices.
+If you've used that functionality, you may now use slices
+on XFind operators, and materilize the result, i.e. replace
+<lit>xfind.slice(<rep>foo</rep>, 1, -1)</lit>
+with <lit>list(<rep>foo</rep>[1:-1])</lit>, if <lit><rep>foo</rep></lit> is
+an XFind operator.</par>
+</section>
+
 </section>
 
 
