@@ -250,7 +250,7 @@ class SQLInsert(SQLCommand):
 	def __str__(self):
 		v = []
 		v.append("INSERT INTO ")
-		v.append(table)
+		v.append(self.table)
 		v.append(" (")
 		vv = []
 		for field in set.keys():
