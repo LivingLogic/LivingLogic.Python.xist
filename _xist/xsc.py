@@ -20,31 +20,28 @@
 ## IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 """
-XIST is a &html; preprocessor/generator and an &xml; transformation engine.
-It is easily extensible with new &xml; elements, allows embedding
-Python code in &xml; files and works together with httpdapy/mod_python.
-
-It was written as a replacement for an &html; preprocessor named
-<a href="http://www.giga.or.at/~agi/hsc/">HSC</a>, and borrows some 
-features and ideas from it.
-
-It also borrows the basic ideas (&xml;/&html; elements as Python 
-objects) from 
+<dbl:para>&xist; is a &html; generator based on Python and &xml;. It was written
+as a replacement for an &html; preprocessor named
+<a href="http://www.giga.or.at/~agi/hsc/">HSC</a>, and borrows some
+features and ideas from it. It also borrows the basic ideas (&xml;/&html;
+elements as Python objects) from 
 <a href="http://starship.python.net/crew/friedrich/HTMLgen/html/main.html">HTMLgen</a> 
-or <a href="http://dustman.net/andy/python/HyperText/">HyperText</a>.
+or <a href="http://dustman.net/andy/python/HyperText/">HyperText</a>.</dbl:para>
 
 <dbl:section><dbl:title>Overview</dbl:title>
-<dbl:para>Generating the final output requires the following three
-steps:
+<dbl:para>Generating your final &html; or &xml; output in the form
+of a file or a response sent from a web server, requires the following
+three steps:
 <ul>
-<li>Generating a source tree: This can be done either by
+<li>Generating a source &dom; tree: This can be done either by
 parsing an &xml; file, or by directly constructing the
-tree, as HTMLgen and HyperText do, as a tree of Python objects.
-&xist; provides a very natural and pythonic &api; for that.</li>
+tree, as <application>HTMLgen</application> and <application>HyperText</application>
+do, as a tree of Python objects. &xist; provides a very natural
+and pythonic &api; for that.</li>
 <li>Converting the source tree into a target tree: This target
 tree can be a &html; tree or a &wml; tree or any other
 &xml; object tree you like. Every node class provides a
-<function>convert</function> method for that. For
+<function>convert</function> method for performing the conversion. For
 your own &xml; element types you have to define your
 own node classes and implement an appropriate
 <function>convert</function> method.</li>
@@ -88,7 +85,7 @@ be found in <dbl:pyref module="xist.ns.html">xist.ns.html</dbl:pyref> for exampl
 <programlisting>
 __init__(self, *content, **attrs)
 </programlisting>
-Positional arguments (i.e. <parameter>content</parameter>)
+Positional arguments (i.e. items in <parameter>content</parameter>)
 will be considered child nodes of the element node (except for dictionaries). 
 Keyword arguments (i.e. <parameter>attrs</parameter> and dictionaries from 
 the <parameter>content</parameter> parameter will be attributes. 
