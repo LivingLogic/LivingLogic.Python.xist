@@ -21,8 +21,8 @@
 ## IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 """
-<doc:par>This modules contains elements for doing conditionals
-on the &xml; level.</doc:par>
+<par>This modules contains elements for doing conditionals
+on the &xml; level.</par>
 """
 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
