@@ -150,7 +150,8 @@ class autoimg(html.img):
 			e = target.img(self.attrs.convert(converter))
 		else:
 			raise ValueError("unknown conversion target %r" % target)
-		e._addImageSizeAttributes(converter.root, "src", "width", "height")
+		src = self["src"].convert(converter).forInput(converter.root)
+		e._addimagesizeattributes(src, "width", "height")
 		return e
 
 class autoinput(html.input):
@@ -160,12 +161,11 @@ class autoinput(html.input):
 	has <lit>type=="image"</lit>.</par>
 	"""
 	def convert(self, converter):
-		if self.attrs.has("type") and self["type"].convert(converter) == u"image":
-			e = html.input(self.content, self.attrs)
-			e._addImageSizeAttributes(converter.root, "src", "size", None) # no height
-			return e.convert(converter)
-		else:
-			return html.img.convert(self, converter)
+		e = html.input(self.content, self.attrs)
+		if u"type" in self.attrs and unicode(self["type"].convert(converter)) == u"image":
+			src = self["src"].convert(converter).forInput(converter.root)
+			e._addimagesizeattributes(src, "size", None) # no height
+		return e.convert(converter)
 
 class redirectpage(xsc.Element):
 	empty = True

@@ -81,6 +81,9 @@ This makes it possible to access the <z>document root</z>
 during conversion.</item>
 </dlist>
 </item>
+<item><class>ll.xist.ns.htmlspecials.autoimg</class> no longer touches
+the existing width and height attribute. This means that %-formatting
+of the existing attributes is no longer done.</item>
 </ulist>
 </section>
 

@@ -2143,40 +2143,25 @@ class Element(Node):
 	def __unicode__(self):
 		return unicode(self.content)
 
-	def _addImageSizeAttributes(self, root, imgattr, widthattr=None, heightattr=None):
+	def _addimagesizeattributes(self, url, widthattr=None, heightattr=None):
 		"""
-		<par>add width and height attributes to the element for the image that can be found in the attribute
-		<arg>imgattr</arg>. If the attributes are already there, they are taken as a formatting
-		template with the size passed in as a dictionary with the keys <lit>"width"</lit> and <lit>"height"</lit>,
-		i.e. you could make your image twice as wide with <lit>width="%(width)d*2"</lit>.</par>
-
-		<par>Passing <lit>None</lit> as <arg>widthattr</arg> or
-		<arg>heightattr</arg> will prevent the respective attributes
-		from being modified in any way.</par>
+		<par>Automatically set image width and height attributes.</par>
+		
+		<par>The size of the image with the &url; <arg>url</url> will be determined and
+		hhe width of the image will be put into the attribute with the name <arg>widthattr</arg>
+		if <arg>widthattr</arg> is not <lit>None</lit> and the attribute is not set. The
+		same will happen for the height, which will be put into the <arg>heighattr</arg>.</par>
 		"""
 
-		if self.attrs.has(imgattr):
-			attr = self[imgattr]
-			try:
-				size = attr.imagesize(root)
-			except IOError, exc:
-				errors.warn(errors.FileNotFoundWarning("can't read image", unicode(attr), exc))
-			else:
-				sizedict = {"width": size[0], "height": size[1]}
-				for attr in (heightattr, widthattr):
-					if attr is not None: # do something to the width/height
-						if self.attrs.has(attr):
-							try:
-								s = unicode(self[attr]) % sizedict
-								s = unicode(eval(s))
-								self[attr] = s
-							except TypeError: # ignore "not all argument converted"
-								pass
-							except Exception, exc:
-								errors.warn(errors.ImageSizeFormatWarning(self, self[attr], exc))
-								del self[attr]
-						else:
-							self[attr] = size[attr==heightattr]
+		try:
+			size = url.openread().imagesize
+		except IOError, exc:
+			errors.warn(errors.FileNotFoundWarning("can't read image", url, exc))
+		else:
+			for attr in (heightattr, widthattr):
+				if attr is not None: # do something to the width/height
+					if not self.attrs.has(attr):
+						self[attr] = size[attr==heightattr]
 
 	def present(self, presenter):
 		presenter.presentElement(self)

@@ -203,21 +203,7 @@ class FileNotFoundWarning(Warning):
 		self.exc = exc
 
 	def __str__(self):
-		return "%s: file %s not found (%s)" % (self.message, self.filename, self.exc)
-
-class ImageSizeFormatWarning(UserWarning):
-	"""
-	warning that is raised, when XSC can't format or evaluate image size attributes.
-	"""
-
-	def __init__(self, element, attr, exc):
-		UserWarning.__init__(self, element, attr, exc)
-		self.element = element
-		self.attr = attr
-		self.exc = exc
-
-	def __str__(self):
-		return "the value %r for the image size attribute %s of the element %s can't be formatted or evaluated (%s). The attribute will be dropped." % (unicode(self.attr), self.attr._str(fullname=0, xml=0, decorate=0), self.element._str(fullname=1, xml=1, decorate=1), self.exc)
+		return "%s: %r not found (%s)" % (self.message, self.filename, self.exc)
 
 class IllegalObjectWarning(Warning):
 	"""
