@@ -121,11 +121,11 @@ def explain(thing):
 		if len(functions):
 			e.append(elements.functions())
 			for f in functions:
-				e[-1].append(explain(f))	
+				e[-1].append(explain(f))
 		if len(classes):
 			e.append(elements.classes())
 			for c in classes:
-				e[-1].append(explain(c))	
+				e[-1].append(explain(c))
 		return e
 
 	return xsc.Null

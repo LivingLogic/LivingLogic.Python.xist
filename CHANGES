@@ -2,7 +2,17 @@ New in x.x.x
 ------------
 There an additional publisher class FilePublisher, which can
 be used for publishing to a file (or anything else that has
-a write method)
+a write method).
+
+Element- and attributenames are no longer converted to lowercase.
+If you have an attribute name which clashes with a Python
+keyword (e.g. "class") append an underscore (_), which will be
+removed before accessing the attribute. This is the "official"
+Python method for handling these cases.
+
+Elements and entities are no longer registered one by one. Now
+you can build Namespace objects which are used for searching.
+For more info, see the source.
 
 New in 0.3.8
 ------------

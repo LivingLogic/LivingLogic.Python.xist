@@ -809,10 +809,7 @@ class Node:
 				else:
 					raise EncodingImpossibleError(self.startloc,encoding,text)
 			else:
-				if type(i) is types.UnicodeType:
-					v.append(i.encode(encoding))
-				else:
-					v.append(unicode(i,"iso-8859-1").encode(encoding))
+				v.append(stringFromCode(i).encode(encoding))
 		return "".join(v)
 
 class Text(Node):
@@ -857,7 +854,7 @@ class Text(Node):
 			else:
 				c = content[end] # ... or if the character we're at is different from those we've collected so far
 				ascharref = (0 <= ord(c) <= 31) or (self._maxordforenc.has_key(encoding) and ord(c) >= self._maxordforenc[encoding])
-				if not refwhite and (c == "\n" or c == "\t"):
+				if not refwhite and (c == u"\n" or c == u"\t"):
 					ascharref = 0
 				if ascharref != charref:
 					do = 1
@@ -866,7 +863,7 @@ class Text(Node):
 				if charref: # we've collected references so far
 					s = ""
 					for i in content[start:end]:
-						s = s + '&#' + str(ord(i)) + ';'
+						s = s + u'&#' + str(ord(i)) + u';'
 					v.append(strCharRef(s,ansi))
 				else:
 					s = content[start:end]
@@ -876,9 +873,9 @@ class Text(Node):
 			end = end + 1 # to the next character
 		return "".join(v)
 
-	def _dorepr(self,ansi = None):
+	def _dorepr(self,encoding = None,ansi = None):
 		# constructs a string of this Text with syntaxhighlighting. Special characters will be output as CharRefs (with special highlighting)
-		return self.__strtext(0,self.content,ansi)
+		return self.__strtext(0,self.content,encoding,ansi)
 
 	def _doreprtree(self,nest,elementno,encoding = None,ansi = None):
 		lines = self.content.split("\n")
@@ -1429,6 +1426,8 @@ class Element(Node):
 		a string (i.e. attribute name) or a number (i.e. content node index) is passed in.
 		"""
 		if type(index) in (types.StringType, types.UnicodeType):
+			if index[-1] == "_":
+				index = index[:-1]
 			try:
 				return self.attrs[index] # we're returning the packed attribute here, because otherwise there would be no possibility to get an expanded URL
 			except KeyError:
@@ -1442,6 +1441,8 @@ class Element(Node):
 		a string (i.e. attribute name) or a number (i.e. content node index) is passed in.
 		"""
 		if type(index) in (types.StringType, types.UnicodeType):
+			if index[-1] == "_":
+				index = index[:-1]
 			# values are contructed via the attribute classes specified in the attrHandlers dictionary, which do the conversion
 			try:
 				attr = self.attrHandlers[index]() # pack the attribute into an attribute object
@@ -1458,6 +1459,8 @@ class Element(Node):
 		a string (i.e. attribute name) or a number (i.e. content node index) is passed in.
 		"""
 		if type(index) in (types.StringType, types.UnicodeType):
+			if index[-1] == "_":
+				index = index[:-1]
 			if self.attrs.has_key(index):
 				del self.attrs[index]
 		else:

@@ -21,7 +21,7 @@ from xist import xsc,html,specials
 
 class par(html.div):
 	empty = 0
-	attrHandlers = xsc.appendDict(html.div.attrHandlers,{ "noindent" : xsc.TextAttr })
+	attrHandlers = xsc.appendDict(html.div.attrHandlers, {"noindent": xsc.TextAttr})
 
 	def asHTML(self):
 		e = html.div(self.content.clone())
@@ -41,11 +41,11 @@ class module(xsc.Element):
 	a description and lists of functions and classes.
 	"""
 	empty = 0
-	attrHandlers = { "name" : xsc.TextAttr }
+	attrHandlers = {"name": xsc.TextAttr}
 	
 	def asHTML(self):
 		b = specials.plainbody(
-			html.h1("Module ",html.code(self["name"],Class="module"))
+			html.h1("Module ",html.code(self["name"],**{"class": "module"}))
 		)
 		b.extend(self.content)
 		e = html.html(
@@ -96,12 +96,12 @@ class function(xsc.Element):
 	<code>signature</code> and a <code>desc</code> element.
 	"""
 	empty = 0
-	attrHandlers = { "name" : xsc.TextAttr }
+	attrHandlers = {"name": xsc.TextAttr}
 
 	def asHTML(self):
 		e = xsc.Frag(html.h3(self["name"]))
 		sig = self.find(type = signature)[0]
-		e.append(html.div(html.code(self["name"],"(",sig.find(type = arg).withSeparator(", "),")",Class="function"),Class="function"))
+		e.append(html.div(html.code(self["name"],"(",sig.find(type = arg).withSeparator(", "),")",class_ = "function"),class_ = "function"))
 		descs = self.find(type = desc)
 		if len(descs):
 			e.append(html.div(descs[0]))
@@ -109,23 +109,23 @@ class function(xsc.Element):
 
 class method(xsc.Element):
 	empty = 0
-	attrHandlers = { "name" : xsc.TextAttr }
+	attrHandlers = {"name": xsc.TextAttr}
 
 	def asHTML(self):
-		e = html.div(Class="method")
+		e = html.div(class_="method")
 		sig = self.find(type = signature)[0]
 		e.append(
 			html.div(
 				html.code(
 					Self(),
 					".",
-					html.span(self["name"],Class="name"),
+					html.span(self["name"],class_="name"),
 					"(",
 					sig.find(type = arg)[1:].withSeparator(", "), # drop the self from the arguments
 					"):",
-					Class="method"
+					class_="method"
 				),
-				Class="name"
+				class_="name"
 			)
 		)
 		descs = self.find(type = desc)
@@ -135,10 +135,10 @@ class method(xsc.Element):
 
 class Class(xsc.Element):
 	empty = 0
-	attrHandlers = { "name" : xsc.TextAttr }
+	attrHandlers = {"name": xsc.TextAttr}
 
 	def asHTML(self):
-		e = xsc.Frag(html.h3("Class ",html.code(self["name"],Class="class")))
+		e = xsc.Frag(html.h3("Class ",html.code(self["name"],class_="class")))
 		e.append(self.content)
 		return e.asHTML()
 
@@ -153,7 +153,7 @@ class Self(xsc.Element):
 	empty = 0
 
 	def asHTML(self):
-		return html.code("self",Class="self")
+		return html.code("self",class_="self")
 
 class signature(xsc.Element):
 	empty = 0
@@ -162,13 +162,13 @@ class desc(xsc.Element):
 	empty = 0
 
 	def asHTML(self):
-		e = html.div(self.content.asHTML(),Class = "description")
+		e = html.div(self.content.asHTML(),class_="description")
 
 		return e
 
 class arg(xsc.Element):
 	empty = 1
-	attrHandlers = { "name" : xsc.TextAttr , "type" : xsc.TextAttr , "default" : xsc.TextAttr }
+	attrHandlers = {"name": xsc.TextAttr, "type": xsc.TextAttr, "default": xsc.TextAttr}
 
 	def asHTML(self):
 		e = xsc.Frag()
@@ -178,7 +178,7 @@ class arg(xsc.Element):
 				e.append("*")
 			elif type=="keyword":
 				e.append("**")
-		e.append(html.code(self["name"].asHTML(),Class="arg"))
+		e.append(html.code(self["name"].asHTML(),class_="arg"))
 		if self.hasAttr("default"):
 			e.append("=",self["default"].asHTML())
 		return e.asHTML()
@@ -193,7 +193,7 @@ class moduleref(xsc.Element):
 	empty = 0
 
 	def asHTML(self):
-		return html.code(self.content,Class = "module").asHTML()
+		return html.code(self.content,class_="module").asHTML()
 
 class functionref(xsc.Element):
 	"""
@@ -205,51 +205,51 @@ class functionref(xsc.Element):
 	via the <attr>module</attr> attribute.
 	"""
 	empty = 0
-	attrHandlers = { "module" : xsc.TextAttr }
+	attrHandlers = {"module": xsc.TextAttr}
 
 	def asHTML(self):
-		return html.code(self.content,Class = "function").asHTML()
+		return html.code(self.content,class_="function").asHTML()
 
 class classref(xsc.Element):
 	empty = 0
-	attrHandlers = { "module" : xsc.TextAttr }
+	attrHandlers = {"module": xsc.TextAttr}
 
 	def asHTML(self):
-		return html.code(self.content,Class = "class").asHTML()
+		return html.code(self.content,class_="class").asHTML()
 
 class methodref(xsc.Element):
 	empty = 0
-	attrHandlers = { "module" : xsc.TextAttr , "class" : xsc.TextAttr }
+	attrHandlers = {"module": xsc.TextAttr, "class": xsc.TextAttr}
 
 	def asHTML(self):
-		return html.code(self.content,Class = "method").asHTML()
+		return html.code(self.content,class_="method").asHTML()
 
 class argref(xsc.Element):
 	empty = 0
 
 	def asHTML(self):
-		return html.code(self.content,Class = "arg").asHTML()
+		return html.code(self.content,class_="arg").asHTML()
 
 class argref(xsc.Element):
 	empty = 0
-	attrHandlers = { "type" : xsc.TextAttr }
+	attrHandlers = {"type": xsc.TextAttr}
 
 	def asHTML(self):
-		return html.code(self.content,Class = "arg").asHTML()
+		return html.code(self.content,class_="arg").asHTML()
 
 class argref(xsc.Element):
 	empty = 0
-	attrHandlers = { "type" : xsc.TextAttr }
+	attrHandlers = {"type": xsc.TextAttr}
 
 	def asHTML(self):
-		return html.code(self.content,Class = "arg").asHTML()
+		return html.code(self.content,class_="arg").asHTML()
 
 class attr(xsc.Element):
 	empty = 0
 
 	def asHTML(self):
-		return html.code(self.content,Class = "attr").asHTML()
+		return html.code(self.content,class_="attr").asHTML()
 
-# register all the classes we've defined so far
-xsc.registerAllElements(vars(),"doc")
+# build a namespace with all the classes we've defined so far
+namespace = xsc.Namespace("doc","http://www.livinglogic.de/DTDs/doc.dtd",vars())
 
