@@ -43,25 +43,24 @@ import xsc, url as url_, errors, utils
 from ns import html
 
 class StringInputSource(sax.xmlreader.InputSource):
-	def __init__(self, text):
+	def __init__(self, text, defaultEncoding="utf-8"):
 		sax.xmlreader.InputSource.__init__(self)
 		self.setSystemId("STRING")
 		if type(text) is types.UnicodeType:
-			encoding = "utf-8"
-			text = text.encode(encoding)
-		else:
-			encoding = sys.getdefaultencoding()
+			defaultEncoding = "utf-8"
+			text = text.encode(defaultEncoding)
 		self.setByteStream(StringIO.StringIO(text))
-		self.setEncoding(encoding)
+		self.setEncoding(defaultEncoding)
 
 class FileInputSource(sax.xmlreader.InputSource):
-	def __init__(self, filename):
+	def __init__(self, filename, defaultEncoding="utf-8"):
 		sax.xmlreader.InputSource.__init__(self)
 		self.setSystemId(filename)
 		self.setByteStream(open(os.path.expanduser(filename), "r"))
+		self.setEncoding(defaultEncoding)
 
 class URLInputSource(sax.xmlreader.InputSource):
-	def __init__(self, url):
+	def __init__(self, url, defaultEncoding="utf-8"):
 		sax.xmlreader.InputSource.__init__(self)
 		if isinstance(url, url_.URL):
 			url = url.asString()
@@ -69,6 +68,7 @@ class URLInputSource(sax.xmlreader.InputSource):
 		if type(url) is types.UnicodeType:
 			url = url.encode("utf-8")
 		self.setByteStream(urllib.urlopen(url))
+		self.setEncoding(defaultEncoding)
 
 	def setTimeout(self, secs):
 		if timeoutsocket is not None:
@@ -79,7 +79,7 @@ class URLInputSource(sax.xmlreader.InputSource):
 			timeoutsocket.getDefaultSocketTimeout()
 
 class TidyURLInputSource(sax.xmlreader.InputSource):
-	def __init__(self, url):
+	def __init__(self, url, defaultEncoding="utf-8"):
 		sax.xmlreader.InputSource.__init__(self)
 		self.tidyin = None
 		self.tidyout = None
@@ -104,6 +104,7 @@ class TidyURLInputSource(sax.xmlreader.InputSource):
 				self.tidyerr.close()
 			urllib.urlcleanup() # throw away the temporary filename
 			raise
+		self.setEncoding(defaultEncoding)
 
 	def close(self):
 		if self.tidyin is not None:
@@ -122,8 +123,6 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 	This is a rudimentary, buggy, halfworking, untested SAX2 drivers for sgmlop.
 	And I didn't even know, what I was doing, but it seems to work.
 	"""
-	encoding = "latin-1"
-
 	def __init__(self, namespaceHandling=0, bufsize=2**16-20, defaultEncoding="utf-8"):
 		sax.xmlreader.IncrementalParser.__init__(self, bufsize)
 		self.bufsize = bufsize
@@ -136,7 +135,6 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 	def reset(self):
 		self.parser = self.whichParser()
 		self._parsing = 0
-		self.encoding = self.defaultEncoding
 		self.source = None
 		self.lineNumber = -1
 
@@ -154,6 +152,9 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 	def parse(self, source):
 		self.source = source
 		file = source.getByteStream()
+		self.encoding = source.getEncoding()
+		if self.encoding is None:
+			self.encoding = self.defaultEncoding
 		self._parsing = 1
 		self.content_handler.setDocumentLocator(self)
 		self.content_handler.startDocument()
@@ -182,6 +183,7 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 				raise
 		self.parser.register(None)
 		self.source = None
+		del self.encoding
 
 	def setErrorHandler(self, handler):
 		self.error_handler = handler
@@ -291,8 +293,8 @@ class HTMLParser(SGMLOPParser):
 	headElements = ("title", "base", "script", "style", "meta", "link", "object") # Elements that may appear in the <head>
 	minimizedElements = {"p": ("p",), "td": ("td", "th"), "th": ("td", "th")} # elements that can't be nested, so a start tag automatically closes a previous end tag
 
-	def __init__(self, namespaceHandling=0, bufsize=2**16-20):
-		SGMLOPParser.__init__(self, namespaceHandling, bufsize, "iso-8859-1")
+	def __init__(self, namespaceHandling=0, bufsize=2**16-20, defaultEncoding="iso-8859-1"):
+		SGMLOPParser.__init__(self, namespaceHandling, bufsize, defaultEncoding)
 
 	def whichParser(self):
 		return sgmlop.SGMLParser()
@@ -520,17 +522,17 @@ def parse(source, parser=None, namespaces=None):
 	handler.parse(source)
 	return handler.root
 
-def parseString(text, parser=None, namespaces=None):
-	return parse(StringInputSource(text), parser, namespaces)
+def parseString(text, parser=None, namespaces=None, defaultEncoding="utf-8"):
+	return parse(StringInputSource(text, defaultEncoding), parser, namespaces)
 
-def parseFile(filename, namespaces=None, parser=None):
-	return parse(FileInputSource(filename), parser, namespaces)
+def parseFile(filename, namespaces=None, parser=None, defaultEncoding="utf-8"):
+	return parse(FileInputSource(filename, defaultEncoding), parser, namespaces)
 
-def parseURL(url, namespaces=None, parser=None):
-	return parse(URLInputSource(url), parser, namespaces)
+def parseURL(url, namespaces=None, parser=None, defaultEncoding="utf-8"):
+	return parse(URLInputSource(url, defaultEncoding), parser, namespaces)
 
-def parseTidyURL(url, namespaces=None, parser=None):
-	source = TidyURLInputSource(url)
+def parseTidyURL(url, namespaces=None, parser=None, defaultEncoding="utf-8"):
+	source = TidyURLInputSource(url, defaultEncoding)
 	result = parse(source, parser, namespaces)
 	source.close()
 	return result
