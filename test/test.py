@@ -122,7 +122,25 @@ class XISTTestCase(unittest.TestCase):
 			html.span(
 				1,
 				2,
-				class_="gurk"
+				class_="gurk",
+				id=(1, 2, (3, 4)),
+				lang=(
+					html.abbr(
+						xsc.XML10(),
+						"hurz",
+						html.nbsp(),
+						specials.xist(),
+						None,
+						1,
+						2.0,
+						"3",
+						u"4",
+						(5, 6),
+						[7, 8],
+						html.span("gurk"),
+						title="hurz"
+					)
+				)
 			)
 		)
 		unicode(node)
