@@ -109,7 +109,7 @@ class TidyURLInputSource(InputSource):
 		url = urllib.urlopen(url)
 		if base is None:
 			base = url.url
-		InputSource.__init__(self, url)
+		InputSource.__init__(self, base)
 		self.setSystemId(url.url)
 		(nerrors, nwarnings, outputdata, error) = Tidy.tidy(url.read(), numeric_entities=1, output_xhtml=1, output_xml=1, quiet=1, tidy_mark=0, wrap=0)
 		if nerrors>0:
