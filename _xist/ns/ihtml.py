@@ -18,11 +18,10 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 
 import cgi # for parse_header
 
-from ll.xist import xsc
+from ll.xist import xsc, sims
 
 
 class a(xsc.Element):
-	model = True
 	class Attrs(xsc.Element.Attrs):
 		class name(xsc.TextAttr):
 			"Designates a marker name within an HTML file (1.0)"
@@ -53,7 +52,6 @@ class base(xsc.Element):
 	"""
 	Designates the base URL for the relative paths used in an HTML file. (1.0)
 	"""
-	model = False
 	class Attrs(xsc.Element.Attrs):
 		class href(xsc.URLAttr): pass
 
@@ -62,21 +60,18 @@ class blink(xsc.Element):
 	"""
 	Blinks the designated text. (2.0)
 	"""
-	model = True
 
 
 class blockquote(xsc.Element):
 	"""
 	Creates a text block and displays a quote mark. (1.0)
 	"""
-	model = True
 
 
 class body(xsc.Element):
 	"""
 	Designates content to be displayed as a page.
 	"""
-	model = True
 	class Attrs(xsc.Element.Attrs):
 		class bgcolor(xsc.TextAttr):
 			"Designates background color (2.0)"
@@ -87,7 +82,6 @@ class body(xsc.Element):
 
 
 class br(xsc.Element):
-	model = False
 	class Attrs(xsc.Element.Attrs):
 		class clear(xsc.TextAttr):
 			"""
@@ -100,25 +94,21 @@ class center(xsc.Element):
 	"""
 	Centers character strings, images and tables. (1.0)
 	"""
-	model = True
 
 
 class dd(xsc.Element):
 	"""
 	Creates a definition list. (See <pyref class="dl"><class>dl</class></pyref>) (1.0)
 	"""
-	model = True
 
 
 class dir(xsc.Element):
 	"""
 	Creates a list of menus or directories. Each list item must be a <pyref class="li"><class>li</class></pyref>. (1.0)
 	"""
-	model = True
 
 
 class div(xsc.Element):
-	model = True
 	class Attrs(xsc.Element.Attrs):
 		class align(xsc.TextAttr):
 			"Aligns the content left or right or centers it (1.0)"
@@ -129,21 +119,18 @@ class dl(xsc.Element):
 	Creates a definition list. The content consists of <pyref class="dd"><class>dd</class></pyref> and
 	<pyref class="dt"><class>dt</class></pyref> elements. (1.0)
 	"""
-	model = True
 
 
 class dt(xsc.Element):
 	"""
 	Designates the list heading and aligns the character string at left. (1.0)
 	"""
-	model = True
 
 
 class font(xsc.Element):
 	"""
 	Designates the color of a certain portion of text. (2.0)
 	"""
-	model = True
 	class Attrs(xsc.Element.Attrs):
 		class color(xsc.TextAttr): pass
 
@@ -152,7 +139,6 @@ class form(xsc.Element):
 	"""
 	Encloses an area to be shown as a data input form. (1.0)
 	"""
-	model = True
 	class Attrs(xsc.Element.Attrs):
 		class action(xsc.URLAttr):
 			"URL or e-mail address (mailto) the input form will be sent to. (1.0)"
@@ -166,14 +152,12 @@ class head(xsc.Element):
 	"""
 	Designates the information that is used as the page title and/or by the server. The <class>head</class> tag follows the <pyref class="html"><class>html</class></pyref> tag. (1.0)
 	"""
-	model = True
 
 
 class h1(xsc.Element):
 	"""
 	Designates level 1 header. (1.0)
 	"""
-	model = True
 	class Attrs(xsc.Element.Attrs):
 		class align(xsc.TextAttr):
 			"Designates the alignment of the header. (1.0)"
@@ -183,7 +167,6 @@ class h2(xsc.Element):
 	"""
 	Designates level 2 header. (1.0)
 	"""
-	model = True
 	class Attrs(xsc.Element.Attrs):
 		class align(xsc.TextAttr):
 			"Designates the alignment of the header. (1.0)"
@@ -193,7 +176,6 @@ class h3(xsc.Element):
 	"""
 	Designates level 3 header. (1.0)
 	"""
-	model = True
 	class Attrs(xsc.Element.Attrs):
 		class align(xsc.TextAttr):
 			"Designates the alignment of the header. (1.0)"
@@ -203,7 +185,6 @@ class h4(xsc.Element):
 	"""
 	Designates level 4 header. (1.0)
 	"""
-	model = True
 	class Attrs(xsc.Element.Attrs):
 		class align(xsc.TextAttr):
 			"Designates the alignment of the header. (1.0)"
@@ -213,7 +194,6 @@ class h5(xsc.Element):
 	"""
 	Designates level 5 header. (1.0)
 	"""
-	model = True
 	class Attrs(xsc.Element.Attrs):
 		class align(xsc.TextAttr):
 			"Designates the alignment of the header. (1.0)"
@@ -223,7 +203,6 @@ class h6(xsc.Element):
 	"""
 	Designates level 6 header. (1.0)
 	"""
-	model = True
 	class Attrs(xsc.Element.Attrs):
 		class align(xsc.TextAttr):
 			"Designates the alignment of the header. (1.0)"
@@ -233,7 +212,6 @@ class hr(xsc.Element):
 	"""
 	Designates the settings of the horizontal dividing line. (1.0)
 	"""
-	model = False
 	class Attrs(xsc.Element.Attrs):
 		class align(xsc.TextAttr):
 			"Designates the alignment of the horizontal line. (1.0)"
@@ -249,14 +227,12 @@ class html(xsc.Element):
 	"""
 	The root element
 	"""
-	model = True
 
 
 class img(xsc.Element):
 	"""
 	Designates an image file (1.0)
 	"""
-	model = False
 	class Attrs(xsc.Element.Attrs):
 		class src(xsc.URLAttr):
 			"the image URL (1.0)"
@@ -278,7 +254,6 @@ class img(xsc.Element):
 
 
 class input(xsc.Element):
-	model = False
 	class Attrs(xsc.Element.Attrs):
 		class type(xsc.TextAttr):
 			"""
@@ -309,7 +284,6 @@ class li(xsc.Element):
 	"""
 	A list item (1.0)
 	"""
-	model = True
 	class Attrs(xsc.Element.Attrs):
 		class type(xsc.TextAttr):
 			"""
@@ -324,7 +298,6 @@ class marquee(xsc.Element):
 	"""
 	Scrolls text horizontally (2.0)
 	"""
-	model = True
 	class Attrs(xsc.Element.Attrs):
 		class behaviour(xsc.TextAttr):
 			"""
@@ -351,14 +324,12 @@ class menu(xsc.Element):
 	"""
 	Creates a menu list (1.0)
 	"""
-	model = True
 
 
 class meta(xsc.Element):
 	"""
 	Page meta information (2.0)
 	"""
-	model = False
 	class Attrs(xsc.Element.Attrs):
 		class name(xsc.TextAttr):
 			"Designates the name of the meta field"
@@ -386,7 +357,6 @@ class meta(xsc.Element):
 
 
 class object(xsc.Element):
-	model = False
 	class Attrs(xsc.Element.Attrs):
 		class declare(xsc.BoolAttr):
 			"Identifier that that declares and OBJECT ??? (3.0)"
@@ -402,7 +372,6 @@ class ol(xsc.Element):
 	"""
 	Creates a numbered list. (1.0)
 	"""
-	model = True
 	class Attrs(xsc.Element.Attrs):
 		class type(xsc.TextAttr):
 			"""
@@ -414,7 +383,6 @@ class ol(xsc.Element):
 
 
 class option(xsc.Element):
-	model = True
 	class Attrs(xsc.Element.Attrs):
 		class selected(xsc.BoolAttr):
 			"Designates the selected (initial value). (2.0)"
@@ -426,7 +394,6 @@ class p(xsc.Element):
 	"""
 	Creates a text block. (1.0)
 	"""
-	model = True
 	class Attrs(xsc.Element.Attrs):
 		class align(xsc.TextAttr):
 			"Aligns the content left or right or centers it (1.0)"
@@ -436,18 +403,15 @@ class plaintext(xsc.Element):
 	"""
 	Displays a text file exactly as entered.
 	"""
-	model = True
 
 
 class pre(xsc.Element):
 	"""
 	Displays a source file exactly as entered, including line feeds and blank spaces.
 	"""
-	model = True
 
 
 class select(xsc.Element):
-	model = True
 	class Attrs(xsc.Element.Attrs):
 		class name(xsc.TextAttr):
 			"Designates the name of the list for passing selected items. (1.0)"
@@ -458,7 +422,6 @@ class select(xsc.Element):
 
 
 class textarea(xsc.Element):
-	model = False
 	class Attrs(xsc.Element.Attrs):
 		class name(xsc.TextAttr):
 			"""
@@ -479,14 +442,12 @@ class title(xsc.Element):
 	"""
 	Designates the page title.
 	"""
-	model = True
 
 
 class ul(xsc.Element):
 	"""
 	Creates a bullet point list (o).
 	"""
-	model = True
 
 
 ###
@@ -691,6 +652,63 @@ class dash(xsc.CharRef): codepoint = 0xe708
 class macron1(xsc.CharRef): codepoint = 0xe709
 class macron2(xsc.CharRef): codepoint = 0xe70a
 class fixed(xsc.CharRef): codepoint = 0xe70b
+
+
+# Boiled down version of the same stuff in the html namespace
+pe_special_extra = (object, img)
+pe_special_basic = (br, )
+pe_special = pe_special_basic + pe_special_extra
+pe_fontstyle = (font, )
+pe_inline_forms = (input, select, textarea)
+pe_inline = (a,) + pe_special + pe_fontstyle + pe_inline_forms
+pe_Inline = pe_inline
+pe_heading = (h1, h2, h3, h4, h5, h6)
+pe_lists = (ul, ol, dl, menu, dir)
+pe_blocktext = (pre, hr, blockquote, center)
+pe_block = (p,) + pe_heading + (div,) + pe_lists + pe_blocktext
+pe_Flow = pe_block + (form,) + pe_inline
+
+
+base.model = \
+meta.model = \
+hr.model = \
+br.model = \
+img.model = \
+input.model = sims.Empty()
+# Just a guess for blink, plaintext and marquee
+body.model = \
+div.model = \
+li.model = \
+dd.model = \
+blockquote.model = \
+blink.model = \
+plaintext.model = \
+marquee.model = \
+center.model = sims.ElementsOrText(*pe_Flow)
+p.model = \
+h1.model = \
+h2.model = \
+h3.model = \
+h4.model = \
+h5.model = \
+h6.model = \
+dt.model = \
+font.model = sims.ElementsOrText(*pe_Inline)
+ul.model = \
+ol.model = \
+menu.model = \
+dir.model = sims.Elements(li)
+title.model = \
+option.model = \
+textarea.model = sims.NoElements()
+object.model = sims.ElementsOrText(*(pe_block + (form,) + pe_inline))
+dl.model = sims.Elements(dt, dd)
+html.model = sims.Elements(head, body)
+select.model = sims.Elements(option)
+head.model = sims.Elements(title, base, meta, object)
+pre.model = sims.ElementsOrText(*((a,) + pe_special_basic + pe_inline_forms))
+form.model = sims.ElementsOrText(*(pe_block + pe_inline))
+a.model = sims.ElementsOrText(*(pe_special + pe_fontstyle + pe_inline_forms))
 
 
 class xmlns(xsc.Namespace):
