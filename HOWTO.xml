@@ -58,8 +58,10 @@ declarations (e.g. <markup>&lt;!DOCTYPE html PUBLIC <replaceable>...</replaceabl
 <doc:par>&xist; works somewhat different from a normal &dom; &api;.
 Instead of only one element class, &xist; has one class for every element
 type. All the elements known to &xist; are defined in modules in
-the <doc:pyref module="xist.ns"><module>xist.ns</module></doc:pyref> subpackage. The definition of &html; can
-be found in <doc:pyref module="xist.ns.html"><module>xist.ns.html</module></doc:pyref> for example.</doc:par>
+the <doc:pyref module="xist.ns"><module>xist.ns</module></doc:pyref> subpackage.
+The definition of &html; can be found in
+<doc:pyref module="xist.ns.html"><module>xist.ns.html</module></doc:pyref>
+for example.</doc:par>
 
 <doc:par>Every element class has a constructor of the form
 <doc:programlisting>
