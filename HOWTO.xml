@@ -136,7 +136,7 @@ is the default if no argument is given) and an &html; parser named
 tries to make sense of &html; sources.</doc:par>
 
 <doc:par>All four functions call
-<doc:pyref module="xist.parsers" function="parse">parse(source, parser=None, namespaces=None)</doc:pyref>
+<doc:pyref module="xist.parsers" function="parse">parse(source, handler=None, parser=None, namespaces=None)</doc:pyref>
 internally and pass an appropriate <doc:pyref module="xist.parsers" function="parse" arg="source">source</doc:pyref> argument,
 which is a standard &sax; <doc:pyref module="xml.sax.xmlreader" class="InputSource">InputSource</doc:pyref>
 object, so it's possible to extend the parsing machinery for different data sources.</doc:par>
