@@ -8,9 +8,9 @@
 ##
 ## See xist/__init__.py for the license
 
-import sys, unittest, ExceptHook
-sys.ExceptHook = ExceptHook.ExceptHookMono()
+import sys, unittest, cStringIO
 
+from ll import url
 from ll.xist import xsc, parsers, presenters, converters, helpers, errors, options
 from ll.xist.ns import wml, ihtml, html, css, abbr, specials, htmlspecials, php, xml
 
@@ -110,13 +110,8 @@ class XISTTestCase(unittest.TestCase):
 		self.check_lenunicode(html.div(1, (2, 3)), 3, u"123")
 		self.check_lenunicode(html.div(1, (None, None)), 1, u"1")
 
-	def mappedmapper(self, node, converter):
-		if isinstance(node, xsc.Text):
-			node = node.replace("gurk", "hurz")
-		return node
-
-	def test_standardmethods(self):
-		node = xsc.Frag(
+	def createnode(self):
+		return xsc.Frag(
 			xml.XML10(),
 			html.DocTypeHTML401transitional(),
 			xsc.Comment("gurk"),
@@ -124,6 +119,8 @@ class XISTTestCase(unittest.TestCase):
 			specials.tab(),
 			abbr.xist(),
 			None,
+			True,
+			False,
 			1,
 			2.0,
 			"3",
@@ -133,12 +130,16 @@ class XISTTestCase(unittest.TestCase):
 			html.div(
 				align="left"
 			),
+			url.URL("http://www.python.org/"),
 			html.span(
 				1,
 				2,
 				class_="gurk",
 				id=(1, 2, (3, 4)),
 				lang=(
+					True,
+					False,
+					url.URL("http://www.python.org/"),
 					html.abbr(
 						xml.XML10(),
 						"hurz",
@@ -157,28 +158,194 @@ class XISTTestCase(unittest.TestCase):
 				)
 			)
 		)
-		unicode(node)
-		str(node)
-		node.repr()
-		node.repr(presenters.PlainPresenter())
-		node.repr(presenters.NormalPresenter())
-		for showLocation in (False, True):
-			for showPath in (False, True):
-				node.repr(presenters.TreePresenter(showLocation=showLocation, showPath=showPath))
-		node.repr(presenters.CodePresenter())
-		node.conv()
+
+	def test_standardmethods(self):
+		node = self.createnode()
 		node.compact()
 		node.normalized()
-		node.asString()
-		node.asBytes()
 		node.find()
 		node.sorted()
-		node.conv(function=self.mappedmapper)
 		node.shuffled()
 		node.pretty()
 		node.normalized().compact().pretty()
-		list(node.walk(attrs=True))
-		list(node.walkpath(attrs=True))
+
+	def test_string(self):
+		node = self.createnode()
+		unicode(node)
+		str(node)
+		node.asString()
+		node.asBytes()
+		node.asText()
+		node.asText(monochrome=True)
+		node.asText(squeezeBlankLines=True)
+		node.asText(lineNumbers=True)
+		node.asText(width=120)
+
+	def test_number(self):
+		node = html.div(class_=1234)
+		self.assertEqual(int(node["class_"]), 1234)
+		self.assertEqual(long(node["class_"]), 1234L)
+		self.assertAlmostEqual(float(node["class_"]), 1234.)
+		node = html.div(class_="1+1j")
+		compl = complex(node["class_"])
+		self.assertAlmostEqual(compl.real, 1.)
+		self.assertAlmostEqual(compl.imag, 1.)
+
+	def test_prefix(self):
+		node = html.div()
+		self.assertEqual(node.xmlprefix(), "html")
+
+	def test_write(self):
+		node = html.div()
+		io = cStringIO.StringIO()
+		node.write(io, xhtml=2)
+		self.assertEqual(io.getvalue(), "<div/>")
+
+	def test_mul(self):
+		node = xsc.Frag("a")
+		self.assertEqual(3*node, xsc.Frag(list("aaa")))
+		self.assertEqual(node*3, xsc.Frag(list("aaa")))
+
+		node = html.div()
+		self.assertEqual(3*node, xsc.Frag(html.div(), html.div(), html.div()))
+		self.assertEqual(node*3, xsc.Frag(html.div(), html.div(), html.div()))
+
+	def test_text(self):
+		node = xsc.Text("test")
+		hash(node)
+		self.assertEqual(len(node), 4)
+		self.assertEqual(node[1], xsc.Text("e"))
+		self.assertEqual(3*node, xsc.Text(3*node.content))
+		self.assertEqual(node*3, xsc.Text(node.content*3))
+		self.assertEqual(node[1:3], xsc.Text("es"))
+		self.assertEqual(node.capitalize(), xsc.Text("Test"))
+		self.assertEqual(node.center(8), xsc.Text("  test  "))
+		self.assertEqual(node.count("t"), 2)
+		self.assertEqual(node.endswith("st"), True)
+		self.assertEqual(node.index("s"), 2)
+		self.assertEqual(node.isalpha(), True)
+		self.assertEqual(node.isalnum(), True)
+		self.assertEqual(node.isdecimal(), False)
+		self.assertEqual(node.isdigit(), False)
+		self.assertEqual(node.islower(), True)
+		self.assertEqual(node.isnumeric(), False)
+		self.assertEqual(node.isspace(), False)
+		self.assertEqual(node.istitle(), False)
+		self.assertEqual(node.isupper(), False)
+		self.assertEqual(node.join(xsc.Frag(list("abc"))), xsc.Frag("a", "test", "b", "test", "c"))
+		self.assertEqual(node.ljust(6), xsc.Text("test  "))
+		self.assertEqual(node.lower(), xsc.Text("test"))
+		self.assertEqual(xsc.Text("  test").lstrip(), xsc.Text("test"))
+		self.assertEqual(node.replace("s", "x"), xsc.Text("text"))
+		self.assertEqual(node.rjust(6), xsc.Text("  test"))
+		self.assertEqual(xsc.Text("test  ").rstrip(), xsc.Text("test"))
+		self.assertEqual(node.rfind("s"), 2)
+		self.assertEqual(node.rindex("s"), 2)
+		self.assertEqual(node.split("e"), xsc.Frag("t", "st"))
+		self.assertEqual(xsc.Text("a\nb\n").splitlines(), xsc.Frag("a", "b"))
+		self.assertEqual(node.startswith("te"), True)
+		self.assertEqual(xsc.Text("  test  ").strip(), xsc.Text("test"))
+		self.assertEqual(node.swapcase(), xsc.Text("TEST"))
+		self.assertEqual(node.title(), xsc.Text("Test"))
+		self.assertEqual(node.upper(), xsc.Text("TEST"))
+
+	def test_getsetitem(self):
+		for cls in (xsc.Frag, html.div):
+			for attr in ("class_", (xml, "lang")):
+				node = cls(html.div(html.div({attr: "gurk"})))
+				self.assertEqual(str(node[[0, 0, attr]]), "gurk")
+				node[[0, 0, attr]] = "hurz"
+				self.assertEqual(str(node[[0, 0, attr]]), "hurz")
+
+	def test_mixedattrnames(self):
+		class xmlns(xsc.Namespace):
+			xmlname = "test"
+			xmlurl = "test"
+
+			class Attrs(xsc.Namespace.Attrs):
+				class a(xsc.TextAttr, xsc.NamespaceAttrMixIn): xmlname = "A"
+				class A(xsc.TextAttr, xsc.NamespaceAttrMixIn): xmlname = "a"
+			class Test(xsc.Element):
+				class Attrs(xsc.Element.Attrs):
+					class a(xsc.TextAttr): xmlname = "A"
+					class A(xsc.TextAttr): xmlname = "a"
+
+		node = xmlns.Test(
+			{
+				(xmlns, "a"): "a2",
+				(xmlns, "A"): "A2",
+			},
+			a="a",
+			A="A"
+		)
+		for (name, value) in (
+				("a", "a"),
+				("A", "A"),
+				((xmlns, "a"), "a2"),
+				((xmlns, "A"), "A2")
+			):
+			self.assertEqual(unicode(node[name]), value)
+			self.assertEqual(unicode(node.attrs[name]), value)
+			self.assertEqual(unicode(node.attrs.get(name, xml=False)), value)
+			if isinstance(name, tuple):
+				name = (name[0], name[1].swapcase())
+			else:
+				name = name.swapcase()
+			self.assertEqual(unicode(node.attrs.get(name, xml=True)), value)
+
+	def mappedmapper(self, node, converter):
+		if isinstance(node, xsc.Text):
+			node = node.replace("gurk", "hurz")
+		return node
+
+	def test_conv(self):
+		node = self.createnode()
+		node.conv()
+		node.conv(converters.Converter())
+		node.conv(function=self.mappedmapper)
+
+	def test_repr(self):
+		node = self.createnode()
+		repr(node)
+		for class_ in presenters.__dict__.itervalues():
+			if isinstance(class_, type) and issubclass(class_, presenters.Presenter):
+				node.repr(class_())
+		for showLocation in (False, True):
+			for showPath in (False, True):
+				node.repr(presenters.TreePresenter(showLocation=showLocation, showPath=showPath))
+
+	def test_walk(self):
+		node = self.createnode()
+		def filter1(node):
+			return xsc.Found(foundstart=True, foundend=True, enter=True)
+		def filter2(path):
+			return xsc.Found(foundstart=True, foundend=True, enter=True)
+
+		list(node.walk(xsc.Found(foundstart=True, foundend=True, enter=True)))
+		list(node.walk(xsc.Found(foundstart=True, foundend=True, enter=True), walkpath=True))
+		list(node.walk(filter1))
+		list(node.walk(filter1, walkpath=True))
+		list(node.walk(filter2, filterpath=True))
+		list(node.walk(filter2, filterpath=True, walkpath=True))
+
+	def test_visit(self):
+		node = self.createnode()
+		def dummy1(node, start):
+			pass
+		def dummy2(path, start):
+			pass
+		def filter1(node):
+			return xsc.Found(foundstart=dummy1, foundend=dummy1, enter=True)
+		def filter2(path):
+			return xsc.Found(foundstart=dummy1, foundend=dummy1, enter=True)
+
+		node.visit(xsc.Found(foundstart=dummy1, foundend=dummy1, enter=True))
+		node.visit(xsc.Found(foundstart=dummy1, foundend=dummy1, entercontent=True, enterattrs=True))
+		node.visit(xsc.Found(foundstart=dummy2, foundend=dummy2, enter=True), visitpath=True)
+		node.visit(filter1)
+		node.visit(filter1, visitpath=True)
+		node.visit(filter2, filterpath=True)
+		node.visit(filter2, filterpath=True, visitpath=True)
 
 	def test_locationeq(self):
 		l1 = xsc.Location(sysID="gurk", pubID="http://gurk.com", lineNumber=42, columnNumber=666)
