@@ -1,4 +1,4 @@
-#! /usr/bin/python
+#! /usr/bin/env python
 
 import sys
 from xsc_html40 import *
@@ -51,7 +51,7 @@ RegisterElement("nbsp",XSCnbsp)
 
 class XSCfilesize(XSCElement):
 	close = 0
-	attr_handlers = { "href" : XSCURLAttr }
+	attr_handlers = { "href" : XSCurl }
 
 	def __str__(self):
 		return str(FileSize(str(self["href"])))
@@ -67,18 +67,45 @@ RegisterElement("x",XSCx)
 
 class XSCpixel(XSCimg):
 	close = 0
-	attr_handlers = AppendDict(XSCimg.attr_handlers,{ "color" : XSCStringAttr })
+	attr_handlers = AppendDict(XSCimg.attr_handlers,{ "color" : XSCFrag })
 	del attr_handlers["src"]
 
 	def __str__(self):
-		if not self.has_attr("color"):
-			self["color"] = "dot_clear"
-		self["src"] = XSCURLAttr(":Images/Pixels/" + html(self["color"]) + ".gif")
-		del self["color"]
-		return str(XSCimg(self.content,self.attrs))
+		e = XSCimg(self.content,self.attrs - [ "color" ])
+		if self.has_attr("color"):
+			color = self["color"]
+		else:
+			color = "dot_clear"
+		e["src"] = XSCFrag([":Images/Pixels/" , color , ".gif" ])
+
+		return str(e)
 RegisterElement("pixel",XSCpixel)
 
+class XSCcap(XSCElement):
+	close = 1
+	
+	def __str__(self):
+		e = str(self.content)
+		if type(e) == types.ListType:
+			e = e[0]
+		e = e + "?"
+		result = []
+		collect = ""
+		innini = 0
+		for i in range(len(e)):
+			if (i == len(e)) or ((e[i] in string.lowercase) and (innini==0)) or ((e[i] not in string.lowercase) and (innini==1)):
+				if innini==0:
+					result.append(collect)
+				else:
+					result.append(str(XSCspan([ string.upper(collect) ],Class="nini" )))
+				if i != len(e):
+					collect = e[i]
+				innini = 1-innini
+			else:
+				collect = collect + e[i]
+		return string.joinfields(result,"")
+RegisterElement("cap",XSCcap)
+
 if __name__ == "__main__":
-	h = XSC(sys.argv[1])
-	print str(h)
+	print str(xsc_parsefile(sys.argv[1]))
 

@@ -1,4 +1,4 @@
-#! /usr/bin/python
+#! /usr/bin/env python
 
 import os
 import string
@@ -8,10 +8,10 @@ import types
 import stat
 
 # for image size checking
-import Image
+# import Image
 
 # for parsing XML files
-from xmllib import *
+import xmllib
 
 ###
 ### exceptions
@@ -35,12 +35,13 @@ class EHSCEmptyElementWithContent(EHSCException):
 class EHSCIllegalAttribute(EHSCException):
 	"this element has an attribute that is not allowed"
 
-	def __init__(self,element,attr):
-		self.element = element
+	def __init__(self,attrs,attr):
+		self.attrs = attrs
 		self.attr = attr
 
 	def __str__(self):
-		return "the element '" + self.element.name + "' has an attribute ('" + self.attr + "') that is not allowed here. The only allowed attributes are: " + str(self.element.attr_handlers.keys())
+		return "The attribute '" + self.attr + "' is not allowed here. The only allowed attributes are: " + str(self.attrs.attr_handlers.keys())
+		#return "the element '" + self.element.name + "' has an attribute ('" + self.attr + "') that is not allowed here. The only allowed attributes are: " + str(self.element.attr_handlers.keys())
 
 class EHSCImageSizeFormat(EHSCException):
 	"Can't format or evaluate image size attribute"
@@ -50,7 +51,7 @@ class EHSCImageSizeFormat(EHSCException):
 		self.attr = attr
 
 	def __str__(self):
-		return "the value '" + html(self.element[self.attr]) + "' for the image size attribute '" + self.attr + "' of the element '" + self.element.name + "' can't be formatted or evaluated"
+		return "the value '" + str(self.element[self.attr]) + "' for the image size attribute '" + self.attr + "' of the element '" + self.element.name + "' can't be formatted or evaluated"
 
 class EHSCFileNotFound(EHSCException):
 	"Can't open image for getting image size"
@@ -60,6 +61,15 @@ class EHSCFileNotFound(EHSCException):
 
 	def __str__(self):
 		return "the image file '" + self.url + "' can't be opened"
+
+class EHSCIllegalObject(EHSCException):
+	"illegal object found in XSC tree"
+
+	def __init__(self,object):
+		self.url = url
+
+	def __str__(self):
+		return "an illegal object has been found in the XSC tree"
 
 ###
 ###
@@ -74,8 +84,9 @@ def ImageSize(url):
 	"returns the size of an image as a tuple"
 
 	try:
-		img = Image.open(url)
-		return img.size
+		#img = Image.open(url)
+		#return img.size
+		return (42,42)
 	except:
 		raise EHSCFileNotFound(url)
 
@@ -101,13 +112,20 @@ def ToNode(value):
 		for i in value.keys():
 			v[i] = ToNode(value[i])
 		return v
-	else:
-		return value
+	elif type(value) == types.InstanceType:
+		if value.__class__ == XSCFrag:
+			if len(value.content)==1:
+				return ToNode(value.content[0]) # recursively try to simplify the tree
+			else:
+				return value
+		else:
+			return value
+	raise EHSCIllegalObject(value) # none of the above, so we throw and exception
 
 element_handlers = {} # dictionary for mapping element names to classes
 
 class XSCNode:
-	"base class for nodes in the document tree. Derived class must implement html()"
+	"base class for nodes in the document tree. Derived class must implement __str__()"
 
 	def __add__(self,other):
 		return XSCFrag(self) + other
@@ -151,6 +169,8 @@ class XSCFrag(XSCNode):
 		if type(content) == types.InstanceType:
 			if content.__class__ == XSCFrag:
 				self.content = map(ToNode,content.content)
+			else:
+				self.content = [ ToNode(content) ]
 		elif type(content) in [ types.ListType , types.TupleType ]:
 			self.content = map(ToNode,content)
 		else:
@@ -178,7 +198,7 @@ class XSCFrag(XSCNode):
 		self.content = [ ToNode(other) ] + self.content[:]
 
 class XSCAttrs(XSCNode):
-	"contains a dictionary of XSCNodes with are wrapped into attribute nodes"
+	"contains a dictionary of XSCNodes which are wrapped into attribute nodes"
 
 	def __init__(self,attr_handlers,content = {},**restcontent):
 		self.attr_handlers = attr_handlers
@@ -189,13 +209,17 @@ class XSCAttrs(XSCNode):
 			self[attr] = restcontent[attr]
 
 	def __add__(self,other):
-		res = XSCFrag(self.content)
-		res.append(other)
+		res = XSCAttrs(self.content)
+		for attr in other.keys():
+			res[attr] = other[attr]
 		return res
 
-	def __radd__(self,other):
-		res = XSCFrag(self.content)
-		res.preppend(other)
+	def __sub__(self,attrs):
+		"removes attributes from the list"
+		res = XSCAttrs(self.content)
+		for attr in attrs:
+			del res[attr]
+		return res
 
 	def __str__(self):
 		v = []
@@ -213,16 +237,16 @@ class XSCAttrs(XSCNode):
 		return self.content.has_key(index)
 
 	def __getitem__(self,index):
-		return self.content[index].content # unpack the attribute
+		return self.content[index] # we're returning the packed attribute here, because otherwise there would be no possibility to get an expanded URL
 
 	def __setitem__(self,index,value):
 		"insert a value into the attribute dictionary"
-		# values are converted to Nodes first and the wrapped into the attribute nodes as specified via the attr_handlers dictionary
+		# values are converted to Nodes first and then wrapped into the attribute nodes as specified via the attr_handlers dictionary
 		lowerindex = string.lower(index)
 		if self.attr_handlers.has_key(lowerindex):
-			self.content[lowerindex] = self.attr_handlers[lowerindex](ToNode(value)) # convert the attribute to a node an pack it into an attribute object
+			self.content[lowerindex] = self.attr_handlers[lowerindex](ToNode(value)) # convert the attribute to a node and pack it into an attribute object
 		else:
-			raise EHSCIllegalAttribute(self,attr)
+			raise EHSCIllegalAttribute(self,index)
 
 	def __delitem__(self,index):
 		"removes a dictionary entry"
@@ -236,6 +260,10 @@ class XSCAttrs(XSCNode):
 	def __len__(self):
 		"return the number of attributes"
 		return len(self.keys())
+
+	def update(self,other):
+		for attr in other.keys():
+			self[attr] = other[attr]
 
 class XSCComment(XSCNode):
 	"comments"
@@ -255,43 +283,6 @@ class XSCDocType(XSCNode):
 	def __repr__(self):
 		return "<!DOCTYPE " + self.content + ">"
 
-class XSCStringAttr(XSCNode):
-	"string attribute"
-
-	def __init__(self,content):
-		self.content = content
-
-	def __repr__(self):
-		return repr(self.content)
-
-	def __str__(self):
-		return str(self.content)
-
-class XSCURLAttr(XSCNode):
-	"url attribute"
-
-	def __init__(self,content):
-		self.content = content
-
-	def __repr__(self):
-		url = repr(self.content)
-		if url[0] == ":":
-			url = url[1:]
-		return url
-
-	def __str__(self):
-		url = str(self.content) 
-		if url[0] == ":":
-			# split both path
-			source = string.splitfields(xsc_filename,os.sep)
-			dest = string.splitfields(url[1:],os.sep)
-			# throw away identical directories in both path
-			while len(source)>1 and len(dest)>1 and source[0]==dest[0]:
-				del source[0]
-				del dest[0]
-			url = string.joinfields(([os.pardir]*(len(source)-1)) + dest,os.sep)
-		return url
-
 element_handlers = {} # dictionary that links element names to element classes
 
 class XSCElement(XSCNode):
@@ -304,10 +295,8 @@ class XSCElement(XSCNode):
 		self.content = XSCFrag(content)
 		self.attrs = XSCAttrs(self.attr_handlers,{})
 
-		for attr in attrs.keys():
-			self.attrs[attr] = attrs[attr]
-		for attr in restattrs.keys():
-			self.attrs[attr] = restattrs[attr]
+		self.attrs.update(attrs)
+		self.attrs.update(restattrs)
 
 	def append(self,item):
 		self.content.append(item)
@@ -374,7 +363,7 @@ class XSCElement(XSCNode):
 		"add width and height attributes to the element for the image that can be found in the attributes imgattr. if the attribute is already there it is taken as a formating template with the size passed in as a dictionary with the keys 'width' and 'height', i.e. you could make your image twice as wide with width='%(width)d*2'"
 
 		if self.has_attr(imgattr):
-			url = str(self[imgattr])
+			url = repr(self[imgattr])
 			size = ImageSize(url)
 			sizedict = { "width": size[0], "height": size[1] }
 			if self.has_attr(widthattr):
@@ -392,33 +381,86 @@ class XSCElement(XSCNode):
 			else:
 				self[heightattr] = size[1]
 
-
 def RegisterElement(name,element):
 	element_handlers[name] = element
 	element.name = name
 
+class XSCurl(XSCElement):
+	"URLS (may be used as an element or an attribute)"
+
+	def __init__(self,content = [],attrs = {},**restattrs):
+		if type(content) == types.InstanceType and content.__class__ == XSCurl:
+			self.content = content.content
+		else:
+			self.content = XSCFrag(content)
+
+	def __repr__(self):
+		url = repr(self.content)
+		if url[0] == ":":
+			url = url[1:]
+		elif url[0] == "/":
+			url = xsc_serverdir + url
+		urlsplit = string.splitfields(url,"/")
+		for i in range(len(urlsplit)):
+			if urlsplit[i] == "..":
+				urlsplit[i] = os.pardir
+		url = string.joinfields(urlsplit,os.sep)
+		return url
+
+	def __str__(self):
+		url = str(self.content) 
+		if url[0] == ":":
+			# split both path
+			source = string.splitfields(xsc.filename,"/")
+			dest = string.splitfields(url[1:],os.sep)
+			print source,dest
+			# throw away identical directories in both path
+			while len(source)>1 and len(dest)>1 and source[0]==dest[0]:
+				del source[0]
+				del dest[0]
+			url = string.joinfields(([".."]*(len(source)-1)) + dest,"/")
+		return url
+RegisterElement("url",XSCurl)
+
 ###
 ###
 ###
 
-xsc_filename = ""
+class XSC:
+	def __init__(self):
+		self.filename = ""
+		self.serverdir = os.curdir
 
-class XSC(XMLParser):
+	def __repr__(self):
+		return "<xsc filename='" + self.filename + "' serverdir='" + self.serverdir + "'>"
+		
+xsc = XSC()
+
+###
+###
+###
+
+class XSCParser(xmllib.XMLParser):
 	"Reads a XML file and constructs an XSC tree from it."
 
-	def __init__(self,filename,parse = 1):
-		global xsc_filename
-		XMLParser.__init__(self)
-		xsc_filename = filename
-		if parse == 1:
-			self.nesting = [ XSCFrag() ] # our nodes do not have a parent link, therefore we have to store the active path through the tree in a stack (which we call nesting, because stack is already used by the base class
-			self.feed(open(filename).read())
-			self.close()
-			self.root = self.nesting[0]
-		else:
-			self.root = None
+	def __init__(self):
+		xmllib.XMLParser.__init__(self)
+		self.nesting = [ XSCFrag() ] # our nodes do not have a parent link, therefore we have to store the active path through the tree in a stack (which we call nesting, because stack is already used by the base class
+		self.root = self.nesting[0]
 
-	def processingInstruction (self,target, remainder):
+	def parsefile(self,filename):
+		xsc.filename = filename
+		self.feed(open(filename).read())
+		self.close()
+		return self.root
+
+	def parsestring(self,filename,string):
+		xsc.filename = filename
+		self.feed(string)
+		self.close()
+		return self.root
+
+	def processingInstruction(self,target,remainder):
 		pass
 
 	def unknown_starttag(self,name,attrs = {}):
@@ -435,9 +477,13 @@ class XSC(XMLParser):
 	def handle_comment(self,comment):
 		self.nesting[-1].append(XSCComment(comment))
 
-	def __repr__(self):
-		return repr(self.root)
+def xsc_parsefile(filename):
+	"Reads and parses a XML file and returns the resulting XSC"
+	xsc = XSCParser()
+	return xsc.parsefile(filename)
 
-	def __str__(self):
-		return str(self.root)
+def xsc_parsestring(filename,string):
+	"parses a string and returns the resulting XSC"
+	xsc = XSCParser()
+	return xsc.parsestring(filename,string)
 
