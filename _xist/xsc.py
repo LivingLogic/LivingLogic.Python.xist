@@ -20,7 +20,7 @@
 ## IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 """
-XIST is an XML based extensible HTML generator written in Python.
+XIST is an XML-based extensible HTML generator written in Python.
 For more info read the HOWTO.
 """
 

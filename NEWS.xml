@@ -160,7 +160,7 @@ current directory use the scheme <code>root</code> (e.g. <code>root:main.css</co
 </ul>
 </section>
 
-<section><title>Changes in 0.4.7 (released 11/24/2001)</title>
+<section><title>Changes in 0.4.7 (released 11/24/2000)</title>
 <ul>
 <li>Fixed a bug in the entity handling.</li>
 

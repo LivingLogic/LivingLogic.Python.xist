@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
-<dbl:para>&xist; is an &xml; based extensible &html; generator written in Python.
+<dbl:para>&xist; is an &xml;-based extensible &html; generator written in Python.
 It was developed as a replacement for an &html; preprocessor named
 <a href="http://www.giga.or.at/~agi/hsc/">HSC</a>, and borrows some
 features and ideas from it. It also borrows the basic ideas (&xml;/&html;
