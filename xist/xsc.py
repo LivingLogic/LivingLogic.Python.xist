@@ -11,7 +11,7 @@ import string
 import types
 import exceptions
 import sys
-import socket
+import getopt
 
 # for file size checking
 import stat
@@ -20,8 +20,6 @@ import stat
 import Image
 
 # for parsing XML files
-from xml.sax import saxlib
-from xml.sax import saxexts
 from xml.parsers import xmllib
 
 # for reading remote files
@@ -129,7 +127,12 @@ class IllegalElementError(Error):
 				elementnames.append(_strNode(_elementHandlers[elementname][namespace]))
 		elementnames.sort()
 
-		return Error.__str__(self) + "element " + _strName((self.name[0],self.name[1],0))+ " not allowed. Allowed elements are: " + string.join(elementnames,", ") + "."
+		s = Error.__str__(self) + "element " + _strName((self.name[0],self.name[1],0)) + " not allowed. "
+		if elementnames:
+			s = s + "Allowed elements are: " + string.join(elementnames,", ") + "."
+		else:
+			s = s + "There are no allowed elements."
+		return s
 
 class IllegalElementNestingError(Error):
 	"""
@@ -180,7 +183,11 @@ class IllegalObjectError(Error):
 		self.object = object
 
 	def __str__(self):
-		return Error.__str__(self) + "an illegal object of type " + type(self.object).__name__ + " has been found in the XSC tree"
+		s = Error.__str__(self) + "an illegal object of type " + type(self.object).__name__
+		if type(self.object) == types.InstanceType:
+			s = s + " (class " + self.object.__class__.__name__ + ")"
+		s = s + " has been found in the XSC tree"
+		return s
 
 class MalformedCharRefError(Error):
 	"""
@@ -394,7 +401,7 @@ def _strName(nodeName,content = None,brackets = None,slash = None,ansi = None):
 	if slash < 0:
 		s = s + _stransi(repransislash,"/",ansi)
 	if nodeName is not None:
-		if len(nodeName[0]):
+		if nodeName[0]:
 			s = s + _stransi(repransielementnamespace,nodeName[0],ansi) + ":"
 		s = s + _stransi(repransielementname,nodeName[1],ansi)
 	if content is not None and slash>=0:
@@ -1705,22 +1712,35 @@ def make():
 	and writes it to args[2]
 	"""
 
-	infilename = URL(sys.argv[1])
-	outfilename = URL(sys.argv[2])
-	if not outfilename.file:
-		outfilename = outfilename + infilename
-		if not outfilename.file:
-			outfilename.file = "noname"
-	try:
-		outfilename.ext = { "hsc" : "html" , "shsc" : "shtml" , "phsc" : "phtml" , "xsc" : "html" , "sxsc" : "shtml" , "pxsc" : "phtml"}[infilename.ext]
-	except KeyError:
-		outfilename.ext = "html"
-	print 'XSC: converting "' + str(infilename) + '"' + ' to "' + str(outfilename) + '"...'
-	e_in = xsc.parse(infilename)
-	xsc.pushName(infilename)
-	e_out = e_in.asHTML()
-	__forceopen(str(outfilename),"wb").write(str(e_out))
-	xsc.popName()
+	(options,args) = getopt.getopt(sys.argv[1:],"i:o:",["include=","output="])
+
+	globaloutname = URL(scheme = "project")
+	for (option,value) in options:
+		if option=="-i" or option=="--include":
+			__import__(value)
+		elif  option=="-o" or option=="--output":
+			globaloutname = URL(value)
+
+	if args:
+		for file in args:
+			inname = URL(file)
+			outname = globaloutname.clone()
+			if not outname.file:
+				outname = outname + inname
+			if not outname.file:
+				outname.file = "noname"
+			try:
+				outname.ext = { "hsc" : "html" , "shsc" : "shtml" , "phsc" : "phtml" , "xsc" : "html" , "sxsc" : "shtml" , "pxsc" : "phtml"}[inname.ext]
+			except KeyError:
+				outname.ext = "html"
+			sys.stderr.write('XSC: converting "' + str(inname) + '"' + ' to "' + str(outname) + '"...\n')
+			e_in = xsc.parse(inname)
+			xsc.pushName(inname)
+			e_out = e_in.asHTML()
+			__forceopen(str(outname),"wb").write(str(e_out))
+			xsc.popName()
+	else:
+		sys.stderr.write("XSC: no files to convert.\n")
 
 xsc = XSC()
 
