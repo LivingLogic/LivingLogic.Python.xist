@@ -21,8 +21,8 @@
 ## IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 """
-<doc:par>An &xist; module that contains the elements and entities for
-i-mode compatible &html;.</doc:par>
+<par>An &xist; module that contains the elements and entities for
+i-mode compatible &html;.</par>
 """
 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))

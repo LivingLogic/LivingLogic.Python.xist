@@ -21,10 +21,10 @@
 ## IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 """
-<doc:par>An &xist; module that contains definitions for all the elements and
+<par>An &xist; module that contains definitions for all the elements and
 entities in 
 <a href="http://www.w3.org/TR/html4/loose.dtd">&html; 4.0 transitional</a> 
-(and a few additional ones).</doc:par>
+(and a few additional ones).</par>
 """
 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))

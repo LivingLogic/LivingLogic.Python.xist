@@ -21,9 +21,9 @@
 ## IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 """
-<doc:par>An &xist; module that contains elements that are useful for
+<par>An &xist; module that contains elements that are useful for
 forms. These are just abbreviations for the various
-<lit>&lt;input type=<rep>...</rep>&gt;</lit> elements.</doc:par>
+<lit>&lt;input type=<rep>...</rep>&gt;</lit> elements.</par>
 """
 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
