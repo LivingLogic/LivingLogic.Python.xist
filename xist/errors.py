@@ -261,5 +261,6 @@ class EncodingImpossibleError(Error):
 		self.char = char
 
 	def __str__(self):
-		return Error.__str__(self) + "text " + repr(self.text) + " can't be encoded with the encoding " + repr(self.encoding) + "because it contains the character" + repr(self.char) + "."
+		# FIXME can't use %r because this returns a Unicode string
+		return "%stext %s can't be encoded with the encoding %s because it contains the character %s." % (Error.__str__(self), repr(self.text), repr(self.encoding), repr(self.char))
 
