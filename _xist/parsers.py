@@ -213,7 +213,7 @@ class SGMLOPParser(sax.xmlreader.XMLReader, sax.xmlreader.Locator):
 			if attrvalue is None:
 				attrvalue = attrname
 			else:
-				attrvalue = self._string2Fragment(self._makestring(attrvalue))
+				attrvalue = self._string2fragment(self._makestring(attrvalue))
 			newattrs._attrs[self._makestring(attrname)] = attrvalue
 		self.getContentHandler().startElement(self._makestring(name), newattrs)
 		self.headerJustRead = False
@@ -222,7 +222,7 @@ class SGMLOPParser(sax.xmlreader.XMLReader, sax.xmlreader.Locator):
 		self.getContentHandler().endElement(self._makestring(name))
 		self.headerJustRead = False
 
-	def _string2Fragment(self, text):
+	def _string2fragment(self, text):
 		"""
 		parses a string that might contain entities into a fragment
 		with text nodes, entities and character references.
@@ -291,7 +291,7 @@ class BadEntityParser(SGMLOPParser):
 			self.getContentHandler().characters(c)
 		self.headerJustRead = False
 
-	def _string2Fragment(self, text):
+	def _string2fragment(self, text):
 		"""
 		This version tries to pass illegal content literally.
 		"""
