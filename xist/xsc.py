@@ -1250,6 +1250,16 @@ class Element(Node):
 			else:
 				self.content.insert(index,item)
 
+	def extend(self,item):
+		"""
+		extend the elements by appending nodes in the other element
+		"""
+		newother = ToNode(item)
+		if (not self.empty) or isinstance(newother,Null):
+			self.content.extend(item)
+		else:
+			raise EmptyElementWithContentError(xsc.parser.lineno,self)
+
 	def asHTML(self):
 		e = self.__class__(self.content.asHTML()) # "virtual" copy constructor
 		for attr in self.attrs.keys():
