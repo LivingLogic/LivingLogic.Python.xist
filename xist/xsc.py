@@ -86,14 +86,96 @@ def AppendDict(*dicts):
 			result[key] = dict[key]
 	return result
 
+def ToNode(value):
+	if type(value) == types.StringType:
+		return XSCText(value)
+	elif type(value) in [ types.NoneType,types.IntType,types.LongType,types.FloatType ] :
+		return XSCText(str(value))
+	elif type(value) in [ types.ListType,types.TupleType ]:
+		v = XSCDocumentFragment()
+		for i in value:
+			v.append(ToNode(i))
+		return v
+	elif type(value) == types.DictType:
+		v = XSCAttrList()
+		for i in value.keys():
+			v[i] = ToNode(value[i])
+		return v
+	else:
+		return value
+
+element_handlers = {} # dictionary for mapping element names to classes
+
 class XSCNode:
-	"base class for nodes in the document tree. Derived class must implement AsString() und AsHTML()"
+	"base class for nodes in the document tree. Derived class must implement html()"
 
 	def __add__(self,other):
-		return [self] + other
+		return XSCFrag(self) + other
 
 	def __radd__(self,other):
-		return other + [self]
+		return XSCFrag(other) + self
+
+	def __repr__(self):
+		return "<?>"
+
+class XSCText(XSCNode):
+	"text"
+
+	def __init__(self,content = ""):
+		self.content = content
+
+	def __str__(self):
+		v = []
+		for i in self.content:
+			if i == '<':
+				v.append('&lt;')
+			elif i == '>':
+				v.append('&gt;')
+			elif i == '&':
+				v.append('&amp;')
+			elif i == '"':
+				v.append('&quot')
+			elif ord(i)>=128:
+				v.append('&#' + str(ord(i)) + ';')
+			else:
+				v.append(i)
+		return string.joinfields(v,"")
+
+	def __repr__(self):
+		return self.content
+
+class XSCFrag(XSCNode):
+	"contains a list of XSCNodes"
+
+	def __init__(self,content = []):
+		if type(content) == types.InstanceType:
+			if content.__class__ == XSCFrag:
+				self.content = map(ToNode,content.content)
+		elif type(content) in [ types.ListType , types.TupleType ]:
+			self.content = map(ToNode,content)
+		else:
+			self.content = [ ToNode(content) ]
+
+	def __add__(self,other):
+		res = XSCFrag(self.content)
+		res.append(other)
+		return res
+
+	def __radd__(self,other):
+		res = XSCFrag(self.content)
+		res.preppend(other)
+
+	def __str__(self):
+		return string.joinfields(map(str,self.content),"")
+
+	def __repr__(self):
+		return string.joinfields(map(repr,self.content),"")
+
+	def append(self,other):
+		self.content.append(ToNode(other))
+
+	def preppend(self,other):
+		self.content[0:0] = ToNode(other)
 
 class XSCComment(XSCNode):
 	"comments"
@@ -101,38 +183,44 @@ class XSCComment(XSCNode):
 	def __init__(self,content = ""):
 		self.content = content
 
-	def html(self):
+	def __repr__(self):
 		return "<!--" + self.content + "-->"
 
 class XSCDocType(XSCNode):
 	"document type"
 
-	def __init__(self,data = ""):
-		self.data = data
+	def __init__(self,content = ""):
+		self.content = content
 
-	def html(self):
-		return "<!DOCTYPE " + self.data + ">"
+	def __repr__(self):
+		return "<!DOCTYPE " + self.content + ">"
 
 class XSCStringAttr(XSCNode):
 	"string attribute"
 
-	def __init__(self,data):
-		self.data = data
+	def __init__(self,content):
+		self.content = content
+
+	def __repr__(self):
+		return repr(self.content)
 
 	def __str__(self):
-		return str(self.data)
-
-	def html(self):
-		return html(self.data)
+		return str(self.content)
 
 class XSCURLAttr(XSCNode):
 	"url attribute"
 
-	def __init__(self,data):
-		self.data = data
+	def __init__(self,content):
+		self.content = content
 
-	def html(self):
-		url = html(self.data) 
+	def __repr__(self):
+		url = repr(self.content)
+		if url[0] == ":":
+			url = url[1:]
+		return url
+
+	def __str__(self):
+		url = str(self.content) 
 		if url[0] == ":":
 			# split both path
 			source = string.splitfields(xsc_filename,os.sep)
@@ -144,13 +232,7 @@ class XSCURLAttr(XSCNode):
 			url = string.joinfields(([os.pardir]*(len(source)-1)) + dest,os.sep)
 		return url
 
-	def __str__(self):
-		url = str(self.data)
-		if url[0] == ":":
-			url = url[1:]
-		return url
-
-element_handlers = {} # dictionary that links element names to element classes
+lement_handlers = {} # dictionary that links element names to element classes
 
 class XSCElement(XSCNode):
 	"XML elements"
@@ -159,7 +241,7 @@ class XSCElement(XSCNode):
 	attr_handlers = {}
 
 	def __init__(self,content = [],attrs = {},**restattrs):
-		self.content = content
+		self.content = XSCFrag(content)
 		self.attrs = {}
 
 		# construct the attribute dictionary, keys are the attribute names, values are the various nodes for the differnet attribute type; checks that only attributes that are allow are used (raises an exception otherwise)"
@@ -179,16 +261,38 @@ class XSCElement(XSCNode):
 	def append(self,item):
 		self.content.append(item)
 
-	def html(self):
-		"returns this element as a string. For the content and the attributes the global function AsString() is called recursively"
+	def __repr__(self):
+		"returns this element as a string"
+		v = []
+		v.append("<")
+		v.append(self.name)
+		if len(self.attrs.keys()):
+			v.append(" ")
+			v.append(repr(self.attrs))
+		s = repr(self.content)
+		if self.close == 1:
+			v.append(">")
+			v.append(s)
+			v.append("</")
+			v.append(self.name) # name must be a string without any nasty characters
+			v.append(">")
+		else:
+			if len(s):
+				raise EHSCEmptyElementWithContent(self)
+			v.append(">")
+
+		return string.joinfields(v,"")
+
+	def __str__(self):
+		"returns this element as a string converted to HTML"
 
 		v = []
 		v.append("<")
 		v.append(self.name)
 		if len(self.attrs.keys()):
 			v.append(" ")
-			v.append(html(self.attrs))
-		s = html(self.content)
+			v.append(str(self.attrs))
+		s = str(self.content)
 		if self.close == 1:
 			v.append(">")
 			v.append(s)
@@ -242,47 +346,6 @@ def RegisterElement(name,element):
 	element_handlers[name] = element
 	element.name = name
 
-def html(value):
-	"transforms a value into a string: string are returned with 'nasty' characters replaced with entities, XSC and HTML nodes are output as one would expect. Lists, tuples and dictionaries are treated recursively"
-
-	if type(value) == types.StringType:
-		v = []
-		for i in value:
-			if i == '<':
-				v.append('&lt;')
-			elif i == '>':
-				v.append('&gt;')
-			elif i == '&':
-				v.append('&amp;')
-			elif i == '"':
-				v.append('&quot')
-			elif ord(i)>=128:
-				v.append('&#' + str(ord(i)) + ';')
-			else:
-				v.append(i)
-		return string.joinfields(v,"")
-	elif type(value) in [ types.NoneType,types.IntType,types.LongType,types.FloatType ] :
-		return str(value)
-	elif type(value) in [ types.ListType,types.TupleType ]:
-		v = []
-		for i in value:
-			v.append(html(i))
-		return string.joinfields(v,"")
-	elif type(value) == types.DictType:
-		v = []
-		for i in value.keys():
-			if len(v):
-				v.append(" ")
-			v.append(i) # keys must be strings without any nasty characters
-			s = html(value[i])
-			if len(s):
-				v.append('="') # we can use double quotes here, because all double quotes will be replaced with the entity in the string
-				v.append(s)
-				v.append('"')
-		return string.joinfields(v,"")
-	else:
-		return value.html()
-
 ###
 ###
 ###
@@ -322,6 +385,9 @@ class XSC(XMLParser):
 	def handle_comment(self,comment):
 		self.nesting[-1].append(XSCComment(comment))
 
-	def html(self):
-		return html(self.root)
+	def __repr__(self):
+		return repr(self.root)
+
+	def __str__(self):
+		return str(self.root)
 
