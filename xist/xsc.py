@@ -605,7 +605,7 @@ class XSCComment(XSCNode):
 		return [[nest,self.startlineno,elementno,self._strtag("!--" + self.__content + "--")]]
 
 	def dostr(self):
-		return "<!--" + self.content + "-->"
+		return "<!--" + self.__content + "-->"
 
 class XSCDocType(XSCNode):
 	"""document type"""
@@ -620,7 +620,7 @@ class XSCDocType(XSCNode):
 		return [[nest,self.startlineno,elementno,self._strtag("!DOCTYPE " + self.__content)]]
 
 	def dostr(self):
-		return "<!DOCTYPE " + self.content + ">"
+		return "<!DOCTYPE " + self.__content + ">"
 
 class XSCProcInst(XSCNode):
 	"""processing instructions"""
@@ -636,7 +636,7 @@ class XSCProcInst(XSCNode):
 		return [[nest,self.startlineno,elementno,self._strpi(self.__target,self.__content)]]
 
 	def dostr(self):
-		return "<?" + self.target + " " + self.content + "?>"
+		return "<?" + self.__target + " " + self.__content + "?>"
 
 class XSCElement(XSCNode):
 	"""XML elements"""
