@@ -389,7 +389,7 @@ class self(xsc.Element):
 	def convert(self, converter):
 		if converter.target=="docbook":
 			e = docbook.varname("self")
-		else
+		else:
 			e = html.code("self", class_="self")
 		return e
 
