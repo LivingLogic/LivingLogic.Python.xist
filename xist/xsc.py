@@ -120,7 +120,16 @@ def URLForInput(url):
 	return urlparse.urlunparse((scheme,server,path,parameters,query,fragment))
 
 def URLForOutput(url):
-	pass
+	if url[0] == ":":
+		# split both path
+		source = string.splitfields(xsc.filename,"/")
+		dest = string.splitfields(url[1:],os.sep)
+		# throw away identical directories in both path
+		while len(source)>1 and len(dest)>1 and source[0]==dest[0]:
+			del source[0]
+			del dest[0]
+		url = string.joinfields(([".."]*(len(source)-1)) + dest,"/")
+	return url
 
 def FileSize(url):
 	"""returns the size of a file in bytes or -1 if the file shouldn't be read"""
@@ -571,21 +580,8 @@ class XSCurl(XSCElement):
 			self.content = XSCFrag(content)
 
 	def dorepr(self,tree,nest,elementno):
-		(scheme,server,path,parameters,query,fragment) = urlparse.urlparse(self.content)
-		if scheme == "" and server == "":
-			if len(path) and path[0] == "/": # this is a server relative URL, use the server specified in the options (usually localhost)
-				scheme = "http"
-				server = xsc.server
-			else:
-				if len(path) and path[0] == ":": # project relative, i.e. relative to the current directory
-					path = path[1:]
-				# now we have an URL that is relative to the current directory, replace URL syntax with the path syntax on our system (won't do anything under UNIX, replaces / with  \ under Windows)
-				pathsplit = string.splitfields(path,"/")
-				for i in range(len(pathsplit)):
-					if pathsplit[i] == "..":
-						pathsplit[i] = os.pardir
-				path = string.joinfields(pathsplit,os.sep)
-		return [[nest,self.startlineno,elementno,urlparse.urlunparse((scheme,server,path,parameters,query,fragment))]]
+		url = URLForInput(self.content.repr(0))
+		return [[nest,self.startlineno,elementno,url]]
 
 	def __str__(self):
 		url = str(self.content)
