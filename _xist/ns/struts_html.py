@@ -9,10 +9,15 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 
 from xist import xsc
 
-class taglib(xsc.Element):
-	empty = 1
+class taglib(xsc.ProcInst):
+	"""
+	creates a standard struts taglib header
+	"""
+	def __init__(self, content=u""):
+		xsc.ProcInst.__init__(self, u"taglib", content)
+
 	def publish(self, publisher):
-		publisher.publish(u"<%@ taglib uri=\"/WEB-INF/struts-html.tld\" prefix=\"struts_html\" %>")
+		publisher.publish(u'<%@ taglib uri="/WEB-INF/struts-html.tld" prefix="struts_html" %>')
 
 class Element(xsc.Element):
 	"""

@@ -133,7 +133,7 @@ def make(args):
 			if not outname.file:
 				outname.file = "noname.html"
 			t1 = time.time()
-			e_in = parsers.parseFile(inname.asString(), namespaces=namespaces)
+			e_in = parsers.parseFile(inname.asString(), namespaces=namespaces, parser=parser)
 			t2 = time.time()
 			e_out = e_in.convert(converter)
 			t3 = time.time()

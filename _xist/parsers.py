@@ -441,6 +441,7 @@ class Handler:
 		self.parser.setDTDHandler(self)
 		self.parser.setEntityResolver(self)
 
+		self.skippingWhitespace = 0
 		self.parser.parse(source)
 
 		# unregister us to break the cycles
@@ -474,6 +475,7 @@ class Handler:
 				attr.base = base
 		self.__appendNode(node)
 		self.__nesting.append(node) # push new innermost element onto the stack
+		self.skippingWhitespace = 0
 
 	def endElement(self, name):
 		element = self.namespaces.elementFromName(name)
@@ -484,18 +486,26 @@ class Handler:
 		self.__nesting.pop() # pop the innermost element off the stack
 
 	def characters(self, content):
+		if self.skippingWhitespace:
+			content = content.lstrip()
 		if content:
 			last = self.__nesting[-1]
 			if len(last) and isinstance(last[-1], xsc.Text):
 				last[-1]._content += content # join consecutive Text nodes (this violates the "immutable Text restriction", but there is only one reference to the Text object)
 			else:
 				self.__appendNode(xsc.Text(content))
+			self.skippingWhitespace = 0
 
 	def comment(self, content):
 		self.__appendNode(xsc.Comment(content))
+		self.skippingWhitespace = 0
 
 	def processingInstruction(self, target, data):
-		self.__appendNode(self.namespaces.procInstFromName(target)(data))
+		if target=="x":
+			self.skippingWhitespace = 1
+		else:
+			self.__appendNode(self.namespaces.procInstFromName(target)(data))
+			self.skippingWhitespace = 0
 
 	def skippedEntity(self, name):
 		node = self.namespaces.entityFromName(name)()
@@ -503,6 +513,7 @@ class Handler:
 			self.characters(unichr(node.codepoint))
 		else:
 			self.__appendNode(node)
+		self.skippingWhitespace = 0
 
 	def __decorateException(self, exception):
 		if not isinstance(exception, saxlib.SAXParseException):

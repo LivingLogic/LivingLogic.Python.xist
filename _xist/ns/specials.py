@@ -306,6 +306,17 @@ class redirectpage(xsc.Element):
 		)
 		return e.convert(converter)
 
+class wrap(xsc.Element):
+	"""
+	a wrapper element that returns its content.
+	This is e.g. useful if you want to parse a
+	file that start with 
+	"""
+	empty = 0
+
+	def convert(self, converter):
+		return self.content.convert(converter)
+
 # Control characters (not part of HTML)
 class lf(xsc.CharRef): "line feed"; codepoint = 10
 class cr(xsc.CharRef): "carriage return"; codepoint = 13
