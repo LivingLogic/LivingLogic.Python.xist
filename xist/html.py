@@ -543,7 +543,8 @@ class base(xsc.Element):
 	document base URI
 	"""
 	empty = 1
-	attrHandlers = { "href": xsc.URLAttr }
+	attrHandlers = {"href": xsc.URLAttr}
+	attrHandlers.update({"target": xsc.TextAttr} # deprecated
 
 class img(xsc.Element):
 	"""
