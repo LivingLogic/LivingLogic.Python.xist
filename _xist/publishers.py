@@ -24,6 +24,9 @@ import xsc, options, helpers, errors
 
 
 def cssescapereplace(exc):
+	"""
+	PEP 293 codec callback that excapes unencodable character for CSS output.
+	"""
 	if not isinstance(exc, UnicodeEncodeError):
 		raise TypeError("don't know how to handle %r" % exc)
 	return (helpers.cssescapereplace(exc.object[exc.start:exc.end], exc.encoding), exc.end)
