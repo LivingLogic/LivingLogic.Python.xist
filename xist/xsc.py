@@ -1361,9 +1361,9 @@ class Element(Node):
 		
 		return self.attrs.has_key(attr)
 
-	def getAttr(self,attr,default):
+	def getAttr(self,attr,default = None):
 		"""
-		S.getAttr(attr,default) -> node
+		S.getAttr(attr,default = None) -> node
 
 		works like the method get() of dictionaries,
 		it returns the attribute with the name attr, or if S has no
