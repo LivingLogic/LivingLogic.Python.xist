@@ -355,4 +355,4 @@ class textarea(MouseElement):
 		class value(xsc.TextAttr): pass
 
 # register all the classes we've defined so far
-xmlns = xsc.Namespace("struts_html", "http://java.sun.com/j2ee/dtds/web-jsptaglibrary_1_1.dtd", vars())
+xmlns = xsc.Namespace("struts_html", "http://jakarta.apache.org/struts/tags-html-1.0", vars())
