@@ -275,6 +275,21 @@ class loremipsum(xsc.Element):
 			text = self.text
 		return xsc.Text(text)
 
+class contenttype(html.meta):
+	empty = 1
+	attrHandlers = html.meta.attrHandlers.copy()
+	del attrHandlers["http-equiv"]
+	del attrHandlers["http_equiv"]
+	del attrHandlers["name"]
+	del attrHandlers["content"]
+
+	def asHTML(self):
+		e = html.meta(self.attrs)
+		e["http-equiv"] = "Content-Type"
+		e["content"] = "text/html"
+
+		return e.asHTML()
+
 class redirectpage(xsc.Element):
 	empty = 1
 	attrHandlers = {"href": xsc.URLAttr}
