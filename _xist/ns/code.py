@@ -20,9 +20,7 @@
 ## IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 """
-<doc:par>An &xist; module that contains elements that simplify handling
-meta data. All elements in this module will generate a <pyref module="xist.ns.html" class="meta">html.meta</pyref>
-element when converted.</doc:par>
+<doc:par>An &xist; module that allows embedding Python code in &xml;</doc:par>
 """
 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
@@ -92,14 +90,14 @@ class Code:
 class exec_(xsc.ProcInst):
 	"""
 	<doc:par>here the content of the processing instruction is executed
-	as Python code, so you can define and register XSC elements here.
+	as Python code, so you can define and register &xist; elements here.
 	Execution is done when the node is constructed, so definitions made
 	here will be available afterwards (e.g. during the rest of the
 	file parsing stage). When converted to &html; such a node will result
-	in an empty Null node.</doc:par>
+	in an empty <lit>Null</lit> node.</doc:par>
 
 	<doc:par>These processing instructions will be evaluated and executed in the
-	namespace of the module sandbox.</doc:par>
+	namespace of the module <module>sandbox</module>.</doc:par>
 	"""
 	name = "exec"
 
@@ -120,18 +118,18 @@ class eval_(xsc.ProcInst):
 	node and this resulting node will be converted to &html;.</doc:par>
 
 	<doc:par>These processing instructions will be evaluated and executed in the
-	namespace of the module <pyref module="xist.sandbox">sandbox</pyref>.</doc:par>
+	namespace of the module <module>sandbox</module>.</doc:par>
 
-	<doc:par>Note that you should not define the symbol <code>__</code> in any of your XSC
-	processing instructions, as it is used by XSC for internal purposes.</doc:par>
+	<doc:par>Note that you should not define the symbol <lit>__</lit> in any of your &xist;
+	processing instructions, as it is used by &xist; for internal purposes.</doc:par>
 	"""
 	name = "eval"
 
 	def convert(self, converter):
 		"""
 		<doc:par>Evaluates the code as if it was the body of a Python funtion.
-		The <pyref arg="converter">converter</pyref> argument will be available
-		under the name <code>converter</code> as an argument to the function.</doc:par>
+		The <arg>converter</arg> argument will be available
+		under the name <arg>converter</arg> as an argument to the function.</doc:par>
 		"""
 		code = Code(self.content, 1)
 		code.funcify()
