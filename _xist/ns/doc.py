@@ -204,11 +204,25 @@ class filename(xsc.Element):
 	The name of a file
 	"""
 	empty = False
-	class Attrs(xsc.Element.Attrs):
-		class class_(xsc.TextAttr): xmlname = "class"
 
 	def convert(self, converter):
-		e = html.code(self.content, class_="filename")
+		if converter.target=="docbook":
+			e = docbook.filename(self.content)
+		else:
+			e = html.code(self.content, class_="filename")
+		return e.convert(converter)
+
+class dirname(xsc.Element):
+	"""
+	The name of directory
+	"""
+	empty = False
+
+	def convert(self, converter):
+		if converter.target=="docbook":
+			e = docbook.filename(self.content, class_="directory")
+		else:
+			e = html.code(self.content, class_="dirname")
 		return e.convert(converter)
 
 class app(xsc.Element):
