@@ -374,6 +374,8 @@ class Presenter:
 	"""
 	<doc:par>This class is the base of the presenter classes. It is abstract
 	and only serves as documentation for the methods.</doc:par>
+	<doc:par>A <class>Presenter</class> generates a specific
+	string representation of a node to be printed on the screen.</doc:par>
 	"""
 
 	def beginPresentation(self):
