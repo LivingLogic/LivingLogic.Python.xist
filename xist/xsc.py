@@ -755,7 +755,7 @@ class Node:
 
 	def findNodes(self,type = None,subtype = 0,children = 0,attrs = 0):
 		"""
-		findNodes(self,type = None,subtype = 0,children = 0,attrs = 0) -> fragment
+		findNodes(self,type = None,subtype = 0,searchchildren = 0,searchattrs = 0) -> fragment
 
 		returns a fragment which contains child elements of this node.
 
@@ -765,10 +765,10 @@ class Node:
 
 		If you set subtype to 1 nodes that are a subtype of type will be returned too.
 
-		If you set children to 1 not only the immediate children but also the grandchildren
+		If you set searchchildren to 1 not only the immediate children but also the grandchildren
 		will be searched for nodes matching the other criteria.
 
-		If you set attrs to 1 the attributes of the nodes (if type is Element or one
+		If you set searchattrs to 1 the attributes of the nodes (if type is Element or one
 		of its subtypes) will be searched too.
 		"""
 		return Frag()
@@ -1087,13 +1087,13 @@ class Frag(Node):
 			elif newother is not Null:
 				self.__content.append(newother)
 
-	def findNodes(self,type = None,subtype = 0,children = 0,attrs = 0):
+	def findNodes(self,type = None,subtype = 0,searchchildren = 0,searchattrs = 0):
 		e = Frag()
 		for child in self:
 			if child._nodeOK(type,subtype):
 				e.append(child)
 			if children:
-				e.extend(child.findNodes(type,subtype,children,attrs))
+				e.extend(child.findNodes(type,subtype,searchchildren,searchattrs))
 		return e
 
 	def compact(self):
@@ -1539,12 +1539,12 @@ class Element(Node):
 			e[attr] = self[attr].compact()
 		return e
 
-	def findNodes(self,type = None,subtype = 0,children = 0,attrs = 0):
+	def findNodes(self,type = None,subtype = 0,searchchildren = 0,searchattrs = 0):
 		e = Frag()
 		if attrs:
 			for attr in self.attrs.keys():
-				e.extend(self[attr].findNodes(type,subtype,children,attr))
-		e.extend(self.content.findNodes(type,subtype,children,attrs))
+				e.extend(self[attr].findNodes(type,subtype,searchchildren,searchattr))
+		e.extend(self.content.findNodes(type,subtype,searchchildren,searchattrs))
 		return e
 
 class Null(Node):
