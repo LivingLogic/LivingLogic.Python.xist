@@ -1862,7 +1862,7 @@ class Namespace(object):
 
 		if isinstance(thing, type): # this is a class object
 			iselement = thing is not Element and issubclass(thing, Element)
-			isentity = thing is not Entity and issubclass(thing, Entity)
+			isentity = thing is not Entity and thing is not CharRef and issubclass(thing, Entity)
 			if isentity:
 				ischarref = thing is not CharRef and issubclass(thing, CharRef)
 				if ischarref:
