@@ -2,7 +2,7 @@
 <section><title>Requirements</title>
 To use &xist; you need the following software packages:
 <olist>
-<item>Python 2.2 (available from <link href="http://www.python.org/">http://www.python.org/</link>),</item>
+<item>Python 2.2.1 (available from <link href="http://www.python.org/">http://www.python.org/</link>),</item>
 <item>The Python &xml; package (available from <link href="http://pyxml.sf.net/">http://pyxml.sf.net/</link>)
 (a version that includes <app>sgmlop</app> and <app>expat</app>),</item>
 <item>the Python Imaging Library (available from
