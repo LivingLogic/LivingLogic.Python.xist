@@ -404,7 +404,7 @@ class XSCurl(XSCElement):
 		if url[0] == ":":
 			url = url[1:]
 		elif url[0] == "/":
-			url = xsc_serverdir + url
+			url = xsc.xsc_serverdir + "/" + url
 		urlsplit = string.splitfields(url,"/")
 		for i in range(len(urlsplit)):
 			if urlsplit[i] == "..":
