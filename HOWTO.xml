@@ -702,7 +702,7 @@ with links to various homepages for programming languages. We can use it like th
 </prog>
 <par>(Of course the output will all be on one line.)</par>
 
-<par>Now we can define a derived namespace (in the file <filename>nav2ns.py/filename>)
+<par>Now we can define a derived namespace (in the file <filename>nav2ns.py</filename>)
 that overwrites the element classes <class>links</class> and <class>link</class>
 to change how the navigation looks:</par>
 
