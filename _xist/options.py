@@ -43,23 +43,12 @@ def getIntFromEnv(name, default):
 	except:
 		return default
 
-def getANSICodesFromEnv(name, default):
-	"""
-	parses an environment variable from a color code tuple and returns it or
-	the default if the environment variable can't be found or parsed.
-	"""
-	try:
-		var = eval(os.environ[name])
-	except:
-		return default
-	return var
-
-retrieveremote = getIntFromEnv("XSC_RETRIEVEREMOTE", 1)                                 # should remote URLs be retrieved? (for filesize and imagesize tests)
-retrievelocal = getIntFromEnv("XSC_RETRIEVELOCAL", 1)                                   # should local URLs be retrieved? (for filesize and imagesize tests)
-repransi = getIntFromEnv("XSC_REPRANSI", 0)                                             # should ANSI escape sequences be used for dumping the DOM tree and which ones? (0=off, 1=dark background, 2=light background)
-reprtab = getStringFromEnv("XSC_REPRTAB", "  ")                                         # how to represent an indentation in the DOM tree?
-outputXHTML = getIntFromEnv("XSC_OUTPUT_XHTML", 1)                                      # XHTML output format (0 = plain HTML, 1 = HTML compatible XHTML, 2 = pure XHTML)
-outputEncoding = getStringFromEnv("XSC_OUTPUT_ENCODING", "us-ascii")                    # Encoding to be used in publish() (and asBytes())
+retrieveremote = getIntFromEnv("XSC_RETRIEVEREMOTE", 1)              # should remote URLs be retrieved? (for filesize and imagesize tests)
+retrievelocal = getIntFromEnv("XSC_RETRIEVELOCAL", 1)                # should local URLs be retrieved? (for filesize and imagesize tests)
+repransi = getIntFromEnv("XSC_REPRANSI", 0)                          # should ANSI escape sequences be used for dumping the DOM tree and which ones? (0=off, 1=dark background, 2=light background)
+reprtab = getStringFromEnv("XSC_REPRTAB", "  ")                      # how to represent an indentation in the DOM tree?
+outputXHTML = getIntFromEnv("XSC_OUTPUT_XHTML", 1)                   # XHTML output format (0 = plain HTML, 1 = HTML compatible XHTML, 2 = pure XHTML)
+outputEncoding = getStringFromEnv("XSC_OUTPUT_ENCODING", "us-ascii") # Encoding to be used in publish() (and asBytes())
 reprEncoding = sys.getdefaultencoding()
 
 server = "localhost" # Host for server relative URLs
