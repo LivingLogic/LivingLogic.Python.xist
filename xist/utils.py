@@ -6,17 +6,38 @@
 ## See the file LICENSE for licensing details
 
 """
-This module contains helper function for executing
-Python code within XIST.
+This module contains several functions and classes,
+that are used internally by XIST.
 """
 
 __version__ = "$Revision$"[11:-2]
 # $Source$
 
+codeEncoding = "iso-8859-1"
+
 import sys
+import types
+
+def stringFromCode(text):
+	if type(text) is types.StringType:
+		return unicode(text, codeEncoding)
+	else:
+		return text
+
+def forceopen(name, mode):
+	try:
+		return open(name, mode)
+	except IOError, e:
+		if e[0] != 2: # didn't work for some other reason
+			raise
+		found = name.rfind("/")
+		if found == -1:
+			raise
+		os.makedirs(name[:found])
+		return open(name, mode)
 
 class Code:
-	def __init__(self, text, ignorefirst = 0):
+	def __init__(self, text, ignorefirst=0):
 		# get the individual lines; ignore "\r" as this would mess up whitespace handling later
 		lines = text.replace("\r", "").split("\n")
 		# split of the whitespace at the beginning of each line
@@ -25,7 +46,7 @@ class Code:
 			rest = line.lstrip()
 			white = line[:len(line)-len(rest)]
 			lines[i] = [white, rest]
-		# drop all empty lines at the beginning; if we drop a line we no long have to handle the first specifically
+		# drop all empty lines at the beginning; if we drop a line we no longer have to handle the first specifically
 		while lines and not lines[0][1]:
 			del lines[0]
 			ignorefirst = 0
@@ -69,3 +90,4 @@ class Code:
 			v += line
 			v += "\n"
 		return "".join(v)
+

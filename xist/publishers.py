@@ -17,8 +17,7 @@ import sys
 import types
 from encodings.aliases import aliases
 import codecs
-import options
-import xsc
+import options, xsc, utils
 
 strescapes = {'<': 'lt', '>': 'gt', '&': 'amp', '"': 'quot'}
 
@@ -106,7 +105,7 @@ class Publisher:
 			if type(text) in (types.ListType, types.TupleType):
 				self(text)
 			else:
-				self.publish(xsc.stringFromCode(text))
+				self.publish(utils.stringFromCode(text))
 
 	def publish(self, text):
 		"""

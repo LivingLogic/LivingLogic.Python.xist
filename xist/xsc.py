@@ -228,25 +228,18 @@ import publishers # classes for dumping XML strings
 import providers # classes that generate XSC trees
 import errors # exceptions
 import options # optional stuff ;)
-from code import Code # needed for formatting and executing Python code
+import utils # misc stuff
 
 ###
 ### helpers
 ###
 
-codeEncoding = "iso-8859-1"
 reprEncoding = sys.getdefaultencoding()
-
-def stringFromCode(text):
-	if type(text) is types.StringType:
-		return unicode(text, codeEncoding)
-	else:
-		return text
 
 def _stransi(codes, string, ansi=None):
 	if ansi is None:
 		ansi = options.repransi
-	string = stringFromCode(string).encode(reprEncoding)
+	string = utils.stringFromCode(string).encode(reprEncoding)
 	if ansi and len(codes[ansi-1]) and string:
 		return "\033[%sm%s\033[0m" % (codes[ansi-1], string)
 	else:
@@ -724,7 +717,7 @@ class StringMixIn:
 	a few methods (<code>__str__</code> etc.)
 	"""
 	def __init__(self, content):
-		self._content = stringFromCode(content)
+		self._content = utils.stringFromCode(content)
 
 	def __iadd__(self, other):
 		other = ToNode(other)
@@ -1202,7 +1195,7 @@ class ProcInst(Node, StringMixIn):
 	"""
 
 	def __init__(self, target, content=u""):
-		self._target = stringFromCode(target)
+		self._target = utils.stringFromCode(target)
 		StringMixIn.__init__(self, content)
 
 	def asHTML(self):
@@ -1233,7 +1226,7 @@ class PythonCode(ProcInst):
 	def _doreprtree(self, nest, elementno, encoding=None, ansi=None):
 		head = strBracketOpen(ansi) + strQuestion(ansi) + strProcInstTarget(self._target, ansi) + " "
 		tail = strQuestion(ansi) + strBracketClose(ansi)
-		code = Code(self._content, 1)
+		code = utils.Code(self._content, 1)
 		code.indent()
 		return self._doreprtreeMultiLine(nest, elementno, head, tail, code.asString(), strProcInstData, 1, ansi=ansi)
 
@@ -1253,7 +1246,7 @@ class Exec(PythonCode):
 
 	def __init__(self, content=u""):
 		ProcInst.__init__(self, u"xsc-exec", content)
-		code = Code(self._content, 1)
+		code = utils.Code(self._content, 1)
 		exec code.asString() in procinst.__dict__ # requires Python 2.0b2 (and doesn't really work)
 
 	def asHTML(self):
@@ -1280,7 +1273,7 @@ class Eval(PythonCode):
 		ProcInst.__init__(self, u"xsc-eval", content)
 
 	def asHTML(self):
-		code = Code(self._content, 1)
+		code = utils.Code(self._content, 1)
 		code.funcify()
 		exec code.asString() in procinst.__dict__ # requires Python 2.0b2 (and doesn't really work)
 		return ToNode(eval("__()", procinst.__dict__)).asHTML()
@@ -1434,7 +1427,7 @@ class Element(Node):
 							try:
 								s = self[attr].asHTML().asPlainString() % sizedict
 								s = str(eval(s))
-								s = stringFromCode(s)
+								s = utils.stringFromCode(s)
 								self[attr] = s
 							except TypeError: # ignore "not all argument converted"
 								pass
@@ -1835,20 +1828,18 @@ class URLAttr(Attr):
 
 class Namespace:
 	"""
-	an XML namespace, contains the classes for the elements, entities and character references
+	an XML namespace, contains the classes for the elements, entities and processing instructions
 	in the namespace.
 	"""
 
 	def __init__(self, prefix, uri, thing=None):
-		self.prefix = stringFromCode(prefix)
-		self.uri = stringFromCode(uri)
+		self.prefix = utils.stringFromCode(prefix)
+		self.uri = utils.stringFromCode(uri)
 		self.elementsByName = {} # dictionary for mapping element names to classes
 		self.entitiesByName = {} # dictionary for mapping entity names to classes
 		self.entitiesByNumber = [ [] for i in xrange(65536) ]
 		self.procInstsByName = {} # dictionary for mapping processing instruction target names to classes
-
 		self.register(thing)
-
 		namespaceRegistry.register(self)
 
 	def register(self, thing):
@@ -1888,7 +1879,7 @@ class Namespace:
 						name = thing.__name__
 					thing.namespace = self # this creates a cycle, but namespaces aren't constantly created and deleted (and Python will get a GC some day ;))
 					if name is not None:
-						name = stringFromCode(name)
+						name = utils.stringFromCode(name)
 						thing.name = name
 						if iselement:
 							self.elementsByName[name] = thing
@@ -1920,6 +1911,7 @@ class NamespaceRegistry:
 		self.byURI = {}
 
 	def register(self, namespace):
+		print "="*20,repr(namespace.uri)
 		self.byPrefix[namespace.prefix] = namespace
 		self.byURI[namespace.uri] = namespace
 

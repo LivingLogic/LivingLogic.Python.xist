@@ -16,19 +16,7 @@ __version__ = "$Revision$"[11:-2]
 import sys
 import getopt
 import time
-from xist import xsc, html, publishers, url
-
-def __forceopen(name, mode):
-	try:
-		return open(name, mode)
-	except IOError, e:
-		if e[0] != 2: # didn't work for some other reason
-			raise
-		found = name.rfind("/")
-		if found == -1:
-			raise
-		os.makedirs(name[:found])
-		return open(name, mode)
+import xsc, html, publishers, url, utils
 
 def extXSC2HTML(ext):
 	try:
@@ -81,7 +69,7 @@ def make():
 			xsc.xsc.pushURL(inname)
 			e_out = e_in.asHTML()
 			t3 = time.time()
-			p = publishers.FilePublisher(__forceopen(outname.asString(), "wb"), encoding=encoding, XHTML=XHTML)
+			p = publishers.FilePublisher(utils.forceopen(outname.asString(), "wb"), encoding=encoding, XHTML=XHTML)
 			e_out.publish(p)
 			t4 = time.time()
 			size = p.tell()
