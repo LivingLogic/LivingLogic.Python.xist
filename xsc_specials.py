@@ -127,6 +127,16 @@ class emdash(XSCElement):
 		return XSCText("-")
 RegisterElement("emdash",emdash)
 
+class include(XSCElement):
+	empty = 1
+	attr_handlers = { "src" : XSCURLAttr }
+
+	def asHTML(self):
+		e = xsc.parseFile(self["src"].forInput())
+
+		return e.asHTML()
+RegisterElement("include",include)
+
 if __name__ == "__main__":
 	print str(xsc.parseFile(sys.argv[1]).asHTML())
 

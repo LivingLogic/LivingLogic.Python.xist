@@ -1323,4 +1323,3 @@ class XSC:
 			return 0
 
 xsc = XSC()
-

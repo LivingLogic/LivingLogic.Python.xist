@@ -447,6 +447,7 @@ RegisterElement("legend",legend)
 class script(XSCElement):
 	empty = 0
 	attr_handlers = { "charset" : XSCTextAttr , "type" : XSCTextAttr , "src" : XSCURLAttr , "defer" : XSCTextAttr }
+	attr_handlers = AppendDict(attr_handlers,{ "language" : XSCTextAttr }) # deprecated
 RegisterElement("script",script)
 
 class noscript(XSCElement):
