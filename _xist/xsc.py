@@ -2150,7 +2150,7 @@ class Element(Node):
 		"""
 		<par>Automatically set image width and height attributes.</par>
 		
-		<par>The size of the image with the &url; <arg>url</url> will be determined and
+		<par>The size of the image with the &url; <arg>url</arg> will be determined and
 		hhe width of the image will be put into the attribute with the name <arg>widthattr</arg>
 		if <arg>widthattr</arg> is not <lit>None</lit> and the attribute is not set. The
 		same will happen for the height, which will be put into the <arg>heighattr</arg>.</par>
