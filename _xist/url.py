@@ -364,6 +364,34 @@ class URL:
 					urllib.urlcleanup()
 		return size
 
+	def files(self):
+		"""
+		return a list of files
+		"""
+		if self.scheme and self.scheme != "root" and self.scheme != "file":
+			raise ValueError("cannot list files for %r: unsupported scheme" % self)
+		url = self.asPlainString()
+		if url.startswith("file:"):
+			url = url[5:]
+		url = urllib.url2pathname(url)
+		files = {}
+		os.path.walk(url, self.__walk, files)
+		files = files.keys()
+		files.sort()
+		return [ URL(urllib.pathname2url(file), scheme=self.scheme) for file in files ]
+
+	def __walk(self, files, dirname, filenames):
+		"""
+		internal method used by <pyref method="files">files</pyref>
+		"""
+		try:
+			del files[dirname] # don't collect directories
+		except KeyError:
+			pass
+		for filename in filenames:
+			filename = os.path.join(dirname, filename)
+			files[filename] = None
+
 def test_normalize(input, output):
 	"""
 	Tests whether '_normalize' returns the expected results.
