@@ -1,9 +1,13 @@
 include NEWS
+include NEWS.xml
 include INSTALL
+include INSTALL.xml
 include CREDITS
 include README
 include TODO
 include HOWTO
+include HOWTO.xml
+include Makefile
 recursive-include examples *
 recursive-include scripts *.py
 include images/pixels/*.gif

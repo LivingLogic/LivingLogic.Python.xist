@@ -27,6 +27,8 @@ an additional parameter <lit>headers</lit> which is a list of string pairs speci
 additional headers to be passed in with the request.</item>
 <item><function>parseString</function> has an additional parameter <lit>systemId</lit>
 which will be the system id of the <class>InputSource</class></item>
+<item>The distributiton now includes the makefile and the &xml; source files
+so now the distribution can be rebuilt from it.</item>
 <item>Various other small bugfixes and enhancements.</item>
 </ulist>
 </section>
