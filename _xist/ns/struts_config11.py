@@ -21,8 +21,8 @@
 ## IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 """
-<doc:par>Namespace module for <a href="http://jakarta.apache.org/struts/">Struts</a>
-configuration files: <lit><a href="http://jakarta.apache.org/struts/dtds/struts-config_1_1.dtd">http://jakarta.apache.org/struts/dtds/struts-config_1_1.dtd</a></lit>.</doc:par>
+<par>Namespace module for <link href="http://jakarta.apache.org/struts/">Struts</link>
+configuration files: <link href="http://jakarta.apache.org/struts/dtds/struts-config_1_1.dtd">http://jakarta.apache.org/struts/dtds/struts-config_1_1.dtd</link>.</par>
 """
 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
@@ -97,12 +97,12 @@ class action_mappings(struts_config10.action_mappings):
 
 class action(xsc.Element):
 	"""
-	<doc:par>This element represents a struts action mapping using the
+	<par>This element represents a struts action mapping using the
 	struts workflow extension mapping class (<class>ApplicationMapping</class>)
 	as its default instead of the action mapping class included in
 	the official struts 1.1 package. If you want to use the default
 	struts action mapping class, you have to specify its fully qualified
-	class name in the <lit>className</lit> attribute.</doc:par>
+	class name in the <lit>className</lit> attribute.</par>
 	"""
 	empty = False
 	attrHandlers = {

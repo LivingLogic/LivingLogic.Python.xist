@@ -21,13 +21,13 @@
 ## IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 """
-<doc:par>This file contains everything you need to parse &xist; objects from files, strings, &url;s etc.</doc:par>
+<par>This file contains everything you need to parse &xist; objects from files, strings, &url;s etc.</par>
 
-<doc:par>It contains different &sax;2 parser driver classes (mostly for sgmlop, everything else
+<par>It contains different &sax;2 parser driver classes (mostly for sgmlop, everything else
 is from <app moreinfo="http://pyxml.sf.net/">PyXML</app>). It includes a
 <pyref class="HTMLParser"><class>HTMLParser</class></pyref> that uses sgmlop to parse &html;
 and emit &sax;2 events. It also contains various classes derived from
-<class>xml.sax.xmlreader.InputSource</class>.</doc:par>
+<class>xml.sax.xmlreader.InputSource</class>.</par>
 """
 
 import sys, os, os.path, types, urllib
@@ -268,9 +268,9 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 
 class BadEntityParser(SGMLOPParser):
 	"""
-	<doc:par>A &sax;2 parser that recognizes the character entities
+	<par>A &sax;2 parser that recognizes the character entities
 	defined in &html; and tries to pass on unknown or malformed
-	entities to the handler literally.</doc:par>
+	entities to the handler literally.</par>
 	"""
 
 	def _string2Fragment(self, text):
@@ -308,7 +308,7 @@ class BadEntityParser(SGMLOPParser):
 
 class HTMLParser(BadEntityParser):
 	"""
-	<doc:par>A &sax;2 parser that can parse &html;.</doc:par>
+	<par>A &sax;2 parser that can parse &html;.</par>
 	"""
 
 	headElements = ("title", "base", "script", "style", "meta", "link", "object") # Elements that may appear in the <head>

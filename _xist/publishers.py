@@ -21,8 +21,8 @@
 ## IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 """
-<doc:par>This module contains classes that may be used as publishing
-handler in <pyref module="ll.xist.xsc" class="Node" method="publish"><method>publish</method></pyref>.</doc:par>
+<par>This module contains classes that may be used as publishing
+handler in <pyref module="ll.xist.xsc" class="Node" method="publish"><method>publish</method></pyref>.</par>
 """
 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
@@ -41,22 +41,22 @@ class Publisher(object):
 
 	def __init__(self, base=None, root=None, encoding=None, xhtml=None, prefixes=None, elementmode=1, procinstmode=0, entitymode=0):
 		"""
-		<doc:par><arg>base</arg> specifies the url to which the result
-		will be output.</doc:par>
+		<par><arg>base</arg> specifies the url to which the result
+		will be output.</par>
 
-		<doc:par><arg>encoding</arg> specifies the encoding to be used.
+		<par><arg>encoding</arg> specifies the encoding to be used.
 		The encoding itself (i.e. calling <method>encode</method> on the
 		unicode strings) must be done by <pyref method="publish"><method>xist.publishers.Publisher.publish</method></pyref>
-		and not by <pyref module="ll.xist.xsc" class="Node"><method>xist.xsc.Node.publish</method></pyref>.</doc:par>
+		and not by <pyref module="ll.xist.xsc" class="Node"><method>xist.xsc.Node.publish</method></pyref>.</par>
 
-		<doc:par>The only exception is in the case of encodings that can't encode
+		<par>The only exception is in the case of encodings that can't encode
 		the full range of unicode characters like <lit>us-ascii</lit>
 		or <lit>iso-8859-1</lit>. In this case non encodable characters will be replaced
 		by characters references (if possible, if not (e.g. in comments or processing
 		instructions) an exception will be raised) before they are passed to
-		<pyref method="publish"><method>publish</method></pyref>.</doc:par>
+		<pyref method="publish"><method>publish</method></pyref>.</par>
 
-		<doc:par>With the parameter <arg>xhtml</arg> you can specify if you want &html; output
+		<par>With the parameter <arg>xhtml</arg> you can specify if you want &html; output
 		(i.e. elements with a content model EMPTY as <markup>&lt;foo&gt;</markup>) with
 		<code><arg>xhtml</arg>==0</code>, or XHTML output that is compatible with &html; browsers
 		(element with an empty content model as <markup>&lt;foo /&gt;</markup> and others that
@@ -66,20 +66,20 @@ class Publisher(object):
 		When you use the default (<code>None</code>) that value of the global variable
 		<code>outputXHTML</code> will be used, which defaults to 1, but can be overwritten
 		by the environment variable <code>XSC_OUTPUT_XHTML</code> and can of course be
-		changed dynamically.</doc:par>
+		changed dynamically.</par>
 
-		<doc:par><arg>prefixes</arg> is and instance of <pyref module="ll.xist.xsc" class="Prefixes"><class>Prefixes</class></pyref>
+		<par><arg>prefixes</arg> is and instance of <pyref module="ll.xist.xsc" class="Prefixes"><class>Prefixes</class></pyref>
 		and maps <pyref module="ll.xist.xsc" class="Namespace"><class>Namespace</class></pyref>
 		objects to prefixes that should be used (or <lit>None</lit>, if no prefix should be used.).
 		With <arg>elementmode</arg> you can specify how prefixes for elements should be
-		treated:</doc:par>
-		<doc:ulist>
-		<doc:item><lit>0</lit>: Never publish a prefix;</doc:item>
-		<doc:item><lit>1</lit>: Publish prefixes, but do not use <lit>xmlns</lit> attributes;</doc:item>
-		<doc:item><lit>2</lit>: Publish prefixes and issue the appropriate <lit>xmlns</lit> attributes.</doc:item>
-		</doc:ulist>
-		<doc:par><arg>procinstmode</arg> is used for processing instructions
-		and <arg>entitymode</arg> for entities.</doc:par>
+		treated:</par>
+		<ulist>
+		<item><lit>0</lit>: Never publish a prefix;</item>
+		<item><lit>1</lit>: Publish prefixes, but do not use <lit>xmlns</lit> attributes;</item>
+		<item><lit>2</lit>: Publish prefixes and issue the appropriate <lit>xmlns</lit> attributes.</item>
+		</ulist>
+		<par><arg>procinstmode</arg> is used for processing instructions
+		and <arg>entitymode</arg> for entities.</par>
 		"""
 		self.base = url.URL(base)
 		self.root = url.URL(root)
@@ -113,14 +113,14 @@ class Publisher(object):
 
 	def publishText(self, text):
 		"""
-		<doc:par>is used to publish text data. This uses the current
-		text filter, which is responsible for escaping characters.</doc:par>
+		<par>is used to publish text data. This uses the current
+		text filter, which is responsible for escaping characters.</par>
 		"""
 		self.publish(self.__currentTextFilter(text, self.encoding))
 
 	def pushTextFilter(self, filter):
 		"""
-		<doc:par>pushes a new text filter function.</doc:par>
+		<par>pushes a new text filter function.</par>
 		"""
 		self.__textFilters.append(filter)
 		self.__currentTextFilter = filter
@@ -134,8 +134,8 @@ class Publisher(object):
 
 	def _neededxmlnsdefs(self, node):
 		"""
-		<doc:par>Return a list of nodes in <arg>node</arg> that
-		need a <lit>xmlns</lit> attribute.</doc:par>
+		<par>Return a list of nodes in <arg>node</arg> that
+		need a <lit>xmlns</lit> attribute.</par>
 		"""
 		if isinstance(node, (xsc.Element, xsc.ProcInst, xsc.Entity)):
 			if node.needsxmlns(self)==xsc.Prefixes.DECLAREANDUSEPREFIX:
@@ -149,7 +149,7 @@ class Publisher(object):
 
 	def beginPublication(self):
 		"""
-		<doc:par>called once before the publication of the node <arg>node</arg> begins.</doc:par>
+		<par>called once before the publication of the node <arg>node</arg> begins.</par>
 		"""
 		# Determine if we have to introduce an artificial root element that gets the xmlns attributes
 		if not isinstance(self.node, xsc.Element): # An element is the wrapper itself
@@ -181,14 +181,14 @@ class Publisher(object):
 
 	def endPublication(self):
 		"""
-		<doc:par>called once after the publication of the node <arg>node</arg> has ended.</doc:par>
+		<par>called once after the publication of the node <arg>node</arg> has ended.</par>
 		"""
 		del self.prefixes2use
 		del self.node
 
 	def doPublication(self, node):
 		"""
-		<doc:par>performs the publication of the node <arg>node</arg>.</doc:par>
+		<par>performs the publication of the node <arg>node</arg>.</par>
 		"""
 		self.node = node
 		self.beginPublication()
@@ -215,7 +215,7 @@ class FilePublisher(Publisher):
 
 class PrintPublisher(FilePublisher):
 	"""
-	writes the strings to <code>sys.stdout</code>.
+	writes the strings to <lit>sys.stdout</lit>.
 	"""
 	def __init__(self, base=None, root=None, encoding=None, xhtml=None, prefixes=None, elementmode=1, procinstmode=0, entitymode=0):
 		super(PrintPublisher, self).__init__(sys.stdout, base=base, root=root, encoding=encoding, xhtml=xhtml, prefixes=prefixes, elementmode=elementmode, procinstmode=procinstmode, entitymode=entitymode)

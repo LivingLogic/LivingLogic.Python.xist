@@ -21,7 +21,7 @@
 ## IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 """
-<doc:par>A XSC module that contains definitions for all the elements in Ruby 1.0.</doc:par>
+<par>A XSC module that contains definitions for all the elements in Ruby 1.0.</par>
 """
 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))

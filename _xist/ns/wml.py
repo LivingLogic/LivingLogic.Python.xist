@@ -21,7 +21,7 @@
 ## IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 """
-<doc:par>A XSC module that contains definitions for all the elements in WML 1.3.</doc:par>
+<par>An &xist; namespace module that contains definitions for all the elements in &wml; 1.3.</par>
 """
 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))

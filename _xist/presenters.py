@@ -341,29 +341,29 @@ def strAttrValue(attrvalue):
 
 class Presenter:
 	"""
-	<doc:par>This class is the base of the presenter classes. It is abstract
-	and only serves as documentation for the methods.</doc:par>
-	<doc:par>A <class>Presenter</class> generates a specific
-	string representation of a node to be printed on the screen.</doc:par>
+	<par>This class is the base of the presenter classes. It is abstract
+	and only serves as documentation for the methods.</par>
+	<par>A <class>Presenter</class> generates a specific
+	string representation of a node to be printed on the screen.</par>
 	"""
 
 	def beginPresentation(self):
 		"""
-		<doc:par>called by once at the start when <pyref module="ll.xist.xsc" class="Node" method="repr"><method>repr</method></pyref>
-		is called. Initializes the presenter.</doc:par>
+		<par>called by once at the start when <pyref module="ll.xist.xsc" class="Node" method="repr"><method>repr</method></pyref>
+		is called. Initializes the presenter.</par>
 		"""
 		pass
 
 	def endPresentation(self):
 		"""
-		<doc:par>called once after the call to <pyref module="ll.xist.xsc" class="Node" method="present"><method>present</method></pyref>.
-		This method handles cleanups if necessary and returns the string to be printed.</doc:par>
+		<par>called once after the call to <pyref module="ll.xist.xsc" class="Node" method="present"><method>present</method></pyref>.
+		This method handles cleanups if necessary and returns the string to be printed.</par>
 		"""
 		pass
 
 	def doPresentation(self, node):
 		"""
-		<doc:par>create a string presentation for <arg>node</arg> and return the resulting string.</doc:par>
+		<par>create a string presentation for <arg>node</arg> and return the resulting string.</par>
 		"""
 		self.beginPresentation()
 		node.present(self)
@@ -371,69 +371,69 @@ class Presenter:
 	
 	def presentText(self, node):
 		"""
-		<doc:par>present a <pyref module="ll.xist.xsc" class="Text"><class>Text</class></pyref> node.</doc:par>
+		<par>present a <pyref module="ll.xist.xsc" class="Text"><class>Text</class></pyref> node.</par>
 		"""
 		raise NotImplementedError("presentText")
 
 	def presentFrag(self, node):
 		"""
-		<doc:par>present a <pyref module="ll.xist.xsc" class="Frag"><class>Frag</class></pyref> node.</doc:par>
+		<par>present a <pyref module="ll.xist.xsc" class="Frag"><class>Frag</class></pyref> node.</par>
 		"""
 		raise NotImplementedError("presentFrag")
 
 	def presentComment(self, node):
 		"""
-		<doc:par>present a <pyref module="ll.xist.xsc" class="Comment"><class>Comment</class></pyref> node.</doc:par>
+		<par>present a <pyref module="ll.xist.xsc" class="Comment"><class>Comment</class></pyref> node.</par>
 		"""
 		raise NotImplementedError("presentComment")
 
 	def presentDocType(self, node):
 		"""
-		<doc:par>present a <pyref module="ll.xist.xsc" class="DocType"><class>DocType</class></pyref> node.</doc:par>
+		<par>present a <pyref module="ll.xist.xsc" class="DocType"><class>DocType</class></pyref> node.</par>
 		"""
 		raise NotImplementedError("presentDocType")
 
 	def presentProcInst(self, node):
 		"""
-		<doc:par>present a <pyref module="ll.xist.xsc" class="ProcInst"><class>ProcInst</class></pyref> node.</doc:par>
+		<par>present a <pyref module="ll.xist.xsc" class="ProcInst"><class>ProcInst</class></pyref> node.</par>
 		"""
 		raise NotImplementedError("presentProcInst")
 
 	def presentAttrs(self, node):
 		"""
-		<doc:par>present an <pyref module="ll.xist.xsc" class="Attrs"><class>Attrs</class></pyref> node.</doc:par>
+		<par>present an <pyref module="ll.xist.xsc" class="Attrs"><class>Attrs</class></pyref> node.</par>
 		"""
 		raise NotImplementedError("presentAttrs")
 
 	def presentElement(self, node):
 		"""
-		<doc:par>present an <pyref module="ll.xist.xsc" class="Element"><class>Element</class></pyref> node.</doc:par>
+		<par>present an <pyref module="ll.xist.xsc" class="Element"><class>Element</class></pyref> node.</par>
 		"""
 		raise NotImplementedError("presentElement")
 
 	def presentEntity(self, node):
 		"""
-		<doc:par>present a <pyref module="ll.xist.xsc" class="Entity"><class>Entity</class></pyref> node.</doc:par>
+		<par>present a <pyref module="ll.xist.xsc" class="Entity"><class>Entity</class></pyref> node.</par>
 		"""
 		raise NotImplementedError("presentEntity")
 
 	def presentNull(self, node):
 		"""
-		<doc:par>present the <class>Null</class> node.</doc:par>
+		<par>present the <class>Null</class> node.</par>
 		"""
 		raise NotImplementedError("presentNull")
 
 	def presentAttr(self, node):
 		"""
-		<doc:par>present an <pyref module="ll.xist.xsc" class="Attr"><class>Attr</class></pyref> node.</doc:par>
+		<par>present an <pyref module="ll.xist.xsc" class="Attr"><class>Attr</class></pyref> node.</par>
 		"""
 		raise NotImplementedError("presentAttr")
 
 class PlainPresenter(Presenter):
 	"""
-	<doc:par>This presenter shows only the root node of the tree (with a little additional
+	<par>This presenter shows only the root node of the tree (with a little additional
 	information about the number of nested nodes). It is used as the default presenter
-	in <pyref module="ll.xist.xsc" class="Node" method="__repr__"><method>Node.__repr__</method></pyref>.</doc:par>
+	in <pyref module="ll.xist.xsc" class="Node" method="__repr__"><method>Node.__repr__</method></pyref>.</par>
 	"""
 	def __init__(self, maxlen=60):
 		self.maxlen = maxlen
@@ -821,10 +821,10 @@ class TreePresenter(Presenter):
 
 class CodePresenter(Presenter):
 	"""
-	<doc:par>This presenter formats the object as a nested Python object tree.</doc:par>
+	<par>This presenter formats the object as a nested Python object tree.</par>
 	
-	<doc:par>This makes it possible to quickly convert &html;/&xml; files to &xist;
-	constructor calls.</doc:par>
+	<par>This makes it possible to quickly convert &html;/&xml; files to &xist;
+	constructor calls.</par>
 	"""
 	def beginPresentation(self):
 		self.inAttr = 0
