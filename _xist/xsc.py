@@ -76,10 +76,10 @@ class Base(object):
 					value.__outerclass__ = res
 			return res
 		def __repr__(self):
-			return "<class %s/%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
+			return "<class %s:%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
 
 	def __repr__(self):
-		return "<%s/%s object at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
+		return "<%s:%s object at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
 
 	def __fullname__(cls):
 		"""
@@ -93,6 +93,47 @@ class Base(object):
 				return name
 			name = cls.__name__.split(".")[-1] + "." + name
 	__fullname__ = classmethod(__fullname__)
+
+###
+###
+###
+
+class Found(object):
+	"""
+	<par>This class is used for communication between filter functions and tree walking methods.</par>
+
+	<par>The methods <pyref class="Node" method="walk"><method>walk</method></pyref>,
+	<pyref class="Node" method="visit"><method>visit</method></pyref>,
+	<pyref class="Node" method="find"><method>find</method></pyref> and
+	<pyref class="Node" method="findfirst"><method>findfirst</method></pyref> all iterate over
+	the tree. In this iteration process two questions have to be answered:</par>
+	<olist>
+	<item>Should this node be used in the iteration process (i.e. yielded from a
+	generator, passed as an argument to a user specified function, or returned in
+	the resulting fragment)?</item>
+	<item>If this node contains children, should they be iterated over too, or should
+	they be skipped?</item>
+	</olist>
+	"""
+	__slots__ = ("foundstart", "foundend", "entercontent", "enterattrs")
+
+	def __init__(self, found=None, foundstart=None, foundend=None, enter=None, entercontent=None, enterattrs=None):
+		self.foundstart = None
+		self.foundend = None
+		self.entercontent = None
+		self.enterattrs = None
+		if found is not None:
+			self.foundstart = found
+		if foundstart is not None:
+			self.foundstart = foundstart
+		if foundend is not None:
+			self.foundend = foundend
+		if enter is not None:
+			self.entercontent = self.enterattrs = enter
+		if entercontent is not None:
+			self.entercontent = entercontent
+		if enterattrs is not None:
+			self.enterattrs = enterattrs
 
 ###
 ###
@@ -409,7 +450,7 @@ class Node(Base):
 				publisher.publish(u":")
 		publisher.publish(self.xmlname[True])
 
-	def parsed(self, handler, begin=None):
+	def parsed(self, handler, start=None):
 		"""
 		<par>This method will be called by the parsing handler <arg>handler</arg>
 		once after <self/> is created by the parser. This is e.g. used by
@@ -417,8 +458,8 @@ class Node(Base):
 		the base <pyref module="ll.url" class="URL"><class>URL</class></pyref>
 		<arg>base</arg> into the attribute.</par>
 		<par>For elements <function>parsed</function> will be called twice:
-		once at the beginning of the element with <lit><arg>begin</arg>==True</lit>
-		and once at the end of the element with <lit><arg>begin</arg>==False</lit>.</par>
+		once at the beginning (i.e. before the content is parsed) with <lit><arg>start</arg>==True</lit>
+		and once at the end after parsing of the content is finished <lit><arg>start</arg>==False</lit>.</par>
 		"""
 		pass
 
@@ -462,6 +503,51 @@ class Node(Base):
 		"""
 		publisher = publishers.FilePublisher(stream, base=base, root=root, encoding=encoding, xhtml=xhtml, prefixes=prefixes, elementmode=elementmode, procinstmode=procinstmode, entitymode=entitymode)
 		return publisher.doPublication(self)
+
+	def _walk(self, filter, path, filterpath, walkpath):
+		"""
+		<par>Internal helper for <pyref method="walk"><method>walk</method></pyref>.</par>
+		"""
+		if filterpath or walkpath:
+			path = path + [self]
+
+		if isinstance(filter, Found):
+			found = filter
+		elif filterpath:
+			found = filter(path)
+		else:
+			found = filter(self)
+
+		if found.foundstart:
+			if walkpath:
+				yield path
+			else:
+				yield self
+
+	def walk(self, filter, filterpath=False, walkpath=False):
+		"""
+		<par>Return an iterator that steps recursively through the tree.</par>
+		"""
+		for object in self._walk(filter, [], filterpath=filterpath, walkpath=walkpath):
+			yield object
+
+	def _visit(self, filter, path, filterpath, visitpath):
+		if filterpath or visitpath:
+			path = path + [self]
+		if isinstance(filter, Found):
+			found = filter
+		elif filterpath:
+			found = filter(path)
+		else:
+			found = filter(self)
+		if found.foundstart is not None:
+			if visitpath:
+				found.foundstart(path, start=None)
+			else:
+				found.foundstart(self, start=None)
+
+	def visit(self, filter, filterpath=False, visitpath=False):
+		self._visit(filter, [], filterpath=filterpath, visitpath=visitpath)
 
 	def find(self, type=None, subtype=False, attrs=None, test=None, searchchildren=False, searchattrs=False):
 		"""
@@ -611,19 +697,7 @@ class Node(Base):
 		else:
 			return Frag(indent*level, self)
 
-	def walk(self, before=True, after=False, attrs=False, attrbefore=True, attrafter=False):
-		"""
-		<par>walk the tree. This method is a generator.</par>
-		<par>For <pyref class="Frag"><class>Frag</class>s</pyref> and
-		<pyref class="Element"><class>Element</class>s</pyref> nodes
-		it's possible to specify whether they should be <lit>yield</lit>ed
-		before or after their children (or both, or none
-		in which case only leaf nodes will be <lit>yield</lit>ed) through
-		<arg>before</arg> and <arg>after</arg>. <arg>attrs</arg>
-		specifies wether attribute content should be walked too,
-		a with <arg>attrbefore</arg> and <arg>attrafter</arg> it can
-		be specified how the attribute node itself should be <lit>yield</lit>ed.</par>
-		"""
+	def xwalk(self, before=True, after=False, attrs=False, attrbefore=True, attrafter=False):
 		yield self
 
 	def walkpath(self, before=True, after=False, attrs=False, attrsbefore=True, attrafter=False):
@@ -985,6 +1059,15 @@ class Frag(Node, list):
 		other = Frag(*others)
 		list.__setslice__(self, index, index, other)
 
+	def _walk(self, filter, path, filterpath, walkpath):
+		for child in self:
+			for object in child._walk(filter, path, filterpath=filterpath, walkpath=walkpath):
+				yield object
+
+	def _visit(self, filter, path, filterpath, visitpath):
+		for child in self:
+			child._visit(filter, path, filterpath=filterpath, visitpath=visitpath)
+
 	def find(self, type=None, subtype=False, attrs=None, test=None, searchchildren=False, searchattrs=False):
 		node = Frag()
 		for child in self:
@@ -1092,7 +1175,7 @@ class Frag(Node, list):
 			i += 1
 		return node
 
-	def walk(self, before=True, after=False, attrs=False, attrbefore=True, attrafter=False):
+	def xwalk(self, before=True, after=False, attrs=False, attrbefore=True, attrafter=False):
 		if before:
 			yield self
 		for child in self:
@@ -1187,7 +1270,7 @@ class ProcInst(CharacterData):
 			return self
 
 		def __repr__(self):
-			return "<procinst class %s/%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
+			return "<procinst class %s:%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
 
 	def _registerns(cls, ns):
 		if cls.xmlns is not None:
@@ -1335,7 +1418,7 @@ class Attr(Frag):
 					dict["values"] = tuple([unicode(entry) for entry in dict["values"]])
 			return Frag.__metaclass__.__new__(cls, name, bases, dict)
 		def __repr__(self):
-			return "<attribute class %s/%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
+			return "<attribute class %s:%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
 
 	def __init__(self, *content):
 		# if the constructor has been called without arguments, use the default
@@ -1383,7 +1466,58 @@ class Attr(Frag):
 			if value not in values:
 				errors.warn(errors.IllegalAttrValueWarning(self))
 
-	def parsed(self, handler, begin=None):
+	def _walk(self, filter, path, filterpath, walkpath):
+		if filterpath or walkpath:
+			path = path + [self]
+
+		if isinstance(filter, Found):
+			found = filter
+		elif filterpath:
+			found = filter(path)
+		else:
+			found = filter(self)
+
+		if found.foundstart:
+			if walkpath:
+				yield path
+			else:
+				yield self
+
+		for object in Frag._walk(self, filter, path, filterpath=filterpath, walkpath=walkpath):
+			yield object
+
+		if found.foundend:
+			if walkpath:
+				yield path
+			else:
+				yield self
+
+	def _visit(self, filter, path, filterpath, visitpath):
+		if filterpath or visitpath:
+			path = path + [self]
+
+		if isinstance(filter, Found):
+			found = filter
+		elif filterpath:
+			found = filter(path)
+		else:
+			found = filter(self)
+
+		if found.foundstart is not None:
+			if visitpath:
+				found.foundstart(path, start=True)
+			else:
+				found.foundstart(self, start=True)
+
+		super(Attr, self)._visit(filter, path, filterpath=filterpath, visitpath=visitpath)
+
+		if found.foundend is not None:
+			if visitpath:
+				found.foundend(path, start=False)
+			else:
+				found.foundend(self, start=False)
+
+	def parsed(self, handler, start=None):
 		self.checkvalid()
 
 	def _publishAttrValue(self, publisher):
@@ -1459,7 +1593,7 @@ class StyleAttr(Attr):
 	<par>Attribute class that is used for &css; style attributes.</par>
 	"""
 
-	def parsed(self, handler, begin=None):
+	def parsed(self, handler, start=None):
 		if not self.isfancy():
 			value = cssparsers.parseString(unicode(self), handler=cssparsers.ParseHandler(), base=handler.base)
 			self[:] = (value, )
@@ -1490,7 +1624,7 @@ class URLAttr(Attr):
 	for more information about &url; handling.</par>
 	"""
 
-	def parsed(self, handler, begin=None):
+	def parsed(self, handler, start=None):
 		self[:] = utils.replaceInitialURL(self, lambda u: handler.base/u)
 
 	def _publishAttrValue(self, publisher):
@@ -1601,7 +1735,7 @@ class Attrs(Node, dict):
 			return self
 
 		def __repr__(self):
-			return "<attrs class %s/%s with %s attrs at 0x%x>" % (self.__module__, self.__fullname__(), len(self._attrs[0]), id(self))
+			return "<attrs class %s:%s with %s attrs at 0x%x>" % (self.__module__, self.__fullname__(), len(self._attrs[0]), id(self))
 
 		def __getitem__(cls, key):
 			return cls._attrs[0][key]
@@ -1682,6 +1816,15 @@ class Attrs(Node, dict):
 			node[attrname] = convertedattr
 		return node
 
+	def _walk(self, filter, path, filterpath, walkpath):
+		for child in self.itervalues():
+			for object in child._walk(filter, path, filterpath=filterpath, walkpath=walkpath):
+				yield object
+
+	def _visit(self, filter, path, filterpath, visitpath):
+		for child in self.itervalues():
+			child._visit(filter, path, filterpath=filterpath, visitpath=visitpath)
+
 	def find(self, type=None, subtype=False, attrs=None, test=None, searchchildren=False, searchattrs=False):
 		node = Frag()
 		if searchattrs:
@@ -1692,7 +1835,7 @@ class Attrs(Node, dict):
 	def present(self, presenter):
 		presenter.presentAttrs(self)
 
-	def parsed(self, handler, begin=None):
+	def parsed(self, handler, start=None):
 		# collect required attributes
 		attrs = {}
 		for (key, value) in self.iteralloweditems():
@@ -1995,7 +2138,7 @@ class Element(Node):
 				setattr(xmlns, name, self)
 			return self
 		def __repr__(self):
-			return "<element class %s/%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
+			return "<element class %s:%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
 
 	class Attrs(Attrs):
 		def allowedattr(cls, name, xml=False):
@@ -2113,8 +2256,8 @@ class Element(Node):
 		if self.empty and len(self):
 			raise errors.EmptyElementWithContentError(self)
 
-	def parsed(self, handler, begin=None):
-		if not begin:
+	def parsed(self, handler, start=None):
+		if not start:
 			self.checkvalid()
 
 	def append(self, *items):
@@ -2379,6 +2522,67 @@ class Element(Node):
 		node.attrs = self.attrs.compact()
 		return self._decoratenode(node)
 
+	def _walk(self, filter, path, filterpath, walkpath):
+		if filterpath or walkpath:
+			path = path + [self]
+
+		if isinstance(filter, Found):
+			found = filter
+		elif filterpath:
+			found = filter(path)
+		else:
+			found = filter(self)
+
+		if found.foundstart:
+			if walkpath:
+				yield path
+			else:
+				yield self
+
+		if found.enterattrs:
+			for object in self.attrs._walk(filter, path, filterpath=filterpath, walkpath=walkpath):
+				yield object
+
+		if found.entercontent:
+			for object in self.content._walk(filter, path, filterpath=filterpath, walkpath=walkpath):
+				yield object
+
+		if found.foundend:
+			if walkpath:
+				yield path
+			else:
+				yield self
+			yield self
+
+	def _visit(self, filter, path, filterpath, visitpath):
+		if filterpath or visitpath:
+			path = path + [self]
+
+		if isinstance(filter, Found):
+			found = filter
+		elif filterpath:
+			found = filter(path)
+		else:
+			found = filter(self)
+
+		if found.foundstart is not None:
+			if visitpath:
+				found.foundstart(path, start=True)
+			else:
+				found.foundstart(self, start=True)
+
+		if found.enterattrs:
+			self.attrs._visit(filter, path, filterpath=filterpath, visitpath=visitpath)
+
+		if found.entercontent:
+			self.content._visit(filter, path, filterpath=filterpath, visitpath=visitpath)
+
+		if found.foundend is not None:
+			if visitpath:
+				found.foundend(path, start=False)
+			else:
+				found.foundend(self, start=False)
+
 	def find(self, type=None, subtype=False, attrs=None, test=None, searchchildren=False, searchattrs=False):
 		node = Frag()
 		node.append(self.attrs.find(type, subtype, attrs, test, searchchildren, searchattrs))
@@ -2485,7 +2689,7 @@ class Element(Node):
 			node = Frag(indent*level, node)
 		return node
 
-	def walk(self, before=True, after=False, attrs=False, attrbefore=True, attrafter=False):
+	def xwalk(self, before=True, after=False, attrs=False, attrbefore=True, attrafter=False):
 		if before:
 			yield self
 		if attrs:
@@ -2535,7 +2739,7 @@ class Entity(Node):
 			return self
 
 		def __repr__(self):
-			return "<entity class %s/%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
+			return "<entity class %s:%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
 
 	def _registerns(cls, ns):
 		if cls.xmlns is not None:
@@ -2603,7 +2807,7 @@ class CharRef(Entity):
 			return self
 
 		def __repr__(self):
-			return "<charref class %s/%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
+			return "<charref class %s:%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
 
 	def _registerns(cls, ns):
 		if cls.xmlns is not None:
@@ -2990,8 +3194,11 @@ class NamespaceAttrMixIn(object):
 
 class Namespace(object):
 	"""
-	<par>an &xml; namespace, contains the classes for the elements,
-	entities and processing instructions in the namespace.</par>
+	<par>an &xml; namespace.</par>
+	
+	<par>Classes for elements, entities and processing instructions
+	can be defined as nested classes inside subclasses of <class>Namespace</class>.
+	This class will never be instantiated.</par>
 	"""
 
 	xmlname = None
@@ -3085,7 +3292,7 @@ class Namespace(object):
 				fromfile = " from %r" % self.__file__
 			else:
 				fromfile = ""
-			return "<namespace %s/%s name=%r url=%r%s%s at 0x%x>" % (self.__module__, self.__originalname, self.xmlname[True], self.xmlurl, counts, fromfile, id(self))
+			return "<namespace %s:%s name=%r url=%r%s%s at 0x%x>" % (self.__module__, self.__originalname, self.xmlname[True], self.xmlurl, counts, fromfile, id(self))
 
 		def __delattr__(cls, key):
 			value = cls.__dict__.get(key, None) # no inheritance

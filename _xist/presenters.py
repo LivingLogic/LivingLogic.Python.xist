@@ -440,7 +440,7 @@ class PlainPresenter(Presenter):
 			content = node.content[:self.maxlen/2] + u"..." + node.content[-self.maxlen/2:]
 		else:
 			content = node.content
-		self.buffer = "<%s/%s object content=%r at 0x%x>" % (node.__class__.__module__, node.__class__.__fullname__(), content, id(node))
+		self.buffer = "<%s:%s object content=%r at 0x%x>" % (node.__class__.__module__, node.__class__.__fullname__(), content, id(node))
 
 	presentText = presentCharacterData
 
@@ -452,7 +452,7 @@ class PlainPresenter(Presenter):
 			info = "with 1 child"
 		else:
 			info = "with %d children" % l
-		self.buffer = "<%s/%s object %s at 0x%x>" % (node.__class__.__module__, node.__class__.__fullname__(), info, id(node))
+		self.buffer = "<%s:%s object %s at 0x%x>" % (node.__class__.__module__, node.__class__.__fullname__(), info, id(node))
 
 	def presentAttr(self, node):
 		l = len(node)
@@ -462,7 +462,7 @@ class PlainPresenter(Presenter):
 			info = "with 1 child"
 		else:
 			info = "with %d children" % l
-		self.buffer = "<%s/%s attr object %s at 0x%x>" % (node.__class__.__module__, node.__class__.__fullname__(), info, id(node))
+		self.buffer = "<%s:%s attr object %s at 0x%x>" % (node.__class__.__module__, node.__class__.__fullname__(), info, id(node))
 
 	presentComment = presentCharacterData
 	presentDocType = presentCharacterData
@@ -471,7 +471,7 @@ class PlainPresenter(Presenter):
 			content = node.content[:self.maxlen/2] + u"..." + node.content[-self.maxlen/2:]
 		else:
 			content = node.content
-		self.buffer = "<%s/%s procinst object content=%r at 0x%x>" % (node.__class__.__module__, node.__class__.__fullname__(), content, id(node))
+		self.buffer = "<%s:%s procinst object content=%r at 0x%x>" % (node.__class__.__module__, node.__class__.__fullname__(), content, id(node))
 
 	def presentAttrs(self, node):
 		l = len(node)
@@ -481,7 +481,7 @@ class PlainPresenter(Presenter):
 			info = "with 1 attribute"
 		else:
 			info = "with %d attributes" % l
-		self.buffer = "<%s/%s attrs object %s at 0x%x>" % (node.__class__.__module__, node.__class__.__fullname__(), info, id(node))
+		self.buffer = "<%s:%s attrs object %s at 0x%x>" % (node.__class__.__module__, node.__class__.__fullname__(), info, id(node))
 
 	def presentElement(self, node):
 		lc = len(node.content)
@@ -498,13 +498,13 @@ class PlainPresenter(Presenter):
 			infoa = "and 1 attribute"
 		else:
 			infoa = "and %d attributes" % la
-		self.buffer = "<%s/%s element object %s %s at 0x%x>" % (node.__class__.__module__, node.__class__.__fullname__(), infoc, infoa, id(node))
+		self.buffer = "<%s:%s element object %s %s at 0x%x>" % (node.__class__.__module__, node.__class__.__fullname__(), infoc, infoa, id(node))
 
 	def presentEntity(self, node):
-		self.buffer = "<%s/%s entity object at 0x%x>" % (node.__class__.__module__, node.__class__.__fullname__(), id(node))
+		self.buffer = "<%s:%s entity object at 0x%x>" % (node.__class__.__module__, node.__class__.__fullname__(), id(node))
 
 	def presentNull(self, node):
-		self.buffer = "<%s/%s object at 0x%x>" % (node.__class__.__module__, node.__class__.__fullname__(), id(node))
+		self.buffer = "<%s:%s object at 0x%x>" % (node.__class__.__module__, node.__class__.__fullname__(), id(node))
 
 class NormalPresenter(Presenter):
 	def beginPresentation(self):

@@ -472,19 +472,19 @@ class Handler(object):
 				attrname = self.prefixes.attrnameFromQName(node, attrname)
 				node[attrname] = attrvalue
 				node[attrname].parsed(self)
-		node.parsed(self, begin=True)
+		node.parsed(self, start=True)
 		self.__appendNode(node)
 		self.__nesting.append((node, prefixes)) # push new innermost element onto the stack, together with the list of prefix mappings defined by this node
 		self.skippingWhitespace = 0
 
 	def endElement(self, name):
 		currentelement = self.__nesting[-1][0]
-		currentelement.parsed(self, begin=False)
+		currentelement.parsed(self, start=False)
 		element = self.createElement(name) # Unfortunately this creates the element a second time.
 		if element.__class__ is not currentelement.__class__:
 			raise errors.ElementNestingError(currentelement.__class__, element.__class__)
 		self.__nesting[-1][0].endloc = self.getLocation()
-		# SAX specifies that the order of calls to endPrefixMapping is undefined, so we use the same order as in beginElement
+		# SAX specifies that the order of calls to endPrefixMapping is undefined, so we use the same order as in startElement
 		for (type, prefix) in self.__nesting[-1][1]:
 			self.prefixes.endPrefixMapping(prefix, type)
 		self.__nesting.pop() # pop the innermost element off the stack
