@@ -14,7 +14,7 @@ from xml.sax import saxlib
 
 from ll import url
 from ll.xist import xsc, parsers, presenters, converters, helpers, errors, options
-from ll.xist.ns import wml, ihtml, html, css, abbr, specials, htmlspecials, php, xml
+from ll.xist.ns import wml, ihtml, html, css, abbr, specials, htmlspecials, php, xml, xndl
 
 # set to something ASCII, so presenters work, even if the system default encoding is ascii
 options.reprtab = "  "
@@ -1524,6 +1524,70 @@ class ParseTest(unittest.TestCase):
 			pass
 		else:
 			self.fail()
+
+class DTD2XSCTest(unittest.TestCase):
+
+	def test_convert(self):
+		dtdstring = """<?xml version='1.0' encoding='us-ascii'?>
+		<!ELEMENT foo (bar+)>
+		<!ATTLIST foo
+			id    ID    #IMPLIED
+			xmlns CDATA #FIXED "http://xmlns.foo.com/foo"
+		>
+		<!ELEMENT bar EMPTY>
+		<!ATTLIST bar
+			bar1 CDATA               #REQUIRED
+			bar2 (bar2)              #IMPLIED
+			bar3 (bar3a|bar3b|bar3c) #IMPLIED
+			bar-4 (bar-4a|bar-4b)    #IMPLIED
+			bar_4 (bar_4a|bar_4b)    #IMPLIED
+			bar_42 (bar_42a|bar_42b) #IMPLIED
+		>
+		"""
+		from xml.parsers.xmlproc import dtdparser
+
+		dtd = dtdparser.load_dtd_string(dtdstring)
+		node = xndl.fromdtd(dtd, xmlname="foo")
+		self.assert_(isinstance(node, xndl.xndl))
+		self.assertEqual(str(node["name"]), "foo")
+		self.assertEqual(str(node["url"]), "http://xmlns.foo.com/foo")
+
+		mod = {"__name__": "foo"}
+		encoding = "iso-8859-1"
+		code = node.asdata().aspy(encoding=encoding, asmod=False).encode(encoding)
+		exec code in mod
+
+		ns = mod["xmlns"]
+		self.assert_(issubclass(ns, xsc.Namespace))
+		self.assertEqual(ns.xmlname, ("xmlns", "foo"))
+		self.assertEqual(ns.xmlurl, "http://xmlns.foo.com/foo")
+		self.assertEqual(ns.foo.empty, False)
+		self.assert_(issubclass(ns.foo.Attrs.id, xsc.IDAttr))
+		self.assert_("xmlns" not in ns.foo.Attrs)
+		self.assertEqual(ns.bar.empty, True)
+
+		self.assert_(issubclass(ns.bar.Attrs.bar1, xsc.TextAttr))
+		self.assertEqual(ns.bar.Attrs.bar1.required, True)
+
+		self.assert_(issubclass(ns.bar.Attrs.bar2, xsc.BoolAttr))
+		self.assertEqual(ns.bar.Attrs.bar2.required, False)
+
+		self.assert_(issubclass(ns.bar.Attrs.bar3, xsc.TextAttr))
+		self.assertEqual(ns.bar.Attrs.bar3.required, False)
+		self.assertEqual(ns.bar.Attrs.bar3.values, ("bar3a", "bar3b", "bar3c"))
+
+		# Attributes are alphabetically sorted
+		self.assert_(issubclass(ns.bar.Attrs.bar_4, xsc.TextAttr))
+		self.assertEqual(ns.bar.Attrs.bar_4.xmlname, ("bar_4", "bar-4"))
+		self.assertEqual(ns.bar.Attrs.bar_4.values, ("bar-4a", "bar-4b"))
+
+		self.assert_(issubclass(ns.bar.Attrs.bar_42, xsc.TextAttr))
+		self.assertEqual(ns.bar.Attrs.bar_42.xmlname, ("bar_42", "bar_4"))
+		self.assertEqual(ns.bar.Attrs.bar_42.values, ("bar_4a", "bar_4b"))
+
+		self.assert_(issubclass(ns.bar.Attrs.bar_422, xsc.TextAttr))
+		self.assertEqual(ns.bar.Attrs.bar_422.xmlname, ("bar_422", "bar_42"))
+		self.assertEqual(ns.bar.Attrs.bar_422.values, ("bar_42a", "bar_42b"))
 
 def test_main():
 	unittest.main()
