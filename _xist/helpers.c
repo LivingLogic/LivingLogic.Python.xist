@@ -132,7 +132,6 @@ static PyUnicodeObject *escapeUnencodable(PyUnicodeObject *str, const char *enco
 						#if Py_UNICODE_SIZE==4
 						if (ch>=1000000)
 						{
-							digit0:
 							*p++ = ((Py_UNICODE)'0') + ch/1000000;
 							ch = ch % 1000000;
 							goto digit1;
@@ -362,9 +361,7 @@ escape sequence.";
 
 static PyObject *escapeCSS(PyObject *self, PyObject *args)
 {
-	int i;
 	int oldsize;
-	int newsize = 0;
 	PyUnicodeObject *str;
 	const char *encoding;
 	PyObject *test;
@@ -451,7 +448,6 @@ static PyObject *escapeCSS(PyObject *self, PyObject *args)
 						#if Py_UNICODE_SIZE==4
 						if (ch>=0x100000)
 						{
-							digit0:
 							*p++ = hexdigits[ch/0x100000];
 							ch = ch % 0x100000;
 							goto digit1;
