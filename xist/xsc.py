@@ -172,15 +172,44 @@ element_handlers = {} # dictionary for mapping element names to classes
 class XSCNode:
 	"""base class for nodes in the document tree. Derived class must implement __str__()"""
 
+	# line numbers where this node starts and ends in a file (will be hidden in derived classes, but is specified here, so that no special tests are required. In derived classes both variables will be set by the parser)
+	startlineno = -1
+	endlineno = -1
+
 	def __add__(self,other):
 		return XSCFrag(self) + other
 
 	def __radd__(self,other):
 		return XSCFrag(other) + self
 
-	def __repr__(self):
-		return "<?>"
+	def __repr__(self,nest = 0):
+		return xsc.tab*nest+"<?>\n"
 
+	def strlines(self,start = None,end = None):
+		if xsc.verbose==1:
+			if start==None:
+				if end==None or end==-1:
+					return ""
+				else:
+					return " l. " + repr(end)
+			elif start==-1:
+				if end==None or end==-1:
+					return ""
+				else:
+					return " l. -" + repr(end)
+			else:
+				if end==None:
+					return " l. " + repr(start)
+				elif end==-1:
+					return " l. " + repr(start) + "-"
+				else:
+					if start==end:
+						return " l. " + repr(start)
+					else:
+						return " l. " + repr(start) + "-" + repr(end)
+		else:
+			return ""
+			
 class XSCText(XSCNode):
 	"""text"""
 
@@ -204,8 +233,11 @@ class XSCText(XSCNode):
 				v.append(i)
 		return string.joinfields(v,"")
 
-	def __repr__(self):
-		return self.content
+	def __repr__(self,nest = 0):
+		if self.content=="\n" and xsc.verbose==0:
+			return ""
+		else:
+			return xsc.tab*nest + '<XSCText content=' + repr(self.content) + '>' + self.strlines(self.startlineno) + '\n'
 
 class XSCFrag(XSCNode):
 	"""contains a list of XSCNodes"""
@@ -233,8 +265,15 @@ class XSCFrag(XSCNode):
 	def __str__(self):
 		return string.joinfields(map(str,self.content),"")
 
-	def __repr__(self):
-		return string.joinfields(map(repr,self.content),"")
+	def __repr__(self,nest = 0):
+		s = xsc.tab*nest + '<XSCFrag>' + self.strlines(self.startlineno,self.endlineno) + '\n'
+		for i in self.content:
+			s = s + i.__class__.__repr__(i,nest+1) # call repr with additional arguments
+		s = s + xsc.tab*nest + '</XSCFrag>' + self.strlines(self.startlineno,self.endlineno) + '\n'
+		return s
+
+	def __getitem__(self,index):
+		return self.content[index]
 
 	def __len__(self):
 		"""return the number of children"""
@@ -276,7 +315,7 @@ class XSCAttrs(XSCNode):
 			v.append(attr + '="' + str(self.content[attr]) + '"')
 		return string.joinfields(v," ")
 
-	def __repr__(self):
+	def __repr__(self,nest = 0):
 		v = []
 		for attr in self.content.keys():
 			v.append(attr + '="' + repr(self.content[attr]) + '"')
@@ -320,8 +359,11 @@ class XSCComment(XSCNode):
 	def __init__(self,content = ""):
 		self.content = content
 
-	def __repr__(self):
+	def __str__(self):
 		return "<!--" + self.content + "-->"
+
+	def __repr__(self,nest = 0):
+		return xsc.tab*nest + "<!--" + self.content + "-->\n"
 
 class XSCDocType(XSCNode):
 	"""document type"""
@@ -329,14 +371,18 @@ class XSCDocType(XSCNode):
 	def __init__(self,content = ""):
 		self.content = content
 
-	def __repr__(self):
+	def __str__(self):
 		return "<!DOCTYPE " + self.content + ">"
+
+	def __repr__(self,nest = 0):
+		return xsc.tab*nest + "<!DOCTYPE " + self.content + ">" + self.strlines(self.startlineno) + "\n"
 
 class XSCElement(XSCNode):
 	"""XML elements"""
 
 	close = 0 # 0 => stand alone element, 1 => element with content
 	attr_handlers = {}
+	name = "XSCElement" # will be changed for derived classes/elements in RegisterElement()
 
 	def __init__(self,content = [],attrs = {},**restattrs):
 		self.content = XSCFrag(content)
@@ -348,7 +394,18 @@ class XSCElement(XSCNode):
 	def append(self,item):
 		self.content.append(item)
 
-	def __repr__(self):
+	def __repr__(self,nest = 0):
+		s = xsc.tab*nest + '<' + self.name
+		if self.close:
+			s = s + '>' + self.strlines(self.startlineno,self.endlineno) + '\n'
+			for i in self.content:
+				s = s + i.__class__.__repr__(i,nest+1) # class repr with additional arguments
+			s = s + xsc.tab*nest + '</' + self.name + '>' + self.strlines(self.startlineno,self.endlineno) + '\n'
+		else:
+			s = s + '/>' + self.strlines(self.startlineno,self.endlineno) + '\n'
+		return s
+
+	def rer(self):
 		"""returns this element as a string"""
 		v = []
 		v.append("<")
@@ -499,12 +556,14 @@ class XSCParser(xmllib.XMLParser):
 		lowername = string.lower(name)
 		if element_handlers.has_key(lowername):
 			e = element_handlers[lowername]([],attrs)
+			e.startlineno = self.lineno
 		else:
 			raise XSCIllegalElementError(xsc.parser.lineno,lowername)
 		self.nesting[-1].append(e) # add the new element to the content of the innermost element (or to the array)
 		self.nesting.append(e) # push new innermost element onto the stack
 
 	def unknown_endtag(self,name):
+		self.nesting[-1].endlineno = self.lineno
 		self.nesting[-1:] = [] # pop the innermost element off the stack
 
 	def handle_data(self,data):
@@ -525,6 +584,8 @@ class XSC:
 		self.server = "localhost"
 		self.retrieveremote = 1
 		self.retrievelocal  = 1
+		self.tab = ".  "
+		self.verbose = 1
 		self.parser = XSCParser()
 
 	def parsestring(self,filename,string):
