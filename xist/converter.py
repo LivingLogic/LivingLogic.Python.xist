@@ -20,13 +20,13 @@
 ## IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 """
-This modules contains the base class for the transformer objects
-used in the call to the transform method.
+This modules contains the base class for the converter objects
+used in the call to the convert method.
 """
 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-class Transformer:
+class Converter:
 	def __init__(self, mode=None):
 		self.mode = mode

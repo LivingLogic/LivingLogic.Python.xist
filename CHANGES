@@ -17,20 +17,20 @@ When publishing ", it will now only be replaced with
 &quot; inside attributes.
 
 All the asHTML methods now have an additional argument
-transformer which defaults to None. This makes it possible
+converter which defaults to None. This makes it possible
 to implement different processing modes or stages
 for new elements. All currently implemented elements and
 entities ignore this argument, but pass it on
 in the call to their childrens' asHTML method.
 As the name asHTML no longer makes sense, asHTML
-has been renamed to transform.
+has been renamed to convert.
 
 There is now a tools dtd2xsc.py in the tools directory
 that creates a skeleton XIST module for a dtd
 (this requires xmlproc from the PyXML package).
 
 New preliminary module for DocBook 4.12.
-(Incomplete: transform methods and Unicode character
+(Incomplete: convert methods and Unicode character
 entities are missing)
 
 New module that implements the W3C Ruby draft:
@@ -41,7 +41,7 @@ as a separate module.
 
 make.py has a new option --files/-f. The argument
 is a file containing a list of filenames (one
-name per line), that should be transformed.
+name per line) that should be transformed.
 
 New in 0.4.7
 ------------

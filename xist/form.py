@@ -33,34 +33,34 @@ import xsc, html
 class checkbox(xsc.Element):
 	attrHandlers = {"name": xsc.TextAttr, "value": xsc.TextAttr}
 
-	def transform(self, transformer=None):
+	def convert(self, converter=None):
 		e = html.input(**self.attrs)
 		e["type"] = "checkbox"
 		if self.hasAttr("value") and int(self["value"].asPlainString()) != 0:
 			e["checked"] = None
 		else:
 			del e["checked"]
-		return e.transform(transformer)
+		return e.convert(converter)
 
 class edit(xsc.Element):
 	attrHandlers = {"name": xsc.TextAttr, "value": xsc.TextAttr, "size": xsc.TextAttr}
 
-	def transform(self, transformer=None):
+	def convert(self, converter=None):
 		e = html.input(**self.attrs)
-		return e.transform(transformer)
+		return e.convert(converter)
 
 class memo(xsc.Element):
 	attrHandlers = {"name": xsc.TextAttr, "value": xsc.TextAttr}
 	attrHandlers.update(html.textarea.attrHandlers)
 
-	def transform(self, transformer=None):
+	def convert(self, converter=None):
 		e = html.textarea()
 		if self.hasAttr("value"):
 			e.extend(self["value"])
 		for attr in self.attrs.keys():
 			if attr != "value":
 				e[attr] = self[attr]
-		return e.transform(transformer)
+		return e.convert(converter)
 
 class hidden(xsc.Element):
 	attrHandlers = {"name": xsc.TextAttr, "value": xsc.TextAttr}
@@ -68,10 +68,10 @@ class hidden(xsc.Element):
 	def asPlainString(self):
 		return u""
 
-	def transform(self, transformer=None):
+	def convert(self, converter=None):
 		e = html.input(type="hidden", name=self["name"])
 		if self.hasAttr("value"):
 			e["value"] = self["value"]
-		return e.transform(transformer)
+		return e.convert(converter)
 
 namespace = xsc.Namespace("form", "http://www.livinglogic.de/DTDs/form.dtd", vars())

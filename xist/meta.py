@@ -43,11 +43,11 @@ class contenttype(html.meta):
 	del attrHandlers["name"]
 	del attrHandlers["content"]
 
-	def transform(self, transformer=None):
+	def convert(self, converter=None):
 		e = html.meta(**self.attrs)
 		e["http-equiv"] = "Content-Type"
 		e["content"] = "text/html"
-		return e.transform(transformer)
+		return e.convert(converter)
 
 class keywords(html.meta):
 	"""
@@ -62,11 +62,11 @@ class keywords(html.meta):
 	del attrHandlers["name"]
 	del attrHandlers["content"]
 
-	def transform(self, transformer=None):
+	def convert(self, converter=None):
 		e = html.meta(**self.attrs)
 		e["name"] = "keywords"
-		e["content"] = self.content.transform(transformer).asPlainString()
-		return e.transform(transformer)
+		e["content"] = self.content.convert(converter).asPlainString()
+		return e.convert(converter)
 
 class description(html.meta):
 	"""
@@ -81,11 +81,11 @@ class description(html.meta):
 	del attrHandlers["name"]
 	del attrHandlers["content"]
 
-	def transform(self, transformer=None):
+	def convert(self, converter=None):
 		e = html.meta(**self.attrs)
 		e["name"] = "description"
-		e["content"] = self.content.transform(transformer).asPlainString()
-		return e.transform(transformer)
+		e["content"] = self.content.convert(converter).asPlainString()
+		return e.convert(converter)
 
 class stylesheet(html.link):
 	"""
@@ -98,11 +98,11 @@ class stylesheet(html.link):
 	del attrHandlers["rel"]
 	del attrHandlers["type"]
 
-	def transform(self, transformer=None):
+	def convert(self, converter=None):
 		e = html.link(**self.attrs)
 		e["rel"] = "stylesheet"
 		e["type"] = "text/css"
-		return e.transform(transformer)
+		return e.convert(converter)
 
 class made(html.link):
 	"""
@@ -114,11 +114,11 @@ class made(html.link):
 	attrHandlers = html.link.attrHandlers.copy()
 	del attrHandlers["rel"]
 
-	def transform(self, transformer=None):
+	def convert(self, converter=None):
 		e = html.link(**self.attrs)
 		e["rel"] = "made"
 		e["href"] = ("mailto:", e["href"])
-		return e.transform(transformer)
+		return e.convert(converter)
 
 namespace = xsc.Namespace("meta", "http://www.livinglogic.de/DTDs/meta.dtd", vars())
 

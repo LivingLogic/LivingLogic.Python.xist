@@ -41,10 +41,10 @@ class plaintable(html_.table):
 	empty = 0
 	defaults = {"cellpadding": 0, "cellspacing": 0, "border": 0}
 
-	def transform(self, transformer=None):
+	def convert(self, converter=None):
 		e = html_.table(*self.content, **self.attrs)
 		e.copyDefaultAttrs(self.defaults)
-		return e.transform(transformer)
+		return e.convert(converter)
 
 class plainbody(html_.body):
 	"""
@@ -55,10 +55,10 @@ class plainbody(html_.body):
 	empty = 0
 	defaults = {"leftmargin": 0, "topmargin": 0, "marginheight": 0, "marginwidth": 0}
 
-	def transform(self, transformer=None):
+	def convert(self, converter=None):
 		e = html_.body(*self.content, **self.attrs)
 		e.copyDefaultAttrs(self.defaults)
-		return e.transform(transformer)
+		return e.convert(converter)
 
 class z(xsc.Element):
 	"""
@@ -66,8 +66,8 @@ class z(xsc.Element):
 	"""
 	empty = 0
 
-	def transform(self, transformer=None):
-		e = xsc.Frag(u"«", self.content.transform(transformer), u"»")
+	def convert(self, converter=None):
+		e = xsc.Frag(u"«", self.content.convert(converter), u"»")
 
 		return e
 
@@ -82,7 +82,7 @@ class filesize(xsc.Element):
 	empty = 1
 	attrHandlers = {"href": xsc.URLAttr}
 
-	def transform(self, transformer=None):
+	def convert(self, converter=None):
 		size = self["href"].FileSize()
 		if size is not None:
 			return xsc.Text(size)
@@ -97,21 +97,21 @@ class filetime(xsc.Element):
 	empty = 1
 	attrHandlers = {"href": xsc.URLAttr, "format": xsc.TextAttr}
 
-	def transform(self, transformer=None):
+	def convert(self, converter=None):
 		return xsc.Text(self["href"].FileTime())
 
 class time(xsc.Element):
 	"""
-	the current time (i.e. the time when transform() is called). You can specify the
+	the current time (i.e. the time when convert() is called). You can specify the
 	format of the string in the attribute format, which is a strftime() compatible
 	string.
 	"""
 	empty = 1
 	attrHandlers = {"format": xsc.TextAttr}
 
-	def transform(self, transformer=None):
+	def convert(self, converter=None):
 		if self.hasAttr("format"):
-			format = self["format"].transform(transformer).asPlainString()
+			format = self["format"].convert(converter).asPlainString()
 		else:
 			format = "%d. %b. %Y, %H:%M"
 
@@ -124,7 +124,7 @@ class x(xsc.Element):
 	"""
 	empty = 0
 
-	def transform(self, transformer=None):
+	def convert(self, converter=None):
 		return xsc.Null
 
 class pixel(html_.img):
@@ -144,7 +144,7 @@ class pixel(html_.img):
 	attrHandlers.update({"color": xsc.ColorAttr})
 	del attrHandlers["src"]
 
-	def transform(self, transformer=None):
+	def convert(self, converter=None):
 		e = autoimg()
 		color = "dot_clear"
 		for attr in self.attrs.keys():
@@ -156,7 +156,7 @@ class pixel(html_.img):
 			e["alt"] = u""
 		e["src"] = ("*/Images/Pixels/", color, ".gif")
 
-		return e.transform(transformer)
+		return e.convert(converter)
 
 class caps(xsc.Element):
 	"""
@@ -169,8 +169,8 @@ class caps(xsc.Element):
 
 	lowercase = string.lowercase + ' '
 
-	def transform(self, transformer=None):
-		e = self.content.transform(transformer).asPlainString()
+	def convert(self, converter=None):
+		e = self.content.convert(converter).asPlainString()
 		result = xsc.Frag()
 		if e: # if we have nothing to do, we skip everything to avoid errors
 			collect = ""
@@ -197,7 +197,7 @@ class caps(xsc.Element):
 class endash(xsc.Element):
 	empty = 1
 
-	def transform(self, transformer=None):
+	def convert(self, converter=None):
 		return xsc.Text("-")
 
 	def asPlainString(self):
@@ -206,7 +206,7 @@ class endash(xsc.Element):
 class emdash(xsc.Element):
 	empty = 1
 
-	def transform(self, transformer=None):
+	def convert(self, converter=None):
 		return xsc.Text("-")
 
 	def asPlainString(self):
@@ -216,17 +216,17 @@ class include(xsc.Element):
 	empty = 1
 	attrHandlers = {"src": xsc.URLAttr}
 
-	def transform(self, transformer=None):
+	def convert(self, converter=None):
 		e = xsc.xsc.parse(self["src"].forInput())
 
-		return e.transform(transformer)
+		return e.convert(converter)
 
 class par(html_.div):
 	empty = 0
 	attrHandlers = html_.div.attrHandlers.copy()
 	attrHandlers.update({"noindent": xsc.TextAttr})
 
-	def transform(self, transformer=None):
+	def convert(self, converter=None):
 		e = html_.div(*self.content)
 		indent = 1
 		for attr in self.attrs.keys():
@@ -236,7 +236,7 @@ class par(html_.div):
 				e[attr] = self[attr]
 		if indent is not None:
 			e["class"] = "indent"
-		return e.transform(transformer)
+		return e.convert(converter)
 
 class autoimg(html_.img):
 	"""
@@ -246,10 +246,10 @@ class autoimg(html_.img):
 	<code>width</code> and <code>height</code>, i.e. you could make your image twice
 	as wide with <code>width="2*%(width)d"</code>.</par>
 	"""
-	def transform(self, transformer=None):
+	def convert(self, converter=None):
 		e = html_.img(**self.attrs)
-		e._addImageSizeAttributes(transformer, "src", "width", "height")
-		return e.transform(transformer)
+		e._addImageSizeAttributes(converter, "src", "width", "height")
+		return e.convert(converter)
 
 class autoinput(html_.input):
 	"""
@@ -257,13 +257,13 @@ class autoinput(html_.input):
 	with the ability to automatically set the size, if this element
 	has <code>type=="image"</code>.
 	"""
-	def transform(self, transformer=None):
-		if self.hasAttr("type") and self["type"].transform(transformer).asPlainString() == u"image":
+	def convert(self, converter=None):
+		if self.hasAttr("type") and self["type"].convert(converter).asPlainString() == u"image":
 			e = html_.input(*self.content, **self.attrs)
-			e._addImageSizeAttributes(transformer, "src", "size", None) # no height
-			return e.transform(transformer)
+			e._addImageSizeAttributes(converter, "src", "size", None) # no height
+			return e.convert(converter)
 		else:
-			return html.img.transform(self, transformer)
+			return html.img.convert(self, converter)
 
 class loremipsum(xsc.Element):
 	empty = 1
@@ -271,7 +271,7 @@ class loremipsum(xsc.Element):
 
 	text = "Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diem nonummy nibh euismod tincidnut ut lacreet dolore magna aliguam erat volutpat. Ut wisis enim ad minim veniam, quis nostrud exerci tution ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis te feugifacilisi. Duis antem dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zril delinit au gue duis dolore te feugat nulla facilisi."
 
-	def transform(self, transformer=None):
+	def convert(self, converter=None):
 		if self.hasAttr("len"):
 			text = self.text[:self["len"].asInt()]
 		else:
@@ -282,7 +282,7 @@ class redirectpage(xsc.Element):
 	empty = 1
 	attrHandlers = {"href": xsc.URLAttr}
 
-	def transform(self, transformer=None):
+	def convert(self, converter=None):
 		url = self["href"]
 		e = html_.html(
 			html_.head(html_.title("Redirection")),
@@ -291,7 +291,7 @@ class redirectpage(xsc.Element):
 				html_.a(url, href=url)
 			)
 		)
-		return e.transform(transformer)
+		return e.convert(converter)
 
 # Control characters (not part of HTML)
 class lf(xsc.Entity): "line feed"; codepoint = 10
@@ -300,152 +300,152 @@ class tab(xsc.Entity): "horizontal tab"; codepoint = 9
 class esc(xsc.Entity): "escape"; codepoint = 27
 
 class html(xsc.Entity):
-	def transform(self, transformer=None):
+	def convert(self, converter=None):
 		return html_.abbr("HTML", title="Hypertext Markup Language", lang="en")
 	def asPlainString(self):
 		return u"HTML"
 
 class xml(xsc.Entity):
-	def transform(self, transformer=None):
+	def convert(self, converter=None):
 		return html_.abbr("XML", title="Extensible Markup Language", lang="en")
 	def asPlainString(self):
 		return u"XML"
 
 class css(xsc.Entity):
-	def transform(self, transformer=None):
+	def convert(self, converter=None):
 		return html_.abbr("CSS", title="Cascading Style Sheet", lang="en")
 	def asPlainString(self):
 		return u"CSS"
 
 class cgi(xsc.Entity):
-	def transform(self, transformer=None):
+	def convert(self, converter=None):
 		return html_.abbr("CGI", title="Common Gateway Interface", lang="en")
 	def asPlainString(self):
 		return u"CGI"
 
 class www(xsc.Entity):
-	def transform(self, transformer=None):
+	def convert(self, converter=None):
 		return html_.abbr("WWW", title="World Wide Web", lang="en")
 	def asPlainString(self):
 		return u"WWW"
 
 class pdf(xsc.Entity):
-	def transform(self, transformer=None):
+	def convert(self, converter=None):
 		return html_.abbr("PDF", title="Protable Document Format", lang="en")
 	def asPlainString(self):
 		return u"PDF"
 
 class url(xsc.Entity):
-	def transform(self, transformer=None):
+	def convert(self, converter=None):
 		return html_.abbr("URL", title="Uniform Resource Locator", lang="en")
 	def asPlainString(self):
 		return u"URL"
 
 class http(xsc.Entity):
-	def transform(self, transformer=None):
+	def convert(self, converter=None):
 		return html_.abbr("HTTP", title="Hypertext Transfer Protocol", lang="en")
 	def asPlainString(self):
 		return u"HTTP"
 
 class smtp(xsc.Entity):
-	def transform(self, transformer=None):
+	def convert(self, converter=None):
 		return html_.abbr("SMTP", title="Simple Mail Transfer Protocol", lang="en")
 	def asPlainString(self):
 		return u"SMTP"
 
 class ftp(xsc.Entity):
-	def transform(self, transformer=None):
+	def convert(self, converter=None):
 		return html_.abbr("FTP", title="File Transfer Protocol", lang="en")
 	def asPlainString(self):
 		return u"FTP"
 
 class pop3(xsc.Entity):
-	def transform(self, transformer=None):
+	def convert(self, converter=None):
 		return html_.abbr("POP3", title="Post Office Protocol 3", lang="en")
 	def asPlainString(self):
 		return u"POP3"
 
 class cvs(xsc.Entity):
-	def transform(self, transformer=None):
+	def convert(self, converter=None):
 		return html_.abbr("CVS", title="Concurrent Versions System", lang="en")
 	def asPlainString(self):
 		return u"CVS"
 
 class faq(xsc.Entity):
-	def transform(self, transformer=None):
+	def convert(self, converter=None):
 		return html_.abbr("FAQ", title="Frequently Asked Question", lang="en")
 	def asPlainString(self):
 		return u"FAQ"
 
 class gnu(xsc.Entity):
-	def transform(self, transformer=None):
+	def convert(self, converter=None):
 		return html_.abbr("GNU", title="GNU's Not UNIX", lang="en")
 		# we could do it ;): return html_.abbr("GNU", title=(self, "'s Not UNIX"), lang="en")
 	def asPlainString(self):
 		return u"GNU"
 
 class dns(xsc.Entity):
-	def transform(self, transformer=None):
+	def convert(self, converter=None):
 		return html_.abbr("DNS", title="Domain Name Service", lang="en")
 	def asPlainString(self):
 		return u"DNS"
 
 class ppp(xsc.Entity):
-	def transform(self, transformer=None):
+	def convert(self, converter=None):
 		return html_.abbr("PPP", title="Domain Name Service", lang="en")
 	def asPlainString(self):
 		return u"PPP"
 
 class isdn(xsc.Entity):
-	def transform(self, transformer=None):
+	def convert(self, converter=None):
 		return html_.abbr("ISDN", title="Integrated Services Digital Network", lang="en")
 	def asPlainString(self):
 		return u"ISDN"
 
 class corba(xsc.Entity):
-	def transform(self, transformer=None):
+	def convert(self, converter=None):
 		return html_.span(html_.abbr("CORBA", title="Common Object Request Broker Architecture", lang="en"), class_="caps")
 	def asPlainString(self):
 		return u"CORBA"
 
 class wap(xsc.Entity):
-	def transform(self, transformer=None):
+	def convert(self, converter=None):
 		return html_.span(html_.abbr("WAP", title="Wireless Application Protocol", lang="en"), class_="caps")
 	def asPlainString(self):
 		return u"WAP"
 
 class wml(xsc.Entity):
-	def transform(self, transformer=None):
+	def convert(self, converter=None):
 		return html_.span(html_.abbr("WML", title="Wireless Markup Language", lang="en"), class_="caps")
 	def asPlainString(self):
 		return u"WML"
 
 class mac(xsc.Entity):
-	def transform(self, transformer=None):
+	def convert(self, converter=None):
 		return html_.span(html_.abbr("MAC", title="Media Access Control", lang="en"), class_="caps")
 	def asPlainString(self):
 		return u"MAC"
 
 class nat(xsc.Entity):
-	def transform(self, transformer=None):
+	def convert(self, converter=None):
 		return html_.span(html_.abbr("NAT", title="Network Address Translation", lang="en"), class_="caps")
 	def asPlainString(self):
 		return u"NAT"
 
 class sql(xsc.Entity):
-	def transform(self, transformer=None):
+	def convert(self, converter=None):
 		return html_.span(html_.abbr("SQL", title="Structured Query Language", lang="en"), class_="caps")
 	def asPlainString(self):
 		return u"SQL"
 
 class xsl(xsc.Entity):
-	def transform(self, transformer=None):
+	def convert(self, converter=None):
 		return html_.span(html_.abbr("XSL", title="Extensible Stylesheet Language", lang="en"), class_="caps")
 	def asPlainString(self):
 		return u"XSL"
 
 class smil(xsc.Entity):
-	def asHTML(self):
+	def convert(self, converter=None):
 		return html.span(html.abbr("SMIL", title="Synchronized Multimedia Integration Language", lang="en"), class_="caps")
 	def asPlainString(self):
 		return u"SMIL"
