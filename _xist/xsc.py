@@ -165,38 +165,16 @@ class Node(object):
 		"""
 		raise NotImplementedError("present method not implemented in %s" % self.__class__.__name__)
 
-	def conv(self, converter=None, root=None, mode=None, stage=None, target=None, lang=None, makeaction=None, maketarget=None, makeproject=None):
+	def conv(self, converter=None, root=None, mode=None, stage=None, target=None, lang=None, makeaction=None, maketarget=None):
 		"""
 		<doc:par>returns a version of this node and it's content converted to &html; (or any other target).</doc:par>
 		"""
 		if converter is None:
-			return self.convert(converters.Converter(root=root, mode=mode, stage=stage, target=target, lang=lang, makeaction=makeaction, maketarget=maketarget, makeproject=makeproject))
+			return self.convert(converters.Converter(root=root, mode=mode, stage=stage, target=target, lang=lang, makeaction=makeaction, maketarget=maketarget))
 		else:
-			oldroot = converter.root
-			oldmode = converter.mode
-			oldstage = converter.stage
-			oldtarget = converter.target
-			oldlang = converter.lang
-			oldmakeaction = converter.makeaction
-			oldmaketarget = converter.maketarget
-			oldmakeproject = converter.makeproject
-			converter.root = root
-			converter.mode = mode
-			converter.stage = stage
-			converter.target = target
-			converter.lang = lang
-			converter.makeaction = makeaction
-			converter.maketarget = maketarget
-			converter.makeproject = makeproject
+			converter.push(root=root, mode=mode, stage=stage, target=target, lang=lang, makeaction=makeaction, maketarget=maketarget)
 			node = self.convert(converter)
-			converter.root = oldroot
-			converter.mode = oldmode
-			converter.stage = oldstage
-			converter.target = oldtarget
-			converter.lang = oldlang
-			converter.makeaction = oldmakeaction
-			converter.maketarget = oldmaketarget
-			converter.makeproject = oldmakeproject
+			converter.pop()
 			return node
 
 	def convert(self, converter):
