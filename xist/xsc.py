@@ -152,7 +152,7 @@ class FileNotFoundError(Error):
 		return Error.__str__(self) + "file " + self.url.repr() + " can't be opened"
 
 class IllegalObjectError(Error):
-	"""exception that is raised, when XSC finds an illegal object found in its object tree"""
+	"""exception that is raised, when XSC finds an illegal object in its object tree"""
 
 	def __init__(self,lineno,object):
 		Error.__init__(self,lineno)
