@@ -33,6 +33,12 @@ to tokenize an &xml; string for other processing instructions as well.</item>
 namespaces from which the parser selects the appropriate one namespace
 once an <lit>xmlns</lit> attribute is encountered.</item>
 
+<item>Elements <class>hostname</class>, <class>tty</class>, <class>prompt</class>
+and <class>input</class> were add to <module>ll.xist.ns.doc</module>.</item>
+
+<item>The method <method>ll.xist.xsc.Attrs.set</method> now returns the
+new attribute object.</item>
+
 </ulist>
 
 </section>

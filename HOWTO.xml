@@ -180,11 +180,11 @@ of the object.</par>
 <par>Using this new element is simple</par>
 
 <example><title>Using the new element</title>
-<prog>
-&gt;&gt;&gt; node = cool("Python")
-&gt;&gt;&gt; print node.conv().asBytes()
+<tty>
+<prompt>&gt;&gt;&gt; </prompt><input>node = cool("Python")</input>
+<prompt>&gt;&gt;&gt; </prompt><input>print node.conv().asBytes()</input>
 &lt;b&gt;Python is cool!&lt;/b&gt;
-</prog>
+</tty>
 </example>
 
 <par><pyref module="ll.xist.xsc" class="Node" method="conv"><method>conv</method></pyref> simply
@@ -209,11 +209,11 @@ class python(xsc.Element):
 		)
 </prog>
 <par>Now we can do the following:</par>
-<prog>
-&gt;&gt;&gt; node = cool(python())
-&gt;&gt;&gt; print node.conv().asBytes()
+<tty>
+<prompt>&gt;&gt;&gt; </prompt><input>node = cool(python())</input>
+<prompt>&gt;&gt;&gt; </prompt><input>print node.conv().asBytes()</input>
 &lt;b&gt;&lt;a href="http://www.python.org/"&gt;Python&lt;/a&gt; is cool!&lt;/b&gt;
-</prog>
+</tty>
 <par>But if we forget to call
 <pyref module="ll.xist.xsc" class="Node" method="convert">convert</pyref>
 for our own content, i.e. if the element <pyref class="cool"><class>cool</class></pyref>
@@ -309,17 +309,17 @@ a <pyref module="ll.make"><module>make</module></pyref> script.</par>
 <par>Setting and accessing the attributes of an element works via
 the dictionary interface:</par>
 <example>
-<prog>
-&gt;&gt;&gt; node = html.a("Python", href="http://www.python.org")
-&gt;&gt;&gt; print node["href"].asBytes()
+<tty>
+<prompt>&gt;&gt;&gt; </prompt><input>node = html.a("Python", href="http://www.python.org")</input>
+<prompt>&gt;&gt;&gt; </prompt><input>print node["href"].asBytes()</input>
 http://www.python.org/
-&gt;&gt;&gt; del node["href"]
-&gt;&gt;&gt; print node["href"].asBytes()
+<prompt>&gt;&gt;&gt; </prompt><input>del node["href"]</input>
+<prompt>&gt;&gt;&gt; </prompt><input>print node["href"].asBytes()</input>
 
-&gt;&gt;&gt; node["href"] = "http://www.python.org"
-&gt;&gt;&gt; print node["href"].asBytes()
+<prompt>&gt;&gt;&gt; </prompt><input>node["href"] = "http://www.python.org"</input>
+<prompt>&gt;&gt;&gt; </prompt><input>print node["href"].asBytes()</input>
 http://www.python.org/
-</prog>
+</tty>
 </example>
 
 <par>All attribute values are instances of subclasses of
@@ -384,11 +384,11 @@ class cool(xsc.Element):
 
 <par>and use it like this:</par>
 
-<prog>
-&gt;&gt;&gt; node = cool(python(), adj="totally")
-&gt;&gt;&gt; print node.conv().asBytes()
+<tty>
+<prompt>&gt;&gt;&gt; </prompt><input>node = cool(python(), adj="totally")</input>
+<prompt>&gt;&gt;&gt; </prompt><input>node.conv().asBytes()</input>
 &lt;a href="http://www.python.org/"&gt;Python&lt;/a&gt; is &lt;em&gt;totally&lt;/em&gt; cool!
-</prog>
+</tty>
 
 <section><title>Default attributes</title>
 <par>It is possible to define default values for attributes via
@@ -414,11 +414,11 @@ class cool(xsc.Element):
 <lit>adj</lit> we'll get the default:</par>
 
 <example><title>Using default attributes</title>
-<prog>
-&gt;&gt;&gt; node = cool(python())
-&gt;&gt;&gt; print node.conv().asBytes()
+<tty>
+<prompt>&gt;&gt;&gt; </prompt><input>node = cool(python())</input>
+<prompt>&gt;&gt;&gt; </prompt><input>print node.conv().asBytes()</input>
 &lt;a href="http://www.python.org/"&gt;Python&lt;/a&gt; is &lt;em&gt;absolutely&lt;/em&gt; cool!
-</prog>
+</tty>
 </example>
 
 <par>If we want a <class>cool</class> instance without
@@ -426,11 +426,11 @@ an <lit>adj</lit> attribute, we can pass <lit>None</lit>
 as the attribute value:</par>
 
 <example><title>Removing default attributes</title>
-<prog>
-&gt;&gt;&gt; node = cool(python(), adj=None)
-&gt;&gt;&gt; print node.conv().asBytes()
+<tty>
+<prompt>&gt;&gt;&gt; </prompt><input>node = cool(python(), adj=None)</input>
+<prompt>&gt;&gt;&gt; </prompt><input>print node.conv().asBytes()</input>
 &lt;a href="http://www.python.org/"&gt;Python&lt;/a&gt; is cool!
-</prog>
+</tty>
 </example>
 
 </section>
@@ -465,25 +465,25 @@ class cool(xsc.Element):
 instance. Only when this node is parsed from a file will the warning
 be issued:</par>
 
-<prog>
-&gt;&gt;&gt; s = '&lt;cool adj="pretty"&gt;&lt;python/&gt;&lt;/cool&gt;'
-&gt;&gt;&gt; node = parsers.parseString(s)
+<tty>
+<prompt>&gt;&gt;&gt; </prompt><input>s = '&lt;cool adj="pretty"&gt;&lt;python/&gt;&lt;/cool&gt;'</input>
+<prompt>&gt;&gt;&gt; </prompt><input>node = parsers.parseString(s)</input>
 /home/walter/pythonroot/ll/xist/xsc.py:1665: IllegalAttrValueWarning: Attribute value 'pretty' not allowed for __main__:cool.Attrs.adj.
   warnings.warn(errors.IllegalAttrValueWarning(self))
-</prog>
+</tty>
 
 <par>The warning will also be issued if we publish such a node,
 but note that for warnings Python's warning framework is used,
 so the warning will be printed only once (but of course
 you can change that with <function>warnings.filterwarnings</function>):</par>
 
-<prog>
-&gt;&gt;&gt; node = cool(python(), adj="pretty")
-&gt;&gt;&gt; print node.asBytes()
+<tty>
+<prompt>&gt;&gt;&gt; </prompt><input>node = cool(python(), adj="pretty")</input>
+<prompt>&gt;&gt;&gt; </prompt><input>print node.asBytes()</input>
 /home/walter/pythonroot/ll/xist/xsc.py:1665: IllegalAttrValueWarning: Attribute value 'pretty' not allowed for __main__:cool.Attrs.adj.
   warnings.warn(errors.IllegalAttrValueWarning(self))
 &lt;cool adj="very"&gt;&lt;python /&gt;&lt;/cool&gt;
-</prog>
+</tty>
 
 </section>
 
@@ -496,14 +496,14 @@ class <pyref module="ll.xist.ns.html" class="img"><class>ll.xist.ns.html.img</cl
 is such an attribute, so we'll get:</par>
 
 <example><title>Missing required attributes</title>
-<prog>
-&gt;&gt;&gt; from ll.xist.ns import html
-&gt;&gt;&gt; node = html.img(src="eggs.png")
-&gt;&gt;&gt; print node.asBytes()
+<tty>
+<prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
+<prompt>&gt;&gt;&gt; </prompt><input>node = html.img(src="eggs.png")</input>
+<prompt>&gt;&gt;&gt; </prompt><input>print node.asBytes()</input>
 /home/walter/pythonroot/ll/xist/xsc.py:2046: RequiredAttrMissingWarning: Required attribute 'alt' missing in ll.xist.ns.html:img.Attrs.
   warnings.warn(errors.RequiredAttrMissingWarning(self, attrs.keys()))
 &lt;img src="eggs.png" /&gt;
-</prog>
+</tty>
 </example>
 
 </section>
@@ -587,14 +587,13 @@ xmlns.<em>makemod</em>(vars())
 <par>Suppose that the above code is in the file <filename>foo.py</filename>.
 Doing an <lit>import foo</lit> will then give you the namespace class instead
 of the module:</par>
-<prog>
-&gt;&gt;&gt; import foo
-&gt;&gt;&gt; foo
-&lt;foo:xmlns namespace name=u"foo" url=u"http://www.foo.net/foo" \
-   with 2 elements from "foo.py" at 0x87654321&gt;
-&gt;&gt;&gt; foo.python
+<tty>
+<prompt>&gt;&gt;&gt; </prompt><input>import foo</input>
+<prompt>&gt;&gt;&gt; </prompt><input>foo</input>
+&lt;foo:xmlns namespace name=u"foo" url=u"http://www.foo.net/foo" with 2 elements from "foo.py" at 0x87654321&gt;
+<prompt>&gt;&gt;&gt; </prompt><input>foo.python</input>
 &lt;foo:python element at 0x87654321&gt;
-</prog>
+</tty>
 </section>
 
 <section><title>Subclassing namespaces</title>
@@ -654,14 +653,14 @@ xmlns.makemod(vars())
 
 <par>This namespace defines a navigation element that generates <lit>div</lit>s
 with links to various homepages for programming languages. We can use it like this:</par>
-<prog>
-&gt;&gt;&gt; import navns
-&gt;&gt;&gt; print navns.navigation().conv().asBytes()
+<tty>
+<prompt>&gt;&gt;&gt; </prompt><input>import navns</input>
+<prompt>&gt;&gt;&gt; </prompt><input>print navns.navigation().conv().asBytes()</input>
 &lt;div&gt;&lt;a href="http://www.python.org/"&gt;Python&lt;/a&gt;&lt;/div&gt;
 &lt;div&gt;&lt;a href="http://www.perl.org/"&gt;Perl&lt;/a&gt;&lt;/div&gt;
 &lt;div&gt;&lt;a href="http://www.php.net/"&gt;PHP&lt;/a&gt;&lt;/div&gt;
 &lt;div&gt;&lt;a href="http://java.sun.com/"&gt;Java&lt;/a&gt;&lt;/div&gt;
-</prog>
+</tty>
 <par>(Of course the output will all be on one line.)</par>
 
 <par>Now we can define a derived namespace (in the file <filename>nav2ns.py</filename>)
@@ -703,16 +702,16 @@ xmlns.makemod(vars())
 <par>When we use the navigation element from the derived namespace we'll get
 the following output:</par>
 
-<prog>
-&gt;&gt;&gt; import nav2ns
-&gt;&gt;&gt; print nav2ns.navigation().conv().asBytes()
+<tty>
+<prompt>&gt;&gt;&gt; </prompt><input>import nav2ns</input>
+<prompt>&gt;&gt;&gt; </prompt><input>print nav2ns.navigation().conv().asBytes()</input>
 &lt;table border="0" cellpadding="0" cellspacing="0" class="navigation"&gt;
 &lt;tr&gt;&lt;td&gt;&lt;a href="http://www.python.org/"&gt;Python&lt;/a&gt;&lt;/td&gt;&lt;/tr&gt;
 &lt;tr&gt;&lt;td&gt;&lt;a href="http://www.perl.org/"&gt;Perl&lt;/a&gt;&lt;/td&gt;&lt;/tr&gt;
 &lt;tr&gt;&lt;td&gt;&lt;a href="http://www.php.net/"&gt;PHP&lt;/a&gt;&lt;/td&gt;&lt;/tr&gt;
 &lt;tr&gt;&lt;td&gt;&lt;a href="http://java.sun.com/"&gt;Java&lt;/a&gt;&lt;/td&gt;&lt;/tr&gt;
 &lt;/table&gt;
-</prog>
+</tty>
 <par>(again all on one line.)</par>
 
 </section>
@@ -792,14 +791,14 @@ code doesn't contain any illegal tag nesting (like a
 <module>ll.xist.ns.html</module> does this automatically:</par>
 
 <example>
-<prog>
-&gt;&gt;&gt; from ll.xist.ns import html
-&gt;&gt;&gt; node = html.p(html.p("foo"))
-&gt;&gt;&gt; print node.asBytes()
+<tty>
+<prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
+<prompt>&gt;&gt;&gt; </prompt><input>node = html.p(html.p("foo"))</input>
+<prompt>&gt;&gt;&gt; </prompt><input>print node.asBytes()</input>
 /home/walter/pythonroot/ll/xist/sims.py:238: WrongElementWarning: element &lt;ll.xist.ns.html:p&gt; may not contain element &lt;ll.xist.ns.html:p&gt;
   warnings.warn(WrongElementWarning(node, child, self.elements))
 &lt;p&gt;&lt;p&gt;foo&lt;/p&gt;&lt;/p&gt;
-</prog>
+</tty>
 </example>
 
 <par>For your own elemens you can specify the content model too. This is done
@@ -920,15 +919,15 @@ Unencodable characters will be escaped with character references when possible
 (i.e. inside text nodes, for comments or processing instructions you'll get
 an exception):</par>
 
-<prog>
-&gt;&gt;&gt; from ll.xist import xsc
-&gt;&gt;&gt; from ll.xist.ns import html
-&gt;&gt;&gt; node = html.div(u"äöü", html.br(), u"ÄÖÜ")
-&gt;&gt;&gt; print node.asBytes(encoding="ascii")
+<tty>
+<prompt>&gt;&gt;&gt; </prompt><input>from ll.xist import xsc</input>
+<prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
+<prompt>&gt;&gt;&gt; </prompt><input>node = html.div(u"äöü", html.br(), u"ÄÖÜ")</input>
+<prompt>&gt;&gt;&gt; </prompt><input>print node.asBytes(encoding="ascii")</input>
 &lt;div&gt;&amp;#228;&amp;#246;&amp;#252;&lt;br /&gt;&amp;#196;&amp;#214;&amp;#220;&lt;/div&gt;
-&gt;&gt;&gt; print node.asBytes(encoding="iso-8859-1")
+<prompt>&gt;&gt;&gt; </prompt><input>print node.asBytes(encoding="iso-8859-1")</input>
 &lt;div&gt;äöü&lt;br /&gt;ÄÖÜ&lt;/div&gt;
-&gt;&gt;&gt; print xsc.Comment(u"äöü").asBytes()
+<prompt>&gt;&gt;&gt; </prompt><input>print xsc.Comment(u"äöü").asBytes()</input>
 Traceback (most recent call last):
   File "&lt;stdin&gt;", line 1, in ?
   File "~/pythonroot/xist/xsc.py", line 828, in asBytes
@@ -936,7 +935,7 @@ Traceback (most recent call last):
   File "~/pythonroot/xist/publishers.py", line 162, in asBytes
     return u"".join(self.texts).encode(self.encoding)
 UnicodeEncodeError: 'ascii' codec can't encode characters in position 0-2: ordinal not in range(128)
-</prog>
+</tty>
 
 <par>Another useful parameter is <arg>xhtml</arg>,
 it specifies whether you want pure &html; or &xhtml; as output:</par>
@@ -953,11 +952,11 @@ an empty tag (without an additional space): <markup>&lt;br/&gt;</markup> or <mar
 </dlist>
 <par>Writing a node to a file can be done with the method
 <pyref module="ll.xist.xsc" class="Node" method="write"><method>write</method></pyref>:</par>
-<prog>
-&gt;&gt;&gt; from ll.xist.ns import html
-&gt;&gt;&gt; node = html.div(u"äöü", html.br(), u"ÄÖÜ")
-&gt;&gt;&gt; node.write(open("foo.html", "wb"), encoding="ascii")
-</prog>
+<tty>
+<prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
+<prompt>&gt;&gt;&gt; </prompt><input>node = html.div(u"äöü", html.br(), u"ÄÖÜ")</input>
+<prompt>&gt;&gt;&gt; </prompt><input>node.write(open("foo.html", "wb"), encoding="ascii")</input>
+</tty>
 
 <par>All these methods use the method
 <pyref module="ll.xist.xsc" class="Node" method="publish"><method>publish</method></pyref> internally.
@@ -969,21 +968,21 @@ an instance of <pyref module="ll.xist.publishers" class="Publisher"><class>ll.xi
 <section><title>Searching trees</title>
 
 <par>Finding nodes in a tree can be done with the method
-<pyref module="ll.xist.xsc" class="Node" method="find"><method>find</method></pyref>.
-<pyref module="ll.xist.xsc" class="Node" method="find"><method>find</method></pyref> will return
-a <pyref module="ll.xist.xsc" class="Frag"><class>Frag</class></pyref> with the nodes it finds.
-You pass a callable object to <method>find</method> which is used for determining which part of the
-tree should be searched and which nodes should be returned.</par>
+<pyref module="ll.xist.xsc" class="Node" method="walk"><method>walk</method></pyref>.
+<pyref module="ll.xist.xsc" class="Node" method="walk"><method>walk</method></pyref> will return
+an iterator. You pass a callable object to <method>walk</method> which is used for determining
+which part of the tree should be searched and which nodes should be returned.</par>
 <par><module>ll.xist.xsc</module> provides several useful predefined classes for that.
 <pyref module="ll.xist.xsc" class="FindType"><class>FindType</class></pyref> will search only
 the first level of the tree and will return any node that is an instance of one of the classes
 passed to the constructor. So if you have an instance of <class>ll.xist.ns.html.ul</class>
-named <lit>node</lit> you could search for all <class>ll.xist.ns.li</class> elements inside
+named <lit>node</lit> you could search for all <class>ll.xist.ns.html.li</class> elements inside
 with the following code:</par>
 
 <example><title>Searching for <class>li</class> inside <class>ul</class></title>
 <prog>
-node.content.find(xsc.FindType(html.li))
+for child in node.content.walk(xsc.FindType(html.li)):
+	print unicode(child)
 </prog>
 </example>
 
@@ -996,29 +995,24 @@ all the links on the <link href="http://www.python.org/">Python home page</link>
 from ll.xist import xsc, parsers
 from ll.xist.ns import html, chars
 
-node = parsers.parseURL(
-	"http://www.python.org/",
-	encoding="latin1",
-	tidy=True)
+node = parsers.parseURL("http://www.python.org/", tidy=True)
 
-links = node.find(xsc.FindTypeAll(html.a))
-
-for link in links:
+for link in node.walk(xsc.FindTypeAll(html.a)):
 	print link["href"]
 </prog>
 </example>
 
 <par>This gives the output:</par>
 
-<prog>
+<tty>
 http://www.python.org/
 http://www.python.org/search/
 http://www.python.org/download/
 http://www.python.org/doc/
 http://www.python.org/Help.html
 http://www.python.org/dev/
-...
-</prog>
+<rep>...</rep>
+</tty>
 
 <par>The following example will find all external links on the Python home page:</par>
 
@@ -1027,26 +1021,21 @@ http://www.python.org/dev/
 from ll.xist import xsc, parsers
 from ll.xist.ns import html, chars
 
-node = parsers.parseURL(
-	"http://www.python.org/",
-	encoding="latin1",
-	tidy=True)
+node = parsers.parseURL("http://www.python.org/", tidy=True)
 
 def isextlink(node):
 	if isinstance(node, html.a) and not unicode(node["href"]).startswith("http://www.python.org"):
 		return (True, xsc.entercontent)
 	return (xsc.entercontent,)
 
-links = node.find(isextlink)
-
-for link in links:
+for link in node.walk(isextlink):
 	print link["href"]
 </prog>
 </example>
 
 <par>This gives the output:</par>
 
-<prog>
+<tty>
 http://www.jython.org/
 http://sourceforge.net/tracker/?atid=105470&amp;group%5fid=5470
 http://sourceforge.net/tracker/?atid=305470&amp;group%5fid=5470
@@ -1054,8 +1043,8 @@ http://sourceforge.net/cvs/?group%5fid=5470
 http://www.python-in-business.org/
 http://www.europython.org/
 mailto:webmaster@python.org
-...
-</prog>
+<rep>...</rep>
+</tty>
 
 <par>The callable (<function>isextlink</function> in the example) will be called
 for each node and must return a sequence with the following entries:</par>
@@ -1085,49 +1074,48 @@ def isextlink(node):
 
 
 <section><title>Manipulating trees</title>
-<par>&xist; provides many methods for manipulating an
-&xml; tree.</par>
+<par>&xist; provides many methods for manipulating an &xml; tree.</par>
 
 <par>The method <pyref module="ll.xist.xsc" class="Node" method="withsep"><method>withsep</method></pyref>
 can be used to put a seperator node between the child nodes of an
 <pyref module="ll.xist.xsc" class="Element"><class>Element</class></pyref>
 or a <pyref module="ll.xist.xsc" class="Frag"><class>Frag</class></pyref>:</par>
 
-<prog>
-&gt;&gt;&gt; from ll.xist import xsc
-&gt;&gt;&gt; from ll.xist.ns import html
-&gt;&gt;&gt; node = html.div(*xrange(10))
-&gt;&gt;&gt; print node.withsep(", ").asBytes()
+<tty>
+<prompt>&gt;&gt;&gt; </prompt><input>from ll.xist import xsc</input>
+<prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
+<prompt>&gt;&gt;&gt; </prompt><input>node = html.div(*xrange(10))</input>
+<prompt>&gt;&gt;&gt; </prompt><input>print node.withsep(", ").asBytes()</input>
 &lt;div&gt;0, 1, 2, 3, 4, 5, 6, 7, 8, 9&lt;/div&gt;
-</prog>
+</tty>
 
 <par>The method <pyref module="ll.xist.xsc" class="Node" method="shuffled"><method>shuffled</method></pyref>
 returns a shuffled version of the <pyref module="ll.xist.xsc" class="Element"><class>Element</class></pyref>
 or <pyref module="ll.xist.xsc" class="Frag"><class>Frag</class></pyref>:</par>
 
-<prog>
-&gt;&gt;&gt; from ll.xist import xsc
-&gt;&gt;&gt; from ll.xist.ns import html
-&gt;&gt;&gt; node = html.div(*xrange(10))
-&gt;&gt;&gt; print node.shuffled().withsep(", ").asBytes()
+<tty>
+<prompt>&gt;&gt;&gt; </prompt><input>from ll.xist import xsc</input>
+<prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
+<prompt>&gt;&gt;&gt; </prompt><input>node = html.div(*xrange(10))</input>
+<prompt>&gt;&gt;&gt; </prompt><input>print node.shuffled().withsep(", ").asBytes()</input>
 &lt;div&gt;8, 1, 3, 6, 7, 5, 2, 9, 4, 0&lt;/div&gt;
-&gt;&gt;&gt; print node.withsep(", ").shuffled().asBytes()
+<prompt>&gt;&gt;&gt; </prompt><input>print node.withsep(", ").shuffled().asBytes()</input>
 &lt;div&gt;31, 8905, 7, , , 4, 6, , , 2&lt;/div&gt;
-</prog>
+</tty>
 
 <par>There are methods named <pyref module="ll.xist.xsc" class="Node" method="reversed"><method>reversed</method></pyref>
 and <pyref module="ll.xist.xsc" class="Node" method="sorted"><method>sorted</method></pyref>, that
 return a reversed or sorted version of an element or fragment:</par>
 
-<prog>
-&gt;&gt;&gt; from ll.xist import xsc
-&gt;&gt;&gt; from ll.xist.ns import html
-&gt;&gt;&gt; def sort(n1, n2):
-...    return cmp(unicode(n1), unicode(n2))
-&gt;&gt;&gt; node = html.div(8,4,2,1,9,6,3,0,7,5)
-&gt;&gt;&gt; print node.sorted(sort).reversed().withsep(",").asBytes()
+<tty>
+<prompt>&gt;&gt;&gt; </prompt><input>from ll.xist import xsc</input>
+<prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
+<prompt>&gt;&gt;&gt; </prompt><input>def sort(n1, n2):</input>
+<prompt>... </prompt><input>   return cmp(unicode(n1), unicode(n2))</input>
+<prompt>&gt;&gt;&gt; </prompt><input>node = html.div(8,4,2,1,9,6,3,0,7,5)</input>
+<prompt>&gt;&gt;&gt; </prompt><input>print node.sorted(sort).reversed().withsep(",").asBytes()</input>
 &lt;div&gt;9,8,7,6,5,4,3,2,1,0&lt;/div&gt;
-</prog>
+</tty>
 
 <par>The method <pyref module="ll.xist.xsc" class="Node" method="mapped"><method>mapped</method></pyref>
 recursively walks the tree and generates a new tree, where all the nodes are mapped
@@ -1171,13 +1159,13 @@ and <pyref module="ll.url" class="URL" method="relative"><method>relative</metho
 This base &url; can be passed to all parsing functions. If it isn't specified
 it defaults to the &url; of the resource being parsed. This base &url; will
 be prepended to all &url;s that are read during parsing:</par>
-<prog>
-&gt;&gt;&gt; from ll.xist import parsers
-&gt;&gt;&gt; from ll.xist.ns import html
-&gt;&gt;&gt; node = parsers.parseString('&lt;img src="eggs.png"/&gt;', base="root:spam/index.html")
-&gt;&gt;&gt; print node.asBytes()
+<tty>
+<prompt>&gt;&gt;&gt; </prompt><input>from ll.xist import parsers</input>
+<prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
+<prompt>&gt;&gt;&gt; </prompt><input>node = parsers.parseString('&lt;img src="eggs.png"/&gt;', base="root:spam/index.html")</input>
+<prompt>&gt;&gt;&gt; </prompt><input>print node.asBytes()</input>
 &lt;img src="root:spam/eggs.png" /&gt;
-</prog>
+</tty>
 
 <par>For publishing a base &url; can be specified too. &url;s will be published
 relative to this base &url; with the exception of relative &url;s in the tree.
@@ -1251,7 +1239,7 @@ print e.pretty().asBytes()
 </example>
 <par>This will print:</par>
 <example>
-<prog>
+<tty>
 &lt;html&gt;
 	&lt;head&gt;
 		&lt;title&gt;foo&lt;/title&gt;
@@ -1263,7 +1251,7 @@ print e.pretty().asBytes()
 		&lt;/div&gt;
 	&lt;/body&gt;
 &lt;/html&gt;
-</prog>
+</tty>
 </example>
 <par>Element content will only be modified if it doesn't contain
 <class>Text</class> nodes, so mixed content will not be touched.</par>
@@ -1316,8 +1304,8 @@ the processing instruction. For example, consider the following &xml; file:</par
 <pyref module="ll.xist.xsc" class="Node" method="convert"><method>convert</method></pyref>
 results in the following:</par>
 
-<prog>
+<tty>
 &lt;b&gt;5050&lt;/b&gt;
-</prog>
+</tty>
 
 </section>
