@@ -184,21 +184,19 @@ class hasattr(Operator):
 	from the left hand side of the XFind expresssion, that have an attribute
 	of the type specified in the constructor.
 	"""
-	def __init__(self, attr):
+	def __init__(self, *attrs):
 		"""
 		Create a <class>hasattr</class> operator. Only elements having an attribute
-		of the type <arg>attr</arg> will be produced. Note that <arg>attr</arg>
-		may also be a tuple of attribute classes (in this case an <z>or-test</z>
-		is done, just like <function>isinstance</function> does).
+		of one of the types in <arg>attr</arg> will be produced.
 		"""
-		self.attr = attr
+		self.attrs = attrs
 
 	def xwalk(self, iterator):
 		from ll.xist import xsc
 		for child in iterator:
 			if isinstance(child, xsc.Element):
 				for attrvalue in child.attrs.itervalues():
-					if isinstance(attrvalue, self.attr):
+					if isinstance(attrvalue, self.attrs):
 						yield child
 						break
 
@@ -238,18 +236,16 @@ class is_(Operator):
 	left hand side of the XFind expresssion, that are of a type specified
 	in the constructor.
 	"""
-	def __init__(self, class_):
+	def __init__(self, *types):
 		"""
-		Create an <class>is_</class> operator. Only nodes of type <arg>class_</arg>
-		will be produced. Note that <arg>class_</arg> may also be a tuple of
-		classes (in this case an <z>or-test</z> is done, just like
-		<function>isinstance</function> does).
+		Create an <class>is_</class> operator. Only nodes of one of the types in
+		<arg>types</arg> will be produced.
 		"""
-		self.class_= class_
+		self.types = types
 
 	def xwalk(self, iterator):
 		for child in iterator:
-			if isinstance(child, self.class_):
+			if isinstance(child, self.types):
 				yield child
 
 	def __repr__(self):
@@ -262,18 +258,16 @@ class isnot(Operator):
 	left hand side of the XFind expression, that are not of a type specified
 	in the constructor.
 	"""
-	def __init__(self, class_):
+	def __init__(self, *types):
 		"""
-		Create an <class>isnot</class> operator. Only nodes not of type
-		<arg>class_</arg> will be produced. Note that <arg>class_</arg> may also
-		be a tuple of classes (in this case an <z>or-test</z> is done, just like
-		<function>isinstance</function> does).
+		Create an <class>isnot</class> operator. Only nodes not of any of the
+		types in <arg>types</arg> will be produced.
 		"""
-		self.class_= class_
+		self.types = types
 
 	def xwalk(self, iterator):
 		for child in iterator:
-			if not isinstance(child, self.class_):
+			if not isinstance(child, self.types):
 				yield child
 
 	def __repr__(self):
@@ -286,21 +280,20 @@ class contains(Operator):
 	from the left hand side of the XFind expression, that contain child node of
 	a type specified in the constructor.
 	"""
-	def __init__(self, class_):
+	def __init__(self, *types):
 		"""
 		Create a <class>contains</class> operator. Only elements and fragment
-		containing child nodes of type <arg>class_</arg> will be produced. Note
-		that <arg>class_</arg> may also be a tuple of classes (in this case an
-		<z>or-test</z> is done, just like <function>isinstance</function> does).
+		containing child nodes of one of the types in <arg>types</arg> will
+		be produced.
 		"""
-		self.class_= class_
+		self.types = types
 
 	def xwalk(self, iterator):
 		from ll.xist import xsc
 		for child in iterator:
 			if isinstance(child, (xsc.Frag, xsc.Element)):
 				for subchild in child:
-					if isinstance(subchild, self.class_):
+					if isinstance(subchild, self.types):
 						yield child
 						break
 
@@ -314,22 +307,20 @@ class child(Operator):
 	in the constructor for the elements (or fragments) from the left hand side
 	of the XFind expresssion.
 	"""
-	def __init__(self, class_):
+	def __init__(self, *types):
 		"""
-		Create a <class>child</class> operator. All child nodes of type
-		<arg>class_</arg> from the elements or fragments from the left hand side
-		of the XFind expression will be produced. Note that <arg>class_</arg> may
-		also be a tuple of classes (in this case an <z>or-test</z> is done, just
-		like <function>isinstance</function> does).
+		Create a <class>child</class> operator. All child nodes of one of the
+		types in <arg>types</arg> from the elements or fragments from the left
+		hand side of the XFind expression will be produced.
 		"""
-		self.class_ = class_
+		self.types = types
 
 	def xwalk(self, iterator):
 		from ll.xist import xsc
 		for child in iterator:
 			if isinstance(child, (xsc.Frag, xsc.Element)):
 				for subchild in child:
-					if isinstance(subchild, self.class_):
+					if isinstance(subchild, self.types):
 						yield subchild
 
 	def __repr__(self):
@@ -370,22 +361,20 @@ class attr(Operator):
 	expresssion.
 	"""
 
-	def __init__(self, attr):
+	def __init__(self, *attrs):
 		"""
-		Create an <class>attr</class> operator. All attribute nodes of type
-		<arg>attr</arg> from the elements from the left hand side of the XFind
-		expression will be produced. Note that <arg>attr</arg> may also be a
-		tuple of attribute classes (in this case an <z>or-test</z> is done, just
-		like <function>isinstance</function> does).
+		Create an <class>attr</class> operator. All attribute nodes of one of the
+		types in <arg>types</arg> from the elements from the left hand side of the
+		XFind expression will be produced.
 		"""
-		self.attr = attr
+		self.attrs = attrs
 
 	def xwalk(self, iterator):
 		from ll.xist import xsc
 		for child in iterator:
 			if isinstance(child, xsc.Element):
 				for attrvalue in child.attrs.itervalues():
-					if isinstance(attrvalue, self.attr):
+					if isinstance(attrvalue, self.attrs):
 						yield attrvalue
 
 	def __repr__(self):
