@@ -398,3 +398,21 @@ class IllegalAttrParseWarning(IllegalAttrError, ParseWarning):
 	Warning about an illegal attribute that is issued during parsing.
 	"""
 warnings.filterwarnings("error", category=IllegalAttrParseWarning)
+
+
+class NodeOutsideContextError(Error):
+	"""
+	Error that is raised, when a convert method can't find required context
+	info.
+	"""
+
+	def __init__(self, node, outerclass):
+		self.node = node
+		self.outerclass = outerclass
+
+	def __str__(self):
+		s = "node %s" % self.node._str(fullname=True, xml=False, decorate=True)
+		if self.node.startloc is not None:
+			s += " at %s" % self.node.startloc
+		s += " outside of %r" % self.outerclass
+		return s

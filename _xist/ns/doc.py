@@ -14,7 +14,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # import __builtin__ to use property, which is also defined here
 import types, inspect, warnings, __builtin__
 
-from ll.xist import xsc, parsers, converters, sims
+from ll.xist import xsc, parsers, sims, errors
 from ll.xist.ns import html, text, docbook, fo, specials, xml
 
 
@@ -136,19 +136,18 @@ class abbr(inline):
 		return unicode(self.content)
 
 
-class prog(block):
+class litblock(block):
 	"""
-	A literal listing of all or part of a program
+	A literal text block (like source code or a shell dump)
 	"""
+	register = False
 	model = sims.ElementsOrText(inline)
 
-	def convert_docbook(self, converter):
-		e = converter.target.programlisting(self.content)
-		return e.convert(converter)
+	cssclass = None
 
 	def convert_html(self, converter):
 		target = converter.target
-		e = target.pre(class_="prog")
+		e = target.pre(class_=self.cssclass)
 		for child in self.content:
 			child = child.convert(converter)
 			if isinstance(child, xsc.Text):
@@ -214,6 +213,63 @@ class prog(block):
 			e.append(collect)
 		context.indentcount -= 1
 		return e.convert(converter)
+
+
+class prog(litblock):
+	"""
+	A literal listing of all or part of a program
+	"""
+	cssclass = "prog"
+
+	def convert_docbook(self, converter):
+		e = converter.target.programlisting(self.content)
+		return e.convert(converter)
+
+
+class tty(litblock):
+	"""
+	A dump of a shell session
+	"""
+	cssclass = "tty"
+
+	def convert_docbook(self, converter):
+		e = converter.target.screen(self.content)
+		return e.convert(converter)
+
+
+class prompt(inline):
+	"""
+	The prompt in a <pyref class="tty"><class>tty</class></pyref> dump.
+	"""
+
+	def convert_docbook(self, converter):
+		e = converter.target.prompt(self.content)
+		return e.convert(converter)
+
+	def convert_html(self, converter):
+		e = converter.target.code(self.content, class_="prompt")
+		return e.convert(converter)
+
+	def convert_fo(self, converter):
+		return xsc.Text(unicode(self.content))
+
+
+class input(inline):
+	"""
+	Can be used inside a <pyref class="tty"><class>tty</class></pyref> to mark
+	the parts typed by the user.
+	"""
+
+	def convert_docbook(self, converter):
+		e = converter.target.prompt(self.content)
+		return e.convert(converter)
+
+	def convert_html(self, converter):
+		e = converter.target.code(self.content, class_="input")
+		return e.convert(converter)
+
+	def convert_fo(self, converter):
+		return xsc.Text(unicode(self.content))
 
 
 class programlisting(prog):
@@ -448,6 +504,21 @@ class username(code):
 		return e.convert(converter)
 
 
+class hostname(code):
+	"""
+	The name of a computer
+	"""
+	model = sims.ElementsOrText(rep)
+
+	def convert_docbook(self, converter):
+		e = converter.target.literal(self.content, role="hostname")
+		return e.convert(converter)
+
+	def convert_html(self, converter):
+		e = converter.target.code(self.content, class_="hostname")
+		return e.convert(converter)
+
+
 class app(inline):
 	"""
 	The name of a software program
@@ -675,6 +746,8 @@ class item(base):
 
 	def convert_html(self, converter):
 		context = converter[self]
+		if not context.lists:
+			raise errors.NodeOutsideContextError(self, self.xmlns.list)
 		if context.lists[-1][0] == "dlist":
 			e = converter.target.dd(self.content)
 		else:
