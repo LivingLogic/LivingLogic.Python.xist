@@ -754,6 +754,12 @@ class applet(xsc.Element): # deprecated
 	empty = 0
 	attrHandlers = {"archive": xsc.URLAttr, "code": xsc.URLAttr, "width": xsc.TextAttr, "height": xsc.TextAttr}
 
+class nobr(xsc.Element): # deprecated
+	"""
+	prevents line breaks
+	"""
+	empty = 0
+
 # Latin 1 characters
 class nbsp(xsc.Entity): "no-break space = non-breaking space, U+00A0 ISOnum"; codepoint = 160
 class iexcl(xsc.Entity): "inverted exclamation mark, U+00A1 ISOnum"; codepoint = 161

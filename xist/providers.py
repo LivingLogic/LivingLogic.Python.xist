@@ -14,6 +14,7 @@ __version__ = "$Revision$"[11:-2]
 # $Source$
 
 import os
+import urllib
 
 try:
 	import sgmlop # for parsing XML files
@@ -243,16 +244,15 @@ class StringProvider(Provider):
 class TidyURIProvider(Provider):
 	def parse(self, url):
 		self.pushURL(url)
-		tmpname = os.tmpnam() # create a temporary name
+		url = self.filenames[-1].asString()
 		try:
-			url = self.filenames[-1].asString()
-			urllib.urlretrieve(incurl, str(url)) # get the desired file from the url
-			os.system("tidy -asxml -f /dev/null -quiet -modify "+tmpname) # tidy it up
-			lines = open(tmpname,"r").readlines()
+			(name, headers) = urllib.urlretrieve(str(url)) # get the desired file from the url
+			os.system("tidy -asxml -f /dev/null -quiet -modify "+name) # tidy it up
+			lines = open(name,"r").readlines()
 			element = self.parseLines(lines)
 			return element
 		finally:
-			os.remove(tmpname) # throw away the temporary filename
+			urllib.urlcleanup() # throw away the temporary filename
 			self.popURL()
 
 class XSC(URIProvider, StringProvider):
