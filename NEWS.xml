@@ -17,6 +17,9 @@ have been separated.</item>
 <item><class>ll.xist.ns.htmlspecials.pixel</class> and
 <class>ll.xist.ns.htmlspecials.autopixel</class> now check whether there
 <lit>color</lit> attribute is ok.</item>
+<item>The base &url; is not set correctly when parsing from an &url;
+even if the original &url; does a redirect. (This requires <module>ll.url</module>
+version 0.11.3.</item>
 </ulist>
 </section>
 

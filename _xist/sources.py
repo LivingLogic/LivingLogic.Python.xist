@@ -139,12 +139,12 @@ class URLInputSource(InputSource):
 		"""
 		if isinstance(id, (str, unicode)):
 			id = url.URL(id)
-		if base is None:
-			base = id.url
 		InputSource.__init__(self, base)
-		sysid = id.url
-		self.setSystemId(sysid)
 		resource = id.openread(headers=headers, data=data)
+		sysid = resource.realurl.url
+		if base is None:
+			self.base = resource.realurl
+		self.setSystemId(sysid)
 		if isinstance(tidy, int):
 			if tidy:
 				tidy = {}
