@@ -339,29 +339,102 @@ class par(block):
 	def convert_html(self, converter):
 		return converter.target.p(self.content, class_=self["type"])
 
-class ulist(block):
+class list(block):
+	"""
+	Common baseclass for <pyref class="ulist"><class>ulist</class></pyref>,
+	<pyref class="olist"><class>olist</class></pyref> and
+	<pyref class="dlist"><class>dlist</class></pyref>.
+	"""
+	register = False
+	class Context(block.Context):
+		def __init__(self):
+			self._lists = []
+		def get(self):
+			return self._lists[-1]
+		def push(self, type):
+			self._lists.append(type)
+		def pop(self):
+			return self._lists.pop()
+
+class ulist(list):
 	"""
 	A list in which each entry is marked with a bullet or other dingbat
 	"""
 	empty = False
 
-	def convert_docbook(self, converter):
-		return converter.target.itemizedlist(self.content)
+	def convert(self, converter):
+		context = converter[list]
+		context.push(ulist)
+		target = converter.target
+		if issubclass(target, docbook):
+			node = converter.target.itemizedlist(self.content)
+		elif issubclass(target, html):
+			node = converter.target.ul(self.content)
+		else:
+			raise ValueError("unknown conversion target %r" % target)
+		return node.convert(converter)
+		context.pop()
+		return node
 
-	def convert_html(self, converter):
-		return converter.target.ul(self.content)
-
-class olist(block):
+class olist(list):
 	"""
 	A list in which each entry is marked with a sequentially incremented label
 	"""
 	empty = False
 
+	def convert(self, converter):
+		context = converter[list]
+		context.push(olist)
+		target = converter.target
+		if issubclass(target, docbook):
+			node = converter.target.orderedlist(self.content)
+		elif issubclass(target, html):
+			node = converter.target.ol(self.content)
+		else:
+			raise ValueError("unknown conversion target %r" % target)
+		return node.convert(converter)
+		context.pop()
+		return node
+
+class dlist(list):
+	"""
+	A list in which each entry is marked with a label
+	"""
+	empty = False
+
+	def convert(self, converter):
+		context = converter[list]
+		context.push(dlist)
+		target = converter.target
+		if issubclass(target, docbook):
+			node = converter.target.variablelist()
+			collect = converter.target.varlistentry()
+			for child in self.content:
+				collect.append(child)
+				if isinstance(child, item):
+					node.append(collect)
+					collect = converter.target.varlistentry()
+			if collect:
+				node.append(collect)
+		elif issubclass(target, html):
+			node = converter.target.dl(self.content)
+		else:
+			raise ValueError("unknown conversion target %r" % target)
+		return node.convert(converter)
+		context.pop()
+		return node
+
+class term(base):
+	"""
+	A term inside a <pyref class="dlist"><class>dlist</class></pyref>
+	"""
+	empty = False
+
 	def convert_docbook(self, converter):
-		return converter.target.orderedlist(self.content)
+		return converter.target.term(self.content)
 
 	def convert_html(self, converter):
-		return converter.target.ol(self.content)
+		return converter.target.dt(self.content)
 
 class item(block):
 	"""
@@ -370,14 +443,18 @@ class item(block):
 	empty = False
 
 	def convert_docbook(self, converter):
-		if self.content.find(type=(par, olist, ulist, example, programlisting)):
+		if self.content.find(type=(par, list, example, programlisting), subtype=True):
 			content = self.content
 		else:
 			content = converter.target.para(self.content)
 		return converter.target.listitem(content)
 
 	def convert_html(self, converter):
-		return converter.target.li(self.content)
+		context = converter[list]
+		if context.get() is dlist:
+			return converter.target.dd(self.content)
+		else:
+			return converter.target.li(self.content)
 
 class self(base):
 	"""

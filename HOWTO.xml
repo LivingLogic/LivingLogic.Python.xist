@@ -255,15 +255,15 @@ node = node.convert(
 
 <par>You can pass the following five arguments to the
 <pyref module="ll.xist.converters" class="Converter"><class>Converter</class></pyref> constructor:</par>
-<ulist>
-<item><arg>root</arg> (which defaults to <lit>None</lit>) is the root &url; for the conversion process. When you want
+<dlist>
+<term><arg>root</arg></term><item><arg>root</arg> (which defaults to <lit>None</lit>) is the root &url; for the conversion process. When you want
 to resolve a link in some of your own <method>convert</method> methods, the &url; must be interpreted relative
 to this root &url; (You can use
 <pyref module="ll.xist.xsc" class="URLAttr" method="forInput"><method>URLAttr.forInput</method></pyref>
 for that).</item>
-<item><arg>mode</arg> (which defaults to <lit>None</lit>) works the same way as modes in &xslt;. You can use this
+<term><arg>mode</arg></term><item><arg>mode</arg> (which defaults to <lit>None</lit>) works the same way as modes in &xslt;. You can use this
 for implementing different conversion modes.</item>
-<item><arg>stage</arg> (which defaults to <lit>"deliver"</lit>) allows you to implement multi stage conversion:
+<term><arg>stage</arg></term><item><arg>stage</arg> (which defaults to <lit>"deliver"</lit>) allows you to implement multi stage conversion:
 Suppose that you want to deliver a dynamically constructed web page with &xist; that contains
 results from a database query and the current time. The data in the database changes
 infrequently, so it doesn't make sense to do the query on every request. The query is done
@@ -274,9 +274,9 @@ query when <lit><arg>stage</arg>=="cache"</lit>. Your time display element would
 when <lit><arg>stage</arg>=="deliver"</lit> and simply returns itself when
 <lit><arg>stage</arg>=="cache"</lit>, so it would still be part of the cached &xml; tree
 and would be converted to &html; on every request.</item>
-<item><arg>target</arg> (which defaults to <lit>"html"</lit>) specifies what the output should be. Values could
+<term><arg>target</arg></term><item><arg>target</arg> (which defaults to <lit>"html"</lit>) specifies what the output should be. Values could
 e.g. be <lit>"html"</lit>, <lit>"wml"</lit> or <lit>"docbook"</lit>.</item>
-<item><par><arg>lang</arg> (which defaults to <lit>None</lit>) is the language in which the result tree should be.
+<term><arg>lang</arg></term><item><par><arg>lang</arg> (which defaults to <lit>None</lit>) is the language in which the result tree should be.
 This can be used in the <method>convert</method> method
 to implement different conversions for different languages, e.g.:</par>
 <programlisting>
@@ -304,7 +304,7 @@ class note(xsc.Element):
 &lt;/if&gt;
 </programlisting>
 </item>
-</ulist>
+</dlist>
 <par>Additional arguments are passed when a converter is created in the context of
 a <pyref module="ll.make"><module>make</module></pyref> script.</par>
 </section>
@@ -707,37 +707,37 @@ uses <pyref module="ll.xist.publishers" class="BytePublisher"><class>BytePublish
 <pyref module="ll.xist.xsc" class="Node" method="find"><method>find</method></pyref>.
 <pyref module="ll.xist.xsc" class="Node" method="find"><method>find</method></pyref> will return
 a <pyref module="ll.xist.xsc" class="Frag"><class>Frag</class></pyref> with the nodes it finds.
-Parameters are (with defaults listed in parenthesis):</par>
-<ulist>
-<item><arg>type</arg> (<lit>None</lit>), which is a class object or a list of class
+Parameters are the following:</par>
+<dlist>
+<term><arg>type</arg></term><item>This is a class object or a list of class
 objects. <pyref module="ll.xist.xsc" class="Node" method="find"><method>find</method></pyref> will
 only find nodes that are instances of these classes (or subclasses);</item>
-<item><arg>subtype</arg> (<lit>0</lit>), a flag that indicates if instances
+<term><arg>subtype</arg></term><item>A flag that indicates if instances
 of subclasses of those specified in the <arg>type</arg> parameter should
-be returned too;</item>
-<item><arg>attrs</arg> (<lit>None</lit>) is a dictionary mapping attribute
+be returned too (default <lit>False</lit>);</item>
+<term><arg>attrs</arg></term><item><par>This is a dictionary mapping attribute
 names to attribute string values (or <lit>None</lit>). This makes it possible
-to search for elements with certain attributes, e.g.
+to search for elements with certain attributes, e.g.</par>
 <programlisting>
 node.find(type=html.a, attrs={"name": None})
 </programlisting>
-will find all nodes in <lit>node</lit> that are <pyref module="ll.xist.ns.html" class="a"><class>a</class></pyref>
-instances and have the attribute <lit>name</lit> set (i.e. the attribute is not
-empty).
+<par>will find all nodes in <lit>node</lit> that are instances of
+<pyref module="ll.xist.ns.html" class="a"><class>html.a</class></pyref>
+and have the attribute <lit>name</lit> set (i.e. the attribute is not empty).</par>
 <programlisting>
 node.find(
 	type=html.a,
 	attrs={"href": None, "rel": "parent"}
 )
 </programlisting>
-will find all <pyref module="ll.xist.ns.html" class="a"><class>a</class></pyref>
+<par>will find all <pyref module="ll.xist.ns.html" class="a"><class>a</class></pyref>
 instances where the <pyref module="ll.xist.xsc" class="Node" method="__unicode__"><method>__unicode__</method></pyref>
 value of the <lit>rel</lit> attribute is <lit>"parent"</lit> and the <lit>href</lit>
-attribute is set;</item>
-<item><arg>test</arg> (<lit>None</lit>) is a callable object that will be called
+attribute is set;</par></item>
+<term><arg>test</arg></term><item><par>This a callable object that will be called
 to test if a node should be returned from
 <pyref module="ll.xist.xsc" class="Node" method="find"><method>find</method></pyref> when it
-passes all previous tests:
+passes all previous tests:</par>
 <programlisting>
 &gt;&gt;&gt; from ll.xist import xsc
 &gt;&gt;&gt; nums = ["%d," % i for i in xrange(100)]
@@ -751,12 +751,12 @@ passes all previous tests:
 4,40,41,42,43,44,45,46,47,48,49,
 </programlisting>
 </item>
-<item><arg>searchchildren</arg> (<lit>False</lit>), specifies if the tree
+<term><arg>searchchildren</arg></term><item>A flag that specifies if the tree
 should be searched recursively (<lit><arg>searchchildren</arg>==True</lit>) or only
 the first level (<lit><arg>searchchildren</arg>==False</lit>)</item>
 <item><arg>searchattrs</arg> (<lit>False</lit>), specifies if attribute
-nodes should be searched too.</item>
-</ulist>
+dodes should be searched too.</item>
+</dlist>
 
 <par>You could for example extract all the links on the
 <link href="http://www.python.org/">Python home page</link> with the following:</par>

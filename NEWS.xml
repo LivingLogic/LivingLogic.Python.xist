@@ -67,19 +67,19 @@ is a <lit>contentType</lit> attribute, as <lit>contentType</lit>
 is optional.</item>
 <item><par>The converter has two new properties <arg>function</arg>
 and <function>node</function>:</par>
-<ulist>
-<item><arg>function</arg> can be used as an argument when calling
+<dlist>
+<term><arg>function</arg></term><item><arg>function</arg> can be used as an argument when calling
 <method>conv</method>. It must be a callable object and will be
 used for calling the method <method>mapped</method> instead of
 calling <method>convert</method>. Additionally <arg>function</arg>
 will be stored in the converter, which must be passed around
 to all calls to <method>mapped</method> (instead of
 <arg>function</arg> itself).</item>
-<item><arg>node</arg> can't be passed to <method>conv</method> but
+<term><arg>node</arg></term><item><arg>node</arg> can't be passed to <method>conv</method> but
 will be set to <self/> by <method>conv</method> automatically.
 This makes it possible to access the <z>document root</z>
 during conversion.</item>
-</ulist>
+</dlist>
 </item>
 </ulist>
 </section>
