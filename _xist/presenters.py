@@ -302,9 +302,7 @@ def strElementClass(class_, slash=0):
 	if class_.presentPrefix!=0:
 		if hasattr(class_, "_ns"):
 			namespacename = class_._ns.prefix
-		elif class_.__module__=="xist.xsc":
-			namespacename = "xsc"
-		else
+		else:
 			namespacename = class_.__module__
 	if hasattr(class_, "name"):
 		elementname = class_.name
