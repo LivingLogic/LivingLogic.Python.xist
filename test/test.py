@@ -1527,6 +1527,19 @@ class ParseTest(unittest.TestCase):
 
 class DTD2XSCTest(unittest.TestCase):
 
+	def dtd2ns(self, s, xmlname, xmlurl=None):
+		from xml.parsers.xmlproc import dtdparser
+
+		dtd = dtdparser.load_dtd_string(s)
+		node = xndl.fromdtd(dtd, xmlname=xmlname, xmlurl=xmlurl)
+
+		mod = {"__name__": xmlname}
+		encoding = "iso-8859-1"
+		code = node.asdata().aspy(encoding=encoding, asmod=False).encode(encoding)
+		exec code in mod
+
+		return mod["xmlns"]
+
 	def test_convert(self):
 		dtdstring = """<?xml version='1.0' encoding='us-ascii'?>
 		<!ELEMENT foo (bar+)>
@@ -1544,20 +1557,8 @@ class DTD2XSCTest(unittest.TestCase):
 			bar_42 (bar_42a|bar_42b) #IMPLIED
 		>
 		"""
-		from xml.parsers.xmlproc import dtdparser
+		ns = self.dtd2ns(dtdstring, "foo")
 
-		dtd = dtdparser.load_dtd_string(dtdstring)
-		node = xndl.fromdtd(dtd, xmlname="foo")
-		self.assert_(isinstance(node, xndl.xndl))
-		self.assertEqual(str(node["name"]), "foo")
-		self.assertEqual(str(node["url"]), "http://xmlns.foo.com/foo")
-
-		mod = {"__name__": "foo"}
-		encoding = "iso-8859-1"
-		code = node.asdata().aspy(encoding=encoding, asmod=False).encode(encoding)
-		exec code in mod
-
-		ns = mod["xmlns"]
 		self.assert_(issubclass(ns, xsc.Namespace))
 		self.assertEqual(ns.xmlname, ("xmlns", "foo"))
 		self.assertEqual(ns.xmlurl, "http://xmlns.foo.com/foo")
