@@ -1235,23 +1235,26 @@ class ProcInst(Node):
 
 class Element(Node):
 	"""
-	XML/XSC elements.
+	<par noindent>This class represents XML/XSC elements. All elements
+	implemented by the user must be derived from this class.</par>
 
-	All elements implemented by the user must be derived from this class.
-
-	If you not only want to construct a DOM tree via a Python script
+	<par>If you not only want to construct a DOM tree via a Python script
 	(by directly instantiating these classes), but to read an XML/XSC file
 	you must register the element class with the parser, this can be done
-	by passing the class object to the function registerElement().
+	by passing the class object to the function
+	<functionref>registerElement</functionref>.</par>
 
-	Every element class should have two class variables:
-	empty: this is either 0 or 1 and specifies whether the element type is
-	allowed to have content or not. Note that the parser does not use this
-	as some sort of static DTD, i.e. you still must write your empty tags
-	like this: <foo/>.
-	attrHandlers: this is a dictionary that maps attribute names to attribute
-	classes, which are all derived from Attr. Assigning to an attribute with
-	a name that is not in attrHandlers.keys() is an error.
+	<par>Every element class should have two class variables:
+	<code>empty</code>: this is either <code>0</code> or <code>1</code>
+	and specifies whether the element type is allowed to have content
+	or not. Note that the parser does not use this as some sort of
+	static DTD, i.e. you still must write your empty tags
+	like this: <code>&lt;foo/&gt;</code>.</par>
+
+	<par><code>attrHandlers</code> is a dictionary that maps attribute
+	names to attribute classes, which are all derived from <classref>Attr</classref>.
+	Assigning to an attribute with a name that is not in <code>attrHandlers.keys()</code>
+	is an error.</par>
 	"""
 
 	empty = 1 # 0 => element with content; 1 => stand alone element
