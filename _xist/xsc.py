@@ -2635,7 +2635,6 @@ class Element(Node):
 				return name[0].Attrs.allowedattr(name[1], xml=xml) # ask namespace about global attribute
 			else:
 				# FIXME: reimplemented here, because super does not work
-				gurk = cls._attrs
 				try:
 					return cls._attrs[xml][name]
 				except KeyError:
