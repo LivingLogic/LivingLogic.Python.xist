@@ -103,7 +103,7 @@ class exec_(xsc.ProcInst):
 	xmlname = "exec"
 
 	def __init__(self, content=u""):
-		super(exec_).__init__(self, content)
+		super(exec_, self).__init__(self, content)
 		code = Code(self.content, 1)
 		exec code.asString() in sandbox.__dict__ # requires Python 2.0b2 (and doesn't really work)
 
