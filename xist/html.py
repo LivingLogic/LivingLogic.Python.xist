@@ -77,8 +77,8 @@ class meta(xsc.Element):
 	def __init__(self,*_content,**_attrs):
 		# we have two names for one and the same attribute http_equiv and http-equiv
 		apply(xsc.Element.__init__,(self,) + _content,_attrs)
-		if self.has_attr("http_equiv"):
-			if not self.has_attr("http-equiv"):
+		if self.hasAttr("http_equiv"):
+			if not self.hasAttr("http-equiv"):
 				self["http-equiv"] = self["http_equiv"]
 			del self["http_equiv"]
 
@@ -494,7 +494,7 @@ class img(xsc.Element):
 		return e
 
 	def asPlainString(self):
-		if self.has_attr("alt"):
+		if self.hasAttr("alt"):
 			return self["alt"].asPlainString()
 		else:
 			return ""

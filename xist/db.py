@@ -21,7 +21,7 @@ except KeyError:
 	retrievedb = 1
 
 def _getDB(element):
-	if element.has_attr("module") and element.has_attr("variable"): # database connection via an existing one
+	if element.hasAttr("module") and element.hasAttr("variable"): # database connection via an existing one
 		module = element["module"].asPlainString()
 		variable = element["variable"].asPlainString()
 		try:
@@ -36,11 +36,11 @@ def _getDB(element):
 		api = element["api"].asPlainString()
 
 		args = {}
-		if element.has_attr("dbname"):
+		if element.hasAttr("dbname"):
 			args["dbname"] = element["dbname"].asPlainString()
-		if element.has_attr("host"):
+		if element.hasAttr("host"):
 			args["host"] = element["host"].asPlainString()
-		if element.has_attr("port"):
+		if element.hasAttr("port"):
 			args["port"] = eval(element["port"].asPlainString())
 
 		__import__(api)
@@ -84,7 +84,7 @@ class lookupcombobox(control):
 			for tuple in query.dictresult():
 				value = str(tuple[valuefield])
 				o = html.option(tuple[displayfield],value = value)
-				if self.has_attr("value") and self["value"].asPlainString() == value:
+				if self.hasAttr("value") and self["value"].asPlainString() == value:
 					o["selected"] = None
 				e.append(o)
 		else:
@@ -95,7 +95,7 @@ class checkbox(control):
 	def asString(self,XHTML = None):
 		e = html.input(self.attrs)
 		e["type"] = "checkbox"
-		if self.has_attr("value") and string.atoi(self["value"].asPlainString()) != 0:
+		if self.hasAttr("value") and string.atoi(self["value"].asPlainString()) != 0:
 			e["checked"] = None
 		else:
 			del e["checked"]
@@ -114,7 +114,7 @@ class memo(control):
 
 	def asString(self,XHTML = None):
 		e = html.textarea()
-		if self.has_attr("value"):
+		if self.hasAttr("value"):
 			e.extend(self["value"])
 		for attr in self.attrs.keys():
 			if attr != "value":
@@ -124,13 +124,13 @@ class memo(control):
 
 class static(control):
 	def asPlainString(self):
-		if self.has_attr("value"):
+		if self.hasAttr("value"):
 			return self["value"].asPlainString()
 		else:
 			return ""
 
 	def asString(self,XHTML = None):
-		if self.has_attr("value"):
+		if self.hasAttr("value"):
 			e = self["value"]
 		else:
 			e = specials.nbsp()
@@ -143,7 +143,7 @@ class hidden(control):
 
 	def asString(self,XHTML = None):
 		e = html.input(type="hidden",name=self["name"])
-		if self.has_attr("value"):
+		if self.hasAttr("value"):
 			e["value"] = self["value"]
 
 		return e.asHTML().asString(XHTML)

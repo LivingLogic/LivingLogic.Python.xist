@@ -23,11 +23,11 @@ class plaintable(html.table):
 
 	def asHTML(self):
 		e = html.table(self.content,self.attrs)
-		if not e.has_attr("cellpadding"):
+		if not e.hasAttr("cellpadding"):
 			e["cellpadding"] = 0
-		if not e.has_attr("cellspacing"):
+		if not e.hasAttr("cellspacing"):
 			e["cellspacing"] = 0
-		if not e.has_attr("border"):
+		if not e.hasAttr("border"):
 			e["border"] = 0
 
 		return e.asHTML()
@@ -41,13 +41,13 @@ class plainbody(html.body):
 
 	def asHTML(self):
 		e = html.body(self.content,self.attrs)
-		if not e.has_attr("leftmargin"):
+		if not e.hasAttr("leftmargin"):
 			e["leftmargin"] = 0
-		if not e.has_attr("topmargin"):
+		if not e.hasAttr("topmargin"):
 			e["topmargin"] = 0
-		if not e.has_attr("marginheight"):
+		if not e.hasAttr("marginheight"):
 			e["marginheight"] = 0
-		if not e.has_attr("marginwidth"):
+		if not e.hasAttr("marginwidth"):
 			e["marginwidth"] = 0
 
 		return e.asHTML()
@@ -107,7 +107,7 @@ class time(xsc.Element):
 	attrHandlers = { "format" : xsc.TextAttr }
 
 	def asHTML(self):
-		if self.has_attr("format"):
+		if self.hasAttr("format"):
 			format = self["format"].asPlainString()
 		else:
 			format = "%d. %b. %Y, %H:%M"

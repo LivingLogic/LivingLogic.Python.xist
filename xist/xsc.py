@@ -571,7 +571,7 @@ def ToNode(value):
 			if l==1:
 				return ToNode(value[0]) # recursively try to simplify the tree
 			elif l==0:
-				return Null()
+				return Null
 			else:
 				if isinstance(value,Attr):
 					e = Frag() # repack the attribute in a fragment, and we have a valid XSC node
@@ -585,17 +585,17 @@ def ToNode(value):
 	elif t in [ types.StringType,types.IntType,types.LongType,types.FloatType ]:
 		return Text(value)
 	elif t == types.NoneType:
-		return Null()
+		return Null
 	elif t in [ types.ListType,types.TupleType ]:
-		l = len(value)
+		e = Frag()
+		for i in value:
+			e.append(ToNode(i))
+		l = len(e)
 		if l==1:
-			return ToNode(value[0]) # recursively try to simplify the tree
+			return e[0] # recursively try to simplify the tree
 		elif l==0:
-			return Null()
+			return Null
 		else:
-			e = Frag()
-			for i in value:
-				e.append(ToNode(i))
 			return e
 	raise IllegalObjectError(xsc.parser.lineno,value) # none of the above, so we throw and exception
 
@@ -664,7 +664,7 @@ class Node:
 		return strBracketOpen(ansi) + strBracketClose(ansi)
 
 	def _doreprtree(self,nest,elementno,ansi = None):
-		# returns and array containing arrays consisting of the (nestinglevel,linenumber,elementnumber,string representation) of the nodes
+		# returns an array containing arrays consisting of the (nestinglevel,linenumber,elementnumber,string representation) of the nodes
 		return [[nest,self.startlineno,elementno,self._dorepr(ansi)]]
 
 	def asHTML(self):
@@ -681,7 +681,7 @@ class Node:
 			def asHTML(self):
 				return html.b(self.content).asHTML()
 		"""
-		return Null()
+		return Null
 
 	def asPlainString(self):
 		"""
@@ -786,7 +786,7 @@ class Node:
 		returns this node, where textnodes or character references that contain
 		only linefeeds are removed, i.e. potentially needless whitespace is removed.
 		"""
-		return Null()
+		return Null
 
 class Text(Node):
 	"""
@@ -882,7 +882,7 @@ class Text(Node):
 			if i != '\n' and i != '\r':
 				return Text(self.content)
 		else:
-			return Null()
+			return Null
 
 class CharRef(Node):
 	"""
@@ -917,7 +917,7 @@ class CharRef(Node):
 	def __strcharref(self,s,ansi = None):
 		return strCharRef(s,ansi)
 
-	def _dorepr(self,ansi):
+	def _dorepr(self,ansi = None):
 		if len(Parser.entitiesByNumber[self.content]):
 			return self.__strcharref('&' + Parser.entitiesByNumber[self.content][0] + ';',ansi)
 		else:
@@ -934,7 +934,7 @@ class CharRef(Node):
 
 	def compact(self):
 		if self.content in self.__linefeeds:
-			return Null()
+			return Null
 		else:
 			return CharRef(self.content)
 
@@ -1041,32 +1041,43 @@ class Frag(Node):
 		"""
 		return len(self.__content)
 
-	def append(self,other):
+	def append(self,*others):
 		"""
-		appends the item to the fragment.
-		"""
-		newother = ToNode(other)
-		if not isinstance(newother,Null):
-			self.__content.append(newother)
+		append(self,*others)
 
-	def insert(self,index,other):
+		appends all items in others to the fragment.
 		"""
-		inserts the item into the fragment at the position index.
-		"""
-		newother = ToNode(other)
-		if not isinstance(newother,Null):
-			self.__content.insert(index,newother)
+		for other in others:
+			newother = ToNode(other)
+			if newother is not Null:
+				self.__content.append(newother)
 
-	def extend(self,other):
+	def insert(self,index,*others):
 		"""
-		appends the items in the other object to the fragment.
+		insert(self,index,*others)
+
+		inserts all items in others at the position index.
+		(this is the same as self[index:index] = others)
 		"""
-		newother = ToNode(other)
-		if isinstance(newother,Frag):
-			for child in newother:
-				self.__content.append(child)
-		elif not isinstance(newother,Null):
-			self.__content.append(newother)
+		for other in others:
+			newother = ToNode(other)
+			if newother is not Null:
+				self.__content.insert(index,newother)
+				index = index + 1
+
+	def extend(self,*others):
+		"""
+		extend(self,*others)
+
+		extends this fragment by all items in others.
+		"""
+		for other in others:
+			newother = ToNode(other)
+			if isinstance(newother,Frag):
+				for child in newother:
+					self.__content.append(child)
+			elif newother is not Null:
+				self.__content.append(newother)
 
 	def findNodes(self,type = None,subtype = 0,children = 0,attrs = 0):
 		e = Frag()
@@ -1191,7 +1202,7 @@ class ProcInst(Node):
 
 	def asHTML(self):
 		if string.lower(self.target) == "xsc-exec": # XSC processing instruction, has been executed at construction time already, so we don't have to do anything here
-			return Null()
+			return Null
 		elif string.lower(self.target) == "xsc-eval": # XSC processing instruction,
 			function = "def __():\n\t" + string.replace(string.strip(self.content),"\n","\n\t") + "\n"
 			exec function in procinst.__dict__
@@ -1289,36 +1300,35 @@ class Element(Node):
 		for attr in attrs.keys():
 			self[attr] = attrs[attr]
 
-	def append(self,item):
+	def append(self,*items):
 		"""
-		appends the item to the content of the element.
+		append(self,*items)
+			
+		appends to the content (see Frag.append for more info)
 		"""
-		newother = ToNode(item)
-		if not isinstance(newother,Null):
-			if self.empty:
-				raise EmptyElementWithContentError(xsc.parser.lineno,self)
-			else:
-				self.content.append(item)
 
-	def insert(self,index,item):
-		"""
-		inserts the item into the content of the element at the position index.
-		"""
-		newother = ToNode(item)
-		if not isinstance(newother,Null):
-			if self.empty:
-				raise EmptyElementWithContentError(xsc.parser.lineno,self)
-			else:
-				self.content.insert(index,item)
+		apply(self.content.append,items)
+		if self.empty and len(self):
+			raise EmptyElementWithContentError(xsc.parser.lineno,self)
 
-	def extend(self,item):
+	def insert(self,index,*items):
 		"""
-		extend the elements by appending nodes in the other element
+		insert(self,index,*items)
+
+		inserts into the content (see Frag.insert for more info)
 		"""
-		newother = ToNode(item)
-		if (not self.empty) or isinstance(newother,Null):
-			self.content.extend(item)
-		else:
+		apply(self.content.insert,(index,) + items)
+		if self.empty and len(self):
+			raise EmptyElementWithContentError(xsc.parser.lineno,self)
+
+	def extend(self,items):
+		"""
+		extend(self,items)
+
+		extends the content (see Frag.extend for more info)
+		"""
+		apply(self.content.extend,items)
+		if self.empty and len(self):
 			raise EmptyElementWithContentError(xsc.parser.lineno,self)
 
 	def asHTML(self):
@@ -1476,7 +1486,7 @@ class Element(Node):
 		"""return the number of children"""
 		return len(self.content)
 
-	def has_attr(self,attr):
+	def hasAttr(self,attr):
 		return self.attrs.has_key(attr)
 
 	def __strattrs(self,ansi = None):
@@ -1495,11 +1505,11 @@ class Element(Node):
 	def AddImageSizeAttributes(self,imgattr,widthattr = "width",heightattr = "height"):
 		"""add width and height attributes to the element for the image that can be found in the attributes imgattr. if the attribute is already there it is taken as a formating template with the size passed in as a dictionary with the keys 'width' and 'height', i.e. you could make your image twice as wide with width='%(width)d*2'"""
 
-		if self.has_attr(imgattr):
+		if self.hasAttr(imgattr):
 			size = self[imgattr].ImageSize()
 			sizedict = { "width": size[0], "height": size[1] }
 			if size[0] != -1: # the width was retrieved so we can use it
-				if self.has_attr(widthattr):
+				if self.hasAttr(widthattr):
 					try:
 						self[widthattr] = eval(self[widthattr].asPlainString() % sizedict)
 					except:
@@ -1507,7 +1517,7 @@ class Element(Node):
 				else:
 					self[widthattr] = str(size[0])
 			if size[1] != -1: # the height was retrieved so we can use it
-				if self.has_attr(heightattr):
+				if self.hasAttr(heightattr):
 					try:
 						self[heightattr] = eval(self[heightattr].asPlainString() % sizedict)
 					except:
@@ -1529,24 +1539,26 @@ class Element(Node):
 		e.extend(self.content.findNodes(type,subtype,children,attrs))
 		return e
 
-class Null(Element):
+class Null(Node):
 	"""
 	node that does not contain anything.
 	"""
 
 	def asHTML(self):
-		return Null()
+		return self 
 
 	clone = compact = asHTML
 
 	def asString(self,XHTML = None):
 		return ""
 
-	def _dorepr(self):
+	def _dorepr(self,ansi = None):
 		return self._str(slash = 1,ansi = ansi)
 
 	def _doreprtree(self,nest,elementno,ansi = None):
 		return [[nest,self.startlineno,elementno,self._dorepr(ansi)]]
+
+Null = Null()
 
 def registerElement(element,namespacename,elementname = None):
 	"""
