@@ -13,12 +13,60 @@
 <class>xml.sax.xmlreader.InputSource</class>.</par>
 """
 
-import cStringIO as StringIO
+import cStringIO as StringIO, warnings
 
 from xml import sax
 from xml.sax import saxlib
 
 from ll import url
+
+import xsc, errors
+
+class TidyArgs(xsc.Args):
+	add_xml_decl = True
+	assume_xml_procins = True
+	bare = True
+	break_before_br = False
+	doctype = "loose"
+	drop_proprietary_attributes = True
+	fix_bad_comments = True
+	fix_uri = True
+	join_styles = False
+	lower_literals = True
+	ncr = True
+	numeric_entities = True
+	output_xhtml = True
+	output_xml = True
+	quote_ampersand = True
+	quote_nbsp = False
+	literal_attributes = True
+	markup = True # FIXME
+	wrap = 0
+	wrap_php = False
+	wrap_sections = False
+	ascii_chars = False
+	force_output = True
+
+def tidystring(text, sysid, encoding, args):
+	args = TidyArgs(args)
+	args["input_encoding"] = encoding
+
+	try:
+		import tidy
+	except ImportError:
+		from mx import Tidy
+		args["quiet"] = 1
+		(nerrors, nwarnings, outputdata, errordata) = Tidy.tidy(text, **args)
+		if nerrors>0:
+			raise saxlib.SAXException("can't tidy %r (%d errors, %d warnings):\n%s" % (systemId, nerrors, nwarnings, errordata))
+		text = outputdata
+	else:
+		doc = tidy.parseString(text, **args)
+		for error in doc.get_errors():
+			warning = errors.TidyWarning(error.message, xsc.Location(sysID=sysid, lineNumber=error.line, columnNumber=error.col))
+			warnings.warn(warning)
+		text = str(doc)
+	return text
 
 class InputSource(sax.xmlreader.InputSource):
 	"""
@@ -34,7 +82,7 @@ class StringInputSource(InputSource):
 	An <class>InputSource</class> where the data is read from
 	a string.
 	"""
-	def __init__(self, text, systemId="STRING", base=None, encoding="utf-8", tidy=False):
+	def __init__(self, text, systemId="STRING", base=None, encoding=None, tidy=False):
 		"""
 		<par>Create a new <class>StringInputSource</class> instance. Arguments are:</par>
 		<ulist>
@@ -55,21 +103,23 @@ class StringInputSource(InputSource):
 		if isinstance(text, unicode):
 			encoding = "utf-8"
 			text = text.encode(encoding)
-		if tidy:
-			from mx import Tidy
-			(nerrors, nwarnings, outputdata, errordata) = Tidy.tidy(text, numeric_entities=1, output_xhtml=1, output_xml=1, quiet=1, tidy_mark=0, wrap=0)
-			if nerrors>0:
-				raise saxlib.SAXException("can't tidy %r (%d errors, %d warnings):\n%s" % (systemId, nerrors, nwarnings, errordata))
-			text = outputdata
+		if isinstance(tidy, bool):
+			if tidy:
+				tidy = {}
+			else:
+				tidy = None
+		if tidy is not None:
+			text = tidystring(text, systemId, encoding, tidy)
 		self.setByteStream(StringIO.StringIO(text))
-		self.setEncoding(encoding)
+		if encoding is not None:
+			self.setEncoding(encoding)
 
 class URLInputSource(InputSource):
 	"""
 	An <class>InputSource</class> where the data is read from
 	an &url;.
 	"""
-	def __init__(self, id, base=None, encoding="utf-8", tidy=False, headers=None, data=None):
+	def __init__(self, id, base=None, encoding=None, tidy=False, headers=None, data=None):
 		"""
 		<par>Create a new <class>StringInputSource</class> instance. Arguments are:</par>
 		<ulist>
@@ -88,14 +138,16 @@ class URLInputSource(InputSource):
 		systemId = id.url
 		self.setSystemId(systemId)
 		resource = id.openread(headers=headers, data=data)
-		if tidy:
-			from mx import Tidy
-			(nerrors, nwarnings, outputdata, errordata) = Tidy.tidy(resource.read(), numeric_entities=1, output_xhtml=1, output_xml=1, quiet=1, tidy_mark=0, wrap=0)
-			if nerrors>0:
-				raise saxlib.SAXException("can't tidy %r (%d errors, %d warnings):\n%s" % (systemId, nerrors, nwarnings, errordata))
-			resource = StringIO.StringIO(outputdata)
+		if isinstance(tidy, bool):
+			if tidy:
+				tidy = {}
+			else:
+				tidy = None
+		if tidy is not None:
+			resource = StringIO.StringIO(tidystring(resource.read(), systemId, encoding, tidy))
 		self.setByteStream(resource)
-		self.setEncoding(encoding)
+		if encoding is not None:
+			self.setEncoding(encoding)
 
 	def setTimeout(self, secs):
 		if timeoutsocket is not None:

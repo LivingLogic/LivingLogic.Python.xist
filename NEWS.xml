@@ -6,6 +6,12 @@ information for each node, by passing <lit>loc=False/<lit> to
 the constructor of the <class>Handler</class>.</item>
 <item>The <class>HTMLParser</class> no longer complains about
 global attributes or <lit>xmlns</lit>.</item>
+<item>&ixst; now supports <app moreinfo="http://utidylib.sf.net/">&micro;Tidylib</app>
+in addition to <app>mxTidy</app>. If <app>&micro;Tidylib</app> is found
+it is preferred over <app>mxTidy</app>.</item>
+<item>It's possible now to pass arguments to tidy, simple by
+passing an argument dictionary for the <arg>tidy</arg> argument
+in the parsing functions.</item>
 </ulist>
 </section>
 

@@ -36,8 +36,10 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 	This is a rudimentary, buggy, halfworking, untested SAX2 drivers for sgmlop.
 	And I didn't even know, what I was doing, but it seems to work.
 	"""
-	def __init__(self, namespaceHandling=0, bufsize=2**16-20, encoding="utf-8"):
+	def __init__(self, namespaceHandling=0, bufsize=2**16-20, encoding=None):
 		sax.xmlreader.IncrementalParser.__init__(self, bufsize)
+		if encoding is None:
+			encoding = "utf-8"
 		self.encoding = encoding
 		self._parser = None
 		self.reset()
@@ -651,11 +653,11 @@ def parse(source, handler=None, parser=None, prefixes=None):
 	handler.close()
 	return result
 
-def parseString(text, systemId="STRING", base=None, handler=None, parser=None, prefixes=None, encoding="utf-8", tidy=False):
+def parseString(text, systemId="STRING", base=None, handler=None, parser=None, prefixes=None, encoding=None, tidy=False):
 	return parse(sources.StringInputSource(text, systemId=systemId, base=base, encoding=encoding, tidy=tidy), handler=handler, parser=parser, prefixes=prefixes)
 
-def parseURL(id, base=None, handler=None, parser=None, prefixes=None, encoding="utf-8", tidy=False, headers=None, data=None):
+def parseURL(id, base=None, handler=None, parser=None, prefixes=None, encoding=None, tidy=False, headers=None, data=None):
 	return parse(sources.URLInputSource(id, base=base, encoding=encoding, tidy=tidy, headers=headers, data=data), handler=handler, parser=parser, prefixes=prefixes)
 
-def parseFile(filename, base=None, handler=None, parser=None, prefixes=None, encoding="utf-8", tidy=False):
+def parseFile(filename, base=None, handler=None, parser=None, prefixes=None, encoding=None, tidy=False):
 	return parseURL(url.Filename(filename), base=base, encoding=encoding, tidy=tidy, handler=handler, parser=parser, prefixes=prefixes)

@@ -20,8 +20,6 @@ import os, sys, random, copy, warnings
 
 from ll import url, ansistyle
 
-import presenters, publishers, sources, cssparsers, converters, errors, options, utils, helpers
-
 ###
 ### helpers
 ###
@@ -51,6 +49,28 @@ def ToNode(value):
 		return Text(value)
 	warnings.warn(errors.IllegalObjectWarning(value)) # none of the above, so we report it and maybe throw an exception
 	return Null
+
+###
+###
+###
+
+class Args(dict):
+	def __init__(self, items=None, **kwargs):
+		for k in self.__class__.__dict__:
+			if not k.startswith("__"):
+				self[k] = self.__class__.__dict__[k]
+		if items is not None:
+			dict.__init__(self, items)
+		else:
+			dict.__init__(self)
+		self.update(kwargs)
+
+	def __repr__(self):
+		rep = [ "%s=%r" % (key, value) for (key, value) in self.iteritems() if key not in self.__class__.__dict__ or self[key] != self.__class__.__dict__[key] ]
+		return "%s(%s)" % (self.__class__.__name__, ', '.join(rep))
+
+	def copy(self):
+		return self.__class__(self.iteritems())
 
 ###
 ###
@@ -3792,3 +3812,6 @@ class Location(object):
 
 	def __ne__(self, other):
 		return not self==other
+
+import presenters, publishers, sources, cssparsers, converters, errors, options, utils, helpers
+
