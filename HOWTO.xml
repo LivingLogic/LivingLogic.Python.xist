@@ -46,7 +46,7 @@ of nodes,</item>
 <item><pyref module="ll.xist.xsc" class="DocType"><class>DocType</class></pyref> for document type
 declarations (e.g. <markup>&lt;!DOCTYPE html PUBLIC <rep>...</rep>&gt;</markup>),</item>
 <item><pyref module="ll.xist.xsc" class="ProcInst"><class>ProcInst</class></pyref> for processing instructions
-(e.g. <markup>&lt;?php echo $spam;?&gt;</markup>,</item>
+(e.g. <markup>&lt;?php echo $spam;?&gt;</markup>),</item>
 <item><pyref module="ll.xist.xsc" class="Element"><class>Element</class></pyref> for &xml; elements,</item>
 <item><pyref module="ll.xist.xsc" class="Entity"><class>Entity</class></pyref> for entities
 (e.g. <markup>&amp;parrot;</markup>),</item>
