@@ -183,10 +183,10 @@ class XSCUnknownEntityError(XSCError):
 ###
 
 def _stransi(codes,string):
-	if xsc.repransi and codes!="":
+	if xsc.repransi and codes!="" and string!="":
 		return "\033[" + codes + "m" + string + "\033[0m"
 	else:
-		return (string)
+		return string
 
 def _strelementname(name):
 	return _stransi(xsc.repransielementname,name)
@@ -292,21 +292,9 @@ class XSCNode:
 	def asHTML(self):
 		return None
 
-	def _strtext(self,text):
-		return _stransi(xsc.repransitext,text)
-
 	def _strtag(self,content):
 		return _stransi(xsc.repransibrackets,'<') + content + _stransi(xsc.repransibrackets,'>')
  
-	def _strtextquotes(self,content):
-		return _stransi(xsc.repransiquotes,'"') + content + _stransi(xsc.repransiquotes,'"')
- 
-	def _strattrquotes(self,content):
-		return _stransi(xsc.repransiquotes,'"') + content + _stransi(xsc.repransiquotes,'"')
-
-	def _strpi(self,target,data):
-		return self._strtag(_stransi(xsc.repransipiquestion,"?") + _stransi(xsc.repransipitarget,target) + " " + _stransi(xsc.repransipidata,data) + _stransi(xsc.repransipiquestion,"?"))
-
 	def __str__(self):
 		return ""
 
@@ -327,6 +315,9 @@ class XSCText(XSCNode):
 	reprtreeescapes = { '\r' : '\\r' , '\n' : '\\n' , '\t' : '\\t' , '\033' : '\\e' , '\\' : '\\\\' }
 	strescapes = { '<' : 'lt' , '>' : 'gt' , '&' : 'amp' , '"' : 'quot' }
 
+	repransi = ""
+	repransiquotes = "34"
+
 	def __init__(self,content = ""):
 		self.__content = content
 
@@ -346,26 +337,51 @@ class XSCText(XSCNode):
 				v.append(i)
 		return string.join(v,"")
 
-	def _dorepr(self):
-		v = []
-		for i in self.__content:
-			if self.represcapes.has_key(i):
-				v.append(self.represcapes[i])
+	def __strtext(self,refwhite):
+		# we could put ANSI escapes around every character or reference that we output, but this would result in strings that are way to long, especially if output over a serial cable, so we collect runs of characters with the same highlighting and put the ANSI escapes around those string. (of course, when we're not doing highlighting, this routine does way to much useless calculations)
+		v = [] # collect all colored string here
+		charref = -1 # the type of characters we're currently collecting (0==normal character, 1==character that have to be output as entities, -1==at the start)
+		start = 0 # the position we our current run of characters for the same class started
+		end = 0 # the current position we're testing
+		while end<=len(self.__content): # one more than the length of the string
+			do = 0 # we will have to do smething with the string collected so far ...
+			if end == len(self.__content): # ... if we're at the end of the string
+				do = 1
 			else:
-				v.append(i)
-		return string.join(v,"") 
+				c = self.__content[end] # or if the character we're at, is different from those we've collected so far
+				ascharref = (0 <= ord(c) <= 31 or 128 <= ord(c))
+				if not refwhite and (c == "\n" or c == "\t"):
+					ascharref = 0
+				if ascharref != charref:
+					do = 1
+					charref = 1-ascharref # this does nothing, except at the start, where it enforces the correct processing
+			if do: # process the string we have so far
+				if charref: # we've collected references so far
+					s = ""
+					for i in self.__content[start:end]:
+						ent = XSCParser.entitiesByNumber[ord(i)] # use names if a available, or number otherwise
+						if len(ent):
+							s = s + '&' + ent[0] + ';'
+						else:
+							s = s + '&#' + str(self.__content) + ';'
+					v.append(_stransi(XSCCharRef.repransi,s))
+					charref = 0 # switch to the other class
+				else:
+					s = self.__content[start:end]
+					v.append(_stransi(XSCText.repransi,s))
+					charref = 1 # switch to the other class
+				start = end # the next string  we want to work on starts from here
+			end = end + 1 # to the next character
+				
+		return string.join(v,"")
+
+	def _dorepr(self):
+		# constructs a string of this XSCText with syntaxhighlighting. Special characters will be output as CharRefs (with special highlighting)
+		return self.__strtext(0)
 
 	def _doreprtree(self,nest,elementno):
-		v = []
-		for i in self.__content:
-			if self.reprtreeescapes.has_key(i):
-				v.append(self.reprtreeescapes[i])
-			elif ord(i)<32:
-				v.append("\\x" + str(ord(i)))
-			else:
-				v.append(i)
-		s = string.join(v,"") 
-		return [[nest,self.startlineno,elementno,self._strtextquotes(self._strtext(s))]]
+		s = _stransi(self.repransiquotes,'"') + _stransi(self.repransi,self.__strtext(1)) + _stransi(self.repransiquotes,'"')
+		return [[nest,self.startlineno,elementno,s]]
 
 	def withoutLinefeeds(self):
 		for i in self.__content:
@@ -379,6 +395,8 @@ class XSCCharRef(XSCNode):
 
 	__notdirect = { ord("&") : "amp" , ord("<") : "lt" , ord(">") : "gt", ord('"') : "quot" , ord("'") : "apos" }
 	__linefeeds = [ ord("\r") , ord("\n") ]
+
+	repransi = "32"
 
 	def __init__(self,content):
 		self.__content = content
@@ -396,16 +414,22 @@ class XSCCharRef(XSCNode):
 		else:
 			return '&#' + str(self.__content) + ';'
 
+	def __strcharref(self,s):
+		return _stransi(self.repransi,s)
+ 
 	def _dorepr(self):
-		return '&#' + str(self.__content) + ';'
+		if len(XSCParser.entitiesByNumber[self.__content]):
+			return self.__strcharref('#' + XSCParser.entitiesByNumber[self.__content][0] + ';')
+		else:
+			return self.__strcharref('&#' + str(self.__content) + ';')
 
 	def _doreprtree(self,nest,elementno):
-		s = '&#' + str(self.__content) + '; (&#x' + hex(self.__content)[2:] + ';'
+		s = self.__strcharref('&#' + str(self.__content) + ';') + ' (' + self.__strcharref('&#x' + hex(self.__content)[2:] + ';')
 		for name in XSCParser.entitiesByNumber[self.__content]:
-			s = s + ' &' + name + ';'
+			s = s + ' ' + self.__strcharref('&' + name + ';')
 		s = s + ')'
 		if 0 <= self.__content <= 255:
-			s = s + " " + XSCText(chr(self.__content))._doreprtree(0,0)[0][-1]
+			s = s + ' ' + XSCText(chr(self.__content))._doreprtree(0,0)[0][-1]
 		return [[nest,self.startlineno,elementno,s]]
 
 	def withoutLinefeeds(self):
@@ -420,32 +444,32 @@ class XSCFrag(XSCNode):
 	def __init__(self,_content = []):
 		if type(_content) == types.InstanceType:
 			if isinstance(_content,XSCFrag):
-				self.content = map(ToNode,_content.content)
+				self._content = map(ToNode,_content._content)
 			else:
-				self.content = [ ToNode(_content) ]
+				self._content = [ ToNode(_content) ]
 		elif type(_content) in [ types.ListType , types.TupleType ]:
-			self.content = map(ToNode,_content)
+			self._content = map(ToNode,_content)
 		else:
-			self.content = [ ToNode(_content) ]
+			self._content = [ ToNode(_content) ]
 
 	def __add__(self,other):
-		res = XSCFrag(self.content)
+		res = XSCFrag(self._content)
 		if other is not None:
 			newother = ToNode(other)
 			if isinstance(newother,XSCFrag):
-				res.content = res.content + newother.content
+				res._content = res._content + newother._content
 			else:
-				res.content.append(newother)
+				res._content.append(newother)
 		return res
 
 	def __radd__(self,other):
-		res = XSCFrag(self.content)
+		res = XSCFrag(self._content)
 		if other is not None:
 			newother = ToNode(other)
 			if isinstance(newother,XSCFrag):
-				res.content = newother.content + res.content
+				res._content = newother._content + res._content
 			else:
-				res.content = [ newother ] + res.content
+				res._content = [ newother ] + res._content
 		return res
 
 	def asHTML(self):
@@ -478,41 +502,41 @@ class XSCFrag(XSCNode):
 
 	def __getitem__(self,index):
 		"""returns the index'th node for the content of the fragment"""
-		return self.content[index]
+		return self._content[index]
 
 	def __setitem__(self,index,value):
 		"""allows you to replace the index'th content node of the fragment"""
-		if len(self.content)>index:
+		if len(self._content)>index:
 			self._content[index] = ToNode(value)
 
 	def __delitem__(self,index):
 		"""removes the index'th content node from the fragment"""
-		if len(self.content)>index:
-			del self.ontent[index]
+		if len(self._content)>index:
+			del self._content[index]
 
 	def __getslice__(self,index1,index2):
 		"""returns a slice of the content of the fragment"""
-		return XSCFrag(self.content[index1:index2])
+		return XSCFrag(self._content[index1:index2])
 
 	def __setslice__(self,index1,index2,sequence):
 		"""modifies a slice of the content of the fragment"""
-		self.content[index1:index2] = map(ToNode,sequence)
+		self._content[index1:index2] = map(ToNode,sequence)
 
 	def __delslice__(self,index1,index2):
 		"""removes a slice of the content of the fragment"""
-		del self.content[index1:index2]
+		del self._content[index1:index2]
 
 	def __len__(self):
 		"""return the number of children"""
-		return len(self.content)
+		return len(self._content)
 
 	def append(self,other):
 		if other != None:
-			self.content.append(ToNode(other))
+			self._content.append(ToNode(other))
 
 	def preppend(self,other):
 		if other != None:
-			self.content = [ ToNode(other) ] + self.content[:]
+			self._content = [ ToNode(other) ] + self._content[:]
 
 	def findElementsNamed(self,name):
 		e = XSCFrag()
@@ -528,6 +552,8 @@ class XSCFrag(XSCNode):
 
 class XSCAttrs(XSCNode):
 	"""contains a dictionary of XSCNodes which are wrapped into attribute nodes"""
+
+	repransiquotes = "34"
 
 	def __init__(self,attr_handlers,_content = {},**_restcontent):
 		self.attr_handlers = attr_handlers
@@ -554,17 +580,20 @@ class XSCAttrs(XSCNode):
 	def asHTML(self):
 		return XSCAttrs(self.attr_handlers,self.__content)
 
+	def __strattr(self,s):
+		return _stransi(self.repransiquotes,'"') + s + _stransi(self.repransiquotes,'"')
+
 	def _dorepr(self):
 		v = []
 		for attr in self.keys():
-			v.append(" " + _strattrname(attr) + '=' + self._strattrquotes(self[attr]._dorepr()))
+			v.append(" " + _strattrname(attr) + '=' + self.__strattr(self[attr]._dorepr()))
 		return string.join(v,"")
 
 	def _doreprtree(self,nest,elementno):
 		v = [nest,self.startlineno,elementno,""]
 		for attr in self.keys():
 			line = self[attr]._dorepr()
-			v[-1] = v[-1] + " " + _strattrname(attr) + '=' + self._strattrquotes(line)
+			v[-1] = v[-1] + " " + _strattrname(attr) + '=' + self.__strattr(line)
 		return [v]
 
 	def __str__(self):
@@ -659,6 +688,10 @@ class XSCDocType(XSCNode):
 class XSCProcInst(XSCNode):
 	"""processing instructions"""
 
+	repransiquestion = "34"
+	repransitarget = "34"
+	repransidata = "36"
+
 	def __init__(self,target,content = ""):
 		self.__target = target
 		self.__content = content
@@ -667,10 +700,10 @@ class XSCProcInst(XSCNode):
 		return XSCProcInst(self.__target,self.__content)
 
 	def _dorepr(self):
-		return self._strpi(self.__target,self.__content)
+		return self._strtag(_stransi(self.repransiquestion,"?") + _stransi(self.repransitarget,self.__target) + " " + _stransi(self.repransidata,self.__content) + _stransi(self.repransiquestion,"?"))
 
 	def _doreprtree(self,nest,elementno):
-		return [[nest,self.startlineno,elementno,self._strpi(self.__target,self.__content)]]
+		return [[nest,self.startlineno,elementno,self._dorepr()]]
 
 	def __str__(self):
 		return "<?" + self.__target + " " + self.__content + "?>"
@@ -1214,11 +1247,6 @@ class XSC:
 		self.repransiurlattrs = "31"
 		self.repransitextattrs = ""
 		self.repransicolorattrs = ""
-		self.repransitext = ""
-		self.repransiquotes = "34"
-		self.repransipiquestion = "34"
-		self.repransipitarget = "34"
-		self.repransipidata = "36"
 		self.reprtree = 1
 		self.parser = XSCParser()
 
