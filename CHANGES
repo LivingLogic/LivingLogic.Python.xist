@@ -31,7 +31,8 @@ that creates a skeleton XIST module for a dtd
 
 New preliminary module for DocBook 4.12.
 (Incomplete: convert methods and Unicode character
-entities are missing)
+entities are missing; any volunteers for implementing
+375 element classes?)
 
 New module that implements the W3C Ruby draft:
 http://www.w3.org/TR/ruby/xhtml11-ruby-1.mod
@@ -43,12 +44,23 @@ make.py has a new option --files/-f. The argument
 is a file containing a list of filenames (one
 name per line) that should be transformed.
 
+<<<<<<< CHANGES
+Updated the python-quotes examples. (Unfortunately
+sgmlop can't handle an internal DTD subset, so
+python-quotes.xml has to be slightely modified
+to be parsable. I guess the next step should
+be to make it posssible to used different parsers.)
+
+Added a new example: media.
+
+=======
 All abbreviation entities haven been moved to
 a new module abbr.py.
 
 All the modules that provide new elements and entitites
 have been moved to a submodule ns.
 
+>>>>>>> 1.48
 New in 0.4.7
 ------------
 Fixed a bug in the entity handling.

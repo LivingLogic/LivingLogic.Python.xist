@@ -1105,6 +1105,7 @@ class Exec(PythonCode):
 	namespace of the module procinst.</par>
 	"""
 	name = u"exec"
+	register = 1
 
 	def __init__(self, content=u""):
 		ProcInst.__init__(self, u"exec", content)
@@ -1130,6 +1131,7 @@ class Eval(PythonCode):
 	"""
 
 	name = u"eval"
+	register = 1
 
 	def __init__(self, content=u""):
 		ProcInst.__init__(self, u"eval", content)

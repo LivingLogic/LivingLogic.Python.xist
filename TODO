@@ -28,5 +28,5 @@ parse() und parseString() as global functions
 that get passed a parser/provider/nestednamespace
 (or create one if none is passed).
 
-Have html.head.asHTML() automatically create a
+Have html.head.convert() automatically create a
 meta.contenttype if none is present.

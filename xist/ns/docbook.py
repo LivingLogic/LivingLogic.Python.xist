@@ -446,7 +446,7 @@ class collabname(xsc.Element):
 
 class colophon(xsc.Element):
 	"""
-	Text at the back of a book describing facts about its production 
+	Text at the back of a book describing facts about its production
 	"""
 	empty = 0
 	attrHandlers = {"status": xsc.TextAttr, "id": xsc.TextAttr, "lang": xsc.TextAttr, "remap": xsc.TextAttr, "xreflabel": xsc.TextAttr, "revisionflag": xsc.TextAttr, "arch": xsc.TextAttr, "condition": xsc.TextAttr, "conformance": xsc.TextAttr, "os": xsc.TextAttr, "revision": xsc.TextAttr, "security": xsc.TextAttr, "userlevel": xsc.TextAttr, "vendor": xsc.TextAttr, "role": xsc.TextAttr}
