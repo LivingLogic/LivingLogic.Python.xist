@@ -254,7 +254,7 @@ node = node.convert(
 </programlisting>
 
 <par>You can pass the following five arguments to the
-<pyref module="ll.xist.converters" class="Converter"><class>Converter</class></pyref> constructor</par>
+<pyref module="ll.xist.converters" class="Converter"><class>Converter</class></pyref> constructor:</par>
 <ulist>
 <item><arg>root</arg> (which defaults to <lit>None</lit>) is the root &url; for the conversion process. When you want
 to resolve a link in some of your own <method>convert</method> methods, the &url; must be interpreted relative
