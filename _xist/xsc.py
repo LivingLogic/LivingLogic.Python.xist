@@ -85,41 +85,6 @@ def append(*args, **kwargs):
 ###
 ###
 
-class Args(dict):
-	def __init__(self, *args, **kwargs):
-		dict.__init__(self)
-		for k in self.__class__.__dict__:
-			if not k.startswith("__"):
-				self[k] = self.__class__.__dict__[k]
-		for arg in args:
-			if isinstance(arg, dict):
-				self.update(arg)
-			else:
-				for (key, value) in arg:
-					self[key] = value
-		self.update(kwargs)
-
-	def __getattr__(self, key):
-		return self.__getitem__(key)
-
-	def __setattr__(self, key, value):
-		self.__setitem__(key, value)
-
-	def __delattr__(self, key):
-		self.__detitem__(key)
-
-	def __repr__(self):
-		rep = ", ".join([ "%s=%r" % (key, value) for (key, value) in self.iteritems() if key not in self.__class__.__dict__ or self[key] != self.__class__.__dict__[key] ]) # FIXME: Use GE in 2.4
-		return "%s(%s)" % (self.__class__.__name__, rep)
-
-	def copy(self):
-		return self.__class__(self.iteritems())
-
-
-###
-###
-###
-
 class Base(object):
 	"""
 	<par>Base class that adds an enhanced class <method>__repr__</method>
@@ -3097,6 +3062,8 @@ class CharRef(Text, Entity):
 		return Text(self.content.upper())
 
 
+import presenters, publishers, cssparsers, converters, errors, options, utils, helpers
+
 ###
 ### Classes for namespace handling
 ###
@@ -3139,6 +3106,16 @@ class Prefixes(dict):
 	NOPREFIX = 0
 	USEPREFIX = 1
 	DECLAREANDUSEPREFIX = 2
+
+	# Warning classes
+	IllegalElementWarning = errors.IllegalElementParseWarning
+	IllegalProcInstWarning = errors.IllegalProcInstParseWarning
+	AmbiguousProcInstWarning = errors.AmbiguousProcInstParseWarning
+	IllegalEntityWarning = errors.IllegalEntityParseWarning
+	AmbiguousEntityWarning = errors.AmbiguousEntityParseWarning
+	IllegalCharRefWarning = errors.IllegalCharRefParseWarning
+	AmbiguousCharRefWarning = errors.AmbiguousCharRefParseWarning
+	IllegalAttrWarning = errors.IllegalAttrParseWarning
 
 	def __init__(self, nswithoutprefix=None, **nswithprefix):
 		dict.__init__(self)
@@ -3192,6 +3169,8 @@ class Prefixes(dict):
 		"""
 		<par>returns the element class for the name
 		<arg>qname</arg> (which might include a prefix).</par>
+		<par>If the element can't be found issue a warning (which
+		defaults to an exception) and return <lit>None</lit>.
 		"""
 		(prefix, name) = self.__splitqname(qname)
 		for ns in self[prefix]:
@@ -3201,11 +3180,14 @@ class Prefixes(dict):
 					return element
 			except LookupError: # no element in this namespace with this name
 				pass
-		raise errors.IllegalElementError(qname, xml=True) # elements with this name couldn't be found
+		warnings.warn(self.IllegalElementWarning(qname, xml=True)) # elements with this name couldn't be found
+		return None
 
 	def procinst(self, name):
 		"""
 		<par>returns the processing instruction class for the name <arg>name</arg>.</par>
+		<par>If the processing instruction can't be found or is ambigous
+		issue a warning (which defaults to an exception) and return <lit>None</lit>.
 		"""
 		candidates = {} # FIXME: Use a set in Python 2.4
 		for nss in self.itervalues():
@@ -3220,13 +3202,16 @@ class Prefixes(dict):
 		if len(candidates)==1:
 			return candidates.popitem()[0]
 		elif len(candidates)==0:
-			raise errors.IllegalProcInstError(name, xml=True) # processing instructions with this name couldn't be found
+			warnings.warn(self.IllegalProcInstWarning(name, xml=True)) # processing instructions with this name couldn't be found
 		else:
-			raise errors.AmbiguousProcInstError(name, xml=True) # there was more than one processing instructions with this name
+			warnings.warn(self.AmbiguousProcInstWarning(name, xml=True)) # there was more than one processing instructions with this name
+		return None
 
 	def entity(self, name):
 		"""
 		<par>returns the entity or charref class for the name <arg>name</arg>.</par>
+		<par>If the entity can't be found or is ambigous issue a warning
+		(which defaults to an exception) and return <lit>None</lit>.
 		"""
 		candidates = {} # FIXME: Use a set in Python 2.4
 		for nss in self.itervalues():
@@ -3241,13 +3226,16 @@ class Prefixes(dict):
 		if len(candidates)==1:
 			return candidates.popitem()[0]
 		elif len(candidates)==0:
-			raise errors.IllegalEntityError(name, xml=True) # entities with this name couldn't be found
+			warnings.warn(self.IllegalEntityWarning(name, xml=True)) # entities with this name couldn't be found
 		else:
-			raise errors.AmbiguousEntityError(name, xml=True) # there was more than one entity with this name
+			warnings.warn(self.AmbiguousEntityWarning(name, xml=True)) # there was more than one entity with this name
+		return None
 
 	def charref(self, name):
 		"""
 		<par>returns the first charref class for the name or codepoint <arg>name</arg>.</par>
+		<par>If the character reference can't be found or is ambigous issue a warning
+		(which defaults to an exception) and return <lit>None</lit>.
 		"""
 		candidates = {} # FIXME: Use a set in Python 2.4
 		for nss in self.itervalues():
@@ -3262,9 +3250,10 @@ class Prefixes(dict):
 		if len(candidates)==1:
 			return candidates.popitem()[0]
 		elif len(candidates)==0:
-			raise errors.IllegalCharRefError(name, xml=True) # character references with this name/codepoint couldn't be found
+			warnings.warn(self.IllegalCharRefWarning(name, xml=True)) # character references with this name/codepoint couldn't be found
 		else:
-			raise errors.AmbiguousCharRefError(name, xml=True) # there was more than one character reference with this name
+			warnings.warn(self.AmbiguousCharRefWarning(name, xml=True)) # there was more than one character reference with this name
+		return None
 
 	def attrnamefromqname(self, element, qname):
 		"""
@@ -3273,10 +3262,15 @@ class Prefixes(dict):
 		a tuple with the namespace object and the name will be returned, otherwise
 		it will be an attribute from the element <arg>element</arg>, which must
 		be a subclass of <pyref class="Element"><class>Element</class></pyref>).</par>
+		<par>If the attribute can't be found issue a warning
+		(which defaults to an exception) and return <lit>None</lit>.
 		"""
 		qname = self.__splitqname(qname)
 		if qname[0] is None:
-			return element.Attrs.allowedattr(qname[1], xml=True).xmlname[False]
+			try:
+				return element.Attrs.allowedattr(qname[1], xml=True).xmlname[False]
+			except errors.IllegalAttrError:
+				warnings.warn(self.IllegalAttrWarning(element.attrs, qname[1], xml=True))
 		else:
 			for ns in self[qname[0]]:
 				try:
@@ -3285,7 +3279,8 @@ class Prefixes(dict):
 						return (ns, attr.xmlname[False])
 				except errors.IllegalAttrError: # no attribute in this namespace with this name
 					pass
-			raise errors.IllegalAttrError(None, qname, xml=True)
+			warnings.warn(self.IllegalAttrWarning(None, qname, xml=True))
+		return None
 
 	def clone(self):
 		other = self.__class__()
@@ -3982,6 +3977,3 @@ class Location(object):
 
 	def __ne__(self, other):
 		return not self==other
-
-
-import presenters, publishers, cssparsers, converters, errors, options, utils, helpers

@@ -4,6 +4,11 @@
 <item><function>ToNode</function> now tries iterating through the
 value passed in, so it's now possible to pass iterators and generators
 to <class>Frag</class> and <class>Element</class> constructors.</item>
+<item>The script <filename>xscmake.py</filename> (which has been unmaintained
+for a while now has been removed.</item>
+<item>The parses now has the option to ignore illegal elements, attributes,
+processing instructions and entities. The default behaviour is to raise and
+exception, but this can now be reconfigured via Python's warning framework.</item>
 </ulist>
 
 

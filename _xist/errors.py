@@ -338,6 +338,68 @@ class IllegalXMLDeclFormatError(Error):
 		return "XML declaration with content %r is malformed." % presenters.strProcInstContent(self.procinst.content)
 
 
+class ParseWarning(Warning):
+	"""
+	General warning issued during parsing.
+	"""
+
+
+class IllegalElementParseWarning(IllegalElementError, ParseWarning):
+	"""
+	Warning about an illegal element that is issued during parsing.
+	"""
+warnings.filterwarnings("error", category=IllegalElementParseWarning)
+
+
+class IllegalProcInstParseWarning(IllegalProcInstError, ParseWarning):
+	"""
+	Warning about an illegal processing instruction that is issued during parsing.
+	"""
+warnings.filterwarnings("error", category=IllegalProcInstParseWarning)
+
+
+class AmbiguousProcInstParseWarning(AmbiguousProcInstError, ParseWarning):
+	"""
+	Warning about an ambigous processing instruction that is issued during parsing.
+	"""
+warnings.filterwarnings("error", category=AmbiguousProcInstParseWarning)
+
+
+class IllegalEntityParseWarning(IllegalEntityError, ParseWarning):
+	"""
+	Warning about an illegal entity that is issued during parsing.
+	"""
+warnings.filterwarnings("error", category=IllegalEntityParseWarning)
+
+
+class AmbiguousEntityParseWarning(AmbiguousEntityError, ParseWarning):
+	"""
+	Warning about an ambigous entity that is issued during parsing.
+	"""
+warnings.filterwarnings("error", category=AmbiguousEntityParseWarning)
+
+
+class IllegalCharRefParseWarning(IllegalCharRefError, ParseWarning):
+	"""
+	Warning about an illegal character references that is issued during parsing.
+	"""
+warnings.filterwarnings("error", category=IllegalCharRefParseWarning)
+
+
+class AmbiguousCharRefParseWarning(AmbiguousCharRefError, ParseWarning):
+	"""
+	Warning about an ambigous character references that is issued during parsing.
+	"""
+warnings.filterwarnings("error", category=AmbiguousCharRefParseWarning)
+
+
+class IllegalAttrParseWarning(IllegalAttrError, ParseWarning):
+	"""
+	Warning about an illegal attribute that is issued during parsing.
+	"""
+warnings.filterwarnings("error", category=IllegalAttrParseWarning)
+
+
 class TidyWarning(saxlib.SAXParseException, Warning):
 	"""
 	Warning that is issued by <app>tidy</app>
