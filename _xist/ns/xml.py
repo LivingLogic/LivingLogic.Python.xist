@@ -9,7 +9,9 @@
 ## See xist/__init__.py for the license
 
 """
-<par>Contains the global attributes for the &xml; namespace.</par>
+<par>Contains the global attributes for the &xml; namespace (like <lit>xml:lang</lit>),
+and classes for <markup>&lt;?xml <rep>...</rep>?></markup> and
+<markup>&lt;?xml-stylesheet <rep>...</rep>?></markup>.</par>
 """
 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
@@ -20,7 +22,8 @@ from ll.xist import xsc, utils, sims
 
 class XML(xsc.ProcInst):
 	"""
-	&xml; header
+	&xml; header. The encoding will be automatically set when
+	publishing.
 	"""
 	xmlname = "xml"
 
