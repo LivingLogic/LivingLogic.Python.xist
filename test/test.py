@@ -8,7 +8,7 @@
 ##
 ## See xist/__init__.py for the license
 
-import sys, unittest, cStringIO, warnings, re
+import sys, unittest, cStringIO, warnings, re, cPickle
 
 from xml.sax import saxlib
 from xml.parsers import expat
@@ -2428,6 +2428,23 @@ class XFindTestItemSlice(unittest.TestCase):
 		self.checkids(ds[0]/html.div[1:2], "2")
 		self.checkids(ds[0]/html.div[1:-1]/html.div[1:-1], "")
 		self.checkids(ds[0]/html.div[1:-1]/html.div[-1:], "6")
+
+
+class PickleTest(unittest.TestCase):
+	def test_pickle(self):
+		e = xsc.Frag(
+			xml.XML10(),
+			html.DocTypeXHTML10transitional(),
+			xsc.Comment("foo"),
+			html.html(xml.Attrs(lang="de"), lang="de"),
+			php.expression("$foo"),
+			chars.nbsp(),
+			abbr.xml(),
+		)
+		e.append(e[3])
+		e2 = cPickle.loads(cPickle.dumps(e))
+		self.assertEqual(e, e2)
+		self.assert_(e2[3] is e2[-1])
 
 
 def test_main():
