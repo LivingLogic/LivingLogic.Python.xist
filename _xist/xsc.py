@@ -2714,11 +2714,9 @@ class Element(Node):
 	def copyDefaultAttrs(self, fromMapping):
 		"""
 		<par>Sets attributes that are not set in <self/> to the default
-		values taken from the <arg>fromMapping</arg> mapping.
-		If <arg>fromDict</arg> is omitted, defaults are taken from
-		<lit><self/>.defaults</lit>.</par>
+		values taken from the <arg>fromMapping</arg> mapping.</par>
 
-		<par>Note that boolean attributes may savely be set to e.g. <lit>1</lit>,
+		<par>Note that boolean attributes may savely be set to e.g. <lit>True</lit>,
 		as only the fact that a boolean attribute exists matters.</par>
 		"""
 
@@ -2727,8 +2725,9 @@ class Element(Node):
 
 	def withsep(self, separator, clone=False):
 		"""
-		<par>returns a version of <self/> with a separator node between the child nodes of <self/>.
-		for more info see <pyref class="Frag" method="withsep"><method>Frag.withsep</method></pyref>.</par>
+		<par>returns a version of <self/> with a separator node between the child
+		nodes of <self/>. For more info see
+		<pyref class="Frag" method="withsep"><method>Frag.withsep</method></pyref>.</par>
 		"""
 		node = self.__class__()
 		node.attrs = self.attrs.clone()
