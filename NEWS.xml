@@ -1,4 +1,12 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
+<section><title>Changes in 2.0.3 (released 10/30/2002)</title>
+<ulist>
+<item>Fixed a few bugs in <class>HTMLParser</class>.</item>
+<item>Added DocBook conversion for several elements
+in <module>ll.xist.ns.doc</module>.</item>
+</ulist>
+</section>
+
 <section><title>Changes in 2.0.2 (released 10/21/2002)</title>
 <ulist>
 <item>Fixed a bug in <method>Frag.__rmul__</method> (by
