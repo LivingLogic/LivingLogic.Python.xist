@@ -188,6 +188,13 @@ def ImageSize(url):
 			raise XSCFileNotFoundError(xsc.parser.lineno,url)
 	return size
 
+def _isOnlyLinefeeds(s):
+	for i in s:
+		if i != '\n' and i != '\r':
+			return 0
+	else:
+		return 1
+
 def AppendDict(*dicts):
 	result = {}
 	for dict in dicts:
@@ -646,7 +653,11 @@ class XSCElement(XSCNode):
 		self.attrs.update(restattrs)
 
 	def append(self,item):
-		self.content.append(item)
+		if item is not None:
+			if self.empty:
+				raise XSCEmptyElementWithContentError(xsc.parser.lineno,self)
+			else:
+				self.content.append(item)
 
 	def _doAsHTML(self):
 		return self.__class__(self.content.asHTML(),self.attrs.asHTML()) # "virtual" copy constructor
@@ -851,7 +862,7 @@ class XSCParser(xmllib.XMLParser):
 		self.nesting[-1:] = [] # pop the innermost element off the stack
 
 	def handle_data(self,data):
-		if data != "" and (data != "\n" or xsc.ignorelinefeed==0):
+		if data != "" and ((not _isOnlyLinefeeds(data)) or xsc.ignorelinefeed==0):
 			self.__appendNode(XSCText(data))
 
 	def handle_comment(self,data):
