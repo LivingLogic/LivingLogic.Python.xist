@@ -334,7 +334,7 @@ have been separated.</item>
 <lit>color</lit> attribute is ok.</item>
 <item>The base &url; is now set correctly when parsing from an &url;
 even if the original &url; does a redirect. (This requires <module>ll.url</module>
-version 0.11.3.</item>
+version 0.11.3).</item>
 <item>Namespace handling has been rewritten again, to be more standards
 compliant: Now there is no prefixes for entities and processing instructions any longer.
 Prefix mappings can be created much simpler, and they no longer contain any
@@ -406,9 +406,7 @@ you can do the following:</par>
 <prog>
 >>> import foo
 >>> foo
-&lt;namespace foo/xmlns name=u'foo' \
-url=u'http://www.foo.com/ns/foo' \
-with 1 elements from 'foo.py' at 0x81bfc14&gt;
+&lt;namespace foo/xmlns name=u'foo' url=u'http://www.foo.com/ns/foo' with 1 elements from 'foo.py' at 0x81bfc14&gt;
 </prog>
 </item>
 
