@@ -143,7 +143,7 @@ class tab(xsc.Element):
 	register = False
 
 	def convert(self, converter):
-		e = converter.target.span(u"\xA0\xA0", class_="tab")
+		e = converter.target.span(u"\xB7\xA0\xA0", class_="tab")
 		return e.convert(converter)
 
 
