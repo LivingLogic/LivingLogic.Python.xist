@@ -1553,11 +1553,16 @@ class URLAttr(Attr):
 		presenter.presentURLAttr(self)
 
 	def publish(self, publisher):
+		if publisher.inAttr:
+			raise errors.IllegalAttrNodeError(self)
+		publisher.inAttr = 1
 		u = self.asURL()
 		if u.scheme is None:
-			return Text(u.asPlainString()).publish(publisher)
+			result = Text(u.asPlainString()).publish(publisher)
 		else:
-			return Text(u.relativeTo(publisher.base).asPlainString()).publish(publisher)
+			result = Text(u.relativeTo(publisher.base).asPlainString()).publish(publisher)
+		publisher.inAttr = 0
+		return result
 
 	def convert(self, converter):
 		node = Attr.convert(self, converter)
