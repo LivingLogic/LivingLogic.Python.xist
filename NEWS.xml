@@ -3,6 +3,8 @@
 <ulist>
 <item>URLs that are completely dynamic will now be left in peace when parsing
 or publishing.</item>
+<item><code>xist.url.URL.fileSize</code> and <code>xist.url.URL.imageSize</code>
+now use the warning framework to report errors.</item>
 </ulist>
 </section>
 
