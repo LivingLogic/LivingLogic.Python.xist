@@ -354,7 +354,3 @@ class TidyWarning(saxlib.SAXParseException, Warning):
 		saxlib.SAXParseException.__init__(self, msg, None, locator)
 		Warning.__init__(self, msg)
 
-
-# always show warnings from XIST, not just the first time
-warnings.filterwarnings("always", category=Warning)
-
