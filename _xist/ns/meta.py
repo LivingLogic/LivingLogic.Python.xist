@@ -21,7 +21,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 from ll.xist import xsc
 from ll.xist.ns import ihtml, html
 
-class contenttype(html.meta):
+class contenttype(xsc.Element):
 	"""
 	<par>can be used for a <markup>&lt;meta http-equiv="Content-Type" content="text/html"/&gt;</markup>, where
 	the character set will be automatically inserted on a call to
