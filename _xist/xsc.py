@@ -155,6 +155,10 @@ class Node(Base):
 			list.__init__(self)
 
 	def __repr__(self):
+		"""
+		<par>uses the default presenter (defined in <pyref module="ll.xist.presenters"><module>ll.xist.presenters</module></pyref>)
+		to return a string representation.</par>
+		"""
 		return self.repr(presenters.defaultPresenterClass())
 
 	def __ne__(self, other):
@@ -247,8 +251,8 @@ class Node(Base):
 
 	def __unicode__(self):
 		"""
-		<par>returns this node as a (unicode) string.
-		Comments and processing instructions will be filtered out.
+		<par>Return the character content of <self/> as a unicode string.
+		This means that comments and processing instructions will be filtered out.
 		For elements you'll get the element content.</par>
 
 		<par>It might be useful to overwrite this function in your own
@@ -277,6 +281,10 @@ class Node(Base):
 		raise NotImplementedError("__unicode__ method not implemented in %s" % self.__class__.__name__)
 
 	def __str__(self):
+		"""
+		Return the character content of <self/> as a string (if possible, i.e.
+		there are no character that are unencodable in the default encoding).
+		"""
 		return str(unicode(self))
 
 	def asText(self, monochrome=1, squeezeBlankLines=0, lineNumbers=0, width=72):
