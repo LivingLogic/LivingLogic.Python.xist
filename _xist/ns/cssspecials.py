@@ -21,8 +21,8 @@
 ## IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 """
-<doc:par>An &xist; module that contains a collection of useful elements for use
-with &css;.</doc:par>
+<par>An &xist; module that contains a collection of useful elements for use
+with &css;.</par>
 """
 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
@@ -33,9 +33,9 @@ import css
 
 class opacity(css.prop):
 	"""
-	<doc:par>Creates both an <pyref module="ll.xist.ns.css" class="filter"><class>filter</class></pyref>
+	<par>Creates both an <pyref module="ll.xist.ns.css" class="filter"><class>filter</class></pyref>
 	and a <pyref module="ll.xist.ns.css" class="_moz_opacity"><class>_moz_opacity</class></pyref>
-	element for setting the opacity.</doc:par>
+	element for setting the opacity.</par>
 	"""
 
 	def convert(self, converter):
@@ -47,8 +47,8 @@ class opacity(css.prop):
 
 class verdana(css.prop):
 	"""
-	<doc:par>Creates a <pyref module="ll.xist.ns.css" class="font_family"><class>font_family</class></pyref>
-	element which specifies <lit>Verdana</lit> as the font and uses several fall back fonts.</doc:par>
+	<par>Creates a <pyref module="ll.xist.ns.css" class="font_family"><class>font_family</class></pyref>
+	element which specifies <lit>Verdana</lit> as the font and uses several fall back fonts.</par>
 	"""
 
 	def convert(self, converter):
@@ -57,8 +57,8 @@ class verdana(css.prop):
 
 class arialnarrow(css.prop):
 	"""
-	<doc:par>Creates a <pyref module="ll.xist.ns.css" class="font_family"><class>font_family</class></pyref>
-	element which specifies <lit>Arial Narrow</lit> as the font and uses several fall back fonts.</doc:par>
+	<par>Creates a <pyref module="ll.xist.ns.css" class="font_family"><class>font_family</class></pyref>
+	element which specifies <lit>Arial Narrow</lit> as the font and uses several fall back fonts.</par>
 	"""
 
 	def convert(self, converter):
@@ -67,9 +67,9 @@ class arialnarrow(css.prop):
 
 class border_leftright(css.prop):
 	"""
-	<doc:par>Creates both an <pyref module="ll.xist.ns.css" class="border_left"><class>border_left</class></pyref>
+	<par>Creates both an <pyref module="ll.xist.ns.css" class="border_left"><class>border_left</class></pyref>
 	and a <pyref module="ll.xist.ns.css" class="border_right"><class>border_right</class></pyref>
-	element.</doc:par>
+	element.</par>
 	"""
 	xmlname = "border-leftright"
 
@@ -82,9 +82,9 @@ class border_leftright(css.prop):
 
 class border_topbottom(css.prop):
 	"""
-	<doc:par>Creates both an <pyref module="ll.xist.ns.css" class="border_top"><class>border_top</class></pyref>
+	<par>Creates both an <pyref module="ll.xist.ns.css" class="border_top"><class>border_top</class></pyref>
 	and a <pyref module="ll.xist.ns.css" class="border_bottom"><class>border_bottom</class></pyref>
-	element.</doc:par>
+	element.</par>
 	"""
 	xmlname = "border-topbottom"
 
@@ -97,9 +97,9 @@ class border_topbottom(css.prop):
 
 class padding_leftright(css.prop):
 	"""
-	<doc:par>Creates both an <pyref module="ll.xist.ns.css" class="padding_left"><class>padding_left</class></pyref>
+	<par>Creates both an <pyref module="ll.xist.ns.css" class="padding_left"><class>padding_left</class></pyref>
 	and a <pyref module="ll.xist.ns.css" class="padding_right"><class>padding_right</class></pyref>
-	element.</doc:par>
+	element.</par>
 	"""
 	xmlname = "padding-leftright"
 
@@ -112,9 +112,9 @@ class padding_leftright(css.prop):
 
 class padding_topbottom(css.prop):
 	"""
-	<doc:par>Creates both an <pyref module="ll.xist.ns.css" class="padding_top"><class>padding_top</class></pyref>
+	<par>Creates both an <pyref module="ll.xist.ns.css" class="padding_top"><class>padding_top</class></pyref>
 	and a <pyref module="ll.xist.ns.css" class="padding_bottom"><class>padding_bottom</class></pyref>
-	element.</doc:par>
+	element.</par>
 	"""
 	xmlname = "padding-topbottom"
 
@@ -127,9 +127,9 @@ class padding_topbottom(css.prop):
 
 class margin_leftright(css.prop):
 	"""
-	<doc:par>Creates both an <pyref module="ll.xist.ns.css" class="margin_left"><class>margin_left</class></pyref>
+	<par>Creates both an <pyref module="ll.xist.ns.css" class="margin_left"><class>margin_left</class></pyref>
 	and a <pyref module="ll.xist.ns.css" class="margin_right"><class>margin_right</class></pyref>
-	element.</doc:par>
+	element.</par>
 	"""
 	xmlname = "margin-leftright"
 
@@ -142,9 +142,9 @@ class margin_leftright(css.prop):
 
 class margin_topbottom(css.prop):
 	"""
-	<doc:par>Creates both an <pyref module="ll.xist.ns.css" class="margin_top"><class>margin_top</class></pyref>
+	<par>Creates both an <pyref module="ll.xist.ns.css" class="margin_top"><class>margin_top</class></pyref>
 	and a <pyref module="ll.xist.ns.css" class="margin_bottom"><class>margin_bottom</class></pyref>
-	element.</doc:par>
+	element.</par>
 	"""
 	xmlname = "margin-topbottom"
 
