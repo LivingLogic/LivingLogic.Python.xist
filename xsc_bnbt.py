@@ -25,8 +25,8 @@ class page(XSCElement):
 		if self.has_attr("onload"):
 			b["onload"] = self["onload"]
 
-		links = self.findElementsNamed("links")[0].content
-		content = self.findElementsNamed("content")[0].content
+		l = self.elementsNamed(links)[0].content
+		c = self.elementsNamed(content)[0].content
 
 		b.append(
 			plaintable(
@@ -39,7 +39,7 @@ class page(XSCElement):
 							tr(td(pixel(height = "20"),colspan = "4"))+
 							tr(td(img(src = ":images/bnbt-logo.gif",alt = "Bürgernetz-Logo"),colspan = "4",align = "center",valign = "middle"))+
 							tr(td(pixel(height = "40"),colspan = "4"))+
-							links+
+							l+
 							fileinfo()+
 							tr(td(img(src = ":images/ecke_links.gif",alt = ""),colspan = "4",align = "right")),
 							Class = "links",bgcolor = "#336"
@@ -67,7 +67,7 @@ class page(XSCElement):
 							)+
 							tr(
 								td(pixel(width = "30"),bgcolor = "#fff")+
-								td(content,bgcolor = "#fff",valign = "top")+
+								td(c,bgcolor = "#fff",valign = "top")+
 								td(pixel(width = "30"),bgcolor = "#fff")
 							)+
 							tr(td(pixel(height = "30"),colspan = "3",bgcolor = "#fff"))
@@ -790,7 +790,7 @@ class fahrplan(XSCElement):
 	attr_handlers = { "name" : XSCTextAttr , "url" : XSCURLAttr }
 
 	def asHTML(self):
-		halts = self.findElementsNamed("haltestelle")
+		halts = self.elementsNamed(haltestelle)
 		flipflop = "even"
 		for halt in halts:
 			halt["class"] = flipflop

@@ -310,27 +310,31 @@ class XSCNode:
 		"""
 		return XSCFrag()
 
-	def elementsNamed(self,name):
+	def elementsNamed(self,element):
 		"""
-		returns a fragment with all child elements of this node that are of type name.
-		"""
-		return XSCFrag()
-
-	def elementsDerivedFrom(self,name):
-		"""
-		returns a fragment with all child elements of this node that are derived from the type name.
+		returns a fragment with all child elements of this node that are of the type element
+		(which has to be the class of an element).
 		"""
 		return XSCFrag()
 
-	def allElementsNamed(self,name):
+	def elementsDerivedFrom(self,element):
 		"""
-		returns a fragment with all elements (children and grandchildren) of this node that are of type name.
+		returns a fragment with all child elements of this node that are derived from the type element
+		(which has to be the class of an element).
+		"""
+		return XSCFrag()
+
+	def allElementsNamed(self,element):
+		"""
+		returns a fragment with all elements (children and grandchildren) of this node that are of type element.
+		(which has to be the class of an element).
 		"""
 		return XSCFrag()
  
-	def allElementsDerivedFrom(self,name):
+	def allElementsDerivedFrom(self,element):
 		"""
-		returns a fragment with all elements (children and grandchildren) of this node that are derived from the type name.
+		returns a fragment with all elements (children and grandchildren) of this node that are derived from the type element.
+		(which has to be the class of an element).
 		"""
 		return XSCFrag()
  
@@ -600,31 +604,30 @@ class XSCFrag(XSCNode):
 				e.append(child)
 		return e
 
-	def elementsNamed(self,name):
+	def elementsNamed(self,element):
 		e = XSCFrag()
 		for child in self:
-			if isinstance(child,XSCElement) and child.name == string.lower(name):
+			if child.__class__ == element:
 				e.append(child)
 		return e
 
-	def elementsDerivedFrom(self,name):
+	def elementsDerivedFrom(self,element):
 		e = XSCFrag()
-		element = _element_handlers[name]
 		for child in self:
 			if isinstance(child,element):
 				e.append(child)
 		return e
 
-	def allElementsNamed(self,name):
+	def allElementsNamed(self,element):
 		e = XSCFrag()
 		for child in self:
-			e = e + child.allElementsNamed(name)
+			e = e + child.allElementsNamed(element)
 		return e
 
-	def allElementsDerivedFrom(self,name):
+	def allElementsDerivedFrom(self,element):
 		e = XSCFrag()
 		for child in self:
-			e = e + child.allElementsDerivedFrom(name)
+			e = e + child.allElementsDerivedFrom(element)
 		return e
 
 class XSCComment(XSCNode):
@@ -893,25 +896,24 @@ class XSCElement(XSCNode):
 	def elements(self):
 		return self.content.elements()
 
-	def elementsNamed(self,name):
-		return self.content.elementsNamed(name)
+	def elementsNamed(self,element):
+		return self.content.elementsNamed(element)
 
-	def elementsDerivedFrom(self,name):
-		return self.content.elementsDerivedFrom(name)
+	def elementsDerivedFrom(self,element):
+		return self.content.elementsDerivedFrom(element)
 
-	def allElementsNamed(self,name):
+	def allElementsNamed(self,element):
 		e = XSCFrag()
-		if self.name == string.lower(name):
+		if self.__class__ == element:
 				e.append(self)
-		e = e + self.content.allElementsNamed(name)
+		e = e + self.content.allElementsNamed(element)
 		return e
 
-	def allElementsDerivedFrom(self,name):
+	def allElementsDerivedFrom(self,element):
 		e = XSCFrag()
-		element = _element_handlers[name]
 		if isinstance(self,element):
 			e.append(self)
-		e = e + self.content.allElementsDerivedFrom(name)
+		e = e + self.content.allElementsDerivedFrom(element)
 		return e
 
 
