@@ -494,7 +494,7 @@ class Handler:
 						break
 				u = url_.URL(newattrvalue.asPlainString())
 				if u.scheme is None:
-					u = url_.URL(scheme="root")/url_.URL(self.source.base)/u
+					u = url_.URL(self.source.base)/u
 					newattrvalue = xsc.Frag(u.asString())
 					i += 1
 					while i < len(attrvalue):
