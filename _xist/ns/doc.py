@@ -1071,16 +1071,16 @@ def getdoc(cls, thing):
 	text = "\n".join(lines)
 
 	if inspect.ismethod(thing):
-		systemId = "METHOD-DOCSTRING(%s.%s.%s)" % (cls._getmodulename(thing), thing.__class__.__name__, thing.__name__)
+		sysid = "METHOD-DOCSTRING(%s.%s.%s)" % (cls._getmodulename(thing), thing.__class__.__name__, thing.__name__)
 	elif inspect.isfunction(thing):
-		systemId = "FUNCTION-DOCSTRING(%s.%s)" % (cls._getmodulename(thing), thing.__name__)
+		sysid = "FUNCTION-DOCSTRING(%s.%s)" % (cls._getmodulename(thing), thing.__name__)
 	elif inspect.isclass(thing):
-		systemId = "CLASS-DOCSTRING(%s.%s)" % (cls._getmodulename(thing), thing.__name__)
+		sysid = "CLASS-DOCSTRING(%s.%s)" % (cls._getmodulename(thing), thing.__name__)
 	elif inspect.ismodule(thing):
-		systemId = "MODULE-DOCSTRING(%s)" % cls._getmodulename(thing)
+		sysid = "MODULE-DOCSTRING(%s)" % cls._getmodulename(thing)
 	else:
-		systemId = "DOCSTRING"
-	node = parsers.parseString(text, systemId=systemId, prefixes=xsc.DocPrefixes())
+		sysid = "DOCSTRING"
+	node = parsers.parseString(text, sysid=sysid, prefixes=xsc.DocPrefixes())
 	if not node.find(xsc.FindType(par)): # optimization: one paragraph docstrings don't need a <par> element.
 		node = cls.par(node)
 
