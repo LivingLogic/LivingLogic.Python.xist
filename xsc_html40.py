@@ -428,5 +428,5 @@ RegisterElement("noscript",XSCnoscript)
 
 if __name__ == "__main__":
 	h = XSC(sys.argv[1])
-	print html(h)
+	print str(h)
 
