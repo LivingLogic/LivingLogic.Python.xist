@@ -26,7 +26,14 @@ def _getDB(element):
 	if element.has_attr("module") and element.has_attr("variable"): # database connection via an existing one
 		module = element["module"].asPlainString()
 		variable = element["variable"].asPlainString()
-		return sys.modules[module].__dict__[variable]
+		try:
+			module = sys.modules[module]
+		except KeyError:
+			if module == nameOfMainModule():
+				module = sys.modules["__main__"]
+			else:
+				raise
+		return module.__dict__[variable]
 	else: # create our own connection
 		api = element["api"].asPlainString()
 
