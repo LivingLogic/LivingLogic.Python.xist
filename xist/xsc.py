@@ -296,6 +296,7 @@ parseEncoding = "iso-8859-1"
 def _stransi(codes,string,ansi = None):
 	if ansi is None:
 		ansi = repransi
+	string = stringFromCode(string).encode(reprEncoding)
 	if ansi and len(codes[ansi-1]) and string:
 		return "\033[%sm%s\033[0m" % (codes[ansi-1], string)
 	else:
@@ -468,7 +469,7 @@ def ToNode(value):
 					return value
 		elif isinstance(value,Node):
 			return value
-	elif t in ( types.StringType,types.IntType,types.LongType,types.FloatType ):
+	elif t in ( types.StringType, types.UnicodeType, types.IntType, types.LongType, types.FloatType ):
 		return Text(value)
 	elif t == types.NoneType:
 		return Null
@@ -1391,7 +1392,7 @@ class Element(Node):
 					except:
 						raise ImageSizeFormatError(self,heightattr)
 				else:
-					value.publish(publisher,encoding,HTML)
+					value.publish(publisher,encoding,XHTML)
 				publisher('"')
 		if size is not None:
 			if widthattr is not None and not self.hasAttr(widthattr):
