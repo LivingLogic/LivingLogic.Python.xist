@@ -2948,6 +2948,65 @@ class CharRef(Text, Entity):
 	def present(self, presenter):
 		presenter.presentEntity(self)
 
+	# The rest is the same as for Text, but does not return CharRefs, but Texts
+	def __getitem__(self, index):
+		return Text(self.content.__getitem__(index))
+
+	def __add__(self, other):
+		return Text(self.content + other)
+
+	def __radd__(self, other):
+		return Text(unicode(other) + self.content)
+
+	def __mul__(self, n):
+		return Text(n * self.content)
+
+	def __rmul__(self, n):
+		return Text(n * self.content)
+
+	def __getslice__(self, index1, index2):
+		return Text(self.content.__getslice__(index1, index2))
+
+	def capitalize(self):
+		return Text(self.content.capitalize())
+
+	def center(self, width):
+		return Text(self.content.center(width))
+
+	def ljust(self, width):
+		return Text(self.content.ljust(width))
+
+	def lower(self):
+		return Text(self.content.lower())
+
+	def lstrip(self):
+		return Text(self.content.lstrip())
+
+	def replace(self, old, new, maxsplit=-1):
+		return Text(self.content.replace(old, new, maxsplit))
+
+	def rjust(self, width):
+		return Text(self.content.rjust(width))
+
+	def rstrip(self):
+		return Text(self.content.rstrip())
+
+	def strip(self):
+		return Text(self.content.strip())
+
+	def swapcase(self):
+		return Text(self.content.swapcase())
+
+	def title(self):
+		return Text(self.content.title())
+
+	def translate(self, table):
+		return Text(self.content.translate(table))
+
+	def upper(self):
+		return Text(self.content.upper())
+
+
 ###
 ### Classes for namespace handling
 ###
