@@ -1092,6 +1092,10 @@ class Frag(Node, list):
 
 	__rmul__ = __mul__
 
+	def __iadd__(self, other):
+		self.extend(other)
+		return self
+
 	# no need to implement __len__ or __nonzero__
 
 	def append(self, *others):
@@ -1104,6 +1108,12 @@ class Frag(Node, list):
 				list.extend(self, other)
 			elif other is not Null:
 				list.append(self, other)
+
+	def extend(self, items):
+		"""
+		<par>append all items from the sequence <arg>other</arg> to <self/>.</par>
+		"""
+		self.append(items)
 
 	def insert(self, index, *others):
 		"""
@@ -2294,6 +2304,13 @@ class Element(Node):
 		"""
 		self.content.append(*items)
 
+	def extend(self, items):
+		"""
+		<par>appends to content (see <pyref class="Frag" method="extend"><method>Frag.extend</method></pyref>
+		for more info)</par>
+		"""
+		self.content.extend(items)
+
 	def insert(self, index, *items):
 		"""
 		<par>inserts into the content (see <pyref class="Frag" method="insert"><method>Frag.insert</method></pyref>
@@ -2468,6 +2485,10 @@ class Element(Node):
 		removes a slice of the content of the element
 		"""
 		del self.content[index1:index2]
+
+	def __iadd__(self, other):
+		self.extend(other)
+		return self
 
 	def hasAttr(self, attrname, xml=False):
 		errors.warn(DeprecationWarning("foo.hasAttr() is deprecated, use foo.attrs.has() instead"))

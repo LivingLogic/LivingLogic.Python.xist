@@ -89,6 +89,21 @@ class XISTTest(unittest.TestCase):
 		node.append((5, 6))
 		self.check_lenunicode(node, 6, u"123456")
 
+	def test_fragextend(self):
+		node = xsc.Frag()
+		node.extend([1])
+		self.check_lenunicode(node, 1, u"1")
+		node.extend([2])
+		self.check_lenunicode(node, 2, u"12")
+		node.extend([])
+		self.check_lenunicode(node, 2, u"12")
+		node.extend([None])
+		self.check_lenunicode(node, 2, u"12")
+		node.extend([3, 4])
+		self.check_lenunicode(node, 4, u"1234")
+		node.extend([[], [[], [5], []]])
+		self.check_lenunicode(node, 5, u"12345")
+
 	def test_fraginsert(self):
 		node = xsc.Frag()
 		node.insert(0, 1)
@@ -101,6 +116,21 @@ class XISTTest(unittest.TestCase):
 		self.check_lenunicode(node, 4, u"3421")
 		node.insert(0, (5, 6))
 		self.check_lenunicode(node, 6, u"563421")
+
+	def test_fragiadd(self):
+		node = xsc.Frag()
+		node += [1]
+		self.check_lenunicode(node, 1, u"1")
+		node += [2]
+		self.check_lenunicode(node, 2, u"12")
+		node += []
+		self.check_lenunicode(node, 2, u"12")
+		node += [None]
+		self.check_lenunicode(node, 2, u"12")
+		node += [3, 4]
+		self.check_lenunicode(node, 4, u"1234")
+		node += [[], [[], [5], []]]
+		self.check_lenunicode(node, 5, u"12345")
 
 	def test_elementlen(self):
 		self.check_lenunicode(html.div(), 0, u"")
