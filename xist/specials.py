@@ -392,6 +392,12 @@ class isdn(xsc.Entity):
 	def asPlainString(self):
 		return u"ISDN"
 
+class corba(xsc.Entity):
+	def asHTML(self):
+		return html_.span(html_.abbr("CORBA", title="Common Object Request Broker Architecture", lang="en"), class_="caps")
+	def asPlainString(self):
+		return u"CORBA"
+
 class PHP(xsc.ProcInst):
 	"""
 	PHP processing instruction (must be used with a target)
