@@ -106,7 +106,7 @@ node = html.div(
 	{
 		"class_": "greeting",
 		"id": 42,
-		"name": "greeting42"
+		"title": "Greet the world"
 	}
 )
 </programlisting>
