@@ -752,7 +752,7 @@ class Node:
 				continue
 			if self._strescapes.has_key(c):
 				if charrefs == 0:
-					v.append(stringFromCode(c).encode(encoding))
+					v.append(c)
 				elif charrefs == 1:
 					raise EncodingImpossibleError(self.startloc,encoding,text,c)
 				else:
@@ -763,8 +763,8 @@ class Node:
 				else:
 					raise EncodingImpossibleError(self.startloc,encoding,text,c)
 			else:
-				v.append(stringFromCode(c).encode(encoding))
-		return "".join(v)
+				v.append(c)
+		return stringFromCode("".join(v)).encode(encoding)
 
 class Text(Node):
 	"""
