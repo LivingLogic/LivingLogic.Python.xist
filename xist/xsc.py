@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 
-## Copyright 1999-2000 by Living Logic AG, Bayreuth, Germany.
-## Copyright 1999-2000 by Walter Dörwald
+## Copyright 2000 by Living Logic AG, Bayreuth, Germany.
+## Copyright 2000 by Walter Dörwald
 ##
 ## See the file LICENSE for licensing details
 
@@ -215,28 +215,14 @@ import types
 import sys
 import getopt
 
-# for file size checking
-import stat
-
-# for image size checking
-import Image
-
-# for parsing XML files
-import sgmlop
-
-# for reading remote files
-import urllib
-
-# our sandbox
-import procinst
-
-# our own new URL class
-from URL import URL
-
-from publishers import StringPublisher
-
-# exceptions
-from errors import *
+import stat # for file size checking
+import Image # for image size checking
+import sgmlop # for parsing XML files
+import urllib # for reading remote files
+import procinst # our sandbox
+from URL import URL # our own new URL class
+from publishers import StringPublisher # classes for dumping XML strings
+from errors import * # exceptions
 
 ###
 ### configuration
@@ -439,7 +425,7 @@ def ToNode(value):
 				if isinstance(value,Attr):
 					node = Frag() # repack the attribute in a fragment, and we have a valid XSC node
 					for i in value:
-						node.append(ToNode(i))
+						node.append(ToNode(i)) # FIXME is the ToNode call necessary?
 					return node
 				else:
 					return value
