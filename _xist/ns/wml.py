@@ -99,7 +99,7 @@ class access(xsc.Element):
 
 class meta(xsc.Element):
 	"""
-	specifies deck-specific meta information within a <pyref class="head">head</pyref> block
+	specifies deck-specific meta information within a <pyref class="head"><class>head</class></pyref> block
 	"""
 	empty = 1
 	attrHandlers = coreattrs.copy()
@@ -168,7 +168,7 @@ class optgroup(xsc.Element):
 
 class option(xsc.Element):
 	"""
-	creates options within a <pyref class="select">select</pyref> list
+	creates options within a <pyref class="select"><class>select</class></pyref> list
 	"""
 	empty = 0
 	attrHandlers = coreattrs.copy()
@@ -208,8 +208,8 @@ class img(xsc.Element):
 
 class anchor(xsc.Element):
 	"""
-	creates an anchor (also called a link) associated with <pyref class="go">go</pyref>, <pyref class="prev">prev</pyref>
-	or <pyref class="refresh">refresh</pyref> tasks
+	creates an anchor (also called a link) associated with <pyref class="go"><class>go</class></pyref>,
+	<pyref class="prev"><class>prev</class></pyref> or <pyref class="refresh"><class>refresh</class></pyref> tasks.
 	"""
 	empty = 0
 	attrHandlers = coreattrs.copy()

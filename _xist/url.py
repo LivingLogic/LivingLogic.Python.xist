@@ -380,7 +380,7 @@ class URL:
 
 	def __walk(self, files, dirname, filenames):
 		"""
-		internal method used by <pyref method="files">files</pyref>
+		internal method used by <pyref method="files"><method>files</method></pyref>
 		"""
 		try:
 			del files[dirname] # don't collect directories

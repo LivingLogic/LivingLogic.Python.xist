@@ -24,7 +24,7 @@
 But note that &xist; will raise other exceptions as well.</doc:par>
 
 <doc:par>All exceptions defined in this module are derived from
-the base class <pyref class="Error">Error</pyref>.</doc:par>
+the base class <pyref class="Error"><class>Error</class></pyref>.</doc:par>
 """
 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))

@@ -68,7 +68,10 @@ class option(xsc.Element):
 	empty = 0
 
 	def convert(self, converter):
-		e = html.code(self.content, class_="option")
+		if converter.target=="docbook":
+			e = docbook.option(self.content)
+		else:
+			e = html.code(self.content, class_="option")
 		return e.convert(converter)
 
 class lit(xsc.Element):
@@ -91,17 +94,37 @@ class function(xsc.Element):
 	empty = 0
 
 	def convert(self, converter):
-		e = html.code(self.content, class_="function")
+		if converter.target=="docbook":
+			e = docbook.function(self.content)
+		else:
+			e = html.code(self.content, class_="function")
 		return e.convert(converter)
 
-class classname(xsc.Element):
+class method(xsc.Element):
 	"""
-	The name of a class, in the object-oriented programming sense
+	The name of a method or memberfunction in a programming language
 	"""
 	empty = 0
 
 	def convert(self, converter):
-		e = html.code(self.content, class_="classname")
+		if converter.target=="docbook":
+			e = docbook.methodname(self.content)
+		else:
+			e = html.code(self.content, class_="method")
+		return e.convert(converter)
+
+class class_(xsc.Element):
+	"""
+	The name of a class, in the object-oriented programming sense
+	"""
+	name = "class"
+	empty = 0
+
+	def convert(self, converter):
+		if converter.target=="docbook":
+			e = docbook.classname(self.content)
+		else:
+			e = html.code(self.content, class_="class")
 		return e.convert(converter)
 
 class replaceable(xsc.Element):
@@ -122,6 +145,32 @@ class markup(xsc.Element):
 
 	def convert(self, converter):
 		e = html.code(self.content, class_="markup")
+		return e.convert(converter)
+
+class arg(xsc.Element):
+	"""
+	The name of a function or method argument.
+	"""
+	empty = 0
+
+	def convert(self, converter):
+		if converter.target=="docbook":
+			e = docbook.parameter(self.content)
+		else:
+			e = html.code(self.content, class_="arg")
+		return e.convert(converter)
+
+class module(xsc.Element):
+	"""
+	The name of Python module.
+	"""
+	empty = 0
+
+	def convert(self, converter):
+		if converter.target=="docbook":
+			e = docbook.classname(self.content, role="module")
+		else:
+			e = html.code(self.content, class_="module")
 		return e.convert(converter)
 
 class parameter(xsc.Element):
@@ -182,8 +231,8 @@ class section(xsc.Element):
 
 	def convert(self, converter):
 		if converter.target=="docbook":
-			e = docbook.section(self.content.convert(converter), role=self["role"])
-			return e
+			e = docbook.section(self.content, role=self["role"])
+			return e.convert(converter)
 		else:
 			context = converter[self.__class__]
 			if not hasattr(context, "depth"):
@@ -214,6 +263,7 @@ class section(xsc.Element):
 
 class par(xsc.Element):
 	"""
+	A paragraph
 	"""
 	empty = 0
 	attrHandlers = {"type": xsc.TextAttr}
@@ -285,7 +335,7 @@ class pyref(xsc.Element):
 	module, class, method, function, variable or argument
 	"""
 	empty = 0
-	attrHandlers = {"module": xsc.TextAttr, "class": xsc.TextAttr, "method": xsc.TextAttr, "function": xsc.TextAttr, "var": xsc.TextAttr, "arg": xsc.TextAttr, "nolink": xsc.BoolAttr}
+	attrHandlers = {"module": xsc.TextAttr, "class": xsc.TextAttr, "method": xsc.TextAttr, "function": xsc.TextAttr}
 
 	base = "http://localhost:7464/"
 
@@ -307,57 +357,32 @@ class pyref(xsc.Element):
 		else:
 			method = None
 		if self.hasAttr("class"):
-			class_ = self["class"].convert(converter).asPlainString()
+			class__ = self["class"].convert(converter).asPlainString()
 		else:
-			class_ = None
+			class__ = None
 		if self.hasAttr("module"):
 			module = self["module"].convert(converter).asPlainString().replace(u".", u"/")
 		else:
 			module = None
 
 		e = self.content
-		if converter is not None and converter.target=="docbook":
-			if var is not None:
-				e = e # FIXME
-			elif arg is not None:
-				e = docbook.parameter(e)
-			elif function is not None:
-				e = docbook.function(e)
-			elif method is not None:
-				e = docbook.function(e, role="method")
-			elif class_ is not None:
-				e = docbook.classname(e)
-			elif module is not None:
-				e = e # FIXME
-		else:
-			nolink = self.hasAttr("nolink")
-			if var is not None:
-				e = html.code(e, class_="pyvar")
-			elif arg is not None:
-				e = html.code(e, class_="pyarg")
-			elif function is not None:
-				e = html.code(e, class_="pyfunction")
-				if not nolink and module is not None:
+		if converter is not None and converter.target=="html":
+			if function is not None:
+				if module is not None:
 					e = html.a(e, href=(self.base, module, "/index.html#", function))
 			elif method is not None:
-				e = html.code(e, class_="pymethod")
-				if not nolink and class_ is not None and module is not None:
-					e = html.a(e, href=(self.base, module, "/index.html#", class_, "-", method))
-			elif class_ is not None:
-				e = html.code(e, class_="pyclass")
-				if not nolink and module is not None:
-					e = html.a(e, href=(self.base, module, "/index.html#", class_))
+				if class__ is not None and module is not None:
+					e = html.a(e, href=(self.base, module, "/index.html#", class__, "-", method))
+			elif class__ is not None:
+				if module is not None:
+					e = html.a(e, href=(self.base, module, "/index.html#", class__))
 			elif module is not None:
-				e = html.code(e, class_="pymodule")
-				if not nolink:
-					e = html.a(e, href=(self.base, module, "/index.html"))
-			else:
-				e = html.code(e)
+				e = html.a(e, href=(self.base, module, "/index.html"))
 		return e.convert(converter)
 
 def getDoc(thing):
 	if thing.__doc__ is None:
-		return par("(no docstring available)", type="noneavail")
+		return par("(no docstring available)", type="notavail")
 	lines = thing.__doc__.split("\n")
 
 	# find first nonempty line
@@ -389,12 +414,7 @@ def getDoc(thing):
 
 	doc = "\n".join(lines)
 
-	try:
-		node = parsers.parseString(doc)
-	except SystemExit, KeyboardInterrupt:
-		raise
-	except:
-		node = html.pre(doc, style="color: red")
+	node = parsers.parseString(doc)
 	if not node.find(type=par): # optimization: one paragraph docstrings don't need a <doc:par> element.
 		node = par(node)
 
@@ -455,10 +475,35 @@ def cmpName((obj1, name1), (obj2, name2)):
 		sorts.append((pos, name))
 	return cmp(sorts[0], sorts[1])
 
+def __codeHeader(thing, name, type):
+	(args, varargs, varkw, defaults) = inspect.getargspec(thing)
+	sig = xsc.Frag()
+	sig.append(type(name), "(")
+	offset = len(args)
+	if defaults is not None:
+		offset -= len(defaults)
+	for i in xrange(len(args)):
+		if i == 0:
+			if type==method:
+				sig.append(arg(self()))
+			else:
+				sig.append(arg(args[i]))
+		else:
+			sig.append(", ")
+			sig.append(arg(args[i]))
+		if i >= offset:
+			sig.append("=", repr(defaults[i-offset]))
+	if varargs:
+		sig.append(", *", arg(varargs))
+	if varkw:
+		sig.append(", **", arg(varkw))
+	sig.append(")")
+	return sig
+
 def explain(thing, name=None):
 	"""
 	returns a &xml; representation of the documentation of
-	<pyref function="explain" arg="thing">thing</pyref>, which can be a function, method, class or module.
+	<arg>thing</arg>, which can be a function, method, class or module.
 	"""
 
 	t = type(thing)
@@ -469,39 +514,15 @@ def explain(thing, name=None):
 		)
 		if name != thing.__name__ and not (thing.__name__.startswith("__") and name=="_" + thing.im_class.__name__ + thing.__name__):
 			sig.append(name, " = ")
-		sig.append(
-			"def ",
-			pyref(thing.__name__, module=inspect.getmodule(thing).__name__, class_=thing.im_class.__name__, method=thing.__name__, nolink=1),
-			"("
-		)
-		offset = len(args)
-		if defaults is not None:
-			offset -= len(defaults)
-		for i in xrange(len(args)):
-			if i == 0:
-				sig.append(self())
-			else:
-				sig.append(", ")
-				name = args[i]
-				sig.append(pyref(name, arg=name, nolink=1))
-			if i >= offset:
-				sig.append("=", repr(defaults[i-offset]))
-		if varargs:
-			sig.append(", *", pyref(varargs, arg=varargs, nolink=1))
-		if varkw:
-			sig.append(", **", pyref(varkw, arg=varkw, nolink=1))
-		sig.append("):")
+		sig.append("def ", __codeHeader(thing.im_func, thing.__name__, method), ":")
 		return section(title(sig), getDoc(thing), role="method")
 	elif t is types.FunctionType:
-		(args, varargs, varkw, defaults) = inspect.getargspec(thing)
 		return section(
 			title(
 				html.a(name=name or thing.__name__),
 				"def ",
-				pyref(name or thing.__name__, module=inspect.getmodule(thing).__name__, function=thing.__name__, nolink=1),
-				"(",
-				xsc.Frag(args).withSep(", "),
-				"):"
+				__codeHeader(thing, thing.__name__, function),
+				":"
 			),
 			getDoc(thing),
 			role="function"
@@ -510,7 +531,7 @@ def explain(thing, name=None):
 		bases = xsc.Frag()
 		if len(thing.__bases__):
 			for baseclass in thing.__bases__:
-				ref = pyref(baseclass.__name__, module=baseclass.__module__, class_=baseclass.__name__)
+				ref = pyref(class_(baseclass.__name__), module=baseclass.__module__, class_=baseclass.__name__)
 				if thing.__module__ != baseclass.__module__:
 					ref.insert(0, baseclass.__module__, ".")
 				bases.append(ref)
@@ -521,7 +542,7 @@ def explain(thing, name=None):
 			title(
 				html.a(name=name or thing.__name__),
 				"class ",
-				pyref(name or thing.__name__, module=thing.__module__, class_=thing.__name__, nolink=1),
+				class_(name),
 				bases,
 				":"
 			),
@@ -543,7 +564,7 @@ def explain(thing, name=None):
 		else:
 			moduletype = "Module"
 		node = section(
-			title(moduletype, " ", pyref(name or thing.__name__, module=thing.__name__, nolink=1)),
+			title(moduletype, " ", module(name or thing.__name__)),
 			getDoc(thing)
 		)
 

@@ -107,9 +107,9 @@ class filetime(xsc.Element):
 
 class time(xsc.Element):
 	"""
-	<doc:par>the current time (i.e. the time when <pyref method="convert">convert</pyref> is called).
-	You can specify the format of the string in the attribute format, which is a <code>strftime</code>
-	compatible string.</doc:par>
+	<doc:par>the current time (i.e. the time when <pyref method="convert"><method>convert</method></pyref>
+	is called). You can specify the format of the string in the attribute format, which is a
+	<function>strftime</function> compatible string.</doc:par>
 	"""
 	empty = 1
 	attrHandlers = {"format": xsc.TextAttr}
@@ -263,7 +263,7 @@ class autoimg(html_.img):
 
 class autoinput(html_.input):
 	"""
-	<doc:par>Extends <pyref module="xist.ns.html" class="input">input</pyref>
+	<doc:par>Extends <pyref module="xist.ns.html" class="input"><class>input</class></pyref>
 	with the ability to automatically set the size, if this element
 	has <code>type=="image"</code>.</doc:par>
 	"""
@@ -310,8 +310,8 @@ class wrap(xsc.Element):
 	"""
 	<doc:par>a wrapper element that returns its content.
 	This is e.g. useful if you want to parse a
-	file that starts with
-	<pyref module="xist.ns.jsp">&jsp;</pyref> processing instructions</doc:par>
+	file that starts with <pyref module="xist.ns.jsp"><module>&jsp;</module></pyref>
+	processing instructions</doc:par>
 	"""
 	empty = 0
 

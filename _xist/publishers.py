@@ -21,7 +21,7 @@
 
 """
 <doc:par>This module contains classes that may be used as publishing
-handler in <pyref module="xist.xsc" class="Node">publish</pyref>.</doc:par>
+handler in <pyref module="xist.xsc" class="Node" method="publish"><method>publish</method></pyref>.</doc:par>
 """
 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
@@ -38,34 +38,34 @@ class Publisher:
 
 	def __init__(self, base=None, root=None, encoding=None, xhtml=None, publishPrefix=0):
 		"""
-		<doc:par><pyref arg="base">base</pyref> specifies the url to which the result
+		<doc:par><arg>base</arg> specifies the url to which the result
 		will be output.</doc:par>
 
-		<doc:par><pyref arg="encoding">encoding</pyref> specifies the encoding to be used.
-		The encoding itself (i.e. calling <code>encode</code> on the
-		unicode strings) must be done by <pyref method="publish">xist.publishers.Publisher.publish</pyref>
-		and not by <pyref module="xist.xsc" class="Node">xist.xsc.Node.publish</pyref>.</doc:par>
+		<doc:par><arg>encoding</arg> specifies the encoding to be used.
+		The encoding itself (i.e. calling <method>encode</method> on the
+		unicode strings) must be done by <pyref method="publish"><method>xist.publishers.Publisher.publish</method></pyref>
+		and not by <pyref module="xist.xsc" class="Node"><method>xist.xsc.Node.publish</method></pyref>.</doc:par>
 
 		<doc:par>The only exception is in the case of encodings that can't encode
-		the full range of unicode characters like <code>us-ascii</code>
-		or <code>iso-8859-1</code>. In this case non encodable characters will be replaced
+		the full range of unicode characters like <lit>us-ascii</lit>
+		or <lit>iso-8859-1</lit>. In this case non encodable characters will be replaced
 		by characters references (if possible, if not (e.g. in comments or processing
 		instructions) an exception will be raised) before they are passed to
-		<pyref method="publish">publish</pyref>.</doc:par>
+		<pyref method="publish"><method>publish</method></pyref>.</doc:par>
 
-		<doc:par>With the parameter <pyref arg="xhtml">xhtml</pyref> you can specify if you want &html; output
-		(i.e. elements with a content model EMPTY as <code>&lt;foo&gt;</code>) with
-		<code><pyref arg="xhtml">xhtml</pyref>==0</code>, or XHTML output that is compatible with &html; browsers
-		(element with an empty content model as <code>&lt;foo /&gt;</code> and others that
-		just happen to be empty as <code>&lt;foo&gt;&lt;/foo&gt;</code>) with
-		<code><pyref arg="xhtml">xhtml</pyref>==1</code> or just plain XHTML with
-		<code><pyref arg="xhtml">xhtml</pyref>==2</code> (all empty elements as <code>&lt;foo/&gt;</code>).
+		<doc:par>With the parameter <arg>xhtml</arg> you can specify if you want &html; output
+		(i.e. elements with a content model EMPTY as <markup>&lt;foo&gt;</markup>) with
+		<code><arg>xhtml</arg>==0</code>, or XHTML output that is compatible with &html; browsers
+		(element with an empty content model as <markup>&lt;foo /&gt;</markup> and others that
+		just happen to be empty as <markup>&lt;foo&gt;&lt;/foo&gt;</markup>) with
+		<code><arg>xhtml</arg>==1</code> or just plain XHTML with
+		<code><arg>xhtml</arg>==2</code> (all empty elements as <markup>&lt;foo/&gt;</markup>).
 		When you use the default (<code>None</code>) that value of the global variable
 		<code>outputXHTML</code> will be used, which defaults to 1, but can be overwritten
 		by the environment variable <code>XSC_OUTPUT_XHTML</code> and can of course be
 		changed dynamically.</doc:par>
 
-		<doc:par><pyref arg="publishPrefix">publishPrefix</pyref> specifies if the prefix from element name
+		<doc:par><arg>publishPrefix</arg> specifies if the prefix from element name
 		should be output too.</doc:par>
 		"""
 		self.base = url.URL(base)
@@ -127,8 +127,8 @@ class StringPublisher(Publisher):
 	"""
 	collects all strings in an array.
 	The joined strings are available via
-	<pyref module="xist.publishers" class="StringPublisher" method="asString">asString</pyref>
-	"""
+	<pyref module="xist.publishers" class="StringPublisher" method="asString"><method>asString</method></pyref>
+"""
 
 	def __init__(self, base=None, root=None, xhtml=None, publishPrefix=0):
 		Publisher.__init__(self, base=base, root=root, encoding="utf16", xhtml=xhtml, publishPrefix=publishPrefix)
@@ -147,7 +147,7 @@ class BytePublisher(Publisher):
 	"""
 	collects all strings in an array.
 	The joined strings are available via
-	<pyref method="asBytes">asBytes</pyref> as a byte
+	<pyref method="asBytes"><method>asBytes</method></pyref> as a byte
 	string suitable for writing to a file.
 	"""
 

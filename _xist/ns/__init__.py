@@ -22,24 +22,25 @@
 """
 <doc:par>This package contains all the modules that provide
 <pyref module="xist.xsc" class="Namespace">namespace objects</pyref>
-to &xist;. For example the definition of &html; can 
-be found in the module <pyref module="xist.ns.html">xist.ns.html</pyref>.</doc:par>
+to &xist;. For example the definition of &html; can be found in the
+module <pyref module="xist.ns.html"><module>xist.ns.html</module></pyref>.</doc:par>
 
 <doc:par>Some of these namespaces can be considered target namespaces (e.g.
-<pyref module="xist.ns.html">html</pyref>, <pyref module="xist.ns.wml">wml</pyref> and
-<pyref module="xist.ns.docbook">docbook</pyref>). The element and entity classes
-in these namespaces don't implement a convert method, i.e. they inherit the
-<pyref module="xist.xsc" class="Element" method="convert">convert</pyref> method
-from <pyref module="xist.xsc" class="Element">Element</pyref>.</doc:par>
+<pyref module="xist.ns.html"><module>html</module></pyref>,
+<pyref module="xist.ns.wml"><module>wml</module></pyref> and
+<pyref module="xist.ns.docbook"><module>docbook</module></pyref>). The element and
+entity classes in these namespaces don't implement a convert method, i.e. they inherit the
+<pyref module="xist.xsc" class="Element" method="convert"><method>convert</method></pyref> method
+from <pyref module="xist.xsc" class="Element"><class>Element</class></pyref>.</doc:par>
 
 <doc:par>Other namespace modules provide additional functionality through
-new element classes. Calling <pyref module="xist.xsc" class="Node" method="convert">convert</pyref>
+new element classes. Calling <pyref module="xist.xsc" class="Node" method="convert"><method>convert</method></pyref>
 on these elements might convert them to one of these target namespaces
-(probably dependent on the <pyref module="xist.converters" class="Converter" method="__init__" arg="target">target</pyref>
-element of the <pyref module="xist.converters" class="Converter">Converter</pyref> object
+(probably dependent on the <code>target</code> attribute of the
+<pyref module="xist.converters" class="Converter"><class>Converter</class></pyref> object
 passed around.) Some of these namespace modules completely ignore the target
-and convert to one fixed target namespace (<pyref module="xist.ns.html">html</pyref> in
-most cases).</doc:par>
+and convert to one fixed target namespace (<pyref module="xist.ns.html"><module>html</module></pyref>
+in most cases).</doc:par>
 """
 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))

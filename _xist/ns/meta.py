@@ -20,8 +20,9 @@
 ## IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 """
-<doc:par>An &xist; module that contains elements that simplify handling
-meta data. All elements in this module will generate a <pyref module="xist.ns.html" class="meta">html.meta</pyref>
+<doc:par>An &xist; module that contains elements that simplify
+handling meta data. All elements in this module will generate a
+<pyref module="xist.ns.html" class="meta"><class>html.meta</class></pyref>
 element when converted.</doc:par>
 """
 
@@ -34,7 +35,8 @@ import html
 class contenttype(html.meta):
 	"""
 	<doc:par>can be used for a <markup>&lt;meta http-equiv="Content-Type" content="text/html"/&gt;</markup>, where
-	the character set will be automatically inserted on a call to <pyref module="xist.xsc" class="Node" method="publish">publish</pyref>.</doc:par>
+	the character set will be automatically inserted on a call to
+	<pyref module="xist.xsc" class="Node" method="publish"><method>publish</method></pyref>.</doc:par>
 
 	<doc:par>Usage is simple: <code>&lt;meta:contenttype/&gt;</code></doc:par>
 	"""

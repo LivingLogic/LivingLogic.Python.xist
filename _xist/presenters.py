@@ -391,7 +391,7 @@ class Presenter:
 	def beginPresentation(self):
 		"""
 		<doc:par>called by the <pyref module="xist.xsc" class="Node">node</pyref> once
-		at the start when <pyref module="xist.xsc" class="Node" method="repr">repr</pyref>
+		at the start when <pyref module="xist.xsc" class="Node" method="repr"><method>repr</method></pyref>
 		is called. Initializes the presenter.</doc:par>
 		"""
 		raise NotImplementedError("beginPresentation")
@@ -399,68 +399,68 @@ class Presenter:
 	def endPresentation(self):
 		"""
 		<doc:par>called by the <pyref module="xist.xsc" class="Node">node</pyref> after
-		the call to <pyref module="xist.xsc" class="Node" method="present">present</pyref>.
+		the call to <pyref module="xist.xsc" class="Node" method="present"><method>present</method></pyref>.
 		This method handles cleanups if necessary and returns the string to be printed.</doc:par>
 		"""
 		raise NotImplementedError("endPresentation")
 
 	def presentText(self, node):
 		"""
-		<doc:par>present a <pyref module="xist.xsc" class="Text">Text</pyref> node.</doc:par>
+		<doc:par>present a <pyref module="xist.xsc" class="Text"><class>Text</class></pyref> node.</doc:par>
 		"""
 		raise NotImplementedError("presentText")
 
 	def presentFrag(self, node):
 		"""
-		<doc:par>present a <pyref module="xist.xsc" class="Frag">Frag</pyref> node.</doc:par>
+		<doc:par>present a <pyref module="xist.xsc" class="Frag"><class>Frag</class></pyref> node.</doc:par>
 		"""
 		raise NotImplementedError("presentFrag")
 
 	def presentComment(self, node):
 		"""
-		<doc:par>present a <pyref module="xist.xsc" class="Comment">Comment</pyref> node.</doc:par>
+		<doc:par>present a <pyref module="xist.xsc" class="Comment"><class>Comment</class></pyref> node.</doc:par>
 		"""
 		raise NotImplementedError("presentComment")
 
 	def presentDocType(self, node):
 		"""
-		<doc:par>present a <pyref module="xist.xsc" class="DocType">DocType</pyref> node.</doc:par>
+		<doc:par>present a <pyref module="xist.xsc" class="DocType"><class>DocType</class></pyref> node.</doc:par>
 		"""
 		raise NotImplementedError("presentDocType")
 
 	def presentProcInst(self, node):
 		"""
-		<doc:par>present a <pyref module="xist.xsc" class="ProcInst">ProcInst</pyref> node.</doc:par>
+		<doc:par>present a <pyref module="xist.xsc" class="ProcInst"><class>ProcInst</class></pyref> node.</doc:par>
 		"""
 		raise NotImplementedError("presentProcInst")
 
 	def presentElement(self, node):
 		"""
-		<doc:par>present an <pyref module="xist.xsc" class="Element">Element</pyref> node.</doc:par>
+		<doc:par>present an <pyref module="xist.xsc" class="Element"><class>Element</class></pyref> node.</doc:par>
 		"""
 		raise NotImplementedError("presentElement")
 
 	def presentEntity(self, node):
 		"""
-		<doc:par>present a <pyref module="xist.xsc" class="Entity">Entity</pyref> node.</doc:par>
+		<doc:par>present a <pyref module="xist.xsc" class="Entity"><class>Entity</class></pyref> node.</doc:par>
 		"""
 		raise NotImplementedError("presentEntity")
 
 	def presentNull(self, node):
 		"""
-		<doc:par>present the <pyref module="xist.xsc" class="Null">Null</pyref> node.</doc:par>
+		<doc:par>present the <class>Null</class> node.</doc:par>
 		"""
 		raise NotImplementedError("presentNull")
 
 	def presentAttr(self, node):
 		"""
-		<doc:par>present an <pyref module="xist.xsc" class="Attr">Attr</pyref> node.</doc:par>
+		<doc:par>present an <pyref module="xist.xsc" class="Attr"><class>Attr</class></pyref> node.</doc:par>
 		"""
 		raise NotImplementedError("presentAttr")
 
 	def presentURLAttr(self, node):
 		"""
-		<doc:par>present an <pyref module="xist.xsc" class="URLAttr">URLAttr</pyref> node.</doc:par>
+		<doc:par>present an <pyref module="xist.xsc" class="URLAttr"><class>URLAttr</class></pyref> node.</doc:par>
 		"""
 		raise NotImplementedError("presentURLAttr")
 
@@ -468,7 +468,7 @@ class PlainPresenter(Presenter):
 	"""
 	<doc:par>This presenter shows only the root node of the tree (with a little additional
 	information about the number of nested nodes). It is used as the default presenter
-	in <pyref module="xist.xsc" class="Node" method="__repr__">Node.__repr__</pyref>.</doc:par>
+	in <pyref module="xist.xsc" class="Node" method="__repr__"><method>Node.__repr__</method></pyref>.</doc:par>
 	"""
 	def __init__(self, maxlen=60):
 		self.maxlen = maxlen
