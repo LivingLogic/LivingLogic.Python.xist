@@ -9,6 +9,8 @@
 <item>if you want to use automatic image size calculation: the
 <link href="http://www.pythonware.com/products/pil/">Python Imaging Library</link>,</item>
 <item>if you want to parse broken &html;: <link href="http://www.xmlsoft.org/">libxml2</link>,</item>
+<item>if you want want to use the method <method>asText</method> to convert &html; to
+plain text: <link href="http://w3m.browser.org/">w3m</link>,</item>
 <item>and a C compiler supported by <app>distutils</app>, if you want
 to install the source distribution.</item>
 </olist>
