@@ -862,7 +862,7 @@ class XSCElement(XSCNode):
 		return self.__class__(self.content.withoutLinefeeds(),self.attrs.withoutLinefeeds())
 
 	def elements(self):
-		return self.content.element()
+		return self.content.elements()
 
 def RegisterElement(name,element):
 	"""registers the element handler element to be used for elements with name name"""
