@@ -11,4 +11,4 @@ include HOWTO.xml
 include Makefile
 recursive-include examples *
 recursive-include scripts *.py
-include images/pixels/*.gif
+include px/*.gif
