@@ -375,13 +375,13 @@ class cdrom(xsc.Entity):
 class snmp(xsc.Entity):
 	def convert(self, converter):
 		return html_.abbr("SNMP", title="Simple Network Management Protocol", lang="en")
-	def asPlainString(self):
+	def __unicode__(self):
 		return u"SNMP"
 
 class ssl(xsc.Entity):
 	def convert(self, converter):
 		return html_.abbr("SSL", title="Secure Socket Layer", lang="en")
-	def asPlainString(self):
+	def __unicode__(self):
 		return u"SSL"
 
 namespace = xsc.Namespace("abbr", "http://xmlns.livinglogic.de/xist/abbr.dtd", vars())
