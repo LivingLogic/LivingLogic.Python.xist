@@ -1348,14 +1348,20 @@ class Attr(Frag):
 	def parsed(self, handler, begin=None):
 		self.checkValid()
 
+	def _publishAttrValue(self, publisher):
+		Frag.publish(self, publisher)
+
 	def publish(self, publisher):
 		if publisher.inAttr:
 			raise errors.IllegalAttrNodeError(self)
 		self.checkValid()
 		publisher.inAttr += 1
+		self._publishName(publisher) # publish the XML name, not the Python name
+		publisher.publish(u"=\"")
 		publisher.pushTextFilter(helpers.escapeAttr)
-		Frag.publish(self, publisher)
+		self._publishAttrValue(publisher)
 		publisher.popTextFilter()
+		publisher.publish(u"\"")
 		publisher.inAttr -= 1
 
 	def pretty(self, level=0, indent="\t"):
@@ -1391,6 +1397,20 @@ class BoolAttr(Attr):
 	<par>Attribute class that is used for boolean attributes.</par>
 	"""
 
+	def publish(self, publisher):
+		if publisher.inAttr:
+			raise errors.IllegalAttrNodeError(self)
+		self.checkValid()
+		publisher.inAttr += 1
+		self._publishName(publisher) # publish the XML name, not the Python name
+		if publisher.xhtml>0:
+			publisher.publish(u"=\"")
+			publisher.pushTextFilter(helpers.escapeAttr)
+			publisher.publish(self.__class__.xmlname)
+			publisher.popTextFilter()
+			publisher.publish(u"\"")
+		publisher.inAttr -= 1
+
 class ColorAttr(Attr):
 	"""
 	<par>Attribute class that is used for a color attributes.</par>
@@ -1406,15 +1426,13 @@ class StyleAttr(Attr):
 			value = cssparsers.parseString(unicode(self), handler=cssparsers.ParseHandler(), base=handler.base)
 			self[:] = (value, )
 
-	def publish(self, publisher):
-		if publisher.inAttr:
-			raise errors.IllegalAttrNodeError(self)
+	def _publishAttrValue(self, publisher):
 		if not self.isfancy():
 			value = cssparsers.parseString(unicode(self), handler=cssparsers.PublishHandler(), base=publisher.base)
-			new = Attr(value)
+			new = Frag(value)
 			new.publish(publisher)
 		else:
-			super(StyleAttr, self).publish(publisher)
+			super(StyleAttr, self)._publishAttrValue(publisher)
 
 	def urls(self):
 		"""
@@ -1437,13 +1455,9 @@ class URLAttr(Attr):
 	def parsed(self, handler, begin=None):
 		self[:] = utils.replaceInitialURL(self, lambda u: handler.base/u)
 
-	def publish(self, publisher):
-		if publisher.inAttr:
-			raise errors.IllegalAttrNodeError(self)
+	def _publishAttrValue(self, publisher):
 		new = utils.replaceInitialURL(self, lambda u: u.relative(publisher.base))
-		publisher.inAttr = 1
 		new.publish(publisher)
-		publisher.inAttr = 0
 
 	def asURL(self):
 		"""
@@ -1632,25 +1646,13 @@ class Attrs(Node, dict):
 		attrs = [key for (key, value) in self.alloweditems() if value.required]
 		for (attrname, attrvalue) in self.iteritems():
 			publisher.publish(u" ")
-			if isinstance(attrname, tuple): # global attribute?
-				publisher.publish(publisher.prefixes.elementprefix4ns(attrname[0])[0])
-				publisher.publish(u":")
-			else:
+			if not isinstance(attrname, tuple): # local attribute?
 				# if a required attribute is encountered, remove from the list of outstanding ones
 				try:
 					attrs.remove(attrname)
 				except ValueError:
 					pass
-			publisher.publish(attrvalue.xmlname) # publish the XML name, not the Python name
-			if isinstance(attrvalue, BoolAttr):
-				if publisher.xhtml>0:
-					publisher.publish(u"=\"")
-					publisher.publish(attrname)
-					publisher.publish(u"\"")
-			else:
-				publisher.publish(u"=\"")
-				attrvalue.publish(publisher)
-				publisher.publish(u"\"")
+			attrvalue.publish(publisher)
 		# are there any required attributes remaining that haven't be specified? => warn about it
 		if attrs:
 			errors.warn(errors.RequiredAttrMissingWarning(self, attrs))
@@ -2417,7 +2419,7 @@ class Element(Node):
 			node = Frag(indent*level, node)
 		return node
 
-	def walk(self, before=True, after=False, attrs=True, attrbefore=True, attrafter=False):
+	def walk(self, before=True, after=False, attrs=False, attrbefore=True, attrafter=False):
 		if before:
 			yield self
 		if attrs:
@@ -2551,7 +2553,9 @@ class NamespaceAttrMixIn(object):
 	require that their namespace is declared. This class can
 	be used as a mixin class to achieve that.</par>
 	"""
-	needsxmlns = 2
+	def needsxmlns(self, publisher=None):
+		return 2
+	needsxmlns = classmethod(needsxmlns)
 
 class Namespace(Base):
 	"""
