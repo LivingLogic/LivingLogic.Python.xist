@@ -12,306 +12,306 @@ cellhalign = { "align" : XSCFrag , "char" : XSCFrag , "charoff" : XSCFrag  }
 cellvalign = { "valign" : XSCFrag }
 
 # The global structure of an HTML document
-class XSChtml(XSCElement):
+class html(XSCElement):
 	close = 1
 	attr_handlers = i18n
-RegisterElement("html",XSChtml)
+RegisterElement("html",html)
 
-class XSChead(XSCElement):
+class head(XSCElement):
 	close = 1
 	attr_handlers = AppendDict(i18n,{ "profile" : XSCFrag })
-RegisterElement("head",XSChead)
+RegisterElement("head",head)
 
-class XSCtitle(XSCElement):
+class title(XSCElement):
 	close = 1
 	attr_handlers = i18n
-RegisterElement("title",XSCtitle)
+RegisterElement("title",title)
 
-class XSCmeta(XSCElement):
+class meta(XSCElement):
 	close = 0
 	attr_handlers = AppendDict(i18n,{ "http-equiv" : XSCFrag , "name" : XSCFrag ,"content" : XSCFrag ,"scheme" : XSCFrag })
-RegisterElement("meta",XSCmeta)
+RegisterElement("meta",meta)
 
-class XSCbody(XSCElement):
+class body(XSCElement):
 	close = 1
 	attr_handlers = AppendDict(attrs,{ "onload" : XSCFrag , "onunload" : XSCFrag })
 	attr_handlers = AppendDict(attr_handlers,{ "background" : XSCFrag , "bgcolor" : XSCFrag , "text" : XSCFrag , "link" : XSCFrag , "vlink" : XSCFrag , "alink" : XSCFrag , "leftmargin" : XSCFrag , "topmargin" : XSCFrag , "marginwidth" : XSCFrag , "marginheight" : XSCFrag }) # deprecated
-RegisterElement("body",XSCbody)
+RegisterElement("body",body)
 
-class XSCdiv(XSCElement):
+class div(XSCElement):
 	close = 1
 	attr_handlers = attrs
-RegisterElement("div",XSCdiv)
+RegisterElement("div",div)
 
-class XSCspan(XSCElement):
+class span(XSCElement):
 	close = 1
 	attr_handlers = attrs
-RegisterElement("span",XSCspan)
+RegisterElement("span",span)
 
-class XSCh1(XSCElement):
-	close = 1
-	attr_handlers = attrs
-	attr_handlers = AppendDict(attr_handlers, { "align" : XSCFrag }) # deprecated
-RegisterElement("h1",XSCh1)
-
-class XSCh2(XSCElement):
+class h1(XSCElement):
 	close = 1
 	attr_handlers = attrs
 	attr_handlers = AppendDict(attr_handlers, { "align" : XSCFrag }) # deprecated
-RegisterElement("h2",XSCh2)
+RegisterElement("h1",h1)
 
-class XSCh3(XSCElement):
+class h2(XSCElement):
 	close = 1
 	attr_handlers = attrs
 	attr_handlers = AppendDict(attr_handlers, { "align" : XSCFrag }) # deprecated
-RegisterElement("h3",XSCh3)
+RegisterElement("h2",h2)
 
-class XSCh4(XSCElement):
+class h3(XSCElement):
 	close = 1
 	attr_handlers = attrs
 	attr_handlers = AppendDict(attr_handlers, { "align" : XSCFrag }) # deprecated
-RegisterElement("h4",XSCh4)
+RegisterElement("h3",h3)
 
-class XSCh5(XSCElement):
+class h4(XSCElement):
 	close = 1
 	attr_handlers = attrs
 	attr_handlers = AppendDict(attr_handlers, { "align" : XSCFrag }) # deprecated
-RegisterElement("h5",XSCh5)
+RegisterElement("h4",h4)
 
-class XSCh6(XSCElement):
+class h5(XSCElement):
 	close = 1
 	attr_handlers = attrs
 	attr_handlers = AppendDict(attr_handlers, { "align" : XSCFrag }) # deprecated
-RegisterElement("h6",XSCh6)
+RegisterElement("h5",h5)
 
-class XSCaddress(XSCElement):
+class h6(XSCElement):
 	close = 1
 	attr_handlers = attrs
-RegisterElement("address",XSCaddress)
+	attr_handlers = AppendDict(attr_handlers, { "align" : XSCFrag }) # deprecated
+RegisterElement("h6",h6)
 
-class XSCbdo(XSCElement):
+class address(XSCElement):
+	close = 1
+	attr_handlers = attrs
+RegisterElement("address",address)
+
+class bdo(XSCElement):
 	close = 1
 	attr_handlers = AppendDict(coreattrs,i18n)
-RegisterElement("bdo",XSCbdo)
+RegisterElement("bdo",bdo)
 
-class XSCtt(XSCElement):
+class tt(XSCElement):
 	close = 1
 	attr_handlers = attrs
-RegisterElement("tt",XSCtt)
+RegisterElement("tt",tt)
 
-class XSCi(XSCElement):
+class i(XSCElement):
 	close = 1
 	attr_handlers = attrs
-RegisterElement("i",XSCi)
+RegisterElement("i",i)
 
-class XSCb(XSCElement):
+class b(XSCElement):
 	close = 1
 	attr_handlers = attrs
-RegisterElement("b",XSCb)
+RegisterElement("b",b)
 
-class XSCbig(XSCElement):
+class big(XSCElement):
 	close = 1
 	attr_handlers = attrs
-RegisterElement("big",XSCbig)
+RegisterElement("big",big)
 
-class XSCsmall(XSCElement):
+class small(XSCElement):
 	close = 1
 	attr_handlers = attrs
-RegisterElement("small",XSCsmall)
+RegisterElement("small",small)
 
-class XSCem(XSCElement):
+class em(XSCElement):
 	close = 1
 	attr_handlers = attrs
-RegisterElement("em",XSCem)
+RegisterElement("em",em)
 
-class XSCstrong(XSCElement):
+class strong(XSCElement):
 	close = 1
 	attr_handlers = attrs
-RegisterElement("strong",XSCstrong)
+RegisterElement("strong",strong)
 
-class XSCdfn(XSCElement):
+class dfn(XSCElement):
 	close = 1
 	attr_handlers = attrs
-RegisterElement("dfn",XSCdfn)
+RegisterElement("dfn",dfn)
 
-class XSCcode(XSCElement):
+class code(XSCElement):
 	close = 1
 	attr_handlers = attrs
-RegisterElement("code",XSCcode)
+RegisterElement("code",code)
 
-class XSCsamp(XSCElement):
+class samp(XSCElement):
 	close = 1
 	attr_handlers = attrs
-RegisterElement("samp",XSCsamp)
+RegisterElement("samp",samp)
 
-class XSCkbd(XSCElement):
+class kbd(XSCElement):
 	close = 1
 	attr_handlers = attrs
-RegisterElement("kbd",XSCkbd)
+RegisterElement("kbd",kbd)
 
-class XSCvar(XSCElement):
+class var(XSCElement):
 	close = 1
 	attr_handlers = attrs
-RegisterElement("var",XSCvar)
+RegisterElement("var",var)
 
-class XSCcite(XSCElement):
+class cite(XSCElement):
 	close = 1
 	attr_handlers = attrs
-RegisterElement("cite",XSCcite)
+RegisterElement("cite",cite)
 
-class XSCabbr(XSCElement):
+class abbr(XSCElement):
 	close = 1
 	attr_handlers = attrs
-RegisterElement("abbr",XSCabbr)
+RegisterElement("abbr",abbr)
 
-class XSCacronym(XSCElement):
+class acronym(XSCElement):
 	close = 1
 	attr_handlers = attrs
-RegisterElement("acronym",XSCacronym)
+RegisterElement("acronym",acronym)
 
-class XSCblockquote(XSCElement):
+class blockquote(XSCElement):
 	close = 1
 	attr_handlers = AppendDict(attrs,{ "cite" : XSCFrag })
-RegisterElement("blockquote",XSCblockquote)
+RegisterElement("blockquote",blockquote)
 
-class XSCq(XSCElement):
+class q(XSCElement):
 	close = 1
 	attr_handlers = AppendDict(attrs,{ "cite" : XSCFrag })
-RegisterElement("q",XSCq)
+RegisterElement("q",q)
 
-class XSCsub(XSCElement):
+class sub(XSCElement):
 	close = 1
 	attr_handlers = attrs
-RegisterElement("sub",XSCsub)
+RegisterElement("sub",sub)
 
-class XSCsup(XSCElement):
+class sup(XSCElement):
 	close = 1
 	attr_handlers = attrs
-RegisterElement("sup",XSCsup)
+RegisterElement("sup",sup)
 
-class XSCp(XSCElement):
+class p(XSCElement):
 	close = 1
 	attr_handlers = attrs
-RegisterElement("p",XSCp)
+RegisterElement("p",p)
 
-class XSCbr(XSCElement):
+class br(XSCElement):
 	close = 0
 	attr_handlers = coreattrs
-RegisterElement("br",XSCbr)
+RegisterElement("br",br)
 
-class XSCpre(XSCElement):
+class pre(XSCElement):
 	close = 1
 	attr_handlers = attrs
-RegisterElement("pre",XSCpre)
+RegisterElement("pre",pre)
 
-class XSCins(XSCElement):
+class ins(XSCElement):
 	close = 1
 	attr_handlers = AppendDict(attrs,{ "cite" : XSCFrag , "datetime" : XSCFrag })
-RegisterElement("ins",XSCins)
+RegisterElement("ins",ins)
 
-class XSCdel(XSCElement):
+class del(XSCElement):
 	close = 1
 	attr_handlers = AppendDict(attrs,{ "cite" : XSCFrag , "datetime" : XSCFrag })
-RegisterElement("del",XSCdel)
+RegisterElement("del",del)
 
-class XSCul(XSCElement):
+class ul(XSCElement):
 	close = 1
 	attr_handlers = attrs
-RegisterElement("ul",XSCul)
+RegisterElement("ul",ul)
 
-class XSCol(XSCElement):
+class ol(XSCElement):
 	close = 1
 	attr_handlers = attrs
-RegisterElement("ol",XSCol)
+RegisterElement("ol",ol)
 
-class XSCli(XSCElement):
+class li(XSCElement):
 	close = 1
 	attr_handlers = attrs
-RegisterElement("li",XSCli)
+RegisterElement("li",li)
 
-class XSCdl(XSCElement):
+class dl(XSCElement):
 	close = 1
 	attr_handlers = attrs
-RegisterElement("dl",XSCdl)
+RegisterElement("dl",dl)
 
-class XSCdt(XSCElement):
+class dt(XSCElement):
 	close = 1
 	attr_handlers = attrs
-RegisterElement("dt",XSCdt)
+RegisterElement("dt",dt)
 
-class XSCdd(XSCElement):
+class dd(XSCElement):
 	close = 1
 	attr_handlers = attrs
-RegisterElement("dd",XSCdd)
+RegisterElement("dd",dd)
 
-class XSCtable(XSCElement):
+class table(XSCElement):
 	close = 1
 	attr_handlers = AppendDict(attrs,{ "summary" : XSCFrag ,"width" : XSCFrag ,"border" : XSCFrag ,"frame" : XSCFrag ,"rules" : XSCFrag ,"cellspacing" : XSCFrag ,"cellpadding" : XSCFrag })
 	attr_handlers = AppendDict(attr_handlers,{ "height" : XSCFrag }) # deprecated
-RegisterElement("table",XSCtable)
+RegisterElement("table",table)
 
-class XSCcaption(XSCElement):
+class caption(XSCElement):
 	close = 1
 	attr_handlers = attrs
-RegisterElement("caption",XSCcaption)
+RegisterElement("caption",caption)
 
-class XSCthead(XSCElement):
+class thead(XSCElement):
 	close = 1
 	attr_handlers = AppendDict(attrs,cellhalign,cellvalign)
-RegisterElement("thead",XSCthead)
+RegisterElement("thead",thead)
 
-class XSCtfoot(XSCElement):
+class tfoot(XSCElement):
 	close = 1
 	attr_handlers = AppendDict(attrs,cellhalign,cellvalign)
-RegisterElement("tfoot",XSCtfoot)
+RegisterElement("tfoot",tfoot)
 
-class XSCtbody(XSCElement):
+class tbody(XSCElement):
 	close = 1
 	attr_handlers = AppendDict(attrs,cellhalign,cellvalign)
-RegisterElement("tbody",XSCtbody)
+RegisterElement("tbody",tbody)
 
-class XSCcolgroup(XSCElement):
+class colgroup(XSCElement):
 	close = 1
 	attr_handlers = AppendDict(attrs,{ "span" : XSCFrag , "width" : XSCFrag },cellhalign,cellvalign)
-RegisterElement("colgroup",XSCcolgroup)
+RegisterElement("colgroup",colgroup)
 
-class XSCcol(XSCElement):
+class col(XSCElement):
 	close = 1
 	attr_handlers = AppendDict(attrs,{ "span" : XSCFrag , "width" : XSCFrag },cellhalign,cellvalign)
-RegisterElement("col",XSCcol)
+RegisterElement("col",col)
 
-class XSCtr(XSCElement):
+class tr(XSCElement):
 	close = 1
 	attr_handlers = AppendDict(attrs,cellhalign,cellvalign)
-RegisterElement("tr",XSCtr)
+RegisterElement("tr",tr)
 
-class XSCth(XSCElement):
+class th(XSCElement):
 	close = 1
 	attr_handlers = AppendDict(attrs,{ "abbr" : XSCFrag , "axis" : XSCFrag , "headers" : XSCFrag , "scope" : XSCFrag , "rowspan" : XSCFrag , "colspan" : XSCFrag },cellhalign,cellvalign)
-RegisterElement("th",XSCth)
+RegisterElement("th",th)
 
-class XSCtd(XSCElement):
+class td(XSCElement):
 	close = 1
 	attr_handlers = AppendDict(attrs,{ "abbr" : XSCFrag , "axis" : XSCFrag , "headers" : XSCFrag , "scope" : XSCFrag , "rowspan" : XSCFrag , "colspan" : XSCFrag },cellhalign,cellvalign)
 	attr_handlers = AppendDict(attr_handlers,{ "nowrap" : XSCFrag , "bgcolor" : XSCFrag , "width" : XSCFrag }) # deprecated
-RegisterElement("td",XSCtd)
+RegisterElement("td",td)
 
-class XSCa(XSCElement):
+class a(XSCElement):
 	close = 1
 	attr_handlers = AppendDict(attrs,{ "charset" : XSCFrag , "type" : XSCFrag , "name" : XSCFrag , "href" : XSCurl , "hreflang" : XSCFrag , "rel" : XSCFrag , "rev" : XSCFrag , "accesskey" : XSCFrag , "shape" : XSCFrag , "coords" : XSCFrag , "tabindex" : XSCFrag , "onfocus" : XSCFrag , "onblur" : XSCFrag })
-RegisterElement("a",XSCa)
+RegisterElement("a",a)
 
-class XSClink(XSCElement):
+class link(XSCElement):
 	close = 0
 	attr_handlers = AppendDict(attrs,{ "charset" : XSCFrag , "href" : XSCurl , "hreflang" : XSCFrag , "type" : XSCFrag , "rel" : XSCFrag , "rev" : XSCFrag , "media" : XSCFrag })
-RegisterElement("link",XSClink)
+RegisterElement("link",link)
 
-class XSCbase(XSCElement):
+class base(XSCElement):
 	close = 0
 	attr_handlers = { "href" : XSCurl }
-RegisterElement("base",XSCbase)
+RegisterElement("base",base)
 
-class XSCimg(XSCElement):
+class img(XSCElement):
 	close = 0
 	attr_handlers = AppendDict(attrs,{ "src" : XSCurl , "alt" : XSCFrag , "longdesc" : XSCFrag , "width" : XSCFrag , "height" : XSCFrag , "usemap" : XSCFrag , "ismap" : XSCFrag })
 	attr_handlers = AppendDict(attr_handlers,{ "border" : XSCFrag , "align" : XSCFrag , "hspace" : XSCFrag , "vspace" : XSCFrag }) # deprecated
@@ -321,118 +321,118 @@ class XSCimg(XSCElement):
 		e.AddImageSizeAttributes("src")
 
 		return XSCElement.__str__(e)
-RegisterElement("img",XSCimg)
+RegisterElement("img",img)
 
-class XSCobject(XSCElement):
+class object(XSCElement):
 	close = 1
 	attr_handlers = AppendDict(attrs,{ "declare" : XSCFrag , "classid" : XSCFrag , "codebase" : XSCFrag , "data" : XSCFrag , "type" : XSCFrag , "codetype" : XSCFrag , "archive" : XSCFrag , "standby" : XSCFrag , "height" : XSCFrag , "width" : XSCFrag , "usemap" : XSCFrag , "name" : XSCFrag , "tabindex" : XSCFrag })
-RegisterElement("object",XSCobject)
+RegisterElement("object",object)
 
-class XSCparam(XSCElement):
+class param(XSCElement):
 	close = 0
 	attr_handlers = { "id" : XSCFrag , "name" : XSCFrag , "value" : XSCFrag , "valuetype" : XSCFrag , "type" : XSCFrag }
-RegisterElement("param",XSCparam)
+RegisterElement("param",param)
 
-class XSCmap(XSCElement):
+class map(XSCElement):
 	close = 1
 	attr_handlers = AppendDict(attrs,{ "name" : XSCFrag })
-RegisterElement("map",XSCmap)
+RegisterElement("map",map)
 
-class XSCarea(XSCElement):
+class area(XSCElement):
 	close = 0
 	attr_handlers = AppendDict(attrs,{ "shape" : XSCFrag , "coords" : XSCFrag , "href" : XSCurl , "nohref" : XSCFrag , "alt" : XSCFrag , "tabindex" : XSCFrag , "accesskey" : XSCFrag , "onfocus" : XSCFrag , "onblur" : XSCFrag })
-RegisterElement("area",XSCarea)
+RegisterElement("area",area)
 
-class XSCstyle(XSCElement):
+class style(XSCElement):
 	close = 1
 	attr_handlers = AppendDict(i18n,{ "type" : XSCFrag , "media" : XSCFrag , "title" : XSCFrag })
-RegisterElement("style",XSCstyle)
+RegisterElement("style",style)
 
-class XSChr(XSCElement):
+class hr(XSCElement):
 	close = 0
 	attr_handlers = AppendDict(coreattrs,events)
-RegisterElement("hr",XSChr)
+RegisterElement("hr",hr)
 
 # The pain, the pain ...
-class XSCframeset(XSCElement):
+class frameset(XSCElement):
 	close = 1
 	attr_handlers = AppendDict(coreattrs,{ "rows" : XSCFrag ,"cols" : XSCFrag ,"onload" : XSCFrag ,"onunload" : XSCFrag })
-RegisterElement("frameset",XSCframeset)
+RegisterElement("frameset",frameset)
 
-class XSCframe(XSCElement):
+class frame(XSCElement):
 	close = 1
 	attr_handlers = AppendDict(coreattrs,{ "longdesc" : XSCFrag , "name" : XSCFrag , "src" : XSCurl , "frameborder" : XSCFrag , "marginwidht" : XSCFrag , "marginheight" : XSCFrag , "noresize" : XSCFrag , "scrolling" : XSCFrag })
-RegisterElement("frame",XSCframe)
+RegisterElement("frame",frame)
 
-class XSCnoframes(XSCElement):
+class noframes(XSCElement):
 	close = 1
 	attr_handlers = attrs
-RegisterElement("noframes",XSCnoframes)
+RegisterElement("noframes",noframes)
 
-class XSCiframe(XSCElement):
+class iframe(XSCElement):
 	close = 1
 	attr_handlers = AppendDict(coreattrs,{ "longdesc" : XSCFrag , "name" : XSCFrag , "src" : XSCurl , "frameborder" : XSCFrag , "marginwidht" : XSCFrag , "marginheight" : XSCFrag , "noresize" : XSCFrag , "scrolling" : XSCFrag , "align" : XSCFrag , "height" : XSCFrag , "width" : XSCFrag })
-RegisterElement("iframe",XSCiframe)
+RegisterElement("iframe",iframe)
 
-class XSCform(XSCElement):
+class form(XSCElement):
 	close = 1
 	attr_handlers = AppendDict(attrs,{ "action" : XSCurl , "method" : XSCFrag , "enctype" : XSCFrag , "onsubmit" : XSCFrag , "onreset" : XSCFrag , "accept-charset" : XSCFrag })
-RegisterElement("form",XSCform)
+RegisterElement("form",form)
 
-class XSCinput(XSCElement):
+class input(XSCElement):
 	close = 0
 	attr_handlers = AppendDict(attrs,{ "type" : XSCFrag , "name" : XSCFrag , "value" : XSCFrag , "checked" : XSCFrag , "disabled" : XSCFrag , "readonly" : XSCFrag , "size" : XSCFrag , "maxlength" : XSCFrag , "src" : XSCurl , "alt" : XSCFrag , "usemap" : XSCFrag , "tabindex" : XSCFrag , "accesskey" : XSCFrag , "onfocus" : XSCFrag , "onblur" : XSCFrag , "onselect" : XSCFrag , "onchange" : XSCFrag , "accept" : XSCFrag })
-RegisterElement("input",XSCinput)
+RegisterElement("input",input)
 
-class XSCbutton(XSCElement):
+class button(XSCElement):
 	close = 0
 	attr_handlers = AppendDict(attrs,{ "name" : XSCFrag , "value" : XSCFrag , "type" : XSCFrag , "disabled" : XSCFrag , "tabindex" : XSCFrag , "accesskey" : XSCFrag , "onfocus" : XSCFrag , "onblur" : XSCFrag })
-RegisterElement("button",XSCbutton)
+RegisterElement("button",button)
 
-class XSCselect(XSCElement):
+class select(XSCElement):
 	close = 1
 	attr_handlers = AppendDict(attrs,{ "name" : XSCFrag , "size" : XSCFrag , "multiple" : XSCFrag , "disabled" : XSCFrag , "tabindex" : XSCFrag , "onfocus" : XSCFrag , "onblur" : XSCFrag , "onchange" : XSCFrag })
-RegisterElement("select",XSCselect)
+RegisterElement("select",select)
 
-class XSCoptgroup(XSCElement):
+class optgroup(XSCElement):
 	close = 1
 	attr_handlers = AppendDict(attrs,{ "disabled" : XSCFrag , "label" : XSCFrag })
-RegisterElement("optgroup",XSCoptgroup)
+RegisterElement("optgroup",optgroup)
 
-class XSCoption(XSCElement):
+class option(XSCElement):
 	close = 1
 	attr_handlers = AppendDict(attrs,{ "selected" : XSCFrag , "disabled" : XSCFrag , "label" : XSCFrag , "value" : XSCFrag })
-RegisterElement("option",XSCoption)
+RegisterElement("option",option)
 
-class XSCtextarea(XSCElement):
+class textarea(XSCElement):
 	close = 1
 	attr_handlers = AppendDict(attrs,{ "name" : XSCFrag , "rows" : XSCFrag , "cols" : XSCFrag , "disabled" : XSCFrag , "readonly" : XSCFrag , "tabindex" : XSCFrag , "accesskey" : XSCFrag , "onfocus" : XSCFrag , "onblur" : XSCFrag , "onselect" : XSCFrag , "onchange" : XSCFrag })
-RegisterElement("textarea",XSCtextarea)
+RegisterElement("textarea",textarea)
 
-class XSClabel(XSCElement):
+class label(XSCElement):
 	close = 1
 	attr_handlers = AppendDict(attrs,{ "for" : XSCFrag , "accesskey" : XSCFrag , "onfocus" : XSCFrag , "onblur" : XSCFrag })
-RegisterElement("label",XSClabel)
+RegisterElement("label",label)
 
-class XSCfieldset(XSCElement):
+class fieldset(XSCElement):
 	close = 1
 	attr_handlers = attrs
-RegisterElement("fieldset",XSCfieldset)
+RegisterElement("fieldset",fieldset)
 
-class XSClegend(XSCElement):
+class legend(XSCElement):
 	close = 1
 	attr_handlers = AppendDict(attrs,{ "accesskey" : XSCFrag })
-RegisterElement("legend",XSClegend)
+RegisterElement("legend",legend)
 
-class XSCscript(XSCElement):
+class script(XSCElement):
 	close = 1
 	attr_handlers = { "charset" : XSCFrag , "type" : XSCFrag , "src" : XSCurl , "defer" : XSCFrag }
-RegisterElement("script",XSCscript)
+RegisterElement("script",script)
 
-class XSCnoscript(XSCElement):
+class noscript(XSCElement):
 	close = 1
 	attr_handlers = attrs
-RegisterElement("noscript",XSCnoscript)
+RegisterElement("noscript",noscript)
 
 if __name__ == "__main__":
 	try:
