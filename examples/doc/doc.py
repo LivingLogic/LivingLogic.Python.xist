@@ -58,7 +58,7 @@ def getDoc(text):
 	try:
 		e = xsc.xsc.parseString(text)
 	except:
-		e = xsc.Text(text)
+		e = html.pre(text)
 	return elements.desc(e)
 
 def explain(thing):
