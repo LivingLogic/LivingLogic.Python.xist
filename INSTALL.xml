@@ -3,8 +3,8 @@
 To use &xist; you need the following software packages:
 <olist>
 <item>Python 2.2 (available from <a href="http://www.python.org/">http://www.python.org/</a> and
-<a href="http://python.sourceforge.net/">http://python.sourceforge.net/</a>),</item>
-<item>The Python &xml; package (available from <a href="http://pyxml.sourceforge.net/">http://pyxml.sourceforge.net/</a>)
+<a href="http://python.sf.net/">http://python.sf.net/</a>),</item>
+<item>The Python &xml; package (available from <a href="http://pyxml.sf.net/">http://pyxml.sf.net/</a>)
 (a version that includes sgmlop and expat),</item>
 <item>the Python Imaging Library (available from
 <a href="http://www.pythonware.com/products/pil/">http://www.pythonware.com/products/pil/</a>)</item>

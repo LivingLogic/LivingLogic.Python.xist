@@ -227,7 +227,7 @@ class Node(object):
 		<doc:par>Return the node as a formatted plain &ascii; string.
 		Note that this really only make sense for &html; trees.</doc:par>
 
-		<doc:par>This requires that <app moreinfo="http://w3m.sourceforge.net/">w3m</app> is installed.</doc:par>
+		<doc:par>This requires that <app moreinfo="http://w3m.sf.net/">w3m</app> is installed.</doc:par>
 		"""
 
 		options = ""

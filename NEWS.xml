@@ -263,7 +263,7 @@ use <a href="http://java.sun.com/products/jsp/">&jsp;</a> and
 
 <item>A new method <method>asText</method> was added, that returns
 the node as a formatted plain &ascii; text (this requires that
-<app moreinfo="http://w3m.sourceforge.net/">w3m</app>
+<app moreinfo="http://w3m.sf.net/">w3m</app>
 is installed.)</item>
 
 <item><filename>make.py</filename> has been renamed to
