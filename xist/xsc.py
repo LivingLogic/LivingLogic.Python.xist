@@ -611,7 +611,7 @@ class XSCAttrs(XSCNode):
 	def dostr(self):
 		v = []
 		for attr in self.keys():
-			v.append(" " + attr + '="' + self[attr].dostr() + '"')
+			v.append(' ' + attr + '="' + self[attr].dostr() + '"')
 		return string.joinfields(v,"")
 
 	def has_attr(self,index):
