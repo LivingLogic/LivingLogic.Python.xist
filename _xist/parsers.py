@@ -253,7 +253,7 @@ class BadEntityParser(SGMLOPParser):
 		if text is None:
 			return xsc.Null
 		node = xsc.Frag()
-		ct = self.self._cont_handler.createText
+		ct = self._cont_handler.createText
 		parts = text.split(u"&")
 		node.append(ct(parts[0]))
 		del parts[0]
