@@ -311,8 +311,6 @@ class Node(Base):
 	and may overwrite <pyref method="publish"><method>publish</method></pyref>
 	and <pyref method="__unicode__"><method>__unicode__</method></pyref>.
 	"""
-	empty = True
-
 	# location of this node in the XML file (will be hidden in derived classes, but is
 	# specified here, so that no special tests are required. In derived classes
 	# this will be set by the parser)
@@ -458,8 +456,6 @@ class Node(Base):
 
 		<prog>
 		class foo(xsc.Element):
-			empty = False
-
 			def convert(self, converter):
 				return html.b(self.content).convert(converter)
 		</prog>
@@ -476,8 +472,6 @@ class Node(Base):
 		elements. Suppose you have the following element:</par>
 		<prog>
 		class caps(xsc.Element):
-			empty = False
-
 			def convert(self, converter):
 				return html.span(
 					self.content.convert(converter),
@@ -909,19 +903,19 @@ class CharacterData(Node):
 	"""
 	__slots__ = ("__content",)
 
-	def __init__(self, content=u""):
-		self.__content = unicode(content)
+	def __init__(self, *content):
+		self.__content = u"".join([unicode(x) for x in content])
 
-	def __getContent(self):
+	def __getcontent(self):
 		return self.__content
 
-	content = property(__getContent, None, None, "<par>The text content of the node as a <class>unicode</class> object.</par>")
+	content = property(__getcontent, None, None, "<par>The text content of the node as a <class>unicode</class> object.</par>")
 
 	def __hash__(self):
 		return self.__content.__hash__()
 
 	def __eq__(self, other):
-		return self.__class__ is other.__class__ and self.content==other.content
+		return self.__class__ is other.__class__ and self.__content==other.__content
 
 	def __len__(self):
 		return self.__content.__len__()
@@ -1424,19 +1418,18 @@ class ProcInst(CharacterData):
 	"""
 	<par>Base class for processing instructions. This class is abstract.</par>
 
-	<par>Processing instruction with the target <lit>xml</lit> will be
-	handled by the derived class <pyref module="ll.xist.ns.xml" class="XML"><class>XML</class></pyref>.
-	All other processing instructions will be handled
-	by other classes derived from <class>ProcInst</class>.</par>
+	<par>Processing instructions for specific targets must
+	be implemented as subclasses of <class>ProcInst</class>.</par>
 	"""
 	register = None
-
-	# we don't need a constructor, because we don't have to store the target,
-	# because the target is our classname (this works the same way as for Element)
 
 	class __metaclass__(CharacterData.__metaclass__):
 		def __repr__(self):
 			return "<procinst class %s:%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
+
+	def __init__(self, *content, **attrs):
+		CharacterData.__init__(self, *content)
+		#self.__content = u"".join([unicode(x) for x in content])
 
 	def _registerns(cls, ns):
 		if cls.xmlns is not None:
@@ -1564,11 +1557,10 @@ class Attr(Frag):
 	def isfancy(self):
 		"""
 		<par>Return whether <self/> contains nodes
-		other than <pyref class="Text"><class>Text</class></pyref> or
-		<pyref class="CharRef"><class>CharRef</class></pyref>.</par>
+		other than <pyref class="Text"><class>Text</class></pyref>.</par>
 		"""
 		for child in self:
-			if not isinstance(child, (Text, CharRef)):
+			if not isinstance(child, Text):
 				return True
 		return False
 
@@ -1654,7 +1646,8 @@ class Attr(Frag):
 		Frag.publish(self, publisher)
 
 	def publish(self, publisher):
-		self.checkvalid()
+		if publisher.validate:
+			self.checkvalid()
 		publisher.inattr += 1
 		self._publishname(publisher) # publish the XML name, not the Python name
 		publisher.publish(u"=\"")
@@ -1704,7 +1697,8 @@ class BoolAttr(Attr):
 	"""
 
 	def publish(self, publisher):
-		self.checkvalid()
+		if publisher.validate:
+			self.checkvalid()
 		publisher.inattr += 1
 		self._publishname(publisher) # publish the XML name, not the Python name
 		if publisher.xhtml>0:
@@ -2262,9 +2256,10 @@ class Element(Node):
 	classes.</par>
 
 	<par>Every element class should have two class variables:
-	<lit>empty</lit>: this is either <lit>False</lit> or <lit>True</lit>
-	and specifies whether the element type is allowed to have content
-	or not. This will be checked when parsing or publishing.</par>
+	<lit>model</lit>: this is an object that is used for validating the
+	content of the element. See the module <pyref module="ll.xist.sims"><module>ll.xist.sims</module></pyref>
+	for more info. If <lit>model</lit> is <lit>None</lit> validation will
+	be skipped, otherwise it will be performed when parsing or publishing.</par>
 
 	<par><lit>Attrs</lit>, which is a class derived from
 	<pyref class="Element.Attrs"><class>Element.Attrs</class></pyref>
@@ -2272,7 +2267,7 @@ class Element(Node):
 	<class>Attrs</class> class.</par>
 	"""
 
-	empty = False # False => element with content; True => element without content
+	model = None
 	register = None
 
 	class __metaclass__(Node.__metaclass__):
@@ -2283,6 +2278,16 @@ class Element(Node):
 				del dict["name"]
 			if "attrHandlers" in dict:
 				warnings.warn(DeprecationWarning("attrHandlers is deprecated, use a nested Attrs class instead"), stacklevel=2)
+			if "empty" in dict:
+				warnings.warn(DeprecationWarning("empty is deprecated, use model (and ll.xist.sims) instead"), stacklevel=2)
+				from ll.xist import sims
+				if dict["empty"]:
+					model = sims.Empty()
+				else:
+					model = sims.Any()
+				del dict["empty"]
+				dict["model"] = model
+			
 			return Node.__metaclass__.__new__(cls, name, bases, dict)
 		def __repr__(self):
 			return "<element class %s:%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
@@ -2401,15 +2406,15 @@ class Element(Node):
 			s.append(presenters.strBracketOpen())
 		cls._strbase(presenters.strElementName, s, fullname=fullname, xml=xml)
 		if decorate:
-			if cls.empty:
+			if cls.model is not None and cls.model.empty:
 				s.append(presenters.strSlash())
 			s.append(presenters.strBracketClose())
 		return s
 	_str = classmethod(_str)
 
 	def checkvalid(self):
-		if self.empty and len(self):
-			warnings.warn(errors.EmptyElementWithContentWarning(self))
+		if self.model is not None:
+			self.model.checkvalid(self)
 		self.attrs.checkvalid()
 
 	def append(self, *items):
@@ -2508,8 +2513,6 @@ class Element(Node):
 			publisher.publishxmlns = None
 		self.attrs.publish(publisher)
 		if len(self):
-			if self.empty:
-				warnings.warn(errors.EmptyElementWithContentWarning(self))
 			publisher.publish(u">")
 			self.content.publish(publisher)
 			publisher.publish(u"</")
@@ -2517,7 +2520,7 @@ class Element(Node):
 			publisher.publish(u">")
 		else:
 			if publisher.xhtml in (0, 1):
-				if self.empty:
+				if self.model is not None and self.model.empty:
 					if publisher.xhtml==1:
 						publisher.publish(u" /")
 					publisher.publish(u">")
@@ -2529,7 +2532,8 @@ class Element(Node):
 				publisher.publish(u"/>")
 
 	def publish(self, publisher):
-		self.checkvalid()
+		if publisher.validate:
+			self.checkvalid()
 		if publisher.inattr:
 			# publish the content only when we are inside an attribute. This works much like using the plain string value,
 			# but even works with processing instructions, or what the abbreviation entities return
@@ -2908,7 +2912,7 @@ class Entity(Node):
 		publisher.publish(u";")
 
 
-class CharRef(Entity):
+class CharRef(Text, Entity):
 	"""
 	<par>A simple character reference, the codepoint is in the class attribute
 	<lit>codepoint</lit>.</par>
@@ -2918,6 +2922,10 @@ class CharRef(Entity):
 	class __metaclass__(Entity.__metaclass__):
 		def __repr__(self):
 			return "<charref class %s:%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
+
+	def __init__(self):
+		Text.__init__(self, unichr(self.codepoint))
+		Entity.__init__(self)
 
 	def _registerns(cls, ns):
 		if cls.xmlns is not None:
@@ -2937,13 +2945,8 @@ class CharRef(Entity):
 			map[2].setdefault(cls.codepoint, []).append(cls)
 	_registerns = classmethod(_registerns)
 
-	def convert(self, converter):
-		node = Text(unichr(self.codepoint))
-		return self._decoratenode(node)
-
-	def __unicode__(self):
-		return unichr(self.codepoint)
-
+	def present(self, presenter):
+		presenter.presentEntity(self)
 
 ###
 ### Classes for namespace handling

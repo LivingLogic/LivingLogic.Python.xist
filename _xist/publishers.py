@@ -35,7 +35,7 @@ class Publisher(object):
 	base class for all publishers.
 	"""
 
-	def __init__(self, encoding="utf-8", xhtml=1, prefixes=None, prefixmode=0):
+	def __init__(self, encoding="utf-8", xhtml=1, validate=True, prefixes=None, prefixmode=0):
 		"""
 		<par><arg>encoding</arg> specifies the encoding to be used.
 		The encoding itself (i.e. calling <method>encode</method> on the
@@ -61,6 +61,9 @@ class Publisher(object):
 		by the environment variable <lit>XSC_OUTPUT_XHTML</lit> and can of course be
 		changed dynamically.</par>
 
+		<par><arg>validate</arg> specifies whether validation should be done before
+		publishing.</par>
+
 		<par><arg>prefixes</arg> is an instance of <pyref module="ll.xist.xsc" class="Prefixes"><class>Prefixes</class></pyref>
 		and maps <pyref module="ll.xist.xsc" class="Namespace"><class>Namespace</class></pyref>
 		objects to prefixes that should be used (or <lit>None</lit>, if no prefix should be used).
@@ -75,6 +78,7 @@ class Publisher(object):
 		self.base = None
 		self.encoding = encoding
 		self.xhtml = xhtml
+		self.validate = validate
 
 		if prefixes is None:
 			prefixes = xsc.OldPrefixes()

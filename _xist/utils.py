@@ -50,7 +50,7 @@ def replaceInitialURL(frag, callback):
 	if len(frag):
 		for i in xrange(len(frag)):
 			v = frag[i]
-			if isinstance(v, (xsc.Text, xsc.CharRef)):
+			if isinstance(v, xsc.Text):
 				newfrag.append(v)
 			else:
 				break

@@ -16,7 +16,7 @@
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-from ll.xist import xsc
+from ll.xist import xsc, sims
 
 
 ###
@@ -1093,17 +1093,16 @@ class usage_context_of_suppress_at_line_break(xsc.Element.Attrs):
 ###
 ### Elements
 ### Attributes are only the applicable ones. Inheritable ones will be added afterwards
+### The schema information will be added in the same step
 ###
 
 class color_profile(xsc.Element):
 	xmlname = "color-profile"
-	empty = True
 	class Attrs(src, color_profile_name, rendering_intent):
 		pass
 
 
 class declarations(xsc.Element):
-	empty = False
 	class Attrs(
 		# inheritable attributes
 		color_profile.Attrs
@@ -1112,14 +1111,12 @@ class declarations(xsc.Element):
 
 
 class root(xsc.Element):
-	empty = False
 	class Attrs(media_usage):
 		pass
 
 
 class page_sequence(xsc.Element):
 	xmlname = "page-sequence"
-	empty = False
 	class Attrs(
 		country,
 		format,
@@ -1136,49 +1133,42 @@ class page_sequence(xsc.Element):
 
 class layout_master_set(xsc.Element):
 	xmlname = "layout-master-set"
-	empty = False
 	class Attrs(xsc.Element.Attrs): # this is required, otherwise adding inherited attributes would modify xsc.Element.Attrs
 		pass
 
 
 class page_sequence_master(xsc.Element):
 	xmlname = "page-sequence-master"
-	empty = False
 	class Attrs(master_name):
 		pass
 
 
 class single_page_master_reference(xsc.Element):
 	xmlname = "single-page-master-reference"
-	empty = True
 	class Attrs(master_reference):
 		pass
 
 
 class repeatable_page_master_reference(xsc.Element):
 	xmlname = "repeatable-page-master-reference"
-	empty = True
 	class Attrs(master_reference, maximum_repeats):
 		pass
 
 
 class repeatable_page_master_alternatives(xsc.Element):
 	xmlname = "repeatable-page-master-alternatives"
-	empty = False
 	class Attrs(maximum_repeats):
 		pass
 
 
 class conditional_page_master_reference(xsc.Element):
 	xmlname = "conditional-page-master-reference"
-	empty = True
 	class Attrs(master_reference, page_position, odd_or_even, blank_or_not_blank):
 		pass
 
 
 class simple_page_master(xsc.Element):
 	xmlname = "simple-page-master"
-	empty = False
 	class Attrs(
 		common_margin_properties_block,
 		master_name,
@@ -1191,7 +1181,6 @@ class simple_page_master(xsc.Element):
 
 class region_body(xsc.Element):
 	xmlname = "region-body"
-	empty = True
 	class Attrs(
 		common_border_padding_background_properties,
 		common_margin_properties_block,
@@ -1208,7 +1197,6 @@ class region_body(xsc.Element):
 
 class region_before(xsc.Element):
 	xmlname = "region-before"
-	empty = True
 	class Attrs(
 		common_border_padding_background_properties,
 		clip,
@@ -1224,7 +1212,6 @@ class region_before(xsc.Element):
 
 class region_after(xsc.Element):
 	xmlname = "region-after"
-	empty = True
 	class Attrs(
 		common_border_padding_background_properties,
 		clip,
@@ -1240,7 +1227,6 @@ class region_after(xsc.Element):
 
 class region_start(xsc.Element):
 	xmlname = "region-start"
-	empty = True
 	class Attrs(
 		common_border_padding_background_properties,
 		clip,
@@ -1255,7 +1241,6 @@ class region_start(xsc.Element):
 
 class region_end(xsc.Element):
 	xmlname = "region-end"
-	empty = True
 	class Attrs(
 		common_border_padding_background_properties,
 		clip,
@@ -1269,20 +1254,17 @@ class region_end(xsc.Element):
 
 
 class flow(xsc.Element):
-	empty = False
 	class Attrs(flow_name):
 		pass
 
 
 class static_content(xsc.Element):
 	xmlname = "static-content"
-	empty = False
 	class Attrs(flow_name):
 		pass
 
 
 class title(xsc.Element):
-	empty = False
 	class Attrs(
 		common_accessibility_properties,
 		common_aural_properties,
@@ -1296,7 +1278,6 @@ class title(xsc.Element):
 
 
 class block(xsc.Element):
-	empty = False
 	class Attrs(
 		common_accessibility_properties,
 		common_aural_properties,
@@ -1338,7 +1319,6 @@ class block(xsc.Element):
 
 class block_container(xsc.Element):
 	xmlname = "block-container"
-	empty = False
 	class Attrs(
 		common_absolute_position_properties,
 		common_border_padding_background_properties,
@@ -1366,7 +1346,6 @@ class block_container(xsc.Element):
 
 class bidi_override(xsc.Element):
 	xmlname = "bidi-override"
-	empty = False
 	class Attrs(
 		common_aural_properties,
 		common_font_properties,
@@ -1383,7 +1362,6 @@ class bidi_override(xsc.Element):
 
 
 class character(xsc.Element):
-	empty = True
 	class Attrs(
 		common_aural_properties,
 		common_border_padding_background_properties,
@@ -1419,7 +1397,6 @@ class character(xsc.Element):
 
 class initial_property_set(xsc.Element):
 	xmlname = "initial-property-set"
-	empty = True
 	class Attrs(
 		common_accessibility_properties,
 		common_aural_properties,
@@ -1440,7 +1417,6 @@ class initial_property_set(xsc.Element):
 
 class external_graphic(xsc.Element):
 	xmlname = "external-graphic"
-	empty = True
 	class Attrs(
 		common_accessibility_properties,
 		common_aural_properties,
@@ -1475,7 +1451,6 @@ class external_graphic(xsc.Element):
 
 class instream_foreign_object(xsc.Element):
 	xmlname = "instream-foreign-object"
-	empty = False
 	class Attrs(
 		common_accessibility_properties,
 		common_aural_properties,
@@ -1508,7 +1483,6 @@ class instream_foreign_object(xsc.Element):
 
 
 class inline(xsc.Element):
-	empty = False
 	class Attrs(
 		common_accessibility_properties,
 		common_aural_properties,
@@ -1539,7 +1513,6 @@ class inline(xsc.Element):
 
 class inline_container(xsc.Element):
 	xmlname = "inline-container"
-	empty = False
 	class Attrs(
 		common_border_padding_background_properties,
 		common_margin_properties_inline,
@@ -1566,7 +1539,6 @@ class inline_container(xsc.Element):
 
 
 class leader(xsc.Element):
-	empty = False
 	class Attrs(
 		common_accessibility_properties,
 		common_aural_properties,
@@ -1600,7 +1572,6 @@ class leader(xsc.Element):
 
 class page_number(xsc.Element):
 	xmlname = "page-number"
-	empty = True
 	class Attrs(
 		common_accessibility_properties,
 		common_aural_properties,
@@ -1632,7 +1603,6 @@ class page_number(xsc.Element):
 
 class page_number_citation(xsc.Element):
 	xmlname = "page-number-citation"
-	empty = True
 	class Attrs(
 		common_accessibility_properties,
 		common_aural_properties,
@@ -1665,7 +1635,6 @@ class page_number_citation(xsc.Element):
 
 class table_and_caption(xsc.Element):
 	xmlname = "table-and-caption"
-	empty = False
 	class Attrs(
 		common_accessibility_properties,
 		common_aural_properties,
@@ -1685,7 +1654,6 @@ class table_and_caption(xsc.Element):
 
 
 class table(xsc.Element):
-	empty = False
 	class Attrs(
 		common_accessibility_properties,
 		common_aural_properties,
@@ -1718,7 +1686,6 @@ class table(xsc.Element):
 
 class table_column(xsc.Element):
 	xmlname = "table-column"
-	empty = True
 	class Attrs(
 		common_border_padding_background_properties,
 		border_after_precedence,
@@ -1735,7 +1702,6 @@ class table_column(xsc.Element):
 
 class table_caption(xsc.Element):
 	xmlname = "table-caption"
-	empty = False
 	class Attrs(
 		common_accessibility_properties,
 		common_aural_properties,
@@ -1753,7 +1719,6 @@ class table_caption(xsc.Element):
 
 class table_header(xsc.Element):
 	xmlname = "table-header"
-	empty = False
 	class Attrs(
 		common_accessibility_properties,
 		common_aural_properties,
@@ -1770,7 +1735,6 @@ class table_header(xsc.Element):
 
 class table_footer(xsc.Element):
 	xmlname = "table-footer"
-	empty = False
 	class Attrs(
 		common_accessibility_properties,
 		common_aural_properties,
@@ -1787,7 +1751,6 @@ class table_footer(xsc.Element):
 
 class table_body(xsc.Element):
 	xmlname = "table-body"
-	empty = False
 	class Attrs(
 		common_accessibility_properties,
 		common_aural_properties,
@@ -1804,7 +1767,6 @@ class table_body(xsc.Element):
 
 class table_row(xsc.Element):
 	xmlname = "table-row"
-	empty = False
 	class Attrs(
 		common_accessibility_properties,
 		common_aural_properties,
@@ -1828,7 +1790,6 @@ class table_row(xsc.Element):
 
 class table_cell(xsc.Element):
 	xmlname = "table-cell"
-	empty = False
 	class Attrs(
 		common_accessibility_properties,
 		common_aural_properties,
@@ -1856,7 +1817,6 @@ class table_cell(xsc.Element):
 
 class list_block(xsc.Element):
 	xmlname = "list-block"
-	empty = False
 	class Attrs(
 		common_accessibility_properties,
 		common_aural_properties,
@@ -1877,7 +1837,6 @@ class list_block(xsc.Element):
 
 class list_item(xsc.Element):
 	xmlname = "list-item"
-	empty = False
 	class Attrs(
 		common_accessibility_properties,
 		common_aural_properties,
@@ -1897,7 +1856,6 @@ class list_item(xsc.Element):
 
 class list_item_body(xsc.Element):
 	xmlname = "list-item-body"
-	empty = False
 	class Attrs(
 		common_accessibility_properties,
 		id,
@@ -1907,7 +1865,6 @@ class list_item_body(xsc.Element):
 
 class list_item_label(xsc.Element):
 	xmlname = "list-item-label"
-	empty = False
 	class Attrs(
 		common_accessibility_properties,
 		id,
@@ -1917,7 +1874,6 @@ class list_item_label(xsc.Element):
 
 class basic_link(xsc.Element):
 	xmlname = "basic-link"
-	empty = False
 	class Attrs(
 		common_accessibility_properties,
 		common_aural_properties,
@@ -1946,7 +1902,6 @@ class basic_link(xsc.Element):
 
 class multi_switch(xsc.Element):
 	xmlname = "multi-switch"
-	empty = False
 	class Attrs(
 		common_accessibility_properties,
 		auto_restore,
@@ -1956,7 +1911,6 @@ class multi_switch(xsc.Element):
 
 class multi_case(xsc.Element):
 	xmlname = "multi-case"
-	empty = False
 	class Attrs(
 		common_accessibility_properties,
 		id,
@@ -1968,7 +1922,6 @@ class multi_case(xsc.Element):
 
 class multi_toggle(xsc.Element):
 	xmlname = "multi-toggle"
-	empty = False
 	class Attrs(
 		common_accessibility_properties,
 		id,
@@ -1978,7 +1931,6 @@ class multi_toggle(xsc.Element):
 
 class multi_properties(xsc.Element):
 	xmlname = "multi-properties"
-	empty = False
 	class Attrs(
 		common_accessibility_properties,
 		id):
@@ -1987,7 +1939,6 @@ class multi_properties(xsc.Element):
 
 class multi_property_set(xsc.Element):
 	xmlname = "multi-property-set"
-	empty = False
 	class Attrs(
 		id,
 		active_state):
@@ -1995,7 +1946,6 @@ class multi_property_set(xsc.Element):
 
 
 class float(xsc.Element):
-	empty = False
 	class Attrs(
 		float,
 		clear):
@@ -2003,7 +1953,6 @@ class float(xsc.Element):
 
 
 class footnote(xsc.Element):
-	empty = False
 	class Attrs(
 		common_accessibility_properties
 		):
@@ -2012,7 +1961,6 @@ class footnote(xsc.Element):
 
 class footnote_body(xsc.Element):
 	xmlname = "footnote-body"
-	empty = False
 	class Attrs(
 		common_accessibility_properties
 		):
@@ -2020,7 +1968,6 @@ class footnote_body(xsc.Element):
 
 
 class wrapper(xsc.Element):
-	empty = False
 	class Attrs(
 		id
 		):
@@ -2028,7 +1975,6 @@ class wrapper(xsc.Element):
 
 
 class marker(xsc.Element):
-	empty = False
 	class Attrs(
 		marker_class_name
 		):
@@ -2037,59 +1983,12 @@ class marker(xsc.Element):
 
 class retrieve_marker(xsc.Element):
 	xmlname = "retrieve-marker"
-	empty = True
 	class Attrs(
 		retrieve_class_name,
 		retrieve_position,
 		retrieve_boundary
 		):
 		pass
-
-# Parameter entities defined in the XSL specification
-pe_block = (block, block_container, table_and_caption, table, list_block)
-pe_inline = (bidi_override, character, external_graphic, instream_foreign_object, inline, inline_container, leader, page_number, page_number_citation, basic_link, multi_toggle)
-pe_neutral = (multi_switch, multi_properties, wrapper, retrieve_marker)
-
-# DTD information
-dtd = {
-	root: (layout_master_set, declarations, page_sequence),
-	declarations: (color_profile,),
-	page_sequence: (title, static_content, flow),
-	layout_master_set: (simple_page_master, page_sequence_master),
-	page_sequence_master: (single_page_master_reference, repeatable_page_master_reference, repeatable_page_master_alternatives),
-	repeatable_page_master_alternatives: (conditional_page_master_reference,),
-	simple_page_master: (region_body, region_before, region_after, region_start, region_end),
-	flow: pe_block + (marker,),
-	static_content: pe_block,
-	title: pe_inline,
-	block: pe_inline + pe_block,
-	block_container: pe_block,
-	bidi_override: pe_inline + pe_block,
-	inline: pe_inline + pe_block,
-	inline_container: pe_block,
-	leader: pe_inline,
-	table_and_caption: (table_caption, table),
-	table: (table_column, table_header, table_footer, table_body),
-	table_caption: pe_block + (marker,),
-	table_header: (table_row, table_cell, marker),
-	table_footer: (table_row, table_cell, marker),
-	table_body: (table_row, table_cell, marker),
-	table_row: (table_cell,),
-	table_cell: pe_block + (marker,),
-	list_block: (list_item, marker),
-	list_item: (list_item_label, list_item_body, marker),
-	list_item_body: pe_block + (marker,),
-	list_item_label: pe_block + (marker,),
-	basic_link: pe_inline + pe_block + (marker,),
-	multi_switch: (multi_case,),
-	multi_case: pe_inline + pe_block + (multi_toggle,), ### More attributes are allowed
-	multi_toggle: pe_inline + pe_block,
-	multi_properties: (multi_property_set, wrapper),
-	float: pe_block,
-	footnote: pe_inline + (footnote_body,),
-	wrapper: pe_inline + pe_block + (marker,),
-	marker: pe_inline + pe_block
-}
 
 
 class xmlns(xsc.Namespace):
@@ -2098,19 +1997,89 @@ class xmlns(xsc.Namespace):
 xmlns.makemod(vars())
 
 
-# This function uses the DTD information from above to add inheritable attributes to the elements
-def addinheritableattributes(element):
-	if element in dtd: # if element hasn't been prcessed yet
-		content = dtd[element] # fetch and delete content model from the DTD info
-		del dtd[element]
-		for child in content:
-			if child is not element: # avoid endless recursion
-				addinheritableattributes(child) # make sure the child element already have their inheritable attributes added
-				for attr in child.Attrs.iterallowedvalues():
-					if not element.Attrs.isallowed(attr.xmlname[0]):
-						setattr(element.Attrs, attr.xmlname[0], attr) # add child attribute to element
+# Parameter entities defined in the XSL specification
+pe_block = (block, block_container, table_and_caption, table, list_block)
+pe_inline = (bidi_override, character, external_graphic, instream_foreign_object, inline, inline_container, leader, page_number, page_number_citation, basic_link, multi_toggle)
+pe_neutral = (multi_switch, multi_properties, wrapper, retrieve_marker)
 
-for element in dtd.keys(): # use a copy of the keys, because we mutate the dict
-	addinheritableattributes(element)
+# DTD information
+dtd = {
+	root: sims.Elements(layout_master_set, declarations, page_sequence),
+	declarations: sims.Elements(color_profile),
+	page_sequence: sims.Elements(title, static_content, flow),
+	layout_master_set: sims.Elements(simple_page_master, page_sequence_master),
+	page_sequence_master: sims.Elements(single_page_master_reference, repeatable_page_master_reference, repeatable_page_master_alternatives),
+	repeatable_page_master_alternatives: sims.Elements(conditional_page_master_reference),
+	simple_page_master: sims.Elements(region_body, region_before, region_after, region_start, region_end),
+	flow: sims.Elements(*(pe_block + (marker,))),
+	static_content: sims.Elements(*pe_block),
+	title: sims.ElementsOrText(*pe_inline),
+	block: sims.ElementsOrText(*(pe_inline + pe_block)),
+	block_container: sims.Elements(*pe_block),
+	bidi_override: sims.ElementsOrText(*(pe_inline + pe_block)),
+	inline: sims.ElementsOrText(*(pe_inline + pe_block)),
+	inline_container: sims.Elements(*pe_block),
+	leader: sims.ElementsOrText(*pe_inline),
+	table_and_caption: sims.Elements(table_caption, table),
+	table: sims.Elements(table_column, table_header, table_footer, table_body),
+	table_caption: sims.Elements(*(pe_block + (marker,))),
+	table_header: sims.Elements(table_row, table_cell, marker),
+	table_footer: sims.Elements(table_row, table_cell, marker),
+	table_body: sims.Elements(table_row, table_cell, marker),
+	table_row: sims.Elements(table_cell),
+	table_cell: sims.Elements(*(pe_block + (marker,))),
+	list_block: sims.Elements(list_item, marker),
+	list_item: sims.Elements(list_item_label, list_item_body, marker),
+	list_item_body:sims.Elements(*(pe_block + (marker,))),
+	list_item_label: sims.Elements(*(pe_block + (marker,))),
+	basic_link: sims.ElementsOrText(*(pe_inline + pe_block + (marker,))),
+	multi_switch: sims.Elements(multi_case),
+	multi_case: sims.ElementsOrText(*(pe_inline + pe_block + (multi_toggle,))), ### FIXME: More attributes are allowed
+	multi_toggle: sims.ElementsOrText(*(pe_inline + pe_block)),
+	multi_properties: sims.Elements(multi_property_set, wrapper),
+	float: sims.Elements(*pe_block),
+	footnote: sims.Elements(*(pe_inline + (footnote_body,))),
+	footnote_body: sims.Elements(*pe_block),
+	wrapper: sims.ElementsOrText(*(pe_inline + pe_block + (marker,))),
+	marker: sims.ElementsOrText(*(pe_inline + pe_block)),
+	region_before: sims.Empty(),
+	single_page_master_reference: sims.Empty(),
+	region_after: sims.Empty(),
+	external_graphic: sims.Empty(),
+	repeatable_page_master_reference: sims.Empty(),
+	initial_property_set: sims.Empty(),
+	instream_foreign_object: sims.NoElementsOrText(), # content is from a different namespace
+	character: sims.Empty(),
+	page_number: sims.Empty(),
+	table_column: sims.Empty(),
+	conditional_page_master_reference: sims.Empty(),
+	color_profile: sims.Empty(),
+	page_number_citation: sims.Empty(),
+	region_start: sims.Empty(),
+	retrieve_marker: sims.Empty(),
+	region_body: sims.Empty(),
+	multi_property_set: sims.Empty(),
+	region_end: sims.Empty(),
+}
 
-del dtd
+
+# This function uses the DTD information from above to add inheritable attributes and schema information to the elements
+def fixattributesandmodel(element):
+	if element in dtd: # if element hasn't been processed yet
+		model = dtd.pop(element) # fetch and delete content model from the DTD info
+
+		# Add schema information
+		element.model = model
+		if isinstance(model, (sims.Elements, sims.ElementsOrText)):
+			for child in model.elements:
+				if child is not element: # avoid endless recursion
+					fixattributesandmodel(child) # make sure the child element already have their inheritable attributes added
+					for attr in child.Attrs.iterallowedvalues():
+						if not element.Attrs.isallowed(attr.xmlname[0]):
+							setattr(element.Attrs, attr.xmlname[0], attr) # add child attribute to element
+
+for element in xmlns.iterelementvalues():
+	fixattributesandmodel(element)
+
+# make sure, we assigned a model to every element
+assert sum([x.model is not None for x in xmlns.iterelementvalues()]) == len(xmlns.elementvalues())

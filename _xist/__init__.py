@@ -54,5 +54,5 @@ and <link href="http://dustman.net/andy/python/HyperText/">HyperText</link>.</pa
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-__all__ = ["xsc", "publishers", "presenters", "parsers", "converters", "ns", "tools"]
+__all__ = ["xsc", "publishers", "presenters", "parsers", "converters", "sims", "ns"]
 

@@ -11,7 +11,7 @@
 # import __builtin__ to use property, which is also defined here
 import types, inspect, warnings, __builtin__
 
-from ll.xist import xsc, parsers, converters
+from ll.xist import xsc, parsers, converters, sims
 from ll.xist.ns import html, text, docbook, fo, specials, xml
 
 
@@ -21,7 +21,6 @@ class base(xsc.Element):
 	to conversion targets.
 	"""
 	register = False
-	empty = False
 
 	class Context(xsc.Element.Context):
 		def __init__(self):
@@ -62,9 +61,6 @@ class base(xsc.Element):
 			self.emattrs = {
 				"font_weight": "bold"
 			}
-
-			self.lists = []
-			self.sections = [0]
 
 		def dedent(self):
 			return "-0.7cm"
@@ -109,8 +105,15 @@ class block(base):
 	register = False
 
 
-class abbr(base):
-	empty = False
+class inline(base):
+	"""
+	Base class for all inline elements
+	"""
+	register = False
+
+
+class abbr(inline):
+	model = sims.NoElements()
 	class Attrs(xsc.Element.Attrs):
 		class title(xsc.TextAttr): pass
 		class lang(xsc.TextAttr): pass
@@ -134,7 +137,7 @@ class prog(block):
 	"""
 	A literal listing of all or part of a program
 	"""
-	empty = False
+	model = sims.ElementsOrText(inline)
 
 	def convert_docbook(self, converter):
 		e = converter.target.programlisting(self.content)
@@ -216,50 +219,26 @@ class programlisting(prog):
 		return prog.convert(self, converter)
 
 
-class example(block):
+class rep(inline):
 	"""
-	A formal example
+	Content that may or must be replaced by the user
 	"""
-	empty = False
+	model = sims.NoElements()
 
 	def convert_docbook(self, converter):
-		e = converter.target.example(self.content)
+		e = converter.target.replaceable(self.content)
 		return e.convert(converter)
 
 	def convert_html(self, converter):
-		target = converter.target
-		ts = xsc.Frag()
-		e = xsc.Frag()
-		for child in self:
-			if isinstance(child, title):
-				ts.append(child)
-			else:
-				e.append(child)
-
-		if ts:
-			e.append(target.div(ts, class_="example-title"))
-
-		return e.convert(converter)
-
-	def convert_text(self, converter):
-		target = converter.target
-		e = xsc.Frag()
-		for child in self.content:
-			if not isinstance(child, title):
-				e.append(child)
-
+		e = converter.target.var(self.content, class_="rep")
 		return e.convert(converter)
 
 	def convert_fo(self, converter):
-		# FIXME handle title
-		e = xsc.Frag()
-		for child in self.content:
-			if not isinstance(child, title):
-				e.append(child)
+		e = converter.target.inline(self.content, converter[self].repattrs)
 		return e.convert(converter)
 
 
-class code(base):
+class code(inline):
 	register = False
 
 	def convert_fo(self, converter):
@@ -269,12 +248,16 @@ class code(base):
 		)
 		return e.convert(converter)
 
+	def convert_html(self, converter):
+		e = converter.target.code(self.content, class_=self.xmlname[True])
+		return e.convert(converter)
+
 
 class option(code):
 	"""
 	An option for a software command
 	"""
-	empty = False
+	model = sims.ElementsOrText(rep)
 
 	def convert_docbook(self, converter):
 		e = converter.target.option(self.content)
@@ -289,7 +272,7 @@ class lit(code):
 	"""
 	Inline text that is some literal value
 	"""
-	empty = False
+	model = sims.ElementsOrText(rep)
 
 	def convert_docbook(self, converter):
 		e = converter.target.literal(self.content)
@@ -304,7 +287,7 @@ class function(code):
 	"""
 	The name of a function or subroutine, as in a programming language
 	"""
-	empty = False
+	model = sims.ElementsOrText(rep)
 
 	def convert_docbook(self, converter):
 		e = converter.target.function(self.content)
@@ -319,7 +302,7 @@ class method(code):
 	"""
 	The name of a method or memberfunction in a programming language
 	"""
-	empty = False
+	model = sims.ElementsOrText(rep)
 
 	def convert_docbook(self, converter):
 		e = converter.target.methodname(self.content)
@@ -334,7 +317,7 @@ class property(code):
 	"""
 	The name of a property in a programming language
 	"""
-	empty = False
+	model = sims.ElementsOrText(rep)
 
 	def convert_docbook(self, converter):
 		e = converter.target.varname(self.content, role="property")
@@ -350,7 +333,7 @@ class class_(code):
 	The name of a class, in the object-oriented programming sense
 	"""
 	xmlname = "class"
-	empty = False
+	model = sims.ElementsOrText(rep)
 
 	def convert_docbook(self, converter):
 		e = converter.target.classname(self.content)
@@ -361,30 +344,11 @@ class class_(code):
 		return e.convert(converter)
 
 
-class rep(base):
-	"""
-	Content that may or must be replaced by the user
-	"""
-	empty = False
-
-	def convert_docbook(self, converter):
-		e = converter.target.replaceable(self.content)
-		return e.convert(converter)
-
-	def convert_html(self, converter):
-		e = converter.target.var(self.content, class_="rep")
-		return e.convert(converter)
-
-	def convert_fo(self, converter):
-		e = converter.target.inline(self.content, converter[self].repattrs)
-		return e.convert(converter)
-
-
 class markup(code):
 	"""
 	A string of formatting markup in text that is to be represented literally
 	"""
-	empty = False
+	model = sims.ElementsOrText(rep)
 
 	def convert_docbook(self, converter):
 		e = converter.target.markup(self.content)
@@ -399,7 +363,7 @@ class arg(code):
 	"""
 	The name of a function or method argument.
 	"""
-	empty = False
+	model = sims.ElementsOrText(rep)
 
 	def convert_docbook(self, converter):
 		e = converter.target.parameter(self.content)
@@ -412,9 +376,9 @@ class arg(code):
 
 class module(code):
 	"""
-	The name of Python module.
+	The name of a Python module.
 	"""
-	empty = False
+	model = sims.ElementsOrText(rep)
 
 	def convert_docbook(self, converter):
 		e = converter.target.classname(self.content, role="module")
@@ -429,7 +393,7 @@ class parameter(code):
 	"""
 	A value or a symbolic reference to a value
 	"""
-	empty = False
+	model = sims.ElementsOrText(rep)
 
 	def convert_docbook(self, converter):
 		e = converter.target.parameter(self.content)
@@ -444,7 +408,7 @@ class filename(code):
 	"""
 	The name of a file
 	"""
-	empty = False
+	model = sims.ElementsOrText(rep)
 
 	def convert_docbook(self, converter):
 		e = converter.target.filename(self.content)
@@ -459,14 +423,10 @@ class dirname(code):
 	"""
 	The name of directory
 	"""
-	empty = False
+	model = sims.ElementsOrText(rep)
 
 	def convert_docbook(self, converter):
 		e = converter.target.filename(self.content, class_="directory")
-		return e.convert(converter)
-
-	def convert_html(self, converter):
-		e = converter.target.code(self.content, class_="dirname")
 		return e.convert(converter)
 
 
@@ -474,7 +434,7 @@ class username(code):
 	"""
 	The name of a user account
 	"""
-	empty = False
+	model = sims.ElementsOrText(rep)
 
 	def convert_docbook(self, converter):
 		e = converter.target.literal(self.content, role="username")
@@ -485,11 +445,11 @@ class username(code):
 		return e.convert(converter)
 
 
-class app(base):
+class app(inline):
 	"""
 	The name of a software program
 	"""
-	empty = False
+	model = sims.ElementsOrText(rep)
 	class Attrs(xsc.Element.Attrs):
 		class moreinfo(xsc.URLAttr): pass
 
@@ -518,9 +478,10 @@ class app(base):
 
 class title(base):
 	"""
-	The text of the title of a section of a document or of a formal block-level element
+	The text of the title of a <pyref class="section"><class>section</class></pyref>
+	or an <pyref class="example"><class>example</class></pyref>
 	"""
-	empty = False
+	model = sims.ElementsOrText(inline)
 
 	def convert_docbook(self, converter):
 		e = converter.target.title(self.content.convert(converter))
@@ -539,7 +500,7 @@ class section(block):
 	"""
 	A recursive section
 	"""
-	empty = False
+	model = sims.Elements(title, block)
 	class Attrs(xsc.Element.Attrs):
 		class role(xsc.TextAttr): pass
 		class id(xsc.IDAttr): pass
@@ -652,7 +613,7 @@ class par(block):
 	"""
 	A paragraph
 	"""
-	empty = False
+	model = sims.ElementsOrText(inline)
 	class Attrs(xsc.Element.Attrs):
 		class type(xsc.TextAttr): pass
 
@@ -673,105 +634,11 @@ class par(block):
 		return e.convert(converter)
 
 
-class list(block):
-	"""
-	Common baseclass for <pyref class="ulist"><class>ulist</class></pyref>,
-	<pyref class="olist"><class>olist</class></pyref> and
-	<pyref class="dlist"><class>dlist</class></pyref>.
-	"""
-	register = False
-
-
-class ulist(list):
-	"""
-	A list in which each entry is marked with a bullet or other dingbat
-	"""
-	empty = False
-
-	def convert_docbook(self, converter):
-		e = converter.target.itemizedlist(self.content.convert(converter))
-		return e.convert(converter)
-
-	def convert_html(self, converter):
-		context = converter[self]
-		context.lists.append(["ulist", 0])
-		e = converter.target.ul(self.content.convert(converter))
-		del context.lists[-1]
-		return e
-
-	def convert_fo(self, converter):
-		context = converter[self]
-		context.lists.append(["ulist", 0])
-		e = converter.target.list_block(self.content, line_height="130%")
-		e = e.convert(converter)
-		del context.lists[-1]
-		return e
-
-
-class olist(list):
-	"""
-	A list in which each entry is marked with a sequentially incremented label
-	"""
-	empty = False
-
-	def convert_docbook(self, converter):
-		e = converter.target.orderedlist(self.content.convert(converter))
-		return e.convert(converter)
-
-	def convert_html(self, converter):
-		context = converter[self]
-		context.lists.append(["olist", 0])
-		e = converter.target.ol(self.content.convert(converter))
-		del context.lists[-1]
-		return e
-
-	def convert_fo(self, converter):
-		context = converter[self]
-		context.lists.append(["olist", 0])
-		e = converter.target.list_block(self.content, line_height="130%")
-		e = e.convert(converter)
-		del context.lists[-1]
-		return e
-
-
-class dlist(list):
-	"""
-	A list in which each entry is marked with a label
-	"""
-	empty = False
-
-	def convert_docbook(self, converter):
-		e = converter.target.variablelist()
-		collect = converter.target.varlistentry()
-		for child in self.content:
-			collect.append(child)
-			if isinstance(child, item):
-				e.append(collect)
-				collect = converter.target.varlistentry()
-		if collect:
-			e.append(collect)
-		return e.convert(converter)
-
-	def convert_html(self, converter):
-		context = converter[self]
-		context.lists.append(["dlist", 0])
-		e = converter.target.dl(self.content.convert(converter))
-		del context.lists[-1]
-		return e
-
-	def convert_fo(self, converter):
-		context = converter[self]
-		context.lists.append(["dlist", 0])
-		e = self.content.convert(converter)
-		del context.lists[-1]
-		return e
-
-
 class term(base):
 	"""
 	A term inside a <pyref class="dlist"><class>dlist</class></pyref>
 	"""
-	empty = False
+	model = sims.ElementsOrText(inline)
 
 	def convert_docbook(self, converter):
 		e = converter.target.term(self.content)
@@ -793,10 +660,10 @@ class item(base):
 	"""
 	A wrapper for the elements of a list item
 	"""
-	empty = False
+	model = sims.ElementsOrText(block, inline) # if it contains no block elements, the content will be promoted to a paragraph
 
 	def convert_docbook(self, converter):
-		if self.content.find(xsc.FindType(par, list, example, prog)):
+		if self.content.find(xsc.FindType(block)):
 			content = self.content
 		else:
 			content = converter.target.para(self.content)
@@ -845,6 +712,143 @@ class item(base):
 		return e.convert(converter)
 
 
+class list(block):
+	"""
+	Common baseclass for <pyref class="ulist"><class>ulist</class></pyref>,
+	<pyref class="olist"><class>olist</class></pyref> and
+	<pyref class="dlist"><class>dlist</class></pyref>.
+	"""
+	register = False
+
+
+class ulist(list):
+	"""
+	A list in which each entry is marked with a bullet or other dingbat
+	"""
+	model = sims.Elements(item)
+
+	def convert_docbook(self, converter):
+		e = converter.target.itemizedlist(self.content.convert(converter))
+		return e.convert(converter)
+
+	def convert_html(self, converter):
+		context = converter[self]
+		context.lists.append(["ulist", 0])
+		e = converter.target.ul(self.content.convert(converter))
+		del context.lists[-1]
+		return e
+
+	def convert_fo(self, converter):
+		context = converter[self]
+		context.lists.append(["ulist", 0])
+		e = converter.target.list_block(self.content, line_height="130%")
+		e = e.convert(converter)
+		del context.lists[-1]
+		return e
+
+
+class olist(list):
+	"""
+	A list in which each entry is marked with a sequentially incremented label
+	"""
+	model = sims.Elements(item)
+
+	def convert_docbook(self, converter):
+		e = converter.target.orderedlist(self.content.convert(converter))
+		return e.convert(converter)
+
+	def convert_html(self, converter):
+		context = converter[self]
+		context.lists.append(["olist", 0])
+		e = converter.target.ol(self.content.convert(converter))
+		del context.lists[-1]
+		return e
+
+	def convert_fo(self, converter):
+		context = converter[self]
+		context.lists.append(["olist", 0])
+		e = converter.target.list_block(self.content, line_height="130%")
+		e = e.convert(converter)
+		del context.lists[-1]
+		return e
+
+
+class dlist(list):
+	"""
+	A list in which each entry is marked with a label
+	"""
+	model = sims.Elements(term, item)
+
+	def convert_docbook(self, converter):
+		e = converter.target.variablelist()
+		collect = converter.target.varlistentry()
+		for child in self.content:
+			collect.append(child)
+			if isinstance(child, item):
+				e.append(collect)
+				collect = converter.target.varlistentry()
+		if collect:
+			e.append(collect)
+		return e.convert(converter)
+
+	def convert_html(self, converter):
+		context = converter[self]
+		context.lists.append(["dlist", 0])
+		e = converter.target.dl(self.content.convert(converter))
+		del context.lists[-1]
+		return e
+
+	def convert_fo(self, converter):
+		context = converter[self]
+		context.lists.append(["dlist", 0])
+		e = self.content.convert(converter)
+		del context.lists[-1]
+		return e
+
+
+class example(block):
+	"""
+	A formal example
+	"""
+	model = sims.Elements(title, block)
+
+	def convert_docbook(self, converter):
+		e = converter.target.example(self.content)
+		return e.convert(converter)
+
+	def convert_html(self, converter):
+		target = converter.target
+		ts = xsc.Frag()
+		e = xsc.Frag()
+		for child in self:
+			if isinstance(child, title):
+				ts.append(child)
+			else:
+				e.append(child)
+
+		if ts:
+			e.append(target.div(ts, class_="example-title"))
+
+		return e.convert(converter)
+
+	def convert_text(self, converter):
+		target = converter.target
+		e = xsc.Frag()
+		for child in self.content:
+			if not isinstance(child, title):
+				e.append(child)
+
+		return e.convert(converter)
+
+	def convert_fo(self, converter):
+		# FIXME handle title
+		e = xsc.Frag()
+		for child in self.content:
+			if not isinstance(child, title):
+				e.append(child)
+		return e.convert(converter)
+
+
 class self(code):
 	"""
 	<par>use this class when referring to the object for which a method has been
@@ -855,7 +859,7 @@ class self(code):
 	</prog>
 	</example>
 	"""
-	empty = False
+	model = sims.Empty()
 
 	def convert_docbook(self, converter):
 		e = converter.target.varname("self")
@@ -875,7 +879,7 @@ class self(code):
 self_ = self
 
 
-class cls(base):
+class cls(inline):
 	"""
 	<par>use this class when referring to the object for which a class method has been
 	called, e.g.:</par>
@@ -885,7 +889,7 @@ class cls(base):
 	</prog>
 	</example>
 	"""
-	empty = False
+	model = sims.Empty()
 
 	def convert_docbook(self, converter):
 		e = converter.target.varname("cls")
@@ -903,11 +907,11 @@ class cls(base):
 		return u"cls"
 
 
-class link(base):
+class link(inline):
 	"""
 	A hypertext link.
 	"""
-	empty = False
+	model = sims.ElementsOrText(inline)
 	class Attrs(xsc.Element.Attrs):
 		class href(xsc.URLAttr): pass
 		class hreflang(xsc.TextAttr): pass
@@ -932,11 +936,11 @@ class link(base):
 		return e.convert(converter)
 
 
-class xref(base):
+class xref(inline):
 	"""
 	An internal cross reference.
 	"""
-	empty = False
+	model = sims.ElementsOrText(inline)
 	class Attrs(xsc.Element.Attrs):
 		class ref(xsc.TextAttr): pass
 
@@ -960,11 +964,11 @@ class xref(base):
 		return e.convert(converter)
 
 
-class email(base):
+class email(inline):
 	"""
 	An email address.
 	"""
-	empty = False
+	model = sims.NoElements()
 
 	def convert_docbook(self, converter):
 		e = converter.target.email(self.content)
@@ -983,11 +987,11 @@ class email(base):
 		return e.convert(converter)
 
 
-class em(base):
+class em(inline):
 	"""
-	Emphasized text:
+	Emphasized text
 	"""
-	empty = False
+	model = sims.ElementsOrText(inline)
 
 	def convert_docbook(self, converter):
 		e = converter.target.emphasis(self.content)
@@ -1005,12 +1009,12 @@ class em(base):
 		return e.convert(converter)
 
 
-class pyref(base):
+class pyref(inline):
 	"""
 	reference to a Python object:
 	module, class, method, property or function
 	"""
-	empty = False
+	model = sims.ElementsOrText(inline)
 	class Attrs(xsc.Element.Attrs):
 		class module(xsc.TextAttr): pass
 		class class_(xsc.TextAttr): xmlname = "class"
@@ -1024,23 +1028,23 @@ class pyref(base):
 		target = converter.target
 		if issubclass(target, xmlns): # our own namespace
 			return self.convert_doc(converter)
-		if self.attrs.has("function"):
+		if "function" in self.attrs:
 			function = unicode(self["function"].convert(converter))
 		else:
 			function = None
-		if self.attrs.has("method"):
+		if "method" in self.attrs:
 			method = unicode(self["method"].convert(converter))
 		else:
 			method = None
-		if self.attrs.has("property"):
+		if "property" in self.attrs:
 			prop = unicode(self["property"].convert(converter))
 		else:
 			prop = None
-		if self.attrs.has("class_"):
+		if "class_" in self.attrs:
 			class__ = unicode(self["class_"].convert(converter)).replace(u".", u"-")
 		else:
 			class__ = None
-		if self.attrs.has("module"):
+		if "module" in self.attrs:
 			module = unicode(self["module"].convert(converter))
 			if module.startswith("ll."):
 				module = module[3:].replace(u".", u"/")
@@ -1067,6 +1071,7 @@ class pyref(base):
 				e = target.a(e, href=(self.base, module, "/index.html"))
 		return e.convert(converter)
 
+
 def _getmodulename(thing):
 	module = inspect.getmodule(thing)
 	if module is None:
@@ -1074,6 +1079,7 @@ def _getmodulename(thing):
 	else:
 		return module.__name__
 _getmodulename = staticmethod(_getmodulename)
+
 
 def getdoc(cls, thing):
 	if thing.__doc__ is None:
@@ -1087,7 +1093,7 @@ def getdoc(cls, thing):
 				del lines[:i]
 			break
 
-	if len(lines):
+	if lines:
 		# find starting white space of this line
 		startwhite = ""
 		for c in lines[0]:
@@ -1102,9 +1108,9 @@ def getdoc(cls, thing):
 				lines[i] = lines[i][len(startwhite):]
 
 		# remove empty lines
-		while len(lines) and lines[0] == "":
+		while lines and not lines[0]:
 			del lines[0]
-		while len(lines) and lines[-1] == "":
+		while lines and not lines[-1]:
 			del lines[-1]
 
 	text = "\n".join(lines)
@@ -1149,11 +1155,12 @@ def getdoc(cls, thing):
 	return node
 getdoc = classmethod(getdoc)
 
+
 canonicalOrder = [
 	"__init__", "__del__",
 	"__repr__", "__str__", "__unicode__",
 	"__hash__",
-	"__lt__", "__le__", "__eq__", "__ne__", "__gt__", "__ge__",
+	"__eq__", "__ne__", "__lt__", "__le__", "__gt__", "__ge__",
 	"__cmp__", "__rcmp__", "__nonzero__",
 	"__getattr__", "__setattr__", "__delattr__",
 	"__call__",
@@ -1165,6 +1172,7 @@ canonicalOrder = [
 	"__complex__", "__int__", "__long__", "__float__", "__oct__", "__hex__", "__coerce__"
 ]
 
+
 def _cmpname(cls, (obj1, name1), (obj2, name2)):
 	names = [ name1 or obj1.__name__, name2 or obj2.__name__ ]
 	sorts = []
@@ -1173,14 +1181,18 @@ def _cmpname(cls, (obj1, name1), (obj2, name2)):
 			pos = cls.canonicalOrder.index(name)
 		except ValueError:
 			if name.startswith("__"):
-				pos = 3000
+				if name.endswith("__"):
+					pos = 1000
+				else:
+					pos = 4000
 			elif name.startswith("_"):
-				pos = 2000
+				pos = 3000
 			else:
-				pos = 1000
+				pos = 2000
 		sorts.append((pos, name))
 	return cmp(sorts[0], sorts[1])
 _cmpname = classmethod(_cmpname)
+
 
 def _codeheader(cls, thing, name, type):
 	(args, varargs, varkw, defaults) = inspect.getargspec(thing)
@@ -1207,6 +1219,7 @@ def _codeheader(cls, thing, name, type):
 	sig.append(")")
 	return sig
 _codeheader = classmethod(_codeheader)
+
 
 def explain(cls, thing, name=None, context=[]):
 	"""
@@ -1353,7 +1366,7 @@ explain = classmethod(explain)
 
 
 class fodoc(base):
-	empty = False
+	model = sims.Elements(block)
 
 	def convert(self, converter):
 		context = converter[self]

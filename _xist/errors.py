@@ -41,19 +41,6 @@ class Warning(UserWarning):
 	pass
 
 
-class EmptyElementWithContentWarning(Warning):
-	"""
-	Warning that is issued, when an element has content,
-	but it shouldn't (i.e. <lit>empty==True</lit>)
-	"""
-
-	def __init__(self, element):
-		self.element = element
-
-	def __str__(self):
-		return "element %s has EMPTY content model, but has content" % self.element._str(fullname=0, xml=0, decorate=1)
-
-
 class IllegalAttrError(Warning, LookupError):
 	"""
 	exception that is raised, when an element has an illegal attribute

@@ -16,7 +16,7 @@ on the &xml; level.</par>
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-from ll.xist import xsc, sandbox
+from ll.xist import xsc, sandbox, sims
 
 
 class CodeAttr(xsc.Attr):
@@ -31,8 +31,17 @@ class CondAttr(CodeAttr):
 	"""
 
 
+class case(xsc.Element):
+	model = sims.Any()
+	class Attrs(xsc.Element.Attrs):
+		class case(xsc.TextAttr): pass
+
+	def convert(self, converter):
+		return self.content.convert(converter)
+
+
 class switch(xsc.Element):
-	empty = False
+	model = sims.Elements(case)
 	class Attrs(xsc.Element.Attrs):
 		class var(xsc.TextAttr): pass
 
@@ -42,17 +51,8 @@ class switch(xsc.Element):
 		return xsc.Null
 
 
-class case(xsc.Element):
-	empty = False
-	class Attrs(xsc.Element.Attrs):
-		class case(xsc.TextAttr): pass
-
-	def convert(self, converter):
-		return self.content.convert(converter)
-
-
 class If(xsc.Element):
-	empty = False
+	model = sims.Any()
 	class Attrs(xsc.Element.Attrs):
 		class cond(xsc.TextAttr): pass
 		class mode(xsc.TextAttr): pass
@@ -97,7 +97,7 @@ class If(xsc.Element):
 
 
 class ElIf(xsc.Element):
-	empty = True
+	model = sims.Empty()
 	xmlname = "elif"
 	class Attrs(xsc.Element.Attrs):
 		class cond(xsc.TextAttr): pass
@@ -111,7 +111,7 @@ class ElIf(xsc.Element):
 
 
 class Else(xsc.Element):
-	empty = True
+	model = sims.Empty()
 	xmlname = "else"
 
 	def convert(self, converter):
@@ -122,4 +122,3 @@ class xmlns(xsc.Namespace):
 	xmlname = "cond"
 	xmlurl = "http://xmlns.livinglogic.de/xist/ns/cond"
 xmlns.makemod(vars())
-

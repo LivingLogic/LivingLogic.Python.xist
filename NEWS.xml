@@ -1,4 +1,15 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
+<section><title>Changes in 2.5 (released ??/??/2004)</title>
+<ulist>
+<item><class>ll.xist.ns.htmlspecials.caps</class> has been removed.</item>
+<item><class>ll.xist.xsc.CharRef</class> now inherits from
+<class>ll.xist.xsc.Text</class> too, so you don't have to special case
+<class>CharRef</class>s any more. When publishing <class>CharRef</class>s
+will be handled like <class>Text</class> nodes.</item>
+</ulist>
+</section>
+
+
 <section><title>Changes in 2.4.1 (released 01/05/2004)</title>
 <ulist>
 <item>Changed the xmlname of <class>ll.xist.ns.jsp.directive_page</class> back again
@@ -110,7 +121,7 @@ to get an element class with a certain name:</par>
 &lt;element class ll.xist.ns.html/div at 0x824363c&gt;
 </prog>
 <par>For processing instructions, entities and character references
-there are methods available too.</par>
+similar methods are available.</par>
 <par>The method <method>update</method> can be used to add
 many element classes to a namespace at once, simply by passing
 a dictionary with those classes (use <lit>vars()</lit>

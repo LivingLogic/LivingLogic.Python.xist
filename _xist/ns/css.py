@@ -17,32 +17,7 @@
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-from ll.xist import xsc
-
-
-class css(xsc.Element):
-	"""
-	The root element
-	"""
-	empty = False
-
-	def publish(self, publisher):
-		publisher.pusherrors("cssescapereplace")
-		# publish the imports first
-		first = True
-		for i in self.content.walk(xsc.FindType(atimport)):
-			if first:
-				first = False
-			else:
-				publisher.publish(u"\n")
-			i.publish(publisher)
-		for child in self.content.walk(xsc.FindType(rule, atmedia)):
-			if first:
-				first = False
-			else:
-				publisher.publish(u"\n")
-			child.publish(publisher)
-		publisher.poperrors()
+from ll.xist import xsc, sims
 
 
 class atimport(xsc.Element):
@@ -55,7 +30,7 @@ class atimport(xsc.Element):
 	any media types, the import is unconditional. Specifying <lit>all</lit> for <lit>media</lit>
 	has the same effect.</par>
 	"""
-	empty = False
+	model = sims.NoElements()
 	class Attrs(xsc.Element.Attrs):
 		class media(xsc.TextAttr): pass
 
@@ -68,56 +43,13 @@ class atimport(xsc.Element):
 		publisher.publish(u";")
 
 
-class atmedia(xsc.Element):
-	"""
-	<par>An <class>atmedia</class> rule specifies the target media types
-	(separated by commas in the attribute <lit>media</lit>) of a set of rules (in the content).
-	The <class>atmedia</class> element allows style sheet rules for various media in the same 
-	style sheet.</par>
-	<par>Possible media types are:</par>
-	<ulist>
-	<item><lit>all</lit>: Suitable for all devices.</item>
-	<item><lit>aural</lit>: Intended for speech synthesizers.</item>
-	<item><lit>braille</lit>: Intended for braille tactile feedback devices.</item>
-	<item><lit>embossed</lit>: Intended for paged braille printers.</item>
-	<item><lit>handheld</lit>: Intended for handheld devices (typically small screen, monochrome, limited bandwidth).</item>
-	<item><lit>print</lit>: Intended for paged, opaque material and for documents viewed on screen
-	in print preview mode.</item>
-	<item><lit>projection</lit>: Intended for projected presentations, for example projectors
-	or print to transparencies.</item>
-	<item><lit>screen</lit>: Intended primarily for color computer screens.</item>
-	<item><lit>tty</lit>: Intended for media using a fixed-pitch character grid, such as teletypes,
-	terminals, or portable devices with limited display capabilities. Authors should not use pixel units
-	with the <lit>tty</lit> media type.</item>
-	<item><lit>tv</lit>: Intended for television-type devices (low resolution, color, limited-scrollability screens, sound available).</item>
-	</ulist>
-	<par>Media type names are case-insensitive.</par>
-	"""
-	empty = False
-	class Attrs(xsc.Element.Attrs):
-		class media(xsc.TextAttr): pass
-
-	def publish(self, publisher):
-		publisher.publish(u"@media ")
-		publisher.publish(unicode(self["media"]))
-		publisher.publish(u"\n{")
-		imports = self.content.find(xsc.FindType(atimport))
-		for i in imports:
-			publisher.publish(u"\n\t")
-			i.publish(publisher)
-		for child in self.content.walk(xsc.FindType(rule)):
-			publisher.publish(u"\n\t")
-			child.publish(publisher)
-		publisher.publish(u"\n}")
-
-
 class atcharset(xsc.Element):
 	"""
 	<par>The character set of the stylesheet. Will be set automatically
 	on publishing, so this element is empty. Simply include it at the start
 	of the style sheet.</par>
 	"""
-	empty = True
+	model = sims.Empty()
 	
 	def publish(self, publisher):
 		publisher.publish(u'@charset "')
@@ -125,33 +57,11 @@ class atcharset(xsc.Element):
 		publisher.publish(u'";')
 
 
-class rule(xsc.Element):
-	"""
-	<par>One CSS rule (with potentially multiple <pyref class="sel">selectors</pyref>).</par>
-	"""
-	empty = False
-
-	def publish(self, publisher):
-		sels = self.content.find(xsc.FindType(sel))
-		props = self.content.find(xsc.FindType(prop))
-
-		for i in xrange(len(sels)):
-			if i != 0:
-				publisher.publish(u", ")
-			sels[i].publish(publisher)
-		publisher.publish(u" { ")
-		for i in xrange(len(props)):
-			if i != 0:
-				publisher.publish(u" ")
-			props[i].publish(publisher)
-		publisher.publish(u" }")
-
-
 class sel(xsc.Element):
 	"""
 	<par>A CSS selector.</par>
 	"""
-	empty = False
+	model = sims.NoElements()
 
 	def publish(self, publisher):
 		self.content.publish(publisher)
@@ -162,7 +72,7 @@ class prop(xsc.Element):
 	<par>A &css; property. This is the base class for all
 	the properties defined in &css;2.</par>
 	"""
-	empty = False
+	model = sims.NoElements()
 	class Attrs(xsc.Element.Attrs):
 		class important(xsc.BoolAttr): pass
 
@@ -2088,6 +1998,96 @@ class _moz_opacity(prop):
 	<par>This property is an <app>Mozilla</app> extension and specifies the opacity of the element.</par>
 	"""
 	xmlname = "-moz-opacity"
+
+
+class rule(xsc.Element):
+	"""
+	<par>One CSS rule (with potentially multiple <pyref class="sel">selectors</pyref>).</par>
+	"""
+	model = sims.Elements(sel, prop)
+
+	def publish(self, publisher):
+		sels = self.content.find(xsc.FindType(sel))
+		props = self.content.find(xsc.FindType(prop))
+
+		for i in xrange(len(sels)):
+			if i != 0:
+				publisher.publish(u", ")
+			sels[i].publish(publisher)
+		publisher.publish(u" { ")
+		for i in xrange(len(props)):
+			if i != 0:
+				publisher.publish(u" ")
+			props[i].publish(publisher)
+		publisher.publish(u" }")
+
+
+class atmedia(xsc.Element):
+	"""
+	<par>An <class>atmedia</class> rule specifies the target media types
+	(separated by commas in the attribute <lit>media</lit>) of a set of rules (in the content).
+	The <class>atmedia</class> element allows style sheet rules for various media in the same 
+	style sheet.</par>
+	<par>Possible media types are:</par>
+	<ulist>
+	<item><lit>all</lit>: Suitable for all devices.</item>
+	<item><lit>aural</lit>: Intended for speech synthesizers.</item>
+	<item><lit>braille</lit>: Intended for braille tactile feedback devices.</item>
+	<item><lit>embossed</lit>: Intended for paged braille printers.</item>
+	<item><lit>handheld</lit>: Intended for handheld devices (typically small screen, monochrome, limited bandwidth).</item>
+	<item><lit>print</lit>: Intended for paged, opaque material and for documents viewed on screen
+	in print preview mode.</item>
+	<item><lit>projection</lit>: Intended for projected presentations, for example projectors
+	or print to transparencies.</item>
+	<item><lit>screen</lit>: Intended primarily for color computer screens.</item>
+	<item><lit>tty</lit>: Intended for media using a fixed-pitch character grid, such as teletypes,
+	terminals, or portable devices with limited display capabilities. Authors should not use pixel units
+	with the <lit>tty</lit> media type.</item>
+	<item><lit>tv</lit>: Intended for television-type devices (low resolution, color, limited-scrollability screens, sound available).</item>
+	</ulist>
+	<par>Media type names are case-insensitive.</par>
+	"""
+	model = sims.Elements(atimport, rule)
+	class Attrs(xsc.Element.Attrs):
+		class media(xsc.TextAttr): pass
+
+	def publish(self, publisher):
+		publisher.publish(u"@media ")
+		publisher.publish(unicode(self["media"]))
+		publisher.publish(u"\n{")
+		imports = self.content.find(xsc.FindType(atimport))
+		for i in imports:
+			publisher.publish(u"\n\t")
+			i.publish(publisher)
+		for child in self.content.walk(xsc.FindType(rule)):
+			publisher.publish(u"\n\t")
+			child.publish(publisher)
+		publisher.publish(u"\n}")
+
+
+class css(xsc.Element):
+	"""
+	The root element
+	"""
+	model = sims.Elements(atimport, atmedia, rule)
+
+	def publish(self, publisher):
+		publisher.pusherrors("cssescapereplace")
+		# publish the imports first
+		first = True
+		for i in self.content.walk(xsc.FindType(atimport)):
+			if first:
+				first = False
+			else:
+				publisher.publish(u"\n")
+			i.publish(publisher)
+		for child in self.content.walk(xsc.FindType(rule, atmedia)):
+			if first:
+				first = False
+			else:
+				publisher.publish(u"\n")
+			child.publish(publisher)
+		publisher.poperrors()
 
 
 class xmlns(xsc.Namespace):

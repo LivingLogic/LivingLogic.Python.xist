@@ -18,7 +18,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 
 import sys, types, time as time_, string, warnings
 
-from ll.xist import xsc, parsers, errors
+from ll.xist import xsc, parsers, errors, sims
 from ll.xist.ns import ihtml, html, meta, specials
 
 
@@ -27,7 +27,6 @@ class plaintable(html.table):
 	<par>a &html; table where the values of the attributes <lit>cellpadding</lit>,
 	<lit>cellspacing</lit> and <lit>border</lit> default to <lit>0</lit>.</par>
 	"""
-	empty = False
 	class Attrs(html.table.Attrs):
 		class cellpadding(html.table.Attrs.cellpadding):
 			default = 0
@@ -46,7 +45,6 @@ class plainbody(html.body):
 	<par>a &html; body where the attributes <lit>leftmargin</lit>, <lit>topmargin</lit>,
 	<lit>marginheight</lit> and <lit>marginwidth</lit> default to <lit>0</lit>.</par>
 	"""
-	empty = False
 	class Attrs(html.body.Attrs):
 		class leftmargin(html.body.Attrs.leftmargin):
 			default = 0
@@ -63,7 +61,6 @@ class plainbody(html.body):
 
 
 class _pixelbase(html.img):
-	empty = True
 	class Attrs(html.img.Attrs):
 		class color(xsc.TextAttr):
 			"""
@@ -84,7 +81,8 @@ class _pixelbase(html.img):
 
 		class alt(html.img.Attrs.alt):
 			default = ""
-	
+
+
 class pixel(_pixelbase):
 	"""
 	<par>element for single pixel images.</par>
@@ -99,7 +97,6 @@ class pixel(_pixelbase):
 	as usual.</par>
 	"""
 
-	empty = True
 	class Attrs(_pixelbase.Attrs):
 		class width(html.img.Attrs.width):
 			default = 1
@@ -168,50 +165,8 @@ class autoinput(html.input):
 		return e.convert(converter)
 
 
-class caps(xsc.Element):
-	"""
-	<par>returns a fragment that contains the content string
-	converted to caps and small caps.</par>
-	
-	<par>This is done by converting all lowercase letters to
-	uppercase and packing them into a
-	<markup>&lt;span class="nini"&gt;...&lt;/span&gt;</markup>.
-	This element is meant to be a workaround until all
-	browsers support the &css; feature <lit>font-variant: small-caps</lit>.</par>
-	"""
-	empty = False
-
-	lowercase = unicode(string.lowercase, "latin-1") + u" "
-
-	def convert(self, converter):
-		target = converter.target
-		e = unicode(self.content.convert(converter))
-		result = xsc.Frag()
-		if e: # if we have nothing to do, we skip everything to avoid errors
-			collect = ""
-			last_was_lower = e[0] in self.lowercase
-			for c in e:
-				if (c in self.lowercase) != last_was_lower:
-					if last_was_lower:
-						result.append(target.span(collect.upper(), class_="nini"))
-					else:
-						result.append(collect)
-					last_was_lower = not last_was_lower
-					collect = ""
-				collect = collect + c
-			if collect:
-				if last_was_lower:
-					result.append(target.span(collect.upper(), class_="nini"))
-				else:
-					result.append(collect)
-		return result
-
-	def __unicode__(self):
-			return unicode(self.content).upper()
-
-
 class redirectpage(xsc.Element):
-	empty = True
+	model = sims.Empty()
 	class Attrs(xsc.Element.Attrs):
 		class href(xsc.URLAttr): required = True
 
@@ -240,7 +195,6 @@ class javascript(html.script):
 	"""
 	<par>can be used for javascript.</par>
 	"""
-	empty = False
 	class Attrs(html.script.Attrs):
 		language = None
 		type = None
@@ -252,7 +206,7 @@ class javascript(html.script):
 
 
 class flash(xsc.Element):
-	empty = True
+	model = sims.Empty()
 	class Attrs(xsc.Element.Attrs):
 		class src(xsc.URLAttr): required = True
 		class width(xsc.IntAttr): required = True
@@ -288,7 +242,7 @@ class flash(xsc.Element):
 
 
 class quicktime(xsc.Element):
-	empty = True
+	model = sims.Empty()
 	class Attrs(xsc.Element.Attrs):
 		class src(xsc.URLAttr): required = True
 		class href(xsc.URLAttr): pass

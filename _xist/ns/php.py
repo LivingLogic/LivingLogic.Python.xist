@@ -15,7 +15,7 @@
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-from ll.xist import xsc
+from ll.xist import xsc, sims
 
 
 class php(xsc.ProcInst):
@@ -59,7 +59,7 @@ class End(php):
 
 
 class block(xsc.Element):
-	empty = False
+	model = sims.Any()
 
 	def convert(self, converter):
 		e = xsc.Frag(
@@ -74,4 +74,3 @@ class xmlns(xsc.Namespace):
 	xmlname = "php"
 	xmlurl = "http://www.php.net/"
 xmlns.makemod(vars())
-

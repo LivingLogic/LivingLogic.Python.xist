@@ -17,8 +17,10 @@ dtd2xsc --help
 </prog>
 """
 
+
 __version__ = "$Revision$"[11:-2]
 # $Source$
+
 
 import sys, os.path, optparse
 
@@ -27,6 +29,7 @@ from xml.parsers.xmlproc import dtdparser
 from ll import url
 from ll.xist import xsc, parsers
 from ll.xist.ns import xndl
+
 
 def dtd2xsc(dtdurl, outurl, verbose, xmlname, xmlurl, shareattrs, asmod):
 	if verbose:
@@ -47,6 +50,7 @@ def dtd2xsc(dtdurl, outurl, verbose, xmlname, xmlurl, shareattrs, asmod):
 	file = outurl.openwrite()
 	file.write(data.aspy(asmod=asmod))
 	file.close()
+
 
 if __name__ == "__main__":
 	p = optparse.OptionParser(usage="usage: %prog [options] inputurl.dtd")

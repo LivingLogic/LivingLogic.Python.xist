@@ -18,11 +18,11 @@ element when converted.</par>
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-from ll.xist import xsc
+from ll.xist import xsc, sims
 from ll.xist.ns import ihtml, html
 
 
-class contenttype(xsc.Element):
+class contenttype(html.meta):
 	"""
 	<par>can be used for a <markup>&lt;meta http-equiv="Content-Type" content="text/html"/&gt;</markup>, where
 	the character set will be automatically inserted on a call to
@@ -30,7 +30,6 @@ class contenttype(xsc.Element):
 
 	<par>Usage is simple: <markup>&lt;meta:contenttype/&gt;</markup></par>
 	"""
-	empty = True
 	class Attrs(html.meta.Attrs):
 		http_equiv = None
 		name = None
@@ -53,7 +52,6 @@ class contentscripttype(html.meta):
 
 	<par>Usage is simple: <markup>&lt;meta:contentscripttype type="text/javascript"/&gt;</markup></par>
 	"""
-	empty = True
 	class Attrs(html.meta.Attrs):
 		http_equiv = None
 		name = None
@@ -75,7 +73,7 @@ class keywords(html.meta):
 
 	<par>Usage is simple: <markup>&lt;meta:keywords&gt;foo, bar&lt;/meta:keywords&gt;</markup></par>
 	"""
-	empty = False
+	model = sims.NoElements()
 	class Attrs(html.meta.Attrs):
 		http_equiv = None
 		name = None
@@ -94,7 +92,7 @@ class description(html.meta):
 
 	<par>Usage is simple: <markup>&lt;meta:description&gt;This page describes the ...&lt;/meta:description&gt;</markup></par>
 	"""
-	empty = False
+	model = sims.NoElements()
 	class Attrs(html.meta.Attrs):
 		http_equiv = None
 		name = None
@@ -113,7 +111,6 @@ class stylesheet(html.link):
 
 	<par>Usage is simple: <markup>&lt;meta:stylesheet href="root:stylesheets/main.css"/&gt;</markup></par>
 	"""
-	empty = True
 	class Attrs(html.link.Attrs):
 		rel = None
 		type = None
@@ -129,7 +126,6 @@ class made(html.link):
 
 	<par>Usage is simple: <markup>&lt;meta:made href="foobert@bar.org"/&gt;</markup>.</par>
 	"""
-	empty = True
 	class Attrs(html.link.Attrs):
 		rel = None
 
@@ -144,7 +140,7 @@ class author(xsc.Element):
 	It will generate <markup>&lt;link rel="made"/&gt;</markup> and
 	<markup>&lt;meta name="author"/&gt;</markup> elements.</par>
 	"""
-	empty = True
+	model = sims.Empty()
 	class Attrs(xsc.Element.Attrs):
 		class lang(xsc.TextAttr): pass
 		class name(xsc.TextAttr): pass
@@ -152,11 +148,11 @@ class author(xsc.Element):
 
 	def convert(self, converter):
 		e = xsc.Frag()
-		if self.attrs.has("name"):
+		if "name" in self.attrs:
 			e.append(html.meta(name="author", content=self["name"]))
-			if self.attrs.has("lang"):
+			if "lang" in self.attrs:
 				e[-1]["lang"] = self["lang"]
-		if self.attrs.has("email"):
+		if "email" in self.attrs:
 			e.append(html.link(rel="made", href=("mailto:", self["email"])))
 		return e.convert(converter)
 
@@ -165,7 +161,7 @@ class refresh(xsc.Element):
 	"""
 	<par> a refresh header.</par>
 	"""
-	empty = False
+	model = sims.Empty()
 	class Attrs(xsc.Element.Attrs):
 		class secs(xsc.IntAttr):
 			default = 0
@@ -180,4 +176,3 @@ class xmlns(xsc.Namespace):
 	xmlname = "meta"
 	xmlurl = "http://xmlns.livinglogic.de/xist/ns/meta"
 xmlns.makemod(vars())
-

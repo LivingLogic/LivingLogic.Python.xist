@@ -17,11 +17,11 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 
 import cgi # for parse_header
 
-from ll.xist import xsc
+from ll.xist import xsc, sims
 
 
 class directive(xsc.Element):
-	empty = True
+	model = sims.Empty()
 	register = False # only serves as a base class
 
 	def publish(self, publisher):
@@ -97,7 +97,7 @@ class block(xsc.Element):
 	<par>Note that the content itself will not be turned into a scriptlet
 	automatically but will be used as-is.</par>
 	"""
-	empty = False
+	model = sims.Any()
 
 	def convert(self, converter):
 		e = xsc.Frag(
@@ -161,4 +161,3 @@ class xmlns(xsc.Namespace):
 	xmlname = "jsp"
 	xmlurl = "http://java.sun.com/JSP/Page"
 xmlns.makemod(vars())
-

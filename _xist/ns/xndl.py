@@ -18,7 +18,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 
 import sys, keyword
 
-from ll.xist import xsc, parsers
+from ll.xist import xsc, parsers, sims
 
 
 class Base(object):
@@ -369,45 +369,19 @@ class base(xsc.Element):
 			return None
 
 
-class xndl(base):
-	empty = False
-	class Attrs(xsc.Element.Attrs):
-		class name(xsc.TextAttr): required = True
-		class url(xsc.TextAttr): pass
-
-	def asdata(self):
-		return Namespace(
-			name=unicode(self["name"]),
-			doc=self.finddoc(),
-			url=unicode(self["url"]) or None,
-			content=[ node.asdata() for node in self.content.find(xsc.FindType(element, procinst, entity, charref)) ]
-		)
-
-
 class doc(base):
-	empty = False
+	model = sims.Any()
 
 	def asdata(self):
 		return self.content
 
 
-class element(base):
-	empty = False
-	class Attrs(xsc.Element.Attrs):
-		class name(xsc.TextAttr): required = True
-		class empty(xsc.BoolAttr): pass
-
-	def asdata(self):
-		return Element(
-			name=unicode(self["name"]),
-			doc=self.finddoc(),
-			empty=self.attrs.has("empty"),
-			attrs=[ a.asdata() for a in self.content.find(xsc.FindType(attr)) ]
-		)
+class value(base):
+	model = sims.NoElements()
 
 
 class attr(base):
-	empty = False
+	model = sims.Elements(doc, value)
 	class Attrs(xsc.Element.Attrs):
 		class name(xsc.TextAttr): required = True
 		class type(xsc.TextAttr):
@@ -421,18 +395,29 @@ class attr(base):
 			name=unicode(self["name"]),
 			doc=self.finddoc(),
 			type=str(self["type"]),
-			required=self.attrs.has("required"),
+			required="required" in self.attrs,
 			default=unicode(self["default"]) or None,
 			values=[ unicode(v) for v in self.content.find(xsc.FindType(value)) ]
 		)
 
 
-class value(base):
-	empty = False
+class element(base):
+	model = sims.Elements(doc, attr)
+	class Attrs(xsc.Element.Attrs):
+		class name(xsc.TextAttr): required = True
+		class empty(xsc.BoolAttr): pass
+
+	def asdata(self):
+		return Element(
+			name=unicode(self["name"]),
+			doc=self.finddoc(),
+			empty="empty" in self.attrs,
+			attrs=[ a.asdata() for a in self.content.find(xsc.FindType(attr)) ]
+		)
 
 
 class procinst(base):
-	empty = False
+	model = sims.Elements(doc)
 	class Attrs(xsc.Element.Attrs):
 		class target(xsc.TextAttr): required = True
 
@@ -445,7 +430,7 @@ class procinst(base):
 
 
 class entity(base):
-	empty = False
+	model = sims.Elements(doc)
 	class Attrs(xsc.Element.Attrs):
 		class name(xsc.TextAttr): required = True
 
@@ -458,7 +443,7 @@ class entity(base):
 
 
 class charref(base):
-	empty = False
+	model = sims.Elements(doc)
 	class Attrs(xsc.Element.Attrs):
 		class name(xsc.TextAttr): required = True
 		class codepoint(xsc.IntAttr): required = True
@@ -471,6 +456,21 @@ class charref(base):
 		)
 
 
+class xndl(base):
+	model = sims.Elements(doc, element, procinst, entity, charref)
+	class Attrs(xsc.Element.Attrs):
+		class name(xsc.TextAttr): required = True
+		class url(xsc.TextAttr): pass
+
+	def asdata(self):
+		return Namespace(
+			name=unicode(self["name"]),
+			doc=self.finddoc(),
+			url=unicode(self["url"]) or None,
+			content=[ node.asdata() for node in self.content.find(xsc.FindType(element, procinst, entity, charref)) ]
+		)
+
+
 class xmlns(xsc.Namespace):
 	xmlname = "xndl"
 	xmlurl = "http://xmlns.livinglogic.de/xist/ns/xndl"
@@ -478,7 +478,7 @@ class xmlns(xsc.Namespace):
 	def fromdtd(cls, dtd, xmlname, xmlurl=None):
 		"""
 		Convert &dtd; information (in the format that is returned by <app>xmlproc</app>s
-		<function>dtdparser.load_dtd</function> function) to an &xist; DOM using the
+		<function>dtdparser.load_dtd</function> function) to an &xist; &dom; using the
 		<pyref module="ll.xist.ns.xndl"><module>xndl</module></pyref> namespace.
 		"""
 
@@ -543,4 +543,3 @@ class xmlns(xsc.Namespace):
 	fromdtd = classmethod(fromdtd)
 
 xmlns.makemod(vars())
-

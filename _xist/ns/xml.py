@@ -15,7 +15,7 @@
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-from ll.xist import xsc, utils
+from ll.xist import xsc, utils, sims
 
 
 class XML(xsc.ProcInst):
@@ -55,15 +55,13 @@ class XMLStyleSheet(xsc.ProcInst):
 	"""
 	xmlname = "xml-stylesheet"
 
-	needsxmlns = 0
-
 
 class header(xsc.Element):
 	"""
 	<par>The &xml; header processing instruction as an element. This makes it
 	possible to generate a header from within an &xml; file.
 	"""
-	empty = True
+	model = sims.Empty()
 
 	def convert(self, converter):
 		return XML10()
@@ -75,13 +73,10 @@ class xmlns(xsc.Namespace):
 
 	class Attrs(xsc.Namespace.Attrs):
 		class space(xsc.TextAttr):
-			needsxmlns = 1
 			xmlprefix = "xml"
 			values = ("default", "preserve")
 		class lang(xsc.TextAttr):
-			needsxmlns = 1
 			xmlprefix = "xml"
 		class base(xsc.URLAttr):
-			needsxmlns = 1
 			xmlprefix = "xml"
 xmlns.makemod(vars())

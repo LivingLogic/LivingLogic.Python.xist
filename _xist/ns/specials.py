@@ -18,14 +18,14 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 
 import sys, types, datetime
 
-from ll.xist import xsc, parsers
+from ll.xist import xsc, parsers, sims
 
 
 class z(xsc.Element):
 	"""
 	<par>Put the content into double quotes</par>
 	"""
-	empty = False
+	model = sims.Any()
 
 	def convert(self, converter):
 		e = xsc.Frag(u"\u201c", self.content.convert(converter), u"\u201d")
@@ -40,7 +40,7 @@ class filesize(xsc.Element):
 	<par>the size (in bytes) of the file whose URL is the attribute href
 	as a text node.</par>
 	"""
-	empty = True
+	model = sims.Empty()
 	class Attrs(xsc.Element.Attrs):
 		class href(xsc.URLAttr): pass
 
@@ -57,7 +57,7 @@ class filetime(xsc.Element):
 	<par>the time of the last modification of the file whose &url; is in the attribute <lit>href</lit>
 	as a text node. This will always be an &utc; timestamp.</par>
 	"""
-	empty = True
+	model = sims.Empty()
 	class Attrs(xsc.Element.Attrs):
 		class href(xsc.URLAttr):
 			"""
@@ -80,7 +80,7 @@ class time(xsc.Element):
 	is called). You can specify the format of the string in the attribute format, which is a
 	<function>strftime</function> compatible string.</par>
 	"""
-	empty = True
+	model = sims.Empty()
 	class Attrs(xsc.Element.Attrs):
 		class format(xsc.TextAttr):
 			"""
@@ -109,14 +109,14 @@ class x(xsc.Element):
 	<par><class>x</class> can be used to comment out stuff.
 	The content of the element must of course still be wellformed.</par>
 	"""
-	empty = False
+	model = sims.Any()
 
 	def convert(self, converter):
 		return xsc.Null
 
 
 class include(xsc.Element):
-	empty = True
+	model = sims.Empty()
 	class Attrs(xsc.Element.Attrs):
 		class src(xsc.URLAttr): pass
 
@@ -127,7 +127,7 @@ class include(xsc.Element):
 
 
 class loremipsum(xsc.Element):
-	empty = True
+	model = sims.Empty()
 	class Attrs(xsc.Element.Attrs):
 		class len(xsc.IntAttr): pass
 
@@ -152,14 +152,14 @@ class wrap(xsc.Element):
 	<par>This is also used for publishing, when <lit>xmlns</lit> attributes
 	are required, but the root is not an element.</par>
 	"""
-	empty = False
+	model = sims.Any()
 
 	def convert(self, converter):
 		return self.content.convert(converter)
 
 
 class AttrDecorator(xsc.Element):
-	empty = False
+	model = sims.Any()
 	register = False
 
 	decoratable = ()
@@ -173,10 +173,9 @@ class AttrDecorator(xsc.Element):
 			return isinstance(node, self.decorator.decoratable)
 
 		def visit(self, node):
-			found = xsc.Found(enter=True)
 			if self.isdecoratable(node):
-				found.foundstart = self.decorate
-			return found
+				return (True, xsc.entercontent)
+			return (xsc.entercontent,)
 
 		def decorate(self, node, start):
 			for (attrname, attrvalue) in self.decorator.attrs.iteritems():
