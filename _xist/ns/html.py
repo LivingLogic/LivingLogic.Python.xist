@@ -29,7 +29,7 @@ entities in
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-import string
+import cgi # for parse_header
 
 from xist import xsc
 
@@ -111,29 +111,16 @@ class meta(xsc.Element):
 		if self.hasAttr("http-equiv"):
 			ctype = self["http-equiv"].asPlainString().lower()
 			if ctype == u"content-type" and self.hasAttr("content"):
-				content = self["content"].asPlainString()
-				found = self.__findCharSet()
-				if found is None or publisher.encoding != content[found[0]:found[1]]:
-					node = meta(http_equiv="Content-Type")
-					if found is None:
-						node["content"] = content+u"; charset="+publisher.encoding
-					else:
-						node["content"] = content[:found[0]]+publisher.encoding+content[found[1]:]
+				(contenttype, options) = cgi.parse_header(self["content"].asPlainString())
+				if not options.has_key(u"charset") or options[u"charset"] != publisher.encoding:
+					options[u"charset"] = publisher.encoding
+					node = meta(
+						http_equiv="Content-Type",
+						content=(contenttype, u"; ", u"; ".join([ "%s=%s" % option for option in options.items()]))
+					)
 					node.publish(publisher)
 					return
 		xsc.Element.publish(self, publisher)
-
-	def __findCharSet(self):
-		content = self["content"].asPlainString()
-		startpos = content.find(u"charset")
-		if startpos != -1:
-			startpos = startpos+8 # skip '='
-			endpos = content.find(";", startpos)
-			if endpos != -1:
-				return (startpos, endpos)
-			else:
-				return (startpos, len(content))
-		return None
 
 class body(xsc.Element):
 	"""
