@@ -6,7 +6,7 @@ from xsc_html40 import *
 class plaintable(table):
 	close = 1
 
-	def __str__(self):
+	def _doAsHTML(self):
 		e = table(self.content,self.attrs)
 		if not e.has_attr("cellpadding"):
 			e["cellpadding"] = 0
@@ -15,13 +15,13 @@ class plaintable(table):
 		if not e.has_attr("border"):
 			e["border"] = 0
 
-		return str(e)
+		return e
 RegisterElement("plaintable",plaintable)
 
 class plainbody(body):
 	close = 1
 
-	def __str__(self):
+	def _doAsHTML(self):
 		e = body(self.content,self.attrs)
 		if not e.has_attr("leftmargin"):
 			e["leftmargin"] = 0
@@ -32,14 +32,14 @@ class plainbody(body):
 		if not e.has_attr("marginwidth"):
 			e["marginwidth"] = 0
 
-		return str(e)
+		return e
 RegisterElement("plainbody",plainbody)
 
 class z(XSCElement):
 	close = 1
 
-	def __str__(self):
-		return str(XSCFrag(["«" , self.content , "»" ]))
+	def _doAsHTML(self):
+		return XSCFrag(["«" , self.content , "»" ])
 RegisterElement("z",z)
 
 class nbsp(XSCElement):
@@ -53,15 +53,15 @@ class filesize(XSCElement):
 	close = 0
 	attr_handlers = { "href" : XSCurl }
 
-	def __str__(self):
-		return str(FileSize(str(self["href"])))
+	def _doAsHTML(self):
+		return str(FileSize(str(self["href"].asHTML())))
 RegisterElement("filesize",filesize)
 
 class x(XSCElement):
 	"""content will be ignored: can be used to comment out stuff (e.g. linefeeds)"""
 	close=1
 
-	def __str__(self):
+	def _doAsHTML(self):
 		return ""
 RegisterElement("x",x)
 
@@ -70,7 +70,7 @@ class pixel(img):
 	attr_handlers = AppendDict(img.attr_handlers,{ "color" : XSCFrag })
 	del attr_handlers["src"]
 
-	def __str__(self):
+	def asHTML(self):
 		e = img(self.content,self.attrs - [ "color" ])
 		if self.has_attr("color"):
 			color = self["color"]
@@ -78,14 +78,14 @@ class pixel(img):
 			color = "dot_clear"
 		e["src"] = XSCFrag([":Images/Pixels/" , color , ".gif" ])
 
-		return str(e)
+		return e
 RegisterElement("pixel",pixel)
 
 class cap(XSCElement):
 	close = 1
 	
-	def __str__(self):
-		e = str(self.content)
+	def _doAsHTML(self):
+		e = str(self.content.asHTML())
 		if type(e) == types.ListType:
 			e = e[0]
 		e = e + "?"
@@ -103,9 +103,9 @@ class cap(XSCElement):
 				innini = 1-innini
 			else:
 				collect = collect + e[i]
-		return string.joinfields(result,"")
+		return XSCText(string.joinfields(result,""))
 RegisterElement("cap",cap)
 
 if __name__ == "__main__":
-	print str(xsc.parsefile(sys.argv[1]))
+	print str(xsc.parsefile(sys.argv[1]).asHTML())
 

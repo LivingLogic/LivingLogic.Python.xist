@@ -320,7 +320,7 @@ class img(XSCElement):
 		e = img(self.content,self.attrs)
 		e.AddImageSizeAttributes("src")
 
-		return XSCElement.__str__(e)
+		return e
 RegisterElement("img",img)
 
 class object(XSCElement):
@@ -436,7 +436,7 @@ RegisterElement("noscript",noscript)
 
 if __name__ == "__main__":
 	try:
-		print str(xsc.arsefile(sys.argv[1]))
+		print str(xsc.parsefile(sys.argv[1]).asHTML())
 	except XSCError,e:
 		print str(e)
 

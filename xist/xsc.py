@@ -251,6 +251,12 @@ class XSCNode:
 		# returns and array containing arrays consisting of the (nestinglevel,linenumber,elementnumber,string representation) of the nodes
 		return [[nest,self.lineno,elementno,self._strtag("?")]]
 
+	def asHTML(self):
+		return ToNode(self._doasHTML())
+
+	def _doAsHTML(self):
+		return None
+
 	def _stransi(self,codes,string):
 		if xsc.repransi and codes!="":
 			return "\033[" + codes + "m" + string + "\033[0m"
@@ -287,6 +293,9 @@ class XSCText(XSCNode):
 
 	def __init__(self,content = ""):
 		self.content = content
+
+	def _doAsHTML(self):
+		return XSCText(self.content)
 
 	def dostr(self):
 		v = []
@@ -342,6 +351,9 @@ class XSCFrag(XSCNode):
 	def __radd__(self,other):
 		res = XSCFrag(self.content)
 		res.preppend(other)
+
+	def _doAsHTML(self):
+		return XSCFrag(self.content)
 
 	def _dorepr(self):
 		v = []
@@ -425,6 +437,9 @@ class XSCAttrs(XSCNode):
 			del res[attr]
 		return res
 
+	def _doAsHTML(self):
+		return XSCAttrs(self.attr_handlers,self.content)
+
 	def _dorepr(self):
 		v = []
 		for attr in self.keys():
@@ -483,6 +498,9 @@ class XSCComment(XSCNode):
 	def __init__(self,content = ""):
 		self.content = content
 
+	def _doAsHTML(self):
+		return XSCComment(self.content)
+
 	def _dorepr(self):
 		return self._strtag("!--" + self.content + "--")
 
@@ -523,6 +541,9 @@ class XSCElement(XSCNode):
 
 	def append(self,item):
 		self.content.append(item)
+
+	def _doAsHTML(self):
+		return self.__class__(self.content,self.attrs) # "virtual" copy constructor
 
 	def _dorepr(self):
 		v = []
