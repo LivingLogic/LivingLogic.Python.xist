@@ -1029,7 +1029,7 @@ class Frag(Node, list):
 		If <arg>index</arg> is an empty list, the call will be ignored.</par>
 		"""
 		if isinstance(index, list):
-			if len(index):
+			if index:
 				node = self
 				for subindex in index[:-1]:
 					node = node[subindex]
@@ -1049,14 +1049,14 @@ class Frag(Node, list):
 		after traversing the rest of <arg>index</arg> recursively.
 		If <arg>index</arg> is an empty list the call will be ignored.</par>
 		"""
-		try:
-			list.__delitem__(self, index)
-		except TypeError: # assume index is a list
-			if len(index):
+		if isinstance(index, list):
+			if index:
 				node = self
 				for subindex in index[:-1]:
 					node = node[subindex]
 				del node[index[-1]]
+		else:
+			list.__delitem__(self, index)
 
 	def __getslice__(self, index1, index2):
 		"""
@@ -2441,7 +2441,13 @@ class Element(Node):
 		removes an attribute or one of the content nodes depending on whether
 		a string (i.e. attribute name) or a number or list (i.e. content node index) is passed in.
 		"""
-		if isinstance(index, (int, long, list)):
+		if isinstance(index, list):
+			if index:
+				node = self
+				for subindex in index[:-1]:
+					node = node[subindex]
+				del node[index[-1]]
+		elif isinstance(index, (int, long)):
 			del self.content[index]
 		else:
 			del self.attrs[index]
