@@ -701,10 +701,10 @@ class Node(Base):
 		raise errors.NodeNotFoundError()
 
 	def __div__(self, other):
-		return xfind.Finder(self, other)
+		return xfind.Expr(self, other)
 		
 	def __floordiv__(self, other):
-		return xfind.Finder(self, xfind.all, other)
+		return xfind.Expr(self, xfind.all, other)
 		
 	def compact(self):
 		"""

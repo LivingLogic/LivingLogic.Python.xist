@@ -16,129 +16,44 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
 
-def iterone(node):
-	"""
-	Return an iterator that will produce one item: <arg>node</arg>.
-	"""
-	yield node
+import ll
 
 
-class Operator(object):
-	"""
-	The base class of all XFind operators.
-	"""
-	def xfind(self, iterator, *operators):
-		"""
-		Apply <self/> to the nodes produced by <arg>iterator</arg> first, and
-		apply the operators in <arg>operators</arg> in sequence to the result.
-		Return an iterator. This method may be overwritten by iterators that need
-		to know the other operators after themselves in the XFind expression. All
-		others should overwrite <pyref method="xwalk"><method>xwalk</method></pyref>.
-		"""
-		# we have to resolve the iterator here
-		return iter(Finder(self.xwalk(iterator), *operators))
-
-	def xwalk(self, iterator):
-		"""
-		Apply <self/> to the nodes produced by <arg>iterator</arg> and return
-		an iterator for the result.
-		"""
-		pass
-
-
-class Finder(object):
-	"""
-	A <class>Finder</class> object is a <z>parsed</z> XFind expression.
-	The expression <lit><rep>a</rep>/<rep>b</rep></lit> will return an
-	<class>Finder</class> object if <lit><rep>a</rep></lit> is either a
-	<pyref class="Node"><class>Node</class></pyref> object or an iterator
-	producing nodes and <lit><rep>b</rep></lit> is an operator object, such as
-	the subclasses of <pyref module="ll.xist.xsc" class="Node"><class>Node</class></pyref>
-	or the instances of <pyref class="Operator"><class>Operator</class></pyref>.
-	"""
-	__slots__ = ("iterator", "operators")
-
-	def __init__(self, iterator, *operators):
-		from ll.xist import xsc
-		if isinstance(iterator, xsc.Node):
-			iterator = iterone(iterator)
-		self.iterator = iterator
-		newoperators = []
-		for operator in operators:
-			if not isinstance(operator, Operator):
-				operator = Walker(operator)
-			newoperators.append(operator)
-		self.operators = tuple(newoperators)
-
-	def next(self):
-		return self.iterator.next()
-
-	def __iter__(self):
-		if self.operators:
-			return self.operators[0].xfind(self.iterator, *self.operators[1:])
-		else:
-			return self
-
-	def __getitem__(self, index):
-		return item(self, index)
-
-	# We can't implement __len__, because if a Finder object is passed to list(), __len__() would be called, exhausting the iterator
-
-	def __nonzero__(self):
-		for node in self:
-			return True
-		return False
-
-	def __div__(self, other):
-		return Finder(self.iterator, *(self.operators + (other,)))
-
-	def __floordiv__(self, other):
-		return Finder(self.iterator, *(self.operators + (all, other)))
-
-	def __repr__(self):
-		if self.operators:
-			ops = "/" + "/".join(repr(op) for op in self.operators)
-		else:
-			ops = ""
-		return "<%s.%s object for %r%s at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.iterator, ops, id(self))
-
+###
+### General iterator utilities
+###
 
 _defaultitem = object()
 
 def item(iterator, index, default=_defaultitem):
 	"""
 	<par>Return the <arg>index</arg>th item from the iterator <arg>iterator</arg>.
-	<arg>index</arg> may be an integer (negative integers are relative to the
-	end (i.e. the last item produced by the iterator)) or a <class>slice</class>.</par>
-
-	<par>Calling this function will partially or totally exhaust the iterator.</par>
+	<arg>index</arg> must be an integer (negative integers are relative to the
+	end (i.e. the last item produced by the iterator)).</par>
 
 	<par>If <arg>default</arg> is given, this will be the default value when
 	the iterator doesn't contain an item at this position. Otherwise an
 	<class>IndexError</class> will be raised.</par>
 	"""
-	if isinstance(index, slice):
-		return list(iterator)[index] # fall back to materializing the list
+	i = index
+	if i>=0:
+		for item in iterator:
+			if not i:
+				return item
+			i -= 1
 	else:
-		i = index
-		if i>=0:
-			for item in iterator:
-				if not i:
-					return item
-				i -= 1
-		else:
-			i = -index
-			cache = []
-			for item in iterator:
-				cache.append(item)
-				if len(cache)>i:
-					cache.pop(0)
-			if len(cache)==i:
-				return cache[0]
-		if default is _defaultitem:
-			raise IndexError(index)
-		else:
-			return default
+		i = -index
+		cache = []
+		for item in iterator:
+			cache.append(item)
+			if len(cache)>i:
+				cache.pop(0)
+		if len(cache)==i:
+			return cache[0]
+	if default is _defaultitem:
+		raise IndexError(index)
+	else:
+		return default
 
 
 def first(iterator, default=_defaultitem):
@@ -168,6 +83,199 @@ def count(iterator):
 	for node in iterator:
 		count += 1
 	return count
+
+
+def iterone(node):
+	"""
+	Return an iterator that will produce one item: <arg>node</arg>.
+	"""
+	yield node
+
+
+###
+### XFind expression
+###
+
+class Expr(object):
+	"""
+	A <class>Expr</class> object is a <z>parsed</z> XFind expression.
+	The expression <lit><rep>a</rep>/<rep>b</rep></lit> will return an
+	<class>Finder</class> object if <lit><rep>a</rep></lit> is either a
+	<pyref class="Node"><class>Node</class></pyref> object or an iterator
+	producing nodes and <lit><rep>b</rep></lit> is an operator object, such as
+	the subclasses of <pyref module="ll.xist.xsc" class="Node"><class>Node</class></pyref>
+	or the instances of <pyref class="Operator"><class>Operator</class></pyref>.
+	"""
+	__slots__ = ("iterator", "operator")
+
+	def __init__(self, iterator, *operators):
+		from ll.xist import xsc
+		if isinstance(iterator, xsc.Node):
+			iterator = iterone(iterator)
+		self.iterator = iterator
+		self.operator = OperatorChain(*operators)
+
+	def next(self):
+		return self.iterator.next()
+
+	def __iter__(self):
+		if self.operator.operators:
+			return self.operator.xfind(self.iterator)
+		else:
+			return self.iterator
+
+	def __getitem__(self, index):
+		return item(self, index)
+
+	# We can't implement __len__, because if a Finder object is passed to list(), __len__() would be called, exhausting the iterator
+
+	def __nonzero__(self):
+		for node in self:
+			return True
+		return False
+
+	def __div__(self, other):
+		return Expr(self.iterator, self.operator/other)
+
+	def __floordiv__(self, other):
+		return Expr(self.iterator, self.operator//other)
+
+	def __repr__(self):
+		if self.operator.operators:
+			ops = "/" + "/".join(repr(op) for op in self.operator.operators)
+		else:
+			ops = ""
+		return "<%s.%s object for %r%s at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.iterator, ops, id(self))
+
+
+###
+### XFind operators
+###
+
+class Operator(object):
+	"""
+	The base class of all XFind operators.
+	"""
+	def xfind(self, iterator, *operators):
+		"""
+		Apply <self/> to the nodes produced by <arg>iterator</arg> first, and
+		apply the operators in <arg>operators</arg> in sequence to the result.
+		Return an iterator. This method may be overwritten by iterators that need
+		to know the other operators after themselves in the XFind expression. All
+		others should overwrite <pyref method="xwalk"><method>xwalk</method></pyref>.
+		"""
+		# we have to resolve the iterator here
+		return iter(Expr(self.xwalk(iterator), *operators))
+
+	@ll.notimplemented
+	def xwalk(self, iterator):
+		"""
+		Apply <self/> to the nodes produced by <arg>iterator</arg> and return
+		an iterator for the result.
+		"""
+		pass
+
+	def __div__(self, other):
+		"""
+		Return a combined iterator.
+		"""
+		if isinstance(other, OperatorChain):
+			return OperatorChain(self, *other.operators)
+		else:
+			return OperatorChain(self, other)
+
+	def __floordiv__(self, other):
+		"""
+		Return a combined iterator.
+		"""
+		if isinstance(other, OperatorChain):
+			return OperatorChain(self, all, *other.operators)
+		else:
+			return OperatorChain(self, all, other)
+
+	def __getitem__(self, index):
+		"""
+		Return an iterator that applies <self/>, but only yields the <arg>index</arg>th
+		node from the result.
+		"""
+		if isinstance(index, slice):
+			return SliceOperator(self, slice)
+		else:
+			return ItemOperator(self, index)
+
+	def __getslice__(self, index1, index2):
+		"""
+		Return an iterator that applies <self/>, but only yields the nodes from
+		the specified slice.
+		"""
+		return SliceOperator(self, slice(index1, index2))
+
+
+class ItemOperator(Operator):
+	"""
+	"""
+	def __init__(self, operator, index):
+		self.operator = operator
+		self.index = index
+
+	def xwalk(self, iterator):
+		for child in iterator:
+			node = item(child/self.operator, self.index, None)
+			if node is not None:
+				yield node
+
+
+class SliceOperator(Operator):
+	"""
+	"""
+	def __init__(self, operator, slice):
+		self.operator = operator
+		self.slice = slice
+
+	def xwalk(self, iterator):
+		for child in iterator:
+			for subchild in list(child/self.operator)[self.slice]: # materialize the iterator
+				yield subchild
+
+
+class OperatorChain(Operator):
+	"""
+	"""
+	def __init__(self, *operators):
+		newoperators = []
+		for operator in operators:
+			if isinstance(operator, OperatorChain):
+				newoperators.extend(operator.operators)
+			else:
+				if not isinstance(operator, Operator):
+					operator = Walker(operator)
+				newoperators.append(operator)
+		self.operators = newoperators
+
+	def xwalk(self, iterator):
+		if self.operators:
+			return iter(Expr(self.operators[0].xfind(iterator, *self.operators[1:])))
+		else:
+			return iterator
+
+	def __div__(self, other):
+		if isinstance(other, OperatorChain):
+			return OperatorChain(*(self.operators + other.operators))
+		else:
+			return OperatorChain(*(self.operators + [other]))
+
+	def __floordiv__(self, other):
+		if isinstance(other, OperatorChain):
+			return OperatorChain(*(self.operators + [all] + other.operators))
+		else:
+			return OperatorChain(*(self.operators + [all, other]))
+
+	def __repr__(self):
+		if self.operators:
+			ops = "/".join(repr(op) for op in self.operators)
+		else:
+			ops = ""
+		return "<%s.%s for %s at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, ops, id(self))
 
 
 class Walker(Operator):

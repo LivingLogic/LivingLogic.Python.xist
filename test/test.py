@@ -2213,7 +2213,7 @@ class XFindTestLevels(unittest.TestCase):
 		del self.divs
 
 	def checkids(self, expr, ids):
-		self.assertEqual("".join([str(e["id"]) for e in expr]), ids)
+		self.assertEqual("".join(str(e["id"]) for e in expr), ids)
 
 	def test_all(self):
 		self.checkids(self.divs[0]//html.div, "1234567")
@@ -2318,7 +2318,7 @@ class XFindTestOperators(unittest.TestCase):
 
 class XFindTestMisc(unittest.TestCase):
 	def checkids(self, expr, ids):
-		self.assertEqual("".join([str(e["id"]) for e in expr]), ids)
+		self.assertEqual("".join(str(e["id"]) for e in expr), ids)
 
 	def test_frag(self):
 		e = parsers.parseString("das ist <b>klaus</b>. das ist <b>erich</b>", prefixes=xsc.Prefixes(html))
@@ -2342,6 +2342,42 @@ class XFindTestMisc(unittest.TestCase):
 			ds[i].append(ds[2*i+1:2*i+3])
 		# Using // multiple times might produce certain nodes twice
 		self.checkids(ds[0]//html.div//html.div, "34789a56bcde789abcde")
+
+
+class XFindTestItemSlice(unittest.TestCase):
+	def checkids(self, expr, ids):
+		self.assertEqual("".join(str(e["id"]) for e in expr), ids)
+
+	def test_itemsslices(self):
+		#        ____0____
+		#       /    |    \
+		#     _1_   _2_   _3_
+		#    /   \ /   \ /   \
+		#   4     5     6     7
+		ds = [html.div(id=id) for id in xrange(8)]
+		ds[0].append(ds[1], ds[2], ds[3])
+		ds[1].append(ds[4], ds[5])
+		ds[2].append(ds[5], ds[6])
+		ds[3].append(ds[6], ds[7])
+
+		self.checkids(ds[0]/html.div[0]/html.div[-1], "5")
+		self.checkids(ds[0]/html.div/html.div[-1], "567")
+		self.checkids(ds[0]/html.div[-1]/html.div, "67")
+		self.checkids(ds[0]/(html.div/html.div), "455667") # we get 5 and 6 twice
+		self.checkids(ds[0]/(html.div/html.div)[2], "5") # we get 5 and 6 twice
+		self.checkids(ds[0]/html.div[:]/html.div[:], "455667")
+		self.checkids(ds[0]/html.div/html.p[0], "")
+		self.checkids(ds[0]/html.p[0]/html.p[0], "")
+
+		# The following might be a surprise, but is perfectly normal:
+		# each node is visited and the div children are yielded.
+		# div(id=0) does have div children and those will be yielded.
+		# This is why the sequence starts with "12" and not "14"
+		self.checkids(ds[0]//html.div, "123455667")
+
+		self.checkids(ds[0]/html.div[1:2], "2")
+		self.checkids(ds[0]/html.div[1:-1]/html.div[1:-1], "")
+		self.checkids(ds[0]/html.div[1:-1]/html.div[-1:], "6")
 
 
 def test_main():

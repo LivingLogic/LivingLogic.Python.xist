@@ -6,6 +6,13 @@
 <class>ll.xist.ns.specials.ignore</class>.</item>
 <item><class>ll.xist.utils.findAttr</class> has been renamed to
 <class>ll.xist.utils.findattr</class>.</item>
+<item><class>ll.xist.xfind.item</class> no longer handles slices.</item>
+<item>XFind has been enhanced to support item and slice operators, i.e.
+if <lit><rep>foo</rep></lit> is an XFind operator, <lit><rep>foo</rep>[0]</lit>
+is an operator that will produce the first node from <lit><rep>foo</rep></lit>
+(if there is one). Negative values and slices are supported too.</item>
+<item>Operators can be chained via division: <lit>html.a/html.b</lit> is an
+operator that can be applied to a node.</item>
 </ulist>
 </section>
 
