@@ -668,7 +668,7 @@ class XSCProcInst(XSCNode):
 		self.__content = content
 
 	def _doAsHTML(self):
-		return XSCProcInsl(self.__target,self.__content)
+		return XSCProcInst(self.__target,self.__content)
 
 	def _dorepr(self):
 		return self._strpi(self.__target,self.__content)
