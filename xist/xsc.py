@@ -20,13 +20,13 @@ import urllib
 ### exceptions
 ###
 
-class EHSCException:
-	"base class for all HSC exceptions"
+class XSCException:
+	"base class for all XSC exceptions"
 
 	def __str__(self):
 		return "Something wonderful has happened"
 
-class EHSCEmptyElementWithContent(EHSCException):
+class XSCEmptyElementWithContent(XSCException):
 	"this element is specified to be empty, but has content"
 
 	def __init__(self,element):
@@ -35,7 +35,7 @@ class EHSCEmptyElementWithContent(EHSCException):
 	def __str__(self):
 		return "the element '" + self.element.name + "' is specified to be empty, but has content"
 
-class EHSCIllegalAttribute(EHSCException):
+class XSCIllegalAttribute(XSCException):
 	"this element has an attribute that is not allowed"
 
 	def __init__(self,attrs,attr):
@@ -45,7 +45,7 @@ class EHSCIllegalAttribute(EHSCException):
 	def __str__(self):
 		return "The attribute '" + self.attr + "' is not allowed here. The only allowed attributes are: " + str(self.attrs.attr_handlers.keys())
 
-class EHSCIllegalElement(EHSCException):
+class XSCIllegalElement(XSCException):
 	"this element is not allowed"
 
 	def __init__(self,elementname):
@@ -54,7 +54,7 @@ class EHSCIllegalElement(EHSCException):
 	def __str__(self):
 		return "The element '" + self.elementname + "' is not allowed. The only allowed elements are: " + str(element_handlers.keys())
 
-class EHSCImageSizeFormat(EHSCException):
+class XSCImageSizeFormat(XSCException):
 	"Can't format or evaluate image size attribute"
 
 	def __init__(self,element,attr):
@@ -64,7 +64,7 @@ class EHSCImageSizeFormat(EHSCException):
 	def __str__(self):
 		return "the value '" + str(self.element[self.attr]) + "' for the image size attribute '" + self.attr + "' of the element '" + self.element.name + "' can't be formatted or evaluated"
 
-class EHSCFileNotFound(EHSCException):
+class XSCFileNotFound(XSCException):
 	"Can't open image for getting image size"
 
 	def __init__(self,url):
@@ -73,7 +73,7 @@ class EHSCFileNotFound(EHSCException):
 	def __str__(self):
 		return "the image file '" + self.url + "' can't be opened"
 
-class EHSCIllegalObject(EHSCException):
+class XSCIllegalObject(XSCException):
 	"illegal object found in XSC tree"
 
 	def __init__(self,object):
@@ -139,7 +139,7 @@ def ToNode(value):
 				return value
 		else:
 			return value
-	raise EHSCIllegalObject(value) # none of the above, so we throw and exception
+	raise XSCIllegalObject(value) # none of the above, so we throw and exception
 
 element_handlers = {} # dictionary for mapping element names to classes
 
@@ -265,7 +265,7 @@ class XSCAttrs(XSCNode):
 		if self.attr_handlers.has_key(lowerindex):
 			self.content[lowerindex] = self.attr_handlers[lowerindex](ToNode(value)) # convert the attribute to a node and pack it into an attribute object
 		else:
-			raise EHSCIllegalAttribute(self,index)
+			raise XSCIllegalAttribute(self,index)
 
 	def __delitem__(self,index):
 		"removes a dictionary entry"
@@ -335,7 +335,7 @@ class XSCElement(XSCNode):
 			v.append(">")
 		else:
 			if len(s):
-				raise EHSCEmptyElementWithContent(self)
+				raise XSCEmptyElementWithContent(self)
 			v.append(">")
 
 		return string.joinfields(v,"")
@@ -358,7 +358,7 @@ class XSCElement(XSCNode):
 			v.append(">")
 		else:
 			if len(s):
-				raise EHSCEmptyElementWithContent(self)
+				raise XSCEmptyElementWithContent(self)
 			v.append(">")
 
 		return string.joinfields(v,"")
@@ -388,7 +388,7 @@ class XSCElement(XSCNode):
 					try:
 						self[widthattr] = eval(str(self[widthattr]) % sizedict)
 					except:
-						raise EHSCImageSizeFormat(self,widthattr)
+						raise XSCImageSizeFormat(self,widthattr)
 				else:
 					self[widthattr] = size[0]
 			if size[1] != -1: # the height was retrieved so we can use it
@@ -396,7 +396,7 @@ class XSCElement(XSCNode):
 					try:
 						self[heightattr] = eval(str(self[heightattr]) % sizedict)
 					except:
-						raise EHSCImageSizeFormat(self,heightattr)
+						raise XSCImageSizeFormat(self,heightattr)
 				else:
 					self[heightattr] = size[1]
 
@@ -501,7 +501,7 @@ class XSCParser(xmllib.XMLParser):
 		if element_handlers.has_key(lowername):
 			e = element_handlers[lowername]([],attrs)
 		else:
-			raise EHSCIllegalElement(lowername)
+			raise XSCIllegalElement(lowername)
 		self.nesting[-1].append(e) # add the new element to the content of the innermost element (or to the array)
 		self.nesting.append(e) # push new innermost element onto the stack
 
