@@ -43,7 +43,7 @@ def ToNode(value):
 		if isinstance(value, Attr):
 			return Frag(*value) # repack the attribute in a fragment, and we have a valid XSC node
 		return value
-	elif isinstance(value, (str, unicode, int, long, float)):
+	elif isinstance(value, (basestring, int, long, float)):
 		return Text(value)
 	elif value is None:
 		return Null
@@ -2175,7 +2175,7 @@ class Element(Node):
 
 	class __metaclass__(Node.__metaclass__):
 		def __new__(cls, name, bases, dict):
-			if "name" in dict and isinstance(dict["name"], (str, unicode)):
+			if "name" in dict and isinstance(dict["name"], basestring):
 				errors.warn(DeprecationWarning("name is deprecated, use xmlname instead"))
 				dict["xmlname"] = dict["name"]
 				del dict["name"]
