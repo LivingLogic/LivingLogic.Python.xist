@@ -143,7 +143,7 @@ class link(MouseElement):
 	attrHandlers.update({"forward": xsc.TextAttr, "href": xsc.URLAttr, "linkName": xsc.TextAttr, "name": xsc.TextAttr})
 	attrHandlers.update({"paramId": xsc.TextAttr, "page": xsc.TextAttr, "paramName": xsc.TextAttr})
 	attrHandlers.update({"paramProperty": xsc.TextAttr, "paramScope": xsc.TextAttr, "property": xsc.TextAttr, "scope": xsc.TextAttr})
-	attrHandlers.update({"target": xsc.TextAttr})
+	attrHandlers.update({"target": xsc.TextAttr, "class": xsc.TextAttr})
 
 class multibox(MouseElement):
 	"""
