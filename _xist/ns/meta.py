@@ -46,8 +46,7 @@ class contenttype(html.meta):
 	del attrHandlers["content"]
 
 	def convert(self, converter):
-		e = html.meta()
-		e.attrs = self.attrs.copy()
+		e = html.meta(self.attrs)
 		e["http-equiv"] = "Content-Type"
 		e["content"] = "text/html"
 		return e.convert(converter)
@@ -66,8 +65,7 @@ class keywords(html.meta):
 	del attrHandlers["content"]
 
 	def convert(self, converter):
-		e = html.meta()
-		e.attrs = self.attrs.copy()
+		e = html.meta(self.attrs)
 		e["name"] = "keywords"
 		e["content"] = self.content.convert(converter).asPlainString()
 		return e.convert(converter)
@@ -86,8 +84,7 @@ class description(html.meta):
 	del attrHandlers["content"]
 
 	def convert(self, converter):
-		e = html.meta()
-		e.attrs = self.attrs.copy()
+		e = html.meta(self.attrs)
 		e["name"] = "description"
 		e["content"] = self.content.convert(converter).asPlainString()
 		return e.convert(converter)
@@ -104,8 +101,7 @@ class stylesheet(html.link):
 	del attrHandlers["type"]
 
 	def convert(self, converter):
-		e = html.link()
-		e.attrs = self.attrs.copy()
+		e = html.link(self.attrs)
 		e["rel"] = "stylesheet"
 		e["type"] = "text/css"
 		return e.convert(converter)

@@ -1092,6 +1092,7 @@ class Element(Node):
 		prevent the repsective attributes from being touched in any way.</par>
 		"""
 
+		import presenters
 		if self.hasAttr(imgattr):
 			size = self[imgattr].convert(converter).imageSize()
 			if size is not None: # the size was retrieved so we can use it
