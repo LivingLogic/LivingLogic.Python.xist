@@ -440,8 +440,8 @@ class Node:
 			result = self.repr(encoding)
 		return result
 
-	def _str(self,content = None,brackets = 1,slash = None,ansi = None):
-		return _strNode(self.__class__,content,brackets,slash,ansi)
+	def _str(self, content=None, brackets=1, slash=None, ansi=None):
+		return _strNode(self.__class__, content, brackets, slash, ansi)
 
 	def clone(self):
 		"""
@@ -449,13 +449,13 @@ class Node:
 		"""
 		pass
 
-	def repr(self,encoding = None,ansi = None):
-		return self._dorepr(encoding,ansi)
+	def repr(self, encoding=None, ansi=None):
+		return self._dorepr(encoding, ansi)
 
-	def reprtree(self,encoding = None,ansi = None):
+	def reprtree(self, encoding=None, ansi=None):
 		nest = 0
 		v = []
-		lines = self._doreprtree(nest,[],encoding = encoding,ansi = ansi)
+		lines = self._doreprtree(nest, [], encoding = encoding, ansi = ansi)
 		lenloc = 0
 		lenelementno = 0
 		for line in lines:
@@ -463,20 +463,20 @@ class Node:
 				line[1] = str(line[1])
 			else:
 				line[1] = ""
-			line[2] = ".".join(map(str,line[2])) # convert element number to a string
+			line[2] = ".".join(map(str, line[2])) # convert element number to a string
 			line[3] = strTab(line[0]) + line[3] # add indentation
 			lenloc = max(lenloc,len(line[1]))
-			lenelementno = max(lenelementno,len(line[2]))
+			lenelementno = max(lenelementno, len(line[2]))
 
 		for line in lines:
 			v.append("%*s %-*s %s\n" % (lenloc, line[1], lenelementno, line[2], line[3]))
 		return "".join(v)
 
-	def _dorepr(self,encoding = None,ansi = None):
+	def _dorepr(self, encoding=None, ansi=None):
 		# returns a string representation of the node
 		return strBracketOpen(ansi) + strBracketClose(ansi)
 
-	def _doreprtree(self,nest,elementno,encoding = None,ansi = None):
+	def _doreprtree(self, nest, elementno, encoding=None, ansi=None):
 		# returns an array containing arrays consisting of the
 		# (nestinglevel,location,elementnumber,string representation) of the nodes
 		return [[nest, self.startloc, elementno, self._dorepr(encoding, ansi)]]
@@ -670,11 +670,11 @@ class Node:
 			res = test(self)
 		return res
 
-	def _doreprtreeMultiLine(self,nest,elementno,head,tail,text,formatter,extraFirstLine,encoding = None,ansi = None):
+	def _doreprtreeMultiLine(self, nest, elementno, head, tail, text, formatter, extraFirstLine, encoding=None, ansi=None):
 		lines = text.split("\n")
 		l = len(lines)
 		if l>1 and extraFirstLine:
-			lines.insert(0,"")
+			lines.insert(0, "")
 			l += 1
 		v = []
 		for i in xrange(l):
@@ -683,7 +683,7 @@ class Node:
 			while len(s) and s[0] == "\t":
 				mynest += 1
 				s = s[1:]
-			s = formatter(s,ansi)
+			s = formatter(s, ansi)
 			if i == 0:
 				s = head + s
 			if i == l-1:
@@ -772,11 +772,11 @@ class Text(Node):
 			end += 1 # to the next character
 		return "".join(v)
 
-	def _dorepr(self, encoding = None, ansi = None):
+	def _dorepr(self, encoding=None, ansi=None):
 		# constructs a string of this Text with syntaxhighlighting. Special characters will be output as CharRefs (with special highlighting)
 		return self.__strtext(0, self.content, encoding, ansi)
 
-	def _doreprtree(self, nest, elementno, encoding = None, ansi = None):
+	def _doreprtree(self, nest, elementno, encoding=None, ansi=None):
 		lines = self.content.split("\n")
 		if len(lines) and lines[-1] == "":
 			del lines[-1]
@@ -822,7 +822,7 @@ class CharRef(Node):
 	def _dorepr(self, ansi = None):
 		return strCharRef("&#"+str(self.content)+";", ansi)
 
-	def _doreprtree(self,nest,elementno,encoding = None,ansi = None):
+	def _doreprtree(self, nest, elementno, encoding=None, ansi=None):
 		s = strCharRef("&#" + str(self.content) + ";", ansi) + " (" + strCharRef("&#x" + hex(self.content)[2:] + ";", ansi)
 		entstr = []
 		for name in namespaceRegistry.byPrefix.keys():
@@ -872,17 +872,17 @@ class Frag(Node):
 			v.append(child._dorepr(ansi = ansi))
 		return "".join(v)
 
-	def _doreprtree(self, nest, elementno, encoding = None, ansi = None):
+	def _doreprtree(self, nest, elementno, encoding=None, ansi=None):
 		v = []
 		if len(self):
-			v.append([nest, self.startloc, elementno, self._str(brackets = 1, ansi = ansi)])
+			v.append([nest, self.startloc, elementno, self._str(brackets=1, ansi=ansi)])
 			i = 0
 			for child in self:
 				v = v + child._doreprtree(nest+1,elementno + [i],encoding,ansi)
 				i += 1
-			v.append([nest, self.endloc, elementno, self._str(brackets = 1, ansi = ansi, slash = -1)])
+			v.append([nest, self.endloc, elementno, self._str(brackets=1, ansi=ansi, slash=-1)])
 		else:
-			v.append([nest, self.startloc, elementno, self._str(brackets = 1, ansi = ansi, slash = 1)])
+			v.append([nest, self.startloc, elementno, self._str(brackets=1, ansi=ansi, slash=1)])
 		return v
 
 	def asPlainString(self):
@@ -1002,7 +1002,7 @@ class Frag(Node):
 			elif newother is not Null:
 				self.__content.append(newother)
 
-	def find(self, type = None, subtype = 0, attrs = None, test = None, searchchildren = 0, searchattrs = 0):
+	def find(self, type=None, subtype=0, attrs=None, test=None, searchchildren=0, searchattrs=0):
 		node = Frag()
 		for child in self:
 			if child._matches(type, subtype, attrs, test):
@@ -1053,7 +1053,7 @@ class Comment(Node):
 	def _doreprtree(self,nest,elementno,encoding,ansi):
 		head = strBracketOpen(ansi) + strExclamation(ansi) + strCommentMarker(ansi)
 		tail = strCommentMarker(ansi) + strBracketClose(ansi)
-		return self._doreprtreeMultiLine(nest, elementno, head, tail, self.content, strCommentText, 0, encoding = encoding, ansi = ansi)
+		return self._doreprtreeMultiLine(nest, elementno, head, tail, self.content, strCommentText, 0, encoding=encoding, ansi=ansi)
 
 	def publish(self, publisher):
 		if self.content.find(u"--")!=-1 or self.content[-1:]==u"-":
@@ -1068,7 +1068,7 @@ class DocType(Node):
 	a document type node
 	"""
 
-	def __init__(self, content = ""):
+	def __init__(self, content=""):
 		self.content = content
 
 	def asHTML(self):
@@ -1079,7 +1079,7 @@ class DocType(Node):
 	def _dorepr(self, encoding = None, ansi = None):
 		return strBracketOpen(ansi) + strExclamation(ansi) + strDocTypeMarker(ansi) + " " + strDocTypeText(self.content,ansi) + strBracketClose(ansi)
 
-	def _doreprtree(self, nest, elementno, encoding = None, ansi = None):
+	def _doreprtree(self, nest, elementno, encoding=None, ansi=None):
 		return [[nest, self.startloc, elementno, self._dorepr(encoding, ansi)]]
 
 	def publish(self, publisher):
@@ -1112,10 +1112,10 @@ class ProcInst(Node):
 
 	asHTML = clone
 
-	def _dorepr(self, encoding = None, ansi = None):
+	def _dorepr(self, encoding=None, ansi=None):
 		return self._str(content = strQuestion(ansi) + strProcInstTarget(self.target, ansi) + " " + strProcInstData(self.content, ansi) + strQuestion(ansi), brackets = 1, ansi = ansi)
 
-	def _doreprtree(self, nest, elementno, encoding = None, ansi = None):
+	def _doreprtree(self, nest, elementno, encoding=None, ansi=None):
 		head = strBracketOpen(ansi) + strQuestion(ansi) + strProcInstTarget(self.target, ansi) + " "
 		tail = strQuestion(ansi) + strBracketClose(ansi)
 		return self._doreprtreeMultiLine(nest, elementno, head, tail, self.content, strProcInstData, 1, ansi=ansi)
@@ -1132,7 +1132,7 @@ class PythonCode(ProcInst):
 	"""
 	helper class
 	"""
-	def _doreprtree(self, nest, elementno, encoding = None, ansi = None):
+	def _doreprtree(self, nest, elementno, encoding=None, ansi=None):
 		head = strBracketOpen(ansi) + strQuestion(ansi) + strProcInstTarget(self.target, ansi) + " "
 		tail = strQuestion(ansi) + strBracketClose(ansi)
 		code = Code(self.content, 1)
@@ -1151,7 +1151,7 @@ class Exec(PythonCode):
 	<par>XSC processing instructions will be evaluated and executed in the
 	namespace of the module procinst.</par>
 	"""
-	def __init__(self, content = ""):
+	def __init__(self, content=""):
 		ProcInst.__init__(self, u"xsc-exec", content)
 		code = Code(self.content, 1)
 		exec str(code.asString()) in procinst.__dict__ # FIXME Why can't I exec a unicode object
@@ -1362,7 +1362,7 @@ class Element(Node):
 					else:
 						self[heightattr] = size[1]
 
-	def _dorepr(self, ansi = None):
+	def _dorepr(self, ansi=None):
 		v = []
 		if self.empty:
 			v.append(self._str(content = self.__strattrs(ansi), brackets = 1, slash = 1, ansi = ansi))
@@ -1373,20 +1373,20 @@ class Element(Node):
 			v.append(self._str(brackets = 1, slash = -1, ansi = ansi))
 		return "".join(v)
 
-	def _doreprtree(self, nest, elementno, encoding = None, ansi = None):
+	def _doreprtree(self, nest, elementno, encoding=None, ansi=None):
 		v = []
 		if self.empty:
-			v.append([nest, self.startloc, elementno, self._str(content = self.__strattrs(ansi), brackets = 1, slash = 1, ansi = ansi)])
+			v.append([nest, self.startloc, elementno, self._str(content = self.__strattrs(ansi), brackets=1, slash=1, ansi=ansi)])
 		else:
-			v.append([nest, self.startloc, elementno, self._str(content = self.__strattrs(ansi), brackets = 1, ansi = ansi)])
+			v.append([nest, self.startloc, elementno, self._str(content = self.__strattrs(ansi), brackets=1, ansi=ansi)])
 			i = 0
 			for child in self:
 				v = v + child._doreprtree(nest+1, elementno + [i], encoding, ansi)
 				i += 1
 			if self.startloc is None:
-				v.append([nest, self.startloc, elementno, self._str(brackets = 1, slash = -1, ansi = ansi)])
+				v.append([nest, self.startloc, elementno, self._str(brackets=1, slash=-1, ansi=ansi)])
 			else:
-				v.append([nest, self.endloc, elementno, self._str(brackets = 1, slash = -1, ansi = ansi)])
+				v.append([nest, self.endloc, elementno, self._str(brackets=1, slash=-1, ansi=ansi)])
 		return v
 
 	def publish(self, publisher):
@@ -1470,7 +1470,7 @@ class Element(Node):
 
 		return self.attrs.has_key(attr)
 
-	def getAttr(self, attr, default = None):
+	def getAttr(self, attr, default=None):
 		"""
 		works like the method <code>get()</code> of dictionaries,
 		it returns the attribute with the name <argref>attr</argref>,
@@ -1507,7 +1507,7 @@ class Element(Node):
 		"""
 		return len(self.content)
 
-	def __strattrs(self, ansi = None):
+	def __strattrs(self, ansi=None):
 		v = []
 		for attr in self.attrs.keys():
 			v.append(" ")
@@ -1526,7 +1526,7 @@ class Element(Node):
 			node[attr] = self[attr].compact()
 		return self._decorateNode(node)
 
-	def find(self, type = None, subtype = 0, attrs = None, test = None, searchchildren = 0, searchattrs = 0):
+	def find(self, type=None, subtype=0, attrs=None, test=None, searchchildren=0, searchattrs=0):
 		node = Frag()
 		if searchattrs:
 			for attr in self.attrs.keys():
@@ -1553,22 +1553,22 @@ class Entity(Node):
 	def asPlainString(self):
 		return unichr(self.codepoint)
 
-	def _dorepr(self, ansi = None):
+	def _dorepr(self, ansi=None):
 		s = "&"
 		if self.namespace.prefix != "":
 			s += strNamespace(self.namespace.prefix) + ":"
 		s += strEntityName(self.name) + ";"
 		return s
 
-	def _doreprtree(self, nest, elementno, encoding = None, ansi = None):
+	def _doreprtree(self, nest, elementno, encoding=None, ansi=None):
 		v = []
-		v.append([nest, self.startloc, elementno, self._dorepr(ansi = ansi)])
+		v.append([nest, self.startloc, elementno, self._dorepr(ansi=ansi)])
 		return v
 
 	def publish(self, publisher):
 		publisher(u"&", self.name, u";") # requires that the element is registered via Namespace.register()
 
-	def find(self, type = None, subtype = 0, attrs = None, test = None, searchchildren = 0, searchattrs = 0):
+	def find(self, type=None, subtype=0, attrs=None, test=None, searchchildren=0, searchattrs=0):
 		node = Frag()
 		if self._matches(type, subtype, attrs, test):
 			node.append(self)
@@ -1587,10 +1587,10 @@ class Null(Node):
 	def publish(self, publisher):
 		pass
 
-	def _dorepr(self, encoding = None, ansi = None):
-		return self._str(slash = 1, ansi = ansi)
+	def _dorepr(self, encoding=None, ansi=None):
+		return self._str(slash=1, ansi=ansi)
 
-	def _doreprtree(self, nest, elementno, encoding = None, ansi = None):
+	def _doreprtree(self, nest, elementno, encoding=None, ansi=None):
 		return [[nest, self.startloc, elementno, self._dorepr(encoding, ansi)]]
 
 Null = Null() # Singleton, the Python way
@@ -1665,12 +1665,12 @@ class URLAttr(Attr):
 		Attr.__init__(self, *_content)
 		self.base = xsc.filename[-1]
 
-	def _str(self, content = None, brackets = None, slash = None, ansi = None):
+	def _str(self, content=None, brackets=None, slash=None, ansi=None):
 		attr = " " + strAttrName("base", ansi) + "=" + strQuote(ansi = ansi) + strURL(str(self.base), ansi = ansi) + strQuote(ansi = ansi)
-		return Attr._str(self, content = attr, brackets = brackets, slash = slash, ansi = ansi)
+		return Attr._str(self, content=attr, brackets=brackets, slash=slash, ansi=ansi)
 
-	def _dorepr(self, ansi = None):
-		return strURL(self.asString(), ansi = ansi)
+	def _dorepr(self, ansi=None):
+		return strURL(self.asString(), ansi=ansi)
 
 	def publish(self, publisher):
 		Text(self.forOutput().asString()).publish(publisher)
@@ -1699,7 +1699,7 @@ class URLAttr(Attr):
 	def forInput(self):
 		url = self.base + self.asURL()
 		if url.scheme == "server":
-			url = url.relativeTo(URL(scheme = "http", server = xsc.server))
+			url = url.relativeTo(URL(scheme="http", server=xsc.server))
 		return url
 
 	def forOutput(self):
@@ -1759,7 +1759,7 @@ class Namespace:
 	in the namespace.
 	"""
 
-	def __init__(self, prefix, uri, thing = None):
+	def __init__(self, prefix, uri, thing=None):
 		self.prefix = stringFromCode(prefix)
 		self.uri = stringFromCode(uri)
 		self.elementsByName = {} # dictionary for mapping element names to classes
@@ -1803,25 +1803,24 @@ class Namespace:
 						name = thing.__dict__["name"] # no inheritance
 					except KeyError:
 						name = thing.__name__
-					name = stringFromCode(name)
-
-					thing.name = name
 					thing.namespace = self # this creates a cycle, but namespaces aren't constantly created and deleted (and Python will get a GC some day ;))
-
-					if iselement:
-						self.elementsByName[name] = thing
-					else:
-						self.entitiesByName[name] = thing
-						try:
-							self.entitiesByNumber[thing.codepoint].append(thing)
-						except AttributeError: # no codepoint attribute in the class, so this isn't a char ref
-							pass
+					if name is not None:
+						name = stringFromCode(name)
+						thing.name = name
+						if iselement:
+							self.elementsByName[name] = thing
+						else:
+							self.entitiesByName[name] = thing
+							try:
+								self.entitiesByNumber[thing.codepoint].append(thing)
+							except AttributeError: # no codepoint attribute in the class, so this isn't a char ref
+								pass
 		elif type(thing) is types.DictionaryType:
 			for key in thing.keys():
 				self.register(thing[key])
 
 	def __repr__(self):
-		return "<%s.%s instance prefix=%s uri=%s at 0x%x>" % (self.__class__.__module__,self.__class__.__name__,repr(self.prefix),repr(self.uri),id(self))
+		return "<%s.%s instance prefix=%r uri=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.prefix, self.uri, id(self))
 
 ###
 ### Namespace registry
@@ -1965,10 +1964,10 @@ class XSC:
 		if data != "":
 			self.__appendNode(Text(unicode(data, parseEncoding)))
 
-	def handle_comment(self,data):
+	def handle_comment(self, data):
 		self.__appendNode(Comment(unicode(data, parseEncoding)))
 
-	def handle_special(self,data):
+	def handle_special(self, data):
 		if data[:7] == "DOCTYPE":
 			self.__appendNode(DocType(data[8:]))
 
