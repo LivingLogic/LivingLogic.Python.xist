@@ -33,7 +33,7 @@ Topic :: Text Processing :: Markup :: XML
 
 setup(
 	name="ll-XIST",
-	version="3.0",
+	version="2.2",
 	description="An XML-based extensible HTML generator",
 	long_description=DESCRIPTION.strip(),
 	author="Walter Doerwald",
