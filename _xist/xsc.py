@@ -825,7 +825,7 @@ class CharacterData(Node):
 	provides nearly the same functionality as <classref>UserString</classref>, but omits
 	a few methods (<code>__str__</code> etc.)
 	"""
-	def __init__(self, content):
+	def __init__(self, content=u""):
 		self._content = helpers.unistr(content)
 
 	def __iadd__(self, other):
@@ -1243,9 +1243,6 @@ class Comment(CharacterData):
 	a comment node
 	"""
 
-	def __init__(self, content=""):
-		CharacterData.__init__(self, content)
-
 	def convert(self, converter):
 		return self
 
@@ -1270,9 +1267,6 @@ class DocType(CharacterData):
 	"""
 	a document type node
 	"""
-
-	def __init__(self, content=""):
-		CharacterData.__init__(self, content)
 
 	def convert(self, converter):
 		return self
@@ -1306,7 +1300,7 @@ class ProcInst(CharacterData):
 	by other classes derived from <code>ProcInst</code>.</par>
 	"""
 
-	# we don't need a constructor, because we don't have to store the target, 
+	# we don't need a constructor, because we don't have to store the target,
 	# because the target is our classname
 
 	def convert(self, converter):
