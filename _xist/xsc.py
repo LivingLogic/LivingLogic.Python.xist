@@ -1592,6 +1592,10 @@ class Attrs(Node, dict):
 			return Node.__metaclass__.__delattr__(cls, key)
 
 		def __setattr__(cls, key, value):
+			oldvalue = getattr(cls, key)
+			if issubclasses(oldvalue, Attr):
+				for xml in (False, True):
+					del cls._attrs[xml][oldvalue.xmlname[xml]]
 			if issubclasses(value, Attr):
 				for xml in (False, True):
 					cls._attrs[xml][value.xmlname[xml]] = value
