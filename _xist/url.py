@@ -382,6 +382,7 @@ class URL:
 					urllib.urlcleanup()
 					raise errors.FileNotFoundError(url)
 		return size
+
 def test_normalize(input, output):
 	"""
 	Tests whether '_normalize' returns the expected results.
