@@ -115,6 +115,7 @@ class Publisher(object):
 
 		streamwriterclass = codecs.getwriter(self.encoding)
 		self.stream = streamwriterclass(stream)
+		self.publish = self.stream.write
 
 	def publish(self, text):
 		"""
@@ -140,7 +141,7 @@ class Publisher(object):
 			text filter, which is responsible for escaping characters.</par>
 			"""
 			errorhandler = getattr(helpers, self.__currenterrors)
-			self.stream.write(errorhandler(self.__currenttextfilter(text), self.encoding))
+			self.publish(errorhandler(self.__currenttextfilter(text), self.encoding))
 
 	def pushTextFilter(self, filter):
 		"""
