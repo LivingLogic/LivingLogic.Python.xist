@@ -52,7 +52,7 @@ def dtd2xsc(dtdfilename, outfilename=None):
 	# write header
 	file = open(outfilename, 'w')
 
-	e = xndl.xndl(prefix=modname, name="... insert namespace URI ...")
+	e = xndl.xndl(name=modname, url="... insert namespace URI ...")
 	
 	# write elements
 	elements = dtd.get_elements()
