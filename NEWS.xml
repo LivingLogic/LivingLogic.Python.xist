@@ -88,7 +88,8 @@ added that allows you to use &jsp; tags with &xist;.</li>
 
 <li>A new method <function>asText</function> was added, that returns
 the node as a formatted plain &ascii; text (this requires that
-<a href="http://ei5nazha.yz.yamagata-u.ac.jp/~aito/w3m/eng/"><application>w3m</application></a>.</li>
+<a href="http://ei5nazha.yz.yamagata-u.ac.jp/~aito/w3m/eng/"><application>w3m</application></a>
+is installed.</li>
 
 <li><filename>make.py</filename> has a new option <option>-n</option>/<option>--namespace</option>
 that can be used for appending <classname>Namespace</classname>
