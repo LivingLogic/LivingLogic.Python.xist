@@ -432,6 +432,12 @@ class nat(xsc.Entity):
 	def asPlainString(self):
 		return u"NAT"
 
+class sql(xsc.Entity):
+	def asHTML(self, mode=None):
+		return html_.span(html_.abbr("SQL", title="Structured Query Language", lang="en"), class_="caps")
+	def asPlainString(self):
+		return u"SQL"
+
 class PHP(xsc.ProcInst):
 	"""
 	PHP processing instruction (must be used with a target)
