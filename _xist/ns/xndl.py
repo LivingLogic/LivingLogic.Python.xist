@@ -80,11 +80,11 @@ class Base(object):
 		return value
 	simplify = classmethod(simplify)
 
-	def aspy(self, encoding=None, indent="\t"):
+	def aspy(self, encoding=None, indent="\t", asmod=True):
 		if encoding is None:
 			encoding = sys.getdefaultencoding()
 		lines = []
-		self._aspy(lines, encoding, 0, [])
+		self._aspy(lines, encoding, 0, [], asmod)
 		return "\n".join(["%s%s" % (level*indent, text) for (level, text) in lines])
 
 	def _addlines(self, newlines, lines):
@@ -101,7 +101,7 @@ class Doc(Base):
 		Base.__init__(self, None)
 		self.content = content
 
-	def _aspy(self, lines, encoding, level, names):
+	def _aspy(self, lines, encoding, level, names, asmod):
 		lines.append([level, '"""'])
 		for line in self.content.asBytes(encoding=encoding).split("\n"):
 			lines.append([level, line])
@@ -133,13 +133,13 @@ class Namespace(Base):
 						attrgroupset[attr.shared] = True
 		return attrgroups
 
-	def _aspy(self, lines, encoding, level, names):
+	def _aspy(self, lines, encoding, level, names, asmod):
 		lines.append([level, "#!/usr/bin/env python"])
 		lines.append([level, "# -*- coding: %s -*-" % encoding])
 		lines.append([0, ""])
 
 		if self.doc is not None:
-			self.doc._aspy(lines, encoding, level, names)
+			self.doc._aspy(lines, encoding, level, names, asmod)
 			lines.append([0, ""])
 
 		lines.append([level, "__version__ = \"%sRevision%s\"[11:-2]" % ("$", "$")])
@@ -157,19 +157,23 @@ class Namespace(Base):
 		# output attribute groups
 		for attrgroup in attrgroups:
 			lines.append([0, ""])
-			attrgroup._aspy(lines, encoding, level, names)
+			attrgroup._aspy(lines, encoding, level, names, asmod)
 
 		# output elements
 		for node in self.content:
 			lines.append([0, ""])
-			node._aspy(lines, encoding, level, names)
+			node._aspy(lines, encoding, level, names, asmod)
 
 		lines.append([0, ""])
 		lines.append([level, "class %s(xsc.Namespace):" % pyname])
 		if pyname != self.name:
 			lines.append([level+1, "xmlname = %s" % self.simplify(self.name)])
 		lines.append([level+1, "xmlurl = %s" % self.simplify(self.url)])
-		lines.append([level, "%s.makemod(vars())" % pyname])
+		if asmod:
+			method = "makemod"
+		else:
+			method = "update"
+		lines.append([level, "%s.%s(vars())" % (pyname, method)])
 
 	def shareattrs(self, all):
 		# collect all identical attributes into lists
@@ -201,13 +205,13 @@ class Element(Base):
 		self.empty = empty
 		self.attrs = attrs
 
-	def _aspy(self, lines, encoding, level, names):
+	def _aspy(self, lines, encoding, level, names, asmod):
 		name = self.name
 		pyname = self.pyname(names)
 		lines.append([level, "class %s(xsc.Element):" % pyname])
 		newlines = []
 		if self.doc is not None:
-			self.doc._aspy(newlines, encoding, level+1, names)
+			self.doc._aspy(newlines, encoding, level+1, names, asmod)
 		if pyname != name:
 			newlines.append([level+1, "xmlname = %s" % self.simplify(name)])
 		if self.empty:
@@ -236,7 +240,7 @@ class Element(Base):
 			if nogroup:
 				localnames = []
 				for attr in nogroup:
-					attr._aspy(newlines, encoding, level+2, localnames)
+					attr._aspy(newlines, encoding, level+2, localnames, asmod)
 			else:
 				newlines.append([level+2, "pass"])
 		self._addlines(newlines, lines)
@@ -250,12 +254,12 @@ class AttrGroup(Base):
 		Base.__init__(self, name)
 		self.attrs = attrs
 
-	def _aspy(self, lines, encoding, level, names):
+	def _aspy(self, lines, encoding, level, names, asmod):
 		name = self.pyname(names)
 		lines.append([level, "class %s(xsc.Element.Attrs):" % name])
 		localnames = []
 		for attr in self.attrs:
-			attr._aspy(lines, encoding, level+1, localnames)
+			attr._aspy(lines, encoding, level+1, localnames, asmod)
 
 class Attr(Base):
 	def __init__(self, name, doc, type, required, default, values):
@@ -267,13 +271,13 @@ class Attr(Base):
 		self.values = values
 		self.shared = None # if this attribute is part of a group shared will point to this group
 
-	def _aspy(self, lines, encoding, level, names):
+	def _aspy(self, lines, encoding, level, names, asmod):
 		name = self.name
 		pyname = self.pyname(names)
 		lines.append([level, "class %s(xsc.%s):" % (pyname, self.type)])
 		newlines = []
 		if self.doc is not None:
-			self.doc._aspy(newlines, encoding, level+1)
+			self.doc._aspy(newlines, encoding, level+1, asmod)
 		if pyname != name:
 			newlines.append([level+1, "xmlname = %s" % self.simplify(name)])
 		if self.values:
@@ -297,13 +301,13 @@ class ProcInst(Base):
 		Base.__init__(self, name)
 		self.doc = doc
 
-	def _aspy(self, lines, encoding, level, names):
+	def _aspy(self, lines, encoding, level, names, asmod):
 		name = self.name
 		pyname = self.pyname(names)
 		lines.append([level, "class %s(xsc.ProcInst):" % pyname])
 		newlines = []
 		if self.doc is not None:
-			self.doc._aspy(newlines, encoding, level+1)
+			self.doc._aspy(newlines, encoding, level+1, asmod)
 		if pytarget != target:
 			newlines.append([level+1, "xmlname = %s" % self.simplify(name)])
 		self._addlines(newlines, lines)
@@ -313,13 +317,13 @@ class Entity(Base):
 		Base.__init__(self, name)
 		self.doc = doc
 
-	def _aspy(self, lines, encoding, level, names):
+	def _aspy(self, lines, encoding, level, names, asmod):
 		name = self.name
 		pyname = self.pyname(names)
 		lines.append([level, "class %s(xsc.Entity):" % pyname])
 		newlines = []
 		if self.doc is not None:
-			self.doc._aspy(newlines, encoding, level+1, names)
+			self.doc._aspy(newlines, encoding, level+1, names, asmod)
 		if pyname != name:
 			newlines.append([level+1, "xmlname = %s" % self.simplify(name)])
 		self._addlines(newlines, lines)
@@ -329,13 +333,13 @@ class CharRef(Entity):
 		Entity.__init__(self, name, doc)
 		self.codepoint = codepoint
 
-	def _aspy(self, lines, encoding, level, names):
+	def _aspy(self, lines, encoding, level, names, asmod):
 		name = self.name
 		pyname = self.pyname(names)
 		lines.append([level, "class %s(xsc.CharRef):" % pyname])
 		newlines = []
 		if self.doc is not None:
-			self.doc._aspy(newlines, encoding, level+1)
+			self.doc._aspy(newlines, encoding, level+1, asmod)
 		if pyname != name:
 			newlines.append([level+1, "xmlname = %s" % self.simplify(name)])
 		newlines.append([level+1, "codepoint = 0x%04x" % self.codepoint])
