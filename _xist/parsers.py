@@ -535,9 +535,11 @@ class Parser(object):
 						else:
 							content = decode(attr.content)
 						try:
-							newnode.attrs.set(name, content, xml=True).parsed(self)
+							attrnode = newnode.attrs.set(name, content, xml=True)
 						except errors.IllegalAttrError:
 							pass
+						else:
+							attrnode.parsed(self)
 						attr = attr.next
 					newnode.attrs.parsed(self)
 					newnode.parsed(self, start=True)
