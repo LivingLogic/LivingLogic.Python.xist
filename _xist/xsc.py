@@ -943,8 +943,6 @@ class ProcInst(CharacterData):
 		presenter.presentProcInst(self)
 
 	def publish(self, publisher):
-		if publisher.inAttr:
-			raise errors.IllegalAttrNodeError(self)
 		if self.content.find(u"?>")!=-1:
 			raise errors.IllegalProcInstFormatError(self)
 		publisher.publish(u"<?")
