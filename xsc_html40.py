@@ -51,31 +51,37 @@ RegisterElement("span",XSCspan)
 class XSCh1(XSCElement):
 	close = 1
 	attr_handlers = attrs
+	attr_handlers = AppendDict(attr_handlers, { "align" : XSCFrag }) # deprecated
 RegisterElement("h1",XSCh1)
 
 class XSCh2(XSCElement):
 	close = 1
 	attr_handlers = attrs
+	attr_handlers = AppendDict(attr_handlers, { "align" : XSCFrag }) # deprecated
 RegisterElement("h2",XSCh2)
 
 class XSCh3(XSCElement):
 	close = 1
 	attr_handlers = attrs
+	attr_handlers = AppendDict(attr_handlers, { "align" : XSCFrag }) # deprecated
 RegisterElement("h3",XSCh3)
 
 class XSCh4(XSCElement):
 	close = 1
 	attr_handlers = attrs
+	attr_handlers = AppendDict(attr_handlers, { "align" : XSCFrag }) # deprecated
 RegisterElement("h4",XSCh4)
 
 class XSCh5(XSCElement):
 	close = 1
 	attr_handlers = attrs
+	attr_handlers = AppendDict(attr_handlers, { "align" : XSCFrag }) # deprecated
 RegisterElement("h5",XSCh5)
 
 class XSCh6(XSCElement):
 	close = 1
 	attr_handlers = attrs
+	attr_handlers = AppendDict(attr_handlers, { "align" : XSCFrag }) # deprecated
 RegisterElement("h6",XSCh6)
 
 class XSCaddress(XSCElement):
@@ -308,7 +314,7 @@ RegisterElement("base",XSCbase)
 class XSCimg(XSCElement):
 	close = 0
 	attr_handlers = AppendDict(attrs,{ "src" : XSCurl , "alt" : XSCFrag , "longdesc" : XSCFrag , "width" : XSCFrag , "height" : XSCFrag , "usemap" : XSCFrag , "ismap" : XSCFrag })
-	attr_handlers = AppendDict(attr_handlers,{ "border" : XSCFrag , "align" : XSCFrag }) # deprecated
+	attr_handlers = AppendDict(attr_handlers,{ "border" : XSCFrag , "align" : XSCFrag , "hspace" : XSCFrag , "vspace" : XSCFrag }) # deprecated
 
 	def __str__(self):
 		e = XSCimg(self.content,self.attrs)
