@@ -39,15 +39,14 @@ class css(xsc.Element):
 	def publish(self, publisher):
 		publisher.pushTextFilter(helpers.escapeCSS)
 		# publish the imports first
-		imports = self.find(type=import_)
+		imports = self.find(type=atimport)
 		for i in imports:
 			publisher.publish(u"\n")
 			i.publish(publisher)
-		# FIXME: publish global and media specific rules in their given order
-		rules = self.find(type=rule)
-		for r in rules:
+		content = self.find(type=(rule, atmedia), subtype=1)
+		for child in content:
 			publisher.publish(u"\n")
-			r.publish(publisher)
+			child.publish(publisher)
 		publisher.popTextFilter()
 
 class atimport(xsc.Element):
@@ -66,9 +65,10 @@ class atimport(xsc.Element):
 	def publish(self, publisher):
 		publisher.publish(u'@import url("')
 		self.content.publish(publisher)
+		publisher.publish(u'")')
 		if self.hasAttr("media"):
 			publisher.publish(u" " + unicode(self["media"]))
-		publisher.publish(u'");')
+		publisher.publish(u";")
 
 class atmedia(xsc.Element):
 	"""
@@ -97,6 +97,12 @@ class atmedia(xsc.Element):
 	empty = 0
 	attrHandlers = {"media": xsc.TextAttr}
 
+	def publish(self, publisher):
+		publisher.publish(u"@media ")
+		publisher.publish(unicode(self["media"]))
+		publisher.publish(u"\n{\n")
+		self.content.publish(publisher)
+		publisher.publish(u"\n}")
 
 class atcharset(xsc.Element):
 	"""
