@@ -16,7 +16,7 @@ to the terminal.
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-import os, types, keyword
+import os, keyword
 
 from ll import ansistyle, url
 
