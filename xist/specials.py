@@ -127,7 +127,7 @@ class x(xsc.Element):
 	empty = 0
 
 	def asHTML(self):
-		return xsc.Null()
+		return xsc.Null
 
 class pixel(html_.img):
 	"""
