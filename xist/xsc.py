@@ -806,6 +806,7 @@ class XSCParser(xmllib.XMLParser):
 		# after we've finished parsing the XSCFrag that we put at the bottom of the stack will be our document root
 		self.nesting = [ XSCFrag() ]
 		self.lineno = -1
+		self.root = None
 
 	def close(self):
 		self.root = self.nesting[0]
