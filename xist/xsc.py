@@ -89,7 +89,7 @@ class XSCFileNotFoundError(XSCError):
 		return XSCError.__str__(self) + "the file '" + self.url + "' can't be opened"
 
 class XSCIllegalObjectError(XSCError):
-	"""exception that is raised, when XSC finds an illegal object found in its obejct tree"""
+	"""exception that is raised, when XSC finds an illegal object found in its object tree"""
 
 	def __init__(self,lineno,object):
 		XSCError.__init__(self,lineno)
@@ -189,8 +189,11 @@ class XSCNode:
 		else:
 			return self
 
-	def __repr__(self,nest = 0):
-		return self.strindent(nest) + self.strtag("?") + "\n"
+	def __repr__(self):
+		return self.dorepr(0,xsc.reprtree)
+
+	def dorepr(self,nest,tree):
+		return self.strline(nest,tree,self.startlineno,self.strtag("?"))
 
 	def stransi(self,codes,string):
 		if xsc.repransi and codes!="":
@@ -198,14 +201,29 @@ class XSCNode:
 		else:
 			return (string)
 
-	def strindent(self,nest):
-		return self.stransi(xsc.repransitab,xsc.reprtab*nest)
+	def strline(self,nest,tree,lineno,line):
+		if line != "" and tree==1:
+			s = ""
+			if xsc.parser.maxlineno != -1:
+				places = len(str(xsc.parser.maxlineno))
+			else:
+				places = 0
+			if places != 0:
+				if lineno != -1:
+					s = "%*d " % ( places,lineno )
+				else:
+					s = "?"*places + " "
+			else:
+				s = ""
+			return s + self.stransi(xsc.repransitab,xsc.reprtab*nest)+line+"\n"
+		else:
+			return line
 
 	def strelementname(self,name):
 		return self.stransi(xsc.repransielementname,name)
 
-	def strtext(self,name):
-		return self.stransi(xsc.repransitext,name)
+	def strtext(self,text):
+		return self.stransi(xsc.repransitext,text)
 
 	def strtag(self,content):
 		return self.stransi(xsc.repransibrackets,'<') + content + self.stransi(xsc.repransibrackets,'>')
@@ -213,33 +231,11 @@ class XSCNode:
 	def strquotes(self,content):
 		return self.stransi(xsc.repransiquotes,'"') + content + self.stransi(xsc.repransiquotes,'"')
  
-	def strlines(self,start = None,end = None):
-		if xsc.verbose==1:
-			if start==None:
-				if end==None or end==-1:
-					return ""
-				else:
-					return " l. " + repr(end)
-			elif start==-1:
-				if end==None or end==-1:
-					return ""
-				else:
-					return " l. -" + repr(end)
-			else:
-				if end==None:
-					return " l. " + repr(start)
-				elif end==-1:
-					return " l. " + repr(start) + "-"
-				else:
-					if start==end:
-						return " l. " + repr(start)
-					else:
-						return " l. " + repr(start) + "-" + repr(end)
-		else:
-			return ""
-			
 class XSCText(XSCNode):
 	"""text"""
+
+	represcapes = { '\n' : '\\n' , '\t' : '\\t' , '\033' : '\\e' , '\\' : '\\\\' }
+	strescapes = { '<' : '&lt;' , '>' : '&gt;' , '&' : '&amp;' , '"' : '&quot;' }
 
 	def __init__(self,content = ""):
 		self.content = content
@@ -247,39 +243,31 @@ class XSCText(XSCNode):
 	def __str__(self):
 		v = []
 		for i in self.content:
-			if i == '<':
-				v.append('&lt;')
-			elif i == '>':
-				v.append('&gt;')
-			elif i == '&':
-				v.append('&amp;')
-			elif i == '"':
-				v.append('&quot')
+			if self.strescapes.has_key(i):
+				v.append(self.strescapes[i])
 			elif ord(i)>=128:
 				v.append('&#' + str(ord(i)) + ';')
 			else:
 				v.append(i)
 		return string.joinfields(v,"")
 
-	def __repr__(self,nest = 0):
-		if self.content=="\n" and xsc.verbose==0:
-			return ""
-		else:
-			v = []
-			for i in self.content:
-				if i == '\n':
-					v.append("\\n")
-				elif i == '\t':
-					v.append("\\t")
-				elif i == '\033':
-					v.append("\\e")
-				elif ord(i)<32:
-					v.append("\\x" + str(ord(i)))
-				elif i == '\\':
-					v.append("\\\\")
+	def dorepr(self,nest,tree):
+		v = []
+		for i in self.content:
+			if self.represcapes.has_key(i):
+				if tree==1 or (i in string.whitespace):
+					v.append(self.represcapes[i])
 				else:
 					v.append(i)
-			return self.strindent(nest) + self.strquotes(self.strtext(string.joinfields(v,""))) + self.strlines(self.startlineno) + '\n'
+			elif ord(i)<32 and tree==1:
+				v.append("\\x" + str(ord(i)))
+			else:
+				v.append(i)
+		s = string.joinfields(v,"") 
+		if tree != 0:
+			return self.strline(nest,tree,self.startlineno,self.strquotes(self.strtext(s)))
+		else:
+			return s
 
 class XSCFrag(XSCNode):
 	"""contains a list of XSCNodes"""
@@ -307,11 +295,14 @@ class XSCFrag(XSCNode):
 	def __str__(self):
 		return string.joinfields(map(str,self.content),"")
 
-	def __repr__(self,nest = 0):
-		s = self.strindent(nest) + self.strtag('XSCFrag') + self.strlines(self.startlineno,self.endlineno) + '\n'
+	def dorepr(self,nest,tree):
+		s = ""
+		if tree!=0:
+			s = s + self.strline(nest,tree,self.startlineno,self.strtag('XSCFrag'))
 		for i in self.content:
-			s = s + i.__class__.__repr__(i,nest+1) # call repr with additional arguments
-		s = s + self.strindent(nest) + self.strtag('/XSCFrag') + self.strlines(self.startlineno,self.endlineno) + '\n'
+			s = s + i.dorepr(nest+1,tree)
+		if tree!=0:
+			s = s + self.strline(nest,tree,self.endlineno,self.strtag('/XSCFrag'))
 		return s
 
 	def __getitem__(self,index):
@@ -353,15 +344,18 @@ class XSCAttrs(XSCNode):
 
 	def __str__(self):
 		v = []
-		for attr in self.content.keys():
-			v.append(attr + '="' + str(self.content[attr]) + '"')
+		for attr in self.keys():
+			v.append(attr + '="' + str(self[attr]) + '"')
 		return string.joinfields(v," ")
 
-	def __repr__(self,nest = 0):
-		v = []
-		for attr in self.content.keys():
-			v.append(attr + '="' + repr(self.content[attr]) + '"')
-		return string.joinfields(v," ")
+	def dorepr(self,nest,tree):
+		if len(self.content):
+			v = []
+			for attr in self.keys():
+				v.append(attr + '="' + self[attr].dorepr(0,0) + '"')
+			return " " + string.joinfields(v," ")
+		else:
+			return ""
 
 	def has_attr(self,index):
 		return self.content.has_key(index)
@@ -404,8 +398,8 @@ class XSCComment(XSCNode):
 	def __str__(self):
 		return "<!--" + self.content + "-->"
 
-	def __repr__(self,nest = 0):
-		return self.strindent(nest) + self.strtag("!--" + self.content + "--") + "\n"
+	def dorepr(self,nest,tree):
+		return self.strline(nest,tree,self.startlineno,self.strtag("!--" + self.content + "--"))
 
 class XSCDocType(XSCNode):
 	"""document type"""
@@ -416,8 +410,8 @@ class XSCDocType(XSCNode):
 	def __str__(self):
 		return "<!DOCTYPE " + self.content + ">"
 
-	def __repr__(self,nest = 0):
-		return self.indent()+  self.strag("!DOCTYPE " + self.content) + self.strlines(self.startlineno) + "\n"
+	def dorepr(self,nest,tree):
+		return self.strline(nest,tree,self.startlineno,self.strtag("!DOCTYPE " + self.content))
 
 class XSCElement(XSCNode):
 	"""XML elements"""
@@ -436,37 +430,15 @@ class XSCElement(XSCNode):
 	def append(self,item):
 		self.content.append(item)
 
-	def __repr__(self,nest = 0):
+	def dorepr(self,nest,tree):
 		if self.close:
-			s = self.strindent(nest) + self.strtag(self.strelementname(self.name)) + self.strlines(self.startlineno,self.endlineno) + '\n'
+			s = self.strline(nest,tree,self.startlineno,self.strtag(self.strelementname(self.name) + self.attrs.dorepr(0,0)))
 			for i in self.content:
-				s = s + i.__class__.__repr__(i,nest+1) # class repr with additional arguments
-			s = s + self.strindent(nest) + self.strtag(self.strelementname("/" + self.name)) + self.strlines(self.startlineno,self.endlineno) + '\n'
+				s = s + i.dorepr(nest+1,tree)
+			s = s + self.strline(nest,tree,self.endlineno,self.strtag(self.strelementname("/" + self.name)))
 		else:
-			s = self.strindent(nest) + self.strtag(self.strelementname(self.name + "/")) + self.strlines(self.startlineno,self.endlineno) + '\n'
+			s = self.strline(nest,tree,self.startlineno,self.strtag(self.strelementname(self.name) + self.attrs.dorepr(0,0) + self.strelementname("/")))
 		return s
-
-	def rer(self):
-		"""returns this element as a string"""
-		v = []
-		v.append("<")
-		v.append(self.name)
-		if len(self.attrs):
-			v.append(" ")
-			v.append(repr(self.attrs))
-		s = repr(self.content)
-		if self.close == 1:
-			v.append(">")
-			v.append(s)
-			v.append("</")
-			v.append(self.name) # name must be a string without any nasty characters
-			v.append(">")
-		else:
-			if len(s):
-				raise XSCEmptyElementWithContentError(xsc.parser.lineno,self)
-			v.append(">")
-
-		return string.joinfields(v,"")
 
 	def __str__(self):
 		"""returns this element as a string converted to HTML"""
@@ -542,7 +514,7 @@ class XSCurl(XSCElement):
 		else:
 			self.content = XSCFrag(content)
 
-	def __repr__(self):
+	def dorepr(self,nest,tree):
 		(scheme,server,path,parameters,query,fragment) = urlparse.urlparse(repr(self.content))
 		if scheme == "" and server == "":
 			if len(path) and path[0] == "/": # this is a server relative URL, use the server specified in the options (usually localhost)
@@ -589,6 +561,7 @@ class XSCParser(xmllib.XMLParser):
 		self.nesting = [ XSCFrag() ] # our nodes do not have a parent link, therefore we have to store the active path through the tree in a stack (which we call nesting, because stack is already used by the base class
 		self.root = self.nesting[0]
 		self.lineno = -1
+		self.maxlineno = -1
 
 	def processingInstruction(self,target,remainder):
 		pass
@@ -602,16 +575,28 @@ class XSCParser(xmllib.XMLParser):
 			raise XSCIllegalElementError(xsc.parser.lineno,lowername)
 		self.nesting[-1].append(e) # add the new element to the content of the innermost element (or to the array)
 		self.nesting.append(e) # push new innermost element onto the stack
+		self.calcmaxline()
 
 	def unknown_endtag(self,name):
 		self.nesting[-1].endlineno = self.lineno
 		self.nesting[-1:] = [] # pop the innermost element off the stack
+		self.calcmaxline()
 
 	def handle_data(self,data):
-		self.nesting[-1].append(data) # add the new string to the content of the innermost element
+		if (data != "") or (xsc.ignorelinefeed==0):
+			e = XSCText(data)
+			e.startlineno = self.lineno
+			self.nesting[-1].append(e) # add the new string to the content of the innermost element
+			self.calcmaxline()
 
 	def handle_comment(self,comment):
-		self.nesting[-1].append(XSCComment(comment))
+		e = XSCComment(comment) 
+		e.startlineno = self.lineno
+		self.nesting[-1].append(e)
+		self.calcmaxline()
+
+	def calcmaxline(self):
+		self.maxlineno = max(self.maxlineno,self.lineno)
 
 ###
 ###
@@ -632,7 +617,8 @@ class XSC:
 		self.repransielementname = "33"
 		self.repransitext = ""
 		self.repransiquotes = "36"
-		self.verbose = 1
+		self.reprtree = 1
+		self.ignorelinefeed = 0
 		self.parser = XSCParser()
 
 	def parsestring(self,filename,string):
