@@ -92,6 +92,19 @@ def append(*args, **kwargs):
 ###
 ###
 
+class _Base_Meta(type):
+	def __new__(cls, name, bases, dict):
+		dict["__outerclass__"] = None
+		self = super(_Base_Meta, cls).__new__(cls, name, bases, dict)
+		for (key, value) in dict.iteritems():
+			if isinstance(value, type):
+				value.__outerclass__ = self
+		return self
+
+	def __repr__(self):
+		return "<class %s:%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
+
+
 class Base(object):
 	"""
 	<par>Base class that adds an enhanced class <method>__repr__</method> method
@@ -101,16 +114,7 @@ class Base(object):
 	is any). <method>__repr__</method> uses this to show the fully qualified
 	class name.</par>
 	"""
-	class __metaclass__(type):
-		def __new__(cls, name, bases, dict):
-			dict["__outerclass__"] = None
-			res = type.__new__(cls, name, bases, dict)
-			for (key, value) in dict.iteritems():
-				if isinstance(value, type):
-					value.__outerclass__ = res
-			return res
-		def __repr__(self):
-			return "<class %s:%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
+	__metaclass__ = _Base_Meta
 
 	def __repr__(self):
 		return "<%s:%s object at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
@@ -217,12 +221,48 @@ _Context = Context
 
 import xfind
 
+class _Node_Meta(Base.__metaclass__, xfind.Operator):
+	def __new__(cls, name, bases, dict):
+		if "register" not in dict:
+			dict["register"] = True
+		dict["xmlns"] = None
+		# needsxmlns may be defined as a constant, this magically turns it into method
+		if "needsxmlns" in dict:
+			needsxmlns_value = dict["needsxmlns"]
+			if not isinstance(needsxmlns_value, classmethod):
+				def needsxmlns(cls, publisher=None):
+					return needsxmlns_value
+				dict["needsxmlns"] = classmethod(needsxmlns)
+		if "xmlprefix" in dict:
+			xmlprefix_value = dict["xmlprefix"]
+			if not isinstance(xmlprefix_value, classmethod):
+				def xmlprefix(cls, publisher=None):
+					return xmlprefix_value
+				dict["xmlprefix"] = classmethod(xmlprefix)
+		pyname = unicode(name.split(".")[-1])
+		if "xmlname" in dict:
+			xmlname = unicode(dict["xmlname"])
+		else:
+			xmlname = pyname
+		dict["xmlname"] = (pyname, xmlname)
+		return super(_Node_Meta, cls).__new__(cls, name, bases, dict)
+
+	def xwalk(self, iterator):
+		for child in iterator:
+			if isinstance(child, (Frag, Element)):
+				for subchild in child:
+					if isinstance(subchild, self):
+						yield subchild
+
+
 class Node(Base):
 	"""
 	base class for nodes in the document tree. Derived classes must
 	overwrite <pyref method="convert"><method>convert</method></pyref>
 	and may overwrite <pyref method="publish"><method>publish</method></pyref>.
 	"""
+	__metaclass__ = _Node_Meta
+
 	# location of this node in the XML file (will be hidden in derived classes, but is
 	# specified here, so that no special tests are required. In derived classes
 	# this will be set by the parser)
@@ -238,39 +278,6 @@ class Node(Base):
 	#        will be set to the namespace class, but don't use this class for parsing
 	# True:  Register with the namespace and use for parsing.
 	# If register is not set it defaults to True
-
-	class __metaclass__(Base.__metaclass__, xfind.Operator):
-		def __new__(cls, name, bases, dict):
-			if "register" not in dict:
-				dict["register"] = True
-			dict["xmlns"] = None
-			# needsxmlns may be defined as a constant, this magically turns it into method
-			if "needsxmlns" in dict:
-				needsxmlns_value = dict["needsxmlns"]
-				if not isinstance(needsxmlns_value, classmethod):
-					def needsxmlns(cls, publisher=None):
-						return needsxmlns_value
-					dict["needsxmlns"] = classmethod(needsxmlns)
-			if "xmlprefix" in dict:
-				xmlprefix_value = dict["xmlprefix"]
-				if not isinstance(xmlprefix_value, classmethod):
-					def xmlprefix(cls, publisher=None):
-						return xmlprefix_value
-					dict["xmlprefix"] = classmethod(xmlprefix)
-			pyname = unicode(name.split(".")[-1])
-			if "xmlname" in dict:
-				xmlname = unicode(dict["xmlname"])
-			else:
-				xmlname = pyname
-			dict["xmlname"] = (pyname, xmlname)
-			return Base.__metaclass__.__new__(cls, name, bases, dict)
-
-		def xwalk(self, iterator):
-			for child in iterator:
-				if isinstance(child, (Frag, Element)):
-					for subchild in child:
-						if isinstance(subchild, self):
-							yield subchild
 
 	class Context(_Context):
 		pass
@@ -1298,6 +1305,11 @@ class DocType(CharacterData):
 		return u""
 
 
+class _ProcInst_Meta(CharacterData.__metaclass__):
+	def __repr__(self):
+		return "<procinst class %s:%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
+
+
 class ProcInst(CharacterData):
 	"""
 	<par>Base class for processing instructions. This class is abstract.</par>
@@ -1305,11 +1317,9 @@ class ProcInst(CharacterData):
 	<par>Processing instructions for specific targets must
 	be implemented as subclasses of <class>ProcInst</class>.</par>
 	"""
-	register = None
+	__metaclass__ = _ProcInst_Meta
 
-	class __metaclass__(CharacterData.__metaclass__):
-		def __repr__(self):
-			return "<procinst class %s:%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
+	register = None
 
 	@classmethod
 	def _str(cls, fullname=True, xml=True, decorate=True):
@@ -1373,6 +1383,32 @@ class Null(CharacterData):
 Null = Null() # Singleton, the Python way
 
 
+class _Attr_Meta(Frag.__metaclass__, xfind.Operator):
+	def __new__(cls, name, bases, dict):
+		# can be overwritten in subclasses, to specify that this attributes is required
+		if "required" in dict:
+			dict["required"] = bool(dict["required"])
+		# convert the default to a Frag
+		if "default" in dict:
+			dict["default"] = Frag(dict["default"])
+		# convert the entries in values to unicode
+		if "values" in dict:
+			values = dict["values"]
+			if values is not None:
+				dict["values"] = tuple(unicode(entry) for entry in dict["values"])
+		return super(_Attr_Meta, cls).__new__(cls, name, bases, dict)
+
+	def __repr__(self):
+		return "<attribute class %s:%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
+
+	def xwalk(self, iterator):
+		for child in iterator:
+			if isinstance(child, Element):
+				for (attrname, attrvalue) in child.attrs.iteritems():
+					if isinstance(attrvalue, self):
+						yield attrvalue
+
+
 class Attr(Frag):
 	"""
 	<par>Base class of all attribute classes.</par>
@@ -1403,33 +1439,10 @@ class Attr(Frag):
 	</tty>
 	</example>
 	"""
+	__metaclass__ = _Attr_Meta
 	required = False
 	default = None
 	values = None
-	class __metaclass__(Frag.__metaclass__, xfind.Operator):
-		def __new__(cls, name, bases, dict):
-			# can be overwritten in subclasses, to specify that this attributes is required
-			if "required" in dict:
-				dict["required"] = bool(dict["required"])
-			# convert the default to a Frag
-			if "default" in dict:
-				dict["default"] = Frag(dict["default"])
-			# convert the entries in values to unicode
-			if "values" in dict:
-				values = dict["values"]
-				if values is not None:
-					dict["values"] = tuple(unicode(entry) for entry in dict["values"])
-			return Frag.__metaclass__.__new__(cls, name, bases, dict)
-
-		def __repr__(self):
-			return "<attribute class %s:%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
-
-		def xwalk(self, iterator):
-			for child in iterator:
-				if isinstance(child, Element):
-					for (attrname, attrvalue) in child.attrs.iteritems():
-						if isinstance(attrvalue, self):
-							yield attrvalue
 
 	def isfancy(self):
 		"""
@@ -1675,68 +1688,70 @@ class URLAttr(Attr):
 		return self.forInput(root).openwrite()
 
 
+class _Attrs_Meta(Node.__metaclass__):
+	def __new__(cls, name, bases, dict):
+		# Automatically inherit the attributes from the base class (because the global Attrs require a pointer back to their defining namespace)
+		for base in bases:
+			for attrname in dir(base):
+				attr = getattr(base, attrname)
+				if isinstance(attr, type) and issubclass(attr, Attr) and attrname not in dict:
+					classdict = {"__module__": dict["__module__"]}
+					if attr.xmlname[False] != attr.xmlname[True]:
+						classdict["xmlname"] = attr.xmlname[True]
+					classdict["__outerclass__"] = 42
+					dict[attrname] = attr.__class__(attr.__name__, (attr,), classdict)
+		dict["_attrs"] = ({}, {}) # cache for attributes (by Python name and by XML name)
+		dict["_defaultattrs"] = ({}, {}) # cache for attributes that have a default value (by Python name and by XML name)
+		self = super(_Attrs_Meta, cls).__new__(cls, name, bases, dict)
+		# go through the attributes and put them in the cache
+		for (key, value) in self.__dict__.iteritems():
+			if isinstance(value, type):
+				if getattr(value, "__outerclass__", None) == 42:
+					value.__outerclass__ = self
+				if issubclass(value, Attr):
+					setattr(self, key, value)
+		return self
+
+		def __repr__(self):
+			return "<attrs class %s:%s with %s attrs at 0x%x>" % (self.__module__, self.__fullname__(), len(self._attrs[0]), id(self))
+
+		def __getitem__(self, key):
+			return self._attrs[False][key]
+
+		def __delattr__(self, key):
+			value = self.__dict__.get(key, None) # no inheritance
+			if isinstance(value, type) and issubclass(value, Attr):
+				for xml in (False, True):
+					name = value.xmlname[xml]
+					self._attrs[xml].pop(name, None)
+					self._defaultattrs[xml].pop(name, None)
+			return super(_Attrs_Meta, self).__delattr__(self, key)
+
+		def __setattr__(self, key, value):
+			oldvalue = self.__dict__.get(key, None) # no inheritance
+			if isinstance(oldvalue, type) and issubclass(oldvalue, Attr):
+				for xml in (False, True):
+					# ignore KeyError exceptions, because in the meta class constructor the attributes *are* in the class dict, but haven't gone through __setattr__, so they are not in the cache
+					self._attrs[xml].pop(oldvalue.xmlname[xml], None)
+					self._defaultattrs[xml].pop(oldvalue.xmlname[xml], None)
+			if isinstance(value, type) and issubclass(value, Attr):
+				for xml in (False, True):
+					name = value.xmlname[xml]
+					self._attrs[xml][name] = value
+					if value.default:
+						self._defaultattrs[xml][name] = value
+			return super(_Attrs_Meta, self).__setattr__(cls, key, value)
+
+		def __contains__(cls, key):
+			return key in cls._attrs[False]
+
+
 class Attrs(Node, dict):
 	"""
 	<par>An attribute map. Allowed entries are specified through nested subclasses
 	of <pyref class="Attr"><class>Attr</class></pyref>.</par>
 	"""
-
-	class __metaclass__(Node.__metaclass__):
-		def __new__(mcl, name, bases, dict):
-			# Automatically inherit the attributes from the base class (because the global Attrs require a pointer back to their defining namespace)
-			for base in bases:
-				for attrname in dir(base):
-					attr = getattr(base, attrname)
-					if isinstance(attr, type) and issubclass(attr, Attr) and attrname not in dict:
-						classdict = {"__module__": dict["__module__"]}
-						if attr.xmlname[False] != attr.xmlname[True]:
-							classdict["xmlname"] = attr.xmlname[True]
-						classdict["__outerclass__"] = 42
-						dict[attrname] = attr.__class__(attr.__name__, (attr,), classdict)
-			dict["_attrs"] = ({}, {}) # cache for attributes (by Python name and by XML name)
-			dict["_defaultattrs"] = ({}, {}) # cache for attributes that have a default value (by Python name and by XML name)
-			cls = Node.__metaclass__.__new__(mcl, name, bases, dict)
-			# go through the attributes and put them in the cache
-			for (key, value) in cls.__dict__.iteritems():
-				if isinstance(value, type):
-					if getattr(value, "__outerclass__", None) == 42:
-						value.__outerclass__ = cls
-					if issubclass(value, Attr):
-						setattr(cls, key, value)
-			return cls
-
-		def __repr__(self):
-			return "<attrs class %s:%s with %s attrs at 0x%x>" % (self.__module__, self.__fullname__(), len(self._attrs[0]), id(self))
-
-		def __getitem__(cls, key):
-			return cls._attrs[False][key]
-
-		def __delattr__(cls, key):
-			value = cls.__dict__.get(key, None) # no inheritance
-			if isinstance(value, type) and issubclass(value, Attr):
-				for xml in (False, True):
-					name = value.xmlname[xml]
-					cls._attrs[xml].pop(name, None)
-					cls._defaultattrs[xml].pop(name, None)
-			return Node.__metaclass__.__delattr__(cls, key)
-
-		def __setattr__(cls, key, value):
-			oldvalue = cls.__dict__.get(key, None) # no inheritance
-			if isinstance(oldvalue, type) and issubclass(oldvalue, Attr):
-				for xml in (False, True):
-					# ignore KeyError exceptions, because in the meta class constructor the attributes *are* in the class dict, but haven't gone through __setattr__, so they are not in the cache
-					cls._attrs[xml].pop(oldvalue.xmlname[xml], None)
-					cls._defaultattrs[xml].pop(oldvalue.xmlname[xml], None)
-			if isinstance(value, type) and issubclass(value, Attr):
-				for xml in (False, True):
-					name = value.xmlname[xml]
-					cls._attrs[xml][name] = value
-					if value.default:
-						cls._defaultattrs[xml][name] = value
-			return Node.__metaclass__.__setattr__(cls, key, value)
-
-		def __contains__(cls, key):
-			return key in cls._attrs[False]
+	__metaclass__ = _Attrs_Meta
 
 	def __init__(self, content=None, **attrs):
 		dict.__init__(self)
@@ -2141,6 +2156,36 @@ class Attrs(Node, dict):
 _Attrs = Attrs
 
 
+class _Element_Meta(Node.__metaclass__):
+	def __new__(cls, name, bases, dict):
+		if "name" in dict and isinstance(dict["name"], basestring):
+			warnings.warn(DeprecationWarning("name is deprecated, use xmlname instead"))
+			dict["xmlname"] = dict["name"]
+			del dict["name"]
+		if "attrHandlers" in dict:
+			warnings.warn(DeprecationWarning("attrHandlers is deprecated, use a nested Attrs class instead"), stacklevel=2)
+		if "model" in dict and isinstance(dict["model"], bool):
+			from ll.xist import sims
+			if dict["model"]:
+				dict["model"] = sims.Any()
+			else:
+				dict["model"] = sims.Empty()
+		if "empty" in dict:
+			warnings.warn(PendingDeprecationWarning("empty is deprecated, use model (and ll.xist.sims) instead"), stacklevel=2)
+			from ll.xist import sims
+			if dict["empty"]:
+				model = sims.Empty()
+			else:
+				model = sims.Any()
+			del dict["empty"]
+			dict["model"] = model
+		
+		return super(_Element_Meta, cls).__new__(cls, name, bases, dict)
+
+	def __repr__(self):
+		return "<element class %s:%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
+
+
 class Element(Node):
 	"""
 	<par>This class represents &xml;/&xist; elements. All elements implemented
@@ -2165,38 +2210,10 @@ class Element(Node):
 	<class>Attrs</class> class.</item>
 	</dlist>
 	"""
+	__metaclass__ = _Element_Meta
 
 	model = None
 	register = None
-
-	class __metaclass__(Node.__metaclass__):
-		def __new__(cls, name, bases, dict):
-			if "name" in dict and isinstance(dict["name"], basestring):
-				warnings.warn(DeprecationWarning("name is deprecated, use xmlname instead"))
-				dict["xmlname"] = dict["name"]
-				del dict["name"]
-			if "attrHandlers" in dict:
-				warnings.warn(DeprecationWarning("attrHandlers is deprecated, use a nested Attrs class instead"), stacklevel=2)
-			if "model" in dict and isinstance(dict["model"], bool):
-				from ll.xist import sims
-				if dict["model"]:
-					dict["model"] = sims.Any()
-				else:
-					dict["model"] = sims.Empty()
-			if "empty" in dict:
-				warnings.warn(PendingDeprecationWarning("empty is deprecated, use model (and ll.xist.sims) instead"), stacklevel=2)
-				from ll.xist import sims
-				if dict["empty"]:
-					model = sims.Empty()
-				else:
-					model = sims.Any()
-				del dict["empty"]
-				dict["model"] = model
-			
-			return Node.__metaclass__.__new__(cls, name, bases, dict)
-
-		def __repr__(self):
-			return "<element class %s:%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
 
 	class Attrs(Attrs):
 		"""
@@ -2737,16 +2754,19 @@ class Element(Node):
 		return node
 
 
+class _Entity_Meta(Node.__metaclass__):
+	def __repr__(self):
+		return "<entity class %s:%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
+
+
 class Entity(Node):
 	"""
 	<par>Class for entities. Derive your own entities from it and overwrite
 	<pyref class="Node" method="convert"><method>convert</method></pyref>.</par>
 	"""
-	register = None
+	__metaclass__ = _Entity_Meta
 
-	class __metaclass__(Node.__metaclass__):
-		def __repr__(self):
-			return "<entity class %s:%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
+	register = None
 
 	@classmethod
 	def _str(cls, fullname=True, xml=True, decorate=True):
@@ -2770,16 +2790,18 @@ class Entity(Node):
 		publisher.write(u";")
 
 
+class _CharRef_Meta(Entity.__metaclass__): # don't subclass Text.__metaclass__, as this is redundant
+	def __repr__(self):
+		return "<charref class %s:%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
+
+
 class CharRef(Text, Entity):
 	"""
 	<par>A simple character reference, the codepoint is in the class attribute
 	<lit>codepoint</lit>.</par>
 	"""
+	__metaclass__ = _CharRef_Meta
 	register = None
-
-	class __metaclass__(Entity.__metaclass__):
-		def __repr__(self):
-			return "<charref class %s:%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
 
 	def __init__(self):
 		Text.__init__(self, unichr(self.codepoint))
@@ -3127,6 +3149,127 @@ defaultPrefixes = Prefixes()
 ### Namespaces
 ###
 
+class _Namespace_Meta(Base.__metaclass__, ll.Namespace.__metaclass__):
+	def __new__(cls, name, bases, dict):
+		pyname = unicode(name.split(".")[-1])
+		if "xmlname" in dict:
+			xmlname = dict["xmlname"]
+			if isinstance(xmlname, str):
+				xmlname = unicode(xmlname)
+		else:
+			xmlname = pyname
+		dict["xmlname"] = (pyname, xmlname)
+		if "xmlurl" in dict:
+			xmlurl = dict["xmlurl"]
+			if xmlurl is not None:
+				xmlurl = unicode(xmlurl)
+			dict["xmlurl"] = xmlurl
+		# Convert functions to staticmethods as Namespaces won't be instantiated anyway
+		# If you need a classmethod simply define one
+		for (key, value) in dict.iteritems():
+			if isinstance(value, new.function):
+				dict[key] = staticmethod(value)
+		# automatically inherit all element, procinst, entity and Attrs classes, that aren't overwritten.
+		for base in bases:
+			for attrname in dir(base):
+				attr = getattr(base, attrname)
+				if isinstance(attr, type) and issubclass(attr, (Element, ProcInst, Entity, Attrs)) and attrname not in dict:
+					classdict = {"__module__": dict["__module__"]}
+					if attr.xmlname[0] != attr.xmlname[1]:
+						classdict["xmlname"] = attr.xmlname[1]
+					classdict["__outerclass__"] = 42
+					dict[attrname] = attr.__class__(attr.__name__, (attr, ), classdict)
+		dict["_cache"] = None
+		self = super(_Namespace_Meta, cls).__new__(cls, name, bases, dict)
+		self.__originalname = name # preserves the name even after makemod() (used by __repr__)
+		for (key, value) in self.__dict__.iteritems():
+			if isinstance(value, type):
+				if getattr(value, "__outerclass__", None) == 42:
+					value.__outerclass__ = self
+				if issubclass(value, (Element, ProcInst, Entity)):
+					value.xmlns = self
+		for attr in self.Attrs.iterallowedvalues():
+			attr.xmlns = self
+		if self.xmlurl is not None:
+			name = self.xmlname[True]
+			self.nsbyname.setdefault(name, []).insert(0, self)
+			self.nsbyurl.setdefault(self.xmlurl, []).insert(0, self)
+			self.all.append(self)
+			defaultPrefixes[None].insert(0, self)
+			defaultPrefixes[name].insert(0, self)
+			defaultnspool.add(self)
+		return self
+
+	def __eq__(self, other):
+		if isinstance(other, type) and issubclass(other, Namespace):
+			return self.xmlname[True]==other.xmlname[True] and self.xmlurl==other.xmlurl
+		return False
+
+	def __ne__(self, other):
+		return not self==other
+
+	def __hash__(self):
+		return hash(self.xmlname[True]) ^ hash(self.xmlurl)
+
+	def __repr__(self):
+		counts = []
+
+		elementkeys = self.elementkeys()
+		if elementkeys:
+			counts.append("%d elements" % len(elementkeys))
+
+		procinstkeys = self.procinstkeys()
+		if procinstkeys:
+			counts.append("%d procinsts" % len(procinstkeys))
+
+		entitykeys = self.entitykeys()
+		charrefkeys = self.charrefkeys()
+		count = len(entitykeys)-len(charrefkeys)
+		if count:
+			counts.append("%d entities" % count)
+
+		if len(charrefkeys):
+			counts.append("%d charrefs" % len(charrefkeys))
+
+		allowedattrs = self.Attrs.allowedkeys()
+		if len(allowedattrs):
+			counts.append("%d attrs" % len(allowedattrs))
+
+		if counts:
+			counts = " with " + ", ".join(counts)
+		else:
+			counts = ""
+
+		if "__file__" in self.__dict__: # no inheritance
+			fromfile = " from %r" % self.__file__
+		else:
+			fromfile = ""
+		return "<namespace %s:%s name=%r url=%r%s%s at 0x%x>" % (self.__module__, self.__originalname, self.xmlname[True], self.xmlurl, counts, fromfile, id(self))
+
+	def __delattr__(self, key):
+		value = self.__dict__.get(key, None) # no inheritance
+		if isinstance(value, type) and issubclass(value, (Element, ProcInst, CharRef)):
+			value.xmlns = None
+			self._cache = None
+		return super(_Namespace_Meta, self).__delattr__(key)
+
+	def __setattr__(self, key, value):
+		# Remove old attribute
+		oldvalue = self.__dict__.get(key, None) # no inheritance
+		if isinstance(oldvalue, type) and issubclass(oldvalue, (Element, ProcInst, Entity)):
+			if oldvalue.xmlns is not None:
+				oldvalue.xmlns._cache = None
+				oldvalue.xmlns = None
+		# Set new attribute
+		if isinstance(value, type) and issubclass(value, (Element, ProcInst, Entity)):
+			if value.xmlns is not None:
+				value.xmlns._cache = None
+				value.xmlns = None
+			self._cache = None
+			value.xmlns = self
+		return super(_Namespace_Meta, self).__setattr__(key, value)
+
+
 class Namespace(Base, ll.Namespace):
 	"""
 	<par>An &xml; namespace.</par>
@@ -3135,6 +3278,7 @@ class Namespace(Base, ll.Namespace):
 	defined as nested classes inside subclasses of <class>Namespace</class>.
 	This class will never be instantiated.</par>
 	"""
+	__metaclass__ = _Namespace_Meta
 
 	xmlname = None
 	xmlurl = None
@@ -3142,128 +3286,6 @@ class Namespace(Base, ll.Namespace):
 	nsbyname = {}
 	nsbyurl = {}
 	all = []
-
-	class __metaclass__(Base.__metaclass__, ll.Namespace.__metaclass__):
-		def __new__(mcl, name, bases, dict):
-			pyname = unicode(name.split(".")[-1])
-			if "xmlname" in dict:
-				xmlname = dict["xmlname"]
-				if isinstance(xmlname, str):
-					xmlname = unicode(xmlname)
-			else:
-				xmlname = pyname
-			dict["xmlname"] = (pyname, xmlname)
-			if "xmlurl" in dict:
-				xmlurl = dict["xmlurl"]
-				if xmlurl is not None:
-					xmlurl = unicode(xmlurl)
-				dict["xmlurl"] = xmlurl
-			# Convert functions to staticmethods as Namespaces won't be instantiated anyway
-			# If you need a classmethod simply define one
-			for (key, value) in dict.iteritems():
-				if isinstance(value, new.function):
-					dict[key] = staticmethod(value)
-			# automatically inherit all element, procinst, entity and Attrs classes, that aren't overwritten.
-			for base in bases:
-				for attrname in dir(base):
-					attr = getattr(base, attrname)
-					if isinstance(attr, type) and issubclass(attr, (Element, ProcInst, Entity, Attrs)) and attrname not in dict:
-						classdict = {"__module__": dict["__module__"]}
-						if attr.xmlname[0] != attr.xmlname[1]:
-							classdict["xmlname"] = attr.xmlname[1]
-						classdict["__outerclass__"] = 42
-						dict[attrname] = attr.__class__(attr.__name__, (attr, ), classdict)
-			dict["_cache"] = None
-			cls = Base.__metaclass__.__new__(mcl, name, bases, dict)
-			cls.__originalname = name # preserves the name even after makemod() (used by __repr__)
-			for (key, value) in cls.__dict__.iteritems():
-				if isinstance(value, type):
-					if getattr(value, "__outerclass__", None) == 42:
-						value.__outerclass__ = cls
-					if issubclass(value, (Element, ProcInst, Entity)):
-						value.xmlns = cls
-			for attr in cls.Attrs.iterallowedvalues():
-				attr.xmlns = cls
-			if cls.xmlurl is not None:
-				name = cls.xmlname[True]
-				cls.nsbyname.setdefault(name, []).insert(0, cls)
-				cls.nsbyurl.setdefault(cls.xmlurl, []).insert(0, cls)
-				cls.all.append(cls)
-				defaultPrefixes[None].insert(0, cls)
-				defaultPrefixes[name].insert(0, cls)
-				defaultnspool.add(cls)
-			return cls
-
-		def __eq__(self, other):
-			if isinstance(other, type) and issubclass(other, Namespace):
-				return self.xmlname[True]==other.xmlname[True] and self.xmlurl==other.xmlurl
-			return False
-
-		def __ne__(self, other):
-			return not self==other
-
-		def __hash__(self):
-			return hash(self.xmlname[True]) ^ hash(self.xmlurl)
-
-		def __repr__(self):
-			counts = []
-
-			elementkeys = self.elementkeys()
-			if elementkeys:
-				counts.append("%d elements" % len(elementkeys))
-
-			procinstkeys = self.procinstkeys()
-			if procinstkeys:
-				counts.append("%d procinsts" % len(procinstkeys))
-
-			entitykeys = self.entitykeys()
-			charrefkeys = self.charrefkeys()
-			count = len(entitykeys)-len(charrefkeys)
-			if count:
-				counts.append("%d entities" % count)
-
-			if len(charrefkeys):
-				counts.append("%d charrefs" % len(charrefkeys))
-
-			allowedattrs = self.Attrs.allowedkeys()
-			if len(allowedattrs):
-				counts.append("%d attrs" % len(allowedattrs))
-
-			if counts:
-				counts = " with " + ", ".join(counts)
-			else:
-				counts = ""
-
-			if "__file__" in self.__dict__: # no inheritance
-				fromfile = " from %r" % self.__file__
-			else:
-				fromfile = ""
-			return "<namespace %s:%s name=%r url=%r%s%s at 0x%x>" % (self.__module__, self.__originalname, self.xmlname[True], self.xmlurl, counts, fromfile, id(self))
-
-		def __delattr__(cls, key):
-			value = cls.__dict__.get(key, None) # no inheritance
-			if isinstance(value, type) and issubclass(value, (Element, ProcInst, CharRef)):
-				value.xmlns = None
-				cls._cache = None
-			return type.__delattr__(cls, key)
-
-		def __setattr__(cls, key, value):
-			# Remove old attribute
-			oldvalue = cls.__dict__.get(key, None) # no inheritance
-			if isinstance(oldvalue, type) and issubclass(oldvalue, (Element, ProcInst, Entity)):
-				if oldvalue.xmlns is not None:
-					oldvalue.xmlns._cache = None
-					oldvalue.xmlns = None
-			# Set new attribute
-			if isinstance(value, type) and issubclass(value, (Element, ProcInst, Entity)):
-				if value.xmlns is not None:
-					value.xmlns._cache = None
-					value.xmlns = None
-				cls._cache = None
-				value.xmlns = cls
-			elif isinstance(value, new.function):
-				value = staticmethod(value)
-			return super(Namespace, self).__setattr__(key, value)
 
 	class Attrs(_Attrs):
 		"""
