@@ -480,7 +480,7 @@ class td(xsc.Element):
 	"""
 	empty = 0
 	attrHandlers = xsc.appendDict(attrs,{ "abbr" : xsc.TextAttr , "axis" : xsc.TextAttr , "headers" : xsc.TextAttr , "scope" : xsc.TextAttr , "rowspan" : xsc.TextAttr , "colspan" : xsc.TextAttr },cellhalign,cellvalign)
-	attrHandlers = xsc.appendDict(attrHandlers,{ "nowrap" : xsc.TextAttr , "bgcolor" : xsc.ColorAttr , "width" : xsc.TextAttr }) # deprecated
+	attrHandlers = xsc.appendDict(attrHandlers,{ "nowrap" : xsc.TextAttr , "bgcolor" : xsc.ColorAttr , "width" : xsc.TextAttr , "background" : xsc.URLAttr }) # deprecated
 xsc.registerElement(td)
 
 class a(xsc.Element):
