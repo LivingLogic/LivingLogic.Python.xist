@@ -120,7 +120,7 @@ class FilePublisher(Publisher):
 	writes the strings to a file.
 	"""
 	def __init__(self, file, encoding=None, XHTML=None):
-		Publisher.__init__(self, encoding, XHTML)
+		Publisher.__init__(self, encoding=encoding, XHTML=XHTML)
 		(encode, decode, streamReaderClass, streamWriterClass) = codecs.lookup(self.encoding)
 		self.file = streamWriterClass(file)
 
@@ -138,7 +138,7 @@ class PrintPublisher(FilePublisher):
 	writes the strings to <code>sys.stdout</code>.
 	"""
 	def __init__(self, encoding=None, XHTML=None):
-		FilePublisher.__init__(self, sys.stdout, encoding, XHTML)
+		FilePublisher.__init__(self, sys.stdout, encoding=encoding, XHTML=XHTML)
 
 class StringPublisher(Publisher):
 	"""
@@ -148,7 +148,7 @@ class StringPublisher(Publisher):
 	"""
 
 	def __init__(self, XHTML=None):
-		Publisher.__init__(self, None, XHTML)
+		Publisher.__init__(self, encoding="utf16", XHTML=XHTML)
 		self.texts = []
 
 	def publish(self, text):
@@ -169,7 +169,7 @@ class BytePublisher(Publisher):
 	"""
 
 	def __init__(self, encoding=None, XHTML=None):
-		Publisher.__init__(self, encoding, XHTML)
+		Publisher.__init__(self, encoding=encoding, XHTML=XHTML)
 		self.texts = []
 
 	def publish(self, text):

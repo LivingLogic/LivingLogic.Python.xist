@@ -558,7 +558,7 @@ class Node:
 
 		<par>For an explanation of <argref>XHTML</argref> see <funcref>publish</funcref>.</par>
 		"""
-		publisher = publishers.StringPublisher(XHTML)
+		publisher = publishers.StringPublisher(XHTML=XHTML)
 		self.publish(publisher)
 		return publisher.asString()
 
@@ -569,7 +569,7 @@ class Node:
 
 		<par>For the parameters see <funcref>publish</funcref>.</par>
 		"""
-		publisher = publishers.BytePublisher(encoding, XHTML)
+		publisher = publishers.BytePublisher(encoding=encoding, XHTML=XHTML)
 		self.publish(publisher)
 		return publisher.asBytes()
 
@@ -580,7 +580,7 @@ class Node:
 
 		<par>For the parameters see <funcref>publish</funcref>.</par>
 		"""
-		publisher = publishers.FilePublisher(file, encoding, XHTML)
+		publisher = publishers.FilePublisher(file, encoding=encoding, XHTML=XHTML)
 		self.publish(publisher)
 
 	def find(self, type=None, subtype=0, attrs=None, test=None, searchchildren=0, searchattrs=0):
