@@ -1,4 +1,15 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
+<section><title>Changes in ?? (released ??/??/2002)</title>
+<ulist>
+<item>Added a new namespace module <module>ll.xist.ns.xndl</module>
+that contains the <z>&xist; namespace definition language</z>, i.e.
+elements that describe a &xist; namespace and can be used by
+various scripts to generate skeleton namespace modules.
+The first of these script is the &dtd; to namespace converter
+<filename>dtd2xsc.py</filename>.</item>
+</ulist>
+</section>
+
 <section><title>Changes in 2.0.8 (released 11/20/2002)</title>
 <ulist>
 <item><function>ll.xist.ns.doc.getDoc</function> has been renamed
