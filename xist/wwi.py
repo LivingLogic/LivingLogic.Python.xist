@@ -1,7 +1,7 @@
-from Webware import WebKit
+import HTTPServlet
 from xist import xsc
 
-class Servlet(WebKit.HTTPServlet):
+class Servlet(HTTPServlet.HTTPServlet):
 	encoding = "utf-8"
 
 	def respondToGet(self, trans):
