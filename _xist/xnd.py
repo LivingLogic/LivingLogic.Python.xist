@@ -79,12 +79,11 @@ class Base(object):
 		return value
 	simplify = classmethod(simplify)
 
-	def aspy(self, encoding=None, indent="\t", asmod=True, defaults=False, schema=False):
-		if encoding is None:
-			encoding = sys.getdefaultencoding()
+	def aspy(self, **options):
+		options = Options(**options)
 		lines = []
-		self._aspy(lines, encoding, 0, [], asmod, defaults, schema)
-		return "\n".join(["%s%s" % (level*indent, text) for (level, text) in lines])
+		self._aspy(lines, 0, [], options)
+		return "\n".join(["%s%s" % (level*options.indent, text) for (level, text) in lines])
 
 	def _addlines(self, newlines, lines):
 		l = len(newlines)
@@ -136,7 +135,7 @@ class Namespace(Base):
 						attrgroupset[attr.shared] = True
 		return attrgroups
 
-	def _aspy(self, lines, encoding, level, names, asmod, defaults, schema):
+	def _aspy(self, lines, level, names, options):
 		# assign names to all elements
 		for child in self.content:
 			if isinstance(child, Element):
@@ -169,7 +168,7 @@ class Namespace(Base):
 		self.assignname(names, "xmlns")
 
 		lines.append([level, "#!/usr/bin/env python"])
-		lines.append([level, "# -*- coding: %s -*-" % encoding])
+		lines.append([level, "# -*- coding: %s -*-" % options.encoding])
 		lines.append([0, ""])
 		lines.append([0, ""])
 
@@ -185,27 +184,40 @@ class Namespace(Base):
 		for attrgroup in attrgroups:
 			lines.append([0, ""])
 			lines.append([0, ""])
-			attrgroup._aspy(lines, encoding, level, names, asmod, defaults, schema)
+			attrgroup._aspy(lines, level, names, options)
 
 		# output elements, procinsts, entities and charref
 		for node in self.content:
 			lines.append([0, ""])
 			lines.append([0, ""])
-			node._aspy(lines, encoding, level, names, asmod, defaults, schema)
+			node._aspy(lines, level, names, options)
 
 		# output schema information for the elements
-		elswithschema = [node for node in self.content if isinstance(node, Element) and node.modeltype is not None]
-		if elswithschema:
-			lines.append([0, ""])
-			lines.append([0, ""])
-			for node in elswithschema:
-				modelargs = []
-				if node.modelargs:
-					for arg in node.modelargs:
-						if isinstance(arg, Element):
-							arg = arg.pyname
-						modelargs.append(arg)
-				lines.append([0, "%s.model = %s(%s)" % (node.pyname, node.modeltype, ", ".join(modelargs))])
+		if options.model != "no":
+			elswithschema = [node for node in self.content if isinstance(node, Element) and not isinstance(node.modeltype, (bool, type(None)))]
+			if elswithschema:
+				lines.append([0, ""])
+				lines.append([0, ""])
+				newlines = []
+				for node in elswithschema:
+					modelargs = []
+					if node.modelargs:
+						for arg in node.modelargs:
+							if isinstance(arg, Element):
+								arg = arg.pyname
+							modelargs.append(arg)
+					newlines.append(("%s.model" % node.pyname, "%s(%s)" % (node.modeltype, ", ".join(modelargs))))
+				if options.model == "all":
+					for line in newlines:
+						lines.append([0, "%s = %s" % line])
+				elif options.model == "once":
+					# FIXME: Use sort(key=...) in 2.4
+					newlines.sort(lambda l1, l2: cmp(l1[1], l2[1]))
+					for (i, line) in enumerate(newlines):
+						(var, code) = line
+						if i != len(newlines)-1 and code == newlines[i+1][1]:
+							code = "\\"
+						lines.append([0, "%s = %s" % (var, code)])
 
 		lines.append([0, ""])
 		lines.append([0, ""])
@@ -217,7 +229,7 @@ class Namespace(Base):
 		else:
 			url = self.url
 		lines.append([level+1, "xmlurl = %s" % self.simplify(url)])
-		if asmod:
+		if options.asmod:
 			method = "makemod"
 		else:
 			method = "update"
@@ -268,13 +280,16 @@ class Element(Base):
 		self.attrs.extend(content)
 		return self
 
-	def _aspy(self, lines, encoding, level, names, asmod, defaults, schema):
+	def _aspy(self, lines, level, names, options):
 		lines.append([level, "class %s(xsc.Element):" % self.pyname])
 		newlines = []
 		self._adddoc(newlines, level+1)
 		if self.pyname != self.name:
 			newlines.append([level+1, "xmlname = %s" % self.simplify(self.name)])
-		# don't output model, because this is done after all element classes have been defined
+		# only output model, if it is a bool, otherwise it might reference other element,
+		# in which case this is done after all element classes have been defined
+		if isinstance(self.modeltype, bool):
+			newlines.append([level+1, "model = %r" % self.modeltype])
 
 		if len(self.attrs):
 			# find the attribute groups our elements are in
@@ -296,7 +311,7 @@ class Element(Base):
 			if nogroup:
 				localnames = []
 				for attr in nogroup:
-					attr._aspy(newlines, encoding, level+2, localnames, asmod, defaults, schema)
+					attr._aspy(newlines, level+2, localnames, options)
 			else:
 				newlines.append([level+2, "pass"])
 		self._addlines(newlines, lines)
@@ -315,11 +330,11 @@ class AttrGroup(Base):
 		self.attrs.extend(content)
 		return self
 
-	def _aspy(self, lines, encoding, level, names, asmod, defaults, schema):
+	def _aspy(self, lines, level, names, options):
 		lines.append([level, "class %s(xsc.Element.Attrs):" % self.pyname])
 		localnames = []
 		for attr in self.attrs:
-			attr._aspy(lines, encoding, level+1, localnames, asmod, defaults, schema)
+			attr._aspy(lines, level+1, localnames, options)
 
 
 class Attr(Base):
@@ -337,7 +352,7 @@ class Attr(Base):
 	def __repr__(self):
 		return "<%s.%s name=%r type=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.name, self.type, id(self))
 
-	def _aspy(self, lines, encoding, level, names, asmod, defaults, schema):
+	def _aspy(self, lines, level, names, options):
 		name = self.name
 		if isinstance(self.type, type):
 			basename = "%s.%s" % (self.type.__module__, self.type.__name__)
@@ -353,7 +368,7 @@ class Attr(Base):
 		if self.values:
 			values = "(%s)" % ", ".join([ str(self.simplify(value)) for value in self.values ])
 			newlines.append([level+1, "values = %s" % (values, )])
-		if self.default and defaults:
+		if self.default and options.defaults:
 			newlines.append([level+1, "default = %s" % self.simplify(self.default)])
 		if self.required:
 			newlines.append([level+1, "required = True"])
@@ -375,7 +390,7 @@ class ProcInst(Base):
 	def __repr__(self):
 		return "<%s.%s name=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.name, id(self))
 
-	def _aspy(self, lines, encoding, level, names, asmod, defaults, schema):
+	def _aspy(self, lines, level, names, options):
 		lines.append([level, "class %s(xsc.ProcInst):" % self.pyname])
 		newlines = []
 		self._adddoc(newlines, level+1)
@@ -392,7 +407,7 @@ class Entity(Base):
 	def __repr__(self):
 		return "<%s.%s name=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.name, id(self))
 
-	def _aspy(self, lines, encoding, level, names, asmod, defaults, schema):
+	def _aspy(self, lines, level, names, options):
 		lines.append([level, "class %s(xsc.Entity):" % self.pyname])
 		newlines = []
 		self._adddoc(newlines, level+1)
@@ -409,7 +424,7 @@ class CharRef(Entity):
 	def __repr__(self):
 		return "<%s.%s name=%r codepoint=0x%x at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.name, self.codepoint, id(self))
 
-	def _aspy(self, lines, encoding, level, names, asmod, defaults, schema):
+	def _aspy(self, lines, level, names, options):
 		lines.append([level, "class %s(xsc.CharRef):" % self.pyname])
 		newlines = []
 		self._adddoc(newlines, level+1)
@@ -421,6 +436,17 @@ class CharRef(Entity):
 			codepoint = "0x%04x" % self.codepoint
 		newlines.append([level+1, "codepoint = %s" % codepoint])
 		self._addlines(newlines, lines)
+
+
+class Options(object):
+	def __init__(self, indent="\t", encoding=None, asmod=True, defaults=False, model="once"):
+		self.indent = indent
+		if encoding is None:
+			encoding = sys.getdefaultencoding()
+		self.encoding = encoding
+		self.asmod = asmod
+		self.defaults = defaults
+		self.model = model
 
 
 def fromdtd(dtd, xmlname, xmlurl=None):

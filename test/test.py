@@ -1962,7 +1962,7 @@ class TLD2XSCTest(unittest.TestCase):
 		self.assertEqual(ns.bar.Attrs.response.required, False)
 
 
-class XNDLTest(unittest.TestCase):
+class XNDTest(unittest.TestCase):
 	def xnd2ns(self, data):
 
 		mod = {"__name__": str(data.name)}
@@ -2017,6 +2017,19 @@ class XNDLTest(unittest.TestCase):
 		ns = self.xnd2ns(e)
 		self.assert_(issubclass(ns.f_o_o, xsc.CharRef))
 		self.assert_(ns.f_o_o.xmlname, ("f_o_o", "f-o-o"))
+
+	def test_model(self):
+		e = xnd.Namespace("ns")(
+			xnd.Element("foo", modeltype=True)
+		)
+		ns = self.xnd2ns(e)
+		self.assert_(isinstance(ns.foo.model, sims.Any))
+
+		e = xnd.Namespace("ns")(
+			xnd.Element("foo", modeltype=False)
+		)
+		ns = self.xnd2ns(e)
+		self.assert_(isinstance(ns.foo.model, sims.Empty))
 
 
 class PrettyTest(unittest.TestCase):

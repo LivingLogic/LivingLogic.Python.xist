@@ -57,6 +57,8 @@ if __name__ == "__main__":
 	p.add_option("-p", "--prefix", dest="xmlname", help="the XML prefix for this namespace", default="prefix", metavar="PREFIX")
 	p.add_option("-u", "--url", dest="xmlurl", help="the XML namespace name", metavar="URL")
 	p.add_option("-s", "--shareattrs", dest="shareattrs", help="Should identical attributes be shared among elements?", choices=("none", "dupes", "all"), default="dupes")
+	p.add_option("-m", "--model", dest="model", default="once", help="Add sims information to the namespace", choices=("no", "all", "once"))
+	p.add_option("-d", "--defaults", action="store_true", dest="defaults", help="Output default values for attributes")
 
 	(options, args) = p.parse_args()
 	if len(args) != 1:
@@ -67,4 +69,4 @@ if __name__ == "__main__":
 		output = url.File(input.withExt("py").file)
 	else:
 		output = url.URL(options.output)
-	tld2xsc(input, output, options.verbose, options.xmlname, options.xmlurl, options.shareattrs)
+	tld2xsc(input, output, options.verbose, options.xmlname, options.xmlurl, options.shareattrs, options.model, options.defaults)
