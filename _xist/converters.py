@@ -16,6 +16,7 @@ This modules contains the base class for the converter objects used in the call 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
+import ll
 import xsc
 
 
@@ -51,185 +52,140 @@ class Converter(object):
 		self.states = [ ConverterState(node=node, root=root, mode=mode, stage=stage, target=target, lang=lang, makeaction=makeaction, maketarget=maketarget)]
 		self.contexts = {}
 
-	def __getnode(self):
-		return self.states[-1].node
-
-	def __setnode(self, node):
-		self.states[-1].node = node
-
-	def __delnode(self):
-		self.states[-1].node = None
-
-	node = property(
-		__getnode,
-		__setnode,
-		__delnode,
+	class node(ll.propclass):
 		"""
 		<par>The root node for which conversion has been called. This is automatically set by the
 		<pyref module="ll.xist.xsc" class="Node" method="conv"><method>conv</method></pyref> method.</par>
 		"""
-	)
+		def __get__(self):
+			return self.states[-1].node
+	
+		def __set__(self, node):
+			self.states[-1].node = node
+	
+		def __delete__(self):
+			self.states[-1].node = None
 
-	def __getroot(self):
-		return self.states[-1].root
-
-	def __setroot(self, root):
-		self.states[-1].root = root
-
-	def __delroot(self):
-		self.states[-1].root = None
-
-	root = property(
-		__getroot,
-		__setroot,
-		__delroot,
+	class root(ll.propclass):
 		"""
 		<par>The root &url; for the conversion. Resolving &url;s during the conversion process should be done
 		relative to <lit>root</lit>.</par>
 		"""
-	)
+		def __get__(self):
+			return self.states[-1].root
+	
+		def __set__(self, root):
+			self.states[-1].root = root
+	
+		def __delete__(self):
+			self.states[-1].root = None
 
-	def __getmode(self):
-		return self.states[-1].mode
-
-	def __setmode(self, mode):
-		self.states[-1].mode = mode
-
-	def __delmode(self):
-		self.states[-1].mode = None
-
-	mode = property(
-		__getmode,
-		__setmode,
-		__delmode,
+	class mode(ll.propclass):
 		"""
-		<par>The conversion mode. This corresponds directy with the mode in &xslt;.
+		<par>The conversion mode. This corresponds directly to the mode in &xslt;.
 		The default is <lit>None</lit>.</par>
 		"""
-	)
+		def __get__(self):
+			return self.states[-1].mode
+	
+		def __set__(self, mode):
+			self.states[-1].mode = mode
+	
+		def __delete__(self):
+			self.states[-1].mode = None
 
-	def __getstage(self):
-		if self.states[-1].stage is None:
-			return "deliver"
-		else:
-			return self.states[-1].stage
-
-	def __setstage(self, stage):
-		self.states[-1].stage = stage
-
-	def __delstage(self):
-		self.states[-1].stage = None
-
-	stage = property(
-		__getstage,
-		__setstage,
-		__delstage,
+	class stage(ll.propclass):
 		"""
 		<par>If your conversion is done in multiple steps or stages you can use this property
 		to specify in which stage the conversion process currently is. The default is
 		<lit>"deliver"</lit>.</par>
 		"""
-	)
+		def __get__(self):
+			if self.states[-1].stage is None:
+				return "deliver"
+			else:
+				return self.states[-1].stage
+	
+		def __set__(self, stage):
+			self.states[-1].stage = stage
+	
+		def __delete__(self):
+			self.states[-1].stage = None
 
-	def __gettarget(self):
-		if self.states[-1].target is None:
-			from ll.xist.ns import html
-			return html
-		else:
-			return self.states[-1].target
-
-	def __settarget(self, target):
-		self.states[-1].target = target
-
-	def __deltarget(self):
-		self.states[-1].target = None
-
-	target = property(
-		__gettarget,
-		__settarget,
-		__deltarget,
+	class target(ll.propclass):
 		"""
 		<par>Specifies the conversion target. This must be a
 		<pyref module="ll.xist.xsc" class="Namespace"><class>Namespace</class></pyref> subclass.</par>
 		"""
-	)
+		def __get__(self):
+			if self.states[-1].target is None:
+				from ll.xist.ns import html
+				return html
+			else:
+				return self.states[-1].target
+	
+		def __set__(self, target):
+			self.states[-1].target = target
+	
+		def __delete__(self):
+			self.states[-1].target = None
 
-	def __getlang(self):
-		return self.states[-1].lang
-
-	def __setlang(self, lang):
-		self.states[-1].lang = lang
-
-	def __dellang(self):
-		self.states[-1].lang = None
-
-	lang = property(
-		__getlang,
-		__setlang,
-		__dellang,
+	class lang(ll.propclass):
 		"""
 		<par>The target language. The default is <lit>None</lit>.</par>
 		"""
-	)
+		def __get__(self):
+			return self.states[-1].lang
+	
+		def __set__(self, lang):
+			self.states[-1].lang = lang
+	
+		def __delete__(self):
+			self.states[-1].lang = None
 
-	def __getmakeaction(self):
-		return self.states[-1].makeaction
-
-	def __setmakeaction(self, makeaction):
-		self.states[-1].makeaction = makeaction
-
-	def __delmakeaction(self):
-		self.states[-1].makeaction = None
-
-	makeaction = property(
-		__getmakeaction,
-		__setmakeaction,
-		__delmakeaction,
+	class makeaction(ll.propclass):
 		"""
 		<par>If an &xist; conversion is done by an <pyref module="ll.make" class="XISTAction"><class>XISTAction</class></pyref>
 		this property will hold the action object during that conversion. If you're not using the
 		<pyref module="ll.make"><module>make</module></pyref> module you can simply ignore this property. The default is <lit>None</lit>.</par>
 		"""
-	)
+		def __get__(self):
+			return self.states[-1].makeaction
+	
+		def __set__(self, makeaction):
+			self.states[-1].makeaction = makeaction
+	
+		def __delete__(self):
+			self.states[-1].makeaction = None
 
-	def __getmaketarget(self):
-		return self.states[-1].maketarget
-
-	def __setmaketarget(self, maketarget):
-		self.states[-1].maketarget = maketarget
-
-	def __delmaketarget(self):
-		self.states[-1].maketarget = None
-
-	maketarget = property(
-		__getmaketarget,
-		__setmaketarget,
-		__delmaketarget,
+	class maketarget(ll.propclass):
 		"""
 		<par>If an &xist; conversion is done by an <pyref module="ll.make" class="XISTAction"><class>XISTAction</class></pyref>
 		this property will hold the <pyref module="ll.make" class="Target"><class>Target</class></pyref> object during that conversion.
 		If you're not using the <pyref module="ll.make"><module>make</module></pyref> module you can simply ignore this property.
 		The default is <lit>None</lit>.</par>
 		"""
-	)
+		def __get__(self):
+			return self.states[-1].maketarget
+	
+		def __set__(self, maketarget):
+			self.states[-1].maketarget = maketarget
+	
+		def __delete__(self):
+			self.states[-1].maketarget = None
 
-	def __getmakeproject(self):
-		maketarget = self.maketarget
-		if maketarget is None:
-			return None
-		else:
-			return maketarget.project
-
-	makeproject = property(
-		__getmakeproject,
-		None,
-		None,
+	class makeproject(ll.propclass):
 		"""
 		<par>If an &xist; conversion is done by an <pyref module="ll.make" class="XISTAction"><class>XISTAction</class></pyref>
 		this property will hold the <pyref module="ll.make" class="Project"><class>Project</class></pyref> object during that conversion.
 		If you're not using the <pyref module="ll.make"><module>make</module></pyref> module you can simply ignore this property.
 		"""
-	)
+		def __get__(self):
+			maketarget = self.maketarget
+			if maketarget is None:
+				return None
+			else:
+				return maketarget.project
 
 	def push(self, node=None, root=None, mode=None, stage=None, target=None, lang=None, makeaction=None, maketarget=None):
 		self.lastnode = None
