@@ -39,7 +39,7 @@ class XSCz(XSCElement):
 	close = 1
 
 	def __str__(self):
-		return str("«" + self.content + "»")
+		return str(XSCFrag(["«" , self.content , "»" ]))
 RegisterElement("z",XSCz)
 
 class XSCnbsp(XSCElement):

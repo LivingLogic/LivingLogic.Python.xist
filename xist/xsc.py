@@ -175,7 +175,7 @@ class XSCFrag(XSCNode):
 		self.content.append(ToNode(other))
 
 	def preppend(self,other):
-		self.content[0:0] = ToNode(other)
+		self.content = [ ToNode(other) ] + self.content[:]
 
 class XSCAttrs(XSCNode):
 	"contains a dictionary of XSCNodes with are wrapped into attribute nodes"
@@ -216,6 +216,8 @@ class XSCAttrs(XSCNode):
 		return self.content[index].content # unpack the attribute
 
 	def __setitem__(self,index,value):
+		"insert a value into the attribute dictionary"
+		# values are converted to Nodes first and the wrapped into the attribute nodes as specified via the attr_handlers dictionary
 		lowerindex = string.lower(index)
 		if self.attr_handlers.has_key(lowerindex):
 			self.content[lowerindex] = self.attr_handlers[lowerindex](ToNode(value)) # convert the attribute to a node an pack it into an attribute object
@@ -223,17 +225,17 @@ class XSCAttrs(XSCNode):
 			raise EHSCIllegalAttribute(self,attr)
 
 	def __delitem__(self,index):
+		"removes a dictionary entry"
 		if self.has_attr(index):
 			del self.content[index]
 
+	def keys(self):
+		"returns the keys of the dictionary, i.e. a list of the attribute names"
+		return self.content.keys()
+
 	def __len__(self):
-		return len(self.content.keys())
-
-	def append(self,other):
-		self.content.append(ToNode(other))
-
-	def preppend(self,other):
-		self.content[0:0] = ToNode(other)
+		"return the number of attributes"
+		return len(self.keys())
 
 class XSCComment(XSCNode):
 	"comments"
@@ -302,7 +304,6 @@ class XSCElement(XSCNode):
 		self.content = XSCFrag(content)
 		self.attrs = XSCAttrs(self.attr_handlers,{})
 
-		# construct the attribute dictionary, keys are the attribute names, values are the various nodes for the differnet attribute type; checks that only attributes that are allow are used (raises an exception otherwise)"
 		for attr in attrs.keys():
 			self.attrs[attr] = attrs[attr]
 		for attr in restattrs.keys():
@@ -410,7 +411,7 @@ class XSC(XMLParser):
 		XMLParser.__init__(self)
 		xsc_filename = filename
 		if parse == 1:
-			self.nesting = [ [] ] # our nodes do not have a parent link, therefore we have to store the active path through the tree in a stack (which we call nesting, because stack is already used by the base class
+			self.nesting = [ XSCFrag() ] # our nodes do not have a parent link, therefore we have to store the active path through the tree in a stack (which we call nesting, because stack is already used by the base class
 			self.feed(open(filename).read())
 			self.close()
 			self.root = self.nesting[0]
@@ -422,7 +423,6 @@ class XSC(XMLParser):
 
 	def unknown_starttag(self,name,attrs = {}):
 		e = element_handlers[string.lower(name)]([],attrs)
-		e.xsc = self
 		self.nesting[-1].append(e) # add the new element to the content of the innermost element (or to the array)
 		self.nesting.append(e) # push new innermost element onto the stack
 		
