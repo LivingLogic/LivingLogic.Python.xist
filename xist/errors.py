@@ -231,3 +231,34 @@ class AmbiguousElementError(Error):
 
 		return Error.__str__(self) + "element " + xsc._strName((self.name[0],self.name[1],0)) + " is ambigous. Possible elements are: " + string.join(elementnames,", ") + "."
 
+class IllegalCommentError(Error):
+	"""
+	exception that is raised, when there is an illegal comment, i.e. one containing <code>--</code>.
+	(This can only happen, when the comment is instantiated by the
+	program, not when parsed from an XML file.)
+	"""
+
+	def __init__(self,location,comment):
+		Error.__init__(self,location)
+		self.comment = comment
+
+	def __str__(self):
+		return Error.__str__(self) + "comment with content " + repr(self.comment.content) + " is illegal, as it contains " + repr("--") + "."
+
+class EncodingImpossibleError(Error):
+	"""
+	exception that is raised, when the XML tree can't be encoded, because
+	an encoding is used that requires character references for certain
+	characters (e.g. <code>us-ascii</code> or <code>iso-8859-1</code>)
+	and those characters where encountered in a place where the can't
+	be replaced with character references (e.g. inside a comment)
+	"""
+
+	def __init__(self,location,encoding,text):
+		Error.__init__(self,location)
+		self.encoding = encoding
+		self.text = text
+
+	def __str__(self):
+		return Error.__str__(self) + "text " + repr(self.text) + " can't be encoded with the encoding " + repr(self.encoding) + "."
+

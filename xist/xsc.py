@@ -453,19 +453,6 @@ def ToNode(value):
 			return node
 	raise IllegalObjectError(-1,value) # none of the above, so we throw and exception
 
-def encode(text,encoding):
-	v = []
-	for i in self.content:
-		if i == '\r':
-			continue
-		if self.strescapes.has_key(i):
-			v.append('&' + self.strescapes[i] + ';')
-		elif ord(i)>=128:
-			v.append('&#' + str(ord(i)) + ';')
-		else:
-			v.append(i)
-	return string.join(v,"")
-
 # dictionary for mapping element names to classes, this dictionary contains
 # the element names as keys and another dictionary as values, this second
 # dictionary contains the namespace names as keys and the element classes as values
@@ -750,16 +737,49 @@ class Node:
 		node.endloc = self.endloc
 		return node
 
+	_strescapes = { '<' : 'lt' , '>' : 'gt' , '&' : 'amp' , '"' : 'quot' }
+	_maxordforenc = { "us-ascii" : 128 , "iso-8859-1" : 256 }
+
+	def _encode(self,text,encoding,charrefs = 0):
+		"""
+		encodes the text <argref>text</argref> with the encoding <argref>encoding</argref>.
+		<argref>charrefs</argref> specifies how characters, that need character references
+		for this encoding are handled. <code>0</code> means that the characters
+		<code>&lt;</code>, <code>&gt;</code>, <code>&amp;</code> and <code>'</code>
+		can be passed straight through, anything else is that would require a
+		character reference is illegal. <code>1</code> means that anything that
+		requires a character reference (e.g. element names) is illegal. <code>3</code>
+		means that using character references is OK in any case.
+		"""
+		v = []
+		if encoding is None:
+			encoding = outputEncoding
+		for i in text:
+			if i == '\r':
+				continue
+			if self._strescapes.has_key(i):
+				if charrefs == 0:
+					v.append(i)
+				elif charrefs == 1:
+					raise EncodingImpossibleError(self.startloc,encoding,text)
+				else:
+					v.append('&' + self._strescapes[i] + ';')
+			elif self._maxordforenc.has_key(encoding) and ord(i)>=self._maxordforenc[encoding]:
+				if charrefs == 2:
+					v.append('&#' + str(ord(i)) + ';')
+				else:
+					raise EncodingImpossibleError(self.startloc,encoding,text)
+			else:
+				v.append(i)
+		return string.join(v,"")
+
 class Text(Node):
 	"""
 	text node. The characters <, >, & and " will be "escaped" with the
-	appropriate character entities. Characters with an ASCII code bigger
-	than 127 will be escaped too.
+	appropriate character entities.
 	"""
 
 	empty = 1
-
-	strescapes = { '<' : 'lt' , '>' : 'gt' , '&' : 'amp' , '"' : 'quot' }
 
 	def __init__(self,content = ""):
 		self.content = str(content)
@@ -773,15 +793,7 @@ class Text(Node):
 		return self.content
 
 	def publish(self,publisher,XHTML = None,encoding = None):
-		for i in self.content:
-			if i == '\r':
-				continue
-			if self.strescapes.has_key(i):
-				publisher('&' + self.strescapes[i] + ';')
-			elif ord(i)>=128:
-				publisher('&#' + str(ord(i)) + ';')
-			else:
-				publisher(i)
+		publisher(self._encode(self.content,encoding,2))
 
 	def __strtext(self,refwhite,content,ansi = None):
 		# we could put ANSI escapes around every character or reference that we output,
@@ -1094,7 +1106,9 @@ class Comment(Node):
 		return self._doreprtreeMultiLine(nest,elementno,head,tail,self.content,strCommentText,0,ansi = ansi)
 
 	def publish(self,publisher,XHTML = None,encoding = None):
-		publisher("<!--" + self.content + "-->")
+		if string.find(self.content,"--")!=-1:
+			raise IllegalCommentError(self.startloc,self)
+		publisher("<!--",self._encode(self.content,encoding,0),"-->")
 
 	def compact(self):
 		return self._decorateNode(Comment(self.content))
@@ -1669,6 +1683,69 @@ class URLAttr(Attr):
 ###
 ###
 
+class Namespace:
+	"""
+	an XML namespace, contains the classes for the elements, entities and character references
+	in the namespace.
+	"""
+
+	def __init__(self,prefix,uri,dict = None):
+		self.prefix = prefix
+		self.uri = uri
+		self.elements = {}
+		self.registerAll(dict)
+
+	def register(self,thing):
+		"""
+		<par noindent>this function lets you register a class that is derived from
+		<classref>Element</classref> or <classref>Entity</classref> or
+		<classref>CharRef</classref> with the namespace. All other objects are ignored.</par>
+
+		<par>The class <code>foo</code> will be registered under the name
+		it's class name (<code>foo.__name__</code>). If you want to changes this behaviour,
+		do the following: set a class variable <code>name</code> to the name you want
+		to be used. If you don't want <code>foo</code> to be registered at all, set
+		<code>name</code> to None.
+
+		<par>After the class <code>foo</code> will have two class variables: <code>name</code>,
+		which is the name under which the class is registered and <code>namespace</code>,
+		which is the namespace itself (i.e. <self/>).</par>
+		"""
+
+		if type(thing) == types.ClassType and issubclass(thing,Element): #) or issubclass(thing,Entity) or issubclass(thing,CharRef)):
+			if thing.__dict__.has_key("name"):
+				name = thing.name
+			else:
+				name = element.__name__
+
+			if name is None:
+				try:
+					del thing.name
+					del thing.namespace
+				except AttributeError:
+					pass
+			else:
+				thing.name = name
+				# the following creates a cycle, but namespaces aren't constantly created and deleted (and Python will get a GC some day ;))
+				thing.namespace = self
+
+				if issubclass(thing,Element):
+					self.elements[name] = element
+
+	def registerAll(self,thing):
+		"""
+		registers all classes in the dictionary <argref>thing</argref>.
+		If <argref>thing</argref> is no dictionary nothing will be done.
+		"""
+
+		if type(thing) is types.DictionaryType:
+			for key in thing.keys():
+				self.register(thing[key])
+
+###
+###
+###
+
 entitiesByNumber = [ ]
 
 for i in xrange(65536):
@@ -1679,32 +1756,6 @@ entitiesByName = {}
 ###
 ###
 ###
-
-def registerElement(element,namespacename,elementname = None):
-	"""
-	<par noindent>registers the element handler class <argref>element</argref> to be used
-	for elements with the appropriate name.
-	The element will be registered in the namespace <argref>namespacename</argref>
-	and the element name <argref>elementname</argref>. If <argref>elementname</argref>
-	is <code>None</code>, the lowercase name of the class will be used (to help prevent
-	conflicts between Python keywords and class names (e.g. for the HTML element del)).</par>
-
-	<par>This function sets the class member <code>elementname</code> to the element name.
-	If this member is already present, the above method for determining the element name
-	will be skipped, and this member will be used.</par>
-	"""
-	element.namespacename = namespacename
-	if element.__dict__.has_key("elementname"):
-		elementname = element.elementname
-	else:
-		if elementname is None:
-			elementname = string.lower(element.__name__)
-		element.elementname = elementname
-
-	if _elementHandlers.has_key(elementname):
-		_elementHandlers[elementname][namespacename] = element
-	else:
-		_elementHandlers[elementname] = { namespacename : element }
 
 def registerAllElements(dict,namespacename):
 	"""
