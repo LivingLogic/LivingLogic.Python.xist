@@ -885,7 +885,7 @@ class Frag(Node):
 		node = self.__class__() # virtual constructor => attributes (which are derived from Frag) will be handled correctly)
 		for child in self.__content:
 			convertedchild = child.convert(converter)
-			assert isinstance(convertedchild, Node), "the convert method returned the illegal object %r when converting %r" % (convertedchild, child)
+			assert isinstance(convertedchild, Node), "the convert method returned the illegal object %r (type %r) when converting %r" % (convertedchild, type(convertedchild), child)
 			if convertedchild is not Null:
 				node.__content.append(convertedchild)
 		return self._decorateNode(node)
@@ -1037,9 +1037,10 @@ class Frag(Node):
 	def compact(self):
 		node = self.__class__()
 		for child in self.__content:
-			newchild = child.compact()
-			if newchild is not Null:
-				node.__content.append(newchild)
+			compactedchild = child.compact()
+			assert isinstance(compactedchild, Node), "the compact method returned the illegal object %r (type %r) when compacting %r" % (compactedchild, type(compactedchild), child)
+			if compactedchild is not Null:
+				node.__content.append(compactedchild)
 		return self._decorateNode(node)
 
 	def withSeparator(self, separator, clone=0):
@@ -1407,7 +1408,7 @@ class Element(Node):
 		for attrname in self.attrs.keys():
 			attr = self.attrs[attrname]
 			convertedattr = attr.convert(converter)
-			assert isinstance(convertedattr, Node), "the convert method returned the illegal object %r when converting the attribute %s with the value %r" % (convertedchild, presenters.strAttrName(attrname), child)
+			assert isinstance(convertedattr, Node), "the convert method returned the illegal object %r (type %r) when converting the attribute %s with the value %r" % (convertedchild, type(convertedchild), presenters.strAttrName(attrname), child)
 			node.attrs[attrname] = convertedattr
 		return self._decorateNode(node)
 
@@ -1625,7 +1626,9 @@ class Element(Node):
 		node = self.__class__()
 		node.content = self.content.compact()
 		for attr in self.attrs.keys():
-			node.attrs[attr] = self.attrs[attr].compact()
+			convertedattr = self.attrs[attr].compact()
+			assert isinstance(convertedattr, Node), "the convert method returned the illegal object %r (type %r) when converting the attribute %s with the value %r" % (convertedchild, type(convertedchild), presenters.strAttrName(attrname), child)
+			node.attrs[attr] = convertedattr
 		return self._decorateNode(node)
 
 	def find(self, type=None, subtype=0, attrs=None, test=None, searchchildren=0, searchattrs=0):
