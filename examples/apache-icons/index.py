@@ -36,7 +36,7 @@ e = html.html(
 	)
 )
 
-s = e.convert().asBytes(encoding="us-ascii", XHTML=0)
+s = e.conv().asBytes(encoding="us-ascii", XHTML=0)
 
 print "Content-Type: text/html"
 print
