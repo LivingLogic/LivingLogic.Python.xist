@@ -260,6 +260,7 @@ class URL:
 				del new.path[0]
 			new.path[:0] = [".."]*len(otherpath) # now for the rest of the path we have to go up from file and down to path (the directories for this are still in path)
 			new.scheme = None
+		new.__optimize() # Now that the path markers are gone, we try to optimize again
 		return new
 
 	def __cmp__(self,other):
@@ -271,8 +272,8 @@ class URL:
 		"""
 		while 1:
 			for i in xrange(len(self.path)):
-				if self.path[i]==".." and i>0 and self.path[i-1]!="..": # found a down/up
-					del self.path[i-1:i+1] # remove it
+				if self.path[i]==".." and i>0 and self.path[i-1]!=".." and self.isNoPathMarker(self.path[-1]): # found a down/up
+					del self.path[i-1:i+1] # remove both directory names
 					break # restart the search
 			else: # no down/up found
 				break

@@ -349,11 +349,29 @@ try:
 except KeyError:
 	repransiattrname = "1;36"
 
+# ANSI escape sequence to be used for document types marker (i.e. !DOCTYPE)
+try:
+	repransidoctypemarker = os.environ["XSC_REPRANSI_DOCTYPEMARKER"]
+except KeyError:
+	repransidoctypemarker = ""
+
 # ANSI escape sequence to be used for document types
 try:
-	repransidoctype = os.environ["XSC_REPRANSI_DOCTYPE"]
+	repransidoctypetext = os.environ["XSC_REPRANSI_DOCTYPETEXT"]
 except KeyError:
-	repransidoctype = ""
+	repransidoctypetext = ""
+
+# ANSI escape sequence to be used for comment markers (i.e. !-- and --)
+try:
+	repransicommentmarker = os.environ["XSC_REPRANSI_COMMENTMARKER"]
+except KeyError:
+	repransicommentmarker = ""
+
+# ANSI escape sequence to be used for comment text
+try:
+	repransicommenttext = os.environ["XSC_REPRANSI_COMMENTTEXT"]
+except KeyError:
+	repransicommenttext = ""
 
 # ANSI escape sequence to be used for attribute values
 try:
@@ -406,8 +424,20 @@ def strAttrValue(attrvalue,ansi = None):
 def strCharRef(charref,ansi = None):
 	return _stransi(repransicharref,charref,ansi = ansi)
 
-def strDocType(doctype,ansi = None):
-	return _stransi(repransidoctype,doctype,ansi = ansi)
+def strDocTypeMarker(ansi = None):
+	return _stransi(repransidoctypemarker,"!DOCTYPE",ansi = ansi)
+
+def strDocTypeText(text,ansi = None):
+	return _stransi(repransidoctypetext,text,ansi = ansi)
+
+def strCommentMarkerBegin(ansi = None):
+	return _stransi(repransicommentmarker,"!--",ansi = ansi)
+
+def strCommentMarkerEnd(ansi = None):
+	return _stransi(repransicommentmarker,"--",ansi = ansi)
+
+def strCommentText(text,ansi = None):
+	return _stransi(repransicommenttext,text,ansi = ansi)
 
 def strProcInstTarget(target,ansi = None):
 	return _stransi(repransiprocinsttarget,target,ansi = ansi)
@@ -447,11 +477,11 @@ def nodeName(nodeClass):
 	try:
 		namespacename = nodeClass.namespacename
 	except AttributeError:
-		namespacename = "unnamed"
+		namespacename = nodeClass.__name__ # this is (hopefully) an XSC class, so use the classname
 	try:
 		elementname = nodeClass.elementname
 	except AttributeError:
-		elementname = "unnamed"
+		elementname = "xsc"
 
 	return [namespacename,elementname,nodeClass.empty]
 
@@ -622,7 +652,7 @@ class Node:
 
 	def _dorepr(self,ansi = None):
 		# returns a string representation of the node
-		return self._str(brackets = 1,ansi = ansi)
+		return strBracketOpen(ansi) + strBracketClose(ansi)
 
 	def _doreprtree(self,nest,elementno,ansi = None):
 		# returns and array containing arrays consisting of the (nestinglevel,linenumber,elementnumber,string representation) of the nodes
@@ -1048,8 +1078,6 @@ class Comment(Node):
 	a comment node
 	"""
 
-	repransiname = ""
-
 	def __init__(self,content = ""):
 		self.__content = content
 
@@ -1059,7 +1087,7 @@ class Comment(Node):
 	clone = asHTML
 
 	def _dorepr(self,ansi = None):
-		return self._str(content = "!--" + self.__content + "--",brackets = 1,ansi = ansi)
+		return strBracketOpen(ansi) + strCommentMarkerBegin(ansi) + strCommentText(self.content,ansi) + strCommentMarkerEnd(ansi) + strBracketClose(ansi)
 
 	def _doreprtree(self,nest,elementno,ansi):
 		return [[nest,self.startlineno,elementno,self._dorepr(ansi)]]
@@ -1075,27 +1103,25 @@ class DocType(Node):
 	a document type node
 	"""
 
-	repransiname = ""
-
 	def __init__(self,content = ""):
-		self.__content = content
+		self.content = content
 
 	def asHTML(self):
-		return DocType(self.__content)
+		return DocType(self.content)
 
 	clone = asHTML
 
 	def _dorepr(self,ansi = None):
-		return self._str(content = strDocType("!DOCTYPE " + self.__content,ansi),brackets = 1,ansi = ansi)
+		return strBracketOpen(ansi) + strDocTypeMarker(ansi) + strDocTypeText(self.content,ansi) + strBracketClose(ansi)
 
 	def _doreprtree(self,nest,elementno,ansi = None):
 		return [[nest,self.startlineno,elementno,self._dorepr(ansi)]]
 
 	def asString(self):
-		return "<!DOCTYPE " + self.__content + ">"
+		return "<!DOCTYPE " + self.content + ">"
 
 	def compact(self):
-		return DocType(self.__content)
+		return DocType(self.content)
 
 class ProcInst(Node):
 	"""
@@ -1155,7 +1181,7 @@ class ProcInst(Node):
 		if len(lines) and lines[-1] == "":
 			del lines[-1]
 		if len(lines) == 1:
-			s = self._str(content = strQuestion(ansi) + strProcInstTarget(self.target,ansi) + " " + strProcInstData(string.rstrip(lines[0]),ansi) + strQuestion(ansi),brackets = 1,ansi = ansi)
+			s = strBacketOpen(ansi) + strQuestion(ansi) + strProcInstTarget(self.target,ansi) + " " + strProcInstData(string.rstrip(lines[0]),ansi) + strQuestion(ansi) + strBracketClose(ansi)
 			return [[nest,self.startlineno,elementno,s]]
 		else:
 			v = []
