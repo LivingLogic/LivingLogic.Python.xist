@@ -102,14 +102,14 @@ class template(xsc.Element):
 
 		targets = content.allElementsNamed(target)
 
-		targettemplate = targets[0].clone() # make a copy of the target before we remove its content
+		tt = targets[0].clone() # make a copy of the target before we remove its content
 		del targets[0][:] # make the target empty (we'll put our date in there later)
 
 		for record in query.dictresult():
-			target = targettemplate.clone() # make a new target, because we'll put the date in there
-			for field in target.allElementsDerivedFrom(element): # iterate over all database elements in the target
+			t = tt.clone() # make a new target, because we'll put the date in there
+			for field in t.allElementsDerivedFrom(element): # iterate over all database elements in the target
 				field["value"] = str(record[str(field["name"])]) # put the field values in
-			targets[0].append(target)
+			targets[0].append(t)
 
 		return content.asHTML()
 xsc.registerElement("template",template)
