@@ -105,7 +105,6 @@ class Node(object):
 		def __new__(cls, name, bases, dict):
 			if dict.has_key("name") and not isinstance(dict["name"], classmethod):
 				realname = dict["name"]
-				print repr(realname)
 				del dict["name"]
 			else:
 				realname = name
