@@ -30,6 +30,12 @@ def extHTML2XSC(ext):
 	except KeyError:
 		return ext
 
+def formatstring(string):
+	return xsc._stransi(["1", "32"], string)
+
+def formatnumber(number):
+	return xsc._stransi(["1", "35"], str(number))
+
 def make():
 	"""
 	use XSC as a compiler script, i.e. read an input file from args[1]
@@ -73,7 +79,7 @@ def make():
 			e_out.publish(p)
 			t4 = time.time()
 			size = p.tell()
-			sys.stderr.write("XSC(encoding=%s, XHTML=%s): %s->%s: %s (parse %ss; transform %ss; save %ss)\n" % (xsc._stransi("1", encoding), xsc._stransi("1", str(XHTML)), xsc.strURL(str(inname)), xsc.strURL(str(outname)), xsc._stransi("1", str(size)), xsc._stransi("1", "%.02f" % (t2-t1)), xsc._stransi("1", "%.02f" % (t3-t2)), xsc._stransi("1", "%.02f" % (t4-t3))))
+			sys.stderr.write("XSC(encoding=%s, XHTML=%s): %s->%s: %s (parse %ss; transform %ss; save %ss)\n" % (formatstring(encoding), formatnumber(XHTML), xsc.strURL(str(inname)), xsc.strURL(str(outname)), formatnumber(size), formatnumber("%.02f" % (t2-t1)), formatnumber("%.02f" % (t3-t2)), formatnumber("%.02f" % (t4-t3))))
 			xsc.xsc.popURL()
 	else:
 		sys.stderr.write("XSC: no files to convert.\n")

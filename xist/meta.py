@@ -12,7 +12,8 @@ import xsc, html
 
 class contenttype(html.meta):
 	"""
-	<par noindent>can be used for a <code>&lt;meta http-equiv="Content-Type" content="text/html"/&gt;</code>.</par>
+	<par noindent>can be used for a <code>&lt;meta http-equiv="Content-Type" content="text/html"/&gt;</code>, where
+	the character set will be automatically inserted on a call to <code>publish()</code>.</par>
 
 	<par>Usage is simple: <code>&lt;meta:contenttype/&gt;</code></par>
 	"""

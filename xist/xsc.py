@@ -407,7 +407,16 @@ def ToNode(value):
 	elif t is types.NoneType:
 		return Null
 	elif t in (types.ListType, types.TupleType):
-		return Frag(*value)
+		node = Frag()
+		for i in value:
+			node.append(ToNode(i))
+		l = len(node)
+		if l==1:
+			return node[0] # recursively try to simplify the tree
+		elif l==0:
+			return Null
+		else:
+			return node
 	raise errors.IllegalObjectError(-1, value) # none of the above, so we throw and exception
 
 class Node:
@@ -953,10 +962,7 @@ class Frag(Node):
 		return self._decorateNode(node)
 
 	def _dorepr(self, ansi=None):
-		v = []
-		for child in self.__content:
-			v.append(child._dorepr(ansi=ansi))
-		return "".join(v)
+		return "".join([ child._dorepr(ansi=ansi) for child in self.__content])
 
 	def _doreprtree(self, nest, elementno, encoding=None, ansi=None):
 		v = []
@@ -964,7 +970,7 @@ class Frag(Node):
 			v.append([nest, self.startloc, elementno, self._str(brackets=1, ansi=ansi)])
 			i = 0
 			for child in self.__content:
-				v = v + child._doreprtree(nest+1, elementno + [i], encoding, ansi)
+				v.append(child._doreprtree(nest+1, elementno + [i], encoding, ansi))
 				i += 1
 			v.append([nest, self.endloc, elementno, self._str(brackets=1, ansi=ansi, slash=-1)])
 		else:
@@ -972,10 +978,7 @@ class Frag(Node):
 		return v
 
 	def asPlainString(self):
-		v = []
-		for child in self.__content:
-			v.append(child.asPlainString())
-		return "".join(v)
+		return "".join([ child.asPlainString() for child in self.__content ])
 
 	def publish(self, publisher):
 		for child in self.__content:
