@@ -18,7 +18,7 @@ files = glob.glob("*.gif")
 files.sort()
 
 for file in files:
-	collect.append(html.td(html.img(src = file),html.br(),file,align="center")) # src is relative to the top of the URL stack
+	collect.append(html.td(specials.autoimg(src = file),html.br(),file,align="center")) # src is relative to the top of the URL stack
 	i = i + 1
 	if i == cols:
 		e.append(html.tr(collect))
@@ -41,4 +41,6 @@ s = e.asHTML().asString(XHTML=0)
 
 xsc.xsc.popURL() # don't forget to call popURL(), otherwise the URL stack will be messed up.
 
+print "Content-Type: text/html"
+print
 print s
