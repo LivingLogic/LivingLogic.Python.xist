@@ -21,9 +21,9 @@
 ## IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 """
-<doc:par>A module that allows you to embed tags from
-the <a href="http://jakarta.apache.org/struts/">Struts</a>
-html custom tag library.</doc:par>
+<par>A module that allows you to embed tags from
+the <link href="http://jakarta.apache.org/struts/">Struts</link>
+html custom tag library.</par>
 """
 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
@@ -35,17 +35,16 @@ class taglib(xsc.ProcInst):
 	"""
 	creates a standard struts taglib header
 	"""
-	needsxmlnsdef = 0
-	needsxmlnsuse = 1
+	needsxmlns = 1
 
 	def publish(self, publisher):
-		publisher.publish(u'<%%@ taglib uri="/WEB-INF/struts-html.tld" prefix="%s" %%>' % publisher.prefixes2use[self.xmlns])
+		publisher.publish(u'<%%@ taglib uri="/WEB-INF/struts-html.tld" prefix="%s" %%>' % self.xmlprefix(publisher))
 
 class Element(xsc.Element):
 	"""
 	common base class for all the struts html elements
 	"""
-	needsxmlnsuse = 1
+	needsxmlns = 1
 
 class base(Element):
 	"""
