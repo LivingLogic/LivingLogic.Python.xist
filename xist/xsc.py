@@ -418,6 +418,15 @@ def appendDict(*dicts):
 	return result
 
 def ToNode(value):
+	"""
+	<par noindent>convert the <argref>value</argref> passed in to a XSC <classref>Node</classref>.</par>
+
+	<par>If <argref>value</argref> is a tuple or list, it will be (recursivly) converted
+	to a node. Integers, strings, etc. will be converted to a <classref>Text</classref>.
+	If <argref>value</argref> is a <classref>Node</classref> already, nothing will be done.
+	In the case of <code>Null</code> the XSC Null (<code>xsc.Null</code>) will be returned).
+	Anything else raises an exception.</par>
+	"""
 	t = type(value)
 	if t == types.InstanceType:
 		if isinstance(value,Frag):
@@ -456,7 +465,8 @@ def ToNode(value):
 class Node:
 	"""
 	base class for nodes in the document tree. Derived classes must
-	implement asHTML() and/or publish()
+	implement <methodref>asHTML</methodref> and may implement
+	<methodref>publish</methodref> and <methodref>asPlainString</methodref>.
 	"""
 
 	empty = 1
@@ -516,17 +526,20 @@ class Node:
 
 	def asHTML(self):
 		"""
-		returns a version of this node and it's content converted to HTML,
-		so when you define your own element classes you should overwrite asHTML().
+		<par noindent>returns a version of this node and it's content converted to HTML,
+		so when you define your own element classes you should overwrite <methodref>asHTML</methodref>.</par>
 
-		E.g. when you want to define an element that packs it's content into an HTML
+		<par>E.g. when you want to define an element that packs it's content into an HTML
 		bold element, do the following:
 
+		<pre>
 		def foo(xsc.Element):
 			empty = 0
 
 			def asHTML(self):
 				return html.b(self.content).asHTML()
+		</pre>
+		</par>
 		"""
 		return Null
 
@@ -1687,6 +1700,8 @@ class Namespace:
 
 		self.registerAllElements(dict)
 
+		NamespaceRegistry.register(self)
+
 	def registerElement(self,thing):
 		"""
 		<par noindent>this function lets you register a class that is derived from
@@ -1744,6 +1759,21 @@ class Namespace:
 		if isinstance(newvalue,CharRef):
 			self.entitiesByNumber[newvalue.content].append(name)
 		self.entitiesByName[name] = newvalue
+
+###
+### Namespace registry
+###
+
+class NamespaceRegistry:
+	def __init__(self):
+		self.byPrefix = {}
+		self.byURI = {}
+
+	def register(self,namespace):
+		self.byPrefix[namespace.prefix] = namespace
+		self.byURI[namespace.uri] = namespace
+
+NamespaceRegistry = NamespaceRegistry() # singleton
 
 ###
 ###
