@@ -117,7 +117,7 @@ class controller(xsc.Element):
 		class tempDir(xsc.TextAttr): pass
 
 class plug_in(xsc.Element):
-	empty = True
+	empty = False
 	class Attrs(xsc.Element.Attrs):
 		class className(xsc.TextAttr): pass
 	xmlname = "plug-in"
