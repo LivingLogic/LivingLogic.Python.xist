@@ -11,6 +11,9 @@ __version__ = "$Revision$"[11:-2]
 import xsc, html
 
 class contenttype(html.meta):
+	"""
+	can be used for a <code>&lt;meta http-equiv="Content-Type" content="text/html"/&gt;</code>
+	"""
 	empty = 1
 	attrHandlers = html.meta.attrHandlers.copy()
 	del attrHandlers["http-equiv"]
@@ -25,6 +28,9 @@ class contenttype(html.meta):
 		return e.asHTML()
 
 class stylesheet(html.link):
+	"""
+	can be used for a <code>&lt;link rel="stylesheet" type="text/css" href="..."/&gt;</code>
+	"""
 	empty = 1
 	attrHandlers = html.link.attrHandlers.copy()
 	del attrHandlers["rel"]
@@ -37,6 +43,9 @@ class stylesheet(html.link):
 		return e.asHTML()
 
 class made(html.link):
+	"""
+	can be used for a <code>&lt;link rel="made" href="mailto:..."/&gt;</code>
+	"""
 	empty = 1
 	attrHandlers = html.link.attrHandlers.copy()
 	del attrHandlers["rel"]

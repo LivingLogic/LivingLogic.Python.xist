@@ -1,8 +1,8 @@
 New in 0.4.1
 ------------
 
-New element specials.contenttype, that simplyfies generating
-a <meta http-equiv="Content-Type" ...>.
+A new module named meta has been created, that simplifies
+generating meta tags.
 
 
 New in 0.4
