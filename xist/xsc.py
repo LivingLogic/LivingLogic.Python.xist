@@ -730,10 +730,10 @@ class Text(Node):
 	def __init__(self, content=""):
 		if type(content) in (types.IntType, types.LongType, types.FloatType):
 			content = unicode(str(content),"ascii")
-		elif isinstance(content, Text):
-			content = content.__content
 		elif type(content) in (types.StringType, types.UnicodeType):
 			content = stringFromCode(content)
+		elif isinstance(content, Text):
+			content = content.__content
 		else:
 			raise ValueError("content must be string, unicode, int, long, float or Text")
 		self.__content = content
@@ -755,6 +755,15 @@ class Text(Node):
 			return Text(self.__content+other.__content)
 		raise ValueError("you can only add a text to a text")
 
+	def __mul__(self, n):
+		return Text(self.__content*n)
+
+	def __contains__(self, char):
+		return char in self.__content
+
+	def __hash__(self):
+		return hash(self.__content)
+
 	def __len__(self):
 		return len(self.__content)
 
@@ -762,7 +771,7 @@ class Text(Node):
 		return self.__content[index]
 
 	def __getslice__(self, index1, index2):
-		return self._decorateNode(Text(self.__content[index1:index2]))
+		return Text(self.__content[index1:index2])
 
 	def __strtext(self, refwhite, content, encoding=None, ansi=None):
 		if encoding == None:
