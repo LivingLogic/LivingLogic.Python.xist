@@ -6,63 +6,60 @@ from xsc_html40 import *
 class XSCplaintable(XSCtable):
 	close = 1
 
-	def AsHTML(self,xsc,mode = None):
-		e = XSCtable(xsc.AsHTML(self.content,mode),xsc.AsHTML(self.attrs,mode))
+	def html(self):
+		if not self.has_attr("cellpadding"):
+			self["cellpadding"] = 0
+		if not self.has_attr("cellspacing"):
+			self["cellspacing"] = 0
+		if not self.has_attr("border"):
+			self["border"] = 0
 
-		if not e.has_attr("cellpadding"):
-			e["cellpadding"] = 0
-		if not e.has_attr("cellspacing"):
-			e["cellspacing"] = 0
-		if not e.has_attr("border"):
-			e["border"] = 0
-
-		return e
+		return XSCtable.html(self)
 RegisterElement("plaintable",XSCplaintable)
 
 class XSCplainbody(XSCbody):
 	close = 1
 
-	def AsHTML(self,xsc,mode = None):
-		e = XSCbody(xsc.AsHTML(self.content,mode),xsc.AsHTML(self.attrs,mode))
+	def html(self):
+		if not self.has_attr("leftmargin"):
+			self["leftmargin"] = 0
+		if not self.has_attr("topmargin"):
+			self["topmargin"] = 0
+		if not self.has_attr("marginheight"):
+			self["marginheight"] = 0
+		if not self.has_attr("marginwidth"):
+			self["marginwidth"] = 0
 
-		if not e.has_attr("leftmargin"):
-			e["leftmargin"] = 0
-		if not e.has_attr("topmargin"):
-			e["topmargin"] = 0
-		if not e.has_attr("marginheight"):
-			e["marginheight"] = 0
-		if not e.has_attr("marginwidth"):
-			e["marginwidth"] = 0
-
-		return e
+		return XSCtable.html(self)
 RegisterElement("plainbody",XSCplainbody)
 
 class XSCz(XSCElement):
 	close = 1
 
-	def AsHTML(self,xsc,mode = None):
-		return xsc.AsHTML(["«",xsc.AsHTML(self.content,mode),"»"],mode)
+	def html(self,xsc,mode = None):
+		return html(["«",html(self.content),"»"])
 RegisterElement("z",XSCz)
 
 class XSCnbsp(XSCElement):
 	close = 0
 
-	def AsHTML(self,xsc,mode = None):
-		return xsc.AsHTML("\xA0",mode)
+	def html(self):
+		return "&nbsp;"
 RegisterElement("nbsp",XSCnbsp)
 
 class XSCfilesize(XSCElement):
-	close=1
+	close = 0
+	attr_handlers = { "href" : XSCURLAttr }
 
-	def AsHTML(self,xsc,mode = None):
-		return xsc.FileSize(xsc.ExpandedURL(xsc.AsString(self.content)))
+	def html(self):
+		return html(FileSize(html(self["href"])))
 RegisterElement("filesize",XSCfilesize)
 
 class XSCx(XSCElement):
 	"content will be ignored: can be used to comment out stuff (e.g. linefeeds)"
 	close=1
 
-	def AsHTML(self,xsc,mode = None):
+	def html(self):
 		return ""
 RegisterElement("x",XSCx)
 
@@ -71,17 +68,15 @@ class XSCpixel(XSCimg):
 	attr_handlers = AppendDict(XSCimg.attr_handlers,{ "color" : XSCStringAttr })
 	del attr_handlers["src"]
 
-	def AsHTML(self,xsc,mode = None):
+	def html(self):
 		if not self.has_attr("color"):
 			self["color"] = "dot_clear"
-		self["src"] = ":Images/Pixels/" + self["color"] + ".gif"
+		self["src"] = XSCURLAttr(":Images/Pixels/" + html(self["color"]) + ".gif")
 		del self["color"]
-		e = XSCimg(xsc.AsHTML(self.content,mode),xsc.AsHTML(self.attrs,mode))
-
-		return e
+		return XSCimg.html(self)
 RegisterElement("pixel",XSCpixel)
 
 if __name__ == "__main__":
 	h = XSC(sys.argv[1])
-	print str(h)
+	print html(h)
 

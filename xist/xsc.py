@@ -30,7 +30,7 @@ class EHSCEmptyElementWithContent(EHSCException):
 		self.element = element
 
 	def __str__(self):
-		return "the element '" + self.element.__class__.__name__ + "' is specified to be empty, but has content"
+		return "the element '" + self.element.name + "' is specified to be empty, but has content"
 
 class EHSCIllegalAttribute(EHSCException):
 	"this element has an attribute that is not allowed"
@@ -40,7 +40,7 @@ class EHSCIllegalAttribute(EHSCException):
 		self.attr = attr
 
 	def __str__(self):
-		return "the element '" + self.element.__class__.__name__ + "' has an attribute ('" + self.attr + "') that is not allowed here. The only allowed attributes are: " + str(self.element.attr_handlers.keys())
+		return "the element '" + self.element.name + "' has an attribute ('" + self.attr + "') that is not allowed here. The only allowed attributes are: " + str(self.element.attr_handlers.keys())
 
 class EHSCImageSizeFormat(EHSCException):
 	"Can't format or evaluate image size attribute"
@@ -50,7 +50,7 @@ class EHSCImageSizeFormat(EHSCException):
 		self.attr = attr
 
 	def __str__(self):
-		return "the value '" + str(self.element[self.attr]) + "' for the image size attribute '" + self.attr + "' of the element '" + self.element.__class__.__name__ + "' can't be formatted or evaluated"
+		return "the value '" + html(self.element[self.attr]) + "' for the image size attribute '" + self.attr + "' of the element '" + self.element.name + "' can't be formatted or evaluated"
 
 class EHSCFileNotFound(EHSCException):
 	"Can't open image for getting image size"
@@ -64,6 +64,20 @@ class EHSCFileNotFound(EHSCException):
 ###
 ###
 ###
+
+def FileSize(url):
+	"returns the size of a file in bytes"
+
+	return os.stat(url)[stat.ST_SIZE]
+
+def ImageSize(url):
+	"returns the size of an image as a tuple"
+
+	try:
+		img = Image.open(url)
+		return img.size
+	except:
+		raise EHSCFileNotFound(url)
 
 def AppendDict(*dicts):
 	result = {}
@@ -87,10 +101,7 @@ class XSCComment(XSCNode):
 	def __init__(self,content = ""):
 		self.content = content
 
-	def AsHTML(self,xsc,mode = None):
-		return XSCComment(self.content)
-
-	def AsString(self,xsc):
+	def html(self):
 		return "<!--" + self.content + "-->"
 
 class XSCDocType(XSCNode):
@@ -99,10 +110,7 @@ class XSCDocType(XSCNode):
 	def __init__(self,data = ""):
 		self.data = data
 
-	def AsHTML(self,xsc,mode = None):
-		return XSCDocType(self.data)
-
-	def AsString(self,xsc):
+	def html(self):
 		return "<!DOCTYPE " + self.data + ">"
 
 class XSCStringAttr(XSCNode):
@@ -111,11 +119,11 @@ class XSCStringAttr(XSCNode):
 	def __init__(self,data):
 		self.data = data
 
-	def AsHTML(self,xsc,mode = None):
-		return XSCStringAttr(xsc.AsHTML(self.data))
+	def __str__(self):
+		return str(self.data)
 
-	def AsString(self,xsc):
-		return xsc.AsString(self.data)
+	def html(self):
+		return html(self.data)
 
 class XSCURLAttr(XSCNode):
 	"url attribute"
@@ -123,14 +131,11 @@ class XSCURLAttr(XSCNode):
 	def __init__(self,data):
 		self.data = data
 
-	def AsHTML(self,xsc,mode = None):
-		return XSCURLAttr(xsc.AsHTML(self.data))
-
-	def AsString(self,xsc):
-		url = xsc.AsString(self.data) 
+	def html(self):
+		url = html(self.data) 
 		if url[0] == ":":
 			# split both path
-			source = string.splitfields(xsc.filename,os.sep)
+			source = string.splitfields(xsc_filename,os.sep)
 			dest = string.splitfields(url[1:],os.sep)
 			# throw away identical directories in both path
 			while len(source)>1 and len(dest)>1 and source[0]==dest[0]:
@@ -139,8 +144,8 @@ class XSCURLAttr(XSCNode):
 			url = string.joinfields(([os.pardir]*(len(source)-1)) + dest,os.sep)
 		return url
 
-	def AsAbsString(self):
-		url = self.data
+	def __str__(self):
+		url = str(self.data)
 		if url[0] == ":":
 			url = url[1:]
 		return url
@@ -174,15 +179,7 @@ class XSCElement(XSCNode):
 	def append(self,item):
 		self.content.append(item)
 
-	def AsHTML(self,xsc,mode = None):
-		"return this element converted to legal HTML elements (since we do not know yet, which element this will be, we simply convert the element)"
-		e = self
-		e.content = xsc.AsHTML(self.content,mode)
-		e.attrs   = xsc.AsHTML(self.attrs,mode)
-
-		return e
-
-	def AsString(self,xsc):
+	def html(self):
 		"returns this element as a string. For the content and the attributes the global function AsString() is called recursively"
 
 		v = []
@@ -190,9 +187,9 @@ class XSCElement(XSCNode):
 		v.append(self.name)
 		if len(self.attrs.keys()):
 			v.append(" ")
-			v.append(xsc.AsString(self.attrs))
-		s = xsc.AsString(self.content)
-		if self.close:
+			v.append(html(self.attrs))
+		s = html(self.content)
+		if self.close == 1:
 			v.append(">")
 			v.append(s)
 			v.append("</")
@@ -218,20 +215,87 @@ class XSCElement(XSCNode):
 	def has_attr(self,attr):
 		return self.attrs.has_key(attr)
 
+	def AddImageSizeAttributes(self,imgattr,widthattr = "width",heightattr = "height"):
+		"add width and height attributes to the element for the image that can be found in the attributes imgattr. if the attribute is already there it is taken as a formating template with the size passed in as a dictionary with the keys 'width' and 'height', i.e. you could make your image twice as wide with width='%(width)d*2'"
+
+		if self.has_attr(imgattr):
+			url = str(self[imgattr])
+			size = ImageSize(url)
+			sizedict = { "width": size[0], "height": size[1] }
+			if self.has_attr(widthattr):
+				try:
+					self[widthattr] = eval(str(self[widthattr]) % sizedict)
+				except:
+					raise EHSCImageSizeFormat(self,widthattr)
+			else:
+				self[widthattr] = size[0]
+			if self.has_attr(heightattr):
+				try:
+					self[heightattr] = eval(str(self[heightattr]) % sizedict)
+				except:
+					raise EHSCImageSizeFormat(self,heightattr)
+			else:
+				self[heightattr] = size[1]
+
+
 def RegisterElement(name,element):
 	element_handlers[name] = element
 	element.name = name
 
+def html(value):
+	"transforms a value into a string: string are returned with 'nasty' characters replaced with entities, XSC and HTML nodes are output as one would expect. Lists, tuples and dictionaries are treated recursively"
+
+	if type(value) == types.StringType:
+		v = []
+		for i in value:
+			if i == '<':
+				v.append('&lt;')
+			elif i == '>':
+				v.append('&gt;')
+			elif i == '&':
+				v.append('&amp;')
+			elif i == '"':
+				v.append('&quot')
+			elif ord(i)>=128:
+				v.append('&#' + str(ord(i)) + ';')
+			else:
+				v.append(i)
+		return string.joinfields(v,"")
+	elif type(value) in [ types.NoneType,types.IntType,types.LongType,types.FloatType ] :
+		return str(value)
+	elif type(value) in [ types.ListType,types.TupleType ]:
+		v = []
+		for i in value:
+			v.append(html(i))
+		return string.joinfields(v,"")
+	elif type(value) == types.DictType:
+		v = []
+		for i in value.keys():
+			if len(v):
+				v.append(" ")
+			v.append(i) # keys must be strings without any nasty characters
+			s = html(value[i])
+			if len(s):
+				v.append('="') # we can use double quotes here, because all double quotes will be replaced with the entity in the string
+				v.append(s)
+				v.append('"')
+		return string.joinfields(v,"")
+	else:
+		return value.html()
+
 ###
 ###
 ###
+
+xsc_filename = ""
 
 class XSC(XMLParser):
 	"Reads a XML file and constructs an XSC tree from it."
 
 	def __init__(self,filename,parse = 1):
+		global xsc_filename
 		XMLParser.__init__(self)
-		self.filename = filename
+		xsc_filename = filename
 		if parse == 1:
 			self.nesting = [ [] ] # our nodes do not have a parent link, therefore we have to store the active path through the tree in a stack (which we call nesting, because stack is already used by the base class
 			self.feed(open(filename).read())
@@ -245,6 +309,7 @@ class XSC(XMLParser):
 
 	def unknown_starttag(self,name,attrs = {}):
 		e = element_handlers[string.lower(name)]([],attrs)
+		e.xsc = self
 		self.nesting[-1].append(e) # add the new element to the content of the innermost element (or to the array)
 		self.nesting.append(e) # push new innermost element onto the stack
 		
@@ -257,107 +322,6 @@ class XSC(XMLParser):
 	def handle_comment(self,comment):
 		self.nesting[-1].append(XSCComment(comment))
 
-	def AsHTML(self,value = None,mode = None):
-		"transforms a value into its HTML equivalent: this means that HSC nodes get expanded to their equivalent HTML subtree. Scalar types are returned as is. Lists, tuples and dictionaries are treated recurcively"
-
-		if value == None:
-			xsc = XSC(self.filename,0) # empty parser
-			xsc.root = self.AsHTML(self.root,mode)
-			return xsc
-		if type(value) in [ types.StringType,types.NoneType,types.IntType,types.LongType,types.FloatType ]:
-			return value
-		elif type(value) in [ types.ListType,types.TupleType ]:
-			v = []
-			for i in value:
-				v.append(self.AsHTML(i,mode))
-			return v
-		elif type(value) == types.DictType:
-			v = {}
-			for i in value.keys():
-				v[i] = self.AsHTML(value[i],mode)
-			return v
-		else:
-			return value.AsHTML(self,mode)
-
-	def AsString(self,value = None):
-		"transforms a value into a string: string are returned with 'nasty' characters replaced with entities, XSC and HTML nodes are output as one would expect. Lists, tuples and dictionaries are treated recursively"
-
-		if value == None:
-			return self.AsString(self.root)
-		if type(value) == types.StringType:
-			v = []
-			for i in value:
-				if i == '<':
-					v.append('&lt;')
-				elif i == '>':
-					v.append('&gt;')
-				elif i == '&':
-					v.append('&amp;')
-				elif i == '"':
-					v.append('&quot')
-				elif ord(i)>=128:
-					v.append('&#' + str(ord(i)) + ';')
-				else:
-					v.append(i)
-			return string.joinfields(v,"")
-		elif type(value) in [ types.NoneType,types.IntType,types.LongType,types.FloatType ] :
-			return str(value)
-		elif type(value) in [ types.ListType,types.TupleType ]:
-			v = []
-			for i in value:
-				v.append(self.AsString(i))
-			return string.joinfields(v,"")
-		elif type(value) == types.DictType:
-			v = []
-			for i in value.keys():
-				if len(v):
-					v.append(" ")
-				v.append(i) # keys must be strings without any nasty characters
-				s = self.AsString(value[i])
-				if len(s):
-					v.append('="') # we can use double quotes here, because all double quotes will be replaced with the entity in the string
-					v.append(s)
-					v.append('"')
-			return string.joinfields(v,"")
-		else:
-			return value.AsString(self)
-
-	def __str__(self):
-		return self.AsHTML().AsString()
-
-	def ImageSize(self,url):
-		"returns the size of an image as a tuple"
-
-		try:
-			img = Image.open(url)
-			return img.size
-		except:
-			raise EHSCFileNotFound(url)
-
-	def FileSize(self,url):
-		"returns the size of a file in bytes"
-
-		return os.stat(url)[stat.ST_SIZE]
-
-	def AddImageSizeAttributes(self,element,imgattr,widthattr = "width",heightattr = "height"):
-		"add width and height attributes to the element for the image that can be found in the attributes imgattr. if the attribute is already there it is taken as a formating template with the size passed in as a dictionary with the keys 'width' and 'height', i.e. you could make your image twice as wide with width='%(width)d*2'"
-
-		if element.has_attr(imgattr):
-			url = element[imgattr].AsAbsString()
-			size = self.ImageSize(url)
-			sizedict = { "width": size[0], "height": size[1] }
-			if element.has_attr(widthattr):
-				try:
-					element[widthattr] = eval(str(element[widthattr]) % sizedict)
-				except:
-					raise EHSCImageSizeFormat(element,widthattr)
-			else:
-				element[widthattr] = size[0]
-			if element.has_attr(heightattr):
-				try:
-					element[heightattr] = eval(str(element[heightattr]) % sizedict)
-				except:
-					raise EHSCImageSizeFormat(element,heightattr)
-			else:
-				element[heightattr] = size[1]
+	def html(self):
+		return html(self.root)
 

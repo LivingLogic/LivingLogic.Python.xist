@@ -309,12 +309,10 @@ class XSCimg(XSCElement):
 	attr_handlers = AppendDict(attrs,{ "src" : XSCURLAttr , "alt" : XSCStringAttr , "longdesc" : XSCStringAttr , "width" : XSCStringAttr , "height" : XSCStringAttr , "usemap" : XSCStringAttr , "ismap" : XSCStringAttr })
 	attr_handlers = AppendDict(attr_handlers,{ "border" : XSCStringAttr }) # deprecated
 
-	def AsHTML(self,xsc,mode = None):
-		e = XSCElement.AsHTML(self,xsc,mode)
+	def html(self):
+		self.AddImageSizeAttributes("src")
 
-		xsc.AddImageSizeAttributes(e,"src")
-
-		return e
+		return XSCElement.html(self)
 RegisterElement("img",XSCimg)
 
 class XSCobject(XSCElement):
@@ -430,5 +428,5 @@ RegisterElement("noscript",XSCnoscript)
 
 if __name__ == "__main__":
 	h = XSC(sys.argv[1])
-	print str(h)
+	print html(h)
 
