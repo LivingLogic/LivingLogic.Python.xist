@@ -610,9 +610,9 @@ def explain(thing, name=None, context=[]):
 
 	if inspect.ismethod(thing):
 		name = name or thing.__name__
-		context = context + [name]
+		context = context + [(thing, name)]
 		(args, varargs, varkw, defaults) = inspect.getargspec(thing.im_func)
-		id = "-".join(context[1:])
+		id = "-".join([info[1] for info in context[1:]])
 		sig = xsc.Frag(
 			html.a(name=id, id=id)
 		)
@@ -622,8 +622,8 @@ def explain(thing, name=None, context=[]):
 		return section(title(sig), getDoc(thing), role="method")
 	elif inspect.isfunction(thing):
 		name = name or thing.im_func.__name__
-		context = context + [name]
-		id = "-".join(context[1:])
+		context = context + [(thing, name)]
+		id = "-".join([info[1] for info in context[1:]])
 		sig = xsc.Frag(
 			html.a(name=id, id=id),
 			"def ",
@@ -632,8 +632,8 @@ def explain(thing, name=None, context=[]):
 		)
 		return section(title(sig), getDoc(thing), role="function")
 	elif isinstance(thing, __builtin__.property):
-		context = context + [name]
-		id = "-".join(context[1:])
+		context = context + [(thing, name)]
+		id = "-".join([info[1] for info in context[1:]])
 		sig = xsc.Frag(
 			html.a(name=id, id=id),
 			"property ", name, ":"
@@ -648,8 +648,8 @@ def explain(thing, name=None, context=[]):
 		return node
 	elif inspect.isclass(thing):
 		name = name or thing.__name__
-		context = context + [name]
-		id = "-".join(context[1:])
+		context = context + [(thing, name)]
+		id = "-".join([info[1] for info in context[1:]])
 		bases = xsc.Frag()
 		if len(thing.__bases__):
 			for baseclass in thing.__bases__:
@@ -664,6 +664,7 @@ def explain(thing, name=None, context=[]):
 						baseclassname4text = baseclass.__module__ + "." + baseclassname
 					else:
 						baseclassname4text = baseclassname
+					#baseclassname4text = u".\u200b".join(baseclassname4text.split("."))
 					ref = pyref(class_(baseclassname4text), module=baseclass.__module__, class_=baseclassname)
 				bases.append(ref)
 			bases = bases.withSep(", ")
@@ -707,11 +708,16 @@ def explain(thing, name=None, context=[]):
 			node.append([explain(obj, varname, context) for (obj, varname) in properties])
 		if len(classes):
 			classes.sort(cmpName)
-			node.append([explain(obj, varname, context) for (obj, varname) in classes if varname != "__outerclass__"]) # avoid endless recursion
+			for (subclass, subname) in classes:
+				for (superclass, supername) in context:
+					if subclass is superclass: # avoid endless recursion for __outerclass__ which references a class further up in the context path.
+						break
+				else:
+					node.append(explain(subclass, subname, context))
 		return node
 	elif inspect.ismodule(thing):
 		name = name or thing.__name__
-		context = [name]
+		context = [(thing, name)]
 		node = section(
 			title("Module ", module(name)),
 			getDoc(thing)
