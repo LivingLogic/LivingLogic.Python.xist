@@ -1095,6 +1095,169 @@ class XMLStyleSheet(ProcInst):
 	presentPrefix = 0
 	publishPrefix = 0
 
+class Attr(Frag):
+	r"""
+	<doc:par>Base classes of all attribute classes.</doc:par>
+
+	<doc:par>The content of an attribute may be any other XSC node. This is different from
+	a normal &dom;, where only text and character references are allowed. The reason for
+	this is to allow dynamic content (implemented as elements or processing instructions)
+	to be put into attributes.</doc:par>
+
+	<doc:par>Of course, this dynamic content when finally converted to &html; will normally result in
+	a fragment consisting only of text and character references. But note that it is allowed
+	to have elements and processing instructions inside of attributes even when publishing.
+	Processing instructions will be published as is and for elements their content will be
+	published.</doc:par>
+	<doc:example title="Elements inside attributes">
+	<doc:programlisting>
+	&gt;&gt;&gt; from xist.ns import html
+	&gt;&gt;&gt; node = html.img( \
+	...    src="eggs.gif", \
+	...    alt=html.abbr( \
+	...       "EGGS", \
+	...       title="Extensible Graphics Generation System", \
+	...       lang="en" \
+	...    ) \
+	... )
+	&gt;&gt;&gt; print node.asBytes()
+	&lt;img alt="EGGS" src="eggs.gif" /&gt;
+	</doc:programlisting>
+	</doc:example>
+	"""
+
+	def present(self, presenter):
+		presenter.presentAttr(self)
+
+	def publish(self, publisher):
+		if publisher.inAttr:
+			raise errors.IllegalAttrNodeError(self)
+		publisher.inAttr += 1
+		publisher.pushTextFilter(helpers.escapeAttr)
+		Frag.publish(self, publisher)
+		publisher.popTextFilter()
+		publisher.inAttr -= 1
+
+	def __lt__(self, other):
+		return unicode(self) < other
+
+	def __le__(self, other):
+		return unicode(self) <= other
+
+	def __eq__(self, other):
+		return unicode(self) == other
+
+	def __ne__(self, other):
+		return unicode(self) != other
+
+	def __gt__(self, other):
+		return unicode(self) > other
+
+	def __ge__(self, other):
+		return unicode(self) >= other
+
+	def pretty(self, level=0, indent="\t"):
+		return self.clone()
+
+class TextAttr(Attr):
+	"""
+	<doc:par>Attribute class that is used for normal text attributes.</doc:par>
+	"""
+
+class NumberAttr(Attr):
+	"""
+	<doc:par>Attribute class that is used for normal number attributes.</doc:par>
+	"""
+
+class IntAttr(NumberAttr):
+	"""
+	<doc:par>Attribute class that is used for normal integer attributes.</doc:par>
+	"""
+
+class FloatAttr(NumberAttr):
+	"""
+	<doc:par>Attribute class that is used for normal float attributes.</doc:par>
+	"""
+
+class BoolAttr(Attr):
+	"""
+	<doc:par>Attribute class that is used for boolean attributes.</doc:par>
+	"""
+
+class ColorAttr(Attr):
+	"""
+	<doc:par>Attribute class that is used for a color attributes.</doc:par>
+	"""
+
+class URLAttr(Attr):
+	"""
+	Attribute class that is used for URLs.
+
+	XSC has one additional feature, path markers (these are directory names starting with *).
+	An URL starting with a path marker is relative to the directory marked with the same path
+	marker in the appropriate base URL.
+
+	With this feature you don't have to remember how deeply you've nested your XSC file tree, you
+	can specify a file from everywhere via "*/dir/to/file.xsc". XSC will change this to an URL
+	that correctly locates the file (e.g. "../../../dir/to/file.xsc", when you're currenty nested three levels
+	deep in a different directory than "dir".
+
+	Server relative URLs will be shown with the pseudo scheme "server". For checking these URLs
+	for image or file size, a http request will be made to the server specified in the server
+	option (options.server).
+
+	For all other URLs a normal request will be made corresponding to the specified scheme
+	(http, ftp, etc.)
+	"""
+
+	def present(self, presenter):
+		presenter.presentURLAttr(self)
+
+	def publish(self, publisher):
+		if publisher.inAttr:
+			raise errors.IllegalAttrNodeError(self)
+		new = utils.replaceInitialURL(self, publisher._publishableURL)
+		publisher.inAttr = 1
+		new.publish(publisher)
+		publisher.inAttr = 0
+
+	def asURL(self):
+		return url.URL(Attr.__unicode__(self))
+
+	def __unicode__(self):
+		return self.asURL().url
+
+	def forInput(self, root=None):
+		u = self.asURL()
+		if u.scheme == "root":
+			u.scheme = None
+		u = url.URL(root)/u
+		return u
+
+	def imagesize(self, root=None):
+		"""
+		returns the size of an image as a tuple or None if the image shouldn't be read
+		"""
+		return self.openread(root).imagesize
+
+	def contentlength(self, root=None):
+		"""
+		returns the size of a file in bytes or None if the file shouldn't be read
+		"""
+		return self.openread(root).contentlength
+
+	def openread(self, root=None):
+		"""
+		opens the URL for reading
+		"""
+		return self.forInput(root).openread()
+
+	def openwrite(self, root=None):
+		"""
+		opens the URL for writing
+		"""
+		return self.forInput(root).openwrite()
+
 class Attrs(Node, dict):
 	"""
 	<doc:par>An attribute map</doc:par>
@@ -1705,169 +1868,6 @@ class Null(CharacterData):
 		return self
 
 Null = Null() # Singleton, the Python way
-
-class Attr(Frag):
-	r"""
-	<doc:par>Base classes of all attribute classes.</doc:par>
-
-	<doc:par>The content of an attribute may be any other XSC node. This is different from
-	a normal &dom;, where only text and character references are allowed. The reason for
-	this is to allow dynamic content (implemented as elements or processing instructions)
-	to be put into attributes.</doc:par>
-
-	<doc:par>Of course, this dynamic content when finally converted to &html; will normally result in
-	a fragment consisting only of text and character references. But note that it is allowed
-	to have elements and processing instructions inside of attributes even when publishing.
-	Processing instructions will be published as is and for elements their content will be
-	published.</doc:par>
-	<doc:example title="Elements inside attributes">
-	<doc:programlisting>
-	&gt;&gt;&gt; from xist.ns import html
-	&gt;&gt;&gt; node = html.img( \
-	...    src="eggs.gif", \
-	...    alt=html.abbr( \
-	...       "EGGS", \
-	...       title="Extensible Graphics Generation System", \
-	...       lang="en" \
-	...    ) \
-	... )
-	&gt;&gt;&gt; print node.asBytes()
-	&lt;img alt="EGGS" src="eggs.gif" /&gt;
-	</doc:programlisting>
-	</doc:example>
-	"""
-
-	def present(self, presenter):
-		presenter.presentAttr(self)
-
-	def publish(self, publisher):
-		if publisher.inAttr:
-			raise errors.IllegalAttrNodeError(self)
-		publisher.inAttr += 1
-		publisher.pushTextFilter(helpers.escapeAttr)
-		Frag.publish(self, publisher)
-		publisher.popTextFilter()
-		publisher.inAttr -= 1
-
-	def __lt__(self, other):
-		return unicode(self) < other
-
-	def __le__(self, other):
-		return unicode(self) <= other
-
-	def __eq__(self, other):
-		return unicode(self) == other
-
-	def __ne__(self, other):
-		return unicode(self) != other
-
-	def __gt__(self, other):
-		return unicode(self) > other
-
-	def __ge__(self, other):
-		return unicode(self) >= other
-
-	def pretty(self, level=0, indent="\t"):
-		return self.clone()
-
-class TextAttr(Attr):
-	"""
-	<doc:par>Attribute class that is used for normal text attributes.</doc:par>
-	"""
-
-class NumberAttr(Attr):
-	"""
-	<doc:par>Attribute class that is used for normal number attributes.</doc:par>
-	"""
-
-class IntAttr(NumberAttr):
-	"""
-	<doc:par>Attribute class that is used for normal integer attributes.</doc:par>
-	"""
-
-class FloatAttr(NumberAttr):
-	"""
-	<doc:par>Attribute class that is used for normal float attributes.</doc:par>
-	"""
-
-class BoolAttr(Attr):
-	"""
-	<doc:par>Attribute class that is used for boolean attributes.</doc:par>
-	"""
-
-class ColorAttr(Attr):
-	"""
-	<doc:par>Attribute class that is used for a color attributes.</doc:par>
-	"""
-
-class URLAttr(Attr):
-	"""
-	Attribute class that is used for URLs.
-
-	XSC has one additional feature, path markers (these are directory names starting with *).
-	An URL starting with a path marker is relative to the directory marked with the same path
-	marker in the appropriate base URL.
-
-	With this feature you don't have to remember how deeply you've nested your XSC file tree, you
-	can specify a file from everywhere via "*/dir/to/file.xsc". XSC will change this to an URL
-	that correctly locates the file (e.g. "../../../dir/to/file.xsc", when you're currenty nested three levels
-	deep in a different directory than "dir".
-
-	Server relative URLs will be shown with the pseudo scheme "server". For checking these URLs
-	for image or file size, a http request will be made to the server specified in the server
-	option (options.server).
-
-	For all other URLs a normal request will be made corresponding to the specified scheme
-	(http, ftp, etc.)
-	"""
-
-	def present(self, presenter):
-		presenter.presentURLAttr(self)
-
-	def publish(self, publisher):
-		if publisher.inAttr:
-			raise errors.IllegalAttrNodeError(self)
-		new = utils.replaceInitialURL(self, publisher._publishableURL)
-		publisher.inAttr = 1
-		new.publish(publisher)
-		publisher.inAttr = 0
-
-	def asURL(self):
-		return url.URL(Attr.__unicode__(self))
-
-	def __unicode__(self):
-		return self.asURL().url
-
-	def forInput(self, root=None):
-		u = self.asURL()
-		if u.scheme == "root":
-			u.scheme = None
-		u = url.URL(root)/u
-		return u
-
-	def imagesize(self, root=None):
-		"""
-		returns the size of an image as a tuple or None if the image shouldn't be read
-		"""
-		return self.openread(root).imagesize
-
-	def contentlength(self, root=None):
-		"""
-		returns the size of a file in bytes or None if the file shouldn't be read
-		"""
-		return self.openread(root).contentlength
-
-	def openread(self, root=None):
-		"""
-		opens the URL for reading
-		"""
-		return self.forInput(root).openread()
-
-	def openwrite(self, root=None):
-		"""
-		opens the URL for writing
-		"""
-		return self.forInput(root).openwrite()
 
 ###
 ###
