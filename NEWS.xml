@@ -60,9 +60,10 @@ have been moved to a subpackage <code>ns</code>.</li>
 
 <li><classname>Frag</classname> and <classname>Element</classname>
 now have new methods <function>sorted</function>,
-<function>reversed</function> and <function>filtered</function>
-that return sorted, reversed and filtered versions of the
-<classname>Frag</classname>/<classname>Element</classname> object.</li>
+<function>reversed</function>, <function>filtered</function> and
+<function>jumbled</function> that return sorted, reversed, filtered 
+and jumbled versions of the <classname>Frag</classname>/<classname>Element</classname>
+object.</li>
 
 <li>A new namespace module <filename>ns/jsp.py</filename> has been
 added that allows you to use &jsp; tags with &xist;.</li>
