@@ -1034,11 +1034,11 @@ class Frag(Node):
 			e.append(child.compact())
 		return e
 
-	def addSeparator(self,separator,clone = 0):
+	def withSeparator(self,separator,clone = 0):
 		"""
-		addSeparator(self,separator,clone = 0)
+		withSeparator(self,separator,clone = 0) -> fragment
 
-		adds a separator node between the nodes  of the fragment.
+		adds a separator node between the nodes of the fragment.
 
 		if clone==0 one node will be inserted several times,
 		if clone==1 clones of this node will be used.
