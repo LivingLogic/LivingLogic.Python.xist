@@ -199,7 +199,7 @@ class XSCElement(XSCNode):
 		else:
 			if len(s):
 				raise EHSCEmptyElementWithContent(self)
-			v.append("/>")
+			v.append(">")
 
 		return string.joinfields(v,"")
 
