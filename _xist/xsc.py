@@ -1649,7 +1649,7 @@ class Attrs(Node, dict):
 
 	def allowedkeys(cls):
 		"""
-		<par>return a sorted list of allowed keys (i.e. attribute names)</par>
+		<par>return a list of allowed keys (i.e. attribute names)</par>
 		"""
 		return cls._handlersByPyName.keys()
 	allowedkeys = classmethod(allowedkeys)
