@@ -47,9 +47,8 @@ from ns import html
 class StringInputSource(sax.xmlreader.InputSource):
 	def __init__(self, text, base=None, defaultEncoding="utf-8"):
 		sax.xmlreader.InputSource.__init__(self)
-		if base is None:
-			base = "STRING"
-		self.setSystemId(base)
+		self.base = base
+		self.setSystemId("STRING")
 		if type(text) is types.UnicodeType:
 			defaultEncoding = "utf-8"
 			text = text.encode(defaultEncoding)
@@ -59,9 +58,8 @@ class StringInputSource(sax.xmlreader.InputSource):
 class FileInputSource(sax.xmlreader.InputSource):
 	def __init__(self, filename, base=None, defaultEncoding="utf-8"):
 		sax.xmlreader.InputSource.__init__(self)
-		if base is None:
-			base = filename
-		self.setSystemId(str(base))
+		self.base = base
+		self.setSystemId(str(filename))
 		self.setByteStream(fileutils.Filename(filename).open("rb"))
 		self.setEncoding(defaultEncoding)
 
@@ -70,6 +68,7 @@ class URLInputSource(sax.xmlreader.InputSource):
 		sax.xmlreader.InputSource.__init__(self)
 		if isinstance(url, url_.URL):
 			url = url.asPlainString()
+		self.base = url
 		self.setSystemId(url)
 		if type(url) is types.UnicodeType:
 			url = url.encode("utf-8")
@@ -92,6 +91,7 @@ class TidyURLInputSource(sax.xmlreader.InputSource):
 		self.tidyerr = None
 		if isinstance(url, url_.URL):
 			url = url.asString()
+		self.base = base
 		self.setSystemId(url)
 		if type(url) is types.UnicodeType:
 			url = url.encode("utf-8")
