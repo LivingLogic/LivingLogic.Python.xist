@@ -27,16 +27,18 @@ class Base(object):
 		self.name = name
 		self.pyname = None
 
-	def assignname(self, names=None):
+	def assignname(self, names, name=None):
 		"""
 		<par>Assign a modified version of <arg>name</arg> to <lit>pyname</lit>,
 		that is a valid Python identifier. This is done by replacing illegal
 		characters with <lit>_</lit> and appending an <lit>_</lit> when the name
 		collides with a Python keyword. Furthermore it is made sure that the new
-		name is not in the list <arg>names</arg>.</par>
+		name is not in the list <arg>names</arg>. (If <arg>name</arg> is <lit>None</lit>
+		<lit><self/>.name</lit> is used.)</par>
 		"""
 		newname = []
-		name = self.name
+		if name is None:
+			name = self.name
 		for c in name:
 			if "a" <= c <= "z" or "A" <= c <= "Z" or "0" <= c <= "9" or c == "_":
 				newname.append(c)
@@ -171,10 +173,7 @@ class Namespace(Base, list):
 				child.assignname(names)
 
 		# assign name to the namespace itself
-		realname = self.name
-		self.name = "xmlns"
-		self.assignname(names)
-		self.name = realname
+		self.assignname(names, "xmlns")
 
 		lines.append([level, "#!/usr/bin/env python"])
 		lines.append([level, "# -*- coding: %s -*-" % encoding])
