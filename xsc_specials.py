@@ -7,36 +7,38 @@ class XSCplaintable(XSCtable):
 	close = 1
 
 	def __str__(self):
-		if not self.has_attr("cellpadding"):
-			self["cellpadding"] = 0
-		if not self.has_attr("cellspacing"):
-			self["cellspacing"] = 0
-		if not self.has_attr("border"):
-			self["border"] = 0
+		e = XSCtable(self.content,self.attrs)
+		if not e.has_attr("cellpadding"):
+			e["cellpadding"] = 0
+		if not e.has_attr("cellspacing"):
+			e["cellspacing"] = 0
+		if not e.has_attr("border"):
+			e["border"] = 0
 
-		return str(XSCtable(self.content,self.attrs))
+		return str(e)
 RegisterElement("plaintable",XSCplaintable)
 
 class XSCplainbody(XSCbody):
 	close = 1
 
 	def __str__(self):
-		if not self.has_attr("leftmargin"):
-			self["leftmargin"] = 0
-		if not self.has_attr("topmargin"):
-			self["topmargin"] = 0
-		if not self.has_attr("marginheight"):
-			self["marginheight"] = 0
-		if not self.has_attr("marginwidth"):
-			self["marginwidth"] = 0
+		e = XSCbody(self.content,self.attrs)
+		if not e.has_attr("leftmargin"):
+			e["leftmargin"] = 0
+		if not e.has_attr("topmargin"):
+			e["topmargin"] = 0
+		if not e.has_attr("marginheight"):
+			e["marginheight"] = 0
+		if not e.has_attr("marginwidth"):
+			e["marginwidth"] = 0
 
-		return str(XSCbody(self.content,self.attrs))
+		return str(e)
 RegisterElement("plainbody",XSCplainbody)
 
 class XSCz(XSCElement):
 	close = 1
 
-	def __str__(self,xsc,mode = None):
+	def __str__(self):
 		return str("«" + self.content + "»")
 RegisterElement("z",XSCz)
 

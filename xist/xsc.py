@@ -97,7 +97,7 @@ def ToNode(value):
 			v.append(ToNode(i))
 		return v
 	elif type(value) == types.DictType:
-		v = XSCAttrList()
+		v = XSCAttrs()
 		for i in value.keys():
 			v[i] = ToNode(value[i])
 		return v
@@ -177,6 +177,64 @@ class XSCFrag(XSCNode):
 	def preppend(self,other):
 		self.content[0:0] = ToNode(other)
 
+class XSCAttrs(XSCNode):
+	"contains a dictionary of XSCNodes with are wrapped into attribute nodes"
+
+	def __init__(self,attr_handlers,content = {},**restcontent):
+		self.attr_handlers = attr_handlers
+		self.content = {}
+		for attr in content.keys():
+			self[attr] = content[attr]
+		for attr in restcontent.keys():
+			self[attr] = restcontent[attr]
+
+	def __add__(self,other):
+		res = XSCFrag(self.content)
+		res.append(other)
+		return res
+
+	def __radd__(self,other):
+		res = XSCFrag(self.content)
+		res.preppend(other)
+
+	def __str__(self):
+		v = []
+		for attr in self.content.keys():
+			v.append(attr + '="' + str(self.content[attr]) + '"')
+		return string.joinfields(v," ")
+		
+	def __repr__(self):
+		v = []
+		for attr in self.content.keys():
+			v.append(attr + '="' + repr(self.content[attr]) + '"')
+		return string.joinfields(v," ")
+
+	def has_attr(self,index):
+		return self.content.has_key(index)
+
+	def __getitem__(self,index):
+		return self.content[index].content # unpack the attribute
+
+	def __setitem__(self,index,value):
+		lowerindex = string.lower(index)
+		if self.attr_handlers.has_key(lowerindex):
+			self.content[lowerindex] = self.attr_handlers[lowerindex](ToNode(value)) # convert the attribute to a node an pack it into an attribute object
+		else:
+			raise EHSCIllegalAttribute(self,attr)
+
+	def __delitem__(self,index):
+		if self.has_attr(index):
+			del self.content[index]
+
+	def __len__(self):
+		return len(self.content.keys())
+
+	def append(self,other):
+		self.content.append(ToNode(other))
+
+	def preppend(self,other):
+		self.content[0:0] = ToNode(other)
+
 class XSCComment(XSCNode):
 	"comments"
 
@@ -232,7 +290,7 @@ class XSCURLAttr(XSCNode):
 			url = string.joinfields(([os.pardir]*(len(source)-1)) + dest,os.sep)
 		return url
 
-lement_handlers = {} # dictionary that links element names to element classes
+element_handlers = {} # dictionary that links element names to element classes
 
 class XSCElement(XSCNode):
 	"XML elements"
@@ -242,21 +300,13 @@ class XSCElement(XSCNode):
 
 	def __init__(self,content = [],attrs = {},**restattrs):
 		self.content = XSCFrag(content)
-		self.attrs = {}
+		self.attrs = XSCAttrs(self.attr_handlers,{})
 
 		# construct the attribute dictionary, keys are the attribute names, values are the various nodes for the differnet attribute type; checks that only attributes that are allow are used (raises an exception otherwise)"
 		for attr in attrs.keys():
-			lowerattr = string.lower(attr)
-			if self.attr_handlers.has_key(lowerattr):
-				self.attrs[lowerattr] = self.attr_handlers[lowerattr](attrs[attr])
-			else:
-				raise EHSCIllegalAttribute(self,attr)
+			self.attrs[attr] = attrs[attr]
 		for attr in restattrs.keys():
-			lowerattr = string.lower(attr)
-			if self.attr_handlers.has_key(lowerattr):
-				self.attrs[lowerattr] = self.attr_handlers[lowerattr](restattrs[attr])
-			else:
-				raise EHSCIllegalAttribute(self,attr)
+			self.attrs[attr] = restattrs[attr]
 
 	def append(self,item):
 		self.content.append(item)
@@ -266,7 +316,7 @@ class XSCElement(XSCNode):
 		v = []
 		v.append("<")
 		v.append(self.name)
-		if len(self.attrs.keys()):
+		if len(self.attrs):
 			v.append(" ")
 			v.append(repr(self.attrs))
 		s = repr(self.content)
@@ -289,7 +339,7 @@ class XSCElement(XSCNode):
 		v = []
 		v.append("<")
 		v.append(self.name)
-		if len(self.attrs.keys()):
+		if len(self.attrs):
 			v.append(" ")
 			v.append(str(self.attrs))
 		s = str(self.content)
@@ -317,7 +367,7 @@ class XSCElement(XSCNode):
 			del self.attrs[index]
 
 	def has_attr(self,attr):
-		return self.attrs.has_key(attr)
+		return self.attrs.has_attr(attr)
 
 	def AddImageSizeAttributes(self,imgattr,widthattr = "width",heightattr = "height"):
 		"add width and height attributes to the element for the image that can be found in the attributes imgattr. if the attribute is already there it is taken as a formating template with the size passed in as a dictionary with the keys 'width' and 'height', i.e. you could make your image twice as wide with width='%(width)d*2'"
