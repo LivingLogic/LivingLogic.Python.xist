@@ -23,19 +23,19 @@ except KeyError:
 
 def _getDB(element):
 	if element.has_attr("module") and element.has_attr("variable"): # database connection via an existing one
-		module = str(element["module"])
-		variable = str(element["variable"])
+		module = element["module"].asPlainString()
+		variable = element["variable"].asPlainString()
 		return sys.modules[module].__dict__[variable]
 	else: # create our own connection
-		api = str(element["api"])
+		api = element["api"].asPlainString()
 
 		args = {}
 		if element.has_attr("dbname"):
-			args["dbname"] = str(element["dbname"])
+			args["dbname"] = element["dbname"].asPlainString()
 		if element.has_attr("host"):
-			args["host"] = str(element["host"])
+			args["host"] = element["host"].asPlainString()
 		if element.has_attr("port"):
-			args["port"] = eval(str(element["port"]))
+			args["port"] = eval(element["port"].asPlainString())
 
 		__import__(api)
 		return apply(sys.modules[api].connect,(),args)
@@ -168,7 +168,7 @@ class template(xsc.Element):
 		"""
 		for field in element.nodes(type = control,subtype = 1,children = 1,attrs = 1): # iterate over all database elements in the target
 			if record is not None:
-				field["value"] = str(record[str(field["name"].asHTML())]) # put the field values in
+				field["value"] = record[field["name"].asHTML().asPlainString()].asPlainString() # put the field values in
 			else:
 				field["value"] = "dummy"
 		return element
@@ -184,7 +184,6 @@ class template(xsc.Element):
 		element = element.asHTML()
 		element = self.__fill(element,record)
 		return element
-
 
 	def asHTML(self):
 		content = self.content.clone()
