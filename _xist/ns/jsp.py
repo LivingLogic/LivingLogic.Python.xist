@@ -110,7 +110,7 @@ class directive(xsc.Element):
 		if publishPrefix:
 			publisher.publish(self.prefix())
 			publisher.publish(u":")
-		name = self.name()
+		name = self.name
 		pos = name.find(".")
 		if pos != -1:
 			name = name[pos+1:]

@@ -121,7 +121,7 @@ class IllegalElementError(Error):
 		for namespace in xsc.namespaceRegistry.byPrefix.values():
 			for element in namespace.elementsByName.values():
 				if element.namespace() is not None:
-					all[(element.name(), element.prefix())] = element
+					all[(element.name, element.prefix())] = element
 
 		allkeys = all.keys()
 		allkeys.sort()
@@ -152,7 +152,7 @@ class IllegalProcInstError(Error):
 		for namespace in xsc.namespaceRegistry.byPrefix.values():
 			for procinst in namespace.procInstsByName.values():
 				if procinst.namespace() is not None:
-					all[(procinst.name(), procinst.prefix())] = procinst
+					all[(procinst.name, procinst.prefix())] = procinst
 
 		allkeys = all.keys()
 		allkeys.sort()
@@ -262,17 +262,17 @@ class IllegalEntityError(Error):
 		for namespace in xsc.namespaceRegistry.byPrefix.values():
 			for charref in namespace.charrefsByName.values():
 				if charref.namespace() is not None:
-					all[(charref.name(), charref.prefix())] = charref
+					all[(charref.name, charref.prefix())] = charref
 			for entity in namespace.entitiesByName.values():
 				if entity.namespace() is not None:
-					all[(entity.name(), entity.prefix())] = entity
+					all[(entity.name, entity.prefix())] = entity
 
 		allKeys = all.keys()
 		allKeys.sort()
 		allAsList = []
 		for key in allKeys:
 			entity = all[key]
-			allAsList.append(str(presenters.strEntityName(entity.prefix(), entity.name())))
+			allAsList.append(str(presenters.strEntityName(entity.prefix(), entity.name)))
 
 		s = "entity %s not allowed. " % presenters.strEntityName(self.name[0], self.name[1])
 		if allAsList:

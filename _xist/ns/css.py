@@ -158,7 +158,7 @@ class prop(xsc.Element):
 	attrHandlers = {"important": xsc.BoolAttr}
 
 	def publish(self, publisher):
-		publisher.publish(u"%s: " % self.name())
+		publisher.publish(u"%s: " % self.name)
 		self.content.publish(publisher)
 		if self.hasAttr("important"):
 			publisher.publish(u" !important")

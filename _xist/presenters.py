@@ -214,7 +214,7 @@ class EscInlineText(ansistyle.EscapedText):
 				charcode = ord(char)
 				entity = xsc.defaultNamespaces.charrefFromNumber(charcode)
 				if entity is not None:
-					return EnvTextForEntityName("&", entity.name(), ";")
+					return EnvTextForEntityName("&", entity.name, ";")
 				else:
 					return EnvTextForEntityName("&#", str(charcode), ";")
 		return char
@@ -301,7 +301,7 @@ def strElementClass(class_, slash=0):
 	namespacename = None
 	if class_.presentPrefix!=0:
 		namespacename = class_.prefix()
-	return strElementName(namespacename, class_.name(), slash)
+	return strElementName(namespacename, class_.name, slash)
 
 def strElementClassWithBrackets(class_, slash=0):
 	return ansistyle.Text(strBracketOpen(), strElementClass(class_, slash), strBracketClose())
@@ -326,7 +326,7 @@ def strEntity(node):
 		namespacename = node.prefix()
 	else:
 		namespacename = None
-	return strEntityName(namespacename, node.name())
+	return strEntityName(namespacename, node.name)
 
 def strProcInstTarget(namespacename=None, target=None):
 	s = ansistyle.Text()
@@ -356,7 +356,7 @@ def strProcInst(node):
 		namespacename = node.prefix()
 	else:
 		namespacename = None
-	return strProcInstTarget(namespacename, node.name())
+	return strProcInstTarget(namespacename, node.name)
 
 def strProcInstTargetWithBrackets(namespacename=None, target=None):
 	return ansistyle.Text(strBracketOpen(), strQuestion(), strProcInstTarget(namespacename, target), strQuestion(), strBracketClose())

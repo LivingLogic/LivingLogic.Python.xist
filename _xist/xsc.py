@@ -103,14 +103,11 @@ class Node(object):
 
 	class __metaclass__(type):
 		def __new__(cls, name, bases, dict):
-			if dict.has_key("name") and not isinstance(dict["name"], classmethod):
-				realname = dict["name"]
-				del dict["name"]
-			else:
+			if not dict.has_key("name"):
 				realname = name
 				if realname.endswith("_"):
 					realname = realname[:-1]
-			dict["_name"] = realname
+				dict["name"] = realname
 			return type.__new__(cls, name, bases, dict)
 
 	def namespace(cls):
@@ -119,15 +116,6 @@ class Node(object):
 		"""
 		return getattr(cls, "_namespace", None)
 	namespace = classmethod(namespace)
-
-	def name(cls):
-		"""
-		<doc:par>return the name for this class (which is either
-		the class name or class attribute <lit>name</lit>
-		if there is one.</doc:par>
-		"""
-		return cls._name
-	name = classmethod(name)
 
 	def prefix(cls):
 		"""
@@ -438,7 +426,7 @@ class Node(object):
 		if publishPrefix and prefix is not None:
 			publisher.publish(prefix)
 			publisher.publish(u":")
-		publisher.publish(self.name())
+		publisher.publish(self.name)
 
 	def mapped(self, function):
 		"""
@@ -1872,7 +1860,7 @@ class Namespace(object):
 			isprocinst = thing is not ProcInst and issubclass(thing, ProcInst)
 			if iselement or isentity or ischarref or isprocinst:
 				# if the class attribute name is None, the class won't be registered
-				name = thing.name()
+				name = thing.name
 				if name is not None:
 					thing._namespace = self # this creates a cycle
 					if iselement:
