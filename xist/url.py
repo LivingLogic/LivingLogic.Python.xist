@@ -300,7 +300,7 @@ class URL:
 		return URL(self)
 
 	def isRemote(self):
-		if not self.scheme:	# may be None
+		if not self.scheme: # may be None
 			return 0
 		elif self.scheme == u"server" and self.server == u"localhost":
 			return 0
@@ -387,12 +387,12 @@ class URL:
 
 	def __fromString(self, url):
 		(scheme, server, path, parameters, query, fragment) = urlparse.urlparse(url)
-		scheme = utils.stringFromCode(scheme) or None
-		server = utils.stringFromCode(server) or None
-		path = map(utils.stringFromCode, path)
-		parameters = utils.stringFromCode(parameters) or None
-		query = utils.stringFromCode(query) or None
-		fragment = utils.stringFromCode(fragment) or None
+		scheme = utils.stringFromCode(scheme)
+		server = utils.stringFromCode(server)
+		path = utils.stringFromCode(path)
+		parameters = utils.stringFromCode(parameters)
+		query = utils.stringFromCode(query)
+		fragment = utils.stringFromCode(fragment)
 		if scheme == u"": # do we have a local file?
 			if len(path):
 				if path[0] == u"/": # this is a server relative URL
@@ -402,25 +402,23 @@ class URL:
 			if len(path) and len(server):
 				path = path[1:] # the path from urlparse started with "/" too
 		port = None
-		if server is not None:
-			pos = server.rfind(u":")
-			if pos != -1:
-				port = int(server[pos+1:])
-				server = server[:pos]
+		pos = server.rfind(u":")
+		if pos != -1:
+			port = int(server[pos+1:])
+			server = server[:pos]
 		path = path.split(u"/")
 		file = path[-1]
-		if file not in (u'.', u'..'):
+		if file not in (u".", u".."):
 			path = path[:-1]
 		else:
-			file = None
+			file = u""
 
 		ext = None
 		if scheme in (u"ftp", u"http", u"https", u"server", u""):
-			if file is not None:
-				pos = file.rfind(u".")
-				if pos != -1:
-					ext = file[pos+1:]
-					file = file[:pos]
+			pos = file.rfind(u".")
+			if pos != -1:
+				ext = file[pos+1:]
+				file = file[:pos]
 
 		self.scheme = scheme or None
 		self.server = server or None
