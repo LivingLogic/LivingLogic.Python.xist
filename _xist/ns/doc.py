@@ -710,7 +710,7 @@ def _codeheader(cls, thing, name, type):
 			sig.append(", ")
 			sig.append(cls.arg(args[i]))
 		if i >= offset:
-			sig.append("=", repr(defaults[i-offset]))
+			sig.append("=", cls.lit(repr(defaults[i-offset])))
 	if varargs:
 		sig.append(", *", cls.arg(varargs))
 	if varkw:
