@@ -2030,7 +2030,7 @@ class XSC:
 			if isinstance(node,Text):
 				last[-1].content = last[-1].content + node.content
 				return
-			elif isinstance(node,CharRef) and node.content < 256: # 256 test will disappear in Python 1.6 with SXP
+			elif isinstance(node,CharRef) and node.content < 256: # FIXME 256 test will disappear in Python 1.6 with SXP
 				last[-1].content = last[-1].content + chr(node.content)
 				return
 		last.append(node) # add the new node to the content of the innermost element (or fragment)
