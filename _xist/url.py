@@ -126,24 +126,7 @@ class URL:
 		self.path = _normalize(self.path)
 
 	def __repr__(self):
-		v = []
-		if self.scheme is not None:
-			v.append("scheme=%r" % self.scheme)
-		if self.server is not None:
-			v.append("server=%r" % self.server)
-		if self.port is not None:
-			v.append("port=%r" % self.port)
-		if self.path is not None:
-			v.append("path=%r" % self.path)
-		if self.file is not None:
-			v.append("file=%r" % self.file)
-		if self.params is not None:
-			v.append("params=%r" % self.params)
-		if self.query is not None:
-			v.append("query=%r" % self.query)
-		if self.fragment is not None:
-			v.append("fragment=%r" % self.fragment)
-		return "URL(%s)" % ", ".join(v)
+		return "URL(%r)" % self.asString()
 
 	def asString(self):
 		return self._asString(0)
