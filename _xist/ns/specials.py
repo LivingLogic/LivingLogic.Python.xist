@@ -47,7 +47,8 @@ class plaintable(html_.table):
 	defaults = {"cellpadding": 0, "cellspacing": 0, "border": 0}
 
 	def convert(self, converter=None):
-		e = html_.table(*self.content, **self.attrs)
+		e = html_.table(*self.content)
+		e.attrs = self.attrs
 		e.copyDefaultAttrs(self.defaults)
 		return e.convert(converter)
 
@@ -61,7 +62,9 @@ class plainbody(html_.body):
 	defaults = {"leftmargin": 0, "topmargin": 0, "marginheight": 0, "marginwidth": 0}
 
 	def convert(self, converter=None):
-		e = html_.body(*self.content, **self.attrs)
+		print self.attrs
+		e = html_.body(*self.content)
+		e.attrs = self.attrs
 		e.copyDefaultAttrs(self.defaults)
 		return e.convert(converter)
 
@@ -256,7 +259,8 @@ class autoimg(html_.img):
 	as wide with <code>width="2*%(width)d"</code>.</par>
 	"""
 	def convert(self, converter=None):
-		e = html_.img(**self.attrs)
+		e = html_.img()
+		e.attrs = self.attrs
 		e._addImageSizeAttributes(converter, "src", "width", "height")
 		return e.convert(converter)
 
@@ -268,7 +272,8 @@ class autoinput(html_.input):
 	"""
 	def convert(self, converter=None):
 		if self.hasAttr("type") and self["type"].convert(converter).asPlainString() == u"image":
-			e = html_.input(*self.content, **self.attrs)
+			e = html_.input(*self.content)
+			e.attrs = self.attrs
 			e._addImageSizeAttributes(converter, "src", "size", None) # no height
 			return e.convert(converter)
 		else:
