@@ -21,7 +21,8 @@ from xist import xsc,html,specials
 
 class par(html.div):
 	empty = 0
-	attrHandlers = xsc.appendDict(html.div.attrHandlers, {"noindent": xsc.TextAttr})
+	attrHandlers = html.div.attrHandlers.copy()
+	attrHandlers.update({"noindent": xsc.TextAttr})
 
 	def asHTML(self):
 		e = html.div(self.content.clone())
