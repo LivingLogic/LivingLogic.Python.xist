@@ -14,6 +14,8 @@ warning framework.</item>
 <item>All namespace modules have been updated to use <module>sims</module>
 information and the &svg; module has been updated to &svg; 1.1.</item>
 
+<item>It's possible to switch off validation during parsing and publishing.</item>
+
 <item><par><class>ll.xist.xsc.Frag</class> and <class>ll.xist.xsc.Element</class>
 both have a <method>__call__</method> method with the same arguments as
 their constructors. Those methods will append content nodes (and set attributes
