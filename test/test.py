@@ -1107,6 +1107,7 @@ class XISTTest(unittest.TestCase):
 		repr(xsc.Element)
 		repr(xsc.ProcInst)
 		repr(xsc.Entity)
+		repr(xsc.CharRef)
 		repr(xsc.Element.Attrs)
 		repr(xml.Attrs)
 		repr(xml.Attrs.lang)
