@@ -276,5 +276,30 @@ class XISTTestCase(unittest.TestCase):
 		e = e.conv().conv()
 		self.assertEqual(e["href"], "foohurz")
 
+	def test_csspublish(self):
+		e = css.css(
+			css.atimport("http://www.gurk.org/gurk.css"),
+			css.atimport("http://www.gurk.org/print.css", media="print"),
+			css.atimport("http://www.gurk.org/screen.css", media="screen"),
+			css.rule(
+				css.sel("body"),
+				css.font_family("Verdana, sans-serif"),
+				css.font_size("10pt"),
+				css.background_color("#000"),
+				css.color("#fff")
+			),
+			css.atmedia(
+				css.rule(
+					css.sel("div, p"),
+					css.font_family("Verdana, sans-serif"),
+					css.font_size("10pt"),
+					css.background_color("#000"),
+					css.color("#fff")
+				),
+				media="print"
+			)
+		)
+		e.asBytes()
+
 if __name__ == "__main__":
 	unittest.main()
