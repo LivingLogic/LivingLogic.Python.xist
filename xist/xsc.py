@@ -19,6 +19,68 @@
 ## OF THIS SOFTWARE.
 
 """
+XSC could be called an HTML preprocessor or generator or
+an XML transformation engine.
+
+It was written as a replacement for HSC (http://www.giga.or.at/~agi/hsc/),
+and borrows some features and ideas from it.
+
+It also borrows the basic ideas from HTMLgen
+(http://starship.skyport.net/crew/friedrich/HTMLgen/html/main.html)
+or HyperText (http://dustman.net/andy/python/HyperText/)
+
+But as XSC is based on XML you have two choices when constructing
+your hierarchical tree of HTML objects: You can directly construct
+it, like HTMLgen and HyperText do, as a tree of Python objects or
+you can get a tree by parsing an XML file.
+
+For every HTML element there exists a corresponding class, that
+has a constructor of the form
+	class(*content,**attrs),
+so constructing an HTML element works like this:
+	e = html.div(
+		"Go to ",
+		html.a("Python.org",href="http://www.python.org"),
+		"!"
+	)
+
+This object can be converted to a printable string with
+the method asString():
+	print e.asString()
+
+In XSC you're not limited to the HTML element types.
+You can define your own! To be able to convert these
+new element types to a HTML object tree, you must implement
+the method asHTML, and you must derive your class from
+xsc.Element as in the following example:
+
+	class cool(xsc.Element):
+		empty = 1
+
+		def asHTML(self):
+			return html.b("cool!")
+
+Using this element is as simple as this:
+	e = cool()
+	print e.asHTML().asString()
+
+The class variable empty in the above example specifies
+if the element type has an empty content model (like <br/>
+or <img/>) or not.
+
+To be able to use your own classes in XML files, you have
+to tell the parser about them.
+
+Requirements:
+XSC requires Python 1.5.2.
+
+XSC currently uses the xmllib parser from the Python XML package,
+but this will change in the future, because xmllib is deprecated.
+So you need to install a version of the XML package, that
+contains xmllib (0.5.2 is fine)
+
+To determine image sizes, XSC needs the Python Imaging library (PIL)
+
 """
 
 __version__ = "$Revision$"[11:-2]
@@ -1136,7 +1198,7 @@ class Element(Node):
 	def append(self,*items):
 		"""
 		append(self,*items)
-			
+
 		appends to the content (see Frag.append for more info)
 		"""
 
@@ -1378,7 +1440,7 @@ class Null(Node):
 	"""
 
 	def asHTML(self):
-		return self 
+		return self
 
 	clone = compact = asHTML
 
