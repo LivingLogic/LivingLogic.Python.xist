@@ -1,3 +1,13 @@
+New in 0.4.2
+------------
+
+New elements keywords and descrition in meta.py, that can be
+used from.
+
+Fixed a bug in Namespace.register, now setting name=None to
+prevent an element from being registered works again.
+
+
 New in 0.4.1
 ------------
 
