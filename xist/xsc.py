@@ -1,22 +1,9 @@
 #! /usr/bin/env python
 
 ## Copyright 1999-2000 by Living Logic AG, Bayreuth, Germany.
+## Copyright 1999-2000 by Walter Dörwald
 ##
-## All Rights Reserved
-##
-## Permission to use, copy, modify, and distribute this software and its documentation
-## for any purpose and without fee is hereby granted, provided that the above copyright
-## notice appears in all copies and that both that copyright notice and this permission notice
-## appear in supporting documentation, and that the name of Living Logic AG not be used
-## in advertising or publicity pertaining to distribution of the software without specific,
-## written prior permission.
-##
-## LIVING LOGIC AG DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE, INCLUDING
-## ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO EVENT SHALL LIVING LOGIC AG
-## BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER
-## RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
-## OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
-## OF THIS SOFTWARE.
+## See the file LICENSE for licensing details
 
 """
 XIST is a HTML preprocessor/generator and an XML transformation engine.
@@ -234,7 +221,7 @@ import stat
 import Image
 
 # for parsing XML files
-from xml.parsers import xmllib
+from xml.parsers import sgmlop
 
 # for reading remote files
 import urllib
@@ -550,7 +537,7 @@ def string2Fragment(s):
 						e.append(CharRef(string.atoi(s[2:i])))
 				else:
 					try:
-						e.append(Parser.entitiesByName[s[1:i]])
+						e.append(entitiesByName[s[1:i]])
 					except KeyError:
 						raise UnknownEntityError(xsc.parser.lineno,s[1:i])
 				s = s[i+1:]
@@ -898,7 +885,7 @@ class Text(Node):
 				if charref: # we've collected references so far
 					s = ""
 					for i in content[start:end]:
-						ent = Parser.entitiesByNumber[ord(i)] # use names if a available, or number otherwise
+						ent = entitiesByNumber[ord(i)] # use names if a available, or number otherwise
 						if len(ent):
 							s = s + '&' + ent[0] + ';'
 						else:
@@ -971,14 +958,14 @@ class CharRef(Node):
 		return strCharRef(s,ansi)
 
 	def _dorepr(self,ansi = None):
-		if len(Parser.entitiesByNumber[self.content]):
-			return self.__strcharref('&' + Parser.entitiesByNumber[self.content][0] + ';',ansi)
+		if len(entitiesByNumber[self.content]):
+			return self.__strcharref('&' + entitiesByNumber[self.content][0] + ';',ansi)
 		else:
 			return self.__strcharref('&#' + str(self.content) + ';',ansi)
 
 	def _doreprtree(self,nest,elementno,ansi = None):
 		s = self.__strcharref('&#' + str(self.content) + ';',ansi) + ' (' + self.__strcharref('&#x' + hex(self.content)[2:] + ';',ansi)
-		for name in Parser.entitiesByNumber[self.content]:
+		for name in entitiesByNumber[self.content]:
 			s = s + ' ' + self.__strcharref('&' + name + ';',ansi)
 		s = s + ')'
 		if 0 <= self.content < reprcharreflowerlimit:
@@ -1596,42 +1583,6 @@ class Null(Node):
 
 Null = Null() # Singleton, the Python way
 
-def registerElement(element,namespacename,elementname = None):
-	"""
-	registerElement(element,namespacename,elementname = None)
-
-	registers the element handler element to be used for elements with the appropriate name.
-	The element will be registered in the namespace namespacename and the element name
-	elementname. If elementname is None, the lowercase name of the class will be used.
-	Names will be converted to lowercase in any case, to help prevent conflicts between
-	Python keywords and class names (e.g. for the HTML element del).
-	"""
-	if elementname is None:
-		elementname = string.lower(element.__name__)
-
-	element.namespacename = namespacename
-	element.elementname = elementname
-
-	if _elementHandlers.has_key(elementname):
-		_elementHandlers[elementname][namespacename] = element
-	else:
-		_elementHandlers[elementname] = { namespacename : element }
-
-def registerAllElements(dict,namespacename):
-	"""
-	registerAllElements(dict,namespacename)
-
-	registers all elements in a dictionary under the namespace namespacename.
-	This can be used to register all elements in a module simply by
-	passing vars() to the function.
-	As namespacename will be passed to registerElement(), see its
-	documentation for comments about the default value.
-	"""
-	for name in dict.keys():
-		object = dict[name]
-		if type(object) == types.ClassType and issubclass(object,Element):
-			registerElement(object,namespacename)
-
 class Attr(Frag):
 	"""
 	Base classes of all attribute classes.
@@ -1789,30 +1740,115 @@ class URLAttr(Attr):
 ###
 ###
 
-class Parser(xmllib.XMLParser):
-	entitiesByNumber = [ ]
+entitiesByNumber = [ ]
 
-	for i in xrange(65536):
-		entitiesByNumber.append([])
+for i in xrange(65536):
+	entitiesByNumber.append([])
 
-	entitiesByName = {}
+entitiesByName = {}
 
-	def reset(self):
-		xmllib.XMLParser.reset(self)
-		# our nodes do not have a parent link, therefore we have to store the active path through the tree in a stack (which we call nesting, because stack is already used by the base class
+###
+###
+###
+
+def registerElement(element,namespacename,elementname = None):
+	"""
+	registerElement(element,namespacename,elementname = None)
+
+	registers the element handler element to be used for elements with the appropriate name.
+	The element will be registered in the namespace namespacename and the element name
+	elementname. If elementname is None, the lowercase name of the class will be used.
+	Names will be converted to lowercase in any case, to help prevent conflicts between
+	Python keywords and class names (e.g. for the HTML element del).
+	"""
+	if elementname is None:
+		elementname = string.lower(element.__name__)
+
+	element.namespacename = namespacename
+	element.elementname = elementname
+
+	if _elementHandlers.has_key(elementname):
+		_elementHandlers[elementname][namespacename] = element
+	else:
+		_elementHandlers[elementname] = { namespacename : element }
+
+def registerAllElements(dict,namespacename):
+	"""
+	registerAllElements(dict,namespacename)
+
+	registers all elements in a dictionary under the namespace namespacename.
+	This can be used to register all elements in a module simply by
+	passing vars() to the function.
+	As namespacename will be passed to registerElement(), see its
+	documentation for comments about the default value.
+	"""
+	for name in dict.keys():
+		object = dict[name]
+		if type(object) == types.ClassType and issubclass(object,Element):
+			registerElement(object,namespacename)
+
+def registerEntity(name,value):
+	"""
+	registerEntity(name,value)
+
+	registers the value value (which will be converted to an XSC node)
+	as an entity with the name name.
+	"""
+	newvalue = ToNode(value)
+	if isinstance(newvalue,CharRef):
+		entitiesByNumber[newvalue.content].append(name)
+	entitiesByName[name] = newvalue
+
+###
+###
+###
+
+# C0 Controls and Basic Latin
+registerEntity("quot",CharRef(34)) # quotation mark = APL quote, U+0022 ISOnum
+registerEntity("amp",CharRef(38)) # ampersand, U+0026 ISOnum
+registerEntity("lt",CharRef(60)) # less-than sign, U+003C ISOnum
+registerEntity("gt",CharRef(62)) # greater-than sign, U+003E ISOnum
+
+###
+###
+###
+
+class XSC:
+	"""
+	contains the parser and the options and functions for handling XML files
+	"""
+
+	def __init__(self):
+		self.filename = [ URL("*/") ]
+		self.server = "localhost"
+		self.reprtree = 1
+
+	def pushURL(self,url):
+		url = URL(url)
+		if len(self.filename):
+			url = self.filename[-1] + url
+		self.filename.append(url)
+
+	def popURL(self):
+		self.filename.pop()
+
+	def __parse(self,string,pad = 0):
+		# our nodes do not have a parent link, therefore we have to store the active path through the tree in a stack (which we call nesting, because stack is already used by the base class (there is no base class anymore, but who cares))
 		# after we've finished parsing, the Frag that we put at the bottom of the stack will be our document root
-		self.nesting = [ Frag() ]
+		self.__nesting = [ Frag() ]
 		self.lineno = -1
-		self.root = None
-
-	def close(self):
-		self.root = self.nesting[0]
-		xmllib.XMLParser.close(self)
+		parser = sgmlop.SGMLParser()
+		parser.register(self)
+		parser.parse(string)
+		if pad: # strange bug in sgmlop
+			parser.parse(" ")
+		parser.close()
+		return self.__nesting[0]
 
 	def __appendNode(self,node):
-		node.startlineno = self.lineno
-		last = self.nesting[-1]
-		if len(last) and last[-1].__class__ is Text and (node.__class__ is Text or (node.__class__ is CharRef and node.content < 256)): # 256 test will disappear in Python 1.6
+		node.startlineno = -1
+		last = self.__nesting[-1]
+		if len(last) and last[-1].__class__ is Text and (node.__class__ is Text or (node.__class__ is CharRef and node.content < 256)): # 256 test will disappear in Python 1.6 wiht SXP
 			if node.__class__ is Text:
 				last[-1].content = last[-1].content + node.content
 			else:
@@ -1840,7 +1876,7 @@ class Parser(xmllib.XMLParser):
 
 	def handle_entityref(self,name):
 		try:
-			self.__appendNode(self.entitiesByName[name].clone())
+			self.__appendNode(entitiesByName[name].clone())
 		except KeyError:
 			raise UnknownEntityError(xsc.parser.lineno,name)
 
@@ -1868,20 +1904,20 @@ class Parser(xmllib.XMLParser):
 				raise IllegalElementError(xsc.parser.lineno,name) # elements with this name were available, but none in this namespace
 		return element
 
-	def unknown_starttag(self,name,attrs):
+	def finish_starttag(self,name,attrs):
 		e = self.elementFromName(name)()
-		for attr in attrs.keys():
-			e[attr] = string2Fragment(attrs[attr])
+		for name,value in attrs:
+			e[name] = string2Fragment(value)
 		self.__appendNode(e)
-		self.nesting.append(e) # push new innermost element onto the stack
+		self.__nesting.append(e) # push new innermost element onto the stack
 
-	def unknown_endtag(self,name):
+	def finish_endtag(self,name):
 		element = self.elementFromName(name)
-		currentelement = self.nesting[-1].__class__
+		currentelement = self.__nesting[-1].__class__
 		if element != currentelement:
 			raise IllegalElementNestingError(xsc.parser.lineno,currentelement,element)
-		self.nesting[-1].endlineno = self.lineno
-		self.nesting.pop() # pop the innermost element off the stack
+		self.__nesting[-1].endlineno = self.lineno
+		self.__nesting.pop() # pop the innermost element off the stack
 
 	def handle_data(self,data):
 		if data != "":
@@ -1890,72 +1926,20 @@ class Parser(xmllib.XMLParser):
 	def handle_comment(self,data):
 		self.__appendNode(Comment(data))
 
-def registerEntity(name,value):
-	"""
-	registerEntity(name,value)
-
-	registers the value value (which will be converted to an XSC node)
-	as an entity with the name name.
-	"""
-	newvalue = ToNode(value)
-	if isinstance(newvalue,CharRef):
-		Parser.entitiesByNumber[newvalue.content].append(name)
-	Parser.entitiesByName[name] = newvalue
-
-###
-###
-###
-
-# C0 Controls and Basic Latin
-registerEntity("quot",CharRef(34)) # quotation mark = APL quote, U+0022 ISOnum
-registerEntity("amp",CharRef(38)) # ampersand, U+0026 ISOnum
-registerEntity("lt",CharRef(60)) # less-than sign, U+003C ISOnum
-registerEntity("gt",CharRef(62)) # greater-than sign, U+003E ISOnum
-
-###
-###
-###
-
-class XSC:
-	"""
-	contains the options and functions for handling the XML files
-	"""
-
-	def __init__(self):
-		self.filename = [ URL("*/") ]
-		self.server = "localhost"
-		self.reprtree = 1
-		self.parser = Parser()
-
-	def pushURL(self,url):
-		url = URL(url)
-		if len(self.filename):
-			url = self.filename[-1] + url
-		self.filename.append(url)
-
-	def popURL(self):
-		self.filename.pop()
-
 	def parseString(self,string):
 		"""
 		Parses a string and returns the resulting XSC
 		"""
-		self.parser.reset()
-		self.parser.feed(string)
-		self.parser.feed(" ")
-		self.parser.close()
-		return self.parser.root
+		return self.__parse(string,1)
 
 	def parse(self,url):
 		"""
 		Reads and parses a XML file from an URL and returns the resulting XSC
 		"""
 		self.pushURL(url)
-		self.parser.reset()
-		self.parser.feed(xsc.filename[-1].read())
-		self.parser.close()
+		result = self.__parse(xsc.filename[-1].read())
 		self.popURL()
-		return self.parser.root
+		return result
 
 	def __repr__(self):
 		return '<xsc filename="' + self.filename + '" server="' + self.server + '" retrieveremote=' + [ 'no' , 'yes' ][retrieveremote] + '" retrievelocal=' + [ 'no' , 'yes' ][retrievelocal] + '>'
