@@ -16,7 +16,7 @@ and a few helper classes and functions.
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-import os, sys, random, copy, warnings, new, cStringIO
+import os, sys, random, copy, warnings, new, cStringIO, cPickle
 
 import ll
 from ll import url, ansistyle
@@ -1195,6 +1195,12 @@ class CharacterData(Node):
 
 	def __init__(self, *content):
 		self._content = u"".join(unicode(x) for x in content)
+
+	def __getstate__(self):
+		return self._content
+
+	def __setstate__(self, content):
+		self._content = content
 
 	class content(ll.propclass):
 		"""
@@ -2722,6 +2728,28 @@ class Element(Node):
 		self.content = Frag(*newcontent)
 		for (attrname, attrvalue) in attrs.iteritems():
 			self.attrs[attrname] = attrvalue
+
+	def __getstate__(self):
+		attrs = {}
+		for (key, value) in self.attrs.iteritems():
+			if isinstance(key, tuple):
+				# Pickle namespace module name instead
+				# (for the the namespace must be a module, i.e. generated via makemod())
+				if not hasattr(key[0], "__file__"):
+					raise cPickle.PicklingError("can't pickle namespace %r: must be module" % key[0])
+				key = (key[0].__name__, key[1])
+			attrs[key] = Frag(value)
+		return (self.content, attrs)
+
+	def __setstate__(self, (content, attrs)):
+		self.content = content
+		self.attrs = self.Attrs()
+		for (key, value) in attrs.iteritems():
+			if isinstance(key, tuple):
+				# Import namespace module
+				__import__(key[0])
+				key = (sys.modules[key[0]], key[1])
+			self.attrs[key] = value
 
 	def __call__(self, *content, **attrs):
 		for child in content:
