@@ -547,7 +547,7 @@ class a(xsc.Element):
 	empty = 0
 	attrHandlers = attrs.copy()
 	attrHandlers.update({"charset": xsc.TextAttr, "type": xsc.TextAttr, "name": xsc.TextAttr, "href": xsc.URLAttr, "hreflang": xsc.TextAttr, "rel": xsc.TextAttr, "rev": xsc.TextAttr, "accesskey": xsc.TextAttr, "shape": xsc.TextAttr, "coords": xsc.TextAttr, "tabindex": xsc.TextAttr, "onfocus": xsc.TextAttr, "onblur": xsc.TextAttr})
-	attrHandlers.update({"target": xsc.TextAttr}) # deprecated
+	attrHandlers.update({"target": xsc.TextAttr, "oncontextmenu": xsc.TextAttr}) # deprecated
 
 class link(xsc.Element):
 	"""
