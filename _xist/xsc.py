@@ -1625,9 +1625,9 @@ class Attrs(Node, dict):
 			errors.warn(errors.RequiredAttrMissingWarning(self, attrs))
 
 	def publish(self, publisher):
-		attrs = [key for (key, value) in self.alloweditems() if value.required]
 		if publisher.inAttr:
 			raise errors.IllegalAttrNodeError(self)
+		attrs = [key for (key, value) in self.alloweditems() if value.required]
 		for (attrname, attrvalue) in dict.items(self):
 			if len(attrvalue):
 				publisher.publish(u" ")
