@@ -203,6 +203,9 @@ class include(xsc.Element):
 
 		return e.asHTML()
 
+class center(xsc.Element):
+	empty = 0
+
 xsc.registerAllElements(vars(),"specials")
 
 # Control characters (not part of HTML)
