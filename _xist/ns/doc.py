@@ -292,7 +292,7 @@ class section(xsc.Element):
 				if converter.target=="text":
 					h.append(html.br(), t.content, html.br(), "="*len(unicode(t.content.convert(converter))))
 				else:
-					h.append(format, t.content)
+					h.append(t.content)
 				e.append(h)
 			if self.hasAttr("role"):
 				e.append(html.div(cs, class_=self["role"]))
