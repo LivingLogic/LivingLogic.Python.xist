@@ -680,6 +680,12 @@ class Node:
 		"""
 		return ""
 
+	def asInt(self):
+		"""
+		returns this node converted to an integer.
+		"""
+		return string.atoi(self.asPlainString())
+
 	def __str__(self):
 		"""
 		returns this element as a string
