@@ -809,25 +809,25 @@ class XSCElement(XSCNode):
 		"""add width and height attributes to the element for the image that can be found in the attributes imgattr. if the attribute is already there it is taken as a formating template with the size passed in as a dictionary with the keys 'width' and 'height', i.e. you could make your image twice as wide with width='%(width)d*2'"""
 
 		if self.has_attr(imgattr):
-			url = repr(self[imgattr])
+			url = str(self[imgattr])
 			size = ImageSize(url)
 			sizedict = { "width": size[0], "height": size[1] }
 			if size[0] != -1: # the width was retrieved so we can use it
 				if self.has_attr(widthattr):
 					try:
-						self[widthattr] = eval(str(self[widthattr]) % sizedict)
+						self[widthattr] = str(eval(str(self[widthattr]) % sizedict))
 					except:
 						raise XSCImageSizeFormatError(xsc.parser.lineno,self,widthattr)
 				else:
-					self[widthattr] = size[0]
+					self[widthattr] = str(size[0])
 			if size[1] != -1: # the height was retrieved so we can use it
 				if self.has_attr(heightattr):
 					try:
-						self[heightattr] = eval(str(self[heightattr]) % sizedict)
+						self[heightattr] = str(eval(str(self[heightattr]) % sizedict))
 					except:
 						raise XSCImageSizeFormatError(xsc.parser.lineno,self,heightattr)
 				else:
-					self[heightattr] = size[1]
+					self[heightattr] = str(size[1])
 
 	def findElementsNamed(self,name):
 		e = XSCFrag()

@@ -334,8 +334,8 @@ class img(XSCElement):
 	attr_handlers = AppendDict(attrs,{ "src" : XSCurl , "alt" : XSCFrag , "longdesc" : XSCFrag , "width" : XSCFrag , "height" : XSCFrag , "usemap" : XSCFrag , "ismap" : XSCFrag })
 	attr_handlers = AppendDict(attr_handlers,{ "border" : XSCFrag , "align" : XSCFrag , "hspace" : XSCFrag , "vspace" : XSCFrag }) # deprecated
 
-	def __str__(self):
-		e = img(self.content,self.attrs)
+	def _doAsHTML(self):
+		e = img(self.content.asHTML(),self.attrs.asHTML())
 		e.AddImageSizeAttributes("src")
 
 		return e
