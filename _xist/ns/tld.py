@@ -16,8 +16,7 @@ descriptor (<lit>.tld</lit>) (&xml;) file format/syntax.</par>
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-from ll.xist import xsc
-from ll.xist.ns import xndl
+from ll.xist import xsc, xnd
 
 
 class IdAttrs(xsc.Element.Attrs):

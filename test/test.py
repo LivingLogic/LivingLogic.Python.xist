@@ -14,8 +14,8 @@ from xml.sax import saxlib
 from xml.parsers import expat
 
 from ll import url
-from ll.xist import xsc, parsers, cssparsers, presenters, converters, helpers, errors, options
-from ll.xist.ns import wml, ihtml, html, chars, css, abbr, specials, htmlspecials, php, xml, xndl, tld
+from ll.xist import xsc, parsers, cssparsers, presenters, converters, helpers, errors, options, xnd
+from ll.xist.ns import wml, ihtml, html, chars, css, abbr, specials, htmlspecials, php, xml, tld
 
 
 # set to something ASCII, so presenters work, even if the system default encoding is ascii
