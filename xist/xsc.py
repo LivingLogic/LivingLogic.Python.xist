@@ -129,7 +129,20 @@ class XSCURLAttr(XSCNode):
 	def AsString(self,xsc):
 		url = xsc.AsString(self.data) 
 		if url[0] == ":":
-			url = "???" + url[1:]
+			# split both path
+			source = string.splitfields(xsc.filename,"/")
+			dest = string.splitfields(url[1:],"/")
+			# throw away identical directories in both path
+			while len(source)>1 and len(dest)>1 and source[0]==dest[0]:
+				del source[0]
+				del dest[0]
+			url = string.joinfields(([".."]*(len(source)-1)) + dest,"/")
+		return url
+
+	def AsAbsString(self):
+		url = self.data
+		if url[0] == ":":
+			url = url[1:]
 		return url
 
 element_handlers = {} # dictionary that links element names to element classes
@@ -213,10 +226,10 @@ def RegisterElement(name,element):
 class XSC(XMLParser):
 	"Reads a XML file and constructs an XSC tree from it."
 
-	def __init__(self,filename = None):
+	def __init__(self,filename,parse = 1):
 		XMLParser.__init__(self)
 		self.filename = filename
-		if filename != None:
+		if parse == 1:
 			self.nesting = [ [] ] # our nodes do not have a parent link, therefore we have to store the active path through the tree in a stack (which we call nesting, because stack is already used by the base class
 			self.feed(open(filename).read())
 			self.close()
@@ -245,7 +258,7 @@ class XSC(XMLParser):
 		"transforms a value into its HTML equivalent: this means that HSC nodes get expanded to their equivalent HTML subtree. Scalar types are returned as is. Lists, tuples and dictionaries are treated recurcively"
 
 		if value == None:
-			xsc = XSC()
+			xsc = XSC(self.filename,0) # empty parser
 			xsc.root = self.AsHTML(self.root,mode)
 			return xsc
 		if type(value) in [ types.StringType,types.NoneType,types.IntType,types.LongType,types.FloatType ]:
@@ -327,7 +340,7 @@ class XSC(XMLParser):
 		"add width and height attributes to the element for the image that can be found in the attributes imgattr. if the attribute is already there it is taken as a formating template with the size passed in as a dictionary with the keys 'width' and 'height', i.e. you could make your image twice as wide with width='%(width)d*2'"
 
 		if element.has_attr(imgattr):
-			url = self.AsString(element[imgattr])
+			url = element[imgattr].AsAbsString()
 			size = self.ImageSize(url)
 			sizedict = { "width": size[0], "height": size[1] }
 			if element.has_attr(widthattr):
