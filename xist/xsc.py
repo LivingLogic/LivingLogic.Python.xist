@@ -84,7 +84,7 @@ class IllegalAttributeError(Error):
 		for attr in attrs:
 			v.append(_strattrname(attr))
 
-		return Error.__str__(self) + "Attribute " + _strattrname(self.attr) + " not allowed in element " + self.element._strname() + ". Allowed attributes are: " + string.join(v,", ") + "."
+		return Error.__str__(self) + "Attribute " + _strattrname(self.attr) + " not allowed in element " + self.element._str() + ". Allowed attributes are: " + string.join(v,", ") + "."
 
 class AttributeNotFoundError(Error):
 	"""
@@ -143,7 +143,7 @@ class IllegalElementNestingError(Error):
 		self.foundelement = foundelement
 
 	def __str__(self):
-		return Error.__str__(self) + "illegal element nesting (" + self.expectedelement._str() + " expected; " + self.foundelement._str() + " found)"
+		return Error.__str__(self) + "illegal element nesting (" + _strNode(self.expectedelement) + " expected; " + _strNode(self.foundelement) + " found)"
 
 class ImageSizeFormatError(Error):
 	"""
