@@ -1,10 +1,13 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
 <section><title>Migrating to version 2.7</title>
+
 <section><title>Changes to <module>ll.xist.xfind</module></title>
 <par>The functions <function>xfind.first</function> and
 <function>xfind.last</function> now is <function>xfind.item</function>, so
 they will raise an <class>IndexError</class> when no default value is passed.
 To get the old behaviour, simply pass <lit>None</lit> as the default.</par>
+</section>
+
 </section>
 
 
