@@ -366,4 +366,10 @@ class wsdl(xsc.Entity):
 	def asPlainString(self):
 		return u"WSDL"
 
+class cdrom(xsc.Entity):
+	def convert(self, converter):
+		return xsc.Text("CDROM")
+	def asPlainString(self):
+		return u"CDROM"
+
 namespace = xsc.Namespace("abbr", "http://www.livinglogic.de/DTDs/abbr.dtd", vars())
