@@ -74,7 +74,7 @@ class IllegalAttributeError(Error):
 	def __str__(self):
 		attrs = self.element.attrHandlers.keys()
 		attrs.sort()
-		attrs = ", ".join(map(xsc.strAttrName, attr))
+		attrs = ", ".join(map(xsc.strAttrName, attrs))
 
 		return Error.__str__(self) + "Attribute " + xsc.strAttrName(self.attr) + " not allowed in element " + xsc._strNode(self.element.__class__) + ". Allowed attributes are: " + attrs + "."
 
