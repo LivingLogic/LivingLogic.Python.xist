@@ -5,14 +5,14 @@ include INSTALL
 include INSTALL.xml
 include MIGRATION
 include MIGRATION.xml
-include INTRO
-include INTRO.xml
+include EXAMPLES
+include EXAMPLES.xml
 include HOWTO
 include HOWTO.xml
 include CREDITS
 include README
 include TODO
 include Makefile
-recursive-include examples *
+recursive-include demos *
 recursive-include scripts *.py
 include px/*.gif
