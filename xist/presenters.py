@@ -288,6 +288,9 @@ def strProcInstNameWithBrackets(procinstname=None):
 def strProcInstWithBrackets(node):
 	return ansistyle.Text(EnvTextForBracket("<"), EnvTextForQuestion("?"), strProcInst(node), EnvTextForQuestion("?"), EnvTextForBracket(">"))
 
+def strAttrName(attrname):
+	return EnvTextForAttrName(EscInlineText(attrname))
+
 class Presenter:
 	"""
 	base class for all presenters.
@@ -307,7 +310,7 @@ class Presenter:
 		self.inAttr = 0
 
 	def strAttrName(self, attrname):
-		return EnvTextForAttrName(EscInlineText(attrname))
+		return strAttrName(attrName)
 
 	def strDocTypeMarker(self):
 		return EnvTextForDocTypeMarker("DOCTYPE")

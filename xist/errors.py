@@ -68,18 +68,18 @@ class IllegalAttrError(Error):
 	(i.e. one that isn't contained in it's attrHandlers)
 	"""
 
-	def __init__(self, element, attr):
+	def __init__(self, element, attrname):
 		Error.__init__(self)
 		self.element = element
-		self.attr = attr
+		self.attrname = attrname
 
 	def __str__(self):
 		attrs = self.element.attrHandlers.keys()
-		s = Error.__str__(self) + "Attribute " + xsc.strAttrName(self.attr) + " not allowed in element " + xsc._strNode(self.element.__class__) + ". "
+		s = Error.__str__(self) + "Attribute %s not allowed in element %s. " % (presenters.strAttrName(self.attrname), presenters.strElementWithBrackets(self.element))
 		if len(attrs):
 			attrs.sort()
-			attrs = ", ".join(map(xsc.strAttrName, attrs))
-			s = s + "Allowed attributes are: " + attrs + "."
+			attrs = ", ".join([ str(presenters.strAttrName(attr)) for attr in attrs])
+			s = s + "Allowed attributes are: %s." % attrs
 		else:
 			s = s + "No attributes allowed."
 		return s
