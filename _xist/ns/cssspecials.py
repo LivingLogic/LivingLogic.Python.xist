@@ -61,7 +61,7 @@ class arialnarrow(css.prop):
 	"""
 
 	def convert(self, converter):
-		e = css.font_family('"Arial Narrow", "Tahoma", "Arial", "Verdana", "XHelvetica", "Helvetica", sans-serif;')
+		e = css.font_family('"Arial Narrow", "Tahoma", "Arial", "Verdana", "XHelvetica", "Helvetica", sans-serif')
 		return e.convert(converter)
 
 class border_leftright(css.prop):
