@@ -2111,8 +2111,16 @@ class Attrs(Node, dict):
 		return attr
 
 	def set(self, name, value=None, xml=False):
+		"""
+		<par>Set the attribute named <arg>name</arg> to the value <arg>value</arg>.
+		<arg>xml</arg> specifies whether <arg>name</arg> should be treated as an
+		&xml; name (<lit><arg>xml</arg>==True</lit>) or a Python name
+		(<lit><arg>xml</arg>==False</lit>).</par>
+		<par>The newly set attribute will be returned.</par>
+		"""
 		attr = self.allowedattr(name, xml=xml)(value)
 		dict.__setitem__(self, self._allowedattrkey(name, xml=xml), attr) # put the attribute in our dict
+		return attr
 
 	def setdefault(self, name, default=None, xml=False):
 		"""
