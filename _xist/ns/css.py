@@ -1197,5 +1197,16 @@ class speak_numeral(prop):
 	"""
 	name = "speak-numeral"
 
+class filter(prop):
+	"""
+	<doc:par>This property is an <app>Internet Explorer</app> extensions for image processing filters.</doc:par>
+	"""
+
+class _moz_opacity(prop):
+	"""
+	<doc:par>This property is an <app>Mozilla</app> extension and specifies the opacity of the element.</doc:par>
+	"""
+	name = "-moz-opacity"
+
 # register all the classes we've defined so far
 namespace = xsc.Namespace("css", "http://www.w3.org/TR/REC-CSS2", vars())
