@@ -684,7 +684,7 @@ that it should recursively continue with the content of the node.
 </doc:section>
 
 <doc:section><doc:title>URLs</doc:title>
-<doc:par>&xist; has a class for URLs (<pyref module="xist.url" class="URL"><class>xist.url.URL</class></pyref>)
+<doc:par>&xist; has a class for URLs (<class>xist.url.URL</class>)
 which is a thin wrapper around <module>urlparse</module>'s
 features. You can add URLs via <lit>/</lit>, e.g.
 <doc:programlisting>
