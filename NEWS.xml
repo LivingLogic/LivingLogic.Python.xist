@@ -6,8 +6,16 @@ namespaces, which will be used by the parser when searching for names. This
 gives a predictable search order even with using <code>Namespaces</code>
 and its <code>pushNamespace</code> method: modules imported last will be searched
 first.</item>
-<item>Processing Instructions are now allowed inside attributes when
+<item>Processing instructions are now allowed inside attributes when
 publishing.</item>
+<item><code>xist.ns.docbooklite</code> has been renamed to <code>xist.ns.doc</code>. It
+can now generate &html; and Docbook output and has improved a lot. The &xist; web pages
+now use this for automatic documentation generation.</item>
+<item><code>xist.url.URL</code> now has a new method <code>info</code> that returns the headers
+for the file/URL.</item>
+<item><code>xist.url.URL</code> now has a methods <code>fileSize</code> and <code>imageSize</code>
+too.</item>
+<item><code>xist.ns.jsp.directive_page</code> now has new attribute <code>session</code>.</item>
 </ulist>
 </section>
 
