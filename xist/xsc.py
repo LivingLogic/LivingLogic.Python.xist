@@ -229,6 +229,19 @@ class AmbiguousElementError(Error):
 ### configuration
 ###
 
+# should remote URLs be retrieved? (for filesize and imagesize tests)
+try:
+	retrieveremote = string.atoi(os.environ["XSC_RETRIEVEREMOTE"])
+except KeyError:
+	retrieveremote = 1
+
+= 1
+# should local URLs be retrieved? (for filesize and imagesize tests)
+try:
+	retrievelocal = string.atoi(os.environ["XSC_RETRIEVELOCAL"])
+except KeyError:
+	retrievelocal = 1
+
 # chracters with an ASCII (or Unix) code above reprcharreflowerlimit wll be dumped as charcter references
 try:
 	reprcharreflowerlimit = string.atoi(os.environ["XSC_REPRCHARREFLOWERLIMIT"])
@@ -265,7 +278,7 @@ try:
 except KeyError:
 	repransiquote = "1;32"
 
-# ANSI escape sequence to be used for slashes in element names
+e ANSI escape sequence to be used for slashes in element names
 try:
 	repransislash = os.environ["XSC_REPRANSI_SLASH"]
 except KeyError:
@@ -1673,9 +1686,6 @@ def __forceopen(name,mode):
 			raise
 		os.makedirs(name[:found])
 		return open(name,mode)
-
-retrieveremote = 1 # should remote URLs be retrieved? (for filesize and imagesize tests)
-retrievelocal  = 1 # should local URLs be retrieved? (for filesize and imagesize tests)
 
 def make():
 	"""

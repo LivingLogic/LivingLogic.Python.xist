@@ -14,7 +14,11 @@ import xsc
 import html
 import specials
 
-retrievedb = 1 # should database content be retrieved?
+# should database content be retrieved?
+try:
+	retrievedb = os.environ["XSC_RETRIEVEDB"]
+except KeyError:
+	retrievedb = 1
 
 def _getDB(element):
 	if element.has_attr("module") and element.has_attr("variable"): # database connection via an existing one
