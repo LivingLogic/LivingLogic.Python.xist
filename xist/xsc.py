@@ -1066,7 +1066,8 @@ class URLAttr(Attr):
 	(http, ftp, etc.)
 	"""
 
-	repransi = "31"
+	repransiname = "31"
+	repransiurl = "32"
 
 	def __init__(self,_content):
 		Attr.__init__(self,_content)
@@ -1085,7 +1086,7 @@ class URLAttr(Attr):
 
 	def _dorepr(self):
 		url = urlparse.urlunparse((self.scheme,self.server,string.join(self.path,"/"),self.parameters,self.query,self.fragment))
-		return _stransi(xsc.repransiurlattrs,url)
+		return _stransi(xsc.repransiurl,url)
 
 	def _doreprtree(self,nest,elementno):
 		return [[nest,self.startlineno,elementno,self._dorepr()]]
