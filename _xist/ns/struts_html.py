@@ -209,7 +209,7 @@ class textarea(MouseElement):
 	"""
 	empty = 0
 	attrHandlers = MouseElement.attrHandlers.copy()
-	attrHandlers.update({"cols": xsc.TextAttr, "name": xsc.TextAttr, "property": xsc.TextAttr, "rows": xsc.TextAttr, "value": xsc.TextAttr})
+	attrHandlers.update({"cols": xsc.TextAttr, "name": xsc.TextAttr, "property": xsc.TextAttr, "rows": xsc.TextAttr, "wrap": xsc.TextAttr, "value": xsc.TextAttr})
 
 
 
