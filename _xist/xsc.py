@@ -29,9 +29,11 @@ elements as Python objects) from
 or <a href="http://dustman.net/andy/python/HyperText/">HyperText</a>.</dbl:para>
 
 <dbl:section><dbl:title>Overview</dbl:title>
-<dbl:para>Generating your final &html; or &xml; output in the form
-of a file or a response sent from a web server, requires the following
-three steps:
+<dbl:para>&xist; can be used as a compiler that reads an input file
+and generates a transformed output file, or it could be used for generating
+&xml; dynamically inside a web server. In either case generating the final
+&html; or &xml; output in the form of a file or a response sent from
+the web server, requires the following three steps:
 <ul>
 <li>Generating a source &dom; tree: This can be done either by
 parsing an &xml; file, or by directly constructing the
@@ -47,7 +49,7 @@ own node classes and implement an appropriate
 <function>convert</function> method.</li>
 <li>Publishing the target tree: For writing the final
 output to a file or generating a string that can
-be delivered as a response from a &cgi; script, all node classes
+be delivered as a response from a web server, all node classes
 provide a <function>publish</function> method which
 passes the string fragment to a publishing handler.</li>
 </ul>
@@ -55,7 +57,7 @@ passes the string fragment to a publishing handler.</li>
 </dbl:section>
 
 <dbl:section><dbl:title>Constructing &dom; trees</dbl:title>
-<dbl:para>Like any other &dom; &api; &xist; provides the 
+<dbl:para>Like any other &dom; &api;, &xist; provides the 
 usual classes:
 <ul>
 <li><dbl:pyref module="xist.xsc" class="Text">Text</dbl:pyref> for text data</li>
@@ -156,7 +158,7 @@ object.</dbl:para>
 </dbl:section>
 </dbl:section>
 
-<dbl:section><dbl:title>Converting and modifying &dom; trees</dbl:title>
+<dbl:section><dbl:title>Defining new elements, converting and modifying &dom; trees</dbl:title>
 <dbl:para>Now that you have a &dom; tree you may want to convert
 this &dom; tree to a &html; &dom; tree. This can be done with
 the method <pyref module="xist.xsc" class="Node" method="convert">convert</pyref>.</dbl:para>
