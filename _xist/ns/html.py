@@ -109,8 +109,8 @@ class meta(xsc.Element):
 
 	def publish(self, publisher):
 		if self.hasAttr("http-equiv"):
-			ctype = self["http-equiv"].asPlainString()
-			if ctype.lower() == u"content-type" and self.hasAttr("content"):
+			ctype = self["http-equiv"].asPlainString().lower()
+			if ctype == u"content-type" and self.hasAttr("content"):
 				content = self["content"].asPlainString()
 				found = self.__findCharSet()
 				if found is None or publisher.encoding != content[found[0]:found[1]]:

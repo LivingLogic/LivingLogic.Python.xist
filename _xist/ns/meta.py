@@ -122,4 +122,22 @@ class made(html.link):
 		e["href"] = ("mailto:", e["href"])
 		return e.convert(converter)
 
+class author(xsc.Element):
+	"""
+	<par noindent>can be used to embed author information in the header.
+	It will generate &lt;link rel="made"/&gt; and &lt;meta name="author"/&gt; elements.</par>
+	"""
+	empty = 1
+	attrHandlers = {"lang": xsc.TextAttr, "name": xsc.TextAttr, "email": xsc.TextAttr}
+
+	def convert(self, converter=None):
+		e = xsc.Frag()
+		if self.hasAttr("name")
+			e.append(html.meta(name="author", content=self["name"]))
+			if self.hasAttr("lang"):
+				e[-1]["lang"] = self["lang"]
+		if self.hasAttr("email")
+			e.append(html.link(rel="made", href=("mailto:", self["email"])))
+		return e.convert(converter)
+
 namespace = xsc.Namespace("meta", "http://www.livinglogic.de/DTDs/meta.dtd", vars())
