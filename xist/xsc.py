@@ -2047,7 +2047,7 @@ class XSC:
 							node.append(CharRef(int(text[2:i])))
 					else:
 						try:
-							node.append(self.entityFromName[text[1:i]])
+							node.append(self.entityFromName(text[1:i]))
 						except KeyError:
 							raise UnknownEntityError(self.__here(),text[1:i])
 					text = text[i+1:]
