@@ -586,7 +586,7 @@ class Node:
 			s = string.replace(s,decimal,".")
 		return float(s)
 
-	def publish(self,publisher,XHTML = None,encoding = None):
+	def publish(self,publisher,encoding = None,XHTML = None):
 		"""
 		<par noindent>generates string suitable for writing
 		to an HTML file or printing from a CGI script. The pieces
@@ -604,11 +604,13 @@ class Node:
 		outputXHTML will be used, which defaults to 1, but can be overwritten
 		by the environment variable XSC_OUTPUT_XHTML and can of course be
 		changed dynamically.</par>
+
+		<par><argref>encoding</argref> specifies the encoding to be used.</par>
 		"""
 		return ""
 
 
-	def asString(self,XHTML = None,encoding = None):
+	def asString(self,encoding = None,XHTML = None):
 		"""
 		<par noindent>returns this element as a string suitable for writing
 		to an HTML file or printing from a CGI script.</par>
@@ -616,7 +618,7 @@ class Node:
 		<par>For the rest of the parameters see <funcref>publish</funcref>.</par>
 		"""
 		publisher = StringPublisher()
-		self.publish(publisher,XHTML,encoding)
+		self.publish(publisher,encoding,XHTML)
 		return str(publisher)
 
 	def find(self,type = None,subtype = 0,attrs = None,test = None,searchchildren = 0,searchattrs = 0):
@@ -792,7 +794,7 @@ class Text(Node):
 	def asPlainString(self):
 		return self.content
 
-	def publish(self,publisher,XHTML = None,encoding = None):
+	def publish(self,publisher,encoding = None,XHTML = None):
 		publisher(self._encode(self.content,encoding,2))
 
 	def __strtext(self,refwhite,content,ansi = None):
@@ -863,9 +865,6 @@ class CharRef(Node):
 	ASCII code of the character.
 	"""
 
-	__notdirect = { ord("&") : "amp" , ord("<") : "lt" , ord(">") : "gt", ord('"') : "quot" , ord("'") : "apos" }
-	__linefeeds = [ ord("\r") , ord("\n") ]
-
 	def __init__(self,content = 42):
 		self.content = content
 
@@ -877,15 +876,8 @@ class CharRef(Node):
 	def asPlainString(self):
 		return chr(self.content)
 
-	def publish(self,publisher,XHTML = None,encoding = None):
-		if 0<=self.content<=127:
-			if self.content != ord("\r"):
-				if self.__notdirect.has_key(self.content):
-					publisher('&' + self.__notdirect[self.content] + ';')
-				else:
-					publisher(chr(self.content))
-		else:
-			publisher('&#' + str(self.content) + ';')
+	def publish(self,publisher,encoding = None,XHTML = None):
+		publisher(self._encode(chr(self.content),encoding,2)
 
 	def __strcharref(self,s,ansi = None):
 		return strCharRef(s,ansi)
@@ -961,9 +953,9 @@ class Frag(Node):
 			v.append(child.asPlainString())
 		return string.join(v,"")
 
-	def publish(self,publisher,XHTML = None,encoding = None):
+	def publish(self,publisher,encoding = None,XHTML = None):
 		for child in self:
-			child.publish(publisher,XHTML,encoding)
+			child.publish(publisher,encoding,XHTML)
 
 	def __getitem__(self,index):
 		"""
@@ -1105,7 +1097,7 @@ class Comment(Node):
 		tail = strCommentMarker(ansi) + strBracketClose(ansi)
 		return self._doreprtreeMultiLine(nest,elementno,head,tail,self.content,strCommentText,0,ansi = ansi)
 
-	def publish(self,publisher,XHTML = None,encoding = None):
+	def publish(self,publisher,encoding = None,XHTML = None):
 		if string.find(self.content,"--")!=-1:
 			raise IllegalCommentError(self.startloc,self)
 		publisher("<!--",self._encode(self.content,encoding,0),"-->")
@@ -1132,8 +1124,8 @@ class DocType(Node):
 	def _doreprtree(self,nest,elementno,ansi = None):
 		return [[nest,self.startloc,elementno,self._dorepr(ansi)]]
 
-	def publish(self,publisher,XHTML = None,encoding = None):
-		publisher("<!DOCTYPE " + self.content + ">")
+	def publish(self,publisher,encoding = None,XHTML = None):
+		publisher("<!DOCTYPE ",self.content,">")
 
 	def compact(self):
 		return self._decorateNode(DocType(self.content))
@@ -1199,7 +1191,7 @@ class ProcInst(Node):
 		tail = strQuestion(ansi) + strBracketClose(ansi)
 		return self._doreprtreeMultiLine(nest,elementno,head,tail,self.content,strProcInstData,1,ansi = ansi)
 
-	def publish(self,publisher,XHTML = None,encoding = None):
+	def publish(self,publisher,encoding = None,XHTML = None):
 		publisher("<?",self.target," ",self.content,"?>")
 
 	def compact(self):
@@ -1324,7 +1316,7 @@ class Element(Node):
 				v.append([nest,self.endloc,elementno,self._str(brackets = 1,slash = -1,ansi = ansi)])
 		return v
 
-	def _publishWithImageSize(self,publisher,XHTML = None,encoding = None,imgattr = None,widthattr = None,heightattr = None):
+	def _publishWithImageSize(self,publisher,encoding = None,XHTML = None,imgattr = None,widthattr = None,heightattr = None):
 		"""
 		<par noindent>generates a string representing the element and adds width and height
 		attributes in the process. The URL for the image is fetched for the attribute named
@@ -1359,7 +1351,7 @@ class Element(Node):
 					except:
 						raise ImageSizeFormatError(self,heightattr)
 				else:
-					value.publish(XHTML,encoding)
+					value.publish(publisher,encoding,HTML)
 				publisher('"')
 		if size is not None:
 			if widthattr is not None and not self.hasAttr(widthattr):
@@ -1370,7 +1362,7 @@ class Element(Node):
 			if self.empty:
 				raise EmptyElementWithContentError(self)
 			publisher(">")
-			self.content.publish(publisher,XHTML,encoding)
+			self.content.publish(publisher,encoding,XHTML)
 			publisher("</",self.elementname,">")
 		else:
 			if XHTML is None:
@@ -1387,8 +1379,8 @@ class Element(Node):
 			else:
 				raise ValueError("XHTML must be 0, 1, 2 or None")
 
-	def publish(self,publisher,XHTML = None,encoding = None):
-		return self._publishWithImageSize(publisher,XHTML,encoding)
+	def publish(self,publisher,encoding = None,XHTML = None):
+		return self._publishWithImageSize(publisher,encoding,XHTML)
 
 	def __getitem__(self,index):
 		"""
@@ -1515,7 +1507,7 @@ class Null(Node):
 
 	clone = compact = asHTML
 
-	def publish(self,publisher,XHTML = None,encoding = None):
+	def publish(self,publisher,encoding = None,XHTML = None):
 		pass
 
 	def _dorepr(self,ansi = None):
@@ -1608,8 +1600,8 @@ class URLAttr(Attr):
 	def _dorepr(self,ansi = None):
 		return strURL(self.asString(),ansi = ansi)
 
-	def publisher(self,XHTML = None,encoding = None):
-		Text(self.forOutput().asString()).publish(publisher,XHTML,encoding)
+	def publisher(self,encoding = None,XHTML = None):
+		Text(self.forOutput().asString()).publish(publisher,encoding,XHTML)
 
 	def asHTML(self):
 		node = Attr.asHTML(self)
