@@ -277,7 +277,7 @@ attribute classes (like <class>TextAttr</class>, <class>URLAttr</class> etc.).
 The class name will be the attribute name (and can be overwritten
 with a class attribute <lit>xmlname</lit>. This makes it possible
 to have docstrings for attributes. Furthermore it's possible
-to define attribute default via the class attribute <lit>default</lit>,
+to define an attribute default value via the class attribute <lit>default</lit>,
 allowed values for the attribute via <lit>values</lit>,
 which is a list of allowed values, and whether the attribute is
 required or not via <lit>required</lit>.</item>
