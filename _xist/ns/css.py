@@ -322,7 +322,7 @@ class border_color(prop):
 	<pyref class="border_top_color"><class>border_top_color</class></pyref>,
 	<pyref class="border_right_color"><class>border_right_color</class></pyref>,
 	<pyref class="border_bottom_color"><class>border_bottom_color</class></pyref>,
-	and <pyref class="border_left_color"><class>border_left_color</class></yyref> at the same place
+	and <pyref class="border_left_color"><class>border_left_color</class></pyref> at the same place
 	in the style sheet.</doc:par>
 
 	<doc:par>The <class>border_color</class> property can have from one to four values,
@@ -393,7 +393,7 @@ class border_style(prop):
 	"""
 	<doc:par>The <class>border_style</class> property sets the style of the four borders.
 	It can have from one to four values, and the values are set on the different sides as for
-	<pyref class="border_width"><class>border-width</class>.</doc:par>
+	<pyref class="border_width"><class>border-width</class></pyref>.</doc:par>
 	"""
 	name = "border-style"
 
@@ -429,9 +429,9 @@ class border(prop):
 	"""
 	<doc:par>The <class>border</class> property is a shorthand property for setting the same width,
 	color, and style for all four borders of a box. Unlike the shorthand
-	<pyref class="margin"><class>margin</class></pyref> and <pyref class="padding">padding</class></pyref>
+	<pyref class="margin"><class>margin</class></pyref> and <pyref class="padding"><class>padding</class></pyref>
 	properties, the <class>border</class> property cannot set different values on the four borders.
-	To do so, one or more of the other border properties must be used.</doc:par> 
+	To do so, one or more of the other border properties must be used.</doc:par>
 	"""
 
 class display(prop):
@@ -869,13 +869,14 @@ class quotes(prop):
 	<doc:ulist>
 	<doc:item><lit>none</lit>: The <lit>open-quote</lit> and <lit>close-quote</lit>
 	values of the <pyref class="content"><class>content</class></pyref>
-	property produce no quotations marks.</doc:item> 
+	property produce no quotations marks.</doc:item>
 	<doc:item>an even number of strings: Values for the <lit>open-quote</lit> and <lit>close-quote</lit>
-	values of the <pyref class="content"><class>content</class></pyref> property are taken from this list 
-	of pairs of quotation marks (opening and closing). The first (leftmost) pair represents the 
-	outermost level of quotation, the second pair the first level of embedding, etc. 
-	The user agent must apply the appropriate pair of quotation marks according to the 
-	level of embedding. </doc:par>
+	values of the <pyref class="content"><class>content</class></pyref> property are taken from this list
+	of pairs of quotation marks (opening and closing). The first (leftmost) pair represents the
+	outermost level of quotation, the second pair the first level of embedding, etc.
+	The user agent must apply the appropriate pair of quotation marks according to the
+	level of embedding.</doc:item>
+	</doc:ulist>
 	"""
 
 class counter_reset(prop):
@@ -906,7 +907,7 @@ class marker_offset(prop):
 
 class list_style_type(prop):
 	"""
-	<doc:par>This property specifies appearance of the list item marker if 
+	<doc:par>This property specifies appearance of the list item marker if
 	<pyref class="list_style_image"><class>list_style_image</class></pyref> has the value <lit>none</lit>
 	or if the image pointed to by the URI cannot be displayed. The value <lit>none</lit> specifies no marker,
 	otherwise there are three types of marker: glyphs, numbering systems, and alphabetic systems.</doc:par>
@@ -927,7 +928,7 @@ class list_style_type(prop):
 	(an, ban, gan, ..., he, tan, in, in-an, ...).</doc:item>
 	<doc:item><lit>armenian</lit>: Traditional Armenian numbering.</doc:item>
 	<doc:item><lit>cjk-ideographic</lit>: Plain ideographic numbers.</doc:item>
-	<doc:item><lit>hiragana</lit>: a, i, u, e, o, ka, ki, ...</doc:item> 
+	<doc:item><lit>hiragana</lit>: a, i, u, e, o, ka, ki, ...</doc:item>
 	<doc:item><lit>katakana</lit>: A, I, U, E, O, KA, KI, ...</doc:item>
 	<doc:item><lit>hiragana-iroha</lit>: i, ro, ha, ni, ho, he, to, ...</doc:item>
 	<doc:item><lit>katakana-iroha</lit>: I, RO, HA, NI, HO, HE, TO, ...</doc:item>
@@ -937,9 +938,9 @@ class list_style_type(prop):
 	
 	<doc:ulist>
 	<doc:item><lit>lower-latin</lit> or <lit>lower-alpha</lit>: Lowercase ascii letters
-	(a, b, c, ... z).</doc:item> 
+	(a, b, c, ... z).</doc:item>
 	<doc:item><lit>upper-latin</lit> or <lit>upper-alpha</lit>: Uppercase ascii letters
-	(A, B, C, ... Z).</doc:item> 
+	(A, B, C, ... Z).</doc:item>
 	<doc:item><lit>lower-greek</lit>: Lowercase classical Greek alpha, beta, gamma, ...
 	(&#941;, &#942;, &#943;, ...)</doc:item>
 	</doc:ulist>
@@ -948,193 +949,622 @@ class list_style_type(prop):
 
 class list_style_image(prop):
 	"""
+	<doc:par>This property sets the image that will be used as the list item marker. When the image is available,
+	it will replace the marker set with the <pyref class="list_style_type"><class>list_style_type</class></pyref> marker.</doc:par>
 	"""
 	name = "list-style-image"
 
 class list_style_position(prop):
 	"""
+	<doc:par>This property specifies the position of the marker box in the principal block box. Values have the following meanings:</doc:par>
+
+	<doc:ulist>
+	<doc:item><lit>outside</lit>: The marker box is outside the principal block box. Note. &css;1 did not specify the precise location
+	of the marker box and for reasons of compatibility, &css;2 remains equally ambiguous. For more precise control of marker boxes,
+	please use markers.</doc:item>
+	<doc:item><lit>inside</lit>: The marker box is the first inline box in the principal block box, after which the element's content flows.</doc:item>
+	</doc:ulist>
 	"""
 	name = "list-style-position"
 
 class list_style(prop):
 	"""
+	<doc:par>The <class>list_style</class> property is a shorthand notation for setting the three properties
+	<pyref class="list_style_type"><class>list_style_type</class></pyref>,
+	<pyref class="list_style_image"><class>list_style_image</class></pyref>, and
+	<pyref class="list_style_position"><class>list_style_position</class></pyref> at the same place in the style sheet.</doc:par>
 	"""
 	name = "list-style"
 
 class size(prop):
 	"""
+	<doc:par>This property specifies the size and orientation of a page box.</doc:par>
+
+	<doc:par>The size of a page box may either be <z>absolute</z> (fixed size) or <z>relative</z>
+	(scalable, i.e., fitting available sheet sizes). Relative page boxes allow user agents to scale a document
+	and make optimal use of the target size.</doc:par>
+
+	<doc:par>Three values for the <class>size</class> property create a relative page box:</doc:par>
+
+	<doc:ulist>
+	<doc:item><lit>auto</lit>: The page box will be set to the size and orientation of the target sheet.</doc:item>
+	<doc:item><lit>landscape</lit>: Overrides the target's orientation. The page box is the same size as the target,
+	and the longer sides are horizontal.</doc:item>
+	<doc:item><lit>portrait</lit>: Overrides the target's orientation. The page box is the same size as the target,
+	and the shorter sides are horizontal.</doc:item>
+	</doc:ulist>
+
+	<doc:par>One or two length values for the <class>size</class> property create an absolute page box.
+	If only one length value is specified, it sets both the width and height of the page box (i.e., the box is a square).
+	Since the page box is the initial containing block, percentage values are not allowed for the <class>size</class> property.</doc:par>
+
 	"""
 
 class marks(prop):
 	"""
+	<doc:par>In high-quality printing, marks are often added outside the page box. This property specifies whether cross marks
+	or crop marks or both should be rendered just outside the page box edge.</doc:par>
+
+	<doc:par>Allowed values are <lit>crop</lit>, <lit>cross</lit> (or both), <lit>none</lit> and <lit>inherit</lit>.</doc:par>
+
+	<doc:par>Crop marks indicate where the page should be cut. Cross marks (also known as register marks or registration marks)
+	are used to align sheets.</doc:par>
+
+	<doc:par>Marks are visible only on absolute page boxes (see the <pyref class="size"><class>size</class></pyref> property).
+	In relative page boxes, the page box will be aligned with the target and the marks will be outside the printable area.</doc:par>
+
+	<doc:par>The size, style, and position of cross marks depend on the user agent.</doc:par>
 	"""
 
 class page_break_before(prop):
 	"""
+	<doc:par>Controls whether a page break should occur before the generated box.
+	Values for this property have the following meanings:</doc:par>
+
+	<doc:ulist>
+	<doc:item><lit>auto</lit>: Neither force nor forbid a page break before the generated box.</doc:item>
+	<doc:item><lit>always</lit>: Always force a page break before the generated box.</doc:item>
+	<doc:item><lit>avoid</lit>: Avoid a page break before the generated box.</doc:item>
+	<doc:item><lit>left</lit>: Force one or two page breaks before the generated box
+	so that the next page is formatted as a left page.</doc:item>
+	<doc:item><lit>right</lit>: Force one or two page breaks before the generated box
+	so that the next page is formatted as a right page.</doc:item>
+	</doc:ulist>
+
+	<doc:par>A potential page break location is typically under the influence of the parent element's
+	<pyref class="page_break_inside"><class>page_break_inside</class></pyref> property, the
+	<pyref class="page_break_after"><class>page_break_after</class></pyref> property of the preceding element,
+	and the <class>page_break_before</class> property of the following element.
+	When these properties have values other than <lit>auto</lit>, the values <lit>always</lit>, <lit>left</lit>,
+	and <lit>right</lit> take precedence over <lit>avoid</lit>.</doc:par>
 	"""
 	name = "page-break-before"
 
 class page_break_after(prop):
 	"""
+	<doc:par>Controls whether a page break should occur after the generated box.
+	For allowed values see <pyref class="page_break_before"><class>page_break_before</class></pyref>.</doc:par>
 	"""
 	name = "page-break-after"
 
 class page_break_inside(prop):
 	"""
+	<doc:par>Controls whether a page break should occur inside the generated box.
+	For allowed values see <pyref class="page_break_before"><class>page_break_before</class></pyref>.</doc:par>
 	"""
 	name = "page-break-inside"
 
-class page(prop):
+class atpage(prop):
 	"""
 	"""
 
 class orphans(prop):
 	"""
+	<doc:par>The <class>orphans</class> property specifies the minimum number of lines of a paragraph
+	that must be left at the bottom of a page.</doc:par>
 	"""
 
 class widows(prop):
 	"""
+	<doc:par>The <class>widows</class> property specifies the minimum number of lines of a paragraph
+	that must be left at the top of a page.</doc:par>
 	"""
 
 class color(prop):
 	"""
+	<doc:par>This property describes the foreground color of an element's text content.</doc:par>
 	"""
 
 class background_color(prop):
 	"""
+	<doc:par>This property sets the background color of an element,
+	either a color value or the keyword <lit>transparent</lit>,
+	to make the underlying colors shine through.</doc:par>
 	"""
 	name = "background-color"
 
 class background_image(prop):
 	"""
+	<doc:par>This property sets the background image of an element. When setting a background image,
+	authors should also specify a background color that will be used when the image is unavailable.
+	When the image is available, it is rendered on top of the background color. (Thus, the color
+	is visible in the transparent parts of the image).</doc:par>
+
+	<doc:par>Values for this property are either an URL, to specify the image, or <lit>none</lit>,
+	when no image is used.</doc:par>
 	"""
 	name = "background-image"
 
 class background_repeat(prop):
 	"""
+	<doc:par>If a background image is specified, this property specifies
+	whether the image is repeated (tiled), and how. All tiling covers the content
+	and padding areas of a box. Values have the following meanings:</doc:par>
+
+	<doc:ulist>
+	<doc:item><lit>repeat</lit>: The image is repeated both horizontally and vertically.</doc:item>
+	<doc:item><lit>repeat-x</lit>: The image is repeated horizontally only.</doc:item>
+	<doc:item><lit>repeat-y</lit>: The image is repeated vertically only.</doc:item>
+	<doc:item><lit>no-repeat</lit>: The image is not repeated: only one copy of the image is drawn.</doc:item>
+	</doc:ulist>
 	"""
 	name = "background-repeat"
 
 class background_attachment(prop):
 	"""
+	<doc:par>If a background image is specified, this property specifies
+	whether it is fixed with regard to the viewport (<lit>fixed</lit>)
+	or scrolls along with the document (<lit>scroll</lit>).</doc:par>
+
+	<doc:par>Even if the image is fixed, it is still only visible
+	when it is in the background or padding area of the element.
+	Thus, unless the image is tiled (with
+	<markup>&lt;background-repeat&gt;repeat&lt;/background-repeat&gt;</markup>), it may be invisible.</doc:par>
 	"""
 	name = "background-attachment"
 
 class background_position(prop):
 	"""
+	<doc:par>If a background image has been specified, this property specifies its initial position.
+	Values have the following meanings:</doc:par>
+
+	<doc:ulist>
+	<doc:item><lit><rep>percentage</rep> <rep>percentage</rep></lit>:
+	With a value pair of <lit>0% 0%</lit>, the upper left corner of the image is aligned
+	with the upper left corner of the box's padding edge. A value pair of <lit>100% 100%</lit>
+	places the lower right corner of the image in the lower right corner of padding area.
+	With a value pair of <lit>14% 84%</lit>, the point 14% across and 84% down the image
+	is to be placed at the point 14% across and 84% down the padding area.</doc:item>
+	<doc:item><lit><rep>length</rep> <rep>length</rep></lit>:
+	With a value pair of <lit>2cm 2cm</lit>, the upper left corner of the image is placed
+	2cm to the right and 2cm below the upper left corner of the padding area.</doc:item>
+	<doc:item><lit>top left</lit> and <lit>left top</lit>: Same as <lit>0% 0%</lit>.</doc:item>
+	<doc:item><lit>top</lit>, <lit>top center</lit>, and <lit>center top</lit>: Same as <lit>50% 0%</lit>.</doc:item>
+	<doc:item><lit>right top</lit> and <lit>top right</lit>: Same as <lit>100% 0%</lit>.</doc:item>
+	<doc:item><lit>left</lit>, <lit>left center</lit>, and <lit>center left</lit>: Same as <lit>0% 50%</lit>.</doc:item>
+	<doc:item><lit>center</lit> and <lit>center center</lit>: Same as <lit>50% 50%</lit>.</doc:item>
+	<doc:item><lit>right</lit>, <lit>right center</lit>, and <lit>center right</lit>: Same as <lit>100% 50%</lit>.</doc:item>
+	<doc:item><lit>bottom left</lit> and <lit>left bottom</lit>: Same as <lit>0% 100%</lit>.</doc:item>
+	<doc:item><lit>bottom</lit>, <lit>bottom center</lit>, and <lit>center bottom</lit>: Same as <lit>50% 100%</lit>.</doc:item>
+	<doc:item><lit>bottom right</lit> and <lit>right bottom</lit>: Same as <lit>100% 100%</lit>.</doc:item>
+	</doc:ulist>
+	
+	<doc:par>If only one percentage or length value is given, it sets the horizontal position only,
+	the vertical position will be <lit>50%</lit>. If two values are given, the horizontal position comes first.
+	Combinations of length and percentage values are allowed, (e.g., <lit>50% 2cm</lit>). Negative positions are allowed.
+	Keywords cannot be combined with percentage values or length values (all possible combinations are given above).</doc:par>
+
+	<doc:par>If the background image is fixed within the viewport (see the
+	<pyref class="background_attachment"><class>background_attachment</class></pyref> property), the image is placed
+	relative to the viewport instead of the element's padding area.</doc:par>
 	"""
 	name = "background-position"
 
 class background(prop):
 	"""
+	<doc:par>The <class>background</class> property is a shorthand property for setting the individual background properties
+	(i.e.,
+	<pyref class="background_color"><class>background_color</class></pyref>,
+	<pyref class="background_image"><class>background_image</class></pyref>,
+	<pyref class="background_repeat"><class>background_repeat</class></pyref>,
+	<pyref class="background_attachment"><class>background_attachment</class></pyref> and
+	<pyref class="background_position"><class>background_position</class></pyref>
+	(in this order)) at the same place in the style sheet.</doc:par>
+
+	<doc:par>The <class>background</class> property first sets all the individual background properties
+	to their initial values, then assigns explicit values given in the declaration.</doc:par>
 	"""
 
 class font_family(prop):
 	"""
+	<doc:par>This property specifies a prioritized list of font family names and/or generic family names.
+	To deal with the problem that a single font may not contain glyphs to display all the characters in a document,
+	or that not all fonts are available on all systems, this property allows authors to specify a list of fonts,
+	all of the same style and size, that are tried in sequence to see if they contain a glyph for a certain character.
+	This list is called a font set.</doc:par>
+
+	<doc:par>The generic font family will be used if one or more of the other fonts in a font set is unavailable.
+	Although many fonts provide the <z>missing character</z> glyph, typically an open box, as its name implies
+	this should not be considered a match except for the last font in a font set.</doc:par>
+
+	<doc:par>There are two types of font family names:</doc:par>
+
+	<doc:ulist>
+	<doc:item><lit><rep>family-name</rep></lit>: The name of a font family of choice.
+	For example <lit>Baskerville</lit>, <lit>Heisi Mincho W3</lit> and <lit>Symbol</lit> are font families.
+	Font family names containing whitespace should be quoted. If quoting is omitted, any whitespace characters
+	before and after the font name are ignored and any sequence of whitespace characters inside the font name
+	is converted to a single space.</doc:item>
+	<doc:item><lit><rep>generic-family</rep></lit>: The following generic families are defined:
+	<lit>serif</lit>, <lit>sans-serif</lit>, <lit>cursive</lit>, <lit>fantasy</lit>, and <lit>monospace</lit>.
+	Generic font family names are keywords, and therefore must not be quoted.</doc:item>
+	</doc:ulist>
+	
+	<doc:par>Authors are encouraged to offer a generic font family as a last alternative, for improved robustness.</doc:par>
 	"""
 	name = "font-family"
 
 class font_style(prop):
 	"""
+	<doc:par>The <class>font_style</class> property requests normal (sometimes referred to as <z>roman</z> or <z>upright</z>),
+	italic, and oblique faces within a font family. Values have the following meanings:</doc:par>
+
+	<doc:ulist>
+	<doc:item><lit>normal</lit>: Specifies a font that is classified as <z>normal</z> in the UA's font database.</doc:item>
+	<doc:item><lit>oblique</lit>: Specifies a font that is classified as <z>oblique</z> in the UA's font database.
+	Fonts with Oblique, Slanted, or Incline in their names will typically be labeled <z>oblique</z> in the font database.
+	A font that is labeled <z>oblique</z> in the UA's font database may actually have been generated
+	by electronically slanting a normal font.</doc:item>
+	<doc:item><lit>italic</lit>: Specifies a font that is classified as <z>italic</z> in the UA's font database, or,
+	if that is not available, one labeled <z>oblique</z>. Fonts with Italic, Cursive, or Kursiv
+	in their names will typically be labeled <z>italic</z>.</doc:item>
+	</doc:ulist>
 	"""
 	name = "font-style"
 
 class font_variant(prop):
 	"""
+	<doc:par>In a small-caps font, the glyphs for lowercase letters look similar to the uppercase ones,
+	but in a smaller size and with slightly different proportions. The <class>font_variant</class> property
+	requests such a font for bicameral (having two cases, as with Latin script). This property has no visible effect
+	for scripts that are unicameral (having only one case, as with most of the world's writing systems).
+	Values have the following meanings:</doc:par>
+
+	<doc:ulist>
+	<doc:item><lit>normal</lit>: Specifies a font that is not labeled as a small-caps font.</doc:item>
+	<doc:item><lit>small-caps</lit>: Specifies a font that is labeled as a small-caps font.
+	If a genuine small-caps font is not available, user agents should simulate a small-caps font,
+	for example by taking a normal font and replacing the lowercase letters by scaled uppercase characters.
+	As a last resort, unscaled uppercase letter glyphs in a normal font may replace glyphs in a small-caps font
+	so that the text appears in all uppercase letters.</doc:item>
+	</doc:ulist>
 	"""
 	name = "font-variant"
 
 class font_weight(prop):
 	"""
+	<doc:par>The <class>font_weight</class> property specifies the weight of the font.
+	Values have the following meanings:</doc:par>
+
+	<doc:ulist>
+	<doc:item><lit>100</lit> to <lit>900</lit>: These values form an ordered sequence,
+	where each number indicates a weight that is at least as dark as its predecessor.</doc:item>
+	<doc:item><lit>normal</lit>: Same as <lit>400</lit>.</doc:item>
+	<doc:item><lit>bold</lit>: Same as <lit>700</lit>.</doc:item>
+	<doc:item><lit>bolder</lit>: Specifies the next weight that is assigned to a font that is darker than the inherited one.
+	If there is no such weight, it simply results in the next darker numerical value (and the font remains unchanged),
+	unless the inherited value was <lit>900</lit>, in which case the resulting weight is also <lit>900</lit>.</doc:item>
+	<doc:item><lit>lighter</lit>: Specifies the next weight that is assigned to a font that is lighter
+	than the inherited one. If there is no such weight, it simply results in the next lighter numerical value
+	(and the font remains unchanged), unless the inherited value was <lit>100</lit>,
+	in which case the resulting weight is also <lit>100</lit>.</doc:item>
+	</doc:ulist>
+
+	<doc:par>Child elements inherit the computed value of the weight.</doc:par>
 	"""
 	name = "font-weight"
 
 class font_stretch(prop):
 	"""
+	<doc:par>The <class>font_stretch</class> property selects a normal, condensed, or extended face from a font family.
+	Absolute keyword values have the following ordering, from narrowest to widest:</doc:par>
+
+	<doc:olist>
+	<doc:item><lit>ultra-condensed</lit></doc:item>
+	<doc:item><lit>extra-condensed</lit></doc:item>
+	<doc:item><lit>condensed</lit></doc:item>
+	<doc:item><lit>semi-condensed</lit></doc:item>
+	<doc:item><lit>normal</lit></doc:item>
+	<doc:item><lit>semi-expanded</lit></doc:item>
+	<doc:item><lit>expanded</lit></doc:item>
+	<doc:item><lit>extra-expanded</lit></doc:item>
+	<doc:item><lit>ultra-expanded</lit></doc:item>
+	</doc:olist>
+	
+	<doc:par>The relative keyword <lit>wider</lit> sets the value to the next expanded value
+	above the inherited value (while not increasing it above <lit>ultra-expanded</lit>); the relative keyword
+	<lit>narrower</lit> sets the value to the next condensed value below the inherited value
+	(while not decreasing it below <lit>ultra-condensed</lit>).</doc:par>
 	"""
 	name = "font-stretch"
 
 class font_size(prop):
 	"""
+	<doc:par>This property describes the size of the font when set solid. Values have the following meanings:</doc:par>
+
+	<doc:ulist>
+	<doc:item><doc:par><lit><rep>absolute-size</rep></lit>: An <lit><rep>absolute-size</rep></lit> keyword refers to an entry
+	in a table of font sizes computed and kept by the user agent. Possible values are:
+	<lit>xx-small</lit>, <lit>x-small</lit>, <lit>small</lit>, <lit>medium</lit>,
+	<lit>large</lit>, <lit>x-large</lit> and <lit>xx-large</lit>.</doc:par>
+
+	<doc:par>On a computer screen a scaling factor of 1.2 is suggested between adjacent indexes;
+	if the <lit>medium</lit> font is 12pt, the <lit>large</lit> font could be 14.4pt. Different media may need different scaling factors.
+	Also, the user agent should take the quality and availability of fonts into account when computing the table.
+	The table may be different from one font family to another.</doc:par></doc:item>
+
+	<doc:item><doc:par><lit><rep>relative-size</rep></lit>: A <lit><rep>relative-size</rep></lit> keyword
+	is interpreted relative to the table of font sizes and the font size of the parent element. Possible values are
+	<lit>larger</lit> and <lit>smaller</lit>.</doc:par>
+
+	<doc:par>For example, if the parent element has a font size of <lit>medium</lit>, a value of <lit>larger</lit>
+	will make the font size of the current element be <lit>large</lit>. If the parent element's size is not close
+	to a table entry, the user agent is free to interpolate between table entries or round off to the closest one.
+	The user agent may have to extrapolate table values if the numerical value goes beyond the keywords.</doc:par></doc:item>
+
+	<doc:item><lit><rep>length</rep></lit>: A length value specifies an absolute font size
+	(that is independent of the user agent's font table). Negative lengths are illegal.</doc:item>
+
+	<doc:item><lit><rep>percentage</rep></lit>: A percentage value specifies an absolute font size relative
+	to the parent element's font size. Use of percentage values, or values in <lit>em</lit>s,
+	leads to more robust and cascadable style sheets.</doc:item>
+	</doc:ulist>
 	"""
 	name = "font-size"
 
 class font_size_adjust(prop):
 	"""
+	<doc:par>In bicameral scripts, the subjective apparent size and legibility of a font
+	are less dependent on their <pyref class="font_size"><class>font_size</class></pyref> value
+	than on the value of their <z>x-height</z>, or, more usefully, on the ratio of these two values,
+	called the <z>aspect value</z> (font size divided by x-height). The higher the aspect value,
+	the more likely it is that a font at smaller sizes will be legible. Inversely, faces with a lower aspect value
+	will become illegible more rapidly below a given threshold size than faces with a higher aspect value.
+	Straightforward font substitution that relies on font size alone may lead to illegible characters.</doc:par>
+
+	<doc:par>For example, the popular font Verdana has an aspect value of 0.58; when Verdana's font size 100 units,
+	its x-height is 58 units. For comparison, Times New Roman has an aspect value of 0.46. Verdana will therefore
+	tend to remain legible at smaller sizes than Times New Roman. Conversely, Verdana will often look <z>too big</z> if substituted
+	for Times New Roman at a chosen size.</doc:par>
+
+	<doc:par>This property allows authors to specify an aspect value for an element that will preserve the x-height of the first choice font
+	in the substitute font. Values have the following meanings:</doc:par>
+
+	<doc:ulist>
+	<doc:item><lit>none</lit>: Do not preserve the font's x-height.</doc:item>
+	<doc:item><lit><rep>number</rep></lit>: Specifies the aspect value.
+	The number refers to the aspect value of the first choice font.</doc:item>
+	</doc:ulist>
 	"""
 	name = "font-size-adjust"
 
 class font(prop):
 	"""
+	<doc:par>The <class>font</class> property is <z>almost</z> a shorthand property for setting
+	<pyref class="font_style"><class>font_style</class></pyref>,
+	<pyref class="font_variant"><class>font_variant</class></pyref>,
+	<pyref class="font_weight"><class>font_weight</class></pyref>,
+	<pyref class="font_size"><class>font_size</class></pyref>,
+	<pyref class="line_height"><class>line_height</class></pyref>,
+	and <pyref class="font_family"><class>font_family</class></pyref>,
+	at the same place in the style sheet. The syntax of this property is based on a traditional typographical shorthand notation
+	to set multiple properties related to fonts.</doc:par>
+
+	<doc:par>For more info see the <a href="http://www.w3.org/TR/REC-CSS2/fonts.html#font-shorthand">relevant part of the &css;2 spec</a>.</doc:par>
 	"""
+
+class atfontface(xsc.Element):
+	"""
+	<doc:par>A &css;2 font descriptor.</doc:par>
+	"""
+	empty = 0
+
+	def publish(self, publisher):
+		publisher.publish(u"@font-face\n{\n")
+		self.content.publish(publisher)
+		publisher.publish(u"\n}")
 
 class text_indent(prop):
 	"""
+	<doc:par>This property specifies the indentation of the first line of text in a block.
+	More precisely, it specifies the indentation of the first box that flows into the block's first line box.
+	The box is indented with respect to the left (or right, for right-to-left layout) edge of the line box.
+	User agents should render this indentation as blank space.</doc:par>
+
+	<doc:par>Values have the following meanings:</doc:par>
+
+	<doc:ulist>
+	<doc:item><lit><rep>length</rep></lit>: The indentation is a fixed length.</doc:item>
+	<doc:item><lit><rep>percentage</rep></lit>: The indentation is a percentage of the containing block width.</doc:item>
+	</doc:ulist>
+	
+	<doc:par>The value of <class>text_indent</class> may be negative,
+	but there may be implementation-specific limits.</doc:par>
 	"""
 	name = "text-indent"
 
 class text_align(prop):
 	"""
+	<doc:par>This property describes how inline content of a block is aligned. Values have the following meanings:</doc:par>
+
+	<doc:ulist>
+	<doc:item><lit>left</lit>, <lit>right</lit>, <lit>center</lit>, and <lit>justify</lit>:
+	Left, right, center, and double justify text, respectively.</doc:item>
+	<doc:item><lit><rep>string</rep></lit>: Specifies a string on which cells in a table column will align.
+	This value applies only to table cells. If set on other elements, it will be treated as <lit>left</lit> or <lit>right</lit>,
+	depending on whether <pyref class="direction"><class>direction</class></pyref> is <lit>ltr</lit>, or <lit>rtl</lit>, respectively.</doc:item>
+	</doc:ulist>
 	"""
 	name = "text-align"
 
 class text_decoration(prop):
 	"""
+	<doc:par>This property describes decorations that are added to the text of an element.
+	If the property is specified for a block-level element, it affects all inline-level descendants of the element.
+	If it is specified for (or affects) an inline-level element, it affects all boxes generated by the element.
+	If the element has no content or no text content (e.g., the <pyref module="xist.ns.html" class="img"><class>img</class></pyref>
+	element in <pyref module="xist.ns.html">&html;</pyref>), user agents must ignore this property.</doc:par>
+
+	<doc:par>Values have the following meanings:</doc:par>
+
+	<doc:ulist>
+	<doc:item><lit>none</lit>: Produces no text decoration.</doc:item>
+	<doc:item><lit>underline</lit>: Each line of text is underlined.</doc:item>
+	<doc:item><lit>overline</lit>: Each line of text has a line above it.</doc:item>
+	<doc:item><lit>line-through</lit>: Each line of text has a line through the middle.</doc:item>
+	<doc:item><lit>blink</lit>: Text blinks (alternates between visible and invisible).
+	Conforming user agents are not required to support this value.</doc:item>
+	</doc:ulist>
 	"""
 	name = "text-decoration"
 
 class text_shadow(prop):
 	"""
+	<doc:par>This property accepts a comma-separated list of shadow effects to be applied to the text of the element.
+	The shadow effects are applied in the order specified and may thus overlay each other, but they will never overlay
+	the text itself. Shadow effects do not alter the size of a box, but may extend beyond its boundaries.
+	The stack level of the shadow effects is the same as for the element itself.</doc:par>
+
+	<doc:par>Each shadow effect must specify a shadow offset and may optionally specify a blur radius and a shadow color.</doc:par>
+
+	<doc:par>For more info see the <a href="http://www.w3.org/TR/REC-CSS2/text.html#text-shadow-props">relevant part of the &css;2 spec</a>.</doc:par>
 	"""
 	name = "text-shadow"
 
 class letter_spacing(prop):
 	"""
+	<doc:par>This property specifies spacing behavior between text characters. Values have the following meanings:</doc:par>
+
+	<doc:ulist>
+	<doc:item><lit>normal</lit>: The spacing is the normal spacing for the current font. This value allows the user agent
+	to alter the space between characters in order to justify text.</doc:item>
+	<doc:item><lit><rep>length</rep></lit>: This value indicates inter-character space in addition
+	to the default space between characters. Values may be negative, but there may be implementation-specific limits.
+	User agents may not further increase or decrease the inter-character space in order to justify text.</doc:item>
+	</doc:ulist>
 	"""
 	name = "letter-spacing"
 
 class word_spacing(prop):
 	"""
+	<doc:par>This property specifies spacing behavior between words. Values have the following meanings:</doc:par>
+
+	<doc:ulist>
+	<doc:item><lit>normal</lit>: The normal inter-word space, as defined by the current font and/or the UA.</doc:item>
+	<doc:item><lit><rep>length</rep></lit>: This value indicates inter-word space in addition to the default space between words.
+	Values may be negative, but there may be implementation-specific limits.</doc:item>
+	</doc:ulist>
 	"""
 	name = "word-spacing"
 
 class text_transform(prop):
 	"""
+	<doc:par>This property controls capitalization effects of an element's text. Values have the following meanings:</doc:par>
+
+	<doc:ulist>
+	<doc:item><lit>capitalize</lit>: Puts the first character of each word in uppercase.</doc:item>
+	<doc:item><lit>uppercase</lit>: Puts all characters of each word in uppercase.</doc:item>
+	<doc:item><lit>lowercase</lit>: Puts all characters of each word in lowercase.</doc:item>
+	<doc:item><lit>none</lit>: No capitalization effects.</doc:item>
+	</doc:ulist>
 	"""
 	name = "text-transform"
 
 class white_space(prop):
 	"""
+	<doc:par>This property declares how whitespace inside the element is handled. Values have the following meanings:</doc:par>
+
+	<doc:ulist>
+	<doc:item><lit>normal</lit>: This value directs user agents to collapse sequences of whitespace,
+	and break lines as necessary to fill line boxes. Additional line breaks may be created by occurrences of
+	<z>\A</z> in generated content (e.g., for the <pyref module="xist.ns.html" class="br"><class>br</class></pyref> element
+	in <pyref module="xist.ns.html">&html;</pyref>).</doc:item>
+
+	<doc:item><lit>pre</lit>: This value prevents user agents from collapsing sequences of whitespace.
+	Lines are only broken at newlines in the source, or at occurrences of <z>\A</z> in generated content.</doc:item>
+	<doc:item><lit>nowrap</lit>: This value collapses whitespace as for <lit>normal</lit>, but suppresses line breaks within text
+	except for those created by <z>\A</z> in generated content (e.g., for the <pyref module="xist.ns.html" class="br"><class>br</class></pyref> element
+	in <pyref module="xist.ns.html">&html;</pyref>).</doc:item>
+	</doc:ulist>
 	"""
 	name = "white-space"
 
 class caption_side(prop):
 	"""
+	<doc:par>This property specifies the position of the caption box with respect to the table box.
+	Values have the following meanings:</doc:par>
+
+	<doc:ulist>
+	<doc:item><lit>top</lit>: Positions the caption box above the table box.</doc:item>
+	<doc:item><lit>bottom</lit>: Positions the caption box below the table box.</doc:item>
+	<doc:item><lit>left</lit>: Positions the caption box to the left of the table box.</doc:item>
+	<doc:item><lit>right</lit>: Positions the caption box to the right of the table box.</doc:item>
+	</doc:ulist>
 	"""
 	name = "caption-side"
 
 class table_layout(prop):
 	"""
+	<doc:par>The <class>table_layout</class> property controls the algorithm used to lay out
+	the table cells, rows, and columns. Values have the following meaning:</doc:par>
+
+	<doc:ulist>
+	<doc:item><lit>fixed</lit>: Use the fixed table layout algorithm</doc:item>
+	<doc:item><lit>auto</lit>: Use any automatic table layout algorithm</doc:item>
+	</doc:ulist>
+
+	<doc:par>For more info see the <a href="http://www.w3.org/TR/REC-CSS2/tables.html#width-layout">relevant part of the &css;2 spec</a>.</doc:par>
 	"""
 	name = "table-layout"
 
 class border_collapse(prop):
 	"""
+	<doc:par>This property selects a table's border model.
+	The value <lit>separate</lit> selects the separated borders border model.
+	The value <lit>collapse</lit> selects the collapsing borders model.</doc:par>
+
+	<doc:par>For more info see the <a href="http://www.w3.org/TR/REC-CSS2/tables.html#borders">relevant part of the &css;2 spec</a>.</doc:par>
 	"""
 	name = "border-collapse"
 
 class border_spacing(prop):
 	"""
+	<doc:par>The lengths specify the distance that separates adjacent cell borders in a table.
+	If one length is specified, it gives both the horizontal and vertical spacing. If two are specified,
+	the first gives the horizontal spacing and the second the vertical spacing. Lengths may not be negative.</doc:par>
+
+	<doc:par>For more info see the <a href="http://www.w3.org/TR/REC-CSS2/tables.html#separated-borders">relevant part of the &css;2 spec</a>.</doc:par>
 	"""
 	name = "border-spacing"
 
 class empty_cells(prop):
 	"""
+	<doc:par>In the separated borders model, this property controls the rendering of borders around cells in a table that have no visible content.</doc:par>
+
+	<doc:par>For more info see the <a href="http://www.w3.org/TR/REC-CSS2/tables.html#separated-borders">relevant part of the &css;2 spec</a>.</doc:par>
 	"""
 	name = "empty-cells"
 
 class speak_header(prop):
 	"""
+	<doc:par>This property specifies whether table headers are spoken before every cell,
+	or only before a cell when that cell is associated with a different header than the previous cell.
+	Values have the following meanings:</doc:par>
+
+	<doc:ulist>
+	<doc:item><lit>once</lit>: The header is spoken one time, before a series of cells.</doc:item>
+	<doc:item><lit>always</lit>: The header is spoken before every pertinent cell.</doc:item>
+	</doc:ulist>
 	"""
 	name = "speak-header"
 
@@ -1163,62 +1593,182 @@ class cursor(prop):
 
 class outline(prop):
 	"""
+	<doc:par>At times, style sheet authors may want to create outlines around visual objects
+	such as buttons, active form fields, image maps, etc., to make them stand out.
+	&css;2 outlines differ from borders in the following ways:</doc:par>
+
+	<doc:olist>
+	<doc:item>Outlines do not take up space.</doc:item>
+	<doc:item>Outlines may be non-rectangular.</doc:item>
+	</doc:olist>
+
+	<doc:par>The <class>outline</class> property is a shorthand property, and sets all three of
+	<pyref class="outline_style"><class>outline_style</class></pyref>,
+	<pyref class="outline_width"><class>outline_width</class></pyref>,
+	and <pyref class="outline_colro"><class>outline_color</class></pyref>.</doc:par>
+
+	<doc:par>For more info see the <a href="http://www.w3.org/TR/REC-CSS2/ui.html#dynamic-outlines">relevant part of the &css;2 spec</a>.</doc:par>
 	"""
 
 class outline_width(prop):
 	"""
+	<doc:par>Specifies the width of the outline. Allowed values
+	are the same as for <pyref class="border_width"><class>border_width</class></pyref>.</doc:par>
 	"""
 	name = "outline-width"
 
 class outline_style(prop):
 	"""
+	<doc:par>Specifies the style of the outline. Allowed values
+	are the same as for <pyref class="border_style"><class>border_style</class></pyref> except that
+	<lit>hidden</lit> is not allowed.</doc:par>
 	"""
 	name = "outline-style"
 
 class outline_color(prop):
 	"""
+	<doc:par>Specifies the color of the outline. Allowed values
+	are the same as for <pyref class="border_color"><class>border_color</class></pyref> and the
+	special keyword <lit>invert</lit>.</doc:par>
 	"""
 	name = "outline-color"
 
 class volume(prop):
 	"""
+	<doc:par>Volume refers to the median volume of the waveform. In other words, a highly inflected voice
+	at a volume of 50 might peak well above that. The overall values are likely to be human adjustable for comfort,
+	for example with a physical volume control (which would increase both the 0 and 100 values proportionately);
+	what this property does is adjust the dynamic range.</doc:par>
+
+	<doc:par>Values have the following meanings:</doc:par>
+
+	<doc:ulist>
+	<doc:item><lit><rep>number</rep></lit>: Any number between <lit>0</lit> and <lit>100</lit>.
+	<lit>0</lit> represents the minimum audible volume level and <lit>100</lit> corresponds to the maximum comfortable level.</doc:item>
+	<doc:item><lit><rep>percentage</rep></lit>: Percentage values are calculated relative to the inherited value,
+	and are then clipped to the range <lit>0</lit> to <lit>100</lit>.</doc:item>
+	<doc:item><lit>silent</lit>: No sound at all. The value <lit>0</lit> does not mean the same as <lit>silent</lit>.</doc:item>
+	<doc:item><lit>x-soft</lit>: Same as <lit>0</lit>.</doc:item>
+	<doc:item><lit>soft</lit>: Same as <lit>25</lit>.</doc:item>
+	<doc:item><lit>medium</lit>: Same as <lit>50</lit>.</doc:item>
+	<doc:item><lit>loud</lit>: Same as <lit>75</lit>.</doc:item>
+	<doc:item><lit>x-loud</lit>: Same as <lit>100</lit>.</doc:item>
+	</doc:ulist>
 	"""
 
 class speak(prop):
 	"""
+	<doc:par>This property specifies whether text will be rendered aurally and if so,
+	in what manner (somewhat analogous to the <pyref class="display"><class>display</class></pyref> property).
+	The possible values are:</doc:par>
+
+	<doc:ulist>
+	<doc:item><lit>none</lit>: Suppresses aural rendering so that the element requires no time to render.
+	Note, however, that descendants may override this value and will be spoken.
+	(To be sure to suppress rendering of an element and its descendants,
+	use the <pyref class="display"><class>display</class></pyref> property).</doc:item>
+	<doc:item><lit>normal</lit>: Uses language-dependent pronunciation rules for rendering an element and its children.</doc:item>
+	<doc:item><lit>spell-out</lit>: Spells the text one letter at a time (useful for acronyms and abbreviations).</doc:item>
+	</doc:ulist>
+
+	<doc:par>Note the difference between an element whose <pyref class="volume"><class>volume</class></pyref> property
+	has a value of <lit>silent</lit> and an element whose <class>speak</class> property has the value <lit>none</lit>.
+	The former takes up the same time as if it had been spoken, including any pause before and after the element,
+	but no sound is generated. The latter requires no time and is not rendered (though its descendants may be).</doc:par>
 	"""
 
 class pause_before(prop):
 	"""
+	<doc:par>These property specify a pause to be observed before speaking an element's content.
+	Values have the following meanings:</doc:par>
+
+	<doc:ulist>
+	<doc:item><lit><rep>time</rep></lit>: Expresses the pause in absolute time units (seconds and milliseconds).</doc:item>
+	<doc:item><lit><rep>percentage</rep></lit>: Refers to the inverse of the value
+	of the <pyref class="speech_rate"><class>speech_rate</class></pyref> property. For example,
+	if the speech-rate is 120 words per minute (i.e., a word takes half a second, or 500ms) then a
+	<class>pause-before</class> of <lit>100%</lit> means a pause of 500 ms and a
+	<class>pause_before</class> of <lit>20%</lit> means 100ms.</doc:item>
+	</doc:ulist>
+
+	<doc:par>The pause is inserted between the element's content and any
+	<pyref class="cue_before"><class>cue_before</class></pyref> content.</doc:par>
+
+	<doc:par>Authors should use relative units to create more robust style sheets in the face of large changes in speech-rate.</doc:par>
 	"""
 	name = "pause-before"
 
 class pause_after(prop):
 	"""
+	<doc:par>These property specify a pause to be observed after speaking an element's content.
+	For allowed values see <pyref class="pause_before"><class>pause_before</class></pyref>.</doc:par>
 	"""
 	name = "pause-after"
 
 class pause(prop):
 	"""
+	<doc:par>The <class>pause</class> property is a shorthand for setting
+	<pyref class="pause_before"><class>pause_before</class></pyref> and
+	<pyref class="pause_after"><class>pause_after</class></pyref>.
+	If two values are given, the first value is <pyref class="pause_before"><class>pause_before</class></pyref>
+	and the second is <pyref class="pause_after"><class>pause_after</class></pyref>.
+	If only one value is given, it applies to both properties.</doc:par>
 	"""
 
 class cue_before(prop):
 	"""
+	<doc:par>Auditory icons are another way to distinguish semantic elements.
+	Sounds may be played before the element to delimit it with <class>cue_before</class>.
+	Values have the following meanings:</doc:par>
+
+	<doc:ulist>
+	<doc:item><lit><rep>uri</rep></lit>: The URI must designate an auditory icon resource.
+	If the URI resolves to something other than an audio file, such as an image, the resource
+	should be ignored and the property treated as if it had the value <lit>none</lit>.</doc:item>
+	<doc:item><lit>none</lit>: No auditory icon is specified.</doc:item>
+	</doc:ulist>
 	"""
 	name = "cue-before"
 
 class cue_after(prop):
 	"""
+	<doc:par>A sound may be played after the element to delimit it with <class>cue_after</class>.
+	For allowed values see <pyref class="cue_before"><class>cue_before</class></pyref></doc:par>
 	"""
 	name = "cue-after"
 
 class cue(prop):
 	"""
+	<doc:par>The <class>cue</class> property is a shorthand for setting
+	<pyref class="cue_before"><class>cue_before</class></pyref> and
+	<pyref class="cue_after"><class>cue_after</class></pyref>.
+	If two values are given, the first value is <pyref class="cue_before"><class>cue_before</class></pyref>
+	and the second is <pyref class="cue_after"><class>cue_after</class></pyref>.
+	If only one value is given, it applies to both properties.</doc:par>
 	"""
 	name = "cue"
 
 class play_during(prop):
 	"""
+	<doc:par>Similar to the <pyref class="cue_before"><class>cue_before</class></pyref> and
+	<pyref class="cue_after"><class>cue_after</class></pyref> properties, this property specifies a sound
+	to be played as a background while an element's content is spoken. Values have the following meanings:</doc:par>
+
+	<doc:ulist>
+	<doc:item><lit><rep>uri</rep></lit>: The sound designated by this <rep>uri</rep> is played as a background
+	while the element's content is spoken.</doc:item>
+	<doc:item><lit>mix</lit>: When present, this keyword means that the sound inherited from the parent element's
+	<class>play_during</class> property continues to play and the sound designated by the <rep>uri</rep> is mixed with it.
+	If <lit>mix</lit> is not specified, the element's background sound replaces the parent's.</doc:item>
+	<doc:item><lit>repeat</lit>: When present, this keyword means that the sound will repeat if it is too short
+	to fill the entire duration of the element. Otherwise, the sound plays once and then stops. This is similar to the
+	<pyref class="background_repeat"><class>background-repeat</class></pyref> property. If the sound is too long for the element,
+	it is clipped once the element has been spoken.</doc:item>
+	<doc:item><lit>auto</lit>: The sound of the parent element continues to play (it is not restarted,
+	which would have been the case if this property had been inherited).</doc:item>
+	<doc:item><lit>none</lit>: This keyword means that there is silence. The sound of the parent element (if any)
+	is silent during the current element and continues after the current element.</doc:item>
+	</doc:ulist>
 	"""
 	name = "play-during"
 
