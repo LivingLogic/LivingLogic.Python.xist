@@ -1,0 +1,141 @@
+<?xml version='1.0' encoding='iso-8859-1'?>
+
+<section><title>Creating &html;</title>
+
+<par>You can create and output &html; like this:</par>
+
+<prog>
+from ll.xist.ns import html, xml, meta
+
+node = xsc.Frag(
+	xml.XML10(),
+	html.DocTypeXHTML10transitional(),
+	html.html(
+		html.head(
+			meta.contenttype(),
+			html.title("Example page")
+		),
+		html.body(
+			html.h1("Welcome to the example page"),
+			html.p(
+				"This example page has a link to the ",
+				html.a("Python home page", href="http://www.python.org/"),
+				"."
+			)
+		)
+	)
+)
+
+print node.asBytes(encoding="us-ascii")
+</prog>
+
+</section>
+
+
+<section><title>Defining new elements</title>
+
+<par>You can define new elements and how they should be converted to &html; (or other &xml; vocabularies) like this:</par>
+
+<prog>
+from ll.xist import xsc
+from ll.xist.ns import html, xml, meta
+
+class pypilink(xsc.Element):
+	class Attrs(xsc.Element.Attrs):
+		class name(xsc.TextAttr): pass
+
+	def convert(self, converter):
+		e = html.a(self["name"], href=("http://www.python.org/pypi?:action=display&amp;name=", self["name"]))
+		return e.convert(converter)
+
+node = xsc.Frag(
+	xml.XML10(),
+	html.DocTypeXHTML10transitional(),
+	html.html(
+		html.head(
+			meta.contenttype(),
+			html.title("PyPI links")
+		),
+		html.body(
+			html.h1("PyPI links"),
+			html.ul(
+				[
+					html.li(pypilink(name=name)) for name in ["ll-xist", "cx_Oracle", "PIL"]
+				]
+			)
+		)
+	)
+)
+
+print node.conv().asBytes(encoding="us-ascii")
+</prog>
+
+</section>
+
+
+<section><title>Parsing &html;</title>
+
+<par>Parsing &html; is done like this:</par>
+
+<prog>
+from ll.xist import parsers
+
+node = parsers.parseURL("http://www.python.org/", tidy=True)
+</prog>
+
+</section>
+
+
+<section><title>Finding nodes</title>
+
+<par>The following example shows how to output the &url;s of all images inside links on Python's homepage:</par>
+
+<tty>
+<prompt>&gt;&gt;&gt; </prompt><input>from ll.xist import parsers</input>
+<prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
+<prompt>&gt;&gt;&gt; </prompt><input>node = parsers.parseURL("http://www.python.org/", tidy=True)</input>
+<prompt>&gt;&gt;&gt; </prompt><input>for img in node//html.a/html.img:</input>
+<prompt>... </prompt><input>   print img["src"]</input>
+<prompt>... </prompt><input></input>
+http://www.python.org/pics/PyBanner032.gif
+http://www.python.org/pics/donate.gif
+http://www.python.org/pics/osi-certified-120x100.gif
+</tty>
+
+<par>If you want to output both the links and the image &url;s, do the following:</par>
+
+<tty>
+<prompt>&gt;&gt;&gt; </prompt><input>from ll.xist import parsers, xfind</input>
+<prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
+<prompt>&gt;&gt;&gt; </prompt><input>node = parsers.parseURL("http://www.python.org/", tidy=True)</input>
+<prompt>&gt;&gt;&gt; </prompt><input>for link in node//html.a/xfind.contains(html.img):</input>
+<prompt>... </prompt><input>   print link["href"], str((link/html.img)[0]["src"])</input>
+http://www.python.org/ http://www.python.org/pics/PyBanner032.gif
+http://www.python.org/psf/donations.html http://www.python.org/pics/donate.gif
+http://www.opensource.org/ http://www.python.org/pics/osi-certified-120x100.gif
+</tty>
+
+</section>
+
+
+<section><title>Replacing text</title>
+
+<par>This example demonstrates how to make a copy of an &xml; tree with some text replacements:</par>
+
+<prog>
+from ll.xist import xsc, parsers, converters
+from ll.xist.ns import html
+
+def p2p(node):
+	if isinstance(node, xsc.Text):
+		node = node.replace("Python", "Parrot")
+		node = node.replace("python", "parrot")
+	return node
+
+node = parsers.parseURL("http://www.python.org/", tidy=True)
+
+node = node.mapped(p2p, converters.Converter())
+node.write(open("parrot_index.html", "wb"))
+</prog>
+
+</section>
