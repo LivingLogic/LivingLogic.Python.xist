@@ -221,7 +221,7 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 
 	def handle_entityref(self, name):
 		if hasattr(self.content_handler, "entity"):
-			self.content_handler.entity(unicode(name, self.encoding))
+			self.content_handler.entity(name)
 
 	def finish_starttag(self, name, attrs):
 		newattrs = sax.xmlreader.AttributesImpl(attrs)
