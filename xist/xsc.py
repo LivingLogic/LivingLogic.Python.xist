@@ -197,8 +197,10 @@ Requirements
 XSC requires Python 2.0b1.
 
 XSC uses sgmlop for parsing XML files, so you either need the
-Python XML package (at least 0.5.5.1), or a standalone version
-of sgmlop (available from http://www.pythonware.com/products/xml/
+Python XML package (at least 0.5.5.1) (newer versions are
+available from http://sourceforge.net/projects/pyxml/),
+or a standalone version of sgmlop
+(available from http://www.pythonware.com/products/xml/
 or from ftp://titan.bnbt.de/pub/livinglogic/xist/)
 
 To determine image sizes, XSC needs the Python Imaging library
