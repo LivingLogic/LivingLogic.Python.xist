@@ -197,16 +197,17 @@ class redirectpage(xsc.Element):
 		)
 		return e.convert(converter)
 
-class javascript(xsc.Element):
+class javascript(html.script):
 	"""
 	<par>can be used for javascript.</par>
 	"""
 	empty = False
-	class Attrs(xsc.Element.Attrs):
-		class src(xsc.TextAttr): pass
+	class Attrs(html.script.Attrs):
+		language = None
+		type = None
 
 	def convert(self, converter):
-		e = html.script(self.content, language="javascript", type="text/javascript", src=self["src"])
+		e = html.script(self.content, self.attrs, language="javascript", type="text/javascript")
 		return e.convert(converter)
 
 xmlns = xsc.Namespace("htmlspecials", "http://xmlns.livinglogic.de/xist/ns/htmlspecials", vars())
