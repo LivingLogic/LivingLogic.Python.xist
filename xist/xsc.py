@@ -550,6 +550,14 @@ class XSCFrag(XSCNode):
 			e.append(child.withoutLinefeeds())
 		return e
 
+	def elements(self):
+		e = XSCFrag()
+		for child in self:
+			if isinstance(child,XSCElement):
+				e.append(child)
+
+		return e
+
 class XSCAttrs(XSCNode):
 	"""contains a dictionary of XSCNodes which are wrapped into attribute nodes"""
 
@@ -854,12 +862,7 @@ class XSCElement(XSCNode):
 		return self.__class__(self.content.withoutLinefeeds(),self.attrs.withoutLinefeeds())
 
 	def elements(self):
-		e = XSCFrag()
-		for child in self:
-			if isinstance(child,XSCElement):
-				e.append(child)
-
-		return e
+		return self.content.element()
 
 def RegisterElement(name,element):
 	"""registers the element handler element to be used for elements with name name"""
