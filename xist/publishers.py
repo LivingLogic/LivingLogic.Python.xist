@@ -75,9 +75,9 @@ class Publisher:
 
 	def publishText(self, text):
 		if self.inAttr:
-			self.publish(escapeText(text, self.encoding))
-		else:
 			self.publish(escapeAttr(text, self.encoding))
+		else:
+			self.publish(escapeText(text, self.encoding))
 
 class FilePublisher(Publisher):
 	"""
@@ -135,7 +135,6 @@ class BytePublisher(Publisher):
 	def __init__(self, encoding=None, XHTML=None, usePrefix=0):
 		Publisher.__init__(self, encoding=encoding, XHTML=XHTML, usePrefix=usePrefix)
 		self.texts = []
-		self.publish = self.publish # copy the method to the object (speeds up the lookup)
 
 	def publish(self, text):
 		self.texts.append(text)
