@@ -715,4 +715,3 @@ class xmlns(xsc.Namespace):
 	xmlname = "ihtml"
 	xmlurl = "http://www.nttdocomo.co.jp/imode"
 xmlns.makemod(vars())
-

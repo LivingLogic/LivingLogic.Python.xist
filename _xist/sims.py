@@ -98,16 +98,6 @@ class IllegalTextWarning(errors.Warning):
 		return s
 
 
-def samens(node, child):
-	"""
-	Return whether <arg>child</arg> should be considered to
-	belong to the same namespace as <arg>node</arg>.
-	"""
-	if node.xmlns is not None and child.xmlns is not None:
-		return issubclass(child.xmlns, node.xmlns)
-	return False
-
-
 def badtext(node):
 	"""
 	Return whether <arg>node</arg> is a text node (i.e.
@@ -154,7 +144,7 @@ class NoElements(object):
 		"""
 		if isinstance(node, xsc.Element):
 			for child in node.content:
-				if isinstance(child, xsc.Element) and samens(node, child):
+				if isinstance(child, xsc.Element) and node.xmlns is not None and child.xmlns is not None and issubclass(child.xmlns, node.xmlns):
 					warnings.warn(ElementWarning(node, child))
 
 
@@ -176,44 +166,44 @@ class NoElementsOrText(object):
 			for child in node.content:
 				if badtext(child):
 					warnings.warn(IllegalTextWarning(node, child))
-				elif isinstance(child, xsc.Element) and samens(node, child):
+				elif isinstance(child, xsc.Element) and node.xmlns is not None and child.xmlns is not None and issubclass(child.xmlns, node.xmlns):
 					warnings.warn(ElementWarning(node, child))
 
 
 class Elements(object):
 	"""
 	This validator checks that an element does have neither child elements
-	from the same namespace except those specified in the constructor
-	nor real (i.e. not-whitespace) text nodes.
+	from any of the namespaces of those elements specified in the constructor
+	except for those elements itself nor real (i.e. not-whitespace) text nodes.
 	"""
 	empty = False
-
-	def __repr__(self):
-		return "Elements(%s)" % ", ".join(["%s.%s" % (cls.__module__, cls.__name__) for cls in self.elements])
 
 	def __init__(self, *elements):
 		"""
 		Every element in <lit>elements</lit> may be in the content of the
-		node to which this validator is attached is valid. Any other element
-		from the same namespace is invalid.
+		node to which this validator is attached. Any other element from one
+		of the namespaces of those elements is invalid.
 		"""
 		self.elements = elements
 
-	def _checkelement(self, node, child):
-		if samens(node, child):
-			if not isinstance(child, self.elements):
-				warnings.warn(WrongElementWarning(node, child, self.elements))
+	def __repr__(self):
+		return "Elements(%s)" % ", ".join(["%s.%s" % (cls.__module__, cls.__name__) for cls in self.elements])
 
 	def checkvalid(self, node):
 		"""
 		check that the content of <arg>node</arg> is valid.
 		"""
+		ns = None
 		if isinstance(node, xsc.Element):
 			for child in node.content:
 				if badtext(child):
 					warnings.warn(IllegalTextWarning(node, child))
-				elif isinstance(child, xsc.Element):
-					self._checkelement(node, child)
+				elif isinstance(child, xsc.Element) and node.xmlns is not None and not isinstance(child, self.elements):
+					if ns is None:
+						# FIXME: Drop the list comprehension in 2.4
+						ns = tuple([el.xmlns for el in self.elements if el.xmlns is not None])
+					if child.xmlns is not None and issubclass(child.xmlns, ns):
+						warnings.warn(WrongElementWarning(node, child, self.elements))
 
 
 class ElementsOrText(Elements):
@@ -222,6 +212,14 @@ class ElementsOrText(Elements):
 	from the same namespace except those specified in the constructor.
 	"""
 
+	def __init__(self, *elements):
+		"""
+		Every element in <lit>elements</lit> may be in the content of the
+		node to which this validator is attached. Any other element from one
+		of the namespaces of those elements is invalid.
+		"""
+		self.elements = elements
+
 	def __repr__(self):
 		return "ElementsOrText(%s)" % ", ".join(["%s.%s" % (cls.__module__, cls.__name__) for cls in self.elements])
 
@@ -229,10 +227,15 @@ class ElementsOrText(Elements):
 		"""
 		check that the content of <arg>node</arg> is valid.
 		"""
+		ns = None
 		if isinstance(node, xsc.Element):
 			for child in node.content:
-				if isinstance(child, xsc.Element):
-					self._checkelement(node, child)
+				if isinstance(child, xsc.Element) and node.xmlns is not None and not isinstance(child, self.elements):
+					if ns is None:
+						# FIXME: Drop the list comprehension in 2.4
+						ns = tuple([el.xmlns for el in self.elements if el.xmlns is not None])
+					if child.xmlns is not None and issubclass(child.xmlns, ns):
+						warnings.warn(WrongElementWarning(node, child, self.elements))
 
 
 class Any(object):

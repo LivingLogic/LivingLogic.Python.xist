@@ -2032,6 +2032,184 @@ class XNDTest(unittest.TestCase):
 		self.assert_(isinstance(ns.foo.model, sims.Empty))
 
 
+class SIMSTest(unittest.TestCase):
+	def setUp(self):
+		self.oldfilters = warnings.filters[:]
+
+	def tearDown(self):
+		warnings.filters = self.oldfilters
+
+	def test_empty(self):
+		class ns1(xsc.Namespace):
+			class el1(xsc.Element):
+				model = sims.Empty()
+
+		warnings.filterwarnings("error", category=sims.EmptyElementWithContentWarning)
+
+		e = ns1.el1()
+		e.asBytes()
+
+		e = ns1.el1("gurk")
+		self.assertRaises(sims.EmptyElementWithContentWarning, e.asBytes)
+
+		e = ns1.el1(php.php("gurk"))
+		self.assertRaises(sims.EmptyElementWithContentWarning, e.asBytes)
+
+		e = ns1.el1(xsc.Comment("gurk"))
+		self.assertRaises(sims.EmptyElementWithContentWarning, e.asBytes)
+
+		e = ns1.el1(ns1.el1())
+		self.assertRaises(sims.EmptyElementWithContentWarning, e.asBytes)
+
+	def test_elements(self):
+		class ns1(xsc.Namespace):
+			class el1(xsc.Element):
+				pass
+			class el2(xsc.Element):
+				pass
+
+		class ns2(xsc.Namespace):
+			class el1(xsc.Element):
+				pass
+			class el2(xsc.Element):
+				pass
+
+		warnings.filterwarnings("error", category=sims.WrongElementWarning)
+		warnings.filterwarnings("error", category=sims.ElementWarning)
+		warnings.filterwarnings("error", category=sims.IllegalTextWarning)
+
+		ns1.el1.model = sims.Elements(ns1.el1, ns2.el1)
+
+		e = ns1.el1()
+		e.asBytes()
+
+		e = ns1.el1("foo")
+		self.assertRaises(sims.IllegalTextWarning, e.asBytes)
+
+		e = ns1.el1(php.php("gurk"))
+		e.asBytes()
+
+		e = ns1.el1(xsc.Comment("gurk"))
+		e.asBytes()
+
+		e = ns1.el1(ns1.el1())
+		e.asBytes()
+
+		e = ns1.el1(ns2.el1())
+		e.asBytes()
+
+		e = ns1.el1(ns1.el2())
+		self.assertRaises(sims.WrongElementWarning, e.asBytes)
+
+		e = ns1.el1(ns2.el2())
+		self.assertRaises(sims.WrongElementWarning, e.asBytes)
+
+	def test_elementsortext(self):
+		class ns1(xsc.Namespace):
+			class el1(xsc.Element):
+				pass
+			class el2(xsc.Element):
+				pass
+
+		class ns2(xsc.Namespace):
+			class el1(xsc.Element):
+				pass
+			class el2(xsc.Element):
+				pass
+
+		warnings.filterwarnings("error", category=sims.WrongElementWarning)
+		warnings.filterwarnings("error", category=sims.ElementWarning)
+		warnings.filterwarnings("error", category=sims.IllegalTextWarning)
+
+		ns1.el1.model = sims.ElementsOrText(ns1.el1, ns2.el1)
+
+		e = ns1.el1()
+		e.asBytes()
+
+		e = ns1.el1("foo")
+		e.asBytes()
+
+		e = ns1.el1(php.php("gurk"))
+		e.asBytes()
+
+		e = ns1.el1(xsc.Comment("gurk"))
+		e.asBytes()
+
+		e = ns1.el1(ns1.el1())
+		e.asBytes()
+
+		e = ns1.el1(ns2.el1())
+		e.asBytes()
+
+		e = ns1.el1(ns1.el2())
+		self.assertRaises(sims.WrongElementWarning, e.asBytes)
+
+		e = ns1.el1(ns2.el2())
+		self.assertRaises(sims.WrongElementWarning, e.asBytes)
+
+	def test_noelements(self):
+		class ns1(xsc.Namespace):
+			class el1(xsc.Element):
+				model = sims.NoElements()
+
+		class ns2(xsc.Namespace):
+			class el1(xsc.Element):
+				pass
+
+		warnings.filterwarnings("error", category=sims.WrongElementWarning)
+		warnings.filterwarnings("error", category=sims.ElementWarning)
+		warnings.filterwarnings("error", category=sims.IllegalTextWarning)
+
+		e = ns1.el1()
+		e.asBytes()
+
+		e = ns1.el1("foo")
+		e.asBytes()
+
+		e = ns1.el1(php.php("gurk"))
+		e.asBytes()
+
+		e = ns1.el1(xsc.Comment("gurk"))
+		e.asBytes()
+
+		e = ns1.el1(ns1.el1())
+		self.assertRaises(sims.ElementWarning, e.asBytes)
+
+		e = ns1.el1(ns2.el1())
+		e.asBytes()
+
+	def test_noelementsortext(self):
+		class ns1(xsc.Namespace):
+			class el1(xsc.Element):
+				model = sims.NoElementsOrText()
+
+		class ns2(xsc.Namespace):
+			class el1(xsc.Element):
+				pass
+
+		warnings.filterwarnings("error", category=sims.WrongElementWarning)
+		warnings.filterwarnings("error", category=sims.ElementWarning)
+		warnings.filterwarnings("error", category=sims.IllegalTextWarning)
+
+		e = ns1.el1()
+		e.asBytes()
+
+		e = ns1.el1("foo")
+		self.assertRaises(sims.IllegalTextWarning, e.asBytes)
+
+		e = ns1.el1(php.php("gurk"))
+		e.asBytes()
+
+		e = ns1.el1(xsc.Comment("gurk"))
+		e.asBytes()
+
+		e = ns1.el1(ns1.el1())
+		self.assertRaises(sims.ElementWarning, e.asBytes)
+
+		e = ns1.el1(ns2.el1())
+		e.asBytes()
+
+
 class PrettyTest(unittest.TestCase):
 	def check(self, node, result):
 		self.assertEqual(node.pretty().asBytes(), result)
