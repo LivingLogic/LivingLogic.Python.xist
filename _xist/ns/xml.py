@@ -15,7 +15,6 @@
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-from __future__ import nested_scopes
 from ll.xist import xsc, utils
 
 class XML(xsc.ProcInst):
