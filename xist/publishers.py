@@ -13,13 +13,36 @@ handler in <methodref module="xist.xsc" class="Node">publish</methodref>.
 import sys
 import string
 
-class PrintPublisher:
+class Publisher:
 	"""
-	passes the strings to print.
+	base class. just an interface.
 	"""
 	def __call__(self,*texts):
+		"""
+		receives the strings to be printed.
+		"""
+		pass
+
+class FilePublisher:
+	"""
+	writes the strings to a file.
+	"""
+	def __init__(self,fh):
+		self.fh = fh
+
+	def __call__(self,*texts):
 		for text in texts:
-			sys.stdout.write(text)
+			if type(text) in (ListType,TupleType):
+				apply(self,text)
+			else:
+				self.fh.write(str(text))
+
+class PrintPublisher(FilePublisher):
+	"""
+	passes the strings to <code>print</code>.
+	"""
+	def __init__(self):
+		FilePublisher.__init__(self,sys.stdout)
 
 class StringPublisher:
 	"""
@@ -33,9 +56,9 @@ class StringPublisher:
 
 	def __call__(self,*texts):
 		for text in texts:
-			self.texts.append(text)
+			self.texts.append(str(text))
 
-	def __str__(self):
+ 	def __str__(self):
 		"""
 		Return the published strings as one long string.
 		"""
