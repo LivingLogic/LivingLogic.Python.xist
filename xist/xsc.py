@@ -315,6 +315,8 @@ class XSCNode:
 class XSCText(XSCNode):
 	"""text"""
 
+	name = "XSCText"
+
 	represcapes = { '\t' : '\\t' , '\033' : '\\e' , '\\' : '\\\\' }
 	reprtreeescapes = { '\r' : '\\r' , '\n' : '\\n' , '\t' : '\\t' , '\033' : '\\e' , '\\' : '\\\\' }
 	strescapes = { '<' : 'lt' , '>' : 'gt' , '&' : 'amp' , '"' : 'quot' }
@@ -398,6 +400,8 @@ class XSCText(XSCNode):
 class XSCCharRef(XSCNode):
 	"""character reference (i.e &#42; or &#x42;)"""
 
+	name = "XSCCharRef"
+
 	__notdirect = { ord("&") : "amp" , ord("<") : "lt" , ord(">") : "gt", ord('"') : "quot" , ord("'") : "apos" }
 	__linefeeds = [ ord("\r") , ord("\n") ]
 
@@ -447,6 +451,8 @@ class XSCCharRef(XSCNode):
 
 class XSCFrag(XSCNode):
 	"""contains a list of XSCNodes"""
+
+	name = "XSCFrag"
 
 	def __init__(self,_content = []):
 		if _content is None:
@@ -576,6 +582,8 @@ class XSCFrag(XSCNode):
 class XSCComment(XSCNode):
 	"""comments"""
 
+	name = "XSCComment"
+
 	def __init__(self,content = ""):
 		self.__content = content
 
@@ -599,6 +607,8 @@ class XSCComment(XSCNode):
 class XSCDocType(XSCNode):
 	"""document type"""
 
+	name = "XSCDocType"
+
 	def __init__(self,content = ""):
 		self.__content = content
 
@@ -621,6 +631,8 @@ class XSCDocType(XSCNode):
 
 class XSCProcInst(XSCNode):
 	"""processing instructions"""
+
+	name = "XSCProcInst"
 
 	repransiquestion = "34"
 	repransitarget = "34"
@@ -1108,6 +1120,9 @@ class XSCParser(xmllib.XMLParser):
 			e = _element_handlers[lowername]([],attrs)
 			e.startlineno = self.lineno
 		else:
+			for i in self.nesting:
+				print i.name,
+			print
 			raise XSCIllegalElementError(xsc.parser.lineno,lowername)
 		self.__appendNode(e)
 		self.nesting.append(e) # push new innermost element onto the stack
