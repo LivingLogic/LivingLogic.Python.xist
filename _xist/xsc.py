@@ -1943,11 +1943,9 @@ class Element(Node):
 	objects.</par>
 
 	<par>Every element class should have two class variables:
-	<lit>empty</lit>: this is either <lit>0</lit> or <lit>1</lit>
+	<lit>empty</lit>: this is either <lit>False</lit> or <lit>False</lit>
 	and specifies whether the element type is allowed to have content
-	or not. Note that the parser does not use this as some sort of
-	static DTD, i.e. you still must write your empty tags
-	like this: <markup>&lt;foo/&gt;</markup>.</par>
+	or not. This will be checked when parsing or publishing.</par>
 
 	<par><lit>Attrs</lit>, which is a class derived from
 	<pyref class="Element.Attrs"><class>Element.Attrs</class></pyref>
