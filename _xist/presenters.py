@@ -385,7 +385,7 @@ def strAttrValue(attrvalue):
 	return EnvTextForAttrValue(EscInlineAttr(attrvalue))
 
 
-class Presenter:
+class Presenter(object):
 	"""
 	<par>This class is the base of the presenter classes. It is abstract
 	and only serves as documentation for the methods.</par>
@@ -895,7 +895,7 @@ class CodePresenter(Presenter):
 		self._level = 0
 		try:
 			node.present(self)
-			s = "".join(self.buffer)
+			s = "".join(self._buffer)
 		finally:
 			del self._level
 			del self._buffer
@@ -1054,11 +1054,11 @@ class CodePresenter(Presenter):
 		self._buffer.append("xsc.DocType(%r)" % self._text(node.content))
 
 	def presentAttr(self, node):
-		self._presentFrag(node)
+		self.presentFrag(node)
 
 
 defaultpresenter = PlainPresenter() # used for __repr__
-hookpresenter = TreePresenter(True, True) # used in the displayhook below
+hookpresenter = TreePresenter() # used in the displayhook below
 
 
 def displayhook(obj):
