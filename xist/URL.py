@@ -84,39 +84,39 @@ class URL:
 
 		self.__normalize()
 
-	def __setattr__(self,name,value):
-		if name in ("scheme","server","file","ext","parameters","query","fragment"):
+	def __setattr__(self, name, value):
+		if name in ("scheme", "server", "file", "ext", "parameters", "query", "fragment"):
 			value = stringFromCode(value)
 		self.__dict__[name] = value
 
-	def __setitem__(self,index,value):
+	def __setitem__(self, index, value):
 		"""
 		allows you to replace the index'th path entry
 		"""
 		self.__path[index] = stringFromCode(value)
 		self.__normalize()
 
-	def __delitem__(self,index):
+	def __delitem__(self, index):
 		"""
 		removes the index'th path entry
 		"""
 		del self.__path[index]
 		self.__normalize()
 
-	def __getslice__(self,index1,index2):
+	def __getslice__(self, index1, index2):
 		"""
 		returns a slice of the path
 		"""
 		return self.__path[index1:index2]
 
-	def __setslice__(self,index1,index2,sequence):
+	def __setslice__(self, index1, index2, sequence):
 		"""
 		replaces a slice of the path
 		"""
-		self.__path[index1:index2] = map(stringFromCode,sequence)
+		self.__path[index1:index2] = map(stringFromCode, sequence)
 		self.__normalize()
 
-	def __delslice__(self,index1,index2):
+	def __delslice__(self, index1, index2):
 		"""
 		removes a slice of the path
 		"""
@@ -129,7 +129,7 @@ class URL:
 		"""
 		return len(self.__path)
 
-	def append(self,*others):
+	def append(self, *others):
 		"""
 		appends all directory names in <argref>others</argref> to the path.
 		"""
@@ -137,16 +137,16 @@ class URL:
 			self.__path.append(stringFromCode(other))
 		self.__normalize()
 
-	def insert(self,index,*others):
+	def insert(self, index, *others):
 		"""
 		inserts all items in <argref>others</argref> at the position <argref>index</argref> in the path.
 		(this is the same as <code><self/>[<argref>index</argref>:<argref>index</argref>] = <argref>others</argref></code>)
 		"""
 		for other in others:
-			self.__path.insert(index,stringFromCode(other))
-			index = index + 1
+			self.__path.insert(index, stringFromCode(other))
+			index += 1
 
-	def isPathMarker(self,dir):
+	def isPathMarker(self, dir):
 		"""
 		isPathMarker(self,dir) -> bool
 		
@@ -154,7 +154,7 @@ class URL:
 		"""
 		return dir[:1] == u"*"
 
-	def isNoPathMarker(self,dir):
+	def isNoPathMarker(self, dir):
 		"""
 		isNoPathMarker(self,dir) -> bool
 		
@@ -182,7 +182,7 @@ class URL:
 			v.append("query=" + repr(self.query))
 		if self.fragment:
 			v.append("fragment=" + repr(self.fragment))
-		return "URL(" + ", ".join(v) + ")"
+		return "URL(%s)" % ", ".join(v)
 
 	def __str__(self):
 		return self.__asString(1)
@@ -207,7 +207,7 @@ class URL:
 		"""
 		returns an identical clone of this URL.
 		"""
-		return URL(scheme = self.scheme,server = self.server,port = self.port,path = self.__path,file = self.file,ext = self.ext,parameters = self.parameters,query = self.query,fragment = self.fragment)
+		return URL(scheme = self.scheme, server = self.server, port = self.port, path = self.__path, file = self.file, ext = self.ext, parameters = self.parameters, query = self.query, fragment = self.fragment)
 
 	def isRemote(self):
 		if self.scheme == u"":
@@ -217,7 +217,7 @@ class URL:
 		else:
 			return 1
 
-	def relativeTo(self,other):
+	def relativeTo(self, other):
 		"""
 		<par nointent>returns <self/> interpreted relative
 		to <code>other</code>+<self/>.</par>
@@ -229,9 +229,9 @@ class URL:
 		in it.</par>
 		"""
 		new = other + self
-		new.__path = filter(new.isNoPathMarker,new.__path)
+		new.__path = filter(new.isNoPathMarker, new.__path)
 		if not new.scheme:
-			otherpath = filter(other.isNoPathMarker,other.__path)
+			otherpath = filter(other.isNoPathMarker, other.__path)
 			while len(otherpath) and len(new.__path) and otherpath[0]==new.__path[0]: # throw away identical directories in both paths (we don't have to go up from file and down to path for these identical directories)
 				del otherpath[0]
 				del new.__path[0]
@@ -240,7 +240,7 @@ class URL:
 		new.__normalize() # Now that the path markers are gone, we try to normalize again
 		return new
 
-	def __cmp__(self,other):
+	def __cmp__(self, other):
 		scheme1 = self.scheme
 		if scheme1 is not None:
 			scheme1 = scheme1.lower()
@@ -253,7 +253,7 @@ class URL:
 		server2 = self.server
 		if server2 is not None:
 			server2 = server2.lower()
-		return cmp(scheme1,scheme2) or cmp(server1,server2) or cmp(self.port,other.port) or cmp(self.__path,other.__path) or cmp(self.file,other.file) or cmp(self.ext,other.ext) or cmp(self.parameters,other.parameters) or cmp(self.query,other.query) or cmp(self.fragment,other.fragment)
+		return cmp(scheme1, scheme2) or cmp(server1, server2) or cmp(self.port, other.port) or cmp(self.__path, other.__path) or cmp(self.file, other.file) or cmp(self.ext, other.ext) or cmp(self.parameters, other.parameters) or cmp(self.query, other.query) or cmp(self.fragment, other.fragment)
 
 	def open(self):
 		return urllib.urlopen(self.asString().encode("iso-8859-1"))
@@ -264,8 +264,8 @@ class URL:
 	def readlines(self):
 		return self.open().readlines()
 
-	def __fromString(self,url):
-		(scheme,server,path,parameters,query,fragment) = urlparse.urlparse(url)
+	def __fromString(self, url):
+		(scheme, server, path, parameters, query, fragment) = urlparse.urlparse(url)
 		scheme = stringFromCode(scheme)
 		server = stringFromCode(server)
 		__path = map(stringFromCode,path)
@@ -322,7 +322,7 @@ class URL:
 		if self.ext:
 			file = file + u"." + self.ext
 		path.append(file)
-		url = urlparse.urlunparse((scheme,server,u"/".join(path),self.parameters or u"",self.query or u"",self.fragment or u""))
+		url = urlparse.urlunparse((scheme, server, u"/".join(path), self.parameters or u"", self.query or u"", self.fragment or u""))
 		if for__str__:
 			url = url.encode(reprEncoding)
 		else:
@@ -382,10 +382,10 @@ class URL:
 			try:
 				dirs[dir].append(i)
 			except KeyError:
-				dirs[dir] = [ i ]
+				dirs[dir] = [i]
 
 		# if there are duplicate path markers only keep the last one
-		path = [ None ] * lenpath
+		path = [None] * lenpath
 		for name in dirs.keys():
 			if self.isPathMarker(name):
 				path[max(dirs[name])] = name
@@ -400,4 +400,4 @@ class URL:
 			if path[i]==u".." and i>0 and path[i-1]!=u".." and self.isNoPathMarker(path[i-1]): # found a down/up
 				path[i-1] = None # remove both directory names
 				path[i] = None
-		self.__path = filter(lambda x: x is not None,path)
+		self.__path = [ x for x in path if x is not None ]

@@ -12,14 +12,14 @@ import string
 import xsc
 
 # common attributes
-coreattrs  = { "id": xsc.TextAttr, "class": xsc.TextAttr, "style": xsc.TextAttr, "title": xsc.TextAttr }
-i18n = { "lang": xsc.TextAttr, "dir"  : xsc.TextAttr }
-events = { "onclick": xsc.TextAttr, "ondblclick": xsc.TextAttr, "onmousedown": xsc.TextAttr, "onmouseup": xsc.TextAttr, "onmouseover": xsc.TextAttr, "onmousemove": xsc.TextAttr, "onmouseout": xsc.TextAttr, "onkeypress": xsc.TextAttr, "onkeydown": xsc.TextAttr, "onkeyup": xsc.TextAttr }
+coreattrs  = {"id": xsc.TextAttr, "class": xsc.TextAttr, "style": xsc.TextAttr, "title": xsc.TextAttr}
+i18n = {"lang": xsc.TextAttr, "dir"  : xsc.TextAttr}
+events = {"onclick": xsc.TextAttr, "ondblclick": xsc.TextAttr, "onmousedown": xsc.TextAttr, "onmouseup": xsc.TextAttr, "onmouseover": xsc.TextAttr, "onmousemove": xsc.TextAttr, "onmouseout": xsc.TextAttr, "onkeypress": xsc.TextAttr, "onkeydown": xsc.TextAttr, "onkeyup": xsc.TextAttr}
 attrs = coreattrs.copy()
 attrs.update(i18n)
 attrs.update(events)
-cellhalign = { "align": xsc.TextAttr, "char": xsc.TextAttr, "charoff": xsc.TextAttr  }
-cellvalign = { "valign": xsc.TextAttr }
+cellhalign = {"align": xsc.TextAttr, "char": xsc.TextAttr, "charoff": xsc.TextAttr}
+cellvalign = {"valign": xsc.TextAttr}
 
 class DocTypeHTML40transitional(xsc.DocType):
 	"""
@@ -28,8 +28,8 @@ class DocTypeHTML40transitional(xsc.DocType):
 	def __init__(self,dtd = ""):
 		s = 'HTML PUBLIC "-//W3C//DTD HTML 4.0 transitional//EN"'
 		if dtd:
-			s = s + " " + dtd
-		xsc.DocType.__init__(self,s)
+			s += " " + dtd
+		xsc.DocType.__init__(self, s)
 
 class DocTypeXHTML10strict(xsc.DocType):
 	"""
@@ -38,8 +38,8 @@ class DocTypeXHTML10strict(xsc.DocType):
 	def __init__(self,dtd = ""):
 		s = 'html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"'
 		if dtd:
-			s = s + " " + dtd
-		xsc.DocType.__init__(self,s)
+			s += " " + dtd
+		xsc.DocType.__init__(self, s)
 
 # The global structure of an HTML document
 class html(xsc.Element):
@@ -99,12 +99,12 @@ class meta(xsc.Element):
 				if found is None or encoding != content[found[0]:found[1]]:
 					node = meta(http_equiv="Content-Type")
 					if found is None:
-						node["content"] = content=content+u"; charset="+encoding
+						node["content"] = content+u"; charset="+encoding
 					else:
 						node["content"] = content[:found[0]]+encoding+content[found[1]:]
-					node.publish(publisher,encoding,XHTML)
+					node.publish(publisher, encoding, XHTML)
 					return
-		xsc.Element.publish(self,publisher,encoding,XHTML)
+		xsc.Element.publish(self, publisher, encoding, XHTML)
 
 	def __findCharSet(self):
 		content = self["content"].asPlainString()
@@ -113,9 +113,9 @@ class meta(xsc.Element):
 			startpos = startpos+8 # skip '='
 			endpos = content.find(";",startpos)
 			if endpos != -1:
-				return (startpos,endpos)
+				return (startpos, endpos)
 			else:
-				return (startpos,len(content))
+				return (startpos, len(content))
 		return None
 
 class body(xsc.Element):
@@ -575,7 +575,7 @@ class param(xsc.Element):
 	named property value
 	"""
 	empty = 1
-	attrHandlers = { "id": xsc.TextAttr, "name": xsc.TextAttr, "value": xsc.TextAttr, "valuetype": xsc.TextAttr, "type": xsc.TextAttr }
+	attrHandlers = {"id": xsc.TextAttr, "name": xsc.TextAttr, "value": xsc.TextAttr, "valuetype": xsc.TextAttr, "type": xsc.TextAttr}
 
 class map(xsc.Element):
 	"""

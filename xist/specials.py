@@ -9,11 +9,9 @@ __version__ = "$Revision$"[11:-2]
 
 import sys
 import types
-import time
-time_ = time
+import time as time_
 import string
-import xsc,html
-html_ = html
+import xsc,html as html_
 
 class plaintable(html_.table):
 	"""
@@ -25,7 +23,7 @@ class plaintable(html_.table):
 	defaults = {"cellpadding": 0, "cellspacing": 0, "border": 0}
 
 	def asHTML(self):
-		e = html_.table(self.content,self.attrs)
+		e = html_.table(self.content, self.attrs)
 		if not e.hasAttr("cellpadding"):
 			e["cellpadding"] = self.defaults["cellpadding"]
 		if not e.hasAttr("cellspacing"):
@@ -45,7 +43,7 @@ class plainbody(html_.body):
 	defaults = {"leftmargin": 0, "topmargin": 0,"marginheight": 0, "marginwidth": 0}
 
 	def asHTML(self):
-		e = html_.body(self.content,self.attrs)
+		e = html_.body(self.content, self.attrs)
 		if not e.hasAttr("leftmargin"):
 			e["leftmargin"] = self.defaults["leftmargin"]
 		if not e.hasAttr("topmargin"):
@@ -64,7 +62,7 @@ class z(xsc.Element):
 	empty = 0
 
 	def asHTML(self):
-		e = xsc.Frag("«",self.content,"»")
+		e = xsc.Frag("«", self.content, "»")
 
 		return e.asHTML()
 
@@ -86,7 +84,7 @@ class filesize(xsc.Element):
 	as a text node.
 	"""
 	empty = 1
-	attrHandlers = { "href" : xsc.URLAttr }
+	attrHandlers = {"href" : xsc.URLAttr}
 
 	def asHTML(self):
 		size = self["href"].FileSize()
@@ -101,7 +99,7 @@ class filetime(xsc.Element):
 	as a text node.
 	"""
 	empty = 1
-	attrHandlers = { "href" : xsc.URLAttr , "format" : xsc.TextAttr }
+	attrHandlers = {"href": xsc.URLAttr, "format": xsc.TextAttr}
 
 	def asHTML(self):
 		return xsc.Text(self["href"].FileTime())
@@ -113,7 +111,7 @@ class time(xsc.Element):
 	string.
 	"""
 	empty = 1
-	attrHandlers = { "format" : xsc.TextAttr }
+	attrHandlers = {"format": xsc.TextAttr}
 
 	def asHTML(self):
 		if self.hasAttr("format"):
@@ -121,7 +119,7 @@ class time(xsc.Element):
 		else:
 			format = "%d. %b. %Y, %H:%M"
 
-		return xsc.Text(time_.strftime(format,time_.gmtime(time_.time())))
+		return xsc.Text(time_.strftime(format, time_.gmtime(time_.time())))
 
 class x(xsc.Element):
 	"""
@@ -147,11 +145,11 @@ class pixel(html_.img):
 
 	empty = 1
 	attrHandlers = html_.img.attrHandlers.copy()
-	attrHandlers.update({ "color" : xsc.ColorAttr })
+	attrHandlers.update({"color": xsc.ColorAttr})
 	del attrHandlers["src"]
 
-	def publish(self,publisher,encoding = None,XHTML = None):
-		xsc.Element.publish(self,publisher,encoding,XHTML)
+	def publish(self, publisher, encoding = None, XHTML = None):
+		xsc.Element.publish(self, publisher, encoding, XHTML)
 
 	def asHTML(self):
 		e = autoimg()
@@ -161,7 +159,7 @@ class pixel(html_.img):
 				color = self["color"]
 			else:
 				e[attr] = self[attr]
-		e["src"] = ("*/Images/Pixels/",color,".gif")
+		e["src"] = ("*/Images/Pixels/", color, ".gif")
 
 		return e.asHTML()
 
@@ -184,12 +182,12 @@ class caps(xsc.Element):
 				if innini==0:
 					result.append(collect)
 				else:
-					result.append(html_.span([ collect.upper() ],Class="nini" ))
+					result.append(html_.span([collect.upper()], Class="nini"))
 				if i != len(e):
 					collect = e[i]
 				innini = 1-innini
 			else:
-				collect = collect + e[i]
+				collect += e[i]
 		return result
 
 	def asPlainString(self):
@@ -209,7 +207,7 @@ class emdash(xsc.Element):
 
 class include(xsc.Element):
 	empty = 1
-	attrHandlers = { "src" : xsc.URLAttr }
+	attrHandlers = {"src": xsc.URLAttr}
 
 	def asHTML(self):
 		e = xsc.xsc.parse(self["src"].forInput())
@@ -236,27 +234,24 @@ class par(html_.div):
 			e["class"] = "indent"
 		return e.asHTML()
 
-def _generateImgAttrs(element,urlattrname,widthattrname,heightattrname):
-	pass
-
-class autoimg(html.img):
+class autoimg(html_.img):
 	def asHTML(self):
 		e = html_.img(**self.attrs)
-		e._addImageSizeAttributes("src","width","height")
+		e._addImageSizeAttributes("src", "width", "height")
 		return e.asHTML()
 
-class autoinput(html.img):
+class autoinput(html_.img):
 	def asHTML(self):
 		if self.hasAttr("type") and self["type"].asHTML().asPlainString() == u"image":
-			e = html_.input(*self.content,**self.attrs)
-			e._addImageSizeAttributes("src","size",None) # no height
+			e = html_.input(*self.content, **self.attrs)
+			e._addImageSizeAttributes("src", "size", None) # no height
 			return e.asHTML()
 		else:
 			return html.img.asHTML(self)
 
 class loremipsum(xsc.Element):
 	empty = 1
-	attrHandlers = { "len" : xsc.IntAttr }
+	attrHandlers = {"len": xsc.IntAttr}
 
 	text = "Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diem nonummy nibh euismod tincidnut ut lacreet dolore magna aliguam erat volutpat. Ut wisis enim ad minim veniam, quis nostrud exerci tution ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis te feugifacilisi. Duis antem dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zril delinit au gue duis dolore te feugat nulla facilisi."
 
@@ -277,7 +272,7 @@ class redirectpage(xsc.Element):
 			html_.head(html_.title("Redirection")),
 			html_.body(
 				"Your browser doesn't understand redirects. This page has been redirected to ",
-				html_.a(url,href = url)
+				html_.a(url, href = url)
 			)
 		)
 		return e.asHTML()
@@ -290,108 +285,108 @@ class esc(xsc.Entity): "escape"; codepoint = 27
 
 class html(xsc.Entity):
 	def asHTML(self):
-		return html_.abbr("HTML",title="Hypertext Markup Language",lang="en")
+		return html_.abbr("HTML", title="Hypertext Markup Language", lang="en")
 	def asPlainString(self):
 		return u"HTML"
 
 class xml(xsc.Entity):
 	def asHTML(self):
-		return html_.abbr("XML",title="Extensible Markup Language",lang="en")
+		return html_.abbr("XML", title="Extensible Markup Language", lang="en")
 	def asPlainString(self):
 		return u"XML"
 
 class css(xsc.Entity):
 	def asHTML(self):
-		return html_.abbr("CSS",title="Cascading Style Sheet",lang="en")
+		return html_.abbr("CSS", title="Cascading Style Sheet", lang="en")
 	def asPlainString(self):
 		return u"CSS"
 
 class cgi(xsc.Entity):
 	def asHTML(self):
-		return html_.abbr("CGI",title="Common Gateway Interface",lang="en")
+		return html_.abbr("CGI", title="Common Gateway Interface", lang="en")
 	def asPlainString(self):
 		return u"CGI"
 
 class www(xsc.Entity):
 	def asHTML(self):
-		return html_.abbr("WWW",title="World Wide Web",lang="en")
+		return html_.abbr("WWW", title="World Wide Web", lang="en")
 	def asPlainString(self):
 		return u"WWW"
 
 class pdf(xsc.Entity):
 	def asHTML(self):
-		return html_.abbr("PDF",title="Protable Document Format",lang="en")
+		return html_.abbr("PDF", title="Protable Document Format", lang="en")
 	def asPlainString(self):
 		return u"PDF"
 
 class url(xsc.Entity):
 	def asHTML(self):
-		return html_.abbr("URL",title="Uniform Resource Locator",lang="en")
+		return html_.abbr("URL", title="Uniform Resource Locator", lang="en")
 	def asPlainString(self):
 		return u"URL"
 
 class http(xsc.Entity):
 	def asHTML(self):
-		return html_.abbr("HTTP",title="Hypertext Transfer Protocol",lang="en")
+		return html_.abbr("HTTP", title="Hypertext Transfer Protocol", lang="en")
 	def asPlainString(self):
 		return u"HTTP"
 
 class smtp(xsc.Entity):
 	def asHTML(self):
-		return html_.abbr("SMTP",title="Simple Mail Transfer Protocol",lang="en")
+		return html_.abbr("SMTP", title="Simple Mail Transfer Protocol", lang="en")
 	def asPlainString(self):
 		return u"SMTP"
 
 class ftp(xsc.Entity):
 	def asHTML(self):
-		return html_.abbr("FTP",title="File Transfer Protocol",lang="en")
+		return html_.abbr("FTP", title="File Transfer Protocol", lang="en")
 	def asPlainString(self):
 		return u"FTP"
 
 class pop3(xsc.Entity):
 	def asHTML(self):
-		return html_.abbr("POP3",title="Post Office Protocol 3",lang="en")
+		return html_.abbr("POP3", title="Post Office Protocol 3", lang="en")
 	def asPlainString(self):
 		return u"POP3"
 
 class cvs(xsc.Entity):
 	def asHTML(self):
-		return html_.abbr("CVS",title="Concurrent Versions System",lang="en")
+		return html_.abbr("CVS", title="Concurrent Versions System", lang="en")
 	def asPlainString(self):
 		return u"CVS"
 
 class faq(xsc.Entity):
 	def asHTML(self):
-		return html_.abbr("FAQ",title="Frequently Asked Question",lang="en")
+		return html_.abbr("FAQ", title="Frequently Asked Question", lang="en")
 	def asPlainString(self):
 		return u"FAQ"
 
 class gnu(xsc.Entity):
 	def asHTML(self):
-		return html_.abbr("GNU",title="GNU's Not UNIX",lang="en")
-		# we could do it ;): return html_.abbr("GNU",title=(self,"'s Not UNIX"),lang="en")
+		return html_.abbr("GNU", title="GNU's Not UNIX", lang="en")
+		# we could do it ;): return html_.abbr("GNU", title=(self, "'s Not UNIX"), lang="en")
 	def asPlainString(self):
 		return u"GNU"
 
 class dns(xsc.Entity):
 	def asHTML(self):
-		return html_.abbr("DNS",title="Domain Name Service",lang="en")
+		return html_.abbr("DNS", title="Domain Name Service", lang="en")
 	def asPlainString(self):
 		return u"DNS"
 
 class ppp(xsc.Entity):
 	def asHTML(self):
-		return html_.abbr("PPP",title="Domain Name Service",lang="en")
+		return html_.abbr("PPP", title="Domain Name Service", lang="en")
 	def asPlainString(self):
 		return u"PPP"
 
 class isdn(xsc.Entity):
 	def asHTML(self):
-		return html_.abbr("ISDN",title="Integrated Services Digital Network",lang="en")
+		return html_.abbr("ISDN", title="Integrated Services Digital Network", lang="en")
 	def asPlainString(self):
 		return u"ISDN"
 
-namespace = xsc.Namespace("specials","http://www.livinglogic.de/DTDs/specials.dtd",vars())
+namespace = xsc.Namespace("specials", "http://www.livinglogic.de/DTDs/specials.dtd", vars())
 
 if __name__ == "__main__":
 	xsc.make()
