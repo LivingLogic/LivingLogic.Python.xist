@@ -503,7 +503,7 @@ class tr(xsc.Element):
 	attrHandlers = attrs.copy()
 	attrHandlers.update(cellhalign)
 	attrHandlers.update(cellvalign)
-	attrHandlers.update({"nowrap": xsc.TextAttr, "bgcolor": xsc.ColorAttr, "width": xsc.TextAttr}) # deprecated
+	attrHandlers.update({"nowrap": xsc.TextAttr, "bgcolor": xsc.ColorAttr, "width": xsc.TextAttr, "background": xsc.URLAttr}) # deprecated
 
 class th(xsc.Element):
 	"""
