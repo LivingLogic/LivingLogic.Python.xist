@@ -490,6 +490,18 @@ class XISTTestCase(unittest.TestCase):
 		self.assert_(not node.hasAttr("testattr"))
 		self.assert_(not node.conv().hasAttr("testattr"))
 
+	def test_checkisallowed(self):
+		class testelem(xsc.Element):
+			class Attrs(xsc.Element.Attrs):
+				class testattr(xsc.TextAttr):
+					pass
+
+		node = testelem()
+		self.assertEquals(node.isallowedattr("testattr"), True)
+		self.assertEquals(node.attrs.isallowed("testattr"), True)
+
+		self.assertEquals(node.isallowedattr("notestattr"), False)
+		self.assertEquals(node.attrs.isallowed("notestattr"), False)
 	def test_xmlns(self):
 		pass
 

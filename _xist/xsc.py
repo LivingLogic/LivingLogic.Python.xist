@@ -2134,7 +2134,7 @@ class Element(Node):
 		"""
 		<par>return whether the attribute named <arg>attrname</arg> is allowed for <self/>.</par>
 		"""
-		return self.attrs.isallowed(attrname)
+		return cls.Attrs.isallowed(attrname)
 	isallowedattr = classmethod(isallowedattr)
 
 	def getAttr(self, attrname, default=None):
