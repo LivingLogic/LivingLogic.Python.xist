@@ -27,7 +27,7 @@ For more info read the HOWTO.
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-import os, string, types, sys, stat, urllib, random
+import os, types, sys, stat, urllib, random
 
 try:
 	import Image
@@ -266,9 +266,9 @@ class Node:
 		"""
 		s = self.asPlainString()
 		for c in ignore:
-			s = string.replace(s, c, "")
+			s = s.replace(c, "")
 		if decimal != ".":
-			s = string.replace(s, decimal, ".")
+			s = s.replace(decimal, ".")
 		return float(s)
 
 	def __float__(self):
