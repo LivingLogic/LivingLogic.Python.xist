@@ -96,7 +96,7 @@ class description(html.meta):
 	"""
 	<doc:par>can be used for a <markup>&lt;meta name="description" content="..."/&gt;</markup>.</doc:par>
 
-	<doc:par>Usage is simple: <markup>&lt;meta:description&gt;foo, bar&lt;/meta:description&gt;</markup></doc:par>
+	<doc:par>Usage is simple: <markup>&lt;meta:description&gt;This page describes the ...&lt;/meta:description&gt;</markup></doc:par>
 	"""
 	empty = 0
 	attrHandlers = html.meta.attrHandlers.copy()
