@@ -1897,7 +1897,7 @@ class XSC:
 		try: # are there any elements with this name?
 			elementsfornamespaces = _elementHandlers[name[1]]
 		except KeyError: # nope!
-			raise IllegalElementError(Location(self.filename[-1]),name)
+			raise IllegalElementError(self.__here(),name)
 		if name[0] is None: # element name was unqualified ...
 			if len(elementsfornamespaces.keys())==1: # ... and there is exactly one element with this name => use it
 				element = elementsfornamespaces.values()[0]
@@ -1907,7 +1907,7 @@ class XSC:
 			try:
 				element = elementsfornamespaces[name[0]]
 			except KeyError:
-				raise IllegalElementError(Location(self.filename[-1]),name) # elements with this name were available, but none in this namespace
+				raise IllegalElementError(self.__here(),name) # elements with this name were available, but none in this namespace
 		return element
 
 	def finish_starttag(self,name,attrs):
@@ -1921,7 +1921,7 @@ class XSC:
 		element = self.elementFromName(name)
 		currentelement = self.__nesting[-1].__class__
 		if element != currentelement:
-			raise IllegalElementNestingError(-1,currentelement,element)
+			raise IllegalElementNestingError(self.__here(),currentelement,element)
 		self.__nesting[-1].endlineno = self.lineno
 		self.__nesting.pop() # pop the innermost element off the stack
 
@@ -1956,6 +1956,9 @@ class XSC:
 			return 1
 		else:
 			return 0
+
+	def __here(self):
+		return Location(self.filename[-1])
 
 	def __parse(self,string,pad = 0):
 		# our nodes do not have a parent link, therefore we have to store the active path through the tree in a stack (which we call nesting, because stack is already used by the base class (there is no base class anymore, but who cares))
