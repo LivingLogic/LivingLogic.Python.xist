@@ -39,7 +39,7 @@ class XSCError(Exception):
 			return "XSC: error: "
 
 class XSCEmptyElementWithContentError(XSCError):
-	"""exception that is raised, when an element has content, but it shouldn't (i.e. close==0)"""
+	"""exception that is raised, when an element has content, but it shouldn't (i.e. empty=1)"""
 
 	def __init__(self,lineno,element):
 		XSCError.__init__(self,lineno)
@@ -634,8 +634,8 @@ class XSCProcInst(XSCNode):
 class XSCElement(XSCNode):
 	"""XML elements"""
 
-	close = 0 # 0 => stand alone element, 1 => element with content
-	attr_handlers = {}
+	empty = 1 # 0 => element with content; 1 => stand alone element
+ 	attr_handlers = {}
 	name = "XSCElement" # will be changed for derived classes/elements in RegisterElement()
 
 	def __init__(self,content = [],attrs = {},**restattrs):
@@ -653,26 +653,26 @@ class XSCElement(XSCNode):
 
 	def _dorepr(self):
 		v = []
-		if self.close:
+		if self.empty:
+			v.append(self._strtag(self._strelementname(self.name) + self.attrs._dorepr() + self._strelementname("/")))
+		else:
 			v.append(self._strtag(self._strelementname(self.name) + self.attrs._dorepr()))
 			for child in self:
 				v.append(child._dorepr())
 			v.append(self._strtag(self._strelementname("/" + self.name)))
-		else:
-			v.append(self._strtag(self._strelementname(self.name) + self.attrs._dorepr() + self._strelementname("/")))
 		return string.joinfields(v,"")
 
 	def _doreprtree(self,nest,elementno):
 		v = []
-		if self.close:
+		if self.empty:
+			v.append([nest,self.startlineno,elementno,self._strtag(self._strelementname(self.name) + self.attrs._dorepr() + self._strelementname("/"))])
+		else:
 			v.append([nest,self.startlineno,elementno,self._strtag(self._strelementname(self.name) + self.attrs._dorepr())])
 			i = 0
 			for child in self:
 				v = v + child._doreprtree(nest+1,elementno + [i])
 				i = i + 1
 			v.append([nest,self.endlineno,elementno,self._strtag(self._strelementname("/" + self.name))])
-		else:
-			v.append([nest,self.startlineno,elementno,self._strtag(self._strelementname(self.name) + self.attrs._dorepr() + self._strelementname("/"))])
 		return v
 
 	def dostr(self):
@@ -683,15 +683,15 @@ class XSCElement(XSCNode):
 		v.append(self.name)
 		v.append(self.attrs.dostr())
 		s = self.content.dostr()
-		if self.close == 1:
+		if self.empty:
+			if len(s):
+				raise XSCEmptyElementWithContentError(xsc.parser.lineno,self)
+		else:
+			v.append(">")
 			v.append(">")
 			v.append(s)
 			v.append("</")
 			v.append(self.name) # name must be a string without any nasty characters
-			v.append(">")
-		else:
-			if len(s):
-				raise XSCEmptyElementWithContentError(xsc.parser.lineno,self)
 			v.append(">")
 
 		return string.joinfields(v,"")

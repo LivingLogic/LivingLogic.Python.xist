@@ -4,7 +4,7 @@ import sys
 from xsc_html40 import *
 
 class plaintable(table):
-	close = 1
+	empty = 0
 
 	def _doAsHTML(self):
 		e = table(self.content.asHTML(),self.attrs.asHTML())
@@ -19,7 +19,7 @@ class plaintable(table):
 RegisterElement("plaintable",plaintable)
 
 class plainbody(body):
-	close = 1
+	empty = 0
 
 	def _doAsHTML(self):
 		e = body(self.content.asHTML(),self.attrs.asHTML())
@@ -36,21 +36,21 @@ class plainbody(body):
 RegisterElement("plainbody",plainbody)
 
 class z(XSCElement):
-	close = 1
+	empty = 0
 
 	def _doAsHTML(self):
 		return XSCFrag(["«" , self.content , "»" ])
 RegisterElement("z",z)
 
 class nbsp(XSCElement):
-	close = 0
+	empty = 1
 
 	def __str__(self):
 		return "&nbsp;"
 RegisterElement("nbsp",nbsp)
 
 class filesize(XSCElement):
-	close = 0
+	empty = 1
 	attr_handlers = { "href" : XSCurl }
 
 	def _doAsHTML(self):
@@ -66,7 +66,7 @@ class x(XSCElement):
 RegisterElement("x",x)
 
 class pixel(img):
-	close = 0
+	empty = 1
 	attr_handlers = AppendDict(img.attr_handlers,{ "color" : XSCFrag })
 	del attr_handlers["src"]
 
@@ -82,7 +82,7 @@ class pixel(img):
 RegisterElement("pixel",pixel)
 
 class cap(XSCElement):
-	close = 1
+	empty = 0
 	
 	def _doAsHTML(self):
 		e = str(self.content.asHTML())
