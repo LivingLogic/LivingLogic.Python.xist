@@ -486,7 +486,14 @@ class pyref(xsc.Element):
 				e = html.a(e, href=(self.base, module, "/index.html"))
 		return e.convert(converter)
 
-def getDoc(thing):
+def _getmodulename(thing):
+	module = inspect.getmodule(thing)
+	if module is None:
+		return "???"
+	else:
+		return module.__name__
+
+def getdoc(thing):
 	if thing.__doc__ is None:
 		return xsc.Null
 	lines = thing.__doc__.split("\n")
@@ -521,13 +528,13 @@ def getDoc(thing):
 	doc = "\n".join(lines)
 
 	if inspect.ismethod(thing):
-		systemId = "METHOD-DOCSTRING(%s.%s.%s)" % (inspect.getmodule(thing).__name__, thing.__class__.__name__, thing.__name__)
+		systemId = "METHOD-DOCSTRING(%s.%s.%s)" % (_getmodulename(thing), thing.__class__.__name__, thing.__name__)
 	elif inspect.isfunction(thing):
-		systemId = "FUNCTION-DOCSTRING(%s.%s)" % (inspect.getmodule(thing).__name__, thing.__name__)
+		systemId = "FUNCTION-DOCSTRING(%s.%s)" % (_getmodulename(thing), thing.__name__)
 	elif inspect.isclass(thing):
-		systemId = "CLASS-DOCSTRING(%s.%s)" % (inspect.getmodule(thing).__name__, thing.__name__)
+		systemId = "CLASS-DOCSTRING(%s.%s)" % (_getmodulename(thing), thing.__name__)
 	elif inspect.ismodule(thing):
-		systemId = "MODULE-DOCSTRING(%s)" % inspect.getmodule(thing).__name__
+		systemId = "MODULE-DOCSTRING(%s)" % _getmodulename(thing)
 	else:
 		systemId = "DOCSTRING"
 	node = parsers.parseString(doc, systemId=systemId, prefixes=xsc.DocPrefixes())
@@ -538,7 +545,7 @@ def getDoc(thing):
 	if inspect.ismethod(thing):
 		for ref in refs:
 			if not ref.hasattr("module"):
-				ref["module"] = inspect.getmodule(thing).__name__
+				ref["module"] = _getmodulename(thing)
 				if not ref.hasattr("class_"):
 					ref["class_"] = thing.im_class.__name__
 					if not ref.hasattr("method"):
@@ -546,11 +553,11 @@ def getDoc(thing):
 	elif inspect.isfunction(thing):
 		for ref in refs:
 			if not ref.hasattr("module"):
-				ref["module"] = inspect.getmodule(thing).__name__
+				ref["module"] = _getmodulename(thing)
 	elif inspect.isclass(thing):
 		for ref in refs:
 			if not ref.hasattr("module"):
-				ref["module"] = inspect.getmodule(thing).__name__
+				ref["module"] = _getmodulename(thing)
 				if not ref.hasattr("class_"):
 					ref["class_"] = thing.__name__
 	elif inspect.ismodule(thing):
@@ -638,7 +645,7 @@ def explain(thing, name=None, context=[]):
 		if name != thing.__name__ and not (thing.__name__.startswith("__") and name=="_" + thing.im_class.__name__ + thing.__name__):
 			sig.append(name, " = ")
 		sig.append("def ", __codeHeader(thing.im_func, thing.__name__, method), ":")
-		return section(title(sig), getDoc(thing), role="method")
+		return section(title(sig), getdoc(thing), role="method")
 	elif inspect.isfunction(thing):
 		name = name or thing.im_func.__name__
 		context = context + [(thing, name)]
@@ -649,7 +656,7 @@ def explain(thing, name=None, context=[]):
 			__codeHeader(thing, name, function),
 			":"
 		)
-		return section(title(sig), getDoc(thing), role="function")
+		return section(title(sig), getdoc(thing), role="function")
 	elif isinstance(thing, __builtin__.property):
 		context = context + [(thing, name)]
 		id = "-".join([info[1] for info in context[1:]])
@@ -657,7 +664,7 @@ def explain(thing, name=None, context=[]):
 			html.a(name=id, id=id),
 			"property ", name, ":"
 		)
-		node = section(title(sig), getDoc(thing), role="property")
+		node = section(title(sig), getdoc(thing), role="property")
 		if thing.fget is not None:
 			node.append(explain(thing.fget, "__get__", context))
 		if thing.fset is not None:
@@ -697,7 +704,7 @@ def explain(thing, name=None, context=[]):
 				bases,
 				":"
 			),
-			getDoc(thing),
+			getdoc(thing),
 			role="class"
 		)
 		# find methods, properties and classes, but filter out those methods that are attribute getters, setters or deleters
@@ -737,7 +744,7 @@ def explain(thing, name=None, context=[]):
 		context = [(thing, name)]
 		node = section(
 			title("Module ", module(name)),
-			getDoc(thing)
+			getdoc(thing)
 		)
 
 		functions = []
