@@ -24,18 +24,12 @@ class plaintable(html_.table):
 
 	def asHTML(self):
 		e = html_.table(*self.content, **self.attrs)
-		if not e.hasAttr("cellpadding"):
-			e["cellpadding"] = self.defaults["cellpadding"]
-		if not e.hasAttr("cellspacing"):
-			e["cellspacing"] = self.defaults["cellspacing"]
-		if not e.hasAttr("border"):
-			e["border"] = self.defaults["border"]
-
+		e.copyDefaultAttrs(self.default)
 		return e.asHTML()
 
 class plainbody(html_.body):
 	"""
-	a HTML body where the attributes leftmaring, topmargin, marginheight and
+	a HTML body where the attributes leftmargin, topmargin, marginheight and
 	marginwidth default to 0 (which can be overwritten via the class variable
 	<code>defaults</code>).
 	"""
@@ -44,15 +38,7 @@ class plainbody(html_.body):
 
 	def asHTML(self):
 		e = html_.body(*self.content, **self.attrs)
-		if not e.hasAttr("leftmargin"):
-			e["leftmargin"] = self.defaults["leftmargin"]
-		if not e.hasAttr("topmargin"):
-			e["topmargin"] = self.defaults["topmargin"]
-		if not e.hasAttr("marginheight"):
-			e["marginheight"] = self.defaults["marginheight"]
-		if not e.hasAttr("marginwidth"):
-			e["marginwidth"] = self.defaults["marginwidth"]
-
+		e.copyDefaultAttrs(self.default)
 		return e.asHTML()
 
 class z(xsc.Element):

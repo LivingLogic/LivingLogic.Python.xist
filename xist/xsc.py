@@ -1554,7 +1554,7 @@ class Element(Node):
 		"""
 		try:
 			return self[attr]
-		except AttributeNotFoundError:
+		except errors.AttributeNotFoundError:
 			return self.attrHandlers[attr](default) # pack the attribute into an attribute object
 
 	def __getslice__(self, index1, index2):
@@ -1608,6 +1608,22 @@ class Element(Node):
 				node.extend(self[attr].find(type, subtype, attrs, test, searchchildren, searchattrs))
 		node.extend(self.content.find(type, subtype, attrs, test, searchchildren, searchattrs))
 		return node
+
+	def copyDefaultAttrs(self, fromDict=None):
+		"""
+		Sets attributes that are not set <self/> to the default
+		values taken from the fromDict dictionary.
+		If fromDict is omitted, defaults are taken from self.defaults.
+
+		Note: Boolean attributes may savely be set to zero or one (integer).
+		as only the fact that a boolean attribte exists matters.
+		"""
+
+		if fromDict is None:
+			fromDict = self.defaults
+		for (attr, value) in fromDict.items():
+			if not self.hasAttr(attr):
+				self[attr] = value
 
 class Entity(Node):
 	"""

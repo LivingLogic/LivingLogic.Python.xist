@@ -516,7 +516,7 @@ class td(xsc.Element):
 	attrHandlers.update(cellhalign)
 	attrHandlers.update(cellvalign)
 	attrHandlers.update({"abbr": xsc.TextAttr, "axis": xsc.TextAttr, "headers": xsc.TextAttr, "scope": xsc.TextAttr, "rowspan": xsc.TextAttr, "colspan": xsc.TextAttr})
-	attrHandlers.update({"nowrap": xsc.TextAttr, "bgcolor": xsc.ColorAttr, "width": xsc.TextAttr, "height": xsc.TextAttr, "background": xsc.URLAttr, "bordercolor": xsc.ColorAttr}) # deprecated
+	attrHandlers.update({"nowrap": xsc.BoolAttr, "bgcolor": xsc.ColorAttr, "width": xsc.TextAttr, "height": xsc.TextAttr, "background": xsc.URLAttr, "bordercolor": xsc.ColorAttr}) # deprecated
 
 class a(xsc.Element):
 	"""
@@ -689,7 +689,7 @@ class option(xsc.Element):
 	"""
 	empty = 0
 	attrHandlers = attrs.copy()
-	attrHandlers.update({"selected": xsc.TextAttr, "disabled": xsc.TextAttr, "label": xsc.TextAttr, "value": xsc.TextAttr})
+	attrHandlers.update({"selected": xsc.BoolAttr, "disabled": xsc.TextAttr, "label": xsc.TextAttr, "value": xsc.TextAttr})
 
 class textarea(xsc.Element):
 	"""

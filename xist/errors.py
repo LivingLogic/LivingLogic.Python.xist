@@ -263,7 +263,7 @@ class IllegalEntityError(Error):
 			s = s + "There are no allowed entities."
 		return s
 
-class IllegalCommentFormatError(Error):
+class IllegalCommentContentError(Error):
 	"""
 	exception that is raised, when there is an illegal comment, i.e. one
 	containing <code>--</code> or ending in <code>-</code>.

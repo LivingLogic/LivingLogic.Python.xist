@@ -12,6 +12,12 @@ be used for XHTML==1 or XHTML==2.
 
 Element.compact now works (better) ;).
 
+Incorparated many bug fixes from Hartmut Goebel.
+
+Implemented xsc.Element.copyDefaultAttrs, which copies
+not set attributes over from a dictionary (simplified
+implementing specials.plaintable and specials.plainbody)
+
 New in 0.4.6
 ------------
 Now uses sgmlop.XMLParser instead of sgmlop.SGMLParser,
