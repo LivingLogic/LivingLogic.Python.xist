@@ -103,7 +103,7 @@ class exec_(xsc.ProcInst):
 	xmlname = "exec"
 
 	def __init__(self, content=u""):
-		xsc.ProcInst.__init__(self, content)
+		super(exec_).__init__(self, content)
 		code = Code(self.content, 1)
 		exec code.asString() in sandbox.__dict__ # requires Python 2.0b2 (and doesn't really work)
 
@@ -119,7 +119,7 @@ class eval_(xsc.ProcInst):
 	node and this resulting node will be converted to &html;.</doc:par>
 
 	<doc:par>These processing instructions will be evaluated and executed in the
-	namespace of the module <module>sandbox</module>.</doc:par>
+	namespace of the module <pyref module="ll.xist.sandbox"><module>sandbox</module></pyref>.</doc:par>
 
 	<doc:par>Note that you should not define the symbol <lit>__</lit> in any of your &xist;
 	processing instructions, as it is used by &xist; for internal purposes.</doc:par>
@@ -136,5 +136,20 @@ class eval_(xsc.ProcInst):
 		code.funcify()
 		exec code.asString() in sandbox.__dict__ # requires Python 2.0b2 (and doesn't really work)
 		return xsc.ToNode(sandbox.__(converter)).convert(converter)
+
+class import_(xsc.ProcInst):
+	"""
+	<par>Imports the module named in the processing instruction content
+	on construction time.</par>
+	<par>Converting <self/> will result in a <lit>Null</lit> object.</par>
+	"""
+	xmlname = "import"
+
+	def __init__(self, content=u""):
+		super(import_, self).__init__(content)
+		__import__(self.content)
+
+	def convert(self, converter):
+		return xsc.Null # has been executed at construction time already, so we don't have to do anything here
 
 xmlns = xsc.Namespace("code", "http://xmlns.livinglogic.de/xist/ns/code", vars())
