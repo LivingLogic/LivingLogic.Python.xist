@@ -10,7 +10,7 @@
 
 """
 <par>This module contains classes that may be used as publishing
-handler in <pyref module="ll.xist.xsc" class="Node" method="publish"><method>publish</method></pyref>.</par>
+handlers in <pyref module="ll.xist.xsc" class="Node" method="publish"><method>publish</method></pyref>.</par>
 """
 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
