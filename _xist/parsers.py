@@ -617,7 +617,7 @@ class Parser(object):
 			encoding = self.encoding
 		stream = cStringIO.StringIO(string)
 		if base is None:
-			base = url.URL("root:STRING")
+			base = url.URL("STRING")
 		if sysid is None:
 			sysid = str(base)
 		return self._parse(stream, base, sysid, encoding)
@@ -633,7 +633,7 @@ class Parser(object):
 
 	def parseFile(self, name, base=None, sysid=None):
 		name = os.path.expanduser(name)
-		stream = open(name, "r")
+		stream = open(name, "rb")
 		if base is None:
 			base = url.File(name)
 		if sysid is None:
@@ -703,7 +703,7 @@ class Parser(object):
 			node.parsed(self)
 			last = self._last()
 			if len(last) and isinstance(last[-1], xsc.Text):
-				node = last[-1] + node.content # join consecutive Text nodes
+				node = last[-1] + unicode(node) # join consecutive Text nodes
 				node.startloc = last[-1].startloc # make sure the replacement node has the original location
 				last[-1] = node # replace it
 			else:

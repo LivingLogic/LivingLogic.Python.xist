@@ -489,10 +489,9 @@ class PlainPresenter(Presenter):
 		return result
 
 	def presentCharacterData(self, node):
-		if len(node)>self.maxlen:
-			content = node.content[:self.maxlen/2] + u"..." + node.content[-self.maxlen/2:]
-		else:
-			content = node.content
+		content = node.content
+		if len(content)>self.maxlen:
+			content = content[:self.maxlen/2] + u"..." + content[-self.maxlen/2:]
 		self.buffer = "<%s:%s object content=%r at 0x%x>" % (node.__class__.__module__, node.__class__.__fullname__(), content, id(node))
 
 	presentText = presentCharacterData
@@ -520,10 +519,9 @@ class PlainPresenter(Presenter):
 	presentComment = presentCharacterData
 	presentDocType = presentCharacterData
 	def presentProcInst(self, node):
-		if len(node)>self.maxlen:
-			content = node.content[:self.maxlen/2] + u"..." + node.content[-self.maxlen/2:]
-		else:
-			content = node.content
+		content = node.content
+		if len(content)>self.maxlen:
+			content = content[:self.maxlen/2] + u"..." + content[-self.maxlen/2:]
 		self.buffer = "<%s:%s procinst object content=%r at 0x%x>" % (node.__class__.__module__, node.__class__.__fullname__(), content, id(node))
 
 	def presentAttrs(self, node):

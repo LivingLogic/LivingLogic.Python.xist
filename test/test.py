@@ -343,12 +343,13 @@ class XISTTest(unittest.TestCase):
 		self.assertEqual(node*3, xsc.Frag(html.div(), html.div(), html.div()))
 
 	def test_text(self):
-		node = xsc.Text("test")
+		s = "test"
+		node = xsc.Text(s)
 		hash(node)
 		self.assertEqual(len(node), 4)
 		self.assertEqual(node[1], xsc.Text("e"))
-		self.assertEqual(3*node, xsc.Text(3*node.content))
-		self.assertEqual(node*3, xsc.Text(node.content*3))
+		self.assertEqual(3*node, xsc.Text(3*s))
+		self.assertEqual(node*3, xsc.Text(s*3))
 		self.assertEqual(node[1:3], xsc.Text("es"))
 		self.assertEqual(node.capitalize(), xsc.Text("Test"))
 		self.assertEqual(node.center(8), xsc.Text("  test  "))
@@ -1479,7 +1480,7 @@ class ParseTest(unittest.TestCase):
 		node = parsers.parseString("<z>gurk&amp;hurz&#42;hinz&#x666;hunz</z>", saxparser=parsers.SGMLOPParser)
 		self.assertEqual(len(node), 1)
 		self.assertEqual(len(node[0]), 1)
-		self.assertEqual(node[0][0].startloc.getSystemId(), "root:STRING")
+		self.assertEqual(node[0][0].startloc.getSystemId(), "STRING")
 		self.assertEqual(node[0][0].startloc.getLineNumber(), 1)
 
 	def test_parselocationexpat(self):
@@ -1487,7 +1488,7 @@ class ParseTest(unittest.TestCase):
 		node = parsers.parseString("<z>gurk&amp;hurz&#42;hinz&#x666;hunz</z>", saxparser=parsers.ExpatParser)
 		self.assertEqual(len(node), 1)
 		self.assertEqual(len(node[0]), 1)
-		self.assertEqual(node[0][0].startloc.getSystemId(), "root:STRING")
+		self.assertEqual(node[0][0].startloc.getSystemId(), "STRING")
 		self.assertEqual(node[0][0].startloc.getLineNumber(), 1)
 		self.assertEqual(node[0][0].startloc.getColumnNumber(), 3)
 
@@ -1637,7 +1638,7 @@ class ParseTest(unittest.TestCase):
 	def test_sysid(self):
 		# Default system ids and explicitely specified system ids should end up in the location info of the resulting XML tree
 		node = parsers.parseString("gurk")
-		self.assertEqual(node[0].startloc.sysid, "root:STRING")
+		self.assertEqual(node[0].startloc.sysid, "STRING")
 
 		node = parsers.parseString("gurk", base="root:gurk.xmlxsc")
 		self.assertEqual(node[0].startloc.sysid, "root:gurk.xmlxsc")

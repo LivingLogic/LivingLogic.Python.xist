@@ -889,23 +889,23 @@ class CharacterData(Node):
 	def join(self, frag):
 		return frag.withsep(self)
 
-	def ljust(self, width):
-		return self.__class__(self._content.ljust(width))
+	def ljust(self, width, fill=u" "):
+		return self.__class__(self._content.ljust(width, fill))
 
 	def lower(self):
 		return self.__class__(self._content.lower())
 
-	def lstrip(self):
-		return self.__class__(self._content.lstrip())
+	def lstrip(self, chars=None):
+		return self.__class__(self._content.lstrip(chars))
 
 	def replace(self, old, new, maxsplit=-1):
 		return self.__class__(self._content.replace(old, new, maxsplit))
 
-	def rjust(self, width):
-		return self.__class__(self._content.rjust(width))
+	def rjust(self, width, fill=u" "):
+		return self.__class__(self._content.rjust(width, fill))
 
-	def rstrip(self):
-		return self.__class__(self._content.rstrip())
+	def rstrip(self, chars=None):
+		return self.__class__(self._content.rstrip(chars))
 
 	def rfind(self, sub, start=0, end=sys.maxint):
 		return self._content.rfind(sub, start, end)
@@ -922,8 +922,8 @@ class CharacterData(Node):
 	def startswith(self, prefix, start=0, end=sys.maxint):
 		return self._content.startswith(prefix, start, end)
 
-	def strip(self):
-		return self.__class__(self._content.strip())
+	def strip(self, chars=None):
+		return self.__class__(self._content.strip(chars))
 
 	def swapcase(self):
 		return self.__class__(self._content.swapcase())
@@ -949,10 +949,10 @@ class Text(CharacterData):
 		return self
 
 	def __unicode__(self):
-		return self.content
+		return self._content
 
 	def publish(self, publisher):
-		publisher.writetext(self.content)
+		publisher.writetext(self._content)
 
 	def present(self, presenter):
 		presenter.presentText(self)
@@ -1292,10 +1292,11 @@ class Comment(CharacterData):
 	def publish(self, publisher):
 		if publisher.inattr:
 			raise errors.IllegalAttrNodeError(self)
-		if self.content.find(u"--")!=-1 or self.content[-1:]==u"-":
+		content = self.content
+		if u"--" in content or content.endswith(u"-"):
 			warnings.warn(errors.IllegalCommentContentWarning(self))
 		publisher.write(u"<!--")
-		publisher.write(self.content)
+		publisher.write(content)
 		publisher.write(u"-->")
 
 
@@ -1354,12 +1355,13 @@ class ProcInst(CharacterData):
 		presenter.presentProcInst(self)
 
 	def publish(self, publisher):
-		if self.content.find(u"?>")!=-1:
+		content = self.content
+		if u"?>" in content:
 			raise errors.IllegalProcInstFormatError(self)
 		publisher.write(u"<?")
 		publisher.write(self.xmlname[True])
 		publisher.write(u" ")
-		publisher.write(self.content)
+		publisher.write(content)
 		publisher.write(u"?>")
 
 	def __unicode__(self):
@@ -2840,26 +2842,26 @@ class CharRef(Text, Entity):
 	def center(self, width):
 		return Text(self.content.center(width))
 
-	def ljust(self, width):
-		return Text(self.content.ljust(width))
+	def ljust(self, width, fill=u" "):
+		return Text(self.content.ljust(width, fill))
 
 	def lower(self):
 		return Text(self.content.lower())
 
-	def lstrip(self):
-		return Text(self.content.lstrip())
+	def lstrip(self, chars=None):
+		return Text(self.content.lstrip(chars))
 
 	def replace(self, old, new, maxsplit=-1):
 		return Text(self.content.replace(old, new, maxsplit))
 
-	def rjust(self, width):
-		return Text(self.content.rjust(width))
+	def rjust(self, width, fill=u" "):
+		return Text(self.content.rjust(width, fill))
 
-	def rstrip(self):
-		return Text(self.content.rstrip())
+	def rstrip(self, chars=None):
+		return Text(self.content.rstrip(chars))
 
-	def strip(self):
-		return Text(self.content.strip())
+	def strip(self, chars=None):
+		return Text(self.content.strip(chars))
 
 	def swapcase(self):
 		return Text(self.content.swapcase())
