@@ -233,7 +233,7 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 		data = unicode(data, self.encoding).replace(u"\r\n", u"\n").replace(u"\r", u"\n")
 		if not self.headerJustRead or not data.isspace():
 			self.content_handler.characters(data)
-		self.headerJustRead = 0
+			self.headerJustRead = 0
 
 	def handle_proc(self, target, data):
 		target = unicode(target, self.encoding)
