@@ -1235,6 +1235,45 @@ as expected.</par></item>
 
 
 <section><title>Pretty printing &xml;</title>
+<par>The method <method>pretty</method> can be used for pretty printing &xml;.
+It returns a new version of the node, with additional white space between the
+elements:</par>
+<example>
+<prog>
+from ll.xist.ns import html
+e = html.html(
+	html.head(
+		html.title("foo"),
+	),
+	html.body(
+		html.div(
+			html.h1("The ", html.em("foo"), " page!"),
+			html.p("Welcome to the ", html.em("foo"), " page."),
+		),
+	),
+)
+
+print e.pretty().asBytes()
+</prog>
+</example>
+<par>This will print:</par>
+<example>
+<prog>
+&lt;html&gt;
+	&lt;head&gt;
+		&lt;title&gt;foo&lt;/title&gt;
+	&lt;/head&gt;
+	&lt;body&gt;
+		&lt;div&gt;
+			&lt;h1&gt;The &lt;em&gt;foo&lt;/em&gt; page!&lt;/h1&gt;
+			&lt;p&gt;Welcome to the &lt;em&gt;foo&lt;/em&gt; page.&lt;/p&gt;
+		&lt;/div&gt;
+	&lt;/body&gt;
+&lt;/html&gt;
+</prog>
+</example>
+<par>Element content will only be modified if it doesn't contain
+<class>Text</class> nodes, so mixed content will not be touched.</par>
 </section>
 
 
@@ -1245,8 +1284,8 @@ contains an element <pyref module="ll.xist.ns.htmlspecials" class="autoimg"><cla
 that extends <pyref module="ll.xist.ns.html" class="img"><class>ll.xist.ns.html.img</class></pyref>.
 When converted to &html; via the <pyref module="ll.xist.ns" class="Node" method="convert"><method>convert</method></pyref>
 method the size of the image will be determined and the <lit>height</lit>
-and <lit>width</lit> attributes will be set accordingly, if those attributes
-are not set already.</par>
+and <lit>width</lit> attributes will be set accordingly (if those attributes
+are not set already).</par>
 
 </section>
 
