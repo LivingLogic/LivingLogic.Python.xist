@@ -32,9 +32,9 @@ class XML(xsc.ProcInst):
 		versionfound = utils.findAttr(content, u"version")
 		standalonefound = utils.findAttr(content, u"standalone")
 		if publisher.encoding != encodingfound: # if self has the wrong encoding specification (or none), we construct a new XML ProcInst and publish that (this doesn't lead to infinite recursion, because the next call will skip it)
-			node = XML(u"version='" + versionfound + u"' encoding='" + publisher.encoding + u"'")
+			node = XML(u"version='%s' encoding='%s'" % (versionfound, publisher.encoding))
 			if standalonefound is not None:
-				node += u" standalone='" + standalonefound + u"'"
+				node += u" standalone='%s'" % standalonefound
 			node.publish(publisher)
 			return
 		xsc.ProcInst.publish(self, publisher)
