@@ -68,6 +68,12 @@ class forward(struts_config10.forward):
 		class className(xsc.TextAttr): pass
 		class contextRelative(xsc.TextAttr): pass
 
+class action_mappings(struts_config10.action_mappings):
+	xmlname = "action-mappings"
+	class Attrs(struts_config10.action_mappings.Attrs):
+		class id(xsc.IDAttr): pass
+		class type(xsc.TextAttr): pass
+
 class action(xsc.Element):
 	empty = False
 	class Attrs(xsc.Element.Attrs):
