@@ -23,7 +23,7 @@ import urllib
 ### exceptions
 ###
 
-class XSCException:
+class XSCError:
 	"base class for all XSC exceptions"
 
 	def __init__(self,lineno):
@@ -35,67 +35,67 @@ class XSCException:
 		else:
 			return "XSC: error: "
 
-class XSCEmptyElementWithContent(XSCException):
+class XSCEmptyElementWithContentError(XSCError):
 	"exception that is raised, when an element has content, but it shouldn't (i.e. close==0)"
 
 	def __init__(self,lineno,element):
-		XSCException.__init__(self,lineno)
+		XSCError.__init__(self,lineno)
 		self.element = element
 
 	def __str__(self):
-		return XSCException.__str__(self) + "the element '" + self.element.name + "' is specified to be empty, but has content"
+		return XSCError.__str__(self) + "the element '" + self.element.name + "' is specified to be empty, but has content"
 
-class XSCIllegalAttribute(XSCException):
+class XSCIllegalAttributeError(XSCError):
 	"exception that is raised, when an element has an illegal attribute (i.e. one that isn't contained in it's attr_handlers)"
 
 	def __init__(self,lineno,attrs,attr):
-		XSCException.__init__(self,lineno)
+		XSCError.__init__(self,lineno)
 		self.attrs = attrs
 		self.attr = attr
 
 	def __str__(self):
-		return XSCException.__str__(self) + "The attribute '" + self.attr + "' is not allowed here. The only allowed attributes are: " + str(self.attrs.attr_handlers.keys())
+		return XSCError.__str__(self) + "The attribute '" + self.attr + "' is not allowed here. The only allowed attributes are: " + str(self.attrs.attr_handlers.keys())
 
-class XSCIllegalElement(XSCException):
+class XSCIllegalElementError(XSCError):
 	"exception that is raised, when an illegal element is encountered (i.e. one that isn't registered via RegisterElement"
 
 	def __init__(self,lineno,elementname):
-		XSCException.__init__(self,lineno)
+		XSCError.__init__(self,lineno)
 		self.elementname = elementname
 
 	def __str__(self):
-		return XSCException.__str__(self) + "The element '" + self.elementname + "' is not allowed. The only allowed elements are: " + str(element_handlers.keys())
+		return XSCError.__str__(self) + "The element '" + self.elementname + "' is not allowed. The only allowed elements are: " + str(element_handlers.keys())
 
-class XSCImageSizeFormat(XSCException):
+class XSCImageSizeFormatError(XSCError):
 	"exception that is raised, when XSC can't format or evaluate image size attributes"
 
 	def __init__(self,lineno,element,attr):
-		XSCException.__init__(self,lineno)
+		XSCError.__init__(self,lineno)
 		self.element = element
 		self.attr = attr
 
 	def __str__(self):
-		return XSCException.__str__(self) + "the value '" + str(self.element[self.attr]) + "' for the image size attribute '" + self.attr + "' of the element '" + self.element.name + "' can't be formatted or evaluated"
+		return XSCError.__str__(self) + "the value '" + str(self.element[self.attr]) + "' for the image size attribute '" + self.attr + "' of the element '" + self.element.name + "' can't be formatted or evaluated"
 
-class XSCFileNotFound(XSCException):
+class XSCFileNotFoundError(XSCError):
 	"exception that is raised, when XSC can't open an image for getting image size"
 
 	def __init__(self,lineno,url):
-		XSCException.__init__(self,lineno)
+		XSC.__init__(self,lineno)
 		self.url = url
 
 	def __str__(self):
-		return XSCException.__str__(self) + "the image file '" + self.url + "' can't be opened"
+		return XSCError.__str__(self) + "the image file '" + self.url + "' can't be opened"
 
-class XSCIllegalObject(XSCException):
+class XSCIllegalObjectError(XSCError):
 	"exception that is raised, when XSC finds an illegal object found in its obejct tree"
 
 	def __init__(self,lineno,object):
-		XSCException.__init__(self,lineno)
+		XSCError.__init__(self,lineno)
 		self.object = object
 
 	def __str__(self):
-		return XSCException.__str__(self) + "an illegal object of type " + type(self.object).__name__ + " has been found in the XSC tree"
+		return XSCError.__str__(self) + "an illegal object of type " + type(self.object).__name__ + " has been found in the XSC tree"
 
 ###
 ###
@@ -154,7 +154,7 @@ def ToNode(value):
 				return value
 		else:
 			return value
-	raise XSCIllegalObject(xsc.parser.lineno,value) # none of the above, so we throw and exception
+	raise XSCIllegalObjectError(xsc.parser.lineno,value) # none of the above, so we throw and exception
 
 element_handlers = {} # dictionary for mapping element names to classes
 
@@ -280,7 +280,7 @@ class XSCAttrs(XSCNode):
 		if self.attr_handlers.has_key(lowerindex):
 			self.content[lowerindex] = self.attr_handlers[lowerindex](ToNode(value)) # convert the attribute to a node and pack it into an attribute object
 		else:
-			raise XSCIllegalAttribute(xsc.parser.lineno,self,index)
+			raise XSCIllegalAttributeError(xsc.parser.lineno,self,index)
 
 	def __delitem__(self,index):
 		"removes a dictionary entry"
@@ -350,7 +350,7 @@ class XSCElement(XSCNode):
 			v.append(">")
 		else:
 			if len(s):
-				raise XSCEmptyElementWithContent(xsc.parser.lineno,self)
+				raise XSCEmptyElementWithContentError(xsc.parser.lineno,self)
 			v.append(">")
 
 		return string.joinfields(v,"")
@@ -373,7 +373,7 @@ class XSCElement(XSCNode):
 			v.append(">")
 		else:
 			if len(s):
-				raise XSCEmptyElementWithContent(xsc.parser.lineno,self)
+				raise XSCEmptyElementWithContentError(xsc.parser.lineno,self)
 			v.append(">")
 
 		return string.joinfields(v,"")
@@ -403,7 +403,7 @@ class XSCElement(XSCNode):
 					try:
 						self[widthattr] = eval(str(self[widthattr]) % sizedict)
 					except:
-						raise XSCImageSizeFormat(xsc.parser.lineno,self,widthattr)
+						raise XSCImageSizeFormatError(xsc.parser.lineno,self,widthattr)
 				else:
 					self[widthattr] = size[0]
 			if size[1] != -1: # the height was retrieved so we can use it
@@ -411,7 +411,7 @@ class XSCElement(XSCNode):
 					try:
 						self[heightattr] = eval(str(self[heightattr]) % sizedict)
 					except:
-						raise XSCImageSizeFormat(xsc.parser.lineno,self,heightattr)
+						raise XSCImageSizeFormatError(xsc.parser.lineno,self,heightattr)
 				else:
 					self[heightattr] = size[1]
 
@@ -484,7 +484,7 @@ class XSCParser(xmllib.XMLParser):
 		if element_handlers.has_key(lowername):
 			e = element_handlers[lowername]([],attrs)
 		else:
-			raise XSCIllegalElement(xsc.parser.lineno,lowername)
+			raise XSCIllegalElementError(xsc.parser.lineno,lowername)
 		self.nesting[-1].append(e) # add the new element to the content of the innermost element (or to the array)
 		self.nesting.append(e) # push new innermost element onto the stack
 
