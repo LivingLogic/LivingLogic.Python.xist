@@ -86,7 +86,7 @@ class Base(object):
 		def __new__(cls, name, bases, dict):
 			dict["__outerclass__"] = None
 			res = type.__new__(cls, name, bases, dict)
-			for (key, value) in dict.items():
+			for (key, value) in dict.iteritems():
 				if isinstance(value, type):
 					value.__outerclass__ = res
 			return res
@@ -1603,9 +1603,9 @@ class Attrs(Node, dict):
 	def __init__(self, content=None, **attrs):
 		dict.__init__(self)
 		if content is not None:
-			for (attrname, attrvalue) in content.items():
+			for (attrname, attrvalue) in content.iteritems():
 				self[attrname] = attrvalue
-		for (attrname, attrvalue) in attrs.items():
+		for (attrname, attrvalue) in attrs.iteritems():
 			self[attrname] = attrvalue
 
 	def __eq__(self, other):
@@ -1631,7 +1631,7 @@ class Attrs(Node, dict):
 
 	def clone(self):
 		node = self._create()
-		for (key, value) in dict.items(self):
+		for (key, value) in dict.iteritems(self):
 			dict.__setitem__(node, key, value.clone())
 		return node
 
@@ -1849,7 +1849,7 @@ class Attrs(Node, dict):
 
 	def iterkeys(self, xml=False):
 		found = {}
-		for (key, value) in dict.items(self):
+		for (key, value) in dict.iteritems(self):
 			if len(value):
 				if isinstance(key, tuple):
 					yield (value.xmlns, value.xmlname[xml])
@@ -1865,11 +1865,11 @@ class Attrs(Node, dict):
 
 	def itervalues(self):
 		# fetch the existing attribute keys/values
-		for (key, value) in dict.items(self):
+		for value in dict.itervalues(self):
 			if len(value):
 				yield value
 		# fetch the keys of attributes with a default value (if it hasn't been overwritten)
-		for (key, value) in self.alloweditems():
+		for (key, value) in self.iteralloweditems():
 			if value.default and not dict.has_key(self, key):
 				value = value(value.default.clone())
 				dict.__setitem__(self, key, value)
@@ -1880,14 +1880,14 @@ class Attrs(Node, dict):
 
 	def iteritems(self, xml=False):
 		# fetch the existing attribute keys/values
-		for (key, value) in dict.items(self):
+		for (key, value) in dict.iteritems(self):
 			if len(value):
 				if isinstance(key, tuple):
 					yield ((value.xmlns, value.xmlname[xml]), value)
 				else:
 					yield (value.xmlname[xml], value)
 		# fetch the keys of attributes with a default value (if it hasn't been overwritten)
-		for (key, value) in self.alloweditems():
+		for (key, value) in self.iteralloweditems():
 			if value.default and not dict.has_key(self, key):
 				value = value(value.default.clone())
 				dict.__setitem__(self, key, value)
@@ -1971,7 +1971,7 @@ class Element(Node):
 				else:
 					base = Element.Attrs
 				newdict = {}
-				for (key, value) in dict["attrHandlers"].items():
+				for (key, value) in dict["attrHandlers"].iteritems():
 					newdict[key] = new.classobj(key, (value, ), {})
 				dict["Attrs"] = new.classobj("Attrs", (base, ), newdict)
 			cls = Node.__metaclass__.__new__(cls, name, bases, dict)
@@ -2065,12 +2065,12 @@ class Element(Node):
 		newcontent = []
 		for child in content:
 			if isinstance(child, dict):
-				for (attrname, attrvalue) in child.items():
+				for (attrname, attrvalue) in child.iteritems():
 					self.attrs[attrname] = attrvalue
 			else:
 				newcontent.append(child)
 		self.content = Frag(*newcontent)
-		for (attrname, attrvalue) in attrs.items():
+		for (attrname, attrvalue) in attrs.iteritems():
 			self.attrs[attrname] = attrvalue
 
 	def _registerns(cls, ns):
