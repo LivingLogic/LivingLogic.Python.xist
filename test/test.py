@@ -975,16 +975,17 @@ class XISTTest(unittest.TestCase):
 		self.assertEquals(unicode(node.conv()["testattr"]), "23")
 
 		del node["testattr"]
-		self.assertEquals(unicode(node["testattr"]), "42")
-		self.assertEquals(unicode(node.conv()["testattr"]), "42")
+		self.assertEquals(unicode(node["testattr"]), "")
+		self.assertEquals(unicode(node.conv()["testattr"]), "")
 
+		node["testattr"] = 23
 		node["testattr"] = None
-		self.assert_(not node.attrs.has("testattr"))
-		self.assert_(not node.conv().attrs.has("testattr"))
+		self.assert_("testattr" not in node.attrs)
+		self.assert_("testattr" not in node.conv().attrs)
 
 		node = testelem(testattr=None)
-		self.assert_(not node.attrs.has("testattr"))
-		self.assert_(not node.conv().attrs.has("testattr"))
+		self.assert_("testattr" not in node.attrs)
+		self.assert_("testattr" not in node.conv().attrs)
 
 	def test_checkisallowed(self):
 		class testelem(xsc.Element):
@@ -1141,6 +1142,11 @@ class XISTTest(unittest.TestCase):
 		node2 = Gurk(hurz=None)
 		node1.attrs.update(node2.attrs)
 		self.assert_("hurz" not in node1.attrs)
+
+		node1 = Gurk(hurz=None)
+		node2 = Gurk()
+		node1.attrs.update(node2.attrs)
+		self.assert_("hurz" in node1.attrs)
 
 		node = Gurk(Gurk(hurz=None).attrs)
 		self.assert_("hurz" not in node.attrs)

@@ -1477,17 +1477,6 @@ class Attr(Frag):
 		def __repr__(self):
 			return "<attribute class %s:%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
 
-	def __init__(self, *content):
-		# if the constructor has been called without arguments, use the default
-		if not content:
-			content = self.__class__.default.clone()
-		super(Attr, self).__init__(*content)
-
-	def _create(self):
-		node = super(Attr, self)._create()
-		node.clear()
-		return node
-
 	def isfancy(self):
 		"""
 		<par>Return whether <self/> contains nodes
@@ -1784,6 +1773,9 @@ class Attrs(Node, dict):
 
 	def __init__(self, content=None, **attrs):
 		dict.__init__(self)
+		for (key, value) in self.iteralloweditems():
+			if value.default:
+				self[key] = value.default.clone()
 		self.update(content, **attrs)
 
 	def __eq__(self, other):
@@ -1799,13 +1791,6 @@ class Attrs(Node, dict):
 		node = self.__class__() # "virtual" constructor
 		node.clear()
 		return node
-
-	def clear(self):
-		"""
-		makes <self/> empty. (This also removes default attributes)
-		"""
-		for attrvalue in self.itervalues():
-			attrvalue.clear()
 
 	def clone(self):
 		node = self._create()
@@ -1924,7 +1909,7 @@ class Attrs(Node, dict):
 		try:
 			attr = dict.__getitem__(self, self._allowedattrkey(name, xml=xml))
 		except KeyError:
-			attr = self.allowedattr(name, xml=xml).default
+			return False
 		return len(attr)>0
 
 	def has_key(self, name, xml=False):
@@ -2074,48 +2059,30 @@ class Attrs(Node, dict):
 	def iterkeys(self, xml=False):
 		found = {}
 		for (key, value) in dict.iteritems(self):
-			if len(value):
+			if value:
 				if isinstance(key, tuple):
 					yield (value.xmlns, value.xmlname[xml])
 				else:
 					yield value.xmlname[xml]
-		# fetch the keys of attributes with a default value (if it hasn't been overwritten)
-		for (key, value) in self.alloweditems():
-			if value.default and not dict.has_key(self, key):
-				yield value.xmlname[xml]
 
 	def keys(self, xml=False):
 		return list(self.iterkeys(xml=xml))
 
 	def itervalues(self):
-		# fetch the existing attribute keys/values
 		for value in dict.itervalues(self):
 			if value:
-				yield value
-		# fetch the keys of attributes with a default value (if it hasn't been overwritten)
-		for (key, value) in self.iteralloweditems():
-			if value.default and not dict.has_key(self, key):
-				value = value(value.default.clone())
-				dict.__setitem__(self, key, value)
 				yield value
 
 	def values(self):
 		return list(self.itervalues())
 
 	def iteritems(self, xml=False):
-		# fetch the existing attribute keys/values
 		for (key, value) in dict.iteritems(self):
 			if value:
 				if isinstance(key, tuple):
 					yield ((value.xmlns, value.xmlname[xml]), value)
 				else:
 					yield (value.xmlname[xml], value)
-		# fetch the keys of attributes with a default value (if it hasn't been overwritten)
-		for (key, value) in self.iteralloweditems():
-			if value.default and not dict.has_key(self, key):
-				value = value(value.default.clone())
-				dict.__setitem__(self, key, value)
-				yield (value.xmlname[xml], value)
 
 	def items(self, xml=False):
 		return list(self.iteritems(xml=xml))
@@ -2124,24 +2091,17 @@ class Attrs(Node, dict):
 		"""
 		Iterate all items, even the unset ones
 		"""
-		# fetch the existing attribute keys/values
 		for (key, value) in dict.iteritems(self):
 			if isinstance(key, tuple):
 				yield ((value.xmlns, value.xmlname[False]), value)
 			else:
-				yield (value.xmlname[False], value)
-		# fetch the keys of attributes with a default value (if it hasn't been overwritten)
-		for (key, value) in self.iteralloweditems():
-			if value.default and not dict.has_key(self, key):
-				value = value(value.default.clone())
-				dict.__setitem__(self, key, value)
 				yield (value.xmlname[False], value)
 
 	def attr(self, name, xml=False):
 		key = self._allowedattrkey(name, xml=xml)
 		try:
 			attr = dict.__getitem__(self, key)
-		except KeyError: # if the attribute is not there generate a new one (containing the default value)
+		except KeyError: # if the attribute is not there generate a new empty one
 			attr = self.allowedattr(name, xml=xml)()
 			dict.__setitem__(self, key, attr)
 		return attr
