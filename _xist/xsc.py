@@ -1167,7 +1167,7 @@ class ProcInst(CharacterData):
 			return "<procinst class %s/%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
 
 	def _registerns(cls, ns):
-		if cls is not ProcInst:
+		if cls is not ProcInst and cls.register:
 			if cls.xmlns is not None:
 				for xml in (False, True):
 					del cls.xmlns._procinsts[xml][cls.xmlname[xml]]
@@ -1584,18 +1584,18 @@ class Attrs(Node, dict):
 			return cls._attrs[0][key]
 
 		def __delattr__(cls, key):
-			value = getattr(cls, key)
-			if issubclasses(value, Attr):
+			value = cls.__dict__.get(key, None) # no inheritance
+			if issubclasses(value, Attr) and value.register:
 				for xml in (False, True):
 					del cls._attrs[xml][value.xmlname[xml]]
 			return Node.__metaclass__.__delattr__(cls, key)
 
 		def __setattr__(cls, key, value):
 			oldvalue = cls.__dict__.get(key, None) # no inheritance
-			if issubclasses(oldvalue, Attr):
+			if issubclasses(oldvalue, Attr) and oldvalue.register:
 				for xml in (False, True):
 					del cls._attrs[xml][oldvalue.xmlname[xml]]
-			if issubclasses(value, Attr):
+			if issubclasses(value, Attr) and value.register:
 				for xml in (False, True):
 					cls._attrs[xml][value.xmlname[xml]] = value
 			return Node.__metaclass__.__setattr__(cls, key, value)
@@ -1979,7 +1979,7 @@ class Element(Node):
 			attrHandlers = {}
 			for key in dir(cls.Attrs):
 				value = getattr(cls.Attrs, key)
-				if issubclasses(value, Attr):
+				if issubclasses(value, Attr) and value.register:
 					attrHandlers[key] = value
 			cls.attrHandlers = attrHandlers
 			return cls
@@ -2074,7 +2074,7 @@ class Element(Node):
 			self.attrs[attrname] = attrvalue
 
 	def _registerns(cls, ns):
-		if cls is not Element:
+		if cls is not Element and cls.register:
 			if cls.xmlns is not None:
 				for xml in (False, True):
 					del cls.xmlns._elements[xml][cls.xmlname[xml]]
@@ -2537,7 +2537,7 @@ class Entity(Node):
 			return "<entity class %s/%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
 
 	def _registerns(cls, ns):
-		if cls is not Entity and cls is not CharRef:
+		if cls is not Entity and cls is not CharRef and cls.register:
 			if cls.xmlns is not None:
 				for xml in (False, True):
 					del cls.xmlns._entities[xml][cls.xmlname[xml]]
@@ -2598,7 +2598,7 @@ class CharRef(Entity):
 			return "<charref class %s/%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
 
 	def _registerns(cls, ns):
-		if cls is not CharRef:
+		if cls is not CharRef and cls.register:
 			if cls.xmlns is not None:
 				for xml in (False, True):
 					del cls.xmlns._charrefs[xml][cls.xmlname[xml]]
@@ -2828,15 +2828,12 @@ class Prefixes(object):
 		qname = self.__splitqname(qname)
 		for ns in self.ns4elementprefix(qname[0]):
 			try:
-				cls = ns.element(qname[1], xml=True)
-				if not cls.register:
-					continue
-				return cls
+				return ns.element(qname[1], xml=True)
 			except LookupError: # no element in this namespace with this name
 				pass
 		raise errors.IllegalElementError(qname, xml=True) # elements with this name couldn't be found
 
-	def procInst(self, qname):
+	def procinst(self, qname):
 		"""
 		<par>returns the processing instruction class for the name
 		<arg>qname</arg> (which might include a prefix).</par>
@@ -2844,10 +2841,7 @@ class Prefixes(object):
 		qname = self.__splitqname(qname)
 		for ns in self.ns4procinstprefix(qname[0]):
 			try:
-				cls = ns.procinst(qname[1], xml=True)
-				if not cls.register:
-					continue
-				return cls
+				return ns.procinst(qname[1], xml=True)
 			except LookupError: # no processing instruction in this namespace with this name
 				pass
 		raise errors.IllegalProcInstError(qname, xml=True) # processing instructions with this name couldn't be found
@@ -2862,19 +2856,13 @@ class Prefixes(object):
 		nss = self.ns4entityprefix(qname[0])
 		for ns in nss:
 			try:
-				cls = ns.charref(qname[1], xml=True)
-				if not cls.register:
-					continue
-				return cls
+				return ns.charref(qname[1], xml=True)
 			except LookupError: # no charref in this namespace with this name
 				pass
 		# no charrefs => try the entities now
 		for ns in nss:
 			try:
-				cls = ns.entity(qname[1], xml=True)
-				if not cls.register:
-					continue
-				return cls
+				return ns.entity(qname[1], xml=True)
 			except LookupError: # no entity in this namespace with this name
 				pass
 		raise errors.IllegalEntityError(qname, xml=True) # entities with this name couldn't be found
@@ -2885,13 +2873,10 @@ class Prefixes(object):
 		"""
 		for ns in Namespace.all:
 			try:
-				cls = ns.charref(name)[0]
-				if not cls.register:
-					continue
-				return cls
+				return ns.charref(name)[0]
 			except LookupError:
 				pass
-		return None
+		raise errors.IllegalCharRefError(qname, xml=True) # charref with this name/codepoint couldn't be found
 
 	def attrnameFromQName(self, element, qname):
 		"""
@@ -3072,7 +3057,7 @@ class Namespace(object):
 			return "<namespace %s/%s name=%r url=%r%s%s at 0x%x>" % (self.__module__, self.__name__, self.xmlname[True], self.xmlurl, counts, fromfile, id(self))
 
 		def __delattr__(cls, key):
-			value = getattr(cls, key)
+			value = cls.__dict__.get(key, None) # no inheritance
 			if issubclasses(value, (Element, ProcInst, Entity)):
 				value._registerns(None)
 			return type.__delattr__(cls, key)
