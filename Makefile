@@ -12,13 +12,16 @@ SCRIPTDIR=$(HOME)/pythonscripts
 all:
 	python$(PYVERSION) setup.py install --install-lib $(OUTPUTDIR) --install-scripts $(SCRIPTDIR)
 
+test: all
+	python$(PYVERION) test/test.py -v
+
 install:
 	python$(PYVERSION) setup.py install
 
 clean:
 	python$(PYVERSION) setup.py clean
 
-dist:
+dist: test
 	python$(PYVERSION) `which doc2txt.py` --title History NEWS.xml NEWS
 	python$(PYVERSION) `which doc2txt.py` --title "Requirements and installation" INSTALL.xml INSTALL
 	python$(PYVERSION) `which doc2txt.py` --title "Documentation" HOWTO.xml HOWTO
