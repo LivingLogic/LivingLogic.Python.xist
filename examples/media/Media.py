@@ -3,12 +3,17 @@
 from xist import xsc, parsers
 from xist.ns import html, specials, meta
 
+def nameCompare(node1, node2):
+	name1 = node1.find(type=name)[0].content.asPlainString()
+	name2 = node2.find(type=name)[0].content.asPlainString()
+	return cmp(name1, name2)
+
 class media(xsc.Element):
 	empty = 0
 
 	def convert(self, converter=None):
-		dvds = self.content.find(type=dvd)
-		lds = self.content.find(type=ld)
+		dvds = self.content.find(type=dvd).sorted(nameCompare)
+		lds = self.content.find(type=ld).sorted(nameCompare)
 
 		e = xsc.Frag(
 			html.DocTypeHTML401transitional(),
@@ -118,10 +123,6 @@ class price(xsc.Element):
 
 namespace = xsc.Namespace("media", "http://www.livinglogic.de/DTDs/Media.dtd", vars())
 
-if __name__=="__main__":
-	import time
-	t1 = time.clock()
+if __name__ == "__main__":
 	parsers.parseFile("Media.xml").find(type=media).convert().write(open("Media.html","wb"))
-	t2 = time.clock()
-	print "%.02f sec" % (t2-t1)
 
