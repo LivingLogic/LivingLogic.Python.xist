@@ -1937,7 +1937,7 @@ class Element(Node):
 	<class>Attrs</class> class.</par>
 	"""
 
-	empty = True # False => element with content; True => element without content
+	empty = False # False => element with content; True => element without content
 
 	class __metaclass__(Node.__metaclass__):
 		def __new__(cls, name, bases, dict):
@@ -1950,7 +1950,6 @@ class Element(Node):
 			return Node.__metaclass__.__new__(cls, name, bases, dict)
 		def __repr__(self):
 			return "<element class %s/%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
-
 
 	class Attrs(Attrs):
 		def allowedattr(cls, name, xml=False):
