@@ -449,7 +449,9 @@ class XSCFrag(XSCNode):
 	"""contains a list of XSCNodes"""
 
 	def __init__(self,_content = []):
-		if type(_content) == types.InstanceType:
+		if _content is None:
+			self._content = []
+		elif type(_content) == types.InstanceType:
 			if isinstance(_content,XSCFrag):
 				self._content = map(ToNode,_content._content)
 			else:

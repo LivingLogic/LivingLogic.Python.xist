@@ -619,7 +619,7 @@ class lnk(XSCElement):
 				href = self["href"]
 			)
 		)
-		if self.has_attr("rel")
+		if self.has_attr("rel"):
 			pfeil = div(
 				hrf(
 					pfeil(rel = self["rel"]),
@@ -632,7 +632,7 @@ class lnk(XSCElement):
 		e = tr(
 			td(indent(),rowspan="3")+
 			td(pfeil,Class = "links")+
-			td(text))+
+			td(text)+
 			td(indent(),Class = "links",nowrap = None)
 		)
 		e = e + tr(
