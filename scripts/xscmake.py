@@ -42,6 +42,12 @@ extMapping = (
 	(".xsc", ".html"),
 	(".sxsc", ".shtml"),
 	(".pxsc", ".phtml"),
+	(".xsc.de", ".html.de"),
+	(".sxsc.de", ".shtml.de"),
+	(".pxsc.de", ".phtml.de"),
+	(".xsc.en", ".html.en"),
+	(".sxsc.en", ".shtml.en"),
+	(".pxsc.en", ".phtml.en"),
 	(".jxsc", ".jsp"),
 	(".jxscp", ".jspp")
 )
