@@ -6,12 +6,22 @@ value passed in, so it's now possible to pass iterators and generators
 (and generator expressions in Python 2.4) to <class>Frag</class>
 and <class>Element</class> constructors.</item>
 
-<item>The script <filename>xscmake.py</filename> (which has been unmaintained
-for a while now) has been removed.</item>
+<item><par>A new API named XFind for iterating through &xml; trees has been added.
+XFind expression look somewhat like XPath expressions but are pure Python expressions.
+For example finding all links in an &html; page can be done like this:</par>
+<example><title>Finding links with XFind</title>
+<prog>
+from ll.xist import parsers, xfind
+from ll.xist.ns import html
+node = parsers.parseURL("http://www.python.org/", tidy=True)
+for link in node//html.a/xfind.hasattr(html.a.Attrs.href):
+	print link["href"]
+</prog>
+</example>
+</item>
 
-<item>The parser now has the option to ignore illegal elements, attributes,
-processing instructions and entities. The default behaviour is to raise an
-exception, but this can now be reconfigured via Python's warning framework.</item>
+<item>Parsing broken &html; is now done with the &html; parser from
+<link href="http://www.xmlsoft.org/">libxml2</link>.</item>
 
 <item>The publishing API has been simplified: Publication can now be done with
 a call to <method>ll.xist.publishers.Publisher.publish</method>, passing in a
@@ -25,6 +35,10 @@ by calling: <lit>string = <rep>presenter</rep>.present(<rep>node</rep>)</lit>.
 The methods <method>beginPresentation</method> and <method>endPresentation</method>
 have been removed.</item>
 
+<item>The parser now has the option to ignore illegal elements, attributes,
+processing instructions and entities. The default behaviour is to raise an
+exception, but this can now be reconfigured via Python's warning framework.</item>
+
 <item>The classmethod <method>tokenize</method> from <module>ll.toxic</module>
 has been moved to <class>ll.xist.xsc.Namespace</class>, so it's now possible
 to tokenize an &xml; string for other processing instructions as well.</item>
@@ -32,6 +46,9 @@ to tokenize an &xml; string for other processing instructions as well.</item>
 <item>Add a new class <class>ll.xist.NSPool</class> that contains a pool of
 namespaces from which the parser selects the appropriate one namespace
 once an <lit>xmlns</lit> attribute is encountered.</item>
+
+<item>The script <filename>xscmake.py</filename> (which has been unmaintained
+for a while now) has been removed.</item>
 
 <item>Elements <class>hostname</class>, <class>tty</class>, <class>prompt</class>
 and <class>input</class> were add to <module>ll.xist.ns.doc</module>.</item>

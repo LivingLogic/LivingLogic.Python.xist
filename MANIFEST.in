@@ -5,6 +5,8 @@ include INSTALL
 include INSTALL.xml
 include MIGRATION
 include MIGRATION.xml
+include INTRO
+include INTRO.xml
 include HOWTO
 include HOWTO.xml
 include CREDITS

@@ -25,16 +25,18 @@ dist: test
 	python$(PYVERSION) `which doc2txt.py` --title History NEWS.xml NEWS
 	python$(PYVERSION) `which doc2txt.py` --title "Requirements and installation" INSTALL.xml INSTALL
 	python$(PYVERSION) `which doc2txt.py` --title "Documentation" HOWTO.xml HOWTO
+	python$(PYVERSION) `which doc2txt.py` --title "Quick Intro" INTRO.xml INTRO
 	python$(PYVERSION) `which doc2txt.py` --title "Migration and modernization guide" MIGRATION.xml MIGRATION
 	python$(PYVERSION) setup.py sdist --formats=bztar,gztar
 	python$(PYVERSION) setup.py bdist --formats=rpm
-	rm NEWS INSTALL HOWTO MIGRATION
+	rm NEWS INSTALL HOWTO INTRO MIGRATION
 
 windist:
 	python$(PYVERSION) C:\\\\Programme\\\\Python23\\\\Scripts\\\\doc2txt.py --title History NEWS.xml NEWS
 	python$(PYVERSION) C:\\\\Programme\\\\Python23\\\\Scripts\\\\doc2txt.py --title "Requirements and installation" INSTALL.xml INSTALL
 	python$(PYVERSION) C:\\\\Programme\\\\Python23\\\\Scripts\\\\doc2txt.py --title "Documentation" HOWTO.xml HOWTO
+	python$(PYVERSION) C:\\\\Programme\\\\Python23\\\\Scripts\\\\doc2txt.py --title "Quick Intro" INTRO.xml INTRO
 	python$(PYVERSION) C:\\\\Programme\\\\Python23\\\\Scripts\\\\doc2txt.py --title "Migration and modernization guide" MIGRATION.xml MIGRATION
 	python$(PYVERSION) setup.py sdist --formats=zip
 	python$(PYVERSION) setup.py bdist --formats=wininst
-	rm NEWS INSTALL HOWTO MIGRATION
+	rm NEWS INSTALL HOWTO INTRO MIGRATION
