@@ -2024,10 +2024,12 @@ class XSC:
 		"""
 		Reads and parses a XML file from an URL and returns the resulting XSC
 		"""
-		self.pushURL(url)
-		lines = self.filename[-1].readlines()
-		element = self.__parseLines(lines)
-		self.popURL()
+		try:
+			self.pushURL(url)
+			lines = self.filename[-1].readlines()
+			element = self.__parseLines(lines)
+		finally:
+			self.popURL()
 		return element
 
 		# our nodes do not have a parent link, therefore we have to store the active
