@@ -18,7 +18,8 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
 import sys, os
-from ll.xist import parsers, converters
+
+from ll.xist import xsc, parsers, converters
 from ll.xist.ns import tld
 
 def tld2xsc(tldfilename, outfilename=None):

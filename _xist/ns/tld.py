@@ -151,7 +151,7 @@ class tag(xsc.Element):
 	class Attrs(IdAttrs): pass
 
 	def convert(self, converter):
-		e = xndl.element(name=self.content.findfist(xsc.FindType(name)).content)
+		e = xndl.element(name=self.content.findfirst(xsc.FindType(name)).content)
 		l = self.content.find(xsc.FindType(bodycontent))
 		isEmpty = None
 		if l:

@@ -204,7 +204,7 @@ class Element(Base):
 		lines.append([level, "class %s(xsc.Element):" % pyname])
 		newlines = []
 		if self.doc is not None:
-			self.doc._aspy(newlines, encoding, level+1)
+			self.doc._aspy(newlines, encoding, level+1, names)
 		if pyname != name:
 			newlines.append([level+1, "xmlname = %s" % self.simplify(name)])
 		if self.empty:
