@@ -791,6 +791,36 @@ class buergerfestbild(XSCElement):
 		return e.asHTML()
 RegisterElement("buergerfestbild",buergerfestbild)
 
+class buspart(XSCElement):
+	empty = 0
+	attr_handlers = { "scale" : XSStringAttr , "x" : XSCStringAttr , "y" : XSCStringAttr }
+
+	def asHTML(self):
+		e = td(
+			img(
+				name = "map_" + self["x"] + "_" + self["y"]
+				src = "images/maps/map_" + self["x"] + "_" + self["y"] + ".png"
+			)
+		)
+
+		return e.asHTML()
+RegisterElement("buspart",buspart)
+
+class busnav(XSCElement):
+	empty = 1
+	attr_handlers = { "dir" : XSCStringAttr }
+
+	def asHTML(self):
+		e = a(
+			img(
+				src = ":images/navigation/" + self["dir"] + ".gif",
+				border = 0
+			),
+			href = "javascript:" + dir + "()"
+		)
+		return e.asHTML()
+RegisterElement("busnav",busnav)
+
 if __name__ == "__main__":
 	print str(xsc.parseFile(sys.argv[1]).asHTML())
 
