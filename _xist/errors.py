@@ -21,7 +21,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 
 import types, warnings
 
-import xsc, presenters
+import presenters
 
 class Error(Exception):
 	"""
