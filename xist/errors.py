@@ -112,7 +112,7 @@ class AttributeNotFoundError(Error):
 class IllegalElementError(Error):
 	"""
 	exception that is raised, when an illegal element is encountered
-	(i.e. one that isn't registered via registerElement
+	(i.e. one that isn't registered via registerElement)
 	"""
 
 	def __init__(self,location,name):
@@ -152,7 +152,7 @@ class ImageSizeFormatError(Error):
 	exception that is raised, when XSC can't format or evaluate image size attributes
 	"""
 
-	def __init__(self,lineno,element,attr):
+	def __init__(self,element,attr):
 		Error.__init__(self,element.location)
 		self.element = element
 		self.attr = attr
