@@ -1,3 +1,36 @@
+<section><title>Migrating to version 2.3</title>
+<section><title>Changes in namespace handling</title>
+<par>Namespace handling has changed. There are no entity or processing instruction
+prefixes any longer and creating a proper <class>Prefixes</class> object has
+been simplified. For example:</par>
+<prog>
+prefixes = xsc.Prefixes()
+prefixes.addElementPrefixMapping(None, html)
+prefixes.addElementPrefixMapping("svg", svg)
+</prog>
+<par>can be simplified to:</par>
+<prog>
+prefixes = xsc.Prefixes(html, svg=svg)
+</prog>
+<par>The three arguments <arg>elementmode</arg>, <arg>entitymode</arg> and
+<arg>procinstmode</arg> for the publishing methods have been combined into
+<arg>prefixmode</arg>, which is used for elements only.</par>
+</section>
+
+<section><title>Changed namespaces</title>
+<par>The character reference classes from <module>ll.xist.ns.html</module>
+have been moved to a separate namespace <module>ll.xist.ns.chars</module>.</par>
+<par>The processing instructions <class>eval_</class> and <class>exec_</class>
+from the <module>ll.xist.ns.code</module> module have been renamed to
+<class>pyeval</class> and <class>pyexec</class>.</par>
+</section>
+
+<section><title>Changed method names</title>
+<par>The method names <method>beginPublication</method>, <method>endPublication</method>
+and <method>doPublication</method> have been lowercased.</par>
+</section>
+</section>
+
 <section><title>Migrating to version 2.2</title>
 
 <section><title>Attribute methods</title>

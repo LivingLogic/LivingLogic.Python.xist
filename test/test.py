@@ -392,8 +392,8 @@ class XISTTest(unittest.TestCase):
 			xmlurl = "test"
 
 			class Attrs(xsc.Namespace.Attrs):
-				class a(xsc.TextAttr, xsc.NamespaceAttrMixIn): xmlname = "A"
-				class A(xsc.TextAttr, xsc.NamespaceAttrMixIn): xmlname = "a"
+				class a(xsc.TextAttr): xmlname = "A"
+				class A(xsc.TextAttr): xmlname = "a"
 			class Test(xsc.Element):
 				class Attrs(xsc.Element.Attrs):
 					class a(xsc.TextAttr): xmlname = "A"
@@ -1324,46 +1324,40 @@ class PublishTest(unittest.TestCase):
 		node = html.html()
 
 		prefixes = xsc.Prefixes(h=html)
-
-		self.assertEquals(node.asBytes(), "<html></html>")
-		self.assertEquals(node.asBytes(prefixes=prefixes, elementmode=1), "<h:html></h:html>")
-		self.assertEquals(node.asBytes(prefixes=prefixes, elementmode=2), """<h:html xmlns:h="http://www.w3.org/1999/xhtml"></h:html>""")
+		self.assertEquals(node.asBytes(prefixes=prefixes, prefixmode=0), """<html></html>""")
+		self.assertEquals(node.asBytes(prefixes=prefixes, prefixmode=1), """<h:html></h:html>""")
+		self.assertEquals(node.asBytes(prefixes=prefixes, prefixmode=2), """<h:html xmlns:h="http://www.w3.org/1999/xhtml"></h:html>""")
 
 		prefixes = xsc.Prefixes(html)
-
-		self.assertEquals(node.asBytes(prefixes=prefixes, elementmode=2), """<html xmlns="http://www.w3.org/1999/xhtml"></html>""")
+		self.assertEquals(node.asBytes(prefixes=prefixes, prefixmode=0), """<html></html>""")
+		self.assertEquals(node.asBytes(prefixes=prefixes, prefixmode=1), """<html></html>""")
+		self.assertEquals(node.asBytes(prefixes=prefixes, prefixmode=2), """<html xmlns="http://www.w3.org/1999/xhtml"></html>""")
 
 	def test_publishentity(self):
 		node = abbr.xml()
 
 		prefixes = xsc.Prefixes(a=abbr, s=specials)
-
-		self.assertEquals(node.asBytes(), "&xml;")
-		self.assertEquals(node.asBytes(prefixes=prefixes, entitymode=1), "&a:xml;")
-		self.assertEquals(node.asBytes(prefixes=prefixes, entitymode=2), """<wrap xmlns:a="http://xmlns.livinglogic.de/xist/ns/abbr">&a:xml;</wrap>""")
-		self.assertEquals(node.asBytes(prefixes=prefixes, elementmode=2, entitymode=2), """<s:wrap xmlns:s="http://xmlns.livinglogic.de/xist/ns/specials" xmlns:a="http://xmlns.livinglogic.de/xist/ns/abbr">&a:xml;</s:wrap>""")
+		self.assertEquals(node.asBytes(prefixes=prefixes, prefixmode=0), """&xml;""")
+		self.assertEquals(node.asBytes(prefixes=prefixes, prefixmode=1), """&xml;""")
+		self.assertEquals(node.asBytes(prefixes=prefixes, prefixmode=2), """&xml;""")
 
 		prefixes = xsc.Prefixes(abbr, s=specials)
-
-		self.assertEquals(node.asBytes(prefixes=prefixes, entitymode=2), """<wrap xmlns="http://xmlns.livinglogic.de/xist/ns/abbr">&xml;</wrap>""")
-		self.assertEquals(node.asBytes(prefixes=prefixes, elementmode=2, entitymode=2), """<s:wrap xmlns:s="http://xmlns.livinglogic.de/xist/ns/specials" xmlns="http://xmlns.livinglogic.de/xist/ns/abbr">&xml;</s:wrap>""")
+		self.assertEquals(node.asBytes(prefixes=prefixes, prefixmode=0), """&xml;""")
+		self.assertEquals(node.asBytes(prefixes=prefixes, prefixmode=1), """&xml;""")
+		self.assertEquals(node.asBytes(prefixes=prefixes, prefixmode=2), """&xml;""")
 
 	def test_publishprocinst(self):
 		node = php.php("x")
 
 		prefixes = xsc.Prefixes(p=php, s=specials)
-
-		self.assertEquals(node.asBytes(), "<?php x?>")
-		self.assertEquals(node.asBytes(prefixes=prefixes, procinstmode=1), "<?p:php x?>")
-		self.assertEquals(node.asBytes(prefixes=prefixes, procinstmode=2), """<wrap xmlns:p="http://www.php.net/"><?p:php x?></wrap>""")
-		# FIXME this depends on dict iteration order
-		self.assertEquals(node.asBytes(prefixes=prefixes, elementmode=2, procinstmode=2), """<s:wrap xmlns:s="http://xmlns.livinglogic.de/xist/ns/specials" xmlns:p="http://www.php.net/"><?p:php x?></s:wrap>""")
+		self.assertEquals(node.asBytes(prefixes=prefixes, prefixmode=0), """<?php x?>""")
+		self.assertEquals(node.asBytes(prefixes=prefixes, prefixmode=1), """<?php x?>""")
+		self.assertEquals(node.asBytes(prefixes=prefixes, prefixmode=2), """<?php x?>""")
 
 		prefixes = xsc.Prefixes(php, s=specials)
-
-		self.assertEquals(node.asBytes(prefixes=prefixes, procinstmode=2), """<wrap xmlns="http://www.php.net/"><?php x?></wrap>""")
-		# FIXME this depends on dict iteration order
-		self.assertEquals(node.asBytes(prefixes=prefixes, elementmode=2, procinstmode=2), """<s:wrap xmlns:s="http://xmlns.livinglogic.de/xist/ns/specials" xmlns="http://www.php.net/"><?php x?></s:wrap>""")
+		self.assertEquals(node.asBytes(prefixes=prefixes, prefixmode=0), """<?php x?>""")
+		self.assertEquals(node.asBytes(prefixes=prefixes, prefixmode=1), """<?php x?>""")
+		self.assertEquals(node.asBytes(prefixes=prefixes, prefixmode=2), """<?php x?>""")
 
 	def test_publishboolattr(self):
 		node = html.td("?", nowrap=None)
@@ -1388,6 +1382,23 @@ class PublishTest(unittest.TestCase):
 		self.assertEquals(node.asBytes(xhtml=1), """<div style="background-image: url(root:gurk.html)"></div>""")
 		self.assertEquals(node.asBytes(xhtml=1, base="root:gurk.html"), """<div style="background-image: url()"></div>""")
 		self.assertEquals(node.asBytes(xhtml=1, base="root:hurz.html"), """<div style="background-image: url(gurk.html)"></div>""")
+
+	def test_publishxmlattr(self):
+		from ll.xist.ns import xml
+		node = html.html({(xml, "space"): "preserve"})
+		prefixes = xsc.Prefixes(h=html)
+		self.assertEquals(node.asBytes(prefixes=prefixes, prefixmode=0), """<html xml:space="preserve"></html>""")
+		self.assertEquals(node.asBytes(prefixes=prefixes, prefixmode=1), """<h:html xml:space="preserve"></h:html>""")
+		self.assertEquals(node.asBytes(prefixes=prefixes, prefixmode=2), """<h:html xmlns:h="http://www.w3.org/1999/xhtml" xml:space="preserve"></h:html>""")
+
+	def test_publishglobalattr(self):
+		from ll.xist.ns import xlink
+		node = html.html({(xlink, "title"): "the foo bar"})
+		prefixes = xsc.Prefixes(h=html, xl=xlink)
+		self.assertEquals(node.asBytes(prefixes=prefixes, prefixmode=0), """<html xmlns:xl="http://www.w3.org/1999/xlink" xl:title="the foo bar"></html>""")
+		self.assertEquals(node.asBytes(prefixes=prefixes, prefixmode=1), """<h:html xmlns:xl="http://www.w3.org/1999/xlink" xl:title="the foo bar"></h:html>""")
+		# FIXME: this depends on dict iteration order
+		self.assertEquals(node.asBytes(prefixes=prefixes, prefixmode=2), """<h:html xmlns:xl="http://www.w3.org/1999/xlink" xmlns:h="http://www.w3.org/1999/xhtml" xl:title="the foo bar"></h:html>""")
 
 	def test_publishempty(self):
 		node = xsc.Frag(html.br(), html.div())

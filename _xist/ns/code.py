@@ -78,7 +78,7 @@ class Code(object):
 		return "".join(v)
 
 
-class exec_(xsc.ProcInst):
+class pyexec(xsc.ProcInst):
 	"""
 	<par>here the content of the processing instruction is executed
 	as Python code, so you can define and register &xist; elements here.
@@ -90,7 +90,6 @@ class exec_(xsc.ProcInst):
 	<par>These processing instructions will be evaluated and executed in the
 	namespace of the module <module>sandbox</module>.</par>
 	"""
-	xmlname = "exec"
 
 	def __init__(self, content=u""):
 		xsc.ProcInst.__init__(self, content)
@@ -101,7 +100,7 @@ class exec_(xsc.ProcInst):
 		return xsc.Null # has been executed at construction time already, so we don't have to do anything here
 
 
-class eval_(xsc.ProcInst):
+class pyeval(xsc.ProcInst):
 	"""
 	<par>here the code will be executed when the node is converted to &html;
 	as if it was the body of a function, so you can return an expression
@@ -115,7 +114,6 @@ class eval_(xsc.ProcInst):
 	<par>Note that you should not define the symbol <lit>__</lit> in any of your &xist;
 	processing instructions, as it is used by &xist; for internal purposes.</par>
 	"""
-	xmlname = "eval"
 
 	def convert(self, converter):
 		"""
@@ -127,22 +125,6 @@ class eval_(xsc.ProcInst):
 		code.funcify()
 		exec code.asString() in sandbox.__dict__ # requires Python 2.0b2 (and doesn't really work)
 		return xsc.ToNode(sandbox.__(converter)).convert(converter)
-
-
-class import_(xsc.ProcInst):
-	"""
-	<par>Imports the module named in the processing instruction content
-	on construction time.</par>
-	<par>Converting <self/> will result in a <lit>Null</lit> object.</par>
-	"""
-	xmlname = "import"
-
-	def __init__(self, content=u""):
-		super(import_, self).__init__(content)
-		__import__(self.content)
-
-	def convert(self, converter):
-		return xsc.Null # has been executed at construction time already, so we don't have to do anything here
 
 
 class xmlns(xsc.Namespace):

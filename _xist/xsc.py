@@ -563,26 +563,27 @@ class Node(Base):
 		<item><lit>2</lit>: Both a prefix and a declaration
 		for this prefix are required.</item>
 		</ulist>
-		<par>The implementation of this method for
-		<pyref class="Element"><class>Element</class></pyref>,
-		<pyref class="ProcInst"><class>ProcInst</class></pyref> and
-		<pyref class="Entity"><class>Entity</class></pyref>
-		fetch this information from the <arg>publisher</arg>.</par>
 		"""
-		return 0
+		if publisher is not None:
+			return publisher.prefixmode
+		else:
+			return 0
 	needsxmlns = classmethod(needsxmlns)
 
 	def xmlprefix(cls, publisher=None):
 		"""
-		<par>Return the namespace prefix configured for publishing the
-		instances of this class with the publisher <arg>publisher</arg>
+		<par>Return the namespace prefix configured for publishing elements
+		of this class with the publisher <arg>publisher</arg>
 		(or the default prefix from the namespace if <arg>publisher</arg>
 		is <lit>None</lit>.</par>
 		"""
 		if cls.xmlns is None:
 			return None
 		else:
-			return cls.xmlns.xmlname
+			if publisher is None:
+				return cls.xmlns.xmlname[True]
+			else:
+				return publisher.prefixes.prefix4ns(cls.xmlns)[0]
 	xmlprefix = classmethod(xmlprefix)
 
 	def _publishname(self, publisher):
@@ -627,17 +628,17 @@ class Node(Base):
 		"""
 		raise NotImplementedError("publish method not implemented in %s" % self.__class__.__name__)
 
-	def asString(self, base=None, root=None, xhtml=None, prefixes=None, elementmode=0, procinstmode=0, entitymode=0):
+	def asString(self, base=None, root=None, xhtml=None, prefixes=None, prefixmode=0):
 		"""
 		<par>returns this element as a unicode string.</par>
 
 		<par>For the parameters see the
 		<pyref module="ll.xist.publishers" class="Publisher"><class>ll.xist.publishers.Publisher</class></pyref> constructor.</par>
 		"""
-		publisher = publishers.StringPublisher(base=base, root=root, xhtml=xhtml, prefixes=prefixes, elementmode=elementmode, procinstmode=procinstmode, entitymode=entitymode)
-		return publisher.doPublication(self)
+		publisher = publishers.StringPublisher(base=base, root=root, xhtml=xhtml, prefixes=prefixes, prefixmode=prefixmode)
+		return publisher.dopublication(self)
 
-	def asBytes(self, base=None, root=None, encoding=None, xhtml=None, prefixes=None, elementmode=0, procinstmode=0, entitymode=0):
+	def asBytes(self, base=None, root=None, encoding=None, xhtml=None, prefixes=None, prefixmode=0):
 		"""
 		<par>returns this element as a byte string suitable for writing
 		to an &html; file or printing from a CGI script.</par>
@@ -645,18 +646,18 @@ class Node(Base):
 		<par>For the parameters see the
 		<pyref module="ll.xist.publishers" class="Publisher"><class>ll.xist.publishers.Publisher</class></pyref> constructor.</par>
 		"""
-		publisher = publishers.BytePublisher(base=base, root=root, encoding=encoding, xhtml=xhtml, prefixes=prefixes, elementmode=elementmode, procinstmode=procinstmode, entitymode=entitymode)
-		return publisher.doPublication(self)
+		publisher = publishers.BytePublisher(base=base, root=root, encoding=encoding, xhtml=xhtml, prefixes=prefixes, prefixmode=prefixmode)
+		return publisher.dopublication(self)
 
-	def write(self, stream, base=None, root=None, encoding=None, xhtml=None, prefixes=None, elementmode=0, procinstmode=0, entitymode=0):
+	def write(self, stream, base=None, root=None, encoding=None, xhtml=None, prefixes=None, prefixmode=0):
 		"""
 		<par>writes the element to the file like object <arg>file</arg>.</par>
 
 		<par>For the rest of the parameters
 		see the <pyref module="ll.xist.publishers" class="Publisher"><class>ll.xist.publishers.Publisher</class></pyref> constructor.</par>
 		"""
-		publisher = publishers.FilePublisher(stream, base=base, root=root, encoding=encoding, xhtml=xhtml, prefixes=prefixes, elementmode=elementmode, procinstmode=procinstmode, entitymode=entitymode)
-		return publisher.doPublication(self)
+		publisher = publishers.FilePublisher(stream, base=base, root=root, encoding=encoding, xhtml=xhtml, prefixes=prefixes, prefixmode=prefixmode)
+		return publisher.dopublication(self)
 
 	def _walk(self, filter, path, filterpath, walkpath, skiproot):
 		"""
@@ -1428,30 +1429,11 @@ class ProcInst(CharacterData):
 	def present(self, presenter):
 		presenter.presentProcInst(self)
 
-	def needsxmlns(self, publisher=None):
-		if publisher is not None:
-			return publisher.procinstmode
-		return 0
-	needsxmlns = classmethod(needsxmlns)
-
-	def xmlprefix(cls, publisher=None):
-		if cls.xmlns is None:
-			return None
-		else:
-			if publisher is None:
-				return cls.xmlns.xmlname[True]
-			else:
-				if publisher.procinstmode:
-					return publisher.prefixes.prefix4ns(cls.xmlns)[0]
-				else:
-					return None
-	xmlprefix = classmethod(xmlprefix)
-
 	def publish(self, publisher):
 		if self.content.find(u"?>")!=-1:
 			raise errors.IllegalProcInstFormatError(self)
 		publisher.publish(u"<?")
-		self._publishname(publisher)
+		publisher.publish(self.xmlname[True])
 		publisher.publish(u" ")
 		publisher.publish(self.content)
 		publisher.publish(u"?>")
@@ -1562,6 +1544,13 @@ class Attr(Frag):
 
 	def present(self, presenter):
 		presenter.presentAttr(self)
+
+	def needsxmlns(self, publisher=None):
+		if self.xmlns is not None:
+			return 2
+		else:
+			return 0
+	needsxmlns = classmethod(needsxmlns)
 
 	def checkvalid(self):
 		"""
@@ -2461,25 +2450,6 @@ class Element(Node):
 	def present(self, presenter):
 		presenter.presentElement(self)
 
-	def needsxmlns(self, publisher=None):
-		if publisher is not None:
-			return publisher.elementmode
-		return 1
-	needsxmlns = classmethod(needsxmlns)
-
-	def xmlprefix(cls, publisher=None):
-		if cls.xmlns is None:
-			return None
-		else:
-			if publisher is None:
-				return cls.xmlns.xmlname[True]
-			else:
-				if publisher.elementmode:
-					return publisher.prefixes.prefix4ns(cls.xmlns)[0]
-				else:
-					return None
-	xmlprefix = classmethod(xmlprefix)
-
 	def _publishfull(self, publisher):
 		"""
 		Does the full publication of the element. If you need full elements
@@ -2490,17 +2460,16 @@ class Element(Node):
 		self._publishname(publisher)
 		# we're the first element to be published, so we have to create the xmlns attributes
 		if publisher.publishxmlns:
-			for (ns, (mode, prefix)) in publisher.prefixes2use.iteritems():
-				if mode==2:
-					publisher.publish(u" xmlns")
-					if prefix is not None:
-						publisher.publish(u":")
-						publisher.publish(prefix)
-					publisher.publish(u"=\"")
-					publisher.publish(ns.xmlurl)
-					publisher.publish(u"\"")
+			for (ns, prefix) in publisher.publishxmlns.iteritems():
+				publisher.publish(u" xmlns")
+				if prefix is not None:
+					publisher.publish(u":")
+					publisher.publish(prefix)
+				publisher.publish(u"=\"")
+				publisher.publish(ns.xmlurl)
+				publisher.publish(u"\"")
 			# reset the note, so the next element won't create the attributes again
-			publisher.publishxmlns = False
+			publisher.publishxmlns = None
 		self.attrs.publish(publisher)
 		if len(self):
 			if self.empty:
@@ -2898,28 +2867,9 @@ class Entity(Node):
 	def present(self, presenter):
 		presenter.presentEntity(self)
 
-	def needsxmlns(self, publisher=None):
-		if publisher is not None:
-			return publisher.entitymode
-		return 0
-	needsxmlns = classmethod(needsxmlns)
-
-	def xmlprefix(cls, publisher=None):
-		if cls.xmlns is None:
-			return None
-		else:
-			if publisher is None:
-				return cls.xmlns.xmlname[True]
-			else:
-				if publisher.entitymode:
-					return publisher.prefixes.prefix4ns(cls.xmlns)[0]
-				else:
-					return None
-	xmlprefix = classmethod(xmlprefix)
-
 	def publish(self, publisher):
 		publisher.publish(u"&")
-		self._publishname(publisher)
+		publisher.publish(self.xmlname[True])
 		publisher.publish(u";")
 
 
@@ -2968,10 +2918,7 @@ class Prefixes(dict):
 	"""
 	<par>Specifies a mapping between namespace prefixes and namespaces both
 	for parsing and publishing. Each namespace can have multiple prefixes, and
-	every prefix can be used by multiple namespaces. A <class>Prefixes</class>
-	instance keeps three seperate mappings: one for <pyref class="Element">elements</pyref>,
-	one for <pyref class="ProcInst">processing instructions</pyref> and one
-	for <pyref class="Entity">entities</pyref>.</par>
+	every prefix can be used by multiple namespaces.</par>
 	"""
 	NOPREFIX = 0
 	USEPREFIX = 1
@@ -3029,68 +2976,78 @@ class Prefixes(dict):
 		<par>returns the element class for the name
 		<arg>qname</arg> (which might include a prefix).</par>
 		"""
-		qname = self.__splitqname(qname)
-		for ns in self[qname[0]]:
+		(prefix, name) = self.__splitqname(qname)
+		for ns in self[prefix]:
 			try:
-				element = ns.element(qname[1], xml=True)
+				element = ns.element(name, xml=True)
 				if element.register:
 					return element
 			except LookupError: # no element in this namespace with this name
 				pass
 		raise errors.IllegalElementError(qname, xml=True) # elements with this name couldn't be found
 
-	def procinst(self, qname):
+	def procinst(self, name):
 		"""
-		<par>returns the processing instruction class for the name
-		<arg>qname</arg> (which might include a prefix).</par>
+		<par>returns the processing instruction class for the name <arg>name</arg>.</par>
 		"""
-		qname = self.__splitqname(qname)
-		for ns in self[qname[0]]:
-			try:
-				procinst = ns.procinst(qname[1], xml=True)
-				if procinst.register:
-					return procinst
-			except LookupError: # no processing instruction in this namespace with this name
-				pass
-		raise errors.IllegalProcInstError(qname, xml=True) # processing instructions with this name couldn't be found
-
-	def entity(self, qname):
-		"""
-		<par>returns the entity or charref class for the name
-		<arg>qname</arg> (which might include a prefix).</par>
-		"""
-		qname = self.__splitqname(qname)
-		for ns in self[qname[0]]:
-			try:
-				entity = ns.entity(qname[1], xml=True)
-				if entity.register:
-					return entity
-			except LookupError: # no entity in this namespace with this name
-				pass
-		raise errors.IllegalEntityError(qname, xml=True) # entities with this name couldn't be found
-
-	def charref(self, qname):
-		"""
-		<par>returns the first charref class for the name or codepoint <arg>qname</arg>.</par>
-		"""
-		if isinstance(qname, basestring):
-			qname = self.__splitqname(qname)
-			for ns in self[qname[0]]:
+		candidates = {}
+		for nss in self.itervalues():
+			for ns in nss:
 				try:
-					charref = ns.charref(qname[1], xml=True)
-					if charref.register:
-						return charref
+					procinst = ns.procinst(name, xml=True)
+					if procinst.register:
+						candidates[ns] = procinst
+						break
+				except LookupError: # no processing instruction in this namespace with this name
+					pass
+		if len(candidates)==1:
+			return candidates.popitem()[1]
+		elif len(candidates)==0:
+			raise errors.IllegalProcInstError(name, xml=True) # processing instructions with this name couldn't be found
+		else:
+			raise errors.AmbiguousProcInstError(name, xml=True) # there was more than one processing instructions with this name
+
+	def entity(self, name):
+		"""
+		<par>returns the entity or charref class for the name <arg>name</arg>.</par>
+		"""
+		candidates = {}
+		for nss in self.itervalues():
+			for ns in nss:
+				try:
+					entity = ns.entity(name, xml=True)
+					if entity.register:
+						candidates[ns] = entity
+						break
 				except LookupError: # no entity in this namespace with this name
 					pass
+		if len(candidates)==1:
+			return candidates.popitem()[1]
+		elif len(candidates)==0:
+			raise errors.IllegalEntityError(name, xml=True) # entities with this name couldn't be found
 		else:
-			for ns in Namespace.all:
+			raise errors.AmbiguousEntityError(name, xml=True) # there was more than one entity with this name
+
+	def charref(self, name):
+		"""
+		<par>returns the first charref class for the name or codepoint <arg>name</arg>.</par>
+		"""
+		candidates = {}
+		for nss in self.itervalues():
+			for ns in nss:
 				try:
-					charref = ns.charref(qname)[0]
+					charref = ns.charref(name, xml=True)
 					if charref.register:
-						return charref
-				except LookupError:
+						candidates[ns] = charref
+						break
+				except LookupError: # no entity in this namespace with this name
 					pass
-		raise errors.IllegalCharRefError(qname, xml=True) # charref with this name/codepoint couldn't be found
+		if len(candidates)==1:
+			return candidates.popitem()[1]
+		elif len(candidates)==0:
+			raise errors.IllegalCharRefError(name, xml=True) # character references with this name/codepoint couldn't be found
+		else:
+			raise errors.AmbiguousCharRefError(name, xml=True) # there was more than one character reference with this name
 
 	def attrnamefromqname(self, element, qname):
 		"""
@@ -3163,8 +3120,8 @@ class DocPrefixes(Prefixes):
 	"""
 	def __init__(self, default=None):
 		super(DocPrefixes, self).__init__()
-		from ll.xist.ns import html, abbr, doc, specials
-		self[None] = [doc, specials, html, abbr]
+		from ll.xist.ns import html, chars, abbr, doc, specials
+		self[None] = [doc, specials, html, chars, abbr]
 
 defaultPrefixes = Prefixes()
 
@@ -3172,21 +3129,6 @@ defaultPrefixes = Prefixes()
 ###
 ### Namespaces
 ###
-
-class NamespaceAttrMixIn(object):
-	"""
-	<par>Attributes in namespaces always need a prefix and
-	most of them (except those for the prefix <lit>xml</lit>),
-	require that their namespace is declared. This class can
-	be used as a mixin class to achieve that.</par>
-	"""
-	def needsxmlns(self, publisher=None):
-		"""
-		<par>always return <lit>2</lit>, i.e. define and use the appropriate namespace prefix.</par>
-		"""
-		return 2
-	needsxmlns = classmethod(needsxmlns)
-
 
 class Namespace(Base):
 	"""

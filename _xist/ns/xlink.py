@@ -24,24 +24,14 @@ class xmlns(xsc.Namespace):
 	xmlurl  = "http://www.w3.org/1999/xlink"
 
 	class Attrs(xsc.Namespace.Attrs):
-		class type(xsc.NamespaceAttrMixIn, xsc.TextAttr):
-			values = ("simple", "extended", "locator", "arc", "resource", "title")
-		class href(xsc.NamespaceAttrMixIn, xsc.URLAttr):
-			pass
-		class role(xsc.NamespaceAttrMixIn, xsc.URLAttr):
-			pass
-		class arcrole(xsc.NamespaceAttrMixIn, xsc.URLAttr):
-			pass
-		class title(xsc.NamespaceAttrMixIn, xsc.TextAttr):
-			pass
-		class show(xsc.NamespaceAttrMixIn, xsc.TextAttr):
-			values = ("new", "replace", "embed", "other", "none")
-		class label(xsc.NamespaceAttrMixIn, xsc.TextAttr):
-			pass
-		class actuate(xsc.NamespaceAttrMixIn, xsc.TextAttr):
-			values = ("onLoad", "onRequest", "other", "none")
-		class from_(xsc.NamespaceAttrMixIn, xsc.TextAttr):
-			xmlname = "from"
-		class to(xsc.NamespaceAttrMixIn, xsc.TextAttr):
-			pass
+		class type(xsc.TextAttr): values = ("simple", "extended", "locator", "arc", "resource", "title")
+		class href(xsc.URLAttr): pass
+		class role(xsc.URLAttr): pass
+		class arcrole(xsc.URLAttr): pass
+		class title(xsc.TextAttr): pass
+		class show(xsc.TextAttr): values = ("new", "replace", "embed", "other", "none")
+		class label(xsc.TextAttr): pass
+		class actuate(xsc.TextAttr): values = ("onLoad", "onRequest", "other", "none")
+		class from_(xsc.TextAttr): xmlname = "from"
+		class to(xsc.TextAttr): pass
 xmlns.makemod(vars())

@@ -35,7 +35,7 @@ class Publisher(object):
 	base class for all publishers.
 	"""
 
-	def __init__(self, stream, base=None, root=None, encoding=None, xhtml=None, prefixes=None, elementmode=0, procinstmode=0, entitymode=0):
+	def __init__(self, stream, base=None, root=None, encoding=None, xhtml=None, prefixes=None, prefixmode=0):
 		"""
 		<par><arg>base</arg> specifies the url to which the result
 		will be output.</par>
@@ -64,10 +64,10 @@ class Publisher(object):
 		by the environment variable <lit>XSC_OUTPUT_XHTML</lit> and can of course be
 		changed dynamically.</par>
 
-		<par><arg>prefixes</arg> is and instance of <pyref module="ll.xist.xsc" class="Prefixes"><class>Prefixes</class></pyref>
+		<par><arg>prefixes</arg> is an instance of <pyref module="ll.xist.xsc" class="Prefixes"><class>Prefixes</class></pyref>
 		and maps <pyref module="ll.xist.xsc" class="Namespace"><class>Namespace</class></pyref>
-		objects to prefixes that should be used (or <lit>None</lit>, if no prefix should be used.).
-		With <arg>elementmode</arg> you can specify how prefixes for elements should be
+		objects to prefixes that should be used (or <lit>None</lit>, if no prefix should be used).
+		With <arg>prefixmode</arg> you can specify how prefixes for elements should be
 		treated:</par>
 		<ulist>
 		<item><lit>0</lit>: Never publish a prefix;</item>
@@ -91,9 +91,7 @@ class Publisher(object):
 		if prefixes is None:
 			prefixes = xsc.OldPrefixes()
 		self.prefixes = prefixes
-		self.elementmode = elementmode
-		self.procinstmode = procinstmode
-		self.entitymode = entitymode
+		self.prefixmode = prefixmode
 
 		self.inAttr = 0
 		self.__textfilters = [ helpers.escapetext ]
@@ -106,7 +104,7 @@ class Publisher(object):
 		self.stream = streamwriterclass(stream)
 		self.publish = self.stream.write
 
-		self.publishxmlns = False # signals that xmlns attributes should be generate to the first element encountered, if true
+		self.publishxmlns = None # signals that xmlns attributes should be generated to the first element encountered, if not empty
 
 	def publish(self, text):
 		"""
@@ -158,9 +156,8 @@ class Publisher(object):
 		<par>Return a list of nodes in <arg>node</arg> that
 		need a <lit>xmlns</lit> attribute.</par>
 		"""
-		if isinstance(node, (xsc.Element, xsc.ProcInst, xsc.Entity)):
-			if node.needsxmlns(self)==xsc.Prefixes.DECLAREANDUSEPREFIX:
-				return [node]
+		if isinstance(node, xsc.Element):
+			return [node]
 		elif isinstance(node, xsc.Frag):
 			nodes = []
 			for child in node:
@@ -168,49 +165,46 @@ class Publisher(object):
 			return nodes
 		return []
 
-	def beginPublication(self):
+	def beginpublication(self):
 		"""
 		<par>called once before the publication of the node <arg>node</arg> begins.</par>
 		"""
-		self.prefixes2use = {}
-		# If no xmlns declaration attributes are to be used we don't have to do anything
-		mode = xsc.Prefixes.DECLAREANDUSEPREFIX
-		if self.elementmode==mode or self.procinstmode==mode or self.entitymode==mode:
-			# Determine if we have to introduce an artificial root element that gets the xmlns attributes
-			if not isinstance(self.node, xsc.Element): # An element is the wrapper itself
-				needed = self._neededxmlnsdefs(self.node)
-				if needed:
-					if len(needed)>1 or not isinstance(needed[0], xsc.Element):
-						from ll.xist.ns import specials
-						self.node = specials.wrap(self.node)
+		def iselorat(node):
+			return (isinstance(node, (xsc.Element, xsc.Attr)), xsc.entercontent, xsc.enterattrs)
 
-			prefixes2use = {}
-			# collect all the namespaces that are used and their required mode
-			for child in self.node.walk((True, xsc.entercontent, xsc.enterattrs)):
-				if isinstance(child, (xsc.Element, xsc.ProcInst, xsc.Entity)):
-					prefixes2use[child.xmlns] = max(prefixes2use.get(child.xmlns, 0), child.needsxmlns(self))
-			if len(prefixes2use):
-				self.publishxmlns = True # signal to the first element that it should generate xmlns attributes
-				# get the prefixes for all namespaces from the prefix mapping
-				for (ns, mode) in prefixes2use.iteritems():
-					self.prefixes2use[ns] = (mode, self.prefixes.prefix4ns(ns)[0])
+		# We have to search for namespaces even if the prefix doesn't specify it,
+		# because global attribute require xmlns attribute generation
+		prefixes2def = {}
+		# collect all the namespaces that are used and their required mode
+		for child in self.node.walk(iselorat):
+			if child.needsxmlns(self) == 2:
+				prefixes2def[child.xmlns] = True
 
-	def endPublication(self):
+		# Determine if we have to introduce an artificial root element that gets the xmlns attributes
+		if prefixes2def and isinstance(self.node, xsc.Frag) and len(self.node.find(xsc.FindType(xsc.Element))) > 1:
+			raise errors.MultipleRootsError()
+
+		if prefixes2def:
+			self.publishxmlns = {}
+			# get the prefixes for all namespaces from the prefix mapping
+			for ns in prefixes2def:
+				self.publishxmlns[ns] = self.prefixes.prefix4ns(ns)[0]
+
+	def endpublication(self):
 		"""
 		<par>called once after the publication of the node <arg>node</arg> has ended.</par>
 		"""
-		del self.prefixes2use
 		del self.node
-		self.publishxmlns = False
+		self.publishxmlns = None
 
-	def doPublication(self, node):
+	def dopublication(self, node):
 		"""
 		<par>performs the publication of the node <arg>node</arg>.</par>
 		"""
 		self.node = node
-		self.beginPublication()
-		self.node.publish(self) # use self.node, because it might have been replaced by beginPublication
-		return self.endPublication()
+		self.beginpublication()
+		self.node.publish(self) # use self.node, because it might have been replaced by beginpublication()
+		return self.endpublication()
 
 	def tell(self):
 		"""
@@ -225,8 +219,8 @@ class PrintPublisher(Publisher):
 	"""
 	writes the strings to <lit>sys.stdout</lit>.
 	"""
-	def __init__(self, base=None, root=None, encoding=None, xhtml=None, prefixes=None, elementmode=0, procinstmode=0, entitymode=0):
-		super(PrintPublisher, self).__init__(sys.stdout, base=base, root=root, encoding=encoding, xhtml=xhtml, prefixes=prefixes, elementmode=elementmode, procinstmode=procinstmode, entitymode=entitymode)
+	def __init__(self, base=None, root=None, encoding=None, xhtml=None, prefixes=None, prefixmode=0):
+		super(PrintPublisher, self).__init__(sys.stdout, base=base, root=root, encoding=encoding, xhtml=xhtml, prefixes=prefixes, prefixmode=prefixmode)
 
 
 class BytePublisher(Publisher):
@@ -237,12 +231,12 @@ class BytePublisher(Publisher):
 	string suitable for writing to a file.
 	"""
 
-	def __init__(self, base=None, root=None, encoding=None, xhtml=None, prefixes=None, elementmode=0, procinstmode=0, entitymode=0):
-		super(BytePublisher, self).__init__(cStringIO.StringIO(), base=base, root=root, encoding=encoding, xhtml=xhtml, prefixes=prefixes, elementmode=elementmode, procinstmode=procinstmode, entitymode=entitymode)
+	def __init__(self, base=None, root=None, encoding=None, xhtml=None, prefixes=None, prefixmode=0):
+		super(BytePublisher, self).__init__(cStringIO.StringIO(), base=base, root=root, encoding=encoding, xhtml=xhtml, prefixes=prefixes, prefixmode=prefixmode)
 
-	def endPublication(self):
+	def endpublication(self):
 		result = self.stream.getvalue()
-		super(BytePublisher, self).endPublication()
+		super(BytePublisher, self).endpublication()
 		return result
 
 
@@ -253,9 +247,9 @@ class StringPublisher(BytePublisher):
 	<pyref module="ll.xist.publishers" class="StringPublisher" method="asString"><method>asString</method></pyref>
 	"""
 
-	def __init__(self, base=None, root=None, xhtml=None, prefixes=None, elementmode=0, procinstmode=0, entitymode=0):
-		super(StringPublisher, self).__init__(base=base, root=root, encoding="utf8", xhtml=xhtml, prefixes=prefixes, elementmode=elementmode, procinstmode=procinstmode, entitymode=entitymode)
+	def __init__(self, base=None, root=None, xhtml=None, prefixes=None, prefixmode=0):
+		super(StringPublisher, self).__init__(base=base, root=root, encoding="utf8", xhtml=xhtml, prefixes=prefixes, prefixmode=prefixmode)
 
-	def endPublication(self):
-		result = super(StringPublisher, self).endPublication()
+	def endpublication(self):
+		result = super(StringPublisher, self).endpublication()
 		return unicode(result, "utf8")

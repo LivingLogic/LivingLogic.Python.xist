@@ -24,8 +24,6 @@ class XML(xsc.ProcInst):
 	"""
 	xmlname = "xml"
 
-	needsxmlns = 0
-
 	def publish(self, publisher):
 		content = self.content
 		encodingfound = utils.findAttr(content, u"encoding")
@@ -55,7 +53,7 @@ class XMLStyleSheet(xsc.ProcInst):
 	"""
 	XML stylesheet declaration
 	"""
-	xmlname = u"xml-stylesheet"
+	xmlname = "xml-stylesheet"
 
 	needsxmlns = 0
 
@@ -76,14 +74,14 @@ class xmlns(xsc.Namespace):
 	xmlurl = "http://www.w3.org/XML/1998/namespace"
 
 	class Attrs(xsc.Namespace.Attrs):
-		class space(xsc.NamespaceAttrMixIn, xsc.TextAttr):
+		class space(xsc.TextAttr):
 			needsxmlns = 1
-			xmlprefix = u"xml"
+			xmlprefix = "xml"
 			values = ("default", "preserve")
-		class lang(xsc.NamespaceAttrMixIn, xsc.TextAttr):
+		class lang(xsc.TextAttr):
 			needsxmlns = 1
-			xmlprefix = u"xml"
-		class base(xsc.NamespaceAttrMixIn, xsc.URLAttr):
+			xmlprefix = "xml"
+		class base(xsc.URLAttr):
 			needsxmlns = 1
-			xmlprefix = u"xml"
+			xmlprefix = "xml"
 xmlns.makemod(vars())

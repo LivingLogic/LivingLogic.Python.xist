@@ -157,7 +157,7 @@ class IllegalNamespaceError(Error, LookupError):
 
 class IllegalNodeError(Error, LookupError):
 	"""
-	exception that is raised, when an illegal node class is requested
+	exception that is raised, when an illegal node class (element, procinst, entity or charref) is requested
 	"""
 
 	type = "node"
@@ -171,30 +171,18 @@ class IllegalNodeError(Error, LookupError):
 
 
 class IllegalElementError(IllegalNodeError):
-	"""
-	exception that is raised, when an illegal element class is requested
-	"""
 	type = "element"
 
 
 class IllegalProcInstError(IllegalNodeError):
-	"""
-	exception that is raised, when an illegal processing instruction class is requested
-	"""
 	type = "procinst"
 
 
 class IllegalEntityError(IllegalNodeError):
-	"""
-	exception that is raised, when an illegal entity class is requested
-	"""
 	type = "entity"
 
 
 class IllegalCharRefError(IllegalNodeError):
-	"""
-	exception that is raised, when an illegal charref class is requested
-	"""
 	type = "charref"
 
 	def __str__(self):
@@ -202,6 +190,38 @@ class IllegalCharRefError(IllegalNodeError):
 			return "%s with codepoint %s not allowed" % (self.type, self.name)
 		else:
 			return IllegalNodeError.__str__(self)
+
+
+class AmbiguousNodeError(Error, LookupError):
+	"""
+	exception that is raised, when an node class is ambiguous (most commonly for processing instructions or entities)
+	"""
+
+	type = "node"
+
+	def __init__(self, name, xml=False):
+		self.name = name
+		self.xml = xml
+
+	def __str__(self):
+		return "%s with %s name %r is ambigous" % (self.type, ("Python", "XML")[self.xml], self.name, )
+
+
+class AmbiguousProcInstError(AmbiguousNodeError):
+	type = "procinst"
+
+
+class AmbiguousEntityError(AmbiguousNodeError):
+	type = "procinst"
+
+
+class AmbiguousCharRefError(AmbiguousNodeError):
+	type = "procinst"
+
+
+class MultipleRootsError(Error):
+	def __str__(self):
+		return "can't add namespace attributes: XML tree has multiple roots"
 
 
 class ElementNestingError(Error):

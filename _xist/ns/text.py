@@ -20,21 +20,21 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 import cgi # for parse_header
 
 from ll.xist import xsc
-from ll.xist.ns import html as html_
+from ll.xist.ns import html as html_, chars
 
 
 class html(html_.html):
 	def fixcharacters(self, node, converter):
 		if isinstance(node, xsc.Text):
-			node = node.replace(unichr(html_.mdash.codepoint), u"--")
-			node = node.replace(unichr(html_.ndash.codepoint), u"-")
+			node = node.replace(unichr(chars.mdash.codepoint), u"--")
+			node = node.replace(unichr(chars.ndash.codepoint), u"-")
 			node = node.replace(u"\u200b", u"")
-			node = node.replace(unichr(html_.Alpha.codepoint), u"Alpha")
-			node = node.replace(unichr(html_.Beta.codepoint), u"Beta")
-			node = node.replace(unichr(html_.Gamma.codepoint), u"Gamma")
-			node = node.replace(unichr(html_.alpha.codepoint), u"alpha")
-			node = node.replace(unichr(html_.beta.codepoint), u"beta")
-			node = node.replace(unichr(html_.gamma.codepoint), u"gamma")
+			node = node.replace(unichr(chars.Alpha.codepoint), u"Alpha")
+			node = node.replace(unichr(chars.Beta.codepoint), u"Beta")
+			node = node.replace(unichr(chars.Gamma.codepoint), u"Gamma")
+			node = node.replace(unichr(chars.alpha.codepoint), u"alpha")
+			node = node.replace(unichr(chars.beta.codepoint), u"beta")
+			node = node.replace(unichr(chars.gamma.codepoint), u"gamma")
 		return node
 
 	def convert(self, converter):

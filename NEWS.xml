@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
-<section><title>Changes in 2.2.1 (released 12/08/2003)</title>
+<section><title>Changes in 2.3 (released 12/08/2003)</title>
 <ulist>
 <item>It's now possible to parse &xml; without generating location
 information for each node, by passing <lit>loc=False</lit> to
@@ -20,10 +20,18 @@ have been separated.</item>
 <item>The base &url; is not set correctly when parsing from an &url;
 even if the original &url; does a redirect. (This requires <module>ll.url</module>
 version 0.11.3.</item>
-<item>Namespace handling has been rewritten again: Now there is no separate
-mapping for entities and processing instructions any more. Prefix mappings
-can be created much simpler, and they no longer contain any namespace stack
-for parsing, as this is now done by the parser itself.</item>
+<item>Namespace handling has been rewritten again, to be more standards
+compliant: Now there is no prefixes for entities and processing instructions any longer.
+Prefix mappings can be created much simpler, and they no longer contain any
+namespace stack for parsing, as this is now done by the parser itself.
+<class>xsc.NamespaceAttrMixIn</class> is gone too.</item>
+<item>The processing instructions <class>exec_</class> and <class>eval_</class>
+from <module>ll.xist.ns.code</module> have been renamed to <class>pyexec</class>
+and <class>pyeval</class> and <class>import_</class> has been removed.</item>
+<item><class>CharRef</class>s from <module>ll.xist.ns.html</module> have been
+moved to a new module named <module>ll.xist.ns.chars</module>.</item>
+<par>The method names <method>beginPublication</method>, <method>endPublication</method>
+and <method>doPublication</method> have been lowercased.</par>
 </ulist>
 </section>
 
