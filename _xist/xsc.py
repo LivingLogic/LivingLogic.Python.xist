@@ -481,7 +481,7 @@ class CharacterData(Node):
 		return self.content.istitle()
 
 	def join(self, frag):
-		return frag.withSeparator(self)
+		return frag.withSep(self)
 
 	def isupper(self):
 		return self.content.isupper()
@@ -736,7 +736,7 @@ class Frag(Node):
 				node.__content.append(compactedchild)
 		return self._decorateNode(node)
 
-	def withSeparator(self, separator, clone=0):
+	def withSep(self, separator, clone=0):
 		"""
 		returns a version of <self/> with a separator node between the nodes of <self/>.
 
@@ -1345,14 +1345,14 @@ class Element(Node):
 			if not self.hasAttr(attrname):
 				self[attrname] = attrvalue
 
-	def withSeparator(self, separator, clone=0):
+	def withSep(self, separator, clone=0):
 		"""
 		returns a version of <self/> with a separator node between the child nodes of <self/>.
 
-		for more info see <pyref module="xist.xsc" class="Frag" method="withSeparator">Frag.withSeparator</pyref>.
+		for more info see <pyref module="xist.xsc" class="Frag" method="withSep">Frag.withSep</pyref>.
 		"""
 		node = self.__class__(**self.attrs)
-		node.content = self.content.withSeparator(separator, clone)
+		node.content = self.content.withSep(separator, clone)
 		return node
 
 	def sorted(self, compare=lambda node1, node2: cmp(node1.asPlainString(), node2.asPlainString())):
@@ -1394,7 +1394,9 @@ class Element(Node):
 		assert isinstance(node, Node), "the mapped method returned the illegal object %r (type %r) when mapping %r" % (node, type(node), self)
 		if node is self:
 			node = self.__class__(*self.content.mapped(function))
-			node.attrs = self.attrs.copy()
+			for (attrname, attrvalue) in self.attrs.items():
+				if len(attrvalue):
+					node[attrname] = attrvalue.mapped(function)
 		return node
 
 	def normalized(self):

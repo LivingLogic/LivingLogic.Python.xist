@@ -36,12 +36,13 @@ dist:
 	dbl2txt.py --title "Documentation" --import xist.ns.specials --import xist.ns.abbr --import xist.ns.docbooklite --import xist.ns.specials HOWTO.xml HOWTO
 	python setup.py sdist --formats=bztar,gztar
 	python setup.py bdist --formats=rpm
-	rm NEWS INSTALL HOWTO
+	#rm NEWS INSTALL HOWTO
 
 windist:
-	dbl2txt.py --title History --import xist.ns.specials --import xist.ns.abbr --import xist.ns.docbooklite --import xist.ns.specials NEWS.xml NEWS
-	dbl2txt.py --title "Requirements and installation" --import xist.ns.specials --import xist.ns.abbr --import xist.ns.docbooklite --import xist.ns.specials INSTALL.xml INSTALL
-	dbl2txt.py --title "Documentation" --import xist.ns.specials --import xist.ns.abbr --import xist.ns.docbooklite --import xist.ns.specials HOWTO.xml HOWTO
+	python D:\\\\Programme\\\\Python21\\\\Scripts\\\\dbl2txt.py --title History --import xist.ns.specials --import xist.ns.abbr --import xist.ns.docbooklite --import xist.ns.specials NEWS.xml NEWS
+	python D:\\\\Programme\\\\Python21\\\\Scripts\\\\dbl2txt.py --title "Requirements and installation" --import xist.ns.specials --import xist.ns.abbr --import xist.ns.docbooklite --import xist.ns.specials INSTALL.xml INSTALL
+	python D:\\\\Programme\\\\Python21\\\\Scripts\\\\dbl2txt.py --title "Documentation" --import xist.ns.specials --import xist.ns.abbr --import xist.ns.docbooklite --import xist.ns.specials HOWTO.xml HOWTO
+	python setup.py sdist --formats=zip
 	python setup.py bdist --formats=wininst
 	rm NEWS INSTALL HOWTO
 

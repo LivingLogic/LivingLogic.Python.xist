@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
-<dbl:para>&xist; is an &xml; based &html; generator written in Python. It was developed
-as a replacement for an &html; preprocessor named
+<dbl:para>&xist; is an &xml; based extensible &html; generator written in Python.
+It was developed as a replacement for an &html; preprocessor named
 <a href="http://www.giga.or.at/~agi/hsc/">HSC</a>, and borrows some
 features and ideas from it. It also borrows the basic ideas (&xml;/&html;
 elements as Python objects) from 
@@ -29,8 +29,8 @@ own element classes and implement an appropriate
 <li>Publishing the target tree: For writing the final
 output to a file or generating a string that can
 be delivered as a response from a web server, all node classes
-provide a <function>publish</function> method which
-passes the string fragment to a publishing handler.</li>
+provide a <function>publish</function> method, that
+passes the string fragments to a appropriate publishing handler.</li>
 </ul>
 </dbl:para>
 </dbl:section>
@@ -525,9 +525,166 @@ an empty tag (without an additional space): <markup>&lt;br/&gt;</markup> or <mar
 ...    u"ÄÖÜ").write(open("foo.html", "wb"), encoding="ascii")
 </programlisting>
 </dbl:para>
+<dbl:para>All these methods use the method 
+<pyref module="xist.xsc" class="Node" method="publish">publish</pyref> internally.
+<pyref module="xist.xsc" class="Node" method="publish">publish</pyref> gets passed
+an instance of <pyref module="xist.publishers" class="Publisher">xist.publisher.Publisher</pyref>
+(or one of it's subclasses). All strings generated will be send to the
+<pyref module="xist.publishers" class="Publisher" method="publish">publish</pyref> method
+of the publisher. <pyref module="xist.xsc" class="Node" method="write">write</pyref>
+uses <pyref module="xist.publishers" class="FilePublisher">FilePublisher</pyref>
+and
+<pyref module="xist.xsc" class="Node" method="asBytes">asBytes</pyref>
+uses <pyref module="xist.publishers" class="BytePublisher">BytePublisher</pyref>.
+For example <pyref module="xist.publishers" class="FilePublisher">FilePublisher</pyref>
+looks like this:
+<programlisting>
+class FilePublisher(Publisher):
+	def __init__(self, file, base=None, encoding=None, XHTML=None,
+			publishPrefix=0):
+		Publisher.__init__(self, base=base, encoding=encoding,
+			XHTML=XHTML, publishPrefix=publishPrefix)
+		(encode, decode, streamReaderClass,
+			streamWriterClass) = codecs.lookup(self.encoding)
+		self.file = streamWriterClass(file)
+
+	def publish(self, text):
+		self.file.write(text)
+</programlisting>
+</dbl:para>
 </dbl:section>
 
-<dbl:section><dbl:title>Miscellaneous</dbl:title>
+<dbl:section><dbl:title>Manipulating trees</dbl:title>
+<dbl:para>&xist; provides many methods for manipulation an
+object tree. Finding nodes in a tree can be done with the method
+<pyref module="xist.xsc" class="Node" method="find">find</pyref>.
+<pyref module="xist.xsc" class="Node" method="find">find</pyref> will return
+a <pyref module="xist.xsc" class="Frag">Frag</pyref> with the nodes it finds.
+Parameters are (with defaults listed in parenthesis):
+<ul>
+<li><code>type</code> (<code>None</code>), which is a class object or a list of class
+objects. <pyref module="xist.xsc" class="Node" method="find">find</pyref> will
+only find nodes that are instances of these classes (or subclasses)</li>
+<li><code>subtype</code> (<code>0</code>), a flag that indicates if instances
+of subclasses of those specified in the <code>type</code> parameter should
+be returned too.</li>
+<li><code>attrs</code> (<code>None</code>) is a dictionary mapping attribute
+names to attribute string values (or <code>None</code>). This makes it possible
+to search for elements with certain attributes, e.g.
+<programlisting>
+node.find(type=html.a, attrs={"name": None})
+</programlisting>
+will find all nodes in <code>node</code> that are <pyref module="xist.ns.html" class="a">a</pyref>
+instances and have the attribute <code>name</code> set (i.e. the attribute is not
+empty).
+<programlisting>
+node.find(type=html.a, attrs={"href": None, "rel": "parent"})
+</programlisting>
+will find all <pyref module="xist.ns.html" class="a">a</pyref>
+instances where the <pyref module="xist.xsc" class="Node" method="asPlainString">asPlainString</pyref>
+value of the <code>rel</code> attribute is <code>parent</code> and the <code>href</code>
+attribute is set.</li>
+<li><code>test</code> (<code>None</code>) is callable object that will be called
+to test if a node should be returned from
+<pyref module="xist.xsc" class="Node" method="find">find</pyref>:
+<programlisting>
+&gt;&gt;&gt; from xist import xsc
+&gt;&gt;&gt; nums = ["%d," % i for i in xrange(100)]
+&gt;&gt;&gt; print xsc.Frag(*nums). \
+...    find(test=lambda node: node.asPlainString()[0]=="4"). \
+...    asBytes()
+4,40,41,42,43,44,45,46,47,48,49,
+</programlisting>
+</li>
+<li><code>searchchildren</code> (<code>0</code>), specifies if the tree
+should be searched recursively (<code>searchchildren==1</code>) or only
+the first level (<code>searchchildren==0</code>)</li>
+<li><code>searchattrs</code> (<code>0</code>), specifies if attribute
+nodes should be searched too.</li>
+</ul>
+You could for example extract all the links on Python's
+<a href="http://python.sf.net/">SourceForge page</a> with the following:
+<programlisting>
+&gt;&gt;&gt; from xist import xsc, parsers
+&gt;&gt;&gt; from xist.ns import html
+&gt;&gt;&gt; node = parsers.parseTidyURL("http://python.sf.net/")
+&gt;&gt;&gt; links = node.find(type=html.a, attr={"href": None}, searchchildren=1)
+&gt;&gt;&gt; for link in links:
+...    print link["href"].asPlainString()
+...
+http://www.python.org/
+http://sourceforge.net/
+http://sourceforge.net/projects/python/
+peps/
+sf-faq.html
+maint-docs/
+devel-docs/
+snapshots/
+http://www.python.org/
+http://www.amk.ca/python/dev/
+</programlisting>
+</dbl:para>
+<dbl:para>The method <pyref module="xist.xsc" class="Node" method="withSep">withSep</pyref>
+can be used to put seperator node between the child nodes of an
+<pyref module="xist.xsc" class="Element">Element</pyref>
+or a <pyref module="xist.xsc" class="Frag">Frag</pyref>:
+<programlisting>
+&gt;&gt;&gt;from xist import xsc
+&gt;&gt;&gt;from xist.ns import html
+&gt;&gt;&gt; print html.div(*xrange(10)).withSep(", ").asBytes()
+&lt;div&gt;0, 1, 2, 3, 4, 5, 6, 7, 8, 9&lt;/div&gt;
+</programlisting>
+</dbl:para>
+<dbl:para>The method <pyref module="xist.xsc" class="Node" method="shuffled">shuffled</pyref>
+returns a shuffled version of the <pyref module="xist.xsc" class="Element">Element</pyref>
+or <pyref module="xist.xsc" class="Frag">Frag</pyref>:
+<programlisting>
+&gt;&gt;&gt;from xist import xsc
+&gt;&gt;&gt;from xist.ns import html
+&gt;&gt;&gt; print html.div(*xrange(10)).shuffled().withSep(", ").asBytes()
+&lt;div&gt;8, 1, 3, 6, 7, 5, 2, 9, 4, 0&lt;/div&gt;
+&gt;&gt;&gt; print html.div(*xrange(10)).withSep(", ").shuffled().asBytes()
+&lt;div&gt;31, 8905, 7, , , 4, 6, , , 2&lt;/div&gt;
+</programlisting>
+</dbl:para>
+<dbl:para>There are methods named <pyref module="xist.xsc" class="Node" method="reversed">reversed</pyref>
+and <pyref module="xist.xsc" class="Node" method="sorted">sorted</pyref>, that
+return a reversed or sorted version of an element for fragment:
+<programlisting>
+&gt;&gt;&gt;from xist import xsc
+&gt;&gt;&gt;from xist.ns import html
+&gt;&gt;&gt; print html.div(8,4,2,1,9,6,3,0,7,5). \
+...    sorted(lambda n1, n2: \
+...       cmp(n1.asPlainString(), n2.asPlainString())). \
+...    reversed().withSep(",").asBytes()
+&lt;div&gt;9,8,7,6,5,4,3,2,1,0&lt;/div&gt;
+</programlisting>
+</dbl:para>
+<dbl:para>The method <pyref module="xist.xsc" class="Node" method="mapped">mapped</pyref>
+recursively walks the tree and generates a new tree, where all the nodes are mapped
+through a function. For example to replace <code>Python</code> with <code>Parrot</code>
+in every text node on the <a href="http://python.sf.net/">SourceForge page</a>, do the following:
+<programlisting>
+from xist import xsc, parsers
+from xist.ns import html
+
+def p2p(node):
+	if isinstance(node, xsc.Text):
+		return node.replace("Python", "Parrot"). \
+			replace("python", "parrot")
+	else:
+		return node
+
+node = parsers.parseTidyURL("http://python.sf.net/")
+node.mapped(p2p).write(open("parrot_index.html", "wb"))
+</programlisting>
+The function must either return a new node, in which case this
+new node will be used instead of the old one, or return the
+old node to tell <pyref module="xist.xsc" class="Node" method="mapped">mapped</pyref>
+that it should recursively continue with the content of the node.
+</dbl:para>
+</dbl:section>
+
 <dbl:section><dbl:title>URLs</dbl:title>
 <dbl:para>&xist; has a class for URLs (<pyref module="xist.url">xist.url</pyref>)
 which is a thin wrapper around <pyref module="urlparse">urlparse</pyref>'s
@@ -545,18 +702,20 @@ by the parser in the <pyref>base</pyref></dbl:para>
 </dbl:section>
 
 <dbl:section><dbl:title>Automatic generation of image size attributes</dbl:title>
-<dbl:para>The module special contains an element autoimg, that extends
-html.img. When converted to HTML via the convert() method the
-size of the image will be determined and the HEIGHT
-and WIDTH attributes will be set accordingly.</dbl:para>
+<dbl:para>The module <pyref module="xist.ns.specials">xist.ns.specials</pyref>
+contains an element <pyref module="xist.ns.specials" class="autoimg">autoimg</pyref>, that extends
+<pyref module="xist.ns.html" class="img">xist.ns.html.img</pyref>.
+When converted to &html; via the <pyref module="xist.ns" class="Node" method="convert">convert</pyref>
+method the size of the image will be determined and the <code>height</code>
+and <code>width</code> attributes will be set accordingly.</dbl:para>
 
-<dbl:para>This is not the whole truth. When the WIDTH or HEIGHT attribute
-is already specified, the following happens:
+<dbl:para>This is not the whole truth. When the <code>width</code> or <code>height</code>
+attribute is already specified, the following happens:
 %-formatting is used on the attribute value, the width and
 height of the image is passed to the % operator as a dictionary
-with the keys "width" and "height". The resulting string is
-eval()uated and it's result is used for the attribute. So to make
-an image twice as wide and high do the following:
+with the keys <code>"width"</code> and <code>"height"</code>.
+The resulting string is <code>eval()</code>uated and it's result is used for the attribute.
+So to make an image twice as wide and high do the following:
 <dbl:programlisting>
 &lt;img src="foo.png" width="%(width)d*2" height="%(height)d*2"/&gt;
 </dbl:programlisting></dbl:para>

@@ -63,7 +63,7 @@ class dvd(xsc.Element):
 				if len(rcs):
 					e.append("; ")
 			if len(rcs):
-				e.append("RC ", rcs.withSeparator(", "))
+				e.append("RC ", rcs.withSep(", "))
 			e.append(")")
 		e.extend(self.content.find(type=purchase))
 		return e.convert(converter)

@@ -54,7 +54,7 @@ emits SAX2 events.</li>
 
 <li>Added a new example: media.</li>
 
-<li>All abbreviation entities haven been moved to
+<li>All abbreviation entities have been moved to
 a new module <filename>abbr.py</filename>.</li>
 
 <li>All the modules that provide new elements and entitites

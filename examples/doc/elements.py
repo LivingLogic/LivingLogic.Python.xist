@@ -103,7 +103,7 @@ class function(xsc.Element):
 	def convert(self, converter):
 		e = xsc.Frag(html.h3(self["name"]))
 		sig = self.find(type=signature)[0]
-		e.append(html.div(html.code(self["name"], "(", sig.find(type=arg).withSeparator(", "), ")", class_="function"), class_="function"))
+		e.append(html.div(html.code(self["name"], "(", sig.find(type=arg).withSep(", "), ")", class_="function"), class_="function"))
 		descs = self.find(type=desc)
 		if len(descs):
 			e.append(html.div(descs[0]))
@@ -123,7 +123,7 @@ class method(xsc.Element):
 					".",
 					html.span(self["name"], class_="name"),
 					"(",
-					sig.find(type=arg)[1:].withSeparator(", "), # drop the self from the arguments
+					sig.find(type=arg)[1:].withSep(", "), # drop the self from the arguments
 					"):",
 					class_="method"
 				),
