@@ -1541,6 +1541,31 @@ class URL(Node):
 			else: # no down/up found
 				break
 
+class URLChain(Frag):
+	"""
+	contains a chain of URLs
+	"""
+
+	def push(self,url):
+		self.insert(0,URL(url))
+
+	def pop(self):
+		url = self[0]
+		del self[0]
+		return url
+
+	def append(self,url):
+		return Frag.append(self,URL(url))
+
+	def insert(self,index,url):
+		return Frag.insert(self,index,URL(url))
+
+	def asURL(self):
+		url = URL(scheme = "project")
+		for child in self:
+			url = url.joined(child)
+		return url
+
 class URLAttr(Attr):
 	"""
 	Attribute class that is used for URLs.
@@ -1568,11 +1593,9 @@ class URLAttr(Attr):
 
 	repransiurl = "32"
 
-	def __init__(self,_content):
+	def __init__(self,_content = []):
 		Attr.__init__(self,_content)
-		if len(self)>0 and isinstance(self[0],URL):
-			self[0] = xsc.filename[-1].joined(self[0])
-		else:
+		if len(self)==0 or (not isinstance(self[0],URL)) or (self[0] != xsc.filename[-1]):
 			self.insert(0,xsc.filename[-1])
 
 	def _dorepr(self,ansi = None):
@@ -1581,12 +1604,19 @@ class URLAttr(Attr):
 	def __str__(self):
 		return self.forOutput()
 
-	def append(self,other):
-		newother = ToNode(other)
-		if isinstance(newother,URL) and len(self)>0 and isinstance(self[0],URL):
-			self[0] = self[0].joined(newother)
-		else:
-			Attr.append(self,newother)
+	def asHTML(self):
+		e = self.__class__()
+		del e[0]
+		for child in self:
+			e.append(child.asHTML())
+		return e
+
+	def clone(self):
+		e = self.__class__()
+		del e[0]
+		for child in self:
+			e.append(child.clone())
+		return e
 
 	def _asURL(self):
 		base = URL(scheme="project")
