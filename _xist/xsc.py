@@ -106,8 +106,8 @@ class Node:
 	# i.e. Node, Element etc. will never be registered
 	register = 1
 
-	#def __repr__(self):
-	#	return self.repr(presenters.defaultPresenterClass())
+	def __repr__(self):
+		return self.repr(presenters.defaultPresenterClass())
 
 	def clone(self):
 		"""
@@ -663,9 +663,6 @@ class Frag(Node):
 	def publish(self, publisher):
 		for child in self.__content:
 			child.publish(publisher)
-
-	def __repr__(self):
-		return "<%s instance with %d children at 0x%x>" % (self.__class__.name, len(self), id(self))
 
 	def __getitem__(self, index):
 		"""

@@ -382,6 +382,67 @@ def strAttrName(attrname):
 def strAttrValue(attrvalue):
 	return EnvTextForAttrValue(EscInlineAttr(attrvalue))
 
+class PlainPresenter:
+	def __init__(self, maxlen=60):
+		self.maxlen = maxlen
+
+	def beginPresentation(self):
+		self.buffer = None
+
+	def endPresentation(self):
+		result = self.buffer
+		self.buffer = None
+		return result
+
+	def presentCharacterData(self, node):
+		if len(node.content)>self.maxlen:
+			content = node.content[:self.maxlen/2] + "..." + node.content[-self.maxlen/2:]
+		else:
+			content = node.content
+		self.buffer = "<%s.%s instance content=%r at 0x%x>" % (node.__class__.__module__, node.__class__.__name__, content, id(node))
+
+	presentText = presentCharacterData
+
+	def presentFrag(self, node):
+		l = len(node)
+		if l==0:
+			info = "with no children"
+		elif l==1:
+			info = "with 1 child"
+		else:
+			info = "with %d children" % l
+		self.buffer = "<%s.%s instance %s at 0x%x>" % (node.__class__.__module__, node.__class__.__name__, info, id(node))
+
+	presentComment = presentCharacterData
+	presentDocType = presentCharacterData
+	presentProcInst = presentCharacterData
+
+	def presentElement(self, node):
+		lc = len(node.content)
+		if lc==0:
+			infoc = "with no children"
+		elif lc==1:
+			infoc = "with 1 child"
+		else:
+			infoc = "with %d children" % lc
+		la = len(node.attrs)
+		if la==0:
+			infoa = "and no attrs"
+		elif la==1:
+			infoa = "and 1 attr"
+		else:
+			infoa = "and %d attrs" % lc
+		self.buffer = "<%s.%s instance %s %s at 0x%x>" % (node.__class__.__module__, node.__class__.__name__, infoc, infoa, id(node))
+
+	def presentEntity(self, node):
+		self.buffer = "<%s.%s instance at 0x%x>" % (node.__class__.__module__, node.__class__.__name__, id(node))
+
+	def presentNull(self, node):
+		self.buffer = "<%s.%s instance at 0x%x>" % (node.__class__.__module__, node.__class__.__name__, id(node))
+
+	presentAttr = presentFrag
+	presentURLAttr = presentAttr
+
 class NormalPresenter:
 	def beginPresentation(self):
 		self.buffer = ansistyle.Text()
@@ -666,4 +727,4 @@ class TreePresenter:
 			self.buffers.append(EnvTextForURL())
 		self.presentFrag(node)
 
-defaultPresenterClass = NormalPresenter
+defaultPresenterClass = PlainPresenter
