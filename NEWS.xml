@@ -42,6 +42,15 @@ found in a style attribute.</item>
 </ulist>
 </section>
 
+<section><title>Changes in 1.5.4 (released 09/30/2002)</title>
+<ulist>
+<item><filename>xscmake.py</filename> now tries to strip off
+a trailing <lit>xsc</lit> from the filename before it falls back
+to the extension <lit>html</lit> (The builtin extension mapping
+is still tried first).</item>
+</ulist>
+</section>
+
 <section><title>Changes in 1.5.3 (released 09/25/2002)</title>
 <ulist>
 <item>Added new processing instruction class <class>ll.xist.ns.php.expression</class>

@@ -116,10 +116,13 @@ def make(args):
 			outname = globaloutname.clone()
 			if not outname.file:
 				outname /= inname
-			if inname.ext.endswith("xsc"):
-				outname.ext = inname.ext[:-3]
-			else:
-				outname.ext = exts.get(inname.ext, "html")
+			try:
+				outname.ext = exts[inname.ext]
+			except KeyError:
+				if inname.ext.endswith("xsc"):
+					outname.ext = inname.ext[:-3]
+				else:
+					outname.ext = "html"
 			t1 = time.time()
 			e_in = parsers.parseURL(inname, parser=parser, namespaces=namespaces, base=outname)
 			t2 = time.time()
