@@ -12,7 +12,8 @@ a simple schema validation. Schema violations will be reported via Pythons
 warning framework.</item>
 
 <item>All namespace modules have been updated to use <module>sims</module>
-information and the &svg; module has been updated to &svg; 1.1.</item>
+information. The &svg; module has been updated to &svg; 1.1. The docbook
+module has been updated to DocBook 4.3.</item>
 
 <item>It's possible to switch off validation during parsing and publishing.</item>
 
@@ -107,6 +108,12 @@ node = html.html(
 </example>
 </item>
 
+<item>Creating skeleton implementations of &xist; namespaces is no longer done
+via &xml; conversion (i.e. the namespace module <module>ll.xist.ns.xndl</module>),
+but through the new module <module>ll.xist.xnd</module>. The script
+<filename>dtdxsc.py</filename> will automatically generate <module>sims</module>
+information.</item>
+
 <item><class>ll.xist.xsc.CharRef</class> now inherits from
 <class>ll.xist.xsc.Text</class> too, so you don't have to special case
 <class>CharRef</class>s any more. When publishing, <class>CharRef</class>s
@@ -118,6 +125,11 @@ the &mime; type.</item>
 
 <item><class>ll.xist.ns.htmlspecials.caps</class> has been removed.</item>
 
+<item>Registering elements in namespace classes has been rewritten to use
+a cache now.</item>
+
+<item>Pretty printing has been changed: Whitespace will only be added now if
+there are no text nodes in element content.</item>
 </ulist>
 </section>
 
