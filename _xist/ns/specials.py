@@ -193,8 +193,8 @@ class tab(xsc.CharRef): "horizontal tab"; codepoint = 9
 class esc(xsc.CharRef): "escape"; codepoint = 27
 
 
-class xmlns(xsc.Namespace):
+class __ns__(xsc.Namespace):
 	xmlname = "specials"
 	xmlurl = "http://xmlns.livinglogic.de/xist/ns/specials"
-xmlns.makemod(vars())
+__ns__.makemod(vars())
 

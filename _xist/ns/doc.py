@@ -11,6 +11,11 @@
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
+"""
+This namespace module provides classes that can be used for generating
+documentation (both &html; and XSL-DO).
+"""
+
 # import __builtin__ to use property, which is also defined here
 import types, inspect, warnings, __builtin__
 
@@ -82,7 +87,7 @@ class base(xsc.Element):
 			return self.convert_text(converter)
 		elif issubclass(target, html):
 			return self.convert_html(converter)
-		elif issubclass(target, xmlns): # our own namespace
+		elif issubclass(target, __ns__): # our own namespace
 			return self.convert_doc(converter)
 		elif issubclass(target, fo): # our own namespace
 			return self.convert_fo(converter)
@@ -164,7 +169,7 @@ class litblock(block):
 			if isinstance(child, xsc.Text):
 				for c in child.content:
 					if c==u"\t":
-						c = self.xmlns.tab()
+						c = self.__ns__.tab()
 					e.append(c)
 			else:
 				e.append(child)
@@ -758,7 +763,7 @@ class item(base):
 	def convert_html(self, converter):
 		context = converter[self]
 		if not context.lists:
-			raise errors.NodeOutsideContextError(self, self.xmlns.list)
+			raise errors.NodeOutsideContextError(self, self.__ns__.list)
 		if context.lists[-1][0] == "dlist":
 			e = converter.target.dd(self.content)
 		else:
@@ -778,7 +783,7 @@ class item(base):
 		if self.content.find(xsc.FindType(block)):
 			content = self.content
 		else:
-			content = self.xmlns.par(self.content)
+			content = self.__ns__.par(self.content)
 		if type=="dlist":
 			e = target.block(
 				content,
@@ -1111,7 +1116,7 @@ class pyref(inline):
 	def convert(self, converter):
 		target = converter.target
 		context = converter[self]
-		if issubclass(target, xmlns): # our own namespace
+		if issubclass(target, __ns__): # our own namespace
 			return self.convert_doc(converter)
 		if u"function" in self.attrs:
 			function = unicode(self[u"function"].convert(converter))
@@ -1214,12 +1219,11 @@ def getdoc(cls, thing):
 	else:
 		sysid = "DOCSTRING"
 	node = parsers.parseString(text, sysid=sysid, prefixes=xsc.DocPrefixes())
-	if not node.find(xsc.FindType(par)): # optimization: one paragraph docstrings don't need a <par> element.
+	if not list(node/par): # optimization: one paragraph docstrings don't need a <par> element.
 		node = cls.par(node)
 
-	refs = node.find(xsc.FindTypeAll(pyref))
 	if inspect.ismethod(thing):
-		for ref in refs:
+		for ref in node//pyref:
 			if u"module" not in ref.attrs:
 				ref[u"module"] = cls._getmodulename(thing)
 				if u"class_" not in ref.attrs:
@@ -1227,17 +1231,17 @@ def getdoc(cls, thing):
 					if u"method" not in ref.attrs:
 						ref[u"method"] = thing.__name__
 	elif inspect.isfunction(thing):
-		for ref in refs:
+		for ref in node//pyref:
 			if u"module" not in ref.attrs:
 				ref[u"module"] = cls._getmodulename(thing)
 	elif inspect.isclass(thing):
-		for ref in refs:
+		for ref in node//pyref:
 			if u"module" not in ref.attrs:
 				ref[u"module"] = cls._getmodulename(thing)
 				if u"class_" not in ref.attrs:
 					ref[u"class_"] = thing.__name__
 	elif inspect.ismodule(thing):
-		for ref in refs:
+		for ref in node//pyref:
 			if u"module" not in ref.attrs:
 				ref[u"module"] = thing.__name__
 	return node
@@ -1446,11 +1450,7 @@ def explain(cls, thing, name=None, context=[]):
 	elif inspect.ismodule(thing):
 		name = name or thing.__name__
 		context = [(thing, name)]
-		node = cls.section(
-			cls.title(u"Module ", cls.module(name)),
-			doc,
-			role=(visibility, u" module ", hasdoc),
-		)
+		node = xsc.Frag(doc)
 
 		functions = []
 		classes = []
@@ -1481,7 +1481,7 @@ class fodoc(base):
 	def convert(self, converter):
 		context = converter[self]
 		e = self.content
-		converter.push(target=xmlns)
+		converter.push(target=__ns__)
 		e = e.convert(converter)
 		converter.pop()
 		converter.push(target=fo)
@@ -1540,7 +1540,7 @@ class fodoc(base):
 		return e
 
 
-class xmlns(xsc.Namespace):
+class __ns__(xsc.Namespace):
 	xmlname = "doc"
 	xmlurl = "http://xmlns.livinglogic.de/xist/ns/doc"
-xmlns.makemod(vars())
+__ns__.makemod(vars())

@@ -2944,7 +2944,7 @@ subjectterm.model = \
 synopfragmentref.model = sims.NoElements()
 
 
-class xmlns(xsc.Namespace):
+class __ns__(xsc.Namespace):
 	xmlname = "docbook"
 	xmlurl = "http://www.docbook.org/xml/4.3/docbookx.dtd"
-xmlns.makemod(vars())
+__ns__.makemod(vars())

@@ -101,7 +101,7 @@ class h6(HeaderFormattingMixin, html_.h6):
 	base = html_.h6
 
 
-class xmlns(html_):
+class __ns__(html_):
 	xmlname = "text"
 	xmlurl = "http://xmlns.livinglogic.de/xist/ns/text"
-xmlns.makemod(vars())
+__ns__.makemod(vars())

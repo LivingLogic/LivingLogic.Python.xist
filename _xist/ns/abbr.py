@@ -450,8 +450,8 @@ class utc(base):
 	lang = u"en"
 
 
-class xmlns(xsc.Namespace):
+class __ns__(xsc.Namespace):
 	xmlname = "abbr"
 	xmlurl = "http://xmlns.livinglogic.de/xist/ns/abbr"
-xmlns.makemod(vars())
+__ns__.makemod(vars())
 

@@ -293,7 +293,7 @@ class hearts(xsc.CharRef): "black heart suit = valentine, U+2665 ISOpub"; codepo
 class diams(xsc.CharRef): "black diamond suit, U+2666 ISOpub"; codepoint = 9830
 
 
-class xmlns(xsc.Namespace):
+class __ns__(xsc.Namespace):
 	xmlname = "chars"
 	xmlurl = "http://xmlns.livinglogic.de/xist/ns/chars"
-xmlns.makemod(vars())
+__ns__.makemod(vars())

@@ -19,7 +19,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 from ll.xist import xsc
 
 
-class xmlns(xsc.Namespace):
+class __ns__(xsc.Namespace):
 	xmlname = "tal"
 	xmlurl = "http://xml.zope.org/namespaces/tal"
 
@@ -32,4 +32,4 @@ class xmlns(xsc.Namespace):
 		class on_error(xsc.TextAttr): xmlname = "on-error"
 		class omit_tag(xsc.TextAttr): xmlname = "omit-tag"
 
-xmlns.makemod(vars())
+__ns__.makemod(vars())

@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
-from ll.xist import xsc, sims, parsers
+from ll.xist import xsc, sims, parsers, xfind
 from ll.xist.ns import xml, html, meta
 
 
@@ -79,17 +79,17 @@ class quotations(xsc.Element):
 		return e.convert(converter)
 
 
-class xmlns(xsc.Namespace):
+class __ns__(xsc.Namespace):
 	xmlname = "quotations"
 	xmlurl = "http://xmlns.livinglogic.de/xist/examples/python-quotes"
-xmlns.update(vars())
+__ns__.update(vars())
 
 
 if __name__ == "__main__":
-	prefixes = xsc.Prefixes([xmlns, html, xml])
+	prefixes = xsc.Prefixes([__ns__, html, xml])
 	base = "root:python-quotes.html"
 	# We don't validate, because the XML contains broken HTML (<pre> inside <p>)
 	e = parsers.parseURL(url, base=base, saxparser=parsers.ExpatParser, prefixes=prefixes, validate=False)
-	e = e.findfirst(xsc.FindType(quotations))
+	e = xfind.first(e/quotations)
 	e = e.compact().conv()
 	e.write(open("python-quotes.html", "wb"), base=base, encoding="iso-8859-1", validate=False)

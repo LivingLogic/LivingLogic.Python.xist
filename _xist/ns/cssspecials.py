@@ -153,8 +153,8 @@ class margin_topbottom(css.prop):
 		return e.convert(converter)
 
 
-class xmlns(xsc.Namespace):
+class __ns__(xsc.Namespace):
 	xmlname = "cssspecials"
 	xmlurl = "http://xmlns.livinglogic.de/xist/ns/cssspecials"
-xmlns.makemod(vars())
+__ns__.makemod(vars())
 

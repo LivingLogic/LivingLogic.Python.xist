@@ -568,10 +568,10 @@ class cool(xsc.Element):
 		node = html.b(self.content, " is cool!")
 		return node.convert(converter)
 
-class xmlns(xsc.Namespace):
+class __ns__(xsc.Namespace):
 	xmlname = "foo"
 	xmlurl = "http://www.example.com/foo"
-xmlns.update(vars())
+__ns__.update(vars())
 </prog>
 </example>
 
@@ -601,10 +601,10 @@ class cool(xsc.Element):
 		node = html.b(self.content, " is cool!")
 		return node.convert(converter)
 
-class xmlns(xsc.Namespace):
+class __ns__(xsc.Namespace):
 	xmlname = "foo"
 	xmlurl = "http://www.example.com/foo"
-xmlns.<em>makemod</em>(vars())
+__ns__.<em>makemod</em>(vars())
 </prog>
 </example>
 
@@ -614,7 +614,7 @@ of the module:</par>
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>import foo</input>
 <prompt>&gt;&gt;&gt; </prompt><input>foo</input>
-&lt;foo:xmlns namespace name=u"foo" url=u"http://www.example.com/foo" with 2 elements from "foo.py" at 0x87654321&gt;
+&lt;foo:__ns__ namespace name=u"foo" url=u"http://www.example.com/foo" with 2 elements from "foo.py" at 0x87654321&gt;
 <prompt>&gt;&gt;&gt; </prompt><input>foo.python</input>
 &lt;foo:python element at 0x87654321&gt;
 </tty>
@@ -629,13 +629,13 @@ Define a nested <class>Attrs</class> class inside the namespace class
 <prog>
 from ll.xist import xsc
 
-class xmlns(xsc.Namespace):
+class __ns__(xsc.Namespace):
 	xmlname = "foo"
 	xmlurl = "http://www.example.com/foo"
 
 	class Attrs(xsc.Namespace.Attrs):
 		class foo(xsc.TextAttr): pass
-xmlns.makemod(vars())
+__ns__.makemod(vars())
 </prog>
 
 <par>Setting and accessing such an attribute can be done like this:</par>
@@ -663,7 +663,7 @@ like this:</par>
 
 <section><title>Subclassing namespaces</title>
 <par>Each element class that belongs to a namespace can access its
-namespace via the class attribute <lit>xmlns</lit>. When you're subclassing
+namespace via the class attribute <lit>__ns__</lit>. When you're subclassing
 namespace classes, the elements in the base namespace will be automatically
 subclassed too. Of course you can explicitly subclass an element class too.
 The following example shows the usefulness of this feature. Define your base
@@ -682,9 +682,9 @@ languages = [
 
 class navigation(xsc.Element):
 	def convert(self, converter):
-		node = self.xmlns.links()
+		node = self.__ns__.links()
 		for (name, url) in languages:
-			node.append(self.xmlns.link(name, href=url))
+			node.append(self.__ns__.link(name, href=url))
 		return node.convert(converter)
 
 class links(xsc.Element):
@@ -700,10 +700,10 @@ class link(xsc.Element):
 		node = html.div(html.a(self.content, href=self["href"]))
 		return node.convert(converter)
 
-class xmlns(xsc.Namespace):
+class __ns__(xsc.Namespace):
 	xmlname = "nav"
 	xmlurl = "http://www.example.com/nav"
-xmlns.makemod(vars())
+__ns__.makemod(vars())
 </prog>
 
 <par>This namespace defines a navigation element that generates <class>div</class>s
@@ -728,7 +728,7 @@ from ll.xist.ns import html
 
 import navns
 
-class xmlns(navns):
+class __ns__(navns):
 	class links(navns.links):
 		def convert(self, converter):
 			node = html.table(
@@ -751,7 +751,7 @@ class xmlns(navns):
 				)
 			)
 			return node.convert(converter)
-xmlns.makemod(vars())
+__ns__.makemod(vars())
 </prog>
 
 <par>When we use the navigation element from the derived namespace we'll get
@@ -791,7 +791,7 @@ our example namespace from above like this:</par>
 <prog>
 import navns
 
-class xmlns(navns):
+class __ns__(navns):
 	class links(nav.links):
 		def convert(self, converter):
 			node = converter.target.table(
@@ -825,7 +825,7 @@ element:</par>
 <prog>
 from ll.xist.ns import html
 
-class xmlns(html):
+class __ns__(html):
 	class a(html.a):
 		def convert(self, converter):
 			node = html.a(self.content, self.attrs, target="_top")

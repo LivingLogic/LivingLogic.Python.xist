@@ -74,6 +74,7 @@ class ruby(xsc.Element):
 	model = sims.Elements(rb, rt, rp, rbc, rtc)
 
 
-class xmlns(xsc.Namespace):
+class __ns__(xsc.Namespace):
 	xmlname = "ruby"
 	xmlurl = "http://www.w3.org/TR/ruby/xhtml-ruby-1.mod"
+__ns__.makemod(vars())

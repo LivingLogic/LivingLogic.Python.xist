@@ -149,7 +149,7 @@ class NoElements(object):
 		"""
 		if isinstance(node, xsc.Element):
 			for child in node.content:
-				if isinstance(child, xsc.Element) and node.xmlns is not None and child.xmlns is not None and issubclass(child.xmlns, node.xmlns):
+				if isinstance(child, xsc.Element) and node.__ns__ is not None and child.__ns__ is not None and issubclass(child.__ns__, node.__ns__):
 					warnings.warn(ElementWarning(node, child))
 
 
@@ -171,7 +171,7 @@ class NoElementsOrText(object):
 			for child in node.content:
 				if badtext(child):
 					warnings.warn(IllegalTextWarning(node, child))
-				elif isinstance(child, xsc.Element) and node.xmlns is not None and child.xmlns is not None and issubclass(child.xmlns, node.xmlns):
+				elif isinstance(child, xsc.Element) and node.__ns__ is not None and child.__ns__ is not None and issubclass(child.__ns__, node.__ns__):
 					warnings.warn(ElementWarning(node, child))
 
 
@@ -203,10 +203,10 @@ class Elements(object):
 			for child in node.content:
 				if badtext(child):
 					warnings.warn(IllegalTextWarning(node, child))
-				elif isinstance(child, xsc.Element) and node.xmlns is not None and not isinstance(child, self.elements):
+				elif isinstance(child, xsc.Element) and node.__ns__ is not None and not isinstance(child, self.elements):
 					if ns is None:
-						ns = tuple(el.xmlns for el in self.elements if el.xmlns is not None)
-					if child.xmlns is not None and issubclass(child.xmlns, ns):
+						ns = tuple(el.__ns__ for el in self.elements if el.__ns__ is not None)
+					if child.__ns__ is not None and issubclass(child.__ns__, ns):
 						warnings.warn(WrongElementWarning(node, child, self.elements))
 
 
@@ -234,10 +234,10 @@ class ElementsOrText(Elements):
 		ns = None
 		if isinstance(node, xsc.Element):
 			for child in node.content:
-				if isinstance(child, xsc.Element) and node.xmlns is not None and not isinstance(child, self.elements):
+				if isinstance(child, xsc.Element) and node.__ns__ is not None and not isinstance(child, self.elements):
 					if ns is None:
-						ns = tuple(el.xmlns for el in self.elements if el.xmlns is not None)
-					if child.xmlns is not None and issubclass(child.xmlns, ns):
+						ns = tuple(el.__ns__ for el in self.elements if el.__ns__ is not None)
+					if child.__ns__ is not None and issubclass(child.__ns__, ns):
 						warnings.warn(WrongElementWarning(node, child, self.elements))
 
 

@@ -1044,7 +1044,7 @@ class XISTTest(unittest.TestCase):
 
 class NamespaceTest(unittest.TestCase):
 	def test_mixedattrnames(self):
-		class xmlns(xsc.Namespace):
+		class __ns__(xsc.Namespace):
 			xmlname = "test"
 			xmlurl = "test"
 
@@ -1056,10 +1056,10 @@ class NamespaceTest(unittest.TestCase):
 					class a(xsc.TextAttr): xmlname = "A"
 					class A(xsc.TextAttr): xmlname = "a"
 
-		node = xmlns.Test(
+		node = __ns__.Test(
 			{
-				(xmlns, "a"): "a2",
-				(xmlns, "A"): "A2",
+				(__ns__, "a"): "a2",
+				(__ns__, "A"): "A2",
 			},
 			a="a",
 			A="A"
@@ -1067,8 +1067,8 @@ class NamespaceTest(unittest.TestCase):
 		for (name, value) in (
 				("a", "a"),
 				("A", "A"),
-				((xmlns, "a"), "a2"),
-				((xmlns, "A"), "A2")
+				((__ns__, "a"), "a2"),
+				((__ns__, "A"), "A2")
 			):
 			self.assertEqual(unicode(node[name]), value)
 			self.assertEqual(unicode(node.attrs[name]), value)
@@ -1123,14 +1123,14 @@ class NamespaceTest(unittest.TestCase):
 		self.check_namespace(css)
 
 	def createns(self):
-		class xmlns(xsc.Namespace):
+		class __ns__(xsc.Namespace):
 			xmlname = "gurk"
 			xmlurl = "http://www.gurk.com/"
 			class foo(xsc.Element):
 				pass
 			class bar(xsc.Element):
 				pass
-		return xmlns
+		return __ns__
 
 	def test_nsupdate(self):
 		class ns1:
@@ -1176,18 +1176,18 @@ class NamespaceTest(unittest.TestCase):
 
 	def test_attributeexamples(self):
 		self.assertEqual(xsc.amp.xmlname, (u"amp", u"amp"))
-		self.assert_(xsc.amp.xmlns is None)
+		self.assert_(xsc.amp.__ns__ is None)
 		self.assertEqual(xsc.amp.xmlprefix(), None)
 
 		self.assertEqual(chars.uuml.xmlname, (u"uuml", u"uuml"))
-		self.assert_(chars.uuml.xmlns is chars)
+		self.assert_(chars.uuml.__ns__ is chars)
 		self.assertEqual(chars.uuml.xmlprefix(), "chars")
 
 		self.assertEqual(html.a.Attrs.class_.xmlname, (u"class_", u"class"))
-		self.assert_(html.a.Attrs.class_.xmlns is None)
+		self.assert_(html.a.Attrs.class_.__ns__ is None)
 
 		self.assertEqual(xml.Attrs.lang.xmlname, (u"lang", u"lang"))
-		self.assert_(xml.Attrs.lang.xmlns is xml)
+		self.assert_(xml.Attrs.lang.__ns__ is xml)
 		self.assertEqual(xml.Attrs.lang.xmlprefix(), "xml")
 
 	def test_autoinherit(self):
@@ -1197,7 +1197,7 @@ class NamespaceTest(unittest.TestCase):
 			class foo(xsc.Element):
 				model = False
 				def convert(self, converter):
-					e = self.xmlns.bar()
+					e = self.__ns__.bar()
 					return e.convert(converter)
 			class bar(xsc.Entity):
 				def convert(self, converter):
@@ -1516,12 +1516,12 @@ class ParseTest(unittest.TestCase):
 
 	def test_parserequiredattrs(self):
 		# Parser should complain about required attributes that are missing
-		class xmlns(xsc.Namespace):
+		class __ns__(xsc.Namespace):
 			class Test(xsc.Element):
 				class Attrs(xsc.Element.Attrs):
 					class required(xsc.TextAttr): required = True
 
-		prefixes = xsc.Prefixes(xmlns)
+		prefixes = xsc.Prefixes(__ns__)
 		node = parsers.parseString('<Test required="foo"/>', prefixes=prefixes)
 		self.assertEqual(str(node[0]["required"]), "foo")
 
@@ -1530,19 +1530,19 @@ class ParseTest(unittest.TestCase):
 
 	def test_parsevalueattrs(self):
 		# Parser should complain about attributes with illegal values, when a set of values is specified
-		class xmlns(xsc.Namespace):
+		class __ns__(xsc.Namespace):
 			class Test(xsc.Element):
 				class Attrs(xsc.Element.Attrs):
 					class withvalues(xsc.TextAttr): values = ("foo", "bar")
 
-		prefixes = xsc.Prefixes(xmlns)
+		prefixes = xsc.Prefixes(__ns__)
 
 		warnings.filterwarnings("error", category=errors.IllegalAttrValueWarning)
 		node = parsers.parseString('<Test withvalues="bar"/>', prefixes=prefixes)
 		self.assertEqual(str(node[0]["withvalues"]), "bar")
 		self.assertSAXRaises(errors.IllegalAttrValueWarning, parsers.parseString, '<Test withvalues="baz"/>', prefixes=prefixes)
 
-	class xmlns(xsc.Namespace):
+	class __ns__(xsc.Namespace):
 		xmlname = "foo"
 		xmlurl = "http://www.foo.com/foo"
 		class a(xsc.Element):
@@ -1564,7 +1564,7 @@ class ParseTest(unittest.TestCase):
 		# in the strict parser the errors will always be raised, so change them into errors to verify that
 		warnings.filterwarnings("error", category=errors.MalformedCharRefWarning)
 
-		prefixes = xsc.Prefixes([self.__class__.xmlns, chars])
+		prefixes = xsc.Prefixes([self.__class__.__ns__, chars])
 		self.check_parseentities(source, result, prefixes=prefixes, saxparser=parserfactory)
 		for bad in ("&", "&#x", "&&", "&#x;", "&#fg;", "&#999999999;", "&#;", "&#y;", "&#x;", "&#xy;"):
 			self.assertSAXRaises((errors.MalformedCharRefWarning, expat.ExpatError), self.check_parseentities, bad, u"", prefixes=prefixes, saxparser=parserfactory)
@@ -1587,7 +1587,7 @@ class ParseTest(unittest.TestCase):
 	def check_parsebadentities(self, parserfactory):
 		warnings.filterwarnings("ignore", category=errors.MalformedCharRefWarning)
 
-		prefixes = xsc.Prefixes([self.__class__.xmlns, chars])
+		prefixes = xsc.Prefixes([self.__class__.__ns__, chars])
 		tests = [
 			("&amp;", u"&"),
 			("&amp;amp;", u"&amp;"),
@@ -1691,7 +1691,7 @@ class DTD2XSCTest(unittest.TestCase):
 		code = data.aspy(encoding=encoding, asmod=False).encode(encoding)
 		exec code in mod
 
-		return mod["xmlns"]
+		return mod["__ns__"]
 
 	def test_convert(self):
 		dtdstring = """<?xml version='1.0' encoding='us-ascii'?>
@@ -1715,8 +1715,8 @@ class DTD2XSCTest(unittest.TestCase):
 		ns = self.dtd2ns(dtdstring, "foo")
 
 		self.assert_(issubclass(ns, xsc.Namespace))
-		self.assertEqual(ns.xmlname, ("xmlns", "foo"))
-		self.assertEqual(ns.xmlurl, "http://xmlns.foo.com/foo")
+		self.assertEqual(ns.xmlname, ("__ns__", "foo"))
+		self.assertEqual(ns.xmlurl, "http://xmlns1.foo.com/foo")
 		self.assert_(isinstance(ns.foo.model, sims.Elements))
 		self.assertEqual(len(ns.foo.model.elements), 1)
 		self.assertEqual(ns.foo.model.elements[0], ns.bar)
@@ -1871,7 +1871,7 @@ class TLD2XSCTest(unittest.TestCase):
 		code = data.aspy(encoding=encoding, asmod=False).encode(encoding)
 		exec code in mod
 
-		return mod["xmlns"]
+		return mod["__ns__"]
 
 	def test_convert(self):
 		tldstring = """<?xml version="1.0" encoding="ISO-8859-1"?>
@@ -1909,7 +1909,7 @@ class TLD2XSCTest(unittest.TestCase):
 		</taglib>
 		"""
 		ns = self.tld2ns(tldstring, "foo")
-		self.assertEqual(ns.xmlname, ("xmlns", "foo"))
+		self.assertEqual(ns.xmlname, ("__ns__", "foo"))
 		self.assertEqual(ns.bar.xmlname, ("bar", "bar"))
 		self.assert_(isinstance(ns.bar.model, sims.Empty))
 		self.assertEqual(ns.bar.__doc__.strip(), "info")
@@ -1929,7 +1929,7 @@ class XNDTest(unittest.TestCase):
 		code = data.aspy(encoding=encoding, asmod=False).encode(encoding)
 		exec code in mod
 
-		return mod["xmlns"]
+		return mod["__ns__"]
 
 	def test_procinst(self):
 		e = xnd.Namespace("ns")(

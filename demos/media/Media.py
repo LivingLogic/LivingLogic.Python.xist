@@ -131,14 +131,14 @@ class media(xsc.Element):
 		return e.convert(converter)
 
 
-class xmlns(xsc.Namespace):
+class __ns__(xsc.Namespace):
 	xmlname = "media"
 	xmlurl = "http://xmlns.livinglogic.de/xist/example/media"
-xmlns.update(vars())
+__ns__.update(vars())
 
 
 if __name__ == "__main__":
-	prefixes = xsc.Prefixes(xmlns, xml=xml)
+	prefixes = xsc.Prefixes(__ns__, xml=xml)
 	node = parsers.parseFile("Media.xml", prefixes=prefixes)
 	node = node.findfirst(xsc.FindType(media))
 	node = node.conv()

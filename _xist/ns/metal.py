@@ -19,7 +19,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 from ll.xist import xsc
 
 
-class xmlns(xsc.Namespace):
+class __ns__(xsc.Namespace):
 	xmlname = "metal"
 	xmlurl = "http://xml.zope.org/namespaces/metal"
 
@@ -29,4 +29,4 @@ class xmlns(xsc.Namespace):
 		class define_slot(xsc.TextAttr): xmlname = "define-slot"
 		class use_slot(xsc.TextAttr): xmlname = "use-slot"
 
-xmlns.makemod(vars())
+__ns__.makemod(vars())

@@ -172,7 +172,7 @@ class title(xsc.Element):
 		class id(xsc.IDAttr): pass
 
 	def unwrapHTML(self, node, converter):
-		if isinstance(node, xsc.Element) and issubclass(node.xmlns, xmlns): # is this one of our own elements => filter it out
+		if isinstance(node, xsc.Element) and issubclass(node.__ns__, __ns__): # is this one of our own elements => filter it out
 			if isinstance(node, img):
 				node = node["alt"]
 			else:
@@ -1184,10 +1184,10 @@ class nobr(xsc.Element): # deprecated
 	"""
 
 
-class xmlns(xsc.Namespace):
+class __ns__(xsc.Namespace):
 	xmlname = "html"
 	xmlurl = "http://www.w3.org/1999/xhtml"
-xmlns.makemod(vars())
+__ns__.makemod(vars())
 
 
 # Parameter entities defined in the DTD

@@ -419,7 +419,7 @@ setvar.model = \
 timer.model = sims.Empty()
 
 
-class xmlns(xsc.Namespace):
+class __ns__(xsc.Namespace):
 	xmlname = "wml"
 	xmlurl = "http://www.wapforum.org/DTD/wml13.dtd"
-xmlns.makemod(vars())
+__ns__.makemod(vars())

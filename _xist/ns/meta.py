@@ -179,7 +179,7 @@ class refresh(xsc.Element):
 		return e.convert(converter)
 
 
-class xmlns(xsc.Namespace):
+class __ns__(xsc.Namespace):
 	xmlname = "meta"
 	xmlurl = "http://xmlns.livinglogic.de/xist/ns/meta"
-xmlns.makemod(vars())
+__ns__.makemod(vars())

@@ -310,7 +310,7 @@ class TextAreaAttrDecorator(specials.AttrDecorator):
 	decoratable = (html.textarea,)
 
 
-class xmlns(xsc.Namespace):
+class __ns__(xsc.Namespace):
 	xmlname = "htmlspecials"
 	xmlurl = "http://xmlns.livinglogic.de/xist/ns/htmlspecials"
-xmlns.makemod(vars())
+__ns__.makemod(vars())

@@ -10,6 +10,12 @@
 ## See xist/__init__.py for the license
 
 
+"""
+This is a namespace module implementing
+<link href="http://www.w3.org/TR/SVG11/">&svg; 1.1.</link>.
+"""
+
+
 __version__ = "$Revision$"[11:-2]
 # $Source$
 
@@ -1260,7 +1266,7 @@ style.model = \
 title.model = sims.NoElements()
 
 
-class xmlns(xsc.Namespace):
+class __ns__(xsc.Namespace):
 	xmlname = "svg"
 	xmlurl = "http://www.w3.org/2000/svg"
-xmlns.makemod(vars())
+__ns__.makemod(vars())

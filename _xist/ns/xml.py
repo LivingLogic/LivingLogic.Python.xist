@@ -69,7 +69,7 @@ class declaration(xsc.Element):
 		return node.convert(converter)
 
 
-class xmlns(xsc.Namespace):
+class __ns__(xsc.Namespace):
 	xmlname = "xml"
 	xmlurl = "http://www.w3.org/XML/1998/namespace"
 
@@ -84,4 +84,4 @@ class xmlns(xsc.Namespace):
 		class base(xsc.URLAttr):
 			xmlprefix = "xml"
 			needsxmlns = 1
-xmlns.makemod(vars())
+__ns__.makemod(vars())

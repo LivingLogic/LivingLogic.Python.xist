@@ -170,7 +170,7 @@ class Publisher(object):
 		# collect all the namespaces that are used and their required mode
 		for child in node.walk(iselorat):
 			if child.needsxmlns(self) == 2:
-				prefixes2def[child.xmlns] = True
+				prefixes2def[child.__ns__] = True
 
 		# Determine if we have multiple roots
 		if prefixes2def and isinstance(node, xsc.Frag) and len(node.find(xsc.FindType(xsc.Element))) > 1:

@@ -165,7 +165,7 @@ class Namespace(Base):
 			attrgroup.assignname(names)
 
 		# assign name to the namespace itself
-		self.assignname(names, "xmlns")
+		self.assignname(names, "__ns__")
 
 		lines.append([level, "#!/usr/bin/env python"])
 		lines.append([level, "# -*- coding: %s -*-" % options.encoding])

@@ -711,7 +711,7 @@ form.model = sims.ElementsOrText(*(pe_block + pe_inline))
 a.model = sims.ElementsOrText(*(pe_special + pe_fontstyle + pe_inline_forms))
 
 
-class xmlns(xsc.Namespace):
+class __ns__(xsc.Namespace):
 	xmlname = "ihtml"
 	xmlurl = "http://www.nttdocomo.co.jp/imode"
-xmlns.makemod(vars())
+__ns__.makemod(vars())

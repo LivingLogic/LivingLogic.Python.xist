@@ -127,8 +127,8 @@ class pyeval(xsc.ProcInst):
 		return xsc.ToNode(sandbox.__(converter)).convert(converter)
 
 
-class xmlns(xsc.Namespace):
+class __ns__(xsc.Namespace):
 	xmlname = "code"
 	xmlurl = "http://xmlns.livinglogic.de/xist/ns/code"
-xmlns.makemod(vars())
+__ns__.makemod(vars())
 

@@ -256,7 +256,7 @@ tlibversion.model = \
 uri.model = sims.NoElements()
 
 
-class xmlns(xsc.Namespace):
+class __ns__(xsc.Namespace):
 	xmlname = "tld"
 	xmlurl = "http://java.sun.com/j2ee/dtds/web-jsptaglibrary_1_1.dtd"
-xmlns.makemod(vars())
+__ns__.makemod(vars())

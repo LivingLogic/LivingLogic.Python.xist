@@ -67,28 +67,28 @@ class If(scriptlet):
 	xmlname = "if"
 
 	def convert(self, converter):
-		return self.xmlns.scriptlet(u"if(", self.content, u"){")
+		return self.__ns__.scriptlet(u"if(", self.content, u"){")
 
 
 class Else(scriptlet):
 	xmlname = "else"
 
 	def convert(self, converter):
-		return self.xmlns.scriptlet(u"}else{")
+		return self.__ns__.scriptlet(u"}else{")
 
 
 class ElIf(scriptlet):
 	xmlname = "elif"
 
 	def convert(self, converter):
-		return self.xmlns.scriptlet(u"}else if (", self.content, u"){")
+		return self.__ns__.scriptlet(u"}else if (", self.content, u"){")
 
 
 class End(scriptlet):
 	xmlname = "end"
 
 	def convert(self, converter):
-		return self.xmlns.scriptlet(u"}")
+		return self.__ns__.scriptlet(u"}")
 
 
 class block(xsc.Element):
@@ -101,9 +101,9 @@ class block(xsc.Element):
 
 	def convert(self, converter):
 		e = xsc.Frag(
-			self.xmlns.scriptlet(u"{"),
+			self.__ns__.scriptlet(u"{"),
 			self.content,
-			self.xmlns.scriptlet(u"}")
+			self.__ns__.scriptlet(u"}")
 		)
 		return e.convert(converter)
 
@@ -157,7 +157,7 @@ class directive_page(directive):
 				node.publish(publisher)
 
 
-class xmlns(xsc.Namespace):
+class __ns__(xsc.Namespace):
 	xmlname = "jsp"
 	xmlurl = "http://java.sun.com/JSP/Page"
-xmlns.makemod(vars())
+__ns__.makemod(vars())

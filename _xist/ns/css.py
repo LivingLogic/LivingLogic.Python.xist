@@ -2089,7 +2089,7 @@ class css(xsc.Element):
 		publisher.poperrors()
 
 
-class xmlns(xsc.Namespace):
+class __ns__(xsc.Namespace):
 	xmlname = "css"
 	xmlurl = "http://www.w3.org/TR/REC-CSS2"
-xmlns.makemod(vars())
+__ns__.makemod(vars())

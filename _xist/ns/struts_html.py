@@ -527,7 +527,7 @@ class xhtml(Element):
 	model = sims.Empty()
 
 
-class xmlns(xsc.Namespace):
+class __ns__(xsc.Namespace):
 	xmlname = "struts_html"
 	xmlurl = "http://jakarta.apache.org/struts/tags-html"
-xmlns.makemod(vars())
+__ns__.makemod(vars())

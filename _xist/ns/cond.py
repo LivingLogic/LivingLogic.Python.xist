@@ -118,7 +118,7 @@ class Else(xsc.Element):
 		return xsc.Null
 
 
-class xmlns(xsc.Namespace):
+class __ns__(xsc.Namespace):
 	xmlname = "cond"
 	xmlurl = "http://xmlns.livinglogic.de/xist/ns/cond"
-xmlns.makemod(vars())
+__ns__.makemod(vars())

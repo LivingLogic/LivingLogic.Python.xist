@@ -1992,10 +1992,10 @@ class retrieve_marker(xsc.Element):
 		pass
 
 
-class xmlns(xsc.Namespace):
+class __ns__(xsc.Namespace):
 	xmlname = "fo"
 	xmlurl = "http://www.w3.org/1999/XSL/Format"
-xmlns.makemod(vars())
+__ns__.makemod(vars())
 
 
 # Parameter entities defined in the XSL specification
@@ -2079,9 +2079,9 @@ def fixattributesandmodel(element):
 						if not element.Attrs.isallowed(attr.xmlname[0]):
 							setattr(element.Attrs, attr.xmlname[0], attr) # add child attribute to element
 
-for element in xmlns.iterelementvalues():
+for element in __ns__.iterelementvalues():
 	fixattributesandmodel(element)
 del dtd # don't pollute the namespace
 
 # make sure, we assigned a model to every element
-assert sum(x.model is not None for x in xmlns.iterelementvalues()) == len(xmlns.elementvalues())
+assert sum(x.model is not None for x in __ns__.iterelementvalues()) == len(__ns__.elementvalues())

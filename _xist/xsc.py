@@ -225,20 +225,22 @@ class _Node_Meta(Base.__metaclass__, xfind.Operator):
 	def __new__(cls, name, bases, dict):
 		if "register" not in dict:
 			dict["register"] = True
-		dict["xmlns"] = None
+		dict["__ns__"] = None
 		# needsxmlns may be defined as a constant, this magically turns it into method
 		if "needsxmlns" in dict:
 			needsxmlns_value = dict["needsxmlns"]
 			if not isinstance(needsxmlns_value, classmethod):
+				@classmethod
 				def needsxmlns(cls, publisher=None):
 					return needsxmlns_value
-				dict["needsxmlns"] = classmethod(needsxmlns)
+				dict["needsxmlns"] = needsxmlns
 		if "xmlprefix" in dict:
 			xmlprefix_value = dict["xmlprefix"]
 			if not isinstance(xmlprefix_value, classmethod):
+				@classmethod
 				def xmlprefix(cls, publisher=None):
 					return xmlprefix_value
-				dict["xmlprefix"] = classmethod(xmlprefix)
+				dict["xmlprefix"] = xmlprefix
 		pyname = unicode(name.split(".")[-1])
 		if "xmlname" in dict:
 			xmlname = unicode(dict["xmlname"])
@@ -499,13 +501,13 @@ class Node(Base):
 		class with the publisher <arg>publisher</arg> (or the default prefix
 		from the namespace if <arg>publisher</arg> is <lit>None</lit>).
 		"""
-		if cls.xmlns is None:
+		if cls.__ns__ is None:
 			return None
 		else:
 			if publisher is None:
-				return cls.xmlns.xmlname[True]
+				return cls.__ns__.xmlname[True]
 			else:
-				return publisher.prefixes.prefix4ns(cls.xmlns)[0]
+				return publisher.prefixes.prefix4ns(cls.__ns__)[0]
 
 	def _publishname(self, publisher):
 		"""
@@ -795,137 +797,139 @@ class CharacterData(Node):
 	<par>Provides nearly the same functionality as <class>UserString</class>,
 	but omits a few methods.</par>
 	"""
-	__slots__ = ("__content",)
+	__slots__ = ("_content",)
 
 	def __init__(self, *content):
-		self.__content = u"".join(unicode(x) for x in content)
+		self._content = u"".join(unicode(x) for x in content)
 
-	def __getcontent(self):
-		return self.__content
-
-	content = property(__getcontent, None, None, "<par>The text content of the node as a <class>unicode</class> object.</par>")
+	class content(ll.propclass):
+		"""
+		The text content of the node as a <class>unicode</class> object.
+		"""
+		def __get__(self):
+			return self._content
 
 	def __hash__(self):
-		return self.__content.__hash__()
+		return self._content.__hash__()
 
 	def __eq__(self, other):
-		return self.__class__ is other.__class__ and self.__content==other.__content
+		return self.__class__ is other.__class__ and self._content==other._content
 
 	def __len__(self):
-		return self.__content.__len__()
+		return self._content.__len__()
 
 	def __getitem__(self, index):
-		return self.__class__(self.__content.__getitem__(index))
+		return self.__class__(self._content.__getitem__(index))
 
 	def __add__(self, other):
-		return self.__class__(self.__content + other)
+		return self.__class__(self._content + other)
 
 	def __radd__(self, other):
-		return self.__class__(unicode(other) + self.__content)
+		return self.__class__(unicode(other) + self._content)
 
 	def __mul__(self, n):
-		return self.__class__(n * self.__content)
+		return self.__class__(n * self._content)
 
 	def __rmul__(self, n):
-		return self.__class__(n * self.__content)
+		return self.__class__(n * self._content)
 
 	def __getslice__(self, index1, index2):
-		return self.__class__(self.__content.__getslice__(index1, index2))
+		return self.__class__(self._content.__getslice__(index1, index2))
 
 	def capitalize(self):
-		return self.__class__(self.__content.capitalize())
+		return self.__class__(self._content.capitalize())
 
 	def center(self, width):
-		return self.__class__(self.__content.center(width))
+		return self.__class__(self._content.center(width))
 
 	def count(self, sub, start=0, end=sys.maxint):
-		return self.__content.count(sub, start, end)
+		return self._content.count(sub, start, end)
 
 	# find will be the one inherited from Node
 
 	def endswith(self, suffix, start=0, end=sys.maxint):
-		return self.__content.endswith(suffix, start, end)
+		return self._content.endswith(suffix, start, end)
 
 	def index(self, sub, start=0, end=sys.maxint):
-		return self.__content.index(sub, start, end)
+		return self._content.index(sub, start, end)
 
 	def isalpha(self):
-		return self.__content.isalpha()
+		return self._content.isalpha()
 
 	def isalnum(self):
-		return self.__content.isalnum()
+		return self._content.isalnum()
 
 	def isdecimal(self):
-		return self.__content.isdecimal()
+		return self._content.isdecimal()
 
 	def isdigit(self):
-		return self.__content.isdigit()
+		return self._content.isdigit()
 
 	def islower(self):
-		return self.__content.islower()
+		return self._content.islower()
 
 	def isnumeric(self):
-		return self.__content.isnumeric()
+		return self._content.isnumeric()
 
 	def isspace(self):
-		return self.__content.isspace()
+		return self._content.isspace()
 
 	def istitle(self):
-		return self.__content.istitle()
+		return self._content.istitle()
 
 	def isupper(self):
-		return self.__content.isupper()
+		return self._content.isupper()
 
 	def join(self, frag):
 		return frag.withsep(self)
 
 	def ljust(self, width):
-		return self.__class__(self.__content.ljust(width))
+		return self.__class__(self._content.ljust(width))
 
 	def lower(self):
-		return self.__class__(self.__content.lower())
+		return self.__class__(self._content.lower())
 
 	def lstrip(self):
-		return self.__class__(self.__content.lstrip())
+		return self.__class__(self._content.lstrip())
 
 	def replace(self, old, new, maxsplit=-1):
-		return self.__class__(self.__content.replace(old, new, maxsplit))
+		return self.__class__(self._content.replace(old, new, maxsplit))
 
 	def rjust(self, width):
-		return self.__class__(self.__content.rjust(width))
+		return self.__class__(self._content.rjust(width))
 
 	def rstrip(self):
-		return self.__class__(self.__content.rstrip())
+		return self.__class__(self._content.rstrip())
 
 	def rfind(self, sub, start=0, end=sys.maxint):
-		return self.__content.rfind(sub, start, end)
+		return self._content.rfind(sub, start, end)
 
 	def rindex(self, sub, start=0, end=sys.maxint):
-		return self.__content.rindex(sub, start, end)
+		return self._content.rindex(sub, start, end)
 
 	def split(self, sep=None, maxsplit=-1):
-		return Frag(self.__content.split(sep, maxsplit))
+		return Frag(self._content.split(sep, maxsplit))
 
 	def splitlines(self, keepends=0):
-		return Frag(self.__content.splitlines(keepends))
+		return Frag(self._content.splitlines(keepends))
 
 	def startswith(self, prefix, start=0, end=sys.maxint):
-		return self.__content.startswith(prefix, start, end)
+		return self._content.startswith(prefix, start, end)
 
 	def strip(self):
-		return self.__class__(self.__content.strip())
+		return self.__class__(self._content.strip())
 
 	def swapcase(self):
-		return self.__class__(self.__content.swapcase())
+		return self.__class__(self._content.swapcase())
 
 	def title(self):
-		return self.__class__(self.__content.title())
+		return self.__class__(self._content.title())
 
 	def translate(self, table):
-		return self.__class__(self.__content.translate(table))
+		return self.__class__(self._content.translate(table))
 
 	def upper(self):
-		return self.__class__(self.__content.upper())
+		return self.__class__(self._content.upper())
 
 
 class Text(CharacterData):
@@ -1471,7 +1475,7 @@ class Attr(Frag):
 
 	@classmethod
 	def needsxmlns(self, publisher=None):
-		if self.xmlns is not None:
+		if self.__ns__ is not None:
 			return 2
 		else:
 			return 0
@@ -1959,7 +1963,7 @@ class Attrs(Node, dict):
 			if mapping is not None:
 				if isinstance(mapping, Namespace.Attrs):
 					for (attrname, attrvalue) in mapping._iterallitems():
-						self[(attrvalue.xmlns, attrname)] = attrvalue
+						self[(attrvalue.__ns__, attrname)] = attrvalue
 				else:
 					try:
 						for (attrname, attrvalue) in mapping._iterallitems():
@@ -1977,8 +1981,8 @@ class Attrs(Node, dict):
 			if mapping is not None:
 				if isinstance(mapping, Namespace.Attrs):
 					for (attrname, attrvalue) in mapping._iterallitems():
-						if (attrvalue.xmlns, attrname) in self:
-							self[(attrvalue.xmlns, attrname)] = attrvalue
+						if (attrvalue.__ns__, attrname) in self:
+							self[(attrvalue.__ns__, attrname)] = attrvalue
 				else:
 					try:
 						for (attrname, attrvalue) in mapping._iterallitems():
@@ -2000,8 +2004,8 @@ class Attrs(Node, dict):
 			if mapping is not None:
 				if isinstance(mapping, Namespace.Attrs):
 					for (attrname, attrvalue) in mapping._iterallitems():
-						if (attrvalue.xmlns, attrname) not in self:
-							self[(attrvalue.xmlns, attrname)] = attrvalue
+						if (attrvalue.__ns__, attrname) not in self:
+							self[(attrvalue.__ns__, attrname)] = attrvalue
 				else:
 					try:
 						for (attrname, attrvalue) in mapping._iterallitems():
@@ -2079,7 +2083,7 @@ class Attrs(Node, dict):
 		for (key, value) in dict.iteritems(self):
 			if value:
 				if isinstance(key, tuple):
-					yield (value.xmlns, value.xmlname[xml])
+					yield (value.__ns__, value.xmlname[xml])
 				else:
 					yield value.xmlname[xml]
 
@@ -2098,7 +2102,7 @@ class Attrs(Node, dict):
 		for (key, value) in dict.iteritems(self):
 			if value:
 				if isinstance(key, tuple):
-					yield ((value.xmlns, value.xmlname[xml]), value)
+					yield ((value.__ns__, value.xmlname[xml]), value)
 				else:
 					yield (value.xmlname[xml], value)
 
@@ -2111,7 +2115,7 @@ class Attrs(Node, dict):
 		"""
 		for (key, value) in dict.iteritems(self):
 			if isinstance(key, tuple):
-				yield ((value.xmlns, value.xmlname[False]), value)
+				yield ((value.__ns__, value.xmlname[False]), value)
 			else:
 				yield (value.xmlname[False], value)
 
@@ -2248,16 +2252,16 @@ class Element(Node):
 
 			def keep(node):
 				name = node.xmlname[xml]
-				if node.xmlns is None:
+				if node.__ns__ is None:
 					return name in names
 				else:
 					if keepglobals:
 						return True
 					for ns in namespaces:
-						if issubclass(node.xmlns, ns):
+						if issubclass(node.__ns__, ns):
 							return True
 					for testname in names:
-						if isinstance(testname, tuple) and issubclass(node.xmlns, testname[0]) and name==testname[1]:
+						if isinstance(testname, tuple) and issubclass(node.__ns__, testname[0]) and name==testname[1]:
 							return True
 					return False
 
@@ -2274,16 +2278,16 @@ class Element(Node):
 			"""
 			def keep(node):
 				name = node.xmlname[xml]
-				if node.xmlns is None:
+				if node.__ns__ is None:
 					return name not in names
 				else:
 					if not keepglobals:
 						return False
 					for ns in namespaces:
-						if issubclass(node.xmlns, ns):
+						if issubclass(node.__ns__, ns):
 							return False
 					for testname in names:
-						if isinstance(testname, tuple) and issubclass(node.xmlns, testname[0]) and name==testname[1]:
+						if isinstance(testname, tuple) and issubclass(node.__ns__, testname[0]) and name==testname[1]:
 							return False
 					return True
 
@@ -3182,9 +3186,9 @@ class _Namespace_Meta(Base.__metaclass__, ll.Namespace.__metaclass__):
 				if getattr(value, "__outerclass__", None) == 42:
 					value.__outerclass__ = self
 				if issubclass(value, (Element, ProcInst, Entity)):
-					value.xmlns = self
+					value.__ns__ = self
 		for attr in self.Attrs.iterallowedvalues():
-			attr.xmlns = self
+			attr.__ns__ = self
 		if self.xmlurl is not None:
 			name = self.xmlname[True]
 			self.nsbyname.setdefault(name, []).insert(0, self)
@@ -3244,24 +3248,24 @@ class _Namespace_Meta(Base.__metaclass__, ll.Namespace.__metaclass__):
 	def __delattr__(self, key):
 		value = self.__dict__.get(key, None) # no inheritance
 		if isinstance(value, type) and issubclass(value, (Element, ProcInst, CharRef)):
-			value.xmlns = None
 			self._cache = None
+			value.__ns__ = None
 		return super(_Namespace_Meta, self).__delattr__(key)
 
 	def __setattr__(self, key, value):
 		# Remove old attribute
 		oldvalue = self.__dict__.get(key, None) # no inheritance
 		if isinstance(oldvalue, type) and issubclass(oldvalue, (Element, ProcInst, Entity)):
-			if oldvalue.xmlns is not None:
-				oldvalue.xmlns._cache = None
-				oldvalue.xmlns = None
+			if oldvalue.__ns__ is not None:
+				oldvalue.__ns__._cache = None
+				oldvalue.__ns__ = None
 		# Set new attribute
 		if isinstance(value, type) and issubclass(value, (Element, ProcInst, Entity)):
-			if value.xmlns is not None:
-				value.xmlns._cache = None
-				value.xmlns = None
+			if value.__ns__ is not None:
+				value.__ns__._cache = None
+				value.__ns__ = None
 			self._cache = None
-			value.xmlns = self
+			value.__ns__ = self
 		return super(_Namespace_Meta, self).__setattr__(key, value)
 
 

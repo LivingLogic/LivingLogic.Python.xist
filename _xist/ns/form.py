@@ -78,7 +78,7 @@ class hidden(html.input):
 		return e.convert(converter)
 
 
-class xmlns(xsc.Namespace):
+class __ns__(xsc.Namespace):
 	xmlname = "form"
 	xmlurl = "http://xmlns.livinglogic.de/xist/ns/form"
-xmlns.makemod(vars())
+__ns__.makemod(vars())

@@ -232,7 +232,7 @@ class user_struts_config(xsc.Element):
 		return e.convert(converter)
 
 
-class xmlns(xsc.Namespace):
+class __ns__(xsc.Namespace):
 	xmlname = "struts_config"
 	xmlurl = "http://jakarta.apache.org/struts/dtds/struts-config_1_1.dtd"
-xmlns.makemod(vars())
+__ns__.makemod(vars())

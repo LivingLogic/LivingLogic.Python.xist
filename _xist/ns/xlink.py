@@ -19,7 +19,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 from ll.xist import xsc, utils
 
 
-class xmlns(xsc.Namespace):
+class __ns__(xsc.Namespace):
 	xmlname = "xlink"
 	xmlurl  = "http://www.w3.org/1999/xlink"
 
@@ -34,4 +34,4 @@ class xmlns(xsc.Namespace):
 		class actuate(xsc.TextAttr): values = (u"onLoad", u"onRequest", u"other", u"none")
 		class from_(xsc.TextAttr): xmlname = "from"
 		class to(xsc.TextAttr): pass
-xmlns.makemod(vars())
+__ns__.makemod(vars())
