@@ -27,7 +27,7 @@ to the terminal.
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-import os, types
+import os, types, keyword
 
 import ansistyle
 
@@ -807,6 +807,8 @@ class CodePresenter:
 					self.buffer.append(" ")
 			self._indent()
 			self.inAttr += 1
+			if keyword.iskeyword(attrname):
+				attrname += "_"
 			self.buffer.append("%s=" % attrname)
 			if len(attrvalue)==1: # optimize away the tuple ()
 				attrvalue[0].present(self)
