@@ -1,4 +1,12 @@
 #! /usr/bin/env python
+# -*- coding: iso-8859-1 -*-
+
+## Copyright 1999-2003 by LivingLogic AG, Bayreuth, Germany.
+## Copyright 1999-2003 by Walter Dörwald
+##
+## All Rights Reserved
+##
+## See xist/__init__.py for the license
 
 """
 <par>This is the &xist; namespace for the JavaServer Pages 1.1 Tag Library
