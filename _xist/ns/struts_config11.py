@@ -107,13 +107,21 @@ class action(xsc.Element):
 	class name in the <lit>className</lit> attribute.</par>
 	"""
 	empty = False
-	attrHandlers = {
-		"attribute": xsc.TextAttr, "className": xsc.TextAttr, "forward": xsc.TextAttr,
-		"include": xsc.TextAttr, "input": xsc.TextAttr, "name": xsc.TextAttr,
-		"parameter": xsc.TextAttr, "path": xsc.TextAttr, "prefix": xsc.TextAttr,
-		"scope": xsc.TextAttr, "suffix": xsc.TextAttr, "type": xsc.TextAttr,
-		"unknown": xsc.TextAttr, "validate": xsc.TextAttr
-	}
+	class Attrs(xsc.Element.Attrs):
+		class attribute(xsc.TextAttr): pass
+		class className(xsc.TextAttr): pass
+		class forward(xsc.TextAttr): pass
+		class include(xsc.TextAttr): pass
+		class input(xsc.TextAttr): pass
+		class name(xsc.TextAttr): pass
+		class parameter(xsc.TextAttr): pass
+		class path(xsc.TextAttr): pass
+		class prefix(xsc.TextAttr): pass
+		class scope(xsc.TextAttr): pass
+		class suffix(xsc.TextAttr): pass
+		class type(xsc.TextAttr): pass
+		class unknown(xsc.TextAttr): pass
+		class validate(xsc.TextAttr): pass
 
 	def convert(self, converter):
 		e = action(
@@ -139,15 +147,18 @@ class controller(xsc.Element):
 
 class plug_in(xsc.Element):
 	empty = True
-	attrHandlers = {"className": xsc.TextAttr}
+	class Attrs(xsc.Element.Attrs):
+		class className(xsc.TextAttr): pass
 	xmlname = "plug-in"
 
 class message_resources(xsc.Element):
 	empty = True
-	attrHandlers = {
-		"className": xsc.TextAttr, "factory": xsc.TextAttr,
-		"key": xsc.TextAttr, "null": xsc.TextAttr, "parameter": xsc.TextAttr
-	}
+	class Attrs(xsc.Element.Attrs):
+		class className(xsc.TextAttr): pass
+		class factory(xsc.TextAttr): pass
+		class key(xsc.TextAttr): pass
+		class null(xsc.TextAttr): pass
+		class parameter(xsc.TextAttr): pass
 	xmlname = "message-resources"
 
 # this is no "official" struts-config element, but nontheless useful for generating
