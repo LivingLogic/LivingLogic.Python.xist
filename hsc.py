@@ -12,8 +12,7 @@ import Image
 
 # for parsing XML files
 import sys
-import xml.sax.saxlib
-import xml.sax.saxexts
+from xmllib import *
 
 ###
 ### exceptions
@@ -90,7 +89,7 @@ def FileSize(url):
 ###
 ###
 
-class CNode:
+class XSCNode:
 	"base class for nodes in the document tree. Derived class must implement AsString() und AsHTML()"
 
 	def __add__(self,other):
@@ -99,19 +98,31 @@ class CNode:
 	def __radd__(self,other):
 		return other + [self]
 
-class CComment(CNode):
+class XSCComment(XSCNode):
 	"comments"
 
 	def __init__(self,content = ""):
 		self.content = content
 
 	def AsHTML(self,mode = None):
-		return CComment(self.content)
+		return XSCComment(self.content)
 
 	def AsString(self):
 		return "<!--" + self.content + "-->"
 
-class CElement(CNode):
+class XSCDocType(XSCNode):
+	"document type"
+
+	def __init__(self,data = ""):
+		self.data = data
+
+	def AsHTML(self,mode = None):
+		return XSCDocType(self.data)
+
+	def AsString(self):
+		return "<!DOCTYPE " + self.data + ">"
+
+class XSCElement(XSCNode):
 	"XML elements"
 
 	close = 0
@@ -225,7 +236,7 @@ def AsHTML(value,mode = None):
 		return value.AsHTML(mode)
 
 def AsString(value):
-	"transforms a value into a string: string are returned with 'nasty' characters replaced with entities, HSC and HTML nodes are output as one would expect. Lists, tuples and dictionaries are treated recursively"
+	"transforms a value into a string: string are returned with 'nasty' characters replaced with entities, XSC and HTML nodes are output as one would expect. Lists, tuples and dictionaries are treated recursively"
 
 	if type(value) == types.StringType:
 		v = []
@@ -265,87 +276,87 @@ def AsString(value):
 	else:
 		return value.AsString()
 
-class html(CElement):
+class html(XSCElement):
 	close = 1
 
-class head(CElement):
+class head(XSCElement):
 	close = 1
 
-class title(CElement):
+class title(XSCElement):
 	close = 1
 
-class link(CElement):
+class link(XSCElement):
 	close = 0
 
-class body(CElement):
+class body(XSCElement):
 	close = 1
 	permitted_attrs = [ "background","bgcolor","text","link","vlink","alink","leftmargin","topmargin","marginwidth","marginheight","style","onload"]
 
-class h1(CElement):
+class h1(XSCElement):
 	close = 1
 
-class h2(CElement):
+class h2(XSCElement):
 	close = 1
 
-class h3(CElement):
+class h3(XSCElement):
 	close = 1
 
-class h4(CElement):
+class h4(XSCElement):
 	close = 1
 
-class h5(CElement):
+class h5(XSCElement):
 	close = 1
 
-class h6(CElement):
+class h6(XSCElement):
 	close = 1
 
-class p(CElement):
+class p(XSCElement):
 	close = 1
 
-class div(CElement):
+class div(XSCElement):
 	close = 1
 
-class table(CElement):
+class table(XSCElement):
 	close = 1
 
-class tr(CElement):
+class tr(XSCElement):
 	close = 1
 
-class th(CElement):
+class th(XSCElement):
 	close = 1
 
-class td(CElement):
+class td(XSCElement):
 	close = 1
 
-class img(CElement):
+class img(XSCElement):
 	close = 0
 	permitted_attrs = [ "src","alt","border","width","height" ]
 
 	def AsHTML(self,mode = None):
-		e = CElement.AsHTML(self,mode)
+		e = XSCElement.AsHTML(self,mode)
 
 		e.AddImageSizeAttributes("src")
 
 		return e
 
-class br(CElement):
+class br(XSCElement):
 	close = 0
 
-class hr(CElement):
+class hr(XSCElement):
 	close = 0
 
-class a(CElement):
+class a(XSCElement):
 	close = 1
 	permitted_attrs = [ "href","name" ]
 
 	def AsHTML(self,mode = None):	
-		e = CElement.AsHTML(self,mode)
+		e = XSCElement.AsHTML(self,mode)
 
 		e.ExpandLinkAttribute("href")
 
 		return e
 
-class b(CElement):
+class b(XSCElement):
 	close = 1
 
 class plaintable(table):
@@ -380,64 +391,53 @@ class plainbody(body):
 
 		return e
 
-class z(CElement):
+class z(XSCElement):
 	close = 1
 
 	def AsHTML(self,mode = None):
 		return AsHTML(["«",AsHTML(self.content,mode),"»"],mode)
 
-class nbsp(CElement):
+class nbsp(XSCElement):
 	close = 0
 
 	def AsHTML(self,mode = None):
 		return AsHTML("\xA0",mode)
 
-class filesize(CElement):
+class filesize(XSCElement):
 	close=1
 
 	def AsHTML(self,mode = None):
 		return FileSize(ExpandedURL(AsString(self.content)))
 
-class HSC(xml.sax.saxlib.HandlerBase):
-	"Reads a XML file and constructs a HSC tree from it."
+class XSC(XMLParser):
+	"Reads a XML file and constructs an XSC tree from it."
 
 	def __init__(self,filename):
-		xml.sax.saxlib.HandlerBase.__init__(self)
-		self.stack = [] # our nodes do not have a parent link, therefore we have to store the active path through the tree in a stack
-		parser = xml.sax.saxexts.make_parser()
-		parser.setDocumentHandler(self)
-		parser.parseFile(open(filename))
-		parser.close()
+		XMLParser.__init__(self)
+		self.filename = filename
+		self.nesting = [ [] ] # our nodes do not have a parent link, therefore we have to store the active path through the tree in a stack (which we call nesting, because stack is already used by the base class
+		self.feed(open(filename).read())
+		self.close()
+		self.root = self.nesting[0]
 
 	def processingInstruction (self,target, remainder):
 		pass
 
-	def startElement(self,name,attrs = {}):
+	def unknown_starttag(self,name,attrs = {}):
 		e = eval(name+"([],attrs)")
-		self.stack[-1].append(e)
-		self.stack.append(e)
+		self.nesting[-1].append(e) # add the new element to the content of the innermost element (or to the array)
+		self.nesting.append(e) # push new innermost element onto the stack
 		
-	def endElement(self,name):
-		self.stack[-1:] = []
+	def unknown_endtag(self,name):
+		self.nesting[-1:] = [] # pop the innermost element off the stack
 
-	def ignorableWhitespace(self,data,start_ix,length):
-		pass
-#        self.characters(data,start_ix,length)
+	def handle_data(self,data):
+		self.nesting[-1].append(data) # add the new string to the content of the innermost element
 
-	def characters(self,data,start_ix,length):
-		self.stack[-1].append(data[start_ix:start_ix+length])
-
-	def handle_comment(self,s):
-		print s
-		self.stack[-1].append(CComment(s))
-
-	def startDocument(self):
-		self.stack.append([])
-
-	def endDocument(self):
-		self.root = self.stack[0]
+	def handle_comment(self,comment):
+		self.nesting[-1].append(XSCComment(comment))
 
 if __name__ == "__main__":
-	h = HSC(sys.argv[1])
+	h = XSC(sys.argv[1])
 	print AsString(AsHTML(h.root))
 
