@@ -1218,7 +1218,7 @@ class XML(ProcInst):
 			node.content += u"encoding='" + publisher.encoding + u"'"
 			if standalonefound is not None:
 				node.content += u" standalone='" + standalonefound + u"'"
-			node.publish(publisher, HTML)
+			node.publish(publisher)
 			return
 		ProcInst.publish(self, publisher)
 
