@@ -29,7 +29,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 import sys, types, time as time_, string
 
 from xist import xsc, parsers
-import html, meta
+import html, ihtml, meta
 
 class xist(xsc.Entity):
 	def convert(self, converter):
@@ -257,7 +257,10 @@ class autoimg(html.img):
 	as wide with <code>width="2*%(width)d"</code>.</doc:par>
 	"""
 	def convert(self, converter):
-		e = html.img(self.attrs)
+		if converter.target=="ihtml":
+			e = ihtml.img(self.attrs)
+		else:
+			e = html.img(self.attrs)
 		e._addImageSizeAttributes(converter.root, "src", "width", "height")
 		return e.convert(converter)
 
