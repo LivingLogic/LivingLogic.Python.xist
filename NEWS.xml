@@ -1,4 +1,11 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
+<section><title>Changes in 1.4 (released 03/18/2002)</title>
+<ulist>
+<item>Reimplemented &url; handling again. Now the new global
+module <module>url</module> is used for that.</item>
+</ulist>
+</section>
+
 <section><title>Changes in 1.3.1 (released 03/14/2002)</title>
 <ulist>
 <item>Added a method <method>pretty</method> to <class>Node</class>

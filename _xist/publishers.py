@@ -99,7 +99,7 @@ class Publisher:
 		self.publish(self.__currentTextFilter(text, self.encoding))
 
 	def _publishableURL(self, url):
-		return url.relativeTo(self.base)
+		return url.relative(self.base)
 
 	def pushTextFilter(self, filter):
 		"""

@@ -19,7 +19,8 @@
 ## IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
 ## IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-import types, inspect
+# __builtin__ to use property, which is also defined here
+import types, inspect, __builtin__
 
 from xist import xsc, parsers
 from xist.ns import html, docbook
@@ -111,6 +112,19 @@ class method(xsc.Element):
 			e = docbook.methodname(self.content)
 		else:
 			e = html.code(self.content, class_="method")
+		return e.convert(converter)
+
+class property(xsc.Element):
+	"""
+	The name of a property in a programming language
+	"""
+	empty = 0
+
+	def convert(self, converter):
+		if converter.target=="docbook":
+			e = docbook.varname(self.content, role="property")
+		else:
+			e = html.code(self.content, class_="property")
 		return e.convert(converter)
 
 class class_(xsc.Element):
@@ -246,7 +260,11 @@ class section(xsc.Element):
 					cs.append(child)
 			e = xsc.Frag()
 			for t in ts:
-				h = html.namespace.elementsByName["h%d" % context.depth](class_=self["role"])
+				try:
+					hclass = html.namespace.elementsByName["h%d" % context.depth]
+				except KeyError: # ouch, we're nested to deep (a getter in a property in a class in a class)
+					hclass = html.h6
+				h = hclass(class_=self["role"])
 				if converter.target=="text":
 					h.append(html.br(), t.content, html.br(), "="*len(unicode(t.content.convert(converter))))
 				else:
@@ -332,10 +350,10 @@ class self(xsc.Element):
 class pyref(xsc.Element):
 	"""
 	reference to a Python object:
-	module, class, method, function, variable or argument
+	module, class, method, property or function
 	"""
 	empty = 0
-	attrHandlers = {"module": xsc.TextAttr, "class": xsc.TextAttr, "method": xsc.TextAttr, "function": xsc.TextAttr}
+	attrHandlers = {"module": xsc.TextAttr, "class": xsc.TextAttr, "method": xsc.TextAttr, "property": xsc.TextAttr, "function": xsc.TextAttr}
 
 	base = "http://localhost:7464/"
 
@@ -356,6 +374,10 @@ class pyref(xsc.Element):
 			method = unicode(self["method"].convert(converter))
 		else:
 			method = None
+		if self.hasAttr("property"):
+			prop = unicode(self["property"].convert(converter))
+		else:
+			prop = None
 		if self.hasAttr("class"):
 			class__ = unicode(self["class"].convert(converter))
 		else:
@@ -373,6 +395,9 @@ class pyref(xsc.Element):
 			elif method is not None:
 				if class__ is not None and module is not None:
 					e = html.a(e, href=(self.base, module, "/index.html#", class__, "-", method))
+			elif prop is not None:
+				if class__ is not None and module is not None:
+					e = html.a(e, href=(self.base, module, "/index.html#", class__, "-", prop))
 			elif class__ is not None:
 				if module is not None:
 					e = html.a(e, href=(self.base, module, "/index.html#", class__))
@@ -510,33 +535,59 @@ def __codeHeader(thing, name, type):
 	sig.append(")")
 	return sig
 
-def explain(thing, name=None):
+def explain(thing, name=None, context=[]):
 	"""
-	returns a &xml; representation of the documentation of
-	<arg>thing</arg>, which can be a function, method, class or module.
+	<doc:par>returns a &xml; representation of the documentation of
+	<arg>thing</arg>, which can be a function, method, class or module.</doc:par>
+
+	<doc:par>If <arg>thing</arg> is not a module, you must pass the context
+	in <arg>context</arg>, i.e. a list of names of objects into which <arg>thing</arg>
+	is nested. This means the first entry will always be module name, and
+	the other entries will be class names.</doc:par>
 	"""
 
 	if inspect.ismethod(thing):
+		name = name or thing.__name__
+		context = context + [name]
 		(args, varargs, varkw, defaults) = inspect.getargspec(thing.im_func)
+		id = "-".join(context)
 		sig = xsc.Frag(
-			html.a(name=(thing.im_class.__name__, "-", name or thing.__name__))
+			html.a(name=id, id=id)
 		)
 		if name != thing.__name__ and not (thing.__name__.startswith("__") and name=="_" + thing.im_class.__name__ + thing.__name__):
 			sig.append(name, " = ")
 		sig.append("def ", __codeHeader(thing.im_func, thing.__name__, method), ":")
 		return section(title(sig), getDoc(thing), role="method")
 	elif inspect.isfunction(thing):
-		return section(
-			title(
-				html.a(name=name or thing.__name__),
-				"def ",
-				__codeHeader(thing, thing.__name__, function),
-				":"
-			),
-			getDoc(thing),
-			role="function"
+		name = name or thing.im_func.__name__
+		context = context + [name]
+		id = "-".join(context)
+		sig = xsc.Frag(
+			html.a(name=id, id=id),
+			"def ",
+			__codeHeader(thing, name, function),
+			":"
 		)
+		return section(title(sig), getDoc(thing), role="function")
+	elif isinstance(thing, __builtin__.property):
+		context = context + [name]
+		id = "-".join(context)
+		sig = xsc.Frag(
+			html.a(name=id, id=id),
+			"property ", name, ":"
+		)
+		node = section(title(sig), getDoc(thing), role="property")
+		if thing.fget is not None:
+			node.append(explain(thing.fget, "__get__", context))
+		if thing.fset is not None:
+			node.append(explain(thing.fset, "__set__", context))
+		if thing.fdel is not None:
+			node.append(explain(thing.fdel, "__delete__", context))
+		return node
 	elif inspect.isclass(thing):
+		name = name or thing.__name__
+		context = context + [name]
+		id = "-".join(context)
 		bases = xsc.Frag()
 		if len(thing.__bases__):
 			for baseclass in thing.__bases__:
@@ -552,7 +603,7 @@ def explain(thing, name=None):
 			bases.append(")")
 		node = section(
 			title(
-				html.a(name=name or thing.__name__),
+				html.a(name=id, id=id),
 				"class ",
 				class_(name),
 				bases,
@@ -561,38 +612,56 @@ def explain(thing, name=None):
 			getDoc(thing),
 			role="class"
 		)
+		# find methods, properties and classes, but filter out those methods that are attribute getters, setters or deleters
 		methods = []
+		properties = []
+		classes = []
 		for varname in thing.__dict__.keys():
 			obj = getattr(thing, varname)
-			if type(obj) is types.MethodType:
-				methods.append((obj, varname))
+			if isinstance(obj, __builtin__.property):
+				properties.append((obj, varname))
+			elif inspect.isclass(obj):
+				classes.append((obj, varname))
+		for varname in thing.__dict__.keys():
+			obj = getattr(thing, varname)
+			if inspect.ismethod(obj):
+				# skip the method if it's a property getter, setter or deleter
+				for (prop, name) in properties:
+					if obj.im_func==prop.fget or obj.im_func==prop.fset or obj.im_func==prop.fdel:
+						break
+				else:
+					methods.append((obj, varname))
 		if len(methods):
 			methods.sort(cmpName)
-			node.append([explain(*m) for m in methods])
+			node.append([explain(obj, varname, context) for (obj, varname) in methods])
+		if len(properties):
+			properties.sort(cmpName)
+			node.append([explain(obj, varname, context) for (obj, varname) in properties])
+		if len(classes):
+			classes.sort(cmpName)
+			node.append([explain(obj, varname, context) for (obj, varname) in classes])
 		return node
 	elif inspect.ismodule(thing):
-		if hasattr(thing, "__all__"):
-			moduletype = "Package"
-		else:
-			moduletype = "Module"
+		context = [name or thing.__name__]
 		node = section(
-			title(moduletype, " ", module(name or thing.__name__)),
+			title("Module ", module(name)),
 			getDoc(thing)
 		)
 
 		functions = []
 		classes = []
-		for (name, obj) in thing.__dict__.items():
+		for varname in thing.__dict__.keys():
+			obj = getattr(thing, varname)
 			if inspect.isfunction(obj):
-				functions.append((obj, name))
+				functions.append((obj, varname))
 			elif inspect.isclass(obj):
-				classes.append((obj, name))
+				classes.append((obj, varname))
 		if len(classes):
 			classes.sort(cmpName)
 			node.append(
 				section(
 					title("Classes"),
-					[explain(*c) for c in classes],
+					[explain(obj, name, context) for (obj, name) in classes],
 					role="classes"
 				)
 			)
@@ -601,7 +670,7 @@ def explain(thing, name=None):
 			node.append(
 				section(
 					title("Functions"),
-					[explain(*f) for f in functions],
+					[explain(obj, name, context) for (obj, name) in functions],
 					role="functions"
 				)
 			)

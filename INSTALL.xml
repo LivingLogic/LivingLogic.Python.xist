@@ -10,7 +10,7 @@ To use &xist; you need the following software packages:
 <a href="http://www.pythonware.com/products/pil/">http://www.pythonware.com/products/pil/</a>)</item>
 <item>The experimental eGenix mx Extension for Python
 (available from <a href="http://www.lemburg.com/files/python/eGenix-mx-Extensions.html">http://www.lemburg.com/files/python/eGenix-mx-Extensions.html</a>).</item>
-<item>FileUtils (available from <a href="root:fileutils/index.html">http://www.livinglogic.de/Python/fileutils/</a>),</item>
+<item>URL (available from <a href="root:url/index.html">http://www.livinglogic.de/Python/url/</a>),</item>
 <item>ANSIStyle (available from <a href="root:ansistyle/index.html">http://www.livinglogic.de/Python/ansistyle/</a>),</item>
 <item>and a C compiler supported by <app>distutils</app>, if you want to install
 the source distribution.</item>
@@ -26,6 +26,10 @@ python setup.py install
 This will copy *.py files, compile *.c files and install everything
 in the <filename class="directory">site-packages</filename>
 directory as an <code>xist</code> package.</doc:par>
+
+<doc:par>If you're updating from a version older than 1.4, remove
+the old module <module>xist.url</module> as this is no longer needed
+and might collide with the new global module <module>url</module>.</doc:par>
 
 <doc:par>For Windows a binary distribution is provided. To install it,
 double click it, and follow the instructions.</doc:par>

@@ -45,59 +45,48 @@ from mx import Tidy
 #except ImportError:
 timeoutsocket = None
 
-import fileutils
+import url
 
-import xsc, url as url_, errors, utils
+import xsc, errors, utils
 from ns import ihtml, html
 
 class InputSource(sax.xmlreader.InputSource):
 	def __init__(self, base):
 		sax.xmlreader.InputSource.__init__(self)
-		self.base = base
+		self.base = url.URL(base)
 
 class StringInputSource(InputSource):
 	def __init__(self, text, systemId="STRING", base=None, defaultEncoding="utf-8"):
 		InputSource.__init__(self, base)
 		self.setSystemId(systemId)
-		if type(text) is types.UnicodeType:
+		if isinstance(text, unicode):
 			defaultEncoding = "utf-8"
 			text = text.encode(defaultEncoding)
 		self.setByteStream(StringIO.StringIO(text))
 		self.setEncoding(defaultEncoding)
 
 class FileInputSource(InputSource):
-	def __init__(self, stream, base=None, defaultEncoding="utf-8"):
-		if isinstance(stream, (str, unicode)):
-			stream = fileutils.Filename(stream)
-		if isinstance(stream, fileutils.Filename):
-			stream = stream.open("rb")
+	def __init__(self, id, base=None, defaultEncoding="utf-8"):
+		if isinstance(id, (str, unicode)):
+			id = url.Filename(id)
+		if isinstance(id, url.URL):
+			id = open(id.asFilename(), "rb")
 		if base is None:
-			base = stream.name
+			base = id.name
 		InputSource.__init__(self, base)
-		self.setSystemId(stream.name)
-		self.setByteStream(stream)
+		self.setSystemId(id.name)
+		self.setByteStream(id)
 		self.setEncoding(defaultEncoding)
 
-def openURLwithHeaders(url, headers):
-	if len(headers):
-		urlopener = urllib.FancyURLopener()
-		urlopener.addheaders = headers
-		return urlopener.open(url)
-	else:
-		return urllib.urlopen(url)
-
 class URLInputSource(InputSource):
-	def __init__(self, url, base=None, defaultEncoding="utf-8", headers=[]):
-		if isinstance(url, url_.URL):
-			url = url.asPlainString()
-		if isinstance(url, unicode):
-			url = url.encode("utf-8")
-		url = openURLwithHeaders(url, headers)
+	def __init__(self, id, base=None, defaultEncoding="utf-8", data=None, headers={}):
+		if isinstance(id, (str, unicode)):
+			id = url.URL(id)
 		if base is None:
-			base = url.url
+			base = id.url
 		InputSource.__init__(self, base)
-		self.setSystemId(url.url)
-		self.setByteStream(url)
+		self.setSystemId(id.url)
+		self.setByteStream(id.openread(data=data, headers=headers))
 		self.setEncoding(defaultEncoding)
 
 	def setTimeout(self, secs):
@@ -109,17 +98,14 @@ class URLInputSource(InputSource):
 			timeoutsocket.getDefaultSocketTimeout()
 
 class TidyURLInputSource(InputSource):
-	def __init__(self, url, base=None, defaultEncoding="utf-8", headers=[]):
-		if isinstance(url, url_.URL):
-			url = url.asPlainString()
-		if isinstance(url, unicode):
-			url = url.encode("utf-8")
-		url = openURLwithHeaders(url, headers)
+	def __init__(self, id, base=None, defaultEncoding="utf-8", data=None, headers={}):
+		if isinstance(id, (str, unicode)):
+			id = url.URL(id)
 		if base is None:
-			base = url.url
+			base = id.url
 		InputSource.__init__(self, base)
-		self.setSystemId(url.url)
-		(nerrors, nwarnings, outputdata, error) = Tidy.tidy(url.read(), numeric_entities=1, output_xhtml=1, output_xml=1, quiet=1, tidy_mark=0, wrap=0)
+		self.setSystemId(id.url)
+		(nerrors, nwarnings, outputdata, error) = Tidy.tidy(id.openread(data=data, headers=headers).read(), numeric_entities=1, output_xhtml=1, output_xml=1, quiet=1, tidy_mark=0, wrap=0)
 		if nerrors>0:
 			raise SAXParseException("can't tidy %r: %r" % (url, errordata))
 		self.setByteStream(StringIO.StringIO(outputdata))
@@ -490,12 +476,13 @@ class Handler(object):
 
 	def startElement(self, name, attrs):
 		node = self.namespaces.elementFromName(name)()
+		base = getattr(self.source, "base", None)
 		for (attrname, attrvalue) in attrs.items():
 			# for URLs incorporate the base URL into the value
-			if node.attrHandlers.has_key(attrname) and issubclass(node.attrHandlers[attrname], xsc.URLAttr) and hasattr(self.source, "base"):
+			if node.attrHandlers.has_key(attrname) and issubclass(node.attrHandlers[attrname], xsc.URLAttr) and base is not None:
 				if isinstance(attrvalue, unicode):
 					attrvalue = xsc.Frag(attrvalue)
-				attrvalue = utils.replaceInitialURL(attrvalue, lambda u: url_.URL(self.source.base)/u )
+				attrvalue = utils.replaceInitialURL(attrvalue, lambda u: base/u )
 			node[attrname] = attrvalue
 		self.__appendNode(node)
 		self.__nesting.append(node) # push new innermost element onto the stack
@@ -584,9 +571,9 @@ def parseString(text, systemId="STRING", base=None, handler=None, parser=None, n
 def parseFile(file, base=None, handler=None, parser=None, namespaces=None, defaultEncoding="utf-8"):
 	return parse(FileInputSource(file, base=base, defaultEncoding=defaultEncoding), handler=handler, parser=parser, namespaces=namespaces)
 
-def parseURL(url, base=None, handler=None, parser=None, namespaces=None, defaultEncoding="utf-8", headers=[]):
-	return parse(URLInputSource(url, base=base, defaultEncoding=defaultEncoding, headers=headers), handler=handler, parser=parser, namespaces=namespaces)
+def parseURL(id, base=None, handler=None, parser=None, namespaces=None, defaultEncoding="utf-8", headers={}):
+	return parse(URLInputSource(id, base=base, defaultEncoding=defaultEncoding, headers=headers), handler=handler, parser=parser, namespaces=namespaces)
 
-def parseTidyURL(url, base=None, handler=None, parser=None, namespaces=None, defaultEncoding="utf-8", headers=[]):
-	return parse(TidyURLInputSource(url, base=base, defaultEncoding=defaultEncoding, headers=headers), handler=handler, parser=parser, namespaces=namespaces)
+def parseTidyURL(id, base=None, handler=None, parser=None, namespaces=None, defaultEncoding="utf-8", headers={}):
+	return parse(TidyURLInputSource(id, base=base, defaultEncoding=defaultEncoding, headers=headers), handler=handler, parser=parser, namespaces=namespaces)
 

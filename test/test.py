@@ -1,6 +1,6 @@
 import sys, unittest
 
-from xist import xsc, parsers, presenters, converters, helpers, url
+from xist import xsc, parsers, presenters, converters, helpers
 from xist.ns import wml, ihtml, html, css, specials
 
 class XISTTestCase(unittest.TestCase):
@@ -302,11 +302,6 @@ class XISTTestCase(unittest.TestCase):
 			)
 		)
 		e.asBytes()
-
-	def test_urlrepr(self):
-		s = u"ftp://ftp.livinglogic.de/pub/livinglogic/xist/XIST-42.105.tar.bz2"
-		u = url.URL(s)
-		self.assertEqual(unicode(u), s)
 
 	def test_namespace(self):
 		self.assertEquals(xsc.amp.name, "amp")

@@ -30,7 +30,8 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 from __future__ import generators
 
 import os, types, sys, urllib, random
-import url, presenters, publishers, converters, errors, options, utils, helpers
+import url
+import presenters, publishers, converters, errors, options, utils, helpers
 
 ###
 ### helpers
@@ -52,7 +53,7 @@ def ToNode(value):
 			return Frag(*value) # repack the attribute in a fragment, and we have a valid XSC node
 		return value
 	elif isinstance(value, url.URL):
-		return Text(value.asString())
+		return Text(value)
 	elif isinstance(value, (str, unicode, int, long, float)):
 		return Text(value)
 	elif value is None:
@@ -1349,7 +1350,7 @@ class Element(Node):
 
 		if self.hasAttr(imgattr):
 			attr = self[imgattr]
-			size = attr.imageSize(root)
+			size = attr.imagesize(root)
 			if size is not None: # the size was retrieved so we can use it
 				sizedict = {"width": size[0], "height": size[1]}
 				for attr in (heightattr, widthattr):
@@ -1830,34 +1831,38 @@ class URLAttr(Attr):
 		return url.URL(Attr.__unicode__(self))
 
 	def __unicode__(self):
-		return self.asURL().asString()
+		return self.asURL().url
 
 	def forInput(self, root=None):
 		u = self.asURL()
 		if u.scheme == "root":
 			u.scheme = None
 		u = url.URL(root)/u
-		if u.scheme == "server":
-			u = url.URL(scheme="http", server=options.server)/u
 		return u
 
-	def imageSize(self, root=None):
+	def imagesize(self, root=None):
 		"""
 		returns the size of an image as a tuple or None if the image shouldn't be read
 		"""
-		return self.forInput(root).imageSize()
+		return self.openread(root).imagesize
 
-	def fileSize(self, root=None):
+	def contentlength(self, root=None):
 		"""
 		returns the size of a file in bytes or None if the file shouldn't be read
 		"""
-		return self.forInput(root).fileSize()
+		return self.openread(root).contentlength
 
-	def open(self, root=None):
+	def openread(self, root=None):
 		"""
-		opens the URL via urllib
+		opens the URL for reading
 		"""
-		return self.forInput(root).open()
+		return self.forInput(root).openread()
+
+	def openwrite(self, root=None):
+		"""
+		opens the URL for writing
+		"""
+		return self.forInput(root).openwrite()
 
 ###
 ###

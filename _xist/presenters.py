@@ -263,7 +263,7 @@ def strString(string):
 
 def strURL(u):
 	if isinstance(u, url.URL):
-		u = u.asString()
+		u = u.url
 	return EnvTextForURL(EscInlineText(u))
 
 def strDocTypeMarker():
