@@ -89,26 +89,7 @@ class Finder(object):
 			return self
 
 	def __getitem__(self, index):
-		if isinstance(index, slice):
-			return list(self)[index] # fall back to materializing the list
-		else:
-			if index>=0:
-				for item in self:
-					if not index:
-						return item
-					index -= 1
-				raise IndexError
-			else:
-				index = -index
-				cache = []
-				for item in self:
-					cache.append(item)
-					if len(cache)>index:
-						cache.pop(0)
-				if len(cache)==index:
-					return cache[0]
-				else:
-					raise IndexError
+		return item(self, index)
 
 	# We can't implement __len__, because if a Finder object is passed to list(), __len__() would be called, exhausting the iterator
 
@@ -131,27 +112,60 @@ class Finder(object):
 		return "<%s.%s object for %r%s at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.iterator, ops, id(self))
 
 
-def first(iterator, default=None):
+_defaultitem = object()
+
+def item(iterator, index, default=_defaultitem):
+	"""
+	<par>Return the <arg>index</arg>th item from the iterator <arg>iterator</arg>.
+	<arg>index</arg> may be an integer (negative integers are relative to the
+	end (i.e. the last item produced by the iterator) or a <class>slice</class>.</par>
+
+	<par>Calling this function will partially or totally exhaust the iterator.</par>
+
+	<par>If <arg>default</arg> is gived, this will be the default value when
+	the iterator doesn't contain an item at this position. Otherwise an
+	<class>IndexError</class> will be raised.</par>
+	"""
+	if isinstance(index, slice):
+		return list(iterator)[index] # fall back to materializing the list
+	else:
+		i = index
+		if i>=0:
+			for item in iterator:
+				if not i:
+					return item
+				i -= 1
+		else:
+			i = -index
+			cache = []
+			for item in iterator:
+				cache.append(item)
+				if len(cache)>i:
+					cache.pop(0)
+			if len(cache)==i:
+				return cache[0]
+		if default is _defaultitem:
+			raise IndexError(index)
+		else:
+			return default
+
+
+def first(iterator, default=_defaultitem):
 	"""
 	<par>Return the first object produced by the iterator <arg>iterator</arg> or
 	<arg>default</arg> if the iterator didn't produce any items.</par>
 	<par>Calling this function will consume one item from the iterator.</par>
 	"""
-	for node in iterator:
-		return node
-	return default
+	return item(iterator, 0, default)
 
 
-def last(iterator, default=None):
+def last(iterator, default=_defaultitem):
 	"""
 	<par>Return the last object from the iterator <arg>iterator</arg> or
 	<arg>default</arg> if the iterator didn't produce any items.</par>
 	<par>Calling this function will exhaust the iterator.</par>
 	"""
-	node = default
-	for node in iterator:
-		pass
-	return node
+	return item(iterator, -1, default)
 
 
 def count(iterator):

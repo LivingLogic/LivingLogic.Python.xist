@@ -47,7 +47,7 @@ DESCRIPTION = "\n".join(textwrap.wrap(DESCRIPTION.strip(), width=64, replace_whi
 
 setup(
 	name="ll-xist",
-	version="2.6.1",
+	version="2.6.2",
 	description="An extensible HTML/XML generator",
 	long_description=DESCRIPTION,
 	author="Walter Doerwald",

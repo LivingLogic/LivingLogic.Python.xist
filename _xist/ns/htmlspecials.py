@@ -64,14 +64,15 @@ class _pixelbase(html.img):
 	class Attrs(html.img.Attrs):
 		class color(xsc.TextAttr):
 			"""
-			The pixel color as a three digit hex value.
+			The pixel color as a three digit hex value or <lit>spc</lit> to
+			get a transparent pixel.
 			"""
-			default = 0
+			default = "spc"
 
 			def checkvalid(self):
 				if len(self) and not self.isfancy():
 					content = unicode(self)
-					if content != u"0":
+					if content != u"spc":
 						if len(content) == 3:
 							for c in content:
 								if c not in "0369cf":

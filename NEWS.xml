@@ -1,4 +1,15 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
+<section><title>Changes in 2.6.2 (released 11/24/2004)</title>
+<ulist>
+<item>The transparent pixel used by <class>ll.xist.ns.htmlspecials.pixel</class>
+has been renamed to <filename>spc.gif</filename> to avoid problems with IE.</item>
+<item>Removed a debug print in <class>ll.xist.xfind.Finder.__getitem__</class>.</item>
+<item><module>ll.xist.xfind</module> now has a new function <function>item</function>,
+that can be used to get a certain item or slice from an iterator.</item>
+</ulist>
+</section>
+
+
 <section><title>Changes in 2.6.1 (released 11/02/2004)</title>
 <ulist>
 <item>Fixed a bug in <method>ll.xist.xfind.Finder.__floordiv__</method>.</item>
