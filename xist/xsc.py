@@ -74,6 +74,25 @@ class XSCIllegalAttributeError(XSCError):
 
 		return XSCError.__str__(self) + "The attribute '" + _strattrname(self.attr) + "' is not allowed here. The only allowed attributes are: " + string.join(v,", ")
 
+class XSCAttributeNotFoundError(XSCError):
+	"""exception that is raised, when an attribute is fetched that isn't there"""
+
+	def __init__(self,lineno,attrs,attr):
+		XSCError.__init__(self,lineno)
+		self.attrs = attrs
+		self.attr = attr
+
+	def __str__(self):
+		attrs = self.attrs.keys();
+		attrs.sort()
+
+		v = []
+
+		for attr in attrs:
+			v.append(_strattrname(attr))
+
+		return XSCError.__str__(self) + "The attribute '" + _strattrname(self.attr) + "' could not be found. The only available attributes are: " + string.join(v,", ")
+
 class XSCIllegalElementError(XSCError):
 	"""exception that is raised, when an illegal element is encountered (i.e. one that isn't registered via RegisterElement"""
 
@@ -556,7 +575,7 @@ class XSCAttrs(XSCNode):
 		if self.__content.has_key(lowerindex):
 			return self.__content[lowerindex] # we're returning the packed attribute here, because otherwise there would be no possibility to get an expanded URL
 		else:
-			raise XSCIllegalAttributeError(xsc.parser.lino,self,index)
+			raise XSCAttributeNotFoundError(xsc.parser.lino,self,index)
 
 	def __setitem__(self,index,value):
 		"""insert an attribute with the name index and the value value into the attribute dictionary"""
