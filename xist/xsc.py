@@ -78,6 +78,17 @@ class XSCIllegalElementError(XSCError):
 		elements.sort()
 		return XSCError.__str__(self) + "The element '" + self.elementname + "' is not allowed. The only allowed elements are: " + str(elements)
 
+class XSCIllegalElementNestingError(XSCError):
+	"""exception that is raised, when an element has an illegal nesting (e.g. <a><b></a></b>)"""
+
+	def __init__(self,lineno,expectedelementname,foundelementname):
+		XSCError.__init__(self,lineno)
+		self.expectedelementname = expectedelementname
+		self.foundelementname = foundelementname
+
+	def __str__(self):
+		return XSCError.__str__(self) + "Illegal element nesting ('" + self.expectedelementname + "' expected; '" + self.foundelementname + "' found)"
+
 class XSCImageSizeFormatError(XSCError):
 	"""exception that is raised, when XSC can't format or evaluate image size attributes"""
 
@@ -912,6 +923,8 @@ class XSCParser(xmllib.XMLParser):
 		self.nesting.append(e) # push new innermost element onto the stack
 
 	def unknown_endtag(self,name):
+		if name != self.nesting[-1].name:
+			raise XSCIllegalElementNestingError(xsc.parser.lineno,self.nesting[-1].name,name)
 		self.nesting[-1].endlineno = self.lineno
 		self.nesting[-1:] = [] # pop the innermost element off the stack
 
