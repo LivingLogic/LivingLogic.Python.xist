@@ -362,7 +362,7 @@ class link(xsc.Element):
 
 	def convert(self, converter):
 		if converter.target=="docbook":
-			e = docbook.link(self.content, linkend=self["href"]
+			e = docbook.link(self.content, linkend=self["href"])
 		else:
 			e = html.a(self, content, href=self["href"])
 		return e.convert(converter)
