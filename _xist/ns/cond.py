@@ -27,7 +27,7 @@ on the XML level.
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-from xist import xsc, procinst
+from xist import xsc, sandbox
 
 class CodeAttr(xsc.Attr):
 	"""
@@ -83,7 +83,7 @@ class If(xsc.Element):
 		result = 1
 		if node.hasAttr("cond"):
 			cond = node["cond"].convert(converter).asPlainString()
-			result = eval(str(cond), procinst.__dict__)
+			result = eval(str(cond), sandbox.__dict__)
 		if result and node.hasAttr("mode"):
 			result = node["mode"].convert(converter).asPlainString() == converter.mode
 		if result and node.hasAttr("target"):

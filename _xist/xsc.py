@@ -34,7 +34,7 @@ try:
 except ImportError:
 	Image = None
 
-import procinst, url, presenters, publishers, converters, errors, options, utils, helpers
+import url, presenters, publishers, converters, errors, options, utils, helpers
 
 ###
 ### helpers
@@ -883,20 +883,17 @@ class DocType(CharacterData):
 
 class ProcInst(CharacterData):
 	"""
-	<par noindent>There are two special targets available: <code>xsc:exec</code>
-	and <code>xsc:eval</code> which will be handled by the
-	special classes <classref>Exec</classref> and <classref>Eval</classref>
-	derived from ProcInst.</par>
+	<par>Class for processing instruction. This class is abstract.</par>
 
 	<par>Processing instruction with the target <code>xml</code> will be 
-	handled by the class <classref>XML</classref>.
+	handled by the derived class <classref>XML</classref>.
 
-	<par>All other processing instructions (PHP, etc.) will be handled
+	<par>All other processing instructions will be handled
 	by other classes derived from <code>ProcInst</code>.</par>
 	"""
 
 	# we don't need a constructor, because we don't have to store the target,
-	# because the target is our classname
+	# because the target is our classname (or the class attribute name)
 
 	def convert(self, converter):
 		return self
@@ -922,66 +919,6 @@ class ProcInst(CharacterData):
 
 	def asPlainString(self):
 		return u""
-
-class PythonCode(ProcInst):
-	"""
-	helper class
-	"""
-
-	register = 0 # don't register the class
-	presentPrefix = 1
-	publishPrefix = 1
-
-class Exec(PythonCode):
-	"""
-	<par noindent>here the content of the processing instruction is executed
-	as Python code, so you can define and register XSC elements here.
-	Execution is done when the node is constructed, so definitions made
-	here will be available afterwards (e.g. during the rest of the
-	file parsing stage). When converted to HTML such a node will result
-	in an empty Null node.</par>
-
-	<par>XSC processing instructions will be evaluated and executed in the
-	namespace of the module procinst.</par>
-	"""
-	name = u"exec"
-	register = 1
-
-	def __init__(self, content=u""):
-		ProcInst.__init__(self, content)
-		code = utils.Code(self.content, 1)
-		exec code.asString() in procinst.__dict__ # requires Python 2.0b2 (and doesn't really work)
-
-	def convert(self, converter):
-		return Null # has been executed at construction time already, so we don't have to do anything here
-
-class Eval(PythonCode):
-	"""
-	<par noindent>here the code will be executed when the node is converted to HTML
-	as if it was the body of a function, so you can return an expression
-	here. Although the content is used as a function body no indentation
-	is neccessary or allowed. The returned value will be converted to a
-	node and this resulting node will be converted to HTML.</par>
-
-	<par>XSC processing instructions will be evaluated and executed in the
-	namespace of the module <moduleref>procinst</moduleref>.</par>
-
-	<par>Note that you should not define the symbol <code>__</code> in any of your XSC
-	processing instructions, as it is used by XSC for internal purposes.</par>
-	"""
-
-	name = u"eval"
-	register = 1
-
-	def convert(self, converter):
-		"""
-		Evaluates the code. The <argref>converter</argref> argument will be available
-		under the name <code>converter</code> as an argument.
-		"""
-		code = utils.Code(self.content, 1)
-		code.funcify()
-		exec code.asString() in procinst.__dict__ # requires Python 2.0b2 (and doesn't really work)
-		return ToNode(procinst.__(converter)).convert(converter)
 
 class XML(ProcInst):
 	"""
@@ -1461,7 +1398,7 @@ class CharRef(Entity):
 	def asPlainString(self):
 		return unichr(self.codepoint)
 
-class Null(Node):
+class Null(CharacterData):
 	"""
 	node that does not contain anything.
 	"""
