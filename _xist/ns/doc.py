@@ -498,7 +498,7 @@ def getDoc(thing):
 		systemId = "MODULE-DOCSTRING(%s)" % inspect.getmodule(thing).__name__
 	else:
 		systemId = "DOCSTRING"
-	node = parsers.parseString(doc, systemId=systemId)
+	node = parsers.parseString(doc, systemId=systemId, prefixes=xsc.DocPrefixes())
 	if not node.find(type=par): # optimization: one paragraph docstrings don't need a <doc:par> element.
 		node = par(node)
 
