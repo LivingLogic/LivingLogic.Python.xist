@@ -69,7 +69,12 @@ if the element type has an empty content model (like <br/>
 or <img/>) or not.
 
 To be able to use your own classes in XML files, you have
-to tell the parser about them.
+to tell the parser about them. This is done with the
+function registerElement(element,namespacename,elementname = None)
+(see its docstring) or if you want to register all element
+classes in a module with registerAllElements(dict,namespacename)
+(again see its docstring for further info).
+
 
 Requirements:
 XSC requires Python 1.5.2.
