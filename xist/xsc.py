@@ -159,7 +159,7 @@ class ImageSizeFormatError(Error):
 		self.attr = attr
 
 	def __str__(self):
-		return Error.__str__(self) + "the value '" + str(self.element[self.attr]) + "' for the image size attribute " + _strattrname(self.attr) + " of the element " + self.element._str() + " can't be formatted or evaluated"
+		return Error.__str__(self) + "the value '" + self.element[self.attr].asPlainString() + "' for the image size attribute " + _strattrname(self.attr) + " of the element " + self.element._str() + " can't be formatted or evaluated"
 
 class FileNotFoundError(Error):
 	"""
@@ -472,7 +472,7 @@ def ToNode(value):
 		elif isinstance(value,Node):
 			return value
 	elif t in [ types.StringType,types.IntType,types.LongType,types.FloatType ]:
-		return Text(str(value))
+		return Text(value)
 	elif t == types.NoneType:
 		return Null()
 	elif t in [ types.ListType,types.TupleType ]:
@@ -585,11 +585,29 @@ class Node:
 
 	def asPlainString(self):
 		"""
-		returns this node as a string without <, > and & as character references.
-		This only works with text node, character references and fragments of
-		consisting only of those.
+		returns this node as a string without any character references.
+		Comments and processing instructions will be filtered out.
+		For elements you'll get the element content.
+
+		It might be useful to overwrite this function in your own
+		elements. Suppose you have the following element:
+
+		class caps(xsc.Element):
+			empty = 0
+
+			def asHTML(self):
+				return html.span(self.content,style="font-variant: small-caps;").asHTML()
+
+		that renders its content in small caps, then it might be useful
+		to define asPlainString in the following way:
+
+			def asPlainString(self):
+				return string.upper(self.content.asPlainString())
+
+		E.g. asPlainString might be used the construct a title element
+		for a page for a part of the content of the page.
 		"""
-		raise IllegalObjectError(-1,self)
+		return ""
 
 	def __str__(self):
 		"""
@@ -644,7 +662,7 @@ class Text(Node):
 	strescapes = { '<' : 'lt' , '>' : 'gt' , '&' : 'amp' , '"' : 'quot' }
 
 	def __init__(self,_content = ""):
-		self.content = _content
+		self.content = str(_content)
 
 	def asHTML(self):
 		return Text(self.content)
@@ -1167,7 +1185,7 @@ class Element(Node):
 		return e
 
 	def asPlainString(self):
-		raise IllegalObjectError(-1,self)
+		return self.content.asPlainString()
 
 	def _dorepr(self,ansi = None):
 		v = []
@@ -1313,7 +1331,7 @@ class Element(Node):
 			if size[0] != -1: # the width was retrieved so we can use it
 				if self.has_attr(widthattr):
 					try:
-						self[widthattr] = str(eval(str(self[widthattr]) % sizedict))
+						self[widthattr] = str(eval(self[widthattr].asPlainString() % sizedict))
 					except:
 						raise ImageSizeFormatError(xsc.parser.lineno,self,widthattr)
 				else:
@@ -1321,7 +1339,7 @@ class Element(Node):
 			if size[1] != -1: # the height was retrieved so we can use it
 				if self.has_attr(heightattr):
 					try:
-						self[heightattr] = str(eval(str(self[heightattr]) % sizedict))
+						self[heightattr] = str(eval(self[heightattr].asPlainString() % sizedict))
 					except:
 						raise ImageSizeFormatError(xsc.parser.lineno,self,heightattr)
 				else:

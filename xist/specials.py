@@ -86,7 +86,7 @@ class filesize(xsc.Element):
 	attrHandlers = { "href" : xsc.URLAttr }
 
 	def asHTML(self):
-		return xsc.Text(str(self["href"].FileSize()))
+		return xsc.Text(self["href"].FileSize())
 xsc.registerElement(filesize)
 
 class filetime(xsc.Element):
@@ -112,7 +112,7 @@ class time(xsc.Element):
 
 	def asHTML(self):
 		if self.has_attr("format"):
-			format = str(self["format"])
+			format = self["format"].asPlainString()
 		else:
 			format = "%d. %b. %Y, %H:%M"
 
@@ -127,7 +127,7 @@ class x(xsc.Element):
 	close=1
 
 	def asHTML(self):
-		return None
+		return xsc.Null()
 xsc.registerElement(x)
 
 class pixel(html.img):
@@ -163,14 +163,13 @@ class cap(xsc.Element):
 	"""
 	returns a fragment that contains the content string converted to caps and small caps.
 	This is done by converting all lowercase letters to uppercase and packing them into a
-	<span class="nini">...</span>. Note that this only works with text and not with
-	character references. This element is meant to be a workaround until all browsers
-	support the CSS feature "font-variant: small-caps".
+	<span class="nini">...</span>. This element is meant to be a workaround until all
+	browsers support the CSS feature "font-variant: small-caps".
 	"""
 	empty = 0
 
 	def asHTML(self):
-		e = str(self.content.asHTML()) + "?"
+		e = self.content.asPlainString() + "?"
 		result = xsc.Frag()
 		collect = ""
 		innini = 0
@@ -186,6 +185,9 @@ class cap(xsc.Element):
 			else:
 				collect = collect + e[i]
 		return result
+
+		def asPlainString(self):
+			return string.upper(self.content.asPlainString())
 xsc.registerElement(cap)
 
 class endash(xsc.Element):

@@ -521,6 +521,13 @@ class img(xsc.Element):
 		e.AddImageSizeAttributes("src")
 
 		return e
+
+	def asPlainString(self):
+		if self.has_attr("alt"):
+			return self["alt"].asPlainString()
+		else:
+			return ""
+
 xsc.registerElement(img)
 
 class object(xsc.Element):
