@@ -1564,7 +1564,7 @@ class Element(Node):
 		e = Frag()
 		if searchattrs:
 			for attr in self.attrs.keys():
-				e.extend(self[attr].findNodes(type,subtype,searchchildren,searchattr,attrs))
+				e.extend(self[attr].findNodes(type,subtype,searchchildren,searchattrs,attrs))
 		e.extend(self.content.findNodes(type,subtype,searchchildren,searchattrs,attrs))
 		return e
 
