@@ -640,7 +640,8 @@ Unencodable characters will be escaped with character references when possible
 an exception):</par>
 
 <programlisting>
-&gt;&gt;&gt; from ll.xist.ns import xsc, html
+&gt;&gt;&gt; from ll.xist import xsc
+&gt;&gt;&gt; from ll.xist.ns import html
 &gt;&gt;&gt; node = html.div(
 ...    u"הצü",
 ...    html.br(),
