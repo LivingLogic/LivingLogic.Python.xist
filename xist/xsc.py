@@ -375,7 +375,7 @@ class XSCAttrs(XSCNode):
 		v = [nest,self.startlineno,elementno,""]
 		for attr in self.keys():
 			line = self[attr].dorepr(0,0,[])
-			v[-1].append(" " + self.strattrname(attr) + '="' + line[-1] + '"')
+			v[-1] = v[-1] + " " + self.strattrname(attr) + '="' + line[0][-1] + '"'
 		return v
 
 	def has_attr(self,index):
