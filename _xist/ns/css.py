@@ -41,12 +41,19 @@ class css(xsc.Element):
 		publisher.pushTextFilter(helpers.escapeCSS)
 		# publish the imports first
 		imports = self.find(type=atimport)
+		first = 1
 		for i in imports:
-			publisher.publish(u"\n")
+			if first:
+				first = 0
+			else:
+				publisher.publish(u"\n")
 			i.publish(publisher)
 		content = self.find(type=(rule, atmedia), subtype=1)
 		for child in content:
-			publisher.publish(u"\n")
+			if first:
+				first = 0
+			else:
+				publisher.publish(u"\n")
 			child.publish(publisher)
 		publisher.popTextFilter()
 
@@ -102,10 +109,10 @@ class atmedia(xsc.Element):
 	def publish(self, publisher):
 		publisher.publish(u"@media ")
 		publisher.publish(unicode(self["media"]))
-		publisher.publish(u"\n{\n")
+		publisher.publish(u"\n{")
 		imports = self.find(type=atimport)
 		for i in imports:
-			publisher.publish(u"\n")
+			publisher.publish(u"\n\t")
 			i.publish(publisher)
 		content = self.find(type=rule, subtype=1)
 		for child in content:
