@@ -1508,13 +1508,18 @@ class Attr(Frag):
 	a fragment consisting only of text and character references.
 	"""
 
+	def _dorepr(self,ansi = None):
+		return strAttrValue(Frag._dorepr(self,ansi = 0),ansi)
+
 class TextAttr(Attr):
 	"""
 	Attribute class that is used for normal text attributes.
 	"""
 
-	def _dorepr(self,ansi = None):
-		return strAttrValue(Attr._dorepr(self,ansi = 0),ansi)
+class BoolAttr(Attr):
+	"""
+	Attribute class that is used for boolean attributes.
+	"""
 
 class ColorAttr(Attr):
 	"""
@@ -1522,9 +1527,6 @@ class ColorAttr(Attr):
 	"""
 
 	repransitext = ""
-
-	def _dorepr(self,ansi = None):
-		return strAttrValue(Attr._dorepr(self,ansi = 0),ansi)
 
 class URLAttr(Attr):
 	"""
