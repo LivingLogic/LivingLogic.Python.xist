@@ -292,6 +292,7 @@ repransiurl = getANSICodesFromEnv("XSC_REPRANSI_URL",[ "1;33","33" ])           
 repransiprocinsttarget = getANSICodesFromEnv("XSC_REPRANSI_PROCINSTTARGET",[ "1;31","1;31" ])   # ANSI escape sequence to be used for processing instruction targets
 repransiprocinstdata = getANSICodesFromEnv("XSC_REPRANSI_PROCINSTDATA",[ "","" ])               # ANSI escape sequence to be used for processing instruction data
 outputXHTML = getIntFromEnv("XSC_OUTPUT_XHTML",1)                                               # XHTML output format (0 = plain HTML, 1 = HTML compatible XHTML, 2 = pure XHTML)
+outputEncoding = getStringFromEnv("XSC_OUTPUT_ENCODING","us-ascii")                             # Encoding to be used in asString()
 
 ###
 ### helpers
@@ -450,7 +451,10 @@ def ToNode(value):
 			return node
 	raise IllegalObjectError(-1,value) # none of the above, so we throw and exception
 
-_elementHandlers = {} # dictionary for mapping element names to classes, this dictionary contains the element names as keys and another dictionary as values, this second dictionary contains the namespace names as keys and the element classes as values
+# dictionary for mapping element names to classes, this dictionary contains
+# the element names as keys and another dictionary as values, this second
+# dictionary contains the namespace names as keys and the element classes as values
+_elementHandlers = {}
 
 class Node:
 	"""
@@ -460,7 +464,9 @@ class Node:
 
 	empty = 1
 
-	# location of this node in a file (will be hidden in derived classes, but is specified here, so that no special tests are required. In derived classes this will be set by the parser)
+	# location of this node in a file (will be hidden in derived classes, but is
+	# specified here, so that no special tests are required. In derived classes
+	# this will be set by the parser)
 	startloc = None
 	endloc = None
 
@@ -507,7 +513,8 @@ class Node:
 		return strBracketOpen(ansi) + strBracketClose(ansi)
 
 	def _doreprtree(self,nest,elementno,ansi = None):
-		# returns an array containing arrays consisting of the (nestinglevel,location,elementnumber,string representation) of the nodes
+		# returns an array containing arrays consisting of the
+		# (nestinglevel,location,elementnumber,string representation) of the nodes
 		return [[nest,self.startloc,elementno,self._dorepr(ansi)]]
 
 	def asHTML(self):
@@ -586,8 +593,9 @@ class Node:
 		(i.e. elements with a content model EMPTY as <code>&lt;foo&gt;</code>) with
 		<code><argref>XHTML</argref>==0</code>, or XHTML output that is compatible with HTML browsers
 		(element with an empty content model as <code>&lt;foo /&gt;</code> and others that
-		just happen to be empty as <code>&lt;foo&gt;&lt;/foo&gt;</code>) with <code><argref>XHTML</argref>==1</code>
-		or just plain XHTML with <code><argref>XHTML</argref>==2</code> (all empty elements as <code>&lt;foo/&gt;</code>).
+		just happen to be empty as <code>&lt;foo&gt;&lt;/foo&gt;</code>) with
+		<code><argref>XHTML</argref>==1</code> or just plain XHTML with
+		<code><argref>XHTML</argref>==2</code> (all empty elements as <code>&lt;foo/&gt;</code>).
 		When you use the default (None) that value of the global variable
 		outputXHTML will be used, which defaults to 1, but can be overwritten
 		by the environment variable XSC_OUTPUT_XHTML and can of course be
@@ -728,7 +736,7 @@ class Text(Node):
 	def asPlainString(self):
 		return self.content
 
-	def asString(self,XHTML = None):
+	def asString(self,XHTML = None,encoding = None):
 		v = []
 		for i in self.content:
 			if i == '\r':
@@ -742,7 +750,11 @@ class Text(Node):
 		return string.join(v,"")
 
 	def __strtext(self,refwhite,content,ansi = None):
-		# we could put ANSI escapes around every character or reference that we output, but this would result in strings that are way to long, especially if output over a serial connection, so we collect runs of characters with the same highlighting and put the ANSI escapes around those. (of course, when we're not doing highlighting, this routine does way to much useless calculations)
+		# we could put ANSI escapes around every character or reference that we output,
+		# but this would result in strings that are way to long, especially if output
+		# over a serial connection, so we collect runs of characters with the same
+		# highlighting and put the ANSI escapes around those. (of course, when we're
+		# not doing highlighting, this routine does way to much useless calculations)
 		v = [] # collect all colored string here
 		charref = -1 # the type of characters we're currently collecting (0==normal character, 1==character that has to be output as an entity, -1==at the start)
 		start = 0 # the position where our current run of characters for the same class started
@@ -819,7 +831,7 @@ class CharRef(Node):
 	def asPlainString(self):
 		return chr(self.content)
 
-	def asString(self,XHTML = None):
+	def asString(self,XHTML = None,encoding = None):
 		if 0<=self.content<=127:
 			if self.content != ord("\r"):
 				if self.__notdirect.has_key(self.content):
@@ -903,7 +915,7 @@ class Frag(Node):
 			v.append(child.asPlainString())
 		return string.join(v,"")
 
-	def asString(self,XHTML = None):
+	def asString(self,XHTML = None,encoding = None):
 		v = []
 		for child in self:
 			v.append(child.asString(XHTML))
@@ -1049,7 +1061,7 @@ class Comment(Node):
 		tail = strCommentMarker(ansi) + strBracketClose(ansi)
 		return self._doreprtreeMultiLine(nest,elementno,head,tail,self.content,strCommentText,0,ansi = ansi)
 
-	def asString(self,XHTML = None):
+	def asString(self,XHTML = None,encoding = None):
 		return "<!--" + self.content + "-->"
 
 	def compact(self):
@@ -1074,7 +1086,7 @@ class DocType(Node):
 	def _doreprtree(self,nest,elementno,ansi = None):
 		return [[nest,self.startloc,elementno,self._dorepr(ansi)]]
 
-	def asString(self,XHTML = None):
+	def asString(self,XHTML = None,encoding = None):
 		return "<!DOCTYPE " + self.content + ">"
 
 	def compact(self):
@@ -1121,8 +1133,8 @@ class ProcInst(Node):
 			exec self.content in procinst.__dict__
 
 	def asHTML(self):
-		if string.lower(self.target) == "xsc-exec": # XSC processing instruction, has been executed at construction time already, so we don't have to do anything here
-			return Null
+		if string.lower(self.target) == "xsc-exec": # XSC processing instruction
+			return Null # has been executed at construction time already, so we don't have to do anything here
 		elif string.lower(self.target) == "xsc-eval": # XSC processing instruction, return the result as a node
 			function = "def __():\n\t" + string.replace(string.strip(self.content),"\n","\n\t") + "\n"
 			exec function in procinst.__dict__
@@ -1141,7 +1153,7 @@ class ProcInst(Node):
 		tail = strQuestion(ansi) + strBracketClose(ansi)
 		return self._doreprtreeMultiLine(nest,elementno,head,tail,self.content,strProcInstData,1,ansi = ansi)
 
-	def asString(self,XHTML = None):
+	def asString(self,XHTML = None,encoding = None):
 		return "<?" + self.target + " " + self.content + "?>"
 
 	def compact(self):
@@ -1266,7 +1278,7 @@ class Element(Node):
 				v.append([nest,self.endloc,elementno,self._str(brackets = 1,slash = -1,ansi = ansi)])
 		return v
 
-	def _asStringWithImageSize(self,XHTML = None,imgattr = None,widthattr = None,heightattr = None):
+	def _asStringWithImageSize(self,XHTML = None,encoding = None,imgattr = None,widthattr = None,heightattr = None):
 		"""
 		<par noindent>generates a string representing the element and adds width and height
 		attributes in the process. The URL for the image is fetched for the attribute named
@@ -1346,8 +1358,8 @@ class Element(Node):
 
 		return string.join(v,"")
 
-	def asString(self,XHTML = None):
-		return self._asStringWithImageSize(XHTML)
+	def asString(self,XHTML = None,encoding = None):
+		return self._asStringWithImageSize(XHTML,encoding)
 
 	def __getitem__(self,index):
 		"""
@@ -1474,7 +1486,7 @@ class Null(Node):
 
 	clone = compact = asHTML
 
-	def asString(self,XHTML = None):
+	def asString(self,XHTML = None,encoding = None):
 		return ""
 
 	def _dorepr(self,ansi = None):
@@ -1567,7 +1579,7 @@ class URLAttr(Attr):
 	def _dorepr(self,ansi = None):
 		return strURL(self.asString(),ansi = ansi)
 
-	def asString(self,XHTML = None):
+	def asString(self,XHTML = None,encoding = None):
 		return Text(self.forOutput().asString()).asString(XHTML)
 
 	def asHTML(self):
@@ -1870,7 +1882,10 @@ class XSC:
 		self.popURL()
 		return element
 
-		# our nodes do not have a parent link, therefore we have to store the active path through the tree in a stack (which we call nesting, because stack is already used by the base class (there is no base class anymore, but who cares))
+		# our nodes do not have a parent link, therefore we have to store the active
+		# path through the tree in a stack (which we call nesting, because stack is
+		# already used by the base class (there is no base class anymore, but who cares))
+
 		# after we've finished parsing, the Frag that we put at the bottom of the stack will be our document root
 		return self.__nesting[0]
 
