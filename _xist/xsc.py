@@ -2271,6 +2271,12 @@ class Element(Node):
 				del dict["name"]
 			if "attrHandlers" in dict:
 				warnings.warn(DeprecationWarning("attrHandlers is deprecated, use a nested Attrs class instead"), stacklevel=2)
+			if "model" in dict and isinstance(dict["model"], bool):
+				from ll.xist import sims
+				if dict["model"]:
+					dict["model"] = sims.Any()
+				else:
+					dict["model"] = sims.Empty()
 			if "empty" in dict:
 				warnings.warn(DeprecationWarning("empty is deprecated, use model (and ll.xist.sims) instead"), stacklevel=2)
 				from ll.xist import sims
