@@ -8,7 +8,7 @@ import types
 import stat
 
 # for image size checking
-# import Image
+import Image
 
 # for parsing XML files
 import xmllib
@@ -84,9 +84,8 @@ def ImageSize(url):
 	"returns the size of an image as a tuple"
 
 	try:
-		#img = Image.open(url)
-		#return img.size
-		return (42,42)
+		img = Image.open(url)
+		return img.size
 	except:
 		raise EHSCFileNotFound(url)
 
