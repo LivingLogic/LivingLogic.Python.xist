@@ -49,11 +49,11 @@ def xsc2txt(infilename, outfilename, title):
 
 	e = e.convert()
 
-	(stdin, stdout) = os.popen2("w3m -T text/html -dump >%s" % outfilename)
+	(pipein, pipeout) = os.popen2("w3m -T text/html -dump >%s" % outfilename)
 
-	stdin.write(e.asBytes())
-	stdin.close()
-	stdout.close()
+	pipein.write(e.asBytes())
+	pipein.close()
+	pipeout.close()
 
 if __name__ == "__main__":
 	title = None
