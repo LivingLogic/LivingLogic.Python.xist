@@ -1457,7 +1457,7 @@ class Null(CharacterData):
 Null = Null() # Singleton, the Python way
 
 class Attr(Frag):
-	"""
+	r"""
 	<doc:par>Base classes of all attribute classes.</doc:par>
 
 	<doc:par>The content of an attribute may be any other XSC node. This is different from
