@@ -22,7 +22,7 @@ from ll.xist.ns import wml, ihtml, html, chars, css, abbr, specials, htmlspecial
 options.reprtab = "  "
 
 
-# The following includes \x00 in addition to that defined in
+# The following includes \x00 in addition to those characters defined in
 # http://www.w3.org/TR/2004/REC-xml11-20040204/#NT-RestrictedChar
 restrictedchars = re.compile(u"[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F-\x84\x86-\x9F]")
 
