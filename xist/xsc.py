@@ -168,7 +168,7 @@ class FileNotFoundError(Error):
 		self.url = url
 
 	def __str__(self):
-		return Error.__str__(self) + "file " + self.url.repr() + " can't be opened"
+		return Error.__str__(self) + "file " + self.url.asPlainString() + " can't be opened"
 
 class IllegalObjectError(Error):
 	"""
@@ -1579,10 +1579,14 @@ class URLAttr(Attr):
 		return self.forOutput()
 
 	def _asURL(self):
+		base = URL(scheme="project")
 		s = ""
-		for i in xrange(1,len(self)):
-			 s = s + self[i].asPlainString()
-		return self[0].joined(URL(s))
+		for child in self:
+			if isinstance(child,URL):
+				base = base.joined(child)
+			else:
+				s = s + child.asPlainString()
+		return base.joined(s)
 
 	def asPlainString(self):
 		return self._asURL().asPlainString()
