@@ -14,7 +14,7 @@ import html
 import specials
 
 def _getDB(element):
-	if element.has_attr("module") and element.has_attr("variable"): # datebase connection via an existing one
+	if element.has_attr("module") and element.has_attr("variable"): # database connection via an existing one
 		module = str(element["module"])
 		variable = str(element["variable"])
 		return sys.modules[module].__dict__[variable]
@@ -111,129 +111,23 @@ class template(xsc.Element):
 
 	def asHTML(self):
 		db = _getDB(self)
-		query = db.query(str(self["query"]))
+		query = db.query(str(self["query"].asHTML()))
 
 		content = self.content.clone()
 
-		targets = content.allElementsNamed(target)
+		targets = content.elements(element = target,children = 1,attrs = 1)
 
 		tt = targets[0].clone() # make a copy of the target before we remove its content
-		del targets[0][:] # make the target empty (we'll put our date in there later)
+		del targets[0][:] # make the target empty (we'll put our data in there later)
 
 		for record in query.dictresult():
-			t = tt.clone() # make a new target, because we'll put the date in there
-			for field in t.allElementsDerivedFrom(element): # iterate over all database elements in the target
-				field["value"] = str(record[str(field["name"])]) # put the field values in
+			t = tt.clone() # make a new target, because we'll put the data in there
+			for field in t.elements(element = element,subtype = 1,children = 1,attrs = 1): # iterate over all database elements in the target
+				field["value"] = str(record[str(field["name"].asHTML())]) # put the field values in
 			targets[0].append(t)
 
 		return content.asHTML()
 xsc.registerElement(template)
-
-class table(xsc.Element):
-	empty = 0
-	attr_handlers = xsc.appendDict(_connectionAttrs,{ "query" : xsc.TextAttr , "class" : xsc.TextAttr })
-
-	def asHTML(self):
-		db = _getDB(self)
-		query = db.query(str(self["query"]))
-
-		e = plaintable()
-		if self.has_attr("class"):
-			e["class"] = self["class"]
-
-		fields = self.elementsNamed(field)
-
-		headers = tr()
-		for field in fields:
-			headers.append(th(field["caption"],Class = field["name"]))
-		e.append(headers)
-
-		flipflop = "even"
-		for tuple in query.dictresult():
-			etuple = tr(Class=flipflop)
-			for field in fields:
-				name = field["name"]
-				etuple.append(td(str(tuple[str(name)]),Class=name))
-			e.append(etuple)
-			if flipflop == "even":
-				flipflop = "odd"
-			else:
-				flipflop = "even"
-
-		return e.asHTML()
-xsc.registerElement(table)
-
-class edittable(xsc.Element):
-	empty = 0
-	attr_handlers = xsc.appendDict(_connectionAttrs,{ "query" : xsc.TextAttr , "class" : xsc.TextAttr , "action" : xsc.URLAttr })
-
-	def asHTML(self):
-		db = _getDB(self)
-		query = db.query(str(self["query"]))
-
-		e = specials.plaintable()
-		if self.has_attr("class"):
-			e["class"] = self["class"]
-
-		fields = self.elementsNamed(field)
-
-		headers = html.tr()
-		for f in fields:
-			headers.append(html.th(f["caption"],Class = f["name"]))
-		headers.append(html.th("Bearbeiten",colspan="2"))
-		e.append(headers)
-
-		flipflop = "even"
-		for tuple in query.dictresult():
-			etuple = html.tr(Class=flipflop)
-			for f in fields:
-				name = f["name"]
-				control = self.__control(f,str(tuple[str(name)]))
-				etuple.append(html.td(control,Class=name))
-			button1 = html.input(type="submit",value="Übernehmen",name="save")
-			etuple.append(html.td(button1))
-			button2 = html.input(type="submit",value="Löschen",name="delete")
-			etuple.append(html.td(button2))
-			e.append(html.form(etuple,action = self["action"]))
-			if flipflop == "even":
-				flipflop = "odd"
-			else:
-				flipflop = "even"
-
-		# row for new record
-		etuple = html.tr(Class=flipflop)
-		for f in fields:
-			name = f["name"]
-			control = self.__control(f)
-			etuple.append(html.td(control,Class=name))
-		button = html.input(type="submit",value="Anlegen",name="new")
-		etuple.append(html.td(button,colspan="2"))
-
-		e.append(html.form(etuple,action = self["action"]))
-
-		return e.asHTML()
-
-	def __control(self,field,value = None):
-		fieldtype = str(field["type"])
-		if fieldtype == "edit":
-			control = edit(name = field["name"])
-			if field.has_attr("size"):
-				control["size"] = field["size"]
-		elif fieldtype == "lookup":
-			control = lookupcombobox(name = field["name"],query = field["lookupquery"],displayfield = field["lookupdisplayfield"],valuefield = field["lookupvaluefield"])
-		elif fieldtype == "static":
-			control = static(name = field["name"])
-		elif fieldtype == "hidden":
-			control = hidden(name = field["name"])
-		if value is not None:
-			control["value"] = value
-		return control
-xsc.registerElement(edittable)
-
-class field(xsc.Element):
-	empty = 1
-	attr_handlers = { "name" : xsc.TextAttr , "caption" : xsc.TextAttr , "type" : xsc.TextAttr , "size" : xsc.TextAttr , "lookupquery" : xsc.TextAttr , "lookupdisplayfield" : xsc.TextAttr , "lookupvaluefield" : xsc.TextAttr }
-xsc.registerElement(field)
 
 if __name__ == "__main__":
 	xsc.make()

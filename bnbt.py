@@ -27,8 +27,8 @@ class page(xsc.Element):
 		if self.has_attr("onload"):
 			b["onload"] = self["onload"]
 
-		mylinks = self.elementsNamed(links)[0].content
-		mycontent = self.elementsNamed(content)[0].content
+		mylinks = self.elements(element = links)[0].content
+		mycontent = self.elements(element = content)[0].content
 
 		b.append(
 			specials.plaintable(
@@ -792,7 +792,7 @@ class fahrplan(xsc.Element):
 	attr_handlers = { "name" : xsc.TextAttr , "url" : xsc.URLAttr }
 
 	def asHTML(self):
-		halts = self.elementsNamed(haltestelle)
+		halts = self.elements(element = haltestelle)
 		flipflop = "even"
 		for halt in halts:
 			halt["class"] = flipflop

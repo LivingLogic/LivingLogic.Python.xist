@@ -355,40 +355,31 @@ class Node:
 	def __str__(self):
 		return ""
 
-	def elements(self):
+	def elements(self,element = None,subtype = 0,children = 0,attrs = 0):
 		"""
-		returns a fragment with all child elements of this node.
+		returns a fragment which contains child elements of this node.
+
+		If you specify element as the class of an XSC element only elements of this class
+		will be returned.
+
+		If you set subtype to 1 elements that are a subtype of element will be returned too.
+
+		If you set children to 1 not only the immediate children but also the grandchildren
+		will be searched for elements matching the other criteria.
+
+		If you set attrs to 1 the attributes of the elements will be searched too.
 		"""
 		return Frag()
 
-	def elementsNamed(self,element):
-		"""
-		returns a fragment with all child elements of this node that are of the type element
-		(which has to be the class of an element).
-		"""
-		return Frag()
+	def _elementOK(self,element,subtype):
+		if element is not None:
+			if subtype:
+				return isinstance(self,element)
+			else:
+				return self.__class__ == element
+		else:
+			return 1
 
-	def elementsDerivedFrom(self,element):
-		"""
-		returns a fragment with all child elements of this node that are derived from the type element
-		(which has to be the class of an element).
-		"""
-		return Frag()
-
-	def allElementsNamed(self,element):
-		"""
-		returns a fragment with all elements (children and grandchildren) of this node that are of type element.
-		(which has to be the class of an element).
-		"""
-		return Frag()
- 
-	def allElementsDerivedFrom(self,element):
-		"""
-		returns a fragment with all elements (children and grandchildren) of this node that are derived from the type element.
-		(which has to be the class of an element).
-		"""
-		return Frag()
- 
 	def withoutLinefeeds(self):
 		"""returns this node, where all linefeeds that are in a text
 		(or character reference) by themselves are removed, i.e. potentially
@@ -638,43 +629,19 @@ class Frag(Node):
 		if other != None:
 			self._content = [ ToNode(other) ] + self._content[:]
 
+	def elements(self,element = None,subtype = 0,children = 0,attrs = 0):
+		e = Frag()
+		for child in self:
+			if child._elementOK(element,subtype):
+				e.append(child)
+			if children:
+				e = e + child.elements(element,subtype,children,attrs)
+		return e
+
 	def withoutLinefeeds(self):
 		e = Frag()
 		for child in self:
 			e.append(child.withoutLinefeeds())
-		return e
-
-	def elements(self):
-		e = Frag()
-		for child in self:
-			if isinstance(child,Element):
-				e.append(child)
-		return e
-
-	def elementsNamed(self,element):
-		e = Frag()
-		for child in self:
-			if child.__class__ == element:
-				e.append(child)
-		return e
-
-	def elementsDerivedFrom(self,element):
-		e = Frag()
-		for child in self:
-			if isinstance(child,element):
-				e.append(child)
-		return e
-
-	def allElementsNamed(self,element):
-		e = Frag()
-		for child in self:
-			e = e + child.allElementsNamed(element)
-		return e
-
-	def allElementsDerivedFrom(self,element):
-		e = Frag()
-		for child in self:
-			e = e + child.allElementsDerivedFrom(element)
 		return e
 
 class Comment(Node):
@@ -941,29 +908,16 @@ class Element(Node):
 	def withoutLinefeeds(self):
 		return self.__class__(self.content.withoutLinefeeds(),self.attrs)
 
-	def elements(self):
-		return self.content.elements()
-
-	def elementsNamed(self,element):
-		return self.content.elementsNamed(element)
-
-	def elementsDerivedFrom(self,element):
-		return self.content.elementsDerivedFrom(element)
-
-	def allElementsNamed(self,element):
+	def elements(self,element = None,subtype = 0,children = 0,attrs = 0):
 		e = Frag()
-		if self.__class__ == element:
+		if children:
+			if self._elementOK(element,subtype):
 				e.append(self)
-		e = e + self.content.allElementsNamed(element)
+		if attrs:
+			for attr in self.attrs.keys():
+				e = e + self[attr].content.elements(element,subtype,children,attr)
+		e = e + self.content.elements(element,subtype,children,attrs)
 		return e
-
-	def allElementsDerivedFrom(self,element):
-		e = Frag()
-		if isinstance(self,element):
-			e.append(self)
-		e = e + self.content.allElementsDerivedFrom(element)
-		return e
-
 
 def registerElement(element):
 	"""
@@ -977,7 +931,15 @@ def registerElement(element):
 
 class Attr(Node):
 	"""
-	Base classes of all attribute classes
+	Base classes of all attribute classes.
+
+	The content of an attribute may be any other XSC node. This is different from
+	a normal DOM, where only text and character references are allowed. The reason for
+	this is to allow dynamic content (implemented as elements) to be put into attributes.
+	The database module db makes use of this.
+
+	Of course, this dynamic content when finally converted to HTML will normally result in
+	a fragment consisting only of text and character references.
 	"""
 
 	repransi = "33"
@@ -997,6 +959,9 @@ class Attr(Node):
 		else:
 			return self
 
+	def clone(self):
+		return self.__class__(self.content.clone()) # "virtual copy constructor"
+
 class TextAttr(Attr):
 	"""
 	Attribute class that is used for normal text attributes.
@@ -1015,9 +980,7 @@ class TextAttr(Attr):
 		return str(self.content)
 
 	def asHTML(self):
-		return TextAttr(self.content.clone())
-
-	clone = asHTML
+		return TextAttr(self.content.asHTML())
 
 class ColorAttr(Attr):
 	"""
@@ -1037,9 +1000,7 @@ class ColorAttr(Attr):
 		return str(self.content)
 
 	def asHTML(self):
-		return ColorAttr(self.content.clone())
-
-	clone = asHTML
+		return ColorAttr(self.content.asHTML())
 
 class URLAttr(Attr):
 	"""
@@ -1069,23 +1030,24 @@ class URLAttr(Attr):
 	repransiname = "31"
 	repransiurl = "32"
 
-	def __init__(self,_content):
-		Attr.__init__(self,_content)
+	def __make(self):
 		url = str(self.content)
-		(self.scheme,self.server,self.path,self.parameters,self.query,self.fragment) = urlparse.urlparse(url)
-		self.path = string.split(self.path,"/")
-		if self.scheme == "" and self.server == "": # do we have a local file?
-			if len(self.path) and not len(self.path[0]): # this is a server relative URL
-				del self.path[0] # drop the empty string in front of the first "/" ...
-				self.scheme = "server" # ... and use a special scheme for that
-			elif len(self.path) and len(self.path[0]) and self.path[0][0] == ":": # project relative, i.e. relative to the current directory
-				self.path[0] = self.path[0][1:] # drop of the ":" ...
-				self.scheme = "project" # special scheme name
+		(scheme,server,path,parameters,query,fragment) = urlparse.urlparse(url)
+		path = string.split(path,"/")
+		if scheme == "" and server == "": # do we have a local file?
+			if len(path) and not len(path[0]): # this is a server relative URL
+				del path[0] # drop the empty string in front of the first "/" ...
+				scheme = "server" # ... and use a special scheme for that
+			elif len(path) and len(path[0]) and path[0][0] == ":": # project relative, i.e. relative to the current directory
+				path[0] = path[0][1:] # drop of the ":" ...
+				scheme = "project" # special scheme name
 		else:
-			del self.path[0] # if we had a http, the path from urlparse started with "/" too
+			del path[0] # if we had a http, the path from urlparse started with "/" too
+		return (scheme,server,path,parameters,query,fragment)
 
 	def _dorepr(self):
-		url = urlparse.urlunparse((self.scheme,self.server,string.join(self.path,"/"),self.parameters,self.query,self.fragment))
+		(scheme,server,path,parameters,query,fragment) = self.__make()
+		url = urlparse.urlunparse((scheme,server,string.join(path,"/"),parameters,query,fragment))
 		return _stransi(self.repransiurl,url)
 
 	def _doreprtree(self,nest,elementno):
@@ -1095,17 +1057,11 @@ class URLAttr(Attr):
 		return self.forOutput()
 
 	def asHTML(self):
-		return URLAttr(Text(self.forOutput()))
-
-	clone = asHTML
+		return URLAttr(self.content.asHTML())
 
 	def forInput(self):
-		scheme = self.scheme
-		server = self.server
-		path = self.path[:]
-		parameters = self.parameters
-		query = self.query
-		fragment = self.fragment
+		(scheme,server,path,parameters,query,fragment) = self.__make()
+		path = path[:]
 		sep = "/" # use the normal URL separator by default
 		if scheme == "server":
 			scheme = "http"
@@ -1133,8 +1089,8 @@ class URLAttr(Attr):
 		return urlparse.urlunparse((scheme,server,string.join(path,sep),parameters,query,fragment))
 
 	def forOutput(self):
-		scheme = self.scheme
-		path = self.path[:]
+		(scheme,server,path,parameters,query,fragment) = self.__make()
+		path = path[:]
 		if scheme == "project":
 			file = string.split(xsc.filename,"/") # split the file path too
 			while len(file)>1 and len(path)>1 and file[0]==path[0]: # throw away identical directories in both paths (we don't have to go up from file and down to path for these identical directories
@@ -1145,7 +1101,7 @@ class URLAttr(Attr):
 		elif scheme == "server":
 			scheme = ""
 			path[:0] = [ "" ]
-		return urlparse.urlunparse((scheme,self.server,string.join(path,"/"),self.parameters,self.query,self.fragment))
+		return urlparse.urlunparse((scheme,server,string.join(path,"/"),parameters,query,fragment))
 
 	def ImageSize(self):
 		"""returns the size of an image as a tuple or (-1,-1) if the image shouldn't be read"""
