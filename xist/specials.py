@@ -186,7 +186,7 @@ class caps(xsc.Element):
 				collect = collect + e[i]
 		return result
 
-		def asPlainString(self):
+	def asPlainString(self):
 			return string.upper(self.content.asPlainString())
 xsc.registerElement(caps)
 
