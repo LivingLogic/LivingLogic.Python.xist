@@ -3373,8 +3373,12 @@ class Namespace(object):
 		if vars is not None:
 			cls.addvars(vars)
 		# we have to keep the original module alive, otherwise Python would set all module attribute to None
-		cls.__originalmodule__ = sys.modules[vars["__name__"]]
-		sys.modules[vars["__name__"]] = cls
+		name = vars["__name__"]
+		cls.__originalmodule__ = sys.modules[name]
+		sys.modules[name] = cls
+		# set the class name to the original module name,
+		# otherwise inspect.getmodule() will get problems
+		cls.__name__ = name
 	makemod = classmethod(makemod)
 
 	def __init__(self, xmlprefix, xmlname, thing=None):
