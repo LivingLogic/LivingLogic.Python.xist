@@ -690,7 +690,11 @@ that it should recursively continue with the content of the node.
 </doc:section>
 
 <doc:section><doc:title>&url;s</doc:title>
-<doc:par>For &url; handling &xist; uses the module <pyref module="url"><module>url</module></pyref>.</doc:par>
+<doc:par>For &url; handling &xist; uses the module <pyref module="url"><module>url</module></pyref>.
+Refer to its documentation for the basic functionality (especially regarding the methods
+<pyref module="url" class="URL" method="__div__"><method>__div__</method></pyref>
+and <pyref module="url" class="URL" method="relative"><method>relative</method></pyref>).</doc:par>
+<doc:par></doc:par>
 </doc:section>
 
 <doc:section><doc:title>Automatic generation of image size attributes</doc:title>

@@ -1,14 +1,16 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
 <section><title>Changes in CVS (released ??/??/2002)</title>
 <ulist>
-<item>Removed <class>FileInputSource</class> (use <class>URLInputSource</class>
-instead) and <class>TidyURLInputSource</class>. Now it's possible
-to pass a <lit>tidy</lit> flag to the remaining functions <function>parseString</function>
-and <function>parseURL</function> to specify whether the source
-should be tidied.</item>
+<item>Removed <class>TidyURLInputSource</class>. Now it's possible
+to pass a <lit>tidy</lit> flag to the remaining functions <function>parseString</function>,
+<function>parseFile</function> and <function>parseURL</function> to specify whether
+the source should be tidied.</item>
 <item>To prevent an element from being registered in a <class>Namespace</class>
 the class attribute <lit>register</lit> can be used now. This makes
-it possible to have a name for the element even, when it's not registered.</item>
+it possible to have a name for the element even when it's not registered.</item>
+<item><module>xist.ns.form</module> elements no have all the attributes that the
+corresponding elements from <module>xist.ns.html</module> have.</item>
+<item>Removed the old <module>xist.url</module> from the Windows distribution.</item>
 </ulist>
 </section>
 
