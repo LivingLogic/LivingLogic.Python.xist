@@ -122,6 +122,12 @@ class memo(control):
 xsc.registerElement(memo)
 
 class static(control):
+	def asPlainString(self):
+		if self.has_attr("value"):
+			return self["value"].asPlainString()
+		else:
+			return ""
+
 	def __str__(self):
 		if self.has_attr("value"):
 			e = self["value"].content

@@ -563,6 +563,14 @@ class Node:
 		"""
 		return Null()
 
+	def asPlainString(self):
+		"""
+		returns this node as a string without <, > and & as character references.
+		This only works with text node, character references and fragments of
+		consisting only of those.
+		"""
+		raise IllegalObjectError(-1,self)
+
 	def __str__(self):
 		"""
 		returns this element as a string
@@ -621,6 +629,9 @@ class Text(Node):
 		return Text(self.content)
 
 	clone = asHTML
+
+	def asPlainString(self):
+		return self.content
 
 	def __str__(self):
 		v = []
@@ -714,6 +725,9 @@ class CharRef(Node):
 		return CharRef(self.content)
 
 	clone = asHTML
+
+	def asPlainString(self):
+		return chr(self.content)
 
 	def __str__(self):
 		if 0<=self.content<=127:
@@ -828,6 +842,12 @@ class Frag(Node):
 		else:
 			v.append([nest,self.startlineno,elementno,self._str(brackets = 1,ansi = ansi,slash = 1)])
 		return v
+
+	def asPlainString(self):
+		v = []
+		for child in self:
+			v.append(child.asPlainString())
+		return string.join(v,"")
 
 	def __str__(self):
 		v = []
@@ -1125,6 +1145,9 @@ class Element(Node):
 			e[attr] = self[attr].clone()
 		return e
 
+	def asPlainString(self):
+		raise IllegalObjectError(-1,self)
+
 	def _dorepr(self,ansi = None):
 		v = []
 		if self.empty:
@@ -1362,6 +1385,14 @@ class ColorAttr(Attr):
 
 class URL(Node):
 	def __init__(self,url = None,scheme = None,server = None,path = None,file = None,parameters = None,query = None,fragment = None,forceproject = 0):
+		# initialize the defaults
+		self.scheme = ""
+		self.server = ""
+		self.path = []
+		self.file = ""
+		self.parameters = ""
+		self.query = ""
+		self.fragment = ""
 		if type(url) == types.StringType:
 			self.__fromString(url)
 		elif type(url) == types.InstanceType:
@@ -1399,20 +1430,29 @@ class URL(Node):
 		self.__optimize()
 
 	def __fromString(self,url):
-		(self.scheme,self.server,self.path,self.parameters,self.query,self.fragment) = urlparse.urlparse(url)
-		self.path = string.split(self.path,"/")
-		self.file = self.path[-1]
-		self.path = self.path[:-1]
-		if self.scheme == "": # do we have a local file?
-			if len(self.path) and not len(self.path[0]): # this is a server relative URL
-				del self.path[0] # drop the empty string in front of the first "/" ...
-				self.scheme = "server" # ... and use a special scheme for that
-			elif len(self.path) and len(self.path[0]) and self.path[0][0] == ":": # project relative, i.e. relative to the current directory
-				self.path[0] = self.path[0][1:] # drop of the ":" ...
-				self.scheme = "project" # special scheme name
+		if url == ":":
+			self.scheme = "project"
+			self.server = ""
+			self.path = []
+			self.file = ""
+			self.parameters = ""
+			self.query = ""
+			self.fragment = ""
 		else:
-			if self.scheme == "http":
-				del self.path[0] # if we had a http, the path from urlparse started with "/" too
+			(self.scheme,self.server,self.path,self.parameters,self.query,self.fragment) = urlparse.urlparse(url)
+			self.path = string.split(self.path,"/")
+			self.file = self.path[-1]
+			self.path = self.path[:-1]
+			if self.scheme == "": # do we have a local file?
+				if len(self.path) and not len(self.path[0]): # this is a server relative URL
+					del self.path[0] # drop the empty string in front of the first "/" ...
+					self.scheme = "server" # ... and use a special scheme for that
+				elif len(self.path) and len(self.path[0]) and self.path[0][0] == ":": # project relative, i.e. relative to the current directory
+					self.path[0] = self.path[0][1:] # drop of the ":" ...
+					self.scheme = "project" # special scheme name
+			else:
+				if self.scheme == "http":
+					del self.path[0] # if we had a http, the path from urlparse started with "/" too
 
 	def _dorepr(self,ansi = None):
 		sep = "/" # use the normal URL separator by default
@@ -1426,6 +1466,17 @@ class URL(Node):
 			sep = os.sep # we have a local file, so we should use the local directory separator instead
 		url = urlparse.urlunparse((self.scheme,self.server,string.join(path,sep),self.parameters,self.query,self.fragment))
 		return _stransi(repransiurl,url,ansi)
+
+	def asPlainString(self):
+		path = self.path[:]
+		path.append(self.file)
+		scheme = self.scheme
+		if scheme == "project":
+			scheme = "" # remove our own private scheme name
+		elif scheme == "server":
+			scheme = "" # remove our own private scheme name
+			path[:0] = [ "" ] # make sure that there's a "/" at the start
+		return urlparse.urlunparse((scheme,self.server,string.join(path,"/"),self.parameters,self.query,self.fragment))
 
 	def __str__(self):
 		path = self.path[:]
@@ -1463,11 +1514,11 @@ class URL(Node):
 
 	def clone(self):
 		return URL(scheme = self.scheme,server = self.server,path = self.path,file = self.file,parameters = self.parameters,query = self.query,fragment = self.fragment)
-		
+
 	def relativeTo(self,other):
 		"""
 		returns this URL relative to another.
-		
+
 		note that remote URLs won't be modified in any way,
 		because although the file you read is remote, the
 		parsed XSC file that you output, isn't.
@@ -1661,7 +1712,7 @@ class Parser(xmllib.XMLParser):
 			except KeyError:
 				raise IllegalElementError(xsc.parser.lineno,name) # elements with this name were available, but none in this namespace
 		return element
-		
+
 	def unknown_starttag(self,name,attrs):
 		element = self.elementFromName(name)
 		e = element([],self.attributes2Fragments(attrs))
@@ -1709,7 +1760,7 @@ class XSC:
 	"""
 
 	def __init__(self):
-		self.filename = [ URL(":") ]
+		self.filename = [ URL(scheme="project") ]
 		self.server = "localhost"
 		self.reprtree = 1
 		self.parser = Parser()
