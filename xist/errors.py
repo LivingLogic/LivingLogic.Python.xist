@@ -208,7 +208,7 @@ class ImageSizeFormatError(Error):
 		self.attrname = attrname
 
 	def __str__(self):
-		return Error.__str__(self) + "the value %r for the image size attribute %s of the element %s can't be formatted or evaluated" % (presenters.strAttrValue(self.element[self.attrname].asPlainString()), presenters.strAttrName(self.attr), presenters.strElementWithBrackets(self.element))
+		return Error.__str__(self) + "the value %s for the image size attribute %s of the element %s can't be formatted or evaluated" % (presenters.strAttrValue(self.element[self.attrname].asPlainString()), presenters.strAttrName(self.attrname), presenters.strElementWithBrackets(self.element))
 
 class FileNotFoundError(Error):
 	"""
