@@ -1556,7 +1556,7 @@ class URLAttr(Attr):
 	def forInput(self, publisher=None):
 		u = self.asURL()
 		if publisher is not None:
-			u = url.URL(publisher.root)/url.URL(publisher.file)/u
+			u = url.URL(publisher.root)/url.URL(publisher.base)/u
 		if u.scheme == "server":
 			u = url.URL(scheme="http", server=options.server)/u
 		return u
