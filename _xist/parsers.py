@@ -221,7 +221,7 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 	# don't define handle_charref or handle_cdata, so we will get those through handle_data
 
 	def handle_data(self, data):
-		self.content_handler.characters(unicode(data, self.encoding))
+		self.content_handler.characters(unicode(data, self.encoding).replace(u"\r\n", u"\n"))
 
 	def handle_proc(self, target, data):
 		target = unicode(target, self.encoding)
@@ -290,7 +290,7 @@ class HTMLParser(SGMLOPParser):
 	"""
 
 	headElements = ("title", "base", "script", "style", "meta", "link", "object") # Elements that may appear in the <head>
-	mimizedElements = ("p") # elements that can't be nested, so a start tag automatically closes a previous end tag
+	minimizedElements = {"p": ("p",), "td": ("td", "th"), "th": ("td", "th")} # elements that can't be nested, so a start tag automatically closes a previous end tag
 
 	def __init__(self, namespaceHandling=0, bufsize=2**16-20):
 		SGMLOPParser.__init__(self, namespaceHandling, bufsize, "iso-8859-1")
@@ -308,56 +308,70 @@ class HTMLParser(SGMLOPParser):
 		SGMLOPParser.close(self)
 
 	def handle_comment(self, data):
-		print "HTML comment %r" % data
 		self.__closeEmpty()
 		SGMLOPParser.handle_comment(self, data)
 
 	def handle_data(self, data):
-		print "HTML data %r" % data
 		self.__closeEmpty()
 		SGMLOPParser.handle_data(self, data)
 
 	def handle_proc(self, target, data):
-		print "HTML proc %r %r" % (target, data)
 		self.__closeEmpty()
 		SGMLOPParser.handle_proc(self, target, data)
 
 	def handle_entityref(self, name):
-		print "HTML entityref %r" % name
 		self.__closeEmpty()
 		SGMLOPParser.handle_entityref(self, name)
 
 	def finish_starttag(self, name, attrs):
-		print "HTML finish_starttag", name, self.__nesting
 		self.__closeEmpty()
 		name = name.lower()
 		if name != "html":
 			if not len(self.__nesting): # root element <html> missing?
 				self.finish_starttag("html", []) # add it
-			if name in self.mimizedElements and len(self.__nesting) and self.__nesting[-1]==name: # mimimized <p> tag etc.
-				self.finish_endtag(name)
+			self.__closeMimimizedOnStart(name)
 
 		self.__nesting.append(name)
 		newattrs = {}
-		print "attrs=",attrs
 		for (attrname, attrvalue) in attrs:
 			newattrs[attrname.lower()] = attrvalue
 		SGMLOPParser.finish_starttag(self, name, newattrs)
 
 	def finish_endtag(self, name):
-		print "HTML finish_endtag", name, self.__nesting
 		name = name.lower()
 		if len(self.__nesting): # we ignore end tag without the matching start tags
 			if self.__nesting[-1] != name: # e.g. <div><img></div> when </div> is encountered
 				self.__closeEmpty()
-			if self.__nesting[-1] != name and self.__nesting[-1] in self.minimizedElements: # maybe an open <p> tag etc. has been left open
-				self.finish_endtag(self, self.__nesting[-1])
+			if self.__nesting[-1] != name:
+				self.__closeMinimizedOnEnd(name) #  maybe an open <p> tag etc. has been left open; eg. <div><p>gurk</div>
 			SGMLOPParser.finish_endtag(self, name)
 			del self.__nesting[-1]
 
 	def __closeEmpty(self):
 		if len(self.__nesting) and html.namespace.elementsByName[self.__nesting[-1]].empty:
 			self.finish_endtag(self.__nesting[-1])
+
+	def __closeMimimizedOnStart(self, name):
+		if len(self.__nesting):
+			lastname = self.__nesting[-1]
+			try:
+				minigroup = self.minimizedElements[lastname]
+			except KeyError:
+				return
+			if name in minigroup: # starting a tag from the same group?
+				print "closing mimimized(start)", name, self.__nesting
+				self.finish_endtag(name)
+
+	def __closeMinimizedOnEnd(self, name):
+		if len(self.__nesting):
+			lastname = self.__nesting[-1]
+			try:
+				minigroup = self.minimizedElements[lastname]
+			except KeyError:
+				return
+			if not self.minimizedElements.has_key(name):
+				print "closing mimimized(end)", name, self.__nesting
+				self.finish_endtag(lastname)
 
 	def _string2Fragment(self, text):
 		"""
