@@ -497,7 +497,9 @@ class Handler(object):
 		if content:
 			last = self.__nesting[-1]
 			if len(last) and isinstance(last[-1], xsc.Text):
-				last[-1] += content # join consecutive Text nodes
+				node = last[-1] + content # join consecutive Text nodes
+				node.startLoc = last[-1].startLoc # make sure the replacement node has the original location
+				last[-1] = node # replace it
 			else:
 				self.__appendNode(xsc.Text(content))
 			self.skippingWhitespace = 0
