@@ -1663,7 +1663,11 @@ class URLAttr(Attr):
 		presenter.presentURLAttr(self)
 
 	def publish(self, publisher):
-		return Text(self.asURL().relativeTo(publisher.base).asPlainString()).publish(publisher)
+		u = self.asURL()
+		if u.scheme is None and (len(u)==0 or url._isNoPathMarker(u[0])):
+			return Text(u.asPlainString()).publish(publisher)
+		else:
+			return Text(u.relativeTo(publisher.base).asPlainString()).publish(publisher)
 
 	def convert(self, converter=None):
 		node = Attr.convert(self, converter)
