@@ -217,7 +217,10 @@ import getopt
 
 import stat # for file size checking
 import Image # for image size checking
-import pyexpat # for parsing XML files
+try:
+	import sgmlop # for parsing XML files
+except ImportError
+	from xml.parsers import sgmlop # get it from the XML package
 import urllib # for reading remote files
 import procinst # our sandbox
 from URL import URL # our own new URL class
