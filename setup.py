@@ -10,7 +10,7 @@ from distutils.core import setup, Extension
 
 setup(
 	name="XIST",
-	version="2.0.7",
+	version="2.0.8",
 	description="An XML-based extensible HTML generator",
 	long_description="XIST is an XML based extensible HTML generator. XIST is also\n"
 		"a DOM parser (built on top of SAX2) with a very simple and pythonesque tree API.\n"
