@@ -74,7 +74,7 @@ class FileInputSource(InputSource):
 		if base is None:
 			base = stream.name
 		InputSource.__init__(self, base)
-		self.setSystemId(str(base))
+		self.setSystemId(stream.name)
 		self.setByteStream(stream)
 		self.setEncoding(defaultEncoding)
 
@@ -88,7 +88,7 @@ class URLInputSource(InputSource):
 		if base is None:
 			base = url.url
 		InputSource.__init__(self, base)
-		self.setSystemId(str(base))
+		self.setSystemId(url.url)
 		self.setByteStream(url)
 		self.setEncoding(defaultEncoding)
 
@@ -110,8 +110,7 @@ class TidyURLInputSource(InputSource):
 		if base is None:
 			base = url.url
 		InputSource.__init__(self, url)
-		self.setSystemId(str(base))
-		self.setSystemId(url)
+		self.setSystemId(url.url)
 		(nerrors, nwarnings, outputdata, error) = Tidy.tidy(url.read(), numeric_entities=1, output_xhtml=1, output_xml=1, quiet=1, tidy_mark=0, wrap=0)
 		if nerrors>0:
 			raise SAXParseException("can't tidy %r: %r" % (url, errordata))
