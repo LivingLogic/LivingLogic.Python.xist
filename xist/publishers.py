@@ -91,7 +91,7 @@ class Publisher:
 			else:
 				try:
 					c.encode(self.encoding)
-				except ValueError: # FIXME should be UnicodeError, but the japanase codecs raise ValueErrors
+				except UnicodeError:
 					v.append('&#' + str(ord(c)) + ';')
 				else:
 					v.append(c)
@@ -110,7 +110,7 @@ class Publisher:
 				raise EncodingImpossibleError(self.startloc, self.encoding, text, c)
 			try:
 				c.encode(self.encoding)
-			except ValueError: # FIXME should be UnicodeError, but the japanase codecs raise ValueErrors
+			except UnicodeError:
 				raise EncodingImpossibleError(self.startloc, self.encoding, text, c)
 			v.append(c)
 		return u"".join(v)
