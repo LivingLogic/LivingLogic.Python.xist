@@ -240,161 +240,58 @@ from errors import *
 ### configuration
 ###
 
-# should remote URLs be retrieved? (for filesize and imagesize tests)
-try:
-	retrieveremote = int(os.environ["XSC_RETRIEVEREMOTE"])
-except KeyError:
-	retrieveremote = 1
+def getStringFromEnv(name,default):
+	try:
+		var = os.environ[name]
+	except:
+		return default
+	return var
 
-# should local URLs be retrieved? (for filesize and imagesize tests)
-try:
-	retrievelocal = int(os.environ["XSC_RETRIEVELOCAL"])
-except KeyError:
-	retrievelocal = 1
+def getIntFromEnv(name,default):
+	try:
+		var = int(os.environ[name])
+	except:
+		return default
+	return var
 
-# chracters with an ASCII (or Unicode) code above reprcharreflowerlimit wll be dumped as charcter references
-try:
-	reprcharreflowerlimit = int(os.environ["XSC_REPRCHARREFLOWERLIMIT"])
-except KeyError:
-	reprcharreflowerlimit = 128
+def getANSICodesFromEnv(name,default):
+	"""
+	parses an environment variable from a string list and returns it or
+	the default if the environment variable can't be found or parsed.
+	"""
+	try:
+		var = eval(os.environ[name])
+	except:
+		return default
+	if type(var) is types.StringType:
+		var = [ var,var ]
+	return var
 
-# should ANSI escape sequences be used for dumping the DOM tree?
-try:
-	repransi = int(os.environ["XSC_REPRANSI"])
-except KeyError:
-	repransi = 0
-
-# how to represent an indentation in the DOM tree?
-try:
-	reprtab = os.environ["XSC_REPRTAB"]
-except KeyError:
-	reprtab = ". "
-
-# should the default ANSI escape sequences be a terminal with a dark or light background? (not implemented yet)
-try:
-	repransidark = int(os.environ["XSC_REPRANSI_DARK"])
-except KeyError:
-	repransidark = 1
-
-# ANSI escape sequence to be used for tabs
-try:
-	repransitab = os.environ["XSC_REPRANSI_TAB"]
-except KeyError:
-	repransitab = "1;34"
-
-# ANSI escape sequence to be used for quotes (delimiters for text and attribute nodes)
-try:
-	repransiquote = os.environ["XSC_REPRANSI_QUOTE"]
-except KeyError:
-	repransiquote = "1;32"
-
-# ANSI escape sequence to be used for slashes in element names
-try:
-	repransislash = os.environ["XSC_REPRANSI_SLASH"]
-except KeyError:
-	repransislash = ""
-
-# ANSI escape sequence to be used for brackets (delimiters for tags)
-try:
-	repransibracket = os.environ["XSC_REPRANSI_BRACKET"]
-except KeyError:
-	repransibracket = "1;32"
-
-# ANSI escape sequence to be used for question marks (delimiters for processing instructions)
-try:
-	repransiquestion = os.environ["XSC_REPRANSI_QUESTION"]
-except KeyError:
-	repransiquestion = "1;32"
-
-# ANSI escape sequence to be used for exclamation marks (used in comments and doctypes)
-try:
-	repransiexclamation = os.environ["XSC_REPRANSI_EXCLAMATION"]
-except KeyError:
-	repransiexclamation = "1;32"
-
-# ANSI escape sequence to be used for text
-try:
-	repransitext = os.environ["XSC_REPRANSI_TEXT"]
-except KeyError:
-	repransitext = ""
-
-# ANSI escape sequence to be used for character references
-try:
-	repransicharref = os.environ["XSC_REPRANSI_CHARREF"]
-except KeyError:
-	repransicharref = "37"
-
-# ANSI escape sequence to be used for element namespaces
-try:
-	repransielementnamespace = os.environ["XSC_REPRANSI_ELEMENTNAMESPACE"]
-except KeyError:
-	repransielementnamespace = "1;36"
-
-# ANSI escape sequence to be used for element names
-try:
-	repransielementname = os.environ["XSC_REPRANSI_ELEMENTNAME"]
-except KeyError:
-	repransielementname = "1;36"
-
-# ANSI escape sequence to be used for attribute names
-try:
-	repransiattrname = os.environ["XSC_REPRANSI_ATTRNAME"]
-except KeyError:
-	repransiattrname = "1;36"
-
-# ANSI escape sequence to be used for document types marker (i.e. !DOCTYPE)
-try:
-	repransidoctypemarker = os.environ["XSC_REPRANSI_DOCTYPEMARKER"]
-except KeyError:
-	repransidoctypemarker = "1"
-
-# ANSI escape sequence to be used for document types
-try:
-	repransidoctypetext = os.environ["XSC_REPRANSI_DOCTYPETEXT"]
-except KeyError:
-	repransidoctypetext = ""
-
-# ANSI escape sequence to be used for comment markers (i.e. --)
-try:
-	repransicommentmarker = os.environ["XSC_REPRANSI_COMMENTMARKER"]
-except KeyError:
-	repransicommentmarker = ""
-
-# ANSI escape sequence to be used for comment text
-try:
-	repransicommenttext = os.environ["XSC_REPRANSI_COMMENTTEXT"]
-except KeyError:
-	repransicommenttext = ""
-
-# ANSI escape sequence to be used for attribute values
-try:
-	repransiattrvalue = os.environ["XSC_REPRANSI_ATTRVALUE"]
-except KeyError:
-	repransiattrvalue = ""
-
-# ANSI escape sequence to be used for URLs
-try:
-	repransiurl = os.environ["XSC_REPRANSI_URL"]
-except KeyError:
-	repransiurl = "1;33"
-
-# ANSI escape sequence to be used for processing instruction targets
-try:
-	repransiprocinsttarget = os.environ["XSC_REPRANSI_PROCINSTTARGET"]
-except KeyError:
-	repransiprocinsttarget = "1;31"
-
-# ANSI escape sequence to be used for processing instruction data
-try:
-	repransiprocinstdata = os.environ["XSC_REPRANSI_PROCINSTDATA"]
-except KeyError:
-	repransiprocinstdata = ""
-
-# should XHTML output format (empty element have a trailing /)
-try:
-	outputXHTML = int(os.environ["XSC_OUTPUT_XHTML"])
-except KeyError:
-	outputXHTML = 1
+retrieveremote = getIntFromEnv("XSC_RETRIEVEREMOTE",1)                                          # should remote URLs be retrieved? (for filesize and imagesize tests)
+retrievelocal = getIntFromEnv("XSC_RETRIEVELOCAL",1)                                            # should local URLs be retrieved? (for filesize and imagesize tests)
+reprcharreflowerlimit = getIntFromEnv("XSC_REPRCHARREFLOWERLIMIT",128)                          # chracters with an ASCII (or Unicode) code above reprcharreflowerlimit wll be dumped as charcter references
+repransi = getIntFromEnv("XSC_REPRANSI",0)                                                      # should ANSI escape sequences be used for dumping the DOM tree and which ones? (0=off,1=dark background,2=light background)
+reprtab = getStringFromEnv("XSC_REPRTAB",". ")                                                  # how to represent an indentation in the DOM tree?
+repransitab = getANSICodesFromEnv("XSC_REPRANSI_TAB",[ "1;34","37" ])                           # ANSI escape sequence to be used for tabs
+repransiquote = getANSICodesFromEnv("XSC_REPRANSI_QUOTE",[ "1;32","32" ])                       # ANSI escape sequence to be used for quotes (delimiters for text and attribute nodes)
+repransislash = getANSICodesFromEnv("XSC_REPRANSI_SLASH",[ "","" ])                             # ANSI escape sequence to be used for slashes in element names
+repransibracket = getANSICodesFromEnv("XSC_REPRANSI_BRACKET",[ "1;32","32" ])                   # ANSI escape sequence to be used for brackets (delimiters for tags)
+repransiquestion = getANSICodesFromEnv("XSC_REPRANSI_QUESTION",[ "1;32","1;32" ])               # ANSI escape sequence to be used for question marks (delimiters for processing instructions)
+repransiexclamation = getANSICodesFromEnv("XSC_REPRANSI_EXCLAMATION",[ "1;32","1;32" ])         # ANSI escape sequence to be used for exclamation marks (used in comments and doctypes)
+repransitext = getANSICodesFromEnv("XSC_REPRANSI_TEXT",[ "","" ])                               # ANSI escape sequence to be used for text
+repransicharref = getANSICodesFromEnv("XSC_REPRANSI_CHARREF",[ "37","34" ])                     # ANSI escape sequence to be used for character references
+repransielementnamespace = getANSICodesFromEnv("XSC_REPRANSI_ELEMENTNAMESPACE",[ "1;36","36" ]) # ANSI escape sequence to be used for element namespaces
+repransielementname = getANSICodesFromEnv("XSC_REPRANSI_ELEMENTNAME",[ "1;36","36" ])           # ANSI escape sequence to be used for element names
+repransiattrname = getANSICodesFromEnv("XSC_REPRANSI_ATTRNAME",[ "1;36","36" ])                 # ANSI escape sequence to be used for attribute names
+repransidoctypemarker = getANSICodesFromEnv("XSC_REPRANSI_DOCTYPEMARKER",[ "1","1" ])           # ANSI escape sequence to be used for document types marker (i.e. !DOCTYPE)
+repransidoctypetext = getANSICodesFromEnv("XSC_REPRANSI_DOCTYPETEXT",[ "","" ])                 # ANSI escape sequence to be used for document types
+repransicommentmarker = getANSICodesFromEnv("XSC_REPRANSI_COMMENTMARKER",[ "","" ])             # ANSI escape sequence to be used for comment markers (i.e. --)
+repransicommenttext = getANSICodesFromEnv("XSC_REPRANSI_COMMENTTEXT",[ "","" ])                 # ANSI escape sequence to be used for comment text
+repransiattrvalue = getANSICodesFromEnv("XSC_REPRANSI_ATTRVALUE",[ "","" ])                     # ANSI escape sequence to be used for attribute values
+repransiurl = getANSICodesFromEnv("XSC_REPRANSI_URL",[ "1;33","33" ])                           # ANSI escape sequence to be used for URLs
+repransiprocinsttarget = getANSICodesFromEnv("XSC_REPRANSI_PROCINSTTARGET",[ "1;31","1;31" ])   # ANSI escape sequence to be used for processing instruction targets
+repransiprocinstdata = getANSICodesFromEnv("XSC_REPRANSI_PROCINSTDATA",[ "","" ])               # ANSI escape sequence to be used for processing instruction data
+outputXHTML = getIntFromEnv("XSC_OUTPUT_XHTML",1)                                               # XHTML output format (0 = plain HTML, 1 = HTML compatible XHTML, 2 = pure XHTML)
 
 ###
 ### helpers
@@ -403,8 +300,8 @@ except KeyError:
 def _stransi(codes,string,ansi = None):
 	if ansi is None:
 		ansi = repransi
-	if ansi==1 and codes!="" and string!="":
-		return "\033[" + codes + "m" + string + "\033[0m"
+	if ansi and len(codes[ansi-1]) and string:
+		return "\033[" + codes[ansi-1] + "m" + string + "\033[0m"
 	else:
 		return string
 
@@ -1101,7 +998,7 @@ class Frag(Node):
 		node = self.__class__()
 		for child in self:
 			node.append(child.compact())
-		return self.decorateNode(node)
+		return self._decorateNode(node)
 
 	def withSeparator(self,separator,clone = 0):
 		"""
