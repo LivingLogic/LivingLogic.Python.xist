@@ -88,7 +88,7 @@ class title(xsc.Element):
 	empty = 0
 	attrHandlers = i18n
 
-	def convert(self, converter=None):
+	def doConvert(self, converter):
 		return title(self.content.convert(converter).asPlainString(), **self.attrs)
 
 class meta(xsc.Element):

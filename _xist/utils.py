@@ -105,7 +105,7 @@ class Code:
 
 	def funcify(self, name="__"):
 		self.indent()
-		self.lines.insert(0, [u"", u"def " + name + u"(converter=None):"])
+		self.lines.insert(0, [u"", u"def " + name + u"(converter):"])
 
 	def asString(self):
 		v = []

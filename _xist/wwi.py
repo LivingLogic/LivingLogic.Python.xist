@@ -34,7 +34,7 @@ class Servlet(HTTPServlet.HTTPServlet):
 	encoding = "utf-8"
 
 	def respondToGet(self, trans):
-		trans._response.write(self.content(trans).converter(None).asBytes(encoding=self.encoding))
+		trans._response.write(self.content(trans).convert().asBytes(encoding=self.encoding))
 
 	def content(self, trans):
 		return xsc.Null

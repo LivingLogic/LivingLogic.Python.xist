@@ -32,7 +32,7 @@ from xist import xsc
 import html as html_
 
 class xist(xsc.Entity):
-	def convert(self, converter=None):
+	def doConvert(self, converter):
 		return html_.span("XIST", class_="caps")
 	def asPlainString(self):
 		return u"XIST"
@@ -46,7 +46,7 @@ class plaintable(html_.table):
 	empty = 0
 	defaults = {"cellpadding": 0, "cellspacing": 0, "border": 0}
 
-	def convert(self, converter=None):
+	def doConvert(self, converter):
 		e = html_.table(*self.content)
 		e.attrs = self.attrs
 		e.copyDefaultAttrs(self.defaults)
@@ -61,7 +61,7 @@ class plainbody(html_.body):
 	empty = 0
 	defaults = {"leftmargin": 0, "topmargin": 0, "marginheight": 0, "marginwidth": 0}
 
-	def convert(self, converter=None):
+	def doConvert(self, converter):
 		e = html_.body(*self.content)
 		e.attrs = self.attrs
 		e.copyDefaultAttrs(self.defaults)
@@ -73,7 +73,7 @@ class z(xsc.Element):
 	"""
 	empty = 0
 
-	def convert(self, converter=None):
+	def doConvert(self, converter):
 		e = xsc.Frag(u"»", self.content.convert(converter), u"«")
 
 		return e
@@ -89,7 +89,7 @@ class filesize(xsc.Element):
 	empty = 1
 	attrHandlers = {"href": xsc.URLAttr}
 
-	def convert(self, converter=None):
+	def doConvert(self, converter):
 		size = self["href"].FileSize()
 		if size is not None:
 			return xsc.Text(size)
@@ -104,7 +104,7 @@ class filetime(xsc.Element):
 	empty = 1
 	attrHandlers = {"href": xsc.URLAttr, "format": xsc.TextAttr}
 
-	def convert(self, converter=None):
+	def doConvert(self, converter):
 		return xsc.Text(self["href"].FileTime())
 
 class time(xsc.Element):
@@ -116,7 +116,7 @@ class time(xsc.Element):
 	empty = 1
 	attrHandlers = {"format": xsc.TextAttr}
 
-	def convert(self, converter=None):
+	def doConvert(self, converter):
 		if self.hasAttr("format"):
 			format = self["format"].convert(converter).asPlainString()
 		else:
@@ -131,7 +131,7 @@ class x(xsc.Element):
 	"""
 	empty = 0
 
-	def convert(self, converter=None):
+	def doConvert(self, converter):
 		return xsc.Null
 
 class pixel(html_.img):
@@ -151,7 +151,7 @@ class pixel(html_.img):
 	attrHandlers.update({"color": xsc.ColorAttr})
 	del attrHandlers["src"]
 
-	def convert(self, converter=None):
+	def doConvert(self, converter):
 		e = html_.img()
 		color = "dot_clear"
 		for attr in self.attrs.keys():
@@ -180,7 +180,7 @@ class caps(xsc.Element):
 
 	lowercase = string.lowercase + ' '
 
-	def convert(self, converter=None):
+	def doConvert(self, converter):
 		e = self.content.convert(converter).asPlainString()
 		result = xsc.Frag()
 		if e: # if we have nothing to do, we skip everything to avoid errors
@@ -208,7 +208,7 @@ class caps(xsc.Element):
 class endash(xsc.Element):
 	empty = 1
 
-	def convert(self, converter=None):
+	def doConvert(self, converter):
 		return xsc.Text("-")
 
 	def asPlainString(self):
@@ -217,7 +217,7 @@ class endash(xsc.Element):
 class emdash(xsc.Element):
 	empty = 1
 
-	def convert(self, converter=None):
+	def doConvert(self, converter):
 		return xsc.Text("-")
 
 	def asPlainString(self):
@@ -227,7 +227,7 @@ class include(xsc.Element):
 	empty = 1
 	attrHandlers = {"src": xsc.URLAttr}
 
-	def convert(self, converter=None):
+	def doConvert(self, converter):
 		e = xsc.xsc.parse(self["src"].forInput())
 
 		return e.convert(converter)
@@ -237,7 +237,7 @@ class par(html_.div):
 	attrHandlers = html_.div.attrHandlers.copy()
 	attrHandlers.update({"noindent": xsc.TextAttr})
 
-	def convert(self, converter=None):
+	def doConvert(self, converter):
 		e = html_.div(*self.content)
 		indent = 1
 		for attr in self.attrs.keys():
@@ -257,7 +257,7 @@ class autoimg(html_.img):
 	<code>width</code> and <code>height</code>, i.e. you could make your image twice
 	as wide with <code>width="2*%(width)d"</code>.</par>
 	"""
-	def convert(self, converter=None):
+	def doConvert(self, converter):
 		e = html_.img()
 		e.attrs = self.attrs
 		e._addImageSizeAttributes(converter, "src", "width", "height")
@@ -269,7 +269,7 @@ class autoinput(html_.input):
 	with the ability to automatically set the size, if this element
 	has <code>type=="image"</code>.
 	"""
-	def convert(self, converter=None):
+	def doConvert(self, converter):
 		if self.hasAttr("type") and self["type"].convert(converter).asPlainString() == u"image":
 			e = html_.input(*self.content)
 			e.attrs = self.attrs
@@ -284,7 +284,7 @@ class loremipsum(xsc.Element):
 
 	text = "Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diem nonummy nibh euismod tincidnut ut lacreet dolore magna aliguam erat volutpat. Ut wisis enim ad minim veniam, quis nostrud exerci tution ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis te feugifacilisi. Duis antem dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zril delinit au gue duis dolore te feugat nulla facilisi."
 
-	def convert(self, converter=None):
+	def doConvert(self, converter):
 		if self.hasAttr("len"):
 			text = self.text[:self["len"].asInt()]
 		else:
@@ -295,7 +295,7 @@ class redirectpage(xsc.Element):
 	empty = 1
 	attrHandlers = {"href": xsc.URLAttr}
 
-	def convert(self, converter=None):
+	def doConvert(self, converter):
 		url = self["href"]
 		e = html_.html(
 			html_.head(html_.title("Redirection")),
