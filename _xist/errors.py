@@ -253,7 +253,7 @@ class IllegalEntityError(Error):
 		allAsList = []
 		for key in allKeys:
 			entity = all[key]
-			allAsList.append(str(presenters.strEntity(entity)))
+			allAsList.append(str(presenters.strEntityName(xsc.classPrefix(entity), entity.name))
 
 		s = "entity %s not allowed. " % presenters.strEntityName(self.name[0], self.name[1])
 		if allAsList:
