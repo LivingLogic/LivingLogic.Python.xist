@@ -59,7 +59,7 @@ class filesize(XSCElement):
 	attr_handlers = { "href" : XSCurl }
 
 	def _doAsHTML(self):
-		return str(FileSize(str(self["href"].asHTML())))
+		return XSCText(str(FileSize(str(self["href"].asHTML()))))
 RegisterElement("filesize",filesize)
 
 class x(XSCElement):
