@@ -200,7 +200,9 @@ def ToNode(value):
 		return XSCText(value)
 	elif type(value) == types.NoneType:
 		return XSCText("")
-	elif type(value) in [ types.IntType,types.LongType,types.FloatType ] :
+	elif type(value) in [ types.IntType,types.LongType ] :
+		return XSCCharRef(value)
+	elif type(value) == types.FloatType :
 		return XSCText(str(value))
 	elif type(value) in [ types.ListType,types.TupleType ]:
 		v = XSCFrag()
