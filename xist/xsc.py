@@ -1543,7 +1543,7 @@ class URLAttr(Attr):
 		if url.scheme == "server":
 			url = url.relativeTo(URL(scheme = "http",server = xsc.server))
 		else:
-			url = url.relativeTo(filename[-1])
+			url = url.relativeTo(xsc.filename[-1])
 		return str(url)
 
 	def ImageSize(self):
