@@ -704,7 +704,8 @@ def explain(thing, name=None, context=[]):
 			node.append([explain(obj, varname, context) for (obj, varname) in classes if varname != "__outerclass__"]) # avoid endless recursion
 		return node
 	elif inspect.ismodule(thing):
-		context = [name or thing.__name__]
+		name = name or thing.__name__
+		context = [name]
 		node = section(
 			title("Module ", module(name)),
 			getDoc(thing)
