@@ -1712,38 +1712,38 @@ class _Attrs_Meta(Node.__metaclass__):
 					setattr(self, key, value)
 		return self
 
-		def __repr__(self):
-			return "<attrs class %s:%s with %s attrs at 0x%x>" % (self.__module__, self.__fullname__(), len(self._attrs[0]), id(self))
+	def __repr__(self):
+		return "<attrs class %s:%s with %s attrs at 0x%x>" % (self.__module__, self.__fullname__(), len(self._attrs[0]), id(self))
 
-		def __getitem__(self, key):
-			return self._attrs[False][key]
+	def __getitem__(self, key):
+		return self._attrs[False][key]
 
-		def __delattr__(self, key):
-			value = self.__dict__.get(key, None) # no inheritance
-			if isinstance(value, type) and issubclass(value, Attr):
-				for xml in (False, True):
-					name = value.xmlname[xml]
-					self._attrs[xml].pop(name, None)
-					self._defaultattrs[xml].pop(name, None)
-			return super(_Attrs_Meta, self).__delattr__(self, key)
+	def __delattr__(self, key):
+		value = self.__dict__.get(key, None) # no inheritance
+		if isinstance(value, type) and issubclass(value, Attr):
+			for xml in (False, True):
+				name = value.xmlname[xml]
+				self._attrs[xml].pop(name, None)
+				self._defaultattrs[xml].pop(name, None)
+		return super(_Attrs_Meta, self).__delattr__(key)
 
-		def __setattr__(self, key, value):
-			oldvalue = self.__dict__.get(key, None) # no inheritance
-			if isinstance(oldvalue, type) and issubclass(oldvalue, Attr):
-				for xml in (False, True):
-					# ignore KeyError exceptions, because in the meta class constructor the attributes *are* in the class dict, but haven't gone through __setattr__, so they are not in the cache
-					self._attrs[xml].pop(oldvalue.xmlname[xml], None)
-					self._defaultattrs[xml].pop(oldvalue.xmlname[xml], None)
-			if isinstance(value, type) and issubclass(value, Attr):
-				for xml in (False, True):
-					name = value.xmlname[xml]
-					self._attrs[xml][name] = value
-					if value.default:
-						self._defaultattrs[xml][name] = value
-			return super(_Attrs_Meta, self).__setattr__(cls, key, value)
+	def __setattr__(self, key, value):
+		oldvalue = self.__dict__.get(key, None) # no inheritance
+		if isinstance(oldvalue, type) and issubclass(oldvalue, Attr):
+			for xml in (False, True):
+				# ignore KeyError exceptions, because in the meta class constructor the attributes *are* in the class dict, but haven't gone through __setattr__, so they are not in the cache
+				self._attrs[xml].pop(oldvalue.xmlname[xml], None)
+				self._defaultattrs[xml].pop(oldvalue.xmlname[xml], None)
+		if isinstance(value, type) and issubclass(value, Attr):
+			for xml in (False, True):
+				name = value.xmlname[xml]
+				self._attrs[xml][name] = value
+				if value.default:
+					self._defaultattrs[xml][name] = value
+		return super(_Attrs_Meta, self).__setattr__(key, value)
 
-		def __contains__(cls, key):
-			return key in cls._attrs[False]
+	def __contains__(self, key):
+		return key in self._attrs[False]
 
 
 class Attrs(Node, dict):
