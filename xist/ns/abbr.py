@@ -288,4 +288,10 @@ class jsp(xsc.Entity):
 	def asPlainString(self):
 		return u"JSP"
 
+class ascii(xsc.Entity):
+	def convert(self, converter=None):
+		return html_.abbr("ASCII", title="American Standard Code for Information Interchange", lang="en")
+	def asPlainString(self):
+		return u"ASCII"
+
 namespace = xsc.Namespace("abbr", "http://www.livinglogic.de/DTDs/abbr.dtd", vars())
