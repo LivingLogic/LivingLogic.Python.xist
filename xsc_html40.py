@@ -317,7 +317,7 @@ class img(XSCElement):
 	attr_handlers = AppendDict(attr_handlers,{ "border" : XSCFrag , "align" : XSCFrag , "hspace" : XSCFrag , "vspace" : XSCFrag }) # deprecated
 
 	def __str__(self):
-		e = XSCimg(self.content,self.attrs)
+		e = img(self.content,self.attrs)
 		e.AddImageSizeAttributes("src")
 
 		return XSCElement.__str__(e)
