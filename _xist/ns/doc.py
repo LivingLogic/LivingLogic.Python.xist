@@ -1,7 +1,8 @@
-#!/usr/bin/env python
+#! /usr/bin/env python
+# -*- coding: Latin-1 -*-
 
-## Copyright 1999-2001 by LivingLogic AG, Bayreuth, Germany.
-## Copyright 1999-2001 by Walter Dörwald
+## Copyright 1999-2002 by LivingLogic AG, Bayreuth, Germany.
+## Copyright 1999-2002 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -19,17 +20,17 @@
 ## IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
 ## IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# __builtin__ to use property, which is also defined here
+# import __builtin__ to use property, which is also defined here
 import types, inspect, __builtin__
 
-from xist import xsc, parsers
-from xist.ns import html, docbook
+from ll.xist import xsc, parsers
+from ll.xist.ns import html, docbook
 
 class programlisting(xsc.Element):
 	"""
 	A literal listing of all or part of a program
 	"""
-	empty = 0
+	empty = False
 
 	def convert(self, converter):
 		e = html.pre(class_="programlisting")
@@ -53,8 +54,9 @@ class example(xsc.Element):
 	"""
 	A formal example, with a title
 	"""
-	empty = 0
-	attrHandlers = {"title": xsc.TextAttr}
+	empty = False
+	class Attrs(xsc.Element.Attrs):
+		class title(xsc.TextAttr): pass
 
 	def convert(self, converter):
 		e = xsc.Frag(self.content)
@@ -66,7 +68,7 @@ class option(xsc.Element):
 	"""
 	An option for a software command
 	"""
-	empty = 0
+	empty = False
 
 	def convert(self, converter):
 		if converter.target=="docbook":
@@ -79,7 +81,7 @@ class lit(xsc.Element):
 	"""
 	Inline text that is some literal value
 	"""
-	empty = 0
+	empty = False
 
 	def convert(self, converter):
 		if converter.target=="docbook":
@@ -92,7 +94,7 @@ class function(xsc.Element):
 	"""
 	The name of a function or subroutine, as in a programming language
 	"""
-	empty = 0
+	empty = False
 
 	def convert(self, converter):
 		if converter.target=="docbook":
@@ -105,7 +107,7 @@ class method(xsc.Element):
 	"""
 	The name of a method or memberfunction in a programming language
 	"""
-	empty = 0
+	empty = False
 
 	def convert(self, converter):
 		if converter.target=="docbook":
@@ -118,7 +120,7 @@ class property(xsc.Element):
 	"""
 	The name of a property in a programming language
 	"""
-	empty = 0
+	empty = False
 
 	def convert(self, converter):
 		if converter.target=="docbook":
@@ -131,8 +133,8 @@ class class_(xsc.Element):
 	"""
 	The name of a class, in the object-oriented programming sense
 	"""
-	name = "class"
-	empty = 0
+	xmlname = "class"
+	empty = False
 
 	def convert(self, converter):
 		if converter.target=="docbook":
@@ -145,7 +147,7 @@ class rep(xsc.Element):
 	"""
 	Content that may or must be replaced by the user
 	"""
-	empty = 0
+	empty = False
 
 	def convert(self, converter):
 		e = html.var(self.content, class_="rep")
@@ -155,7 +157,7 @@ class markup(xsc.Element):
 	"""
 	A string of formatting markup in text that is to be represented literally
 	"""
-	empty = 0
+	empty = False
 
 	def convert(self, converter):
 		e = html.code(self.content, class_="markup")
@@ -165,7 +167,7 @@ class arg(xsc.Element):
 	"""
 	The name of a function or method argument.
 	"""
-	empty = 0
+	empty = False
 
 	def convert(self, converter):
 		if converter.target=="docbook":
@@ -178,7 +180,7 @@ class module(xsc.Element):
 	"""
 	The name of Python module.
 	"""
-	empty = 0
+	empty = False
 
 	def convert(self, converter):
 		if converter.target=="docbook":
@@ -191,7 +193,7 @@ class parameter(xsc.Element):
 	"""
 	A value or a symbolic reference to a value
 	"""
-	empty = 0
+	empty = False
 
 	def convert(self, converter):
 		e = html.code(self.content, class_="parameter")
@@ -201,8 +203,9 @@ class filename(xsc.Element):
 	"""
 	The name of a file
 	"""
-	empty = 0
-	attrHandlers = {"class": xsc.TextAttr}
+	empty = False
+	class Attrs(xsc.Element.Attrs):
+		class class_(xsc.TextAttr): xmlname = "class"
 
 	def convert(self, converter):
 		e = html.code(self.content, class_="filename")
@@ -212,8 +215,9 @@ class app(xsc.Element):
 	"""
 	The name of a software program
 	"""
-	empty = 0
-	attrHandlers = {"moreinfo": xsc.URLAttr}
+	empty = False
+	class Attrs(xsc.Element.Attrs):
+		class moreinfo(xsc.URLAttr): pass
 
 	def convert(self, converter):
 		if converter.target=="docbook":
@@ -228,7 +232,7 @@ class title(xsc.Element):
 	"""
 	The text of the title of a section of a document or of a formal block-level element
 	"""
-	empty = 0
+	empty = False
 
 	def convert(self, converter):
 		if converter.target=="docbook":
@@ -240,8 +244,9 @@ class section(xsc.Element):
 	"""
 	A recursive section
 	"""
-	empty = 0
-	attrHandlers = {"role": xsc.TextAttr}
+	empty = False
+	class Attrs(xsc.Element.Attrs):
+		class role(xsc.TextAttr): pass
 
 	def convert(self, converter):
 		if converter.target=="docbook":
@@ -261,7 +266,7 @@ class section(xsc.Element):
 			e = xsc.Frag()
 			for t in ts:
 				try:
-					hclass = html.namespace.elementsByName["h%d" % context.depth]
+					hclass = html.xmlns.elementsByName["h%d" % context.depth]
 				except KeyError: # ouch, we're nested to deep (a getter in a property in a class in a class)
 					hclass = html.h6
 				h = hclass(class_=self["role"])
@@ -283,8 +288,9 @@ class par(xsc.Element):
 	"""
 	A paragraph
 	"""
-	empty = 0
-	attrHandlers = {"type": xsc.TextAttr}
+	empty = False
+	class Attrs(xsc.Element.Attrs):
+		class type(xsc.TextAttr): pass
 
 	def convert(self, converter):
 		if converter.target=="docbook":
@@ -297,7 +303,7 @@ class ulist(xsc.Element):
 	"""
 	A list in which each entry is marked with a bullet or other dingbat
 	"""
-	empty = 0
+	empty = False
 
 	def convert(self, converter):
 		if converter.target=="docbook":
@@ -310,7 +316,7 @@ class olist(xsc.Element):
 	"""
 	A list in which each entry is marked with a sequentially incremented label
 	"""
-	empty = 0
+	empty = False
 
 	def convert(self, converter):
 		if converter.target=="docbook":
@@ -323,7 +329,7 @@ class item(xsc.Element):
 	"""
 	A wrapper for the elements of a list item
 	"""
-	empty = 0
+	empty = False
 
 	def convert(self, converter):
 		if converter.target=="docbook":
@@ -342,7 +348,7 @@ class self(xsc.Element):
 	</doc:programlisting>
 	</doc:example>
 	"""
-	empty = 0
+	empty = False
 
 	def convert(self, converter):
 		return html.code("self", class_="self")
@@ -352,20 +358,17 @@ class pyref(xsc.Element):
 	reference to a Python object:
 	module, class, method, property or function
 	"""
-	empty = 0
-	attrHandlers = {"module": xsc.TextAttr, "class": xsc.TextAttr, "method": xsc.TextAttr, "property": xsc.TextAttr, "function": xsc.TextAttr}
+	empty = False
+	class Attrs(xsc.Element.Attrs):
+		class module(xsc.TextAttr): pass
+		class class_(xsc.TextAttr): xmlname = "class"
+		class method(xsc.TextAttr): pass
+		class property(xsc.TextAttr): pass
+		class function(xsc.TextAttr): pass
 
 	base = "http://localhost:7464/"
 
 	def convert(self, converter):
-		if self.hasAttr("var"):
-			var = unicode(self["var"].convert(converter))
-		else:
-			var = None
-		if self.hasAttr("arg"):
-			arg = unicode(self["arg"].convert(converter))
-		else:
-			arg = None
 		if self.hasAttr("function"):
 			function = unicode(self["function"].convert(converter))
 		else:
@@ -378,12 +381,16 @@ class pyref(xsc.Element):
 			prop = unicode(self["property"].convert(converter))
 		else:
 			prop = None
-		if self.hasAttr("class"):
-			class__ = unicode(self["class"].convert(converter)).replace(u".", u"-")
+		if self.hasAttr("class_"):
+			class__ = unicode(self["class_"].convert(converter)).replace(u".", u"-")
 		else:
 			class__ = None
 		if self.hasAttr("module"):
-			module = unicode(self["module"].convert(converter)).replace(u".", u"/")
+			module = unicode(self["module"].convert(converter))
+			if module.startswith("ll."):
+				module = module[3:].replace(u".", u"/")
+			else:
+				module = None
 		else:
 			module = None
 
@@ -458,8 +465,8 @@ def getDoc(thing):
 		for ref in refs:
 			if not ref.hasAttr("module"):
 				ref["module"] = inspect.getmodule(thing).__name__
-				if not ref.hasAttr("class"):
-					ref["class"] = thing.im_class.__name__
+				if not ref.hasAttr("class_"):
+					ref["class_"] = thing.im_class.__name__
 					if not ref.hasAttr("method"):
 						ref["method"] = thing.__name__
 	elif inspect.isfunction(thing):
@@ -470,7 +477,7 @@ def getDoc(thing):
 		for ref in refs:
 			if not ref.hasAttr("module"):
 				ref["module"] = inspect.getmodule(thing).__name__
-				if not ref.hasAttr("class"):
+				if not ref.hasAttr("class_"):
 					ref["class"] = thing.__name__
 	elif inspect.ismodule(thing):
 		for ref in refs:
@@ -550,7 +557,7 @@ def explain(thing, name=None, context=[]):
 		name = name or thing.__name__
 		context = context + [name]
 		(args, varargs, varkw, defaults) = inspect.getargspec(thing.im_func)
-		id = "-".join(context)
+		id = "-".join(context)[1:]
 		sig = xsc.Frag(
 			html.a(name=id, id=id)
 		)
@@ -561,7 +568,7 @@ def explain(thing, name=None, context=[]):
 	elif inspect.isfunction(thing):
 		name = name or thing.im_func.__name__
 		context = context + [name]
-		id = "-".join(context)
+		id = "-".join(context)[1:]
 		sig = xsc.Frag(
 			html.a(name=id, id=id),
 			"def ",
@@ -571,7 +578,7 @@ def explain(thing, name=None, context=[]):
 		return section(title(sig), getDoc(thing), role="function")
 	elif isinstance(thing, __builtin__.property):
 		context = context + [name]
-		id = "-".join(context)
+		id = "-".join(context)[1:]
 		sig = xsc.Frag(
 			html.a(name=id, id=id),
 			"property ", name, ":"
@@ -587,7 +594,7 @@ def explain(thing, name=None, context=[]):
 	elif inspect.isclass(thing):
 		name = name or thing.__name__
 		context = context + [name]
-		id = "-".join(context)
+		id = "-".join(context)[1:]
 		bases = xsc.Frag()
 		if len(thing.__bases__):
 			for baseclass in thing.__bases__:
@@ -678,4 +685,4 @@ def explain(thing, name=None, context=[]):
 
 	return xsc.Null
 
-namespace = xsc.Namespace("doc", "http://xmlns.livinglogic.de/xist/ns/doc", vars())
+xmlns = xsc.Namespace("doc", "http://xmlns.livinglogic.de/xist/ns/doc", vars())

@@ -1,4 +1,5 @@
-#!/usr/bin/env python
+#! /usr/bin/env python
+# -*- coding: Latin-1 -*-
 
 # Setup script for XIST
 
@@ -9,7 +10,7 @@ from distutils.core import setup, Extension
 
 setup(
 	name="XIST",
-	version="1.4.3",
+	version="2.0",
 	description="An XML-based extensible HTML generator",
 	long_description="XIST is an XML based extensible HTML generator. XIST is also a DOM parser (built on top of SAX2)\n"
 		"with a very simple and pythonesque tree API. Every XML element type corresponds to a Python class and these\n"
@@ -19,11 +20,11 @@ setup(
 	author_email="walter@livinglogic.de",
 	url="http://www.livinglogic.de/Python/xist/",
 	license="Python",
-	packages=['xist', 'xist.ns'],
-	package_dir={"xist": "_xist"},
+	packages=['ll.xist', 'll.xist.ns'],
+	package_dir={"ll.xist": "_xist"},
 	ext_modules=[
-		Extension("xist.csstokenizer", ["_xist/csstokenizer.cxx"]),
-		Extension("xist.helpers", ["_xist/helpers.c"])
+		Extension("ll.xist.csstokenizer", ["_xist/csstokenizer.cxx"]),
+		Extension("ll.xist.helpers", ["_xist/helpers.c"])
 	],
 	scripts=["scripts/dtd2xsc.py", "scripts/doc2txt.py", "scripts/xscmake.py" ]
 )

@@ -1,7 +1,8 @@
 #! /usr/bin/env python
+# -*- coding: Latin-1 -*-
 
-## Copyright 1999-2001 by LivingLogic AG, Bayreuth, Germany.
-## Copyright 1999-2001 by Walter Dörwald
+## Copyright 1999-2002 by LivingLogic AG, Bayreuth, Germany.
+## Copyright 1999-2002 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -22,37 +23,36 @@
 """
 <doc:par>An &xist; module that contains elements that simplify
 handling meta data. All elements in this module will generate a
-<pyref module="xist.ns.html" class="meta"><class>html.meta</class></pyref>
+<pyref module="ll.xist.ns.html" class="meta"><class>html.meta</class></pyref>
 element when converted.</doc:par>
 """
 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-from xist import xsc
+from ll.xist import xsc
 import ihtml, html
 
 class contenttype(html.meta):
 	"""
 	<doc:par>can be used for a <markup>&lt;meta http-equiv="Content-Type" content="text/html"/&gt;</markup>, where
 	the character set will be automatically inserted on a call to
-	<pyref module="xist.xsc" class="Node" method="publish"><method>publish</method></pyref>.</doc:par>
+	<pyref module="ll.xist.xsc" class="Node" method="publish"><method>publish</method></pyref>.</doc:par>
 
 	<doc:par>Usage is simple: <code>&lt;meta:contenttype/&gt;</code></doc:par>
 	"""
-	empty = 1
-	attrHandlers = html.meta.attrHandlers.copy()
-	del attrHandlers["http-equiv"]
-	del attrHandlers["http_equiv"]
-	del attrHandlers["name"]
-	del attrHandlers["content"]
+	empty = True
+	class Attrs(html.meta.Attrs):
+		http_equiv = None
+		name = None
+		content = None
 
 	def convert(self, converter):
 		if converter.target=="ihtml":
 			e = ihtml.meta(self.attrs)
 		else:
 			e = html.meta(self.attrs)
-		e["http-equiv"] = "Content-Type"
+		e["http_equiv"] = "Content-Type"
 		e["content"] = "text/html"
 		return e.convert(converter)
 
@@ -62,19 +62,18 @@ class contentscripttype(html.meta):
 
 	<doc:par>Usage is simple: <code>&lt;meta:contentscripttype type="text/javascript"/&gt;</code></doc:par>
 	"""
-	empty = 1
-	attrHandlers = html.meta.attrHandlers.copy()
-	del attrHandlers["http-equiv"]
-	del attrHandlers["http_equiv"]
-	del attrHandlers["name"]
-	del attrHandlers["content"]
-	attrHandlers["type"] = xsc.TextAttr
+	empty = True
+	class Attrs(html.meta.Attrs):
+		http_equiv = None
+		name = None
+		content = None
+		class type(xsc.TextAttr): pass
 
 	def convert(self, converter):
 		attrs = self.attrs.copy()
 		del attrs["type"]
 		e = html.meta(attrs)
-		e["http-equiv"] = "Content-Script-Type"
+		e["http_equiv"] = "Content-Script-Type"
 		e["content"] = self["type"]
 		return e.convert(converter)
 
@@ -84,12 +83,11 @@ class keywords(html.meta):
 
 	<doc:par>Usage is simple: <markup>&lt;meta:keywords&gt;foo, bar&lt;/meta:keywords&gt;</markup></doc:par>
 	"""
-	empty = 0
-	attrHandlers = html.meta.attrHandlers.copy()
-	del attrHandlers["http-equiv"]
-	del attrHandlers["http_equiv"]
-	del attrHandlers["name"]
-	del attrHandlers["content"]
+	empty = False
+	class Attrs(html.meta.Attrs):
+		http_equiv = None
+		name = None
+		content = None
 
 	def convert(self, converter):
 		e = html.meta(self.attrs)
@@ -103,12 +101,11 @@ class description(html.meta):
 
 	<doc:par>Usage is simple: <markup>&lt;meta:description&gt;This page describes the ...&lt;/meta:description&gt;</markup></doc:par>
 	"""
-	empty = 0
-	attrHandlers = html.meta.attrHandlers.copy()
-	del attrHandlers["http-equiv"]
-	del attrHandlers["http_equiv"]
-	del attrHandlers["name"]
-	del attrHandlers["content"]
+	empty = False
+	class Attrs(html.meta.Attrs):
+		http_equiv = None
+		name = None
+		content = None
 
 	def convert(self, converter):
 		e = html.meta(self.attrs)
@@ -122,15 +119,13 @@ class stylesheet(html.link):
 
 	<doc:par>Usage is simple: <markup>&lt;meta:stylesheet href="root:stylesheets/main.css"/&gt;</markup></doc:par>
 	"""
-	empty = 1
-	attrHandlers = html.link.attrHandlers.copy()
-	del attrHandlers["rel"]
-	del attrHandlers["type"]
+	empty = True
+	class Attrs(html.link.Attrs):
+		rel = None
+		type = None
 
 	def convert(self, converter):
-		e = html.link(self.attrs)
-		e["rel"] = "stylesheet"
-		e["type"] = "text/css"
+		e = html.link(self.attrs, rel="stylesheet", type="text/css")
 		return e.convert(converter)
 
 class made(html.link):
@@ -139,14 +134,12 @@ class made(html.link):
 
 	<doc:par>Usage is simple: <markup>&lt;meta:made href="foobert@bar.org"/&gt;</markup>.</doc:par>
 	"""
-	empty = 1
-	attrHandlers = html.link.attrHandlers.copy()
-	del attrHandlers["rel"]
+	empty = True
+	class Attrs(html.link.Attrs):
+		rel = None
 
 	def convert(self, converter):
-		e = html.link(self.attrs)
-		e["rel"] = "made"
-		e["href"] = ("mailto:", self["href"])
+		e = html.link(self.attrs, rel="made", href=("mailto:", self["href"]))
 		return e.convert(converter)
 
 class author(xsc.Element):
@@ -155,8 +148,11 @@ class author(xsc.Element):
 	It will generate <markup>&lt;link rel="made"/&gt;</markup> and
 	<markup>&lt;meta name="author"/&gt;</markup> elements.</doc:par>
 	"""
-	empty = 1
-	attrHandlers = {"lang": xsc.TextAttr, "name": xsc.TextAttr, "email": xsc.TextAttr}
+	empty = True
+	class Attrs(xsc.Element.Attrs):
+		class lang(xsc.TextAttr): pass
+		class name(xsc.TextAttr): pass
+		class email(xsc.TextAttr): pass
 
 	def convert(self, converter):
 		e = xsc.Frag()
@@ -172,11 +168,14 @@ class refresh(xsc.Element):
 	"""
 	<doc:par> a refresh header.</doc:par>
 	"""
-	empty = 0
-	attrHandlers = {"secs": xsc.IntAttr, "href": xsc.URLAttr}
+	empty = False
+	class Attrs(xsc.Element.Attrs):
+		class secs(xsc.IntAttr):
+			default = 0
+		class href(xsc.URLAttr): pass
 
 	def convert(self, converter):
-		e = html.meta(http_equiv="Refresh", content=(self.getAttr("secs", 0), "; url=", self["href"]))
+		e = html.meta(http_equiv="Refresh", content=(self["secs"], "; url=", self["href"]))
 		return e.convert(converter)
 
-namespace = xsc.Namespace("meta", "http://xmlns.livinglogic.de/xist/ns/meta", vars())
+xmlns = xsc.Namespace("meta", "http://xmlns.livinglogic.de/xist/ns/meta", vars())

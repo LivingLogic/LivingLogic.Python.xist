@@ -1,10 +1,11 @@
 #! /usr/bin/env python
+# -*- coding: Latin-1 -*-
 
 import os
 import glob
 
-from xist import xsc
-from xist.ns import html, specials
+from ll.xist import xsc
+from ll.xist.ns import html, specials
 
 cols = 6
 

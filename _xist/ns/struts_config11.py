@@ -1,7 +1,8 @@
 #! /usr/bin/env python
+# -*- coding: Latin-1 -*-
 
-## Copyright 1999-2001 by LivingLogic AG, Bayreuth, Germany.
-## Copyright 1999-2001 by Walter Dörwald
+## Copyright 1999-2002 by LivingLogic AG, Bayreuth, Germany.
+## Copyright 1999-2002 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -27,8 +28,8 @@ configuration files: <lit><a href="http://jakarta.apache.org/struts/dtds/struts-
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-from xist import xsc
-import struts_config as struts_config10
+from ll.xist import xsc
+import struts_config as struts_config10, xml
 
 class DocType(xsc.DocType):
 	def __init__(self):
@@ -40,50 +41,50 @@ class DocType(xsc.DocType):
 		)
 
 class data_sources(struts_config10.data_sources):
-	name = "data-sources"
+	xmlname = "data-sources"
 
 class data_source(struts_config10.data_source):
 	attrHandlers = {"className": xsc.TextAttr, "key": xsc.TextAttr, "type": xsc.TextAttr}
-	name = "data-source"
+	xmlname = "data-source"
 
 class set_property(struts_config10.set_property):
-	name = "set-property"
+	xmlname = "set-property"
 
 class struts_config(struts_config10.struts_config):
-	name = "struts-config"
+	xmlname = "struts-config"
 
 class global_exceptions(xsc.Element):
-	empty = 0
-	name = "global-exceptions"
+	empty = False
+	xmlname = "global-exceptions"
 
 class exception(xsc.Element):
-	empty = 1
+	empty = True
 	attrHandlers = {
 		"className": xsc.TextAttr, "handler": xsc.TextAttr, "key": xsc.TextAttr,
 		"path": xsc.TextAttr, "scope": xsc.TextAttr, "type": xsc.TextAttr
 	}
 
 class form_beans(struts_config10.form_beans):
-	name = "form-beans"
+	xmlname = "form-beans"
 
 class form_bean(struts_config10.form_bean):
-	empty = 0
+	empty = False
 	attrHandlers = {
 		"className": xsc.TextAttr, "dynamic": xsc.TextAttr, "name": xsc.TextAttr,
 		"type": xsc.TextAttr
 	}
-	name = "form-bean"
+	xmlname = "form-bean"
 
 class form_property(xsc.Element):
-	empty = 1
+	empty = True
 	attrHandlers = {
 		"className": xsc.TextAttr, "initial": xsc.TextAttr, "name": xsc.TextAttr,
 		"type": xsc.TextAttr
 	}
-	name = "form-property"
+	xmlname = "form-property"
 
 class global_forwards(struts_config10.global_forwards):
-	name = "global-forwards"
+	xmlname = "global-forwards"
 
 class forward(struts_config10.forward):
 	attrHandlers = {
@@ -92,7 +93,7 @@ class forward(struts_config10.forward):
 	}
 
 class action_mappings(struts_config10.action_mappings):
-	name = "action-mappings"
+	xmlname = "action-mappings"
 
 class action(xsc.Element):
 	"""
@@ -103,7 +104,7 @@ class action(xsc.Element):
 	struts action mapping class, you have to specify its fully qualified
 	class name in the <lit>className</lit> attribute.</doc:par>
 	"""
-	empty = 0
+	empty = False
 	attrHandlers = {
 		"attribute": xsc.TextAttr, "className": xsc.TextAttr, "forward": xsc.TextAttr,
 		"include": xsc.TextAttr, "input": xsc.TextAttr, "name": xsc.TextAttr,
@@ -121,36 +122,41 @@ class action(xsc.Element):
 		return e
 
 class controller(xsc.Element):
-	empty = 1
-	attrHandlers = {
-		"bufferSize": xsc.TextAttr, "className": xsc.TextAttr,
-		"contentType": xsc.TextAttr, "debug": xsc.TextAttr, "locale": xsc.TextAttr,
-		"maxFileSize": xsc.TextAttr, "multipartClass": xsc.TextAttr,
-		"nocache": xsc.TextAttr, "processorClass": xsc.TextAttr, "tempDir": xsc.TextAttr
-	}
+	empty = True
+	class Attrs(xsc.Element.Attrs):
+		class bufferSize(xsc.TextAttr): pass
+		class className(xsc.TextAttr): pass
+		class contentType(xsc.TextAttr): pass
+		class debug(xsc.TextAttr): pass
+		class locale(xsc.TextAttr): pass
+		class maxFileSize(xsc.TextAttr): pass
+		class multipartClass(xsc.TextAttr): pass
+		class nocache(xsc.TextAttr): pass
+		class processorClass(xsc.TextAttr): pass
+		class tempDir(xsc.TextAttr): pass
 
 class plug_in(xsc.Element):
-	empty = 1
+	empty = True
 	attrHandlers = {"className": xsc.TextAttr}
-	name = "plug-in"
+	xmlname = "plug-in"
 
 class message_resources(xsc.Element):
-	empty = 1
+	empty = True
 	attrHandlers = {
 		"className": xsc.TextAttr, "factory": xsc.TextAttr,
 		"key": xsc.TextAttr, "null": xsc.TextAttr, "parameter": xsc.TextAttr
 	}
-	name = "message-resources"
+	xmlname = "message-resources"
 
 # this is no "official" struts-config element, but nontheless useful for generating
 # the final XML output
 class user_struts_config(xsc.Element):
-	empty = 0
-	name = "user-struts-config"
+	empty = False
+	xmlname = "user-struts-config"
 
 	def convert(self, converter):
 		e = xsc.Frag(
-			xsc.XML10(),
+			xml.XML10(),
 			u"\n",
 			DocType(),
 			u"\n",
@@ -158,5 +164,5 @@ class user_struts_config(xsc.Element):
 		)
 		return e.convert(converter)
 
-namespace = xsc.Namespace("struts-config_1_1", "http://jakarta.apache.org/struts/dtds/struts-config_1_1.dtd", vars())
+xmlns = xsc.Namespace("struts-config_1_1", "http://jakarta.apache.org/struts/dtds/struts-config_1_1.dtd", vars())
 

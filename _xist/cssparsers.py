@@ -1,7 +1,8 @@
 #! /usr/bin/env python
+# -*- coding: Latin-1 -*-
 
-## Copyright 1999-2001 by LivingLogic AG, Bayreuth, Germany.
-## Copyright 1999-2001 by Walter Dörwald
+## Copyright 1999-2002 by LivingLogic AG, Bayreuth, Germany.
+## Copyright 1999-2002 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -29,7 +30,8 @@ and emit &sax;2 events. It also contains various classes derived from
 <class>xml.sax.xmlreader.InputSource</class>.</doc:par>
 """
 
-import url
+from ll import url
+
 import sources, csstokenizer
 
 class Handler(object):

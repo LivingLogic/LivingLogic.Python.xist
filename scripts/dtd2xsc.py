@@ -1,7 +1,8 @@
 #! /usr/bin/env python
+# -*- coding: Latin-1 -*-
 
-## Copyright 1999-2001 by LivingLogic AG, Bayreuth, Germany.
-## Copyright 1999-2001 by Walter Dörwald
+## Copyright 1999-2002 by LivingLogic AG, Bayreuth, Germany.
+## Copyright 1999-2002 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -29,14 +30,27 @@ Usage: python dtd2xsc.py foo.dtd
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-import sys
+import sys, keyword, os.path
+
 from xml.parsers.xmlproc import dtdparser
-from xist import xsc
+
+from ll.xist import xsc, parsers
+
+def pyify(name):
+	if keyword.iskeyword(name):
+		return name + "_"
+	else:
+		newname = []
+		for c in name:
+			if "a" <= c <= "z" or "A" <= c <= "Z" or "0" <= c <= "z" or c == "_":
+				newname.append(c)
+			else:
+				newname.append("_")
+		return "".join(newname)
 
 def dtd2xsc(dtdfilename):
 	# get name of dtd without extension
-	dot = dtdfilename.find('.')
-	modname = dtdfilename[:dot]
+	modname = os.path.splitext(os.path.split(dtdfilename)[1])[0]
 	xscfilename = modname + ".py"
 
 	# parse dtd
@@ -49,39 +63,48 @@ def dtd2xsc(dtdfilename):
 	file.write('"""\n\n')
 	file.write('__version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))\n')
 	file.write('# $Source$\n\n')
-	file.write('from xist import xsc\n\n')
+	file.write('from ll.xist import xsc\n\n')
 
 	# write elements
 	elements = dtd.get_elements()
 	elements.sort()
 	for elemname in elements:
-		file.write('class %s(xsc.Element):\n\t"""\n\t"""\n' % (elemname))
+		pyelemname = pyify(elemname)
+		file.write('class %s(xsc.Element):\n\t"""\n\t"""\n' % (pyelemname))
+		if pyelemname != elemname:
+			file.write('\txmlname = "%s"\n' % elemname)
 		elem = dtd.get_elem(elemname)
 		if elem.get_content_model() == 'empty':
-			empty = 1
+			empty = "True"
 		else:
-			empty = 0
+			empty = "False"
 
 		# write empty and attributes
-		file.write('\tempty = %d\n' % (empty))
+		file.write('\tempty = %s\n' % empty)
 		attrs = elem.get_attr_list()
 		if len(attrs):
-			file.write('\tattrHandlers = {')
-			file.write(', '.join(['"%s": xsc.TextAttr' % attrname for attrname in attrs]))
-			file.write('}\n')
+			file.write('\tclass Attrs(xsc.Element.Attrs):\n')
+			for attrname in attrs:
+				pyattrname = pyify(attrname)
+				file.write('\t\tclass %s(xsc.TextAttr): ' % pyattrname)
+				if pyattrname != attrname:
+					file.write('xmlname = "%s"' % attrname)
+				else:
+					file.write('pass')
+				file.write('\n')
 		file.write('\n')
 
 	# write entities
 	ents = dtd.get_general_entities()
 	for entname in ents:
 		if entname not in ('quot', 'apos', 'gt', 'lt', 'amp'):
-			ent = xsc.xsc.parseString(dtd.resolve_ge(entname).value)
-			file.write('class %s(xsc.Entity): " "; codepoint = %d\n' % (entname, ord(ent[0][0])))
+			ent = parsers.parseString(dtd.resolve_ge(entname).value)
+			file.write('class %s(xsc.CharRef): " "; codepoint = %d\n' % (entname, ord(unicode(ent[0])[0])))
 	file.write('\n')
 
 	# write namespace registration
 	file.write("# register all the classes we've defined so far\n")
-	file.write('namespace = xsc.Namespace("%s", "... insert URL of DTD ...", vars())' % (modname))
+	file.write('xmlns = xsc.Namespace("%s", "... insert namespace URI ...", vars())' % (modname))
 	file.close()
 
 if __name__ == "__main__":

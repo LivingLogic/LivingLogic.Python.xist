@@ -1,7 +1,8 @@
 #! /usr/bin/env python
+# -*- coding: Latin-1 -*-
 
-## Copyright 1999-2001 by LivingLogic AG, Bayreuth, Germany.
-## Copyright 1999-2001 by Walter Dörwald
+## Copyright 1999-2002 by LivingLogic AG, Bayreuth, Germany.
+## Copyright 1999-2002 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -21,7 +22,7 @@
 
 """
 This modules contains the base class for the converter objects used in the call to the
-<pyref module="xist.xsc" class="Node" method="convert"><method>convert</method></pyref> method.
+<pyref module="ll.xist.xsc" class="Node" method="convert"><method>convert</method></pyref> method.
 """
 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
@@ -32,7 +33,7 @@ import types
 class Context(object):
 	"""
 	This is an empty class, that can be used by the
-	<pyref module="xist.xsc" class="Node" method="convert"><method>convert</method></pyref>
+	<pyref module="ll.xist.xsc" class="Node" method="convert"><method>convert</method></pyref>
 	method to hold element specific data during the convert call. The method
 	<pyref class="Converter" method="__getitem__"><method>Converter.__getitem__</method></pyref>
 	will return a unique instance of this class.
@@ -54,10 +55,10 @@ class ConverterState(object):
 class Converter(object):
 	"""
 	<doc:par>An instance of this class is passed around in calls to the
-	<pyref module="xist.xsc" class="Node" method="convert"><method>convert</method></pyref> method.
+	<pyref module="ll.xist.xsc" class="Node" method="convert"><method>convert</method></pyref> method.
 	This instance can be used when some element needs to keep state across a nested convert call.
 	A typical example are nested chapter/subchapter elements with automatic numbering.
-	For an example see the element <pyref module="xist.ns.doc" class="section"><class>xist.ns.doc.section</class></pyref>.</doc:par>
+	For an example see the element <pyref module="ll.xist.ns.doc" class="section"><class>ll.xist.ns.doc.section</class></pyref>.</doc:par>
 	"""
 	def __init__(self, root=None, mode=None, stage=None, target=None, lang=None, makeaction=None, maketarget=None):
 		"""
@@ -184,9 +185,9 @@ class Converter(object):
 		__setmakeaction,
 		__delmakeaction,
 		"""
-		<doc:par>If an &xist; conversion is done by an <pyref module="make" class="XISTAction"><class>XISTAction</class></pyref>
+		<doc:par>If an &xist; conversion is done by an <pyref module="ll.make" class="XISTAction"><class>XISTAction</class></pyref>
 		this property will hold the action object during that conversion. If you're not using the
-		<pyref module="make"><module>make</module></pyref> module you can simply ignore this property. The default is <lit>None</lit>.</doc:par>
+		<pyref module="ll.make"><module>make</module></pyref> module you can simply ignore this property. The default is <lit>None</lit>.</doc:par>
 		"""
 	)
 
@@ -204,9 +205,9 @@ class Converter(object):
 		__setmaketarget,
 		__delmaketarget,
 		"""
-		<doc:par>If an &xist; conversion is done by an <pyref module="make" class="XISTAction"><class>XISTAction</class></pyref>
-		this property will hold the <pyref module="make" class="Target"><class>Target</class></pyref> object during that conversion.
-		If you're not using the <pyref module="make"><module>make</module></pyref> module you can simply ignore this property.
+		<doc:par>If an &xist; conversion is done by an <pyref module="ll.make" class="XISTAction"><class>XISTAction</class></pyref>
+		this property will hold the <pyref module="ll.make" class="Target"><class>Target</class></pyref> object during that conversion.
+		If you're not using the <pyref module="ll.make"><module>make</module></pyref> module you can simply ignore this property.
 		The default is <lit>None</lit>.</doc:par>
 		"""
 	)
@@ -223,9 +224,9 @@ class Converter(object):
 		None,
 		None,
 		"""
-		<doc:par>If an &xist; conversion is done by an <pyref module="make" class="XISTAction"><class>XISTAction</class></pyref>
-		this property will hold the <pyref module="make" class="Project"><class>Project</class></pyref> object during that conversion.
-		If you're not using the <pyref module="make"><module>make</module></pyref> module you can simply ignore this property.
+		<doc:par>If an &xist; conversion is done by an <pyref module="ll.make" class="XISTAction"><class>XISTAction</class></pyref>
+		this property will hold the <pyref module="ll.make" class="Project"><class>Project</class></pyref> object during that conversion.
+		If you're not using the <pyref module="ll.make"><module>make</module></pyref> module you can simply ignore this property.
 		"""
 	)
 
@@ -256,6 +257,6 @@ class Converter(object):
 		<doc:par>Return a context object that is unique for <arg>class_</arg>,
 		which should be the class object of an element type. This means that every element type
 		gets its own context and can store information there that needs to be available
-		across calls to <pyref module="xist.xsc" class="Node" method="convert"><method>convert</method></pyref>.</doc:par>
+		across calls to <pyref module="ll.xist.xsc" class="Node" method="convert"><method>convert</method></pyref>.</doc:par>
 		"""
 		return self.contexts.setdefault(class_, Context())

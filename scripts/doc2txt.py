@@ -1,7 +1,8 @@
-#!/usr/bin/env python
+#! /usr/bin/env python
+# -*- coding: Latin-1 -*-
 
-## Copyright 1999-2001 by LivingLogic AG, Bayreuth, Germany.
-## Copyright 1999-2001 by Walter Dörwald
+## Copyright 1999-2002 by LivingLogic AG, Bayreuth, Germany.
+## Copyright 1999-2002 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -31,8 +32,8 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 
 import sys, getopt
 
-from xist import xsc, parsers, converters
-from xist.ns import html, abbr, doc, specials
+from ll.xist import xsc, parsers, converters
+from ll.xist.ns import html, abbr, doc, specials
 
 def xsc2txt(infilename, outfilename, title):
 	e = parsers.parseFile(infilename, namespaces=xsc.Namespaces(doc))

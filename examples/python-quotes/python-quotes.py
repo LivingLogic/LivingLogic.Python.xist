@@ -1,13 +1,14 @@
 #! /usr/bin/env python
+# -*- coding: Latin-1 -*-
 
-from xist import xsc, parsers
-from xist.ns import html, specials, meta
+from ll.xist import xsc, parsers
+from ll.xist.ns import html, specials, meta
 
 url = "http://amk.ca/quotations/python-quotes.xml"
 #url = "python-quotes.xml"
 
 class quotations(xsc.Element):
-	empty = 0
+	empty = False
 
 	def convert(self, converter):
 		header = html.head(
@@ -36,7 +37,7 @@ class quotations(xsc.Element):
 		return e.convert(converter)
 
 class quotation(xsc.Element):
-	empty = 0
+	empty = False
 
 	def convert(self, converter):
 		e = html.div(self.content, class_="quotation")
@@ -44,7 +45,7 @@ class quotation(xsc.Element):
 		return e.convert(converter)
 
 class source(xsc.Element):
-	empty = 0
+	empty = False
 
 	def convert(self, converter):
 		e = html.div(self.content, class_="source")
@@ -52,7 +53,7 @@ class source(xsc.Element):
 		return e.convert(converter)
 
 class note(xsc.Element):
-	empty = 0
+	empty = False
 
 	def convert(self, converter):
 		e = html.div(self.content, class_="note")
@@ -60,7 +61,7 @@ class note(xsc.Element):
 		return e.convert(converter)
 
 class author(xsc.Element):
-	empty = 0
+	empty = False
 
 	def convert(self, converter):
 		e = self.content
@@ -68,14 +69,14 @@ class author(xsc.Element):
 		return e.convert(converter)
 
 class foreign(xsc.Element):
-	empty = 0
+	empty = False
 
 	def convert(self, converter):
 		e = html.em(self.content)
 
 		return e.convert(converter)
 
-namespace = xsc.Namespace("pq", "http://www.python.org/topics/xml/dtds/qel-2.0.dtd", vars())
+xmlns = xsc.Namespace("pq", "http://www.python.org/topics/xml/dtds/qel-2.0.dtd", vars())
 
 if __name__ == "__main__":
 	e = parsers.parseURL(url, parser=parsers.ExpatParser())

@@ -1,6 +1,10 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
-<section><title>Changes in CVS (released ??/??/2002)</title>
+<<<<<<< NEWS.xml
+<section><title>Changes in 2.0 (released ??/??/2002)</title>
 <ulist>
+<item>Comparison of attributes with strings has been removed.
+You have to use <method>__unicode__</method> or <method>__str__</method>
+instead.</item>
 <item>The <class>HTMLParser</class> now removes unknown attributes
 instead of complaining.</item>
 <item>There is a new parser class <class>BadEntityParser</class>, which
@@ -8,10 +12,23 @@ is a &sax;2 parser that recognizes the character entities
 defined in &html; and tries to pass on unknown or malformed
 entities to the handler literally.</item>
 <item>To give all nodes a chance to do something after they have been parsed
-(e.g. to prepend the base URL for URLAttr nodes), the parser now calls
-the method parsed() immediately after node creation. This is used for
-the new class StyleAttr, which uses the CSSTokenizer, to prepend to
-base url to all url found in a style attribute.</item>
+(e.g. to prepend the base URL for <class>URLAttr</class> nodes), the parser
+now calls the method <method>parsed()</method> immediately after node creation.
+This is used for the new class <class>StyleAttr</class>, which uses the
+<class>CSSTokenizer</class>, to prepend the base url to all urls found in
+a style attribute.</item>
+<item>The <class>HTMLParser</class> now removes unknown attributes
+instead of complaining.</item>
+<item>There is a new parser class <class>BadEntityParser</class>, which
+is a &sax;2 parser that recognizes the character entities
+defined in &html; and tries to pass on unknown or malformed
+entities to the handler literally.</item>
+<item>To give all nodes a chance to do something after they have been parsed
+(e.g. to prepend the base &url; for <class>URLAttr</class> nodes), the parser
+now calls the method <method>parsed</method> immediately after node creation.
+This is used for the new class <class>StyleAttr</class>, which uses the
+<class>CSSTokenizer</class>, to prepend to base &url; to all &url;s
+found in a style attribute.</item>
 </ulist>
 </section>
 
@@ -579,7 +596,7 @@ generating meta tags.</item>
 <item>&xist; now requires at least Python 2.0b1.</item>
 
 <item>A new bugfixed version of the <app>sgmlop</app> source is available
-from the <a href="http://ftp.livinglogic.de/pub/livinglogic/xist/">&ftp; site</a>.</item>
+from the <a href="ftp://ftp.livinglogic.de/pub/livinglogic/xist/">&ftp; site</a>.</item>
 
 <item>&xist; now completely supports Unicode. For output any
 encoding known to Python can be used, so now you

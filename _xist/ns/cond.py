@@ -1,7 +1,8 @@
 #! /usr/bin/env python
+# -*- coding: Latin-1 -*-
 
-## Copyright 1999-2001 by LivingLogic AG, Bayreuth, Germany.
-## Copyright 1999-2001 by Walter Dörwald
+## Copyright 1999-2002 by LivingLogic AG, Bayreuth, Germany.
+## Copyright 1999-2002 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -27,7 +28,7 @@ on the &xml; level.</doc:par>
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-from xist import xsc, sandbox
+from ll.xist import xsc, sandbox
 
 class CodeAttr(xsc.Attr):
 	"""
@@ -40,8 +41,9 @@ class CondAttr(CodeAttr):
 	"""
 
 class switch(xsc.Element):
-	empty = 0
-	attrHandlers = {"var": xsc.TextAttr}
+	empty = False
+	class Attrs(xsc.Element.Attrs):
+		class var(xsc.TextAttr): pass
 
 	def convert(self, converter):
 		cases = self.find(type=case)
@@ -49,16 +51,22 @@ class switch(xsc.Element):
 		return xsc.Null
 
 class case(xsc.Element):
-	empty = 0
-	attrHandlers = {"case": xsc.TextAttr}
+	empty = False
+	class Attrs(xsc.Element.Attrs):
+		class case(xsc.TextAttr): pass
 
 	def convert(self, converter):
 		return self.content.convert(converter)
 
 class If(xsc.Element):
-	empty = 0
-	attrHandlers = {"cond": CondAttr, "mode": xsc.TextAttr, "target": xsc.TextAttr, "stage": xsc.TextAttr, "lang": xsc.TextAttr}
-	name = "if"
+	empty = False
+	class Attrs(xsc.Element.Attrs):
+		class cond(xsc.TextAttr): pass
+		class mode(xsc.TextAttr): pass
+		class target(xsc.TextAttr): pass
+		class stage(xsc.TextAttr): pass
+		class lang(xsc.TextAttr): pass
+	xmlname = "if"
 
 	def convert(self, converter):
 		intruecondition = self.__testCond(self, converter)
@@ -73,14 +81,14 @@ class If(xsc.Element):
 				if intruecondition:
 					break
 				else:
-					intruecondition = 1
+					intruecondition = True
 			else:
 				if intruecondition:
 					truecondition.append(child)
 		return truecondition.convert(converter)
 
 	def __testCond(self, node, converter):
-		result = 1
+		result = True
 		if node.hasAttr("cond"):
 			cond = unicode(node["cond"].convert(converter))
 			result = eval(cond, sandbox.__dict__)
@@ -95,19 +103,24 @@ class If(xsc.Element):
 		return result
 
 class ElIf(xsc.Element):
-	empty = 1
-	attrHandlers = {"cond": CondAttr, "mode": xsc.TextAttr, "target": xsc.TextAttr, "stage": xsc.TextAttr, "lang": xsc.TextAttr}
-	name = "elif"
+	empty = True
+	class Attrs(xsc.Element.Attrs):
+		class cond(xsc.TextAttr): pass
+		class mode(xsc.TextAttr): pass
+		class target(xsc.TextAttr): pass
+		class stage(xsc.TextAttr): pass
+		class lang(xsc.TextAttr): pass
+	xmlname = "elif"
 
 	def convert(self, converter):
 		return xsc.Null
 
 class Else(xsc.Element):
-	empty = 1
-	name = "else"
+	empty = True
+	xmlname = "else"
 
 	def convert(self, converter):
 		return xsc.Null
 
-namespace = xsc.Namespace("cond", "http://xmlns.livinglogic.de/xist/ns/cond", vars())
+xmlns = xsc.Namespace("cond", "http://xmlns.livinglogic.de/xist/ns/cond", vars())
 

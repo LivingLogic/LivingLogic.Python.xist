@@ -21,12 +21,40 @@
 ## IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 """
-<doc:par>This module provides a sandbox for the code that is evaluated in
-XSC processing instructions (i.e. <code>&lt;?code:exec?&gt;</code> and
-<code>&lt;?code:eval?&gt;</code>).</doc:par>
+<doc:par>Contains the global attributes for the xlink namespace
+(<lit>http://www.w3.org/1999/xlink</lit>).</doc:par>
 """
 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-import xsc
+from ll.xist import xsc, utils
+
+class Namespace(xsc.Namespace):
+	class Attrs(xsc.Namespace.Attrs):
+		class type(xsc.NamespaceAttrMixIn, xsc.TextAttr):
+			values = ("simple", "extended", "locator", "arc", "resource", "title")
+		class href(xsc.NamespaceAttrMixIn, xsc.URLAttr):
+			pass
+		class role(xsc.NamespaceAttrMixIn, xsc.URLAttr):
+			pass
+		class arcrole(xsc.NamespaceAttrMixIn, xsc.URLAttr):
+			pass
+		class title(xsc.NamespaceAttrMixIn, xsc.TextAttr):
+			pass
+		class show(xsc.NamespaceAttrMixIn, xsc.TextAttr):
+			values = ("new", "replace", "embed", "other", "none")
+		class label(xsc.NamespaceAttrMixIn, xsc.TextAttr):
+			pass
+		class actuate(xsc.NamespaceAttrMixIn, xsc.TextAttr):
+			values = ("onLoad", "onRequest", "other", "none")
+		class from_(xsc.NamespaceAttrMixIn, xsc.TextAttr):
+			xmlname = "from"
+		class to(xsc.NamespaceAttrMixIn, xsc.TextAttr):
+			pass
+
+	def __init__(self, vars):
+		xsc.Namespace.__init__(self, "xlink", "http://www.w3.org/1999/xlink", vars)
+
+xmlns = Namespace(vars())
+

@@ -1,7 +1,8 @@
 #! /usr/bin/env python
+# -*- coding: Latin-1 -*-
 
-## Copyright 1999-2001 by LivingLogic AG, Bayreuth, Germany.
-## Copyright 1999-2001 by Walter Dörwald
+## Copyright 1999-2002 by LivingLogic AG, Bayreuth, Germany.
+## Copyright 1999-2002 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -28,7 +29,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 
 import sys
 
-from xist import xsc, sandbox
+from ll.xist import xsc, sandbox
 import html
 
 class Code:
@@ -99,7 +100,7 @@ class exec_(xsc.ProcInst):
 	<doc:par>These processing instructions will be evaluated and executed in the
 	namespace of the module <module>sandbox</module>.</doc:par>
 	"""
-	name = "exec"
+	xmlname = "exec"
 
 	def __init__(self, content=u""):
 		xsc.ProcInst.__init__(self, content)
@@ -123,7 +124,7 @@ class eval_(xsc.ProcInst):
 	<doc:par>Note that you should not define the symbol <lit>__</lit> in any of your &xist;
 	processing instructions, as it is used by &xist; for internal purposes.</doc:par>
 	"""
-	name = "eval"
+	xmlname = "eval"
 
 	def convert(self, converter):
 		"""
@@ -136,4 +137,4 @@ class eval_(xsc.ProcInst):
 		exec code.asString() in sandbox.__dict__ # requires Python 2.0b2 (and doesn't really work)
 		return xsc.ToNode(sandbox.__(converter)).convert(converter)
 
-namespace = xsc.Namespace("code", "http://xmlns.livinglogic.de/xist/ns/code", vars())
+xmlns = xsc.Namespace("code", "http://xmlns.livinglogic.de/xist/ns/code", vars())

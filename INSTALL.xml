@@ -31,6 +31,10 @@ directory as an <code>xist</code> package.</doc:par>
 the old module <module>xist.url</module> as this is no longer needed
 and might collide with the new global module <module>url</module>.</doc:par>
 
+<doc:par>If you're updating from a version older than 1.5, remove
+the old package <module>xist</module> from your installation directory
+and remove the <filename class="directory">build</filename> directory.</doc:par>
+
 <doc:par>For Windows a binary distribution is provided. To install it,
 double click it, and follow the instructions.</doc:par>
 
@@ -43,7 +47,7 @@ describing the problem.</doc:par>
 <doc:par>When you pass an 8bit string in the constructor
 of an &xist; element, these strings have to
 be converted to Unicode. &xist; assumes that these 8bit strings
-are in the system default encoding, which is &ascii;.
+are in the system default encoding, which normally is &ascii;.
 If you want to change this you can put a script
 named <filename>sitecustomize.py</filename> somewhere
 in the Python path, with the following content:
@@ -66,7 +70,7 @@ feature of Python 2.1, simply by putting the following code
 into your Python startup script:
 <doc:programlisting>
 import sys, pprint
-from xist import xsc, presenters
+from ll.xist import xsc, presenters
 
 def displayhook(object):
 	if object is not None:

@@ -1,7 +1,8 @@
 #! /usr/bin/env python
+# -*- coding: Latin-1 -*-
 
-## Copyright 1999-2001 by LivingLogic AG, Bayreuth, Germany.
-## Copyright 1999-2001 by Walter Dörwald
+## Copyright 1999-2002 by LivingLogic AG, Bayreuth, Germany.
+## Copyright 1999-2002 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -26,7 +27,7 @@
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-from xist import xsc
+from ll.xist import xsc
 
 class DocTypeRuby10(xsc.DocType):
 	"""
@@ -39,32 +40,33 @@ class rb(xsc.Element):
 	"""
 	The rb element is the container for the text of the ruby base.
 	"""
-	empty = 0
+	empty = False
 
 class rbc(xsc.Element):
 	"""
 	The rbc (ruby base component) element is the container for rb elements.
 	"""
-	empty = 0
+	empty = False
 
 class rp(xsc.Element):
 	"""
 	The rp element is intended to contain parenthesis characters in simple ruby.
 	"""
-	empty = 0
+	empty = False
 
 class rt(xsc.Element):
 	"""
 	The rt element is the container for the ruby text.
 	"""
-	empty = 0
-	attrHandlers = {"rbspan": xsc.TextAttr}
+	empty = False
+	class Attrs(xsc.Element.Attrs):
+		class rbspan(xsc.TextAttr): pass
 
 class rtc(xsc.Element):
 	"""
 	The rtc (ruby text component) element is the container for rt elements.
 	"""
-	empty = 0
+	empty = False
 
 class ruby(xsc.Element):
 	"""
@@ -72,7 +74,7 @@ class ruby(xsc.Element):
 	container for either the rb, rt and optional rp elements or the rbc and
 	rtc elements.
 	"""
-	empty = 0
+	empty = False
 
 # register all the classes we've defined so far
-namespace = xsc.Namespace("ruby", "http://www.w3.org/TR/ruby/xhtml11-ruby-1.mod", vars())
+xmlns = xsc.Namespace("ruby", "http://www.w3.org/TR/ruby/xhtml11-ruby-1.mod", vars())

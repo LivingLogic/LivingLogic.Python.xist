@@ -1,7 +1,8 @@
 #! /usr/bin/env python
+# -*- coding: Latin-1 -*-
 
-## Copyright 1999-2001 by LivingLogic AG, Bayreuth, Germany.
-## Copyright 1999-2001 by Walter Dörwald
+## Copyright 1999-2002 by LivingLogic AG, Bayreuth, Germany.
+## Copyright 1999-2002 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -35,7 +36,10 @@ import types, warnings
 import xsc, presenters
 
 def warn(warning, level=3): # stacklevel==3, i.e. report the caller of our caller
-	warnings.warn(str(warning), UserWarning, level)
+	cls = UserWarning
+	if isinstance(warning, DeprecationWarning):
+		cls = DeprecationWarning
+	warnings.warn(str(warning), cls, level)
 
 class Error(Exception):
 	"""
@@ -60,32 +64,12 @@ class EmptyElementWithContentError(Error):
 		self.element = element
 
 	def __str__(self):
-		return "element %s specified to be empty, but has content" % presenters.strElementWithBrackets(self.element)
+		return "element %s has EMPTY content model, but has content" % self.element._str(fullname=0, xmlname=0, decorate=1)
 
-class IllegalAttrError(Error):
+class IllegalAttrError(Warning, LookupError):
 	"""
-	error that is issued, when an element has an illegal attribute
-	(i.e. one that isn't contained in it's attrHandlers)
-	"""
-
-	def __init__(self, attrs, attrname):
-		self.attrs = attrs
-		self.attrname = attrname
-
-	def __str__(self):
-		attrs = self.attrs.handlers.keys()
-		s = "Attribute %s not allowed. " % presenters.strAttrName(self.attrname)
-		if len(attrs):
-			attrs.sort()
-			attrs = ", ".join([ str(presenters.strAttrName(attr)) for attr in attrs])
-			s = s + "Allowed attributes are: %s." % attrs
-		else:
-			s = s + "No attributes allowed."
-		return s
-
-class AttrNotFoundError(Error):
-	"""
-	exception that is raised, when an attribute is fetched that isn't there
+	exception that is raised, when an element has an illegal attribute
+	(i.e. one that isn't defined in the appropriate attributes class)
 	"""
 
 	def __init__(self, attrs, attrname):
@@ -93,18 +77,59 @@ class AttrNotFoundError(Error):
 		self.attrname = attrname
 
 	def __str__(self):
-		attrs = self.attrs.keys()
+		return "Attribute named %r not allowed for %s" % (self.attrname, self.attrs._str(fullname=True, xmlname=False, decorate=False))
 
-		s = "Attribute %s not found. " % presenters.strAttrName(self.attrname)
+class IllegalAttrValueWarning(Warning):
+	"""
+	warning that is issued, when an attribute has an illegal value when parsing or publishing.
+	"""
 
-		if len(attrs):
-			attrs.sort()
-			attrs = ", ".join([ str(presenters.strAttrName(attr)) for attr in attrs ])
-			s = s + "Available attributes are: %s." % attrs
+	def __init__(self, attr):
+		self.attr = attr
+
+	def __str__(self):
+		attr = self.attr
+		return "Attribute value %r not allowed for %s. " % (str(attr), attr._str(fullname=True, xmlname=False, decorate=False))
+
+class RequiredAttrMissingWarning(Warning):
+	"""
+	warning that is issued, when required attribute is missing when parsing or publishing.
+	"""
+
+	def __init__(self, attrs, reqattrs):
+		self.attrs = attrs
+		self.reqattrs = reqattrs
+
+	def __str__(self):
+		v = ["Required attribute"]
+		if len(self.reqattrs)>1:
+			v.append("s ")
+			v.append(", ".join(["%r" % attr for attr in self.reqattrs]))
 		else:
-			s = s + "No attributes available."
+			v.append(" %r" % self.reqattrs[0])
+		v.append(" missing in %s." % self.attrs._str(fullname=True, xmlname=False, decorate=False))
+		return "".join(v)
 
-		return s
+class IllegalPrefixError(Error, LookupError):
+	"""
+	Exception that is raised when a namespace prefix is undefined.
+	"""
+	def __init__(self, prefix):
+		self.prefix = prefix
+
+	def __str__(self):
+		return "namespace prefix %r is undefined" % self.prefix
+
+class IllegalNamespaceError(Error, LookupError):
+	"""
+	Exception that is raised when a namespace name is undefined
+	i.e. if there is no namespace with this name.
+	"""
+	def __init__(self, name):
+		self.name = name
+
+	def __str__(self):
+		return "namespace name %r is undefined" % self.name
 
 class IllegalElementError(Error):
 	"""
@@ -116,26 +141,7 @@ class IllegalElementError(Error):
 		self.name = name
 
 	def __str__(self):
-		# List the element sorted by name
-		all = {}
-		for namespace in xsc.namespaceRegistry.byPrefix.values():
-			for element in namespace.elementsByName.values():
-				if element.namespace() is not None:
-					all[(element.name, element.prefix())] = element
-
-		allkeys = all.keys()
-		allkeys.sort()
-		allAsList = []
-		for key in allkeys:
-			element = all[key]
-			allAsList.append(str(presenters.strElementClassWithBrackets(element)))
-
-		s = "element %s not allowed. " % presenters.strElementNameWithBrackets(self.name[0], self.name[1])
-		if allAsList:
-			s = s + "Allowed elements are: " + ", ".join(allAsList) + "."
-		else:
-			s = s + "There are no allowed elements."
-		return s
+		return "element named %r not allowed. " % (self.name, )
 
 class IllegalProcInstError(Error):
 	"""
@@ -147,26 +153,7 @@ class IllegalProcInstError(Error):
 		self.name = name
 
 	def __str__(self):
-		# List the procinsts sorted by name
-		all = {}
-		for namespace in xsc.namespaceRegistry.byPrefix.values():
-			for procinst in namespace.procInstsByName.values():
-				if procinst.namespace() is not None:
-					all[(procinst.name, procinst.prefix())] = procinst
-
-		allkeys = all.keys()
-		allkeys.sort()
-		allAsList = []
-		for key in allkeys:
-			procinst = all[key]
-			allAsList.append(str(presenters.strProcInstWithBrackets(procinst)))
-
-		s = "procinst %s not allowed. " % presenters.strProcInstTargetWithBrackets(self.name[0], self.name[1])
-		if allAsList:
-			s = s + "Allowed procinsts are: " + ", ".join(allAsList) + "."
-		else:
-			s = s + "There are no allowed procinsts."
-		return s
+		return "procinst named %r not allowed" % (self.name, )
 
 class ElementNestingError(Error):
 	"""
@@ -179,7 +166,7 @@ class ElementNestingError(Error):
 		self.foundelement = foundelement
 
 	def __str__(self):
-		return "mismatched element nesting (closing %s expected; %s found)" % (presenters.strElementClassWithBrackets(self.expectedelement, -1), presenters.strElementClassWithBrackets(self.foundelement, -1))
+		return "mismatched element nesting (close tag for %s expected; close tag for %s found)" % (self.expectedelement._str(fullname=1, xmlname=0, decorate=1), self.foundelement._str(fullname=1, xmlname=0, decorate=1))
 
 class IllegalAttrNodeError(Error):
 	"""
@@ -211,15 +198,14 @@ class ImageSizeFormatWarning(UserWarning):
 	warning that is raised, when XSC can't format or evaluate image size attributes.
 	"""
 
-	def __init__(self, element, attr, value, exc):
-		Warning.__init__(self, element, attr, value, exc)
+	def __init__(self, element, attr, exc):
+		UserWarning.__init__(self, element, attr, exc)
 		self.element = element
 		self.attr = attr
-		self.value = value
 		self.exc = exc
 
 	def __str__(self):
-		return "the value %r for the image size attribute %r of the element %r can't be formatted or evaluated (%s). The attribute will be dropped." % (self.value, self.attr, self.element, self.exc)
+		return "the value %r for the image size attribute %s of the element %s can't be formatted or evaluated (%s). The attribute will be dropped." % (unicode(self.attr), self.attr._str(fullname=0, xmlname=0, decorate=0), self.element._str(fullname=1, xmlname=1, decorate=1), self.exc)
 
 class IllegalObjectWarning(Warning):
 	"""
@@ -257,29 +243,7 @@ class IllegalEntityError(Error):
 		self.name = name
 
 	def __str__(self):
-		# List the entities sorted by name
-		all = {}
-		for namespace in xsc.namespaceRegistry.byPrefix.values():
-			for charref in namespace.charrefsByName.values():
-				if charref.namespace() is not None:
-					all[(charref.name, charref.prefix())] = charref
-			for entity in namespace.entitiesByName.values():
-				if entity.namespace() is not None:
-					all[(entity.name, entity.prefix())] = entity
-
-		allKeys = all.keys()
-		allKeys.sort()
-		allAsList = []
-		for key in allKeys:
-			entity = all[key]
-			allAsList.append(str(presenters.strEntityName(entity.prefix(), entity.name)))
-
-		s = "entity %s not allowed. " % presenters.strEntityName(self.name[0], self.name[1])
-		if allAsList:
-			s = s + "Allowed entities and charrefs are: " + ", ".join(allAsList) + "."
-		else:
-			s = s + "There are no allowed entities or charrefs."
-		return s
+		return "entity named %r not allowed" % (self.name, )
 
 class IllegalCommentContentError(Error):
 	"""
@@ -324,7 +288,7 @@ class IllegalXMLDeclFormatError(Error):
 
 class EncodingImpossibleError(Error):
 	"""
-	exception that is raised, when the XML tree can't be encoded, because
+	exception that is raised, when the &xml; tree can't be encoded, because
 	an encoding is used that requires character references for certain
 	characters (e.g. <code>us-ascii</code> or <code>iso-8859-1</code>)
 	and those characters where encountered in a place where the can't
@@ -337,6 +301,9 @@ class EncodingImpossibleError(Error):
 		self.char = char
 
 	def __str__(self):
-		# FIXME can't use %r because this returns a Unicode string
-		return "text %s can't be encoded with the encoding %s because it contains the character %s." % (repr(self.text), repr(self.encoding), repr(self.char))
+		return "text %r can't be encoded with the encoding %r because it contains the character %r." % (self.text, self.encoding, self.char)
+
+# FIXME: This doesn't work yet, because warnings.warn does not allow passing Warning
+# instances, so the filter is ineffective. This will change in Python 2.3
+warnings.filterwarnings("always", category=Warning)
 

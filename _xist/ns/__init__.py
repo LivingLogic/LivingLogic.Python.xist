@@ -1,7 +1,8 @@
 #! /usr/bin/env python
+# -*- coding: Latin-1 -*-
 
-## Copyright 1999-2001 by LivingLogic AG, Bayreuth, Germany.
-## Copyright 1999-2001 by Walter Dörwald
+## Copyright 1999-2002 by LivingLogic AG, Bayreuth, Germany.
+## Copyright 1999-2002 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -21,26 +22,26 @@
 
 """
 <doc:par>This package contains all the modules that provide
-<pyref module="xist.xsc" class="Namespace">namespace objects</pyref>
+<pyref module="ll.xist.xsc" class="Namespace">namespace objects</pyref>
 to &xist;. For example the definition of &html; can be found in the
-module <pyref module="xist.ns.html"><module>xist.ns.html</module></pyref>.</doc:par>
+module <pyref module="ll.xist.ns.html"><module>xist.ns.html</module></pyref>.</doc:par>
 
 <doc:par>Some of these namespaces can be considered target namespaces (e.g.
-<pyref module="xist.ns.html"><module>html</module></pyref>,
-<pyref module="xist.ns.ihtml"><module>ihtml</module></pyref>,
-<pyref module="xist.ns.wml"><module>wml</module></pyref> and
-<pyref module="xist.ns.docbook"><module>docbook</module></pyref>). The element and
+<pyref module="ll.xist.ns.html"><module>html</module></pyref>,
+<pyref module="ll.xist.ns.ihtml"><module>ihtml</module></pyref>,
+<pyref module="ll.xist.ns.wml"><module>wml</module></pyref> and
+<pyref module="ll.xist.ns.docbook"><module>docbook</module></pyref>). The element and
 entity classes in these namespaces don't implement a convert method, i.e. they inherit the
-<pyref module="xist.xsc" class="Element" method="convert"><method>convert</method></pyref> method
-from <pyref module="xist.xsc" class="Element"><class>Element</class></pyref>.</doc:par>
+<pyref module="ll.xist.xsc" class="Element" method="convert"><method>convert</method></pyref> method
+from <pyref module="ll.xist.xsc" class="Element"><class>Element</class></pyref>.</doc:par>
 
 <doc:par>Other namespace modules provide additional functionality through
-new element classes. Calling <pyref module="xist.xsc" class="Node" method="convert"><method>convert</method></pyref>
+new element classes. Calling <pyref module="ll.xist.xsc" class="Node" method="convert"><method>convert</method></pyref>
 on these elements might convert them to one of these target namespaces
 (depending on the <code>target</code> attribute of the
-<pyref module="xist.converters" class="Converter"><class>Converter</class></pyref> object
+<pyref module="ll.xist.converters" class="Converter"><class>Converter</class></pyref> object
 passed around.) Some of these namespace modules completely ignore the target
-and convert to one fixed target namespace (<pyref module="xist.ns.html"><module>html</module></pyref>
+and convert to one fixed target namespace (<pyref module="ll.xist.ns.html"><module>html</module></pyref>
 in most cases).</doc:par>
 """
 
@@ -48,9 +49,11 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
 __all__ = [
+	"xml",
 	"html", "wml", "docbook", "ruby", "ihtml",
 	"jsp", "struts_html", "struts_config", "struts_config11",
 	"php",
-	"specials", "abbr", "cond", "doc", "form", "meta"
+	"specials", "abbr", "cond", "code", "doc", "form", "meta",
+	"css", "cssspecials"
 ]
 

@@ -1,7 +1,8 @@
 #! /usr/bin/env python
+# -*- coding: Latin-1 -*-
 
-## Copyright 1999-2001 by LivingLogic AG, Bayreuth, Germany.
-## Copyright 1999-2001 by Walter Dörwald
+## Copyright 1999-2002 by LivingLogic AG, Bayreuth, Germany.
+## Copyright 1999-2002 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -28,13 +29,19 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 
 import string
 
-from xist import xsc
+from ll.xist import xsc
 
-# common attributes
-coreattrs  = {"id": xsc.TextAttr, "class": xsc.TextAttr}
-cardev  = {"onenterforward": xsc.URLAttr, "onenterbackward": xsc.URLAttr, "ontimer": xsc.URLAttr}
-attrs = coreattrs.copy()
-attrs.update(cardev)
+class coreattrs(xsc.Element.Attrs):
+	class id(xsc.TextAttr): pass
+	class class_(xsc.TextAttr): xmlname = "class"
+
+class cardevattrs(xsc.Element.Attrs):
+	class onenterforward(xsc.URLAttr): pass
+	class onenterbackward(xsc.URLAttr): pass
+	class ontimer(xsc.URLAttr): pass
+
+class allattrs(coreattrs, cardevattrs):
+	pass
 
 class DocTypeWML13(xsc.DocType):
 	"""
@@ -48,279 +55,342 @@ class wml(xsc.Element):
 	"""
 	creates a WML deck consisting of one or more cards
 	"""
-	empty = 0
-	attrHandlers = coreattrs.copy()
+	empty = False
+	class Attrs(coreattrs):
+		pass
 
 class card(xsc.Element):
 	"""
 	defines and names a new card
 	"""
-	empty = 0
-	attrHandlers = attrs.copy()
-	attrHandlers.update({"title": xsc.TextAttr, "newcontext": xsc.TextAttr, "ordered": xsc.TextAttr}) 
+	empty = False
+	class Attrs(allattrs):
+		class title(xsc.TextAttr): pass
+		class newcontext(xsc.TextAttr): pass
+		class ordered(xsc.TextAttr): pass
 
 class do(xsc.Element):
 	"""
 	mechanism used to allow user actions within a card
 	"""
-	empty = 0
-	attrHandlers = coreattrs.copy()
-	attrHandlers.update({"type": xsc.TextAttr, "label": xsc.TextAttr, "name": xsc.TextAttr, "optional": xsc.BoolAttr}) 
+	empty = False
+	class Attrs(coreattrs):
+		class type(xsc.TextAttr): pass
+		class label(xsc.TextAttr): pass
+		class name(xsc.TextAttr): pass
+		class optional(xsc.BoolAttr): pass
 
 class onevent(xsc.Element):
 	"""
 	specifies an action to be performed when specific events occur
 	"""
-	empty = 0
-	attrHandlers = coreattrs.copy()
-	attrHandlers.update({"type": xsc.TextAttr}) 
+	empty = False
+	class Attrs(coreattrs):
+		class type(xsc.TextAttr): pass
 
 class head(xsc.Element):
 	"""
 	provides information for an entire deck
 	"""
-	empty = 0
-	attrHandlers = coreattrs.copy()
+	empty = False
+	class Attrs(coreattrs):
+		pass
 
 class template(xsc.Element):
 	"""
 	specifies a template containing settings that will be used deck wide
 	"""
-	empty = 0
-	attrHandlers = attrs.copy()
+	empty = False
+	class Attrs(allattrs):
+		pass
 
 class access(xsc.Element):
 	"""
 	applies access-control rules to a deck effectively restricting referred access
 	"""
-	empty = 1
-	attrHandlers = coreattrs.copy()
-	attrHandlers.update({"domain": xsc.TextAttr, "path": xsc.TextAttr}) 
+	empty = True
+	class Attrs(coreattrs):
+		class domain(xsc.TextAttr): pass
+		class path(xsc.TextAttr): pass
 
 class meta(xsc.Element):
 	"""
 	specifies deck-specific meta information within a <pyref class="head"><class>head</class></pyref> block
 	"""
-	empty = 1
-	attrHandlers = coreattrs.copy()
-	attrHandlers.update({"http-equiv": xsc.TextAttr, "name": xsc.TextAttr, "forua": xsc.TextAttr, "content": xsc.TextAttr, "scheme": xsc.TextAttr}) 
+	empty = True
+	class Attrs(coreattrs):
+		class http_equiv(xsc.TextAttr): xmlname = "http-equiv"
+		class name(xsc.TextAttr): pass
+		class forua(xsc.TextAttr): pass
+		class content(xsc.TextAttr): pass
+		class scheme(xsc.TextAttr): pass
 
 class go(xsc.Element):
 	"""
 	opens a specified URL using GET or POST methods
 	"""
-	empty = 0
-	attrHandlers = coreattrs.copy()
-	attrHandlers.update({"href": xsc.URLAttr, "sendreferer": xsc.TextAttr, "method": xsc.TextAttr, "enctype": xsc.TextAttr, "cache-control": xsc.TextAttr, "accept-charset": xsc.TextAttr}) 
+	empty = False
+	class Attrs(coreattrs):
+		class href(xsc.URLAttr): pass
+		class sendreferer(xsc.TextAttr): pass
+		class method(xsc.TextAttr): pass
+		class enctype(xsc.TextAttr): pass
+		class cache_control(xsc.TextAttr): xmlname = "cache-control"
+		class accept_charset(xsc.TextAttr): xmlname = "accept-charset"
 
 class prev(xsc.Element):
 	"""
 	returns to the previous card
 	"""
-	empty = 0
-	attrHandlers = coreattrs.copy()
+	empty = False
+	class Attrs(coreattrs):
+		pass
 
 class refresh(xsc.Element):
 	"""
 	refreshes (or resets) variables to initial or updated values
 	"""
-	empty = 0
-	attrHandlers = coreattrs.copy()
+	empty = False
+	class Attrs(coreattrs):
+		pass
 
 class noop(xsc.Element):
 	"""
 	does nothing (as in no operation)
 	"""
-	empty = 1
-	attrHandlers = coreattrs.copy()
+	empty = True
+	class Attrs(coreattrs):
+		pass
 
 class postfield(xsc.Element):
 	"""
 	specifies a field and value to be sent to a URL
 	"""
-	empty = 1
-	attrHandlers = coreattrs.copy()
-	attrHandlers.update({"name": xsc.TextAttr, "value": xsc.TextAttr}) 
+	empty = True
+	class Attrs(coreattrs):
+		class name(xsc.TextAttr): pass
+		class value(xsc.TextAttr): pass
 
 class setvar(xsc.Element):
 	"""
 	sets a variable to a specified value
 	"""
-	empty = 1
-	attrHandlers = coreattrs.copy()
-	attrHandlers.update({"name": xsc.TextAttr, "value": xsc.TextAttr}) 
+	empty = True
+	class Attrs(coreattrs):
+		class name(xsc.TextAttr): pass
+		class value(xsc.TextAttr): pass
 
 class select(xsc.Element):
 	"""
 	displays a list of options for user selection
 	"""
-	empty = 0
-	attrHandlers = coreattrs.copy()
-	attrHandlers.update({"title": xsc.TextAttr, "name": xsc.TextAttr, "value": xsc.TextAttr, "iname": xsc.TextAttr, "ivalue": xsc.TextAttr, "multiple": xsc.TextAttr, "tabindex": xsc.IntAttr}) 
+	empty = False
+	class Attrs(coreattrs):
+		class title(xsc.TextAttr): pass
+		class name(xsc.TextAttr): pass
+		class value(xsc.TextAttr): pass
+		class iname(xsc.TextAttr): pass
+		class ivalue(xsc.TextAttr): pass
+		class multiple(xsc.TextAttr): pass
+		class tabindex(xsc.IntAttr): pass
 
 class optgroup(xsc.Element):
 	"""
 	groups options together so that the browser can optimize the display appropriately
 	"""
-	empty = 0
-	attrHandlers = coreattrs.copy()
-	attrHandlers.update({"title": xsc.TextAttr}) 
+	empty = False
+	class Attrs(coreattrs):
+		class title(xsc.TextAttr): pass
 
 class option(xsc.Element):
 	"""
 	creates options within a <pyref class="select"><class>select</class></pyref> list
 	"""
-	empty = 0
-	attrHandlers = coreattrs.copy()
-	attrHandlers.update({"value": xsc.TextAttr, "title": xsc.TextAttr, "onpick": xsc.URLAttr}) 
+	empty = False
+	class Attrs(coreattrs):
+		class value(xsc.TextAttr): pass
+		class title(xsc.TextAttr): pass
+		class onpick(xsc.URLAttr): pass
 
 class input(xsc.Element):
 	"""
 	prompts for user input which will be saved to a variable
 	"""
-	empty = 1
-	attrHandlers = coreattrs.copy()
-	attrHandlers.update({"name": xsc.TextAttr, "type": xsc.TextAttr, "value": xsc.TextAttr, "format": xsc.TextAttr, "emptyok": xsc.TextAttr, "size": xsc.IntAttr, "maxlength": xsc.IntAttr, "tabindex": xsc.IntAttr, "title": xsc.TextAttr, "accesskey": xsc.TextAttr}) 
+	empty = True
+	class Attrs(coreattrs):
+		class name(xsc.TextAttr): pass
+		class type(xsc.TextAttr): pass
+		class value(xsc.TextAttr): pass
+		class format(xsc.TextAttr): pass
+		class emptyok(xsc.TextAttr): pass
+		class size(xsc.IntAttr): pass
+		class maxlength(xsc.IntAttr): pass
+		class tabindex(xsc.IntAttr): pass
+		class title(xsc.TextAttr): pass
+		class accesskey(xsc.TextAttr): pass
 
 class fieldset(xsc.Element):
 	"""
 	groups input field together so that the browser can optimize the display appropriately
 	"""
-	empty = 0
-	attrHandlers = coreattrs.copy()
-	attrHandlers.update({"title": xsc.TextAttr}) 
+	empty = False
+	class Attrs(coreattrs):
+		class title(xsc.TextAttr): pass
 
 class timer(xsc.Element):
 	"""
 	invokes a timer after a specified amount of inactivity
 	"""
-	empty = 1
-	attrHandlers = coreattrs.copy()
-	attrHandlers.update({"name": xsc.TextAttr, "value": xsc.TextAttr}) 
+	empty = True
+	class Attrs(coreattrs):
+		class name(xsc.TextAttr): pass
+		class value(xsc.TextAttr): pass
 
 class img(xsc.Element):
 	"""
 	displays an image in the browser
 	"""
-	empty = 1
-	attrHandlers = coreattrs.copy()
-	attrHandlers.update({"alt": xsc.TextAttr, "src": xsc.URLAttr, "localsrc": xsc.TextAttr, "vspace": xsc.TextAttr, "hspace": xsc.TextAttr, "align": xsc.TextAttr, "height": xsc.TextAttr, "width": xsc.TextAttr}) 
+	empty = True
+	class Attrs(coreattrs):
+		class alt(xsc.TextAttr): pass
+		class src(xsc.URLAttr): pass
+		class localsrc(xsc.TextAttr): pass
+		class vspace(xsc.TextAttr): pass
+		class hspace(xsc.TextAttr): pass
+		class align(xsc.TextAttr): pass
+		class height(xsc.TextAttr): pass
+		class width(xsc.TextAttr): pass
 
 class anchor(xsc.Element):
 	"""
 	creates an anchor (also called a link) associated with <pyref class="go"><class>go</class></pyref>,
 	<pyref class="prev"><class>prev</class></pyref> or <pyref class="refresh"><class>refresh</class></pyref> tasks.
 	"""
-	empty = 0
-	attrHandlers = coreattrs.copy()
-	attrHandlers.update({"title": xsc.TextAttr, "accesskey": xsc.TextAttr}) 
+	empty = False
+	class Attrs(coreattrs):
+		class title(xsc.TextAttr): pass
+		class accesskey(xsc.TextAttr): pass
 
 class a(xsc.Element):
 	"""
 	creates an anchor (also called a link)
 	"""
-	empty = 0
-	attrHandlers = coreattrs.copy()
-	attrHandlers.update({"href": xsc.URLAttr, "title": xsc.TextAttr, "accesskey": xsc.TextAttr}) 
+	empty = False
+	class Attrs(coreattrs):
+		class href(xsc.URLAttr): pass
+		class title(xsc.TextAttr): pass
+		class accesskey(xsc.TextAttr): pass
 
 class table(xsc.Element):
 	"""
 	creates a columnar table providing control over table alignment
 	"""
-	empty = 0
-	attrHandlers = coreattrs.copy()
-	attrHandlers.update({"title": xsc.TextAttr, "align": xsc.TextAttr, "columns": xsc.IntAttr}) 
+	empty = False
+	class Attrs(coreattrs):
+		class title(xsc.TextAttr): pass
+		class align(xsc.TextAttr): pass
+		class columns(xsc.IntAttr): pass
 
 class tr(xsc.Element):
 	"""
 	creates rows within a table
 	"""
-	empty = 0
-	attrHandlers = coreattrs.copy()
+	empty = False
+	class Attrs(coreattrs):
+		pass
 
 class td(xsc.Element):
 	"""
 	creates cells within table rows
 	"""
-	empty = 0
-	attrHandlers = coreattrs.copy()
+	empty = False
+	class Attrs(coreattrs):
+		pass
 
 class em(xsc.Element):
 	"""
 	displays all text between <markup>&lt;em&gt;</markup> and <markup>&lt;/em&gt;</markup> formatted with emphasis
 	"""
-	empty = 0
-	attrHandlers = coreattrs.copy()
+	empty = False
+	class Attrs(coreattrs):
+		pass
 
 class strong(xsc.Element):
 	"""
 	displays all text between <markup>&lt;strong&gt;</markup> and <markup>&lt;/strong&gt;</markup> formatted with strong emphasis
 	"""
-	empty = 0
-	attrHandlers = coreattrs.copy()
+	empty = False
+	class Attrs(coreattrs):
+		pass
 
 class b(xsc.Element):
 	"""
 	displays all text between <markup>&lt;b&gt;</markup> and <markup>&lt;/b&gt;</markup> in bold text
 	"""
-	empty = 0
-	attrHandlers = coreattrs.copy()
+	empty = False
+	class Attrs(coreattrs):
+		pass
 
 class i(xsc.Element):
 	"""
 	displays all text between <markup>&lt;i&gt;</markup> and <markup>&lt;/i&gt;</markup> in italic text
 	"""
-	empty = 0
-	attrHandlers = coreattrs.copy()
+	empty = False
+	class Attrs(coreattrs):
+		pass
 
 class u(xsc.Element):
 	"""
 	displays all text between <markup>&lt;u&gt;</markup> and <markup>&lt;/u&gt;</markup> as underlined text
 	"""
-	empty = 0
-	attrHandlers = coreattrs.copy()
+	empty = False
+	class Attrs(coreattrs):
+		pass
 
 class big(xsc.Element):
 	"""
 	displays all text between <markup>&lt;big&gt;</markup> and <markup>&lt;/big&gt;</markup> in a large font
 	"""
-	empty = 0
-	attrHandlers = coreattrs.copy()
+	empty = False
+	class Attrs(coreattrs):
+		pass
 
 class small(xsc.Element):
 	"""
 	displays all text between <markup>&lt;small&gt;</markup> and <markup>&lt;/small&gt;</markup> in a small font
 	"""
-	empty = 0
-	attrHandlers = coreattrs.copy()
+	empty = False
+	class Attrs(coreattrs):
+		pass
 
 class p(xsc.Element):
 	"""
 	creates a paragraph, establishing alignment and wrapping for all text within it
 	"""
-	empty = 0
-	attrHandlers = coreattrs.copy()
-	attrHandlers.update({"align": xsc.TextAttr, "mode": xsc.TextAttr})
+	empty = False
+	class Attrs(coreattrs):
+		class align(xsc.TextAttr): pass
+		class mode(xsc.TextAttr): pass
 
 class br(xsc.Element):
 	"""
 	forces a line break
 	"""
-	empty = 1
-	attrHandlers = coreattrs.copy()
-	attrHandlers.update({"type": xsc.TextAttr})
+	empty = True
+	class Attrs(coreattrs):
+		class type(xsc.TextAttr): pass
 
 class pre(xsc.Element):
 	"""
 	preformatted text
 	"""
-	empty = 0
-	attrHandlers = coreattrs.copy()
-
+	empty = False
+	class Attrs(coreattrs):
+		pass
 
 # Entities in DTD
 class nbsp(xsc.CharRef): "no-break space = non-breaking space, U+00A0 ISOnum"; codepoint = 160
 class shy(xsc.CharRef): "soft hyphen = discretionary hyphen, U+00AD ISOnum"; codepoint = 173
 
 # register all the classes we've defined so far
-namespace = xsc.Namespace("wml", "http://www.wapforum.org/DTD/wml13.dtd", vars())
+xmlns = xsc.Namespace("wml", "http://www.wapforum.org/DTD/wml13.dtd", vars())

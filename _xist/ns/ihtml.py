@@ -1,7 +1,8 @@
 #! /usr/bin/env python
+# -*- coding: Latin-1 -*-
 
-## Copyright 1999-2001 by LivingLogic AG, Bayreuth, Germany.
-## Copyright 1999-2001 by Walter Dörwald
+## Copyright 1999-2002 by LivingLogic AG, Bayreuth, Germany.
+## Copyright 1999-2002 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -29,279 +30,330 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 
 import cgi # for parse_header
 
-from xist import xsc
+from ll.xist import xsc
 
 class a(xsc.Element):
-	empty = 0
-	attrHandlers = {
-		"name": xsc.TextAttr, # Designates a marker name within an HTML file (1.0)
-		"accesskey": xsc.TextAttr, # Directkey function (1.0)
-		"href": xsc.URLAttr, # Designates a link to a Web site (http), e-mail address (mailto) or phone number (tel) (1.0)
-		"cti": xsc.TextAttr, # Dial function + tone input function (2.0)
-		"ijam": xsc.TextAttr, # Designates the ID of the downloaded i appli that the OBJECT tag specifies. (3.0)
-		"utn": xsc.BoolAttr, # Verifies individual identification information (3.0)
-		"subject": xsc.TextAttr, # Designates the subject with mailto: (3.0)
-		"body": xsc.TextAttr, # Designates the body with mailto: (3.0)
-		"telbook": xsc.TextAttr, # Records in telphone book (3.0)
-		"kana": xsc.TextAttr, # Records in telphone book (3.0)
-		"e-mail": xsc.TextAttr # Records in telphone book (3.0)
-	}
+	empty = False
+	class Attrs(xsc.Element.Attrs):
+		class name(xsc.TextAttr):
+			"Designates a marker name within an HTML file (1.0)"
+		class accesskey(xsc.TextAttr):
+			"Directkey function (1.0)"
+		class href(xsc.URLAttr):
+			"Designates a link to a Web site (http), e-mail address (mailto) or phone number (tel) (1.0)"
+		class cti(xsc.TextAttr):
+			"Dial function + tone input function (2.0)"
+		class ijam(xsc.TextAttr):
+			"Designates the ID of the downloaded i appli that the OBJECT tag specifies. (3.0)"
+		class utn(xsc.BoolAttr):
+			"Verifies individual identification information (3.0)"
+		class subject(xsc.TextAttr):
+			"Designates the subject with mailto: (3.0)"
+		class body(xsc.TextAttr):
+			"Designates the body with mailto: (3.0)"
+		class telbook(xsc.TextAttr):
+			"Records in telphone book (3.0)"
+		class kana(xsc.TextAttr):
+			"Records in telphone book (3.0)"
+		class email(xsc.TextAttr):
+			"Records in telphone book (3.0)"
+			xmlname = "e-mail"
 
 class base(xsc.Element):
 	"""
 	Designates the base URL for the relative paths used in an HTML file. (1.0)
 	"""
-	empty = 1
-	attrHandlers = {
-		"href": xsc.URLAttr
-	}
+	empty = True
+	class Attrs(xsc.Element.Attrs):
+		class href(xsc.URLAttr): pass
 
 class blink(xsc.Element):
 	"""
 	Blinks the designated text. (2.0)
 	"""
-	empty = 0
+	empty = False
 
 class blockquote(xsc.Element):
 	"""
 	Creates a text block and displays a quote mark. (1.0)
 	"""
-	empty = 0
+	empty = False
 
 class body(xsc.Element):
 	"""
 	Designates content to be displayed as a page.
 	"""
-	empty = 0
-	attrHandlers = {
-		"bgcolor": xsc.TextAttr, # Designates background color (2.0)
-		"text": xsc.TextAttr, # Designates text color (2.0)
-		"link": xsc.TextAttr # Designates link color (2.0)
-	}
+	empty = False
+	class Attrs(xsc.Element.Attrs):
+		class bgcolor(xsc.TextAttr):
+			"Designates background color (2.0)"
+		class text(xsc.TextAttr):
+			"Designates text color (2.0)"
+		class link(xsc.TextAttr):
+			"Designates link color (2.0)"
 
 class br(xsc.Element):
-	empty = 1
-	attrHandlers = {
-		"clear": xsc.TextAttr # Designates the way a character string wraps around an inline image by deciding where line feeding takes place. Depending on the attribute, it also cancels the wraparound function. (1.0)
-	}
+	empty = True
+	class Attrs(xsc.Element.Attrs):
+		class clear(xsc.TextAttr):
+			"""
+			Designates the way a character string wraps around an inline image by deciding where line feeding takes place.
+			Depending on the attribute, it also cancels the wraparound function. (1.0)
+			"""
 
 class center(xsc.Element):
 	"""
 	Centers character strings, images and tables. (1.0)
 	"""
-	empty = 0
+	empty = False
 
 class dd(xsc.Element):
 	"""
 	Creates a definition list. (See <pyref class="dl"><class>dl</class></pyref>) (1.0)
 	"""
-	empty = 0
+	empty = False
 
 class dir(xsc.Element):
 	"""
 	Creates a list of menus or directories. Each list item must be a <pyref class="li"><class>li</class></pyref>. (1.0)
 	"""
-	empty = 0
+	empty = False
 
 class div(xsc.Element):
-	empty = 0
-	attrHandlers = {
-		"align": xsc.TextAttr # Aligns the content left or right or centers it (1.0)
-	}
+	empty = False
+	class Attrs(xsc.Element.Attrs):
+		class align(xsc.TextAttr):
+			"Aligns the content left or right or centers it (1.0)"
 
 class dl(xsc.Element):
 	"""
 	Creates a definition list. The content consists of <pyref class="dd"><class>dd</class></pyref> and
 	<pyref class="dt"><class>dt</class></pyref> elements. (1.0)
 	"""
-	empty = 0
+	empty = False
 
 class dt(xsc.Element):
 	"""
 	Designates the list heading and aligns the character string at left. (1.0)
 	"""
-	empty = 0
+	empty = False
 
 class font(xsc.Element):
 	"""
 	Designates the color of a certain portion of text. (2.0)
 	"""
-	empty = 0
-	attrHandlers = {
-		"color": xsc.TextAttr
-	}
+	empty = False
+	class Attrs(xsc.Element.Attrs):
+		class color(xsc.TextAttr): pass
 
 class form(xsc.Element):
 	"""
 	Encloses an area to be shown as a data input form. (1.0)
 	"""
-	empty = 0
-	attrHandlers = {
-		"action": xsc.URLAttr, # URL or e-mail address (mailto) the input form will be sent to. (1.0)
-		"method": xsc.TextAttr, # Designates the method by which data is sent to the server, to either post or get. (1.0)
-		"utn": xsc.BoolAttr # Verifies individual identification information. (3.0)
-	}
+	empty = False
+	class Attrs(xsc.Element.Attrs):
+		class action(xsc.URLAttr):
+			"URL or e-mail address (mailto) the input form will be sent to. (1.0)"
+		class method(xsc.TextAttr):
+			"Designates the method by which data is sent to the server, to either post or get. (1.0)"
+		class utn(xsc.BoolAttr):
+			"Verifies individual identification information. (3.0)"
 
 class head(xsc.Element):
 	"""
 	Designates the information that is used as the page title and/or by the server. The <class>head</class> tag follows the <pyref class="html"><class>html</class></pyref> tag. (1.0)
 	"""
-	empty = 0
+	empty = False
 
 class h1(xsc.Element):
 	"""
 	Designates level 1 header. (1.0)
 	"""
-	empty = 0
-	attrHandlers = {
-		"align": xsc.TextAttr # Designates the alignment of the header. (1.0)
-	}
+	empty = False
+	class Attrs(xsc.Element.Attrs):
+		class align(xsc.TextAttr):
+			"Designates the alignment of the header. (1.0)"
 
 class h2(xsc.Element):
 	"""
 	Designates level 2 header. (1.0)
 	"""
-	empty = 0
-	attrHandlers = {
-		"align": xsc.TextAttr # Designates the alignment of the header. (1.0)
-	}
+	empty = False
+	class Attrs(xsc.Element.Attrs):
+		class align(xsc.TextAttr):
+			"Designates the alignment of the header. (1.0)"
 
 class h3(xsc.Element):
 	"""
 	Designates level 3 header. (1.0)
 	"""
-	empty = 0
-	attrHandlers = {
-		"align": xsc.TextAttr # Designates the alignment of the header. (1.0)
-	}
+	empty = False
+	class Attrs(xsc.Element.Attrs):
+		class align(xsc.TextAttr):
+			"Designates the alignment of the header. (1.0)"
 
 class h4(xsc.Element):
 	"""
 	Designates level 4 header. (1.0)
 	"""
-	empty = 0
-	attrHandlers = {
-		"align": xsc.TextAttr # Designates the alignment of the header. (1.0)
-	}
+	empty = False
+	class Attrs(xsc.Element.Attrs):
+		class align(xsc.TextAttr):
+			"Designates the alignment of the header. (1.0)"
 
 class h5(xsc.Element):
 	"""
 	Designates level 5 header. (1.0)
 	"""
-	empty = 0
-	attrHandlers = {
-		"align": xsc.TextAttr # Designates the alignment of the header. (1.0)
-	}
+	empty = False
+	class Attrs(xsc.Element.Attrs):
+		class align(xsc.TextAttr):
+			"Designates the alignment of the header. (1.0)"
 
 class h6(xsc.Element):
 	"""
 	Designates level 6 header. (1.0)
 	"""
-	empty = 0
-	attrHandlers = {
-		"align": xsc.TextAttr # Designates the alignment of the header. (1.0)
-	}
+	empty = False
+	class Attrs(xsc.Element.Attrs):
+		class align(xsc.TextAttr):
+			"Designates the alignment of the header. (1.0)"
 
 class hr(xsc.Element):
 	"""
 	Designates the settings of the horizontal dividing line. (1.0)
 	"""
-	empty = 1
-	attrHandlers = {
-		"align": xsc.TextAttr, # Designates the alignment of the horizontal line. (1.0)
-		"size": xsc.TextAttr, # Sets the thickness of the horizontal line.(1.0)
-		"width": xsc.TextAttr, # Determines the length of the horizontal line. (1.0)
-		"noshade": xsc.BoolAttr # Gives the horizontal line a two-dimensional appearance. (1.0)
-	}
+	empty = True
+	class Attrs(xsc.Element.Attrs):
+		class align(xsc.TextAttr):
+			"Designates the alignment of the horizontal line. (1.0)"
+		class size(xsc.TextAttr):
+			"Sets the thickness of the horizontal line.(1.0)"
+		class width(xsc.TextAttr):
+			"Determines the length of the horizontal line. (1.0)"
+		class noshade(xsc.BoolAttr):
+			"Gives the horizontal line a two-dimensional appearance. (1.0)"
 
 class html(xsc.Element):
 	"""
 	The root element
 	"""
-	empty = 0
+	empty = False
 
 class img(xsc.Element):
 	"""
 	Designates an image file (1.0)
 	"""
-	empty = 1
-	attrHandlers = {
-		"src": xsc.URLAttr, # the image URL (1.0)
-		"align": xsc.TextAttr, # Defines the way the image and character string are laid out, and how the character string wraps around the image. <lit>top</lit>, <lit>middle</lit> or <lit>bottom</lit>. (1.0)
-		"width": xsc.TextAttr, # Sets the image width (1.0)
-		"height": xsc.TextAttr, # Sets the image height (1.0)
-		"hspace": xsc.IntAttr, # Sets the blank space to the left of the image on the screen. (1.0)
-		"vspace": xsc.IntAttr, # Sets the blank space between the image and the preceding line. (1.0)
-		"alt": xsc.TextAttr, # Designates a text string that can be shown as an alternative to the image. (1.0)
-	}
+	empty = True
+	class Attrs(xsc.Element.Attrs):
+		class src(xsc.URLAttr):
+			"the image URL (1.0)"
+		class align(xsc.TextAttr):
+			"""
+			Defines the way the image and character string are laid out, and how the character string
+			wraps around the image. <lit>top</lit>, <lit>middle</lit> or <lit>bottom</lit>. (1.0)
+			"""
+		class width(xsc.TextAttr):
+			"Sets the image width (1.0)"
+		class height(xsc.TextAttr):
+			"Sets the image height (1.0)"
+		class hspace(xsc.IntAttr):
+			"Sets the blank space to the left of the image on the screen. (1.0)"
+		class vspace(xsc.IntAttr):
+			"Sets the blank space between the image and the preceding line. (1.0)"
+		class alt(xsc.TextAttr):
+			"Designates a text string that can be shown as an alternative to the image. (1.0)"
 
 class input(xsc.Element):
-	empty = 1
-	attrHandlers = {
-		"type": xsc.TextAttr, # Displays a textbox (<lit>text</lit>), a password input textbox (<lit>password</lit>), checkbox (<lit>checkbox</lit>), radio button (<lit>radio</lit>), hidden field (<lit>hidden</lit>), submit (<lit>submit</lit>) or reset (<lit>reset</lit>) (1.0)
-		"name": xsc.TextAttr, # Designates the name of the field employed to pass the data, obtained using the <class>input</class> tag, to an &cgi; script and others. (1.0)
-		"size": xsc.IntAttr, # Designates the width of the textbox by number of characters. (1.0)
-		"maxlength": xsc.IntAttr, # Limits the number of characters that can be input to the textbox. (1.0)
-		"accesskey": xsc.TextAttr, # Directkey function. (1.0)
-		"value": xsc.TextAttr, # Designates the initial value of the data. (1.0)
-		"istyle": xsc.TextAttr, # (2.0)
-		"checked": xsc.BoolAttr # Makes a selected checkbox the default.(1.0)
-	}
+	empty = True
+	class Attrs(xsc.Element.Attrs):
+		class type(xsc.TextAttr):
+			"""
+			Displays a textbox (<lit>text</lit>), a password input textbox (<lit>password</lit>),
+			checkbox (<lit>checkbox</lit>), radio button (<lit>radio</lit>), hidden field (<lit>hidden</lit>),
+			submit (<lit>submit</lit>) or reset (<lit>reset</lit>) (1.0)
+			"""
+		class name(xsc.TextAttr):
+			"""
+			Designates the name of the field employed to pass the data, obtained using the <class>input</class> tag,
+			to an &cgi; script and others. (1.0)
+			"""
+		class size(xsc.IntAttr):
+			"Designates the width of the textbox by number of characters. (1.0)"
+		class maxlength(xsc.IntAttr):
+			"Limits the number of characters that can be input to the textbox. (1.0)"
+		class accesskey(xsc.TextAttr):
+			"Directkey function. (1.0)"
+		class value(xsc.TextAttr):
+			"Designates the initial value of the data. (1.0)"
+		class istyle(xsc.TextAttr):
+			"(2.0)"
+		class checked(xsc.BoolAttr):
+			"Makes a selected checkbox the default. (1.0)"
 
 class li(xsc.Element):
 	"""
 	A list item (1.0)
 	"""
-	empty = 0
-	attrHandlers = {
-		"type": xsc.TextAttr, # Designates number format of a list. <lit>1</lit> is numeric, <lit>A</lit> is capital Roman letters, and <lit>a</lit> is lower-case Roman letters. (2.0)
-		"value": xsc.IntAttr, # Designates the starting number of a list. (2.0)
-	}
+	empty = False
+	class Attrs(xsc.Element.Attrs):
+		class type(xsc.TextAttr):
+			"""
+			Designates number format of a list. <lit>1</lit> is numeric, <lit>A</lit> is capital Roman letters,
+			and <lit>a</lit> is lower-case Roman letters. (2.0)
+			"""
+		class value(xsc.IntAttr):
+			"Designates the starting number of a list. (2.0)"
 
 class marquee(xsc.Element):
 	"""
 	Scrolls text horizontally (2.0)
 	"""
-	empty = 0
-	attrHandlers = {
-		"behaviour": xsc.TextAttr, # Designates whether text will scroll off screen, stop at the edge of the screen, etc. (<lit>scroll</lit>, <lit>slide</lit> or <lit>alternate</lit>) (2.0)
-		"direction": xsc.TextAttr, # Designates which direction text will scroll. (<lit>left</lit> or <lit>right</lit>) (2.0)
-		"loop": xsc.IntAttr, # Designates how many times the text will scroll. (2.0)
-		"height": xsc.TextAttr, # Designates height. (Fixed at one line (Cannot be changed by user.).) (2.0)
-		"width": xsc.TextAttr, # Designates width. (Fixed to screen width (Cannot be changed by user.).) (2.0)
-		"scrollamount": xsc.TextAttr, # Designates the distance the text will scroll. (Cannot be changed by user.) (2.0)
-		"scrolldelay": xsc.TextAttr, # Designates the time it takes for text to scroll. (Cannot be changed by user.) (2.0)
-	}
+	empty = False
+	class Attrs(xsc.Element.Attrs):
+		class behaviour(xsc.TextAttr):
+			"""
+			Designates whether text will scroll off screen, stop at the edge of the screen, etc.
+			(<lit>scroll</lit>, <lit>slide</lit> or <lit>alternate</lit>) (2.0)
+			"""
+		class direction(xsc.TextAttr):
+			"""
+			Designates which direction text will scroll. (<lit>left</lit> or <lit>right</lit>) (2.0)
+			"""
+		class loop(xsc.IntAttr):
+			"Designates how many times the text will scroll. (2.0)"
+		class height(xsc.TextAttr):
+			"Designates height. (Fixed at one line (Cannot be changed by user.).) (2.0)"
+		class width(xsc.TextAttr):
+			"Designates width. (Fixed to screen width (Cannot be changed by user.).) (2.0)"
+		class scrollamount(xsc.TextAttr):
+			"Designates the distance the text will scroll. (Cannot be changed by user.) (2.0)"
+		class scrolldelay(xsc.TextAttr):
+			"Designates the time it takes for text to scroll. (Cannot be changed by user.) (2.0)"
 
 class menu(xsc.Element):
 	"""
 	Creates a menu list (1.0)
 	"""
-	empty = 0
+	empty = False
 
 class meta(xsc.Element):
 	"""
 	Page meta information (2.0)
 	"""
-	empty = 1
-	attrHandlers = {
-		"name": xsc.TextAttr, # Designates the name of the meta field
-		"http-equiv": xsc.TextAttr, # Designates the HTTP header fields you want to emulate. (Fixed to <lit>Content-Type</lit>) (2.0)
-		"http_equiv": xsc.TextAttr, # copy of the above
-		"content": xsc.TextAttr # Designates content type (Fixed <lit>to text/html; charset=SHIFT_JIS</lit>) (2.0)
-	}
-
-	def __init__(self, *_content, **_attrs):
-		# we have two names for one and the same attribute http_equiv and http-equiv
-		xsc.Element.__init__(self, *_content, **_attrs)
-		if self.hasAttr("http_equiv"):
-			if not self.hasAttr("http-equiv"):
-				self["http-equiv"] = self["http_equiv"]
-			del self["http_equiv"]
+	empty = True
+	class Attrs(xsc.Element.Attrs):
+		class name(xsc.TextAttr):
+			"Designates the name of the meta field"
+		class http_equiv(xsc.TextAttr):
+			"Designates the HTTP header fields you want to emulate. (Fixed to <lit>Content-Type</lit>) (2.0)"
+			xmlname = "http-equiv"
+		class content(xsc.TextAttr):
+			"Designates content type (Fixed <lit>to text/html; charset=SHIFT_JIS</lit>) (2.0)"
 
 	def publish(self, publisher):
-		if self.hasAttr("http-equiv"):
-			ctype = unicode(self["http-equiv"]).lower()
+		if self.hasAttr("http_equiv"):
+			ctype = unicode(self["http_equiv"]).lower()
 			if ctype == u"content-type" and self.hasAttr("content"):
 				(contenttype, options) = cgi.parse_header(unicode(self["content"]))
 				if not options.has_key(u"charset") or options[u"charset"] != publisher.encoding:
@@ -316,83 +368,98 @@ class meta(xsc.Element):
 		super(meta, self).publish(publisher)
 
 class object(xsc.Element):
-	empty = 1
-	attrHandlers = {
-		"declare": xsc.BoolAttr, # Identifier that that declares and OBJECT ??? (3.0)
-		"id": xsc.TextAttr, # The ID of this OBJECT tag (unique within HTML). (3.0)
-		"data": xsc.URLAttr, # The URL of the i appli ADF that correspondes to the OBJECT tag. (3.0)
-		"type": xsc.TextAttr, # Content type of the ADF designated in the data attribute ("application/x-jam" fixed). (2.0)
-	}
+	empty = True
+	class Attrs(xsc.Element.Attrs):
+		class declare(xsc.BoolAttr):
+			"Identifier that that declares and OBJECT ??? (3.0)"
+		class id(xsc.TextAttr):
+			"The ID of this OBJECT tag (unique within HTML). (3.0)"
+		class data(xsc.URLAttr):
+			"The URL of the i appli ADF that corresponds to the OBJECT tag. (3.0)"
+		class type(xsc.TextAttr):
+			"""Content type of the ADF designated in the data attribute ("application/x-jam" fixed). (2.0)"""
 
 class ol(xsc.Element):
 	"""
 	Creates a numbered list. (1.0)
 	"""
-	empty = 0
-	attrHandlers = {
-		"type": xsc.TextAttr, # Designates number format of a list. <lit>1</lit> is numeric, <lit>A</lit> is capital Roman letters, and <lit>a</lit> is lower-case Roman letters. (2.0)
-		"start": xsc.IntAttr, # Designates the starting number of a list. (2.0)
-	}
-
+	empty = False
+	class Attrs(xsc.Element.Attrs):
+		class type(xsc.TextAttr):
+			"""
+			Designates number format of a list. <lit>1</lit> is numeric, <lit>A</lit> is capital Roman letters,
+			and <lit>a</lit> is lower-case Roman letters. (2.0)
+			"""
+		class start(xsc.IntAttr):
+			"Designates the starting number of a list. (2.0)"
 
 class option(xsc.Element):
-	empty = 0
-	attrHandlers = {
-		"selected": xsc.BoolAttr, # Designates the selected (initial value). (2.0)
-		"value": xsc.TextAttr, # Designates selected menu items. (1.0)
-	}
+	empty = False
+	class Attrs(xsc.Element.Attrs):
+		class selected(xsc.BoolAttr):
+			"Designates the selected (initial value). (2.0)"
+		class value(xsc.TextAttr):
+			"Designates selected menu items. (1.0)"
 
 class p(xsc.Element):
 	"""
 	Creates a text block. (1.0)
 	"""
-	empty = 0
-	attrHandlers = {
-		"align": xsc.TextAttr # Aligns the content left or right or centers it (1.0)
-	}
+	empty = False
+	class Attrs(xsc.Element.Attrs):
+		class align(xsc.TextAttr):
+			"Aligns the content left or right or centers it (1.0)"
 
 class plaintext(xsc.Element):
 	"""
 	Displays a text file exactly as entered.
 	"""
-	empty = 0
+	empty = False
 
 class pre(xsc.Element):
 	"""
 	Displays a source file exactly as entered, including line feeds and blank spaces.
 	"""
-	empty = 0
+	empty = False
 
 class select(xsc.Element):
-	empty = 0
-	attrHandlers = {
-		"name": xsc.TextAttr, # Designates the name of the list for passing selected items. (1.0)
-		"size": xsc.IntAttr, # Designates the number of lines for the list. (1.0)
-		"multiple": xsc.BoolAttr # Enables multiple selections. (2.0)
-	}
+	empty = False
+	class Attrs(xsc.Element.Attrs):
+		class name(xsc.TextAttr):
+			"Designates the name of the list for passing selected items. (1.0)"
+		class size(xsc.IntAttr):
+			"Designates the number of lines for the list. (1.0)"
+		class multiple(xsc.BoolAttr):
+			"Enables multiple selections. (2.0)"
 
 class textarea(xsc.Element):
-	empty = 1
-	attrHandlers = {
-		"name": xsc.TextAttr, # Designates the name of the field employed to pass the data, obtained using the TEXTAREA tag, to a CGI script and others. (1.0)
-		"accesschar": xsc.IntAttr, # (1.0)
-		"rows": xsc.IntAttr, # Designates the height of the input box field. (1.0)
-		"cols": xsc.IntAttr, # Designates the width of the input box field. (1.0)
-		"istyle": xsc.TextAttr # Designates full-size Kana, half-size Kana, Roman letters, and numerals. (2.0)
-	}
-
+	empty = True
+	class Attrs(xsc.Element.Attrs):
+		class name(xsc.TextAttr):
+			"""
+			Designates the name of the field employed to pass the data, obtained using the
+			TEXTAREA tag, to a CGI script and others. (1.0)
+			"""
+		class accesschar(xsc.TextAttr):
+			"(1.0)"
+		class rows(xsc.IntAttr):
+			"Designates the height of the input box field. (1.0)"
+		class cols(xsc.IntAttr):
+			"Designates the width of the input box field. (1.0)"
+		class istyle(xsc.TextAttr):
+			"Designates full-size Kana, half-size Kana, Roman letters, and numerals. (2.0)"
 
 class title(xsc.Element):
 	"""
 	Designates the page title.
 	"""
-	empty = 0
+	empty = False
 
 class ul(xsc.Element):
 	"""
 	Creates a bullet point list (o).
 	"""
-	empty = 0
+	empty = False
 
 # Latin 1 characters
 class nbsp(xsc.CharRef): "no-break space = non-breaking space, U+00A0 ISOnum"; codepoint = 160
@@ -698,4 +765,4 @@ class fixed(xsc.CharRef): codepoint = 0xe70b
 # Stuff from HTML
 class euro(xsc.CharRef): "euro sign, U+20AC NEW"; codepoint = 8364
 
-namespace = xsc.Namespace("ihtml", "http://www.nttdocomo.co.jp/imode", vars())
+xmlns = xsc.Namespace("ihtml", "http://www.nttdocomo.co.jp/imode", vars())

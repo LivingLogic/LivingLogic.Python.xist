@@ -1,7 +1,8 @@
 #! /usr/bin/env python
+# -*- coding: Latin-1 -*-
 
-## Copyright 1999-2001 by LivingLogic AG, Bayreuth, Germany.
-## Copyright 1999-2001 by Walter Dörwald
+## Copyright 1999-2002 by LivingLogic AG, Bayreuth, Germany.
+## Copyright 1999-2002 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -28,12 +29,12 @@ forms. These are just abbreviations for the various
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-from xist import xsc
-import html
+from ll.xist import xsc
+from ll.xist.ns import html
 
 class checkbox(html.input):
-	attrHandlers = html.input.attrHandlers.copy()
-	del attrHandlers["type"]
+	class Attrs(html.input.Attrs):
+		type = None
 
 	def convert(self, converter):
 		e = html.input(self.attrs, type="checkbox")
@@ -44,41 +45,40 @@ class checkbox(html.input):
 		return e.convert(converter)
 
 class edit(html.input):
-	attrHandlers = html.input.attrHandlers.copy()
-	del attrHandlers["type"]
+	class Attrs(html.input.Attrs):
+		type = None
 
 	def convert(self, converter):
 		e = html.input(self.attrs, type="text")
 		return e.convert(converter)
 
 class radio(html.input):
-	attrHandlers = html.input.attrHandlers.copy()
-	del attrHandlers["type"]
+	class Attrs(html.input.Attrs):
+		type = None
 
 	def convert(self, converter):
 		e = html.input(self.attrs, type="radio")
 		return e.convert(converter)
 
 class submit(html.input):
-	attrHandlers = html.input.attrHandlers.copy()
-	del attrHandlers["type"]
+	class Attrs(html.input.Attrs):
+		type = None
 
 	def convert(self, converter):
 		e = html.input(self.attrs, type="submit")
 		return e.convert(converter)
 
 class memo(html.textarea):
-	empty = 1
-	attrHandlers = html.textarea.attrHandlers.copy()
-	attrHandlers["value"] = xsc.TextAttr
+	class Attrs(html.textarea.Attrs):
+		class value(xsc.TextAttr): pass
 
 	def convert(self, converter):
 		e = html.textarea(self["value"], self.attr.without(["value"]))
 		return e.convert(converter)
 
 class hidden(html.input):
-	attrHandlers = html.input.attrHandlers.copy()
-	del attrHandlers["type"]
+	class Attrs(html.input.Attrs):
+		type = None
 
 	def __unicode__(self):
 		return u""
@@ -87,4 +87,4 @@ class hidden(html.input):
 		e = html.input(self.attrs, type="hidden")
 		return e.convert(converter)
 
-namespace = xsc.Namespace("form", "http://xmlns.livinglogic.de/xist/ns/form", vars())
+xmlns = xsc.Namespace("form", "http://xmlns.livinglogic.de/xist/ns/form", vars())

@@ -1,7 +1,8 @@
 #! /usr/bin/env python
+# -*- coding: Latin-1 -*-
 
-## Copyright 1999-2001 by LivingLogic AG, Bayreuth, Germany.
-## Copyright 1999-2001 by Walter Dörwald
+## Copyright 1999-2002 by LivingLogic AG, Bayreuth, Germany.
+## Copyright 1999-2002 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -28,7 +29,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 
 import cgi # for parse_header
 
-from xist import xsc
+from ll.xist import xsc
 
 class scriptlet(xsc.ProcInst):
 	"""
@@ -60,25 +61,25 @@ class declaration(xsc.ProcInst):
 		publisher.publish(u" %>")
 
 class If(scriptlet):
-	name = "if"
+	xmlname = "if"
 
 	def convert(self, converter):
 		return scriptlet(u"if(" + self.content + u"){")
 
 class Else(scriptlet):
-	name = "else"
+	xmlname = "else"
 
 	def convert(self, converter):
 		return scriptlet(u"}else{")
 
 class ElIf(scriptlet):
-	name = "elif"
+	xmlname = "elif"
 
 	def convert(self, converter):
 		return scriptlet(u"}else if (" + self.content + "){")
 
 class End(scriptlet):
-	name = "end"
+	xmlname = "end"
 
 	def convert(self, converter):
 		return scriptlet(u"}")
@@ -89,7 +90,7 @@ class block(xsc.Element):
 	<doc:par>Note that the content itself will not be turned into a scriptlet
 	automatically but will be used as-is.</doc:par>
 	"""
-	empty = 0
+	empty = False
 
 	def convert(self, converter):
 		e = xsc.Frag(
@@ -100,37 +101,34 @@ class block(xsc.Element):
 		return e.convert(converter)
 
 class directive(xsc.Element):
-	empty = 1
-	register = 0 # only serves as a base class
+	empty = True
+	register = False # only serves as a base class
 
 	def publish(self, publisher):
-		if self.publishPrefix is not None:
-			publishPrefix = self.publishPrefix
-		else:
-			publishPrefix = publisher.publishPrefix
 		publisher.publish(u"<%@ ")
-		if publishPrefix:
-			publisher.publish(self.prefix())
-			publisher.publish(u":")
-		name = self.name
-		pos = name.find(".")
-		if pos != -1:
-			name = name[pos+1:]
-		publisher.publish(name)
+		self._publishName(publisher)
 		self.attrs.publish(publisher)
 		publisher.publish(u"%>")
 
 class directive_include(directive):
-	name = "directive.include"
-	attrHandlers = {"file": xsc.TextAttr}
+	xmlname = "include"
+	class Attrs(directive.Attrs):
+		class file(xsc.TextAttr): pass
 
 class directive_taglib(directive):
-	name = "directive.taglib"
-	attrHandlers = {"uri": xsc.TextAttr, "prefix": xsc.TextAttr}
+	xmlname = "taglib"
+	class Attrs(directive.Attrs):
+		class uri(xsc.TextAttr): pass
+		class prefix(xsc.TextAttr): pass
 
 class directive_page(directive):
-	name = "directive.page"
-	attrHandlers = {"import": xsc.TextAttr, "buffer": xsc.TextAttr, "errorPage": xsc.URLAttr, "session": xsc.TextAttr, "contentType": xsc.TextAttr}
+	xmlname = "page"
+	class Attrs(directive.Attrs):
+		class import_(xsc.TextAttr): xmlname = "import"
+		class buffer(xsc.TextAttr): pass
+		class errorPage(xsc.URLAttr): pass
+		class session(xsc.TextAttr): pass
+		class contentType(xsc.TextAttr): pass
 
 	def publish(self, publisher):
 		if not self.hasAttr("contentType"):
@@ -147,5 +145,22 @@ class directive_page(directive):
 					contentType=(contenttype, u"; ", u"; ".join([ "%s=%s" % option for option in options.items()]))
 				)
 				node.publish(publisher)
+
+	def publish(self, publisher):
+		if not self.hasAttr("contentType"):
+			node = self.__class__(self.attrs, contentType="text/html; charset=%s" % publisher.encoding)
+			node.publish(publisher)
+		else:
+			(contenttype, options) = cgi.parse_header(unicode(self["contentType"]))
+			if options.has_key(u"charset") and options[u"charset"] == publisher.encoding:
+				super(directive_page, self).publish(publisher)
+			else:
+				options[u"charset"] = publisher.encoding
+				node = self.__class__(
+					self.attrs,
+					contentType=(contenttype, u"; ", u"; ".join([ "%s=%s" % option for option in options.items()]))
+				)
+				node.publish(publisher)
+
 # register all the classes we've defined so far
-namespace = xsc.Namespace("jsp", "http://java.sun.com/products/jsp/dtd/jsp_1_0.dtd", vars())
+xmlns = xsc.Namespace("jsp", "http://java.sun.com/products/jsp/dtd/jsp_1_0.dtd", vars())

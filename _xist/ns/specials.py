@@ -1,7 +1,8 @@
 #! /usr/bin/env python
+# -*- coding: Latin-1 -*-
 
-## Copyright 1999-2001 by LivingLogic AG, Bayreuth, Germany.
-## Copyright 1999-2001 by Walter Dörwald
+## Copyright 1999-2002 by LivingLogic AG, Bayreuth, Germany.
+## Copyright 1999-2002 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -28,7 +29,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 
 import sys, types, time as time_, string
 
-from xist import xsc, parsers
+from ll.xist import xsc, parsers
 import ihtml, html, meta
 
 class xist(xsc.Entity):
@@ -45,37 +46,47 @@ class xist4c(xsc.Entity):
 
 class plaintable(html.table):
 	"""
-	<doc:par>a &html; table where the values of the attributes cellpadding, cellspacing and
-	border default to 0 (which can be overwritten via the class variable
-	<code>defaults</code>).</doc:par>
+	<doc:par>a &html; table where the values of the attributes <lit>cellpadding</lit>,
+	<lit>cellspacing</lit> and <lit>border</lit> default to <lit>0</lit>.</doc:par>
 	"""
-	empty = 0
-	defaults = {"cellpadding": 0, "cellspacing": 0, "border": 0}
+	empty = False
+	class Attrs(html.table.Attrs):
+		class cellpadding(html.table.Attrs.cellpadding):
+			default = 0
+		class cellspacing(html.table.Attrs.cellspacing):
+			default = 0
+		class border(html.table.Attrs.border):
+			default = 0
 
 	def convert(self, converter):
 		e = html.table(self.content, self.attrs)
-		e.copyDefaultAttrs(self.defaults)
 		return e.convert(converter)
 
 class plainbody(html.body):
 	"""
-	<doc:par>a &html; body where the attributes leftmargin, topmargin, marginheight and
-	marginwidth default to 0 (which can be overwritten via the class variable
-	<code>defaults</code>).</doc:par>
+	<doc:par>a &html; body where the attributes <lit>leftmargin</lit>, <lit>topmargin</lit>,
+	<lit>marginheight</lit> and <lit>marginwidth</lit> default to <lit>0</lit>.</doc:par>
 	"""
-	empty = 0
-	defaults = {"leftmargin": 0, "topmargin": 0, "marginheight": 0, "marginwidth": 0}
+	empty = False
+	class Attrs(html.body.Attrs):
+		class leftmargin(html.body.Attrs.leftmargin):
+			default = 0
+		class topmargin(html.body.Attrs.topmargin):
+			default = 0
+		class marginheight(html.body.Attrs.marginheight):
+			default = 0
+		class marginwidth(html.body.Attrs.marginwidth):
+			default = 0
 
 	def convert(self, converter):
 		e = html.body(self.content, self.attrs)
-		e.copyDefaultAttrs(self.defaults)
 		return e.convert(converter)
 
 class z(xsc.Element):
 	"""
 	<doc:par>puts it's content into french quotes</doc:par>
 	"""
-	empty = 0
+	empty = False
 
 	def convert(self, converter):
 		e = xsc.Frag(u"»", self.content.convert(converter), u"«")
@@ -90,8 +101,9 @@ class filesize(xsc.Element):
 	<doc:par>the size (in bytes) of the file whose URL is the attribute href
 	as a text node.</doc:par>
 	"""
-	empty = 1
-	attrHandlers = {"href": xsc.URLAttr}
+	empty = True
+	class Attrs(xsc.Element.Attrs):
+		class href(xsc.URLAttr): pass
 
 	def convert(self, converter):
 		size = self["href"].contentlength(root=converter.root)
@@ -105,11 +117,13 @@ class filetime(xsc.Element):
 	<doc:par>the time of the last modification of the file whose URL is in the attibute href
 	as a text node.</doc:par>
 	"""
-	empty = 1
-	attrHandlers = {"href": xsc.URLAttr, "format": xsc.TextAttr}
+	empty = True
+	class Attrs(xsc.Element.Attrs):
+		class href(xsc.URLAttr): pass
+		class format(xsc.TextAttr): pass
 
 	def convert(self, converter):
-		return xsc.Text(self["href"].FileTime())
+		return xsc.Text(self["href"].lastmodified)
 
 class time(xsc.Element):
 	"""
@@ -117,8 +131,9 @@ class time(xsc.Element):
 	is called). You can specify the format of the string in the attribute format, which is a
 	<function>strftime</function> compatible string.</doc:par>
 	"""
-	empty = 1
-	attrHandlers = {"format": xsc.TextAttr}
+	empty = True
+	class Attrs(xsc.Element.Attrs):
+		class format(xsc.TextAttr): pass
 
 	def convert(self, converter):
 		if self.hasAttr("format"):
@@ -134,7 +149,7 @@ class x(xsc.Element):
 	this can be used to comment out stuff. The content of the element must
 	of course still be weelformed and parsable.</doc:par>
 	"""
-	empty = 0
+	empty = False
 
 	def convert(self, converter):
 		return xsc.Null
@@ -151,10 +166,10 @@ class pixel(html.img):
 	(and every other allowed attribute for the img element) as usual.</doc:par>
 	"""
 
-	empty = 1
-	attrHandlers = html.img.attrHandlers.copy()
-	attrHandlers.update({"color": xsc.ColorAttr})
-	del attrHandlers["src"]
+	empty = True
+	class Attrs(html.img.Attrs):
+		class color(xsc.ColorAttr): pass
+		src = None
 
 	def convert(self, converter):
 		e = html.img()
@@ -181,7 +196,7 @@ class caps(xsc.Element):
 	<markup>&lt;span class="nini"&gt;...&lt;/span&gt;</markup>. This element is meant to be a workaround until all
 	browsers support the CSS feature "font-variant: small-caps".</doc:par>
 	"""
-	empty = 0
+	empty = False
 
 	lowercase = unicode(string.lowercase, "latin-1") + u" "
 
@@ -211,7 +226,7 @@ class caps(xsc.Element):
 			return unicode(self.content).upper()
 
 class endash(xsc.Element):
-	empty = 1
+	empty = True
 
 	def convert(self, converter):
 		return xsc.Text("-")
@@ -220,7 +235,7 @@ class endash(xsc.Element):
 		return u"-"
 
 class emdash(xsc.Element):
-	empty = 1
+	empty = True
 
 	def convert(self, converter):
 		return xsc.Text("-")
@@ -229,8 +244,9 @@ class emdash(xsc.Element):
 		return u"-"
 
 class include(xsc.Element):
-	empty = 1
-	attrHandlers = {"src": xsc.URLAttr}
+	empty = True
+	class Attrs(xsc.Element.Attrs):
+		class src(xsc.URLAttr): pass
 
 	def convert(self, converter):
 		e = parsers.parseURL(self["src"].forInput())
@@ -238,19 +254,13 @@ class include(xsc.Element):
 		return e.convert(converter)
 
 class par(html.div):
-	empty = 0
-	attrHandlers = html.div.attrHandlers.copy()
-	attrHandlers.update({"noindent": xsc.TextAttr})
+	empty = False
+	class Attrs(html.div.Attrs):
+		class noindent(xsc.BoolAttr): pass
 
 	def convert(self, converter):
-		e = html.div(*self.content)
-		indent = 1
-		for attr in self.attrs.keys():
-			if attr == "noindent":
-				indent = None
-			else:
-				e[attr] = self[attr]
-		if indent is not None:
+		e = html.div(self.content, self.attrs.without(["noindent"]))
+		if not self.hasAttr("noindent"):
 			e["class"] = "indent"
 		return e.convert(converter)
 
@@ -272,7 +282,7 @@ class autoimg(html.img):
 
 class autoinput(html.input):
 	"""
-	<doc:par>Extends <pyref module="xist.ns.html" class="input"><class>input</class></pyref>
+	<doc:par>Extends <pyref module="ll.xist.ns.html" class="input"><class>input</class></pyref>
 	with the ability to automatically set the size, if this element
 	has <code>type=="image"</code>.</doc:par>
 	"""
@@ -285,8 +295,9 @@ class autoinput(html.input):
 			return html.img.convert(self, converter)
 
 class loremipsum(xsc.Element):
-	empty = 1
-	attrHandlers = {"len": xsc.IntAttr}
+	empty = True
+	class Attrs(xsc.Element.Attrs):
+		class len(xsc.IntAttr): pass
 
 	text = "Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diem nonummy nibh euismod tincidnut ut lacreet dolore magna aliguam erat volutpat. Ut wisis enim ad minim veniam, quis nostrud exerci tution ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis te feugifacilisi. Duis antem dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zril delinit au gue duis dolore te feugat nulla facilisi."
 
@@ -298,8 +309,9 @@ class loremipsum(xsc.Element):
 		return xsc.Text(text)
 
 class redirectpage(xsc.Element):
-	empty = 1
-	attrHandlers = {"href": xsc.URLAttr}
+	empty = True
+	class Attrs(xsc.Element.Attrs):
+		class href(xsc.URLAttr): pass
 
 	def convert(self, converter):
 		url = self["href"]
@@ -319,10 +331,12 @@ class wrap(xsc.Element):
 	"""
 	<doc:par>a wrapper element that returns its content.
 	This is e.g. useful if you want to parse a
-	file that starts with <pyref module="xist.ns.jsp"><module>&jsp;</module></pyref>
+	file that starts with <pyref module="ll.xist.ns.jsp"><module>&jsp;</module></pyref>
 	processing instructions.</doc:par>
+	<doc:par>This is also used for publishing, when <lit>xmlns</lit> attributes
+	are required, but the root is not an element.</doc:par>
 	"""
-	empty = 0
+	empty = False
 
 	def convert(self, converter):
 		return self.content.convert(converter)
@@ -331,8 +345,9 @@ class javascript(xsc.Element):
 	"""
 	<doc:par>can be used for javascript.</doc:par>
 	"""
-	empty = 0
-	attrHandlers = {"src": xsc.TextAttr}
+	empty = False
+	class Attrs(xsc.Element.Attrs):
+		class src(xsc.TextAttr): pass
 
 	def convert(self, converter):
 		e = html.script(self.content, language="javascript", type="text/javascript", src=self["src"])
@@ -344,5 +359,5 @@ class cr(xsc.CharRef): "carriage return"; codepoint = 13
 class tab(xsc.CharRef): "horizontal tab"; codepoint = 9
 class esc(xsc.CharRef): "escape"; codepoint = 27
 
-namespace = xsc.Namespace("specials", "http://xmlns.livinglogic.de/xist/ns/specials", vars())
+xmlns = xsc.Namespace("specials", "http://xmlns.livinglogic.de/xist/ns/specials", vars())
 

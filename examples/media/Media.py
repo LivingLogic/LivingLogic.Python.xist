@@ -1,7 +1,8 @@
-#!/usr/bin/env python
+#! /usr/bin/env python
+# -*- coding: Latin-1 -*-
 
-from xist import xsc, parsers
-from xist.ns import html, specials, meta
+from ll.xist import xsc, parsers
+from ll.xist.ns import html, specials, meta
 
 def nameCompare(node1, node2):
 	name1 = unicode(node1.find(type=name)[0].content)
@@ -9,7 +10,7 @@ def nameCompare(node1, node2):
 	return cmp(name1, name2)
 
 class media(xsc.Element):
-	empty = 0
+	empty = False
 
 	def convert(self, converter):
 		dvds = self.content.find(type=dvd).sorted(nameCompare)
@@ -35,7 +36,7 @@ class media(xsc.Element):
 		return e.convert(converter)
 
 class ld(xsc.Element):
-	empty = 0
+	empty = False
 
 	def convert(self, converter):
 		e = html.li(
@@ -48,7 +49,7 @@ class ld(xsc.Element):
 		return e.convert(converter)
 
 class dvd(xsc.Element):
-	empty = 0
+	empty = False
 
 	def convert(self, converter):
 		e = html.li(
@@ -69,25 +70,25 @@ class dvd(xsc.Element):
 		return e.convert(converter)
 
 class name(xsc.Element):
-	empty = 0
+	empty = False
 
 	def convert(self, converter):
 		return self.content.convert(converter)
 
 class rc(xsc.Element):
-	empty = 0
+	empty = False
 
 	def convert(self, converter):
 		return self.content.convert(converter)
 
 class duration(xsc.Element):
-	empty = 0
+	empty = False
 
 	def convert(self, converter):
 		return xsc.Frag(self.content.convert(converter), " min")
 
 class purchase(xsc.Element):
-	empty = 0
+	empty = False
 
 	def convert(self, converter):
 		places = self.find(type=place)
@@ -103,25 +104,26 @@ class purchase(xsc.Element):
 		return e.convert(converter)
 
 class place(xsc.Element):
-	empty = 0
+	empty = False
 
 	def convert(self, converter):
 		return self.content.convert(converter)
 
 class date(xsc.Element):
-	empty = 0
+	empty = False
 
 	def convert(self, converter):
 		return self.content.convert(converter)
 
 class price(xsc.Element):
-	empty = 0
-	attrHandlers = {"currency": xsc.TextAttr}
+	empty = False
+	class Attrs(xsc.Element.Attrs):
+		class currency(xsc.TextAttr): pass
 
 	def convert(self, converter):
 		return xsc.Frag(self.content, " ", self["currency"]).convert(converter)
 
-namespace = xsc.Namespace("media", "http://www.livinglogic.de/DTDs/Media.dtd", vars())
+xmlns = xsc.Namespace("media", "http://xmlns.livinglogic.de/xist/examples/media", vars())
 
 if __name__ == "__main__":
 	parsers.parseFile("Media.xml").find(type=media).conv().write(open("Media.html","wb"))

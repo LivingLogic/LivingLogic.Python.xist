@@ -1,7 +1,8 @@
 #! /usr/bin/env python
+# -*- coding: Latin-1 -*-
 
-## Copyright 1999-2001 by LivingLogic AG, Bayreuth, Germany.
-## Copyright 1999-2001 by Walter Dörwald
+## Copyright 1999-2002 by LivingLogic AG, Bayreuth, Germany.
+## Copyright 1999-2002 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -31,17 +32,86 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 
 import cgi # for parse_header
 
-from xist import xsc, utils
+from ll.xist import xsc, utils
+from ll.xist.ns import xml
 
-# common attributes
-coreattrs  = {"id": xsc.TextAttr, "class": xsc.TextAttr, "style": xsc.StyleAttr, "title": xsc.TextAttr}
-i18n = {"lang": xsc.TextAttr, "dir": xsc.TextAttr}
-events = {"onclick": xsc.TextAttr, "ondblclick": xsc.TextAttr, "onmousedown": xsc.TextAttr, "onmouseup": xsc.TextAttr, "onmouseover": xsc.TextAttr, "onmousemove": xsc.TextAttr, "onmouseout": xsc.TextAttr, "onkeypress": xsc.TextAttr, "onkeydown": xsc.TextAttr, "onkeyup": xsc.TextAttr}
-attrs = coreattrs.copy()
-attrs.update(i18n)
-attrs.update(events)
-cellhalign = {"align": xsc.TextAttr, "char": xsc.TextAttr, "charoff": xsc.TextAttr}
-cellvalign = {"valign": xsc.TextAttr}
+# common attributes types
+class DirAttr(xsc.TextAttr): "direction for weak/neutral text"; values = ("ltr", "rtl")
+class ContentTypeAttr(xsc.TextAttr): "media type, as per [RFC2045]"
+class ContentTypesAttr(xsc.TextAttr): "comma-separated list of media types, as per [RFC2045]"
+class CharsetAttr(xsc.TextAttr): "a character encoding, as per [RFC2045]"
+class CharsetsAttr(xsc.TextAttr): "a space separated list of character encodings, as per [RFC2045]"
+class LanguageCodeAttr(xsc.TextAttr): "a language code, as per [RFC3066]"
+class CharacterAttr(xsc.TextAttr): "a single character, as per section 2.2 of [XML]"
+class LinkTypesAttr(xsc.TextAttr): "space-separated list of link types"
+class MediaDescAttr(xsc.TextAttr): "single or comma-separated list of media descriptors"
+class URIListAttr(xsc.TextAttr): "a space separated list of Uniform Resource Identifiers"
+class DatetimeAttr(xsc.TextAttr): "date and time information. ISO date format"
+class ScriptAttr(xsc.TextAttr): "script expression"
+class StyleSheetAttr(xsc.StyleAttr): "style sheet data"
+class TextAttr(xsc.TextAttr): "used for titles etc."
+class FrameTargetAttr(xsc.TextAttr): "render in this frame"
+class LengthAttr(xsc.TextAttr): "<rep>nn</rep> for pixels or <rep>nn%</rep> for percentage length"
+class MultiLengthAttr(xsc.TextAttr): "pixel, percentage, or relative"
+class PixelsAttr(xsc.IntAttr): "integer representing length in pixels"
+class ShapeAttr(xsc.TextAttr): "image shapes"; values = ("rect", "circle", "poly", "default")
+class CoordsAttr(xsc.TextAttr): "comma separated list of lengths"
+class ImgAlignAttr(xsc.TextAttr): "image alignment"; values = ("top", "middle", "bottom", "left", "right")
+class ColorAttr(xsc.ColorAttr): "a color using sRGB: #RRGGBB as Hex values"
+class TextAlignAttr(xsc.TextAttr): "text alignment"; values = ("left", "right", "center", "justify")
+class OLStyleAttr(xsc.TextAttr): values = "1aAiI"
+class ULStyleAttr(xsc.TextAttr): values = ("disc", "square", "circle")
+class InputTypeAttr(xsc.TextAttr): values = ("text", "password", "checkbox", "radio", "submit", "reset", "file", "hidden", "image", "button")
+class TRulesAttr(xsc.TextAttr): values = ("none", "groups", "rows", "cols", "all")
+class TAlignAttr(xsc.TextAttr): values = ("left", "right", "center")
+class CAlignAttr(xsc.TextAttr): values = ("top", "bottom", "left", "right")
+class TFrameAttr(xsc.TextAttr): values = ("void", "above", "below", "hsides", "lhs", "rhs", "vsides", "box", "border")
+class ScopeAttr(xsc.TextAttr): values = ("row", "col", "rowgroup", "colgroup")
+
+
+# common attributes sets
+class coreattrs(xsc.Element.Attrs):
+	"core attributes common to most elements"
+	class id(xsc.IDAttr): "document-wide unique id"
+	class class_(xsc.TextAttr): "space separated list of classes"; xmlname = "class"
+	class style(StyleSheetAttr): "associated style info"
+	class title(TextAttr): "advisory title/amplification"
+
+class i18nattrs(xsc.Element.Attrs):
+	"internationalization attributes"
+	class lang(LanguageCodeAttr): "language code (backwards compatible)"
+	class dir(DirAttr): pass
+
+class eventattrs(xsc.Element.Attrs):
+	"attributes for common UI events"
+	class onclick(ScriptAttr): "a pointer button was clicked"
+	class ondblclick(ScriptAttr): "a pointer button was double clicked"
+	class onmousedown(ScriptAttr): "a pointer button was pressed down"
+	class onmouseup(ScriptAttr): "a pointer button was released"
+	class onmousemove(ScriptAttr): "a pointer was moved onto the element"
+	class onmouseover(ScriptAttr): "a pointer was moved onto the element" # deprecated
+	class onmouseout(ScriptAttr): "a pointer was moved away from the element"
+	class onkeypress(ScriptAttr): "a key was pressed and released"
+	class onkeydown(ScriptAttr): "a key was pressed down"
+	class onkeyup(ScriptAttr): "a key was released"
+
+class focusattrs(xsc.Element.Attrs):
+	"attributes for elements that can get the focus"
+	class accesskey(CharacterAttr): "accessibility key character"
+	class tabindex(xsc.IntAttr): "position in tabbing order"
+	class onfocus(ScriptAttr): "the element got the focus"
+	class onblur(ScriptAttr): "the element lost the focus"
+
+class allattrs(coreattrs, i18nattrs, eventattrs):
+	pass
+
+class cellhalignattrs(xsc.Element.Attrs):
+	class align(xsc.TextAttr): values = ("left", "center", "right", "justify", "char")
+	class char(CharacterAttr): pass
+	class charoff(LengthAttr): pass
+
+class cellvalignattrs(xsc.Element.Attrs):
+	class valign(xsc.TextAttr): values = ("top", "middle", "bottom", "baseline")
 
 class DocTypeHTML40transitional(xsc.DocType):
 	"""
@@ -74,36 +144,38 @@ class DocTypeXHTML10transitional(xsc.DocType):
 # The global structure of an HTML document
 class html(xsc.Element):
 	"""
-	document root element
+	Document Structure
 	"""
-	empty = 0
-	attrHandlers = i18n.copy()
-	attrHandlers.update({"xmlns": xsc.TextAttr, "xml:lang": xsc.TextAttr})
+	empty = False
+	class Attrs(i18nattrs):
+		class id(xsc.IDAttr): pass
 
 	def convert(self, converter):
-		if converter.lang is not None and (self["lang"].convert(converter) != converter.lang or self["xml:lang"].convert(converter) != converter.lang):
-			node = html(self.content, self.attrs, {"lang": converter.lang, "xml:lang": converter.lang})
+		if converter.lang is not None and (unicode(self["lang"].convert(converter)) != converter.lang or unicode(self[(xml, "lang")].convert(converter)) != converter.lang):
+			node = html(self.content, self.attrs, {"lang": converter.lang, (xml, "lang"): converter.lang})
 			return node.convert(converter)
 		else:
-			return xsc.Element.convert(self, converter)
+			return super(html, self).convert(converter)
 
 class head(xsc.Element):
 	"""
-	document head
+	Document Head
 	"""
-	empty = 0
-	attrHandlers = i18n.copy()
-	attrHandlers.update({"profile": xsc.TextAttr})
+	empty = False
+	class Attrs(i18nattrs):
+		class id(xsc.IDAttr): pass
+		class profile(xsc.URLAttr): pass
 
 class title(xsc.Element):
 	"""
 	document title
 	"""
-	empty = 0
-	attrHandlers = i18n
+	empty = False
+	class Attrs(i18nattrs):
+		class id(xsc.IDAttr): pass
 
 	def unwrapHTML(self, node):
-		if isinstance(node, xsc.Element) and node.namespace() is namespace: # is this one of our own elements => filter it out
+		if isinstance(node, xsc.Element) and node.xmlns is xmlns: # is this one of our own elements => filter it out
 			if isinstance(node, img):
 				node = node["alt"]
 			else:
@@ -114,25 +186,31 @@ class title(xsc.Element):
 		content = self.content.convert(converter).mapped(self.unwrapHTML)
 		return title(content, self.attrs)
 
+class base(xsc.Element):
+	"""
+	document base URI
+	"""
+	empty = True
+	class Attrs(xsc.Element.Attrs):
+		class id(xsc.IDAttr): pass
+		class href(xsc.URLAttr): pass
+		class target(FrameTargetAttr): pass
+
 class meta(xsc.Element):
 	"""
 	generic metainformation
 	"""
-	empty = 1
-	attrHandlers = i18n.copy()
-	attrHandlers.update({"http_equiv": xsc.TextAttr, "http-equiv": xsc.TextAttr, "name": xsc.TextAttr, "content": xsc.TextAttr, "scheme": xsc.TextAttr})
-
-	def __init__(self, *_content, **_attrs):
-		# we have two names for one and the same attribute http_equiv and http-equiv
-		xsc.Element.__init__(self, *_content, **_attrs)
-		if self.hasAttr("http_equiv"):
-			if not self.hasAttr("http-equiv"):
-				self["http-equiv"] = self["http_equiv"]
-			del self["http_equiv"]
+	empty = True
+	class Attrs(i18nattrs):
+		class id(xsc.IDAttr): pass
+		class http_equiv(xsc.TextAttr): xmlname = "http-equiv"
+		class name(xsc.TextAttr): pass
+		class content(xsc.TextAttr): required = True
+		class scheme(xsc.TextAttr): pass
 
 	def publish(self, publisher):
-		if self.hasAttr("http-equiv"):
-			ctype = unicode(self["http-equiv"]).lower()
+		if self.hasAttr("http_equiv"):
+			ctype = unicode(self["http_equiv"]).lower()
 			if ctype == u"content-type" and self.hasAttr("content"):
 				(contenttype, options) = cgi.parse_header(unicode(self["content"]))
 				if not options.has_key(u"charset") or options[u"charset"] != publisher.encoding:
@@ -146,688 +224,952 @@ class meta(xsc.Element):
 					return
 		super(meta, self).publish(publisher)
 
+class link(xsc.Element):
+	"""
+	a media-independent link
+	"""
+	empty = True
+	class Attrs(allattrs):
+		class charset(CharsetAttr): pass
+		class href(xsc.URLAttr): pass
+		class hreflang(LanguageCodeAttr): pass
+		class type(ContentTypeAttr): pass
+		class rel(LinkTypesAttr): pass
+		class rev(LinkTypesAttr): pass
+		class media(MediaDescAttr): pass
+		class target(FrameTargetAttr): pass
+
+class style(xsc.Element):
+	"""
+	style info, which may include CDATA sections
+	"""
+	empty = False
+	class Attrs(i18nattrs):
+		class id(xsc.IDAttr): pass
+		class type(ContentTypeAttr): required = True
+		class media(MediaDescAttr): pass
+		class title(TextAttr): pass
+
+class script(xsc.Element):
+	"""
+	script statements, which may include CDATA sections
+	"""
+	empty = False
+	class Attrs(xsc.Element.Attrs):
+		class id(xsc.IDAttr): pass
+		class charset(CharsetAttr): pass
+		class type(ContentTypeAttr): required = True
+		class language(xsc.TextAttr): pass
+		class src(xsc.URLAttr): pass
+		class defer(xsc.BoolAttr): pass
+
+class noscript(xsc.Element):
+	"""
+	alternate content container for non script-based rendering
+	"""
+	empty = False
+	class Attrs(allattrs):
+		pass
+
+# Frames
+class iframe(xsc.Element):
+	"""
+	inline subwindow
+	"""
+	empty = False
+	class Attrs(coreattrs):
+		class longdesc(xsc.URLAttr): pass
+		class name(xsc.TextAttr): pass
+		class src(xsc.URLAttr): pass
+		class frameborder(xsc.TextAttr): values = (1, 0)
+		class marginwidth(PixelsAttr): pass
+		class marginheight(PixelsAttr): pass
+		class noresize(xsc.BoolAttr): pass # deprecated
+		class scrolling(xsc.TextAttr): values = ("yes", "no", "auto")
+		class align(ImgAlignAttr): pass
+		class height(LengthAttr): pass
+		class width(LengthAttr): pass
+		class hspace(xsc.IntAttr): pass # deprecated
+		class vspace(xsc.IntAttr): pass # deprecated
+		class bordercolor(xsc.ColorAttr): pass # deprecated
+
+class noframes(xsc.Element):
+	"""
+	alternate content container for non frame-based rendering
+	"""
+	empty = False
+	class Attrs(allattrs):
+		pass
+
+# Document Body
 class body(xsc.Element):
 	"""
 	document body
 	"""
-	empty = 0
-	attrHandlers = attrs.copy()
-	attrHandlers.update({"onload": xsc.TextAttr, "onunload": xsc.TextAttr})
-	attrHandlers.update({"onfocus": xsc.TextAttr, "background": xsc.URLAttr, "bgcolor": xsc.ColorAttr, "text": xsc.ColorAttr, "link": xsc.ColorAttr, "vlink": xsc.ColorAttr, "alink": xsc.ColorAttr, "leftmargin": xsc.TextAttr, "topmargin": xsc.TextAttr, "marginwidth": xsc.TextAttr, "marginheight": xsc.TextAttr}) # deprecated
+	empty = False
+	class Attrs(allattrs):
+		class onload(ScriptAttr): pass
+		class onunload(ScriptAttr): pass
+		class onfocus(xsc.TextAttr): pass # deprecated
+		class background(xsc.URLAttr): pass # deprecated
+		class bgcolor(xsc.ColorAttr): pass # deprecated
+		class text(xsc.ColorAttr): pass # deprecated
+		class link(xsc.ColorAttr): pass # deprecated
+		class vlink(xsc.ColorAttr): pass # deprecated
+		class alink(xsc.ColorAttr): pass # deprecated
+		class leftmargin(xsc.IntAttr): pass # deprecated
+		class topmargin(xsc.IntAttr): pass # deprecated
+		class marginwidth(xsc.IntAttr): pass # deprecated
+		class marginheight(xsc.IntAttr): pass # deprecated
 
 class div(xsc.Element):
 	"""
 	generic language/style container
 	"""
-	empty = 0
-	attrHandlers = attrs.copy()
-	attrHandlers.update({"align": xsc.TextAttr}) # deprecated
-
-class span(xsc.Element):
-	"""
-	generic language/style container
-	"""
-	empty = 0
-	attrHandlers = attrs
-
-class h1(xsc.Element):
-	"""
-	heading
-	"""
-	empty = 0
-	attrHandlers = attrs.copy()
-	attrHandlers.update({"align": xsc.TextAttr}) # deprecated
-
-class h2(xsc.Element):
-	"""
-	heading
-	"""
-	empty = 0
-	attrHandlers = attrs.copy()
-	attrHandlers.update({"align": xsc.TextAttr}) # deprecated
-
-class h3(xsc.Element):
-	"""
-	heading
-	"""
-	empty = 0
-	attrHandlers = attrs.copy()
-	attrHandlers.update({"align": xsc.TextAttr}) # deprecated
-
-class h4(xsc.Element):
-	"""
-	heading
-	"""
-	empty = 0
-	attrHandlers = attrs.copy()
-	attrHandlers.update({"align": xsc.TextAttr}) # deprecated
-
-class h5(xsc.Element):
-	"""
-	heading
-	"""
-	empty = 0
-	attrHandlers = attrs.copy()
-	attrHandlers.update({"align": xsc.TextAttr}) # deprecated
-
-class h6(xsc.Element):
-	"""
-	heading
-	"""
-	empty = 0
-	attrHandlers = attrs.copy()
-	attrHandlers.update({"align": xsc.TextAttr}) # deprecated
-
-class address(xsc.Element):
-	"""
-	information on author
-	"""
-	empty = 0
-	attrHandlers = attrs
-
-class bdo(xsc.Element):
-	"""
-	I18N BiDi over-ride
-	"""
-	empty = 0
-	attrHandlers = coreattrs.copy()
-	attrHandlers.update(i18n)
-
-class tt(xsc.Element):
-	"""
-	teletype or monospaced text style
-	"""
-	empty = 0
-	attrHandlers = attrs
-
-class i(xsc.Element):
-	"""
-	italic text style
-	"""
-	empty = 0
-	attrHandlers = attrs
-
-class u(xsc.Element):
-	"""
-	underline text style
-	"""
-	empty = 0
-	attrHandlers = attrs
-
-class s(xsc.Element):
-	"""
-	strike-through text style
-	"""
-	empty = 0
-	attrHandlers = attrs
-
-class strike(xsc.Element):
-	"""
-	strike-through text style
-	"""
-	empty = 0
-	attrHandlers = attrs
-
-class b(xsc.Element):
-	"""
-	bold text style
-	"""
-	empty = 0
-	attrHandlers = attrs
-
-class big(xsc.Element):
-	"""
-	large text style
-	"""
-	empty = 0
-	attrHandlers = attrs
-
-class small(xsc.Element):
-	"""
-	small text style
-	"""
-	empty = 0
-	attrHandlers = attrs
-
-class em(xsc.Element):
-	"""
-	Indicates emphasis.
-	"""
-	empty = 0
-	attrHandlers = attrs
-
-class strong(xsc.Element):
-	"""
-	Indicates stronger emphasis than em.
-	"""
-	empty = 0
-	attrHandlers = attrs
-
-class dfn(xsc.Element):
-	"""
-	Indicates that this is the defining instance of the enclosed term.
-	"""
-	empty = 0
-	attrHandlers = attrs
-
-class code(xsc.Element):
-	"""
-	Designates a fragment of computer code. 
-	"""
-	empty = 0
-	attrHandlers = attrs
-
-class samp(xsc.Element):
-	"""
-	Designates sample output from programs, scripts, etc. 
-	"""
-	empty = 0
-	attrHandlers = attrs
-
-class kbd(xsc.Element):
-	"""
-	Indicates text to be entered by the user.
-	"""
-	empty = 0
-	attrHandlers = attrs
-
-class var(xsc.Element):
-	"""
-	Indicates an instance of a variable or program argument. 
-	"""
-	empty = 0
-	attrHandlers = attrs
-
-class cite(xsc.Element):
-	"""
-	Contains a citation or a reference to other sources.
-	"""
-	empty = 0
-	attrHandlers = attrs
-
-class abbr(xsc.Element):
-	"""
-	Indicates an abbreviated form (e.g., WWW, HTTP, URI, Mass., etc.)
-	"""
-	empty = 0
-	attrHandlers = attrs
-
-class acronym(xsc.Element):
-	"""
-	Indicates an acronym (e.g., WAC, radar, etc.).
-	"""
-	empty = 0
-	attrHandlers = attrs
-
-class blockquote(xsc.Element):
-	"""
-	long quotation
-	"""
-	empty = 0
-	attrHandlers = attrs.copy()
-	attrHandlers.update({"cite": xsc.TextAttr})
-
-class q(xsc.Element):
-	"""
-	short inline quotation
-	"""
-	empty = 0
-	attrHandlers = attrs.copy()
-	attrHandlers.update({"cite": xsc.TextAttr})
-
-	def __unicode__(self):
-		return u"«" + unicode(self.content) + u"»"
-
-class sub(xsc.Element):
-	"""
-	subscript
-	"""
-	empty = 0
-	attrHandlers = attrs
-
-class sup(xsc.Element):
-	"""
-	superscript
-	"""
-	empty = 0
-	attrHandlers = attrs
+	empty = False
+	class Attrs(allattrs):
+		class align(TextAlignAttr): pass
 
 class p(xsc.Element):
 	"""
 	paragraph
 	"""
-	empty = 0
-	attrHandlers = attrs.copy()
-	attrHandlers.update({"align": xsc.TextAttr}) # deprecated
+	empty = False
+	class Attrs(allattrs):
+		class align(TextAlignAttr): pass
 
-class br(xsc.Element):
+class h1(xsc.Element):
 	"""
-	forced line break
+	heading
 	"""
-	empty = 1
-	attrHandlers = coreattrs.copy()
-	attrHandlers.update({"clear": xsc.TextAttr}) # deprecated
+	empty = False
+	class Attrs(allattrs):
+		class align(TextAlignAttr): pass
 
-class pre(xsc.Element):
+class h2(xsc.Element):
 	"""
-	preformatted text
+	heading
 	"""
-	empty = 0
-	attrHandlers = attrs
+	empty = False
+	class Attrs(allattrs):
+		class align(TextAlignAttr): pass
 
-class ins(xsc.Element):
+class h3(xsc.Element):
 	"""
-	inserted text
+	heading
 	"""
-	empty = 0
-	attrHandlers = attrs.copy()
-	attrHandlers.update({"cite": xsc.TextAttr, "datetime": xsc.TextAttr})
+	empty = False
+	class Attrs(allattrs):
+		class align(TextAlignAttr): pass
 
-class del_(xsc.Element):
+class h4(xsc.Element):
 	"""
-	deleted text
+	heading
 	"""
-	empty = 0
-	attrHandlers = attrs.copy()
-	attrHandlers.update({"cite": xsc.TextAttr, "datetime": xsc.TextAttr})
+	empty = False
+	class Attrs(allattrs):
+		class align(TextAlignAttr): pass
+
+class h5(xsc.Element):
+	"""
+	heading
+	"""
+	empty = False
+	class Attrs(allattrs):
+		class align(TextAlignAttr): pass
+
+class h6(xsc.Element):
+	"""
+	heading
+	"""
+	empty = False
+	class Attrs(allattrs):
+		class align(TextAlignAttr): pass
 
 class ul(xsc.Element):
 	"""
 	unordered list
 	"""
-	empty = 0
-	attrHandlers = attrs.copy()
-	attrHandlers.update({"type": xsc.TextAttr}) # deprecated
+	empty = False
+	class Attrs(allattrs):
+		class type(ULStyleAttr): pass
+		class compact(xsc.BoolAttr): pass
 
 class ol(xsc.Element):
 	"""
 	ordered list
 	"""
-	empty = 0
-	attrHandlers = attrs.copy()
-	attrHandlers.update({"type": xsc.TextAttr, "start": xsc.IntAttr}) # deprecated
+	empty = False
+	class Attrs(allattrs):
+		class type(OLStyleAttr): pass
+		class compact(xsc.BoolAttr): pass
+		class start(xsc.IntAttr): pass
+
+class menu(xsc.Element):
+	"""
+	single column list (deprecated)
+	"""
+	empty = False
+	class Attrs(allattrs):
+		class compact(xsc.BoolAttr): pass
+
+class dir(xsc.Element):
+	"""
+	multiple column list (deprecated)
+	"""
+	empty = False
+	class Attrs(allattrs):
+		class compact(xsc.BoolAttr): pass
 
 class li(xsc.Element):
 	"""
 	list item
 	"""
-	empty = 0
-	attrHandlers = attrs.copy()
-	attrHandlers.update({"type": xsc.TextAttr, "value": xsc.IntAttr}) # deprecated
+	empty = False
+	class Attrs(allattrs):
+		class type(xsc.TextAttr): pass
+		class value(xsc.IntAttr): pass
 
 class dl(xsc.Element):
 	"""
 	definition list
 	"""
-	empty = 0
-	attrHandlers = attrs
+	empty = False
+	class Attrs(allattrs):
+		class compact(xsc.BoolAttr): pass
 
 class dt(xsc.Element):
 	"""
 	definition term
 	"""
-	empty = 0
-	attrHandlers = attrs
+	empty = False
+	class Attrs(allattrs):
+		pass
 
 class dd(xsc.Element):
 	"""
 	definition description
 	"""
-	empty = 0
-	attrHandlers = attrs
+	empty = False
+	class Attrs(allattrs):
+		pass
 
-class table(xsc.Element):
+class address(xsc.Element):
 	"""
-	table
+	information on author
 	"""
-	empty = 0
-	attrHandlers = attrs.copy()
-	attrHandlers.update({"summary": xsc.TextAttr, "width": xsc.TextAttr, "border": xsc.TextAttr, "frame": xsc.TextAttr, "rules": xsc.TextAttr, "cellspacing": xsc.TextAttr, "cellpadding": xsc.TextAttr})
-	attrHandlers.update({"height": xsc.TextAttr, "align": xsc.TextAttr, "bgcolor": xsc.ColorAttr, "background": xsc.URLAttr, "bordercolor": xsc.ColorAttr, "hspace": xsc.IntAttr, "vspace": xsc.IntAttr}) # deprecated
-
-class caption(xsc.Element):
-	"""
-	table caption
-	"""
-	empty = 0
-	attrHandlers = attrs
-
-class thead(xsc.Element):
-	"""
-	table header
-	"""
-	empty = 0
-	attrHandlers = attrs.copy()
-	attrHandlers.update(cellhalign)
-	attrHandlers.update(cellvalign)
-
-class tfoot(xsc.Element):
-	"""
-	table footer
-	"""
-	empty = 0
-	attrHandlers = attrs.copy()
-	attrHandlers.update(cellhalign)
-	attrHandlers.update(cellvalign)
-
-class tbody(xsc.Element):
-	"""
-	table body
-	"""
-	empty = 0
-	attrHandlers = attrs.copy()
-	attrHandlers.update(cellhalign)
-	attrHandlers.update(cellvalign)
-
-class colgroup(xsc.Element):
-	"""
-	table column group
-	"""
-	empty = 0
-	attrHandlers = attrs.copy()
-	attrHandlers.update(cellhalign)
-	attrHandlers.update(cellvalign)
-	attrHandlers.update({"span": xsc.TextAttr, "width": xsc.TextAttr})
-
-class col(xsc.Element):
-	"""
-	table column
-	"""
-	empty = 0
-	attrHandlers = attrs.copy()
-	attrHandlers.update(cellhalign)
-	attrHandlers.update(cellvalign)
-	attrHandlers.update({"span": xsc.TextAttr, "width": xsc.TextAttr})
-
-class tr(xsc.Element):
-	"""
-	table row
-	"""
-	empty = 0
-	attrHandlers = attrs.copy()
-	attrHandlers.update(cellhalign)
-	attrHandlers.update(cellvalign)
-	attrHandlers.update({"nowrap": xsc.TextAttr, "bgcolor": xsc.ColorAttr, "width": xsc.TextAttr, "background": xsc.URLAttr}) # deprecated
-
-class th(xsc.Element):
-	"""
-	table header cell
-	"""
-	empty = 0
-	attrHandlers = attrs.copy()
-	attrHandlers.update(cellhalign)
-	attrHandlers.update(cellvalign)
-	attrHandlers.update({"abbr": xsc.TextAttr, "axis": xsc.TextAttr, "headers": xsc.TextAttr, "scope": xsc.TextAttr, "rowspan": xsc.TextAttr, "colspan": xsc.TextAttr})
-	attrHandlers.update({"nowrap": xsc.TextAttr, "bgcolor": xsc.ColorAttr, "width": xsc.TextAttr, "height": xsc.TextAttr, "background": xsc.URLAttr}) # deprecated
-
-class td(xsc.Element):
-	"""
-	table data cell
-	"""
-	empty = 0
-	attrHandlers = attrs.copy()
-	attrHandlers.update(cellhalign)
-	attrHandlers.update(cellvalign)
-	attrHandlers.update({"abbr": xsc.TextAttr, "axis": xsc.TextAttr, "headers": xsc.TextAttr, "scope": xsc.TextAttr, "rowspan": xsc.TextAttr, "colspan": xsc.TextAttr})
-	attrHandlers.update({"nowrap": xsc.BoolAttr, "bgcolor": xsc.ColorAttr, "width": xsc.TextAttr, "height": xsc.TextAttr, "background": xsc.URLAttr, "bordercolor": xsc.ColorAttr}) # deprecated
-
-class a(xsc.Element):
-	"""
-	anchor
-	"""
-	empty = 0
-	attrHandlers = attrs.copy()
-	attrHandlers.update({"charset": xsc.TextAttr, "type": xsc.TextAttr, "name": xsc.TextAttr, "href": xsc.URLAttr, "hreflang": xsc.TextAttr, "rel": xsc.TextAttr, "rev": xsc.TextAttr, "accesskey": xsc.TextAttr, "shape": xsc.TextAttr, "coords": xsc.TextAttr, "tabindex": xsc.TextAttr, "onfocus": xsc.TextAttr, "onblur": xsc.TextAttr})
-	attrHandlers.update({"target": xsc.TextAttr, "oncontextmenu": xsc.TextAttr}) # deprecated
-
-class link(xsc.Element):
-	"""
-	a media-independent link
-	"""
-	empty = 1
-	attrHandlers = attrs.copy()
-	attrHandlers.update({"charset": xsc.TextAttr, "href": xsc.URLAttr, "hreflang": xsc.TextAttr, "type": xsc.TextAttr, "rel": xsc.TextAttr, "rev": xsc.TextAttr, "media": xsc.TextAttr})
-
-class base(xsc.Element):
-	"""
-	document base URI
-	"""
-	empty = 1
-	attrHandlers = {"href": xsc.URLAttr}
-	attrHandlers.update({"target": xsc.TextAttr}) # deprecated
-
-class img(xsc.Element):
-	"""
-	Embedded image
-	"""
-	empty = 1
-	attrHandlers = attrs.copy()
-	attrHandlers.update({"src": xsc.URLAttr, "alt": xsc.TextAttr, "longdesc": xsc.TextAttr, "width": xsc.TextAttr, "height": xsc.TextAttr, "usemap": xsc.TextAttr, "ismap": xsc.TextAttr})
-	attrHandlers.update({"name": xsc.TextAttr, "border": xsc.TextAttr, "align": xsc.TextAttr, "hspace": xsc.TextAttr, "vspace": xsc.TextAttr, "lowsrc": xsc.URLAttr}) # deprecated
-
-	def __unicode__(self):
-		return unicode(self["alt"])
-
-class object(xsc.Element):
-	"""
-	generic embedded object
-	"""
-	empty = 0
-	attrHandlers = attrs.copy()
-	attrHandlers.update({"declare": xsc.TextAttr, "classid": xsc.TextAttr, "codebase": xsc.TextAttr, "data": xsc.TextAttr, "type": xsc.TextAttr, "codetype": xsc.TextAttr, "archive": xsc.TextAttr, "standby": xsc.TextAttr, "height": xsc.TextAttr, "width": xsc.TextAttr, "usemap": xsc.TextAttr, "name": xsc.TextAttr, "tabindex": xsc.TextAttr})
-
-class param(xsc.Element):
-	"""
-	named property value
-	"""
-	empty = 1
-	attrHandlers = {"id": xsc.TextAttr, "name": xsc.TextAttr, "value": xsc.TextAttr, "valuetype": xsc.TextAttr, "type": xsc.TextAttr}
-
-class embed(xsc.Element):
-	"""
-	generic embedded object (Internet Exploder)
-	"""
-	empty = 0
-	attrHandlers = {"width": xsc.TextAttr, "height": xsc.TextAttr, "src": xsc.URLAttr, "controller": xsc.TextAttr, "href": xsc.URLAttr, "target": xsc.TextAttr, "border": xsc.IntAttr, "pluginspage": xsc.URLAttr, "quality": xsc.TextAttr, "type": xsc.TextAttr, "bgcolor": xsc.ColorAttr}
-	attrHandlers.update({"menu": xsc.TextAttr}) # deprecated
-
-class map(xsc.Element):
-	"""
-	client-side image map
-	"""
-	empty = 0
-	attrHandlers = attrs.copy()
-	attrHandlers.update({"name": xsc.TextAttr})
-
-class area(xsc.Element):
-	"""
-	client-side image map area
-	"""
-	empty = 1
-	attrHandlers = attrs.copy()
-	attrHandlers.update({"shape": xsc.TextAttr, "coords": xsc.TextAttr, "href": xsc.URLAttr, "nohref": xsc.TextAttr, "alt": xsc.TextAttr, "tabindex": xsc.TextAttr, "accesskey": xsc.TextAttr, "onfocus": xsc.TextAttr, "onblur": xsc.TextAttr})
-
-class style(xsc.Element):
-	"""
-	style info
-	"""
-	empty = 0
-	attrHandlers = i18n.copy()
-	attrHandlers.update({"type": xsc.TextAttr, "media": xsc.TextAttr, "title": xsc.TextAttr})
+	empty = False
+	class Attrs(allattrs):
+		pass
 
 class hr(xsc.Element):
 	"""
 	horizontal rule
 	"""
-	empty = 1
-	attrHandlers = coreattrs.copy()
-	attrHandlers.update(events)
-	attrHandlers.update({"noshade": xsc.BoolAttr, "size": xsc.TextAttr, "color": xsc.ColorAttr, "width": xsc.TextAttr, "align": xsc.TextAttr}) # deprecated
+	empty = True
+	class Attrs(allattrs):
+		class align(xsc.TextAttr): values = ("left", "right", "center")
+		class noshade(xsc.BoolAttr): pass
+		class size(PixelsAttr): pass
+		class width(LengthAttr): pass # deprecated
+		class color(xsc.ColorAttr): pass # deprecated
+
+class pre(xsc.Element):
+	"""
+	preformatted text
+	"""
+	empty = False
+	class Attrs(allattrs):
+		class width(xsc.IntAttr): pass
+
+class blockquote(xsc.Element):
+	"""
+	block-like quotes
+	"""
+	empty = False
+	class Attrs(allattrs):
+		class cite(xsc.URLAttr): pass
+
+class center(xsc.Element): # deprecated
+	"""
+	centered block level element
+	"""
+	empty = False
+	class Attrs(allattrs):
+		pass
+
+class ins(xsc.Element):
+	"""
+	inserted text
+	"""
+	empty = False
+	class Attrs(allattrs):
+		class cite(xsc.URLAttr): pass
+		class datetime(DatetimeAttr): pass
+
+class del_(xsc.Element):
+	"""
+	deleted text
+	"""
+	empty = False
+	xmlname = "del"
+	class Attrs(allattrs):
+		class cite(xsc.URLAttr): pass
+		class datetime(DatetimeAttr): pass
+
+class a(xsc.Element):
+	"""
+	anchor
+	"""
+	empty = False
+	class Attrs(allattrs, focusattrs):
+		class charset(CharsetAttr): pass
+		class type(ContentTypeAttr): pass
+		class name(xsc.TextAttr): pass
+		class href(xsc.URLAttr): pass
+		class hreflang(LanguageCodeAttr): pass
+		class rel(LinkTypesAttr): pass
+		class rev(LinkTypesAttr): pass
+		class shape(ShapeAttr): pass
+		class coords(CoordsAttr): pass
+		class target(FrameTargetAttr): pass
+		class oncontextmenu(xsc.TextAttr): pass # deprecated
+
+class span(xsc.Element):
+	"""
+	generic language/style container
+	"""
+	empty = False
+	class Attrs(allattrs):
+		pass
+
+class bdo(xsc.Element):
+	"""
+	I18N BiDi over-ride
+	"""
+	empty = False
+	class Attrs(coreattrs, eventattrs):
+		class lang(LanguageCodeAttr): pass
+		class dir(DirAttr): required = True
+
+class br(xsc.Element):
+	"""
+	forced line break
+	"""
+	empty = True
+	class Attrs(coreattrs):
+		class clear(xsc.TextAttr): values = ("left", "all", "right", "none")
+
+class em(xsc.Element):
+	"""
+	Indicates emphasis.
+	"""
+	empty = False
+	class Attrs(allattrs):
+		pass
+
+class strong(xsc.Element):
+	"""
+	Indicates stronger emphasis than em.
+	"""
+	empty = False
+	class Attrs(allattrs):
+		pass
+
+class dfn(xsc.Element):
+	"""
+	Indicates that this is the defining instance of the enclosed term.
+	"""
+	empty = False
+	class Attrs(allattrs):
+		pass
+
+class code(xsc.Element):
+	"""
+	Designates a fragment of computer code. 
+	"""
+	empty = False
+	class Attrs(allattrs):
+		pass
+
+class samp(xsc.Element):
+	"""
+	Designates sample output from programs, scripts, etc.
+	"""
+	empty = False
+	class Attrs(allattrs):
+		pass
+
+class kbd(xsc.Element):
+	"""
+	Indicates text to be entered by the user.
+	"""
+	empty = False
+	class Attrs(allattrs):
+		pass
+
+class var(xsc.Element):
+	"""
+	Indicates an instance of a variable or program argument. 
+	"""
+	empty = False
+	class Attrs(allattrs):
+		pass
+
+class cite(xsc.Element):
+	"""
+	Contains a citation or a reference to other sources.
+	"""
+	empty = False
+	class Attrs(allattrs):
+		pass
+
+class abbr(xsc.Element):
+	"""
+	Indicates an abbreviated form (e.g., WWW, HTTP, URI, Mass., etc.)
+	"""
+	empty = False
+	class Attrs(allattrs):
+		pass
+
+class acronym(xsc.Element):
+	"""
+	Indicates an acronym (e.g., WAC, radar, etc.).
+	"""
+	empty = False
+	class Attrs(allattrs):
+		pass
+
+class q(xsc.Element):
+	"""
+	short inline quotation
+	"""
+	empty = False
+	class Attrs(allattrs):
+		class cite(xsc.URLAttr): pass
+
+class sub(xsc.Element):
+	"""
+	subscript
+	"""
+	empty = False
+	class Attrs(allattrs):
+		pass
+
+class sup(xsc.Element):
+	"""
+	superscript
+	"""
+	empty = False
+	class Attrs(allattrs):
+		pass
+
+class tt(xsc.Element):
+	"""
+	teletype or monospaced text style
+	"""
+	empty = False
+	class Attrs(allattrs):
+		pass
+
+class i(xsc.Element):
+	"""
+	italic text style
+	"""
+	empty = False
+	class Attrs(allattrs):
+		pass
+
+class b(xsc.Element):
+	"""
+	bold text style
+	"""
+	empty = False
+	class Attrs(allattrs):
+		pass
+
+class big(xsc.Element):
+	"""
+	large text style
+	"""
+	empty = False
+	class Attrs(allattrs):
+		pass
+
+class small(xsc.Element):
+	"""
+	small text style
+	"""
+	empty = False
+	class Attrs(allattrs):
+		pass
+
+class u(xsc.Element):
+	"""
+	underline text style
+	"""
+	empty = False
+	class Attrs(allattrs):
+		pass
+
+class s(xsc.Element):
+	"""
+	strike-through text style
+	"""
+	empty = False
+	class Attrs(allattrs):
+		pass
+
+class strike(xsc.Element):
+	"""
+	strike-through text style
+	"""
+	empty = False
+	class Attrs(allattrs):
+		pass
+
+class basefont(xsc.Element): # deprecated
+	"""
+	base font size
+	"""
+	empty = True
+	class Attrs(coreattrs, i18nattrs):
+		class id(xsc.IDAttr): pass
+		class size(xsc.TextAttr): required = True
+		class color(xsc.ColorAttr): pass
+		class face(xsc.TextAttr): pass
+
+class font(xsc.Element): # deprecated
+	"""
+	local change to font
+	"""
+	empty = False
+	class Attrs(coreattrs, i18nattrs):
+		class face(xsc.TextAttr): pass
+		class size(xsc.TextAttr): pass
+		class color(xsc.ColorAttr): pass
+
+class object(xsc.Element):
+	"""
+	generic embedded object
+	"""
+	empty = False
+	class Attrs(allattrs):
+		class declare(xsc.BoolAttr): pass
+		class classid(xsc.URLAttr): pass
+		class codebase(xsc.URLAttr): pass
+		class data(xsc.URLAttr): pass
+		class type(ContentTypeAttr): pass
+		class codetype(ContentTypeAttr): pass
+		class archive(URIListAttr): pass
+		class standby(TextAttr): pass
+		class height(LengthAttr): pass
+		class width(LengthAttr): pass
+		class usemap(xsc.URLAttr): pass
+		class name(xsc.TextAttr): pass
+		class tabindex(xsc.IntAttr): pass
+		class align(ImgAlignAttr): pass
+		class border(PixelsAttr): pass
+		class hspace(PixelsAttr): pass
+		class vspace(PixelsAttr): pass
+
+class param(xsc.Element):
+	"""
+	named property value
+	"""
+	empty = True
+	class Attrs(xsc.Element.Attrs):
+		class id(xsc.IDAttr): pass
+		class name(xsc.TextAttr): required = True
+		class value(xsc.TextAttr): pass
+		class valuetype(xsc.TextAttr): values = ("data", "ref", "object")
+		class type(ContentTypeAttr): pass
+
+class applet(xsc.Element): # deprecated
+	"""
+	Java applet
+	"""
+	empty = False
+	class Attrs(coreattrs):
+		class codebase(xsc.URLAttr): pass
+		class archive(xsc.TextAttr): pass
+		class code(xsc.TextAttr): pass
+		class object(xsc.TextAttr): pass
+		class alt(TextAttr): pass
+		class name(xsc.TextAttr): pass
+		class width(LengthAttr): required = True
+		class height(LengthAttr): required = True
+		class align(ImgAlignAttr): pass
+		class hspace(PixelsAttr): pass
+		class vspace(PixelsAttr): pass
+
+class img(xsc.Element):
+	"""
+	Embedded image
+	"""
+	empty = True
+	class Attrs(allattrs):
+		class src(xsc.URLAttr): required = True
+		class alt(TextAttr): required = True
+		class name(xsc.TextAttr): pass
+		class longdesc(xsc.URLAttr): pass
+		class width(LengthAttr): pass
+		class height(LengthAttr): pass
+		class usemap(xsc.URLAttr): pass
+		class ismap(xsc.BoolAttr): pass
+		class align(ImgAlignAttr): pass
+		class border(LengthAttr): pass
+		class hspace(PixelsAttr): pass
+		class vspace(PixelsAttr): pass
+		class lowsrc(xsc.URLAttr): pass # deprecated
+
+	def __unicode__(self):
+		return unicode(self["alt"])
+
+class map(xsc.Element):
+	"""
+	client-side image map
+	"""
+	empty = False
+	class Attrs(i18nattrs, eventattrs):
+		class id(xsc.IDAttr): required = True
+		class class_(xsc.TextAttr): pass
+		class style(StyleSheetAttr): pass
+		class title(TextAttr): pass
+		class name(xsc.TextAttr): pass
+
+class area(xsc.Element):
+	"""
+	client-side image map area
+	"""
+	empty = True
+	class Attrs(allattrs, focusattrs):
+		class shape(ShapeAttr): pass
+		class coords(CoordsAttr): pass
+		class href(xsc.URLAttr): pass
+		class nohref(xsc.BoolAttr): pass
+		class alt(TextAttr): required = True
+		class target(FrameTargetAttr): pass
+
+class form(xsc.Element):
+	"""
+	interactive form
+	"""
+	empty = False
+	class Attrs(allattrs):
+		class action(xsc.URLAttr): required = True
+		class method(xsc.TextAttr): values = ("get", "post")
+		class name(xsc.TextAttr): pass
+		class enctype(ContentTypeAttr): pass
+		class onsubmit(ScriptAttr): pass
+		class onreset(ScriptAttr): pass
+		class accept_charset(CharsetsAttr): xmlname = "accept-charset"
+		class target(FrameTargetAttr): pass
+
+class label(xsc.Element):
+	"""
+	form field label text
+	"""
+	empty = False
+	class Attrs(allattrs):
+		class for_(xsc.TextAttr): xmlname = "for"
+		class accesskey(CharacterAttr): pass
+		class onfocus(ScriptAttr): pass
+		class onblur(ScriptAttr): pass
+
+class input(xsc.Element):
+	"""
+	form control
+	"""
+	empty = True
+	class Attrs(allattrs, focusattrs):
+		class type(InputTypeAttr): pass
+		class name(xsc.TextAttr): pass
+		class value(xsc.TextAttr): pass
+		class checked(xsc.BoolAttr): pass
+		class disabled(xsc.BoolAttr): pass
+		class readonly(xsc.BoolAttr): pass
+		class size(xsc.TextAttr): pass
+		class maxlength(xsc.IntAttr): pass
+		class src(xsc.URLAttr): pass
+		class alt(xsc.TextAttr): pass
+		class usemap(xsc.URLAttr): pass
+		class onselect(ScriptAttr): pass
+		class onchange(ScriptAttr): pass
+		class accept(ContentTypesAttr): pass
+		class align(ImgAlignAttr): pass
+		class border(xsc.IntAttr): pass # deprecated
+
+class select(xsc.Element):
+	"""
+	option selector
+	"""
+	empty = False
+	class Attrs(allattrs):
+		class name(xsc.TextAttr): pass
+		class size(xsc.IntAttr): pass
+		class multiple(xsc.BoolAttr): pass
+		class disabled(xsc.BoolAttr): pass
+		class tabindex(xsc.IntAttr): pass
+		class onfocus(ScriptAttr): pass
+		class onblur(ScriptAttr): pass
+		class onchange(ScriptAttr): pass
+		class rows(xsc.TextAttr): pass # deprecated
+
+class optgroup(xsc.Element):
+	"""
+	option group
+	"""
+	empty = False
+	class Attrs(allattrs):
+		class disabled(xsc.BoolAttr): pass
+		class label(TextAttr): required = True
+
+class option(xsc.Element):
+	"""
+	selectable choice
+	"""
+	empty = False
+	class Attrs(allattrs):
+		class selected(xsc.BoolAttr): pass
+		class disabled(xsc.BoolAttr): pass
+		class label(TextAttr): pass
+		class value(xsc.TextAttr): pass
+
+class textarea(xsc.Element):
+	"""
+	multi-line text field
+	"""
+	empty = False
+	class Attrs(allattrs, focusattrs):
+		class name(xsc.TextAttr): pass
+		class rows(xsc.IntAttr): required = True
+		class cols(xsc.IntAttr): required = True
+		class disabled(xsc.BoolAttr): pass
+		class readonly(xsc.BoolAttr): pass
+		class onselect(ScriptAttr): pass
+		class onchange(ScriptAttr): pass
+		class wrap(xsc.TextAttr): values = ("virtual", "physical", "off") # deprecated
+
+class fieldset(xsc.Element):
+	"""
+	form control group
+	"""
+	empty = False
+	class Attrs(allattrs):
+		pass
+
+class legend(xsc.Element):
+	"""
+	fieldset legend
+	"""
+	empty = False
+	class Attrs(allattrs):
+		class accesskey(xsc.TextAttr): pass
+		class align(xsc.TextAttr): values = ("top", "bottom", "left", "right")
+
+class button(xsc.Element):
+	"""
+	push button
+	"""
+	empty = False
+	class Attrs(allattrs, focusattrs):
+		class name(xsc.TextAttr): pass
+		class value(xsc.TextAttr): pass
+		class type(xsc.TextAttr): values = ("button", "submit", "reset")
+		class disabled(xsc.BoolAttr): pass
+
+class isindex(xsc.Element):
+	empty = True
+	class Attrs(coreattrs, i18nattrs):
+		class prompt(TextAttr): pass
+
+class table(xsc.Element):
+	"""
+	table
+	"""
+	empty = False
+	class Attrs(allattrs):
+		class summary(TextAttr): pass
+		class width(LengthAttr): pass
+		class border(PixelsAttr): pass
+		class frame(TFrameAttr): pass
+		class rules(TRulesAttr): pass
+		class cellspacing(LengthAttr): pass
+		class cellpadding(LengthAttr): pass
+		class align(TAlignAttr): pass
+		class bgcolor(xsc.ColorAttr): pass # deprecated
+		class height(xsc.TextAttr): pass # deprecated
+		class background(xsc.URLAttr): pass # deprecated
+		class bordercolor(xsc.ColorAttr): pass # deprecated
+		class hspace(xsc.IntAttr): pass # deprecated
+		class vspace(xsc.IntAttr): pass # deprecated
+
+class caption(xsc.Element):
+	"""
+	table caption
+	"""
+	empty = False
+	class Attrs(allattrs):
+		class align(CAlignAttr): pass
+
+class colgroup(xsc.Element):
+	"""
+	table column group
+	"""
+	empty = False
+	class Attrs(allattrs, cellhalignattrs, cellvalignattrs):
+		class span(xsc.TextAttr): pass
+		class width(MultiLengthAttr): pass
+
+class col(xsc.Element):
+	"""
+	table column
+	"""
+	empty = False
+	class Attrs(allattrs, cellhalignattrs, cellvalignattrs):
+		class span(xsc.TextAttr): pass
+		class width(MultiLengthAttr): pass
+
+class thead(xsc.Element):
+	"""
+	table header
+	"""
+	empty = False
+	class Attrs(allattrs, cellhalignattrs, cellvalignattrs):
+		pass
+
+class tfoot(xsc.Element):
+	"""
+	table footer
+	"""
+	empty = False
+	class Attrs(allattrs, cellhalignattrs, cellvalignattrs):
+		pass
+
+class tbody(xsc.Element):
+	"""
+	table body
+	"""
+	empty = False
+	class Attrs(allattrs, cellhalignattrs, cellvalignattrs):
+		pass
+
+class tr(xsc.Element):
+	"""
+	table row
+	"""
+	empty = False
+	class Attrs(allattrs, cellhalignattrs, cellvalignattrs):
+		class bgcolor(xsc.ColorAttr): pass
+		class nowrap(xsc.BoolAttr): pass # deprecated
+		class width(LengthAttr): pass # deprecated
+		class background(xsc.URLAttr): pass # deprecated
+
+class th(xsc.Element):
+	"""
+	table header cell
+	"""
+	empty = False
+	class Attrs(allattrs, cellhalignattrs, cellvalignattrs):
+		class abbr(TextAttr): pass
+		class axis(xsc.TextAttr): pass
+		class headers(xsc.TextAttr): pass
+		class scope(ScopeAttr): pass
+		class rowspan(xsc.IntAttr): pass
+		class colspan(xsc.IntAttr): pass
+		class nowrap(xsc.BoolAttr): pass
+		class bgcolor(xsc.ColorAttr): pass
+		class width(LengthAttr): pass
+		class height(LengthAttr): pass
+		class background(xsc.URLAttr): pass # deprecated
+		class bordercolor(xsc.ColorAttr): pass # deprecated
+
+class td(xsc.Element):
+	"""
+	table data cell
+	"""
+	empty = False
+	class Attrs(allattrs, cellhalignattrs, cellvalignattrs):
+		class abbr(TextAttr): pass
+		class axis(xsc.TextAttr): pass
+		class headers(xsc.TextAttr): pass
+		class scope(ScopeAttr): pass
+		class rowspan(xsc.IntAttr): pass
+		class colspan(xsc.IntAttr): pass
+		class nowrap(xsc.BoolAttr): pass
+		class bgcolor(xsc.ColorAttr): pass
+		class width(LengthAttr): pass
+		class height(LengthAttr): pass
+		class background(xsc.URLAttr): pass # deprecated
+		class bordercolor(xsc.ColorAttr): pass # deprecated
+
+class embed(xsc.Element):
+	"""
+	generic embedded object (Internet Exploder)
+	"""
+	empty = False
+	class Attrs(xsc.Element.Attrs):
+		class width(xsc.TextAttr): pass
+		class height(xsc.TextAttr): pass
+		class src(xsc.URLAttr): pass
+		class controller(xsc.TextAttr): pass
+		class href(xsc.URLAttr): pass
+		class target(xsc.TextAttr): pass
+		class border(xsc.IntAttr): pass
+		class pluginspage(xsc.URLAttr): pass
+		class quality(xsc.TextAttr): pass
+		class type(xsc.TextAttr): pass
+		class bgcolor(xsc.ColorAttr): pass
+		class menu(xsc.TextAttr): pass # deprecated
 
 # The pain, the pain ...
 class frameset(xsc.Element):
 	"""
 	window subdivision
 	"""
-	empty = 0
-	attrHandlers = coreattrs.copy()
-	attrHandlers.update({"rows": xsc.TextAttr, "cols": xsc.TextAttr, "onload": xsc.TextAttr, "onunload": xsc.TextAttr})
-	attrHandlers.update({"framespacing": xsc.TextAttr, "border": xsc.IntAttr, "marginwidth": xsc.IntAttr, "marginheight": xsc.IntAttr, "frameborder": xsc.IntAttr, "noresize": xsc.BoolAttr, "scrolling": xsc.TextAttr}) # deprecated
+	empty = False
+	class Attrs(coreattrs):
+		class rows(xsc.TextAttr): pass
+		class cols(xsc.TextAttr): pass
+		class onload(xsc.TextAttr): pass
+		class onunload(xsc.TextAttr): pass
+		class framespacing(xsc.TextAttr): pass # deprecated
+		class border(xsc.IntAttr): pass # deprecated
+		class marginwidth(xsc.IntAttr): pass # deprecated
+		class marginheight(xsc.IntAttr): pass # deprecated
+		class frameborder(xsc.IntAttr): pass # deprecated
+		class noresize(xsc.BoolAttr): pass # deprecated
+		class scrolling(xsc.TextAttr): pass # deprecated
 
 class frame(xsc.Element):
 	"""
 	subwindow
 	"""
-	empty = 1
-	attrHandlers = coreattrs.copy()
-	attrHandlers.update({"longdesc": xsc.TextAttr, "name": xsc.TextAttr, "src": xsc.URLAttr, "frameborder": xsc.TextAttr, "marginwidht": xsc.TextAttr, "marginheight": xsc.TextAttr, "noresize": xsc.BoolAttr, "scrolling": xsc.TextAttr})
-	attrHandlers.update({"framespacing": xsc.TextAttr, "border": xsc.IntAttr, "marginwidth": xsc.IntAttr, "marginheight": xsc.IntAttr, "frameborder": xsc.IntAttr, "noresize": xsc.BoolAttr, "scrolling": xsc.TextAttr}) # deprecated
-
-class noframes(xsc.Element):
-	"""
-	alternate content container for non frame-based rendering
-	"""
-	empty = 0
-	attrHandlers = attrs
-
-class iframe(xsc.Element):
-	"""
-	inline subwindow
-	"""
-	empty = 0
-	attrHandlers = coreattrs.copy()
-	attrHandlers.update({"longdesc": xsc.TextAttr, "name": xsc.TextAttr, "src": xsc.URLAttr, "frameborder": xsc.TextAttr, "marginwidth": xsc.TextAttr, "marginheight": xsc.TextAttr, "noresize": xsc.BoolAttr, "scrolling": xsc.TextAttr, "align": xsc.TextAttr, "height": xsc.TextAttr, "width": xsc.TextAttr})
-	attrHandlers.update({"hspace": xsc.IntAttr, "vspace": xsc.IntAttr, "bordercolor": xsc.ColorAttr}) # deprecated, but webadverts uses it.
-
-class form(xsc.Element):
-	"""
-	interactive form
-	"""
-	empty = 0
-	attrHandlers = attrs.copy()
-	attrHandlers.update({"action": xsc.URLAttr, "method": xsc.TextAttr, "enctype": xsc.TextAttr, "onsubmit": xsc.TextAttr, "onreset": xsc.TextAttr, "accept-charset": xsc.TextAttr})
-	attrHandlers.update({"target": xsc.TextAttr}) # frame
-	attrHandlers.update({"name": xsc.TextAttr}) # deprecated
-
-class input(xsc.Element):
-	"""
-	form control
-	"""
-	empty = 1
-	attrHandlers = attrs.copy()
-	attrHandlers.update({"type": xsc.TextAttr, "name": xsc.TextAttr, "value": xsc.TextAttr, "checked": xsc.TextAttr, "disabled": xsc.TextAttr, "readonly": xsc.TextAttr, "size": xsc.TextAttr, "maxlength": xsc.TextAttr, "src": xsc.URLAttr, "alt": xsc.TextAttr, "usemap": xsc.TextAttr, "tabindex": xsc.TextAttr, "accesskey": xsc.TextAttr, "onfocus": xsc.TextAttr, "onblur": xsc.TextAttr, "onselect": xsc.TextAttr, "onchange": xsc.TextAttr, "accept": xsc.TextAttr})
-	attrHandlers.update({"border": xsc.IntAttr}) # deprecated
-
-class button(xsc.Element):
-	"""
-	push button
-	"""
-	empty = 0
-	attrHandlers = attrs.copy()
-	attrHandlers.update({"name": xsc.TextAttr, "value": xsc.TextAttr, "type": xsc.TextAttr, "disabled": xsc.TextAttr, "tabindex": xsc.TextAttr, "accesskey": xsc.TextAttr, "onfocus": xsc.TextAttr, "onblur": xsc.TextAttr})
-
-class select(xsc.Element):
-	"""
-	option selector
-	"""
-	empty = 0
-	attrHandlers = attrs.copy()
-	attrHandlers.update({"name": xsc.TextAttr, "size": xsc.TextAttr, "multiple": xsc.TextAttr, "disabled": xsc.TextAttr, "tabindex": xsc.TextAttr, "onfocus": xsc.TextAttr, "onblur": xsc.TextAttr, "onchange": xsc.TextAttr})
-	attrHandlers.update({"rows": xsc.TextAttr}) # deprecated
-
-class optgroup(xsc.Element):
-	"""
-	option group
-	"""
-	empty = 0
-	attrHandlers = attrs.copy()
-	attrHandlers.update({"disabled": xsc.TextAttr, "label": xsc.TextAttr})
-
-class option(xsc.Element):
-	"""
-	selectable choice
-	"""
-	empty = 0
-	attrHandlers = attrs.copy()
-	attrHandlers.update({"selected": xsc.BoolAttr, "disabled": xsc.TextAttr, "label": xsc.TextAttr, "value": xsc.TextAttr})
-
-class textarea(xsc.Element):
-	"""
-	multi-line text field
-	"""
-	empty = 0
-	attrHandlers = attrs.copy()
-	attrHandlers.update({"name": xsc.TextAttr, "rows": xsc.IntAttr, "cols": xsc.IntAttr, "disabled": xsc.TextAttr, "readonly": xsc.TextAttr, "tabindex": xsc.TextAttr, "accesskey": xsc.TextAttr, "onfocus": xsc.TextAttr, "onblur": xsc.TextAttr, "onselect": xsc.TextAttr, "onchange": xsc.TextAttr})
-	attrHandlers.update({"wrap": xsc.TextAttr})
-
-class label(xsc.Element):
-	"""
-	form field label text
-	"""
-	empty = 0
-	attrHandlers = attrs.copy()
-	attrHandlers.update({"for": xsc.TextAttr, "accesskey": xsc.TextAttr, "onfocus": xsc.TextAttr, "onblur": xsc.TextAttr})
-
-class fieldset(xsc.Element):
-	"""
-	form control group
-	"""
-	empty = 0
-	attrHandlers = attrs
-
-class legend(xsc.Element):
-	"""
-	fieldset legend
-	"""
-	empty = 0
-	attrHandlers = attrs.copy()
-	attrHandlers.update({"accesskey": xsc.TextAttr})
-
-class script(xsc.Element):
-	"""
-	script statements
-	"""
-	empty = 0
-	attrHandlers = {"charset": xsc.TextAttr, "type": xsc.TextAttr, "src": xsc.URLAttr, "defer": xsc.TextAttr}
-	attrHandlers.update({"language": xsc.TextAttr}) # deprecated
-
-class noscript(xsc.Element):
-	"""
-	alternate content container for non script-based rendering
-	"""
-	empty = 0
-	attrHandlers = attrs
+	empty = True
+	class Attrs(coreattrs):
+		class longdesc(xsc.TextAttr): pass
+		class name(xsc.TextAttr): pass
+		class src(xsc.URLAttr): pass
+		class frameborder(xsc.TextAttr): pass
+		class marginwidht(xsc.TextAttr): pass
+		class marginheight(xsc.TextAttr): pass
+		class noresize(xsc.BoolAttr): pass
+		class scrolling(xsc.TextAttr): pass
+		class framespacing(xsc.TextAttr): pass # deprecated
+		class border(xsc.IntAttr): pass # deprecated
+		class marginwidth(xsc.IntAttr): pass # deprecated
+		class marginheight(xsc.IntAttr): pass # deprecated
+		class frameborder(xsc.IntAttr): pass # deprecated
+		class noresize(xsc.BoolAttr): pass # deprecated
+		class scrolling(xsc.TextAttr): pass # deprecated
 
 # More pain
-class font(xsc.Element): # deprecated
-	"""
-	local change to font
-	"""
-	empty = 0
-	attrHandlers = coreattrs.copy()
-	attrHandlers.update(i18n)
-	attrHandlers.update({"face": xsc.TextAttr, "size": xsc.TextAttr, "color": xsc.ColorAttr})
-
-class applet(xsc.Element): # deprecated
-	"""
-	Java applet
-	"""
-	empty = 0
-	attrHandlers = coreattrs.copy()
-	attrHandlers.update({"name": xsc.TextAttr, "code": xsc.TextAttr, "codebase": xsc.URLAttr, "object": xsc.TextAttr, "width": xsc.TextAttr, "height": xsc.TextAttr})
-	attrHandlers.update({"archive": xsc.TextAttr}) # deprecated
-
 class nobr(xsc.Element): # deprecated
 	"""
 	prevents line breaks
 	"""
-	empty = 0
-
-class center(xsc.Element): # deprecated
-	"""
-	centered block level element
-	"""
-	empty = 0
+	empty = False
 
 # Latin 1 characters
 class nbsp(xsc.CharRef): "no-break space = non-breaking space, U+00A0 ISOnum"; codepoint = 160
@@ -1077,8 +1419,8 @@ class ne(xsc.CharRef): "not equal to, U+2260 ISOtech"; codepoint = 8800
 class equiv(xsc.CharRef): "identical to, U+2261 ISOtech"; codepoint = 8801
 class le(xsc.CharRef): "less-than or equal to, U+2264 ISOtech"; codepoint = 8804
 class ge(xsc.CharRef): "greater-than or equal to, U+2265 ISOtech"; codepoint = 8805
-class Sub(xsc.CharRef): "subset of, U+2282 ISOtech"; codepoint = 8834; name = "sub"
-class Sup(xsc.CharRef): "superset of, U+2283 ISOtech"; codepoint = 8835; name = "sup"
+class Sub(xsc.CharRef): "subset of, U+2282 ISOtech"; codepoint = 8834; xmlname = "sub"
+class Sup(xsc.CharRef): "superset of, U+2283 ISOtech"; codepoint = 8835; xmlname = "sup"
 class nsub(xsc.CharRef): "not a subset of, U+2284 ISOamsn"; codepoint = 8836
 class sube(xsc.CharRef): "subset of or equal to, U+2286 ISOtech"; codepoint = 8838
 class supe(xsc.CharRef): "superset of or equal to, U+2287 ISOtech"; codepoint = 8839
@@ -1105,5 +1447,5 @@ class hearts(xsc.CharRef): "black heart suit = valentine, U+2665 ISOpub"; codepo
 class diams(xsc.CharRef): "black diamond suit, U+2666 ISOpub"; codepoint = 9830
 
 # register all the classes we've defined so far
-namespace = xsc.Namespace("html", "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd", vars())
+xmlns = xsc.Namespace("html", "http://www.w3.org/1999/xhtml", vars())
 

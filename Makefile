@@ -13,7 +13,7 @@ all:
 	python$(PYVERSION) setup.py install --install-lib $(OUTPUTDIR) --install-scripts $(SCRIPTDIR)
 
 test: all
-	python$(PYVERION) test/test.py -v
+	python$(PYVERSION) test/test.py -v
 
 install:
 	python$(PYVERSION) setup.py install

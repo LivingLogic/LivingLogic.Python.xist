@@ -1,7 +1,10 @@
+#! /usr/bin/env/python
+# -*- coding: Latin-1 -*-
+
 import sys, unittest
 
-from xist import xsc, parsers, presenters, converters, helpers
-from xist.ns import wml, ihtml, html, css, specials
+from ll.xist import xsc, parsers, presenters, converters, helpers, errors
+from ll.xist.ns import wml, ihtml, html, css, specials, xml
 
 class XISTTestCase(unittest.TestCase):
 	def check_lenunicode(self, node, _len, content):
@@ -103,7 +106,7 @@ class XISTTestCase(unittest.TestCase):
 
 	def test_standardmethods(self):
 		node = xsc.Frag(
-			xsc.XML10(),
+			xml.XML10(),
 			html.DocTypeHTML401transitional(),
 			xsc.Comment("gurk"),
 			"hurz",
@@ -126,7 +129,7 @@ class XISTTestCase(unittest.TestCase):
 				id=(1, 2, (3, 4)),
 				lang=(
 					html.abbr(
-						xsc.XML10(),
+						xml.XML10(),
 						"hurz",
 						html.nbsp(),
 						specials.xist(),
@@ -204,8 +207,16 @@ class XISTTestCase(unittest.TestCase):
 
 	def check_namespace(self, module):
 		for obj in module.__dict__.values():
-			if issubclass(obj.__class__, type) and issubclass(obj, xsc.Node):
-				obj().conv().asBytes()
+			if isinstance(obj, type) and issubclass(obj, xsc.Node):
+				node = obj()
+				if isinstance(node, xsc.Element):
+					for (attrname, attrvalue) in node.allowedattritems():
+						if attrvalue.required:
+							if attrvalue.values:
+								node[attrname] = attrvalue.values[0]
+							else:
+								node[attrname] = "foo"
+				node.conv().asBytes()
 
 	def test_html(self):
 		self.check_namespace(html)
@@ -276,7 +287,8 @@ class XISTTestCase(unittest.TestCase):
 				return e.convert(converter)
 		e = newa("gurk", href="hurz")
 		e = e.conv().conv()
-		self.assertEqual(e["href"], "foohurz")
+		self.assertEqual(unicode(e["href"]), "foohurz")
+		self.assertEqual(str(e["href"]), "foohurz")
 
 	def test_csspublish(self):
 		e = css.css(
@@ -304,9 +316,144 @@ class XISTTestCase(unittest.TestCase):
 		e.asBytes()
 
 	def test_namespace(self):
-		self.assertEquals(xsc.amp.name, "amp")
-		self.assert_(xsc.amp.namespace() is xsc.namespace)
-		self.assertEquals(xsc.amp.prefix(), "xsc")
+		self.assertEqual(xsc.amp.xmlname, "amp")
+		self.assert_(xsc.amp.xmlns is xsc.xmlns)
+		self.assertEqual(xsc.amp.xmlprefix(), "xsc")
+
+	def test_attributes(self):
+		node = html.h1("gurk",
+			{(xml, "space"): 1, (xml, "lang"): "de", (xml, "base"): "http://www.livinglogic.de/"},
+			lang="de",
+			style="color: #fff",
+			align="right",
+			title="gurk",
+			class_="important",
+			id=42,
+			dir="ltr"
+		)
+		self.assert_(node.hasAttr("lang"))
+		self.assert_(node.hasAttr((xml, "lang")))
+		self.assert_(node.hasAttr((xml.xmlns, "lang")))
+		self.assert_(node.hasAttr((xml.xmlns.xmlurl, "lang")))
+
+		keys = node.attrs.keys()
+		keys.sort()
+		keys.remove("lang")
+
+		keys1 = node.attrs.without(["lang"]).keys()
+		keys1.sort()
+		self.assertEqual(keys, keys1)
+
+		keys.remove((xml.xmlns, "space"))
+		keys2 = node.attrs.without(["lang", (xml, "space")]).keys()
+		keys2.sort()
+		self.assertEqual(keys, keys2)
+
+		keys.remove((xml.xmlns, "lang"))
+		keys.remove((xml.xmlns, "base"))
+		keys3 = node.attrs.without(["lang", xml]).keys()
+		keys3.sort()
+		self.assertEqual(keys, keys3)
+
+		# Check that non existing attrs are handled correctly
+		keys4 = node.attrs.without(["lang", "src", None]).keys()
+		keys4.sort()
+		self.assertEqual(keys, keys4)
+
+	def test_defaultattributes(self):
+		class Test(xsc.Element):
+			class Attrs(xsc.Element.Attrs):
+				class withdef(xsc.TextAttr):
+					default = 42
+				class withoutdef(xsc.TextAttr):
+					pass
+		node = Test()
+		self.assert_(node.hasAttr("withdef"))
+		self.assert_(not node.hasAttr("withoutdef"))
+		self.assertRaises(errors.IllegalAttrError, node.hasAttr, "illegal")
+		node = Test(withdef=None)
+		self.assert_(not node.hasAttr("withdef"))
+
+	def check_listiter(self, listexp, *lists):
+		for l in lists:
+			count = 0
+			for item in l:
+				self.assert_(item in listexp)
+				count += 1
+			self.assertEqual(count, len(listexp))
+
+	def test_attributedictmethods(self):
+		class Test(xsc.Element):
+			class Attrs(xsc.Element.Attrs):
+				class withdef(xsc.TextAttr):
+					default = 42
+				class withoutdef(xsc.TextAttr):
+					pass
+				class another(xsc.URLAttr):
+					pass
+
+		node = Test(withoutdef=42)
+
+		self.check_listiter(
+			[ "withdef", "withoutdef" ],
+			node.attrkeys(),
+			node.iterattrkeys(),
+			node.attrs.keys(),
+			node.attrs.iterkeys()
+		)
+		self.check_listiter(
+			[ Test.Attrs.withdef(42), Test.Attrs.withoutdef(42)],
+			node.attrvalues(),
+			node.iterattrvalues(),
+			node.attrs.values(),
+			node.attrs.itervalues()
+		)
+		self.check_listiter(
+			[ ("withdef", Test.Attrs.withdef(42)), ("withoutdef", Test.Attrs.withoutdef(42)) ],
+			node.attritems(),
+			node.iterattritems(),
+			node.attrs.items(),
+			node.attrs.iteritems()
+		)
+
+		self.check_listiter(
+			[ "another", "withdef", "withoutdef" ],
+			node.allowedattrkeys(),
+			node.iterallowedattrkeys(),
+			node.attrs.allowedkeys(),
+			node.attrs.iterallowedkeys()
+		)
+		self.check_listiter(
+			[ Test.Attrs.another, Test.Attrs.withdef, Test.Attrs.withoutdef ],
+			node.allowedattrvalues(),
+			node.iterallowedattrvalues(),
+			node.attrs.allowedvalues(),
+			node.attrs.iterallowedvalues()
+		)
+		self.check_listiter(
+			[ ("another", Test.Attrs.another), ("withdef", Test.Attrs.withdef), ("withoutdef", Test.Attrs.withoutdef) ],
+			node.allowedattritems(),
+			node.iterallowedattritems(),
+			node.attrs.alloweditems(),
+			node.attrs.iteralloweditems()
+		)
+
+	def test_nsparse(self):
+		xml = """
+			<x:a>
+				<x:a xmlns:x='http://www.w3.org/1999/xhtml'>
+					<x:a xmlns:x='http://www.nttdocomo.co.jp/imode'>gurk</x:a>
+				</x:a>
+			</x:a>
+		"""
+		from ll.xist.ns import html, ihtml
+		from ll.xist import presenters
+		node = parsers.parseString(xml, prefixes=xsc.Prefixes().addElementPrefixMapping("x", ihtml))
+		node = node.find(type=xsc.Element, subtype=True)[0].compact() # get rid of the Frag and whitespace
+		self.assertEquals(node, ihtml.a(html.a(ihtml.a("gurk"))))
+
+	def test_xmlns(self):
+		pass
 
 if __name__ == "__main__":
 	unittest.main()

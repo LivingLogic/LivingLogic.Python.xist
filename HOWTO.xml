@@ -75,7 +75,7 @@ Strings and integers will be automatically converted to
 So constructing an &html; element works like this:
 <doc:example title="The first example">
 <doc:programlisting>
-from xist.ns import html
+from ll.xist.ns import html
 
 node = html.div(
 	"Hello ",
@@ -156,7 +156,7 @@ for an element named <lit>cool</lit> works like this:
 <doc:example title="Defining a new element">
 <doc:programlisting>
 class cool(xsc.Element):
-	empty = 0
+	empty = False
 
 	def convert(self, converter):
 		node = html.b(self.content, " is cool!")
@@ -198,7 +198,7 @@ on your own content, because otherwise some unconverted nodes
 might remain in the tree. Lets define a new element:
 <doc:programlisting>
 class python(xsc.Element):
-	empty = 1
+	empty = True
 
 	def convert(self, converter):
 		return html.a(
@@ -218,7 +218,7 @@ for our own content, i.e. if the element <pyref class="cool">cool</pyref>
 was written like this:
 <doc:programlisting>
 class cool(xsc.Element):
-	empty = 0
+	empty = False
 
 	def convert(self, converter):
 		return html.b(self.content, " is cool!")
@@ -238,7 +238,7 @@ is a convenience method that creates a default converter for you and calls
 You could also call <doc:pyref module="xist.xsc" class="Node" method="convert"><method>convert</method></doc:pyref> yourself,
 which would look like this:
 <doc:programlisting>
-from xist import converters
+from ll.xist import converters
 
 node = cool(python())
 node = node.convert(converters.Converter(None, None,
@@ -270,7 +270,7 @@ This can be used in the <method>convert</method> method
 to implement different conversions for different languages, e.g.:
 <doc:programlisting>
 class note(xsc.Element):
-	empty = 0
+	empty = False
 
 	def convert(self, converter):
 		if converter.lang=="de":
@@ -302,7 +302,7 @@ a <pyref module="make"><module>make</module></pyref> script.</par>
 </doc:section>
 
 <doc:section><doc:title>Attributes</doc:title>
-<doc:par>Setting and accessing the attributes of an element work via
+<doc:par>Setting and accessing the attributes of an element works via
 the dictionary interface. So if <lit>node</lit>
 is an <pyref module="xist.xsc" class="Element"><class>Element</class></pyref> that supports the
 attribute <lit>spam</lit> the following can be
@@ -363,14 +363,16 @@ Set it to <lit>0</lit> when your element may have content and to <lit>1</lit>
 if it may not.</doc:par>
 
 <doc:par>To specify the attributes for the element, use the class
-attribute <lit>attrHandlers</lit>, which must be a dictionary
-mapping attribute names to attribute classes. We could extend our
-example element in the following way:
+attribute <lit>Attrs</lit>, which must be a class derived
+from <class>Element.Attrs</class> and define the attributes
+by deriving them from one of the existing attribute classes.
+We could extend our example element in the following way:
 <doc:example title="Using attributes">
 <doc:programlisting>
 class cool(xsc.Element):
-	empty = 0
-	attrHandlers = {"adj": xsc.TextAttr}
+	empty = False
+	class Attrs(xsc.Element.Attrs):
+		class adj(xsc.TextAttr): pass
 
 	def convert(self, converter):
 		node = xsc.Frag(self.content, " is")
@@ -398,7 +400,7 @@ namespace object that collects all the class objects from the
 local scope:
 <doc:example>
 <doc:programlisting>
-namespace = xsc.Namespace(
+xmlns = xsc.Namespace(
 	"foo",
 	"http://www.foo.net/DTDs/foo.dtd",
 	vars()
@@ -437,8 +439,8 @@ which must return a unicode string value for the entity. The following
 example is from the module <pyref module="xist.ns.abbr"><module>xist.ns.abbr</module></pyref>:
 <doc:example title="Defining new entities">
 <doc:programlisting>
-from xist import xsc
-from xist.ns import html
+from ll.xist import xsc
+from ll.xist.ns import html
 
 class xml(xsc.Entity):
 	def convert(self, converter):
@@ -490,7 +492,7 @@ Unencodable characters will be escaped with numeric character references when po
 (i.e. inside text nodes, for comments or processing instructions you'll get
 an exception):
 <doc:programlisting>
-&gt;&gt;&gt; from xist.ns import xsc, html
+&gt;&gt;&gt; from ll.xist.ns import xsc, html
 &gt;&gt;&gt; print html.div(
 ...    u"הצü",
 ...    html.br(),
@@ -526,7 +528,7 @@ an empty tag (without an additional space): <markup>&lt;br/&gt;</markup> or <mar
 <doc:par>Writing a node to a file can be done with the method
 <pyref module="xist.xsc" class="Node" method="write"><method>write</method></pyref>:
 <doc:programlisting>
-&gt;&gt;&gt; from xist.ns import html
+&gt;&gt;&gt; from ll.xist.ns import html
 &gt;&gt;&gt; html.div(
 ...    u"הצü",
 ...    html.br(),
@@ -597,7 +599,7 @@ to test if a node should be returned from
 <pyref module="xist.xsc" class="Node" method="find"><method>find</method></pyref> when it
 passes all previous tests:
 <doc:programlisting>
-&gt;&gt;&gt; from xist import xsc
+&gt;&gt;&gt; from ll.xist import xsc
 &gt;&gt;&gt; nums = ["%d," % i for i in xrange(100)]
 &gt;&gt;&gt; node = xsc.Frag(*nums)
 &gt;&gt;&gt; print node. \
@@ -615,8 +617,8 @@ nodes should be searched too.</item>
 <doc:par>You could for example extract all the links on Python's
 <a href="http://python.sf.net/">SourceForge page</a> with the following:</doc:par>
 <doc:programlisting>
-&gt;&gt;&gt; from xist import xsc, parsers
-&gt;&gt;&gt; from xist.ns import html
+&gt;&gt;&gt; from ll.xist import xsc, parsers
+&gt;&gt;&gt; from ll.xist.ns import html
 &gt;&gt;&gt; node = parsers.parseURL("http://python.sf.net/", tidy=1)
 &gt;&gt;&gt; links = node.find(type=html.a, \
 ...    attr={"href": None}, searchchildren=1)
@@ -639,8 +641,8 @@ can be used to put a seperator node between the child nodes of an
 <pyref module="xist.xsc" class="Element"><class>Element</class></pyref>
 or a <pyref module="xist.xsc" class="Frag"><class>Frag</class></pyref>:
 <doc:programlisting>
-&gt;&gt;&gt; from xist import xsc
-&gt;&gt;&gt; from xist.ns import html
+&gt;&gt;&gt; from ll.xist import xsc
+&gt;&gt;&gt; from ll.xist.ns import html
 &gt;&gt;&gt; print html.div(*xrange(10)).withSep(", ").asBytes()
 &lt;div&gt;0, 1, 2, 3, 4, 5, 6, 7, 8, 9&lt;/div&gt;
 </doc:programlisting>
@@ -649,8 +651,8 @@ or a <pyref module="xist.xsc" class="Frag"><class>Frag</class></pyref>:
 returns a shuffled version of the <pyref module="xist.xsc" class="Element"><class>Element</class></pyref>
 or <pyref module="xist.xsc" class="Frag"><class>Frag</class></pyref>:
 <doc:programlisting>
-&gt;&gt;&gt; from xist import xsc
-&gt;&gt;&gt; from xist.ns import html
+&gt;&gt;&gt; from ll.xist import xsc
+&gt;&gt;&gt; from ll.xist.ns import html
 &gt;&gt;&gt; print html.div(*xrange(10)).shuffled().withSep(", ").asBytes()
 &lt;div&gt;8, 1, 3, 6, 7, 5, 2, 9, 4, 0&lt;/div&gt;
 &gt;&gt;&gt; print html.div(*xrange(10)).withSep(", ").shuffled().asBytes()
@@ -661,8 +663,8 @@ or <pyref module="xist.xsc" class="Frag"><class>Frag</class></pyref>:
 and <pyref module="xist.xsc" class="Node" method="sorted"><method>sorted</method></pyref>, that
 return a reversed or sorted version of an element or fragment:
 <doc:programlisting>
-&gt;&gt;&gt; from xist import xsc
-&gt;&gt;&gt; from xist.ns import html
+&gt;&gt;&gt; from ll.xist import xsc
+&gt;&gt;&gt; from ll.xist.ns import html
 &gt;&gt;&gt; print html.div(8,4,2,1,9,6,3,0,7,5). \
 ...    sorted(lambda n1, n2: \
 ...       cmp(unicode(n1), unicode(n2))). \
@@ -675,8 +677,8 @@ recursively walks the tree and generates a new tree, where all the nodes are map
 through a function. For example to replace <lit>Python</lit> with <lit>Parrot</lit>
 in every text node on the <a href="http://python.sf.net/">SourceForge page</a>, do the following:
 <doc:programlisting>
-from xist import xsc, parsers
-from xist.ns import html
+from ll.xist import xsc, parsers
+from ll.xist.ns import html
 
 def p2p(node):
 	if isinstance(node, xsc.Text):

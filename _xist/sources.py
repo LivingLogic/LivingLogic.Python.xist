@@ -1,7 +1,8 @@
 #! /usr/bin/env python
+# -*- coding: Latin-1 -*-
 
-## Copyright 1999-2001 by LivingLogic AG, Bayreuth, Germany.
-## Copyright 1999-2001 by Walter Dörwald
+## Copyright 1999-2002 by LivingLogic AG, Bayreuth, Germany.
+## Copyright 1999-2002 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -31,7 +32,7 @@ from xml.sax import saxlib
 
 from mx import Tidy
 
-import url
+from ll import url
 
 class InputSource(sax.xmlreader.InputSource):
 	def __init__(self, base):

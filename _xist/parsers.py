@@ -1,7 +1,8 @@
 #! /usr/bin/env python
+# -*- coding: Latin-1 -*-
 
-## Copyright 1999-2001 by LivingLogic AG, Bayreuth, Germany.
-## Copyright 1999-2001 by Walter Dörwald
+## Copyright 1999-2002 by LivingLogic AG, Bayreuth, Germany.
+## Copyright 1999-2002 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -35,6 +36,7 @@ from xml import sax
 from xml.parsers import sgmlop
 from xml.sax import expatreader
 from xml.sax import saxlib
+from xml.sax import handler
 
 from mx import Tidy
 
@@ -43,7 +45,7 @@ from mx import Tidy
 #except ImportError:
 timeoutsocket = None
 
-import url
+from ll import url
 
 import xsc, errors, utils, sources, cssparsers
 from ns import ihtml, html
@@ -112,6 +114,7 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 		except KeyboardInterrupt:
 			raise
 		except Exception, ex:
+			raise
 			if self.error_handler is not None:
 				self.error_handler.fatalError(ex)
 			else:
@@ -151,13 +154,26 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 			return None
 		return self.source.getSystemId()
 
+	def setFeature(self, name, state):
+		if name == handler.feature_namespaces:
+			if state:
+				raise sax.SAXNotSupportedException("no namespace processing available")
+		else:
+			super(SGMLOPParser, self).setFeature(name, state)
+
+	def getFeature(self, name):
+		if name == handler.feature_namespaces:
+			return 0
+		else:
+			super(SGMLOPParser, self).setFeature(name, state)
+
 	def handle_comment(self, data):
 		self.content_handler.comment(unicode(data, self.encoding))
 		self.headerJustRead = 0
 
 	# don't define handle_charref or handle_cdata, so we will get those through handle_data
 	# but unfortunately we have to define handle_charref here, because of a bug in
-	# sgmlop with unicode character i.e. "&#8364;" does not work.
+	# sgmlop: unicode characters i.e. "&#8364;" don't work.
 
 	def handle_charref(self, data):
 		data = unicode(data, self.encoding)
@@ -334,8 +350,11 @@ class HTMLParser(BadEntityParser):
 		newattrs = {}
 		for (attrname, attrvalue) in attrs:
 			attrname = attrname.lower()
-			if html.namespace.elementsByName[name].attrHandlers.has_key(attrname):
+			element = html.namespace.elementsByName[name]
+			if element.isallowed(attrname):
 				newattrs[attrname] = attrvalue
+			else:
+				errors.warn(IllegalAttrError(element.Attrs, attrname))
 		SGMLOPParser.finish_starttag(self, name, newattrs)
 
 	def finish_endtag(self, name):
@@ -349,7 +368,7 @@ class HTMLParser(BadEntityParser):
 			del self.__nesting[-1]
 
 	def __closeEmpty(self):
-		if len(self.__nesting) and html.namespace.elementsByName[self.__nesting[-1]].empty:
+		if len(self.__nesting) and html.xmlns.elementsByName[self.__nesting[-1]].empty:
 			self.finish_endtag(self.__nesting[-1])
 
 	def __closeMimimizedOnStart(self, name):
@@ -379,14 +398,15 @@ class Handler(object):
 	contains the parser and the options and functions for handling XML files
 	"""
 
-	def __init__(self, parser=None, namespaces=None):
+	def __init__(self, parser=None, prefixes=None):
 		if parser is None:
 			parser = SGMLOPParser()
 		self.parser = parser
 
-		if namespaces is None:
-			namespaces = xsc.defaultNamespaces
-		self.namespaces = namespaces
+		if prefixes is None:
+			prefixes = xsc.OldPrefixes()
+		self.prefixes = prefixes
+
 		self._locator = None
 
 	def parse(self, source):
@@ -398,6 +418,9 @@ class Handler(object):
 		self.parser.setContentHandler(self)
 		self.parser.setDTDHandler(self)
 		self.parser.setEntityResolver(self)
+
+		# Configure the parser
+		self.parser.setFeature(handler.feature_namespaces, 0) # We do our own namespace processing
 
 		self.skippingWhitespace = 0
 		self.parser.parse(source)
@@ -419,30 +442,46 @@ class Handler(object):
 	def startDocument(self):
 		# our nodes do not have a parent link, therefore we have to store the active
 		# path through the tree in a stack (which we call __nesting)
+		# and we store the namespace prefixes defined by the elements
 
 		# after we've finished parsing, the Frag that we put at the bottom of the stack will be our document root
-		self.__nesting = [ xsc.Frag() ]
+		self.__nesting = [ (xsc.Frag(),) ]
 
 	def endDocument(self):
-		self.root = self.__nesting[0]
+		self.root = self.__nesting[0][0]
 		self.__nesting = None
 
 	def startElement(self, name, attrs):
-		node = self.namespaces.elementFromName(name)()
+		prefixes = []
+		for (attrname, attrvalue) in attrs.items():
+			if attrname=="xmlns":
+				prefix = None
+			elif attrname.startswith("xmlns:"):
+				prefix = attrname[6:]
+			else:
+				continue
+			prefixes.append(prefix)
+			self.prefixes.startElementPrefixMapping(prefix, unicode(attrvalue))
+		node = self.prefixes.elementFromQName(name)()
 		node.parsed(self)
 		for (attrname, attrvalue) in attrs.items():
-			node[attrname] = attrvalue
-			node[attrname].parsed(self)
+			if attrname!="xmlns" and not attrname.startswith("xmlns:"):
+				attrname = self.prefixes.attrnameFromQName(node, attrname)
+				node[attrname] = attrvalue
+				node[attrname].parsed(self)
 		self.__appendNode(node)
-		self.__nesting.append(node) # push new innermost element onto the stack
+		self.__nesting.append((node, prefixes)) # push new innermost element onto the stack, together with the list of prefix mappings defined by this node
 		self.skippingWhitespace = 0
 
 	def endElement(self, name):
-		element = self.namespaces.elementFromName(name)
-		currentelement = self.__nesting[-1].__class__
+		element = self.prefixes.elementFromQName(name)
+		currentelement = self.__nesting[-1][0].__class__
 		if element is not currentelement:
 			raise errors.ElementNestingError(currentelement, element)
-		self.__nesting[-1].endLoc = self.getLocation()
+		self.__nesting[-1][0].endLoc = self.getLocation()
+		# SAX specifies that the order of calls to endPrefixMapping is undefined, so we use the same order as in beginElement
+		for prefix in self.__nesting[-1][1]:
+			self.prefixes.endElementPrefixMapping(prefix)
 		self.__nesting.pop() # pop the innermost element off the stack
 		self.skippingWhitespace = 0
 
@@ -455,7 +494,7 @@ class Handler(object):
 		if content:
 			node = xsc.Text(content)
 			node.parsed(self)
-			last = self.__nesting[-1]
+			last = self.__nesting[-1][0]
 			if len(last) and isinstance(last[-1], xsc.Text):
 				node = last[-1] + node.content # join consecutive Text nodes
 				node.startLoc = last[-1].startLoc # make sure the replacement node has the original location
@@ -474,13 +513,13 @@ class Handler(object):
 		if target=="x":
 			self.skippingWhitespace = 1
 		else:
-			node = self.namespaces.procInstFromName(target)(data)
+			node = self.prefixes.procInstFromQName(target)(data)
 			node.parsed(self)
 			self.__appendNode(node)
 			self.skippingWhitespace = 0
 
 	def skippedEntity(self, name):
-		node = self.namespaces.entityFromName(name)()
+		node = self.prefixes.entityFromQName(name)()
 		node.parsed(self)
 		if isinstance(node, xsc.CharRef):
 			self.characters(unichr(node.codepoint))
@@ -514,21 +553,21 @@ class Handler(object):
 
 	def __appendNode(self, node):
 		node.startLoc = self.getLocation()
-		self.__nesting[-1].append(node) # add the new node to the content of the innermost element (or fragment)
+		self.__nesting[-1][0].append(node) # add the new node to the content of the innermost element (or fragment)
 
-def parse(source, handler=None, parser=None, namespaces=None):
+def parse(source, handler=None, parser=None, prefixes=None):
 	if handler is None:
-		handler = Handler(parser, namespaces)
+		handler = Handler(parser, prefixes=prefixes)
 	handler.parse(source)
 	result = handler.root
 	handler.close()
 	return result
 
-def parseString(text, systemId="STRING", base=None, handler=None, parser=None, namespaces=None, defaultEncoding="utf-8", tidy=0):
-	return parse(sources.StringInputSource(text, systemId=systemId, base=base, defaultEncoding=defaultEncoding, tidy=tidy), handler=handler, parser=parser, namespaces=namespaces)
+def parseString(text, systemId="STRING", base=None, handler=None, parser=None, prefixes=None, defaultEncoding="utf-8", tidy=0):
+	return parse(sources.StringInputSource(text, systemId=systemId, base=base, defaultEncoding=defaultEncoding, tidy=tidy), handler=handler, parser=parser, prefixes=prefixes)
 
-def parseURL(id, base=None, handler=None, parser=None, namespaces=None, defaultEncoding="utf-8", tidy=0, headers=None, data=None):
-	return parse(sources.URLInputSource(id, base=base, defaultEncoding=defaultEncoding, tidy=tidy, headers=headers, data=data), handler=handler, parser=parser, namespaces=namespaces)
+def parseURL(id, base=None, handler=None, parser=None, prefixes=None, defaultEncoding="utf-8", tidy=0, headers=None, data=None):
+	return parse(sources.URLInputSource(id, base=base, defaultEncoding=defaultEncoding, tidy=tidy, headers=headers, data=data), handler=handler, parser=parser, prefixes=prefixes)
 
-def parseFile(filename, base=None, handler=None, parser=None, namespaces=None, defaultEncoding="utf-8", tidy=0):
-	return parseURL(url.Filename(filename), base=base, defaultEncoding=defaultEncoding, tidy=tidy, handler=handler, parser=parser, namespaces=namespaces)
+def parseFile(filename, base=None, handler=None, parser=None, prefixes=None, defaultEncoding="utf-8", tidy=0):
+	return parseURL(url.Filename(filename), base=base, defaultEncoding=defaultEncoding, tidy=tidy, handler=handler, parser=parser, prefixes=prefixes)

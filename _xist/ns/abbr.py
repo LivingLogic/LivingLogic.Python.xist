@@ -1,7 +1,8 @@
 #! /usr/bin/env python
+# -*- coding: Latin-1 -*-
 
-## Copyright 1999-2001 by LivingLogic AG, Bayreuth, Germany.
-## Copyright 1999-2001 by Walter Dörwald
+## Copyright 1999-2002 by LivingLogic AG, Bayreuth, Germany.
+## Copyright 1999-2002 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -26,7 +27,7 @@
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-from xist import xsc
+from ll.xist import xsc
 import html as html_
 
 class rmi(xsc.Entity):
@@ -224,91 +225,91 @@ class isdn(xsc.Entity):
 
 class corba(xsc.Entity):
 	def convert(self, converter):
-		return html_.span(html_.abbr("CORBA", title="Common Object Request Broker Architecture", lang="en"), class_="caps")
+		return html_.abbr("CORBA", title="Common Object Request Broker Architecture", lang="en")
 	def __unicode__(self):
 		return u"CORBA"
 
 class wap(xsc.Entity):
 	def convert(self, converter):
-		return html_.span(html_.abbr("WAP", title="Wireless Application Protocol", lang="en"), class_="caps")
+		return html_.abbr("WAP", title="Wireless Application Protocol", lang="en")
 	def __unicode__(self):
 		return u"WAP"
 
 class wml(xsc.Entity):
 	def convert(self, converter):
-		return html_.span(html_.abbr("WML", title="Wireless Markup Language", lang="en"), class_="caps")
+		return html_.abbr("WML", title="Wireless Markup Language", lang="en")
 	def __unicode__(self):
 		return u"WML"
 
 class mac(xsc.Entity):
 	def convert(self, converter):
-		return html_.span(html_.abbr("MAC", title="Media Access Control", lang="en"), class_="caps")
+		return html_.abbr("MAC", title="Media Access Control", lang="en")
 	def __unicode__(self):
 		return u"MAC"
 
 class nat(xsc.Entity):
 	def convert(self, converter):
-		return html_.span(html_.abbr("NAT", title="Network Address Translation", lang="en"), class_="caps")
+		return html_.abbr("NAT", title="Network Address Translation", lang="en")
 	def __unicode__(self):
 		return u"NAT"
 
 class sql(xsc.Entity):
 	def convert(self, converter):
-		return html_.span(html_.abbr("SQL", title="Structured Query Language", lang="en"), class_="caps")
+		return html_.abbr("SQL", title="Structured Query Language", lang="en")
 	def __unicode__(self):
 		return u"SQL"
 
 class xsl(xsc.Entity):
 	def convert(self, converter):
-		return html_.span(html_.abbr("XSL", title="Extensible Stylesheet Language", lang="en"), class_="caps")
+		return html_.abbr("XSL", title="Extensible Stylesheet Language", lang="en")
 	def __unicode__(self):
 		return u"XSL"
 
 class xslt(xsc.Entity):
 	def convert(self, converter):
-		return html_.span(html_.abbr("XSLT", title="Extensible Stylesheet Language Transformations", lang="en"), class_="caps")
+		return html_.abbr("XSLT", title="Extensible Stylesheet Language Transformations", lang="en")
 	def __unicode__(self):
 		return u"XSLT"
 
 class smil(xsc.Entity):
 	def convert(self, converter):
-		return html_.span(html_.abbr("SMIL", title="Synchronized Multimedia Integration Language", lang="en"), class_="caps")
+		return html_.abbr("SMIL", title="Synchronized Multimedia Integration Language", lang="en")
 	def __unicode__(self):
 		return u"SMIL"
 
 class dtd(xsc.Entity):
 	def convert(self, converter):
-		return html_.span(html_.abbr("DTD", title="Document Type Definiton", lang="en"), class_="caps")
+		return html_.abbr("DTD", title="Document Type Definiton", lang="en")
 	def __unicode__(self):
 		return u"DTD"
 
 class dom(xsc.Entity):
 	def convert(self, converter):
-		return html_.span(html_.abbr("DOM", title="Document Object Model", lang="en"), class_="caps")
+		return html_.abbr("DOM", title="Document Object Model", lang="en")
 	def __unicode__(self):
 		return u"DOM"
 
 class api(xsc.Entity):
 	def convert(self, converter):
-		return html_.span(html_.abbr("API", title="Application Programming Interface", lang="en"), class_="caps")
+		return html_.abbr("API", title="Application Programming Interface", lang="en")
 	def __unicode__(self):
 		return u"API"
 
 class sax(xsc.Entity):
 	def convert(self, converter):
-		return html_.span(html_.abbr("SAX", title="Simple API for XML", lang="en"), class_="caps")
+		return html_.abbr("SAX", title="Simple API for XML", lang="en")
 	def __unicode__(self):
 		return u"SAX"
 
 class dbms(xsc.Entity):
 	def convert(self, converter):
-		return html_.span(html_.abbr("DBMS", title="Database Management System", lang="en"), class_="caps")
+		return html_.abbr("DBMS", title="Database Management System", lang="en")
 	def __unicode__(self):
 		return u"DBMS"
 
 class ansi(xsc.Entity):
 	def convert(self, converter):
-		return html_.span(html_.abbr("ANSI", title="American National Standards Institute", lang="en"), class_="caps")
+		return html_.abbr("ANSI", title="American National Standards Institute", lang="en")
 	def __unicode__(self):
 		return u"ANSI"
 
@@ -432,4 +433,10 @@ class mime(xsc.Entity):
 	def __unicode__(self):
 		return u"MIME"
 
-namespace = xsc.Namespace("abbr", "http://xmlns.livinglogic.de/xist/ns/abbr", vars())
+class wysiwyg(xsc.Entity):
+	def convert(self, converter):
+		return html_.abbr("WYSIWYG", title="What You See Is What You Get", lang="en")
+	def __unicode__(self):
+		return u"WYSIWYG"
+
+xmlns = xsc.Namespace("abbr", "http://xmlns.livinglogic.de/xist/ns/abbr", vars())

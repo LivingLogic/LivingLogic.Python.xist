@@ -1,7 +1,8 @@
 #! /usr/bin/env python
+# -*- coding: Latin-1 -*-
 
-## Copyright 1999-2001 by LivingLogic AG, Bayreuth, Germany.
-## Copyright 1999-2001 by Walter Dörwald
+## Copyright 1999-2002 by LivingLogic AG, Bayreuth, Germany.
+## Copyright 1999-2002 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -26,7 +27,7 @@
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-from xist import xsc
+from ll.xist import xsc
 
 class php(xsc.ProcInst):
 	"""
@@ -35,31 +36,31 @@ class php(xsc.ProcInst):
 	"""
 
 class If(php):
-	name = "if"
+	xmlname = "if"
 
 	def convert(self, converter):
 		return php(u"if (" + self.content + "){")
 
 class Else(php):
-	name = "else"
+	xmlname = "else"
 
 	def convert(self, converter):
 		return php(u"}else{")
 
 class ElIf(php):
-	name = "elif"
+	xmlname = "elif"
 
 	def convert(self, converter):
 		return php(u"}else if (" + self.content + "){")
 
 class End(php):
-	name = "end"
+	xmlname = "end"
 
 	def convert(self, converter):
 		return php(u"}")
 
 class block(xsc.Element):
-	empty = 0
+	empty = False
 
 	def convert(self, converter):
 		e = xsc.Frag(
@@ -70,4 +71,4 @@ class block(xsc.Element):
 		return e.convert(converter)
 
 # register all the classes we've defined so far
-namespace = xsc.Namespace("php", "http://www.php.net/", vars())
+xmlns = xsc.Namespace("php", "http://www.php.net/", vars())

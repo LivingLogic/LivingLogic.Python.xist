@@ -1,7 +1,8 @@
 #! /usr/bin/env python
+# -*- coding: Latin-1 -*-
 
-## Copyright 1999-2001 by LivingLogic AG, Bayreuth, Germany.
-## Copyright 1999-2001 by Walter Dörwald
+## Copyright 1999-2002 by LivingLogic AG, Bayreuth, Germany.
+## Copyright 1999-2002 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -31,9 +32,9 @@ import sys
 import getopt
 import time
 
-import ansistyle, url
+from ll import ansistyle, url
 
-from xist import xsc, publishers, presenters, converters, parsers # don't do a subpackage import here, otherwise chaos will ensue, because XIST modules will be imported twice
+from ll.xist import xsc, publishers, presenters, converters, parsers # don't do a subpackage import here, otherwise chaos will ensue, because XIST modules will be imported twice
 
 exts = {
 	"hsc": "html",

@@ -1,7 +1,8 @@
 #! /usr/bin/env python
+# -*- coding: Latin-1 -*-
 
-## Copyright 1999-2001 by LivingLogic AG, Bayreuth, Germany.
-## Copyright 1999-2001 by Walter Dörwald
+## Copyright 1999-2002 by LivingLogic AG, Bayreuth, Germany.
+## Copyright 1999-2002 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -29,29 +30,29 @@
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-from xist import xsc, helpers
+from ll.xist import xsc, helpers
 
 class css(xsc.Element):
 	"""
 	The root element
 	"""
-	empty = 0
+	empty = False
 
 	def publish(self, publisher):
 		publisher.pushTextFilter(helpers.escapeCSS)
 		# publish the imports first
 		imports = self.find(type=atimport)
-		first = 1
+		first = True
 		for i in imports:
 			if first:
-				first = 0
+				first = False
 			else:
 				publisher.publish(u"\n")
 			i.publish(publisher)
 		content = self.find(type=(rule, atmedia), subtype=1)
 		for child in content:
 			if first:
-				first = 0
+				first = False
 			else:
 				publisher.publish(u"\n")
 			child.publish(publisher)
@@ -67,8 +68,9 @@ class atimport(xsc.Element):
 	any media types, the import is unconditional. Specifying <lit>all</lit> for <lit>media</lit>
 	has the same effect.</doc:par>
 	"""
-	empty = 0
-	attrHandlers = {"media": xsc.TextAttr}
+	empty = False
+	class Attrs(xsc.Element.Attrs):
+		class media(xsc.TextAttr): pass
 
 	def publish(self, publisher):
 		publisher.publish(u'@import url("')
@@ -103,8 +105,9 @@ class atmedia(xsc.Element):
 	</doc:ulist>
 	<doc:par>Media type names are case-insensitive.</doc:par>
 	"""
-	empty = 0
-	attrHandlers = {"media": xsc.TextAttr}
+	empty = False
+	class Attrs(xsc.Element.Attrs):
+		class media(xsc.TextAttr): pass
 
 	def publish(self, publisher):
 		publisher.publish(u"@media ")
@@ -126,7 +129,7 @@ class atcharset(xsc.Element):
 	on publishing, so this element is empty. Simply include it at the start
 	of the style sheet.</doc:par>
 	"""
-	empty = 1
+	empty = True
 	
 	def publish(self, publisher):
 		publisher.publish(u'@charset "')
@@ -137,7 +140,7 @@ class rule(xsc.Element):
 	"""
 	<doc:par>One CSS rule (with potentially multiple <pyref class="sel">selectors</pyref>).</doc:par>
 	"""
-	empty = 0
+	empty = False
 
 	def publish(self, publisher):
 		sels = self.find(type=sel)
@@ -158,7 +161,7 @@ class sel(xsc.Element):
 	"""
 	<doc:par>A CSS selector.</doc:par>
 	"""
-	empty = 0
+	empty = False
 
 	def publish(self, publisher):
 		self.content.publish(publisher)
@@ -168,11 +171,12 @@ class prop(xsc.Element):
 	<doc:par>A &css; property. This is the base class for all
 	the properties defined in &css;2.</doc:par>
 	"""
-	empty = 0
-	attrHandlers = {"important": xsc.BoolAttr}
+	empty = False
+	class Attrs(xsc.Element.Attrs):
+		class important(xsc.BoolAttr): pass
 
 	def publish(self, publisher):
-		publisher.publish(u"%s: " % self.name)
+		publisher.publish(u"%s: " % self.xmlname)
 		self.content.publish(publisher)
 		if self.hasAttr("important"):
 			publisher.publish(u" !important")
@@ -182,25 +186,25 @@ class margin_top(prop):
 	"""
 	<doc:par>Set the top margin of a box. Allowed values are a length or the value <lit>inherit</lit>.</doc:par>
 	"""
-	name = "margin-top"
+	xmlname = "margin-top"
 
 class margin_right(prop):
 	"""
 	<doc:par>Set the right margin of a box. Allowed values are a length or the value <lit>inherit</lit>.</doc:par>
 	"""
-	name = "margin-right"
+	xmlname = "margin-right"
 
 class margin_bottom(prop):
 	"""
 	<doc:par>Set the bottom margin of a box. Allowed values are a length or the value <lit>inherit</lit>.</doc:par>
 	"""
-	name = "margin-bottom"
+	xmlname = "margin-bottom"
 
 class margin_left(prop):
 	"""
 	<doc:par>Set the left margin of a box. Allowed values are a length or the value <lit>inherit</lit>.</doc:par>
 	"""
-	name = "margin-left"
+	xmlname = "margin-left"
 
 class margin(prop):
 	"""
@@ -222,28 +226,28 @@ class padding_top(prop):
 	"""
 	<doc:par>Set the top padding of a box. Allowed values are a length or the value <lit>inherit</lit>.
 	A percentage value is calculated with respect to the width of the generated box.</doc:par>"""
-	name = "padding-top"
+	xmlname = "padding-top"
 
 class padding_right(prop):
 	"""
 	<doc:par>Set the right padding of a box. Allowed values are a length or the value <lit>inherit</lit>.
 	A percentage value is calculated with respect to the width of the generated box.</doc:par>
 	"""
-	name = "padding-right"
+	xmlname = "padding-right"
 
 class padding_bottom(prop):
 	"""
 	<doc:par>Set the bottom padding of a box. Allowed values are a length or the value <lit>inherit</lit>.
 	A percentage value is calculated with respect to the width of the generated box.</doc:par>
 	"""
-	name = "padding-bottom"
+	xmlname = "padding-bottom"
 
 class padding_left(prop):
 	"""
 	<doc:par>Set the left padding of a box. Allowed values are a length or the value <lit>inherit</lit>.
 	A percentage value is calculated with respect to the width of the generated box.</doc:par>
 	"""
-	name = "padding-left"
+	xmlname = "padding-left"
 
 class padding(prop):
 	"""
@@ -266,28 +270,28 @@ class border_top_width(prop):
 	<doc:par>Set the top border width of a box. Allowed values are a length, <lit>thin</lit>,
 	<lit>medium</lit>, <lit>thick</lit> and <lit>inherit</lit>.</doc:par>
 	"""
-	name = "border-top-width"
+	xmlname = "border-top-width"
 
 class border_right_width(prop):
 	"""
 	<doc:par>Set the right border width of a box. Allowed values are a length, <lit>thin</lit>,
 	<lit>medium</lit>, <lit>thick</lit> and <lit>inherit</lit>.</doc:par>
 	"""
-	name = "border-right-width"
+	xmlname = "border-right-width"
 
 class border_bottom_width(prop):
 	"""
 	<doc:par>Set the bottom border width of a box. Allowed values are a length, <lit>thin</lit>,
 	<lit>medium</lit>, <lit>thick</lit> and <lit>inherit</lit>.</doc:par>
 	"""
-	name = "border-bottom-width"
+	xmlname = "border-bottom-width"
 
 class border_left_width(prop):
 	"""
 	<doc:par>Set the left border width of a box. Allowed values are a length, <lit>thin</lit>,
 	<lit>medium</lit>, <lit>thick</lit> and <lit>inherit</lit>.</doc:par>
 	"""
-	name = "border-left-width"
+	xmlname = "border-left-width"
 
 class border_width(prop):
 	"""
@@ -304,31 +308,31 @@ class border_width(prop):
 	and the bottom is set to the third. If there are four values, they apply to the top, right,
 	bottom, and left, respectively.</doc:par> 
 	"""
-	name = "border-width"
+	xmlname = "border-width"
 
 class border_top_color(prop):
 	"""
 	<doc:par>Set the top border color of a box. Allowed values are a color or <lit>transparent</lit>.</doc:par>
 	"""
-	name = "border-top-color"
+	xmlname = "border-top-color"
 
 class border_right_color(prop):
 	"""
 	<doc:par>Set the right border color of a box. Allowed values are a color or <lit>transparent</lit>.</doc:par>
 	"""
-	name = "border-right-color"
+	xmlname = "border-right-color"
 
 class border_bottom_color(prop):
 	"""
 	<doc:par>Set the bottom border color of a box. Allowed values are a color or <lit>transparent</lit>.</doc:par>
 	"""
-	name = "border-bottom-color"
+	xmlname = "border-bottom-color"
 
 class border_left_color(prop):
 	"""
 	<doc:par>Set the left border color of a box. Allowed values are a color or <lit>transparent</lit>.</doc:par>
 	"""
-	name = "border-left-color"
+	xmlname = "border-left-color"
 
 class border_color(prop):
 	"""
@@ -347,7 +351,7 @@ class border_color(prop):
 	user agents must use the value of the element's <pyref class="color"><class>color</class></pyref>
 	property as the computed value for the border color.</doc:par>
 	"""
-	name = "border-color"
+	xmlname = "border-color"
 
 class border_top_style(prop):
 	"""
@@ -377,7 +381,7 @@ class border_top_style(prop):
 	of <lit>groove</lit>, <lit>ridge</lit>, <lit>inset</lit>, and <lit>outset</lit> depends on the 
 	element's <pyref class="color"><class>color</class></pyref> property. 
 	"""
-	name = "border-top-style"
+	xmlname = "border-top-style"
 
 class border_right_style(prop):
 	"""
@@ -385,7 +389,7 @@ class border_right_style(prop):
 	box's right border. For allowed values refer to
 	<pyref class="border_top_style"><class>border_top_style</class></pyref>.</doc:par>
 	"""
-	name = "border-right-style"
+	xmlname = "border-right-style"
 
 class border_bottom_style(prop):
 	"""
@@ -393,7 +397,7 @@ class border_bottom_style(prop):
 	box's bottom border. For allowed values refer to
 	<pyref class="border_bottom_style"><class>border_bottom_style</class></pyref>.</doc:par>
 	"""
-	name = "border-bottom-style"
+	xmlname = "border-bottom-style"
 
 class border_left_style(prop):
 	"""
@@ -401,7 +405,7 @@ class border_left_style(prop):
 	box's left border. For allowed values refer to
 	<pyref class="border_left_style"><class>border_left_style</class></pyref>.</doc:par>
 	"""
-	name = "border-left-style"
+	xmlname = "border-left-style"
 
 class border_style(prop):
 	"""
@@ -409,35 +413,35 @@ class border_style(prop):
 	It can have from one to four values, and the values are set on the different sides as for
 	<pyref class="border_width"><class>border-width</class></pyref>.</doc:par>
 	"""
-	name = "border-style"
+	xmlname = "border-style"
 
 class border_top(prop):
 	"""
 	<doc:par>This is a shorthand property for setting the width, style, and color
 	of the top border of a box.</doc:par>
 	"""
-	name = "border-top"
+	xmlname = "border-top"
 
 class border_right(prop):
 	"""
 	<doc:par>This is a shorthand property for setting the width, style, and color
 	of the right border of a box.</doc:par>
 	"""
-	name = "border-right"
+	xmlname = "border-right"
 
 class border_bottom(prop):
 	"""
 	<doc:par>This is a shorthand property for setting the width, style, and color
 	of the bottom border of a box.</doc:par>
 	"""
-	name = "border-bottom"
+	xmlname = "border-bottom"
 
 class border_left(prop):
 	"""
 	<doc:par>This is a shorthand property for setting the width, style, and color
 	of the left border of a box.</doc:par>
 	"""
-	name = "border-left"
+	xmlname = "border-left"
 
 class border(prop):
 	"""
@@ -456,8 +460,8 @@ class display(prop):
 	<doc:ulist>
 	<doc:item><lit>block</lit>: This value causes an element to generate a principal block box.</doc:item>
 	<doc:item><lit>inline</lit>: This value causes an element to generate one or more inline boxes.</doc:item>
-	<doc:item><lit>list-item</lit>: This value causes an element (e.g., <pyref module="xist.ns.html" class="li"><class>li</class></pyref>
-	in <pyref module="xist.ns.html">&html;</pyref>) to generate a principal block box and a
+	<doc:item><lit>list-item</lit>: This value causes an element (e.g., <pyref module="ll.xist.ns.html" class="li"><class>li</class></pyref>
+	in <pyref module="ll.xist.ns.html">&html;</pyref>) to generate a principal block box and a
 	list-item inline box.</doc:item>
 	<doc:item><lit>marker</lit>: This value declares generated content before or after a box
 	to be a marker. This value should only be used with <lit>:before</lit> and
@@ -609,7 +613,7 @@ class z_index(prop):
 	is the same as its parent's box. The box does not establish a new local stacking context.</doc:item>
 	</doc:ulist>
 	"""
-	name = "z-index"
+	xmlname = "z-index"
 
 class direction(prop):
 	"""
@@ -680,7 +684,7 @@ class unicode_bidi(prop):
 	<markup>&lt;unicode_bidi&lt;/gt;embed&lt;/unicode_bidi&lt;/gt;</markup> is preferred
 	to keep the element together in case display is changed to inline.</doc:par>
 	"""
-	name = "unicode-bidi"
+	xmlname = "unicode-bidi"
 
 class width(prop):
 	"""
@@ -701,13 +705,13 @@ class min_width(prop):
 	"""
 	<doc:par>This property allow the authors to constrain box widths to a certain range.</doc:par>
 	"""
-	name = "min-width"
+	xmlname = "min-width"
 
 class max_width(prop):
 	"""
 	<doc:par>This property allow the authors to constrain box widths to a certain range.</doc:par>
 	"""
-	name = "max-width"
+	xmlname = "max-width"
 
 class height(prop):
 	"""
@@ -723,13 +727,13 @@ class min_height(prop):
 	"""
 	<doc:par>This property allow the authors to constrain box heights to a certain range.</doc:par>
 	"""
-	name = "min-height"
+	xmlname = "min-height"
 
 class max_height(prop):
 	"""
 	<doc:par>This property allow the authors to constrain box heights to a certain range.</doc:par>
 	"""
-	name = "max-height"
+	xmlname = "max-height"
 
 class line_height(prop):
 	"""
@@ -742,7 +746,7 @@ class line_height(prop):
 	replaced elements, where the height of the box is given by the
 	<pyref class="height"><class>height</class></pyref> property.)</doc:par>
 	"""
-	name = "line-height"
+	xmlname = "line-height"
 
 class vertical_align(prop):
 	"""
@@ -783,7 +787,7 @@ class vertical_align(prop):
 	<doc:item><lit>bottom</lit>: Align the bottom of the box with the bottom of the line box.</doc:item>
 	</doc:ulist>
 	"""
-	name = "vertical-align"
+	xmlname = "vertical-align"
 
 class overflow(prop):
 	"""
@@ -899,7 +903,7 @@ class counter_reset(prop):
 	each one optionally followed by an integer. The integer gives the value that the counter is set to
 	on each occurrence of the element. The default is 0.</doc:par> 
 	"""
-	name = "counter-reset"
+	xmlname = "counter-reset"
 
 class counter_increment(prop):
 	"""
@@ -908,7 +912,7 @@ class counter_increment(prop):
 	the counter is incremented for every occurrence of the element. The default increment is 1.
 	Zero and negative integers are allowed.</doc:par>
 	"""
-	name = "counter-increment"
+	xmlname = "counter-increment"
 
 class marker_offset(prop):
 	"""
@@ -917,7 +921,7 @@ class marker_offset(prop):
 	chosen by the UA (<lit>auto</lit>). Lengths may be negative, but there may be 
 	implementation-specific limits.</doc:par>
 	"""
-	name = "marker-offset"
+	xmlname = "marker-offset"
 
 class list_style_type(prop):
 	"""
@@ -959,14 +963,14 @@ class list_style_type(prop):
 	(&#941;, &#942;, &#943;, ...)</doc:item>
 	</doc:ulist>
 	"""
-	name = "list-style-type"
+	xmlname = "list-style-type"
 
 class list_style_image(prop):
 	"""
 	<doc:par>This property sets the image that will be used as the list item marker. When the image is available,
 	it will replace the marker set with the <pyref class="list_style_type"><class>list_style_type</class></pyref> marker.</doc:par>
 	"""
-	name = "list-style-image"
+	xmlname = "list-style-image"
 
 class list_style_position(prop):
 	"""
@@ -979,7 +983,7 @@ class list_style_position(prop):
 	<doc:item><lit>inside</lit>: The marker box is the first inline box in the principal block box, after which the element's content flows.</doc:item>
 	</doc:ulist>
 	"""
-	name = "list-style-position"
+	xmlname = "list-style-position"
 
 class list_style(prop):
 	"""
@@ -988,7 +992,7 @@ class list_style(prop):
 	<pyref class="list_style_image"><class>list_style_image</class></pyref>, and
 	<pyref class="list_style_position"><class>list_style_position</class></pyref> at the same place in the style sheet.</doc:par>
 	"""
-	name = "list-style"
+	xmlname = "list-style"
 
 class size(prop):
 	"""
@@ -1052,29 +1056,29 @@ class page_break_before(prop):
 	When these properties have values other than <lit>auto</lit>, the values <lit>always</lit>, <lit>left</lit>,
 	and <lit>right</lit> take precedence over <lit>avoid</lit>.</doc:par>
 	"""
-	name = "page-break-before"
+	xmlname = "page-break-before"
 
 class page_break_after(prop):
 	"""
 	<doc:par>Controls whether a page break should occur after the generated box.
 	For allowed values see <pyref class="page_break_before"><class>page_break_before</class></pyref>.</doc:par>
 	"""
-	name = "page-break-after"
+	xmlname = "page-break-after"
 
 class page_break_inside(prop):
 	"""
 	<doc:par>Controls whether a page break should occur inside the generated box.
 	For allowed values see <pyref class="page_break_before"><class>page_break_before</class></pyref>.</doc:par>
 	"""
-	name = "page-break-inside"
+	xmlname = "page-break-inside"
 
 class atpage(xsc.Element):
 	"""
 	The &css;2 rule for specifying the page box.
 	"""
-	empty = 0
-	attrHandlers = {"sel": xsc.TextAttr}
-
+	empty = False
+	class Attrs(xsc.Element.Attrs):
+		class sel(xsc.TextAttr): pass
 
 	def publish(self, publisher):
 		publisher.publish(u"@page ")
@@ -1106,7 +1110,7 @@ class background_color(prop):
 	either a color value or the keyword <lit>transparent</lit>,
 	to make the underlying colors shine through.</doc:par>
 	"""
-	name = "background-color"
+	xmlname = "background-color"
 
 class background_image(prop):
 	"""
@@ -1118,7 +1122,7 @@ class background_image(prop):
 	<doc:par>Values for this property are either an URL, to specify the image, or <lit>none</lit>,
 	when no image is used.</doc:par>
 	"""
-	name = "background-image"
+	xmlname = "background-image"
 
 class background_repeat(prop):
 	"""
@@ -1133,7 +1137,7 @@ class background_repeat(prop):
 	<doc:item><lit>no-repeat</lit>: The image is not repeated: only one copy of the image is drawn.</doc:item>
 	</doc:ulist>
 	"""
-	name = "background-repeat"
+	xmlname = "background-repeat"
 
 class background_attachment(prop):
 	"""
@@ -1146,7 +1150,7 @@ class background_attachment(prop):
 	Thus, unless the image is tiled (with
 	<markup>&lt;background-repeat&gt;repeat&lt;/background-repeat&gt;</markup>), it may be invisible.</doc:par>
 	"""
-	name = "background-attachment"
+	xmlname = "background-attachment"
 
 class background_position(prop):
 	"""
@@ -1183,7 +1187,7 @@ class background_position(prop):
 	<pyref class="background_attachment"><class>background_attachment</class></pyref> property), the image is placed
 	relative to the viewport instead of the element's padding area.</doc:par>
 	"""
-	name = "background-position"
+	xmlname = "background-position"
 
 class background(prop):
 	"""
@@ -1227,7 +1231,7 @@ class font_family(prop):
 	
 	<doc:par>Authors are encouraged to offer a generic font family as a last alternative, for improved robustness.</doc:par>
 	"""
-	name = "font-family"
+	xmlname = "font-family"
 
 class font_style(prop):
 	"""
@@ -1245,7 +1249,7 @@ class font_style(prop):
 	in their names will typically be labeled <z>italic</z>.</doc:item>
 	</doc:ulist>
 	"""
-	name = "font-style"
+	xmlname = "font-style"
 
 class font_variant(prop):
 	"""
@@ -1264,7 +1268,7 @@ class font_variant(prop):
 	so that the text appears in all uppercase letters.</doc:item>
 	</doc:ulist>
 	"""
-	name = "font-variant"
+	xmlname = "font-variant"
 
 class font_weight(prop):
 	"""
@@ -1287,7 +1291,7 @@ class font_weight(prop):
 
 	<doc:par>Child elements inherit the computed value of the weight.</doc:par>
 	"""
-	name = "font-weight"
+	xmlname = "font-weight"
 
 class font_stretch(prop):
 	"""
@@ -1311,7 +1315,7 @@ class font_stretch(prop):
 	<lit>narrower</lit> sets the value to the next condensed value below the inherited value
 	(while not decreasing it below <lit>ultra-condensed</lit>).</doc:par>
 	"""
-	name = "font-stretch"
+	xmlname = "font-stretch"
 
 class font_size(prop):
 	"""
@@ -1345,7 +1349,7 @@ class font_size(prop):
 	leads to more robust and cascadable style sheets.</doc:item>
 	</doc:ulist>
 	"""
-	name = "font-size"
+	xmlname = "font-size"
 
 class font_size_adjust(prop):
 	"""
@@ -1371,7 +1375,7 @@ class font_size_adjust(prop):
 	The number refers to the aspect value of the first choice font.</doc:item>
 	</doc:ulist>
 	"""
-	name = "font-size-adjust"
+	xmlname = "font-size-adjust"
 
 class font(prop):
 	"""
@@ -1392,7 +1396,7 @@ class atfontface(xsc.Element):
 	"""
 	<doc:par>A &css;2 font descriptor.</doc:par>
 	"""
-	empty = 0
+	empty = False
 
 	def publish(self, publisher):
 		publisher.publish(u"@font-face\n{\n")
@@ -1416,7 +1420,7 @@ class text_indent(prop):
 	<doc:par>The value of <class>text_indent</class> may be negative,
 	but there may be implementation-specific limits.</doc:par>
 	"""
-	name = "text-indent"
+	xmlname = "text-indent"
 
 class text_align(prop):
 	"""
@@ -1430,15 +1434,15 @@ class text_align(prop):
 	depending on whether <pyref class="direction"><class>direction</class></pyref> is <lit>ltr</lit>, or <lit>rtl</lit>, respectively.</doc:item>
 	</doc:ulist>
 	"""
-	name = "text-align"
+	xmlname = "text-align"
 
 class text_decoration(prop):
 	"""
 	<doc:par>This property describes decorations that are added to the text of an element.
 	If the property is specified for a block-level element, it affects all inline-level descendants of the element.
 	If it is specified for (or affects) an inline-level element, it affects all boxes generated by the element.
-	If the element has no content or no text content (e.g., the <pyref module="xist.ns.html" class="img"><class>img</class></pyref>
-	element in <pyref module="xist.ns.html">&html;</pyref>), user agents must ignore this property.</doc:par>
+	If the element has no content or no text content (e.g., the <pyref module="ll.xist.ns.html" class="img"><class>img</class></pyref>
+	element in <pyref module="ll.xist.ns.html">&html;</pyref>), user agents must ignore this property.</doc:par>
 
 	<doc:par>Values have the following meanings:</doc:par>
 
@@ -1451,7 +1455,7 @@ class text_decoration(prop):
 	Conforming user agents are not required to support this value.</doc:item>
 	</doc:ulist>
 	"""
-	name = "text-decoration"
+	xmlname = "text-decoration"
 
 class text_shadow(prop):
 	"""
@@ -1464,7 +1468,7 @@ class text_shadow(prop):
 
 	<doc:par>For more info see the <a href="http://www.w3.org/TR/REC-CSS2/text.html#text-shadow-props">relevant part of the &css;2 spec</a>.</doc:par>
 	"""
-	name = "text-shadow"
+	xmlname = "text-shadow"
 
 class letter_spacing(prop):
 	"""
@@ -1478,7 +1482,7 @@ class letter_spacing(prop):
 	User agents may not further increase or decrease the inter-character space in order to justify text.</doc:item>
 	</doc:ulist>
 	"""
-	name = "letter-spacing"
+	xmlname = "letter-spacing"
 
 class word_spacing(prop):
 	"""
@@ -1490,7 +1494,7 @@ class word_spacing(prop):
 	Values may be negative, but there may be implementation-specific limits.</doc:item>
 	</doc:ulist>
 	"""
-	name = "word-spacing"
+	xmlname = "word-spacing"
 
 class text_transform(prop):
 	"""
@@ -1503,7 +1507,7 @@ class text_transform(prop):
 	<doc:item><lit>none</lit>: No capitalization effects.</doc:item>
 	</doc:ulist>
 	"""
-	name = "text-transform"
+	xmlname = "text-transform"
 
 class white_space(prop):
 	"""
@@ -1512,17 +1516,17 @@ class white_space(prop):
 	<doc:ulist>
 	<doc:item><lit>normal</lit>: This value directs user agents to collapse sequences of whitespace,
 	and break lines as necessary to fill line boxes. Additional line breaks may be created by occurrences of
-	<z>\A</z> in generated content (e.g., for the <pyref module="xist.ns.html" class="br"><class>br</class></pyref> element
-	in <pyref module="xist.ns.html">&html;</pyref>).</doc:item>
+	<z>\A</z> in generated content (e.g., for the <pyref module="ll.xist.ns.html" class="br"><class>br</class></pyref> element
+	in <pyref module="ll.xist.ns.html">&html;</pyref>).</doc:item>
 
 	<doc:item><lit>pre</lit>: This value prevents user agents from collapsing sequences of whitespace.
 	Lines are only broken at newlines in the source, or at occurrences of <z>\A</z> in generated content.</doc:item>
 	<doc:item><lit>nowrap</lit>: This value collapses whitespace as for <lit>normal</lit>, but suppresses line breaks within text
-	except for those created by <z>\A</z> in generated content (e.g., for the <pyref module="xist.ns.html" class="br"><class>br</class></pyref> element
-	in <pyref module="xist.ns.html">&html;</pyref>).</doc:item>
+	except for those created by <z>\A</z> in generated content (e.g., for the <pyref module="ll.xist.ns.html" class="br"><class>br</class></pyref> element
+	in <pyref module="ll.xist.ns.html">&html;</pyref>).</doc:item>
 	</doc:ulist>
 	"""
-	name = "white-space"
+	xmlname = "white-space"
 
 class caption_side(prop):
 	"""
@@ -1536,7 +1540,7 @@ class caption_side(prop):
 	<doc:item><lit>right</lit>: Positions the caption box to the right of the table box.</doc:item>
 	</doc:ulist>
 	"""
-	name = "caption-side"
+	xmlname = "caption-side"
 
 class table_layout(prop):
 	"""
@@ -1550,7 +1554,7 @@ class table_layout(prop):
 
 	<doc:par>For more info see the <a href="http://www.w3.org/TR/REC-CSS2/tables.html#width-layout">relevant part of the &css;2 spec</a>.</doc:par>
 	"""
-	name = "table-layout"
+	xmlname = "table-layout"
 
 class border_collapse(prop):
 	"""
@@ -1560,7 +1564,7 @@ class border_collapse(prop):
 
 	<doc:par>For more info see the <a href="http://www.w3.org/TR/REC-CSS2/tables.html#borders">relevant part of the &css;2 spec</a>.</doc:par>
 	"""
-	name = "border-collapse"
+	xmlname = "border-collapse"
 
 class border_spacing(prop):
 	"""
@@ -1570,7 +1574,7 @@ class border_spacing(prop):
 
 	<doc:par>For more info see the <a href="http://www.w3.org/TR/REC-CSS2/tables.html#separated-borders">relevant part of the &css;2 spec</a>.</doc:par>
 	"""
-	name = "border-spacing"
+	xmlname = "border-spacing"
 
 class empty_cells(prop):
 	"""
@@ -1578,7 +1582,7 @@ class empty_cells(prop):
 
 	<doc:par>For more info see the <a href="http://www.w3.org/TR/REC-CSS2/tables.html#separated-borders">relevant part of the &css;2 spec</a>.</doc:par>
 	"""
-	name = "empty-cells"
+	xmlname = "empty-cells"
 
 class speak_header(prop):
 	"""
@@ -1591,7 +1595,7 @@ class speak_header(prop):
 	<doc:item><lit>always</lit>: The header is spoken before every pertinent cell.</doc:item>
 	</doc:ulist>
 	"""
-	name = "speak-header"
+	xmlname = "speak-header"
 
 class cursor(prop):
 	"""
@@ -1640,7 +1644,7 @@ class outline_width(prop):
 	<doc:par>Specifies the width of the outline. Allowed values
 	are the same as for <pyref class="border_width"><class>border_width</class></pyref>.</doc:par>
 	"""
-	name = "outline-width"
+	xmlname = "outline-width"
 
 class outline_style(prop):
 	"""
@@ -1648,7 +1652,7 @@ class outline_style(prop):
 	are the same as for <pyref class="border_style"><class>border_style</class></pyref> except that
 	<lit>hidden</lit> is not allowed.</doc:par>
 	"""
-	name = "outline-style"
+	xmlname = "outline-style"
 
 class outline_color(prop):
 	"""
@@ -1656,7 +1660,7 @@ class outline_color(prop):
 	are the same as for <pyref class="border_color"><class>border_color</class></pyref> and the
 	special keyword <lit>invert</lit>.</doc:par>
 	"""
-	name = "outline-color"
+	xmlname = "outline-color"
 
 class volume(prop):
 	"""
@@ -1721,14 +1725,14 @@ class pause_before(prop):
 
 	<doc:par>Authors should use relative units to create more robust style sheets in the face of large changes in speech-rate.</doc:par>
 	"""
-	name = "pause-before"
+	xmlname = "pause-before"
 
 class pause_after(prop):
 	"""
 	<doc:par>These property specify a pause to be observed after speaking an element's content.
 	For allowed values see <pyref class="pause_before"><class>pause_before</class></pyref>.</doc:par>
 	"""
-	name = "pause-after"
+	xmlname = "pause-after"
 
 class pause(prop):
 	"""
@@ -1753,14 +1757,14 @@ class cue_before(prop):
 	<doc:item><lit>none</lit>: No auditory icon is specified.</doc:item>
 	</doc:ulist>
 	"""
-	name = "cue-before"
+	xmlname = "cue-before"
 
 class cue_after(prop):
 	"""
 	<doc:par>A sound may be played after the element to delimit it with <class>cue_after</class>.
 	For allowed values see <pyref class="cue_before"><class>cue_before</class></pyref></doc:par>
 	"""
-	name = "cue-after"
+	xmlname = "cue-after"
 
 class cue(prop):
 	"""
@@ -1771,7 +1775,6 @@ class cue(prop):
 	and the second is <pyref class="cue_after"><class>cue_after</class></pyref>.
 	If only one value is given, it applies to both properties.</doc:par>
 	"""
-	name = "cue"
 
 class play_during(prop):
 	"""
@@ -1795,7 +1798,7 @@ class play_during(prop):
 	is silent during the current element and continues after the current element.</doc:item>
 	</doc:ulist>
 	"""
-	name = "play-during"
+	xmlname = "play-during"
 
 class azimuth(prop):
 	"""
@@ -1856,7 +1859,7 @@ class speech_rate(prop):
 	<doc:item><lit>slower</lit>: Subtracts 40 words per minutes from the current speech rate.</doc:item>
 	</doc:ulist>
 	"""
-	name = "speech-rate"
+	xmlname = "speech-rate"
 
 class voice_family(prop):
 	"""
@@ -1871,7 +1874,7 @@ class voice_family(prop):
 	(e.g., <lit>comedian</lit>, <lit>trinoids</lit>, <lit>carlos</lit>, <lit>lani</lit>).</doc:item>
 	</doc:ulist>
 	"""
-	name = "voice-family"
+	xmlname = "voice-family"
 
 class pitch(prop):
 	"""
@@ -1903,7 +1906,7 @@ class pitch_range(prop):
 	Pitch ranges greater than <lit>50</lit> produce animated voices.</doc:item>
 	</doc:ulist>
 	"""
-	name = "pitch-range"
+	xmlname = "pitch-range"
 
 class stress(prop):
 	"""
@@ -1945,7 +1948,7 @@ class speak_punctuation(prop):
 	<doc:item><lit>none</lit>: Punctuation is not to be spoken, but instead rendered naturally as various pauses.</doc:item>
 	</doc:ulist>
 	"""
-	name = "speak-punctuation"
+	xmlname = "speak-punctuation"
 
 class speak_numeral(prop):
 	"""
@@ -1957,7 +1960,7 @@ class speak_numeral(prop):
 	<lit>237</lit> is spoken <z>Two hundred thirty seven</z>. Word representations are language-dependent.</doc:item>
 	</doc:ulist>
 	"""
-	name = "speak-numeral"
+	xmlname = "speak-numeral"
 
 class filter(prop):
 	"""
@@ -1968,7 +1971,7 @@ class _moz_opacity(prop):
 	"""
 	<doc:par>This property is an <app>Mozilla</app> extension and specifies the opacity of the element.</doc:par>
 	"""
-	name = "-moz-opacity"
+	xmlname = "-moz-opacity"
 
 # register all the classes we've defined so far
-namespace = xsc.Namespace("css", "http://www.w3.org/TR/REC-CSS2", vars())
+xmlns = xsc.Namespace("css", "http://www.w3.org/TR/REC-CSS2", vars())
