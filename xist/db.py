@@ -13,11 +13,26 @@ import xsc
 import html
 import specials
 
-def _getDB(attrs):
-	module = str(attrs["module"])
-	variable = str(attrs["variable"])
+def _getDB(element):
+	if element.has_attr("module") and element.has_attr("variable"): # datebase connection via an existing one
+		module = str(element["module"])
+		variable = str(element["variable"])
+		return sys.modules[module].__dict__[variable]
+	else: # create our own connection
+		api = str(element["api"])
 
-	return sys.modules[module].__dict__[variable]
+		args = {}
+		if element.has_attr("dbname"):
+			args["dbname"] = str(element["dbname"])
+		if element.has_attr("host"):
+			args["host"] = str(element["host"])
+		if element.has_attr("port"):
+			args["port"] = eval(str(element["port"]))
+
+		__import__(api)
+		return apply(sys.modules[api].connect,(),args)
+
+_connectionAttrs = { "module" : xsc.TextAttr , "variable" : xsc.TextAttr , "api" : xsc.TextAttr , "dbname" : xsc.TextAttr , "host" : xsc.TextAttr , "port" : xsc.TextAttr }
 
 class element(xsc.Element):
 	"""
@@ -37,7 +52,7 @@ class lookupcombobox(element):
 	attr_handlers = xsc.appendDict(element.attr_handlers,{ "module" : xsc.TextAttr , "variable" : xsc.TextAttr , "query" : xsc.TextAttr , "displayfield" : xsc.TextAttr , "valuefield" : xsc.TextAttr })
 
 	def asHTML(self):
-		db = _getDB(self.attrs)
+		db = _getDB(self)
 		query = db.query(str(self["query"]))
 
 		e = select(name = self["name"])
@@ -92,10 +107,10 @@ xsc.registerElement("target",target)
 
 class template(xsc.Element):
 	empty = 0
-	attr_handlers = {  "module" : xsc.TextAttr , "variable" : xsc.TextAttr , "query" : xsc.TextAttr }
+	attr_handlers = xsc.appendDict(_connectionAttrs,{ "query" : xsc.TextAttr })
 
 	def asHTML(self):
-		db = _getDB(self.attrs)
+		db = _getDB(self)
 		query = db.query(str(self["query"]))
 
 		content = self.content.clone()
@@ -116,10 +131,10 @@ xsc.registerElement("template",template)
 
 class table(xsc.Element):
 	empty = 0
-	attr_handlers = {  "module" : xsc.TextAttr , "variable" : xsc.TextAttr , "query" : xsc.TextAttr , "class" : xsc.TextAttr }
+	attr_handlers = xsc.appendDict(_connectionAttrs,{ "query" : xsc.TextAttr , "class" : xsc.TextAttr })
 
 	def asHTML(self):
-		db = _getDB(self.attrs)
+		db = _getDB(self)
 		query = db.query(str(self["query"]))
 
 		e = plaintable()
@@ -150,10 +165,10 @@ xsc.registerElement("table",table)
 
 class edittable(xsc.Element):
 	empty = 0
-	attr_handlers = {  "module" : xsc.TextAttr , "variable" : xsc.TextAttr , "query" : xsc.TextAttr , "class" : xsc.TextAttr , "action" : xsc.URLAttr }
+	attr_handlers = xsc.appendDict(_connectionAttrs,{ "query" : xsc.TextAttr , "class" : xsc.TextAttr , "action" : xsc.URLAttr })
 
 	def asHTML(self):
-		db = _getDB(self.attrs)
+		db = _getDB(self)
 		query = db.query(str(self["query"]))
 
 		e = specials.plaintable()
