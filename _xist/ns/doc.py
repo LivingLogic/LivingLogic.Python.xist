@@ -660,8 +660,11 @@ def explain(thing, name=None, context=[]):
 						baseclassname = baseclass.__fullname__()
 					except AttributeError:
 						baseclassname = baseclass.__name__
-					ref = pyref(class_(baseclass.__name__), module=baseclass.__module__, class_=baseclassname)
 					if thing.__module__ != baseclass.__module__:
+						baseclassname4text = baseclass.__module__ + "." + baseclassname
+					else:
+						baseclassname4text = baseclassname
+					ref = pyref(class_(baseclassname4text), module=baseclass.__module__, class_=baseclassname)
 						ref.insert(0, baseclass.__module__, ".")
 				bases.append(ref)
 			bases = bases.withSep(", ")
