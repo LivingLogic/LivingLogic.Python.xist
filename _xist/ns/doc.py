@@ -612,7 +612,7 @@ def explain(thing, name=None, context=[]):
 		name = name or thing.__name__
 		context = context + [name]
 		(args, varargs, varkw, defaults) = inspect.getargspec(thing.im_func)
-		id = "-".join(context)[1:]
+		id = "-".join(context[1:])
 		sig = xsc.Frag(
 			html.a(name=id, id=id)
 		)
@@ -623,7 +623,7 @@ def explain(thing, name=None, context=[]):
 	elif inspect.isfunction(thing):
 		name = name or thing.im_func.__name__
 		context = context + [name]
-		id = "-".join(context)[1:]
+		id = "-".join(context[1:])
 		sig = xsc.Frag(
 			html.a(name=id, id=id),
 			"def ",
@@ -633,7 +633,7 @@ def explain(thing, name=None, context=[]):
 		return section(title(sig), getDoc(thing), role="function")
 	elif isinstance(thing, __builtin__.property):
 		context = context + [name]
-		id = "-".join(context)[1:]
+		id = "-".join(context[1:])
 		sig = xsc.Frag(
 			html.a(name=id, id=id),
 			"property ", name, ":"
@@ -649,7 +649,7 @@ def explain(thing, name=None, context=[]):
 	elif inspect.isclass(thing):
 		name = name or thing.__name__
 		context = context + [name]
-		id = "-".join(context)[1:]
+		id = "-".join(context[1:])
 		bases = xsc.Frag()
 		if len(thing.__bases__):
 			for baseclass in thing.__bases__:
