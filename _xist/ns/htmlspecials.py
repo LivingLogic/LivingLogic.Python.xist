@@ -18,7 +18,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 
 import sys, types, time as time_, string, warnings
 
-from ll.xist import xsc, parsers, errors, sims
+from ll.xist import xsc, parsers, sims
 from ll.xist.ns import ihtml, html, meta, specials
 
 
@@ -76,9 +76,9 @@ class _pixelbase(html.img):
 						if len(content) == 3:
 							for c in content:
 								if c not in u"0369cf":
-									warnings.warn(errors.IllegalAttrValueWarning(self))
+									warnings.warn(xsc.IllegalAttrValueWarning(self))
 						else:
-							warnings.warn(errors.IllegalAttrValueWarning(self))
+							warnings.warn(xsc.IllegalAttrValueWarning(self))
 
 		class alt(html.img.Attrs.alt):
 			default = ""

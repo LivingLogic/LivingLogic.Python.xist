@@ -28,7 +28,7 @@ from xml.dom import html as htmldtd
 
 from ll import url
 
-import xsc, errors, utils, cssparsers
+import xsc, utils, cssparsers
 from ns import html
 
 
@@ -241,7 +241,7 @@ class SGMLOPParser(sax.xmlreader.XMLReader, sax.xmlreader.Locator):
 			texts = texts[1].split(u";", 1)
 			name = texts[0]
 			if len(texts)==1:
-				raise errors.MalformedCharRefWarning(name)
+				raise xsc.MalformedCharRefWarning(name)
 			if name.startswith(u"#"):
 				try:
 					if name.startswith(u"#x"):
@@ -249,7 +249,7 @@ class SGMLOPParser(sax.xmlreader.XMLReader, sax.xmlreader.Locator):
 					else:
 						node.append(ct(unichr(int(name[1:]))))
 				except ValueError:
-					raise errors.MalformedCharRefWarning(name)
+					raise xsc.MalformedCharRefWarning(name)
 			else:
 				try:
 					c = {"lt": u"<", "gt": u">", "amp": u"&", "quot": u'"', "apos": u"'"}[name]
@@ -277,10 +277,10 @@ class BadEntityParser(SGMLOPParser):
 			name = self._makestring(name)
 			try:
 				self.getContentHandler().skippedEntity(name)
-			except errors.IllegalEntityError:
+			except xsc.IllegalEntityError:
 				try:
 					entity = html.entity(name, xml=True)
-				except errors.IllegalEntityError:
+				except xsc.IllegalEntityError:
 					self.getContentHandler().characters(u"&%s;" % name)
 				else:
 					if issubclass(entity, xsc.CharRef):
@@ -310,7 +310,7 @@ class BadEntityParser(SGMLOPParser):
 			name = texts[0]
 			if len(texts)==1: # no ; found, so it's no entity => append it literally
 				name = u"&" + name
-				warnings.warn(errors.MalformedCharRefWarning(name))
+				warnings.warn(xsc.MalformedCharRefWarning(name))
 				node.append(ct(name))
 				break
 			else:
@@ -322,7 +322,7 @@ class BadEntityParser(SGMLOPParser):
 							node.append(ct(unichr(int(name[1:]))))
 					except (ValueError, OverflowError): # illegal format => append it literally
 						name = u"&%s;" % name
-						warnings.warn(errors.MalformedCharRefWarning(name))
+						warnings.warn(xsc.MalformedCharRefWarning(name))
 						node.append(ct(name))
 				else: # entity reference
 					try:
@@ -330,16 +330,16 @@ class BadEntityParser(SGMLOPParser):
 					except KeyError:
 						try:
 							entity = self.getContentHandler().createEntity(name)
-						except errors.IllegalEntityError:
+						except xsc.IllegalEntityError:
 							try:
 								entity = html.entity(name, xml=True)
 								if issubclass(entity, xsc.CharRef):
 									entity = ct(unichr(entity.codepoint))
 								else:
 									entity = entity()
-							except errors.IllegalEntityError:
+							except xsc.IllegalEntityError:
 								name = u"&%s;" % name
-								warnings.warn(errors.MalformedCharRefWarning(name))
+								warnings.warn(xsc.MalformedCharRefWarning(name))
 								entity = ct(name)
 					else:
 						entity = ct(entity)
@@ -391,7 +391,7 @@ class HTMLParser(BadEntityParser):
 
 		# Check whether this element is allowed in the current context
 		if self._stack and name not in htmldtd.HTML_DTD.get(self._stack[-1], []):
-			warnings.warn(errors.IllegalDTDChildWarning(name, self._stack[-1]))
+			warnings.warn(xsc.IllegalDTDChildWarning(name, self._stack[-1]))
 
 		# Skip unknown attributes (but warn about them)
 		newattrs = {}
@@ -400,7 +400,7 @@ class HTMLParser(BadEntityParser):
 			if attrname=="xmlns" or ":" in attrname or element.Attrs.isallowed(attrname.lower(), xml=True):
 				newattrs[attrname.lower()] = attrvalue
 			else:
-				warnings.warn(errors.IllegalAttrError(element.Attrs, attrname.lower(), xml=True))
+				warnings.warn(xsc.IllegalAttrError(element.Attrs, attrname.lower(), xml=True))
 		BadEntityParser.finish_starttag(self, name, newattrs)
 
 		if name.upper() in htmldtd.HTML_FORBIDDEN_END:
@@ -424,7 +424,7 @@ class HTMLParser(BadEntityParser):
 			BadEntityParser.finish_endtag(self, name)
 			del self._stack[-1]
 		else:
-			warnings.warn(errors.IllegalCloseTagWarning(name))
+			warnings.warn(xsc.IllegalCloseTagWarning(name))
 
 
 class ExpatParser(expatreader.ExpatParser):
@@ -524,7 +524,7 @@ class Parser(object):
 				name = decode(node.name).lower()
 				try:
 					newnode = ns.element(name, xml=True)()
-				except errors.IllegalElementError:
+				except xsc.IllegalElementError:
 					newnode = xsc.Frag()
 				else:
 					attr = node.properties
@@ -536,7 +536,7 @@ class Parser(object):
 							content = decode(attr.content)
 						try:
 							attrnode = newnode.attrs.set(name, content, xml=True)
-						except errors.IllegalAttrError:
+						except xsc.IllegalAttrError:
 							pass
 						else:
 							attrnode.parsed(self)
@@ -690,7 +690,7 @@ class Parser(object):
 		# We have to check after the old prefix mapping from this element has been dropped
 		element = self.createElement(name) # Unfortunately this creates the element a second time.
 		if element is not None and element.__class__ is not currentelement.__class__:
-			raise errors.ElementNestingError(currentelement.__class__, element.__class__)
+			raise xsc.ElementNestingError(currentelement.__class__, element.__class__)
 		self.skippingwhitespace = False
 
 	def characters(self, content):

@@ -19,7 +19,7 @@ documentation (both &html; and XSL-FO).
 # import __builtin__ to use property, which is also defined here
 import types, inspect, warnings, __builtin__
 
-from ll.xist import xsc, parsers, sims, errors, xfind
+from ll.xist import xsc, parsers, sims, xfind
 from ll.xist.ns import html, text, docbook, fo, specials, xml
 
 
@@ -749,7 +749,7 @@ class item(base):
 	def convert_html(self, converter):
 		context = converter[self]
 		if not context.lists:
-			raise errors.NodeOutsideContextError(self, self.__ns__.list)
+			raise xsc.NodeOutsideContextError(self, self.__ns__.list)
 		if context.lists[-1][0] == "dlist":
 			e = converter.target.dd(self.content)
 		else:

@@ -17,10 +17,10 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 
 
 import warnings
-from ll.xist import xsc, errors
+from ll.xist import xsc
 
 
-class SIMSWarning(errors.Warning):
+class SIMSWarning(xsc.Warning):
 	"""
 	Base class for simplified filtering
 	"""

@@ -4,6 +4,9 @@
 <item>The attributes <lit>showLocation</lit> and <lit>showPath</lit>
 of <class>ll.xist.presenters.TreePresenter</class> have been lowercased and
 presenters are properly reset after they've done their job.</item>
+<item>All error and warning classes from <module>ll.xist.errors</module>
+have been merged into <module>ll.xist.xsc</module> (This avoids
+import problems).</item>
 </ulist>
 </section>
 

@@ -64,8 +64,7 @@ def ToNode(value):
 			return Frag(*list(value))
 		except TypeError:
 			pass
-	from ll.xist import errors
-	warnings.warn(errors.IllegalObjectWarning(value)) # none of the above, so we report it and maybe throw an exception
+	warnings.warn(IllegalObjectWarning(value)) # none of the above, so we report it and maybe throw an exception
 	return Null
 
 
@@ -220,6 +219,399 @@ class Context(Base, list):
 	"""
 
 _Context = Context
+
+
+###
+### Exceptions and warnings
+###
+
+class Error(Exception):
+	"""
+	base class for all &xist; exceptions
+	"""
+	pass
+
+
+class Warning(UserWarning):
+	"""
+	base class for all warning exceptions (i.e. those that won't
+	result in a program termination.)
+	"""
+	pass
+
+
+class IllegalAttrError(Warning, LookupError):
+	"""
+	exception that is raised, when an element has an illegal attribute
+	(i.e. one that isn't defined in the appropriate attributes class)
+	"""
+
+	def __init__(self, attrs, attrname, xml=False):
+		self.attrs = attrs
+		self.attrname = attrname
+		self.xml = xml
+
+	def __str__(self):
+		if self.attrs is not None:
+			return "Attribute with %s name %r not allowed for %s" % (("Python", "XML")[self.xml], self.attrname, self.attrs._str(fullname=True, xml=False, decorate=False))
+		else:
+			return "Global attribute with %s name %r not allowed" % (("Python", "XML")[self.xml], self.attrname)
+
+
+class IllegalAttrValueWarning(Warning):
+	"""
+	warning that is issued when an attribute has an illegal value when parsing or publishing.
+	"""
+
+	def __init__(self, attr):
+		self.attr = attr
+
+	def __str__(self):
+		attr = self.attr
+		return "Attribute value %r not allowed for %s. " % (str(attr), attr._str(fullname=True, xml=False, decorate=False))
+
+
+class RequiredAttrMissingWarning(Warning):
+	"""
+	warning that is issued when a required attribute is missing during parsing or publishing.
+	"""
+
+	def __init__(self, attrs, reqattrs):
+		self.attrs = attrs
+		self.reqattrs = reqattrs
+
+	def __str__(self):
+		v = ["Required attribute"]
+		if len(self.reqattrs)>1:
+			v.append("s ")
+			v.append(", ".join("%r" % attr for attr in self.reqattrs))
+		else:
+			v.append(" %r" % self.reqattrs[0])
+		v.append(" missing in %s." % self.attrs._str(fullname=True, xml=False, decorate=False))
+		return "".join(v)
+
+
+class IllegalDTDChildWarning(Warning):
+	"""
+	warning that is issued when the <pyref module="ll.xist.parsers" class="HTMLParser"><class>HTMLParser</class></pyref>
+	detects an element that is not allowed inside its parent element according to the &html; &dtd;
+	"""
+
+	def __init__(self, childname, parentname):
+		self.childname = childname
+		self.parentname = parentname
+
+	def __str__(self):
+		return "Element %s not allowed as a child of element %s" % (self.childname, self.parentname)
+
+
+class IllegalCloseTagWarning(Warning):
+	"""
+	warning that is issued when the <pyref module="ll.xist.parsers" class="HTMLParser"><class>HTMLParser</class></pyref>
+	finds an end tag that has no corresponding start tag.
+	"""
+
+	def __init__(self, name):
+		self.name = name
+
+	def __str__(self):
+		return "Element %s has never been opened" % (self.name,)
+
+
+class IllegalPrefixError(Error, LookupError):
+	"""
+	Exception that is raised when a namespace prefix is undefined.
+	"""
+	def __init__(self, prefix):
+		self.prefix = prefix
+
+	def __str__(self):
+		return "namespace prefix %r is undefined" % self.prefix
+
+
+class IllegalNamespaceError(Error, LookupError):
+	"""
+	Exception that is raised when a namespace name is undefined
+	i.e. if there is no namespace with this name.
+	"""
+	def __init__(self, name):
+		self.name = name
+
+	def __str__(self):
+		return "namespace name %r is undefined" % self.name
+
+
+class IllegalNodeError(Error, LookupError):
+	"""
+	exception that is raised, when an illegal node class (element, procinst, entity or charref) is requested
+	"""
+
+	type = "node"
+
+	def __init__(self, name, xml=False):
+		self.name = name
+		self.xml = xml
+
+	def __str__(self):
+		return "%s with %s name %r not allowed" % (self.type, ("Python", "XML")[self.xml], self.name, )
+
+
+class IllegalElementError(IllegalNodeError):
+	type = "element"
+
+
+class IllegalProcInstError(IllegalNodeError):
+	type = "procinst"
+
+
+class IllegalEntityError(IllegalNodeError):
+	type = "entity"
+
+
+class IllegalCharRefError(IllegalNodeError):
+	type = "charref"
+
+	def __str__(self):
+		if isinstance(self.name, (int, long)):
+			return "%s with codepoint %s not allowed" % (self.type, self.name)
+		else:
+			return IllegalNodeError.__str__(self)
+
+
+class AmbiguousNodeError(Error, LookupError):
+	"""
+	exception that is raised, when an node class is ambiguous (most commonly for processing instructions or entities)
+	"""
+
+	type = "node"
+
+	def __init__(self, name, xml=False):
+		self.name = name
+		self.xml = xml
+
+	def __str__(self):
+		return "%s with %s name %r is ambigous" % (self.type, ("Python", "XML")[self.xml], self.name)
+
+
+class AmbiguousProcInstError(AmbiguousNodeError):
+	type = "procinst"
+
+
+class AmbiguousEntityError(AmbiguousNodeError):
+	type = "entity"
+
+
+class AmbiguousCharRefError(AmbiguousNodeError):
+	type = "charref"
+
+	def __str__(self):
+		if isinstance(self.name, (int, long)):
+			return "%s with codepoint %r is ambigous" % (self.type, self.name)
+		else:
+			return AmbiguousNodeError.__str__(self)
+
+
+class MultipleRootsError(Error):
+	def __str__(self):
+		return "can't add namespace attributes: XML tree has multiple roots"
+
+
+class ElementNestingError(Error):
+	"""
+	exception that is raised, when an element has an illegal nesting
+	(e.g. <lit>&lt;a&gt;&lt;b&gt;&lt;/a&gt;&lt;/b&gt;</lit>)
+	"""
+
+	def __init__(self, expectedelement, foundelement):
+		self.expectedelement = expectedelement
+		self.foundelement = foundelement
+
+	def __str__(self):
+		return "mismatched element nesting (close tag for %s expected; close tag for %s found)" % (self.expectedelement._str(fullname=1, xml=0, decorate=1), self.foundelement._str(fullname=1, xml=0, decorate=1))
+
+
+class IllegalAttrNodeError(Error):
+	"""
+	exception that is raised, when something is found
+	in an attribute that doesn't belong there (e.g. an element or a comment).
+	"""
+
+	def __init__(self, node):
+		self.node = node
+
+	def __str__(self):
+		return "illegal node of type %s found inside attribute" % self.node.__class__.__name__
+
+
+class NodeNotFoundError(Error):
+	"""
+	exception that is raised when <pyref module="ll.xist.xsc" class="Node" method="findfirst"><method>findfirst</method></pyref> fails.
+	"""
+	def __str__(self):
+		return "no appropriate node found"
+
+
+class FileNotFoundWarning(Warning):
+	"""
+	warning that is raised, when a file can't be found
+	"""
+	def __init__(self, message, filename, exc):
+		Warning.__init__(self, message, filename, exc)
+		self.message = message
+		self.filename = filename
+		self.exc = exc
+
+	def __str__(self):
+		return "%s: %r not found (%s)" % (self.message, self.filename, self.exc)
+
+
+class IllegalObjectWarning(Warning):
+	"""
+	warning that is issued when &xist; finds an illegal object in its object tree.
+	"""
+
+	def __init__(self, object):
+		self.object = object
+
+	def __str__(self):
+		s = "an illegal object %r of type %s has been found in the XSC tree. The object will be ignored." % (self.object, type(self.object).__name__)
+		return s
+
+
+class MalformedCharRefWarning(Warning):
+	"""
+	exception that is raised when a character reference is malformed (e.g. <lit>&amp;#foo;</lit>)
+	"""
+
+	def __init__(self, name):
+		self.name = name
+
+	def __str__(self):
+		return "malformed character reference: &%s;" % self.name
+
+
+class IllegalCommentContentWarning(Warning):
+	"""
+	warning that is issued when there is an illegal comment, i.e. one
+	containing <lit>--</lit> or ending in <lit>-</lit>.
+	(This can only happen, when the comment is instantiated by the
+	program, not when parsed from an &xml; file.)
+	"""
+
+	def __init__(self, comment):
+		self.comment = comment
+
+	def __str__(self):
+		return "comment with content %s is illegal, as it contains '--' or ends in '-'." % presenters.strTextOutsideAttr(self.comment.content)
+
+
+class IllegalProcInstFormatError(Error):
+	"""
+	exception that is raised, when there is an illegal processing instruction, i.e. one containing <lit>?&gt;</lit>.
+	(This can only happen, when the processing instruction is instantiated by the
+	program, not when parsed from an &xml; file.)
+	"""
+
+	def __init__(self, procinst):
+		self.procinst = procinst
+
+	def __str__(self):
+		return "processing instruction with content %s is illegal, as it contains %r." % (presenters.strProcInstContent(self.procinst.content), "?>")
+
+
+class IllegalXMLDeclFormatError(Error):
+	"""
+	exception that is raised, when there is an illegal XML declaration,
+	i.e. there something wrong in <lit>&lt;?xml ...?&gt;</lit>.
+	(This can only happen, when the processing instruction is instantiated by the
+	program, not when parsed from an &xml; file.)
+	"""
+
+	def __init__(self, procinst):
+		self.procinst = procinst
+
+	def __str__(self):
+		return "XML declaration with content %r is malformed." % presenters.strProcInstContent(self.procinst.content)
+
+
+class ParseWarning(Warning):
+	"""
+	General warning issued during parsing.
+	"""
+
+
+class IllegalElementParseWarning(IllegalElementError, ParseWarning):
+	"""
+	Warning about an illegal element that is issued during parsing.
+	"""
+warnings.filterwarnings("error", category=IllegalElementParseWarning)
+
+
+class IllegalProcInstParseWarning(IllegalProcInstError, ParseWarning):
+	"""
+	Warning about an illegal processing instruction that is issued during parsing.
+	"""
+warnings.filterwarnings("error", category=IllegalProcInstParseWarning)
+
+
+class AmbiguousProcInstParseWarning(AmbiguousProcInstError, ParseWarning):
+	"""
+	Warning about an ambigous processing instruction that is issued during parsing.
+	"""
+warnings.filterwarnings("error", category=AmbiguousProcInstParseWarning)
+
+
+class IllegalEntityParseWarning(IllegalEntityError, ParseWarning):
+	"""
+	Warning about an illegal entity that is issued during parsing.
+	"""
+warnings.filterwarnings("error", category=IllegalEntityParseWarning)
+
+
+class AmbiguousEntityParseWarning(AmbiguousEntityError, ParseWarning):
+	"""
+	Warning about an ambigous entity that is issued during parsing.
+	"""
+warnings.filterwarnings("error", category=AmbiguousEntityParseWarning)
+
+
+class IllegalCharRefParseWarning(IllegalCharRefError, ParseWarning):
+	"""
+	Warning about an illegal character references that is issued during parsing.
+	"""
+warnings.filterwarnings("error", category=IllegalCharRefParseWarning)
+
+
+class AmbiguousCharRefParseWarning(AmbiguousCharRefError, ParseWarning):
+	"""
+	Warning about an ambigous character references that is issued during parsing.
+	"""
+warnings.filterwarnings("error", category=AmbiguousCharRefParseWarning)
+
+
+class IllegalAttrParseWarning(IllegalAttrError, ParseWarning):
+	"""
+	Warning about an illegal attribute that is issued during parsing.
+	"""
+warnings.filterwarnings("error", category=IllegalAttrParseWarning)
+
+
+class NodeOutsideContextError(Error):
+	"""
+	Error that is raised, when a convert method can't find required context
+	info.
+	"""
+
+	def __init__(self, node, outerclass):
+		self.node = node
+		self.outerclass = outerclass
+
+	def __str__(self):
+		s = "node %s" % self.node._str(fullname=True, xml=False, decorate=True)
+		if self.node.startloc is not None:
+			s += " at %s" % self.node.startloc
+		s += " outside of %r" % self.outerclass
+		return s
 
 
 ###
@@ -707,8 +1099,7 @@ class Node(Base):
 		"""
 		for item in self.walk(filter, filterpath, False):
 			return item
-		from ll.xist import errors
-		raise errors.NodeNotFoundError()
+		raise NodeNotFoundError()
 
 	def __div__(self, other):
 		return xfind.Expr(self, other)
@@ -1293,12 +1684,10 @@ class Comment(CharacterData):
 
 	def publish(self, publisher):
 		if publisher.inattr:
-			from ll.xist import errors
-			raise errors.IllegalAttrNodeError(self)
+			raise IllegalAttrNodeError(self)
 		content = self.content
 		if u"--" in content or content.endswith(u"-"):
-			from ll.xist import errors
-			warnings.warn(errors.IllegalCommentContentWarning(self))
+			warnings.warn(IllegalCommentContentWarning(self))
 		publisher.write(u"<!--")
 		publisher.write(content)
 		publisher.write(u"-->")
@@ -1317,8 +1706,7 @@ class DocType(CharacterData):
 
 	def publish(self, publisher):
 		if publisher.inattr:
-			from ll.xist import errors
-			raise errors.IllegalAttrNodeError(self)
+			raise IllegalAttrNodeError(self)
 		publisher.write(u"<!DOCTYPE ")
 		publisher.write(self.content)
 		publisher.write(u">")
@@ -1362,8 +1750,7 @@ class ProcInst(CharacterData):
 	def publish(self, publisher):
 		content = self.content
 		if u"?>" in content:
-			from ll.xist import errors
-			raise errors.IllegalProcInstFormatError(self)
+			raise IllegalProcInstFormatError(self)
 		publisher.write(u"<?")
 		publisher.write(self.xmlname[True])
 		publisher.write(u" ")
@@ -1507,8 +1894,7 @@ class Attr(Frag):
 		if len(self) and isinstance(values, tuple) and not self.isfancy():
 			value = unicode(self)
 			if value not in values:
-				from ll.xist import errors
-				warnings.warn(errors.IllegalAttrValueWarning(self))
+				warnings.warn(IllegalAttrValueWarning(self))
 
 	def _walk(self, filter, path, filterpath, walkpath):
 		if filterpath or walkpath:
@@ -1868,8 +2254,7 @@ class Attrs(Node, dict):
 				pass
 		# are there any required attributes remaining that haven't been specified? => warn about it
 		if attrs:
-			from ll.xist import errors
-			warnings.warn(errors.RequiredAttrMissingWarning(self, list(attrs)))
+			warnings.warn(RequiredAttrMissingWarning(self, list(attrs)))
 
 	def publish(self, publisher):
 		if publisher.validate:
@@ -2076,16 +2461,14 @@ class Attrs(Node, dict):
 		try:
 			return cls._attrs[xml][name].xmlname[False]
 		except KeyError:
-			from ll.xist import errors
-			raise errors.IllegalAttrError(cls, name, xml=xml)
+			raise IllegalAttrError(cls, name, xml=xml)
 
 	@classmethod
 	def allowedattr(cls, name, xml=False):
 		try:
 			return cls._attrs[xml][name]
 		except KeyError:
-			from ll.xist import errors
-			raise errors.IllegalAttrError(cls, name, xml=xml)
+			raise IllegalAttrError(cls, name, xml=xml)
 
 	def __iter__(self):
 		return self.iterkeys()
@@ -2243,8 +2626,7 @@ class Element(Node):
 			try:
 				return cls._attrs[xml][name].xmlname[False]
 			except KeyError:
-				from ll.xist import errors
-				raise errors.IllegalAttrError(cls, name, xml=xml)
+				raise IllegalAttrError(cls, name, xml=xml)
 
 		@classmethod
 		def allowedattr(cls, name, xml=False):
@@ -2255,8 +2637,7 @@ class Element(Node):
 				try:
 					return cls._attrs[xml][name]
 				except KeyError:
-					from ll.xist import errors
-					raise errors.IllegalAttrError(cls, name, xml=xml)
+					raise IllegalAttrError(cls, name, xml=xml)
 
 		def with(self, names=[], namespaces=(), keepglobals=False, xml=False):
 			"""
@@ -2426,8 +2807,7 @@ class Element(Node):
 		try:
 			size = url.openread().imagesize
 		except IOError, exc:
-			from ll.xist import errors
-			warnings.warn(errors.FileNotFoundWarning("can't read image", url, exc))
+			warnings.warn(FileNotFoundWarning("can't read image", url, exc))
 		else:
 			for attr in (heightattr, widthattr):
 				if attr is not None: # do something to the width/height
@@ -2934,16 +3314,15 @@ class Prefixes(dict):
 	USEPREFIX = 1
 	DECLAREANDUSEPREFIX = 2
 
-	from ll.xist import errors
 	# Warning classes
-	IllegalElementWarning = errors.IllegalElementParseWarning
-	IllegalProcInstWarning = errors.IllegalProcInstParseWarning
-	AmbiguousProcInstWarning = errors.AmbiguousProcInstParseWarning
-	IllegalEntityWarning = errors.IllegalEntityParseWarning
-	AmbiguousEntityWarning = errors.AmbiguousEntityParseWarning
-	IllegalCharRefWarning = errors.IllegalCharRefParseWarning
-	AmbiguousCharRefWarning = errors.AmbiguousCharRefParseWarning
-	IllegalAttrWarning = errors.IllegalAttrParseWarning
+	IllegalElementWarning = IllegalElementParseWarning
+	IllegalProcInstWarning = IllegalProcInstParseWarning
+	AmbiguousProcInstWarning = AmbiguousProcInstParseWarning
+	IllegalEntityWarning = IllegalEntityParseWarning
+	AmbiguousEntityWarning = AmbiguousEntityParseWarning
+	IllegalCharRefWarning = IllegalCharRefParseWarning
+	AmbiguousCharRefWarning = AmbiguousCharRefParseWarning
+	IllegalAttrWarning = IllegalAttrParseWarning
 
 	def __init__(self, nswithoutprefix=None, **nswithprefix):
 		dict.__init__(self)
@@ -3097,7 +3476,7 @@ class Prefixes(dict):
 		if qname[0] is None:
 			try:
 				return element.Attrs.allowedattr(qname[1], xml=True).xmlname[False]
-			except errors.IllegalAttrError:
+			except IllegalAttrError:
 				warnings.warn(self.IllegalAttrWarning(element.attrs, qname[1], xml=True))
 		else:
 			for ns in self[qname[0]]:
@@ -3105,7 +3484,7 @@ class Prefixes(dict):
 					attr = ns.Attrs.allowedattr(qname[1], xml=True)
 					if attr.register:
 						return (ns, attr.xmlname[False])
-				except errors.IllegalAttrError: # no attribute in this namespace with this name
+				except IllegalAttrError: # no attribute in this namespace with this name
 					pass
 			warnings.warn(self.IllegalAttrWarning(None, qname, xml=True))
 		return None
@@ -3411,7 +3790,7 @@ class Namespace(Base, ll.Namespace):
 		try:
 			return cls._getcache()[0][xml][name]
 		except KeyError:
-			raise errors.IllegalElementError(name, xml=xml)
+			raise IllegalElementError(name, xml=xml)
 
 	@classmethod
 	def iterprocinstkeys(cls, xml=False):
@@ -3477,7 +3856,7 @@ class Namespace(Base, ll.Namespace):
 		try:
 			return cls._getcache()[1][xml][name]
 		except KeyError:
-			raise errors.IllegalProcInstError(name, xml=xml)
+			raise IllegalProcInstError(name, xml=xml)
 
 	@classmethod
 	def iterentitykeys(cls, xml=False):
@@ -3546,7 +3925,7 @@ class Namespace(Base, ll.Namespace):
 		try:
 			return cls._getcache()[2][xml][name]
 		except KeyError:
-			raise errors.IllegalEntityError(name, xml=xml)
+			raise IllegalEntityError(name, xml=xml)
 
 	@classmethod
 	def itercharrefkeys(cls, xml=False):
@@ -3617,12 +3996,12 @@ class Namespace(Base, ll.Namespace):
 			if isinstance(name, (int, long)):
 				charrefs = cache[3][2][name]
 				if len(charrefs) > 1:
-					raise errors.AmbiguousCharRefError(name, xml)
+					raise AmbiguousCharRefError(name, xml)
 				return charrefs[0]
 			else:
 				return cache[3][xml][name]
 		except KeyError:
-			raise errors.IllegalCharRefError(name, xml=xml)
+			raise IllegalCharRefError(name, xml=xml)
 
 	@classmethod
 	def updateexisting(cls, *args, **kwargs):
@@ -3687,7 +4066,7 @@ class Namespace(Base, ll.Namespace):
 				data = ""
 			try:
 				yield (cls.procinst(unicode(target, encoding), xml=True), data)
-			except errors.IllegalProcInstError:
+			except IllegalProcInstError:
 				yield (str, "<?%s %s?>" % (target, data)) # return unknown PIs as text
 			pos = pos2+2
 

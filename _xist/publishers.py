@@ -20,7 +20,7 @@ import sys, codecs
 
 from ll import url
 
-import xsc, options, helpers, errors
+import xsc, options, helpers
 
 
 def cssescapereplace(exc):
@@ -174,7 +174,7 @@ class Publisher(object):
 
 		# Determine if we have multiple roots
 		if prefixes2def and isinstance(node, xsc.Frag) and len(node.find(xsc.FindType(xsc.Element))) > 1:
-			raise errors.MultipleRootsError()
+			raise xsc.MultipleRootsError()
 
 		if prefixes2def:
 			self.publishxmlns = {} # signals that xmlns attributes should be generated to the first element encountered, if not empty
