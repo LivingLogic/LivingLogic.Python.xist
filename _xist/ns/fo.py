@@ -981,6 +981,8 @@ class page_sequence(xsc.Element):
 class layout_master_set(xsc.Element):
 	xmlname = "layout-master-set"
 	empty = False
+	class Attrs(xsc.Element.Attrs): # this is required, otherwise adding inherited attributes would modify xsc.Element.Attrs
+		pass
 
 class page_sequence_master(xsc.Element):
 	xmlname = "page-sequence-master"
@@ -1836,49 +1838,50 @@ class retrieve_marker(xsc.Element):
 		):
 		pass
 
+# Parameter entities defined in the XSL specification
 pe_block = (block, block_container, table_and_caption, table, list_block)
 pe_inline = (bidi_override, character, external_graphic, instream_foreign_object, inline, inline_container, leader, page_number, page_number_citation, basic_link, multi_toggle)
 pe_neutral = (multi_switch, multi_properties, wrapper, retrieve_marker)
 
 # DTD information
 dtd = {
-		root: (layout_master_set, declarations, page_sequence),
-		declarations: (color_profile,),
-		page_sequence: (title, static_content, flow),
-		layout_master_set: (simple_page_master, page_sequence_master),
-		page_sequence_master: (single_page_master_reference, repeatable_page_master_reference, repeatable_page_master_alternatives),
-		repeatable_page_master_alternatives: (conditional_page_master_reference,),
-		simple_page_master: (region_body, region_before, region_after, region_start, region_end),
-		flow: pe_block + (marker,),
-		static_content: pe_block,
-		title: pe_inline,
-		block: pe_inline + pe_block,
-		block_container: pe_block,
-		bidi_override: pe_inline + pe_block,
-		inline: pe_inline + pe_block,
-		inline_container: pe_block,
-		leader: pe_inline,
-		table_and_caption: (table_caption, table),
-		table: (table_column, table_header, table_footer, table_body),
-		table_caption: pe_block + (marker,),
-		table_header: (table_row, table_cell, marker),
-		table_footer: (table_row, table_cell, marker),
-		table_body: (table_row, table_cell, marker),
-		table_row: (table_cell,),
-		table_cell: pe_block + (marker,),
-		list_block: (list_item, marker),
-		list_item: (list_item_label, list_item_body, marker),
-		list_item_body: pe_block + (marker,),
-		list_item_label: pe_block + (marker,),
-		basic_link: pe_inline + pe_block + (marker,),
-		multi_switch: (multi_case,),
-		multi_case: pe_inline + pe_block + (multi_toggle,), ### More attributes are allowed
-		multi_toggle: pe_inline + pe_block,
-		multi_properties: (multi_property_set, wrapper),
-		float: pe_block,
-		footnote: pe_inline + (footnote_body,),
-		wrapper: pe_inline + pe_block + (marker,),
-		marker: pe_inline + pe_block
+	root: (layout_master_set, declarations, page_sequence),
+	declarations: (color_profile,),
+	page_sequence: (title, static_content, flow),
+	layout_master_set: (simple_page_master, page_sequence_master),
+	page_sequence_master: (single_page_master_reference, repeatable_page_master_reference, repeatable_page_master_alternatives),
+	repeatable_page_master_alternatives: (conditional_page_master_reference,),
+	simple_page_master: (region_body, region_before, region_after, region_start, region_end),
+	flow: pe_block + (marker,),
+	static_content: pe_block,
+	title: pe_inline,
+	block: pe_inline + pe_block,
+	block_container: pe_block,
+	bidi_override: pe_inline + pe_block,
+	inline: pe_inline + pe_block,
+	inline_container: pe_block,
+	leader: pe_inline,
+	table_and_caption: (table_caption, table),
+	table: (table_column, table_header, table_footer, table_body),
+	table_caption: pe_block + (marker,),
+	table_header: (table_row, table_cell, marker),
+	table_footer: (table_row, table_cell, marker),
+	table_body: (table_row, table_cell, marker),
+	table_row: (table_cell,),
+	table_cell: pe_block + (marker,),
+	list_block: (list_item, marker),
+	list_item: (list_item_label, list_item_body, marker),
+	list_item_body: pe_block + (marker,),
+	list_item_label: pe_block + (marker,),
+	basic_link: pe_inline + pe_block + (marker,),
+	multi_switch: (multi_case,),
+	multi_case: pe_inline + pe_block + (multi_toggle,), ### More attributes are allowed
+	multi_toggle: pe_inline + pe_block,
+	multi_properties: (multi_property_set, wrapper),
+	float: pe_block,
+	footnote: pe_inline + (footnote_body,),
+	wrapper: pe_inline + pe_block + (marker,),
+	marker: pe_inline + pe_block
 }
 
 class xmlns(xsc.Namespace):
