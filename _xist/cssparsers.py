@@ -71,6 +71,8 @@ class Handler(object):
 			self.texts.append(u"@%s" % data)
 			if not self.ignorecharset:
 				self.encoding = data.encode("ascii")
+		elif token=="PERCENTAGE":
+			self.texts.append(u"%s%%" % data)
 		else:
 			self.texts.append(data)
 
