@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 1999-2003 by LivingLogic AG, Bayreuth, Germany.
-## Copyright 1999-2003 by Walter Dörwald
+## Copyright 1999-2004 by LivingLogic AG, Bayreuth, Germany.
+## Copyright 1999-2004 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -145,7 +145,7 @@ enterattrs = Const()
 
 class FindType(object):
 	"""
-	Tree traversal filter, that find nodes of a certain type on the first level
+	Tree traversal filter, that finds nodes of a certain type on the first level
 	of the tree without decending further down.
 	"""
 	def __init__(self, *types):
@@ -156,12 +156,23 @@ class FindType(object):
 
 class FindTypeAll(object):
 	"""
-	Tree traversal filter, that find nodes of a certain type searching the complete tree
+	Tree traversal filter, that finds nodes of a certain type searching the complete tree
 	"""
 	def __init__(self, *types):
 		self.types = types
 	def __call__(self, node):
 		return (isinstance(node, self.types), entercontent)
+
+
+class FindTypeAllAttrs(object):
+	"""
+	Tree traversal filter, that finds nodes of a certain type searching the complete tree
+	(including attributes)
+	"""
+	def __init__(self, *types):
+		self.types = types
+	def __call__(self, node):
+		return (isinstance(node, self.types), entercontent, enterattrs)
 
 
 class FindTypeTop(object):
@@ -277,6 +288,18 @@ class FindOld(object):
 		return res
 
 
+class Context(Base, list):
+	"""
+	<par>This is an empty class, that can be used by the
+	<pyref class="Node" method="convert"><method>convert</method></pyref>
+	method to hold element or namespace specific data during the convert call.
+	The method <pyref class="Converter" method="__getitem__"><method>Converter.__getitem__</method></pyref>
+	will return a unique instance of this class.</par>
+	"""
+
+_Context = Context
+
+
 ###
 ### The DOM classes
 ###
@@ -332,17 +355,8 @@ class Node(Base):
 			dict["xmlname"] = (pyname, xmlname)
 			return Base.__metaclass__.__new__(cls, name, bases, dict)
 
-	class Context(Base, list):
-		"""
-		<par>This is an empty class, that can be used by the
-		<pyref module="ll.xist.xsc" class="Node" method="convert"><method>convert</method></pyref>
-		method to hold element specific data during the convert call. The method
-		<pyref class="Converter" method="__getitem__"><method>Converter.__getitem__</method></pyref>
-		will return a unique instance of this class.</par>
-		"""
-
-		def __init__(self):
-			list.__init__(self)
+	class Context(_Context):
+		pass
 
 	def __repr__(self):
 		"""
@@ -607,13 +621,14 @@ class Node(Base):
 				publisher.publish(u":")
 		publisher.publish(self.xmlname[True])
 
-	def parsed(self, handler, start=None):
+	def parsed(self, parser, start=None):
 		"""
-		<par>This method will be called by the parsing handler <arg>handler</arg>
+		<par>This method will be called by the parser <arg>parser</arg>
 		once after <self/> is created by the parser. This is e.g. used by
 		<pyref class="URLAttr"><class>URLAttr</class></pyref> to incorporate
 		the base <pyref module="ll.url" class="URL"><class>URL</class></pyref>
-		<arg>base</arg> into the attribute.</par>
+		into the attribute.</par>
+
 		<par>For elements <function>parsed</function> will be called twice:
 		once at the beginning (i.e. before the content is parsed) with <lit><arg>start</arg>==True</lit>
 		and once at the end after parsing of the content is finished <lit><arg>start</arg>==False</lit>.</par>
@@ -639,7 +654,7 @@ class Node(Base):
 
 	def asString(self, base=None, publisher=None, **publishargs):
 		"""
-		<par>returns this element as a unicode string.</par>
+		<par>returns this node as a unicode string.</par>
 
 		<par>For the parameters see the
 		<pyref module="ll.xist.publishers" class="Publisher"><class>ll.xist.publishers.Publisher</class></pyref> constructor.</par>
@@ -647,13 +662,17 @@ class Node(Base):
 		stream = cStringIO.StringIO()
 		if publisher is None:
 			publisher = publishers.Publisher(**publishargs)
-		publisher.encoding = "utf-8"
-		publisher.dopublication(stream, self, base)
+		oldencoding = publisher.encoding
+		try:
+			publisher.encoding = "utf-8"
+			publisher.dopublication(stream, self, base)
+		finally:
+			publisher.encoding = oldencoding
 		return stream.getvalue().decode("utf-8")
 
 	def asBytes(self, base=None, publisher=None, **publishargs):
 		"""
-		<par>returns this element as a byte string suitable for writing
+		<par>returns this node as a byte string suitable for writing
 		to an &html; file or printing from a CGI script.</par>
 
 		<par>For the parameters see the
@@ -667,7 +686,7 @@ class Node(Base):
 
 	def write(self, stream, base=None, publisher=None, **publishargs):
 		"""
-		<par>writes the element to the file like object <arg>stream</arg>.</par>
+		<par>writes <self/> to the file like object <arg>stream</arg>.</par>
 
 		<par>For the rest of the parameters
 		see the <pyref module="ll.xist.publishers" class="Publisher"><class>ll.xist.publishers.Publisher</class></pyref> constructor.</par>
@@ -1370,7 +1389,7 @@ class Comment(CharacterData):
 		presenter.presentComment(self)
 
 	def publish(self, publisher):
-		if publisher.inAttr:
+		if publisher.inattr:
 			raise errors.IllegalAttrNodeError(self)
 		if self.content.find(u"--")!=-1 or self.content[-1:]==u"-":
 			raise errors.IllegalCommentContentError(self)
@@ -1391,7 +1410,7 @@ class DocType(CharacterData):
 		presenter.presentDocType(self)
 
 	def publish(self, publisher):
-		if publisher.inAttr:
+		if publisher.inattr:
 			raise errors.IllegalAttrNodeError(self)
 		publisher.publish(u"<!DOCTYPE ")
 		publisher.publish(self.content)
@@ -1636,14 +1655,14 @@ class Attr(Frag):
 
 	def publish(self, publisher):
 		self.checkvalid()
-		publisher.inAttr += 1
+		publisher.inattr += 1
 		self._publishname(publisher) # publish the XML name, not the Python name
 		publisher.publish(u"=\"")
 		publisher.pushtextfilter(helpers.escapeattr)
 		self._publishAttrValue(publisher)
 		publisher.poptextfilter()
 		publisher.publish(u"\"")
-		publisher.inAttr -= 1
+		publisher.inattr -= 1
 
 	def pretty(self, level=0, indent="\t"):
 		return self.clone()
@@ -1686,7 +1705,7 @@ class BoolAttr(Attr):
 
 	def publish(self, publisher):
 		self.checkvalid()
-		publisher.inAttr += 1
+		publisher.inattr += 1
 		self._publishname(publisher) # publish the XML name, not the Python name
 		if publisher.xhtml>0:
 			publisher.publish(u"=\"")
@@ -1694,7 +1713,7 @@ class BoolAttr(Attr):
 			publisher.publish(self.__class__.xmlname[True])
 			publisher.poptextfilter()
 			publisher.publish(u"\"")
-		publisher.inAttr -= 1
+		publisher.inattr -= 1
 
 
 class ColorAttr(Attr):
@@ -1708,29 +1727,29 @@ class StyleAttr(Attr):
 	<par>Attribute class that is used for &css; style attributes.</par>
 	"""
 
-	def parsed(self, handler, start=None):
+	def parsed(self, parser, start=None):
 		if not self.isfancy():
-			value = cssparsers.parseString(unicode(self), handler=cssparsers.ParseHandler(), base=handler.base)
+			csshandler = cssparsers.ParseHandler(ignorecharset=True)
+			value = csshandler.parseString(unicode(self), base=parser.base)
 			self[:] = (value, )
 
 	def _publishAttrValue(self, publisher):
 		if not self.isfancy():
-			value = cssparsers.parseString(unicode(self), handler=cssparsers.PublishHandler(), base=publisher.base)
+			csshandler = cssparsers.PublishHandler(ignorecharset=True)
+			value = csshandler.parseString(unicode(self), base=publisher.base)
 			new = Frag(value)
 			new.publish(publisher)
 		else:
 			super(StyleAttr, self)._publishAttrValue(publisher)
 
-	def urls(self):
+	def urls(self, base=None):
 		"""
 		<par>Return a list of all the <pyref module="ll.url" class="URL"><class>URL</class></pyref>s
 		found in the style attribute.</par>
 		"""
-		source = sources.StringInputSource(unicode(self))
-		handler = cssparsers.CollectHandler()
-		handler.parse(source, ignorecharset=True)
-		urls = handler.urls
-		handler.close()
+		csshandler = cssparsers.CollectHandler(ignorecharset=True)
+		csshandler.parseString(unicode(self), base=base)
+		urls = csshandler.urls
 		return urls
 
 
@@ -1740,8 +1759,8 @@ class URLAttr(Attr):
 	for more information about &url; handling.</par>
 	"""
 
-	def parsed(self, handler, start=None):
-		self[:] = utils.replaceInitialURL(self, lambda u: handler.base/u)
+	def parsed(self, parser, start=None):
+		self[:] = utils.replaceInitialURL(self, lambda u: parser.base/u)
 
 	def _publishAttrValue(self, publisher):
 		new = utils.replaceInitialURL(self, lambda u: u.relative(publisher.base))
@@ -2511,7 +2530,7 @@ class Element(Node):
 
 	def publish(self, publisher):
 		self.checkvalid()
-		if publisher.inAttr:
+		if publisher.inattr:
 			# publish the content only when we are inside an attribute. This works much like using the plain string value,
 			# but even works with processing instructions, or what the abbreviation entities return
 			self.content.publish(publisher)
@@ -3007,18 +3026,18 @@ class Prefixes(dict):
 		"""
 		<par>returns the processing instruction class for the name <arg>name</arg>.</par>
 		"""
-		candidates = {}
+		candidates = {} # FIXME: Use a set in Python 2.4
 		for nss in self.itervalues():
 			for ns in nss:
 				try:
 					procinst = ns.procinst(name, xml=True)
-					if procinst.register:
-						candidates[ns] = procinst
-						break
 				except LookupError: # no processing instruction in this namespace with this name
 					pass
+				else:
+					if procinst.register:
+						candidates[procinst] = True
 		if len(candidates)==1:
-			return candidates.popitem()[1]
+			return candidates.popitem()[0]
 		elif len(candidates)==0:
 			raise errors.IllegalProcInstError(name, xml=True) # processing instructions with this name couldn't be found
 		else:
@@ -3028,18 +3047,18 @@ class Prefixes(dict):
 		"""
 		<par>returns the entity or charref class for the name <arg>name</arg>.</par>
 		"""
-		candidates = {}
+		candidates = {} # FIXME: Use a set in Python 2.4
 		for nss in self.itervalues():
 			for ns in nss:
 				try:
 					entity = ns.entity(name, xml=True)
-					if entity.register:
-						candidates[ns] = entity
-						break
 				except LookupError: # no entity in this namespace with this name
 					pass
+				else:
+					if entity.register:
+						candidates[entity] = True
 		if len(candidates)==1:
-			return candidates.popitem()[1]
+			return candidates.popitem()[0]
 		elif len(candidates)==0:
 			raise errors.IllegalEntityError(name, xml=True) # entities with this name couldn't be found
 		else:
@@ -3049,18 +3068,18 @@ class Prefixes(dict):
 		"""
 		<par>returns the first charref class for the name or codepoint <arg>name</arg>.</par>
 		"""
-		candidates = {}
+		candidates = {} # FIXME: Use a set in Python 2.4
 		for nss in self.itervalues():
 			for ns in nss:
 				try:
 					charref = ns.charref(name, xml=True)
-					if charref.register:
-						candidates[ns] = charref
-						break
 				except LookupError: # no entity in this namespace with this name
 					pass
+				else:
+					if charref.register:
+						candidates[charref] = True
 		if len(candidates)==1:
-			return candidates.popitem()[1]
+			return candidates.popitem()[0]
 		elif len(candidates)==0:
 			raise errors.IllegalCharRefError(name, xml=True) # character references with this name/codepoint couldn't be found
 		else:
@@ -3290,6 +3309,9 @@ class Namespace(Base):
 			return type.__setattr__(cls, key, value)
 
 	class Attrs(_Attrs):
+		pass
+
+	class Context(_Context):
 		pass
 
 	def iterelementkeys(cls, xml=False):
@@ -3538,15 +3560,19 @@ class Namespace(Base):
 		"""
 		Return the <pyref class="CharRef">character reference</pyref>
 		class with the name <arg>name</arg>. If <arg>name</arg> is a number return
-		a list of character reference classes defined for this codepoint.
+		the character reference class defined for this codepoint.
 		<arg>xml</arg> specifies whether <arg>name</arg> should be
 		treated as a Python or &xml; name. If a character reference class
 		with this name or codepoint doesn't exist an <class>IllegalCharRefError</class>
-		is raised.
+		is raised. If there are multiple character reference class for
+		one codepoint an <class>AmbiguousCharRefError</class> will be raise
 		"""
 		try:
 			if isinstance(name, (int, long)):
-				return cls._charrefs[2][name]
+				charrefs = cls._charrefs[2][name]
+				if len(charrefs) > 1:
+					raise errors.AmbiguousCharRefError(name, xml)
+				return charrefs[0]
 			else:
 				return cls._charrefs[xml][name]
 		except KeyError:
@@ -3707,4 +3733,4 @@ class Location(object):
 	def __ne__(self, other):
 		return not self==other
 
-import presenters, publishers, sources, cssparsers, converters, errors, options, utils, helpers
+import presenters, publishers, cssparsers, converters, errors, options, utils, helpers

@@ -1,31 +1,31 @@
 #! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 1999-2003 by LivingLogic AG, Bayreuth, Germany.
-## Copyright 1999-2003 by Walter Dörwald
+## Copyright 1999-2004 by LivingLogic AG, Bayreuth, Germany.
+## Copyright 1999-2004 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
 ## See xist/__init__.py for the license
 
 """
-<par>This file contains everything you need to parse &xist; objects from files, strings, &url;s etc.</par>
-
-<par>It contains different &sax;2 parser driver classes (mostly for sgmlop, everything else
-is from <app moreinfo="http://pyxml.sf.net/">PyXML</app>). It includes a
-<pyref class="HTMLParser"><class>HTMLParser</class></pyref> that uses sgmlop to parse &html;
-and emit &sax;2 events. It also contains various classes derived from
-<class>xml.sax.xmlreader.InputSource</class>.</par>
+<par>This file contains classes that make it possible to transform &url;s found inside
+&css; code (either <lit>style</lit> attributes or complete &css; files).</par>
 """
+
+import cStringIO
 
 from ll import url
 
-import sources, csstokenizer
+from ll.xist import csstokenizer
 
 
 class Handler(object):
-	def __init__(self):
-		self.close()
+	def __init__(self, encoding="utf-8", ignorecharset=False):
+		self.texts = []
+		self.base = None
+		self.encoding = encoding
+		self.ignorecharset = ignorecharset
 
 	def startDocument(self):
 		self.texts = []
@@ -71,22 +71,44 @@ class Handler(object):
 	def transformURL(self, u):
 		return u
 
-	def close(self):
-		self.texts = []
-		self.source = None
-		self.base = None
-
-	def parse(self, source, ignorecharset=False):
-		self.source = source
-		self.base = getattr(source, "base", None)
-		self.encoding = source.getEncoding()
-		self.ignorecharset = ignorecharset
+	def _parse(self, stream, base, encoding):
+		self.base = url.URL(base)
+		self.encoding = encoding
 		tokenizer = csstokenizer.CSSTokenizer()
 		tokenizer.register(self)
-		data = source.getByteStream().read()
+		data = stream.read()
 		tokenizer.parse(data)
 		data = unicode(self)
 		tokenizer.register(None)
+		self.texts = []
+		self.base = None
+		return data
+
+	def parse(self, stream, base=None):
+		return self.parse(stream, base, self.encoding)
+
+	def parseString(self, string, base=None):
+		if isinstance(string, unicode):
+			encoding = "utf-8"
+			string = string.encode(encoding)
+		else:
+			encoding = self.encoding
+		stream = cStringIO.StringIO(string)
+		if base is None:
+			base = "STRING"
+		return self._parse(stream, base, encoding)
+
+	def parseURL(self, name, base=None, headers=None, data=None):
+		stream = name.openread(headers=headers, data=data)
+		if base is None:
+			base = stream.finalurl
+		return self._parse(stream, base, self.encoding)
+
+	def parseFile(self, name, base=None):
+		stream = open(name, "r")
+		if base is None:
+			base = url.File(name)
+		return self._parse(stream, base, self.encoding)
 
 
 class ParseHandler(Handler):
@@ -111,24 +133,3 @@ class CollectHandler(Handler):
 	def transformURL(self, u):
 		self.urls.append(u)
 		return u
-
-
-def parse(source, handler=None, ignorecharset=False):
-	if handler is None:
-		handler = Handler()
-	handler.parse(source, ignorecharset=ignorecharset)
-	result = unicode(handler)
-	handler.close()
-	return result
-
-
-def parseString(text, sysid="STRING", base=None, handler=None, encoding=None, ignorecharset=False):
-	return parse(sources.StringInputSource(text, sysid=sysid, base=base, encoding=encoding), handler=handler, ignorecharset=ignorecharset)
-
-
-def parseURL(id, base=None, handler=None, encoding=None, ignorecharset=False, headers=None, data=None):
-	return parse(sources.URLInputSource(id, base=base, encoding=encoding, headers=headers, data=data), handler=handler, ignorecharset=ignorecharset)
-
-
-def parseFile(filename, base=None, handler=None, encoding=None, ignoreCharset=0):
-	return parseURL(url.File(filename), base=base, encoding=encoding, handler=handler, ignorecharset=ignorecharset)

@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 1999-2003 by LivingLogic AG, Bayreuth, Germany.
-## Copyright 1999-2003 by Walter Dörwald
+## Copyright 1999-2004 by LivingLogic AG, Bayreuth, Germany.
+## Copyright 1999-2004 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -35,7 +35,7 @@ class Publisher(object):
 	base class for all publishers.
 	"""
 
-	def __init__(self, root=None, encoding=None, xhtml=None, prefixes=None, prefixmode=0):
+	def __init__(self, encoding="utf-8", xhtml=1, prefixes=None, prefixmode=0):
 		"""
 		<par><arg>encoding</arg> specifies the encoding to be used.
 		The encoding itself (i.e. calling <method>encode</method> on the
@@ -73,14 +73,7 @@ class Publisher(object):
 		</ulist>
 		"""
 		self.base = None
-		self.root = url.URL(root)
-		if encoding is None:
-			encoding = options.outputEncoding
 		self.encoding = encoding
-		if xhtml is None:
-			xhtml = options.outputXHTML
-		if xhtml<0 or xhtml>2:
-			raise ValueError("xhtml must be 0, 1 or 2, not %r" % (xhtml,))
 		self.xhtml = xhtml
 
 		if prefixes is None:
@@ -174,15 +167,14 @@ class Publisher(object):
 		else:
 			self.publishxmlns = None
 
-		self.inAttr = 0
+		self.inattr = 0
 		self.__textfilters = [ helpers.escapetext ]
 		self.__currenttextfilter = helpers.escapetext
 
 		self.__errors = [ "xmlcharrefreplace" ]
 		self.__currenterrors = "xmlcharrefreplace"
 
-		streamwriterclass = codecs.getwriter(self.encoding)
-		self.stream = streamwriterclass(stream)
+		self.stream = codecs.getwriter(self.encoding)(stream)
 		self.publish = self.stream.write
 
 		self.base = url.URL(base)
@@ -192,7 +184,7 @@ class Publisher(object):
 		"""
 		<par>called once after the publication of the node <arg>node</arg> has ended.</par>
 		"""
-		self.inAttr = 0
+		self.inattr = 0
 		self.__textfilters = [ helpers.escapetext ]
 		self.__currenttextfilter = helpers.escapetext
 

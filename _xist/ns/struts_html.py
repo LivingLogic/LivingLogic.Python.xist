@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 1999-2003 by LivingLogic AG, Bayreuth, Germany.
-## Copyright 1999-2003 by Walter Dörwald
+## Copyright 1999-2004 by LivingLogic AG, Bayreuth, Germany.
+## Copyright 1999-2004 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##

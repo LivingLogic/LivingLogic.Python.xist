@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 1999-2003 by LivingLogic AG, Bayreuth, Germany.
-## Copyright 1999-2003 by Walter Dörwald
+## Copyright 1999-2004 by LivingLogic AG, Bayreuth, Germany.
+## Copyright 1999-2004 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -17,7 +17,7 @@ is from <app moreinfo="http://pyxml.sf.net/">PyXML</app>). It includes a
 and emit &sax;2 events.</par>
 """
 
-import sys, os, os.path, types, urllib, warnings
+import sys, os, os.path, types, urllib, warnings, cStringIO
 
 from xml import sax
 from xml.parsers import sgmlop
@@ -28,8 +28,58 @@ from xml.dom import html as htmldtd
 
 from ll import url
 
-import xsc, errors, utils, sources, cssparsers
-from ns import ihtml, html
+import xsc, errors, utils, cssparsers
+from ns import html
+
+
+class TidyArgs(xsc.Args):
+	add_xml_decl = True
+	assume_xml_procins = True
+	bare = True
+	break_before_br = False
+	doctype = "loose"
+	drop_proprietary_attributes = True
+	fix_bad_comments = True
+	fix_uri = True
+	join_styles = False
+	lower_literals = True
+	ncr = True
+	numeric_entities = True
+	output_xhtml = True
+	output_xml = True
+	quote_ampersand = True
+	quote_nbsp = False
+	literal_attributes = True
+	markup = True
+	wrap = 0
+	wrap_php = False
+	wrap_sections = False
+	ascii_chars = False
+	force_output = True
+	tidy_mark = False
+
+
+def tidystring(text, encoding, sysid, args):
+	args = TidyArgs(args)
+	args["input_encoding"] = encoding
+	args["output_encoding"] = "utf8"
+
+	try:
+		import tidy
+	except ImportError:
+		from mx import Tidy
+		args["quiet"] = 1
+		(nerrors, nwarnings, outputdata, errordata) = Tidy.tidy(text, **args)
+		if nerrors>0:
+			raise saxlib.SAXException("can't tidy %r (%d errors, %d warnings):\n%s" % (sysid, nerrors, nwarnings, errordata))
+		text = outputdata
+	else:
+		doc = tidy.parseString(text, **args)
+		for error in doc.get_errors():
+			warning = errors.TidyWarning(error.message, xsc.Location(sysid=sysid, line=error.line, col=error.col))
+			warnings.warn(warning)
+		text = str(doc)
+	return (text, "utf-8")
 
 
 class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
@@ -37,16 +87,13 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 	This is a rudimentary, buggy, halfworking, untested SAX2 drivers for sgmlop.
 	And I didn't even know, what I was doing, but it seems to work.
 	"""
-	def __init__(self, namespaceHandling=0, bufsize=2**16-20, encoding=None):
+	_whichparser = sgmlop.XMLParser
+
+	def __init__(self, bufsize=2**16-20):
 		sax.xmlreader.IncrementalParser.__init__(self, bufsize)
-		if encoding is None:
-			encoding = "utf-8"
-		self.encoding = encoding
+		self.encoding = None
 		self._parser = None
 		self.reset()
-
-	def _whichparser(self):
-		return sgmlop.XMLParser()
 
 	def _makestring(self, data):
 		return unicode(data, self.encoding).replace(u"\r\n", u"\n").replace(u"\r", u"\n")
@@ -65,17 +112,18 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 
 	def close(self):
 		if self._parser is not None:
+			self._cont_handler.endDocument()
 			self._parser.close()
 			self._parser.register(None)
 			self._parser = None
-			self._cont_handler.endDocument()
 
 	def parse(self, source):
 		self.source = source
-		file = source.getByteStream()
+		stream = source.getByteStream()
 		encoding = source.getEncoding()
-		if encoding is not None:
-			self.encoding = encoding
+		if encoding is None:
+			encoding = "utf-8"
+		self.encoding = encoding
 		self._cont_handler.setDocumentLocator(self)
 		self._cont_handler.startDocument()
 		self.lineNumber = 1
@@ -85,7 +133,7 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 		parsed = False
 		try:
 			while True:
-				data = file.read(self._bufsize)
+				data = stream.read(self._bufsize)
 				if not data:
 					if not parsed:
 						self.feed("")
@@ -101,17 +149,21 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 				self.feed(data)
 				self.parsed = True
 		except SystemExit:
-			raise
+			self.close()
+			self.source = None
+			self.encoding = None
 		except KeyboardInterrupt:
-			raise
+			self.close()
+			self.source = None
+			self.encoding = None
 		except Exception, exc:
+			self.close()
+			self.source = None
+			self.encoding = None
 			if self._err_handler is not None:
 				self._err_handler.fatalError(exc)
 			else:
 				raise
-		self.close()
-		self.source = None
-		del self.encoding
 
 	# Locator methods will be called by the application
 	def getColumnNumber(self):
@@ -146,7 +198,7 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 		if name == handler.feature_namespaces:
 			return 0
 		else:
-			sax.xmlreader.IncrementalParser.setFeature(self, name, state)
+			return sax.xmlreader.IncrementalParser.setFeature(self, name)
 
 	def handle_comment(self, data):
 		self._cont_handler.comment(self._makestring(data))
@@ -175,7 +227,7 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 	def handle_proc(self, target, data):
 		target = self._makestring(target)
 		data = self._makestring(data)
-		if target!=u'xml': # Don't report <?xml?> as a processing instruction
+		if target != u'xml': # Don't report <?xml?> as a processing instruction
 			self._cont_handler.processingInstruction(target, data)
 			self.headerJustRead = False
 		else: # extract the encoding
@@ -352,12 +404,11 @@ class HTMLParser(BadEntityParser):
 	<par>A &sax;2 parser that can parse &html;.</par>
 	"""
 
-	def __init__(self, namespaceHandling=0, bufsize=2**16-20, encoding="iso-8859-1"):
-		self._stack = []
-		BadEntityParser.__init__(self, namespaceHandling, bufsize, encoding)
+	_whichparser = sgmlop.SGMLParser
 
-	def _whichparser(self):
-		return sgmlop.SGMLParser()
+	def __init__(self, bufsize=2**16-20):
+		BadEntityParser.__init__(self, bufsize)
+		self._stack = []
 
 	def reset(self):
 		self._stack = []
@@ -420,66 +471,123 @@ class ExpatParser(expatreader.ExpatParser):
 		self._parser.UseForeignDTD(True)
 
 
-class Handler(object):
+class Parser(object):
 	"""
-	contains the parser and the options and functions for handling XML files
+	<par>It is the job of a <class>Parser</class> to create the object tree from the
+	&sax; events generated by underlying &sax; parser.</par>
 	"""
 
-	def __init__(self, parser=None, prefixes=None, loc=True):
-		if parser is None:
-			parser = SGMLOPParser()
-		self.parser = parser
+	def __init__(self, saxparser=SGMLOPParser, prefixes=None, tidy=False, loc=True, encoding="utf-8"):
+		"""
+		<par>Create a new <class>Parser</class> instance.</par>
+
+		<par>Arguments have the following meaning:</par>
+		<dlist>
+		<term><arg>saxparser</arg></term><item><par>a callable that returns an instance of a &sax;2 compatible parser.
+		&xist; itself provides several &sax;2 parsers
+		(all based on Fredrik Lundh's <app>sgmlop</app> from <app moreinfo="http://pyxml.sf.net/">PyXML</app>):</par>
+		<ulist>
+		<item><pyref module="ll.xist.parsers" class="SGMLOPParser"><class>ll.xist.parsers.SGMLOPParser</class></pyref>
+		(which is the default if the <arg>parser</arg> argument is not given);</item>
+		<item><pyref module="ll.xist.parsers" class="BadEntityParser"><class>ll.xist.parsers.BadEntityParser</class></pyref>
+		(which is based on <class>SGMLOPParser</class> and tries to pass on unknown entity references as literal content);</item>
+		<item><pyref module="ll.xist.parsers" class="HTMLParser"><class>HTMLParser</class></pyref> (which is
+		based on BadEntityParser and tries to make sense of &html; sources).</item>
+		</ulist>
+		</item>
+	
+		<term><arg>prefixes</arg></term><item>an instance of <pyref module="ll.xist.xsc" class="Prefixes"><class>ll.xist.xsc.Prefixes</class></pyref>
+		specifies which namespace modules should be available during parsing
+		and to which prefixes they are mapped (but of course this
+		mapping can be changed during parsing by using <lit>xmlns</lit>
+		attributes in the usual way).</item>
+		</dlist>
+		"""
+		self.saxparser = saxparser
 
 		if prefixes is None:
 			prefixes = xsc.defaultPrefixes.clone()
 		self.prefixes = prefixes # the currently active prefix mapping (will be replaced, once xmlns attributes are encountered)
 
 		self._locator = None
+		self.tidy = tidy
 		self.loc = loc
+		self.encoding = encoding
 
-	def parse(self, source):
-		self.source = source
-		self.base = getattr(self.source, "base", None)
+	def _parse(self, stream, base, sysid, encoding):
+		self.base = url.URL(base)
 
+		parser = self.saxparser()
 		# register us for callbacks
-		self.parser.setErrorHandler(self)
-		self.parser.setContentHandler(self)
-		self.parser.setDTDHandler(self)
-		self.parser.setEntityResolver(self)
+		parser.setErrorHandler(self)
+		parser.setContentHandler(self)
+		parser.setDTDHandler(self)
+		parser.setEntityResolver(self)
 
 		# Configure the parser
-		self.parser.setFeature(handler.feature_namespaces, False) # We do our own namespace processing
-		self.parser.setFeature(handler.feature_external_ges, False) # Don't process external entities, but pass them to skippedEntity
+		parser.setFeature(handler.feature_namespaces, False) # We do our own namespace processing
+		parser.setFeature(handler.feature_external_ges, False) # Don't process external entities, but pass them to skippedEntity
 
 		self.skippingwhitespace = False
-		self.parser.parse(source)
 
-		# unregister us to break the cycles
-		self.parser.setEntityResolver(None)
-		self.parser.setDTDHandler(None)
-		self.parser.setContentHandler(None)
-		self.parser.setErrorHandler(None)
+		source = sax.xmlreader.InputSource(sysid)
+		source.setByteStream(stream)
+		source.setEncoding(encoding)
 
-	def close(self):
-		self.root = None
-		self.source = None
-		self.base = None
+		# our nodes do not have a parent link, therefore we have to store the active
+		# path through the tree in a stack (which we call _nesting)
+		# together with the namespace prefixes defined by each element
+		# after we've finished parsing, the Frag that we put at the bottom of the stack will be our document root
+		self._nesting = [ (xsc.Frag(), self.prefixes) ]
+		try:
+			parser.parse(source)
+			root = self._nesting[0][0]
+		finally:
+			self._nesting = None
+		return root
+
+	def parse(self, stream, base=None, sysid=None):
+		if sysid is None:
+			sysid = base
+		return self._parse(stream, base, self.encoding)
+
+	def parseString(self, string, base=None, sysid=None):
+		if isinstance(string, unicode):
+			encoding = "utf-8"
+			string = string.encode(encoding)
+		else:
+			encoding = self.encoding
+		stream = cStringIO.StringIO(string)
+		if base is None:
+			base = "STRING"
+		if sysid is None:
+			sysid = base
+		return self._parse(stream, base, sysid, encoding)
+
+	def parseURL(self, name, base=None, sysid=None, headers=None, data=None):
+		stream = name.openread(headers=headers, data=data)
+		if base is None:
+			base = stream.finalurl
+		if sysid is None:
+			sysid = base
+		return self._parse(stream, base, sysid, self.encoding)
+
+	def parseFile(self, name, base=None, sysid=None):
+		stream = open(name, "r")
+		if base is None:
+			base = url.File(name)
+		if sysid is None:
+			sysid = base
+		return self._parse(stream, base, sysid, self.encoding)
 
 	def setDocumentLocator(self, locator):
 		self._locator = locator
 
 	def startDocument(self):
-		# our nodes do not have a parent link, therefore we have to store the active
-		# path through the tree in a stack (which we call _nesting)
-		# and we store the namespace prefixes defined by the elements
-
-		# after we've finished parsing, the Frag that we put at the bottom of the stack will be our document root
-		root = xsc.Frag()
-		self._nesting = [ (root, self.prefixes) ]
+		pass
 
 	def endDocument(self):
-		self.root = self._nesting[0][0]
-		self._nesting = None
+		pass
 
 	def startElement(self, name, attrs):
 		newprefixes = {}
@@ -607,50 +715,21 @@ class Handler(object):
 		return self.prefixes.entity(name)()
 
 
-def parse(source, handler=None, parser=None, prefixes=None):
-	"""
-	<par>Parse the source <arg>source</arg> (an <pyref module="ll.xist.sources" class="InputSource"><class>InputSource</class></pyref> instance)
-	and return the resulting object tree.</par>
-
-	<par><arg>handler</arg> is the handler to be used for the parser. It's the job
-	of the handler to create the object tree from the &sax; events generated by
-	the parser. If <arg>handler</arg> is not specified a new instance of
-	<pyref class="Handler"><class>ll.xist.parsers.Handler</class></pyref> will be created
-	and used.</par>
-
-	<par><arg>parser</arg> is an instance of a &sax;2 compatible parser. &xist;
-	itself provides several &sax;2 parsers
-	(all based on Fredrik Lundh's <app>sgmlop</app> from <app moreinfo="http://pyxml.sf.net/">PyXML</app>):</par>
-	<ulist>
-	<item><pyref module="ll.xist.parsers" class="SGMLOPParser"><class>ll.xist.parsers.SGMLOPParser</class></pyref>
-	(which is the default if the <arg>parser</arg> argument is not given);</item>
-	<item><pyref module="ll.xist.parsers" class="BadEntityParser"><class>ll.xist.parsers.BadEntityParser</class></pyref>
-	(which is based on <class>SGMLOPParser</class> and tries to pass on unknown entity references as literal content);</item>
-	<item><pyref module="ll.xist.parsers" class="HTMLParser"><class>HTMLParser</class></pyref> (which is
-	based on BadEntityParser and tries to make sense of &html; sources).</item>
-	</ulist>
-
-	<par><arg>prefixes</arg> is an instance of <pyref module="ll.xist.xsc" class="Prefixes"><class>ll.xist.xsc.Prefixes</class></pyref>
-	specifies which namespace modules should be available during parsing
-	and to which prefixes they are mapped (but of course this
-	mapping can be changed during parsing by using <lit>xmlns</lit>
-	attributes in the usual way).</par>
-	"""
-	if handler is None:
-		handler = Handler(parser, prefixes=prefixes)
-	handler.parse(source)
-	result = handler.root
-	handler.close()
-	return result
+def parse(stream, base, sysid=None, **parserargs):
+	parser = Parser(**parserargs)
+	return parser.parse(stream, base, sysid)
 
 
-def parseString(text, sysid="STRING", base=None, handler=None, parser=None, prefixes=None, encoding=None, tidy=False):
-	return parse(sources.StringInputSource(text, sysid=sysid, base=base, encoding=encoding, tidy=tidy), handler=handler, parser=parser, prefixes=prefixes)
+def parseString(text, base=None, sysid=None, **parserargs):
+	parser = Parser(**parserargs)
+	return parser.parseString(text, base, sysid)
 
 
-def parseURL(id, base=None, handler=None, parser=None, prefixes=None, encoding=None, tidy=False, headers=None, data=None):
-	return parse(sources.URLInputSource(id, base=base, encoding=encoding, tidy=tidy, headers=headers, data=data), handler=handler, parser=parser, prefixes=prefixes)
+def parseURL(id, base=None, sysid=None, **parserargs):
+	parser = Parser(**parserargs)
+	return parser.parseURL(id, base, sysid)
 
 
-def parseFile(filename, base=None, handler=None, parser=None, prefixes=None, encoding=None, tidy=False):
-	return parseURL(url.Filename(filename), base=base, encoding=encoding, tidy=tidy, handler=handler, parser=parser, prefixes=prefixes)
+def parseFile(filename, base=None, sysid=None, **parserargs):
+	parser = Parser(**parserargs)
+	return parser.parseFile(filename, base, sysid)

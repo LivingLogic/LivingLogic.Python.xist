@@ -1,8 +1,8 @@
 #! /usr/bin/env/python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 1999-2003 by LivingLogic AG, Bayreuth, Germany.
-## Copyright 1999-2003 by Walter Dörwald
+## Copyright 1999-2004 by LivingLogic AG, Bayreuth, Germany.
+## Copyright 1999-2004 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -14,11 +14,13 @@ from xml.sax import saxlib
 from xml.parsers import expat
 
 from ll import url
-from ll.xist import xsc, parsers, presenters, converters, helpers, errors, options
+from ll.xist import xsc, parsers, cssparsers, presenters, converters, helpers, errors, options
 from ll.xist.ns import wml, ihtml, html, chars, css, abbr, specials, htmlspecials, php, xml, xndl, tld
+
 
 # set to something ASCII, so presenters work, even if the system default encoding is ascii
 options.reprtab = "  "
+
 
 class XISTTest(unittest.TestCase):
 	def check_lenunicode(self, node, _len, content):
@@ -1158,6 +1160,7 @@ class XISTTest(unittest.TestCase):
 	def test_classrepr(self):
 		repr(xsc.Base)
 		repr(xsc.Node)
+		repr(xsc.Null.__class__)
 		repr(xsc.Element)
 		repr(xsc.ProcInst)
 		repr(xsc.Entity)
@@ -1319,6 +1322,7 @@ class XISTTest(unittest.TestCase):
 	def test_reversed(self):
 		self.check_sortreverse("reversed")
 
+
 class PublishTest(unittest.TestCase):
 	def test_publishelement(self):
 		node = html.html()
@@ -1465,6 +1469,7 @@ class PublishTest(unittest.TestCase):
 		self.assertRaises(errors.IllegalElementError, ns.element, "foo2")
 		self.assertRaises(errors.IllegalElementError, ns.element, "bar2")
 
+
 class ParseTest(unittest.TestCase):
 	def assertSAXRaises(self, exception, func, *args, **kwargs):
 		# assert that func(*args, **kwargs) raises exception either directly or wrapped in a SAXParseException
@@ -1479,14 +1484,14 @@ class ParseTest(unittest.TestCase):
 			self.fail()
 
 	def test_parselocationsgmlop(self):
-		node = parsers.parseString("<z>gurk&amp;hurz&#42;hinz&#x666;hunz</z>", parser=parsers.SGMLOPParser())
+		node = parsers.parseString("<z>gurk&amp;hurz&#42;hinz&#x666;hunz</z>", saxparser=parsers.SGMLOPParser)
 		self.assertEqual(len(node), 1)
 		self.assertEqual(len(node[0]), 1)
 		self.assertEqual(node[0][0].startloc.getSystemId(), "STRING")
 		self.assertEqual(node[0][0].startloc.getLineNumber(), 1)
 
 	def test_parselocationexpat(self):
-		node = parsers.parseString("<z>gurk&amp;hurz&#42;hinz&#x666;hunz</z>", parser=parsers.ExpatParser())
+		node = parsers.parseString("<z>gurk&amp;hurz&#42;hinz&#x666;hunz</z>", saxparser=parsers.ExpatParser)
 		self.assertEqual(len(node), 1)
 		self.assertEqual(len(node[0]), 1)
 		self.assertEqual(node[0][0].startloc.getSystemId(), "STRING")
@@ -1566,14 +1571,14 @@ class ParseTest(unittest.TestCase):
 		self.assertEqual(unicode(node["title"]), result)
 
 	def check_parsestrictentities(self, source, result, parserfactory):
-		# in the strict parser the errors will always be raised, so ignore them to verify that
-		warnings.filterwarnings("ignore", category=errors.MalformedCharRefWarning)
+		# in the strict parser the errors will always be raised, so change them into errors to verify that
+		warnings.filterwarnings("error", category=errors.MalformedCharRefWarning)
 
 		prefixes = xsc.Prefixes([self.__class__.xmlns, chars])
-		self.check_parseentities(source, result, prefixes=prefixes, parser=parserfactory())
-		for bad in ("&", "&#x", "&&", "&#x;", "&#fg;", "&#999999999;", "&#;", "&#x;"):
-			self.assertSAXRaises((errors.MalformedCharRefWarning, expat.ExpatError), self.check_parseentities, bad, u"", prefixes=prefixes, parser=parserfactory())
-		self.assertSAXRaises(errors.IllegalEntityError, self.check_parseentities, "&baz;", u"", prefixes=prefixes, parser=parserfactory())
+		self.check_parseentities(source, result, prefixes=prefixes, saxparser=parserfactory)
+		for bad in ("&", "&#x", "&&", "&#x;", "&#fg;", "&#999999999;", "&#;", "&#y;", "&#x;", "&#xy;"):
+			self.assertSAXRaises((errors.MalformedCharRefWarning, expat.ExpatError), self.check_parseentities, bad, u"", prefixes=prefixes, saxparser=parserfactory)
+		self.assertSAXRaises(errors.IllegalEntityError, self.check_parseentities, "&baz;", u"", prefixes=prefixes, saxparser=parserfactory)
 
 	def test_parsestrictentities_sgmlop(self):
 		self.check_parsestrictentities(
@@ -1612,13 +1617,72 @@ class ParseTest(unittest.TestCase):
 			("x&#xffffffff;y&#", "x&#xffffffff;y&#")
 		]
 		for (source, result) in tests:
-			self.check_parseentities(source, result, prefixes=prefixes, parser=parserfactory())
+			self.check_parseentities(source, result, prefixes=prefixes, saxparser=parserfactory)
 
 	def test_parsebadentities_badentity(self):
 		self.check_parsebadentities(parsers.BadEntityParser)
 
 	def test_parsebadentities_html(self):
 		self.check_parsebadentities(parsers.HTMLParser)
+
+	def test_multipleparsecalls(self):
+		for saxparser in (parsers.SGMLOPParser, parsers.BadEntityParser, parsers.HTMLParser, parsers.ExpatParser):
+			p = parsers.Parser(saxparser=saxparser)
+			for i in xrange(3):
+				try:
+					p.parseString("<>gurk")
+				except Exception:
+					pass
+				for j in xrange(3):
+					self.assertEqual(p.parseString("<a>gurk</a>").asBytes(), "<a>gurk</a>")
+
+	def test_sysid(self):
+		node = parsers.parseString("gurk")
+		self.assertEqual(node[0].startloc.sysid, "STRING")
+
+		node = parsers.parseString("gurk", base="root:gurk.xmlxsc")
+		self.assertEqual(node[0].startloc.sysid, "root:gurk.xmlxsc")
+
+		node = parsers.parseString("gurk", base="root:gurk.xmlxsc", sysid="hurz")
+		self.assertEqual(node[0].startloc.sysid, "hurz")
+
+
+class CSSParseTest(unittest.TestCase):
+	def test_parse(self):
+		csshandler = cssparsers.ParseHandler()
+		s = "div {border: 0px;}"
+		self.assertEqual(csshandler.parseString(s), s)
+		s = "div {background-image: url(gurk.gif);}"
+		self.assertEqual(csshandler.parseString(s), s)
+		s = "div {background-image: url(gurk.gif);}"
+		self.assertEqual(
+			csshandler.parseString(s, base="root:hurz/index.css"),
+			"div {background-image: url(root:hurz/gurk.gif);}"
+		)
+
+	def test_publish(self):
+		csshandler = cssparsers.PublishHandler()
+		s = "div {border: 0px;}"
+		self.assertEqual(csshandler.parseString(s), s)
+		s = "div {background-image: url(gurk.gif);}"
+		self.assertEqual(csshandler.parseString(s), s)
+		s = "div {background-image: url(root:hurz/gurk.gif);}"
+		self.assertEqual(
+			csshandler.parseString(s, base="root:hurz/index.css"),
+			"div {background-image: url(gurk.gif);}"
+		)
+
+	def test_collect(self):
+		csshandler = cssparsers.CollectHandler()
+		s = """
+			div.c1 {background-image: url(root:hurz/hinz.gif);}
+			div.c1 {background-image: url(root:hurz/kunz.gif);}
+		"""
+		csshandler.parseString(s)
+		self.assertEqual(len(csshandler.urls), 2)
+		self.assertEqual(csshandler.urls[0], url.URL("root:hurz/hinz.gif"))
+		self.assertEqual(csshandler.urls[1], url.URL("root:hurz/kunz.gif"))
+
 
 class DTD2XSCTest(unittest.TestCase):
 	def dtd2ns(self, s, xmlname, xmlurl=None, shareattrs=None):
@@ -1799,6 +1863,7 @@ class DTD2XSCTest(unittest.TestCase):
 		self.assert_(not ns.foo.Attrs.bazz.required)
 		self.assert_(ns.bar.Attrs.bazz.required)
 
+
 class TLD2XSCTest(unittest.TestCase):
 	def tld2ns(self, s, xmlname, shareattrs=None):
 		node = parsers.parseString(s, prefixes=xsc.Prefixes(tld))
@@ -1864,6 +1929,7 @@ class TLD2XSCTest(unittest.TestCase):
 		self.assert_(issubclass(ns.bar.Attrs.response, xsc.TextAttr))
 		self.assertEqual(ns.bar.Attrs.response.required, False)
 
+
 class XNDLTest(unittest.TestCase):
 	def xndl2ns(self, node):
 		data = node.asdata()
@@ -1921,8 +1987,10 @@ class XNDLTest(unittest.TestCase):
 		self.assert_(issubclass(ns.f_o_o, xsc.CharRef))
 		self.assert_(ns.f_o_o.xmlname, ("f_o_o", "f-o-o"))
 
+
 def test_main():
 	unittest.main()
+
 
 if __name__ == "__main__":
 	test_main()

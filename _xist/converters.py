@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 1999-2003 by LivingLogic AG, Bayreuth, Germany.
-## Copyright 1999-2003 by Walter Dörwald
+## Copyright 1999-2004 by LivingLogic AG, Bayreuth, Germany.
+## Copyright 1999-2004 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -254,17 +254,19 @@ class Converter(object):
 			raise IndexError("can't pop last state")
 		return self.states.pop()
 
-	def __getitem__(self, class_):
+	def __getitem__(self, obj):
 		"""
-		<par>Return a context object that is unique for <arg>class_</arg>,
-		which should be the class object of an element type. This means that every element type
-		gets its own context and can store information there that needs to be available
-		across calls to <pyref module="ll.xist.xsc" class="Node" method="convert"><method>convert</method></pyref>.</par>
+		<par>Return a context object for <arg>obj</arg>, which should be the
+		class object of an element type. Every element type that defines its own
+		<pyref module="ll.xist.xsc" class="Element.Context"><class>Context</class></pyref>
+		class gets a unique instance of this class. This instance will be creates
+		on the first access and the element can store information there that needs
+		to be available across calls to
+		<pyref module="ll.xist.xsc" class="Node" method="convert"><method>convert</method></pyref>.</par>
 		"""
-		# don't use setdefault, as constructing the Context object might involve some overhead
+		contextclass = obj.Context
+		# don't use setdefault() on every call, as constructing the Context object might involve some overhead
 		try:
-			return self.contexts[class_]
+			return self.contexts[contextclass]
 		except KeyError:
-			contextclass = getattr(class_, "Context", xsc.Node.Context)
-			context = contextclass()
-			return self.contexts.setdefault(class_, context)
+			return self.contexts.setdefault(contextclass, contextclass())

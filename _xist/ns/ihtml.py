@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 1999-2003 by LivingLogic AG, Bayreuth, Germany.
-## Copyright 1999-2003 by Walter Dörwald
+## Copyright 1999-2004 by LivingLogic AG, Bayreuth, Germany.
+## Copyright 1999-2004 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -489,104 +489,6 @@ class ul(xsc.Element):
 	empty = False
 
 
-# Latin 1 characters
-class nbsp(xsc.CharRef): "no-break space = non-breaking space, U+00A0 ISOnum"; codepoint = 160
-class iexcl(xsc.CharRef): "inverted exclamation mark, U+00A1 ISOnum"; codepoint = 161
-class cent(xsc.CharRef): "cent sign, U+00A2 ISOnum"; codepoint = 162
-class pound(xsc.CharRef): "pound sign, U+00A3 ISOnum"; codepoint = 163
-class curren(xsc.CharRef): "currency sign, U+00A4 ISOnum"; codepoint = 164
-class yen(xsc.CharRef): "yen sign = yuan sign, U+00A5 ISOnum"; codepoint = 165
-class brvbar(xsc.CharRef): "broken bar = broken vertical bar, U+00A6 ISOnum"; codepoint = 166
-class sect(xsc.CharRef): "section sign, U+00A7 ISOnum"; codepoint = 167
-class uml(xsc.CharRef): "diaeresis = spacing diaeresis, U+00A8 ISOdia"; codepoint = 168
-class copy(xsc.CharRef): "copyright sign, U+00A9 ISOnum"; codepoint = 169
-class ordf(xsc.CharRef): "feminine ordinal indicator, U+00AA ISOnum"; codepoint = 170
-class laquo(xsc.CharRef): "left-pointing double angle quotation mark = left pointing guillemet, U+00AB ISOnum"; codepoint = 171
-class not_(xsc.CharRef): "not sign, U+00AC ISOnum"; codepoint = 172
-class shy(xsc.CharRef): "soft hyphen = discretionary hyphen, U+00AD ISOnum"; codepoint = 173
-class reg(xsc.CharRef): "registered sign = registered trade mark sign, U+00AE ISOnum"; codepoint = 174
-class macr(xsc.CharRef): "macron = spacing macron = overline = APL overbar, U+00AF ISOdia"; codepoint = 175
-class deg(xsc.CharRef): "degree sign, U+00B0 ISOnum"; codepoint = 176
-class plusmn(xsc.CharRef): "plus-minus sign = plus-or-minus sign, U+00B1 ISOnum"; codepoint = 177
-class sup2(xsc.CharRef): "superscript two = superscript digit two = squared, U+00B2 ISOnum"; codepoint = 178
-class sup3(xsc.CharRef): "superscript three = superscript digit three = cubed, U+00B3 ISOnum"; codepoint = 179
-class acute(xsc.CharRef): "acute accent = spacing acute, U+00B4 ISOdia"; codepoint = 180
-class micro(xsc.CharRef): "micro sign, U+00B5 ISOnum"; codepoint = 181
-class para(xsc.CharRef): "pilcrow sign = paragraph sign, U+00B6 ISOnum"; codepoint = 182
-class middot(xsc.CharRef): "middle dot = Georgian comma = Greek middle dot, U+00B7 ISOnum"; codepoint = 183
-class cedil(xsc.CharRef): "cedilla = spacing cedilla, U+00B8 ISOdia"; codepoint = 184
-class sup1(xsc.CharRef): "superscript one = superscript digit one, U+00B9 ISOnum"; codepoint = 185
-class ordm(xsc.CharRef): "masculine ordinal indicator, U+00BA ISOnum"; codepoint = 186
-class raquo(xsc.CharRef): "right-pointing double angle quotation mark = right pointing guillemet, U+00BB ISOnum"; codepoint = 187
-class frac14(xsc.CharRef): "vulgar fraction one quarter = fraction one quarter, U+00BC ISOnum"; codepoint = 188
-class frac12(xsc.CharRef): "vulgar fraction one half = fraction one half, U+00BD ISOnum"; codepoint = 189
-class frac34(xsc.CharRef): "vulgar fraction three quarters = fraction three quarters, U+00BE ISOnum"; codepoint = 190
-class iquest(xsc.CharRef): "inverted question mark = turned question mark, U+00BF ISOnum"; codepoint = 191
-class Agrave(xsc.CharRef): "latin capital letter A with grave = latin capital letter A grave, U+00C0 ISOlat1"; codepoint = 192
-class Aacute(xsc.CharRef): "latin capital letter A with acute, U+00C1 ISOlat1"; codepoint = 193
-class Acirc(xsc.CharRef): "latin capital letter A with circumflex, U+00C2 ISOlat1"; codepoint = 194
-class Atilde(xsc.CharRef): "latin capital letter A with tilde, U+00C3 ISOlat1"; codepoint = 195
-class Auml(xsc.CharRef): "latin capital letter A with diaeresis, U+00C4 ISOlat1"; codepoint = 196
-class Aring(xsc.CharRef): "latin capital letter A with ring above = latin capital letter A ring, U+00C5 ISOlat1"; codepoint = 197
-class AElig(xsc.CharRef): "latin capital letter AE = latin capital ligature AE, U+00C6 ISOlat1"; codepoint = 198
-class Ccedil(xsc.CharRef): "latin capital letter C with cedilla, U+00C7 ISOlat1"; codepoint = 199
-class Egrave(xsc.CharRef): "latin capital letter E with grave, U+00C8 ISOlat1"; codepoint = 200
-class Eacute(xsc.CharRef): "latin capital letter E with acute, U+00C9 ISOlat1"; codepoint = 201
-class Ecirc(xsc.CharRef): "latin capital letter E with circumflex, U+00CA ISOlat1"; codepoint = 202
-class Euml(xsc.CharRef): "latin capital letter E with diaeresis, U+00CB ISOlat1"; codepoint = 203
-class Igrave(xsc.CharRef): "latin capital letter I with grave, U+00CC ISOlat1"; codepoint = 204
-class Iacute(xsc.CharRef): "latin capital letter I with acute, U+00CD ISOlat1"; codepoint = 205
-class Icirc(xsc.CharRef): "latin capital letter I with circumflex, U+00CE ISOlat1"; codepoint = 206
-class Iuml(xsc.CharRef): "latin capital letter I with diaeresis, U+00CF ISOlat1"; codepoint = 207
-class ETH(xsc.CharRef): "latin capital letter ETH, U+00D0 ISOlat1"; codepoint = 208
-class Ntilde(xsc.CharRef): "latin capital letter N with tilde, U+00D1 ISOlat1"; codepoint = 209
-class Ograve(xsc.CharRef): "latin capital letter O with grave, U+00D2 ISOlat1"; codepoint = 210
-class Oacute(xsc.CharRef): "latin capital letter O with acute, U+00D3 ISOlat1"; codepoint = 211
-class Ocirc(xsc.CharRef): "latin capital letter O with circumflex, U+00D4 ISOlat1"; codepoint = 212
-class Otilde(xsc.CharRef): "latin capital letter O with tilde, U+00D5 ISOlat1"; codepoint = 213
-class Ouml(xsc.CharRef): "latin capital letter O with diaeresis, U+00D6 ISOlat1"; codepoint = 214
-class times(xsc.CharRef): "multiplication sign, U+00D7 ISOnum"; codepoint = 215
-class Oslash(xsc.CharRef): "latin capital letter O with stroke = latin capital letter O slash, U+00D8 ISOlat1"; codepoint = 216
-class Ugrave(xsc.CharRef): "latin capital letter U with grave, U+00D9 ISOlat1"; codepoint = 217
-class Uacute(xsc.CharRef): "latin capital letter U with acute, U+00DA ISOlat1"; codepoint = 218
-class Ucirc(xsc.CharRef): "latin capital letter U with circumflex, U+00DB ISOlat1"; codepoint = 219
-class Uuml(xsc.CharRef): "latin capital letter U with diaeresis, U+00DC ISOlat1"; codepoint = 220
-class Yacute(xsc.CharRef): "latin capital letter Y with acute, U+00DD ISOlat1"; codepoint = 221
-class THORN(xsc.CharRef): "latin capital letter THORN, U+00DE ISOlat1"; codepoint = 222
-class szlig(xsc.CharRef): "latin small letter sharp s = ess-zed, U+00DF ISOlat1"; codepoint = 223
-class agrave(xsc.CharRef): "latin small letter a with grave = latin small letter a grave, U+00E0 ISOlat1"; codepoint = 224
-class aacute(xsc.CharRef): "latin small letter a with acute, U+00E1 ISOlat1"; codepoint = 225
-class acirc(xsc.CharRef): "latin small letter a with circumflex, U+00E2 ISOlat1"; codepoint = 226
-class atilde(xsc.CharRef): "latin small letter a with tilde, U+00E3 ISOlat1"; codepoint = 227
-class auml(xsc.CharRef): "latin small letter a with diaeresis, U+00E4 ISOlat1"; codepoint = 228
-class aring(xsc.CharRef): "latin small letter a with ring above = latin small letter a ring, U+00E5 ISOlat1"; codepoint = 229
-class aelig(xsc.CharRef): "latin small letter ae = latin small ligature ae, U+00E6 ISOlat1"; codepoint = 230
-class ccedil(xsc.CharRef): "latin small letter c with cedilla, U+00E7 ISOlat1"; codepoint = 231
-class egrave(xsc.CharRef): "latin small letter e with grave, U+00E8 ISOlat1"; codepoint = 232
-class eacute(xsc.CharRef): "latin small letter e with acute, U+00E9 ISOlat1"; codepoint = 233
-class ecirc(xsc.CharRef): "latin small letter e with circumflex, U+00EA ISOlat1"; codepoint = 234
-class euml(xsc.CharRef): "latin small letter e with diaeresis, U+00EB ISOlat1"; codepoint = 235
-class igrave(xsc.CharRef): "latin small letter i with grave, U+00EC ISOlat1"; codepoint = 236
-class iacute(xsc.CharRef): "latin small letter i with acute, U+00ED ISOlat1"; codepoint = 237
-class icirc(xsc.CharRef): "latin small letter i with circumflex, U+00EE ISOlat1"; codepoint = 238
-class iuml(xsc.CharRef): "latin small letter i with diaeresis, U+00EF ISOlat1"; codepoint = 239
-class eth(xsc.CharRef): "latin small letter eth, U+00F0 ISOlat1"; codepoint = 240
-class ntilde(xsc.CharRef): "latin small letter n with tilde, U+00F1 ISOlat1"; codepoint = 241
-class ograve(xsc.CharRef): "latin small letter o with grave, U+00F2 ISOlat1"; codepoint = 242
-class oacute(xsc.CharRef): "latin small letter o with acute, U+00F3 ISOlat1"; codepoint = 243
-class ocirc(xsc.CharRef): "latin small letter o with circumflex, U+00F4 ISOlat1"; codepoint = 244
-class otilde(xsc.CharRef): "latin small letter o with tilde, U+00F5 ISOlat1"; codepoint = 245
-class ouml(xsc.CharRef): "latin small letter o with diaeresis, U+00F6 ISOlat1"; codepoint = 246
-class divide(xsc.CharRef): "division sign, U+00F7 ISOnum"; codepoint = 247
-class oslash(xsc.CharRef): "latin small letter o with stroke, = latin small letter o slash, U+00F8 ISOlat1"; codepoint = 248
-class ugrave(xsc.CharRef): "latin small letter u with grave, U+00F9 ISOlat1"; codepoint = 249
-class uacute(xsc.CharRef): "latin small letter u with acute, U+00FA ISOlat1"; codepoint = 250
-class ucirc(xsc.CharRef): "latin small letter u with circumflex, U+00FB ISOlat1"; codepoint = 251
-class uuml(xsc.CharRef): "latin small letter u with diaeresis, U+00FC ISOlat1"; codepoint = 252
-class yacute(xsc.CharRef): "latin small letter y with acute, U+00FD ISOlat1"; codepoint = 253
-class thorn(xsc.CharRef): "latin small letter thorn, U+00FE ISOlat1"; codepoint = 254
-class yuml(xsc.CharRef): "latin small letter y with diaeresis, U+00FF ISOlat1"; codepoint = 255
-
 ###
 ### "picture symbols"
 ###
@@ -789,9 +691,6 @@ class dash(xsc.CharRef): codepoint = 0xe708
 class macron1(xsc.CharRef): codepoint = 0xe709
 class macron2(xsc.CharRef): codepoint = 0xe70a
 class fixed(xsc.CharRef): codepoint = 0xe70b
-
-# Stuff from HTML
-class euro(xsc.CharRef): "euro sign, U+20AC NEW"; codepoint = 8364
 
 
 class xmlns(xsc.Namespace):

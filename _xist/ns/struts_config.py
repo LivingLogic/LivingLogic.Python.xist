@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 1999-2003 by LivingLogic AG, Bayreuth, Germany.
-## Copyright 1999-2003 by Walter Dörwald
+## Copyright 1999-2004 by LivingLogic AG, Bayreuth, Germany.
+## Copyright 1999-2004 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -17,7 +17,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
 from ll.xist import xsc
-import xml
+from ll.xist.ns import xml
 
 
 class DocType(xsc.DocType):
@@ -232,4 +232,3 @@ class xmlns(xsc.Namespace):
 	xmlname = "struts_config"
 	xmlurl = "http://jakarta.apache.org/struts/dtds/struts-config_1_1.dtd"
 xmlns.makemod(vars())
-

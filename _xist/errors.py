@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 1999-2003 by LivingLogic AG, Bayreuth, Germany.
-## Copyright 1999-2003 by Walter Dörwald
+## Copyright 1999-2004 by LivingLogic AG, Bayreuth, Germany.
+## Copyright 1999-2004 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -204,7 +204,7 @@ class AmbiguousNodeError(Error, LookupError):
 		self.xml = xml
 
 	def __str__(self):
-		return "%s with %s name %r is ambigous" % (self.type, ("Python", "XML")[self.xml], self.name, )
+		return "%s with %s name %r is ambigous" % (self.type, ("Python", "XML")[self.xml], self.name)
 
 
 class AmbiguousProcInstError(AmbiguousNodeError):
@@ -212,11 +212,17 @@ class AmbiguousProcInstError(AmbiguousNodeError):
 
 
 class AmbiguousEntityError(AmbiguousNodeError):
-	type = "procinst"
+	type = "entity"
 
 
 class AmbiguousCharRefError(AmbiguousNodeError):
-	type = "procinst"
+	type = "charref"
+
+	def __str__(self):
+		if isinstance(self.name, (int, long)):
+			return "%s with codepoint %r is ambigous" % (self.type, self.name)
+		else:
+			return AmbiguousNodeError.__str__(self)
 
 
 class MultipleRootsError(Error):

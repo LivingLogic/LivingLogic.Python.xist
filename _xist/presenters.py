@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 1999-2003 by LivingLogic AG, Bayreuth, Germany.
-## Copyright 1999-2003 by Walter Dörwald
+## Copyright 1999-2004 by LivingLogic AG, Bayreuth, Germany.
+## Copyright 1999-2004 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -573,7 +573,7 @@ class PlainPresenter(Presenter):
 class NormalPresenter(Presenter):
 	def beginPresentation(self):
 		self.buffer = ansistyle.Text()
-		self.inAttr = 0
+		self.inattr = 0
 
 	def endPresentation(self):
 		result = str(self.buffer)
@@ -581,7 +581,7 @@ class NormalPresenter(Presenter):
 		return result
 
 	def presentText(self, node):
-		if self.inAttr:
+		if self.inattr:
 			self.buffer.append(strTextInAttr(node.content))
 		else:
 			self.buffer.append(strTextOutsideAttr(node.content))
@@ -664,7 +664,7 @@ class TreePresenter(Presenter):
 		self.showPath = showPath
 
 	def beginPresentation(self):
-		self.inAttr = 0
+		self.inattr = 0
 		self.lines = [] # the final lines consisting of (location, numerical path, nesting, content)
 		self.currentPath = [] # numerical path
 		self.buffers = [] # list of ansistyle.Text objects used for formatting attributes (this is a list for elements that contains elements in their attributes)
@@ -738,7 +738,7 @@ class TreePresenter(Presenter):
 		return EnvTextForDocTypeText(EscOutlineText(text))
 
 	def presentFrag(self, node):
-		if self.inAttr:
+		if self.inattr:
 			for child in node:
 				child.present(self)
 		else:
@@ -754,7 +754,7 @@ class TreePresenter(Presenter):
 				self.lines.append([node.startloc, self.currentPath[:], len(self.currentPath), ansistyle.Text(strBracketOpen(), node._str(fullname=1, xml=0, decorate=0), strSlash(), strBracketClose())])
 
 	def presentAttrs(self, node):
-		if self.inAttr:
+		if self.inattr:
 			for (attrname, attrvalue) in node.items():
 				self.buffers[-1].append(" ")
 				if isinstance(attrname, tuple):
@@ -776,11 +776,11 @@ class TreePresenter(Presenter):
 			self.lines.append([node.endloc, self.currentPath[:], len(self.currentPath), s])
 
 	def presentElement(self, node):
-		if self.inAttr:
+		if self.inattr:
 			self.buffers[-1].append(strBracketOpen(), node._str(fullname=1, xml=0, decorate=0))
-			self.inAttr += 1
+			self.inattr += 1
 			node.attrs.present(self)
-			self.inAttr -= 1
+			self.inattr -= 1
 			if len(node):
 				self.buffers[-1].append(strBracketClose())
 				node.content.present(self)
@@ -789,9 +789,9 @@ class TreePresenter(Presenter):
 				self.buffers[-1].append(strSlash(), strBracketClose())
 		else:
 			self.buffers.append(ansistyle.Text(strBracketOpen(), node._str(fullname=1, xml=0, decorate=0)))
-			self.inAttr += 1
+			self.inattr += 1
 			node.attrs.present(self)
-			self.inAttr -= 1
+			self.inattr -= 1
 			if len(node):
 				self.buffers[-1].append(strBracketClose())
 				self.lines.append([node.startloc, self.currentPath[:], len(self.currentPath), ansistyle.Text(*self.buffers)])
@@ -808,24 +808,24 @@ class TreePresenter(Presenter):
 				self.buffers = [] # we're done with the buffers for the header
 
 	def presentNull(self, node):
-		if not self.inAttr:
+		if not self.inattr:
 			self.lines.append([node.startloc, self.currentPath[:], len(self.currentPath), node._str(fullname=1, xml=0, decorate=1)])
 
 	def presentText(self, node):
-		if self.inAttr:
+		if self.inattr:
 			self.buffers[-1].append(strTextInAttr(node.content))
 		else:
 			lines = node.content.splitlines(1)
 			self._doMultiLine(node, lines, 0, self.strTextLineOutsideAttr)
 
 	def presentEntity(self, node):
-		if self.inAttr:
+		if self.inattr:
 			self.buffers[-1].append(node._str(fullname=1, xml=0, decorate=1))
 		else:
 			self.lines.append([node.startloc, self.currentPath[:], len(self.currentPath), node._str(fullname=1, xml=0, decorate=1)])
 
 	def presentProcInst(self, node):
-		if self.inAttr:
+		if self.inattr:
 			self.buffers[-1].append(
 				strBracketOpen(),
 				strQuestion(),
@@ -844,7 +844,7 @@ class TreePresenter(Presenter):
 			self._doMultiLine(node, lines, 1, self.strProcInstContentLine, head, tail)
 
 	def presentComment(self, node):
-		if self.inAttr:
+		if self.inattr:
 			self.buffers[-1].append(
 				strBracketOpen(),
 				strExclamation(),
@@ -860,7 +860,7 @@ class TreePresenter(Presenter):
 			self._doMultiLine(node, lines, 1, self.strCommentTextLine, head, tail)
 
 	def presentDocType(self, node):
-		if self.inAttr:
+		if self.inattr:
 			self.buffers[-1].append(
 				strBracketOpen(),
 				strExclamation(),
@@ -876,7 +876,7 @@ class TreePresenter(Presenter):
 			self._doMultiLine(node, lines, 1, self.strDocTypeTextLine, head, tail)
 
 	def presentAttr(self, node):
-		if self.inAttr:
+		if self.inattr:
 			# this will not be popped at the and of this method, because presentElement needs it
 			self.buffers.append(EnvTextForAttrValue())
 		self.presentFrag(node)
@@ -890,7 +890,7 @@ class CodePresenter(Presenter):
 	constructor calls.</par>
 	"""
 	def beginPresentation(self):
-		self.inAttr = 0
+		self.inattr = 0
 		self.buffer = []
 		self.level = 0
 
@@ -900,7 +900,7 @@ class CodePresenter(Presenter):
 		return s
 
 	def _indent(self):
-		if not self.inAttr:
+		if not self.inattr:
 			if self.buffer:
 				self.buffer.append("\n")
 			if self.level:
@@ -922,7 +922,7 @@ class CodePresenter(Presenter):
 
 	def presentFrag(self, node):
 		self._indent()
-		if not self.inAttr:
+		if not self.inattr:
 			self.buffer.append("%s.%s" % (node.__module__, node.__fullname__()))
 		self.buffer.append("(")
 		if len(node):
@@ -931,7 +931,7 @@ class CodePresenter(Presenter):
 			for child in node:
 				if i:
 					self.buffer.append(",")
-					if self.inAttr:
+					if self.inattr:
 						self.buffer.append(" ")
 				child.present(self)
 				i += 1
@@ -947,10 +947,10 @@ class CodePresenter(Presenter):
 		for (attrname, attrvalue) in node.items():
 			if i:
 				self.buffer.append(",")
-				if self.inAttr:
+				if self.inattr:
 					self.buffer.append(" ")
 			self._indent()
-			self.inAttr += 1
+			self.inattr += 1
 			if isinstance(attrname, tuple):
 				ns = attrname[0].__module__
 				attrname = attrname[1]
@@ -966,7 +966,7 @@ class CodePresenter(Presenter):
 			else:
 				attrvalue.present(self)
 			self._indent()
-			self.inAttr -= 1
+			self.inattr -= 1
 			i += 1
 		self.level -= 1
 		self._indent()
@@ -981,7 +981,7 @@ class CodePresenter(Presenter):
 			for child in node:
 				if i:
 					self.buffer.append(",")
-					if self.inAttr:
+					if self.inattr:
 						self.buffer.append(" ")
 				child.present(self)
 				i += 1
@@ -993,11 +993,11 @@ class CodePresenter(Presenter):
 				for (attrname, attrvalue) in globalattrs.items():
 					if i:
 						self.buffer.append(", ")
-						if self.inAttr:
+						if self.inattr:
 							self.buffer.append(" ")
 					self._indent()
 					self.buffer.append("{ ")
-					self.inAttr += 1
+					self.inattr += 1
 					ns = attrname[0].__module__
 					attrname = attrname[1]
 					self.buffer.append("(%s, %r): " % (ns, attrname))
@@ -1005,23 +1005,23 @@ class CodePresenter(Presenter):
 						attrvalue[0].present(self)
 					else:
 						attrvalue.present(self)
-					self.inAttr -= 1
+					self.inattr -= 1
 					self.buffer.append(" }")
 					i += 1
 			for (attrname, attrvalue) in node.attrs.items():
 				if not isinstance(attrname, tuple):
 					if i:
 						self.buffer.append(",")
-						if self.inAttr:
+						if self.inattr:
 							self.buffer.append(" ")
 					self._indent()
-					self.inAttr += 1
+					self.inattr += 1
 					self.buffer.append("%s=" % attrname)
 					if len(attrvalue)==1: # optimize away the tuple ()
 						attrvalue[0].present(self)
 					else:
 						attrvalue.present(self)
-					self.inAttr -= 1
+					self.inattr -= 1
 					i += 1
 			self.level -= 1
 			self._indent()

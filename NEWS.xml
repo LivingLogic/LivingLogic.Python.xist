@@ -1,4 +1,33 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
+<section><title>Changes in 2.4 (released ??/??/2004)</title>
+<ulist>
+<item>The class <class>ll.xist.parsers.Handler</class> has been renamed to
+<class>Parser</class> and has been made reusable, i.e. it is possible to
+instantiate a parser once and use it multiple times for parsing. All the
+classes derived from <class>xml.sax.xmlreader.InputSource</class> have been
+dropped and the methods for parsing strings, &url;s and files have been
+implemented as methods of the parser. Most of the arguments that had to be passed
+to the various parsing functions are passed to the parser constructor now.
+The basic parsing functionality is implemented by parsing streams instead of
+<class>InputSource</class>s.</item>
+<item>Similar to the changes for parsing, publishers have been changed to be
+reusable and most arguments to the publishing functions are available as
+arguments to the publisher constructor.</item>
+<item>Now converter contexts are no longer bound to an element
+class, but to the context class defined by the element class, i.e.
+the attribute <lit>Context</lit> of the argument for <method>Converter.__getitem__</method>
+will be used as the dictionary key. This makes it possible to use a class
+and it subclasses interchangeably (as long as the base class defines
+its own <class>Context</class> class and the subclasses don't overwrite it).</item>
+<item>Added a find functor <class>FindTypeAllAttrs</class> that
+searches content and attributes.</item>
+<item>Fixed the &xml; name for <class>ll.xist.ns.jsp.directive_page</class>.</item>
+<item>All character references in <module>ll.xist.ns.ihtml</module>
+that exist in <module>ll.xist.ns.chars</module> too have been removed.</item>
+</ulist>
+</section>
+
+
 <section><title>Changes in 2.3 (released 12/08/2003)</title>
 <ulist>
 <item>It's now possible to parse &xml; without generating location
@@ -15,9 +44,9 @@ in the parsing functions.</item>
 <item>The methods <method>parsed</method> and <method>checkvalid</method>
 have been separated.</item>
 <item><class>ll.xist.ns.htmlspecials.pixel</class> and
-<class>ll.xist.ns.htmlspecials.autopixel</class> now check whether there
+<class>ll.xist.ns.htmlspecials.autopixel</class> now check whether their
 <lit>color</lit> attribute is ok.</item>
-<item>The base &url; is not set correctly when parsing from an &url;
+<item>The base &url; is now set correctly when parsing from an &url;
 even if the original &url; does a redirect. (This requires <module>ll.url</module>
 version 0.11.3.</item>
 <item>Namespace handling has been rewritten again, to be more standards
@@ -70,7 +99,7 @@ there are methods available too.</par>
 <par>The method <method>update</method> can be used to add
 many element classes to a namespace at once, simply by passing
 a dictionary with those classes (use <lit>vars()</lit>
-to add everthing that's defined inside your module). The method
+to add everything that's defined inside your module). The method
 <method>updatenew</method> does the same, but copies only those
 attributes that don't exist in the namespace, <method>updateexisting</method>
 copies only those that do exist. You can turn a namespace
@@ -150,8 +179,8 @@ has been moved to a class method <method>ll.xist.ns.xndl.fromdtd</method> in the
 
 <item><class>ll.xist.parsers.ExpatParser</class> is now a real subclass
 instead of an alias for <class>xml.sax.expatreader.ExpatParser</class>
-that now reports unknown entity references to the application (if
-loading of external entities is switched off, which is done by
+It reports unknown entity references to the application (if loading
+of external entities is switched off, which is done by
 <class>ll.xist.parsers.Handler</class> and only outside of attributes).</item>
 
 <item>Namespaces have been added for Zope's TAL and METAL specifications.</item>
@@ -520,7 +549,7 @@ found in a style attribute.</item>
 <ulist>
 <item>New namespace module <module>xist.ns.struts_config11</module>
 allows to parse and modify <link href="http://jakarta.apache.org/struts/">Struts</link>
-configuration files conforming with the
+configuration files conforming to the
 <link href="http://jakarta.apache.org/struts/dtds/struts-config_1_1.dtd">Struts 1.1 DTD</link>.
 </item>
 </ulist>
@@ -530,7 +559,7 @@ configuration files conforming with the
 <section><title>Changes in 1.4.2 (released 03/22/2002)</title>
 <ulist>
 <item>Updated <filename>xscmake.py</filename> to be compatible with the new
-<module>url</module>.</item>
+<module>url</module> module.</item>
 <item><class>xist.ns.jsp.directive_page</class> now automatically sets the
 <lit>contentType</lit> on publishing.</item>
 </ulist>
@@ -592,7 +621,7 @@ The content of the <class>block</class> instance will simply be enclosed
 in a <lit>{}</lit> block. <module>xist.ns.php</module> got such
 a class too.</item>
 <item>Added a new module <module>xist.ns.ihtml</module> for
-iMode &html;.</item>
+i-mode &html;.</item>
 <item>Added new modules <module>xist.ns.css</module> and
 <module>xist.ns.cssspecials</module> for generating &css;.</item>
 <item>Now the various attributes of the <class>Converter</class> object
@@ -897,7 +926,7 @@ merged.</item>
 
 <item>The special treatment of sequences as constructor arguments
 to <class>Frag</class> and <class>Element</class>
-has be removed, so &xist; will no longer remove one level of
+has been removed, so &xist; will no longer remove one level of
 nesting. If you still want that, use a <lit>*</lit> argument.</item>
 
 <item><class>Frag</class> and <class>Element</class>
@@ -971,7 +1000,7 @@ implementing <class>specials.plaintable</class> and <class>specials.plainbody</c
 
 <item><method>providers.Provider.pushNamespace</method> now handles multiple
 arguments which may be <class>Namespace</class> objects or modules
-(in which case, the <lit><rep>module</rep>.namespace</lit> will be pushed)</item>
+(in which case, <lit><rep>module</rep>.namespace</lit> will be pushed)</item>
 
 <item><method>providers.Providers.popNamespace</method> can now pop multiple
 namespaces at once.</item>
@@ -1064,7 +1093,8 @@ that <class>Null</class> objects will no longer be ignored.</item>
 
 <section><title>Changes in 0.4.2 (released 09/24/2000)</title>
 <ulist>
-<item>New elements <class>keywords</class> and <class>description</class> in <filename>meta.py</filename>.</item>
+<item>New elements <class>keywords</class> and <class>description</class> in
+<filename>meta.py</filename>.</item>
 
 <item>Fixed a bug in <method>Namespace.register</method>, now setting <lit>name=None</lit>
 to prevent an element from being registered works again.</item>
@@ -1162,8 +1192,8 @@ instructions won't work. Now you can simply call</par>
 </example>
 </item>
 
-<item><par>There is a new module <filename>cond.py</filename>, that contains elements that can be used for
-conditionals:</par>
+<item><par>There is a new module <filename>cond.py</filename>, that contains
+elements that can be used for conditionals:</par>
 <prog>
 &lt;?xsc-exec a=42?&gt;
 &lt;if cond="a==21"&gt;
@@ -1181,19 +1211,16 @@ conditionals:</par>
 
 <section><title>Changes in 0.3.9 (released 08/10/2000)</title>
 <ulist>
-<item><app>sgmlop</app> will now be found either via
-<lit>import sgmlop</lit>
-or via
-<lit>from xml.parsers import sgmlop</lit>
-</item>
+<item><app>sgmlop</app> will now be found either via <lit>import sgmlop</lit>
+or via <lit>from xml.parsers import sgmlop</lit>.</item>
 </ulist>
 </section>
 
 
 <section><title>Changes in 0.3.8 (released 07/14/2000)</title>
 <ulist>
-<item>Fixed a bug in <method>URLAttr.publish</method>, which prevented <class>URLAttr</class>
-from working at all.</item>
+<item>Fixed a bug in <method>URLAttr.publish</method>, which prevented
+<class>URLAttr</class> from working at all.</item>
 </ulist>
 </section>
 

@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 1999-2003 by LivingLogic AG, Bayreuth, Germany.
-## Copyright 1999-2003 by Walter Dörwald
+## Copyright 1999-2004 by LivingLogic AG, Bayreuth, Germany.
+## Copyright 1999-2004 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -21,56 +21,6 @@ from xml.sax import saxlib
 from ll import url
 
 import xsc, errors
-
-
-class TidyArgs(xsc.Args):
-	add_xml_decl = True
-	assume_xml_procins = True
-	bare = True
-	break_before_br = False
-	doctype = "loose"
-	drop_proprietary_attributes = True
-	fix_bad_comments = True
-	fix_uri = True
-	join_styles = False
-	lower_literals = True
-	ncr = True
-	numeric_entities = True
-	output_xhtml = True
-	output_xml = True
-	quote_ampersand = True
-	quote_nbsp = False
-	literal_attributes = True
-	markup = True
-	wrap = 0
-	wrap_php = False
-	wrap_sections = False
-	ascii_chars = False
-	force_output = True
-	tidy_mark = False
-
-
-def tidystring(text, encoding, sysid, args):
-	args = TidyArgs(args)
-	args["input_encoding"] = encoding
-	args["output_encoding"] = "utf8"
-
-	try:
-		import tidy
-	except ImportError:
-		from mx import Tidy
-		args["quiet"] = 1
-		(nerrors, nwarnings, outputdata, errordata) = Tidy.tidy(text, **args)
-		if nerrors>0:
-			raise saxlib.SAXException("can't tidy %r (%d errors, %d warnings):\n%s" % (sysid, nerrors, nwarnings, errordata))
-		text = outputdata
-	else:
-		doc = tidy.parseString(text, **args)
-		for error in doc.get_errors():
-			warning = errors.TidyWarning(error.message, xsc.Location(sysid=sysid, line=error.line, col=error.col))
-			warnings.warn(warning)
-		text = str(doc)
-	return (text, "utf-8")
 
 
 class InputSource(sax.xmlreader.InputSource):
@@ -128,7 +78,7 @@ class URLInputSource(InputSource):
 	"""
 	def __init__(self, id, base=None, encoding=None, tidy=False, headers=None, data=None):
 		"""
-		<par>Create a new <class>StringInputSource</class> instance. Arguments are:</par>
+		<par>Create a new <class>URLInputSource</class> instance. Arguments are:</par>
 		<ulist>
 		<item><arg>id</arg>: The &url; to parse (this can be a <class>str</class>, <class>unicode</class>
 		or <pyref module="ll.url" class="URL"><class>ll.url.URL</class></pyref> instance);</item>
