@@ -31,6 +31,18 @@ Topic :: Text Processing :: Markup :: HTML
 Topic :: Text Processing :: Markup :: XML
 """
 
+KEYWORDS = """
+XML
+HTML
+XHTML
+XSLT
+HSC
+XSL-FO
+SVG
+WML
+iHTML
+"""
+
 setup(
 	name="ll-XIST",
 	version="2.2",
@@ -42,6 +54,7 @@ setup(
 	#download_url="http://www.livinglogic.de/Python/xist/Download.html",
 	license="Python",
 	classifiers=CLASSIFIERS.strip().split("\n"),
+	keywords=",".join(KEYWORDS.strip().split("\n")),
 	packages=["ll", "ll.xist", "ll.xist.ns"],
 	package_dir={"ll": ".", "ll.xist": "_xist"},
 	ext_modules=[
