@@ -407,7 +407,7 @@ class Handler(object):
 		self.parser.setEntityResolver(self)
 
 		# Configure the parser
-		self.parser.setFeature(handler.feature_namespaces, 0) # We do our own namespace processing
+		self.parser.setFeature(handler.feature_namespaces, False) # We do our own namespace processing
 
 		self.skippingWhitespace = 0
 		self.parser.parse(source)
