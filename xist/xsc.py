@@ -80,9 +80,9 @@ class IllegalAttributeError(Error):
 		v = []
 
 		for attr in attrs:
-			v.append(_strattrname(attr))
+			v.append(strAttrName(attr))
 
-		return Error.__str__(self) + "Attribute " + _strattrname(self.attr) + " not allowed in element " + self.element._str() + ". Allowed attributes are: " + string.join(v,", ") + "."
+		return Error.__str__(self) + "Attribute " + strAttrName(self.attr) + " not allowed in element " + self.element._str() + ". Allowed attributes are: " + string.join(v,", ") + "."
 
 class AttributeNotFoundError(Error):
 	"""
@@ -103,7 +103,7 @@ class AttributeNotFoundError(Error):
 			attrs.sort()
 			v = []
 			for attr in attrs:
-				v.append(_strattrname(attr))
+				v.append(strAttrName(attr))
 			s = s + "Available attributes are: " + string.join(v,", ") + "."
 		else:
 			s = s + "No attributes available."
@@ -159,7 +159,7 @@ class ImageSizeFormatError(Error):
 		self.attr = attr
 
 	def __str__(self):
-		return Error.__str__(self) + "the value '" + self.element[self.attr].asPlainString() + "' for the image size attribute " + _strattrname(self.attr) + " of the element " + self.element._str() + " can't be formatted or evaluated"
+		return Error.__str__(self) + "the value '" + self.element[self.attr].asPlainString() + "' for the image size attribute " + strAttrName(self.attr) + " of the element " + self.element._str() + " can't be formatted or evaluated"
 
 class FileNotFoundError(Error):
 	"""
@@ -171,7 +171,7 @@ class FileNotFoundError(Error):
 		self.url = url
 
 	def __str__(self):
-		return Error.__str__(self) + "file " + _stransi(repransiurl,str(self.url)) + " can't be opened"
+		return Error.__str__(self) + "file " + strURL(str(self.url)) + " can't be opened"
 
 class IllegalObjectError(Error):
 	"""
@@ -374,14 +374,53 @@ def _stransi(codes,string,ansi = None):
 	else:
 		return string
 
-def _strelementnamespace(elementnamespace,ansi = None):
-	return _stransi(repransielementnamespace,elementname,ansi)
+def strElementNameSpace(elementnamespace,ansi = None):
+	return _stransi(repransielementnamespace,elementnamespace,ansi)
 
-def _strelementname(elementname,ansi = None):
+def strElementName(elementname,ansi = None):
 	return _stransi(repransielementname,elementname,ansi)
 
-def _strattrname(attrname,ansi = None):
+def strAttrName(attrname,ansi = None):
 	return _stransi(repransiattrname,attrname,ansi)
+
+def strAttrValue(attrvalue,ansi = None):
+	return _stransi(repransiattrvalue,attrvalue,ansi)
+
+def strCharRef(charref,ansi = None):
+	return _stransi(repransicharref,charref,ansi = ansi)
+
+def strDocType(doctype,ansi = None):
+	return _stransi(repransidoctype,doctype,ansi = ansi)
+
+def strProcInstTarget(target,ansi = None):
+	return _stransi(repransiprocinsttarget,target,ansi = ansi)
+
+def strProcInstData(data,ansi = None):
+	return _stransi(repransiprocinstdata,data,ansi = ansi)
+
+def strText(text,ansi = None):
+	return _stransi(repransitext,text,ansi = ansi)
+
+def strSlash(attrname,ansi = None):
+	return _stransi(repransislash,"/",ansi)
+
+def strBracketOpen(attrname,ansi = None):
+	return _stransi(repransibracket,"<",ansi)
+
+def strBracketClose(attrname,ansi = None):
+	return _stransi(repransibracket,">",ansi)
+
+def strQuestion(ansi = None):
+	return _stransi(repransiquestion,"?",ansi)
+
+def strQuote(ansi = None):
+	return _stransi(repransiquote,'"',ansi)
+
+def strTab(count,ansi = None):
+	return _stransi(repransitab,reprtab*count,ansi = ansi)
+
+def strURL(URL,ansi = None):
+	return _stransi(repransiurl,URL,ansi)
 
 def nodeName(nodeClass):
 	"""
@@ -399,17 +438,17 @@ def _strName(nodeName,content = None,brackets = 1,slash = None,ansi = None):
 			slash = nodeName[2]
 	s = ""
 	if slash < 0:
-		s = s + _stransi(repransislash,"/",ansi)
+		s = s + strSlash(ansi)
 	if nodeName is not None:
 		if nodeName[0]:
-			s = s + _stransi(repransielementnamespace,nodeName[0],ansi) + ":"
-		s = s + _stransi(repransielementname,nodeName[1],ansi)
+			s = s + strElementNameSpace(nodeName[0],ansi) + ":"
+		s = s + strElementName(nodeName[1],ansi)
 	if content is not None and slash>=0:
 		s = s + content
 	if slash > 0:
-		s = s + _stransi(repransislash,"/",ansi)
+		s = s + strSlash(ansi)
 	if brackets is not None:
-		s = _stransi(repransibracket,'<',ansi) + s + _stransi(repransibracket,'>',ansi)
+		s = strBracketOpen(ansi) + s + strBracketClose(ansi)
 	return s
 
 def _strNode(nodeClass,content = None,brackets = None,slash = None,ansi = None):
@@ -551,7 +590,7 @@ class Node:
 			else:
 				line[1] = "?"
 			line[2] = string.join(map(str,line[2]),".") # convert element number to a string
-			line[3] = _stransi(repransitab,reprtab*line[0],ansi = ansi) + line[3] # add indentation
+			line[3] = strTab(line[0]) + line[3] # add indentation
 			lenlineno = max(lenlineno,len(line[1]))
 			lenelementno = max(lenelementno,len(line[2]))
 
@@ -712,10 +751,10 @@ class Text(Node):
 							s = s + '&' + ent[0] + ';'
 						else:
 							s = s + '&#' + str(ord(i)) + ';'
-					v.append(_stransi(repransicharref,s,ansi))
+					v.append(strCharRef(s,ansi))
 				else:
 					s = content[start:end]
-					v.append(_stransi(repransitext,s,ansi))
+					v.append(strText(s,ansi))
 				charref = 1-charref # switch to the other class
 				start = end # the next string we want to work on starts from here
 			end = end + 1 # to the next character
@@ -735,7 +774,7 @@ class Text(Node):
 				no = -1
 			else:
 				no = self.startlineno + i
-			s = _stransi(repransiquote,'"',ansi) + _stransi(repransitext,self.__strtext(1,lines[i],ansi),ansi) + _stransi(repransiquote,'"',ansi)
+			s = strQuote(ansi) + strText(self.__strtext(1,lines[i],ansi),ansi) + strQuote(ansi)
 			v.append([nest,no,elementno,s])
 		return v
 
@@ -779,7 +818,7 @@ class CharRef(Node):
 			return '&#' + str(self.content) + ';'
 
 	def __strcharref(self,s,ansi = None):
-		return _stransi(repransicharref,s,ansi)
+		return strCharRef(s,ansi)
 
 	def _dorepr(self,ansi):
 		if len(Parser.entitiesByNumber[self.content]):
@@ -1021,7 +1060,7 @@ class DocType(Node):
 	clone = asHTML
 
 	def _dorepr(self,ansi = None):
-		return self._str(content = _stransi(repransidoctype,"!DOCTYPE " + self.__content,ansi),brackets = 1,ansi = ansi)
+		return self._str(content = strDocType("!DOCTYPE " + self.__content,ansi),brackets = 1,ansi = ansi)
 
 	def _doreprtree(self,nest,elementno,ansi = None):
 		return [[nest,self.startlineno,elementno,self._dorepr(ansi)]]
@@ -1083,14 +1122,14 @@ class ProcInst(Node):
 		return ProcInst(self.target,self.content)
 
 	def _dorepr(self,ansi = None):
-		return self._str(content = _stransi(repransiquestion,"?",ansi) + _stransi(repransiprocinsttarget,self.target,ansi) + " " + _stransi(repransiprocinstdata,self.content,ansi) + _stransi(repransiquestion,"?",ansi),brackets = 1,ansi = ansi)
+		return self._str(content = strQuestion(ansi) + strProcInstTarget(self.target,ansi) + " " + strProcInstData(self.content,ansi) + strQuestion(ansi),brackets = 1,ansi = ansi)
 
 	def _doreprtree(self,nest,elementno,ansi = None):
 		lines = string.split(self.content,"\n")
 		if len(lines) and lines[-1] == "":
 			del lines[-1]
 		if len(lines) == 1:
-			s = self._str(content = _stransi(repransiquestion,"?",ansi) + _stransi(repransiprocinsttarget,self.target,ansi) + " " + _stransi(repransiprocinstdata,string.rstrip(lines[0]),ansi) + _stransi(repransiquestion,"?",ansi),brackets = 1,ansi = ansi)
+			s = self._str(content = strQuestion(ansi) + strProcInstTarget(self.target,ansi) + " " + strProcInstData(string.rstrip(lines[0]),ansi) + strQuestion(ansi),brackets = 1,ansi = ansi)
 			return [[nest,self.startlineno,elementno,s]]
 		else:
 			v = []
@@ -1106,17 +1145,18 @@ class ProcInst(Node):
 						no = self.startlineno + i-1
 				if i == 0:
 					mynest = nest
-					s = _stransi(repransibracket,"<",ansi)+_stransi(repransiquestion,"?",ansi) + _stransi(repransiprocinsttarget,self.target,ansi)
+					s = strBracketOpen(ansi) + strQuestion(ansi) + strProcInstTarget(self.target,ansi)
 				elif i == len(lines)+1:
 					mynest = nest
-					s = _stransi(repransiquestion,"?",ansi)+_stransi(repransibracket,">",ansi)
+					s = strQuestion(ansi) + strBracketClose(ansi)
 				else:
 					mynest = nest+1
 					s = lines[i-1]
 					while len(s) and s[0] == "\t":
 						mynest = mynest + 1
 						s = s[1:]
-				v.append([mynest,no,elementno,string.rstrip(s)])
+					s = strProcInstData(string.rstrip(s),ansi)
+				v.append([mynest,no,elementno,s])
 			return v
 
 	def __str__(self):
@@ -1326,9 +1366,9 @@ class Element(Node):
 			value = self[attr]
 			if len(value):
 				v.append('=')
-				v.append(_stransi(repransiquote,'"',ansi = ansi))
+				v.append(strQuote(ansi = ansi))
 				v.append(value._dorepr(ansi = ansi))
-				v.append(_stransi(repransiquote,'"',ansi = ansi))
+				v.append(strQuote(ansi = ansi))
 		return string.join(v,"")
 
 	def AddImageSizeAttributes(self,imgattr,widthattr = "width",heightattr = "height"):
@@ -1419,7 +1459,7 @@ class TextAttr(Attr):
 	"""
 
 	def _dorepr(self,ansi = None):
-		return _stransi(repransiattrvalue,Attr._dorepr(self,ansi = 0),ansi)
+		return strAttrValue(Attr._dorepr(self,ansi = 0),ansi)
 
 class ColorAttr(Attr):
 	"""
@@ -1429,7 +1469,7 @@ class ColorAttr(Attr):
 	repransitext = ""
 
 	def _dorepr(self,ansi = None):
-		return _stransi(repransiattrvalue,Attr._dorepr(self,ansi = 0),ansi)
+		return strAttrValue(Attr._dorepr(self,ansi = 0),ansi)
 
 class URLAttr(Attr):
 	"""
@@ -1463,11 +1503,11 @@ class URLAttr(Attr):
 		self.base = xsc.filename[-1]
 
 	def _str(self,content = None,brackets = None,slash = None,ansi = None):
-		attr = " " + _strattrname("base",ansi) + "=" + _stransi(repransiquote,'"',ansi = ansi) + _stransi(repransiurl,str(self.base),ansi = ansi) + _stransi(repransiquote,'"',ansi = ansi)
+		attr = " " + strAttrName("base",ansi) + "=" + strQuote(ansi = ansi) + strURL(str(self.base),ansi = ansi) + strQuote(ansi = ansi)
 		return Attr._str(self,content = attr,brackets = brackets,slash = slash,ansi = ansi)
 
 	def _dorepr(self,ansi = None):
-		return _stransi(repransiurl,str(self),ansi = ansi)
+		return strURL(str(self),ansi = ansi)
 
 	def __str__(self):
 		return str(Text(str(self.forOutput())))
