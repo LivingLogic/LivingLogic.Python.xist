@@ -8,6 +8,7 @@
 ##
 ## See xist/__init__.py for the license
 
+
 """
 <par>Module that helps to create &xist; namespace modules from TLD files
 (Java tag library descriptors).
@@ -17,14 +18,17 @@ tld2xsc --help
 </prog>
 """
 
+
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
+
 
 import sys, optparse
 
 from ll import url
-from ll.xist import xsc, parsers, converters
+from ll.xist import xsc, xfind, parsers, converters
 from ll.xist.ns import tld
+
 
 def tld2xsc(inurl, outurl, verbose, xmlname, xmlurl, shareattrs):
 	if verbose:
@@ -35,7 +39,7 @@ def tld2xsc(inurl, outurl, verbose, xmlname, xmlurl, shareattrs):
 		print "Converting ..."
 
 	# get and convert the taglib object
-	node = node.findfirst(xsc.FindType(tld.taglib))
+	node = xfind.first(node/tld.taglib)
 	data = node.asxnd()
 
 	if shareattrs=="dupes":
@@ -49,6 +53,7 @@ def tld2xsc(inurl, outurl, verbose, xmlname, xmlurl, shareattrs):
 	file = outurl.openwrite()
 	file.write(data.aspy())
 	file.close()
+
 
 if __name__ == "__main__":
 	p = optparse.OptionParser(usage="usage: %prog [options] inputurl.tld")

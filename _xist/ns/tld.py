@@ -16,7 +16,7 @@ descriptor (<lit>.tld</lit>) (&xml;) file format/syntax.</par>
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-from ll.xist import xsc, sims, xnd
+from ll.xist import xsc, sims, xnd, xfind
 
 
 class IdAttrs(xsc.Element.Attrs):
@@ -46,10 +46,10 @@ class attribute(xsc.Element):
 	class Attrs(IdAttrs): pass
 
 	def asxnd(self):
-		e = xnd.Attr(unicode(self.content.findfirst(xsc.FindType(name)).content), "xsc.TextAttr")
+		e = xnd.Attr(unicode(xfind.first(self/name).content), "xsc.TextAttr")
 		isRequired = None
-		node = self.content.find(xsc.FindType(required))
-		if node:
+		node = xfind.first(self/required)
+		if node is not None:
 			value = str(node[0].content)
 			if value in ('true', 'yes'):
 				isRequired = True
@@ -151,25 +151,23 @@ class tag(xsc.Element):
 	class Attrs(IdAttrs): pass
 
 	def asxnd(self):
-		e = xnd.Element(unicode(self.content.findfirst(xsc.FindType(name)).content))
-		node = self.content.find(xsc.FindType(bodycontent))
+		e = xnd.Element(unicode(xfind.first(self/name).content))
 		isEmpty = None
-		if node:
+		node = xfind.first(self/bodycontent)
+		if node is not None:
 			value = str(node[0].content)
 			if value in ('tagdependent', 'JSP'):
-				isEmpty = None
+				isempty = False
 			elif value == 'empty':
-				isEmpty = True
+				isempty = True
 			else:
 				raise ValueError("value %s is not allowed for tag <bodycontent>" % value)
-		if isEmpty:
+		if isempty:
 			e.modeltype = "sims.Empty"
 		else:
 			e.modeltype = "sims.Any"
-		node = self.content.find(xsc.FindType(info))
-		if node:
-			e.doc = node[0].asxnd()
-		for attr in self.content.walk(xsc.FindType(attribute)):
+		e.doc = xfind.first(self/info).asxnd()
+		for attr in self/attribute:
 			e.attrs.append(attr.asxnd())
 		return e
 
@@ -203,14 +201,14 @@ class taglib(xsc.Element):
 	class Attrs(IdAttrs): pass
 
 	def asxnd(self):
-		e = xnd.Namespace(unicode(self.content.findfirst(xsc.FindType(shortname)).content))
-		node = self.content.find(xsc.FindType(uri))
-		if node:
+		e = xnd.Namespace(unicode(xfind.first(self/shortname).content))
+		node = xfind.first(self/uri)
+		if node is not None:
 			e.url = unicode(node[0].content)
-		node = self.content.find(xsc.FindType(info))
-		if node:
+		node = xfind.first(self/info)
+		if node is not None:
 			e.doc = node[0].asxnd()
-		for node in self.content.walk(xsc.FindType(tag)):
+		for node in self/tag:
 			e.content.append(node.asxnd())
 		return e
 

@@ -12,10 +12,118 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
 
-from ll.xist import xsc
+class Operator(object):
+	def xfind(self, iterator, *operators):
+		"""
+		Apply self to the <arg>iterator</arg> first, and then the
+		<arg>operators</arg> in sequence.
+		"""
+		# we have to resolve the iterator here
+		return iter(Finder(self.xwalk(iterator), *operators))
 
 
-class all(xsc._XFindBase):
+class Finder(object):
+	"""
+	A <class>Finder</class> object is a <z>parsed</z> XFind expression.
+	The expression <lit><rep>a</rep>/<rep>b</rep>/<rep>c</rep> will return an
+	<class>Finder</class> object if <lit><rep>a</rep></lit> is either a
+	<pyref class="Node"><class>Node</class></pyref> object or an
+	<class>Finder</class> object and <lit><rep>b</rep></lit> and <lit><rep>c</rep></lit>
+	are operator objects, such as the subclasses of <pyref module="ll.xist.xsc" class="Node"><class>Node</class></pyref>
+	or the subclasses of <pyref class="Operator"><class>Operator</module></pyref>.
+	"""
+	__slots__ = ("iterator", "operators")
+
+	def __init__(self, iterator, *operators):
+		self.iterator = iterator
+		self.operators = operators
+
+	def next(self):
+		return self.iterator.next()
+
+	def __iter__(self):
+		if self.operators:
+			return self.operators[0].xfind(self.iterator, *self.operators[1:])
+		else:
+			return self
+
+	def __getitem__(self, index):
+		print index
+		if isinstance(index, slice):
+			return list(self)[index] # fall back to materializing the list
+		else:
+			if index>=0:
+				for item in self:
+					if not index:
+						return item
+					index -= 1
+				raise IndexError
+			else:
+				index = -index
+				cache = []
+				for item in self:
+					cache.append(item)
+					if len(cache)>index:
+						cache.pop(0)
+				if len(cache)==index:
+					return cache[0]
+				else:
+					raise IndexError
+
+	def __nonzero__(self):
+		for node in self:
+			return True
+		return False
+
+	def __div__(self, other):
+		return Finder(self.iterator, *(self.operators + (other,)))
+
+	def __floordiv__(self, other):
+		return Finder(self.iterator, *(self.operators + (xfind.all, other)))
+
+	def __repr__(self):
+		if self.operators:
+			ops = "/" + "/".join([repr(op) for op in self.operators])  # FIXME: Use a GE in Python 2.4
+		else:
+			ops = ""
+		return "<%s.%s object for %r%s at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.iterator, ops, id(self))
+
+
+def first(iterator, default=None):
+	"""
+	<par>Return the first object produced by the iterator <arg>iterator</arg> or
+	<arg>default</arg> if the iterator didn't produce any items.</par>
+	<par>Calling this function will consume one item from the iterator.</par>
+	"""
+	for node in iterator:
+		return node
+	return default
+
+
+def last(iterator, default=None):
+	"""
+	<par>Return the last object from the iterator <arg>iterator</arg> or
+	<arg>default</arg> if the iterator didn't produce any items.</par>
+	<par>Calling this function will exhaust the iterator.</par>
+	"""
+	node = default
+	for node in iterator:
+		pass
+	return node
+
+
+def count(iterator):
+	"""
+	<par>Return the number of items produced by the iterator <arg>iterator</arg>.</par>
+	<par>Calling this function will exhaust the iterator.</par>
+	"""
+	count = 0
+	for node in iterator:
+		count += 1
+	return count
+
+
+class all(Operator):
 	def xwalk(self, iterator):
 		for child in iterator:
 			for subchild in child.walk():
@@ -23,7 +131,7 @@ class all(xsc._XFindBase):
 all = all()
 
 
-class attrs(xsc._XFindBase):
+class attrs(Operator):
 	def xwalk(self, iterator):
 		for child in iterator:
 			if isinstance(child, xsc.Element):
@@ -32,7 +140,7 @@ class attrs(xsc._XFindBase):
 attrs = attrs()
 
 
-class hasattr(xsc._XFindBase):
+class hasattr(Operator):
 	def __init__(self, attr):
 		self.attr = attr
 
@@ -48,7 +156,7 @@ class hasattr(xsc._XFindBase):
 		return "<%s.%s object attr=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.attr, id(self))
 
 
-class hasattrnamed(xsc._XFindBase):
+class hasattrnamed(Operator):
 	def __init__(self, attrname, xml=False):
 		self.attrname = attrname
 		self.xml = xml
@@ -62,7 +170,7 @@ class hasattrnamed(xsc._XFindBase):
 		return "<%s.%s object attrname=%r xml=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.attrname, self.xml, id(self))
 
 
-class is_(xsc._XFindBase):
+class is_(Operator):
 	def __init__(self, class_):
 		self.class_= class_
 
@@ -75,7 +183,7 @@ class is_(xsc._XFindBase):
 		return "<%s.%s object class=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.class_, id(self))
 
 
-class isnot(xsc._XFindBase):
+class isnot(Operator):
 	def __init__(self, class_):
 		self.class_= class_
 
@@ -88,7 +196,7 @@ class isnot(xsc._XFindBase):
 		return "<%s.%s object class=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.class_, id(self))
 
 
-class contains(xsc._XFindBase):
+class contains(Operator):
 	def __init__(self, class_):
 		self.class_= class_
 
@@ -104,7 +212,7 @@ class contains(xsc._XFindBase):
 		return "<%s.%s object class=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.class_, id(self))
 
 
-class child(xsc._XFindBase):
+class child(Operator):
 	def __init__(self, class_):
 		self.class_= class_
 
@@ -119,7 +227,7 @@ class child(xsc._XFindBase):
 		return "<%s.%s object class=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.class_, id(self))
 
 
-class attrnamed(xsc._XFindBase):
+class attrnamed(Operator):
 	def __init__(self, attrname, xml=False):
 		self.attrname = attrname
 		self.xml = xml
@@ -133,7 +241,7 @@ class attrnamed(xsc._XFindBase):
 		return "<%s.%s object attrname=%r xml=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.attrname, self.xml, id(self))
 
 
-class attr(xsc._XFindBase):
+class attr(Operator):
 	def __init__(self, attr):
 		self.attr = attr
 

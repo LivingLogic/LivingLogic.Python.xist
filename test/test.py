@@ -276,15 +276,11 @@ class XISTTest(unittest.TestCase):
 	def allnodes(self):
 		return (xsc.Null, self.createattr(), self.createattrs(), self.createelement(), self.createfrag())
 
-	def visit(self, node):
-		pass
-
 	def test_standardmethods(self):
 		for node in self.allnodes():
 			node.compact()
 			node.normalized()
 			list(node.walk((True, xsc.enterattrs, xsc.entercontent)))
-			node.visit((self.visit, xsc.enterattrs, xsc.entercontent))
 			node.find((True, xsc.enterattrs, xsc.entercontent))
 			node.pretty()
 			node.clone()
@@ -418,32 +414,24 @@ class XISTTest(unittest.TestCase):
 		else:
 			return ".".join(map(self.node2str, node))
 
-	def check_traverse(self, node, filter, result, filterpath=False, respath=False, skiproot=False):
-		self.assertEqual(map(self.node2str, node.walk(filter, filterpath=filterpath, walkpath=respath, skiproot=skiproot)), result)
+	def check_walk(self, node, filter, result, filterpath=False, walkpath=False):
+		self.assertEqual(map(self.node2str, node.walk(filter, filterpath=filterpath, walkpath=walkpath)), result)
 
-		res = []
+	def test_walk1(self):
+		node = self.createfrag()
+		def filter1(node):
+			return (True, xsc.enterattrs, xsc.entercontent, True)
+		def filter2(path):
+			return (True, xsc.enterattrs, xsc.entercontent, True)
 
-		# The following class wrap a walk filter and transforms it into a visit filter that calls its own visit method
-		class VisitFilter:
-			def __init__(self, orgfilter):
-				self.orgfilter = orgfilter
-			def __call__(self, node):
-				orgres = self.orgfilter(node)
-				res = []
-				for option in orgres:
-					if isinstance(option, bool):
-						if option:
-							res.append(self.visit)
-					else:
-						res.append(option)
-				return res
-			def visit(self, node):
-				res.append(node)
+		list(node.walk((True, xsc.entercontent, True)))
+		list(node.walk((True, xsc.entercontent, True), walkpath=True))
+		list(node.walk(filter1))
+		list(node.walk(filter1, walkpath=True))
+		list(node.walk(filter2, filterpath=True))
+		list(node.walk(filter2, filterpath=True, walkpath=True))
 
-		node.visit(VisitFilter(filter), filterpath=filterpath, visitpath=respath, skiproot=skiproot)
-		self.assertEqual(map(self.node2str, res), result)
-
-	def test_traversal(self):
+	def test_walk2(self):
 		node = html.div(html.tr(html.th("gurk"), html.td("hurz"), id=html.b(42)), class_=html.i("hinz"))
 
 		def filtertopdown(node):
@@ -477,52 +465,13 @@ class XISTTest(unittest.TestCase):
 			else:
 				return (xsc.entercontent, )
 
-		self.check_traverse(node, filtertopdown, ["div", "tr", "th", "td"])
-		self.check_traverse(node, filtertopdown, ["tr", "th", "td"], skiproot=True)
-		self.check_traverse(node, filterbottomup, ["th", "td", "tr", "div"])
-		self.check_traverse(node, filterbottomup, ["th", "td", "tr"], skiproot=True)
-		self.check_traverse(node, filtertopdownattrs, ["div", "i", "tr", "b", "th", "td"])
-		self.check_traverse(node, filtertopdownattrs, ["tr", "b", "th", "td"], skiproot=True)
-		self.check_traverse(node, filtertopdownattrs, ["div", "div.class.i", "div.tr", "div.tr.id.b", "div.tr.th", "div.tr.td"], respath=True)
-		self.check_traverse(node, filtertopdownattrs, ["div.tr", "div.tr.id.b", "div.tr.th", "div.tr.td"], respath=True, skiproot=True)
-		self.check_traverse(node, filterbottomupattrs, ["div.class.i", "div.tr.id.b", "div.tr.th", "div.tr.td", "div.tr", "div"], respath=True)
-		self.check_traverse(node, filterbottomupattrs, ["div.tr.id.b", "div.tr.th", "div.tr.td", "div.tr"], respath=True, skiproot=True)
-		self.check_traverse(node, filtertopdowntextonlyinattr, ["div", "div.class.i", "div.class.i.#", "div.tr", "div.tr.id.b", "div.tr.id.b.#", "div.tr.th", "div.tr.td"], filterpath=True, respath=True)
-		self.check_traverse(node, filtertopdowntextonlyinattr, ["div.tr", "div.tr.id.b", "div.tr.id.b.#", "div.tr.th", "div.tr.td"], filterpath=True, respath=True, skiproot=True)
-		self.check_traverse(node, filtertopdownattrwithoutcontent, ["div", "div.tr", "div.tr.th", "div.tr.th.#", "div.tr.td", "div.tr.td.#", "div.tr.id", "div.class"], respath=True)
-		self.check_traverse(node, filtertopdownattrwithoutcontent, ["div.tr", "div.tr.th", "div.tr.th.#", "div.tr.td", "div.tr.td.#", "div.tr.id"], respath=True, skiproot=True)
-
-	def test_walk(self):
-		node = self.createfrag()
-		def filter1(node):
-			return (True, xsc.enterattrs, xsc.entercontent, True)
-		def filter2(path):
-			return (True, xsc.enterattrs, xsc.entercontent, True)
-
-		list(node.walk((True, xsc.entercontent, True)))
-		list(node.walk((True, xsc.entercontent, True), walkpath=True))
-		list(node.walk(filter1))
-		list(node.walk(filter1, walkpath=True))
-		list(node.walk(filter2, filterpath=True))
-		list(node.walk(filter2, filterpath=True, walkpath=True))
-
-	def test_visit(self):
-		node = self.createfrag()
-		def dummy1(node):
-			pass
-		def dummy2(path):
-			pass
-		def filter1(node):
-			return (dummy1, xsc.enterattrs, xsc.entercontent, dummy1)
-		def filter2(path):
-			return (dummy1, xsc.enterattrs, xsc.entercontent, dummy1)
-
-		node.visit((dummy1, xsc.enterattrs, xsc.entercontent, dummy1))
-		node.visit((dummy2, xsc.enterattrs, xsc.entercontent, dummy2), visitpath=True)
-		node.visit(filter1)
-		node.visit(filter1, visitpath=True)
-		node.visit(filter2, filterpath=True)
-		node.visit(filter2, filterpath=True, visitpath=True)
+		self.check_walk(node, filtertopdown, ["div", "tr", "th", "td"])
+		self.check_walk(node, filterbottomup, ["th", "td", "tr", "div"])
+		self.check_walk(node, filtertopdownattrs, ["div", "i", "tr", "b", "th", "td"])
+		self.check_walk(node, filtertopdownattrs, ["div", "div.class.i", "div.tr", "div.tr.id.b", "div.tr.th", "div.tr.td"], walkpath=True)
+		self.check_walk(node, filterbottomupattrs, ["div.class.i", "div.tr.id.b", "div.tr.th", "div.tr.td", "div.tr", "div"], walkpath=True)
+		self.check_walk(node, filtertopdowntextonlyinattr, ["div", "div.class.i", "div.class.i.#", "div.tr", "div.tr.id.b", "div.tr.id.b.#", "div.tr.th", "div.tr.td"], filterpath=True, walkpath=True)
+		self.check_walk(node, filtertopdownattrwithoutcontent, ["div", "div.tr", "div.tr.th", "div.tr.th.#", "div.tr.td", "div.tr.td.#", "div.tr.id", "div.class"], walkpath=True)
 
 	def test_locationeq(self):
 		l1 = xsc.Location(sysid="gurk", pubid="http://gurk.com", line=42, col=666)
@@ -1525,7 +1474,7 @@ class ParseTest(unittest.TestCase):
 		node = parsers.parseString("<z>gurk&amp;hurz&#42;hinz&#x666;hunz</z>", saxparser=parsers.SGMLOPParser)
 		self.assertEqual(len(node), 1)
 		self.assertEqual(len(node[0]), 1)
-		self.assertEqual(node[0][0].startloc.getSystemId(), "STRING")
+		self.assertEqual(node[0][0].startloc.getSystemId(), "root:STRING")
 		self.assertEqual(node[0][0].startloc.getLineNumber(), 1)
 
 	def test_parselocationexpat(self):
@@ -1533,7 +1482,7 @@ class ParseTest(unittest.TestCase):
 		node = parsers.parseString("<z>gurk&amp;hurz&#42;hinz&#x666;hunz</z>", saxparser=parsers.ExpatParser)
 		self.assertEqual(len(node), 1)
 		self.assertEqual(len(node[0]), 1)
-		self.assertEqual(node[0][0].startloc.getSystemId(), "STRING")
+		self.assertEqual(node[0][0].startloc.getSystemId(), "root:STRING")
 		self.assertEqual(node[0][0].startloc.getLineNumber(), 1)
 		self.assertEqual(node[0][0].startloc.getColumnNumber(), 3)
 
@@ -1683,7 +1632,7 @@ class ParseTest(unittest.TestCase):
 	def test_sysid(self):
 		# Default system ids and explicitely specified system ids should end up in the location info of the resulting XML tree
 		node = parsers.parseString("gurk")
-		self.assertEqual(node[0].startloc.sysid, "STRING")
+		self.assertEqual(node[0].startloc.sysid, "root:STRING")
 
 		node = parsers.parseString("gurk", base="root:gurk.xmlxsc")
 		self.assertEqual(node[0].startloc.sysid, "root:gurk.xmlxsc")

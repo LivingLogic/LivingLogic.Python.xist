@@ -301,83 +301,6 @@ class FindOld(object):
 
 
 ###
-### XFind support
-###
-
-class _XFindBase(object):
-	def xfind(self, iterator, *operators):
-		# we have to resolve the iterator here
-		return iter(XFinder(self.xwalk(iterator), *operators))
-
-
-class XFinder(object):
-	"""
-	An <class>XFinder</class> object is a <z>parsed</z> XFind expression.
-	The expression <lit><rep>a</rep>/<rep>b</rep>/<rep>c</rep> will return an
-	<class>XFinder</class> object if <lit><rep>a</rep></lit> is either a
-	<pyref class="Node"><class>Node</class></pyref> object or an
-	<class>XFinder</class> object and <lit><rep>b</rep></lit> and <lit><rep>c</rep></lit>
-	are either subclasses of <pyref class="Node"><class>Node</class></pyref>
-	or filter objects from <pyref module="ll.xist.xfind"><module>ll.xist.xfind</module></pyref>
-	"""
-	__slots__ = ("iterator", "operators")
-
-	def __init__(self, iterator, *operators):
-		# Wrap node in an iterator
-		if isinstance(iterator, Node):
-			def iterone(node):
-				yield node
-			iterator = iterone(iterator)
-		self.iterator = iterator
-		self.operators = operators
-
-	def next(self):
-		return self.iterator.next()
-
-	def __iter__(self):
-		if self.operators:
-			return self.operators[0].xfind(self.iterator, *self.operators[1:])
-		else:
-			return self
-
-	def __getitem__(self, index):
-		if isinstance(index, slice):
-			return list(self)[index] # fall back to materializing the list
-		else:
-			if index>=0:
-				for item in self:
-					if not index:
-						return item
-					index -= 1
-				raise IndexError
-			else:
-				index = -index
-				cache = []
-				for item in self:
-					cache.append(item)
-					if len(cache)>index:
-						cache.pop(0)
-				if len(cache)==index:
-					return cache[0]
-				else:
-					raise IndexError
-
-	def __div__(self, other):
-		return XFinder(self.iterator, *(self.operators + (other,)))
-
-	def __floordiv__(self, other):
-		from ll.xist import xfind
-		return XFinder(self.iterator, *(self.operators + (xfind.all, other)))
-
-	def __repr__(self):
-		if self.operators:
-			ops = "/" + "/".join([repr(op) for op in self.operators])  # FIXME: Use a GE in Python 2.4
-		else:
-			ops = ""
-		return "<%s.%s object for %r%s at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.iterator, ops, id(self))
-
-
-###
 ### Conversion context
 ###
 
@@ -392,10 +315,11 @@ class Context(Base, list):
 
 _Context = Context
 
-
 ###
 ### The DOM classes
 ###
+
+import xfind
 
 class Node(Base):
 	"""
@@ -420,7 +344,7 @@ class Node(Base):
 	# True:  Register with the namespace and use for parsing.
 	# If register is not set it defaults to True
 
-	class __metaclass__(Base.__metaclass__, _XFindBase):
+	class __metaclass__(Base.__metaclass__, xfind.Operator):
 		def __new__(cls, name, bases, dict):
 			if "register" not in dict:
 				dict["register"] = True
@@ -771,7 +695,7 @@ class Node(Base):
 			publisher = publishers.Publisher(**publishargs)
 		publisher.publish(stream, self, base)
 
-	def _walk(self, filter, path, filterpath, walkpath, skiproot):
+	def _walk(self, filter, path, filterpath, walkpath):
 		"""
 		<par>Internal helper for <pyref method="walk"><method>walk</method></pyref>.</par>
 		"""
@@ -793,7 +717,7 @@ class Node(Base):
 				else:
 					yield self
 
-	def walk(self, filter=(True, entercontent), filterpath=False, walkpath=False, skiproot=False):
+	def walk(self, filter=(True, entercontent), filterpath=False, walkpath=False):
 		"""
 		<par>Return an iterator for traversing the tree rooted at <self/>.</par>
 
@@ -838,72 +762,37 @@ class Node(Base):
 
 		<par><arg>walkpath</arg> works similar to <arg>filterpath</arg> and specifies whether
 		the node or a path to the node will be yielded from the iterator.</par>
-
-		<par><arg>skiproot</arg> is only significant if <self/> is an element: If <arg>skiproot</arg> is true,
-		the element itself will always be skipped, i.e. iteration starts with the content of the element.</par>
 		"""
-		return XFinder(self._walk(filter, [], filterpath, walkpath, skiproot))
+		return xfind.Finder(self._walk(filter, [], filterpath, walkpath))
 
-	def _visit(self, filter, path, filterpath, visitpath, skiproot):
-		"""
-		<par>Internal helper for <pyref method="visit"><method>visit</method></pyref>.</par>
-		"""
-		if filterpath or visitpath:
-			path = path + [self]
-
-		if callable(filter):
-			if filterpath:
-				found = filter(path)
-			else:
-				found = filter(self)
-		else:
-			found = filter
-
-		for option in found:
-			if callable(option):
-				if visitpath:
-					option(path)
-				else:
-					option(self)
-
-	def visit(self, filter, filterpath=False, visitpath=False, skiproot=False):
-		"""
-		<par>Iterate through the tree and call a user specifyable function for each visited node.</par>
-
-		<par><arg>filter</arg> works similar to the <arg>filter</arg> argument in
-		<pyref method="walk"><method>walk</method></pyref>, but the <z>node handling options</z> are
-		different: Instead of boolean values that tell <method>walk</method> whether
-		the node (or a path to the node) must be yielded, <method>visit</method> expects callable objects
-		and will pass the node (or a path to the node, if <arg>visitpath</arg> is true) to those callable objects.</par>
-
-		<par>The <arg>filterpath</arg> and <arg>skiproot</arg> arguments have the same meaning as for
-		<pyref method="walk"><method>walk</method></pyref>.</par>
-		"""
-		self._visit(filter, [], filterpath, visitpath, skiproot)
-
-	def find(self, filter=(True, entercontent), filterpath=False, skiproot=False):
+	def find(self, filter=(True, entercontent), filterpath=False):
 		"""
 		Return a <pyref class="Frag"><class>Frag</class></pyref> containing all nodes
 		found by the filter function <arg>filter</arg>. See <pyref method="walk"><method>walk</method></pyref>
 		for an explanation of the arguments.
 		"""
-		return Frag(list(self.walk(filter, filterpath, False, skiproot)))
+		return Frag(list(self.walk(filter, filterpath, False)))
 
-	def findfirst(self, filter=(True, entercontent), filterpath=False, skiproot=False):
+	def findfirst(self, filter=(True, entercontent), filterpath=False):
 		"""
 		Return the first node found by the filter function <arg>filter</arg>.
 		See <pyref method="walk"><method>walk</method></pyref> for an explanation of the arguments.
 		"""
-		for item in self.walk(filter, filterpath, False, skiproot):
+		for item in self.walk(filter, filterpath, False):
 			return item
 		raise errors.NodeNotFoundError()
 
 	def __div__(self, other):
-		return XFinder(self, other)
+		# Wrap node in an iterator
+		def iterone(node):
+			yield node
+		return xfind.Finder(iterone(self), other)
 
 	def __floordiv__(self, other):
-		from ll.xist import xfind
-		return XFinder(self, xfind.all, other)
+		# Wrap node in an iterator
+		def iterone(node):
+			yield node
+		return xfind.Finder(iterone(self), xfind.all, other)
 
 	def compact(self):
 		"""
@@ -1354,14 +1243,10 @@ class Frag(Node, list):
 		other = Frag(*others)
 		list.__setslice__(self, index, index, other)
 
-	def _walk(self, filter, path, filterpath, walkpath, skiproot):
+	def _walk(self, filter, path, filterpath, walkpath):
 		for child in self:
-			for object in child._walk(filter, path, filterpath, walkpath, False):
+			for object in child._walk(filter, path, filterpath, walkpath):
 				yield object
-
-	def _visit(self, filter, path, filterpath, visitpath, skiproot):
-		for child in self:
-			child._visit(filter, path, filterpath, visitpath, False)
 
 	def compact(self):
 		node = self._create()
@@ -1612,7 +1497,7 @@ class Attr(Frag):
 	required = False
 	default = None
 	values = None
-	class __metaclass__(Frag.__metaclass__, _XFindBase):
+	class __metaclass__(Frag.__metaclass__, xfind.Operator):
 		def __new__(cls, name, bases, dict):
 			# can be overwritten in subclasses, to specify that this attributes is required
 			if "required" in dict:
@@ -1678,7 +1563,7 @@ class Attr(Frag):
 			if value not in values:
 				warnings.warn(errors.IllegalAttrValueWarning(self))
 
-	def _walk(self, filter, path, filterpath, walkpath, skiproot):
+	def _walk(self, filter, path, filterpath, walkpath):
 		if filterpath or walkpath:
 			path = path + [self]
 
@@ -1692,7 +1577,7 @@ class Attr(Frag):
 
 		for option in found:
 			if option is entercontent:
-				for object in Frag._walk(self, filter, path, filterpath, walkpath, False):
+				for object in Frag._walk(self, filter, path, filterpath, walkpath):
 					yield object
 			elif option is enterattrs:
 				pass
@@ -1701,29 +1586,6 @@ class Attr(Frag):
 					yield path
 				else:
 					yield self
-
-	def _visit(self, filter, path, filterpath, visitpath, skiproot):
-		if filterpath or visitpath:
-			path = path + [self]
-
-		if callable(filter):
-			if filterpath:
-				found = filter(path)
-			else:
-				found = filter(self)
-		else:
-			found = filter
-
-		for option in found:
-			if option is entercontent:
-				super(Attr, self)._visit(filter, path, filterpath, visitpath, False)
-			elif option is enterattrs:
-				pass
-			elif callable(option):
-				if visitpath:
-					option(path)
-				else:
-					option(self)
 
 	def _publishAttrValue(self, publisher):
 		Frag.publish(self, publisher)
@@ -2030,14 +1892,10 @@ class Attrs(Node, dict):
 			node[attrname] = convertedattr
 		return node
 
-	def _walk(self, filter, path, filterpath, walkpath, skiproot):
+	def _walk(self, filter, path, filterpath, walkpath):
 		for child in self.itervalues():
-			for object in child._walk(filter, path, filterpath, walkpath, False):
+			for object in child._walk(filter, path, filterpath, walkpath):
 				yield object
-
-	def _visit(self, filter, path, filterpath, visitpath, skiproot):
-		for child in self.itervalues():
-			child._visit(filter, path, filterpath, visitpath, False)
 
 	def present(self, presenter):
 		presenter.presentAttrs(self)
@@ -2826,60 +2684,30 @@ class Element(Node):
 		node.attrs = self.attrs.compact()
 		return self._decoratenode(node)
 
-	def _walk(self, filter, path, filterpath, walkpath, skiproot):
+	def _walk(self, filter, path, filterpath, walkpath):
 		if filterpath or walkpath:
 			path = path + [self]
 
-		if skiproot:
-			for object in self.content._walk(filter, path, filterpath, walkpath, False):
-				yield object
-		else:
-			if callable(filter):
-				if filterpath:
-					found = filter(path)
-				else:
-					found = filter(self)
+		if callable(filter):
+			if filterpath:
+				found = filter(path)
 			else:
-				found = filter
-
-			for option in found:
-				if option is entercontent:
-					for object in self.content._walk(filter, path, filterpath, walkpath, False):
-						yield object
-				elif option is enterattrs:
-					for object in self.attrs._walk(filter, path, filterpath, walkpath, False):
-						yield object
-				elif option:
-					if walkpath:
-						yield path
-					else:
-						yield self
-
-	def _visit(self, filter, path, filterpath, visitpath, skiproot):
-		if filterpath or visitpath:
-			path = path + [self]
-
-		if skiproot:
-			self.content._visit(filter, path, filterpath, visitpath, False)
+				found = filter(self)
 		else:
-			if callable(filter):
-				if filterpath:
-					found = filter(path)
-				else:
-					found = filter(self)
-			else:
-				found = filter
+			found = filter
 
-			for option in found:
-				if option is entercontent:
-					self.content._visit(filter, path, filterpath, visitpath, False)
-				elif option is enterattrs:
-					self.attrs._visit(filter, path, filterpath, visitpath, False)
-				elif callable(option):
-					if visitpath:
-						option(path)
-					else:
-						option(self)
+		for option in found:
+			if option is entercontent:
+				for object in self.content._walk(filter, path, filterpath, walkpath):
+					yield object
+			elif option is enterattrs:
+				for object in self.attrs._walk(filter, path, filterpath, walkpath):
+					yield object
+			elif option:
+				if walkpath:
+					yield path
+				else:
+					yield self
 
 	def copyDefaultAttrs(self, fromMapping):
 		"""
@@ -3084,7 +2912,7 @@ class CharRef(Text, Entity):
 		return Text(self.content.upper())
 
 
-import presenters, publishers, cssparsers, converters, errors, options, utils, helpers
+import presenters, publishers, cssparsers, converters, errors, utils, helpers
 
 ###
 ### Classes for namespace handling

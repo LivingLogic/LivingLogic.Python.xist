@@ -86,7 +86,7 @@ node = parsers.parseURL("http://www.python.org/", tidy=True)
 </section>
 
 
-<section><title>Finding nodes</title>
+<section><title>Finding and counting nodes</title>
 
 <par>The following example shows how to output the &url;s of all images inside links on Python's homepage:</par>
 
@@ -109,10 +109,20 @@ http://www.python.org/pics/osi-certified-120x100.gif
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
 <prompt>&gt;&gt;&gt; </prompt><input>node = parsers.parseURL("http://www.python.org/", tidy=True)</input>
 <prompt>&gt;&gt;&gt; </prompt><input>for link in node//html.a/xfind.contains(html.img):</input>
-<prompt>... </prompt><input>   print link["href"], str((link/html.img)[0]["src"])</input>
+<prompt>... </prompt><input>   print link["href"], str(xfind.first(link/html.img)["src"])</input>
 http://www.python.org/ http://www.python.org/pics/PyBanner032.gif
 http://www.python.org/psf/donations.html http://www.python.org/pics/donate.gif
 http://www.opensource.org/ http://www.python.org/pics/osi-certified-120x100.gif
+</tty>
+
+<par>If you want the count the number of links on the page you can do the following:</par>
+
+<tty>
+<prompt>&gt;&gt;&gt; </prompt><input>from ll.xist import parsers</input>
+<prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
+<prompt>&gt;&gt;&gt; </prompt><input>node = parsers.parseURL("http://www.python.org/", tidy=True)</input>
+<prompt>&gt;&gt;&gt; </prompt><input>xfind.count(node//html.a)</input>
+66
 </tty>
 
 </section>
