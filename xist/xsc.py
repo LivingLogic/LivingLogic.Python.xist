@@ -235,7 +235,6 @@ try:
 except KeyError:
 	retrieveremote = 1
 
-= 1
 # should local URLs be retrieved? (for filesize and imagesize tests)
 try:
 	retrievelocal = string.atoi(os.environ["XSC_RETRIEVELOCAL"])
