@@ -84,7 +84,7 @@ class hidden(html.input):
 		return u""
 
 	def convert(self, converter):
-		e = html.input(self.attrs(), type="hidden")
+		e = html.input(self.attrs, type="hidden")
 		return e.convert(converter)
 
 namespace = xsc.Namespace("form", "http://xmlns.livinglogic.de/xist/ns/form", vars())
