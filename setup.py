@@ -10,12 +10,11 @@ from distutils.core import setup, Extension
 import textwrap
 
 DESCRIPTION = """
-XIST is an XML based extensible HTML generator. XIST is also
-a DOM parser (built on top of SAX2) with a very simple and
-pythonesque tree API. Every XML element type corresponds to a
-Python class and these Python classes provide a conversion method
-to transform the XML tree (e.g. into HTML). XIST can be considered
-'object oriented XSL'.
+XIST is an extensible HTML/XML generator. XIST is also a DOM parser
+(built on top of SAX2) with a very simple and pythonesque tree API.
+Every XML element type corresponds to a Python class and these Python
+classes provide a conversion method to transform the XML tree
+(e.g. into HTML). XIST can be considered 'object oriented XSL'.
 """
 
 CLASSIFIERS="""
@@ -48,7 +47,7 @@ DESCRIPTION = "\n".join(textwrap.wrap(DESCRIPTION.strip(), width=64, replace_whi
 
 setup(
 	name="ll-xist",
-	version="2.5",
+	version="2.6",
 	description="An extensible HTML/XML generator",
 	long_description=DESCRIPTION,
 	author="Walter Doerwald",

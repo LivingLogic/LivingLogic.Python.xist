@@ -1,6 +1,6 @@
-XIST v2.5
+XIST v2.6
 
-XIST is an HTML/XML generator written in Python.
+XIST is an extensible HTML/XML generator written in Python.
 
 For documentation read HOWTO.
 
