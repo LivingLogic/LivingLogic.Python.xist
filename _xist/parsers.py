@@ -217,6 +217,18 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 		self.headerJustRead = 0
 
 	# don't define handle_charref or handle_cdata, so we will get those through handle_data
+	# but unfortunately we have to define handle_charref here, because of a bug in
+	# sgmlop with unicode character i.e. "&#8364;" does not work.
+
+	def handle_charref(self, data):
+		data = unicode(data, self.encoding)
+		if data[:1] == "x":
+			data = unichr(int(data[1:], 16))
+		else:
+			data = unichr(int(data))
+		if not self.headerJustRead or not data.isspace():
+			self.content_handler.characters(data)
+			self.headerJustRead = 0
 
 	def handle_data(self, data):
 		data = unicode(data, self.encoding).replace(u"\r\n", u"\n").replace(u"\r", u"\n")
