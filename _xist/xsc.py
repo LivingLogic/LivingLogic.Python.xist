@@ -2959,7 +2959,8 @@ class OldPrefixes(Prefixes):
 		super(OldPrefixes, self).__init__()
 		for ns in namespaceRegistry.all:
 			if ns.xmlurl == "http://www.w3.org/XML/1998/namespace":
-				self.addPrefixMapping("xml", ns, mode="append")
+				self.addElementPrefixMapping("xml", ns, mode="append")
+				self.addProcInstPrefixMapping(ns, mode="append")
 			else:
 				self.addPrefixMapping(None, ns, mode="append")
 				self.addPrefixMapping(ns.xmlprefix, ns, mode="append")
