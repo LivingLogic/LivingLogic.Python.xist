@@ -488,7 +488,7 @@ class Handler:
 			if issubclass(node.attrHandlers[attrname], xsc.URLAttr) and hasattr(self.source, "base"):
 				if isinstance(attrvalue, types.UnicodeType):
 					attrvalue = xsc.Frag(attrvalue)
-				attrvalue = utils.replaceInitalURL(attrvalue, lambda u: url_.URL(self.source.base)/u )
+				attrvalue = utils.replaceInitialURL(attrvalue, lambda u: url_.URL(self.source.base)/u )
 			node[attrname] = attrvalue
 		self.__appendNode(node)
 		self.__nesting.append(node) # push new innermost element onto the stack
