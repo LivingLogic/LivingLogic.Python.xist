@@ -396,4 +396,10 @@ class tco(xsc.Entity):
 	def __unicode__(self):
 		return u"TCO"
 
+class crm(xsc.Entity):
+	def convert(self, converter):
+		return html_.abbr("CRM", title="Customer Relationship Management", lang="en")
+	def __unicode__(self):
+		return u"CRM"
+
 namespace = xsc.Namespace("abbr", "http://xmlns.livinglogic.de/xist/abbr.dtd", vars())
