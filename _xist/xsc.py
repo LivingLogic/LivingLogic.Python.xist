@@ -1741,6 +1741,7 @@ class Attrs(Node, dict):
 						classdict["__outerclass__"] = 42
 						dict[attrname] = attr.__class__(attr.__name__, (attr,), classdict)
 			dict["_attrs"] = ({}, {}) # cache for attributes (by Python name and by XML name)
+			dict["_defaultattrs"] = ({}, {}) # cache for attributes that have a default value (by Python name and by XML name)
 			cls = Node.__metaclass__.__new__(mcl, name, bases, dict)
 			# go through the attributes and put them in the cache
 			for (key, value) in cls.__dict__.iteritems():
@@ -1761,20 +1762,24 @@ class Attrs(Node, dict):
 			value = cls.__dict__.get(key, None) # no inheritance
 			if isinstance(value, type) and issubclass(value, Attr):
 				for xml in (False, True):
-					del cls._attrs[xml][value.xmlname[xml]]
+					name = value.xmlname[xml]
+					cls._attrs[xml].pop(name, None)
+					cls._defaultattrs[xml].pop(name, None)
 			return Node.__metaclass__.__delattr__(cls, key)
 
 		def __setattr__(cls, key, value):
 			oldvalue = cls.__dict__.get(key, None) # no inheritance
 			if isinstance(oldvalue, type) and issubclass(oldvalue, Attr):
 				for xml in (False, True):
-					try:
-						del cls._attrs[xml][oldvalue.xmlname[xml]]
-					except KeyError: # catch a KeyError exception, because in the meta class constructor the attributes *are* in the class dict, but haven't gone through __setattr__, so they are not in the cache
-						pass
+					# ignore KeyError exception, because in the meta class constructor the attributes *are* in the class dict, but haven't gone through __setattr__, so they are not in the cache
+					cls._attrs[xml].pop(oldvalue.xmlname[xml], None)
+					cls._defaultattrs[xml].pop(oldvalue.xmlname[xml], None)
 			if isinstance(value, type) and issubclass(value, Attr):
 				for xml in (False, True):
-					cls._attrs[xml][value.xmlname[xml]] = value
+					name = value.xmlname[xml]
+					cls._attrs[xml][name] = value
+					if value.default:
+						cls._defaultattrs[xml][name] = value
 			return Node.__metaclass__.__setattr__(cls, key, value)
 
 		def __contains__(cls, key):
@@ -1782,9 +1787,10 @@ class Attrs(Node, dict):
 
 	def __init__(self, content=None, **attrs):
 		dict.__init__(self)
-		for (key, value) in self.iteralloweditems():
-			if value.default:
-				self[key] = value.default.clone()
+		# set default attributes
+		for (key, value) in self._defaultattrs[False].iteritems(): # Only iterate through the attributes, that have default value
+			self[key] = value.default.clone()
+		# set attributes, this might overwrite (or delete) default attributes
 		self.update(content, **attrs)
 
 	def __eq__(self, other):
@@ -2400,7 +2406,7 @@ class Element(Node):
 		"""
 		Does the full publication of the element. If you need full elements
 		inside attributes (e.g. for &jsp; tag libraries), you can overwrite
-		<method>publish</method>, simply calling this method.
+		<method>publish</method> and simply call this method.
 		"""
 		publisher.publish(u"<")
 		self._publishname(publisher)
