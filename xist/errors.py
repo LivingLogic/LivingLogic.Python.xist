@@ -161,11 +161,11 @@ class IllegalProcInstError(Error):
 			procinst = all[key]
 			allAsList.append(xsc.strProcInstTarget(procinst.name))
 
-		s = Error.__str__(self) + "procinst " + xsc.strProcInstTarget(self.name) + " not allowed. "
+		s = Error.__str__(self) + "procinst " + xsc.strProcInstTarget(self.name[1]) + " not allowed. "
 		if allAsList:
-			s = s + "Allowed procinsts are: " + ", ".join(allAsList) + "."
+			s += "Allowed procinsts are: " + ", ".join(allAsList) + "."
 		else:
-			s = s + "There are no allowed procinsts."
+			s += "There are no allowed procinsts."
 		return s
 
 class IllegalElementNestingError(Error):
