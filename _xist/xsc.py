@@ -228,7 +228,7 @@ class Node(object):
 		raise NotImplementedError("__unicode__ method not implemented in %s" % self.__class__.__name__)
 
 	def asPlainString(self):
-		errors.warn(DeprecationWarning("asPlainString() is deprecated, use unicode() instead"))
+		errors.warn(DeprecationWarning("asPlainString() is deprecated, use unicode() (or str()) instead"))
 		return unicode(self)
 
 	def __str__(self):
