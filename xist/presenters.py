@@ -12,9 +12,9 @@
 ## the author not be used in advertising or publicity pertaining to distribution of the
 ## software without specific, written prior permission.
 ##
-## LIVING LOGIC AG AND THE AUTHOR DISCLAIM ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
+## LIVINGLOGIC AG AND THE AUTHOR DISCLAIM ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
 ## INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO EVENT SHALL
-## LIVING LOGIC AG OR THE AUTHOR BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL
+## LIVINGLOGIC AG OR THE AUTHOR BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL
 ## DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER
 ## IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
 ## IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
@@ -42,18 +42,16 @@ def getIntFromEnv(name, default):
 	except:
 		return default
 
-class EnvText(color.Text):
-	def __init__(self, *data):
-		color.Text.__init__(self, *data)
-		if not "color" in self.__class__.__dict__.keys(): # no inheritance
-			try:
-				var = eval(os.environ[self.envname])
-				if type(var) is types.StringType:
-					var = (var, var)
-				self.__class__.color = var
-			except:
-				self.__class__.color = self.default
+def getColorsFromEnv(name, default):
+	try:
+		var = eval(os.environ[self.envname])
+		if type(var) is types.StringType:
+			var = (var, var)
+		return var
+	except:
+		return default
 
+class EnvText(color.Text):
 	def getColor(self):
 		if options.repransi==0:
 			return -1
@@ -64,151 +62,130 @@ class EnvTextForTab(EnvText):
 	"""
 	ANSI escape sequence to be used for tabs
 	"""
-	envname = "XSC_REPRANSI_TAB"
-	default = (0x8, 0x8)
+	color = getColorsFromEnv("XSC_REPRANSI_TAB", (0x8, 0x8))
 
 class EnvTextForQuote(EnvText):
 	"""
 	ANSI escape sequence to be used for quotes
 	(delimiters for text and attribute nodes)
 	"""
-	envname = "XSC_REPRANSI_QUOTE"
-	default = (0xa, 0xf)
+	color = getColorsFromEnv("XSC_REPRANSI_QUOTE", (0xa, 0xf))
 
 class EnvTextForSlash(EnvText):
-	envname = "XSC_REPRANSI_SLASH"
-	default = (0x7, 0xf)
+	color = getColorsFromEnv("XSC_REPRANSI_SLASH", (0x7, 0xf))
 
 class EnvTextForBracket(EnvText):
 	"""
 	ANSI escape sequence to be used for quotes
 	(delimiters for text and attribute nodes)
 	"""
-	envname = "XSC_REPRANSI_BRACKET"
-	default = (0xa, 0xf)
+	color = getColorsFromEnv("XSC_REPRANSI_BRACKET", (0xa, 0xf))
 
 class EnvTextForColon(EnvText):
 	"""
 	ANSI escape sequence to be used for colon
 	(i.e. namespace separator)
 	"""
-	envname = "XSC_REPRANSI_BRACKET"
-	default = (0xa, 0xf)
+	color = getColorsFromEnv("XSC_REPRANSI_BRACKET", (0xa, 0xf))
 
 class EnvTextForQuestion(EnvText):
 	"""
 	ANSI escape sequence to be used for question marks
 	(delimiters for processing instructions)
 	"""
-	envname = "XSC_REPRANSI_QUESTION"
-	default = (0xa, 0xf)
+	color = getColorsFromEnv("XSC_REPRANSI_QUESTION", (0xa, 0xf))
 
 class EnvTextForExclamation(EnvText):
 	"""
 	ANSI escape sequence to be used for exclamation marks
 	(used in comments and doctypes)
 	"""
-	envname = "XSC_REPRANSI_EXCLAMATION"
-	default = (0xa, 0xf)
+	color = getColorsFromEnv("XSC_REPRANSI_EXCLAMATION", (0xa, 0xf))
 
 class EnvTextForText(EnvText):
 	"""
 	ANSI escape sequence to be used for text
 	"""
-	envname = "XSC_REPRANSI_TEXT"
-	default = (0x7, 0x7)
+	color = getColorsFromEnv("XSC_REPRANSI_TEXT", (0x7, 0x7))
 
 class EnvTextForCharRef(EnvText):
 	"""
 	ANSI escape sequence to be used for character references
 	"""
-	envname = "XSC_REPRANSI_CHARREF"
-	default = (0xf, 0x5)
+	color = getColorsFromEnv("XSC_REPRANSI_CHARREF", (0xf, 0x5))
 
 class EnvTextForNamespace(EnvText):
 	"""
 	ANSI escape sequence to be used for namespaces
 	"""
-	envname = "XSC_REPRANSI_NAMESPACE"
-	default = (0xf, 0x4)
+	color = getColorsFromEnv("XSC_REPRANSI_NAMESPACE", (0xf, 0x4))
 
 class EnvTextForElementName(EnvText):
 	"""
 	ANSI escape sequence to be used for element names
 	"""
-	envname = "XSC_REPRANSI_ELEMENTNAME"
-	default = (0xe, 0xc)
+	color = getColorsFromEnv("XSC_REPRANSI_ELEMENTNAME", (0xe, 0xc))
 
 class EnvTextForEntityName(EnvText):
 	"""
 	ANSI escape sequence to be used for entity names
 	"""
-	envname = "XSC_REPRANSI_ENTITYNAME"
-	default = (0xf, 0xc)
+	color = getColorsFromEnv("XSC_REPRANSI_ENTITYNAME", (0xf, 0xc))
 
 class EnvTextForAttrName(EnvText):
 	"""
 	ANSI escape sequence to be used for attribute names
 	"""
-	envname = "XSC_REPRANSI_ATTRNAME"
-	default = (0xf, 0xc)
+	color = getColorsFromEnv("XSC_REPRANSI_ATTRNAME", (0xf, 0xc))
 
 class EnvTextForDocTypeMarker(EnvText):
 	"""
 	ANSI escape sequence to be used for document types
 	marker (i.e. !DOCTYPE)
 	"""
-	envname = "XSC_REPRANSI_DOCTYPEMARKER"
-	default = (0xf, 0xf)
+	color = getColorsFromEnv("XSC_REPRANSI_DOCTYPEMARKER", (0xf, 0xf))
 
 class EnvTextForDocTypeText(EnvText):
 	"""
 	ANSI escape sequence to be used for document types
 	"""
-	envname = "XSC_REPRANSI_DOCTYPETEXT"
-	default = (0x7, 0x7)
+	color = getColorsFromEnv("XSC_REPRANSI_DOCTYPETEXT", (0x7, 0x7))
 
 class EnvTextForCommentMarker(EnvText):
 	"""
 	ANSI escape sequence to be used for comment markers (i.e. --)
 	"""
-	envname = "XSC_REPRANSI_COMMENTMARKER"
-	default = (0x7, 0xf)
+	color = getColorsFromEnv("XSC_REPRANSI_COMMENTMARKER", (0x7, 0xf))
 
 class EnvTextForCommentText(EnvText):
 	"""
 	ANSI escape sequence to be used for comment text
 	"""
-	envname = "XSC_REPRANSI_COMMENTTEXT"
-	default = (0x7, 0x7)
+	color = getColorsFromEnv("XSC_REPRANSI_COMMENTTEXT", (0x7, 0x7))
 
 class EnvTextForAttrValue(EnvText):
 	"""
 	ANSI escape sequence to be used for attribute values
 	"""
-	envname = "XSC_REPRANSI_ATTRVALUE"
-	default = (0x7, 0x6)
+	color = getColorsFromEnv("XSC_REPRANSI_ATTRVALUE", (0x7, 0x6))
 
 class EnvTextForURL(EnvText):
 	"""
 	ANSI escape sequence to be used for URLs
 	"""
-	envname = "XSC_REPRANSI_URL"
-	default = (0xb, 0x2)
+	color = getColorsFromEnv("XSC_REPRANSI_URL", (0xb, 0x2))
 
 class EnvTextForProcInstTarget(EnvText):
 	"""
 	ANSI escape sequence to be used for processing instruction targets
 	"""
-	envname = "XSC_REPRANSI_PROCINSTTARGET"
-	default = (0x9, 0x9)
+	color = getColorsFromEnv("XSC_REPRANSI_PROCINSTTARGET", (0x9, 0x9))
 
 class EnvTextForProcInstData(EnvText):
 	"""
 	ANSI escape sequence to be used for processing instruction data
 	"""
-	envname = "XSC_REPRANSI_PROCINSTDATA"
-	default = (0x7, 0x7)
+	color = getColorsFromEnv("XSC_REPRANSI_PROCINSTDATA", (0x7, 0x7))
 
 class EscInlineText(color.EscapedText):
 	ascharref = "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x0b\x0c\x0d\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f<>&"
@@ -252,15 +229,16 @@ class Presenter:
 		self.ansi = ansi
 
 	def reset(self):
-		self.buffer = color.StringBuffer()
-		self.stream = color.Stream(self.buffer)
+		self.buffer = color.Stream()
 		self.inAttr = 0
 
 	def strElement(self, node):
 		s = color.Text()
 		if hasattr(node, "namespace"):
-			s.append(EnvTextForNamespace(EscInlineText(node.namespace.prefix)))
-			s.append(self.strColon())
+			s.append(
+				EnvTextForNamespace(EscInlineText(node.namespace.prefix)),
+				self.strColon()
+			)
 		if hasattr(node, "name"):
 			name = node.name
 		else:
@@ -271,14 +249,18 @@ class Presenter:
 	def strEntity(self, node):
 		s = color.Text("&")
 		if hasattr(node, "namespace"):
-			s.append(EnvTextForNamespace(EscInlineText(node.namespace.prefix)))
-			s.append(EnvTextForColon(":"))
+			s.append(
+				EnvTextForNamespace(EscInlineText(node.namespace.prefix)),
+				EnvTextForColon(":")
+			)
 		if hasattr(node, "name"):
 			name = node.name
 		else:
 			name = node.__class__.name
-		s.append(EnvTextForEntityName(EscInlineText(name)))
-		s.append(";")
+		s.append(
+			EnvTextForEntityName(EscInlineText(name)),
+			";"
+		)
 		return s
 
 	def strAttrName(self, attrname):
@@ -337,26 +319,26 @@ class Presenter:
 
 class NormalPresenter(Presenter):
 	def beginPresentation(self):
-		self.reset()
+		self.buffer = color.Text()
+		self.inAttr = 0
 
 	def endPresentation(self):
-		self.stream.finish()
 		result = str(self.buffer)
 		self.reset()
 		return result
 
 	def presentText(self, node):
 		if self.inAttr:
-			self.stream.write(self.strTextInAttr(node._content))
+			self.buffer.append(self.strTextInAttr(node._content))
 		else:
-			self.stream.write(self.strTextOutsideAttr(node._content))
+			self.buffer.append(self.strTextOutsideAttr(node._content))
 
 	def presentFrag(self, node):
 		for child in node:
 			child.present(self)
 
 	def presentComment(self, node):
-		self.stream.write(
+		self.buffer.append(
 			self.strBracketOpen(),
 			self.strExclamation(),
 			self.strCommentMarker(),
@@ -366,7 +348,7 @@ class NormalPresenter(Presenter):
 		)
 
 	def presentDocType(self, node):
-		self.stream.write(
+		self.buffer.append(
 			self.strBracketOpen(),
 			self.strExclamation(),
 			self.strDocTypeMarker(),
@@ -376,7 +358,7 @@ class NormalPresenter(Presenter):
 		)
 
 	def presentProcInst(self, node):
-		self.stream.write(
+		self.buffer.append(
 			self.strBracketOpen(),
 			self.strQuestion(),
 			self.strProcInstTarget(node._target),
@@ -388,52 +370,31 @@ class NormalPresenter(Presenter):
 
 	def _writeAttrs(self, dict):
 		for attr in dict.keys():
-			self.stream.write(" ")
-			self.stream.write(self.strAttrName(attr))
+			self.buffer.append(" ", self.strAttrName(attr))
 			value = dict[attr]
 			if len(value):
-				self.stream.write("=")
-				self.stream.write(self.strQuote())
+				self.buffer.append("=", self.strQuote())
 				value.present(self)
-				self.stream.write(self.strQuote())
+				self.buffer.append(self.strQuote())
 
 	def presentElement(self, node):
 		if node.empty:
-			self.stream.write(
-				self.strBracketOpen(),
-				self.strElement(node)
-			)
+			self.buffer.append(self.strBracketOpen(), self.strElement(node))
 			self._writeAttrs(node.attrs)
-			self.stream.write(
-				self.strSlash(),
-				self.strBracketClose()
-			)
+			self.buffer.append(self.strSlash(), self.strBracketClose())
 		else:
-			self.stream.write(
-				self.strBracketOpen(),
-				self.strElement(node)
-			)
+			self.buffer.append(self.strBracketOpen(), self.strElement(node))
 			self._writeAttrs(node.attrs)
-			self.stream.write(self.strBracketClose())
+			self.buffer.append(self.strBracketClose())
 			for child in node:
 				child.present(self)
-			self.stream.write(
-				self.strBracketOpen(),
-				self.strSlash(),
-				self.strElement(node),
-				self.strBracketClose()
-			)
+			self.buffer.append(self.strBracketOpen(), self.strSlash(), self.strElement(node), self.strBracketClose())
 
 	def presentEntity(self, node):
-		self.stream.write(self.strEntity(node))
+		self.buffer.append(self.strEntity(node))
 
 	def presentNull(self, node):
-		self.stream.write(
-			self.strBracketOpen(),
-			self.strElement(node),
-			self.strSlash(),
-			self.strBracketClose()
-		)
+		self.buffer.append(self.strBracketOpen(), self.strElement(node), self.strSlash(), self.strBracketClose())
 
 	def presentAttr(self, node):
 		self.inAttr = 1
@@ -442,7 +403,7 @@ class NormalPresenter(Presenter):
 
 	def presentURLAttr(self, node):
 		self.inAttr = 1
-		self.stream.write(self.strURL(node.asString()))
+		self.buffer.append(self.strURL(node.asString()))
 		self.inAttr = 0
 
 defaultPresenterClass = NormalPresenter
