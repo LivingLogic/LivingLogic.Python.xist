@@ -3,16 +3,6 @@ import types, inspect
 from xist import xsc, parsers
 from xist.ns import html, docbook
 
-class itemizedlist(xsc.Element):
-	"""
-	A list in which each entry is marked with a bullet or other dingbat
-	"""
-	empty = 0
-
-	def convert(self, converter):
-		e = html.ul(self.content)
-		return e.convert(converter)
-
 class programlisting(xsc.Element):
 	"""
 	A literal listing of all or part of a program
@@ -220,6 +210,45 @@ class par(xsc.Element):
 			e = html.p(self.content)
 		return e.convert(converter)
 
+class ulist(xsc.Element):
+	"""
+	A list in which each entry is marked with a bullet or other dingbat
+	"""
+	empty = 0
+
+	def convert(self, converter):
+		if converter.target=="docbook":
+			e = docbook.itemizedlist(self.content)
+		else:
+			e = html.ul(self.content)
+		return e.convert(converter)
+
+class olist(xsc.Element):
+	"""
+	A list in which each entry is marked with a sequentially incremented label
+	"""
+	empty = 0
+
+	def convert(self, converter):
+		if converter.target=="docbook":
+			e = docbook.orderedlist(self.content)
+		else:
+			e = html.ol(self.content)
+		return e.convert(converter)
+
+class item(xsc.Element):
+	"""
+	A wrapper for the elements of a list item
+	"""
+	empty = 0
+
+	def convert(self, converter):
+		if converter.target=="docbook":
+			e = docbook.listitem(self.content)
+		else:
+			e = html.li(self.content)
+		return e.convert(converter)
+
 class self(xsc.Element):
 	"""
 	use this class when referring to the object for which a method has been
@@ -347,12 +376,12 @@ def getDoc(thing):
 
 	try:
 		node = parsers.parseString(doc)
-		if not node.find(type=par): # optimization: one paragraph docstrings don't need a <doc:par> element.
-			node = par(node)
 	except SystemExit, KeyboardInterrupt:
 		raise
 	except:
 		node = html.pre(doc, style="color: red")
+	if not node.find(type=par): # optimization: one paragraph docstrings don't need a <doc:par> element.
+		node = par(node)
 
 	refs = node.find(type=pyref, subtype=1, searchchildren=1)
 	if type(thing) is types.MethodType:
