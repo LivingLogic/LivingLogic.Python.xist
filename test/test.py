@@ -1716,7 +1716,7 @@ class DTD2XSCTest(unittest.TestCase):
 
 		self.assert_(issubclass(ns, xsc.Namespace))
 		self.assertEqual(ns.xmlname, ("__ns__", "foo"))
-		self.assertEqual(ns.xmlurl, "http://xmlns1.foo.com/foo")
+		self.assertEqual(ns.xmlurl, "http://xmlns.foo.com/foo")
 		self.assert_(isinstance(ns.foo.model, sims.Elements))
 		self.assertEqual(len(ns.foo.model.elements), 1)
 		self.assertEqual(ns.foo.model.elements[0], ns.bar)
