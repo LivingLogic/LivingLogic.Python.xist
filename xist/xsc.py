@@ -132,6 +132,8 @@ class XSCURLAttr(XSCNode):
 			url = "???" + url[1:]
 		return url
 
+element_handlers = {} # dictionary that links element names to element classes
+
 class XSCElement(XSCNode):
 	"XML elements"
 
@@ -170,7 +172,7 @@ class XSCElement(XSCNode):
 
 		v = []
 		v.append("<")
-		v.append(string.lower(self.__class__.__name__))
+		v.append(self.name)
 		if len(self.attrs.keys()):
 			v.append(" ")
 			v.append(xsc.AsString(self.attrs))
@@ -179,7 +181,7 @@ class XSCElement(XSCNode):
 			v.append(">")
 			v.append(s)
 			v.append("</")
-			v.append(string.lower(self.__class__.__name__)) # name must be a string without any nasty characters
+			v.append(self.name) # name must be a string without any nasty characters
 			v.append(">")
 		else:
 			if len(s):
@@ -200,7 +202,9 @@ class XSCElement(XSCNode):
 	def has_attr(self,attr):
 		return self.attrs.has_key(attr)
 
-handlers = {} # dictionary that links element names to classes
+def RegisterElement(name,element):
+	element_handlers[name] = element
+	element.name = name
 
 ###
 ###
@@ -208,7 +212,6 @@ handlers = {} # dictionary that links element names to classes
 
 class XSC(XMLParser):
 	"Reads a XML file and constructs an XSC tree from it."
-
 
 	def __init__(self,filename = None):
 		XMLParser.__init__(self)
@@ -225,7 +228,7 @@ class XSC(XMLParser):
 		pass
 
 	def unknown_starttag(self,name,attrs = {}):
-		e = handlers[name]([],attrs)
+		e = element_handlers[string.lower(name)]([],attrs)
 		self.nesting[-1].append(e) # add the new element to the content of the innermost element (or to the array)
 		self.nesting.append(e) # push new innermost element onto the stack
 		

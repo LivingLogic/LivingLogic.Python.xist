@@ -3,11 +3,11 @@
 import sys
 from xsc_html40 import *
 
-class plaintable(table):
+class XSCplaintable(XSCtable):
 	close = 1
 
 	def AsHTML(self,xsc,mode = None):
-		e = table(xsc.AsHTML(self.content,mode),xsc.AsHTML(self.attrs,mode))
+		e = XSCtable(xsc.AsHTML(self.content,mode),xsc.AsHTML(self.attrs,mode))
 
 		if not e.has_attr("cellpadding"):
 			e["cellpadding"] = 0
@@ -17,13 +17,13 @@ class plaintable(table):
 			e["border"] = 0
 
 		return e
-handlers["plaintable"] = plaintable
+RegisterElement("plaintable",XSCplaintable)
 
-class plainbody(body):
+class XSCplainbody(XSCbody):
 	close = 1
 
 	def AsHTML(self,xsc,mode = None):
-		e = body(xsc.AsHTML(self.content,mode),xsc.AsHTML(self.attrs,mode))
+		e = XSCbody(xsc.AsHTML(self.content,mode),xsc.AsHTML(self.attrs,mode))
 
 		if not e.has_attr("leftmargin"):
 			e["leftmargin"] = 0
@@ -35,39 +35,40 @@ class plainbody(body):
 			e["marginwidth"] = 0
 
 		return e
-handlers["plainbody"] = plainbody
+RegisterElement("plainbody",XSCplainbody)
 
-class z(XSCElement):
+class XSCz(XSCElement):
 	close = 1
 
 	def AsHTML(self,xsc,mode = None):
 		return xsc.AsHTML(["«",xsc.AsHTML(self.content,mode),"»"],mode)
-handlers["z"] = z
+RegisterElement("z",XSCz)
 
-class nbsp(XSCElement):
+class XSCnbsp(XSCElement):
 	close = 0
 
 	def AsHTML(self,xsc,mode = None):
 		return xsc.AsHTML("\xA0",mode)
+RegisterElement("nbsp",XSCnbsp)
 
-class filesize(XSCElement):
+class XSCfilesize(XSCElement):
 	close=1
 
 	def AsHTML(self,xsc,mode = None):
 		return xsc.FileSize(xsc.ExpandedURL(xsc.AsString(self.content)))
-handlers["filesize"] = filesize
+RegisterElement("filesize",XSCfilesize)
 
-class x(XSCElement):
+class XSCx(XSCElement):
 	"content will be ignored: can be used to comment out stuff (e.g. linefeeds)"
 	close=1
 
 	def AsHTML(self,xsc,mode = None):
 		return ""
-handlers["x"] = x
+RegisterElement("x",XSCx)
 
-class pixel(img):
+class XSCpixel(XSCimg):
 	close = 0
-	attr_handlers = AppendDict(img.attr_handlers,{ "color" : XSCStringAttr })
+	attr_handlers = AppendDict(XSCimg.attr_handlers,{ "color" : XSCStringAttr })
 	del attr_handlers["src"]
 
 	def AsHTML(self,xsc,mode = None):
@@ -75,10 +76,10 @@ class pixel(img):
 			self["color"] = "dot_clear"
 		self["src"] = ":Images/Pixels/" + self["color"] + ".gif"
 		del self["color"]
-		e = img(xsc.AsHTML(self.content,mode),xsc.AsHTML(self.attrs,mode))
+		e = XSCimg(xsc.AsHTML(self.content,mode),xsc.AsHTML(self.attrs,mode))
 
 		return e
-handlers["pixel"] = pixel
+RegisterElement("pixel",XSCpixel)
 
 if __name__ == "__main__":
 	h = XSC(sys.argv[1])
