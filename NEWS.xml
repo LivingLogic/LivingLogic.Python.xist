@@ -1,6 +1,10 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
 <section><title>Changes in CVS (released ??/??/2001)</title>
 <ulist>
+<item>Added a new element <code>contentscripttype</code> to
+<code>xist.ns.meta</code> that generates a
+<code>&lt;meta http-equiv="Content-Script-Type" ...&gt;</code>
+element.</item>
 </ulist>
 </section>
 

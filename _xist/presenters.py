@@ -382,7 +382,94 @@ def strAttrName(attrname):
 def strAttrValue(attrvalue):
 	return EnvTextForAttrValue(EscInlineAttr(attrvalue))
 
-class PlainPresenter:
+class Presenter:
+	"""
+	<doc:par>This class is the base of the presenter classes. It is abstract
+	and only serves as documentation for the methods.</doc:par>
+	"""
+
+	def beginPresentation(self):
+		"""
+		<doc:par>called by the <pyref module="xist.xsc" class="Node">node</pyref> once
+		at the start when <pyref module="xist.xsc" class="Node" method="repr">repr</pyref>
+		is called. Initializes the presenter.</doc:par>
+		"""
+		raise NotImplementedError("beginPresentation")
+
+	def endPresentation(self):
+		"""
+		<doc:par>called by the <pyref module="xist.xsc" class="Node">node</pyref> after
+		the call to <pyref module="xist.xsc" class="Node" method="present">present</pyref>.
+		This method handles cleanups if necessary and returns the string to be printed.</doc:par>
+		"""
+		raise NotImplementedError("endPresentation")
+
+	def presentText(self, node):
+		"""
+		<doc:par>present a <pyref module="xist.xsc" class="Text">Text</pyref> node.</doc:par>
+		"""
+		raise NotImplementedError("presentText")
+
+	def presentFrag(self, node):
+		"""
+		<doc:par>present a <pyref module="xist.xsc" class="Frag">Frag</pyref> node.</doc:par>
+		"""
+		raise NotImplementedError("presentFrag")
+
+	def presentComment(self, node):
+		"""
+		<doc:par>present a <pyref module="xist.xsc" class="Comment">Comment</pyref> node.</doc:par>
+		"""
+		raise NotImplementedError("presentComment")
+
+	def presentDocType(self, node):
+		"""
+		<doc:par>present a <pyref module="xist.xsc" class="DocType">DocType</pyref> node.</doc:par>
+		"""
+		raise NotImplementedError("presentDocType")
+
+	def presentProcInst(self, node):
+		"""
+		<doc:par>present a <pyref module="xist.xsc" class="ProcInst">ProcInst</pyref> node.</doc:par>
+		"""
+		raise NotImplementedError("presentProcInst")
+
+	def presentElement(self, node):
+		"""
+		<doc:par>present an <pyref module="xist.xsc" class="Element">Element</pyref> node.</doc:par>
+		"""
+		raise NotImplementedError("presentElement")
+
+	def presentEntity(self, node):
+		"""
+		<doc:par>present a <pyref module="xist.xsc" class="Entity">Entity</pyref> node.</doc:par>
+		"""
+		raise NotImplementedError("presentEntity")
+
+	def presentNull(self, node):
+		"""
+		<doc:par>present the <pyref module="xist.xsc" class="Null">Null</pyref> node.</doc:par>
+		"""
+		raise NotImplementedError("presentNull")
+
+	def presentAttr(self, node):
+		"""
+		<doc:par>present an <pyref module="xist.xsc" class="Attr">Attr</pyref> node.</doc:par>
+		"""
+		raise NotImplementedError("presentAttr")
+
+	def presentURLAttr(self, node):
+		"""
+		<doc:par>present an <pyref module="xist.xsc" class="URLAttr">URLAttr</pyref> node.</doc:par>
+		"""
+		raise NotImplementedError("presentURLAttr")
+
+class PlainPresenter(Presenter):
+	"""
+	<doc:par>This presenter shows only the root node of the tree (with a little additional
+	information about the number of nested nodes). It is used as the default presenter
+	in <pyref module="xist.xsc" class="Node" method="__repr__">Node.__repr__</pyref>.</doc:par>
+	"""
 	def __init__(self, maxlen=60):
 		self.maxlen = maxlen
 
@@ -443,7 +530,7 @@ class PlainPresenter:
 	presentAttr = presentFrag
 	presentURLAttr = presentAttr
 
-class NormalPresenter:
+class NormalPresenter(Presenter):
 	def beginPresentation(self):
 		self.buffer = ansistyle.Text()
 		self.inAttr = 0
@@ -527,7 +614,7 @@ class NormalPresenter:
 	def presentURLAttr(self, node):
 		self.buffer.append(strURL(node.asString()))
 
-class TreePresenter:
+class TreePresenter(Presenter):
 	"""
 	This presenter shows the object as a nested tree.
 	"""
@@ -734,10 +821,12 @@ class TreePresenter:
 			self.buffers.append(EnvTextForURL())
 		self.presentFrag(node)
 
-class CodePresenter:
+class CodePresenter(Presenter):
 	"""
-	This presenter shows the object as a nested Python object tree, i.e.
-	it could be used to generate source code.
+	<doc:par>This presenter formats the object as a nested Python object tree.</doc:par>
+	
+	<doc:par>This makes it possible to quickly convert &html;/&xml; files to &xist;
+	constructor calls.</doc:par>
 	"""
 	def beginPresentation(self):
 		self.inAttr = 0

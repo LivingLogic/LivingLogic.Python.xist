@@ -51,6 +51,28 @@ class contenttype(html.meta):
 		e["content"] = "text/html"
 		return e.convert(converter)
 
+class contentscripttype(html.meta):
+	"""
+	<doc:par>can be used for a <markup>&lt;meta http-equiv="Content-Script-Type" content="..."/&gt;</markup>.</doc:par>
+
+	<doc:par>Usage is simple: <code>&lt;meta:contentscripttype type="text/javascript"/&gt;</code></doc:par>
+	"""
+	empty = 1
+	attrHandlers = html.meta.attrHandlers.copy()
+	del attrHandlers["http-equiv"]
+	del attrHandlers["http_equiv"]
+	del attrHandlers["name"]
+	del attrHandlers["content"]
+	attrHandlers["type"] = xsc.TextAttr
+
+	def convert(self, converter):
+		attrs = self.attrs.copy()
+		del attrs["type"]
+		e = html.meta(attrs)
+		e["http-equiv"] = "Content-Script-Type"
+		e["content"] = self["type"]
+		return e.convert(converter)
+
 class keywords(html.meta):
 	"""
 	<doc:par>can be used for a <markup>&lt;meta name="keywords" content="..."/&gt;</markup>.</doc:par>
