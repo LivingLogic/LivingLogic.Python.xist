@@ -520,7 +520,7 @@ def getDoc(thing):
 			if not ref.hasAttr("module"):
 				ref["module"] = inspect.getmodule(thing).__name__
 				if not ref.hasAttr("class_"):
-					ref["class"] = thing.__name__
+					ref["class_"] = thing.__name__
 	elif inspect.ismodule(thing):
 		for ref in refs:
 			if not ref.hasAttr("module"):
