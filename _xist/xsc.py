@@ -273,14 +273,72 @@ so it would still be part of the cached &dom; tree and would be converted to &ht
 e.g. be <code>"html"</code>, <code>"wml"</code> or <code>"docbook"</code>.</li>
 <li><dbl:pyref module="xist.converters" class="Converter" method="__init__" arg="lang">lang</dbl:pyref>
 (which defaults to <code>None</code>) the language in which the result tree should be (e.g. <code>"en"</code>,
-<code>"de"</code> or <code>"ja"</code> etc.)</li>
+<code>"de"</code> or <code>"ja"</code> etc.). This can be used in the <pyref method="convert">convert</pyref> method
+to implement different conversions for different languages.</li>
 </ul>
-None of the currently implemented elements use this information yet, but you are
+Most of the currently implemented elements don't use this information, but you are
 free to use it in your own classes.
 </dbl:para>
 </dbl:section>
 
+<dbl:section><dbl:title>Attributes</dbl:title>
+<dbl:para>Every element can be used as a attribute mapping so if <code>node</code>
+is an <pyref module="xist.xsc" class="Element">Element</pyref> (that supports the
+attribute <code>spam</code> the following can be
+done:
+<example title="Working with attributes">
+<programlisting>
+if node.hasAttr("spam"):
+	del node["spam"]
+else:
+	node["spam"] = "eggs"
+node["spam"].append("ham")
+</programlisting>
+</example>
+</dbl:para>
+<dbl:para>All attribute values are instances of subclasses of
+the class <pyref module="xist.xsc" class="Attr">Attr</pyref>. Available
+subclasses are:
+<ul>
+<li><pyref module="xist.xsc" class="TextAttr">TextAttr</pyref>, for normal text attributes;</li>
+<li><pyref module="xist.xsc" class="URLAttr">URLAttr</pyref>, for attributes that are URLs;</li>
+<li><pyref module="xist.xsc" class="BoolAttr">BoolAttr</pyref>, for boolean attributes (such an attribute
+is either present or not, but it's value will be ignored);</li>
+<li><pyref module="xist.xsc" class="IntAttr">IntAttr</pyref>, for integer attributes;</li>
+<li><pyref module="xist.xsc" class="ColorAttr">ColorAttr</pyref>, for color attributes (e.g. <code>#ffffff</code>)</li>
+</ul>
+<pyref module="xist.xsc" class="Attr">Attr</pyref> itself is derived from
+<pyref module="xist.xsc" class="Frag">Frag</pyref> so it is possible
+to use all the sequence methods on an attribute. Unset attributes will be treated
+like empty ones so the following is possible:
+<example>
+<programlisting>
+del node["spam"]
+node["spam"].append("ham")
+</programlisting>
+</example>
+this also means that after
+<example>
+<programlisting>
+del node["spam"][0]
+</programlisting>
+</example>
+the attribute will be empty again and will be considered to be unset.
+Such attributes will be ignored when publishing.
+</dbl:para>
+</dbl:section>
+
 <dbl:section><dbl:title>Specifying content model and attributes</dbl:title>
+<dbl:para>When you define a new element you have to specify two thing:
+<ol>
+<li>If the element has an empty content model (like <markup>&lt;br/&gt;</markup>
+or <markup>&lt;img/&gt;</markup> do in &html;) or not.</li>
+<li>what attributes the element supports and of which type they are.</li>
+</ol>
+Specifying the content model is done with the class attribute <code>empty</code>.
+Set it to <code>0</code>, when your element may have content and to <code>1</code>
+if it may not.
+</dbl:para>
 </dbl:section>
 
 <dbl:section><dbl:title>Namespace objects</dbl:title>
