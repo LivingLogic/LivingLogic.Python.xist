@@ -52,7 +52,7 @@ class WrongElementWarning(errors.Warning):
 		s = "element %s" % self.node._str(fullname=True, xml=False, decorate=True)
 		if self.node.startloc is not None:
 			s += " at %s" % self.node.startloc
-		s += " may not contain element %s" % self.bad._str(fullname=1, xml=0, decorate=1)
+		s += " may not contain element %s" % self.badnode._str(fullname=1, xml=0, decorate=1)
 		if self.badnode.startloc is not None:
 			s += " at %s" % self.badnode.startloc
 		return s
