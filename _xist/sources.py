@@ -21,8 +21,8 @@
 ## IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 """
-<doc:par>This module contains variousclasses derived from
-<class>xml.sax.xmlreader.InputSource</class>.</doc:par>
+<par>This module contains various classes derived from
+<class>xml.sax.xmlreader.InputSource</class>.</par>
 """
 
 import cStringIO as StringIO
@@ -35,12 +35,35 @@ from mx import Tidy
 from ll import url
 
 class InputSource(sax.xmlreader.InputSource):
+	"""
+	A class that defines an input stream from which a &sax; parser
+	reads its input.
+	"""
 	def __init__(self, base):
 		sax.xmlreader.InputSource.__init__(self)
 		self.base = url.URL(base)
 
 class StringInputSource(InputSource):
+	"""
+	An <class>InputSource</class> where the data is read from
+	a string.
+	"""
 	def __init__(self, text, systemId="STRING", base=None, defaultEncoding="utf-8", tidy=False):
+		"""
+		<par>Create a new <class>StringInputSource</class> instance. Arguments are:</par>
+		<ulist>
+		<item><arg>text</arg>: The text to be parsed;</item>
+		<item><arg>systemId</arg>: The system id to be used;</item>
+		<item><arg>base</arg>: The base &url; (it will be prepended
+		to all &url;s created during the parsing of this input source);</item>
+		<item><arg>defaultEncoding</arg>: The encoding to be used when
+		no &xml; header can the found in the input source (this is not
+		supported by all parsers);</item>
+		<item><arg>tidy</arg>: allows you to specify, whether
+		Marc-Andr&eacute; Lemburg's <app moreinfo="http://www.lemburg.com/files/python/">mxTidy</app> should
+		be used for cleaning up broken &html; before parsing the result.</item>
+		</ulist>
+		"""
 		InputSource.__init__(self, base)
 		self.setSystemId(systemId)
 		if isinstance(text, unicode):
@@ -55,7 +78,21 @@ class StringInputSource(InputSource):
 		self.setEncoding(defaultEncoding)
 
 class URLInputSource(InputSource):
+	"""
+	An <class>InputSource</class> where the data is read from
+	an &url;.
+	"""
 	def __init__(self, id, base=None, defaultEncoding="utf-8", tidy=False, headers=None, data=None):
+		"""
+		<par>Create a new <class>StringInputSource</class> instance. Arguments are:</par>
+		<ulist>
+		<item><arg>id</arg>: The &url; to parse (this can be a <class>str</class>, <class>unicode</class>
+		or <pyref module="ll.url" class="URL"><class>ll.url.URL</class></pyref> instance);</item>
+		<item><arg>headers</arg>: The additional headers to pass in the request (a dictionary);</item>
+		<item><arg>data</arg>: The data the post to <arg>id</arg> (a dictionary).</item>
+		</ulist>
+		<par>For the rest of the argument see <pyref class="StringInputSource" method="__init__"><method>StringInputSource.__init__</method></pyref>.</par>
+		"""
 		if isinstance(id, (str, unicode)):
 			id = url.URL(id)
 		if base is None:
