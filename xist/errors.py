@@ -33,6 +33,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 import xsc
 import exceptions
 import types
+import presenters
 
 class Error(Exception):
 	"""
@@ -219,7 +220,7 @@ class FileNotFoundError(Error):
 		self.url = url
 
 	def __str__(self):
-		return Error.__str__(self) + "file " + xsc.strURL(self.url.asString()) + " can't be opened"
+		return Error.__str__(self) + "file " + str(presenter.EnvTextForURL(self.url.asString())) + " can't be opened"
 
 class IllegalObjectError(Error):
 	"""
