@@ -231,6 +231,24 @@ class par(html_.div):
 			e["class"] = "indent"
 		return e.asHTML()
 
+def _generateImgAttrs(element,urlattrname,widthattrname,heightattrname):
+	pass
+
+class autoimg(html.img):
+	def asHTML(self):
+		e = html_.img(**self.attrs)
+		e._addImageSizeAttributes("src","width","height")
+		return e.asHTML()
+
+class autoinput(html.img):
+	def asHTML(self):
+		if self.hasAttr("type") and self["type"].asHTML().asPlainString() == u"image":
+			e = html_.input(*self.content,**self.attrs)
+			e._addImageSizeAttributes("src","size",None) # no height
+			return e.asHTML()
+		else:
+			return html.img.asHTML(self)
+
 class loremipsum(xsc.Element):
 	empty = 1
 	attrHandlers = { "len" : xsc.IntAttr }

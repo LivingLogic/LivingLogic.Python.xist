@@ -1290,6 +1290,46 @@ class Element(Node):
 	def asPlainString(self):
 		return self.content.asPlainString()
 
+	def _addImageSizeAttributes(self,imgattr,widthattr = None,heightattr = None):
+		"""
+		<par noindent>add width and height attributes to the element for the image that can be found in the attribute
+		<argref>imgattr</argref>. If the attributes are already there, they are taken as a formatting
+		template with the size passed in as a dictionary with the keys <code>"width"</code> and <code>"height"</code>,
+		i.e. you could make your image twice as wide with <code>width="%(width)d*2"</code>.</par>
+
+		<par>Passing <code>None</code> as <argref>widthattr</argref> or <argref>heightattr</argref> will
+		prevent the repsective attributes from being touched in any way.</par>
+		"""
+
+		if self.hasAttr(imgattr):
+			size = self[imgattr].asHTML().ImageSize()
+			sizedict = { "width": size[0], "height": size[1] }
+			if size is not None: # the size was retrieved so we can use it
+				if widthattr is not None: # do something to the width
+					if self.hasAttr(widthattr):
+						try:
+							s = self[widthattr].asPlainString() % sizedict
+							s = s.encode(outputEncoding) # FIXME eval unicode("gurk")
+							s = str(eval(s))
+							s = stringFromCode(s).encode(outputEncoding)
+							self[widthattr] = s
+						except:
+							raise ImageSizeFormatError(self,widthattr)
+					else:
+						self[widthattr] = size[0]
+				if heightattr is not None: # do something to the height
+					if self.hasAttr(heightattr):
+						try:
+							s = self[heightattr].asPlainString() % sizedict
+							s = s.encode(outputEncoding) # FIXME eval unicode("gurk")
+							s = str(eval(s))
+							s = stringFromCode(s).encode(outputEncoding)
+							self[heightattr] = s
+						except:
+							raise ImageSizeFormatError(self,heightattr)
+					else:
+						self[heightattr] = size[1]
+
 	def _dorepr(self,ansi = None):
 		v = []
 		if self.empty:
@@ -1317,7 +1357,7 @@ class Element(Node):
 				v.append([nest,self.endloc,elementno,self._str(brackets = 1,slash = -1,ansi = ansi)])
 		return v
 
-	def _publishWithImageSize(self,publisher,encoding = None,XHTML = None,imgattr = None,widthattr = None,heightattr = None):
+	def publish(self,publisher,encoding = None,XHTML = None):
 		"""
 		<par noindent>generates a string representing the element and adds width and height
 		attributes in the process. The URL for the image is fetched for the attribute named
@@ -1331,42 +1371,13 @@ class Element(Node):
 		"""
 
 		publisher("<",self.name) # requires that the element is registered via registerElement()
-		if imgattr is not None:
-			size = self[imgattr].asHTML().ImageSize()
-			sizedict = { "width": size[0], "height": size[1] }
-		else:
-			size = None
 		for attr in self.attrs.keys():
 			publisher(' ',attr)
 			value = self[attr]
 			if len(value):
 				publisher('="')
-				if size is not None and attr==widthattr:
-					try:
-						s = self[widthattr].asPlainString() % sizedict
-						s = s.encode(outputEncoding) # FIXME eval unicode("gurk")
-						s = str(eval(s))
-						s = stringFromCode(s).encode(outputEncoding)
-						publisher(s)
-					except:
-						raise ImageSizeFormatError(self,widthattr)
-				elif size is not None and attr==heightattr:
-					try:
-						s = self[heightattr].asPlainString() % sizedict
-						s = s.encode(outputEncoding) # FIXME eval unicode("gurk")
-						s = str(eval(s))
-						s = stringFromCode(s).encode(outputEncoding)
-						publisher(s)
-					except:
-						raise ImageSizeFormatError(self,heightattr)
-				else:
-					value.publish(publisher,encoding,XHTML)
+				value.publish(publisher,encoding,XHTML)
 				publisher('"')
-		if size is not None:
-			if widthattr is not None and not self.hasAttr(widthattr):
-				publisher(' ',widthattr,'="',str(size[0]),'"')
-			if heightattr is not None and not self.hasAttr(heightattr):
-				publisher(' ',heightattr,'="',str(size[1]),'"')
 		if len(self):
 			if self.empty:
 				raise EmptyElementWithContentError(self)
@@ -1387,9 +1398,6 @@ class Element(Node):
 				publisher("/>")
 			else:
 				raise ValueError("XHTML must be 0, 1, 2 or None")
-
-	def publish(self,publisher,encoding = None,XHTML = None):
-		return self._publishWithImageSize(publisher,encoding,XHTML)
 
 	def __getitem__(self,index):
 		"""
