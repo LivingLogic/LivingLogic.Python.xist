@@ -1,13 +1,14 @@
-XIST v0.4.4
+XIST v0.4.5
 
 This is a HTML generator/XML transformation engine/web publishing system
 written in Python.
 
 For documentation read xist/xsc.py.
 
-The requirements for installing the package are Python 2.0b2 or
-later, sgmlop from the Python XML package (available from
-ftp://titan.bnbt.de/pub/livinglogic/xist/sgmlop.c or
+The requirements for installing the package are Python 2.0,
+sgmlop from the Python XML package (http://pyxml.sourceforge.net/)
+(sgmlop itself is available from
+ftp://titan.bnbt.de/pub/livinglogic/xist/sgmlop.c) or
 from http://www.pythonware.com/products/xml/
 (an older version)) and the Python Imaging Library
 (available from http://www.pythonware.com/products/pil/).

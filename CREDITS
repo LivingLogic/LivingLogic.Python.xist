@@ -4,13 +4,13 @@ development of XIST:
 Guido van Rossum - for inventing a programming language
 	where programming is fun again.
 
-Fredrik Lundh - parsing is a diry job, but somebody's gotta
+Fredrik Lundh - parsing is a dirty job, but somebody's gotta
 	do it. ;)
 
 Thomas Aglassinger - for hsc, which started it all.
 
 Hartmut Goebel - for testing, sending comments, bugfixes
-	and patches; and for the idea and first implementation
+	and patches, and for the idea and first implementation
 	of cond.py.
 
 Neelakantan Krishnaswami - for Signature.py, which is used

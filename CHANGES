@@ -1,3 +1,10 @@
+New in 0.4.5
+------------
+Converting URLs to Nodes is now done in ToNode,
+so URL objects can be used everywhere.
+
+Fixed a few bugs in Text._strtext and URLAttr._str.
+
 New in 0.4.4
 ------------
 Now testing if characters can be encoded with the
