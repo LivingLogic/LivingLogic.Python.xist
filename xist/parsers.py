@@ -42,7 +42,7 @@ from xml.sax import expatreader
 timeoutsocket = None
 
 import xsc
-import url
+import url as url_
 
 class StringInputSource(sax.xmlreader.InputSource):
 	def __init__(self, text):
@@ -65,8 +65,10 @@ class FileInputSource(sax.xmlreader.InputSource):
 class URLInputSource(sax.xmlreader.InputSource):
 	def __init__(self, url):
 		sax.xmlreader.InputSource.__init__(self)
+		if isinstance(url, url_.URL):
+			url = url.asString()
 		self.setSystemId(url)
-		self.setByteStream(urllib.urlopen(url.asString()))
+		self.setByteStream(urllib.urlopen(url))
 
 	def setTimeout(self, secs):
 		if timeoutsocket is not None:
@@ -136,18 +138,38 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 		self.entity_resolver = handler
 
 	def parse(self, source):
+		self.source = source
 		file = source.getByteStream()
 		self._parsing = 1
+		self.content_handler.setDocumentLocator(self)
 		self.content_handler.startDocument()
-		parser = self.parser
 
 		while 1:
 			data = file.read(self.bufsize)
 			if not data:
 				break
-			parser.feed(data)
+			self.parser.feed(data)
 
 		self.close()
+		self.source = None
+
+	# Locator methods will be called by the application
+	def getColumnNumber(self):
+		if self.parser is None:
+			return -1
+		return -1 # FIXME
+
+	def getLineNumber(self):
+		if self.parser is None:
+			return -1
+		return -1 # FIXME
+
+	def getPublicId(self):
+		if self.source is not None:
+		return self.source.getPublicId()
+
+	def getSystemId(self):
+		return self.source.getSystemId()
 
 	def handle_cdata(self, data):
 		self.content_handler.characters(data)
@@ -181,6 +203,8 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 	def reset(self):
 		self.parser=sgmlop.XMLParser()
 		self._parsing = 0
+		self.source = None
+		self.lineno = -1
 
 	def feed(self, data):
 		if not self._parsing:
@@ -209,21 +233,11 @@ class Handler:
 		self.namespaces = namespaces
 
 		self.server = "localhost"
-		self.filenames = [url.URL("*/")]
 
 		parser.setErrorHandler(self)
 		parser.setContentHandler(self)
 		parser.setDTDHandler(self)
 		parser.setEntityResolver(self)
-
-	def pushURL(self, u):
-		u = url.URL(u)
-		if len(self.filenames):
-			u = self.filenames[-1] + u
-		self.filenames.append(u)
-
-	def popURL(self):
-		self.filenames.pop()
 
 	def parse(self, source):
 		self.source = source
@@ -249,7 +263,7 @@ class Handler:
 		for name in attrs.keys():
 			node[name] = self.__string2Fragment(attrs[name])
 			if isinstance(node[name], xsc.URLAttr):
-				base = url.URL("*/") + url.URL(self.source.getSystemId())
+				base = url_.URL("*/") + url_.URL(self.source.getSystemId())
 				node[name].base = base
 		self.__appendNode(node)
 		self.__nesting.append(node) # push new innermost element onto the stack
@@ -293,7 +307,7 @@ class Handler:
 			return 0
 
 	def getLocation(self):
-		return xsc.Location(url.URL(self._locator.getSystemId()), self._locator.getLineNumber(), self._locator.getColumnNumber())
+		return xsc.Location(url_.URL(self._locator.getSystemId()), self._locator.getLineNumber(), self._locator.getColumnNumber())
 
 	def __appendNode(self, node):
 		node.startloc = self.getLocation()
@@ -340,7 +354,17 @@ class Handler:
 				break
 		return node
 
-def parse(source, namespaces=None, parser=None):
+def parse(source, parser=None, namespaces=None):
 	handler = Handler(parser, namespaces)
 	handler.parse(source)
 	return handler.root
+
+def parseString(text, parser=None, namespaces=None):
+	return parse(StringInputSource(text), parser, namespaces)
+
+def parseFile(filename, namespaces=None, parser=None):
+	return parse(FileInputSource(filename), parser, namespaces)
+
+def parseURL(url, namespaces=None, parser=None):
+	return parse(URLInputSource(url), parser, namespaces)
+
