@@ -12,6 +12,11 @@ The URL to string conversion function have changed:
 URL.asString() returns the URL with path markers,
 URL.asPlainString() returns the URL without path markers.
 
+Added the i18n attribute to the font element.
+
+Fixed the clashes between the class names for the elements
+and entities sub and sup in html.py.
+
 Several small enhancements and bug fixes contributed by
 Hartmut Goebel.
 
