@@ -27,8 +27,23 @@ used in the call to the convert method.
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
+class Context:
+	"""
+	This is an empty class, that can be used by
+	the convert method to hold element specific
+	data during the convert call. For a more extensive
+	explanation see <pyref module="xist.xsc" class="Node" method="getConverterContext">getConverterContext</pyref>.
+	"""
+	
+	def __init__(self):
+		pass
+
 class Converter:
 	def __init__(self, mode=None, stage=None, target=None):
 		self.mode = mode
 		self.stage = stage
 		self.target = target
+		self.contexts = {}
+
+	def getContext(self, nodeClass):
+		return self.contexts.setdefault(nodeClass, Context())

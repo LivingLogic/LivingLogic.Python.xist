@@ -13,10 +13,10 @@ Make URLs much more object oriented (one class for every scheme?)
 
 Cache parsed XML files and image sizes.
 
-Allow different parsers to be used, not just sgmlop.
-
 findPos() that works like find(), but returns a list
 of position index lists (i.e. "DOM paths").
+
+findFirst() which only finds the first occurrence.
 
 Split parsers, providers and nested namespaces into
 separate classes.

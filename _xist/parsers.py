@@ -133,7 +133,6 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 		self._parsing = 0
 		self.source = None
 		self.lineNumber = -1
-		self.columnNumber = -1
 
 	def feed(self, data):
 		if not self._parsing:
@@ -187,9 +186,7 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 
 	# Locator methods will be called by the application
 	def getColumnNumber(self):
-		if self.parser is None:
-			return -1
-		return self.columnNumber
+		return -1
 
 	def getLineNumber(self):
 		if self.parser is None:
@@ -296,8 +293,12 @@ class Handler:
 		self.__nesting.pop() # pop the innermost element off the stack
 
 	def characters(self, content):
-		if content != "":
-			self.__appendNode(xsc.Text(content))
+		if content:
+			last = self.__nesting[-1]
+			if len(last) and isinstance(last[-1], xsc.Text):
+				last[-1]._content += content # join consecutive Text nodes (this violates the "immutable Text restriction", but there is only one reference to the Text object)
+			else:
+				self.__appendNode(xsc.Text(content))
 
 	def comment(self, content):
 		self.__appendNode(xsc.Comment(content))
@@ -320,26 +321,12 @@ class Handler:
 		"Handle a warning."
 		print exception
 
-	def handle_charref(self, name):
-		try:
-			if name[0] == 'x':
-				code = int(name[1:], 16)
-			else:
-				code = int(name)
-		except ValueError:
-			raise errors.MalformedCharRefError(name)
-		self.__appendNode(xsc.Text(unichr(code)))
-
 	def getLocation(self):
 		return xsc.Location(self._locator)
 
 	def __appendNode(self, node):
-		last = self.__nesting[-1]
-		if len(last) and isinstance(last[-1], xsc.Text) and isinstance(node, xsc.Text):
-			last[-1] += node
-		else:
-			node.startLoc = self.getLocation()
-			last.append(node) # add the new node to the content of the innermost element (or fragment)
+		node.startLoc = self.getLocation()
+		self.__nesting[-1].append(node) # add the new node to the content of the innermost element (or fragment)
 
 	def __string2Fragment(self, text):
 		"""

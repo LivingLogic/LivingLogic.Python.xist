@@ -138,13 +138,12 @@ class URL:
 	server -- The server name
 	port -- The port number
 	path -- The path to the file as a list of strings
-	file -- The filename without extension
-	ext -- The file extension
+	file -- The filename including the extension
 	parameters -- The parametes
 	query -- The query
 	fragment -- The fragment
 	These variables form a URL in the following way
-	<scheme>://<server>:<port>/<path>/<file>.<ext>;<params>?<query>#<fragment>
+	<scheme>://<server>:<port>/<path>/<file>;<params>?<query>#<fragment>
 
 	There is one additional feature supported by this class: path markers
 	A path marker is a directory name beginning with *. A path marker is
@@ -159,11 +158,11 @@ class URL:
 
 	__safe = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_,.-:/"
 
-	def __init__(self, url=None, scheme=None, server=None, port=None, path=None, file=None, ext=None, parameters=None, query=None, fragment=None):
+	def __init__(self, url=None, scheme=None, server=None, port=None, path=None, file=None, parameters=None, query=None, fragment=None):
 		# initialize the defaults
 		self.scheme = self.server = self.port = None
 		self.__path = []
-		self.file = self.ext = self.parameters = self.query = self.fragment = None
+		self.file = self.parameters = self.query = self.fragment = None
 		if url is None:
 			pass
 		elif type(url) in (types.StringType, types.UnicodeType):
@@ -174,7 +173,6 @@ class URL:
 			self.port       = url.port
 			self.__path     = url.__path[:] # make copy of list
 			self.file       = url.file
-			self.ext        = url.ext
 			self.parameters = url.parameters
 			self.query      = url.query
 			self.fragment   = url.fragment
@@ -189,8 +187,6 @@ class URL:
 			self.port = port
 		if path is not None:
 			self.__path = map(helpers.unistr, path)
-		if ext is not None:
-			self.ext = ext
 		if file is not None:
 			self.file = file
 		if parameters is not None:
@@ -203,7 +199,7 @@ class URL:
 		self.__normalize()
 
 	def __setattr__(self, name, value):
-		if name in ("scheme", "server", "file", "ext", "parameters", "query", "fragment"):
+		if name in ("scheme", "server", "file", "parameters", "query", "fragment"):
 			if value is not None:
 				value = helpers.unistr(value)
 		self.__dict__[name] = value
@@ -283,8 +279,6 @@ class URL:
 			v.append("path=" + repr(self.__path))
 		if self.file is not None:
 			v.append("file=" + repr(self.file))
-		if self.ext is not None:
-			v.append("ext=" + repr(self.ext))
 		if self.parameters is not None:
 			v.append("parameters=" + repr(self.parameters))
 		if self.query is not None:
@@ -328,10 +322,10 @@ class URL:
 
 	def __hasPath(self):
 		"""returns true if path or file is given"""
-		return self.__path or self.scheme == "server" or self.file or self.ext is not None
+		return self.__path or self.scheme == "server" or self.file is not None
 
 	def __requiresPath(self):
-		a = self.server or self.file or self.ext is not None
+		a = self.server or self.file
 		if self.__path:
 			return not a
 		else:
@@ -370,9 +364,9 @@ class URL:
 			# directories for this are still in path)
 			newpath[:0] = [u".."]*len(otherpath)
 			if newpath == [] and new.__requiresPath():
-				newpath = [u'.']
-			if new.file == other.file and new.ext == other.ext:
-				new.file = u''; new.ext = None
+				newpath = [u"."]
+			if new.file == other.file:
+				new.file = u""
 		new.__path = newpath
 		return new
 
@@ -390,7 +384,7 @@ class URL:
 		server2 = other.server
 		if server2 is not None:
 			server2 = server2.lower()
-		return cmp(scheme1, scheme2) or cmp(server1, server2) or cmp(self.port, other.port) or cmp(self.__path, other.__path) or cmp(self.file, other.file) or cmp(self.ext, other.ext) or cmp(self.parameters, other.parameters) or cmp(self.query, other.query) or cmp(self.fragment, other.fragment)
+		return cmp(scheme1, scheme2) or cmp(server1, server2) or cmp(self.port, other.port) or cmp(self.__path, other.__path) or cmp(self.file, other.file) or cmp(self.parameters, other.parameters) or cmp(self.query, other.query) or cmp(self.fragment, other.fragment)
 
 	def open(self):
 		return urllib.urlopen(self.__quote())
@@ -432,19 +426,11 @@ class URL:
 		else:
 			file = u""
 
-		ext = None
-		if scheme in (u"ftp", u"http", u"https", u"server", u""):
-			pos = file.rfind(u".")
-			if pos != -1:
-				ext = file[pos+1:]
-				file = file[:pos]
-
 		self.scheme = scheme or None
 		self.server = server or None
 		self.port = port
 		self.__path = path
 		self.file = file or None
-		self.ext = ext
 		self.parameters = parameters or None
 		self.query = query or None
 		self.fragment = fragment or None
@@ -464,8 +450,6 @@ class URL:
 		if not self.__requiresPath() and path == [u'.']:
 			path = []
 		file = self.file or u""
-		if self.ext is not None:
-			file = u"%s.%s" % (file, self.ext)
 		path.append(file)
 		url = urlparse.urlunparse((scheme, server, u"/".join(path), self.parameters or u"", self.query or u"", self.fragment or u""))
 		return url
@@ -501,11 +485,10 @@ class URL:
 				url.server = base.server
 			if len(url.__path) and url.__path[0] == u'':
 				return url
-			if not url.__path and not url.file and url.ext is None:
+			if not url.__path and not url.file:
 				# neither path nor filename set
 				url.__path = base.__path[:] # copy
 				url.file = base.file
-				url.ext = base.ext
 				url.query = url.query or base.query
 				return url
 			path = base.__path[:]
@@ -559,7 +542,7 @@ def test_normalize():
 		# Tuple format: removeMakers, input, output
 		(0, '', ''),
 		(0, './', '.'),
-		#(0, '/./', '/'), # _normalize doe not handle absolute pathes
+		#(0, '/./', '/'), # _normalize does not handle absolute paths
 		(0, 'xx', 'xx'),
 		(0, 'xx/yy', 'xx/yy'),
 		(0, 'xx/..', '.'),
@@ -573,7 +556,7 @@ def test_normalize():
 		(0, 'xx/.././..', '..'),
 		(0, 'xx/.', 'xx'),
 		(0, './xx', 'xx'),
-		#(0, '/xx', '/xx'), # _normalize doe not handle absolute pathes
+		#(0, '/xx', '/xx'), # _normalize does not handle absolute paths
 		#(0, '/./xx', '/xx'), # dito
 
 		(0, '*XX', '*XX'),

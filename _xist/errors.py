@@ -181,7 +181,7 @@ class IllegalElementNestingError(Error):
 		self.foundelement = foundelement
 
 	def __str__(self):
-		return Error.__str__(self) + "illegal element nesting (%s expected; %s found)" % (presenters.strElementWithBrackets(self.expectedelement), presenters.strElementWithBrackets(self.foundelement))
+		return Error.__str__(self) + "illegal element nesting (closing %s expected; %s found)" % (presenters.strElementWithBrackets(self.expectedelement, -1), presenters.strElementWithBrackets(self.foundelement, -1))
 
 class IllegalAttrNodeError(Error):
 	"""

@@ -163,10 +163,9 @@ class section(xsc.Element):
 	empty = 0
 
 	def convert(self, converter=None):
-		if converter is None:
-			converter = converters.Converter()
-		if not hasattr(converter, "depth"):
-			converter.depth = 1
+		(converter, context) = self.getConverterContext(converter)
+		if not hasattr(context, "depth"):
+			context.depth = 1
 		ts = xsc.Frag()
 		cs = xsc.Frag()
 		for child in self:
@@ -176,12 +175,21 @@ class section(xsc.Element):
 				cs.append(child)
 		e = xsc.Frag()
 		for t in ts:
-			e.append(html.namespace.elementsByName["h%d" % converter.depth](t.content))
+			e.append(html.namespace.elementsByName["h%d" % context.depth](t.content))
 		for c in cs:
 			e.append(c)
-		converter.depth += 1
+		context.depth += 1
 		e = e.convert(converter)
-		converter.depth -= 1
+		context.depth -= 1
 		return e
+
+class para(xsc.Element):
+	"""
+	"""
+	empty = 0
+
+	def convert(self, converter=None):
+		e = html.p(*self.content)
+		return e.convert(converter)
 
 namespace = xsc.Namespace("dbl", "http://www.livinglogic.de/DTDs/DocBookLite.dtd", vars())

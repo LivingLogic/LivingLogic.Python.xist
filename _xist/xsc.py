@@ -33,7 +33,8 @@ objects) from
 <a href="http://starship.python.net/crew/friedrich/HTMLgen/html/main.html">HTMLgen</a> 
 or <a href="http://dustman.net/andy/python/HyperText/">HyperText</a>.
 
-Generating the final output requires the following three
+<dbl:section><dbl:title>Overview</dbl:title>
+<dbl:para>Generating the final output requires the following three
 steps:
 <ul>
 <li>Generating a source tree: This can be done either by
@@ -42,68 +43,92 @@ tree, as HTMLgen and HyperText do, as a tree of Python objects.
 &xist; provides a very natural and pythonic &api; for that.</li>
 <li>Converting the source tree into a target tree: This target
 tree can be a &html; tree or a &wml; tree or any other
-&xml object tree you like. Every node class provides a
+&xml; object tree you like. Every node class provides a
 <function>convert</function> method for that, and for
 your own &xml; element types you have to define your
 own node classes with the appropriate <function>convert</function>
 method.</li>
 <li>Publishing the target tree: For writing the final
 output to a file or generating a string that can
-be delivered as a response from a &cgi; script, &xist;
-provides a <function>publish</function> method which
+be delivered as a response from a &cgi; script, all node classes
+provide a <function>publish</function> method which
 passes the string fragment to a publishing handler.</li>
 </ul>
+</dbl:para>
+</dbl:section>
 
-<h2>Example</h2>
-<example title="The first example">
-<programlisting>
-from xist.ns import html
-
-	e = html.div(
-		"Hello ",
-		html.a("Python.org", href="http://www.python.org/"),
-		" world!"
-	)
-	print e.asBytes()
-</programlisting>
-</example>
-
-<h2>Constructing &dom; trees</h2>
-&xist; provides the usual classes like any other
-&dom; &api;:
+<dbl:section><dbl:title>Constructing &dom; trees</dbl:title>
+<dbl:para>Like any other &dom; &api; &xist; provides the 
+usual classes:
 <ul>
-<li><classname>Text</classname>,</li>
-<li><classname>Frag</classname>, for ducument fragment,
+<li><classname>Text</classname> for text data</li>
+<li><classname>Frag</classname> for document fragments,
 a <classname>Frag</classname> object is simply a list
 of nodes,</li>
 <li><classname>Comment</classname> for &xml; comments
-(e.g. <markup>&lt;!-- the comment -->&gt;</markup>)</li>
+(e.g. <markup>&lt;!-- the comment --&gt;</markup>)</li>
 <li><classname>DocType</classname> for document type
-declarations (e.g. <markup>&lt;!DOCTYPE html PUBLIC <replacable>...</replaceable></<markup>),</li>
+declarations (e.g. <markup>&lt;!DOCTYPE html PUBLIC <replaceable>...</replaceable>&gt;</markup>),</li>
 <li><classname>ProcInst</classname> for  processing instructions
-(e.g. <markup>&lt;?php echo $eggs;?&gt;</markup>,</li>
-<li><classname>Element</classname>, for &xml; elements,</li>
-<li><classname>Entity</classname> for entities (e.g. <markup>&amp;spam;</markup>) and</li>
+(e.g. <markup>&lt;?php echo $spam;?&gt;</markup>,</li>
+<li><classname>Element</classname> for &xml; elements,</li>
+<li><classname>Entity</classname> for entities (e.g. <markup>&amp;eggs;</markup>) and</li>
 <li><classname>Attr</classname> for attributes.</li>
 </ul>
+</dbl:para>
 
+<dbl:section><dbl:title>&dom; trees as Python objects</dbl:title>
+<dbl:para>&xist; works somewhat different from a normal &dom; &api;.
+Instead of only one element class &xist; has one class for every element
+type. All the elements known to &xist; are defined in modules in
+the <code>xist.ns</code> subpackage. The definition of &html; can 
+be found in <code>xist.ns.html</code> for example.</dbl:para>
 
-
-For every &xml; element type <classname>spam</classname>
-there exists a corresponding class, that has a constructor 
-of the form
+<dbl:para>Every element class has a constructor of the form
 <programlisting>
-<replaceable>class</replaceable>(*content, **attrs)
-</programmlisting>
-Positional arguments will be considered child nodes
-of the <classname>spam</classname> node. Keyword
-arguments will be attributes. The buildtin
-so constructing an HTML element works like this:
-	e = html.div(
-		"Go to ",
-		html.a("Python.org", href="http://www.python.org/"),
-		"!"
-	)
+__init__(self, *content, **attrs)
+</programlisting>
+Positional arguments (i.e. <parameter>content</parameter>)
+will be considered child nodes of the element node (except for dictionaries). 
+Keyword arguments (i.e. <parameter>attrs</parameter> and dictionaries from 
+the <parameter>content</parameter> parameter will be attributes. 
+You can pass most builtin types to such a constructor. Strings and integers will
+be automatically converted to <classname>Text</classname> objects.
+Constructing an &html; element works like this:
+<dbl:example title="The first example">
+<programlisting>
+from xist.ns import html
+
+node = html.div(
+	"Hello ",
+	html.a("Python", href="http://www.python.org/"),
+	" world!"
+)
+</programlisting>
+</dbl:example>
+</dbl:para>
+
+<dbl:para>For attribute names that collide with Python keywords
+(must notably <markup>class</markup>) you can add an underscore to the
+name:
+<dbl:example title="Colliding attribute names">
+<programlisting>
+node = html.div(
+	"Hello world!",
+	class_="greeting"
+)
+</programlisting>
+</dbl:example>
+Any trailing underscore will be stripped off of an attribute name in the
+element constructor.
+</dbl:para>
+</dbl:section>
+
+<dbl:section><dbl:title>Generating &dom; trees from &xml; files</dbl:title>
+<dbl:para>Of course &dom; trees can also be generated by parsing
+&xml; files. For this the module <filename>xist.parsers</filename>
+is provided.</dbl:para>
+</dbl:section>
 
 This object can be converted to a printable unicode string with
 the method asString():
@@ -114,31 +139,42 @@ You can define your own! To be able to convert these
 new element types to a HTML object tree, you must implement
 the method convert, and you must derive your class from
 xsc.Element as in the following example:
-
+<programlisting>
 	class cool(xsc.Element):
 		empty = 1
 
 		def convert(self, converter=None):
 			return html.b("Python is cool!")
+</programlisting>
 
 Using this element is as simple as this:
+<programlisting>
 	e = cool()
 	print e.convert().asString()
+</programlisting>
 
 (The additional argument converter allows you to implement
 different processing modes or stages)
 
 The class variable empty in the above example specifies
-that the element type has an empty content model (like <br/>
-or <img/>).
+that the element type has an empty content model (like 
+<markup>&lt;br/&gt;</markup> or <markup>&lt;img/&gt;</markup>).
 
 To be able to use your own classes in XML files, you have
 to tell the parser about them. This is done with
 namespace objects (see the docstring for the Namespace class).
 What you have to do is construct a namespace object for all the
 elements in your module:
-namespace = xsc.Namespace("foo", "http://www.foo.net/dtd/foo.dtd", vars())
-
+<example>
+<programlisting>
+namespace = xsc.Namespace(
+	"foo",
+	"http://www.foo.net/dtd/foo.dtd",
+	vars()
+)
+</programlisting>
+</example>
+</dbl:section>
 
 URLs, path markers and the URL stack
 ====================================
@@ -172,7 +208,7 @@ XIST maintains a stack of URLs that is used in parsing files.
 
 Whenever you parse an XML file via xsc.xsc.parse(name),
 the URL corresponding to name will be pushed onto the stack.
-All URL attributes (e.g. the href in <a>, or the src in <img>)
+All URL attributes (e.g. the href in <markup>&lt;a&gt;</markup>, or the src in <markup>&lt;img&gt;</markup>)
 encountered during the parsing of the file will be interpreted
 relative to the URL on top of the stack. After parsing the file
 the URL will be popped of the stack again. This means that
@@ -186,9 +222,13 @@ return to the root of your directory tree)
 
 Example:
 When you parse a file "foo/bar/baz.xml" via
-	element = xsc.xsc.parse("foo/bar/baz.xml")
+<programlisting>
+element = xsc.xsc.parse("foo/bar/baz.xml")
+</programlisting>
 and this file contains an image
-	<img src="*/images/gurk.png"/>
+<programlisting>
+&lt;img src="*/images/gurk.png"/&gt;
+</programlisting>
 the following will happen:
 The URL "foo/bar/baz.xml" will be pushed onto the stack.
 As the stack already contains the URL "*/", this will
@@ -240,44 +280,40 @@ height of the image is passed to the % operator as a dictionary
 with the keys "width" and "height". The resulting string is
 eval()uated and it's result is used for the attribute. So to make
 an image twice as wide and high do the following:
-	<img src="foo.png" width="%(width)d*2" height="%(height)d*2"/>
+<programlisting>
+&lt;img src="foo.png" width="%(width)d*2" height="%(height)d*2"/&gt;
+</programlisting>
 
-Embedding Python code
-=====================
-It's possible to embed Python code into XIST XML files. For this
-XIST support two new processing instruction targets: xsc:exec and
-xsc:eval. The content of xsc:exec will be executed when the processing
-instruction node is instantiated, i.e. when the XML file is parsed,
-so anything you do there will be available afterwards.
+<dbl:section><dbl:title>Embedding Python code</dbl:title>
+<para>It's possible to embed Python code into &xist; &xml; files. For this
+&xist; supports two new processing instruction targets: <markup>xsc:exec</markup> 
+and <markup>xsc:eval</markup>. The content of <markup>xsc:exec</markup> will be 
+executed when the processing instruction node is instantiated, i.e. when the 
+&xml; file is parsed, so anything you do there will be available afterwards.</para>
 
-The result of a call to convert() for a xsc:eval processing instruction
-is whatever the Python code in the content returns. For example, consider
-the following XML file:
-	<?xsc:exec
+<para>The result of a call to <function>convert</function> for a <markup>xsc:eval</markup> 
+processing instruction is whatever the Python code in the content returns. 
+For example, consider the following &xml; file:
+<programlisting>
+&lt;?xsc:exec
 	# sum
 	def gauss(top=100):
 		sum = 0
 		for i in xrange(top+1):
 			sum += i
 		return sum
-	?>
-	<b><?xsc:eval return gauss()?></b>
-Parsing this file and converting it to HTML results in the following:
-	<b>5050</b>
+?&gt;
+&lt;b&gt;&lt;?xsc:eval return gauss()?&gt;&lt;/b&gt;
+</programlisting>
+Parsing this file and converting it to &html; results in the following:
+<programlisting>
+&lt;b&gt;5050&lt;/b&gt;
+</programlisting>
+</para>
 
-For further information see the class ProcInst and it's two derived
-classes Eval and Exec.
-
-Requirements
-============
-XSC requires Python 2.0b2.
-
-XSC uses the Python XML package for parsing XML files, so you'll
-need the Python XML package (at least 0.5.5.1)
-(available from http://pyxml.sourceforge.net/).
-
-To determine image sizes, XSC needs the Python Imaging library
-(available from http://www.pythonware.com/products/pil/).
+<para>For further information see the class <classname>ProcInst</classname> 
+and it's two derived classes <classname>Eval</classname> and <classname>Exec</classname>.</para>
+</dbl:section>
 """
 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
@@ -287,29 +323,11 @@ import os, string, types, sys, stat, urllib
 
 import Image
 
-from xml.sax import saxutils
-
-import procinst, url, presenters, publishers, errors, options, utils, helpers
+import procinst, url, presenters, publishers, converters, errors, options, utils, helpers
 
 ###
 ### helpers
 ###
-
-def nodeName(nodeClass):
-	"""
-	returns a list with the namespacename, the elementname and the emptyness of the node.
-	Note that for this to work the element has to be registered.
-	"""
-	try:
-		namespacename = nodeClass.namespace.prefix
-	except AttributeError:
-		namespacename = "xsc" # this is (hopefully) an XSC class
-	try:
-		elementname = nodeClass.name
-	except AttributeError:
-		elementname = nodeClass.__name__
-
-	return [namespacename, elementname, nodeClass.empty]
 
 def ToNode(value):
 	"""
@@ -323,17 +341,9 @@ def ToNode(value):
 	"""
 	t = type(value)
 	if t is types.InstanceType:
-		if isinstance(value, Frag):
-			l = len(value)
-			if l==1:
-				return ToNode(value[0]) # recursively try to simplify the tree
-			elif l==0:
-				return Null
-			elif isinstance(value, Attr):
+		if isinstance(value, Node):
+			if isinstance(value, Attr):
 				return Frag(*value) # repack the attribute in a fragment, and we have a valid XSC node
-			else:
-				return value
-		elif isinstance(value, Node):
 			return value
 		elif isinstance(value, url.URL):
 			return Text(value.asString())
@@ -380,7 +390,7 @@ class Node:
 		"""
 		returns an identical clone of the node and it's children.
 		"""
-		return Null
+		raise NotImplementedError("clone method not implemented in %s" % self.__class__.__name__)
 
 	def repr(self, presenter=None):
 		if presenter is None:
@@ -409,7 +419,7 @@ class Node:
 		return "".join([ "%*s %-*s %s\n" % (lenloc, line[1], lenelementno, line[2], line[3]) for line in lines ])
 
 	def present(self, presenter):
-		pass
+		raise NotImplementedError("present method not implemented in %s" % self.__class__.__name__)
 
 	def _doreprtree(self, nest, elementno, presenter):
 		# returns an array containing arrays consisting of the
@@ -433,7 +443,7 @@ class Node:
 		</pre>
 		</par>
 		"""
-		return Null
+		raise NotImplementedError("convert method not implemented in %s" % self.__class__.__name__)
 
 	def asPlainString(self):
 		"""
@@ -467,7 +477,7 @@ class Node:
 		so you can safely use HTML elements in your title elements (e.g. if your
 		title is dynamically constructed from a DOM tree.)</par>
 		"""
-		return u""
+		raise NotImplementedError("asPlainString method not implemented in %s" % self.__class__.__name__)
 
 	def asText(self, monochrome=1, squeezeBlankLines=0, lineNumbers=0, cols=80):
 		"""
@@ -537,7 +547,7 @@ class Node:
 
 		<par>The encoding and XHTML specification are taken from the <argref>publisher</argref>.</par>
 		"""
-		pass
+		raise NotImplementedError("publish method not implemented in %s" % self.__class__.__name__)
 
 	def asString(self, XHTML=None, publishPrefix=0):
 		"""
@@ -602,14 +612,14 @@ class Node:
 		<par>Note that the node has to be of type <classref>Element</classref>
 		(or a subclass of it) to match <argref>attrs</argref>.</par>
 		"""
-		return Frag()
+		raise NotImplementedError("find method not implemented in %s" % self.__class__.__name__)
 
 	def compact(self):
 		"""
 		returns a version of <self/>, where textnodes or character references that contain
 		only linefeeds are removed, i.e. potentially needless whitespace is removed.
 		"""
-		return Null
+		raise NotImplementedError("compact method not implemented in %s" % self.__class__.__name__)
 
 	def _matchesAttrs(self, attrs):
 		if attrs is None:
@@ -686,6 +696,20 @@ class Node:
 		node.startLoc = self.startLoc
 		node.endLoc = self.endLoc
 		return node
+
+	def getConverterContext(self, converter, nodeClass=None):
+		"""
+		This method is useful when some element needs
+		to keep state across a nested convert call. A
+		typical example are nested chapter/subchapter
+		elements with automatic numbering. For an example
+		see the element <classref module="xist.ns.docbooklite">section</classref>.
+		"""
+		if converter is None:
+			converter = converters.Converter()
+		if nodeClass == None:
+			nodeClass = self.__class__
+		return (converter, converter.getContext(nodeClass))
 
 class StringMixIn:
 	"""
@@ -879,7 +903,9 @@ class Frag(Node):
 	def __init__(self, *content):
 		self.__content = []
 		for child in content:
-			self.extend(child)
+			child = ToNode(child)
+			if child is not Null:
+				self.__content.append(child)
 
 	def convert(self, converter=None):
 		node = self.__class__() # virtual constructor => attributes (which are derived from Frag) will be handled correctly)
@@ -932,7 +958,7 @@ class Frag(Node):
 				node = node[subindex]
 			return node
 		else:
-			raise TypeError("index must be int, long or string not %s" % type(index).__name__)
+			raise TypeError("index must be int, long or list not %s" % type(index).__name__)
 
 	def __setitem__(self, index, value):
 		"""
@@ -1368,14 +1394,8 @@ class Element(Node):
 
 		keyword arguments and dictionaries are treated as attributes.
 		"""
-		self.content = Frag()
+		self.content = Frag(*content)
 		self.attrs = {}
-		for child in content:
-			if type(child) is types.DictionaryType:
-				for attr in child.keys():
-					self[attr] = child[attr]
-			else:
-				self.extend(child)
 		for attr in attrs.keys():
 			self[attr] = attrs[attr]
 
@@ -1411,7 +1431,7 @@ class Element(Node):
 			raise errors.EmptyElementWithContentError(self)
 
 	def convert(self, converter=None):
-		node = self.__class__() # "virtual" copy constructor
+		node = self.__class__() # "virtual" constructor
 		node.content = self.content.convert(converter)
 		for attrname in self.attrs.keys():
 			attr = self.attrs[attrname]
@@ -1421,7 +1441,7 @@ class Element(Node):
 		return self._decorateNode(node)
 
 	def clone(self):
-		node = self.__class__() # "virtual" copy constructor
+		node = self.__class__() # "virtual" constructor
 		node.content = self.content.clone() # this is faster than passing it in the constructor (no ToNode call)
 		for attr in self.attrs.keys():
 			node.attrs[attr] = self.attrs[attr].clone()
@@ -2178,7 +2198,11 @@ class Location:
 		returns a location where the line number is incremented by offset
 		(and the column number is reset to 1).
 		"""
-		return Location(sysID=self.__sysID, pubID=self.__pubID, lineNumber=self.__lineNumber+offset, columnNumber=1)
+		if offset==0:
+			columnNumber = -1
+		else:
+			columnNumber = 1
+		return Location(sysID=self.__sysID, pubID=self.__pubID, lineNumber=self.__lineNumber+offset, columnNumber=columnNumber)
 
 	def __str__(self):
 		# get and format the system ID

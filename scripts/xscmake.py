@@ -35,20 +35,26 @@ import ansistyle
 
 from xist import xsc, publishers, presenters, url, utils, converters, parsers # don't do a subpackage import here, otherwise chaos will ensue, because XIST modules will be imported twice
 
-def mapExt(ext):
-	try:
-		return {
-			"hsc": "html",
-			"shsc": "shtml",
-			"phsc": "phtml",
-			"xsc": "html",
-			"sxsc": "shtml",
-			"pxsc": "phtml",
-			"jxsc": "jsp",
-			"jxscp": "jspp"
-		}[ext]
-	except KeyError:
-		return "html"
+extMapping = (
+	(".hsc", ".html"),
+	(".shsc", ".shtml"),
+	(".phsc", ".phtml"),
+	(".xsc", ".html"),
+	(".sxsc", ".shtml"),
+	(".pxsc", ".phtml"),
+	(".jxsc", ".jsp"),
+	(".jxscp", ".jspp")
+)
+
+def mapExt(file):
+	for (extin, extout) in extMapping:
+		if file.endswith(extin):
+			return file[:-len(extin)] + extout
+	pos = file.rfind(".")
+	if pos != -1:
+		return file[:pos] + ".html"
+	else:
+		return file + ".html"
 
 def make(args):
 	"""
@@ -105,20 +111,17 @@ def make(args):
 			outname = globaloutname.clone()
 			if not outname.file:
 				outname += inname
+			outname.file = mapExt(inname.file)
 			if not outname.file:
-				outname.file = "noname"
-			try:
-				outname.ext = mapExt(inname.ext)
-			except KeyError:
-				outname.ext = "html"
-			t1 = time.clock()
+				outname.file = "noname.html"
+			t1 = time.time()
 			e_in = parsers.parseFile(inname.asString(), namespaces=namespaces)
-			t2 = time.clock()
+			t2 = time.time()
 			e_out = e_in.convert(converter)
-			t3 = time.clock()
+			t3 = time.time()
 			p = publishers.FilePublisher(utils.forceopen(outname.asPlainString(), "wb", 65536), base=outname, encoding=encoding, XHTML=XHTML)
 			e_out.publish(p)
-			t4 = time.clock()
+			t4 = time.time()
 			size = p.tell()
 			sys.stderr.write(
 				"XSC(encoding=%s; XHTML=%s; parse %ss; convert %ss; save %ss; size %s bytes): %s->%s\n" %
