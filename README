@@ -5,7 +5,7 @@ written in Python.
 
 For documentation read xist/xsc.py.
 
-The requirements for installing the package are Python 2.0b1 or
+The requirements for installing the package are Python 2.0b2 or
 later, sgmlop from the Python XML package (available from
 ftp://titan.bnbt.de/pub/livinglogic/xist/sgmlop.c or
 from http://www.pythonware.com/products/xml/
@@ -16,7 +16,7 @@ To compile everything, simply perform the following steps.
 
 1) Run "python setup.py build" to copy *.py files.
 
-2) To install everything in the site-packages directory as a xist/ package,
+2) To install everything in the site-packages directory as an xist/ package,
    run "python setup.py install".
 
 If you have difficulties installing this software, send a problem report

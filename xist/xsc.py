@@ -1156,7 +1156,7 @@ class Exec(PythonCode):
 	def __init__(self, content=""):
 		ProcInst.__init__(self, u"xsc-exec", content)
 		code = Code(self.content, 1)
-		exec str(code.asString()) in procinst.__dict__ # FIXME Why can't I exec a unicode object
+		exec code.asString() in procinst.__dict__ # requires Python 2.0b2
 
 	def asHTML(self):
 		return Null # has been executed at construction time already, so we don't have to do anything here
@@ -1184,7 +1184,7 @@ class Eval(PythonCode):
 	def asHTML(self):
 		code = Code(self.content, 1)
 		code.funcify()
-		exec str(code.asString()) in procinst.__dict__ # FIXME Why can't I exec a unicode object
+		exec code.asString() in procinst.__dict__ # requires Python 2.0b2
 		return ToNode(eval("__()", procinst.__dict__)).asHTML()
 
 	def clone(self):
@@ -1341,7 +1341,7 @@ class Element(Node):
 					if self.hasAttr(widthattr):
 						try:
 							s = self[widthattr].asPlainString() % sizedict
-							s = str(eval(str(s))) # FIXME eval unicode("gurk")
+							s = str(eval(s))
 							s = stringFromCode(s)
 							self[widthattr] = s
 						except TypeError: # ignore "not all argument converted"
@@ -1354,7 +1354,7 @@ class Element(Node):
 					if self.hasAttr(heightattr):
 						try:
 							s = self[heightattr].asPlainString() % sizedict
-							s = str(eval(str(s))) # FIXME eval unicode("gurk")
+							s = str(eval(s))
 							s = stringFromCode(s)
 							self[heightattr] = s
 						except TypeError: # ignore "not all argument converted"
