@@ -1826,7 +1826,7 @@ class Attrs(Node, dict):
 		"""
 		<par>return an iterator for iterating through the names of allowed attributes. <arg>xml</arg>
 		speficies whether &xml; names (<lit><arg>xml</arg>==True</lit>) or Python names
-		(<lit><arg>xml</arg>==False</lit>)i should be returned.</par>
+		(<lit><arg>xml</arg>==False</lit>) should be returned.</par>
 		"""
 		return cls._attrs[xml].iterkeys()
 	iterallowedkeys = classmethod(iterallowedkeys)
