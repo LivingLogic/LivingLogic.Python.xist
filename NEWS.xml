@@ -2,7 +2,7 @@
 <section><title>Changes in 2.0.2 (released 10/21/2002)</title>
 <ulist>
 <item>Fixed a bug in <method>Frag.__rmul__</method> (by
-reusing <method>__mul__</method>.</item>
+reusing <method>__mul__</method>).</item>
 <item>Fixed a bug with the backwards compatible prefix
 mapping: Defining element classes in <lit>exec</lit> processing
 instructions didn't work, because the prefixes object used for
