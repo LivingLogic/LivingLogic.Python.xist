@@ -331,14 +331,14 @@ class XSCText(XSCNode):
 	strescapes = { '<' : 'lt' , '>' : 'gt' , '&' : 'amp' , '"' : 'quot' , "'" : 'apos' }
 
 	def __init__(self,content = ""):
-		self.content = content
+		self.__content = content
 
 	def _doAsHTML(self):
-		return XSCText(self.content)
+		return XSCText(self.__content)
 
 	def dostr(self):
 		v = []
-		for i in self.content:
+		for i in self.__content:
 			if self.strescapes.has_key(i):
 				v.append('&' + self.strescapes[i] + ';')
 			elif ord(i)>=128:
@@ -349,7 +349,7 @@ class XSCText(XSCNode):
 
 	def _dorepr(self):
 		v = []
-		for i in self.content:
+		for i in self.__content:
 			if self.represcapes.has_key(i):
 				v.append(self.represcapes[i])
 			else:
@@ -358,7 +358,7 @@ class XSCText(XSCNode):
 
 	def _doreprtree(self,nest,elementno):
 		v = []
-		for i in self.content:
+		for i in self.__content:
 			if self.reprtreeescapes.has_key(i):
 				v.append(self.reprtreeescapes[i])
 			elif ord(i)<32:
@@ -373,30 +373,30 @@ class XSCCharRef(XSCNode):
 
 	__notdirect = { ord("&") : "amp" , ord("<") : "lt" , ord(">") : "gt", ord('"') : "quot" , ord("'") : "apos" }
 	def __init__(self,content):
-		self.content = content
+		self.__content = content
 
 	def _doAsHTML(self):
-		return XSCCharRef(self.content)
+		return XSCCharRef(self.__content)
 
 	def dostr(self):
-		if 0<=self.content<=127:
-			if self.__notdirect.has_key(self.content):
-				return '&' + self.__notdirect[self.content] + ';'
+		if 0<=self.__content<=127:
+			if self.__notdirect.has_key(self.__content):
+				return '&' + self.__notdirect[self.__content] + ';'
 			else:
-				return chr(self.content)
+				return chr(self.__content)
 		else:
-			return '&#' + str(self.content) + ';'
+			return '&#' + str(self.__content) + ';'
 
 	def _dorepr(self):
-		return '&#' + str(self.content) + ';'
+		return '&#' + str(self.__content) + ';'
 
 	def _doreprtree(self,nest,elementno):
-		s = '&#' + str(self.content) + '; (&#x' + hex(self.content)[2:] + ';'
-		for name in XSCParser.entitiesByNumber[self.content]:
+		s = '&#' + str(self.__content) + '; (&#x' + hex(self.__content)[2:] + ';'
+		for name in XSCParser.entitiesByNumber[self.__content]:
 			s = s + ' &' + name + ';'
 		s = s + ')'
-		if 0 <= self.content <= 255:
-			s = s + " " + XSCText(chr(self.content))._doreprtree(0,0)[0][-1]
+		if 0 <= self.__content <= 255:
+			s = s + " " + XSCText(chr(self.__content))._doreprtree(0,0)[0][-1]
 		return [[nest,self.startlineno,elementno,s]]
 
 class XSCFrag(XSCNode):
@@ -586,16 +586,16 @@ class XSCComment(XSCNode):
 	"""comments"""
 
 	def __init__(self,content = ""):
-		self.content = content
+		self.__content = content
 
 	def _doAsHTML(self):
-		return XSCComment(self.content)
+		return XSCComment(self.__content)
 
 	def _dorepr(self):
-		return self._strtag("!--" + self.content + "--")
+		return self._strtag("!--" + self.__content + "--")
 
 	def _doreprtree(self,nest,elementno):
-		return [[nest,self.startlineno,elementno,self._strtag("!--" + self.content + "--")]]
+		return [[nest,self.startlineno,elementno,self._strtag("!--" + self.__content + "--")]]
 
 	def dostr(self):
 		return "<!--" + self.content + "-->"
@@ -604,13 +604,13 @@ class XSCDocType(XSCNode):
 	"""document type"""
 
 	def __init__(self,content = ""):
-		self.content = content
+		self.__content = content
 
 	def _dorepr(self):
-		return self._strtag("!DOCTYPE " + self.content)
+		return self._strtag("!DOCTYPE " + self.__content)
 
 	def _doreprtree(self,nest,elementno):
-		return [[nest,self.startlineno,elementno,self._strtag("!DOCTYPE " + self.content)]]
+		return [[nest,self.startlineno,elementno,self._strtag("!DOCTYPE " + self.__content)]]
 
 	def dostr(self):
 		return "<!DOCTYPE " + self.content + ">"
@@ -619,14 +619,14 @@ class XSCProcInst(XSCNode):
 	"""processing instructions"""
 
 	def __init__(self,target,content = ""):
-		self.target = target
-		self.content = content
+		self.__target = target
+		self.__content = content
 
 	def _dorepr(self):
-		return self._strpi(self.target,self.content)
+		return self._strpi(self.__target,self.__content)
 
 	def _doreprtree(self,nest,elementno):
-		return [[nest,self.startlineno,elementno,self._strpi(self.target,self.content)]]
+		return [[nest,self.startlineno,elementno,self._strpi(self.__target,self.__content)]]
 
 	def dostr(self):
 		return "<?" + self.target + " " + self.content + "?>"
