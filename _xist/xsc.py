@@ -803,8 +803,8 @@ class CharacterData(Node):
 	def endswith(self, suffix, start=0, end=sys.maxint):
 		return self._content.endswith(helpers.unistr(suffix), start, end)
 
-	def find(self, sub, start=0, end=sys.maxint):
-		return self._content.find(helpers.unistr(sub), start, end)
+	# no find here def find(self, sub, start=0, end=sys.maxint):
+	#	return self._content.find(helpers.unistr(sub), start, end)
 
 	def index(self, sub, start=0, end=sys.maxint):
 		return self._content.index(helpers.unistr(sub), start, end)
