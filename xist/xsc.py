@@ -410,11 +410,17 @@ class Node:
 		"""
 		return u""
 
-	def asInt(self):
+	def __int__(self):
 		"""
 		returns this node converted to an integer.
 		"""
 		return int(self.asPlainString())
+
+	def asInt(self):
+		"""
+		returns this node converted to an integer.
+		"""
+		return int(self)
 
 	def asFloat(self, decimal=".", ignore=""):
 		"""
@@ -429,6 +435,12 @@ class Node:
 		if decimal != ".":
 			s = string.replace(s, decimal, ".")
 		return float(s)
+
+	def __float__(self):
+		"""
+		returns this node converted to a float.
+		"""
+		return self.asFloat()
 
 	def publish(self, publisher):
 		"""
