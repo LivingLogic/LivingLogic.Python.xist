@@ -70,7 +70,7 @@ class URL:
 		if port is not None:
 			self.port = port
 		if path is not None:
-			self.__path = map(stringFromCode,path)
+			self.__path = map(stringFromCode, path)
 		if ext is not None:
 			self.ext = ext
 		if file is not None:
@@ -338,7 +338,7 @@ class URL:
 			# url = unicode("".join(v),"ascii")
 		return url
 
-	def __join(self,other):
+	def __join(self, other):
 		if not other.scheme:
 			if len(other.__path) and self.isPathMarker(other.__path[0]):
 				for i in xrange(len(self.__path)-1):
@@ -349,8 +349,8 @@ class URL:
 					self.__path.extend(other.__path)
 			else:
 				self.__path.extend(other.__path)
-			self.file       = other.file or self.file
-			self.ext        = other.ext or self.ext
+			self.file       = other.file
+			self.ext        = other.ext
 			self.parameters = other.parameters
 			self.query      = other.query
 			self.fragment   = other.fragment
