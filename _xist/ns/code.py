@@ -135,6 +135,6 @@ class Eval(xsc.ProcInst):
 		code = Code(self.content, 1)
 		code.funcify()
 		exec code.asString() in sandbox.__dict__ # requires Python 2.0b2 (and doesn't really work)
-		return ToNode(sandbox.__(converter)).convert(converter)
+		return xsc.ToNode(sandbox.__(converter)).convert(converter)
 
 namespace = xsc.Namespace("code", "http://www.livinglogic.de/DTDs/code.dtd", vars())
