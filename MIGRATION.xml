@@ -1,10 +1,43 @@
 <section><title>Migrating to version 2.6</title>
 
-<section><title>Changes to publishing</title>
+<section><title>Changes to the publishing &api;</title>
 <par>The top level publishing method in the publisher has been
 renamed from <method>dopublication</method> to <method>publish</method>.
-The method that writes a unicode object to the output stream has
-been renamed from <method>publish</method> to <method>write</method>.</par>
+If you're using the publishing &api; directly (instead of the node methods
+<method>asBytes</method> and <method>write</method>), you'll have to
+update your code.</par>
+<par>The method that writes a unicode object to the output stream has
+been renamed from <method>publish</method> to <method>write</method>.
+This is only relevant when you've overwritten the <method>publish</method>
+method in your own node class (e.g. in &jsp; tag library directives
+or similar stuff, or for special nodes, taht publish some text literally).</par>
+</section>
+
+<section><title>Changes to the presentation &api;</title>
+<par>The presentation &api; has been changed too: The top level presentation
+method in the presenter has been renamed from <method>dopresentation</method> to
+<method>present</method>. This is only relevant, if you've written your own
+presenter, or are using the presentation &api; directly (instead of the node
+method <method>repr</method>).</par>
+</section>
+
+<section><title>Parsing &html;</title>
+<par>Parsing &html; is now done via libxml2's &html; parser, instead of using
+µTidyLib of mxTidy. You can no longer pass arguments to tidy. Only the boolean
+values of the <arg>tidy</arg> argument will be used. There are no other visible
+changes to the &api; but the result of parsing might have changed.</par>
+</section>
+
+<section><title>Removed &api;s and scripts</title>
+<par>The script <filename>xscmake.py</filename> has been removed.</par>
+
+<par>The <method>visit</method> method has been removed.</par>
+
+<par><method>ll.xist.xsc.FindOld</method> has been removed.</par>
+
+<par><class>ll.xist.ns.xml.header</class> has been renamed to
+<class>ll.xist.ns.xml.declaration</class>.</par>
+
 </section>
 
 </section>
