@@ -2081,6 +2081,7 @@ def fixattributesandmodel(element):
 
 for element in xmlns.iterelementvalues():
 	fixattributesandmodel(element)
+del dtd # don't pollute the namespace
 
 # make sure, we assigned a model to every element
 assert sum([x.model is not None for x in xmlns.iterelementvalues()]) == len(xmlns.elementvalues())
