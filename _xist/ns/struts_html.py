@@ -19,6 +19,15 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 
 from ll.xist import xsc
 
+class taglib(xsc.ProcInst):
+	"""
+	creates a standard struts taglib header
+	"""
+	needsxmlns = 1
+
+	def publish(self, publisher):
+		publisher.publish(u'<%%@ taglib uri="/WEB-INF/struts-html.tld" prefix="%s" %%>' % self.xmlprefix(publisher))
+
 class Element(xsc.Element):
 	"""
 	common base class for all the struts html elements
@@ -26,12 +35,8 @@ class Element(xsc.Element):
 	needsxmlns = 1
 	register = False
 
-class MouseElement(Element):
-	"""
-	common base class for all the struts elements which have mouse attributes
-	"""
+class PartMouseElement(Element):
 	class Attrs(Element.Attrs):
-		class accesskey(xsc.TextAttr): pass
 		class onblur(xsc.TextAttr): pass
 		class onchange(xsc.TextAttr): pass
 		class onclick(xsc.TextAttr): pass
@@ -47,16 +52,22 @@ class MouseElement(Element):
 		class onmouseup(xsc.TextAttr): pass
 		class style(xsc.TextAttr): pass
 		class styleClass(xsc.TextAttr): pass
+		class alt(xsc.TextAttr): pass
+		class altKey(xsc.TextAttr): pass
+		class title(xsc.TextAttr): pass
+		class titleKey(xsc.TextAttr): pass
+		class value(xsc.TextAttr): pass
+		class property(xsc.TextAttr): pass
+		class styleId(xsc.TextAttr): pass
+
+class MouseElement(PartMouseElement):
+	"""
+	common base class for all the struts elements which have mouse attributes
+	"""
+	class Attrs(PartMouseElement.Attrs):
+		class accesskey(xsc.TextAttr): pass
 		class tabindex(xsc.TextAttr): pass
-
-class taglib(xsc.ProcInst):
-	"""
-	creates a standard struts taglib header
-	"""
-	needsxmlns = 1
-
-	def publish(self, publisher):
-		publisher.publish(u'<%%@ taglib uri="/WEB-INF/struts-html.tld" prefix="%s" %%>' % self.xmlprefix(publisher))
+		class disabled(xsc.TextAttr): pass
 
 class base(Element):
 	"""
@@ -65,6 +76,7 @@ class base(Element):
 	empty = True
 	class Attrs(Element.Attrs):
 		class target(xsc.URLAttr): pass
+		class server(xsc.TextAttr): pass
 
 class button(MouseElement):
 	"""
@@ -72,17 +84,13 @@ class button(MouseElement):
 	"""
 	empty = False
 	class Attrs(MouseElement.Attrs):
-		class property(xsc.TextAttr): pass
-		class value(xsc.TextAttr): pass
+		class indexed(xsc.TextAttr): pass
 
 class cancel(MouseElement):
 	"""
 	a cancel button
 	"""
 	empty = False
-	class Attrs(MouseElement.Attrs):
-		class property(xsc.TextAttr): pass
-		class value(xsc.TextAttr): pass
 
 class checkbox(MouseElement):
 	"""
@@ -90,9 +98,8 @@ class checkbox(MouseElement):
 	"""
 	empty = False
 	class Attrs(MouseElement.Attrs):
+		class indexed(xsc.TextAttr): pass
 		class name(xsc.TextAttr): pass
-		class property(xsc.TextAttr): pass
-		class value(xsc.TextAttr): pass
 
 class errors(Element):
 	"""
@@ -112,10 +119,10 @@ class file(MouseElement):
 	empty = False
 	class Attrs(MouseElement.Attrs):
 		class accept(xsc.TextAttr): pass
+		class indexed(xsc.TextAttr): pass
 		class maxlength(xsc.TextAttr): pass
 		class name(xsc.TextAttr): pass
-		class property(xsc.TextAttr): pass
-		class value(xsc.TextAttr): pass
+		class size(xsc.TextAttr): pass
 
 class form(Element):
 	"""
@@ -126,6 +133,7 @@ class form(Element):
 		class action(xsc.TextAttr): pass
 		class enctype(xsc.TextAttr): pass
 		class focus(xsc.TextAttr): pass
+		class focusIndex(xsc.TextAttr): pass
 		class method(xsc.TextAttr): pass
 		class name(xsc.TextAttr): pass
 		class onreset(xsc.TextAttr): pass
@@ -133,18 +141,61 @@ class form(Element):
 		class scope(xsc.TextAttr): pass
 		class style(xsc.TextAttr): pass
 		class styleClass(xsc.TextAttr): pass
+		class styleId(xsc.TextAttr): pass
 		class target(xsc.TextAttr): pass
 		class type(xsc.TextAttr): pass
 
-class hidden(Element):
+class frame(Element):
+	"""
+	Render an HTML frame element
+	"""
+	empty = False
+	class Attrs(Element.Attrs):
+		class action(xsc.TextAttr): pass
+		class anchor(xsc.TextAttr): pass
+		class forward(xsc.TextAttr): pass
+		class frameborder(xsc.TextAttr): pass
+		class frameName(xsc.TextAttr): pass
+		class href(xsc.URLAttr): pass
+		class longdesc(xsc.TextAttr): pass
+		class marginheight(xsc.TextAttr): pass
+		class marginwidth(xsc.TextAttr): pass
+		class name(xsc.TextAttr): pass
+		class noresize(xsc.TextAttr): pass
+		class page(xsc.TextAttr): pass
+		class paramId(xsc.TextAttr): pass
+		class paramName(xsc.TextAttr): pass
+		class paramProperty(xsc.TextAttr): pass
+		class paramScope(xsc.TextAttr): pass
+		class property(xsc.TextAttr): pass
+		class scope(xsc.TextAttr): pass
+		class scrolling(xsc.TextAttr): pass
+		class style(xsc.TextAttr): pass
+		class styleClass(xsc.TextAttr): pass
+		class styleId(xsc.TextAttr): pass
+		class title(xsc.TextAttr): pass
+		class titleKey(xsc.TextAttr): pass
+		class transaction(xsc.TextAttr): pass
+
+class hidden(PartMouseElement):
 	"""
 	hidden form field
 	"""
 	empty = True
-	class Attrs(Element.Attrs):
+	class Attrs(PartMouseElement.Attrs):
+		class accesskey(xsc.TextAttr): pass
+		class indexed(xsc.TextAttr): pass
 		class name(xsc.TextAttr): pass
-		class property(xsc.TextAttr): pass
-		class value(xsc.TextAttr): pass
+		class write(xsc.TextAttr): pass
+
+class html(Element):
+	"""
+	Render a HTML html element
+	"""
+	empty = False
+	class Attrs(Element.Attrs):
+		class locale(xsc.TextAttr): pass
+		class xhtml(xsc.TextAttr): pass
 
 class image(MouseElement):
 	"""
@@ -152,15 +203,15 @@ class image(MouseElement):
 	"""
 	empty = True
 	class Attrs(MouseElement.Attrs):
-		class locale(xsc.TextAttr): pass
+		class align(xsc.TextAttr): pass
+		class border(xsc.TextAttr): pass
 		class bundle(xsc.TextAttr): pass
-		class property(xsc.TextAttr): pass
+		class indexed(xsc.TextAttr): pass
+		class locale(xsc.TextAttr): pass
+		class page(xsc.TextAttr): pass
+		class pageKey(xsc.TextAttr): pass
 		class src(xsc.TextAttr): pass
-		class style(xsc.TextAttr): pass
-		class styleClass(xsc.TextAttr): pass
-		class value(xsc.TextAttr): pass
-		class path(xsc.TextAttr): pass
-		class isKey(xsc.BoolAttr): pass
+		class srcKey(xsc.TextAttr): pass
 
 class img(Element):
 	"""
@@ -168,51 +219,119 @@ class img(Element):
 	"""
 	empty = False
 	class Attrs(Element.Attrs):
-		class accesskey(xsc.TextAttr): pass
 		class align(xsc.TextAttr): pass
 		class alt(xsc.TextAttr): pass
+		class altKey(xsc.TextAttr): pass
 		class border(xsc.TextAttr): pass
+		class bundle(xsc.TextAttr): pass
 		class height(xsc.TextAttr): pass
 		class hspace(xsc.TextAttr): pass
 		class imageName(xsc.TextAttr): pass
 		class ismap(xsc.TextAttr): pass
+		class locale(xsc.TextAttr): pass
 		class lowsrc(xsc.TextAttr): pass
 		class name(xsc.TextAttr): pass
+		class onclick(xsc.TextAttr): pass
+		class ondblclick(xsc.TextAttr): pass
 		class onkeydown(xsc.TextAttr): pass
 		class onkeypress(xsc.TextAttr): pass
 		class onkeyup(xsc.TextAttr): pass
+		class onmousedown(xsc.TextAttr): pass
+		class onmousemove(xsc.TextAttr): pass
+		class onmouseout(xsc.TextAttr): pass
+		class onmouseover(xsc.TextAttr): pass
+		class onmouseup(xsc.TextAttr): pass
 		class paramId(xsc.TextAttr): pass
 		class page(xsc.TextAttr): pass
+		class pageKey(xsc.TextAttr): pass
 		class paramName(xsc.TextAttr): pass
 		class paramProperty(xsc.TextAttr): pass
 		class paramScope(xsc.TextAttr): pass
 		class property(xsc.TextAttr): pass
 		class scope(xsc.TextAttr): pass
 		class src(xsc.TextAttr): pass
+		class srcKey(xsc.TextAttr): pass
 		class style(xsc.TextAttr): pass
 		class styleClass(xsc.TextAttr): pass
+		class styleId(xsc.TextAttr): pass
+		class title(xsc.TextAttr): pass
+		class titleKey(xsc.TextAttr): pass
 		class usemap(xsc.TextAttr): pass
 		class vspace(xsc.TextAttr): pass
 		class width(xsc.TextAttr): pass
 
-class link(MouseElement):
+class javascript(Element):
+	"""
+	Render JavaScript validation based on the validation rules loaded by the ValidatorPlugIn.
+	"""
+	empty = True
+	class Attrs(Element.Attrs):
+		class cdata(xsc.TextAttr): pass
+		class dynamicJavascript(xsc.TextAttr): pass
+		class formName(xsc.TextAttr): pass
+		class method(xsc.TextAttr): pass
+		class page(xsc.TextAttr): pass
+		class src(xsc.TextAttr): pass
+		class staticJavascript(xsc.TextAttr): pass
+		class htmlComment(xsc.TextAttr): pass
+
+class link(Element):
 	"""
 	html link
 	"""
 	empty = False
-	class Attrs(MouseElement.Attrs):
+	class Attrs(Element.Attrs):
+		class accesskey(xsc.TextAttr): pass
+		class action(xsc.TextAttr): pass
+		class anchor(xsc.TextAttr): pass
 		class forward(xsc.TextAttr): pass
 		class href(xsc.URLAttr): pass
+		class indexed(xsc.TextAttr): pass
+		class indexId(xsc.TextAttr): pass
 		class linkName(xsc.TextAttr): pass
 		class name(xsc.TextAttr): pass
-		class paramId(xsc.TextAttr): pass
+		class onblur(xsc.TextAttr): pass
+		class onclick(xsc.TextAttr): pass
+		class ondblclick(xsc.TextAttr): pass
+		class onfocus(xsc.TextAttr): pass
+		class onkeydown(xsc.TextAttr): pass
+		class onkeypress(xsc.TextAttr): pass
+		class onkeyup(xsc.TextAttr): pass
+		class onmousedown(xsc.TextAttr): pass
+		class onmousemove(xsc.TextAttr): pass
+		class onmouseout(xsc.TextAttr): pass
+		class onmouseover(xsc.TextAttr): pass
+		class onmouseup(xsc.TextAttr): pass
 		class page(xsc.TextAttr): pass
+		class paramId(xsc.TextAttr): pass
 		class paramName(xsc.TextAttr): pass
 		class paramProperty(xsc.TextAttr): pass
 		class paramScope(xsc.TextAttr): pass
 		class property(xsc.TextAttr): pass
 		class scope(xsc.TextAttr): pass
+		class style(xsc.TextAttr): pass
+		class styleClass(xsc.TextAttr): pass
+		class styleId(xsc.TextAttr): pass
+		class tabindex(xsc.TextAttr): pass
 		class target(xsc.TextAttr): pass
+		class title(xsc.TextAttr): pass
+		class titleKey(xsc.TextAttr): pass
+		class transaction(xsc.TextAttr): pass
+
+class messages(Element):
+	"""
+	Conditionally display a set of accumulated messages.
+	"""
+	empty = False
+	class Attrs(Element.Attrs):
+		class id(xsc.TextAttr): pass
+		class bundle(xsc.TextAttr): pass
+		class locale(xsc.TextAttr): pass
+		class name(xsc.TextAttr): pass
+		class property(xsc.TextAttr): pass
+		class header(xsc.TextAttr): pass
+		class footer(xsc.TextAttr): pass
+		class message(xsc.TextAttr): pass
 
 class multibox(MouseElement):
 	"""
@@ -221,8 +340,6 @@ class multibox(MouseElement):
 	empty = False
 	class Attrs(MouseElement.Attrs):
 		class name(xsc.TextAttr): pass
-		class property(xsc.TextAttr): pass
-		class value(xsc.TextAttr): pass
 
 class option(Element):
 	"""
@@ -238,11 +355,43 @@ class options(Element):
 	"""
 	empty = True
 	class Attrs(Element.Attrs):
+		class bundle(xsc.TextAttr): pass
+		class disabled(xsc.TextAttr): pass
+		class key(xsc.TextAttr): pass
+		class locale(xsc.TextAttr): pass
+		class style(xsc.TextAttr): pass
+		class styleId(xsc.TextAttr): pass
+		class styleClass(xsc.TextAttr): pass
+		class value(xsc.TextAttr): pass
+
+class options(Element):
+	"""
+	Render a collection of select options
+	"""
+	empty = True
+	class Attrs(Element.Attrs):
 		class collection(xsc.TextAttr): pass
+		class filter(xsc.TextAttr): pass
 		class labelName(xsc.TextAttr): pass
 		class labelProperty(xsc.TextAttr): pass
 		class name(xsc.TextAttr): pass
 		class property(xsc.TextAttr): pass
+		class style(xsc.TextAttr): pass
+		class styleClass(xsc.TextAttr): pass
+
+class optionsCollection(Element):
+	"""
+	Render a collection of select options
+	"""
+	empty = True
+	class Attrs(Element.Attrs):
+		class filter(xsc.TextAttr): pass
+		class label(xsc.TextAttr): pass
+		class name(xsc.TextAttr): pass
+		class property(xsc.TextAttr): pass
+		class style(xsc.TextAttr): pass
+		class styleClass(xsc.TextAttr): pass
+		class value(xsc.TextAttr): pass
 
 class password(MouseElement):
 	"""
@@ -250,64 +399,59 @@ class password(MouseElement):
 	"""
 	empty = False
 	class Attrs(MouseElement.Attrs):
+		class indexed(xsc.TextAttr): pass
 		class maxlength(xsc.TextAttr): pass
 		class name(xsc.TextAttr): pass
-		class property(xsc.TextAttr): pass
+		class readonly(xsc.TextAttr): pass
+		class redisplay(xsc.TextAttr): pass
 		class size(xsc.TextAttr): pass
-		class value(xsc.TextAttr): pass
 
-class radio(Element):
+class radio(MouseElement):
 	"""
 	html input radio
 	"""
-	class Attrs(Element.Attrs):
-		class accesskey(xsc.TextAttr): pass
+	class Attrs(MouseElement.Attrs):
+		class indexed(xsc.TextAttr): pass
 		class name(xsc.TextAttr): pass
-		class onblur(xsc.TextAttr): pass
-		class onchange(xsc.TextAttr): pass
-		class onclick(xsc.TextAttr): pass
-		class ondblclick(xsc.TextAttr): pass
-		class onfocus(xsc.TextAttr): pass
-		class onkeydown(xsc.TextAttr): pass
-		class onkeypress(xsc.TextAttr): pass
-		class onkeyup(xsc.TextAttr): pass
-		class onmousedown(xsc.TextAttr): pass
-		class property(xsc.TextAttr): pass
-		class value(xsc.TextAttr): pass
+		class idName(xsc.TextAttr): pass
 
 class reset(MouseElement):
 	"""
 	a reset button
 	"""
 	empty = False
-	class Attrs(MouseElement.Attrs):
-		class style(xsc.TextAttr): pass
-		class styleClass(xsc.TextAttr): pass
 
 class rewrite(Element):
 	"""
 	render a request uri like html link
 	"""
 	empty = False
-	class Attrs(MouseElement.Attrs):
+	class Attrs(Element.Attrs):
+		class anchor(xsc.TextAttr): pass
 		class forward(xsc.TextAttr): pass
 		class href(xsc.URLAttr): pass
 		class name(xsc.TextAttr): pass
 		class page(xsc.TextAttr): pass
+		class paramId(xsc.TextAttr): pass
+		class paramName(xsc.TextAttr): pass
+		class paramProperty(xsc.TextAttr): pass
+		class paramScope(xsc.TextAttr): pass
 		class property(xsc.TextAttr): pass
 		class scope(xsc.TextAttr): pass
+		class transaction(xsc.TextAttr): pass
 
-class select(MouseElement):
+class select(PartMouseElement):
 	"""
 	a select element text input field
 	"""
 	empty = False
-	class Attrs(MouseElement.Attrs):
-		class multiple(xsc.BoolAttr): pass
+	class Attrs(PartMouseElement.Attrs):
+		class disabled(xsc.TextAttr): pass
+		class indexed(xsc.TextAttr): pass
+		class multiple(xsc.TextAttr): pass
 		class name(xsc.TextAttr): pass
-		class property(xsc.TextAttr): pass
+		class tabindex(xsc.TextAttr): pass
 		class size(xsc.TextAttr): pass
-		class value(xsc.TextAttr): pass
 
 class submit(MouseElement):
 	"""
@@ -315,8 +459,7 @@ class submit(MouseElement):
 	"""
 	empty = False
 	class Attrs(MouseElement.Attrs):
-		class property(xsc.TextAttr): pass
-		class value(xsc.TextAttr): pass
+		class indexed(xsc.TextAttr): pass
 
 class text(MouseElement):
 	"""
@@ -324,11 +467,11 @@ class text(MouseElement):
 	"""
 	empty = False
 	class Attrs(MouseElement.Attrs):
+		class indexed(xsc.TextAttr): pass
 		class maxlength(xsc.TextAttr): pass
 		class name(xsc.TextAttr): pass
-		class property(xsc.TextAttr): pass
+		class readonly(xsc.TextAttr): pass
 		class size(xsc.TextAttr): pass
-		class value(xsc.TextAttr): pass
 
 class textarea(MouseElement):
 	"""
@@ -337,14 +480,19 @@ class textarea(MouseElement):
 	empty = False
 	class Attrs(MouseElement.Attrs):
 		class cols(xsc.TextAttr): pass
+		class indexed(xsc.TextAttr): pass
 		class name(xsc.TextAttr): pass
-		class property(xsc.TextAttr): pass
+		class readonly(xsc.TextAttr): pass
 		class rows(xsc.TextAttr): pass
-		class wrap(xsc.TextAttr): pass
-		class value(xsc.TextAttr): pass
+
+class xhtml(Element):
+	"""
+	Render HTML tags as XHTML
+	"""
+	empty = True
 
 class xmlns(xsc.Namespace):
 	xmlname = "struts_html"
-	xmlurl = "http://jakarta.apache.org/struts/tags-html-1.0"
+	xmlurl = "http://jakarta.apache.org/struts/tags-html"
 xmlns.makemod(vars())
 

@@ -2,14 +2,14 @@
 <section><title>Changes in ??? (released ??/??/2003)</title>
 <ulist>
 <item>It's now possible to parse &xml; without generating location
-information for each node, by passing <lit>loc=False/<lit> to
+information for each node, by passing <lit>loc=False</lit> to
 the constructor of the <class>Handler</class>.</item>
 <item>The <class>HTMLParser</class> no longer complains about
 global attributes or <lit>xmlns</lit>.</item>
-<item>&ixst; now supports <app moreinfo="http://utidylib.sf.net/">&micro;Tidylib</app>
+<item>&xist; now supports <app moreinfo="http://utidylib.sf.net/">&micro;Tidylib</app>
 in addition to <app>mxTidy</app>. If <app>&micro;Tidylib</app> is found
 it is preferred over <app>mxTidy</app>.</item>
-<item>It's possible now to pass arguments to tidy, simple by
+<item>It's possible now to pass arguments to tidy simple by
 passing an argument dictionary for the <arg>tidy</arg> argument
 in the parsing functions.</item>
 </ulist>
@@ -326,6 +326,14 @@ This is used for the new class <class>StyleAttr</class>, which uses the
 found in a style attribute.</item>
 <item>The pixel images have been moved to the directory <dirname>px</dirname>
 to make image &url;s shorter.</item>
+</ulist>
+</section>
+
+<section><title>Changes in 1.6.1 (released 08/25/2003)</title>
+<ulist>
+<item>Updated to work with newer versions of <module>ll.ansistyle</module>.</item>
+<item>Updated the namespaces <module>ll.xist.ns.struts_html</module> and
+<module>ll.xist.ns.struts_config11</module> to the state of Struts 1.1 final.</item>
 </ulist>
 </section>
 
