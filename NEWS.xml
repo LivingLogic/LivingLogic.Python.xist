@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
-<section><title>Changes in CVS (released ??/??/2001)</title>
+<section><title>Changes in 1.3 (released 02/12/2001)</title>
 <ulist>
 <item>Ported to Python 2.2. <class>Node</class> is now derived from
 <class>object</class>, <class>Frag</class> from <class>list</class> and
