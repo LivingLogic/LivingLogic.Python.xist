@@ -381,7 +381,10 @@ class XSCCharRef(XSCNode):
 		return '&#' + str(self.content) + ';'
 
 	def _doreprtree(self,nest,elementno):
-		s = '&#' + str(self.content) + '; (&#x' + hex(self.content)[2:] + ';)'
+		s = '&#' + str(self.content) + '; (&#x' + hex(self.content)[2:] + ';'
+		for name in XSCParser.entitiesByNumber[self.content]:
+			s = s + ' &' + name + ';'
+		s = s + ')'
 		if 0 <= self.content <= 255:
 			s = s + " " + XSCText(chr(self.content))._doreprtree(0,0)[0][-1]
 		return [[nest,self.startlineno,elementno,s]]
@@ -760,7 +763,10 @@ RegisterElement("url",XSCurl)
 ###
 
 class XSCParser(xmllib.XMLParser):
-	entitiesByNumber = [ None ] * 65536
+	entitiesByNumber = [ ]
+
+	for i in xrange(65536):
+		entitiesByNumber.append([])
 
 	entitiesByName = {}
 
