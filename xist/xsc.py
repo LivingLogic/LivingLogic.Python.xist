@@ -1869,11 +1869,13 @@ def make():
 				outname.ext = { "hsc" : "html" , "shsc" : "shtml" , "phsc" : "phtml" , "xsc" : "html" , "sxsc" : "shtml" , "pxsc" : "phtml"}[inname.ext]
 			except KeyError:
 				outname.ext = "html"
-			sys.stderr.write('XSC: converting "' + str(inname) + '"' + ' to "' + str(outname) + '"...\n')
+			sys.stderr.write('XSC: converting "' + str(inname) + '"' + ' to "' + str(outname) + '"...')
 			e_in = xsc.parse(inname)
 			xsc.pushName(inname)
 			e_out = e_in.asHTML()
-			__forceopen(str(outname),"wb").write(e_out.asString())
+			s_out = e_out.asString()
+			__forceopen(str(outname),"wb").write(s_out)
+			sys.stderr.write(" " + str(len(s_out) + "\n")
 			xsc.popName()
 	else:
 		sys.stderr.write("XSC: no files to convert.\n")
