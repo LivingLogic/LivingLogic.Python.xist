@@ -20,7 +20,8 @@
 ## IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 """
-Contains everthing related to options in XIST.
+Contains everthing related to options in XIST (apart for syntax highlighting
+which can be found in presenters.py).
 """
 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
