@@ -704,8 +704,8 @@ class Node:
 			def asPlainString(self):
 				return string.upper(self.content.asPlainString())
 
-		E.g. asPlainString might be used the construct a title element
-		for a page for a part of the content of the page.
+		E.g. asPlainString might be used to construct a title element
+		for a page from a part of the content of the page.
 		"""
 		return ""
 
