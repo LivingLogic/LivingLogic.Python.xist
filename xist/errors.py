@@ -96,7 +96,7 @@ class AttributeNotFoundError(Error):
 	def __str__(self):
 		attrs = self.element.attrs.keys();
 
-		s = Error.__str__(self) + "Attribute " + strAttrName(self.attr) + " not found in element " + xsc._strNode(self.element.__class__) +". "
+		s = Error.__str__(self) + "Attribute " + xsc.strAttrName(self.attr) + " not found in element " + xsc._strNode(self.element.__class__) +". "
 
 		if len(attrs):
 			attrs.sort()
