@@ -447,51 +447,17 @@ RegisterElement("url",XSCurl)
 ###
 ###
 
-class XSC:
-	# protocol string that will be recognised as being remote files, where no path translation takes place
-	protocols = [ "http" , "ftp" ]
-
-	def __init__(self):
-		self.filename = ""
-		self.server = "localhost"
-		self.retrieveremote = 1
-
-	def __repr__(self):
-		return '<xsc filename="' + self.filename + '" server="' + self.server + '" retrieveremote=' + [ 'no' , 'yes' ][self.retrieveremote] + '>'
-
-	def is_remote(self,url):
-		for protocol in self.protocols:
-			test = protocol + "://"
-			if test == url[:len(test)]: # this is a complete URL so we don't have to do any translation
-				return 1
-		else:
-			return 0
-
-xsc = XSC()
-
-###
-###
-###
-
 class XSCParser(xmllib.XMLParser):
 	"Reads a XML file and constructs an XSC tree from it."
 
 	def __init__(self):
 		xmllib.XMLParser.__init__(self)
+		self.reset()
+
+	def reset(self):
+		xmllib.XMLParser.reset(self)
 		self.nesting = [ XSCFrag() ] # our nodes do not have a parent link, therefore we have to store the active path through the tree in a stack (which we call nesting, because stack is already used by the base class
 		self.root = self.nesting[0]
-
-	def parsefile(self,filename):
-		xsc.filename = filename
-		self.feed(open(filename).read())
-		self.close()
-		return self.root
-
-	def parsestring(self,filename,string):
-		xsc.filename = filename
-		self.feed(string)
-		self.close()
-		return self.root
 
 	def processingInstruction(self,target,remainder):
 		pass
@@ -514,13 +480,45 @@ class XSCParser(xmllib.XMLParser):
 	def handle_comment(self,comment):
 		self.nesting[-1].append(XSCComment(comment))
 
-def xsc_parsefile(filename):
-	"Reads and parses a XML file and returns the resulting XSC"
-	xsc = XSCParser()
-	return xsc.parsefile(filename)
+###
+###
+###
 
-def xsc_parsestring(filename,string):
-	"parses a string and returns the resulting XSC"
-	xsc = XSCParser()
-	return xsc.parsestring(filename,string)
+class XSC:
+	# protocol string that will be recognised as being remote files, where no path translation takes place
+	protocols = [ "http" , "ftp" ]
+
+	def __init__(self):
+		self.filename = ""
+		self.server = "localhost"
+		self.retrieveremote = 1
+		self.__parser = XSCParser()
+
+	def parsefile(self,filename):
+		"Reads and parses a XML file and returns the resulting XSC"
+		self.filename = filename
+		self.__parser.feed(open(filename).read())
+		self.__parser.close()
+		return self.__parser.root
+
+	def parsestring(self,filename,string):
+		"Parses a string and returns the resulting XSC"
+		self.filename = filename
+		self.__parser.feed(string)
+		self.__parser.close()
+		return self.__parser.root
+
+	def __repr__(self):
+		return '<xsc filename="' + self.filename + '" server="' + self.server + '" retrieveremote=' + [ 'no' , 'yes' ][self.retrieveremote] + '>'
+
+	def is_remote(self,url):
+		for protocol in self.protocols:
+			test = protocol + "://"
+			if test == url[:len(test)]: # this is a complete URL so we don't have to do any translation
+				return 1
+		else:
+			return 0
+
+xsc = XSC()
+
 
