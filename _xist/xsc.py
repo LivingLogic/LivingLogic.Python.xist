@@ -1753,6 +1753,9 @@ class Attrs(Node, dict):
 	def __len__(self):
 		return len(self.keys())
 
+	def __contains__(self, key):
+		return key in self.keys()
+
 	def iterkeys(self):
 		return iter(self.keys())
 
