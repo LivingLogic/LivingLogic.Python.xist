@@ -14,7 +14,7 @@ class scriptlet(xsc.ProcInst):
 	will be published as <% data %>
 	"""
 	def __init__(self, content=u""):
-		xsc.ProcInst.__init__(self, u"jsp-scriptlet", content)
+		xsc.ProcInst.__init__(self, u"scriptlet", content)
 
 	def publish(self, publisher):
 		publisher.publish(u"<% ")
@@ -27,7 +27,7 @@ class expression(xsc.ProcInst):
 	"""
 
 	def __init__(self, content=u""):
-		xsc.ProcInst.__init__(self, u"jsp-expression", content)
+		xsc.ProcInst.__init__(self, u"expression", content)
 
 	def publish(self, publisher):
 		publisher.publish(u"<%= ")
@@ -40,7 +40,7 @@ class declaration(xsc.ProcInst):
 	"""
 
 	def __init__(self, content=u""):
-		xsc.ProcInst.__init__(self, u"jsp-declaration", content)
+		xsc.ProcInst.__init__(self, u"declaration", content)
 
 	def publish(self, publisher):
 		publisher.publish(u"<%! ")
