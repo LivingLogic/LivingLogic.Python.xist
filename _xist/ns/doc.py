@@ -309,30 +309,27 @@ class section(block):
 			context.numbers[-1] += 1
 			context.numbers.append(0) # for numbering the subsections
 			ts = xsc.Frag()
-			cs = xsc.Frag()
+			cs = target.div(class_=self.attrs.get("role", "section"))
 			for child in self:
 				if isinstance(child, title):
 					ts.append(child)
 				else:
 					cs.append(child)
 			e = xsc.Frag()
+			if self.attrs.has("id"):
+				e.append(target.a(name=self["id"], id=self["id"]))
+			try:
+				hclass = target.element("h%d" % (len(context.numbers)-1))
+			except LookupError: # ouch, we're nested to deep (a getter in a property in a class in a class)
+				hclass = target.h6
 			for t in ts:
-				try:
-					hclass = target.element("h%d" % (len(context.numbers)-1))
-				except LookupError: # ouch, we're nested to deep (a getter in a property in a class in a class)
-					hclass = target.h6
-				if self.attrs.has("id"):
-					e.append(target.a(name=self["id"], id=self["id"]))
 				h = hclass(class_=self["role"])
 				if issubclass(target, text):
 					h.append(target.br(), t.content, target.br(), "="*len(unicode(t.content.convert(converter))))
 				else:
 					h.append(t.content)
 				e.append(h)
-			if self.attrs.has("role"):
-				e.append(target.div(cs, class_=self["role"]))
-			else:
-				e.append(cs)
+			e.append(cs)
 			# make sure to call the inner convert, because popping the number off of the stack
 			e = e.convert(converter)
 			del context.numbers[-1]
