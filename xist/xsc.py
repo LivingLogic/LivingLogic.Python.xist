@@ -92,7 +92,7 @@ def ToNode(value):
 	elif type(value) in [ types.NoneType,types.IntType,types.LongType,types.FloatType ] :
 		return XSCText(str(value))
 	elif type(value) in [ types.ListType,types.TupleType ]:
-		v = XSCDocumentFragment()
+		v = XSCFrag()
 		for i in value:
 			v.append(ToNode(i))
 		return v
