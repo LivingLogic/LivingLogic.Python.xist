@@ -152,14 +152,10 @@ be combined into the following:
 
 Automatic generation of image size attributes
 =============================================
-Most elements from the html module (i.e. the HTML
-"tags") don't do anything fancy in their own asHTML()
-member (They only call asHTML() recursively for their
-own content).
-
-The img element is one exception. Its asHTML() method
-determines the size of the image and sets the HEIGHT
-and WIDTH attribute accordingly.
+The module special contains an element autoimg, that is an
+extension to html.img. When converted to HTML via the asHTML()
+method the size of the image will be determined and the HEIGHT
+and WIDTH attributes will be set accordingly.
 
 This is not the whole truth. When the WIDTH or HEIGHT attribute
 is already specified, the following happens:
@@ -182,6 +178,7 @@ The result of a call to asHTML() for a xsc-eval processing instruction
 is whatever the Python code in the content returns. For example, consider
 the following XML file:
 	<?xsc-exec
+	# sum
 	def gauss(top = 100):
 		sum = 0
 		for i in xrange(top+1):
@@ -192,18 +189,20 @@ the following XML file:
 Parsing this file and converting it to HTML results in the following:
 	<b>5050</b>
 
-For further information see the class ProcInst.
+For further information see the class ProcInst and it's two derived
+classes Eval and Exec.
 
 Requirements
 ============
-XSC requires Python 1.5.2.
+XSC requires Python 2.0b1.
 
 XSC uses sgmlop for parsing XML files, so you either need the
 Python XML package (at least 0.5.5.1), or a standalone version
-of sgmlop (not tested; available from
-http://www.pythonware.com/products/xml/index.htm)
+of sgmlop (available from http://www.pythonware.com/products/xml/
+or from ftp://titan.bnbt.de/pub/livinglogic/xist/)
 
-To determine image sizes, XSC needs the Python Imaging library (PIL)
+To determine image sizes, XSC needs the Python Imaging library
+(available from http://www.pythonware.com/products/pil/)
 """
 
 __version__ = "$Revision$"[11:-2]
