@@ -282,4 +282,10 @@ class ansi(xsc.Entity):
 	def asPlainString(self):
 		return u"ANSI"
 
+class jsp(xsc.Entity):
+	def convert(self, converter=None):
+		return html_.abbr("JSP", title="Java Server Pages", lang="en")
+	def asPlainString(self):
+		return u"JSP"
+
 namespace = xsc.Namespace("abbr", "http://www.livinglogic.de/DTDs/abbr.dtd", vars())
