@@ -775,49 +775,51 @@ class CodePresenter:
 		if not self.inAttr:
 			self.buffer.append("xsc.Frag")
 		self.buffer.append("(")
-		i = 0
-		self.level += 1
-		for child in node:
-			if i:
-				self.buffer.append(",")
-				if self.inAttr:
-					self.buffer.append(" ")
-			child.present(self)
-			i += 1
-		self.level -= 1
-		self._indent()
+		if len(node):
+			i = 0
+			self.level += 1
+			for child in node:
+				if i:
+					self.buffer.append(",")
+					if self.inAttr:
+						self.buffer.append(" ")
+				child.present(self)
+				i += 1
+			self.level -= 1
+			self._indent()
 		self.buffer.append(")")
 
 	def presentElement(self, node):
 		self._indent()
 		self.buffer.append("%s.%s(" % (node.__module__, xsc.className(node.__class__)))
-		i = 0
-		self.level += 1
-		for child in node:
-			if i:
-				self.buffer.append(",")
-				if self.inAttr:
-					self.buffer.append(" ")
-			child.present(self)
-			i += 1
-		for (attrname, attrvalue) in node.attrs.items():
-			if i:
-				self.buffer.append(",")
-				if self.inAttr:
-					self.buffer.append(" ")
+		if len(node) or len(node.attrs.keys()):
+			i = 0
+			self.level += 1
+			for child in node:
+				if i:
+					self.buffer.append(",")
+					if self.inAttr:
+						self.buffer.append(" ")
+				child.present(self)
+				i += 1
+			for (attrname, attrvalue) in node.attrs.items():
+				if i:
+					self.buffer.append(",")
+					if self.inAttr:
+						self.buffer.append(" ")
+				self._indent()
+				self.inAttr += 1
+				if keyword.iskeyword(attrname):
+					attrname += "_"
+				self.buffer.append("%s=" % attrname)
+				if len(attrvalue)==1: # optimize away the tuple ()
+					attrvalue[0].present(self)
+				else:
+					attrvalue.present(self)
+				self.inAttr -= 1
+				i += 1
+			self.level -= 1
 			self._indent()
-			self.inAttr += 1
-			if keyword.iskeyword(attrname):
-				attrname += "_"
-			self.buffer.append("%s=" % attrname)
-			if len(attrvalue)==1: # optimize away the tuple ()
-				attrvalue[0].present(self)
-			else:
-				attrvalue.present(self)
-			self.inAttr -= 1
-			i += 1
-		self.level -= 1
-		self._indent()
 		self.buffer.append(")")
 
 	def presentNull(self, node):
