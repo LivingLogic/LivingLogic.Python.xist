@@ -345,6 +345,13 @@ class XISTTestCase(unittest.TestCase):
 		self.assertEqual(xsc.amp.xmlprefix(), "xsc")
 
 	def test_attributes(self):
+		node = html.h1("gurk", {(xml, "lang"): "de"}, lang="de")
+		self.assert_(node.hasattr("lang"))
+		self.assert_(node.hasattr((xml, "lang")))
+		self.assert_(node.hasattr((xml.xmlns, "lang")))
+		self.assert_(node.hasattr((xml.xmlns.xmlname, "lang")))
+
+	def test_attributeswithout(self):
 		node = html.h1("gurk",
 			{(xml, "space"): 1, (xml, "lang"): "de", (xml, "base"): "http://www.livinglogic.de/"},
 			lang="de",
@@ -355,11 +362,6 @@ class XISTTestCase(unittest.TestCase):
 			id=42,
 			dir="ltr"
 		)
-		self.assert_(node.hasattr("lang"))
-		self.assert_(node.hasattr((xml, "lang")))
-		self.assert_(node.hasattr((xml.xmlns, "lang")))
-		self.assert_(node.hasattr((xml.xmlns.xmlname, "lang")))
-
 		keys = node.attrs.keys()
 		keys.sort()
 		keys.remove("lang")
@@ -375,14 +377,42 @@ class XISTTestCase(unittest.TestCase):
 
 		keys.remove((xml.xmlns, "lang"))
 		keys.remove((xml.xmlns, "base"))
-		keys3 = node.attrs.without(["lang", xml]).keys()
+		keys3 = node.attrs.without(["lang"], [xml]).keys()
 		keys3.sort()
 		self.assertEqual(keys, keys3)
 
 		# Check that non existing attrs are handled correctly
-		keys4 = node.attrs.without(["lang", "src", None]).keys()
+		keys4 = node.attrs.without(["lang", "src"], keepglobals=False).keys()
 		keys4.sort()
 		self.assertEqual(keys, keys4)
+
+	def test_attributeswith(self):
+		node = html.h1("gurk",
+			{(xml, "space"): 1, (xml, "lang"): "de"},
+			lang="de",
+			align="right"
+		)
+		keys = node.attrs.keys()
+		keys.sort()
+		keys.remove("lang")
+
+		self.assertEquals(node.attrs.with(["lang"]).keys(), ["lang"])
+
+		keys1 = node.attrs.with(["lang", "align"]).keys()
+		keys1.sort()
+		self.assertEqual(keys1, ["align", "lang"])
+
+		keys = ["lang", (xml.xmlns, "lang")]
+		keys.sort()
+		keys2 = node.attrs.with(keys).keys()
+		keys2.sort()
+		self.assertEqual(keys2, keys)
+
+		keys = ["lang", (xml.xmlns, "lang"), (xml.xmlns, "space")]
+		keys.sort()
+		keys3 = node.attrs.with(["lang"], [xml]).keys()
+		keys3.sort()
+		self.assertEqual(keys3, keys)
 
 	def test_defaultattributes(self):
 		class Test(xsc.Element):
@@ -618,6 +648,17 @@ class XISTTestCase(unittest.TestCase):
 		self.assertEquals(node.asBytes(encoding="ascii"), """&lt;&amp;'"&#255;&gt;""")
 		node = html.span(class_=s)
 		self.assertEquals(node.asBytes(encoding="ascii", xhtml=2), """<span class="&lt;&amp;'&quot;&#255;&gt;"/>""")
+
+	def test_getns(self):
+		self.assertEquals(xsc.getns("http://www.w3.org/1999/xhtml"), html.xmlns)
+		self.assertEquals(xsc.getns(html.xmlns), html.xmlns)
+		self.assertEquals(xsc.getns(html), html.xmlns)
+
+	def test_withsep(self):
+		node = xsc.Frag(1,2,3)
+		self.assertEquals(unicode(node.withsep(",")), u"1,2,3")
+		node = html.div(1,2,3)
+		self.assertEquals(unicode(node.withsep(",")), u"1,2,3")
 
 if __name__ == "__main__":
 	unittest.main()

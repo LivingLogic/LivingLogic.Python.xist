@@ -7,6 +7,17 @@ elements that describe an &xist; namespace and can be used by
 various scripts to generate skeleton namespace modules.
 The first of these script is the &dtd; to namespace converter
 <filename>dtd2xsc.py</filename>.</item>
+<item><class>Attr</class> now supports the method
+<method>filtered</method>. This is used by <method>without</method>
+now. The arguments for <method>without</method> have changed,
+because handling global attributes was too <z>magic</z>.
+A new method <method>with</method> has been added, with does
+the opposite of <method>without</method>, i.e. it removes all
+attributes that are not specified as parameters.</item>
+<item>The Python name of each <class>Node</class> subclass
+is now available as the class attribute <lit>pyname</li>.</item>
+<item>To continue the great renaming <method>withSep</method>
+has been renamed to <method>withsep</method>.</item>
 </ulist>
 </section>
 

@@ -95,12 +95,12 @@ class Base(object):
 		<par>Return the fully qualified class name (i.e. including containing
 		classes, if this class has been defined inside another one).</par>
 		"""
-		name = cls.__name__
+		name = cls.__name__.split(".")[-1]
 		while 1:
 			cls = cls.__outerclass__
 			if cls is None:
 				return name
-			name = cls.__name__ + "." + name
+			name = cls.__name__.split(".")[-1] + "." + name
 	__fullname__ = classmethod(__fullname__)
 
 class Node(Base):
@@ -124,10 +124,11 @@ class Node(Base):
 
 	class __metaclass__(Base.__metaclass__):
 		def __new__(cls, name, bases, dict):
+			dict["pyname"] = unicode(name.split(".")[-1])
 			if "xmlname" in dict:
 				dict["xmlname"] = unicode(dict["xmlname"])
 			else:
-				dict["xmlname"] = unicode(name.split(".")[-1])
+				dict["xmlname"] = dict["pyname"]
 			dict["xmlns"] = None
 			if "register" not in dict:
 				dict["register"] = True
@@ -180,7 +181,7 @@ class Node(Base):
 		elif fullname:
 			s.append(formatter(cls.__fullname__()))
 		else:
-			s.append(formatter(cls.__name__))
+			s.append(formatter(cls.pyname))
 	_strbase = classmethod(_strbase)
 
 	def clone(self):
@@ -610,6 +611,10 @@ class Node(Base):
 		"""
 		yield [self]
 
+	def withSep(self, separator, clone=False):
+		errors.warn(DeprecationWarning("withSep() is deprecated, use withsep() instead"))
+		return self.withsep(separator, clone)
+
 class CharacterData(Node):
 	"""
 	<par>base class for &xml; character data (text, proc insts, comment, doctype etc.)</par>
@@ -974,12 +979,12 @@ class Frag(Node, list):
 				list.append(node, compactedchild)
 		return self._decoratenode(node)
 
-	def withSep(self, separator, clone=0):
+	def withsep(self, separator, clone=False):
 		"""
 		<par>return a version of <self/> with a separator node between the nodes of <self/>.</par>
 
-		<par>if <lit><arg>clone</arg>==0</lit> one node will be inserted several times,
-		if <lit><arg>clone</arg>==1</lit> clones of this node will be used.</par>
+		<par>if <arg>clone</arg> is false one node will be inserted several times,
+		if <arg>clone</arg> is true clones of this node will be used.</par>
 		"""
 		node = self._create()
 		newseparator = ToNode(separator)
@@ -1551,7 +1556,7 @@ class Attrs(Node, dict):
 			for key in dir(res):
 				value = getattr(res, key)
 				if isinstance(value, type) and issubclass(value, Attr):
-					handlersByPyName[value.__name__.split(".")[-1]] = value
+					handlersByPyName[value.pyname] = value
 					handlersByXMLName[value.xmlname] = value
 			res._handlersByPyName = handlersByPyName
 			res._handlersByXMLName = handlersByXMLName
@@ -1806,22 +1811,31 @@ class Attrs(Node, dict):
 				items[key] = self[key]
 		return items.items()
 
-	def without(self, nameseq):
+	def filtered(self, function):
 		"""
-		<par>Return a copy of <self/> where all the attributes in <arg>nameseq</arg> are
-		removed. A name in <arg>nameseq</arg> that is not in <self/> will not raise
-		an exception (if it is allowed).</par>
+		returns a filtered version of the <self/>.
 		"""
 		node = self._create()
 		for (key, value) in self.items():
-			if key not in nameseq:
+			if function(value):
 				node[key] = value
-			else:
-				# make sure to hide attributes that have default values
-				attrclass = self._attrClass(key)
-				if attrclass.default:
-					node[key] = None
 		return node
+
+	def with(self, names=[]):
+		"""
+		<par>Return a copy of <self/> where only the attributes in <arg>names</arg> are
+		kept, all others are removed. A name in <arg>names</arg> that is not in <self/>
+		will not raise an exception (if it is allowed).</par>
+		"""
+		return node.filtered(lambda n: n.pyname in names)
+
+	def without(self, names=[]):
+		"""
+		<par>Return a copy of <self/> where all the attributes in <arg>names</arg> are
+		removed. A name in <arg>names</arg> that is not in <self/> will not raise
+		an exception (if it is allowed).</par>
+		"""
+		return node.filtered(lambda n: n.pyname not in names)
 
 _Attrs = Attrs
 
@@ -1915,46 +1929,54 @@ class Element(Node):
 				key = (getns(key[0]), key[1])
 			return _Attrs.__delitem__(self, key)
 
-		def without(self, nameseq):
+		def with(self, names=[], namespaces=(), keepglobals=False):
 			"""
-			<par>Return a copy of <self/> where all the attributes in <arg>nameseq</arg> are
-			removed. A name in <arg>nameseq</arg> that is not in <self/> will not raise
-			an exception (if it is allowed).</par>
-			<par>Names can be strings (<class>str</class> and <class>unicode</class>),
-			(namespace/module, string) tuples (for global attributes), namespaces/modules
-			for removing all global attributes from this namespace and <lit>None</lit>
-			for removing all global attributes.</par>
+			<par>Return a copy of <self/> where only the attributes in <arg>names</arg> are
+			kept, all others names are removed. <arg>names</arg> may contain local or
+			global names. In additional to that global attributes will be kept if the
+			namespace of the global attribute is in <arg>namespaces</arg>. If <arg>keepglobals</arg>
+			is true all global attributes will be kept.</par>
 			"""
-			node = self._create()
-			localnames = []
-			globalnames = []
-			namespaces = []
-			allglobals = 0
-			for name in nameseq:
-				if isinstance(name, (str, unicode)):
-					localnames.append(name)
-				elif isinstance(name, types.ModuleType):
-					namespaces.append(name.xmlns)
-				elif isinstance(name, Namespace):
-					namespaces.append(name)
-				elif name is None:
-					allglobals = 1
+
+			def keep(node):
+				if node.xmlns is None:
+					return node.pyname in names
 				else:
-					globalnames.append((getns(name[0]), name[1]))
-			for (key, value) in self.items():
-				if isinstance(key, (str, unicode)):
-					if key not in localnames:
-						node[key] = value
-						continue
+					return keepglobals or node.xmlns in namespaces or (node.xmlns, node.pyname) in names
+
+			newnames = []
+			for name in names:
+				if isinstance(name, tuple):
+					name = (getns(name[0]), name[1])
+				newnames.append(name)
+			names = newnames
+
+			namespaces = [ getns(name) for name in namespaces ]
+
+			return self.filtered(keep)
+
+		def without(self, names=[], namespaces=(), keepglobals=True):
+			"""
+			<par>Return a copy of <self/> where all the attributes in <arg>names</arg> are
+			removed. In additional to that a global attribute will be removed if it's
+			namespace is found in <arg>namespaces</arg> or if <arg>keepglobals</arg> is false.</par>
+			"""
+			def keep(node):
+				if node.xmlns is None:
+					return node.pyname not in names
 				else:
-					if not allglobals and key not in globalnames and key[0] not in namespaces:
-						node[key] = value
-						continue
-				# must be removed => make sure to hide attributes that have default values
-				attrclass = self._attrClass(key)
-				if attrclass.default:
-					node[key] = None
-			return node
+					return keepglobals and node.xmlns not in namespaces and (node.xmlns, node.pyname) not in names
+
+			newnames = []
+			for name in names:
+				if isinstance(name, tuple):
+					name = (getns(name[0]), name[1])
+				newnames.append(name)
+			names = newnames
+
+			namespaces = [ getns(name) for name in namespaces ]
+
+			return self.filtered(keep)
 
 	def __init__(self, *content, **attrs):
 		"""
@@ -2339,14 +2361,14 @@ class Element(Node):
 
 		self.attrs.copydefaults(fromMapping)
 
-	def withSep(self, separator, clone=0):
+	def withsep(self, separator, clone=False):
 		"""
 		<par>returns a version of <self/> with a separator node between the child nodes of <self/>.
 		for more info see <pyref class="Frag" method="withSep"><method>Frag.withSep</method></pyref>.</par>
 		"""
 		node = self.__class__()
 		node.attrs = self.attrs.clone()
-		node.content = self.content.withSep(separator, clone)
+		node.content = self.content.withsep(separator, clone)
 		return node
 
 	def sorted(self, compare=lambda node1, node2: cmp(unicode(node1), unicode(node2))):
@@ -2998,13 +3020,13 @@ class Prefixes(object):
 		qname = self.__splitqname(qname)
 		if qname[0] is None:
 			try:
-				return element.Attrs._handlersByXMLName[qname[1]].__name__
+				return element.Attrs._handlersByXMLName[qname[1]].pyname
 			except KeyError:
 				raise errors.IllegalAttrError(element.Attrs, qname[1])
 		else:
 			for ns in self.ns4prefix(qname[0]):
 				try:
-					return (ns, ns.Attrs._handlersByXMLName[qname[1]].__name__)
+					return (ns, ns.Attrs._handlersByXMLName[qname[1]].pyname)
 				except KeyError: # no attribute in this namespace with this name
 					pass
 			raise errors.IllegalAttrError(None, qname)
