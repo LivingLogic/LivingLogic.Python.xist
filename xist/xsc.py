@@ -1640,7 +1640,7 @@ def registerElement(element,namespacename,elementname = None):
 	will be skipped, and this member will be used.</par>
 	"""
 	element.namespacename = namespacename
-	if element.has_attr(elementname):
+	if hasattr(element,elementname):
 		elementname = element.elementname
 	else:
 		if elementname is None:
