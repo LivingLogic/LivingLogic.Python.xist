@@ -656,7 +656,11 @@ def explain(thing, name=None, context=[]):
 				if baseclass.__module__ == "__builtin__":
 					ref = class_(baseclass.__name__)
 				else:
-					ref = pyref(class_(baseclass.__name__), module=baseclass.__module__, class_=baseclass.__name__)
+					try:
+						baseclassname = baseclass.__fullname__()
+					except AttributeError:
+						baseclassname = baseclass.__name__
+					ref = pyref(class_(baseclass.__name__), module=baseclass.__module__, class_=baseclassname)
 					if thing.__module__ != baseclass.__module__:
 						ref.insert(0, baseclass.__module__, ".")
 				bases.append(ref)
