@@ -580,9 +580,9 @@ class Parser(object):
 			encoding = self.encoding
 		stream = cStringIO.StringIO(string)
 		if base is None:
-			base = "STRING"
+			base = url.URL("STRING")
 		if sysid is None:
-			sysid = base
+			sysid = str(base)
 		return self._parse(stream, base, sysid, encoding)
 
 	def parseURL(self, name, base=None, sysid=None, headers=None, data=None):
@@ -591,7 +591,7 @@ class Parser(object):
 		if base is None:
 			base = stream.finalurl
 		if sysid is None:
-			sysid = base
+			sysid = str(base)
 		return self._parse(stream, base, sysid, self.encoding)
 
 	def parseFile(self, name, base=None, sysid=None):
@@ -600,7 +600,7 @@ class Parser(object):
 		if base is None:
 			base = url.File(name)
 		if sysid is None:
-			sysid = base
+			sysid = str(base)
 		return self._parse(stream, base, sysid, self.encoding)
 
 	def setDocumentLocator(self, locator):
