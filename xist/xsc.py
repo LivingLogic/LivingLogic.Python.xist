@@ -899,13 +899,11 @@ class Text(Node, StringMixIn):
 					charref = 1-ascharref # this does nothing, except at the start, where it enforces the correct processing
 			if do: # process the string we have so far
 				if charref: # we've collected references so far
-					s = ""
-					for i in content[start:end]:
-						s += u'&#' + str(ord(i)) + u';'
+					s = "".join([ "&#" + str(ord(c)) + ";" for c in content[start:end]])
 					v.append(strCharRef(s, ansi))
 				else:
 					s = content[start:end]
-					v.append(strText(s, ansi))
+					v.append(strText(s.encode(Encoding), ansi))
 				charref = 1-charref # switch to the other class
 				start = end # the next string we want to work on starts from here
 			end += 1 # to the next character
