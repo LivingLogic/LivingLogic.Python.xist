@@ -56,8 +56,16 @@ class filesize(XSCElement):
 	close=1
 
 	def AsHTML(self,xsc,mode = None):
-		return FileSize(ExpandedURL(xsc.AsString(self.content)))
+		return xsc.FileSize(xsc.ExpandedURL(xsc.AsString(self.content)))
 handlers["filesize"] = filesize
+
+class x(XSCElement):
+	"content will be ignored: can be used to comment out stuff (e.g. linefeeds)"
+	close=1
+
+	def AsHTML(self,xsc,mode = None):
+		return ""
+handlers["x"] = x
 
 if __name__ == "__main__":
 	h = XSC(sys.argv[1])

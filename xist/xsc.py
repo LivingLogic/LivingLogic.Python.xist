@@ -62,29 +62,6 @@ class EHSCFileNotFound(EHSCException):
 		return "the image file '" + self.url + "' can't be opened"
 
 ###
-### functions implementing special HSC features
-###
-
-def ExpandedURL(url):
-	"expands URLs"
-
-	return url
-
-def ImageSize(url):
-	"returns the size of an image as a tuple"
-
-	try:
-		img = Image.open(url)
-		return img.size
-	except:
-		raise EHSCFileNotFound(url)
-
-def FileSize(url):
-	"returns the size of a file in bytes"
-
-	return os.stat(url)[stat.ST_SIZE]
-
-###
 ###
 ###
 
@@ -147,34 +124,6 @@ class XSCElement(XSCNode):
 			if attr not in self.permitted_attrs:
 				raise EHSCIllegalAttribute(self,attr)
 
-	def ExpandLinkAttribute(self,attr):
-		"expands the url that is the value of attr"
-
-		if self.has_attr(attr):
-			self[attr] = ExpandedURL(self[attr])
-
-	def AddImageSizeAttributes(self,imgattr,widthattr = "width",heightattr = "height"):
-		"add width and height attributes to the element for the image that can be found in the attributes imgattr. if the attribute is already there it is taken as a formating template with the size passed in as a dictionary with the keys 'width' and 'height', i.e. you could make your image twice as wide with width='%(width)d*2'"
-
-		if self.has_attr(imgattr):
-			self.ExpandLinkAttribute(imgattr)
-			size = ImageSize(self[imgattr])
-			sizedict = { "width": size[0], "height": size[1] }
-			if self.has_attr(widthattr):
-				try:
-					self[widthattr] = eval(str(self[widthattr]) % sizedict)
-				except:
-					raise EHSCImageSizeFormat(self,widthattr)
-			else:
-				self[widthattr] = size[0]
-			if self.has_attr(heightattr):
-				try:
-					self[heightattr] = eval(str(self[heightattr]) % sizedict)
-				except:
-					raise EHSCImageSizeFormat(self,heightattr)
-			else:
-				self[heightattr] = size[1]
-
 	def AsHTML(self,xsc,mode = None):
 		self.CheckAttrs()
 
@@ -217,6 +166,10 @@ class XSCElement(XSCNode):
 		return self.attrs.has_key(attr)
 
 handlers = {} # dictionary that links element names to classes
+
+###
+###
+###
 
 class XSC(XMLParser):
 	"Reads a XML file and constructs an XSC tree from it."
@@ -317,4 +270,51 @@ class XSC(XMLParser):
 
 	def __str__(self):
 		return self.AsHTML().AsString()
+
+	def ExpandedURL(self,url):
+		"expands URLs"
+
+		return url
+
+	def ImageSize(self,url):
+		"returns the size of an image as a tuple"
+
+		try:
+			img = Image.open(url)
+			return img.size
+		except:
+			raise EHSCFileNotFound(url)
+
+	def FileSize(self,url):
+		"returns the size of a file in bytes"
+
+		return os.stat(url)[stat.ST_SIZE]
+
+	def ExpandLinkAttribute(self,element,attr):
+		"expands the url that is the value of attr"
+
+		if element.has_attr(attr):
+			element[attr] = self.ExpandedURL(element[attr])
+
+	def AddImageSizeAttributes(self,element,imgattr,widthattr = "width",heightattr = "height"):
+		"add width and height attributes to the element for the image that can be found in the attributes imgattr. if the attribute is already there it is taken as a formating template with the size passed in as a dictionary with the keys 'width' and 'height', i.e. you could make your image twice as wide with width='%(width)d*2'"
+
+		if element.has_attr(imgattr):
+			self.ExpandLinkAttribute(element,imgattr)
+			size = self.ImageSize(element[imgattr])
+			sizedict = { "width": size[0], "height": size[1] }
+			if element.has_attr(widthattr):
+				try:
+					element[widthattr] = eval(str(element[widthattr]) % sizedict)
+				except:
+					raise EHSCImageSizeFormat(element,widthattr)
+			else:
+				element[widthattr] = size[0]
+			if element.has_attr(heightattr):
+				try:
+					element[heightattr] = eval(str(element[heightattr]) % sizedict)
+				except:
+					raise EHSCImageSizeFormat(element,heightattr)
+			else:
+				element[heightattr] = size[1]
 

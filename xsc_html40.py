@@ -293,7 +293,7 @@ class a(XSCElement):
 	def AsHTML(self,xsc,mode = None):	
 		e = XSCElement.AsHTML(self,xsc,mode)
 
-		e.ExpandLinkAttribute("href")
+		xsc.ExpandLinkAttribute(e,"href")
 
 		return e
 handlers["a"] = a
@@ -315,7 +315,7 @@ class img(XSCElement):
 	def AsHTML(self,xsc,mode = None):
 		e = XSCElement.AsHTML(self,xsc,mode)
 
-		e.AddImageSizeAttributes("src")
+		xsc.AddImageSizeAttributes(e,"src")
 
 		return e
 handlers["img"] = img
