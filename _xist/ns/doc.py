@@ -36,6 +36,7 @@ class block(base):
 	"""
 	Base class for all block level elements
 	"""
+	register = False
 
 class programlisting(block):
 	"""
