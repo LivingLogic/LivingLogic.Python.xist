@@ -1314,7 +1314,7 @@ class Element(Node):
 		e = Frag()
 		if attrs:
 			for attr in self.attrs.keys():
-				e = e + self[attr].content.elements(element,subtype,children,attr)
+				e = e + self[attr].elements(element,subtype,children,attr)
 		e = e + self.content.elements(element,subtype,children,attrs)
 		return e
 

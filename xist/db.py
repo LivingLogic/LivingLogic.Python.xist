@@ -130,7 +130,7 @@ class static(control):
 
 	def __str__(self):
 		if self.has_attr("value"):
-			e = self["value"].content
+			e = self["value"]
 		else:
 			e = specials.nbsp()
 
