@@ -456,6 +456,18 @@ class dtd(xsc.Entity):
 	def asPlainString(self):
 		return u"DTD"
 
+class dom(xsc.Entity):
+	def convert(self, converter=None):
+		return html_.span(html_.abbr("DOM", title="Document Object Model", lang="en"), class_="caps")
+	def asPlainString(self):
+		return u"DOM"
+
+class api(xsc.Entity):
+	def convert(self, converter=None):
+		return html_.span(html_.abbr("API", title="Application Programming Interface", lang="en"), class_="caps")
+	def asPlainString(self):
+		return u"API"
+
 class PHP(xsc.ProcInst):
 	"""
 	PHP processing instruction (must be used with a target)
