@@ -148,32 +148,48 @@ class XSCUnknownEntityError(XSCError):
 
 def URLForInput(url):
 	(scheme,server,path,parameters,query,fragment) = urlparse.urlparse(url)
-	if scheme == "" and server == "":
-		if len(path) and path[0] == "/": # this is a server relative URL, use the server specified in the options (usually localhost)
+	if scheme == "" and server == "": # do we have a local file?
+		path = string.split(path,"/")
+		if len(path) and not len(path[0]): # this is a server relative URL, use the server specified in the options (usually localhost)
 			scheme = "http"
 			server = xsc.server
+			path = string.join(path[1:],"/") # drop off the empty string that was in front of the first "/"
 		else:
-			if len(path) and path[0] == ":": # project relative, i.e. relative to the current directory
-				path = path[1:]
-			# now we have an URL that is relative to the current directory, replace URL syntax with the path syntax on our system (won't do anything under UNIX, replaces / with  \ under Windows)
-			pathsplit = string.splitfields(path,"/")
-			for i in range(len(pathsplit)):
-				if pathsplit[i] == "..":
-					pathsplit[i] = os.pardir
-			path = string.joinfields(pathsplit,os.sep)
+			file = string.split(xsc.filename,"/")
+			if len(path) and len(path[0]) and path[0][0] == ":": # project relative, i.e. relative to the current directory, make it relative to the directory of the file
+				path[0] = path[0][1:] # drop the ":"
+				path[:0] = [".."] * (len(file)-1) # go up from the file directory to the current directory
+			# now we have an URL that is relative to the file directory
+			path[:0] = file[:-1] # make it relative to the current directory by adding the diretories of file
+			# now optimize the path by removing combinations of down/up
+			while 1:
+				for i in xrange(len(path)):
+					if path[i]==".." and i>0 and path[i-1]!="..": # found a down/up
+						del path[i-1:i+1] # remove it
+						break # restart the search
+				else: # no down/up found
+					break
+			# replace URL syntax with the path syntax on our system (won't do anything under UNIX, replaces / with  \ under Windows)
+			for i in range(len(path)):
+				if path[i] == "..":
+					path[i] = os.pardir
+			path = string.join(path,os.sep)
 	return urlparse.urlunparse((scheme,server,path,parameters,query,fragment))
 
 def URLForOutput(url):
-	if len(url) and url[0] == ":":
-		# split both path
-		source = string.splitfields(xsc.filename,"/")
-		dest = string.splitfields(url[1:],os.sep)
-		# throw away identical directories in both path
-		while len(source)>1 and len(dest)>1 and source[0]==dest[0]:
-			del source[0]
-			del dest[0]
-		url = string.joinfields(([".."]*(len(source)-1)) + dest,"/")
-	return url
+	(scheme,server,path,parameters,query,fragment) = urlparse.urlparse(url)
+	if scheme == "" and server == "": # do we have a local file?
+		path = string.split(path,"/")
+		if len(path) and len(path[0]) and path[0][0] == ":":
+			path[0] = path[0][1:] # drop the ":"
+			# split the file path too
+			file = string.splitfields(xsc.filename,"/")
+			# throw away identical directories in both path
+			while len(file)>1 and len(path)>1 and file[0]==path[0]:
+				del file[0]
+				del path[0]
+			url = string.joinfields(([".."]*(len(file)-1)) + path,"/")
+	return urlparse.urlunparse((scheme,server,path,parameters,query,fragment))
 
 def FileSize(url):
 	"""returns the size of a file in bytes or -1 if the file shouldn't be read"""
@@ -199,7 +215,7 @@ def ImageSize(url):
 			if headers.has_key("content-type") and headers["content-type"][:6] == "image/":
 				img = Image.open(filename)
 				size = img.size
-			del img
+				del img
 			urllib.urlcleanup()
 		except IOError:
 			urllib.urlcleanup()
@@ -860,7 +876,7 @@ class XSCurl(XSCElement):
 		return URLForInput(self.content.dostr())
 
 	def _doreprtree(self,nest,elementno):
-		url = URLForInput(self.content.dostr())
+		url = URLForInput(self.content.dorepr())
 		return [[nest,self.startlineno,elementno,url]]
 
 	def dostr(self):
