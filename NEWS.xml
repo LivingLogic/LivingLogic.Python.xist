@@ -12,7 +12,7 @@ if <lit><rep>foo</rep></lit> is an XFind operator, <lit><rep>foo</rep>[0]</lit>
 is an operator that will produce the first node from <lit><rep>foo</rep></lit>
 (if there is one). Negative values and slices are supported too.</item>
 <item>Operators can be chained via division: <lit>html.a/html.b</lit> is an
-operator that can be applied to a node.</item>
+operator that can be passed around and applied to a node.</item>
 </ulist>
 </section>
 
