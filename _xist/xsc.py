@@ -188,7 +188,7 @@ class Node:
 
 	def asPlainString(self):
 		"""
-		<doc:par>returns this node as a (unicode) string without any character references.
+		<doc:par>returns this node as a (unicode) string.
 		Comments and processing instructions will be filtered out.
 		For elements you'll get the element content.</doc:par>
 
@@ -213,11 +213,7 @@ class Node:
 		</doc:programlisting>
 
 		<method>asPlainString</method> can be used everywhere, where
-		a plain string representation of the node is required.
-		<pyref module="xist.ns.html" class="title"><class>title</class></pyref>
-		uses this function on its content, so you can safely use &html; elements
-		in your title elements (e.g. if your title is dynamically constructed
-		from a &dom; tree.)</doc:par>
+		a plain string representation of the node is required.</doc:par>
 		"""
 		raise NotImplementedError("asPlainString method not implemented in %s" % self.__class__.__name__)
 
