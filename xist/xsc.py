@@ -690,105 +690,108 @@ RegisterElement("url",XSCurl)
 ###
 ###
 
+def RegisterEntity(name,number):
+	xmllib.XMLParser.entitydefs[name] = "&#" + str(number) + ";"
+
 class XSCParser(xmllib.XMLParser):
 	"""Reads a XML file and constructs an XSC tree from it."""
 
-	xmllib.XMLParser.entitydefs["nbsp"] = "&#160;"
-	xmllib.XMLParser.entitydefs["iexcl"] = "&#161;"
-	xmllib.XMLParser.entitydefs["cent"] = "&#162;"
-	xmllib.XMLParser.entitydefs["pound"] = "&#163;"
-	xmllib.XMLParser.entitydefs["curren"] = "&#164;"
-	xmllib.XMLParser.entitydefs["yen"] = "&#165;"
-	xmllib.XMLParser.entitydefs["brvbar"] = "&#166;"
-	xmllib.XMLParser.entitydefs["sect"] = "&#167;"
-	xmllib.XMLParser.entitydefs["die"] = "&#168;"
-	xmllib.XMLParser.entitydefs["copy"] = "&#169;"
-	xmllib.XMLParser.entitydefs["ordf"] = "&#170;"
-	xmllib.XMLParser.entitydefs["laquo"] = "&#171;"
-	xmllib.XMLParser.entitydefs["not"] = "&#172;"
-	xmllib.XMLParser.entitydefs["shy"] = "&#173;"
-	xmllib.XMLParser.entitydefs["reg"] = "&#174;"
-	xmllib.XMLParser.entitydefs["macr"] = "&#175;"
-	xmllib.XMLParser.entitydefs["deg"] = "&#176;"
-	xmllib.XMLParser.entitydefs["plusmn"] = "&#177;"
-	xmllib.XMLParser.entitydefs["sup2"] = "&#178;"
-	xmllib.XMLParser.entitydefs["sup3"] = "&#179;"
-	xmllib.XMLParser.entitydefs["acute"] = "&#180;"
-	xmllib.XMLParser.entitydefs["micro"] = "&#181;"
-	xmllib.XMLParser.entitydefs["para"] = "&#182;"
-	xmllib.XMLParser.entitydefs["middot"] = "&#183;"
-	xmllib.XMLParser.entitydefs["cedil"] = "&#184;"
-	xmllib.XMLParser.entitydefs["sup1"] = "&#185;"
-	xmllib.XMLParser.entitydefs["ordm"] = "&#186;"
-	xmllib.XMLParser.entitydefs["raquo"] = "&#187;"
-	xmllib.XMLParser.entitydefs["frac14"] = "&#188;"
-	xmllib.XMLParser.entitydefs["frac12"] = "&#189;"
-	xmllib.XMLParser.entitydefs["frac34"] = "&#190;"
-	xmllib.XMLParser.entitydefs["iquest"] = "&#191;"
-	xmllib.XMLParser.entitydefs["Agrave"] = "&#192;"
-	xmllib.XMLParser.entitydefs["Aacute"] = "&#193;"
-	xmllib.XMLParser.entitydefs["Acirc"] = "&#194;"
-	xmllib.XMLParser.entitydefs["Atilde"] = "&#195;"
-	xmllib.XMLParser.entitydefs["Auml"] = "&#196;"
-	xmllib.XMLParser.entitydefs["Aring"] = "&#197;"
-	xmllib.XMLParser.entitydefs["AElig"] = "&#198;"
-	xmllib.XMLParser.entitydefs["Ccedil"] = "&#199;"
-	xmllib.XMLParser.entitydefs["Egrave"] = "&#200;"
-	xmllib.XMLParser.entitydefs["Eacute"] = "&#201;"
-	xmllib.XMLParser.entitydefs["Ecirc"] = "&#202;"
-	xmllib.XMLParser.entitydefs["Euml"] = "&#203;"
-	xmllib.XMLParser.entitydefs["Igrave"] = "&#204;"
-	xmllib.XMLParser.entitydefs["Iacute"] = "&#205;"
-	xmllib.XMLParser.entitydefs["Icirc"] = "&#206;"
-	xmllib.XMLParser.entitydefs["Iuml"] = "&#207;"
-	xmllib.XMLParser.entitydefs["ETH"] = "&#208;"
-	xmllib.XMLParser.entitydefs["Ntilde"] = "&#209;"
-	xmllib.XMLParser.entitydefs["Ograve"] = "&#210;"
-	xmllib.XMLParser.entitydefs["Oacute"] = "&#211;"
-	xmllib.XMLParser.entitydefs["Ocirc"] = "&#212;"
-	xmllib.XMLParser.entitydefs["Otilde"] = "&#213;"
-	xmllib.XMLParser.entitydefs["Ouml"] = "&#214;"
-	xmllib.XMLParser.entitydefs["times"] = "&#215;"
-	xmllib.XMLParser.entitydefs["Oslash"] = "&#216;"
-	xmllib.XMLParser.entitydefs["Ugrave"] = "&#217;"
-	xmllib.XMLParser.entitydefs["Uacute"] = "&#218;"
-	xmllib.XMLParser.entitydefs["Ucirc"] = "&#219;"
-	xmllib.XMLParser.entitydefs["Uuml"] = "&#220;"
-	xmllib.XMLParser.entitydefs["Yacute"] = "&#221;"
-	xmllib.XMLParser.entitydefs["THORN"] = "&#222;"
-	xmllib.XMLParser.entitydefs["szlig"] = "&#223;"
-	xmllib.XMLParser.entitydefs["agrave"] = "&#224;"
-	xmllib.XMLParser.entitydefs["aacute"] = "&#225;"
-	xmllib.XMLParser.entitydefs["acirc"] = "&#226;"
-	xmllib.XMLParser.entitydefs["atilde"] = "&#227;"
-	xmllib.XMLParser.entitydefs["auml"] = "&#228;"
-	xmllib.XMLParser.entitydefs["aring"] = "&#229;"
-	xmllib.XMLParser.entitydefs["aelig"] = "&#230;"
-	xmllib.XMLParser.entitydefs["ccedil"] = "&#231;"
-	xmllib.XMLParser.entitydefs["egrave"] = "&#232;"
-	xmllib.XMLParser.entitydefs["eacute"] = "&#233;"
-	xmllib.XMLParser.entitydefs["ecirc"] = "&#234;"
-	xmllib.XMLParser.entitydefs["euml"] = "&#235;"
-	xmllib.XMLParser.entitydefs["igrave"] = "&#236;"
-	xmllib.XMLParser.entitydefs["iacute"] = "&#237;"
-	xmllib.XMLParser.entitydefs["icirc"] = "&#238;"
-	xmllib.XMLParser.entitydefs["iuml"] = "&#239;"
-	xmllib.XMLParser.entitydefs["eth"] = "&#240;"
-	xmllib.XMLParser.entitydefs["ntilde"] = "&#241;"
-	xmllib.XMLParser.entitydefs["ograve"] = "&#242;"
-	xmllib.XMLParser.entitydefs["oacute"] = "&#243;"
-	xmllib.XMLParser.entitydefs["ocirc"] = "&#244;"
-	xmllib.XMLParser.entitydefs["otilde"] = "&#245;"
-	xmllib.XMLParser.entitydefs["ouml"] = "&#246;"
-	xmllib.XMLParser.entitydefs["divide"] = "&#247;"
-	xmllib.XMLParser.entitydefs["oslash"] = "&#248;"
-	xmllib.XMLParser.entitydefs["ugrave"] = "&#249;"
-	xmllib.XMLParser.entitydefs["uacute"] = "&#250;"
-	xmllib.XMLParser.entitydefs["ucirc"] = "&#251;"
-	xmllib.XMLParser.entitydefs["uuml"] = "&#252;"
-	xmllib.XMLParser.entitydefs["yacute"] = "&#253;"
-	xmllib.XMLParser.entitydefs["thorn"] = "&#254;"
-	xmllib.XMLParser.entitydefs["yuml"] = "&#255;"
+	RegisterEntity("nbsp",160)
+	RegisterEntity("iexcl",161)
+	RegisterEntity("cent",162)
+	RegisterEntity("pound",163)
+	RegisterEntity("curren",164)
+	RegisterEntity("yen",165)
+	RegisterEntity("brvbar",166)
+	RegisterEntity("sect",167)
+	RegisterEntity("die",168)
+	RegisterEntity("copy",169)
+	RegisterEntity("ordf",170)
+	RegisterEntity("laquo",171)
+	RegisterEntity("not",172)
+	RegisterEntity("shy",173)
+	RegisterEntity("reg",174)
+	RegisterEntity("macr",175)
+	RegisterEntity("deg",176)
+	RegisterEntity("plusmn",177)
+	RegisterEntity("sup2",178)
+	RegisterEntity("sup3",179)
+	RegisterEntity("acute",180)
+	RegisterEntity("micro",181)
+	RegisterEntity("para",182)
+	RegisterEntity("middot",183)
+	RegisterEntity("cedil",184)
+	RegisterEntity("sup1",185)
+	RegisterEntity("ordm",186)
+	RegisterEntity("raquo",187)
+	RegisterEntity("frac14",188)
+	RegisterEntity("frac12",189)
+	RegisterEntity("frac34",190)
+	RegisterEntity("iquest",191)
+	RegisterEntity("Agrave",192)
+	RegisterEntity("Aacute",193)
+	RegisterEntity("Acirc",194)
+	RegisterEntity("Atilde",195)
+	RegisterEntity("Auml",196)
+	RegisterEntity("Aring",197)
+	RegisterEntity("AElig",198)
+	RegisterEntity("Ccedil",199)
+	RegisterEntity("Egrave",200)
+	RegisterEntity("Eacute",201)
+	RegisterEntity("Ecirc",202)
+	RegisterEntity("Euml",203)
+	RegisterEntity("Igrave",204)
+	RegisterEntity("Iacute",205)
+	RegisterEntity("Icirc",206)
+	RegisterEntity("Iuml",207)
+	RegisterEntity("ETH",208)
+	RegisterEntity("Ntilde",209)
+	RegisterEntity("Ograve",210)
+	RegisterEntity("Oacute",211)
+	RegisterEntity("Ocirc",212)
+	RegisterEntity("Otilde",213)
+	RegisterEntity("Ouml",214)
+	RegisterEntity("times",215)
+	RegisterEntity("Oslash",216)
+	RegisterEntity("Ugrave",217)
+	RegisterEntity("Uacute",218)
+	RegisterEntity("Ucirc",219)
+	RegisterEntity("Uuml",220)
+	RegisterEntity("Yacute",221)
+	RegisterEntity("THORN",222)
+	RegisterEntity("szlig",223)
+	RegisterEntity("agrave",224)
+	RegisterEntity("aacute",225)
+	RegisterEntity("acirc",226)
+	RegisterEntity("atilde",227)
+	RegisterEntity("auml",228)
+	RegisterEntity("aring",229)
+	RegisterEntity("aelig",230)
+	RegisterEntity("ccedil",231)
+	RegisterEntity("egrave",232)
+	RegisterEntity("eacute",233)
+	RegisterEntity("ecirc",234)
+	RegisterEntity("euml",235)
+	RegisterEntity("igrave",236)
+	RegisterEntity("iacute",237)
+	RegisterEntity("icirc",238)
+	RegisterEntity("iuml",239)
+	RegisterEntity("eth",240)
+	RegisterEntity("ntilde",241)
+	RegisterEntity("ograve",242)
+	RegisterEntity("oacute",243)
+	RegisterEntity("ocirc",244)
+	RegisterEntity("otilde",245)
+	RegisterEntity("ouml",246)
+	RegisterEntity("divide",247)
+	RegisterEntity("oslash",248)
+	RegisterEntity("ugrave",249)
+	RegisterEntity("uacute",250)
+	RegisterEntity("ucirc",251)
+	RegisterEntity("uuml",252)
+	RegisterEntity("yacute",253)
+	RegisterEntity("thorn",254)
+	RegisterEntity("yuml",255)
 
 	def __init__(self):
 		xmllib.XMLParser.__init__(self)
@@ -903,5 +906,4 @@ class XSC:
 			return 0
 
 xsc = XSC()
-
 
