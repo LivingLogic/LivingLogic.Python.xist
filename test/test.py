@@ -273,11 +273,16 @@ class XISTTest(unittest.TestCase):
 	def allnodes(self):
 		return (xsc.Null, self.createattr(), self.createattrs(), self.createelement(), self.createfrag())
 
+	def visit(self, node):
+		pass
+
 	def test_standardmethods(self):
 		for node in self.allnodes():
 			node.compact()
 			node.normalized()
-			node.find()
+			list(node.walk((True, xsc.enterattr, xsc.entercontent)))
+			node.visit((self.visit, xsc.enterattr, xsc.entercontent)))
+			node.find((True, xsc.enterattr, xsc.entercontent))
 			node.pretty()
 			node.clone()
 			node.conv()
@@ -437,15 +442,91 @@ class XISTTest(unittest.TestCase):
 				for showPath in (False, True):
 					node.repr(presenters.TreePresenter(showLocation=showLocation, showPath=showPath))
 
+	def node2str(self, node):
+		if isinstance(node, xsc.Node):
+			if isinstance(node, xsc.Text):
+				return "#"
+			else:
+				return node.xmlname[True]
+		else:
+			return ".".join(map(self.node2str, node))
+
+	def check_traverse(self, node, filter, result, filterpath=False, respath=False):
+		self.assertEqual(map(self.node2str, node.walk(filter, filterpath=filterpath, walkpath=respath)), result)
+
+		res = []
+
+		# The following class wrap a walk filter and transforms it into a visit filter that calls its own visit method
+		class VisitFilter:
+			def __init__(self, orgfilter):
+				self.orgfilter = orgfilter
+			def __call__(self, node):
+				orgres = self.orgfilter(node)
+				res = []
+				for option in orgres:
+					if isinstance(option, bool):
+						if option:
+							res.append(self.visit)
+					else:
+						res.append(option)
+				return res
+			def visit(self, node):
+				res.append(node)
+
+		node.visit(VisitFilter(filter), filterpath=filterpath, visitpath=respath)
+		self.assertEqual(map(self.node2str, res), result)
+
+	def test_traversal(self):
+		node = html.div(html.tr(html.th("gurk"), html.td("hurz"), id=html.b(42)), class_=html.i("hinz"))
+
+		def filtertopdown(node):
+			return (isinstance(node, xsc.Element), xsc.entercontent)
+		def filterbottomup(node):
+			return (xsc.entercontent, isinstance(node, xsc.Element))
+		def filtertopdownattrs(node):
+			return (isinstance(node, xsc.Element), xsc.enterattrs, xsc.entercontent)
+		def filterbottomupattrs(node):
+			return (xsc.enterattrs, xsc.entercontent, isinstance(node, xsc.Element))
+		def filtertopdowntextonlyinattr(path):
+			for node in path:
+				if isinstance(node, xsc.Attr):
+					inattr = True
+					break
+			else:
+				inattr = False
+			node = path[-1]
+			if isinstance(node, xsc.Element):
+				return (True, xsc.enterattrs, xsc.entercontent)
+			if inattr and isinstance(node, xsc.Text):
+				return (True, )
+			else:
+				return (xsc.entercontent, )
+
+		def filtertopdownattrwithoutcontent(node):
+			if isinstance(node, xsc.Element):
+				return (True, xsc.entercontent, xsc.enterattrs)
+			elif isinstance(node, (xsc.Attr, xsc.Text)):
+				return (True, )
+			else:
+				return (xsc.entercontent, )
+
+		self.check_traverse(node, filtertopdown, ["div", "tr", "th", "td"])
+		self.check_traverse(node, filterbottomup, ["th", "td", "tr", "div"])
+		self.check_traverse(node, filtertopdownattrs, ["div", "i", "tr", "b", "th", "td"])
+		self.check_traverse(node, filtertopdownattrs, ["div", "div.class.i", "div.tr", "div.tr.id.b", "div.tr.th", "div.tr.td"], respath=True)
+		self.check_traverse(node, filterbottomupattrs, ["div.class.i", "div.tr.id.b", "div.tr.th", "div.tr.td", "div.tr", "div"], respath=True)
+		self.check_traverse(node, filtertopdowntextonlyinattr, ["div", "div.class.i", "div.class.i.#", "div.tr", "div.tr.id.b", "div.tr.id.b.#", "div.tr.th", "div.tr.td"], filterpath=True, respath=True)
+		self.check_traverse(node, filtertopdownattrwithoutcontent, ["div", "div.tr", "div.tr.th", "div.tr.th.#", "div.tr.td", "div.tr.td.#", "div.tr.id", "div.class"], respath=True)
+
 	def test_walk(self):
 		node = self.createfrag()
 		def filter1(node):
-			return xsc.Found(foundstart=True, foundend=True, enter=True)
+			return (True, xsc.enterattrs, xsc.entercontent, True)
 		def filter2(path):
-			return xsc.Found(foundstart=True, foundend=True, enter=True)
+			return (True, xsc.enterattrs, xsc.entercontent, True)
 
-		list(node.walk(xsc.Found(foundstart=True, foundend=True, enter=True)))
-		list(node.walk(xsc.Found(foundstart=True, foundend=True, enter=True), walkpath=True))
+		list(node.walk((True, xsc.entercontent, True)))
+		list(node.walk((True, xsc.entercontent, True), walkpath=True))
 		list(node.walk(filter1))
 		list(node.walk(filter1, walkpath=True))
 		list(node.walk(filter2, filterpath=True))
@@ -453,18 +534,17 @@ class XISTTest(unittest.TestCase):
 
 	def test_visit(self):
 		node = self.createfrag()
-		def dummy1(node, start):
+		def dummy1(node):
 			pass
-		def dummy2(path, start):
+		def dummy2(path):
 			pass
 		def filter1(node):
-			return xsc.Found(foundstart=dummy1, foundend=dummy1, enter=True)
+			return (dummy1, xsc.enterattrs, xsc.entercontent, dummy1)
 		def filter2(path):
-			return xsc.Found(foundstart=dummy1, foundend=dummy1, enter=True)
+			return (dummy1, xsc.enterattrs, xsc.entercontent, dummy1)
 
-		node.visit(xsc.Found(foundstart=dummy1, foundend=dummy1, enter=True))
-		node.visit(xsc.Found(foundstart=dummy1, foundend=dummy1, entercontent=True, enterattrs=True))
-		node.visit(xsc.Found(foundstart=dummy2, foundend=dummy2, enter=True), visitpath=True)
+		node.visit((dummy1, xsc.enterattrs, xsc.entercontent, dummy1))
+		node.visit((dummy2, xsc.enterattrs, xsc.entercontent, dummy2), visitpath=True)
 		node.visit(filter1)
 		node.visit(filter1, visitpath=True)
 		node.visit(filter2, filterpath=True)
@@ -1373,7 +1453,7 @@ class ParseTest(unittest.TestCase):
 		)
 		prefixes = xsc.Prefixes().addElementPrefixMapping("x", ihtml)
 		node = parsers.parseString(xml, prefixes=prefixes)
-		node = node.find(type=xsc.Element, subtype=True)[0].compact() # get rid of the Frag and whitespace
+		node = node.findfirst(xsc.FindType(xsc.Element)).compact() # get rid of the Frag and whitespace
 		self.assertEquals(node, check)
 
 	def test_parseurls(self):

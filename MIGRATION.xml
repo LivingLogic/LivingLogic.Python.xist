@@ -4,14 +4,22 @@
 
 <par>The <class>Element</class> methods for accessing attributes
 have been deprecated. So instead of <lit><rep>node</rep>.hasattr("<rep>attr</rep>")</lit>,
-you should call <lit><rep>node</rep>.attrs.has("<rep>attr</rep>")</lit>.</par>
+you should use:</par>
+<programlisting>
+"<rep>attr</rep>" in <rep>node</rep>.attrs
+</programlisting>
+<par>The same holds for checking whether an attribute is allowed. You can use the following code:</par>
+<programlisting>"<rep>attr</rep>" in <rep>NodeClass</rep>.Attrs
+</programlisting>
 
 <par>Many <class>Attrs</class> methods have gained an additional parameter
 <arg>xml</arg>, which specifies, whether an attribute name should be
 treated as the &xml; or the Python name of the attribute. Make sure,
 that you're not mixing up your arguments in the function call. The
-safest method for this is using keyword arguments, e.g.
-<lit><rep>node</rep>.attr.get("<rep>attr</rep>", default=42)</lit>.</par>
+safest method for this is using keyword arguments, e.g.:</par>
+<programlisting>
+<rep>node</rep>.attr.get("<rep>attr</rep>", default=42)
+</programlisting>
 
 </section>
 
@@ -29,7 +37,7 @@ from the encoding specified in the publisher.</par>
 
 <par><class>ll.xist.htmlspecials.autoimg</class> will no longer touch existing <lit>width</lit>
 or <lit>height</lit> attributes, so e.g. setting the width to twice the image size via
-<lit>width="2*%(width)s"</lit> no longer work. You have to implement your own
+<lit>width="2*%(width)s"</lit> no longer works. You have to implement your own
 version of <class>autoimg</class> if you need this.</par>
 
 </section>

@@ -2,19 +2,19 @@
 # -*- coding: iso-8859-1 -*-
 
 from ll.xist import xsc, parsers
-from ll.xist.ns import html, htmlspecials, meta
+from ll.xist.ns import html, htmlspecials, meta, xml
 
 def nameCompare(node1, node2):
-	name1 = unicode(node1.find(type=name)[0].content)
-	name2 = unicode(node2.find(type=name)[0].content)
+	name1 = unicode(node1.content.findfirst(xsc.FindType(name)).content)
+	name2 = unicode(node2.content.findfirst(xsc.FindType(name)).content)
 	return cmp(name1, name2)
 
 class media(xsc.Element):
 	empty = False
 
 	def convert(self, converter):
-		dvds = self.content.find(type=dvd).sorted(nameCompare)
-		lds = self.content.find(type=ld).sorted(nameCompare)
+		dvds = self.content.find(xsc.FindType(dvd)).sorted(nameCompare)
+		lds = self.content.find(xsc.FindType(ld)).sorted(nameCompare)
 
 		e = xsc.Frag(
 			html.DocTypeHTML401transitional(),
@@ -40,12 +40,12 @@ class ld(xsc.Element):
 
 	def convert(self, converter):
 		e = html.li(
-			html.span(self.content.find(type=name)[0], class_="name")
+			html.span(self.content.findfirst(xsc.FindType(name)), class_="name")
 		)
-		durations = self.content.find(type=duration)
+		durations = self.content.find(xsc.FindType(duration))
 		if len(durations):
 			e.append(" (", durations[0], ")")
-		e.append(self.content.find(type=purchase))
+		e.append(self.content.find(xsc.FindType(purchase)))
 		return e.convert(converter)
 
 class dvd(xsc.Element):
@@ -53,10 +53,10 @@ class dvd(xsc.Element):
 
 	def convert(self, converter):
 		e = html.li(
-			html.span(self.content.find(type=name)[0], class_="name")
+			html.span(self.content.findfirst(xsc.FindType(name)), class_="name")
 		)
-		durations = self.content.find(type=duration)
-		rcs = self.content.find(type=rc)
+		durations = self.content.find(xsc.FindType(duration))
+		rcs = self.content.find(xsc.FindType(rc))
 		if len(durations) or len(rcs):
 			e.append(" (")
 			if len(durations):
@@ -66,7 +66,7 @@ class dvd(xsc.Element):
 			if len(rcs):
 				e.append("RC ", rcs.withSep(", "))
 			e.append(")")
-		e.append(self.content.find(type=purchase))
+		e.append(self.content.find(xsc.FindType(purchase)))
 		return e.convert(converter)
 
 class name(xsc.Element):
@@ -91,9 +91,9 @@ class purchase(xsc.Element):
 	empty = False
 
 	def convert(self, converter):
-		places = self.find(type=place)
-		dates = self.find(type=date)
-		prices = self.find(type=price)
+		places = self.content.find(xsc.FindType(place))
+		dates = self.content.find(xsc.FindType(date))
+		prices = self.content.find(xsc.FindType(price))
 
 		e = html.div(places[0], class_="purchase")
 		if len(prices):
@@ -123,6 +123,17 @@ class price(xsc.Element):
 	def convert(self, converter):
 		return xsc.Frag(self.content, " ", self["currency"]).convert(converter)
 
+class xmlns(xsc.Namespace):
+	xmlname = "media"
+	xmlurl = "http://xmlns.livinglogic.de/xist/example/media"
+xmlns.update(vars())
+
 if __name__ == "__main__":
-	parsers.parseFile("Media.xml").find(type=media).conv().write(open("Media.html","wb"))
+	prefixes = xsc.Prefixes()
+	prefixes.addPrefixMapping(None, xmlns)
+	prefixes.addPrefixMapping(None, xml)
+	node = parsers.parseFile("Media.xml", prefixes=prefixes)
+	node = node.findfirst(xsc.FindType(media))
+	node = node.conv()
+	node.write(open("Media.html","wb"))
 

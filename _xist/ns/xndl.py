@@ -345,7 +345,7 @@ class xndl(xsc.Element):
 		class url(xsc.TextAttr): default = "... insert namespace name here ..."
 
 	def asdata(self):
-		docs = self.find(type=doc)
+		docs = self.content.find(xsc.FindType(doc))
 		if len(docs):
 			docs = Doc(docs[0])
 		else:
@@ -355,7 +355,7 @@ class xndl(xsc.Element):
 			name=unicode(self["name"]),
 			doc=docs,
 			url=unicode(self["url"]) or None,
-			content=[ node.asdata() for node in self.find(type=(element, procinst, entity, charref)) ]
+			content=[ node.asdata() for node in self.content.find(xsc.FindType(element, procinst, entity, charref)) ]
 		)
 
 class doc(xsc.Element):
@@ -371,7 +371,7 @@ class element(xsc.Element):
 		class empty(xsc.BoolAttr): pass
 
 	def asdata(self):
-		docs = self.find(type=doc)
+		docs = self.content.find(xsc.FindType(doc))
 		if len(docs):
 			docs = Doc(docs[0])
 		else:
@@ -381,7 +381,7 @@ class element(xsc.Element):
 			name=unicode(self["name"]),
 			doc=docs,
 			empty=self.attrs.has("empty"),
-			attrs=[ a.asdata() for a in self.find(type=attr) ]
+			attrs=[ a.asdata() for a in self.content.find(xsc.FindType(attr)) ]
 		)
 
 class attr(xsc.Element):
@@ -395,7 +395,7 @@ class attr(xsc.Element):
 		class default(xsc.TextAttr): pass
 
 	def asdata(self):
-		docs = self.find(type=doc)
+		docs = self.content.find(xsc.FindType(doc))
 		if len(docs):
 			docs = Doc(docs[0])
 		else:
@@ -406,7 +406,7 @@ class attr(xsc.Element):
 			type=str(self["type"]),
 			required=self.attrs.has("required"),
 			default=unicode(self["default"]) or None,
-			values=[ unicode(v) for v in self.find(type=value) ]
+			values=[ unicode(v) for v in self.content.find(xsc.FindType(value)) ]
 		)
 
 class value(xsc.Element):
@@ -419,7 +419,7 @@ class procinst(xsc.Element):
 
 	def asdata(self):
 		name = unicode(self["target"])
-		docs = self.find(type=doc)
+		docs = self.content.find(xsc.FindType(doc))
 		if len(docs):
 			docs = docs[0]
 		else:
@@ -436,7 +436,7 @@ class entity(xsc.Element):
 
 	def asdata(self):
 		name = unicode(self["name"])
-		docs = self.find(type=doc)
+		docs = self.content.find(xsc.FindType(doc))
 		if len(docs):
 			docs = docs[0]
 		else:
@@ -453,7 +453,7 @@ class charref(xsc.Element):
 		class codepoint(xsc.IntAttr): required = True
 
 	def asdata(self):
-		docs = self.find(type=doc)
+		docs = self.content.find(xsc.FindType(doc))
 		if len(docs):
 			docs = docs[0]
 		else:

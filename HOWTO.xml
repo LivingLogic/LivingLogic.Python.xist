@@ -243,12 +243,12 @@ which would look like this:</par>
 
 <programlisting>
 from ll.xist import converters
+from ll.xist.ns import html
 
 node = cool(python())
 node = node.convert(
 	converters.Converter(
-		None, None,
-		"deliver", "html", None
+		None, None, "deliver", html, None
 	)
 )
 </programlisting>
@@ -274,8 +274,8 @@ query when <lit><arg>stage</arg>=="cache"</lit>. Your time display element would
 when <lit><arg>stage</arg>=="deliver"</lit> and simply returns itself when
 <lit><arg>stage</arg>=="cache"</lit>, so it would still be part of the cached &xml; tree
 and would be converted to &html; on every request.</item>
-<term><arg>target</arg></term><item><arg>target</arg> (which defaults to <lit>"html"</lit>) specifies what the output should be. Values could
-e.g. be <lit>"html"</lit>, <lit>"wml"</lit> or <lit>"docbook"</lit>.</item>
+<term><arg>target</arg></term><item><arg>target</arg> (which defaults to <pyref module="ll.xist.ns.html"><module>ll.xist.ns.html</module></pyref>) specifies what the output should be.
+Values must be <pyref module="ll.xist.xsc" class="Namespace">namespace subclasses</pyref> (see below for an explanation of namespaces).</item>
 <term><arg>lang</arg></term><item><par><arg>lang</arg> (which defaults to <lit>None</lit>) is the language in which the result tree should be.
 This can be used in the <method>convert</method> method
 to implement different conversions for different languages, e.g.:</par>
@@ -379,7 +379,7 @@ node["spam"].append("ham")
 
 <example>
 <programlisting>
-del node["spam"][0]
+del node["spam"][:]
 </programlisting>
 </example>
 
@@ -665,16 +665,16 @@ UnicodeError: ASCII encoding error: ordinal not in range(128)
 <par>Another useful parameter is <arg>xhtml</arg>,
 it specifies if you want pure &html; or &xhtml; as output:</par>
 
-<ulist>
-<item><lit>xhtml==0</lit> will give you pure &html;, i.e. no final <lit>/</lit>
+<dlist>
+<term><lit>xhtml==0</lit></term><item>This will give you pure &html;, i.e. no final <lit>/</lit>
 for elements with an empty content model, so you'll get e.g. <markup>&lt;br&gt;</markup> in the output.
 Elements that don't have an empty content model, but are empty will be published with a start and
 end tag (i.e. <markup>&lt;div&gt;&lt;/div&gt;</markup>).</item>
-<item><lit>xhtml==1</lit> gives &html; compatible &xhtml;. Elements with an empty content
+<term><lit>xhtml==1</lit></term><item>This gives &html; compatible &xhtml;. Elements with an empty content
 model will be published like this: <markup>&lt;br /&gt;</markup>.</item>
-<item><lit>xhtml==2</lit> gives full &xml; output. Every empty element will be published with
+<term><lit>xhtml==2</lit></term><item>This gives full &xml; output. Every empty element will be published with
 an empty tag (without an additional space): <markup>&lt;br/&gt;</markup> or <markup>&lt;div/&gt;</markup>.</item>
-</ulist>
+</dlist>
 <par>Writing a node to a file can be done with the method
 <pyref module="ll.xist.xsc" class="Node" method="write"><method>write</method></pyref>:</par>
 <programlisting>

@@ -28,16 +28,14 @@ class css(xsc.Element):
 	def publish(self, publisher):
 		publisher.pushErrors("cssescapereplace")
 		# publish the imports first
-		imports = self.find(type=atimport)
 		first = True
-		for i in imports:
+		for i in self.content.walk(xsc.FindType(atimport)):
 			if first:
 				first = False
 			else:
 				publisher.publish(u"\n")
 			i.publish(publisher)
-		content = self.find(type=(rule, atmedia), subtype=True)
-		for child in content:
+		for child in self.content.walk(xsc.FindType(rule, atmedia)):
 			if first:
 				first = False
 			else:
@@ -63,7 +61,7 @@ class atimport(xsc.Element):
 		publisher.publish(u'@import url("')
 		self.content.publish(publisher)
 		publisher.publish(u'")')
-		if self.attrs.has("media"):
+		if "media" in self.attrs:
 			publisher.publish(u" " + unicode(self["media"]))
 		publisher.publish(u";")
 
@@ -100,12 +98,11 @@ class atmedia(xsc.Element):
 		publisher.publish(u"@media ")
 		publisher.publish(unicode(self["media"]))
 		publisher.publish(u"\n{")
-		imports = self.find(type=atimport)
+		imports = self.content.find(xsc.FindType(atimport))
 		for i in imports:
 			publisher.publish(u"\n\t")
 			i.publish(publisher)
-		content = self.find(type=rule, subtype=True)
-		for child in content:
+		for child in self.content.walk(xsc.FindType(rule)):
 			publisher.publish(u"\n\t")
 			child.publish(publisher)
 		publisher.publish(u"\n}")
@@ -130,8 +127,8 @@ class rule(xsc.Element):
 	empty = False
 
 	def publish(self, publisher):
-		sels = self.find(type=sel)
-		props = self.find(type=prop, subtype=1)
+		sels = self.content.find(xsc.FindType(sel))
+		props = self.content.find(xsc.FindType(prop))
 
 		for i in xrange(len(sels)):
 			if i != 0:
@@ -165,7 +162,7 @@ class prop(xsc.Element):
 	def publish(self, publisher):
 		publisher.publish(u"%s: " % self.xmlname[True])
 		self.content.publish(publisher)
-		if self.attrs.has("important"):
+		if "important" in self.attrs:
 			publisher.publish(u" !important")
 		publisher.publish(u";")
 

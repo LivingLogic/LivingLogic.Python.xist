@@ -34,7 +34,7 @@ class switch(xsc.Element):
 		class var(xsc.TextAttr): pass
 
 	def convert(self, converter):
-		cases = self.find(type=case)
+		cases = self.find(xsc.FindType(case))
 
 		return xsc.Null
 

@@ -31,7 +31,7 @@ def tld2xsc(tldfilename, outfilename=None):
 	doc = parsers.parseFile(sys.argv[1])
 
 	# get and convert the tablib object
-	taglib = doc.find(type=tld.taglib)[0]
+	taglib = doc.findfirst(xsc.FindType(tld.taglib))
 	e = taglib.conv()
 	s = e.asdata().aspy()
 

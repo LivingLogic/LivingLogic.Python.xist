@@ -458,7 +458,7 @@ class item(block):
 	empty = False
 
 	def convert_docbook(self, converter):
-		if self.content.find(type=(par, list, example, programlisting), subtype=True):
+		if self.content.find(xsc.FindType(par, list, example, programlisting)):
 			content = self.content
 		else:
 			content = converter.target.para(self.content)
@@ -678,31 +678,31 @@ def getdoc(cls, thing):
 	else:
 		systemId = "DOCSTRING"
 	node = parsers.parseString(text, systemId=systemId, prefixes=xsc.DocPrefixes())
-	if not node.find(type=par): # optimization: one paragraph docstrings don't need a <par> element.
+	if not node.find(xsc.FindType(par)): # optimization: one paragraph docstrings don't need a <par> element.
 		node = cls.par(node)
 
-	refs = node.find(type=pyref, subtype=1, searchchildren=1)
+	refs = node.find(xsc.FindTypeAll(pyref))
 	if inspect.ismethod(thing):
 		for ref in refs:
-			if not ref.attrs.has("module"):
+			if "module" not in ref.attrs:
 				ref["module"] = cls._getmodulename(thing)
-				if not ref.attrs.has("class_"):
+				if "class_" not in ref.attrs:
 					ref["class_"] = thing.im_class.__name__
-					if not ref.attrs.has("method"):
+					if "method" not in ref.attrs:
 						ref["method"] = thing.__name__
 	elif inspect.isfunction(thing):
 		for ref in refs:
-			if not ref.attrs.has("module"):
+			if "module" not in ref.attrs:
 				ref["module"] = cls._getmodulename(thing)
 	elif inspect.isclass(thing):
 		for ref in refs:
-			if not ref.attrs.has("module"):
+			if "module" not in ref.attrs:
 				ref["module"] = cls._getmodulename(thing)
-				if not ref.attrs.has("class_"):
+				if "class_" not in ref.attrs:
 					ref["class_"] = thing.__name__
 	elif inspect.ismodule(thing):
 		for ref in refs:
-			if not ref.attrs.has("module"):
+			if "module" not in ref.attrs:
 				ref["module"] = thing.__name__
 	return node
 getdoc = classmethod(getdoc)

@@ -38,8 +38,8 @@ def ToNode(value):
 	Anything else raises an exception.</par>
 	"""
 	if isinstance(value, Node):
-		if isinstance(value, Attr):
-			return Frag(*value) # repack the attribute in a fragment, and we have a valid XSC node
+		#if isinstance(value, Attr):
+		#	return Frag(*value) # repack the attribute in a fragment, and we have a valid XSC node
 		return value
 	elif isinstance(value, (basestring, int, long, float)):
 		return Text(value)
@@ -93,82 +93,136 @@ class Base(object):
 	__fullname__ = classmethod(__fullname__)
 
 ###
-###
+### Magic constants for tree traversal
 ###
 
-class Found(object):
+entercontent = 1723
+enterattrs = 2342
+
+###
+### Common tree traversal filters
+###
+
+class FindType(object):
+	def __init__(self, *types):
+		self.types = types
+	def __call__(self, node):
+		return (isinstance(node, self.types), )
+
+class FindTypeAll(object):
+	def __init__(self, *types):
+		self.types = types
+	def __call__(self, node):
+		return (isinstance(node, self.types), entercontent)
+
+class FindTypeFirst(object):
+	def __init__(self, *types):
+		self.types = types
+	def __call__(self, node):
+		if isinstance(node, self.types):
+			return (True,)
+		else:
+			return (entercontent,)
+
+class FindOld(object):
 	"""
-	<par>This class is used for communication between filter functions and tree walking methods.</par>
-
-	<par>The methods <pyref class="Node" method="walk"><method>walk</method></pyref>,
-	<pyref class="Node" method="visit"><method>visit</method></pyref>,
-	<pyref class="Node" method="find"><method>find</method></pyref> and
-	<pyref class="Node" method="findfirst"><method>findfirst</method></pyref> all iterate over
-	the tree. In this iteration process two questions have to be answered for each node
-	by a user specified function that is passed to those methods:</par>
-	<olist>
-	<item>Should this node be used in the iteration process (i.e. yielded from a
-	generator, passed as an argument to another user specified function, or returned in
-	the resulting fragment)? Should this node be used before or after its children?</item>
-	<item>If this node contains children (i.e. content and attributes), should they
-	be iterated over too, or should they be skipped?</item>
-	</olist>
-	<par>The user specified testing function passes back a <class>Found</class>
-	object to tell the calling method what to do.</par>
+	<par>Tree traversal filter that tries to be backwards compatible with older &xist; versions.</par>
 	"""
-	__slots__ = ("foundstart", "foundend", "entercontent", "enterattrs")
 
-	def __init__(self, found=None, foundstart=None, foundend=None, enter=None, entercontent=None, enterattrs=None):
+	def __init__(self, type=None, subtype=False, attrs=None, test=None, searchchildren=False, searchattrs=False):
 		"""
-		<par>Create a new <class>Found</class> object. Arguments have the following
-		meaning:</par>
-		<dlist>
-		<term><arg>found</arg></term><item>This is a synonym for <arg>foundstart</arg>.</item>
-		<term><arg>foundstart</arg></term><item>Set this to true to tell the methods
-		<pyref class="Node" method="walk"><method>walk</method></pyref>,
-		<pyref class="Node" method="find"><method>find</method></pyref> and
-		<pyref class="Node" method="findfirst"><method>findfirst</method></pyref>
-		to return this node to the caller (before any children, if it's an element).
-		Set it to false to tell them not to pass it to the caller. For
-		<pyref class="Node" method="visit"><method>visit</method></pyref>
-		you can set <arg>found</arg> to a callable object that will be
-		called with the node as an argument or leave it at <lit>None</lit>,
-		in which case nothing will be called.</item>
-		<term><arg>foundend</arg></term><item>When the node is an element you can set
-		<arg>foundend</arg> to true, to tell <method>walk</method>, <method>find</method>
-		and <method>findfirst</method> to return the node to the caller after the child
-		nodes have been handled. For <method>visit</method> you can set it to a callable
-		object to tell <method>visit</method> to call this function after the child nodes
-		have been handled. Note that a node will be used twice if you set both
-		<arg>foundstart</arg> and <arg>foundend</arg>.</item>
-		<term><arg>enter</arg></term><item>Set <arg>enter</arg> to true to tell
-		the calling method that both content and attributes of an element should
-		be iterated over.</item>
-		<term><arg>entercontent</arg></term><item>Set <arg>entercontent</arg> to
-		true to tell the calling method to iterate over the content of an element.</item>
-		<term><arg>enterattrs</arg></term><item>Set <arg>enterattrs</arg> to true to
-		tell the calling method to iterate over the attributes.</item>
-		</dlist>
+		<par>If you specify <arg>type</arg> as the class of an &xist; node only nodes
+		of this class will be returned. If you pass a list of classes, nodes that are an
+		instance of one of the classes will be returned.</par>
+
+		<par>If you set <arg>subtype</arg> to <lit>True</lit> nodes that are a
+		subtype of <arg>type</arg> will be returned too.</par>
+
+		<par>If you pass a dictionary as <arg>attrs</arg> it has to contain
+		string pairs and is used to match attribute values for elements. To match
+		the attribute values their <pyref class="Node" method="__unicode__"><method>__unicode__</method></pyref>
+		representation will be used. You can use <lit>None</lit> as the value to test that
+		the attribute is set without testing the value.</par>
+
+		<par>Additionally you can pass a test function in <arg>test</arg>, that
+		returns <lit>True</lit>, when the node passed in has to be included in the
+		result and <lit>False</lit> otherwise.</par>
+
+		<par>If you set <arg>searchchildren</arg> to <lit>True</lit> not only
+		the immediate children but also the grandchildren will be searched for nodes
+		matching the other criteria.</par>
+
+		<par>If you set <arg>searchattrs</arg> to <lit>True</lit> the attributes
+		of the nodes (if <arg>type</arg> is <pyref class="Element"><class>Element</class></pyref>
+		or one of its subtypes) will be searched too.</par>
+
+		<par>Note that the node has to be of type <pyref class="Element"><class>Element</class></pyref>
+		(or a subclass of it) to match <arg>attrs</arg>.</par>
 		"""
-		self.foundstart = None
-		self.foundend = None
-		self.entercontent = None
-		self.enterattrs = None
-		if found is not None:
-			self.foundstart = found
-		if foundstart is not None:
-			self.foundstart = foundstart
-		if foundend is not None:
-			self.foundend = foundend
-		if enter is not None:
-			self.entercontent = self.enterattrs = enter
-		if entercontent is not None:
-			self.entercontent = entercontent
-		if enterattrs is not None:
-			self.enterattrs = enterattrs
+		self.type = type
+		self.subtype = subtype
+		self.attrs = attrs
+		self.test = test
+		self.searchchildren = searchchildren
+		self.searchattrs = searchattrs
+
+	def __call__(self, node):
+		result = []
+		if isinstance(node, Attrs):
+			if self.searchattrs:
+				res.append(enterattrs)
+		elif isinstance(node, Frag):
+			if self.searchchildren:
+				result.append(entercontent)
+		elif isinstance(node, Element):
+			if self._matches(node):
+				result.append(True)
+			if self.searchchildren:
+				result.append(entercontent)
+			if self.searchattrs:
+				res.append(enterattrs)
+		else:
+			if self._matches(node):
+				result.append(True)
+		return result
+
+	def _matchesattrs(self, node):
+		if self.attrs is None:
+			return True
+		else:
+			if isinstance(node, Element):
+				for attr in self.attrs:
+					if (attr not in node.Attrs or attr not in node.attrs) or ((self.attrs[attr] is not None) and (unicode(node[attr]) != self.attrs[attr])):
+						return False
+				return True
+			else:
+				return False
+
+	def _matches(self, node):
+		res = True
+		type = self.type
+		if type is not None:
+			if not isinstance(type, (list, tuple)):
+				type = (type,)
+			for t in type:
+				if self.subtype:
+					if isinstance(node, t):
+						res = self._matchesattrs(node)
+						break
+				else:
+					if self.__class__ == t:
+						res = self._matchesattrs(node)
+						break
+			else:
+				res = False
+		else:
+			res = self._matchesattrs(node)
+		if res and (self.test is not None):
+			res = self.test(node)
+		return res
 
 ###
-###
+### The DOM classes
 ###
 
 class Node(Base):
@@ -572,30 +626,59 @@ class Node(Base):
 			found = filter
 
 		for option in found:
-			if not isinstance(option, type) and option:
+			if option is True:
 				if walkpath:
 					yield path
 				else:
 					yield self
 
-	def walk(self, filter, filterpath=False, walkpath=False):
+	def walk(self, filter=(True, entercontent), filterpath=False, walkpath=False):
 		"""
-		<par>Return an iterator that steps recursively through the tree.</par>
+		<par>Return an iterator for traversing the tree rooted at <self/>.</par>
 
-		<par><arg>filter</arg> is either a <pyref class="Found"><class>Found</class></pyref>
-		instance or a callable that returns a <class>Found</class> instance. In the first
-		case this <class>Found</class> instance will be used for each node, in the second
-		case <arg>filter</arg> will be called for each node.</par>
+		<par><arg>filter</arg> is used for specifying whether or not a node should be yielded
+		and when the children of this node should be traversed.
+		If <arg>filter</arg> is callable, it will be called for each node visited during
+		the traversal and must return a sequence of <z>node handling options</z>. Otherwise
+		(i.e. if <arg>filter</arg> is not callable) <arg>filter</arg> must be a sequence of
+		node handling options that will be used for all visited nodes.</par>
 
-		<par><arg>filterpath</arg> specifies what how <arg>filter</arg> will be called:
+		<par>Entries in this sequence can be the following:</par>
+
+		<dlist>
+		<term><lit>True</lit></term><item>This tells <method>walk</method> to yield this node from the iterator.</item>
+		<term><lit>False</lit></term><item>Don't yield this node from the iterator (or simply leave this entry away).</item>
+		<term><lit>enterattrs</lit></term><item>This is a global constant in <module>ll.xist.xsc</module> and
+		tells <method>walk</method> to traverse the attributes of this node (if it's an
+		<pyref class="Element"><class>Element</class></pyref>, otherwise this option will be ignored).</item>
+		<term><lit>entercontent</lit></term><item>This is a global constant in <module>ll.xist.xsc</module> and
+		tells <method>walk</method> to traverse the child nodes of this node (if it's an
+		<pyref class="Element"><class>Element</class></pyref>, otherwise this option will be ignored).</item>
+		</dlist>
+
+		<par>These options will be executed in the order they are specified in the sequence, so
+		to get a top down traversal of a tree (without entering attributes), the following call
+		can be made:</par>
+
+		<programlisting>
+		<rep>node</rep>.walk((True, xsc.entercontent))
+		</programlisting>
+
+		<par>For a bottom up traversal the following call can be made:</par>
+
+		<programlisting>
+		<rep>node</rep>.walk((xsc.entercontent, True))
+		</programlisting>
+
+		<par><arg>filterpath</arg> specifies how <arg>filter</arg> will be called:
 		If <arg>filterpath</arg> is false, <method>walk</method> will pass the node itself
-		to the filter function, if <arg>filterpath</arg> true, a list containing the complete
+		to the filter function, if <arg>filterpath</arg> is true, a list containing the complete
 		path from the root node to the node to be tested will be passed to <arg>filter</arg>.</par>
-		
+
 		<par><arg>walkpath</arg> works similar to <arg>filterpath</arg> and specifies whether
 		the node or a path to the node will be yielded from the iterator.</par>
 		"""
-		for object in self._walk(filter, [], filterpath=filterpath, walkpath=walkpath):
+		for object in self._walk(filter, [], filterpath, walkpath):
 			yield object
 
 	def _visit(self, filter, path, filterpath, visitpath):
@@ -604,73 +687,54 @@ class Node(Base):
 		"""
 		if filterpath or visitpath:
 			path = path + [self]
-		if isinstance(filter, Found):
-			found = filter
-		elif filterpath:
-			found = filter(path)
-		else:
-			found = filter(self)
-		if found.foundstart is not None:
-			if visitpath:
-				found.foundstart(path, start=None)
+
+		if callable(filter):
+			if filterpath:
+				found = filter(path)
 			else:
-				found.foundstart(self, start=None)
+				found = filter(self)
+		else:
+			found = filter
+
+		for option in found:
+			if callable(option):
+				if visitpath:
+					option(path)
+				else:
+					option(self)
 
 	def visit(self, filter, filterpath=False, visitpath=False):
 		"""
-		<par>Iterate through the tree and call a user specifyable function for each node.</par>
+		<par>Iterate through the tree and call a user specifyable function for each visited node.</par>
 
 		<par><arg>filter</arg> works similar to the <arg>filter</arg> argument in
-		<pyref method="walk"><method>walk</method></pyref>, but instead of setting
-		<lit>foundstart</lit> or <lit>foundend</lit> to true in the
-		<pyref class="Found"><class>Found</class></pyref> instance, they must be set
-		to callable objects by the filter function. These callable object will be called
-		with either the node or the path to the node as a first argument (depending on
-		the value of <arg>visitpath</arg>) and a keyword argument <arg>start</arg> as
-		the second argument. For elements <arg>start</arg> will be either <lit>True</lit>
-		or <lit>False</lit> depending on whether the callable is called before or after
-		visiting the children of the element. For all other node types, the <arg>start</arg>
-		argument will be <lit>None</lit>.</par>
-		<par>The <arg>filterpath</arg> argument has the same meaning as for <method>walk</method>.</par>
+		<pyref method="walk"><method>walk</method></pyref>, but the <z>node handling options</z> are
+		different: Instead of boolean values that tell <method>walk</method> whether
+		the node (or a path to the node) must be yielded, <method>visit</method> expects callable objects
+		and will pass the node (or a path to the node, if <arg>visitpath</arg> is true) to those callable objects.</par>
+
+		<par>The <arg>filterpath</arg> argument has the same meaning as for <pyref method="walk"><method>walk</method></pyref>.</par>
 		"""
-		self._visit(filter, [], filterpath=filterpath, visitpath=visitpath)
+		self._visit(filter, [], filterpath, visitpath)
 
-	def find(self, type=None, subtype=False, attrs=None, test=None, searchchildren=False, searchattrs=False):
+	def find(self, filter=(True, entercontent), filterpath=False):
 		"""
-		<par>returns a fragment which contains child elements of this node.</par>
-
-		<par>If you specify <arg>type</arg> as the class of an &xist; node only nodes
-		of this class will be returned. If you pass a list of classes, nodes that are an
-		instance of one of the classes will be returned.</par>
-
-		<par>If you set <arg>subtype</arg> to <lit>True</lit> nodes that are a
-		subtype of <arg>type</arg> will be returned too.</par>
-
-		<par>If you pass a dictionary as <arg>attrs</arg> it has to contain
-		string pairs and is used to match attribute values for elements. To match
-		the attribute values their <pyref class="Node" method="__unicode__"><method>__unicode__</method></pyref>
-		representation will be used. You can use <lit>None</lit> as the value to test that
-		the attribute is set without testing the value.</par>
-
-		<par>Additionally you can pass a test function in <arg>test</arg>, that
-		returns <lit>True</lit>, when the node passed in has to be included in the
-		result and <lit>False</lit> otherwise.</par>
-
-		<par>If you set <arg>searchchildren</arg> to <lit>True</lit> not only
-		the immediate children but also the grandchildren will be searched for nodes
-		matching the other criteria.</par>
-
-		<par>If you set <arg>searchattrs</arg> to <lit>True</lit> the attributes
-		of the nodes (if <arg>type</arg> is <pyref class="Element"><class>Element</class></pyref>
-		or one of its subtypes) will be searched too.</par>
-
-		<par>Note that the node has to be of type <pyref class="Element"><class>Element</class></pyref>
-		(or a subclass of it) to match <arg>attrs</arg>.</par>
+		Return a <pyref class="Frag"><class>Frag</class></pyref> containing all nodes
+		found by the filter function <arg>filter</arg>. See <pyref method="walk"><method>walk</method></pyref>
+		for an explanation of the arguments.
 		"""
-		node = Frag()
-		if self._matches(type, subtype, attrs, test):
-			node.append(self)
-		return node
+		return Frag(list(self.walk(filter, filterpath, False)))
+
+	def findfirst(self, filter=(True, entercontent), filterpath=False):
+		"""
+		Return the first node found by the filter function <arg>filter</arg>.
+		See <pyref method="walk"><method>walk</method></pyref> for an explanation of the arguments.
+		"""
+		iter = self.walk(filter, filterpath, False)
+		try:
+			return iter.next()
+		except StopIteration:
+			raise errors.NodeNotFoundError()
 
 	def compact(self):
 		"""
@@ -678,47 +742,6 @@ class Node(Base):
 		only linefeeds are removed, i.e. potentially needless whitespace is removed.
 		"""
 		return self
-
-	def _matchesattrs(self, attrs):
-		"""
-		Internal helper that checks whether the attributes of an element match <arg>attrs/arg>. For
-		further info see <pyref method="find"><method>find</method></pyref>.
-		"""
-		if attrs is None:
-			return True
-		else:
-			if isinstance(self, Element):
-				for attr in attrs.keys():
-					if (not self.attrs.has(attr)) or ((attrs[attr] is not None) and (unicode(self[attr]) != attrs[attr])):
-						return False
-				return True
-			else:
-				return False
-
-	def _matches(self, type_, subtype, attrs, test):
-		"""
-		Internal helper for <pyref method="find"><method>find</method></pyref>.
-		"""
-		res = True
-		if type_ is not None:
-			if not isinstance(type_, list) and not isinstance(type_, tuple):
-				type_ = (type_,)
-			for t in type_:
-				if subtype:
-					if isinstance(self, t):
-						res = self._matchesattrs(attrs)
-						break
-				else:
-					if self.__class__ == t:
-						res = self._matchesattrs(attrs)
-						break
-			else:
-				res = False
-		else:
-			res = self._matchesattrs(attrs)
-		if res and (test is not None):
-			res = test(self)
-		return bool(res)
 
 	def _decoratenode(self, node):
 		"""
@@ -1162,15 +1185,6 @@ class Frag(Node, list):
 		for child in self:
 			child._visit(filter, path, filterpath=filterpath, visitpath=visitpath)
 
-	def find(self, type=None, subtype=False, attrs=None, test=None, searchchildren=False, searchattrs=False):
-		node = Frag()
-		for child in self:
-			if child._matches(type, subtype, attrs, test):
-				node.append(child)
-			if searchchildren:
-				node.append(child.find(type, subtype, attrs, test, searchchildren, searchattrs))
-		return node
-
 	def compact(self):
 		node = self._create()
 		for child in self:
@@ -1525,39 +1539,36 @@ class Attr(Frag):
 			found = filter
 
 		for option in found:
-			if isinstance(option, type) and issubclass(option, Frag):
-				for object in Frag._walk(self, filter, path, filterpath=filterpath, walkpath=walkpath):
+			if isinstance(option, bool):
+				if option:
+					if walkpath:
+						yield path
+					else:
+						yield self
+			elif option == entercontent:
+				for object in Frag._walk(self, filter, path, filterpath, walkpath):
 					yield object
-			elif option:
-				if walkpath:
-					yield path
-				else:
-					yield self
 
 	def _visit(self, filter, path, filterpath, visitpath):
 		if filterpath or visitpath:
 			path = path + [self]
 
-		if isinstance(filter, Found):
-			found = filter
-		elif filterpath:
-			found = filter(path)
+		if callable(filter):
+			if filterpath:
+				found = filter(path)
+			else:
+				found = filter(self)
 		else:
-			found = filter(self)
+			found = filter
 
-		if found.foundstart is not None:
-			if visitpath:
-				found.foundstart(path, start=True)
-			else:
-				found.foundstart(self, start=True)
-
-		super(Attr, self)._visit(filter, path, filterpath=filterpath, visitpath=visitpath)
-
-		if found.foundend is not None:
-			if visitpath:
-				found.foundend(path, start=False)
-			else:
-				found.foundend(self, start=False)
+		for option in found:
+			if callable(option):
+				if visitpath:
+					option(path)
+				else:
+					option(self)
+			elif option == entercontent:
+				super(Attr, self)._visit(filter, path, filterpath, visitpath)
 
 	def parsed(self, handler, start=None):
 		self.checkvalid()
@@ -1775,6 +1786,9 @@ class Attrs(Node, dict):
 					cls._attrs[xml][value.xmlname[xml]] = value
 			return Node.__metaclass__.__setattr__(cls, key, value)
 
+		def __contains__(cls, key):
+			return key in cls._attrs[False]
+
 	def __init__(self, content=None, **attrs):
 		dict.__init__(self)
 		if content is not None:
@@ -1851,19 +1865,12 @@ class Attrs(Node, dict):
 
 	def _walk(self, filter, path, filterpath, walkpath):
 		for child in self.itervalues():
-			for object in child._walk(filter, path, filterpath=filterpath, walkpath=walkpath):
+			for object in child._walk(filter, path, filterpath, walkpath):
 				yield object
 
 	def _visit(self, filter, path, filterpath, visitpath):
 		for child in self.itervalues():
-			child._visit(filter, path, filterpath=filterpath, visitpath=visitpath)
-
-	def find(self, type=None, subtype=False, attrs=None, test=None, searchchildren=False, searchattrs=False):
-		node = Frag()
-		if searchattrs:
-			for attrvalue in self.itervalues():
-				node.append(attrvalue.find(type, subtype, attrs, test, searchchildren, searchattrs))
-		return node
+			child._visit(filter, path, filterpath, visitpath)
 
 	def present(self, presenter):
 		presenter.presentAttrs(self)
@@ -1924,7 +1931,7 @@ class Attrs(Node, dict):
 	def has(self, name, xml=False):
 		"""
 		<par>return whether <self/> has an attribute named <arg>name</arg>. <arg>xml</arg>
-		speficies whether <arg>name</arg> should be treated as an &xml; name
+		specifies whether <arg>name</arg> should be treated as an &xml; name
 		(<lit><arg>xml</arg>==True</lit>) or a Python name (<lit><arg>xml</arg>==False</lit>).</par>
 		"""
 		try:
@@ -1959,7 +1966,7 @@ class Attrs(Node, dict):
 		it returns the attribute with the name <arg>name</arg>.
 		If <self/> has no such attribute, it will be set to <arg>default</arg>
 		and <arg>default</arg> will be returned as the new attribute value. <arg>xml</arg>
-		speficies whether <arg>name</arg> should be treated as an &xml; name
+		specifies whether <arg>name</arg> should be treated as an &xml; name
 		(<lit><arg>xml</arg>==True</lit>) or a Python name (<lit><arg>xml</arg>==False</lit>).</par>
 		"""
 		attr = self.attr(name, xml=xml)
@@ -2005,7 +2012,7 @@ class Attrs(Node, dict):
 	def iterallowedkeys(cls, xml=False):
 		"""
 		<par>return an iterator for iterating through the names of allowed attributes. <arg>xml</arg>
-		speficies whether &xml; names (<lit><arg>xml</arg>==True</lit>) or Python names
+		specifies whether &xml; names (<lit><arg>xml</arg>==True</lit>) or Python names
 		(<lit><arg>xml</arg>==False</lit>) should be returned.</par>
 		"""
 		return cls._attrs[xml].iterkeys()
@@ -2629,53 +2636,41 @@ class Element(Node):
 			found = filter
 
 		for option in found:
-			if isinstance(option, type):
-				if issubclass(option, Attrs):
-					for object in self.attrs._walk(filter, path, filterpath=filterpath, walkpath=walkpath):
-						yield object
-				elif issubclass(option, Frag):
-					for object in self.content._walk(filter, path, filterpath=filterpath, walkpath=walkpath):
-						yield object
-			elif option:
-				if walkpath:
-					yield path
-				else:
-					yield self
+			if isinstance(option, bool):
+				if option:
+					if walkpath:
+						yield path
+					else:
+						yield self
+			elif option == entercontent:
+				for object in self.content._walk(filter, path, filterpath=filterpath, walkpath=walkpath):
+					yield object
+			elif option == enterattrs:
+				for object in self.attrs._walk(filter, path, filterpath=filterpath, walkpath=walkpath):
+					yield object
 
 	def _visit(self, filter, path, filterpath, visitpath):
 		if filterpath or visitpath:
 			path = path + [self]
 
-		if isinstance(filter, Found):
-			found = filter
-		elif filterpath:
-			found = filter(path)
+		if callable(filter):
+			if filterpath:
+				found = filter(path)
+			else:
+				found = filter(self)
 		else:
-			found = filter(self)
+			found = filter
 
-		if found.foundstart is not None:
-			if visitpath:
-				found.foundstart(path, start=True)
-			else:
-				found.foundstart(self, start=True)
-
-		if found.enterattrs:
-			self.attrs._visit(filter, path, filterpath=filterpath, visitpath=visitpath)
-
-		if found.entercontent:
-			self.content._visit(filter, path, filterpath=filterpath, visitpath=visitpath)
-
-		if found.foundend is not None:
-			if visitpath:
-				found.foundend(path, start=False)
-			else:
-				found.foundend(self, start=False)
-
-	def find(self, type=None, subtype=False, attrs=None, test=None, searchchildren=False, searchattrs=False):
-		node = Frag()
-		node.append(self.attrs.find(type, subtype, attrs, test, searchchildren, searchattrs))
-		node.append(self.content.find(type, subtype, attrs, test, searchchildren, searchattrs))
-		return node
+		for option in found:
+			if callable(option):
+				if visitpath:
+					option(path)
+				else:
+					option(self)
+			elif option == entercontent:
+				self.content._visit(filter, path, filterpath, visitpath)
+			elif option == enterattrs:
+				self.attrs._visit(filter, path, filterpath, visitpath)
 
 	def copyDefaultAttrs(self, fromMapping):
 		"""

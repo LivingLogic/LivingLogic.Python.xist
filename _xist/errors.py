@@ -28,7 +28,7 @@ def warn(warning, level=3): # stacklevel==3, i.e. report the caller of our calle
 
 class Error(Exception):
 	"""
-	base class for all XSC exceptions
+	base class for all &xist; exceptions
 	"""
 	pass
 
@@ -42,7 +42,7 @@ class Warning(UserWarning):
 class EmptyElementWithContentError(Error):
 	"""
 	exception that is raised, when an element has content,
-	but it shouldn't (i.e. empty==1)
+	but it shouldn't (i.e. <lit>empty==True</lit>)
 	"""
 
 	def __init__(self, element):
@@ -70,7 +70,7 @@ class IllegalAttrError(Warning, LookupError):
 
 class IllegalAttrValueWarning(Warning):
 	"""
-	warning that is issued, when an attribute has an illegal value when parsing or publishing.
+	warning that is issued when an attribute has an illegal value when parsing or publishing.
 	"""
 
 	def __init__(self, attr):
@@ -82,7 +82,7 @@ class IllegalAttrValueWarning(Warning):
 
 class RequiredAttrMissingWarning(Warning):
 	"""
-	warning that is issued, when required attribute is missing when parsing or publishing.
+	warning that is issued when a required attribute is missing during parsing or publishing.
 	"""
 
 	def __init__(self, attrs, reqattrs):
@@ -170,7 +170,7 @@ class IllegalCharRefError(IllegalNodeError):
 class ElementNestingError(Error):
 	"""
 	exception that is raised, when an element has an illegal nesting
-	(e.g. <code>&lt;a&gt;&lt;b&gt;&lt;/a&gt;&lt;/b&gt;</code>)
+	(e.g. <lit>&lt;a&gt;&lt;b&gt;&lt;/a&gt;&lt;/b&gt;</lit>)
 	"""
 
 	def __init__(self, expectedelement, foundelement):
@@ -192,6 +192,13 @@ class IllegalAttrNodeError(Error):
 	def __str__(self):
 		return "illegal node of type %s found inside attribute" % self.node.__class__.__name__
 
+class NodeNotFoundError(Error):
+	"""
+	exception that is raised when <pyref module="ll.xist.xsc" class="Node" method="findfirst"><method>findfirst</method></pyref> fails.
+	"""
+	def __str__(self):
+		return "no appropriate node found"
+
 class FileNotFoundWarning(Warning):
 	"""
 	warning that is raised, when a file can't be found
@@ -207,7 +214,7 @@ class FileNotFoundWarning(Warning):
 
 class IllegalObjectWarning(Warning):
 	"""
-	warning that is issued, when XSC finds an illegal object in its object tree.
+	warning that is issued when &xist; finds an illegal object in its object tree.
 	"""
 
 	def __init__(self, object):
@@ -222,7 +229,7 @@ class IllegalObjectWarning(Warning):
 
 class MalformedCharRefError(Error):
 	"""
-	exception that is raised, when a character reference is malformed (e.g. &#foo;)
+	exception that is raised when a character reference is malformed (e.g. <lit>&amp;#foo;</lit>)
 	"""
 
 	def __init__(self, name):
@@ -233,10 +240,10 @@ class MalformedCharRefError(Error):
 
 class IllegalCommentContentError(Error):
 	"""
-	exception that is raised, when there is an illegal comment, i.e. one
-	containing <code>--</code> or ending in <code>-</code>.
+	exception that is raised when there is an illegal comment, i.e. one
+	containing <lit>--</lit> or ending in <lit>-</lit>.
 	(This can only happen, when the comment is instantiated by the
-	program, not when parsed from an XML file.)
+	program, not when parsed from an &xml; file.)
 	"""
 
 	def __init__(self, comment):
@@ -247,9 +254,9 @@ class IllegalCommentContentError(Error):
 
 class IllegalProcInstFormatError(Error):
 	"""
-	exception that is raised, when there is an illegal processing instruction, i.e. one containing <code>?&gt;</code>.
+	exception that is raised, when there is an illegal processing instruction, i.e. one containing <lit>?&gt;</lit>.
 	(This can only happen, when the processing instruction is instantiated by the
-	program, not when parsed from an XML file.)
+	program, not when parsed from an &xml; file.)
 	"""
 
 	def __init__(self, procinst):
@@ -261,9 +268,9 @@ class IllegalProcInstFormatError(Error):
 class IllegalXMLDeclFormatError(Error):
 	"""
 	exception that is raised, when there is an illegal XML declaration,
-	i.e. there something wrong in <code><&lt;?xml ...?&gt;</code>.
+	i.e. there something wrong in <lit>&lt;?xml ...?&gt;</lit>.
 	(This can only happen, when the processing instruction is instantiated by the
-	program, not when parsed from an XML file.)
+	program, not when parsed from an &xml; file.)
 	"""
 
 	def __init__(self, procinst):
@@ -276,8 +283,8 @@ class EncodingImpossibleError(Error):
 	"""
 	exception that is raised, when the &xml; tree can't be encoded, because
 	an encoding is used that requires character references for certain
-	characters (e.g. <code>us-ascii</code> or <code>iso-8859-1</code>)
-	and those characters where encountered in a place where the can't
+	characters (e.g. <lit>us-ascii</lit> or <lit>iso-8859-1</lit>)
+	and those characters where encountered in a place where they can't
 	be replaced with character references (e.g. inside a comment)
 	"""
 
@@ -289,7 +296,5 @@ class EncodingImpossibleError(Error):
 	def __str__(self):
 		return "text %r can't be encoded with the encoding %r because it contains the character %r." % (self.text, self.encoding, self.char)
 
-# FIXME: This doesn't work yet, because warnings.warn does not allow passing Warning
-# instances, so the filter is ineffective. This will change in Python 2.3
 warnings.filterwarnings("always", category=Warning)
 
