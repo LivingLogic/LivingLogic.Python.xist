@@ -70,7 +70,7 @@ def make(args):
 
 	globaloutname = url.URL(scheme=u"root")
 	encoding = None
-	XHTML = None
+	xhtml = None
 	mode = None
 	target = None
 	stage = None
@@ -89,7 +89,7 @@ def make(args):
 		elif option=="-e" or option=="--encoding":
 			encoding = value
 		elif option=="-x" or option=="--xhtml":
-			XHTML = int(value)
+			xhtml = int(value)
 		elif option=="-m" or option=="--mode":
 			mode = value
 		elif option=="-t" or option=="--target":
@@ -133,13 +133,13 @@ def make(args):
 			t2 = time.time()
 			e_out = e_in.convert(converter)
 			t3 = time.time()
-			p = publishers.FilePublisher(utils.forceopen(outname.asPlainString(), "wb", 65536), base=outname, encoding=encoding, XHTML=XHTML)
+			p = publishers.FilePublisher(utils.forceopen(outname.asPlainString(), "wb", 65536), base=outname, encoding=encoding, xhtml=xhtml)
 			e_out.publish(p)
 			t4 = time.time()
 			size = p.tell()
 			sys.stderr.write(
-				"XSC(encoding=%s; XHTML=%s; parse %ss; convert %ss; save %ss; size %s bytes): %s->%s\n" %
-				(presenters.strString(p.encoding), presenters.strNumber(p.XHTML),
+				"XSC(encoding=%s; xhtml=%s; parse %ss; convert %ss; save %ss; size %s bytes): %s->%s\n" %
+				(presenters.strString(p.encoding), presenters.strNumber(p.xhtml),
 				 presenters.strNumber("%.02f" % (t2-t1)), presenters.strNumber("%.02f" % (t3-t2)), presenters.strNumber("%.02f" % (t4-t3)),
 				 presenters.strNumber(size),
 				 presenters.strURL(inname), presenters.strURL(outname))
