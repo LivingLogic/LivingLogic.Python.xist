@@ -21,10 +21,10 @@
 ## IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 """
-<doc:par>An &xist; module that contains elements that simplify
+<par>An &xist; module that contains elements that simplify
 handling meta data. All elements in this module will generate a
 <pyref module="ll.xist.ns.html" class="meta"><class>html.meta</class></pyref>
-element when converted.</doc:par>
+element when converted.</par>
 """
 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
@@ -35,11 +35,11 @@ import ihtml, html
 
 class contenttype(html.meta):
 	"""
-	<doc:par>can be used for a <markup>&lt;meta http-equiv="Content-Type" content="text/html"/&gt;</markup>, where
+	<par>can be used for a <markup>&lt;meta http-equiv="Content-Type" content="text/html"/&gt;</markup>, where
 	the character set will be automatically inserted on a call to
-	<pyref module="ll.xist.xsc" class="Node" method="publish"><method>publish</method></pyref>.</doc:par>
+	<pyref module="ll.xist.xsc" class="Node" method="publish"><method>publish</method></pyref>.</par>
 
-	<doc:par>Usage is simple: <code>&lt;meta:contenttype/&gt;</code></doc:par>
+	<par>Usage is simple: <markup>&lt;meta:contenttype/&gt;</markup></par>
 	"""
 	empty = True
 	class Attrs(html.meta.Attrs):
@@ -58,9 +58,9 @@ class contenttype(html.meta):
 
 class contentscripttype(html.meta):
 	"""
-	<doc:par>can be used for a <markup>&lt;meta http-equiv="Content-Script-Type" content="..."/&gt;</markup>.</doc:par>
+	<par>can be used for a <markup>&lt;meta http-equiv="Content-Script-Type" content="..."/&gt;</markup>.</par>
 
-	<doc:par>Usage is simple: <code>&lt;meta:contentscripttype type="text/javascript"/&gt;</code></doc:par>
+	<par>Usage is simple: <markup>&lt;meta:contentscripttype type="text/javascript"/&gt;</markup></par>
 	"""
 	empty = True
 	class Attrs(html.meta.Attrs):
@@ -79,9 +79,9 @@ class contentscripttype(html.meta):
 
 class keywords(html.meta):
 	"""
-	<doc:par>can be used for a <markup>&lt;meta name="keywords" content="..."/&gt;</markup>.</doc:par>
+	<par>can be used for a <markup>&lt;meta name="keywords" content="..."/&gt;</markup>.</par>
 
-	<doc:par>Usage is simple: <markup>&lt;meta:keywords&gt;foo, bar&lt;/meta:keywords&gt;</markup></doc:par>
+	<par>Usage is simple: <markup>&lt;meta:keywords&gt;foo, bar&lt;/meta:keywords&gt;</markup></par>
 	"""
 	empty = False
 	class Attrs(html.meta.Attrs):
@@ -97,9 +97,9 @@ class keywords(html.meta):
 
 class description(html.meta):
 	"""
-	<doc:par>can be used for a <markup>&lt;meta name="description" content="..."/&gt;</markup>.</doc:par>
+	<par>can be used for a <markup>&lt;meta name="description" content="..."/&gt;</markup>.</par>
 
-	<doc:par>Usage is simple: <markup>&lt;meta:description&gt;This page describes the ...&lt;/meta:description&gt;</markup></doc:par>
+	<par>Usage is simple: <markup>&lt;meta:description&gt;This page describes the ...&lt;/meta:description&gt;</markup></par>
 	"""
 	empty = False
 	class Attrs(html.meta.Attrs):
@@ -115,9 +115,9 @@ class description(html.meta):
 
 class stylesheet(html.link):
 	"""
-	<doc:par>can be used for a <markup>&lt;link rel="stylesheet" type="text/css" href="..."/&gt;</markup>.</doc:par>
+	<par>can be used for a <markup>&lt;link rel="stylesheet" type="text/css" href="..."/&gt;</markup>.</par>
 
-	<doc:par>Usage is simple: <markup>&lt;meta:stylesheet href="root:stylesheets/main.css"/&gt;</markup></doc:par>
+	<par>Usage is simple: <markup>&lt;meta:stylesheet href="root:stylesheets/main.css"/&gt;</markup></par>
 	"""
 	empty = True
 	class Attrs(html.link.Attrs):
@@ -130,9 +130,9 @@ class stylesheet(html.link):
 
 class made(html.link):
 	"""
-	<doc:par>can be used for a <markup>&lt;link rel="made" href="mailto:..."/&gt;</markup>.</doc:par>
+	<par>can be used for a <markup>&lt;link rel="made" href="mailto:..."/&gt;</markup>.</par>
 
-	<doc:par>Usage is simple: <markup>&lt;meta:made href="foobert@bar.org"/&gt;</markup>.</doc:par>
+	<par>Usage is simple: <markup>&lt;meta:made href="foobert@bar.org"/&gt;</markup>.</par>
 	"""
 	empty = True
 	class Attrs(html.link.Attrs):
@@ -144,9 +144,9 @@ class made(html.link):
 
 class author(xsc.Element):
 	"""
-	<doc:par>can be used to embed author information in the header.
+	<par>can be used to embed author information in the header.
 	It will generate <markup>&lt;link rel="made"/&gt;</markup> and
-	<markup>&lt;meta name="author"/&gt;</markup> elements.</doc:par>
+	<markup>&lt;meta name="author"/&gt;</markup> elements.</par>
 	"""
 	empty = True
 	class Attrs(xsc.Element.Attrs):
@@ -166,7 +166,7 @@ class author(xsc.Element):
 
 class refresh(xsc.Element):
 	"""
-	<doc:par> a refresh header.</doc:par>
+	<par> a refresh header.</par>
 	"""
 	empty = False
 	class Attrs(xsc.Element.Attrs):

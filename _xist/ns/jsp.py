@@ -21,7 +21,7 @@
 ## IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 """
-<doc:par>A module that allows you to embed JSP content as processing instructions.</doc:par>
+<par>A module that allows you to embed JSP content as processing instructions.</par>
 """
 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
@@ -86,9 +86,9 @@ class End(scriptlet):
 
 class block(xsc.Element):
 	"""
-	<doc:par>This element embeds its content in <lit>{}</lit> brackets.</doc:par>
-	<doc:par>Note that the content itself will not be turned into a scriptlet
-	automatically but will be used as-is.</doc:par>
+	<par>This element embeds its content in <lit>{}</lit> brackets.</par>
+	<par>Note that the content itself will not be turned into a scriptlet
+	automatically but will be used as-is.</par>
 	"""
 	empty = False
 
