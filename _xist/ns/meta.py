@@ -154,10 +154,18 @@ class javascript(xsc.Element):
 	attrHandlers = {"href": xsc.TextAttr}
 
 	def convert(self, converter):
-		e = html.script(*self.content)
-		e["language"] = "javascript"
-		e["type"] = "text/javascript"
-		e["src"] = self["href"]
+		e = html.script(self.content, language="javascript", type="text/javascript", src=self["href"])
+		return e.convert(converter)
+
+class refresh(xsc.Element):
+	"""
+	<par noindent> a refresh header.</par>
+	"""
+	empty = 0
+	attrHandlers = {"secs": xsc.IntAttr, "href": xsc.URLAttr}
+
+	def convert(self, converter):
+		e = html.meta(http_equiv="Refresh", content=(self.getAttr("secs", 0), "; url=", self["href"]))
 		return e.convert(converter)
 
 namespace = xsc.Namespace("meta", "http://www.livinglogic.de/DTDs/meta.dtd", vars())
