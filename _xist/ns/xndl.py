@@ -311,8 +311,8 @@ class ProcInst(Base):
 		lines.append([level, "class %s(xsc.ProcInst):" % pyname])
 		newlines = []
 		if self.doc is not None:
-			self.doc._aspy(newlines, encoding, level+1, asmod)
-		if pytarget != target:
+			self.doc._aspy(newlines, encoding, level+1, names, asmod)
+		if pyname != name:
 			newlines.append([level+1, "xmlname = %s" % self.simplify(name)])
 		self._addlines(newlines, lines)
 
