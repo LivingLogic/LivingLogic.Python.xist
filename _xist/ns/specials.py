@@ -27,7 +27,6 @@ class z(xsc.Element):
 	empty = False
 
 	def convert(self, converter):
-		print repr(xsc)
 		e = xsc.Frag(u"»", self.content.convert(converter), u"«")
 
 		return e
