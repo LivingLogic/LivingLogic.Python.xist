@@ -287,7 +287,7 @@ class HTMLParser(BadEntityParser):
 	minimizedElements = {"p": ("p",), "td": ("td", "th"), "th": ("td", "th")} # elements that can't be nested, so a start tag automatically closes a previous end tag
 
 	def __init__(self, namespaceHandling=0, bufsize=2**16-20, encoding="iso-8859-1"):
-		SGMLOPParser.__init__(self, namespaceHandling, bufsize, encoding)
+		BadEntityParser.__init__(self, namespaceHandling, bufsize, encoding)
 
 	def _whichparser(self):
 		return sgmlop.SGMLParser()
