@@ -27,9 +27,7 @@ that are used internally by &xist;.</doc:par>
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-import sys, os, types
-
-import xsc, helpers, url as url_
+import xsc, url as url_
 
 def findAttr(content, name):
 	startpos = content.find(name)
