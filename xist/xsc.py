@@ -963,10 +963,10 @@ class Frag(Node):
 			node.append(child.clone())
 		return self._decorateNode(node)
 
-	def _dorepr(self, ansi = None):
+	def _dorepr(self, ansi=None):
 		v = []
 		for child in self:
-			v.append(child._dorepr(ansi = ansi))
+			v.append(child._dorepr(ansi=ansi))
 		return "".join(v)
 
 	def _doreprtree(self, nest, elementno, encoding=None, ansi=None):
