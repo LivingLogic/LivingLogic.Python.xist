@@ -57,7 +57,7 @@ class filetime(xsc.Element):
 	"""
 	empty = True
 	class Attrs(xsc.Element.Attrs):
-		class href(xsc.URLAttr): pass
+		class href(xsc.URLAttr):
 			"""
 			<par>The &url; of the file.</par>
 			"""
