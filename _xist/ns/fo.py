@@ -1092,8 +1092,9 @@ class usage_context_of_suppress_at_line_break(xsc.Element.Attrs):
 
 ###
 ### Elements
-### Attributes are only the applicable ones. Inheritable ones will be added afterwards
-### The schema information will be added in the same step
+### Only applicable attributes are specified as class creation time.
+### Inheritable attributes will be added afterwards.
+### The schema information will be added in the same step.
 ###
 
 class color_profile(xsc.Element):
