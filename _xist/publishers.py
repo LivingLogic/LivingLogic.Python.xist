@@ -39,7 +39,7 @@ class Publisher(object):
 	base class for all publishers.
 	"""
 
-	def __init__(self, base=None, root=None, encoding=None, xhtml=None, prefixes=None, elementmode=1, procinstmode=0, entitymode=0):
+	def __init__(self, base=None, root=None, encoding=None, xhtml=None, prefixes=None, elementmode=0, procinstmode=0, entitymode=0):
 		"""
 		<par><arg>base</arg> specifies the url to which the result
 		will be output.</par>
@@ -199,7 +199,7 @@ class FilePublisher(Publisher):
 	"""
 	writes the strings to a file.
 	"""
-	def __init__(self, stream, base=None, root=None, encoding=None, xhtml=None, prefixes=None, elementmode=1, procinstmode=0, entitymode=0):
+	def __init__(self, stream, base=None, root=None, encoding=None, xhtml=None, prefixes=None, elementmode=0, procinstmode=0, entitymode=0):
 		super(FilePublisher, self).__init__(base=base, root=root, encoding=encoding, xhtml=xhtml, prefixes=prefixes, elementmode=elementmode, procinstmode=procinstmode, entitymode=entitymode)
 		(encode, decode, streamReaderClass, streamWriterClass) = codecs.lookup(self.encoding)
 		self.stream = streamWriterClass(stream)
@@ -217,7 +217,7 @@ class PrintPublisher(FilePublisher):
 	"""
 	writes the strings to <lit>sys.stdout</lit>.
 	"""
-	def __init__(self, base=None, root=None, encoding=None, xhtml=None, prefixes=None, elementmode=1, procinstmode=0, entitymode=0):
+	def __init__(self, base=None, root=None, encoding=None, xhtml=None, prefixes=None, elementmode=0, procinstmode=0, entitymode=0):
 		super(PrintPublisher, self).__init__(sys.stdout, base=base, root=root, encoding=encoding, xhtml=xhtml, prefixes=prefixes, elementmode=elementmode, procinstmode=procinstmode, entitymode=entitymode)
 
 class StringPublisher(Publisher):
@@ -227,7 +227,7 @@ class StringPublisher(Publisher):
 	<pyref module="ll.xist.publishers" class="StringPublisher" method="asString"><method>asString</method></pyref>
 	"""
 
-	def __init__(self, base=None, root=None, xhtml=None, prefixes=None, elementmode=1, procinstmode=0, entitymode=0):
+	def __init__(self, base=None, root=None, xhtml=None, prefixes=None, elementmode=0, procinstmode=0, entitymode=0):
 		super(StringPublisher, self).__init__(base=base, root=root, encoding="utf16", xhtml=xhtml, prefixes=prefixes, elementmode=elementmode, procinstmode=procinstmode, entitymode=entitymode)
 
 	def publish(self, text):
