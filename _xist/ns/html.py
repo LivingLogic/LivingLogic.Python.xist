@@ -724,7 +724,7 @@ class textarea(xsc.Element):
 	"""
 	empty = 0
 	attrHandlers = attrs.copy()
-	attrHandlers.update({"name": xsc.TextAttr, "rows": xsc.TextAttr, "cols": xsc.TextAttr, "disabled": xsc.TextAttr, "readonly": xsc.TextAttr, "tabindex": xsc.TextAttr, "accesskey": xsc.TextAttr, "onfocus": xsc.TextAttr, "onblur": xsc.TextAttr, "onselect": xsc.TextAttr, "onchange": xsc.TextAttr})
+	attrHandlers.update({"name": xsc.TextAttr, "rows": xsc.IntAttr, "cols": xsc.IntAttr, "disabled": xsc.TextAttr, "readonly": xsc.TextAttr, "tabindex": xsc.TextAttr, "accesskey": xsc.TextAttr, "onfocus": xsc.TextAttr, "onblur": xsc.TextAttr, "onselect": xsc.TextAttr, "onchange": xsc.TextAttr})
 	attrHandlers.update({"wrap": xsc.TextAttr})
 
 class label(xsc.Element):
