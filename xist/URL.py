@@ -199,7 +199,9 @@ class URL:
 			self.query      = other.query
 			self.fragment   = other.fragment
 		elif other.scheme == "server":
-			self.path.extend(other.path)
+			if not self.scheme:
+				self.scheme = "server"
+			self.path       = other.path[:]
 			self.file       = other.file
 			self.ext        = other.ext
 			self.parameters = other.parameters
