@@ -171,22 +171,28 @@ class caps(xsc.Element):
 	"""
 	empty = 0
 
+	lowercase = string.lowercase + ' '
+
 	def asHTML(self):
-		e = self.content.asPlainString() + "?"
+		e = self.content.asPlainString()
 		result = xsc.Frag()
-		collect = ""
-		innini = 0
-		for i in range(len(e)):
-			if (i == len(e)) or ((e[i] in string.lowercase) and (innini==0)) or ((e[i] not in string.lowercase) and (innini==1)):
-				if innini==0:
-					result.append(collect)
+		if e: # if we have nothing to do, we skip everything to avoid errors
+			collect = ""
+			last_was_lower = e[0] in self.lowercase
+			for c in e:
+				if (c in self.lowercase) != last_was_lower:
+					if last_was_lower:
+						result.append(html_.span(collect.upper(), class_="nini"))
+					else:
+						result.append(collect)
+					last_was_lower = not last_was_lower
+					collect = ""
+				collect = collect + c
+			if collect:
+				if last_was_lower:
+					result.append(html_.span(collect.upper(), class_="nini" ))
 				else:
-					result.append(html_.span([collect.upper()], Class="nini"))
-				if i != len(e):
-					collect = e[i]
-				innini = 1-innini
-			else:
-				collect += e[i]
+					result.append(collect)
 		return result
 
 	def asPlainString(self):
