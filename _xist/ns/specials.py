@@ -31,6 +31,12 @@ import sys, types, time as time_, string
 from xist import xsc
 import html as html_
 
+class xist(xsc.Entity):
+	def convert(self, converter=None):
+		return html_.span("XIST", class_="caps")
+	def asPlainString(self):
+		return u"XIST"
+
 class plaintable(html_.table):
 	"""
 	a HTML table where the values of the attributes cellpadding, cellspacing and
