@@ -159,7 +159,7 @@ class pixel(html.img):
 		return e.asHTML()
 xsc.registerElement(pixel)
 
-class cap(xsc.Element):
+class caps(xsc.Element):
 	"""
 	returns a fragment that contains the content string converted to caps and small caps.
 	This is done by converting all lowercase letters to uppercase and packing them into a
@@ -188,7 +188,7 @@ class cap(xsc.Element):
 
 		def asPlainString(self):
 			return string.upper(self.content.asPlainString())
-xsc.registerElement(cap)
+xsc.registerElement(caps)
 
 class endash(xsc.Element):
 	empty = 1
