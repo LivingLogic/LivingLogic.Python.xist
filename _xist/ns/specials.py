@@ -150,7 +150,7 @@ class pixel(html_.img):
 	del attrHandlers["src"]
 
 	def convert(self, converter=None):
-		e = autoimg()
+		e = html_.img()
 		color = "dot_clear"
 		for attr in self.attrs.keys():
 			if attr == "color":
@@ -159,6 +159,10 @@ class pixel(html_.img):
 				e[attr] = self[attr]
 		if not e.hasAttr("alt"):
 			e["alt"] = u""
+		if not e.hasAttr("width"):
+			e["width"] = 1
+		if not e.hasAttr("height"):
+			e["height"] = 1
 		e["src"] = ("*/Images/Pixels/", color, ".gif")
 
 		return e.convert(converter)
