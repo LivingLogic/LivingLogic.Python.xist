@@ -217,7 +217,8 @@ class center(xsc.Element):
 
 class par(html_.div):
 	empty = 0
-	attrHandlers = xsc.appendDict(html_.div.attrHandlers, {"noindent" : xsc.TextAttr})
+	attrHandlers = html_.div.attrHandlers.copy()
+	attrHandlers.update({"noindent": xsc.TextAttr})
 
 	def asHTML(self):
 		e = html_.div(self.content.clone())

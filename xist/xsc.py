@@ -367,13 +367,6 @@ def _strNode(nodeClass,content = None,brackets = None,slash = None,ansi = None):
 	name = nodeName(nodeClass)
 	return _strName(name,content,brackets,slash,ansi)
 
-def appendDict(*dicts):
-	result = {}
-	for dict in dicts:
-		for key in dict.keys():
-			result[key] = dict[key]
-	return result
-
 def isXMLChar(char):
 	code = ord(char)
 	if code==0x9 or code==0xA or code==0xD or 0x20<=code<=0xD7FF or 0xE000<=0xFFFD: # FIXME do we handle [#x10000-#x10FFFF]?

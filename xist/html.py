@@ -13,9 +13,11 @@ import xsc
 
 # common attributes
 coreattrs  = { "id": xsc.TextAttr, "class": xsc.TextAttr, "style": xsc.TextAttr, "title": xsc.TextAttr }
-i18n       = { "lang": xsc.TextAttr, "dir"  : xsc.TextAttr }
-events     = { "onclick": xsc.TextAttr, "ondblclick": xsc.TextAttr, "onmousedown": xsc.TextAttr, "onmouseup": xsc.TextAttr, "onmouseover": xsc.TextAttr, "onmousemove": xsc.TextAttr, "onmouseout": xsc.TextAttr, "onkeypress": xsc.TextAttr, "onkeydown": xsc.TextAttr, "onkeyup": xsc.TextAttr }
-attrs      = xsc.appendDict(coreattrs,i18n,events)
+i18n = { "lang": xsc.TextAttr, "dir"  : xsc.TextAttr }
+events = { "onclick": xsc.TextAttr, "ondblclick": xsc.TextAttr, "onmousedown": xsc.TextAttr, "onmouseup": xsc.TextAttr, "onmouseover": xsc.TextAttr, "onmousemove": xsc.TextAttr, "onmouseout": xsc.TextAttr, "onkeypress": xsc.TextAttr, "onkeydown": xsc.TextAttr, "onkeyup": xsc.TextAttr }
+attrs = coreattrs.copy()
+attrs.update(i18n)
+attrs.update(events)
 cellhalign = { "align": xsc.TextAttr, "char": xsc.TextAttr, "charoff": xsc.TextAttr  }
 cellvalign = { "valign": xsc.TextAttr }
 
@@ -45,14 +47,16 @@ class html(xsc.Element):
 	document root element
 	"""
 	empty = 0
-	attrHandlers = xsc.appendDict(i18n,{ "xmlns": xsc.TextAttr })
+	attrHandlers = i18n.copy()
+	attrHandlers.update({"xmlns": xsc.TextAttr})
 
 class head(xsc.Element):
 	"""
 	document head
 	"""
 	empty = 0
-	attrHandlers = xsc.appendDict(i18n,{ "profile": xsc.TextAttr })
+	attrHandlers = i18n.copy()
+	attrHandlers.update({"profile": xsc.TextAttr})
 
 class title(xsc.Element):
 	"""
@@ -97,8 +101,8 @@ class div(xsc.Element):
 	generic language/style container
 	"""
 	empty = 0
-	attrHandlers = attrs
-	attrHandlers = xsc.appendDict(attrHandlers, { "align": xsc.TextAttr }) # deprecated
+	attrHandlers = attrs.copy()
+	attrHandlers.update({"align": xsc.TextAttr}) # deprecated
 
 class span(xsc.Element):
 	"""
@@ -112,48 +116,48 @@ class h1(xsc.Element):
 	heading
 	"""
 	empty = 0
-	attrHandlers = attrs
-	attrHandlers = xsc.appendDict(attrHandlers, { "align": xsc.TextAttr }) # deprecated
+	attrHandlers = attrs.copy()
+	attrHandlers.update({"align": xsc.TextAttr}) # deprecated
 
 class h2(xsc.Element):
 	"""
 	heading
 	"""
 	empty = 0
-	attrHandlers = attrs
-	attrHandlers = xsc.appendDict(attrHandlers, { "align": xsc.TextAttr }) # deprecated
+	attrHandlers = attrs.copy()
+	attrHandlers.update({"align": xsc.TextAttr}) # deprecated
 
 class h3(xsc.Element):
 	"""
 	heading
 	"""
 	empty = 0
-	attrHandlers = attrs
-	attrHandlers = xsc.appendDict(attrHandlers, { "align": xsc.TextAttr }) # deprecated
+	attrHandlers = attrs.copy()
+	attrHandlers.update({"align": xsc.TextAttr}) # deprecated
 
 class h4(xsc.Element):
 	"""
 	heading
 	"""
 	empty = 0
-	attrHandlers = attrs
-	attrHandlers = xsc.appendDict(attrHandlers, { "align": xsc.TextAttr }) # deprecated
+	attrHandlers = attrs.copy()
+	attrHandlers.update({"align": xsc.TextAttr}) # deprecated
 
 class h5(xsc.Element):
 	"""
 	heading
 	"""
 	empty = 0
-	attrHandlers = attrs
-	attrHandlers = xsc.appendDict(attrHandlers, { "align": xsc.TextAttr }) # deprecated
+	attrHandlers = attrs.copy()
+	attrHandlers.update({"align": xsc.TextAttr}) # deprecated
 
 class h6(xsc.Element):
 	"""
 	heading
 	"""
 	empty = 0
-	attrHandlers = attrs
-	attrHandlers = xsc.appendDict(attrHandlers, { "align": xsc.TextAttr }) # deprecated
+	attrHandlers = attrs.copy()
+	attrHandlers.update({"align": xsc.TextAttr}) # deprecated
 
 class address(xsc.Element):
 	"""
@@ -167,7 +171,8 @@ class bdo(xsc.Element):
 	I18N BiDi over-ride
 	"""
 	empty = 0
-	attrHandlers = xsc.appendDict(coreattrs,i18n)
+	attrHandlers = coreattrs.copy()
+	attrHandlers.update(i18n)
 
 class tt(xsc.Element):
 	"""
@@ -312,16 +317,16 @@ class p(xsc.Element):
 	paragraph
 	"""
 	empty = 0
-	attrHandlers = attrs
-	attrHandlers = xsc.appendDict({ "align": xsc.TextAttr }) # deprecated
+	attrHandlers = attrs.copy()
+	attrHandlers.update({"align": xsc.TextAttr}) # deprecated
 
 class br(xsc.Element):
 	"""
 	forced line break
 	"""
 	empty = 1
-	attrHandlers = coreattrs
-	attrHandlers = xsc.appendDict({ "clear": xsc.TextAttr }) # deprecated
+	attrHandlers = coreattrs.copy()
+	attrHandlers.update({"clear": xsc.TextAttr}) # deprecated
 
 class pre(xsc.Element):
 	"""
@@ -335,38 +340,40 @@ class ins(xsc.Element):
 	inserted text
 	"""
 	empty = 0
-	attrHandlers = xsc.appendDict(attrs,{ "cite": xsc.TextAttr, "datetime": xsc.TextAttr })
+	attrHandlers = attrs.copy()
+	attrHandlers.update({"cite": xsc.TextAttr, "datetime": xsc.TextAttr})
 
 class Del(xsc.Element):
 	"""
 	deleted text
 	"""
 	empty = 0
-	attrHandlers = xsc.appendDict(attrs,{ "cite": xsc.TextAttr, "datetime": xsc.TextAttr })
+	attrHandlers = attrs.copy()
+	attrHandlers.update({"cite": xsc.TextAttr, "datetime": xsc.TextAttr})
 
 class ul(xsc.Element):
 	"""
 	unordered list
 	"""
 	empty = 0
-	attrHandlers = attrs
-	attrHandlers = xsc.appendDict(attrs,{ "type": xsc.TextAttr }) # deprecated
+	attrHandlers = attrs.copy()
+	attrHandlers.update({"type": xsc.TextAttr}) # deprecated
 
 class ol(xsc.Element):
 	"""
 	ordered list
 	"""
 	empty = 0
-	attrHandlers = attrs
-	attrHandlers = xsc.appendDict(attrs,{ "type": xsc.TextAttr }) # deprecated
+	attrHandlers = attrs.copy()
+	attrHandlers.update({"type": xsc.TextAttr}) # deprecated
 
 class li(xsc.Element):
 	"""
 	list item
 	"""
 	empty = 0
-	attrHandlers = attrs
-	attrHandlers = xsc.appendDict(attrs,{ "type": xsc.TextAttr }) # deprecated
+	attrHandlers = attrs.copy()
+	attrHandlers.update({"type": xsc.TextAttr}) # deprecated
 
 class dl(xsc.Element):
 	"""
@@ -394,8 +401,9 @@ class table(xsc.Element):
 	table
 	"""
 	empty = 0
-	attrHandlers = xsc.appendDict(attrs,{ "summary": xsc.TextAttr ,"width": xsc.TextAttr ,"border": xsc.TextAttr ,"frame": xsc.TextAttr ,"rules": xsc.TextAttr ,"cellspacing": xsc.TextAttr ,"cellpadding": xsc.TextAttr })
-	attrHandlers = xsc.appendDict(attrHandlers,{ "height": xsc.TextAttr, "align": xsc.TextAttr, "bgcolor": xsc.ColorAttr , "background": xsc.URLAttr }) # deprecated
+	attrHandlers = attrs.copy()
+	attrHandlers.update({"summary": xsc.TextAttr, "width": xsc.TextAttr, "border": xsc.TextAttr, "frame": xsc.TextAttr, "rules": xsc.TextAttr, "cellspacing": xsc.TextAttr, "cellpadding": xsc.TextAttr})
+	attrHandlers.update({"height": xsc.TextAttr, "align": xsc.TextAttr, "bgcolor": xsc.ColorAttr, "background": xsc.URLAttr}) # deprecated
 
 class caption(xsc.Element):
 	"""
@@ -409,43 +417,57 @@ class thead(xsc.Element):
 	table header
 	"""
 	empty = 0
-	attrHandlers = xsc.appendDict(attrs,cellhalign,cellvalign)
+	attrHandlers = attrs.copy()
+	attrHandlers.update(cellhalign)
+	attrHandlers.update(cellvalign)
 
 class tfoot(xsc.Element):
 	"""
 	table footer
 	"""
 	empty = 0
-	attrHandlers = xsc.appendDict(attrs,cellhalign,cellvalign)
+	attrHandlers = attrs.copy()
+	attrHandlers.update(cellhalign)
+	attrHandlers.update(cellvalign)
 
 class tbody(xsc.Element):
 	"""
 	table body
 	"""
 	empty = 0
-	attrHandlers = xsc.appendDict(attrs,cellhalign,cellvalign)
+	attrHandlers = attrs.copy()
+	attrHandlers.update(cellhalign)
+	attrHandlers.update(cellvalign)
 
 class colgroup(xsc.Element):
 	"""
 	table column group
 	"""
 	empty = 0
-	attrHandlers = xsc.appendDict(attrs,{ "span": xsc.TextAttr, "width": xsc.TextAttr },cellhalign,cellvalign)
+	attrHandlers = attrs.copy()
+	attrHandlers.update(cellhalign)
+	attrHandlers.update(cellvalign)
+	attrHandlers.update({"span": xsc.TextAttr, "width": xsc.TextAttr})
 
 class col(xsc.Element):
 	"""
 	table column
 	"""
 	empty = 0
-	attrHandlers = xsc.appendDict(attrs,{ "span": xsc.TextAttr, "width": xsc.TextAttr },cellhalign,cellvalign)
+	attrHandlers = attrs.copy()
+	attrHandlers.update(cellhalign)
+	attrHandlers.update(cellvalign)
+	attrHandlers.update({"span": xsc.TextAttr, "width": xsc.TextAttr})
 
 class tr(xsc.Element):
 	"""
 	table row
 	"""
 	empty = 0
-	attrHandlers = xsc.appendDict(attrs,cellhalign,cellvalign)
-	attrHandlers = xsc.appendDict(attrHandlers,{ "nowrap": xsc.TextAttr, "bgcolor": xsc.ColorAttr, "width": xsc.TextAttr }) # deprecated
+	attrHandlers = attrs.copy()
+	attrHandlers.update(cellhalign)
+	attrHandlers.update(cellvalign)
+	attrHandlers.update({"nowrap": xsc.TextAttr, "bgcolor": xsc.ColorAttr, "width": xsc.TextAttr}) # deprecated
 
 class th(xsc.Element):
 	"""
@@ -453,9 +475,9 @@ class th(xsc.Element):
 	"""
 	empty = 0
 	attrHandlers = attrs.copy()
-	attrHandlers.update({"abbr": xsc.TextAttr, "axis": xsc.TextAttr, "headers": xsc.TextAttr, "scope": xsc.TextAttr, "rowspan": xsc.TextAttr, "colspan": xsc.TextAttr})
 	attrHandlers.update(cellhalign)
 	attrHandlers.update(cellvalign)
+	attrHandlers.update({"abbr": xsc.TextAttr, "axis": xsc.TextAttr, "headers": xsc.TextAttr, "scope": xsc.TextAttr, "rowspan": xsc.TextAttr, "colspan": xsc.TextAttr})
 	attrHandlers.update({"nowrap": xsc.TextAttr, "bgcolor": xsc.ColorAttr, "width": xsc.TextAttr, "height": xsc.TextAttr, "background": xsc.URLAttr}) # deprecated
 
 class td(xsc.Element):
@@ -463,15 +485,19 @@ class td(xsc.Element):
 	table data cell
 	"""
 	empty = 0
-	attrHandlers = xsc.appendDict(attrs,{ "abbr": xsc.TextAttr, "axis": xsc.TextAttr, "headers": xsc.TextAttr, "scope": xsc.TextAttr, "rowspan": xsc.TextAttr, "colspan": xsc.TextAttr },cellhalign,cellvalign)
-	attrHandlers = xsc.appendDict(attrHandlers,{ "nowrap": xsc.TextAttr, "bgcolor": xsc.ColorAttr, "width": xsc.TextAttr, "height": xsc.TextAttr, "background": xsc.URLAttr }) # deprecated
+	attrHandlers = attrs.copy()
+	attrHandlers.update(cellhalign)
+	attrHandlers.update(cellvalign)
+	attrHandlers.update({"abbr": xsc.TextAttr, "axis": xsc.TextAttr, "headers": xsc.TextAttr, "scope": xsc.TextAttr, "rowspan": xsc.TextAttr, "colspan": xsc.TextAttr}
+	attrHandlers.update({"nowrap": xsc.TextAttr, "bgcolor": xsc.ColorAttr, "width": xsc.TextAttr, "height": xsc.TextAttr, "background": xsc.URLAttr}) # deprecated
 
 class a(xsc.Element):
 	"""
 	anchor
 	"""
 	empty = 0
-	attrHandlers = xsc.appendDict(attrs,{ "charset": xsc.TextAttr, "type": xsc.TextAttr, "name": xsc.TextAttr, "href": xsc.URLAttr, "hreflang": xsc.TextAttr, "rel": xsc.TextAttr, "rev": xsc.TextAttr, "accesskey": xsc.TextAttr, "shape": xsc.TextAttr, "coords": xsc.TextAttr, "tabindex": xsc.TextAttr, "onfocus": xsc.TextAttr, "onblur": xsc.TextAttr })
+	attrHandlers = attrs.copy()
+	attrHandlers.update({"charset": xsc.TextAttr, "type": xsc.TextAttr, "name": xsc.TextAttr, "href": xsc.URLAttr, "hreflang": xsc.TextAttr, "rel": xsc.TextAttr, "rev": xsc.TextAttr, "accesskey": xsc.TextAttr, "shape": xsc.TextAttr, "coords": xsc.TextAttr, "tabindex": xsc.TextAttr, "onfocus": xsc.TextAttr, "onblur": xsc.TextAttr})
 	attrHandlers = xsc.appendDict(attrHandlers,{ "target": xsc.TextAttr }) # deprecated
 
 class link(xsc.Element):
@@ -479,7 +505,8 @@ class link(xsc.Element):
 	a media-independent link
 	"""
 	empty = 1
-	attrHandlers = xsc.appendDict(attrs,{ "charset": xsc.TextAttr, "href": xsc.URLAttr, "hreflang": xsc.TextAttr, "type": xsc.TextAttr, "rel": xsc.TextAttr, "rev": xsc.TextAttr, "media": xsc.TextAttr })
+	attrHandlers = attrs.copy()
+	attrHandlers.update({"charset": xsc.TextAttr, "href": xsc.URLAttr, "hreflang": xsc.TextAttr, "type": xsc.TextAttr, "rel": xsc.TextAttr, "rev": xsc.TextAttr, "media": xsc.TextAttr})
 
 class base(xsc.Element):
 	"""
@@ -493,8 +520,9 @@ class img(xsc.Element):
 	Embedded image
 	"""
 	empty = 1
-	attrHandlers = xsc.appendDict(attrs,{ "src": xsc.URLAttr, "alt": xsc.TextAttr, "longdesc": xsc.TextAttr, "width": xsc.TextAttr, "height": xsc.TextAttr, "usemap": xsc.TextAttr, "ismap": xsc.TextAttr })
-	attrHandlers = xsc.appendDict(attrHandlers,{ "name": xsc.TextAttr, "border": xsc.TextAttr, "align": xsc.TextAttr, "hspace": xsc.TextAttr, "vspace": xsc.TextAttr, "lowsrc": xsc.URLAttr }) # deprecated
+	attrHandlers = attrs.copy()
+	attrHandlers.update({"src": xsc.URLAttr, "alt": xsc.TextAttr, "longdesc": xsc.TextAttr, "width": xsc.TextAttr, "height": xsc.TextAttr, "usemap": xsc.TextAttr, "ismap": xsc.TextAttr})
+	attrHandlers.update({"name": xsc.TextAttr, "border": xsc.TextAttr, "align": xsc.TextAttr, "hspace": xsc.TextAttr, "vspace": xsc.TextAttr, "lowsrc": xsc.URLAttr}) # deprecated
 
 	def asPlainString(self):
 		if self.hasAttr("alt"):
@@ -507,7 +535,8 @@ class object(xsc.Element):
 	generic embedded object
 	"""
 	empty = 0
-	attrHandlers = xsc.appendDict(attrs,{ "declare": xsc.TextAttr, "classid": xsc.TextAttr, "codebase": xsc.TextAttr, "data": xsc.TextAttr, "type": xsc.TextAttr, "codetype": xsc.TextAttr, "archive": xsc.TextAttr, "standby": xsc.TextAttr, "height": xsc.TextAttr, "width": xsc.TextAttr, "usemap": xsc.TextAttr, "name": xsc.TextAttr, "tabindex": xsc.TextAttr })
+	attrHandlers = attrs.copy()
+	attrHandlers.update({"declare": xsc.TextAttr, "classid": xsc.TextAttr, "codebase": xsc.TextAttr, "data": xsc.TextAttr, "type": xsc.TextAttr, "codetype": xsc.TextAttr, "archive": xsc.TextAttr, "standby": xsc.TextAttr, "height": xsc.TextAttr, "width": xsc.TextAttr, "usemap": xsc.TextAttr, "name": xsc.TextAttr, "tabindex": xsc.TextAttr})
 
 class param(xsc.Element):
 	"""
@@ -521,29 +550,33 @@ class map(xsc.Element):
 	client-side image map
 	"""
 	empty = 0
-	attrHandlers = xsc.appendDict(attrs,{ "name": xsc.TextAttr })
+	attrHandlers = attrs.copy()
+	attrHandlers.update({"name": xsc.TextAttr})
 
 class area(xsc.Element):
 	"""
 	client-side image map area
 	"""
 	empty = 1
-	attrHandlers = xsc.appendDict(attrs,{ "shape": xsc.TextAttr, "coords": xsc.TextAttr, "href": xsc.URLAttr, "nohref": xsc.TextAttr, "alt": xsc.TextAttr, "tabindex": xsc.TextAttr, "accesskey": xsc.TextAttr, "onfocus": xsc.TextAttr, "onblur": xsc.TextAttr })
+	attrHandlers = attrs.copy()
+	attrHandlers.update({"shape": xsc.TextAttr, "coords": xsc.TextAttr, "href": xsc.URLAttr, "nohref": xsc.TextAttr, "alt": xsc.TextAttr, "tabindex": xsc.TextAttr, "accesskey": xsc.TextAttr, "onfocus": xsc.TextAttr, "onblur": xsc.TextAttr})
 
 class style(xsc.Element):
 	"""
 	style info
 	"""
 	empty = 0
-	attrHandlers = xsc.appendDict(i18n,{ "type": xsc.TextAttr, "media": xsc.TextAttr, "title": xsc.TextAttr })
+	attrHandlers = i18n.copy()
+	attrHandlers.update({"type": xsc.TextAttr, "media": xsc.TextAttr, "title": xsc.TextAttr})
 
 class hr(xsc.Element):
 	"""
 	horizontal rule
 	"""
 	empty = 1
-	attrHandlers = xsc.appendDict(coreattrs,events)
-	attrHandlers = xsc.appendDict(attrHandlers,{ "noshade": xsc.TextAttr, "size": xsc.TextAttr, "color": xsc.ColorAttr, "width": xsc.TextAttr, "align": xsc.TextAttr } ) # deprecated
+	attrHandlers = coreattrs.copy()
+	attrHandlers.update(events)
+	attrHandlers.update({"noshade": xsc.TextAttr, "size": xsc.TextAttr, "color": xsc.ColorAttr, "width": xsc.TextAttr, "align": xsc.TextAttr}) # deprecated
 
 # The pain, the pain ...
 class frameset(xsc.Element):
@@ -551,14 +584,16 @@ class frameset(xsc.Element):
 	window subdivision
 	"""
 	empty = 0
-	attrHandlers = xsc.appendDict(coreattrs,{ "rows": xsc.TextAttr ,"cols": xsc.TextAttr ,"onload": xsc.TextAttr ,"onunload": xsc.TextAttr })
+	attrHandlers = coreattrs.copy()
+	attrHandlers.update({"rows": xsc.TextAttr ,"cols": xsc.TextAttr ,"onload": xsc.TextAttr ,"onunload": xsc.TextAttr})
 
 class frame(xsc.Element):
 	"""
 	subwindow
 	"""
 	empty = 0
-	attrHandlers = xsc.appendDict(coreattrs,{ "longdesc": xsc.TextAttr, "name": xsc.TextAttr, "src": xsc.URLAttr, "frameborder": xsc.TextAttr, "marginwidht": xsc.TextAttr, "marginheight": xsc.TextAttr, "noresize": xsc.TextAttr, "scrolling": xsc.TextAttr })
+	attrHandlers = coreattrs.copy()
+	attrHandlers.update({"longdesc": xsc.TextAttr, "name": xsc.TextAttr, "src": xsc.URLAttr, "frameborder": xsc.TextAttr, "marginwidht": xsc.TextAttr, "marginheight": xsc.TextAttr, "noresize": xsc.TextAttr, "scrolling": xsc.TextAttr})
 
 class noframes(xsc.Element):
 	"""
@@ -572,14 +607,16 @@ class iframe(xsc.Element):
 	inline subwindow
 	"""
 	empty = 0
-	attrHandlers = xsc.appendDict(coreattrs,{ "longdesc": xsc.TextAttr, "name": xsc.TextAttr, "src": xsc.URLAttr, "frameborder": xsc.TextAttr, "marginwidht": xsc.TextAttr, "marginheight": xsc.TextAttr, "noresize": xsc.TextAttr, "scrolling": xsc.TextAttr, "align": xsc.TextAttr, "height": xsc.TextAttr, "width": xsc.TextAttr })
+	attrHandlers = coreattrs.copy()
+	attrHandlers.update({"longdesc": xsc.TextAttr, "name": xsc.TextAttr, "src": xsc.URLAttr, "frameborder": xsc.TextAttr, "marginwidht": xsc.TextAttr, "marginheight": xsc.TextAttr, "noresize": xsc.TextAttr, "scrolling": xsc.TextAttr, "align": xsc.TextAttr, "height": xsc.TextAttr, "width": xsc.TextAttr})
 
 class form(xsc.Element):
 	"""
 	interactive form
 	"""
 	empty = 0
-	attrHandlers = xsc.appendDict(attrs,{ "action": xsc.URLAttr, "method": xsc.TextAttr, "enctype": xsc.TextAttr, "onsubmit": xsc.TextAttr, "onreset": xsc.TextAttr, "accept-charset": xsc.TextAttr })
+	attrHandlers = attrs.copy()
+	attrHandlers.update({"action": xsc.URLAttr, "method": xsc.TextAttr, "enctype": xsc.TextAttr, "onsubmit": xsc.TextAttr, "onreset": xsc.TextAttr, "accept-charset": xsc.TextAttr})
 
 class input(xsc.Element):
 	"""
@@ -611,29 +648,33 @@ class optgroup(xsc.Element):
 	option group
 	"""
 	empty = 0
-	attrHandlers = xsc.appendDict(attrs,{ "disabled": xsc.TextAttr, "label": xsc.TextAttr })
+	attrHandlers = attrs.copy()
+	attrHandlers.update({"disabled": xsc.TextAttr, "label": xsc.TextAttr})
 
 class option(xsc.Element):
 	"""
 	selectable choice
 	"""
 	empty = 0
-	attrHandlers = xsc.appendDict(attrs,{ "selected": xsc.TextAttr, "disabled": xsc.TextAttr, "label": xsc.TextAttr, "value": xsc.TextAttr })
+	attrHandlers = attrs.copy()
+	attrHandlers.update({"selected": xsc.TextAttr, "disabled": xsc.TextAttr, "label": xsc.TextAttr, "value": xsc.TextAttr})
 
 class textarea(xsc.Element):
 	"""
 	multi-line text field
 	"""
 	empty = 0
-	attrHandlers = xsc.appendDict(attrs,{ "name": xsc.TextAttr, "rows": xsc.TextAttr, "cols": xsc.TextAttr, "disabled": xsc.TextAttr, "readonly": xsc.TextAttr, "tabindex": xsc.TextAttr, "accesskey": xsc.TextAttr, "onfocus": xsc.TextAttr, "onblur": xsc.TextAttr, "onselect": xsc.TextAttr, "onchange": xsc.TextAttr })
-	attrHandlers = xsc.appendDict(attrHandlers,{ "wrap": xsc.TextAttr })
+	attrHandlers = attrs.copy()
+	attrHandlers.update({"name": xsc.TextAttr, "rows": xsc.TextAttr, "cols": xsc.TextAttr, "disabled": xsc.TextAttr, "readonly": xsc.TextAttr, "tabindex": xsc.TextAttr, "accesskey": xsc.TextAttr, "onfocus": xsc.TextAttr, "onblur": xsc.TextAttr, "onselect": xsc.TextAttr, "onchange": xsc.TextAttr})
+	attrHandlers.update({"wrap": xsc.TextAttr})
 
 class label(xsc.Element):
 	"""
 	form field label text
 	"""
 	empty = 0
-	attrHandlers = xsc.appendDict(attrs,{ "for": xsc.TextAttr, "accesskey": xsc.TextAttr, "onfocus": xsc.TextAttr, "onblur": xsc.TextAttr })
+	attrHandlers = attrs.copy()
+	attrHandlers.update({"for": xsc.TextAttr, "accesskey": xsc.TextAttr, "onfocus": xsc.TextAttr, "onblur": xsc.TextAttr})
 
 class fieldset(xsc.Element):
 	"""
@@ -647,15 +688,16 @@ class legend(xsc.Element):
 	fieldset legend
 	"""
 	empty = 0
-	attrHandlers = xsc.appendDict(attrs,{ "accesskey": xsc.TextAttr })
+	attrHandlers = attrs.copy()
+	attrHandlers.update({"accesskey": xsc.TextAttr})
 
 class script(xsc.Element):
 	"""
 	script statements
 	"""
 	empty = 0
-	attrHandlers = { "charset": xsc.TextAttr, "type": xsc.TextAttr, "src": xsc.URLAttr, "defer": xsc.TextAttr }
-	attrHandlers = xsc.appendDict(attrHandlers,{ "language": xsc.TextAttr }) # deprecated
+	attrHandlers = {"charset": xsc.TextAttr, "type": xsc.TextAttr, "src": xsc.URLAttr, "defer": xsc.TextAttr}
+	attrHandlers.update({"language": xsc.TextAttr}) # deprecated
 
 class noscript(xsc.Element):
 	"""
@@ -670,14 +712,14 @@ class font(xsc.Element): # deprecated
 	local change to font
 	"""
 	empty = 0
-	attrHandlers = { "face": xsc.TextAttr, "size": xsc.TextAttr, "color": xsc.ColorAttr }
+	attrHandlers = {"face": xsc.TextAttr, "size": xsc.TextAttr, "color": xsc.ColorAttr}
 
 class applet(xsc.Element): # deprecated
 	"""
 	Java applet
 	"""
 	empty = 0
-	attrHandlers = { "archive": xsc.URLAttr, "code": xsc.URLAttr, "width": xsc.TextAttr, "height": xsc.TextAttr }
+	attrHandlers = {"archive": xsc.URLAttr, "code": xsc.URLAttr, "width": xsc.TextAttr, "height": xsc.TextAttr}
 
 # Latin 1 characters
 class nbsp(xsc.Entity): "no-break space = non-breaking space, U+00A0 ISOnum"; codepoint = 160
@@ -850,7 +892,7 @@ class eta(xsc.Entity): "greek small letter eta, U+03B7 ISOgrk3"; codepoint = 951
 class theta(xsc.Entity): "greek small letter theta, U+03B8 ISOgrk3"; codepoint = 952
 class iota(xsc.Entity): "greek small letter iota, U+03B9 ISOgrk3"; codepoint = 953
 class kappa(xsc.Entity): "greek small letter kappa, U+03BA ISOgrk3"; codepoint = 954
-class Lambda(xsc.Entity): "greek small letter lambda, U+03BB ISOgrk3"; codepoint = 955; name = "lambda"
+class lambda_(xsc.Entity): "greek small letter lambda, U+03BB ISOgrk3"; codepoint = 955; name = "lambda"
 class mu(xsc.Entity): "greek small letter mu, U+03BC ISOgrk3"; codepoint = 956
 class nu(xsc.Entity): "greek small letter nu, U+03BD ISOgrk3"; codepoint = 957
 class xi(xsc.Entity): "greek small letter xi, U+03BE ISOgrk3"; codepoint = 958
@@ -914,8 +956,8 @@ class radic(xsc.Entity): "square root = radical sign, U+221A ISOtech"; codepoint
 class prop(xsc.Entity): "proportional to, U+221D ISOtech"; codepoint = 8733
 class infin(xsc.Entity): "infinity, U+221E ISOtech"; codepoint = 8734
 class ang(xsc.Entity): "angle, U+2220 ISOamso"; codepoint = 8736
-class And(xsc.Entity): "logical and = wedge, U+2227 ISOtech"; codepoint = 8743; name = "and"
-class Or(xsc.Entity): "logical or = vee, U+2228 ISOtech"; codepoint = 8744; name = "or"
+class and_(xsc.Entity): "logical and = wedge, U+2227 ISOtech"; codepoint = 8743; name = "and"
+class or_(xsc.Entity): "logical or = vee, U+2228 ISOtech"; codepoint = 8744; name = "or"
 class cap(xsc.Entity): "intersection = cap, U+2229 ISOtech"; codepoint = 8745
 class cup(xsc.Entity): "union = cup, U+222A ISOtech"; codepoint = 8746
 class int(xsc.Entity): "integral, U+222B ISOtech"; codepoint = 8747
