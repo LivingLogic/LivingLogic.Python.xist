@@ -1,9 +1,11 @@
 ToDos and stupid ideas
 ======================
 
-Implement new project relative URLs as a new scheme:
-	*/foo.html => root://foo.html
-	*foo/bar.html => roots://foo/bar.html
+Real namespace support.
+
+Implement new relative URLs as a new scheme:
+	roots://foo/bar.html
+and define the meaning of foo somewhere.
 
 Fix the problem that URL constructor arguments are ambigous,
 does query=None mean "no argument given" or does it mean

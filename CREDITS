@@ -14,7 +14,8 @@ Thomas Aglassinger (agi@giga.or.at)
 
 Hartmut Goebel (hartmut@goebel.noris.de)
 	for testing, sending comments, bugfixes and patches,
-	and for the idea and first implementation of cond.py.
+	for the idea and first implementation of cond.py,
+	and for the idea for handling empty attributes.
 
 Neelakantan Krishnaswami (neelk@alum.mit.edu)
 	for Signature.py, which is used in the doc example.
