@@ -737,7 +737,7 @@ will.
 <item>Make functionality has been moved to <filename>make.py</filename>, as certain modules can't
 be used as the main script, because reimporting them in processing
 instructions won't work. Now you can simply call
-<example
+<example>
 <title>The new make script</title>
 <programlisting>make.py --import xist.html --import spam eggs.xsc</programlisting>
 </example>
