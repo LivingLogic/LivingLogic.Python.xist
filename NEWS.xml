@@ -3,7 +3,7 @@
 <ulist>
 <item>Added a new namespace module <module>ll.xist.ns.xndl</module>
 that contains the <z>&xist; namespace definition language</z>, i.e.
-elements that describe a &xist; namespace and can be used by
+elements that describe an &xist; namespace and can be used by
 various scripts to generate skeleton namespace modules.
 The first of these script is the &dtd; to namespace converter
 <filename>dtd2xsc.py</filename>.</item>
