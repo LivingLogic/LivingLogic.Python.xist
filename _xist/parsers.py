@@ -472,6 +472,7 @@ class Handler(object):
 				attrname = self.prefixes.attrnameFromQName(node, attrname)
 				node[attrname] = attrvalue
 				node[attrname].parsed(self)
+		node.attrs.parsed(self)
 		node.parsed(self, start=True)
 		self.__appendNode(node)
 		self.__nesting.append((node, prefixes)) # push new innermost element onto the stack, together with the list of prefix mappings defined by this node
