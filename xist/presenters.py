@@ -55,72 +55,167 @@ def getANSICodesFromEnv(name, default):
 		var = [var, var]
 	return var
 
-class ANSIStringBuffer:
+class StringBuffer:
+	def __init__(self):
+		self.buffer = []
+	def write(self, text):
+		self.buffer.append(text)
+	def __str__(self):
+		return "".join(self.buffer)
+
+class ANSIColorStream:
 	"""
-	simplifies handling ANSI colors
+	adds color capability to an output stream. An ANSIColorStream
+	keeps track of the current color and writes ANSI color escape
+	sequences to the stream where appropriate. colors are numbers
+	from 0 to 15.
 	"""
 
-	def __init__(self, ansi=None):
-		if ansi is None:
-			ansi = options.repransi
-		self.ansi = ansi
-		self.buffer = []
-		self.colorStack = [(7,7)]
-		self.activeColor = 7
+	def __init__(self, stream):
+		self._basestream = stream
+		self._colorStack = [7]
+		self._activeColor = 7
 
 	def pushColor(self, color):
-		self.colorStack.append(color)
+		"""
+		push the color color onto the color stack.
+		It becames the current color. Returning to
+		the previous color is possible with
+		popColor().
+		"""
+		self._colorStack.append(color)
 
 	def popColor(self):
-		self.colorStack.pop()
+		"""
+		return to the previous active color.
+		"""
+		self._colorStack.pop()
 
-	def _switchColor(self, *colors):
-		color = colors[self.ansi-1]
-		if self.activeColor != color:
+	def _switchColor(self, color):
+		"""
+		internal method: switches to the color color.
+		If color is different from the currently active
+		color, the appropriate ANSI escape sequence will
+		be written to the stream.
+		"""
+		if self._activeColor != color:
 			if color == 0x7:
-				s = "\033[0m"
-			s = "\033[0"
-			if color != 0x7:
-				if color&0x8:
-					s += ";1"
-				s += ";" + str(30+(color&0x7))
-			s += "m"
-			self.buffer.append(s)
-			self.activeColor = color
+				s = "0"
+			else:
+				s = ""
+				if (self._activeColor&0x8) != (color&0x8):
+					if color&0x8:
+						s += "1;"
+					else:
+						s += "0;"
+				s += str(30+(color&0x7))
+			self._basestream.write("\033[" + s + "m")
+			self._activeColor = color
 
 	def write(self, *texts):
-		if self.ansi:
-			self._switchColor(*self.colorStack[-1])
-		self.buffer.extend(texts)
+		"""
+		writes the texts to the stream, and ensures,
+		that the texts will be in the correct color.
+		"""
+		self._switchColor(self._colorStack[-1])
+		for text in texts:
+			self._basestream.write(text)
 
-	def __str__(self):
-		if self.ansi:
-			self._switchColor(7,7)
-		return "".join(self.buffer)
+	def writeWithColor(self, color, *texts):
+		"""
+		writes the texts in the color color
+		and then switches back to the previos
+		color.
+		"""
+		self.pushColor(color)
+		self.write(*texts)
+		self.popColor()
+
+	def finish(self):
+		"""
+		can be called at the end of an output
+		sequence to return to the default
+		color.
+		"""
+		self._switchColor(7)
+
+class NamedANSIColorStream(ANSIColorStream):
+	"""
+	Adds two features to the underlying ANSIColorStream:
+	colors can be registered under a name, and the stream
+	may have different modes, with a different collection
+	of color (e.g. on set for light background and one
+	set for dark background)
+	"""
+
+	def __init__(self, stream, mode=None):
+		ANSIColorStream.__init__(self, stream)
+		if mode is None:
+			mode = options.repransi
+		self.mode = mode
+		self.colors = {}
+
+	def registerColor(self, name, colors):
+		self.colors[name] = colors
+
+	def unregisterColor(self, name):
+		del self.colors[name]
+
+	def pushColor(self, colorName):
+		if self.mode != 0:
+			ANSIColorStream.pushColor(self, self.colors[colorName][self.mode-1])
+
+	def popColor(self):
+		if self.mode != 0:
+			ANSIColorStream.popColor(self)
+
+	def writeWithColor(self, colorName, *texts):
+		if self.colors.has_key(colorName):
+			self.pushColor(colorName)
+			ANSIColorStream.write(self, *texts)
+			self.popColor()
+		else:
+			print "writeWithColor:", colorName, self.mode, texts, "unknown color"
+			ANSIColorStream.write(self, *texts)
 
 class Presenter:
 	"""
 	base class for all presenters.
 	"""
 
-	def __init__(self, encoding=None, ansi=None):
+	def __init__(self, namespaces=None, encoding=None, ansi=None):
+		if namespaces is None:
+			namespaces = xsc.defaultNamespaces
+		self.namespaces = namespaces
 		if encoding is None:
 			encoding = options.reprEncoding
 		self.encoding = encoding
 		self.refwhite = 0
 		self.ansi = ansi
-		self.reset()
 
 	def reset(self):
-		self.buffer = ANSIStringBuffer(self.ansi)
+		self.buffer = StringBuffer()
+		self.stream = NamedANSIColorStream(self.buffer, self.ansi)
+		self.stream.registerColor("text", options.repransitext)
+		self.stream.registerColor("tab", options.repransitab)
+		self.stream.registerColor("namespace", options.repransinamespace)
+		self.stream.registerColor("elementname", options.repransielementname)
+		self.stream.registerColor("entityname", options.repransientityname)
+		self.stream.registerColor("charref", options.repransicharref)
+		self.stream.registerColor("bracket", options.repransibracket)
+		self.stream.registerColor("colon", options.repransicolon)
+		self.stream.registerColor("slash", options.repransislash)
+		self.stream.registerColor("question", options.repransiquestion)
+		self.stream.registerColor("exclamation", options.repransiexclamation)
+		self.stream.registerColor("commentmarker", options.repransicommentmarker)
+		self.stream.registerColor("commenttext", options.repransicommenttext)
+		self.stream.registerColor("procinsttarget", options.repransiprocinsttarget)
+		self.stream.registerColor("procinstdata", options.repransiprocinstdata)
+		self.stream.registerColor("doctypemarker", options.repransidoctypemarker)
+		self.stream.registerColor("doctypetext", options.repransidoctypetext)
 		self.inAttr = 0
 
 	def _colorText(self, text):
-		# we could put ANSI escapes around every character or reference that we output,
-		# but this would result in strings that are way to long, especially if output
-		# over a serial connection, so we collect runs of characters with the same
-		# highlighting and put the ANSI escapes around those. (of course, when we're
-		# not doing highlighting, this routine does way to much useless calculations)
 		v = [] # collect all colored string here
 		for c in text:
 			oc = ord(c)
@@ -131,135 +226,119 @@ class Presenter:
 				except UnicodeError:
 					ascharref = 1
 			if (c == "\n" or c == "\t") and not self.refwhite:
-				self.buffer.pushColor(options.repransitab)
-				self.buffer.write(c)
-				self.buffer.popColor()
+				self.stream.writeWithColor("tab", c)
 			elif ascharref:
-				self.buffer.pushColor(options.repransicharref)
-				self.buffer.write("&#" + str(oc) + ";")
-				self.buffer.popColor()
+				entity = self.namespaces.entityFromNumber(oc)
+				if entity is not None:
+					self.stream.writeWithColor("charref", "&", entity.name, ";")
+				else:
+					self.stream.writeWithColor("charref", "&#", str(oc), ";")
 			else:
-				self.buffer.write(c.encode(self.encoding))
+				self.stream.write(c.encode(self.encoding))
 
 	def writeElement(self, node):
 		if hasattr(node, "namespace"):
-			self.buffer.pushColor(options.repransinamespace)
+			self.stream.pushColor("namespace")
 			self._colorText(node.namespace.prefix)
-			self.buffer.popColor()
+			self.stream.popColor()
 			self.writeColon()
 		if hasattr(node, "name"):
 			name = node.name
 		else:
 			name = node.__class__.name
-		self.buffer.pushColor(options.repransinamespace)
+		self.stream.pushColor("elementname")
 		self._colorText(name)
-		self.buffer.popColor()
+		self.stream.popColor()
 
 	def writeEntity(self, node):
-		self.buffer.write("&")
+		self.stream.write("&")
 		if hasattr(node, "namespace"):
-			self.buffer.pushColor(options.repransinamespace)
+			self.stream.pushColor("namespace")
 			self._colorText(node.namespace.prefix)
 			self.writeColon()
-			self.buffer.popColor()
+			self.stream.popColor()
 		if hasattr(node, "name"):
 			name = node.name
 		else:
 			name = node.__class__.name
-		self.buffer.pushColor(options.repransientityname)
+		self.stream.pushColor("entityname")
 		self._colorText(name)
-		self.buffer.popColor()
-		self.buffer.write(";")
+		self.stream.popColor()
+		self.stream.write(";")
 
 	def writeAttrName(self, attrname):
-		self.buffer.pushColor(options.repransiattrname)
+		self.stream.pushColor("attrname")
 		self._colorText(attrname)
-		self.buffer.popColor()
+		self.stream.popColor()
 
 	def writeAttrValue(self, attrvalue):
-		self.buffer.pushColor(options.repransiattrvalue)
+		self.buffer.pushColor("attrvalue")
 		self._colorText(attrvalue)
 		self.buffer.popColor()
 
 	def writeDocTypeMarker(self):
-		self.buffer.pushColor(options.repransidoctypemarker)
-		self.buffer.write("DOCTYPE")
-		self.buffer.popColor()
+		self.stream.pushColor("doctypemarker")
+		self.stream.write("DOCTYPE")
+		self.stream.popColor()
 
 	def writeDocTypeText(self, text):
-		self.buffer.pushColor(options.repransidoctypetext)
+		self.stream.pushColor("doctypetext")
 		self._colorText(text)
-		self.buffer.popColor()
+		self.stream.popColor()
 
 	def writeCommentMarker(self):
-		self.buffer.pushColor(options.repransicommentmarker)
-		self.buffer.write("--")
-		self.buffer.popColor()
+		self.stream.pushColor("commentmarker")
+		self.stream.write("--")
+		self.stream.popColor()
 
 	def writeCommentText(self, text):
-		self.buffer.pushColor(options.repransicommenttext)
+		self.stream.pushColor("commenttext")
 		self._colorText(text)
-		self.buffer.popColor()
+		self.stream.popColor()
 
 	def writeProcInstTarget(self, target):
-		self.buffer.pushColor(options.repransiprocinsttarget)
+		self.stream.pushColor("procinsttarget")
 		self._colorText(target)
-		self.buffer.popColor()
+		self.stream.popColor()
 
 	def writeProcInstData(self, data):
-		self.buffer.pushColor(options.repransiprocinstdata)
+		self.stream.pushColor("procinstdata")
 		self._colorText(data)
-		self.buffer.popColor()
+		self.stream.popColor()
 
 	def writeText(self, text):
-		self.buffer.pushColor(options.repransitext)
+		self.stream.pushColor("text")
 		self._colorText(text)
-		self.buffer.popColor()
+		self.stream.popColor()
 
 	def writeSlash(self):
-		self.buffer.pushColor(options.repransislash)
-		self.buffer.write("/")
-		self.buffer.popColor()
+		self.stream.writeWithColor("slash", "/")
 
 	def writeBracketOpen(self):
-		self.buffer.pushColor(options.repransibracket)
-		self.buffer.write("<")
-		self.buffer.popColor()
+		self.stream.writeWithColor("bracket", "<")
 
 	def writeBracketClose(self):
-		self.buffer.pushColor(options.repransibracket)
-		self.buffer.write(">")
-		self.buffer.popColor()
+		self.stream.writeWithColor("bracket", ">")
 
 	def writeColon(self):
-		self.buffer.pushColor(options.repransicolon)
-		self.buffer.write(":")
-		self.buffer.popColor()
+		self.stream.writeWithColor("colon", ":")
 
 	def writeQuestion(self):
-		self.buffer.pushColor(options.repransiquestion)
-		self.buffer.write("?")
-		self.buffer.popColor()
+		self.stream.writeWithColor("question", "?")
 
 	def writeExclamation(self):
-		self.buffer.pushColor(options.repransiexclamation)
-		self.buffer.write("!")
-		self.buffer.popColor()
+		self.stream.writeWithColor("exclamation", "!")
 
 	def writeQuote(self):
-		self.buffer.pushColor(options.repransiquote)
-		self.buffer.write('"')
-		self.buffer.popColor()
+		self.stream.writeWithColor("quote", '"')
 
 	def writeTab(self, count):
-		self.buffer.pushColor(options.repransitab)
-		self.buffer.write(options.reprtab*count)
-		self.buffer.popColor()
+		self.stream.writeWithColor("tab", options.reprtab*count)
 
 	def writeURL(self, url):
-		self.buffer.pushColor(options.repransiurl)
+		self.stream.pushColor("url")
 		self._colorText(url)
-		self.buffer.popColor()
+		self.stream.popColor()
 
 	def _colorAttrs(self, dict):
 		v = []
@@ -283,6 +362,7 @@ class NormalPresenter(Presenter):
 		self.reset()
 
 	def endPresentation(self):
+		self.stream.finish()
 		result = str(self.buffer)
 		self.reset()
 		return result

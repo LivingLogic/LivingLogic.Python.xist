@@ -248,6 +248,7 @@ import errors # exceptions
 import options # optional stuff ;)
 import utils # misc stuff
 import helpers # C stuff
+import namespace as namespace_ # namespace stuff
 
 ###
 ### helpers
@@ -1831,10 +1832,6 @@ class Namespace:
 	def __repr__(self):
 		return "<%s.%s instance prefix=%r uri=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.prefix, self.uri, id(self))
 
-###
-### Namespace registry
-###
-
 class NamespaceRegistry:
 	"""
 	global registry for all namespaces
@@ -1849,9 +1846,89 @@ class NamespaceRegistry:
 
 namespaceRegistry = NamespaceRegistry()
 
-###
-###
-###
+class Namespaces:
+	"""
+	list of namespaces.
+	"""
+	def __init__(self, *namespaces):
+		self.namespaces = []
+		self.pushNamespace(namespace) # always include the namespace object from our own modules with &gt; etc.
+		self.pushNamespace(*namespaces)
+
+	def pushNamespace(self, *namespaces):
+		for namespace in namespaces:
+			if type(namespace) is types.ModuleType:
+				namespace = namespace.namespace
+			self.namespaces.insert(0, namespace) # built in reverse order, so a simple "for in" finds the most recent entry.
+
+	def popNamespace(self, count=1):
+		del self.namespaces[:count]
+
+	def __splitName(self, name):
+		"""
+		split a qualified name into a namespace,name pair
+		"""
+		name = name.split(":")
+		if len(name) == 1: # no namespace specified
+			name.insert(0, None)
+		return name
+
+	def __allNamespaces(self):
+		"""
+		returns a list of all namespaces to be searched in this order
+		"""
+		return self.namespaces+namespaceRegistry.byPrefix.values()
+
+	def elementFromName(self, name):
+		"""
+		returns the element class for the name name (which might include a namespace).
+		"""
+		name = self.__splitName(name)
+		for namespace in self.__allNamespaces():
+			if name[0] is None or name[0] == namespace.prefix:
+				try:
+					return namespace.elementsByName[name[1]]
+				except KeyError: # no element in this namespace with this name
+					pass
+		raise errors.IllegalElementError(self.getLocation(), name) # elements with this name couldn't be found
+
+	def entityFromName(self, name):
+		"""
+		returns the entity class for the name name (which might include a namespace).
+		"""
+		name = self.__splitName(name)
+		for namespace in self.__allNamespaces():
+			if name[0] is None or name[0] == namespace.prefix:
+				try:
+					return namespace.entitiesByName[name[1]]
+				except KeyError: # no entity in this namespace with this name
+					pass
+		raise errors.IllegalEntityError(self.getLocation(), name) # entities with this name couldn't be found
+
+	def procInstFromName(self, name):
+		"""
+		returns the processing instruction class for the name name (which might include a namespace).
+		"""
+		name = self.__splitName(name)
+		for namespace in self.__allNamespaces():
+			if name[0] is None or name[0] == namespace.prefix:
+				try:
+					return namespace.procInstsByName[name[1]]
+				except KeyError: # no processing instruction in this namespace with this name
+					pass
+		raise errors.IllegalProcInstError(self.getLocation(), name) # processing instructions with this name couldn't be found
+
+	def entityFromNumber(self, number):
+		"""
+		returns the first entity class for the codepoint number.
+		"""
+		for namespace in self.__allNamespaces():
+			if len(namespace.entitiesByNumber[number]):
+				return namespace.entitiesByNumber[number][0]
+		return None
+
+	def getLocation(self):
+		return None
 
 # C0 Controls and Basic Latin
 class quot(Entity): "quotation mark = APL quote, U+0022 ISOnum"; codepoint = 34
@@ -1860,6 +1937,8 @@ class lt(Entity): "less-than sign, U+003C ISOnum"; codepoint = 60
 class gt(Entity): "greater-than sign, U+003E ISOnum"; codepoint = 62
 
 namespace = Namespace("", "", vars())
+
+defaultNamespaces = Namespaces()
 
 ###
 ###
