@@ -203,7 +203,18 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 			self.headerJustRead = 1
 
 	def handle_entityref(self, name):
-		self.content_handler.skippedEntity(unicode(name, self.encoding))
+		if name=="lt":
+			self.content_handler.characters(u"<")
+		elif name=="gt":
+			self.content_handler.characters(u">")
+		elif name=="amp":
+			self.content_handler.characters(u"&")
+		elif name=="quot":
+			self.content_handler.characters(u'"')
+		elif name=="apos":
+			self.content_handler.characters(u"'")
+		else:
+			self.content_handler.skippedEntity(unicode(name, self.encoding))
 		self.headerJustRead = 0
 
 	def finish_starttag(self, name, attrs):
