@@ -57,10 +57,12 @@ def dookbooklite2text(infilename, outfilename, title):
 
 if __name__ == "__main__":
 	title = None
-	(options, args) = getopt.getopt(sys.argv[1:], "t:", ["title="])
+	(options, args) = getopt.getopt(sys.argv[1:], "t:i:", ["title=", "import="])
 
 	for (option, value) in options:
 		if option=="-t" or option=="--title":
 			title = value
+		elif option=="-i" or option=="--import":
+			__import__(value)
 
 	dookbooklite2text(args[0], args[1], title)
