@@ -1,8 +1,8 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
-<section><title>Changes in 2.5 (released ??/??/2004)</title>
+<section><title>Changes in 2.5 (released 06/30/2004)</title>
 <ulist>
 
-<item>Specifying content models has seen major enhancements. The
+<item>Specifying content models for elements has seen major enhancements. The
 boolean class attribute <lit>empty</lit> has been replaced by an object
 <lit>model</lit> whose <method>checkvalid</method> method will be called
 for validating the element content.</item>
@@ -130,6 +130,9 @@ a cache now.</item>
 
 <item>Pretty printing has been changed: Whitespace will only be added now if
 there are no text nodes in element content.</item>
+
+<item>Two mailing lists are now available: One for discussion about &xist;
+and one for &xist; announcements.</item>
 </ulist>
 </section>
 
