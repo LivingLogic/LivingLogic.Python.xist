@@ -221,7 +221,7 @@ import stat
 import Image
 
 # for parsing XML files
-from xml.parsers import sgmlop
+import sgmlop
 
 # for reading remote files
 import urllib
