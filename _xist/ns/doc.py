@@ -280,6 +280,7 @@ class section(block):
 	empty = False
 	class Attrs(xsc.Element.Attrs):
 		class role(xsc.TextAttr): pass
+		class id(xsc.IDAttr): pass
 
 	class Context(xsc.Element.Context):
 		def __init__(self):
@@ -289,7 +290,7 @@ class section(block):
 	def convert(self, converter):
 		target = converter.target
 		if issubclass(target, docbook):
-			e = converter.target.section(self.content, role=self["role"])
+			e = converter.target.section(self.content, role=self["role"], id=self["id"])
 			return e.convert(converter)
 		elif issubclass(target, html):
 			context = converter[section]
@@ -308,6 +309,8 @@ class section(block):
 					hclass = target.element("h%d" % (len(context.numbers)-1))
 				except LookupError: # ouch, we're nested to deep (a getter in a property in a class in a class)
 					hclass = target.h6
+				if self.attrs.has("id"):
+					e.append(target.a(name=self["id"], id=self["id"]))
 				h = hclass(class_=self["role"])
 				if issubclass(target, text):
 					h.append(target.br(), t.content, target.br(), "="*len(unicode(t.content.convert(converter))))
@@ -718,7 +721,7 @@ _codeheader = classmethod(_codeheader)
 
 def explain(cls, thing, name=None, context=[]):
 	"""
-	<par>returns a &xml; representation of the documentation of
+	<par>Return a &xml; representation of the documentation of
 	<arg>thing</arg>, which can be a function, method, class or module.</par>
 
 	<par>If <arg>thing</arg> is not a module, you must pass the context
@@ -732,32 +735,28 @@ def explain(cls, thing, name=None, context=[]):
 		context = context + [(thing, name)]
 		(args, varargs, varkw, defaults) = inspect.getargspec(thing.im_func)
 		id = "-".join([info[1] for info in context[1:]])
-		sig = xsc.Frag(
-			html.a(name=id, id=id)
-		)
+		sig = xsc.Frag()
 		if name != thing.__name__ and not (thing.__name__.startswith("__") and name=="_" + thing.im_class.__name__ + thing.__name__):
 			sig.append(name, " = ")
 		sig.append("def ", cls._codeheader(thing.im_func, thing.__name__, cls.method), ":")
-		return cls.section(cls.title(sig), cls.getdoc(thing), role="method")
+		return cls.section(cls.title(sig), cls.getdoc(thing), role="method", id=id)
 	elif inspect.isfunction(thing):
 		name = name or thing.__name__
 		context = context + [(thing, name)]
 		id = "-".join([info[1] for info in context[1:]])
 		sig = xsc.Frag(
-			html.a(name=id, id=id),
 			"def ",
 			cls._codeheader(thing, name, cls.function),
 			":"
 		)
-		return cls.section(cls.title(sig), cls.getdoc(thing), role="function")
+		return cls.section(cls.title(sig), cls.getdoc(thing), role="function", id=id)
 	elif isinstance(thing, __builtin__.property):
 		context = context + [(thing, name)]
 		id = "-".join([info[1] for info in context[1:]])
 		sig = xsc.Frag(
-			html.a(name=id, id=id),
 			"property ", name, ":"
 		)
-		node = cls.section(cls.title(sig), cls.getdoc(thing), role="property")
+		node = cls.section(cls.title(sig), cls.getdoc(thing), role="property", id=id)
 		if thing.fget is not None:
 			node.append(cls.explain(thing.fget, "__get__", context))
 		if thing.fset is not None:
@@ -791,14 +790,14 @@ def explain(cls, thing, name=None, context=[]):
 			bases.append(")")
 		node = cls.section(
 			cls.title(
-				html.a(name=id, id=id),
 				"class ",
 				cls.class_(name),
 				bases,
 				":"
 			),
 			cls.getdoc(thing),
-			role="class"
+			role="class",
+			id=id
 		)
 		# find methods, properties and classes, but filter out those methods that are attribute getters, setters or deleters
 		methods = []
