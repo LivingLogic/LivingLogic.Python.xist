@@ -18,12 +18,15 @@ class quotations(xsc.Element):
 		# We want to get rid of the excessive whitespace
 		quotations = self.findNodes(type = quotation)
 
-		e = html.html(
-			header,
-			html.body(
-				html.h1("Python quotes"),
-				description,
-				quotations
+		e = xsc.Frag(
+			html.DocTypeHTML40transitional(),
+			html.html(
+				header,
+				html.body(
+					html.h1("Python quotes"),
+					description,
+					quotations
+				)
 			)
 		)
 
@@ -65,6 +68,7 @@ xsc.registerAllElements(vars(),"pq")
 
 if __name__ == "__main__":
 	e = xsc.xsc.parse(url)
+	e = e.findNodes(type = quotations)[0]
 	e = e.compact().asHTML()
 	print e.asString()
 

@@ -4,6 +4,8 @@ body
 	font-size: 12pt;
 	line-height: 16pt;
 	background-color: white;
+	margin-top: 20pt;
+	margin-bottom: 20pt;
 	margin-left: 50pt;
 	margin-right: 50pt;
 }
@@ -16,11 +18,12 @@ div.quotation
 
 div.source
 {
+	color: #666;
 	font-family: "Verdana", "Arial", "XHelvetica", "Helvetica", sans-serif;
 	font-size: 10pt;
 	line-height: 12pt;
-	margin-top: 1pt;
-	font-variant: small-caps;
+	margin-top: 3pt;
+	margin-left: 10pt;
 }
 h1
 {
