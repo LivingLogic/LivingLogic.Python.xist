@@ -1012,15 +1012,13 @@ class Frag(Node, list):
 		If <arg>index</arg> is a list <method>__getitem__</method> will work
 		recursively. If <arg>index</arg> is an empty list, <self/> will be returned.</par>
 		"""
-		if isinstance(index, (int, long)):
-			return list.__getitem__(self, index)
-		elif isinstance(index, list):
+		if isinstance(index, list):
 			node = self
 			for subindex in index:
 				node = node[subindex]
 			return node
 		else:
-			raise TypeError("index must be int, long or list not %s" % type(index).__name__)
+			return list.__getitem__(self, index)
 
 	def __setitem__(self, index, value):
 		"""
@@ -1030,23 +1028,19 @@ class Frag(Node, list):
 		to the innermost index after traversing the rest of <arg>index</arg> recursively.
 		If <arg>index</arg> is an empty list, the call will be ignored.</par>
 		"""
-		value = Frag(value)
-		try:
+		if isinstance(index, list):
+			if len(index):
+				node = self
+				for subindex in index[:-1]:
+					node = node[subindex]
+				node[index[-1]] = value
+		else:
+			value = Frag(value)
 			if index==-1:
 				l = len(self)
 				list.__setslice__(self, l-1, l, value)
 			else:
 				list.__setslice__(self, index, index+1, value)
-		except TypeError: # assume index is a list
-			if len(index):
-				node = self
-				for subindex in index[:-1]:
-					node = node[subindex]
-				index = index[-1]
-				if index==-1:
-					list.__setslice__(self, index, len(self), value)
-				else:
-					list.__setslice__(self, index, index+1, value)
 
 	def __delitem__(self, index):
 		"""
@@ -2416,7 +2410,12 @@ class Element(Node):
 		an 8bit or unicode string (i.e. attribute name) or a number or list
 		(i.e. content node index) is passed in.
 		"""
-		if isinstance(index, (int, long, list)):
+		if isinstance(index, list):
+			node = self
+			for subindex in index:
+				node = node[subindex]
+			return node
+		elif isinstance(index, (int, long)):
 			return self.content[index]
 		else:
 			return self.attrs[index]
@@ -2427,7 +2426,12 @@ class Element(Node):
 		an 8bit or unicode string (i.e. attribute name) or a number or list (i.e.
 		content node index) is passed in.</par>
 		"""
-		if isinstance(index, (int, long, list)):
+		if isinstance(index, list):
+			node = self
+			for subindex in index[:-1]:
+				node = node[subindex]
+			node[index[-1]] = value
+		elif isinstance(index, (int, long)):
 			self.content[index] = value
 		else:
 			self.attrs[index] = value
