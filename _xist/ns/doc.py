@@ -387,7 +387,11 @@ class self(xsc.Element):
 	empty = False
 
 	def convert(self, converter):
-		return html.code("self", class_="self")
+		if converter.target=="docbook":
+			e = docbook.varname("self")
+		else
+			e = html.code("self", class_="self")
+		return e
 
 	def __unicode__(self):
 		return u"self"
