@@ -55,7 +55,9 @@ class XSCIllegalAttributeError(XSCError):
 		self.attr = attr
 
 	def __str__(self):
-		return XSCError.__str__(self) + "The attribute '" + self.attr + "' is not allowed here. The only allowed attributes are: " + str(self.attrs.attr_handlers.keys())
+		attrs = self.attrs.attr_handlers.keys();
+		attrs.sort()
+		return XSCError.__str__(self) + "The attribute '" + self.attr + "' is not allowed here. The only allowed attributes are: " + str(attrs)
 
 class XSCIllegalElementError(XSCError):
 	"""exception that is raised, when an illegal element is encountered (i.e. one that isn't registered via RegisterElement"""
@@ -65,7 +67,9 @@ class XSCIllegalElementError(XSCError):
 		self.elementname = elementname
 
 	def __str__(self):
-		return XSCError.__str__(self) + "The element '" + self.elementname + "' is not allowed. The only allowed elements are: " + str(element_handlers.keys())
+		elements = element_handlers.keys();
+		elements.sort()
+		return XSCError.__str__(self) + "The element '" + self.elementname + "' is not allowed. The only allowed elements are: " + elements
 
 class XSCImageSizeFormatError(XSCError):
 	"""exception that is raised, when XSC can't format or evaluate image size attributes"""
