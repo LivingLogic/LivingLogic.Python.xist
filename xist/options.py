@@ -44,7 +44,7 @@ def getANSICodesFromEnv(name,default):
 retrieveremote = getIntFromEnv("XSC_RETRIEVEREMOTE",1)                                        # should remote URLs be retrieved? (for filesize and imagesize tests)
 retrievelocal = getIntFromEnv("XSC_RETRIEVELOCAL",1)                                          # should local URLs be retrieved? (for filesize and imagesize tests)
 repransi = getIntFromEnv("XSC_REPRANSI",0)                                                    # should ANSI escape sequences be used for dumping the DOM tree and which ones? (0=off,1=dark background,2=light background)
-reprtab = getStringFromEnv("XSC_REPRTAB","··")                                                # how to represent an indentation in the DOM tree?
+reprtab = getStringFromEnv("XSC_REPRTAB","  ")                                                # how to represent an indentation in the DOM tree?
 repransitab = getANSICodesFromEnv("XSC_REPRANSI_TAB",[ "1;30","37" ])                         # ANSI escape sequence to be used for tabs
 repransiquote = getANSICodesFromEnv("XSC_REPRANSI_QUOTE",[ "1;32","32" ])                     # ANSI escape sequence to be used for quotes (delimiters for text and attribute nodes)
 repransislash = getANSICodesFromEnv("XSC_REPRANSI_SLASH",[ "","" ])                           # ANSI escape sequence to be used for slashes in element names
