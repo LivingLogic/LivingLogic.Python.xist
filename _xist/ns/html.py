@@ -786,16 +786,6 @@ class center(xsc.Element): # deprecated
 	"""
 	empty = 0
 
-class nbsp_(xsc.Element):
-	"""
-	no-break space as an element, so it can be used with expat.
-	"""
-	empty = 1
-	name = "nbsp"
-
-	def convert(self, converter):
-		return xsc.Text(unichr(160))
-
 # Latin 1 characters
 class nbsp(xsc.CharRef): "no-break space = non-breaking space, U+00A0 ISOnum"; codepoint = 160
 class iexcl(xsc.CharRef): "inverted exclamation mark, U+00A1 ISOnum"; codepoint = 161
