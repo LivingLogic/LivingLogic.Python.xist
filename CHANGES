@@ -1,5 +1,12 @@
-New in 0.?
-----------
+New in 0.3.6
+------------
+
+Fixed a bug in Node._matches, which resulted in a non working
+find().
+
+New in 0.3.5
+------------
+
 The documentation example has been enhanced. Now documenting methods works.
 
 When the member "elementname" in the element class is set before calling
@@ -25,8 +32,12 @@ which keeps the path in a consistent state.
 >>> u
 URL(scheme='server', path=['bar'], file='baz', ext='gif')
 
-findNodes() has an additional argument test, which can be a test function that
-will be called when the node passes all other tests.
+findNodes() (which has been shortened to find()) has an additional argument test, which can
+be a test function that will be called when the node passes all other tests.
+
+asString() no longer generates a string directly, but uses the new method publish, which
+has an additional argument publisher, the which the strings to be output are passed.
+
 
 New in 0.3.4
 ------------
@@ -40,6 +51,7 @@ xsc.repransi can now have three values:
 	2 coloring is on for a light background
 All repransi* variables are now arrays with two strings, the first for dark, the second for
 light.
+
 
 New in 0.3.3
 ------------
