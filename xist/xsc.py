@@ -1440,19 +1440,20 @@ class URL(Node):
 			self.fragment = ""
 		else:
 			(self.scheme,self.server,self.path,self.parameters,self.query,self.fragment) = urlparse.urlparse(url)
+			if self.scheme == "": # do we have a local file?
+				if len(self.path):
+					if self.path[0] == "/": # this is a server relative URL
+						self.path = self.path[1:] # drop the empty string in front of the first "/" ...
+						self.scheme = "server" # ... and use a special scheme for that
+					elif self.path[0] == ":": # project relative, i.e. relative to the current directory
+						self.path = self.path[1:] # drop of the ":" ...
+						self.scheme = "project" # special scheme name
+			elif self.scheme == "http":
+				if len(self.path):
+					self.path = self.path[1:] # if we had a http, the path from urlparse started with "/" too
 			self.path = string.split(self.path,"/")
 			self.file = self.path[-1]
 			self.path = self.path[:-1]
-			if self.scheme == "": # do we have a local file?
-				if len(self.path) and not len(self.path[0]): # this is a server relative URL
-					del self.path[0] # drop the empty string in front of the first "/" ...
-					self.scheme = "server" # ... and use a special scheme for that
-				elif len(self.path) and len(self.path[0]) and self.path[0][0] == ":": # project relative, i.e. relative to the current directory
-					self.path[0] = self.path[0][1:] # drop of the ":" ...
-					self.scheme = "project" # special scheme name
-			else:
-				if self.scheme == "http":
-					del self.path[0] # if we had a http, the path from urlparse started with "/" too
 
 	def _dorepr(self,ansi = None):
 		sep = "/" # use the normal URL separator by default
@@ -1479,15 +1480,7 @@ class URL(Node):
 		return urlparse.urlunparse((scheme,self.server,string.join(path,"/"),self.parameters,self.query,self.fragment))
 
 	def __str__(self):
-		path = self.path[:]
-		path.append(self.file)
-		scheme = self.scheme
-		if scheme == "project":
-			scheme = "" # remove our own private scheme name
-		elif scheme == "server":
-			scheme = "" # remove our own private scheme name
-			path[:0] = [ "" ] # make sure that there's a "/" at the start
-		return urlparse.urlunparse((scheme,self.server,string.join(path,"/"),self.parameters,self.query,self.fragment))
+		return str(Text(self.asPlainString()))
 
 	def joined(self,other):
 		new = self.clone()
@@ -1575,22 +1568,34 @@ class URLAttr(Attr):
 
 	def __init__(self,_content):
 		Attr.__init__(self,_content)
-		self.insert(0,xsc.filename[-1])
+		if len(self)>0 and isinstance(self[0],URL):
+			self[0] = xsc.filename[-1].joined(self[0])
+		else:
+			self.insert(0,xsc.filename[-1])
 
 	def _dorepr(self,ansi = None):
-		return _stransi(repransiurl,reduce(lambda x,y: x.joined(y),self)._dorepr(ansi = ansi),ansi = ansi)
+		return _stransi(repransiurl,self.asPlainString(),ansi = ansi)
 
 	def __str__(self):
 		return self.forOutput()
 
+	def _asURL(self):
+		s = ""
+		for i in xrange(1,len(self)):
+			 s = s + self[i].asPlainString()
+		return self[0].joined(URL(s))
+
+	def asPlainString(self):
+		return self._asURL().asPlainString()
+
 	def forInput(self):
-		url = reduce(lambda x,y: x.joined(y),self)
+		url = self._asURL()
 		if url.scheme == "server":
 			url = url.relativeTo(URL(scheme = "http",server = xsc.server))
-		return str(url)
+		return url.asPlainString()
 
 	def forOutput(self):
-		url = reduce(lambda x,y: x.joined(y),self)
+		url = self._asURL()
 		if url.scheme == "server":
 			url = url.relativeTo(URL(scheme = "http",server = xsc.server))
 		else:
