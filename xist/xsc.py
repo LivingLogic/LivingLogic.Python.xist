@@ -1610,6 +1610,16 @@ class NumberAttr(Attr):
 	Attribute class that is used for normal number attributes.
 	"""
 
+class IntAttr(NumberAttr):
+	"""
+	Attribute class that is used for normal integer attributes.
+	"""
+
+class FloatAttr(NumberAttr):
+	"""
+	Attribute class that is used for normal float attributes.
+	"""
+
 class BoolAttr(Attr):
 	"""
 	Attribute class that is used for boolean attributes.
