@@ -322,10 +322,10 @@ class javascript(xsc.Element):
 	<par noindent>can be used for javascript.</par>
 	"""
 	empty = 0
-	attrHandlers = {"href": xsc.TextAttr}
+	attrHandlers = {"src": xsc.TextAttr}
 
 	def convert(self, converter):
-		e = html_.script(self.content, language="javascript", type="text/javascript", src=self["href"])
+		e = html_.script(self.content, language="javascript", type="text/javascript", src=self["src"])
 		return e.convert(converter)
 
 # Control characters (not part of HTML)
