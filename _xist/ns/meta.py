@@ -48,6 +48,10 @@ class contenttype(html.meta):
 			raise ValueError("unknown conversion target %r" % target)
 		return e.convert(converter)
 
+	def publish(self, publisher):
+		# fall back to the Element method
+		xsc.Element.publish(self, publisher)
+
 
 class contentscripttype(html.meta):
 	"""
