@@ -1111,7 +1111,7 @@ class pyref(inline):
 	class Context(xsc.Element.Context):
 		def __init__(self):
 			xsc.Element.Context.__init__(self)
-			self.base = "http://localhost:7464/"
+			self.base = "http://127.0.0.1:7464/"
 
 	def convert(self, converter):
 		target = converter.target
@@ -1138,6 +1138,8 @@ class pyref(inline):
 			module = unicode(self[u"module"].convert(converter))
 			if module.startswith(u"ll."):
 				module = module[3:].replace(u".", u"/")
+			elif module == "ll":
+				module = "core"
 			else:
 				module = None
 		else:
