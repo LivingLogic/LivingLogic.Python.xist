@@ -1280,7 +1280,7 @@ class Element(Node):
 			attr = self.attrs[attrname]
 			convertedattr = attr.convert(converter)
 			assert isinstance(convertedattr, Node), "the convert method returned the illegal object %r when converting the attribute %s with the value %r" % (convertedchild, presenters.strAttrName(attrname), child)
-			node.attrs[attr] = convertedattr
+			node.attrs[attrname] = convertedattr
 		return self._decorateNode(node)
 
 	def clone(self):

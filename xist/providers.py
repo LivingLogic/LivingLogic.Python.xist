@@ -31,20 +31,13 @@ import os
 import types
 import urllib
 
-try:
-	import sgmlop # for parsing XML files
-except ImportError:
-	from xml.parsers import sgmlop # get it from the XML package
-
-#try:
-#	import timeoutsocket
-#except ImportError:
-timeoutsocket = None
-
 import errors
 import options
 import xsc
 import url
+
+import inputsources
+import parsers
 
 providers = [] # provider stack
 
@@ -59,13 +52,19 @@ class Provider:
 	contains the parser and the options and functions for handling XML files
 	"""
 
-	def __init__(self, namespaces=None, encoding=None):
+	def __init__(self, parser=None, namespaces=None, encoding=None):
+		if parser is None:
+			parser = parsers.SGMLOPParser
+		self.parser = parser
+
 		if namespaces is None:
 			namespaces = xsc.defaultNamespaces
 		self.namespaces = namespaces
+
 		if encoding is None:
 			encoding = "iso-8859-1" # We assume that all source code is in this encoding
 		self.encoding = encoding
+
 		self.server = "localhost"
 		self.filenames = [url.URL("*/")]
 
@@ -78,37 +77,40 @@ class Provider:
 	def popURL(self):
 		self.filenames.pop()
 
-	def finish_starttag(self, name, attrs):
-		node = self.namespaces.elementFromName(unicode(name, self.encoding))()
+	def startDocument(self):
+		self.__nesting = [ xsc.Frag() ]
+		self.lineno = 1
+
+	def endDocument(self):
+		pass
+
+	def startElement(self, name, attrs):
+		node = self.namespaces.elementFromName(name)()
 		for name in attrs.keys():
 			node[name] = self.__string2Fragment(attrs[name])
 		self.__appendNode(node)
 		self.__nesting.append(node) # push new innermost element onto the stack
 
-	def finish_endtag(self, name):
-		element = self.namespaces.elementFromName(unicode(name, self.encoding))
+	def endElement(self, name):
+		element = self.namespaces.elementFromName(name)
 		currentelement = self.__nesting[-1].__class__
 		if element != currentelement:
 			raise errors.IllegalElementNestingError(self.getLocation(), currentelement, element)
 		self.__nesting[-1].endloc = self.getLocation()
 		self.__nesting.pop() # pop the innermost element off the stack
 
-	def handle_data(self, data):
-		if data != "":
-			self.__appendNode(xsc.Text(unicode(data, self.encoding)))
+	def characters(self, content):
+		if content != "":
+			self.__appendNode(xsc.Text(content))
 
-	def handle_comment(self, data):
-		self.__appendNode(xsc.Comment(unicode(data, self.encoding)))
+	def comment(self, content):
+		self.__appendNode(xsc.Comment(content))
 
-	def handle_special(self, data):
-		if data[:7] == "DOCTYPE":
-			self.__appendNode(xsc.DocType(unicode(data, self.encoding)[8:]))
+	def processsingInstruction(self, target, data):
+		self.__appendNode(self.namespaces.procInstFromName(target)(data))
 
-	def handle_proc(self, target, data):
-		self.__appendNode(self.namespaces.procInstFromName(unicode(target, self.encoding))(unicode(data, self.encoding)))
-
-	def handle_entityref(self, name):
-		self.__appendNode(self.namespaces.entityFromName(unicode(name, self.encoding))())
+	def entity(self, name):
+		self.__appendNode(self.namespaces.entityFromName(name)())
 
 	def handle_charref(self, name):
 		try:
@@ -119,22 +121,6 @@ class Provider:
 		except ValueError:
 			raise errors.MalformedCharRefError(self.getLocation(), name)
 		self.__appendNode(xsc.Text(unichr(code)))
-
-	def parseLines(self, lines):
-		self.__nesting = [xsc.Frag()]
-		parser = sgmlop.XMLParser()
-		parser.register(self)
-		self.lineno = 1
-		for line in lines:
-			parser.feed(line)
-			self.lineno += 1
-		parser.close()
-		# our nodes do not have a parent link, therefore we have to store the active
-		# path through the tree in a stack (which we call nesting, because stack is
-		# already used by the base class (there is no base class anymore, but who cares))
-
-		# after we've finished parsing, the Frag that we put at the bottom of the stack will be our document root
-		return self.__nesting[0]
 
 	def isRetrieve(self, url):
 		remote = url.isRemote()
@@ -190,57 +176,4 @@ class Provider:
 					node.append(text)
 				break
 		return node
-
-class URIProvider(Provider):
-	def parse(self, url):
-		"""
-		Reads and parses a XML file from an URL and returns the resulting XSC
-		"""
-		try:
-			self.pushURL(url)
-			lines = self.filenames[-1].readlines()
-			element = self.parseLines(lines)
-		finally:
-			self.popURL()
-		return element
-
-	def setTimeout(self, secs):
-		if timeoutsocket is not None:
-			timeoutsocket.setDefaultSocketTimeout(sec)
-
-	def getTimeout(self):
-		if timeoutsocket is not None:
-			timeoutsocket.getDefaultSocketTimeout()
-
-class StringProvider(Provider):
-	def parse(self, text):
-		"""
-		Parses a string and returns the resulting XSC
-		"""
-		self.pushURL("STRING")
-		lines = [ line+"\n" for line in text.split("\n") ]
-		element = self.parseLines(lines)
-		self.popURL()
-		return element
-
-class TidyURIProvider(Provider):
-	def parse(self, url):
-		self.pushURL(url)
-		url = self.filenames[-1]
-		try:
-			(tidyin, tidyout, tidyerr) = os.popen3("tidy --tidy-mark no --wrap 0 --output-xhtml --numeric-entities yes --show-warnings no --quiet yes -asxml -quiet", "b") # open the pipe to and from tidy
-			tidyin.write(url.open().read()) # get the desired file from the url and pipe it to tidy
-			tidyin.close() # tell tidy, that we're finished
-			lines = tidyout.readlines() # read the output
-			tidyout.close()
-			tidyerr.close()
-			element = self.parseLines(lines)
-			return element
-		finally:
-			urllib.urlcleanup() # throw away the temporary filename
-			self.popURL()
-
-class XSC(URIProvider, StringProvider):
-	def parseString(self, text):
-		return StringProvider.parse(self, text)
 
