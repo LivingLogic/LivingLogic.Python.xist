@@ -222,6 +222,9 @@ class XSCNode:
 	def strelementname(self,name):
 		return self.stransi(xsc.repransielementname,name)
 
+	def strattrname(self,name):
+		return self.stransi(xsc.repransiattrname,name)
+
 	def strtext(self,text):
 		return self.stransi(xsc.repransitext,text)
 
@@ -352,7 +355,7 @@ class XSCAttrs(XSCNode):
 		if len(self.content):
 			v = []
 			for attr in self.keys():
-				v.append(attr + '="' + self[attr].dorepr(0,0) + '"')
+				v.append(self.strattrname(attr) + '="' + self[attr].dorepr(0,0) + '"')
 			return " " + string.joinfields(v," ")
 		else:
 			return ""
@@ -615,6 +618,7 @@ class XSC:
 		self.repransitab = "32"
 		self.repransibrackets = "36"
 		self.repransielementname = "33"
+		self.repransiattrname = "33"
 		self.repransitext = ""
 		self.repransiquotes = "36"
 		self.reprtree = 1
