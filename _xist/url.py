@@ -183,7 +183,7 @@ class URL:
 		if other.scheme==u"server":
 			other.scheme = None
 			other.path.insert(0,u"")
-		if other.file == u"":
+		if other.file == u"" and not len(other.path) and not other.scheme:
 			other.path.append(u".")
 		return URL(urlparse.urljoin(self.asString(), other.asString()))
 
