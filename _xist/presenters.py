@@ -300,10 +300,12 @@ def strElementNameWithBrackets(namespacename=None, elementname=None, slash=0):
 def strElementClass(class_, slash=0):
 	namespacename = None
 	if class_.presentPrefix!=0:
-		if hasattr(class_, "namespace"):
-			namespacename = class_.namespace.prefix
+		if hasattr(class_, "_ns"):
+			namespacename = class_._ns.prefix
 		elif class_.__module__=="xist.xsc":
 			namespacename = "xsc"
+		else
+			namespacename = class_.__module__
 	if hasattr(class_, "name"):
 		elementname = class_.name
 	else:
@@ -329,8 +331,8 @@ def strEntityName(namespacename=None, entityname=None):
 	return s
 
 def strEntity(node):
-	if hasattr(node, "namespace") and node.presentPrefix!=0:
-		namespacename = node.namespace.prefix
+	if node.presentPrefix!=0:
+		namespacename = node.prefix()
 	else:
 		namespacename = None
 	if hasattr(node, "name"):
@@ -363,8 +365,8 @@ def strTextInAttr(text):
 	return EnvTextForAttrValue(EscInlineAttr(text))
 
 def strProcInst(node):
-	if hasattr(node, "namespace") and node.presentPrefix!=0:
-		namespacename = node.namespace.prefix
+	if node.presentPrefix!=0:
+		namespacename = node.prefix()
 	else:
 		namespacename = None
 	if hasattr(node, "name"):

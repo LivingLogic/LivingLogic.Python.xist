@@ -75,7 +75,7 @@ class directive(xsc.Element):
 			publishPrefix = publisher.publishPrefix
 		publisher.publish(u"<%@ ")
 		if publishPrefix:
-			publisher.publish(self.namespace.prefix) # requires that the element is registered via registerElement()
+			publisher.publish(self.prefix())
 			publisher.publish(u":")
 		name = self.name
 		pos = name.find(".")

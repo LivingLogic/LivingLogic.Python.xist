@@ -106,6 +106,16 @@ class Node:
 		"""
 		return getattr(self.__class__, "_ns", None)
 
+	def prefix(self):
+		"""
+		return the namespace prefix for this object or the module name, if there is no namespace
+		"""
+		ns = self.namespace()
+		if ns is not None:
+			return ns.prefix
+		else:
+			return unicode(self.__class__.__module__)
+
 	def repr(self, presenter=None):
 		if presenter is None:
 			presenter = presenters.defaultPresenterClass()
@@ -388,9 +398,9 @@ class Node:
 			publishPrefix = self.publishPrefix
 		else:
 			publishPrefix = publisher.publishPrefix
-		ns = self.namespace()
-		if publishPrefix and ns is not None:
-			publisher.publish(ns.prefix) # must be registered to work
+		prefix = self.prefix()
+		if publishPrefix and prefix is not None:
+			publisher.publish(prefix)
 			publisher.publish(u":")
 		if hasattr(self, "name"):
 			publisher.publish(self.name)
