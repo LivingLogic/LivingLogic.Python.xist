@@ -106,18 +106,52 @@ class Found(object):
 	<pyref class="Node" method="visit"><method>visit</method></pyref>,
 	<pyref class="Node" method="find"><method>find</method></pyref> and
 	<pyref class="Node" method="findfirst"><method>findfirst</method></pyref> all iterate over
-	the tree. In this iteration process two questions have to be answered:</par>
+	the tree. In this iteration process two questions have to be answered for each node
+	by a user specified function that is passed to those methods:</par>
 	<olist>
 	<item>Should this node be used in the iteration process (i.e. yielded from a
-	generator, passed as an argument to a user specified function, or returned in
-	the resulting fragment)?</item>
-	<item>If this node contains children, should they be iterated over too, or should
-	they be skipped?</item>
+	generator, passed as an argument to another user specified function, or returned in
+	the resulting fragment)? Should this node be used before or after its children?</item>
+	<item>If this node contains children (i.e. content and attributes), should they
+	be iterated over too, or should they be skipped?</item>
 	</olist>
+	<par>The user specified testing function passes back a <class>Found</class>
+	object to tell the calling method what to do.</par>
 	"""
 	__slots__ = ("foundstart", "foundend", "entercontent", "enterattrs")
 
 	def __init__(self, found=None, foundstart=None, foundend=None, enter=None, entercontent=None, enterattrs=None):
+		"""
+		<par>Create a new <class>Found</class> object. Arguments have the following
+		meaning:</par>
+		<dlist>
+		<term><arg>found</arg></term><item>This is a synonym for <arg>foundstart</arg>.</item>
+		<term><arg>foundstart</arg></term><item>Set this to true to tell the methods
+		<pyref class="Node" method="walk"><method>walk</method></pyref>,
+		<pyref class="Node" method="find"><method>find</method></pyref> and
+		<pyref class="Node" method="findfirst"><method>findfirst</method></pyref>
+		to return this node to the caller (before any children, if it's an element).
+		Set it to false to tell them not to pass it to the caller. For
+		<pyref class="Node" method="visit"><method>visit</method></pyref>
+		you can set <arg>found</arg> to a callable object that will be
+		called with the node as an argument or leave it at <lit>None</lit>,
+		in which case nothing will be called.</item>
+		<term><arg>foundend</arg></term><item>When the node is an element you can set
+		<arg>foundend</arg> to true, to tell <method>walk</method>, <method>find</method>
+		and <method>findfirst</method> to return the node to the caller after the child
+		nodes have been handled. For <method>visit</method> you can set it to a callable
+		object to tell <method>visit</method> to call this function after the child nodes
+		have been handled. Note that a node will be used twice if you set both
+		<arg>foundstart</arg> and <arg>foundend</arg>.</item>
+		<term><arg>enter</arg></term><item>Set <arg>enter</arg> to true to tell
+		the calling method that both content and attributes of an element should
+		be iterated over.</item>
+		<term><arg>entercontent</arg></term><item>Set <arg>entercontent</arg> to
+		true to tell the calling method to iterate over the content of an element.</item>
+		<term><arg>enterattrs</arg></term><item>Set <arg>enterattrs</arg> to true to
+		tell the calling method to iterate over the attributes.</item>
+		</dlist>
+		"""
 		self.foundstart = None
 		self.foundend = None
 		self.entercontent = None
@@ -527,11 +561,27 @@ class Node(Base):
 	def walk(self, filter, filterpath=False, walkpath=False):
 		"""
 		<par>Return an iterator that steps recursively through the tree.</par>
+
+		<par><arg>filter</arg> is either a <pyref class="Found"><class>Found</class></pyref>
+		instance or a callable that returns a <class>Found</class> instance. In the first
+		case this <class>Found</class> instance will be used for each node, in the second
+		case <arg>filter</arg> will be called for each node.</par>
+
+		<par><arg>filterpath</arg> specifies what how <arg>filter</arg> will be called:
+		If <arg>filterpath</arg> is false, <method>walk</method> will pass the node itself
+		to the filter function, if <arg>filterpath</arg> true, a list containing the complete
+		path from the root node to the node to be tested will be passed to <arg>filter</arg>.</par>
+		
+		<par><arg>walkpath</arg> works similar to <arg>filterpath</arg> and specifies whether
+		the node or a path to the node will be yielded from the iterator.</par>
 		"""
 		for object in self._walk(filter, [], filterpath=filterpath, walkpath=walkpath):
 			yield object
 
 	def _visit(self, filter, path, filterpath, visitpath):
+		"""
+		<par>Internal helper for <pyref method="visit"><method>visit</method></pyref>.</par>
+		"""
 		if filterpath or visitpath:
 			path = path + [self]
 		if isinstance(filter, Found):
@@ -547,6 +597,22 @@ class Node(Base):
 				found.foundstart(self, start=None)
 
 	def visit(self, filter, filterpath=False, visitpath=False):
+		"""
+		<par>Iterate through the tree and call a user specifyable function for each node.</par>
+
+		<par><arg>filter</arg> works similar to the <arg>filter</arg> argument in
+		<pyref method="walk"><method>walk</method></pyref>, but instead of setting
+		<lit>foundstart</lit> or <lit>foundend</lit> to true in the
+		<pyref class="Found"><class>Found</class></pyref> instance, they must be set
+		to callable objects by the filter function. These callable object will be called
+		with either the node or the path to the node as a first argument (depending on
+		the value of <arg>visitpath</arg>) and a keyword argument <arg>start</arg> as
+		the second argument. For elements <arg>start</arg> will be either <lit>True</lit>
+		or <lit>False</lit> depending on whether the callable is called before or after
+		visiting the children of the element. For all other node types, the <arg>start</arg>
+		argument will be <lit>None</lit>.</par>
+		<par>The <arg>filterpath</arg> argument has the same meaning as for <method>walk</method>.</par>
+		"""
 		self._visit(filter, [], filterpath=filterpath, visitpath=visitpath)
 
 	def find(self, type=None, subtype=False, attrs=None, test=None, searchchildren=False, searchattrs=False):
@@ -696,18 +762,6 @@ class Node(Base):
 			return self
 		else:
 			return Frag(indent*level, self)
-
-	def xwalk(self, before=True, after=False, attrs=False, attrbefore=True, attrafter=False):
-		yield self
-
-	def walkpath(self, before=True, after=False, attrs=False, attrsbefore=True, attrafter=False):
-		"""
-		<par>walk the tree. This method is a generator and for each node
-		in the tree generates a list with the <z>path</z> to the node, i.e.
-		the node and all its ancestor nodes.</par>
-		<par>For the arguments see <pyref method="walk"><method>walk</method></pyref>.</par>
-		"""
-		yield [self]
 
 	def withSep(self, separator, clone=False):
 		errors.warn(DeprecationWarning("withSep() is deprecated, use withsep() instead"))
@@ -1174,24 +1228,6 @@ class Frag(Node, list):
 			node.append(child.pretty(level, indent))
 			i += 1
 		return node
-
-	def xwalk(self, before=True, after=False, attrs=False, attrbefore=True, attrafter=False):
-		if before:
-			yield self
-		for child in self:
-			for grandchild in child.walk(before, after, attrs, attrbefore, attrafter):
-				yield grandchild
-		if after:
-			yield self
-
-	def walkpath(self, before=True, after=False, attrs=False, attrbefore=True, attrafter=False):
-		if before:
-			yield [self]
-		for child in self:
-			for grandchildPath in child.walkpath(before, after, attrs, attrbefore, attrafter):
-				yield [self] + grandchildPath
-		if after:
-			yield [self]
 
 class Comment(CharacterData):
 	"""
@@ -2688,40 +2724,6 @@ class Element(Node):
 		if level>0:
 			node = Frag(indent*level, node)
 		return node
-
-	def xwalk(self, before=True, after=False, attrs=False, attrbefore=True, attrafter=False):
-		if before:
-			yield self
-		if attrs:
-			for child in self.attrs.values():
-				if attrbefore:
-					yield child
-				for grandchild in child.walk(before, after, attrs, attrbefore, attrafter):
-					yield grandchild
-				if attrafter:
-					yield child
-		for child in self.content:
-			for grandchild in child.walk(before, after, attrs, attrbefore, attrafter):
-				yield grandchild
-		if after:
-			yield self
-
-	def walkpath(self, before=True, after=False, attrs=False, attrbefore=True, attrafter=False):
-		if before:
-			yield [self]
-		if attrs:
-			for child in self.attrs.values():
-				if attrbefore:
-					yield [self] + child
-				for grandchildPath in child.walkpath(before, after, attrs, attrbefore, attrafter):
-					yield [self] + grandchildPath
-				if attrafter:
-					yield [self] + child
-		for child in self.content:
-			for grandchildPath in child.walkpath(before, after, attrs, attrbefore, attrafter):
-				yield [self] + grandchildPath
-		if after:
-			yield [self]
 
 class Entity(Node):
 	"""
