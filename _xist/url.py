@@ -34,7 +34,7 @@ except ImportError:
 
 import os, stat, types, urlparse, urllib
 
-from xist import options, errors
+from xist import options
 
 urlparse.uses_relative.extend(("root", "server", None))
 urlparse.uses_params.extend(("root", "server"))
@@ -209,11 +209,11 @@ class URL:
 	def relativeTo(self, other):
 		"""
 		<par nointent>returns <self/> interpreted relative
-		to <code><self/>/other</code>, i.e. return a mimimal URL <code>rel</code>,
-		such that <code><self/>/rel = <self/>/other</code>.</par>
+		to <code>other</code>, i.e. return a mimimal URL <code>rel</code>,
+		such that <code>other/rel == <self/></code>.</par>
 		"""
-		new = other/self # make URL absolute
-		if new.scheme in urlparse.uses_relative and other.scheme==new.scheme and other.server==new.server and other.port==new.port: # test if the URL uses the same scheme and goes to the same machine
+		new = self.clone() # make a copy and modify it
+		if new.scheme in urlparse.uses_relative and (other.scheme==new.scheme or (new.scheme=="root" and other.scheme is None)) and other.server==new.server and other.port==new.port: # test if the URL uses the same scheme and goes to the same machine
 			# if yes, the url is a relative one
 			new.scheme = None
 			new.server = None
@@ -353,10 +353,8 @@ class URL:
 			try:
 				(filename, headers) = self.retrieve()
 				size = os.stat(filename)[stat.ST_SIZE]
+			finally:
 				urllib.urlcleanup()
-			except IOError:
-				urllib.urlcleanup()
-				raise errors.FileNotFoundError(self)
 		return size
 
 	def imageSize(self):
@@ -372,10 +370,8 @@ class URL:
 						img = Image.open(filename)
 						size = img.size
 						del img
+				finally:
 					urllib.urlcleanup()
-				except IOError:
-					urllib.urlcleanup()
-					raise errors.FileNotFoundError(url)
 		return size
 
 def test_normalize(input, output):
@@ -433,7 +429,7 @@ def test_url2():
 		url = words[0]
 		parts = URL(url)
 		print '%-10s : %s' % (url, parts)
-		abs = base + url
+		abs = base/url
 		if base is __empty:
 			base = abs
 		wrapped = '<URL:%s>' % abs.asString()
