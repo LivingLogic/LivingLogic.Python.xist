@@ -502,7 +502,9 @@ class Handler(object):
 
 	def characters(self, content):
 		if self.skippingWhitespace:
-			content = content.lstrip()
+			# the following could be content = content.lstrip(), but this would remove nbsps
+			while content[:1] in " \t\n":
+				content = content[1:]
 		if content:
 			last = self.__nesting[-1]
 			if len(last) and isinstance(last[-1], xsc.Text):
