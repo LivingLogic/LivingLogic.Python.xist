@@ -28,7 +28,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
 import os
-import xsc, options
+import xsc, options, color
 
 def getStringFromEnv(name, default):
 	try:
@@ -47,167 +47,173 @@ def getANSICodesFromEnv(name, default):
 	parses an environment variable from a string list and returns it or
 	the default if the environment variable can't be found or parsed.
 	"""
-	try:
-		var = eval(os.environ[name])
-	except:
-		return default
-	if type(var) is types.StringType:
-		var = [var, var]
-	return var
 
-class StringBuffer:
-	def __init__(self):
-		self.buffer = []
-	def write(self, text):
-		self.buffer.append(text)
-	def __str__(self):
-		return "".join(self.buffer)
+class EnvText(color.Text):
+	def __init__(self, *data):
+		color.Text.__init__(self, *data)
+		try:
+			var = eval(os.environ[self.envname])
+			if type(var) is types.StringType:
+				var = [var, var]
+			self.color = var
+		except:
+			self.color = self.default
 
-class Colored:
-	"""
-	a colored string, that may consist of
-	many parts, some of them may be Colored
-	objects themselves.
-	"""
-	color = 0x7 # default color
-
-	def __init__(self, *texts):
-		self.texts = texts
-
-	def write(self, colorstream):
-		colorstream.pushColor(self.color)
-		for text in self.texts:
-			if isinstance(text, Colored):
-				text.write(colorstream)
-			else:
-				colorstream.write(text)
-		colorstream.popColor()
-
-	def __str__(self):
-		buffer = StringBuffer()
-		stream = ANSIColorStream(buffer)
-		self.write(stream)
-		stream.finish()
-		return str(buffer)
-
-class ANSIColorStream:
-	"""
-	adds color capability to an output stream. An ANSIColorStream
-	keeps track of the current color and writes ANSI color escape
-	sequences to the stream where appropriate. colors are numbers
-	from 0 to 15.
-	"""
-
-	def __init__(self, stream):
-		self._basestream = stream
-		self._colorStack = [7]
-		self._activeColor = 7
-
-	def pushColor(self, color):
-		"""
-		push the color color onto the color stack.
-		It becames the current color. Returning to
-		the previous color is possible with
-		popColor().
-		"""
-		self._colorStack.append(color)
-
-	def popColor(self):
-		"""
-		return to the previous active color.
-		"""
-		self._colorStack.pop()
-
-	def _switchColor(self, color):
-		"""
-		internal method: switches to the color color.
-		If color is different from the currently active
-		color, the appropriate ANSI escape sequence will
-		be written to the stream.
-		"""
-		if self._activeColor != color:
-			if color == 0x7:
-				s = "0"
-			else:
-				s = ""
-				if (self._activeColor&0x8) != (color&0x8):
-					if color&0x8:
-						s += "1;"
-					else:
-						s += "0;"
-				s += str(30+(color&0x7))
-			self._basestream.write("\033[" + s + "m")
-			self._activeColor = color
-
-	def write(self, *texts):
-		"""
-		writes the texts to the stream, and ensures,
-		that the texts will be in the correct color.
-		"""
-		for text in texts:
-			if isinstance(text, Colored):
-				text.write(self)
-			else:
-				if len(text):
-					self._switchColor(self._colorStack[-1])
-					self._basestream.write(text)
-
-	def writeWithColor(self, color, *texts):
-		"""
-		writes the texts in the color color
-		and then switches back to the previos
-		color.
-		"""
-		self.pushColor(color)
-		self.write(*texts)
-		self.popColor()
-
-	def finish(self):
-		"""
-		can be called at the end of an output
-		sequence to return to the default
-		color.
-		"""
-		self._switchColor(7)
-
-class NamedANSIColorStream(ANSIColorStream):
-	"""
-	Adds two features to the underlying ANSIColorStream:
-	colors can be registered under a name, and the stream
-	may have different modes, with a different collection
-	of color (e.g. on set for light background and one
-	set for dark background)
-	"""
-
-	def __init__(self, stream, mode=None):
-		ANSIColorStream.__init__(self, stream)
-		if mode is None:
-			mode = options.repransi
-		self.mode = mode
-		self.colors = {}
-
-	def registerColor(self, name, colors):
-		self.colors[name] = colors
-
-	def unregisterColor(self, name):
-		del self.colors[name]
-
-	def pushColor(self, colorName):
-		if self.mode != 0:
-			ANSIColorStream.pushColor(self, self.colors[colorName][self.mode-1])
-
-	def popColor(self):
-		if self.mode != 0:
-			ANSIColorStream.popColor(self)
-
-	def writeWithColor(self, colorName, *texts):
-		if self.colors.has_key(colorName):
-			self.pushColor(colorName)
-			ANSIColorStream.write(self, *texts)
-			self.popColor()
+	def getColor(self):
+		if options.repransi==0:
+			return 0x7
 		else:
-			print "writeWithColor:", colorName, self.mode, texts, "unknown color"
-			ANSIColorStream.write(self, *texts)
+			return self.color[options.repransi-1]
+
+class EnvTextForTab(EnvText):
+	"""
+	ANSI escape sequence to be used for tabs
+	"""
+	envname = "XSC_REPRANSI_TAB"
+	default = (0x8, 0x8)
+
+class EnvTextForQuote(EnvText):
+	"""
+	ANSI escape sequence to be used for quotes
+	(delimiters for text and attribute nodes)
+	"""
+	envname = "XSC_REPRANSI_QUOTE"
+	default = (0xa, 0xf)
+
+class EnvTextForSlash(EnvText):
+	envname = "XSC_REPRANSI_SLASH"
+	default = (0x7, 0xf)
+
+class EnvTextForBracket(EnvText):
+	"""
+	ANSI escape sequence to be used for quotes
+	(delimiters for text and attribute nodes)
+	"""
+	envname = "XSC_REPRANSI_BRACKET"
+	default = (0xa, 0xf)
+
+class EnvTextForColon(EnvText):
+	"""
+	ANSI escape sequence to be used for colon
+	(i.e. namespace separator)
+	"""
+	envname = "XSC_REPRANSI_BRACKET"
+	default = (0xa, 0xf)
+
+class EnvTextForQuestion(EnvText):
+	"""
+	ANSI escape sequence to be used for question marks
+	(delimiters for processing instructions)
+	"""
+	envname = "XSC_REPRANSI_QUESTION"
+	default = (0xa, 0xf)
+
+class EnvTextForExclamation(EnvText):
+	"""
+	ANSI escape sequence to be used for exclamation marks
+	(used in comments and doctypes)
+	"""
+	envname = "XSC_REPRANSI_EXCLAMATION"
+	default = (0xa, 0xf)
+
+class EnvTextForText(EnvText):
+	"""
+	ANSI escape sequence to be used for text
+	"""
+	envname = "XSC_REPRANSI_TEXT"
+	default = (0x7, 0x7)
+
+class EnvTextForCharRef(EnvText):
+	"""
+	ANSI escape sequence to be used for character references
+	"""
+	envname = "XSC_REPRANSI_CHARREF"
+	default = (0xf, 0x5)
+
+class EnvTextForNamespace(EnvText):
+	"""
+	ANSI escape sequence to be used for namespaces
+	"""
+	envname = "XSC_REPRANSI_NAMESPACE"
+	default = (0xf, 0x4)
+
+class EnvTextForElementName(EnvText):
+	"""
+	ANSI escape sequence to be used for element names
+	"""
+	envname = "XSC_REPRANSI_ELEMENTNAME"
+	default = (0xe, 0xc)
+
+class EnvTextForEntityName(EnvText):
+	"""
+	ANSI escape sequence to be used for entity names
+	"""
+	envname = "XSC_REPRANSI_ENTITYNAME"
+	default = (0xf, 0xc)
+
+class EnvTextForAttrName(EnvText):
+	"""
+	ANSI escape sequence to be used for attribute names
+	"""
+	envname = "XSC_REPRANSI_ATTRNAME"
+	default = (0xf, 0xc)
+
+class EnvTextForDocTypeMarker(EnvText):
+	"""
+	ANSI escape sequence to be used for document types
+	marker (i.e. !DOCTYPE)
+	"""
+	envname = "XSC_REPRANSI_DOCTYPEMARKER"
+	default = (0xf, 0xf)
+
+class EnvTextForDocTypeText(EnvText):
+	"""
+	ANSI escape sequence to be used for document types
+	"""
+	envname = "XSC_REPRANSI_DOCTYPETEXT"
+	default = (0x7, 0x7)
+
+class EnvTextForCommentMarker(EnvText):
+	"""
+	ANSI escape sequence to be used for comment markers (i.e. --)
+	"""
+	envname = "XSC_REPRANSI_COMMENTMARKER"
+	default = (0x7, 0xf)
+
+class EnvTextForCommentText(EnvText):
+	"""
+	ANSI escape sequence to be used for comment text
+	"""
+	envname = "XSC_REPRANSI_COMMENTTEXT"
+	default = (0x7, 0x7)
+
+class EnvTextForAttrValue(EnvText):
+	"""
+	ANSI escape sequence to be used for attribute values
+	"""
+	envname = "XSC_REPRANSI_ATTRVALUE"
+	default = (0x7, 0x6)
+
+class EnvTextForURL(EnvText):
+	"""
+	ANSI escape sequence to be used for URLs
+	"""
+	envname = "XSC_REPRANSI_URL"
+	default = (0xb, 0x2)
+
+class EnvTextForProcInstTarget(EnvText):
+	"""
+	ANSI escape sequence to be used for processing instruction targets
+	"""
+	envname = "XSC_REPRANSI_PROCINSTTARGET"
+	default = (0x9, 0x9)
+
+class EnvTextForProcInstData(EnvText):
+	"""
+	ANSI escape sequence to be used for processing instruction data
+	"""
+	envname = "XSC_REPRANSI_PROCINSTDATA"
+	default = (0x7, 0x7)
 
 class Presenter:
 	"""
@@ -227,23 +233,6 @@ class Presenter:
 	def reset(self):
 		self.buffer = StringBuffer()
 		self.stream = NamedANSIColorStream(self.buffer, self.ansi)
-		self.stream.registerColor("text", options.repransitext)
-		self.stream.registerColor("tab", options.repransitab)
-		self.stream.registerColor("namespace", options.repransinamespace)
-		self.stream.registerColor("elementname", options.repransielementname)
-		self.stream.registerColor("entityname", options.repransientityname)
-		self.stream.registerColor("charref", options.repransicharref)
-		self.stream.registerColor("bracket", options.repransibracket)
-		self.stream.registerColor("colon", options.repransicolon)
-		self.stream.registerColor("slash", options.repransislash)
-		self.stream.registerColor("question", options.repransiquestion)
-		self.stream.registerColor("exclamation", options.repransiexclamation)
-		self.stream.registerColor("commentmarker", options.repransicommentmarker)
-		self.stream.registerColor("commenttext", options.repransicommenttext)
-		self.stream.registerColor("procinsttarget", options.repransiprocinsttarget)
-		self.stream.registerColor("procinstdata", options.repransiprocinstdata)
-		self.stream.registerColor("doctypemarker", options.repransidoctypemarker)
-		self.stream.registerColor("doctypetext", options.repransidoctypetext)
 		self.inAttr = 0
 
 	def _colorText(self, text):
