@@ -544,7 +544,7 @@ class fileinfo(xsc.Element):
 	def asHTML(self):
 		e = html.tr(
 			html.td(indent(),rowspan=3) +
-			html.td(html.div(pfeil(rel="info") + nbsp(),Class="lnk-title"),nowrap="") +
+			html.td(html.div(pfeil(rel="info") + specials.nbsp(),Class="lnk-title"),nowrap="") +
 			html.td(html.div("Letzte Änderung",Class="lnk-title"),nowrap="") +
 			html.td(indent())
 		)+html.tr(
