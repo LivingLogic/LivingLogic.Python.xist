@@ -50,12 +50,11 @@ def mapExt(ext):
 	except KeyError:
 		return ext
 
-def make():
+def make(args):
 	"""
-	use XSC as a compiler script, i.e. read an input file from args[1]
-	and writes it to args[2]
+	use XSC as a compiler script
 	"""
-	(options, args) = getopt.getopt(sys.argv[1:], "p:i:o:e:x:m:f:r:", ["path=", "import=", "output=", "encoding=", "xhtml=", "mode=", "files=", "parser="])
+	(options, args) = getopt.getopt(args, "p:i:o:e:x:m:f:r:n:", ["path=", "import=", "output=", "encoding=", "xhtml=", "mode=", "files=", "parser=", "namespaces="])
 
 	globaloutname = url.URL("*/")
 	encoding = None
@@ -63,6 +62,8 @@ def make():
 	mode = None
 	filesname = None
 	parsername = "sgmlop"
+	namespacenames = []
+
 	for (option, value) in options:
 		if option=="-p" or option=="--path":
 			sys.path.append(value)
@@ -80,6 +81,8 @@ def make():
 			filesname = value
 		elif option=="-r" or option=="--parser":
 			parsername = value
+		elif option=="-n" or option=="--namespaces":
+			namespacenames = [ name.strip() for name in value.split(",") ]
 
 	files = []
 	if filesname is not None:
@@ -90,6 +93,7 @@ def make():
 	files.extend(args)
 
 	if files:
+		namespaces = xsc.Namespaces(*[xsc.namespaceRegistry.byPrefix[name] for name in namespacenames])
 		converter = converters.Converter(mode)
 		for file in files:
 			if parsername=="sgmlop":
@@ -128,4 +132,4 @@ def make():
 		sys.stderr.write("XSC: no files to convert.\n")
 
 if __name__ == "__main__":
-	make()
+	make(sys.argv[1:])
