@@ -3119,10 +3119,10 @@ defaultPrefixes = Prefixes()
 
 class Namespace(Base):
 	"""
-	<par>an &xml; namespace.</par>
+	<par>An &xml; namespace.</par>
 	
-	<par>Classes for elements, entities and processing instructions
-	can be defined as nested classes inside subclasses of <class>Namespace</class>.
+	<par>Classes for elements, entities and processing instructions can be
+	defined as nested classes inside subclasses of <class>Namespace</class>.
 	This class will never be instantiated.</par>
 	"""
 
@@ -3256,6 +3256,10 @@ class Namespace(Base):
 			return type.__setattr__(cls, key, value)
 
 	class Attrs(_Attrs):
+		"""
+		Attribute mapping for namespaces. Derived namespace will define their
+		global attributes as nested classes.
+		"""
 		pass
 
 	class Context(_Context):
@@ -3293,60 +3297,62 @@ class Namespace(Base):
 
 	def iterelementkeys(cls, xml=False):
 		"""
-		Return an iterator for iterating over the names of all <pyref class="Element">element</pyref> classes
-		in <cls/>. <arg>xml</arg> specifies whether Python or &xml; names
-		should be returned.
+		Return an iterator for iterating over the names of all
+		<pyref class="Element">element</pyref> classes in <cls/>. <arg>xml</arg>
+		specifies whether Python or &xml; names should be returned.
 		"""
 		return cls._getcache()[0][xml].iterkeys()
 	iterelementkeys = classmethod(iterelementkeys)
 
 	def elementkeys(cls, xml=False):
 		"""
-		Return a list of the names of all <pyref class="Element">element</pyref> classes in <cls/>.
-		<arg>xml</arg> specifies whether Python or &xml; names should be returned.
+		Return a list of the names of all <pyref class="Element">element</pyref>
+		classes in <cls/>. <arg>xml</arg> specifies whether Python or &xml; names
+		should be returned.
 		"""
 		return cls._getcache()[0][xml].keys()
 	elementkeys = classmethod(elementkeys)
 
 	def iterelementvalues(cls):
 		"""
-		Return an iterator for iterating over all <pyref class="Element">element</pyref> classes in <cls/>.
+		Return an iterator for iterating over all
+		<pyref class="Element">element</pyref> classes in <cls/>.
 		"""
 		return cls._getcache()[0][False].itervalues()
 	iterelementvalues = classmethod(iterelementvalues)
 
 	def elementvalues(cls):
 		"""
-		Return a list of all <pyref class="Element">element</pyref> classes in <cls/>.
+		Return a list of all <pyref class="Element">element</pyref> classes in
+		<cls/>.
 		"""
 		return cls._getcache()[0][False].values()
 	elementvalues = classmethod(elementvalues)
 
 	def iterelementitems(cls, xml=False):
 		"""
-		Return an iterator for iterating over the (name, class) items of all <pyref class="Element">element</pyref> classes
-		in <cls/>. <arg>xml</arg> specifies whether Python or &xml; names
-		should be returned.
+		Return an iterator for iterating over the (name, class) items of all
+		<pyref class="Element">element</pyref> classes in <cls/>. <arg>xml</arg>
+		specifies whether Python or &xml; names should be returned.
 		"""
 		return cls._getcache()[0][xml].iteritems()
 	iterelementitems = classmethod(iterelementitems)
 
 	def elementitems(cls, xml=False):
 		"""
-		Return a list of all (name, class) items of all <pyref class="Element">element</pyref> classes
-		in <cls/>. <arg>xml</arg> specifies whether Python or &xml; names
-		should be returned.
+		Return a list of all (name, class) items of all
+		<pyref class="Element">element</pyref> classes in <cls/>. <arg>xml</arg>
+		specifies whether Python or &xml; names should be returned.
 		"""
 		return cls._getcache()[0][xml].items()
 	elementitems = classmethod(elementitems)
 
 	def element(cls, name, xml=False):
 		"""
-		Return the <pyref class="Element">element</pyref> class with the name <arg>name</arg>.
-		<arg>xml</arg> specifies whether <arg>name</arg> should be
-		treated as a Python or &xml; name. If an element class
-		with this name doesn't exist an <class>IllegalElementError</class>
-		is raised.
+		Return the <pyref class="Element">element</pyref> class with the name
+		<arg>name</arg>. <arg>xml</arg> specifies whether <arg>name</arg> should
+		be treated as a Python or &xml; name. If an element class with this name
+		doesn't exist an <class>IllegalElementError</class> is raised.
 		"""
 		try:
 			return cls._getcache()[0][xml][name]
@@ -3357,15 +3363,16 @@ class Namespace(Base):
 	def iterprocinstkeys(cls, xml=False):
 		"""
 		Return an iterator for iterating over the names of all
-		<pyref class="ProcInst">processing instruction</pyref> classes in <cls/>. <arg>xml</arg> specifies
-		whether Python or &xml; names should be returned.
+		<pyref class="ProcInst">processing instruction</pyref> classes in <cls/>.
+		<arg>xml</arg> specifies whether Python or &xml; names should be returned.
 		"""
 		return cls._getcache()[1][xml].iterkeys()
 	iterprocinstkeys = classmethod(iterprocinstkeys)
 
 	def procinstkeys(cls, xml=False):
 		"""
-		Return a list of the names of all <pyref class="ProcInst">processing instruction</pyref> classes in <cls/>.
+		Return a list of the names of all
+		<pyref class="ProcInst">processing instruction</pyref> classes in <cls/>.
 		<arg>xml</arg> specifies whether Python or &xml; names should be returned.
 		"""
 		return cls._getcache()[1][xml].keys()
@@ -3373,43 +3380,45 @@ class Namespace(Base):
 
 	def iterprocinstvalues(cls):
 		"""
-		Return an iterator for iterating over all <pyref class="ProcInst">processing instruction</pyref> classes in <cls/>.
+		Return an iterator for iterating over all
+		<pyref class="ProcInst">processing instruction</pyref> classes in <cls/>.
 		"""
 		return cls._getcache()[1][False].itervalues()
 	iterprocinstvalues = classmethod(iterprocinstvalues)
 
 	def procinstvalues(cls):
 		"""
-		Return a list of all <pyref class="ProcInst">processing instruction</pyref> classes in <cls/>.
+		Return a list of all <pyref class="ProcInst">processing instruction</pyref>
+		classes in <cls/>.
 		"""
 		return cls._getcache()[1][False].values()
 	procinstvalues = classmethod(procinstvalues)
 
 	def iterprocinstitems(cls, xml=False):
 		"""
-		Return an iterator for iterating over the (name, class) items of all <pyref class="ProcInst">processing instruction</pyref> classes
-		in <cls/>. <arg>xml</arg> specifies whether Python or &xml; names
-		should be returned.
+		Return an iterator for iterating over the (name, class) items of all
+		<pyref class="ProcInst">processing instruction</pyref> classes in <cls/>.
+		<arg>xml</arg> specifies whether Python or &xml; names should be returned.
 		"""
 		return cls._getcache()[1][xml].iteritems()
 	iterprocinstitems = classmethod(iterprocinstitems)
 
 	def procinstitems(cls, xml=False):
 		"""
-		Return a list of all (name, class) items of all <pyref class="ProcInst">processing instruction</pyref> classes
-		in <cls/>. <arg>xml</arg> specifies whether Python or &xml; names
-		should be returned.
+		Return a list of all (name, class) items of all
+		<pyref class="ProcInst">processing instruction</pyref> classes in <cls/>.
+		<arg>xml</arg> specifies whether Python or &xml; names should be returned.
 		"""
 		return cls._getcache()[1][xml].items()
 	procinstitems = classmethod(procinstitems)
 
 	def procinst(cls, name, xml=False):
 		"""
-		Return the <pyref class="ProcInst">processing instruction</pyref> class with the name <arg>name</arg>.
-		<arg>xml</arg> specifies whether <arg>name</arg> should be
-		treated as a Python or &xml; name. If a processing instruction class
-		with this name doesn't exist an <class>IllegalProcInstError</class>
-		is raised.
+		Return the <pyref class="ProcInst">processing instruction</pyref> class
+		with the name <arg>name</arg>. <arg>xml</arg> specifies whether
+		<arg>name</arg> should be treated as a Python or &xml; name. If a
+		processing instruction class with this name doesn't exist an
+		<class>IllegalProcInstError</class> is raised.
 		"""
 		try:
 			return cls._getcache()[1][xml][name]
@@ -3419,8 +3428,9 @@ class Namespace(Base):
 
 	def iterentitykeys(cls, xml=False):
 		"""
-		Return an iterator for iterating over the names of all <pyref class="Entity">entity</pyref>
-		and <pyref class="CharRef">character reference</pyref> classes in <cls/>.
+		Return an iterator for iterating over the names of all
+		<pyref class="Entity">entity</pyref> and
+		<pyref class="CharRef">character reference</pyref> classes in <cls/>.
 		<arg>xml</arg> specifies whether Python or &xml; names should be returned.
 		"""
 		return cls._getcache()[2][xml].iterkeys()
@@ -3454,9 +3464,9 @@ class Namespace(Base):
 	def iterentityitems(cls, xml=False):
 		"""
 		Return an iterator for iterating over the (name, class) items of all
-		<pyref class="Entity">entity</pyref> and <pyref class="CharRef">character reference</pyref>
-		classes in <cls/>. <arg>xml</arg> specifies whether Python or &xml; names
-		should be returned.
+		<pyref class="Entity">entity</pyref> and
+		<pyref class="CharRef">character reference</pyref> classes in <cls/>.
+		<arg>xml</arg> specifies whether Python or &xml; names should be returned.
 		"""
 		return cls._getcache()[2][xml].iteritems()
 	iterentityitems = classmethod(iterentityitems)
@@ -3472,10 +3482,11 @@ class Namespace(Base):
 
 	def entity(cls, name, xml=False):
 		"""
-		Return the <pyref class="Entity">entity</pyref> or <pyref class="CharRef">character reference</pyref>
-		class with the name <arg>name</arg>. <arg>xml</arg> specifies whether <arg>name</arg> should be
-		treated as a Python or &xml; name. If an entity or character reference class
-		with this name doesn't exist an <class>IllegalEntityError</class>
+		Return the <pyref class="Entity">entity</pyref> or
+		<pyref class="CharRef">character reference</pyref> class with the name
+		<arg>name</arg>. <arg>xml</arg> specifies whether <arg>name</arg> should
+		be treated as a Python or &xml; name. If an entity or character reference
+		class with this name doesn't exist an <class>IllegalEntityError</class>
 		is raised.
 		"""
 		try:
@@ -3495,22 +3506,25 @@ class Namespace(Base):
 
 	def charrefkeys(cls, xml=False):
 		"""
-		Return a list of the names of all <pyref class="CharRef">character reference</pyref>
-		classes in <cls/>. <arg>xml</arg> specifies whether Python or &xml; names should be returned.
+		Return a list of the names of all
+		<pyref class="CharRef">character reference</pyref> classes in <cls/>.
+		<arg>xml</arg> specifies whether Python or &xml; names should be returned.
 		"""
 		return cls._getcache()[3][xml].keys()
 	charrefkeys = classmethod(charrefkeys)
 
 	def itercharrefvalues(cls):
 		"""
-		Return an iterator for iterating over all <pyref class="CharRef">character reference</pyref> classes in <cls/>.
+		Return an iterator for iterating over all
+		<pyref class="CharRef">character reference</pyref> classes in <cls/>.
 		"""
 		return cls._getcache()[3][False].itervalues()
 	itercharrefvalues = classmethod(itercharrefvalues)
 
 	def charrefvalues(cls):
 		"""
-		Return a list of all <pyref class="CharRef">character reference</pyref> classes in <cls/>.
+		Return a list of all <pyref class="CharRef">character reference</pyref>
+		classes in <cls/>.
 		"""
 		return cls._getcache()[3][False].values()
 	charrefvalues = classmethod(charrefvalues)
@@ -3519,15 +3533,15 @@ class Namespace(Base):
 		"""
 		Return an iterator for iterating over the (name, class) items of all
 		<pyref class="CharRef">character reference</pyref> classes in <cls/>.
-		<arg>xml</arg> specifies whether Python or &xml; names
-		should be returned.
+		<arg>xml</arg> specifies whether Python or &xml; names should be returned.
 		"""
 		return cls._getcache()[3][xml].iteritems()
 	itercharrefitems = classmethod(itercharrefitems)
 
 	def charrefitems(cls, xml=False):
 		"""
-		Return a list of all (name, class) items of all <pyref class="CharRef">character reference</pyref> classes in <cls/>.
+		Return a list of all (name, class) items of all
+		<pyref class="CharRef">character reference</pyref> classes in <cls/>.
 		<arg>xml</arg> specifies whether Python or &xml; names should be returned.
 		"""
 		return cls._getcache()[3][xml].items()
@@ -3535,14 +3549,14 @@ class Namespace(Base):
 
 	def charref(cls, name, xml=False):
 		"""
-		Return the <pyref class="CharRef">character reference</pyref>
-		class with the name <arg>name</arg>. If <arg>name</arg> is a number return
-		the character reference class defined for this codepoint.
-		<arg>xml</arg> specifies whether <arg>name</arg> should be
-		treated as a Python or &xml; name. If a character reference class
-		with this name or codepoint doesn't exist an <class>IllegalCharRefError</class>
-		is raised. If there are multiple character reference class for
-		one codepoint an <class>AmbiguousCharRefError</class> will be raise
+		Return the <pyref class="CharRef">character reference</pyref> class with
+		the name <arg>name</arg>. If <arg>name</arg> is a number return the
+		character reference class defined for this codepoint. <arg>xml</arg>
+		specifies whether <arg>name</arg> should be treated as a Python or &xml;
+		name. If a character reference class with this name or codepoint doesn't
+		exist an <class>IllegalCharRefError</class> is raised. If there are
+		multiple character reference class for one codepoint an
+		<class>AmbiguousCharRefError</class> will be raised.
 		"""
 		cache = cls._getcache()
 		try:
@@ -3559,7 +3573,8 @@ class Namespace(Base):
 
 	def update(cls, *args, **kwargs):
 		"""
-		Copies attributes over from all mappings in <arg>args</arg> and from <arg>kwargs</arg>.
+		Copy attributes from all mappings in <arg>args</arg> and from
+		<arg>kwargs</arg>.
 		"""
 		for mapping in args + (kwargs,):
 			for (key, value) in mapping.iteritems():
@@ -3569,8 +3584,8 @@ class Namespace(Base):
 
 	def updateexisting(cls, *args, **kwargs):
 		"""
-		Copies attributes over from all mappings in <arg>args</arg> and from <arg>kwargs</arg>,
-		but only if they exist in <self/>.
+		Copy attributes from all mappings in <arg>args</arg> and from
+		<arg>kwargs</arg>, but only if they exist in <self/>.
 		"""
 		for mapping in args + (kwargs,):
 			for (key, value) in mapping.iteritems():
@@ -3580,8 +3595,8 @@ class Namespace(Base):
 
 	def updatenew(cls, *args, **kwargs):
 		"""
-		Copies attributes over from all mappings in <arg>args</arg> and from <arg>kwargs</arg>,
-		but only if they don't exist in <self/>.
+		Copy attributes over from all mappings in <arg>args</arg> and from
+		<arg>kwargs</arg>, but only if they don't exist in <self/>.
 		"""
 		args = list(args)
 		args.reverse()
@@ -3592,6 +3607,12 @@ class Namespace(Base):
 	updatenew = classmethod(updatenew)
 
 	def makemod(cls, vars=None):
+		"""
+		Update <cls/> with classes from <arg>vars</arg> (like
+		<pyref method="update"><method>update</method</pyref> does) and turn the
+		namespace into a module (replacing the module that contains the namespace
+		in <lit>sys.modules</lit>).
+		"""
 		if vars is not None:
 			cls.update(vars)
 		name = vars["__name__"]
