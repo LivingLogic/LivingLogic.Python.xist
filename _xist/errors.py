@@ -197,7 +197,6 @@ class FileNotFoundWarning(Warning):
 	"""
 	def __init__(self, message, filename, exc):
 		Warning.__init__(self, message, filename, exc)
-		self.element = element
 		self.message = message
 		self.filename = filename
 		self.exc = exc
