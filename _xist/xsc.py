@@ -1789,7 +1789,7 @@ class Namespaces:
 
 	def charrefFromNumber(self, number):
 		"""
-		<doc:par>returns the first charref class for the codepoint <pyref arg="number">number</number>.</doc:par>
+		<doc:par>returns the first charref class for the codepoint <pyref arg="number">number</pyref>.</doc:par>
 		"""
 		for namespace in self.__allNamespaces():
 			try:
