@@ -379,7 +379,7 @@ class pyref(xsc.Element):
 		else:
 			prop = None
 		if self.hasAttr("class"):
-			class__ = unicode(self["class"].convert(converter))
+			class__ = unicode(self["class"].convert(converter)).replace(u".", u"-")
 		else:
 			class__ = None
 		if self.hasAttr("module"):
