@@ -29,7 +29,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 
 import types, urlparse, urllib
 
-from xist import utils, helpers
+import utils, helpers
 
 # workaround for a bug in urlparse (which is fixed in urlparse.py CVS revision 1.26)
 urlparse.scheme_chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+-."

@@ -230,7 +230,7 @@ import Image
 
 from xml.sax import saxutils
 
-from xist import procinst, url, presenters, publishers, error, options, utils, helpers
+import procinst, url, presenters, publishers, errors, options, utils, helpers
 
 ###
 ### helpers

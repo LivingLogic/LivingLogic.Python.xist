@@ -31,7 +31,7 @@ import os
 
 import ansistyle
 
-from xist import xsc, options, url
+import xsc, options, url
 
 def getStringFromEnv(name, default):
 	try:

@@ -29,7 +29,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 
 import sys, types, array, codecs
 
-from xist import xsc, options, utils, errors, url, helpers
+import xsc, options, utils, errors, url, helpers
 
 class Publisher:
 	"""

@@ -28,7 +28,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 
 import HTTPServlet
 
-from xist import xsc
+import xsc
 
 class Servlet(HTTPServlet.HTTPServlet):
 	encoding = "utf-8"

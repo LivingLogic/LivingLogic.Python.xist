@@ -39,7 +39,7 @@ from xml.sax import saxlib
 #except ImportError:
 timeoutsocket = None
 
-from xist import xsc, url as url_
+import xsc, url as url_
 
 class StringInputSource(sax.xmlreader.InputSource):
 	def __init__(self, text):

@@ -32,7 +32,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 
 import types, exceptions
 
-from xist import xsc, presenters
+import xsc, presenters
 
 class Error(Exception):
 	"""
