@@ -36,7 +36,7 @@ class Publisher:
 	base class for all publishers.
 	"""
 
-	def __init__(self, base=None, encoding=None, XHTML=None, publishPrefix=0):
+	def __init__(self, base=None, encoding=None, xhtml=None, publishPrefix=0):
 		"""
 		<par><argref>base</argref> specifies the url to which the result
 		will be output.</par>
@@ -53,13 +53,13 @@ class Publisher:
 		instructions) an exception will be raised) before they are passed to
 		<methodref>publish</methodref>.</par>
 
-		<par>With the parameter <argref>XHTML</argref> you can specify if you want HTML output
+		<par>With the parameter <argref>xhtml</argref> you can specify if you want HTML output
 		(i.e. elements with a content model EMPTY as <code>&lt;foo&gt;</code>) with
-		<code><argref>XHTML</argref>==0</code>, or XHTML output that is compatible with HTML browsers
+		<code><argref>xhtml</argref>==0</code>, or XHTML output that is compatible with HTML browsers
 		(element with an empty content model as <code>&lt;foo /&gt;</code> and others that
 		just happen to be empty as <code>&lt;foo&gt;&lt;/foo&gt;</code>) with
-		<code><argref>XHTML</argref>==1</code> or just plain XHTML with
-		<code><argref>XHTML</argref>==2</code> (all empty elements as <code>&lt;foo/&gt;</code>).
+		<code><argref>xhtml</argref>==1</code> or just plain XHTML with
+		<code><argref>xhtml</argref>==2</code> (all empty elements as <code>&lt;foo/&gt;</code>).
 		When you use the default (None) that value of the global variable
 		outputXHTML will be used, which defaults to 1, but can be overwritten
 		by the environment variable XSC_OUTPUT_XHTML and can of course be
@@ -74,11 +74,11 @@ class Publisher:
 		if encoding is None:
 			encoding = options.outputEncoding
 		self.encoding = encoding
-		if XHTML is None:
-			XHTML = options.outputXHTML
-		if XHTML<0 or XHTML>2:
-			raise ValueError("XHTML must be 0, 1 or 2, not %r" % (XHTML,))
-		self.XHTML = XHTML
+		if xhtml is None:
+			xhtml = options.outputXHTML
+		if xhtml<0 or xhtml>2:
+			raise ValueError("xhtml must be 0, 1 or 2, not %r" % (xhtml,))
+		self.xhtml = xhtml
 		self.publishPrefix = publishPrefix
 		self.inAttr = 0
 
@@ -100,8 +100,8 @@ class FilePublisher(Publisher):
 	"""
 	writes the strings to a file.
 	"""
-	def __init__(self, file, base=None, encoding=None, XHTML=None, publishPrefix=0):
-		Publisher.__init__(self, base=base, encoding=encoding, XHTML=XHTML, publishPrefix=publishPrefix)
+	def __init__(self, file, base=None, encoding=None, xhtml=None, publishPrefix=0):
+		Publisher.__init__(self, base=base, encoding=encoding, xhtml=xhtml, publishPrefix=publishPrefix)
 		(encode, decode, streamReaderClass, streamWriterClass) = codecs.lookup(self.encoding)
 		self.file = streamWriterClass(file)
 
@@ -118,8 +118,8 @@ class PrintPublisher(FilePublisher):
 	"""
 	writes the strings to <code>sys.stdout</code>.
 	"""
-	def __init__(self, base=None, encoding=None, XHTML=None, publishPrefix=0):
-		FilePublisher.__init__(self, sys.stdout, base=base, encoding=encoding, XHTML=XHTML, publishPrefix=publishPrefix)
+	def __init__(self, base=None, encoding=None, xhtml=None, publishPrefix=0):
+		FilePublisher.__init__(self, sys.stdout, base=base, encoding=encoding, xhtml=xhtml, publishPrefix=publishPrefix)
 
 class StringPublisher(Publisher):
 	"""
@@ -128,8 +128,8 @@ class StringPublisher(Publisher):
 	<methodref>asString</methodref>
 	"""
 
-	def __init__(self, base=None, XHTML=None, publishPrefix=0):
-		Publisher.__init__(self, base=base, encoding="utf16", XHTML=XHTML, publishPrefix=publishPrefix)
+	def __init__(self, base=None, xhtml=None, publishPrefix=0):
+		Publisher.__init__(self, base=base, encoding="utf16", xhtml=xhtml, publishPrefix=publishPrefix)
 		self.texts = []
 
 	def publish(self, text):
@@ -149,8 +149,8 @@ class BytePublisher(Publisher):
 	string suitable for writing to a file.
 	"""
 
-	def __init__(self, base=None, encoding=None, XHTML=None, publishPrefix=0):
-		Publisher.__init__(self, base=base, encoding=encoding, XHTML=XHTML, publishPrefix=publishPrefix)
+	def __init__(self, base=None, encoding=None, xhtml=None, publishPrefix=0):
+		Publisher.__init__(self, base=base, encoding=encoding, xhtml=xhtml, publishPrefix=publishPrefix)
 		self.texts = []
 
 	def publish(self, text):

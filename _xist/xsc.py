@@ -286,39 +286,39 @@ class Node:
 		<par noindent>generates unicode strings for the node, and passes
 		the strings to the callable object <argref>publisher</argref>.</par>
 
-		<par>The encoding and XHTML specification are taken from the <argref>publisher</argref>.</par>
+		<par>The encoding and xhtml specification are taken from the <argref>publisher</argref>.</par>
 		"""
 		raise NotImplementedError("publish method not implemented in %s" % self.__class__.__name__)
 
-	def asString(self, XHTML=None, publishPrefix=0):
+	def asString(self, xhtml=None, publishPrefix=0):
 		"""
 		<par noindent>returns this element as a unicode string.</par>
 
-		<par>For an explanation of <argref>XHTML</argref> and <argref>publishPrefix</argref> see <funcref>publish</funcref>.</par>
+		<par>For an explanation of <argref>xhtml</argref> and <argref>publishPrefix</argref> see <funcref>publish</funcref>.</par>
 		"""
-		publisher = publishers.StringPublisher(XHTML=XHTML, publishPrefix=publishPrefix)
+		publisher = publishers.StringPublisher(xhtml=xhtml, publishPrefix=publishPrefix)
 		self.publish(publisher)
 		return publisher.asString()
 
-	def asBytes(self, base=None, encoding=None, XHTML=None, publishPrefix=0):
+	def asBytes(self, base=None, encoding=None, xhtml=None, publishPrefix=0):
 		"""
 		<par noindent>returns this element as a byte string suitable for writing
 		to an HTML file or printing from a CGI script.</par>
 
 		<par>For the parameters see <funcref>publish</funcref>.</par>
 		"""
-		publisher = publishers.BytePublisher(base=base, encoding=encoding, XHTML=XHTML, publishPrefix=publishPrefix)
+		publisher = publishers.BytePublisher(base=base, encoding=encoding, xhtml=xhtml, publishPrefix=publishPrefix)
 		self.publish(publisher)
 		return publisher.asBytes()
 
-	def write(self, file, base=None, encoding=None, XHTML=None, publishPrefix=0):
+	def write(self, file, base=None, encoding=None, xhtml=None, publishPrefix=0):
 		"""
 		<par noindent>writes the element to the file like
 		object <argref>file</argref></par>
 
 		<par>For the parameters see <funcref>publish</funcref>.</par>
 		"""
-		publisher = publishers.FilePublisher(file, base=base, encoding=encoding, XHTML=XHTML, publishPrefix=publishPrefix)
+		publisher = publishers.FilePublisher(file, base=base, encoding=encoding, xhtml=xhtml, publishPrefix=publishPrefix)
 		self.publish(publisher)
 
 	def find(self, type=None, subtype=0, attrs=None, test=None, searchchildren=0, searchattrs=0):
@@ -1134,7 +1134,7 @@ class Element(Node):
 			publisher.publish(u" ")
 			publisher.publish(attrname)
 			if isinstance(attrvalue, BoolAttr):
-				if publisher.XHTML>0:
+				if publisher.xhtml>0:
 					publisher.publish(u"=\"")
 					publisher.publish(attrname)
 					publisher.publish(u"\"")
@@ -1158,16 +1158,16 @@ class Element(Node):
 			self._publishName(publisher)
 			publisher.publish(u">")
 		else:
-			if publisher.XHTML in (0, 1):
+			if publisher.xhtml in (0, 1):
 				if self.empty:
-					if publisher.XHTML==1:
+					if publisher.xhtml==1:
 						publisher.publish(u" /")
 					publisher.publish(u">")
 				else:
 					publisher.publish(u"></")
 					self._publishName(publisher)
 					publisher.publish(u">")
-			elif publisher.XHTML == 2:
+			elif publisher.xhtml == 2:
 				publisher.publish(u"/>")
 
 	def __getitem__(self, index):
