@@ -18,6 +18,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 
 import os, keyword
 
+import ll
 from ll import ansistyle, url
 
 import xsc, options
@@ -392,76 +393,76 @@ class Presenter:
 	string representation of a node to be printed on the screen.</par>
 	"""
 
-	@xsc.notimplemented
+	@ll.notimplemented
 	def present(self, node):
 		"""
 		<par>create a string presentation for <arg>node</arg> and return the resulting string.</par>
 		"""
 		pass
 	
-	@xsc.notimplemented
+	@ll.notimplemented
 	def presentText(self, node):
 		"""
 		<par>present a <pyref module="ll.xist.xsc" class="Text"><class>Text</class></pyref> node.</par>
 		"""
 
-	@xsc.notimplemented
+	@ll.notimplemented
 	def presentFrag(self, node):
 		"""
 		<par>present a <pyref module="ll.xist.xsc" class="Frag"><class>Frag</class></pyref> node.</par>
 		"""
 		pass
 
-	@xsc.notimplemented
+	@ll.notimplemented
 	def presentComment(self, node):
 		"""
 		<par>present a <pyref module="ll.xist.xsc" class="Comment"><class>Comment</class></pyref> node.</par>
 		"""
 		pass
 
-	@xsc.notimplemented
+	@ll.notimplemented
 	def presentDocType(self, node):
 		"""
 		<par>present a <pyref module="ll.xist.xsc" class="DocType"><class>DocType</class></pyref> node.</par>
 		"""
 		pass
 
-	@xsc.notimplemented
+	@ll.notimplemented
 	def presentProcInst(self, node):
 		"""
 		<par>present a <pyref module="ll.xist.xsc" class="ProcInst"><class>ProcInst</class></pyref> node.</par>
 		"""
 		pass
 
-	@xsc.notimplemented
+	@ll.notimplemented
 	def presentAttrs(self, node):
 		"""
 		<par>present an <pyref module="ll.xist.xsc" class="Attrs"><class>Attrs</class></pyref> node.</par>
 		"""
 		pass
 
-	@xsc.notimplemented
+	@ll.notimplemented
 	def presentElement(self, node):
 		"""
 		<par>present an <pyref module="ll.xist.xsc" class="Element"><class>Element</class></pyref> node.</par>
 		"""
 		pass
 
-	@xsc.notimplemented
+	@ll.notimplemented
 	def presentEntity(self, node):
 		"""
 		<par>present a <pyref module="ll.xist.xsc" class="Entity"><class>Entity</class></pyref> node.</par>
 		"""
 		pass
 
-	@xsc.notimplemented
+	@ll.notimplemented
 	def presentNull(self, node):
 		"""
 		<par>present the <class>Null</class> node.</par>
 		"""
 		pass
 
-	@xsc.notimplemented
+	@ll.notimplemented
 	def presentAttr(self, node):
 		"""
 		<par>present an <pyref module="ll.xist.xsc" class="Attr"><class>Attr</class></pyref> node.</par>

@@ -55,6 +55,7 @@ class Base(object):
 		self.pyname = testname
 		names.append(testname)
 
+	@classmethod
 	def simplify(cls, value):
 		"""
 		<par>Return a string, whose value can be used as an intializer for an attribute values.
@@ -77,7 +78,6 @@ class Base(object):
 				else:
 					value = '"%s"' % repr(value)[1:-1]
 		return value
-	simplify = classmethod(simplify)
 
 	def aspy(self, **options):
 		options = Options(**options)

@@ -1157,15 +1157,16 @@ class pyref(inline):
 		return e.convert(converter)
 
 
+@staticmethod
 def _getmodulename(thing):
 	module = inspect.getmodule(thing)
 	if module is None:
 		return "???"
 	else:
 		return module.__name__
-_getmodulename = staticmethod(_getmodulename)
 
 
+@classmethod
 def getdoc(cls, thing):
 	if thing.__doc__ is None:
 		return xsc.Null
@@ -1260,6 +1261,7 @@ canonicalOrder = [
 ]
 
 
+@classmethod
 def _namekey(cls, (obj, name)):
 	name = name or obj.__name__
 	try:
@@ -1275,9 +1277,9 @@ def _namekey(cls, (obj, name)):
 		else:
 			pos = 2000
 	return (pos, name)
-_namekey = classmethod(_namekey)
 
 
+@classmethod
 def _codeheader(cls, thing, name, type):
 	(args, varargs, varkw, defaults) = inspect.getargspec(thing)
 	sig = xsc.Frag()
@@ -1312,9 +1314,9 @@ def _codeheader(cls, thing, name, type):
 	sig.insert(0, type(name), u"\u200b(") # use "ZERO WIDTH SPACE" to allow linebreaks
 	sig.append(u")")
 	return sig
-_codeheader = classmethod(_codeheader)
 
 
+@classmethod
 def explain(cls, thing, name=None, context=[]):
 	"""
 	<par>Return a &xml; representation of the documentation of
@@ -1472,7 +1474,6 @@ def explain(cls, thing, name=None, context=[]):
 		return node
 
 	return xsc.Null
-explain = classmethod(explain)
 
 
 class fodoc(base):

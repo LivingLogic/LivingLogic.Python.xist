@@ -47,7 +47,7 @@ DESCRIPTION = "\n".join(textwrap.wrap(DESCRIPTION.strip(), width=64, replace_whi
 
 setup(
 	name="ll-xist",
-	version="2.7",
+	version="2.8",
 	description="An extensible HTML/XML generator",
 	long_description=DESCRIPTION,
 	author=u"Walter Dörwald",
@@ -57,8 +57,8 @@ setup(
 	license="Python",
 	classifiers=CLASSIFIERS.strip().splitlines(),
 	keywords=",".join(KEYWORDS.strip().splitlines()),
-	packages=["ll", "ll.xist", "ll.xist.ns"],
-	package_dir={"ll": ".", "ll.xist": "_xist"},
+	packages=["ll.xist", "ll.xist.ns"],
+	package_dir={"ll.xist": "_xist"},
 	ext_modules=[
 		Extension("ll.xist.csstokenizer", ["_xist/csstokenizer.cxx"]),
 		Extension("ll.xist.helpers", ["_xist/helpers.c"])
