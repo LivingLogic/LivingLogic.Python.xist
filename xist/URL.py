@@ -282,14 +282,16 @@ class URL:
 
 		# remove duplicate path markers: first find the position of all names
 		dirs = {}
-		for i in xrange(len(self.path)):
+		lenpath = len(self.path)
+		for i in xrange(lenpath):
+			dir = self.path[i]
 			try:
-				dirs[self.path[i]].append(i)
+				dirs[dir].append(i)
 			except KeyError:
-				dirs[self.path[i]] = [ i ]
+				dirs[dir] = [ i ]
 
 		# if there are duplicate path markers only keep the last one
-		path = [ None ] * len(self.path)
+		path = [ None ] * lenpath
 		for name in dirs.keys():
 			if self.isPathMarker(name):
 				path[max(dirs[name])] = name
