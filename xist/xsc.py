@@ -872,7 +872,7 @@ class CharRef(Node):
 			s = self._strescapes[s]
 		except KeyError:
 			s = "#" + str(self.content)
-		publisher("&",self._encode(s,encoding,1),";")
+		publisher(self._encode("&",encoding,0),self._encode(s,encoding,1),self._encode(";",encoding,0))
 
 	def _dorepr(self,ansi = None):
 		return strCharRef('&#' + str(self.content) + ';',ansi)
@@ -1121,7 +1121,7 @@ class Comment(Node):
 	def publish(self,publisher,encoding = None,XHTML = None):
 		if self.content.find("--")!=-1 or self.content[-1:]=="-":
 			raise IllegalCommentError(self.startloc,self)
-		publisher("<!--",self._encode(self.content,encoding,0),"-->")
+		publisher(self._encode("<!--",encoding,0),self._encode(self.content,encoding,0),self._encode("-->",encoding,0))
 
 	def compact(self):
 		return self._decorateNode(Comment(self.content))
@@ -1146,7 +1146,7 @@ class DocType(Node):
 		return [[nest,self.startloc,elementno,self._dorepr(encoding,ansi)]]
 
 	def publish(self,publisher,encoding = None,XHTML = None):
-		publisher("<!DOCTYPE ",self.content,">")
+		publisher(self._encode("<!DOCTYPE ", encoding, 0), self._encode(self.content, encoding, 0), self._encode(">", encoding, 0))
 
 	def compact(self):
 		return self._decorateNode(DocType(self.content))
@@ -1186,7 +1186,7 @@ class ProcInst(Node):
 	def publish(self,publisher,encoding = None,XHTML = None):
 		if self.content.find("?>")!=-1:
 			raise IllegalProcInstError(self.startloc,self)
-		publisher("<?",self._encode(self.target,encoding,1)," ",self._encode(self.content,encoding,0),"?>")
+		publisher(self._encode("<?", encoding, 0), self._encode(self.target, encoding, 1), self._encode(" ", encoding, 0), self._encode(self.content, encoding, 0), self._encode("?>", encoding, 0))
 
 	def compact(self):
 		return self._decorateNode(ProcInst(self.target,self.content))
@@ -1456,32 +1456,32 @@ class Element(Node):
 		will be done.</par>
 		"""
 
-		publisher("<",self.name) # requires that the element is registered via registerElement()
+		publisher(self._encode("<", encoding, 0), self._encode(self.name, encoding, 0)) # requires that the element is registered via registerElement()
 		for attr in self.attrs.keys():
-			publisher(' ',attr)
+			publisher(self._encode(" ", encoding, 0), self._encode(attr, encoding, 0))
 			value = self[attr]
 			if len(value):
-				publisher('="')
+				publisher(self._encode('="', encoding, 0))
 				value.publish(publisher,encoding,XHTML)
-				publisher('"')
+				publisher(self._encode('"', encoding, 0))
 		if len(self):
 			if self.empty:
 				raise EmptyElementWithContentError(self)
-			publisher(">")
+			publisher(self._encode(">", encoding, 0))
 			self.content.publish(publisher,encoding,XHTML)
-			publisher("</",self.name,">")
+			publisher(self._encode("</", encoding, 0), self._encode(self.name, encoding, 0), self._encode(">", encoding, 0))
 		else:
 			if XHTML is None:
 				XHTML = outputXHTML
 			if XHTML in (0,1):
 				if self.empty:
 					if XHTML==1:
-						publisher(" /")
-					publisher(">")
+						publisher(self._encode(" /", encoding, 0))
+					publisher(self._encode(">", encoding, 0))
 				else:
-					publisher("></",self.name,">")
+					publisher(self._encode("></", encoding, 0), self._encode(self.name, encoding, 0), self._encode(">", encoding, 0))
 			elif XHTML == 2:
-				publisher("/>")
+				publisher(self._encode("/>", encoding, 0))
 			else:
 				raise ValueError("XHTML must be 0, 1, 2 or None")
 
@@ -1648,7 +1648,7 @@ class Entity(Node):
 		will be done.</par>
 		"""
 
-		publisher("&",self.name,";") # requires that the element is registered via Namespace.register()
+		publisher(self._encode("&", encoding, 0), self._encode(self.name, encoding, 0), self._encode(";", encoding, 0)) # requires that the element is registered via Namespace.register()
 
 	def find(self,type = None,subtype = 0,attrs = None,test = None,searchchildren = 0,searchattrs = 0):
 		node = Frag()
