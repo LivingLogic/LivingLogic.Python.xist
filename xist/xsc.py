@@ -946,12 +946,12 @@ class Frag(Node):
 			self.extend(child)
 
 	def asHTML(self):
-		node = self.__class__()
+		node = self.__class__() # virtual constructor => attributes (which are derived from Frag) will be handled correctly)
 		node.__content = [ child.asHTML() for child in self.__content ]
 		return self._decorateNode(node)
 
 	def clone(self):
-		node = self.__class__()
+		node = self.__class__() # virtual constructor => attributes (which are derived from Frag) will be handled correctly)
 		node.__content = [ child.clone() for child in self.__content ]
 		return self._decorateNode(node)
 
