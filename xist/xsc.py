@@ -314,6 +314,10 @@ class XSCNode:
 
 	def __str__(self):
 		return self.dostr()
+
+	def findElementsNamed(self,name):
+		"""returns a fragment that contains all elements in the subtree of the node with the type name"""
+		return XSCFrag()
  
 class XSCText(XSCNode):
 	"""text"""
@@ -407,12 +411,21 @@ class XSCFrag(XSCNode):
 
 	def __add__(self,other):
 		res = XSCFrag(self.content)
-		res.append(other)
+		newother = ToNode(other)
+		if newother.__class__ is XSCFrag:
+			res.content = res.content + newother.content
+		else:
+			res.content.append(other)
 		return res
 
 	def __radd__(self,other):
 		res = XSCFrag(self.content)
-		res.preppend(other)
+		newother = ToNode(other)
+		if newother.__class__ is XSCFrag:
+			res.content = newother.content + res.content
+		else:
+			res.content = [ newother ] + res.content
+		return res
 
 	def _doAsHTML(self):
 		v = []
@@ -477,6 +490,14 @@ class XSCFrag(XSCNode):
 
 	def preppend(self,other):
 		self.content = [ ToNode(other) ] + self.content[:]
+
+	def findElementsNamed(self,name):
+		v = XSCFrag()
+		for child in self:
+			if child.name == name:
+				v.append(child)
+			v = v + child.findElementsNamed(name)
+		return v
 
 class XSCAttrs(XSCNode):
 	"""contains a dictionary of XSCNodes which are wrapped into attribute nodes"""
@@ -734,6 +755,9 @@ class XSCElement(XSCNode):
 						raise XSCImageSizeFormatError(xsc.parser.lineno,self,heightattr)
 				else:
 					self[heightattr] = size[1]
+
+	def findElementsNamed(self,name):
+		return self.content.findElementsNamed(name)
 
 def RegisterElement(name,element):
 	"""registers the element handler element to be used for elements with name name"""
