@@ -317,7 +317,10 @@ class Attr(Base):
 	def _aspy(self, lines, encoding, level, names, asmod, defaults, schema):
 		name = self.name
 		pyname = self.pyname(names)
-		lines.append([level, "class %s(%s):" % (pyname, sims.name4type(self.type))])
+		basename = "%s.%s" % (self.type.__module__, self.type.__name__)
+		if basename.startswith("ll.xist.xsc."):
+			basename = basename[8:]
+		lines.append([level, "class %s(%s):" % (pyname, basename)])
 		newlines = []
 		if self.doc is not None:
 			self.doc._aspy(newlines, encoding, level+1, asmod, defaults, schema)
