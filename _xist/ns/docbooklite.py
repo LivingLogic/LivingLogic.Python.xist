@@ -7,7 +7,7 @@ class itemizedlist(xsc.Element):
 	"""
 	empty = 0
 
-	def doConvert(self, converter):
+	def convert(self, converter):
 		e = html.ul(self.content)
 		return e.convert(converter)
 
@@ -17,7 +17,7 @@ class programlisting(xsc.Element):
 	"""
 	empty = 0
 
-	def doConvert(self, converter):
+	def convert(self, converter):
 		e = html.pre(class_="programlisting")
 		for child in self.content:
 			child = child.convert(converter)
@@ -38,7 +38,7 @@ class example(xsc.Element):
 	empty = 0
 	attrHandlers = {"title": xsc.TextAttr}
 
-	def doConvert(self, converter):
+	def convert(self, converter):
 		e = xsc.Frag(self.content)
 		if self.hasAttr("title"):
 			e.append(html.div(self["title"], class_="example-title"))
@@ -50,7 +50,7 @@ class option(xsc.Element):
 	"""
 	empty = 0
 
-	def doConvert(self, converter):
+	def convert(self, converter):
 		e = html.code(self.content, class_="option")
 		return e.convert(converter)
 
@@ -60,7 +60,7 @@ class literal(xsc.Element):
 	"""
 	empty = 0
 
-	def doConvert(self, converter):
+	def convert(self, converter):
 		e = html.code(self.content, class_="literal")
 		return e.convert(converter)
 
@@ -70,7 +70,7 @@ class function(xsc.Element):
 	"""
 	empty = 0
 
-	def doConvert(self, converter):
+	def convert(self, converter):
 		e = html.code(self.content, class_="function")
 		return e.convert(converter)
 
@@ -80,7 +80,7 @@ class classname(xsc.Element):
 	"""
 	empty = 0
 
-	def doConvert(self, converter):
+	def convert(self, converter):
 		e = html.code(self.content, class_="classname")
 		return e.convert(converter)
 
@@ -90,7 +90,7 @@ class replaceable(xsc.Element):
 	"""
 	empty = 0
 
-	def doConvert(self, converter):
+	def convert(self, converter):
 		e = html.var(self.content, class_="replaceable")
 		return e.convert(converter)
 
@@ -100,7 +100,7 @@ class markup(xsc.Element):
 	"""
 	empty = 0
 
-	def doConvert(self, converter):
+	def convert(self, converter):
 		e = html.code(self.content, class_="markup")
 		return e.convert(converter)
 
@@ -110,7 +110,7 @@ class parameter(xsc.Element):
 	"""
 	empty = 0
 
-	def doConvert(self, converter):
+	def convert(self, converter):
 		e = html.code(self.content, class_="parameter")
 		return e.convert(converter)
 
@@ -121,7 +121,7 @@ class filename(xsc.Element):
 	empty = 0
 	attrHandlers = {"class": xsc.TextAttr}
 
-	def doConvert(self, converter):
+	def convert(self, converter):
 		e = html.code(self.content, class_="filename")
 		return e.convert(converter)
 
@@ -131,7 +131,7 @@ class application(xsc.Element):
 	"""
 	empty = 0
 
-	def doConvert(self, converter):
+	def convert(self, converter):
 		e = html.span(self.content, class_="application")
 		return e.convert(converter)
 
@@ -141,7 +141,7 @@ class para(xsc.Element):
 	"""
 	empty = 0
 
-	def doConvert(self, converter):
+	def convert(self, converter):
 		e = html.p(self.content)
 		return e.convert(converter)
 
@@ -152,7 +152,7 @@ class title(xsc.Element):
 	empty = 0
 	attrHandlers = {"class": xsc.TextAttr}
 
-	def doConvert(self, converter):
+	def convert(self, converter):
 		e = self.content
 		return e.convert(converter)
 
@@ -162,7 +162,7 @@ class section(xsc.Element):
 	"""
 	empty = 0
 
-	def doConvert(self, converter):
+	def convert(self, converter):
 		context = converter[self.__class__]
 		if not hasattr(context, "depth"):
 			context.depth = 1
@@ -188,7 +188,7 @@ class para(xsc.Element):
 	"""
 	empty = 0
 
-	def doConvert(self, converter):
+	def convert(self, converter):
 		e = html.p(*self.content)
 		return e.convert(converter)
 
@@ -200,7 +200,7 @@ class pyref(xsc.Element):
 	empty = 0
 	attrHandlers = {"module": xsc.TextAttr, "class": xsc.TextAttr, "method": xsc.TextAttr, "function": xsc.TextAttr, "var": xsc.TextAttr, "arg": xsc.TextAttr}
 
-	def doConvert(self, converter):
+	def convert(self, converter):
 		if self.hasAttr("var"):
 			var = self["var"].convert(converter).asPlainString()
 		else:

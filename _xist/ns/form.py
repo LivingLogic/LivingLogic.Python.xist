@@ -34,7 +34,7 @@ import html
 class checkbox(xsc.Element):
 	attrHandlers = {"name": xsc.TextAttr, "value": xsc.TextAttr}
 
-	def doConvert(self, converter):
+	def convert(self, converter):
 		e = html.input(**self.attrs)
 		e["type"] = "checkbox"
 		if self.hasAttr("value") and int(self["value"].asPlainString()) != 0:
@@ -46,7 +46,7 @@ class checkbox(xsc.Element):
 class edit(xsc.Element):
 	attrHandlers = {"name": xsc.TextAttr, "value": xsc.TextAttr, "size": xsc.TextAttr}
 
-	def doConvert(self, converter):
+	def convert(self, converter):
 		e = html.input(**self.attrs)
 		e["type"] = "text"
 		return e.convert(converter)
@@ -54,7 +54,7 @@ class edit(xsc.Element):
 class radio(xsc.Element):
 	attrHandlers = {"name": xsc.TextAttr, "value": xsc.TextAttr}
 
-	def doConvert(self, converter):
+	def convert(self, converter):
 		e = html.input(**self.attrs)
 		e["type"] = "radio"
 		return e.convert(converter)
@@ -62,7 +62,7 @@ class radio(xsc.Element):
 class submit(xsc.Element):
 	attrHandlers = {"name": xsc.TextAttr, "value": xsc.TextAttr}
 
-	def doConvert(self, converter):
+	def convert(self, converter):
 		e = html.input(**self.attrs)
 		e["type"] = "submit"
 		return e.convert(converter)
@@ -71,7 +71,7 @@ class memo(xsc.Element):
 	attrHandlers = {"name": xsc.TextAttr, "value": xsc.TextAttr}
 	attrHandlers.update(html.textarea.attrHandlers)
 
-	def doConvert(self, converter):
+	def convert(self, converter):
 		e = html.textarea()
 		if self.hasAttr("value"):
 			e.extend(self["value"])
@@ -86,7 +86,7 @@ class hidden(xsc.Element):
 	def asPlainString(self):
 		return u""
 
-	def doConvert(self, converter):
+	def convert(self, converter):
 		e = html.input(type="hidden", name=self["name"])
 		if self.hasAttr("value"):
 			e["value"] = self["value"]

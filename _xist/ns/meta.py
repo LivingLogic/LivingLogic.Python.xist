@@ -45,7 +45,7 @@ class contenttype(html.meta):
 	del attrHandlers["name"]
 	del attrHandlers["content"]
 
-	def doConvert(self, converter):
+	def convert(self, converter):
 		e = html.meta()
 		e.attrs = self.attrs.copy()
 		e["http-equiv"] = "Content-Type"
@@ -65,7 +65,7 @@ class keywords(html.meta):
 	del attrHandlers["name"]
 	del attrHandlers["content"]
 
-	def doConvert(self, converter):
+	def convert(self, converter):
 		e = html.meta()
 		e.attrs = self.attrs.copy()
 		e["name"] = "keywords"
@@ -85,7 +85,7 @@ class description(html.meta):
 	del attrHandlers["name"]
 	del attrHandlers["content"]
 
-	def doConvert(self, converter):
+	def convert(self, converter):
 		e = html.meta()
 		e.attrs = self.attrs.copy()
 		e["name"] = "description"
@@ -103,7 +103,7 @@ class stylesheet(html.link):
 	del attrHandlers["rel"]
 	del attrHandlers["type"]
 
-	def doConvert(self, converter):
+	def convert(self, converter):
 		e = html.link()
 		e.attrs = self.attrs.copy()
 		e["rel"] = "stylesheet"
@@ -120,7 +120,7 @@ class made(html.link):
 	attrHandlers = html.link.attrHandlers.copy()
 	del attrHandlers["rel"]
 
-	def doConvert(self, converter):
+	def convert(self, converter):
 		e = html.link()
 		e.attr = self.attrs.copy()
 		e["rel"] = "made"
@@ -135,7 +135,7 @@ class author(xsc.Element):
 	empty = 1
 	attrHandlers = {"lang": xsc.TextAttr, "name": xsc.TextAttr, "email": xsc.TextAttr}
 
-	def doConvert(self, converter):
+	def convert(self, converter):
 		e = xsc.Frag()
 		if self.hasAttr("name"):
 			e.append(html.meta(name="author", content=self["name"]))

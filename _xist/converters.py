@@ -31,7 +31,7 @@ import types
 
 class Context:
 	"""
-	This is an empty class, that can be used by the <dbl:pyref method="doConvert">doConvert</dbl:pyref>
+	This is an empty class, that can be used by the <dbl:pyref method="convert">convert</dbl:pyref>
 	method to hold element specific data during the convert call.
 	"""
 	
@@ -41,7 +41,7 @@ class Context:
 class Converter:
 	"""
 	An instance of this class is passed around in calls to the
-	<pyref module="xist.xsc class="Node" method="doConvert">doConvert</pyref> method. This instance can
+	<pyref module="xist.xsc class="Node" method="convert">convert</pyref> method. This instance can
 	be used when some element needs to keep state across a nested convert call. A typical example
 	are nested chapter/subchapter elements with automatic numbering. For an example see the element
 	<dbl:pyref module="xist.ns.docbooklite" class="section">section</dbl:pyref>.
@@ -57,6 +57,6 @@ class Converter:
 		<dbl:para>Return a context object that is specific for <dbl:pyref arg="class_">class_</dbl:pyref>,
 		which should be the class object of an element type. This means that every element type
 		gets it's own context and can store information there that needs to be available
-		across call to <pyref module="xist.xsc class="Node" method="doConvert">doConvert</pyref>.</dbl:para>
+		across calls to <pyref module="xist.xsc class="Node" method="convert">convert</pyref>.</dbl:para>
 		"""
 		return self.contexts.setdefault(class_, Context())

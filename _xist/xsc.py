@@ -47,7 +47,7 @@ tree can be a &html; tree or a &wml; tree or any other
 <function>convert</function> method for that. For
 your own &xml; element types you have to define your
 own node classes and implement an appropriate
-<function>doConvert</function> method.</li>
+<function>convert</function> method.</li>
 <li>Publishing the target tree: For writing the final
 output to a file or generating a string that can
 be delivered as a response from a &cgi; script, all node classes
@@ -165,13 +165,13 @@ the method <pyref module="xist.xsc" class="Node" method="convert">convert</pyref
 class cool(xsc.Element):
 	empty = 0
 
-	def doConvert(self, converter):
+	def convert(self, converter):
 		node = html.b(self.content, " is cool!")
 		return node.convert(converter)
 </dbl:programlisting>
 </dbl:example>
 You have to derive a class from <pyref module="xist.xsc" class="Element">xsc.Element</pyref>
-and implement <pyref module="xist.xsc" class="Node" method="doConvert">doConvert</pyref>.
+and implement <pyref module="xist.xsc" class="Node" method="convert">convert</pyref>.
 In this method you can build a new &dom; tree from the content and attributes
 of the object.</dbl:para>
 
@@ -179,13 +179,15 @@ of the object.</dbl:para>
 <dbl:example title="Using the new element">
 <dbl:programlisting>
 node = cool("Python")
-node = node.convert()
+node = node.conv()
 </dbl:programlisting>
 </dbl:example>
 This gives the same object tree as
 <dbl:programlisting>
 node = html.b("Python", " is cool!")
 </dbl:programlisting>
+<dbl:pyref module="xist.xsc" class="Node" method="conv">conv</dbl:pyref> is a convenience
+method that creates a default converter for you.
 </dbl:para>
 </dbl:section>
 
@@ -197,7 +199,7 @@ might remain in the tree:
 class python(xsc.Element):
 	empty = 1
 
-	def doConvert(self, converter):
+	def convert(self, converter):
 		return html.a("Python", href="http://www.python.org/")
 </dbl:programlisting>
 Now the following code:
@@ -433,8 +435,8 @@ def ToNode(value):
 class Node:
 	"""
 	base class for nodes in the document tree. Derived classes must
-	implement <methodref>doConvert</methodref> and may implement
-	<methodref>doPublish</methodref> and <methodref>asPlainString</methodref>.
+	implement <methodref>convert</methodref> and may implement
+	<methodref>publish</methodref> and <methodref>asPlainString</methodref>.
 	"""
 
 	empty = 1
@@ -501,10 +503,10 @@ class Node:
 		# (nestinglevel, location, elementnumber, string representation) of the nodes
 		return [[nest, self.startLoc, elementno, self._dorepr(presenter)]]
 
-	def convert(self, converter=None):
+	def conv(self, converter=None):
 		"""
 		<par noindent>returns a version of this node and it's content converted to HTML,
-		so when you define your own element classes you should overwrite <methodref>doConvert</methodref>.</par>
+		so when you define your own element classes you should overwrite <methodref>convert</methodref>.</par>
 
 		<par>E.g. when you want to define an element that packs it's content into an HTML
 		bold element, do the following:
@@ -513,22 +515,20 @@ class Node:
 		class foo(xsc.Element):
 			empty = 0
 
-			def doConvert(self, converter):
+			def convert(self, converter):
 				return html.b(self.content).convert(converter)
 		</pre>
 		</par>
 		"""
 		if converter is None:
 			converter = converters.Converter()
-		node = self.doConvert(converter)
-		assert isinstance(node, Node), "the doConvert method returned the illegal object %r (type %r) when converting %r" % (node, type(node), self)
-		return node
+		return self.convert(converter)
 
-	def doConvert(self, converter):
+	def convert(self, converter):
 		"""
 		<par noindent>implementation of the conversion method. Has to be overwritten in subclasses.</par>
 		"""
-		raise NotImplementedError("doConvert method not implemented in %s" % self.__class__.__name__)
+		raise NotImplementedError("convert method not implemented in %s" % self.__class__.__name__)
 
 	def asPlainString(self):
 		"""
@@ -542,7 +542,7 @@ class Node:
 		class caps(xsc.Element):
 			empty = 0
 
-			def doConvert(self, converter):
+			def convert(self, converter):
 				return html.span(
 					self.content.convert(converter),
 					style="font-variant: small-caps;"
@@ -955,7 +955,7 @@ class Text(Node, StringMixIn):
 			content = content._content
 		StringMixIn.__init__(self, content)
 
-	def doConvert(self, converter):
+	def convert(self, converter):
 		return self
 
 	def clone(self):
@@ -1001,10 +1001,11 @@ class Frag(Node):
 			if child is not Null:
 				self.__content.append(child)
 
-	def doConvert(self, converter):
+	def convert(self, converter):
 		node = self.__class__() # virtual constructor => attributes (which are derived from Frag) will be handled correctly)
 		for child in self.__content:
 			convertedchild = child.convert(converter)
+			assert isinstance(convertedchild, Node), "the convert method returned the illegal object %r (type %r) when converting %r" % (convertedchild, type(convertedchild), self)
 			if convertedchild is not Null:
 				node.__content.append(convertedchild)
 		return self._decorateNode(node)
@@ -1252,7 +1253,7 @@ class Comment(Node, StringMixIn):
 	def __init__(self, content=""):
 		StringMixIn.__init__(self, content)
 
-	def doConvert(self, converter):
+	def convert(self, converter):
 		return self
 
 	def clone(self):
@@ -1285,7 +1286,7 @@ class DocType(Node, StringMixIn):
 	def __init__(self, content=""):
 		StringMixIn.__init__(self, content)
 
-	def doConvert(self, converter):
+	def convert(self, converter):
 		return self
 
 	def clone(self):
@@ -1327,7 +1328,7 @@ class ProcInst(Node, StringMixIn):
 		self._target = helpers.unistr(target)
 		StringMixIn.__init__(self, content)
 
-	def doConvert(self, converter):
+	def convert(self, converter):
 		return self
 
 	def clone(self):
@@ -1397,7 +1398,7 @@ class Exec(PythonCode):
 		code = utils.Code(self._content, 1)
 		exec code.asString() in procinst.__dict__ # requires Python 2.0b2 (and doesn't really work)
 
-	def doConvert(self, converter):
+	def convert(self, converter):
 		return Null # has been executed at construction time already, so we don't have to do anything here
 
 class Eval(PythonCode):
@@ -1421,7 +1422,7 @@ class Eval(PythonCode):
 	def __init__(self, content=u""):
 		ProcInst.__init__(self, u"eval", content)
 
-	def doConvert(self, converter):
+	def convert(self, converter):
 		"""
 		Evaluates the code. The <argref>converter</argref> argument will be available
 		under the name <code>converter</code> as an argument.
@@ -1545,7 +1546,7 @@ class Element(Node):
 		if self.empty and len(self):
 			raise errors.EmptyElementWithContentError(self)
 
-	def doConvert(self, converter):
+	def convert(self, converter):
 		node = self.__class__() # "virtual" constructor
 		node.content = self.content.convert(converter)
 		for attrname in self.attrs.keys():
@@ -1882,7 +1883,7 @@ class Element(Node):
 class Entity(Node):
 	"""
 	<par noindent>Class for entities. Derive your own entities from
-	it and implement <code>doConvert()</code> and <code>asPlainString()</code>.</par>
+	it and implement <code>convert()</code> and <code>asPlainString()</code>.</par>
 	"""
 
 	def compact(self):
@@ -1914,7 +1915,7 @@ class CharRef(Entity):
 	<pyref attribute="codepoint">codepoint</pyref>.</par>
 	"""
 
-	def doConvert(self, converter):
+	def convert(self, converter):
 		node = Text(unichr(self.codepoint))
 		return self._decorateNode(node)
 
@@ -1934,7 +1935,7 @@ class Null(Node):
 	node that does not contain anything.
 	"""
 
-	def doConvert(self, converter):
+	def convert(self, converter):
 		return self
 
 	def clone(self):
@@ -2046,8 +2047,8 @@ class URLAttr(Attr):
 		else:
 			return Text(u.relativeTo(publisher.base).asPlainString()).publish(publisher)
 
-	def doConvert(self, converter):
-		node = Attr.doConvert(self, converter)
+	def convert(self, converter):
+		node = Attr.convert(self, converter)
 		node.base = self.base.clone()
 		return node
 

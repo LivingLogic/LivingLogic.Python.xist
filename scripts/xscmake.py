@@ -66,13 +66,13 @@ def make(args):
 	"""
 	use XSC as a compiler script
 	"""
-	(options, args) = getopt.getopt(args, "p:i:o:e:x:m:f:r:n:", ["path=", "import=", "output=", "encoding=", "xhtml=", "mode=", "files=", "parser=", "namespace="])
+	(options, args) = getopt.getopt(args, "p:i:o:e:x:m:f:r:n:s:", ["path=", "import=", "output=", "encoding=", "xhtml=", "mode=", "files=", "spacefiles=", "parser=", "namespace="])
 
 	globaloutname = url.URL("*/")
 	encoding = None
 	XHTML = None
 	mode = None
-	filesname = None
+	files = {} # handle duplicate filenames by putting all filename in a dictionary
 	parsername = "sgmlop"
 	namespaces = xsc.Namespaces()
 
@@ -90,19 +90,22 @@ def make(args):
 		elif option=="-m" or option=="--mode":
 			mode = value
 		elif option=="-f" or option=="--files":
-			filesname = value
+			for filename in open(value, "r").read().splitlines():
+				if filename != "":
+					files[filename] = None
+		elif option=="-s" or option=="--spacefiles":
+			for filename in open(value, "r").read().split():
+				if filename != "":
+					files[filename] = None
 		elif option=="-r" or option=="--parser":
 			parsername = value
 		elif option=="-n" or option=="--namespace":
 			namespaces.pushNamespace(xsc.namespaceRegistry.byPrefix[value.strip()])
 
-	files = []
-	if filesname is not None:
-		for filename in open(filesname,"r").readlines():
-			filename = filename.strip()
-			if filename != "":
-				files.append(filename)
-	files.extend(args)
+	for filename in args:
+		files[filename] = None
+	files = files.keys()
+	files.sort()
 
 	if files:
 		converter = converters.Converter(mode)

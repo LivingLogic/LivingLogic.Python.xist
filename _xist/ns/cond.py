@@ -43,7 +43,7 @@ class switch(xsc.Element):
 	empty = 0
 	attrHandlers = {"var": xsc.TextAttr}
 
-	def doConvert(self, converter):
+	def convert(self, converter):
 		cases = self.find(type=case)
 
 		return xsc.Null
@@ -52,7 +52,7 @@ class case(xsc.Element):
 	empty = 0
 	attrHandlers = {"case": xsc.TextAttr}
 
-	def doConvert(self, converter):
+	def convert(self, converter):
 		return self.content.convert(converter)
 
 class If(xsc.Element):
@@ -60,7 +60,7 @@ class If(xsc.Element):
 	attrHandlers = {"cond": CondAttr}
 	name = "if"
 
-	def doConvert(self, converter):
+	def convert(self, converter):
 		intruecondition = self.__testCond(self["cond"], converter)
 		truecondition = xsc.Frag()
 		for child in self.content:
@@ -89,14 +89,14 @@ class ElIf(xsc.Element):
 	attrHandlers = {"cond": CondAttr}
 	name = "elif"
 
-	def doConvert(self, converter):
+	def convert(self, converter):
 		return xsc.Null
 
 class Else(xsc.Element):
 	empty = 1
 	name = "else"
 
-	def doConvert(self, converter):
+	def convert(self, converter):
 		return xsc.Null
 
 namespace = xsc.Namespace("cond", "http://www.livinglogic.de/DTDs/cond.dtd", vars())
