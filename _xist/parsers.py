@@ -193,9 +193,9 @@ class SGMLOPParser(sax.xmlreader.XMLReader, sax.xmlreader.Locator):
 			self.getContentHandler().processingInstruction(target, data)
 			self.headerJustRead = False
 		else: # extract the encoding
-			encodingFound = utils.findAttr(data, u"encoding")
-			if encodingFound is not None:
-				self.encoding = encodingFound
+			encoding = utils.findattr(data, u"encoding")
+			if encoding is not None:
+				self.encoding = encoding
 			self.headerJustRead = True
 
 	def handle_entityref(self, name):
