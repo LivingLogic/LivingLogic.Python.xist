@@ -17,9 +17,6 @@ Hartmut Goebel (hartmut@goebel.noris.de)
 	for the idea and first implementation of cond.py,
 	and for the idea for handling empty attributes.
 
-Neelakantan Krishnaswami (neelk@alum.mit.edu)
-	for Signature.py, which is used in the doc example.
-
 Thoralf Hänsel (thoralf_haensel@hotmail.com)
 	for his WML module, ruby.py, dtd2xsc.py and docbook.py.
 
