@@ -54,9 +54,6 @@ def ToNode(value):
 	errors.warn(errors.IllegalObjectWarning(value)) # none of the above, so we report it and maybe throw an exception
 	return Null
 
-def issubclasses(cls, classes):
-	return isinstance(cls, type) and issubclass(cls, classes)
-
 ###
 ###
 ###
@@ -94,11 +91,6 @@ class Base(object):
 			name = cls.__name__.split(".")[-1] + "." + name
 	__fullname__ = classmethod(__fullname__)
 
-_elements = ({}, {})
-_procinsts = ({}, {})
-_entities = ({}, {})
-_charrefs = ({}, {}, {})
-
 class Node(Base):
 	"""
 	base class for nodes in the document tree. Derived classes must
@@ -128,6 +120,7 @@ class Node(Base):
 		def __new__(cls, name, bases, dict):
 			if "register" not in dict:
 				dict["register"] = True
+			dict["xmlns"] = None
 			# needsxmlns may be defined as a constant, this magically turns it into method
 			if "needsxmlns" in dict:
 				needsxmlns_value = dict["needsxmlns"]
@@ -160,15 +153,6 @@ class Node(Base):
 
 		def __init__(self):
 			list.__init__(self)
-
-	def _registerns(cls, ns):
-		"""
-		<par>Adds <arg>cls</arg> to the namespace <arg>ns</arg>. Modifying
-		the attributes of <arg>ns</arg> is <em>not</em> done here, but in
-		<pyref class="Namespace.__metaclass__" method="__setattr__"><class>Namespace.__metaclass__.__setattr__</class></pyref>.</par>
-		"""
-		cls.xmlns = None
-	_registerns = classmethod(_registerns)
 
 	def __repr__(self):
 		return self.repr(presenters.defaultPresenterClass())
@@ -1161,30 +1145,20 @@ class ProcInst(CharacterData):
 		def __new__(cls, name, bases, dict):
 			self = CharacterData.__metaclass__.__new__(cls, name, bases, dict)
 			if self.register is not None:
-				for xml in (False, True):
-					_procinsts[xml][self.xmlname[xml]] = self
-				self.xmlns = None
-			else:
-				self.xmlns = None
+				setattr(DefaultNamespace, name, self)
 			return self
 
 		def __repr__(self):
 			return "<procinst class %s/%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
 
 	def _registerns(cls, ns):
-		if cls.register is not None:
-			if cls.xmlns is not None:
-				map = cls.xmlns._procinsts
-			else:
-				map = _procinsts
+		if cls.xmlns is not None:
 			for xml in (False, True):
-				del map[xml][cls.xmlname[xml]]
-			if ns is not None:
-				map = ns._procinsts
-			else:
-				map = _procinsts
+				del cls.xmlns._procinsts[xml][cls.xmlname[xml]]
+			cls.xmlns = None
+		if ns is not None:
 			for xml in (False, True):
-				map[xml][cls.xmlname[xml]] = cls
+				ns._procinsts[xml][cls.xmlname[xml]] = cls
 			cls.xmlns = ns
 	_registerns = classmethod(_registerns)
 
@@ -1576,7 +1550,7 @@ class Attrs(Node, dict):
 			for base in bases:
 				for attrname in dir(base):
 					attr = getattr(base, attrname)
-					if issubclasses(attr, Attr) and attrname not in dict:
+					if isinstance(attr, type) and issubclass(attr, Attr) and attrname not in dict:
 						classdict = {"__module__": dict["__module__"]}
 						if attr.xmlname[0] != attr.xmlname[1]:
 							classdict["xmlname"] = attr.xmlname[1]
@@ -1595,17 +1569,17 @@ class Attrs(Node, dict):
 
 		def __delattr__(cls, key):
 			value = cls.__dict__.get(key, None) # no inheritance
-			if issubclasses(value, Attr) and value.register:
+			if isinstance(value, type) and issubclass(value, Attr):
 				for xml in (False, True):
 					del cls._attrs[xml][value.xmlname[xml]]
 			return Node.__metaclass__.__delattr__(cls, key)
 
 		def __setattr__(cls, key, value):
 			oldvalue = cls.__dict__.get(key, None) # no inheritance
-			if issubclasses(oldvalue, Attr) and oldvalue.register:
+			if isinstance(oldvalue, type) and issubclass(oldvalue, Attr):
 				for xml in (False, True):
 					del cls._attrs[xml][oldvalue.xmlname[xml]]
-			if issubclasses(value, Attr) and value.register:
+			if isinstance(value, type) and issubclass(value, Attr):
 				for xml in (False, True):
 					cls._attrs[xml][value.xmlname[xml]] = value
 			return Node.__metaclass__.__setattr__(cls, key, value)
@@ -1976,11 +1950,7 @@ class Element(Node):
 				errors.warn(DeprecationWarning("attrHandlers is deprecated, use a nested Attrs class instead"))
 			self = Node.__metaclass__.__new__(cls, name, bases, dict)
 			if self.register is not None:
-				for xml in (False, True):
-					_elements[xml][self.xmlname[xml]] = self
-				self.xmlns = None
-			else:
-				self.xmlns = None
+				setattr(DefaultNamespace, name, self)
 			return self
 		def __repr__(self):
 			return "<element class %s/%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
@@ -2072,19 +2042,13 @@ class Element(Node):
 			self.attrs[attrname] = attrvalue
 
 	def _registerns(cls, ns):
-		if cls.register is not None:
-			if cls.xmlns is not None:
-				map = cls.xmlns._elements
-			else:
-				map = _elements
+		if cls.xmlns is not None:
 			for xml in (False, True):
-				del map[xml][cls.xmlname[xml]]
-			if ns is not None:
-				map = ns._elements
-			else:
-				map = _elements
+				del cls.xmlns._elements[xml][cls.xmlname[xml]]
+			cls.xmlns = None
+		if ns is not None:
 			for xml in (False, True):
-				map[xml][cls.xmlname[xml]] = cls
+				ns._elements[xml][cls.xmlname[xml]] = cls
 			cls.xmlns = ns
 	_registerns = classmethod(_registerns)
 
@@ -2540,30 +2504,20 @@ class Entity(Node):
 		def __new__(cls, name, bases, dict):
 			self = Node.__metaclass__.__new__(cls, name, bases, dict)
 			if self.register is not None:
-				for xml in (False, True):
-					_entities[xml][self.xmlname[xml]] = self
-				self.xmlns = None
-			else:
-				self.xmlns = None
+				setattr(DefaultNamespace, name, self)
 			return self
 
 		def __repr__(self):
 			return "<entity class %s/%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
 
 	def _registerns(cls, ns):
-		if cls.register is not None:
-			if cls.xmlns is not None:
-				map = cls.xmlns._entities
-			else:
-				map = _entities
+		if cls.xmlns is not None:
 			for xml in (False, True):
-				del map[xml][cls.xmlname[xml]]
-			if ns is not None:
-				map = ns._entities
-			else:
-				map = _entities
+				del cls.xmlns._entities[xml][cls.xmlname[xml]]
+			cls.xmlns = None
+		if ns is not None:
 			for xml in (False, True):
-				map[xml][cls.xmlname[xml]] = cls
+				ns._entities[xml][cls.xmlname[xml]] = cls
 			cls.xmlns = ns
 	_registerns = classmethod(_registerns)
 
@@ -2607,34 +2561,26 @@ class Entity(Node):
 		self._publishname(publisher)
 		publisher.publish(u";")
 
-class CharRef(Node):
+class CharRef(Entity):
 	"""
 	<par>A simple character reference, the codepoint is in the class attribute
 	<lit>codepoint</lit>.</par>
 	"""
 	register = None
 
-	class __metaclass__(Node.__metaclass__):
+	class __metaclass__(Entity.__metaclass__):
 		def __new__(cls, name, bases, dict):
 			self = Node.__metaclass__.__new__(cls, name, bases, dict)
 			if self.register is not None:
-				for xml in (False, True):
-					_charrefs[xml][self.xmlname[xml]] = self
-				_charrefs[2].setdefault(self.codepoint, []).append(self)
-				self.xmlns = None
-			else:
-				self.xmlns = None
+				setattr(DefaultNamespace, name, self)
 			return self
 
 		def __repr__(self):
 			return "<charref class %s/%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
 
 	def _registerns(cls, ns):
-		if cls.register is not None:
-			if cls.xmlns is not None:
-				map = cls.xmlns._charrefs
-			else:
-				map = _charrefs
+		if cls.xmlns is not None:
+			map = cls.xmlns._charrefs
 			for xml in (False, True):
 				del map[xml][cls.xmlname[xml]]
 			l = map[2][cls.codepoint]
@@ -2642,39 +2588,17 @@ class CharRef(Node):
 				del map[2][cls.codepoint]
 			else:
 				l.remove(cls)
-			if ns is not None:
-				if ns is not None:
-					map = ns._charrefs
-				else:
-					map = _charrefs
-				for xml in (False, True):
-					map[xml][cls.xmlname[xml]] = cls
-				map[2].setdefault(cls.codepoint, []).append(cls)
-				cls.xmlns = ns
+		super(CharRef, cls)._registerns(ns)
+		if ns is not None:
+			map = ns._charrefs
+			for xml in (False, True):
+				map[xml][cls.xmlname[xml]] = cls
+			map[2].setdefault(cls.codepoint, []).append(cls)
 	_registerns = classmethod(_registerns)
-
-	def _str(cls, fullname=True, xml=True, decorate=True):
-		s = ansistyle.Text()
-		if decorate:
-			s.append(presenters.strAmp())
-		cls._strbase(presenters.strEntityName, s, fullname=fullname, xml=xml)
-		if decorate:
-			s.append(presenters.strSemi())
-		return s
-	_str = classmethod(_str)
-
-	def present(self, presenter):
-		presenter.presentEntity(self)
 
 	def convert(self, converter):
 		node = Text(unichr(self.codepoint))
 		return self._decoratenode(node)
-
-	def clone(self):
-		return self
-
-	def compact(self):
-		return self
 
 	def __unicode__(self):
 		return unichr(self.codepoint)
@@ -2917,17 +2841,7 @@ class Prefixes(object):
 		<arg>qname</arg> (which might include a prefix).</par>
 		"""
 		qname = self.__splitqname(qname)
-		# try the charrefs first
-		nss = self.ns4entityprefix(qname[0])
-		for ns in nss:
-			try:
-				entity = ns.charref(qname[1], xml=True)
-				if entity.register:
-					return entity
-			except LookupError: # no charref in this namespace with this name
-				pass
-		# no charrefs => try the entities now
-		for ns in nss:
+		for ns in self.ns4entityprefix(qname[0]):
 			try:
 				entity = ns.entity(qname[1], xml=True)
 				if entity.register:
@@ -2936,18 +2850,28 @@ class Prefixes(object):
 				pass
 		raise errors.IllegalEntityError(qname, xml=True) # entities with this name couldn't be found
 
-	def charref(self, name):
+	def charref(self, qname):
 		"""
-		<par>returns the first charref class for the name or codepoint <arg>name</arg>.</par>
+		<par>returns the first charref class for the name or codepoint <arg>qname</arg>.</par>
 		"""
-		for ns in Namespace.all:
-			try:
-				charref = ns.charref(name)[0]
-				if charref.register:
-					return charref
-			except LookupError:
-				pass
-		raise errors.IllegalCharRefError(name, xml=True) # charref with this name/codepoint couldn't be found
+		if isinstance(qname, basestring):
+			qname = self.__splitqname(qname)
+			for ns in self.ns4entityprefix(qname[0]):
+				try:
+					charref = ns.charref(qname[1], xml=True)
+					if charref.register:
+						return charref
+				except LookupError: # no entity in this namespace with this name
+					pass
+		else:
+			for ns in Namespace.all:
+				try:
+					charref = ns.charref(qname)[0]
+					if charref.register:
+						return charref
+				except LookupError:
+					pass
+		raise errors.IllegalCharRefError(qname, xml=True) # charref with this name/codepoint couldn't be found
 
 	def attrnameFromQName(self, element, qname):
 		"""
@@ -2961,7 +2885,9 @@ class Prefixes(object):
 		else:
 			for ns in self.ns4elementprefix(qname[0]):
 				try:
-					return (ns, ns.Attrs.allowedattr(qname[1], xml=True).xmlname[False])
+					attr = ns.Attrs.allowedattr(qname[1], xml=True)
+					if attr.register:
+						return (ns, attr.xmlname[False])
 				except errors.IllegalAttrError: # no attribute in this namespace with this name
 					pass
 			raise errors.IllegalAttrError(None, qname, xml=True)
@@ -3049,7 +2975,9 @@ class Namespace(object):
 		def __new__(cls, name, bases, dict):
 			pyname = unicode(name.split(".")[-1])
 			if "xmlname" in dict:
-				xmlname = unicode(dict["xmlname"])
+				xmlname = dict["xmlname"]
+				if isinstance(xmlname, str):
+					xmlname = unicode(xmlname)
 			else:
 				xmlname = pyname
 			dict["xmlname"] = (pyname, xmlname)
@@ -3062,7 +2990,7 @@ class Namespace(object):
 			for base in bases:
 				for attrname in dir(base):
 					attr = getattr(base, attrname)
-					if issubclasses(attr, (Element, ProcInst, Entity, CharRef, Attrs)) and attrname not in dict:
+					if isinstance(attr, type) and issubclass(attr, (Element, ProcInst, Entity, Attrs)) and attrname not in dict:
 						classdict = {"__module__": dict["__module__"]}
 						if attr.xmlname[0] != attr.xmlname[1]:
 							classdict["xmlname"] = attr.xmlname[1]
@@ -3129,15 +3057,15 @@ class Namespace(object):
 
 		def __delattr__(cls, key):
 			value = cls.__dict__.get(key, None) # no inheritance
-			if issubclasses(value, (Element, ProcInst, Entity, CharRef)):
-				value._registerns(None)
+			if isinstance(value, type) and issubclass(value, (Element, ProcInst, CharRef)):
+				value._registerns(DefaultNamespace)
 			return type.__delattr__(cls, key)
 
 		def __setattr__(cls, key, value):
 			oldvalue = cls.__dict__.get(key, None) # no inheritance
-			if issubclasses(oldvalue, (Element, ProcInst, Entity, CharRef)):
-				oldvalue._registerns(None)
-			if issubclasses(value, (Element, ProcInst, Entity, CharRef)):
+			if isinstance(oldvalue, type) and issubclass(oldvalue, (Element, ProcInst, Entity)):
+				oldvalue._registerns(DefaultNamespace)
+			if isinstance(value, type) and issubclass(value, (Element, ProcInst, Entity)):
 				ns = value.__dict__.get("xmlns") # no inheritance
 				if ns is not None:
 					delattr(ns, key)
@@ -3290,6 +3218,10 @@ class Namespace(object):
 
 	def __init__(self, xmlprefix, xmlname, thing=None):
 		raise TypeError("Namespace classes can't be instantiated")
+
+class DefaultNamespace(Namespace):
+	xmlname = None
+	xmlurl = None
 
 # C0 Controls and Basic Latin
 class quot(CharRef): "quotation mark = APL quote, U+0022 ISOnum"; codepoint = 34
