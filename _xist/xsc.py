@@ -381,7 +381,7 @@ class Node(Base):
 			return cls.xmlns.xmlprefix
 	xmlprefix = classmethod(xmlprefix)
 
-	def _publishName(self, publisher):
+	def _publishname(self, publisher):
 		if self.needsxmlns(publisher)>=1:
 			prefix = self.xmlprefix(publisher)
 			if prefix is not None:
@@ -483,7 +483,7 @@ class Node(Base):
 		"""
 		raise NotImplementedError("compact method not implemented in %s" % self.__class__.__name__)
 
-	def _matchesAttrs(self, attrs):
+	def _matchesattrs(self, attrs):
 		if attrs is None:
 			return 1
 		else:
@@ -503,21 +503,21 @@ class Node(Base):
 			for t in type_:
 				if subtype:
 					if isinstance(self, t):
-						res = self._matchesAttrs(attrs)
+						res = self._matchesattrs(attrs)
 						break
 				else:
 					if self.__class__ == t:
-						res = self._matchesAttrs(attrs)
+						res = self._matchesattrs(attrs)
 						break
 			else:
 				res = 0
 		else:
-			res = self._matchesAttrs(attrs)
+			res = self._matchesattrs(attrs)
 		if res and (test is not None):
 			res = test(self)
 		return res
 
-	def _decorateNode(self, node):
+	def _decoratenode(self, node):
 		"""
 		<par>decorate the <pyref class="Node"><class>Node</class></pyref>
 		<arg>node</arg> with the same location information as <self/>.</par>
@@ -823,12 +823,12 @@ class Frag(Node, list):
 			convertedchild = child.convert(converter)
 			assert isinstance(convertedchild, Node), "the convert method returned the illegal object %r (type %r) when converting %r" % (convertedchild, type(convertedchild), self)
 			node.append(convertedchild)
-		return self._decorateNode(node)
+		return self._decoratenode(node)
 
 	def clone(self):
 		node = self._create()
 		list.extend(node, [ child.clone() for child in self ])
-		return self._decorateNode(node)
+		return self._decoratenode(node)
 
 	def present(self, presenter):
 		presenter.presentFrag(self)
@@ -972,7 +972,7 @@ class Frag(Node, list):
 			assert isinstance(compactedchild, Node), "the compact method returned the illegal object %r (type %r) when compacting %r" % (compactedchild, type(compactedchild), child)
 			if compactedchild is not Null:
 				list.append(node, compactedchild)
-		return self._decorateNode(node)
+		return self._decoratenode(node)
 
 	def withSep(self, separator, clone=0):
 		"""
@@ -1202,7 +1202,7 @@ class ProcInst(CharacterData):
 		if self.content.find(u"?>")!=-1:
 			raise errors.IllegalProcInstFormatError(self)
 		publisher.publish(u"<?")
-		self._publishName(publisher)
+		self._publishname(publisher)
 		publisher.publish(u" ")
 		publisher.publish(self.content)
 		publisher.publish(u"?>")
@@ -1354,7 +1354,7 @@ class Attr(Frag):
 			raise errors.IllegalAttrNodeError(self)
 		self.checkvalid()
 		publisher.inAttr += 1
-		self._publishName(publisher) # publish the XML name, not the Python name
+		self._publishname(publisher) # publish the XML name, not the Python name
 		publisher.publish(u"=\"")
 		publisher.pushTextFilter(helpers.escapeAttr)
 		self._publishAttrValue(publisher)
@@ -1400,7 +1400,7 @@ class BoolAttr(Attr):
 			raise errors.IllegalAttrNodeError(self)
 		self.checkvalid()
 		publisher.inAttr += 1
-		self._publishName(publisher) # publish the XML name, not the Python name
+		self._publishname(publisher) # publish the XML name, not the Python name
 		if publisher.xhtml>0:
 			publisher.publish(u"=\"")
 			publisher.pushTextFilter(helpers.escapeAttr)
@@ -1873,7 +1873,7 @@ class Element(Node):
 	class Attrs(Attrs):
 		def _attrClass(cls, key):
 			if isinstance(key, tuple):
-				key = (getNS(key[0]), key[1])
+				key = (getns(key[0]), key[1])
 				return key[0].Attrs._attrClass(key[1])
 			else:
 				# FIXME reimplemented here, because super does not work
@@ -1885,22 +1885,22 @@ class Element(Node):
 
 		def has(self, key):
 			if isinstance(key, tuple):
-				key = (getNS(key[0]), key[1])
+				key = (getns(key[0]), key[1])
 			return _Attrs.has(self, key)
 
 		def __setitem__(self, key, value):
 			if isinstance(key, tuple):
-				key = (getNS(key[0]), key[1])
+				key = (getns(key[0]), key[1])
 			_Attrs.__setitem__(self, key, value)
 
 		def __getitem__(self, key):
 			if isinstance(key, tuple):
-				key = (getNS(key[0]), key[1])
+				key = (getns(key[0]), key[1])
 			return _Attrs.__getitem__(self, key)
 
 		def __delitem__(self, key):
 			if isinstance(key, tuple):
-				key = (getNS(key[0]), key[1])
+				key = (getns(key[0]), key[1])
 			return _Attrs.__delitem__(self, key)
 
 		def without(self, nameseq):
@@ -1928,7 +1928,7 @@ class Element(Node):
 				elif name is None:
 					allglobals = 1
 				else:
-					globalnames.append((getNS(name[0]), name[1]))
+					globalnames.append((getns(name[0]), name[1]))
 			for (key, value) in self.items():
 				if isinstance(key, (str, unicode)):
 					if key not in localnames:
@@ -2014,13 +2014,13 @@ class Element(Node):
 		node = self.__class__() # "virtual" constructor
 		node.content = self.content.convert(converter)
 		node.attrs = self.attrs.convert(converter)
-		return self._decorateNode(node)
+		return self._decoratenode(node)
 
 	def clone(self):
 		node = self.__class__() # "virtual" constructor
 		node.content = self.content.clone() # this is faster than passing it in the constructor (no ToNode call)
 		node.attrs = self.attrs.clone()
-		return self._decorateNode(node)
+		return self._decoratenode(node)
 
 	def __unicode__(self):
 		return unicode(self.content)
@@ -2088,7 +2088,7 @@ class Element(Node):
 			self.content.publish(publisher)
 		else:
 			publisher.publish(u"<")
-			self._publishName(publisher)
+			self._publishname(publisher)
 			# we're the first element to be published, so we have to create the xmlns attributes
 			if hasattr(publisher, "publishxmlns"):
 				for ((nsprefix, ns), (mode, prefix)) in publisher.prefixes2use.iteritems():
@@ -2110,7 +2110,7 @@ class Element(Node):
 				publisher.publish(u">")
 				self.content.publish(publisher)
 				publisher.publish(u"</")
-				self._publishName(publisher)
+				self._publishname(publisher)
 				publisher.publish(u">")
 			else:
 				if publisher.xhtml in (0, 1):
@@ -2120,7 +2120,7 @@ class Element(Node):
 						publisher.publish(u">")
 					else:
 						publisher.publish(u"></")
-						self._publishName(publisher)
+						self._publishname(publisher)
 						publisher.publish(u">")
 				elif publisher.xhtml == 2:
 					publisher.publish(u"/>")
@@ -2312,7 +2312,7 @@ class Element(Node):
 		node = self.__class__()
 		node.content = self.content.compact()
 		node.attrs = self.attrs.compact()
-		return self._decorateNode(node)
+		return self._decoratenode(node)
 
 	def find(self, type=None, subtype=False, attrs=None, test=None, searchchildren=False, searchattrs=False):
 		node = Frag()
@@ -2510,7 +2510,7 @@ class Entity(Node):
 
 	def publish(self, publisher):
 		publisher.publish(u"&")
-		self._publishName(publisher)
+		self._publishname(publisher)
 		publisher.publish(u";")
 
 class CharRef(Entity):
@@ -2537,7 +2537,7 @@ class CharRef(Entity):
 
 	def convert(self, converter):
 		node = Text(unichr(self.codepoint))
-		return self._decorateNode(node)
+		return self._decoratenode(node)
 
 	def __unicode__(self):
 		return unichr(self.codepoint)
@@ -2670,7 +2670,21 @@ class NamespaceRegistry(object):
 
 namespaceRegistry = NamespaceRegistry()
 
-def getNS(ns):
+def getns(ns):
+	"""
+	<par>Return a <pyref class="Namespace"><class>Namespace</class></pyref> object for
+	the argument <arg>ns</arg>. <arg>ns</arg> can be:</par>
+	<ulist>
+	<item>a module, in which case <lit><arg>ns</arg>.xmlns</lit> will be returned;</item>
+	<item>a <class>Namespace</class> instance in which case <arg>ns</arg> itself will
+	be returned;</item>
+	<item>A <class>list</class> or <class>tuple</class>, in which case <function>getns</function>
+	will be applied recursively;</item>
+	<item>else <arg>ns</arg> will be interpreted as a namespace name and the <class>Namespace</class>
+	object implementing this namespace will be returned (if there is one, otherwise a
+	<class>IllegalNamespaceError</class> will be raised).</item>
+	</ulist>
+	"""
 	if isinstance(ns, types.ModuleType):
 		if not hasattr(ns, "xmlns") and hasattr(ns, "namespace"):
 			errors.warn(DeprecationWarning("the variable name namespace is deprecated, use xmlns instead"))
@@ -2680,7 +2694,7 @@ def getNS(ns):
 	elif isinstance(ns, Namespace):
 		return ns
 	elif isinstance(ns, (tuple, list)):
-		newns = [ getNS(x) for x in ns]
+		newns = [getns(x) for x in ns]
 		if isinstance(ns, tuple):
 			newns = tuple(newns)
 		return newns
@@ -2718,10 +2732,10 @@ class Prefixes(object):
 		<par>Add a mapping from the namespace prefix <arg>prefix</arg>
 		to the namespace <arg>ns</arg> to the current configuration.
 		<arg>ns</arg> can be a <pyref class="Namespace"><class>Namespace</class></pyref> object,
-		a module or a namespace name, because <pyref function="getNS"><function>getNS</function></pyref>
+		a module or a namespace name, because <pyref function="getns"><function>getns</function></pyref>
 		is used.</par>
 		"""
-		ns = getNS(ns)
+		ns = getns(ns)
 		if isinstance(types, int):
 			types = (types, )
 		for type in types:
@@ -2759,7 +2773,7 @@ class Prefixes(object):
 		<par>Remove the mapping from the namespace prefix <arg>prefix</arg>
 		to the namespace <arg>ns</arg> from the current configuration.
 		<arg>ns</arg> can be a <pyref class="Namespace"><class>Namespace</class></pyref> object,
-		a module or a namespace name, because <pyref function="getNS"><function>getNS</function></pyref>
+		a module or a namespace name, because <pyref function="getns"><function>getns</function></pyref>
 		is used.</par>
 		<par>If <arg>prefix</arg> is not specified, all prefixes for
 		the namespace <arg>ns</arg> will be removed. If <arg>ns</arg> is not specified
@@ -2767,7 +2781,7 @@ class Prefixes(object):
 		both are unspecified the mapping will be empty afterwards.</par>
 		"""
 		if ns is not False:
-			ns = getNS(ns)
+			ns = getns(ns)
 		if isinstance(types, int):
 			types = (types, )
 		for type in types:
@@ -2803,7 +2817,7 @@ class Prefixes(object):
 		return self.delPrefixMapping(prefix, ns, types=Prefixes.ENTITY)
 
 	def startPrefixMapping(self, prefix, ns, mode="replace", types=(ELEMENT, PROCINST, ENTITY)):
-		ns = getNS(ns)
+		ns = getns(ns)
 		if isinstance(types, int):
 			types = (types, )
 		for type in types:
@@ -2868,7 +2882,7 @@ class Prefixes(object):
 		"""
 		<par>Return the currently active prefixes for the namespace <arg>ns</arg>.</par>
 		"""
-		ns = getNS(ns)
+		ns = getns(ns)
 		prefixes = []
 		for (prefix, prefix2ns) in self._prefix2ns[type].iteritems():
 			if prefix2ns and ns in prefix2ns[0]:
@@ -3013,7 +3027,7 @@ class DefaultPrefixes(Prefixes):
 	def __init__(self, default=None):
 		super(DefaultPrefixes, self).__init__()
 		if default is not None:
-			default = getNS(default)
+			default = getns(default)
 		for ns in namespaceRegistry.all:
 			if ns is default:
 				self.addPrefixMapping(None, ns)
