@@ -754,8 +754,8 @@ passes all previous tests:</par>
 <term><arg>searchchildren</arg></term><item>A flag that specifies if the tree
 should be searched recursively (<lit><arg>searchchildren</arg>==True</lit>) or only
 the first level (<lit><arg>searchchildren</arg>==False</lit>)</item>
-<item><arg>searchattrs</arg> (<lit>False</lit>), specifies if attribute
-dodes should be searched too.</item>
+<term><arg>searchattrs</arg></term><item>A flag which specifies if attribute
+nodes should be searched too (default <lit>False</lit>).</item>
 </dlist>
 
 <par>You could for example extract all the links on the
