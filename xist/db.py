@@ -253,7 +253,7 @@ class SQLInsert(SQLCommand):
 		v.append(self.table)
 		v.append(" (")
 		vv = []
-		for field in set.keys():
+		for field in self.set.keys():
 			vv.append(field)
 		v.append(string.join(vv,","))
 		v.append(") VALUES (")
