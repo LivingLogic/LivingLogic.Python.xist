@@ -1402,6 +1402,7 @@ static int callWithVoid(CSSTokenizer *self, PyObject *callback)
 	return -1;
 }
 
+/*
 static int callWithString(CSSTokenizer *self, PyObject *callback, const char *data, int len)
 {
 	if (callback)
@@ -1413,6 +1414,7 @@ static int callWithString(CSSTokenizer *self, PyObject *callback, const char *da
 	}
 	return -1;
 }
+*/
 
 static int callWith2Strings(CSSTokenizer *self, PyObject *callback, const char *data1, int len1, const char *data2, int len2)
 {
