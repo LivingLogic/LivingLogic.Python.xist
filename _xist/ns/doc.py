@@ -171,7 +171,7 @@ class prog(block):
 
 	def convert_fo(self, converter):
 		target = converter.target
-		context = converter[base]
+		context = converter[self]
 		context.indentcount += 1
 		e = target.block(
 			context.vspaceattrs,
@@ -265,7 +265,7 @@ class code(base):
 	def convert_fo(self, converter):
 		e = converter.target.inline(
 			self.content,
-			converter[base].codeattrs
+			converter[self].codeattrs
 		)
 		return e.convert(converter)
 
@@ -376,7 +376,7 @@ class rep(base):
 		return e.convert(converter)
 
 	def convert_fo(self, converter):
-		e = converter.target.inline(self.content, converter[base].repattrs)
+		e = converter.target.inline(self.content, converter[self].repattrs)
 		return e.convert(converter)
 
 
@@ -508,7 +508,7 @@ class app(base):
 		if "moreinfo" in self.attrs:
 			e = converter.target.basic_link(
 				self.content,
-				converter[base].linkattrs,
+				converter[self].linkattrs,
 				external_destination=self["moreinfo"]
 			)
 		else:
@@ -550,7 +550,7 @@ class section(block):
 
 	def convert_html(self, converter):
 		target = converter.target
-		context = converter[base]
+		context = converter[self]
 		context.sections[-1] += 1
 		level = len(context.sections)
 		context.sections.append(0) # for numbering the subsections
@@ -580,7 +580,7 @@ class section(block):
 		return e
 
 	def convert_fo(self, converter):
-		context = converter[base]
+		context = converter[self]
 		context.sections[-1] += 1
 		context.sections.append(0)
 		ts = xsc.Frag()
@@ -667,7 +667,7 @@ class par(block):
 	def convert_fo(self, converter):
 		e = fo.block(
 			self.content,
-			converter[base].vspaceattrs,
+			converter[self].vspaceattrs,
 			line_height="130%"
 		)
 		return e.convert(converter)
@@ -693,14 +693,14 @@ class ulist(list):
 		return e.convert(converter)
 
 	def convert_html(self, converter):
-		context = converter[base]
+		context = converter[self]
 		context.lists.append(["ulist", 0])
 		e = converter.target.ul(self.content.convert(converter))
 		del context.lists[-1]
 		return e
 
 	def convert_fo(self, converter):
-		context = converter[base]
+		context = converter[self]
 		context.lists.append(["ulist", 0])
 		e = converter.target.list_block(self.content, line_height="130%")
 		e = e.convert(converter)
@@ -719,14 +719,14 @@ class olist(list):
 		return e.convert(converter)
 
 	def convert_html(self, converter):
-		context = converter[base]
+		context = converter[self]
 		context.lists.append(["olist", 0])
 		e = converter.target.ol(self.content.convert(converter))
 		del context.lists[-1]
 		return e
 
 	def convert_fo(self, converter):
-		context = converter[base]
+		context = converter[self]
 		context.lists.append(["olist", 0])
 		e = converter.target.list_block(self.content, line_height="130%")
 		e = e.convert(converter)
@@ -753,14 +753,14 @@ class dlist(list):
 		return e.convert(converter)
 
 	def convert_html(self, converter):
-		context = converter[base]
+		context = converter[self]
 		context.lists.append(["dlist", 0])
 		e = converter.target.dl(self.content.convert(converter))
 		del context.lists[-1]
 		return e
 
 	def convert_fo(self, converter):
-		context = converter[base]
+		context = converter[self]
 		context.lists.append(["dlist", 0])
 		e = self.content.convert(converter)
 		del context.lists[-1]
@@ -804,7 +804,7 @@ class item(base):
 		return e.convert(converter)
 
 	def convert_html(self, converter):
-		context = converter[base]
+		context = converter[self]
 		if context.lists[-1][0] == "dlist":
 			e = converter.target.dd(self.content)
 		else:
@@ -813,7 +813,7 @@ class item(base):
 
 	def convert_fo(self, converter):
 		target = converter.target
-		context = converter[base]
+		context = converter[self]
 		context.lists[-1][1] += 1
 		type = context.lists[-1][0]
 		if type=="ulist":
@@ -866,7 +866,7 @@ class self(code):
 		return e.convert(converter)
 
 	def convert_fo(self, converter):
-		e = converter.target.inline("self", converter[base].codeattrs)
+		e = converter.target.inline("self", converter[self].codeattrs)
 		return e.convert(converter)
 
 	def __unicode__(self):
@@ -896,7 +896,7 @@ class cls(base):
 		return e.convert(converter)
 
 	def convert_fo(self, converter):
-		e = converter.target.inline("cls", converter[base].codeattrs)
+		e = converter.target.inline("cls", converter[self].codeattrs)
 		return e.convert(converter)
 
 	def __unicode__(self):
@@ -923,7 +923,7 @@ class link(base):
 		if "href" in self.attrs:
 			e = converter.target.basic_link(
 				self.content,
-				converter[base].linkattrs,
+				converter[self].linkattrs,
 				external_destination=self["href"]
 			)
 		else:
@@ -931,7 +931,7 @@ class link(base):
 		return e.convert(converter)
 
 
-class xref(xsc.Element):
+class xref(base):
 	"""
 	An internal cross reference.
 	"""
@@ -951,7 +951,7 @@ class xref(xsc.Element):
 		if "href" in self.attrs:
 			e = converter.target.basic_link(
 				self.content,
-				converter[base].linkattrs,
+				converter[self].linkattrs,
 				internal_destination=self["ref"]
 			)
 		else:
@@ -976,7 +976,7 @@ class email(base):
 	def convert_fo(self, converter):
 		e = converter.target.basic_link(
 			self.content,
-			converter[base].linkattrs,
+			converter[self].linkattrs,
 			external_destination=("mailto:", self.content)
 		)
 		return e.convert(converter)
@@ -999,7 +999,7 @@ class em(base):
 	def convert_fo(self, converter):
 		e = converter.target.inline(
 			self.content,
-			converter[base].emattrs
+			converter[self].emattrs
 		)
 		return e.convert(converter)
 
@@ -1351,11 +1351,11 @@ def explain(cls, thing, name=None, context=[]):
 explain = classmethod(explain)
 
 
-class fodoc(xsc.Element):
+class fodoc(base):
 	empty = False
 
 	def convert(self, converter):
-		context = converter[base]
+		context = converter[self]
 		e = self.content
 		converter.push(target=xmlns)
 		e = e.convert(converter)
