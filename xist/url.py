@@ -214,15 +214,10 @@ class URL:
 		"""
 		returns an identical clone of this URL.
 		"""
-		return URL(scheme = self.scheme, server = self.server, port = self.port, path = self.__path, file = self.file, ext = self.ext, parameters = self.parameters, query = self.query, fragment = self.fragment)
+		return URL(scheme=self.scheme, server=self.server, port=self.port, path=self.__path, file=self.file, ext=self.ext, parameters=self.parameters, query=self.query, fragment=self.fragment)
 
 	def isRemote(self):
-		if self.scheme == u"":
-			return 0
-		elif self.scheme == u"server" and self.server == u"localhost":
-			return 0
-		else:
-			return 1
+		return self.scheme is not None
 
 	def relativeTo(self, other):
 		"""
