@@ -1,5 +1,10 @@
 #! /usr/bin/env python
 
+""""""
+
+__version__ = "$Revision$"
+# $Source$
+
 import sys
 from xsc_html40 import *
 
