@@ -162,6 +162,7 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 		self.content_handler.startDocument()
 		self.lineNumber = 1
 		# nothing done for the column number, because otherwise parsing would be much to slow.
+		self.headerJustRead = 0 # will be used for skipping whitespace after the XML header
 
 		self.parser.register(self)
 		try:
@@ -220,24 +221,31 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 
 	def handle_comment(self, data):
 		self.content_handler.comment(unicode(data, self.encoding))
+		self.headerJustRead = 0
 
 	# don't define handle_charref or handle_cdata, so we will get those through handle_data
 
 	def handle_data(self, data):
-		self.content_handler.characters(unicode(data, self.encoding).replace(u"\r\n", u"\n"))
+		data = unicode(data, self.encoding).replace(u"\r\n", u"\n").replace(u"\r", u"\n")
+		if not self.headerJustRead or not data.isspace():
+			self.content_handler.characters(data)
+		self.headerJustRead = 0
 
 	def handle_proc(self, target, data):
 		target = unicode(target, self.encoding)
 		data = unicode(data, self.encoding)
 		if target!=u'xml': # Don't report <?xml?> as a processing instruction
 			self.content_handler.processingInstruction(target, data)
+			self.headerJustRead = 0
 		else: # extract the encoding
 			encodingFound = utils.findAttr(data, u"encoding")
 			if encodingFound is not None:
 				self.encoding = encodingFound
+			self.headerJustRead = 1
 
 	def handle_entityref(self, name):
 		self.content_handler.skippedEntity(unicode(name, self.encoding))
+		self.headerJustRead = 0
 
 	def finish_starttag(self, name, attrs):
 		newattrs = sax.xmlreader.AttributesImpl({})
@@ -248,9 +256,11 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 				attrvalue = self._string2Fragment(unicode(attrvalue, self.encoding))
 			newattrs._attrs[unicode(attrname, self.encoding)] = attrvalue
 		self.content_handler.startElement(unicode(name, self.encoding), newattrs)
+		self.headerJustRead = 0
 
 	def finish_endtag(self, name):
 		self.content_handler.endElement(unicode(name, self.encoding))
+		self.headerJustRead = 0
 
 	def _string2Fragment(self, text):
 		"""

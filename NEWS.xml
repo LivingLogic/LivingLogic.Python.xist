@@ -18,7 +18,7 @@ a C compiler to install &xist;.</li>
 <literal>&amp;quot;</literal> inside attributes.</li>
 
 <li>All the <function>asHTML</function> methods now have an additional argument
-<parameter>converter</parameter> which defaults to <code>None</code>. This makes it possible
+<parameter>converter</parameter>. This makes it possible
 to implement different processing modes or stages
 for new elements. All currently implemented elements and
 entities ignore this argument, but pass it on
@@ -47,7 +47,8 @@ with the function <function>parseFile</function>, <function>parseString</functio
 <code>parsers</code>. It's now possible to specify which parser should
 be used for parsing by passing a SAX2 parser instance to any of
 these functions. &xist; now includes a rudimentary SAX2 driver
-for <code>sgmlop</code>.</li>
+for <code>sgmlop</code> and a rudimentary &html; parser that
+emits SAX2 events.</li>
 
 <li>The python-quotes example has been updated to work with expat.</li>
 
@@ -110,8 +111,8 @@ nesting. If you still want that, use a <literal>*</literal> argument.</li>
 
 <li><classname>Frag</classname> and <classname>Element</classname>
 now have a new method <function>mapped</function>,
-that recursively maps the node content through a function. This is like <function>convert</function>
-but via an external function.</li>
+that recursively maps the node content through a function. This is like
+<function>convert</function> but via an external function.</li>
 
 <li>Attribute handling has been improved thanks to a suggestion
 by Hartmut Goebel: <function>Element.__getitem__</function> now

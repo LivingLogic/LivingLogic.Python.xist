@@ -1093,8 +1093,8 @@ class Frag(Node):
 		"""
 		returns a version of <self/> with a separator node between the nodes of <self/>.
 
-		if <code><argref>clone</argref>==0</code> one node will be inserted several times,
-		if <code><argref>clone</argref>==1</code> clones of this node will be used.
+		if <code><pyref arg="clone">clone</pyref>==0</code> one node will be inserted several times,
+		if <code><pyref arg="clone">clone</pyref>==1</code> clones of this node will be used.
 		"""
 		node = Frag()
 		newseparator = ToNode(separator)

@@ -1,8 +1,13 @@
 #! /usr/bin/env python
 
 """
-<dbl:para>&xist; is an &xml; based extensible &html; generator.
-Some of the significant features of &xist; include:
+<dbl:para>&xist; is an &xml; based extensible &html; generator. &xist; is a &dom; parser
+(built on top of &sax;2) with a very simple and pythonesque
+&api;. Every &xml; element type corresponds to a Python class and these
+Python classes provide a conversion method to transform the &xml; tree (e.g. into
+&html;). &xist; can be considered <z>object oriented &xsl;</z>.</dbl:para>
+
+<dbl:para>Some of the significant features of &xist; include:
 <ul>
 <li>Easily extensible with new &xml; elements,</li>
 <li>Can be used for offline or online page generation,</li>
@@ -13,11 +18,6 @@ Some of the significant features of &xist; include:
 <li>Automatically generates <code>HEIGHT</code> and <code>WIDTH</code> attributes for images.</li>
 </ul>
 </dbl:para>
-
-<dbl:para>&xist; is a &dom; parser (built on top of &sax;2) with a very simple and pythonesque
-&api;. Every &xml; element type corresponds to a Python class and these
-Python classes provide a conversion method to transform the &xml; tree (e.g. into
-&html;). &xist; can be considered <z>object oriented &xsl;</z>.</dbl:para>
 
 <dbl:para>&xist; was written as a replacement for the
 <a href="http://www.giga.or.at/~agi/hsc/">&html; preprocessor HSC</a>,
