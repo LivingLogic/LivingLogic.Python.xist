@@ -295,7 +295,8 @@ class Node(Base):
 
 	def __repr__(self):
 		"""
-		<par>uses the default presenter (defined in <pyref module="ll.xist.presenters"><module>ll.xist.presenters</module></pyref>)
+		<par>Use the default presenter (defined in
+		<pyref module="ll.xist.presenters"><module>ll.xist.presenters</module></pyref>)
 		to return a string representation.</par>
 		"""
 		return self.repr(presenters.defaultPresenterClass())
@@ -328,7 +329,7 @@ class Node(Base):
 
 	def copy(self):
 		"""
-		return a shallow copy of <self/>.
+		Return a shallow copy of <self/>.
 		"""
 		return self.__copy__()
 
@@ -337,7 +338,7 @@ class Node(Base):
 
 	def deepcopy(self):
 		"""
-		return a deep copy of <self/>.
+		Return a deep copy of <self/>.
 		"""
 		return self.__deepcopy__()
 
@@ -346,10 +347,10 @@ class Node(Base):
 
 	def repr(self, presenter=None):
 		"""
-		<par>Return a string representation of <self/>.
-		When you don't pass in a <arg>presenter</arg>, you'll
-		get the default presentation. Else <arg>presenter</arg>
-		should be an instance of <pyref module="ll.xist.presenters" class="Presenter"><class>ll.xist.presenters.Presenter</class></pyref>
+		<par>Return a string representation of <self/>. When you don't pass in a
+		<arg>presenter</arg>, you'll get the default presentation. Else
+		<arg>presenter</arg> should be an instance of
+		<pyref module="ll.xist.presenters" class="Presenter"><class>ll.xist.presenters.Presenter</class></pyref>
 		(or one of the subclasses).</par>
 		"""
 		if presenter is None:
@@ -358,10 +359,10 @@ class Node(Base):
 
 	def present(self, presenter):
 		"""
-		<par><method>present</method> is used as a central
-		dispatch method for the <pyref module="ll.xist.presenters">presenter classes</pyref>.
-		Normally it is not called by the user, but internally by the
-		presenter. The user should call <pyref method="repr"><method>repr</method></pyref>
+		<par><method>present</method> is used as a central dispatch method for
+		the <pyref module="ll.xist.presenters">presenter classes</pyref>. Normally
+		it is not called by the user, but internally by the presenter. The user
+		should call <pyref method="repr"><method>repr</method></pyref>
 		instead.</par>
 		"""
 		# Subclasses of Node implement this method by calling the appropriate present* method in the publisher (i.e. double dispatch)
