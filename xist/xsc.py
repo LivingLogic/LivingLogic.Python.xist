@@ -570,7 +570,7 @@ class Node:
 		"""
 		returns this node converted to a float. <argref>decimal</argref>
 		specifies which decimal separator is used in the value
-		(e.g. <code>"."<code> (the default) or <code>","</code>).
+		(e.g. <code>"."</code> (the default) or <code>","</code>).
 		"""
 		s = self.asPlainString()
 		if decimal != ".":
@@ -698,6 +698,10 @@ class Node:
 			return Location(self.startloc.url,self.startloc.row + relrow)
 
 	def _decorateNode(self,node):
+		"""
+		decorate the node <argref>node</argref> with the same location information as <self/>.
+		"""
+
 		node.startloc = self.startloc
 		node.endloc = self.endloc
 		return node
