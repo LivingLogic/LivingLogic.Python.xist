@@ -28,18 +28,25 @@ handler in <pyref module="ll.xist.xsc" class="Node" method="publish"><method>pub
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-import sys, codecs, types
+import sys, codecs, cStringIO
 
 from ll import url
 
-import xsc, options, utils, errors, helpers
+import xsc, options, helpers
+
+if hasattr(codecs, "register_error"):
+	def cssescapereplace(exc):
+		if not isinstance(exc, UnicodeEncodeError):
+			raise TypeError("don't know how to handle %r" % exc)
+		return (helpers.cssescapereplace(exc.object[exc.start:exc.end], exc.encoding), exc.end)
+	codecs.register_error("cssescapereplace", cssescapereplace)
 
 class Publisher(object):
 	"""
 	base class for all publishers.
 	"""
 
-	def __init__(self, base=None, root=None, encoding=None, xhtml=None, prefixes=None, elementmode=0, procinstmode=0, entitymode=0):
+	def __init__(self, stream, base=None, root=None, encoding=None, xhtml=None, prefixes=None, elementmode=0, procinstmode=0, entitymode=0):
 		"""
 		<par><arg>base</arg> specifies the url to which the result
 		will be output.</par>
@@ -100,8 +107,14 @@ class Publisher(object):
 		self.entitymode = entitymode
 
 		self.inAttr = 0
-		self.__textFilters = [ helpers.escapeText ]
-		self.__currentTextFilter = helpers.escapeText
+		self.__textfilters = [ helpers.escapetext ]
+		self.__currenttextfilter = helpers.escapetext
+
+		self.__errors = [ "xmlcharrefreplace" ]
+		self.__currenterrors = "xmlcharrefreplace"
+
+		streamwriterclass = codecs.getwriter(self.encoding)
+		self.stream = streamwriterclass(stream)
 
 	def publish(self, text):
 		"""
@@ -109,28 +122,53 @@ class Publisher(object):
 		The strings are still unicode objects, and you have to do the encoding yourself.
 		overwrite this method.
 		"""
-		pass
+		self.stream.write(text)
 
-	def publishText(self, text):
-		"""
-		<par>is used to publish text data. This uses the current
-		text filter, which is responsible for escaping characters.</par>
-		"""
-		self.publish(self.__currentTextFilter(text, self.encoding))
+	if hasattr(codecs, "register_error"):
+		def publishText(self, text):
+			"""
+			<par>is used to publish text data. This uses the current
+			text filter, which is responsible for escaping characters.</par>
+			"""
+			self.stream.errors = self.__currenterrors
+			self.publish(self.__currenttextfilter(text))
+			self.stream.errors = "strict"
+	else:
+		def publishText(self, text):
+			"""
+			<par>is used to publish text data. This uses the current
+			text filter, which is responsible for escaping characters.</par>
+			"""
+			errorhandler = getattr(helpers, self.__currenterrors)
+			self.stream.write(errorhandler(self.__currenttextfilter(text), self.encoding))
 
 	def pushTextFilter(self, filter):
 		"""
 		<par>pushes a new text filter function.</par>
 		"""
-		self.__textFilters.append(filter)
-		self.__currentTextFilter = filter
+		self.__textfilters.append(filter)
+		self.__currenttextfilter = filter
 
 	def popTextFilter(self):
-		self.__textFilters.pop()
-		if self.__textFilters:
-			self.__currentTextFilter = self.__textFilters[-1]
+		self.__textfilters.pop()
+		if self.__textfilters:
+			self.__currenttextfilter = self.__textfilters[-1]
 		else:
-			self.__currentTextFilter = None
+			self.__currenttextfilter = None
+
+	def pushErrors(self, errors):
+		"""
+		<par>pushes a new error handling function.</par>
+		"""
+		self.__errors.append(errors)
+		self.__currenterrors = errors
+
+	def popErrors(self):
+		self.__errors.pop()
+		if self.__errors:
+			self.__currenterrors = self.__errors[-1]
+		else:
+			self.__currenterrors = "strict"
 
 	def _neededxmlnsdefs(self, node):
 		"""
@@ -198,53 +236,20 @@ class Publisher(object):
 		self.node.publish(self) # use self.node, because it might have been replaced by beginPublication
 		return self.endPublication()
 
-class FilePublisher(Publisher):
-	"""
-	writes the strings to a file.
-	"""
-	def __init__(self, stream, base=None, root=None, encoding=None, xhtml=None, prefixes=None, elementmode=0, procinstmode=0, entitymode=0):
-		super(FilePublisher, self).__init__(base=base, root=root, encoding=encoding, xhtml=xhtml, prefixes=prefixes, elementmode=elementmode, procinstmode=procinstmode, entitymode=entitymode)
-		streamwriterclass = codecs.getwriter(self.encoding)
-		self.stream = streamwriterclass(stream)
-
-	def publish(self, text):
-		self.stream.write(text)
-
 	def tell(self):
 		"""
 		return the current position.
 		"""
 		return self.stream.tell()
 
-class PrintPublisher(FilePublisher):
+FilePublisher = Publisher
+
+class PrintPublisher(Publisher):
 	"""
 	writes the strings to <lit>sys.stdout</lit>.
 	"""
 	def __init__(self, base=None, root=None, encoding=None, xhtml=None, prefixes=None, elementmode=0, procinstmode=0, entitymode=0):
 		super(PrintPublisher, self).__init__(sys.stdout, base=base, root=root, encoding=encoding, xhtml=xhtml, prefixes=prefixes, elementmode=elementmode, procinstmode=procinstmode, entitymode=entitymode)
-
-class StringPublisher(Publisher):
-	"""
-	collects all strings in an array.
-	The joined strings are available via
-	<pyref module="ll.xist.publishers" class="StringPublisher" method="asString"><method>asString</method></pyref>
-	"""
-
-	def __init__(self, base=None, root=None, xhtml=None, prefixes=None, elementmode=0, procinstmode=0, entitymode=0):
-		super(StringPublisher, self).__init__(base=base, root=root, encoding="utf16", xhtml=xhtml, prefixes=prefixes, elementmode=elementmode, procinstmode=procinstmode, entitymode=entitymode)
-
-	def publish(self, text):
-		self.texts.append(text)
-
-	def beginPublication(self):
-		super(StringPublisher, self).beginPublication()
-		self.texts = []
-
-	def endPublication(self):
-		result = u"".join(self.texts)
-		del self.texts
-		super(StringPublisher, self).endPublication()
-		return result
 
 class BytePublisher(Publisher):
 	"""
@@ -254,16 +259,26 @@ class BytePublisher(Publisher):
 	string suitable for writing to a file.
 	"""
 
-	def publish(self, text):
-		self.texts.append(text)
-
-	def beginPublication(self):
-		super(BytePublisher, self).beginPublication()
-		self.texts = []
+	def __init__(self, base=None, root=None, encoding=None, xhtml=None, prefixes=None, elementmode=0, procinstmode=0, entitymode=0):
+		super(BytePublisher, self).__init__(cStringIO.StringIO(), base=base, root=root, encoding=encoding, xhtml=xhtml, prefixes=prefixes, elementmode=elementmode, procinstmode=procinstmode, entitymode=entitymode)
 
 	def endPublication(self):
-		result = u"".join(self.texts).encode(self.encoding)
-		del self.texts
+		result = self.stream.getvalue()
 		super(BytePublisher, self).endPublication()
 		return result
+
+class StringPublisher(BytePublisher):
+	"""
+	collects all strings in an array.
+	The joined strings are available via
+	<pyref module="ll.xist.publishers" class="StringPublisher" method="asString"><method>asString</method></pyref>
+	"""
+
+	def __init__(self, base=None, root=None, xhtml=None, prefixes=None, elementmode=0, procinstmode=0, entitymode=0):
+		super(StringPublisher, self).__init__(base=base, root=root, encoding="utf8", xhtml=xhtml, prefixes=prefixes, elementmode=elementmode, procinstmode=procinstmode, entitymode=entitymode)
+
+	def endPublication(self):
+		result = super(StringPublisher, self).endPublication()
+		return unicode(result, "utf8")
+
 

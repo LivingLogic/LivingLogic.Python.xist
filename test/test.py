@@ -110,7 +110,7 @@ class XISTTestCase(unittest.TestCase):
 			html.DocTypeHTML401transitional(),
 			xsc.Comment("gurk"),
 			"hurz",
-			html.nbsp(),
+			specials.tab(),
 			abbr.xist(),
 			None,
 			1,
@@ -131,7 +131,7 @@ class XISTTestCase(unittest.TestCase):
 					html.abbr(
 						xml.XML10(),
 						"hurz",
-						html.nbsp(),
+						specials.tab(),
 						abbr.xist(),
 						None,
 						1,
@@ -250,51 +250,57 @@ class XISTTestCase(unittest.TestCase):
 
 	escapeInput = u"".join([unichr(i) for i in xrange(1000)] + [unichr(i) for i in xrange(sys.maxunicode-10, sys.maxunicode+1)])
 
-	def test_helpersescapeText(self):
+	def test_helpersescapetext(self):
 		escapeOutput = []
 		for c in self.escapeInput:
 			if c==u"&":
-				escapeOutput.append("&amp;")
+				escapeOutput.append(u"&amp;")
 			elif c==u"<":
-				escapeOutput.append("&lt;")
+				escapeOutput.append(u"&lt;")
 			elif c==u">":
-				escapeOutput.append("&gt;")
+				escapeOutput.append(u"&gt;")
 			else:
-				try:
-					escapeOutput.append(c.encode("ascii"))
-				except UnicodeError:
-					escapeOutput.append("&#%d;" % ord(c))
+				escapeOutput.append(c)
 		escapeOutput = "".join(escapeOutput)
-		self.assertEqual(helpers.escapeText(self.escapeInput, "ascii"), escapeOutput)
+		self.assertEqual(helpers.escapetext(self.escapeInput), escapeOutput)
 
-	def test_helpersescapeAttr(self):
+	def test_helpersescapeattr(self):
 		escapeOutput = []
 		for c in self.escapeInput:
 			if c==u"&":
-				escapeOutput.append("&amp;")
+				escapeOutput.append(u"&amp;")
 			elif c==u"<":
-				escapeOutput.append("&lt;")
+				escapeOutput.append(u"&lt;")
 			elif c==u">":
-				escapeOutput.append("&gt;")
+				escapeOutput.append(u"&gt;")
 			elif c==u'"':
-				escapeOutput.append("&quot;")
+				escapeOutput.append(u"&quot;")
 			else:
-				try:
-					escapeOutput.append(c.encode("ascii"))
-				except UnicodeError:
-					escapeOutput.append("&#%d;" % ord(c))
+				escapeOutput.append(c)
 		escapeOutput = "".join(escapeOutput)
-		self.assertEqual(helpers.escapeAttr(self.escapeInput, "ascii"), escapeOutput)
+		self.assertEqual(helpers.escapeattr(self.escapeInput), escapeOutput)
 
-	def test_helpersescapeCSS(self):
+	def test_helperxmlcharrefreplace(self):
 		escapeOutput = []
 		for c in self.escapeInput:
 			try:
-				escapeOutput.append(c.encode("ascii"))
+				c.encode("ascii")
+				escapeOutput.append(c)
 			except UnicodeError:
-				escapeOutput.append(("\\%x" % ord(c)).upper())
-		escapeOutput = "".join(escapeOutput)
-		self.assertEqual(helpers.escapeCSS(self.escapeInput, "ascii"), escapeOutput)
+				escapeOutput.append(u"&#%d;" % ord(c))
+		escapeOutput = u"".join(escapeOutput)
+		self.assertEqual(helpers.xmlcharrefreplace(self.escapeInput, "ascii"), escapeOutput)
+
+	def test_helpercssescapereplace(self):
+		escapeOutput = []
+		for c in self.escapeInput:
+			try:
+				c.encode("ascii")
+				escapeOutput.append(c)
+			except UnicodeError:
+				escapeOutput.append((u"\\%x" % ord(c)).upper())
+		escapeOutput = u"".join(escapeOutput)
+		self.assertEqual(helpers.cssescapereplace(self.escapeInput, "ascii"), escapeOutput)
 
 	def test_attrsclone(self):
 		class newa(html.a):
@@ -605,6 +611,13 @@ class XISTTestCase(unittest.TestCase):
 		self.assertEquals(node.asBytes(xhtml=0), """<br><div></div>""")
 		self.assertEquals(node.asBytes(xhtml=1), """<br /><div></div>""")
 		self.assertEquals(node.asBytes(xhtml=2), """<br/><div/>""")
+
+	def test_publishescaped(self):
+		s = u"""<&'"\xff>"""
+		node = xsc.Text(s)
+		self.assertEquals(node.asBytes(encoding="ascii"), """&lt;&amp;'"&#255;&gt;""")
+		node = html.span(class_=s)
+		self.assertEquals(node.asBytes(encoding="ascii", xhtml=2), """<span class="&lt;&amp;'&quot;&#255;&gt;"/>""")
 
 if __name__ == "__main__":
 	unittest.main()

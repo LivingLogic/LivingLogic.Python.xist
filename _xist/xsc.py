@@ -748,7 +748,7 @@ class CharacterData(Node):
 
 class Text(CharacterData):
 	"""
-	<par>text node. The characters <markup>&lt;</markup>, <markup>&gt;</markup>, <markup>&amp;</markup>
+	<par>A text node. The characters <markup>&lt;</markup>, <markup>&gt;</markup>, <markup>&amp;</markup>
 	(and <markup>"</markup> inside attributes) will be <z>escaped</z> with the
 	appropriate character entities when this node is published.</par>
 	"""
@@ -1354,7 +1354,7 @@ class Attr(Frag):
 		publisher.inAttr += 1
 		self._publishname(publisher) # publish the XML name, not the Python name
 		publisher.publish(u"=\"")
-		publisher.pushTextFilter(helpers.escapeAttr)
+		publisher.pushTextFilter(helpers.escapeattr)
 		self._publishAttrValue(publisher)
 		publisher.popTextFilter()
 		publisher.publish(u"\"")
@@ -1401,7 +1401,7 @@ class BoolAttr(Attr):
 		self._publishname(publisher) # publish the XML name, not the Python name
 		if publisher.xhtml>0:
 			publisher.publish(u"=\"")
-			publisher.pushTextFilter(helpers.escapeAttr)
+			publisher.pushTextFilter(helpers.escapeattr)
 			publisher.publish(self.__class__.xmlname)
 			publisher.popTextFilter()
 			publisher.publish(u"\"")

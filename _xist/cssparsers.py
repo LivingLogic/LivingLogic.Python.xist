@@ -69,7 +69,7 @@ class Handler(object):
 			self.texts.append(u"@%s" % data)
 		elif token=="CHARSET_SYMBOL":
 			self.texts.append(u"@%s" % data)
-			if not self.ignoreCharset:
+			if not self.ignorecharset:
 				self.encoding = data.encode("ascii")
 		else:
 			self.texts.append(data)

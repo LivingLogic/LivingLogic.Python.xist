@@ -38,7 +38,7 @@ class css(xsc.Element):
 	empty = False
 
 	def publish(self, publisher):
-		publisher.pushTextFilter(helpers.escapeCSS)
+		publisher.pushErrors("cssescapereplace")
 		# publish the imports first
 		imports = self.find(type=atimport)
 		first = True
@@ -55,7 +55,7 @@ class css(xsc.Element):
 			else:
 				publisher.publish(u"\n")
 			child.publish(publisher)
-		publisher.popTextFilter()
+		publisher.popErrors()
 
 class atimport(xsc.Element):
 	"""

@@ -1,6 +1,6 @@
 /*
-** Copyright 1999-2001 by LivingLogic AG, Bayreuth, Germany.
-** Copyright 1999-2001 by Walter Dörwald
+** Copyright 1999-2002 by LivingLogic AG, Bayreuth, Germany.
+** Copyright 1999-2002 by Walter Dörwald
 **
 ** All Rights Reserved
 **
@@ -26,34 +26,169 @@ static Py_UNICODE gt[] = { ((Py_UNICODE)'&'), ((Py_UNICODE)'g'), ((Py_UNICODE)'t
 static Py_UNICODE amp[] = { ((Py_UNICODE)'&'), ((Py_UNICODE)'a'), ((Py_UNICODE)'m'), ((Py_UNICODE)'p'), ((Py_UNICODE)';') };
 static Py_UNICODE quot[] = { ((Py_UNICODE)'&'), ((Py_UNICODE)'q'), ((Py_UNICODE)'u'), ((Py_UNICODE)'o'), ((Py_UNICODE)'t'), ((Py_UNICODE)';') };
 
-static Py_UNICODE lt2[] = { ((Py_UNICODE)'l'), ((Py_UNICODE)'t') };
-static Py_UNICODE gt2[] = { ((Py_UNICODE)'g'), ((Py_UNICODE)'t') };
-static Py_UNICODE amp2[] = { ((Py_UNICODE)'a'), ((Py_UNICODE)'m'), ((Py_UNICODE)'p') };
-static Py_UNICODE quot2[] = { ((Py_UNICODE)'q'), ((Py_UNICODE)'u'), ((Py_UNICODE)'o'), ((Py_UNICODE)'t') };
-
 static Py_UNICODE hexdigits[] = { (Py_UNICODE)'0', (Py_UNICODE)'1', (Py_UNICODE)'2', (Py_UNICODE)'3', (Py_UNICODE)'4', (Py_UNICODE)'5', (Py_UNICODE)'6', (Py_UNICODE)'7', (Py_UNICODE)'8', (Py_UNICODE)'9', (Py_UNICODE)'A', (Py_UNICODE)'B', (Py_UNICODE)'C', (Py_UNICODE)'D', (Py_UNICODE)'E', (Py_UNICODE)'F' };
 
 #define COUNTOF(x) (sizeof(x)/sizeof((x)[0]))
 
-struct Replacement
-{
-	Py_UNICODE  character;
-	int         size;
-	Py_UNICODE *replacement;
-};
+static char escapetext__doc__[] =
+"escapetext(unicode) -> unicode\n\
+\n\
+Return a copy of the string S, where every occurrence of\n\
+'<', '>' and '&' has been replaced with its XML character entity.";
 
-struct Replacement replacements[] =
+static PyObject *escapetext(PyObject *self, PyObject *args)
 {
-	{'"', COUNTOF(quot2), quot2},
-	{'&', COUNTOF(amp2), amp2},
-	{'<', COUNTOF(lt2), lt2},
-	{'>', COUNTOF(gt2), gt2},
-	{'\0', 0, NULL}
-};
+	int i;
+	PyObject *str;
+	int oldsize;
+	int newsize = 0;
 
-static PyUnicodeObject *escapeUnencodable(PyUnicodeObject *str, const char *encoding)
+	if (!PyArg_ParseTuple(args, "O!:escapetext", &PyUnicode_Type, &str))
+		return NULL;
+
+	oldsize = PyUnicode_GET_SIZE(str);
+	for (i = 0; i < oldsize; ++i)
+	{
+		Py_UNICODE ch = PyUnicode_AS_UNICODE(str)[i];
+		if (ch == ((Py_UNICODE)'<'))
+			newsize += COUNTOF(lt);
+		else if (ch == ((Py_UNICODE)'>')) /* Note that we always replace '>' with its entity, not just in case it is part of ']]>' */
+			newsize += COUNTOF(gt);
+		else if (ch == ((Py_UNICODE)'&'))
+			newsize += COUNTOF(amp);
+		else
+			newsize++;
+	}
+	if (oldsize==newsize)
+	{
+		/* nothing to replace => return original */
+		Py_INCREF(str);
+		return str;
+	}
+	else
+	{
+		PyObject *result = PyUnicode_FromUnicode(NULL, newsize);
+		Py_UNICODE *p;
+		if (result == NULL)
+			return NULL;
+		p = PyUnicode_AS_UNICODE(result);
+		for (i = 0; i < oldsize; ++i)
+		{
+			Py_UNICODE ch = PyUnicode_AS_UNICODE(str)[i];
+			if (ch == ((Py_UNICODE)'<'))
+			{
+				Py_UNICODE_COPY(p, lt, COUNTOF(lt));
+				p += COUNTOF(lt);
+			}
+			else if (ch == ((Py_UNICODE)'>'))
+			{
+				Py_UNICODE_COPY(p, gt, COUNTOF(gt));
+				p += COUNTOF(gt);
+			}
+			else if (ch == ((Py_UNICODE)'&'))
+			{
+				Py_UNICODE_COPY(p, amp, COUNTOF(amp));
+				p += COUNTOF(amp);
+			}
+			else
+				*p++ = ch;
+		}
+		return result;
+	}
+}
+
+static char escapeattr__doc__[] =
+"escapeattr(unicode) -> unicode\n\
+\n\
+Return a copy of the string S, where every occurrence of\n\
+'<', '>', '&', and '\"' has been replaced with their XML\n\
+character entity.";
+
+static PyObject *escapeattr(PyObject *self, PyObject *args)
 {
-	PyObject *test = PyUnicode_AsEncodedString((PyObject *)str, encoding, NULL);
+	int i;
+	PyObject *str;
+	int oldsize;
+	int newsize = 0;
+
+	if (!PyArg_ParseTuple(args, "O!:escapeattr", &PyUnicode_Type, &str))
+		return NULL;
+
+	oldsize = PyUnicode_GET_SIZE(str);
+	for (i = 0; i < oldsize; ++i)
+	{
+		Py_UNICODE ch = PyUnicode_AS_UNICODE(str)[i];
+		if (ch == ((Py_UNICODE)'<'))
+			newsize += COUNTOF(lt);
+		else if (ch == ((Py_UNICODE)'>'))
+			newsize += COUNTOF(gt);
+		else if (ch == ((Py_UNICODE)'&'))
+			newsize += COUNTOF(amp);
+		else if (ch == ((Py_UNICODE)'\"'))
+			newsize += COUNTOF(quot);
+		else
+			newsize++;
+	}
+	if (oldsize==newsize)
+	{
+		/* nothing to replace => return original */
+		Py_INCREF(str);
+		return str;
+	}
+	else
+	{
+		PyObject *result = PyUnicode_FromUnicode(NULL, newsize);
+		Py_UNICODE *p;
+		if (result == NULL)
+			return NULL;
+		p = PyUnicode_AS_UNICODE(result);
+		for (i = 0; i < oldsize; ++i)
+		{
+			Py_UNICODE ch = PyUnicode_AS_UNICODE(str)[i];
+			if (ch == ((Py_UNICODE)'<'))
+			{
+				Py_UNICODE_COPY(p, lt, COUNTOF(lt));
+				p += COUNTOF(lt);
+			}
+			else if (ch == ((Py_UNICODE)'>'))
+			{
+				Py_UNICODE_COPY(p, gt, COUNTOF(gt));
+				p += COUNTOF(gt);
+			}
+			else if (ch == ((Py_UNICODE)'&'))
+			{
+				Py_UNICODE_COPY(p, amp, COUNTOF(amp));
+				p += COUNTOF(amp);
+			}
+			else if (ch == ((Py_UNICODE)'"'))
+			{
+				Py_UNICODE_COPY(p, quot, COUNTOF(quot));
+				p += COUNTOF(quot);
+			}
+			else
+				*p++ = ch;
+		}
+		return result;
+	}
+}
+
+static char xmlcharrefreplace__doc__[] =
+"xmlcharrefreplace(unicode, encoding) -> unicode\n\
+\n\
+Return a copy of the string S, where every unencodable character\n\
+in the specified encoding has been replaced with an XML character\n\
+reference.";
+
+static PyObject *xmlcharrefreplace(PyObject *self, PyObject *args)
+{
+	PyObject *str;
+	char *encoding;
+	PyObject *test;
+
+	if (!PyArg_ParseTuple(args, "Os:xmlcharrefreplace", &str, &encoding))
+		return NULL;
+
+	test = PyUnicode_AsEncodedString((PyObject *)str, encoding, NULL);
 
 	if (test == NULL) /* an exception has occurred */
 	{
@@ -188,7 +323,7 @@ static PyUnicodeObject *escapeUnencodable(PyUnicodeObject *str, const char *enco
 					Py_DECREF(test);
 				}
 			}
-			return (PyUnicodeObject *)result;
+			return result;
 		}
 		else /* a "real exception" */
 			return NULL;
@@ -196,180 +331,26 @@ static PyUnicodeObject *escapeUnencodable(PyUnicodeObject *str, const char *enco
 	else /* no exception, i.e. it worked, so we can use the string as it is */
 	{
 		Py_DECREF(test); /* we no longer need the encoded version */
-		/* we don't incref here, the caller knows this */
+		Py_INCREF(str);
 		return str;
 	}
 }
 
-static char escapeText__doc__[] =
-"escapeText(unicode, encoding) -> unicode\n\
-\n\
-Return a copy of the string S, where every occurrence of\n\
-'<', '>' and '&' and all unencodable characters in the\n\
-specified encoding have been replaced with their XML character entity.";
-
-static PyObject *escapeText(PyObject *self, PyObject *args)
-{
-	int i;
-	int oldsize;
-	int newsize = 0;
-	PyUnicodeObject *str;
-	const char *encoding = NULL;
-
-	if (!PyArg_ParseTuple(args, "Os:escapeText", &str, &encoding))
-		return NULL;
-	str = (PyUnicodeObject *)PyUnicode_FromObject((PyObject *)str);
-	if (str == NULL)
-		return NULL;
-
-	oldsize = PyUnicode_GET_SIZE(str);
-	for (i = 0; i < oldsize; ++i)
-	{
-		Py_UNICODE ch = PyUnicode_AS_UNICODE(str)[i];
-		if (ch == ((Py_UNICODE)'<'))
-			newsize += COUNTOF(lt);
-		else if (ch == ((Py_UNICODE)'>')) /* Note that we always replace '>' with its entity, not just in case it is part of ']]>' */
-			newsize += COUNTOF(gt);
-		else if (ch == ((Py_UNICODE)'&'))
-			newsize += COUNTOF(amp);
-		else
-			newsize++;
-	}
-	if (oldsize==newsize)
-	{
-		/* nothing to replace, continue with charrefs */
-		Py_INCREF(str);
-		return (PyObject *)escapeUnencodable(str, encoding);
-	}
-	else
-	{
-		PyUnicodeObject *result = (PyUnicodeObject *)PyUnicode_FromUnicode(NULL, newsize);
-		Py_UNICODE *p;
-		if (result == NULL)
-			return NULL;
-		p = PyUnicode_AS_UNICODE(result);
-		for (i = 0; i < oldsize; ++i)
-		{
-			Py_UNICODE ch = PyUnicode_AS_UNICODE(str)[i];
-			if (ch == ((Py_UNICODE)'<'))
-			{
-				Py_UNICODE_COPY(p, lt, COUNTOF(lt));
-				p += COUNTOF(lt);
-			}
-			else if (ch == ((Py_UNICODE)'>'))
-			{
-				Py_UNICODE_COPY(p, gt, COUNTOF(gt));
-				p += COUNTOF(gt);
-			}
-			else if (ch == ((Py_UNICODE)'&'))
-			{
-				Py_UNICODE_COPY(p, amp, COUNTOF(amp));
-				p += COUNTOF(amp);
-			}
-			else
-				*p++ = ch;
-		}
-		return (PyObject *)escapeUnencodable(result, encoding);
-	}
-}
-
-static char escapeAttr__doc__[] =
-"escapeAttr(unicode, encoding) -> unicode\n\
-\n\
-Return a copy of the string S, where every occurrence of\n\
-'<', '>', '&', and '\"' and all unencodable characters in the\n\
-specified encoding have been replaced with their XML character entity.";
-
-static PyObject *escapeAttr(PyObject *self, PyObject *args)
-{
-	int i;
-	int oldsize;
-	int newsize = 0;
-	PyUnicodeObject *str;
-	const char *encoding;
-
-	if (!PyArg_ParseTuple(args, "Os:escapeAttr", &str, &encoding))
-		return NULL;
-	str = (PyUnicodeObject *)PyUnicode_FromObject((PyObject *)str);
-	if (str == NULL)
-		return NULL;
-
-	oldsize = PyUnicode_GET_SIZE(str);
-	for (i = 0; i < oldsize; ++i)
-	{
-		Py_UNICODE ch = PyUnicode_AS_UNICODE(str)[i];
-		if (ch == ((Py_UNICODE)'<'))
-			newsize += COUNTOF(lt);
-		else if (ch == ((Py_UNICODE)'>'))
-			newsize += COUNTOF(gt);
-		else if (ch == ((Py_UNICODE)'&'))
-			newsize += COUNTOF(amp);
-		else if (ch == ((Py_UNICODE)'\"'))
-			newsize += COUNTOF(quot);
-		else
-			newsize++;
-	}
-	if (oldsize==newsize)
-	{
-		/* nothing to replace, continue with charrefs */
-		Py_INCREF(str);
-		return (PyObject *)escapeUnencodable(str, encoding);
-	}
-	else
-	{
-		PyUnicodeObject *result = (PyUnicodeObject *)PyUnicode_FromUnicode(NULL, newsize);
-		Py_UNICODE *p;
-		if (result == NULL)
-			return NULL;
-		p = PyUnicode_AS_UNICODE(result);
-		for (i = 0; i < oldsize; ++i)
-		{
-			Py_UNICODE ch = PyUnicode_AS_UNICODE(str)[i];
-			if (ch == ((Py_UNICODE)'<'))
-			{
-				Py_UNICODE_COPY(p, lt, COUNTOF(lt));
-				p += COUNTOF(lt);
-			}
-			else if (ch == ((Py_UNICODE)'>'))
-			{
-				Py_UNICODE_COPY(p, gt, COUNTOF(gt));
-				p += COUNTOF(gt);
-			}
-			else if (ch == ((Py_UNICODE)'&'))
-			{
-				Py_UNICODE_COPY(p, amp, COUNTOF(amp));
-				p += COUNTOF(amp);
-			}
-			else if (ch == ((Py_UNICODE)'"'))
-			{
-				Py_UNICODE_COPY(p, quot, COUNTOF(quot));
-				p += COUNTOF(quot);
-			}
-			else
-				*p++ = ch;
-		}
-		return (PyObject *)escapeUnencodable(result, encoding);
-	}
-}
-
-static char escapeCSS__doc__[] =
-"escapeCSS(unicode, encoding) -> unicode\n\
+static char cssescapereplace__doc__[] =
+"cssescapereplace(unicode, encoding) -> unicode\n\
 \n\
 Return a copy of the string S, where every unencodable character\n\
 in the specified encoding has been replaced with a \\xx hexadecimal\n\
 escape sequence.";
 
-static PyObject *escapeCSS(PyObject *self, PyObject *args)
+static PyObject *cssescapereplace(PyObject *self, PyObject *args)
 {
+	PyObject *str;
 	int oldsize;
-	PyUnicodeObject *str;
 	const char *encoding;
 	PyObject *test;
 
-	if (!PyArg_ParseTuple(args, "Os:escapeCSS", &str, &encoding))
-		return NULL;
-	str = (PyUnicodeObject *)PyUnicode_FromObject((PyObject *)str);
-	if (str == NULL)
+	if (!PyArg_ParseTuple(args, "O!s:cssescapereplace", &PyUnicode_Type, &str, &encoding))
 		return NULL;
 
 	oldsize = PyUnicode_GET_SIZE(str);
@@ -503,8 +484,27 @@ static PyObject *escapeCSS(PyObject *self, PyObject *args)
 	{
 		Py_DECREF(test); /* we no longer need the encoded version */
 		Py_INCREF(str);
-		return (PyObject *)str;
+		return str;
 	}
+}
+
+static char strict__doc__[] =
+"strict(unicode, encoding) -> unicode\n\
+\n\
+Return a copy of the string S without any replacements.";
+
+static PyObject *strict(PyObject *self, PyObject *args)
+{
+	PyObject *str;
+	int oldsize;
+	const char *encoding;
+	PyObject *test;
+
+	if (!PyArg_ParseTuple(args, "O!s:cssescapereplace", &PyUnicode_Type, &str, &encoding))
+		return NULL;
+
+	Py_INCREF(str);
+	return str;
 }
 
 /* ==================================================================== */
@@ -512,9 +512,11 @@ static PyObject *escapeCSS(PyObject *self, PyObject *args)
 
 static PyMethodDef _functions[] =
 {
-	{"escapeText", escapeText, METH_VARARGS, escapeText__doc__},
-	{"escapeAttr", escapeAttr, METH_VARARGS, escapeAttr__doc__},
-	{"escapeCSS",  escapeCSS,  METH_VARARGS, escapeCSS__doc__ },
+	{"xmlcharrefreplace", xmlcharrefreplace, METH_VARARGS, xmlcharrefreplace__doc__},
+	{"cssescapereplace",  cssescapereplace,  METH_VARARGS, cssescapereplace__doc__ },
+	{"strict",            strict,            METH_VARARGS, strict__doc__ },
+	{"escapetext",        escapetext,        METH_VARARGS, escapetext__doc__},
+	{"escapeattr",        escapeattr,        METH_VARARGS, escapeattr__doc__},
 	{NULL, NULL}
 };
 
