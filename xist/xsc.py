@@ -1777,32 +1777,34 @@ class Location:
 	specifies a location in an XML file.
 	"""
 
-	def __init__(self,url = None,row = None,col = None):
+	def __init__(self,url = None,startrow = None,startcol = None,endrow = None,endcol = None):
 		if url is not None:
 			self.url = URL(url)
 		else:
 			self.url = None
-		self.row = row
-		self.col = col
+		self.startrow = startrow
+		self.startcol = startcol
+		self.endrow = endrow
+		self.endcol = endcol
 
 	def __str__(self):
 		if self.url is not None:
 			s = '"' + str(self.url) + '"'
-			if self.row is not None or self.col is not None:
+			if self.startrow is not None or self.startcol is not None:
 				s = s + ' ('
-				if self.row is not None:
-					s = s + 'l.' + str(self.row)
-					if self.col is not None:
+				if self.startrow is not None:
+					s = s + 'l.' + str(self.startrow)
+					if self.startcol is not None:
 						s = s + '/'
-				if self.col is not None:
-					s = s + 'c.' + str(self.col)
+				if self.startcol is not None:
+					s = s + 'c.' + str(self.startcol)
 				s = s + ')'
 			return s
 		else:
 			return ""
 
 	def __repr__(self):
-		return "Location(" + repr(self.url) + "," + repr(self.row) + "," + repr(self.col) + ")"
+		return "Location(" + repr(self.url) + "," + repr(self.startrow) + "," + repr(self.startcol)  + "," + repr(self.endrow) + "," + repr(self.endcol) + ")"
 
 ###
 ###
