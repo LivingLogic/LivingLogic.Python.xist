@@ -115,7 +115,7 @@ has been moved to a class method <method>ll.xist.ns.xndl.fromdtd</method> in the
 <item><class>ll.xist.parsers.ExpatParser</class> is now a real subclass
 instead of an alias for <class>xml.sax.expatreader.ExpatParser</class>
 that now reports unknown entity references to the application (if
-loading of external entities is switch off, which is done by
+loading of external entities is switched off, which is done by
 <class>ll.xist.parsers.Handler</class> and only outside of attributes).</item>
 
 <item>Namespaces have been added for Zope's TAL and METAL specifications.</item>
