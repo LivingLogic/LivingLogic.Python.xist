@@ -15,10 +15,14 @@ exception, but this can now be reconfigured via Python's warning framework.</ite
 <item>The publishing API has been simplified: Publication can now be done with
 a call to <method>ll.xist.publishers.Publisher.publish</method>, passing in a
 <class>ll.xist.xsc.Node</class>. Writing strings to the publisher output is
-now done with <method>ll.xist.publishers.Publisher.write</method>.</item>
+now done with <method>ll.xist.publishers.Publisher.write</method>. The methods
+<method>beginPublication</method> and <method>endPublication</method> have been
+removed.</item>
 
 <item>The presentation API has been simplified: You'll get a presentation
-by calling: <lit>string = <rep>presenter</rep>.present(<rep>node</rep>)</lit>.</item>
+by calling: <lit>string = <rep>presenter</rep>.present(<rep>node</rep>)</lit>.
+The methods <method>beginPresentation</method> and <method>endPresentation</method>
+have been removed.</item>
 
 <item>The classmethod <method>tokenize</method> from <module>ll.toxic</module>
 has been moved to <class>ll.xist.xsc.Namespace</class>, so it's now possible
