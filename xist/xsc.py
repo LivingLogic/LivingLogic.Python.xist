@@ -619,7 +619,7 @@ class XSCParser(xmllib.XMLParser):
 		self.calcmaxline()
 
 	def handle_data(self,data):
-		if (data != "") or (xsc.ignorelinefeed==0):
+		if data != "" and (data != "\n" or xsc.ignorelinefeed==0):
 			e = XSCText(data)
 			e.startlineno = self.lineno
 			self.nesting[-1].append(e) # add the new string to the content of the innermost element
