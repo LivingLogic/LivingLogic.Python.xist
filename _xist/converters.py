@@ -147,9 +147,8 @@ class Converter(object):
 		__settarget,
 		__deltarget,
 		"""
-		<par>Specifies the conversion target. This could be <lit>"text"</lit>,
-		<lit>"html"</lit>, <lit>"wml"</lit>, <lit>"docbook"</lit>
-		or anything like that. The default is <lit>"html"</lit>.</par>
+		<par>Specifies the conversion target. This must be a
+		<pyref module="ll.xist.xsc" class="Namespace"><class>Namespace</class></pyref> subclass.</par>
 		"""
 	)
 
