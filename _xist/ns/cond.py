@@ -68,7 +68,7 @@ class If(xsc.Element):
 				if intruecondition:
 					break
 				else:
-					intruecondition = self.__testCond(child)
+					intruecondition = self.__testCond(child, converter)
 			elif isinstance(child, Else):
 				if intruecondition:
 					break

@@ -147,8 +147,9 @@ the node will not have the attribute <code>align</code> set.
 can now be used to test for attributes of the converter. I.e. it's possible to
 write the following &xml;:
 <programlisting>
-&lt;if lang="en"&gt;Title&lt;/if&gt;
-&lt;if lang="de"&gt;Überschrift&lt;/if&gt;
+&lt;if lang="en"&gt;Title
+&lt;elif lang="de"&gt;Überschrift
+&lt;/if&gt;
 </programlisting>
 </li>
 </ul>
