@@ -1,4 +1,11 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
+<section><title>Changes in 1.2.1 (released 10/08/2001)</title>
+<ulist>
+<item>URLs that are completely dynamic will now be left in peace when parsing
+or publishing.</item>
+</ulist>
+</section>
+
 <section><title>Changes in 1.2 (released 10/03/2001)</title>
 <ulist>
 <item><pyref module="xist.ns.meta" class="keywords">xist.ns.meta.keywords</pyref>
