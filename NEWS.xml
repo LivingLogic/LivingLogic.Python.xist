@@ -17,7 +17,7 @@ as a list.</item>
 <item>Added a class <class>block</class> to <module>xist.ns.jsp</module>. The
 content of the <class>block</class> instance will simply be enclosed in a
 <lit>{}</lit> block. <module>xist.ns.php</module> got such a class too.</item>
-<item>Added a new module <module>xist.ns.chtml</module> for iMode &html;.</item>
+<item>Added a new module <module>xist.ns.ihtml</module> for iMode &html;.</item>
 <item>Now the various attributes of the <class>Converter</class> object are collected in a
 <class>ConverterState</class> object and it's possible to push and pop those states,
 i.e. it's now easy to temporarily modify a converter object during
