@@ -1241,7 +1241,6 @@ def getdoc(cls, thing):
 			if u"module" not in ref.attrs:
 				ref[u"module"] = thing.__name__
 	return node
-getdoc = classmethod(getdoc)
 
 
 canonicalOrder = [
