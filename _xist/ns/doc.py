@@ -411,10 +411,40 @@ def getDoc(thing):
 				ref["module"] = thing.__name__
 	return node
 
+canonicalOrder = [
+	"__init__", "__del__",
+	"__repr__", "__str__",
+	"__hash__",
+	"__lt__", "__le__", "__eq__", "__ne__", "__gt__", "__ge__",
+	"__cmp__", "__rcmp__", "__nonzero__",
+	"__getattr__", "__setattr__", "__delattr__",
+	"__call__",
+	"__len__", "__getitem__", "__setitem__", "__delitem__", "__getslice__", "__setslice__", "__delslice__", "__contains__",
+	"__add__", "__sub__", "__mul__", "__div__", "__mod__", "__divmod__", "__pow__", "__lshift__", "__rshift__", "__and__", "__xor__", "__or__",
+	"__radd__", "__rsub__", "__rmul__", "__rdiv__", "__rmod__", "__rdivmod__", "__rpow__", "__rlshift__", "__rrshift__", "__rand__", "__rxor__", "__ror__",
+	"__iadd__", "__isub__", "__imul__", "__idiv__", "__imod__", "__ipow__", "__ilshift__", "__irshift__", "__iand__", "__ixor__", "__ior__",
+	"__neg__", "__pos__", "__abs__", "__invert__",
+	"__complex__", "__int__", "__long__", "__float__", "__oct__", "__hex__", "__coerce__"
+]
+
 def cmpName((obj1, name1), (obj2, name2)):
-	name1 = name1 or obj1.__name__
-	name2 = name2 or obj2.__name__
-	return cmp(name1, name2)
+	names = [ name1 or obj1.__name__, name2 or obj2.__name__ ]
+	sorts = []
+	for name in names:
+		try:
+			pos = canonicalOrder.index(name)
+		except ValueError:
+			if name.startswith("__"):
+				pos = 3000
+			elif name.startswith("_"):
+				pos = 2000
+			else:
+				pos = 1000
+		sorts.append((pos, name))
+		import pprint
+		pprint.pprint(sorts)
+		print "="*80
+	return cmp(sorts[0], sorts[1])
 
 def explain(thing, name=None):
 	"""
