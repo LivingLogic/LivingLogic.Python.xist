@@ -592,7 +592,7 @@ class dfn(xsc.Element):
 
 class code(xsc.Element):
 	"""
-	Designates a fragment of computer code. 
+	Designates a fragment of computer code.
 	"""
 	class Attrs(allattrs):
 		pass
@@ -616,7 +616,7 @@ class kbd(xsc.Element):
 
 class var(xsc.Element):
 	"""
-	Indicates an instance of a variable or program argument. 
+	Indicates an instance of a variable or program argument.
 	"""
 	class Attrs(allattrs):
 		pass

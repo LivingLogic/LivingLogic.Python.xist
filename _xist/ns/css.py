@@ -10,7 +10,7 @@
 
 """
 <par>An &xist; module that contains elements that can be used to generate &css;2 files.</par>
-<par>For further info about &css;2 see 
+<par>For further info about &css;2 see
 <link href="http://www.w3.org/TR/REC-CSS2">http://www.w3.org/TR/REC-CSS2</link>.</par>
 """
 
@@ -125,7 +125,7 @@ class margin(prop):
 	the top and bottom margins are set to the first value and the right and left margins
 	are set to the second. If there are three values, the top is set to the first value,
 	the left and right are set to the second, and the bottom is set to the third.
-	If there are four values, they apply to the top, right, bottom, and left, respectively.</par> 
+	If there are four values, they apply to the top, right, bottom, and left, respectively.</par>
 	"""
 
 
@@ -222,7 +222,7 @@ class border_width(prop):
 	the top and bottom borders are set to the first value and the right and left are set to the second.
 	If there are three values, the top is set to the first value, the left and right are set to the second,
 	and the bottom is set to the third. If there are four values, they apply to the top, right,
-	bottom, and left, respectively.</par> 
+	bottom, and left, respectively.</par>
 	"""
 	xmlname = "border-width"
 
@@ -266,9 +266,9 @@ class border_color(prop):
 
 	<par>The <class>border_color</class> property can have from one to four values,
 	and the values are set on the different sides as for
-	<pyref class="border_width"><class>border_width</class></pyref>.</par> 
+	<pyref class="border_width"><class>border_width</class></pyref>.</par>
 
-	<par>If an element's border color is not specified with a border property, 
+	<par>If an element's border color is not specified with a border property,
 	user agents must use the value of the element's <pyref class="color"><class>color</class></pyref>
 	property as the computed value for the border color.</par>
 	"""
@@ -277,38 +277,38 @@ class border_color(prop):
 
 class border_top_style(prop):
 	"""
-	<par>The <class>border_top_style</class> properties specify the line style of a 
+	<par>The <class>border_top_style</class> properties specify the line style of a
 	box's top border. Allow values are:</par>
 
 	<ulist>
-	<item><lit>none</lit>: No border. This value forces the computed value of 
-	<pyref class="border_top_width"><class>border_top_width</class></pyref> to be <lit>0</lit>.</item> 
-	<item><lit>hidden</lit>: Same as <lit>none</lit>, except in terms of border conflict resolution 
+	<item><lit>none</lit>: No border. This value forces the computed value of
+	<pyref class="border_top_width"><class>border_top_width</class></pyref> to be <lit>0</lit>.</item>
+	<item><lit>hidden</lit>: Same as <lit>none</lit>, except in terms of border conflict resolution
 	for table elements.</item>
-	<item><lit>dotted</lit>: The border is a series of dots.</item> 
+	<item><lit>dotted</lit>: The border is a series of dots.</item>
 	<item><lit>dashed</lit>: The border is a series of short line segments.</item>
-	<item><lit>solid</lit>: The border is a single line segment.</item> 
-	<item><lit>double</lit>: The border is two solid lines. The sum of the two lines and the 
-	space between them equals the value of <pyref class="border_top_width"><class>border_top_width</class></pyref>.</item> 
+	<item><lit>solid</lit>: The border is a single line segment.</item>
+	<item><lit>double</lit>: The border is two solid lines. The sum of the two lines and the
+	space between them equals the value of <pyref class="border_top_width"><class>border_top_width</class></pyref>.</item>
 	<item><lit>groove</lit>: The border looks as though it were carved into the canvas.</item>
-	<item><lit>ridge</lit>: The opposite of <lit>groove</lit>: the border looks as though it were 
+	<item><lit>ridge</lit>: The opposite of <lit>groove</lit>: the border looks as though it were
 	coming out of the canvas.</item>
-	<item><lit>inset</lit>: The border makes the entire box look as though it were embedded 
+	<item><lit>inset</lit>: The border makes the entire box look as though it were embedded
 	in the canvas.</item>
-	<item><lit>outset</lit>: The opposite of <lit>inset</lit>: the border makes the entire box 
+	<item><lit>outset</lit>: The opposite of <lit>inset</lit>: the border makes the entire box
 	look as though it were coming out of the canvas.</item>
 	</ulist>
 
-	<par>All borders are drawn on top of the box's background. The color of borders drawn for values 
-	of <lit>groove</lit>, <lit>ridge</lit>, <lit>inset</lit>, and <lit>outset</lit> depends on the 
-	element's <pyref class="color"><class>color</class></pyref> property. 
+	<par>All borders are drawn on top of the box's background. The color of borders drawn for values
+	of <lit>groove</lit>, <lit>ridge</lit>, <lit>inset</lit>, and <lit>outset</lit> depends on the
+	element's <pyref class="color"><class>color</class></pyref> property.
 	"""
 	xmlname = "border-top-style"
 
 
 class border_right_style(prop):
 	"""
-	<par>The <class>border_right_style</class> properties specify the line style of a 
+	<par>The <class>border_right_style</class> properties specify the line style of a
 	box's right border. For allowed values refer to
 	<pyref class="border_top_style"><class>border_top_style</class></pyref>.</par>
 	"""
@@ -317,7 +317,7 @@ class border_right_style(prop):
 
 class border_bottom_style(prop):
 	"""
-	<par>The <class>border_bottom_style</class> properties specify the line style of a 
+	<par>The <class>border_bottom_style</class> properties specify the line style of a
 	box's bottom border. For allowed values refer to
 	<pyref class="border_bottom_style"><class>border_bottom_style</class></pyref>.</par>
 	"""
@@ -326,7 +326,7 @@ class border_bottom_style(prop):
 
 class border_left_style(prop):
 	"""
-	<par>The <class>border_left_style</class> properties specify the line style of a 
+	<par>The <class>border_left_style</class> properties specify the line style of a
 	box's left border. For allowed values refer to
 	<pyref class="border_left_style"><class>border_left_style</class></pyref>.</par>
 	"""
@@ -857,15 +857,15 @@ class counter_reset(prop):
 	"""
 	<par>The <class>counter_reset</class> property contains a list of one or more names of counters,
 	each one optionally followed by an integer. The integer gives the value that the counter is set to
-	on each occurrence of the element. The default is 0.</par> 
+	on each occurrence of the element. The default is 0.</par>
 	"""
 	xmlname = "counter-reset"
 
 
 class counter_increment(prop):
 	"""
-	<par>The <class>counter_increment</class> property accepts one or more names of counters 
-	(identifiers), each one optionally followed by an integer. The integer indicates by how much 
+	<par>The <class>counter_increment</class> property accepts one or more names of counters
+	(identifiers), each one optionally followed by an integer. The integer indicates by how much
 	the counter is incremented for every occurrence of the element. The default increment is 1.
 	Zero and negative integers are allowed.</par>
 	"""
@@ -876,7 +876,7 @@ class marker_offset(prop):
 	"""
 	<par>This property specifies the distance between the nearest border edges of a marker box
 	and its associated principal box. The offset may either be a user-specified length or
-	chosen by the UA (<lit>auto</lit>). Lengths may be negative, but there may be 
+	chosen by the UA (<lit>auto</lit>). Lengths may be negative, but there may be
 	implementation-specific limits.</par>
 	"""
 	xmlname = "marker-offset"
@@ -890,7 +890,7 @@ class list_style_type(prop):
 	otherwise there are three types of marker: glyphs, numbering systems, and alphabetic systems.</par>
 	
 	<par>Glyphs are specified with <lit>disc</lit>, <lit>circle</lit>, and <lit>square</lit>.
-	Their exact rendering depends on the user agent.</par> 
+	Their exact rendering depends on the user agent.</par>
 	
 	<par>Numbering systems are specified with:</par>
 	
@@ -2026,7 +2026,7 @@ class atmedia(xsc.Element):
 	"""
 	<par>An <class>atmedia</class> rule specifies the target media types
 	(separated by commas in the attribute <lit>media</lit>) of a set of rules (in the content).
-	The <class>atmedia</class> element allows style sheet rules for various media in the same 
+	The <class>atmedia</class> element allows style sheet rules for various media in the same
 	style sheet.</par>
 	<par>Possible media types are:</par>
 	<ulist>
