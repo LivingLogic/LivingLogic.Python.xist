@@ -1785,7 +1785,7 @@ class Attrs(Node, dict):
 			values.append(self[key])
 		return values
 
-	def iterItems(self):
+	def iteritems(self):
 		return iter(self.items())
 
 	def items(self):
