@@ -1,8 +1,9 @@
-<?xml version="1.0" encoding="iso-8859-1"?>
+<?xml version="1.0" encoding="iso-8859-1" standalone="yes"?>
 <!DOCTYPE quotations 
-  PUBLIC "+//IDN python.org//DTD Quotation Exchange Language 2.0//EN//XML"
-  "http://www.python.org/topics/xml/dtds/qel-2.0.dtd" [
+  PUBLIC "+//IDN amk.ca//DTD Quotation Exchange Language 2.01//EN//XML"
+  "http://www.amk.ca/qel/dtd/qel-2.01.dtd" [
   <!ENTITY ccedil "&#231;"> <!-- latin small letter c with cedilla -->
+  <!ENTITY uuml   "&#252;"> <!-- latin small letter u with diaeresis -->
 ]>
 <?xml-stylesheet href="xml-quotations.css"?>
 
@@ -1433,11 +1434,6 @@ I'll save overall.
 </quotation>
 
 <quotation><p>
-I would actively encourage my competition to use Perl.
-</p><source>Sean True, 30 Mar 1999</source>
-</quotation>
-
-<quotation><p>
 But it's a general way to debug: tell someone what right things
 your program is doing. Chances are that you will see the wrong
 thing(s) before the other person has said anything...
@@ -1543,7 +1539,7 @@ file extensions, 30 Jul 1999</source>
 
 <quotation><p>
 (On the statement <code>print "42 monkeys"+"1 snake"</code>)
-BTW, both perl and Python get this wrong.  Perl gives 43 and Python
+BTW, both Perl and Python get this wrong.  Perl gives 43 and Python
 gives "42 monkeys1 snake", when the answer is clearly "41 monkeys and
 1 fat snake". 
 </p><source>Jim Fulton, 10 Aug 1999
@@ -1611,7 +1607,7 @@ to be a tim-ism, qualify me in any way for a Pythonic Wizard Hat...
 
 <quotation><p>
 The bottom tier is what
-a certain class of wanker would call "business objects" ...
+a certain class of wanker would call "business objects"...
 </p><source>Greg Ward, 9 Dec 1999</source> 
 </quotation>
 
@@ -1671,6 +1667,12 @@ window, yet expresses very well.
 The set of naming conventions has a cardinality equal to the
 number of Python users.
 </p><source>Gordon McMillan, 6 Jan 2000</source> 
+</quotation>
+
+<quotation><p>
+The way to build large Python applications is to componentize and
+loosely-couple the hell out of everything.
+</p><source>Aahz Maruch, 6 Jan 2000</source> 
 </quotation>
 
 <quotation><p>
@@ -2384,7 +2386,7 @@ JavaScript.  Honest."
 "Well, it's not like they had many floating-point numbers to ogle!  I like
 'em best when the high-order mantissa bits are all perky and regular,
 standing straight up, then go monster insane in the low-order bits, so you
-can't guess *what* bit might come next!  Man, that's hot.  Top it off witn
+can't guess *what* bit might come next!  Man, that's hot.  Top it off with
 an exponent field with lots of ones, and you don't even need any oil.  Can't
 say I've got a preference for sign bits, though -- zero and one can both be
 saucy treats.  Zero is more of a tease, so I guess it depends on the mood."
@@ -2423,6 +2425,13 @@ and Thomas Wouters, 18 Feb 2001</source>
 </p><source>Neil Schemenauer, interested in finding strongly connected components in graphs, and Tim Peters, 23 Feb 2001</source>
 </quotation>
 
+<quotation><p>
+Make this IDLE version 0.8.  (We have to skip 0.7 because that was a
+CNRI release in a corner of the basement of a government building on a
+planet circling Aldebaran.)
+</p><source>GvR, in a CVS commit message, 22 Mar 2001</source>
+</quotation>
+
 <quotation><p>Python: programming the way Guido indented it.
 </p><source>Digital Creations T-shirt slogan at IPC9</source>
 </quotation>
@@ -2455,6 +2464,314 @@ complain about.
     write my code.
 </p><source>Greg Wilson, at IPC9</source>
 </quotation>
+
+<quotation><p>
+here's the eff-bot's favourite lambda refactoring rule:
+<pre>1) write a lambda function
+2) write a comment explaining what the heck that lambda does
+3) study the comment for a while, and think of a name that captures
+   the essence of the comment
+4) convert the lambda to a def statement, using that name
+5) remove the comment
+</pre>
+</p><source>Fredrik Lundh, 01 Apr 2001</source>
+</quotation>
+
+<quotation><p>
+The GPL tried to protect the freedom of end-users to modify and
+redistribute their code. Most people do not believe that this is a
+legitimate freedom like freedom of speech or assembly but Richard
+Stallman does. I don't think that there is an argument that that will
+persuade a person one way or another. If freedoms could be proven, that
+famous document would probably start: "Not everyone holds these truths
+to be self-evident, so we've worked up a proof of them as Appendix A."
+</p><source>Paul Prescod, 11 Apr 2001</source>
+</quotation>
+
+<quotation><p>
+That is one of the first goals. Also, we want to handle a C++ SAX
+stream with Python, and vice versa (feed a Python SAX stream into
+Xalan). Bi-SAXuality, in a sense. :)
+</p><source>J&uuml;rgen Hermann, 11 Apr 2001</source>
+</quotation>
+
+<quotation><p>
+As you seem totally unwilling or unable to understand that
+<foreign>Weltanschauung</foreign> to any extent, I don't see how you could
+bring Python any constructive enhancement (except perhaps
+by some random mechanism akin to monkeys banging away on
+typewriters until 'Hamlet' comes out, I guess).
+</p><source>Alex Martelli, 17 Apr 2001</source>
+</quotation>
+
+<quotation><p>
+"Are we more likely to add different concrete
+subclasses of Consumable in the future, or different
+concrete subclasses of Consumer?  I suspect the
+ former is more likely."
+</p><p>
+"With genetic engineering being the latest growth
+industry, I'm not sure that's true. Although I expect
+that any new models of cow, etc. will have a backwards
+compatible food-consumption protocol."
+</p><source>Alex Martelli and Greg Ewing, 19 Apr 2001</source>
+</quotation>
+
+<quotation><p>
+This property is called confluence, and the proof is called the
+Church-Rosser theorem. I'm sure you know this, of course, but
+somewhere out there there's a college student who is
+being shocked that CS is actually turning out to be relevant, for
+sufficiently small values of relevance.
+</p><source>Neelakantan Krishnaswami,  20 Apr 2001</source>
+</quotation>
+
+<quotation><p>
+if the style mafia finds out, you may find a badly severed list comprehension
+in your bed one morning, but I'd say the risk is very low.  
+</p><source>Fredrik Lundh,  10 May 2001</source>
+</quotation>
+
+<quotation>
+<p>
+1495 is a <em>deservedly</em> unpopular number.  After all,
+Lorenzo de' Medici ("il Magnifico") died in 1492, and
+Giovanni de' Medici ("dalle Bande Nere") wasn't born
+until 1498, so 1495 fell right in the middle of a very
+boring and unusual lull where no really outstanding
+member of the Medici family (either branch) was around.
+</p><source>Alex Martelli, 24 May 2001</source>
+</quotation>
+
+<quotation>
+<p>
+"What do you call the thing that pops up and says `Searching' or
+something to reassure the user that his computer hasn't crashed
+and the application is still running?"
+</p><p>
+"On Windows, that's called 'a miracle'."
+</p><source>Laura Creighton and Tim Peters, 28 May 2001</source>
+</quotation>
+
+<quotation>
+<p>
+In general, my conclusion after doing numerical work for a while is that
+the desire to look at algorithms crucial to your research as black boxes
+is futile.  In the end, I always had to dig into the details of the
+algorithms because they were either never black-boxable or the black-box
+versions didn't do a good enough job.
+</p><source>David Ascher, 28 May 2001</source>
+</quotation>
+
+<quotation><p>
+"Oh, read <em>all</em> Kahan has written, and if you emerge still
+thinking you <em>know</em> what you're doing when floating point
+is involved, you're either Tim Peters, or the world champ
+of hubris."
+</p><p>
+"I find it's possible to be both &lt;wink&gt;." 
+</p><source>Alex Martelli and Tim Peters, 20 May 2001</source>
+</quotation>
+
+<quotation><p>
+Wow, this almost looks like a real flamefest.  ("Flame" being defined
+as the presence of metacomments.)
+</p><source>GvR, 13 Jun 2001</source>
+</quotation>
+
+<quotation><p>
+"Maybe we also have a smaller brain than the typical Lisper -- I would
+say, that would make us more normal, and if Python caters to people
+with a closer-to-average brain size, that would mean more people will
+be able to program in Python.  History will decide..."
+</p><p>
+"I thought it already has, pretty much."
+</p><source>GvR and A.M. Kuchling, 14 Jun 2001</source>
+</quotation>
+
+<quotation><p>
+Did Guido use the time
+machine to get a copy of the GoF book before he started working on the
+first version of Python, or are Patterns just a transparent attempt to
+cover for chronically inexpressive languages like C++ and Java which can't
+generally implement these mind-numbingly simple constructs in code?
+</p><source>Glyph Lefkowitz, 7 Jun 2001</source>
+</quotation>
+
+<quotation><p>
+Google confuses me; if you search for "michael hudson" my page is the
+third hit -- but my name doesn't actually appear anywhere on the linked
+page!
+The "did you mean to search for..." feature is also downright
+uncanny.
+They've clearly sold their souls to the devil -- there's no other
+explanation.
+</p><source>Michael Hudson, 28 Jun 2001</source>
+</quotation>
+
+<quotation><p>
+You didn't say what you want to accomplish.  If the idea of "provably
+correct" programs appeals to you, Eiffel will give you more help than any
+other practical language I know of.  But since your post didn't lay out your
+assumptions, your goals, or how you view language characteristics as fitting
+in with either, you're not a <em>natural</em> candidate for embracing Design by
+Contract &lt;0.6 wink&gt;.
+</p><source>Tim Peters, 3 Jun 2001</source>
+</quotation>
+
+<quotation><p>
+    The static people talk about rigorously enforced interfaces, correctness
+    proofs, contracts, etc.  The dynamic people talk about rigorously
+    enforced testing and say that types only catch a small portion of
+    possible errors.  The static people retort that they don't trust tests
+    to cover everything or not have bugs and why write tests for stuff the
+    compiler should test for you, so you shouldn't rely on <em>only</em> tests, and
+    besides static types don't catch a small portion, but a large portion of
+    errors.  The dynamic people say no program or test is perfect and static
+    typing is not worth the cost in language complexity and design
+    difficulty for the gain in eliminating a few tests that would have been
+    easy to write anyway, since static types catch a small portion of
+    errors, not a large portion.  The static people say static types don't
+    add that much language complexity, and it's not design "difficulty" but
+    an essential part of the process, and they catch a large portion, not a
+    small portion.  The dynamic people say they add enormous complexity, and
+    they catch a small portion, and point out that the static people have
+    bad breath.  The static people assert that the dynamic people must be
+    too stupid to cope with a real language and rigorous requirements, and
+    are ugly besides.
+</p><p>
+    This is when both sides start throwing rocks.
+</p><source>Quinn Dunkan, 13 Jul 2001</source>
+</quotation>
+
+<quotation><p>
+I am becoming convinced that Unicode is a multi-national plot to take
+over the minds of our most gifted (and/or most obsessive) programmers, in
+pursuit of an elusive, unresolvable, and ultimately, undefinable goal.
+</p><source>Ken Manheimer, 19 Jul 2001</source>
+</quotation>
+
+<quotation><p>
+Unicode is the first technology I have to deal with which makes me hope
+I die before I really really <em>really</em> need to understand it fully.
+</p><source>David Ascher, 19 Jul 2001</source>
+</quotation>
+
+<quotation><p>
+Moore's law is slowly making type declarations irrelevant...
+</p><source>Paul Prescod, 29 Jul 2001</source>
+</quotation>
+
+<quotation><p>
+  The mark of a mature programmer is willingness to throw out code you spent
+  time on when you realize it's pointless.
+</p><source>Bram Cohen, 20 Sep 2001</source>
+</quotation>
+
+<quotation><p>
+Generators and iterators are among the most loving features ever
+introduced.  They will give and give, without ever asking anything
+from you save the privilege of gracing your code, waiting with eager
+anticipation for you to resume them at your pleasure, or even to
+discard them if you tire of their charms.  In fact, they're almost
+pathologically yielding.
+ </p><source>Tim Peters, 18 Oct 2001</source>
+</quotation>
+
+<quotation><p>
+IMO a bunch of the frustration I sometimes feel with Python comes
+from its originally being intended as a "glue" language.  It's too
+good for that, and finds itself used as a work horse or even a race
+horse.  Neither type of horse belongs in the glue factory ;-).
+ </p><source>Paul Rubin, 30 Oct 2001</source>
+</quotation>
+
+<quotation><p>
+"Which inevitably has the followup rhyme
+'There was a young man from Verdun'."
+</p><p>
+"But somehow no one ever seems to be able to remember
+what it was about the man from Abdero."
+  </p><source>Simon Callan and Gareth McCaughan, 04 Nov 2001, 
+after someone quoted the limerick "There was a young man from Wooloomooloo 
+/ Whose limericks always finished on line two."</source>
+</quotation>
+
+<quotation><p>
+ Sometimes I feel like I'm reinventing Zope, but at
+least it's a Zope I understand.
+  </p><source>Quinn Dunkan, 05 Nov 2001 on the quixote-users list</source>
+</quotation>
+
+<quotation><p>
+Homological algebra beckons -- brain relief in this context!
+  </p><source>Michael Hudson, 07 Nov 2001, in a discussion of
+Stackless Python</source>
+</quotation>
+
+<quotation><p>
+If you're talking "useful", I'm not your bot.
+  </p><source>Tim Peters, 08 Nov 2001</source>
+</quotation>
+
+<quotation><p>
+"How do you do a range of floats?"
+</p><p>
+"Bring flowers, and buy them all nice dinners.  Try not to be <em>too</em> obvious
+that you're out to do them, though."
+  </p><source>Thomas Wouters and Tim Peters, 09 Nov 2001</source>
+</quotation>
+
+<quotation><p>
+Changing diapers reminded Guido that he wanted to allow for some measure
+of multiple inheritance from a mix of new- and classic-style classes.
+</p><source>Tim Peters in a checkin message, 14 Nov 2001</source>
+</quotation>
+
+<quotation><p>
+My late father-in-law, Ray Pigozzi, was an extremely talented architect (he
+was made a fellow of the AIA in the late 70's or early 80's), and although
+he was by all accounts an excellent mentor to younger architects in the firm
+he cofounded, he also had the well-deserved reputation of being quite
+laconic (this I know from personal experience ;-).  Early in his career, he
+received an award from some masonry organization for his use of brick in
+building OWP (now OWP&amp;P) had designed.  This necessitated the usual awards
+ceremony with dinner and speeches.  The recipients who preceeded Ray to the
+podium all spoke at length about their work.  Ray's entire acceptance speech
+was, "The building speaks for itself."
+</p><source>Skip Montanaro, 4 Jan 2002</source>
+</quotation>
+
+<quotation><p>
+The Lisp community is like a ghost town, with
+the occasional banshee howl echoing darkly around the chamber
+in lament of what might have been.
+</p><source>Courageous, 19 Jan 2002</source>
+</quotation>
+
+<quotation date="2002-03-05"><p>
+I'll lend you <cite>Calendrical Calculations</cite>.  
+Even <em>skimming</em> the chapters
+on some of the world's other calendrical delights makes our date gimmicks 
+blind via the intensity of their clarity.
+</p>  <source>Tim Peters, 05 Mar 2002</source>
+</quotation>
+
+<quotation date="2002-03-20"><p>
+The joy of coding Python should be in seeing short, concise,
+readable classes that express a lot of action in a small amount of
+clear code -- not in reams of trivial code that bores the reader to
+death.
+</p>  <source>GvR, 20 Mar 2002</source>
+</quotation>
+
+<quotation><p>
+    A bot may injure a human being, or, preferably, through inaction,
+    allow a human being to come to harm, although laughing about
+    either in the hearing of humans is MACNAM-017B3^H.
+</p><source>Tim Peters, 26 Mar 2002</source>
+</quotation>
+
 
 </quotations>
 
