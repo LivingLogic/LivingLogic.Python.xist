@@ -2,14 +2,7 @@ Hi all!
 
 What's new?
 -----------
-* XIST now uses sgmlop directly, so it doesn't require xmllib anymore
-  and works with PyXML-0.5.4
-* A new example that generates XML documentation from Python modules,
-  so you can write your Python docstrings in XML. Note that this isn't
-  finished yet, and should be considered work in progress.
-* XIST now provides line number information in repr dumps and exceptions,
-  which greatly simplifies finding error in XML files.
-* Various enhancements and bugfixes.
+See the CHANGES file
 
 
 What is it?
@@ -37,11 +30,11 @@ Where can I get it?
 -------------------
 
 XIST is available from ftp://titan.bnbt.de/pub/livinglogic/xist/.
-Direct questions regarding XIST to walter@bnbt.de.
+Direct questions regarding XIST to walter@livinglogic.de.
 
 
-<p><a href="ftp://titan.bnbt.de/pub/livinglogic/xist/">XIST 0.3.2</a> -
-an XML based extensible HTML generator. (26-May-2000)
+<p><a href="ftp://titan.bnbt.de/pub/livinglogic/xist/">XIST 0.3.4</a> -
+an XML based extensible HTML generator. (31-May-2000)
 
 Bye...
 	Walter Dörwald
