@@ -431,7 +431,7 @@ xsc.registerElement(option)
 class textarea(xsc.Element):
 	empty = 0
 	attr_handlers = xsc.appendDict(attrs,{ "name" : xsc.TextAttr , "rows" : xsc.TextAttr , "cols" : xsc.TextAttr , "disabled" : xsc.TextAttr , "readonly" : xsc.TextAttr , "tabindex" : xsc.TextAttr , "accesskey" : xsc.TextAttr , "onfocus" : xsc.TextAttr , "onblur" : xsc.TextAttr , "onselect" : xsc.TextAttr , "onchange" : xsc.TextAttr })
-	attr_handlers = xsc.appendDict(attrs_handlers,{ "wrap" : xsc.TextAttr })
+	attr_handlers = xsc.appendDict(attr_handlers,{ "wrap" : xsc.TextAttr })
 xsc.registerElement(textarea)
 
 class label(xsc.Element):
