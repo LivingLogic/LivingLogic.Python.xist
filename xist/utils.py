@@ -16,6 +16,7 @@ __version__ = "$Revision$"[11:-2]
 codeEncoding = "iso-8859-1"
 
 import sys
+import os
 import types
 
 def stringFromCode(text):

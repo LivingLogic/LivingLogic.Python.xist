@@ -75,11 +75,11 @@ def make():
 			xsc.xsc.pushURL(inname)
 			e_out = e_in.asHTML()
 			t3 = time.time()
-			p = publishers.FilePublisher(utils.forceopen(outname.asString(), "wb"), encoding=encoding, XHTML=XHTML)
+			p = publishers.FilePublisher(utils.forceopen(outname.asPlainString(), "wb"), encoding=encoding, XHTML=XHTML)
 			e_out.publish(p)
 			t4 = time.time()
 			size = p.tell()
-			sys.stderr.write("XSC(encoding=%s, XHTML=%s): %s->%s: %s (parse %ss; transform %ss; save %ss)\n" % (formatstring(encoding), formatnumber(XHTML), xsc.strURL(str(inname)), xsc.strURL(str(outname)), formatnumber(size), formatnumber("%.02f" % (t2-t1)), formatnumber("%.02f" % (t3-t2)), formatnumber("%.02f" % (t4-t3))))
+			sys.stderr.write("XSC(encoding=%s, XHTML=%s): %s->%s: %s (parse %ss; transform %ss; save %ss)\n" % (formatstring(encoding), formatnumber(XHTML), xsc.strURL(inname.asString()), xsc.strURL(outname.asString()), formatnumber(size), formatnumber("%.02f" % (t2-t1)), formatnumber("%.02f" % (t3-t2)), formatnumber("%.02f" % (t4-t3))))
 			xsc.xsc.popURL()
 	else:
 		sys.stderr.write("XSC: no files to convert.\n")

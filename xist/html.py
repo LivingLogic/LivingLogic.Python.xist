@@ -743,7 +743,7 @@ class font(xsc.Element): # deprecated
 	"""
 	empty = 0
 	attrHandlers = coreattrs.copy()
-	attrHandlers = attrs.update(i18n)
+	attrHandlers.update(i18n)
 	attrHandlers.update({"face": xsc.TextAttr, "size": xsc.TextAttr, "color": xsc.ColorAttr})
 
 class applet(xsc.Element): # deprecated
