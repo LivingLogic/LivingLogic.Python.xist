@@ -380,21 +380,21 @@ class attr(Operator):
 	expresssion.
 	"""
 
-	def __init__(self, *attrs):
+	def __init__(self, *types):
 		"""
 		Create an <class>attr</class> operator. All attribute nodes of one of the
 		types in <arg>types</arg> from the elements from the left hand side of the
 		XFind expression will be produced.
 		"""
-		self.attrs = attrs
+		self.types = types
 
 	def xwalk(self, iterator):
 		from ll.xist import xsc
 		for child in iterator:
 			if isinstance(child, xsc.Element):
 				for attrvalue in child.attrs.itervalues():
-					if isinstance(attrvalue, self.attrs):
+					if isinstance(attrvalue, self.types):
 						yield attrvalue
 
 	def __repr__(self):
-		return "<%s.%s object attr=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.attr, id(self))
+		return "<%s.%s object types=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.types, id(self))
