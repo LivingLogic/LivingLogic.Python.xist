@@ -105,7 +105,7 @@ def badtext(node):
 	that does not consist of whitespace only.
 	"""
 	if isinstance(node, xsc.Text):
-		if not node.isspace(): # Works even for empty text node
+		if node and not node.isspace():
 			return True
 	return False
 
