@@ -54,7 +54,7 @@ if __name__ == "__main__":
 	p.add_option("-o", "--output", dest="output", metavar="FILE", help="write output to FILE")
 	p.add_option("-v", "--verbose", action="store_true", dest="verbose")
 	p.add_option("-p", "--prefix", dest="xmlname", help="the XML prefix for this namespace", default="prefix", metavar="PREFIX")
-	p.add_option("-u", "--url", dest="xmlurl", help="the XML namespace name", default="... insert namespace name ...", metavar="URL")
+	p.add_option("-u", "--url", dest="xmlurl", help="the XML namespace name", metavar="URL")
 	p.add_option("-x", "--skipxmlns", dest="skipxmlns", help="Ignore any attribute declaration for 'xmlns'")
 	p.add_option("-s", "--shareattrs", dest="shareattrs", help="Should identical attributes be shared among elements?", choices=("none", "dupes", "all"), default="dupes")
 
