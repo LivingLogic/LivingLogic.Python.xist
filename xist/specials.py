@@ -438,6 +438,12 @@ class sql(xsc.Entity):
 	def asPlainString(self):
 		return u"SQL"
 
+class xsl(xsc.Entity):
+	def asHTML(self, mode=None):
+		return html_.span(html_.abbr("XSL", title="Extensible Stylesheet Language", lang="en"), class_="caps")
+	def asPlainString(self):
+		return u"XSL"
+
 class PHP(xsc.ProcInst):
 	"""
 	PHP processing instruction (must be used with a target)
