@@ -677,15 +677,16 @@ class Frag(Node):
 		to the innermost index after traversing the rest of <argref>index</argref> recursively.
 		If <argref>index</argref> is empty the call will be ignored.
 		"""
-		value = ToNode(value)
+		value = Frag(value).__content
 		try:
-			self.__content[index] = value
+			self.__content[index:index+1] = value
 		except TypeError: # assume index is a list
 			if len(index):
 				node = self
 				for subindex in index[:-1]:
 					node = node[subindex]
-				node[index[-1]] = value
+				index = index[-1]
+				node[index:index+1] = value
 
 	def __delitem__(self, index):
 		"""
@@ -715,7 +716,7 @@ class Frag(Node):
 		"""
 		replaces a slice of the content of the fragment
 		"""
-		self.__content[index1:index2] = map(ToNode, sequence)
+		self.__content[index1:index2] = Frag(*sequence).__content
 
 	def __delslice__(self, index1, index2):
 		"""
