@@ -121,10 +121,9 @@ class made(html.link):
 	del attrHandlers["rel"]
 
 	def convert(self, converter):
-		e = html.link()
-		e.attr = self.attrs.copy()
+		e = html.link(self.attrs)
 		e["rel"] = "made"
-		e["href"] = ("mailto:", e["href"])
+		e["href"] = ("mailto:", self["href"])
 		return e.convert(converter)
 
 class author(xsc.Element):
