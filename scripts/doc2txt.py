@@ -32,7 +32,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 import sys, getopt
 
 from xist import xsc, parsers, converters
-from xist.ns import html, doc
+from xist.ns import html, doc, specials
 
 def xsc2txt(infilename, outfilename, title):
 	e = parsers.parseFile(infilename, namespaces=xsc.Namespaces(doc))
