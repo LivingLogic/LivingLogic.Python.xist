@@ -31,6 +31,14 @@ no more temporary files. The call to tidy now includes
 options that hopefully make the output more suited to
 XIST.
 
+Incorparated a new url.py by Hartmut Goebel, that fixes
+many problem (e.g. optimizing
+http://server/foo/bar/../../baz.gif
+now works.)
+
+make.py includes a new option --path for adding directories
+to sys.path.
+
 New in 0.4.6
 ------------
 Now uses sgmlop.XMLParser instead of sgmlop.SGMLParser,
