@@ -29,8 +29,14 @@ all: $(OUTPUTDIR)/xist $(OUTPUTDIR)/xist/ns $(SCRIPTDIR) $(DEP) $(OUTPUTDIR)/xis
 
 dist:
 	dbl2txt.py --title History --import xist.ns.specials --import xist.ns.abbr --import xist.ns.docbooklite --import xist.ns.specials NEWS.xml NEWS
-	dbl2txt.py --title "Requirements and instalaltion" --import xist.ns.specials --import xist.ns.abbr --import xist.ns.docbooklite --import xist.ns.specials INSTALL.xml INSTALL
+	dbl2txt.py --title "Requirements and installation" --import xist.ns.specials --import xist.ns.abbr --import xist.ns.docbooklite --import xist.ns.specials INSTALL.xml INSTALL
 	python setup.py sdist --formats=bztar,gztar
+	rm NEWS INSTALL
+
+windist:
+	dbl2txt.py --title History --import xist.ns.specials --import xist.ns.abbr --import xist.ns.docbooklite --import xist.ns.specials NEWS.xml NEWS
+	dbl2txt.py --title "Requirements and installation" --import xist.ns.specials --import xist.ns.abbr --import xist.ns.docbooklite --import xist.ns.specials INSTALL.xml INSTALL
+	python setup.py bdist_wininst
 	rm NEWS INSTALL
 
 $(OUTPUTDIR)/xist:
