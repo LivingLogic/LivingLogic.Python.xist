@@ -58,6 +58,9 @@ Frag and Element now have new methods sorted() and reversed()
 that return sorted and reversed versions of the
 Frag/Element.
 
+A new namespace module ns/jsp.py has been added that
+allows you to use JSP tags with XIST.
+
 New in 0.4.7
 ------------
 Fixed a bug in the entity handling.
