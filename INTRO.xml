@@ -1,7 +1,8 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
-<section><title>Quick intro to &xist;</title>
 
 <section><title>Creating &html;</title>
+
+<par>You can create and print &html; like this:</par>
 
 <prog>
 from ll.xist.ns import html, xml, meta
@@ -27,7 +28,5 @@ node = xsc.Frag(
 
 print node.asBytes(encoding="us-ascii")
 </prog>
-
-</section>
 
 </section>

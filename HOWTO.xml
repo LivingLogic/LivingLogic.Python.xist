@@ -7,6 +7,8 @@ and borrows some features and ideas from it. It also borrows the basic ideas
 <app moreinfo="http://starship.python.net/crew/friedrich/HTMLgen/html/main.html">HTMLgen</app>
 or <app moreinfo="http://dustman.net/andy/python/HyperText/">HyperText</app>.</par>
 
+<par>(If you're impatient, there's also a
+<link href="Intro.html">quick introduction</link> using examples.)</par>
 
 <section><title>Overview</title>
 <par>&xist; can be used as a compiler that reads an input &xml; file
