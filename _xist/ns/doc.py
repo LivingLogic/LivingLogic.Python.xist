@@ -691,9 +691,7 @@ def explain(thing, name=None, context=[]):
 				properties.append((obj, varname))
 			elif inspect.isclass(obj):
 				classes.append((obj, varname))
-		for varname in thing.__dict__.keys():
-			obj = getattr(thing, varname)
-			if inspect.ismethod(obj):
+			elif inspect.ismethod(obj):
 				# skip the method if it's a property getter, setter or deleter
 				for (prop, name) in properties:
 					if obj.im_func==prop.fget or obj.im_func==prop.fset or obj.im_func==prop.fdel:
