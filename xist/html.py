@@ -41,6 +41,12 @@ class title(xsc.Element):
 	empty = 0
 	attrHandlers = i18n
 
+	def asHTML(self):
+		e = title(self.attrs)
+		e.append(self.content.asHTML().asPlainString())
+
+		return e
+		
 class meta(xsc.Element):
 	"""
 	generic metainformation
