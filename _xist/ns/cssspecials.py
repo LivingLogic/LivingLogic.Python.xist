@@ -51,7 +51,7 @@ class verdana(css.prop):
 	"""
 
 	def convert(self, converter):
-		e = css.font_family('"Verdana", "Tahoma", "Arial", "XHelvetica", "Helvetica", sans-serif;')
+		e = css.font_family('"Verdana", "Tahoma", "Arial", "XHelvetica", "Helvetica", sans-serif')
 		return e.convert(converter)
 
 class arialnarrow(css.prop):
