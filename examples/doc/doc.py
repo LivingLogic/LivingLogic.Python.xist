@@ -19,8 +19,29 @@ class module(xsc.Element):
 class function(xsc.Element):
 	empty = 0
 
+	def asHTML(self):
+		e = xsc.Frag()
+
+		nam = self.findNodes(type = name)[0]
+		e.append(html.div(nam))
+		sig = self.findNodes(type = signature)[0]
+		e.append(html.div(nam,"(",sig.findNodes(type = sigarg).withSeparator(","),")"))
+		des = self.findNodes(type = desc)
+		if len(des):
+			e.append(html.div(des[0]))
+		return e.asHTML()
+
 class name(xsc.Element):
 	empty = 0
+
+	def asHTML(self):
+		return html.var(self.content,Class="name").asHTML()
+
+class default(xsc.Element):
+	empty = 0
+
+	def asHTML(self):
+		return html.var(self.content,Class="default").asHTML()
 
 class signature(xsc.Element):
 	empty = 0
@@ -28,14 +49,32 @@ class signature(xsc.Element):
 class desc(xsc.Element):
 	empty = 0
 
-class positional(xsc.Element):
+class sigarg(xsc.Element):
 	empty = 0
+	attrHandlers = { "type" : xsc.TextAttr }
 
-class keyword(xsc.Element):
-	empty = 0
+	def asHTML(self):
+		nam  = self.findNodes(type = name)[0]
+		defs = self.findNodes(type = default)
+
+		e = xsc.Frag()
+		if self.hasAttr("type"):
+			type = self["type"].asHTML().asPlainString()
+			if type=="positional":
+				e.append("*")
+			elif type=="keyword":
+				e.append("**")
+		e.append(nam)
+		if len(defs):
+			e.append("=",defs[0])
+		return e.asHTML()
 
 class arg(xsc.Element):
 	empty = 0
+	attrHandlers = { "type" : xsc.TextAttr }
+
+	def asHTML(self):
+		return html.var(self.content,Class = "arg").asHTML()
 
 # register all the classes we've defined so far
 xsc.registerAllElements(vars(),"doc")
@@ -102,13 +141,13 @@ def explain(thing):
 		specials = sig.special_args()
 		for a in sig.ordinary_args():
 			if defaults.has_key(a):
-				xmlsig.append(a + '=' + str(defaults[a]))
+				xmlsig.append(sigarg(name(a),default(str(defaults[a]))))
 			else:
-				xmlsig.append(arg(a))
+				xmlsig.append(sigarg(name(a)))
 		if specials.has_key('positional'):
-			xmlsig.append(positional(specials['positional']))
+			xmlsig.append(sigarg(name(specials['positional']),type="positional"))
 		if specials.has_key('keyword'):
-			xmlsig.append(keyword(specials['keyword']))
+			xmlsig.append(sigarg(name(specials['keyword']),type="keyword"))
 		e.append(xmlsig)
 		if thing.__doc__ is not None:
 			e.append(getDoc(thing.__doc__))
