@@ -1,98 +1,98 @@
 #! /usr/bin/python
 
 import sys
-import xsc.xsc
+import xsc
 
-class html(xsc.xsc.xsc.xsc.XSCElement):
+class html(xsc.XSCElement):
 	close = 1
-xsc.xsc.XSC.handlers["html"] = html
+xsc.XSC.handlers["html"] = html
 
-class head(xsc.xsc.XSCElement):
+class head(xsc.XSCElement):
 	close = 1
-xsc.xsc.XSC.handlers["head"] = head
+xsc.XSC.handlers["head"] = head
 
-class title(xsc.xsc.XSCElement):
+class title(xsc.XSCElement):
 	close = 1
-xsc.xsc.XSC.handlers["title"] = title
+xsc.XSC.handlers["title"] = title
 
-class link(xsc.xsc.XSCElement):
+class link(xsc.XSCElement):
 	close = 0
 
-class body(xsc.xsc.XSCElement):
+class body(xsc.XSCElement):
 	close = 1
 	permitted_attrs = [ "background","bgcolor","text","link","vlink","alink","leftmargin","topmargin","marginwidth","marginheight","style","onload"]
 
-class h1(xsc.xsc.XSCElement):
+class h1(xsc.XSCElement):
 	close = 1
 
-class h2(xsc.xsc.XSCElement):
+class h2(xsc.XSCElement):
 	close = 1
 
-class h3(xsc.xsc.XSCElement):
+class h3(xsc.XSCElement):
 	close = 1
 
-class h4(xsc.xsc.XSCElement):
+class h4(xsc.XSCElement):
 	close = 1
 
-class h5(xsc.xsc.XSCElement):
+class h5(xsc.XSCElement):
 	close = 1
 
-class h6(xsc.xsc.XSCElement):
+class h6(xsc.XSCElement):
 	close = 1
 
-class p(xsc.xsc.XSCElement):
+class p(xsc.XSCElement):
 	close = 1
 
-class div(xsc.xsc.XSCElement):
+class div(xsc.XSCElement):
 	close = 1
 
-class table(xsc.xsc.XSCElement):
+class table(xsc.XSCElement):
 	close = 1
 
-class tr(xsc.xsc.XSCElement):
+class tr(xsc.XSCElement):
 	close = 1
 
-class th(xsc.xsc.XSCElement):
+class th(xsc.XSCElement):
 	close = 1
 
-class td(xsc.xsc.XSCElement):
+class td(xsc.XSCElement):
 	close = 1
 
-class img(xsc.xsc.XSCElement):
+class img(xsc.XSCElement):
 	close = 0
 	permitted_attrs = [ "src","alt","border","width","height" ]
 
 	def AsHTML(self,mode = None):
-		e = xsc.xsc.XSCElement.AsHTML(self,mode)
+		e = xsc.XSCElement.AsHTML(self,mode)
 
 		e.AddImageSizeAttributes("src")
 
 		return e
-xsc.xsc.XSC.handlers["img"] = img
+xsc.XSC.handlers["img"] = img
 
-class br(xsc.xsc.XSCElement):
+class br(xsc.XSCElement):
 	close = 0
 
-class hr(xsc.xsc.XSCElement):
+class hr(xsc.XSCElement):
 	close = 0
 
-class a(xsc.xsc.XSCElement):
+class a(xsc.XSCElement):
 	close = 1
 	permitted_attrs = [ "href","name" ]
 
 	def AsHTML(self,mode = None):	
-		e = xsc.xsc.XSCElement.AsHTML(self,mode)
+		e = xsc.XSCElement.AsHTML(self,mode)
 
 		e.ExpandLinkAttribute("href")
 
 		return e
-xsc.xsc.XSC.handlers["a"] = a
+xsc.XSC.handlers["a"] = a
 
-class b(xsc.xsc.XSCElement):
+class b(xsc.XSCElement):
 	close = 1
-xsc.xsc.XSC.handlers["b"] = b
+xsc.XSC.handlers["b"] = b
 
 if __name__ == "__main__":
-	h = xsc.xsc.XSC(sys.argv[1])
-	print xsc.xsc.AsString(xsc.xsc.AsHTML(h.root))
+	h = xsc.XSC(sys.argv[1])
+	print xsc.AsString(xsc.AsHTML(h.root))
 
