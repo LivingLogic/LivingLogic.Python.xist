@@ -160,7 +160,7 @@ class Publisher(object):
 				needed = self._neededxmlnsdefs(self.node)
 				if needed:
 					if len(needed)>1 or not isinstance(needed[0], xsc.Element):
-						from xist.ns import specials
+						from ll.xist.ns import specials
 						self.node = specials.wrap(self.node)
 
 			prefixes2use = {}
