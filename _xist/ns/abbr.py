@@ -89,6 +89,18 @@ class ejb(xsc.Entity):
 	def asPlainString(self):
 		return u"EJB"
 
+class jnlp(xsc.Entity):
+	def convert(self, converter):
+		return html_.abbr("JNLP", title="Java Network Launch Protocol", lang="en")
+	def asPlainString(self):
+		return u"JNLP"
+
+class jaoe(xsc.Entity):
+	def convert(self, converter):
+		return html_.abbr("JAOE", title="Java Acronym Overflow Error", lang="en")
+	def asPlainString(self):
+		return u"jaoe"
+
 class jgl(xsc.Entity):
 	def convert(self, converter):
 		return html_.abbr("JGL", title="Java Generic Library", lang="en")
