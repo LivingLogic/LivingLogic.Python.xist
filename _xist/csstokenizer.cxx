@@ -168,7 +168,7 @@ extern PyTypeObject CSSTokenizer_Type;
 static int IDENTIFIER_START[] = { 0, 0, 0x7fffffe, 0x7fffffe }; /* The set of the valid identifier start characters. */
 static int NAME[] = { 0, 67051520, 134217726, 134217726 }; /* The set of the valid name characters. */
 static int STRING[] = { 512, -133, -1, 2147483647 }; /* The set of the valid string characters. */
-static int URI[] = { 0x0, 0xfffffc7a, 0xffffffff, 0x7ffffff }; /* The set of the valid uri characters. */
+static int URI[] = { 0x0, 0xfffffc7a, 0xffffffff, 0x47ffffff }; /* The set of the valid uri characters. */
 
 /* Tests whether the given character is a valid space. */
 static bool isCSSSpace(int c)
@@ -381,7 +381,7 @@ class Scanner
 				nextChar();
 				return -1;
 			}
-			PyErr_SetString(PyExc_ValueError,"character");
+			PyErr_Format(PyExc_ValueError,"character at line %d col %d", getLine(), getColumn());
 			return 0;
 		}
 
@@ -395,7 +395,7 @@ class Scanner
 				switch (nextChar())
 				{
 					case -1:
-						PyErr_SetString(PyExc_ValueError,"eof");
+						PyErr_Format(PyExc_ValueError,"eof at line %d column %d", getLine(), getColumn());
 						return 0;
 					case '\'':
 						goto breakloop;
@@ -415,7 +415,7 @@ class Scanner
 					default:
 						if (!isCSSStringCharacter(current))
 						{
-							PyErr_SetString(PyExc_ValueError,"string1 character");
+							PyErr_Format(PyExc_ValueError,"string1 character at line %d column %d", getLine(), getColumn());
 							return 0;
 						}
 				}
@@ -436,7 +436,7 @@ class Scanner
 				switch (nextChar())
 				{
 					case -1:
-						PyErr_SetString(PyExc_ValueError,"eof");
+						PyErr_Format(PyExc_ValueError,"eof at line %d column %d", getLine(), getColumn());
 						return 0;
 					case '\'':
 						break;
@@ -456,7 +456,7 @@ class Scanner
 					default:
 						if (!isCSSStringCharacter(current))
 						{
-							PyErr_SetString(PyExc_ValueError,"string1 character");
+							PyErr_Format(PyExc_ValueError,"string1 character at line %d column %d", getLine(), getColumn());
 							return 0;
 						}
 				}
@@ -481,7 +481,7 @@ class Scanner
 							case '5': case '6': case '7': case '8': case '9':
 							return dotNumber();
 						}
-						PyErr_SetString(PyExc_ValueError,"number");
+						PyErr_Format(PyExc_ValueError,"number at line %d column %d", getLine(), getColumn());
 						return 0;
 					default:
 						goto breakloop;
@@ -963,7 +963,7 @@ class Scanner
 					} while (current != -1 && current != '/');
 					if (current == -1)
 					{
-						PyErr_SetString(PyExc_ValueError,"eof while looking for end of comment");
+						PyErr_Format(PyExc_ValueError,"eof while looking for end of comment at line %d column %d", getLine(), getColumn());
 						return 0;
 					}
 					nextChar();
@@ -977,7 +977,7 @@ class Scanner
 					nextChar();
 					if (current != '!')
 					{
-						PyErr_SetString(PyExc_ValueError,"wrong char while looking for !");
+						PyErr_Format(PyExc_ValueError,"wrong char while looking for ! at line %d column %d", getLine(), getColumn());
 						return 0;
 					}
 					nextChar();
@@ -991,7 +991,7 @@ class Scanner
 							return -1;
 						}
 					}
-					PyErr_SetString(PyExc_ValueError,"wrong char while looking for !");
+					PyErr_Format(PyExc_ValueError,"wrong char while looking for ! at line %d column %d", getLine(), getColumn());
 					return 0;
 				case '-':
 					nextChar();
@@ -1007,7 +1007,7 @@ class Scanner
 						type = TOKEN_CDC;
 						return -1;
 					}
-					PyErr_SetString(PyExc_ValueError,"wrong char while looking for - or >");
+					PyErr_Format(PyExc_ValueError,"wrong char while looking for - or > at line %d column %d", getLine(), getColumn());
 					return 0;
 				case '|':
 					nextChar();
@@ -1017,7 +1017,7 @@ class Scanner
 						type = TOKEN_DASHMATCH;
 						return -1;
 					}
-					PyErr_SetString(PyExc_ValueError,"wrong char while looking for = in |=");
+					PyErr_Format(PyExc_ValueError,"wrong char while looking for = in |= at line %d column %d", getLine(), getColumn());
 					return 0;
 				case '~':
 					nextChar();
@@ -1027,7 +1027,7 @@ class Scanner
 						type = TOKEN_INCLUDES;
 						return -1;
 					}
-					PyErr_SetString(PyExc_ValueError,"wrong char while looking for = in ~=");
+					PyErr_Format(PyExc_ValueError,"wrong char while looking for = in ~= at line %d column %d", getLine(), getColumn());
 					return 0;
 				case '#':
 					nextChar();
@@ -1046,7 +1046,7 @@ class Scanner
 						type = TOKEN_HASH;
 						return -1;
 					}
-					PyErr_SetString(PyExc_ValueError,"wrong char in #");
+					PyErr_Format(PyExc_ValueError,"wrong char in # at line %d column %d", getLine(), getColumn());
 					return 0;
 				case '@':
 					nextChar();
@@ -1126,7 +1126,7 @@ class Scanner
 						default:
 							if (!isCSSIdentifierStartCharacter(current))
 							{
-								PyErr_SetString(PyExc_ValueError,"wrong char");
+								PyErr_Format(PyExc_ValueError,"wrong char at line %d column %d", getLine(), getColumn());
 								return 0;
 							}
 							start = position - 1;
@@ -1162,9 +1162,9 @@ class Scanner
 						return -1;
 					}
 					if (current == -1)
-						PyErr_SetString(PyExc_ValueError,"eof when parsing !important");
+						PyErr_Format(PyExc_ValueError,"eof when parsing !important at line %d column %d", getLine(), getColumn());
 					else
-						PyErr_SetString(PyExc_ValueError,"wrong char when parsing !important");
+						PyErr_Format(PyExc_ValueError,"wrong char when parsing !important at line %d column %d", getLine(), getColumn());
 					return 0;
 				case '0': case '1': case '2': case '3': case '4':
 				case '5': case '6': case '7': case '8': case '9':
@@ -1198,7 +1198,7 @@ class Scanner
 									default:
 										if (range && !isCSSHexadecimalCharacter(current))
 										{
-											PyErr_SetString(PyExc_ValueError,"unicode");
+											PyErr_Format(PyExc_ValueError,"unicode at line %d column %d", getLine(), getColumn());
 											return 0;
 										}
 								}
@@ -1214,7 +1214,7 @@ class Scanner
 								nextChar();
 								if (!isCSSHexadecimalCharacter(current))
 								{
-									PyErr_SetString(PyExc_ValueError,"unicode");
+									PyErr_Format(PyExc_ValueError,"unicode at line %d column %d", getLine(), getColumn());
 									return 0;
 								}
 								nextChar();
@@ -1279,12 +1279,12 @@ class Scanner
 													}
 													if (current == -1)
 													{
-														PyErr_SetString(PyExc_ValueError,"eof while parsing URL");
+														PyErr_Format(PyExc_ValueError,"eof while parsing URL at line %d column %d", getLine(), getColumn());
 														return 0;
 													}
 													if (current != ')')
 													{
-														PyErr_SetString(PyExc_ValueError,"wrong char while parsing URL");
+														PyErr_Format(PyExc_ValueError,"wrong char while parsing URL at line %d column %d", getLine(), getColumn());
 														return 0;
 													}
 													nextChar();
@@ -1300,24 +1300,24 @@ class Scanner
 													}
 													if (current == -1)
 													{
-														PyErr_SetString(PyExc_ValueError,"eof while parsing URL");
+														PyErr_Format(PyExc_ValueError,"eof while parsing URL at line %d column %d", getLine(), getColumn());
 														return 0;
 													}
 													if (current != ')')
 													{
-														PyErr_SetString(PyExc_ValueError,"wrong char while parsing URL");
+														PyErr_Format(PyExc_ValueError,"wrong char while parsing URL at line %d column %d", getLine(), getColumn());
 														return 0;
 													}
 													nextChar();
 													type = TOKEN_URI;
 													return -1;
 												case ')':
-													PyErr_SetString(PyExc_ValueError,"wrong char while parsing URL");
+													PyErr_Format(PyExc_ValueError,"wrong char while parsing URL at line %d column %d", getLine(), getColumn());
 													return 0;
 												default:
 													if (!isCSSURICharacter(current))
 													{
-														PyErr_SetString(PyExc_ValueError,"wrong char in URL");
+														PyErr_Format(PyExc_ValueError,"wrong char in URL at line %d column %d", getLine(), getColumn());
 														return 0;
 													}
 													start = position - 1;
@@ -1333,12 +1333,12 @@ class Scanner
 													}
 													if (current == -1)
 													{
-														PyErr_SetString(PyExc_ValueError,"eof while parsing URL");
+														PyErr_Format(PyExc_ValueError,"eof while parsing URL at line %d column %d", getLine(), getColumn());
 														return 0;
 													}
 													if (current != ')')
 													{
-														PyErr_SetString(PyExc_ValueError,"wrong char while parsing URL");
+														PyErr_Format(PyExc_ValueError,"wrong char while parsing URL at line %d column %d", getLine(), getColumn());
 														return 0;
 													}
 													nextChar();
@@ -1383,7 +1383,7 @@ class Scanner
 						return -1;
 					}
 					nextChar();
-					PyErr_SetString(PyExc_ValueError,"illegal char");
+					PyErr_Format(PyExc_ValueError,"illegal char at line %d column %d", getLine(), getColumn());
 					return 0;
 			}
 			return -1;
