@@ -234,6 +234,7 @@ too.</item>
 <item><method>__repr__</method> now uses the new class <class>presenters.PlainPresenter</class>
 which gives a little more info than the default <method>__repr__</method>.</item>
 </ulist>
+</section>
 
 
 <section><title>Changes in 1.1.1 (released 08/01/2001)</title>
