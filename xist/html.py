@@ -391,7 +391,7 @@ class table(xsc.Element):
 	"""
 	empty = 0
 	attrHandlers = xsc.appendDict(attrs,{ "summary": xsc.TextAttr ,"width": xsc.TextAttr ,"border": xsc.TextAttr ,"frame": xsc.TextAttr ,"rules": xsc.TextAttr ,"cellspacing": xsc.TextAttr ,"cellpadding": xsc.TextAttr })
-	attrHandlers = xsc.appendDict(attrHandlers,{ "height": xsc.TextAttr, "align": xsc.TextAttr, "bgcolor": xsc.ColorAttr }) # deprecated
+	attrHandlers = xsc.appendDict(attrHandlers,{ "height": xsc.TextAttr, "align": xsc.TextAttr, "bgcolor": xsc.ColorAttr , "background": xsc.URLAttr }) # deprecated
 
 class caption(xsc.Element):
 	"""
