@@ -513,13 +513,13 @@ class Parser(object):
 		and to which prefixes they are mapped (but of course this
 		mapping can be changed during parsing by using <lit>xmlns</lit>
 		attributes in the usual way).</item>
-		</dlist>
 
 		<term><arg>loc</arg><item>Should location information be attached to the generated nodes?</item>
 
 		<term><arg>validate</arg><item>Should the parsed &xml; nodes be validated after parsing?</item>
 
 		<term><arg>encoding</arg><item>The default encoding to use, when to source doesn't provide an &xml; header.</item>
+		</dlist>
 		"""
 		self.saxparser = saxparser
 
