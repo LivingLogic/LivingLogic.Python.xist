@@ -25,6 +25,7 @@ class taglib(xsc.ProcInst):
 	creates a standard struts taglib header
 	"""
 	needsxmlns = 1
+	xmlprefix = "struts-html"
 
 	def publish(self, publisher):
 		publisher.publish(u'<%%@ taglib uri="/WEB-INF/struts-html.tld" prefix="%s" %%>' % self.xmlprefix(publisher))
@@ -35,6 +36,7 @@ class Element(xsc.Element):
 	common base class for all the struts html elements
 	"""
 	needsxmlns = 1
+	xmlprefix = "struts-html"
 	register = False
 
 

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
-<section><title>Changes in ??? (released ??/??/2003)</title>
+<section><title>Changes in 2.2.1 (released 12/08/2003)</title>
 <ulist>
 <item>It's now possible to parse &xml; without generating location
 information for each node, by passing <lit>loc=False</lit> to
