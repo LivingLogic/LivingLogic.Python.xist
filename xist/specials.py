@@ -66,8 +66,6 @@ class z(xsc.Element):
 	def asPlainString(self):
 		return '«' + self.content.asPlainString() + '»'
 
-xsc.registerElement(z)
-
 class nbsp(xsc.Element):
 	"""
 	a nonbreakable space as an element
