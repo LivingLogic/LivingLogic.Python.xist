@@ -1608,8 +1608,7 @@ class Attrs(Node, dict):
 		node = Frag()
 		if searchattrs:
 			for attrvalue in self.values():
-				if len(attrvalue):
-					node.append(attrvalue.find(type, subtype, attrs, test, searchchildren, searchattrs))
+				node.append(attrvalue.find(type, subtype, attrs, test, searchchildren, searchattrs))
 		return node
 
 	def present(self, presenter):
