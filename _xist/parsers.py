@@ -176,7 +176,6 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 				self.parser.feed(data)
 			self.close()
 		except Exception, ex: # FIXME: really catch everything?
-			raise
 			if self.error_handler is not None:
 				self.error_handler.fatalError(ex)
 			else:
@@ -359,7 +358,6 @@ class HTMLParser(SGMLOPParser):
 			except KeyError:
 				return
 			if name in minigroup: # starting a tag from the same group?
-				print "closing mimimized(start)", name, self.__nesting
 				self.finish_endtag(name)
 
 	def __closeMinimizedOnEnd(self, name):
@@ -370,7 +368,6 @@ class HTMLParser(SGMLOPParser):
 			except KeyError:
 				return
 			if not self.minimizedElements.has_key(name):
-				print "closing mimimized(end)", name, self.__nesting
 				self.finish_endtag(lastname)
 
 	def _string2Fragment(self, text):
