@@ -218,11 +218,13 @@ xmlns.makemod(vars())
 
 <section><title>Migrating to version 2.1</title>
 
+<ulist>
 <item>The method <method>withSep</method> has been renamed
 to <method>withsep</method>.</item>
 
 <item>The argument <arg>defaultEncoding</arg> for the various
 parsing functions has been renamed to <arg>encoding</arg>.</item>
+</ulist>
 
 </section>
 
