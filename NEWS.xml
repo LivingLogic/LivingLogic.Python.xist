@@ -12,7 +12,7 @@ entities to the handler literally.</item>
 
 <section><title>Changes in 1.4.3 (released 04/29/2002)</title>
 <ulist>
-<item>New namespace module <module>xist.ns.struts_config11.py</module>
+<item>New namespace module <module>xist.ns.struts_config11</module>
 allows to parse and modify <a href="http://jakarta.apache.org/struts/">Struts</a>
 configuration files conforming with the
 <a href="http://jakarta.apache.org/struts/dtds/struts-config_1_1.dtd">Struts 1.1 DTD</a>.
