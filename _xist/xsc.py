@@ -394,6 +394,20 @@ class Node:
 		"""
 		return self
 
+	def __mul__(self, factor):
+		"""
+		returns a <pyref module="xist.ns" class="Frag">Frag</pyref> with <pyref arg="factor">factor</pyref> times
+		the node as an entry.
+		"""
+		return Frag(*factor*[self])
+
+	def __rmul__(self, factor):
+		"""
+		returns a <pyref module="xist.ns" class="Frag">Frag</pyref> with <pyref arg="factor">factor</pyref> times
+		the node as an entry.
+		"""
+		return Frag(*[self]*factor)
+
 class CharacterData(Node):
 	"""
 	provides nearly the same functionality as <classref>UserString</classref>, but omits
@@ -677,6 +691,20 @@ class Frag(Node):
 		"""
 		del self.__content[index1:index2]
 
+	def __mul__(self, factor):
+		"""
+		returns a <pyref module="xist.ns" class="Frag">Frag</pyref> with <pyref arg="factor">factor</pyref> times
+		the content of <self/>.
+		"""
+		return Frag(*factor*self.__content)
+
+	def __rmul__(self, factor):
+		"""
+		returns a <pyref module="xist.ns" class="Frag">Frag</pyref> with <pyref arg="factor">factor</pyref> times
+		the content of <self/>.
+		"""
+		return Frag(*self.__content*factor)
+
 	def __nonzero__(self):
 		"""
 		return whether the fragment is not empty (this should be a little faster than defaulting to __len__)
@@ -709,24 +737,13 @@ class Frag(Node):
 				self.__content.insert(index, other)
 				index += 1
 
-	def extend(self, *others):
-		"""
-		extends this fragment by all items in <argref>others</argref>.
-		"""
-		for other in others:
-			other = ToNode(other)
-			if isinstance(other, Frag):
-				self.__content.extend(other)
-			elif other is not Null:
-				self.__content.append(other)
-
 	def find(self, type=None, subtype=0, attrs=None, test=None, searchchildren=0, searchattrs=0):
 		node = Frag()
 		for child in self.__content:
 			if child._matches(type, subtype, attrs, test):
 				node.append(child)
 			if searchchildren:
-				node.extend(child.find(type, subtype, attrs, test, searchchildren, searchattrs))
+				node.append(child.find(type, subtype, attrs, test, searchchildren, searchattrs))
 		return node
 
 	def compact(self):
@@ -1069,16 +1086,6 @@ class Element(Node):
 		if self.empty and len(self):
 			raise errors.EmptyElementWithContentError(self)
 
-	def extend(self, *items):
-		"""
-		extend(self, items)
-
-		extends the content (see Frag.extend for more info)
-		"""
-		self.content.extend(*items)
-		if self.empty and len(self):
-			raise errors.EmptyElementWithContentError(self)
-
 	def convert(self, converter):
 		node = self.__class__() # "virtual" constructor
 		node.content = self.content.convert(converter)
@@ -1214,7 +1221,7 @@ class Element(Node):
 				attr = self.attrHandlers[index]() # create an empty attribute of the right type
 			except KeyError:
 				raise errors.IllegalAttrError(self, index)
-			attr.extend(value) # put the value into the attribute
+			attr.append(value) # put the value into the attribute
 			self.attrs[index] = attr # put the attribute in our dict
 		else:
 			self.content[index] = value
@@ -1334,8 +1341,8 @@ class Element(Node):
 		node = Frag()
 		if searchattrs:
 			for attr in self.attrs.keys():
-				node.extend(self[attr].find(type, subtype, attrs, test, searchchildren, searchattrs))
-		node.extend(self.content.find(type, subtype, attrs, test, searchchildren, searchattrs))
+				node.append(self[attr].find(type, subtype, attrs, test, searchchildren, searchattrs))
+		node.append(self.content.find(type, subtype, attrs, test, searchchildren, searchattrs))
 		return node
 
 	def copyDefaultAttrs(self, fromDict=None):
