@@ -253,7 +253,7 @@ class autoimg(html_.img):
 		e._addImageSizeAttributes("src", "width", "height")
 		return e.asHTML()
 
-class autoinput(html_.img):
+class autoinput(html_.input):
 	def asHTML(self):
 		if self.hasAttr("type") and self["type"].asHTML().asPlainString() == u"image":
 			e = html_.input(*self.content, **self.attrs)
