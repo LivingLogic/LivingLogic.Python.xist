@@ -109,7 +109,6 @@ class SGMLOPParser(sax.xmlreader.XMLReader, sax.xmlreader.Locator):
 			self.encoding = None
 			raise
 		except Exception, exc:
-			raise
 			try:
 				self.close()
 			except SystemExit:
