@@ -951,7 +951,7 @@ class upper(xsc.ProcInst):
 <par>There are namespaces containing processing instruction classes that don't
 provide a <method>convert</method> method. These processing instruction objects
 will then be published as &xml; processing instructions. One example is the
-namespace <module>ll.xist.ns.php</module>.</par>
+namespace <pyref module="ll.xist.ns.php"><module>ll.xist.ns.php</module></pyref>.</par>
 
 <par>Other namespaces (like <pyref module="ll.xist.ns.jsp"><module>ll.xist.ns.jsp</module></pyref>)
 contain processing instruction classes, but they will be published in a different
