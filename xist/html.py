@@ -8,7 +8,7 @@ A XSC module that contains definitions for all the elements in HTML 4.0 transiti
 __version__ = "$Revision$"[11:-2]
 # $Source$
 
-import sys
+import string
 import xsc
 
 # common attributes
@@ -81,11 +81,42 @@ class meta(xsc.Element):
 
 	def __init__(self,*_content,**_attrs):
 		# we have two names for one and the same attribute http_equiv and http-equiv
-		xsc.Element.__init__(*_content,**_attrs)
+		xsc.Element.__init__(self,*_content,**_attrs)
 		if self.hasAttr("http_equiv"):
 			if not self.hasAttr("http-equiv"):
 				self["http-equiv"] = self["http_equiv"]
 			del self["http_equiv"]
+
+	def publish(self,publisher,encoding = None,XHTML = None):
+		if self.hasAttr("http-equiv"):
+			ctype = self["http-equiv"].asPlainString()
+			if ctype.lower() == u"content-type" and self.hasAttr("content"):
+				content = self["content"].asPlainString()
+				found = self.__findCharSet()
+				print found
+				if encoding is None:
+					encoding = xsc.outputEncoding
+				if found is None or encoding != content[found[0]:found[1]]:
+					node = meta(http_equiv="Content-Type")
+					if found is None:
+						node["content"] = content=content+u"; charset="+encoding
+					else:
+						node["content"] = content[:found[0]]+encoding+content[found[1]:]
+					node.publish(publisher,encoding,XHTML)
+					return
+		xsc.Element.publish(self,publisher,encoding,XHTML)
+
+	def __findCharSet(self):
+		content = self["content"].asPlainString()
+		startpos = content.find(u"charset")
+		if startpos != -1:
+			startpos = startpos+8 # skip '='
+			endpos = content.find(";",startpos)
+			if endpos != -1:
+				return (startpos,endpos)
+			else:
+				return (startpos,len(content))
+		return None
 
 class body(xsc.Element):
 	"""
@@ -618,6 +649,7 @@ class form(xsc.Element):
 	empty = 0
 	attrHandlers = attrs.copy()
 	attrHandlers.update({"action": xsc.URLAttr, "method": xsc.TextAttr, "enctype": xsc.TextAttr, "onsubmit": xsc.TextAttr, "onreset": xsc.TextAttr, "accept-charset": xsc.TextAttr})
+	attrHandlers.update({"target": xsc.TextAttr}) # frame
 
 class input(xsc.Element):
 	"""

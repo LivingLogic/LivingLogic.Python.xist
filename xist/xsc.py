@@ -1268,9 +1268,9 @@ class XML(ProcInst):
 		return None
 
 	def publish(self,publisher,encoding = None,XHTML = None):
-		encodingfound = self.__findAttr("encoding")
-		versionfound = self.__findAttr("version")
-		standalonefound = self.__findAttr("standalone")
+		encodingfound = self.__findAttr(u"encoding")
+		versionfound = self.__findAttr(u"version")
+		standalonefound = self.__findAttr(u"standalone")
 		if encoding is None:
 			encoding = outputEncoding
 		if encoding != encodingfound: # if self has the wrong encoding specification (or none), we construct a new XML ProcInst and publish that
