@@ -91,7 +91,7 @@ class URLInputSource(InputSource):
 			from mx import Tidy
 			(nerrors, nwarnings, outputdata, error) = Tidy.tidy(resource.read(), numeric_entities=1, output_xhtml=1, output_xml=1, quiet=1, tidy_mark=0, wrap=0)
 			if nerrors>0:
-				raise SAXParseException("can't tidy %r: %r" % (url, errordata))
+				raise saxlib.SAXParseException("can't tidy %r: %r" % (url, errordata))
 			resource = StringIO.StringIO(outputdata)
 		self.setByteStream(resource)
 		self.setEncoding(encoding)
