@@ -28,7 +28,8 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
 import os
-import xsc, options, color
+import xsc, options
+import ansistyle
 
 def getStringFromEnv(name, default):
 	try:
@@ -51,7 +52,7 @@ def getColorsFromEnv(name, default):
 	except:
 		return default
 
-class EnvText(color.Text):
+class EnvText(ansistyle.Text):
 	def getColor(self):
 		if options.repransi==0:
 			return -1
@@ -187,7 +188,7 @@ class EnvTextForProcInstData(EnvText):
 	"""
 	color = getColorsFromEnv("XSC_REPRANSI_PROCINSTDATA", (0x7, 0x7))
 
-class EscInlineText(color.EscapedText):
+class EscInlineText(ansistyle.EscapedText):
 	ascharref = "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x0b\x0c\x0d\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f<>&"
 	ascolor   = "\x09\x0a"
 
@@ -229,11 +230,11 @@ class Presenter:
 		self.ansi = ansi
 
 	def reset(self):
-		self.buffer = color.Stream()
+		self.buffer = ansistyle.Stream(ansistyle.StringBuffer())
 		self.inAttr = 0
 
 	def strElement(self, node):
-		s = color.Text()
+		s = ansistyle.Text()
 		if hasattr(node, "namespace"):
 			s.append(
 				EnvTextForNamespace(EscInlineText(node.namespace.prefix)),
@@ -247,7 +248,7 @@ class Presenter:
 		return s
 
 	def strEntity(self, node):
-		s = color.Text("&")
+		s = ansistyle.Text("&")
 		if hasattr(node, "namespace"):
 			s.append(
 				EnvTextForNamespace(EscInlineText(node.namespace.prefix)),
@@ -319,7 +320,7 @@ class Presenter:
 
 class NormalPresenter(Presenter):
 	def beginPresentation(self):
-		self.buffer = color.Text()
+		self.buffer = ansistyle.Text()
 		self.inAttr = 0
 
 	def endPresentation(self):
