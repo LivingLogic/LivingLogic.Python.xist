@@ -1736,7 +1736,7 @@ class Attrs(Node, dict):
 		<par>works like the dictionary method <method>get</method>,
 		it returns the attribute with the name <arg>name</arg>,
 		or <arg>default</arg> if <self/> has no such attribute. <arg>xml</arg>
-		speficies whether <arg>name</arg> should be treated as an &xml; name
+		specicies whether <arg>name</arg> should be treated as an &xml; name
 		(<lit><arg>xml</arg>==True</lit>) or a Python name (<lit><arg>xml</arg>==False</lit>).</par>
 		"""
 		attr = self.attr(name, xml=xml)
