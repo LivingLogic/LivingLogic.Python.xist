@@ -32,7 +32,7 @@ try:
 except ImportError:
 	Image = None
 
-import os, stat, types, urlparse, urllib
+import os, stat, types, urlparse, urllib, warnings
 
 from xist import options
 
@@ -64,6 +64,9 @@ def _normalize(path):
 		newpath.insert(0, u'')
 
 	return newpath
+
+class URLWarning(UserWarning):
+	pass
 
 class URL:
 	"""
@@ -354,7 +357,10 @@ class URL:
 			try:
 				(filename, headers) = self.retrieve()
 				size = os.stat(filename)[stat.ST_SIZE]
-			finally:
+			except (IOError, OSError), exc:
+				urllib.urlcleanup()
+				warnings.warn(exc, URLWarning)
+			else:
 				urllib.urlcleanup()
 		return size
 
@@ -371,7 +377,10 @@ class URL:
 						img = Image.open(filename)
 						size = img.size
 						del img
-				finally:
+				except (IOError, OSError), exc:
+					urllib.urlcleanup()
+					warnings.warn(exc, URLWarning)
+				else:
 					urllib.urlcleanup()
 		return size
 
