@@ -226,7 +226,6 @@ import os
 import os.path
 import string
 import types
-import exceptions
 import sys
 import getopt
 

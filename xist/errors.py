@@ -31,6 +31,7 @@ __version__ = "$Revision$"[11:-2]
 
 import string
 import xsc
+import exceptions
 
 class Error(Exception):
 	"""
