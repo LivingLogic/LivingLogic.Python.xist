@@ -26,7 +26,6 @@ class html(xsc.Element):
 	"""
 	empty = 0
 	attrHandlers = xsc.appendDict(i18n,{ "xmlns" : xsc.TextAttr })
-xsc.registerElement(html)
 
 class head(xsc.Element):
 	"""
@@ -34,7 +33,6 @@ class head(xsc.Element):
 	"""
 	empty = 0
 	attrHandlers = xsc.appendDict(i18n,{ "profile" : xsc.TextAttr })
-xsc.registerElement(head)
 
 class title(xsc.Element):
 	"""
@@ -42,7 +40,6 @@ class title(xsc.Element):
 	"""
 	empty = 0
 	attrHandlers = i18n
-xsc.registerElement(title)
 
 class meta(xsc.Element):
 	"""
@@ -58,7 +55,6 @@ class meta(xsc.Element):
 			if not self.has_attr("http-equiv"):
 				self["http-equiv"] = self["http_equiv"]
 			del self["http_equiv"]
-xsc.registerElement(meta)
 
 class body(xsc.Element):
 	"""
@@ -67,7 +63,6 @@ class body(xsc.Element):
 	empty = 0
 	attrHandlers = xsc.appendDict(attrs,{ "onload" : xsc.TextAttr , "onunload" : xsc.TextAttr })
 	attrHandlers = xsc.appendDict(attrHandlers,{ "background" : xsc.URLAttr , "bgcolor" : xsc.ColorAttr , "text" : xsc.ColorAttr , "link" : xsc.ColorAttr , "vlink" : xsc.ColorAttr , "alink" : xsc.ColorAttr , "leftmargin" : xsc.TextAttr , "topmargin" : xsc.TextAttr , "marginwidth" : xsc.TextAttr , "marginheight" : xsc.TextAttr }) # deprecated
-xsc.registerElement(body)
 
 class div(xsc.Element):
 	"""
@@ -76,7 +71,6 @@ class div(xsc.Element):
 	empty = 0
 	attrHandlers = attrs
 	attrHandlers = xsc.appendDict(attrHandlers, { "align" : xsc.TextAttr }) # deprecated
-xsc.registerElement(div)
 
 class span(xsc.Element):
 	"""
@@ -84,7 +78,6 @@ class span(xsc.Element):
 	"""
 	empty = 0
 	attrHandlers = attrs
-xsc.registerElement(span)
 
 class h1(xsc.Element):
 	"""
@@ -93,7 +86,6 @@ class h1(xsc.Element):
 	empty = 0
 	attrHandlers = attrs
 	attrHandlers = xsc.appendDict(attrHandlers, { "align" : xsc.TextAttr }) # deprecated
-xsc.registerElement(h1)
 
 class h2(xsc.Element):
 	"""
@@ -102,7 +94,6 @@ class h2(xsc.Element):
 	empty = 0
 	attrHandlers = attrs
 	attrHandlers = xsc.appendDict(attrHandlers, { "align" : xsc.TextAttr }) # deprecated
-xsc.registerElement(h2)
 
 class h3(xsc.Element):
 	"""
@@ -111,7 +102,6 @@ class h3(xsc.Element):
 	empty = 0
 	attrHandlers = attrs
 	attrHandlers = xsc.appendDict(attrHandlers, { "align" : xsc.TextAttr }) # deprecated
-xsc.registerElement(h3)
 
 class h4(xsc.Element):
 	"""
@@ -120,7 +110,6 @@ class h4(xsc.Element):
 	empty = 0
 	attrHandlers = attrs
 	attrHandlers = xsc.appendDict(attrHandlers, { "align" : xsc.TextAttr }) # deprecated
-xsc.registerElement(h4)
 
 class h5(xsc.Element):
 	"""
@@ -129,7 +118,6 @@ class h5(xsc.Element):
 	empty = 0
 	attrHandlers = attrs
 	attrHandlers = xsc.appendDict(attrHandlers, { "align" : xsc.TextAttr }) # deprecated
-xsc.registerElement(h5)
 
 class h6(xsc.Element):
 	"""
@@ -138,7 +126,6 @@ class h6(xsc.Element):
 	empty = 0
 	attrHandlers = attrs
 	attrHandlers = xsc.appendDict(attrHandlers, { "align" : xsc.TextAttr }) # deprecated
-xsc.registerElement(h6)
 
 class address(xsc.Element):
 	"""
@@ -146,7 +133,6 @@ class address(xsc.Element):
 	"""
 	empty = 0
 	attrHandlers = attrs
-xsc.registerElement(address)
 
 class bdo(xsc.Element):
 	"""
@@ -154,7 +140,6 @@ class bdo(xsc.Element):
 	"""
 	empty = 0
 	attrHandlers = xsc.appendDict(coreattrs,i18n)
-xsc.registerElement(bdo)
 
 class tt(xsc.Element):
 	"""
@@ -162,7 +147,6 @@ class tt(xsc.Element):
 	"""
 	empty = 0
 	attrHandlers = attrs
-xsc.registerElement(tt)
 
 class i(xsc.Element):
 	"""
@@ -170,7 +154,6 @@ class i(xsc.Element):
 	"""
 	empty = 0
 	attrHandlers = attrs
-xsc.registerElement(i)
 
 class b(xsc.Element):
 	"""
@@ -178,7 +161,6 @@ class b(xsc.Element):
 	"""
 	empty = 0
 	attrHandlers = attrs
-xsc.registerElement(b)
 
 class big(xsc.Element):
 	"""
@@ -186,7 +168,6 @@ class big(xsc.Element):
 	"""
 	empty = 0
 	attrHandlers = attrs
-xsc.registerElement(big)
 
 class small(xsc.Element):
 	"""
@@ -194,7 +175,6 @@ class small(xsc.Element):
 	"""
 	empty = 0
 	attrHandlers = attrs
-xsc.registerElement(small)
 
 class em(xsc.Element):
 	"""
@@ -202,7 +182,6 @@ class em(xsc.Element):
 	"""
 	empty = 0
 	attrHandlers = attrs
-xsc.registerElement(em)
 
 class strong(xsc.Element):
 	"""
@@ -210,7 +189,6 @@ class strong(xsc.Element):
 	"""
 	empty = 0
 	attrHandlers = attrs
-xsc.registerElement(strong)
 
 class dfn(xsc.Element):
 	"""
@@ -218,7 +196,6 @@ class dfn(xsc.Element):
 	"""
 	empty = 0
 	attrHandlers = attrs
-xsc.registerElement(dfn)
 
 class code(xsc.Element):
 	"""
@@ -226,7 +203,6 @@ class code(xsc.Element):
 	"""
 	empty = 0
 	attrHandlers = attrs
-xsc.registerElement(code)
 
 class samp(xsc.Element):
 	"""
@@ -234,7 +210,6 @@ class samp(xsc.Element):
 	"""
 	empty = 0
 	attrHandlers = attrs
-xsc.registerElement(samp)
 
 class kbd(xsc.Element):
 	"""
@@ -242,7 +217,6 @@ class kbd(xsc.Element):
 	"""
 	empty = 0
 	attrHandlers = attrs
-xsc.registerElement(kbd)
 
 class var(xsc.Element):
 	"""
@@ -250,7 +224,6 @@ class var(xsc.Element):
 	"""
 	empty = 0
 	attrHandlers = attrs
-xsc.registerElement(var)
 
 class cite(xsc.Element):
 	"""
@@ -258,7 +231,6 @@ class cite(xsc.Element):
 	"""
 	empty = 0
 	attrHandlers = attrs
-xsc.registerElement(cite)
 
 class abbr(xsc.Element):
 	"""
@@ -266,7 +238,6 @@ class abbr(xsc.Element):
 	"""
 	empty = 0
 	attrHandlers = attrs
-xsc.registerElement(abbr)
 
 class acronym(xsc.Element):
 	"""
@@ -274,7 +245,6 @@ class acronym(xsc.Element):
 	"""
 	empty = 0
 	attrHandlers = attrs
-xsc.registerElement(acronym)
 
 class blockquote(xsc.Element):
 	"""
@@ -282,7 +252,6 @@ class blockquote(xsc.Element):
 	"""
 	empty = 0
 	attrHandlers = xsc.appendDict(attrs,{ "cite" : xsc.TextAttr })
-xsc.registerElement(blockquote)
 
 class q(xsc.Element):
 	"""
@@ -290,7 +259,6 @@ class q(xsc.Element):
 	"""
 	empty = 0
 	attrHandlers = xsc.appendDict(attrs,{ "cite" : xsc.TextAttr })
-xsc.registerElement(q)
 
 class sub(xsc.Element):
 	"""
@@ -298,7 +266,6 @@ class sub(xsc.Element):
 	"""
 	empty = 0
 	attrHandlers = attrs
-xsc.registerElement(sub)
 
 class sup(xsc.Element):
 	"""
@@ -306,7 +273,6 @@ class sup(xsc.Element):
 	"""
 	empty = 0
 	attrHandlers = attrs
-xsc.registerElement(sup)
 
 class p(xsc.Element):
 	"""
@@ -315,7 +281,6 @@ class p(xsc.Element):
 	empty = 0
 	attrHandlers = attrs
 	attrHandlers = xsc.appendDict({ "align" : xsc.TextAttr }) # deprecated
-xsc.registerElement(p)
 
 class br(xsc.Element):
 	"""
@@ -323,7 +288,6 @@ class br(xsc.Element):
 	"""
 	empty = 1
 	attrHandlers = coreattrs
-xsc.registerElement(br)
 
 class pre(xsc.Element):
 	"""
@@ -331,7 +295,6 @@ class pre(xsc.Element):
 	"""
 	empty = 0
 	attrHandlers = attrs
-xsc.registerElement(pre)
 
 class ins(xsc.Element):
 	"""
@@ -339,7 +302,6 @@ class ins(xsc.Element):
 	"""
 	empty = 0
 	attrHandlers = xsc.appendDict(attrs,{ "cite" : xsc.TextAttr , "datetime" : xsc.TextAttr })
-xsc.registerElement(ins)
 
 class Del(xsc.Element):
 	"""
@@ -347,7 +309,6 @@ class Del(xsc.Element):
 	"""
 	empty = 0
 	attrHandlers = xsc.appendDict(attrs,{ "cite" : xsc.TextAttr , "datetime" : xsc.TextAttr })
-xsc.registerElement(Del)
 
 class ul(xsc.Element):
 	"""
@@ -356,7 +317,6 @@ class ul(xsc.Element):
 	empty = 0
 	attrHandlers = attrs
 	attrHandlers = xsc.appendDict(attrs,{ "type" : xsc.TextAttr }) # deprecated
-xsc.registerElement(ul)
 
 class ol(xsc.Element):
 	"""
@@ -365,7 +325,6 @@ class ol(xsc.Element):
 	empty = 0
 	attrHandlers = attrs
 	attrHandlers = xsc.appendDict(attrs,{ "type" : xsc.TextAttr }) # deprecated
-xsc.registerElement(ol)
 
 class li(xsc.Element):
 	"""
@@ -374,7 +333,6 @@ class li(xsc.Element):
 	empty = 0
 	attrHandlers = attrs
 	attrHandlers = xsc.appendDict(attrs,{ "type" : xsc.TextAttr }) # deprecated
-xsc.registerElement(li)
 
 class dl(xsc.Element):
 	"""
@@ -382,7 +340,6 @@ class dl(xsc.Element):
 	"""
 	empty = 0
 	attrHandlers = attrs
-xsc.registerElement(dl)
 
 class dt(xsc.Element):
 	"""
@@ -390,7 +347,6 @@ class dt(xsc.Element):
 	"""
 	empty = 0
 	attrHandlers = attrs
-xsc.registerElement(dt)
 
 class dd(xsc.Element):
 	"""
@@ -398,7 +354,6 @@ class dd(xsc.Element):
 	"""
 	empty = 0
 	attrHandlers = attrs
-xsc.registerElement(dd)
 
 class table(xsc.Element):
 	"""
@@ -407,7 +362,6 @@ class table(xsc.Element):
 	empty = 0
 	attrHandlers = xsc.appendDict(attrs,{ "summary" : xsc.TextAttr ,"width" : xsc.TextAttr ,"border" : xsc.TextAttr ,"frame" : xsc.TextAttr ,"rules" : xsc.TextAttr ,"cellspacing" : xsc.TextAttr ,"cellpadding" : xsc.TextAttr })
 	attrHandlers = xsc.appendDict(attrHandlers,{ "height" : xsc.TextAttr , "align" : xsc.TextAttr , "bgcolor" : xsc.ColorAttr }) # deprecated
-xsc.registerElement(table)
 
 class caption(xsc.Element):
 	"""
@@ -415,7 +369,6 @@ class caption(xsc.Element):
 	"""
 	empty = 0
 	attrHandlers = attrs
-xsc.registerElement(caption)
 
 class thead(xsc.Element):
 	"""
@@ -423,7 +376,6 @@ class thead(xsc.Element):
 	"""
 	empty = 0
 	attrHandlers = xsc.appendDict(attrs,cellhalign,cellvalign)
-xsc.registerElement(thead)
 
 class tfoot(xsc.Element):
 	"""
@@ -431,7 +383,6 @@ class tfoot(xsc.Element):
 	"""
 	empty = 0
 	attrHandlers = xsc.appendDict(attrs,cellhalign,cellvalign)
-xsc.registerElement(tfoot)
 
 class tbody(xsc.Element):
 	"""
@@ -439,7 +390,6 @@ class tbody(xsc.Element):
 	"""
 	empty = 0
 	attrHandlers = xsc.appendDict(attrs,cellhalign,cellvalign)
-xsc.registerElement(tbody)
 
 class colgroup(xsc.Element):
 	"""
@@ -447,7 +397,6 @@ class colgroup(xsc.Element):
 	"""
 	empty = 0
 	attrHandlers = xsc.appendDict(attrs,{ "span" : xsc.TextAttr , "width" : xsc.TextAttr },cellhalign,cellvalign)
-xsc.registerElement(colgroup)
 
 class col(xsc.Element):
 	"""
@@ -455,7 +404,6 @@ class col(xsc.Element):
 	"""
 	empty = 0
 	attrHandlers = xsc.appendDict(attrs,{ "span" : xsc.TextAttr , "width" : xsc.TextAttr },cellhalign,cellvalign)
-xsc.registerElement(col)
 
 class tr(xsc.Element):
 	"""
@@ -464,7 +412,6 @@ class tr(xsc.Element):
 	empty = 0
 	attrHandlers = xsc.appendDict(attrs,cellhalign,cellvalign)
 	attrHandlers = xsc.appendDict(attrHandlers,{ "nowrap" : xsc.TextAttr , "bgcolor" : xsc.ColorAttr , "width" : xsc.TextAttr }) # deprecated
-xsc.registerElement(tr)
 
 class th(xsc.Element):
 	"""
@@ -472,7 +419,6 @@ class th(xsc.Element):
 	"""
 	empty = 0
 	attrHandlers = xsc.appendDict(attrs,{ "abbr" : xsc.TextAttr , "axis" : xsc.TextAttr , "headers" : xsc.TextAttr , "scope" : xsc.TextAttr , "rowspan" : xsc.TextAttr , "colspan" : xsc.TextAttr },cellhalign,cellvalign)
-xsc.registerElement(th)
 
 class td(xsc.Element):
 	"""
@@ -481,7 +427,6 @@ class td(xsc.Element):
 	empty = 0
 	attrHandlers = xsc.appendDict(attrs,{ "abbr" : xsc.TextAttr , "axis" : xsc.TextAttr , "headers" : xsc.TextAttr , "scope" : xsc.TextAttr , "rowspan" : xsc.TextAttr , "colspan" : xsc.TextAttr },cellhalign,cellvalign)
 	attrHandlers = xsc.appendDict(attrHandlers,{ "nowrap" : xsc.TextAttr , "bgcolor" : xsc.ColorAttr , "width" : xsc.TextAttr , "height" : xsc.TextAttr , "background" : xsc.URLAttr }) # deprecated
-xsc.registerElement(td)
 
 class a(xsc.Element):
 	"""
@@ -490,7 +435,6 @@ class a(xsc.Element):
 	empty = 0
 	attrHandlers = xsc.appendDict(attrs,{ "charset" : xsc.TextAttr , "type" : xsc.TextAttr , "name" : xsc.TextAttr , "href" : xsc.URLAttr , "hreflang" : xsc.TextAttr , "rel" : xsc.TextAttr , "rev" : xsc.TextAttr , "accesskey" : xsc.TextAttr , "shape" : xsc.TextAttr , "coords" : xsc.TextAttr , "tabindex" : xsc.TextAttr , "onfocus" : xsc.TextAttr , "onblur" : xsc.TextAttr })
 	attrHandlers = xsc.appendDict(attrHandlers,{ "target" : xsc.TextAttr }) # deprecated
-xsc.registerElement(a)
 
 class link(xsc.Element):
 	"""
@@ -498,7 +442,6 @@ class link(xsc.Element):
 	"""
 	empty = 1
 	attrHandlers = xsc.appendDict(attrs,{ "charset" : xsc.TextAttr , "href" : xsc.URLAttr , "hreflang" : xsc.TextAttr , "type" : xsc.TextAttr , "rel" : xsc.TextAttr , "rev" : xsc.TextAttr , "media" : xsc.TextAttr })
-xsc.registerElement(link)
 
 class base(xsc.Element):
 	"""
@@ -506,7 +449,6 @@ class base(xsc.Element):
 	"""
 	empty = 1
 	attrHandlers = { "href" : xsc.URLAttr }
-xsc.registerElement(base)
 
 class img(xsc.Element):
 	"""
@@ -528,15 +470,12 @@ class img(xsc.Element):
 		else:
 			return ""
 
-xsc.registerElement(img)
-
 class object(xsc.Element):
 	"""
 	generic embedded object
 	"""
 	empty = 0
 	attrHandlers = xsc.appendDict(attrs,{ "declare" : xsc.TextAttr , "classid" : xsc.TextAttr , "codebase" : xsc.TextAttr , "data" : xsc.TextAttr , "type" : xsc.TextAttr , "codetype" : xsc.TextAttr , "archive" : xsc.TextAttr , "standby" : xsc.TextAttr , "height" : xsc.TextAttr , "width" : xsc.TextAttr , "usemap" : xsc.TextAttr , "name" : xsc.TextAttr , "tabindex" : xsc.TextAttr })
-xsc.registerElement(object)
 
 class param(xsc.Element):
 	"""
@@ -544,7 +483,6 @@ class param(xsc.Element):
 	"""
 	empty = 1
 	attrHandlers = { "id" : xsc.TextAttr , "name" : xsc.TextAttr , "value" : xsc.TextAttr , "valuetype" : xsc.TextAttr , "type" : xsc.TextAttr }
-xsc.registerElement(param)
 
 class map(xsc.Element):
 	"""
@@ -552,7 +490,6 @@ class map(xsc.Element):
 	"""
 	empty = 0
 	attrHandlers = xsc.appendDict(attrs,{ "name" : xsc.TextAttr })
-xsc.registerElement(map)
 
 class area(xsc.Element):
 	"""
@@ -560,7 +497,6 @@ class area(xsc.Element):
 	"""
 	empty = 1
 	attrHandlers = xsc.appendDict(attrs,{ "shape" : xsc.TextAttr , "coords" : xsc.TextAttr , "href" : xsc.URLAttr , "nohref" : xsc.TextAttr , "alt" : xsc.TextAttr , "tabindex" : xsc.TextAttr , "accesskey" : xsc.TextAttr , "onfocus" : xsc.TextAttr , "onblur" : xsc.TextAttr })
-xsc.registerElement(area)
 
 class style(xsc.Element):
 	"""
@@ -568,7 +504,6 @@ class style(xsc.Element):
 	"""
 	empty = 0
 	attrHandlers = xsc.appendDict(i18n,{ "type" : xsc.TextAttr , "media" : xsc.TextAttr , "title" : xsc.TextAttr })
-xsc.registerElement(style)
 
 class hr(xsc.Element):
 	"""
@@ -577,7 +512,6 @@ class hr(xsc.Element):
 	empty = 1
 	attrHandlers = xsc.appendDict(coreattrs,events)
 	attrHandlers = xsc.appendDict(attrHandlers,{ "noshade" : xsc.TextAttr , "size" : xsc.TextAttr } ) # deprecated
-xsc.registerElement(hr)
 
 # The pain, the pain ...
 class frameset(xsc.Element):
@@ -586,7 +520,6 @@ class frameset(xsc.Element):
 	"""
 	empty = 0
 	attrHandlers = xsc.appendDict(coreattrs,{ "rows" : xsc.TextAttr ,"cols" : xsc.TextAttr ,"onload" : xsc.TextAttr ,"onunload" : xsc.TextAttr })
-xsc.registerElement(frameset)
 
 class frame(xsc.Element):
 	"""
@@ -594,7 +527,6 @@ class frame(xsc.Element):
 	"""
 	empty = 0
 	attrHandlers = xsc.appendDict(coreattrs,{ "longdesc" : xsc.TextAttr , "name" : xsc.TextAttr , "src" : xsc.URLAttr , "frameborder" : xsc.TextAttr , "marginwidht" : xsc.TextAttr , "marginheight" : xsc.TextAttr , "noresize" : xsc.TextAttr , "scrolling" : xsc.TextAttr })
-xsc.registerElement(frame)
 
 class noframes(xsc.Element):
 	"""
@@ -602,7 +534,6 @@ class noframes(xsc.Element):
 	"""
 	empty = 0
 	attrHandlers = attrs
-xsc.registerElement(noframes)
 
 class iframe(xsc.Element):
 	"""
@@ -610,7 +541,6 @@ class iframe(xsc.Element):
 	"""
 	empty = 0
 	attrHandlers = xsc.appendDict(coreattrs,{ "longdesc" : xsc.TextAttr , "name" : xsc.TextAttr , "src" : xsc.URLAttr , "frameborder" : xsc.TextAttr , "marginwidht" : xsc.TextAttr , "marginheight" : xsc.TextAttr , "noresize" : xsc.TextAttr , "scrolling" : xsc.TextAttr , "align" : xsc.TextAttr , "height" : xsc.TextAttr , "width" : xsc.TextAttr })
-xsc.registerElement(iframe)
 
 class form(xsc.Element):
 	"""
@@ -618,7 +548,6 @@ class form(xsc.Element):
 	"""
 	empty = 0
 	attrHandlers = xsc.appendDict(attrs,{ "action" : xsc.URLAttr , "method" : xsc.TextAttr , "enctype" : xsc.TextAttr , "onsubmit" : xsc.TextAttr , "onreset" : xsc.TextAttr , "accept-charset" : xsc.TextAttr })
-xsc.registerElement(form)
 
 class input(xsc.Element):
 	"""
@@ -626,7 +555,6 @@ class input(xsc.Element):
 	"""
 	empty = 1
 	attrHandlers = xsc.appendDict(attrs,{ "type" : xsc.TextAttr , "name" : xsc.TextAttr , "value" : xsc.TextAttr , "checked" : xsc.TextAttr , "disabled" : xsc.TextAttr , "readonly" : xsc.TextAttr , "size" : xsc.TextAttr , "maxlength" : xsc.TextAttr , "src" : xsc.URLAttr , "alt" : xsc.TextAttr , "usemap" : xsc.TextAttr , "tabindex" : xsc.TextAttr , "accesskey" : xsc.TextAttr , "onfocus" : xsc.TextAttr , "onblur" : xsc.TextAttr , "onselect" : xsc.TextAttr , "onchange" : xsc.TextAttr , "accept" : xsc.TextAttr })
-xsc.registerElement(input)
 
 class button(xsc.Element):
 	"""
@@ -634,7 +562,6 @@ class button(xsc.Element):
 	"""
 	empty = 1
 	attrHandlers = xsc.appendDict(attrs,{ "name" : xsc.TextAttr , "value" : xsc.TextAttr , "type" : xsc.TextAttr , "disabled" : xsc.TextAttr , "tabindex" : xsc.TextAttr , "accesskey" : xsc.TextAttr , "onfocus" : xsc.TextAttr , "onblur" : xsc.TextAttr })
-xsc.registerElement(button)
 
 class select(xsc.Element):
 	"""
@@ -643,7 +570,6 @@ class select(xsc.Element):
 	empty = 0
 	attrHandlers = xsc.appendDict(attrs,{ "name" : xsc.TextAttr , "size" : xsc.TextAttr , "multiple" : xsc.TextAttr , "disabled" : xsc.TextAttr , "tabindex" : xsc.TextAttr , "onfocus" : xsc.TextAttr , "onblur" : xsc.TextAttr , "onchange" : xsc.TextAttr })
 	attrHandlers = xsc.appendDict(attrHandlers,{ "rows" : xsc.TextAttr }) # deprecated
-xsc.registerElement(select)
 
 class optgroup(xsc.Element):
 	"""
@@ -651,7 +577,6 @@ class optgroup(xsc.Element):
 	"""
 	empty = 0
 	attrHandlers = xsc.appendDict(attrs,{ "disabled" : xsc.TextAttr , "label" : xsc.TextAttr })
-xsc.registerElement(optgroup)
 
 class option(xsc.Element):
 	"""
@@ -659,7 +584,6 @@ class option(xsc.Element):
 	"""
 	empty = 0
 	attrHandlers = xsc.appendDict(attrs,{ "selected" : xsc.TextAttr , "disabled" : xsc.TextAttr , "label" : xsc.TextAttr , "value" : xsc.TextAttr })
-xsc.registerElement(option)
 
 class textarea(xsc.Element):
 	"""
@@ -668,7 +592,6 @@ class textarea(xsc.Element):
 	empty = 0
 	attrHandlers = xsc.appendDict(attrs,{ "name" : xsc.TextAttr , "rows" : xsc.TextAttr , "cols" : xsc.TextAttr , "disabled" : xsc.TextAttr , "readonly" : xsc.TextAttr , "tabindex" : xsc.TextAttr , "accesskey" : xsc.TextAttr , "onfocus" : xsc.TextAttr , "onblur" : xsc.TextAttr , "onselect" : xsc.TextAttr , "onchange" : xsc.TextAttr })
 	attrHandlers = xsc.appendDict(attrHandlers,{ "wrap" : xsc.TextAttr })
-xsc.registerElement(textarea)
 
 class label(xsc.Element):
 	"""
@@ -676,7 +599,6 @@ class label(xsc.Element):
 	"""
 	empty = 0
 	attrHandlers = xsc.appendDict(attrs,{ "for" : xsc.TextAttr , "accesskey" : xsc.TextAttr , "onfocus" : xsc.TextAttr , "onblur" : xsc.TextAttr })
-xsc.registerElement(label)
 
 class fieldset(xsc.Element):
 	"""
@@ -684,7 +606,6 @@ class fieldset(xsc.Element):
 	"""
 	empty = 0
 	attrHandlers = attrs
-xsc.registerElement(fieldset)
 
 class legend(xsc.Element):
 	"""
@@ -692,7 +613,6 @@ class legend(xsc.Element):
 	"""
 	empty = 0
 	attrHandlers = xsc.appendDict(attrs,{ "accesskey" : xsc.TextAttr })
-xsc.registerElement(legend)
 
 class script(xsc.Element):
 	"""
@@ -701,7 +621,6 @@ class script(xsc.Element):
 	empty = 0
 	attrHandlers = { "charset" : xsc.TextAttr , "type" : xsc.TextAttr , "src" : xsc.URLAttr , "defer" : xsc.TextAttr }
 	attrHandlers = xsc.appendDict(attrHandlers,{ "language" : xsc.TextAttr }) # deprecated
-xsc.registerElement(script)
 
 class noscript(xsc.Element):
 	"""
@@ -709,7 +628,6 @@ class noscript(xsc.Element):
 	"""
 	empty = 0
 	attrHandlers = attrs
-xsc.registerElement(noscript)
 
 # More pain
 class font(xsc.Element): # deprecated
@@ -718,7 +636,6 @@ class font(xsc.Element): # deprecated
 	"""
 	empty = 0
 	attrHandlers = { "face" : xsc.TextAttr , "size" : xsc.TextAttr , "color" : xsc.ColorAttr }
-xsc.registerElement(font)
 
 class applet(xsc.Element): # deprecated
 	"""
@@ -726,7 +643,9 @@ class applet(xsc.Element): # deprecated
 	"""
 	empty = 0
 	attrHandlers = { "archive" : xsc.URLAttr , "code" : xsc.URLAttr , "width" : xsc.TextAttr , "height" : xsc.TextAttr }
-xsc.registerElement(applet)
+
+# register all the classes we've defined so far
+xsc.registerAllElements(vars(),"html")
 
 # Latin 1 characters
 xsc.registerEntity("nbsp",xsc.CharRef(160)) # no-break space = non-breaking space, U+00A0 ISOnum

@@ -71,7 +71,6 @@ class control(xsc.Element):
 
 	def __str__(self):
 		return ""
-xsc.registerElement(control)
 
 class lookupcombobox(control):
 	attrHandlers = xsc.appendDict(control.attrHandlers,{ "module" : xsc.TextAttr , "variable" : xsc.TextAttr , "query" : xsc.TextAttr , "displayfield" : xsc.TextAttr , "valuefield" : xsc.TextAttr })
@@ -93,7 +92,6 @@ class lookupcombobox(control):
 		else:
 			e.append(html.option("dummy"))
 		return str(e.asHTML())
-xsc.registerElement(lookupcombobox)
 
 class checkbox(control):
 	def __str__(self):
@@ -112,7 +110,6 @@ class edit(control):
 		e = html.input(self.attrs)
 
 		return str(e.asHTML())
-xsc.registerElement(edit)
 
 class memo(control):
 	attrHandlers = xsc.appendDict(control.attrHandlers,html.textarea.attrHandlers)
@@ -126,7 +123,6 @@ class memo(control):
 				e[attr] = self[attr]
 
 		return str(e.asHTML())
-xsc.registerElement(memo)
 
 class static(control):
 	def asPlainString(self):
@@ -142,7 +138,6 @@ class static(control):
 			e = specials.nbsp()
 
 		return str(e.asHTML())
-xsc.registerElement(static)
 
 class hidden(control):
 	def __str__(self):
@@ -151,14 +146,12 @@ class hidden(control):
 			e["value"] = self["value"]
 
 		return str(e.asHTML())
-xsc.registerElement(hidden)
 
 class target(xsc.Element):
 	empty = 0
 
 	def asHTML(self):
 		return self.content.asHTML()
-xsc.registerElement(target)
 
 class template(xsc.Element):
 	empty = 0
@@ -206,7 +199,8 @@ class template(xsc.Element):
 			t = self.__fill2(tt.clone()) # make a new target, because we'll put the data in there
 			targets[0].append(t)
 		return content.asHTML()
-xsc.registerElement(template)
+
+xsc.registerAllElement(vars(),"db")
 
 class SQLCommand:
 	"""

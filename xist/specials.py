@@ -212,7 +212,8 @@ class include(xsc.Element):
 		e = xsc.xsc.parse(self["src"].forInput())
 
 		return e.asHTML()
-xsc.registerElement(include)
+
+xsc.registerAllElements(vars(),"specials")
 
 # Control characters (not part of HTML)
 xsc.registerEntity("lf",xsc.CharRef(10))  # line feed
