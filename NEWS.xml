@@ -1,11 +1,19 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
 <section><title>Changes in 2.5 (released ??/??/2004)</title>
 <ulist>
-<item><class>ll.xist.ns.htmlspecials.caps</class> has been removed.</item>
-<item><class>ll.xist.xsc.CharRef</class> now inherits from
-<class>ll.xist.xsc.Text</class> too, so you don't have to special case
-<class>CharRef</class>s any more. When publishing, <class>CharRef</class>s
-will be handled like <class>Text</class> nodes.</item>
+
+<item>Specifying content models has seen major enhancements. The
+boolean class attribute <lit>empty</lit> has been replaced by an object
+<lit>model</lit> whose <method>checkvalid</method> method will be called
+for validating the element content.</item>
+
+<item>A new module <module>ll.xist.sims</module> has been added that provides
+a simple schema validation. Schema violations will be reported via Pythons
+warning framework.</item>
+
+<item>All namespace modules have been updated to use <module>sims</module>
+information and the &svg; module has been updated to &svg; 1.1.</item>
+
 <item><par><class>ll.xist.xsc.Frag</class> and <class>ll.xist.xsc.Element</class>
 both have a <method>__call__</method> method with the same arguments as
 their constructors. Those methods will append content nodes (and set attributes
@@ -46,6 +54,41 @@ node = html.table(class_="example")(
 
 </item>
 
+<item><par>Experimental support for Holger Krekel's
+<link href="http://codespeak.net/svn/user/hpk/talks/xpython-talk.txt">XPython</link>
+has been added. Code might look like this:</par>
+<example>
+<prog>
+from ll.xist import xsc, converters
+from ll.xist.ns import html, meta
+
+import random
+
+c = converters.Converter()
+&lt;c&gt;:
+	&lt;html.html()&gt;:
+		&lt;html.head()&gt;:
+			&lt;meta.contenttype()&gt;: pass
+			&lt;html.title()&gt;:
+				xsc.append("The title")
+		&lt;html.body(class_="foo")&gt;:
+			&lt;html.h1()&gt;:
+				flag = random.choice((0, 1))
+				if flag:
+					xsc.append("The foo page", class_="foo")
+				else:
+					xsc.append("The bar page", class_="bar")
+			&lt;html.p()&gt;:
+				if flag:
+					xsc.append("The foo content")
+				else:
+					xsc.append("The bar content")
+
+print c.lastnode.asBytes()
+</prog>
+</example>
+</item>
+
 <item>
 <par>Creating global attributes has been simplified. Passing an instance
 of <class>ll.xist.xsc.Namespace.Attrs</class> to an <class>Element</class>
@@ -61,6 +104,17 @@ node = html.html(
 </prog>
 </example>
 </item>
+
+<item><class>ll.xist.xsc.CharRef</class> now inherits from
+<class>ll.xist.xsc.Text</class> too, so you don't have to special case
+<class>CharRef</class>s any more. When publishing, <class>CharRef</class>s
+will be handled like <class>Text</class> nodes.</item>
+
+<item><class>ll.xist.ns.meta.contenttype</class> now has an attribute
+<lit>mimetype</lit> (defaulting to <lit>"text/html"</lit>) for specifying
+the &mime; type.</item>
+
+<item><class>ll.xist.ns.htmlspecials.caps</class> has been removed.</item>
 
 </ulist>
 </section>
