@@ -3092,7 +3092,7 @@ class Namespace(object):
 			return type.__delattr__(cls, key)
 
 		def __setattr__(cls, key, value):
-			oldvalue = getattr(cls, key):
+			oldvalue = getattr(cls, key)
 			if issubclasses(oldvalue, (Element, ProcInst, Entity)):
 				oldvalue._registerns(None)
 			if issubclasses(value, (Element, ProcInst, Entity)):
