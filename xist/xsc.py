@@ -448,13 +448,15 @@ def nameOfMainModule():
 		return "__main__"
 
 def namespaceName(nodeClass):
-	namespace = string.lower(nodeClass.__module__)
+	namespace = nodeClass.__module__
 	if namespace == "__main__": # the element class came from the main module, get the name from sys.argv
 		namespace = string.lower(nameOfMainModule())
+	else:
+		namespace = string.lower(namespace)
 	return namespace
 
 def elementName(nodeClass):
-	return name = string.lower(nodeClass.__name__)
+	return string.lower(nodeClass.__name__)
 	
 def nodeName(nodeClass):
 	"""
