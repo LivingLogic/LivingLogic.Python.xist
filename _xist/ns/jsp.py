@@ -15,10 +15,7 @@ class scriptlet(xsc.ProcInst):
 	"""
 	def publish(self, publisher):
 		publisher.publish(u"<% ")
-		content = self.content
-		if publisher.inAttr:
-			content = content.replace('"', '\\"')
-		publisher.publish(content)
+		publisher.publish(self.content)
 		publisher.publish(u" %>")
 
 class expression(xsc.ProcInst):
@@ -28,10 +25,6 @@ class expression(xsc.ProcInst):
 
 	def publish(self, publisher):
 		publisher.publish(u"<%= ")
-		content = self.content
-		if publisher.inAttr:
-			content = content.replace('"', '\\"')
-		publisher.publish(content)
 		publisher.publish(u" %>")
 
 class declaration(xsc.ProcInst):
@@ -41,10 +34,7 @@ class declaration(xsc.ProcInst):
 
 	def publish(self, publisher):
 		publisher.publish(u"<%! ")
-		content = self.content
-		if publisher.inAttr:
-			content = content.replace('"', '\\"')
-		publisher.publish(content)
+		publisher.publish(self.content)
 		publisher.publish(u" %>")
 
 class If(scriptlet):
@@ -52,10 +42,7 @@ class If(scriptlet):
 
 	def publish(self, publisher):
 		publisher.publish(u"<% if(")
-		content = self.content
-		if publisher.inAttr:
-			content = content.replace('"', '\\"')
-		publisher.publish(content)
+		publisher.publish(self.content)
 		publisher.publish(u"){ %>")
 
 class Else(scriptlet):
@@ -68,10 +55,7 @@ class ElIf(scriptlet):
 
 	def publish(self, publisher):
 		publisher.publish(u"<% }else if(")
-		content = self.content
-		if publisher.inAttr:
-			content = content.replace('"', '\\"')
-		publisher.publish(content)
+		publisher.publish(self.content)
 		publisher.publish(u"){ %>")
 
 class End(scriptlet):
