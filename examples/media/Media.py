@@ -44,7 +44,7 @@ class ld(xsc.Element):
 		durations = self.content.find(type=duration)
 		if len(durations):
 			e.append(" (", durations[0], ")")
-		e.extend(self.content.find(type=purchase))
+		e.append(self.content.find(type=purchase))
 		return e.convert(converter)
 
 class dvd(xsc.Element):
@@ -65,7 +65,7 @@ class dvd(xsc.Element):
 			if len(rcs):
 				e.append("RC ", rcs.withSep(", "))
 			e.append(")")
-		e.extend(self.content.find(type=purchase))
+		e.append(self.content.find(type=purchase))
 		return e.convert(converter)
 
 class name(xsc.Element):
