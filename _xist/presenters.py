@@ -633,7 +633,7 @@ class NormalPresenter(Presenter):
 			self.buffer.append(strQuote())
 
 	def presentElement(self, node):
-		if node.empty:
+		if node.model and node.model.empty:
 			self.buffer.append(strBracketOpen(), node._str(fullname=1, xml=0, decorate=0))
 			node.attrs.present(self)
 			self.buffer.append(strSlash(), strBracketClose())
