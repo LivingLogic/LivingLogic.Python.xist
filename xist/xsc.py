@@ -137,13 +137,13 @@ class IllegalElementNestingError(Error):
 	(e.g. <a><b></a></b>)
 	"""
 
-	def __init__(self,lineno,expectedelementname,foundelementname):
+	def __init__(self,lineno,expectedelement,foundelement):
 		Error.__init__(self,lineno)
-		self.expectedelementname = expectedelementname
-		self.foundelementname = foundelementname
+		self.expectedelement = expectedelement
+		self.foundelement = foundelement
 
 	def __str__(self):
-		return Error.__str__(self) + "illegal element nesting (" + _strelementname(self.expectedelementname) + " expected; " + _strelementname(self.foundelementname) + " found)"
+		return Error.__str__(self) + "illegal element nesting (" + self.expectedelement._str() + " expected; " + self.foundelement._str() + " found)"
 
 class ImageSizeFormatError(Error):
 	"""
@@ -1638,12 +1638,14 @@ class Parser(xmllib.XMLParser):
 			newattrs[attr] = string2Fragment(attrs[attr])
 		return newattrs
 
-	def unknown_starttag(self,name,attrs):
-		lowername = string.split(string.lower(name),":")
-		if len(lowername) == 2: # namespace specified
-			name = lowername
-		else:
-			name = [ None , lowername[0] ]
+	def elementFromName(self,name):
+		"""
+		returns the element class for the name name (which might include a namespace).
+		"""
+		name = string.split(string.lower(name),":")
+		if len(name) == 1: # no namespace specified
+			name.insert(0,None)
+
 		try: # are there any elements with this name?
 			elementsfornamespaces = _elementHandlers[name[1]]
 		except KeyError: # nope!
@@ -1658,16 +1660,21 @@ class Parser(xmllib.XMLParser):
 				element = elementsfornamespaces[name[0]]
 			except KeyError:
 				raise IllegalElementError(xsc.parser.lineno,name) # elements with this name were available, but none in this namespace
+		return element
+		
+	def unknown_starttag(self,name,attrs):
+		element = self.elementFromName(name)
 		e = element([],self.attributes2Fragments(attrs))
 		self.__appendNode(e)
 		self.nesting.append(e) # push new innermost element onto the stack
 
 	def unknown_endtag(self,name):
-		currentname = string.lower(self.nesting[-1].__class__.__name__)
-		if string.lower(name) != currentname:
-			raise IllegalElementNestingError(xsc.parser.lineno,currentname,name)
+		element = self.elementFromName(name)
+		currentelement = self.nesting[-1].__class__
+		if element != currentelement:
+			raise IllegalElementNestingError(xsc.parser.lineno,currentelement,element)
 		self.nesting[-1].endlineno = self.lineno
-		self.nesting[-1:] = [] # pop the innermost element off the stack
+		self.nesting.pop() # pop the innermost element off the stack
 
 	def handle_data(self,data):
 		if data != "":
