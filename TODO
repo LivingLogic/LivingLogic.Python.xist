@@ -18,15 +18,8 @@ of position index lists (i.e. "DOM paths").
 
 findFirst() which only finds the first occurrence.
 
-Split parsers, providers and nested namespaces into
-separate classes.
-
 Local variables inside processing instructions
 as a dictionary.
-
-parse() und parseString() as global functions
-that get passed a parser/provider/nestednamespace
-(or create one if none is passed).
 
 Have html.head.convert() automatically create a
 meta.contenttype if none is present.
