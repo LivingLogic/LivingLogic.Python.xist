@@ -78,8 +78,8 @@ class xndl(xsc.Namespace):
 	class xndl(Base):
 		empty = False
 		class Attrs(Base.Attrs):
-			class prefix(xsc.TextAttr): required = True
-			class name(xsc.TextAttr): default = "... insert namespace name here ..."
+			class name(xsc.TextAttr): required = True
+			class url(xsc.TextAttr): default = "... insert namespace name here ..."
 
 		def _aspy(self, lines, encoding, level):
 			lines.append([level, "#!/usr/bin/env python"])
@@ -97,12 +97,12 @@ class xndl(xsc.Namespace):
 			lines.append([level, "from ll.xist import xsc"])
 			lines.append([0, ""])
 
-			prefix = unicode(self["prefix"])
-			pyprefix = self.xmlns.pyify(prefix)
-			lines.append([level, "class %s(xsc.Namespace):" % pyprefix])
-			if pyprefix != prefix:
-				lines.append([level+1, "xmlprefix = %r" % self.xmlns.simplify(prefix)])
-			lines.append([level+1, "xmlname = %r" % self.xmlns.simplify(unicode(self["name"]))])
+			name = unicode(self["name"])
+			pyname = self.xmlns.pyify(name)
+			lines.append([level, "class %s(xsc.Namespace):" % pyname])
+			if pyname != name:
+				lines.append([level+1, "xmlname = %r" % self.xmlns.simplify(name)])
+			lines.append([level+1, "xmlurl = %r" % self.xmlns.simplify(unicode(self["url"]))])
 			for el in self.find(type=(xndl.element, xndl.procinst, xndl.entity, xndl.charref)):
 				lines.append([0, ""])
 				el._aspy(lines, encoding, level+1)
