@@ -1556,7 +1556,7 @@ class URLAttr(Attr):
 		if xsc.is_retrieve(url):
 			try:
 				filename,headers = urllib.urlretrieve(url)
-				if headers.has_key("content-type") and headers["content-type"][:6] == "image/":
+				if headers.maintype == "image":
 					img = Image.open(filename)
 					size = img.size
 					del img
@@ -1745,9 +1745,9 @@ class XSC:
 		"""
 		Reads and parses a XML file from an URL and returns the resulting XSC
 		"""
-		self.__pushName(name)
+		self.__pushName(url)
 		self.parser.reset()
-		self.parser.feed(urllib.urlopen(name).read())
+		self.parser.feed(urllib.urlopen(url).read())
 		self.parser.close()
 		urllib.urlcleanup()
 		self.__popName()
