@@ -208,7 +208,10 @@ class XSCNode:
 		return self.stransi(xsc.repransitext,name)
 
 	def strtag(self,content):
-		return self.stransi(xsc.repransibrackets,"<") + content + self.stransi(xsc.repransibrackets,">")
+		return self.stransi(xsc.repransibrackets,'<') + content + self.stransi(xsc.repransibrackets,'>')
+ 
+	def strquotes(self,content):
+		return self.stransi(xsc.repransiquotes,'"') + content + self.stransi(xsc.repransiquotes,'"')
  
 	def strlines(self,start = None,end = None):
 		if xsc.verbose==1:
@@ -262,7 +265,21 @@ class XSCText(XSCNode):
 		if self.content=="\n" and xsc.verbose==0:
 			return ""
 		else:
-			return self.strindent(nest) + self.strtext(repr(self.content)) + self.strlines(self.startlineno) + '\n'
+			v = []
+			for i in self.content:
+				if i == '\n':
+					v.append("\\n")
+				elif i == '\t':
+					v.append("\\t")
+				elif i == '\033':
+					v.append("\\e")
+				elif ord(i)<32:
+					v.append("\\x" + str(ord(i)))
+				elif i == '\\':
+					v.append("\\\\")
+				else:
+					v.append(i)
+			return self.strindent(nest) + self.strquotes(self.strtext(string.joinfields(v,""))) + self.strlines(self.startlineno) + '\n'
 
 class XSCFrag(XSCNode):
 	"""contains a list of XSCNodes"""
@@ -614,6 +631,7 @@ class XSC:
 		self.repransibrackets = "36"
 		self.repransielementname = "33"
 		self.repransitext = ""
+		self.repransiquotes = "36"
 		self.verbose = 1
 		self.parser = XSCParser()
 
