@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
-<section><title>Changes in CVS (released ??/??/2001)</title>
+<section><title>Changes in 1.1.3 (released 09/17/2001)</title>
 <ulist>
 <item>The global namespace registry now keeps a sequential list of all registered
 namespaces, which will be used by the parser when searching for names. This
