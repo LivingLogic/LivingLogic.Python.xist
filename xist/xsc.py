@@ -133,13 +133,13 @@ onto the stack:
 	xsc.xsc.pushURL("foo/bar/baz.xml")
 and then the image URL "*/images/gurk.png" from above
 will be output as "../../images/gurk.png".
-(And don't forget the pop the URL again with xsc.xsc.popURL())
+(And don't forget to pop the URL again with xsc.xsc.popURL())
 
 There is another situation where you will want to manually
 push an URL onto the stack: When some of your own elements
 generate new URLs in their asHTML() methods. As this
 conversion happens sometime after the file is parsed, the URL
-of the file is already gone from the stack again. But of course
+of the file is already gone from the stack. But of course
 you will want new URLs to be interpreted relative to the file
 name in which the element was encountered. So you have to push
 the URL to the stack manually. Of course all these steps can
@@ -155,7 +155,7 @@ Automatic generation of image size attributes
 Most elements from the html module (i.e. the HTML
 "tags") don't do anything fancy in their own asHTML()
 member (They only call asHTML() recursively for their
-own content)
+own content).
 
 The img element is one exception. Its asHTML() method
 determines the size of the image and sets the HEIGHT
@@ -175,7 +175,9 @@ Embedding Python code
 It's possible to embed Python code into XIST XML files. For this
 XIST support two new processing instruction targets: xsc-exec and
 xsc-eval. The content of xsc-exec will be executed when the processing
-instruction node is instantiated, i.e. when the XML file is parsed.
+instruction node is instantiated, i.e. when the XML file is parsed,
+so anything you do there will be available afterwards.
+
 The result of a call to asHTML() for a xsc-eval processing instruction
 is whatever the Python code in the content returns. For example, consider
 the following XML file:
@@ -186,7 +188,7 @@ the following XML file:
 			sum = sum + i
 		return sum
 	?>
-	<b><?xsc-eval return gauss() ?></b>
+	<b><?xsc-eval return gauss()?></b>
 Parsing this file and converting it to HTML results in the following:
 	<b>5050</b>
 
@@ -202,7 +204,6 @@ of sgmlop (not tested; available from
 http://w1.132.telia.com/~u13208596/sgmlop.htm)
 
 To determine image sizes, XSC needs the Python Imaging library (PIL)
-
 """
 
 __version__ = "$Revision$"[11:-2]
@@ -251,7 +252,7 @@ try:
 except KeyError:
 	retrievelocal = 1
 
-# chracters with an ASCII (or Unix) code above reprcharreflowerlimit wll be dumped as charcter references
+# chracters with an ASCII (or Unicode) code above reprcharreflowerlimit wll be dumped as charcter references
 try:
 	reprcharreflowerlimit = int(os.environ["XSC_REPRCHARREFLOWERLIMIT"])
 except KeyError:
@@ -263,13 +264,13 @@ try:
 except KeyError:
 	repransi = 0
 
-# how to represent an indentation in the DOM tree
+# how to represent an indentation in the DOM tree?
 try:
 	reprtab = os.environ["XSC_REPRTAB"]
 except KeyError:
 	reprtab = ". "
 
-# should the default ANSI escape sequences be a terminal with a dark or light background?
+# should the default ANSI escape sequences be a terminal with a dark or light background? (not implemented yet)
 try:
 	repransidark = int(os.environ["XSC_REPRANSI_DARK"])
 except KeyError:
@@ -519,7 +520,8 @@ def appendDict(*dicts):
 def string2Fragment(s):
 	"""
 	parses a string that might contain entities into a fragment
-	with text nodes and character references.
+	with text nodes and character references (and other stuff,
+	if the string contains entities).
 	"""
 	e = Frag()
 	while 1:
