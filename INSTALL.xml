@@ -53,11 +53,11 @@ instead of <code>"iso-8859-1"</code>).</doc:para>
 
 <doc:section><doc:title>Display hook</doc:title>
 <doc:para>
-Currently &xist; nodes do not have a fancy <function>__repr__</function>
-method implemented, but the <function>repr</function> method
+Currently &xist; nodes do not have a fancy <method>__repr__</method>
+method implemented, but the <method>repr</method> method
 can be used to generate two different display formats (this is extensible
 by implementing new presentation classes). To use e.g.
-the <code>TreePresenter</code> format in object dumps in
+the <class>TreePresenter</class> format in object dumps in
 an interactive Python session you can use the displayhook
 feature of Python 2.1, simply by putting the following code
 into your Python startup script:
@@ -79,9 +79,9 @@ sys.displayhook = displayhook
 
 <doc:section><doc:title>Syntax highlighting</doc:title>
 <doc:para>If you want syntax highlighting in your &xist; tree
-dumps and have an &ansi; color capable terminal, 
-set the environment variable <code>XSC_REPRANSI</code>
-to <code>1</code> or <code>2</code> depending on whether
-you have a light or dark background color. Setting <code>XSC_REPRANSI</code>
-to <code>0</code> turns off syntax highlighting.</doc:para>
+dumps and have an &ansi; color capable terminal,
+set the environment variable <lit>XSC_REPRANSI</lit>
+to <lit>1</lit> or <lit>2</lit> depending on whether
+you have a light or dark background color. Setting <lit>XSC_REPRANSI</lit>
+to <lit>0</lit> turns off syntax highlighting.</doc:para>
 </doc:section>
