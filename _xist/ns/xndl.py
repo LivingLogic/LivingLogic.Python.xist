@@ -18,7 +18,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 
 import sys, keyword
 
-from ll.xist import xsc, utils
+from ll.xist import xsc, parsers
 
 class Base(object):
 	def __init__(self, name):
