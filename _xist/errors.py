@@ -274,7 +274,7 @@ class IllegalCommentContentError(Error):
 		self.comment = comment
 
 	def __str__(self):
-		return "comment with content %s is illegal, as it contains '--' or ends in '-'." % presenters.strTextOutsideAttr(self.comment._content)
+		return "comment with content %s is illegal, as it contains '--' or ends in '-'." % presenters.strTextOutsideAttr(self.comment.content)
 
 class IllegalProcInstFormatError(Error):
 	"""
@@ -287,7 +287,7 @@ class IllegalProcInstFormatError(Error):
 		self.procinst = procinst
 
 	def __str__(self):
-		return "processing instruction with content %s is illegal, as it contains %r." % (presenters.strProcInstContent(self.procinst._content), "?>")
+		return "processing instruction with content %s is illegal, as it contains %r." % (presenters.strProcInstContent(self.procinst.content), "?>")
 
 class IllegalXMLDeclFormatError(Error):
 	"""
@@ -301,7 +301,7 @@ class IllegalXMLDeclFormatError(Error):
 		self.procinst = procinst
 
 	def __str__(self):
-		return "XML declaration with content %r is malformed." % presenters.strProcInstContent(self.procinst._content)
+		return "XML declaration with content %r is malformed." % presenters.strProcInstContent(self.procinst.content)
 
 class EncodingImpossibleError(Error):
 	"""

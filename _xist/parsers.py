@@ -492,7 +492,7 @@ class Handler:
 		if content:
 			last = self.__nesting[-1]
 			if len(last) and isinstance(last[-1], xsc.Text):
-				last[-1]._content += content # join consecutive Text nodes (this violates the "immutable Text restriction", but there is only one reference to the Text object)
+				last[-1].content += content # join consecutive Text nodes (this violates the "immutable Text restriction", but there is only one reference to the Text object)
 			else:
 				self.__appendNode(xsc.Text(content))
 			self.skippingWhitespace = 0

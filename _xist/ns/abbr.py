@@ -119,6 +119,12 @@ class html(xsc.Entity):
 	def asPlainString(self):
 		return u"HTML"
 
+class xhtml(xsc.Entity):
+	def convert(self, converter):
+		return xsc.Text("XHTML")
+	def asPlainString(self):
+		return u"XHTML"
+
 class xml(xsc.Entity):
 	def convert(self, converter):
 		return html_.abbr("XML", title="Extensible Markup Language", lang="en")

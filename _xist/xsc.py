@@ -45,7 +45,7 @@ tree can be a &html; tree or a &wml; tree or any other
 &xml; object tree you like. Every node class provides a
 <function>convert</function> method for performing the conversion. For
 your own &xml; element types you have to define your
-own node classes and implement an appropriate
+own element classes and implement an appropriate
 <function>convert</function> method.</li>
 <li>Publishing the target tree: For writing the final
 output to a file or generating a string that can
@@ -78,7 +78,7 @@ declarations (e.g. <markup>&lt;!DOCTYPE html PUBLIC <replaceable>...</replaceabl
 
 <dbl:section><dbl:title>&dom; trees as Python objects</dbl:title>
 <dbl:para>&xist; works somewhat different from a normal &dom; &api;.
-Instead of only one element class &xist; has one class for every element
+Instead of only one element class, &xist; has one class for every element
 type. All the elements known to &xist; are defined in modules in
 the <dbl:pyref module="xist.ns">xist.ns</dbl:pyref> subpackage. The definition of &html; can 
 be found in <dbl:pyref module="xist.ns.html">xist.ns.html</dbl:pyref> for example.</dbl:para>
@@ -88,11 +88,11 @@ be found in <dbl:pyref module="xist.ns.html">xist.ns.html</dbl:pyref> for exampl
 __init__(self, *content, **attrs)
 </programlisting>
 Positional arguments (i.e. items in <parameter>content</parameter>)
-will be considered child nodes of the element node. Keyword arguments
+will be the child nodes of the element node. Keyword arguments
 will be attributes. You can pass most builtin types to such a constructor.
 Strings and integers will be automatically converted to
 <pyref module="xist.xsc" class="Text">Text</pyref> objects.
-Constructing an &html; element works like this:
+So constructing an &html; element works like this:
 <dbl:example title="The first example">
 <programlisting>
 from xist.ns import html
@@ -154,16 +154,14 @@ tries to make sense of &html; sources.</dbl:para>
 <dbl:pyref module="xist.parsers" function="parse">parse(source, parser=None, namespaces=None)</dbl:pyref>
 internally and pass an appropriate <dbl:pyref module="xist.parsers" function="parse" arg="source">source</dbl:pyref> argument,
 which is a standard &sax; <dbl:pyref module="xml.sax.xmlreader" class="InputSource">InputSource</dbl:pyref>
-object.</dbl:para>
+object, so it's possible to extend the parsing machinery for different data sources.</dbl:para>
 </dbl:section>
 </dbl:section>
 
-<dbl:section><dbl:title>Defining new elements, converting and modifying &dom; trees</dbl:title>
-<dbl:para>Now that you have a &dom; tree you may want to convert
-this &dom; tree to a &html; &dom; tree. This can be done with
-the method <pyref module="xist.xsc" class="Node" method="convert">convert</pyref>.</dbl:para>
-
-<dbl:para>Defining your own element will look like this:
+<dbl:section><dbl:title>Defining new elements, converting &dom; trees</dbl:title>
+<dbl:para>To be able to parse an &xml; file, you have to provide an element class
+for every element type that appears in the file. Defining an element class
+for an element named <code>cool</code> works like this:
 <dbl:example title="Defining a new element">
 <dbl:programlisting>
 class cool(xsc.Element):
@@ -174,33 +172,38 @@ class cool(xsc.Element):
 		return node.convert(converter)
 </dbl:programlisting>
 </dbl:example>
-You have to derive a class from <pyref module="xist.xsc" class="Element">xsc.Element</pyref>
-and implement <pyref module="xist.xsc" class="Node" method="convert">convert</pyref>.
-In this method you can build a new &dom; tree from the content and attributes
+You have to derive your new class from <pyref module="xist.xsc" class="Element">xsc.Element</pyref>.
+The name of the class will be the element name. For element type names that are no valid Python
+identifiers, you can use the class attribute <code>name</code> in the element class the overwrite
+the element name.</dbl:para>
+<dbl:para>To be able to convert an element of this type to something different (&html; in most cases),
+you have to implement the <pyref module="xist.xsc" class="Node" method="convert">convert</pyref>
+method. In this method you can build a new &dom; tree from the content and attributes
 of the object.</dbl:para>
 
 <dbl:para>Using this new element is simple
 <dbl:example title="Using the new element">
 <dbl:programlisting>
->>> node = cool("Python")
->>> print node.conv().asBytes()
-&lt;b>Python is cool!&lt;/b>
+&gt;&gt;&gt; node = cool("Python")
+&gt;&gt;&gt; print node.conv().asBytes()
+&lt;b&gt;Python is cool!&lt;/b&gt;
 </dbl:programlisting>
 </dbl:example>
 (<dbl:pyref module="xist.xsc" class="Node" method="conv">conv</dbl:pyref> simply
 calls
 <dbl:pyref module="xist.xsc" class="Node" method="convert">convert</dbl:pyref>
-with an argument. We'll come to converters in a minute. 
+with default <dbl:pyref module="xist.cnverters" class="Converter">converter</dbl:pyref>
+argument. We'll come to converters in a minute. 
 <dbl:pyref module="xist.xsc" class="Node" method="asBytes">asBytes</dbl:pyref>
-is a method that converts to node to a string. This method will be explained
+is a method that converts the node to a string. This method will be explained
 when we discuss the publishing interface.)
 </dbl:para>
 
 <dbl:para>Note that it is vital for your own <pyref method="convert">convert</pyref>
-methods, that you recursively call
+methods that you recursively call
 <pyref module="xist.xsc" class="Node" method="convert">convert</pyref>
 on you own content, because otherwise some unconverted nodes
-might remain in the tree:
+might remain in the tree. Lets define a new element:
 <dbl:programlisting>
 class python(xsc.Element):
 	empty = 1
@@ -210,9 +213,9 @@ class python(xsc.Element):
 </dbl:programlisting>
 Now we can do the following:
 <dbl:programlisting>
->>> node = cool(python())
->>> print node.conv().asBytes()
-&lt;b>&lt;a href="http://www.python.org/">Python&lt;/a> is cool!&lt;/b>
+&gt;&gt;&gt; node = cool(python())
+&gt;&gt;&gt; print node.conv().asBytes()
+&lt;b&gt;&lt;a href="http://www.python.org/"&gt;Python&lt;/a&gt; is cool!&lt;/b&gt;
 </dbl:programlisting>
 But if we forget to call
 <pyref module="xist.xsc" class="Node" method="convert">convert</pyref>
@@ -227,9 +230,9 @@ class cool(xsc.Element):
 </dbl:programlisting>
 we would get:
 <dbl:programlisting>
->>> node = cool(python())
->>> print node.conv().asBytes()
-&lt;b>&lt;python /> is cool!&lt;/b>
+&gt;&gt;&gt; node = cool(python())
+&gt;&gt;&gt; print node.conv().asBytes()
+&lt;b&gt;&lt;python /&gt; is cool!&lt;/b&gt;
 </dbl:programlisting>
 </dbl:para>
 
@@ -270,8 +273,8 @@ so it would still be part of the cached &dom; tree and would be converted to &ht
 (which defaults to <code>html</code>) specifies what the output should be. Values could
 e.g. be <code>"html"</code>, <code>"wml"</code> or <code>"docbook"</code>.</li>
 <li><dbl:pyref module="xist.converters" class="Converter" method="__init__" arg="lang">lang</dbl:pyref>
-(which defaults to <code>None</code>) the language in which the result tree should be (e.g. <code>"en"</code>,
-<code>"de"</code> or <code>"ja"</code> etc.). This can be used in the <pyref method="convert">convert</pyref> method
+(which defaults to <code>None</code>) the language in which the result tree should be.
+This can be used in the <pyref method="convert">convert</pyref> method
 to implement different conversions for different languages, e.g.:
 <programlisting>
 class note(xsc.Element):
@@ -291,13 +294,13 @@ class note(xsc.Element):
 			html.div(self.content.convert(converter)))
 </programlisting>
 and you can test for the language with the element
-<pyref module="xist.ns.specials" class="If">xist.ns.specials.If</pyref>, e.g.:
+<pyref module="xist.ns.cond" class="If">xist.ns.cond.If</pyref>, e.g.:
 <programlisting>
-&lt;if lang="de">Anmerkung
-&lt;elif lang="ja">???
-&lt;elif lang="fr">???
-&lt;else>Note
-&lt;if>
+&lt;if lang="de"&gt;Anmerkung
+&lt;elif lang="ja"&gt;???
+&lt;elif lang="fr"&gt;???
+&lt;else&gt;Note
+&lt;if&gt;
 </programlisting>
 </li>
 </ul>
@@ -305,7 +308,8 @@ and you can test for the language with the element
 </dbl:section>
 
 <dbl:section><dbl:title>Attributes</dbl:title>
-<dbl:para>Every element can be used as a attribute mapping so if <code>node</code>
+<dbl:para>Setting and accessing the attributes of an element work via
+the dictionary interface. So if <code>node</code>
 is an <pyref module="xist.xsc" class="Element">Element</pyref> that supports the
 attribute <code>spam</code> the following can be
 done:
@@ -384,9 +388,9 @@ class cool(xsc.Element):
 </dbl:example>
 and use it like this
 <dbl:programlisting>
->>> node = cool(python(), adj="totally")
->>> print node.conv().asBytes()
-&lt;a href="http://www.python.org/">Python&lt;/a> is &lt;em>totally&lt;/em> cool!
+&gt;&gt;&gt; node = cool(python(), adj="totally")
+&gt;&gt;&gt; print node.conv().asBytes()
+&lt;a href="http://www.python.org/"&gt;Python&lt;/a&gt; is &lt;em&gt;totally&lt;/em&gt; cool!
 </dbl:programlisting>
 </dbl:para>
 </dbl:section>
@@ -394,26 +398,153 @@ and use it like this
 <dbl:section><dbl:title>Namespace objects</dbl:title>
 <dbl:para>Now that you've defined your own elements, you have to
 tell the parser about them, so they can be instantiated when
-a file is parsed. This is done with namespace objects 
-(see the docstring for the Namespace class). What you have to do 
-is construct a namespace object for all the
-elements in your module:
+a file is parsed. This is done with namespace objects. At the end
+of your Python module after all the classes are defined, create a
+namespace object, that collects all the class objects from the
+local scope:
 <example>
 <programlisting>
 namespace = xsc.Namespace(
 	"foo",
-	"http://www.foo.net/dtd/foo.dtd",
+	"http://www.foo.net/DTDs/foo.dtd",
 	vars()
 )
 </programlisting>
 </example>
-All namespace objects will automatically be registered with the
+Arguments for the <pyref module="xist.xsc" class="Namespace">Namespace</pyref>
+constructor are:
+<ul>
+<li><pyref module="xist.xsc" class="Namespace" method="__init__" arg="prefix">prefix</pyref> is
+the namespace prefix that can be used to disambiguate elements in different namespaces
+with the same name.</li>
+<li><pyref module="xist.xsc" class="Namespace" method="__init__" arg="uri">uri</pyref> is the
+namespace URL for the namespace. This is currently unused. &xist; doesn't have real
+namespace support where namespace prefixes can be bound to namespace URLs dynamically,
+but uses fixed prefixes.</li>
+<li><pyref module="xist.xsc" class="Namespace" method="__init__" arg="thing">thing</pyref> is
+the object that should be registered in the namespace. To register all the element
+classes (and entities and processing instruction classes) defined in the module, simply
+use <code>vars()</code>.</li>
+</ul>
+</dbl:para>
+
+<dbl:para>All namespace objects will automatically be registered with the
 parser. Now all newly defined elements will be used when parsing
 files.</dbl:para>
+</dbl:section>
+
+<dbl:section><dbl:title>Entities and processing instructions</dbl:title>
+<dbl:para>In the same way as defining new element types, you can define new
+entities and processing instructions. But to be able to use the new entities
+in an &xml; file you have to use a parser that supports reporting undefined
+entities to the application via <pyref method="skippedEntity">skippedEntity</pyref>
+(<pyref module="xist.parsers" class="SGMLOPParser">SGMLOPParser</pyref> in the
+module <pyref module="xist.parsers">xist.parsers</pyref> does that).</dbl:para>
+<dbl:para>In addition to the <pyref module="xist.xsc" class="Node" method="convert">convert</pyref>
+method you have to implement the method
+<pyref module="xist.xsc" class="Node" method="asPlainString">asPlainString</pyref>,
+which must return a unicode string value for the entity. The following
+example is from the module <pyref module="xist.ns.abbr">xist.ns.abbr</pyref>:
+<example title="Defining new entities">
+<programlisting>
+from xist import xsc
+from xist.ns import html
+
+class xml(xsc.Entity):
+	def convert(self, converter):
+		return html.abbr(
+			"XML",
+			title="Extensible Markup Language",
+			lang="en")
+	def asPlainString(self):
+		return u"XML"
+</programlisting>
+</example>
+Now you can use this new entity in your &xml; files:
+<programlisting>
+&lt;cool adj="very"&gt;&amp;xml;&lt;/cool&gt;
+</programlisting>
+</dbl:para>
+<dbl:para>Defining processing instructions works the same way. Derive a
+new class from <pyref module="xist.xsc" class="ProcInst">xist.xsc.ProcInst</pyref>
+and implement <pyref module="xist.xsc" class="Node" method="convert">convert</pyref>.
+The following example implements a processing instruction that returns an uppercase
+version of it's content as a text node.
+<example title="Defining new processing instructions">
+<programlisting>
+class upper(xsc.ProcInst):
+	def convert(self, converter):
+		return xsc.Text(self.content.upper())
+</programlisting>
+</example>
+it can be used in an &xml; file as following:
+<programlisting>
+&lt;?upper foo?&gt;
+</programlisting>
+</dbl:para>
 </dbl:section>
 </dbl:section>
 
 <dbl:section><dbl:title>Publishing &dom; trees</dbl:title>
+<dbl:para>After creating the &dom; tree and converting the tree
+into its final output form, you have to write the resulting text
+into a file. This can be done with the publishing &api;. Two methods
+that use the publishing &api; are
+<pyref module="xist.xsc" class="Node" method="asBytes">asBytes</pyref>
+and
+<pyref module="xist.xsc" class="Node" method="write">write</pyref>.
+<pyref module="xist.xsc" class="Node" method="asBytes">asBytes</pyref>
+returns and 8bit &xml; string. You can specify the encoding with the
+parameter <pyref module="xist.xsc" class="Node" method="asBytes" arg="encoding">encoding</pyref>
+(with <code>"us-ascii"</code> being the default).
+Unencodable characters will be escaped with numeric character references when possible
+(i.e. inside text nodes, for comments or processing instructions you'll get
+an exception):
+<programlisting>
+&gt;&gt;&gt; from xist.ns import xsc, html
+&gt;&gt;&gt; print html.div(
+...    u"äöü",
+...    html.br(),
+...    u"ÄÖÜ").asBytes(encoding="ascii")
+&lt;div&gt;&amp;#228;&amp;#246;&amp;#252;&lt;br /&gt;&amp;#196;&amp;#214;&amp;#220;&lt;/div&gt;
+&gt;&gt;&gt; print html.div(
+...    u"äöü",
+...    html.br(),
+...    u"ÄÖÜ").asBytes(encoding="iso-8859-1")
+&lt;div&gt;äöü&lt;br /&gt;ÄÖÜ&lt;/div&gt;
+&gt;&gt;&gt; print xsc.Comment(u"äöü").asBytes()
+Traceback (most recent call last):
+  File "&lt;stdin&gt;", line 1, in ?
+  File "~/pythonroot/xist/xsc.py", line 828, in asBytes
+    return publisher.asBytes()
+  File "~/pythonroot/xist/publishers.py", line 162, in asBytes
+    return u"".join(self.texts).encode(self.encoding)
+UnicodeError: ASCII encoding error: ordinal not in range(128)
+</programlisting>
+</dbl:para>
+<dbl:para>Another useful parameter is
+<pyref module="xist.xsc" class="Node" method="asBytes" arg="XHTML">XHTML</pyref>,
+it specifies if you want pure &html; or &xhtml; as output:
+<ul>
+<li><code>XHTML==0</code> will give pure &html; as output, i.e. no final <markup>/</markup>
+for element with an empty content model, so you'll get <markup>&lt;br&gt;</markup> in the output.
+Elements that have no empty content model, but are empty will be published with a start and
+end tag (i.e. <markup>&lt;div&gt;&lt;/div&gt;</markup>).</li>
+<li><code>XHTML==1</code> gives &html; compatible &xhtml;. Elements with empty content
+model will be published like this: <markup>&lt;br /&gt;</markup>.</li>
+<li><code>XHTML==2</code> gives full &xml; output. Every empty element will be published with
+an empty tag (without an additional space): <markup>&lt;br/&gt;</markup> or <markup>&lt;div/&gt;</markup>.</li>
+</ul></dbl:para>
+<dbl:para>Writing a node to a file can be done with the method
+<pyref module="xist.xsc" class="Node" method="write">write</pyref>:
+<programlisting>
+&gt;&gt;&gt; from xist.ns import html
+&gt;&gt;&gt; html.div(
+...    u"äöü",
+...    html.br(),
+...    u"ÄÖÜ").write(open("foo.html", "wb"), encoding="ascii")
+</programlisting>
+</dbl:para>
 </dbl:section>
 
 <dbl:section><dbl:title>Miscellaneous</dbl:title>
@@ -453,14 +584,17 @@ an image twice as wide and high do the following:
 
 <dbl:section><dbl:title>Embedding Python code</dbl:title>
 <dbl:para>It's possible to embed Python code into &xist; &xml; files. For this
-&xist; supports two new processing instruction targets: <markup>xsc:exec</markup> 
+&xist; supports two new processing instructions: <markup>xsc:exec</markup> 
 and <markup>xsc:eval</markup>. The content of <markup>xsc:exec</markup> will be 
 executed when the processing instruction node is instantiated, i.e. when the 
 &xml; file is parsed, so anything you do there will be available afterwards.</dbl:para>
 
-<dbl:para>The result of a call to <pyref module="xist.xsc" class="None" method="convert">convert</pyref> 
+<dbl:para>The result of a call to <pyref module="xist.xsc" class="Node" method="convert">convert</pyref> 
 for a <markup>xsc:eval</markup> processing instruction is whatever the 
-Python code in the content returns. For example, consider the following &xml; file:
+Python code in the content returns. This content is treated as the body
+of a function, so you can put multiple return statements there.
+The converter is available as the parameter <code>converter</code> inside
+the processing instruction. For example, consider the following &xml; file:
 <dbl:programlisting>
 &lt;?xsc:exec
 	# sum
@@ -473,7 +607,7 @@ Python code in the content returns. For example, consider the following &xml; fi
 &lt;b&gt;&lt;?xsc:eval return gauss()?&gt;&lt;/b&gt;
 </dbl:programlisting>
 Parsing this file and calling 
-<pyref module="xist.xsc" class="None" method="convert">convert</pyref> results in the following:
+<pyref module="xist.xsc" class="Node" method="convert">convert</pyref> results in the following:
 <dbl:programlisting>
 &lt;b>5050&lt;/b>
 </dbl:programlisting>
@@ -482,6 +616,7 @@ Parsing this file and calling
 <dbl:para>For further information see the class <pyref module="xist.xsc" class="ProcInst">ProcInst</pyref> 
 and it's two derived classes <pyref module="xist.xsc" class="Eval">Eval</pyref> and 
 <pyref module="xist.xsc" class="Exec">Exec</pyref>.</dbl:para>
+</dbl:section>
 """
 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
@@ -860,139 +995,139 @@ class CharacterData(Node):
 	a few methods (<code>__str__</code> etc.)
 	"""
 	def __init__(self, content=u""):
-		self._content = helpers.unistr(content)
+		self.content = helpers.unistr(content)
 
 	def __iadd__(self, other):
 		other = ToNode(other)
-		return self.__class__(self._content+other._content)
+		return self.__class__(self.content+other.content)
 
 	__add__ = __iadd__
 
 	def __radd__(self, other):
 		other = ToNode(other)
-		return self.__class__(other._content+self._content)
+		return self.__class__(other.content+self.content)
 
 	def __imul__(self, n):
-		return self.__class__(self._content*n)
+		return self.__class__(self.content*n)
 
 	__mul__ = __imul__
 
 	def __cmp__(self, other):
 		if isinstance(other, self.__class__):
-			return cmp(self._content, other._content)
+			return cmp(self.content, other.content)
 		else:
-			return cmp(self._content, other)
+			return cmp(self.content, other)
 
 	def __contains__(self, char):
-		return helpers.unistr(char) in self._content
+		return helpers.unistr(char) in self.content
 
 	def __hash__(self):
-		return hash(self._content)
+		return hash(self.content)
 
 	def __len__(self):
-		return len(self._content)
+		return len(self.content)
 
 	def __getitem__(self, index):
-		return self._content[index]
+		return self.content[index]
 
 	def __getslice__(self, index1, index2):
-		return self.__class__(self._content[index1:index2])
+		return self.__class__(self.content[index1:index2])
 
 	def capitalize(self):
-		return self.__class__(self._content.capitalize())
+		return self.__class__(self.content.capitalize())
 
 	def center(self, width):
-		return self.__class__(self._content.center(width))
+		return self.__class__(self.content.center(width))
 
 	def count(self, sub, start=0, end=sys.maxint):
-		return self._content.count(sub, start, end)
+		return self.content.count(sub, start, end)
 
 	def endswith(self, suffix, start=0, end=sys.maxint):
-		return self._content.endswith(helpers.unistr(suffix), start, end)
+		return self.content.endswith(helpers.unistr(suffix), start, end)
 
 	# no find here def find(self, sub, start=0, end=sys.maxint):
-	#	return self._content.find(helpers.unistr(sub), start, end)
+	#	return self.content.find(helpers.unistr(sub), start, end)
 
 	def index(self, sub, start=0, end=sys.maxint):
-		return self._content.index(helpers.unistr(sub), start, end)
+		return self.content.index(helpers.unistr(sub), start, end)
 
 	def isalpha(self):
-		return self._content.isalpha()
+		return self.content.isalpha()
 
 	def isalnum(self):
-		return self._content.isalnum()
+		return self.content.isalnum()
 
 	def isdecimal(self):
-		return self._content.isdecimal()
+		return self.content.isdecimal()
 
 	def isdigit(self):
-		return self._content.isdigit()
+		return self.content.isdigit()
 
 	def islower(self):
-		return self._content.islower()
+		return self.content.islower()
 
 	def isnumeric(self):
-		return self._content.isnumeric()
+		return self.content.isnumeric()
 
 	def isspace(self):
-		return self._content.isspace()
+		return self.content.isspace()
 
 	def istitle(self):
-		return self._content.istitle()
+		return self.content.istitle()
 
 	def join(self, frag):
 		return frag.withSeparator(self)
 
 	def isupper(self):
-		return self._content.isupper()
+		return self.content.isupper()
 
 	def ljust(self, width):
-		return self.__class__(self._content.ljust(width))
+		return self.__class__(self.content.ljust(width))
 
 	def lower(self):
-		return self.__class__(self._content.lower())
+		return self.__class__(self.content.lower())
 
 	def lstrip(self):
-		return self.__class__(self._content.lstrip())
+		return self.__class__(self.content.lstrip())
 
 	def replace(self, old, new, maxsplit=-1):
-		return self.__class__(self._content.replace(helpers.unistr(old), helpers.unistr(new), maxsplit))
+		return self.__class__(self.content.replace(helpers.unistr(old), helpers.unistr(new), maxsplit))
 
 	def rfind(self, sub, start=0, end=sys.maxint):
-		return self._content.rfind(helpers.unistr(sub), start, end)
+		return self.content.rfind(helpers.unistr(sub), start, end)
 
 	def rindex(self, sub, start=0, end=sys.maxint):
-		return self._content.rindex(helpers.unistr(sub), start, end)
+		return self.content.rindex(helpers.unistr(sub), start, end)
 
 	def rjust(self, width):
-		return self.__class__(self._content.rjust(width))
+		return self.__class__(self.content.rjust(width))
 
 	def rstrip(self):
-		return self.__class__(self._content.rstrip())
+		return self.__class__(self.content.rstrip())
 
 	def split(self, sep=None, maxsplit=-1):
-		return Frag(self._content.split(sep, maxsplit))
+		return Frag(self.content.split(sep, maxsplit))
 
 	def splitlines(self, keepends=0):
-		return Frag(self._content.splitlines(keepends))
+		return Frag(self.content.splitlines(keepends))
 
 	def startswith(self, prefix, start=0, end=sys.maxint):
-		return self._content.startswith(helpers.unistr(prefix), start, end)
+		return self.content.startswith(helpers.unistr(prefix), start, end)
 
 	def strip(self):
-		return self.__class__(self._content.strip())
+		return self.__class__(self.content.strip())
 
 	def swapcase(self):
-		return self.__class__(self._content.swapcase())
+		return self.__class__(self.content.swapcase())
 
 	def title(self):
-		return self.__class__(self._content.title())
+		return self.__class__(self.content.title())
 
 	def translate(self, *args):
-		return self.__class__(self._content.translate(*args))
+		return self.__class__(self.content.translate(*args))
 
 	def upper(self):
-		return self.__class__(self._content.upper())
+		return self.__class__(self.content.upper())
 
 class Text(CharacterData):
 	"""
@@ -1002,7 +1137,7 @@ class Text(CharacterData):
 
 	def __init__(self, content=""):
 		if isinstance(content, Text):
-			content = content._content
+			content = content.content
 		CharacterData.__init__(self, content)
 
 	def convert(self, converter):
@@ -1012,16 +1147,16 @@ class Text(CharacterData):
 		return self
 
 	def asPlainString(self):
-		return self._content
+		return self.content
 
 	def publish(self, publisher):
-		publisher.publishText(self._content)
+		publisher.publishText(self.content)
 
 	def present(self, presenter):
 		presenter.presentText(self)
 
 	def compact(self):
-		if self._content.isspace():
+		if self.content.isspace():
 			return Null
 		else:
 			return self
@@ -1291,10 +1426,10 @@ class Comment(CharacterData):
 	def publish(self, publisher):
 		if publisher.inAttr:
 			raise errors.IllegalAttrNodeError(self)
-		if self._content.find(u"--")!=-1 or self._content[-1:]==u"-":
+		if self.content.find(u"--")!=-1 or self.content[-1:]==u"-":
 			raise errors.IllegalCommentContentError(self)
 		publisher.publish(u"<!--")
-		publisher.publish(self._content)
+		publisher.publish(self.content)
 		publisher.publish(u"-->")
 
 class DocType(CharacterData):
@@ -1317,7 +1452,7 @@ class DocType(CharacterData):
 		if publisher.inAttr:
 			raise errors.IllegalAttrNodeError(self)
 		publisher.publish(u"<!DOCTYPE ")
-		publisher.publish(self._content)
+		publisher.publish(self.content)
 		publisher.publish(u">")
 
 class ProcInst(CharacterData):
@@ -1351,12 +1486,12 @@ class ProcInst(CharacterData):
 	def publish(self, publisher):
 		if publisher.inAttr:
 			raise errors.IllegalAttrNodeError(self)
-		if self._content.find(u"?>")!=-1:
+		if self.content.find(u"?>")!=-1:
 			raise errors.IllegalProcInstFormatError(self)
 		publisher.publish(u"<?")
 		self._publishName(publisher)
 		publisher.publish(u" ")
-		publisher.publish(self._content)
+		publisher.publish(self.content)
 		publisher.publish(u"?>")
 
 class PythonCode(ProcInst):
@@ -1385,7 +1520,7 @@ class Exec(PythonCode):
 
 	def __init__(self, content=u""):
 		ProcInst.__init__(self, content)
-		code = utils.Code(self._content, 1)
+		code = utils.Code(self.content, 1)
 		exec code.asString() in procinst.__dict__ # requires Python 2.0b2 (and doesn't really work)
 
 	def convert(self, converter):
@@ -1414,7 +1549,7 @@ class Eval(PythonCode):
 		Evaluates the code. The <argref>converter</argref> argument will be available
 		under the name <code>converter</code> as an argument.
 		"""
-		code = utils.Code(self._content, 1)
+		code = utils.Code(self.content, 1)
 		code.funcify()
 		exec code.asString() in procinst.__dict__ # requires Python 2.0b2 (and doesn't really work)
 		return ToNode(procinst.__(converter)).convert(converter)
@@ -1429,9 +1564,9 @@ class XML(ProcInst):
 	publishPrefix = 0
 
 	def publish(self, publisher):
-		encodingfound = utils.findAttr(self._content, u"encoding")
-		versionfound = utils.findAttr(self._content, u"version")
-		standalonefound = utils.findAttr(self._content, u"standalone")
+		encodingfound = utils.findAttr(self.content, u"encoding")
+		versionfound = utils.findAttr(self.content, u"version")
+		standalonefound = utils.findAttr(self.content, u"standalone")
 		if publisher.encoding != encodingfound: # if self has the wrong encoding specification (or none), we construct a new XML ProcInst and publish that (this doesn't lead to infinite recursion, because the next call will skip it)
 			node = XML(u"version='" + versionfound + u"' encoding='" + publisher.encoding + u"'")
 			if standalonefound is not None:
@@ -1992,9 +2127,9 @@ class URLAttr(Attr):
 	(http, ftp, etc.)
 	"""
 
-	def __init__(self, *_content):
+	def __init__(self, *content):
 		self.base = url.URL()
-		Attr.__init__(self, *_content)
+		Attr.__init__(self, *content)
 
 	def _str(self, content=None, brackets=None, slash=None, ansi=None):
 		attr = " %s=%s%s%s" % (strAttrName("base", ansi), strQuote(ansi=ansi), strURL(self.base.asString(), ansi=ansi), strQuote(ansi=ansi))

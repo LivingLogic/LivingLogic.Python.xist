@@ -15,7 +15,7 @@ class scriptlet(xsc.ProcInst):
 	"""
 	def publish(self, publisher):
 		publisher.publish(u"<% ")
-		publisher.publish(self._content)
+		publisher.publish(self.content)
 		publisher.publish(u" %>")
 
 class expression(xsc.ProcInst):
@@ -25,7 +25,7 @@ class expression(xsc.ProcInst):
 
 	def publish(self, publisher):
 		publisher.publish(u"<%= ")
-		publisher.publish(self._content)
+		publisher.publish(self.content)
 		publisher.publish(u" %>")
 
 class declaration(xsc.ProcInst):
@@ -35,7 +35,7 @@ class declaration(xsc.ProcInst):
 
 	def publish(self, publisher):
 		publisher.publish(u"<%! ")
-		publisher.publish(self._content)
+		publisher.publish(self.content)
 		publisher.publish(u" %>")
 
 class If(scriptlet):
@@ -43,7 +43,7 @@ class If(scriptlet):
 
 	def publish(self, publisher):
 		publisher.publish(u"<% if(")
-		publisher.publish(self._content)
+		publisher.publish(self.content)
 		publisher.publish(u"){ %>")
 
 class Else(scriptlet):
@@ -56,7 +56,7 @@ class ElIf(scriptlet):
 
 	def publish(self, publisher):
 		publisher.publish(u"<% }else if(")
-		publisher.publish(self._content)
+		publisher.publish(self.content)
 		publisher.publish(u"){ %>")
 
 class End(scriptlet):
@@ -101,4 +101,4 @@ class directive_page(directive):
 	attrHandlers = {"import": xsc.TextAttr, "buffer": xsc.TextAttr, "errorPage": xsc.URLAttr}
 
 # register all the classes we've defined so far
-namespace = xsc.Namespace("jsp", "http://java.sun.com/procudts/jsp/dtd/jsp_1_0.dtd", vars())
+namespace = xsc.Namespace("jsp", "http://java.sun.com/products/jsp/dtd/jsp_1_0.dtd", vars())

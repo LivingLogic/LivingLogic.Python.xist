@@ -397,9 +397,9 @@ class NormalPresenter:
 
 	def presentText(self, node):
 		if self.inAttr:
-			self.buffer.append(strTextInAttr(node._content))
+			self.buffer.append(strTextInAttr(node.content))
 		else:
-			self.buffer.append(strTextOutsideAttr(node._content))
+			self.buffer.append(strTextOutsideAttr(node.content))
 
 	def presentFrag(self, node):
 		for child in node:
@@ -410,7 +410,7 @@ class NormalPresenter:
 			strBracketOpen(),
 			strExclamation(),
 			strCommentMarker(),
-			strCommentText(node._content),
+			strCommentText(node.content),
 			strCommentMarker(),
 			strBracketClose()
 		)
@@ -421,7 +421,7 @@ class NormalPresenter:
 			strExclamation(),
 			strDocTypeMarker(),
 			" ",
-			strDocTypeText(node._content),
+			strDocTypeText(node.content),
 			strBracketClose()
 		)
 
@@ -431,7 +431,7 @@ class NormalPresenter:
 			strQuestion(),
 			strProcInst(node),
 			" ",
-			strProcInstContent(node._content),
+			strProcInstContent(node.content),
 			strQuestion(),
 			strBracketClose()
 		)
@@ -597,9 +597,9 @@ class TreePresenter:
 
 	def presentText(self, node):
 		if self.inAttr:
-			self.buffers[-1].append(strTextInAttr(node._content))
+			self.buffers[-1].append(strTextInAttr(node.content))
 		else:
-			lines = node._content.splitlines(1)
+			lines = node.content.splitlines(1)
 			self._doMultiLine(node, lines, 0, self.strTextLineOutsideAttr)
 
 	def presentEntity(self, node):
@@ -615,14 +615,14 @@ class TreePresenter:
 				strQuestion(),
 				strProcInst(node),
 				" ",
-				EnvTextForProcInstContent(EscOutlineAttr(node._content)),
+				EnvTextForProcInstContent(EscOutlineAttr(node.content)),
 				strQuestion(),
 				strBracketClose()
 			)
 		else:
 			head = ansistyle.Text(strBracketOpen(), strQuestion(), strProcInst(node), " ")
 			tail = ansistyle.Text(strQuestion(), strBracketClose())
-			lines = node._content.splitlines()
+			lines = node.content.splitlines()
 			if len(lines)>1:
 				lines.insert(0, "")
 			self._doMultiLine(node, lines, 1, self.strProcInstContentLine, head, tail)
@@ -633,14 +633,14 @@ class TreePresenter:
 				strBracketOpen(),
 				strExclamation(),
 				strCommentMarker(),
-				EnvTextForCommentText(EscOutlineAttr(node._content)),
+				EnvTextForCommentText(EscOutlineAttr(node.content)),
 				strCommentMarker(),
 				strBracketClose()
 			)
 		else:
 			head = ansistyle.Text(strBracketOpen(), strExclamation(), strCommentMarker())
 			tail = ansistyle.Text(strCommentMarker(), strBracketClose())
-			lines = node._content.splitlines()
+			lines = node.content.splitlines()
 			self._doMultiLine(node, lines, 1, self.strCommentTextLine, head, tail)
 
 	def presentDocType(self, node):
@@ -650,13 +650,13 @@ class TreePresenter:
 				strExclamation(),
 				strDocTypeMarker(),
 				" ",
-				EnvTextForDocTypeText(EscOutlineAttr(node._content)),
+				EnvTextForDocTypeText(EscOutlineAttr(node.content)),
 				strBracketClose()
 			)
 		else:
 			head = ansistyle.Text(strBracketOpen(), strExclamation(), strDocTypeMarker(), " ")
 			tail = ansistyle.Text(strBracketClose())
-			lines = node._content.splitlines()
+			lines = node.content.splitlines()
 			self._doMultiLine(node, lines, 1, self.strDocTypeTextLine, head, tail)
 
 	def presentAttr(self, node):
