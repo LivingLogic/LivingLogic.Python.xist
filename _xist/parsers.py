@@ -456,12 +456,26 @@ class Handler(object):
 		for (attrname, attrvalue) in attrs.items():
 			if attrname=="xmlns":
 				prefix = None
+				index = 0
 			elif attrname.startswith("xmlns:"):
 				prefix = attrname[6:]
+				index = 0
+			elif attrname=="procinstns":
+				prefix = None
+				index = 1
+			elif attrname.startswith("procinstns:"):
+				prefix = attrname[11:]
+				index = 1
+			elif attrname=="entityns":
+				prefix = None
+				index = 2
+			elif attrname.startswith("entityns:"):
+				prefix = attrname[0:]
+				index = 2
 			else:
 				continue
-			prefixes.append(prefix)
-			self.prefixes.startElementPrefixMapping(prefix, unicode(attrvalue))
+			prefixes.append((index, prefix))
+			self.prefixes._startPrefixMapping(index, prefix, unicode(attrvalue))
 		node = self.prefixes.elementFromQName(name)()
 		node.parsed(self)
 		for (attrname, attrvalue) in attrs.items():
@@ -480,8 +494,8 @@ class Handler(object):
 			raise errors.ElementNestingError(currentelement, element)
 		self.__nesting[-1][0].endLoc = self.getLocation()
 		# SAX specifies that the order of calls to endPrefixMapping is undefined, so we use the same order as in beginElement
-		for prefix in self.__nesting[-1][1]:
-			self.prefixes.endElementPrefixMapping(prefix)
+		for (index, prefix) in self.__nesting[-1][1]:
+			self.prefixes._endPrefixMapping(index, prefix)
 		self.__nesting.pop() # pop the innermost element off the stack
 		self.skippingWhitespace = 0
 
