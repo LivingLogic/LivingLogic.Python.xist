@@ -1086,7 +1086,7 @@ class URLAttr(Attr):
 
 	def _dorepr(self):
 		url = urlparse.urlunparse((self.scheme,self.server,string.join(self.path,"/"),self.parameters,self.query,self.fragment))
-		return _stransi(xsc.repransiurl,url)
+		return _stransi(self.repransiurl,url)
 
 	def _doreprtree(self,nest,elementno):
 		return [[nest,self.startlineno,elementno,self._dorepr()]]
