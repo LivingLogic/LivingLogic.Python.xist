@@ -664,6 +664,9 @@ class Frag(Node):
 		for child in self.__content:
 			child.publish(publisher)
 
+	def __repr__(self):
+		return "<%s instance with %d children at 0x%x>" % (self.__class__.name, len(self), id(self))
+
 	def __getitem__(self, index):
 		"""
 		Return the <argref>index</argref>'th node for the content of the fragment.
