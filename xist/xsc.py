@@ -217,7 +217,7 @@ import getopt
 
 import stat # for file size checking
 import Image # for image size checking
-import sgmlop # for parsing XML files
+from xml.parsers import pyexpat # for parsing XML files
 import urllib # for reading remote files
 import procinst # our sandbox
 from URL import URL # our own new URL class
@@ -280,6 +280,7 @@ repransiurl = getANSICodesFromEnv("XSC_REPRANSI_URL",[ "1;33","33" ])           
 repransiprocinsttarget = getANSICodesFromEnv("XSC_REPRANSI_PROCINSTTARGET",[ "1;31","1;31" ]) # ANSI escape sequence to be used for processing instruction targets
 repransiprocinstdata = getANSICodesFromEnv("XSC_REPRANSI_PROCINSTDATA",[ "","" ])             # ANSI escape sequence to be used for processing instruction data
 outputXHTML = getIntFromEnv("XSC_OUTPUT_XHTML",1)                                             # XHTML output format (0 = plain HTML, 1 = HTML compatible XHTML, 2 = pure XHTML)
+inputEncoding = getStringFromEnv("XSC_INPUT_ENCODING","iso-8859-1")                           # Default encoding that is assumed, when no encoding specification can be found
 outputEncoding = getStringFromEnv("XSC_OUTPUT_ENCODING","us-ascii")                           # Encoding to be used in publish() (and asString())
 
 ###
@@ -902,8 +903,8 @@ class CharRef(Node):
 	def _doreprtree(self,nest,elementno,ansi = None):
 		s = strCharRef("&#" + str(self.content) + ";",ansi) + " (" + strCharRef("&#x" + hex(self.content)[2:] + ";",ansi)
 		entstr = []
-		for name in NamespaceRegistry.byPrefix.keys():
-			for entity in NamespaceRegistry.byPrefix[name].entitiesByNumber[self.content]:
+		for name in namespaceRegistry.byPrefix.keys():
+			for entity in namespaceRegistry.byPrefix[name].entitiesByNumber[self.content]:
 				entstr.append(entity()._dorepr(ansi = ansi))
 		if len(entstr):
 			s = s + ", " + string.join(entstr,", ")
@@ -1476,7 +1477,9 @@ class Element(Node):
 		del self.content[index1:index2]
 
 	def __len__(self):
-		"""return the number of children"""
+		"""
+		return the number of children
+		"""
 		return len(self.content)
 
 	def __strattrs(self,ansi = None):
@@ -1753,7 +1756,7 @@ class Namespace:
 
 		self.register(thing)
 
-		NamespaceRegistry.register(self)
+		namespaceRegistry.register(self)
 
 	def register(self,thing):
 		"""
@@ -1812,6 +1815,9 @@ class Namespace:
 ###
 
 class NamespaceRegistry:
+	"""
+	global registry for all namespaces
+	"""
 	def __init__(self):
 		self.byPrefix = {}
 		self.byURI = {}
@@ -1820,7 +1826,7 @@ class NamespaceRegistry:
 		self.byPrefix[namespace.prefix] = namespace
 		self.byURI[namespace.uri] = namespace
 
-NamespaceRegistry = NamespaceRegistry() # singleton
+namespaceRegistry = NamespaceRegistry()
 
 ###
 ###
@@ -1892,27 +1898,6 @@ class XSC:
 	def popNamespace(self):
 		self.namespaces.pop(0)
 
-	def handle_special(self,data):
-		if data[:7] == "DOCTYPE":
-			self.__appendNode(DocType(data[8:]))
-
-	def handle_proc(self,target,data):
-		self.__appendNode(ProcInst(target,data))
-
-	def handle_charref(self,name):
-		try:
-			if name[0] == 'x':
-				code = string.atoi(name[1:],16)
-			else:
-				code = int(name)
-		except ValueError:
-			raise MalformedCharRefError(self.__here(),name)
-
-		self.__appendNode(CharRef(code))
-
-	def handle_entityref(self,name):
-		self.__appendNode(self.entityFromName(name)())
-
 	def splitName(self,name):
 		name = string.split(name,":")
 		if len(name) == 1: # no namespace specified
@@ -1924,9 +1909,10 @@ class XSC:
 		# search for the element
 		# first search the namespace stack (i.e. namespaces that are registered via the normal XML namespace mechanism)
 		# if the element can't be found, search all existing namespaces.
-		allnamespaces = self.namespaces+NamespaceRegistry.byPrefix.values()
+		allnamespaces = self.namespaces+namespaceRegistry.byPrefix.values()
 		for namespace in allnamespaces:
 			if name[0] is None or name[0] == namespace.prefix:
+				print name[1]
 				try:
 					if element:
 						return namespace.elementsByName[name[1]]
@@ -1951,14 +1937,15 @@ class XSC:
 		"""
 		return self.__nodeFromName(name,0)
 
-	def finish_starttag(self,name,attrs):
+	def handleElementStart(self,name,attrs):
 		node = self.elementFromName(name)()
-		for name,value in attrs:
-			node[name] = self.__string2Fragment(value)
+		print repr(attrs)
+		for name in attrs.keys():
+			node[name] = self.__string2Fragment(attrs[name])
 		self.__appendNode(node)
 		self.__nesting.append(node) # push new innermost element onto the stack
 
-	def finish_endtag(self,name):
+	def handleElementEnd(self,name):
 		element = self.elementFromName(name)
 		currentelement = self.__nesting[-1].__class__
 		if element != currentelement:
@@ -1966,22 +1953,47 @@ class XSC:
 		self.__nesting[-1].endloc = self.__here()
 		self.__nesting.pop() # pop the innermost element off the stack
 
-	def handle_data(self,data):
+	def handleText(self,data):
 		if data != "":
 			self.__appendNode(Text(data))
 
-	def handle_comment(self,data):
+	def handleComment(self,data):
 		self.__appendNode(Comment(data))
+
+	def handle_special(self,data):
+		if data[:7] == "DOCTYPE":
+			self.__appendNode(DocType(data[8:]))
+
+	def handleProcInst(self,target,data):
+		self.__appendNode(ProcInst(target,data))
+
+	def handle_charref(self,name):
+		try:
+			if name[0] == 'x':
+				code = string.atoi(name[1:],16)
+			else:
+				code = int(name)
+		except ValueError:
+			raise MalformedCharRefError(self.__here(),name)
+
+		self.__appendNode(CharRef(code))
+
+	def handle_entityref(self,name):
+		self.__appendNode(self.entityFromName(name)())
 
 	def __parseLines(self,lines):
 		self.__nesting = [ Frag() ]
-		parser = sgmlop.SGMLParser()
-		parser.register(self)
+		parser = pyexpat.ParserCreate(inputEncoding)
+		parser.StartElementHandler = self.handleElementStart
+		parser.EndElementHandler = self.handleElementEnd
+		parser.CharacterDataHandler = self.handleText
+		parser.ProcessingInstructionHandler = self.handleProcInst
+		parser.CommentHandler = self.handleComment
 		self.lineno = 1
 		for line in lines:
-			parser.feed(line)
+			parser.Parse(line)
 			self.lineno = self.lineno + 1
-		parser.close()
+		parser.Parse("",1)
 		return self.__nesting[0]
 
 	def parseString(self,text):

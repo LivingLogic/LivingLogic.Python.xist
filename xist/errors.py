@@ -121,8 +121,8 @@ class IllegalElementError(Error):
 
 	def __str__(self):
 		elementnames = []
-		for namespacename in xsc.NamespaceRegistry.byPrefix.keys():
-			namespace = xsc.NamespaceRegistry.byPrefix[namespacename]
+		for namespacename in xsc.namespaceRegistry.byPrefix.keys():
+			namespace = xsc.namespaceRegistry.byPrefix[namespacename]
 			try:
 				element = namespace.elementsByName[self.name[1]]
 				elementnames.append(xsc.strElement(element.namespace.prefix,element.name,element.empty))
