@@ -120,7 +120,8 @@ class IllegalElementError(Error):
 		all = {}
 		for namespace in xsc.namespaceRegistry.byPrefix.values():
 			for element in namespace.elementsByName.values():
-				all[(element.name(), element.prefix())] = element
+				if element.namespace() is not None:
+					all[(element.name(), element.prefix())] = element
 
 		allkeys = all.keys()
 		allkeys.sort()
@@ -150,7 +151,8 @@ class IllegalProcInstError(Error):
 		all = {}
 		for namespace in xsc.namespaceRegistry.byPrefix.values():
 			for procinst in namespace.procInstsByName.values():
-				all[(procinst.name(), procinst.prefix())] = procinst
+				if procinst.namespace() is not None:
+					all[(procinst.name(), procinst.prefix())] = procinst
 
 		allkeys = all.keys()
 		allkeys.sort()
@@ -259,9 +261,11 @@ class IllegalEntityError(Error):
 		all = {}
 		for namespace in xsc.namespaceRegistry.byPrefix.values():
 			for charref in namespace.charrefsByName.values():
-				all[(charref.name(), charref.prefix())] = charref
+				if charref.namespace() is not None:
+					all[(charref.name(), charref.prefix())] = charref
 			for entity in namespace.entitiesByName.values():
-				all[(entity.name(), entity.prefix())] = entity
+				if entity.namespace() is not None:
+					all[(entity.name(), entity.prefix())] = entity
 
 		allKeys = all.keys()
 		allKeys.sort()
