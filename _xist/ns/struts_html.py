@@ -138,7 +138,7 @@ class option(Element):
 	"""
 	option element
 	"""
-	empty = 1
+	empty = 0
 	attrHandlers = {"value": xsc.TextAttr}
 
 class options(Element):
