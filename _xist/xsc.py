@@ -55,14 +55,14 @@ def ToNode(value):
 		if isinstance(value, Attr):
 			return Frag(*value) # repack the attribute in a fragment, and we have a valid XSC node
 		return value
-	elif isinstance(value, url.URL):
-		return Text(value)
 	elif isinstance(value, (str, unicode, int, long, float)):
 		return Text(value)
 	elif value is None:
 		return Null
 	elif isinstance(value, (list, tuple)):
 		return Frag(*value)
+	elif isinstance(value, url.URL):
+		return Text(value)
 	errors.warn(errors.IllegalObjectWarning(value)) # none of the above, so we report it and maybe throw an exception
 	return Null
 
@@ -933,13 +933,7 @@ class Frag(Node, list):
 
 	__rmul__ = __mul__
 
-	def __nonzero__(self):
-		"""
-		<par>return whether this fragment is not empty.</par>
-		"""
-		return len(self) != 0
-
-	# no need to implement __len__
+	# no need to implement __len__ or __nonzero__
 
 	def append(self, *others):
 		"""
@@ -1793,10 +1787,16 @@ class Attrs(Node, dict):
 		return iter(self.items())
 
 	def items(self):
-		items = []
-		for key in self.keys():
-			items.append((key, self[key]))
-		return items
+		items = {} # use a dict to avoid duplicates
+		# fetch the existing attribute keys/values
+		for (key, value) in dict.items(self):
+			if len(value):
+				items[key] = value
+		# fetch the keys of attributes with a default value (if it hasn't been overwritten)
+		for (key, value) in self.alloweditems():
+			if value.default and not dict.has_key(self, key):
+				items[key] = self[key]
+		return items.items()
 
 	def without(self, nameseq):
 		"""
