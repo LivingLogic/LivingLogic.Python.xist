@@ -161,16 +161,6 @@ class app(xsc.Element):
 				e = html.a(e, href=self["moreinfo"])
 		return e.convert(converter)
 
-class para(xsc.Element):
-	"""
-	A paragraph
-	"""
-	empty = 0
-
-	def convert(self, converter):
-		e = html.p(self.content)
-		return e.convert(converter)
-
 class title(xsc.Element):
 	"""
 	The text of the title of a section of a document or of a formal block-level element
