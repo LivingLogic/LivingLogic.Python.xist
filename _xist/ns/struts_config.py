@@ -16,7 +16,7 @@ configuration files: <link href="http://jakarta.apache.org/struts/dtds/struts-co
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-from ll.xist import xsc
+from ll.xist import xsc, sims
 from ll.xist.ns import xml
 
 
