@@ -534,7 +534,7 @@ and
 uses <pyref module="xist.publishers" class="BytePublisher">BytePublisher</pyref>.
 For example <pyref module="xist.publishers" class="FilePublisher">FilePublisher</pyref>
 looks like this:
-<programlisting>
+<dbl:programlisting>
 class FilePublisher(Publisher):
 	def __init__(self, file, base=None, encoding=None, XHTML=None,
 			publishPrefix=0):
