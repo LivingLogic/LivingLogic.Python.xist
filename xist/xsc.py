@@ -243,7 +243,7 @@ def stringFromCode(text):
 	else:
 		return text
 
-def _stransi(codes, string, ansi = None):
+def _stransi(codes, string, ansi=None):
 	if ansi is None:
 		ansi = options.repransi
 	string = stringFromCode(string).encode(reprEncoding)
@@ -252,13 +252,13 @@ def _stransi(codes, string, ansi = None):
 	else:
 		return string
 
-def strNamespace(namespace, ansi = None):
-	return _stransi(repransinamespace, namespace, ansi)
+def strNamespace(namespace, ansi=None):
+	return _stransi(options.repransinamespace, namespace, ansi)
 
-def strElementName(elementname, ansi = None):
-	return _stransi(repransielementname, elementname, ansi)
+def strElementName(elementname, ansi=None):
+	return _stransi(options.repransielementname, elementname, ansi)
 
-def strElement(namespacename, elementname, empty = 0, ansi = None):
+def strElement(namespacename, elementname, empty=0, ansi=None):
 	s = strBracketOpen(ansi)
 	if namespacename is not None:
 		s += strNamespace(namespacename, ansi) + strColon(ansi)
@@ -268,10 +268,10 @@ def strElement(namespacename, elementname, empty = 0, ansi = None):
 	s += strBracketClose(ansi)
 	return s
 
-def strEntityName(entityname, ansi = None):
-	return _stransi(repransientityname, entityname, ansi)
+def strEntityName(entityname, ansi=None):
+	return _stransi(options.repransientityname, entityname, ansi)
 
-def strEntity(namespacename, entityname, ansi = None):
+def strEntity(namespacename, entityname, ansi=None):
 	s = "&"
 	if namespacename is not None:
 		s += strNamespace(namespacename, ansi) + strColon(ansi)
@@ -279,62 +279,62 @@ def strEntity(namespacename, entityname, ansi = None):
 	s += ";"
 	return s
 
-def strAttrName(attrname, ansi = None):
-	return _stransi(repransiattrname, attrname, ansi)
+def strAttrName(attrname, ansi=None):
+	return _stransi(options.repransiattrname, attrname, ansi=ansi)
 
-def strAttrValue(attrvalue, ansi = None):
-	return _stransi(repransiattrvalue, attrvalue, ansi)
+def strAttrValue(attrvalue, ansi=None):
+	return _stransi(options.repransiattrvalue, attrvalue, ansi=ansi)
 
-def strCharRef(charref, ansi = None):
-	return _stransi(repransicharref, charref, ansi = ansi)
+def strCharRef(charref, ansi=None):
+	return _stransi(options.repransicharref, charref, ansi=ansi)
 
-def strDocTypeMarker(ansi = None):
-	return _stransi(repransidoctypemarker, "DOCTYPE", ansi = ansi)
+def strDocTypeMarker(ansi=None):
+	return _stransi(options.repransidoctypemarker, "DOCTYPE", ansi=ansi)
 
-def strDocTypeText(text, ansi = None):
-	return _stransi(repransidoctypetext, text, ansi = ansi)
+def strDocTypeText(text, ansi=None):
+	return _stransi(options.repransidoctypetext, text, ansi=ansi)
 
-def strCommentMarker(ansi = None):
-	return _stransi(repransicommentmarker, "--", ansi = ansi)
+def strCommentMarker(ansi=None):
+	return _stransi(options.repransicommentmarker, "--", ansi=ansi)
 
-def strCommentText(text, ansi = None):
-	return _stransi(repransicommenttext, text, ansi = ansi)
+def strCommentText(text, ansi=None):
+	return _stransi(options.repransicommenttext, text, ansi=ansi)
 
-def strProcInstTarget(target, ansi = None):
-	return _stransi(repransiprocinsttarget, target, ansi = ansi)
+def strProcInstTarget(target, ansi=None):
+	return _stransi(options.repransiprocinsttarget, target, ansi=ansi)
 
-def strProcInstData(data, ansi = None):
-	return _stransi(repransiprocinstdata, data, ansi = ansi)
+def strProcInstData(data, ansi=None):
+	return _stransi(options.repransiprocinstdata, data, ansi=ansi)
 
-def strText(text, ansi = None):
-	return _stransi(repransitext, text, ansi = ansi)
+def strText(text, ansi=None):
+	return _stransi(options.repransitext, text, ansi=ansi)
 
-def strSlash(attrname, ansi = None):
-	return _stransi(repransislash, "/", ansi)
+def strSlash(attrname, ansi=None):
+	return _stransi(options.repransislash, "/", ansi=ansi)
 
-def strBracketOpen(ansi = None):
-	return _stransi(repransibracket, "<", ansi)
+def strBracketOpen(ansi=None):
+	return _stransi(options.repransibracket, "<", ansi=ansi)
 
-def strBracketClose(ansi = None):
-	return _stransi(repransibracket, ">", ansi)
+def strBracketClose(ansi=None):
+	return _stransi(options.repransibracket, ">", ansi=ansi)
 
-def strColon(ansi = None):
-	return _stransi(repransicolon, ":", ansi)
+def strColon(ansi=None):
+	return _stransi(options.repransicolon, ":", ansi=ansi)
 
-def strQuestion(ansi = None):
-	return _stransi(repransiquestion, "?", ansi)
+def strQuestion(ansi=None):
+	return _stransi(options.repransiquestion, "?", ansi=ansi)
 
-def strExclamation(ansi = None):
-	return _stransi(repransiexclamation, "!", ansi)
+def strExclamation(ansi=None):
+	return _stransi(options.repransiexclamation, "!", ansi=ansi)
 
-def strQuote(ansi = None):
-	return _stransi(repransiquote, '"', ansi)
+def strQuote(ansi=None):
+	return _stransi(options.repransiquote, '"', ansi=ansi)
 
-def strTab(count, ansi = None):
-	return _stransi(repransitab, reprtab*count, ansi = ansi)
+def strTab(count, ansi=None):
+	return _stransi(options.repransitab, options.reprtab*count, ansi=ansi)
 
-def strURL(URL, ansi = None):
-	return _stransi(repransiurl, URL, ansi)
+def strURL(URL, ansi=None):
+	return _stransi(options.repransiurl, URL, ansi=ansi)
 
 def nodeName(nodeClass):
 	"""
@@ -446,10 +446,7 @@ class Node:
 
 	def __repr__(self):
 		encoding = reprEncoding
-		if xsc.reprtree == 1:
-			result = self.reprtree(encoding)
-		else:
-			result = self.repr(encoding)
+		result = self.reprtree(encoding)
 		return result
 
 	def _str(self, content=None, brackets=1, slash=None, ansi=None):
@@ -724,7 +721,7 @@ class Node:
 		node.endloc = self.endloc
 		return node
 
-class Text(Node, UserString):
+class Text(Node):
 	"""
 	text node. The characters <, >, & and " will be "escaped" with the
 	appropriate character entities.
@@ -732,9 +729,14 @@ class Text(Node, UserString):
 
 	def __init__(self, content=""):
 		if type(content) in (types.IntType, types.LongType, types.FloatType):
-			content = str(content)
-		content = stringFromCode(content)
-		UserString.__init__(content)
+			content = unicode(str(content),"ascii")
+		elif isinstance(content, Text):
+			content = content.__content
+		elif type(content) in (types.StringType, types.UnicodeType):
+			content = stringFromCode(content)
+		else:
+			raise ValueError("content must be string, unicode, int, long, float or Text")
+		self.__content = content
 
 	def asHTML(self):
 		return self
@@ -742,12 +744,27 @@ class Text(Node, UserString):
 	clone = asHTML
 
 	def asPlainString(self):
-		return self.content
+		return self.__content
 
 	def publish(self, publisher):
-		publisher(publisher._encodeLegal(self.content))
+		publisher(publisher._encodeLegal(self.__content))
 
-	def __strtext(self, refwhite, content, encoding = None, ansi = None):
+	def __iadd__(self, other):
+		other = ToNode(other)
+		if isinstance(other, Text):
+			return Text(self.__content+other.__content)
+		raise ValueError("you can only add a text to a text")
+
+	def __len__(self):
+		return len(self.__content)
+
+	def __getitem__(self, index):
+		return self.__content[index]
+
+	def __getslice__(self, index1, index2):
+		return self._decorateNode(Text(self.__content[index1:index2]))
+
+	def __strtext(self, refwhite, content, encoding=None, ansi=None):
 		if encoding == None:
 			encoding = reprEncoding
 		# we could put ANSI escapes around every character or reference that we output,
@@ -787,10 +804,10 @@ class Text(Node, UserString):
 
 	def _dorepr(self, encoding=None, ansi=None):
 		# constructs a string of this Text with syntaxhighlighting. Special characters will be output as CharRefs (with special highlighting)
-		return self.__strtext(0, self.content, encoding, ansi)
+		return self.__strtext(0, self.__content, encoding, ansi)
 
 	def _doreprtree(self, nest, elementno, encoding=None, ansi=None):
-		lines = self.content.split("\n")
+		lines = self.__content.split("\n")
 		if len(lines) and lines[-1] == "":
 			del lines[-1]
 		v = []
@@ -800,9 +817,9 @@ class Text(Node, UserString):
 		return v
 
 	def compact(self):
-		for i in self.content:
+		for i in self.__content:
 			if i not in string.whitespace:
-				return self._decorateNode(Text(self.content))
+				return self._decorateNode(Text(self.__content))
 		else:
 			return Null
 

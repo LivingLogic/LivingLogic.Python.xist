@@ -177,7 +177,7 @@ class Provider:
 		last = self.__nesting[-1]
 		if len(last) and isinstance(last[-1], xsc.Text):
 			if isinstance(node, xsc.Text):
-				last[-1].content += node.content
+				last[-1] += node
 				return
 		last.append(node) # add the new node to the content of the innermost element (or fragment)
 
