@@ -1729,7 +1729,7 @@ class Attrs(Node, dict):
 	"""
 
 	class __metaclass__(Node.__metaclass__):
-		def __new__(cls, name, bases, dict):
+		def __new__(mcl, name, bases, dict):
 			# Automatically inherit the attributes from the base class (because the global Attrs require a pointer back to their defining namespace)
 			for base in bases:
 				for attrname in dir(base):
@@ -1738,12 +1738,18 @@ class Attrs(Node, dict):
 						classdict = {"__module__": dict["__module__"]}
 						if attr.xmlname[False] != attr.xmlname[True]:
 							classdict["xmlname"] = attr.xmlname[True]
+						classdict["__outerclass__"] = 42
 						dict[attrname] = attr.__class__(attr.__name__, (attr,), classdict)
-			self = Node.__metaclass__.__new__(cls, name, bases, {})
-			self._attrs = ({}, {})
-			for (key, value) in dict.iteritems():
-				setattr(self, key, value)
-			return self
+			dict["_attrs"] = ({}, {}) # cache for attributes (by Python name and by XML name)
+			cls = Node.__metaclass__.__new__(mcl, name, bases, dict)
+			# go through the attributes and put them in the cache
+			for (key, value) in cls.__dict__.iteritems():
+				if isinstance(value, type):
+					if getattr(value, "__outerclass__", None) == 42:
+						value.__outerclass__ = cls
+					if issubclass(value, Attr):
+						setattr(cls, key, value)
+			return cls
 
 		def __repr__(self):
 			return "<attrs class %s:%s with %s attrs at 0x%x>" % (self.__module__, self.__fullname__(), len(self._attrs[0]), id(self))
@@ -1762,7 +1768,10 @@ class Attrs(Node, dict):
 			oldvalue = cls.__dict__.get(key, None) # no inheritance
 			if isinstance(oldvalue, type) and issubclass(oldvalue, Attr):
 				for xml in (False, True):
-					del cls._attrs[xml][oldvalue.xmlname[xml]]
+					try:
+						del cls._attrs[xml][oldvalue.xmlname[xml]]
+					except KeyError: # catch a KeyError exception, because in the meta class constructor the attributes *are* in the class dict, but haven't gone through __setattr__, so they are not in the cache
+						pass
 			if isinstance(value, type) and issubclass(value, Attr):
 				for xml in (False, True):
 					cls._attrs[xml][value.xmlname[xml]] = value
@@ -3222,7 +3231,7 @@ class NamespaceAttrMixIn(object):
 		return 2
 	needsxmlns = classmethod(needsxmlns)
 
-class Namespace(object):
+class Namespace(Base):
 	"""
 	<par>an &xml; namespace.</par>
 	
@@ -3238,8 +3247,8 @@ class Namespace(object):
 	nsbyurl = {}
 	all = []
 
-	class __metaclass__(type):
-		def __new__(cls, name, bases, dict):
+	class __metaclass__(Base.__metaclass__):
+		def __new__(mcl, name, bases, dict):
 			pyname = unicode(name.split(".")[-1])
 			if "xmlname" in dict:
 				xmlname = dict["xmlname"]
@@ -3261,27 +3270,34 @@ class Namespace(object):
 						classdict = {"__module__": dict["__module__"]}
 						if attr.xmlname[0] != attr.xmlname[1]:
 							classdict["xmlname"] = attr.xmlname[1]
+						classdict["__outerclass__"] = 42
 						dict[attrname] = attr.__class__(attr.__name__, (attr, ), classdict)
-			self = type.__new__(cls, name, bases, {})
-			self.__originalname = name # preserves the name even after makemod()
-			self._elements = ({}, {})
-			self._procinsts = ({}, {})
-			self._entities = ({}, {})
-			self._charrefs = ({}, {}, {})
-			for (key, value) in dict.iteritems():
-				setattr(self, key, value)
-			for attr in self.Attrs.iterallowedvalues():
-				attr.xmlns = self
-			if self.xmlurl is not None:
-				self.nsbyname.setdefault(self.xmlname, []).insert(0, self)
-				self.nsbyurl.setdefault(self.xmlurl, []).insert(0, self)
-				self.all.append(self)
-				defaultPrefixes.addPrefixMapping(None, self, mode="prepend")
-				defaultPrefixes.addPrefixMapping(self.xmlname[True], self, mode="prepend")
-			return self
+			dict["_elements"] = ({}, {}) # cache for elements (by Python name and by XML name)
+			dict["_procinsts"] = ({}, {}) # cache for processing instructions (by Python name and by XML name)
+			dict["_entities"] = ({}, {}) # cache for entities (by Python name and by XML name)
+			dict["_charrefs"] = ({}, {}, {}) # cache for character references (by Python name, by XML name and by codepoint)
+			cls = Base.__metaclass__.__new__(mcl, name, bases, dict)
+			cls.__originalname = name # preserves the name even after makemod() (used by __repr__)
+			for (key, value) in cls.__dict__.iteritems():
+				if isinstance(value, type):
+					if getattr(value, "__outerclass__", None) == 42:
+						value.__outerclass__ = cls
+					if issubclass(value, (Element, ProcInst, Entity)):
+						setattr(cls, key, value)
+			for attr in cls.Attrs.iterallowedvalues():
+				attr.xmlns = cls
+			if cls.xmlurl is not None:
+				cls.nsbyname.setdefault(cls.xmlname, []).insert(0, cls)
+				cls.nsbyurl.setdefault(cls.xmlurl, []).insert(0, cls)
+				cls.all.append(cls)
+				defaultPrefixes.addPrefixMapping(None, cls, mode="prepend")
+				defaultPrefixes.addPrefixMapping(cls.xmlname[True], cls, mode="prepend")
+			return cls
 
 		def __eq__(self, other):
-			return self.xmlname[True]==other.xmlname[True] and self.xmlurl==other.xmlurl
+			if isinstance(other, type) and issubclass(other, Namespace):
+				return self.xmlname[True]==other.xmlname[True] and self.xmlurl==other.xmlurl
+			return False
 
 		def __ne__(self, other):
 			return not self==other
@@ -3318,7 +3334,7 @@ class Namespace(object):
 			else:
 				counts = ""
 
-			if self.__dict__.has_key("__file__"): # no inheritance
+			if "__file__" in self.__dict__: # no inheritance
 				fromfile = " from %r" % self.__file__
 			else:
 				fromfile = ""
@@ -3333,11 +3349,17 @@ class Namespace(object):
 		def __setattr__(cls, key, value):
 			oldvalue = cls.__dict__.get(key, None) # no inheritance
 			if isinstance(oldvalue, type) and issubclass(oldvalue, (Element, ProcInst, Entity)):
-				oldvalue._registerns(None)
+				try:
+					oldvalue._registerns(None)
+				except AttributeError:
+					pass
 			if isinstance(value, type) and issubclass(value, (Element, ProcInst, Entity)):
-				ns = value.__dict__.get("xmlns") # no inheritance
+				ns = value.__dict__.get("xmlns", None) # no inheritance
 				if ns is not None:
-					delattr(ns, key)
+					try:
+						delattr(ns, key)
+					except AttributeError:
+						pass
 				value._registerns(cls)
 			return type.__setattr__(cls, key, value)
 
