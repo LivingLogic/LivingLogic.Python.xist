@@ -1526,9 +1526,7 @@ class URL(Node):
 				del new.path[0]
 			new.path[:0] = [".."]*(len(otherpath)-1) # now for the rest of the path we have to go up from file and down to path (the directories for this are still in path)
 			new.scheme = ""
-			return new
-		else:
-			return new
+		return new
 
 	def __optimize(self):
 		# optimize the path by removing combinations of down/up
