@@ -66,6 +66,21 @@ def ToNode(value):
 		return Frag(*value)
 	raise errors.IllegalObjectError(value) # none of the above, so we throw and exception
 
+# FIXME this will become classmethods in Python 2.2
+def classNamespace(class_):
+	return getattr(class_, "_ns", None)
+
+def classPrefix(class_):
+	ns = classNamespace(class_)
+	if ns is not None:
+		return ns.prefix
+	else:
+		return unicode(class_.__module__)
+
+###
+###
+###
+
 class Node:
 	"""
 	base class for nodes in the document tree. Derived classes must

@@ -300,10 +300,7 @@ def strElementNameWithBrackets(namespacename=None, elementname=None, slash=0):
 def strElementClass(class_, slash=0):
 	namespacename = None
 	if class_.presentPrefix!=0:
-		if hasattr(class_, "_ns"):
-			namespacename = class_._ns.prefix
-		else:
-			namespacename = class_.__module__
+		namespacename = xsc.classPrefix(class_)
 	if hasattr(class_, "name"):
 		elementname = class_.name
 	else:
