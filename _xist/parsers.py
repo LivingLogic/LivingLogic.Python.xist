@@ -361,7 +361,11 @@ class Handler:
 
 	def __decorateException(self, exception):
 		if not isinstance(exception, saxlib.SAXParseException):
-			exception = saxlib.SAXParseException("%s: %s" % (exception.__class__.__name__, exception), exception, self._locator)
+			msg = exception.__class__.__name__
+			msg2 = str(exception)
+			if msg2:
+				msg += ": " + msg2
+			exception = saxlib.SAXParseException(msg, exception, self._locator)
 		return exception
 
 	def error(self, exception):
