@@ -2,7 +2,7 @@
 <section><title>Changes in 2.0.5 (released 11/11/2002)</title>
 <ulist>
 <item>Fixed a bug in <class>ll.xist.ns.specials.autoimg</class>:
-Attributes were not converted because the size check was done
+Attributes were not converted before the size check was done
 (this is the same fix as in 1.5.5).</item>
 </ulist>
 </section>
@@ -100,7 +100,7 @@ to make image &url;s shorter.</item>
 <section><title>Changes in 1.5.5 (released 11/11/2002)</title>
 <ulist>
 <item>Fixed a bug in <class>ll.xist.ns.specials.autoimg</class>:
-Attributes were not converted because the size check was done.</item>
+Attributes were not converted before the size check was done.</item>
 </ulist>
 </section>
 
