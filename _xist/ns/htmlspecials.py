@@ -244,6 +244,16 @@ class ImgAttrDecorator(specials.AttrDecorator):
 		pass
 	idecoratable = (html.img,)
 
+class InputAttrDecorator(specials.AttrDecorator):
+	class Attrs(html.input.Attrs):
+		pass
+	decoratable = (html.input,)
+
+class FormAttrDecorator(specials.AttrDecorator):
+	class Attrs(html.form.Attrs):
+		pass
+	decoratable = (html.form,)
+
 class xmlns(xsc.Namespace):
 	xmlname = "htmlspecials"
 	xmlurl = "http://xmlns.livinglogic.de/xist/ns/htmlspecials"
