@@ -592,6 +592,13 @@ class param(xsc.Element):
 	empty = 1
 	attrHandlers = {"id": xsc.TextAttr, "name": xsc.TextAttr, "value": xsc.TextAttr, "valuetype": xsc.TextAttr, "type": xsc.TextAttr}
 
+class embed(xsc.Element):
+	"""
+	generic embedded object (Internet Exploder)
+	"""
+	empty = 0
+	attrHandlers = {"width": xsc.TextAttr, "height": xsc.TextAttr, "src": xsc.URLAttr, "controller": xsc.TextAttr, "href": xsc.URLAttr, "target": xsc.TextAttr, "border": xsc.IntAttr, "pluginspage": xsc.URLAttr})
+
 class map(xsc.Element):
 	"""
 	client-side image map

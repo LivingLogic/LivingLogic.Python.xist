@@ -125,14 +125,17 @@ class IllegalElementError(Error):
 			for element in namespace.elementsByName.values():
 				all[(element.name, element.namespace.prefix)] = element
 
+		presenter = presenters.NormalPresenter()
+
 		allkeys = all.keys()
 		allkeys.sort()
 		allAsList = []
 		for key in allkeys:
 			element = all[key]
-			allAsList.append(xsc.strElement(element.namespace.prefix, element.name, element.empty))
+			allAsList.append(str(presenter.strElement(element)))
 
-		s = Error.__str__(self) + "element " + xsc._strName((self.name[0], self.name[1], 0)) + " not allowed. "
+		s = Error.__str__(self) + "element <%s:%s> not allowed. " % (self.name[0], self.name[1])
+		#s = Error.__str__(self) + "element " + xsc._strName((self.name[0], self.name[1], 0)) + " not allowed. "
 		if allAsList:
 			s = s + "Allowed elements are: " + ", ".join(allAsList) + "."
 		else:
