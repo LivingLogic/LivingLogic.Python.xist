@@ -205,7 +205,7 @@ class autoinput(html.input):
 class redirectpage(xsc.Element):
 	empty = True
 	class Attrs(xsc.Element.Attrs):
-		class href(xsc.URLAttr): pass
+		class href(xsc.URLAttr): required = True
 
 	def convert(self, converter):
 		url = self["href"]
