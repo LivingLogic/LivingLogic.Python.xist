@@ -1570,6 +1570,9 @@ class Attrs(Node, dict):
 			res._attrs = attrs
 			return res
 
+		def __repr__(self):
+			return "<attrs class %s/%s with %s attrs at 0x%x>" % (self.__module__, self.__fullname__(), len(self._attrs[0]), id(self))
+
 		def __getitem__(cls, key):
 			return cls._attrs[0][key]
 
