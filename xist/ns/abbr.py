@@ -270,6 +270,12 @@ class sax(xsc.Entity):
 	def asPlainString(self):
 		return u"SAX"
 
+class dbms(xsc.Entity):
+	def convert(self, converter=None):
+		return html.span(html.abbr("DBMS", title="Database Management System", lang="en"), class_="caps")
+	def asPlainString(self):
+		return u"DBMS"
+
 class ansi(xsc.Entity):
 	def convert(self, converter=None):
 		return html_.span(html_.abbr("ANSI", title="American National Standards Institute", lang="en"), class_="caps")

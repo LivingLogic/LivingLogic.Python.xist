@@ -29,13 +29,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 
 import sys, os, types
 
-def stringFromCode(text):
-	if text is None:
-		return u""
-	elif type(text) is types.UnicodeType:
-		return text
-	else:
-		return unicode(str(text),"latin1")
+import helpers
 
 def forceopen(name, mode="r", bufsize=-1):
 	try:

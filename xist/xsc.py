@@ -593,7 +593,7 @@ class StringMixIn:
 	a few methods (<code>__str__</code> etc.)
 	"""
 	def __init__(self, content):
-		self._content = utils.stringFromCode(content)
+		self._content = helpers.unistr(content)
 
 	def __iadd__(self, other):
 		other = ToNode(other)
@@ -617,7 +617,7 @@ class StringMixIn:
 			return cmp(self._content, other)
 
 	def __contains__(self, char):
-		return utils.stringFromCode(char) in self._content
+		return helpers.unistr(char) in self._content
 
 	def __hash__(self):
 		return hash(self._content)
@@ -641,13 +641,13 @@ class StringMixIn:
 		return self._content.count(sub, start, end)
 
 	def endswith(self, suffix, start=0, end=sys.maxint):
-		return self._content.endswith(utils.stringFromCode(suffix), start, end)
+		return self._content.endswith(helpers.unistr(suffix), start, end)
 
 	def find(self, sub, start=0, end=sys.maxint):
-		return self._content.find(utils.stringFromCode(sub), start, end)
+		return self._content.find(helpers.unistr(sub), start, end)
 
 	def index(self, sub, start=0, end=sys.maxint):
-		return self._content.index(utils.stringFromCode(sub), start, end)
+		return self._content.index(helpers.unistr(sub), start, end)
 
 	def isalpha(self):
 		return self._content.isalpha()
@@ -689,13 +689,13 @@ class StringMixIn:
 		return self.__class__(self._content.lstrip())
 
 	def replace(self, old, new, maxsplit=-1):
-		return self.__class__(self._content.replace(utils.stringFromCode(old), utils.stringFromCode(new), maxsplit))
+		return self.__class__(self._content.replace(helpers.unistr(old), helpers.unistr(new), maxsplit))
 
 	def rfind(self, sub, start=0, end=sys.maxint):
-		return self._content.rfind(utils.stringFromCode(sub), start, end)
+		return self._content.rfind(helpers.unistr(sub), start, end)
 
 	def rindex(self, sub, start=0, end=sys.maxint):
-		return self._content.rindex(utils.stringFromCode(sub), start, end)
+		return self._content.rindex(helpers.unistr(sub), start, end)
 
 	def rjust(self, width):
 		return self.__class__(self._content.rjust(width))
@@ -710,7 +710,7 @@ class StringMixIn:
 		return Frag(self._content.splitlines(keepends))
 
 	def startswith(self, prefix, start=0, end=sys.maxint):
-		return self._content.startswith(utils.stringFromCode(prefix), start, end)
+		return self._content.startswith(helpers.unistr(prefix), start, end)
 
 	def strip(self):
 		return self.__class__(self._content.strip())
@@ -969,6 +969,15 @@ class Frag(Node):
 		node.__content.sort(compare)
 		return node
 
+	def reversed(self):
+		"""
+		returns a reversed version of the <self/>.
+		"""
+		node = Frag()
+		node.__content = self.__content[:]
+		node.__content.reverse()
+		return node
+
 class Comment(Node, StringMixIn):
 	"""
 	a comment node
@@ -1049,7 +1058,7 @@ class ProcInst(Node, StringMixIn):
 	"""
 
 	def __init__(self, target, content=u""):
-		self._target = utils.stringFromCode(target)
+		self._target = helpers.unistr(target)
 		StringMixIn.__init__(self, content)
 
 	def convert(self, converter=None):
@@ -1333,7 +1342,7 @@ class Element(Node):
 							try:
 								s = self[attr].convert(converter).asPlainString() % sizedict
 								s = str(eval(s))
-								s = utils.stringFromCode(s)
+								s = helpers.unistr(s)
 								self[attr] = s
 							except TypeError: # ignore "not all argument converted"
 								pass
@@ -1542,6 +1551,14 @@ class Element(Node):
 		"""
 		node = self.__class__(**self.attrs)
 		node.content = self.content.sorted(compare)
+		return node
+
+	def reversed(self):
+		"""
+		returns a reversed version of <self/>.
+		"""
+		node = self.__class__(**self.attrs)
+		node.content = self.content.reversed()
 		return node
 
 class Entity(Node):
@@ -1789,8 +1806,8 @@ class Namespace:
 	"""
 
 	def __init__(self, prefix, uri, thing=None):
-		self.prefix = utils.stringFromCode(prefix)
-		self.uri = utils.stringFromCode(uri)
+		self.prefix = helpers.unistr(prefix)
+		self.uri = helpers.unistr(uri)
 		self.elementsByName = {} # dictionary for mapping element names to classes
 		self.entitiesByName = {} # dictionary for mapping entity names to classes
 		self.entitiesByNumber = [ [] for i in xrange(65536) ]
@@ -1838,7 +1855,7 @@ class Namespace:
 						name = thing.__name__
 					thing.namespace = self # this creates a cycle
 					if name is not None:
-						name = utils.stringFromCode(name)
+						name = helpers.unistr(name)
 						thing.name = name
 						if iselement:
 							self.elementsByName[name] = thing

@@ -299,7 +299,6 @@ static PyObject *escapeAttr(PyObject *self, PyObject *args)
 }
 
 /* reimplement unistr, which has been removed before the release of Python 2.1 */
-/*
 static PyObject *builtin_unistr(PyObject *self, PyObject *args)
 {
 	PyObject *v;
@@ -308,7 +307,6 @@ static PyObject *builtin_unistr(PyObject *self, PyObject *args)
 		return NULL;
 	return PyObject_Unicode(v);
 }
-*/
 
 static char unistr_doc[] =
 "unistr(object) -> unicode\n\
@@ -323,9 +321,7 @@ static PyMethodDef _functions[] =
 {
 	{"escapeText", escapeText, 1, escapeText__doc__},
 	{"escapeAttr", escapeAttr, 1, escapeAttr__doc__},
-	/*
 	{"unistr",	builtin_unistr, 1, unistr_doc},
-	*/
 	{NULL, NULL}
 };
 

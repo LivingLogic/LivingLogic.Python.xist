@@ -54,6 +54,10 @@ a new module abbr.py.
 All the modules that provide new elements and entitites
 have been moved to a submodule ns.
 
+Frag and Element now have new methods sorted() and reversed()
+that return sorted and reversed versions of the
+Frag/Element.
+
 New in 0.4.7
 ------------
 Fixed a bug in the entity handling.
