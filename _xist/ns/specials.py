@@ -157,7 +157,6 @@ class AttrDecorator(xsc.Element):
 	decoratable = ()
 
 	class Visitor(object):
-
 		def __init__(self, decorator, converter):
 			self.decorator = decorator
 			self.converter = converter
