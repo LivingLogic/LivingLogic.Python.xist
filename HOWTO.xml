@@ -39,29 +39,29 @@ the final &xml; to an output stream.</item>
 <section><title>Constructing &xml; trees</title>
 <par>Like any other &dom; &api;, &xist; provides the usual classes:</par>
 <ulist>
-<item><pyref module="ll.xist.xsc" class="Text"><class>Text</class></pyref> for text data</item>
+<item><pyref module="ll.xist.xsc" class="Element"><class>Element</class></pyref> for &xml; elements;</item>
+<item><pyref module="ll.xist.xsc" class="Attr"><class>Attr</class></pyref> for attributes;</item>
+<item><pyref module="ll.xist.xsc" class="Attrs"><class>Attrs</class></pyref> for attribute mappings;</item>
+<item><pyref module="ll.xist.xsc" class="Text"><class>Text</class></pyref> for text data;</item>
 <item><pyref module="ll.xist.xsc" class="Frag"><class>Frag</class></pyref> for document fragments,
-a <pyref module="ll.xist.xsc" class="Frag"><class>Frag</class></pyref> object is simply a list
-of nodes,</item>
+(a <pyref module="ll.xist.xsc" class="Frag"><class>Frag</class></pyref> object is simply a list
+of nodes);</item>
 <item><pyref module="ll.xist.xsc" class="Comment"><class>Comment</class></pyref> for &xml; comments
-(e.g. <markup>&lt;!-- the comment --&gt;</markup>)</item>
-<item><pyref module="ll.xist.xsc" class="DocType"><class>DocType</class></pyref> for document type
-declarations (e.g. <markup>&lt;!DOCTYPE html PUBLIC <rep>...</rep>&gt;</markup>),</item>
+(e.g. <markup>&lt;!-- the comment --&gt;</markup>);</item>
 <item><pyref module="ll.xist.xsc" class="ProcInst"><class>ProcInst</class></pyref> for processing instructions
-(e.g. <markup>&lt;?php echo $spam;?&gt;</markup>),</item>
-<item><pyref module="ll.xist.xsc" class="Element"><class>Element</class></pyref> for &xml; elements,</item>
+(e.g. <markup>&lt;?php echo $spam;?&gt;</markup>);</item>
 <item><pyref module="ll.xist.xsc" class="Entity"><class>Entity</class></pyref> for entities
-(e.g. <markup>&amp;parrot;</markup>),</item>
-<item><pyref module="ll.xist.xsc" class="Attr"><class>Attr</class></pyref> for attributes and</item>
-<item><pyref module="ll.xist.xsc" class="Attrs"><class>Attrs</class></pyref> for attribute mappings.</item>
+(e.g. <markup>&amp;parrot;</markup>) and</item>
+<item><pyref module="ll.xist.xsc" class="DocType"><class>DocType</class></pyref> for document type
+declarations (e.g. <markup>&lt;!DOCTYPE html PUBLIC <rep>...</rep>&gt;</markup>).</item>
 </ulist>
 
 <section><title>&xml; trees as Python objects</title>
 <par>&xist; works somewhat different from a normal &dom; &api;.
 Instead of only one element class, &xist; has one class for every element
-type. All the standard elements known to &xist; are defined in modules in
-the <pyref module="ll.xist.ns"><module>ll.xist.ns</module></pyref> subpackage.
-The definition of &html; can be found in
+type. All the elements from different &xml; vocabularies known to &xist; are
+defined in modules in the <pyref module="ll.xist.ns"><module>ll.xist.ns</module></pyref>
+subpackage. The definition of &html; can be found in
 <pyref module="ll.xist.ns.html"><module>ll.xist.ns.html</module></pyref>
 for example.</par>
 
@@ -132,8 +132,21 @@ parsing resources from &url;s. With
 local files.</par>
 <par>All three functions create a parser internally, parse the supplied source document and
 return the resulting object tree.</par>
-<par>For further info about the rest of the arguments, see the documentation
-for <pyref module="ll.xist.parsers" class="Parser"><class>ll.xist.parsers.Parser</class></pyref>.</par>
+<par>Parsing a string can be done like this:</par>
+<example>
+<prog>
+from ll.xist import parsers
+from ll.xist.ns import html
+
+node = parsers.parseString(
+	"&lt;p&gt;Hello &lt;a href="http://www.python.org/"&gt;Python&lt;/a&gt; world!&lt;/p&gt;"
+)
+</prog>
+</example>
+
+<par>For further info about the rest of the arguments to the parsing
+functions, see the documentation for
+<pyref module="ll.xist.parsers" class="Parser"><class>ll.xist.parsers.Parser</class></pyref>.</par>
 </section>
 </section>
 
@@ -147,8 +160,6 @@ for an element named <lit>cool</lit> works like this:</par>
 <example><title>Defining a new element</title>
 <prog>
 class cool(xsc.Element):
-	empty = False
-
 	def convert(self, converter):
 		node = html.b(self.content, " is cool!")
 		return node.convert(converter)
@@ -191,8 +202,6 @@ on your own content, because otherwise some unconverted nodes
 might remain in the tree. Lets define a new element:</par>
 <prog>
 class python(xsc.Element):
-	empty = True
-
 	def convert(self, converter):
 		return html.a(
 			"Python",
@@ -237,14 +246,10 @@ from ll.xist import converters
 from ll.xist.ns import html
 
 node = cool(python())
-node = node.convert(
-	converters.Converter(
-		None, None, "deliver", html, None
-	)
-)
+node = node.convert(converters.Converter())
 </prog>
 
-<par>You can pass the following five arguments to the
+<par>You can pass the following arguments to the
 <pyref module="ll.xist.converters" class="Converter"><class>Converter</class></pyref> constructor:</par>
 <dlist>
 <term><arg>root</arg></term><item><arg>root</arg> (which defaults to <lit>None</lit>) is the root &url;
@@ -274,8 +279,6 @@ in which the result tree should be. This can be used in the <method>convert</met
 to implement different conversions for different languages, e.g.:</par>
 <prog>
 class note(xsc.Element):
-	empty = False
-
 	def convert(self, converter):
 		if converter.lang=="de":
 			title = "Anmerkung"
@@ -380,7 +383,6 @@ We could extend our example element in the following way:</par>
 <example><title>Using attributes</title>
 <prog>
 class cool(xsc.Element):
-	empty = False
 	class Attrs(xsc.Element.Attrs):
 		class adj(xsc.TextAttr): pass
 
