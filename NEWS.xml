@@ -26,6 +26,9 @@ print code.Eval("return converter.lang")(lang="en").asBytes()
 which will print <code>en</code>.</li>
 <li>The option <code>XHTML</code> for the publishers has been changed
 to lowercase.</li>
+<li><code>xist.ns.html.html</code> will automatically generate a
+<code>lang</code> and <code>xml:lang</code> attribute when the
+converter has a language set.</li>
 </ul>
 </section>
 
