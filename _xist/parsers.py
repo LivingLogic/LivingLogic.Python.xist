@@ -394,7 +394,7 @@ class HTMLParser(SGMLOPParser):
 			else: # ; found
 				if part[0] != "#": # named entity
 					try:
-						node.append(html.namespace.entityFromName(part[:pos])(), part[pos+1:])
+						node.append(html.namespace.entitiesByName[part[:pos]](), part[pos+1:])
 					except KeyError: # no entity with such a name => append it literally
 						node.append("&", part)
 				else: # numeric entity
