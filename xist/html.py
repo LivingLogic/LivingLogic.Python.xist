@@ -51,9 +51,9 @@ class meta(xsc.Element):
 	empty = 1
 	attrHandlers = xsc.appendDict(i18n,{ "http_equiv" : xsc.TextAttr , "http-equiv" : xsc.TextAttr , "name" : xsc.TextAttr ,"content" : xsc.TextAttr ,"scheme" : xsc.TextAttr })
 
-	def __init__(self,_content = [],_attrs = {},**_restattrs):
+	def __init__(self,*_content,**_attrs):
 		# we have two names for one and the same attribute http_equiv and http-equiv
-		apply(xsc.Element.__init__,(self,_content,_attrs),_restattrs)
+		apply(xsc.Element.__init__,(self,_content),_attrs)
 		if self.has_attr("http_equiv"):
 			if not self.has_attr("http-equiv"):
 				self["http-equiv"] = self["http_equiv"]

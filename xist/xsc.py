@@ -10,7 +10,7 @@
 ## appear in supporting documentation, and that the name of Living Logic AG not be used
 ## in advertising or publicity pertaining to distribution of the software without specific,
 ## written prior permission.
-## 
+##
 ## LIVING LOGIC AG DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE, INCLUDING
 ## ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO EVENT SHALL LIVING LOGIC AG
 ## BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER
@@ -869,23 +869,10 @@ class Frag(Node):
 
 	repransiname = ""
 
-	def __init__(self,_content = []):
-		t = type(_content)
-		if t == types.InstanceType:
-			if isinstance(_content,Frag): # if this was an attribute, we have it downcast now
-				self.__content = []
-				for child in _content:
-					self.append(child)
-			elif isinstance(_content,Null):
-				self.__content = []
-			else:
-				self.__content = [ ToNode(_content) ]
-		elif t in [ types.ListType , types.TupleType ]:
-			self.__content = map(ToNode,_content)
-		elif _content is None:
-			self.__content = []
-		else:
-			self.__content = [ ToNode(_content) ]
+	def __init__(self,*_content):
+		self.__content = []
+		for child in _content:
+			self.append(child)
 
 	def __add__(self,other):
 		res = self.__class__(self.__content) # "virtual" copy

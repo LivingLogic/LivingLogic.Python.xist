@@ -73,13 +73,13 @@ class lookupcombobox(control):
 
 		if retrievedb:
 			db = _getDB(self)
-			query = db.query(str(self["query"]))
-			displayfield = str(self["displayfield"].asHTML())
-			valuefield = str(self["valuefield"].asHTML())
+			query = db.query(self["query"].asPlainString()
+			displayfield = self["displayfield"].asHTML().asPlainString()
+			valuefield = self["valuefield"].asHTML().asPlainString()
 			for tuple in query.dictresult():
 				value = str(tuple[valuefield])
 				o = html.option(tuple[displayfield],value = value)
-				if self.has_attr("value") and str(self["value"]) == value:
+				if self.has_attr("value") and self["value"].asPlainString() == value:
 					o["selected"] = None
 				e.append(o)
 		else:
@@ -94,7 +94,7 @@ class checkbox(control):
 		for attr in self.attrs.keys():
 			e[attr] = self[attr]
 		e["type"] = "checkbox"
-		if self.has_attr("value") and string.atoi(str(self["value"])) != 0:
+		if self.has_attr("value") and string.atoi(self["value"].asPlainString()) != 0:
 			e["checked"] = None
 		else:
 			del e["checked"]
