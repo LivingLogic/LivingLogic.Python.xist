@@ -29,14 +29,14 @@ from ll.xist import xsc, parsers
 from ll.xist.ns import xndl
 from ll.xist.tools import dtd
 
-def dtd2xsc(dtdurl, outurl, verbose, xmlname, xmlurl, skipxmlns, shareattrs):
+def dtd2xsc(dtdurl, outurl, verbose, xmlname, xmlurl, shareattrs):
 	if verbose:
 		print "Parsing DTD %s ..." % dtdurl
 	d = dtdparser.load_dtd(dtdurl.url)
 
 	if verbose:
 		print "Converting ..."
-	data = dtd.dtd2data(d, xmlname, xmlurl, skipxmlns)
+	data = dtd.dtd2data(d, xmlname, xmlurl)
 
 	if shareattrs=="dupes":
 		data.shareattrs(False)
@@ -55,7 +55,6 @@ if __name__ == "__main__":
 	p.add_option("-v", "--verbose", action="store_true", dest="verbose")
 	p.add_option("-p", "--prefix", dest="xmlname", help="the XML prefix for this namespace", default="prefix", metavar="PREFIX")
 	p.add_option("-u", "--url", dest="xmlurl", help="the XML namespace name", metavar="URL")
-	p.add_option("-x", "--skipxmlns", dest="skipxmlns", help="Ignore any attribute declaration for 'xmlns'")
 	p.add_option("-s", "--shareattrs", dest="shareattrs", help="Should identical attributes be shared among elements?", choices=("none", "dupes", "all"), default="dupes")
 
 	(options, args) = p.parse_args()
@@ -67,4 +66,4 @@ if __name__ == "__main__":
 		output = url.File(input.withExt("py").file)
 	else:
 		output = url.URL(options.output)
-	dtd2xsc(input, output, options.verbose, options.xmlname, options.xmlurl, options.skipxmlns, options.shareattrs)
+	dtd2xsc(input, output, options.verbose, options.xmlname, options.xmlurl, options.shareattrs)

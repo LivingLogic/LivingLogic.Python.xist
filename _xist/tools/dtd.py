@@ -23,7 +23,7 @@ from ll import url
 from ll.xist import xsc, parsers
 from ll.xist.ns import xndl
 
-def dtd2xndl(dtd, xmlname, xmlurl=None, skipxmlns=True):
+def dtd2xndl(dtd, xmlname, xmlurl=None):
 	"""
 	Convert &dtd; information (in the format that is returned by <app>xmlproc</app>s
 	<function>dtdparser.load_dtd</function> function) to an &xist; DOM using the
@@ -32,7 +32,7 @@ def dtd2xndl(dtd, xmlname, xmlurl=None, skipxmlns=True):
 
 	node = xndl.xndl(name=xmlname, url=xmlurl)
 
-	xmlns = {}
+	xmlns = {} # collects all the values of fixed xmlns attributes (as a set)
 
 	# Add element info
 	elements = dtd.get_elements()
@@ -54,8 +54,7 @@ def dtd2xndl(dtd, xmlname, xmlurl=None, skipxmlns=True):
 				if attrname=="xmlns":
 					if attr.decl=="#FIXED":
 						xmlns[attr.default] = None
-					if skipxmlns:
-						continue # skip a namespace declaration
+					continue # skip a namespace declaration
 				elif u":" in attrname:
 					continue # skip global attributes
 				values = []
@@ -96,6 +95,6 @@ def dtd2xndl(dtd, xmlname, xmlurl=None, skipxmlns=True):
 			node["url"] = "... insert namespace name ..."
 	return node
 
-def dtd2data(dtd, xmlname, xmlurl=None, skipxmlns=True):
-	return dtd2xndl(dtd, xmlname, xmlurl, skipxmlns).asdata()
+def dtd2data(dtd, xmlname, xmlurl=None):
+	return dtd2xndl(dtd, xmlname, xmlurl).asdata()
 
