@@ -29,7 +29,7 @@ def _getDB(element):
 		try:
 			module = sys.modules[module]
 		except KeyError:
-			if module == nameOfMainModule():
+			if module == xsc.nameOfMainModule():
 				module = sys.modules["__main__"]
 			else:
 				raise
