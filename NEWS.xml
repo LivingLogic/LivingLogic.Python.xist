@@ -1,4 +1,14 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
+<section><title>Changes in CVS (released ??/??/2002)</title>
+<ulist>
+<item>Removed <class>FileInputSource</class> (use <class>URLInputSource</class>
+instead) and <class>TidyURLInputSource</class>. Now it's possible
+to pass a <lit>tidy</lit> flag to the remaining functions <function>parseString</function>
+and <function>parseURL</function> to specify whether the source
+should be tidied.</item>
+</ulist>
+</section>
+
 <section><title>Changes in 1.4 (released 03/18/2002)</title>
 <ulist>
 <item>Reimplemented &url; handling again. Now the new global
