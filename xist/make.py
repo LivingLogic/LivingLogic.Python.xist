@@ -35,15 +35,18 @@ import ansistyle
 
 from xist import xsc, publishers, presenters, url, utils, converters, parsers # don't do a subpackage import here, otherwise chaos will ensue, because XIST modules will be imported twice
 
-def extXSC2HTML(ext):
+def mapExt(ext):
 	try:
-		return {"hsc": "html", "shsc": "shtml", "phsc": "phtml", "xsc": "html", "sxsc": "shtml", "pxsc": "phtml"}[ext]
-	except KeyError:
-		return ext
-
-def extHTML2XSC(ext):
-	try:
-		return {"html": "hsc", "shtml": "shsc", "phtml": "phsc"}[ext]
+		return {
+			"hsc": "html",
+			"shsc": "shtml",
+			"phsc": "phtml",
+			"xsc": "html",
+			"sxsc": "shtml",
+			"pxsc": "phtml",
+			"jxsc": "jsp",
+			"jxscp": "jspp"
+		}[ext]
 	except KeyError:
 		return ext
 
@@ -102,7 +105,7 @@ def make():
 			if not outname.file:
 				outname.file = "noname"
 			try:
-				outname.ext = {"hsc": "html", "shsc": "shtml", "phsc": "phtml", "xsc": "html", "sxsc": "shtml", "pxsc": "phtml"}[inname.ext]
+				outname.ext = mapExt(inname.ext)
 			except KeyError:
 				outname.ext = "html"
 			t1 = time.clock()
