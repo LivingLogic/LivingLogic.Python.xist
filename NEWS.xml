@@ -10,6 +10,18 @@ automatic generation of the correct <lit>charset</lit> option
 in the <lit>contentType</lit> attribute is only done when there
 is a <lit>contentType</lit> attribute, as <lit>contentType</lit>
 is optional.</item>
+<item><par>The <method>conv</method> has two new arguments:</par>
+<ulist>
+<item><arg>function</arg> which (when set to a callable object), will
+be used for calling the method <method>mapped</method> instead of
+calling <method>convert</method>. In addition to that this callable
+object will be stored in the converter, which must be passed around
+all calls to <method>mapped</method>.</item>
+<item><arg>node</arg> which will be set to <self/> by <method>conv</method>
+automatically. This makes it possible to access the <z>document root</z>
+during conversion.</item>
+</ulist>
+</item>
 </ulist>
 </section>
 
@@ -141,13 +153,13 @@ available for entities and processing instruction.</item>
 <item>Global attributes are supported now. Namespace modules
 for the <lit>xml</lit> and <lit>xlink</lit> namespaces
 have been added (and <class>ll.xist.xsc.XML</class> was
-moved to <module>ll.xist.ns.xml</module>.</item>
-<item>A new namespace module for &svg; 1.0 has been added: <module>ll.xist.ns.svg</module></item>
+moved to <module>ll.xist.ns.xml</module>).</item>
+<item>A new namespace module for &svg; 1.0 has been added: <module>ll.xist.ns.svg</module>.</item>
 <item>The &html; specific parts of <module>ll.xist.ns.specials</module>
 have been split off into a separate module <module>ll.xist.ns.htmlspecials</module>.</item>
 <item>Comparison of attributes with strings has been removed.
 You have to use <method>__unicode__</method> or <method>__str__</method>
-instead.</item>
+now before comparing.</item>
 <item>The <class>HTMLParser</class> now removes unknown attributes
 instead of complaining.</item>
 <item>There is a new parser class <class>BadEntityParser</class>, which
@@ -393,10 +405,10 @@ or publishing.</item>
 
 <section><title>Changes in 1.2 (released 10/03/2001)</title>
 <ulist>
-<item><class>xist.ns.meta.keywords</class>
+<item><par><class>xist.ns.meta.keywords</class>
 and <class>xist.ns.meta.description</class>
 no longer call <method>asPlainString</method>
-on their content. This makes it possible to e.g. generate the keywords via &jsp;:
+on their content. This makes it possible to e.g. generate the keywords via &jsp;:</par>
 <example>
 <programlisting>
 &gt;&gt;&gt; from xist import parsers
@@ -480,21 +492,21 @@ specify attributes. As sequences are always unpacked, the method
 <method>extend</method> is gone. This works for <method>append</method>
 and <method>insert</method> too.</item>
 
-<item><class>Node</class> and <class>Frag</class> implement
-<method>__mul__</method> and <method>__rmul__</method>, so you can do stuff like
+<item><par><class>Node</class> and <class>Frag</class> implement
+<method>__mul__</method> and <method>__rmul__</method>, so you can do stuff like:</par>
 <programlisting>
 html.br()*5
 </programlisting>
-This returns a <class>Frag</class> with five times to same node.</item>
+<par>This returns a <class>Frag</class> with five times to same node.</par></item>
 
-<item>Arguments for the converter constructor can be passed to
-<method>xist.xsc.Node.conv</method> now, so it's possible to do stuff like this:
+<item><par>Arguments for the converter constructor can be passed to
+<method>xist.xsc.Node.conv</method> now, so it's possible to do stuff like this:</par>
 <programlisting>
 from xist.ns import code
 print code.Eval("return converter.lang") \
 	.conv(lang="en").asBytes()
 </programlisting>
-which will print <lit>en</lit>.</item>
+<par>which will print <lit>en</lit>.</par></item>
 <item>The option <arg>XHTML</arg> for the publishers has been changed
 to lowercase.</item>
 <item><class>xist.ns.html.html</class> will automatically generate a
@@ -596,18 +608,18 @@ name per line) that should be converted.</item>
 for specifying which parser to use. Allowed values are <lit>sgmlop</lit>
 and <lit>expat</lit>.</item>
 
-<item><filename>xscmake.py</filename> has a new option <option>-n</option>/<option>--namespace</option>
+<item><par><filename>xscmake.py</filename> has a new option <option>-n</option>/<option>--namespace</option>
 that can be used for appending <class>Namespace</class>
-objects to the <class>Namespaces</class> object used by <filename>xscmake.py</filename>.
+objects to the <class>Namespaces</class> object used by <filename>xscmake.py</filename>.</par>
 <example>
 <title>Using the --namespace option</title>
 <programlisting>
 xscmake.py -n html -n spam eggs.xsc
 </programlisting>
 </example>
-With this call the parser will find element classes from the
+<par>With this call the parser will find element classes from the
 module with the prefix name <lit>spam</lit> before those
-from <lit>html</lit> and those before anything else.</item>
+from <lit>html</lit> and those before anything else.</par></item>
 
 <item><class>xist.url.URL</class> no longer has an attribute
 <lit>ext</lit>. <lit>file</lit> and <lit>ext</lit> are
@@ -623,23 +635,23 @@ now have a new method <method>mapped</method>,
 that recursively maps the nodes through a function. This is like
 <method>convert</method> but via an external function.</item>
 
-<item>Attribute handling has been improved thanks to a suggestion
+<item><par>Attribute handling has been improved thanks to a suggestion
 by Hartmut Goebel: <method>Element.__getitem__</method> now
 always works as long as the attribute name is legal. If the attribute
 is not set, an empty attribute will be returned. All empty attributes
 will be considered as being not set and so <method>hasAttr</method>
 returns <lit>0</lit> for them, and <method>publish</method> doesn't
-publish them. This simplifies several very common cases:
-<olist>
+publish them. This simplifies several very common cases:</par>
+<ulist>
 <item>Copying an attribute from one element to another works regardless
 of whether the attribute is set or not;</item>
 <item>Testing for an attributes presence can now be done much
 simpler: <lit>if element["attrname"]</lit> instead of
 <lit>if element.hasAttr("attrname")</lit> (which still
 works, and should be a little faster);</item>
-<item>When you construct a &dom; tree and the presence or absence
+<item><par>When you construct a &dom; tree and the presence or absence
 of an attribute is tied to a condition, you can construct the attribute
-in advance and use it afterwards in the tree construction:
+in advance and use it afterwards in the tree construction:</par>
 <programlisting>
 if <rep>condition</rep>:
 	align = "right"
@@ -647,14 +659,13 @@ else:
 	align = None
 node = html.div("spam", align=align)
 </programlisting>
-So, when the <lit><rep>condition</rep></lit> is false,
-the node will not have the attribute <lit>align</lit> set.
+<par>So, when the <lit><rep>condition</rep></lit> is false,
+the node will not have the attribute <lit>align</lit> set.</par></item>
+</ulist>
 </item>
-</olist>
-</item>
-<item><class>xist.ns.cond.If</class> (and <class>xist.ns.cond.ElIf</class>)
+<item><par><class>xist.ns.cond.If</class> (and <class>xist.ns.cond.ElIf</class>)
 can now be used to test for attributes of the converter. I.e. it's possible to
-write the following &xml;:
+write the following &xml;:</par>
 <programlisting>
 &lt;if lang="en"&gt;Title
 &lt;elif lang="de"&gt;Überschrift
@@ -852,16 +863,16 @@ from <filename>db.py</filename> have been moved to <filename>sql.py</filename> a
 <item>When using <function>xsc.make</function> the encoding and XHTML parameters to use can now
 be specified on the command line (e.g. <lit>--encoding utf-8 --xhtml 2</lit>)</item>
 
-<item>Handling of multiline <markup>&lt;?xsc-eval?&gt;</markup> and <markup>&lt;?xsc-exec?&gt;</markup>
+<item><par>Handling of multiline <markup>&lt;?xsc-eval?&gt;</markup> and <markup>&lt;?xsc-exec?&gt;</markup>
 has been enhanced, although, &xist; will not be able to guess the correct indentation
-in all cases. As a workarround simply add a Python comment to the beginning:
+in all cases. As a workarround simply add a Python comment to the beginning:</par>
 <programlisting>
 &lt;?xsc-exec
 	for i in xrange(10):
 		do(i)
 ?&gt;
 </programlisting>
-won't work
+<par>won't work</par>
 <programlisting>
 &lt;?xsc-exec
 	#
@@ -869,20 +880,20 @@ won't work
 		do(i)
 ?&gt;
 </programlisting>
-will.
+<par>will.</par>
 </item>
 
-<item>Make functionality has been moved to <filename>make.py</filename>, as certain modules can't
+<item><par>Make functionality has been moved to <filename>make.py</filename>, as certain modules can't
 be used as the main script, because reimporting them in processing
-instructions won't work. Now you can simply call
+instructions won't work. Now you can simply call</par>
 <example>
 <title>The new make script</title>
 <programlisting>make.py --import xist.html --import spam eggs.xsc</programlisting>
 </example>
 </item>
 
-<item>There is a new module <filename>cond.py</filename>, that contains elements that can be used for
-conditionals:
+<item><par>There is a new module <filename>cond.py</filename>, that contains elements that can be used for
+conditionals:</par>
 <programlisting>
 &lt;?xsc-exec a=42?&gt;
 &lt;if cond="a==21"&gt;
@@ -984,14 +995,14 @@ to which the strings to be output are passed.</item>
 and <method>compact</method> where appropriate, so you know even in the &html; tree
 where something came from.</item>
 
-<item><lit>xsc.repransi</lit> can now have three values:
+<item><par><lit>xsc.repransi</lit> can now have three values:</par>
 <ulist>
 <item><lit>0</lit>: coloring is off</item>
 <item><lit>1</lit>: coloring is on for a dark background</item>
 <item><lit>2</lit>: coloring is on for a light background</item>
 </ulist>
-All <lit>repransi</lit> variables are now arrays with two strings,
-the first for dark, the second for light.</item>
+<par>All <lit>repransi</lit> variables are now arrays with two strings,
+the first for dark, the second for light.</par></item>
 </ulist>
 </section>
 
