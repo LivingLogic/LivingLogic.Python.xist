@@ -697,8 +697,8 @@ class XSCElement(XSCNode):
 		if self.empty:
 			if len(s):
 				raise XSCEmptyElementWithContentError(xsc.parser.lineno,self)
-		else:
 			v.append(">")
+		else:
 			v.append(">")
 			v.append(s)
 			v.append("</")
