@@ -20,25 +20,84 @@
 ## IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 """
-XIST is a HTML preprocessor/generator and an XML transformation engine.
-It is easily extensible with new XML elements, allows embedding
-Python code in XML files and works together with httpdapy/mod_python.
+XIST is a &html; preprocessor/generator and an &xml; transformation engine.
+It is easily extensible with new &xml; elements, allows embedding
+Python code in &xml; files and works together with httpdapy/mod_python.
 
-It was written as a replacement for the HTML preprocessor HSC
-(http://www.giga.or.at/~agi/hsc/), and borrows some features and ideas from it.
+It was written as a replacement for an &html; preprocessor named
+<a href="http://www.giga.or.at/~agi/hsc/">HSC</a>, and borrows some 
+features and ideas from it.
 
-It also borrows the basic ideas (XML/HTML elements as Python objects)
-from HTMLgen (http://starship.python.net/crew/friedrich/HTMLgen/html/main.html)
-or HyperText (http://dustman.net/andy/python/HyperText/)
+It also borrows the basic ideas (&xml;/&html; elements as Python 
+objects) from 
+<a href="http://starship.python.net/crew/friedrich/HTMLgen/html/main.html">HTMLgen</a> 
+or <a href="http://dustman.net/andy/python/HyperText/">HyperText</a>.
 
-XIST is based on XML, so you have two choices when constructing
-your hierarchical tree of HTML objects: You can directly construct
-it, like HTMLgen and HyperText do, as a tree of Python objects or
-you can get a tree by parsing an XML file.
+Generating the final output requires the following three
+steps:
+<ul>
+<li>Generating a source tree: This can be done either by
+parsing an &xml; file, or by directly constructing the
+tree, as HTMLgen and HyperText do, as a tree of Python objects.
+&xist; provides a very natural and pythonic &api; for that.</li>
+<li>Converting the source tree into a target tree: This target
+tree can be a &html; tree or a &wml; tree or any other
+&xml object tree you like. Every node class provides a
+<function>convert</function> method for that, and for
+your own &xml; element types you have to define your
+own node classes with the appropriate <function>convert</function>
+method.</li>
+<li>Publishing the target tree: For writing the final
+output to a file or generating a string that can
+be delivered as a response from a &cgi; script, &xist;
+provides a <function>publish</function> method which
+passes the string fragment to a publishing handler.</li>
+</ul>
 
-For every HTML element there exists a corresponding class, that
-has a constructor of the form
-	class(*content, **attrs),
+<h2>Example</h2>
+<example title="The first example">
+<programlisting>
+from xist.ns import html
+
+	e = html.div(
+		"Hello ",
+		html.a("Python.org", href="http://www.python.org/"),
+		" world!"
+	)
+	print e.asBytes()
+</programlisting>
+</example>
+
+<h2>Constructing &dom; trees</h2>
+&xist; provides the usual classes like any other
+&dom; &api;:
+<ul>
+<li><classname>Text</classname>,</li>
+<li><classname>Frag</classname>, for ducument fragment,
+a <classname>Frag</classname> object is simply a list
+of nodes,</li>
+<li><classname>Comment</classname> for &xml; comments
+(e.g. <markup>&lt;!-- the comment -->&gt;</markup>)</li>
+<li><classname>DocType</classname> for document type
+declarations (e.g. <markup>&lt;!DOCTYPE html PUBLIC <replacable>...</replaceable></<markup>),</li>
+<li><classname>ProcInst</classname> for  processing instructions
+(e.g. <markup>&lt;?php echo $eggs;?&gt;</markup>,</li>
+<li><classname>Element</classname>, for &xml; elements,</li>
+<li><classname>Entity</classname> for entities (e.g. <markup>&amp;spam;</markup>) and</li>
+<li><classname>Attr</classname> for attributes.</li>
+</ul>
+
+
+
+For every &xml; element type <classname>spam</classname>
+there exists a corresponding class, that has a constructor 
+of the form
+<programlisting>
+<replaceable>class</replaceable>(*content, **attrs)
+</programmlisting>
+Positional arguments will be considered child nodes
+of the <classname>spam</classname> node. Keyword
+arguments will be attributes. The buildtin
 so constructing an HTML element works like this:
 	e = html.div(
 		"Go to ",
