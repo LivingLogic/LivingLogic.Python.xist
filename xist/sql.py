@@ -20,7 +20,7 @@ class SQLCommand:
 		if t == types.NoneType:
 			return "NULL"
 		elif t == types.StringType:
-			return "'" + value.replace("'", "''") + "'"
+			return ("'" + value.replace("'", "''") + "'").encode("latin1")
 		elif t in [ types.IntType, types.LongType, types.FloatType ]:
 			return str(value)
 		else:
