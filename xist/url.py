@@ -335,13 +335,14 @@ class URL:
 		encodes the URL with % escapes
 		"""
 		url = self.asPlainString().encode("utf8")
-		v = []
-		for c in url:
-			if c in self.__safe:
-				v.append(c)
-			else:
-				v.append("%%%02x" % ord(c))
-		return "".join(v)
+		#v = []
+		#for c in url:
+		#	if c in self.__safe:
+		#		v.append(c)
+		#	else:
+		#		v.append("%%%02x" % ord(c))
+		#return "".join(v)
+		return url
 
 	def __join(self, other):
 		if not other.scheme:

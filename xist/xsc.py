@@ -442,7 +442,7 @@ class Node:
 		return Null
 
 	def repr(self, encoding=None, ansi=None):
-		return self._dorepr(encoding, ansi)
+		return self._dorepr(encoding=encoding, ansi=ansi)
 
 	def reprtree(self, encoding=None, ansi=None):
 		nest = 0
@@ -956,8 +956,8 @@ class Frag(Node):
 		node.__content = [ child.clone() for child in self.__content ]
 		return self._decorateNode(node)
 
-	def _dorepr(self, ansi=None):
-		return "".join([ child._dorepr(ansi=ansi) for child in self.__content])
+	def _dorepr(self, encoding=None, ansi=None):
+		return "".join([ child._dorepr(encoding=encoding, ansi=ansi) for child in self.__content])
 
 	def _doreprtree(self, nest, elementno, encoding=None, ansi=None):
 		v = []
@@ -1128,7 +1128,7 @@ class Comment(Node, StringMixIn):
 
 	clone = compact = asHTML
 
-	def _dorepr(self, ansi=None):
+	def _dorepr(self, encoding=None, ansi=None):
 		return strBracketOpen(ansi) + strExclamation(ansi) + strCommentMarker(ansi) + strCommentText(self._content, ansi) + strCommentMarker(ansi) + strBracketClose(ansi)
 
 	def _doreprtree(self, nest, elementno, encoding, ansi):
@@ -1432,14 +1432,14 @@ class Element(Node):
 						else:
 							self[attr] = size[attr==heightattr]
 
-	def _dorepr(self, ansi=None):
+	def _dorepr(self, encoding=None, ansi=None):
 		v = []
 		if self.empty:
 			v.append(self._str(content=self.__strattrs(ansi), brackets=1, slash=1, ansi=ansi))
 		else:
 			v.append(self._str(content=self.__strattrs(ansi), brackets=1, ansi=ansi))
 			for child in self:
-				v.append(child._dorepr(ansi))
+				v.append(child._dorepr(encoding, ansi))
 			v.append(self._str(brackets=1, slash=-1, ansi=ansi))
 		return "".join(v)
 
@@ -1464,7 +1464,12 @@ class Element(Node):
 		for attr in self.attrs.keys():
 			publisher(u" ", attr)
 			value = self[attr]
-			if len(value):
+			if isinstance(self.attrHandlers[attr], BoolAttr):
+				if publisher.XHTML>0:
+					publisher(u'="')
+					value.publish(attr)
+					publisher(u'"')
+			else:
 				publisher(u'="')
 				value.publish(publisher)
 				publisher(u'"')
@@ -1592,7 +1597,7 @@ class Element(Node):
 
 	def compact(self):
 		node = self.__class__()
-		node.__content = self.content.compact()
+		node.content = self.content.compact()
 		for attr in self.attrs.keys():
 			node[attr] = self[attr].compact()
 		return self._decorateNode(node)
@@ -1627,7 +1632,7 @@ class Entity(Node):
 	def asPlainString(self):
 		return unichr(self.codepoint)
 
-	def _dorepr(self, ansi=None):
+	def _dorepr(self, encoding=None, ansi=None):
 		s = "&"
 		if self.namespace.prefix != "":
 			s += strNamespace(self.namespace.prefix) + ":"
@@ -1635,7 +1640,7 @@ class Entity(Node):
 		return s
 
 	def _doreprtree(self, nest, elementno, encoding=None, ansi=None):
-		return [[nest, self.startloc, elementno, self._dorepr(ansi=ansi)]]
+		return [[nest, self.startloc, elementno, self._dorepr(encoding=encoding, ansi=ansi)]]
 
 	def publish(self, publisher):
 		publisher(u"&", self.name, u";") # requires that the entity is registered via Namespace.register()
@@ -1663,7 +1668,7 @@ class Null(Node):
 		return self._str(slash=1, ansi=ansi)
 
 	def _doreprtree(self, nest, elementno, encoding=None, ansi=None):
-		return [[nest, self.startloc, elementno, self._dorepr(encoding, ansi)]]
+		return [[nest, self.startloc, elementno, self._dorepr(encoding=encoding, ansi=ansi)]]
 
 Null = Null() # Singleton, the Python way
 
@@ -1679,8 +1684,8 @@ class Attr(Frag):
 	a fragment consisting only of text and character references.</par>
 	"""
 
-	def _dorepr(self, ansi=None):
-		return strAttrValue(Frag._dorepr(self, ansi=0), ansi)
+	def _dorepr(self, encoding=None, ansi=None):
+		return strAttrValue(Frag._dorepr(self, encoding=encoding, ansi=0), ansi)
 
 class TextAttr(Attr):
 	"""
@@ -1741,7 +1746,7 @@ class URLAttr(Attr):
 		attr = " %s=%s%s%s" % (strAttrName("base", ansi), strQuote(ansi=ansi), strURL(self.base.asString(), ansi=ansi), strQuote(ansi=ansi))
 		return Attr._str(self, content=attr, brackets=brackets, slash=slash, ansi=ansi)
 
-	def _dorepr(self, ansi=None):
+	def _dorepr(self, encoding=None, ansi=None):
 		return strURL(self.asString(), ansi=ansi)
 
 	def publish(self, publisher):
@@ -1763,13 +1768,13 @@ class URLAttr(Attr):
 		return node
 
 	def asURL(self):
-		return url.URL(Attr.asPlainString(self))
+		return self.base+url.URL(Attr.asPlainString(self))
 
 	def asPlainString(self):
 		return self.asURL().asString()
 
 	def forInput(self):
-		u = self.base + self.asURL()
+		u = self.asURL()
 		if u.scheme == "server":
 			u = u.relativeTo(url.URL(scheme="http", server=xsc.server))
 		return u
