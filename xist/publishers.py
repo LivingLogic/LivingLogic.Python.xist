@@ -32,7 +32,7 @@ class FilePublisher:
 	def __call__(self,*texts):
 		for text in texts:
 			if type(text) in (ListType,TupleType):
-				apply(self,text)
+				self(text)
 			else:
 				self.fh.write(str(text))
 

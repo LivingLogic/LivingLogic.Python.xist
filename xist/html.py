@@ -72,11 +72,12 @@ class meta(xsc.Element):
 	generic metainformation
 	"""
 	empty = 1
-	attrHandlers = xsc.appendDict(i18n,{ "http_equiv": xsc.TextAttr, "http-equiv": xsc.TextAttr, "name": xsc.TextAttr ,"content": xsc.TextAttr ,"scheme": xsc.TextAttr })
+	attrHandlers = i18n.copy()
+	attrHandlers.update({"http_equiv": xsc.TextAttr, "http-equiv": xsc.TextAttr, "name": xsc.TextAttr ,"content": xsc.TextAttr ,"scheme": xsc.TextAttr})
 
 	def __init__(self,*_content,**_attrs):
 		# we have two names for one and the same attribute http_equiv and http-equiv
-		apply(xsc.Element.__init__,(self,) + _content,_attrs)
+		xsc.Element.__init__(*_content,**_attrs)
 		if self.hasAttr("http_equiv"):
 			if not self.hasAttr("http-equiv"):
 				self["http-equiv"] = self["http_equiv"]
@@ -87,8 +88,12 @@ class body(xsc.Element):
 	document body
 	"""
 	empty = 0
-	attrHandlers = xsc.appendDict(attrs,{ "onload": xsc.TextAttr, "onunload": xsc.TextAttr })
-	attrHandlers = xsc.appendDict(attrHandlers,{ "background": xsc.URLAttr, "bgcolor": xsc.ColorAttr, "text": xsc.ColorAttr, "link": xsc.ColorAttr, "vlink": xsc.ColorAttr, "alink": xsc.ColorAttr, "leftmargin": xsc.TextAttr, "topmargin": xsc.TextAttr, "marginwidth": xsc.TextAttr, "marginheight": xsc.TextAttr }) # deprecated
+	attrHandlers = attrs.copy()
+	attrHandlers.update({"onload": xsc.TextAttr, "onunload": xsc.TextAttr})
+	attrHandlers.update({"background": xsc.URLAttr, "bgcolor": xsc.ColorAttr, "text": xsc.ColorAttr, "link": xsc.ColorAttr, "vlink": xsc.ColorAttr, "alink": xsc.ColorAttr, "leftmargin": xsc.TextAttr, "topmargin": xsc.TextAttr, "marginwidth": xsc.TextAttr, "marginheight": xsc.TextAttr}) # deprecated
+
+	def asHTML(self):
+		if self.hasAttr("
 
 class div(xsc.Element):
 	"""

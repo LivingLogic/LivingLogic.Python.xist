@@ -1251,7 +1251,7 @@ class Element(Node):
 		appends to the content (see Frag.append for more info)
 		"""
 
-		apply(self.content.append,items)
+		self.content.append(*items)
 		if self.empty and len(self):
 			raise EmptyElementWithContentError(self)
 
@@ -1261,7 +1261,7 @@ class Element(Node):
 
 		inserts into the content (see Frag.insert for more info)
 		"""
-		apply(self.content.insert,(index,) + items)
+		self.content.insert(index,*items)
 		if self.empty and len(self):
 			raise EmptyElementWithContentError(self)
 
@@ -1271,7 +1271,7 @@ class Element(Node):
 
 		extends the content (see Frag.extend for more info)
 		"""
-		apply(self.content.extend,items)
+		self.content.extend(*items)
 		if self.empty and len(self):
 			raise EmptyElementWithContentError(self)
 
