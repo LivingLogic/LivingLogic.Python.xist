@@ -410,7 +410,7 @@ class Node(Base):
 	def __str__(self):
 		"""
 		Return the character content of <self/> as a string (if possible, i.e.
-		there are no character that are unencodable in the default encoding).
+		there are no characters that are unencodable in the default encoding).
 		"""
 		return str(unicode(self))
 
