@@ -1,10 +1,10 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
 <par>&xist; is an &xml; based extensible &html; generator written in Python.
 It was developed as a replacement for an &html; preprocessor named
-<app moreinfo="http://www.giga.or.at/~agi/hsc/">HSC</app>, and borrows some
-features and ideas from it. It also borrows the basic ideas (&xml;/&html;
-elements as Python objects) from 
-<app moreinfo="http://starship.python.net/crew/friedrich/HTMLgen/html/main.html">HTMLgen</app> 
+<app moreinfo="http://www.linguistik.uni-erlangen.de/~msbethke/hsc/">HSC</app>,
+and borrows some features and ideas from it. It also borrows the basic ideas
+(&xml;/&html; elements as Python objects) from
+<app moreinfo="http://starship.python.net/crew/friedrich/HTMLgen/html/main.html">HTMLgen</app>
 or <app moreinfo="http://dustman.net/andy/python/HyperText/">HyperText</app>.</par>
 
 <section><title>Overview</title>
