@@ -31,7 +31,7 @@ output to a file or generating a string that can
 be delivered as a response from a web server, all node classes
 provide a <function>publish</function> method, that
 passes the string fragments to a appropriate publishing handler.</item>
-</ul>
+</ulist>
 </doc:section>
 
 <doc:section><doc:title>Constructing &xml; trees</doc:title>
@@ -51,7 +51,7 @@ declarations (e.g. <markup>&lt;!DOCTYPE html PUBLIC <replaceable>...</replaceabl
 <item><doc:pyref module="xist.xsc" class="Element">Element</doc:pyref> for &xml; elements,</item>
 <item><doc:pyref module="xist.xsc" class="Entity">Entity</doc:pyref> for entities (e.g. <markup>&amp;parrot;</markup>) and</item>
 <item><doc:pyref module="xist.xsc" class="Attr">Attr</doc:pyref> for attributes.</item>
-</ul>
+</ulist>
 
 <doc:section><doc:title>&xml; trees as Python objects</doc:title>
 <doc:par>&xist; works somewhat different from a normal &dom; &api;.
@@ -281,7 +281,7 @@ and you can test for the language with the element
 &lt;if&gt;
 </doc:programlisting>
 </item>
-</ul>
+</ulist>
 </doc:section>
 
 <doc:section><doc:title>Attributes</doc:title>
@@ -310,7 +310,7 @@ subclasses are:</doc:par>
 is either present or not, but it's value will be ignored);</item>
 <item><pyref module="xist.xsc" class="IntAttr">IntAttr</pyref>, for integer attributes;</item>
 <item><pyref module="xist.xsc" class="ColorAttr">ColorAttr</pyref>, for color attributes (e.g. <code>#ffffff</code>)</item>
-</ul>
+</ulist>
 <doc:par><pyref module="xist.xsc" class="Attr">Attr</pyref> itself is derived from
 <pyref module="xist.xsc" class="Frag">Frag</pyref> so it is possible
 to use all the sequence methods on an attribute. Unset attributes will be treated
@@ -402,7 +402,7 @@ but uses fixed prefixes.</item>
 the object that should be registered in the namespace. To register all the element
 classes (and entities and processing instruction classes) defined in the module, simply
 use <code>vars()</code>.</item>
-</ul>
+</ulist>
 
 <doc:par>All namespace objects will automatically be registered with the
 parser. Now all newly defined elements will be used when parsing
@@ -510,7 +510,7 @@ end tag (i.e. <markup>&lt;div&gt;&lt;/div&gt;</markup>).</item>
 model will be published like this: <markup>&lt;br /&gt;</markup>.</item>
 <item><code>XHTML==2</code> gives full &xml; output. Every empty element will be published with
 an empty tag (without an additional space): <markup>&lt;br/&gt;</markup> or <markup>&lt;div/&gt;</markup>.</item>
-</ul>
+</ulist>
 <doc:par>Writing a node to a file can be done with the method
 <pyref module="xist.xsc" class="Node" method="write">write</pyref>:
 <doc:programlisting>
@@ -598,7 +598,7 @@ should be searched recursively (<code>searchchildren==1</code>) or only
 the first level (<code>searchchildren==0</code>)</item>
 <item><code>searchattrs</code> (<code>0</code>), specifies if attribute
 nodes should be searched too.</item>
-</ul>
+</ulist>
 <doc:par>You could for example extract all the links on Python's
 <a href="http://python.sf.net/">SourceForge page</a> with the following:</doc:par>
 <doc:programlisting>
