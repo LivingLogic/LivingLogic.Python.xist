@@ -222,7 +222,6 @@ __version__ = "$Revision$"[11:-2]
 # $Source$
 
 import os
-import os.path
 import string
 import types
 import sys
