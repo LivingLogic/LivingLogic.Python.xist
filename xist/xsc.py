@@ -1771,8 +1771,8 @@ class Namespace:
 	"""
 
 	def __init__(self,prefix,uri,thing = None):
-		self.prefix = prefix
-		self.uri = uri
+		self.prefix = stringFromCode(prefix)
+		self.uri = stringFromCode(uri)
 		self.elementsByName = {} # dictionary for mapping element names to classes
 		self.entitiesByName = {} # dictionary for mapping entity names to classes
 		self.entitiesByNumber = []
@@ -1816,6 +1816,7 @@ class Namespace:
 						name = thing.name
 					except AttributeError:
 						name = thing.__name__
+					name = stringFromCode(name)
 
 					thing.name = name
 					thing.namespace = self # this creates a cycle, but namespaces aren't constantly created and deleted (and Python will get a GC some day ;))
