@@ -42,7 +42,7 @@ def getenvcolors(name, default):
 		return -1
 	try:
 		var = eval(os.environ[name])
-		if type(var) is types.StringType:
+		if isintance(var, str):
 			var = (var, var)
 		return var[options.repransi-1]
 	except KeyError:
