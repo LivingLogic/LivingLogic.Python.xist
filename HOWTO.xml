@@ -372,7 +372,7 @@ and then to use those values as attribute values:</par>
 <prog>
 import random
 
-if random.random() < 0.5:
+if random.random() &lt; 0.5:
 	class_ = None
 else:
 	class_ = "foo"
