@@ -220,8 +220,6 @@ for our own content, i.e. if the element <pyref class="cool"><class>cool</class>
 was written like this:</par>
 <prog>
 class cool(xsc.Element):
-	empty = False
-
 	def convert(self, converter):
 		return html.b(self.content, " is cool!")
 </prog>
@@ -361,22 +359,11 @@ del node["spam"][:]
 <par>the attribute will be empty again and will be considered to be unset.
 Such attributes will be ignored when publishing.</par>
 
-<section><title>Specifying content model and attribute types</title>
-<par>When you define a new element you have to specify two things:</par>
-
-<olist>
-<item>Whether the element has an empty content model (like <markup>&lt;br/&gt;</markup>
-or <markup>&lt;img/&gt;</markup> do in &html;) or not.</item>
-<item>what attributes the element supports and of which type they are.</item>
-</olist>
-
-<par>Specifying the content model is done with the class attribute <lit>empty</lit>.
-Set it to <lit>False</lit> when your element may have content and to <lit>True</lit>
-if it may not.</par>
-
-<par>To specify the attributes for the element, use the class
-attribute <lit>Attrs</lit>, which must be a class derived
-from <pyref module="ll.xist.xsc" class="Element.Attrs"><class>xsc.Element.Attrs</class></pyref>
+<section><title>Specifying attributes</title>
+<par>When you define a new element you have to specify the attributes allowed
+for this element. For this use the class attribute <lit>Attrs</lit>,
+which must be a class derived from
+<pyref module="ll.xist.xsc" class="Element.Attrs"><class>xsc.Element.Attrs</class></pyref>
 and define the attributes by deriving them from one of the existing attribute classes.
 We could extend our example element in the following way:</par>
 
@@ -411,7 +398,6 @@ the class attribute <lit>default</lit>:</par>
 <example><title>Defining default attributes</title>
 <prog>
 class cool(xsc.Element):
-	empty = False
 	class Attrs(xsc.Element.Attrs):
 		class adj(xsc.TextAttr):
 			default = "absolutely"
@@ -459,7 +445,6 @@ extend our example to look like this:</par>
 <example><title>Defining attributes value sets</title>
 <prog>
 class cool(xsc.Element):
-	empty = False
 	class Attrs(xsc.Element.Attrs):
 		class adj(xsc.TextAttr):
 			default = "absolutely"
@@ -556,8 +541,6 @@ might looks like this:</par>
 <example><title>Defining and populating a namespace</title>
 <prog>
 class python(xsc.Element):
-	empty = True
-
 	def convert(self, converter):
 		return html.a(
 			"Python",
@@ -565,10 +548,9 @@ class python(xsc.Element):
 		)
 
 class cool(xsc.Element):
-	empty = False
-
 	def convert(self, converter):
-		return html.b(self.content, " is cool!")
+		node = html.b(self.content, " is cool!")
+		return node.convert(converter)
 
 class xmlns(xsc.Namespace):
 	xmlname = "foo"
@@ -592,8 +574,6 @@ instead of <method>update</method>:</par>
 <example><title>Turning a namespace into a module</title>
 <prog>
 class python(xsc.Element):
-	empty = True
-
 	def convert(self, converter):
 		return html.a(
 			"Python",
@@ -601,10 +581,9 @@ class python(xsc.Element):
 		)
 
 class cool(xsc.Element):
-	empty = False
-
 	def convert(self, converter):
-		return html.b(self.content, " is cool!")
+		node = html.b(self.content, " is cool!")
+		return node.convert(converter)
 
 class xmlns(xsc.Namespace):
 	xmlname = "foo"
@@ -646,8 +625,6 @@ languages = [
 ]
 
 class navigation(xsc.Element):
-	empty = True
-
 	def convert(self, converter):
 		node = self.xmlns.links()
 		for (name, url) in languages:
@@ -660,14 +637,11 @@ class navigation(xsc.Element):
 		return node.convert(converter)
 
 class links(xsc.Element):
-	empty = False
-
 	def convert(self, converter):
 		node = self.content
 		return node.convert(converter)
 
 class link(xsc.Element):
-	empty = False
 	class Attrs(xsc.Element.Attrs):
 		class href(xsc.URLAttr): pass
 
@@ -761,7 +735,7 @@ namespace to which <self/> should be converted.</par>
 Once this is determined you can use element classes from the target to create the
 required &xml; object tree. This makes it possible to customize the conversion by
 passing a derived namespace to the <method>convert</method> method. We have to change
-our example namespace from above like this</par>
+our example namespace from above like this:</par>
 
 <prog>
 import navns
@@ -816,6 +790,56 @@ will have a <lit>target="_top"</lit>.</par>
 </section>
 
 </section>
+
+
+<section><title>Validation and content models</title>
+
+<par>When generating &html; you might want to make sure that your generated
+code doesn't contain any illegal tag nesting (like a
+<markup>&lt;p&gt;&lt;p&gt;Foo&lt;/p&gt;&lt;/p&gt;</markup>). The module
+<module>ll.xist.ns.html</module> does this automatically:</par>
+
+<example>
+<prog>
+&gt;&gt;&gt; from ll.xist.ns import html
+&gt;&gt;&gt; node = html.p(html.p("foo"))
+&gt;&gt;&gt; print node.asBytes()
+/home/walter/pythonroot/ll/xist/sims.py:238: WrongElementWarning: \
+   element &lt;ll.xist.ns.html:p&gt; may not contain element &lt;ll.xist.ns.html:p&gt;
+  warnings.warn(WrongElementWarning(node, child, self.elements))
+&lt;p&gt;&lt;p&gt;foo&lt;/p&gt;&lt;/p&gt;
+</prog>
+</example>
+
+<par>For your own elemens you can specify the content model too. This is done
+by setting the class attribute <lit>model</lit> inside the element class.
+<lit>model</lit> must be an object that provides a <method>checkvalid</method>
+method. This method will be called with the element as an argument.
+When a schema validation is detected, the Python warning framework will be used
+to issue a warning. The module <module>ll.xist.sims</module> contains several
+classes that provide a simple validation.</par>
+
+<par><pyref module="ll.xist.sims" class="Empty"><class>ll.xist.sims.Empty</class></pyref>
+can be used to ensure that the element doesn't have any content (like
+<markup>br</markup> and <markup>img</markup> in &html;).
+<pyref module="ll.xist.sims" class="Any"><class>ll.xist.sims.Any</class></pyref>
+does allow any content.
+<pyref module="ll.xist.sims" class="NoElements"><class>ll.xist.sims.NoElements</class></pyref>
+will warn about elements from the same namespace.
+<pyref module="ll.xist.sims" class="NoElementsOrText"><class>ll.xist.sims.NoElementsOrText</class></pyref>
+will warn about elements from the same namespace and non-whitespace text content.
+<pyref module="ll.xist.sims" class="Elements"><class>ll.xist.sims.Elements</class></pyref>
+will only allow the elements specified in the constructor.
+<pyref module="ll.xist.sims" class="ElementsOrText"><class>ll.xist.sims.ElementsOrText</class></pyref>
+will only allow the elements specified in the constructor and text.</par>
+
+<par>None of these classes will check the number of child elements or their
+order.</par>
+
+<par>For more info see the <pyref module="ll.xist.sims"><module>sims</module></pyref>
+module.</par>
+</section>
+
 
 <section><title>Entities</title>
 
