@@ -1,0 +1,159 @@
+<section><title>Migrating to version 2.0</title>
+
+<section><title>Attribute handling</title>
+
+<par>The biggest change is in the way attributes are defined. In older
+versions you had to define a class attribute <lit>attrHandlers</lit>
+that mapped attribute names to attribute classes. This created problems
+with <z>illegal</z> attribute names (e.g. <lit>class</lit> and <lit>http-equiv</lit>
+in &html;), so for them an ugly workaround was implemented. With 2.0
+this is no longer neccessary. Defining attributes is done via a
+class <class>Attrs</class> nested inside the element class like this:</par>
+
+<example>
+<programlisting>
+class foo(xsc.Element):
+	class Attrs(xsc.Element.Attrs):
+		class bar(xsc.TextAttr)
+			"The bar attribute"
+			default = "spam"
+			values = ("spam", "eggs")
+			required = True
+		class baz(xsc.URLAttr):
+			"The baz attribute"
+</programlisting>
+</example>
+
+<par>Default values, set of allowed attributes values and
+whether the attribute is required can be defined via
+class attributes as shown above. You should (directly
+or indirecty) inherit from <class>xsc.Element.Attrs</class>,
+because this class implements handling of global attributes.
+If you want to inherit some attributes (e.g. from your
+base class), you can derive from the appropriate
+<class>Attrs</class> class. Removing an attribute you inherited
+can be done like this:</par>
+
+<example>
+<programlisting>
+class bar(foo):
+	class Attrs(foo.Attrs):
+		baz = None
+</programlisting>
+</example>
+
+<par>This removes the attribute <lit>baz</lit> inherited
+from <class>foo</class>.</par>
+
+<par>For attributes that are no legal Python identifiers,
+the same method can be used as for element classes: Define
+the real &xml; name via a class attribute. This class attribute
+has been renamed from <lit>name</lit> to <lit>xmlname</lit>.</par>
+
+<par>This also means that you always have to use the Python
+name when using attributes now. The &xml; name will only
+be used for parsing and publishing.</par>
+
+<par>&xist; 2.0 tries to be as backwards compatible as
+possible: An existing <lit>attrHandlers</lit> attribute
+will be converted to an <class>Attrs</class> class on the
+fly (and will generate a <class>DeprecationWarning</class> when
+the class is created). An <class>Attrs</class> class will
+automatically be generated from an <lit>attrHandlers</lit> attribute,
+so it's possible to derive from new element classes in the old way.
+The only situation where this won't work, is with
+attributes where the Python and &xml; name differ, you
+have to use <z>new style</z> attributes there.</par>
+</section>
+
+<section><title>Namespace support</title>
+
+<par>&xist; supports &xml; namespaces now and for parsing it's
+possible to configure which namespaces should be available
+for instantiating classes from. For more info about this
+refer to the documentation for the class <pyref module="ll.xist.xsc" class="Prefixes"><class>Prefixes</class></pyref>.</par>
+
+<par>Before 2.0 the &xml; name for a namespace object
+was pretty useless, now it can be used as the namespace
+name in <lit>xmlns</lit> attributes and it will be used
+for that when publishing and specifying an <lit>elementmode</lit>
+of <lit>2</lit> in the call to the publishing method or the constructor
+of the publisher.</par>
+
+<par>Namespace objects should now be named <lit>xmlns</lit>
+instead of <lit>namespace</lit> as before.</par>
+
+</section>
+
+<section><title>Global attributes</title>
+
+<par>Global attributes are supported now, e.g. the attributes
+<lit>xml:lang</lit> and <lit>xml:space</lit> can be specified
+in an element constructor like this:</par>
+
+<example>
+<programlisting>
+from ll.xist import xsc
+from ll.xist.ns import html, xml
+
+node = html.html(
+	<rep>content</rep>,
+	{(xml, "lang"): "en", (xml, "space"): "preserve"},
+	lang="en"
+)
+</programlisting>
+</example>
+
+<par>Instead of the module object (which must contain a
+namespace object named <lit>xmlns</lit>, you can also
+pass the namespace object itself (i.e. <lit>xml.xmlns</lit>)
+or the namespace name (i.e. <lit>"http://www.w3.org/1998/namespaces"</lit>.</par>
+
+</section>
+
+<section><title>Namespace changes</title>
+
+<par>The classes <class>XML</class> and <class>XML10</class>
+have been moved from <module>ll.xist.xsc</module> to
+<module>ll.xist.ns.xml</module>.</par>
+
+<par>All the classes in <module>ll.xist.ns.specials</module>
+that are specific to &html; generation have been moved
+to the new module <module>ll.xist.ns.htmlspecials</module>.</par>
+
+<par>The module <module>ll.xist.ns.html</module> has been updated
+to the &xhtml; specification, so there might be same changes.
+The new feature for specifying attribute restrictions has
+been used, so e.g. you'll get warnings for missing <lit>alt</lit>
+attributes in <class>img</class> elements. These warnings
+are issued via the warning framework. Refer to the documentation
+for the <module>warnings</module> module to find out how to
+configure the handling of these warnings.</par>
+
+<section>
+
+<section><title>Miscellaneous</title>
+
+<par>&xist; now requires at least Python 2.2.1 because
+the integer constants <lit>True</lit> and <lit>False</lit>
+are used throughout the code wherever appropriate. These
+constants will became instances of the new class <class>bool</class>
+in Python 2.3. You might want to change your code too, to
+use these new constant (e.g. when setting the element
+class attribute <lit>empty</lit>).</par>
+
+<par>Using mixed case method names was a bad idea, because
+this conflicts with Python's convention of using
+all lowercase names (without underscores). These method
+names will be fixed in the next few &xist; versions.
+The first names that where changed were the element methods
+<method>getAttr</method> and <method>hasAttr</method>, which
+have been renamed to <method>getattr</method> and
+<method>hasattr</method> respectively. <method>getAttr</method>
+and <method>hasAttr</method> are still there and can be called
+without generating <class>DeprecationWarning</class>s, but they
+will start to generate warnings in the upcoming versions.</par>
+
+</section>
+
+</section>
