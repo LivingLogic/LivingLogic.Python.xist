@@ -35,8 +35,6 @@ from xist import xsc, parsers
 from xist.ns import html, docbooklite as dbl
 
 def dookbooklite2text(infilename, outfilename, title):
-	print infilename, outfilename, title
-
 	e = parsers.parseFile(infilename, namespaces=xsc.Namespaces(dbl))
 
 	if title is None:
@@ -49,21 +47,18 @@ def dookbooklite2text(infilename, outfilename, title):
 		)
 	)
 
-	e.convert().write(open(outfilename, "wb")) # misuse the output file as a temporary file
+	e = e.convert()
 
-	(stdin, stdout) = os.popen2("w3m -T text/html -dump %s" % outfilename)
+	(stdin, stdout) = os.popen2("w3m -T text/html -dump >%s" % outfilename)
 
+	stdin.write(e.asBytes())
 	stdin.close()
-
-	result = stdout.read()
 	stdout.close()
-	open(outfilename, "wb").write(result)
 
 if __name__ == "__main__":
 	title = None
 	(options, args) = getopt.getopt(sys.argv[1:], "t:", ["title="])
 
-	print options, args
 	for (option, value) in options:
 		if option=="-t" or option=="--title":
 			title = value
