@@ -17,7 +17,7 @@ html custom tag library.</par>
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-from ll.xist import xsc
+from ll.xist import xsc, sims
 
 
 class taglib(xsc.ProcInst):
@@ -80,7 +80,7 @@ class base(Element):
 	"""
 	document base URI
 	"""
-	empty = True
+	model = sims.Empty()
 	class Attrs(Element.Attrs):
 		class target(xsc.URLAttr): pass
 		class server(xsc.TextAttr): pass
@@ -90,7 +90,7 @@ class button(MouseElement):
 	"""
 	a button
 	"""
-	empty = False
+	model = sims.Any()
 	class Attrs(MouseElement.Attrs):
 		class indexed(xsc.TextAttr): pass
 
@@ -99,14 +99,14 @@ class cancel(MouseElement):
 	"""
 	a cancel button
 	"""
-	empty = False
+	model = sims.Any()
 
 
 class checkbox(MouseElement):
 	"""
 	a html checkbox element
 	"""
-	empty = False
+	model = sims.Any()
 	class Attrs(MouseElement.Attrs):
 		class indexed(xsc.TextAttr): pass
 		class name(xsc.TextAttr): pass
@@ -116,7 +116,7 @@ class errors(Element):
 	"""
 	displays error messages which have been generated from an action or a validation method
 	"""
-	empty = True
+	model = sims.Empty()
 	class Attrs(Element.Attrs):
 		class bundle(xsc.TextAttr): pass
 		class locale(xsc.TextAttr): pass
@@ -128,7 +128,7 @@ class file(MouseElement):
 	"""
 	html input element of type file
 	"""
-	empty = False
+	model = sims.Any()
 	class Attrs(MouseElement.Attrs):
 		class accept(xsc.TextAttr): pass
 		class indexed(xsc.TextAttr): pass
@@ -141,7 +141,7 @@ class form(Element):
 	"""
 	html form
 	"""
-	empty = False
+	model = sims.Any()
 	class Attrs(Element.Attrs):
 		class action(xsc.TextAttr): pass
 		class enctype(xsc.TextAttr): pass
@@ -163,7 +163,7 @@ class frame(Element):
 	"""
 	Render an HTML frame element
 	"""
-	empty = False
+	model = sims.Any()
 	class Attrs(Element.Attrs):
 		class action(xsc.TextAttr): pass
 		class anchor(xsc.TextAttr): pass
@@ -196,7 +196,7 @@ class hidden(PartMouseElement):
 	"""
 	hidden form field
 	"""
-	empty = True
+	model = sims.Empty()
 	class Attrs(PartMouseElement.Attrs):
 		class accesskey(xsc.TextAttr): pass
 		class indexed(xsc.TextAttr): pass
@@ -208,7 +208,7 @@ class html(Element):
 	"""
 	Render a HTML html element
 	"""
-	empty = False
+	model = sims.Any()
 	class Attrs(Element.Attrs):
 		class locale(xsc.TextAttr): pass
 		class xhtml(xsc.TextAttr): pass
@@ -218,7 +218,7 @@ class image(MouseElement):
 	"""
 	image input
 	"""
-	empty = True
+	model = sims.Empty()
 	class Attrs(MouseElement.Attrs):
 		class align(xsc.TextAttr): pass
 		class border(xsc.TextAttr): pass
@@ -235,7 +235,7 @@ class img(Element):
 	"""
 	html img tag
 	"""
-	empty = False
+	model = sims.Any()
 	class Attrs(Element.Attrs):
 		class align(xsc.TextAttr): pass
 		class alt(xsc.TextAttr): pass
@@ -283,7 +283,7 @@ class javascript(Element):
 	"""
 	Render JavaScript validation based on the validation rules loaded by the ValidatorPlugIn.
 	"""
-	empty = True
+	model = sims.Empty()
 	class Attrs(Element.Attrs):
 		class cdata(xsc.TextAttr): pass
 		class dynamicJavascript(xsc.TextAttr): pass
@@ -299,7 +299,7 @@ class link(Element):
 	"""
 	html link
 	"""
-	empty = False
+	model = sims.Any()
 	class Attrs(Element.Attrs):
 		class accesskey(xsc.TextAttr): pass
 		class action(xsc.TextAttr): pass
@@ -343,7 +343,7 @@ class messages(Element):
 	"""
 	Conditionally display a set of accumulated messages.
 	"""
-	empty = False
+	model = sims.Any()
 	class Attrs(Element.Attrs):
 		class id(xsc.TextAttr): pass
 		class bundle(xsc.TextAttr): pass
@@ -359,7 +359,7 @@ class multibox(MouseElement):
 	"""
 	multiple checkbox element
 	"""
-	empty = False
+	model = sims.Any()
 	class Attrs(MouseElement.Attrs):
 		class name(xsc.TextAttr): pass
 
@@ -368,7 +368,7 @@ class option(Element):
 	"""
 	option element
 	"""
-	empty = False
+	model = sims.Any()
 	class Attrs(Element.Attrs):
 		class value(xsc.TextAttr): pass
 
@@ -377,7 +377,7 @@ class options(Element):
 	"""
 	struts html options element
 	"""
-	empty = True
+	model = sims.Empty()
 	class Attrs(Element.Attrs):
 		class bundle(xsc.TextAttr): pass
 		class disabled(xsc.TextAttr): pass
@@ -393,7 +393,7 @@ class options(Element):
 	"""
 	Render a collection of select options
 	"""
-	empty = True
+	model = sims.Empty()
 	class Attrs(Element.Attrs):
 		class collection(xsc.TextAttr): pass
 		class filter(xsc.TextAttr): pass
@@ -409,7 +409,7 @@ class optionsCollection(Element):
 	"""
 	Render a collection of select options
 	"""
-	empty = True
+	model = sims.Empty()
 	class Attrs(Element.Attrs):
 		class filter(xsc.TextAttr): pass
 		class label(xsc.TextAttr): pass
@@ -424,7 +424,7 @@ class password(MouseElement):
 	"""
 	a password text input field
 	"""
-	empty = False
+	model = sims.Any()
 	class Attrs(MouseElement.Attrs):
 		class indexed(xsc.TextAttr): pass
 		class maxlength(xsc.TextAttr): pass
@@ -448,14 +448,14 @@ class reset(MouseElement):
 	"""
 	a reset button
 	"""
-	empty = False
+	model = sims.Any()
 
 
 class rewrite(Element):
 	"""
 	render a request uri like html link
 	"""
-	empty = False
+	model = sims.Any()
 	class Attrs(Element.Attrs):
 		class anchor(xsc.TextAttr): pass
 		class forward(xsc.TextAttr): pass
@@ -475,7 +475,7 @@ class select(PartMouseElement):
 	"""
 	a select element text input field
 	"""
-	empty = False
+	model = sims.Any()
 	class Attrs(PartMouseElement.Attrs):
 		class disabled(xsc.TextAttr): pass
 		class indexed(xsc.TextAttr): pass
@@ -489,7 +489,7 @@ class submit(MouseElement):
 	"""
 	a submit button
 	"""
-	empty = False
+	model = sims.Any()
 	class Attrs(MouseElement.Attrs):
 		class indexed(xsc.TextAttr): pass
 
@@ -498,7 +498,7 @@ class text(MouseElement):
 	"""
 	a text input field
 	"""
-	empty = False
+	model = sims.Any()
 	class Attrs(MouseElement.Attrs):
 		class indexed(xsc.TextAttr): pass
 		class maxlength(xsc.TextAttr): pass
@@ -511,7 +511,7 @@ class textarea(MouseElement):
 	"""
 	a textarea
 	"""
-	empty = False
+	model = sims.Any()
 	class Attrs(MouseElement.Attrs):
 		class cols(xsc.TextAttr): pass
 		class indexed(xsc.TextAttr): pass
@@ -524,7 +524,7 @@ class xhtml(Element):
 	"""
 	Render HTML tags as XHTML
 	"""
-	empty = True
+	model = sims.Empty()
 
 
 class xmlns(xsc.Namespace):
