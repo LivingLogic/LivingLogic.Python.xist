@@ -595,7 +595,7 @@ class Node(Base):
 		"""
 		yield self
 
-	def walkPath(self, before=True, after=False, attrs=False, attrsbefore=True, attrafter=False):
+	def walkpath(self, before=True, after=False, attrs=False, attrsbefore=True, attrafter=False):
 		"""
 		<par>walk the tree. This method is a generator and for each node
 		in the tree generates a list with the <z>path</z> to the node, i.e.
@@ -1079,7 +1079,7 @@ class Frag(Node, list):
 		if after:
 			yield self
 
-	def walkPath(self, before=True, after=False, attrs=False, attrbefore=True, attrafter=False):
+	def walkpath(self, before=True, after=False, attrs=False, attrbefore=True, attrafter=False):
 		if before:
 			yield [self]
 		for child in self:
@@ -2433,19 +2433,19 @@ class Element(Node):
 		if after:
 			yield self
 
-	def walkPath(self, before=True, after=False, attrs=False, attrbefore=True, attrafter=False):
+	def walkpath(self, before=True, after=False, attrs=False, attrbefore=True, attrafter=False):
 		if before:
 			yield [self]
 		if attrs:
 			for child in self.attrs.values():
 				if attrbefore:
 					yield [self] + child
-				for grandchildPath in child.walkPath(before, after, attrs, attrbefore, attrafter):
+				for grandchildPath in child.walkpath(before, after, attrs, attrbefore, attrafter):
 					yield [self] + grandchildPath
 				if attrafter:
 					yield [self] + child
 		for child in self.content:
-			for grandchildPath in child.walkPath(before, after, attrs, attrbefore, attrafter):
+			for grandchildPath in child.walkpath(before, after, attrs, attrbefore, attrafter):
 				yield [self] + grandchildPath
 		if after:
 			yield [self]
