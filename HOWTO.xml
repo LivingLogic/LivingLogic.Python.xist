@@ -232,11 +232,15 @@ from xist import converters
 
 node = cool(python())
 node = node.convert(
-	converters.Converter(None, "deliver", "html", None))
+	converters.Converter(None, None, "deliver", "html", None))
 </doc:programlisting>
-You can pass the following four arguments to the
+You can pass the following five arguments to the
 <doc:pyref module="xist.converters" class="Converter">Converter</doc:pyref> constructor</doc:par>
 <ulist>
+<item><doc:pyref module="xist.converters" class="Converter" method="__init__" arg="root">root</doc:pyref>
+(which defaults to <code>None</code>) is the root URL for the conversion process. When you want
+to resolve a link in some of your own <pyref module="xist.xsc" class="Node" method="convert">convert</pyref>
+methods, the URL must be interpreted relative to this root URL.</item>
 <item><doc:pyref module="xist.converters" class="Converter" method="__init__" arg="mode">mode</doc:pyref>
 (which defaults to <code>None</code>) works the same way as modes in &xslt;. You can use this
 for implementing different conversion modes.</item>
@@ -350,7 +354,7 @@ or <markup>&lt;img/&gt;</markup> do in &html;) or not.</item>
 </olist>
 
 <doc:par>Specifying the content model is done with the class attribute <code>empty</code>.
-Set it to <code>0</code>, when your element may have content and to <code>1</code>
+Set it to <code>0</code> when your element may have content and to <code>1</code>
 if it may not.</doc:par>
 
 <doc:par>To specify the attributes for the element, use the class
@@ -408,7 +412,7 @@ namespace support where namespace prefixes can be bound to namespace URLs dynami
 but uses fixed prefixes.</item>
 <item><pyref module="xist.xsc" class="Namespace" method="__init__" arg="thing">thing</pyref> is
 the object that should be registered in the namespace. To register all the element
-classes (and entities and processing instruction classes) defined in the module, simply
+classes (and entity and processing instruction classes) defined in the module, simply
 use <code>vars()</code>.</item>
 </ulist>
 
@@ -654,7 +658,7 @@ or <pyref module="xist.xsc" class="Frag">Frag</pyref>:
 </doc:par>
 <doc:par>There are methods named <pyref module="xist.xsc" class="Node" method="reversed">reversed</pyref>
 and <pyref module="xist.xsc" class="Node" method="sorted">sorted</pyref>, that
-return a reversed or sorted version of an element for fragment:
+return a reversed or sorted version of an element or fragment:
 <doc:programlisting>
 &gt;&gt;&gt; from xist import xsc
 &gt;&gt;&gt; from xist.ns import html
@@ -701,9 +705,6 @@ yields an URL object equivalent to
 URL("http://www.foo.org/images/bar.png").
 </doc:programlisting>
 </doc:par>
-<doc:par>&xist; stores the URL from which an attribute was parsed
-in the <pyref>base</pyref> attribute of the <pyref module="xist.ns" class="URLAttr">URLAttr</pyref>
-object.</doc:par>
 </doc:section>
 
 <doc:section><doc:title>Automatic generation of image size attributes</doc:title>
