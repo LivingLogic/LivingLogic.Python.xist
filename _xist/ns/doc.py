@@ -656,32 +656,22 @@ class section(block):
 			context.indentcount += 1
 			text_indent = context.dedent()
 		else:
-			if len(context.sections)>2:
+			if len(context.sections)>1:
 				number = (
-					u".".join(unicode(s) for s in context.sections[1:-1]),
+					u".".join(unicode(s) for s in context.sections[:-1]),
 					u". "
 				)
 			text_indent = None
 
-		if len(context.sections)==2:
-			tattrs = fo.block.Attrs(
-				font_family=context.hdfont,
-				color=context.llblue,
-				text_align=u"left",
-				font_size=u"36pt",
-				space_after=u"30pt",
-				keep_with_next_within_page=u"always",
-			)
-		else:
-			tattrs = fo.block.Attrs(
-				font_size=p[0],
-				space_before=p[1],
-				space_after=p[2],
-				text_align=u"left",
-				font_family=context.hdfont,
-				keep_with_next_within_page=u"always",
-				text_indent=text_indent
-			)
+		tattrs = fo.block.Attrs(
+			font_size=p[0],
+			space_before=p[1],
+			space_after=p[2],
+			text_align=u"left",
+			font_family=context.hdfont,
+			keep_with_next_within_page=u"always",
+			text_indent=text_indent
+		)
 		e = fo.block(
 			fo.block(number, ts, tattrs),
 			cs,
