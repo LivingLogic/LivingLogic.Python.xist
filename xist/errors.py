@@ -109,7 +109,7 @@ class AttributeNotFoundError(Error):
 class IllegalElementError(Error):
 	"""
 	exception that is raised, when an illegal element is encountered
-	(i.e. one that isn't registered via registerElement)
+	(i.e. one that isn't registered via xsc.Namespace.register())
 	"""
 
 	def __init__(self, location, name):
@@ -135,6 +135,37 @@ class IllegalElementError(Error):
 			s = s + "Allowed elements are: " + ", ".join(allAsList) + "."
 		else:
 			s = s + "There are no allowed elements."
+		return s
+
+class IllegalProcInstError(Error):
+	"""
+	exception that is raised, when an illegal processing instruction is encountered
+	(i.e. one that isn't registered via xsc.Namespace.register())
+	"""
+
+	def __init__(self, location, name):
+		Error.__init__(self, location)
+		self.name = name
+
+	def __str__(self):
+		# List the element sorted by name
+		all = {}
+		for namespace in xsc.namespaceRegistry.byPrefix.values():
+			for procinst in namespace.procInstsByName.values():
+				all[(procinst.name, procinst.namespace.prefix)] = procinst
+
+		allkeys = all.keys()
+		allkeys.sort()
+		allAsList = []
+		for key in allkeys:
+			procinst = all[key]
+			allAsList.append(xsc.strProcInstTarget(procinst.name))
+
+		s = Error.__str__(self) + "procinst " + xsc.strProcInstTarget(self.name) + " not allowed. "
+		if allAsList:
+			s = s + "Allowed procinsts are: " + ", ".join(allAsList) + "."
+		else:
+			s = s + "There are no allowed procinsts."
 		return s
 
 class IllegalElementNestingError(Error):
@@ -232,7 +263,7 @@ class IllegalEntityError(Error):
 			s = s + "There are no allowed entities."
 		return s
 
-class IllegalCommentError(Error):
+class IllegalCommentFormatError(Error):
 	"""
 	exception that is raised, when there is an illegal comment, i.e. one
 	containing <code>--</code> or ending in <code>-</code>.
@@ -247,7 +278,7 @@ class IllegalCommentError(Error):
 	def __str__(self):
 		return Error.__str__(self) + "comment with content " + repr(self.comment.content) + " is illegal, as it contains '--' or ends in '-'."
 
-class IllegalProcInstError(Error):
+class IllegalProcInstFormatError(Error):
 	"""
 	exception that is raised, when there is an illegal processing instruction, i.e. one containing <code>?&gt;</code>.
 	(This can only happen, when the processing instruction is instantiated by the
@@ -261,7 +292,7 @@ class IllegalProcInstError(Error):
 	def __str__(self):
 		return Error.__str__(self) + "processing instruction with content " + repr(self.procinst.content) + " is illegal, as it contains " + repr("?>") + "."
 
-class IllegalXMLDeclError(Error):
+class IllegalXMLDeclFormatError(Error):
 	"""
 	exception that is raised, when there is an illegal XML declaration,
 	i.e. there something wrong in <code><&lt;?xml ...?&gt;</code>.

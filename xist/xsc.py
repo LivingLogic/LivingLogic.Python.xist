@@ -1161,7 +1161,7 @@ class Comment(Node, StringMixIn):
 
 	def publish(self, publisher):
 		if self._content.find(u"--")!=-1 or self._content[-1:]==u"-":
-			raise errors.IllegalCommentError(self.startloc, self)
+			raise errors.IllegalCommentContentError(self.startloc, self)
 		publisher(u"<!--", self._content, u"-->")
 
 class DocType(Node, StringMixIn):
@@ -1220,13 +1220,16 @@ class ProcInst(Node, StringMixIn):
 
 	def publish(self, publisher):
 		if self._content.find(u"?>")!=-1:
-			raise errors.IllegalProcInstError(self.startloc, self)
+			raise errors.IllegalProcInstFormatError(self.startloc, self)
 		publisher(u"<?", publisher._encodeIllegal(self._target), u" ", self._content, u"?>")
 
 class PythonCode(ProcInst):
 	"""
 	helper class
 	"""
+
+	name = None # don't register the class
+
 	def _doreprtree(self, nest, elementno, encoding=None, ansi=None):
 		head = strBracketOpen(ansi) + strQuestion(ansi) + strProcInstTarget(self._target, ansi) + " "
 		tail = strQuestion(ansi) + strBracketClose(ansi)
@@ -1246,9 +1249,11 @@ class Exec(PythonCode):
 	<par>XSC processing instructions will be evaluated and executed in the
 	namespace of the module procinst.</par>
 	"""
+	name = "xsc-exec"
+
 	def __init__(self, content=u""):
 		ProcInst.__init__(self, u"xsc-exec", content)
-		code = Code(self.content, 1)
+		code = Code(self._content, 1)
 		exec code.asString() in procinst.__dict__ # requires Python 2.0b2 (and doesn't really work)
 
 	def asHTML(self):
@@ -1268,6 +1273,9 @@ class Eval(PythonCode):
 	<par>Note that you should not define the symbol <code>__</code> in any of your XSC
 	processing instructions, as it is used by XSC for internal purposes.</par>
 	"""
+
+	name = "xsc-eval"
+
 	def __init__(self, content=u""):
 		ProcInst.__init__(self, u"xsc-eval", content)
 
@@ -1279,7 +1287,11 @@ class Eval(PythonCode):
 
 class XML(ProcInst):
 	"""
+	XML header
 	"""
+
+	name = "xml"
+
 	def __init__(self, content=u""):
 		ProcInst.__init__(self, u"xml", content)
 
@@ -1846,6 +1858,7 @@ class Namespace:
 		self.elementsByName = {} # dictionary for mapping element names to classes
 		self.entitiesByName = {} # dictionary for mapping entity names to classes
 		self.entitiesByNumber = [ [] for i in xrange(65536) ]
+		self.procInstsByName = {} # dictionary for mapping processing instruction target names to classes
 
 		self.register(thing)
 
@@ -1854,17 +1867,17 @@ class Namespace:
 	def register(self, thing):
 		"""
 		<par noindent>this function lets you register <argref>thing</argref> in the namespace.
-		If <argref>thing</argref> is a class derived from <classref>Element</classref> or
-		<classref>Entity</classref> in will be registered in the following way:
-		The class <argref>thing</argref> will be registered under it's class name
-		(<code><argref>thing</argref>.__name__</code>). If you want to change this behaviour,
-		do the following: set a class variable <code>name</code> to the name you want
-		to be used. If you don't want <argref>thing</argref> to be registered at all, set
-		<code>name</code> to <code>None</code>.
+		If <argref>thing</argref> is a class derived from <classref>Element</classref>,
+		<classref>Entity</classref> or <classref>ProcInst</classref> it will be registered
+		in the following way: The class <argref>thing</argref> will be registered under it's
+		class name (<code><argref>thing</argref>.__name__</code>). If you want to change this
+		behaviour, do the following: set a class variable <code>name</code> to the name you
+		want to be used. If you don't want <argref>thing</argref> to be registered at all,
+		set <code>name</code> to <code>None</code>.
 
-		<par>After the call <argref>thing</argref> will have two class attributes: <code>name</code>,
-		which is the name under which the class is registered and <code>namespace</code>,
-		which is the namespace itself (i.e. <self/>).</par>
+		<par>After the call <argref>thing</argref> will have two class attributes:
+		<code>name</code>, which is the name under which the class is registered and
+		<code>namespace</code>, which is the namespace itself (i.e. <self/>).</par>
 
 		<par>If <argref>thing</argref> already has an attribute <code>namespace</code>, it
 		won't be registered again.</par>
@@ -1878,7 +1891,8 @@ class Namespace:
 		if type(thing) is types.ClassType:
 			iselement = thing is not Element and issubclass(thing, Element)
 			isentity = thing is not Entity and issubclass(thing, Entity)
-			if iselement or isentity:
+			isprocinst = thing is not ProcInst and issubclass(thing, ProcInst)
+			if iselement or isentity or isprocinst:
 				if not thing.__dict__.has_key("namespace"): # if the class already has a namespace attribute, it is already registered (where accessing __dict__ here, because we don't want inheritance)
 					try:
 						name = thing.__dict__["name"] # no inheritance
@@ -1890,12 +1904,14 @@ class Namespace:
 						thing.name = name
 						if iselement:
 							self.elementsByName[name] = thing
-						else:
+						elif isentity:
 							self.entitiesByName[name] = thing
 							try:
 								self.entitiesByNumber[thing.codepoint].append(thing)
 							except AttributeError: # no codepoint attribute in the class, so this isn't a char ref
 								pass
+						else: # if isprocinst:
+							self.procInstsByName[name] = thing
 		elif type(thing) is types.DictionaryType:
 			for key in thing.keys():
 				self.register(thing[key])

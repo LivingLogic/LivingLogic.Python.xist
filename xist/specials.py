@@ -400,5 +400,15 @@ class isdn(xsc.Entity):
 	def asPlainString(self):
 		return u"ISDN"
 
+class PHP(xsc.ProcInst):
+	"""
+	PHP processing instruction (must be used with a target)
+	"""
+
+	name = "php"
+
+	def __init__(self, content=u""):
+		xsc.ProcInst.__init__(self, u"php", content)
+
 namespace = xsc.Namespace("specials", "http://www.livinglogic.de/DTDs/specials.dtd", vars())
 

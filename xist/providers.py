@@ -60,7 +60,7 @@ class Provider:
 		self.namespaces.pop(0)
 
 	def __nodeFromName(self, name, type):
-		# type==0 => entity; type==1 => element
+		# type==0 => element; type==1 => entity; type==2 => procinst
 		name = name.split(":")
 		if len(name) == 1: # no namespace specified
 			name.insert(0, None)
@@ -72,27 +72,37 @@ class Provider:
 			if name[0] is None or name[0] == namespace.prefix:
 				try:
 					if type==0:
-						return namespace.entitiesByName[name[1]]
-					else:
 						return namespace.elementsByName[name[1]]
+					elif type==1:
+						return namespace.entitiesByName[name[1]]
+					else: # if type==2:
+						return namespace.procInstsByName[name[1]]
 				except KeyError: # no element/entity in this namespace with this name
 					pass
 		if type==0:
-			raise errors.IllegalEntityError(self.__here(), name) # entities with this name couldn't be found
-		else:
 			raise errors.IllegalElementError(self.__here(), name) # elements with this name couldn't be found
+		elif type==1:
+			raise errors.IllegalEntityError(self.__here(), name) # entities with this name couldn't be found
+		else: # if type==2:
+			raise errors.IllegalProcInstError(self.__here(), name) # procinsts with this name couldn't be found
 
 	def elementFromName(self, name):
 		"""
 		returns the element class for the name name (which might include a namespace).
 		"""
-		return self.__nodeFromName(name, 1)
+		return self.__nodeFromName(name, 0)
 
 	def entityFromName(self, name):
 		"""
 		returns the entity class for the name name (which might include a namespace).
 		"""
-		return self.__nodeFromName(name, 0)
+		return self.__nodeFromName(name, 1)
+
+	def procInstFromName(self, name):
+		"""
+		returns the processing instruction class for the name name (which might include a namespace).
+		"""
+		return self.__nodeFromName(name, 2)
 
 	def finish_starttag(self, name, attrs):
 		node = self.elementFromName(unicode(name, self.encoding))()
@@ -121,16 +131,7 @@ class Provider:
 			self.__appendNode(xsc.DocType(unicode(data, self.encoding)[8:]))
 
 	def handle_proc(self, target, data):
-		data = unicode(data, self.encoding)
-		if target=="xml":
-			node = xsc.XML(data)
-		elif target=="xsc-exec":
-			node = xsc.Exec(data)
-		elif target=="xsc-eval":
-			node = xsc.Eval(data)
-		else:
-			node = xsc.ProcInst(unicode(target, self.encoding), data)
-		self.__appendNode(node)
+		self.__appendNode(self.procInstFromName(unicode(target, self.encoding))(unicode(data, self.encoding)))
 
 	def handle_entityref(self, name):
 		self.__appendNode(self.entityFromName(unicode(name, self.encoding))())

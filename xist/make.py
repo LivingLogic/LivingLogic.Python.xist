@@ -87,7 +87,7 @@ def make():
 			s_out = p.asBytes()
 			__forceopen(outname.asString(), "wb").write(s_out)
 			t4 = time.time()
-			sys.stderr.write("XSC(encoding=%r, XHTML=%r): converted %r to %r: %s (%.01fp;%.01fc;%.01fs)\n" % (encoding, XHTML, str(inname), str(outname), xsc._stransi("1", str(len(s_out))), t2-t1, t3-t2, t4-t3))
+			sys.stderr.write("XSC(encoding=%r, XHTML=%r): %r->%r: %s (parse %.02fs; transform %.02fs; save %.02fs)\n" % (encoding, XHTML, str(inname), str(outname), xsc._stransi("1", str(len(s_out))), t2-t1, t3-t2, t4-t3))
 			xsc.xsc.popURL()
 	else:
 		sys.stderr.write("XSC: no files to convert.\n")
