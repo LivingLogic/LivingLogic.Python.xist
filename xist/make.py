@@ -80,7 +80,7 @@ def make():
 			e_out.publish(p)
 			t4 = time.time()
 			size = p.tell()
-			sys.stderr.write("XSC(encoding=%s, XHTML=%s): %s->%s: %s (parse %ss; transform %ss; save %ss)\n" % (formatstring(encoding), formatnumber(XHTML), xsc.strURL(inname.asString()), xsc.strURL(outname.asString()), formatnumber(size), formatnumber("%.02f" % (t2-t1)), formatnumber("%.02f" % (t3-t2)), formatnumber("%.02f" % (t4-t3))))
+			sys.stderr.write("XSC(encoding=%s, XHTML=%s): %s->%s: %s (parse %ss; transform %ss; save %ss)\n" % (formatstring(p.encoding), formatnumber(p.XHTML), xsc.strURL(inname.asString()), xsc.strURL(outname.asString()), formatnumber(size), formatnumber("%.02f" % (t2-t1)), formatnumber("%.02f" % (t3-t2)), formatnumber("%.02f" % (t4-t3))))
 			xsc.xsc.popURL()
 	else:
 		sys.stderr.write("XSC: no files to convert.\n")
