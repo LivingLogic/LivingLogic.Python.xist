@@ -1335,7 +1335,7 @@ class Attr(Frag):
 	def present(self, presenter):
 		presenter.presentAttr(self)
 
-	def checkValid(self):
+	def checkvalid(self):
 		"""
 		<par>Check whether <self/> has an allowed value, i.e. one
 		that is specified in the class attribute <lit>values</lit>.
@@ -1351,7 +1351,7 @@ class Attr(Frag):
 				errors.warn(errors.IllegalAttrValueWarning(self))
 
 	def parsed(self, handler, begin=None):
-		self.checkValid()
+		self.checkvalid()
 
 	def _publishAttrValue(self, publisher):
 		Frag.publish(self, publisher)
@@ -1359,7 +1359,7 @@ class Attr(Frag):
 	def publish(self, publisher):
 		if publisher.inAttr:
 			raise errors.IllegalAttrNodeError(self)
-		self.checkValid()
+		self.checkvalid()
 		publisher.inAttr += 1
 		self._publishName(publisher) # publish the XML name, not the Python name
 		publisher.publish(u"=\"")
@@ -1405,7 +1405,7 @@ class BoolAttr(Attr):
 	def publish(self, publisher):
 		if publisher.inAttr:
 			raise errors.IllegalAttrNodeError(self)
-		self.checkValid()
+		self.checkvalid()
 		publisher.inAttr += 1
 		self._publishName(publisher) # publish the XML name, not the Python name
 		if publisher.xhtml>0:
@@ -1995,13 +1995,13 @@ class Element(Node):
 		return s
 	_str = classmethod(_str)
 
-	def checkValid(self):
+	def checkvalid(self):
 		if self.empty and len(self):
 			raise errors.EmptyElementWithContentError(self)
 
 	def parsed(self, handler, begin=None):
 		if not begin:
-			self.checkValid()
+			self.checkvalid()
 
 	def append(self, *items):
 		"""
@@ -2087,7 +2087,7 @@ class Element(Node):
 	xmlprefix = classmethod(xmlprefix)
 
 	def publish(self, publisher):
-		self.checkValid()
+		self.checkvalid()
 		if publisher.inAttr:
 			# publish the content only, when we are inside an attribute
 			# this works much like using the plain string value, but

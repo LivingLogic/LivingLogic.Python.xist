@@ -514,7 +514,7 @@ be issued:</par>
 /home/walter/pythonroot/ll/xist/xsc.py:1338: \
     UserWarning: Attribute value 'pretty' \
     not allowed for __main__:cool.Attrs.adj.
-  self.checkValid()
+  self.checkvalid()
 </programlisting>
 
 <par>The warning will also be issued if we publish such a node,
@@ -528,7 +528,7 @@ you can change that with <function>warnings.filterwarnings</function>):</par>
 /home/walter/pythonroot/ll/xist/xsc.py:1338: \
     UserWarning: Attribute value 'pretty' \
     not allowed for __main__:cool.Attrs.adj.
-  self.checkValid()
+  self.checkvalid()
 &lt;cool adj="very"&gt;&lt;python /&gt;&lt;/cool&gt;
 </programlisting>
 
