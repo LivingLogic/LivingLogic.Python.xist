@@ -199,7 +199,7 @@ class taglib(xsc.Element):
 
 	def convert(self, converter):
 		e = xndl.xndl()
-		e['prefix'] = str(self.find(type=shortname)[0].content)
+		e['name'] = str(self.find(type=shortname)[0].content)
 		l = self.find(type=uri)
 		if l:
 			e["url"] = l[0].content
