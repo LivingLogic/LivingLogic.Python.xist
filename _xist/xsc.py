@@ -1627,28 +1627,30 @@ class Attrs(Node, dict):
 	def publish(self, publisher):
 		if publisher.inAttr:
 			raise errors.IllegalAttrNodeError(self)
+		# get all required attributes
 		attrs = [key for (key, value) in self.alloweditems() if value.required]
-		for (attrname, attrvalue) in dict.items(self):
-			if len(attrvalue):
-				publisher.publish(u" ")
-				if isinstance(attrname, tuple): # global attribute?
-					publisher.publish(publisher.prefixes.elementprefix4ns(attrname[0])[0])
-					publisher.publish(u":")
-				else:
-					try:
-						attrs.remove(attrname)
-					except ValueError:
-						pass
-				publisher.publish(attrvalue.xmlname) # publish the XML name, not the Python name
-				if isinstance(attrvalue, BoolAttr):
-					if publisher.xhtml>0:
-						publisher.publish(u"=\"")
-						publisher.publish(attrname)
-						publisher.publish(u"\"")
-				else:
+		for (attrname, attrvalue) in self.iteritems():
+			publisher.publish(u" ")
+			if isinstance(attrname, tuple): # global attribute?
+				publisher.publish(publisher.prefixes.elementprefix4ns(attrname[0])[0])
+				publisher.publish(u":")
+			else:
+				# if a required attribute is encountered, remove from the list of outstanding ones
+				try:
+					attrs.remove(attrname)
+				except ValueError:
+					pass
+			publisher.publish(attrvalue.xmlname) # publish the XML name, not the Python name
+			if isinstance(attrvalue, BoolAttr):
+				if publisher.xhtml>0:
 					publisher.publish(u"=\"")
-					attrvalue.publish(publisher)
+					publisher.publish(attrname)
 					publisher.publish(u"\"")
+			else:
+				publisher.publish(u"=\"")
+				attrvalue.publish(publisher)
+				publisher.publish(u"\"")
+		# are there any required attributes remaining that haven't be specified? => warn about it
 		if attrs:
 			errors.warn(errors.RequiredAttrMissingWarning(self, attrs))
 
