@@ -16,6 +16,13 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
 
+def iterone(node):
+	"""
+	Return an iterator that will produce one item: <arg>node</arg>.
+	"""
+	yield node
+
+
 class Operator(object):
 	"""
 	The base class of all XFind operators.
@@ -24,8 +31,6 @@ class Operator(object):
 		from ll.xist import xsc
 		# Wrap node in an iterator
 		if isinstance(other, xsc.Node):
-			def iterone(node):
-				yield node
 			other = iterone(other)
 		return Finder(other, self)
 
@@ -33,8 +38,6 @@ class Operator(object):
 		from ll.xist import xsc
 		# Wrap node in an iterator
 		if isinstance(other, xsc.Node):
-			def iterone(node):
-				yield node
 			other = iterone(other)
 		return Finder(other, all, self)
 
@@ -70,6 +73,9 @@ class Finder(object):
 	__slots__ = ("iterator", "operators")
 
 	def __init__(self, iterator, *operators):
+		from ll.xist import xsc
+		if isinstance(iterator, xsc.Node):
+			iterator = iterone(iterator)
 		self.iterator = iterator
 		self.operators = operators
 
@@ -116,7 +122,7 @@ class Finder(object):
 		return Finder(self.iterator, *(self.operators + (other,)))
 
 	def __floordiv__(self, other):
-		return Finder(self.iterator, *(self.operators + (xfind.all, other)))
+		return Finder(self.iterator, *(self.operators + (all, other)))
 
 	def __repr__(self):
 		if self.operators:
@@ -161,6 +167,14 @@ def count(iterator):
 
 
 class all(Operator):
+	def xfind(self, iterator, *operators):
+		ids = {} # FIXME: Use a set in Python 2.4
+		for child in self.xwalk(iterator):
+			for subchild in Finder(child, *operators):
+				if id(subchild) not in ids:
+					ids[id(subchild)] = None
+					yield subchild
+
 	def xwalk(self, iterator):
 		for child in iterator:
 			for subchild in child.walk():

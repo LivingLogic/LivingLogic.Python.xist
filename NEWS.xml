@@ -1,4 +1,13 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
+<section><title>Changes in 2.6.? (released ??/??/2004)</title>
+<ulist>
+<item>Fixed a bug in <method>ll.xist.xfind.Finder.__floordiv__</method>.</item>
+<item>Multiple <lit>all</lit> operators in an XFind expression will now
+no longer produced duplicate nodes.</item>
+</ulist>
+</section>
+
+
 <section><title>Changes in 2.6 (released 10/26/2004)</title>
 <ulist>
 <item><function>ToNode</function> now tries iterating through the

@@ -2317,6 +2317,27 @@ class XFindTest2(unittest.TestCase):
 		self.assertEqual(len(res), 1)
 		self.assert_(res[0] is self.node[1]["class_"])
 
+
+class XFindTest3(unittest.TestCase):
+	def setUp(self):
+		ds = [html.div(id=hex(id).lower()[2:]) for id in xrange(15)]
+		for i in xrange(7):
+			ds[i].append(ds[2*i+1:2*i+3])
+		self.divs = ds
+		#        ____0____
+		#       /         \
+		#     _1_         _2_
+		#    /   \       /   \
+		#   3     4     5     6
+		#  / \   / \   / \   / \
+		# 7   8 9   a b   c d   e
+
+	def tearDown(self):
+		del self.divs
+
+	def checkids(self, expr, ids):
+		self.assertEqual("".join([str(e["id"]) for e in expr]), ids)
+
 	def test_frag(self):
 		e = parsers.parseString("das ist <b>klaus</b>. das ist <b>erich</b>", prefixes=xsc.Prefixes(html))
 		# The following won't generate any nodes, because e/xfind.all iterates all
@@ -2325,6 +2346,10 @@ class XFindTest2(unittest.TestCase):
 		self.assertEqual(u"".join(map(unicode, e//html.b)), u"")
 		# The following *will* produce these nodes
 		self.assertEqual(u"".join(map(unicode, e//xfind.is_(html.b))), u"klauserich")
+
+	def test_multiall(self):
+		self.checkids(self.divs[0]//html.div//html.div, "34789a56bcde")
+
 
 def test_main():
 	unittest.main()
