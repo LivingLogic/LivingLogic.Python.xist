@@ -9,8 +9,8 @@
 ## See xist/__init__.py for the license
 
 """
-<doc:par>This module contains several functions and classes,
-that are used internally by &xist;.</doc:par>
+<par>This module contains several functions and classes,
+that are used internally by &xist;.</par>
 """
 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))

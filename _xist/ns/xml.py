@@ -9,7 +9,7 @@
 ## See xist/__init__.py for the license
 
 """
-<doc:par>Contains the global attributes for the &xml; namespace.</doc:par>
+<par>Contains the global attributes for the &xml; namespace.</par>
 """
 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))

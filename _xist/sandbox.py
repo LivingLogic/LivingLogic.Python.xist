@@ -9,9 +9,9 @@
 ## See xist/__init__.py for the license
 
 """
-<doc:par>This module provides a sandbox for the code that is evaluated in
+<par>This module provides a sandbox for the code that is evaluated in
 XSC processing instructions (i.e. <code>&lt;?code:exec?&gt;</code> and
-<code>&lt;?code:eval?&gt;</code>).</doc:par>
+<code>&lt;?code:eval?&gt;</code>).</par>
 """
 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))

@@ -9,8 +9,8 @@
 ## See xist/__init__.py for the license
 
 """
-<doc:par>Contains the global attributes for the xlink namespace
-(<lit>http://www.w3.org/1999/xlink</lit>).</doc:par>
+<par>Contains the global attributes for the xlink namespace
+(<lit>http://www.w3.org/1999/xlink</lit>).</par>
 """
 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))

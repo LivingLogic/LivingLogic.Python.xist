@@ -9,11 +9,11 @@
 ## See xist/__init__.py for the license
 
 """
-<doc:par>This module contains all the exception classes of &xist;.
-But note that &xist; will raise other exceptions as well.</doc:par>
+<par>This module contains all the exception classes of &xist;.
+But note that &xist; will raise other exceptions as well.</par>
 
-<doc:par>All exceptions defined in this module are derived from
-the base class <pyref class="Error"><class>Error</class></pyref>.</doc:par>
+<par>All exceptions defined in this module are derived from
+the base class <pyref class="Error"><class>Error</class></pyref>.</par>
 """
 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))

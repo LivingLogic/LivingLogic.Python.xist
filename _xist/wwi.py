@@ -9,7 +9,7 @@
 ## See xist/__init__.py for the license
 
 """
-<doc:par>A XSC module can be used with WebWare</doc:par>
+<par>A XSC module can be used with WebWare</par>
 """
 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
