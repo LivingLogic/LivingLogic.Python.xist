@@ -29,6 +29,44 @@ class contenttype(html.meta):
 		e["content"] = "text/html"
 		return e.asHTML()
 
+class keywords(html.meta):
+	"""
+	<par noindent>can be used for a <code>&lt;meta name="keywords" content="..."/&gt;</code>.</par>
+
+	<par>Usage is simple: <code>&lt;meta:keywords&gt;foo, bar&lt;/meta:keywords&gt;</code></par>
+	"""
+	empty = 1
+	attrHandlers = html.meta.attrHandlers.copy()
+	del attrHandlers["http-equiv"]
+	del attrHandlers["http_equiv"]
+	del attrHandlers["name"]
+	del attrHandlers["content"]
+
+	def asHTML(self):
+		e = html.meta(self.attrs)
+		e["name"] = "keywords"
+		e["content"] = self.content.asHTML().asPlainString()
+		return e.asHTML()
+
+class description(html.meta):
+	"""
+	<par noindent>can be used for a <code>&lt;meta name="description" content="..."/&gt;</code>.</par>
+
+	<par>Usage is simple: <code>&lt;meta:description&gt;foo, bar&lt;/meta:description&gt;</code></par>
+	"""
+	empty = 1
+	attrHandlers = html.meta.attrHandlers.copy()
+	del attrHandlers["http-equiv"]
+	del attrHandlers["http_equiv"]
+	del attrHandlers["name"]
+	del attrHandlers["content"]
+
+	def asHTML(self):
+		e = html.meta(self.attrs)
+		e["name"] = "description"
+		e["content"] = self.content.asHTML().asPlainString()
+		return e.asHTML()
+
 class stylesheet(html.link):
 	"""
 	<par noindent>can be used for a <code>&lt;link rel="stylesheet" type="text/css" href="..."/&gt;</code>.</par>
