@@ -29,11 +29,6 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 
 import os, types, sys, stat, urllib, random
 
-try:
-	import Image
-except ImportError:
-	Image = None
-
 import url, presenters, publishers, converters, errors, options, utils, helpers
 
 ###
@@ -1098,7 +1093,7 @@ class Element(Node):
 		"""
 
 		if self.hasAttr(imgattr):
-			size = self[imgattr].convert(converter).ImageSize()
+			size = self[imgattr].convert(converter).imageSize()
 			if size is not None: # the size was retrieved so we can use it
 				sizedict = {"width": size[0], "height": size[1]}
 				for attr in (heightattr, widthattr):
@@ -1587,51 +1582,17 @@ class URLAttr(Attr):
 			u = url.URL(scheme="http", server=options.server) + u
 		return u
 
-	def ImageSize(self):
+	def imageSize(self):
 		"""
 		returns the size of an image as a tuple or None if the image shouldn't be read
 		"""
+		return self.forInput().imageSize()
 
-		size = None
-		if Image is not None:
-			url = self.forInput()
-			if url.isRetrieve():
-				try:
-					(filename, headers) = url.retrieve()
-					if headers.maintype == "image":
-						img = Image.open(filename)
-						size = img.size
-						del img
-					urllib.urlcleanup()
-				except IOError:
-					urllib.urlcleanup()
-					raise errors.FileNotFoundError(url)
-		return size
-
-	def FileSize(self):
+	def fileSize(self):
 		"""
 		returns the size of a file in bytes or None if the file shouldn't be read
 		"""
-
-		url = self.forInput()
-
-		size = None
-		if url.isRetrieve():
-			try:
-				info = url.info()
-			except IOError:
-				raise errors.FileNotFoundError(url)
-			try:
-				size = int(info["Content-Length"])
-			except KeyError: # try the hard way
-				try:
-					(filename, headers) = url.retrieve()
-					size = os.stat(filename)[stat.ST_SIZE]
-					urllib.urlcleanup()
-				except IOError:
-					urllib.urlcleanup()
-					raise errors.FileNotFoundError(url)
-		return size
+		return self.forInput().fileSize()
 
 	def open(self):
 		"""

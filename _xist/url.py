@@ -27,7 +27,12 @@ This module contains only one useful variable: the URL class
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-import types, urlparse, urllib
+try:
+	import Image
+except ImportError:
+	Image = None
+
+import os, types, urlparse, urllib
 
 from xist import options
 
@@ -335,6 +340,46 @@ class URL:
 		else:
 			return 0
 
+	def fileSize(self):
+		"""
+		returns the size of a file in bytes or None if the file shouldn't be read
+		"""
+		size = None
+		if self.isRetrieve():
+			try:
+				info = self.info()
+			except IOError:
+				raise errors.FileNotFoundError(url)
+			try:
+				size = int(info["Content-Length"])
+			except KeyError: # try the hard way
+				try:
+					(filename, headers) = self.retrieve()
+					size = os.stat(filename)[stat.ST_SIZE]
+					urllib.urlcleanup()
+				except IOError:
+					urllib.urlcleanup()
+					raise errors.FileNotFoundError(url)
+		return size
+
+	def imageSize(self):
+		"""
+		returns the size of an image as a tuple or None if the image shouldn't be read
+		"""
+		size = None
+		if Image is not None:
+			if self.isRetrieve():
+				try:
+					(filename, headers) = self.retrieve()
+					if headers.maintype == "image":
+						img = Image.open(filename)
+						size = img.size
+						del img
+					urllib.urlcleanup()
+				except IOError:
+					urllib.urlcleanup()
+					raise errors.FileNotFoundError(url)
+		return size
 def test_normalize(input, output):
 	"""
 	Tests whether '_normalize' returns the expected results.

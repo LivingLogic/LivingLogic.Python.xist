@@ -88,7 +88,7 @@ class filesize(xsc.Element):
 	attrHandlers = {"href": xsc.URLAttr}
 
 	def convert(self, converter):
-		size = self["href"].FileSize()
+		size = self["href"].fileSize()
 		if size is not None:
 			return xsc.Text(size)
 		else:
