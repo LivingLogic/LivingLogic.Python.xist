@@ -313,7 +313,7 @@ class Presenter:
 		self.inAttr = 0
 
 	def strAttrName(self, attrname):
-		return strAttrName(attrName)
+		return strAttrName(attrname)
 
 	def strDocTypeMarker(self):
 		return EnvTextForDocTypeMarker("DOCTYPE")
