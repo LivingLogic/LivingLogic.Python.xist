@@ -528,27 +528,35 @@ class Node:
 
 	def asPlainString(self):
 		"""
-		returns this node as a string without any character references.
+		<par noindent>returns this node as a string without any character references.
 		Comments and processing instructions will be filtered out.
-		For elements you'll get the element content.
+		For elements you'll get the element content.</par>
 
-		It might be useful to overwrite this function in your own
+		<par>It might be useful to overwrite this function in your own
 		elements. Suppose you have the following element:
-
+		<pre>
 		class caps(xsc.Element):
 			empty = 0
 
 			def asHTML(self):
-				return html.span(self.content,style="font-variant: small-caps;").asHTML()
+				return html.span(
+					self.content.asHTML(),
+					style="font-variant: small-caps;"
+				)
+		</pre>
 
 		that renders its content in small caps, then it might be useful
-		to define asPlainString in the following way:
+		to define <methodref>asPlainString</methodref> in the following way:
+		<pre>
+		def asPlainString(self):
+			return string.upper(self.content.asPlainString())
+		</pre>
 
-			def asPlainString(self):
-				return string.upper(self.content.asPlainString())
-
-		E.g. asPlainString might be used to construct a title element
-		for a page from a part of the content of the page.
+		<methodref>asPlainString</methodref> can be used everywhere, where
+		a plain string representation of the node is required.
+		<classref module="html">title</classref> uses this function on its content,
+		so you can safely use HTML elements in your title elements (e.g. if your
+		title is dynamically constructed from a DOM tree.)</par>
 		"""
 		return ""
 
@@ -560,67 +568,63 @@ class Node:
 
 	def asFloat(self,decimal = "."):
 		"""
-		asFloat(self,decimal = ".") -> float
-
-		returns this node converted to a float.
-
-		decimal specifies which decimal separator is used in the value
-		(e.g. "." (the default) or ",").
+		returns this node converted to a float. <argref>decimal</argref>
+		specifies which decimal separator is used in the value
+		(e.g. <code>"."<code> (the default) or <code>","</code>).
 		"""
 		s = self.asPlainString()
 		if decimal != ".":
 			s = string.replace(s,decimal,".")
 		return float(s)
 
-	def asString(self,XHTML = None):
+	def asString(self,XHTML = None,encoding = None):
 		"""
-		asString(self,XHTML = None) -> string
+		<par noindent>returns this element as a string suitable for writing
+		to an HTML file or printing from a CGI script.</par>
 
-		returns this element as a string suitable for writing to an HTML file or
-		printing from a CGI script.
-
-		There will only be 7bit characters in the string, so can use "us-ascii"
-		as the chraracter set.
-
-		With the parameter XHTML you can specify if you want HTML output
-		(i.e. elements with a content model EMPTY as <foo>) with XHTML == 0, or
-		XHTML output that is compatible with HTML browsers (element with an
-		empty content model as <foo /> and others that just happen to be empty
-		as <foo></foo>) with XHTML == 1 or just plain XHTML with XHTML == 2
-		(all empty elements as <foo/>).
-
+		<par>With the parameter <argref>XHTML</argref> you can specify if you want HTML output
+		(i.e. elements with a content model EMPTY as <code>&lt;foo&gt;</code>) with
+		<code><argref>XHTML</argref>==0</code>, or XHTML output that is compatible with HTML browsers
+		(element with an empty content model as <code>&lt;foo /&gt;</code> and others that
+		just happen to be empty as <code>&lt;foo&gt;&lt;/foo&gt;</code>) with <code><argref>XHTML</argref>==1</code>
+		or just plain XHTML with <code><argref>XHTML</argref>==2</code> (all empty elements as <code>&lt;foo/&gt;</code>).
 		When you use the default (None) that value of the global variable
 		outputXHTML will be used, which defaults to 1, but can be overwritten
 		by the environment variable XSC_OUTPUT_XHTML and can of course be
-		changed dynamically.
+		changed dynamically.</par>
+
+		<par>There will only be 7bit characters in the string, so can use "us-ascii"
+		as the chraracter set.</par>
 		"""
 		return ""
 
 	def findNodes(self,type = None,searchchildren = 0,searchattrs = 0,subtype = 0,attrs = None):
 		"""
-		findNodes(self,type = None,searchchildren = 0,searchattrs = 0,subtype = 0,attrs = None) -> fragment
+		<par noindent>returns a fragment which contains child elements of this node.</par>
 
-		returns a fragment which contains child elements of this node.
+		<par>If you specify <argref>type</argref> as the class of an XSC node only nodes
+		of this class will be returned. If you pass a list of classes, nodes that are an
+		instance of one of the classes will be returned.</par>
 
-		If you specify type as the class of an XSC node only nodes of this class
-		will be returned. If you pass a list of classes, nodes that are an instance
-		of one of the classes will be returned.
+		<par>If you set <argref>subtype</argref> to <code>1</code> nodes that are a
+		subtype of <argref>type</argref> will be returned too.</par>
 
-		If you set subtype to 1 nodes that are a subtype of type will be returned too.
+		<par>If you set <argref>searchchildren</argref> to <code>1</code> not only the
+		immediate children but also the grandchildren will be searched for nodes
+		matching the other criteria.</par>
 
-		If you set searchchildren to 1 not only the immediate children but also the grandchildren
-		will be searched for nodes matching the other criteria.
+		<par>If you set <argref>searchattrs</argref> to <code>1</code> the attributes
+		of the nodes (if <argref>type</argref> is <classref>Element</classref> or one
+		of its subtypes) will be searched too.</par>
 
-		If you set searchattrs to 1 the attributes of the nodes (if type is Element or one
-		of its subtypes) will be searched too.
+		<par>If you pass a dictionary as <argref>attrs</argref> it has to contain
+		string pairs and is used to match attribute values for elements. To match
+		the attribute values their <code>asPlainString()</code> representation will
+		be used. You can use <code>None</code> as the value to test that the attribute
+		is set without testing the value.</par>
 
-		If you pass a dictionary as attrs it has to contain string pairs and is used to
-		match attribute values for elements. To match the attribute values their
-		asPlainString() representation will be used. You can use None as the value to
-		test that the attribute is set without testing the value.
-
-		Note that the node has to be of type element (or a subclass of this) to match
-		attrs.
+		<par>Note that the node has to be of type <classref>Element</classref>
+		(or a subclass of it) to match <argref>attrs</argref>.</par>
 		"""
 		return Frag()
 
@@ -683,8 +687,9 @@ class Node:
 
 	def _getLoc(self,relrow):
 		"""
-		Return a location that is relrow rows further down than the starting location
-		for this node. Returns None if the location is unknown.
+		Return a location that is <argref>relrow</argref> rows further down than
+		the starting location for this node. Returns <code>None</code> if the
+		location is unknown.
 		"""
 
 		if self.startloc is None:
@@ -1259,11 +1264,12 @@ class Element(Node):
 
 	def _asStringWithImageSize(self,XHTML = None,imgattr = None,widthattr = None,heightattr = None):
 		"""
-		<par noindent>generates a string representing the element and adds width and height attributes in the process
-		The URL for the image is fetched for the attribute named <argref>imgattr</argref>.
-		If the attributes are already there, they are taken as a formatting template with the size
-		passed in as a dictionary with the keys <code>"width"</code> and <code>"height"</code>,
-		i.e. you could make your image twice as wide with <code>width="2*%(width)d"</code>.</par>
+		<par noindent>generates a string representing the element and adds width and height
+		attributes in the process. The URL for the image is fetched for the attribute named
+		<argref>imgattr</argref>. If the attributes are already there, they are taken as a
+		formatting template with the size passed in as a dictionary with the keys
+		<code>"width"</code> and <code>"height"</code>, i.e. you could make your image twice
+		as wide with <code>width="2*%(width)d"</code>.</par>
 
 		<par>If <argref>imgattr</argref> is <code>None</code> no image size attribute generation
 		will be done.</par>
