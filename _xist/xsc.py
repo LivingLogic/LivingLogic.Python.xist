@@ -78,18 +78,25 @@ class Base(object):
 		def __repr__(self):
 			return "<class %s/%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
 
+	def __repr__(self):
+		return "<%s/%s object at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
+
 	def __fullname__(cls):
 		"""
 		<par>Return the fully qualified class name (i.e. including containing
 		classes, if this class has been defined inside another one).</par>
 		"""
 		name = cls.__name__.split(".")[-1]
-		while 1:
+		while True:
 			cls = cls.__outerclass__
 			if cls is None:
 				return name
 			name = cls.__name__.split(".")[-1] + "." + name
 	__fullname__ = classmethod(__fullname__)
+
+###
+###
+###
 
 class Node(Base):
 	"""
