@@ -384,3 +384,6 @@ def parseFile(filename, namespaces=None, parser=None):
 def parseURL(url, namespaces=None, parser=None):
 	return parse(URLInputSource(url), parser, namespaces)
 
+def parseTidyURL(url, namespaces=None, parser=None):
+	return parse(TidyURLInputSource(url), parser, namespaces)
+
