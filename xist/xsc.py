@@ -1271,16 +1271,6 @@ class Element(Node):
 			raise errors.EmptyElementWithContentError(self)
 
 	def convert(self, converter=None):
-		if __debug__:
-			for child in self.content:
-				convertedchild = child.convert()
-				if not isinstance(convertedchild, Node):
-					raise AssertionError("the convert method returned the illegal object %r when converting %r" % (convertedchild, child))
-			for attrname in self.attrs.keys():
-				attr = self.attrs[attrname]
-				convertedattr = attr.convert()
-				if not isinstance(convertedattr, Node):
-					raise AssertionError("the convert method returned the illegal object %r when converting the attribute %s with the value %r" % (convertedattr, presenters.strAttrName(attrname), attr))
 		node = self.__class__() # "virtual" copy constructor
 		for child in self.content:
 			convertedchild = child.convert(converter)
