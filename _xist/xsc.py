@@ -906,6 +906,9 @@ class Comment(CharacterData):
 		publisher.publish(self.content)
 		publisher.publish(u"-->")
 
+	def asPlainString(self):
+		return u""
+
 class DocType(CharacterData):
 	"""
 	a document type node
@@ -928,6 +931,9 @@ class DocType(CharacterData):
 		publisher.publish(u"<!DOCTYPE ")
 		publisher.publish(self.content)
 		publisher.publish(u">")
+
+	def asPlainString(self):
+		return u""
 
 class ProcInst(CharacterData):
 	"""
