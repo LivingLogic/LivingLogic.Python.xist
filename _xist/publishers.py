@@ -182,7 +182,7 @@ class Publisher(object):
 
 			prefixes2use = {}
 			# collect all the namespaces that are used and their required mode
-			for child in self.node.walk(attrs=True):
+			for child in self.node.walk(xsc.Found(found=True, enter=True)):
 				if isinstance(child, xsc.Element):
 					type = xsc.Prefixes.ELEMENT
 				elif isinstance(child, xsc.ProcInst):
