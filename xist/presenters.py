@@ -215,6 +215,79 @@ class EscInlineAttr(EscInlineText):
 	ascharref = "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x0b\x0c\x0d\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f<>\"&"
 	ascolor   = "\x09\x0a"
 
+def strElementName(namespacename=None, elementname=None):
+	s = ansistyle.Text()
+	if namespacename is not None:
+		s.append(
+			EnvTextForNamespace(EscInlineText(namespacename)),
+			EnvTextForColon(":")
+		)
+	if elementname is None:
+		elementname = "unnamed"
+	s.append(EnvTextForElementName(EscInlineText(elementname)))
+	return s
+
+def strElementNameWithBrackets(namespacename=None, elementname=None):
+	return ansistyle.Text(EnvTextForBracket("<"), strElementName(namespacename, elementname), EnvTextForBracket(">"))
+
+def strElement(node):
+	if hasattr(node, "namespace"):
+		namespacename = node.namespace.prefix
+	else:
+		namespacename = None
+	if hasattr(node, "name"):
+		elementname = node.name
+	else:
+		elementname = node.__class__.__name__
+	return strElementName(namespacename, elementname)
+
+def strElementWithBrackets(node):
+	return ansistyle.Text(EnvTextForBracket("<"), strElement(node), EnvTextForBracket(">"))
+
+def strEntityName(namespacename=None, entityname=None):
+	s = ansistyle.Text("&")
+	if namespacename is not None:
+		s.append(
+			EnvTextForNamespace(EscInlineText(namespacename)),
+			EnvTextForColon(":")
+		)
+	if entityname is None:
+		entityname = "unnamed"
+	s.append(
+		EnvTextForEntityName(EscInlineText(entityname)),
+		";"
+	)
+	return s
+
+def strEntity(node):
+	if hasattr(node, "namespace"):
+		namespacename = node.namespace.prefix
+	else:
+		namespacename = None
+	if hasattr(node, "name"):
+		entityname = node.name
+	else:
+		entityname = node.__class__.__name__
+	return strEntityName(namespacename, entityname)
+
+def strProcInstName(procinstname=None):
+	if procinstname is None:
+		procinstname = "unnamed"
+	return EnvTextForProcInstTarget(EscInlineText(procinstname))
+
+def strProcInst(node):
+	if hasattr(node, "name"):
+		procinstname = node.name
+	else:
+		procinstname = node.__class__.__name__
+	return strProcInstName(procinstname)
+
+def strProcInstNameWithBrackets(procinstname=None):
+	return ansistyle.Text(EnvTextForBracket("<"), EnvTextForQuestion("?"), strProcInstName(procinstname), EnvTextForQuestion("?"), EnvTextForBracket(">"))
+
+def strProcInstWithBrackets(node):
+	return ansistyle.Text(EnvTextForBracket("<"), EnvTextForQuestion("?"), strProcInst(node), EnvTextForQuestion("?"), EnvTextForBracket(">"))
+
 class Presenter:
 	"""
 	base class for all presenters.
@@ -232,37 +305,6 @@ class Presenter:
 	def reset(self):
 		self.buffer = ansistyle.Stream(ansistyle.StringBuffer())
 		self.inAttr = 0
-
-	def strElement(self, node):
-		s = ansistyle.Text()
-		if hasattr(node, "namespace"):
-			s.append(
-				EnvTextForNamespace(EscInlineText(node.namespace.prefix)),
-				self.strColon()
-			)
-		if hasattr(node, "name"):
-			name = node.name
-		else:
-			name = node.__class__.name
-		s.append(EnvTextForElementName(EscInlineText(name)))
-		return s
-
-	def strEntity(self, node):
-		s = ansistyle.Text("&")
-		if hasattr(node, "namespace"):
-			s.append(
-				EnvTextForNamespace(EscInlineText(node.namespace.prefix)),
-				EnvTextForColon(":")
-			)
-		if hasattr(node, "name"):
-			name = node.name
-		else:
-			name = node.__class__.name
-		s.append(
-			EnvTextForEntityName(EscInlineText(name)),
-			";"
-		)
-		return s
 
 	def strAttrName(self, attrname):
 		return EnvTextForAttrName(EscInlineText(attrname))
@@ -380,22 +422,22 @@ class NormalPresenter(Presenter):
 
 	def presentElement(self, node):
 		if node.empty:
-			self.buffer.append(self.strBracketOpen(), self.strElement(node))
+			self.buffer.append(self.strBracketOpen(), strElement(node))
 			self._writeAttrs(node.attrs)
 			self.buffer.append(self.strSlash(), self.strBracketClose())
 		else:
-			self.buffer.append(self.strBracketOpen(), self.strElement(node))
+			self.buffer.append(self.strBracketOpen(), strElement(node))
 			self._writeAttrs(node.attrs)
 			self.buffer.append(self.strBracketClose())
 			for child in node:
 				child.present(self)
-			self.buffer.append(self.strBracketOpen(), self.strSlash(), self.strElement(node), self.strBracketClose())
+			self.buffer.append(self.strBracketOpen(), self.strSlash(), strElement(node), self.strBracketClose())
 
 	def presentEntity(self, node):
-		self.buffer.append(self.strEntity(node))
+		self.buffer.append(strEntity(node))
 
 	def presentNull(self, node):
-		self.buffer.append(self.strBracketOpen(), self.strElement(node), self.strSlash(), self.strBracketClose())
+		self.buffer.append(self.strBracketOpen(), strElement(node), self.strSlash(), self.strBracketClose())
 
 	def presentAttr(self, node):
 		self.inAttr = 1

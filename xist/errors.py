@@ -60,7 +60,7 @@ class EmptyElementWithContentError(Error):
 		self.element = element
 
 	def __str__(self):
-		return Error.__str__(self) + "element " + self.element._str() + " specified to be empty, but has content"
+		return Error.__str__(self) + "element %s specified to be empty, but has content" % presenters.strElementWithBrackets(self.element)
 
 class IllegalAttrError(Error):
 	"""
@@ -125,17 +125,14 @@ class IllegalElementError(Error):
 			for element in namespace.elementsByName.values():
 				all[(element.name, element.namespace.prefix)] = element
 
-		presenter = presenters.NormalPresenter()
-
 		allkeys = all.keys()
 		allkeys.sort()
 		allAsList = []
 		for key in allkeys:
 			element = all[key]
-			allAsList.append(str(presenter.strElement(element)))
+			allAsList.append(str(presenters.strElementWithBrackets(element)))
 
-		s = Error.__str__(self) + "element <%s:%s> not allowed. " % (self.name[0], self.name[1])
-		#s = Error.__str__(self) + "element " + xsc._strName((self.name[0], self.name[1], 0)) + " not allowed. "
+		s = Error.__str__(self) + "element %s not allowed. " % presenters.strElementNameWithBrackets(self.name[0], self.name[1])
 		if allAsList:
 			s = s + "Allowed elements are: " + ", ".join(allAsList) + "."
 		else:
@@ -153,7 +150,7 @@ class IllegalProcInstError(Error):
 		self.name = name
 
 	def __str__(self):
-		# List the element sorted by name
+		# List the procinsts sorted by name
 		all = {}
 		for namespace in xsc.namespaceRegistry.byPrefix.values():
 			for procinst in namespace.procInstsByName.values():
@@ -164,13 +161,13 @@ class IllegalProcInstError(Error):
 		allAsList = []
 		for key in allkeys:
 			procinst = all[key]
-			allAsList.append(xsc.strProcInstTarget(procinst.name))
+			allAsList.append(str(presenters.strProcInstWithBrackets(procinst)))
 
-		s = Error.__str__(self) + "procinst " + xsc.strProcInstTarget(self.name[1]) + " not allowed. "
+		s = Error.__str__(self) + "procinst %s not allowed. " % presenters.strProcInstWithBrackets(self.name[0], self.name[1])
 		if allAsList:
-			s += "Allowed procinsts are: " + ", ".join(allAsList) + "."
+			s = s + "Allowed procinsts are: " + ", ".join(allAsList) + "."
 		else:
-			s += "There are no allowed procinsts."
+			s = s + "There are no allowed procinsts."
 		return s
 
 class IllegalElementNestingError(Error):
@@ -185,7 +182,7 @@ class IllegalElementNestingError(Error):
 		self.foundelement = foundelement
 
 	def __str__(self):
-		return Error.__str__(self) + "illegal element nesting (" + xsc._strNode(self.expectedelement) + " expected; " + xsc._strNode(self.foundelement) + " found)"
+		return Error.__str__(self) + "illegal element nesting (%s expected; %s found)" % (presenters.strElementWithBrackets(self.expectedelement), presenters.strElementWithBrackets(self.foundelement))
 
 class IllegalAttrNodeError(Error):
 	"""
@@ -264,19 +261,22 @@ class IllegalEntityError(Error):
 		self.name = name
 
 	def __str__(self):
-		entitynames = []
-		for namespacename in xsc.namespaceRegistry.byPrefix.keys():
-			namespace = xsc.namespaceRegistry.byPrefix[namespacename]
-			try:
-				entity = namespace.entitiesByName[self.name[1]]
-				entitynames.append(xsc.strEntity(entity.namespace.prefix, entity.name))
-			except KeyError: # this namespace doesn't have an entity with this name
-				pass
-		entitynames.sort()
+		# List the entities sorted by name
+		all = {}
+		for namespace in xsc.namespaceRegistry.byPrefix.values():
+			for entity in namespace.entitiesByName.values():
+				all[(entity.name, entity.namespace.prefix)] = entity
 
-		s = Error.__str__(self) + "entity " + xsc.strEntity(self.name[0], self.name[1]) + " not allowed. "
-		if entitynames:
-			s = s + "Allowed entities are: " + ", ".join(entitynames) + "."
+		allkeys = all.keys()
+		allkeys.sort()
+		allAsList = []
+		for key in allkeys:
+			entity = all[key]
+			allAsList.append(str(presenters.strEntity(entity)))
+
+		s = Error.__str__(self) + "entity %s not allowed. " % presenters.strEntityName(self.name[0], self.name[1])
+		if allAsList:
+			s = s + "Allowed entities are: " + ", ".join(allAsList) + "."
 		else:
 			s = s + "There are no allowed entities."
 		return s

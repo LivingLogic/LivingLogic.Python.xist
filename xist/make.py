@@ -30,6 +30,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 import sys
 import getopt
 import time
+import ansistyle
 from xist import xsc, html, publishers, url, utils, converters # don't do a subpackage import here, otherwise chaos will ensue, because XIST modules will be imported twice
 
 def extXSC2HTML(ext):
@@ -96,7 +97,7 @@ def make():
 	files.extend(args)
 
 	if files:
-		converter = converters.Transformer(mode)
+		converter = converters.Converter(mode)
 		for file in files:
 			inname = url.URL(file)
 			outname = globaloutname.clone()

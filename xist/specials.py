@@ -446,9 +446,15 @@ class xsl(xsc.Entity):
 
 class smil(xsc.Entity):
 	def convert(self, converter=None):
-		return html.span(html.abbr("SMIL", title="Synchronized Multimedia Integration Language", lang="en"), class_="caps")
+		return html_.span(html_.abbr("SMIL", title="Synchronized Multimedia Integration Language", lang="en"), class_="caps")
 	def asPlainString(self):
 		return u"SMIL"
+
+class dtd(xsc.Entity):
+	def convert(self, converter=None):
+		return html_.span(html_.abbr("DTD", title="Document Type Definiton", lang="en"), class_="caps")
+	def asPlainString(self):
+		return u"DTD"
 
 class PHP(xsc.ProcInst):
 	"""

@@ -650,7 +650,7 @@ class StringMixIn:
 			return cmp(self._content, other)
 
 	def __contains__(self, char):
-		return char in self._content
+		return utils.stringFromCode(char) in self._content
 
 	def __hash__(self):
 		return hash(self._content)
@@ -674,13 +674,13 @@ class StringMixIn:
 		return self._content.count(sub, start, end)
 
 	def endswith(self, suffix, start=0, end=sys.maxint):
-		return self._content.endswith(suffix, start, end)
+		return self._content.endswith(utils.stringFromCode(suffix), start, end)
 
 	def find(self, sub, start=0, end=sys.maxint):
-		return self._content.find(sub, start, end)
+		return self._content.find(utils.stringFromCode(sub), start, end)
 
 	def index(self, sub, start=0, end=sys.maxint):
-		return self._content.index(sub, start, end)
+		return self._content.index(utils.stringFromCode(sub), start, end)
 
 	def isalpha(self):
 		return self._content.isalpha()
@@ -722,13 +722,13 @@ class StringMixIn:
 		return self.__class__(self._content.lstrip())
 
 	def replace(self, old, new, maxsplit=-1):
-		return self.__class__(self._content.replace(old, new, maxsplit))
+		return self.__class__(self._content.replace(utils.stringFromCode(old), utils.stringFromCode(new), maxsplit))
 
 	def rfind(self, sub, start=0, end=sys.maxint):
-		return self._content.rfind(sub, start, end)
+		return self._content.rfind(utils.stringFromCode(sub), start, end)
 
 	def rindex(self, sub, start=0, end=sys.maxint):
-		return self._content.rindex(sub, start, end)
+		return self._content.rindex(utils.stringFromCode(sub), start, end)
 
 	def rjust(self, width):
 		return self.__class__(self._content.rjust(width))
@@ -743,7 +743,7 @@ class StringMixIn:
 		return Frag(self._content.splitlines(keepends))
 
 	def startswith(self, prefix, start=0, end=sys.maxint):
-		return self._content.startswith(prefix, start, end)
+		return self._content.startswith(utils.stringFromCode(prefix), start, end)
 
 	def strip(self):
 		return self.__class__(self._content.strip())
@@ -1204,6 +1204,7 @@ class XML10(XML):
 	"""
 	XML header version 1.0
 	"""
+	name = None # don't register this ProcInst, because it will never be parsed from a file, this is just a convenience class
 	def __init__(self):
 		XML.__init__(self, 'version="1.0"')
 
