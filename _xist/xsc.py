@@ -476,32 +476,8 @@ class Node:
 		self.present(presenter)
 		return presenter.endPresentation()
 
-	def reprtree(self, presenter=None):
-		if presenter is None:
-			presenter = presenters.Presenter()
-		nest = 0
-		lines = self._doreprtree(nest, [], presenter=presenter)
-		lenloc = 0
-		lenelementno = 0
-		for line in lines: # (nest, location, elementno, string)
-			if line[1] is not None: # convert location to a string
-				line[1] = str(line[1])
-			else:
-				line[1] = ""
-			line[2] = ".".join(map(str, line[2])) # convert element number to a string
-			line[3] = strTab(line[0]) + line[3] # add indentation
-			lenloc = max(lenloc, len(line[1]))
-			lenelementno = max(lenelementno, len(line[2]))
-
-		return "".join([ "%*s %-*s %s\n" % (lenloc, line[1], lenelementno, line[2], line[3]) for line in lines ])
-
 	def present(self, presenter):
 		raise NotImplementedError("present method not implemented in %s" % self.__class__.__name__)
-
-	def _doreprtree(self, nest, elementno, presenter):
-		# returns an array containing arrays consisting of the
-		# (nestinglevel, location, elementnumber, string representation) of the nodes
-		return [[nest, self.startLoc, elementno, self._dorepr(presenter)]]
 
 	def conv(self, converter=None):
 		"""
@@ -743,39 +719,6 @@ class Node:
 			res = test(self)
 		return res
 
-	def _doreprtreeMultiLine(self, nest, elementno, head, tail, text, formatter, extraFirstLine, presenter):
-		lines = text.splitlines()
-		l = len(lines)
-		if l>1 and extraFirstLine:
-			lines.insert(0, "")
-			l += 1
-		v = []
-		for i in xrange(l):
-			mynest = nest
-			s = lines[i]
-			while len(s) and s[0] == "\t":
-				mynest += 1
-				s = s[1:]
-			s = formatter(s)
-			if i == 0:
-				s = head + s
-			if i == l-1:
-				s += tail
-			v.append([mynest, self._getLoc(i), elementno, s])
-		return v
-
-	def _getLoc(self, relrow):
-		"""
-		Return a location that is <argref>relrow</argref> rows further down than
-		the starting location for this node. Returns <code>None</code> if the
-		location is unknown.
-		"""
-
-		if self.startLoc is None:
-			return None
-		else:
-			return self.startLoc.offset(relrow)
-
 	def _decorateNode(self, node):
 		"""
 		decorate the node <argref>node</argref> with the same location information as <self/>.
@@ -804,7 +747,7 @@ class Node:
 		"""
 		return self
 
-class StringMixIn:
+class CharacterData(Node):
 	"""
 	provides nearly the same functionality as <classref>UserString</classref>, but omits
 	a few methods (<code>__str__</code> etc.)
@@ -944,7 +887,7 @@ class StringMixIn:
 	def upper(self):
 		return self.__class__(self._content.upper())
 
-class Text(Node, StringMixIn):
+class Text(CharacterData):
 	"""
 	text node. The characters <, >, & and " will be "escaped" with the
 	appropriate character entities.
@@ -953,7 +896,7 @@ class Text(Node, StringMixIn):
 	def __init__(self, content=""):
 		if isinstance(content, Text):
 			content = content._content
-		StringMixIn.__init__(self, content)
+		CharacterData.__init__(self, content)
 
 	def convert(self, converter):
 		return self
@@ -969,16 +912,6 @@ class Text(Node, StringMixIn):
 
 	def present(self, presenter):
 		presenter.presentText(self)
-
-	def _doreprtree(self, nest, elementno, presenter):
-		lines = self._content.splitlines()
-		if len(lines) and lines[-1] == "":
-			del lines[-1]
-		v = []
-		for i in xrange(len(lines)):
-			s = presenter.strQuote() + presenter.strText(self.__strtext(1, lines[i], presenter)) + presenter.strQuote()
-			v.append([nest, self._getLoc(i), elementno, s])
-		return v
 
 	def compact(self):
 		if self._content.isspace():
@@ -1017,19 +950,6 @@ class Frag(Node):
 
 	def present(self, presenter):
 		presenter.presentFrag(self)
-
-	def _doreprtree(self, nest, elementno, presenter):
-		v = []
-		if len(self):
-			v.append([nest, self.startLoc, elementno, self._str(brackets=1, ansi=presenter.ansi)])
-			i = 0
-			for child in self.__content:
-				v.extend(child._doreprtree(nest+1, elementno + [i], presenter))
-				i += 1
-			v.append([nest, self.endLoc, elementno, self._str(brackets=1, ansi=presenter.ansi, slash=-1)])
-		else:
-			v.append([nest, self.startLoc, elementno, self._str(brackets=1, ansi=presenter.ansi, slash=1)])
-		return v
 
 	def asPlainString(self):
 		return u"".join([ child.asPlainString() for child in self.__content ])
@@ -1245,13 +1165,13 @@ class Frag(Node):
 			lasttypeOK = thistypeOK
 		return node
 
-class Comment(Node, StringMixIn):
+class Comment(CharacterData):
 	"""
 	a comment node
 	"""
 
 	def __init__(self, content=""):
-		StringMixIn.__init__(self, content)
+		CharacterData.__init__(self, content)
 
 	def convert(self, converter):
 		return self
@@ -1264,11 +1184,6 @@ class Comment(Node, StringMixIn):
 	def present(self, presenter):
 		presenter.presentComment(self)
 
-	def _doreprtree(self, nest, elementno, presenter):
-		head = presenter.strBracketOpen() + presenter.strExclamation() + presenter.strCommentMarker()
-		tail = presenter.strCommentMarker() + presenter.strBracketClose()
-		return self._doreprtreeMultiLine(nest, elementno, head, tail, self._content.encode(presenter.encoding), presenter.strCommentText, 0, presenter)
-
 	def publish(self, publisher):
 		if publisher.inAttr:
 			raise errors.IllegalAttrNodeError(self)
@@ -1278,13 +1193,13 @@ class Comment(Node, StringMixIn):
 		publisher.publish(self._content)
 		publisher.publish(u"-->")
 
-class DocType(Node, StringMixIn):
+class DocType(CharacterData):
 	"""
 	a document type node
 	"""
 
 	def __init__(self, content=""):
-		StringMixIn.__init__(self, content)
+		CharacterData.__init__(self, content)
 
 	def convert(self, converter):
 		return self
@@ -1297,11 +1212,6 @@ class DocType(Node, StringMixIn):
 	def present(self, presenter):
 		presenter.presentDocType(self)
 
-	def _doreprtree(self, nest, elementno, presenter):
-		head = presenter.strBracketOpen() + presenter.strExclamation() + presenter.strDocTypeMarker() + " "
-		tail = presenter.strBracketClose()
-		return self._doreprtreeMultiLine(nest, elementno, head, tail, self._content.encode(presenter.encoding), presenter.strDocTypeText, 0, presenter)
-
 	def publish(self, publisher):
 		if publisher.inAttr:
 			raise errors.IllegalAttrNodeError(self)
@@ -1309,7 +1219,7 @@ class DocType(Node, StringMixIn):
 		publisher.publish(self._content)
 		publisher.publish(u">")
 
-class ProcInst(Node, StringMixIn):
+class ProcInst(CharacterData):
 	"""
 	<par noindent>There are two special targets available: <code>xsc:exec</code>
 	and <code>xsc:eval</code> which will be handled by the
@@ -1320,13 +1230,12 @@ class ProcInst(Node, StringMixIn):
 	handled by the class <classref>XML</classref>.
 
 	<par>All other processing instructions (PHP, etc.) will be handled
-	by <classref>ProcInst</classref> itself and are passed through without
-	processing of any kind.</par>
+	by other classes derived from <code>ProcInst</code>.</par>
 	"""
 
 	def __init__(self, target, content=u""):
 		self._target = helpers.unistr(target)
-		StringMixIn.__init__(self, content)
+		CharacterData.__init__(self, content)
 
 	def convert(self, converter):
 		return self
@@ -1338,11 +1247,6 @@ class ProcInst(Node, StringMixIn):
 
 	def present(self, presenter):
 		presenter.presentProcInst(self)
-
-	def _doreprtree(self, nest, elementno, presenter):
-		head = presenter.strBracketOpen() + presenter.strQuestion() + presenter.strProcInst(self) + " "
-		tail = presenter.strQuestion() + presenter.strBracketClose()
-		return self._doreprtreeMultiLine(nest, elementno, head, tail, self._content.encode(presenter.encoding), presenter.strProcInstData, 1, presenter)
 
 	def publish(self, publisher):
 		if publisher.inAttr:
@@ -1370,13 +1274,6 @@ class PythonCode(ProcInst):
 	register = 0 # don't register the class
 	presentPrefix = 1
 	publishPrefix = 1
-
-	def _doreprtree(self, nest, elementno, encoding=None, ansi=None):
-		head = strBracketOpen(ansi) + strQuestion(ansi) + strProcInstTarget(self._target, ansi) + " "
-		tail = strQuestion(ansi) + strBracketClose(ansi)
-		code = utils.Code(self._content, 1)
-		code.indent()
-		return self._doreprtreeMultiLine(nest, elementno, head, tail, code.asString().encode(encoding), strProcInstData, 1, presenter)
 
 class Exec(PythonCode):
 	"""
@@ -1598,22 +1495,6 @@ class Element(Node):
 
 	def present(self, presenter):
 		presenter.presentElement(self)
-
-	def _doreprtree(self, nest, elementno, presenter):
-		v = []
-		if self.empty:
-			v.append([nest, self.startLoc, elementno, self._str(content=self.__strattrs(presenter), brackets=1, slash=1, ansi=presenter.ansi)])
-		else:
-			v.append([nest, self.startLoc, elementno, self._str(content=self.__strattrs(presenter), brackets=1, ansi=presenter.ansi)])
-			i = 0
-			for child in self:
-				v.extend(child._doreprtree(nest+1, elementno + [i], presenter))
-				i += 1
-			if self.startLoc is None:
-				v.append([nest, self.startLoc, elementno, self._str(brackets=1, slash=-1, ansi=presenter.ansi)])
-			else:
-				v.append([nest, self.endLoc, elementno, self._str(brackets=1, slash=-1, ansi=presenter.ansi)])
-		return v
 
 	def _publishAttrs(self, publisher):
 		"""
@@ -1894,9 +1775,6 @@ class Entity(Node):
 	def present(self, presenter):
 		presenter.presentEntity(self)
 
-	def _doreprtree(self, nest, elementno, presenter):
-		return [[nest, self.startLoc, elementno, self._dorepr(presenter)]]
-
 	def publish(self, publisher):
 		publisher.publish(u"&")
 		if self.publishPrefix is not None:
@@ -1927,9 +1805,6 @@ class CharRef(Entity):
 	def asPlainString(self):
 		return unichr(self.codepoint)
 
-	def _doreprtree(self, nest, elementno, presenter):
-		return [[nest, self.startLoc, elementno, self._dorepr(presenter)]]
-
 class Null(Node):
 	"""
 	node that does not contain anything.
@@ -1948,9 +1823,6 @@ class Null(Node):
 
 	def present(self, presenter):
 		presenter.presentNull(self)
-
-	def _doreprtree(self, nest, elementno, presenter):
-		return [[nest, self.startLoc, elementno, self._dorepr(presenter)]]
 
 Null = Null() # Singleton, the Python way
 

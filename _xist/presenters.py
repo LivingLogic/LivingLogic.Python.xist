@@ -36,22 +36,22 @@ import xsc, options, url
 def getStringFromEnv(name, default):
 	try:
 		return os.environ[name]
-	except:
+	except KeyError:
 		return default
 
 def getIntFromEnv(name, default):
 	try:
 		return int(os.environ[name])
-	except:
+	except KeyError:
 		return default
 
 def getColorsFromEnv(name, default):
 	try:
-		var = eval(os.environ[self.envname])
+		var = eval(os.environ[name])
 		if type(var) is types.StringType:
 			var = (var, var)
 		return var
-	except:
+	except KeyError:
 		return default
 
 class EnvText(ansistyle.Text):
@@ -437,14 +437,14 @@ class NormalPresenter:
 		)
 
 	def _appendAttrs(self, dict):
-		self.inAttr = 1
+		self.inAttr += 1
 		for (attrname, attrvalue) in dict.items():
 			self.buffer.append(" ", strAttrName(attrname))
 			if len(attrvalue):
 				self.buffer.append("=", strQuote())
 				attrvalue.present(self)
 				self.buffer.append(strQuote())
-		self.inAttr = 0
+		self.inAttr -= 1
 
 	def presentElement(self, node):
 		if node.empty:
@@ -472,6 +472,9 @@ class NormalPresenter:
 		self.buffer.append(strURL(node.asString()))
 
 class TreePresenter:
+	"""
+	This presenter shows the object as a nested tree.
+	"""
 	def __init__(self, showLocation=1, showPath=1):
 		self.showLocation = showLocation
 		self.showPath = showPath
@@ -480,6 +483,7 @@ class TreePresenter:
 		self.inAttr = 0
 		self.lines = [] # the final lines consisting of (location, numerical path, nesting, content)
 		self.currentPath = [] # numerical path
+		self.buffers = [] # list of ansistyle.Text objects used for formatting attributes (this is a list for elements that contains elements in their attributes)
 
 	def endPresentation(self):
 		v = []
@@ -506,7 +510,7 @@ class TreePresenter:
 		self.lines = []
 		return "".join(newlines)
 
-	def _doMultiLine(self, node, lines, formatter, head=None, tail=None):
+	def _doMultiLine(self, node, lines, indent, formatter, head=None, tail=None):
 		loc = node.startLoc
 		nest = len(self.currentPath)
 		l = len(lines)
@@ -518,9 +522,10 @@ class TreePresenter:
 			mynest = nest
 			s = lines[i]
 			if type(s) in (types.StringType, types.UnicodeType):
-				while len(s) and s[0] == "\t":
-					mynest += 1
-					s = s[1:]
+				if indent:
+					while len(s) and s[0] == "\t":
+						mynest += 1
+						s = s[1:]
 			s = formatter(s)
 			if i == 0 and head is not None:
 				s.content.insert(0, head)
@@ -557,15 +562,20 @@ class TreePresenter:
 				self.lines.append([node.startLoc, self.currentPath[:], len(self.currentPath), strElementWithBrackets(node, 1)])
 
 	def _appendAttrs(self, text, dict):
-		self.inAttr = 1
+		# increment the "in attribute counter".
+		# Because an attribute itself is a fragment and thus may
+		# contains elements itself (which in turn might have attributes with elements etc.)
+		# it is a nesting counter and not simply a flag.
+		# This is the reason why self.buffers is a list too.
+		self.inAttr += 1
 		for (attrname, attrvalue) in dict.items():
 			text.append(" ", strAttrName(attrname))
 			if len(attrvalue):
 				text.append("=", strQuote())
-				attrvalue.present(self)
-				text.append(self.buffer, strQuote())
-				#self.buffer = None
-		self.inAttr = 0
+				attrvalue.present(self) # this pushes the appropriate text buffer onto the stack
+				text.append(self.buffers[-1], strQuote())
+				self.buffers.pop() # pop the buffer from the stack
+		self.inAttr -= 1
 
 	def presentElement(self, node):
 		if self.inAttr:
@@ -588,45 +598,60 @@ class TreePresenter:
 
 	def presentText(self, node):
 		if self.inAttr:
-			self.buffer.append(strTextInAttr(node._content))
+			self.buffers[-1].append(strTextInAttr(node._content))
 		else:
 			lines = node._content.splitlines(1)
-			self._doMultiLine(node, lines, self.strTextLineOutsideAttr)
+			self._doMultiLine(node, lines, 0, self.strTextLineOutsideAttr)
 
 	def presentEntity(self, node):
 		if self.inAttr:
-			self.buffer.append(strEntity(node))
+			self.buffers[-1].append(strEntity(node))
 		else:
 			self.lines.append([node.startLoc, self.currentPath[:], len(self.currentPath), strEntity(node)])
 
 	def presentProcInst(self, node):
 		if self.inAttr:
-			pass
+			self.buffers[-1].append(
+				strBracketOpen(),
+				strQuestion(),
+				strProcInst(node),
+				" ",
+				EnvTextForProcInstContent(EscOutlineAttr(node._content)),
+				strQuestion(),
+				strBracketClose()
+			)
 		else:
 			head = ansistyle.Text(strBracketOpen(), strQuestion(), strProcInst(node), " ")
 			tail = ansistyle.Text(strQuestion(), strBracketClose())
 			lines = node._content.splitlines()
 			if len(lines)>1:
 				lines.insert(0, "")
-			self._doMultiLine(node, lines, self.strProcInstContentLine, head, tail)
+			self._doMultiLine(node, lines, 1, self.strProcInstContentLine, head, tail)
 
 	def presentComment(self, node):
 		if self.inAttr:
-			pass
+			self.buffers[-1].append(
+				strBracketOpen(),
+				strExclamation(),
+				strCommentMarker(),
+				EnvTextForCommentText(EscOutlineAttr(node._content)),
+				strCommentMarker(),
+				strBracketClose()
+			)
 		else:
 			head = ansistyle.Text(strBracketOpen(), strExclamation(), strCommentMarker())
 			tail = ansistyle.Text(strCommentMarker(), strBracketClose())
 			lines = node._content.splitlines()
-			self._doMultiLine(node, lines, self.strCommentTextLine, head, tail)
+			self._doMultiLine(node, lines, 1, self.strCommentTextLine, head, tail)
 
 	def presentAttr(self, node):
 		if self.inAttr:
-			self.buffer = EnvTextForAttrValue()
+			self.buffers.append(EnvTextForAttrValue())
 		self.presentFrag(node)
 
 	def presentURLAttr(self, node):
 		if self.inAttr:
-			self.buffer = EnvTextForURL()
+			self.buffers.append(EnvTextForURL())
 		self.presentFrag(node)
 
 defaultPresenterClass = NormalPresenter
