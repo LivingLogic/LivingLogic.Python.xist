@@ -1005,13 +1005,13 @@ class Frag(Node):
 		If <argref>index</argref> is a list <code>__getitem__</code> will work
 		recursively. If <argref>index</argref> is empty, <self/> will be returned.
 		"""
-		if type(index) is types.ListType:
+		try:
+			return self.__content[index]
+		except TypeError: # assume index is a list
 			node = self
 			for subindex in index:
 				node = node[subindex]
 			return node
-		else:
-			return self.__content[index]
 
 	def __setitem__(self, index, value):
 		"""
@@ -1022,14 +1022,14 @@ class Frag(Node):
 		If <argref>index</argref> is empty the call will be ignored.
 		"""
 		value = ToNode(value)
-		if type(index) is types.ListType:
+		try:
+			self.__content[index] = value
+		except TypeError: # assume index is a list
 			if len(index):
 				node = self
 				for subindex in index[:-1]:
 					node = node[subindex]
 				node[index[-1]] = value
-		else:
-			self.__content[index] = value
 
 	def __delitem__(self, index):
 		"""
@@ -1038,14 +1038,14 @@ class Frag(Node):
 		after traversing the rest of <argref>index</argref> recursively.
 		If <argref>index</argref> is empty the call will be ignored.
 		"""
-		if type(index) is types.ListType:
+		try:
+			del self.__content[index]
+		except TypeError: # assume index is a list
 			if len(index):
 				node = self
 				for subindex in index[:-1]:
 					node = node[subindex]
 				del node[index[-1]]
-		else:
-			del self.__content[index]
 
 	def __getslice__(self, index1, index2):
 		"""
