@@ -48,7 +48,7 @@ class DocTypeHTML40transitional(xsc.DocType):
 	document type for HTML 4.0 transitional
 	"""
 	def __init__(self):
-		xsc.DocType.__init__(self, 'html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd""')
+		xsc.DocType.__init__(self, 'html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd"')
 
 class DocTypeHTML401transitional(xsc.DocType):
 	"""
