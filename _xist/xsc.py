@@ -105,11 +105,15 @@ class Node(object):
 
 	class __metaclass__(type):
 		def __new__(cls, name, bases, dict):
-			if not dict.has_key("name"):
+			try:
+				realname = dict["name"]
+			except KeyError:
 				realname = name
 				if realname.endswith("_"):
 					realname = realname[:-1]
-				dict["name"] = realname
+			dict["name"] = unicode(realname)
+			if not dict.has_key("register"):
+				dict["register"] = 1
 			return type.__new__(cls, name, bases, dict)
 
 	def namespace(cls):
@@ -1076,7 +1080,8 @@ class XML10(XML):
 	"""
 	&xml; header version 1.0, i.e. <markup>&lt;?xml version="1.0"?&gt;</markup>
 	"""
-	name = None # don't register this ProcInst, because it will never be parsed from a file, this is just a convenience class
+	name = u"xml10"
+	register = 0 # don't register this ProcInst, because it will never be parsed from a file, this is just a convenience class
 
 	def __init__(self):
 		XML.__init__(self, 'version="1.0"')
@@ -1902,9 +1907,9 @@ class Namespace(object):
 		If <arg>thing</arg> is a class derived from <pyref class="Element"><class>Element</class></pyref>,
 		<pyref class="Entity"><class>Entity</class></pyref> or <pyref class="ProcInst"><class>ProcInst</class></pyref>
 		it will be registered under its class name (<lit><arg>thing</arg>.__name__</lit>). If you want
-		to change this behaviour, do the following: set a class variable <lit>realname</lit> to
+		to change this behaviour, do the following: set a class variable <lit>name</lit> to
 		the name you want to be used. If you don't want <arg>thing</arg> to be
-		registered at all, set <lit>register</lit> to <lit>None</lit>.</doc:par>
+		registered at all, set <lit>register</lit> to <lit>0</lit>.</doc:par>
 
 		<doc:par>After the call <arg>thing</arg> will have two class attributes:
 		<lit>name</lit>, which is the name under which the class is registered and
@@ -1927,9 +1932,9 @@ class Namespace(object):
 				ischarref = 0
 			isprocinst = thing is not ProcInst and issubclass(thing, ProcInst)
 			if iselement or isentity or ischarref or isprocinst:
-				# if the class attribute name is None, the class won't be registered
 				name = thing.name
-				if name is not None:
+				# if the class attribute register is false, the class won't be registered
+				if thing.register:
 					thing._namespace = self # this creates a cycle
 					if iselement:
 						self.elementsByName[name] = thing

@@ -6,6 +6,9 @@ instead) and <class>TidyURLInputSource</class>. Now it's possible
 to pass a <lit>tidy</lit> flag to the remaining functions <function>parseString</function>
 and <function>parseURL</function> to specify whether the source
 should be tidied.</item>
+<item>To prevent an element from being registered in a <class>Namespace</class>
+the class attribute <lit>register</lit> can be used now. This makes
+it possible to have a name for the element even, when it's not registered.</item>
 </ulist>
 </section>
 

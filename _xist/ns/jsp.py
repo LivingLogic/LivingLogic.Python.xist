@@ -99,7 +99,7 @@ class block(xsc.Element):
 
 class directive(xsc.Element):
 	empty = 1
-	name = None # only serves as a base class
+	register = 0 # only serves as a base class
 
 	def publish(self, publisher):
 		if self.publishPrefix is not None:
