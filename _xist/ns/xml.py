@@ -64,7 +64,8 @@ class header(xsc.Element):
 	model = sims.Empty()
 
 	def convert(self, converter):
-		return XML10()
+		node = XML10()
+		return node.convert(converter)
 
 
 class xmlns(xsc.Namespace):
@@ -74,9 +75,12 @@ class xmlns(xsc.Namespace):
 	class Attrs(xsc.Namespace.Attrs):
 		class space(xsc.TextAttr):
 			xmlprefix = "xml"
+			needsxmlns = 1
 			values = ("default", "preserve")
 		class lang(xsc.TextAttr):
 			xmlprefix = "xml"
+			needsxmlns = 1
 		class base(xsc.URLAttr):
 			xmlprefix = "xml"
+			needsxmlns = 1
 xmlns.makemod(vars())
