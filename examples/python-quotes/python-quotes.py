@@ -4,7 +4,7 @@ from xist import xsc, parsers
 from xist.ns import html, specials
 
 url = "http://amk.ca/quotations/python-quotes.xml"
-url = "python-quotes.xml"
+#url = "python-quotes.xml"
 
 class quotations(xsc.Element):
 	empty = 0
