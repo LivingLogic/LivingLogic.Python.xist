@@ -206,6 +206,9 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 	def handle_cdata(self, data):
 		self.content_handler.characters(data)
 
+	def handle_comment(self, data):
+		self.content_handler.comment(data)
+
 	def handle_data(self, data):
 		self.content_handler.characters(data)
 
