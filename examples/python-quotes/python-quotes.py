@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 
 from xist import xsc, parsers
-from xist.ns import html, specials
+from xist.ns import html, specials, meta
 
 url = "http://amk.ca/quotations/python-quotes.xml"
 #url = "python-quotes.xml"
@@ -9,10 +9,11 @@ url = "http://amk.ca/quotations/python-quotes.xml"
 class quotations(xsc.Element):
 	empty = 0
 
-	def convert(self, converter=None):
+	def convert(self, converter):
 		header = html.head(
+			meta.contenttype(),
 			html.title("Python quotes"),
-			html.link(rel="stylesheet", href="python-quotes.css")
+			meta.stylesheet(href="python-quotes.css")
 		)
 
 		description = html.div("(Generated from ", html.a(url, href=url), ")")
@@ -37,7 +38,7 @@ class quotations(xsc.Element):
 class quotation(xsc.Element):
 	empty = 0
 
-	def convert(self, converter=None):
+	def convert(self, converter):
 		e = html.div(self.content, class_="quotation")
 
 		return e.convert(converter)
@@ -45,7 +46,7 @@ class quotation(xsc.Element):
 class source(xsc.Element):
 	empty = 0
 
-	def convert(self, converter=None):
+	def convert(self, converter):
 		e = html.div(self.content, class_="source")
 
 		return e.convert(converter)
@@ -53,7 +54,7 @@ class source(xsc.Element):
 class note(xsc.Element):
 	empty = 0
 
-	def convert(self, converter=None):
+	def convert(self, converter):
 		e = html.div(self.content, class_="note")
 
 		return e.convert(converter)
@@ -61,7 +62,7 @@ class note(xsc.Element):
 class author(xsc.Element):
 	empty = 0
 
-	def convert(self, converter=None):
+	def convert(self, converter):
 		e = self.content
 
 		return e.convert(converter)
@@ -69,7 +70,7 @@ class author(xsc.Element):
 class foreign(xsc.Element):
 	empty = 0
 
-	def convert(self, converter=None):
+	def convert(self, converter):
 		e = html.em(self.content)
 
 		return e.convert(converter)
