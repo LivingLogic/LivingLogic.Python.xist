@@ -665,6 +665,7 @@ class section(block):
 
 		tattrs = fo.block.Attrs(
 			font_size=p[0],
+			color=context.llblue,
 			space_before=p[1],
 			space_after=p[2],
 			text_align=u"left",
