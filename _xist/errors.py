@@ -398,12 +398,3 @@ class IllegalAttrParseWarning(IllegalAttrError, ParseWarning):
 	Warning about an illegal attribute that is issued during parsing.
 	"""
 warnings.filterwarnings("error", category=IllegalAttrParseWarning)
-
-
-class TidyWarning(saxlib.SAXParseException, Warning):
-	"""
-	Warning that is issued by <app>tidy</app>
-	"""
-	def __init__(self, msg, locator):
-		saxlib.SAXParseException.__init__(self, msg, None, locator)
-		Warning.__init__(self, msg)
