@@ -641,7 +641,7 @@ class frameset(xsc.Element):
 	empty = 0
 	attrHandlers = coreattrs.copy()
 	attrHandlers.update({"rows": xsc.TextAttr, "cols": xsc.TextAttr, "onload": xsc.TextAttr, "onunload": xsc.TextAttr})
-	attrHandlers.update({"framespacing": xsc.TextAttr, "border": xsc.IntAttr, "marginwidth": xsc.IntAttr, "marginheight": xsc.IntAttr, "frameborder": xsc.IntAttr, "noresize": xsc.BoolAttr}) # deprecated
+	attrHandlers.update({"framespacing": xsc.TextAttr, "border": xsc.IntAttr, "marginwidth": xsc.IntAttr, "marginheight": xsc.IntAttr, "frameborder": xsc.IntAttr, "noresize": xsc.BoolAttr, "scrolling": xsc.TextAttr}) # deprecated
 
 class frame(xsc.Element):
 	"""
