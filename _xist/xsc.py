@@ -1683,7 +1683,7 @@ class Attrs(Node, dict):
 				pass
 		# are there any required attributes remaining that haven't been specified? => warn about it
 		if attrs:
-			errors.warn(errors.RequiredAttrMissingWarning(self, attrs.values()))
+			errors.warn(errors.RequiredAttrMissingWarning(self, attrs.keys()))
 
 	def publish(self, publisher):
 		if publisher.inAttr:
@@ -1703,7 +1703,7 @@ class Attrs(Node, dict):
 			attrvalue.publish(publisher)
 		# are there any required attributes remaining that haven't been specified? => warn about it
 		if attrs:
-			errors.warn(errors.RequiredAttrMissingWarning(self, attrs.values()))
+			errors.warn(errors.RequiredAttrMissingWarning(self, attrs.keys()))
 
 	def __unicode__(self):
 		return u""
