@@ -142,11 +142,15 @@ class pixel(html_.img):
 	"""
 
 	empty = 1
-	attrHandlers = xsc.appendDict(html_.img.attrHandlers,{ "color" : xsc.ColorAttr })
+	attrHandlers = html_.img.attrHandlers.copy()
+	attrHandlers.update({ "color" : xsc.ColorAttr })
 	del attrHandlers["src"]
 
+	def publish(self,publisher,encoding = None,XHTML = None):
+		xsc.Element.publish(self,publisher,encoding,XHTML)
+
 	def asHTML(self):
-		e = html_.img(self.content)
+		e = html_.img()
 		color = "dot_clear"
 		for attr in self.attrs.keys():
 			if attr == "color":
