@@ -84,8 +84,8 @@ def tidystring(text, encoding, sysid, args):
 
 class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 	"""
-	This is a rudimentary, buggy, halfworking, untested SAX2 drivers for sgmlop.
-	And I didn't even know, what I was doing, but it seems to work.
+	This is a rudimentary, buggy, halfworking, untested SAX2 drivers for sgmlop that
+	only works in the context of &xist;. And I didn't even know, what I was doing.
 	"""
 	_whichparser = sgmlop.XMLParser
 
@@ -152,18 +152,30 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 			self.close()
 			self.source = None
 			self.encoding = None
+			raise
 		except KeyboardInterrupt:
 			self.close()
 			self.source = None
 			self.encoding = None
+			raise
 		except Exception, exc:
-			self.close()
-			self.source = None
-			self.encoding = None
-			if self._err_handler is not None:
-				self._err_handler.fatalError(exc)
+			try:
+				self.close()
+			except SystemExit:
+				raise
+			except KeyboardInterrupt:
+				raise
+			except Exception, exc2:
+				self.source = None
+				self.encoding = None
+			errhandler = self.getErrorHandler()
+			if errhandler is not None:
+				errhandler.fatalError(exc)
 			else:
 				raise
+		self.close()
+		self.source = None
+		self.encoding = None
 
 	# Locator methods will be called by the application
 	def getColumnNumber(self):
@@ -201,7 +213,7 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 			return sax.xmlreader.IncrementalParser.setFeature(self, name)
 
 	def handle_comment(self, data):
-		self._cont_handler.comment(self._makestring(data))
+		self.getContentHandler().comment(self._makestring(data))
 		self.headerJustRead = False
 
 	# don't define handle_charref or handle_cdata, so we will get those through handle_data
@@ -215,20 +227,20 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 		else:
 			data = unichr(int(data))
 		if not self.headerJustRead or not data.isspace():
-			self._cont_handler.characters(data)
+			self.getContentHandler().characters(data)
 			self.headerJustRead = False
 
 	def handle_data(self, data):
 		data = self._makestring(data)
 		if not self.headerJustRead or not data.isspace():
-			self._cont_handler.characters(data)
+			self.getContentHandler().characters(data)
 			self.headerJustRead = False
 
 	def handle_proc(self, target, data):
 		target = self._makestring(target)
 		data = self._makestring(data)
 		if target != u'xml': # Don't report <?xml?> as a processing instruction
-			self._cont_handler.processingInstruction(target, data)
+			self.getContentHandler().processingInstruction(target, data)
 			self.headerJustRead = False
 		else: # extract the encoding
 			encodingFound = utils.findAttr(data, u"encoding")
@@ -240,9 +252,9 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 		try:
 			c = {"lt": u"<", "gt": u">", "amp": u"&", "quot": u'"', "apos": u"'"}[name]
 		except KeyError:
-			self._cont_handler.skippedEntity(self._makestring(name))
+			self.getContentHandler().skippedEntity(self._makestring(name))
 		else:
-			self._cont_handler.characters(c)
+			self.getContentHandler().characters(c)
 		self.headerJustRead = False
 
 	def finish_starttag(self, name, attrs):
@@ -253,11 +265,11 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 			else:
 				attrvalue = self._string2Fragment(self._makestring(attrvalue))
 			newattrs._attrs[self._makestring(attrname)] = attrvalue
-		self._cont_handler.startElement(self._makestring(name), newattrs)
+		self.getContentHandler().startElement(self._makestring(name), newattrs)
 		self.headerJustRead = False
 
 	def finish_endtag(self, name):
-		self._cont_handler.endElement(self._makestring(name))
+		self.getContentHandler().endElement(self._makestring(name))
 		self.headerJustRead = False
 
 	def _string2Fragment(self, text):
@@ -267,7 +279,7 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 		"""
 		if text is None:
 			return xsc.Null
-		ct = self._cont_handler.createText
+		ct = self.getContentHandler().createText
 		node = xsc.Frag()
 		while True:
 			texts = text.split(u"&", 1)
@@ -292,7 +304,7 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 				try:
 					c = {"lt": u"<", "gt": u">", "amp": u"&", "quot": u'"', "apos": u"'"}[name]
 				except KeyError:
-					node.append(self._cont_handler.createEntity(name))
+					node.append(self.getContentHandler().createEntity(name))
 				else:
 					node.append(ct(c))
 			text = texts[1]
@@ -314,19 +326,19 @@ class BadEntityParser(SGMLOPParser):
 		except KeyError:
 			name = self._makestring(name)
 			try:
-				self._cont_handler.skippedEntity(name)
+				self.getContentHandler().skippedEntity(name)
 			except errors.IllegalEntityError:
 				try:
 					entity = html.entity(name, xml=True)
 				except errors.IllegalEntityError:
-					self._cont_handler.characters(u"&%s;" % name)
+					self.getContentHandler().characters(u"&%s;" % name)
 				else:
 					if issubclass(entity, xsc.CharRef):
-						self._cont_handler.characters(unichr(entity.codepoint))
+						self.getContentHandler().characters(unichr(entity.codepoint))
 					else:
-						self._cont_handler.characters(u"&%s;" % name)
+						self.getContentHandler().characters(u"&%s;" % name)
 		else:
-			self._cont_handler.characters(c)
+			self.getContentHandler().characters(c)
 		self.headerJustRead = False
 
 	def _string2Fragment(self, text):
@@ -336,7 +348,7 @@ class BadEntityParser(SGMLOPParser):
 		if text is None:
 			return xsc.Null
 		node = xsc.Frag()
-		ct = self._cont_handler.createText
+		ct = self.getContentHandler().createText
 		while True:
 			texts = text.split(u"&", 1)
 			text = texts[0]
@@ -367,7 +379,7 @@ class BadEntityParser(SGMLOPParser):
 						entity = {"lt": u"<", "gt": u">", "amp": u"&", "quot": u'"', "apos": u"'"}[name]
 					except KeyError:
 						try:
-							entity = self._cont_handler.createEntity(name)
+							entity = self.getContentHandler().createEntity(name)
 						except errors.IllegalEntityError:
 							try:
 								entity = html.entity(name, xml=True)
@@ -395,7 +407,7 @@ class BadEntityParser(SGMLOPParser):
 		except (ValueError, OverflowError):
 			data = u"&#%s;" % data
 		if not self.headerJustRead or not data.isspace():
-			self._cont_handler.characters(data)
+			self.getContentHandler().characters(data)
 			self.headerJustRead = False
 
 
