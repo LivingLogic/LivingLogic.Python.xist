@@ -231,7 +231,7 @@ configure the handling of these warnings.</par>
 <par>&xist; now requires at least Python 2.2.1 because
 the integer constants <lit>True</lit> and <lit>False</lit>
 are used throughout the code wherever appropriate. These
-constants will became instances of the new class <class>bool</class>
+constants will become instances of the new class <class>bool</class>
 in Python 2.3. You might want to change your code too, to
 use these new constant (e.g. when setting the element
 class attribute <lit>empty</lit>).</par>
