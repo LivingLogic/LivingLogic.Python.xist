@@ -575,7 +575,7 @@ class hr(xsc.Element):
 	horizontal rule
 	"""
 	empty = 1
-	attrHandlers = xsc.appendDict(coreattrs,events)
+	attrHandlers = xsc.appendDict(attrHandlers,{ "noshade" : xsc.TextAttr } ) # deprecated
 xsc.registerElement(hr)
 
 # The pain, the pain ...
