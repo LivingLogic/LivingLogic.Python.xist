@@ -399,7 +399,7 @@ class Text(Node):
 	"""text"""
 
 	repransiname = ""
-	repransiquotes = "34"
+	repransiquotes = "34;1"
 
 	represcapes = { '\t' : '\\t' , '\033' : '\\e' , '\\' : '\\\\' }
 	reprtreeescapes = { '\r' : '\\r' , '\n' : '\\n' , '\t' : '\\t' , '\033' : '\\e' , '\\' : '\\\\' }
