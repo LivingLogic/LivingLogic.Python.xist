@@ -338,14 +338,6 @@ class IllegalXMLDeclFormatError(Error):
 		return "XML declaration with content %r is malformed." % presenters.strProcInstContent(self.procinst.content)
 
 
-class MistimedCallError(Error):
-	"""
-	exception that is raised, when a method can't be called at this point in time,
-	e.g. when you try the reconfigure a <pyref module="ll.xist.xsc" class="Prefixes"><class>Prefixes</class>
-	object, while a parse is in progress
-	"""
-
-
 class TidyWarning(saxlib.SAXParseException, Warning):
 	"""
 	Warning that is issued by <app>tidy</app>
