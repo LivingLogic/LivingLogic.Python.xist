@@ -3,7 +3,7 @@
 <ul>
 <li>The global namespace registry now keeps a sequential list of all registered
 namespaces, which will be used by the parser when searching for names. This
-gives a predictable search order even with using <code>Namespaces/<code>
+gives a predictable search order even with using <code>Namespaces</code>
 and its <code>pushNamespace</code> method: modules imported last will be searched
 first.</li>
 <li>Processing Instructions are now allowed inside attributes when
