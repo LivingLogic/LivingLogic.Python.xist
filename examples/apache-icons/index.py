@@ -1,13 +1,12 @@
 #! /usr/bin/env python
 
-from xist import xsc,html,specials
-
-import glob
 import os
+import glob
+
+from xist import xsc
+from xist.ns import html, specials
 
 cols = 6
-
-xsc.xsc.pushURL("/icons/") # from now on (until popURL() is called) all URLs will be relative to /icons
 
 e = xsc.Frag()
 
@@ -18,7 +17,7 @@ files = glob.glob("*.gif")
 files.sort()
 
 for file in files:
-	collect.append(html.td(specials.autoimg(src = file),html.br(),file,align="center")) # src is relative to the top of the URL stack
+	collect.append(html.td(specials.autoimg(src=("/icons/", file)), html.br(), file, align="center"))
 	i = i + 1
 	if i == cols:
 		e.append(html.tr(collect))
@@ -30,7 +29,7 @@ if len(collect):
 e = html.html(
 	html.head(
 		html.title("All icons"),
-		html.link(rel="stylesheet",type="text/css",href="icons.css") # href is relative to the top of the URL stack
+		html.link(rel="stylesheet", type="text/css", href="/icons/icons.css")
 	),
 	html.body(
 		specials.plaintable(e)
@@ -38,8 +37,6 @@ e = html.html(
 )
 
 s = e.convert().asBytes(encoding="us-ascii", XHTML=0)
-
-xsc.xsc.popURL() # don't forget to call popURL(), otherwise the URL stack will be messed up.
 
 print "Content-Type: text/html"
 print
