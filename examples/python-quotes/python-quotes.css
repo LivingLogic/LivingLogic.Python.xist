@@ -1,0 +1,31 @@
+body
+{
+	font-family: "Times New Roman", "XTimes", "Times", serif;
+	font-size: 12pt;
+	line-height: 16pt;
+	background-color: white;
+	margin-left: 50pt;
+	margin-right: 50pt;
+}
+
+div.quotation
+{
+	margin-top: 16pt;
+	margin-bottom: 16pt;
+}
+
+div.source
+{
+	font-family: "Verdana", "Arial", "XHelvetica", "Helvetica", sans-serif;
+	font-size: 10pt;
+	line-height: 12pt;
+	margin-top: 1pt;
+	font-variant: small-caps;
+}
+h1
+{
+	font-family: "Arial Narrow", "Arial", "XHelvetica", "Helvetica", sans-serif;
+	font-size: 24pt;
+	font-weight: normal;
+	color: #0050B2;
+}
