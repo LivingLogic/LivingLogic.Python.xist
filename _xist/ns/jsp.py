@@ -42,25 +42,25 @@ class If(scriptlet):
 	name = "if"
 
 	def convert(self, converter):
-		return scriptlet(u"<% if(" + self.content + u"){ %>")
+		return scriptlet(u"if(" + self.content + u"){")
 
 class Else(scriptlet):
 	name = "else"
 
 	def convert(self, converter):
-		return scriptlet(u"<% }else{ %>")
+		return scriptlet(u"}else{")
 
 class ElIf(scriptlet):
 	name = "elif"
 
 	def convert(self, converter):
-		return scriptlet(u"<% }else if (" + self.content + "){ %>")
+		return scriptlet(u"}else if (" + self.content + "){")
 
 class End(scriptlet):
 	name = "end"
 
 	def convert(self, converter):
-		return scriptlet(u"<% } %>")
+		return scriptlet(u"}")
 
 class directive(xsc.Element):
 	empty = 1
