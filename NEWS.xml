@@ -1,6 +1,7 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
 <section><title>Changes in 2.0 (released ??/??/2002)</title>
 <ulist>
+<item>&xist; now requires at least Python 2.2.1.</item>
 <item>Attribute handling has been largely rewritten. Instead of
 a class attribute <lit>attrHandlers</lit>, the attributes
 are now defined through a nested class named <class>Attrs</class>
