@@ -146,84 +146,6 @@ class XSCUnknownEntityError(XSCError):
 ###
 ###
 
-def URLForInput(url):
-	(scheme,server,path,parameters,query,fragment) = urlparse.urlparse(url)
-	if scheme == "" and server == "": # do we have a local file?
-		path = string.split(path,"/")
-		if len(path) and not len(path[0]): # this is a server relative URL, use the server specified in the options (usually localhost)
-			scheme = "http"
-			server = xsc.server
-			path = string.join(path[1:],"/") # drop off the empty string that was in front of the first "/"
-		else:
-			file = string.split(xsc.filename,"/")
-			if len(path) and len(path[0]) and path[0][0] == ":": # project relative, i.e. relative to the current directory, make it relative to the directory of the file
-				path[0] = path[0][1:] # drop the ":"
-				path[:0] = [".."] * (len(file)-1) # go up from the file directory to the current directory
-			# now we have an URL that is relative to the file directory
-			path[:0] = file[:-1] # make it relative to the current directory by adding the diretories of file
-			# now optimize the path by removing combinations of down/up
-			while 1:
-				for i in xrange(len(path)):
-					if path[i]==".." and i>0 and path[i-1]!="..": # found a down/up
-						del path[i-1:i+1] # remove it
-						break # restart the search
-				else: # no down/up found
-					break
-			# replace URL syntax with the path syntax on our system (won't do anything under UNIX, replaces / with  \ under Windows)
-			for i in range(len(path)):
-				if path[i] == "..":
-					path[i] = os.pardir
-			path = string.join(path,os.sep)
-	return urlparse.urlunparse((scheme,server,path,parameters,query,fragment))
-
-def URLForOutput(url):
-	(scheme,server,path,parameters,query,fragment) = urlparse.urlparse(url)
-	if scheme == "" and server == "": # do we have a local file?
-		path = string.split(path,"/")
-		if len(path) and len(path[0]) and path[0][0] == ":":
-			path[0] = path[0][1:] # drop the ":"
-			# split the file path too
-			file = string.split(xsc.filename,"/")
-			# throw away identical directories in both paths
-			while len(file)>1 and len(path)>1 and file[0]==path[0]:
-				del file[0]
-				del path[0]
-			path = string.join(([".."]*(len(file)-1)) + path,"/")
-		else:
-			path = string.join(path,"/")
-	return urlparse.urlunparse((scheme,server,path,parameters,query,fragment))
-
-def FileSize(url):
-	"""returns the size of a file in bytes or -1 if the file shouldn't be read"""
-
-	size = -1
-	if xsc.is_retrieve(url):
-		try:
-			filename,headers = urllib.urlretrieve(url)
-			size = os.stat(filename)[stat.ST_SIZE]
-			urllib.urlcleanup()
-		except IOError:
-			urllib.urlcleanup()
-			raise XSCFileNotFoundError(xsc.parser.lineno,url)
-	return size
-
-def ImageSize(url):
-	"""returns the size of an image as a tuple or (-1,-1) if the image shouldn't be read"""
-
-	size = (-1,-1)
-	if xsc.is_retrieve(url):
-		try:
-			filename,headers = urllib.urlretrieve(url)
-			if headers.has_key("content-type") and headers["content-type"][:6] == "image/":
-				img = Image.open(filename)
-				size = img.size
-				del img
-			urllib.urlcleanup()
-		except IOError:
-			urllib.urlcleanup()
-			raise XSCFileNotFoundError(xsc.parser.lineno,url)
-	return size
-
 def AppendDict(*dicts):
 	result = {}
 	for dict in dicts:
@@ -829,8 +751,7 @@ class XSCElement(XSCNode):
 		"""add width and height attributes to the element for the image that can be found in the attributes imgattr. if the attribute is already there it is taken as a formating template with the size passed in as a dictionary with the keys 'width' and 'height', i.e. you could make your image twice as wide with width='%(width)d*2'"""
 
 		if self.has_attr(imgattr):
-			url = URLForInput(str(self[imgattr]))
-			size = ImageSize(url)
+			size = self[imgattr].ImageSize()
 			sizedict = { "width": size[0], "height": size[1] }
 			if size[0] != -1: # the width was retrieved so we can use it
 				if self.has_attr(widthattr):
@@ -864,31 +785,179 @@ def RegisterElement(name,element):
 	_element_handlers[name] = element
 	element.name = name
 
-class XSCurl(XSCElement):
-	"""URLS (may be used as an element or an attribute)"""
-	empty = 0
+class XSCTextAttr(XSCFrag):
+	"""
+	Attribute class that is used for normal text attributes.
+	"""
 
-	def __init__(self,_content = [],_attrs = {},**_restattrs):
-		if type(_content) == types.InstanceType and _content.__class__ == XSCurl:
-			self.content = _content.content
-		else:
-			self.content = XSCFrag(_content)
-		self.attrs = XSCAttrs(self.attr_handlers)
+	def __init__(self,_content = []):
+		self.__content = ToNode(_content)
 
 	def _dorepr(self):
-		url = URLForInput(self.content.dostr())
-		return self._strtextquotes(url)
+		return self._stransi(xsc.repransitextattrs,self.__content.dostr())
 
 	def _doreprtree(self,nest,elementno):
-		url = URLForInput(self.content.dostr())
-		return [[nest,self.startlineno,elementno,self._strtextquotes(url)]]
+		return [[nest,self.startlineno,elementno,self._dorepr()]]
 
 	def dostr(self):
-		return URLForOutput(self.content.dostr())
+		return self.__content.dostr()
 
 	def _doAsHTML(self):
-		return XSCText(URLForOutput(self.content.dostr()))
-RegisterElement("url",XSCurl)
+		return XSCTextAttr(self.__content)
+
+cclass XSCColorAttr(XSCFrag):
+	"""
+	Attribute class that is used for a color attributes.
+	"""
+
+	def __init__(self,_content = []):
+		self.__content = ToNode(_content)
+
+	def _dorepr(self):
+		return self._stransi(xsc.repransicolorattrs,self.__content.dostr())
+
+	def _doreprtree(self,nest,elementno):
+		return [[nest,self.startlineno,elementno,self._dorepr()]]
+
+	def dostr(self):
+		return self.__content.dostr()
+
+	def _doAsHTML(self):
+		return XSCColorAttr(self.__content)
+
+class XSCURLAttr(XSCFrag):
+	"""
+	Attribute class that is used for URLs.
+
+	XSC has one additional feature, that it allows URLs that are local filenames starting with a ':'.
+	Those filenames are not relative to the directory containing the file where the URL originated,
+	but local to the "project" directory, i.e. the root directory of all XSC files, which is the
+	current directory.
+
+	With this feature you don't have to remember how deeply you've nested your XSC file tree, you
+	can specify such file from everywhere via ":dir/to/file.xsc". XSC will change this to an URL
+	that correctly locates the file (e.g. "../../../dir/to/file", when you're nested three levels
+	deep in a different directory that "dir".
+
+	When dumping these URLs in the interactive Python environment (i.e. calling __repr__) these
+	URLs will be shown with the pseudo scheme "project".
+
+	Server relative URLs will be shown with the pseudo scheme "server". For checking these URLs
+	for image or file size, a http request will be made to the server specified in the "server"
+	option.
+
+	For all other URLs a normal request will be made corresponding to the specified scheme
+	(http, ftp, etc.)
+	"""
+
+	def __init__(self,_content = []):
+		url = ToNode(_content).dostr()
+		(self.scheme,self.server,self.path,self.parameters,self.query,self.fragment) = urlparse.urlparse(url)
+		self.path = string.split(self.path,"/")
+		if self.scheme == "" and self.server == "": # do we have a local file?
+			if len(self.path) and not len(self.path[0]): # this is a server relative URL
+				del self.path[0] # drop the empty string in front of the first "/" ...
+				self.scheme = "server" # ... and use a special scheme for that
+			elif len(self.path) and len(self.path[0]) and self.path[0][0] == ":": # project relative, i.e. relative to the current directory
+				self.path[0] = self.path[0][1:] # drop of the ":" ...
+				self.scheme = "project" # special scheme name
+		else:
+			del self.path[0] # if we had a http, the path from urlparse started with "/" too
+
+	def _dorepr(self):
+		url = urlparse.urlunparse((self.scheme,self.server,string.join(self.path,"/"),self.parameters,self.query,self.fragment))
+		return self._stransi(xsc.repransiurlattrs,url)
+
+	def _doreprtree(self,nest,elementno):
+		return [[nest,self.startlineno,elementno,self._dorepr()]]
+
+	def dostr(self):
+		return self.forOutput()
+
+	def _doAsHTML(self):
+		return XSCURLAttr(XSCText(self.forOutput()))
+
+	def forInput(self):
+		scheme = self.scheme
+		server = self.server
+		path = self.path[:]
+		parameters = self.parameters
+		query = self.query
+		fragment = self.fragment
+		sep = "/" # use the normal URL separator by default
+		if scheme == "server":
+			scheme = "http"
+			server = xsc.server
+		elif scheme == "project" or scheme == "":
+			file = string.split(xsc.filename,"/")
+			if scheme == "project": # make the path relative to the directory of the file
+				path[:0] = [".."] * (len(file)-1) # go up from the file directory to the current directory
+				# now we have an URL that is relative to the file directory
+			path[:0] = file[:-1] # make it relative to the current directory by adding the diretories of file
+			# now optimize the path by removing combinations of down/up
+			while 1:
+				for i in xrange(len(path)):
+					if path[i]==".." and i>0 and path[i-1]!="..": # found a down/up
+						del path[i-1:i+1] # remove it
+						break # restart the search
+				else: # no down/up found
+					break
+			# replace URL syntax with the path syntax on our system (won't do anything under UNIX, replaces / with  \ under Windows)
+			for i in range(len(path)):
+				if path[i] == "..":
+					path[i] = os.pardir
+			sep = os.sep # we have a local file, so we should use the local directory separator instead
+			scheme = "" # remove our own private scheme name
+		return urlparse.urlunparse((scheme,server,string.join(path,sep),parameters,query,fragment))
+
+	def forOutput(self):
+		scheme = self.scheme
+		path = self.path[:]
+		if scheme == "project":
+			file = string.split(xsc.filename,"/") # split the file path too
+			while len(file)>1 and len(path)>1 and file[0]==path[0]: # throw away identical directories in both paths (we don't have to go up from file and down to path for these identical directories
+				del file[0]
+				del path[0]
+			path[:0] = [".."]*(len(file)-1) # now for the rest of the path we have to go up from file and down to path (the directories for this are still in path)
+			scheme = "" # remove our own private scheme name
+		elif scheme == "server":
+			scheme = ""
+			path[:0] = [ "" ]
+		return urlparse.urlunparse((scheme,self.server,string.join(path,"/"),self.parameters,self.query,self.fragment))
+
+	def ImageSize(self):
+		"""returns the size of an image as a tuple or (-1,-1) if the image shouldn't be read"""
+
+		url = self.forInput()
+		size = (-1,-1)
+		if xsc.is_retrieve(url):
+			try:
+				filename,headers = urllib.urlretrieve(url)
+				if headers.has_key("content-type") and headers["content-type"][:6] == "image/":
+					img = Image.open(filename)
+					size = img.size
+					del img
+				urllib.urlcleanup()
+			except IOError:
+				urllib.urlcleanup()
+				raise XSCFileNotFoundError(xsc.parser.lineno,url)
+		return size
+
+	def FileSize(self):
+		"""returns the size of a file in bytes or -1 if the file shouldn't be read"""
+
+		url = self.forInput()
+
+		size = -1
+		if xsc.is_retrieve(url):
+			try:
+				filename,headers = urllib.urlretrieve(url)
+				size = os.stat(filename)[stat.ST_SIZE]
+				urllib.urlcleanup()
+			except IOError:
+				urllib.urlcleanup()
+				raise XSCFileNotFoundError(xsc.parser.lineno,url)
+		return size
 
 ###
 ###
@@ -1092,6 +1161,9 @@ class XSC:
 		self.repransibrackets = "34;1"
 		self.repransielementname = "35"
 		self.repransiattrname = "33"
+		self.repransiurlattrs = "31"
+		self.repransitextattrs = ""
+		self.repransicolorattrs = ""
 		self.repransitext = ""
 		self.repransiquotes = "34"
 		self.repransipiquestion = "34"

@@ -3,7 +3,7 @@
 from xsc_specials import *
 
 class page(XSCElement):
-	attr_handlers = { "title" : XSCFrag , "head" : XSCFrag , "align" : XSCFrag , "refresh" : XSCFrag , "class" : XSCFrag , "keywords" : XSCFrag , "description" : XSCFrag , "onload" : XSCFrag , "nohome" : XSCFrag , "nosearch" : XSCFrag , "nositemap" : XSCFrag , "nofaq" : XSCFrag }
+	attr_handlers = { "title" : XSCTextAttr , "head" : XSCTextAttr , "align" : XSCTextAttr , "refresh" : XSCTextAttr , "class" : XSCTextAttr , "keywords" : XSCTextAttr , "description" : XSCTextAttr , "onload" : XSCTextAttr , "nohome" : XSCTextAttr , "nosearch" : XSCTextAttr , "nositemap" : XSCTextAttr , "nofaq" : XSCTextAttr }
 	empty = 0
 
 	def _doAsHTML(self):
@@ -55,7 +55,7 @@ RegisterElement("_",_)
 
 class pfeil(img):
 	empty = 1
-	attr_handlers = AppendDict(img.attr_handlers,{ "rel" : XSCFrag })
+	attr_handlers = AppendDict(img.attr_handlers,{ "rel" : XSCTextAttr })
 	
 	def _doAsHTML(self):
 		e = img(self.content.asHTML(),self.attrs - [ "rel" ])
@@ -403,7 +403,7 @@ RegisterElement("capunix",capunix)
 
 class par(div):
 	empty = 0
-	attr_handlers = AppendDict(div.attr_handlers,{ "noindent" : XSCFrag })
+	attr_handlers = AppendDict(div.attr_handlers,{ "noindent" : XSCTextAttr })
 	
 	def _doAsHTML(self):
 		e = div(self.content.asHTML(),(self.attrs - "noindent").asHTML())
@@ -428,7 +428,7 @@ RegisterElement("schulen",schulen)
 
 class schule(XSCElement):
 	empty = 0
-	attr_handlers = { "privat" : XSCFrag , "art" : XSCFrag , "anschrift" : XSCFrag , "telefon" : XSCFrag , "url" : XSCurl }
+	attr_handlers = { "privat" : XSCTextAttr , "art" : XSCTextAttr , "anschrift" : XSCTextAttr , "telefon" : XSCTextAttr , "url" : XSCURLAttr }
 	
 	def _doAsHTML(self):
 		t = XSCFrag()
@@ -475,7 +475,7 @@ RegisterElement("fileinfo",fileinfo)
 
 class navigation(XSCElement):
 	empty = 1
-	attr_handlers = { "off" : XSCFrag , "href" : XSCurl , "img" : XSCFrag , "text" : XSCFrag }
+	attr_handlers = { "off" : XSCTextAttr , "href" : XSCURLAttr , "img" : XSCTextAttr , "text" : XSCTextAttr }
 
 	def _doAsHTML(self):
 		td1 = td([nbsp()]*3,Class="links",bgcolor="#333366")
@@ -486,27 +486,27 @@ class navigation(XSCElement):
 RegisterElement("navigation",navigation)
 
 class content(XSCElement):
-	attr_handlers = { "align" : XSCFrag }
+	attr_handlers = { "align" : XSCTextAttr }
 	empty = 0
 RegisterElement("content",content)
 
 class bytes(XSCElement):
-	attr_handlers = { "file" : XSCurl }
+	attr_handlers = { "file" : XSCURLAttr }
 	empty = 1
 RegisterElement("bytes",bytes)
 
 class hrf(XSCElement):
-	attr_handlers = { "rel" : XSCFrag , "href" : XSCurl , "off" : XSCFrag , "class" : XSCFrag , "target" : XSCFrag }
+	attr_handlers = { "rel" : XSCTextAttr , "href" : XSCURLAttr , "off" : XSCTextAttr , "class" : XSCTextAttr , "target" : XSCTextAttr }
 	empty = 0
 RegisterElement("hrf",hrf)
 
 class lnk(XSCElement):
-	attr_handlers = { "rel" : XSCFrag , "href" : XSCurl , "text" : XSCFrag }
+	attr_handlers = { "rel" : XSCTextAttr , "href" : XSCURLAttr , "text" : XSCTextAttr }
 	empty = 0
 RegisterElement("lnk",lnk)
 
 class vorstand(XSCElement):
-	attr_handlers = { "name" : XSCFrag , "posten" : XSCFrag , "email" : XSCFrag , "homepage" : XSCFrag }
+	attr_handlers = { "name" : XSCTextAttr , "posten" : XSCTextAttr , "email" : XSCTextAttr , "homepage" : XSCTextAttr }
 	empty = 1
 RegisterElement("vorstand",vorstand)
 
@@ -515,7 +515,7 @@ class firmen(XSCElement):
 RegisterElement("firmen",firmen)	
 
 class firma(XSCElement):
-	attr_handlers = { "anschrift" : XSCFrag , "telefon" : XSCFrag ,  "url" : XSCurl }
+	attr_handlers = { "anschrift" : XSCTextAttr , "telefon" : XSCTextAttr ,  "url" : XSCURLAttr }
 	empty = 0
 RegisterElement("firma",firma)	
 
@@ -524,12 +524,12 @@ class kirchen(XSCElement):
 RegisterElement("kirchen",kirchen)	
 
 class kirche(XSCElement):
-	attr_handlers = { "ansprech" : XSCFrag , "strasse" : XSCFrag ,  "ort" : XSCurl , "telefon" : XSCFrag , "url" : XSCurl , "dekanat" : XSCFrag }
+	attr_handlers = { "ansprech" : XSCTextAttr , "strasse" : XSCTextAttr ,  "ort" : XSCURLAttr , "telefon" : XSCTextAttr , "url" : XSCURLAttr , "dekanat" : XSCTextAttr }
 	empty = 0
 RegisterElement("kirche",kirche)	
 
 class above(XSCElement):
-	atts_handlers = { "rel" : XSCFrag , "href" : XSCFrag , "class" : XSCFrag }
+	atts_handlers = { "rel" : XSCTextAttr , "href" : XSCTextAttr , "class" : XSCTextAttr }
 	empty = 0
 RegisterElement("above",above)
 
@@ -538,7 +538,7 @@ class shell(XSCElement):
 RegisterElement("shell",shell)
 
 class faq(XSCElement):
-	attr_handlers = { "frage" : XSCFrag }
+	attr_handlers = { "frage" : XSCTextAttr }
 	empty = 0
 RegisterElement("faq",faq)
 
@@ -552,7 +552,7 @@ RegisterElement("engines",engines)
 
 class engine(XSCElement):
 	empty = 0
-	attr_handlers = { "name" : XSCFrag , "url" : XSCurl }
+	attr_handlers = { "name" : XSCTextAttr , "url" : XSCURLAttr }
 
 	def _doAsHTML(self):
 		e = XSCFrag(
@@ -574,7 +574,7 @@ RegisterElement("bnvereine",bnvereine)
 
 class bnverein(XSCElement):
 	empty = 0
-	attr_handlers = { "name" : XSCFrag , "url" : XSCurl }
+	attr_handlers = { "name" : XSCTextAttr , "url" : XSCURLAttr }
 
 	def _doAsHTML(self):
 		e = XSCFrag(
@@ -588,7 +588,7 @@ RegisterElement("bnverein",bnverein)
 
 class fahrplansite(XSCElement):
 	empty = 0
-	attr_handlers = { "name" : XSCFrag , "url" : XSCFrag }
+	attr_handlers = { "name" : XSCTextAttr , "url" : XSCTextAttr }
 
 	def _doAsHTML(self):
 		e = dl(self.content)
@@ -610,7 +610,7 @@ RegisterElement("fahrplansites",fahrplansites)
 
 class fahrplan(XSCElement):
 	empty = 0
-	attr_handlers = { "name" : XSCFrag , "url" : XSCurl }
+	attr_handlers = { "name" : XSCTextAttr , "url" : XSCURLAttr }
 
 	def _doAsHTML(self):
 		halts = self.findElementsNamed("haltestelle")
@@ -647,7 +647,7 @@ RegisterElement("keinhalt",keinhalt)
 
 class haltestelle(XSCElement):
 	empty = 0
-	attr_handlers = { "name" : XSCFrag , "an" : XSCFrag , "class" : XSCFrag }
+	attr_handlers = { "name" : XSCTextAttr , "an" : XSCTextAttr , "class" : XSCTextAttr }
 
 	def _doAsHTML(self):
 		if self.has_attr("an"):
@@ -672,7 +672,7 @@ class downloadsites(XSCElement):
 RegisterElement("downloadsites",downloadsites)
 
 class downloadsite(XSCElement):
-	attr_handlers = { "name" : XSCFrag , "url" : XSCurl }
+	attr_handlers = { "name" : XSCTextAttr , "url" : XSCURLAttr }
 	empty = 0
 RegisterElement("downloadsite",downloadsite)
 
@@ -687,7 +687,7 @@ RegisterElement("newstickers",newstickers)
 
 class newsticker(XSCElement):
 	empty = 0
-	attr_handlers = { "name" : XSCFrag , "url" : XSCurl }
+	attr_handlers = { "name" : XSCTextAttr , "url" : XSCURLAttr }
 
 	def _doAsHTML(self):
 		e = XSCFrag(
@@ -700,7 +700,7 @@ class newsticker(XSCElement):
 RegisterElement("newsticker",newsticker)
 
 class kleinanzeige(XSCElement):
-	attr_handlers = { "bezeichnung" : XSCFrag , "preis" : XSCFrag , "tel" : XSCFrag , "email" : XSCFrag , "handy" : XSCFrag , "fax" : XSCFrag }
+	attr_handlers = { "bezeichnung" : XSCTextAttr , "preis" : XSCTextAttr , "tel" : XSCTextAttr , "email" : XSCTextAttr , "handy" : XSCTextAttr , "fax" : XSCTextAttr }
 	empty = 0
 RegisterElement("kleinanzeige",kleinanzeige)
 
@@ -723,7 +723,7 @@ class newsitems(XSCElement):
 RegisterElement("newsitems",newsitems)
 
 class newsitem(XSCElement):
-	attr_handlers = { "datum" : XSCFrag , "href" : XSCFrag }
+	attr_handlers = { "datum" : XSCTextAttr , "href" : XSCTextAttr }
 	empty = 0
 
 	def _doAsHTML(self):
@@ -737,7 +737,7 @@ RegisterElement("newsitem",newsitem)
 
 class pagenewsitem(XSCElement):
 	empty = 0
-	attr_handlers = { "datum" : XSCFrag }
+	attr_handlers = { "datum" : XSCTextAttr }
 
 	def _doAsHTML(self):
 		e = page(links()+content(self.content),title="Bürgernetz Bayreuth - Aktuelles - "+self["datum"],keywords="Bürgernetz, Bayreuth, Aktuelles")
@@ -754,7 +754,7 @@ RegisterElement("zonk",zonk)
 
 class buergerfestbild(XSCElement):
 	empty = 0
-	attr_handlers = { "src" : XSCFrag }
+	attr_handlers = { "src" : XSCTextAttr }
 
 	def _doAsHTML(self):
 		e = plaintable(

@@ -44,22 +44,24 @@ class z(XSCElement):
 	empty = 0
 
 	def _doAsHTML(self):
-		return XSCFrag(["«" , self.content , "»" ])
+		e = XSCFrag(["«" , self.content , "»" ])
+
+		return e.asHTML()
 RegisterElement("z",z)
 
 class nbsp(XSCElement):
 	empty = 1
 
-	def __str__(self):
-		return "&nbsp;"
+	def _doAsHTML(self):
+		return XSCCharRef(160)
 RegisterElement("nbsp",nbsp)
 
 class filesize(XSCElement):
 	empty = 1
-	attr_handlers = { "href" : XSCurl }
+	attr_handlers = { "href" : XSCURLAttr }
 
 	def _doAsHTML(self):
-		return XSCText(str(FileSize(str(self["href"].asHTML()))))
+		return XSCText(self["href"].FileSize())
 RegisterElement("filesize",filesize)
 
 class x(XSCElement):
@@ -67,12 +69,12 @@ class x(XSCElement):
 	close=1
 
 	def _doAsHTML(self):
-		return ""
+		return None
 RegisterElement("x",x)
 
 class pixel(img):
 	empty = 1
-	attr_handlers = AppendDict(img.attr_handlers,{ "color" : XSCFrag })
+	attr_handlers = AppendDict(img.attr_handlers,{ "color" : XSCColorAttr })
 	del attr_handlers["src"]
 
 	def asHTML(self):
@@ -81,9 +83,9 @@ class pixel(img):
 			color = self["color"]
 		else:
 			color = "dot_clear"
-		e["src"] = XSCFrag([":Images/Pixels/" , color , ".gif" ])
+		e["src"] = [":Images/Pixels/" , color , ".gif" ]
 
-		return e
+		return e.asHTML()
 RegisterElement("pixel",pixel)
 
 class cap(XSCElement):
