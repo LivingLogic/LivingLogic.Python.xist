@@ -385,11 +385,8 @@ def ToNode(value):
 	Anything else raises an exception.</par>
 	"""
 	t = type(value)
-	print "="*20,0,repr(t)
 	if t is types.InstanceType:
-		print "="*20, 1, repr(value.__class__)
 		if isinstance(value, Frag):
-			print "="*20, 2
 			l = len(value)
 			if l==1:
 				return ToNode(value[0]) # recursively try to simplify the tree
@@ -397,12 +394,12 @@ def ToNode(value):
 				return Null
 			elif isinstance(value, Attr):
 				node = Frag() # repack the attribute in a fragment, and we have a valid XSC node
-				node.extend(value.content)
+				for child in value:
+					node.extend(child)
 				return node
 			else:
 				return value
 		elif isinstance(value, Node):
-			print "="*20, 3
 			return value
 	elif t in (types.StringType, types.UnicodeType, types.IntType, types.LongType, types.FloatType):
 		return Text(value)
@@ -1187,10 +1184,6 @@ class Eval(PythonCode):
 		code = Code(self.content,1)
 		code.funcify()
 		exec str(code.asString()) in procinst.__dict__ # FIXME Why can't I exec a unicode object
-		node = eval("__()", procinst.__dict__)
-		print "+"*20,node
-		node = ToNode(node)
-		print "-"*20,node
 		return ToNode(eval("__()", procinst.__dict__)).asHTML()
 
 	def clone(self):
