@@ -1551,7 +1551,7 @@ class Entity(Node):
 	clone = compact
 
 	def asPlainString(self):
-		return chr(self.codepoint)
+		return unichr(self.codepoint)
 
 	def _dorepr(self, ansi = None):
 		s = "&"
