@@ -29,7 +29,6 @@ the base class Error.
 __version__ = "$Revision$"[11:-2]
 # $Source$
 
-import string
 import xsc
 import exceptions
 import types
@@ -81,7 +80,7 @@ class IllegalAttributeError(Error):
 		for attr in attrs:
 			v.append(xsc.strAttrName(attr))
 
-		return Error.__str__(self) + "Attribute " + xsc.strAttrName(self.attr) + " not allowed in element " + xsc._strNode(self.element.__class__) + ". Allowed attributes are: " + string.join(v,", ") + "."
+		return Error.__str__(self) + "Attribute " + xsc.strAttrName(self.attr) + " not allowed in element " + xsc._strNode(self.element.__class__) + ". Allowed attributes are: " + ", ".join(v) + "."
 
 class AttributeNotFoundError(Error):
 	"""
@@ -103,7 +102,7 @@ class AttributeNotFoundError(Error):
 			v = []
 			for attr in attrs:
 				v.append(xsc.strAttrName(attr))
-			s = s + "Available attributes are: " + string.join(v,", ") + "."
+			s = s + "Available attributes are: " + ", ".join(v) + "."
 		else:
 			s = s + "No attributes available."
 
@@ -132,7 +131,7 @@ class IllegalElementError(Error):
 
 		s = Error.__str__(self) + "element " + xsc._strName((self.name[0],self.name[1],0)) + " not allowed. "
 		if elementnames:
-			s = s + "Allowed elements are: " + string.join(elementnames,", ") + "."
+			s = s + "Allowed elements are: " + ", ".join(elementnames) + "."
 		else:
 			s = s + "There are no allowed elements."
 		return s
@@ -227,7 +226,7 @@ class IllegalEntityError(Error):
 
 		s = Error.__str__(self) + "entity " + xsc.strEntity(self.name[0],self.name[1]) + " not allowed. "
 		if entitynames:
-			s = s + "Allowed entities are: " + string.join(entitynames,", ") + "."
+			s = s + "Allowed entities are: " + ", ".join(entitynames) + "."
 		else:
 			s = s + "There are no allowed entities."
 		return s

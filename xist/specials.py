@@ -176,7 +176,7 @@ class caps(xsc.Element):
 				if innini==0:
 					result.append(collect)
 				else:
-					result.append(html_.span([ string.upper(collect) ],Class="nini" ))
+					result.append(html_.span([ collect.upper() ],Class="nini" ))
 				if i != len(e):
 					collect = e[i]
 				innini = 1-innini
@@ -185,7 +185,7 @@ class caps(xsc.Element):
 		return result
 
 	def asPlainString(self):
-			return string.upper(self.content.asPlainString())
+			return self.content.asPlainString().upper()
 
 class endash(xsc.Element):
 	empty = 1

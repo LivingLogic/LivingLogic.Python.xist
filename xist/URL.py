@@ -8,7 +8,6 @@ This module contains only one useful variable: the URL class
 __version__ = "$Revision$"[11:-2]
 # $Source$
 
-import string
 import types
 import urlparse
 import urllib
@@ -181,7 +180,7 @@ class URL:
 			v.append("query=" + repr(self.query))
 		if self.fragment:
 			v.append("fragment=" + repr(self.fragment))
-		return "URL(" + string.join(v,", ") + ")"
+		return "URL(" + ", ".join(v) + ")"
 
 	def __str__(self):
 		return self.__asString(1)
@@ -242,16 +241,16 @@ class URL:
 	def __cmp__(self,other):
 		scheme1 = self.scheme
 		if scheme1 is not None:
-			scheme1 = string.lower(scheme1)
+			scheme1 = scheme1.lower()
 		scheme2 = self.scheme
 		if scheme2 is not None:
-			scheme2 = string.lower(scheme2)
+			scheme2 = scheme2.lower()
 		server1 = self.server
 		if server1 is not None:
-			server1 = string.lower(server1)
+			server1 = server1.lower()
 		server2 = self.server
 		if server2 is not None:
-			server2 = string.lower(server2)
+			server2 = server2.lower()
 		return cmp(scheme1,scheme2) or cmp(server1,server2) or cmp(self.port,other.port) or cmp(self.__path,other.__path) or cmp(self.file,other.file) or cmp(self.ext,other.ext) or cmp(self.parameters,other.parameters) or cmp(self.query,other.query) or cmp(self.fragment,other.fragment)
 
 	def open(self):
@@ -273,16 +272,16 @@ class URL:
 		elif self.scheme in ( "ftp" , "http" , "https" ):
 			if len(self.__path):
 				self.__path = self.__path[1:] # the path from urlparse started with "/" too
-		pos = string.rfind(self.server,":")
+		pos = self.server.rfind(":")
 		if pos != -1:
 			self.port = int(self.server[pos+1:])
 			self.server = self.server[:pos]
-		self.__path = string.split(self.__path,"/")
+		self.__path = self.__path.split("/")
 		self.file = self.__path[-1]
 		self.__path = self.__path[:-1]
 
 		if self.scheme in [ "ftp" , "http" , "https" , "server", "" ]:
-			pos = string.rfind(self.file,".")
+			pos = self.file.rfind(".")
 			if pos != -1:
 				self.ext = self.file[pos+1:]
 				self.file = self.file[:pos]
@@ -310,7 +309,7 @@ class URL:
 		if self.ext:
 			file = file + "." + self.ext
 		path.append(file)
-		return urlparse.urlunparse((scheme,server,string.join(path,"/"),self.parameters or "",self.query or "",self.fragment or ""))
+		return urlparse.urlunparse((scheme,server,"/".join(path),self.parameters or "",self.query or "",self.fragment or ""))
 
 	def __join(self,other):
 		if not other.scheme:

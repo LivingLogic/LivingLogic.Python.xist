@@ -8,7 +8,6 @@ SQL statements.
 __version__ = "$Revision$"[11:-2]
 # $Source$
 
-import string
 import types
 
 class SQLCommand:
@@ -21,7 +20,7 @@ class SQLCommand:
 		if t == types.NoneType:
 			return "NULL"
 		elif t == types.StringType:
-			return "'" + string.replace(value,"'","''") + "'"
+			return "'" + value.replace("'","''") + "'"
 		elif t in [ types.IntType, types.LongType, types.FloatType ]:
 			return str(value)
 		else:
@@ -51,11 +50,11 @@ class SQLCommand:
 		for field in fields.keys():
 			v.append(self.formatField(field,fields[field],format))
 		if format==0:
-			return string.join(v,",")
+			return ",".join(v)
 		elif format==1:
-			return string.join(v," AND ")
+			return " AND ".join(v)
 		else:
-			return string.join(v,",")
+			return ",".join(v)
 
 	def do(self,connection):
 		return connection.query(str(self))
@@ -76,11 +75,11 @@ class SQLInsert(SQLCommand):
 		vv = []
 		for field in self.set.keys():
 			vv.append(field)
-		v.append(string.join(vv,","))
+		v.append(",".join(vv))
 		v.append(") VALUES (")
 		v.append(self.formatFields(self.set,2))
 		v.append(");")
-		return string.join(v,"")
+		return "".join(v)
 
 class SQLUpdate(SQLCommand):
 	"""
@@ -99,7 +98,7 @@ class SQLUpdate(SQLCommand):
 			v.append(" WHERE ")
 			v.append(self.formatFields(self.where,1))
 		v.append(";")
-		return string.join(v,"")
+		return "".join(v)
 
 class SQLDelete(SQLCommand):
 	"""
@@ -116,4 +115,4 @@ class SQLDelete(SQLCommand):
 			v.append(" WHERE ")
 			v.append(self.formatFields(self.where,1))
 		v.append(";")
-		return string.join(v,"")
+		return "".join(v)

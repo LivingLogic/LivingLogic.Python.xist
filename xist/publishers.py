@@ -11,7 +11,6 @@ handler in <methodref module="xist.xsc" class="Node">publish</methodref>.
 """
 
 import sys
-import string
 
 class Publisher:
 	"""
@@ -62,5 +61,5 @@ class StringPublisher:
 		"""
 		Return the published strings as one long string.
 		"""
-		return string.join(self.texts,"")
+		return "".join(self.texts)
 
