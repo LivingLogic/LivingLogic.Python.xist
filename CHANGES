@@ -15,8 +15,15 @@ Element.compact now works (better) ;).
 Incorparated many bug fixes from Hartmut Goebel.
 
 Implemented xsc.Element.copyDefaultAttrs, which copies
-not set attributes over from a dictionary (simplified
+unset attributes over from a dictionary (simplifies
 implementing specials.plaintable and specials.plainbody)
+
+providers.Provider.pushNamespace() now handles multiple
+arguments with may be Namespace objects or modules
+(in which case, the module.namespace will be pushed)
+
+providers.Providers.popNamespace() can now pop multiple
+namespaces at once.
 
 New in 0.4.6
 ------------
