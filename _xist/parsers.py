@@ -179,11 +179,11 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 
 	# Locator methods will be called by the application
 	def getColumnNumber(self):
-		return None
+		return -1
 
 	def getLineNumber(self):
 		if self._parser is None:
-			return None
+			return -1
 		return self.lineNumber
 
 	def getPublicId(self):
