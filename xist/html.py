@@ -656,6 +656,7 @@ class input(xsc.Element):
 	empty = 1
 	attrHandlers = attrs.copy()
 	attrHandlers.update({"type": xsc.TextAttr, "name": xsc.TextAttr, "value": xsc.TextAttr, "checked": xsc.TextAttr, "disabled": xsc.TextAttr, "readonly": xsc.TextAttr, "size": xsc.TextAttr, "maxlength": xsc.TextAttr, "src": xsc.URLAttr, "alt": xsc.TextAttr, "usemap": xsc.TextAttr, "tabindex": xsc.TextAttr, "accesskey": xsc.TextAttr, "onfocus": xsc.TextAttr, "onblur": xsc.TextAttr, "onselect": xsc.TextAttr, "onchange": xsc.TextAttr, "accept": xsc.TextAttr})
+	attrHandlers.update({"border": xsc.IntAttr}) # deprecated
 
 class button(xsc.Element):
 	"""
