@@ -44,7 +44,7 @@ def getColorsFromEnv(name, default):
 		return default
 
 class EnvText(ansistyle.Text):
-	def getColor(self):
+	def getcolor(self):
 		if options.repransi==0:
 			return -1
 		else:
@@ -213,7 +213,7 @@ class EscInlineText(ansistyle.EscapedText):
 	ascharref = "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x0b\x0c\x0d\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f<>&"
 	ascolor   = "\x09\x0a"
 
-	def escapeChar(self, char):
+	def escapechar(self, char):
 		if char in self.ascolor:
 			return EnvTextForTab(char)
 		else:
