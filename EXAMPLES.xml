@@ -162,6 +162,9 @@ node.write(open("parrot_index.html", "wb"))
 
 <section><title>Converting &html; to &xist; code</title>
 
+<par>The class <class>ll.xist.presenters.CodePresenter()</class>
+makes it possible to output an &xist; tree as usable Python source code.</par>
+
 <tty>
 <prompt>&gt;&gt;&gt;</prompt> <input>from ll.xist import parsers, presenters</input>
 <prompt>&gt;&gt;&gt;</prompt> <input>e = parsers.parseURL("http://www.python.org/", tidy="True")</input>
@@ -189,7 +192,7 @@ ll.xist.xsc.Frag(
 				content='Python programming language object oriented web free\n source',
 				name='keywords'
 			),
-			<rep>... Many lines deleted ...</rep>
+			<rep>[... Many lines deleted ...]</rep>
 			xsc.Comment(' end of page table '),
 			marginheight=0,
 			alink='#ff0000',
