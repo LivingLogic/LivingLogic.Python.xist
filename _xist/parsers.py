@@ -494,7 +494,7 @@ class Handler(object):
 		if self.skippingWhitespace:
 			# the following could be content = content.lstrip(), but this would remove nbsps
 			# FIXME use lstrip(???) with Python 2.3
-			while content and content[0].isspace() and content[0] != "\xa0":
+			while content and content[0].isspace() and content[0] != u"\xa0":
 				content = content[1:]
 		if content:
 			node = self.createText(content)
