@@ -45,7 +45,7 @@ def tld2xsc(tldfilename, outfilename=None):
 	# get and convert the tablib object
 	taglib = doc.find(type=tld.taglib)[0]
 	e = taglib.conv()
-	s = e.aspy()
+	s = e.asdata().aspy()
 
 	file = open(outfilename, 'w')
 	file.write(s)

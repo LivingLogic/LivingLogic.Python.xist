@@ -101,7 +101,7 @@ def dtd2xsc(dtdfilename, outfilename=None):
 		if entname not in ("quot", "apos", "gt", "lt", "amp"):
 			ent = parsers.parseString(dtd.resolve_ge(entname).value)
 			e.append(xndl.charref(name=entname, codepoint=ord(unicode(ent[0])[0])))
-	file.write(e.aspy())
+	file.write(e.asdata().aspy())
 	file.close()
 
 if __name__ == "__main__":
