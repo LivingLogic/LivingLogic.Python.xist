@@ -67,7 +67,7 @@ class keywords(html.meta):
 	def convert(self, converter):
 		e = html.meta(self.attrs)
 		e["name"] = "keywords"
-		e["content"] = self.content.convert(converter).asPlainString()
+		e["content"] = self.content
 		return e.convert(converter)
 
 class description(html.meta):
@@ -86,7 +86,7 @@ class description(html.meta):
 	def convert(self, converter):
 		e = html.meta(self.attrs)
 		e["name"] = "description"
-		e["content"] = self.content.convert(converter).asPlainString()
+		e["content"] = self.content
 		return e.convert(converter)
 
 class stylesheet(html.link):
