@@ -50,7 +50,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 
 __all__ = [
 	"xml",
-	"html", "wml", "docbook", "ruby", "ihtml",
+	"html", "wml", "docbook", "ruby", "ihtml", "svg",
 	"jsp", "struts_html", "struts_config", "struts_config11",
 	"php",
 	"specials", "abbr", "cond", "code", "doc", "form", "meta",
