@@ -216,7 +216,7 @@ class Node(object):
 			return unicode(self.content).upper()
 		</doc:programlisting>
 
-		<method>__unicode__</method> can be used everywhere, where
+		<method>__unicode__</method> can be used everywhere where
 		a plain string representation of the node is required.</doc:par>
 		"""
 		raise NotImplementedError("__unicode__ method not implemented in %s" % self.__class__.__name__)
