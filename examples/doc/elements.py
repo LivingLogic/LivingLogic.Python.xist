@@ -153,7 +153,7 @@ class Self(xsc.Element):
 	"""
 	empty = 0
 
-	def asHTML(self):
+	def asHTML(self, mode=None):
 		return html.code("self", class_="self")
 
 class signature(xsc.Element):
