@@ -151,33 +151,36 @@ class Publisher(object):
 		"""
 		<par>called once before the publication of the node <arg>node</arg> begins.</par>
 		"""
-		# Determine if we have to introduce an artificial root element that gets the xmlns attributes
-		if not isinstance(self.node, xsc.Element): # An element is the wrapper itself
-			needed = self._neededxmlnsdefs(self.node)
-			if needed:
-				if len(needed)>1 or not isinstance(needed[0], xsc.Element):
-					from xist.ns import specials
-					self.node = specials.wrap(self.node)
-
-		prefixes2use = {}
-		# collect all the namespaces that are used and their required mode
-		for child in self.node.walk(attrs=True):
-			if isinstance(child, xsc.Element):
-				type = xsc.Prefixes.ELEMENT
-			elif isinstance(child, xsc.ProcInst):
-				type = xsc.Prefixes.PROCINST
-			elif isinstance(child, xsc.Entity):
-				type = xsc.Prefixes.ENTITY
-			else:
-				continue
-			prefixes2use[(type, child.xmlns)] = max(prefixes2use.get((type, child.xmlns), 0), child.needsxmlns(self))
 		self.prefixes2use = {}
-		if len(prefixes2use):
-			self.publishxmlns = None # signal to the first element that it should generate xmlns attributes
-			# get the prefixes for all namespaces from the prefix mapping
-			for (type, ns) in prefixes2use:
-				nsprefix = [u"xmlns", u"procinstns", u"entityns"][type]
-				self.prefixes2use[(nsprefix, ns)] = (prefixes2use[(type, ns)], self.prefixes.prefix4ns(ns, type)[0])
+		# If no xmlns declaration attributes are to be used we don't have to do anything
+		mode = xsc.Prefixes.DECLAREANDUSEPREFIX
+		if self.elementmode==mode or self.procinstmode==mode or self.entitymode==mode:
+			# Determine if we have to introduce an artificial root element that gets the xmlns attributes
+			if not isinstance(self.node, xsc.Element): # An element is the wrapper itself
+				needed = self._neededxmlnsdefs(self.node)
+				if needed:
+					if len(needed)>1 or not isinstance(needed[0], xsc.Element):
+						from xist.ns import specials
+						self.node = specials.wrap(self.node)
+
+			prefixes2use = {}
+			# collect all the namespaces that are used and their required mode
+			for child in self.node.walk(attrs=True):
+				if isinstance(child, xsc.Element):
+					type = xsc.Prefixes.ELEMENT
+				elif isinstance(child, xsc.ProcInst):
+					type = xsc.Prefixes.PROCINST
+				elif isinstance(child, xsc.Entity):
+					type = xsc.Prefixes.ENTITY
+				else:
+					continue
+				prefixes2use[(type, child.xmlns)] = max(prefixes2use.get((type, child.xmlns), 0), child.needsxmlns(self))
+			if len(prefixes2use):
+				self.publishxmlns = None # signal to the first element that it should generate xmlns attributes
+				# get the prefixes for all namespaces from the prefix mapping
+				for (type, ns) in prefixes2use:
+					nsprefix = [u"xmlns", u"procinstns", u"entityns"][type]
+					self.prefixes2use[(nsprefix, ns)] = (prefixes2use[(type, ns)], self.prefixes.prefix4ns(ns, type)[0])
 
 	def endPublication(self):
 		"""
