@@ -12,12 +12,11 @@ or <app moreinfo="http://dustman.net/andy/python/HyperText/">HyperText</app>.</p
 be done with &xist;.)</par>
 
 <section><title>Overview</title>
-<par>&xist; can be used as a compiler that reads an input &xml; file
-and generates a transformed output file, or it could be used for generating
-&xml; dynamically inside a web server (but note that handling object trees
-<em>is</em> slower than simply sending constant string fragments).
-In either case generating the final &html; or &xml; output requires
-the following three steps:</par>
+<par>&xist; can be used as a compiler that reads an input &xml; file and
+generates a transformed output file, or it could be used for generating &xml;
+dynamically inside a web server (but note that handling object trees <em>is</em>
+slower than simply sending string fragments). In either case generating the
+final &html; or &xml; output requires the following three steps:</par>
 <ulist>
 <item>Generating a source &xml; tree: This can be done either by
 parsing an &xml; file, or by directly constructing the
@@ -168,7 +167,7 @@ for an element named <lit>cool</lit> works like this:</par>
 <prog>
 class cool(xsc.Element):
 	def convert(self, converter):
-		node = html.b(self.content, " is cool!")
+		node = html.b(self.content, u" is cool!")
 		return node.convert(converter)
 </prog>
 </example>
@@ -210,10 +209,7 @@ might remain in the tree. Lets define a new element:</par>
 <prog>
 class python(xsc.Element):
 	def convert(self, converter):
-		return html.a(
-			"Python",
-			href="http://www.python.org/"
-		)
+		return html.a(u"Python", href="http://www.python.org/")
 </prog>
 <par>Now we can do the following:</par>
 <tty>
@@ -238,17 +234,17 @@ class cool(xsc.Element):
 </prog>
 
 <par>Furthermore <method>convert</method> should never modify <self/>, because
-<method>convert</method> might be called multiple times.</par>
+<method>convert</method> might be called multiple times for the same node.</par>
 
 <section><title>Converters</title>
 <par><pyref module="ll.xist.xsc" class="Node" method="conv"><method>conv</method></pyref>
 is a convenience method that creates a default converter for you and calls
 <pyref module="ll.xist.xsc" class="Node" method="convert"><method>convert</method></pyref>.
 This converter is created once and is passed to all <method>convert</method>
-calls, so it can be used to store parameters for the conversion process
-and it allows elements to pass information from one element to others.
-You can also call <pyref module="ll.xist.xsc" class="Node" method="convert"><method>convert</method></pyref> yourself,
-which would look like this:</par>
+calls. It is used to store parameters for the conversion process and it allows
+elements to pass information from to other nodes. You can also call
+<pyref module="ll.xist.xsc" class="Node" method="convert"><method>convert</method></pyref>
+yourself, which would look like this:</par>
 
 <prog>
 from ll.xist import converters
@@ -535,6 +531,8 @@ is such an attribute, so we'll get:</par>
 
 </section>
 
+</section>
+
 <section><title>Namespaces</title>
 
 <par>Now that you've defined your own elements, you have to tell the parser
@@ -622,13 +620,54 @@ of the module:</par>
 </tty>
 </section>
 
+<section><title>Global attributes</title>
+<par>You can define global attributes belonging to a certain namespace in the
+same way as defining local attributes belonging to a certain element type:
+Define a nested <class>Attrs</class> class inside the namespace class
+(derived from <class>ll.xist.xsc.Namespace.Attrs</class>):</par>
+
+<prog>
+from ll.xist import xsc
+
+class xmlns(xsc.Namespace):
+	xmlname = "foo"
+	xmlurl = "http://www.example.com/foo"
+
+	class Attrs(xsc.Namespace.Attrs):
+		class foo(xsc.TextAttr): pass
+xmlns.makemod(vars())
+</prog>
+
+<par>Setting and accessing such an attribute can be done like this:</par>
+
+<tty>
+<prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
+<prompt>&gt;&gt;&gt; </prompt><input>import foo</input>
+<prompt>&gt;&gt;&gt; </prompt><input>node = html.div("foo", {(foo, "foo"): "bar")</input>
+<prompt>&gt;&gt;&gt; </prompt><input>str(node[foo, "foo"])</input>
+'bar'
+</tty>
+
+<par>An alternate way of specifying a global attribute in a constructor looks
+like this:</par>
+
+<tty>
+<prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
+<prompt>&gt;&gt;&gt; </prompt><input>import foo</input>
+<prompt>&gt;&gt;&gt; </prompt><input>node = html.div("foo", foo.Attrs(foo="baz"))</input>
+<prompt>&gt;&gt;&gt; </prompt><input>str(node[foo, "foo"])</input>
+'baz'
+</tty>
+
+</section>
+
 <section><title>Subclassing namespaces</title>
 <par>Each element class that belongs to a namespace can access its
 namespace via the class attribute <lit>xmlns</lit>. When you're subclassing
 namespace classes, the elements in the base namespace will be automatically
 subclassed too. Of course you can explicitly subclass an element class too.
-The following example should show the usefulness of this feature. Define
-your base namespace like this and put it into <filename>navns.py</filename>:</par>
+The following example shows the usefulness of this feature. Define your base
+namespace like this and put it into <filename>navns.py</filename>:</par>
 
 <prog>
 from ll.xist import xsc
@@ -645,12 +684,7 @@ class navigation(xsc.Element):
 	def convert(self, converter):
 		node = self.xmlns.links()
 		for (name, url) in languages:
-			node.append(
-				self.xmlns.link(
-					name,
-					href=url
-				)
-			)
+			node.append(self.xmlns.link(name, href=url))
 		return node.convert(converter)
 
 class links(xsc.Element):
@@ -663,12 +697,7 @@ class link(xsc.Element):
 		class href(xsc.URLAttr): pass
 
 	def convert(self, converter):
-		node = html.div(
-			html.a(
-				self.content,
-				href=self["href"]
-			)
-		)
+		node = html.div(html.a(self.content, href=self["href"]))
 		return node.convert(converter)
 
 class xmlns(xsc.Namespace):
@@ -799,11 +828,7 @@ from ll.xist.ns import html
 class xmlns(html):
 	class a(html.a):
 		def convert(self, converter):
-			node = html.a(
-				self.content,
-				self.attrs,
-				target="_top"
-			)
+			node = html.a(self.content, self.attrs, target="_top")
 			return node.convert(converter)
 </prog>
 
@@ -835,9 +860,9 @@ code doesn't contain any illegal tag nesting (like a
 <par>For your own elemens you can specify the content model too. This is done
 by setting the class attribute <lit>model</lit> inside the element class.
 <lit>model</lit> must be an object that provides a <method>checkvalid</method>
-method. This method will be called with the element as an argument.
-When a validation violation is detected, the Python warning framework
-will be used to issue a warning. The module <module>ll.xist.sims</module>
+method. This method will be called during parsing or publishing with the element
+as an argument. When a validation violation is detected, the Python warning
+framework will be used to issue a warning. The module <module>ll.xist.sims</module>
 contains several classes that provide a simple validation.</par>
 
 <par><pyref module="ll.xist.sims" class="Empty"><class>ll.xist.sims.Empty</class></pyref>
@@ -864,19 +889,15 @@ module.</par>
 
 <section><title>Entities</title>
 
-<par>In the same way as defining new element types, you can define new
-entities. But to be able to use the new entities in an &xml; file
-you have to use a parser that supports reporting undefined
-entities to the application via <method>skippedEntity</method>
-(<pyref module="ll.xist.parsers" class="SGMLOPParser"><class>SGMLOPParser</class></pyref> and
-<pyref module="ll.xist.parsers" class="ExpatParser"><class>ExpatParser</class></pyref>
-in the module <pyref module="ll.xist.parsers"><module>ll.xist.parsers</module></pyref> do that).</par>
-
-<par>In addition to the <pyref module="ll.xist.xsc" class="Node" method="convert"><method>convert</method></pyref>
-method you may implement the method
-<pyref module="ll.xist.xsc" class="Node" method="__unicode__"><method>__unicode__</method></pyref>,
-which must return a unicode string value for the entity. The following
-example is from the module <pyref module="ll.xist.ns.abbr"><module>ll.xist.ns.abbr</module></pyref>:</par>
+<par>In the same way as defining new element types, you can define new entities.
+But to be able to use the new entities in an &xml; file you have to use a parser
+that supports reporting undefined entities to the application via
+<method>skippedEntity</method>
+(<pyref module="ll.xist.parsers" class="SGMLOPParser"><class>SGMLOPParser</class></pyref>
+and <pyref module="ll.xist.parsers" class="ExpatParser"><class>ExpatParser</class></pyref>
+in the module <pyref module="ll.xist.parsers"><module>ll.xist.parsers</module></pyref>
+do that). The following example is from the module
+<pyref module="ll.xist.ns.abbr"><module>ll.xist.ns.abbr</module></pyref>:</par>
 
 <example><title>Defining new entities</title>
 <prog>
@@ -890,8 +911,6 @@ class html(xsc.Entity):
 			title="Hypertext Markup Language",
 			lang="en"
 		)
-	def __unicode__(self):
-		return u"HTML"
 </prog>
 </example>
 
@@ -906,11 +925,12 @@ class html(xsc.Entity):
 </section>
 
 <section><title>Processing instructions</title>
-<par>Defining processing instructions works the same way. Derive a
-new class from <pyref module="ll.xist.xsc" class="ProcInst"><class>ll.xist.xsc.ProcInst</class></pyref>
+<par>Defining processing instructions works just like elements and entities.
+Derive a new class from
+<pyref module="ll.xist.xsc" class="ProcInst"><class>ll.xist.xsc.ProcInst</class></pyref>
 and implement <pyref module="ll.xist.xsc" class="Node" method="convert"><method>convert</method></pyref>.
-The following example implements a processing instruction that returns an uppercase
-version of its content as a text node.</par>
+The following example implements a processing instruction that returns an
+uppercase version of its content as a text node.</par>
 
 <example><title>Defining new processing instructions</title>
 <prog>
@@ -929,16 +949,14 @@ class upper(xsc.ProcInst):
 </example>
 
 <par>There are namespaces containing processing instruction classes that don't
-provide a <method>convert</method> method. These classes will then be published
-as &xml; processing instructions. One example is the namespace
-<module>ll.xist.ns.php</module>.</par>
+provide a <method>convert</method> method. These processing instruction objects
+will then be published as &xml; processing instructions. One example is the
+namespace <module>ll.xist.ns.php</module>.</par>
 
 <par>Other namespaces (like <pyref module="ll.xist.ns.jsp"><module>ll.xist.ns.jsp</module></pyref>)
 contain processing instruction classes, but they will be published in a different
 (not &xml; compatible) format. For example <lit>ll.xist.ns.jsp.expression("foo")</lit>
 will be published as <lit>&lt;%= foo&gt;</lit>.</par>
-
-</section>
 
 </section>
 
@@ -963,19 +981,24 @@ an exception):</par>
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist import xsc</input>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
-<prompt>&gt;&gt;&gt; </prompt><input>node = html.div(u"äöü", html.br(), u"ÄÖÜ")</input>
+<prompt>&gt;&gt;&gt; </prompt><input>s = u"Aä\u03a9\u8a9e"</input>
+<prompt>&gt;&gt;&gt; </prompt><input>node = html.div(s)</input>
 <prompt>&gt;&gt;&gt; </prompt><input>print node.asBytes(encoding="ascii")</input>
-&lt;div&gt;&amp;#228;&amp;#246;&amp;#252;&lt;br /&gt;&amp;#196;&amp;#214;&amp;#220;&lt;/div&gt;
+&lt;div&gt;A&amp;#228;&amp;#937;&amp;#35486;&gt;
 <prompt>&gt;&gt;&gt; </prompt><input>print node.asBytes(encoding="iso-8859-1")</input>
-&lt;div&gt;äöü&lt;br /&gt;ÄÖÜ&lt;/div&gt;
-<prompt>&gt;&gt;&gt; </prompt><input>print xsc.Comment(u"äöü").asBytes()</input>
+&lt;div&gt;Aä&amp;#937;&amp;#35486;&gt;
+<prompt>&gt;&gt;&gt; </prompt><input>print xsc.Comment(s).asBytes()</input>
 Traceback (most recent call last):
   File "&lt;stdin&gt;", line 1, in ?
-  File "~/pythonroot/xist/xsc.py", line 828, in asBytes
-    return publisher.asBytes()
-  File "~/pythonroot/xist/publishers.py", line 162, in asBytes
-    return u"".join(self.texts).encode(self.encoding)
-UnicodeEncodeError: 'ascii' codec can't encode characters in position 0-2: ordinal not in range(128)
+  File "/home/walter/pythonroot/ll/xist/xsc.py", line 600, in asBytes
+    publisher.publish(stream, self, base)
+  File "/home/walter/pythonroot/ll/xist/publishers.py", line 205, in publish
+    self.node.publish(self)
+  File "/home/walter/pythonroot/ll/xist/xsc.py", line 1305, in publish
+    publisher.write(self.content)
+  File "/usr/local/lib/python2.3/codecs.py", line 178, in write
+    data, consumed = self.encode(object, self.errors)
+UnicodeEncodeError: 'ascii' codec can't encode characters in position 1-4: ordinal not in range(128)
 </tty>
 
 <par>When you include an <pyref module="ll.xist.ns.xml" class="XML10">&xml; header</pyref>
@@ -1026,19 +1049,24 @@ an instance of <pyref module="ll.xist.publishers" class="Publisher"><class>ll.xi
 
 <section><title>Searching trees</title>
 
-<par>Finding nodes in a tree can be done with the method
-<pyref module="ll.xist.xsc" class="Node" method="walk"><method>walk</method></pyref>.
-<pyref module="ll.xist.xsc" class="Node" method="walk"><method>walk</method></pyref> will return
-an iterator. You pass a callable object to <method>walk</method> which is used for determining
-which part of the tree should be searched and which nodes should be returned.</par>
-<par><module>ll.xist.xsc</module> provides several useful predefined classes for that.
-<pyref module="ll.xist.xsc" class="FindType"><class>FindType</class></pyref> will search only
-the first level of the tree and will return any node that is an instance of one of the classes
-passed to the constructor. So if you have an instance of <class>ll.xist.ns.html.ul</class>
-named <lit>node</lit> you could search for all <class>ll.xist.ns.html.li</class> elements inside
-with the following code:</par>
+<par>There are two methods available for iterating through an &xml; tree and
+finding nodes in the tree: The <method>walk</method> method and XFind
+expressions.</par>
 
-<example><title>Searching for <class>li</class> inside <class>ul</class></title>
+<section><title>The <method>walk</method> method</title>
+<par>The method <pyref module="ll.xist.xsc" class="Node" method="walk"><method>walk</method></pyref>
+will return an iterator. You pass a callable object to <method>walk</method>
+which is used for determining which part of the tree should be searched and
+which nodes should be returned.</par> <par><module>ll.xist.xsc</module> provides
+several useful predefined classes for that.
+<pyref module="ll.xist.xsc" class="FindType"><class>FindType</class></pyref>
+will search only the first level of the tree and will return any node that is an
+instance of one of the classes passed to the constructor. So if you have an
+instance of <class>ll.xist.ns.html.ul</class> named <lit>node</lit> you could
+search for all <class>ll.xist.ns.html.li</class> elements inside with the
+following code:</par>
+
+<example><title>Searching for <class>li</class> inside <class>ul</class> with <method>walk</method></title>
 <prog>
 for child in node.content.walk(xsc.FindType(html.li)):
 	print unicode(child)
@@ -1046,8 +1074,9 @@ for child in node.content.walk(xsc.FindType(html.li)):
 </example>
 
 <par><pyref module="ll.xist.xsc" class="FindTypeAll"><class>FindTypeAll</class></pyref>
-can be used when you want to search the complete tree. The following example extracts
-all the links on the <link href="http://www.python.org/">Python home page</link>:</par>
+can be used when you want to search the complete tree. The following example
+extracts all the links on the
+<link href="http://www.python.org/">Python home page</link>:</par>
 
 <example><title>Finding all links on the Python home page</title>
 <prog>
@@ -1073,7 +1102,8 @@ http://www.python.org/dev/
 <rep>...</rep>
 </tty>
 
-<par>The following example will find all external links on the Python home page:</par>
+<par>The following example will find all external links on the Python home
+page:</par>
 
 <example><title>Finding external links on the Python home page</title>
 <prog>
@@ -1109,11 +1139,12 @@ mailto:webmaster@python.org
 for each node and must return a sequence with the following entries:</par>
 
 <dlist>
-<term><lit>ll.xist.xsc.entercontent</lit></term><item>enter the content of this element
-and continue searching;</item>
-<term><lit>ll.xist.xsc.enterattrs</lit></term><item>enter the attributes of this element
-and continue searching;</item>
-<term>boolean value</term><item>If true, the node will be part of the resulting fragment.</item>
+<term><lit>ll.xist.xsc.entercontent</lit></term><item>enter the content of this
+element and continue searching;</item>
+<term><lit>ll.xist.xsc.enterattrs</lit></term><item>enter the attributes of this
+element and continue searching;</item>
+<term>boolean value</term><item>If true, the node will be part of the resulting
+fragment.</item>
 </dlist>
 
 <par>The sequence will be <z>executed</z> in the order you specify. To change
@@ -1128,6 +1159,113 @@ def isextlink(node):
 	return (xsc.entercontent,)
 </prog>
 </example>
+
+</section>
+
+<section><title>XFind</title>
+
+<par>A second method exists for iterating through a tree: XFind expressions.
+An XFind expression looks somewhat like an XPath expression, but is implemented
+as a pure Python expresssion (overloading the division operators).</par>
+
+<par>Our example from above that searched for <class>li</class>s inside
+<class>ul</class>s can be rewritten as follows:</par>
+
+<example><title>Searching for <class>li</class> inside <class>ul</class> with an XFind expression</title>
+<prog>
+for child in node/html.li:
+	print unicode(child)
+</prog>
+</example>
+
+<par>In an XFind expression <lit><rep>a</rep>/<rep>b</rep></lit>,
+<lit><rep>a</rep></lit> must be either a node or an iterator producing nodes
+(not that an XFind expression itself is a iterator producing nodes, so 
+<lit><rep>a</rep></lit> might be a XFind expression itself). <lit><rep>b</rep></lit>
+must be an XFind operator.</par>
+
+<par>Every subclass of
+<pyref module="ll.xist.xsc" class="Node"><class>ll.xist.xsc.Node</class></pyref>
+is a XFind operator, so if <lit><rep>b</rep></lit> is such a subclass,
+<lit><rep>a</rep>/<rep>b</rep></lit> will produce any child of the nodes from
+<lit><rep>a</rep></lit> that is an instance of <lit><rep>b</rep></lit>.
+Other XFind operators can be found in the module
+<pyref module="ll.xist.xfind"><module>ll.xist.xfind</module></pyref>. The
+<lit>all</lit> operator will produce every node in the tree (except for
+attributes):</par>
+
+<prog>
+from ll.xist import xfind
+from ll.xist.ns import html
+
+node = html.div(
+html.div(
+		html.div(id=3),
+		html.div(id=4),
+		id=2,
+	),
+	html.div(
+		html.div(id=6),
+		html.div(id=7),
+		id=5,
+	),
+	id=1
+)
+
+for child in node/xfind.all:
+	print child["id"]
+</prog>
+
+<par>The output of this is:</par>
+
+<tty>
+1
+2
+3
+4
+5
+6
+7
+</tty>
+
+<par>The following example demonstrates how to find all links on the Python
+homepage via an XFind expression:</par>
+
+<prog>
+from ll.xist import xfind, parsers
+from ll.xist.ns import html
+
+node = parsers.parseURL("http://www.python.org/", tidy=True)
+for link in node/xfind.all/html.a:
+	print link["href"]
+</prog>
+
+<par>An <lit>all</lit> operator in the middle of an XFind expression can be
+abbreviated. The XFind expression from the last example
+(<lit>node/xfind.all/html.a</lit>) can be rewritten like this:
+<lit>node//html.a</lit>.</par>
+
+<par>Another XFind operator is
+<pyref module="ll.xist.xfind" class="contains"><class>contains</class></pyref>.
+It acts as a filter, i.e. the nodes produced by
+<lit><rep>a</rep>/xfind.contains(<rep>foo</rep>)</lit> are a subset of the nodes
+produced by <lit><rep>a</rep></lit>, those that contain child nodes of type
+<lit>foo</lit>. Searching for all links on the Python home page that contain
+images can be done like this:</par>
+
+<tty>
+<prompt>&gt;&gt;&gt; </prompt><input>from ll.xist import xfind, parsers</input>
+<prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
+<prompt>&gt;&gt;&gt; </prompt><input>node = parsers.parseURL("http://www.python.org/", tidy=True)</input>
+<prompt>&gt;&gt;&gt; </prompt><input>for link in node//html.a/xfind.contains(html.img):</input>
+<prompt>... </prompt><input>	print link["href"]</input>
+<prompt>... </prompt><input></input>
+http://www.python.org/
+http://www.python.org/psf/donations.html
+http://www.opensource.org/
+</tty>
+
+</section>
 
 </section>
 
@@ -1158,8 +1296,6 @@ or <pyref module="ll.xist.xsc" class="Frag"><class>Frag</class></pyref>:</par>
 <prompt>&gt;&gt;&gt; </prompt><input>node = html.div(*xrange(10))</input>
 <prompt>&gt;&gt;&gt; </prompt><input>print node.shuffled().withsep(", ").asBytes()</input>
 &lt;div&gt;8, 1, 3, 6, 7, 5, 2, 9, 4, 0&lt;/div&gt;
-<prompt>&gt;&gt;&gt; </prompt><input>print node.withsep(", ").shuffled().asBytes()</input>
-&lt;div&gt;31, 8905, 7, , , 4, 6, , , 2&lt;/div&gt;
 </tty>
 
 <par>There are methods named <pyref module="ll.xist.xsc" class="Node" method="reversed"><method>reversed</method></pyref>

@@ -28,8 +28,8 @@ class SIMSWarning(errors.Warning):
 
 class EmptyElementWithContentWarning(SIMSWarning):
 	"""
-	Warning that is issued, when an element has content,
-	but it shouldn't (i.e. <lit>model</lit> is <pyref class="Empty"><class>Empty</class></pyref>)
+	Warning that is issued, when an element has content, but it shouldn't
+	(i.e. <lit>model</lit> is <pyref class="Empty"><class>Empty</class></pyref>)
 	"""
 
 	def __init__(self, node):
@@ -45,8 +45,8 @@ class EmptyElementWithContentWarning(SIMSWarning):
 
 class WrongElementWarning(SIMSWarning):
 	"""
-	Warning that is issued, when an element contains another element
-	but it shouldn't.
+	Warning that is issued, when an element contains another element of a
+	certain type, but shouldn't.
 	"""
 
 	def __init__(self, node, badnode, elements):
@@ -66,8 +66,8 @@ class WrongElementWarning(SIMSWarning):
 
 class ElementWarning(SIMSWarning):
 	"""
-	Warning that is issued, when an element contains another element
-	but it shouldn't contain any.
+	Warning that is issued, when an element contains another element but
+	shouldn't contain any.
 	"""
 
 	def __init__(self, node, badnode):
@@ -86,8 +86,7 @@ class ElementWarning(SIMSWarning):
 
 class IllegalTextWarning(SIMSWarning):
 	"""
-	Warning that is issued, when an element contains a text node
-	but it shouldn't.
+	Warning that is issued, when an element contains a text node but shouldn't.
 	"""
 
 	def __init__(self, node, badnode):

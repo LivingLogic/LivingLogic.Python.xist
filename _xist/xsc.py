@@ -507,7 +507,7 @@ class Node(Base):
 		"""
 		Return the namespace prefix configured for publishing elements of this
 		class with the publisher <arg>publisher</arg> (or the default prefix
-		from the namespace if <arg>publisher</arg> is <lit>None</lit>.</par>
+		from the namespace if <arg>publisher</arg> is <lit>None</lit>).
 		"""
 		if cls.xmlns is None:
 			return None
@@ -532,7 +532,7 @@ class Node(Base):
 
 	def parsed(self, parser, start=None):
 		"""
-		This method will be called by the parser <arg>parser</arg> once after
+		<par>This method will be called by the parser <arg>parser</arg> once after
 		<self/> is created by the parser. This is e.g. used by
 		<pyref class="URLAttr"><class>URLAttr</class></pyref> to incorporate
 		the base <pyref module="ll.url" class="URL"><class>URL</class></pyref>
