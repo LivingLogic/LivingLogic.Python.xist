@@ -55,14 +55,17 @@ def ToNode(value):
 ###
 
 class Args(dict):
-	def __init__(self, items=None, **kwargs):
+	def __init__(self, *args, **kwargs):
+		dict.__init__(self)
 		for k in self.__class__.__dict__:
 			if not k.startswith("__"):
 				self[k] = self.__class__.__dict__[k]
-		if items is not None:
-			dict.__init__(self, items)
-		else:
-			dict.__init__(self)
+		for arg in args:
+			if isinstance(arg, dict):
+				self.update(arg)
+			else:
+				for (key, value) in arg:
+					self[key] = value
 		self.update(kwargs)
 
 	def __repr__(self):
