@@ -15,16 +15,41 @@ __version__ = "$Revision$"[11:-2]
 
 import sys
 import types
+import array
 from encodings.aliases import aliases
 import codecs
 import xsc, options, utils
 
 strescapes = {'<': 'lt', '>': 'gt', '&': 'amp', '"': 'quot'}
 
+def encodedLegal(encoding, c):
+	if c in strescapes.keys():
+		return "\x02"
+	else:
+		try:
+			unichr(c).encode(encoding)
+		except UnicodeError:
+			return "\x01"
+		return "\x00"
+
+def encodedIllegal(encoding, c):
+	if c in strescapes.keys():
+		return "\x01"
+	else:
+		try:
+			unichr(c).encode(encoding)
+		except UnicodeError:
+			return "\x01"
+		return "\x00"
+
 class Publisher:
 	"""
 	base class for all publishers.
 	"""
+
+	mapsLegal = {}
+	mapsIllegal = {}
+
 	def __init__(self, encoding=None, XHTML=None):
 		"""
 		<par><argref>encoding</argref> specifies the encoding to be used.
@@ -60,18 +85,9 @@ class Publisher:
 			raise ValueError("XHTML must be 0, 1 or 2")
 		self.XHTML = XHTML
 
-	def __call__(self, *texts):
+	def __call__(self, text):
 		"""
-		receives the strings to be printed.
-		"""
-		for text in texts:
-			if type(text) in (types.ListType, types.TupleType):
-				self(text)
-			else:
-				self.publish(utils.stringFromCode(text))
-
-	def publish(self, text):
-		"""
+		receives the string to be printed.
 		overwrite this method
 		"""
 		pass
@@ -82,19 +98,24 @@ class Publisher:
 		using character references for <code>&amp;lt;</code> etc. and non encodabel characters
 		is legal.
 		"""
+		try:
+			map = self.mapsLegal[self.encoding]
+		except KeyError:
+			map = array.array("c")
+			for i in xrange(65535):
+				map.append(encodedLegal(self.encoding, i))
+			self.mapsLegal[self.encoding] = map
+
 		v = []
 		for c in text:
-			if c == u'\r':
-				continue
-			if strescapes.has_key(c):
-				v.append('&' + strescapes[c] + ';')
+			i = ord(c)
+			test = map[i]
+			if test=="\x00":
+				 v.append(c)
+			elif test=="\x01":
+				v.append(u"&#" + str(i) + u";")
 			else:
-				try:
-					c.encode(self.encoding)
-				except UnicodeError:
-					v.append('&#' + str(ord(c)) + ';')
-				else:
-					v.append(c)
+				v.append(u"&" + strescapes[i] + u";")
 		return u"".join(v)
 
 	def _encodeIllegal(self, text):
@@ -102,17 +123,21 @@ class Publisher:
 		encodes the text <argref>text</argref> with the encoding <code><self/>.encoding</code>.
 		anything that requires a character reference (e.g. element names) is illegal.
 		"""
+		try:
+			map = self.mapsIllegal[self.encoding]
+		except KeyError:
+			map = array.array("c")
+			for i in xrange(65535):
+				map.append(encodedIllegal(self.encoding, i))
+			self.mapsIllegal[self.encoding] = map
+
 		v = []
 		for c in text:
-			if c == u'\r':
-				continue
-			if strescapes.has_key(c):
+			i = ord(c)
+			if map[i]:
 				raise EncodingImpossibleError(self.startloc, self.encoding, text, c)
-			try:
-				c.encode(self.encoding)
-			except UnicodeError:
-				raise EncodingImpossibleError(self.startloc, self.encoding, text, c)
-			v.append(c)
+			else:
+				v.append(c)
 		return u"".join(v)
 
 class FilePublisher(Publisher):
@@ -124,7 +149,7 @@ class FilePublisher(Publisher):
 		(encode, decode, streamReaderClass, streamWriterClass) = codecs.lookup(self.encoding)
 		self.file = streamWriterClass(file)
 
-	def publish(self, text):
+	def __call__(self, text):
 		self.file.write(text)
 
 	def tell(self):
@@ -151,7 +176,7 @@ class StringPublisher(Publisher):
 		Publisher.__init__(self, encoding="utf16", XHTML=XHTML)
 		self.texts = []
 
-	def publish(self, text):
+	def __call__(self, text):
 		self.texts.append(text)
 
 	def asString(self):
@@ -172,7 +197,7 @@ class BytePublisher(Publisher):
 		Publisher.__init__(self, encoding=encoding, XHTML=XHTML)
 		self.texts = []
 
-	def publish(self, text):
+	def __call__(self, text):
 		self.texts.append(text)
 
 	def asBytes(self):

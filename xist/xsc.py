@@ -1137,7 +1137,9 @@ class Comment(Node, StringMixIn):
 	def publish(self, publisher):
 		if self._content.find(u"--")!=-1 or self._content[-1:]==u"-":
 			raise errors.IllegalCommentContentError(self.startloc, self)
-		publisher(u"<!--", self._content, u"-->")
+		publisher(u"<!--")
+		publisher(self._content)
+		publisher(u"-->")
 
 class DocType(Node, StringMixIn):
 	"""
@@ -1159,7 +1161,9 @@ class DocType(Node, StringMixIn):
 		return [[nest, self.startloc, elementno, self._dorepr(encoding, ansi)]]
 
 	def publish(self, publisher):
-		publisher(u"<!DOCTYPE ", self._content, u">")
+		publisher(u"<!DOCTYPE ")
+		publisher(self._content)
+		publisher(u">")
 
 class ProcInst(Node, StringMixIn):
 	"""
@@ -1196,7 +1200,11 @@ class ProcInst(Node, StringMixIn):
 	def publish(self, publisher):
 		if self._content.find(u"?>")!=-1:
 			raise errors.IllegalProcInstFormatError(self.startloc, self)
-		publisher(u"<?", publisher._encodeIllegal(self._target), u" ", self._content, u"?>")
+		publisher(u"<?")
+		publisher(publisher._encodeIllegal(self._target))
+		publisher(u" ")
+		publisher(self._content)
+		publisher(u"?>")
 
 class PythonCode(ProcInst):
 	"""
@@ -1458,9 +1466,11 @@ class Element(Node):
 		return v
 
 	def publish(self, publisher):
-		publisher(u"<", self.name) # requires that the element is registered via registerElement()
+		publisher(u"<")
+		publisher(self.name) # requires that the element is registered via registerElement()
 		for attr in self.attrs.keys():
-			publisher(u" ", attr)
+			publisher(u" ")
+			publisher(attr)
 			value = self[attr]
 			if isinstance(value, BoolAttr):
 				if publisher.XHTML>0:
@@ -1476,7 +1486,9 @@ class Element(Node):
 				raise errors.EmptyElementWithContentError(self)
 			publisher(u">")
 			self.content.publish(publisher)
-			publisher(u"</", self.name, u">")
+			publisher(u"</")
+			publisher(self.name)
+			publisher(u">")
 		else:
 			if publisher.XHTML in (0, 1):
 				if self.empty:
@@ -1484,7 +1496,9 @@ class Element(Node):
 						publisher(u" /")
 					publisher(u">")
 				else:
-					publisher(u"></", self.name, u">")
+					publisher(u"></")
+					publisher(self.name)
+					publisher(u">")
 			elif publisher.XHTML == 2:
 				publisher(u"/>")
 
@@ -1657,7 +1671,9 @@ class Entity(Node):
 		return [[nest, self.startloc, elementno, self._dorepr(encoding=encoding, ansi=ansi)]]
 
 	def publish(self, publisher):
-		publisher(u"&", self.name, u";") # requires that the entity is registered via Namespace.register()
+		publisher(u"&")
+		publisher(self.name)
+		publisher(u";") # requires that the entity is registered via Namespace.register()
 
 	def find(self, type=None, subtype=0, attrs=None, test=None, searchchildren=0, searchattrs=0):
 		node = Frag()
