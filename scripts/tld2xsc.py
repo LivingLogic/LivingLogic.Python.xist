@@ -19,7 +19,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 
 import sys, os
 from ll.xist import parsers, converters
-from ll.xist.ns.tld import tld
+from ll.xist.ns import tld
 
 def tld2xsc(tldfilename, outfilename=None):
 	# get name of tld without extension
