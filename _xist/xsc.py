@@ -3682,12 +3682,11 @@ class Namespace(Base):
 	def makemod(cls, vars=None):
 		if vars is not None:
 			cls.update(vars)
-		# we have to keep the original module alive, otherwise Python would set all module attribute to None
 		name = vars["__name__"]
-		cls.__originalmodule__ = sys.modules[name]
-		sys.modules[name] = cls
-		# set the class name to the original module name,
-		# otherwise inspect.getmodule() will get problems
+		if name in sys.modules: # If the name can't be found, the import is probably done by execfile(), in this case we can't communicate back that the module has been replaced
+			cls.__originalmodule__ = sys.modules[name] # we have to keep the original module alive, otherwise Python would set all module attribute to None
+			sys.modules[name] = cls
+		# set the class name to the original module name, otherwise inspect.getmodule() will get problems
 		cls.__name__ = name
 	makemod = classmethod(makemod)
 
