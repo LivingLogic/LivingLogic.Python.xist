@@ -34,15 +34,18 @@ class contenttype(html.meta):
 		http_equiv = None
 		name = None
 		content = None
+		class mimetype(xsc.TextAttr): default = "text/html"
 
 	def convert(self, converter):
 		target = converter.target
 		if issubclass(target, ihtml) or issubclass(target, html):
-			e = target.meta(self.attrs)
+			e = target.meta(
+				self.attrs.without(["mimetype"]),
+				http_equiv="Content-Type",
+				content=self["mimetype"],
+			)
 		else:
 			raise ValueError("unknown conversion target %r" % target)
-		e["http_equiv"] = "Content-Type"
-		e["content"] = "text/html"
 		return e.convert(converter)
 
 
