@@ -41,7 +41,15 @@ class EHSCIllegalAttribute(EHSCException):
 
 	def __str__(self):
 		return "The attribute '" + self.attr + "' is not allowed here. The only allowed attributes are: " + str(self.attrs.attr_handlers.keys())
-		#return "the element '" + self.element.name + "' has an attribute ('" + self.attr + "') that is not allowed here. The only allowed attributes are: " + str(self.element.attr_handlers.keys())
+
+class EHSCIllegalElement(EHSCException):
+	"this element is not allowed"
+
+	def __init__(self,elementname):
+		self.elementname = elementname
+
+	def __str__(self):
+		return "The element '" + self.elementname + "' is not allowed. The only allowed elements are: " + str(element_handlers.keys())
 
 class EHSCImageSizeFormat(EHSCException):
 	"Can't format or evaluate image size attribute"
@@ -282,12 +290,10 @@ class XSCDocType(XSCNode):
 	def __repr__(self):
 		return "<!DOCTYPE " + self.content + ">"
 
-element_handlers = {} # dictionary that links element names to element classes
-
 class XSCElement(XSCNode):
 	"XML elements"
 
-	close = 0
+	close = 0 # 0 => stand alone element, 1 => element with content 
 	attr_handlers = {}
 
 	def __init__(self,content = [],attrs = {},**restattrs):
@@ -412,7 +418,6 @@ class XSCurl(XSCElement):
 			# split both path
 			source = string.splitfields(xsc.filename,"/")
 			dest = string.splitfields(url[1:],os.sep)
-			print source,dest
 			# throw away identical directories in both path
 			while len(source)>1 and len(dest)>1 and source[0]==dest[0]:
 				del source[0]
@@ -463,7 +468,11 @@ class XSCParser(xmllib.XMLParser):
 		pass
 
 	def unknown_starttag(self,name,attrs = {}):
-		e = element_handlers[string.lower(name)]([],attrs)
+		lowername = string.lower(name)
+		if element_handlers.has_key(lowername):
+			e = element_handlers[lowername]([],attrs)
+		else:
+			raise EHSCIllegalElement(lowername)
 		self.nesting[-1].append(e) # add the new element to the content of the innermost element (or to the array)
 		self.nesting.append(e) # push new innermost element onto the stack
 		
