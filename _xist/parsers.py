@@ -107,9 +107,9 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 			raise
 		except KeyboardInterrupt:
 			raise
-		except Exception, ex:
+		except Exception, exc:
 			if self.error_handler is not None:
-				self.error_handler.fatalError(ex)
+				self.error_handler.fatalError(exc)
 			else:
 				raise
 		self.parser.register(None)
