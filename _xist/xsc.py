@@ -319,7 +319,7 @@ and it's two derived classes <classname>Eval</classname> and <classname>Exec</cl
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-import os, string, types, sys, stat, urllib
+import os, string, types, sys, stat, urllib, whrandom
 
 import Image
 
@@ -1113,6 +1113,18 @@ class Frag(Node):
 		node.__content = [ child for child in self.__content if function(child) ]
 		return node
 
+	def jumbled(self):
+		"""
+		return a jumbled version of <self/>.
+		"""
+		content = self.__content[:]
+		node = Frag()
+		while content:
+			index = int(whrandom.random() * len(content))
+			node.__content.append(content[index])
+			del content[index]
+		return node
+
 class Comment(Node, StringMixIn):
 	"""
 	a comment node
@@ -1705,6 +1717,14 @@ class Element(Node):
 		"""
 		node = self.__class__(**self.attrs)
 		node.content = self.content.filtered(function)
+		return node
+
+	def jumbled(self):
+		"""
+		returns a jumbled version of the <self/>.
+		"""
+		node = self.__class__(**self.attrs)
+		node.content = self.content.jumbled()
 		return node
 
 class Entity(Node):
