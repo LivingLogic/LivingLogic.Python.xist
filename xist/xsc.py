@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 
-""""""
+"""
+"""
 
 __version__ = "$Revision$"
 # $Source$
@@ -244,7 +245,7 @@ def ToNode(value):
 	if type(value) == types.StringType:
 		return Text(value)
 	elif type(value) == types.NoneType:
-		return None
+		return Null()
 	elif type(value) in [ types.IntType,types.LongType ] :
 		return CharRef(value)
 	elif type(value) == types.FloatType :
@@ -281,13 +282,13 @@ class Node:
 	repransibrackets = "34;1"
 
 	def __add__(self,other):
-		if other != None:
+		if (not isinstance(other,Null)) and (other is not None):
 			return Frag(self) + other
 		else:
 			return self
 
 	def __radd__(self,other):
-		if other != None:
+		if (not isinstance(other,Null)) and (other is not None):
 			return Frag(other) + self
 		else:
 			return self
@@ -313,7 +314,6 @@ class Node:
 		returns an identical clone of the node.
 		"""
 		pass
-	
 
 	def repr(self):
 		return self._dorepr()
@@ -347,7 +347,7 @@ class Node:
 		return [[nest,self.startlineno,elementno,self._strtag("?")]]
 
 	def asHTML(self):
-		return None
+		return Null()
 
 	def _strtag(self,content):
 		return _stransi(self.repransibrackets,'<') + content + _stransi(self.repransibrackets,'>')
@@ -384,8 +384,8 @@ class Node:
 		"""returns this node, where all linefeeds that are in a text
 		(or character reference) by themselves are removed, i.e. potentially
 		needless whitespace is removed"""
-		return None
-		
+		return Null()
+
 class Text(Node):
 	"""text"""
 
@@ -467,7 +467,7 @@ class Text(Node):
 			if i != '\n' and i != '\r':
 				return Text(self.__content)
 		else:
-			return None
+			return Null()
 
 class CharRef(Node):
 	"""character reference (i.e &#42; or &#x42;)"""
@@ -477,7 +477,7 @@ class CharRef(Node):
 	__notdirect = { ord("&") : "amp" , ord("<") : "lt" , ord(">") : "gt", ord('"') : "quot" , ord("'") : "apos" }
 	__linefeeds = [ ord("\r") , ord("\n") ]
 
-	def __init__(self,content):
+	def __init__(self,content = 42):
 		self.__content = content
 
 	def asHTML(self):
@@ -515,7 +515,7 @@ class CharRef(Node):
 
 	def withoutLinefeeds(self):
 		if self.__content in self.__linefeeds:
-			return None
+			return Null()
 		else:
 			return CharRef(self.__content)
 
@@ -525,7 +525,7 @@ class Frag(Node):
 	repransiname = ""
 
 	def __init__(self,_content = []):
-		if _content is None:
+		if (_content is None) or isinstance(_content,Null):
 			self._content = []
 		elif type(_content) == types.InstanceType:
 			if isinstance(_content,Frag):
@@ -539,8 +539,8 @@ class Frag(Node):
 
 	def __add__(self,other):
 		res = Frag(self._content)
-		if other is not None:
-			newother = ToNode(other)
+		newother = ToNode(other)
+		if not isinstance(newother,Null):
 			if isinstance(newother,Frag):
 				res._content = res._content + newother._content
 			else:
@@ -549,8 +549,8 @@ class Frag(Node):
 
 	def __radd__(self,other):
 		res = Frag(self._content)
-		if other is not None:
-			newother = ToNode(other)
+		newother = ToNode(other)
+		if not isinstance(newother,Null):
 			if isinstance(newother,Frag):
 				res._content = newother._content + res._content
 			else:
@@ -622,12 +622,14 @@ class Frag(Node):
 		return len(self._content)
 
 	def append(self,other):
-		if other != None:
-			self._content.append(ToNode(other))
+		newother = ToNode(other)
+		if not isinstance(newother,Null):
+			self._content.append(newother)
 
 	def preppend(self,other):
-		if other != None:
-			self._content = [ ToNode(other) ] + self._content[:]
+		newother = ToNode(other)
+		if not isinstance(newother,Null):
+			self._content = [ newother ] + self._content[:]
 
 	def elements(self,element = None,subtype = 0,children = 0,attrs = 0):
 		e = Frag()
@@ -743,7 +745,8 @@ class Element(Node):
 			self[attr] = _restattrs[attr]
 
 	def append(self,item):
-		if item is not None:
+		newother = ToNode(item)
+		if not isinstance(newother,Null):
 			if self.empty:
 				raise EmptyElementWithContentError(xsc.parser.lineno,self)
 			else:
@@ -794,9 +797,11 @@ class Element(Node):
 		for attr in self.attrs.keys():
 			v.append(' ')
 			v.append(attr)
-			v.append('="')
-			v.append(str(self[attr]))
-			v.append('"')
+			value = self[attr]
+			if not isinstance(value.content,Null):
+				v.append('="')
+				v.append(str(value))
+				v.append('"')
 		s = str(self.content)
 		if self.empty:
 			if len(s):
@@ -833,9 +838,9 @@ class Element(Node):
 		if type(index)==types.StringType:
 			# values are contructed via the attribute classes specified in the attr_handlers dictionary, which do the conversion
 			lowerindex = string.lower(index)
-			if self.attr_handlers.has_key(lowerindex):
+			try:
 				self.attrs[lowerindex] = self.attr_handlers[lowerindex](value) # pack the attribute into an attribute object
-			else:
+			except KeyError:
 				raise IllegalAttributeError(xsc.parser.lineno,self,index)
 		else:
 			self.content[index] = value
@@ -876,10 +881,12 @@ class Element(Node):
 		for attr in self.attrs.keys():
 			v.append(" ")
 			v.append(_strattrname(attr))
-			v.append('=')
-			v.append(_stransi(self.repransiattrquotes,'"'))
-			v.append(self[attr]._dorepr())
-			v.append(_stransi(self.repransiattrquotes,'"'))
+			value = self[attr]
+			if not isinstance(value.content,Null):
+				v.append('=')
+				v.append(_stransi(self.repransiattrquotes,'"'))
+				v.append(value._dorepr())
+				v.append(_stransi(self.repransiattrquotes,'"'))
 		return string.join(v,"")
 
 	def AddImageSizeAttributes(self,imgattr,widthattr = "width",heightattr = "height"):
@@ -919,6 +926,31 @@ class Element(Node):
 		e = e + self.content.elements(element,subtype,children,attrs)
 		return e
 
+class Null(Element):
+	"""
+	node that does not contain anything.
+	"""
+
+	repransiname = "33"
+
+	def asHTML(self):
+		return Null()
+
+	clone = asHTML
+
+	def __str__(self):
+		return ""
+
+	def _dorepr(self):
+		# constructs a string of this Text with syntaxhighlighting. Special characters will be output as CharRefs (with special highlighting)
+		return self._strtag(self._strname() + _strelementname("/"))
+
+	def _doreprtree(self,nest,elementno):
+		return [[nest,self.startlineno,elementno,self._dorepr()]]
+
+	def withoutLinefeeds(self):
+		return Null()
+
 def registerElement(element):
 	"""
 	registers the element handler element to be used for elements with the appropriate name.
@@ -948,14 +980,16 @@ class Attr(Node):
 		self.content = ToNode(_content)
 
 	def __add__(self,other):
-		if other is not None:
-			return self.__class__(self.content+ToNode(other))
+		newother = ToNode(other)
+		if not isinstance(newother,Null):
+			return self.__class__(self.content+newother)
 		else:
 			return self
 
 	def __radd__(self,other):
-		if other is not None:
-			return self.__class__(ToNode(other)+self.content)
+		newother = ToNode(other)
+		if not isinstance(newother,Null):
+			return self.__class__(newother+self.content)
 		else:
 			return self
 
@@ -1014,7 +1048,7 @@ class URLAttr(Attr):
 	With this feature you don't have to remember how deeply you've nested your XSC file tree, you
 	can specify such file from everywhere via ":dir/to/file.xsc". XSC will change this to an URL
 	that correctly locates the file (e.g. "../../../dir/to/file", when you're nested three levels
-	deep in a different directory that "dir".
+	deep in a different directory than "dir".
 
 	When dumping these URLs in the interactive Python environment (i.e. calling __repr__) these
 	URLs will be shown with the pseudo scheme "project".
