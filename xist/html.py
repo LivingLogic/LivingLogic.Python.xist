@@ -448,7 +448,11 @@ class th(xsc.Element):
 	table header cell
 	"""
 	empty = 0
-	attrHandlers = xsc.appendDict(attrs,{ "abbr": xsc.TextAttr, "axis": xsc.TextAttr, "headers": xsc.TextAttr, "scope": xsc.TextAttr, "rowspan": xsc.TextAttr, "colspan": xsc.TextAttr },cellhalign,cellvalign)
+	attrHandlers = attrs.copy()
+	attrHandlers.update({"abbr": xsc.TextAttr, "axis": xsc.TextAttr, "headers": xsc.TextAttr, "scope": xsc.TextAttr, "rowspan": xsc.TextAttr, "colspan": xsc.TextAttr})
+	attrHandlers.update(cellhalign)
+	attrHandlers.update(cellvalign)
+	attrHandlers.update({"nowrap": xsc.TextAttr, "bgcolor": xsc.ColorAttr, "width": xsc.TextAttr, "height": xsc.TextAttr, "background": xsc.URLAttr}) # deprecated
 
 class td(xsc.Element):
 	"""
