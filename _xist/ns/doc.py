@@ -391,7 +391,7 @@ def getDoc(thing):
 				if not ref.hasAttr("class"):
 					ref["class"] = thing.im_class.__name__
 					if not ref.hasAttr("method"):
-						ref["class"] = thing.__name__
+						ref["method"] = thing.__name__
 	elif type(thing) is types.FunctionType:
 		for ref in refs:
 			if not ref.hasAttr("module"):
