@@ -695,8 +695,9 @@ that it should recursively continue with the content of the node.
 </doc:section>
 
 <doc:section><doc:title>&url;s</doc:title>
-<doc:par>For &url; handling &xist; uses the module <pyref module="url"><module>url</module></pyref>.
-Refer to its documentation for the basic functionality (especially regarding the methods
+<doc:par>For &url; handling &xist; uses the module
+<pyref module="url"><module>url</module></pyref>. Refer to its documentation
+for the basic functionality (especially regarding the methods
 <pyref module="url" class="URL" method="__div__"><method>__div__</method></pyref>
 and <pyref module="url" class="URL" method="relative"><method>relative</method></pyref>).</doc:par>
 <doc:par></doc:par>
@@ -704,8 +705,8 @@ and <pyref module="url" class="URL" method="relative"><method>relative</method><
 
 <doc:section><doc:title>Automatic generation of image size attributes</doc:title>
 <doc:par>The module <pyref module="xist.ns.specials"><module>xist.ns.specials</module></pyref>
-contains an element <pyref module="xist.ns.specials" class="autoimg"><class>autoimg</class></pyref> that extends
-<pyref module="xist.ns.html" class="img"><class>xist.ns.html.img</class></pyref>.
+contains an element <pyref module="xist.ns.specials" class="autoimg"><class>autoimg</class></pyref>
+that extends <pyref module="xist.ns.html" class="img"><class>xist.ns.html.img</class></pyref>.
 When converted to &html; via the <pyref module="xist.ns" class="Node" method="convert"><method>convert</method></pyref>
 method the size of the image will be determined and the <lit>height</lit>
 and <lit>width</lit> attributes will be set accordingly.</doc:par>
@@ -724,7 +725,8 @@ So to make an image twice as wide and high do the following:
 
 <doc:section><doc:title>Embedding Python code</doc:title>
 <doc:par>It's possible to embed Python code into &xist; &xml; files. For this
-&xist; supports two new processing instructions: <pyref module="xist.ns.code" class="Exec"><lit>code:exec</lit></pyref>
+&xist; supports two new processing instructions:
+<pyref module="xist.ns.code" class="Exec"><lit>code:exec</lit></pyref>
 and <pyref module="xist.ns.code" class="Eval"><lit>code:eval</lit></pyref> (in the module
 <pyref module="xist.ns.code"><module>xist.ns.code</module></pyref>. The content of
 <pyref module="xist.ns.code" class="Exec"><lit>code:exec</lit></pyref> will be
