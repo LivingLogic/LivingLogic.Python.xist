@@ -12,7 +12,9 @@ import xsc, html
 
 class contenttype(html.meta):
 	"""
-	can be used for a <code>&lt;meta http-equiv="Content-Type" content="text/html"/&gt;</code>
+	<par noindent>can be used for a <code>&lt;meta http-equiv="Content-Type" content="text/html"/&gt;</code>.</par>
+
+	<par>Usage is simple: <code>&lt;meta:contenttype/&gt;</code></par>
 	"""
 	empty = 1
 	attrHandlers = html.meta.attrHandlers.copy()
