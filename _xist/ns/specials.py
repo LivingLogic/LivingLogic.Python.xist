@@ -213,24 +213,6 @@ class caps(xsc.Element):
 	def __unicode__(self):
 			return unicode(self.content).upper()
 
-class endash(xsc.Element):
-	empty = True
-
-	def convert(self, converter):
-		return xsc.Text("-")
-
-	def __unicode__(self):
-		return u"-"
-
-class emdash(xsc.Element):
-	empty = True
-
-	def convert(self, converter):
-		return xsc.Text("-")
-
-	def __unicode__(self):
-		return u"-"
-
 class include(xsc.Element):
 	empty = True
 	class Attrs(xsc.Element.Attrs):
