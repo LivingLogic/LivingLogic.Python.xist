@@ -575,6 +575,14 @@ class common_border_padding_background_properties(xsc.Element.Attrs):
 		xmlname = "background-position-horizontal"
 	class background_position_vertical(xsc.TextAttr):
 		xmlname = "background-position-vertical"
+	class border(xsc.TextAttr):
+		pass
+	class border_color(xsc.ColorAttr):
+		xmlname = "border-color"
+	class border_style(xsc.ColorAttr):
+		xmlname = "border-style"
+	class border_width(xsc.ColorAttr):
+		xmlname = "border-width"
 	class border_before_color(xsc.ColorAttr):
 		xmlname = "border-before-color"
 	class border_before_style(xsc.TextAttr):
@@ -619,6 +627,8 @@ class common_border_padding_background_properties(xsc.Element.Attrs):
 		xmlname = "border-end-width.length"
 	class border_end_width_conditionality(xsc.TextAttr):
 		xmlname = "border-end-width.conditionality"
+	class border_top(xsc.TextAttr):
+		xmlname = "border-top"
 	class border_top_color(xsc.ColorAttr):
 		xmlname = "border-top-color"
 	class border_top_style(xsc.TextAttr):
@@ -626,6 +636,8 @@ class common_border_padding_background_properties(xsc.Element.Attrs):
 		values = ("none", "hidden", "dotted", "dashed", "solid", "double", "groove", "ridge", "inset", "outset", "inherit")
 	class border_top_width(xsc.TextAttr):
 		xmlname = "border-top-width"
+	class border_bottom(xsc.TextAttr):
+		xmlname = "border-bottom"
 	class border_bottom_color(xsc.ColorAttr):
 		xmlname = "border-bottom-color"
 	class border_bottom_style(xsc.TextAttr):
@@ -633,6 +645,8 @@ class common_border_padding_background_properties(xsc.Element.Attrs):
 		values = ("none", "hidden", "dotted", "dashed", "solid", "double", "groove", "ridge", "inset", "outset", "inherit")
 	class border_bottom_width(xsc.TextAttr):
 		xmlname = "border-bottom-width"
+	class border_left(xsc.TextAttr):
+		xmlname = "border-left"
 	class border_left_color(xsc.ColorAttr):
 		xmlname = "border-left-color"
 	class border_left_style(xsc.TextAttr):
@@ -640,6 +654,8 @@ class common_border_padding_background_properties(xsc.Element.Attrs):
 		values = ("none", "hidden", "dotted", "dashed", "solid", "double", "groove", "ridge", "inset", "outset", "inherit")
 	class border_left_width(xsc.TextAttr):
 		xmlname = "border-left-width"
+	class border_right(xsc.TextAttr):
+		xmlname = "border-right"
 	class border_right_color(xsc.ColorAttr):
 		xmlname = "border-right-color"
 	class border_right_style(xsc.TextAttr):
