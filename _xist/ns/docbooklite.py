@@ -209,6 +209,8 @@ class pyref(xsc.Element):
 	empty = 0
 	attrHandlers = {"module": xsc.TextAttr, "class": xsc.TextAttr, "method": xsc.TextAttr, "function": xsc.TextAttr, "var": xsc.TextAttr, "arg": xsc.TextAttr}
 
+	base = "http://localhost:7464/"
+
 	def convert(self, converter):
 		if self.hasAttr("var"):
 			var = self["var"].convert(converter).asPlainString()
@@ -256,19 +258,19 @@ class pyref(xsc.Element):
 				e = html.code(e, class_="pyarg")
 			elif function is not None:
 				e = html.code(e, class_="pyfunction")
-				#if module is not None:
-				#	e = html.a(e, href=("http://localhost:7464/", module, ".html#", function))
+				if module is not None:
+					e = html.a(e, href=(self.base, module, ".html#", function))
 			elif method is not None:
 				e = html.code(e, class_="pymethod")
-				#if class_ is not None and module is not None:
-				#	e = html.a(e, href=("http://localhost:7464/", module, ".html#", class_, "-", method))
+				if class_ is not None and module is not None:
+					e = html.a(e, href=(self.base, module, ".html#", class_, "-", method))
 			elif class_ is not None:
 				e = html.code(e, class_="pyclass")
-				#if module is not None:
-				#	e = html.a(e, href=("http://localhost:7464/", module, ".html#", class_))
+				if module is not None:
+					e = html.a(e, href=(self.base, ".html#", class_))
 			elif module is not None:
 				e = html.code(e, class_="pymodule")
-				#e = html.a(e, href=("http://localhost:7464/", module, ".html"))
+				e = html.a(e, href=(self.base, module, ".html"))
 			else:
 				e = html.code(e)
 		return e.convert(converter)
