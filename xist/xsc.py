@@ -1528,6 +1528,9 @@ class URL(Node):
 			new.scheme = ""
 		return new
 
+	def __cmp__(self,other):
+		return cmp(self.scheme,other.scheme) or cmp(self.server,other.server) or cmp(self.path,other.path) or cmp(self.file,other.file) or cmp(self.parameters,other.parameters) or cmp(self.query,other.query) or cmp(self.fragment,other.fragment)
+
 	def __optimize(self):
 		# optimize the path by removing combinations of down/up
 		while 1:

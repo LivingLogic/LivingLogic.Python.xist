@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 
 """
-A XSC module that contains definition for all the elements in HTML 4.0 transitional
+A XSC module that contains definitions for all the elements in HTML 4.0 transitional
 (and a few additional ones).
 """
 
