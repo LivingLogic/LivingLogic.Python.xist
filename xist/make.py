@@ -41,14 +41,15 @@ def make():
 	use XSC as a compiler script, i.e. read an input file from args[1]
 	and writes it to args[2]
 	"""
-
-	(options, args) = getopt.getopt(sys.argv[1:], "i:o:e:x:", ["import=", "output=", "encoding=", "xhtml="])
+	(options, args) = getopt.getopt(sys.argv[1:], "p:i:o:e:x:", ["path=", "import=", "output=", "encoding=", "xhtml="])
 
 	globaloutname = url.URL("*/")
 	encoding = None
 	XHTML = None
 	for (option, value) in options:
-		if option=="-i" or option=="--import":
+		if option=="-p" or option=="--path":
+			sys.path.append(value)
+		elif option=="-i" or option=="--import":
 			__import__(value)
 		elif option=="-o" or option=="--output":
 			globaloutname = url.URL(value)
