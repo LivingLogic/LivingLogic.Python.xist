@@ -229,5 +229,5 @@ class AmbiguousElementError(Error):
 			elementnames.append(xsc._strNode(xsc._elementHandlers[self.name[1]][namespace]))
 		elementnames.sort()
 
-		return Error.__str__(self) + "element " + _strName((self.name[0],self.name[1],0)) + " is ambigous. Possible elements are: " + string.join(elementnames,", ") + "."
+		return Error.__str__(self) + "element " + xsc._strName((self.name[0],self.name[1],0)) + " is ambigous. Possible elements are: " + string.join(elementnames,", ") + "."
 
