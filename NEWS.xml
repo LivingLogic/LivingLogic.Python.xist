@@ -8,7 +8,7 @@ Defining element classes can be done inside or outside the namespace
 class. If the element classes are defined outside the namespace
 class, they can be moved inside the namespace with a simple
 attribute assignment:</par>
-<programlisting>
+<prog>
 class foo(xsc.Element):
 	empty = False
 
@@ -17,18 +17,18 @@ class xmlns(xsc.Namespace):
 	xmlurl = "http://www.foo.com/ns/foo"
 
 xmlns.foo = foo
-</programlisting>
+</prog>
 <par>The methods <method>elementkeys</method>, <method>iterelementkeys</method>,
 <method>elementvalues</method>, <method>iterelementvalues</method>,
 <method>elementitems</method> and <method>iterelementitems</method>
 can be used for iterating through the element classes and their
 names. You can use the method <method>element</method>
 to get an element class with a certain name:</par>
-<programlisting>
+<prog>
 &gt;&gt;&gt; from ll.xist.ns import html
 &gt;&gt;&gt; html.element("div")
 &lt;element class ll.xist.ns.html/div at 0x824363c&gt;
-</programlisting>
+</prog>
 <par>For processing instructions, entities and character references
 there are methods available too.</par>
 <par>The method <method>update</method> can be used to add
@@ -39,7 +39,7 @@ to add everthing that's defined inside your module). The method
 attributes that don't exist in the namespace, <method>updateexisting</method>
 copies only those that don't exist. You can turn a namespace
 into a module with <method>makemod</method>:</par>
-<programlisting>
+<prog>
 from ll.xist import xsc
 
 class foo(xsc.Element):
@@ -49,16 +49,16 @@ class xmlns(xsc.Namespace):
 	xmlname = "foo"
 	xmlurl = "http://www.foo.com/ns/foo"
 xmlns.makemod(vars())
-</programlisting>
+</prog>
 <par>Put the above code into <filename>foo.py</filename> and
 you can do the following:</par>
-<programlisting>
+<prog>
 >>> import foo
 >>> foo
 &lt;namespace foo/xmlns name=u'foo' \
 url=u'http://www.foo.com/ns/foo' \
 with 1 elements from 'foo.py' at 0x81bfc14&gt;
-</programlisting>
+</prog>
 </item>
 
 <item><function>getns</function> has been dropped, so you always
@@ -71,22 +71,11 @@ in the <lit>contentType</lit> attribute is only done when there
 is a <lit>contentType</lit> attribute, as <lit>contentType</lit>
 is optional.</item>
 
-<item><par>The converter has two new properties <arg>function</arg>
-and <function>node</function>:</par>
-<dlist>
-<term><arg>function</arg></term><item><arg>function</arg> can be used as an argument when calling
-<method>conv</method>. It must be a callable object and will be
-used for calling the method <method>mapped</method> instead of
-calling <method>convert</method>. Additionally <arg>function</arg>
-will be stored in the converter, which must be passed around
-to all calls to <method>mapped</method> (instead of
-<arg>function</arg> itself).</item>
-<term><arg>node</arg></term><item><arg>node</arg> can't be passed to <method>conv</method> but
+<item><par>The converter has a new property <function>node</function>.
+<arg>node</arg> can't be passed to <method>conv</method> but
 will be set to <self/> by <method>conv</method> automatically.
 This makes it possible to access the <z>document root</z>
 during conversion.</item>
-</dlist>
-</item>
 
 <item><class>ll.xist.ns.htmlspecials.autoimg</class> no longer touches
 existing width and height attributes. This means that %-formatting
@@ -516,14 +505,14 @@ and <class>xist.ns.meta.description</class>
 no longer call <method>asPlainString</method>
 on their content. This makes it possible to e.g. generate the keywords via &jsp;:</par>
 <example>
-<programlisting>
+<prog>
 &gt;&gt;&gt; from xist import parsers
 &gt;&gt;&gt; from xist.ns import meta, jsp
 &gt;&gt;&gt; s = '&lt;keywords&gt;&lt;?jsp:expression "foo"?&gt;&lt;/keywords&gt;'
 &gt;&gt;&gt; e = parsers.parseString(s)
 &gt;&gt;&gt; print e.conv().asBytes()
 &lt;meta name="keywords" content="&lt;%= "foo" %&gt;" /&gt;
-</programlisting>
+</prog>
 </example>
 </item>
 <item>When an element occurs inside an attribute during publishing, there
@@ -600,18 +589,18 @@ and <method>insert</method> too.</item>
 
 <item><par><class>Node</class> and <class>Frag</class> implement
 <method>__mul__</method> and <method>__rmul__</method>, so you can do stuff like:</par>
-<programlisting>
+<prog>
 html.br()*5
-</programlisting>
+</prog>
 <par>This returns a <class>Frag</class> with five times to same node.</par></item>
 
 <item><par>Arguments for the converter constructor can be passed to
 <method>xist.xsc.Node.conv</method> now, so it's possible to do stuff like this:</par>
-<programlisting>
+<prog>
 from xist.ns import code
 print code.Eval("return converter.lang") \
 	.conv(lang="en").asBytes()
-</programlisting>
+</prog>
 <par>which will print <lit>en</lit>.</par></item>
 <item>The option <arg>XHTML</arg> for the publishers has been changed
 to lowercase.</item>
@@ -719,9 +708,9 @@ that can be used for appending <class>Namespace</class>
 objects to the <class>Namespaces</class> object used by <filename>xscmake.py</filename>.</par>
 <example>
 <title>Using the --namespace option</title>
-<programlisting>
+<prog>
 xscmake.py -n html -n spam eggs.xsc
-</programlisting>
+</prog>
 </example>
 <par>With this call the parser will find element classes from the
 module with the prefix name <lit>spam</lit> before those
@@ -758,13 +747,13 @@ works, and should be a little faster);</item>
 <item><par>When you construct a &dom; tree and the presence or absence
 of an attribute is tied to a condition, you can construct the attribute
 in advance and use it afterwards in the tree construction:</par>
-<programlisting>
+<prog>
 if <rep>condition</rep>:
 	align = "right"
 else:
 	align = None
 node = html.div("spam", align=align)
-</programlisting>
+</prog>
 <par>So, when the <lit><rep>condition</rep></lit> is false,
 the node will not have the attribute <lit>align</lit> set.</par></item>
 </ulist>
@@ -772,11 +761,11 @@ the node will not have the attribute <lit>align</lit> set.</par></item>
 <item><par><class>xist.ns.cond.If</class> (and <class>xist.ns.cond.ElIf</class>)
 can now be used to test for attributes of the converter. I.e. it's possible to
 write the following &xml;:</par>
-<programlisting>
+<prog>
 &lt;if lang="en"&gt;Title
 &lt;elif lang="de"&gt;Überschrift
 &lt;/if&gt;
-</programlisting>
+</prog>
 </item>
 <item>URL handling has be completely changed and is much, much simpler now.
 There are no more path markers. To specify an URL that is relative to the
@@ -972,20 +961,20 @@ be specified on the command line (e.g. <lit>--encoding utf-8 --xhtml 2</lit>)</i
 <item><par>Handling of multiline <markup>&lt;?xsc-eval?&gt;</markup> and <markup>&lt;?xsc-exec?&gt;</markup>
 has been enhanced, although, &xist; will not be able to guess the correct indentation
 in all cases. As a workarround simply add a Python comment to the beginning:</par>
-<programlisting>
+<prog>
 &lt;?xsc-exec
 	for i in xrange(10):
 		do(i)
 ?&gt;
-</programlisting>
+</prog>
 <par>won't work</par>
-<programlisting>
+<prog>
 &lt;?xsc-exec
 	#
 	for i in xrange(10):
 		do(i)
 ?&gt;
-</programlisting>
+</prog>
 <par>will.</par>
 </item>
 
@@ -994,13 +983,13 @@ be used as the main script, because reimporting them in processing
 instructions won't work. Now you can simply call</par>
 <example>
 <title>The new make script</title>
-<programlisting>make.py --import xist.html --import spam eggs.xsc</programlisting>
+<prog>make.py --import xist.html --import spam eggs.xsc</prog>
 </example>
 </item>
 
 <item><par>There is a new module <filename>cond.py</filename>, that contains elements that can be used for
 conditionals:</par>
-<programlisting>
+<prog>
 &lt;?xsc-exec a=42?&gt;
 &lt;if cond="a==21"&gt;
 	&lt;b&gt;foo&lt;/b&gt;
@@ -1009,7 +998,7 @@ conditionals:</par>
 &lt;else/&gt;
 	baz
 &lt;/if&gt;
-</programlisting>
+</prog>
 </item>
 </ulist>
 </section>
@@ -1065,9 +1054,9 @@ requires.)</item>
 <item><par>Image size calculation is now done in <method>asString</method> and
 not in <method>asHTML</method>.
 This allows to write faster code. Old method:</par>
-<programlisting>e = html.div(html.img(...),gurk.hurz()).asHTML().asString()</programlisting>
+<prog>e = html.div(html.img(...),gurk.hurz()).asHTML().asString()</prog>
 <par>New method</par>
-<programlisting>e = html.div(html.img(...),gurk.hurz().asHTML()).asString()</programlisting></item>
+<prog>e = html.div(html.img(...),gurk.hurz().asHTML()).asString()</prog></item>
 
 <item>Image size calculation is now done for <markup>&lt;input type="image"&gt;</markup>.
 The <lit>size</lit> attribute is set to the image width.</item>
@@ -1075,13 +1064,13 @@ The <lit>size</lit> attribute is set to the image width.</item>
 <item><par>Manipulating the path in an &url; is now done via the usual
 <method>__setitem__</method>/<method>__getitem__</method> stuff,
 which keeps the path in a consistent state.</par>
-<programlisting>
+<prog>
 &gt;&gt;&gt; from xist.URL import URL
 &gt;&gt;&gt; u = URL("/foo/*/../bar/baz.gif")
 &gt;&gt;&gt; del u[1]
 &gt;&gt;&gt; u
 URL(scheme='server', path=['bar'], file='baz', ext='gif')
-</programlisting>
+</prog>
 </item>
 
 <item><method>findNodes</method> (which has been shortened to <method>find</method>)

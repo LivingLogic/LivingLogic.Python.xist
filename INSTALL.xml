@@ -19,9 +19,9 @@ to install the source distribution.</item>
 <section><title>Installation</title>
 <par>&xist; uses <app>distutils</app>, so installation
 is rather simple. Execute the following command:</par>
-<programlisting>
+<prog>
 python setup.py install
-</programlisting>
+</prog>
 <par>This will copy <filename>*.py</filename> files, compile *.c files and install everything
 in the <dirname>site-packages</dirname>
 directory as the <module>ll.xist</module> package.</par>
@@ -51,10 +51,10 @@ are in the system default encoding, which normally is &ascii;.
 If you want to change this you can put a script
 named <filename>sitecustomize.py</filename> somewhere
 in the Python path, with the following content:</par>
-<programlisting>
+<prog>
 import sys
 sys.setdefaultencoding(<rep>"iso-8859-1"</rep>)
-</programlisting>
+</prog>
 <par>(or any other encoding name that you want to use
 instead of <rep>"iso-8859-1"</rep>).</par>
 <par>Starting with Python 2.3 you should use define your
@@ -72,7 +72,7 @@ the <class>TreePresenter</class> format in object dumps in
 an interactive Python session you can use the displayhook
 feature of Python 2.1, simply by putting the following code
 into your Python startup script:</par>
-<programlisting>
+<prog>
 import sys, pprint
 from ll.xist import xsc, presenters
 
@@ -84,7 +84,7 @@ def displayhook(object):
 			pprint.pprint(object)
 
 sys.displayhook = displayhook
-</programlisting>
+</prog>
 </section>
 
 <section><title>Syntax highlighting</title>

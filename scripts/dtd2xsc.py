@@ -12,9 +12,9 @@
 <par>Module that helps to create &xist; namespace modules from &dtd;s.
 Needs <app>xmlproc</app> from the <app>PyXML</app> package.
 For usage information type:</par>
-<programlisting>
+<prog>
 dtd2xsc --help
-</programlisting>
+</prog>
 """
 
 __version__ = "$Revision$"[11:-2]

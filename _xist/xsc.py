@@ -386,13 +386,13 @@ class Node(Base):
 		<par>E.g. when you want to define an element that packs its content into an &html;
 		bold element, do the following:</par>
 
-		<programlisting>
+		<prog>
 		class foo(xsc.Element):
 			empty = False
 
 			def convert(self, converter):
 				return html.b(self.content).convert(converter)
-		</programlisting>
+		</prog>
 		"""
 		raise NotImplementedError("convert method not implemented in %s" % self.__class__.__name__)
 
@@ -404,7 +404,7 @@ class Node(Base):
 
 		<par>It might be useful to overwrite this function in your own
 		elements. Suppose you have the following element:</par>
-		<programlisting>
+		<prog>
 		class caps(xsc.Element):
 			empty = False
 
@@ -413,14 +413,14 @@ class Node(Base):
 					self.content.convert(converter),
 					style="font-variant: small-caps;"
 				)
-		</programlisting>
+		</prog>
 
 		<par>that renders its content in small caps, then it might be useful
 		to define <method>__unicode__</method> in the following way:</par>
-		<programlisting>
+		<prog>
 		def __unicode__(self):
 			return unicode(self.content).upper()
-		</programlisting>
+		</prog>
 
 		<par><method>__unicode__</method> can be used everywhere where
 		a plain string representation of the node is required.</par>
@@ -653,15 +653,15 @@ class Node(Base):
 		to get a top down traversal of a tree (without entering attributes), the following call
 		can be made:</par>
 
-		<programlisting>
+		<prog>
 		<rep>node</rep>.walk((True, xsc.entercontent))
-		</programlisting>
+		</prog>
 
 		<par>For a bottom up traversal the following call can be made:</par>
 
-		<programlisting>
+		<prog>
 		<rep>node</rep>.walk((xsc.entercontent, True))
-		</programlisting>
+		</prog>
 
 		<par><arg>filterpath</arg> specifies how <arg>filter</arg> will be called:
 		If <arg>filterpath</arg> is false, <method>walk</method> will pass the node itself
@@ -1442,7 +1442,7 @@ class Attr(Frag):
 	Processing instructions will be published as is and for elements their content will be
 	published.</par>
 	<example><title>Elements inside attributes</title>
-	<programlisting>
+	<prog>
 	&gt;&gt;&gt; from ll.xist.ns import html
 	&gt;&gt;&gt; node = html.img( \
 	...    src="eggs.gif", \
@@ -1454,7 +1454,7 @@ class Attr(Frag):
 	... )
 	&gt;&gt;&gt; print node.asBytes()
 	&lt;img alt="EGGS" src="eggs.gif" /&gt;
-	</programlisting>
+	</prog>
 	</example>
 	"""
 	required = False

@@ -11,7 +11,7 @@
 # import __builtin__ to use property, which is also defined here
 import types, inspect, __builtin__
 
-from ll.xist import xsc, parsers
+from ll.xist import xsc, parsers, errors
 from ll.xist.ns import html, text, docbook
 
 class base(xsc.Element):
@@ -38,18 +38,18 @@ class block(base):
 	"""
 	register = False
 
-class programlisting(block):
+class prog(block):
 	"""
 	A literal listing of all or part of a program
 	"""
 	empty = False
 
 	def convert_docbook(self, converter):
-		return converter.target.programlisting(self.content)
+		return converter.target.prog(self.content)
 
 	def convert_html(self, converter):
 		target = converter.target
-		e = target.pre(class_="programlisting")
+		e = target.pre(class_="prog")
 		for child in self.content:
 			child = child.convert(converter)
 			if isinstance(child, xsc.Text):
@@ -65,6 +65,11 @@ class programlisting(block):
 		if issubclass(target, text):
 			e = target.blockquote(e)
 		return e
+
+class programlisting(prog):
+	def convert(self, converter):
+		errors.warn(DeprecationWarning("programlisting is deprecated, use prog instead"))
+		return prog.convert(self, converter)
 
 class example(block):
 	"""
@@ -447,14 +452,14 @@ class term(base):
 	def convert_html(self, converter):
 		return converter.target.dt(self.content)
 
-class item(block):
+class item(base):
 	"""
 	A wrapper for the elements of a list item
 	"""
 	empty = False
 
 	def convert_docbook(self, converter):
-		if self.content.find(xsc.FindType(par, list, example, programlisting)):
+		if self.content.find(xsc.FindType(par, list, example, prog)):
 			content = self.content
 		else:
 			content = converter.target.para(self.content)
@@ -472,9 +477,9 @@ class self(base):
 	<par>use this class when referring to the object for which a method has been
 	called, e.g.:</par>
 	<example>
-	<programlisting>
+	<prog>
 		this function fooifies the object &lt;self/&gt;.
-	</programlisting>
+	</prog>
 	</example>
 	"""
 	empty = False
@@ -493,9 +498,9 @@ class cls(base):
 	<par>use this class when referring to the object for which a class method has been
 	called, e.g.:</par>
 	<example>
-	<programlisting>
+	<prog>
 		this function fooifies the class &lt;cls/&gt;.
-	</programlisting>
+	</prog>
 	</example>
 	"""
 	empty = False

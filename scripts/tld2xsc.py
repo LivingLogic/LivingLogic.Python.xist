@@ -12,9 +12,9 @@
 <par>Module that helps to create &xist; namespace modules from TLD files
 (Java tag library descriptors).
 For usage information type:</par>
-<programlisting>
+<prog>
 tld2xsc --help
-</programlisting>
+</prog>
 """
 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))

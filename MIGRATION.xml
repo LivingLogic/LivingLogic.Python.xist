@@ -6,21 +6,21 @@
 have been deprecated. So instead of <lit><rep>node</rep>.hasattr("<rep>attr</rep>")</lit>,
 you should use:</par>
 
-<programlisting>
+<prog>
 "<rep>attr</rep>" in <rep>node</rep>.attrs
-</programlisting>
+</prog>
 
 <par>The same holds for checking whether an attribute is allowed. You can use the following code:</par>
 
-<programlisting>
+<prog>
 "<rep>attr</rep>" in <rep>node</rep>.Attrs
-</programlisting>
+</prog>
 
 <par>or:</par>
 
-<programlisting>
+<prog>
 "<rep>attr</rep>" in <rep>NodeClass</rep>.Attrs
-</programlisting>
+</prog>
 
 <par>Many <class>Attrs</class> methods have gained an additional parameter
 <arg>xml</arg>, which specifies whether an attribute name should be
@@ -28,9 +28,9 @@ treated as the &xml; or the Python name of the attribute. Make sure
 that you're not mixing up your arguments in the function call. The
 safest method for this is using keyword arguments, e.g.:</par>
 
-<programlisting>
+<prog>
 <rep>node</rep>.attr.get("<rep>attr</rep>", default=42)
-</programlisting>
+</prog>
 
 </section>
 
@@ -58,15 +58,15 @@ version of <class>autoimg</class> if you need this.</par>
 <par><method>find</method> has been completely rewritten to use the new tree traversal filters.
 For backwards compatibility a filter functor <class>ll.xist.xsc.FindOld</class> exists that
 takes the same arguments as the old <method>find</method> method. I.e. you can replace:</par>
-<programlisting>
+<prog>
 node.find(
 	type=html.a,
 	attr={"href": None},
 	searchchildren=True
 )
-</programlisting>
+</prog>
 <par>with:</par>
-<programlisting>
+<prog>
 node.find(
 	xsc.FindOld(
 		type=html.a,
@@ -75,18 +75,17 @@ node.find(
 	),
 	skiproot=True
 )
-</programlisting>
+</prog>
 <par>But one minor difference remains: when <arg>skiproot</arg> is set to true in the new
 <method>find</method> method, the attributes of the root element will <em>not</em> be traversed.
 With the old method they would be traversed.</par>
 
 </section>
 
-<section><title><method>mapped</method> changes</title>
+<section><title><class>doc</class> changes</title>
 
-<par>Calling <method>mapped</method> through <method>conv</method> has
-been removed. You again have to call <method>mapped</method> directly
-and pass a node and a converter.</par>
+<par><class>programlisting</class> has been renamed to <class>prog</class> (but
+there's still a <class>programlisting</class> that gives a warning.</par>
 
 </section>
 
@@ -106,7 +105,7 @@ this is no longer neccessary. Defining attributes is done via a
 class <class>Attrs</class> nested inside the element class like this:</par>
 
 <example>
-<programlisting>
+<prog>
 class foo(xsc.Element):
 	class Attrs(xsc.Element.Attrs):
 		class bar(xsc.TextAttr)
@@ -116,7 +115,7 @@ class foo(xsc.Element):
 			required = True
 		class baz(xsc.URLAttr):
 			"The baz attribute"
-</programlisting>
+</prog>
 </example>
 
 <par>Default values, set of allowed attributes values and
@@ -130,11 +129,11 @@ base class), you can derive from the appropriate
 can be done like this:</par>
 
 <example>
-<programlisting>
+<prog>
 class bar(foo):
 	class Attrs(foo.Attrs):
 		baz = None
-</programlisting>
+</prog>
 </example>
 
 <par>This removes the attribute <lit>baz</lit> inherited
@@ -187,7 +186,7 @@ instead of <lit>namespace</lit> as before.</par>
 in an element constructor like this:</par>
 
 <example>
-<programlisting>
+<prog>
 from ll.xist import xsc
 from ll.xist.ns import html, xml
 
@@ -196,7 +195,7 @@ node = html.html(
 	{(xml, "lang"): "en", (xml, "space"): "preserve"},
 	lang="en"
 )
-</programlisting>
+</prog>
 </example>
 
 <par>Instead of the module object (which must contain a
