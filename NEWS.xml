@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
-<section><title>Changes in 2.6.? (released ??/??/2004)</title>
+<section><title>Changes in 2.6.1 (released 11/02/2004)</title>
 <ulist>
 <item>Fixed a bug in <method>ll.xist.xfind.Finder.__floordiv__</method>.</item>
 <item>Restricted characters as defined in
