@@ -25,6 +25,7 @@ class expression(xsc.ProcInst):
 
 	def publish(self, publisher):
 		publisher.publish(u"<%= ")
+		publisher.publish(self.content)
 		publisher.publish(u" %>")
 
 class declaration(xsc.ProcInst):
