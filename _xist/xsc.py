@@ -1542,8 +1542,12 @@ class Element(Node):
 
 		if self.hasAttr(imgattr):
 			attr = self[imgattr]
-			size = attr.imagesize(root)
-			if size is not None: # the size was retrieved so we can use it
+			try:
+				size = attr.imagesize(root)
+			except IOError, exc:
+				errors.warn(errors.FileNotFoundWarning("can't read image", unicode(attr), exc))
+			else:
+				# the size was retrieved so we can use it
 				sizedict = {"width": size[0], "height": size[1]}
 				for attr in (heightattr, widthattr):
 					if attr is not None: # do something to the width/height
