@@ -35,7 +35,7 @@ class keywords(html.meta):
 
 	<par>Usage is simple: <code>&lt;meta:keywords&gt;foo, bar&lt;/meta:keywords&gt;</code></par>
 	"""
-	empty = 1
+	empty = 0
 	attrHandlers = html.meta.attrHandlers.copy()
 	del attrHandlers["http-equiv"]
 	del attrHandlers["http_equiv"]
@@ -54,7 +54,7 @@ class description(html.meta):
 
 	<par>Usage is simple: <code>&lt;meta:description&gt;foo, bar&lt;/meta:description&gt;</code></par>
 	"""
-	empty = 1
+	empty = 0
 	attrHandlers = html.meta.attrHandlers.copy()
 	del attrHandlers["http-equiv"]
 	del attrHandlers["http_equiv"]
