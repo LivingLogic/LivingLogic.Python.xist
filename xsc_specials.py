@@ -121,5 +121,5 @@ class emdash(XSCElement):
 RegisterElement("emdash",emdash)
 
 if __name__ == "__main__":
-	print str(xsc.parsefile(sys.argv[1]).asHTML())
+	print str(xsc.parseFile(sys.argv[1]).asHTML())
 

@@ -1008,7 +1008,7 @@ class XSC:
 		self.ignorelinefeed = 0
 		self.parser = XSCParser()
 
-	def parsestring(self,filename,string):
+	def parseString(self,filename,string):
 		"""Parses a string and returns the resulting XSC"""
 		self.filename = filename
 		self.parser.reset()
@@ -1016,7 +1016,7 @@ class XSC:
 		self.parser.close()
 		return self.parser.root
 
-	def parsefile(self,filename):
+	def parseFile(self,filename):
 		"""Reads and parses a XML file and returns the resulting XSC"""
 		self.filename = filename
 		self.parser.reset()
@@ -1024,7 +1024,7 @@ class XSC:
 		self.parser.close()
 		return self.parser.root
 
-	def parseurl(self,url):
+	def parseURL(self,url):
 		"""Reads and parses a XML file from an URL and returns the resulting XSC"""
 		self.filename = url
 		self.parser.reset()

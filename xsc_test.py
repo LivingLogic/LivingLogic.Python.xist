@@ -15,6 +15,6 @@ x = plaintable(
 )
 print str(x)
 
-x = xsc.parsestring("<img src=':hurz.gif'/>")
+x = xsc.parseString("test/gurk.xml","<img src=':hurz.gif'/>")
 
 print str(x)

@@ -446,7 +446,7 @@ RegisterElement("noscript",noscript)
 
 if __name__ == "__main__":
 	try:
-		print str(xsc.parsefile(sys.argv[1]).asHTML())
+		print str(xsc.parseFile(sys.argv[1]).asHTML())
 	except XSCError,e:
 		print str(e)
 
