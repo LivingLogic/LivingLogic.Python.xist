@@ -152,7 +152,7 @@ class URL:
 		
 		returns if the directory name dir is a path marker.
 		"""
-		return dir[0] == u"*"
+		return len(dir) and dir[0] == u"*"
 
 	def isNoPathMarker(self,dir):
 		"""
