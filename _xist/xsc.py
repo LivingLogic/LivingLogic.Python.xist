@@ -2814,12 +2814,13 @@ class Prefixes(object):
 		"""
 		split a qualified name into a (prefix, local name) pair
 		"""
-		qname = qname.split(":", 1)
-		if len(qname) == 1: # no namespace specified
-			qname.insert(0, None)
-		return qname
+		pos = qname.find(":")
+		if pos>=0:
+			return (qname[:pos], qname[pos+1:])
+		else:
+			return (None, qname) # no namespace specified
 
-	def elementFromQName(self, qname):
+	def element(self, qname):
 		"""
 		<par>returns the element class for the name
 		<arg>qname</arg> (which might include a prefix).</par>
@@ -2833,9 +2834,9 @@ class Prefixes(object):
 				return cls
 			except LookupError: # no element in this namespace with this name
 				pass
-		raise errors.IllegalElementError(qname) # elements with this name couldn't be found
+		raise errors.IllegalElementError(qname, xml=True) # elements with this name couldn't be found
 
-	def procInstFromQName(self, qname):
+	def procInst(self, qname):
 		"""
 		<par>returns the processing instruction class for the name
 		<arg>qname</arg> (which might include a prefix).</par>
@@ -2849,9 +2850,9 @@ class Prefixes(object):
 				return cls
 			except LookupError: # no processing instruction in this namespace with this name
 				pass
-		raise errors.IllegalProcInstError(qname) # processing instructions with this name couldn't be found
+		raise errors.IllegalProcInstError(qname, xml=True) # processing instructions with this name couldn't be found
 
-	def entityFromQName(self, qname):
+	def entity(self, qname):
 		"""
 		<par>returns the entity or charref class for the name
 		<arg>qname</arg> (which might include a prefix).</par>
@@ -2876,15 +2877,15 @@ class Prefixes(object):
 				return cls
 			except LookupError: # no entity in this namespace with this name
 				pass
-		raise errors.IllegalEntityError(qname) # entities with this name couldn't be found
+		raise errors.IllegalEntityError(qname, xml=True) # entities with this name couldn't be found
 
-	def charrefFromNumber(self, number):
+	def charref(self, name):
 		"""
-		<par>returns the first charref class for the codepoint <arg>number</arg>.</par>
+		<par>returns the first charref class for the name or codepoint <arg>name</arg>.</par>
 		"""
 		for ns in Namespace.all:
 			try:
-				cls = ns.charref(number)[0]
+				cls = ns.charref(name)[0]
 				if not cls.register:
 					continue
 				return cls
@@ -2907,7 +2908,7 @@ class Prefixes(object):
 					return (ns, ns.Attrs.allowedattr(qname[1], xml=True).xmlname[False])
 				except errors.IllegalAttrError: # no attribute in this namespace with this name
 					pass
-			raise errors.IllegalAttrError(None, qname)
+			raise errors.IllegalAttrError(None, qname, xml=True)
 
 class OldPrefixes(Prefixes):
 	"""

@@ -239,7 +239,7 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 						else:
 							node.append(unichr(int(text[2:i])))
 					else:
-						node.append(self._cont_handler.prefixes.entityFromQName(text[1:i])())
+						node.append(self._cont_handler.prefixes.entity(text[1:i])())
 					text = text[i+1:]
 				except ValueError:
 					raise errors.MalformedCharRefError(text)
@@ -469,7 +469,7 @@ class Handler(object):
 			prefixes.append((type, prefix))
 			ns = xsc.Namespace.nsbyurl[unicode(attrvalue)][0]
 			self.prefixes.startPrefixMapping(prefix, ns, "replace", type)
-		node = self.prefixes.elementFromQName(name)()
+		node = self.prefixes.element(name)()
 		for (attrname, attrvalue) in attrs.items():
 			if attrname!="xmlns" and not attrname.startswith("xmlns:") and \
 			   attrname!="procinstns" and not attrname.startswith("procinstns:") and \
@@ -485,7 +485,7 @@ class Handler(object):
 	def endElement(self, name):
 		currentelement = self.__nesting[-1][0]
 		currentelement.parsed(self, begin=False)
-		elementclass = self.prefixes.elementFromQName(name)
+		elementclass = self.prefixes.element(name)
 		if elementclass is not currentelement.__class__:
 			raise errors.ElementNestingError(currentelement.__class__, elementclass)
 		self.__nesting[-1][0].endloc = self.getLocation()
@@ -523,13 +523,13 @@ class Handler(object):
 		if target=="x":
 			self.skippingWhitespace = 1
 		else:
-			node = self.prefixes.procInstFromQName(target)(data)
+			node = self.prefixes.procinst(target)(data)
 			node.parsed(self)
 			self.__appendNode(node)
 			self.skippingWhitespace = 0
 
 	def skippedEntity(self, name):
-		node = self.prefixes.entityFromQName(name)()
+		node = self.prefixes.entity(name)()
 		node.parsed(self)
 		if isinstance(node, xsc.CharRef):
 			self.characters(unichr(node.codepoint))
