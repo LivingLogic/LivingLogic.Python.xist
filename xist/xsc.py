@@ -390,16 +390,8 @@ def ToNode(value):
 	"""
 	t = type(value)
 	if t is types.InstanceType:
-		if isinstance(value, Frag):
-			l = len(value)
-			if l==1:
-				return ToNode(value[0]) # recursively try to simplify the tree
-			elif l==0:
-				return Null
-			elif isinstance(value, Attr):
-				return Frag(*value) # repack the attribute in a fragment, and we have a valid XSC node
-			else:
-				return value
+		if isinstance(value, Attr):
+			return Frag(*value) # repack the attribute in a fragment, and we have a valid XSC node
 		elif isinstance(value, Node):
 			return value
 	elif t in (types.StringType, types.UnicodeType, types.IntType, types.LongType, types.FloatType):
@@ -407,16 +399,7 @@ def ToNode(value):
 	elif t is types.NoneType:
 		return Null
 	elif t in (types.ListType, types.TupleType):
-		node = Frag()
-		for i in value:
-			node.append(ToNode(i))
-		l = len(node)
-		if l==1:
-			return node[0] # recursively try to simplify the tree
-		elif l==0:
-			return Null
-		else:
-			return node
+		return Frag(*value)
 	raise errors.IllegalObjectError(-1, value) # none of the above, so we throw and exception
 
 class Node:
