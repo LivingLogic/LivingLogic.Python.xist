@@ -101,6 +101,7 @@ class exec_(xsc.ProcInst):
 	<doc:par>These processing instructions will be evaluated and executed in the
 	namespace of the module sandbox.</doc:par>
 	"""
+	name = "exec"
 
 	def __init__(self, content=u""):
 		xsc.ProcInst.__init__(self, content)
@@ -124,6 +125,7 @@ class eval_(xsc.ProcInst):
 	<doc:par>Note that you should not define the symbol <code>__</code> in any of your XSC
 	processing instructions, as it is used by XSC for internal purposes.</doc:par>
 	"""
+	name = "eval"
 
 	def convert(self, converter):
 		"""
