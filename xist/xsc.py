@@ -1023,7 +1023,7 @@ class XSCURLAttr(XSCAttr):
 				urllib.urlcleanup()
 			except IOError:
 				urllib.urlcleanup()
-				raise XSCFileNotFoundError(xsc.parser.lineno,url)
+				raise XSCFileNotFoundError(xsc.parser.lineno,self)
 		return size
 
 	def FileSize(self):
@@ -1039,7 +1039,7 @@ class XSCURLAttr(XSCAttr):
 				urllib.urlcleanup()
 			except IOError:
 				urllib.urlcleanup()
-				raise XSCFileNotFoundError(xsc.parser.lineno,url)
+				raise XSCFileNotFoundError(xsc.parser.lineno,self)
 		return size
 
 ###
