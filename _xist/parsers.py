@@ -41,6 +41,8 @@ from xml.sax import saxlib
 #except ImportError:
 timeoutsocket = None
 
+import fileutils
+
 import xsc, url as url_, errors, utils
 from ns import html
 
@@ -55,10 +57,12 @@ class StringInputSource(sax.xmlreader.InputSource):
 		self.setEncoding(defaultEncoding)
 
 class FileInputSource(sax.xmlreader.InputSource):
-	def __init__(self, filename, defaultEncoding="utf-8"):
+	def __init__(self, filename, base=None, defaultEncoding="utf-8"):
 		sax.xmlreader.InputSource.__init__(self)
-		self.setSystemId(filename)
-		self.setByteStream(open(os.path.expanduser(filename), "r"))
+		if base is not None:
+			filename = base
+		self.setSystemId(str(filename))
+		self.setByteStream(fileutils.Filename(filename).open("rb"))
 		self.setEncoding(defaultEncoding)
 
 class URLInputSource(sax.xmlreader.InputSource):
@@ -554,16 +558,16 @@ def parse(source, parser=None, namespaces=None):
 	return handler.root
 
 def parseString(text, parser=None, namespaces=None, defaultEncoding="utf-8"):
-	return parse(StringInputSource(text, defaultEncoding), parser, namespaces)
+	return parse(StringInputSource(text, defaultEncoding=defaultEncoding), parser, namespaces)
 
-def parseFile(filename, namespaces=None, parser=None, defaultEncoding="utf-8"):
-	return parse(FileInputSource(filename, defaultEncoding), parser, namespaces)
+def parseFile(filename, base=None, namespaces=None, parser=None, defaultEncoding="utf-8"):
+	return parse(FileInputSource(filename, base=base, defaultEncoding=defaultEncoding), parser, namespaces)
 
 def parseURL(url, namespaces=None, parser=None, defaultEncoding="utf-8"):
-	return parse(URLInputSource(url, defaultEncoding), parser, namespaces)
+	return parse(URLInputSource(url, defaultEncoding=defaultEncoding), parser, namespaces)
 
 def parseTidyURL(url, namespaces=None, parser=None, defaultEncoding="utf-8"):
-	source = TidyURLInputSource(url, defaultEncoding)
+	source = TidyURLInputSource(url, defaultEncoding=defaultEncoding)
 	result = parse(source, parser, namespaces)
 	source.close()
 	return result

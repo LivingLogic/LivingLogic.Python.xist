@@ -69,6 +69,7 @@ class Publisher:
 		"""
 		if base is None:
 			base = url.URL(scheme="root")
+		base = url.URL(scheme="root") + base
 		self.base = base
 		if encoding is None:
 			encoding = options.outputEncoding
