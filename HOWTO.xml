@@ -1162,11 +1162,11 @@ def isextlink(node):
 
 </section>
 
-<section><title>XFind</title>
+<section><title>XFind expressions</title>
 
 <par>A second method exists for iterating through a tree: XFind expressions.
 An XFind expression looks somewhat like an XPath expression, but is implemented
-as a pure Python expresssion (overloading the division operators).</par>
+as a pure Python expression (overloading the division operators).</par>
 
 <par>Our example from above that searched for <class>li</class>s inside
 <class>ul</class>s can be rewritten as follows:</par>
@@ -1180,16 +1180,17 @@ for child in node/html.li:
 
 <par>In an XFind expression <lit><rep>a</rep>/<rep>b</rep></lit>,
 <lit><rep>a</rep></lit> must be either a node or an iterator producing nodes
-(not that an XFind expression itself is a iterator producing nodes, so 
-<lit><rep>a</rep></lit> might be a XFind expression itself). <lit><rep>b</rep></lit>
-must be an XFind operator.</par>
+(note that an XFind expression itself is such an iterator, so
+<lit><rep>a</rep></lit> itself might be a XFind expression).
+<lit><rep>b</rep></lit> must be an XFind operator.</par>
 
 <par>Every subclass of
 <pyref module="ll.xist.xsc" class="Node"><class>ll.xist.xsc.Node</class></pyref>
-is a XFind operator, so if <lit><rep>b</rep></lit> is such a subclass,
-<lit><rep>a</rep>/<rep>b</rep></lit> will produce any child of the nodes from
-<lit><rep>a</rep></lit> that is an instance of <lit><rep>b</rep></lit>.
-Other XFind operators can be found in the module
+is a XFind operator. If <lit><rep>b</rep></lit> is such a subclass,
+<lit><rep>a</rep>/<rep>b</rep></lit> will produce any child nodes of the nodes
+from <lit><rep>a</rep></lit> that is an instance of <lit><rep>b</rep></lit>.
+If <lit><rep>b</rep></lit> is an attribute class, you will get attribute nodes
+instead of child nodes. Other XFind operators can be found in the module
 <pyref module="ll.xist.xfind"><module>ll.xist.xfind</module></pyref>. The
 <lit>all</lit> operator will produce every node in the tree (except for
 attributes):</par>
@@ -1248,9 +1249,9 @@ abbreviated. The XFind expression from the last example
 <par>Another XFind operator is
 <pyref module="ll.xist.xfind" class="contains"><class>contains</class></pyref>.
 It acts as a filter, i.e. the nodes produced by
-<lit><rep>a</rep>/xfind.contains(<rep>foo</rep>)</lit> are a subset of the nodes
+<lit><rep>a</rep>/xfind.contains(<rep>b</rep>)</lit> are a subset of the nodes
 produced by <lit><rep>a</rep></lit>, those that contain child nodes of type
-<lit>foo</lit>. Searching for all links on the Python home page that contain
+<lit>b</lit>. Searching for all links on the Python home page that contain
 images can be done like this:</par>
 
 <tty>

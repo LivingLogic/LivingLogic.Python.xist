@@ -11,13 +11,13 @@ update your code.</par>
 been renamed from <method>publish</method> to <method>write</method>.
 This is only relevant when you've overwritten the <method>publish</method>
 method in your own node class (e.g. in &jsp; tag library directives
-or similar stuff, or for special nodes, taht publish some text literally).</par>
+or similar stuff, or for special nodes that publish some text literally).</par>
 </section>
 
 <section><title>Changes to the presentation &api;</title>
 <par>The presentation &api; has been changed too: The top level presentation
 method in the presenter has been renamed from <method>dopresentation</method> to
-<method>present</method>. This is only relevant, if you've written your own
+<method>present</method>. This is only relevant if you've written your own
 presenter, or are using the presentation &api; directly (instead of the node
 method <method>repr</method>).</par>
 </section>
