@@ -647,7 +647,7 @@ def explain(thing, name=None, context=[]):
 		sig.append("def ", __codeHeader(thing.im_func, thing.__name__, method), ":")
 		return section(title(sig), getdoc(thing), role="method")
 	elif inspect.isfunction(thing):
-		name = name or thing.im_func.__name__
+		name = name or thing.__name__
 		context = context + [(thing, name)]
 		id = "-".join([info[1] for info in context[1:]])
 		sig = xsc.Frag(
