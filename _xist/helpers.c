@@ -512,9 +512,9 @@ static PyObject *escapeCSS(PyObject *self, PyObject *args)
 
 static PyMethodDef _functions[] =
 {
-	{"escapeText",  escapeText,     METH_VARARGS, escapeText__doc__},
-	{"escapeAttr",  escapeAttr,     METH_VARARGS, escapeAttr__doc__},
-	{"escapeCSS",   escapeCSS,      METH_VARARGS, escapeCSS__doc__ },
+	{"escapeText", escapeText, METH_VARARGS, escapeText__doc__},
+	{"escapeAttr", escapeAttr, METH_VARARGS, escapeAttr__doc__},
+	{"escapeCSS",  escapeCSS,  METH_VARARGS, escapeCSS__doc__ },
 	{NULL, NULL}
 };
 
