@@ -7,32 +7,82 @@ class page(XSCElement):
 	empty = 0
 
 	def asHTML(self):
-		t = None
-		if self.has_attr("title"):
-			t = title(self["title"])
-		refresh = None
-		if self.has_attr("refresh"):
-			refresh = meta(http_equiv="Refresh",content=self["refresh"])
-		keywords = None
-		if self.has_attr("keywords"):
-			keywords = meta(http_equiv="keywords",content=self["keywords"])
-		description = None
-		if self.has_attr("description"):
-			description = meta(http_equiv="description",content=self["description"])
 		h = head(
-			t+
 			link(rel="stylesheet",type="text/css",href=":stylesheets/bnv.css")+
-			link(rel="made",href="mailto:html@bnbt.de")+
-			refresh+
-			keywords+
-			description
+			link(rel="made",href="mailto:html@bnbt.de")
 		)
-		b = plainbody(self.content,bgcolor="#fff",text="#000",link="#c63",vlink="#999").asHTML()
+		if self.has_attr("title"):
+			h.append(title(self["title"]))
+		if self.has_attr("refresh"):
+			h.append(meta(http_equiv="Refresh",content=self["refresh"]))
+		if self.has_attr("keywords"):
+			h.append(meta(http_equiv="keywords",content=self["keywords"]))
+		if self.has_attr("description"):
+			h.append(meta(http_equiv="description",content=self["description"]))
+		b = plainbody(bgcolor="#fff",text="#000",link="#c63",vlink="#999").asHTML()
 		if self.has_attr("class"):
 			b["class"] = self["class"]
 		if self.has_attr("onload"):
 			b["onload"] = self["onload"]
-		return XSCDocType('HTML PUBLIC "-//W3C//DTD HTML 4.0 transitional//EN"')+html(h+b)
+
+		links = self.findElementsNamed("links")[0].content
+		content = self.findElementsNamed("content")[0].content
+
+		b.append(
+			plaintable(
+				tr(
+					td(pixel(height="66"),colspan="2") # eigentlich 70, aber der Netscape läßt trotz margintop="0" zuviel Platz
+				)+
+				tr(
+					td(
+						plaintable(
+							tr(td(pixel(height = "20"),colspan = "4"))+
+							tr(td(img(src = ":images/bnbt-logo.gif",alt = "Bürgernetz-Logo"),colspan = "4",align = "center",valign = "middle"))+
+							tr(td(pixel(height = "40"),colspan = "4"))+
+							links+
+							fileinfo()+
+							tr(td(img(src = ":images/ecke_links.gif",alt = ""),colspan = "4",align = "right")),
+							Class = "links",bgcolor = "#336"
+						),
+						valign = "top"
+					)+
+					td(
+						plaintable(
+							tr(
+								td(
+									plaintable(
+										tr(
+											navigation(href = ":index.shtml" ,img = "home"   ,text = "Startseite")+
+											navigation(href = ":trv/faq.html",img = "faq"    ,text = "FAQ"       )+
+											navigation(href = ":sitemap.html",img = "sitemap",text = "Sitemap"   )+
+											navigation(href = ":search.html" ,img = "search" ,text = "Suchen")
+										)
+									),
+									align = "left",colspan = "3"
+								)
+							)+
+							tr(
+								td(img(src = ":images/ecke_content.gif",alt = ""),colspan = "3",valign = "top",align = "left",bgcolor = "#fff")
+							)+
+							tr(
+								td(pixel(width = "30"),bgcolor = "#fff")+
+								td(content,bgcolor = "#fff",valign = "top")+
+								td(pixel(width = "30"),bgcolor = "#fff")
+							)+
+							tr(td(pixel(height = "30"),colspan = "3",bgcolor = "#fff"))
+						),
+						align = "left",valign = "top"
+					)
+				)
+			)
+		)
+
+		e = XSCDocType('HTML PUBLIC "-//W3C//DTD HTML 4.0 transitional//EN"')+html(h+b)
+
+		return e.asHTML()
+
+#		navhome = navigation(href=":index.html",img="home",text="Startseite")
+
 RegisterElement("page",page)
 
 class blankpage(XSCElement):
@@ -64,7 +114,9 @@ class indent(XSCElement):
 	empty = 1
 	
 	def asHTML(self):
-		return XSCFrag([nbsp()]*4)
+		e = XSCFrag([nbsp()]*4)
+
+		return e.asHTML()
 RegisterElement("indent",indent)
 
 class _(XSCElement):
@@ -496,18 +548,38 @@ RegisterElement("fileinfo",fileinfo)
 
 class navigation(XSCElement):
 	empty = 1
-	attr_handlers = { "off" : XSCTextAttr , "href" : XSCURLAttr , "img" : XSCTextAttr , "text" : XSCTextAttr }
+	attr_handlers = { "href" : XSCURLAttr , "img" : XSCTextAttr , "text" : XSCTextAttr }
 
 	def asHTML(self):
-		td1 = td([nbsp()]*3,Class="links",bgcolor="#333366")
-		td2 = td(span("",Class="biglink"),Class="links",bgcolor="#333366",valign="middle",align="center")
-		e = XSCFrag(td1+td2)
+		e = td(
+			nbsp()+
+			nbsp()+
+			nbsp(),
+			Class="links",
+			bgcolor="#336"
+		)
+		e = e + td(
+			span(
+				nbsp()+
+				br()+
+				hrf(
+					img(src = ":images/biglinks/" + self["img"] + ".gif"),
+					href = self["href"]
+				)+
+				br()+
+				self["text"],
+				Class="biglink"
+			),
+			Class="links",
+			bgcolor="#336",
+			valign="middle",
+			align="center"
+		)
 
 		return e.asHTML()
 RegisterElement("navigation",navigation)
 
 class content(XSCElement):
-	attr_handlers = { "align" : XSCTextAttr }
 	empty = 0
 RegisterElement("content",content)
 
@@ -524,6 +596,81 @@ RegisterElement("hrf",hrf)
 class lnk(XSCElement):
 	attr_handlers = { "rel" : XSCTextAttr , "href" : XSCURLAttr , "text" : XSCTextAttr }
 	empty = 0
+
+	def asHTML(self):
+		e = tr(
+			td(indent(),rowspan="3")+
+			td(
+				div(
+					hrf(
+						pfeil(rel = self["rel"]),
+						href = self["href"],
+						rel  = self["rel"]
+					)+
+					nbsp()
+				),
+				Class = "links"
+			)+
+			td(
+				div(
+					hrf(
+						self["text"],
+						href = self["href"],
+						rel  = self["rel"]
+					)
+				)
+			)+
+			td(
+				indent(),
+				Class = "links",
+				nowrap = None
+			)
+		)
+		e = e + tr(
+			td(
+				pixel()
+			)+
+			td(
+				pixel(),
+				colspan = "2",
+				bgcolor = "#fff"
+			)
+		)
+
+		if len(self):
+			e.append(
+				tr(
+					td(
+						pixel()
+					)+
+					td(
+						div(
+							self.content,
+							Class = "lnk-text"
+						),
+						Class = "links"
+					)+
+					td(
+						pixel()
+					)
+				)+
+				tr(
+					td(
+						pixel(height="20")
+					)
+				)
+			)
+		else:
+			e.append(
+				tr(
+					td(
+						pixel(height="20"),
+						colspan = "3"
+					)
+				)
+			)
+
+		return e.asHTML()
 RegisterElement("lnk",lnk)
 
 class vorstand(XSCElement):

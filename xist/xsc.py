@@ -287,7 +287,7 @@ class XSCNode:
 	
 	def _doreprtree(self,nest,elementno):
 		# returns and array containing arrays consisting of the (nestinglevel,linenumber,elementnumber,string representation) of the nodes
-		return [[nest,self.lineno,elementno,self._strtag("?")]]
+		return [[nest,self.startlineno,elementno,self._strtag("?")]]
 
 	def asHTML(self):
 		return None
@@ -573,14 +573,14 @@ class XSCAttrs(XSCNode):
 
 	def __add__(self,other):
 		"""adds attributes to the list"""
-		res = XSCAttrs(self.__content)
+		res = XSCAttrs(self.attr_handlers,self.__content) # FIXME: was ist mit den Handlern
 		for attr in other.keys():
 			res[attr] = other[attr]
 		return res
 
 	def __sub__(self,attrs):
 		"""removes attributes from the list"""
-		res = XSCAttrs(self.__content)
+		res = XSCAttrs(self.attr_handlers,self.__content) # FIXME: was ist mit den Handlern
 		for attr in attrs:
 			del res[attr]
 		return res
@@ -1324,10 +1324,12 @@ class XSC:
 
 def make(args):
 	"""class XSC as a compiles, i.e. read an input file from args[1] and writes it to args[2]"""
-	print "from:",args[0],"to:",args[1]
-	e_in = xsc.parseFile(args[1])
+	infilename = args[1]
+	outfilename = args[2]
+	print "from:",infilename,"to:",outfilename
+	e_in = xsc.parseFile(infilename)
 	e_out = e_in.asHTML()
-	open(args[2],"wb").write(str(e_out))
+	open(outfilename,"wb").write(str(e_out))
 
 xsc = XSC()
 

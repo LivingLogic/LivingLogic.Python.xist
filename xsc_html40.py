@@ -301,6 +301,7 @@ RegisterElement("col",col)
 class tr(XSCElement):
 	empty = 0
 	attr_handlers = AppendDict(attrs,cellhalign,cellvalign)
+	attr_handlers = AppendDict(attr_handlers,{ "nowrap" : XSCTextAttr , "bgcolor" : XSCColorAttr , "width" : XSCTextAttr }) # deprecated
 RegisterElement("tr",tr)
 
 class th(XSCElement):
