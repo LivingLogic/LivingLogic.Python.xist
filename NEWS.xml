@@ -53,7 +53,7 @@ you can do the following:</par>
 <programlisting>
 >>> import foo
 >>> foo
-&lt;namespace foo/xmlns name=u'foo' url=u'http://www.foo.com/ns/foo' &#x2193;
+&lt;namespace foo/xmlns name=u'foo' url=u'http://www.foo.com/ns/foo' \
 with 1 elements from 'foo.py' at 0x81bfc14&gt;
 </programlisting>
 </item>
