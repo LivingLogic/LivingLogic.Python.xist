@@ -242,19 +242,22 @@ class SQLInsert(SQLCommand):
 	"""
 	an update
 	"""
-	def __init__(self,table,set,where):
+	def __init__(self,table,set):
 		self.table = table
 		self.set = set
-		self.where = where
 
 	def __str__(self):
 		v = []
-		v.append("UPDATE " + table + " SET ")
+		v.append("INSERT INTO ")
+		v.append(table)
+		v.append(" (")
+		vv = []
+		for field in set.keys():
+			vv.append(field)
+		v.append(string.join(vv,","))
+		v.append(") VALUES (")
 		v.append(self.formatFields(self.set,0))
-		if len(self.where.keys()):
-			v.append(" WHERE ")
-			v.append(self.formatFields(self.where,1))
-		v.append(";")
+		v.append(");")
 		return string.join(v,"")
 
 class SQLUpdate(SQLCommand):
@@ -268,7 +271,7 @@ class SQLUpdate(SQLCommand):
 
 	def __str__(self):
 		v = []
-		v.append("UPDATE " + table + " SET ")
+		v.append("UPDATE " + self.table + " SET ")
 		v.append(self.formatFields(self.set,0))
 		if len(self.where.keys()):
 			v.append(" WHERE ")
