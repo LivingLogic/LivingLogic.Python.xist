@@ -104,7 +104,7 @@ class XSCIllegalObjectError(XSCError):
 	def __str__(self):
 		return XSCError.__str__(self) + "an illegal object of type " + type(self.object).__name__ + " has been found in the XSC tree"
 
-class XSCMalformedCharRef(XSCError):
+class XSCMalformedCharRefError(XSCError):
 	"""exception that is raised, when a character reference is malformed (e.g. &#foo;)"""
 
 	def __init__(self,lineno,name):
@@ -114,7 +114,7 @@ class XSCMalformedCharRef(XSCError):
 	def __str__(self):
 		return XSCError.__str__(self) + "Malformed character reference: &#" + self.name + ";"
 
-class XSCUnknownEntity(XSCError):
+class XSCUnknownEntityError(XSCError):
 	"""exception that is raised, when an unknown entity (i.e. one that wasn't registered via RegisterEntity) is encountered"""
 
 	def __init__(self,lineno,name):
@@ -826,7 +826,7 @@ class XSCParser(xmllib.XMLParser):
 			else:
 				n = string.atoi(name)
 		except string.atoi_error:
-			raise XSCMalformedCharRef(xsc.parser.lineno,name)
+			raise XSCMalformedCharRefError(xsc.parser.lineno,name)
 
 		self.__appendNode(XSCCharRef(n))
 
@@ -834,7 +834,7 @@ class XSCParser(xmllib.XMLParser):
 		if self.entitiesByName.has_key(name):
 			self.__appendNode(XSCCharRef(self.entitiesByName[name]))
 		else:
-			raise XSCUnknownEntity(xsc.parser.lineno,name)
+			raise XSCUnknownEntityError(xsc.parser.lineno,name)
 
 	def unknown_starttag(self,name,attrs):
   		lowername = string.lower(name)
