@@ -1382,18 +1382,7 @@ class Element(Node):
 				v.append([nest, self.endLoc, elementno, self._str(brackets=1, slash=-1, ansi=presenter.ansi)])
 		return v
 
-	def publish(self, publisher):
-		if publisher.inAttr:
-			raise errors.IllegalAttrNodeError(self.startLoc, self)
-		publisher.publish(u"<")
-		if self.publishPrefix is not None:
-			publishPrefix = self.publishPrefix
-		else:
-			publishPrefix = publisher.publishPrefix
-		if publishPrefix:
-			publisher.publish(self.namespace.prefix) # requires that the element is registered via registerElement()
-			publisher.publish(u":")
-		publisher.publish(self.name) # requires that the element is registered via registerElement()
+	def _publishAttrs(self, publisher):
 		for attrname in self.attrs.keys():
 			publisher.publish(u" ")
 			publisher.publish(attrname)
@@ -1407,6 +1396,20 @@ class Element(Node):
 				publisher.publish(u"=\"")
 				value.publish(publisher)
 				publisher.publish(u"\"")
+
+	def publish(self, publisher):
+		if publisher.inAttr:
+			raise errors.IllegalAttrNodeError(self.startLoc, self)
+		publisher.publish(u"<")
+		if self.publishPrefix is not None:
+			publishPrefix = self.publishPrefix
+		else:
+			publishPrefix = publisher.publishPrefix
+		if publishPrefix:
+			publisher.publish(self.namespace.prefix) # requires that the element is registered via registerElement()
+			publisher.publish(u":")
+		publisher.publish(self.name) # requires that the element is registered via registerElement()
+		self._publishAttrs(publisher)
 		if len(self):
 			if self.empty:
 				raise errors.EmptyElementWithContentError(self)
