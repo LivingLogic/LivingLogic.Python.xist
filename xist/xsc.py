@@ -230,17 +230,15 @@ from errors import * # exceptions
 
 def getStringFromEnv(name,default):
 	try:
-		var = os.environ[name]
+		return os.environ[name]
 	except:
 		return default
-	return var
 
 def getIntFromEnv(name,default):
 	try:
-		var = int(os.environ[name])
+		return int(os.environ[name])
 	except:
 		return default
-	return var
 
 def getANSICodesFromEnv(name,default):
 	"""
@@ -252,7 +250,7 @@ def getANSICodesFromEnv(name,default):
 	except:
 		return default
 	if type(var) is types.StringType:
-		var = [ var,var ]
+		var = [ var, var ]
 	return var
 
 retrieveremote = getIntFromEnv("XSC_RETRIEVEREMOTE",1)                                          # should remote URLs be retrieved? (for filesize and imagesize tests)
@@ -290,7 +288,7 @@ def _stransi(codes,string,ansi = None):
 	if ansi is None:
 		ansi = repransi
 	if ansi and len(codes[ansi-1]) and string:
-		return "\033[" + codes[ansi-1] + "m" + string + "\033[0m"
+		return "\033[%sm%s\033[0m" % (codes[ansi-1], string)
 	else:
 		return string
 
@@ -368,7 +366,7 @@ def nodeName(nodeClass):
 	except AttributeError:
 		elementname = nodeClass.__name__
 
-	return [namespacename,elementname,nodeClass.empty]
+	return [ namespacename, elementname, nodeClass.empty ]
 
 def _strName(nodeName,content = None,brackets = 1,slash = None,ansi = None):
 	# slash == -1: before; 0: nowhere; 1:after
