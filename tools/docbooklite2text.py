@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#!/usr/bin/env python
 
 ## Copyright 1999-2001 by LivingLogic AG, Bayreuth, Germany.
 ## Copyright 1999-2001 by Walter Dörwald
@@ -32,7 +32,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 import os, getopt
 
 from xist import xsc, parsers
-from xist.ns import html, dobbooklite as dbl
+from xist.ns import html, dokbooklite as dbl
 
 def dookbooklite2text(infilename, outfilename, title):
 	tmpfilename = "temp_links_%d.html" % os.getpid()
