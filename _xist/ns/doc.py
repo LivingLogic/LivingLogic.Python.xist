@@ -8,6 +8,9 @@
 ##
 ## See xist/__init__.py for the license
 
+__version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
+# $Source$
+
 # import __builtin__ to use property, which is also defined here
 import types, inspect, warnings, __builtin__
 
