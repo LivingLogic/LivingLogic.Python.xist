@@ -207,16 +207,21 @@ class redirectpage(xsc.Element):
 	class Attrs(xsc.Element.Attrs):
 		class href(xsc.URLAttr): required = True
 
+	langs = {
+		"en": (u"Redirection to ", u"Your browser doesn't understand redirects. This page has been redirected to "),
+		"de": (u"Weiterleitung auf ", u"Ihr Browser unterstützt keine Weiterleitung. Diese Seite wurde weitergeleitet auf ")
+	}
+
 	def convert(self, converter):
+		(title, text) = self.langs.get(converter.lang, self.langs["en"])
 		url = self["href"]
 		e = html.html(
 			html.head(
 				meta.contenttype(),
-				html.title("Redirection to ", url)
+				html.title(title, url)
 			),
 			html.body(
-				"Your browser doesn't understand redirects. This page has been redirected to ",
-				html.a(url, href=url)
+				text, html.a(url, href=url)
 			)
 		)
 		return e.convert(converter)
