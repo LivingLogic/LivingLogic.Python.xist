@@ -93,13 +93,13 @@ class If(xsc.Element):
 			cond = unicode(node["cond"].convert(converter))
 			result = eval(cond, sandbox.__dict__)
 		if result and node.hasAttr("mode"):
-			result = node["mode"].convert(converter) == converter.mode
+			result = unicode(node["mode"].convert(converter)) == converter.mode
 		if result and node.hasAttr("target"):
-			result = node["target"].convert(converter) == converter.target
+			result = unicode(node["target"].convert(converter)) == converter.target
 		if result and node.hasAttr("stage"):
-			result = node["stage"].convert(converter) == converter.stage
+			result = unicode(node["stage"].convert(converter)) == converter.stage
 		if result and node.hasAttr("lang"):
-			result = node["lang"].convert(converter) == converter.lang
+			result = unicode(node["lang"].convert(converter)) == converter.lang
 		return result
 
 class ElIf(xsc.Element):
