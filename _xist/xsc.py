@@ -241,7 +241,7 @@ from xist import converters
 
 node = cool(python())
 node = node.convert(
-	converters.Converter(None, "deliver", "html", "en"))
+	converters.Converter(None, "deliver", "html", None))
 </dbl:programlisting>
 You can pass the following four arguments to the
 <dbl:pyref module="xist.converters" class="Converter">Converter</dbl:pyref> constructor
@@ -391,12 +391,18 @@ files.</dbl:para>
 
 <dbl:section><dbl:title>Miscellaneous</dbl:title>
 <dbl:section><dbl:title>URLs</dbl:title>
-XIST has a class for URLs (URL.URL) which is a thin
-wrapper around urlparse's features. You can add URLs
-via +, e.g.
-	URL("http://www.foo.org/") + URL("/images/bar.png")
+<dbl:para>&xist; has a class for URLs (<pyref module="xist.url">xist.url</pyref>)
+which is a thin wrapper around <pyref module="urlparse">urlparse</pyref>'s
+features. You can add URLs via <code>+</code>, e.g.
+<programlisting>
+URL("http://www.foo.org/") + URL("/images/bar.png")
+</programlisting>
 yields an URL object equivalent to
-	URL("http://www.foo.org/images/bar.png").
+<programlisting>
+URL("http://www.foo.org/images/bar.png").
+</programlisting>
+</dbl:para>
+<dbl:para>&xist; </dbl:para>
 </dbl:section>
 
 <dbl:section><dbl:title>Automatic generation of image size attributes</dbl:title>
