@@ -104,21 +104,29 @@ element constructor.
 &xml; files. For this the module <doc:pyref module="xist.parsers">xist.parsers</doc:pyref>
 provides four functions:
 <doc:programlisting>
-parseString(text, parser=None,
-	namespaces=None, defaultEncoding="utf-8")
-parseFile(filename, parser=None,
-	namespaces=None, defaultEncoding="utf-8")
-parseURL(url, parser=None,
-	namespaces=None, defaultEncoding="utf-8")
-parseTidyURL(url, parser=None,
-	namespaces=None, defaultEncoding="utf-8")
+parseString(text, base=None, handler=None,
+	parser=None, namespaces=None,
+	defaultEncoding="utf-8")
+
+parseFile(filename, base=None, handler=None,
+	parser=None, namespaces=None,
+	defaultEncoding="utf-8")
+
+parseURL(url, handler=None,
+	parser=None, namespaces=None,
+	defaultEncoding="utf-8")
+
+parseTidyURL(url, handler=None,
+	parser=None, namespaces=None,
+	defaultEncoding="utf-8")
 </doc:programlisting>
 <doc:pyref module="xist.parsers" function="parseString">parseString</doc:pyref> is for parsing strings 
 (8bit and Unicode), <doc:pyref module="xist.parsers" function="parseFile">parseFile</doc:pyref> for 
 parsing files. <doc:pyref module="xist.parsers" function="parseURL">parseURL</doc:pyref> allows to 
 parse remote files via <pyref module="urllib">urllib</pyref> and 
-<doc:pyref module="xist.parsers" function="parseTidyURL">parseTidyURL</doc:pyref> pipes remote files 
-through <app>tidy</app> before parsing the result. The argument 
+<doc:pyref module="xist.parsers" function="parseTidyURL">parseTidyURL</doc:pyref> uses Marc-André Lemburg's
+<a href="http://www.lemburg.com/files/python/">mxTidy</a> modules for cleaning up
+files before parsing the result. The argument 
 <doc:pyref module="xist.parsers" function="parseString" arg="parser">parser</doc:pyref>
 specifies the parser to be used. Any SAX2 parser can be used. &xist; provides a
 SAX2 parser for <app>sgmlop</app> named 
