@@ -72,7 +72,7 @@ will be the child nodes of the element node. Keyword arguments
 will be attributes. You can pass most builtin types to such a constructor.
 Strings and integers will be automatically converted to
 <pyref module="ll.xist.xsc" class="Text"><class>Text</class></pyref> objects.
-So constructing an &html; element works like this:</par>
+Constructing an &html; element works like this:</par>
 <example><title>The first example</title>
 <programlisting>
 from ll.xist.ns import html
@@ -98,8 +98,7 @@ node = html.div(
 </programlisting>
 </example>
 <par>(Don't worry: This modified attribute name will be mapped to the real official attribute
-name, once the output file is written.) You can pass attributes as a <class>dict</class>
-instance too:</par>
+name once the output file is written.) You can pass attributes as a dictionary too:</par>
 <example><title>Passing attributes as dictionaries</title>
 <programlisting>
 node = html.div(
@@ -168,8 +167,8 @@ class cool(xsc.Element):
 <par>You have to derive your new class from
 <pyref module="ll.xist.xsc" class="Element"><class>xsc.Element</class></pyref>.
 The name of the class will be the element name. For element type names that
-are no valid Python identifiers, you can use the class attribute <lit>xmlname</lit>
-in the element class the overwrite the element name.</par>
+are nivalid Python identifiers, you can use the class attribute <lit>xmlname</lit>
+in the element class to overwrite the element name.</par>
 <par>To be able to convert an element of this type to a new &xml; tree
 (&html; in most cases), you have to implement the
 <pyref module="ll.xist.xsc" class="Node" method="convert"><method>convert</method></pyref>
@@ -359,7 +358,7 @@ subclasses are:</par>
 <item><pyref module="ll.xist.xsc" class="TextAttr"><class>TextAttr</class></pyref>, for normal text attributes;</item>
 <item><pyref module="ll.xist.xsc" class="URLAttr"><class>URLAttr</class></pyref>, for attributes that are &url;s;</item>
 <item><pyref module="ll.xist.xsc" class="BoolAttr"><class>BoolAttr</class></pyref>, for boolean attributes (such an attribute
-is either present or not, but it's value will be ignored);</item>
+is either present or not, but it's value will always be the same as the attribute name);</item>
 <item><pyref module="ll.xist.xsc" class="IntAttr"><class>IntAttr</class></pyref>, for integer attributes;</item>
 <item><pyref module="ll.xist.xsc" class="ColorAttr"><class>ColorAttr</class></pyref>, for color attributes (e.g. <lit>#ffffff</lit>)</item>
 </ulist>
