@@ -1,4 +1,11 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
+<section><title>Changes in CVS (released ??/??/2001)</title>
+<ul>
+<li><code>__repr__</code> now uses the new class <code>presenters.PlainPresenter</code>
+which gives a little more info than the default <code>__repr__</code>.</li>
+</ul>
+</section>
+
 <section><title>Changes in 1.1.1 (released 08/01/2001)</title>
 <ul>
 <li>Small bugfix in <code>presenters.strProcInst</code></li>
