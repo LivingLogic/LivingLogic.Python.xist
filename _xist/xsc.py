@@ -1802,6 +1802,16 @@ class Element(Node):
 			if not self.hasAttr(attrname):
 				self[attrname] = attrvalue
 
+	def withSeparator(self, separator, clone=0):
+		"""
+		returns a version of <self/> with a separator node between the child nodes of <self/>.
+
+		for more info see <pyref module="xist.xsc" class="Frag" method="withSeparator">Frag.withSeparator</pyref>.
+		"""
+		node = self.__class__(**self.attrs)
+		node.content = self.content.withSeparator(separator, clone)
+		return node
+
 	def sorted(self, compare=lambda node1, node2: cmp(node1.asPlainString(), node2.asPlainString())):
 		"""
 		returns a sorted version of <self/>.
