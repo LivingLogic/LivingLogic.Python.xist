@@ -372,13 +372,27 @@ class link(xsc.Element):
 	A hypertext link.
 	"""
 	empty = False
-	attrHandlers = {"href": xsc.URLAttr}
+	class Attrs(xsc.Element.Attrs):
+		class href(xsc.URLAttr): pass
 
 	def convert(self, converter):
 		if converter.target=="docbook":
 			e = docbook.link(self.content, linkend=self["href"])
 		else:
-			e = html.a(self, content, href=self["href"])
+			e = html.a(self.content, href=self["href"])
+		return e.convert(converter)
+
+class email(xsc.Element):
+	"""
+	An email address.
+	"""
+	empty = False
+
+	def convert(self, converter):
+		if converter.target=="docbook":
+			e = docbook.email(self.content)
+		else:
+			e = html.a(self.content, href=("mailto:", self.content))
 		return e.convert(converter)
 
 class pyref(xsc.Element):
