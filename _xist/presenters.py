@@ -575,7 +575,7 @@ class TreePresenter:
 					break
 				lines.append(content[:pos+1])
 				content = content[pos+1:]
-			self._doMultiLine(node, lines, self.strTextOutsideAttr)
+			self._doMultiLine(node, lines, self.strTextLineOutsideAttr)
 
 	def presentEntity(self, node):
 		if self.inAttr:
