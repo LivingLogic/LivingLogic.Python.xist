@@ -6,9 +6,10 @@ value passed in, so it's now possible to pass iterators and generators
 (and generator expressions in Python 2.4) to <class>Frag</class>
 and <class>Element</class> constructors.</item>
 
-<item><par>A new API named XFind has been added for iterating through &xml; trees.
-XFind expressions look somewhat like XPath expressions but are pure Python expressions.
-For example finding all images inside links in an &html; page can be done like this:</par>
+<item><par>A new API named XFind has been added for iterating through &xml;
+trees. XFind expressions look somewhat like XPath expressions but are pure
+Python expressions. For example finding all images inside links in an &html;
+page can be done like this:</par>
 <example><title>Finding linked images with XFind</title>
 <prog>
 from ll.xist import parsers, xfind
@@ -24,7 +25,9 @@ that can be used in XFind expressions.</par>
 </item>
 
 <item>Parsing broken &html; is now done with the &html; parser from
-<link href="http://www.xmlsoft.org/">libxml2</link>.</item>
+<link href="http://www.xmlsoft.org/">libxml2</link>. The parsing functions
+no longer accept options for tidy, only the boolean value of the <arg>tidy</arg>
+argument is used.</item>
 
 <item>The publishing API has been simplified: Publication can now be done with
 a call to <method>ll.xist.publishers.Publisher.publish</method>, passing in a
