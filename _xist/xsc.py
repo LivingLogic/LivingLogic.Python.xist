@@ -253,7 +253,7 @@ class Node(Base):
 		For elements you'll get the element content.</par>
 
 		<par>It might be useful to overwrite this function in your own
-		elements. Suppose you have the following element:
+		elements. Suppose you have the following element:</par>
 		<programlisting>
 		class caps(xsc.Element):
 			empty = False
@@ -265,14 +265,14 @@ class Node(Base):
 				)
 		</programlisting>
 
-		that renders its content in small caps, then it might be useful
-		to define <method>__unicode__</method> in the following way:
+		<par>that renders its content in small caps, then it might be useful
+		to define <method>__unicode__</method> in the following way:</par>
 		<programlisting>
 		def __unicode__(self):
 			return unicode(self.content).upper()
 		</programlisting>
 
-		<method>__unicode__</method> can be used everywhere where
+		<par><method>__unicode__</method> can be used everywhere where
 		a plain string representation of the node is required.</par>
 		"""
 		raise NotImplementedError("__unicode__ method not implemented in %s" % self.__class__.__name__)
