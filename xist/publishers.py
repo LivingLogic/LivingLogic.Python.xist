@@ -16,7 +16,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 import sys, types, array, codecs
 import xsc, options, utils, errors
 
-strescapes = {'<': 'lt', '>': 'gt', '&': 'amp', '"': 'quot'}
+strescapes = (('&', 'amp'), ('<', 'lt'), ('>', 'gt'), ('"', 'quot'))
 
 class Publisher:
 	"""
@@ -75,8 +75,8 @@ class Publisher:
 		using character references for <code>&amp;lt;</code> etc. and non encodabel characters
 		is legal.
 		"""
-		for c in strescapes.keys():
-			text = text.replace(c, u"&" + strescapes[c] + u";")
+		for (c, ent) in strescapes:
+			text = text.replace(c, u"&" + ent + u";")
 
 		try:
 			text.encode(self.encoding)
@@ -96,7 +96,7 @@ class Publisher:
 		encodes the text <argref>text</argref> with the encoding <code><self/>.encoding</code>.
 		anything that requires a character reference (e.g. element names) is illegal.
 		"""
-		for c in strescapes.keys():
+		for (c, ent) in strescapes:
 			if c in text:
 				raise errors.EncodingImpossibleError(None, self.encoding, text, c)
 
@@ -170,5 +170,5 @@ class BytePublisher(Publisher):
 		"""
 		Return the published strings as one long byte string.
 		"""
-		return u"".join(self.texts)
+		return u"".join(self.texts).encode(self.encoding)
 
