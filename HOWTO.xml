@@ -9,7 +9,7 @@ or <app moreinfo="http://dustman.net/andy/python/HyperText/">HyperText</app>.</p
 
 <par>(If you're impatient, there's also a
 <link href="Examples.html">list of examples</link> that shows what can
-be done with &xist;)</par>
+be done with &xist;.)</par>
 
 <section><title>Overview</title>
 <par>&xist; can be used as a compiler that reads an input &xml; file
@@ -933,9 +933,9 @@ provide a <method>convert</method> method. These classes will then be published
 as &xml; processing instructions. One example is the namespace
 <module>ll.xist.ns.php</module>.</par>
 
-<par>Other namespaces (like <module>ll.xist.ns.jsp</module> contain processing
-instruction classes, but they will be published in a different (not &xml;
-compatible) format. For example <lit>ll.xist.ns.jsp.expression("foo")</lit>
+<par>Other namespaces (like <pyref module="ll.xist.ns.jsp"><module>ll.xist.ns.jsp</module></pyref>)
+contain processing instruction classes, but they will be published in a different
+(not &xml; compatible) format. For example <lit>ll.xist.ns.jsp.expression("foo")</lit>
 will be published as <lit>&lt;%= foo&gt;</lit>.</par>
 
 </section>
@@ -955,7 +955,7 @@ and
 <pyref module="ll.xist.xsc" class="Node" method="write"><method>write</method></pyref>.
 <pyref module="ll.xist.xsc" class="Node" method="asBytes"><method>asBytes</method></pyref>
 returns an 8bit &xml; string. You can specify the encoding with the
-parameter <arg>encoding</arg> (with <lit>"us-ascii"</lit> being the default).
+parameter <arg>encoding</arg> (with <lit>"utf-8"</lit> being the default).
 Unencodable characters will be escaped with character references when possible
 (i.e. inside text nodes, for comments or processing instructions you'll get
 an exception):</par>
