@@ -863,16 +863,16 @@ class XSCAttr(XSCNode):
 	"""
 
 	def __init__(self,_content):
-		self._content = str(ToNode(_content))
+		self._content = ToNode(_content)
 
 	def __add__(self,other):
-		if other != None:
+		if other is not None:
 			return self.__class__(self._content+str(ToNode(other)))
 		else:
 			return self
 
 	def __radd__(self,other):
-		if other != None:
+		if other is not None:
 			return self.__class__(str(ToNode(other))+self._content)
 		else:
 			return self
@@ -892,15 +892,7 @@ class XSCTextAttr(XSCAttr):
 		return [[nest,self.startlineno,elementno,self._dorepr()]]
 
 	def __str__(self):
-		v = []
-		for i in self._content:
-			if i == '"':
-				v.append("&quot;")
-			elif ord(i)>=128:
-				v.append('&#' + str(ord(i)) + ';')
-			else:
-				v.append(i)
-		return string.join(v,"")
+		return str(self._content)
 
 	def asHTML(self):
 		return XSCTextAttr(self._content)
@@ -922,7 +914,7 @@ class XSCColorAttr(XSCAttr):
 		return [[nest,self.startlineno,elementno,self._dorepr()]]
 
 	def __str__(self):
-		return self._content
+		return str(self._content)
 
 	def asHTML(self):
 		return XSCColorAttr(self._content)
