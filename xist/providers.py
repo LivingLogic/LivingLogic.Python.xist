@@ -14,6 +14,7 @@ __version__ = "$Revision$"[11:-2]
 # $Source$
 
 import os
+import types
 import urllib
 
 try:
@@ -60,11 +61,14 @@ class Provider:
 	def popURL(self):
 		self.filenames.pop()
 
-	def pushNamespace(self, namespace):
-		self.namespaces.insert(0, namespace) # built in reverse order, so a simple "for in" finds the most recent entry.
+	def pushNamespace(self, *namespaces):
+		for namespace in namespaces:
+			if type(namespace) is types.ModuleType:
+				namespace = namespace.namespace
+			self.namespaces.insert(0, namespace) # built in reverse order, so a simple "for in" finds the most recent entry.
 
-	def popNamespace(self):
-		self.namespaces.pop(0)
+	def popNamespace(self, count):
+		del self.namespaces[:count]
 
 	def __nodeFromName(self, name, type):
 		# type==0 => element; type==1 => entity; type==2 => procinst
