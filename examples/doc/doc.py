@@ -11,7 +11,7 @@ import types
 import string
 from Signature import Signature
 
-from xist import xsc,html,specials
+from xist import xsc, html, specials, parsers
 import elements
 
 def __isOnlyWhiteSpace(text):
@@ -56,7 +56,7 @@ def getDoc(text):
 	text = string.join(lines,"\n")
 
 	try:
-		e = xsc.xsc.parseString(text)
+		e = parserse.parseString(text)
 	except:
 		e = html.pre(text)
 	return elements.desc(e)
@@ -69,7 +69,7 @@ def explain(thing):
 
 	t = type(thing)
 	if t in (types.FunctionType,types.MethodType):
-		if t is types.FunctionType:	
+		if t is types.FunctionType:
 			e = elements.function(name = thing.__name__)
 		else:
 			e = elements.method(name = thing.__name__)
