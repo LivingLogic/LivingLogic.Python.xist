@@ -1087,7 +1087,36 @@ _getmodulename = staticmethod(_getmodulename)
 def getdoc(cls, thing):
 	if thing.__doc__ is None:
 		return xsc.Null
-	text = inspect.getdoc(thing)
+	lines = thing.__doc__.split("\n")
+
+	# find first nonempty line
+	for i in xrange(len(lines)):
+		if lines[i] and not lines[i].isspace():
+			if i:
+				del lines[:i]
+			break
+
+	if lines:
+		# find starting white space of this line
+		startwhite = ""
+		for c in lines[0]:
+			if c.isspace():
+				startwhite += c
+			else:
+				break
+
+		# remove this whitespace from every line
+		for i in xrange(len(lines)):
+			if lines[i][:len(startwhite)] == startwhite:
+				lines[i] = lines[i][len(startwhite):]
+
+		# remove empty lines
+		while lines and not lines[0]:
+			del lines[0]
+		while lines and not lines[-1]:
+			del lines[-1]
+
+	text = "\n".join(lines)
 
 	if inspect.ismethod(thing):
 		sysid = "METHOD-DOCSTRING(%s.%s.%s)" % (cls._getmodulename(thing), thing.im_class.__name__, thing.__name__)
@@ -1114,6 +1143,14 @@ def getdoc(cls, thing):
 					ref["class_"] = thing.im_class.__name__
 					if "method" not in ref.attrs:
 						ref["method"] = thing.__name__
+	elif isinstance(thing, property):
+		for ref in refs:
+			if "module" not in ref.attrs:
+				ref["module"] = cls._getmodulename(thing)
+				if "class_" not in ref.attrs:
+					ref["class_"] = thing.im_class.__name__
+					if "property" not in ref.attrs:
+						ref["property"] = thing.__name__
 	elif inspect.isfunction(thing):
 		for ref in refs:
 			if "module" not in ref.attrs:
