@@ -122,11 +122,10 @@ class directive_taglib(directive):
 
 
 class directive_page(directive):
-	xmlname = "directive.page"
+	xmlname = "page"
 	class Attrs(directive.Attrs):
 		class language(xsc.TextAttr):
 			values = ("java",)
-			default = "java"
 		class extends(xsc.TextAttr): pass
 		class import_(xsc.TextAttr): xmlname = "import"
 		class session(xsc.TextAttr): values = ("true", "false")
