@@ -81,19 +81,24 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 		# we don't keep a column number, because otherwise parsing would be much to slow
 		self.headerJustRead = False # will be used for skipping whitespace after the XML header
 
+		parsed = False
 		try:
-			while 1:
+			while True:
 				data = file.read(self._bufsize)
 				if not data:
+					if not parsed:
+						self.feed("")
 					break
-				while 1:
+				while True:
 					pos = data.find("\n")
 					if pos==-1:
 						break
 					self.feed(data[:pos+1])
+					self.parsed = True
 					data = data[pos+1:]
 					self.lineNumber += 1
 				self.feed(data)
+				self.parsed = True
 		except SystemExit:
 			raise
 		except KeyboardInterrupt:
