@@ -55,11 +55,11 @@ class DocTypeXHTML10strict(xsc.DocType):
 	document type for XHTML 1.0 strict
 	"""
 	def __init__(self):
-		xsc.DocType.__init__(self, 'html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd"')
+		xsc.DocType.__init__(self, 'html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"')
 
 class DocTypeXHTML10transitional(xsc.DocType):
 	"""
-	document type for XHTML 1.0 strict
+	document type for XHTML 1.0 transitional
 	"""
 	def __init__(self):
 		xsc.DocType.__init__(self, 'html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"')
