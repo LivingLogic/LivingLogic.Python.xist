@@ -1431,17 +1431,6 @@ class ProcInst(CharacterData):
 		CharacterData.__init__(self, *content)
 		#self.__content = u"".join([unicode(x) for x in content])
 
-	def _registerns(cls, ns):
-		if cls.xmlns is not None:
-			for xml in (False, True):
-				del cls.xmlns._procinsts[xml][cls.xmlname[xml]]
-			cls.xmlns = None
-		if ns is not None:
-			for xml in (False, True):
-				ns._procinsts[xml][cls.xmlname[xml]] = cls
-			cls.xmlns = ns
-	_registerns = classmethod(_registerns)
-
 	def _str(cls, fullname=True, xml=True, decorate=True):
 		s = ansistyle.Text()
 		if decorate:
@@ -2386,17 +2375,6 @@ class Element(Node):
 		for (attrname, attrvalue) in attrs.iteritems():
 			self.attrs[attrname] = attrvalue
 
-	def _registerns(cls, ns):
-		if cls.xmlns is not None:
-			for xml in (False, True):
-				del cls.xmlns._elements[xml][cls.xmlname[xml]]
-			cls.xmlns = None
-		if ns is not None:
-			for xml in (False, True):
-				ns._elements[xml][cls.xmlname[xml]] = cls
-			cls.xmlns = ns
-	_registerns = classmethod(_registerns)
-
 	def __eq__(self, other):
 		return self.__class__ is other.__class__ and self.content==other.content and self.attrs==other.attrs
 
@@ -2879,17 +2857,6 @@ class Entity(Node):
 		def __repr__(self):
 			return "<entity class %s:%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
 
-	def _registerns(cls, ns):
-		if cls.xmlns is not None:
-			for xml in (False, True):
-				del cls.xmlns._entities[xml][cls.xmlname[xml]]
-			cls.xmlns = None
-		if ns is not None:
-			for xml in (False, True):
-				ns._entities[xml][cls.xmlname[xml]] = cls
-			cls.xmlns = ns
-	_registerns = classmethod(_registerns)
-
 	def _str(cls, fullname=True, xml=True, decorate=True):
 		s = ansistyle.Text()
 		if decorate:
@@ -2926,24 +2893,6 @@ class CharRef(Text, Entity):
 	def __init__(self):
 		Text.__init__(self, unichr(self.codepoint))
 		Entity.__init__(self)
-
-	def _registerns(cls, ns):
-		if cls.xmlns is not None:
-			map = cls.xmlns._charrefs
-			for xml in (False, True):
-				del map[xml][cls.xmlname[xml]]
-			l = map[2][cls.codepoint]
-			if len(l)==1:
-				del map[2][cls.codepoint]
-			else:
-				l.remove(cls)
-		super(CharRef, cls)._registerns(ns)
-		if ns is not None:
-			map = ns._charrefs
-			for xml in (False, True):
-				map[xml][cls.xmlname[xml]] = cls
-			map[2].setdefault(cls.codepoint, []).append(cls)
-	_registerns = classmethod(_registerns)
 
 	def present(self, presenter):
 		presenter.presentEntity(self)
@@ -3274,18 +3223,13 @@ class Namespace(Base):
 							classdict["xmlname"] = attr.xmlname[1]
 						classdict["__outerclass__"] = 42
 						dict[attrname] = attr.__class__(attr.__name__, (attr, ), classdict)
-			dict["_elements"] = ({}, {}) # cache for elements (by Python name and by XML name)
-			dict["_procinsts"] = ({}, {}) # cache for processing instructions (by Python name and by XML name)
-			dict["_entities"] = ({}, {}) # cache for entities (by Python name and by XML name)
-			dict["_charrefs"] = ({}, {}, {}) # cache for character references (by Python name, by XML name and by codepoint)
+			dict["_cache"] = None
 			cls = Base.__metaclass__.__new__(mcl, name, bases, dict)
 			cls.__originalname = name # preserves the name even after makemod() (used by __repr__)
 			for (key, value) in cls.__dict__.iteritems():
 				if isinstance(value, type):
 					if getattr(value, "__outerclass__", None) == 42:
 						value.__outerclass__ = cls
-					if issubclass(value, (Element, ProcInst, Entity)):
-						setattr(cls, key, value)
 			for attr in cls.Attrs.iterallowedvalues():
 				attr.xmlns = cls
 			if cls.xmlurl is not None:
@@ -3346,26 +3290,24 @@ class Namespace(Base):
 		def __delattr__(cls, key):
 			value = cls.__dict__.get(key, None) # no inheritance
 			if isinstance(value, type) and issubclass(value, (Element, ProcInst, CharRef)):
-				value._registerns(None)
+				value.xmlns = None
+				cls._cache = None
 			return type.__delattr__(cls, key)
 
 		def __setattr__(cls, key, value):
 			# Remove old attribute
 			oldvalue = cls.__dict__.get(key, None) # no inheritance
 			if isinstance(oldvalue, type) and issubclass(oldvalue, (Element, ProcInst, Entity)):
-				try:
-					oldvalue._registerns(None)
-				except AttributeError:
-					pass
+				if oldvalue.xmlns is not None:
+					oldvalue.xmlns._cache = None
+					oldvalue.xmlns = None
 			# Set new attribute
 			if isinstance(value, type) and issubclass(value, (Element, ProcInst, Entity)):
-				ns = value.__dict__.get("xmlns", None) # no inheritance
-				if ns is not None:
-					try:
-						delattr(ns, key)
-					except AttributeError:
-						pass
-				value._registerns(cls)
+				if value.xmlns is not None:
+					value.xmlns._cache = None
+					value.xmlns = None
+				cls._cache = None
+				value.xmlns = cls
 			elif isinstance(value, new.function):
 				value = staticmethod(value)
 			return type.__setattr__(cls, key, value)
@@ -3376,13 +3318,43 @@ class Namespace(Base):
 	class Context(_Context):
 		pass
 
+	def _getcache(cls):
+		if cls._cache is not None:
+			return cls._cache
+		c = (
+			({}, {}), # cache for elements (by Python name and by XML name)
+			({}, {}), # cache for processing instructions (by Python name and by XML name)
+			({}, {}), # cache for entities (by Python name and by XML name)
+			({}, {}, {}), # cache for character references (by Python name, by XML name and by codepoint)
+		)
+
+		for key in dir(cls):
+			value = getattr(cls, key)
+			if isinstance(value, type):
+				if issubclass(value, Element):
+					for xml in (False, True):
+						c[0][xml][value.xmlname[xml]] = value
+				elif issubclass(value, ProcInst):
+					for xml in (False, True):
+						c[1][xml][value.xmlname[xml]] = value
+				elif issubclass(value, Entity):
+					for xml in (False, True):
+						c[2][xml][value.xmlname[xml]] = value
+				elif issubclass(value, CharRef):
+					for xml in (False, True):
+						c[3][xml][value.xmlname[xml]] = value
+					c[3][2].setdefault(value.codepoint, []).append(value)
+		cls._cache = c
+		return c
+	_getcache = classmethod(_getcache)
+
 	def iterelementkeys(cls, xml=False):
 		"""
 		Return an iterator for iterating over the names of all <pyref class="Element">element</pyref> classes
 		in <cls/>. <arg>xml</arg> specifies whether Python or &xml; names
 		should be returned.
 		"""
-		return cls._elements[xml].iterkeys()
+		return cls._getcache()[0][xml].iterkeys()
 	iterelementkeys = classmethod(iterelementkeys)
 
 	def elementkeys(cls, xml=False):
@@ -3390,21 +3362,21 @@ class Namespace(Base):
 		Return a list of the names of all <pyref class="Element">element</pyref> classes in <cls/>.
 		<arg>xml</arg> specifies whether Python or &xml; names should be returned.
 		"""
-		return cls._elements[xml].keys()
+		return cls._getcache()[0][xml].keys()
 	elementkeys = classmethod(elementkeys)
 
 	def iterelementvalues(cls):
 		"""
 		Return an iterator for iterating over all <pyref class="Element">element</pyref> classes in <cls/>.
 		"""
-		return cls._elements[False].itervalues()
+		return cls._getcache()[0][False].itervalues()
 	iterelementvalues = classmethod(iterelementvalues)
 
 	def elementvalues(cls):
 		"""
 		Return a list of all <pyref class="Element">element</pyref> classes in <cls/>.
 		"""
-		return cls._elements[False].values()
+		return cls._getcache()[0][False].values()
 	elementvalues = classmethod(elementvalues)
 
 	def iterelementitems(cls, xml=False):
@@ -3413,7 +3385,7 @@ class Namespace(Base):
 		in <cls/>. <arg>xml</arg> specifies whether Python or &xml; names
 		should be returned.
 		"""
-		return cls._elements[xml].iteritems()
+		return cls._getcache()[0][xml].iteritems()
 	iterelementitems = classmethod(iterelementitems)
 
 	def elementitems(cls, xml=False):
@@ -3422,7 +3394,7 @@ class Namespace(Base):
 		in <cls/>. <arg>xml</arg> specifies whether Python or &xml; names
 		should be returned.
 		"""
-		return cls._elements[xml].items()
+		return cls._getcache()[0][xml].items()
 	elementitems = classmethod(elementitems)
 
 	def element(cls, name, xml=False):
@@ -3434,7 +3406,7 @@ class Namespace(Base):
 		is raised.
 		"""
 		try:
-			return cls._elements[xml][name]
+			return cls._getcache()[0][xml][name]
 		except KeyError:
 			raise errors.IllegalElementError(name, xml=xml)
 	element = classmethod(element)
@@ -3445,7 +3417,7 @@ class Namespace(Base):
 		<pyref class="ProcInst">processing instruction</pyref> classes in <cls/>. <arg>xml</arg> specifies
 		whether Python or &xml; names should be returned.
 		"""
-		return cls._procinsts[xml].iterkeys()
+		return cls._getcache()[1][xml].iterkeys()
 	iterprocinstkeys = classmethod(iterprocinstkeys)
 
 	def procinstkeys(cls, xml=False):
@@ -3453,21 +3425,21 @@ class Namespace(Base):
 		Return a list of the names of all <pyref class="ProcInst">processing instruction</pyref> classes in <cls/>.
 		<arg>xml</arg> specifies whether Python or &xml; names should be returned.
 		"""
-		return cls._procinsts[xml].keys()
+		return cls._getcache()[1][xml].keys()
 	procinstkeys = classmethod(procinstkeys)
 
 	def iterprocinstvalues(cls):
 		"""
 		Return an iterator for iterating over all <pyref class="ProcInst">processing instruction</pyref> classes in <cls/>.
 		"""
-		return cls._procinsts[False].itervalues()
+		return cls._getcache()[1][False].itervalues()
 	iterprocinstvalues = classmethod(iterprocinstvalues)
 
 	def procinstvalues(cls):
 		"""
 		Return a list of all <pyref class="ProcInst">processing instruction</pyref> classes in <cls/>.
 		"""
-		return cls._procinsts[False].values()
+		return cls._getcache()[1][False].values()
 	procinstvalues = classmethod(procinstvalues)
 
 	def iterprocinstitems(cls, xml=False):
@@ -3476,7 +3448,7 @@ class Namespace(Base):
 		in <cls/>. <arg>xml</arg> specifies whether Python or &xml; names
 		should be returned.
 		"""
-		return cls._procinsts[xml].iteritems()
+		return cls._getcache()[1][xml].iteritems()
 	iterprocinstitems = classmethod(iterprocinstitems)
 
 	def procinstitems(cls, xml=False):
@@ -3485,7 +3457,7 @@ class Namespace(Base):
 		in <cls/>. <arg>xml</arg> specifies whether Python or &xml; names
 		should be returned.
 		"""
-		return cls._procinsts[xml].items()
+		return cls._getcache()[1][xml].items()
 	procinstitems = classmethod(procinstitems)
 
 	def procinst(cls, name, xml=False):
@@ -3497,7 +3469,7 @@ class Namespace(Base):
 		is raised.
 		"""
 		try:
-			return cls._procinsts[xml][name]
+			return cls._getcache()[1][xml][name]
 		except KeyError:
 			raise errors.IllegalProcInstError(name, xml=xml)
 	procinst = classmethod(procinst)
@@ -3508,7 +3480,7 @@ class Namespace(Base):
 		and <pyref class="CharRef">character reference</pyref> classes in <cls/>.
 		<arg>xml</arg> specifies whether Python or &xml; names should be returned.
 		"""
-		return cls._entities[xml].iterkeys()
+		return cls._getcache()[2][xml].iterkeys()
 	iterentitykeys = classmethod(iterentitykeys)
 
 	def entitykeys(cls, xml=False):
@@ -3517,7 +3489,7 @@ class Namespace(Base):
 		<pyref class="CharRef">character reference</pyref> classes in <cls/>.
 		<arg>xml</arg> specifies whether Python or &xml; names should be returned.
 		"""
-		return cls._entities[xml].keys()
+		return cls._getcache()[2][xml].keys()
 	entitykeys = classmethod(entitykeys)
 
 	def iterentityvalues(cls):
@@ -3525,7 +3497,7 @@ class Namespace(Base):
 		Return an iterator for iterating over all <pyref class="Entity">entity</pyref>
 		and <pyref class="CharRef">character reference</pyref> classes in <cls/>.
 		"""
-		return cls._entities[False].itervalues()
+		return cls._getcache()[2][False].itervalues()
 	iterentityvalues = classmethod(iterentityvalues)
 
 	def entityvalues(cls):
@@ -3533,7 +3505,7 @@ class Namespace(Base):
 		Return a list of all <pyref class="Entity">entity</pyref> and
 		<pyref class="CharRef">character reference</pyref> classes in <cls/>.
 		"""
-		return cls._entities[False].values()
+		return cls._getcache()[2][False].values()
 	entityvalues = classmethod(entityvalues)
 
 	def iterentityitems(cls, xml=False):
@@ -3543,7 +3515,7 @@ class Namespace(Base):
 		classes in <cls/>. <arg>xml</arg> specifies whether Python or &xml; names
 		should be returned.
 		"""
-		return cls._entities[xml].iteritems()
+		return cls._getcache()[2][xml].iteritems()
 	iterentityitems = classmethod(iterentityitems)
 
 	def entityitems(cls, xml=False):
@@ -3552,7 +3524,7 @@ class Namespace(Base):
 		and <pyref class="CharRef">character reference</pyref> classes in <cls/>.
 		<arg>xml</arg> specifies whether Python or &xml; names should be returned.
 		"""
-		return cls._entities[xml].items()
+		return cls._getcache()[2][xml].items()
 	entityitems = classmethod(entityitems)
 
 	def entity(cls, name, xml=False):
@@ -3564,7 +3536,7 @@ class Namespace(Base):
 		is raised.
 		"""
 		try:
-			return cls._entities[xml][name]
+			return cls._getcache()[2][xml][name]
 		except KeyError:
 			raise errors.IllegalEntityError(name, xml=xml)
 	entity = classmethod(entity)
@@ -3575,7 +3547,7 @@ class Namespace(Base):
 		<pyref class="CharRef">character reference</pyref> classes in <cls/>.
 		<arg>xml</arg> specifies whether Python or &xml; names should be returned.
 		"""
-		return cls._charrefs[xml].iterkeys()
+		return cls._getcache()[3][xml].iterkeys()
 	itercharrefkeys = classmethod(itercharrefkeys)
 
 	def charrefkeys(cls, xml=False):
@@ -3583,21 +3555,21 @@ class Namespace(Base):
 		Return a list of the names of all <pyref class="CharRef">character reference</pyref>
 		classes in <cls/>. <arg>xml</arg> specifies whether Python or &xml; names should be returned.
 		"""
-		return cls._charrefs[xml].keys()
+		return cls._getcache()[3][xml].keys()
 	charrefkeys = classmethod(charrefkeys)
 
 	def itercharrefvalues(cls):
 		"""
 		Return an iterator for iterating over all <pyref class="CharRef">character reference</pyref> classes in <cls/>.
 		"""
-		return cls._charrefs[False].itervalues()
+		return cls._getcache()[3][False].itervalues()
 	itercharrefvalues = classmethod(itercharrefvalues)
 
 	def charrefvalues(cls):
 		"""
 		Return a list of all <pyref class="CharRef">character reference</pyref> classes in <cls/>.
 		"""
-		return cls._charrefs[False].values()
+		return cls._getcache()[3][False].values()
 	charrefvalues = classmethod(charrefvalues)
 
 	def itercharrefitems(cls, xml=False):
@@ -3607,7 +3579,7 @@ class Namespace(Base):
 		<arg>xml</arg> specifies whether Python or &xml; names
 		should be returned.
 		"""
-		return cls._charrefs[xml].iteritems()
+		return cls._getcache()[3][xml].iteritems()
 	itercharrefitems = classmethod(itercharrefitems)
 
 	def charrefitems(cls, xml=False):
@@ -3615,7 +3587,7 @@ class Namespace(Base):
 		Return a list of all (name, class) items of all <pyref class="CharRef">character reference</pyref> classes in <cls/>.
 		<arg>xml</arg> specifies whether Python or &xml; names should be returned.
 		"""
-		return cls._charrefs[xml].items()
+		return cls._getcache()[3][xml].items()
 	charrefitems = classmethod(charrefitems)
 
 	def charref(cls, name, xml=False):
@@ -3629,14 +3601,15 @@ class Namespace(Base):
 		is raised. If there are multiple character reference class for
 		one codepoint an <class>AmbiguousCharRefError</class> will be raise
 		"""
+		cache = cls._getcache()
 		try:
 			if isinstance(name, (int, long)):
-				charrefs = cls._charrefs[2][name]
+				charrefs = cache._charrefs[2][name]
 				if len(charrefs) > 1:
 					raise errors.AmbiguousCharRefError(name, xml)
 				return charrefs[0]
 			else:
-				return cls._charrefs[xml][name]
+				return cache._charrefs[xml][name]
 		except KeyError:
 			raise errors.IllegalCharRefError(name, xml=xml)
 	charref = classmethod(charref)
