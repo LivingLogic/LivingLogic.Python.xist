@@ -59,6 +59,7 @@ def make():
 	XHTML = None
 	mode = None
 	filesname = None
+	parsername = "sgmlop"
 	for (option, value) in options:
 		if option=="-p" or option=="--path":
 			sys.path.append(value)
