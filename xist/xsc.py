@@ -269,32 +269,6 @@ def nodeName(nodeClass):
 
 	return [namespacename, elementname, nodeClass.empty]
 
-def _strName(nodeName, content=None, brackets=1, slash=None, ansi=None):
-	# slash == -1: before; 0: nowhere; 1:after
-	if slash is None:
-		if nodeName is None:
-			slash = 0
-		else:
-			slash = nodeName[2]
-	s = ""
-	if slash < 0:
-		s += strSlash(ansi)
-	if nodeName is not None:
-		if nodeName[0]:
-			s += strNamespace(nodeName[0], ansi) + ":"
-		s += strElementName(nodeName[1], ansi)
-	if content is not None and slash>=0:
-		s += content
-	if slash > 0:
-		s += strSlash(ansi)
-	if brackets is not None:
-		s = strBracketOpen(ansi) + s + strBracketClose(ansi)
-	return s
-
-def _strNode(nodeClass, content=None, brackets=None, slash=None, ansi=None):
-	name = nodeName(nodeClass)
-	return _strName(name, content, brackets, slash, ansi)
-
 def ToNode(value):
 	"""
 	<par noindent>convert the <argref>value</argref> passed in to a XSC <classref>Node</classref>.</par>

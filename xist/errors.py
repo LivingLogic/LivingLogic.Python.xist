@@ -202,13 +202,13 @@ class ImageSizeFormatError(Error):
 	exception that is raised, when XSC can't format or evaluate image size attributes
 	"""
 
-	def __init__(self, element, attr):
+	def __init__(self, element, attrname):
 		Error.__init__(self, element.startloc)
 		self.element = element
-		self.attr = attr
+		self.attrname = attrname
 
 	def __str__(self):
-		return Error.__str__(self) + "the value %r for the image size attribute %s of the element %s can't be formatted or evaluated" % (self.element[self.attr].asPlainString(), xsc.strAttrName(self.attr), self.element._str())
+		return Error.__str__(self) + "the value %r for the image size attribute %s of the element %s can't be formatted or evaluated" % (presenters.strAttrValue(self.element[self.attrname].asPlainString()), presenters.strAttrName(self.attr), presenters.strElementWithBrackets(self.element))
 
 class FileNotFoundError(Error):
 	"""

@@ -291,6 +291,9 @@ def strProcInstWithBrackets(node):
 def strAttrName(attrname):
 	return EnvTextForAttrName(EscInlineText(attrname))
 
+def strAttrValue(attrvalue):
+	return EnvTextForAttrValue(EscInlineAttr(attrvalue))
+
 class Presenter:
 	"""
 	base class for all presenters.
