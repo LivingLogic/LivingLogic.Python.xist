@@ -32,18 +32,18 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 import sys, getopt
 
 from xist import xsc, parsers, converters
-from xist.ns import html, docbooklite as dbl
+from xist.ns import html, doc
 
 def xsc2txt(infilename, outfilename, title):
-	e = parsers.parseFile(infilename, namespaces=xsc.Namespaces(dbl))
+	e = parsers.parseFile(infilename, namespaces=xsc.Namespaces(doc))
 
 	if title is None:
 		title = xsc.Null
 	else:
-		title = dbl.title(title)
+		title = doc.title(title)
 	e = html.html(
 		html.body(
-			dbl.section(title, e)
+			doc.section(title, e)
 		)
 	)
 
