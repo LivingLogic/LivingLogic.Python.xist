@@ -395,6 +395,19 @@ class email(xsc.Element):
 			e = html.a(self.content, href=("mailto:", self.content))
 		return e.convert(converter)
 
+class em(xsc.Element):
+	"""
+	Emphasized text:
+	"""
+	empty = False
+
+	def convert(self, converter):
+		if converter.target=="docbook":
+			e = docbook.emphasis(self.content)
+		else:
+			e = html.em(self.content)
+		return e.convert(converter)
+
 class pyref(xsc.Element):
 	"""
 	reference to a Python object:
