@@ -423,9 +423,12 @@ class HTMLParser(SGMLOPParser):
 				node.append("&", part)
 			else: # ; found
 				if part[0] != "#": # named entity
-					try:
-						node.append(html.namespace.entitiesByName[part[:pos]](), part[pos+1:])
-					except KeyError: # no entity with such a name => append it literally
+					name = part[:pos]
+					if html.namespace.entitiesByName.has_key(name)
+						node.append(html.namespace.entitiesByName[name](), part[pos+1:])
+					elif xsc.namespace.entitiesByName.has_key(name)
+						node.append(xsc.namespace.entitiesByName[name](), part[pos+1:])
+					else:
 						node.append("&", part)
 				else: # numeric entity
 					try:
