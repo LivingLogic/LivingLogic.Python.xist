@@ -1,4 +1,4 @@
-XIST v0.4.7
+XIST v0.5
 
 This is a HTML generator/XML transformation engine/web publishing system
 written in Python.
@@ -11,11 +11,12 @@ sgmlop from the Python XML package (http://pyxml.sourceforge.net/)
 ftp://titan.bnbt.de/pub/livinglogic/xist/sgmlop.c) or
 from http://www.pythonware.com/products/xml/
 (an older version)) and the Python Imaging Library
-(available from http://www.pythonware.com/products/pil/).
+(available from http://www.pythonware.com/products/pil/)
+and a C compiler.
 
 To compile everything, simply perform the following steps.
 
-1) Run "python setup.py build" to copy *.py files.
+1) Run "python setup.py build" to copy *.py files and compile *.c files.
 
 2) To install everything in the site-packages directory as an xist/ package,
    run "python setup.py install".

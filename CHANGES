@@ -2,6 +2,15 @@ New in 0.5
 ----------
 New module for WML 1.3.
 
+Publishers now support a new parameter:
+usePrefix, which specifies if namespace prefixes
+should be output for the element names.
+
+Part of the implementation of the publishing
+stuff has been moved to C, so now you'll need
+a C compiler to install XIST.
+
+
 New in 0.4.7
 ------------
 Fixed a bug in the entity handling.
@@ -43,6 +52,7 @@ now works.)
 make.py includes a new option --path for adding directories
 to sys.path.
 
+
 New in 0.4.6
 ------------
 Now uses sgmlop.XMLParser instead of sgmlop.SGMLParser,
@@ -51,12 +61,14 @@ so case is preserved.
 Fixed another regression from the URL->string conversion
 change.
 
+
 New in 0.4.5
 ------------
 Converting URLs to Nodes is now done in ToNode,
 so URL objects can be used everywhere.
 
 Fixed a few bugs in Text._strtext and URLAttr._str.
+
 
 New in 0.4.4
 ------------
@@ -80,6 +92,7 @@ and entities sub and sup in html.py.
 Several small enhancements and bug fixes contributed by
 Hartmut Goebel.
 
+
 New in 0.4.3
 ------------
 Now processing instruction classes are registered in the
@@ -93,14 +106,14 @@ by a mixin class very similar to UserString. All this results
 in a speedup of about 10% for the python-quotes example.
 
 Small optimizations in the asHTML methods of Element and
-Frag optimize away many calls to append, extend as ToNode
+Frag optimize away many calls to append, extend and ToNode
 and result in a speedup of about 30% for the python-quotes
 example. One consequence of this is that Null objects will
 no longer be ignored.
 
+
 New in 0.4.2
 ------------
-
 New elements keywords and descrition in meta.py, that can be
 used from.
 
@@ -110,7 +123,6 @@ prevent an element from being registered works again.
 
 New in 0.4.1
 ------------
-
 A new module named meta has been created, that simplifies
 generating meta tags.
 
@@ -180,8 +192,8 @@ won't work
 ?>
 will.
 
-Make functionality has been moved to make.py, as using certain modules
-can't be used as the main script, because reimporting them in processing
+Make functionality has been moved to make.py, as certain modules can't
+be used as the main script, because reimporting them in processing
 instructions won't work. Now you can simply call
 python make.py --import xist.html --import project.main foo.xsc
 
@@ -194,6 +206,7 @@ There is a new module cond, that contains elements that can be used for conditio
 <else/>
 	baz
 </if>
+
 
 New in 0.3.9
 ------------

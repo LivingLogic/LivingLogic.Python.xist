@@ -14,9 +14,9 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
 import sys, types, array, codecs
-import xsc, options, utils, errors
+import xsc, options, utils, errors, helpers
 
-strescapes = (('&', 'amp'), ('<', 'lt'), ('>', 'gt'), ('"', 'quot'))
+strescapes = (u'&', u'<', u'>', u'"', u"'")
 
 class Publisher:
 	"""
@@ -26,7 +26,7 @@ class Publisher:
 	mapsLegal = {}
 	mapsIllegal = {}
 
-	def __init__(self, encoding=None, XHTML=None):
+	def __init__(self, encoding=None, XHTML=None, usePrefix=0):
 		"""
 		<par><argref>encoding</argref> specifies the encoding to be used.
 		The encoding itself (i.e. calling <code>encode</code> on the
@@ -51,6 +51,8 @@ class Publisher:
 		outputXHTML will be used, which defaults to 1, but can be overwritten
 		by the environment variable XSC_OUTPUT_XHTML and can of course be
 		changed dynamically.</par>
+
+		<par>usePrefixe specifies if the prefix from element name should be output too.</par>
 		"""
 		if encoding is None:
 			encoding = options.outputEncoding
@@ -60,11 +62,12 @@ class Publisher:
 		if XHTML<0 or XHTML>2:
 			raise ValueError("XHTML must be 0, 1 or 2")
 		self.XHTML = XHTML
+		self.usePrefix = usePrefix
 
-	def publish(self, text):
+	def publish(self, *texts):
 		"""
-		receives the string to be printed.
-		The string is still an unicode object, and you have to do the encoding yourself.
+		receives the strings to be printed.
+		The strings are still unicode objects, and you have to do the encoding yourself.
 		overwrite this method
 		"""
 		pass
@@ -75,8 +78,7 @@ class Publisher:
 		using character references for <code>&amp;lt;</code> etc. and non encodabel characters
 		is legal.
 		"""
-		for (c, ent) in strescapes:
-			text = text.replace(c, u"&" + ent + u";")
+		text = helpers.escapeText(text)
 
 		try:
 			text.encode(self.encoding)
@@ -96,7 +98,7 @@ class Publisher:
 		encodes the text <argref>text</argref> with the encoding <code><self/>.encoding</code>.
 		anything that requires a character reference (e.g. element names) is illegal.
 		"""
-		for (c, ent) in strescapes:
+		for c in strescapes:
 			if c in text:
 				raise errors.EncodingImpossibleError(None, self.encoding, text, c)
 
@@ -110,13 +112,14 @@ class FilePublisher(Publisher):
 	"""
 	writes the strings to a file.
 	"""
-	def __init__(self, file, encoding=None, XHTML=None):
-		Publisher.__init__(self, encoding=encoding, XHTML=XHTML)
+	def __init__(self, file, encoding=None, XHTML=None, usePrefix=0):
+		Publisher.__init__(self, encoding=encoding, XHTML=XHTML, usePrefix=usePrefix)
 		(encode, decode, streamReaderClass, streamWriterClass) = codecs.lookup(self.encoding)
 		self.file = streamWriterClass(file)
 
-	def publish(self, text):
-		self.file.write(text)
+	def publish(self, *texts):
+		for text in texts:
+			self.file.write(text)
 
 	def tell(self):
 		"""
@@ -128,8 +131,8 @@ class PrintPublisher(FilePublisher):
 	"""
 	writes the strings to <code>sys.stdout</code>.
 	"""
-	def __init__(self, encoding=None, XHTML=None):
-		FilePublisher.__init__(self, sys.stdout, encoding=encoding, XHTML=XHTML)
+	def __init__(self, encoding=None, XHTML=None, usePrefix=0):
+		FilePublisher.__init__(self, sys.stdout, encoding=encoding, XHTML=XHTML, usePrefix=usePrefix)
 
 class StringPublisher(Publisher):
 	"""
@@ -138,12 +141,12 @@ class StringPublisher(Publisher):
 	<methodref>asString</methodref>
 	"""
 
-	def __init__(self, XHTML=None):
-		Publisher.__init__(self, encoding="utf16", XHTML=XHTML)
+	def __init__(self, XHTML=None, usePrefix=0):
+		Publisher.__init__(self, encoding="utf16", XHTML=XHTML, usePrefix=usePrefix)
 		self.texts = []
 
-	def publish(self, text):
-		self.texts.append(text)
+	def publish(self, *texts):
+		self.texts.extend(texts)
 
 	def asString(self):
 		"""
@@ -159,12 +162,12 @@ class BytePublisher(Publisher):
 	string suitable for writing to a file.
 	"""
 
-	def __init__(self, encoding=None, XHTML=None):
-		Publisher.__init__(self, encoding=encoding, XHTML=XHTML)
+	def __init__(self, encoding=None, XHTML=None, usePrefix=0):
+		Publisher.__init__(self, encoding=encoding, XHTML=XHTML, usePrefix=usePrefix)
 		self.texts = []
 
-	def publish(self, text):
-		self.texts.append(text)
+	def publish(self, *texts):
+		self.texts.extend(texts)
 
 	def asBytes(self):
 		"""

@@ -5,7 +5,7 @@
 __version__ = "$Revision$"[11:-2]
 # $Source$
 
-from distutils.core import setup
+from distutils.core import setup, Extension
 
 setup(
 	name = "XIST",
@@ -15,5 +15,6 @@ setup(
 	author_email = "walter@livinglogic.de",
 	#url = "http://",
 	licence = "Python",
-	packages = ['xist']
+	packages = ['xist'],
+	ext_modules = [Extension("xist.helpers", ["xist/helpers.c"])]
 )
