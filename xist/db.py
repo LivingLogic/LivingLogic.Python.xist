@@ -11,6 +11,7 @@ __version__ = "$Revision$"[11:-2]
 import sys
 import os
 import string
+import types
 import xsc
 import html
 import specials
@@ -199,6 +200,98 @@ class template(xsc.Element):
 			targets[0].append(t)
 		return content.asHTML()
 xsc.registerElement(template)
+
+class SQLCommand:
+	"""
+	encapsulates an SQL command and provides a bunch of services for derived classes
+	"""
+
+	def formatValue(self,value):
+		t = type(value)
+		if t == types.NoneType:
+			return "NULL"
+		elif t == types.StringType:
+			return "'" + string.replace(value,"'","''") + "'"
+		elif t in [ types.IntType , types.LongType , types.FloatType ]:
+			return str(value)
+		else:
+			raise ValueError,"unrecognised type for database field"
+
+	def formatField(self,name,value,isTest = 0):
+		if value is None:
+			if isTest:
+				return name + " IS NULL"
+			else:
+				return name + "=NULL"
+		else:
+			return name + "=" + self.formatValue(value)
+
+	def formatFields(self,fields,isTest = 0):
+		v = []
+		for field in fields.keys():
+			v.append(self.formatField(field,fields[field],isTest))
+		if isTest:
+			return string.join(v," AND ")
+		else:
+			return string.join(v,",")
+
+	def do(self,connection):
+		return connection.query(str(self))
+
+class SQLInsert(SQLCommand):
+	"""
+	an update
+	"""
+	def __init__(self,table,set,where):
+		self.table = table
+		self.set = set
+		self.where = where
+
+	def __str__(self):
+		v = []
+		v.append("UPDATE " + table + " SET ")
+		v.append(self.formatFields(self.set,0))
+		if len(self.where.keys()):
+			v.append(" WHERE ")
+			v.append(self.formatFields(self.where,1))
+		v.append(";")
+		return string.join(v,"")
+
+class SQLUpdate(SQLCommand):
+	"""
+	an update
+	"""
+	def __init__(self,table,set,where):
+		self.table = table
+		self.set = set
+		self.where = where
+
+	def __str__(self):
+		v = []
+		v.append("UPDATE " + table + " SET ")
+		v.append(self.formatFields(self.set,0))
+		if len(self.where.keys()):
+			v.append(" WHERE ")
+			v.append(self.formatFields(self.where,1))
+		v.append(";")
+		return string.join(v,"")
+
+class SQLDelete(SQLCommand):
+	"""
+	an delete command
+	"""
+	def __init__(self,table,where):
+		self.table = table
+		self.where = where
+
+	def __str__(self):
+		v = []
+		v.append("DELETE FROM " + table)
+		if len(self.where.keys()):
+			v.append(" WHERE ")
+			v.append(self.formatFields(self.where,1))
+		v.append(";")
+		return string.join(v,"")
 
 if __name__ == "__main__":
 	xsc.make()
