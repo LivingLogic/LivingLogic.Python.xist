@@ -20,7 +20,7 @@ from ll.xist.ns import html, text, docbook, fo, specials, xml
 
 class base(xsc.Element):
 	"""
-	The base of all element classes. Used for dispatching the
+	The base of all element classes. Used for dispatching
 	to conversion targets.
 	"""
 	register = False
