@@ -1519,7 +1519,7 @@ class Element(Node):
 				v.append(strQuote(ansi = ansi))
 		return string.join(v,"")
 
-	def AddImageSizeAttributes(self,imgattr,widthattr = "width",heightattr = "height"):
+	def addImageSizeAttributes(self,imgattr,widthattr = "width",heightattr = "height"):
 		"""add width and height attributes to the element for the image that can be found in the attributes imgattr. if the attribute is already there it is taken as a formating template with the size passed in as a dictionary with the keys 'width' and 'height', i.e. you could make your image twice as wide with width='%(width)d*2'"""
 
 		if self.hasAttr(imgattr):

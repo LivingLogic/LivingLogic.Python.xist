@@ -489,7 +489,7 @@ class img(xsc.Element):
 
 	def asHTML(self):
 		e = self.clone()
-		e.AddImageSizeAttributes("src")
+		e.addImageSizeAttributes("src")
 
 		return e
 
