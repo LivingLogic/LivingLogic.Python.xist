@@ -1,4 +1,20 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
+<section><title>Migrating to version 2.9</title>
+
+<section><title>Changes to exceptions</title>
+<par>All exception classes have been moved from <module>ll.xist.errors</module>
+to <module>ll.xist.xsc</module>.</par>
+</section>
+
+<section><title>Changes to &xml; name handling</title>
+<par>The class attribute <lit>xmlname</lit> no longer gets replace with a tuple
+containing both the Python and the &xml; name. If you want to get the Python name,
+use <lit><rep>foo</rep>.__class__.__name__</lit>.</par>
+</section>
+
+</section>
+
+
 <section><title>Migrating to version 2.8</title>
 
 <section><title>Changes to display hooks</title>

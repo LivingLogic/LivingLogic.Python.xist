@@ -48,10 +48,7 @@ class pypilink(xsc.Element):
 	def convert(self, converter):
 		e = html.a(
 			self["name"],
-			href=(
-				"http://www.python.org/pypi?:action=display&amp;name=",
-				self["name"]
-			)
+			href=("http://www.python.org/pypi?:action=display&amp;name=", self["name"])
 		)
 		return e.convert(converter)
 

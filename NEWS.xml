@@ -14,6 +14,9 @@ result in a usable encoding, <lit>"utf-8"</lit> is used when parsing &xml;
 and <lit>iso-8859-1</lit> is used when parsing broken &html;.</item>
 <item><class>DeprecationWarning</class>s for <lit>name</lit> and
 <lit>attrHandlers</lit> have finally been removed.</item>
+<item>The content of <module>ll.xist.errors</module> has been moved into
+<module>ll.xist.xsc</module>. This avoids import problems with circular
+imports.</item>
 </ulist>
 </section>
 
