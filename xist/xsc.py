@@ -277,7 +277,7 @@ try:
 except KeyError:
 	repransiquote = "1;32"
 
-e ANSI escape sequence to be used for slashes in element names
+# ANSI escape sequence to be used for slashes in element names
 try:
 	repransislash = os.environ["XSC_REPRANSI_SLASH"]
 except KeyError:
