@@ -721,7 +721,148 @@ class Node:
 		node.endloc = self.endloc
 		return node
 
-class Text(Node):
+class StringMixIn:
+	"""
+	provides nearly the same functionality as <classref>UserString</classref>, but omits
+	a few methods (<code>__str__</code> etc.)
+	"""
+	def __init__(self, content):
+		self._content = content
+
+	def __iadd__(self, other):
+		other = ToNode(other)
+		if isinstance(other, self.__class__):
+			return self.__class__(self._content+other._content)
+		raise ValueError("you can only add a text to a text")
+
+	__add__ = __iadd__
+
+	def __radd__(self, other):
+		other = ToNode(other)
+		if isinstance(other, self.__class__):
+			return self.__class__(other._content+self._content)
+		raise ValueError("you can only add a text to a text")
+
+	def __imul__(self, n):
+		return self.__class__(self._content*n)
+
+	__mul__ = __imul__
+
+	def __cmp__(self, other):
+		if isinstance(other, self.__class__):
+			return cmp(self._content, other._content)
+		else:
+			return cmp(self._content, other)
+
+	def __contains__(self, char):
+		return char in self._content
+
+	def __hash__(self):
+		return hash(self._content)
+
+	def __len__(self):
+		return len(self._content)
+
+	def __getitem__(self, index):
+		return self._content[index]
+
+	def __getslice__(self, index1, index2):
+		return self.__class__(self._content[index1:index2])
+
+	def capitalize(self):
+		return self.__class__(self._content.capitalize())
+
+	def center(self, width):
+		return self.__class__(self._content.center(width))
+
+	def count(self, sub, start=0, end=sys.maxint):
+		return self._content.count(sub, start, end)
+
+	def endswith(self, suffix, start=0, end=sys.maxint):
+		return self._content.endswith(suffix, start, end)
+
+	def find(self, sub, start=0, end=sys.maxint):
+		return self._content.find(sub, start, end)
+
+	def index(self, sub, start=0, end=sys.maxint):
+		return self._content.index(sub, start, end)
+
+	def isalpha(self):
+		return self._content.isalpha()
+
+	def isalnum(self):
+		return self._content.isalnum()
+
+	def isdecimal(self):
+		return self._content.isdecimal()
+
+	def isdigit(self):
+		return self._content.isdigit()
+
+	def islower(self):
+		return self._content.islower()
+
+	def isnumeric(self):
+		return self._content.isnumeric()
+
+	def isspace(self):
+		return self._content.isspace()
+
+	def istitle(self):
+		return self._content.istitle()
+
+	def isupper(self):
+		return self._content.isupper()
+
+	def ljust(self, width):
+		return self.__class__(self._content.ljust(width))
+
+	def lower(self):
+		return self.__class__(self._content.lower())
+
+	def lstrip(self):
+		return self.__class__(self._content.lstrip())
+
+	def replace(self, old, new, maxsplit=-1):
+		return self.__class__(self._content.replace(old, new, maxsplit))
+
+	def rfind(self, sub, start=0, end=sys.maxint):
+		return self._content.rfind(sub, start, end)
+
+	def rindex(self, sub, start=0, end=sys.maxint):
+		return self._content.rindex(sub, start, end)
+
+	def rjust(self, width):
+		return self.__class__(self._content.rjust(width))
+
+	def rstrip(self):
+		return self.__class__(self._content.rstrip())
+
+	def split(self, sep=None, maxsplit=-1):
+		return Frag(self._content.split(sep, maxsplit))
+
+	def splitlines(self, keepends=0):
+		return Frag(self._content.splitlines(keepends))
+
+	def startswith(self, prefix, start=0, end=sys.maxint):
+		return self._content.startswith(prefix, start, end)
+
+	def strip(self):
+		return self.__class__(self._content.strip())
+
+	def swapcase(self):
+		return self.__class__(self._content.swapcase())
+
+	def title(self):
+		return self.__class__(self._content.title())
+
+	def translate(self, *args):
+		return self.__class__(self._content.translate(*args))
+
+	def upper(self):
+		return self.__class__(self._content.upper())
+
+class Text(Node, StringMixIn):
 	"""
 	text node. The characters <, >, & and " will be "escaped" with the
 	appropriate character entities.
@@ -733,10 +874,10 @@ class Text(Node):
 		elif type(content) in (types.StringType, types.UnicodeType):
 			content = stringFromCode(content)
 		elif isinstance(content, Text):
-			content = content.__content
+			content = content._content
 		else:
 			raise ValueError("content must be string, unicode, int, long, float or Text")
-		self.__content = content
+		StringMixIn.__init__(self,content)
 
 	def asHTML(self):
 		return self
@@ -744,34 +885,11 @@ class Text(Node):
 	clone = asHTML
 
 	def asPlainString(self):
-		return self.__content
+		return self._content
 
 	def publish(self, publisher):
-		publisher(publisher._encodeLegal(self.__content))
+		publisher(publisher._encodeLegal(self._content))
 
-	def __iadd__(self, other):
-		other = ToNode(other)
-		if isinstance(other, Text):
-			return Text(self.__content+other.__content)
-		raise ValueError("you can only add a text to a text")
-
-	def __mul__(self, n):
-		return Text(self.__content*n)
-
-	def __contains__(self, char):
-		return char in self.__content
-
-	def __hash__(self):
-		return hash(self.__content)
-
-	def __len__(self):
-		return len(self.__content)
-
-	def __getitem__(self, index):
-		return self.__content[index]
-
-	def __getslice__(self, index1, index2):
-		return Text(self.__content[index1:index2])
 
 	def __strtext(self, refwhite, content, encoding=None, ansi=None):
 		if encoding == None:
@@ -816,7 +934,7 @@ class Text(Node):
 		return self.__strtext(0, self.__content, encoding, ansi)
 
 	def _doreprtree(self, nest, elementno, encoding=None, ansi=None):
-		lines = self.__content.split("\n")
+		lines = self._content.split("\n")
 		if len(lines) and lines[-1] == "":
 			del lines[-1]
 		v = []
@@ -826,9 +944,9 @@ class Text(Node):
 		return v
 
 	def compact(self):
-		for i in self.__content:
+		for i in self._content:
 			if i not in string.whitespace:
-				return self._decorateNode(Text(self.__content))
+				return self._decorateNode(Text(self._content))
 		else:
 			return Null
 
