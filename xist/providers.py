@@ -35,13 +35,92 @@ def getURL():
 	else:
 		return url.URL("*/")
 
-class Provider(xsc.NestedNamespace):
+class NestedNamespace:
+	def __init__(self, parent=None):
+		self.server = "localhost"
+		if parent is None:
+			self.filenames = [url.URL("*/")]
+			self.namespaces = [xsc.namespace]
+		else:
+			self.filenames = [ parent.filenames[-1] ]
+			self.namespaces = parent.namespaces[:]
+
+	def pushURL(self, u):
+		u = url.URL(u)
+		if len(self.filenames):
+			u = self.filenames[-1] + u
+		self.filenames.append(u)
+
+	def popURL(self):
+		self.filenames.pop()
+
+	def pushNamespace(self, *namespaces):
+		for namespace in namespaces:
+			if type(namespace) is types.ModuleType:
+				namespace = namespace.namespace
+			self.namespaces.insert(0, namespace) # built in reverse order, so a simple "for in" finds the most recent entry.
+
+	def popNamespace(self, count):
+		del self.namespaces[:count]
+
+	def __nodeFromName(self, name, type):
+		# type==0 => element; type==1 => entity; type==2 => procinst
+		name = name.split(":")
+		if len(name) == 1: # no namespace specified
+			name.insert(0, None)
+		# search for the element
+		# first search the namespace stack (i.e. namespaces that are registered via the normal XML namespace mechanism)
+		# if the element can't be found, search all existing namespaces.
+		allnamespaces = self.namespaces+namespaceRegistry.byPrefix.values()
+		for namespace in allnamespaces:
+			if name[0] is None or name[0] == namespace.prefix:
+				try:
+					if type==0:
+						return namespace.elementsByName[name[1]]
+					elif type==1:
+						return namespace.entitiesByName[name[1]]
+					else: # if type==2:
+						return namespace.procInstsByName[name[1]]
+				except KeyError: # no element/entity in this namespace with this name
+					pass
+		if type==0:
+			raise errors.IllegalElementError(self.getLocation(), name) # elements with this name couldn't be found
+		elif type==1:
+			raise errors.IllegalEntityError(self.getLocation(), name) # entities with this name couldn't be found
+		else: # if type==2:
+			raise errors.IllegalProcInstError(self.getLocation(), name) # procinsts with this name couldn't be found
+
+	def elementFromName(self, name):
+		"""
+		returns the element class for the name name (which might include a namespace).
+		"""
+		return self.__nodeFromName(name, 0)
+
+	def entityFromName(self, name):
+		"""
+		returns the entity class for the name name (which might include a namespace).
+		"""
+		return self.__nodeFromName(name, 1)
+
+	def procInstFromName(self, name):
+		"""
+		returns the processing instruction class for the name name (which might include a namespace).
+		"""
+		return self.__nodeFromName(name, 2)
+
+	def getLocation(self):
+		return None
+
+class Provider(NestedNamespace):
 	"""
 	contains the parser and the options and functions for handling XML files
 	"""
 
-	def __init__(self):
-		xsc.NestedNamespace.__init__(self)
+	def __init__(self, encoding=None):
+		NestedNamespace.__init__(self)
+		if encoding is None:
+			encoding = "iso-8859-1" # We assume that all source code is in this encoding
+		self.encoding = encoding
 
 	def finish_starttag(self, name, attrs):
 		node = self.elementFromName(unicode(name, self.encoding))()
