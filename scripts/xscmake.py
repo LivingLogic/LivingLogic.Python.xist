@@ -66,7 +66,7 @@ def make(args):
 	"""
 	use XSC as a compiler script
 	"""
-	(options, args) = getopt.getopt(args, "p:i:o:e:x:m:f:r:n:F:t:s:l:", ["path=", "import=", "output=", "encoding=", "xhtml=", "mode=", "files=", "spacefiles=", "parser=", "namespace=", "target=", "stage=", "lang="])
+	(options, args) = getopt.getopt(args, "p:i:o:e:x:m:f:r:n:t:s:l:", ["path=", "import=", "output=", "encoding=", "xhtml=", "mode=", "files=", "parser=", "namespace=", "target=", "stage=", "lang="])
 
 	globaloutname = url.URL(scheme=u"root")
 	encoding = None
@@ -100,10 +100,6 @@ def make(args):
 			lang = value
 		elif option=="-f" or option=="--files":
 			for filename in open(value, "r").read().splitlines():
-				if filename != "":
-					files[filename] = None
-		elif option=="-F" or option=="--spacefiles":
-			for filename in open(value, "r").read().split():
 				if filename != "":
 					files[filename] = None
 		elif option=="-r" or option=="--parser":
