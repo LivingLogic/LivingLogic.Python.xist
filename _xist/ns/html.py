@@ -56,7 +56,7 @@ class MultiLengthAttr(xsc.TextAttr): "pixel, percentage, or relative"
 class PixelsAttr(xsc.IntAttr): "integer representing length in pixels"
 class ShapeAttr(xsc.TextAttr): "image shapes"; values = ("rect", "circle", "poly", "default")
 class CoordsAttr(xsc.TextAttr): "comma separated list of lengths"
-class ImgAlignAttr(xsc.TextAttr): "image alignment"; values = ("top", "middle", "bottom", "left", "right")
+class ImgAlignAttr(xsc.TextAttr): "image alignment"; values = ("top", "middle", "bottom", "left", "right", "absmiddle")
 class ColorAttr(xsc.ColorAttr): "a color using sRGB: #RRGGBB as Hex values"
 class TextAlignAttr(xsc.TextAttr): "text alignment"; values = ("left", "right", "center", "justify")
 class OLStyleAttr(xsc.TextAttr): values = "1aAiI"
