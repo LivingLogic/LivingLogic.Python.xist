@@ -21,8 +21,7 @@ import doc
 
 class base(xsc.Entity):
 	"""
-	The base of all entity classes. Used for dispatching the
-	to conversion targets.
+	The base of all entity classes in this namespace.
 	"""
 	register = False
 	content = None
