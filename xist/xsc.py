@@ -129,7 +129,7 @@ class IllegalElementError(Error):
 				elementnames.append(_strNode(_elementHandlers[elementname][namespace]))
 		elementnames.sort()
 
-		return Error.__str__(self) + "element " + _strName((name[0],name[1],0))+ " not allowed. Allowed elements are: " + string.join(elementnames,", ") + "."
+		return Error.__str__(self) + "element " + _strName((self.name[0],self.name[1],0))+ " not allowed. Allowed elements are: " + string.join(elementnames,", ") + "."
 
 class IllegalElementNestingError(Error):
 	"""
@@ -1580,8 +1580,8 @@ class URLAttr(Attr):
 
 	def append(self,other):
 		newother = ToNode(other)
-		if isinstance(newother,URL):
-			self[0] = newother.joined(self[0])
+		if isinstance(newother,URL) and len(self)>0 and isinstance(self[0],URL):
+			self[0] = self[0].joined(newother)
 		else:
 			Attr.append(self,newother)
 
@@ -1609,7 +1609,7 @@ class URLAttr(Attr):
 		if url.scheme == "server":
 			url = url.relativeTo(URL(scheme = "http",server = xsc.server))
 		else:
-			url = url.relativeTo(xsc.filename[-1])
+			url = url.relativeTo(xsc.infilename)
 		return str(url)
 
 	def ImageSize(self):
@@ -1775,8 +1775,9 @@ class XSC:
 	"""
 
 	def __init__(self):
-		self.filename = [ URL(scheme="project") ]
+		self.filename = [ URL(scheme = "project") ]
 		self.server = "localhost"
+		self.infilename = URL(scheme = "server",server = "localhost") # this is the filename that we are reading and will be set via make()
 		self.reprtree = 1
 		self.parser = Parser()
 
@@ -1796,26 +1797,18 @@ class XSC:
 		self.parser.close()
 		return self.parser.root
 
-	def parseFile(self,name):
-		"""
-		Reads and parses a XML file and returns the resulting XSC
-		"""
-		self.__pushName(name)
-		self.parser.reset()
-		self.parser.feed(open(name).read())
-		self.parser.close()
-		self.__popName()
-		return self.parser.root
-
-	def parseURL(self,url):
+	def parse(self,url):
 		"""
 		Reads and parses a XML file from an URL and returns the resulting XSC
 		"""
 		self.__pushName(url)
 		self.parser.reset()
-		self.parser.feed(urllib.urlopen(url).read())
+		url = URL()
+		for file in self.filename:
+			url = url.joined(file)
+		print url
+		self.parser.feed(urllib.urlopen(url.asPlainString()).read())
 		self.parser.close()
-		urllib.urlcleanup()
 		self.__popName()
 		return self.parser.root
 
@@ -1859,12 +1852,13 @@ def make():
 
 	infilename = sys.argv[1]
 	outfilename = sys.argv[2]
+	xsc.infilename = infilename
 	if len(outfilename) and outfilename[-1] == "/":
 		if infilename[-3:] == "hsc" or infilename[-3:] == "xsc":
 			outfilename = outfilename + infilename[:-3] + "html"
 		else:
 			outfilename = outfilename + infilename
-	e_in = xsc.parseFile(infilename)
+	e_in = xsc.parse(infilename)
 	e_out = e_in.asHTML()
 	__forceopen(outfilename,"wb").write(str(e_out))
 
