@@ -1,7 +1,5 @@
-import sys, types
-
 from xist import xsc, converters
-from xist.ns import html, specials, abbr, meta
+from xist.ns import html
 
 class itemizedlist(xsc.Element):
 	"""
