@@ -164,7 +164,7 @@ class pixel(html_.img):
 			e["width"] = 1
 		if not e.hasAttr("height"):
 			e["height"] = 1
-		e["src"] = ("root:Images/Pixels/", color, ".gif")
+		e["src"] = ("root:images/pixels/", color, ".gif")
 
 		return e.convert(converter)
 
