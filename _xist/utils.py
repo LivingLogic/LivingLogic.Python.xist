@@ -64,12 +64,15 @@ def replaceInitialURL(frag, callback):
 			break
 	else:
 		i += 1
-	u = url_.URL(newfrag.asPlainString())
-	u = callback(u)
-	newfrag = xsc.Frag(u.asString())
-	while i < len(frag):
-		newfrag.append(frag[i])
-		i += 1
-	return newfrag
+	if len(newFrag): # do the replacement only if we have something static
+		u = url_.URL(newfrag.asPlainString())
+		u = callback(u)
+		newfrag = xsc.Frag(u.asString())
+		while i < len(frag):
+			newfrag.append(frag[i])
+			i += 1
+		return newfrag
+	else:
+		return frag
 
 
