@@ -29,6 +29,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
 from ll.xist import xsc
+from ll.xist.ns import xml
 
 class DocType(xsc.DocType):
 	def __init__(self):
@@ -104,7 +105,7 @@ class user_struts_config(xsc.Element):
 
 	def convert(self, converter):
 		e = xsc.Frag(
-			xsc.XML10(),
+			xml.XML10(),
 			u"\n",
 			DocType(),
 			u"\n",
