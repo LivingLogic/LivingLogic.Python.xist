@@ -21,7 +21,7 @@ class page(xsc.Element):
 			h.append(html.meta(http_equiv="keywords",content=self["keywords"]))
 		if self.has_attr("description"):
 			h.append(html.meta(http_equiv="description",content=self["description"]))
-		b = specials.plainbody(bgcolor="#fff",text="#000",link="#c63",vlink="#999")
+		b = specials.plainbody(bgcolor="#ffffff",text="#000000",link="#cc6633",vlink="#999999")
 		if self.has_attr("class"):
 			b["class"] = self["class"]
 		if self.has_attr("onload"):
@@ -29,6 +29,23 @@ class page(xsc.Element):
 
 		mylinks = self.elements(element = links)[0].content
 		mycontent = self.elements(element = content)[0].content
+
+		if self.has_attr("nohome"):
+			myhome = xsc.Null()
+		else:
+			myhome = navigation(href = ":index.shtml",img = "home",text = "Startseite")
+		if self.has_attr("nofaq"):
+			myfaq = xsc.Null()
+		else:
+			myfaq = navigation(href = ":trv/faq.html",img = "faq",text = "FAQ")
+		if self.has_attr("nositemap"):
+			mysitemap = xsc.Null()
+		else:
+			mysitemap = navigation(href = ":sitemap.html",img = "sitemap",text = "Sitemap")
+		if self.has_attr("nosearch"):
+			mysearch = xsc.Null()
+		else:
+			mysearch = navigation(href = ":search.html",img = "search",text = "Suchen")
 
 		b.append(
 			specials.plaintable(
@@ -44,7 +61,7 @@ class page(xsc.Element):
 							mylinks+
 							fileinfo()+
 							html.tr(html.td(html.img(src = ":images/ecke_links.gif",alt = ""),colspan = "4",align = "right")),
-							Class = "links",bgcolor = "#336"
+							Class = "links",bgcolor = "#333366"
 						),
 						valign = "top"
 					)+
@@ -54,10 +71,7 @@ class page(xsc.Element):
 								html.td(
 									specials.plaintable(
 										html.tr(
-											navigation(href = ":index.shtml" ,img = "home"   ,text = "Startseite")+
-											navigation(href = ":trv/faq.html",img = "faq"    ,text = "FAQ"       )+
-											navigation(href = ":sitemap.html",img = "sitemap",text = "Sitemap"   )+
-											navigation(href = ":search.html" ,img = "search" ,text = "Suchen"    )+
+											myhome+myfaq+mysitemap+mysearch+
 											html.td(html.img(src = ":images/ecke_biglinks.gif",alt = ""))
 										)
 									),
@@ -65,14 +79,14 @@ class page(xsc.Element):
 								)
 							)+
 							html.tr(
-								html.td(html.img(src = ":images/ecke_content.gif",alt = ""),colspan = "3",valign = "top",align = "left",bgcolor = "#fff")
+								html.td(html.img(src = ":images/ecke_content.gif",alt = ""),colspan = "3",valign = "top",align = "left",bgcolor = "#ffffff")
 							)+
 							html.tr(
-								html.td(specials.pixel(width = "30"),bgcolor = "#fff")+
-								html.td(mycontent,bgcolor = "#fff",valign = "top")+
-								html.td(specials.pixel(width = "30"),bgcolor = "#fff")
+								html.td(specials.pixel(width = "30"),bgcolor = "#ffffff")+
+								html.td(mycontent,bgcolor = "#ffffff",valign = "top")+
+								html.td(specials.pixel(width = "30"),bgcolor = "#ffffff")
 							)+
-							html.tr(html.td(specials.pixel(height = "30"),colspan = "3",bgcolor = "#fff"))
+							html.tr(html.td(specials.pixel(height = "30"),colspan = "3",bgcolor = "#ffffff"))
 						),
 						align = "left",valign = "top"
 					)
@@ -83,9 +97,6 @@ class page(xsc.Element):
 		e = xsc.DocType('HTML PUBLIC "-//W3C//DTD HTML 4.0 transitional//EN"')+html.html(h+b)
 
 		return e.asHTML()
-
-#		navhome = navigation(href=":index.html",img="home",text="Startseite")
-
 xsc.registerElement(page)
 
 class blankpage(xsc.Element):
@@ -99,7 +110,7 @@ class blankpage(xsc.Element):
 				html.script(type="text/javascript",language="Javascript",src=":javascripts/main.js")+
 				html.link(rel="made",href="mailto:html@bnbt.de")
 			)+
-			specials.plainbody(self.content.clone(),bgcolor="#fff")
+			specials.plainbody(self.content.clone(),bgcolor="#ffffff")
 		)
 
 		return e.asHTML()
@@ -134,6 +145,7 @@ class pfeil(html.img):
 	attr_handlers = xsc.appendDict(html.img.attr_handlers,{ "rel" : xsc.TextAttr })
 	
 	def asHTML(self):
+		alts = { "home" : "-> Startseite" , "child" : "-> Untergeordnete Seite" , "parent" : "-> Übergeordnete Seite" , "next" : "-> Nächste Seite" , "previous" : "-> Vorherige Seite" , "info" : "-> Seiteninformation" , "download" : "-> Download" }
 		e = html.img(self.content.clone(),border = "0")
 		rel = None
 		for attr in self.attrs.keys():
@@ -143,6 +155,7 @@ class pfeil(html.img):
 				e[attr] = self[attr]
 		if rel is not None:
 			e["src"] = [":images/links/" , rel , ".gif" ]
+			e["alt"] = alts[str(rel)]
 
 		return e.asHTML()
 xsc.registerElement(pfeil)
@@ -543,20 +556,19 @@ class fileinfo(xsc.Element):
 
 	def asHTML(self):
 		e = html.tr(
-			html.td(indent(),rowspan=3) +
-			html.td(html.div(pfeil(rel="info") + specials.nbsp(),Class="lnk-title"),nowrap="") +
-			html.td(html.div("Letzte Änderung",Class="lnk-title"),nowrap="") +
+			html.td(indent(),rowspan = "3") +
+			html.td(html.div(pfeil(rel = "info") + specials.nbsp(),Class = "lnk-title"),nowrap = None,Class = "links") +
+			html.td(html.div("Letzte Änderung",Class = "lnk-title"),nowrap = None,Class = "links") +
 			html.td(indent())
 		)+html.tr(
 			html.td(specials.pixel()) +
-			html.td(specials.pixel(),colspan="2",bgcolor="#fff")
+			html.td(specials.pixel(),colspan = "2",bgcolor = "#ffffff")
 		)+html.tr(
 			html.td(specials.pixel())+
-			html.td(html.div("Now" + html.br() + html.a(href="mailto:webmaster@bnbt.de"),Class="lnk-text"),nowrap="")
+			html.td(html.div("Now" + html.br() + html.a(href = "mailto:webmaster@bnbt.de"),Class = "info-text"),nowrap = None,Class = "links")+
+			html.td(specials.pixel())
 		)+html.tr(
-			html.td(specials.pixel(height="10"))
-		)+html.tr(
-			html.td(specials.pixel(),colspan="4")
+			html.td(specials.pixel(),colspan = "4")
 		)
 
 		return e.asHTML()
@@ -568,26 +580,24 @@ class navigation(xsc.Element):
 
 	def asHTML(self):
 		e = html.td(
-			specials.nbsp()+
-			specials.nbsp()+
-			specials.nbsp(),
+			specials.pixel(width = "30"),
 			Class="links",
-			bgcolor="#336"
+			bgcolor="#333366"
 		)
 		e = e + html.td(
 			html.span(
 				specials.nbsp()+
 				html.br()+
 				hrf(
-					html.img(src = ":images/biglinks/" + self["img"] + ".gif"),
+					html.img(src = ":images/biglinks/" + self["img"] + ".gif",border = "0",alt = "")+
+					html.br()+
+					self["text"],
 					href = self["href"]
-				)+
-				html.br()+
-				self["text"],
+				),
 				Class="biglink"
 			),
 			Class="links",
-			bgcolor="#336",
+			bgcolor="#333366",
 			valign="middle",
 			align="center"
 		)
@@ -605,8 +615,13 @@ class bytes(xsc.Element):
 xsc.registerElement(bytes)
 
 class hrf(xsc.Element):
-	attr_handlers = { "rel" : xsc.TextAttr , "href" : xsc.URLAttr , "off" : xsc.TextAttr , "class" : xsc.TextAttr , "target" : xsc.TextAttr }
+	attr_handlers = { "rel" : xsc.TextAttr , "href" : xsc.URLAttr , "class" : xsc.TextAttr , "target" : xsc.TextAttr }
 	empty = 0
+
+	def asHTML(self):
+		e = html.a(self.content,self.attrs)
+
+		return e.asHTML()
 xsc.registerElement(hrf)
 
 class lnk(xsc.Element):
@@ -614,27 +629,33 @@ class lnk(xsc.Element):
 	empty = 0
 
 	def asHTML(self):
-		pfeil = None
-		text = html.div(
-			hrf(
-				self["text"],
-				href = self["href"]
-			)
-		)
 		if self.has_attr("rel"):
-			pfeil = html.div(
-				hrf(
-					pfeil(rel = self["rel"]),
-					href = self["href"],
-					rel  = self["rel"]
-				)+
-				nbsp()
-			)
-			text[0]["rel"] = self["rel"]
+			rel = self["rel"]
+		else:
+			rel = "child"
+
 		e = html.tr(
 			html.td(indent(),rowspan="3")+
-			html.td(pfeil,Class = "links")+
-			html.td(text)+
+			html.td(
+				html.div(
+					hrf(
+						pfeil(rel = rel),
+						href = self["href"],
+						rel  = rel
+					)+
+					specials.nbsp()
+				),
+				Class = "links"
+			)+
+			html.td(
+				html.div(
+					hrf(
+						self["text"],
+						href = self["href"],
+						rel = rel
+					)
+				)
+			)+
 			html.td(indent(),Class = "links",nowrap = None)
 		)
 		e = e + html.tr(
@@ -644,7 +665,7 @@ class lnk(xsc.Element):
 			html.td(
 				specials.pixel(),
 				colspan = "2",
-				bgcolor = "#fff"
+				bgcolor = "#ffffff"
 			)
 		)
 
@@ -667,7 +688,8 @@ class lnk(xsc.Element):
 				)+
 				html.tr(
 					html.td(
-						specials.pixel(height="20")
+						specials.pixel(height="20"),
+						colspan = "4"
 					)
 				)
 			)
