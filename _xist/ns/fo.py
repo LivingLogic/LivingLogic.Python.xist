@@ -511,6 +511,14 @@ class active_state(xsc.Element.Attrs):
 		xmlname = "active-state"
 		values = ("link", "visited", "active", "hover", "focus")
 
+class float(xsc.Element.Attrs):
+	class float(xsc.TextAttr):
+		values = ("start", "end", "left", "right", "both", "none", "inherit")
+
+class clear(xsc.Element.Attrs):
+	class clear(xsc.TextAttr):
+		values = ("start", "end", "left", "right", "both", "none", "inherit")
+
 class common_margin_properties_block(xsc.Element.Attrs):
 	class margin_top(xsc.TextAttr): xmlname = "margin-top"
 	class margin_bottom(xsc.TextAttr): xmlname = "margin-bottom"
@@ -1676,4 +1684,127 @@ class fo(xsc.Namespace):
 			active_state):
 			pass
 
+	class float(xsc.Element):
+		empty = False
+		class Attrs(
+			float,
+			clear):
+			pass
 
+	class footnote(xsc.Element):
+		empty = False
+		class Attrs(
+			common_accessibility_properties
+			):
+			pass
+
+	class footnote_body(xsc.Element):
+		xmlname = "footnote-body"
+		empty = False
+		class Attrs(
+			common_accessibility_properties
+			):
+			pass
+
+	class wrapper(xsc.Element):
+		empty = False
+		class Attrs(
+			common_absolute_position_properties,
+			common_accessibility_properties,
+			common_aural_properties,
+			common_border_padding_background_properties,
+			common_font_properties,
+			common_hyphenation_properties,
+			common_margin_properties_block,
+			common_margin_properties_inline,
+			common_relative_position_properties,
+			alignment_adjust,
+			alignment_baseline,
+			baseline_shift,
+			block_progression_dimension,
+			border_after_precedence,
+			border_before_precedence,
+			border_collapse,
+			border_end_precedence,
+			border_separation,
+			border_start_precedence,
+			break_after,
+			break_before,
+			caption_side,
+			character,
+			clip,
+			color,
+			content_height,
+			content_type,
+			content_width,
+			destination_placement_offset,
+			direction,
+			display_align,
+			dominant_baseline,
+			external_destination,
+			glyph_orientation_horizontal,
+			glyph_orientation_vertical,
+			height,
+			hyphenation_keep,
+			hyphenation_ladder_count,
+			id,
+			indicate_destination,
+			inline_progression_dimension,
+			internal_destination,
+			intrusion_displace,
+			keep_together,
+			keep_with_next,
+			keep_with_previous,
+			last_line_end_indent,
+			leader_alignment,
+			leader_length,
+			leader_pattern,
+			leader_pattern_width,
+			letter_spacing,
+			line_height,
+			line_height_shift_adjustment,
+			line_stacking_strategy,
+			linefeed_treatment,
+			orphans,
+			overflow,
+			provisional_distance_between_starts,
+			provisional_label_separation,
+			ref_id,
+			reference_orientation,
+			rule_style,
+			rule_thickness,
+			scaling,
+			scaling_method,
+			score_spaces,
+			show_destination,
+			span,
+			src,
+			suppress_at_line_break,
+			switch_to,
+			table_layout,
+			table_omit_footer_at_break,
+			table_omit_header_at_break,
+			target_presentation_context,
+			target_processing_context,
+			target_stylesheet,
+			text_align,
+			text_align_last,
+			text_altitude,
+			text_decoration,
+			text_depth,
+			text_indent,
+			text_shadow,
+			text_transform,
+			treat_as_word_space,
+			unicode_bidi,
+			visibility,
+			white_space_collapse,
+			white_space_treatment,
+			widows,
+			width,
+			word_spacing,
+			wrap_option,
+			writing_mode,
+			z_index
+			):
+			pass
