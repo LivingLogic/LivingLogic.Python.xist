@@ -95,6 +95,9 @@ now works.)
 make.py includes a new option --path for adding directories
 to sys.path.
 
+xsc.Frag and xsc.Element have a new method sorted, that
+returns a sorted version of the Frag/Element.
+
 
 New in 0.4.6
 ------------
