@@ -1729,7 +1729,7 @@ class URLAttr(Attr):
 	def __init__(self, *_content):
 		self.base = xsc.filenames[-1]
 		if len(_content) == 1 and isinstance(_content[0], url.URL):
-			Attr.__init__(self, _content[0].relativeTo(self.base).asString())
+			Attr.__init__(self, _content[0].asString())
 		else:
 			Attr.__init__(self, *_content)
 
