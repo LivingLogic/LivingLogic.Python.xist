@@ -637,7 +637,7 @@ class Node(Base):
 		"""
 		raise NotImplementedError("publish method not implemented in %s" % self.__class__.__name__)
 
-	def asString(self, base=None, publisher=None, **kwargs):
+	def asString(self, base=None, publisher=None, **publishargs):
 		"""
 		<par>returns this element as a unicode string.</par>
 
@@ -646,12 +646,12 @@ class Node(Base):
 		"""
 		stream = cStringIO.StringIO()
 		if publisher is None:
-			publisher = publishers.Publisher(**kwargs)
+			publisher = publishers.Publisher(**publishargs)
 		publisher.encoding = "utf-8"
 		publisher.dopublication(stream, self, base)
 		return stream.getvalue().decode("utf-8")
 
-	def asBytes(self, base=None, publisher=None, **kwargs):
+	def asBytes(self, base=None, publisher=None, **publishargs):
 		"""
 		<par>returns this element as a byte string suitable for writing
 		to an &html; file or printing from a CGI script.</par>
@@ -661,11 +661,11 @@ class Node(Base):
 		"""
 		stream = cStringIO.StringIO()
 		if publisher is None:
-			publisher = publishers.Publisher(**kwargs)
+			publisher = publishers.Publisher(**publishargs)
 		publisher.dopublication(stream, self, base)
 		return stream.getvalue()
 
-	def write(self, stream, base=None, publisher=None, **kwargs):
+	def write(self, stream, base=None, publisher=None, **publishargs):
 		"""
 		<par>writes the element to the file like object <arg>stream</arg>.</par>
 
@@ -673,7 +673,7 @@ class Node(Base):
 		see the <pyref module="ll.xist.publishers" class="Publisher"><class>ll.xist.publishers.Publisher</class></pyref> constructor.</par>
 		"""
 		if publisher is None:
-			publisher = publishers.Publisher(**kwargs)
+			publisher = publishers.Publisher(**publishargs)
 		publisher.dopublication(stream, self, base)
 
 	def _walk(self, filter, path, filterpath, walkpath, skiproot):
