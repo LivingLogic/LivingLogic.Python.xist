@@ -199,9 +199,6 @@ class Elements(object):
 		"""
 		self.elements = elements
 
-	def __repr__(self):
-		return "<%s.%s object with elements (%s) at 0x%x>" % (self.__module__, self.__class__.__name__, ", ".join([x.__name__ for x in self.elements]), id(self))
-
 	def _checkelement(self, node, child):
 		if samens(node, child):
 			if not isinstance(child, self.elements):
