@@ -64,16 +64,15 @@ def ToNode(value):
 ###
 
 # XPython support
-if iexec is not None:
-	def append(*args, **kwargs):
-		node = iexec.getinstance((converters.Converter, Frag, Element))
-		if node is not None:
-			if isinstance(node, converters.Converter):
-				node.node.append(*args)
-			elif isinstance(node, Frag):
-				node(*args)
-			else:
-				node(*args, **kwargs)
+def append(*args, **kwargs):
+	node = iexec.getinstance((converters.Converter, Frag, Element)) # requires XPython
+	if node is not None:
+		if isinstance(node, converters.Converter):
+			node.node.append(*args)
+		elif isinstance(node, Frag):
+			node(*args)
+		else:
+			node(*args, **kwargs)
 
 
 ###
@@ -2401,9 +2400,9 @@ class Element(Node):
 
 			return self.filtered(keep)
 
-	if iexec is not None:
-		def __enter__(self):
-			append(self)
+	# XPython support
+	def __enter__(self):
+		append(self)
 
 	def __init__(self, *content, **attrs):
 		"""
