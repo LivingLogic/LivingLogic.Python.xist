@@ -253,32 +253,34 @@ def getANSICodesFromEnv(name,default):
 		var = [ var, var ]
 	return var
 
-retrieveremote = getIntFromEnv("XSC_RETRIEVEREMOTE",1)                                          # should remote URLs be retrieved? (for filesize and imagesize tests)
-retrievelocal = getIntFromEnv("XSC_RETRIEVELOCAL",1)                                            # should local URLs be retrieved? (for filesize and imagesize tests)
-reprcharreflowerlimit = getIntFromEnv("XSC_REPRCHARREFLOWERLIMIT",128)                          # chracters with an ASCII (or Unicode) code above reprcharreflowerlimit wll be dumped as charcter references
-repransi = getIntFromEnv("XSC_REPRANSI",0)                                                      # should ANSI escape sequences be used for dumping the DOM tree and which ones? (0=off,1=dark background,2=light background)
-reprtab = getStringFromEnv("XSC_REPRTAB",". ")                                                  # how to represent an indentation in the DOM tree?
-repransitab = getANSICodesFromEnv("XSC_REPRANSI_TAB",[ "1;34","37" ])                           # ANSI escape sequence to be used for tabs
-repransiquote = getANSICodesFromEnv("XSC_REPRANSI_QUOTE",[ "1;32","32" ])                       # ANSI escape sequence to be used for quotes (delimiters for text and attribute nodes)
-repransislash = getANSICodesFromEnv("XSC_REPRANSI_SLASH",[ "","" ])                             # ANSI escape sequence to be used for slashes in element names
-repransibracket = getANSICodesFromEnv("XSC_REPRANSI_BRACKET",[ "1;32","32" ])                   # ANSI escape sequence to be used for brackets (delimiters for tags)
-repransiquestion = getANSICodesFromEnv("XSC_REPRANSI_QUESTION",[ "1;32","1;32" ])               # ANSI escape sequence to be used for question marks (delimiters for processing instructions)
-repransiexclamation = getANSICodesFromEnv("XSC_REPRANSI_EXCLAMATION",[ "1;32","1;32" ])         # ANSI escape sequence to be used for exclamation marks (used in comments and doctypes)
-repransitext = getANSICodesFromEnv("XSC_REPRANSI_TEXT",[ "","" ])                               # ANSI escape sequence to be used for text
-repransicharref = getANSICodesFromEnv("XSC_REPRANSI_CHARREF",[ "37","34" ])                     # ANSI escape sequence to be used for character references
-repransielementnamespace = getANSICodesFromEnv("XSC_REPRANSI_ELEMENTNAMESPACE",[ "1;36","36" ]) # ANSI escape sequence to be used for element namespaces
-repransielementname = getANSICodesFromEnv("XSC_REPRANSI_ELEMENTNAME",[ "1;36","36" ])           # ANSI escape sequence to be used for element names
-repransiattrname = getANSICodesFromEnv("XSC_REPRANSI_ATTRNAME",[ "1;36","36" ])                 # ANSI escape sequence to be used for attribute names
-repransidoctypemarker = getANSICodesFromEnv("XSC_REPRANSI_DOCTYPEMARKER",[ "1","1" ])           # ANSI escape sequence to be used for document types marker (i.e. !DOCTYPE)
-repransidoctypetext = getANSICodesFromEnv("XSC_REPRANSI_DOCTYPETEXT",[ "","" ])                 # ANSI escape sequence to be used for document types
-repransicommentmarker = getANSICodesFromEnv("XSC_REPRANSI_COMMENTMARKER",[ "","" ])             # ANSI escape sequence to be used for comment markers (i.e. --)
-repransicommenttext = getANSICodesFromEnv("XSC_REPRANSI_COMMENTTEXT",[ "","" ])                 # ANSI escape sequence to be used for comment text
-repransiattrvalue = getANSICodesFromEnv("XSC_REPRANSI_ATTRVALUE",[ "","" ])                     # ANSI escape sequence to be used for attribute values
-repransiurl = getANSICodesFromEnv("XSC_REPRANSI_URL",[ "1;33","33" ])                           # ANSI escape sequence to be used for URLs
-repransiprocinsttarget = getANSICodesFromEnv("XSC_REPRANSI_PROCINSTTARGET",[ "1;31","1;31" ])   # ANSI escape sequence to be used for processing instruction targets
-repransiprocinstdata = getANSICodesFromEnv("XSC_REPRANSI_PROCINSTDATA",[ "","" ])               # ANSI escape sequence to be used for processing instruction data
-outputXHTML = getIntFromEnv("XSC_OUTPUT_XHTML",1)                                               # XHTML output format (0 = plain HTML, 1 = HTML compatible XHTML, 2 = pure XHTML)
-outputEncoding = getStringFromEnv("XSC_OUTPUT_ENCODING","us-ascii")                             # Encoding to be used in publish() (and asString())
+retrieveremote = getIntFromEnv("XSC_RETRIEVEREMOTE",1)                                        # should remote URLs be retrieved? (for filesize and imagesize tests)
+retrievelocal = getIntFromEnv("XSC_RETRIEVELOCAL",1)                                          # should local URLs be retrieved? (for filesize and imagesize tests)
+reprcharreflowerlimit = getIntFromEnv("XSC_REPRCHARREFLOWERLIMIT",128)                        # chracters with an ASCII (or Unicode) code above reprcharreflowerlimit wll be dumped as charcter references
+repransi = getIntFromEnv("XSC_REPRANSI",0)                                                    # should ANSI escape sequences be used for dumping the DOM tree and which ones? (0=off,1=dark background,2=light background)
+reprtab = getStringFromEnv("XSC_REPRTAB","··")                                                # how to represent an indentation in the DOM tree?
+repransitab = getANSICodesFromEnv("XSC_REPRANSI_TAB",[ "1;30","37" ])                         # ANSI escape sequence to be used for tabs
+repransiquote = getANSICodesFromEnv("XSC_REPRANSI_QUOTE",[ "1;32","32" ])                     # ANSI escape sequence to be used for quotes (delimiters for text and attribute nodes)
+repransislash = getANSICodesFromEnv("XSC_REPRANSI_SLASH",[ "","" ])                           # ANSI escape sequence to be used for slashes in element names
+repransibracket = getANSICodesFromEnv("XSC_REPRANSI_BRACKET",[ "1;32","32" ])                 # ANSI escape sequence to be used for brackets (delimiters for tags)
+repransicolon = getANSICodesFromEnv("XSC_REPRANSI_COLON",[ "1;32","1;32" ])                   # ANSI escape sequence to be used for colon (i.e. namespace separator)
+repransiquestion = getANSICodesFromEnv("XSC_REPRANSI_QUESTION",[ "1;32","1;32" ])             # ANSI escape sequence to be used for question marks (delimiters for processing instructions)
+repransiexclamation = getANSICodesFromEnv("XSC_REPRANSI_EXCLAMATION",[ "1;32","1;32" ])       # ANSI escape sequence to be used for exclamation marks (used in comments and doctypes)
+repransitext = getANSICodesFromEnv("XSC_REPRANSI_TEXT",[ "","" ])                             # ANSI escape sequence to be used for text
+repransicharref = getANSICodesFromEnv("XSC_REPRANSI_CHARREF",[ "1;37","34" ])                 # ANSI escape sequence to be used for character references
+repransinamespace = getANSICodesFromEnv("XSC_REPRANSI_NAMESPACE",[ "1;37","36" ])             # ANSI escape sequence to be used for namespaces
+repransielementname = getANSICodesFromEnv("XSC_REPRANSI_ELEMENTNAME",[ "1;36","36" ])         # ANSI escape sequence to be used for element names
+repransientityname = getANSICodesFromEnv("XSC_REPRANSI_ENTITYNAME",[ "1;37","34" ])           # ANSI escape sequence to be used for entity names
+repransiattrname = getANSICodesFromEnv("XSC_REPRANSI_ATTRNAME",[ "1;36","36" ])               # ANSI escape sequence to be used for attribute names
+repransidoctypemarker = getANSICodesFromEnv("XSC_REPRANSI_DOCTYPEMARKER",[ "1","1" ])         # ANSI escape sequence to be used for document types marker (i.e. !DOCTYPE)
+repransidoctypetext = getANSICodesFromEnv("XSC_REPRANSI_DOCTYPETEXT",[ "","" ])               # ANSI escape sequence to be used for document types
+repransicommentmarker = getANSICodesFromEnv("XSC_REPRANSI_COMMENTMARKER",[ "","" ])           # ANSI escape sequence to be used for comment markers (i.e. --)
+repransicommenttext = getANSICodesFromEnv("XSC_REPRANSI_COMMENTTEXT",[ "","" ])               # ANSI escape sequence to be used for comment text
+repransiattrvalue = getANSICodesFromEnv("XSC_REPRANSI_ATTRVALUE",[ "","" ])                   # ANSI escape sequence to be used for attribute values
+repransiurl = getANSICodesFromEnv("XSC_REPRANSI_URL",[ "1;33","33" ])                         # ANSI escape sequence to be used for URLs
+repransiprocinsttarget = getANSICodesFromEnv("XSC_REPRANSI_PROCINSTTARGET",[ "1;31","1;31" ]) # ANSI escape sequence to be used for processing instruction targets
+repransiprocinstdata = getANSICodesFromEnv("XSC_REPRANSI_PROCINSTDATA",[ "","" ])             # ANSI escape sequence to be used for processing instruction data
+outputXHTML = getIntFromEnv("XSC_OUTPUT_XHTML",1)                                             # XHTML output format (0 = plain HTML, 1 = HTML compatible XHTML, 2 = pure XHTML)
+outputEncoding = getStringFromEnv("XSC_OUTPUT_ENCODING","us-ascii")                           # Encoding to be used in publish() (and asString())
 
 ###
 ### helpers
@@ -292,11 +294,32 @@ def _stransi(codes,string,ansi = None):
 	else:
 		return string
 
-def strElementNameSpace(elementnamespace,ansi = None):
-	return _stransi(repransielementnamespace,elementnamespace,ansi)
+def strNamespace(namespace,ansi = None):
+	return _stransi(repransinamespace,namespace,ansi)
 
 def strElementName(elementname,ansi = None):
 	return _stransi(repransielementname,elementname,ansi)
+
+def strElement(namespacename,elementname,empty = 0,ansi = None):
+	s = strBracketOpen()
+	if namespacename is not None:
+		s = s + strNamespace(namespacename,ansi) + strColon(ansi)
+	s = s + strElementName(elementname,ansi)
+	if empty:
+		s = s + strSlash(ansi)
+	s = s + strBracketClose(ansi)
+	return s
+
+def strEntityName(entityname,ansi = None):
+	return _stransi(repransientityname,entityname,ansi)
+
+def strEntity(namespacename,entityname,ansi = None):
+	s = "&"
+	if namespacename is not None:
+		s = s + strNamespace(namespacename,ansi) + strColon(ansi)
+	s = s + strEntityName(entityname,ansi)
+	s = s + ";"
+	return s
 
 def strAttrName(attrname,ansi = None):
 	return _stransi(repransiattrname,attrname,ansi)
@@ -337,6 +360,9 @@ def strBracketOpen(attrname,ansi = None):
 def strBracketClose(attrname,ansi = None):
 	return _stransi(repransibracket,">",ansi)
 
+def strColon(attrname,ansi = None):
+	return _stransi(repransicolon,":",ansi)
+
 def strQuestion(ansi = None):
 	return _stransi(repransiquestion,"?",ansi)
 
@@ -358,11 +384,11 @@ def nodeName(nodeClass):
 	Note that for this to work the element has to be registered.
 	"""
 	try:
-		namespacename = nodeClass.namespacename
+		namespacename = nodeClass.namespace.prefix
 	except AttributeError:
 		namespacename = "xsc" # this is (hopefully) an XSC class
 	try:
-		elementname = nodeClass.elementname
+		elementname = nodeClass.name
 	except AttributeError:
 		elementname = nodeClass.__name__
 
@@ -380,7 +406,7 @@ def _strName(nodeName,content = None,brackets = 1,slash = None,ansi = None):
 		s = s + strSlash(ansi)
 	if nodeName is not None:
 		if nodeName[0]:
-			s = s + strElementNameSpace(nodeName[0],ansi) + ":"
+			s = s + strNamespace(nodeName[0],ansi) + ":"
 		s = s + strElementName(nodeName[1],ansi)
 	if content is not None and slash>=0:
 		s = s + content
@@ -405,7 +431,7 @@ def ToNode(value):
 	"""
 	<par noindent>convert the <argref>value</argref> passed in to a XSC <classref>Node</classref>.</par>
 
-	<par>If <argref>value</argref> is a tuple or list, it will be (recursivly) converted
+	<par>If <argref>value</argref> is a tuple or list, it will be (recursively) converted
 	to a node. Integers, strings, etc. will be converted to a <classref>Text</classref>.
 	If <argref>value</argref> is a <classref>Node</classref> already, nothing will be done.
 	In the case of <code>Null</code> the XSC Null (<code>xsc.Null</code>) will be returned).
@@ -496,7 +522,7 @@ class Node:
 			lenelementno = max(lenelementno,len(line[2]))
 
 		for line in lines:
-			v.append("%*s %-*s %s\n" % (lenloc,line[1],lenelementno,line[2],line[3]))
+			v.append("%*s %-*s %s\n" % (lenloc, line[1], lenelementno, line[2], line[3]))
 		return string.join(v,"")
 
 	def _dorepr(self,ansi = None):
@@ -773,8 +799,6 @@ class Text(Node):
 	appropriate character entities.
 	"""
 
-	empty = 1
-
 	def __init__(self,content = ""):
 		self.content = str(content)
 
@@ -815,11 +839,7 @@ class Text(Node):
 				if charref: # we've collected references so far
 					s = ""
 					for i in content[start:end]:
-						ent = entitiesByNumber[ord(i)] # use names if a available, or number otherwise
-						if len(ent):
-							s = s + '&' + ent[0] + ';'
-						else:
-							s = s + '&#' + str(ord(i)) + ';'
+						s = s + '&#' + str(ord(i)) + ';'
 					v.append(strCharRef(s,ansi))
 				else:
 					s = content[start:end]
@@ -869,22 +889,25 @@ class CharRef(Node):
 		return chr(self.content)
 
 	def publish(self,publisher,encoding = None,XHTML = None):
-		publisher(self._encode(chr(self.content),encoding,2))
-
-	def __strcharref(self,s,ansi = None):
-		return strCharRef(s,ansi)
+		s = chr(self.content)
+		try:
+			s = self._strescapes[s]
+		except KeyError:
+			s = "#" + s
+		publisher("&",self._encode(s,encoding,1),";")
 
 	def _dorepr(self,ansi = None):
-		if len(entitiesByNumber[self.content]):
-			return self.__strcharref('&' + entitiesByNumber[self.content][0] + ';',ansi)
-		else:
-			return self.__strcharref('&#' + str(self.content) + ';',ansi)
+		return strCharRef('&#' + str(self.content) + ';',ansi)
 
 	def _doreprtree(self,nest,elementno,ansi = None):
-		s = self.__strcharref('&#' + str(self.content) + ';',ansi) + ' (' + self.__strcharref('&#x' + hex(self.content)[2:] + ';',ansi)
-		#for name in entitiesByNumber[self.content]:
-		#	s = s + ' ' + self.__strcharref('&' + name + ';',ansi)
-		s = s + ')'
+		s = strCharRef("&#" + str(self.content) + ";",ansi) + " (" + strCharRef("&#x" + hex(self.content)[2:] + ";",ansi)
+		entstr = []
+		for name in NamespaceRegistry.byPrefix.keys():
+			for entity in NamespaceRegistry.byPrefix[name].entitiesByNumber[self.content]:
+				entstr.append(entity()._dorepr(ansi = ansi))
+		if len(entstr):
+			s = s + ", " + string.join(entstr,", ")
+		s = s + ")"
 		if 0 <= self.content < reprcharreflowerlimit:
 			s = s + ' ' + Text(chr(self.content))._doreprtree(0,0,ansi)[0][-1]
 		return [[nest,self.startloc,elementno,s]]
@@ -1152,9 +1175,6 @@ class ProcInst(Node):
 	Note that you should not define the symbol __ in any of your XSC
 	processing instructions, as it is used by XSC for internal purposes.
 	"""
-
-	repriansiname = "34"
-	repransidata = "36"
 
 	def __init__(self,target,content = ""):
 		self.target = target
@@ -1489,6 +1509,60 @@ class Element(Node):
 		node.extend(self.content.find(type,subtype,attrs,test,searchchildren,searchattrs))
 		return node
 
+class Entity(Node):
+	"""
+	<par noindent>Class for entities. Derive your own entities from
+	it and implement <code>asHTML()</code> and <code>asPlainString()</code>.
+	"""
+
+	def asHTML(self):
+		node = CharRef(self.codepoint)
+		return self._decorateNode(node)
+
+	def compact(self):
+		node = self.__class__() # "virtual" copy constructor
+		return self._decorateNode(node)
+
+	clone = compact
+
+	def asPlainString(self):
+		return chr(self.codepoint)
+
+	def _dorepr(self,ansi = None):
+		s = "&"
+		if self.namespace.prefix != "":
+			s = s + strNamespace(self.namespace.prefix) + ":"
+		s = s + strEntityName(self.name) + ";"
+		return s
+
+	def _doreprtree(self,nest,elementno,ansi = None):
+		v = []
+		v.append([nest,self.startloc,elementno,self._dorepr(ansi = ansi)])
+		return v
+
+	def publish(self,publisher,encoding = None,XHTML = None):
+		"""
+		<par noindent>generates a string representing the element and adds width and height
+		attributes in the process. The URL for the image is fetched for the attribute named
+		<argref>imgattr</argref>. If the attributes are already there, they are taken as a
+		formatting template with the size passed in as a dictionary with the keys
+		<code>"width"</code> and <code>"height"</code>, i.e. you could make your image twice
+		as wide with <code>width="2*%(width)d"</code>.</par>
+
+		<par>If <argref>imgattr</argref> is <code>None</code> no image size attribute generation
+		will be done.</par>
+		"""
+
+		publisher("&",self.name,";") # requires that the element is registered via Namespace.register()
+
+	def find(self,type = None,subtype = 0,attrs = None,test = None,searchchildren = 0,searchattrs = 0):
+		node = Frag()
+		if searchattrs:
+			for attr in self.attrs.keys():
+				node.extend(self[attr].find(type,subtype,attrs,test,searchchildren,searchattrs))
+		node.extend(self.content.find(type,subtype,attrs,test,searchchildren,searchattrs))
+		return node
+
 class Null(Node):
 	"""
 	node that does not contain anything.
@@ -1578,8 +1652,6 @@ class URLAttr(Attr):
 	For all other URLs a normal request will be made corresponding to the specified scheme
 	(http, ftp, etc.)
 	"""
-
-	repransiurl = "32"
 
 	def __init__(self,*_content):
 		apply(Attr.__init__,(self,) + _content)
@@ -1676,21 +1748,21 @@ class Namespace:
 	def __init__(self,prefix,uri,dict = None):
 		self.prefix = prefix
 		self.uri = uri
-		self.elements = {} # dictionary for mapping element names to classes
+		self.elementsByName = {} # dictionary for mapping element names to classes
+		self.entitiesByName = {} # dictionary for mapping entity names to classes
 		self.entitiesByNumber = []
 		for i in xrange(65536):
 			self.entitiesByNumber.append([])
-		self.entitiesByName = {}
 
-		self.registerAllElements(dict)
+		self.registerAll(dict)
 
 		NamespaceRegistry.register(self)
 
-	def registerElement(self,thing):
+	def register(self,thing):
 		"""
 		<par noindent>this function lets you register a class that is derived from
-		<classref>Element</classref> or <classref>Entity</classref> or
-		<classref>CharRef</classref> with the namespace. All other objects are ignored.</par>
+		<classref>Element</classref> or <classref>Entity</classref> with the namespace.
+		All other objects are ignored.</par>
 
 		<par>The class <code>foo</code> will be registered under the name
 		it's class name (<code>foo.__name__</code>). If you want to changes this behaviour,
@@ -1703,46 +1775,46 @@ class Namespace:
 		which is the namespace itself (i.e. <self/>).</par>
 		"""
 
-		if type(thing) == types.ClassType and issubclass(thing,Element): #) or issubclass(thing,Entity) or issubclass(thing,CharRef)):
-			if thing.__dict__.has_key("name"):
-				name = thing.name
-			else:
-				name = thing.__name__
-
-			if name is None:
+		if type(thing) is types.ClassType:
+			iselement = thing is not Element and issubclass(thing,Element)
+			isentity = thing is not Entity and issubclass(thing,Entity)
+			if iselement or isentity:
 				try:
-					del thing.name
-					del thing.namespace
+					name = thing.name
 				except AttributeError:
-					pass
-			else:
-				thing.name = name
-				# the following creates a cycle, but namespaces aren't constantly created and deleted (and Python will get a GC some day ;))
-				thing.namespace = self
+					name = thing.__name__
 
-				if issubclass(thing,Element):
-					self.elements[name] = thing
+				if name is None:
+					try:
+						del thing.name
+						del thing.namespace
+					except AttributeError:
+						pass
+					return
+				else:
+					thing.name = name
+					thing.namespace = self # this creates a cycle, but namespaces aren't constantly created and deleted (and Python will get a GC some day ;))
 
-	def registerAllElements(self,thing):
+				if iselement:
+					self.elementsByName[name] = thing
+				else:
+					self.entitiesByName[name] = thing
+					try:
+						self.entitiesByNumber[thing.codepoint].append(thing)
+					except AttributeError:
+						pass
+
+	def registerAll(self,thing):
 		"""
 		registers all classes in the dictionary <argref>thing</argref>.
 		If <argref>thing</argref> is no dictionary nothing will be done.
 		"""
 
+		if type(thing) is types.ModuleType:
+			thing = vars(thing)
 		if type(thing) is types.DictionaryType:
 			for key in thing.keys():
-				self.registerElement(thing[key])
-
-	def registerEntity(self,name,value):
-		"""
-		registers the value <argref>value</argref> (which will be converted to an XSC node)
-		as an entity with the name <argref>name</argref>.
-		"""
-
-		newvalue = ToNode(value)
-		if isinstance(newvalue,CharRef):
-			self.entitiesByNumber[newvalue.content].append(name)
-		self.entitiesByName[name] = newvalue
+				self.register(thing[key])
 
 ###
 ### Namespace registry
@@ -1763,13 +1835,13 @@ NamespaceRegistry = NamespaceRegistry() # singleton
 ###
 ###
 
-namespace = Namespace("","")
-
 # C0 Controls and Basic Latin
-namespace.registerEntity("quot",CharRef(34)) # quotation mark = APL quote, U+0022 ISOnum
-namespace.registerEntity("amp",CharRef(38)) # ampersand, U+0026 ISOnum
-namespace.registerEntity("lt",CharRef(60)) # less-than sign, U+003C ISOnum
-namespace.registerEntity("gt",CharRef(62)) # greater-than sign, U+003E ISOnum
+class quot(Entity): "quotation mark = APL quote, U+0022 ISOnum"; codepoint = 34
+class amp(Entity): "ampersand, U+0026 ISOnum"; codepoint = 38
+class lt(Entity): "less-than sign, U+003C ISOnum"; codepoint = 60
+class gt(Entity): "greater-than sign, U+003E ISOnum"; codepoint = 62
+
+namespace = Namespace("","",vars())
 
 ###
 ###
@@ -1848,29 +1920,45 @@ class XSC:
 		self.__appendNode(CharRef(code))
 
 	def handle_entityref(self,name):
-		try:
-			self.__appendNode(entitiesByName[name].clone())
-		except KeyError:
-			raise UnknownEntityError(self.__here(),name)
+		self.__appendNode(self.entityFromName(name)())
+
+	def splitName(self,name):
+		name = string.split(name,":")
+		if len(name) == 1: # no namespace specified
+			name.insert(0,None)
+		return name
+
+	def __nodeFromName(self,name,element):
+		name = self.splitName(name)
+		# search for the element
+		# first search the namespace stack (i.e. namespaces that are registered via the normal XML namespace mechanism)
+		# if the element can't be found, search all existing namespaces.
+		allnamespaces = self.namespaces+NamespaceRegistry.byPrefix.values()
+		for namespace in allnamespaces:
+			if name[0] is None or name[0] == namespace.prefix:
+				try:
+					if element:
+						return namespace.elementsByName[name[1]]
+					else:
+						return namespace.entitiesByName[name[1]]
+				except KeyError:
+					pass
+		if element:
+			raise IllegalElementError(self.__here(),name) # elements with this name couldn't be found
+		else:
+			raise IllegalEntityError(self.__here(),name) # entities with this name couldn't be found
 
 	def elementFromName(self,name):
 		"""
 		returns the element class for the name name (which might include a namespace).
 		"""
-		name = string.split(string.lower(name),":")
-		if len(name) == 1: # no namespace specified
-			name.insert(0,None)
+		return self.__nodeFromName(name,1)
 
-		for namespace in self.namespaces:
-			print namespace.prefix
-			try:
-				element = namespace.elements[name[1]]
-				if name[0] is None or name[0] == namespace.prefix:
-					return element
-			except KeyError:
-				pass
-
-		raise IllegalElementError(self.__here(),name) # elements with this name were available, but none in this namespace
+	def entityFromName(self,name):
+		"""
+		returns the entity class for the name name (which might include a namespace).
+		"""
+		return self.__nodeFromName(name,0)
 
 	def finish_starttag(self,name,attrs):
 		node = self.elementFromName(name)()
@@ -1933,9 +2021,6 @@ class XSC:
 
 		# after we've finished parsing, the Frag that we put at the bottom of the stack will be our document root
 		return self.__nesting[0]
-
-	def __repr__(self):
-		return '<xsc filename="' + self.filename + '" server="' + self.server + '" retrieveremote=' + [ 'no' , 'yes' ][retrieveremote] + '" retrievelocal=' + [ 'no' , 'yes' ][retrievelocal] + '>'
 
 	def isRetrieve(self,url):
 		remote = url.isRemote()

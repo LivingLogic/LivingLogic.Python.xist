@@ -677,289 +677,283 @@ class applet(xsc.Element): # deprecated
 	empty = 0
 	attrHandlers = { "archive": xsc.URLAttr, "code": xsc.URLAttr, "width": xsc.TextAttr, "height": xsc.TextAttr }
 
+# Latin 1 characters
+class nbsp(xsc.Entity): "no-break space = non-breaking space, U+00A0 ISOnum"; codepoint = 160
+class iexcl(xsc.Entity): "inverted exclamation mark, U+00A1 ISOnum"; codepoint = 161
+class cent(xsc.Entity): "cent sign, U+00A2 ISOnum"; codepoint = 162
+class pound(xsc.Entity): "pound sign, U+00A3 ISOnum"; codepoint = 163
+class curren(xsc.Entity): "currency sign, U+00A4 ISOnum"; codepoint = 164
+class yen(xsc.Entity): "yen sign = yuan sign, U+00A5 ISOnum"; codepoint = 165
+class brvbar(xsc.Entity): "broken bar = broken vertical bar, U+00A6 ISOnum"; codepoint = 166
+class sect(xsc.Entity): "section sign, U+00A7 ISOnum"; codepoint = 167
+class uml(xsc.Entity): "diaeresis = spacing diaeresis, U+00A8 ISOdia"; codepoint = 168
+class copy(xsc.Entity): "copyright sign, U+00A9 ISOnum"; codepoint = 169
+class ordf(xsc.Entity): "feminine ordinal indicator, U+00AA ISOnum"; codepoint = 170
+class laquo(xsc.Entity): "left-pointing double angle quotation mark = left pointing guillemet, U+00AB ISOnum"; codepoint = 171
+class Not(xsc.Entity): "not sign, U+00AC ISOnum"; codepoint = 172; name = "not"
+class shy(xsc.Entity): "soft hyphen = discretionary hyphen, U+00AD ISOnum"; codepoint = 173
+class reg(xsc.Entity): "registered sign = registered trade mark sign, U+00AE ISOnum"; codepoint = 174
+class macr(xsc.Entity): "macron = spacing macron = overline = APL overbar, U+00AF ISOdia"; codepoint = 175
+class deg(xsc.Entity): "degree sign, U+00B0 ISOnum"; codepoint = 176
+class plusmn(xsc.Entity): "plus-minus sign = plus-or-minus sign, U+00B1 ISOnum"; codepoint = 177
+class sup2(xsc.Entity): "superscript two = superscript digit two = squared, U+00B2 ISOnum"; codepoint = 178
+class sup3(xsc.Entity): "superscript three = superscript digit three = cubed, U+00B3 ISOnum"; codepoint = 179
+class acute(xsc.Entity): "acute accent = spacing acute, U+00B4 ISOdia"; codepoint = 180
+class micro(xsc.Entity): "micro sign, U+00B5 ISOnum"; codepoint = 181
+class para(xsc.Entity): "pilcrow sign = paragraph sign, U+00B6 ISOnum"; codepoint = 182
+class middot(xsc.Entity): "middle dot = Georgian comma = Greek middle dot, U+00B7 ISOnum"; codepoint = 183
+class cedil(xsc.Entity): "cedilla = spacing cedilla, U+00B8 ISOdia"; codepoint = 184
+class sup1(xsc.Entity): "superscript one = superscript digit one, U+00B9 ISOnum"; codepoint = 185
+class ordm(xsc.Entity): "masculine ordinal indicator, U+00BA ISOnum"; codepoint = 186
+class raquo(xsc.Entity): "right-pointing double angle quotation mark = right pointing guillemet, U+00BB ISOnum"; codepoint = 187
+class frac14(xsc.Entity): "vulgar fraction one quarter = fraction one quarter, U+00BC ISOnum"; codepoint = 188
+class frac12(xsc.Entity): "vulgar fraction one half = fraction one half, U+00BD ISOnum"; codepoint = 189
+class frac34(xsc.Entity): "vulgar fraction three quarters = fraction three quarters, U+00BE ISOnum"; codepoint = 190
+class iquest(xsc.Entity): "inverted question mark = turned question mark, U+00BF ISOnum"; codepoint = 191
+class Agrave(xsc.Entity): "latin capital letter A with grave = latin capital letter A grave, U+00C0 ISOlat1"; codepoint = 192
+class Aacute(xsc.Entity): "latin capital letter A with acute, U+00C1 ISOlat1"; codepoint = 193
+class Acirc(xsc.Entity): "latin capital letter A with circumflex, U+00C2 ISOlat1"; codepoint = 194
+class Atilde(xsc.Entity): "latin capital letter A with tilde, U+00C3 ISOlat1"; codepoint = 195
+class Auml(xsc.Entity): "latin capital letter A with diaeresis, U+00C4 ISOlat1"; codepoint = 196
+class Aring(xsc.Entity): "latin capital letter A with ring above = latin capital letter A ring, U+00C5 ISOlat1"; codepoint = 197
+class AElig(xsc.Entity): "latin capital letter AE = latin capital ligature AE, U+00C6 ISOlat1"; codepoint = 198
+class Ccedil(xsc.Entity): "latin capital letter C with cedilla, U+00C7 ISOlat1"; codepoint = 199
+class Egrave(xsc.Entity): "latin capital letter E with grave, U+00C8 ISOlat1"; codepoint = 200
+class Eacute(xsc.Entity): "latin capital letter E with acute, U+00C9 ISOlat1"; codepoint = 201
+class Ecirc(xsc.Entity): "latin capital letter E with circumflex, U+00CA ISOlat1"; codepoint = 202
+class Euml(xsc.Entity): "latin capital letter E with diaeresis, U+00CB ISOlat1"; codepoint = 203
+class Igrave(xsc.Entity): "latin capital letter I with grave, U+00CC ISOlat1"; codepoint = 204
+class Iacute(xsc.Entity): "latin capital letter I with acute, U+00CD ISOlat1"; codepoint = 205
+class Icirc(xsc.Entity): "latin capital letter I with circumflex, U+00CE ISOlat1"; codepoint = 206
+class Iuml(xsc.Entity): "latin capital letter I with diaeresis, U+00CF ISOlat1"; codepoint = 207
+class ETH(xsc.Entity): "latin capital letter ETH, U+00D0 ISOlat1"; codepoint = 208
+class Ntilde(xsc.Entity): "latin capital letter N with tilde, U+00D1 ISOlat1"; codepoint = 209
+class Ograve(xsc.Entity): "latin capital letter O with grave, U+00D2 ISOlat1"; codepoint = 210
+class Oacute(xsc.Entity): "latin capital letter O with acute, U+00D3 ISOlat1"; codepoint = 211
+class Ocirc(xsc.Entity): "latin capital letter O with circumflex, U+00D4 ISOlat1"; codepoint = 212
+class Otilde(xsc.Entity): "latin capital letter O with tilde, U+00D5 ISOlat1"; codepoint = 213
+class Ouml(xsc.Entity): "latin capital letter O with diaeresis, U+00D6 ISOlat1"; codepoint = 214
+class times(xsc.Entity): "multiplication sign, U+00D7 ISOnum"; codepoint = 215
+class Oslash(xsc.Entity): "latin capital letter O with stroke = latin capital letter O slash, U+00D8 ISOlat1"; codepoint = 216
+class Ugrave(xsc.Entity): "latin capital letter U with grave, U+00D9 ISOlat1"; codepoint = 217
+class Uacute(xsc.Entity): "latin capital letter U with acute, U+00DA ISOlat1"; codepoint = 218
+class Ucirc(xsc.Entity): "latin capital letter U with circumflex, U+00DB ISOlat1"; codepoint = 219
+class Uuml(xsc.Entity): "latin capital letter U with diaeresis, U+00DC ISOlat1"; codepoint = 220
+class Yacute(xsc.Entity): "latin capital letter Y with acute, U+00DD ISOlat1"; codepoint = 221
+class THORN(xsc.Entity): "latin capital letter THORN, U+00DE ISOlat1"; codepoint = 222
+class szlig(xsc.Entity): "latin small letter sharp s = ess-zed, U+00DF ISOlat1"; codepoint = 223
+class agrave(xsc.Entity): "latin small letter a with grave = latin small letter a grave, U+00E0 ISOlat1"; codepoint = 224
+class aacute(xsc.Entity): "latin small letter a with acute, U+00E1 ISOlat1"; codepoint = 225
+class acirc(xsc.Entity): "latin small letter a with circumflex, U+00E2 ISOlat1"; codepoint = 226
+class atilde(xsc.Entity): "latin small letter a with tilde, U+00E3 ISOlat1"; codepoint = 227
+class auml(xsc.Entity): "latin small letter a with diaeresis, U+00E4 ISOlat1"; codepoint = 228
+class aring(xsc.Entity): "latin small letter a with ring above = latin small letter a ring, U+00E5 ISOlat1"; codepoint = 229
+class aelig(xsc.Entity): "latin small letter ae = latin small ligature ae, U+00E6 ISOlat1"; codepoint = 230
+class ccedil(xsc.Entity): "latin small letter c with cedilla, U+00E7 ISOlat1"; codepoint = 231
+class egrave(xsc.Entity): "latin small letter e with grave, U+00E8 ISOlat1"; codepoint = 232
+class eacute(xsc.Entity): "latin small letter e with acute, U+00E9 ISOlat1"; codepoint = 233
+class ecirc(xsc.Entity): "latin small letter e with circumflex, U+00EA ISOlat1"; codepoint = 234
+class euml(xsc.Entity): "latin small letter e with diaeresis, U+00EB ISOlat1"; codepoint = 235
+class igrave(xsc.Entity): "latin small letter i with grave, U+00EC ISOlat1"; codepoint = 236
+class iacute(xsc.Entity): "latin small letter i with acute, U+00ED ISOlat1"; codepoint = 237
+class icirc(xsc.Entity): "latin small letter i with circumflex, U+00EE ISOlat1"; codepoint = 238
+class iuml(xsc.Entity): "latin small letter i with diaeresis, U+00EF ISOlat1"; codepoint = 239
+class eth(xsc.Entity): "latin small letter eth, U+00F0 ISOlat1"; codepoint = 240
+class ntilde(xsc.Entity): "latin small letter n with tilde, U+00F1 ISOlat1"; codepoint = 241
+class ograve(xsc.Entity): "latin small letter o with grave, U+00F2 ISOlat1"; codepoint = 242
+class oacute(xsc.Entity): "latin small letter o with acute, U+00F3 ISOlat1"; codepoint = 243
+class ocirc(xsc.Entity): "latin small letter o with circumflex, U+00F4 ISOlat1"; codepoint = 244
+class otilde(xsc.Entity): "latin small letter o with tilde, U+00F5 ISOlat1"; codepoint = 245
+class ouml(xsc.Entity): "latin small letter o with diaeresis, U+00F6 ISOlat1"; codepoint = 246
+class divide(xsc.Entity): "division sign, U+00F7 ISOnum"; codepoint = 247
+class oslash(xsc.Entity): "latin small letter o with stroke, = latin small letter o slash, U+00F8 ISOlat1"; codepoint = 248
+class ugrave(xsc.Entity): "latin small letter u with grave, U+00F9 ISOlat1"; codepoint = 249
+class uacute(xsc.Entity): "latin small letter u with acute, U+00FA ISOlat1"; codepoint = 250
+class ucirc(xsc.Entity): "latin small letter u with circumflex, U+00FB ISOlat1"; codepoint = 251
+class uuml(xsc.Entity): "latin small letter u with diaeresis, U+00FC ISOlat1"; codepoint = 252
+class yacute(xsc.Entity): "latin small letter y with acute, U+00FD ISOlat1"; codepoint = 253
+class thorn(xsc.Entity): "latin small letter thorn, U+00FE ISOlat1"; codepoint = 254
+class yuml(xsc.Entity): "latin small letter y with diaeresis, U+00FF ISOlat1"; codepoint = 255
+
+# Latin Extended-A
+class OElig(xsc.Entity): "latin capital ligature OE, U+0152 ISOlat2"; codepoint = 338
+class oelig(xsc.Entity): "latin small ligature oe, U+0153 ISOlat2"; codepoint = 339
+class Scaron(xsc.Entity): "latin capital letter S with caron, U+0160 ISOlat2"; codepoint = 352
+class scaron(xsc.Entity): "latin small letter s with caron, U+0161 ISOlat2"; codepoint = 353
+class Yuml(xsc.Entity): "latin capital letter Y with diaeresis, U+0178 ISOlat2"; codepoint = 376
+
+# Spacing Modifier Letters
+class circ(xsc.Entity): "modifier letter circumflex accent, U+02C6 ISOpub"; codepoint = 710
+class tilde(xsc.Entity): "small tilde, U+02DC ISOdia"; codepoint = 732
+
+# General Punctuation
+class ensp(xsc.Entity): "en space, U+2002 ISOpub"; codepoint = 8194
+class emsp(xsc.Entity): "em space, U+2003 ISOpub"; codepoint = 8195
+class thinsp(xsc.Entity): "thin space, U+2009 ISOpub"; codepoint = 8201
+class zwnj(xsc.Entity): "zero width non-joiner, U+200C NEW RFC 2070"; codepoint = 8204
+class zwj(xsc.Entity): "zero width joiner, U+200D NEW RFC 2070"; codepoint = 8205
+class lrm(xsc.Entity): "left-to-right mark, U+200E NEW RFC 2070"; codepoint = 8206
+class rlm(xsc.Entity): "right-to-left mark, U+200F NEW RFC 2070"; codepoint = 8207
+class ndash(xsc.Entity): "en dash, U+2013 ISOpub"; codepoint = 8211
+class mdash(xsc.Entity): "em dash, U+2014 ISOpub"; codepoint = 8212
+class lsquo(xsc.Entity): "left single quotation mark, U+2018 ISOnum"; codepoint = 8216
+class rsquo(xsc.Entity): "right single quotation mark, U+2019 ISOnum"; codepoint = 8217
+class sbquo(xsc.Entity): "single low-9 quotation mark, U+201A NEW"; codepoint = 8218
+class ldquo(xsc.Entity): "left double quotation mark, U+201C ISOnum"; codepoint = 8220
+class rdquo(xsc.Entity): "right double quotation mark, U+201D ISOnum"; codepoint = 8221
+class bdquo(xsc.Entity): "double low-9 quotation mark, U+201E NEW"; codepoint = 8222
+class dagger(xsc.Entity): "dagger, U+2020 ISOpub"; codepoint = 8224
+class Dagger(xsc.Entity): "double dagger, U+2021 ISOpub"; codepoint = 8225
+class permil(xsc.Entity): "per mille sign, U+2030 ISOtech"; codepoint = 8240
+class lsaquo(xsc.Entity): "single left-pointing angle quotation mark, U+2039 ISO proposed"; codepoint = 8249
+class rsaquo(xsc.Entity): "single right-pointing angle quotation mark, U+203A ISO proposed"; codepoint = 8250
+class euro(xsc.Entity): "euro sign, U+20AC NEW"; codepoint = 8364
+
+# Mathematical, Greek and Symbolic characters
+# Latin Extended-B
+class fnof(xsc.Entity): "latin small f with hook = function = florin, U+0192 ISOtech"; codepoint = 402
+
+# Greek
+class Alpha(xsc.Entity): "greek capital letter alpha, U+0391"; codepoint = 913
+class Beta(xsc.Entity): "greek capital letter beta, U+0392"; codepoint = 914
+class Gamma(xsc.Entity): "greek capital letter gamma, U+0393 ISOgrk3"; codepoint = 915
+class Delta(xsc.Entity): "greek capital letter delta, U+0394 ISOgrk3"; codepoint = 916
+class Epsilon(xsc.Entity): "greek capital letter epsilon, U+0395"; codepoint = 917
+class Zeta(xsc.Entity): "greek capital letter zeta, U+0396"; codepoint = 918
+class Eta(xsc.Entity): "greek capital letter eta, U+0397"; codepoint = 919
+class Theta(xsc.Entity): "greek capital letter theta, U+0398 ISOgrk3"; codepoint = 920
+class Iota(xsc.Entity): "greek capital letter iota, U+0399"; codepoint = 921
+class Kappa(xsc.Entity): "greek capital letter kappa, U+039A"; codepoint = 922
+class Lambda(xsc.Entity): "greek capital letter lambda, U+039B ISOgrk3"; codepoint = 923
+class Mu(xsc.Entity): "greek capital letter mu, U+039C"; codepoint = 924
+class Nu(xsc.Entity): "greek capital letter nu, U+039D"; codepoint = 925
+class Xi(xsc.Entity): "greek capital letter xi, U+039E ISOgrk3"; codepoint = 926
+class Omicron(xsc.Entity): "greek capital letter omicron, U+039F"; codepoint = 927
+class Pi(xsc.Entity): "greek capital letter pi, U+03A0 ISOgrk3"; codepoint = 928
+class Rho(xsc.Entity): "greek capital letter rho, U+03A1"; codepoint = 929
+class Sigma(xsc.Entity): "greek capital letter sigma, U+03A3 ISOgrk3"; codepoint = 931
+class Tau(xsc.Entity): "greek capital letter tau, U+03A4"; codepoint = 932
+class Upsilon(xsc.Entity): "greek capital letter upsilon, U+03A5 ISOgrk3"; codepoint = 933
+class Phi(xsc.Entity): "greek capital letter phi, U+03A6 ISOgrk3"; codepoint = 934
+class Chi(xsc.Entity): "greek capital letter chi, U+03A7"; codepoint = 935
+class Psi(xsc.Entity): "greek capital letter psi, U+03A8 ISOgrk3"; codepoint = 936
+class Omega(xsc.Entity): "greek capital letter omega, U+03A9 ISOgrk3"; codepoint = 937
+class alpha(xsc.Entity): "greek small letter alpha, U+03B1 ISOgrk3"; codepoint = 945
+class beta(xsc.Entity): "greek small letter beta, U+03B2 ISOgrk3"; codepoint = 946
+class gamma(xsc.Entity): "greek small letter gamma, U+03B3 ISOgrk3"; codepoint = 947
+class delta(xsc.Entity): "greek small letter delta, U+03B4 ISOgrk3"; codepoint = 948
+class epsilon(xsc.Entity): "greek small letter epsilon, U+03B5 ISOgrk3"; codepoint = 949
+class zeta(xsc.Entity): "greek small letter zeta, U+03B6 ISOgrk3"; codepoint = 950
+class eta(xsc.Entity): "greek small letter eta, U+03B7 ISOgrk3"; codepoint = 951
+class theta(xsc.Entity): "greek small letter theta, U+03B8 ISOgrk3"; codepoint = 952
+class iota(xsc.Entity): "greek small letter iota, U+03B9 ISOgrk3"; codepoint = 953
+class kappa(xsc.Entity): "greek small letter kappa, U+03BA ISOgrk3"; codepoint = 954
+class Lambda(xsc.Entity): "greek small letter lambda, U+03BB ISOgrk3"; codepoint = 955; name = "lambda"
+class mu(xsc.Entity): "greek small letter mu, U+03BC ISOgrk3"; codepoint = 956
+class nu(xsc.Entity): "greek small letter nu, U+03BD ISOgrk3"; codepoint = 957
+class xi(xsc.Entity): "greek small letter xi, U+03BE ISOgrk3"; codepoint = 958
+class omicron(xsc.Entity): "greek small letter omicron, U+03BF NEW"; codepoint = 959
+class pi(xsc.Entity): "greek small letter pi, U+03C0 ISOgrk3"; codepoint = 960
+class rho(xsc.Entity): "greek small letter rho, U+03C1 ISOgrk3"; codepoint = 961
+class sigmaf(xsc.Entity): "greek small letter final sigma, U+03C2 ISOgrk3"; codepoint = 962
+class sigma(xsc.Entity): "greek small letter sigma, U+03C3 ISOgrk3"; codepoint = 963
+class tau(xsc.Entity): "greek small letter tau, U+03C4 ISOgrk3"; codepoint = 964
+class upsilon(xsc.Entity): "greek small letter upsilon, U+03C5 ISOgrk3"; codepoint = 965
+class phi(xsc.Entity): "greek small letter phi, U+03C6 ISOgrk3"; codepoint = 966
+class chi(xsc.Entity): "greek small letter chi, U+03C7 ISOgrk3"; codepoint = 967
+class psi(xsc.Entity): "greek small letter psi, U+03C8 ISOgrk3"; codepoint = 968
+class omega(xsc.Entity): "greek small letter omega, U+03C9 ISOgrk3"; codepoint = 969
+class thetasym(xsc.Entity): "greek small letter theta symbol, U+03D1 NEW"; codepoint = 977
+class upsih(xsc.Entity): "greek upsilon with hook symbol, U+03D2 NEW"; codepoint = 978
+class piv(xsc.Entity): "greek pi symbol, U+03D6 ISOgrk3"; codepoint = 982
+
+# General Punctuation
+class bull(xsc.Entity): "bullet = black small circle, U+2022 ISOpub"; codepoint = 8226
+class hellip(xsc.Entity): "horizontal ellipsis = three dot leader, U+2026 ISOpub"; codepoint = 8230
+class prime(xsc.Entity): "prime = minutes = feet, U+2032 ISOtech"; codepoint = 8242
+class Prime(xsc.Entity): "double prime = seconds = inches, U+2033 ISOtech"; codepoint = 8243
+class oline(xsc.Entity): "overline = spacing overscore, U+203E NEW"; codepoint = 8254
+class frasl(xsc.Entity): "fraction slash, U+2044 NEW"; codepoint = 8260
+
+# Letterlike Symbols
+class weierp(xsc.Entity): "script capital P = power set = Weierstrass p, U+2118 ISOamso"; codepoint = 8472
+class image(xsc.Entity): "blackletter capital I = imaginary part, U+2111 ISOamso"; codepoint = 8465
+class real(xsc.Entity): "blackletter capital R = real part symbol, U+211C ISOamso"; codepoint = 8476
+class trade(xsc.Entity): "trade mark sign, U+2122 ISOnum"; codepoint = 8482
+class alefsym(xsc.Entity): "alef symbol = first transfinite cardinal, U+2135 NEW"; codepoint = 8501
+
+# Arrows
+class larr(xsc.Entity): "leftwards arrow, U+2190 ISOnum"; codepoint = 8592
+class uarr(xsc.Entity): "upwards arrow, U+2191 ISOnu"; codepoint = 8593
+class rarr(xsc.Entity): "rightwards arrow, U+2192 ISOnum"; codepoint = 8594
+class darr(xsc.Entity): "downwards arrow, U+2193 ISOnum"; codepoint = 8595
+class harr(xsc.Entity): "left right arrow, U+2194 ISOamsa"; codepoint = 8596
+class crarr(xsc.Entity): "downwards arrow with corner leftwards = carriage return, U+21B5 NEW"; codepoint = 8629
+class lArr(xsc.Entity): "leftwards double arrow, U+21D0 ISOtech"; codepoint = 8656
+class uArr(xsc.Entity): "upwards double arrow, U+21D1 ISOamsa"; codepoint = 8657
+class rArr(xsc.Entity): "rightwards double arrow, U+21D2 ISOtech"; codepoint = 8658
+class dArr(xsc.Entity): "downwards double arrow, U+21D3 ISOamsa"; codepoint = 8659
+class hArr(xsc.Entity): "left right double arrow, U+21D4 ISOamsa"; codepoint = 8660
+
+# Mathematical Operators
+class forall(xsc.Entity): "for all, U+2200 ISOtech"; codepoint = 8704
+class part(xsc.Entity): "partial differential, U+2202 ISOtech"; codepoint = 8706
+class exist(xsc.Entity): "there exists, U+2203 ISOtech"; codepoint = 8707
+class empty(xsc.Entity): "empty set = null set = diameter, U+2205 ISOamso"; codepoint = 8709
+class nabla(xsc.Entity): "nabla = backward difference, U+2207 ISOtech"; codepoint = 8711
+class isin(xsc.Entity): "element of, U+2208 ISOtech"; codepoint = 8712
+class notin(xsc.Entity): "not an element of, U+2209 ISOtech"; codepoint = 8713
+class ni(xsc.Entity): "contains as member, U+220B ISOtech"; codepoint = 8715
+class prod(xsc.Entity): "n-ary product = product sign, U+220F ISOamsb"; codepoint = 8719
+class sum(xsc.Entity): "n-ary sumation, U+2211 ISOamsb"; codepoint = 8721
+class minus(xsc.Entity): "minus sign, U+2212 ISOtech"; codepoint = 8722
+class lowast(xsc.Entity): "asterisk operator, U+2217 ISOtech"; codepoint = 8727
+class radic(xsc.Entity): "square root = radical sign, U+221A ISOtech"; codepoint = 8730
+class prop(xsc.Entity): "proportional to, U+221D ISOtech"; codepoint = 8733
+class infin(xsc.Entity): "infinity, U+221E ISOtech"; codepoint = 8734
+class ang(xsc.Entity): "angle, U+2220 ISOamso"; codepoint = 8736
+class And(xsc.Entity): "logical and = wedge, U+2227 ISOtech"; codepoint = 8743; name = "and"
+class Or(xsc.Entity): "logical or = vee, U+2228 ISOtech"; codepoint = 8744; name = "or"
+class cap(xsc.Entity): "intersection = cap, U+2229 ISOtech"; codepoint = 8745
+class cup(xsc.Entity): "union = cup, U+222A ISOtech"; codepoint = 8746
+class int(xsc.Entity): "integral, U+222B ISOtech"; codepoint = 8747
+class there4(xsc.Entity): "therefore, U+2234 ISOtech"; codepoint = 8756
+class sim(xsc.Entity): "tilde operator = varies with = similar to, U+223C ISOtech"; codepoint = 8764
+class cong(xsc.Entity): "approximately equal to, U+2245 ISOtech"; codepoint = 8773
+class asymp(xsc.Entity): "almost equal to = asymptotic to, U+2248 ISOamsr"; codepoint = 8776
+class ne(xsc.Entity): "not equal to, U+2260 ISOtech"; codepoint = 8800
+class equiv(xsc.Entity): "identical to, U+2261 ISOtech"; codepoint = 8801
+class le(xsc.Entity): "less-than or equal to, U+2264 ISOtech"; codepoint = 8804
+class ge(xsc.Entity): "greater-than or equal to, U+2265 ISOtech"; codepoint = 8805
+class sub(xsc.Entity): "subset of, U+2282 ISOtech"; codepoint = 8834
+class sup(xsc.Entity): "superset of, U+2283 ISOtech"; codepoint = 8835
+class nsub(xsc.Entity): "not a subset of, U+2284 ISOamsn"; codepoint = 8836
+class sube(xsc.Entity): "subset of or equal to, U+2286 ISOtech"; codepoint = 8838
+class supe(xsc.Entity): "superset of or equal to, U+2287 ISOtech"; codepoint = 8839
+class oplus(xsc.Entity): "circled plus = direct sum, U+2295 ISOamsb"; codepoint = 8853
+class otimes(xsc.Entity): "circled times = vector product, U+2297 ISOamsb"; codepoint = 8855
+class perp(xsc.Entity): "up tack = orthogonal to = perpendicular, U+22A5 ISOtech"; codepoint = 8869
+class sdot(xsc.Entity): "dot operator, U+22C5 ISOamsb"; codepoint = 8901
+
+# Miscellaneous Technical
+class lceil(xsc.Entity): "left ceiling = apl upstile, U+2308 ISOamsc"; codepoint = 8968
+class rceil(xsc.Entity): "right ceiling, U+2309 ISOamsc"; codepoint = 8969
+class lfloor(xsc.Entity): "left floor = apl downstile, U+230A ISOamsc"; codepoint = 8970
+class rfloor(xsc.Entity): "right floor, U+230B ISOamsc"; codepoint = 8971
+class lang(xsc.Entity): "left-pointing angle bracket = bra, U+2329 ISOtech"; codepoint = 9001
+class rang(xsc.Entity): "right-pointing angle bracket = ket, U+232A ISOtech"; codepoint = 9002
+
+# Geometric Shapes
+class loz(xsc.Entity): "lozenge, U+25CA ISOpub"; codepoint = 9674
+
+# Miscellaneous Symbols
+class spades(xsc.Entity): "black spade suit, U+2660 ISOpub"; codepoint = 9824
+class clubs(xsc.Entity): "black club suit = shamrock, U+2663 ISOpub"; codepoint = 9827
+class hearts(xsc.Entity): "black heart suit = valentine, U+2665 ISOpub"; codepoint = 9829
+class diams(xsc.Entity): "black diamond suit, U+2666 ISOpub"; codepoint = 9830
+
 # register all the classes we've defined so far
 namespace = xsc.Namespace("html","http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd",vars())
-
-__entities = {
-	# Latin 1 characters
-	"nbsp": 160, # no-break space = non-breaking space, U+00A0 ISOnum
-	"iexcl": 161, # inverted exclamation mark, U+00A1 ISOnum
-	"cent": 162, # cent sign, U+00A2 ISOnum
-	"pound": 163, # pound sign, U+00A3 ISOnum
-	"curren": 164, # currency sign, U+00A4 ISOnum
-	"yen": 165, # yen sign = yuan sign, U+00A5 ISOnum
-	"brvbar": 166, # broken bar = broken vertical bar, U+00A6 ISOnum
-	"sect": 167, # section sign, U+00A7 ISOnum
-	"uml": 168, # diaeresis = spacing diaeresis, U+00A8 ISOdia
-	"copy": 169, # copyright sign, U+00A9 ISOnum
-	"ordf": 170, # feminine ordinal indicator, U+00AA ISOnum
-	"laquo": 171, # left-pointing double angle quotation mark = left pointing guillemet, U+00AB ISOnum
-	"not": 172, # not sign, U+00AC ISOnum
-	"shy": 173, # soft hyphen = discretionary hyphen, U+00AD ISOnum
-	"reg": 174, # registered sign = registered trade mark sign, U+00AE ISOnum
-	"macr": 175, # macron = spacing macron = overline = APL overbar, U+00AF ISOdia
-	"deg": 176, # degree sign, U+00B0 ISOnum
-	"plusmn": 177, # plus-minus sign = plus-or-minus sign, U+00B1 ISOnum
-	"sup2": 178, # superscript two = superscript digit two = squared, U+00B2 ISOnum
-	"sup3": 179, # superscript three = superscript digit three = cubed, U+00B3 ISOnum
-	"acute": 180, # acute accent = spacing acute, U+00B4 ISOdia
-	"micro": 181, # micro sign, U+00B5 ISOnum
-	"para": 182, # pilcrow sign = paragraph sign, U+00B6 ISOnum
-	"middot": 183, # middle dot = Georgian comma = Greek middle dot, U+00B7 ISOnum
-	"cedil": 184, # cedilla = spacing cedilla, U+00B8 ISOdia
-	"sup1": 185, # superscript one = superscript digit one, U+00B9 ISOnum
-	"ordm": 186, # masculine ordinal indicator, U+00BA ISOnum
-	"raquo": 187, # right-pointing double angle quotation mark = right pointing guillemet, U+00BB ISOnum
-	"frac14": 188, # vulgar fraction one quarter = fraction one quarter, U+00BC ISOnum
-	"frac12": 189, # vulgar fraction one half = fraction one half, U+00BD ISOnum
-	"frac34": 190, # vulgar fraction three quarters = fraction three quarters, U+00BE ISOnum
-	"iquest": 191, # inverted question mark = turned question mark, U+00BF ISOnum
-	"Agrave": 192, # latin capital letter A with grave = latin capital letter A grave, U+00C0 ISOlat1
-	"Aacute": 193, # latin capital letter A with acute, U+00C1 ISOlat1
-	"Acirc": 194, # latin capital letter A with circumflex, U+00C2 ISOlat1
-	"Atilde": 195, # latin capital letter A with tilde, U+00C3 ISOlat1
-	"Auml": 196, # latin capital letter A with diaeresis, U+00C4 ISOlat1
-	"Aring": 197, # latin capital letter A with ring above = latin capital letter A ring, U+00C5 ISOlat1
-	"AElig": 198, # latin capital letter AE = latin capital ligature AE, U+00C6 ISOlat1
-	"Ccedil": 199, # latin capital letter C with cedilla, U+00C7 ISOlat1
-	"Egrave": 200, # latin capital letter E with grave, U+00C8 ISOlat1
-	"Eacute": 201, # latin capital letter E with acute, U+00C9 ISOlat1
-	"Ecirc": 202, # latin capital letter E with circumflex, U+00CA ISOlat1
-	"Euml": 203, # latin capital letter E with diaeresis, U+00CB ISOlat1
-	"Igrave": 204, # latin capital letter I with grave, U+00CC ISOlat1
-	"Iacute": 205, # latin capital letter I with acute, U+00CD ISOlat1
-	"Icirc": 206, # latin capital letter I with circumflex, U+00CE ISOlat1
-	"Iuml": 207, # latin capital letter I with diaeresis, U+00CF ISOlat1
-	"ETH": 208, # latin capital letter ETH, U+00D0 ISOlat1
-	"Ntilde": 209, # latin capital letter N with tilde, U+00D1 ISOlat1
-	"Ograve": 210, # latin capital letter O with grave, U+00D2 ISOlat1
-	"Oacute": 211, # latin capital letter O with acute, U+00D3 ISOlat1
-	"Ocirc": 212, # latin capital letter O with circumflex, U+00D4 ISOlat1
-	"Otilde": 213, # latin capital letter O with tilde, U+00D5 ISOlat1
-	"Ouml": 214, # latin capital letter O with diaeresis, U+00D6 ISOlat1
-	"times": 215, # multiplication sign, U+00D7 ISOnum
-	"Oslash": 216, # latin capital letter O with stroke = latin capital letter O slash, U+00D8 ISOlat1
-	"Ugrave": 217, # latin capital letter U with grave, U+00D9 ISOlat1
-	"Uacute": 218, # latin capital letter U with acute, U+00DA ISOlat1
-	"Ucirc": 219, # latin capital letter U with circumflex, U+00DB ISOlat1
-	"Uuml": 220, # latin capital letter U with diaeresis, U+00DC ISOlat1
-	"Yacute": 221, # latin capital letter Y with acute, U+00DD ISOlat1
-	"THORN": 222, # latin capital letter THORN, U+00DE ISOlat1
-	"szlig": 223, # latin small letter sharp s = ess-zed, U+00DF ISOlat1
-	"agrave": 224, # latin small letter a with grave = latin small letter a grave, U+00E0 ISOlat1
-	"aacute": 225, # latin small letter a with acute, U+00E1 ISOlat1
-	"acirc": 226, # latin small letter a with circumflex, U+00E2 ISOlat1
-	"atilde": 227, # latin small letter a with tilde, U+00E3 ISOlat1
-	"auml": 228, # latin small letter a with diaeresis, U+00E4 ISOlat1
-	"aring": 229, # latin small letter a with ring above = latin small letter a ring, U+00E5 ISOlat1
-	"aelig": 230, # latin small letter ae = latin small ligature ae, U+00E6 ISOlat1
-	"ccedil": 231, # latin small letter c with cedilla, U+00E7 ISOlat1
-	"egrave": 232, # latin small letter e with grave, U+00E8 ISOlat1
-	"eacute": 233, # latin small letter e with acute, U+00E9 ISOlat1
-	"ecirc": 234, # latin small letter e with circumflex, U+00EA ISOlat1
-	"euml": 235, # latin small letter e with diaeresis, U+00EB ISOlat1
-	"igrave": 236, # latin small letter i with grave, U+00EC ISOlat1
-	"iacute": 237, # latin small letter i with acute, U+00ED ISOlat1
-	"icirc": 238, # latin small letter i with circumflex, U+00EE ISOlat1
-	"iuml": 239, # latin small letter i with diaeresis, U+00EF ISOlat1
-	"eth": 240, # latin small letter eth, U+00F0 ISOlat1
-	"ntilde": 241, # latin small letter n with tilde, U+00F1 ISOlat1
-	"ograve": 242, # latin small letter o with grave, U+00F2 ISOlat1
-	"oacute": 243, # latin small letter o with acute, U+00F3 ISOlat1
-	"ocirc": 244, # latin small letter o with circumflex, U+00F4 ISOlat1
-	"otilde": 245, # latin small letter o with tilde, U+00F5 ISOlat1
-	"ouml": 246, # latin small letter o with diaeresis, U+00F6 ISOlat1
-	"divide": 247, # division sign, U+00F7 ISOnum
-	"oslash": 248, # latin small letter o with stroke, = latin small letter o slash, U+00F8 ISOlat1
-	"ugrave": 249, # latin small letter u with grave, U+00F9 ISOlat1
-	"uacute": 250, # latin small letter u with acute, U+00FA ISOlat1
-	"ucirc": 251, # latin small letter u with circumflex, U+00FB ISOlat1
-	"uuml": 252, # latin small letter u with diaeresis, U+00FC ISOlat1
-	"yacute": 253, # latin small letter y with acute, U+00FD ISOlat1
-	"thorn": 254, # latin small letter thorn, U+00FE ISOlat1
-	"yuml": 255, # latin small letter y with diaeresis, U+00FF ISOlat1
-
-	# Latin Extended-A
-	"OElig": 338, # latin capital ligature OE, U+0152 ISOlat2
-	"oelig": 339, # latin small ligature oe, U+0153 ISOlat2
-	"Scaron": 352, # latin capital letter S with caron, U+0160 ISOlat2
-	"scaron": 353, # latin small letter s with caron, U+0161 ISOlat2
-	"Yuml": 376, # latin capital letter Y with diaeresis, U+0178 ISOlat2
-
-	# Spacing Modifier Letters
-	"circ": 710, # modifier letter circumflex accent, U+02C6 ISOpub
-	"tilde": 732, # small tilde, U+02DC ISOdia
-
-	# General Punctuation
-	"ensp": 8194, # en space, U+2002 ISOpub
-	"emsp": 8195, # em space, U+2003 ISOpub
-	"thinsp": 8201, # thin space, U+2009 ISOpub
-	"zwnj": 8204, # zero width non-joiner, U+200C NEW RFC 2070
-	"zwj": 8205, # zero width joiner, U+200D NEW RFC 2070
-	"lrm": 8206, # left-to-right mark, U+200E NEW RFC 2070
-	"rlm": 8207, # right-to-left mark, U+200F NEW RFC 2070
-	"ndash": 8211, # en dash, U+2013 ISOpub
-	"mdash": 8212, # em dash, U+2014 ISOpub
-	"lsquo": 8216, # left single quotation mark, U+2018 ISOnum
-	"rsquo": 8217, # right single quotation mark, U+2019 ISOnum
-	"sbquo": 8218, # single low-9 quotation mark, U+201A NEW
-	"ldquo": 8220, # left double quotation mark, U+201C ISOnum
-	"rdquo": 8221, # right double quotation mark, U+201D ISOnum
-	"bdquo": 8222, # double low-9 quotation mark, U+201E NEW
-	"dagger": 8224, # dagger, U+2020 ISOpub
-	"Dagger": 8225, # double dagger, U+2021 ISOpub
-	"permil": 8240, # per mille sign, U+2030 ISOtech
-	"lsaquo": 8249, # single left-pointing angle quotation mark, U+2039 ISO proposed
-	"rsaquo": 8250, # single right-pointing angle quotation mark, U+203A ISO proposed
-	"euro": 8364, # euro sign, U+20AC NEW
-
-	# Mathematical, Greek and Symbolic characters
-	# Latin Extended-B
-	"fnof": 402, # latin small f with hook = function = florin, U+0192 ISOtech
-
-	# Greek
-	"Alpha": 913, # greek capital letter alpha, U+0391
-	"Beta": 914, # greek capital letter beta, U+0392
-	"Gamma": 915, # greek capital letter gamma, U+0393 ISOgrk3
-	"Delta": 916, # greek capital letter delta, U+0394 ISOgrk3
-	"Epsilon": 917, # greek capital letter epsilon, U+0395
-	"Zeta": 918, # greek capital letter zeta, U+0396
-	"Eta": 919, # greek capital letter eta, U+0397
-	"Theta": 920, # greek capital letter theta, U+0398 ISOgrk3
-	"Iota": 921, # greek capital letter iota, U+0399
-	"Kappa": 922, # greek capital letter kappa, U+039A
-	"Lambda": 923, # greek capital letter lambda, U+039B ISOgrk3
-	"Mu": 924, # greek capital letter mu, U+039C
-	"Nu": 925, # greek capital letter nu, U+039D
-	"Xi": 926, # greek capital letter xi, U+039E ISOgrk3
-	"Omicron": 927, # greek capital letter omicron, U+039F
-	"Pi": 928, # greek capital letter pi, U+03A0 ISOgrk3
-	"Rho": 929, # greek capital letter rho, U+03A1
-	"Sigma": 931, # greek capital letter sigma, U+03A3 ISOgrk3
-	"Tau": 932, # greek capital letter tau, U+03A4
-	"Upsilon": 933, # greek capital letter upsilon, U+03A5 ISOgrk3
-	"Phi": 934, # greek capital letter phi, U+03A6 ISOgrk3
-	"Chi": 935, # greek capital letter chi, U+03A7
-	"Psi": 936, # greek capital letter psi, U+03A8 ISOgrk3
-	"Omega": 937, # greek capital letter omega, U+03A9 ISOgrk3
-	"alpha": 945, # greek small letter alpha, U+03B1 ISOgrk3
-	"beta": 946, # greek small letter beta, U+03B2 ISOgrk3
-	"gamma": 947, # greek small letter gamma, U+03B3 ISOgrk3
-	"delta": 948, # greek small letter delta, U+03B4 ISOgrk3
-	"epsilon": 949, # greek small letter epsilon, U+03B5 ISOgrk3
-	"zeta": 950, # greek small letter zeta, U+03B6 ISOgrk3
-	"eta": 951, # greek small letter eta, U+03B7 ISOgrk3
-	"theta": 952, # greek small letter theta, U+03B8 ISOgrk3
-	"iota": 953, # greek small letter iota, U+03B9 ISOgrk3
-	"kappa": 954, # greek small letter kappa, U+03BA ISOgrk3
-	"lambda": 955, # greek small letter lambda, U+03BB ISOgrk3
-	"mu": 956, # greek small letter mu, U+03BC ISOgrk3
-	"nu": 957, # greek small letter nu, U+03BD ISOgrk3
-	"xi": 958, # greek small letter xi, U+03BE ISOgrk3
-	"omicron": 959, # greek small letter omicron, U+03BF NEW
-	"pi": 960, # greek small letter pi, U+03C0 ISOgrk3
-	"rho": 961, # greek small letter rho, U+03C1 ISOgrk3
-	"sigmaf": 962, # greek small letter final sigma, U+03C2 ISOgrk3
-	"sigma": 963, # greek small letter sigma, U+03C3 ISOgrk3
-	"tau": 964, # greek small letter tau, U+03C4 ISOgrk3
-	"upsilon": 965, # greek small letter upsilon, U+03C5 ISOgrk3
-	"phi": 966, # greek small letter phi, U+03C6 ISOgrk3
-	"chi": 967, # greek small letter chi, U+03C7 ISOgrk3
-	"psi": 968, # greek small letter psi, U+03C8 ISOgrk3
-	"omega": 969, # greek small letter omega, U+03C9 ISOgrk3
-	"thetasym": 977, # greek small letter theta symbol, U+03D1 NEW
-	"upsih": 978, # greek upsilon with hook symbol, U+03D2 NEW
-	"piv": 982, # greek pi symbol, U+03D6 ISOgrk3
-
-	# General Punctuation
-	"bull": 8226, # bullet = black small circle, U+2022 ISOpub
-	"hellip": 8230, # horizontal ellipsis = three dot leader, U+2026 ISOpub
-	"prime": 8242, # prime = minutes = feet, U+2032 ISOtech
-	"Prime": 8243, # double prime = seconds = inches, U+2033 ISOtech
-	"oline": 8254, # overline = spacing overscore, U+203E NEW
-	"frasl": 8260, # fraction slash, U+2044 NEW
-
-	# Letterlike Symbols
-	"weierp": 8472, # script capital P = power set = Weierstrass p, U+2118 ISOamso
-	"image": 8465, # blackletter capital I = imaginary part, U+2111 ISOamso
-	"real": 8476, # blackletter capital R = real part symbol, U+211C ISOamso
-	"trade": 8482, # trade mark sign, U+2122 ISOnum
-	"alefsym": 8501, # alef symbol = first transfinite cardinal, U+2135 NEW
-
-	# Arrows
-	"larr": 8592, # leftwards arrow, U+2190 ISOnum
-	"uarr": 8593, # upwards arrow, U+2191 ISOnu
-	"rarr": 8594, # rightwards arrow, U+2192 ISOnum
-	"darr": 8595, # downwards arrow, U+2193 ISOnum
-	"harr": 8596, # left right arrow, U+2194 ISOamsa
-	"crarr": 8629, # downwards arrow with corner leftwards = carriage return, U+21B5 NEW
-	"lArr": 8656, # leftwards double arrow, U+21D0 ISOtech
-	"uArr": 8657, # upwards double arrow, U+21D1 ISOamsa
-	"rArr": 8658, # rightwards double arrow, U+21D2 ISOtech
-	"dArr": 8659, # downwards double arrow, U+21D3 ISOamsa
-	"hArr": 8660, # left right double arrow, U+21D4 ISOamsa
-
-	# Mathematical Operators
-	"forall": 8704, # for all, U+2200 ISOtech
-	"part": 8706, # partial differential, U+2202 ISOtech
-	"exist": 8707, # there exists, U+2203 ISOtech
-	"empty": 8709, # empty set = null set = diameter, U+2205 ISOamso
-	"nabla": 8711, # nabla = backward difference, U+2207 ISOtech
-	"isin": 8712, # element of, U+2208 ISOtech
-	"notin": 8713, # not an element of, U+2209 ISOtech
-	"ni": 8715, # contains as member, U+220B ISOtech
-	"prod": 8719, # n-ary product = product sign, U+220F ISOamsb
-	"sum": 8721, # n-ary sumation, U+2211 ISOamsb
-	"minus": 8722, # minus sign, U+2212 ISOtech
-	"lowast": 8727, # asterisk operator, U+2217 ISOtech
-	"radic": 8730, # square root = radical sign, U+221A ISOtech
-	"prop": 8733, # proportional to, U+221D ISOtech
-	"infin": 8734, # infinity, U+221E ISOtech
-	"ang": 8736, # angle, U+2220 ISOamso
-	"and": 8743, # logical and = wedge, U+2227 ISOtech
-	"or": 8744, # logical or = vee, U+2228 ISOtech
-	"cap": 8745, # intersection = cap, U+2229 ISOtech
-	"cup": 8746, # union = cup, U+222A ISOtech
-	"int": 8747, # integral, U+222B ISOtech
-	"there4": 8756, # therefore, U+2234 ISOtech
-	"sim": 8764, # tilde operator = varies with = similar to, U+223C ISOtech
-	"cong": 8773, # approximately equal to, U+2245 ISOtech
-	"asymp": 8776, # almost equal to = asymptotic to, U+2248 ISOamsr
-	"ne": 8800, # not equal to, U+2260 ISOtech
-	"equiv": 8801, # identical to, U+2261 ISOtech
-	"le": 8804, # less-than or equal to, U+2264 ISOtech
-	"ge": 8805, # greater-than or equal to, U+2265 ISOtech
-	"sub": 8834, # subset of, U+2282 ISOtech
-	"sup": 8835, # superset of, U+2283 ISOtech
-	"nsub": 8836, # not a subset of, U+2284 ISOamsn
-	"sube": 8838, # subset of or equal to, U+2286 ISOtech
-	"supe": 8839, # superset of or equal to, U+2287 ISOtech
-	"oplus": 8853, # circled plus = direct sum, U+2295 ISOamsb
-	"otimes": 8855, # circled times = vector product, U+2297 ISOamsb
-	"perp": 8869, # up tack = orthogonal to = perpendicular, U+22A5 ISOtech
-	"sdot": 8901, # dot operator, U+22C5 ISOamsb
-
-	# Miscellaneous Technical
-	"lceil": 8968, # left ceiling = apl upstile, U+2308 ISOamsc
-	"rceil": 8969, # right ceiling, U+2309 ISOamsc
-	"lfloor": 8970, # left floor = apl downstile, U+230A ISOamsc
-	"rfloor": 8971, # right floor, U+230B ISOamsc
-	"lang": 9001, # left-pointing angle bracket = bra, U+2329 ISOtech
-	"rang": 9002, # right-pointing angle bracket = ket, U+232A ISOtech
-
-	# Geometric Shapes
-	"loz": 9674, # lozenge, U+25CA ISOpub
-
-	# Miscellaneous Symbols
-	"spades": 9824, # black spade suit, U+2660 ISOpub
-	"clubs": 9827, # black club suit = shamrock, U+2663 ISOpub
-	"hearts": 9829, # black heart suit = valentine, U+2665 ISOpub
-	"diams": 9830, # black diamond suit, U+2666 ISOpub
-}
-
-for name in __entities.keys():
-	namespace.registerEntity(name,xsc.CharRef(__entities[name]))
-del __entities
 
 if __name__ == "__main__":
 	xsc.make()

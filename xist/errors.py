@@ -121,9 +121,13 @@ class IllegalElementError(Error):
 
 	def __str__(self):
 		elementnames = []
-		for elementname in xsc._elementHandlers.keys():
-			for namespace in xsc._elementHandlers[elementname].keys():
-				elementnames.append(xsc._strNode(xsc._elementHandlers[elementname][namespace],brackets = 1))
+		for namespacename in xsc.NamespaceRegistry.byPrefix.keys():
+			namespace = xsc.NamespaceRegistry.byPrefix[namespacename]
+			try:
+				element = namespace.elementsByName[self.name[1]]
+				elementnames.append(xsc.strElement(element.namespace.prefix,element.name,element.empty),brackets = 1)
+			except KeyError:
+				pass
 		elementnames.sort()
 
 		s = Error.__str__(self) + "element " + xsc._strName((self.name[0],self.name[1],0)) + " not allowed. "
@@ -200,9 +204,9 @@ class MalformedCharRefError(Error):
 	def __str__(self):
 		return Error.__str__(self) + "malformed character reference: &#" + self.name + ";"
 
-class UnknownEntityError(Error):
+class IllegalEntityError(Error):
 	"""
-	exception that is raised, when an unknown entity is encountered
+	exception that is raised, when an illegal entity is encountered
 	(i.e. one that wasn't registered via registerEntity)
 	"""
 
@@ -211,7 +215,22 @@ class UnknownEntityError(Error):
 		self.name = name
 
 	def __str__(self):
-		return Error.__str__(self) + "Unknown entitiy: &" + self.name + ";"
+		entitynames = []
+		for namespacename in xsc.NamespaceRegistry.byPrefix.keys():
+			namespace = xsc.NamespaceRegistry.byPrefix[namespacename]
+			try:
+				entity = namespace.entitiesByName[self.name[1]]
+				entitynames.append(xsc.strEntity(entity.namespace.prefix,entity.name))
+			except KeyError:
+				pass
+		entitynames.sort()
+
+		s = Error.__str__(self) + "entity " + xsc.strEntity(self.name[0],self.name[1]) + " not allowed. "
+		if entitynames:
+			s = s + "Allowed entities are: " + string.join(entitynames,", ") + "."
+		else:
+			s = s + "There are no allowed entities."
+		return s
 
 class AmbiguousElementError(Error):
 	"""
