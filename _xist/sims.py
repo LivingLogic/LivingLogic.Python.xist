@@ -9,7 +9,7 @@
 ## See xist/__init__.py for the license
 
 """
-This module contains classes for a very simple validation model
+This module contains classes for a very simple validation model.
 """
 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
