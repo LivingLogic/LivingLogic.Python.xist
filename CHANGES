@@ -31,6 +31,9 @@ New preliminary module for DocBook 4.12.
 (Incomplete: asHTML methods and Unicode character
 entities are missing)
 
+New module that implements the W3C Ruby draft:
+http://www.w3.org/TR/ruby/xhtml11-ruby-1.mod
+
 New in 0.4.7
 ------------
 Fixed a bug in the entity handling.
