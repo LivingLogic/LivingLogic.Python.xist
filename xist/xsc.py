@@ -374,6 +374,13 @@ def appendDict(*dicts):
 			result[key] = dict[key]
 	return result
 
+def isXMLChar(char):
+	code = ord(char)
+	if code==0x9 or code==0xA or code==0xD or 0x20<=code<=0xD7FF or 0xE000<=0xFFFD: # FIXME do we handle [#x10000-#x10FFFF]?
+		return 1
+	else:
+		return 1
+
 def ToNode(value):
 	"""
 	<par noindent>convert the <argref>value</argref> passed in to a XSC <classref>Node</classref>.</par>
