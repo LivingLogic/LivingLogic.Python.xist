@@ -876,10 +876,10 @@ class CharacterData(Node):
 		return self.__class__(self.__content.rstrip())
 
 	def rfind(self, sub, start=0, end=sys.maxint):
-		return self.data.rfind(sub, start, end)
+		return self.__content.rfind(sub, start, end)
 
 	def rindex(self, sub, start=0, end=sys.maxint):
-		return self.data.rindex(sub, start, end)
+		return self.__content.rindex(sub, start, end)
 
 	def split(self, sep=None, maxsplit=-1):
 		return Frag(self.__content.split(sep, maxsplit))
