@@ -634,4 +634,10 @@ class xist4c(xsc.Entity):
 	def __unicode__(self):
 		return u"XIST4C"
 
+class php(xsc.Entity):
+	def convert(self, converter):
+		return xsc.Text("PHP")
+	def __unicode__(self):
+		return u"PHP"
+
 xmlns = xsc.Namespace("abbr", "http://xmlns.livinglogic.de/xist/ns/abbr", vars())
