@@ -1274,13 +1274,13 @@ class XML(ProcInst):
 		if encoding is None:
 			encoding = outputEncoding
 		if encoding != encodingfound: # if self has the wrong encoding specification (or none), we construct a new XML ProcInst and publish that
-			e = XML(u"")
+			node = XML(u"")
 			if versionfound is not None:
-				e.content = u"version='" + versionfound + u"' "
-			e.content = e.content + u"encoding='" + encoding + u"'"
+				node.content = u"version='" + versionfound + u"' "
+			node.content = node.content + u"encoding='" + encoding + u"'"
 			if standalonefound is not None:
-				e.content = e.content + u" standalone='" + standalonefound + u"'"
-			e.publish(publisher,encoding,XHTML)
+				node.content = node.content + u" standalone='" + standalonefound + u"'"
+			node.publish(publisher,encoding,XHTML)
 			return
 		ProcInst.publish(self,publisher,encoding,XHTML)
 
