@@ -1095,6 +1095,30 @@ class XMLStyleSheet(ProcInst):
 	presentPrefix = 0
 	publishPrefix = 0
 
+class Null(CharacterData):
+	"""
+	node that does not contain anything.
+	"""
+
+	def convert(self, converter):
+		return self
+
+	def clone(self):
+		pass
+
+	compact = clone
+
+	def publish(self, publisher):
+		pass
+
+	def present(self, presenter):
+		presenter.presentNull(self)
+
+	def pretty(self, level=0):
+		return self
+
+Null = Null() # Singleton, the Python way
+
 class Attr(Frag):
 	r"""
 	<doc:par>Base classes of all attribute classes.</doc:par>
@@ -1844,30 +1868,6 @@ class CharRef(Entity):
 
 	def __unicode__(self):
 		return unichr(self.codepoint)
-
-class Null(CharacterData):
-	"""
-	node that does not contain anything.
-	"""
-
-	def convert(self, converter):
-		return self
-
-	def clone(self):
-		pass
-
-	compact = clone
-
-	def publish(self, publisher):
-		pass
-
-	def present(self, presenter):
-		presenter.presentNull(self)
-
-	def pretty(self, level=0):
-		return self
-
-Null = Null() # Singleton, the Python way
 
 ###
 ###
