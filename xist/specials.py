@@ -18,38 +18,42 @@ html_ = html
 class plaintable(html_.table):
 	"""
 	a HTML table where the values of the attributes cellpadding, cellspacing and
-	border default to 0.
+	border default to 0 (which can be overwritten via the class variable
+	<code>defaults</code>).
 	"""
 	empty = 0
+	defaults = {"cellpadding": 0, "cellspacing": 0, "border": 0}
 
 	def asHTML(self):
 		e = html_.table(self.content,self.attrs)
 		if not e.hasAttr("cellpadding"):
-			e["cellpadding"] = 0
+			e["cellpadding"] = self.defaults["cellpadding"]
 		if not e.hasAttr("cellspacing"):
-			e["cellspacing"] = 0
+			e["cellspacing"] = self.defaults["cellspacing"]
 		if not e.hasAttr("border"):
-			e["border"] = 0
+			e["border"] = self.defaults["border"]
 
 		return e.asHTML()
 
 class plainbody(html_.body):
 	"""
 	a HTML body where the attributes leftmaring, topmargin, marginheight and
-	marginwidth default to 0.
+	marginwidth default to 0 (which can be overwritten via the class variable
+	<code>defaults</code>).
 	"""
 	empty = 0
+	defaults = {"leftmargin": 0, "topmargin": 0,"marginheight": 0, "marginwidth": 0}
 
 	def asHTML(self):
 		e = html_.body(self.content,self.attrs)
 		if not e.hasAttr("leftmargin"):
-			e["leftmargin"] = 0
+			e["leftmargin"] = self.defaults["leftmargin"]
 		if not e.hasAttr("topmargin"):
-			e["topmargin"] = 0
+			e["topmargin"] = self.defaults["topmargin"]
 		if not e.hasAttr("marginheight"):
-			e["marginheight"] = 0
+			e["marginheight"] = self.defaults["marginheight"]
 		if not e.hasAttr("marginwidth"):
-			e["marginwidth"] = 0
+			e["marginwidth"] = self.defaults["marginwidth"]
 
 		return e.asHTML()
 
