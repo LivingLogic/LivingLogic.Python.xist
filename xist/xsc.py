@@ -222,8 +222,8 @@ def ToNode(value):
 		return v
 	elif type(value) == types.InstanceType:
 		if isinstance(value,XSCFrag):
-			if len(value.content)==1:
-				return ToNode(value.content[0]) # recursively try to simplify the tree
+			if len(value)==1:
+				return ToNode(value[0]) # recursively try to simplify the tree
 			else:
 				return value
 		else:
