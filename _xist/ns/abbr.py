@@ -384,4 +384,4 @@ class ssl(xsc.Entity):
 	def asPlainString(self):
 		return u"SSL"
 
-namespace = xsc.Namespace("abbr", "http://www.livinglogic.de/DTDs/abbr.dtd", vars())
+namespace = xsc.Namespace("abbr", "http://ns.livinglogic.de/xist/abbr.dtd", vars())

@@ -92,4 +92,4 @@ class hidden(xsc.Element):
 			e["value"] = self["value"]
 		return e.convert(converter)
 
-namespace = xsc.Namespace("form", "http://www.livinglogic.de/DTDs/form.dtd", vars())
+namespace = xsc.Namespace("form", "http://ns.livinglogic.de/xist/form.dtd", vars())

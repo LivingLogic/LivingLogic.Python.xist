@@ -570,4 +570,4 @@ def explain(thing, name=None):
 
 	return xsc.Null
 
-namespace = xsc.Namespace("doc", "http://www.livinglogic.de/DTDs/Doc.dtd", vars())
+namespace = xsc.Namespace("doc", "http://ns.livinglogic.de/xist/doc.dtd", vars())
