@@ -1189,7 +1189,7 @@ xmlns.makemod(vars())
 
 
 # Parameter entities defined in the DTD
-pe_special_extra = (object, applet, img, map, iframe)
+pe_special_extra = (object, embed, applet, img, map, iframe) # embed is deprecated
 pe_special_basic = (br, span, bdo)
 pe_special = pe_special_basic + pe_special_extra
 pe_fontstyle_extra = (big, small, font, basefont)
