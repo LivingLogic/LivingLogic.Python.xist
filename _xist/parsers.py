@@ -26,8 +26,7 @@
 <par>It contains different &sax;2 parser driver classes (mostly for sgmlop, everything else
 is from <app moreinfo="http://pyxml.sf.net/">PyXML</app>). It includes a
 <pyref class="HTMLParser"><class>HTMLParser</class></pyref> that uses sgmlop to parse &html;
-and emit &sax;2 events. It also contains various classes derived from
-<class>xml.sax.xmlreader.InputSource</class>.</par>
+and emit &sax;2 events.</par>
 """
 
 import sys, os, os.path, types, urllib
