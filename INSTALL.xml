@@ -5,7 +5,7 @@ To use &xist; you need the following software packages:
 <li>Python 2.1 (available from <a href="http://www.python.org/">http://www.python.org/</a> and
 <a href="http://python.sourceforge.net/">http://python.sourceforge.net/</a>),</li>
 <li>The Python &xml; package (available from <a href="http://pyxml.sourceforge.net/">http://pyxml.sourceforge.net/</a>)
-(a newer version that includes sgmlop and expat, 0.6.2 will do),</li>
+(a version that includes sgmlop and expat),</li>
 <li>the Python Imaging Library (available from
 <a href="http://www.pythonware.com/products/pil/">http://www.pythonware.com/products/pil/</a>)</li>
 <li>FileUtils (available from <a href="root:fileutils/index.html">http://www.livinglogic.de/Python/fileutils/</a>),</li>
