@@ -12,7 +12,7 @@ class plaintable(table):
 	empty = 0
 
 	def asHTML(self):
-		e = table(self.content.asHTML(),self.attrs.asHTML())
+		e = table(self.content,self.attrs)
 		if not e.has_attr("cellpadding"):
 			e["cellpadding"] = "0"
 		if not e.has_attr("cellspacing"):
@@ -20,14 +20,14 @@ class plaintable(table):
 		if not e.has_attr("border"):
 			e["border"] = "0"
 
-		return e
+		return e.asHTML()
 RegisterElement("plaintable",plaintable)
 
 class plainbody(body):
 	empty = 0
 
 	def asHTML(self):
-		e = body(self.content.asHTML(),self.attrs.asHTML())
+		e = body(self.content,self.attrs)
 		if not e.has_attr("leftmargin"):
 			e["leftmargin"] = "0"
 		if not e.has_attr("topmargin"):
@@ -37,7 +37,7 @@ class plainbody(body):
 		if not e.has_attr("marginwidth"):
 			e["marginwidth"] = "0"
 
-		return e
+		return e.asHTML()
 RegisterElement("plainbody",plainbody)
 
 class z(XSCElement):
@@ -78,11 +78,13 @@ class pixel(img):
 	del attr_handlers["src"]
 
 	def asHTML(self):
-		e = img(self.content,self.attrs - [ "color" ])
-		if self.has_attr("color"):
-			color = self["color"]
-		else:
-			color = "dot_clear"
+		e = img(self.content)
+		color = "dot_clear"
+		for attr in self.attrs.keys():
+			if attr == "color":
+				color = self["color"]
+			else:
+				e[attr] = self[attr]
 		e["src"] = [ ":images/pixels/" , color , ".gif" ]
 
 		return e.asHTML()

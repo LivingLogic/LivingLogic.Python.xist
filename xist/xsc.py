@@ -54,18 +54,18 @@ class XSCEmptyElementWithContentError(XSCError):
 		self.element = element
 
 	def __str__(self):
-		return XSCError.__str__(self) + "the element " + _strelementname(self.element.name) + " is specified to be empty, but has content"
+		return XSCError.__str__(self) + "element " + _strelementname(self.element.name) + " specified to be empty, but has content"
 
 class XSCIllegalAttributeError(XSCError):
 	"""exception that is raised, when an element has an illegal attribute (i.e. one that isn't contained in it's attr_handlers)"""
 
-	def __init__(self,lineno,attrs,attr):
+	def __init__(self,lineno,element,attr):
 		XSCError.__init__(self,lineno)
-		self.attrs = attrs
+		self.element = element
 		self.attr = attr
 
 	def __str__(self):
-		attrs = self.attrs.attr_handlers.keys();
+		attrs = self.element.attr_handlers.keys();
 		attrs.sort()
 
 		v = []
@@ -73,29 +73,29 @@ class XSCIllegalAttributeError(XSCError):
 		for attr in attrs:
 			v.append(_strattrname(attr))
 
-		return XSCError.__str__(self) + "The attribute " + _strattrname(self.attr) + " is not allowed here. The only allowed attributes are: " + string.join(v,", ") + "."
+		return XSCError.__str__(self) + "Attribute " + _strattrname(self.attr) + " not allowed in element " + _strelementname(self.element.name) + ". Allowed attributes are: " + string.join(v,", ") + "."
 
 class XSCAttributeNotFoundError(XSCError):
 	"""exception that is raised, when an attribute is fetched that isn't there"""
 
-	def __init__(self,lineno,attrs,attr):
+	def __init__(self,lineno,element,attr):
 		XSCError.__init__(self,lineno)
-		self.attrs = attrs
+		self.element = element
 		self.attr = attr
 
 	def __str__(self):
-		attrs = self.attrs.keys();
+		attrs = self.element.attrs.keys();
 
-		s = XSCError.__str__(self) + "The attribute " + _strattrname(self.attr) + " could not be found. "
+		s = XSCError.__str__(self) + "Attribute " + _strattrname(self.attr) + " not found in element " + _strelementname(self.element.name) +". "
 
 		if len(attrs):
 			attrs.sort()
 			v = []
 			for attr in attrs:
 				v.append(_strattrname(attr))
-			s = s + "The only available attributes are: " + string.join(v,", ") + "."
+			s = s + "Available attributes are: " + string.join(v,", ") + "."
 		else:
-			s = s + "There are no attributes available."
+			s = s + "No attributes available."
 
 		return s
 
@@ -115,7 +115,7 @@ class XSCIllegalElementError(XSCError):
 		for element in elements:
 			v.append(_strelementname(element))
 	
-		return XSCError.__str__(self) + "The element " + _strelementname(self.elementname) + " is not allowed. The only allowed elements are: " + string.join(v,", ") + "."
+		return XSCError.__str__(self) + "element " + _strelementname(self.elementname) + " not allowed. Allowed elements are: " + string.join(v,", ") + "."
 
 class XSCIllegalElementNestingError(XSCError):
 	"""exception that is raised, when an element has an illegal nesting (e.g. <a><b></a></b>)"""
@@ -126,7 +126,7 @@ class XSCIllegalElementNestingError(XSCError):
 		self.foundelementname = foundelementname
 
 	def __str__(self):
-		return XSCError.__str__(self) + "Illegal element nesting (" + _strelementname(self.expectedelementname) + " expected; " + _strelementname(self.foundelementname) + " found)"
+		return XSCError.__str__(self) + "illegal element nesting (" + _strelementname(self.expectedelementname) + " expected; " + _strelementname(self.foundelementname) + " found)"
 
 class XSCImageSizeFormatError(XSCError):
 	"""exception that is raised, when XSC can't format or evaluate image size attributes"""
@@ -147,7 +147,7 @@ class XSCFileNotFoundError(XSCError):
 		self.url = url
 
 	def __str__(self):
-		return XSCError.__str__(self) + "the file " + self.url.repr() + " can't be opened"
+		return XSCError.__str__(self) + "file " + self.url.repr() + " can't be opened"
 
 class XSCIllegalObjectError(XSCError):
 	"""exception that is raised, when XSC finds an illegal object found in its object tree"""
@@ -167,7 +167,7 @@ class XSCMalformedCharRefError(XSCError):
 		self.name = name
 
 	def __str__(self):
-		return XSCError.__str__(self) + "Malformed character reference: &#" + self.name + ";"
+		return XSCError.__str__(self) + "malformed character reference: &#" + self.name + ";"
 
 class XSCUnknownEntityError(XSCError):
 	"""exception that is raised, when an unknown entity (i.e. one that wasn't registered via RegisterEntity) is encountered"""
@@ -217,10 +217,7 @@ def ToNode(value):
 			v.append(ToNode(i))
 		return v
 	elif type(value) == types.DictType:
-		v = XSCAttrs()
-		for i in value.keys():
-			v[i] = ToNode(value[i])
-		return v
+		raise XSCIllegalObjectError(xsc.parser.lineno,value) # no dictionaries allowed
 	elif type(value) == types.InstanceType:
 		if isinstance(value,XSCFrag):
 			if len(value)==1:
@@ -258,6 +255,12 @@ class XSCNode:
 			return self.reprtree()
 		else:
 			return self.repr()
+
+	def clone(self):
+		"""
+		returns an identical clone of the node.
+		"""
+		pass
 
 	def repr(self):
 		return self._dorepr()
@@ -325,6 +328,8 @@ class XSCText(XSCNode):
 	def asHTML(self):
 		return XSCText(self.__content)
 
+	clone = asHTML
+
 	def __str__(self):
 		v = []
 		for i in self.__content:
@@ -339,17 +344,17 @@ class XSCText(XSCNode):
 		return string.join(v,"")
 
 	def __strtext(self,refwhite):
-		# we could put ANSI escapes around every character or reference that we output, but this would result in strings that are way to long, especially if output over a serial cable, so we collect runs of characters with the same highlighting and put the ANSI escapes around those string. (of course, when we're not doing highlighting, this routine does way to much useless calculations)
+		# we could put ANSI escapes around every character or reference that we output, but this would result in strings that are way to long, especially if output over a serial connection, so we collect runs of characters with the same highlighting and put the ANSI escapes around those. (of course, when we're not doing highlighting, this routine does way to much useless calculations)
 		v = [] # collect all colored string here
 		charref = -1 # the type of characters we're currently collecting (0==normal character, 1==character that have to be output as entities, -1==at the start)
-		start = 0 # the position we our current run of characters for the same class started
+		start = 0 # the position where our current run of characters for the same class started
 		end = 0 # the current position we're testing
 		while end<=len(self.__content): # one more than the length of the string
-			do = 0 # we will have to do smething with the string collected so far ...
+			do = 0 # we will have to do something with the string collected so far ...
 			if end == len(self.__content): # ... if we're at the end of the string
 				do = 1
 			else:
-				c = self.__content[end] # or if the character we're at, is different from those we've collected so far
+				c = self.__content[end] # or if the character we're at is different from those we've collected so far
 				ascharref = (0 <= ord(c) <= 31 or 128 <= ord(c))
 				if not refwhite and (c == "\n" or c == "\t"):
 					ascharref = 0
@@ -366,11 +371,10 @@ class XSCText(XSCNode):
 						else:
 							s = s + '&#' + str(self.__content) + ';'
 					v.append(_stransi(XSCCharRef.repransi,s))
-					charref = 0 # switch to the other class
 				else:
 					s = self.__content[start:end]
 					v.append(_stransi(XSCText.repransi,s))
-					charref = 1 # switch to the other class
+				charref = 1-charref # switch to the other class
 				start = end # the next string  we want to work on starts from here
 			end = end + 1 # to the next character
 				
@@ -404,6 +408,8 @@ class XSCCharRef(XSCNode):
 
 	def asHTML(self):
 		return XSCCharRef(self.__content)
+
+	clone = asHTML
 
 	def __str__(self):
 		if 0<=self.__content<=127:
@@ -477,6 +483,12 @@ class XSCFrag(XSCNode):
 		e = XSCFrag()
 		for child in self:
 			e.append(child.asHTML())
+		return e
+
+	def clone(self):
+		e = XSCFrag()
+		for child in self:
+			e.append(child.clone())
 		return e
 
 	def _dorepr(self):
@@ -559,99 +571,6 @@ class XSCFrag(XSCNode):
 
 		return e
 
-class XSCAttrs(XSCNode):
-	"""contains a dictionary of XSCNodes which are wrapped into attribute nodes"""
-
-	repransiquotes = "34"
-
-	def __init__(self,attr_handlers,_content = {},**_restcontent):
-		self.attr_handlers = attr_handlers
-		self.__content = {}
-		for attr in _content.keys():
-			self[attr] = _content[attr]
-		for attr in _restcontent.keys():
-			self[attr] = _restcontent[attr]
-
-	def __add__(self,other):
-		"""adds attributes to the list"""
-		res = XSCAttrs(self.attr_handlers,self.__content) # FIXME: was ist mit den Handlern
-		for attr in other.keys():
-			res[attr] = other[attr]
-		return res
-
-	def __sub__(self,attrs):
-		"""removes attributes from the list"""
-		res = XSCAttrs(self.attr_handlers,self.__content) # FIXME: was ist mit den Handlern
-		for attr in attrs:
-			del res[attr]
-		return res
-
-	def asHTML(self):
-		return XSCAttrs(self.attr_handlers,self.__content)
-
-	def __strattr(self,s):
-		return _stransi(self.repransiquotes,'"') + s + _stransi(self.repransiquotes,'"')
-
-	def _dorepr(self):
-		v = []
-		for attr in self.keys():
-			v.append(" " + _strattrname(attr) + '=' + self.__strattr(self[attr]._dorepr()))
-		return string.join(v,"")
-
-	def _doreprtree(self,nest,elementno):
-		v = [nest,self.startlineno,elementno,""]
-		for attr in self.keys():
-			line = self[attr]._dorepr()
-			v[-1] = v[-1] + " " + _strattrname(attr) + '=' + self.__strattr(line)
-		return [v]
-
-	def __str__(self):
-		v = []
-		for attr in self.keys():
-			v.append(' ' + attr + '="' + str(self[attr]) + '"')
-		return string.join(v,"")
-
-	def has_attr(self,index):
-		return self.__content.has_key(index)
-
-	def __getitem__(self,index):
-		"""returns the attribute with the name index"""
-		lowerindex = string.lower(index)
-		if self.__content.has_key(lowerindex):
-			return self.__content[lowerindex] # we're returning the packed attribute here, because otherwise there would be no possibility to get an expanded URL
-		else:
-			raise XSCAttributeNotFoundError(xsc.parser.lineno,self,index)
-
-	def __setitem__(self,index,value):
-		"""insert an attribute with the name index and the value value into the attribute dictionary"""
-		# values are contructed via the attribute classes specified in the attr_handlers dictionary, which do the conversion
-		lowerindex = string.lower(index)
-		if self.attr_handlers.has_key(lowerindex):
-			self.__content[lowerindex] = self.attr_handlers[lowerindex](value) # pack the attribute into an attribute object
-		else:
-			raise XSCIllegalAttributeError(xsc.parser.lineno,self,index)
-
-	def __delitem__(self,index):
-		"""removes the attribute with the name index (if there is one)"""
-		lowerindex = string.lower(index)
-		if self.__content.has_key(lowerindex):
-			del self.__content[lowerindex]
-
-	def keys(self):
-		"""returns the keys of the dictionary, i.e. a list of the attribute names"""
-		return self.__content.keys()
-
-	def __len__(self):
-		"""return the number of attributes"""
-		return len(self.keys())
-
-	def update(self,other):
-		for attr in other.keys():
-			self[attr] = other[attr]
-
-	def withoutLinefeeds(self):
-		return XSCAttrs(self.attr_handlers,self.__content)
-
 class XSCComment(XSCNode):
 	"""comments"""
 
@@ -660,6 +579,8 @@ class XSCComment(XSCNode):
 
 	def asHTML(self):
 		return XSCComment(self.__content)
+
+	clone = asHTML
 
 	def _dorepr(self):
 		return self._strtag("!--" + self.__content + "--")
@@ -681,6 +602,8 @@ class XSCDocType(XSCNode):
 
 	def asHTML(self):
 		return XSCDocType(self.__content)
+
+	clone = asHTML
 
 	def _dorepr(self):
 		return self._strtag("!DOCTYPE " + self.__content)
@@ -708,6 +631,8 @@ class XSCProcInst(XSCNode):
 	def asHTML(self):
 		return XSCProcInst(self.__target,self.__content)
 
+	clone = asHTML
+
 	def _dorepr(self):
 		return self._strtag(_stransi(self.repransiquestion,"?") + _stransi(self.repransitarget,self.__target) + " " + _stransi(self.repransidata,self.__content) + _stransi(self.repransiquestion,"?"))
 
@@ -723,16 +648,19 @@ class XSCProcInst(XSCNode):
 class XSCElement(XSCNode):
 	"""XML elements"""
 
+	repransiattrquotes = "34"
+
 	empty = 1 # 0 => element with content; 1 => stand alone element
  	attr_handlers = {}
 	name = "XSCElement" # will be changed for derived classes/elements in RegisterElement()
 
 	def __init__(self,_content = [],_attrs = {},**_restattrs):
 		self.content = XSCFrag(_content)
-		self.attrs = XSCAttrs(self.attr_handlers,{})
-
-		self.attrs.update(_attrs)
-		self.attrs.update(_restattrs)
+		self.attrs = {}
+		for attr in _attrs.keys():
+			self[attr] = _attrs[attr]
+		for attr in _restattrs.keys():
+			self[attr] = _restattrs[attr]
 
 	def append(self,item):
 		if item is not None:
@@ -742,14 +670,23 @@ class XSCElement(XSCNode):
 				self.content.append(item)
 
 	def asHTML(self):
-		return self.__class__(self.content.asHTML(),self.attrs.asHTML()) # "virtual" copy constructor
+		e = self.__class__(self.content.asHTML()) # "virtual" copy constructor
+		for attr in self.attrs.keys():
+			e[attr] = self[attr].asHTML()
+		return e
+
+	def clone(self):
+		e = self.__class__(self.content.clone()) # "virtual" copy constructor
+		for attr in self.attrs.keys():
+			e[attr] = self[attr].clone()
+		return e
 
 	def _dorepr(self):
 		v = []
 		if self.empty:
-			v.append(self._strtag(_strelementname(self.name) + self.attrs._dorepr() + _strelementname("/")))
+			v.append(self._strtag(_strelementname(self.name) + self.__strattrs() + _strelementname("/")))
 		else:
-			v.append(self._strtag(_strelementname(self.name) + self.attrs._dorepr()))
+			v.append(self._strtag(_strelementname(self.name) + self.__strattrs()))
 			for child in self:
 				v.append(child._dorepr())
 			v.append(self._strtag(_strelementname("/" + self.name)))
@@ -758,9 +695,9 @@ class XSCElement(XSCNode):
 	def _doreprtree(self,nest,elementno):
 		v = []
 		if self.empty:
-			v.append([nest,self.startlineno,elementno,self._strtag(_strelementname(self.name) + self.attrs._dorepr() + _strelementname("/"))])
+			v.append([nest,self.startlineno,elementno,self._strtag(_strelementname(self.name) + self.__strattrs() + _strelementname("/"))])
 		else:
-			v.append([nest,self.startlineno,elementno,self._strtag(_strelementname(self.name) + self.attrs._dorepr())])
+			v.append([nest,self.startlineno,elementno,self._strtag(_strelementname(self.name) + self.__strattrs())])
 			i = 0
 			for child in self:
 				v = v + child._doreprtree(nest+1,elementno + [i])
@@ -774,7 +711,12 @@ class XSCElement(XSCNode):
 		v = []
 		v.append("<")
 		v.append(self.name)
-		v.append(str(self.attrs))
+		for attr in self.attrs.keys():
+			v.append(' ')
+			v.append(attr)
+			v.append('="')
+			v.append(str(self[attr]))
+			v.append('"')
 		s = str(self.content)
 		if self.empty:
 			if len(s):
@@ -790,23 +732,43 @@ class XSCElement(XSCNode):
 		return string.join(v,"")
 
 	def __getitem__(self,index):
-		"returns an attribute or one of the content nodes depending on whether a string (i.e. attribute name) or a number (i.e. content node index) is passed in"""
+		"""
+		returns an attribute or one of the content nodes depending on whether
+		a string (i.e. attribute name) or a number (i.e. content node index) is passed in.
+		"""
 		if type(index)==types.StringType:
-			return self.attrs[index]
+			lowerindex = string.lower(index)
+			if self.attrs.has_key(lowerindex):
+				return self.attrs[lowerindex] # we're returning the packed attribute here, because otherwise there would be no possibility to get an expanded URL
+			else:
+				raise XSCAttributeNotFoundError(xsc.parser.lineno,self,index)
 		else:
 			return self.content[index]
 
 	def __setitem__(self,index,value):
-		"sets an attribute or one of the content nodes depending on whether a string (i.e. attribute name) or a number (i.e. content node index) is passed in"""
+		"""
+		sets an attribute or one of the content nodes depending on whether
+		a string (i.e. attribute name) or a number (i.e. content node index) is passed in.
+		"""
 		if type(index)==types.StringType:
-			self.attrs[index] = value
+			# values are contructed via the attribute classes specified in the attr_handlers dictionary, which do the conversion
+			lowerindex = string.lower(index)
+			if self.attr_handlers.has_key(lowerindex):
+				self.attrs[lowerindex] = self.attr_handlers[lowerindex](value) # pack the attribute into an attribute object
+			else:
+				raise XSCIllegalAttributeError(xsc.parser.lineno,self,index)
 		else:
 			self.content[index] = value
 
 	def __delitem__(self,index):
-		"""removes an attribute or one of the content nodes depending on whether a string (i.e. attribute name) or a number (i.e. content node index) is passed in"""
+		"""
+		removes an attribute or one of the content nodes depending on whether
+		a string (i.e. attribute name) or a number (i.e. content node index) is passed in.
+		"""
 		if type(index)==types.StringType:
-			del self.attrs[index]
+			lowerindex = string.lower(index)
+			if self.attrs.has_key(lowerindex):
+				del self.attrs[lowerindex]
 		else:
 			del self.content[index]
 
@@ -827,7 +789,18 @@ class XSCElement(XSCNode):
 		return len(self.content)
 
 	def has_attr(self,attr):
-		return self.attrs.has_attr(attr)
+		return self.attrs.has_key(attr)
+
+	def __strattrs(self):
+		v = []
+		for attr in self.attrs.keys():
+			v.append(" ")
+			v.append(_strattrname(attr))
+			v.append('=')
+			v.append(_stransi(self.repransiattrquotes,'"'))
+			v.append(self[attr]._dorepr())
+			v.append(_stransi(self.repransiattrquotes,'"'))
+		return string.join(v,"")
 
 	def AddImageSizeAttributes(self,imgattr,widthattr = "width",heightattr = "height"):
 		"""add width and height attributes to the element for the image that can be found in the attributes imgattr. if the attribute is already there it is taken as a formating template with the size passed in as a dictionary with the keys 'width' and 'height', i.e. you could make your image twice as wide with width='%(width)d*2'"""
@@ -860,7 +833,7 @@ class XSCElement(XSCNode):
 		return e
 
 	def withoutLinefeeds(self):
-		return self.__class__(self.content.withoutLinefeeds(),self.attrs.withoutLinefeeds())
+		return self.__class__(self.content.withoutLinefeeds(),self.attrs)
 
 	def elements(self):
 		return self.content.elements()
@@ -918,6 +891,8 @@ class XSCTextAttr(XSCAttr):
 	def asHTML(self):
 		return XSCTextAttr(self._content)
 
+	clone = asHTML
+
 class XSCColorAttr(XSCAttr):
 	"""
 	Attribute class that is used for a color attributes.
@@ -937,6 +912,8 @@ class XSCColorAttr(XSCAttr):
 
 	def asHTML(self):
 		return XSCColorAttr(self._content)
+
+	clone = asHTML
 
 class XSCURLAttr(XSCAttr):
 	"""
@@ -990,6 +967,8 @@ class XSCURLAttr(XSCAttr):
 
 	def asHTML(self):
 		return XSCURLAttr(XSCText(self.forOutput()))
+
+	clone = asHTML
 
 	def forInput(self):
 		scheme = self.scheme

@@ -337,7 +337,7 @@ class img(XSCElement):
 	attr_handlers = AppendDict(attr_handlers,{ "name" : XSCTextAttr , "border" : XSCTextAttr , "align" : XSCTextAttr , "hspace" : XSCTextAttr , "vspace" : XSCTextAttr , "lowsrc" : XSCURLAttr }) # deprecated
 
 	def asHTML(self):
-		e = img(self.content.asHTML(),self.attrs.asHTML())
+		e = self.clone()
 		e.AddImageSizeAttributes("src")
 
 		return e

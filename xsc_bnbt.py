@@ -97,7 +97,7 @@ class blankpage(XSCElement):
 				script(type="text/javascript",language="Javascript",src=":javascripts/main.js")+
 				link(src="made",href="mailto:html@bnbt.de")
 			)+
-			plainbody(self.content,bgcolor="white")
+			plainbody(self.content.clone(),bgcolor="white")
 		)
 
 		return e.asHTML()
@@ -132,11 +132,17 @@ class pfeil(img):
 	attr_handlers = AppendDict(img.attr_handlers,{ "rel" : XSCTextAttr })
 	
 	def asHTML(self):
-		e = img(self.content.asHTML(),self.attrs - [ "rel" ])
-		e["border"] = 0
-		e["src"] = [":images/links/" , self["rel"] , ".gif" ]
+		e = img(self.content.clone(),border = "0")
+		rel = None
+		for attr in self.attrs.keys():
+			if attr == "rel":
+				rel = self["rel"]
+			else:
+				e[attr] = self[attr]
+		if rel is not None:
+			e["src"] = [":images/links/" , rel , ".gif" ]
 
-		return e
+		return e.asHTML()
 RegisterElement("pfeil",pfeil)
 
 class capbnv(XSCElement):
@@ -480,10 +486,16 @@ class par(div):
 	attr_handlers = AppendDict(div.attr_handlers,{ "noindent" : XSCTextAttr })
 	
 	def asHTML(self):
-		e = div(self.content.asHTML(),(self.attrs - "noindent").asHTML())
-		if not self.has_attr("noindent"):
+		e = div(self.content.clone())
+		indent = 1
+		for attr in self.attrs.keys():
+			if attr == "noindent":
+				indent = None
+			else:
+				e[attr] = self[attr]
+		if indent is not None:
 			e["class"] = "indent"
-		return e
+		return e.asHTML()
 RegisterElement("par",par)
 
 class blob(XSCElement):
@@ -497,7 +509,8 @@ class schulen(dl):
 	empty = 0
 
 	def asHTML(self):
-		return dl(self.content.asHTML(),self.attrs.asHTML())
+		e = dl(self.content,self.attrs)
+		return e.asHTML()
 RegisterElement("schulen",schulen)
 
 class schule(XSCElement):
@@ -646,7 +659,7 @@ class lnk(XSCElement):
 					)+
 					td(
 						div(
-							self.content,
+							self.content.clone(),
 							Class = "lnk-text"
 						),
 						Class = "links"
@@ -715,7 +728,7 @@ class engines(XSCElement):
 	empty = 0
 
 	def asHTML(self):
-		e = dl(self.content)
+		e = dl(self.content.clone())
 		return e.asHTML()
 RegisterElement("engines",engines)
 
@@ -726,7 +739,7 @@ class engine(XSCElement):
 	def asHTML(self):
 		e = XSCFrag(
 			dt(b(self["name"]) + " (" + hrf(self["url"],href=self["url"]) + ")")+
-			dd(div(self.content,Class="engine-text"))
+			dd(div(self.content.clone(),Class="engine-text"))
 		)
 
 		return e.asHTML()
@@ -737,7 +750,7 @@ class bnvereine(XSCElement):
 	empty = 0
 
 	def asHTML(self):
-		e = dl(self.content)
+		e = dl(self.content.clone())
 		return e.asHTML()
 RegisterElement("bnvereine",bnvereine)
 
@@ -748,7 +761,7 @@ class bnverein(XSCElement):
 	def asHTML(self):
 		e = XSCFrag(
 			dt(b(self["name"]) + " (" + hrf(self["url"],href=self["url"]) + ")")+
-			dd(div(self.content,Class="bnverein-text"))
+			dd(div(self.content.clone(),Class="bnverein-text"))
 		)
 
 		return e.asHTML()
@@ -762,7 +775,7 @@ class fahrplansite(XSCElement):
 	def asHTML(self):
 		e = XSCFrag(
 			dt(b(self["name"]) + " (" + hrf(self["url"],href=self["url"]) + ")")+
-			dd(div(self.content,Class="fahrplan-text"))
+			dd(div(self.content.clone(),Class="fahrplan-text"))
 		)
 
 		return e.asHTML()
@@ -772,7 +785,7 @@ class fahrplansites(XSCElement):
 	empty = 0
 
 	def asHTML(self):
-		e = dl(self.content)
+		e = dl(self.content.clone())
 
 		return e.asHTML()
 RegisterElement("fahrplansites",fahrplansites)
@@ -799,7 +812,7 @@ class halt(XSCElement):
 	empty = 0
 
 	def asHTML(self):
-		e = td(self.content,align="right",Class="halt")
+		e = td(self.content.clone(),align="right",Class="halt")
 
 		return e.asHTML()
 RegisterElement("halt",halt)
@@ -826,7 +839,7 @@ class haltestelle(XSCElement):
 		e = tr(
 			th(self["name"],Class="left")+
 			anab+
-			self.content+
+			self.content.clone()+
 			anab+
 			th(self["name"],Class="right")
 		)
@@ -849,7 +862,7 @@ class newstickers(XSCElement):
 	empty = 0
 
 	def asHTML(self):
-		e = dl(self.content)
+		e = dl(self.content.clone())
 
 		return e.asHTML()
 RegisterElement("newstickers",newstickers)
@@ -861,7 +874,7 @@ class newsticker(XSCElement):
 	def asHTML(self):
 		e = XSCFrag(
 			dt(b(self["name"]) + " (" + hrf(self["url"],href=self["url"]) + ")")+
-			dd(div(self.content,Class="newsticker-text"))
+			dd(div(self.content.clone(),Class="newsticker-text"))
 		)
 
 		return e.asHTML()
@@ -886,7 +899,7 @@ class newsitems(XSCElement):
 	empty = 0
 
 	def asHTML(self):
-		e = plaintable(self.content,Class="newsitems")
+		e = plaintable(self.content.clone(),Class="newsitems")
 
 		return e.asHTML()
 RegisterElement("newsitems",newsitems)
@@ -898,7 +911,7 @@ class newsitem(XSCElement):
 	def asHTML(self):
 		e = tr(
 			td(b(self["datum"]+nbsp()),valign="top")+
-			td(a(self.content,href=":aktuelles/"+self["href"]+".html"))
+			td(a(self.content.clone(),href=":aktuelles/"+self["href"]+".html"))
 		,Class="newsitem")
 
 		return e.asHTML()
@@ -909,7 +922,7 @@ class pagenewsitem(XSCElement):
 	attr_handlers = { "datum" : XSCTextAttr }
 
 	def asHTML(self):
-		e = page(links()+content(self.content),title="Bürgernetz Bayreuth - Aktuelles - "+self["datum"],keywords="Bürgernetz, Bayreuth, Aktuelles")
+		e = page(links()+content(self.content.clone()),title="Bürgernetz Bayreuth - Aktuelles - "+self["datum"],keywords="Bürgernetz, Bayreuth, Aktuelles")
 
 		return e.asHTML()
 RegisterElement("pagenewsitem",pagenewsitem)
