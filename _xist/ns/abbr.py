@@ -360,6 +360,12 @@ class png(xsc.Entity):
 	def __unicode__(self):
 		return u"PNG"
 
+class uddi(xsc.Entity):
+	def convert(self, converter):
+		return html_.abbr("UDDI", title="Universal Description, Discovery and Integration", lang="en")
+	def __unicode__(self):
+		return u"UDDI"
+
 class wsdl(xsc.Entity):
 	def convert(self, converter):
 		return html_.abbr("WSDL", title="Web Services Description Language", lang="en")
