@@ -30,7 +30,7 @@ Struts tag libraries with &xist; this speeds up pages by a factor of 5&ndash;10.
 </ulist>
 
 <par>&xist; was written as a replacement for the
-<link href="http://www.giga.or.at/~agi/hsc/">&html; preprocessor &hsc;</link>,
+<link href="http://www.linguistik.uni-erlangen.de/~msbethke/software.html">&html; preprocessor &hsc;</link>,
 and borrows some features and ideas from it.</par>
 
 <par>It also borrows the basic ideas (&xml;/&html; elements as Python
