@@ -322,8 +322,9 @@ class FindOld(object):
 ###
 
 class _XFindBase(object):
-	def xfind(self, iterator, operators):
-		return _XFinder(self.xwalk(iterator), operators)
+	def xfind(self, iterator, *operators):
+		# we have to resolve the iterator here
+		return iter(_XFinder(self.xwalk(iterator), *operators))
 
 
 class _XFinder(object):
@@ -338,16 +339,31 @@ class _XFinder(object):
 
 	def __iter__(self):
 		if self.operators:
-			return self.operators[0].xfind(self.iterator, self.operators[1:])
+			return self.operators[0].xfind(self.iterator, *self.operators[1:])
 		else:
 			return self
 
 	def __getitem__(self, index):
-		for item in self:
-			if not index:
-				return item
-			index -= 1
-		raise IndexError
+		if isinstance(index, slice):
+			return list(self)[index]
+		else:
+			if index>=0:
+				for item in self:
+					if not index:
+						return item
+					index -= 1
+				raise IndexError
+			else:
+				index = -index
+				cache = []
+				for item in self:
+					cache.append(item)
+					if len(cache)>index:
+						cache.pop(0)
+				if len(cache)==index:
+					return cache[0]
+				else:
+					raise IndexError
 
 	def __div__(self, other):
 		return _XFinder(self.iterator, *(self.operators + (other,)))
@@ -361,7 +377,7 @@ class _XFinder(object):
 			ops = "/" + "/".join([repr(op) for op in self.operators])  # FIXME: Use a GE in Python 2.4
 		else:
 			ops = ""
-		return "<%s.%s object for %r%s at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self._iterator, ops, id(self))
+		return "<%s.%s object for %r%s at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.iterator, ops, id(self))
 
 
 ###
