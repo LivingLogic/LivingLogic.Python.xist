@@ -388,42 +388,6 @@ class XISTTest(unittest.TestCase):
 				node[[0, 0, attr]] = "hurz"
 				self.assertEqual(str(node[[0, 0, attr]]), "hurz")
 
-	def test_mixedattrnames(self):
-		class xmlns(xsc.Namespace):
-			xmlname = "test"
-			xmlurl = "test"
-
-			class Attrs(xsc.Namespace.Attrs):
-				class a(xsc.TextAttr): xmlname = "A"
-				class A(xsc.TextAttr): xmlname = "a"
-			class Test(xsc.Element):
-				class Attrs(xsc.Element.Attrs):
-					class a(xsc.TextAttr): xmlname = "A"
-					class A(xsc.TextAttr): xmlname = "a"
-
-		node = xmlns.Test(
-			{
-				(xmlns, "a"): "a2",
-				(xmlns, "A"): "A2",
-			},
-			a="a",
-			A="A"
-		)
-		for (name, value) in (
-				("a", "a"),
-				("A", "A"),
-				((xmlns, "a"), "a2"),
-				((xmlns, "A"), "A2")
-			):
-			self.assertEqual(unicode(node[name]), value)
-			self.assertEqual(unicode(node.attrs[name]), value)
-			self.assertEqual(unicode(node.attrs.get(name, xml=False)), value)
-			if isinstance(name, tuple):
-				name = (name[0], name[1].swapcase())
-			else:
-				name = name.swapcase()
-			self.assertEqual(unicode(node.attrs.get(name, xml=True)), value)
-
 	def mappedmapper(self, node, converter):
 		if isinstance(node, xsc.Text):
 			node = node.replace("gurk", "hurz")
@@ -583,103 +547,6 @@ class XISTTest(unittest.TestCase):
 		self.assertEqual(l1.getPublicId(), l2.getPublicId())
 		self.assertEqual(l1.getLineNumber()+1, l2.getLineNumber())
 
-	def check_namespace(self, module):
-		for obj in module.__dict__.values():
-			if isinstance(obj, type) and issubclass(obj, xsc.Node):
-				node = obj()
-				if isinstance(node, xsc.Element):
-					for (attrname, attrvalue) in node.attrs.alloweditems():
-						if attrvalue.required:
-							if attrvalue.values:
-								node[attrname] = attrvalue.values[0]
-							else:
-								node[attrname] = "foo"
-				node.conv().asBytes()
-
-	def test_html(self):
-		self.check_namespace(html)
-
-	def test_ihtml(self):
-		self.check_namespace(ihtml)
-
-	def test_wml(self):
-		self.check_namespace(wml)
-
-	def test_css(self):
-		self.check_namespace(css)
-
-	def test_specials(self):
-		self.check_namespace(css)
-
-	def test_form(self):
-		self.check_namespace(css)
-
-	def test_meta(self):
-		self.check_namespace(css)
-
-	def test_htmlspecials(self):
-		self.check_namespace(css)
-
-	def test_cssspecials(self):
-		self.check_namespace(css)
-
-	def test_docbook(self):
-		self.check_namespace(css)
-
-	escapeInput = u"".join([unichr(i) for i in xrange(1000)] + [unichr(i) for i in xrange(sys.maxunicode-10, sys.maxunicode+1)])
-
-	def test_helpersescapetext(self):
-		escapeOutput = []
-		for c in self.escapeInput:
-			if c==u"&":
-				escapeOutput.append(u"&amp;")
-			elif c==u"<":
-				escapeOutput.append(u"&lt;")
-			elif c==u">":
-				escapeOutput.append(u"&gt;")
-			else:
-				escapeOutput.append(c)
-		escapeOutput = "".join(escapeOutput)
-		self.assertEqual(helpers.escapetext(self.escapeInput), escapeOutput)
-
-	def test_helpersescapeattr(self):
-		escapeOutput = []
-		for c in self.escapeInput:
-			if c==u"&":
-				escapeOutput.append(u"&amp;")
-			elif c==u"<":
-				escapeOutput.append(u"&lt;")
-			elif c==u">":
-				escapeOutput.append(u"&gt;")
-			elif c==u'"':
-				escapeOutput.append(u"&quot;")
-			else:
-				escapeOutput.append(c)
-		escapeOutput = "".join(escapeOutput)
-		self.assertEqual(helpers.escapeattr(self.escapeInput), escapeOutput)
-
-	def test_helperxmlcharrefreplace(self):
-		escapeOutput = []
-		for c in self.escapeInput:
-			try:
-				c.encode("ascii")
-				escapeOutput.append(c)
-			except UnicodeError:
-				escapeOutput.append(u"&#%d;" % ord(c))
-		escapeOutput = u"".join(escapeOutput)
-		self.assertEqual(helpers.xmlcharrefreplace(self.escapeInput, "ascii"), escapeOutput)
-
-	def test_helpercssescapereplace(self):
-		escapeOutput = []
-		for c in self.escapeInput:
-			try:
-				c.encode("ascii")
-				escapeOutput.append(c)
-			except UnicodeError:
-				escapeOutput.append((u"\\%x" % ord(c)).upper())
-		escapeOutput = u"".join(escapeOutput)
-		self.assertEqual(helpers.cssescapereplace(self.escapeInput, "ascii"), escapeOutput)
-
 	def test_attrsclone(self):
 		class newa(html.a):
 			def convert(self, converter):
@@ -691,47 +558,6 @@ class XISTTest(unittest.TestCase):
 		e = e.conv().conv()
 		self.assertEqual(unicode(e["href"]), "foohurz")
 		self.assertEqual(str(e["href"]), "foohurz")
-
-	def test_csspublish(self):
-		e = css.css(
-			css.atimport("http://www.gurk.org/gurk.css"),
-			css.atimport("http://www.gurk.org/print.css", media="print"),
-			css.atimport("http://www.gurk.org/screen.css", media="screen"),
-			css.rule(
-				css.sel("body"),
-				css.font_family("Verdana, sans-serif"),
-				css.font_size("10pt"),
-				css.background_color("#000"),
-				css.color("#fff")
-			),
-			css.atmedia(
-				css.rule(
-					css.sel("div, p"),
-					css.font_family("Verdana, sans-serif"),
-					css.font_size("10pt"),
-					css.background_color("#000"),
-					css.color("#fff")
-				),
-				media="print"
-			)
-		)
-		e.asBytes()
-
-	def test_namespace(self):
-		self.assertEqual(xsc.amp.xmlname, (u"amp", u"amp"))
-		self.assert_(xsc.amp.xmlns is None)
-		self.assertEqual(xsc.amp.xmlprefix(), None)
-
-		self.assertEqual(chars.uuml.xmlname, (u"uuml", u"uuml"))
-		self.assert_(chars.uuml.xmlns is chars)
-		self.assertEqual(chars.uuml.xmlprefix(), "chars")
-
-		self.assertEqual(html.a.Attrs.class_.xmlname, (u"class_", u"class"))
-		self.assert_(html.a.Attrs.class_.xmlns is None)
-
-		self.assertEqual(xml.Attrs.lang.xmlname, (u"lang", u"lang"))
-		self.assert_(xml.Attrs.lang.xmlns is xml)
-		self.assertEqual(xml.Attrs.lang.xmlprefix(), "xml")
 
 	def test_attributes(self):
 		node = html.h1("gurk", {(xml, "lang"): "de"}, lang="de")
@@ -1033,79 +859,6 @@ class XISTTest(unittest.TestCase):
 			node = class_()
 			self.assertEquals(unicode(node.withsep(",")), u"")
 
-	def test_autoinherit(self):
-		class NS1(xsc.Namespace):
-			xmlname = "test"
-			xmlurl = "test"
-			class foo(xsc.Element):
-				empty = True
-				def convert(self, converter):
-					e = self.xmlns.bar()
-					return e.convert(converter)
-			class bar(xsc.Entity):
-				def convert(self, converter):
-					return xsc.Text(17)
-
-		class NS2(NS1):
-			xmlname = "test"
-			class bar(xsc.Entity):
-				def convert(self, converter):
-					return xsc.Text(23)
-
-		self.assertEquals(unicode(NS1.foo().conv()), u"17")
-		self.assertEquals(unicode(NS2.foo().conv()), u"23")
-
-	def check_nskeysvaluesitems(self, ns, method, resname, resclass):
-		self.assertEquals(getattr(ns, method + "keys")(xml=False), [resname])
-		self.assertEquals(getattr(ns, method + "keys")(xml=True), [resname[:-1]])
-
-		self.assertEquals(getattr(ns, method + "values")(), [resclass])
-
-		self.assertEquals(getattr(ns, method + "items")(xml=False), [(resname, resclass)])
-		self.assertEquals(getattr(ns, method + "items")(xml=True), [(resname[:-1], resclass)])
-
-	def test_nskeysvaluesitems(self):
-		class NS(xsc.Namespace):
-			xmlname = "test"
-			class el_(xsc.Element):
-				xmlname = "el"
-			class en_(xsc.Entity):
-				xmlname = "en"
-			class pi_(xsc.ProcInst):
-				xmlname = "pi"
-			class cr_(xsc.CharRef):
-				xmlname = "cr"
-				codepoint = 0x4242
-
-		self.check_nskeysvaluesitems(NS, "element", "el_", NS.el_)
-
-		keys = NS.entitykeys(xml=False)
-		self.assertEqual(len(keys), 2)
-		self.assert_("en_" in keys)
-		self.assert_("cr_" in keys)
-		keys = NS.entitykeys(xml=True)
-		self.assertEqual(len(keys), 2)
-		self.assert_("en" in keys)
-		self.assert_("cr" in keys)
-
-		values = NS.entityvalues()
-		self.assertEqual(len(values), 2)
-		self.assert_(NS.en_ in values)
-		self.assert_(NS.cr_ in values)
-
-		items = NS.entityitems(xml=False)
-		self.assertEqual(len(items), 2)
-		self.assert_(("en_", NS.en_) in items)
-		self.assert_(("cr_", NS.cr_) in items)
-		items = NS.entityitems(xml=True)
-		self.assertEqual(len(items), 2)
-		self.assert_(("en", NS.en_) in items)
-		self.assert_(("cr", NS.cr_) in items)
-
-		self.check_nskeysvaluesitems(NS, "procinst", "pi_", NS.pi_)
-
-		self.check_nskeysvaluesitems(NS, "charref", "cr_", NS.cr_)
-
 	def test_allowedattr(self):
 		self.assertEquals(html.a.Attrs.allowedattr("href"), html.a.Attrs.href)
 		self.assertRaises(errors.IllegalAttrError, html.a.Attrs.allowedattr, "gurk")
@@ -1323,6 +1076,251 @@ class XISTTest(unittest.TestCase):
 		self.check_sortreverse("reversed")
 
 
+class NamespaceTest(unittest.TestCase):
+	def test_mixedattrnames(self):
+		class xmlns(xsc.Namespace):
+			xmlname = "test"
+			xmlurl = "test"
+
+			class Attrs(xsc.Namespace.Attrs):
+				class a(xsc.TextAttr): xmlname = "A"
+				class A(xsc.TextAttr): xmlname = "a"
+			class Test(xsc.Element):
+				class Attrs(xsc.Element.Attrs):
+					class a(xsc.TextAttr): xmlname = "A"
+					class A(xsc.TextAttr): xmlname = "a"
+
+		node = xmlns.Test(
+			{
+				(xmlns, "a"): "a2",
+				(xmlns, "A"): "A2",
+			},
+			a="a",
+			A="A"
+		)
+		for (name, value) in (
+				("a", "a"),
+				("A", "A"),
+				((xmlns, "a"), "a2"),
+				((xmlns, "A"), "A2")
+			):
+			self.assertEqual(unicode(node[name]), value)
+			self.assertEqual(unicode(node.attrs[name]), value)
+			self.assertEqual(unicode(node.attrs.get(name, xml=False)), value)
+			if isinstance(name, tuple):
+				name = (name[0], name[1].swapcase())
+			else:
+				name = name.swapcase()
+			self.assertEqual(unicode(node.attrs.get(name, xml=True)), value)
+
+	def check_namespace(self, module):
+		for obj in module.__dict__.values():
+			if isinstance(obj, type) and issubclass(obj, xsc.Node):
+				node = obj()
+				if isinstance(node, xsc.Element):
+					for (attrname, attrvalue) in node.attrs.alloweditems():
+						if attrvalue.required:
+							if attrvalue.values:
+								node[attrname] = attrvalue.values[0]
+							else:
+								node[attrname] = "foo"
+				node.conv().asBytes()
+
+	def test_html(self):
+		self.check_namespace(html)
+
+	def test_ihtml(self):
+		self.check_namespace(ihtml)
+
+	def test_wml(self):
+		self.check_namespace(wml)
+
+	def test_css(self):
+		self.check_namespace(css)
+
+	def test_specials(self):
+		self.check_namespace(css)
+
+	def test_form(self):
+		self.check_namespace(css)
+
+	def test_meta(self):
+		self.check_namespace(css)
+
+	def test_htmlspecials(self):
+		self.check_namespace(css)
+
+	def test_cssspecials(self):
+		self.check_namespace(css)
+
+	def test_docbook(self):
+		self.check_namespace(css)
+
+	def createns(self):
+		class xmlns(xsc.Namespace):
+			xmlname = "gurk"
+			xmlurl = "http://www.gurk.com/"
+			class foo(xsc.Element):
+				pass
+			class bar(xsc.Element):
+				pass
+		return xmlns
+
+	def test_nsupdate(self):
+		class ns1:
+			class foo(xsc.Element):
+				pass
+			class bar(xsc.Element):
+				pass
+			class foo2(xsc.Element):
+				pass
+			class bar2(xsc.Element):
+				pass
+		class ns2:
+			class foo(xsc.Element):
+				pass
+			class bar(xsc.Element):
+				pass
+			class foo2(xsc.Element):
+				pass
+			class bar2(xsc.Element):
+				pass
+		a = [ {"foo": ns.foo, "bar": ns.bar, "foo2": ns.foo2, "bar2": ns.bar2} for ns in (ns1, ns2) ]
+
+		ns = self.createns()
+		ns.update(*a)
+		self.assertEquals(ns.element("foo"), ns2.foo)
+		self.assertEquals(ns.element("bar"), ns2.bar)
+		self.assertEquals(ns.element("foo2"), ns2.foo2)
+		self.assertEquals(ns.element("bar2"), ns2.bar2)
+
+		ns = self.createns()
+		ns.updatenew(*a)
+		self.assertEquals(ns.element("foo"), ns.foo)
+		self.assertEquals(ns.element("bar"), ns.bar)
+		self.assertEquals(ns.element("foo2"), ns2.foo2)
+		self.assertEquals(ns.element("bar2"), ns2.bar2)
+
+		ns = self.createns()
+		ns.updateexisting(*a)
+		self.assertEquals(ns.element("foo"), ns2.foo)
+		self.assertEquals(ns.element("bar"), ns2.bar)
+		self.assertRaises(errors.IllegalElementError, ns.element, "foo2")
+		self.assertRaises(errors.IllegalElementError, ns.element, "bar2")
+
+	def test_attributeexamples(self):
+		self.assertEqual(xsc.amp.xmlname, (u"amp", u"amp"))
+		self.assert_(xsc.amp.xmlns is None)
+		self.assertEqual(xsc.amp.xmlprefix(), None)
+
+		self.assertEqual(chars.uuml.xmlname, (u"uuml", u"uuml"))
+		self.assert_(chars.uuml.xmlns is chars)
+		self.assertEqual(chars.uuml.xmlprefix(), "chars")
+
+		self.assertEqual(html.a.Attrs.class_.xmlname, (u"class_", u"class"))
+		self.assert_(html.a.Attrs.class_.xmlns is None)
+
+		self.assertEqual(xml.Attrs.lang.xmlname, (u"lang", u"lang"))
+		self.assert_(xml.Attrs.lang.xmlns is xml)
+		self.assertEqual(xml.Attrs.lang.xmlprefix(), "xml")
+
+	def test_autoinherit(self):
+		class NS1(xsc.Namespace):
+			xmlname = "test"
+			xmlurl = "test"
+			class foo(xsc.Element):
+				empty = True
+				def convert(self, converter):
+					e = self.xmlns.bar()
+					return e.convert(converter)
+			class bar(xsc.Entity):
+				def convert(self, converter):
+					return xsc.Text(17)
+
+		class NS2(NS1):
+			xmlname = "test"
+			class bar(xsc.Entity):
+				def convert(self, converter):
+					return xsc.Text(23)
+
+		self.assertEquals(unicode(NS1.foo().conv()), u"17")
+		self.assertEquals(unicode(NS2.foo().conv()), u"23")
+
+	def check_nskeysvaluesitems(self, ns, method, resname, resclass):
+		self.assertEquals(getattr(ns, method + "keys")(xml=False), [resname])
+		self.assertEquals(getattr(ns, method + "keys")(xml=True), [resname[:-1]])
+
+		self.assertEquals(getattr(ns, method + "values")(), [resclass])
+
+		self.assertEquals(getattr(ns, method + "items")(xml=False), [(resname, resclass)])
+		self.assertEquals(getattr(ns, method + "items")(xml=True), [(resname[:-1], resclass)])
+
+	def test_nskeysvaluesitems(self):
+		class NS(xsc.Namespace):
+			xmlname = "test"
+			class el_(xsc.Element):
+				xmlname = "el"
+			class en_(xsc.Entity):
+				xmlname = "en"
+			class pi_(xsc.ProcInst):
+				xmlname = "pi"
+			class cr_(xsc.CharRef):
+				xmlname = "cr"
+				codepoint = 0x4242
+
+		self.check_nskeysvaluesitems(NS, "element", "el_", NS.el_)
+
+		keys = NS.entitykeys(xml=False)
+		self.assertEqual(len(keys), 2)
+		self.assert_("en_" in keys)
+		self.assert_("cr_" in keys)
+		keys = NS.entitykeys(xml=True)
+		self.assertEqual(len(keys), 2)
+		self.assert_("en" in keys)
+		self.assert_("cr" in keys)
+
+		values = NS.entityvalues()
+		self.assertEqual(len(values), 2)
+		self.assert_(NS.en_ in values)
+		self.assert_(NS.cr_ in values)
+
+		items = NS.entityitems(xml=False)
+		self.assertEqual(len(items), 2)
+		self.assert_(("en_", NS.en_) in items)
+		self.assert_(("cr_", NS.cr_) in items)
+		items = NS.entityitems(xml=True)
+		self.assertEqual(len(items), 2)
+		self.assert_(("en", NS.en_) in items)
+		self.assert_(("cr", NS.cr_) in items)
+
+		self.check_nskeysvaluesitems(NS, "procinst", "pi_", NS.pi_)
+
+		self.check_nskeysvaluesitems(NS, "charref", "cr_", NS.cr_)
+
+	def test_prefixsubclasses(self):
+		class NS1(xsc.Namespace):
+			xmlname = "ns"
+			xmlurl = "http://xmlns.ns.info/"
+
+			class gurk(xsc.Element):
+				empty = True
+
+		class NS2(NS1):
+			xmlname = "ns"
+
+		p = xsc.Prefixes(ns=NS1)
+
+		self.assertEqual(
+			NS1.gurk().asBytes(xhtml=2, prefixmode=2, prefixes=p),
+			'<ns:gurk xmlns:ns="http://xmlns.ns.info/"/>'
+		)
+		# The sub namespace should pick up the prefix defined for the first one
+		self.assertEqual(
+			NS2.gurk().asBytes(xhtml=2, prefixmode=2, prefixes=p),
+			'<ns:gurk xmlns:ns="http://xmlns.ns.info/"/>'
+		)
+
+
 class PublishTest(unittest.TestCase):
 	def test_publishelement(self):
 		node = html.html()
@@ -1417,57 +1415,84 @@ class PublishTest(unittest.TestCase):
 		node = html.span(class_=s)
 		self.assertEquals(node.asBytes(encoding="ascii", xhtml=2), """<span class="&lt;&amp;'&quot;&#255;&gt;"/>""")
 
-	def createns(self):
-		class xmlns(xsc.Namespace):
-			xmlname = "gurk"
-			xmlurl = "http://www.gurk.com/"
-			class foo(xsc.Element):
-				pass
-			class bar(xsc.Element):
-				pass
-		return xmlns
+	escapeInput = u"".join([unichr(i) for i in xrange(1000)] + [unichr(i) for i in xrange(sys.maxunicode-10, sys.maxunicode+1)])
 
-	def test_nsupdate(self):
-		class ns1:
-			class foo(xsc.Element):
-				pass
-			class bar(xsc.Element):
-				pass
-			class foo2(xsc.Element):
-				pass
-			class bar2(xsc.Element):
-				pass
-		class ns2:
-			class foo(xsc.Element):
-				pass
-			class bar(xsc.Element):
-				pass
-			class foo2(xsc.Element):
-				pass
-			class bar2(xsc.Element):
-				pass
-		a = [ {"foo": ns.foo, "bar": ns.bar, "foo2": ns.foo2, "bar2": ns.bar2} for ns in (ns1, ns2) ]
+	def test_helpersescapetext(self):
+		escapeOutput = []
+		for c in self.escapeInput:
+			if c==u"&":
+				escapeOutput.append(u"&amp;")
+			elif c==u"<":
+				escapeOutput.append(u"&lt;")
+			elif c==u">":
+				escapeOutput.append(u"&gt;")
+			else:
+				escapeOutput.append(c)
+		escapeOutput = "".join(escapeOutput)
+		self.assertEqual(helpers.escapetext(self.escapeInput), escapeOutput)
 
-		ns = self.createns()
-		ns.update(*a)
-		self.assertEquals(ns.element("foo"), ns2.foo)
-		self.assertEquals(ns.element("bar"), ns2.bar)
-		self.assertEquals(ns.element("foo2"), ns2.foo2)
-		self.assertEquals(ns.element("bar2"), ns2.bar2)
+	def test_helpersescapeattr(self):
+		escapeOutput = []
+		for c in self.escapeInput:
+			if c==u"&":
+				escapeOutput.append(u"&amp;")
+			elif c==u"<":
+				escapeOutput.append(u"&lt;")
+			elif c==u">":
+				escapeOutput.append(u"&gt;")
+			elif c==u'"':
+				escapeOutput.append(u"&quot;")
+			else:
+				escapeOutput.append(c)
+		escapeOutput = "".join(escapeOutput)
+		self.assertEqual(helpers.escapeattr(self.escapeInput), escapeOutput)
 
-		ns = self.createns()
-		ns.updatenew(*a)
-		self.assertEquals(ns.element("foo"), ns.foo)
-		self.assertEquals(ns.element("bar"), ns.bar)
-		self.assertEquals(ns.element("foo2"), ns2.foo2)
-		self.assertEquals(ns.element("bar2"), ns2.bar2)
+	def test_helperxmlcharrefreplace(self):
+		escapeOutput = []
+		for c in self.escapeInput:
+			try:
+				c.encode("ascii")
+				escapeOutput.append(c)
+			except UnicodeError:
+				escapeOutput.append(u"&#%d;" % ord(c))
+		escapeOutput = u"".join(escapeOutput)
+		self.assertEqual(helpers.xmlcharrefreplace(self.escapeInput, "ascii"), escapeOutput)
 
-		ns = self.createns()
-		ns.updateexisting(*a)
-		self.assertEquals(ns.element("foo"), ns2.foo)
-		self.assertEquals(ns.element("bar"), ns2.bar)
-		self.assertRaises(errors.IllegalElementError, ns.element, "foo2")
-		self.assertRaises(errors.IllegalElementError, ns.element, "bar2")
+	def test_helpercssescapereplace(self):
+		escapeOutput = []
+		for c in self.escapeInput:
+			try:
+				c.encode("ascii")
+				escapeOutput.append(c)
+			except UnicodeError:
+				escapeOutput.append((u"\\%x" % ord(c)).upper())
+		escapeOutput = u"".join(escapeOutput)
+		self.assertEqual(helpers.cssescapereplace(self.escapeInput, "ascii"), escapeOutput)
+
+	def test_csspublish(self):
+		e = css.css(
+			css.atimport("http://www.gurk.org/gurk.css"),
+			css.atimport("http://www.gurk.org/print.css", media="print"),
+			css.atimport("http://www.gurk.org/screen.css", media="screen"),
+			css.rule(
+				css.sel("body"),
+				css.font_family("Verdana, sans-serif"),
+				css.font_size("10pt"),
+				css.background_color("#000"),
+				css.color("#fff")
+			),
+			css.atmedia(
+				css.rule(
+					css.sel("div, p"),
+					css.font_family("Verdana, sans-serif"),
+					css.font_size("10pt"),
+					css.background_color("#000"),
+					css.color("#fff")
+				),
+				media="print"
+			)
+		)
+		e.asBytes()
 
 
 class ParseTest(unittest.TestCase):
@@ -1484,6 +1509,7 @@ class ParseTest(unittest.TestCase):
 			self.fail()
 
 	def test_parselocationsgmlop(self):
+		# Check that SGMLOP gets the location info right (at least the line numbers)
 		node = parsers.parseString("<z>gurk&amp;hurz&#42;hinz&#x666;hunz</z>", saxparser=parsers.SGMLOPParser)
 		self.assertEqual(len(node), 1)
 		self.assertEqual(len(node[0]), 1)
@@ -1491,6 +1517,7 @@ class ParseTest(unittest.TestCase):
 		self.assertEqual(node[0][0].startloc.getLineNumber(), 1)
 
 	def test_parselocationexpat(self):
+		# Check that expat gets the location info right
 		node = parsers.parseString("<z>gurk&amp;hurz&#42;hinz&#x666;hunz</z>", saxparser=parsers.ExpatParser)
 		self.assertEqual(len(node), 1)
 		self.assertEqual(len(node[0]), 1)
@@ -1499,6 +1526,7 @@ class ParseTest(unittest.TestCase):
 		self.assertEqual(node[0][0].startloc.getColumnNumber(), 3)
 
 	def test_nsparse(self):
+		# A prepopulated prefix mapping and xmlns attributes should work together
 		xml = """
 			<x:a>
 				<x:a xmlns:x='http://www.w3.org/1999/xhtml'>
@@ -1519,6 +1547,7 @@ class ParseTest(unittest.TestCase):
 		self.assertEquals(node, check)
 
 	def test_parseurls(self):
+		# Check proper URL handling when parsing URLAttr or StyleAttr attributes
 		prefixes = xsc.Prefixes(html)
 		node = parsers.parseString('<a href="4.html" style="background-image: url(3.gif);"/>', base="root:1/2.html", prefixes=prefixes)
 		self.assertEqual(str(node[0]["style"]), "background-image: url(root:1/3.gif);")
@@ -1527,6 +1556,7 @@ class ParseTest(unittest.TestCase):
 		self.assertEqual(node[0]["href"].forInput(root="gurk/hurz.html"), url.URL("gurk/1/4.html"))
 
 	def test_parserequiredattrs(self):
+		# Parser should complain about required attributes that are missing
 		class xmlns(xsc.Namespace):
 			class Test(xsc.Element):
 				class Attrs(xsc.Element.Attrs):
@@ -1540,6 +1570,7 @@ class ParseTest(unittest.TestCase):
 		self.assertSAXRaises(errors.RequiredAttrMissingWarning, parsers.parseString, '<Test/>', prefixes=prefixes)
 
 	def test_parsevalueattrs(self):
+		# Parser should complain about attributes with illegal values, when a set of values is specified
 		class xmlns(xsc.Namespace):
 			class Test(xsc.Element):
 				class Attrs(xsc.Element.Attrs):
@@ -1626,6 +1657,7 @@ class ParseTest(unittest.TestCase):
 		self.check_parsebadentities(parsers.HTMLParser)
 
 	def test_multipleparsecalls(self):
+		# A Parser instance should be able to parse multiple XML sources, even when some of the parse calls fail
 		for saxparser in (parsers.SGMLOPParser, parsers.BadEntityParser, parsers.HTMLParser, parsers.ExpatParser):
 			p = parsers.Parser(saxparser=saxparser)
 			for i in xrange(3):
@@ -1637,6 +1669,7 @@ class ParseTest(unittest.TestCase):
 					self.assertEqual(p.parseString("<a>gurk</a>").asBytes(), "<a>gurk</a>")
 
 	def test_sysid(self):
+		# Default system ids and explicitely specified system ids should end up in the location info of the resulting XML tree
 		node = parsers.parseString("gurk")
 		self.assertEqual(node[0].startloc.sysid, "STRING")
 
