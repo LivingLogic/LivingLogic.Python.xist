@@ -698,8 +698,10 @@ class Node:
 		"""
 		return ""
 
-	def nodes(self,type = None,subtype = 0,children = 0,attrs = 0):
+	def findNodes(self,type = None,subtype = 0,children = 0,attrs = 0):
 		"""
+		findNodes(self,type = None,subtype = 0,children = 0,attrs = 0) -> fragment
+
 		returns a fragment which contains child elements of this node.
 
 		If you specify type as the class of an XSC node only nodes of this class
@@ -711,7 +713,7 @@ class Node:
 		will be searched for nodes matching the other criteria.
 
 		If you set attrs to 1 the attributes of the nodes (if type is Element or one
-		of it's subtypes) will be searched too.
+		of its subtypes) will be searched too.
 		"""
 		return Frag()
 
@@ -1017,13 +1019,13 @@ class Frag(Node):
 		elif not isinstance(newother,Null):
 			self.__content.append(newother)
 
-	def nodes(self,type = None,subtype = 0,children = 0,attrs = 0):
+	def findNodes(self,type = None,subtype = 0,children = 0,attrs = 0):
 		e = Frag()
 		for child in self:
 			if child._nodeOK(type,subtype):
 				e.append(child)
 			if children:
-				e.extend(child.nodes(type,subtype,children,attrs))
+				e.extend(child.findNodes(type,subtype,children,attrs))
 		return e
 
 	def compact(self):
@@ -1446,12 +1448,12 @@ class Element(Node):
 			e[attr] = self[attr].compact()
 		return e
 
-	def nodes(self,type = None,subtype = 0,children = 0,attrs = 0):
+	def findNodes(self,type = None,subtype = 0,children = 0,attrs = 0):
 		e = Frag()
 		if attrs:
 			for attr in self.attrs.keys():
-				e.extend(self[attr].nodes(type,subtype,children,attr))
-		e.extend(self.content.nodes(type,subtype,children,attrs))
+				e.extend(self[attr].findNodes(type,subtype,children,attr))
+		e.extend(self.content.findNodes(type,subtype,children,attrs))
 		return e
 
 class Null(Element):
