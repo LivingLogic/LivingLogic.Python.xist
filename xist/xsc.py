@@ -552,21 +552,26 @@ class XSCAttrs(XSCNode):
 
 	def __getitem__(self,index):
 		"""returns the attribute with the name index"""
-		return self.__content[index] # we're returning the packed attribute here, because otherwise there would be no possibility to get an expanded URL
+		lowerindex = string.lower(index)
+		if self.__content.has_key(lowerindex)
+			return self.__content[lowerindex] # we're returning the packed attribute here, because otherwise there would be no possibility to get an expanded URL
+		else:
+			raise XSCIllegalAttributeError(xsc.parser.lino,self,index)
 
 	def __setitem__(self,index,value):
 		"""insert an attribute with the name index and the value value into the attribute dictionary"""
 		# values are converted to Nodes first and then wrapped into the attribute nodes as specified via the attr_handlers dictionary
 		lowerindex = string.lower(index)
-		if self.attr_handlers.has_key(lowerindex):
+		if self.__content.has_key(lowerindex)
 			self.__content[lowerindex] = self.attr_handlers[lowerindex](ToNode(value)) # convert the attribute to a node and pack it into an attribute object
 		else:
 			raise XSCIllegalAttributeError(xsc.parser.lineno,self,index)
 
 	def __delitem__(self,index):
 		"""removes the attribute with the name index (if there is one)"""
-		if self.has_attr(index):
-			del self.__content[index]
+		lowerindex = string.lower(index)
+		if self.__content.has_key(lowerindex)
+			del self.__content[lowerindex]
 
 	def keys(self):
 		"""returns the keys of the dictionary, i.e. a list of the attribute names"""
