@@ -828,5 +828,6 @@ class busnav(XSCElement):
 RegisterElement("busnav",busnav)
 
 if __name__ == "__main__":
-	print str(xsc.parseFile(sys.argv[1]).asHTML())
+	import sys
+	make(sys.argv)
 

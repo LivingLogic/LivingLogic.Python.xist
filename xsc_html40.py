@@ -467,9 +467,6 @@ class applet(XSCElement): # deprecated
 RegisterElement("applet",applet)
 
 if __name__ == "__main__":
-	try:
-		print str(xsc.parseFile(sys.argv[1]).asHTML())
-	except XSCError,e:
-		print str(e)
-
+	import sys
+	make(sys.argv)
 

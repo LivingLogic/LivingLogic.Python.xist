@@ -1322,4 +1322,16 @@ class XSC:
 		else:
 			return 0
 
+def make(args):
+	"""class XSC as a compiles, i.e. read an input file from args[1] and writes it to args[2]"""
+	print "from:",args[0],"to:",args[1]
+	e_in = xsc.parseFile(args[1])
+	e_out = e_in.asHTML()
+	open(args[2],"wb").write(str(e_out))
+
 xsc = XSC()
+
+if __name__ == "__main__":
+	import sys
+	make(sys.argv)
+
