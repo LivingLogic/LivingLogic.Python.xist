@@ -1034,8 +1034,7 @@ class Frag(Node):
 		returns a slice of the content of the fragment
 		"""
 		node = self.__class__()
-		for child in self.__content[index1:index2]:
-			node.append(child)
+		node.__content = self.__content[index1:index2]
 		return node
 
 	def __setslice__(self, index1, index2, sequence):
