@@ -21,43 +21,6 @@ import xsc, options, utils
 
 strescapes = {'<': 'lt', '>': 'gt', '&': 'amp', '"': 'quot'}
 
-# the following is from ftp://ftp.isi.edu/in-notes/iana/assignments/character-sets
-__encodings = {
-	"ansi_x3.4-1968": "ascii",
-	"iso-ir-6": "ascii",
-	"ansi_x3.4-1986": "ascii",
-	"iso_646.irv:1991": "ascii",
-	"ascii": "ascii",
-	"iso646-us": "ascii",
-	"us-ascii": "ascii",
-	"us": "ascii",
-	"ibm367": "ascii",
-	"cp367": "ascii",
-	"csascii": "ascii",
-	"ISO_8859-1:1987": "latin1",
-	"iso-ir-100": "latin1",
-	"ISO_8859-1": "latin1",
-	"ISO-8859-1": "latin1",
-	"latin1": "latin1",
-	"l1": "latin1",
-	"IBM819": "latin1",
-	"CP819": "latin1",
-	"csISOLatin1": "latin1",
-}
-
-def mustBeEncodedAsCharRef(char, encoding):
-	encoding = encoding.lower()
-	try:
-		encoding = __encodings[encoding]
-	except KeyError:
-		pass
-	if encoding=="ascii" and ord(char)>=128:
-		return 1
-	elif encoding=="latin1" and ord(char)>=256:
-		return 1
-	else:
-		return 0
-
 class Publisher:
 	"""
 	base class for all publishers.
@@ -125,10 +88,13 @@ class Publisher:
 				continue
 			if strescapes.has_key(c):
 				v.append('&' + strescapes[c] + ';')
-			elif mustBeEncodedAsCharRef(c, self.encoding):
-				v.append('&#' + str(ord(c)) + ';')
 			else:
-				v.append(c)
+				try:
+					c.encode(self.encoding)
+				except ValueError: # FIXME should be UnicodeError, but the japanase codecs raise ValueErrors
+					v.append('&#' + str(ord(c)) + ';')
+				else:
+					v.append(c)
 		return u"".join(v)
 
 	def _encodeIllegal(self, text):
@@ -140,10 +106,13 @@ class Publisher:
 		for c in text:
 			if c == u'\r':
 				continue
-			if strescapes.has_key(c) or mustBeEncodedAsCharRef(c, self.encoding):
+			if strescapes.has_key(c):
 				raise EncodingImpossibleError(self.startloc, self.encoding, text, c)
-			else:
-				v.append(c)
+			try:
+				c.encode(self.encoding)
+			except ValueError: # FIXME should be UnicodeError, but the japanase codecs raise ValueErrors
+				raise EncodingImpossibleError(self.startloc, self.encoding, text, c)
+			v.append(c)
 		return u"".join(v)
 
 class FilePublisher(Publisher):

@@ -3,6 +3,8 @@
 ## Copyright 2000 by Living Logic AG, Bayreuth, Germany.
 ## Copyright 2000 by Walter Dörwald
 ##
+## Original idea and first implementation by Hartmut Goebel
+##
 ## See the file LICENSE for licensing details
 
 """
