@@ -424,9 +424,9 @@ class HTMLParser(SGMLOPParser):
 			else: # ; found
 				if part[0] != "#": # named entity
 					name = part[:pos]
-					if html.namespace.entitiesByName.has_key(name)
+					if html.namespace.entitiesByName.has_key(name):
 						node.append(html.namespace.entitiesByName[name](), part[pos+1:])
-					elif xsc.namespace.entitiesByName.has_key(name)
+					elif xsc.namespace.entitiesByName.has_key(name):
 						node.append(xsc.namespace.entitiesByName[name](), part[pos+1:])
 					else:
 						node.append("&", part)
