@@ -293,14 +293,22 @@ class Handler:
 			namespaces = xsc.defaultNamespaces
 		self.namespaces = namespaces
 
-		parser.setErrorHandler(self)
-		parser.setContentHandler(self)
-		parser.setDTDHandler(self)
-		parser.setEntityResolver(self)
-
 	def parse(self, source):
 		self.source = source
+
+		# register us for callbacks
+		self.parser.setErrorHandler(self)
+		self.parser.setContentHandler(self)
+		self.parser.setDTDHandler(self)
+		self.parser.setEntityResolver(self)
+
 		self.parser.parse(source)
+
+		# unregister us to break the cycles
+		self.parser.setEntityResolver(None)
+		self.parser.setDTDHandler(None)
+		self.parser.setContentHandler(None)
+		self.parser.setErrorHandler(None)
 
 	def setDocumentLocator(self, locator):
 		self._locator = locator
