@@ -326,11 +326,7 @@ class section(block):
 			except LookupError: # ouch, we're nested to deep (a getter in a property in a class in a class)
 				hclass = target.h6
 			for t in ts:
-				h = hclass(class_=self["role"])
-				if issubclass(target, text):
-					h.append(target.br(), t.content, target.br(), "="*len(unicode(t.content.convert(converter))))
-				else:
-					h.append(t.content)
+				h = hclass(t.content, class_=self["role"])
 				e.append(h)
 			e.append(cs)
 			# make sure to call the inner convert, because popping the number off of the stack
