@@ -1574,8 +1574,6 @@ class Attr(Frag):
 		Frag.publish(self, publisher)
 
 	def publish(self, publisher):
-		if publisher.inAttr:
-			raise errors.IllegalAttrNodeError(self)
 		self.checkvalid()
 		publisher.inAttr += 1
 		self._publishname(publisher) # publish the XML name, not the Python name
@@ -1620,8 +1618,6 @@ class BoolAttr(Attr):
 	"""
 
 	def publish(self, publisher):
-		if publisher.inAttr:
-			raise errors.IllegalAttrNodeError(self)
 		self.checkvalid()
 		publisher.inAttr += 1
 		self._publishname(publisher) # publish the XML name, not the Python name
@@ -1889,8 +1885,6 @@ class Attrs(Node, dict):
 			errors.warn(errors.RequiredAttrMissingWarning(self, attrs.keys()))
 
 	def publish(self, publisher):
-		if publisher.inAttr:
-			raise errors.IllegalAttrNodeError(self)
 		# collect required attributes
 		attrs = {}
 		for (key, value) in self.iteralloweditems():
@@ -2404,51 +2398,58 @@ class Element(Node):
 				return publisher.prefixes.elementprefix4ns(cls.xmlns)[0]
 	xmlprefix = classmethod(xmlprefix)
 
+	def _publishfull(self, publisher):
+		"""
+		Does the full publication of the element. If you need full elements
+		inside attributes (e.g. for &jsp; tag libraries), you can overwrite
+		<method>publish</method>, simply calling this method.
+		"""
+		publisher.publish(u"<")
+		self._publishname(publisher)
+		# we're the first element to be published, so we have to create the xmlns attributes
+		if hasattr(publisher, "publishxmlns"):
+			for ((nsprefix, ns), (mode, prefix)) in publisher.prefixes2use.iteritems():
+				if mode==2:
+					publisher.publish(u" ")
+					publisher.publish(nsprefix)
+					if prefix is not None:
+						publisher.publish(u":")
+						publisher.publish(prefix)
+					publisher.publish(u"=\"")
+					publisher.publish(ns.xmlurl)
+					publisher.publish(u"\"")
+			# delete the note, so the next element won't create the attributes again
+			del publisher.publishxmlns
+		self.attrs.publish(publisher)
+		if len(self):
+			if self.empty:
+				raise errors.EmptyElementWithContentError(self)
+			publisher.publish(u">")
+			self.content.publish(publisher)
+			publisher.publish(u"</")
+			self._publishname(publisher)
+			publisher.publish(u">")
+		else:
+			if publisher.xhtml in (0, 1):
+				if self.empty:
+					if publisher.xhtml==1:
+						publisher.publish(u" /")
+					publisher.publish(u">")
+				else:
+					publisher.publish(u"></")
+					self._publishname(publisher)
+					publisher.publish(u">")
+			elif publisher.xhtml == 2:
+				publisher.publish(u"/>")
+
 	def publish(self, publisher):
 		self.checkvalid()
 		if publisher.inAttr:
-			# publish the content only, when we are inside an attribute
-			# this works much like using the plain string value, but
-			# even works with processing instructions, or what the Entity &xist; returns
+			# publish the content only when we are inside an attribute. This works much like using the plain string value,
+			# but even works with processing instructions, or what the abbreviation entities return
 			self.content.publish(publisher)
 		else:
-			publisher.publish(u"<")
-			self._publishname(publisher)
-			# we're the first element to be published, so we have to create the xmlns attributes
-			if hasattr(publisher, "publishxmlns"):
-				for ((nsprefix, ns), (mode, prefix)) in publisher.prefixes2use.iteritems():
-					if mode==2:
-						publisher.publish(u" ")
-						publisher.publish(nsprefix)
-						if prefix is not None:
-							publisher.publish(u":")
-							publisher.publish(prefix)
-						publisher.publish(u"=\"")
-						publisher.publish(ns.xmlurl)
-						publisher.publish(u"\"")
-				# delete the note, so the next element won't create the attributes again
-				del publisher.publishxmlns
-			self.attrs.publish(publisher)
-			if len(self):
-				if self.empty:
-					raise errors.EmptyElementWithContentError(self)
-				publisher.publish(u">")
-				self.content.publish(publisher)
-				publisher.publish(u"</")
-				self._publishname(publisher)
-				publisher.publish(u">")
-			else:
-				if publisher.xhtml in (0, 1):
-					if self.empty:
-						if publisher.xhtml==1:
-							publisher.publish(u" /")
-						publisher.publish(u">")
-					else:
-						publisher.publish(u"></")
-						self._publishname(publisher)
-						publisher.publish(u">")
-				elif publisher.xhtml == 2:
-					publisher.publish(u"/>")
+			self._publishfull(publisher)
 
 	def __getitem__(self, index):
 		"""

@@ -120,6 +120,43 @@ loading of external entities is switch off, which is done by
 </ulist>
 </section>
 
+<section><title>Changes in 2.1.4 (released 06/13/2003)</title>
+<ulist>
+<item>Remove the checks for attributes in attributes and
+moved the publication code for the full element into a separate
+method. This allows &jsp; tag library namespaces to simply
+overwrite <method>publish</method> to publish the element
+even inside attributes. (This is the same fix as in release 1.5.10)</item>
+</ulist>
+</section>
+
+<section><title>Changes in 2.1.3 (released 05/07/2003)</title>
+<ulist>
+<item>The methods <method>sorted</method>, <method>reversed</method>
+and <method>shuffled</method> have been rewritten so they no longer
+use <lit>sys.maxint</lit>. This change fixes those methods for
+64 bit platforms (reported by Giles Frances Hall)</item>
+</ulist>
+</section>
+
+<section><title>Changes in 2.1.2 (released 02/27/2003)</title>
+<ulist>
+<item><class>ll.xist.ns.struts_config11.plug_in</class> now
+allows content (as the &dtd; states). (This is the same fix
+as in release 1.5.8.)</item>
+</ulist>
+</section>
+
+<section><title>Changes in 2.1.1 (released 02/11/2003)</title>
+<ulist>
+<item>Added a few elements and attributes to <module>ll.xist.ns.doc</module>:
+<class>username</class>, which is used for the name of a user account,
+<class>xref</class>, which is used for internal cross references and
+the attribute <lit>id</lit> for <class>section</class>, which specifies
+the target for an <class>xref</class>.</item>
+</ulist>
+</section>
+
 <section><title>Changes in 2.1 (released 12/09/2002)</title>
 <ulist>
 <item>Added a new namespace module <module>ll.xist.ns.xndl</module>
@@ -269,6 +306,30 @@ This is used for the new class <class>StyleAttr</class>, which uses the
 found in a style attribute.</item>
 <item>The pixel images have been moved to the directory <dirname>px</dirname>
 to make image &url;s shorter.</item>
+</ulist>
+</section>
+
+<section><title>Changes in 1.5.10 (released 06/13/2003)</title>
+<ulist>
+<item>Remove the checks for attributes in attributes and
+moved the publication code for the full element into a separate
+method. This allows &jsp; tag library namespaces to simply
+overwrite <method>publish</method> to publish the element
+even inside attributes.</item>
+</ulist>
+</section>
+
+<section><title>Changes in 1.5.9 (released 04/30/2003)</title>
+<ulist>
+<item>Reregistering a namespace now properly overwrites
+the old version in <lit>xsc.namespaceRegistry</lit>.</item>
+</ulist>
+</section>
+
+<section><title>Changes in 1.5.8 (released 02/27/2003)</title>
+<ulist>
+<item><class>ll.xist.ns.struts_config11.plug_in</class> now
+allows content (as the &dtd; states).</item>
 </ulist>
 </section>
 
