@@ -1267,6 +1267,9 @@ http://www.python.org/psf/donations.html
 http://www.opensource.org/
 </tty>
 
+<par>Note that using the <lit>all</lit> operator twice in an XFind expression
+currently won't give you the expected result, as nodes might be produced twice.</par> 
+
 </section>
 
 </section>
