@@ -14,11 +14,20 @@ import sys
 import string
 
 class PrintPublisher:
+	"""
+	passes the strings to print.
+	"""
 	def __call__(self,*texts):
 		for text in texts:
 			sys.stdout.write(text)
 
 class StringPublisher:
+	"""
+	collects all strings in an array.
+	The joined strings are available via
+	<methodref>__str__</methodref>
+	"""
+
 	def __init__(self):
 		self.texts = []
 
@@ -27,5 +36,8 @@ class StringPublisher:
 			self.texts.append(text)
 
 	def __str__(self):
+		"""
+		Return the published strings as one long string.
+		"""
 		return string.join(self.texts,"")
 
