@@ -1550,18 +1550,14 @@ class URLAttr(Attr):
 	"""
 	Attribute class that is used for URLs.
 
-	XSC has one additional feature, that it allows URLs that are local filenames starting with a ':'.
-	Those filenames are not relative to the directory containing the file where the URL originated,
-	but local to the "project" directory, i.e. the root directory of all XSC files, which is the
-	current directory.
+	XSC has one additional feature, path markers (these are directory names starting with *).
+	An URL starting with a path marker is relative to the directory marked with the same path
+	marker in the appropriate base URL.
 
 	With this feature you don't have to remember how deeply you've nested your XSC file tree, you
-	can specify a file from everywhere via ":dir/to/file.xsc". XSC will change this to an URL
-	that correctly locates the file (e.g. "../../../dir/to/file.xsc", when you're nested three levels
+	can specify a file from everywhere via "*/dir/to/file.xsc". XSC will change this to an URL
+	that correctly locates the file (e.g. "../../../dir/to/file.xsc", when you're currenty nested three levels
 	deep in a different directory than "dir".
-
-	When dumping these URLs in the interactive Python environment (i.e. calling __repr__) these
-	URLs will be shown with the pseudo scheme "project".
 
 	Server relative URLs will be shown with the pseudo scheme "server". For checking these URLs
 	for image or file size, a http request will be made to the server specified in the "server"
@@ -1781,7 +1777,7 @@ class XSC:
 	"""
 
 	def __init__(self):
-		self.filename = [ URL(scheme = "project") ]
+		self.filename = [ URL("*/") ]
 		self.server = "localhost"
 		self.reprtree = 1
 		self.parser = Parser()
@@ -1860,7 +1856,7 @@ def make():
 
 	(options,args) = getopt.getopt(sys.argv[1:],"i:o:",["include=","output="])
 
-	globaloutname = URL(scheme = "project")
+	globaloutname = URL("*/")
 	for (option,value) in options:
 		if option=="-i" or option=="--include":
 			__import__(value)
