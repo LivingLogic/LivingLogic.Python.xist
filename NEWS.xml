@@ -1,4 +1,19 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
+<section><title>Changes in 2.0.2 (released 10/21/2002)</title>
+<ulist>
+<item>Fixed a bug in <method>Frag.__rmul__</method> (by
+reusing <method>__mul__</method>.</item>
+<item>Fixed a bug with the backwards compatible prefix
+mapping: Defining element classes in <lit>exec</lit> processing
+instructions didn't work, because the prefixes object used for
+parsing wouldn't be updated when the namespace object is
+defined inside the processing instruction. Now using the default
+for the <arg>prefixes</arg> argument in calls to the parsing
+functions uses one global shared <class>Prefixes</class> instances
+where all the namespaces that are newly defined will be registered too.</item>
+</ulist>
+</section>
+
 <section><title>Changes in 2.0.1 (released 10/17/2002)</title>
 <ulist>
 <item>Fixed <filename>xscmake.py</filename> by removing the
