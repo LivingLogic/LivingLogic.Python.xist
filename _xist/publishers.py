@@ -20,7 +20,7 @@ import sys, codecs
 
 from ll import url
 
-import xsc, options, helpers
+import xsc, options, helpers, errors
 
 
 def cssescapereplace(exc):
@@ -191,7 +191,8 @@ class Publisher(object):
 		self.__errors = [ "xmlcharrefreplace" ]
 		self.__currenterrors = "xmlcharrefreplace"
 
-		del self.publish
+		if "publish" in self.__dict__: # Remove performance shortcut
+			del self.publish
 
 		self.publishxmlns = None # signals that xmlns attributes should be generated to the first element encountered, if not empty
 		self.stream = None
