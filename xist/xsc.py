@@ -1554,20 +1554,20 @@ class URLAttr(Attr):
 		node.base = self.base.clone()
 		return node
 
-	def _asURL(self):
+	def asURL(self):
 		return URL(Attr.asPlainString(self))
 
 	def asPlainString(self):
-		return self._asURL().asString()
+		return self.asURL().asString()
 
 	def forInput(self):
-		url = self.base + self._asURL()
+		url = self.base + self.asURL()
 		if url.scheme == "server":
 			url = url.relativeTo(URL(scheme = "http",server = xsc.server))
 		return url
 
 	def forOutput(self):
-		return self._asURL().relativeTo(xsc.filename[-1])
+		return self.asURL().relativeTo(xsc.filename[-1])
 
 	def ImageSize(self):
 		"""
