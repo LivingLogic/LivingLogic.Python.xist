@@ -441,9 +441,9 @@ def cmpName((obj1, name1), (obj2, name2)):
 			else:
 				pos = 1000
 		sorts.append((pos, name))
-		import pprint
-		pprint.pprint(sorts)
-		print "="*80
+	import pprint
+	pprint.pprint(sorts)
+	print "="*80
 	return cmp(sorts[0], sorts[1])
 
 def explain(thing, name=None):
