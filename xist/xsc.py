@@ -576,7 +576,7 @@ class Node:
 		if self.startLoc is None:
 			return None
 		else:
-			return Location(locator=self.startLoc, lineNumber=self.startLoc.getLineNumber()+relrow)
+			return self.startLoc.offset(relrow)
 
 	def _decorateNode(self, node):
 		"""
@@ -1996,6 +1996,13 @@ class Location:
 	def getSystemId(self):
 		"Return the system identifier for this location."
 		return self.__sysID
+
+	def offset(self, offset):
+		"""
+		returns a location where the line number is incremented by offset
+		(and the column number is reset to 1).
+		"""
+		return Location(sysID=self.__sysID, pubID=self.__pubID, lineNumber=self.__lineNumber+offset, columnNumber=1)
 
 	def __str__(self):
 		# get and format the system ID
