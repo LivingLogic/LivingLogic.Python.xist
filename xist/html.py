@@ -487,8 +487,8 @@ class img(xsc.Element):
 	attrHandlers = xsc.appendDict(attrs,{ "src" : xsc.URLAttr , "alt" : xsc.TextAttr , "longdesc" : xsc.TextAttr , "width" : xsc.TextAttr , "height" : xsc.TextAttr , "usemap" : xsc.TextAttr , "ismap" : xsc.TextAttr })
 	attrHandlers = xsc.appendDict(attrHandlers,{ "name" : xsc.TextAttr , "border" : xsc.TextAttr , "align" : xsc.TextAttr , "hspace" : xsc.TextAttr , "vspace" : xsc.TextAttr , "lowsrc" : xsc.URLAttr }) # deprecated
 
-	def asString(self,encoding = None,XHTML = None):
-		return self._asStringWithImageSize(encoding,XHTML,"src","width","height")
+	def publish(self,publisher,encoding = None,XHTML = None):
+		return self._publishWithImageSize(publisher,encoding,XHTML,"src","width","height")
 
 	def asPlainString(self):
 		if self.hasAttr("alt"):
@@ -582,11 +582,11 @@ class input(xsc.Element):
 	empty = 1
 	attrHandlers = xsc.appendDict(attrs,{ "type" : xsc.TextAttr , "name" : xsc.TextAttr , "value" : xsc.TextAttr , "checked" : xsc.TextAttr , "disabled" : xsc.TextAttr , "readonly" : xsc.TextAttr , "size" : xsc.TextAttr , "maxlength" : xsc.TextAttr , "src" : xsc.URLAttr , "alt" : xsc.TextAttr , "usemap" : xsc.TextAttr , "tabindex" : xsc.TextAttr , "accesskey" : xsc.TextAttr , "onfocus" : xsc.TextAttr , "onblur" : xsc.TextAttr , "onselect" : xsc.TextAttr , "onchange" : xsc.TextAttr , "accept" : xsc.TextAttr })
 
-	def asString(self,encoding = None,XHTML = None):
+	def publish(self,publisher,encoding = None,XHTML = None):
 		if self.hasAttr("type") and self["type"].asHTML().asPlainString() == "image":
-			return self._asStringWithImageSize(encoding,XHTML,"src","size",None) # no height
+			return self._publishWithImageSize(publisher,encoding,XHTML,"src","size",None) # no height
 		else:
-			return xsc.Element.asString(self,encoding,XHTML)
+			return xsc.Element.publish(self,publisher,encoding,XHTML)
 
 class button(xsc.Element):
 	"""

@@ -877,7 +877,7 @@ class CharRef(Node):
 		return chr(self.content)
 
 	def publish(self,publisher,encoding = None,XHTML = None):
-		publisher(self._encode(chr(self.content),encoding,2)
+		publisher(self._encode(chr(self.content),encoding,2))
 
 	def __strcharref(self,s,ansi = None):
 		return strCharRef(s,ansi)
@@ -1329,7 +1329,7 @@ class Element(Node):
 		will be done.</par>
 		"""
 
-		publisher("<",self.elementname) # requires that the element is registered via registerElement()
+		publisher("<",self.name) # requires that the element is registered via registerElement()
 		if imgattr is not None:
 			size = self[imgattr].asHTML().ImageSize()
 			sizedict = { "width": size[0], "height": size[1] }
@@ -1363,7 +1363,7 @@ class Element(Node):
 				raise EmptyElementWithContentError(self)
 			publisher(">")
 			self.content.publish(publisher,encoding,XHTML)
-			publisher("</",self.elementname,">")
+			publisher("</",self.name,">")
 		else:
 			if XHTML is None:
 				XHTML = outputXHTML
@@ -1373,7 +1373,7 @@ class Element(Node):
 						publisher(" /")
 					publisher(">")
 				else:
-					publisher("></",self.elementname,">")
+					publisher("></",self.name,">")
 			elif XHTML == 2:
 				publisher("/>")
 			else:
@@ -1708,7 +1708,7 @@ class Namespace:
 			if thing.__dict__.has_key("name"):
 				name = thing.name
 			else:
-				name = element.__name__
+				name = thing.__name__
 
 			if name is None:
 				try:
