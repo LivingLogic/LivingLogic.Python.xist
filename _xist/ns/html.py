@@ -247,6 +247,27 @@ class i(xsc.Element):
 	empty = 0
 	attrHandlers = attrs
 
+class u(xsc.Element):
+	"""
+	underline text style
+	"""
+	empty = 0
+	attrHandlers = attrs
+
+class s(xsc.Element):
+	"""
+	strike-through text style
+	"""
+	empty = 0
+	attrHandlers = attrs
+
+class strike(xsc.Element):
+	"""
+	strike-through text style
+	"""
+	empty = 0
+	attrHandlers = attrs
+
 class b(xsc.Element):
 	"""
 	bold text style
