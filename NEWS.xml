@@ -1,9 +1,6 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
-<section><title>Changes in CVS (released ??/??/2001)</title>
+<section><title>Changes in 1.1.2 (released 08/21/2001)</title>
 <ul>
-<li><code>xist.parsers.TidyURLInputSource</code> now uses the new
-experimental eGenix mx Extension package, which includes a Python
-port of <application>tidy</application></li>
 <li><code>__repr__</code> now uses the new class <code>presenters.PlainPresenter</code>
 which gives a little more info than the default <code>__repr__</code>.</li>
 </ul>

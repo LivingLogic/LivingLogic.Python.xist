@@ -36,8 +36,6 @@ from xml.parsers import sgmlop
 from xml.sax import expatreader
 from xml.sax import saxlib
 
-from mx import Tidy
-
 #try:
 #	import timeoutsocket
 #except ImportError:
@@ -97,12 +95,34 @@ class TidyURLInputSource(sax.xmlreader.InputSource):
 		self.setSystemId(url)
 		if type(url) is types.UnicodeType:
 			url = url.encode("utf-8")
-		(nerrors, nwarnings, outputdata, error) = Tidy.tidy(urllib.urlopen(url).read(), numeric_entities=1, output_xhtml=1, output_xml=1, quiet=1, tidy_mark=0, wrap=0)
-		if nerrors>0:
-			raise SAXParseException("can't tidy %r: %r" % (url, errordata))
-		print outputdata
-		self.setByteStream(StringIO.StringIO(outputdata))
+		try:
+			(self.tidyin, self.tidyout, self.tidyerr) = os.popen3("tidy --tidy-mark no --wrap 0 --output-xhtml --numeric-entities yes --show-warnings no -asxml -quiet", "b") # open the pipe to and from tidy
+			self.tidyin.write(urllib.urlopen(url).read()) # get the desired file from the url and pipe it to tidy
+			self.tidyin.close() # tell tidy, that we're finished
+			self.tidyin = None
+			self.setByteStream(self.tidyout)
+		except:
+			if self.tidyin is not None:
+				self.tidyin.close()
+			if self.tidyout is not None:
+				self.tidyout.close()
+			if self.tidyerr is not None:
+				self.tidyerr.close()
+			urllib.urlcleanup() # throw away the temporary filename
+			raise
 		self.setEncoding(defaultEncoding)
+
+	def close(self):
+		if self.tidyin is not None:
+			self.tidyin.close()
+		if self.tidyout is not None:
+			self.tidyout.close()
+		if self.tidyerr is not None:
+			self.tidyerr.close()
+		urllib.urlcleanup()
+
+	def __del__(self):
+		self.close()
 
 class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 	"""
@@ -547,5 +567,8 @@ def parseURL(url, namespaces=None, parser=None, defaultEncoding="utf-8"):
 	return parse(URLInputSource(url, defaultEncoding=defaultEncoding), parser, namespaces)
 
 def parseTidyURL(url, namespaces=None, parser=None, defaultEncoding="utf-8"):
-	return parse(TidyURLInputSource(url, defaultEncoding=defaultEncoding), parser, namespaces)
+	source = TidyURLInputSource(url, defaultEncoding=defaultEncoding)
+	result = parse(source, parser, namespaces)
+	source.close()
+	return result
 
