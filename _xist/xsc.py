@@ -75,7 +75,7 @@ def ToNode(value):
 def append(*args, **kwargs):
 	"""
 	<function>append</function> can be used with XPython. It append items in
-	<arg>args</arg> (or sets attributes in <arg>kwargs</args) in the currenty
+	<arg>args</arg> (or sets attributes in <arg>kwargs</args>) in the currenty
 	active node.
 	"""
 	node = iexec.getinstance((converters.Converter, Frag, Element)) # requires XPython
@@ -594,7 +594,7 @@ class Node(Base):
 	def write(self, stream, base=None, publisher=None, **publishargs):
 		"""
 		<par>Write <self/> to the file-like object <arg>stream</arg> (which must
-		provide a <method>write</method> method.</par>
+		provide a <method>write</method> method).</par>
 
 		<par>For the rest of the parameters see the
 		<pyref module="ll.xist.publishers" class="Publisher"><class>ll.xist.publishers.Publisher</class></pyref>
@@ -2963,7 +2963,7 @@ class Prefixes(dict):
 
 	def __splitqname(self, qname):
 		"""
-		split a qualified name into a (prefix, local name) pair
+		Split a qualified name into a (prefix, local name) pair.
 		"""
 		pos = qname.find(":")
 		if pos>=0:
@@ -2973,7 +2973,7 @@ class Prefixes(dict):
 
 	def element(self, qname):
 		"""
-		<par>returns the element class for the name
+		<par>Return the element class for the name
 		<arg>qname</arg> (which might include a prefix).</par>
 		<par>If the element can't be found issue a warning (which
 		defaults to an exception) and return <lit>None</lit>.
@@ -2991,7 +2991,7 @@ class Prefixes(dict):
 
 	def procinst(self, name):
 		"""
-		<par>returns the processing instruction class for the name <arg>name</arg>.</par>
+		<par>Return the processing instruction class for the name <arg>name</arg>.</par>
 		<par>If the processing instruction can't be found or is ambigous
 		issue a warning (which defaults to an exception) and return <lit>None</lit>.
 		"""
@@ -3015,7 +3015,7 @@ class Prefixes(dict):
 
 	def entity(self, name):
 		"""
-		<par>returns the entity or charref class for the name <arg>name</arg>.</par>
+		<par>Return the entity or charref class for the name <arg>name</arg>.</par>
 		<par>If the entity can't be found or is ambigous issue a warning
 		(which defaults to an exception) and return <lit>None</lit>.
 		"""
@@ -3039,7 +3039,7 @@ class Prefixes(dict):
 
 	def charref(self, name):
 		"""
-		<par>returns the first charref class for the name or codepoint <arg>name</arg>.</par>
+		<par>Return the first charref class for the name or codepoint <arg>name</arg>.</par>
 		<par>If the character reference can't be found or is ambigous issue a warning
 		(which defaults to an exception) and return <lit>None</lit>.
 		"""
@@ -3063,7 +3063,7 @@ class Prefixes(dict):
 
 	def attrnamefromqname(self, element, qname):
 		"""
-		<par>returns the Python name for an attribute for the qualified
+		<par>Return the Python name for an attribute for the qualified
 		&xml; name <arg>qname</arg> (which might include a prefix, in which case
 		a tuple with the namespace object and the name will be returned, otherwise
 		it will be an attribute from the element <arg>element</arg>, which must

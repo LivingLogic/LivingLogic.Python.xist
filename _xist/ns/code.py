@@ -109,7 +109,7 @@ class pyeval(xsc.ProcInst):
 	node and this resulting node will be converted to &html;.</par>
 
 	<par>These processing instructions will be evaluated and executed in the
-	namespace of the module <pyref module="ll.xist.sandbox"><module>sandbox</module></pyref>.</par>
+	namespace of the module <module>ll.xist.sandbox</module>.</par>
 
 	<par>Note that you should not define the symbol <lit>__</lit> in any of your &xist;
 	processing instructions, as it is used by &xist; for internal purposes.</par>
