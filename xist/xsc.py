@@ -162,7 +162,7 @@ def URLForInput(url):
 	return urlparse.urlunparse((scheme,server,path,parameters,query,fragment))
 
 def URLForOutput(url):
-	if url[0] == ":":
+	if len(url) and url[0] == ":":
 		# split both path
 		source = string.splitfields(xsc.filename,"/")
 		dest = string.splitfields(url[1:],os.sep)
