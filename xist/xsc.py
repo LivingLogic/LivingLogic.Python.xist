@@ -516,16 +516,20 @@ def string2Fragment(s):
 def ToNode(value):
 	t = type(value)
 	if t == types.InstanceType:
-		if isinstance(value,Attr): # repack the attribute in a fragment, and we have a valid XSC node
-			return Frag(value)
-		elif isinstance(value,Frag):
+		if isinstance(value,Frag):
 			l = len(value)
 			if l==1:
 				return ToNode(value[0]) # recursively try to simplify the tree
 			elif l==0:
 				return Null()
 			else:
-				return value
+				if isinstance(value,Attr):
+					e = Frag() # repack the attribute in a fragment, and we have a valid XSC node
+					for i in value:
+						e.append(ToNode(i))
+					return e
+				else:
+					return value
 		elif isinstance(value,Node):
 			return value
 	elif t in [ types.StringType,types.IntType,types.LongType,types.FloatType ]:
@@ -533,10 +537,16 @@ def ToNode(value):
 	elif t == types.NoneType:
 		return Null()
 	elif t in [ types.ListType,types.TupleType ]:
-		e = Frag()
-		for i in value:
-			e.append(ToNode(i))
-		return e
+		l = len(value)
+		if l==1:
+			return ToNode(value[0]) # recursively try to simplify the tree
+		elif l==0:
+			return Null()
+		else:
+			e = Frag()
+			for i in value:
+				e.append(ToNode(i))
+			return e
 	raise IllegalObjectError(xsc.parser.lineno,value) # none of the above, so we throw and exception
 
 _elementHandlers = {} # dictionary for mapping element names to classes, this dictionary contains the element names as keys and another dictionary as values, this second dictionary contains the namespace names as keys and the element classes as values
