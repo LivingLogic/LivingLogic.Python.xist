@@ -13,11 +13,7 @@ handler in <methodref module="xist.xsc" class="Node">publish</methodref>.
 __version__ = "$Revision$"[11:-2]
 # $Source$
 
-import sys
-import types
-import array
-from encodings.aliases import aliases
-import codecs
+import sys, types, array, codecs
 import xsc, options, utils
 
 strescapes = {'<': 'lt', '>': 'gt', '&': 'amp', '"': 'quot'}
