@@ -48,7 +48,7 @@ def mapExt(ext):
 			"jxscp": "jspp"
 		}[ext]
 	except KeyError:
-		return ext
+		return "html"
 
 def make(args):
 	"""
