@@ -458,7 +458,7 @@ class XSCAttrs(XSCNode):
 		for attr in self.keys():
 			line = self[attr]._dorepr()
 			v[-1] = v[-1] + " " + self._strattrname(attr) + '=' + self._strattrquotes(line)
-		return v
+		return [v]
 
 	def dostr(self):
 		v = []
