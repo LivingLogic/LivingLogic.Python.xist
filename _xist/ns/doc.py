@@ -1251,33 +1251,42 @@ def explain(cls, thing, name=None, context=[]):
 	the other entries will be class names.</par>
 	"""
 
+	visibility = "public"
+	testname = name or thing.__name__
+	if testname.startswith("_"):
+		visibility = "protected"
+		if testname.startswith("__"):
+			visibility = "private"
+			if testname.endswith("__"):
+				visibility = "special"
+
 	if inspect.ismethod(thing):
 		name = name or thing.__name__
 		context = context + [(thing, name)]
 		(args, varargs, varkw, defaults) = inspect.getargspec(thing.im_func)
-		id = "-".join([info[1] for info in context[1:]])
+		id = "-".join([info[1] for info in context[1:]]) or None
 		sig = xsc.Frag()
 		if name != thing.__name__ and not (thing.__name__.startswith("__") and name=="_" + thing.im_class.__name__ + thing.__name__):
 			sig.append(cls.method(name), " = ")
 		sig.append("def ", cls._codeheader(thing.im_func, thing.__name__, cls.method), ":")
-		return cls.section(cls.title(sig), cls.getdoc(thing), role="method", id=id)
+		return cls.section(cls.title(sig), cls.getdoc(thing), role=(visibility, " method"), id=id or None)
 	elif inspect.isfunction(thing):
 		name = name or thing.__name__
 		context = context + [(thing, name)]
-		id = "-".join([info[1] for info in context[1:]])
+		id = "-".join([info[1] for info in context[1:]]) or None
 		sig = xsc.Frag(
 			"def ",
 			cls._codeheader(thing, name, cls.function),
 			":"
 		)
-		return cls.section(cls.title(sig), cls.getdoc(thing), role="function", id=id)
+		return cls.section(cls.title(sig), cls.getdoc(thing), role=(visibility, " function"), id=id)
 	elif isinstance(thing, __builtin__.property):
 		context = context + [(thing, name)]
-		id = "-".join([info[1] for info in context[1:]])
+		id = "-".join([info[1] for info in context[1:]]) or None
 		sig = xsc.Frag(
 			"property ", name, ":"
 		)
-		node = cls.section(cls.title(sig), cls.getdoc(thing), role="property", id=id)
+		node = cls.section(cls.title(sig), cls.getdoc(thing), role=(visibility, " property"), id=id)
 		if thing.fget is not None:
 			node.append(cls.explain(thing.fget, "__get__", context))
 		if thing.fset is not None:
@@ -1288,7 +1297,7 @@ def explain(cls, thing, name=None, context=[]):
 	elif inspect.isclass(thing):
 		name = name or thing.__name__
 		context = context + [(thing, name)]
-		id = "-".join([info[1] for info in context[1:]])
+		id = "-".join([info[1] for info in context[1:]]) or None
 		bases = xsc.Frag()
 		if len(thing.__bases__):
 			for baseclass in thing.__bases__:
@@ -1317,7 +1326,7 @@ def explain(cls, thing, name=None, context=[]):
 				":"
 			),
 			cls.getdoc(thing),
-			role="class",
+			role=(visibility, " class"),
 			id=id
 		)
 		# find methods, properties and classes, but filter out those methods that are attribute getters, setters or deleters
@@ -1357,7 +1366,8 @@ def explain(cls, thing, name=None, context=[]):
 		context = [(thing, name)]
 		node = cls.section(
 			cls.title("Module ", cls.module(name)),
-			cls.getdoc(thing)
+			cls.getdoc(thing),
+			role=(visibility, " module"),
 		)
 
 		functions = []
