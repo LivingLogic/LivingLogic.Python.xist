@@ -3,7 +3,8 @@
 <ulist>
 <item><function>ToNode</function> now tries iterating through the
 value passed in, so it's now possible to pass iterators and generators
-to <class>Frag</class> and <class>Element</class> constructors.</item>
+(and generator expressions in Python 2.4) to <class>Frag</class>
+and <class>Element</class> constructors.</item>
 
 <item>The script <filename>xscmake.py</filename> (which has been unmaintained
 for a while now) has been removed.</item>
