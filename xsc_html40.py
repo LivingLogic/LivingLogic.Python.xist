@@ -308,6 +308,7 @@ RegisterElement("td",td)
 class a(XSCElement):
 	close = 1
 	attr_handlers = AppendDict(attrs,{ "charset" : XSCFrag , "type" : XSCFrag , "name" : XSCFrag , "href" : XSCurl , "hreflang" : XSCFrag , "rel" : XSCFrag , "rev" : XSCFrag , "accesskey" : XSCFrag , "shape" : XSCFrag , "coords" : XSCFrag , "tabindex" : XSCFrag , "onfocus" : XSCFrag , "onblur" : XSCFrag })
+	attr_handlers = AppendDict(attr_handlers,{ "target" : XSCFrag }) # deprecated
 RegisterElement("a",a)
 
 class link(XSCElement):
