@@ -349,53 +349,50 @@ class CharRef(Entity):
 		newlines.append([level+1, "codepoint = 0x%04x" % self.codepoint])
 		self._addlines(newlines, lines)
 
-class xndl(xsc.Element):
+class base(xsc.Element):
+	def finddoc(self):
+		docs = self.content.find(xsc.FindType(doc))
+
+		if len(docs):
+			return Doc(docs[0].content)
+		else:
+			return None
+
+class xndl(base):
 	empty = False
 	class Attrs(xsc.Element.Attrs):
 		class name(xsc.TextAttr): required = True
 		class url(xsc.TextAttr): pass
 
 	def asdata(self):
-		docs = self.content.find(xsc.FindType(doc))
-		if len(docs):
-			docs = Doc(docs[0])
-		else:
-			docs = None
-
 		return Namespace(
 			name=unicode(self["name"]),
-			doc=docs,
+			doc=self.finddoc(),
 			url=unicode(self["url"]) or None,
 			content=[ node.asdata() for node in self.content.find(xsc.FindType(element, procinst, entity, charref)) ]
 		)
 
-class doc(xsc.Element):
+class doc(base):
 	empty = False
 
 	def asdata(self):
 		return self.content
 
-class element(xsc.Element):
+class element(base):
 	empty = False
 	class Attrs(xsc.Element.Attrs):
 		class name(xsc.TextAttr): required = True
 		class empty(xsc.BoolAttr): pass
 
 	def asdata(self):
-		docs = self.content.find(xsc.FindType(doc))
-		if len(docs):
-			docs = Doc(docs[0])
-		else:
-			docs = None
-
 		return Element(
 			name=unicode(self["name"]),
-			doc=docs,
+			doc=self.finddoc(),
 			empty=self.attrs.has("empty"),
 			attrs=[ a.asdata() for a in self.content.find(xsc.FindType(attr)) ]
 		)
 
-class attr(xsc.Element):
+class attr(base):
 	empty = False
 	class Attrs(xsc.Element.Attrs):
 		class name(xsc.TextAttr): required = True
@@ -406,72 +403,52 @@ class attr(xsc.Element):
 		class default(xsc.TextAttr): pass
 
 	def asdata(self):
-		docs = self.content.find(xsc.FindType(doc))
-		if len(docs):
-			docs = Doc(docs[0])
-		else:
-			docs = None
 		return Attr(
 			name=unicode(self["name"]),
-			doc=docs,
+			doc=self.finddoc(),
 			type=str(self["type"]),
 			required=self.attrs.has("required"),
 			default=unicode(self["default"]) or None,
 			values=[ unicode(v) for v in self.content.find(xsc.FindType(value)) ]
 		)
 
-class value(xsc.Element):
+class value(base):
 	empty = False
 
-class procinst(xsc.Element):
+class procinst(base):
 	empty = False
 	class Attrs(xsc.Element.Attrs):
 		class target(xsc.TextAttr): required = True
 
 	def asdata(self):
 		name = unicode(self["target"])
-		docs = self.content.find(xsc.FindType(doc))
-		if len(docs):
-			docs = docs[0].content
-		else:
-			docs = None
 		return ProcInst(
 			name=name,
-			doc=docs
+			doc=self.finddoc()
 		)
 
-class entity(xsc.Element):
+class entity(base):
 	empty = False
 	class Attrs(xsc.Element.Attrs):
 		class name(xsc.TextAttr): required = True
 
 	def asdata(self):
 		name = unicode(self["name"])
-		docs = self.content.find(xsc.FindType(doc))
-		if len(docs):
-			docs = docs[0].content
-		else:
-			docs = None
 		return Entity(
 			name=unicode(self["name"]),
-			doc=docs
+			doc=self.finddoc()
 		)
 
-class charref(xsc.Element):
+class charref(base):
 	empty = False
 	class Attrs(xsc.Element.Attrs):
 		class name(xsc.TextAttr): required = True
 		class codepoint(xsc.IntAttr): required = True
 
 	def asdata(self):
-		docs = self.content.find(xsc.FindType(doc))
-		if len(docs):
-			docs = docs[0].content
-		else:
-			docs = None
 		return CharRef(
 			name=unicode(self["name"]),
-			doc=docs,
+			doc=self.finddoc(),
 			codepoint=int(self["codepoint"])
 		)
 
