@@ -1099,7 +1099,7 @@ class Frag(Node, list):
 
 	def __getslice__(self, index1, index2):
 		"""
-		returns a slice of the content of the fragment
+		Returns slice of the content of the fragment.
 		"""
 		node = self._create()
 		list.extend(node, list.__getslice__(self, index1, index2))
@@ -1107,7 +1107,7 @@ class Frag(Node, list):
 
 	def __setslice__(self, index1, index2, sequence):
 		"""
-		replaces a slice of the content of the fragment
+		Replace a slice of the content of the fragment
 		"""
 		list.__setslice__(self, index1, index2, Frag(sequence))
 
@@ -1115,9 +1115,9 @@ class Frag(Node, list):
 
 	def __mul__(self, factor):
 		"""
-		returns a <pyref class="Frag"><class>Frag</class></pyref> with <arg>factor</arg> times
-		the content of <self/>. Note that no copies of the content will be generated, so
-		this is a <z>shallow <method>__mul__</method></z>.
+		Return a <pyref class="Frag"><class>Frag</class></pyref> with
+		<arg>factor</arg> times the content of <self/>. Note that no copies of the
+		content will be generated, so this is a <z>shallow <method>__mul__</method></z>.
 		"""
 		node = self._create()
 		list.extend(node, list.__mul__(self, factor))
@@ -1133,7 +1133,7 @@ class Frag(Node, list):
 
 	def append(self, *others):
 		"""
-		<par>append all items in <arg>others</arg> to <self/>.</par>
+		<par>Append every item in <arg>others</arg> to <self/>.</par>
 		"""
 		for other in others:
 			other = ToNode(other)
@@ -1144,13 +1144,13 @@ class Frag(Node, list):
 
 	def extend(self, items):
 		"""
-		<par>append all items from the sequence <arg>other</arg> to <self/>.</par>
+		<par>Append all items from the sequence <arg>items</arg> to <self/>.</par>
 		"""
 		self.append(items)
 
 	def insert(self, index, *others):
 		"""
-		<par>inserts all items in <arg>others</arg> at the position <arg>index</arg>.
+		<par>Insert all items in <arg>others</arg> at the position <arg>index</arg>.
 		(this is the same as <lit><self/>[<arg>index</arg>:<arg>index</arg>] = <arg>others</arg></lit>)
 		"""
 		other = Frag(*others)
@@ -1172,10 +1172,10 @@ class Frag(Node, list):
 
 	def withsep(self, separator, clone=False):
 		"""
-		<par>return a version of <self/> with a separator node between the nodes of <self/>.</par>
+		<par>Return a version of <self/> with a separator node between the nodes of <self/>.</par>
 
 		<par>if <arg>clone</arg> is false one node will be inserted several times,
-		if <arg>clone</arg> is true clones of this node will be used.</par>
+		if <arg>clone</arg> is true, clones of this node will be used.</par>
 		"""
 		node = self._create()
 		newseparator = ToNode(separator)
@@ -1189,7 +1189,7 @@ class Frag(Node, list):
 
 	def sorted(self, compare=lambda node1, node2: cmp(unicode(node1), unicode(node2))):
 		"""
-		<par>returns a sorted version of the <self/>. <arg>compare</arg> is
+		<par>Return a sorted version of the <self/>. <arg>compare</arg> is
 		a comparison function returning -1, 0, 1 respectively and defaults to comparing the
 		<pyref class="Node" method="__unicode__"><class>__unicode__</class></pyref> value.</par>
 		"""
@@ -1199,7 +1199,7 @@ class Frag(Node, list):
 
 	def reversed(self):
 		"""
-		<par>returns a reversed version of the <self/>.</par>
+		<par>Return a reversed version of the <self/>.</par>
 		"""
 		node = list(self)
 		node.reverse()
@@ -1207,7 +1207,9 @@ class Frag(Node, list):
 
 	def filtered(self, function):
 		"""
-		<par>returns a filtered version of the <self/>.</par>
+		<par>Return a filtered version of the <self/>, i.e. a copy of <self/>,
+		where only content nodes for which <function>function</function> returns
+		true will be copied.</par>
 		"""
 		node = self._create()
 		list.extend(node, [ child for child in self if function(child) ]) # FIXME: Use GE in 2.4
@@ -1215,7 +1217,8 @@ class Frag(Node, list):
 
 	def shuffled(self):
 		"""
-		<par>return a shuffled version of <self/>.</par>
+		<par>Return a shuffled version of <self/>i, i.e. a copy of <self/> where
+		the content nodes are randomly reshuffled.</par>
 		"""
 		content = list(self)
 		node = self._create()
@@ -1258,7 +1261,7 @@ class Frag(Node, list):
 
 class Comment(CharacterData):
 	"""
-	A comment node
+	An &xml; comment.
 	"""
 
 	def convert(self, converter):
@@ -1282,7 +1285,7 @@ class Comment(CharacterData):
 
 class DocType(CharacterData):
 	"""
-	a document type node
+	An &xml; document type declaration.
 	"""
 
 	def convert(self, converter):
