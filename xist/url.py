@@ -29,7 +29,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 
 import types, urlparse, urllib
 
-import utils, helpers
+import utils, helpers, options
 
 # workaround for a bug in urlparse (which is fixed in urlparse.py CVS revision 1.26)
 urlparse.scheme_chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+-."
@@ -540,6 +540,16 @@ class URL:
 		"""
 		self.__path = _normalize(self.__path, removeAllMarkers=0)
 
+	def isRetrieve(self):
+		"""
+		returns if the file specified by the URL should be retrieved or not
+		according to the "remoteness" of the URL and the retrieve options.
+		"""
+		remote = self.isRemote()
+		if (options.retrieveremote and remote) or (options.retrievelocal and (not remote)):
+			return 1
+		else:
+			return 0
 
 def test_normalize():
 	"""

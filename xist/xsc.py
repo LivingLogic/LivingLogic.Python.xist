@@ -1721,7 +1721,7 @@ class URLAttr(Attr):
 
 		url = self.forInput()
 		size = None
-		if 1: # FIXME xsc.isRetrieve(url):
+		if url.isRetrieve():
 			try:
 				(filename, headers) = url.retrieve()
 				if headers.maintype == "image":
@@ -1742,7 +1742,7 @@ class URLAttr(Attr):
 		url = self.forInput()
 
 		size = None
-		if 1: # FIXME xsc.isRetrieve(url):
+		if url.isRetrieve():
 			try:
 				(filename, headers) = url.retrieve()
 				size = os.stat(filename)[stat.ST_SIZE]

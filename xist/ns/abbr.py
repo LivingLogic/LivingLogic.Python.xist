@@ -270,4 +270,10 @@ class sax(xsc.Entity):
 	def asPlainString(self):
 		return u"SAX"
 
+class ansi(xsc.Entity):
+	def convert(self, converter=None):
+		return html_.span(html_.abbr("ANSI", title="American National Standards Institute", lang="en"), class_="caps")
+	def asPlainString(self):
+		return u"ANSI"
+
 namespace = xsc.Namespace("abbr", "http://www.livinglogic.de/DTDs/abbr.dtd", vars())

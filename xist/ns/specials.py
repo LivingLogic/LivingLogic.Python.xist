@@ -66,12 +66,12 @@ class z(xsc.Element):
 	empty = 0
 
 	def convert(self, converter=None):
-		e = xsc.Frag(u"«", self.content.convert(converter), u"»")
+		e = xsc.Frag(u"»", self.content.convert(converter), u"«")
 
 		return e
 
 	def asPlainString(self):
-		return u'«' + self.content.asPlainString() + u'»'
+		return u"»" + self.content.asPlainString() + u"«"
 
 class filesize(xsc.Element):
 	"""

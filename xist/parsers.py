@@ -39,7 +39,7 @@ from xml.sax import saxlib
 #except ImportError:
 timeoutsocket = None
 
-import xsc, url as url_
+import xsc, url as url_, errors
 
 class StringInputSource(sax.xmlreader.InputSource):
 	def __init__(self, text):
@@ -321,13 +321,6 @@ class Handler:
 		except ValueError:
 			raise errors.MalformedCharRefError(self.getLocation(), name)
 		self.__appendNode(xsc.Text(unichr(code)))
-
-	def isRetrieve(self, url):
-		remote = url.isRemote()
-		if (options.retrieveremote and remote) or (options.retrievelocal and (not remote)):
-			return 1
-		else:
-			return 0
 
 	def getLocation(self):
 		return xsc.Location(self._locator)
