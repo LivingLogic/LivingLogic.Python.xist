@@ -711,28 +711,30 @@ attribute is already specified, the following happens:
 %-formatting is used on the attribute value, the width and
 height of the image is passed to the % operator as a dictionary
 with the keys <code>"width"</code> and <code>"height"</code>.
-The resulting string is <code>eval()</code>uated and it's result is used for the attribute.
+The resulting string is <code>eval()</code>uated and its result is used for the attribute.
 So to make an image twice as wide and high do the following:
 <doc:programlisting>
-&lt;img src="foo.png" width="%(width)d*2" height="%(height)d*2"/&gt;
+&lt;autoimg src="foo.png" width="%(width)d*2" height="%(height)d*2"/&gt;
 </doc:programlisting></doc:par>
 </doc:section>
 
 <doc:section><doc:title>Embedding Python code</doc:title>
 <doc:par>It's possible to embed Python code into &xist; &xml; files. For this
-&xist; supports two new processing instructions: <markup>xsc:exec</markup> 
-and <markup>xsc:eval</markup>. The content of <markup>xsc:exec</markup> will be 
+&xist; supports two new processing instructions: <pyref module="xist.ns.code" class="Exec">code:exec</pyref> 
+and <pyref module="xist.ns.code" class="Eval">code:eval</pyref> (in the module
+<pyref module="xist.ns.code">xist.ns.code</pyref>. The content of
+<pyref module="xist.ns.code" class="Exec">code:exec</pyref> will be 
 executed when the processing instruction node is instantiated, i.e. when the 
 &xml; file is parsed, so anything you do there will be available afterwards.</doc:par>
 
 <doc:par>The result of a call to <pyref module="xist.xsc" class="Node" method="convert">convert</pyref> 
-for a <markup>xsc:eval</markup> processing instruction is whatever the 
+for a <pyref module="xist.ns.code" class="Eval">code:eval</pyref> processing instruction is whatever the 
 Python code in the content returns. This content is treated as the body
 of a function, so you can put multiple return statements there.
 The converter is available as the parameter <code>converter</code> inside
 the processing instruction. For example, consider the following &xml; file:
 <doc:programlisting>
-&lt;?xsc:exec
+&lt;?code:exec
 	# sum
 	def gauss(top=100):
 		sum = 0
@@ -740,7 +742,7 @@ the processing instruction. For example, consider the following &xml; file:
 			sum += i
 		return sum
 ?&gt;
-&lt;b&gt;&lt;?xsc:eval return gauss()?&gt;&lt;/b&gt;
+&lt;b&gt;&lt;?code:eval return gauss()?&gt;&lt;/b&gt;
 </doc:programlisting>
 Parsing this file and calling 
 <pyref module="xist.xsc" class="Node" method="convert">convert</pyref> results in the following:
@@ -748,8 +750,4 @@ Parsing this file and calling
 &lt;b&gt;5050&lt;/b&gt;
 </doc:programlisting>
 </doc:par>
-
-<doc:par>For further information see the class <pyref module="xist.xsc" class="ProcInst">ProcInst</pyref> 
-and it's two derived classes <pyref module="xist.xsc" class="Eval">Eval</pyref> and 
-<pyref module="xist.xsc" class="Exec">Exec</pyref>.</doc:par>
 </doc:section>
