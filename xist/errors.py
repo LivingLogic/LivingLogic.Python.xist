@@ -26,7 +26,7 @@ All exceptions defined in this module are derived from
 the base class Error.
 """
 
-__version__ = "$Revision$"[11:-2]
+__version__ = tuple("$Revision $"[11:-2].split("."))
 # $Source$
 
 import xsc

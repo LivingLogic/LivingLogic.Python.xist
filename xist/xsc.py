@@ -207,7 +207,7 @@ To determine image sizes, XSC needs the Python Imaging library
 (available from http://www.pythonware.com/products/pil/)
 """
 
-__version__ = "$Revision$"[11:-2]
+__version__ = tuple("$Revision $"[11:-2].split("."))
 # $Source$
 
 import os

@@ -10,7 +10,7 @@ This modules contains elements for doing conditionals
 on the XML level.
 """
 
-__version__ = "$Revision$"[11:-2]
+__version__ = tuple("$Revision $"[11:-2].split("."))
 # $Source$
 
 import xsc, html, procinst

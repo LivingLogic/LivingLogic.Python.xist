@@ -6,7 +6,7 @@ forms. These are just abbreviations for the various
 <code>&lt;input type=<var>...</var>&gt;</code> elements.
 """
 
-__version__ = "$Revision$"[11:-2]
+__version__ = tuple("$Revision $"[11:-2].split("."))
 # $Source$
 
 import xsc, html

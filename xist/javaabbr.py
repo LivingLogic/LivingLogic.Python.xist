@@ -4,7 +4,7 @@
 This module contains entities for a bunch of Java abbreviations and acronyms.
 """
 
-__version__ = "$Revision$"[11:-2]
+__version__ = tuple("$Revision $"[11:-2].split("."))
 # $Source$
 
 from xist import xsc, html

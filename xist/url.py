@@ -5,7 +5,7 @@
 This module contains only one useful variable: the URL class
 """
 
-__version__ = "$Revision$"[11:-2]
+__version__ = tuple("$Revision $"[11:-2].split("."))
 # $Source$
 
 import types
@@ -472,7 +472,7 @@ class URL:
 		def do_join(base, url):
 			if not url.scheme:
 				url.scheme = base.scheme
-			if not base: # todo: gibt es das?
+			if not base.asString(): # FIXME: gibt es das?
 				return url
 			if url.scheme != base.scheme or url.scheme not in uses_relative:
 				return url
@@ -601,6 +601,7 @@ def test_url():
 		(69, URL('http:/bb/cc/'), 'http:/bb/cc/'),
 		(70, URL('http:') + URL('/bb/cc/'), 'http:/bb/cc/'),
 		# is this what is expected?
+		(80, URL('http://test.com/index.html') + URL('impress.html'), 'http://test.com/impress.html'),
 		(80, URL('/bb/cc/') + URL('http:'), 'http:'),
 		(90, URL('#mark'), '#mark')
 		):

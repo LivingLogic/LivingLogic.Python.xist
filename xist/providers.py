@@ -10,7 +10,7 @@ Contains classes for generating XSC trees from
 XML files (or other data sources).
 """
 
-__version__ = "$Revision$"[11:-2]
+__version__ = tuple("$Revision $"[11:-2].split("."))
 # $Source$
 
 import os
