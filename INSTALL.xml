@@ -74,7 +74,7 @@ and use Unicode string constants only.</par>
 formats are used in two <z>pretty printing</z> modes. One is used for the
 result of <method>__repr__</method> calls and the other is used for
 output of &xist; trees in the interactive shell. To activate the interactive
-display, put something link the following in your Python startup script:</par>
+display, put something like the following in your Python startup script:</par>
 
 <prog>
 import ll
