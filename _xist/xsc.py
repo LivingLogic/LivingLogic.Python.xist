@@ -3066,21 +3066,22 @@ class Namespace(object):
 		def __repr__(self):
 			counts = []
 
-			keys = self.elementkeys()
-			if keys:
-				counts.append("%d elements" % len(keys))
+			elementkeys = self.elementkeys()
+			if elementkeys:
+				counts.append("%d elements" % len(elementkeys))
 
-			keys = self.procinstkeys()
-			if keys:
-				counts.append("%d procinsts" % len(keys))
+			procinstkeys = self.procinstkeys()
+			if procinstkeys:
+				counts.append("%d procinsts" % len(procinstkeys))
 
-			keys = self.entitykeys()
-			if keys:
-				counts.append("%d entities" % len(keys))
+			entitykeys = self.entitykeys()
+			charrefkeys = self.charrefkeys()
+			count = len(entitykeys)-len(charrefkeys)
+			if count:
+				counts.append("%d entities" % count)
 
-			keys = self.charrefkeys()
-			if keys:
-				counts.append("%d charrefs" % len(keys))
+			if len(charrefkeys):
+				counts.append("%d charrefs" % len(charrefkeys))
 
 			allowedattrs = self.Attrs.allowedkeys()
 			if len(allowedattrs):
@@ -3379,6 +3380,9 @@ class Namespace(object):
 	charref = classmethod(charref)
 
 	def addvars(cls, vars):
+		"""
+		<par>Add variables from <arg>vars</arg> to <self/>.</par>
+		"""
 		for (key, value) in vars.iteritems():
 			if value is not cls and key not in ("__name__", "__dict__"):
 				setattr(cls, key, value)
