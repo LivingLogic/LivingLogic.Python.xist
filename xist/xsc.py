@@ -439,29 +439,21 @@ def strTab(count,ansi = None):
 def strURL(URL,ansi = None):
 	return _stransi(repransiurl,URL,ansi)
 
-def nameOfMainModule():
-	if len(sys.argv)>0:
-		return os.path.splitext(os.path.split(sys.argv[0])[1])[0]
-	else:
-		return "__main__"
-
-def namespaceName(nodeClass):
-	namespace = nodeClass.__module__
-	if namespace == "__main__": # the element class came from the main module, get the name from sys.argv
-		namespace = string.lower(nameOfMainModule())
-	else:
-		namespace = string.lower(namespace)
-	return namespace
-
-def elementName(nodeClass):
-	return string.lower(nodeClass.__name__)
-	
 def nodeName(nodeClass):
 	"""
-	returns a tuple with the namespace of the node, which is the module in which the node is implemented
-	and a name which is the name of the class. Both strings are converted to lowercase.
+	returns a list with the namespacename, the elementname and the emptyness of the node.
+	Note that for this to work the element has to be registered.
 	"""
-	return [namespaceName(nodeClass),elementName(nodeClass),nodeClass.empty]
+	try:
+		namespacename = nodeClass.namespacename
+	except AttributeError:
+		namespacename = "unnamed"
+	try:
+		elementname = nodeClass.elementname
+	except AttributeError:
+		elementname = "unnamed"
+
+	return [namespacename,elementname,nodeClass.empty]
 
 def _strName(nodeName,content = None,brackets = 1,slash = None,ansi = None):
 	# slash == -1: before; 0: nowhere; 1:after
@@ -1485,30 +1477,30 @@ class Null(Element):
 	def _doreprtree(self,nest,elementno,ansi = None):
 		return [[nest,self.startlineno,elementno,self._dorepr(ansi)]]
 
-def registerElement(element,namespacename = None,elementname = None):
+def registerElement(element,namespacename,elementname = None):
 	"""
-	registerElement(element,namespacename = None,elementname = None)
+	registerElement(element,namespacename,elementname = None)
 
 	registers the element handler element to be used for elements with the appropriate name.
 	The element will be registered in the namespace namespacename and the element name
-	elementname. If namespacename is None the name of the module in which the element class
-	is defined is used, or - if the module is __main__ - the appropriate part of sys.argv[0].
-	If elementname is None, the name of the class will be used.
+	elementname. If elementname is None, the lowercase name of the class will be used.
 	Names will be converted to lowercase in any case, to help prevent conflicts between
 	Python keywords and class names (e.g. for the HTML element del).
 	"""
-	if namespacename is None:
-		namespacename = namespaceName(element)
 	if elementname is None:
-		elementname = elementName(element)
+		elementname = string.lower(element.__name__)
+
+	element.namespacename = namespacename
+	element.elementname = elementname
+
 	if _elementHandlers.has_key(elementname):
 		_elementHandlers[elementname][namespacename] = element
 	else:
 		_elementHandlers[elementname] = { namespacename : element }
 
-def registerAllElements(dict,namespacename = None):
+def registerAllElements(dict,namespacename):
 	"""
-	registerAllElements(dict,namespacename = None)
+	registerAllElements(dict,namespacename)
 
 	registers all elements in a dictionary under the namespace namespacename.
 	This can be used to register all elements in a module simply by
