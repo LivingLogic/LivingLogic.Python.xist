@@ -402,6 +402,7 @@ RegisterElement("button",button)
 class select(XSCElement):
 	empty = 0
 	attr_handlers = AppendDict(attrs,{ "name" : XSCFrag , "size" : XSCFrag , "multiple" : XSCFrag , "disabled" : XSCFrag , "tabindex" : XSCFrag , "onfocus" : XSCFrag , "onblur" : XSCFrag , "onchange" : XSCFrag })
+	attr_handlers = AppendDict(attr_handlers,{ "rows" : XSCFrag }) # deprecated
 RegisterElement("select",select)
 
 class optgroup(XSCElement):
