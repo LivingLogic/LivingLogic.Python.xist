@@ -183,6 +183,8 @@ class URL:
 		if other.scheme==u"server":
 			other.scheme = None
 			other.path.insert(0,u"")
+		if other.file == u"":
+			other.path.append(u".")
 		return URL(urlparse.urljoin(self.asString(), other.asString()))
 
 	def __radd__(self, other):
