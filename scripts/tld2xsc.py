@@ -9,9 +9,12 @@
 ## See xist/__init__.py for the license
 
 """
-Module that helps to create XSC modules from TLDs.
-Usage: python tld2xsc.py foo.tld
-       to generate foo.py
+<par>Module that helps to create &xist; namespace modules from TLD files
+(Java tag library descriptors).
+For usage information type:</par>
+<programlisting>
+tld2xsc --help
+</programlisting>
 """
 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
