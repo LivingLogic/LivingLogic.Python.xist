@@ -95,9 +95,9 @@ class blankpage(XSCElement):
 			head(
 				title(self["title"])+
 				script(type="text/javascript",language="Javascript",src=":javascripts/main.js")+
-				link(src="made",href="mailto:html@bnbt.de")
+				link(rel="made",href="mailto:html@bnbt.de")
 			)+
-			plainbody(self.content.clone(),bgcolor="white")
+			plainbody(self.content.clone(),bgcolor="#fff")
 		)
 
 		return e.asHTML()
