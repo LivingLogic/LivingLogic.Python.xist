@@ -33,20 +33,47 @@ import sys, keyword
 from ll.xist import xsc, utils
 
 class Base(object):
-	def pyify(cls, name):
-		if keyword.iskeyword(name):
-			return name + "_"
-		else:
+	def __init__(self, name):
+		self.name = name
+		self._pyname = None
+
+	def pyname(self, names=[]):
+		"""
+		<par>Return a modified version of <arg>name</arg>, that is a valid
+		Python identifier. This is done by replacing illegal characters with
+		<lit>_</lit> and appending an <lit>_</lit> when the name collides
+		with a Python keyword. Furthermore it is made sure that the new
+		name is not already part of the list <arg>names</arg>.</par>
+		"""
+		if self._pyname is None:
 			newname = []
+			name = self.name
 			for c in name:
 				if "a" <= c <= "z" or "A" <= c <= "Z" or "0" <= c <= "9" or c == "_":
 					newname.append(c)
 				else:
 					newname.append("_")
-			return "".join(newname)
-	pyify = classmethod(pyify)
+			name = "".join(newname)
+			testname = name
+			if keyword.iskeyword(name):
+				testname += "_"
+			suffix = 2
+			while testname in names:
+				testname = "%s%d" % (name, suffix)
+				suffix += 1
+			name = testname
+			self._pyname = name
+			names.append(name)
+		else:
+			name = self._pyname
+		return name
 
 	def simplify(cls, value):
+		"""
+		<par>Return a string, whose value can be used as an intializer for an attribute values.
+		If the value is an <class>int</class> strip the quotes, if it fits into ASCII drop
+		the <lit>u</lit> prefix.</par>
+		"""
 		try:
 			value = int(value)
 		except ValueError:
@@ -69,22 +96,24 @@ class Base(object):
 		if encoding is None:
 			encoding = sys.getdefaultencoding()
 		lines = []
-		self._aspy(lines, encoding, 0)
+		self._aspy(lines, encoding, 0, [])
 		return "\n".join(["%s%s" % (level*indent, text) for (level, text) in lines])
 
 	def _addlines(self, newlines, lines):
-		if len(newlines)==0:
+		l = len(newlines)
+		if l==0:
 			lines[-1][1] += " pass"
-		elif len(newlines)==1:
+		elif l==1:
 			lines[-1][1] += " %s" % newlines[-1][1]
 		else:
 			lines.extend(newlines)
 
 class Doc(Base):
 	def __init__(self, content):
+		super(Doc, self).__init__(None)
 		self.content = content
 
-	def _aspy(self, lines, encoding, level):
+	def _aspy(self, lines, encoding, level, names):
 		lines.append([level, '"""'])
 		for line in self.content.asBytes(encoding=encoding).split("\n"):
 			lines.append([level, line])
@@ -92,12 +121,32 @@ class Doc(Base):
 
 class Namespace(Base):
 	def __init__(self, name, doc, url, content):
-		self.name = name
+		super(Namespace, self).__init__(name)
 		self.doc = doc
 		self.url = url
 		self.content = content
 
-	def _aspy(self, lines, encoding, level):
+	def _findgroups(self):
+		"""
+		<par>This methods find all attribute groups defined for any attribute.
+		As an attribute group can be reference multiple times (in fact that's
+		the reason for the attribute groups existence), we have to make sure
+		to list an attribute group only once. Furthermore the attribute groups
+		should appear in the order in which they are referenced.</par>
+		"""
+		# find all attribute groups defined for the attributes
+		attrgroups = []
+		attrgroupset = {}
+		for node in self.content:
+			if isinstance(node, Element):
+				for attr in node.attrs:
+					if attr.shared is not None and attr.shared not in attrgroupset:
+						attrgroups.append(attr.shared)
+						attrgroupset[attr.shared] = True
+		return attrgroups
+
+
+	def _aspy(self, lines, encoding, level, names):
 		lines.append([level, "#!/usr/bin/env python"])
 		lines.append([level, "# -*- coding: %s -*-" % encoding])
 		lines.append([0, ""])
@@ -110,28 +159,60 @@ class Namespace(Base):
 		lines.append([level, "# %sSource%s" % ("$", "$")])
 		lines.append([0, ""])
 		lines.append([level, "from ll.xist import xsc"])
-		lines.append([0, ""])
+
+		attrgroups = self._findgroups()
 
 		name = self.name
-		pyname = self.pyify(name)
+		pyname = self.pyname(names)
+
+		# output attribute groups
+		for attrgroup in attrgroups:
+			lines.append([0, ""])
+			attrgroup._aspy(lines, encoding, level, names)
+
+		lines.append([0, ""])
 		lines.append([level, "class %s(xsc.Namespace):" % pyname])
 		if pyname != name:
 			lines.append([level+1, "xmlname = %s" % self.simplify(name)])
 		lines.append([level+1, "xmlurl = %s" % self.simplify(self.url)])
+
 		for node in self.content:
 			lines.append([0, ""])
-			node._aspy(lines, encoding, level+1)
+			node._aspy(lines, encoding, level+1, names)
+
+	def shareattrs(self, all):
+		# collect all identical attributes into lists
+		identicalattrs = []
+		identicalattrset = {}
+		for node in self.content:
+			if isinstance(node, Element):
+				for attr in node.attrs:
+					if attr.shared is None: # skip attributes that are already shared
+						ident = attr.ident()
+						try:
+							attrs = identicalattrset[ident]
+						except KeyError:
+							attrs = []
+							identicalattrs.append(attrs)
+							identicalattrset[ident] = attrs
+						attrs.append(attr)
+		for attrs in identicalattrs:
+			# if the attribute appears more than once, define a group for it
+			if all or len(attrs) > 1:
+				group = AttrGroup(attrs[0].name, [attrs[0]])
+				for attr in attrs:
+					attr.share(group)
 
 class Element(Base):
 	def __init__(self, name, doc, empty, attrs):
-		self.name = name
+		super(Element, self).__init__(name)
 		self.doc = doc
 		self.empty = empty
 		self.attrs = attrs
 
-	def _aspy(self, lines, encoding, level):
+	def _aspy(self, lines, encoding, level, names):
 		name = self.name
-		pyname = self.pyify(name)
+		pyname = self.pyname(names)
 		lines.append([level, "class %s(xsc.Element):" % pyname])
 		newlines = []
 		if self.doc is not None:
@@ -143,24 +224,61 @@ class Element(Base):
 		else:
 			empty = "False"
 		newlines.append([level+1, "empty = %s" % empty])
+
 		if self.attrs:
-			newlines.append([level+1, "class Attrs(xsc.Element.Attrs):"])
-			for a in self.attrs:
-				a._aspy(newlines, encoding, level+2)
+			# find the attribute groups our elements are in
+			# this means we don't have to define these attributes ourselves, but have to derive from the attribute group
+			groups = []
+			groupset = {}
+			nogroup = []
+			for attr in self.attrs:
+				if attr.shared is not None:
+					if attr.shared not in groupset:
+						groups.append(attr.shared)
+				else:
+					nogroup.append(attr)
+			if groups:
+				base = ", ".join([group.pyname() for group in groups])
+			else:
+				base = "xsc.Element.Attrs"
+			newlines.append([level+1, "class Attrs(%s):" % base])
+			if nogroup:
+				localnames = []
+				for attr in nogroup:
+					attr._aspy(newlines, encoding, level+2, localnames)
+			else:
+				newlines.append([level+2, "pass"])
 		self._addlines(newlines, lines)
+
+class AttrGroup(Base):
+	id = 0
+	def __init__(self, name, attrs):
+		if name is None:
+			name = "attrgroup_%d" % self.__class__.id
+			self.__class__.id += 1
+		super(AttrGroup, self).__init__(name)
+		self.attrs = attrs
+
+	def _aspy(self, lines, encoding, level, names):
+		name = self.pyname(names)
+		lines.append([level, "class %s(xsc.Element.Attrs):" % name])
+		localnames = []
+		for attr in self.attrs:
+			attr._aspy(lines, encoding, level+1, localnames)
 
 class Attr(Base):
 	def __init__(self, name, doc, type, required, default, values):
-		self.name = name
+		super(Attr, self).__init__(name)
 		self.doc = doc
 		self.type = type
 		self.required = required
 		self.default = default
 		self.values = values
+		self.shared = None
 
-	def _aspy(self, lines, encoding, level):
+	def _aspy(self, lines, encoding, level, names):
 		name = self.name
-		pyname = self.pyify(name)
+		pyname = self.pyname(names)
 		lines.append([level, "class %s(xsc.%s):" % (pyname, self.type)])
 		newlines = []
 		if self.doc is not None:
@@ -176,34 +294,41 @@ class Attr(Base):
 			newlines.append([level+1, "required = True"])
 		self._addlines(newlines, lines)
 
+	def share(self, group):
+		assert self.shared is None, "cannot share attr %r twice" % self
+		self.shared = group
+
+	def ident(self):
+		return (self.name, self.type, self.required, self.default, tuple(self.values))
+
 class ProcInst(Base):
-	def __init__(self, target, doc):
-		self.target = target
+	def __init__(self, name, doc):
+		super(ProcInst, self).__init__(name)
 		self.doc = doc
 
-	def _aspy(self, lines, encoding, level):
-		target = self.target
-		pytarget = self.pyify(target)
-		lines.append([level, "class %s(xsc.ProcInst):" % pytarget])
+	def _aspy(self, lines, encoding, level, names):
+		name = self.name
+		pyname = self.pyname(names)
+		lines.append([level, "class %s(xsc.ProcInst):" % pyname])
 		newlines = []
 		if self.doc is not None:
 			self.doc._aspy(newlines, encoding, level+1)
 		if pytarget != target:
-			newlines.append([level+1, "xmlname = %s" % self.simplify(target)])
+			newlines.append([level+1, "xmlname = %s" % self.simplify(name)])
 		self._addlines(newlines, lines)
 
 class Entity(Base):
 	def __init__(self, name, doc):
-		self.name = name
+		super(Entity, self).__init__(name)
 		self.doc = doc
 
-	def _aspy(self, lines, encoding, level):
+	def _aspy(self, lines, encoding, level, names):
 		name = self.name
-		pyname = self.pyify(name)
+		pyname = self.pyname(names)
 		lines.append([level, "class %s(xsc.Entity):" % pyname])
 		newlines = []
 		if self.doc is not None:
-			self.doc._aspy(newlines, encoding, level+1)
+			self.doc._aspy(newlines, encoding, level+1, names)
 		if pyname != name:
 			newlines.append([level+1, "xmlname = %r" % self.simplify(name)])
 		self._addlines(newlines, lines)
@@ -213,9 +338,9 @@ class CharRef(Entity):
 		super(CharRef, self).__init__(name, doc)
 		self.codepoint = codepoint
 
-	def _aspy(self, lines, encoding, level):
+	def _aspy(self, lines, encoding, level, names):
 		name = self.name
-		pyname = self.pyify(name)
+		pyname = self.pyname(names)
 		lines.append([level, "class %s(xsc.CharRef):" % pyname])
 		newlines = []
 		if self.doc is not None:
@@ -315,7 +440,7 @@ class xndl(xsc.Namespace):
 			else:
 				doc = None
 			return ProcInst(
-				target=unicode(self["target"]),
+				name=name,
 				doc=doc
 			)
 

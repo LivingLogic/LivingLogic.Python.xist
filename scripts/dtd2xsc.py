@@ -53,7 +53,7 @@ def dtd2xsc(dtdfilename, outfilename=None):
 	file = open(outfilename, 'w')
 
 	e = xndl.xndl(name=modname, url="... insert namespace URI ...")
-	
+
 	# write elements
 	elements = dtd.get_elements()
 	elements.sort()
@@ -101,7 +101,9 @@ def dtd2xsc(dtdfilename, outfilename=None):
 		if entname not in ("quot", "apos", "gt", "lt", "amp"):
 			ent = parsers.parseString(dtd.resolve_ge(entname).value)
 			e.append(xndl.charref(name=entname, codepoint=ord(unicode(ent[0])[0])))
-	file.write(e.asdata().aspy())
+	data = e.asdata()
+	data.shareattrs(True)
+	file.write(data.aspy())
 	file.close()
 
 if __name__ == "__main__":
