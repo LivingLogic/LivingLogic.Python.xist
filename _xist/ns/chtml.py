@@ -695,4 +695,4 @@ class macron1(xsc.CharRef): codepoint = 0xe709
 class macron2(xsc.CharRef): codepoint = 0xe70a
 class fixed(xsc.CharRef): codepoint = 0xe70b
 
-namespace = xsc.Namespace("ihtml", "http://www.nttdocomo.co.jp/imode", vars())
+namespace = xsc.Namespace("chtml", "http://www.nttdocomo.co.jp/imode", vars())
