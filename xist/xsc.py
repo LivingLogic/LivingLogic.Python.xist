@@ -1477,14 +1477,14 @@ class Element(Node):
 	def publish(self, publisher):
 		publisher(u"<")
 		publisher(self.name) # requires that the element is registered via registerElement()
-		for attr in self.attrs.keys():
+		for attrname in self.attrs.keys():
 			publisher(u" ")
-			publisher(attr)
-			value = self[attr]
+			publisher(attrname)
+			value = self[attrname]
 			if isinstance(value, BoolAttr):
 				if publisher.XHTML>0:
 					publisher(u'="')
-					value.publish(attr)
+					publisher(attrname)
 					publisher(u'"')
 			else:
 				publisher(u'="')
