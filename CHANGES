@@ -1,3 +1,20 @@
+New in 0.4.4
+------------
+Now testing if characters can be encoded with the
+specified encoding is done directy. This means, that
+escaping unencodable characters now works even with
+exotic encodings (tested with JapaneseCodecs-1.0.1.tar.gz).
+
+The URLAttr constructor now can handle a single parameter
+of the type URL.
+
+The URL to string conversion function have changed:
+URL.asString() returns the URL with path markers,
+URL.asPlainString() returns the URL without path markers.
+
+Several small enhancements and bug fixes contributed by
+Hartmut Goebel.
+
 New in 0.4.3
 ------------
 Now processing instruction classes are registered in the

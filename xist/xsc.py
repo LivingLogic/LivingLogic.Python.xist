@@ -1750,13 +1750,11 @@ class URLAttr(Attr):
 
 	def clone(self):
 		node = Attr.clone(self)
-		node.url = self.asURL().clone()
 		node.base = self.base.clone()
 		return node
 
 	def compact(self):
 		node = Attr.compact(self)
-		node.url = self.asURL().clone()
 		node.base = self.base.clone()
 		return node
 
