@@ -210,7 +210,8 @@ class XSCElement(XSCNode):
 		self.attrs[index] = value
 
 	def __delitem__(self,index):
-		del self.attrs[index]
+		if self.has_attr(index):
+			del self.attrs[index]
 
 	def has_attr(self,attr):
 		return self.attrs.has_key(attr)
