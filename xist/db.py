@@ -3,6 +3,8 @@
 """
 A XSC module that contains elements that are useful for incorparating
 database content into XSC pages.
+
+Deprecated!
 """
 
 __version__ = "$Revision$"[11:-2]
