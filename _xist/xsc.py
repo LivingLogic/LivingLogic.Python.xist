@@ -1838,10 +1838,10 @@ class Attrs(Node, dict):
 		return self.iterkeys()
 
 	def __len__(self):
-		return len(self._attrs[0])
+		return len(self.keys())
 
 	def __contains__(self, key):
-		return key in self._attrs[0]
+		return self.has(key)
 
 	def iterkeys(self, xml=False):
 		found = {}
