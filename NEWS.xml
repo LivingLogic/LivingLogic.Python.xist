@@ -32,7 +32,7 @@ to get an element class with a certain name:</par>
 </programlisting>
 <par>For processing instructions, entities and character references
 there are methods available too.</par>
-<par>The method <method>addvars</method> can be used to add
+<par>The method <method>update</method> can be used to add
 many element classes to a namespace at once, simply by passing
 a dictionary with those classes (use <lit>vars()</lit>
 to add everthing that's defined inside your module). You can turn

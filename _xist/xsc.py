@@ -3579,18 +3579,18 @@ class Namespace(object):
 			raise errors.IllegalCharRefError(name, xml=xml)
 	charref = classmethod(charref)
 
-	def addvars(cls, vars):
+	def update(cls, vars):
 		"""
 		<par>Add variables from <arg>vars</arg> to <self/>.</par>
 		"""
 		for (key, value) in vars.iteritems():
 			if value is not cls and key not in ("__name__", "__dict__"):
 				setattr(cls, key, value)
-	addvars = classmethod(addvars)
+	update = classmethod(update)
 
 	def makemod(cls, vars=None):
 		if vars is not None:
-			cls.addvars(vars)
+			cls.update(vars)
 		# we have to keep the original module alive, otherwise Python would set all module attribute to None
 		name = vars["__name__"]
 		cls.__originalmodule__ = sys.modules[name]
