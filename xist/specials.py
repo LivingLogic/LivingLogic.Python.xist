@@ -9,6 +9,8 @@ __version__ = "$Revision$"
 
 import sys
 import types
+import time
+time_ = time
 import string
 import xsc
 import html
@@ -69,6 +71,19 @@ class filesize(xsc.Element):
 		return xsc.Text(self["href"].FileSize())
 xsc.registerElement(filesize)
 
+class time(xsc.Element):
+	empty = 1
+	attr_handlers = { "format" : xsc.TextAttr }
+
+	def asHTML(self):
+		if self.has_attr("format"):
+			format = str(self["format"])
+		else:
+			format = "%d. %b. %Y, %H:%M"
+
+		return xsc.Text(time_.strftime(format,time_.gmtime(time_.time())))
+xsc.registerElement(time)
+
 class x(xsc.Element):
 	"""content will be ignored: can be used to comment out stuff (e.g. linefeeds)"""
 	close=1
@@ -97,7 +112,7 @@ xsc.registerElement(pixel)
 
 class cap(xsc.Element):
 	empty = 0
-	
+
 	def asHTML(self):
 		e = str(self.content.asHTML())
 		if type(e) == types.ListType:
@@ -111,7 +126,7 @@ class cap(xsc.Element):
 				if innini==0:
 					result.append(collect)
 				else:
-					result.append(span([ string.upper(collect) ],Class="nini" ))
+					result.append(html.span([ string.upper(collect) ],Class="nini" ))
 				if i != len(e):
 					collect = e[i]
 				innini = 1-innini

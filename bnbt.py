@@ -565,7 +565,7 @@ class fileinfo(xsc.Element):
 			html.td(specials.pixel(),colspan = "2",bgcolor = "#ffffff")
 		)+html.tr(
 			html.td(specials.pixel())+
-			html.td(html.div("Now" + html.br() + html.a(href = "mailto:webmaster@bnbt.de"),Class = "info-text"),nowrap = None,Class = "links")+
+			html.td(html.div(specials.Time(format = "%d. %b. %Y, %H:%M") + html.br() + html.a("webmaster@bnbt.de",href = "mailto:webmaster@bnbt.de"),Class = "info-text"),nowrap = None,Class = "links")+
 			html.td(specials.pixel())
 		)+html.tr(
 			html.td(specials.pixel(),colspan = "4")
