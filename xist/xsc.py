@@ -630,10 +630,9 @@ class Node:
 		else:
 			if isinstance(self, Element):
 				for attr in attrs.keys():
-					if not self.hasAttr(attr) or ((attrs[attr] is not None) and (self[attr].asPlainString() != attrs[attr])):
+					if (not self.hasAttr(attr)) or ((attrs[attr] is not None) and (self[attr].asPlainString() != attrs[attr])):
 						return 0
-				else:
-					return 1
+				return 1
 			else:
 				return 0
 
@@ -1389,14 +1388,14 @@ class Element(Node):
 		node = self.__class__() # "virtual" copy constructor
 		node.content = self.content.asHTML() # this is faster than passing it in the constructor (no ToNode call)
 		for attr in self.attrs.keys():
-			node[attr] = self[attr].asHTML()
+			node.attrs[attr] = self.attrs[attr].asHTML()
 		return self._decorateNode(node)
 
 	def clone(self):
 		node = self.__class__() # "virtual" copy constructor
 		node.content = self.content.clone() # this is faster than passing it in the constructor (no ToNode call)
 		for attr in self.attrs.keys():
-			node[attr] = self[attr].clone()
+			node.attrs[attr] = self.attrs[attr].clone()
 		return self._decorateNode(node)
 
 	def asPlainString(self):
