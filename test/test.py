@@ -1,5 +1,5 @@
 #! /usr/bin/env/python
-# -*- coding: Latin-1 -*-
+# -*- coding: iso-8859-1 -*-
 
 import sys, unittest
 

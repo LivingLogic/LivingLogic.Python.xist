@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-# -*- coding: Latin-1 -*-
+# -*- coding: iso-8859-1 -*-
 
 # Setup script for XIST
 
@@ -12,7 +12,8 @@ setup(
 	name="XIST",
 	version="2.0.8",
 	description="An XML-based extensible HTML generator",
-	long_description="XIST is an XML based extensible HTML generator. XIST is also\n"
+	long_description=\
+		"XIST is an XML based extensible HTML generator. XIST is also\n"
 		"a DOM parser (built on top of SAX2) with a very simple and\n"
 		"pythonesque tree API. Every XML element type corresponds to a\n"
 		"Python class and these Python classes provide a conversion method\n"

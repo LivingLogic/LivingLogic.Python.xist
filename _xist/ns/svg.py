@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-# -*- coding: Latin-1 -*-
+# -*- coding: iso-8859-1 -*-
 
 ## Copyright 2002 by LivingLogic AG, Bayreuth, Germany.
 ## Copyright 2002 by Walter Dörwald
