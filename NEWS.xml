@@ -21,7 +21,7 @@ will be published. This fixes problems with abbreviation entities inside
 attributes.</item>
 <item><code>xist.parsers.TidyURLInputSource</code> now uses the new
 experimental eGenix mx Extension package, which includes a Python
-port of <application>tidy</application></li>
+port of <application>tidy</application>.</item>
 <li><code>__repr__</code> now uses the new class <code>presenters.PlainPresenter</code>
 which gives a little more info than the default <code>__repr__</code>.</item>
 <item>URL handling has been changed again. Upto now, <code>URLAttr</code> had
