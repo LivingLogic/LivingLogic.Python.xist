@@ -427,7 +427,7 @@ class URL:
 		self.server = server or None
 		self.port = port
 		self.__path = path
-		self.file = file or None
+		self.file = file
 		self.parameters = parameters or None
 		self.query = query or None
 		self.fragment = fragment or None
