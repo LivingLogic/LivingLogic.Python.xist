@@ -80,7 +80,7 @@ class edit(element):
 xsc.registerElement(edit)
 
 class memo(element):
-	attr_handlers = xsc.appendDict(element.attr_handlers,html.textarea.attr_handlers }
+	attr_handlers = xsc.appendDict(element.attr_handlers,html.textarea.attr_handlers)
 
 	def asHTML(self):
 		e = html.textarea()
