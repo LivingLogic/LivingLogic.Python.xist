@@ -94,7 +94,7 @@ class filesize(xsc.Element):
 		class href(xsc.URLAttr): pass
 
 	def convert(self, converter):
-		size = self["href"].contentlength(root=converter.root)
+		size = self["href"].convert(converter).contentlength(root=converter.root)
 		if size is not None:
 			return xsc.Text(size)
 		else:
@@ -112,7 +112,7 @@ class filetime(xsc.Element):
 
 	def convert(self, converter):
 		format = str(self.getAttr("format", "%d. %b. %Y, %H:%M").convert(converter))
-		return xsc.Text(self["href"].convert(converter).forInput(root=converter.root).openread().lastmodified.Format(format))
+		return xsc.Text(self["href"].convert(converter).lastmodified(root=converter.root).Format(format))
 
 class time(xsc.Element):
 	"""

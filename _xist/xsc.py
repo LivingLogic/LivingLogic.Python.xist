@@ -1419,6 +1419,12 @@ class URLAttr(Attr):
 		"""
 		return self.openread(root).contentlength
 
+	def lastmodified(self, root=None):
+		"""
+		returns the timestamp for the last modification to the file
+		"""
+		return self.openread(root).lastmodified
+
 	def openread(self, root=None):
 		"""
 		opens the URL for reading
@@ -2921,6 +2927,22 @@ class DefaultPrefixes(Prefixes):
 				self.addElementPrefixMapping(ns.xmlurl, ns)
 				self.addProcInstPrefixMapping(None, ns)
 				self.addEntityPrefixMapping(None, ns)
+
+class DocPrefixes(Prefixes):
+	"""
+	<par>Prefix mapping that is used for &xist; docstrings.</par>
+	<par>The <pyref module="ll.xist.ns.doc"><module>doc</module> namespace</pyref>
+	is mapped to the empty prefix for element. The
+	<pyref module="ll.xist.ns.html">&html; namespace</pyref>
+	and the <pyref module="ll.xist.ns.abbr"><module>abbr</module> namespace</pyref>
+	are available from entities.</par>
+	"""
+	def __init__(self, default=None):
+		super(DocPrefixes, self).__init__()
+		from ll.xist.ns import html, abbr, doc
+		self.addElementPrefixMapping(None, doc)
+		self.addEntityPrefixMapping(None, html)
+		self.addEntityPrefixMapping(None, abbr)
 
 # C0 Controls and Basic Latin
 class quot(CharRef): "quotation mark = APL quote, U+0022 ISOnum"; codepoint = 34
