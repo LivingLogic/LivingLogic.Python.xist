@@ -1399,19 +1399,19 @@ class Attr(Frag):
 	Processing instructions will be published as is and for elements their content will be
 	published.</par>
 	<example><title>Elements inside attributes</title>
-	<prog>
-	&gt;&gt;&gt; from ll.xist.ns import html
-	&gt;&gt;&gt; node = html.img( \
-	...    src="eggs.gif", \
-	...    alt=html.abbr( \
-	...       "EGGS", \
-	...       title="Extensible Graphics Generation System", \
-	...       lang="en" \
-	...    ) \
-	... )
+	<tty>
+	<prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html, php</input>
+	<prompt>&gt;&gt;&gt; </prompt><input>node = html.img(</input>
+	<prompt>... </prompt><input>   src=php.php("echo 'eggs.gif'"),</input>
+	<prompt>... </prompt><input>   alt=html.abbr(</input>
+	<prompt>... </prompt><input>      "EGGS",</input>
+	<prompt>... </prompt><input>      title="Extensible Graphics Generation System",</input>
+	<prompt>... </prompt><input>      lang="en"</input>
+	<prompt>... </prompt><input>   )</input>
+	<prompt>... </prompt><input>)</input>
 	&gt;&gt;&gt; print node.asBytes()
-	&lt;img alt="EGGS" src="eggs.gif" /&gt;
-	</prog>
+	&lt;img alt="EGGS" src="&lt;?php echo 'eggs.gif'?&gt;" /&gt;
+	</tty>
 	</example>
 	"""
 	required = False
