@@ -216,10 +216,10 @@ def _stransi(codes,string):
 		return string
 
 def _strelementname(elementname):
-	return _stransi(xsc.repransielementname,elementname)
+	return _stransi(Element.repransiname,elementname)
 
 def _strattrname(attrname):
-	return _stransi(xsc.repransiattrname,attrname)
+	return _stransi(Attr.repransiname,attrname)
 
 def nodeName(nodeClass):
 	"""
@@ -230,7 +230,7 @@ def nodeName(nodeClass):
 
 def _strNodeName(nodeClass):
 	name = nodeName(nodeClass)
-	return _stransi(nodeClass.reprnamespace,name[0]) + ":" + _stransi(nodeClass.reprname,name[1])
+	return _stransi(nodeClass.repransinamespace,name[0]) + ":" + _stransi(nodeClass.repransiname,name[1])
 
 
 def appendDict(*dicts):
@@ -276,8 +276,9 @@ class Node:
 	# line numbers where this node starts and ends in a file (will be hidden in derived classes, but is specified here, so that no special tests are required. In derived classes both variables will be set by the parser)
 	startlineno = -1
 	endlineno = -1
-	reprnamespace = ""
-	reprname = ""
+	repransinamespace = "31"
+	repransiname = ""
+	repransibrackets = "34;1"
 
 	def __add__(self,other):
 		if other != None:
@@ -349,7 +350,7 @@ class Node:
 		return None
 
 	def _strtag(self,content):
-		return _stransi(xsc.repransibrackets,'<') + content + _stransi(xsc.repransibrackets,'>')
+		return _stransi(self.repransibrackets,'<') + content + _stransi(self.repransibrackets,'>')
  
 	def __str__(self):
 		return ""
@@ -397,14 +398,12 @@ class Node:
 class Text(Node):
 	"""text"""
 
-	reprname = ""
+	repransiname = ""
+	repransiquotes = "34"
 
 	represcapes = { '\t' : '\\t' , '\033' : '\\e' , '\\' : '\\\\' }
 	reprtreeescapes = { '\r' : '\\r' , '\n' : '\\n' , '\t' : '\\t' , '\033' : '\\e' , '\\' : '\\\\' }
 	strescapes = { '<' : 'lt' , '>' : 'gt' , '&' : 'amp' , '"' : 'quot' }
-
-	repransi = ""
-	repransiquotes = "34"
 
 	def __init__(self,content = ""):
 		self.__content = content
@@ -482,12 +481,10 @@ class Text(Node):
 class CharRef(Node):
 	"""character reference (i.e &#42; or &#x42;)"""
 
-	reprname = ""
+	repransiname = "32"
 
 	__notdirect = { ord("&") : "amp" , ord("<") : "lt" , ord(">") : "gt", ord('"') : "quot" , ord("'") : "apos" }
 	__linefeeds = [ ord("\r") , ord("\n") ]
-
-	repransi = "32"
 
 	def __init__(self,content):
 		self.__content = content
@@ -534,7 +531,7 @@ class CharRef(Node):
 class Frag(Node):
 	"""contains a list of Nodes"""
 
-	reprname = ""
+	repransiname = ""
 
 	def __init__(self,_content = []):
 		if _content is None:
@@ -683,7 +680,7 @@ class Frag(Node):
 class Comment(Node):
 	"""comments"""
 
-	reprname = ""
+	repransiname = ""
 
 	def __init__(self,content = ""):
 		self.__content = content
@@ -697,7 +694,7 @@ class Comment(Node):
 		return self._strtag("!--" + self.__content + "--")
 
 	def _doreprtree(self,nest,elementno):
-		return [[nest,self.startlineno,elementno,self._strtag("!--" + self.__content + "--")]]
+		return [[nest,self.startlineno,elementno,self._dorepr()]]
 
 	def __str__(self):
 		return "<!--" + self.__content + "-->"
@@ -708,13 +705,13 @@ class Comment(Node):
 class DocType(Node):
 	"""document type"""
 
-	reprname = ""
+	repransiname = ""
 
 	def __init__(self,content = ""):
 		self.__content = content
 
 	def name(self):
-		return self._strtag(_stransi(xsc.repransielementname,"doctype"))
+		return self._strtag(_stransi(self.repransiname,"doctype"))
 
 	def asHTML(self):
 		return DocType(self.__content)
@@ -722,10 +719,10 @@ class DocType(Node):
 	clone = asHTML
 
 	def _dorepr(self):
-		return self._strtag("!DOCTYPE " + self.__content)
+		return self._strtag(_stransi(self.repransiname,"!DOCTYPE " + self.__content))
 
 	def _doreprtree(self,nest,elementno):
-		return [[nest,self.startlineno,elementno,self._strtag("!DOCTYPE " + self.__content)]]
+		return [[nest,self.startlineno,elementno,self._dorepr()]]
 
 	def __str__(self):
 		return "<!DOCTYPE " + self.__content + ">"
@@ -736,10 +733,8 @@ class DocType(Node):
 class ProcInst(Node):
 	"""processing instructions"""
 
-	reprname = ""
-
+	repriansiname = "34"
 	repransiquestion = "34"
-	repransitarget = "34"
 	repransidata = "36"
 
 	def __init__(self,target,content = ""):
@@ -752,7 +747,7 @@ class ProcInst(Node):
 	clone = asHTML
 
 	def _dorepr(self):
-		return self._strtag(_stransi(self.repransiquestion,"?") + _stransi(self.repransitarget,self.__target) + " " + _stransi(self.repransidata,self.__content) + _stransi(self.repransiquestion,"?"))
+		return self._strtag(_stransi(self.repransiquestion,"?") + _stransi(self.repransiname,self.__target) + " " + _stransi(self.repransidata,self.__content) + _stransi(self.repransiquestion,"?"))
 
 	def _doreprtree(self,nest,elementno):
 		return [[nest,self.startlineno,elementno,self._dorepr()]]
@@ -766,7 +761,7 @@ class ProcInst(Node):
 class Element(Node):
 	"""XML elements"""
 
-	reprname = "34"
+	repransiname = "34"
 	repransiattrquotes = "34"
 
 	empty = 1 # 0 => element with content; 1 => stand alone element
@@ -985,6 +980,8 @@ class Attr(Node):
 	Base classes of all attribute classes
 	"""
 
+	repransi = "33"
+
 	def __init__(self,_content):
 		self.content = ToNode(_content)
 
@@ -1068,6 +1065,8 @@ class URLAttr(Attr):
 	For all other URLs a normal request will be made corresponding to the specified scheme
 	(http, ftp, etc.)
 	"""
+
+	repransi = "31"
 
 	def __init__(self,_content):
 		Attr.__init__(self,_content)
@@ -1396,10 +1395,7 @@ class XSC:
 		self.reprtab = ". "
 		self.repransi = 1
 		self.repransitab = "32"
-		self.repransibrackets = "34;1"
 		self.repransielementname = "35"
-		self.repransiattrname = "33"
-		self.repransiurlattrs = "31"
 		self.repransitextattrs = ""
 		self.repransicolorattrs = ""
 		self.reprtree = 1
