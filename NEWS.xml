@@ -143,7 +143,7 @@ the node will not have the attribute <code>align</code> set.
 </li>
 </ol>
 </li>
-<li><classname>xist.cond.If</classname> (and <classname>xist.cond.ElIf</classname>
+<li><classname>xist.ns.cond.If</classname> (and <classname>xist.ns.cond.ElIf</classname>
 can now be to test for attributes of the converter. I.e. it's possible to
 write the following &xml;:
 <programlisting>
