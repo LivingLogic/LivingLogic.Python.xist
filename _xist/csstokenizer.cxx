@@ -304,6 +304,8 @@ class Scanner
 					break;
 				case TOKEN_GRAD:
 					result += 4;
+				default:
+					break;
 			}
 			return result + blankCharacters;
 		}
