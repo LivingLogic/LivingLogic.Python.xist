@@ -229,7 +229,7 @@ class autoimg(html_.img):
 	"""
 	def asHTML(self, mode=None):
 		e = html_.img(**self.attrs)
-		e._addImageSizeAttributes("src", "width", "height")
+		e._addImageSizeAttributes(mode, "src", "width", "height")
 		return e.asHTML(mode)
 
 class autoinput(html_.input):
@@ -241,7 +241,7 @@ class autoinput(html_.input):
 	def asHTML(self, mode=None):
 		if self.hasAttr("type") and self["type"].asHTML(mode).asPlainString() == u"image":
 			e = html_.input(*self.content, **self.attrs)
-			e._addImageSizeAttributes("src", "size", None) # no height
+			e._addImageSizeAttributes(mode, "src", "size", None) # no height
 			return e.asHTML(mode)
 		else:
 			return html.img.asHTML(self, mode)
