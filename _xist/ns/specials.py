@@ -344,5 +344,5 @@ class cr(xsc.CharRef): "carriage return"; codepoint = 13
 class tab(xsc.CharRef): "horizontal tab"; codepoint = 9
 class esc(xsc.CharRef): "escape"; codepoint = 27
 
-namespace = xsc.Namespace("specials", "http://xmlns.livinglogic.de/xist/specials.dtd", vars())
+namespace = xsc.Namespace("specials", "http://xmlns.livinglogic.de/xist/ns/specials", vars())
 

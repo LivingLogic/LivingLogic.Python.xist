@@ -138,4 +138,4 @@ class eval_(xsc.ProcInst):
 		exec code.asString() in sandbox.__dict__ # requires Python 2.0b2 (and doesn't really work)
 		return xsc.ToNode(sandbox.__(converter)).convert(converter)
 
-namespace = xsc.Namespace("code", "http://xmlns.livinglogic.de/xist/code.dtd", vars())
+namespace = xsc.Namespace("code", "http://xmlns.livinglogic.de/xist/ns/code", vars())

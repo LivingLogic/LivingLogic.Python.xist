@@ -109,5 +109,5 @@ class Else(xsc.Element):
 	def convert(self, converter):
 		return xsc.Null
 
-namespace = xsc.Namespace("cond", "http://xmlns.livinglogic.de/xist/cond.dtd", vars())
+namespace = xsc.Namespace("cond", "http://xmlns.livinglogic.de/xist/ns/cond", vars())
 

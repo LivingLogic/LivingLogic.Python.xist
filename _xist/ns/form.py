@@ -31,65 +31,60 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 from xist import xsc
 import html
 
-class checkbox(xsc.Element):
-	attrHandlers = {"name": xsc.TextAttr, "value": xsc.TextAttr}
+class checkbox(html.input):
+	attrHandlers = html.input.attrHandlers.copy()
+	del attrHandlers["type"]
 
 	def convert(self, converter):
-		e = html.input(self.attrs)
-		e["type"] = "checkbox"
+		e = html.input(self.attrs, type="checkbox")
 		if self.hasAttr("value") and int(self["value"]) != 0:
 			e["checked"] = None
 		else:
 			del e["checked"]
 		return e.convert(converter)
 
-class edit(xsc.Element):
-	attrHandlers = {"name": xsc.TextAttr, "value": xsc.TextAttr, "size": xsc.TextAttr}
+class edit(html.input):
+	attrHandlers = html.input.attrHandlers.copy()
+	del attrHandlers["type"]
 
 	def convert(self, converter):
-		e = html.input(self.attrs)
-		e["type"] = "text"
+		e = html.input(self.attrs, type="text")
 		return e.convert(converter)
 
-class radio(xsc.Element):
-	attrHandlers = {"name": xsc.TextAttr, "value": xsc.TextAttr, "checked": xsc.BoolAttr}
+class radio(html.input):
+	attrHandlers = html.input.attrHandlers.copy()
+	del attrHandlers["type"]
 
 	def convert(self, converter):
-		e = html.input(self.attrs)
-		e["type"] = "radio"
+		e = html.input(self.attrs, type="radio")
 		return e.convert(converter)
 
-class submit(xsc.Element):
-	attrHandlers = {"name": xsc.TextAttr, "value": xsc.TextAttr}
+class submit(html.input):
+	attrHandlers = html.input.attrHandlers.copy()
+	del attrHandlers["type"]
 
 	def convert(self, converter):
-		e = html.input(self.attrs)
-		e["type"] = "submit"
+		e = html.input(self.attrs, type="submit")
 		return e.convert(converter)
 
-class memo(xsc.Element):
-	attrHandlers = {"name": xsc.TextAttr, "value": xsc.TextAttr}
-	attrHandlers.update(html.textarea.attrHandlers)
+class memo(html.textarea):
+	empty = 1
+	attrHandlers = html.textarea.attrHandlers.copy()
+	attrHandlers["value"] = xsc.TextAttr
 
 	def convert(self, converter):
-		e = html.textarea()
-		if self.hasAttr("value"):
-			e.extend(self["value"])
-		for attr in self.attrs.keys():
-			if attr != "value":
-				e[attr] = self[attr]
+		e = html.textarea(self["value"], self.attr.without(["value"]))
 		return e.convert(converter)
 
-class hidden(xsc.Element):
-	attrHandlers = {"name": xsc.TextAttr, "value": xsc.TextAttr}
+class hidden(html.input):
+	attrHandlers = html.input.attrHandlers.copy()
+	del attrHandlers["type"]
 
 	def __unicode__(self):
 		return u""
 
 	def convert(self, converter):
-		e = html.input(type="hidden", name=self["name"])
-		if self.hasAttr("value"):
-			e["value"] = self["value"]
+		e = html.input(self.attrs(), type="hidden")
 		return e.convert(converter)
 
-namespace = xsc.Namespace("form", "http://xmlns.livinglogic.de/xist/form.dtd", vars())
+namespace = xsc.Namespace("form", "http://xmlns.livinglogic.de/xist/ns/form", vars())

@@ -432,4 +432,4 @@ class mime(xsc.Entity):
 	def __unicode__(self):
 		return u"MIME"
 
-namespace = xsc.Namespace("abbr", "http://xmlns.livinglogic.de/xist/abbr.dtd", vars())
+namespace = xsc.Namespace("abbr", "http://xmlns.livinglogic.de/xist/ns/abbr", vars())

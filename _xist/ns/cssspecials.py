@@ -154,5 +154,5 @@ class margin_topbottom(css.prop):
 		)
 		return e.convert(converter)
 
-namespace = xsc.Namespace("cssspecials", "http://xmlns.livinglogic.de/xist/cssspecials.dtd", vars())
+namespace = xsc.Namespace("cssspecials", "http://xmlns.livinglogic.de/xist/ns/cssspecials", vars())
 
