@@ -2570,7 +2570,7 @@ class ulink(xsc.Element):
 	A link that addresses its target by means of a URL (Uniform Resource Locator)
 	"""
 	empty = 0
-	attrHandlers = {"url": xsc.TextAttr, "type": xsc.TextAttr, "id": xsc.TextAttr, "lang": xsc.TextAttr, "remap": xsc.TextAttr, "xreflabel": xsc.TextAttr, "revisionflag": xsc.TextAttr, "arch": xsc.TextAttr, "condition": xsc.TextAttr, "conformance": xsc.TextAttr, "os": xsc.TextAttr, "revision": xsc.TextAttr, "security": xsc.TextAttr, "userlevel": xsc.TextAttr, "vendor": xsc.TextAttr, "role": xsc.TextAttr}
+	attrHandlers = {"url": xsc.URLAttr, "type": xsc.TextAttr, "id": xsc.TextAttr, "lang": xsc.TextAttr, "remap": xsc.TextAttr, "xreflabel": xsc.TextAttr, "revisionflag": xsc.TextAttr, "arch": xsc.TextAttr, "condition": xsc.TextAttr, "conformance": xsc.TextAttr, "os": xsc.TextAttr, "revision": xsc.TextAttr, "security": xsc.TextAttr, "userlevel": xsc.TextAttr, "vendor": xsc.TextAttr, "role": xsc.TextAttr}
 
 class userinput(xsc.Element):
 	"""
