@@ -233,7 +233,7 @@ class Node(Base):
 		When you define your own element classes you have to overwrite this method.</par>
 
 		<par>E.g. when you want to define an element that packs its content into an &html;
-		bold element, do the following:
+		bold element, do the following:</par>
 
 		<programlisting>
 		class foo(xsc.Element):
@@ -242,7 +242,6 @@ class Node(Base):
 			def convert(self, converter):
 				return html.b(self.content).convert(converter)
 		</programlisting>
-		</par>
 		"""
 		raise NotImplementedError("convert method not implemented in %s" % self.__class__.__name__)
 
@@ -384,6 +383,10 @@ class Node(Base):
 	xmlprefix = classmethod(xmlprefix)
 
 	def _publishname(self, publisher):
+		"""
+		<par>publishes the name of <self/> to the <arg>publisher</arg> including
+		a namespace prefix if required.</par>
+		"""
 		if self.needsxmlns(publisher)>=1:
 			prefix = self.xmlprefix(publisher)
 			if prefix is not None:
@@ -449,11 +452,11 @@ class Node(Base):
 		"""
 		<par>returns a fragment which contains child elements of this node.</par>
 
-		<par>If you specify <arg>type</arg> as the class of an XSC node only nodes
+		<par>If you specify <arg>type</arg> as the class of an &xist; node only nodes
 		of this class will be returned. If you pass a list of classes, nodes that are an
 		instance of one of the classes will be returned.</par>
 
-		<par>If you set <arg>subtype</arg> to <lit>1</lit> nodes that are a
+		<par>If you set <arg>subtype</arg> to <lit>True</lit> nodes that are a
 		subtype of <arg>type</arg> will be returned too.</par>
 
 		<par>If you pass a dictionary as <arg>attrs</arg> it has to contain
@@ -463,14 +466,14 @@ class Node(Base):
 		the attribute is set without testing the value.</par>
 
 		<par>Additionally you can pass a test function in <arg>test</arg>, that
-		returns <lit>1</lit>, when the node passed in has to be included in the
-		result and <lit>0</lit> otherwise.</par>
+		returns <lit>True</lit>, when the node passed in has to be included in the
+		result and <lit>False</lit> otherwise.</par>
 
-		<par>If you set <arg>searchchildren</arg> to <lit>1</lit> not only
+		<par>If you set <arg>searchchildren</arg> to <lit>True</lit> not only
 		the immediate children but also the grandchildren will be searched for nodes
 		matching the other criteria.</par>
 
-		<par>If you set <arg>searchattrs</arg> to <lit>1</lit> the attributes
+		<par>If you set <arg>searchattrs</arg> to <lit>True</lit> the attributes
 		of the nodes (if <arg>type</arg> is <pyref class="Element"><class>Element</class></pyref>
 		or one of its subtypes) will be searched too.</par>
 
@@ -490,6 +493,10 @@ class Node(Base):
 		raise NotImplementedError("compact method not implemented in %s" % self.__class__.__name__)
 
 	def _matchesattrs(self, attrs):
+		"""
+		Internal helper that checks whether the attributes of an element match <arg>attrs/arg>. For
+		further info see <pyref method="find"><method>find</method></pyref>.
+		"""
 		if attrs is None:
 			return True
 		else:
@@ -502,6 +509,9 @@ class Node(Base):
 				return False
 
 	def _matches(self, type_, subtype, attrs, test):
+		"""
+		Internal helper for <pyref method="find"><method>find</method></pyref>.
+		"""
 		res = True
 		if type_ is not None:
 			if not isinstance(type_, list) and not isinstance(type_, tuple):
@@ -1096,7 +1106,8 @@ class Comment(CharacterData):
 	def clone(self):
 		return self
 
-	compact = clone
+	def compact(self):
+		return self
 
 	def __unicode__(self):
 		return u""
