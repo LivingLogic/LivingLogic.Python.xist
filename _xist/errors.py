@@ -353,4 +353,3 @@ class TidyWarning(saxlib.SAXParseException, Warning):
 	def __init__(self, msg, locator):
 		saxlib.SAXParseException.__init__(self, msg, None, locator)
 		Warning.__init__(self, msg)
-
