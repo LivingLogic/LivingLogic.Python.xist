@@ -57,12 +57,12 @@ class Converter(object):
 	<pyref module="xist.xsc" class="Node" method="convert"><method>convert</method></pyref> method.
 	This instance can be used when some element needs to keep state across a nested convert call.
 	A typical example are nested chapter/subchapter elements with automatic numbering.
-	For an example see the element <pyref module="xist.ns.doc" class="section"><class>section</class></pyref>.</doc:par>
+	For an example see the element <pyref module="xist.ns.doc" class="section"><class>xist.ns.doc.section</class></pyref>.</doc:par>
 	"""
 	def __init__(self, root=None, mode=None, stage=None, target=None, lang=None, makeaction=None, maketarget=None):
 		"""
 		<doc:par>Create a <class>Converter</class>.</doc:par>
-		<doc:par>Arguments are used to initialized the <class>Converter</class> properties of the
+		<doc:par>Arguments are used to initialize the <class>Converter</class> properties of the
 		same name.</doc:par>
 		"""
 		self.states = [ ConverterState(root=root, mode=mode, stage=stage, target=target, lang=lang, makeaction=makeaction, maketarget=maketarget)]
