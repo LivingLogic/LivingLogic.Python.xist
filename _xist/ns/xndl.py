@@ -168,7 +168,11 @@ class Namespace(Base):
 		lines.append([level, "class %s(xsc.Namespace):" % pyname])
 		if pyname != self.name:
 			lines.append([level+1, "xmlname = %s" % self.simplify(self.name)])
-		lines.append([level+1, "xmlurl = %s" % self.simplify(self.url)])
+		if self.url is None:
+			url = "... insert namespace name ..."
+		else:
+			url = self.url
+		lines.append([level+1, "xmlurl = %s" % self.simplify(url)])
 		if asmod:
 			method = "makemod"
 		else:
@@ -540,8 +544,6 @@ class xmlns(xsc.Namespace):
 		if xmlurl is None:
 			if len(xmlns)==1:
 				node["url"] = xmlns.popitem()[0]
-			else:
-				node["url"] = "... insert namespace name ..."
 		return node
 	fromdtd = classmethod(fromdtd)
 
