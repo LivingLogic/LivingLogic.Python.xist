@@ -103,10 +103,10 @@ class XSCComment(XSCNode):
 	def __init__(self,content = ""):
 		self.content = content
 
-	def AsHTML(self,mode = None):
+	def AsHTML(self,xsc,mode = None):
 		return XSCComment(self.content)
 
-	def AsString(self):
+	def AsString(self,xsc):
 		return "<!--" + self.content + "-->"
 
 class XSCDocType(XSCNode):
@@ -115,10 +115,10 @@ class XSCDocType(XSCNode):
 	def __init__(self,data = ""):
 		self.data = data
 
-	def AsHTML(self,mode = None):
+	def AsHTML(self,xsc,mode = None):
 		return XSCDocType(self.data)
 
-	def AsString(self):
+	def AsString(self,xsc):
 		return "<!DOCTYPE " + self.data + ">"
 
 class XSCElement(XSCNode):
@@ -175,16 +175,16 @@ class XSCElement(XSCNode):
 			else:
 				self[heightattr] = size[1]
 
-	def AsHTML(self,mode = None):
+	def AsHTML(self,xsc,mode = None):
 		self.CheckAttrs()
 
 		e = self
-		e.content = AsHTML(self.content,mode)
-		e.attrs   = AsHTML(self.attrs,mode)
+		e.content = xsc.AsHTML(self.content,mode)
+		e.attrs   = xsc.AsHTML(self.attrs,mode)
 
 		return e
 
-	def AsString(self):
+	def AsString(self,xsc):
 		"returns this element as a string. For the content and the attributes the global function AsString() is called recursively"
 
 		v = []
@@ -192,8 +192,8 @@ class XSCElement(XSCNode):
 		v.append(string.lower(self.__class__.__name__))
 		if len(self.attrs.keys()):
 			v.append(" ")
-			v.append(AsString(self.attrs))
-		s = AsString(self.content)
+			v.append(xsc.AsString(self.attrs))
+		s = xsc.AsString(self.content)
 		if self.close:
 			v.append(">")
 			v.append(s)
@@ -222,13 +222,16 @@ class XSC(XMLParser):
 	"Reads a XML file and constructs an XSC tree from it."
 
 
-	def __init__(self,filename):
+	def __init__(self,filename = None):
 		XMLParser.__init__(self)
 		self.filename = filename
-		self.nesting = [ [] ] # our nodes do not have a parent link, therefore we have to store the active path through the tree in a stack (which we call nesting, because stack is already used by the base class
-		self.feed(open(filename).read())
-		self.close()
-		self.root = self.nesting[0]
+		if filename != None:
+			self.nesting = [ [] ] # our nodes do not have a parent link, therefore we have to store the active path through the tree in a stack (which we call nesting, because stack is already used by the base class
+			self.feed(open(filename).read())
+			self.close()
+			self.root = self.nesting[0]
+		else:
+			self.root = None
 
 	def processingInstruction (self,target, remainder):
 		pass
@@ -247,71 +250,71 @@ class XSC(XMLParser):
 	def handle_comment(self,comment):
 		self.nesting[-1].append(XSCComment(comment))
 
-	def AsHTML(self,mode = None):
-		return AsHTML(self.root,mode)
+	def AsHTML(self,value = None,mode = None):
+		"transforms a value into its HTML equivalent: this means that HSC nodes get expanded to their equivalent HTML subtree. Scalar types are returned as is. Lists, tuples and dictionaries are treated recurcively"
 
-	def AsString(self):
-		return AsString(self.root)
+		if value == None:
+			xsc = XSC()
+			xsc.root = self.AsHTML(self.root,mode)
+			return xsc
+		if type(value) in [ types.StringType,types.NoneType,types.IntType,types.LongType,types.FloatType ]:
+			return value
+		elif type(value) in [ types.ListType,types.TupleType ]:
+			v = []
+			for i in value:
+				v.append(self.AsHTML(i,mode))
+			return v
+		elif type(value) == types.DictType:
+			v = {}
+			for i in value.keys():
+				v[i] = self.AsHTML(value[i],mode)
+			return v
+		else:
+			return value.AsHTML(self,mode)
+
+	def AsString(self,value = None):
+		"transforms a value into a string: string are returned with 'nasty' characters replaced with entities, XSC and HTML nodes are output as one would expect. Lists, tuples and dictionaries are treated recursively"
+
+		if value == None:
+			return self.AsString(self.root)
+		if type(value) == types.StringType:
+			v = []
+			for i in value:
+				if i == '<':
+					v.append('&lt;')
+				elif i == '>':
+					v.append('&gt;')
+				elif i == '&':
+					v.append('&amp;')
+				elif i == '"':
+					v.append('&quot')
+				elif ord(i)>=128:
+					v.append('&#' + str(ord(i)) + ';')
+				else:
+					v.append(i)
+			return string.joinfields(v,"")
+		elif type(value) in [ types.NoneType,types.IntType,types.LongType,types.FloatType ] :
+			return str(value)
+		elif type(value) in [ types.ListType,types.TupleType ]:
+			v = []
+			for i in value:
+				v.append(self.AsString(i))
+			return string.joinfields(v,"")
+		elif type(value) == types.DictType:
+			v = []
+			for i in value.keys():
+				if len(v):
+					v.append(" ")
+				v.append(i) # keys must be strings without any nasty characters
+				s = self.AsString(value[i])
+				if len(s):
+					v.append('="') # we can use double quotes here, because all double quotes will be replaced with the entity in the string
+					v.append(s)
+					v.append('"')
+			return string.joinfields(v,"")
+		else:
+			return value.AsString(self)
 
 	def __str__(self):
-		return AsString(AsHTML(self))
-
-def AsHTML(value,mode = None):
-	"transforms a value into its HTML equivalent: this means that HSC nodes get expanded to their equivalent HTML subtree. Scalar types are returned as is. Lists, tuples and dictionaries are treated recurcively"
-
-	if type(value) in [ types.StringType,types.NoneType,types.IntType,types.LongType,types.FloatType ]:
-		return value
-	elif type(value) in [ types.ListType,types.TupleType ]:
-		v = []
-		for i in value:
-			v.append(AsHTML(i,mode))
-		return v
-	elif type(value) == types.DictType:
-		v = {}
-		for i in value.keys():
-			v[i] = AsHTML(value[i])
-		return v
-	else:
-		return value.AsHTML(mode)
-
-def AsString(value):
-	"transforms a value into a string: string are returned with 'nasty' characters replaced with entities, XSC and HTML nodes are output as one would expect. Lists, tuples and dictionaries are treated recursively"
-
-	if type(value) == types.StringType:
-		v = []
-		for i in value:
-			if i == '<':
-				v.append('&lt;')
-			elif i == '>':
-				v.append('&gt;')
-			elif i == '&':
-				v.append('&amp;')
-			elif i == '"':
-				v.append('&quot')
-			elif ord(i)>=128:
-				v.append('&#' + str(ord(i)) + ';')
-			else:
-				v.append(i)
-		return string.joinfields(v,"")
-	elif type(value) in [ types.NoneType,types.IntType,types.LongType,types.FloatType ] :
-		return str(value)
-	elif type(value) in [ types.ListType,types.TupleType ]:
-		v = []
-		for i in value:
-			v.append(AsString(i))
-		return string.joinfields(v,"")
-	elif type(value) == types.DictType:
-		v = []
-		for i in value.keys():
-			if len(v):
-				v.append(" ")
-			v.append(i) # keys must be strings without any nasty characters
-			s = AsString(value[i])
-			if len(s):
-				v.append('="') # we can use double quotes here, because all double quotes will be replaced with the entity in the string
-				v.append(s)
-				v.append('"')
-		return string.joinfields(v,"")
-	else:
-		return value.AsString()
+		return self.AsHTML().AsString()
 

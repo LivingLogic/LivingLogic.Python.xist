@@ -6,9 +6,9 @@ from xsc_html40 import *
 class plaintable(table):
 	close = 1
 
-	def AsHTML(self,mode = None):
+	def AsHTML(self,xsc,mode = None):
 		self.CheckAttrs()
-		e = table(AsHTML(self.content,mode),AsHTML(self.attrs,mode))
+		e = table(xsc.AsHTML(self.content,mode),xsc.AsHTML(self.attrs,mode))
 
 		if not e.has_attr("cellpadding"):
 			e["cellpadding"] = 0
@@ -23,9 +23,9 @@ handlers["plaintable"] = plaintable
 class plainbody(body):
 	close = 1
 
-	def AsHTML(self,mode = None):
+	def AsHTML(self,xsc,mode = None):
 		self.CheckAttrs()
-		e = body(AsHTML(self.content,mode),AsHTML(self.attrs,mode))
+		e = body(xsc.AsHTML(self.content,mode),xsc.AsHTML(self.attrs,mode))
 
 		if not e.has_attr("leftmargin"):
 			e["leftmargin"] = 0
@@ -42,21 +42,21 @@ handlers["plainbody"] = plainbody
 class z(XSCElement):
 	close = 1
 
-	def AsHTML(self,mode = None):
-		return AsHTML(["«",AsHTML(self.content,mode),"»"],mode)
+	def AsHTML(self,xsc,mode = None):
+		return xsc.AsHTML(["«",xsc.AsHTML(self.content,mode),"»"],mode)
 handlers["z"] = z
 
 class nbsp(XSCElement):
 	close = 0
 
-	def AsHTML(self,mode = None):
-		return AsHTML("\xA0",mode)
+	def AsHTML(self,xsc,mode = None):
+		return xsc.AsHTML("\xA0",mode)
 
 class filesize(XSCElement):
 	close=1
 
-	def AsHTML(self,mode = None):
-		return FileSize(ExpandedURL(AsString(self.content)))
+	def AsHTML(self,xsc,mode = None):
+		return FileSize(ExpandedURL(xsc.AsString(self.content)))
 handlers["filesize"] = filesize
 
 if __name__ == "__main__":

@@ -290,8 +290,8 @@ class a(XSCElement):
 	close = 1
 	permitted_attrs = attrs + [ "charset","type","name","href","hreflang","rel","rev","accesskey","shape","coords","tabindex","onfocus","onblur" ]
 
-	def AsHTML(self,mode = None):	
-		e = XSCElement.AsHTML(self,mode)
+	def AsHTML(self,xsc,mode = None):	
+		e = XSCElement.AsHTML(self,xsc,mode)
 
 		e.ExpandLinkAttribute("href")
 
@@ -312,8 +312,8 @@ class img(XSCElement):
 	close = 0
 	permitted_attrs = attrs + [ "src","alt","longdesc","width","height","usemap","ismap" ] + [ "border" ] # deprecated
 
-	def AsHTML(self,mode = None):
-		e = XSCElement.AsHTML(self,mode)
+	def AsHTML(self,xsc,mode = None):
+		e = XSCElement.AsHTML(self,xsc,mode)
 
 		e.AddImageSizeAttributes("src")
 
