@@ -1527,15 +1527,20 @@ class ParseTest(unittest.TestCase):
 
 class DTD2XSCTest(unittest.TestCase):
 
-	def dtd2ns(self, s, xmlname, xmlurl=None):
+	def dtd2ns(self, s, xmlname, xmlurl=None, shareattrs=None):
 		from xml.parsers.xmlproc import dtdparser
 
 		dtd = dtdparser.load_dtd_string(s)
 		node = xndl.fromdtd(dtd, xmlname=xmlname, xmlurl=xmlurl)
 
+		data = node.asdata()
+
+		if shareattrs is not None:
+			data.shareattrs(shareattrs)
+
 		mod = {"__name__": xmlname}
 		encoding = "iso-8859-1"
-		code = node.asdata().aspy(encoding=encoding, asmod=False).encode(encoding)
+		code = data.aspy(encoding=encoding, asmod=False).encode(encoding)
 		exec code in mod
 
 		return mod["xmlns"]
@@ -1555,6 +1560,7 @@ class DTD2XSCTest(unittest.TestCase):
 			bar-4 (bar-4a|bar-4b)    #IMPLIED
 			bar_4 (bar_4a|bar_4b)    #IMPLIED
 			bar_42 (bar_42a|bar_42b) #IMPLIED
+			class CDATA              #IMPLIED
 		>
 		"""
 		ns = self.dtd2ns(dtdstring, "foo")
@@ -1589,6 +1595,80 @@ class DTD2XSCTest(unittest.TestCase):
 		self.assert_(issubclass(ns.bar.Attrs.bar_422, xsc.TextAttr))
 		self.assertEqual(ns.bar.Attrs.bar_422.xmlname, ("bar_422", "bar_42"))
 		self.assertEqual(ns.bar.Attrs.bar_422.values, ("bar_42a", "bar_42b"))
+
+	def test_keyword(self):
+		dtdstring = """<?xml version='1.0' encoding='us-ascii'?>
+		<!ELEMENT foo EMPTY>
+		<!ATTLIST foo
+			class CDATA              #IMPLIED
+		>
+		"""
+		ns = self.dtd2ns(dtdstring, "foo")
+		self.assert_(issubclass(ns.foo.Attrs.class_, xsc.TextAttr))
+		self.assertEqual(ns.foo.Attrs.class_.xmlname, ("class_", "class"))
+
+	def test_shareattrsnone(self):
+		dtdstring = """<?xml version='1.0' encoding='us-ascii'?>
+		<!ELEMENT foo (bar)>
+		<!ATTLIST foo
+			baz CDATA              #IMPLIED
+		>
+		<!ELEMENT bar EMPTY>
+		<!ATTLIST bar
+			baz CDATA              #IMPLIED
+		>
+		"""
+		ns = self.dtd2ns(dtdstring, "foo", shareattrs=None)
+		self.assert_(not hasattr(ns, "baz"))
+
+	def test_shareattrsdupes(self):
+		dtdstring = """<?xml version='1.0' encoding='us-ascii'?>
+		<!ELEMENT foo (bar)>
+		<!ATTLIST foo
+			baz  CDATA             #IMPLIED
+			baz2 CDATA             #IMPLIED
+		>
+		<!ELEMENT bar EMPTY>
+		<!ATTLIST bar
+			baz  CDATA             #IMPLIED
+			baz2 CDATA             #REQUIRED
+		>
+		"""
+		ns = self.dtd2ns(dtdstring, "foo", shareattrs=False)
+		self.assert_(issubclass(ns.foo.Attrs.baz, ns.baz.baz))
+		self.assert_(issubclass(ns.bar.Attrs.baz, ns.baz.baz))
+		self.assert_(not hasattr(ns, "baz2"))
+		self.assert_(not ns.foo.Attrs.baz2.required)
+		self.assert_(ns.bar.Attrs.baz2.required)
+
+	def test_shareattrsall(self):
+		dtdstring = """<?xml version='1.0' encoding='us-ascii'?>
+		<!ELEMENT foo (bar)>
+		<!ATTLIST foo
+			baz  CDATA             #IMPLIED
+			bazz CDATA             #IMPLIED
+		>
+		<!ELEMENT bar EMPTY>
+		<!ATTLIST bar
+			baz  CDATA             #IMPLIED
+			bazz CDATA             #REQUIRED
+		>
+		"""
+		ns = self.dtd2ns(dtdstring, "foo", shareattrs=True)
+		self.assert_(issubclass(ns.foo.Attrs.baz, ns.baz.baz))
+		self.assert_(issubclass(ns.bar.Attrs.baz, ns.baz.baz))
+
+		self.assertNotEqual(ns.foo.Attrs.bazz.__bases__[0], xsc.TextAttr)
+		self.assertNotEqual(ns.bar.Attrs.bazz.__bases__[0], xsc.TextAttr)
+		self.assertNotEqual(ns.foo.Attrs.bazz.__bases__, ns.bar.Attrs.bazz.__bases__)
+
+		self.assert_(not ns.foo.Attrs.bazz.required)
+		self.assert_(ns.bar.Attrs.bazz.required)
+
+class TLD2XSCTest(unittest.TestCase):
+
+	def test_convert(self):
+		pass
 
 def test_main():
 	unittest.main()
