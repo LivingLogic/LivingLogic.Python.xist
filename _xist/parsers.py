@@ -61,8 +61,6 @@ class FileInputSource(sax.xmlreader.InputSource):
 		sax.xmlreader.InputSource.__init__(self)
 		if base is None:
 			base = filename
-		if isinstance(filename, url_.URL):
-			filename = filename.asPlainString()
 		self.setSystemId(str(base))
 		self.setByteStream(fileutils.Filename(filename).open("rb"))
 		self.setEncoding(defaultEncoding)
