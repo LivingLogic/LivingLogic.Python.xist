@@ -35,7 +35,7 @@ import sys, getopt
 from ll.xist import xsc, parsers, converters
 from ll.xist.ns import html, doc
 
-def xsc2txt(infilename, outfilename, title):
+def xsc2txt(infilename, outfilename, title, width):
 	e = parsers.parseFile(infilename, prefixes=xsc.DocPrefixes())
 
 	if title is None:
@@ -51,17 +51,20 @@ def xsc2txt(infilename, outfilename, title):
 	e = e.conv(target="text")
 
 	file = open(outfilename, "wb")
-	file.write(e.asText())
+	file.write(e.asText(width=width))
 	file.close()
 
 if __name__ == "__main__":
 	title = None
-	(options, args) = getopt.getopt(sys.argv[1:], "t:i:", ["title=", "import="])
+	width = 72
+	(options, args) = getopt.getopt(sys.argv[1:], "t:i:w:", ["title=", "import=", "width="])
 
 	for (option, value) in options:
 		if option=="-t" or option=="--title":
 			title = value
 		elif option=="-i" or option=="--import":
 			__import__(value)
+		if option=="-w" or option=="--width":
+			width = int(value)
 
-	xsc2txt(args[0], args[1], title)
+	xsc2txt(args[0], args[1], title, width)
