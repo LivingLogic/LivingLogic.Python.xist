@@ -2,6 +2,9 @@
 <section><title>Changes in 2.6.? (released ??/??/2004)</title>
 <ulist>
 <item>Fixed a bug in <method>ll.xist.xfind.Finder.__floordiv__</method>.</item>
+<item>Restricted characters as defined in
+<link href="http://www.w3.org/TR/2004/REC-xml11-20040204/#NT-RestrictedChar">&xml; 1.1</link>
+will now be published as character references.</item>
 </ulist>
 </section>
 

@@ -8,7 +8,7 @@
 ##
 ## See xist/__init__.py for the license
 
-import sys, unittest, cStringIO, warnings
+import sys, unittest, cStringIO, warnings, re
 
 from xml.sax import saxlib
 from xml.parsers import expat
@@ -20,6 +20,11 @@ from ll.xist.ns import wml, ihtml, html, chars, css, abbr, specials, htmlspecial
 
 # set to something ASCII, so presenters work, even if the system default encoding is ascii
 options.reprtab = "  "
+
+
+# The following includes \x00 in addition to that defined in
+# http://www.w3.org/TR/2004/REC-xml11-20040204/#NT-RestrictedChar
+restrictedchars = re.compile(u"[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F-\x84\x86-\x9F]")
 
 
 class XISTTest(unittest.TestCase):
@@ -1387,6 +1392,8 @@ class PublishTest(unittest.TestCase):
 				escapeOutput.append(u"&lt;")
 			elif c==u">":
 				escapeOutput.append(u"&gt;")
+			elif restrictedchars.match(c) is not None:
+				escapeOutput.append(u"&#%d;" % ord(c))
 			else:
 				escapeOutput.append(c)
 		escapeOutput = "".join(escapeOutput)
@@ -1403,21 +1410,12 @@ class PublishTest(unittest.TestCase):
 				escapeOutput.append(u"&gt;")
 			elif c==u'"':
 				escapeOutput.append(u"&quot;")
+			elif restrictedchars.match(c) is not None:
+				escapeOutput.append(u"&#%d;" % ord(c))
 			else:
 				escapeOutput.append(c)
 		escapeOutput = "".join(escapeOutput)
 		self.assertEqual(helpers.escapeattr(self.escapeInput), escapeOutput)
-
-	def test_helperxmlcharrefreplace(self):
-		escapeOutput = []
-		for c in self.escapeInput:
-			try:
-				c.encode("ascii")
-				escapeOutput.append(c)
-			except UnicodeError:
-				escapeOutput.append(u"&#%d;" % ord(c))
-		escapeOutput = u"".join(escapeOutput)
-		self.assertEqual(helpers.xmlcharrefreplace(self.escapeInput, "ascii"), escapeOutput)
 
 	def test_helpercssescapereplace(self):
 		escapeOutput = []
