@@ -225,11 +225,12 @@ class EscInlineText(ansistyle.EscapedText):
 					ascharref = 1
 			if ascharref:
 				charcode = ord(char)
-				entity = xsc.defaultPrefixes.charref(charcode)
-				if entity is not None:
-					return EnvTextForEntityName("&", entity.xmlname[True], ";")
-				else:
+				try:
+					entity = xsc.defaultPrefixes.charref(charcode)
+				except LookupError:
 					return EnvTextForEntityName("&#", str(charcode), ";")
+				else:
+					return EnvTextForEntityName("&", entity.xmlname[True], ";")
 		return char
 
 class EscInlineAttr(EscInlineText):
