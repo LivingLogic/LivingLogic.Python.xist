@@ -1562,7 +1562,6 @@ class Attrs(Node, dict):
 
 	class __metaclass__(Node.__metaclass__):
 		def __new__(cls, name, bases, dict):
-			attrs = ({}, {})
 			# Automatically inherit the attributes from the base class (because the global Attrs require a pointer back to their defining namespace)
 			for base in bases:
 				for attrname in dir(base):
@@ -1573,7 +1572,7 @@ class Attrs(Node, dict):
 							classdict["xmlname"] = attr.xmlname[1]
 						dict[attrname] = attr.__class__(attr.__name__, (attr,), classdict)
 			self = Node.__metaclass__.__new__(cls, name, bases, {})
-			self._attrs = attrs
+			self._attrs = ({}, {})
 			for (key, value) in dict.iteritems():
 				setattr(self, key, value)
 			return self
@@ -1592,7 +1591,7 @@ class Attrs(Node, dict):
 			return Node.__metaclass__.__delattr__(cls, key)
 
 		def __setattr__(cls, key, value):
-			oldvalue = getattr(cls, key)
+			oldvalue = cls.__dict__.get(key, None) # no inheritance
 			if issubclasses(oldvalue, Attr):
 				for xml in (False, True):
 					del cls._attrs[xml][oldvalue.xmlname[xml]]
@@ -3078,7 +3077,7 @@ class Namespace(object):
 			return type.__delattr__(cls, key)
 
 		def __setattr__(cls, key, value):
-			oldvalue = getattr(cls, key, None)
+			oldvalue = cls.__dict__.get(key, None) # no inheritance
 			if issubclasses(oldvalue, (Element, ProcInst, Entity)):
 				oldvalue._registerns(None)
 			if issubclasses(value, (Element, ProcInst, Entity)):
