@@ -1290,7 +1290,6 @@ class XML(ProcInst):
 		startpos = self._content.find(name)
 		if startpos != -1:
 			startpos = startpos+len(name)
-			if startpos < len(self._content)
 			while self._content[startpos].isspace():
 				startpos += 1
 			startpos += 1 # skip '='
