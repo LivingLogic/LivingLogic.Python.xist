@@ -1284,15 +1284,22 @@ class Attr(Frag):
 	</programlisting>
 	</example>
 	"""
+	required = False
+	default = None
+	values = None
 	class __metaclass__(Frag.__metaclass__):
 		def __new__(cls, name, bases, dict):
 			# can be overwritten in subclasses, to specify that this attributes is required
-			dict["required"] = bool(dict.get("required", False))
+			if "required" in dict:
+				dict["required"] = bool(dict["required"])
 			# convert the default to a Frag
-			dict["default"] = Frag(dict.get("default", None))
+			if "default" in dict:
+				dict["default"] = Frag(dict["default"])
 			# convert the entries in values to unicode
 			if "values" in dict:
-				dict["values"] = tuple([unicode(entry) for entry in dict["values"]])
+				values = dict["values"]
+				if values is not None:
+					dict["values"] = tuple([unicode(entry) for entry in dict["values"]])
 			return Frag.__metaclass__.__new__(cls, name, bases, dict)
 		def __repr__(self):
 			return "<attribute class %s/%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
