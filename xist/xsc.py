@@ -1471,10 +1471,12 @@ class Null(Element):
 
 def registerElement(element,namespacename = None,elementname = None):
 	"""
+	registerElement(element,namespacename = None,elementname = None)
+
 	registers the element handler element to be used for elements with the appropriate name.
-	The element will be registered under in the namespace namespacename and the element
+	The element will be registered in the namespace namespacename and the element name
 	elementname. If namespacename is None the name of the module in which the element class
-	is defined is used, or - if the module is __main__, the appropriate part of sys.argv[0].
+	is defined is used, or - if the module is __main__ - the appropriate part of sys.argv[0].
 	If elementname is None, the name of the class will be used.
 	Names will be converted to lowercase in any case, to help prevent conflicts between
 	Python keywords and class names (e.g. for the HTML element del).
@@ -1490,6 +1492,8 @@ def registerElement(element,namespacename = None,elementname = None):
 
 def registerAllElements(dict,namespacename = None):
 	"""
+	registerAllElements(dict,namespacename = None)
+
 	registers all elements in a dictionary under the namespace namespacename.
 	This can be used to register all elements in a module simply by
 	passing vars() to the function.
@@ -1743,6 +1747,12 @@ class Parser(xmllib.XMLParser):
 		self.__appendNode(Comment(data))
 
 def registerEntity(name,value):
+	"""
+	registerEntity(name,value)
+
+	registers the value value (which will be converted to an XSC node)
+	as an entity with the name name.
+	"""
 	newvalue = ToNode(value)
 	if isinstance(newvalue,CharRef):
 		Parser.entitiesByNumber[newvalue.content].append(name)
