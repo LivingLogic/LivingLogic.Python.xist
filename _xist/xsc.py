@@ -3144,7 +3144,7 @@ class DefaultPrefixes(Prefixes):
 	"""
 	<par>Prefix mapping that maps all defined namespace
 	to their default prefix, except for one which is mapped
-	to None.</par>
+	to <lit>None</lit>.</par>
 	"""
 	def __init__(self, default=None):
 		super(DefaultPrefixes, self).__init__()
