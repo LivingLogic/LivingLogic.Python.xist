@@ -518,6 +518,12 @@ class Parser(object):
 		self.skippingwhitespace = False
 
 		if self.tidy:
+			def decode(s):
+				try:
+					return s.decode("utf-8")
+				except UnicodeDecodeError:
+					return s.decode("iso-8859-1")
+
 			data = stream.read()
 			import libxml2 # This requires libxml2 (see http://www.xmlsoft.org/)
 			doc = libxml2.htmlReadMemory(data, len(data), sysid, encoding, 0x60)
@@ -530,9 +536,8 @@ class Parser(object):
 					while child is not None:
 						newnode.append(toxsc(child))
 						child = child.next
-					return newnode
 				elif node.type == "element":
-					name = node.name.decode("utf-8").lower()
+					name = decode(node.name).lower()
 					try:
 						newnode = ns.element(name, xml=True)()
 					except errors.IllegalElementError:
@@ -540,11 +545,11 @@ class Parser(object):
 					else:
 						attr = node.properties
 						while attr is not None:
-							name = attr.name.decode("utf-8").lower()
+							name = decode(attr.name).lower()
 							if attr.content is None:
 								content = u""
 							else:
-								content = attr.content.decode("utf-8")
+								content = decode(attr.content)
 							try:
 								newnode.attrs.set(name, content, xml=True)
 							except errors.IllegalAttrError:
@@ -554,12 +559,14 @@ class Parser(object):
 					while child is not None:
 						newnode.append(toxsc(child))
 						child = child.next
-					return newnode
 				elif node.type in ("text", "cdata"):
-					return xsc.Text(node.content.decode("utf-8"))
+					newnode = xsc.Text(decode(node.content))
 				elif node.type == "comment":
-					return xsc.Comment(node.content.decode("utf-8"))
-				return xsc.Null
+					newnode = xsc.Comment(decode(node.content))
+				else:
+					newnode = xsc.Null
+				newnode.startloc = xsc.Location(sysid=sysid) # FIXME: get line from node.lineNo()
+				return newnode
 			node = toxsc(doc)
 			doc.freeDoc()
 			return node
