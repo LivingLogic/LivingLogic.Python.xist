@@ -34,7 +34,7 @@ except ImportError:
 
 import os, types, urlparse, urllib
 
-from xist import options
+from xist import options, errors
 
 urlparse.uses_relative.extend(("root", "server", None))
 urlparse.uses_params.extend(("root", "server"))
@@ -349,7 +349,7 @@ class URL:
 			try:
 				info = self.info()
 			except IOError:
-				raise errors.FileNotFoundError(url)
+				raise errors.FileNotFoundError(self)
 			try:
 				size = int(info["Content-Length"])
 			except KeyError: # try the hard way
@@ -359,7 +359,7 @@ class URL:
 					urllib.urlcleanup()
 				except IOError:
 					urllib.urlcleanup()
-					raise errors.FileNotFoundError(url)
+					raise errors.FileNotFoundError(self)
 		return size
 
 	def imageSize(self):
