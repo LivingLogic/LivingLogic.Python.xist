@@ -1141,7 +1141,7 @@ class Comment(Node, StringMixIn):
 
 	def publish(self, publisher):
 		if publisher.inAttr:
-			raise errors.IllegalAttrNode(self.startloc, self)
+			raise errors.IllegalAttrNodeError(self.startloc, self)
 		if self._content.find(u"--")!=-1 or self._content[-1:]==u"-":
 			raise errors.IllegalCommentContentError(self.startloc, self)
 		publisher.publish(u"<!--")
@@ -1174,7 +1174,7 @@ class DocType(Node, StringMixIn):
 
 	def publish(self, publisher):
 		if publisher.inAttr:
-			raise errors.IllegalAttrNode(self.startloc, self)
+			raise errors.IllegalAttrNodeError(self.startloc, self)
 		publisher.publish(u"<!DOCTYPE ")
 		publisher.publish(self._content)
 		publisher.publish(u">")
@@ -1216,7 +1216,7 @@ class ProcInst(Node, StringMixIn):
 
 	def publish(self, publisher):
 		if publisher.inAttr:
-			raise errors.IllegalAttrNode(self.startloc, self)
+			raise errors.IllegalAttrNodeError(self.startloc, self)
 		if self._content.find(u"?>")!=-1:
 			raise errors.IllegalProcInstFormatError(self.startloc, self)
 		publisher.publish(u"<?")
@@ -1497,7 +1497,7 @@ class Element(Node):
 
 	def publish(self, publisher):
 		if publisher.inAttr:
-			raise errors.IllegalAttrNode(self.startloc, self)
+			raise errors.IllegalAttrNodeError(self.startloc, self)
 		publisher.publish(u"<")
 		if publisher.usePrefix==1:
 			publisher.publish(self.namespace.prefix, u":") # requires that the element is registered via registerElement()
@@ -1762,7 +1762,7 @@ class Attr(Frag):
 
 	def publish(self, publisher):
 		if publisher.inAttr:
-			raise errors.IllegalAttrNode(self.startloc, self)
+			raise errors.IllegalAttrNodeError(self.startloc, self)
 		publisher.inAttr = 1
 		Frag.publish(self, publisher)
 		publisher.inAttr = 0

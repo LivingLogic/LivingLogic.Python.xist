@@ -60,7 +60,7 @@ class EmptyElementWithContentError(Error):
 	def __str__(self):
 		return Error.__str__(self) + "element " + self.element._str() + " specified to be empty, but has content"
 
-class IllegalAttributeError(Error):
+class IllegalAttrError(Error):
 	"""
 	exception that is raised, when an element has an illegal attribute
 	(i.e. one that isn't contained in it's attrHandlers)
@@ -182,10 +182,10 @@ class IllegalElementNestingError(Error):
 	def __str__(self):
 		return Error.__str__(self) + "illegal element nesting (" + xsc._strNode(self.expectedelement) + " expected; " + xsc._strNode(self.foundelement) + " found)"
 
-class IllegalAttrNode(Error):
+class IllegalAttrNodeError(Error):
 	"""
-	exception that is raised, when an something is found
-	in an element that doesn't belong there.
+	exception that is raised, when something is found
+	in an element attribute that doesn't belong there.
 	"""
 
 	def __init__(self, lineno, node):
