@@ -27,7 +27,7 @@ sgmlop driver, everything else is from PyXML) and various classes derived from
 xml.sax.xmlreader.InputSource.
 """
 
-import sys, types, cStringIO as StringIO, urllib
+import sys, os, types, cStringIO as StringIO, urllib
 
 from xml import sax
 from xml.parsers import sgmlop
@@ -84,10 +84,10 @@ class TidyURLInputSource(sax.xmlreader.InputSource):
 		self.setSystemId(url)
 		try:
 			(self.tidyin, self.tidyout, self.tidyerr) = os.popen3("tidy --tidy-mark no --wrap 0 --output-xhtml --numeric-entities yes --show-warnings no --quiet yes -asxml -quiet", "b") # open the pipe to and from tidy
-			self.tidyin.write(urllib.urlopen().read()) # get the desired file from the url and pipe it to tidy
+			self.tidyin.write(urllib.urlopen(url).read()) # get the desired file from the url and pipe it to tidy
 			self.tidyin.close() # tell tidy, that we're finished
 			self.tidyin = None
-			self.setByteStream(tidyout)
+			self.setByteStream(self.tidyout)
 		except:
 			if self.tidyin is not None:
 				self.tidyin.close()
@@ -96,6 +96,7 @@ class TidyURLInputSource(sax.xmlreader.InputSource):
 			if self.tidyerr is not None:
 				self.tidyerr.close()
 			urllib.urlcleanup() # throw away the temporary filename
+			raise
 
 	def __del__(self):
 		if self.tidyin is not None:
@@ -158,8 +159,7 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 					self.lineNumber += 1
 				self.parser.feed(data)
 			self.close()
-		except Exception, ex:
-			print ex
+		except saxlib.SAXParseException, ex:
 			raise saxlib.SAXParseException("parse error: %s" % ex, ex, self)
 		self.source = None
 
