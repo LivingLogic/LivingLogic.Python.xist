@@ -544,7 +544,7 @@ class base(xsc.Element):
 	"""
 	empty = 1
 	attrHandlers = {"href": xsc.URLAttr}
-	attrHandlers.update({"target": xsc.TextAttr} # deprecated
+	attrHandlers.update({"target": xsc.TextAttr}) # deprecated
 
 class img(xsc.Element):
 	"""
