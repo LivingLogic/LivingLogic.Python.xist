@@ -758,7 +758,7 @@ def explain(cls, thing, name=None, context=[]):
 		id = "-".join([info[1] for info in context[1:]])
 		sig = xsc.Frag()
 		if name != thing.__name__ and not (thing.__name__.startswith("__") and name=="_" + thing.im_class.__name__ + thing.__name__):
-			sig.append(doc.method(name), " = ")
+			sig.append(cls.method(name), " = ")
 		sig.append("def ", cls._codeheader(thing.im_func, thing.__name__, cls.method), ":")
 		return cls.section(cls.title(sig), cls.getdoc(thing), role="method", id=id)
 	elif inspect.isfunction(thing):
