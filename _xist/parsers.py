@@ -295,6 +295,8 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 				if len(text):
 					node.append(text)
 				break
+		if not len(node):
+			node.append("")
 		return node
 
 class HTMLParser(SGMLOPParser):
@@ -464,11 +466,12 @@ class Handler:
 
 	def startElement(self, name, attrs):
 		node = self.namespaces.elementFromName(name)()
-		for name in attrs.keys():
-			node[name] = attrs[name]
-			if isinstance(node[name], xsc.URLAttr):
+		for (attrname, attrvalue) in attrs.items():
+			node[attrname] = attrvalue
+			attr = node[attrname]
+			if isinstance(attr, xsc.URLAttr):
 				base = url_.URL("*/") + url_.URL(self.source.getSystemId())
-				node[name].base = base
+				attr.base = base
 		self.__appendNode(node)
 		self.__nesting.append(node) # push new innermost element onto the stack
 
