@@ -238,7 +238,7 @@ class Node:
 	# line numbers where this node starts and ends in a file (will be hidden in derived classes, but is specified here, so that no special tests are required. In derived classes both variables will be set by the parser)
 	startlineno = -1
 	endlineno = -1
-	name = "Node" # will be changed for derived classes/elements in registerElement()
+	name = "#node" # will be changed for derived classes/elements in registerElement()
 
 	def __add__(self,other):
 		if other != None:
@@ -347,7 +347,7 @@ class Node:
 class Text(Node):
 	"""text"""
 
-	name = "Text"
+	name = "#text"
 
 	represcapes = { '\t' : '\\t' , '\033' : '\\e' , '\\' : '\\\\' }
 	reprtreeescapes = { '\r' : '\\r' , '\n' : '\\n' , '\t' : '\\t' , '\033' : '\\e' , '\\' : '\\\\' }
@@ -432,7 +432,7 @@ class Text(Node):
 class CharRef(Node):
 	"""character reference (i.e &#42; or &#x42;)"""
 
-	name = "CharRef"
+	name = "#charref"
 
 	__notdirect = { ord("&") : "amp" , ord("<") : "lt" , ord(">") : "gt", ord('"') : "quot" , ord("'") : "apos" }
 	__linefeeds = [ ord("\r") , ord("\n") ]
@@ -484,7 +484,7 @@ class CharRef(Node):
 class Frag(Node):
 	"""contains a list of Nodes"""
 
-	name = "Frag"
+	name = "#frag"
 
 	def __init__(self,_content = []):
 		if _content is None:
@@ -539,12 +539,12 @@ class Frag(Node):
 
 	def _doreprtree(self,nest,elementno):
 		v = []
-		v.append([nest,self.startlineno,elementno,self._strtag('Frag')])
+		v.append([nest,self.startlineno,elementno,self._strtag('fragment')])
 		i = 0
 		for child in self:
 			v = v + child._doreprtree(nest+1,elementno + [i])
 			i = i + 1
-		v.append([nest,self.endlineno,elementno,self._strtag('/Frag')])
+		v.append([nest,self.endlineno,elementno,self._strtag('/fragment')])
 		return v
 
 	def __str__(self):
@@ -633,7 +633,7 @@ class Frag(Node):
 class Comment(Node):
 	"""comments"""
 
-	name = "Comment"
+	name = "#comment"
 
 	def __init__(self,content = ""):
 		self.__content = content
@@ -658,7 +658,7 @@ class Comment(Node):
 class DocType(Node):
 	"""document type"""
 
-	name = "DocType"
+	name = "#doctype"
 
 	def __init__(self,content = ""):
 		self.__content = content
@@ -683,7 +683,7 @@ class DocType(Node):
 class ProcInst(Node):
 	"""processing instructions"""
 
-	name = "ProcInst"
+	name = "#procinst"
 
 	repransiquestion = "34"
 	repransitarget = "34"
@@ -717,7 +717,7 @@ class Element(Node):
 
 	empty = 1 # 0 => element with content; 1 => stand alone element
  	attr_handlers = {}
-	name = "Element" # will be changed for derived classes/elements in registerElement()
+	name = "#element" # will be changed for derived classes/elements in registerElement()
 
 	def __init__(self,_content = [],_attrs = {},**_restattrs):
 		self.content = Frag(_content)

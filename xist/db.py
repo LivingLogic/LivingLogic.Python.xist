@@ -8,8 +8,16 @@ database content into XSC pages.
 __version__ = "$Revision$"
 # $Source$
 
+import sys
 import xsc
+import html
 import specials
+
+def _getDB(attrs):
+	module = str(attrs["module"])
+	variable = str(attrs["variable"])
+
+	return sys.modules[module].__dict__[variable]
 
 class element(xsc.Element):
 	"""
@@ -26,13 +34,14 @@ class element(xsc.Element):
 xsc.registerElement("element",element)
 
 class lookupcombobox(element):
-	attr_handlers = xsc.appendDict(element.attr_handlers,{ "db" : xsc.TextAttr , "query" : xsc.TextAttr , "displayfield" : xsc.TextAttr , "valuefield" : xsc.TextAttr })
+	attr_handlers = xsc.appendDict(element.attr_handlers,{ "module" : xsc.TextAttr , "variable" : xsc.TextAttr , "query" : xsc.TextAttr , "displayfield" : xsc.TextAttr , "valuefield" : xsc.TextAttr })
 
 	def asHTML(self):
+		db = _getDB(self.attrs)
+		query = db.query(str(self["query"]))
+
 		e = select(name = self["name"])
 
-		db = eval(str(self["db"]))
-		query = db.query(str(self["query"]))
 		displayfield = str(self["displayfield"].asHTML())
 		valuefield = str(self["valuefield"].asHTML())
 		for tuple in query.dictresult():
@@ -48,7 +57,7 @@ class edit(element):
 	attr_handlers = xsc.appendDict(element.attr_handlers,{ "size" : xsc.TextAttr })
 
 	def asHTML(self):
-		e = input()
+		e = html.input()
 		for attr in self.attrs.keys():
 			e[attr] = self[attr]
 
@@ -60,14 +69,14 @@ class static(element):
 		if self.has_attr("value"):
 			e = self["value"].content
 		else:
-			e = nbsp()
+			e = specials.nbsp()
 
 		return e.asHTML()
 xsc.registerElement("static",static)
 
 class hidden(element):
 	def asHTML(self):
-		e = input(type="hidden",name=self["name"])
+		e = html.input(type="hidden",name=self["name"])
 		if self.has_attr("value"):
 			e["value"] = self["value"]
 
@@ -83,10 +92,10 @@ xsc.registerElement("target",target)
 
 class template(xsc.Element):
 	empty = 0
-	attr_handlers = { "db" : xsc.TextAttr , "query" : xsc.TextAttr }
+	attr_handlers = {  "module" : xsc.TextAttr , "variable" : xsc.TextAttr , "query" : xsc.TextAttr }
 
 	def asHTML(self):
-		db = eval(str(self["db"]))
+		db = _getDB(self.attrs)
 		query = db.query(str(self["query"]))
 
 		content = self.content.clone()
@@ -107,10 +116,10 @@ xsc.registerElement("template",template)
 
 class table(xsc.Element):
 	empty = 0
-	attr_handlers = { "db" : xsc.TextAttr , "query" : xsc.TextAttr , "class" : xsc.TextAttr }
+	attr_handlers = {  "module" : xsc.TextAttr , "variable" : xsc.TextAttr , "query" : xsc.TextAttr , "class" : xsc.TextAttr }
 
 	def asHTML(self):
-		db = eval(str(self["db"]))
+		db = _getDB(self.attrs)
 		query = db.query(str(self["query"]))
 
 		e = plaintable()
@@ -141,10 +150,10 @@ xsc.registerElement("table",table)
 
 class edittable(xsc.Element):
 	empty = 0
-	attr_handlers = { "db" : xsc.TextAttr , "query" : xsc.TextAttr , "class" : xsc.TextAttr , "action" : xsc.URLAttr }
+	attr_handlers = {  "module" : xsc.TextAttr , "variable" : xsc.TextAttr , "query" : xsc.TextAttr , "class" : xsc.TextAttr , "action" : xsc.URLAttr }
 
 	def asHTML(self):
-		db = eval(str(self["db"]))
+		db = _getDB(self.attrs)
 		query = db.query(str(self["query"]))
 
 		e = specials.plaintable()
@@ -153,39 +162,39 @@ class edittable(xsc.Element):
 
 		fields = self.elementsNamed(field)
 
-		headers = tr()
-		for field in fields:
-			headers.append(th(field["caption"],Class = field["name"]))
-		headers.append(th("Bearbeiten",colspan="2"))
+		headers = html.tr()
+		for f in fields:
+			headers.append(html.th(f["caption"],Class = f["name"]))
+		headers.append(html.th("Bearbeiten",colspan="2"))
 		e.append(headers)
 
 		flipflop = "even"
 		for tuple in query.dictresult():
-			etuple = tr(Class=flipflop)
-			for field in fields:
-				name = field["name"]
-				control = self.__control(field,str(tuple[str(name)]))
-				etuple.append(td(control,Class=name))
-			button1 = input(type="submit",value="Übernehmen",name="save")
-			etuple.append(td(button1))
-			button2 = input(type="submit",value="Löschen",name="delete")
-			etuple.append(td(button2))
-			e.append(form(etuple,action = self["action"]))
+			etuple = html.tr(Class=flipflop)
+			for f in fields:
+				name = f["name"]
+				control = self.__control(f,str(tuple[str(name)]))
+				etuple.append(html.td(control,Class=name))
+			button1 = html.input(type="submit",value="Übernehmen",name="save")
+			etuple.append(html.td(button1))
+			button2 = html.input(type="submit",value="Löschen",name="delete")
+			etuple.append(html.td(button2))
+			e.append(html.form(etuple,action = self["action"]))
 			if flipflop == "even":
 				flipflop = "odd"
 			else:
 				flipflop = "even"
 
 		# row for new record
-		etuple = tr(Class=flipflop)
-		for field in fields:
-			name = field["name"]
-			control = self.__control(field)
-			etuple.append(td(control,Class=name))
-		button = input(type="submit",value="Anlegen",name="new")
-		etuple.append(td(button,colspan="2"))
+		etuple = html.tr(Class=flipflop)
+		for f in fields:
+			name = f["name"]
+			control = self.__control(f)
+			etuple.append(html.td(control,Class=name))
+		button = html.input(type="submit",value="Anlegen",name="new")
+		etuple.append(html.td(button,colspan="2"))
 
-		e.append(form(etuple,action = self["action"]))
+		e.append(html.form(etuple,action = self["action"]))
 
 		return e.asHTML()
 
@@ -204,8 +213,7 @@ class edittable(xsc.Element):
 		if value is not None:
 			control["value"] = value
 		return control
-		
-xsc.registerElement("table",table)
+xsc.registerElement("edittable",edittable)
 
 class field(xsc.Element):
 	empty = 1
