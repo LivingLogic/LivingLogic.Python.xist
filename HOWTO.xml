@@ -128,8 +128,9 @@ parseURL(id, base=None,
 	tidy=0,
 	headers=None, data=None):
 </doc:programlisting>
-<doc:pyref module="xist.parsers" function="parseString"><function>parseString</function></doc:pyref> is for parsing strings
-(8bit and Unicode) and <doc:pyref module="xist.parsers" function="parseURL"><function>parseURL</function></doc:pyref> is for
+<doc:pyref module="xist.parsers" function="parseString"><function>parseString</function></doc:pyref>
+is for parsing strings (8bit and Unicode) and
+<doc:pyref module="xist.parsers" function="parseURL"><function>parseURL</function></doc:pyref> is for
 parsing local and remote files. The argument <arg>tidy</arg> allows you the specify, whether
 Marc-André Lemburg's <app moreinfo="http://www.lemburg.com/files/python/">mxTidy</app> should
 be used for cleaning up broken &html; before parsing the result. The argument <arg>parser</arg>
@@ -162,12 +163,14 @@ class cool(xsc.Element):
 		return node.convert(converter)
 </doc:programlisting>
 </doc:example>
-You have to derive your new class from <pyref module="xist.xsc" class="Element"><class>xsc.Element</class></pyref>.
-The name of the class will be the element name. For element type names that are no valid Python
-identifiers, you can use the class attribute <lit>name</lit> in the element class the overwrite
-the element name.</doc:par>
-<doc:par>To be able to convert an element of this type to a new &xml; tree (&html; in most cases),
-you have to implement the <pyref module="xist.xsc" class="Node" method="convert"><method>convert</method></pyref>
+You have to derive your new class from
+<pyref module="xist.xsc" class="Element"><class>xsc.Element</class></pyref>.
+The name of the class will be the element name. For element type names that
+are no valid Python identifiers, you can use the class attribute <lit>name</lit>
+in the element class the overwrite the element name.</doc:par>
+<doc:par>To be able to convert an element of this type to a new &xml; tree
+(&html; in most cases), you have to implement the
+<pyref module="xist.xsc" class="Node" method="convert"><method>convert</method></pyref>
 method. In this method you can build a new &xml; tree from the content and attributes
 of the object.</doc:par>
 
