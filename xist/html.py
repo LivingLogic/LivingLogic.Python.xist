@@ -25,7 +25,7 @@ class html(xsc.Element):
 	document root element
 	"""
 	empty = 0
-	attrHandlers = i18n
+	attrHandlers = xsc.appendDict(i18n,{ "xmlns" : xsc.TextAttr })
 xsc.registerElement(html)
 
 class head(xsc.Element):
