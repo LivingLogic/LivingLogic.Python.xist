@@ -232,8 +232,9 @@ class URL:
 			# up from file and down to path (the
 			# directories for this are still in path)
 			newpath[:0] = [u".."]*len(otherpath)
-			if newpath==[]:
-				if new.file==other.file: # the link goes to the same file, so throw away the filename
+			if not len(newpath):
+				# the link goes to the same URL ... we can throw away the filename, if we have a fragment in it
+				if new.fragment is not None and new.file==other.file and new.query==other.query and new.params==other.params:
 					new.file = None
 			new.path = newpath
 		return new
