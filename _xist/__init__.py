@@ -26,20 +26,19 @@ pythonesque tree &api;. Every &xml; element type corresponds to a Python class a
 Python classes provide a conversion method to transform the &xml; tree (e.g. into
 &html;). &xist; can be considered <z>object oriented &xsl;</z>.</doc:par>
 
-<doc:par>Some of the significant features of &xist; include:
-<ulist>
-<item>Easily extensible with new &xml; elements,</item>
-<item>Can be used for offline or online page generation,</item>
-<item>Allows embedding Python code in &xml; files,</item>
-<item>Supports separation of layout and logic,</item>
-<item>Can be used together with <a href="http://www.modpython.org/">mod_python</a>,
-<a href="http://pywx.idyll.org/">PyWX</a> or <a href="http://webware.sourceforge.net/">Webware</a> to generate dynamic pages,</item>
-<item>Fully supports Unicode,</item>
-<item>Provides features to use &xist; together with &jsp;/struts,</item>
-<item>Simplifies handling of deeply nested directory trees,</item>
-<item>Automatically generates <code>HEIGHT</code> and <code>WIDTH</code> attributes for images.</item>
-</ulist>
-</doc:par>
+<doc:par>Some of the significant features of &xist; include:</doc:par>
+<doc:ulist>
+<doc:item>Easily extensible with new &xml; elements,</doc:item>
+<doc:item>Can be used for offline or online page generation,</doc:item>
+<doc:item>Allows embedding Python code in &xml; files,</doc:item>
+<doc:item>Supports separation of layout and logic,</doc:item>
+<doc:item>Can be used together with <a href="http://www.modpython.org/">mod_python</a>,
+<a href="http://pywx.idyll.org/">PyWX</a> or <a href="http://webware.sourceforge.net/">Webware</a> to generate dynamic pages,</doc:item>
+<doc:item>Fully supports Unicode,</doc:item>
+<doc:item>Provides features to use &xist; together with &jsp;/struts,</doc:item>
+<doc:item>Simplifies handling of deeply nested directory trees,</doc:item>
+<doc:item>Automatically generates <code>HEIGHT</code> and <code>WIDTH</code> attributes for images.</doc:item>
+</doc:ulist>
 
 <doc:par>&xist; was written as a replacement for the
 <a href="http://www.giga.or.at/~agi/hsc/">&html; preprocessor HSC</a>,
