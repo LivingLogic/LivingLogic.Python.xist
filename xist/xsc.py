@@ -1,5 +1,10 @@
 #! /usr/bin/env python
 
+""""""
+
+__version__ = "$Revision$"
+# $Source$
+
 import os
 import string
 import types
