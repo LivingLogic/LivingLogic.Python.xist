@@ -1070,7 +1070,7 @@ class Frag(Node, list):
 		"""
 		replaces a slice of the content of the fragment
 		"""
-		list.__setslice__(self, index1, index2, Frag(*sequence))
+		list.__setslice__(self, index1, index2, Frag(sequence))
 
 	# no need to implement __delslice__
 
@@ -1755,8 +1755,8 @@ class Attrs(Node, dict):
 					attr = getattr(base, attrname)
 					if isinstance(attr, type) and issubclass(attr, Attr) and attrname not in dict:
 						classdict = {"__module__": dict["__module__"]}
-						if attr.xmlname[0] != attr.xmlname[1]:
-							classdict["xmlname"] = attr.xmlname[1]
+						if attr.xmlname[False] != attr.xmlname[True]:
+							classdict["xmlname"] = attr.xmlname[True]
 						dict[attrname] = attr.__class__(attr.__name__, (attr,), classdict)
 			self = Node.__metaclass__.__new__(cls, name, bases, {})
 			self._attrs = ({}, {})
@@ -1768,7 +1768,7 @@ class Attrs(Node, dict):
 			return "<attrs class %s:%s with %s attrs at 0x%x>" % (self.__module__, self.__fullname__(), len(self._attrs[0]), id(self))
 
 		def __getitem__(cls, key):
-			return cls._attrs[0][key]
+			return cls._attrs[False][key]
 
 		def __delattr__(cls, key):
 			value = cls.__dict__.get(key, None) # no inheritance
@@ -1924,11 +1924,10 @@ class Attrs(Node, dict):
 		speficies whether <arg>name</arg> should be treated as an &xml; name
 		(<lit><arg>xml</arg>==True</lit>) or a Python name (<lit><arg>xml</arg>==False</lit>).</par>
 		"""
-		attr = self.allowedattr(name, xml=xml)
 		try:
-			attr = dict.__getitem__(self, attr.xmlname[False])
+			attr = dict.__getitem__(self, self._allowedattrkey(name, xml=xml))
 		except KeyError:
-			attr = attr.default
+			attr = self.allowedattr(name, xml=xml).default
 		return len(attr)>0
 
 	def has_key(self, name, xml=False):
@@ -1949,9 +1948,9 @@ class Attrs(Node, dict):
 
 	def set(self, name, value=None, xml=False):
 		attr = self.allowedattr(name, xml=xml)(value)
-		dict.__setitem__(self, name, attr) # put the attribute in our dict
+		dict.__setitem__(self, self._allowedattrkey(name, xml=xml), attr) # put the attribute in our dict
 
-	def setdefault(self, name, xml=False, default=None):
+	def setdefault(self, name, default=None, xml=False):
 		"""
 		<par>works like the dictionary method <method>setdefault</method>,
 		it returns the attribute with the name <arg>name</arg>.
@@ -1963,7 +1962,7 @@ class Attrs(Node, dict):
 		attr = self.attr(name, xml=xml)
 		if not attr:
 			attr = self.allowedattr(name, xml=xml)(default) # pack the attribute into an attribute object
-			dict.__setitem__(self, name, attr)
+			dict.__setitem__(self, self._allowedattrkey(name, xml=xml), attr)
 		return attr
 
 	def update(self, mapping):
@@ -2012,14 +2011,14 @@ class Attrs(Node, dict):
 	allowedkeys = classmethod(allowedkeys)
 
 	def iterallowedvalues(cls):
-		return cls._attrs[0].itervalues()
+		return cls._attrs[False].itervalues()
 	iterallowedvalues = classmethod(iterallowedvalues)
 
 	def allowedvalues(cls):
 		"""
 		<par>return a list of values for the allowed values.</par>
 		"""
-		return cls._attrs[0].values()
+		return cls._attrs[False].values()
 	allowedvalues = classmethod(allowedvalues)
 
 	def iteralloweditems(cls, xml=False):
@@ -2029,6 +2028,13 @@ class Attrs(Node, dict):
 	def alloweditems(cls, xml=False):
 		return cls._attrs[xml].items()
 	alloweditems = classmethod(alloweditems)
+
+	def _allowedattrkey(cls, name, xml=False):
+		try:
+			return cls._attrs[xml][name].xmlname[False]
+		except KeyError:
+			raise errors.IllegalAttrError(cls, name, xml=xml)
+	_allowedattrkey = classmethod(_allowedattrkey)
 
 	def allowedattr(cls, name, xml=False):
 		try:
@@ -2065,7 +2071,7 @@ class Attrs(Node, dict):
 	def itervalues(self):
 		# fetch the existing attribute keys/values
 		for value in dict.itervalues(self):
-			if len(value):
+			if value:
 				yield value
 		# fetch the keys of attributes with a default value (if it hasn't been overwritten)
 		for (key, value) in self.iteralloweditems():
@@ -2080,7 +2086,7 @@ class Attrs(Node, dict):
 	def iteritems(self, xml=False):
 		# fetch the existing attribute keys/values
 		for (key, value) in dict.iteritems(self):
-			if len(value):
+			if value:
 				if isinstance(key, tuple):
 					yield ((value.xmlns, value.xmlname[xml]), value)
 				else:
@@ -2096,12 +2102,12 @@ class Attrs(Node, dict):
 		return list(self.iteritems(xml=xml))
 
 	def attr(self, name, xml=False):
-		attr = self.allowedattr(name, xml=xml)
+		key = self._allowedattrkey(name, xml=xml)
 		try:
-			attr = dict.__getitem__(self, attr.xmlname[False])
+			attr = dict.__getitem__(self, key)
 		except KeyError: # if the attribute is not there generate a new one (containing the default value)
-			attr = attr()
-			dict.__setitem__(self, name, attr)
+			attr = self.allowedattr(name, xml=xml)()
+			dict.__setitem__(self, key, attr)
 		return attr
 
 	def filtered(self, function):
@@ -2171,6 +2177,15 @@ class Element(Node):
 			return "<element class %s:%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
 
 	class Attrs(Attrs):
+		def _allowedattrkey(cls, name, xml=False):
+			if isinstance(name, tuple):
+				return (name[0], name[0].Attrs._allowedattrkey(name[1], xml=xml))
+			try:
+				return cls._attrs[xml][name].xmlname[False]
+			except KeyError:
+				raise errors.IllegalAttrError(cls, name, xml=xml)
+		_allowedattrkey = classmethod(_allowedattrkey)
+
 		def allowedattr(cls, name, xml=False):
 			if isinstance(name, tuple):
 				return name[0].Attrs.allowedattr(name[1], xml=xml)
