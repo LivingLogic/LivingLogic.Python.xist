@@ -107,7 +107,7 @@ node = html.html(
 <par>Instead of the module object (which must contain a
 namespace object named <lit>xmlns</lit>, you can also
 pass the namespace object itself (i.e. <lit>xml.xmlns</lit>)
-or the namespace name (i.e. <lit>"http://www.w3.org/1998/namespaces"</lit>.</par>
+or the namespace name (i.e. <lit>"http://www.w3.org/XML/1998/namespace"</lit>.</par>
 
 </section>
 
