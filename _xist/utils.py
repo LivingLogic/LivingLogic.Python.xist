@@ -57,19 +57,20 @@ def replaceInitialURL(frag, callback):
 	will be put in into the frag instead of the old text nodes.
 	"""
 	newfrag = xsc.Frag()
-	for i in xrange(len(frag)):
-		v = frag[i]
-		if isinstance(v, (xsc.Text, xsc.CharRef)):
-			newfrag.append(v)
+	if len(frag):
+		for i in xrange(len(frag)):
+			v = frag[i]
+			if isinstance(v, (xsc.Text, xsc.CharRef)):
+				newfrag.append(v)
+			else:
+				break
 		else:
-			break
-	else:
-		i += 1
-	if len(newfrag): # do the replacement only if we have something static
-		u = url_.URL(unicode(newfrag).lstrip())
-		u = callback(u)
-		newfrag = xsc.Frag(u.url)
-	while i < len(frag):
-		newfrag.append(frag[i])
-		i += 1
+			i += 1
+		if len(newfrag): # do the replacement only if we have something static
+			u = url_.URL(unicode(newfrag).lstrip())
+			u = callback(u)
+			newfrag = xsc.Frag(u.url)
+		while i < len(frag):
+			newfrag.append(frag[i])
+			i += 1
 	return newfrag
