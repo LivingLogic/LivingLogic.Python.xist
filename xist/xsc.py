@@ -13,6 +13,9 @@ import Image
 # for parsing XML files
 import xmllib
 
+# for parsing URLs
+import urlparse
+
 # for reading remote files
 import urllib
 
@@ -414,20 +417,21 @@ class XSCurl(XSCElement):
 			self.content = XSCFrag(content)
 
 	def __repr__(self):
-		url = repr(self.content)
-		if url[0] == "/": # this is a server relative URL, use the server specified in the options (usually localhost)
-			url = "http://" + xsc.server + url
-		else:
-			if not xsc.is_remote(url):
-				if url[0] == ":": # project relative, i.e. relative to the current directory
-					url = url[1:]
-				# now we have an URL that is relative to the current directory, replace URL syntax with the path syntax on our system (won't do anything under UNIX, replaces / with  \ under Windows
-				urlsplit = string.splitfields(url,"/")
-				for i in range(len(urlsplit)):
-					if urlsplit[i] == "..":
-						urlsplit[i] = os.pardir
-				url = string.joinfields(urlsplit,os.sep)
-		return url
+		(scheme,server,path,parameters,query,fragment) = urlparse.urlparse(repr(self.content))
+		if scheme == "" and server == "":
+			if len(path) and path[0] == "/": # this is a server relative URL, use the server specified in the options (usually localhost)
+				scheme = "http"
+				server = xsc.server
+			else:
+				if len(path) and path[0] == ":": # project relative, i.e. relative to the current directory
+					path = path[1:]
+				# now we have an URL that is relative to the current directory, replace URL syntax with the path syntax on our system (won't do anything under UNIX, replaces / with  \ under Windows)
+				pathsplit = string.splitfields(path,"/")
+				for i in range(len(pathsplit)):
+					if pathsplit[i] == "..":
+						pathsplit[i] = os.pardir
+				path = string.joinfields(pathsplit,os.sep)
+		return urlparse.urlunparse((scheme,server,path,parameters,query,fragment))
 
 	def __str__(self):
 		url = str(self.content)
