@@ -21,7 +21,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 import sys, getopt
 
 from ll.xist import xsc, parsers, converters
-from ll.xist.ns import html, doc
+from ll.xist.ns import html, doc, text
 
 def xsc2txt(infilename, outfilename, title, width):
 	e = parsers.parseFile(infilename, prefixes=xsc.DocPrefixes())
@@ -36,7 +36,7 @@ def xsc2txt(infilename, outfilename, title, width):
 		)
 	)
 
-	e = e.conv(target="text")
+	e = e.conv(target=text)
 
 	file = open(outfilename, "wb")
 	file.write(e.asText(width=width))
