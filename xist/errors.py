@@ -29,6 +29,9 @@ the base class Error.
 __version__ = "$Revision$"[11:-2]
 # $Source$
 
+import string
+import xsc
+
 class Error(Exception):
 	"""
 	base class for all XSC exceptions
@@ -116,12 +119,12 @@ class IllegalElementError(Error):
 
 	def __str__(self):
 		elementnames = []
-		for elementname in _elementHandlers.keys():
-			for namespace in _elementHandlers[elementname].keys():
-				elementnames.append(_strNode(_elementHandlers[elementname][namespace],brackets = 1))
+		for elementname in xsc._elementHandlers.keys():
+			for namespace in xsc._elementHandlers[elementname].keys():
+				elementnames.append(xsc._strNode(xsc._elementHandlers[elementname][namespace],brackets = 1))
 		elementnames.sort()
 
-		s = Error.__str__(self) + "element " + _strName((self.name[0],self.name[1],0)) + " not allowed. "
+		s = Error.__str__(self) + "element " + xsc._strName((self.name[0],self.name[1],0)) + " not allowed. "
 		if elementnames:
 			s = s + "Allowed elements are: " + string.join(elementnames,", ") + "."
 		else:
@@ -220,8 +223,8 @@ class AmbiguousElementError(Error):
 
 	def __str__(self):
 		elementnames = []
-		for namespace in _elementHandlers[self.name[1]].keys():
-			elementnames.append(_strNode(_elementHandlers[self.name[1]][namespace]))
+		for namespace in xsc._elementHandlers[self.name[1]].keys():
+			elementnames.append(xsc._strNode(xsc._elementHandlers[self.name[1]][namespace]))
 		elementnames.sort()
 
 		return Error.__str__(self) + "element " + _strName((self.name[0],self.name[1],0)) + " is ambigous. Possible elements are: " + string.join(elementnames,", ") + "."

@@ -1671,7 +1671,7 @@ class Parser(xmllib.XMLParser):
 	def __appendNode(self,node):
 		node.startlineno = self.lineno
 		last = self.nesting[-1]
-		if node.__class__ in [ Text, CharRef] and len(last) and last[-1].__class__ is Text:
+		if len(last) and last[-1].__class__ is Text and (node.__class__ is Text or (node.__class__ is CharRef and node.content < 256)): # 256 test will disappear in Python 1.6
 			if node.__class__ is Text:
 				last[-1].content = last[-1].content + node.content
 			else:
