@@ -507,7 +507,7 @@ class blob(xsc.Element):
 		return (specials.nbsp() + "- ").asHTML()
 xsc.registerElement(blob)
 
-class schulen(dl):
+class schulen(html.dl):
 	empty = 0
 
 	def asHTML(self):
