@@ -88,7 +88,7 @@ class Converter(object):
 	def __getroot(self):
 		return self.states[-1].root
 
-	def __setmode(self, root):
+	def __setroot(self, root):
 		self.states[-1].root = root
 
 	def __delroot(self):
