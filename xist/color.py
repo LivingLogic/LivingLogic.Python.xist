@@ -26,9 +26,7 @@ This module contains classes for handling ANSI colors.
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-import UserList
-
-class Text(UserList.UserList):
+class Text:
 	"""
 	a colored string, colors can be numbers from
 	0 to 15 for the 16 ANSI colors or -1 if this
