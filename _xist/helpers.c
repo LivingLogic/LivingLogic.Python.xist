@@ -295,17 +295,6 @@ static PyObject *escapeText(PyObject *self, PyObject *args)
 	}
 }
 
-static PyObject *escapeText2(PyObject *self, PyObject *args)
-{
-	PyUnicodeObject *unicode;
-	const char *encoding = NULL;
-
-	if (!PyArg_ParseTuple(args, "O!s:escapeText", &unicode, &encoding))
-		return NULL;
-
-	return __escapeText2(unicode, encoding, &replacements[1]);
-}
-
 static char escapeAttr__doc__[] =
 "escapeAttr(unicode, encoding) -> unicode\n\
 \n\
