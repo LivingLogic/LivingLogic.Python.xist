@@ -48,7 +48,7 @@ class StringInputSource(InputSource):
 		if tidy:
 			(nerrors, nwarnings, outputdata, errordata) = Tidy.tidy(text, numeric_entities=1, output_xhtml=1, output_xml=1, quiet=1, tidy_mark=0, wrap=0)
 			if nerrors>0:
-				raise saxlib.SAXException("can't tidy %r: %r" % (systemId, errordata))
+				raise saxlib.SAXException("can't tidy %r (%d errors, %d warnings):\n%s" % (systemId, nerrors, nwarnings, errordata))
 			text = outputdata
 		self.setByteStream(StringIO.StringIO(text))
 		self.setEncoding(defaultEncoding)
