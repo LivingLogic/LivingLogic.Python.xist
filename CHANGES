@@ -43,6 +43,9 @@ same as e[0][1]["foo"][2].
 The deprecated module db no longer exists. Useful functions and elements
 from db have been move to sql.py und form.py respectively.
 
+When using xsc.make() the encoding and XHTML parameters to use can now
+be specified one the command line (e.g. --encoding utf-8 --xhtml 2)
+
 New in 0.3.9
 ------------
 sgmlop will now be found either via
