@@ -40,7 +40,7 @@ class EHSCIllegalAttribute(EHSCException):
 		self.attr = attr
 
 	def __str__(self):
-		return "the element '" + self.element.__class__.__name__ + "' has an attribute ('" + self.attr + "') that is not allowed here. The only allowed attributes are: " + str(self.element.permitted_attrs)
+		return "the element '" + self.element.__class__.__name__ + "' has an attribute ('" + self.attr + "') that is not allowed here. The only allowed attributes are: " + str(self.element.attr_handlers.keys())
 
 class EHSCImageSizeFormat(EHSCException):
 	"Can't format or evaluate image size attribute"
@@ -64,6 +64,13 @@ class EHSCFileNotFound(EHSCException):
 ###
 ###
 ###
+
+def AppendDict(*dicts):
+	result = {}
+	for dict in dicts:
+		for key in dict.keys():
+			result[key] = dict[key]
+	return result
 
 class XSCNode:
 	"base class for nodes in the document tree. Derived class must implement AsString() und AsHTML()"
@@ -98,35 +105,60 @@ class XSCDocType(XSCNode):
 	def AsString(self,xsc):
 		return "<!DOCTYPE " + self.data + ">"
 
+class XSCStringAttr(XSCNode):
+	"string attribute"
+
+	def __init__(self,data):
+		self.data = data
+
+	def AsHTML(self,xsc,mode = None):
+		return XSCStringAttr(xsc.AsHTML(self.data))
+
+	def AsString(self,xsc):
+		return xsc.AsString(self.data)
+
+class XSCURLAttr(XSCNode):
+	"url attribute"
+
+	def __init__(self,data):
+		self.data = data
+
+	def AsHTML(self,xsc,mode = None):
+		return XSCURLAttr(xsc.AsHTML(self.data))
+
+	def AsString(self,xsc):
+		url = xsc.AsString(self.data) 
+		if url[0] == ":":
+			url = "???" + url[1:]
+		return url
+
 class XSCElement(XSCNode):
 	"XML elements"
 
 	close = 0
-	permitted_attrs = []
+	attr_handlers = {}
 
 	def __init__(self,content = [],attrs = {},**restattrs):
 		self.content = content
 		self.attrs = {}
 
-		# make a deep copy here
-		for i in attrs.keys():
-			self.attrs[i] = attrs[i]
-		for i in restattrs.keys():
-			self.attrs[i] = restattrs[i]
+		# construct the attribute dictionary, keys are the attribute names, values are the various nodes for the differnet attribute type; checks that only attributes that are allow are used (raises an exception otherwise)"
+		for attr in attrs.keys():
+			if self.attr_handlers.has_key(attr):
+				self.attrs[attr] = self.attr_handlers[attr](attrs[attr])
+			else:
+				raise EHSCIllegalAttribute(self,attr)
+		for attr in restattrs.keys():
+			if self.attr_handlers.has_key(attr):
+				self.attrs[attr] = self.attr_handlers[attr](restattrs[attr])
+			else:
+				raise EHSCIllegalAttribute(self,attr)
 
 	def append(self,item):
 		self.content.append(item)
 
-	def CheckAttrs(self):
-		"checks that only attributes that are allow are used (raises an exception otherwise)"
-
-		for attr in self.attrs.keys():
-			if attr not in self.permitted_attrs:
-				raise EHSCIllegalAttribute(self,attr)
-
 	def AsHTML(self,xsc,mode = None):
-		self.CheckAttrs()
-
+		"return this element converted to legal HTML elements (since we do not know yet, which element this will be, we simply convert the element)"
 		e = self
 		e.content = xsc.AsHTML(self.content,mode)
 		e.attrs   = xsc.AsHTML(self.attrs,mode)
@@ -274,11 +306,6 @@ class XSC(XMLParser):
 	def __str__(self):
 		return self.AsHTML().AsString()
 
-	def ExpandedURL(self,url):
-		"expands URLs"
-
-		return url
-
 	def ImageSize(self,url):
 		"returns the size of an image as a tuple"
 
@@ -293,18 +320,12 @@ class XSC(XMLParser):
 
 		return os.stat(url)[stat.ST_SIZE]
 
-	def ExpandLinkAttribute(self,element,attr):
-		"expands the url that is the value of attr"
-
-		if element.has_attr(attr):
-			element[attr] = self.ExpandedURL(element[attr])
-
 	def AddImageSizeAttributes(self,element,imgattr,widthattr = "width",heightattr = "height"):
 		"add width and height attributes to the element for the image that can be found in the attributes imgattr. if the attribute is already there it is taken as a formating template with the size passed in as a dictionary with the keys 'width' and 'height', i.e. you could make your image twice as wide with width='%(width)d*2'"
 
 		if element.has_attr(imgattr):
-			self.ExpandLinkAttribute(element,imgattr)
-			size = self.ImageSize(element[imgattr])
+			url = self.AsString(element[imgattr])
+			size = self.ImageSize(url)
 			sizedict = { "width": size[0], "height": size[1] }
 			if element.has_attr(widthattr):
 				try:
