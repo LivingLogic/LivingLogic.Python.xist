@@ -320,7 +320,8 @@ class wrap(xsc.Element):
 	<doc:par>a wrapper element that returns its content.
 	This is e.g. useful if you want to parse a
 	file that starts with <pyref module="xist.ns.jsp"><module>&jsp;</module></pyref>
-	processing instructions</doc:par>
+	processing instructions or if you want the hide a part of an &url; from the
+	automatic &url; conversion.</doc:par>
 	"""
 	empty = 0
 
