@@ -18,6 +18,14 @@ and <lit>iso-8859-1</lit> is used when parsing broken &html;.</item>
 </section>
 
 
+<section><title>Changes in 2.8.1 (released 03/22/2005)</title>
+<ulist>
+<item>Added a note about the package init file to the installation
+documentation.</item>
+</ulist>
+</section>
+
+
 <section><title>Changes in 2.8 (released 01/03/2005)</title>
 <ulist>
 <item>&xist; requires Python 2.4 now.</item>

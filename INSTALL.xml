@@ -26,7 +26,10 @@ python setup.py install
 </prog>
 <par>This will copy <filename>*.py</filename> files, compile <filename>*.c</filename>
 files and install everything in the <dirname>site-packages</dirname>
-directory as the <module>ll.xist</module> package.</par>
+directory as the <module>ll.xist</module> package. <app>distutils</app> might
+complain about a missing <filename>__init__.py</filename>, but you can ignore
+this: The main package init file (for the <module>ll</module> package) is
+provided by <pyref module="ll">ll-core</pyref>.</par>
 
 <par>If you're updating from a version older than 1.5, remove the old package
 <module>xist</module> from your installation directory and remove the
