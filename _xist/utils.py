@@ -31,18 +31,6 @@ import sys, os, types
 
 import helpers
 
-def forceopen(name, mode="r", bufsize=-1):
-	try:
-		return open(name, mode, bufsize)
-	except IOError, e:
-		if e[0] != 2: # didn't work for some other reason
-			raise
-		found = name.rfind("/")
-		if found == -1:
-			raise
-		os.makedirs(name[:found])
-		return open(name, mode, bufsize)
-
 def findAttr(content, name):
 	startpos = content.find(name)
 	if startpos != -1:
