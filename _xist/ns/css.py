@@ -22,7 +22,8 @@
 """
 <doc:par>An &xist; module that contains elements that can be used to generate
 &css;2 files.</doc:par>
-<doc:par>For further info about &css;2 see <a href="http://www.w3.org/TR/REC-CSS2">http://www.w3.org/TR/REC-CSS2</a>.</doc:par>
+<doc:par>For further info about &css;2 see 
+<a href="http://www.w3.org/TR/REC-CSS2">http://www.w3.org/TR/REC-CSS2</a>.</doc:par>
 """
 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
@@ -72,9 +73,10 @@ class atimport(xsc.Element):
 
 class atmedia(xsc.Element):
 	"""
-	<doc:par>An <class>atmedia</class> rule specifies the target media types (separated by commas in the attribute
-	<lit>media</lit>) of a set of rules (in the content). The <class>atmedia</class> element allows style sheet rules
-	for various media in the same style sheet.</doc:par>
+	<doc:par>An <class>atmedia</class> rule specifies the target media types
+	(separated by commas in the attribute <lit>media</lit>) of a set of rules (in the content).
+	The <class>atmedia</class> element allows style sheet rules for various media in the same 
+	style sheet.</doc:par>
 	<doc:par>Possible media types are:</doc:par>
 	<doc:ulist>
 	<doc:item><lit>all</lit>: Suitable for all devices.</doc:item>
@@ -107,7 +109,8 @@ class atmedia(xsc.Element):
 class atcharset(xsc.Element):
 	"""
 	<doc:par>The character set of the stylesheet. Will be set automatically
-	on publishing.</doc:par>
+	on publishing, so this element is empty. Simply include it at the start
+	of the style sheet.</doc:par>
 	"""
 	empty = 1
 	
@@ -148,7 +151,8 @@ class sel(xsc.Element):
 
 class prop(xsc.Element):
 	"""
-	<doc:par>A CSS property.</doc:par>
+	<doc:par>A &css; property. This is the base class for all
+	the properties defined in &css;2.</doc:par>
 	"""
 	empty = 0
 	attrHandlers = {"important": xsc.BoolAttr}
@@ -161,157 +165,280 @@ class prop(xsc.Element):
 		publisher.publish(u";")
 
 class margin_top(prop):
-	"""Set the top margin of a box."""
+	"""
+	<doc:par>Set the top margin of a box. Allowed values are a length or the value <lit>inherit</lit>.</doc:par>
+	"""
 	name = "margin-top"
 
 class margin_right(prop):
-	"""Set the right margin of a box."""
+	"""
+	<doc:par>Set the right margin of a box. Allowed values are a length or the value <lit>inherit</lit>.</doc:par>
+	"""
 	name = "margin-right"
 
 class margin_bottom(prop):
-	"""Set the bottom margin of a box."""
+	"""
+	<doc:par>Set the bottom margin of a box. Allowed values are a length or the value <lit>inherit</lit>.</doc:par>
+	"""
 	name = "margin-bottom"
 
 class margin_left(prop):
-	"""Set the left margin of a box."""
+	"""
+	<doc:par>Set the left margin of a box. Allowed values are a length or the value <lit>inherit</lit>.</doc:par>
+	"""
 	name = "margin-left"
 
 class margin(prop):
 	"""
-	The <class>margin</class> property is a shorthand property for setting
-	<class>margin_top</class>, <class>margin_right</class>, <class>margin_bottom</class>,
-	and <class>margin_left</class> at the same place in the style sheet.
+	<doc:par>The <class>margin</class> property is a shorthand property for setting
+	<pyref class="margin_top"><class>margin_top</class></pyref>,
+	<pyref class="margin_right"><class>margin_right</class></pyref>,
+	<pyref class="margin_bottom"><class>margin_bottom</class></pyref>
+	and <pyref class="margin_left"><class>margin_left</class></pyref>
+	at the same place in the style sheet.</doc:par>
+
+	<doc:par>If there is only one value, it applies to all sides. If there are two values,
+	the top and bottom margins are set to the first value and the right and left margins
+	are set to the second. If there are three values, the top is set to the first value,
+	the left and right are set to the second, and the bottom is set to the third.
+	If there are four values, they apply to the top, right, bottom, and left, respectively.</doc:par> 
 	"""
+
 class padding_top(prop):
-	"""Set the top padding of a box."""
+	"""
+	<doc:par>Set the top padding of a box. Allowed values are a length or the value <lit>inherit</lit>.
+	A percentage value is calculated with respect to the width of the generated box.</doc:par>"""
 	name = "padding-top"
 
 class padding_right(prop):
-	"""Set the right padding of a box."""
+	"""
+	<doc:par>Set the right padding of a box. Allowed values are a length or the value <lit>inherit</lit>.
+	A percentage value is calculated with respect to the width of the generated box.</doc:par>
+	"""
 	name = "padding-right"
 
 class padding_bottom(prop):
-	"""Set the bottom padding of a box."""
+	"""
+	<doc:par>Set the bottom padding of a box. Allowed values are a length or the value <lit>inherit</lit>.
+	A percentage value is calculated with respect to the width of the generated box.</doc:par>
+	"""
 	name = "padding-bottom"
 
 class padding_left(prop):
-	"""Set the left padding of a box."""
+	"""
+	<doc:par>Set the left padding of a box. Allowed values are a length or the value <lit>inherit</lit>.
+	A percentage value is calculated with respect to the width of the generated box.</doc:par>
+	"""
 	name = "padding-left"
 
 class padding(prop):
 	"""
-	The <class>padding</class> property is a shorthand property for setting
-	<class>padding_top</class>, <class>padding_right</class>, <class>padding_bottom</class>,
-	and <class>padding_left</class> at the same place in the style sheet.
+	<doc:par>The <class>padding</class> property is a shorthand property for setting
+	<pyref class="padding_top"><class>padding_top</class></pyref>,
+	<pyref class="padding_right"><class>padding_right</class></pyref>,
+	<pyref class="padding_bottom"><class>padding_bottom</class></pyref>
+	and <pyref class="padding_left"><class>padding_left</class></pyref>
+	at the same place in the style sheet.</doc:par>
+
+	<doc:par>If there is only one value, it applies to all sides. If there are two values,
+	the top and bottom paddings are set to the first value and the right and left paddings
+	are set to the second. If there are three values, the top is set to the first value,
+	the left and right are set to the second, and the bottom is set to the third.
+	If there are four values, they apply to the top, right, bottom, and left, respectively.</doc:par>
 	"""
 
 class border_top_width(prop):
-	"""Set the top border width of a box."""
+	"""
+	<doc:par>Set the top border width of a box. Allowed values are a length, <lit>thin</lit>,
+	<lit>medium</lit>, <lit>thick</lit> and <lit>inherit</lit>.</doc:par>
+	"""
 	name = "border-top-width"
 
 class border_right_width(prop):
-	"""Set the right border width of a box."""
+	"""
+	<doc:par>Set the right border width of a box. Allowed values are a length, <lit>thin</lit>,
+	<lit>medium</lit>, <lit>thick</lit> and <lit>inherit</lit>.</doc:par>
+	"""
 	name = "border-right-width"
 
 class border_bottom_width(prop):
-	"""Set the bottom border width of a box."""
+	"""
+	<doc:par>Set the bottom border width of a box. Allowed values are a length, <lit>thin</lit>,
+	<lit>medium</lit>, <lit>thick</lit> and <lit>inherit</lit>.</doc:par>
+	"""
 	name = "border-bottom-width"
 
 class border_left_width(prop):
-	"""Set the left border width of a box."""
+	"""
+	<doc:par>Set the left border width of a box. Allowed values are a length, <lit>thin</lit>,
+	<lit>medium</lit>, <lit>thick</lit> and <lit>inherit</lit>.</doc:par>
+	"""
 	name = "border-left-width"
 
 class border_width(prop):
 	"""
-	The <class>border_width</class> property is a shorthand property for setting
+	<doc:par>The <class>border_width</class> property is a shorthand property for setting
 	<pyref class="border_top_width"><class>border_top_width</class></pyref>,
 	<pyref class="border_right_width"><class>border_right_width</class></pyref>,
 	<pyref class="border_bottom_width"><class>border_bottom_width</class></pyref>,
 	and <pyref class="border_left_width"><class>border_left_width</class></pyref> at the same place
-	in the style sheet.
+	in the style sheet.</doc:par>
+
+	<doc:par>If there is only one value, it applies to all sides. If there are two values,
+	the top and bottom borders are set to the first value and the right and left are set to the second.
+	If there are three values, the top is set to the first value, the left and right are set to the second,
+	and the bottom is set to the third. If there are four values, they apply to the top, right,
+	bottom, and left, respectively.</doc:par> 
 	"""
 	name = "border-width"
 
 class border_top_color(prop):
-	"""Set the top border color of a box."""
+	"""
+	<doc:par>Set the top border color of a box. Allowed values are a color or <lit>transparent</lit>.</doc:par>
+	"""
 	name = "border-top-color"
 
 class border_right_color(prop):
-	"""Set the right border color of a box."""
+	"""
+	<doc:par>Set the right border color of a box. Allowed values are a color or <lit>transparent</lit>.</doc:par>
+	"""
 	name = "border-right-color"
 
 class border_bottom_color(prop):
-	"""Set the bottom border color of a box."""
+	"""
+	<doc:par>Set the bottom border color of a box. Allowed values are a color or <lit>transparent</lit>.</doc:par>
+	"""
 	name = "border-bottom-color"
 
 class border_left_color(prop):
-	"""Set the left border color of a box."""
+	"""
+	<doc:par>Set the left border color of a box. Allowed values are a color or <lit>transparent</lit>.</doc:par>
+	"""
 	name = "border-left-color"
 
 class border_color(prop):
 	"""
-	The <class>border_color</class> property is a shorthand property for setting
-	<class>border_top_color</class>, <class>border_right_color</class>,
-	<class>border_bottom_color</class>, and <class>border_left_color</class> at the same place
-	in the style sheet.
+	<doc:par>The <class>border_color</class> property is a shorthand property for setting
+	<pyref class="border_top_color"><class>border_top_color</class></pyref>,
+	<pyref class="border_right_color"><class>border_right_color</class></pyref>,
+	<pyref class="border_bottom_color"><class>border_bottom_color</class></pyref>,
+	and <pyref class="border_left_color"><class>border_left_color</class></yyref> at the same place
+	in the style sheet.</doc:par>
+
+	<doc:par>The <class>border_color</class> property can have from one to four values,
+	and the values are set on the different sides as for
+	<pyref class="border_width"><class>border_width</class></pyref>.</doc:par> 
+
+	<doc:par>If an element's border color is not specified with a border property, 
+	user agents must use the value of the element's <pyref class="color"><class>color</class></pyref>
+	property as the computed value for the border color.</doc:par>
 	"""
 	name = "border-color"
 
 class border_top_style(prop):
-	"""Set the top border style of a box."""
+	"""
+	<doc:par>The <class>border_top_style</class> properties specify the line style of a 
+	box's top border. Allow values are:</doc:par>
+
+	<doc:ulist>
+	<doc:item><lit>none</lit>: No border. This value forces the computed value of 
+	<pyref class="border_top_width"><class>border_top_width</class></pyref> to be <lit>0</lit>.</doc:item> 
+	<doc:item><lit>hidden</lit>: Same as <lit>none</lit>, except in terms of border conflict resolution 
+	for table elements.</doc:item>
+	<doc:item><lit>dotted</lit>: The border is a series of dots.</doc:item> 
+	<doc:item><lit>dashed</lit>: The border is a series of short line segments.</doc:item>
+	<doc:item><lit>solid</lit>: The border is a single line segment.</doc:item> 
+	<doc:item><lit>double</lit>: The border is two solid lines. The sum of the two lines and the 
+	space between them equals the value of <pyref class="border_top_width"><class>border_top_width</class></pyref>.</doc:item> 
+	<doc:item><lit>groove</lit>: The border looks as though it were carved into the canvas.</doc:item>
+	<doc:item><lit>ridge</lit>: The opposite of <lit>groove</lit>: the border looks as though it were 
+	coming out of the canvas.</doc:item>
+	<doc:item><lit>inset</lit>: The border makes the entire box look as though it were embedded 
+	in the canvas.</doc:item>
+	<doc:item><lit>outset</lit>: The opposite of <lit>inset</lit>: the border makes the entire box 
+	look as though it were coming out of the canvas.</doc:item>
+	</doc:ulist>
+
+	<doc:par>All borders are drawn on top of the box's background. The color of borders drawn for values 
+	of <lit>groove</lit>, <lit>ridge</lit>, <lit>inset</lit>, and <lit>outset</lit> depends on the 
+	element's <pyref class="color"><class>color</class></pyref> property. 
+	"""
 	name = "border-top-style"
 
 class border_right_style(prop):
-	"""Set the right border style of a box."""
+	"""
+	<doc:par>The <class>border_right_style</class> properties specify the line style of a 
+	box's right border. For allowed values refer to
+	<pyref class="border_top_style"><class>border_top_style</class></pyref>.</doc:par>
+	"""
 	name = "border-right-style"
 
 class border_bottom_style(prop):
-	"""Set the bottom border style of a box."""
+	"""
+	<doc:par>The <class>border_bottom_style</class> properties specify the line style of a 
+	box's bottom border. For allowed values refer to
+	<pyref class="border_bottom_style"><class>border_bottom_style</class></pyref>.</doc:par>
+	"""
 	name = "border-bottom-style"
 
 class border_left_style(prop):
-	"""Set the left border style of a box."""
+	"""
+	<doc:par>The <class>border_left_style</class> properties specify the line style of a 
+	box's left border. For allowed values refer to
+	<pyref class="border_left_style"><class>border_left_style</class></pyref>.</doc:par>
+	"""
 	name = "border-left-style"
 
 class border_style(prop):
 	"""
-	The <class>border_style</class> property is a shorthand property for setting
-	<class>border_top_style</class>, <class>border_right_style</class>,
-	<class>border_bottom_style</class>, and <class>border_left_style</class> at the same place
-	in the style sheet.
+	<doc:par>The <class>border_style</class> property sets the style of the four borders.
+	It can have from one to four values, and the values are set on the different sides as for
+	<pyref class="border_width"><class>border-width</class>.</doc:par>
 	"""
 	name = "border-style"
 
 class border_top(prop):
-	"""Set the top border of a box."""
+	"""
+	<doc:par>This is a shorthand property for setting the width, style, and color
+	of the top border of a box.</doc:par>
+	"""
 	name = "border-top"
 
 class border_right(prop):
-	"""Set the right border of a box."""
+	"""
+	<doc:par>This is a shorthand property for setting the width, style, and color
+	of the right border of a box.</doc:par>
+	"""
 	name = "border-right"
 
 class border_bottom(prop):
-	"""Set the bottom border of a box."""
+	"""
+	<doc:par>This is a shorthand property for setting the width, style, and color
+	of the bottom border of a box.</doc:par>
+	"""
 	name = "border-bottom"
 
 class border_left(prop):
-	"""Set the left border of a box."""
+	"""
+	<doc:par>This is a shorthand property for setting the width, style, and color
+	of the left border of a box.</doc:par>
+	"""
 	name = "border-left"
 
 class border(prop):
 	"""
-	The <class>border</class> property is a shorthand property for setting
-	<pyref class="border_top"><class>border_top</class></pyref>,
-	<pyref class="border_right"><class>border_right</class></pyref>,
-	<pyref class="border_bottom"><class>border_bottom</class></pyref>,
-	and <pyref class="border_left"><class>border_left</class></pyref> at the same place
-	in the style sheet.
+	<doc:par>The <class>border</class> property is a shorthand property for setting the same width,
+	color, and style for all four borders of a box. Unlike the shorthand
+	<pyref class="margin"><class>margin</class></pyref> and <pyref class="padding">padding</class></pyref>
+	properties, the <class>border</class> property cannot set different values on the four borders.
+	To do so, one or more of the other border properties must be used.</doc:par> 
 	"""
 
 class display(prop):
 	"""
 	<doc:par>Sets the display type of a box. The values of this property
 	have the following meanings:</doc:par>
+
 	<doc:ulist>
 	<doc:item><lit>block</lit>: This value causes an element to generate a principal block box.</doc:item>
 	<doc:item><lit>inline</lit>: This value causes an element to generate one or more inline boxes.</doc:item>
@@ -326,7 +453,7 @@ class display(prop):
 	in the formatting structure (i.e., the element has no effect on layout). Descendant elements
 	do not generate any boxes either; this behavior cannot be overridden by setting the
 	<class>display</class> property on the descendants. Please note that a display of
-	<lit>none</lit> does not create an invisible box; it creates no box at all. CSS includes
+	<lit>none</lit> does not create an invisible box; it creates no box at all. &css; includes
 	mechanisms that enable an element to generate boxes in the formatting structure that
 	affect formatting but are not visible themselves.</doc:item>
 	<doc:item><lit>run-in</lit> and <lit>compact</lit>: These values create either block
@@ -344,8 +471,9 @@ class display(prop):
 class position(prop):
 	"""
 	<doc:par>The <class>position</class> and <pyref class="float"><class>float</class></pyref> properties
-	determine which of the CSS2 positioning algorithms is used to calculate the
+	determine which of the &css;2 positioning algorithms is used to calculate the
 	position of a box. The values of this property have the following meanings:</doc:par>
+
 	<doc:ulist>
 	<doc:item><lit>static</lit>: The box is a normal box, laid out according to the normal flow.
 	The <pyref class="left"><class>left</class></pyref> and <pyref class="top"><class>top</class></pyref>
@@ -373,27 +501,27 @@ class position(prop):
 
 class top(prop):
 	"""
-	This property specifies how far a box's top content edge
-	is offset below the top edge of the box's containing block.
+	<doc:par>This property specifies how far a box's top content edge
+	is offset below the top edge of the box's containing block.</doc:par>
 	"""
 
 class right(prop):
 	"""
-	This property specifies how far a box's right content edge
-	is offset to the left of the right edge of the box's containing block.
+	<doc:par>This property specifies how far a box's right content edge
+	is offset to the left of the right edge of the box's containing block.</doc:par>
 	"""
 
 class bottom(prop):
 	"""
-	This property specifies how far a box's bottom content edge
-	is offset above the bottom of the box's containing block.
+	<doc:par>This property specifies how far a box's bottom content edge
+	is offset above the bottom of the box's containing block.</doc:par>
 	"""
 
 class left(prop):
 	"""
-	This property specifies how far a box's left content edge
+	<doc:par>This property specifies how far a box's left content edge
 	is offset to the right of the left edge of the box's
-	containing block.
+	containing block.</doc:par>
 	"""
 
 class float(prop):
@@ -402,6 +530,7 @@ class float(prop):
 	left, right, or not at all. It may be set for elements that
 	generate boxes that are not absolutely positioned. The values
 	of this property have the following meanings:</doc:par>
+
 	<doc:ulist>
 	<doc:item><lit>left</lit>: The element generates a block box that is
 	floated to the left. Content flows on the right side of the box,
@@ -481,7 +610,6 @@ class direction(prop):
 	
 	<doc:ulist>
 	<doc:item><lit>ltr</lit>: Left-to-right direction.</doc:item>
-
 	<doc:item><lit>rtl</lit>: Right-to-left direction.</doc:item>
 	</doc:ulist>
 	
@@ -736,26 +864,85 @@ class content(prop):
 
 class quotes(prop):
 	"""
-	<doc:par>This property specifies quotation marks for any number of embedded quotations.</doc:par>
+	<doc:par>This property specifies quotation marks for any number of embedded quotations.
+	Values have the following meanings:</doc:par>
+	<doc:ulist>
+	<doc:item><lit>none</lit>: The <lit>open-quote</lit> and <lit>close-quote</lit>
+	values of the <pyref class="content"><class>content</class></pyref>
+	property produce no quotations marks.</doc:item> 
+	<doc:item>an even number of strings: Values for the <lit>open-quote</lit> and <lit>close-quote</lit>
+	values of the <pyref class="content"><class>content</class></pyref> property are taken from this list 
+	of pairs of quotation marks (opening and closing). The first (leftmost) pair represents the 
+	outermost level of quotation, the second pair the first level of embedding, etc. 
+	The user agent must apply the appropriate pair of quotation marks according to the 
+	level of embedding. </doc:par>
 	"""
 
 class counter_reset(prop):
 	"""
+	<doc:par>The <class>counter_reset</class> property contains a list of one or more names of counters,
+	each one optionally followed by an integer. The integer gives the value that the counter is set to
+	on each occurrence of the element. The default is 0.</doc:par> 
 	"""
 	name = "counter-reset"
 
 class counter_increment(prop):
 	"""
+	<doc:par>The <class>counter_increment</class> property accepts one or more names of counters 
+	(identifiers), each one optionally followed by an integer. The integer indicates by how much 
+	the counter is incremented for every occurrence of the element. The default increment is 1.
+	Zero and negative integers are allowed.</doc:par>
 	"""
 	name = "counter-increment"
 
 class marker_offset(prop):
 	"""
+	<doc:par>This property specifies the distance between the nearest border edges of a marker box
+	and its associated principal box. The offset may either be a user-specified length or
+	chosen by the UA (<lit>auto</lit>). Lengths may be negative, but there may be 
+	implementation-specific limits.</doc:par>
 	"""
 	name = "marker-offset"
 
 class list_style_type(prop):
 	"""
+	<doc:par>This property specifies appearance of the list item marker if 
+	<pyref class="list_style_image"><class>list_style_image</class></pyref> has the value <lit>none</lit>
+	or if the image pointed to by the URI cannot be displayed. The value <lit>none</lit> specifies no marker,
+	otherwise there are three types of marker: glyphs, numbering systems, and alphabetic systems.</doc:par>
+	
+	<doc:par>Glyphs are specified with <lit>disc</lit>, <lit>circle</lit>, and <lit>square</lit>.
+	Their exact rendering depends on the user agent.</doc:par> 
+	
+	<doc:par>Numbering systems are specified with:</doc:par>
+	
+	<doc:ulist>
+	<doc:item><lit>decimal</lit>: Decimal numbers, beginning with 1.</doc:item> 
+	<doc:item><lit>decimal-leading-zero</lit>: Decimal numbers padded by initial zeros
+	(e.g., 01, 02, 03, ..., 98, 99).</doc:item> 
+	<doc:item><lit>lower-roman</lit>: Lowercase roman numerals (i, ii, iii, iv, v, etc.).</doc:item> 
+	<doc:item><lit>upper-roman</lit>: Uppercase roman numerals (I, II, III, IV, V, etc.).</doc:item>
+	<doc:item><lit>hebrew</lit>: Traditional Hebrew numbering.</doc:item>
+	<doc:item><lit>georgian</lit>: Traditional Georgian numbering
+	(an, ban, gan, ..., he, tan, in, in-an, ...).</doc:item>
+	<doc:item><lit>armenian</lit>: Traditional Armenian numbering.</doc:item>
+	<doc:item><lit>cjk-ideographic</lit>: Plain ideographic numbers.</doc:item>
+	<doc:item><lit>hiragana</lit>: a, i, u, e, o, ka, ki, ...</doc:item> 
+	<doc:item><lit>katakana</lit>: A, I, U, E, O, KA, KI, ...</doc:item>
+	<doc:item><lit>hiragana-iroha</lit>: i, ro, ha, ni, ho, he, to, ...</doc:item>
+	<doc:item><lit>katakana-iroha</lit>: I, RO, HA, NI, HO, HE, TO, ...</doc:item>
+	</doc:ulist>
+
+	<doc:par>Alphabetic systems are specified with:</doc:par>
+	
+	<doc:ulist>
+	<doc:item><lit>lower-latin</lit> or <lit>lower-alpha</lit>: Lowercase ascii letters
+	(a, b, c, ... z).</doc:item> 
+	<doc:item><lit>upper-latin</lit> or <lit>upper-alpha</lit>: Uppercase ascii letters
+	(A, B, C, ... Z).</doc:item> 
+	<doc:item><lit>lower-greek</lit>: Lowercase classical Greek alpha, beta, gamma, ...
+	(&#941;, &#942;, &#943;, ...)</doc:item>
+	</doc:ulist>
 	"""
 	name = "list-style-type"
 
