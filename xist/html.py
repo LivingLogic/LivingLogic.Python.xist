@@ -53,7 +53,7 @@ class meta(xsc.Element):
 
 	def __init__(self,*_content,**_attrs):
 		# we have two names for one and the same attribute http_equiv and http-equiv
-		apply(xsc.Element.__init__,(self,_content),_attrs)
+		apply(xsc.Element.__init__,tuple([self] + list(_content)),_attrs)
 		if self.has_attr("http_equiv"):
 			if not self.has_attr("http-equiv"):
 				self["http-equiv"] = self["http_equiv"]
