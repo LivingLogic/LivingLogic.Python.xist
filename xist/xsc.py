@@ -1605,6 +1605,11 @@ class TextAttr(Attr):
 	Attribute class that is used for normal text attributes.
 	"""
 
+class NumberAttr(Attr):
+	"""
+	Attribute class that is used for normal number attributes.
+	"""
+
 class BoolAttr(Attr):
 	"""
 	Attribute class that is used for boolean attributes.
