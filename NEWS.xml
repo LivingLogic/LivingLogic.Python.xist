@@ -6,13 +6,13 @@
 <class>ll.xist.xsc.Text</class> too, so you don't have to special case
 <class>CharRef</class>s any more. When publishing, <class>CharRef</class>s
 will be handled like <class>Text</class> nodes.</item>
-<item><p><class>ll.xist.xsc.Frag</class> and <class>ll.xist.xsc.Element</class>
+<item><par><class>ll.xist.xsc.Frag</class> and <class>ll.xist.xsc.Element</class>
 both have a <method>__call__</method> method with the same arguments as
 their constructors. Those methods will append content nodes (and set attributes
 for <class>ll.xist.xsc.Element</class>) and return <self/>, so they can be used
 when creating an object tree. This makes it possible to put the attributes close
-to the tag name, instead of putting them at the end after the content.</p>
-<p>Instead of:</p>
+to the tag name, instead of putting them at the end after the content.</par>
+<par>Instead of:</par>
 <example>
 <prog>
 node = html.table(
