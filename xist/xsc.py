@@ -415,7 +415,7 @@ class XSCFrag(XSCNode):
 		if newother.__class__ is XSCFrag:
 			res.content = res.content + newother.content
 		else:
-			res.content.append(other)
+			res.content.append(newother)
 		return res
 
 	def __radd__(self,other):
