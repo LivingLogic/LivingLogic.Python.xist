@@ -361,8 +361,12 @@ class XSCFrag(XSCNode):
 			del self.content[index]
 
 	def __getslice__(self,index1,index2):
-		"""returns a slice of for the content of the fragment"""
+		"""returns a slice of the content of the fragment"""
 		return XSCFrag(self.content[index1:index2])
+
+	def __delslice__(self,index1,index2):
+		"""removes a slice of the content of the fragment"""
+		del self.content[index1:index2]
 
 	def __len__(self):
 		"""return the number of children"""
@@ -543,8 +547,16 @@ class XSCElement(XSCNode):
 			del self.content[index]
 
 	def __getslice__(self,index1,index2):
-		"""returns a slice of for the content of the element"""
+		"""returns a slice of the content of the element"""
 		return self.content[index1:index2]
+
+	def __delslice__(self,index1,index2):
+		"""removes a slice of the content of the element"""
+		del self.content[index1:index2]
+
+	def __len__(self):
+		"""return the number of children"""
+		return len(self.content)
 
 	def has_attr(self,attr):
 		return self.attrs.has_attr(attr)
