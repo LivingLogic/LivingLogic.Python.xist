@@ -90,6 +90,8 @@ inherits the size for the image specified via the <lit>src</lit>
 attribute.</item>
 <item><class>Frag</class> and <class>Element</class> now support
 extended slices.</item>
+<item><class>Frag</class> and <class>Element</class> now support
+the methods <method>extend</method> and <method>__iadd__</method>.</item>
 </ulist>
 </section>
 
