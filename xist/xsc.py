@@ -224,6 +224,8 @@ def ToNode(value):
 				return ToNode(value[0]) # recursively try to simplify the tree
 			else:
 				return value
+		elif isinstance(value,XSCAttr):
+			return value.content
 		else:
 			return value
 	raise XSCIllegalObjectError(xsc.parser.lineno,value) # none of the above, so we throw and exception
@@ -863,17 +865,17 @@ class XSCAttr(XSCNode):
 	"""
 
 	def __init__(self,_content):
-		self._content = ToNode(_content)
+		self.content = ToNode(_content)
 
 	def __add__(self,other):
 		if other is not None:
-			return self.__class__(self._content+str(ToNode(other)))
+			return self.__class__(self.content+ToNode(other))
 		else:
 			return self
 
 	def __radd__(self,other):
 		if other is not None:
-			return self.__class__(str(ToNode(other))+self._content)
+			return self.__class__(ToNode(other)+self.content)
 		else:
 			return self
 
@@ -886,16 +888,16 @@ class XSCTextAttr(XSCAttr):
 		XSCAttr.__init__(self,_content)
 
 	def _dorepr(self):
-		return _stransi(xsc.repransitextattrs,str(self._content))
+		return _stransi(xsc.repransitextattrs,str(self.content))
 
 	def _doreprtree(self,nest,elementno):
 		return [[nest,self.startlineno,elementno,self._dorepr()]]
 
 	def __str__(self):
-		return str(self._content)
+		return str(self.content)
 
 	def asHTML(self):
-		return XSCTextAttr(self._content)
+		return XSCTextAttr(self.content.clone())
 
 	clone = asHTML
 
@@ -908,16 +910,16 @@ class XSCColorAttr(XSCAttr):
 		XSCAttr.__init__(self,_content)
 
 	def _dorepr(self):
-		return _stransi(xsc.repransitextattrs,str(self._content))
+		return _stransi(xsc.repransitextattrs,str(self.content))
 
 	def _doreprtree(self,nest,elementno):
 		return [[nest,self.startlineno,elementno,self._dorepr()]]
 
 	def __str__(self):
-		return str(self._content)
+		return str(self.content)
 
 	def asHTML(self):
-		return XSCColorAttr(self._content)
+		return XSCColorAttr(self.content.clone())
 
 	clone = asHTML
 
@@ -948,7 +950,7 @@ class XSCURLAttr(XSCAttr):
 
 	def __init__(self,_content):
 		XSCAttr.__init__(self,_content)
-		url = str(self._content)
+		url = str(self.content)
 		(self.scheme,self.server,self.path,self.parameters,self.query,self.fragment) = urlparse.urlparse(url)
 		self.path = string.split(self.path,"/")
 		if self.scheme == "" and self.server == "": # do we have a local file?
