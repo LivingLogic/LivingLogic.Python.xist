@@ -39,6 +39,10 @@ http://www.w3.org/TR/ruby/xhtml11-ruby-1.mod
 sql.py has been removed from XIST, but is available
 as a separate module.
 
+make.py has a new option --files/-f. The argument
+is a file containing a list of filenames (one
+name per line), that should be transformed.
+
 New in 0.4.7
 ------------
 Fixed a bug in the entity handling.
