@@ -131,7 +131,7 @@ class doc(xsc.Namespace):
 		empty = False
 
 		def convert_docbook(self, converter):
-			return convert.target.function(self.content)
+			return converter.target.function(self.content)
 
 		def convert_html(self, converter):
 			return converter.target.code(self.content, class_="function")
