@@ -57,6 +57,11 @@ sys.setdefaultencoding(<rep>"iso-8859-1"</rep>)
 </programlisting>
 <par>(or any other encoding name that you want to use
 instead of <rep>"iso-8859-1"</rep>).</par>
+<par>Starting with Python 2.3 you should use define your
+source code encoding it the first or second line (see
+<link href="http://www.python.org/peps/pep-0263.html">PEP 263</link>)
+and use Unicode string constants only.</par>
+</section>
 
 <section><title>Display hook</title>
 <par>Currently &xist; nodes do not have a fancy <method>__repr__</method>
