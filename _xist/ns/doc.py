@@ -461,8 +461,8 @@ class item(block):
 
 class self(base):
 	"""
-	use this class when referring to the object for which a method has been
-	called, e.g.:
+	<par>use this class when referring to the object for which a method has been
+	called, e.g.:</par>
 	<example>
 	<programlisting>
 		this function fooifies the object &lt;self/&gt;.
@@ -479,6 +479,27 @@ class self(base):
 
 	def __unicode__(self):
 		return u"self"
+
+class cls(base):
+	"""
+	<par>use this class when referring to the object for which a class method has been
+	called, e.g.:</par>
+	<example>
+	<programlisting>
+		this function fooifies the class &lt;cls/&gt;.
+	</programlisting>
+	</example>
+	"""
+	empty = False
+
+	def convert_docbook(self, converter):
+		return converter.target.varname("cls")
+
+	def convert_html(self, converter):
+		return converter.target.code("cls", class_="cls")
+
+	def __unicode__(self):
+		return u"cls"
 
 class link(base):
 	"""
