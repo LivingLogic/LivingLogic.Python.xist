@@ -4,7 +4,7 @@
 .PHONY: all clean
 
 # Output directory
-OUTPUTDIR=/data/pythonroot/
+OUTPUTDIR=/data/pythonroot/xsc/
 
 # collect all source files in SRC
 SRC := $(patsubst ./%,%,$(shell find . -print))
