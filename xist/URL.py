@@ -247,7 +247,19 @@ class URL:
 		return new
 
 	def __cmp__(self,other):
-		return cmp(string.lower(self.scheme),string.lower(other.scheme)) or cmp(string.lower(self.server),string.lower(other.server)) or cmp(self.port,other.port) or cmp(self.__path,other.__path) or cmp(self.file,other.file) or cmp(self.ext,other.ext) or cmp(self.parameters,other.parameters) or cmp(self.query,other.query) or cmp(self.fragment,other.fragment)
+		scheme1 = self.scheme
+		if scheme1 is not None:
+			scheme1 = string.lower(scheme1)
+		scheme2 = self.scheme
+		if scheme2 is not None:
+			scheme2 = string.lower(scheme2)
+		server1 = self.server
+		if server1 is not None:
+			server1 = string.lower(server1)
+		server2 = self.server
+		if server2 is not None:
+			server2 = string.lower(server2)
+		return cmp(scheme1,scheme2) or cmp(server1,server2) or cmp(self.port,other.port) or cmp(self.__path,other.__path) or cmp(self.file,other.file) or cmp(self.ext,other.ext) or cmp(self.parameters,other.parameters) or cmp(self.query,other.query) or cmp(self.fragment,other.fragment)
 
 	def open(self):
 		return urllib.urlopen(self.asString())
