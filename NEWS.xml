@@ -1,4 +1,12 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
+<section><title>Changes in ??? (released ??/??/2003)</title>
+<ulist>
+<item>It's now possible to parse &xml; without generating location
+information for each node, by passing <lit>loc=False/<lit> to
+the constructor of the <class>Handler</class>.</item>
+</ulist>
+</section>
+
 <section><title>Changes in 2.2 (released 07/31/2003)</title>
 <ulist>
 

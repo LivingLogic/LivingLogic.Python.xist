@@ -419,7 +419,7 @@ class Handler(object):
 	contains the parser and the options and functions for handling XML files
 	"""
 
-	def __init__(self, parser=None, prefixes=None):
+	def __init__(self, parser=None, prefixes=None, loc=True):
 		if parser is None:
 			parser = SGMLOPParser()
 		self.parser = parser
@@ -429,6 +429,7 @@ class Handler(object):
 		self.prefixes = prefixes
 
 		self._locator = None
+		self.loc = loc
 
 	def parse(self, source):
 		self.source = source
@@ -519,7 +520,8 @@ class Handler(object):
 		element = self.createElement(name) # Unfortunately this creates the element a second time.
 		if element.__class__ is not currentelement.__class__:
 			raise errors.ElementNestingError(currentelement.__class__, element.__class__)
-		self.__nesting[-1][0].endloc = self.getLocation()
+		if self.loc:
+			self.__nesting[-1][0].endloc = self.getLocation()
 		# SAX specifies that the order of calls to endPrefixMapping is undefined, so we use the same order as in startElement
 		for (type, prefix) in self.__nesting[-1][1]:
 			self.prefixes.endPrefixMapping(prefix, type)
@@ -595,7 +597,8 @@ class Handler(object):
 		return xsc.Location(self._locator)
 
 	def __appendNode(self, node):
-		node.startloc = self.getLocation()
+		if self.loc:
+			node.startloc = self.getLocation()
 		self.__nesting[-1][0].append(node) # add the new node to the content of the innermost element (or fragment)
 
 	def createText(self, content):
