@@ -229,6 +229,14 @@ class EscInlineAttr(EscInlineText):
 	ascharref = "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x0b\x0c\x0d\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f<>\"&"
 	ascolor   = "\x09\x0a"
 
+class EscOutlineText(EscInlineText):
+	ascharref = "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f<>&"
+	ascolor   = ""
+
+class EscOutlineAttr(EscInlineText):
+	ascharref = "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f<>\"&"
+	ascolor   = ""
+
 def strBracketOpen():
 	return EnvTextForBracket("<")
 
@@ -276,8 +284,10 @@ def strCommentMarker():
 def strCommentText(text):
 	return EnvTextForCommentText(EscInlineText(text))
 
-def strElementName(namespacename=None, elementname=None):
+def strElementName(namespacename=None, elementname=None, slash=0):
 	s = ansistyle.Text()
+	if slash<0:
+		s.append(EnvTextForSlash("/"))
 	if namespacename is not None:
 		s.append(
 			EnvTextForNamespace(EscInlineText(namespacename)),
@@ -286,12 +296,14 @@ def strElementName(namespacename=None, elementname=None):
 	if elementname is None:
 		elementname = "unnamed"
 	s.append(EnvTextForElementName(EscInlineText(elementname)))
+	if slash>0:
+		s.append(EnvTextForSlash("/"))
 	return s
 
-def strElementNameWithBrackets(namespacename=None, elementname=None):
-	return ansistyle.Text(strBracketOpen(), strElementName(namespacename, elementname), EnvTextForBracket(">"))
+def strElementNameWithBrackets(namespacename=None, elementname=None, slash=0):
+	return ansistyle.Text(strBracketOpen(), strElementName(namespacename, elementname, slash), EnvTextForBracket(">"))
 
-def strElement(node):
+def strElement(node, slash=0):
 	if hasattr(node, "namespace") and node.presentPrefix!=0:
 		namespacename = node.namespace.prefix
 	else:
@@ -300,10 +312,10 @@ def strElement(node):
 		elementname = node.name
 	else:
 		elementname = node.__class__.__name__
-	return strElementName(namespacename, elementname)
+	return strElementName(namespacename, elementname, slash)
 
-def strElementWithBrackets(node):
-	return ansistyle.Text(strBracketOpen(), strElement(node), strBracketClose())
+def strElementWithBrackets(node, slash=0):
+	return ansistyle.Text(strBracketOpen(), strElement(node, slash), strBracketClose())
 
 def strEntityName(namespacename=None, entityname=None):
 	s = ansistyle.Text("&")
@@ -465,12 +477,102 @@ class NormalPresenter:
 class TreePresenter:
 	def beginPresentation(self):
 		self.inAttr = 0
-		self.lines = []
+		self.lines = [] # the final lines consisting of (location, numerical path, nesting, content)
+		self.currentPath = [] # numerical path
 
 	def endPresentation(self):
-		buffer = ansistyle.Text()
-		result = str(self.buffer)
-		self.buffer = None
+		v = []
+		lenloc = 0
+		lennumpath = 0
+		for line in self.lines:
+			line[1] = ".".join(map(str, line[1]))
+			line[3] = ansistyle.Text(strTab(line[2]), line[3])
+			if line[0] is not None:
+				line[0] = str(line[0])
+				lenloc = max(lenloc, len(line[0]))
+			else:
+				line[0] = str(xsc.Location)
+			lennumpath = max(lennumpath, len(line[1]))
+		result = "".join([ "%-*s %-*s %s\n" % (lenloc, line[0], lennumpath, line[1], line[3]) for line in self.lines ])
+		self.lines = []
 		return result
+
+	def _doMultiLine(self, node, lines, formatter):
+		loc = node.startLoc
+		nest = len(self.currentPath)
+		for i in xrange(len(lines)):
+			if loc is not None:
+				hereloc = loc.offset(i)
+			else:
+				hereloc = None
+			mynest = nest
+			s = lines[i]
+			while len(s) and s[0] == "\t":
+				mynest += 1
+				s = s[1:]
+			s = formatter(s)
+			#if i == 0:
+			#	s = head + s
+			#if i == l-1:
+			#	s += tail
+			self.lines.append([hereloc, self.currentPath[:], nest, s])
+
+	def strTextOutsideAttr(self, text):
+		return ansistyle.Text(strQuote(), EnvTextForText(EscOutlineText(text)), strQuote())
+
+	def strTextInAttr(self, text):
+		return EnvTextForAttrValue(EscOutlineAttr(text))
+
+	def presentFrag(self, node):
+		if self.inAttr:
+			pass
+		else:
+			if len(node):
+				self.lines.append([node.startLoc, self.currentPath[:], len(self.currentPath), strElementNameWithBrackets("xsc", "Frag", 0)])
+				self.currentPath.append(0)
+				for child in node:
+					child.present(self)
+					self.currentPath[-1] += 1
+				del self.currentPath[-1]
+				self.lines.append([node.startLoc, self.currentPath[:], len(self.currentPath), strElementNameWithBrackets("xsc", "Frag", -1)])
+			else:
+				self.lines.append([node.startLoc, self.currentPath[:], len(self.currentPath), strElementNameWithBrackets("xsc", "Frag", 1)])
+
+	def presentElement(self, node):
+		if self.inAttr:
+			pass
+		else:
+			if len(node):
+				self.lines.append([node.startLoc, self.currentPath[:], len(self.currentPath), strElementWithBrackets(node, 0)])
+				self.currentPath.append(0)
+				for child in node:
+					child.present(self)
+					self.currentPath[-1] += 1
+				del self.currentPath[-1]
+				self.lines.append([node.startLoc, self.currentPath[:], len(self.currentPath), strElementWithBrackets(node, -1)])
+			else:
+				self.lines.append([node.startLoc, self.currentPath[:], len(self.currentPath), strElementWithBrackets(node, 1)])
+
+	def presentText(self, node):
+		if self.inAttr:
+			pass
+		else:
+			lines = []
+			content = node._content
+			while 1:
+				pos = content.find(u"\n")
+				if pos == -1:
+					if len(content):
+						lines.append(content)
+					break
+				lines.append(content[:pos+1])
+				content = content[pos+1:]
+			self._doMultiLine(node, lines, self.strTextOutsideAttr)
+
+	def presentEntity(self, node):
+		if self.inAttr:
+			pass
+		else:
+			self.lines.append([node.startLoc, self.currentPath[:], len(self.currentPath), strEntity(node)])
 
 defaultPresenterClass = NormalPresenter
