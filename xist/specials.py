@@ -8,9 +8,10 @@ __version__ = "$Revision$"
 # $Source$
 
 import sys
+import types
+import string
 import xsc
 import html
-import types
 
 class plaintable(html.table):
 	empty = 0
