@@ -478,8 +478,8 @@ class Handler:
 		for (attrname, attrvalue) in attrs.items():
 			node[attrname] = attrvalue
 			attr = node[attrname]
-			if isinstance(attr, xsc.URLAttr):
-				base = url_.URL(scheme="root") + url_.URL(self.source.getSystemId())
+			if isinstance(attr, xsc.URLAttr) and hasattr(self.source, "base"):
+				base = url_.URL(scheme="root") + url_.URL(self.source.base)
 				attr.base = base
 		self.__appendNode(node)
 		self.__nesting.append(node) # push new innermost element onto the stack
