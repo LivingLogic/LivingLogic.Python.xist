@@ -17,7 +17,7 @@ the source should be tidied.</item>
 <item>To prevent an element from being registered in a <class>Namespace</class>
 the class attribute <lit>register</lit> can be used now. This makes
 it possible to have a name for the element even when it's not registered.</item>
-<item><module>xist.ns.form</module> elements no have all the attributes that the
+<item><module>xist.ns.form</module> elements now have all the attributes that the
 corresponding elements from <module>xist.ns.html</module> have.</item>
 <item>Removed the old <module>xist.url</module> from the Windows distribution.</item>
 </ulist>
