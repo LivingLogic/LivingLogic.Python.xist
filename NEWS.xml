@@ -15,6 +15,10 @@ on their content. This makes it possible to e.g. generate the keywords via &jsp;
 </doc:programlisting>
 </doc:example>
 </item>
+<item>When an element occurs inside an attribute during publishing, there
+won't be an exception raised any more. Instead the content of the element
+will be published. This fixes problems with abbreviation entities inside
+attributes.</item>
 </ulist>
 </section>
 

@@ -1136,30 +1136,34 @@ class Element(Node):
 
 	def publish(self, publisher):
 		if publisher.inAttr:
-			raise errors.IllegalAttrNodeError(self)
-		publisher.publish(u"<")
-		self._publishName(publisher)
-		self._publishAttrs(publisher)
-		if len(self):
-			if self.empty:
-				raise errors.EmptyElementWithContentError(self)
-			publisher.publish(u">")
+			# publish the content only, when we are inside an attribute
+			# this works much like using the plain string value, but
+			# even works with processing instructions, or what the Entity &xist; returns
 			self.content.publish(publisher)
-			publisher.publish(u"</")
-			self._publishName(publisher)
-			publisher.publish(u">")
 		else:
-			if publisher.xhtml in (0, 1):
+			publisher.publish(u"<")
+			self._publishName(publisher)
+			self._publishAttrs(publisher)
+			if len(self):
 				if self.empty:
-					if publisher.xhtml==1:
-						publisher.publish(u" /")
-					publisher.publish(u">")
-				else:
-					publisher.publish(u"></")
-					self._publishName(publisher)
-					publisher.publish(u">")
-			elif publisher.xhtml == 2:
-				publisher.publish(u"/>")
+					raise errors.EmptyElementWithContentError(self)
+				publisher.publish(u">")
+				self.content.publish(publisher)
+				publisher.publish(u"</")
+				self._publishName(publisher)
+				publisher.publish(u">")
+			else:
+				if publisher.xhtml in (0, 1):
+					if self.empty:
+						if publisher.xhtml==1:
+							publisher.publish(u" /")
+						publisher.publish(u">")
+					else:
+						publisher.publish(u"></")
+						self._publishName(publisher)
+						publisher.publish(u">")
+				elif publisher.xhtml == 2:
+					publisher.publish(u"/>")
 
 	def __getitem__(self, index):
 		"""
