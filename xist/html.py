@@ -266,6 +266,9 @@ class q(xsc.Element):
 	empty = 0
 	attrHandlers = xsc.appendDict(attrs,{ "cite" : xsc.TextAttr })
 
+	def asPlainString(self):
+		return '«' + self.content.asPlainString() + '»'
+
 class sub(xsc.Element):
 	"""
 	subscript

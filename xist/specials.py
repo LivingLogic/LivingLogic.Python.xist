@@ -32,7 +32,6 @@ class plaintable(html.table):
 			e["border"] = 0
 
 		return e.asHTML()
-xsc.registerElement(plaintable)
 
 class plainbody(html.body):
 	"""
@@ -53,7 +52,6 @@ class plainbody(html.body):
 			e["marginwidth"] = 0
 
 		return e.asHTML()
-xsc.registerElement(plainbody)
 
 class z(xsc.Element):
 	"""
@@ -65,6 +63,10 @@ class z(xsc.Element):
 		e = xsc.Frag("«",self.content,"»")
 
 		return e.asHTML()
+
+	def asPlainString(self):
+		return '«' + self.content.asPlainString() + '»'
+
 xsc.registerElement(z)
 
 class nbsp(xsc.Element):
@@ -75,7 +77,6 @@ class nbsp(xsc.Element):
 
 	def asHTML(self):
 		return xsc.CharRef(160)
-xsc.registerElement(nbsp)
 
 class filesize(xsc.Element):
 	"""
@@ -87,7 +88,6 @@ class filesize(xsc.Element):
 
 	def asHTML(self):
 		return xsc.Text(self["href"].FileSize())
-xsc.registerElement(filesize)
 
 class filetime(xsc.Element):
 	"""
@@ -99,7 +99,6 @@ class filetime(xsc.Element):
 
 	def asHTML(self):
 		return xsc.Text(self["href"].FileTime())
-xsc.registerElement(filetime)
 
 class time(xsc.Element):
 	"""
@@ -117,7 +116,6 @@ class time(xsc.Element):
 			format = "%d. %b. %Y, %H:%M"
 
 		return xsc.Text(time_.strftime(format,time_.gmtime(time_.time())))
-xsc.registerElement(time)
 
 class x(xsc.Element):
 	"""
@@ -128,7 +126,6 @@ class x(xsc.Element):
 
 	def asHTML(self):
 		return xsc.Null()
-xsc.registerElement(x)
 
 class pixel(html.img):
 	"""
@@ -157,7 +154,6 @@ class pixel(html.img):
 		e["src"] = (":images/pixels/",color,".gif")
 
 		return e.asHTML()
-xsc.registerElement(pixel)
 
 class caps(xsc.Element):
 	"""
@@ -188,21 +184,18 @@ class caps(xsc.Element):
 
 	def asPlainString(self):
 			return string.upper(self.content.asPlainString())
-xsc.registerElement(caps)
 
 class endash(xsc.Element):
 	empty = 1
 
 	def asHTML(self):
 		return xsc.Text("-")
-xsc.registerElement(endash)
 
 class emdash(xsc.Element):
 	empty = 1
 
 	def asHTML(self):
 		return xsc.Text("-")
-xsc.registerElement(emdash)
 
 class include(xsc.Element):
 	empty = 1
