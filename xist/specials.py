@@ -112,7 +112,7 @@ class time(xsc.Element):
 
 	def asHTML(self):
 		if self.hasAttr("format"):
-			format = self["format"].asPlainString()
+			format = self["format"].asHTML().asPlainString()
 		else:
 			format = "%d. %b. %Y, %H:%M"
 

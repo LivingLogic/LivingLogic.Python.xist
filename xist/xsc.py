@@ -1629,19 +1629,23 @@ entitiesByName = {}
 
 def registerElement(element,namespacename,elementname = None):
 	"""
-	registerElement(element,namespacename,elementname = None)
-
-	registers the element handler element to be used for elements with the appropriate name.
-	The element will be registered in the namespace namespacename and the element name
-	elementname. If elementname is None, the lowercase name of the class will be used.
-	Names will be converted to lowercase in any case, to help prevent conflicts between
-	Python keywords and class names (e.g. for the HTML element del).
+	<par noindent>registers the element handler class <argref>element</argref> to be used
+	for elements with the appropriate name.
+	The element will be registered in the namespace <argref>namespacename</argref> and the element name
+	<argref>elementname</argref>. If <argref>elementname</argref> is <code>None<code>, the lowercase name
+	of the class will be used (to help prevent conflicts between Python keywords and class names
+	(e.g. for the HTML element del).</par>
+	<par>This function sets the class member <code>elementname</code> to the element name.
+	If this member is already present, the above method for determining the element name
+	will be skipped, and this member will be used.</par>
 	"""
-	if elementname is None:
-		elementname = string.lower(element.__name__)
-
 	element.namespacename = namespacename
-	element.elementname = elementname
+	if element.has_attr(elementname):
+		elementname = element.elementname
+	else:
+		if elementname is None:
+			elementname = string.lower(element.__name__)
+		element.elementname = elementname
 
 	if _elementHandlers.has_key(elementname):
 		_elementHandlers[elementname][namespacename] = element
