@@ -427,7 +427,8 @@ yields an URL object equivalent to
 URL("http://www.foo.org/images/bar.png").
 </programlisting>
 </dbl:para>
-<dbl:para>&xist; </dbl:para>
+<dbl:para>&xist; stores the URL from which an attribute was parsed is stored
+by the parser in the <pyref>base</pyref></dbl:para>
 </dbl:section>
 
 <dbl:section><dbl:title>Automatic generation of image size attributes</dbl:title>
@@ -1847,7 +1848,8 @@ class Element(Node):
 		node = function(self)
 		assert isinstance(node, Node), "the mapped method returned the illegal object %r (type %r) when mapping %r" % (node, type(node), self)
 		if node is self:
-			node = self.__class__(*self.content.mapped(function), **self.attrs)
+			node = self.__class__(*self.content.mapped(function))
+			node.attrs = self.attrs
 		return node
 
 	def normalized(self):
