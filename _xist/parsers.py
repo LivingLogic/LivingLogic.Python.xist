@@ -411,7 +411,7 @@ class Handler(object):
 		self.parser = parser
 
 		if prefixes is None:
-			prefixes = xsc.OldPrefixes()
+			prefixes = xsc.defaultPrefixes
 		self.prefixes = prefixes
 
 		self._locator = None

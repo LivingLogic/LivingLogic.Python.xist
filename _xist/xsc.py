@@ -2601,6 +2601,8 @@ class Namespace(Base):
 		for value in self.Attrs.allowedvalues():
 			value.xmlns = self
 		namespaceRegistry.register(self)
+		defaultPrefixes.addPrefixMapping(None, self, mode="prepend")
+		defaultPrefixes.addPrefixMapping(self.xmlprefix, self, mode="prepend")
 
 	def register(self, thing):
 		"""
@@ -3045,6 +3047,8 @@ class DocPrefixes(Prefixes):
 		self.addEntityPrefixMapping(None, html)
 		self.addEntityPrefixMapping(None, abbr)
 
+defaultPrefixes = Prefixes()
+
 # C0 Controls and Basic Latin
 class quot(CharRef): "quotation mark = APL quote, U+0022 ISOnum"; codepoint = 34
 class amp(CharRef): "ampersand, U+0026 ISOnum"; codepoint = 38
@@ -3054,7 +3058,6 @@ class apos(CharRef): "apostrophe mark, U+0027 ISOnum"; codepoint = 39
 
 xmlns = Namespace("xsc", None, vars())
 
-prefixes4charrefs = DefaultPrefixes()
 
 ###
 ###
