@@ -866,7 +866,7 @@ class Text(Node, StringMixIn):
 		return self._content
 
 	def publish(self, publisher):
-		publisher(publisher._encodeLegal(self._content))
+		publisher.publishQuoted(self._content)
 
 	def __strtext(self, refwhite, content, encoding=None, ansi=None):
 		if encoding == None:
@@ -1137,9 +1137,9 @@ class Comment(Node, StringMixIn):
 	def publish(self, publisher):
 		if self._content.find(u"--")!=-1 or self._content[-1:]==u"-":
 			raise errors.IllegalCommentContentError(self.startloc, self)
-		publisher(u"<!--")
-		publisher(self._content)
-		publisher(u"-->")
+		publisher.publish(u"<!--")
+		publisher.publish(self._content)
+		publisher.publish(u"-->")
 
 class DocType(Node, StringMixIn):
 	"""
@@ -1163,9 +1163,9 @@ class DocType(Node, StringMixIn):
 		return self._doreprtreeMultiLine(nest, elementno, head, tail, self._content, strDocTypeText, 0, encoding=encoding, ansi=ansi)
 
 	def publish(self, publisher):
-		publisher(u"<!DOCTYPE ")
-		publisher(self._content)
-		publisher(u">")
+		publisher.publish(u"<!DOCTYPE ")
+		publisher.publish(self._content)
+		publisher.publish(u">")
 
 class ProcInst(Node, StringMixIn):
 	"""
@@ -1202,11 +1202,11 @@ class ProcInst(Node, StringMixIn):
 	def publish(self, publisher):
 		if self._content.find(u"?>")!=-1:
 			raise errors.IllegalProcInstFormatError(self.startloc, self)
-		publisher(u"<?")
-		publisher(publisher._encodeIllegal(self._target))
-		publisher(u" ")
-		publisher(self._content)
-		publisher(u"?>")
+		publisher.publish(u"<?")
+		publisher.publishPlain(self._target)
+		publisher.publish(u" ")
+		publisher.publish(self._content)
+		publisher.publish(u"?>")
 
 class PythonCode(ProcInst):
 	"""
@@ -1475,41 +1475,41 @@ class Element(Node):
 		return v
 
 	def publish(self, publisher):
-		publisher(u"<")
-		publisher(self.name) # requires that the element is registered via registerElement()
+		publisher.publish(u"<")
+		publisher.publish(self.name) # requires that the element is registered via registerElement()
 		for attrname in self.attrs.keys():
-			publisher(u" ")
-			publisher(attrname)
+			publisher.publish(u" ")
+			publisher.publish(attrname)
 			value = self[attrname]
 			if isinstance(value, BoolAttr):
 				if publisher.XHTML>0:
-					publisher(u'="')
-					publisher(attrname)
-					publisher(u'"')
+					publisher.publish(u'="')
+					publisher.publish(attrname)
+					publisher.publish(u'"')
 			else:
-				publisher(u'="')
+				publisher.publish(u'="')
 				value.publish(publisher)
-				publisher(u'"')
+				publisher.publish(u'"')
 		if len(self):
 			if self.empty:
 				raise errors.EmptyElementWithContentError(self)
-			publisher(u">")
+			publisher.publish(u">")
 			self.content.publish(publisher)
-			publisher(u"</")
-			publisher(self.name)
-			publisher(u">")
+			publisher.publish(u"</")
+			publisher.publish(self.name)
+			publisher.publish(u">")
 		else:
 			if publisher.XHTML in (0, 1):
 				if self.empty:
 					if publisher.XHTML==1:
-						publisher(u" /")
-					publisher(u">")
+						publisher.publish(u" /")
+					publisher.publish(u">")
 				else:
-					publisher(u"></")
-					publisher(self.name)
-					publisher(u">")
+					publisher.publish(u"></")
+					publisher.publish(self.name)
+					publisher.publish(u">")
 			elif publisher.XHTML == 2:
-				publisher(u"/>")
+				publisher.publish(u"/>")
 
 	def __getitem__(self, index):
 		"""
@@ -1680,9 +1680,9 @@ class Entity(Node):
 		return [[nest, self.startloc, elementno, self._dorepr(encoding=encoding, ansi=ansi)]]
 
 	def publish(self, publisher):
-		publisher(u"&")
-		publisher(self.name)
-		publisher(u";") # requires that the entity is registered via Namespace.register()
+		publisher.publish(u"&")
+		publisher.publish(self.name)
+		publisher.publish(u";") # requires that the entity is registered via Namespace.register()
 
 	def find(self, type=None, subtype=0, attrs=None, test=None, searchchildren=0, searchattrs=0):
 		node = Frag()

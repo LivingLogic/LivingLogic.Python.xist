@@ -14,7 +14,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
 import sys, types, array, codecs
-import xsc, options, utils
+import xsc, options, utils, errors
 
 strescapes = {'<': 'lt', '>': 'gt', '&': 'amp', '"': 'quot'}
 
@@ -61,14 +61,15 @@ class Publisher:
 			raise ValueError("XHTML must be 0, 1 or 2")
 		self.XHTML = XHTML
 
-	def __call__(self, text):
+	def publish(self, text):
 		"""
 		receives the string to be printed.
+		The string is still an unicode object, and you have to do the encoding yourself.
 		overwrite this method
 		"""
 		pass
 
-	def _encodeLegal(self, text):
+	def publishQuoted(self, text):
 		"""
 		encodes the text <argref>text</argref> with the encoding <code><self/>.encoding</code>.
 		using character references for <code>&amp;lt;</code> etc. and non encodabel characters
@@ -79,7 +80,7 @@ class Publisher:
 
 		try:
 			text.encode(self.encoding)
-			return text
+			self.publish(text)
 		except UnicodeError:
 			v = []
 			for c in text:
@@ -88,22 +89,22 @@ class Publisher:
 					v.append(c)
 				except UnicodeError:
 					v.append(u"&#" + str(ord(c)) + u";")
-			return u"".join(v)
+			self.publish(u"".join(v))
 
-	def _encodeIllegal(self, text):
+	def publishPlain(self, text):
 		"""
 		encodes the text <argref>text</argref> with the encoding <code><self/>.encoding</code>.
 		anything that requires a character reference (e.g. element names) is illegal.
 		"""
 		for c in strescapes.keys():
 			if c in text:
-				raise EncodingImpossibleError(self.startloc, self.encoding, text, c)
+				raise errors.EncodingImpossibleError(None, self.encoding, text, c)
 
 		try:
 			text.encode(self.encoding)
-			return text
+			self.publish(text)
 		except UnicodeError:
-			raise EncodingImpossibleError(self.startloc, self.encoding, text, "")
+			raise error.EncodingImpossibleError(None, self.encoding, text, "")
 
 class FilePublisher(Publisher):
 	"""
@@ -114,7 +115,7 @@ class FilePublisher(Publisher):
 		(encode, decode, streamReaderClass, streamWriterClass) = codecs.lookup(self.encoding)
 		self.file = streamWriterClass(file)
 
-	def __call__(self, text):
+	def publish(self, text):
 		self.file.write(text)
 
 	def tell(self):
@@ -141,7 +142,7 @@ class StringPublisher(Publisher):
 		Publisher.__init__(self, encoding="utf16", XHTML=XHTML)
 		self.texts = []
 
-	def __call__(self, text):
+	def publish(self, text):
 		self.texts.append(text)
 
 	def asString(self):
@@ -162,12 +163,12 @@ class BytePublisher(Publisher):
 		Publisher.__init__(self, encoding=encoding, XHTML=XHTML)
 		self.texts = []
 
-	def __call__(self, text):
+	def publish(self, text):
 		self.texts.append(text)
 
 	def asBytes(self):
 		"""
 		Return the published strings as one long byte string.
 		"""
-		return u"".join(self.texts).encode(self.encoding)
+		return u"".join(self.texts)
 

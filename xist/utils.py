@@ -25,9 +25,9 @@ def stringFromCode(text):
 	else:
 		return text
 
-def forceopen(name, mode):
+def forceopen(name, mode="r", bufsize=-1):
 	try:
-		return open(name, mode)
+		return open(name, mode, bufsize)
 	except IOError, e:
 		if e[0] != 2: # didn't work for some other reason
 			raise
@@ -35,7 +35,7 @@ def forceopen(name, mode):
 		if found == -1:
 			raise
 		os.makedirs(name[:found])
-		return open(name, mode)
+		return open(name, mode, bufsize)
 
 class Code:
 	def __init__(self, text, ignorefirst=0):

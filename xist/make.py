@@ -76,7 +76,7 @@ def make():
 			xsc.xsc.pushURL(inname)
 			e_out = e_in.asHTML()
 			t3 = time.time()
-			p = publishers.FilePublisher(utils.forceopen(outname.asPlainString(), "wb"), encoding=encoding, XHTML=XHTML)
+			p = publishers.FilePublisher(utils.forceopen(outname.asPlainString(), "wb", 65536), encoding=encoding, XHTML=XHTML)
 			e_out.publish(p)
 			t4 = time.time()
 			size = p.tell()
