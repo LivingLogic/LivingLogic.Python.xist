@@ -1297,13 +1297,13 @@ class Element(Node):
 					v.append(value.asString(XHTML))
 				v.append('"')
 		if size is not None:
-			if not self.hasAttr(widthattr):
+			if widthattr is not None and not self.hasAttr(widthattr):
 				v.append(' ')
 				v.append(widthattr)
 				v.append('="')
 				v.append(str(size[0]))
 				v.append('"')
-		if not self.hasAttr(heightattr):
+			if heightattr is not None and not self.hasAttr(heightattr):
 				v.append(' ')
 				v.append(heightattr)
 				v.append('="')

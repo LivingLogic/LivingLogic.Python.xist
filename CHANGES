@@ -14,6 +14,9 @@ to write faster code:
 	Old method: e = html.div(html.img(...),gurk.hurz()).asHTML().asString()
 	New method: e = html.div(html.img(...),gurk.hurz().asHTML()).asString()
 
+Image size calculation is now done for <input type="image">. The "size" attribute
+is set to the image width.
+
 New in 0.3.4
 ------------
 

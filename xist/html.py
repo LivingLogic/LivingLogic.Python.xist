@@ -582,6 +582,12 @@ class input(xsc.Element):
 	empty = 1
 	attrHandlers = xsc.appendDict(attrs,{ "type" : xsc.TextAttr , "name" : xsc.TextAttr , "value" : xsc.TextAttr , "checked" : xsc.TextAttr , "disabled" : xsc.TextAttr , "readonly" : xsc.TextAttr , "size" : xsc.TextAttr , "maxlength" : xsc.TextAttr , "src" : xsc.URLAttr , "alt" : xsc.TextAttr , "usemap" : xsc.TextAttr , "tabindex" : xsc.TextAttr , "accesskey" : xsc.TextAttr , "onfocus" : xsc.TextAttr , "onblur" : xsc.TextAttr , "onselect" : xsc.TextAttr , "onchange" : xsc.TextAttr , "accept" : xsc.TextAttr })
 
+	def asString(self,XHTML = None):
+		if self.hasAttr("type") and self["type"].asHTML().asPlainString() == "image":
+			return self._asStringWithImageSize(XHTML,"src","size",None) # no height
+		else:
+			return xsc.Element.asString(self,XHTML)
+
 class button(xsc.Element):
 	"""
 	push button
