@@ -48,7 +48,7 @@ timeoutsocket = None
 import fileutils
 
 import xsc, url as url_, errors, utils
-from ns import ihtml, html
+from ns import chtml, html
 
 class InputSource(sax.xmlreader.InputSource):
 	def __init__(self, base):

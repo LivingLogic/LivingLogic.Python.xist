@@ -1,7 +1,7 @@
 import sys, unittest
 
 from xist import xsc, parsers, presenters, converters, helpers
-from xist.ns import wml, ihtml, html, css, specials
+from xist.ns import wml, chtml, html, css, specials
 
 class XISTTestCase(unittest.TestCase):
 	def check_lenunicode(self, node, _len, content):
@@ -208,8 +208,8 @@ class XISTTestCase(unittest.TestCase):
 	def test_html(self):
 		self.check_namespace(html)
 
-	def test_ihtml(self):
-		self.check_namespace(ihtml)
+	def test_chtml(self):
+		self.check_namespace(chtml)
 
 	def test_wml(self):
 		self.check_namespace(wml)
@@ -217,30 +217,53 @@ class XISTTestCase(unittest.TestCase):
 	def test_css(self):
 		self.check_namespace(css)
 
+	escapeInput = u"".join([unichr(i) for i in xrange(1000)] + [unichr(i) for i in xrange(sys.maxunicode-10, sys.maxunicode+1)])
+
 	def test_helpersescapeText(self):
-		input = u"".join([unichr(i) for i in xrange(sys.maxunicode+1)])
-		output = u"".join([unichr(i) for i in xrange(128)])
-		output = output.replace(u"&", u"&amp;")
-		output = output.replace(u"<", u"&lt;")
-		output = output.replace(u">", u"&gt;")
-		output += u"".join([u"&#%d;" % i for i in xrange(128, sys.maxunicode+1)])
-		self.assertEqual(helpers.escapeText(input, "ascii"), output)
+		escapeOutput = []
+		for c in self.escapeInput:
+			if c==u"&":
+				escapeOutput.append("&amp;")
+			elif c==u"<":
+				escapeOutput.append("&lt;")
+			elif c==u">":
+				escapeOutput.append("&gt;")
+			else:
+				try:
+					escapeOutput.append(c.encode("ascii"))
+				except UnicodeError:
+					escapeOutput.append("&#%d;" % ord(c))
+		escapeOutput = "".join(escapeOutput)
+		self.assertEqual(helpers.escapeText(self.escapeInput, "ascii"), escapeOutput)
 
 	def test_helpersescapeAttr(self):
-		input = u"".join([unichr(i) for i in xrange(sys.maxunicode+1)])
-		output = u"".join([unichr(i) for i in xrange(128)])
-		output = output.replace(u"&", u"&amp;")
-		output = output.replace(u"<", u"&lt;")
-		output = output.replace(u">", u"&gt;")
-		output = output.replace(u'"', u"&quot;")
-		output += u"".join([u"&#%d;" % i for i in xrange(128, sys.maxunicode+1)])
-		self.assertEqual(helpers.escapeAttr(input, "ascii"), output)
+		escapeOutput = []
+		for c in self.escapeInput:
+			if c==u"&":
+				escapeOutput.append("&amp;")
+			elif c==u"<":
+				escapeOutput.append("&lt;")
+			elif c==u">":
+				escapeOutput.append("&gt;")
+			elif c==u'"':
+				escapeOutput.append("&quot;")
+			else:
+				try:
+					escapeOutput.append(c.encode("ascii"))
+				except UnicodeError:
+					escapeOutput.append("&#%d;" % ord(c))
+		escapeOutput = "".join(escapeOutput)
+		self.assertEqual(helpers.escapeAttr(self.escapeInput, "ascii"), escapeOutput)
 
 	def test_helpersescapeCSS(self):
-		input = u"".join([unichr(i) for i in xrange(sys.maxunicode+1)])
-		output = u"".join([unichr(i) for i in xrange(128)])
-		output += u"".join([u"\\%x".upper() % i for i in xrange(128, sys.maxunicode+1)])
-		self.assertEqual(helpers.escapeCSS(input, "ascii"), output)
+		escapeOutput = []
+		for c in self.escapeInput:
+			try:
+				escapeOutput.append(c.encode("ascii"))
+			except UnicodeError:
+				escapeOutput.append(("\\%x" % ord(c)).upper())
+		escapeOutput = "".join(escapeOutput)
+		self.assertEqual(helpers.escapeCSS(self.escapeInput, "ascii"), escapeOutput)
 
 	def test_attrsclone(self):
 		class newa(html.a):
