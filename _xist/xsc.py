@@ -1843,25 +1843,14 @@ class Attrs(Node, dict):
 				pass
 		# are there any required attributes remaining that haven't been specified? => warn about it
 		if attrs:
-			warnings.warn(errors.RequiredAttrMissingWarning(self, attrs.keys()))
+			warnings.warn(errors.RequiredAttrMissingWarning(self, list(attrs)))
 
 	def publish(self, publisher):
-		# collect required attributes
-		attrs = {}
-		for (key, value) in self.iteralloweditems():
-			if value.required:
-				attrs[key] = None
+		if publisher.validate:
+			self.checkvalid()
 		for (attrname, attrvalue) in self.iteritems():
 			publisher.write(u" ")
-			# if a required attribute is encountered, remove from the list of outstanding ones
-			try:
-				del attrs[attrname]
-			except KeyError:
-				pass
 			attrvalue.publish(publisher)
-		# are there any required attributes remaining that haven't been specified? => warn about it
-		if attrs:
-			warnings.warn(errors.RequiredAttrMissingWarning(self, attrs.keys()))
 
 	def __unicode__(self):
 		return u""
