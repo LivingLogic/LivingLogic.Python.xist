@@ -167,14 +167,6 @@ def count(iterator):
 
 
 class all(Operator):
-	def xfind(self, iterator, *operators):
-		ids = {} # FIXME: Use a set in Python 2.4
-		for child in self.xwalk(iterator):
-			for subchild in Finder(child, *operators):
-				if id(subchild) not in ids:
-					ids[id(subchild)] = None
-					yield subchild
-
 	def xwalk(self, iterator):
 		for child in iterator:
 			for subchild in child.walk():

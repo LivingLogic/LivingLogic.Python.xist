@@ -2198,7 +2198,7 @@ class PrettyTest(unittest.TestCase):
 		)
 
 
-class XFindTest1(unittest.TestCase):
+class XFindTestLevels(unittest.TestCase):
 	def setUp(self):
 		ds = [html.div(id=id) for id in xrange(8)]
 		ds[1].append(ds[4:7])
@@ -2233,7 +2233,7 @@ class XFindTest1(unittest.TestCase):
 		self.checkids(self.divs[0]//xfind.contains(html.div), "012")
 
 
-class XFindTest2(unittest.TestCase):
+class XFindTestOperators(unittest.TestCase):
 	def setUp(self):
 		self.node = xsc.Frag(
 			html.div(
@@ -2318,12 +2318,20 @@ class XFindTest2(unittest.TestCase):
 		self.assert_(res[0] is self.node[1]["class_"])
 
 
-class XFindTest3(unittest.TestCase):
-	def setUp(self):
-		ds = [html.div(id=hex(id).lower()[2:]) for id in xrange(15)]
-		for i in xrange(7):
-			ds[i].append(ds[2*i+1:2*i+3])
-		self.divs = ds
+class XFindTestMisc(unittest.TestCase):
+	def checkids(self, expr, ids):
+		self.assertEqual("".join([str(e["id"]) for e in expr]), ids)
+
+	def test_frag(self):
+		e = parsers.parseString("das ist <b>klaus</b>. das ist <b>erich</b>", prefixes=xsc.Prefixes(html))
+		# The following won't generate any nodes, because e/xfind.all iterates all
+		# nodes in the tree (but not the Frag root) and ../html.b filters the bold
+		# *children*, but there are none.
+		self.assertEqual(u"".join(map(unicode, e//html.b)), u"")
+		# The following *will* produce these nodes
+		self.assertEqual(u"".join(map(unicode, e//xfind.is_(html.b))), u"klauserich")
+
+	def test_multiall(self):
 		#        ____0____
 		#       /         \
 		#     _1_         _2_
@@ -2331,24 +2339,11 @@ class XFindTest3(unittest.TestCase):
 		#   3     4     5     6
 		#  / \   / \   / \   / \
 		# 7   8 9   a b   c d   e
-
-	def tearDown(self):
-		del self.divs
-
-	def checkids(self, expr, ids):
-		self.assertEqual("".join([str(e["id"]) for e in expr]), ids)
-
-	def test_frag(self):
-		e = parsers.parseString("das ist <b>klaus</b>. das ist <b>erich</b>", prefixes=xsc.Prefixes(html))
-		# The following won't generate any nodes, because e/xfind.all iterates all
-		# nodes in the tree (but not the Frag root) and ../html.b filter the bold
-		# children, but there are none.
-		self.assertEqual(u"".join(map(unicode, e//html.b)), u"")
-		# The following *will* produce these nodes
-		self.assertEqual(u"".join(map(unicode, e//xfind.is_(html.b))), u"klauserich")
-
-	def test_multiall(self):
-		self.checkids(self.divs[0]//html.div//html.div, "34789a56bcde")
+		ds = [html.div(id=hex(id).lower()[2:]) for id in xrange(15)]
+		for i in xrange(7):
+			ds[i].append(ds[2*i+1:2*i+3])
+		# Using // multiple times might produce certain nodes twice
+		self.checkids(ds[0]//html.div//html.div, "34789a56bcde789abcde")
 
 
 def test_main():

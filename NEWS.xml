@@ -2,8 +2,6 @@
 <section><title>Changes in 2.6.? (released ??/??/2004)</title>
 <ulist>
 <item>Fixed a bug in <method>ll.xist.xfind.Finder.__floordiv__</method>.</item>
-<item>Multiple <lit>all</lit> operators in an XFind expression will now
-no longer produced duplicate nodes.</item>
 </ulist>
 </section>
 
