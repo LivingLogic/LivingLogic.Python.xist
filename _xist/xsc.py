@@ -1497,7 +1497,7 @@ class Comment(CharacterData):
 		if publisher.inattr:
 			raise errors.IllegalAttrNodeError(self)
 		if self.content.find(u"--")!=-1 or self.content[-1:]==u"-":
-			raise errors.IllegalCommentContentError(self)
+			warnings.warn(errors.IllegalCommentContentWarning(self))
 		publisher.publish(u"<!--")
 		publisher.publish(self.content)
 		publisher.publish(u"-->")

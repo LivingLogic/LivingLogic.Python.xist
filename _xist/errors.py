@@ -294,9 +294,9 @@ class MalformedCharRefWarning(Warning):
 		return "malformed character reference: &%s;" % self.name
 
 
-class IllegalCommentContentError(Error):
+class IllegalCommentContentWarning(Warning):
 	"""
-	exception that is raised when there is an illegal comment, i.e. one
+	warning that is issued when there is an illegal comment, i.e. one
 	containing <lit>--</lit> or ending in <lit>-</lit>.
 	(This can only happen, when the comment is instantiated by the
 	program, not when parsed from an &xml; file.)
