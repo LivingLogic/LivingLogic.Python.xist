@@ -230,6 +230,24 @@ class XISTTestCase(unittest.TestCase):
 	def test_css(self):
 		self.check_namespace(css)
 
+	def test_specials(self):
+		self.check_namespace(css)
+
+	def test_form(self):
+		self.check_namespace(css)
+
+	def test_meta(self):
+		self.check_namespace(css)
+
+	def test_htmlspecials(self):
+		self.check_namespace(css)
+
+	def test_cssspecials(self):
+		self.check_namespace(css)
+
+	def test_docbook(self):
+		self.check_namespace(css)
+
 	escapeInput = u"".join([unichr(i) for i in xrange(1000)] + [unichr(i) for i in xrange(sys.maxunicode-10, sys.maxunicode+1)])
 
 	def test_helpersescapeText(self):
