@@ -47,6 +47,32 @@ class declaration(xsc.ProcInst):
 		publisher.publish(self._content)
 		publisher.publish(u"%>")
 
+class If(scriptlet):
+	name = "if"
+
+	def publish(self, publisher):
+		publisher.publish(u"<% if(")
+		publisher.publish(self._content)
+		publisher.publish(u"){%>")
+
+class Else(scriptlet):
+	name = "else"
+	def publish(self, publisher):
+		publisher.publish(u"<% }else{ %>")
+
+class ElIf(scriptlet):
+	name = "elif"
+
+	def publish(self, publisher):
+		publisher.publish(u"<% }else if(")
+		publisher.publish(self._content)
+		publisher.publish(u"){%>")
+
+class End(scriptlet):
+	name = "end"
+	def publish(self, publisher):
+		publisher.publish(u"<% } %>")
+
 class directive(xsc.Element):
 	empty = 1
 	register = 0 # only serves as a base class
