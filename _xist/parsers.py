@@ -626,7 +626,7 @@ class Parser(object):
 			self.prefixes = prefixes
 		node = self.createElement(name)
 		for (attrname, attrvalue) in attrs.items():
-			if attrname!="xmlns" and not attrname.startswith("xmlns:"):
+			if attrname != "xmlns" and not attrname.startswith("xmlns:"):
 				attrname = prefixes.attrnamefromqname(node, attrname)
 				node[attrname] = attrvalue
 				node[attrname].parsed(self)
