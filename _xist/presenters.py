@@ -653,6 +653,13 @@ class TreePresenter:
 				s.append(strSlash(), strBracketClose())
 				self.lines.append([node.startLoc, self.currentPath[:], len(self.currentPath), s])
 
+	def presentNull(self, node):
+		if self.inAttr:
+			pass
+		else:
+			s = ansistyle.Text(strBracketOpen(), strElement(node), strSlash(), strBracketClose())
+			self.lines.append([node.startLoc, self.currentPath[:], len(self.currentPath), s])
+
 	def presentText(self, node):
 		if self.inAttr:
 			self.buffers[-1].append(strTextInAttr(node.content))
