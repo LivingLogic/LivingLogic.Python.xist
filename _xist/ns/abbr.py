@@ -240,6 +240,12 @@ class xsl(xsc.Entity):
 	def asPlainString(self):
 		return u"XSL"
 
+class xslt(xsc.Entity):
+	def convert(self, converter=None):
+		return html_.span(html_.abbr("XSLT", title="Extensible Stylesheet Language Transformations", lang="en"), class_="caps")
+	def asPlainString(self):
+		return u"XSLT"
+
 class smil(xsc.Entity):
 	def convert(self, converter=None):
 		return html_.span(html_.abbr("SMIL", title="Synchronized Multimedia Integration Language", lang="en"), class_="caps")
@@ -305,5 +311,17 @@ class ftp(xsc.Entity):
 		return html_.abbr("FTP", title="File Transfer Protocol", lang="en")
 	def asPlainString(self):
 		return u"FTP"
+
+class sms(xsc.Entity):
+	def convert(self, converter=None):
+		return html_.abbr("SMS", title="Small Message Service", lang="en")
+	def asPlainString(self):
+		return u"SMS"
+
+class p2p(xsc.Entity):
+	def convert(self, converter=None):
+		return html_.abbr("P2P", title="Peer To Peer", lang="en")
+	def asPlainString(self):
+		return u"P2P"
 
 namespace = xsc.Namespace("abbr", "http://www.livinglogic.de/DTDs/abbr.dtd", vars())
