@@ -1162,9 +1162,7 @@ class Frag(Node, list):
 			s.append(presenters.strBracketOpen(), presenters.strSlash())
 		cls._strbase(presenters.strElementName, s, fullname=fullname, xml=xml)
 		if decorate:
-			if cls.empty:
-				s.append(presenters.strSlash())
-			s.append(presenters.strBracketClose())
+			s.append(presenters.strSlash(), presenters.strBracketClose())
 		return s
 	_str = classmethod(_str)
 
