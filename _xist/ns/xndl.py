@@ -139,7 +139,7 @@ class Namespace(Base):
 		lines.append([0, ""])
 
 		if self.doc is not None:
-			self.doc._aspy(lines, encoding, level)
+			self.doc._aspy(lines, encoding, level, names)
 			lines.append([0, ""])
 
 		lines.append([level, "__version__ = \"%sRevision%s\"[11:-2]" % ("$", "$")])
