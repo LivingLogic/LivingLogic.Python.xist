@@ -359,7 +359,7 @@ class URL:
 				size = os.stat(filename)[stat.ST_SIZE]
 			except (IOError, OSError), exc:
 				urllib.urlcleanup()
-				warnings.warn(exc, URLWarning)
+				warnings.warn(str(exc), URLWarning)
 			else:
 				urllib.urlcleanup()
 		return size
@@ -379,7 +379,7 @@ class URL:
 						del img
 				except (IOError, OSError), exc:
 					urllib.urlcleanup()
-					warnings.warn(exc, URLWarning)
+					warnings.warn(str(exc), URLWarning)
 				else:
 					urllib.urlcleanup()
 		return size
