@@ -261,7 +261,7 @@ class par(html.div):
 	def convert(self, converter):
 		e = html.div(self.content, self.attrs.without(["noindent"]))
 		if not self.hasAttr("noindent"):
-			e["class"] = "indent"
+			e["class_"] = "indent"
 		return e.convert(converter)
 
 class autoimg(html.img):
