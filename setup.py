@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# Setup script for the XIST Web Publishing System
+# Setup script for XIST
 
 __version__ = "$Revision$"[11:-2]
 # $Source$
