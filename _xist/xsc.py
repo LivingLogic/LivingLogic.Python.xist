@@ -130,7 +130,7 @@ class Node(Base):
 			dict["xmlns"] = None
 			if not dict.has_key("register"):
 				dict["register"] = True
-			# needsxmlns may be defined a constant, this magically turns it into method
+			# needsxmlns may be defined as a constant, this magically turns it into method
 			if dict.has_key("needsxmlns"):
 				needsxmlns_value = dict["needsxmlns"]
 				if not isinstance(needsxmlns_value, classmethod):
@@ -144,6 +144,18 @@ class Node(Base):
 						return xmlprefix_value
 					dict["xmlprefix"] = classmethod(xmlprefix)
 			return Base.__metaclass__.__new__(cls, name, bases, dict)
+
+	class Context(Base, list):
+		"""
+		<par>This is an empty class, that can be used by the
+		<pyref module="ll.xist.xsc" class="Node" method="convert"><method>convert</method></pyref>
+		method to hold element specific data during the convert call. The method
+		<pyref class="Converter" method="__getitem__"><method>Converter.__getitem__</method></pyref>
+		will return a unique instance of this class.</par>
+		"""
+
+		def __init__(self):
+			list.__init__(self)
 
 	def _registerns(cls, ns):
 		cls.xmlns = None
@@ -267,7 +279,7 @@ class Node(Base):
 	def __str__(self):
 		return str(unicode(self))
 
-	def asText(self, monochrome=1, squeezeBlankLines=0, lineNumbers=0, cols=80):
+	def asText(self, monochrome=1, squeezeBlankLines=0, lineNumbers=0, width=72):
 		"""
 		<par>Return the node as a formatted plain &ascii; string.
 		Note that this really only make sense for &html; trees.</par>
@@ -282,8 +294,8 @@ class Node(Base):
 			options += " -S"
 		if lineNumbers==1:
 			options += " -num"
-		if cols!=80:
-			options += " -cols %d" % cols
+		if width!=80:
+			options += " -cols %d" % width
 
 		text = self.asBytes(encoding="us-ascii")
 

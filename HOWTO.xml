@@ -902,9 +902,15 @@ publishing. Let's assume we have an &url; <lit>#top</lit>
 in the source file. When we use the <z>real</z> file names
 for parsing and publishing like this:</par>
 <programlisting>
-node = parsers.parseFile("spam.htmlxsc", base="root:spam.htmlxsc")
+node = parsers.parseFile(
+	"spam.htmlxsc",
+	base="root:spam.htmlxsc"
+)
 node = node.conv()
-node.write(open("spam.html", "wb"), base="root:spam.html")
+node.write(
+	open("spam.html", "wb"),
+	base="root:spam.html"
+)
 </programlisting>
 <par>the following will happen: The &url; <lit>#top</lit>
 will be parsed as <lit>root:spam.htmlxsc#top</lit>. After

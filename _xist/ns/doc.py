@@ -262,14 +262,19 @@ class section(xsc.Element):
 	class Attrs(xsc.Element.Attrs):
 		class role(xsc.TextAttr): pass
 
+	class Context(xsc.Element.Context):
+		def __init__(self):
+			xsc.Element.Context.__init__(self)
+			self.numbers = [0]
+
 	def convert(self, converter):
 		if converter.target=="docbook":
 			e = docbook.section(self.content, role=self["role"])
 			return e.convert(converter)
 		else:
 			context = converter[self.__class__]
-			if not hasattr(context, "depth"):
-				context.depth = 1
+			context.numbers[-1] += 1
+			context.numbers.append(0) # for numbering the subsections
 			ts = xsc.Frag()
 			cs = xsc.Frag()
 			for child in self:
@@ -280,22 +285,21 @@ class section(xsc.Element):
 			e = xsc.Frag()
 			for t in ts:
 				try:
-					hclass = html.xmlns.elementsByName["h%d" % context.depth]
+					hclass = html.xmlns.elementsByName["h%d" % len(context.numbers)]
 				except KeyError: # ouch, we're nested to deep (a getter in a property in a class in a class)
 					hclass = html.h6
 				h = hclass(class_=self["role"])
 				if converter.target=="text":
 					h.append(html.br(), t.content, html.br(), "="*len(unicode(t.content.convert(converter))))
 				else:
-					h.append(t.content)
+					h.append(format, t.content)
 				e.append(h)
 			if self.hasAttr("role"):
 				e.append(html.div(cs, class_=self["role"]))
 			else:
 				e.append(cs)
-			context.depth += 1
 			e = e.convert(converter)
-			context.depth -= 1
+			del context.numbers[-1]
 			return e
 
 class par(xsc.Element):
@@ -366,6 +370,9 @@ class self(xsc.Element):
 
 	def convert(self, converter):
 		return html.code("self", class_="self")
+
+	def __unicode__(self):
+		return u"self"
 
 class link(xsc.Element):
 	"""

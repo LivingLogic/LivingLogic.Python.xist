@@ -28,19 +28,7 @@ This modules contains the base class for the converter objects used in the call 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-import types
-
-class Context(object):
-	"""
-	This is an empty class, that can be used by the
-	<pyref module="ll.xist.xsc" class="Node" method="convert"><method>convert</method></pyref>
-	method to hold element specific data during the convert call. The method
-	<pyref class="Converter" method="__getitem__"><method>Converter.__getitem__</method></pyref>
-	will return a unique instance of this class.
-	"""
-	
-	def __init__(self):
-		pass
+import xsc
 
 class ConverterState(object):
 	def __init__(self, root, mode, stage, target, lang, makeaction, maketarget):
@@ -259,4 +247,10 @@ class Converter(object):
 		gets its own context and can store information there that needs to be available
 		across calls to <pyref module="ll.xist.xsc" class="Node" method="convert"><method>convert</method></pyref>.</par>
 		"""
-		return self.contexts.setdefault(class_, Context())
+		# don't use setdefault, as constructing the Context object might involve some overhead
+		try:
+			return self.contexts[class_]
+		except KeyError:
+			contextclass = getattr(class_, "Context", xsc.Node.Context)
+			context = contextclass()
+			return self.contexts.setdefault(class_, context)
