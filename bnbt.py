@@ -117,7 +117,7 @@ class indent(xsc.Element):
 	empty = 1
 	
 	def asHTML(self):
-		e = xsc.Frag([nbsp()]*4)
+		e = xsc.Frag([specials.nbsp()]*4)
 
 		return e.asHTML()
 xsc.registerElement(indent)
