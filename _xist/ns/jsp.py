@@ -41,28 +41,26 @@ class declaration(xsc.ProcInst):
 class If(scriptlet):
 	name = "if"
 
-	def publish(self, publisher):
-		publisher.publish(u"<% if(")
-		publisher.publish(self.content)
-		publisher.publish(u"){ %>")
+	def convert(self, converter):
+		return scriptlet(u"<% if(" + self.content + u"){ %>")
 
 class Else(scriptlet):
 	name = "else"
-	def publish(self, publisher):
-		publisher.publish(u"<% }else{ %>")
+
+	def convert(self, converter):
+		return scriptlet(u"<% }else{ %>")
 
 class ElIf(scriptlet):
 	name = "elif"
 
-	def publish(self, publisher):
-		publisher.publish(u"<% }else if(")
-		publisher.publish(self.content)
-		publisher.publish(u"){ %>")
+	def convert(self, converter):
+		return scriptlet(u"<% }else if (" + self.content + "){ %>")
 
 class End(scriptlet):
 	name = "end"
-	def publish(self, publisher):
-		publisher.publish(u"<% } %>")
+
+	def convert(self, converter):
+		return scriptlet(u"<% } %>")
 
 class directive(xsc.Element):
 	empty = 1

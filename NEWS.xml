@@ -33,6 +33,9 @@ output relative to this base URL. Joining URLs is now done via <code>__div__</co
 and no longer via <code>__add__</code>. This makes it more consistent with
 <code>fileutils</code>. The plan is to make URLs string like immutable objects
 and to merge them with <code>fileutils.Filename</code>.</item>
+<item><code>xist.ns.specials.php</code> has been moved to its own
+module (<code>xist.ns.php</code>). This module provided additional
+convenience processing instructions (just like <code>xist.ns.jsp</code> does).</item>
 </ulist>
 </section>
 

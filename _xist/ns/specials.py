@@ -335,11 +335,5 @@ class cr(xsc.CharRef): "carriage return"; codepoint = 13
 class tab(xsc.CharRef): "horizontal tab"; codepoint = 9
 class esc(xsc.CharRef): "escape"; codepoint = 27
 
-class php(xsc.ProcInst):
-	"""
-	<doc:par>PHP processing instruction
-	(must be used with an explicit target php to work with &xml;)</doc:par>
-	"""
-
 namespace = xsc.Namespace("specials", "http://www.livinglogic.de/DTDs/specials.dtd", vars())
 
