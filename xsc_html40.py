@@ -308,7 +308,7 @@ RegisterElement("base",XSCbase)
 class XSCimg(XSCElement):
 	close = 0
 	attr_handlers = AppendDict(attrs,{ "src" : XSCurl , "alt" : XSCFrag , "longdesc" : XSCFrag , "width" : XSCFrag , "height" : XSCFrag , "usemap" : XSCFrag , "ismap" : XSCFrag })
-	attr_handlers = AppendDict(attr_handlers,{ "border" : XSCFrag }) # deprecated
+	attr_handlers = AppendDict(attr_handlers,{ "border" : XSCFrag , "align" : XSCFrag }) # deprecated
 
 	def __str__(self):
 		e = XSCimg(self.content,self.attrs)
