@@ -9,11 +9,11 @@ class plaintable(table):
 	def _doAsHTML(self):
 		e = table(self.content.asHTML(),self.attrs.asHTML())
 		if not e.has_attr("cellpadding"):
-			e["cellpadding"] = 0
+			e["cellpadding"] = "0"
 		if not e.has_attr("cellspacing"):
-			e["cellspacing"] = 0
+			e["cellspacing"] = "0"
 		if not e.has_attr("border"):
-			e["border"] = 0
+			e["border"] = "0"
 
 		return e
 RegisterElement("plaintable",plaintable)
@@ -24,13 +24,13 @@ class plainbody(body):
 	def _doAsHTML(self):
 		e = body(self.content.asHTML(),self.attrs.asHTML())
 		if not e.has_attr("leftmargin"):
-			e["leftmargin"] = 0
+			e["leftmargin"] = "0"
 		if not e.has_attr("topmargin"):
-			e["topmargin"] = 0
+			e["topmargin"] = "0"
 		if not e.has_attr("marginheight"):
-			e["marginheight"] = 0
+			e["marginheight"] = "0"
 		if not e.has_attr("marginwidth"):
-			e["marginwidth"] = 0
+			e["marginwidth"] = "0"
 
 		return e
 RegisterElement("plainbody",plainbody)
