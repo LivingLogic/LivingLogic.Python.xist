@@ -889,7 +889,7 @@ class XISTTest(unittest.TestCase):
 		self.assertEquals(node.attrs.has("id"), False)
 
 		class Gurk(xsc.Element):
-			empty = True
+			model = False
 			class Attrs(xsc.Element.Attrs):
 				class gurk(xsc.TextAttr): pass
 				class hurz(xsc.TextAttr): default = "hinz+kunz"
@@ -1229,7 +1229,7 @@ class NamespaceTest(unittest.TestCase):
 			xmlname = "test"
 			xmlurl = "test"
 			class foo(xsc.Element):
-				empty = True
+				model = False
 				def convert(self, converter):
 					e = self.xmlns.bar()
 					return e.convert(converter)
@@ -1303,7 +1303,7 @@ class NamespaceTest(unittest.TestCase):
 			xmlurl = "http://xmlns.ns.info/"
 
 			class gurk(xsc.Element):
-				empty = True
+				model = False
 
 		class NS2(NS1):
 			xmlname = "ns"
@@ -2017,6 +2017,33 @@ class XNDLTest(unittest.TestCase):
 		ns = self.xnd2ns(e)
 		self.assert_(issubclass(ns.f_o_o, xsc.CharRef))
 		self.assert_(ns.f_o_o.xmlname, ("f_o_o", "f-o-o"))
+
+
+class PrettyTest(unittest.TestCase):
+	def check(self, node, result):
+		self.assertEqual(node.pretty().asBytes(), result)
+
+	def test_pretty(self):
+		self.check(html.p("apple", "tree"), "<p>appletree</p>")
+		self.check(html.p("apple", html.br(), "tree"), "<p>apple<br />tree</p>")
+		self.check(html.p(php.php("apple")), "<p>\n\t<?php apple?>\n</p>")
+		self.check(html.p(php.php("apple"), "tree"), "<p><?php apple?>tree</p>")
+		self.check(
+			html.div(2*html.p("apple", "tree"), html.br()),
+			"<div>\n\t<p>appletree</p>\n\t<p>appletree</p>\n\t<br />\n</div>"
+		)
+		self.check(
+			html.div(
+				php.php("apple"),
+				html.p("apple", "tree"),
+				html.div(
+					html.p("apple"),
+					html.p("tree"),
+				),
+				html.br()
+			),
+			"<div>\n\t<?php apple?>\n\t<p>appletree</p>\n\t<div>\n\t\t<p>apple</p>\n\t\t<p>tree</p>\n\t</div>\n\t<br />\n</div>"
+		)
 
 
 def test_main():

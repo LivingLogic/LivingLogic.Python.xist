@@ -1363,12 +1363,10 @@ class Frag(Node, list):
 
 	def pretty(self, level=0, indent="\t"):
 		node = self._create()
-		i = 0
-		for child in self:
+		for (i, child) in enumerate(self):
 			if i:
 				node.append("\n")
 			node.append(child.pretty(level, indent))
-			i += 1
 		return node
 
 
@@ -2840,22 +2838,13 @@ class Element(Node):
 
 	def pretty(self, level=0, indent="\t"):
 		node = self.__class__(self.attrs)
-		if len(self)==1 and isinstance(self[0], Text):
-			node.append(self[0])
-		elif len(self)==0:
-			pass
-		else:
-			# search for mixed content
-			text = 0
-			nontext = 0
+		if len(self):
+			# search for text content
 			for child in self:
 				if isinstance(child, Text):
-					text += 1
-				else:
-					nontext += 1
-			# if mixed content, leave it alone
-			if text and nontext:
-				node.append(self.content.clone())
+					# leave content alone
+					node.append(self.content.clone())
+					break
 			else:
 				for child in self:
 					node.append("\n", child.pretty(level+1, indent))
