@@ -148,22 +148,19 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 		self.lineNumber = 1
 		# nothing done for the column number, because otherwise parsing would be much to slow.
 
-		try:
+		while 1:
+			data = file.read(self.bufsize)
+			if not data:
+				break
 			while 1:
-				data = file.read(self.bufsize)
-				if not data:
+				pos = data.find("\n")
+				if pos==-1:
 					break
-				while 1:
-					pos = data.find("\n")
-					if pos==-1:
-						break
-					self.parser.feed(data[:pos+1])
-					data = data[pos+1:]
-					self.lineNumber += 1
-				self.parser.feed(data)
-			self.close()
-		except saxlib.SAXParseException, ex:
-			raise saxlib.SAXParseException("parse error: %s" % ex, ex, self)
+				self.parser.feed(data[:pos+1])
+				data = data[pos+1:]
+				self.lineNumber += 1
+			self.parser.feed(data)
+		self.close()
 		self.source = None
 
 	def setErrorHandler(self, handler):
@@ -255,7 +252,13 @@ class Handler:
 
 	def parse(self, source):
 		self.source = source
-		self.parser.parse(source)
+		try:
+			self.parser.parse(source)
+		except saxlib.SAXParseException, ex:
+			raise saxlib.SAXParseException("parse error: %s" % ex, ex, self)
+		except errors.Error, ex:
+			ex.location = self.getLocation()
+			raise
 
 	def setDocumentLocator(self, locator):
 		self._locator = locator
@@ -286,7 +289,7 @@ class Handler:
 		element = self.namespaces.elementFromName(name)
 		currentelement = self.__nesting[-1].__class__
 		if element != currentelement:
-			raise errors.IllegalElementNestingError(self.getLocation(), currentelement, element)
+			raise errors.IllegalElementNestingError(currentelement, element)
 		self.__nesting[-1].endLoc = self.getLocation()
 		self.__nesting.pop() # pop the innermost element off the stack
 
@@ -322,7 +325,7 @@ class Handler:
 			else:
 				code = int(name)
 		except ValueError:
-			raise errors.MalformedCharRefError(self.getLocation(), name)
+			raise errors.MalformedCharRefError(name)
 		self.__appendNode(xsc.Text(unichr(code)))
 
 	def getLocation(self):
@@ -363,10 +366,10 @@ class Handler:
 						try:
 							node.append(self.namespaces.entityFromName(text[1:i])())
 						except KeyError:
-							raise errors.UnknownEntityError(self.getLocation(), text[1:i])
+							raise errors.UnknownEntityError(text[1:i])
 					text = text[i+1:]
 				except ValueError:
-					raise errors.MalformedCharRefError(self.getLocation(), text)
+					raise errors.MalformedCharRefError(text)
 			except ValueError:
 				if len(text):
 					node.append(text)

@@ -284,7 +284,7 @@ def ToNode(value):
 		return Null
 	elif t in (types.ListType, types.TupleType):
 		return Frag(*value)
-	raise errors.IllegalObjectError(-1, value) # none of the above, so we throw and exception
+	raise errors.IllegalObjectError(value) # none of the above, so we throw and exception
 
 class Node:
 	"""
@@ -1016,9 +1016,9 @@ class Comment(Node, StringMixIn):
 
 	def publish(self, publisher):
 		if publisher.inAttr:
-			raise errors.IllegalAttrNodeError(self.startLoc, self)
+			raise errors.IllegalAttrNodeError(self)
 		if self._content.find(u"--")!=-1 or self._content[-1:]==u"-":
-			raise errors.IllegalCommentContentError(self.startLoc, self)
+			raise errors.IllegalCommentContentError(self)
 		publisher.publish(u"<!--")
 		publisher.publish(self._content)
 		publisher.publish(u"-->")
@@ -1049,7 +1049,7 @@ class DocType(Node, StringMixIn):
 
 	def publish(self, publisher):
 		if publisher.inAttr:
-			raise errors.IllegalAttrNodeError(self.startLoc, self)
+			raise errors.IllegalAttrNodeError(self)
 		publisher.publish(u"<!DOCTYPE ")
 		publisher.publish(self._content)
 		publisher.publish(u">")
@@ -1091,9 +1091,9 @@ class ProcInst(Node, StringMixIn):
 
 	def publish(self, publisher):
 		if publisher.inAttr:
-			raise errors.IllegalAttrNodeError(self.startLoc, self)
+			raise errors.IllegalAttrNodeError(self)
 		if self._content.find(u"?>")!=-1:
-			raise errors.IllegalProcInstFormatError(self.startLoc, self)
+			raise errors.IllegalProcInstFormatError(self)
 		publisher.publish(u"<?")
 		if self.publishPrefix is not None:
 			publishPrefix = self.publishPrefix
@@ -1403,7 +1403,7 @@ class Element(Node):
 
 	def publish(self, publisher):
 		if publisher.inAttr:
-			raise errors.IllegalAttrNodeError(self.startLoc, self)
+			raise errors.IllegalAttrNodeError(self)
 		publisher.publish(u"<")
 		if self.publishPrefix is not None:
 			publishPrefix = self.publishPrefix
@@ -1669,7 +1669,7 @@ class Attr(Frag):
 
 	def publish(self, publisher):
 		if publisher.inAttr:
-			raise errors.IllegalAttrNodeError(self.startLoc, self)
+			raise errors.IllegalAttrNodeError(self)
 		publisher.inAttr = 1
 		Frag.publish(self, publisher)
 		publisher.inAttr = 0
@@ -1787,7 +1787,7 @@ class URLAttr(Attr):
 				urllib.urlcleanup()
 			except IOError:
 				urllib.urlcleanup()
-				raise errors.FileNotFoundError(self.startLoc, url)
+				raise errors.FileNotFoundError(url)
 		return size
 
 	def FileSize(self):
@@ -1805,7 +1805,7 @@ class URLAttr(Attr):
 				urllib.urlcleanup()
 			except IOError:
 				urllib.urlcleanup()
-				raise errors.FileNotFoundError(self.startLoc, url)
+				raise errors.FileNotFoundError(url)
 		return size
 
 	def open(self):
@@ -1967,7 +1967,7 @@ class Namespaces:
 					return namespace.elementsByName[name[1]]
 				except KeyError: # no element in this namespace with this name
 					pass
-		raise errors.IllegalElementError(self.getLocation(), name) # elements with this name couldn't be found
+		raise errors.IllegalElementError(name) # elements with this name couldn't be found
 
 	def entityFromName(self, name):
 		"""
@@ -1980,7 +1980,7 @@ class Namespaces:
 					return namespace.entitiesByName[name[1]]
 				except KeyError: # no entity in this namespace with this name
 					pass
-		raise errors.IllegalEntityError(self.getLocation(), name) # entities with this name couldn't be found
+		raise errors.IllegalEntityError(name) # entities with this name couldn't be found
 
 	def procInstFromName(self, name):
 		"""
@@ -1993,7 +1993,7 @@ class Namespaces:
 					return namespace.procInstsByName[name[1]]
 				except KeyError: # no processing instruction in this namespace with this name
 					pass
-		raise errors.IllegalProcInstError(self.getLocation(), name) # processing instructions with this name couldn't be found
+		raise errors.IllegalProcInstError(name) # processing instructions with this name couldn't be found
 
 	def entityFromNumber(self, number):
 		"""
@@ -2002,9 +2002,6 @@ class Namespaces:
 		for namespace in self.__allNamespaces():
 			if len(namespace.entitiesByNumber[number]):
 				return namespace.entitiesByNumber[number][0]
-		return None
-
-	def getLocation(self):
 		return None
 
 # C0 Controls and Basic Latin

@@ -39,8 +39,8 @@ class Error(Exception):
 	base class for all XSC exceptions
 	"""
 
-	def __init__(self, location = None):
-		self.location = location
+	def __init__(self):
+		self.location = None # will be filled in by the parser, that catches us, modifies us and raises us again.
 
 	def __str__(self):
 		if self.location is not None:
@@ -55,7 +55,7 @@ class EmptyElementWithContentError(Error):
 	"""
 
 	def __init__(self, element):
-		Error.__init__(self, element.startLoc)
+		Error.__init__(self)
 		self.element = element
 
 	def __str__(self):
@@ -113,7 +113,7 @@ class IllegalElementError(Error):
 	(i.e. one that isn't registered via xsc.Namespace.register())
 	"""
 
-	def __init__(self, location, name):
+	def __init__(self, name):
 		Error.__init__(self, location)
 		self.name = name
 
@@ -144,8 +144,8 @@ class IllegalProcInstError(Error):
 	(i.e. one that isn't registered via xsc.Namespace.register())
 	"""
 
-	def __init__(self, location, name):
-		Error.__init__(self, location)
+	def __init__(self, name):
+		Error.__init__(self)
 		self.name = name
 
 	def __str__(self):
@@ -175,8 +175,8 @@ class IllegalElementNestingError(Error):
 	(e.g. <code>&lt;a&gt;&lt;b&gt;&lt;/a&gt;&lt;/b&gt;</code>)
 	"""
 
-	def __init__(self, lineno, expectedelement, foundelement):
-		Error.__init__(self, lineno)
+	def __init__(self, expectedelement, foundelement):
+		Error.__init__(self)
 		self.expectedelement = expectedelement
 		self.foundelement = foundelement
 
@@ -189,8 +189,8 @@ class IllegalAttrNodeError(Error):
 	in an attribute that doesn't belong there (e.g. an element or a comment).
 	"""
 
-	def __init__(self, lineno, node):
-		Error.__init__(self, lineno)
+	def __init__(self, node):
+		Error.__init__(self)
 		self.node = node
 
 	def __str__(self):
@@ -202,7 +202,7 @@ class ImageSizeFormatError(Error):
 	"""
 
 	def __init__(self, element, attrname):
-		Error.__init__(self, element.startLoc)
+		Error.__init__(self)
 		self.element = element
 		self.attrname = attrname
 
@@ -214,8 +214,8 @@ class FileNotFoundError(Error):
 	exception that is raised, when XSC can't open a file.
 	"""
 
-	def __init__(self, location, url):
-		Error.__init__(self, location)
+	def __init__(self, url):
+		Error.__init__(self)
 		self.url = url
 
 	def __str__(self):
@@ -226,8 +226,8 @@ class IllegalObjectError(Error):
 	exception that is raised, when XSC finds an illegal object in its object tree
 	"""
 
-	def __init__(self, location, object):
-		Error.__init__(self, location)
+	def __init__(self, object):
+		Error.__init__(self)
 		self.object = object
 
 	def __str__(self):
@@ -242,8 +242,8 @@ class MalformedCharRefError(Error):
 	exception that is raised, when a character reference is malformed (e.g. &#foo;)
 	"""
 
-	def __init__(self, location, name):
-		Error.__init__(self, location)
+	def __init__(self, name):
+		Error.__init__(self)
 		self.name = name
 
 	def __str__(self):
@@ -255,8 +255,8 @@ class IllegalEntityError(Error):
 	(i.e. one that wasn't registered via Namespace.register)
 	"""
 
-	def __init__(self, location, name):
-		Error.__init__(self, location)
+	def __init__(self, name):
+		Error.__init__(self)
 		self.name = name
 
 	def __str__(self):
@@ -288,8 +288,8 @@ class IllegalCommentContentError(Error):
 	program, not when parsed from an XML file.)
 	"""
 
-	def __init__(self, location, comment):
-		Error.__init__(self, location)
+	def __init__(self, comment):
+		Error.__init__(self)
 		self.comment = comment
 
 	def __str__(self):
@@ -302,8 +302,8 @@ class IllegalProcInstFormatError(Error):
 	program, not when parsed from an XML file.)
 	"""
 
-	def __init__(self, location, procinst):
-		Error.__init__(self, location)
+	def __init__(self, procinst):
+		Error.__init__(self)
 		self.procinst = procinst
 
 	def __str__(self):
@@ -317,8 +317,8 @@ class IllegalXMLDeclFormatError(Error):
 	program, not when parsed from an XML file.)
 	"""
 
-	def __init__(self, location, procinst):
-		Error.__init__(self, location)
+	def __init__(self, procinst):
+		Error.__init__(self)
 		self.procinst = procinst
 
 	def __str__(self):
@@ -333,8 +333,8 @@ class EncodingImpossibleError(Error):
 	be replaced with character references (e.g. inside a comment)
 	"""
 
-	def __init__(self, location, encoding, text, char):
-		Error.__init__(self, location)
+	def __init__(self, encoding, text, char):
+		Error.__init__(self)
 		self.encoding = encoding
 		self.text = text
 		self.char = char
