@@ -218,15 +218,14 @@ class URL:
 
 	def relativeTo(self,other):
 		"""
-		returns this URL relative to another.
+		<par nointent>returns <self/> interpreted relative
+		to <code>other</code>+<self/>.</par>
 
-		note that remote URLs won't be modified in any way,
+		<par>Note that remote URLs won't be modified in any way,
 		because although the file you've read might have been
 		remote, the parsed XSC file that you output, probably
-		isn't.
-
-		Note too, that the returned URL will not have any path markers
-		in it.
+		isn't. The resulting URL won't have any path markers
+		in it.</par>
 		"""
 		new = other + self
 		new.__path = filter(new.isNoPathMarker,new.__path)
