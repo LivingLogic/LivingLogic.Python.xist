@@ -103,11 +103,11 @@ class blank_or_not_blank(xsc.Element.Attrs):
 
 class page_height(xsc.Element.Attrs):
 	class page_height(xsc.TextAttr):
-		xmlname = "page_height"
+		xmlname = "page-height"
 
 class page_width(xsc.Element.Attrs):
 	class page_width(xsc.TextAttr):
-		xmlname = "page_width"
+		xmlname = "page-width"
 
 class reference_orientation(xsc.Element.Attrs):
 	class reference_orientation(xsc.TextAttr):
@@ -203,6 +203,12 @@ class intrusion_displace(xsc.Element.Attrs):
 class keep_together(xsc.Element.Attrs):
 	class keep_together(xsc.TextAttr):
 		xmlname = "keep-together"
+	class keep_together_within_line(xsc.TextAttr):
+		xmlname = "keep-together.within-line"
+	class keep_together_within_column(xsc.TextAttr):
+		xmlname = "keep-together.within-column"
+	class keep_together_within_page(xsc.TextAttr):
+		xmlname = "keep-together.within-page"
 
 class keep_with_next(xsc.Element.Attrs):
 	class keep_with_next(xsc.TextAttr):
@@ -531,6 +537,7 @@ class common_margin_properties_block(xsc.Element.Attrs):
 	class space_before_maximum(xsc.TextAttr): xmlname = "space-before.maximum"
 	class space_before_conditionality(xsc.TextAttr): xmlname = "space-before.conditionality"
 	class space_before_precedence(xsc.TextAttr): xmlname = "space-before.precedence"
+	class space_after(xsc.TextAttr): xmlname = "space-after"
 	class space_after_minimum(xsc.TextAttr): xmlname = "space-after.minimum"
 	class space_after_optimum(xsc.TextAttr): xmlname = "space-after.optimum"
 	class space_after_maximum(xsc.TextAttr): xmlname = "space-after.maximum"
@@ -546,6 +553,7 @@ class common_margin_properties_inline(xsc.Element.Attrs):
 	class space_end_maximum(xsc.TextAttr): xmlname = "space-end.maximum"
 	class space_end_conditionality(xsc.TextAttr): xmlname = "space-end.conditionality"
 	class space_end_precedence(xsc.TextAttr): xmlname = "space-end.precedence"
+	class space_start(xsc.TextAttr): xmlname = "space-start"
 	class space_start_minimum(xsc.TextAttr): xmlname = "space-start.minimum"
 	class space_start_optimum(xsc.TextAttr): xmlname = "space-start.optimum"
 	class space_start_maximum(xsc.TextAttr): xmlname = "space-start.maximum"
@@ -867,6 +875,7 @@ class usage_context_of_suppress_at_line_break(xsc.Element.Attrs):
 
 ###
 ### Elements
+### Attributes are only the applicable ones. Inheritable ones will be added afterwards
 ###
 
 class color_profile(xsc.Element):
@@ -1766,64 +1775,65 @@ pe_block = (block, block_container, table_and_caption, table, list_block)
 pe_inline = (bidi_override, character, external_graphic, instream_foreign_object, inline, inline_container, leader, page_number, page_number_citation, basic_link, multi_toggle)
 pe_neutral = (multi_switch, multi_properties, wrapper, retrieve_marker)
 
-root.content = (layout_master_set, declarations, page_sequence)
-declarations.content = (color_profile,)
-color_profile.content = ()
-page_sequence.content = (title, static_content, flow)
-layout_master_set.content = (simple_page_master, page_sequence_master)
-page_sequence_master.content = (single_page_master_reference, repeatable_page_master_reference, repeatable_page_master_alternatives)
-single_page_master_reference.content = ()
-repeatable_page_master_reference.content = ()
-repeatable_page_master_alternatives.content = (conditional_page_master_reference,)
-conditional_page_master_reference.content = ()
-simple_page_master.content = (region_body, region_before, region_after, region_start, region_end)
-region_body.content = ()
-region_before.content = ()
-region_after.content = ()
-region_start.content = ()
-region_end.content = ()
-flow.content = pe_block + (marker,)
-static_content.content = pe_block
-title.content = pe_inline
-block.content = pe_inline + pe_block
-block_container.content = pe_block
-bidi_override.content = pe_inline + pe_block
-character.content = ()
-initial_property_set.content = ()
-external_graphic.content = ()
-instream_foreign_object.content = ()
-inline.content = pe_inline + pe_block
-inline_container.content = pe_block
-leader.content = pe_inline
-page_number.content = ()
-page_number_citation.content = ()
-table_and_caption.content = (table_caption, table)
-table.content = (table_column, table_header, table_footer, table_body)
-table_column.content = ()
-table_caption.content = pe_block + (marker,)
-table_header.content = (table_row, table_cell, marker)
-table_footer.content = (table_row, table_cell, marker)
-table_body.content = (table_row, table_cell, marker)
-table_row.content = (table_cell,)
-table_cell.content = pe_block + (marker,)
-list_block.content = (list_item, marker)
-list_item.content = (list_item_label, list_item_body, marker)
-list_item_body.content = pe_block + (marker,)
-list_item_label.content = pe_block + (marker,)
-basic_link.content = pe_inline + pe_block + (marker,)
-multi_switch.content = (multi_case,)
-multi_case.content = pe_inline + pe_block + (multi_toggle,) ### More attributes are allowed
-multi_toggle.content = pe_inline + pe_block
-multi_properties.content = (multi_property_set, wrapper)
-multi_property_set.content = ()
-float.content = pe_block
-footnote.content = (pe_inline, footnote_body)
-wrapper.content = pe_inline + pe_block + (marker,)
-marker.content = pe_inline + pe_block
-retrieve_marker.content = ()
+# DTD information
+dtd = {
+		root: (layout_master_set, declarations, page_sequence),
+		declarations: (color_profile,),
+		page_sequence: (title, static_content, flow),
+		layout_master_set: (simple_page_master, page_sequence_master),
+		page_sequence_master: (single_page_master_reference, repeatable_page_master_reference, repeatable_page_master_alternatives),
+		repeatable_page_master_alternatives: (conditional_page_master_reference,),
+		simple_page_master: (region_body, region_before, region_after, region_start, region_end),
+		flow: pe_block + (marker,),
+		static_content: pe_block,
+		title: pe_inline,
+		block: pe_inline + pe_block,
+		block_container: pe_block,
+		bidi_override: pe_inline + pe_block,
+		inline: pe_inline + pe_block,
+		inline_container: pe_block,
+		leader: pe_inline,
+		table_and_caption: (table_caption, table),
+		table: (table_column, table_header, table_footer, table_body),
+		table_caption: pe_block + (marker,),
+		table_header: (table_row, table_cell, marker),
+		table_footer: (table_row, table_cell, marker),
+		table_body: (table_row, table_cell, marker),
+		table_row: (table_cell,),
+		table_cell: pe_block + (marker,),
+		list_block: (list_item, marker),
+		list_item: (list_item_label, list_item_body, marker),
+		list_item_body: pe_block + (marker,),
+		list_item_label: pe_block + (marker,),
+		basic_link: pe_inline + pe_block + (marker,),
+		multi_switch: (multi_case,),
+		multi_case: pe_inline + pe_block + (multi_toggle,), ### More attributes are allowed
+		multi_toggle: pe_inline + pe_block,
+		multi_properties: (multi_property_set, wrapper),
+		float: pe_block,
+		footnote: pe_inline + (footnote_body,),
+		wrapper: pe_inline + pe_block + (marker,),
+		marker: pe_inline + pe_block
+}
 
 class xmlns(xsc.Namespace):
 	xmlname = "fo"
 	xmlurl = "http://www.w3.org/1999/XSL/Format"
 xmlns.makemod(vars())
 
+# This function uses the DTD information from above to add inheritable attributes to the elements
+def addinheritableattributes(element):
+	if element in dtd: # if element hasn't been prcessed yet
+		content = dtd[element] # fetch and delete content model from the DTD info
+		del dtd[element]
+		for child in content:
+			if child is not element: # avoid endless recursion
+				addinheritableattributes(child) # make sure the child element already have their inheritable attributes added
+				for attr in child.Attrs.iterallowedvalues():
+					if not element.Attrs.isallowed(attr.xmlname[0]):
+						setattr(element.Attrs, attr.xmlname[0], attr) # add child attribute to element
+
+for element in dtd.keys(): # use a copy of the keys, because we mutate the dict
+	addinheritableattributes(element)
+
+del dtd
