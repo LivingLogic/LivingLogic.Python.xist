@@ -3,7 +3,7 @@
 
 <section><title>Changes to <module>ll.xist.xfind</module></title>
 <par>The functions <function>xfind.first</function> and
-<function>xfind.last</function> now is <function>xfind.item</function>, so
+<function>xfind.last</function> now use <function>xfind.item</function>, so
 they will raise an <class>IndexError</class> when no default value is passed.
 To get the old behaviour, simply pass <lit>None</lit> as the default.</par>
 </section>
