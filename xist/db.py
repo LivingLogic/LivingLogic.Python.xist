@@ -167,7 +167,7 @@ class template(xsc.Element):
 		"""
 		for field in element.nodes(type = control,subtype = 1,children = 1,attrs = 1): # iterate over all database elements in the target
 			if record is not None:
-				field["value"] = record[field["name"].asHTML().asPlainString()].asPlainString() # put the field values in
+				field["value"] = str(record[field["name"].asHTML().asPlainString()]) # put the field values in
 			else:
 				field["value"] = "dummy"
 		return element
