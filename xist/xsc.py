@@ -189,7 +189,7 @@ class XSCElement(XSCNode):
 
 		v = []
 		v.append("<")
-		v.append(self.__class__.__name__)
+		v.append(string.lower(self.__class__.__name__))
 		if len(self.attrs.keys()):
 			v.append(" ")
 			v.append(AsString(self.attrs))
@@ -198,7 +198,7 @@ class XSCElement(XSCNode):
 			v.append(">")
 			v.append(s)
 			v.append("</")
-			v.append(self.__class__.__name__) # name must be a string without any nasty characters
+			v.append(string.lower(self.__class__.__name__)) # name must be a string without any nasty characters
 			v.append(">")
 		else:
 			if len(s):
@@ -215,6 +215,46 @@ class XSCElement(XSCNode):
 
 	def has_attr(self,attr):
 		return self.attrs.has_key(attr)
+
+handlers = {} # dictionary that links element names to classes
+
+class XSC(XMLParser):
+	"Reads a XML file and constructs an XSC tree from it."
+
+
+	def __init__(self,filename):
+		XMLParser.__init__(self)
+		self.filename = filename
+		self.nesting = [ [] ] # our nodes do not have a parent link, therefore we have to store the active path through the tree in a stack (which we call nesting, because stack is already used by the base class
+		self.feed(open(filename).read())
+		self.close()
+		self.root = self.nesting[0]
+
+	def processingInstruction (self,target, remainder):
+		pass
+
+	def unknown_starttag(self,name,attrs = {}):
+		e = handlers[name]([],attrs)
+		self.nesting[-1].append(e) # add the new element to the content of the innermost element (or to the array)
+		self.nesting.append(e) # push new innermost element onto the stack
+		
+	def unknown_endtag(self,name):
+		self.nesting[-1:] = [] # pop the innermost element off the stack
+
+	def handle_data(self,data):
+		self.nesting[-1].append(data) # add the new string to the content of the innermost element
+
+	def handle_comment(self,comment):
+		self.nesting[-1].append(XSCComment(comment))
+
+	def AsHTML(self,mode = None):
+		return AsHTML(self.root,mode)
+
+	def AsString(self):
+		return AsString(self.root)
+
+	def __str__(self):
+		return AsString(AsHTML(self))
 
 def AsHTML(value,mode = None):
 	"transforms a value into its HTML equivalent: this means that HSC nodes get expanded to their equivalent HTML subtree. Scalar types are returned as is. Lists, tuples and dictionaries are treated recurcively"
@@ -274,34 +314,4 @@ def AsString(value):
 		return string.joinfields(v,"")
 	else:
 		return value.AsString()
-
-class XSC(XMLParser):
-	"Reads a XML file and constructs an XSC tree from it."
-
-	handlers = {} # dictionary that links element names to classes
-
-	def __init__(self,filename):
-		XMLParser.__init__(self)
-		self.filename = filename
-		self.nesting = [ [] ] # our nodes do not have a parent link, therefore we have to store the active path through the tree in a stack (which we call nesting, because stack is already used by the base class
-		self.feed(open(filename).read())
-		self.close()
-		self.root = self.nesting[0]
-
-	def processingInstruction (self,target, remainder):
-		pass
-
-	def unknown_starttag(self,name,attrs = {}):
-		e = self.handlers[name]([],attrs)
-		self.nesting[-1].append(e) # add the new element to the content of the innermost element (or to the array)
-		self.nesting.append(e) # push new innermost element onto the stack
-		
-	def unknown_endtag(self,name):
-		self.nesting[-1:] = [] # pop the innermost element off the stack
-
-	def handle_data(self,data):
-		self.nesting[-1].append(data) # add the new string to the content of the innermost element
-
-	def handle_comment(self,comment):
-		self.nesting[-1].append(XSCComment(comment))
 
