@@ -124,20 +124,19 @@ class Node(Base):
 
 	class __metaclass__(Base.__metaclass__):
 		def __new__(cls, name, bases, dict):
-			if not dict.has_key("xmlname"):
-				xmlname = name
-				dict["xmlname"] = xmlname
+			if "xmlname" not in dict:
+				dict["xmlname"] = name
 			dict["xmlns"] = None
-			if not dict.has_key("register"):
+			if "register" not in dict:
 				dict["register"] = True
 			# needsxmlns may be defined as a constant, this magically turns it into method
-			if dict.has_key("needsxmlns"):
+			if "needsxmlns" in dict:
 				needsxmlns_value = dict["needsxmlns"]
 				if not isinstance(needsxmlns_value, classmethod):
 					def needsxmlns(cls, publisher=None):
 						return needsxmlns_value
 					dict["needsxmlns"] = classmethod(needsxmlns)
-			if dict.has_key("xmlprefix"):
+			if "xmlprefix" in dict:
 				xmlprefix_value = dict["xmlprefix"]
 				if not isinstance(xmlprefix_value, classmethod):
 					def xmlprefix(cls, publisher=None):
@@ -1292,7 +1291,7 @@ class Attr(Frag):
 			# convert the default to a Frag
 			dict["default"] = Frag(dict.get("default", None))
 			# convert the entries in values to unicode
-			if dict.has_key("values"):
+			if "values" in dict:
 				dict["values"] = tuple([unicode(entry) for entry in dict["values"]])
 			else:
 				dict["values"] = None
@@ -1657,7 +1656,7 @@ class Attrs(Node, dict):
 		return u""
 
 	def isallowed(cls, key):
-		return cls._handlersByPyName.has_key(key)
+		return key in cls._handlersByPyName
 	isallowed = classmethod(isallowed)
 
 	def _attrClass(cls, key):
@@ -1834,15 +1833,15 @@ class Element(Node):
 
 	class __metaclass__(Node.__metaclass__):
 		def __new__(cls, name, bases, dict):
-			if dict.has_key("name") and isinstance(dict["name"], (str, unicode)):
+			if "name" in dict and isinstance(dict["name"], (str, unicode)):
 				errors.warn(DeprecationWarning("name is deprecated, use xmlname instead"))
 				dict["xmlname"] = dict["name"]
 				del dict["name"]
-			if dict.has_key("attrHandlers"):
+			if "attrHandlers" in dict:
 				errors.warn(DeprecationWarning("attrHandlers is deprecated, use a nested Attrs class instead"))
 				# make it work anyway
 				import new
-				if dict.has_key("Attrs"):
+				if "Attrs" in dict:
 					base = dict["Attrs"]
 				else:
 					base = Element.Attrs
