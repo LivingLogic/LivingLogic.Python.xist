@@ -211,6 +211,22 @@ class include(xsc.Element):
 class center(xsc.Element):
 	empty = 0
 
+class par(html_.div):
+	empty = 0
+	attrHandlers = xsc.appendDict(html_.div.attrHandlers, {"noindent" : xsc.TextAttr})
+
+	def asHTML(self):
+		e = html_.div(self.content.clone())
+		indent = 1
+		for attr in self.attrs.keys():
+			if attr == "noindent":
+				indent = None
+			else:
+				e[attr] = self[attr]
+		if indent is not None:
+			e["class"] = "indent"
+		return e.asHTML()
+
 class loremipsum(xsc.Element):
 	empty = 1
 	attrHandlers = { "len" : xsc.IntAttr }

@@ -747,10 +747,9 @@ class Node:
 		for c in text:
 			if c == u'\r':
 				continue
-			c2 = stringFromCode(c).encode(encoding)
 			if self._strescapes.has_key(c):
 				if charrefs == 0:
-					v.append(c2)
+					v.append(stringFromCode(c).encode(encoding))
 				elif charrefs == 1:
 					raise EncodingImpossibleError(self.startloc,encoding,text)
 				else:
@@ -761,7 +760,7 @@ class Node:
 				else:
 					raise EncodingImpossibleError(self.startloc,encoding,text)
 			else:
-				v.append(c2)
+				v.append(stringFromCode(c).encode(encoding))
 		return "".join(v)
 
 class Text(Node):
@@ -1332,12 +1331,20 @@ class Element(Node):
 				publisher('="')
 				if size is not None and attr==widthattr:
 					try:
-						publisher(str(eval(self[widthattr].asPlainString() % sizedict)))
+						s = self[widthattr].asPlainString() % sizedict
+						s = s.encode(outputEncoding) # FIXME eval unicode("gurk")
+						s = str(eval(s))
+						s = stringFromCode(s).encode(outputEncoding)
+						publisher(s)
 					except:
 						raise ImageSizeFormatError(self,widthattr)
 				elif size is not None and attr==heightattr:
 					try:
-						publisher(str(eval(self[heightattr].asPlainString() % sizedict)))
+						s = self[heightattr].asPlainString() % sizedict
+						s = s.encode(outputEncoding) # FIXME eval unicode("gurk")
+						s = str(eval(s))
+						s = stringFromCode(s).encode(outputEncoding)
+						publisher(s)
 					except:
 						raise ImageSizeFormatError(self,heightattr)
 				else:
@@ -1686,7 +1693,7 @@ class URLAttr(Attr):
 		size = None
 		if xsc.isRetrieve(url):
 			try:
-				filename,headers = urllib.urlretrieve(url.asString())
+				filename,headers = urllib.urlretrieve(url.asString().encode(outputEncoding))
 				if headers.maintype == "image":
 					img = Image.open(filename)
 					size = img.size
@@ -1766,10 +1773,10 @@ class Namespace:
 			iselement = thing is not Element and issubclass(thing,Element)
 			isentity = thing is not Entity and issubclass(thing,Entity)
 			if iselement or isentity:
-				if not hasattr(thing,"namespace"): # if the class already has a namespace attribute, it is already registered
+				if not thing.__dict__.has_key("namespace"): # if the class already has a namespace attribute, it is already registered (where accessing __dict__ here, because we don't want inheritance)
 					try:
-						name = thing.name
-					except AttributeError:
+						name = thing.__dict__["name"] # no inheritance
+					except KeyError:
 						name = thing.__name__
 					name = stringFromCode(name)
 
