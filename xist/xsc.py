@@ -553,7 +553,7 @@ class XSCAttrs(XSCNode):
 	def __getitem__(self,index):
 		"""returns the attribute with the name index"""
 		lowerindex = string.lower(index)
-		if self.__content.has_key(lowerindex)
+		if self.__content.has_key(lowerindex):
 			return self.__content[lowerindex] # we're returning the packed attribute here, because otherwise there would be no possibility to get an expanded URL
 		else:
 			raise XSCIllegalAttributeError(xsc.parser.lino,self,index)
