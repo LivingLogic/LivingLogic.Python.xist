@@ -120,8 +120,6 @@ class Node(Base):
 
 	class __metaclass__(Base.__metaclass__):
 		def __new__(cls, name, bases, dict):
-			if "xmlns" in dict:
-				raise ValueError("################## %r %r" % (name, bases))
 			if "register" not in dict:
 				dict["register"] = True
 			# needsxmlns may be defined as a constant, this magically turns it into method
@@ -1947,7 +1945,7 @@ class Element(Node):
 	objects.</par>
 
 	<par>Every element class should have two class variables:
-	<lit>empty</lit>: this is either <lit>False</lit> or <lit>False</lit>
+	<lit>empty</lit>: this is either <lit>False</lit> or <lit>True</lit>
 	and specifies whether the element type is allowed to have content
 	or not. This will be checked when parsing or publishing.</par>
 
