@@ -33,21 +33,24 @@ class programlisting(xsc.Element):
 	empty = False
 
 	def convert(self, converter):
-		e = html.pre(class_="programlisting")
-		for child in self.content:
-			child = child.convert(converter)
-			if isinstance(child, xsc.Text):
-				for c in child.content:
-					if c==u"\t":
-						if converter.target=="text":
-							c = "   "
-						else:
-							c = html.span(u"···", class_="tab")
-					e.append(c)
-			else:
-				e.append(child)
-		if converter.target=="text":
-			e = html.blockquote(e)
+		if converter.target == "docbook":
+			e = docbook.programlisting(self.content)
+		else:
+			e = html.pre(class_="programlisting")
+			for child in self.content:
+				child = child.convert(converter)
+				if isinstance(child, xsc.Text):
+					for c in child.content:
+						if c==u"\t":
+							if converter.target=="text":
+								c = "   "
+							else:
+								c = html.span(u"···", class_="tab")
+						e.append(c)
+				else:
+					e.append(child)
+			if converter.target=="text":
+				e = html.blockquote(e)
 		return e.convert(converter)
 
 class example(xsc.Element):
@@ -65,9 +68,12 @@ class example(xsc.Element):
 			else:
 				cs.append(child)
 		
-		e = xsc.Frag(cs)
-		if converter.target!="text" and ts:
-			e.append(html.div(ts, class_="example-title"))
+		if converter.target=="docbook":
+			e = docbook.example(docbook.title(ts), cs)
+		else:
+			e = cs
+			if converter.target!="text" and ts:
+				e.append(html.div(ts, class_="example-title"))
 		return e.convert(converter)
 
 class option(xsc.Element):
@@ -318,7 +324,7 @@ class par(xsc.Element):
 
 	def convert(self, converter):
 		if converter.target=="docbook":
-			e = docbook.para(self.content, type=self["type"])
+			e = docbook.para(self.content, role=self["type"])
 		else:
 			e = html.p(self.content, class_=self["type"])
 		return e.convert(converter)
