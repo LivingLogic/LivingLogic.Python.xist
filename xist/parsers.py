@@ -200,11 +200,10 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 			return None
 		return self.source.getSystemId()
 
-	def handle_cdata(self, data):
-		self.content_handler.characters(data)
-
 	def handle_comment(self, data):
 		self.content_handler.comment(data)
+
+	# don't define handle_charref or handle_cdata, so we will get those through handle_data
 
 	def handle_data(self, data):
 		self.content_handler.characters(data)
@@ -212,9 +211,6 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 	def handle_proc(self, target, data):
 		if target!=u'xml': # Don't report <?xml?> as a processing instruction
 			self.content_handler.processingInstruction(target, data)
-
-	def handle_charref(self, charno):
-		self.content_handler.characters(unichr(charno))
 
 	def handle_entityref(self, name):
 		if hasattr(self.content_handler, "entity"):
