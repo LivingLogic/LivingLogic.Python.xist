@@ -373,7 +373,7 @@ class Node:
 		bold element, do the following:
 
 		<pre>
-		def foo(xsc.Element):
+		class foo(xsc.Element):
 			empty = 0
 
 			def convert(self, converter=None):
@@ -789,6 +789,11 @@ class Frag(Node):
 			self.extend(child)
 
 	def convert(self, converter=None):
+		if __debug__:
+			for child in self.__content:
+				convertedchild = child.convert()
+				if not isinstance(convertedchild, Node):
+					raise AssertionError("the convert method returned the illegal object %r when converting %r" % (convertedchild, child))
 		node = self.__class__() # virtual constructor => attributes (which are derived from Frag) will be handled correctly)
 		node.__content = [ child.convert(converter) for child in self.__content ]
 		return self._decorateNode(node)
@@ -1268,6 +1273,16 @@ class Element(Node):
 			raise errors.EmptyElementWithContentError(self)
 
 	def convert(self, converter=None):
+		if __debug__:
+			for child in self.content:
+				convertedchild = child.convert()
+				if not isinstance(convertedchild, Node):
+					raise AssertionError("the convert method returned the illegal object %r when converting %r" % (convertedchild, child))
+			for attrname in self.attrs.keys():
+				attr = self.attrs[attrname]
+				convertedattr = attr.convert()
+				if not isinstance(convertedattr, Node):
+					raise AssertionError("the convert method returned the illegal object %r when converting the attribute %s with the value %r" % (convertedattr, presenters.strAttrName(attrname), attr))
 		node = self.__class__() # "virtual" copy constructor
 		node.content = self.content.convert(converter) # this is faster than passing it in the constructor (no ToNode call)
 		for attr in self.attrs.keys():
