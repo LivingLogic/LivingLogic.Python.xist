@@ -9,7 +9,7 @@
 ## See xist/__init__.py for the license
 
 """
-This module contains all the central &dom; classes, the namespace classes
+This module contains all the central &xml; classes, the namespace classes
 and a few helper classes and functions.
 """
 
@@ -34,17 +34,19 @@ except ImportError:
 
 def ToNode(value):
 	"""
-	<par>convert the <arg>value</arg> passed in to an &xist; <pyref class="Node"><class>Node</class></pyref>.</par>
+	<par>convert <arg>value</arg> to an &xist; <pyref class="Node"><class>Node</class></pyref>.</par>
 
 	<par>If <arg>value</arg> is a tuple or list, it will be (recursively) converted
 	to a <pyref class="Frag"><class>Frag</class></pyref>. Integers, strings, etc. will be converted to a
 	<pyref class="Text"><class>Text</class></pyref>.
-	If <arg>value</arg> is a <pyref class="Node"><class>Node</class></pyref> already, nothing will be done.
-	In the case of <lit>None</lit> the &xist; Null (<class>xsc.Null</class>) will be returned.
-	Anything else raises an exception.</par>
+	If <arg>value</arg> is a <pyref class="Node"><class>Node</class></pyref> already, it will be returned unchanged.
+	In the case of <lit>None</lit> the &xist; Null (<class>ll.xist.xsc.Null</class>) will be returned.
+	If <arg>value</arg> is iteratable, a <class>Frag</class> will be generated from
+	the items.
+	Anything else will issue a warning and will be ignored (by returning <class>Null</class>).</par>
 	"""
 	if isinstance(value, Node):
-		# we don't have to turn an Attr into a Frag, because this will be done once the Attr is put into the XSC tree
+		# we don't have to turn an Attr into a Frag, because this will be done once the Attr is put back into the tree
 		return value
 	elif isinstance(value, (basestring, int, long, float)):
 		return Text(value)
@@ -155,7 +157,7 @@ enterattrs = Const()
 
 class FindType(object):
 	"""
-	Tree traversal filter, that finds nodes of a certain type on the first level
+	Tree traversal filter that finds nodes of a certain type on the first level
 	of the tree without decending further down.
 	"""
 	def __init__(self, *types):
@@ -166,7 +168,7 @@ class FindType(object):
 
 class FindTypeAll(object):
 	"""
-	Tree traversal filter, that finds nodes of a certain type searching the complete tree
+	Tree traversal filter that finds nodes of a certain type searching the complete tree
 	"""
 	def __init__(self, *types):
 		self.types = types
@@ -176,7 +178,7 @@ class FindTypeAll(object):
 
 class FindTypeAllAttrs(object):
 	"""
-	Tree traversal filter, that finds nodes of a certain type searching the complete tree
+	Tree traversal filter that finds nodes of a certain type searching the complete tree
 	(including attributes)
 	"""
 	def __init__(self, *types):
@@ -188,7 +190,7 @@ class FindTypeAllAttrs(object):
 class FindTypeTop(object):
 	"""
 	Tree traversal filter, that find nodes of a certain type searching the complete tree,
-	but traversal of a the children of a node is skipped if this node is of the specified
+	but traversal of the children of a node is skipped if this node is of the specified
 	type.
 	"""
 	def __init__(self, *types):
@@ -309,6 +311,13 @@ class _XFindBase(object):
 
 
 class XFinder(object):
+	"""
+	An <class>XFinder</class> object is a <z>parsed</z> XFind expression.
+	The expression <lit><rep>a</rep>/<rep>a</rep>/<rep>a</rep>/<rep>d</rep></lit>
+	will return an <class>XFinder</class> object if <lit><rep>a</rep></lit> is
+	either a <pyref class="Node"><class>Node</class></pyref> object or a
+	<class>XFinder</class> object.
+	"""
 	__slots__ = ("iterator", "operators")
 
 	def __init__(self, iterator, *operators):
