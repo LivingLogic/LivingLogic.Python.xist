@@ -28,7 +28,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 
 import sys, types, time as time_, string
 
-from xist import xsc
+from xist import xsc, parsers
 import html as html_
 
 class xist(xsc.Entity):
@@ -228,7 +228,7 @@ class include(xsc.Element):
 	attrHandlers = {"src": xsc.URLAttr}
 
 	def convert(self, converter):
-		e = xsc.xsc.parse(self["src"].forInput())
+		e = parsers.parseURL(self["src"].forInput())
 
 		return e.convert(converter)
 
