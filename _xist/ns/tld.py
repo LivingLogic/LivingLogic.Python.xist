@@ -45,9 +45,9 @@ class attribute(xsc.Element):
 	class Attrs(IdAttrs): pass
 
 	def convert(self, converter):
-		e = xndl.attr(name=self.find(type=tld.name)[0].content)
+		e = xndl.attr(name=self.find(type=name)[0].content)
 		isRequired = None
-		l = self.find(type=tld.required)
+		l = self.find(type=required)
 		if l:
 			value = str(l[0].content)
 			if value in ('true', 'yes'):
@@ -151,8 +151,8 @@ class tag(xsc.Element):
 	class Attrs(IdAttrs): pass
 
 	def convert(self, converter):
-		e = xndl.element(name=self.find(type=tld.name)[0].content)
-		l = self.find(type=tld.bodycontent)
+		e = xndl.element(name=self.find(type=name)[0].content)
+		l = self.find(type=bodycontent)
 		isEmpty = None
 		if l:
 			value = str(l[0].content)
@@ -163,8 +163,8 @@ class tag(xsc.Element):
 			else:
 				raise ValueError("value %s is not allowed for tag <bodycontent>" % value)
 		e['empty'] = isEmpty
-		e.append(self.find(type=tld.info))
-		e.append(self.find(type=tld.attribute))
+		e.append(self.find(type=info))
+		e.append(self.find(type=attribute))
 		return e.convert(converter)
 		
 
@@ -199,12 +199,12 @@ class taglib(xsc.Element):
 
 	def convert(self, converter):
 		e = xndl.xndl()
-		e['prefix'] = str(self.find(type=tld.shortname)[0].content)
+		e['prefix'] = str(self.find(type=shortname)[0].content)
 		l = self.find(type=uri)
 		if l:
 			e["url"] = l[0].content
-		e.append(self.find(type=tld.info))
-		e.append(self.find(type=tld.tag))
+		e.append(self.find(type=info))
+		e.append(self.find(type=tag))
 		return e.convert(converter)
 
 class teiclass(xsc.Element):
