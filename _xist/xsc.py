@@ -71,6 +71,13 @@ def ToNode(value):
 ###
 
 class Base(object):
+	"""
+	<par>Base class that adds an enhanced class <method>__repr__</method>
+	to subclasses. Subclasses of <class>Base</class> will have an attribute
+	<lit>__outerclass__</lit> that references the containing class (if there
+	is any). <method>__repr__</method> uses this to show the fully qualified
+	class name.</par>
+	"""
 	class __metaclass__(type):
 		def __new__(cls, name, bases, dict):
 			dict["__outerclass__"] = None
