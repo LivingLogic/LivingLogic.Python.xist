@@ -2317,6 +2317,14 @@ class XFindTest2(unittest.TestCase):
 		self.assertEqual(len(res), 1)
 		self.assert_(res[0] is self.node[1]["class_"])
 
+	def test_frag(self):
+		e = parsers.parseString("das ist <b>klaus</b>. das ist <b>erich</b>", prefixes=xsc.Prefixes(html))
+		# The following won't generate any nodes, because e/xfind.all iterates all
+		# nodes in the tree (but not the Frag root) and ../html.b filter the bold
+		# children, but there are none.
+		self.assertEqual(u"".join(map(unicode, e//html.b)), u"")
+		# The following *will* produce these nodes
+		self.assertEqual(u"".join(map(unicode, e//xfind.is_(html.b))), u"klauserich")
 
 def test_main():
 	unittest.main()
