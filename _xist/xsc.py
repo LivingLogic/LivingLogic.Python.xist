@@ -563,18 +563,20 @@ class Node(Base):
 		if filterpath or walkpath:
 			path = path + [self]
 
-		if isinstance(filter, Found):
-			found = filter
-		elif filterpath:
-			found = filter(path)
-		else:
-			found = filter(self)
-
-		if found.foundstart:
-			if walkpath:
-				yield path
+		if callable(filter):
+			if filterpath:
+				found = filter(path)
 			else:
-				yield self
+				found = filter(self)
+		else:
+			found = filter
+
+		for option in found:
+			if not isinstance(option, type) and option:
+				if walkpath:
+					yield path
+				else:
+					yield self
 
 	def walk(self, filter, filterpath=False, walkpath=False):
 		"""
@@ -1514,27 +1516,23 @@ class Attr(Frag):
 		if filterpath or walkpath:
 			path = path + [self]
 
-		if isinstance(filter, Found):
-			found = filter
-		elif filterpath:
-			found = filter(path)
+		if callable(filter):
+			if filterpath:
+				found = filter(path)
+			else:
+				found = filter(self)
 		else:
-			found = filter(self)
+			found = filter
 
-		if found.foundstart:
-			if walkpath:
-				yield path
-			else:
-				yield self
-
-		for object in Frag._walk(self, filter, path, filterpath=filterpath, walkpath=walkpath):
-			yield object
-
-		if found.foundend:
-			if walkpath:
-				yield path
-			else:
-				yield self
+		for option in found:
+			if isinstance(option, type) and issubclass(option, Frag):
+				for object in Frag._walk(self, filter, path, filterpath=filterpath, walkpath=walkpath):
+					yield object
+			elif option:
+				if walkpath:
+					yield path
+				else:
+					yield self
 
 	def _visit(self, filter, path, filterpath, visitpath):
 		if filterpath or visitpath:
@@ -2622,33 +2620,27 @@ class Element(Node):
 		if filterpath or walkpath:
 			path = path + [self]
 
-		if isinstance(filter, Found):
-			found = filter
-		elif filterpath:
-			found = filter(path)
+		if callable(filter):
+			if filterpath:
+				found = filter(path)
+			else:
+				found = filter(self)
 		else:
-			found = filter(self)
+			found = filter
 
-		if found.foundstart:
-			if walkpath:
-				yield path
-			else:
-				yield self
-
-		if found.enterattrs:
-			for object in self.attrs._walk(filter, path, filterpath=filterpath, walkpath=walkpath):
-				yield object
-
-		if found.entercontent:
-			for object in self.content._walk(filter, path, filterpath=filterpath, walkpath=walkpath):
-				yield object
-
-		if found.foundend:
-			if walkpath:
-				yield path
-			else:
-				yield self
-			yield self
+		for option in found:
+			if isinstance(option, type):
+				if issubclass(option, Attrs):
+					for object in self.attrs._walk(filter, path, filterpath=filterpath, walkpath=walkpath):
+						yield object
+				elif issubclass(option, Frag):
+					for object in self.content._walk(filter, path, filterpath=filterpath, walkpath=walkpath):
+						yield object
+			elif option:
+				if walkpath:
+					yield path
+				else:
+					yield self
 
 	def _visit(self, filter, path, filterpath, visitpath):
 		if filterpath or visitpath:
