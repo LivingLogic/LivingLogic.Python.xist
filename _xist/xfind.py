@@ -41,7 +41,8 @@ class hasattr(xsc._XFindBase):
 			if isinstance(child, xsc.Element):
 				for attrvalue in child.attrs.itervalues():
 					if isinstance(attrvalue, self.attr):
-						yield attrvalue
+						yield child
+						break
 
 	def __repr__(self):
 		return "<%s.%s object attr=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.attr, id(self))
