@@ -774,6 +774,7 @@ class CharacterData(Node):
 	<par>provides nearly the same functionality as <class>UserString</class>,
 	but omits a few methods.</par>
 	"""
+	__slots__ = ("__content",)
 
 	def __init__(self, content=u""):
 		self.__content = unicode(content)
@@ -1395,8 +1396,8 @@ class Null(CharacterData):
 	def present(self, presenter):
 		presenter.presentNull(self)
 
-	def pretty(self, level=0):
-		return self
+	def __unicode__(self):
+		return u""
 
 Null = Null() # Singleton, the Python way
 
@@ -1716,30 +1717,6 @@ class URLAttr(Attr):
 		for writing to the &url;.
 		"""
 		return self.forInput(root).openwrite()
-
-class Null(CharacterData):
-	"""
-	node that does not contain anything.
-	"""
-
-	def convert(self, converter):
-		return self
-
-	def clone(self):
-		pass
-
-	compact = clone
-
-	def publish(self, publisher):
-		pass
-
-	def present(self, presenter):
-		presenter.presentNull(self)
-
-	def pretty(self, level=0):
-		return self
-
-Null = Null() # Singleton, the Python way
 
 class Attrs(Node, dict):
 	"""
