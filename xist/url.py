@@ -389,7 +389,7 @@ class URL:
 		(scheme, server, path, parameters, query, fragment) = urlparse.urlparse(url)
 		scheme = utils.stringFromCode(scheme) or None
 		server = utils.stringFromCode(server) or None
-		__path = map(utils.stringFromCode, path)
+		path = map(utils.stringFromCode, path)
 		parameters = utils.stringFromCode(parameters) or None
 		query = utils.stringFromCode(query) or None
 		fragment = utils.stringFromCode(fragment) or None
@@ -402,23 +402,25 @@ class URL:
 			if len(path) and len(server):
 				path = path[1:] # the path from urlparse started with "/" too
 		port = None
-		pos = server.rfind(u":")
-		if pos != -1:
-			port = int(server[pos+1:])
-			server = server[:pos]
+		if server is not None:
+			pos = server.rfind(u":")
+			if pos != -1:
+				port = int(server[pos+1:])
+				server = server[:pos]
 		path = path.split(u"/")
 		file = path[-1]
 		if file not in (u'.', u'..'):
 			path = path[:-1]
 		else:
-			file = ''
+			file = None
 
 		ext = None
 		if scheme in (u"ftp", u"http", u"https", u"server", u""):
-			pos = file.rfind(u".")
-			if pos != -1:
-				ext = file[pos+1:]
-				file = file[:pos]
+			if file is not None:
+				pos = file.rfind(u".")
+				if pos != -1:
+					ext = file[pos+1:]
+					file = file[:pos]
 
 		self.scheme = scheme or None
 		self.server = server or None
