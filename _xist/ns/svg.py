@@ -295,7 +295,7 @@ class svg(xsc.Element):
 		class externalResourcesRequired(BooleanAttr): pass
 		class class_(ClassListAttr): xmlname = "class"
 		class style(xsc.StyleAttr): pass
-		class viewbox(ViewBoxSpecAttr): pass
+		class viewBox(ViewBoxSpecAttr): pass
 		class preserveAspectRatio(PreserveAspectRatioSpecAttr): values = ("xMidYMid", "meet")
 		class zoomAndPan(xsc.TextAttr): values = ("disable", "magnify")
 		class version(NumberAttr): default = "1.0"
