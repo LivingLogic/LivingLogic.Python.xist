@@ -9,7 +9,7 @@
 ## See xist/__init__.py for the license
 
 """
-This module contains all the central &xml; classes, the namespace classes
+This module contains all the central &xml; tree classes, the namespace classes
 and a few helper classes and functions.
 """
 
@@ -37,13 +37,14 @@ def ToNode(value):
 	<par>convert <arg>value</arg> to an &xist; <pyref class="Node"><class>Node</class></pyref>.</par>
 
 	<par>If <arg>value</arg> is a tuple or list, it will be (recursively) converted
-	to a <pyref class="Frag"><class>Frag</class></pyref>. Integers, strings, etc. will be converted to a
-	<pyref class="Text"><class>Text</class></pyref>.
-	If <arg>value</arg> is a <pyref class="Node"><class>Node</class></pyref> already, it will be returned unchanged.
-	In the case of <lit>None</lit> the &xist; Null (<class>ll.xist.xsc.Null</class>) will be returned.
-	If <arg>value</arg> is iteratable, a <class>Frag</class> will be generated from
-	the items.
-	Anything else will issue a warning and will be ignored (by returning <class>Null</class>).</par>
+	to a <pyref class="Frag"><class>Frag</class></pyref>. Integers, strings, etc.
+	will be converted to a <pyref class="Text"><class>Text</class></pyref>.
+	If <arg>value</arg> is a <pyref class="Node"><class>Node</class></pyref> already,
+	it will be returned unchanged. In the case of <lit>None</lit> the &xist; Null
+	(<class>ll.xist.xsc.Null</class>) will be returned. If <arg>value</arg> is
+	iteratable, a <class>Frag</class> will be generated from the items.
+	Anything else will issue a warning and will be ignored (by returning
+	<class>Null</class>).</par>
 	"""
 	if isinstance(value, Node):
 		# we don't have to turn an Attr into a Frag, because this will be done once the Attr is put back into the tree
@@ -71,6 +72,11 @@ def ToNode(value):
 ###
 
 def append(*args, **kwargs):
+	"""
+	<function>append</function> can be used with XPython. It append items in
+	<arg>args</arg> (or sets attributes in <arg>kwargs</args) in the currenty
+	active node.
+	"""
 	node = iexec.getinstance((converters.Converter, Frag, Element)) # requires XPython
 	if node is not None:
 		if isinstance(node, converters.Converter):
@@ -87,8 +93,9 @@ def append(*args, **kwargs):
 
 def notimplemented(function):
 	"""
-	A function decorator that raises a NotImplementedError when the method is called.
-	This saves you the trouble of formatting the error message yourself for each implementation.
+	A function decorator that raises a <class>NotImplementedError</class> when
+	the method is called. This saves you the trouble of formatting the error
+	message yourself for each implementation.
 	"""
 	def wrapper(self, *args, **kwargs):
 		raise NotImplementedError("method %s() not implemented in %r" % (function.__name__, self.__class__))
@@ -105,7 +112,7 @@ def notimplemented(function):
 
 class Base(object):
 	"""
-	<par>Base class that adds an enhanced class <method>__repr__</method>
+	<par>Base class that adds an enhanced class <method>__repr__</method> method
 	and a class method <pyref method="__fullname__"><method>__fullname__</method></pyref>
 	to subclasses. Subclasses of <class>Base</class> will have an attribute
 	<lit>__outerclass__</lit> that references the containing class (if there
@@ -162,36 +169,40 @@ class FindType(object):
 	"""
 	def __init__(self, *types):
 		self.types = types
+
 	def __call__(self, node):
 		return (isinstance(node, self.types), )
 
 
 class FindTypeAll(object):
 	"""
-	Tree traversal filter that finds nodes of a certain type searching the complete tree
+	Tree traversal filter that finds nodes of a certain type searching the
+	complete tree.
 	"""
 	def __init__(self, *types):
 		self.types = types
+
 	def __call__(self, node):
 		return (isinstance(node, self.types), entercontent)
 
 
 class FindTypeAllAttrs(object):
 	"""
-	Tree traversal filter that finds nodes of a certain type searching the complete tree
-	(including attributes)
+	Tree traversal filter that finds nodes of a certain type searching the
+	complete tree (including attributes).
 	"""
 	def __init__(self, *types):
 		self.types = types
+
 	def __call__(self, node):
 		return (isinstance(node, self.types), entercontent, enterattrs)
 
 
 class FindTypeTop(object):
 	"""
-	Tree traversal filter, that find nodes of a certain type searching the complete tree,
-	but traversal of the children of a node is skipped if this node is of the specified
-	type.
+	Tree traversal filter, that find nodes of a certain type searching the
+	complete tree, but traversal of the children of a node is skipped if this
+	node is of the specified type.
 	"""
 	def __init__(self, *types):
 		self.types = types
@@ -200,104 +211,6 @@ class FindTypeTop(object):
 			return (True,)
 		else:
 			return (entercontent,)
-
-
-class FindOld(object):
-	"""
-	<par>Tree traversal filter that tries to be backwards compatible with older &xist; versions.</par>
-	"""
-
-	def __init__(self, type=None, subtype=False, attrs=None, test=None, searchchildren=False, searchattrs=False):
-		"""
-		<par>If you specify <arg>type</arg> as the class of an &xist; node only nodes
-		of this class will be returned. If you pass a list of classes, nodes that are an
-		instance of one of the classes will be returned.</par>
-
-		<par>If you set <arg>subtype</arg> to <lit>True</lit> nodes that are a
-		subtype of <arg>type</arg> will be returned too.</par>
-
-		<par>If you pass a dictionary as <arg>attrs</arg> it has to contain
-		string pairs and is used to match attribute values for elements. To match
-		the attribute values their <pyref class="Node" method="__unicode__"><method>__unicode__</method></pyref>
-		representation will be used. You can use <lit>None</lit> as the value to test that
-		the attribute is set without testing the value.</par>
-
-		<par>Additionally you can pass a test function in <arg>test</arg>, that
-		returns <lit>True</lit>, when the node passed in has to be included in the
-		result and <lit>False</lit> otherwise.</par>
-
-		<par>If you set <arg>searchchildren</arg> to <lit>True</lit> not only
-		the immediate children but also the grandchildren will be searched for nodes
-		matching the other criteria.</par>
-
-		<par>If you set <arg>searchattrs</arg> to <lit>True</lit> the attributes
-		of the nodes (if <arg>type</arg> is <pyref class="Element"><class>Element</class></pyref>
-		or one of its subtypes) will be searched too.</par>
-
-		<par>Note that the node has to be of type <pyref class="Element"><class>Element</class></pyref>
-		(or a subclass of it) to match <arg>attrs</arg>.</par>
-		"""
-		self.type = type
-		self.subtype = subtype
-		self.attrs = attrs
-		self.test = test
-		self.searchchildren = searchchildren
-		self.searchattrs = searchattrs
-
-	def __call__(self, node):
-		result = []
-		if isinstance(node, Attrs):
-			if self.searchattrs:
-				res.append(enterattrs)
-		elif isinstance(node, Frag):
-			if self.searchchildren:
-				result.append(entercontent)
-		elif isinstance(node, Element):
-			if self._matches(node):
-				result.append(True)
-			if self.searchchildren:
-				result.append(entercontent)
-			if self.searchattrs:
-				res.append(enterattrs)
-		else:
-			if self._matches(node):
-				result.append(True)
-		return result
-
-	def _matchesattrs(self, node):
-		if self.attrs is None:
-			return True
-		else:
-			if isinstance(node, Element):
-				for attr in self.attrs:
-					if (attr not in node.Attrs or attr not in node.attrs) or ((self.attrs[attr] is not None) and (unicode(node[attr]) != self.attrs[attr])):
-						return False
-				return True
-			else:
-				return False
-
-	def _matches(self, node):
-		res = True
-		type = self.type
-		if type is not None:
-			if not isinstance(type, (list, tuple)):
-				type = (type,)
-			for t in type:
-				if self.subtype:
-					if isinstance(node, t):
-						res = self._matchesattrs(node)
-						break
-				else:
-					if self.__class__ == t:
-						res = self._matchesattrs(node)
-						break
-			else:
-				res = False
-		else:
-			res = self._matchesattrs(node)
-		if res and (self.test is not None):
-			res = self.test(node)
-		return res
 
 
 ###
@@ -2392,19 +2305,19 @@ class Element(Node):
 
 	def append(self, *items):
 		"""
-		<par>appends every item in <arg>items</arg> to the element content.</par>
+		<par>Append every item in <arg>items</arg> to the element content.</par>
 		"""
 		self.content.append(*items)
 
 	def extend(self, items):
 		"""
-		<par>appends all items in <arg>items</arg> to element content.</par>
+		<par>Append all items in <arg>items</arg> to element content.</par>
 		"""
 		self.content.extend(items)
 
 	def insert(self, index, *items):
 		"""
-		<par>inserts every item in <arg>items</arg> at the position <arg>index</arg>.</par>
+		<par>Insert every item in <arg>items</arg> at the position <arg>index</arg>.</par>
 		"""
 		self.content.insert(index, *items)
 

@@ -62,6 +62,8 @@ new attribute object.</item>
 
 <item>The <method>visit</method> method has been removed.</item>
 
+<item><method>ll.xist.xsc.FindOld</method> has been removed.</item>
+
 </ulist>
 
 </section>
