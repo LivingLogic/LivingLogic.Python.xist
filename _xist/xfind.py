@@ -89,7 +89,6 @@ class Finder(object):
 			return self
 
 	def __getitem__(self, index):
-		print index
 		if isinstance(index, slice):
 			return list(self)[index] # fall back to materializing the list
 		else:
