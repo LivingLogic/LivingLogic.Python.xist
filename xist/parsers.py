@@ -47,7 +47,7 @@ class StringInputSource(sax.xmlreader.InputSource):
 		self.setSystemId("STRING")
 		if type(text) is types.UnicodeType:
 			encoding = "utf-8"
-			text = text.encode(encodig)
+			text = text.encode(encoding)
 		else:
 			encoding = sys.getdefaultencoding()
 		self.setByteStream(StringIO.StringIO(text))
