@@ -94,9 +94,6 @@ class Node:
 	#def __repr__(self):
 	#	return self.repr(presenters.defaultPresenterClass())
 
-	def _str(self, content=None, brackets=1, slash=None, ansi=None):
-		return _strNode(self.__class__, content, brackets, slash, ansi)
-
 	def clone(self):
 		"""
 		returns an identical clone of the node and it's children.
@@ -1492,10 +1489,6 @@ class URLAttr(Attr):
 	def __init__(self, *content):
 		self.base = url.URL()
 		Attr.__init__(self, *content)
-
-	def _str(self, content=None, brackets=None, slash=None, ansi=None):
-		attr = " %s=%s%s%s" % (strAttrName("base", ansi), strQuote(ansi=ansi), strURL(self.base.asString(), ansi=ansi), strQuote(ansi=ansi))
-		return Attr._str(self, content=attr, brackets=brackets, slash=slash, ansi=ansi)
 
 	def present(self, presenter):
 		presenter.presentURLAttr(self)
