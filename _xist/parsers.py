@@ -20,11 +20,13 @@
 ## IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 """
-<doc:par>This file contains everything you need to parse XIST DOMs from files, strings, URLs etc.</doc:par>
+<doc:par>This file contains everything you need to parse &xist; objects from files, strings, &url;s etc.</doc:par>
 
-<doc:par>It contains different SAX2 parser driver classes (mostly for sgmlop, everything else
-is from PyXML). It includes a HTMLParser that uses sgmlop to parse HTML and emit
-SAX2 events. It also contains various classes derived from xml.sax.xmlreader.InputSource.</doc:par>
+<doc:par>It contains different &sax;2 parser driver classes (mostly for sgmlop, everything else
+is from <app moreinfo="http://pyxml.sf.net/">PyXML</app>). It includes a
+<pyref class="HTMLParser"><class>HTMLParser</class></pyref> that uses sgmlop to parse &html;
+and emit &sax;2 events. It also contains various classes derived from
+<class>xml.sax.xmlreader.InputSource</class>.</doc:par>
 """
 
 from __future__ import nested_scopes # for the lambda in the call to replaceInitialURL
