@@ -1888,7 +1888,7 @@ class Namespace:
 		self.uri = helpers.unistr(uri)
 		self.elementsByName = {} # dictionary for mapping element names to classes
 		self.entitiesByName = {} # dictionary for mapping entity names to classes
-		self.entitiesByNumber = [ [] for i in xrange(65536) ]
+		self.entitiesByNumber = {} # dictionary for mapping entity code points to classes
 		self.procInstsByName = {} # dictionary for mapping processing instruction target names to classes
 		self.register(thing)
 		namespaceRegistry.register(self)
@@ -1940,7 +1940,7 @@ class Namespace:
 						elif isentity:
 							self.entitiesByName[name] = thing
 							try:
-								self.entitiesByNumber[thing.codepoint].append(thing)
+								self.entitiesByNumber.setdefault(thing.codepoint, []).append(thing)
 							except AttributeError: # no codepoint attribute in the class, so this isn't a char ref
 								pass
 						else: # if isprocinst:
