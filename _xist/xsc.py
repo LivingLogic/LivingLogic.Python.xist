@@ -580,7 +580,7 @@ class Node:
 		stdin.close()
 		text = stdout.read()
 		stdout.close()
-		text = "\n".join([ line.rstrip() for line in text.split("\n")])
+		text = "\n".join([ line.rstrip() for line in text.splitlines()])
 		return text
 
 	def __int__(self):
@@ -734,7 +734,7 @@ class Node:
 		return res
 
 	def _doreprtreeMultiLine(self, nest, elementno, head, tail, text, formatter, extraFirstLine, presenter):
-		lines = text.split("\n")
+		lines = text.splitlines()
 		l = len(lines)
 		if l>1 and extraFirstLine:
 			lines.insert(0, "")
@@ -974,7 +974,7 @@ class Text(Node, StringMixIn):
 		presenter.presentText(self)
 
 	def _doreprtree(self, nest, elementno, presenter):
-		lines = self._content.split("\n")
+		lines = self._content.splitlines()
 		if len(lines) and lines[-1] == "":
 			del lines[-1]
 		v = []

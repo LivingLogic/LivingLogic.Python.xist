@@ -62,7 +62,7 @@ def findAttr(content, name):
 class Code:
 	def __init__(self, text, ignorefirst=0):
 		# get the individual lines; ignore "\r" as this would mess up whitespace handling later
-		lines = text.replace("\r", "").split("\n")
+		lines = text.replace("\r", "").splitlines()
 		# split of the whitespace at the beginning of each line
 		for i in xrange(len(lines)):
 			line = lines[i]

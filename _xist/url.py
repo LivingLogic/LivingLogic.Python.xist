@@ -671,7 +671,7 @@ test_input = urlparse.test_input
 
 def test_url2():
 	base = __empty = URL('')
-	for line in test_input.split('\n'):
+	for line in test_input.splitlines():
 		words = line.split()
 		if not words:
 			continue

@@ -595,7 +595,7 @@ class TreePresenter:
 		else:
 			head = ansistyle.Text(strBracketOpen(), strQuestion(), strProcInst(node), " ")
 			tail = ansistyle.Text(strQuestion(), strBracketClose())
-			lines = node._content.split("\n")
+			lines = node._content.splitlines()
 			if len(lines)>1:
 				lines.insert(0, "")
 			self._doMultiLine(node, lines, self.strProcInstContentLine, head, tail)
@@ -606,7 +606,7 @@ class TreePresenter:
 		else:
 			head = ansistyle.Text(strBracketOpen(), strExclamation(), strCommentMarker())
 			tail = ansistyle.Text(strCommentMarker(), strBracketClose())
-			lines = node._content.split("\n")
+			lines = node._content.splitlines()
 			self._doMultiLine(node, lines, self.strCommentTextLine, head, tail)
 
 defaultPresenterClass = NormalPresenter
