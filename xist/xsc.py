@@ -256,7 +256,7 @@ class XSCNode:
 		return [[nest,self.lineno,elementno,self._strtag("?")]]
 
 	def asHTML(self):
-		return ToNode(self._doasHTML())
+		return ToNode(self._doAsHTML())
 
 	def _doAsHTML(self):
 		return None
