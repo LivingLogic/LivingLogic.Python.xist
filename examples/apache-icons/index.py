@@ -5,7 +5,7 @@ import os
 import glob
 
 from ll.xist import xsc
-from ll.xist.ns import html, specials
+from ll.xist.ns import html, htmlspecials
 
 cols = 6
 
@@ -18,7 +18,7 @@ files = glob.glob("*.gif")
 files.sort()
 
 for file in files:
-	collect.append(html.td(specials.autoimg(src=("/icons/", file)), html.br(), file, align="center"))
+	collect.append(html.td(htmlspecials.autoimg(src=("/icons/", file)), html.br(), file, align="center"))
 	i = i + 1
 	if i == cols:
 		e.append(html.tr(collect))
@@ -33,11 +33,11 @@ e = html.html(
 		html.link(rel="stylesheet", type="text/css", href="/icons/icons.css")
 	),
 	html.body(
-		specials.plaintable(e)
+		htmlspecials.plaintable(e)
 	)
 )
 
-s = e.conv().asBytes(encoding="us-ascii", XHTML=0)
+s = e.conv().asBytes(encoding="us-ascii", xhtml=0)
 
 print "Content-Type: text/html"
 print

@@ -2,7 +2,7 @@
 # -*- coding: Latin-1 -*-
 
 from ll.xist import xsc, parsers
-from ll.xist.ns import html, specials, meta
+from ll.xist.ns import html, htmlspecials, meta
 
 def nameCompare(node1, node2):
 	name1 = unicode(node1.find(type=name)[0].content)
@@ -24,7 +24,7 @@ class media(xsc.Element):
 					html.title("Media"),
 					meta.stylesheet(href="Media.css")
 				),
-				specials.plainbody(
+				htmlspecials.plainbody(
 					html.h1("Media")
 				)
 			)

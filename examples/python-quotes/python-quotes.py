@@ -2,10 +2,9 @@
 # -*- coding: Latin-1 -*-
 
 from ll.xist import xsc, parsers
-from ll.xist.ns import html, specials, meta
+from ll.xist.ns import html, meta
 
 url = "http://amk.ca/quotations/python-quotes.xml"
-#url = "python-quotes.xml"
 
 class quotations(xsc.Element):
 	empty = False
