@@ -375,7 +375,8 @@ class XSCCharRef(XSCNode):
 
 	def _doreprtree(self,nest,elementno):
 		s = '&#' + str(self.content) + '; (&#x' + hex(self.content)[2:] + ';)'
-		s = s + " " + XSCText(chr(self.content))._doreprtree(0,0)[0][-1]
+		if 0 <= self.content <= 255:
+			s = s + " " + XSCText(chr(self.content))._doreprtree(0,0)[0][-1]
 		return [[nest,self.startlineno,elementno,s]]
 
 class XSCFrag(XSCNode):
