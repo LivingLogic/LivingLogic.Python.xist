@@ -898,98 +898,6 @@ class XISTTest(unittest.TestCase):
 		self.assertEquals(node.attrs.isallowed("testattr"), False)
 		self.assertEquals(node.attrs.isallowed("testattr3"), True)
 
-	def test_publishelement(self):
-		node = html.html()
-
-		prefixes = xsc.Prefixes()
-		prefixes.addPrefixMapping("h", html)
-
-		self.assertEquals(node.asBytes(), "<html></html>")
-		self.assertEquals(node.asBytes(prefixes=prefixes, elementmode=1), "<h:html></h:html>")
-		self.assertEquals(node.asBytes(prefixes=prefixes, elementmode=2), """<h:html xmlns:h="http://www.w3.org/1999/xhtml"></h:html>""")
-
-		prefixes = xsc.Prefixes()
-		prefixes.addPrefixMapping(None, html)
-
-		self.assertEquals(node.asBytes(prefixes=prefixes, elementmode=2), """<html xmlns="http://www.w3.org/1999/xhtml"></html>""")
-
-	def test_publishentity(self):
-		node = abbr.xml()
-
-		prefixes = xsc.Prefixes()
-		prefixes.addPrefixMapping("a", abbr)
-		prefixes.addPrefixMapping("s", specials)
-
-		self.assertEquals(node.asBytes(), "&xml;")
-		self.assertEquals(node.asBytes(prefixes=prefixes, entitymode=1), "&a:xml;")
-		self.assertEquals(node.asBytes(prefixes=prefixes, entitymode=2), """<wrap entityns:a="http://xmlns.livinglogic.de/xist/ns/abbr">&a:xml;</wrap>""")
-		self.assertEquals(node.asBytes(prefixes=prefixes, elementmode=2, entitymode=2), """<s:wrap entityns:a="http://xmlns.livinglogic.de/xist/ns/abbr" xmlns:s="http://xmlns.livinglogic.de/xist/ns/specials">&a:xml;</s:wrap>""")
-
-		prefixes = xsc.Prefixes()
-		prefixes.addPrefixMapping(None, abbr)
-		prefixes.addPrefixMapping("s", specials)
-
-		self.assertEquals(node.asBytes(prefixes=prefixes, entitymode=2), """<wrap entityns="http://xmlns.livinglogic.de/xist/ns/abbr">&xml;</wrap>""")
-		self.assertEquals(node.asBytes(prefixes=prefixes, elementmode=2, entitymode=2), """<s:wrap entityns="http://xmlns.livinglogic.de/xist/ns/abbr" xmlns:s="http://xmlns.livinglogic.de/xist/ns/specials">&xml;</s:wrap>""")
-
-	def test_publishprocinst(self):
-		node = php.php("x")
-
-		prefixes = xsc.Prefixes()
-		prefixes.addPrefixMapping("p", php)
-		prefixes.addPrefixMapping("s", specials)
-
-		self.assertEquals(node.asBytes(), "<?php x?>")
-		self.assertEquals(node.asBytes(prefixes=prefixes, procinstmode=1), "<?p:php x?>")
-		self.assertEquals(node.asBytes(prefixes=prefixes, procinstmode=2), """<wrap procinstns:p="http://www.php.net/"><?p:php x?></wrap>""")
-		# FIXME this depends on dict iteration order
-		self.assertEquals(node.asBytes(prefixes=prefixes, elementmode=2, procinstmode=2), """<s:wrap procinstns:p="http://www.php.net/" xmlns:s="http://xmlns.livinglogic.de/xist/ns/specials"><?p:php x?></s:wrap>""")
-
-		prefixes = xsc.Prefixes()
-		prefixes.addPrefixMapping(None, php)
-		prefixes.addPrefixMapping("s", specials)
-
-		self.assertEquals(node.asBytes(prefixes=prefixes, procinstmode=2), """<wrap procinstns="http://www.php.net/"><?php x?></wrap>""")
-		# FIXME this depends on dict iteration order
-		self.assertEquals(node.asBytes(prefixes=prefixes, elementmode=2, procinstmode=2), """<s:wrap procinstns="http://www.php.net/" xmlns:s="http://xmlns.livinglogic.de/xist/ns/specials"><?php x?></s:wrap>""")
-
-	def test_publishboolattr(self):
-		node = html.td("?", nowrap=None)
-		self.assertEquals(node.asBytes(xhtml=0), """<td>?</td>""")
-		node = html.td("?", nowrap=True)
-		self.assertEquals(node.asBytes(xhtml=0), """<td nowrap>?</td>""")
-		self.assertEquals(node.asBytes(xhtml=1), """<td nowrap="nowrap">?</td>""")
-		self.assertEquals(node.asBytes(xhtml=2), """<td nowrap="nowrap">?</td>""")
-
-	def test_publishurlattr(self):
-		node = html.link(href=None)
-		self.assertEquals(node.asBytes(xhtml=1), """<link />""")
-		node = html.link(href="root:gurk.html")
-		self.assertEquals(node.asBytes(xhtml=1), """<link href="root:gurk.html" />""")
-		self.assertEquals(node.asBytes(xhtml=1, base="root:gurk.html"), """<link href="" />""")
-		self.assertEquals(node.asBytes(xhtml=1, base="root:hurz.html"), """<link href="gurk.html" />""")
-
-	def test_publishstyleattr(self):
-		node = html.div(style=None)
-		self.assertEquals(node.asBytes(xhtml=1), """<div></div>""")
-		node = html.div(style="background-image: url(root:gurk.html)")
-		self.assertEquals(node.asBytes(xhtml=1), """<div style="background-image: url(root:gurk.html)"></div>""")
-		self.assertEquals(node.asBytes(xhtml=1, base="root:gurk.html"), """<div style="background-image: url()"></div>""")
-		self.assertEquals(node.asBytes(xhtml=1, base="root:hurz.html"), """<div style="background-image: url(gurk.html)"></div>""")
-
-	def test_publishempty(self):
-		node = xsc.Frag(html.br(), html.div())
-		self.assertEquals(node.asBytes(xhtml=0), """<br><div></div>""")
-		self.assertEquals(node.asBytes(xhtml=1), """<br /><div></div>""")
-		self.assertEquals(node.asBytes(xhtml=2), """<br/><div/>""")
-
-	def test_publishescaped(self):
-		s = u"""<&'"\xff>"""
-		node = xsc.Text(s)
-		self.assertEquals(node.asBytes(encoding="ascii"), """&lt;&amp;'"&#255;&gt;""")
-		node = html.span(class_=s)
-		self.assertEquals(node.asBytes(encoding="ascii", xhtml=2), """<span class="&lt;&amp;'&quot;&#255;&gt;"/>""")
-
 	def test_withsep(self):
 		for class_ in (xsc.Frag, html.div):
 			node = class_(1,2,3)
@@ -1111,6 +1019,120 @@ class XISTTest(unittest.TestCase):
 		repr(xsc.Element.Attrs)
 		repr(xml.Attrs)
 		repr(xml.Attrs.lang)
+
+	def test_itemslice(self):
+		for cls in (xsc.Frag, html.div):
+			e = cls(1, 2, 3, 4, 5, 6)
+			self.assertEqual(e[2], xsc.Text(3))
+			self.assertEqual(e[-1], xsc.Text(6))
+			self.assertEqual(e[:], e)
+			self.assertEqual(e[:2], cls(1, 2))
+			self.assertEqual(e[-2:], cls(5, 6))
+			self.assertEqual(e[::2], cls(1, 3, 5))
+			self.assertEqual(e[1::2], cls(2, 4, 6))
+			self.assertEqual(e[::-1], cls(6, 5, 4, 3, 2, 1))
+		e = html.div(1, 2, 3, 4, 5, 6, id=42)
+		self.assertEqual(e[2], xsc.Text(3))
+		self.assertEqual(e[-1], xsc.Text(6))
+		self.assertEqual(e[:], e)
+		self.assertEqual(e[:2], cls(1, 2, id=42))
+		self.assertEqual(e[-2:], cls(5, 6, id=42))
+		self.assertEqual(e[::2], cls(1, 3, 5, id=42))
+		self.assertEqual(e[1::2], cls(2, 4, 6, id=42))
+		self.assertEqual(e[::-1], cls(6, 5, 4, 3, 2, 1, id=42))
+
+class PublishTest(unittest.TestCase):
+	def test_publishelement(self):
+		node = html.html()
+
+		prefixes = xsc.Prefixes()
+		prefixes.addPrefixMapping("h", html)
+
+		self.assertEquals(node.asBytes(), "<html></html>")
+		self.assertEquals(node.asBytes(prefixes=prefixes, elementmode=1), "<h:html></h:html>")
+		self.assertEquals(node.asBytes(prefixes=prefixes, elementmode=2), """<h:html xmlns:h="http://www.w3.org/1999/xhtml"></h:html>""")
+
+		prefixes = xsc.Prefixes()
+		prefixes.addPrefixMapping(None, html)
+
+		self.assertEquals(node.asBytes(prefixes=prefixes, elementmode=2), """<html xmlns="http://www.w3.org/1999/xhtml"></html>""")
+
+	def test_publishentity(self):
+		node = abbr.xml()
+
+		prefixes = xsc.Prefixes()
+		prefixes.addPrefixMapping("a", abbr)
+		prefixes.addPrefixMapping("s", specials)
+
+		self.assertEquals(node.asBytes(), "&xml;")
+		self.assertEquals(node.asBytes(prefixes=prefixes, entitymode=1), "&a:xml;")
+		self.assertEquals(node.asBytes(prefixes=prefixes, entitymode=2), """<wrap entityns:a="http://xmlns.livinglogic.de/xist/ns/abbr">&a:xml;</wrap>""")
+		self.assertEquals(node.asBytes(prefixes=prefixes, elementmode=2, entitymode=2), """<s:wrap entityns:a="http://xmlns.livinglogic.de/xist/ns/abbr" xmlns:s="http://xmlns.livinglogic.de/xist/ns/specials">&a:xml;</s:wrap>""")
+
+		prefixes = xsc.Prefixes()
+		prefixes.addPrefixMapping(None, abbr)
+		prefixes.addPrefixMapping("s", specials)
+
+		self.assertEquals(node.asBytes(prefixes=prefixes, entitymode=2), """<wrap entityns="http://xmlns.livinglogic.de/xist/ns/abbr">&xml;</wrap>""")
+		self.assertEquals(node.asBytes(prefixes=prefixes, elementmode=2, entitymode=2), """<s:wrap entityns="http://xmlns.livinglogic.de/xist/ns/abbr" xmlns:s="http://xmlns.livinglogic.de/xist/ns/specials">&xml;</s:wrap>""")
+
+	def test_publishprocinst(self):
+		node = php.php("x")
+
+		prefixes = xsc.Prefixes()
+		prefixes.addPrefixMapping("p", php)
+		prefixes.addPrefixMapping("s", specials)
+
+		self.assertEquals(node.asBytes(), "<?php x?>")
+		self.assertEquals(node.asBytes(prefixes=prefixes, procinstmode=1), "<?p:php x?>")
+		self.assertEquals(node.asBytes(prefixes=prefixes, procinstmode=2), """<wrap procinstns:p="http://www.php.net/"><?p:php x?></wrap>""")
+		# FIXME this depends on dict iteration order
+		self.assertEquals(node.asBytes(prefixes=prefixes, elementmode=2, procinstmode=2), """<s:wrap procinstns:p="http://www.php.net/" xmlns:s="http://xmlns.livinglogic.de/xist/ns/specials"><?p:php x?></s:wrap>""")
+
+		prefixes = xsc.Prefixes()
+		prefixes.addPrefixMapping(None, php)
+		prefixes.addPrefixMapping("s", specials)
+
+		self.assertEquals(node.asBytes(prefixes=prefixes, procinstmode=2), """<wrap procinstns="http://www.php.net/"><?php x?></wrap>""")
+		# FIXME this depends on dict iteration order
+		self.assertEquals(node.asBytes(prefixes=prefixes, elementmode=2, procinstmode=2), """<s:wrap procinstns="http://www.php.net/" xmlns:s="http://xmlns.livinglogic.de/xist/ns/specials"><?php x?></s:wrap>""")
+
+	def test_publishboolattr(self):
+		node = html.td("?", nowrap=None)
+		self.assertEquals(node.asBytes(xhtml=0), """<td>?</td>""")
+		node = html.td("?", nowrap=True)
+		self.assertEquals(node.asBytes(xhtml=0), """<td nowrap>?</td>""")
+		self.assertEquals(node.asBytes(xhtml=1), """<td nowrap="nowrap">?</td>""")
+		self.assertEquals(node.asBytes(xhtml=2), """<td nowrap="nowrap">?</td>""")
+
+	def test_publishurlattr(self):
+		node = html.link(href=None)
+		self.assertEquals(node.asBytes(xhtml=1), """<link />""")
+		node = html.link(href="root:gurk.html")
+		self.assertEquals(node.asBytes(xhtml=1), """<link href="root:gurk.html" />""")
+		self.assertEquals(node.asBytes(xhtml=1, base="root:gurk.html"), """<link href="" />""")
+		self.assertEquals(node.asBytes(xhtml=1, base="root:hurz.html"), """<link href="gurk.html" />""")
+
+	def test_publishstyleattr(self):
+		node = html.div(style=None)
+		self.assertEquals(node.asBytes(xhtml=1), """<div></div>""")
+		node = html.div(style="background-image: url(root:gurk.html)")
+		self.assertEquals(node.asBytes(xhtml=1), """<div style="background-image: url(root:gurk.html)"></div>""")
+		self.assertEquals(node.asBytes(xhtml=1, base="root:gurk.html"), """<div style="background-image: url()"></div>""")
+		self.assertEquals(node.asBytes(xhtml=1, base="root:hurz.html"), """<div style="background-image: url(gurk.html)"></div>""")
+
+	def test_publishempty(self):
+		node = xsc.Frag(html.br(), html.div())
+		self.assertEquals(node.asBytes(xhtml=0), """<br><div></div>""")
+		self.assertEquals(node.asBytes(xhtml=1), """<br /><div></div>""")
+		self.assertEquals(node.asBytes(xhtml=2), """<br/><div/>""")
+
+	def test_publishescaped(self):
+		s = u"""<&'"\xff>"""
+		node = xsc.Text(s)
+		self.assertEquals(node.asBytes(encoding="ascii"), """&lt;&amp;'"&#255;&gt;""")
+		node = html.span(class_=s)
+		self.assertEquals(node.asBytes(encoding="ascii", xhtml=2), """<span class="&lt;&amp;'&quot;&#255;&gt;"/>""")
 
 class ParseTest(unittest.TestCase):
 	def test_parselocationsgmlop(self):

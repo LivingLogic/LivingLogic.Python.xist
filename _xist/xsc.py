@@ -1018,6 +1018,8 @@ class Frag(Node, list):
 			for subindex in index:
 				node = node[subindex]
 			return node
+		elif isinstance(index, slice):
+			return self.__class__(list.__getitem__(self, index))
 		else:
 			return list.__getitem__(self, index)
 
@@ -1037,11 +1039,14 @@ class Frag(Node, list):
 				node[index[-1]] = value
 		else:
 			value = Frag(value)
-			if index==-1:
-				l = len(self)
-				list.__setslice__(self, l-1, l, value)
+			if isinstance(index, slice):
+				list.__setitem__(self, index, value)
 			else:
-				list.__setslice__(self, index, index+1, value)
+				if index==-1:
+					l = len(self)
+					list.__setslice__(self, l-1, l, value)
+				else:
+					list.__setslice__(self, index, index+1, value)
 
 	def __delitem__(self, index):
 		"""
@@ -2409,6 +2414,8 @@ class Element(Node):
 			return node
 		elif isinstance(index, (int, long)):
 			return self.content[index]
+		elif isinstance(index, slice):
+			return self.__class__(self.content[index], self.attrs)
 		else:
 			return self.attrs[index]
 
@@ -2423,7 +2430,7 @@ class Element(Node):
 			for subindex in index[:-1]:
 				node = node[subindex]
 			node[index[-1]] = value
-		elif isinstance(index, (int, long)):
+		elif isinstance(index, (int, long, slice)):
 			self.content[index] = value
 		else:
 			self.attrs[index] = value
@@ -2439,10 +2446,28 @@ class Element(Node):
 				for subindex in index[:-1]:
 					node = node[subindex]
 				del node[index[-1]]
-		elif isinstance(index, (int, long)):
+		elif isinstance(index, (int, long, slice)):
 			del self.content[index]
 		else:
 			del self.attrs[index]
+
+	def __getslice__(self, index1, index2):
+		"""
+		returns a copy of the element that contains a slice of the content
+		"""
+		return self.__class__(self.content[index1:index2], self.attrs)
+
+	def __setslice__(self, index1, index2, sequence):
+		"""
+		modifies a slice of the content of the element
+		"""
+		self.content[index1:index2] = sequence
+
+	def __delslice__(self, index1, index2):
+		"""
+		removes a slice of the content of the element
+		"""
+		del self.content[index1:index2]
 
 	def hasAttr(self, attrname, xml=False):
 		errors.warn(DeprecationWarning("foo.hasAttr() is deprecated, use foo.attrs.has() instead"))
@@ -2529,24 +2554,6 @@ class Element(Node):
 		errors.warn(DeprecationWarning("foo.iterallowedattritems() is deprecated, use foo.attrs.iterattritems() instead"))
 		return cls.Attrs.iteralloweditems(xml=xml)
 	iterallowedattritems = classmethod(iterallowedattritems)
-
-	def __getslice__(self, index1, index2):
-		"""
-		returns a copy of the element that contains a slice of the content
-		"""
-		return self.__class__(self.content[index1:index2], self.attrs)
-
-	def __setslice__(self, index1, index2, sequence):
-		"""
-		modifies a slice of the content of the element
-		"""
-		self.content[index1:index2] = sequence
-
-	def __delslice__(self, index1, index2):
-		"""
-		removes a slice of the content of the element
-		"""
-		del self.content[index1:index2]
 
 	def __len__(self):
 		"""

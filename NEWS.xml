@@ -88,6 +88,8 @@ of the existing attributes is no longer done.</item>
 that works like <class>ll.xist.ns.htmlspecials.pixel</class> but
 inherits the size for the image specified via the <lit>src</lit>
 attribute.</item>
+<item><class>Frag</class> and <class>Element</class> now support
+extended slices.</item>
 </ulist>
 </section>
 
