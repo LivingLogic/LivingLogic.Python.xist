@@ -17,14 +17,15 @@ __version__ = "$Revision$"[11:-2]
 import types
 import string
 
-from xist import xsc,html,specials
+from xist import xsc
+from xist.ns import html, specials
 
 class par(html.div):
 	empty = 0
 	attrHandlers = html.div.attrHandlers.copy()
 	attrHandlers.update({"noindent": xsc.TextAttr})
 
-	def convert(self, converter=None):
+	def convert(self, converter):
 		e = html.div(self.content.clone())
 		indent = 1
 		for attr in self.attrs.keys():
@@ -44,7 +45,7 @@ class module(xsc.Element):
 	empty = 0
 	attrHandlers = {"name": xsc.TextAttr}
 	
-	def convert(self, converter=None):
+	def convert(self, converter):
 		b = specials.plainbody(
 			html.h1("Module ",html.code(self["name"],**{"class": "module"}))
 		)
@@ -63,7 +64,7 @@ class classes(xsc.Element):
 	"""
 	empty = 0
 
-	def convert(self, converter=None):
+	def convert(self, converter):
 		e = xsc.Frag(html.h2("Classes"))
 		e.extend(self.content.convert(converter))
 		return e
@@ -74,7 +75,7 @@ class functions(xsc.Element):
 	"""
 	empty = 0
 
-	def convert(self, converter=None):
+	def convert(self, converter):
 		e = xsc.Frag(html.h2("Functions"))
 		e.extend(self.content.convert(converter))
 		return e
@@ -85,7 +86,7 @@ class methods(xsc.Element):
 	"""
 	empty = 0
 
-	def convert(self, converter=None):
+	def convert(self, converter):
 		e = xsc.Frag(html.h3("Methods"))
 		e.extend(self.content.convert(converter))
 		return e
@@ -99,9 +100,9 @@ class function(xsc.Element):
 	empty = 0
 	attrHandlers = {"name": xsc.TextAttr}
 
-	def convert(self, converter=None):
+	def convert(self, converter):
 		e = xsc.Frag(html.h3(self["name"]))
-		sig = self.find(type = signature)[0]
+		sig = self.find(type=signature)[0]
 		e.append(html.div(html.code(self["name"], "(", sig.find(type=arg).withSeparator(", "), ")", class_="function"), class_="function"))
 		descs = self.find(type=desc)
 		if len(descs):
@@ -112,7 +113,7 @@ class method(xsc.Element):
 	empty = 0
 	attrHandlers = {"name": xsc.TextAttr}
 
-	def convert(self, converter=None):
+	def convert(self, converter):
 		e = html.div(class_="method")
 		sig = self.find(type=signature)[0]
 		e.append(
@@ -138,9 +139,9 @@ class Class(xsc.Element):
 	empty = 0
 	attrHandlers = {"name": xsc.TextAttr}
 
-	def convert(self, converter=None):
+	def convert(self, converter):
 		e = xsc.Frag(html.h3("Class ", html.code(self["name"], class_="class")))
-		e.append(self.content)
+		e.extend(self.content)
 		return e.convert(converter)
 
 class Self(xsc.Element):
@@ -153,7 +154,7 @@ class Self(xsc.Element):
 	"""
 	empty = 0
 
-	def convert(self, converter=None):
+	def convert(self, converter):
 		return html.code("self", class_="self")
 
 class signature(xsc.Element):
@@ -162,7 +163,7 @@ class signature(xsc.Element):
 class desc(xsc.Element):
 	empty = 0
 
-	def convert(self, converter=None):
+	def convert(self, converter):
 		e = html.div(self.content.convert(converter), class_="description")
 
 		return e
@@ -171,7 +172,7 @@ class arg(xsc.Element):
 	empty = 1
 	attrHandlers = {"name": xsc.TextAttr, "type": xsc.TextAttr, "default": xsc.TextAttr}
 
-	def convert(self, converter=None):
+	def convert(self, converter):
 		e = xsc.Frag()
 		if self.hasAttr("type"):
 			type = self["type"].convert(converter).asPlainString()
@@ -184,71 +185,10 @@ class arg(xsc.Element):
 			e.append("=",self["default"].convert(converter))
 		return e.convert(converter)
 
-class moduleref(xsc.Element):
-	"""
-	use this element to refer to another module, e.g.:
-	<pre>
-		see the module &lt;moduleref&gt;foo&lt;/moduleref&gt; for further details.
-	</pre>
-	"""
-	empty = 0
-
-	def convert(self, converter=None):
-		return html.code(self.content, class_="module").convert(converter)
-
-class functionref(xsc.Element):
-	"""
-	use this element to refer to a function, e.g.:
-	<pre>
-		see the function &lt;moduleref&gt;foo&lt;/moduleref&gt; for further details.
-	</pre>
-	if the function referred to is in another module you can specify this module
-	via the <attr>module</attr> attribute.
-	"""
-	empty = 0
-	attrHandlers = {"module": xsc.TextAttr}
-
-	def convert(self, converter=None):
-		return html.code(self.content, class_="function").convert(converter)
-
-class classref(xsc.Element):
-	empty = 0
-	attrHandlers = {"module": xsc.TextAttr}
-
-	def convert(self, converter=None):
-		return html.code(self.content,class_="class").convert(converter)
-
-class methodref(xsc.Element):
-	empty = 0
-	attrHandlers = {"module": xsc.TextAttr, "class": xsc.TextAttr}
-
-	def convert(self, converter=None):
-		return html.code(self.content,class_="method").convert(converter)
-
-class argref(xsc.Element):
-	empty = 0
-
-	def convert(self, converter=None):
-		return html.code(self.content, class_="arg").convert(converter)
-
-class argref(xsc.Element):
-	empty = 0
-	attrHandlers = {"type": xsc.TextAttr}
-
-	def convert(self, converter=None):
-		return html.code(self.content, class_="arg").convert(converter)
-
-class argref(xsc.Element):
-	empty = 0
-	attrHandlers = {"type": xsc.TextAttr}
-
-	def convert(self, converter=None):
-		return html.code(self.content, class_="arg").convert(converter)
-
 class attr(xsc.Element):
 	empty = 0
 
-	def convert(self, converter=None):
+	def convert(self, converter):
 		return html.code(self.content, class_="attr").convert(converter)
 
 # build a namespace with all the classes we've defined so far
