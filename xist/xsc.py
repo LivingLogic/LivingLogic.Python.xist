@@ -1034,12 +1034,22 @@ class Frag(Node):
 			e.append(child.compact())
 		return e
 
-	def addSeparator(self,separator):
+	def addSeparator(self,separator,clone = 0):
+		"""
+		addSeparator(self,separator,clone = 0)
+
+		adds a separator node between the nodes  of the fragment.
+
+		if clone==0 one node will be inserted several times,
+		if clone==1 clones of this node will be used.
+		"""
 		e = Frag()
 		newseparator = ToNode(separator)
 		for child in self:
 			if len(e):
-				e.append(newseparator.clone())
+				e.append(newseparator)
+				if clone:
+					newseparator = newseparator.clone()	
 			e.append(child)
 		return e
 
