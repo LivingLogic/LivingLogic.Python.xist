@@ -148,9 +148,6 @@ class pixel(html_.img):
 	attrHandlers.update({"color": xsc.ColorAttr})
 	del attrHandlers["src"]
 
-	def publish(self, publisher, encoding = None, XHTML = None):
-		xsc.Element.publish(self, publisher, encoding, XHTML)
-
 	def asHTML(self):
 		e = autoimg()
 		color = "dot_clear"
@@ -235,6 +232,14 @@ class par(html_.div):
 		return e.asHTML()
 
 class autoimg(html_.img):
+	"""
+	<par noindent>An image were width and height attributes are automatically generated.
+	If the attributes are already there, they are taken as a
+	formatting template with the size passed in as a dictionary with the keys
+	<code>"width"</code> and <code>"height"</code>, i.e. you could make your image twice
+	as wide with <code>width="2*%(width)d"</code>.</par>
+	"""
+
 	def asHTML(self):
 		e = html_.img(**self.attrs)
 		e._addImageSizeAttributes("src", "width", "height")

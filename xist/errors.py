@@ -162,7 +162,7 @@ class ImageSizeFormatError(Error):
 		self.attr = attr
 
 	def __str__(self):
-		return Error.__str__(self) + "the value '" + self.element[self.attr].asPlainString().encode(xsc.outputEncoding) + "' for the image size attribute " + xsc.strAttrName(self.attr) + " of the element " + self.element._str() + " can't be formatted or evaluated"
+		return Error.__str__(self) + "the value %r for the image size attribute %s of the element %s can't be formatted or evaluated" % (self.element[self.attr].asPlainString(), xsc.strAttrName(self.attr), self.element._str())
 
 class FileNotFoundError(Error):
 	"""

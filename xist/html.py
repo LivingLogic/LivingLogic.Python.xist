@@ -79,32 +79,29 @@ class meta(xsc.Element):
 	attrHandlers = i18n.copy()
 	attrHandlers.update({"http_equiv": xsc.TextAttr, "http-equiv": xsc.TextAttr, "name": xsc.TextAttr ,"content": xsc.TextAttr ,"scheme": xsc.TextAttr})
 
-	def __init__(self,*_content,**_attrs):
+	def __init__(self, *_content, **_attrs):
 		# we have two names for one and the same attribute http_equiv and http-equiv
-		xsc.Element.__init__(self,*_content,**_attrs)
+		xsc.Element.__init__(self, *_content, **_attrs)
 		if self.hasAttr("http_equiv"):
 			if not self.hasAttr("http-equiv"):
 				self["http-equiv"] = self["http_equiv"]
 			del self["http_equiv"]
 
-	def publish(self,publisher,encoding = None,XHTML = None):
+	def publish(self, publisher):
 		if self.hasAttr("http-equiv"):
 			ctype = self["http-equiv"].asPlainString()
 			if ctype.lower() == u"content-type" and self.hasAttr("content"):
 				content = self["content"].asPlainString()
 				found = self.__findCharSet()
-				print found
-				if encoding is None:
-					encoding = xsc.outputEncoding
-				if found is None or encoding != content[found[0]:found[1]]:
+				if found is None or publisher.encoding != content[found[0]:found[1]]:
 					node = meta(http_equiv="Content-Type")
 					if found is None:
-						node["content"] = content+u"; charset="+encoding
+						node["content"] = content+u"; charset="+publisher.encoding
 					else:
-						node["content"] = content[:found[0]]+encoding+content[found[1]:]
-					node.publish(publisher, encoding, XHTML)
+						node["content"] = content[:found[0]]+publisher.encoding+content[found[1]:]
+					node.publish(publisher)
 					return
-		xsc.Element.publish(self, publisher, encoding, XHTML)
+		xsc.Element.publish(self, publisher)
 
 	def __findCharSet(self):
 		content = self["content"].asPlainString()

@@ -12,6 +12,7 @@ Contains everthing related to options in XIST.
 __version__ = "$Revision$"[11:-2]
 # $Source$
 
+import sys
 import os
 import types
 
@@ -66,10 +67,9 @@ repransiurl = getANSICodesFromEnv("XSC_REPRANSI_URL",[ "1;33","33" ])           
 repransiprocinsttarget = getANSICodesFromEnv("XSC_REPRANSI_PROCINSTTARGET",[ "1;31","1;31" ]) # ANSI escape sequence to be used for processing instruction targets
 repransiprocinstdata = getANSICodesFromEnv("XSC_REPRANSI_PROCINSTDATA",[ "","" ])             # ANSI escape sequence to be used for processing instruction data
 outputXHTML = getIntFromEnv("XSC_OUTPUT_XHTML",1)                                             # XHTML output format (0 = plain HTML, 1 = HTML compatible XHTML, 2 = pure XHTML)
-inputEncoding = getStringFromEnv("XSC_INPUT_ENCODING","iso-8859-1")                           # Default encoding that is assumed, when no encoding specification can be found
-outputEncoding = getStringFromEnv("XSC_OUTPUT_ENCODING","us-ascii")                           # Encoding to be used in publish() (and asString())
+outputEncoding = getStringFromEnv("XSC_OUTPUT_ENCODING","us-ascii")                           # Encoding to be used in publish() (and asBytes())
 codeEncoding = getStringFromEnv("XSC_CODE_ENCODING","iso-8859-1")                             # Encoding to be used when string are use in constructors of Node objects
-reprEncoding = getStringFromEnv("XSC_REPR_ENCODING","us-ascii")                               # Encoding to be used in __repr__
+reprEncoding = getStringFromEnv("XSC_REPR_ENCODING",sys.getdefaultencoding())                 # Encoding to be used in __repr__
 
 parseEncoding = "iso-8859-1" # We assume that all source code is in this encoding
 

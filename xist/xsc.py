@@ -24,15 +24,15 @@ you can get a tree by parsing an XML file.
 
 For every HTML element there exists a corresponding class, that
 has a constructor of the form
-	class(*content,**attrs),
+	class(*content, **attrs),
 so constructing an HTML element works like this:
 	e = html.div(
 		"Go to ",
-		html.a("Python.org",href="http://www.python.org/"),
+		html.a("Python.org", href="http://www.python.org/"),
 		"!"
 	)
 
-This object can be converted to a printable string with
+This object can be converted to a printable unicode string with
 the method asString():
 	print e.asString()
 
@@ -224,7 +224,7 @@ except ImportError:
 import urllib # for reading remote files
 import procinst # our sandbox
 from URL import URL # our own new URL class
-from publishers import StringPublisher # classes for dumping XML strings
+import publishers # classes for dumping XML strings
 from errors import * # exceptions
 from options import * # optional stuff ;)
 
@@ -339,9 +339,9 @@ def nodeName(nodeClass):
 	except AttributeError:
 		elementname = nodeClass.__name__
 
-	return [ namespacename, elementname, nodeClass.empty ]
+	return [namespacename, elementname, nodeClass.empty]
 
-def _strName(nodeName,content = None,brackets = 1,slash = None,ansi = None):
+def _strName(nodeName, content = None, brackets = 1, slash = None, ansi = None):
 	# slash == -1: before; 0: nowhere; 1:after
 	if slash is None:
 		if nodeName is None:
@@ -353,8 +353,8 @@ def _strName(nodeName,content = None,brackets = 1,slash = None,ansi = None):
 		s += strSlash(ansi)
 	if nodeName is not None:
 		if nodeName[0]:
-			s += strNamespace(nodeName[0],ansi) + ":"
-		s += strElementName(nodeName[1],ansi)
+			s += strNamespace(nodeName[0], ansi) + ":"
+		s += strElementName(nodeName[1], ansi)
 	if content is not None and slash>=0:
 		s += content
 	if slash > 0:
@@ -373,6 +373,7 @@ def isXMLChar(char):
 		return 1
 	else:
 		return 0
+
 
 def ToNode(value):
 	"""
@@ -556,40 +557,35 @@ class Node:
 			s = string.replace(s,decimal,".")
 		return float(s)
 
-	def publish(self, publisher, encoding = None, XHTML = None):
+	def publish(self, publisher):
 		"""
-		<par noindent>generates string suitable for writing
-		to an HTML file or printing from a CGI script. The pieces
-		of the final string are passed to the callable object
-		<argref>publisher</argref>.</par>
+		<par noindent>generates unicode strings for the node, and passes
+		the strings to the callable object <argref>publisher</argref>.</par>
 
-		<par>With the parameter <argref>XHTML</argref> you can specify if you want HTML output
-		(i.e. elements with a content model EMPTY as <code>&lt;foo&gt;</code>) with
-		<code><argref>XHTML</argref>==0</code>, or XHTML output that is compatible with HTML browsers
-		(element with an empty content model as <code>&lt;foo /&gt;</code> and others that
-		just happen to be empty as <code>&lt;foo&gt;&lt;/foo&gt;</code>) with
-		<code><argref>XHTML</argref>==1</code> or just plain XHTML with
-		<code><argref>XHTML</argref>==2</code> (all empty elements as <code>&lt;foo/&gt;</code>).
-		When you use the default (None) that value of the global variable
-		outputXHTML will be used, which defaults to 1, but can be overwritten
-		by the environment variable XSC_OUTPUT_XHTML and can of course be
-		changed dynamically.</par>
-
-		<par><argref>encoding</argref> specifies the encoding to be used.</par>
+		<par>The encoding and XHTML specification are taken from the <argref>publisher</argref>.</par>
 		"""
-		return ""
+		pass
 
-
-	def asString(self, encoding = None, XHTML = None):
+	def asString(self, XHTML=None):
 		"""
-		<par noindent>returns this element as a string suitable for writing
+		<par noindent>returns this element as a unicode string.</par>
+
+		<par>For an explanation of <argref>XHTML</argref> see <funcref>publish</funcref>.</par>
+		"""
+		publisher = publishers.StringPublisher(XHTML)
+		self.publish(publisher)
+		return publisher.asString()
+
+	def asBytes(self, encoding=None, XHTML=None):
+		"""
+		<par noindent>returns this element as a byte string suitable for writing
 		to an HTML file or printing from a CGI script.</par>
 
-		<par>For the rest of the parameters see <funcref>publish</funcref>.</par>
+		<par>For the parameters see <funcref>publish</funcref>.</par>
 		"""
-		publisher = StringPublisher()
-		self.publish(publisher, encoding, XHTML)
-		return str(publisher)
+		publisher = publishers.BytePublisher(encoding,XHTML)
+		self.publish(publisher)
+		return publisher.asBytes()
 
 	def find(self, type = None, subtype = 0, attrs = None, test = None, searchchildren = 0, searchattrs = 0):
 		"""
@@ -668,7 +664,7 @@ class Node:
 		return res
 
 	def _doreprtreeMultiLine(self,nest,elementno,head,tail,text,formatter,extraFirstLine,encoding = None,ansi = None):
-  		lines = text.split("\n")
+		lines = text.split("\n")
 		l = len(lines)
 		if l>1 and extraFirstLine:
 			lines.insert(0,"")
@@ -709,60 +705,6 @@ class Node:
 		node.endloc = self.endloc
 		return node
 
-	_strescapes = {'<': 'lt', '>': 'gt', '&': 'amp', '"': 'quot'}
-	# the following is from ftp://ftp.isi.edu/in-notes/iana/assignments/character-sets
-	__encsWith7Bit = ["ANSI_X3.4-1968", "iso-ir-6", "ANSI_X3.4-1986", "ISO_646.irv:1991", "ASCII", "ISO646-US", "US-ASCII", "us", "IBM367", "cp367", "csASCII"]
-	__encsWith8Bit = ["ISO_8859-1:1987", "iso-ir-100", "ISO_8859-1", "ISO-8859-1", "latin1", "l1", "IBM819", "CP819", "csISOLatin1"]
-
-	def _mustBeEncodedAsCharRef(self, char, encoding):
-		encoding = encoding.lower()
-		for enc in self.__encsWith7Bit:
-			if enc.lower() == encoding:
-				if ord(char)>=128:
-					return 1
-				else:
-					return 0
-		for enc in self.__encsWith8Bit:
-			if enc.lower() == encoding:
-				if ord(char)>=256:
-					return 1
-				else:
-					return 0
-		return 0
-
-	def _encode(self, text, encoding, charrefs = 0):
-		"""
-		encodes the text <argref>text</argref> with the encoding <argref>encoding</argref>.
-		<argref>charrefs</argref> specifies how characters, that need character references
-		for this encoding are handled. <code>0</code> means that the characters
-		<code>&lt;</code>, <code>&gt;</code>, <code>&amp;</code> and <code>'</code>
-		can be passed straight through, anything else is that would require a
-		character reference is illegal. <code>1</code> means that anything that
-		requires a character reference (e.g. element names) is illegal. <code>3</code>
-		means that using character references is OK in any case.
-		"""
-		v = []
-		if encoding is None:
-			encoding = outputEncoding
-		for c in text:
-			if c == u'\r':
-				continue
-			if self._strescapes.has_key(c):
-				if charrefs == 0:
-					v.append(c)
-				elif charrefs == 1:
-					raise EncodingImpossibleError(self.startloc, encoding, text, c)
-				else:
-					v.append('&' + self._strescapes[c] + ';')
-			elif self._mustBeEncodedAsCharRef(c, encoding):
-				if charrefs == 2:
-					v.append('&#' + str(ord(c)) + ';')
-				else:
-					raise EncodingImpossibleError(self.startloc, encoding, text, c)
-			else:
-				v.append(c)
-		return stringFromCode("".join(v)).encode(encoding)
-
 class Text(Node):
 	"""
 	text node. The characters <, >, & and " will be "escaped" with the
@@ -770,6 +712,8 @@ class Text(Node):
 	"""
 
 	def __init__(self,content = ""):
+		if type(content) in (types.IntType, types.LongType, types.FloatType):
+			content = str(content)
 		self.content = stringFromCode(content)
 
 	def asHTML(self):
@@ -780,8 +724,8 @@ class Text(Node):
 	def asPlainString(self):
 		return self.content
 
-	def publish(self, publisher, encoding = None, XHTML = None):
-		publisher(self._encode(self.content, encoding, 2))
+	def publish(self, publisher):
+		publisher(publisher._encodeLegal(self.content))
 
 	def __strtext(self, refwhite, content, encoding = None, ansi = None):
 		if encoding == None:
@@ -801,7 +745,7 @@ class Text(Node):
 				do = 1
 			else:
 				c = content[end] # ... or if the character we're at is different from those we've collected so far
-				ascharref = (0 <= ord(c) <= 31) or self._mustBeEncodedAsCharRef(c,encoding)
+				ascharref = (0 <= ord(c) <= 31) or publishers.mustBeEncodedAsCharRef(c,encoding)
 				if not refwhite and (c == u"\n" or c == u"\t"):
 					ascharref = 0
 				if ascharref != charref:
@@ -812,10 +756,10 @@ class Text(Node):
 					s = ""
 					for i in content[start:end]:
 						s += u'&#' + str(ord(i)) + u';'
-					v.append(strCharRef(s,ansi))
+					v.append(strCharRef(s, ansi))
 				else:
 					s = content[start:end]
-					v.append(strText(self._encode(s, encoding, 0), ansi))
+					v.append(strText(s, ansi))
 				charref = 1-charref # switch to the other class
 				start = end # the next string we want to work on starts from here
 			end += 1 # to the next character
@@ -860,16 +804,16 @@ class CharRef(Node):
 	def asPlainString(self):
 		return unichr(self.content)
 
-	def publish(self, publisher, encoding = None, XHTML = None):
+	def publish(self, publisher):
 		s = chr(self.content)
 		try:
-			s = self._strescapes[s]
+			s = publishers.strescapes[s]
 		except KeyError:
 			s = "#" + str(self.content)
-		publisher(self._encode("&", encoding, 0),self._encode(s, encoding, 1), self._encode(";", encoding, 0))
+		publisher(u"&", publisher._encodeIllegal(s), u";")
 
 	def _dorepr(self, ansi = None):
-		return strCharRef('&#'+str(self.content)+';', ansi)
+		return strCharRef("&#"+str(self.content)+";", ansi)
 
 	def _doreprtree(self,nest,elementno,encoding = None,ansi = None):
 		s = strCharRef("&#" + str(self.content) + ";", ansi) + " (" + strCharRef("&#x" + hex(self.content)[2:] + ";", ansi)
@@ -880,7 +824,7 @@ class CharRef(Node):
 		if len(entstr):
 			s += ", " + ", ".join(entstr)
 		s += ")"
-		if not self._mustBeEncodedAsCharRef(chr(self.content), encoding):
+		if not publishers.mustBeEncodedAsCharRef(chr(self.content), encoding):
 			s += ' ' + Text(chr(self.content))._doreprtree(0, 0, encoding, ansi)[0][-1]
 		return [[nest, self.startloc, elementno, s]]
 
@@ -940,9 +884,9 @@ class Frag(Node):
 			v.append(child.asPlainString())
 		return "".join(v)
 
-	def publish(self, publisher, encoding = None, XHTML = None):
+	def publish(self, publisher):
 		for child in self:
-			child.publish(publisher, encoding, XHTML)
+			child.publish(publisher)
 
 	def __getitem__(self, index):
 		"""
@@ -1104,10 +1048,10 @@ class Comment(Node):
 		tail = strCommentMarker(ansi) + strBracketClose(ansi)
 		return self._doreprtreeMultiLine(nest, elementno, head, tail, self.content, strCommentText, 0, encoding = encoding, ansi = ansi)
 
-	def publish(self, publisher, encoding = None, XHTML = None):
-		if self.content.find("--")!=-1 or self.content[-1:]=="-":
+	def publish(self, publisher):
+		if self.content.find(u"--")!=-1 or self.content[-1:]==u"-":
 			raise IllegalCommentError(self.startloc, self)
-		publisher(self._encode("<!--", encoding, 0), self._encode(self.content, encoding, 0), self._encode("-->", encoding, 0))
+		publisher(u"<!--", self.content, u"-->")
 
 	def compact(self):
 		return self._decorateNode(Comment(self.content))
@@ -1131,8 +1075,8 @@ class DocType(Node):
 	def _doreprtree(self, nest, elementno, encoding = None, ansi = None):
 		return [[nest, self.startloc, elementno, self._dorepr(encoding, ansi)]]
 
-	def publish(self, publisher, encoding = None, XHTML = None):
-		publisher(self._encode("<!DOCTYPE ", encoding, 0), self._encode(self.content, encoding, 0), self._encode(">", encoding, 0))
+	def publish(self, publisher):
+		publisher(u"<!DOCTYPE ", self.content, u">")
 
 	def compact(self):
 		return self._decorateNode(DocType(self.content))
@@ -1169,10 +1113,10 @@ class ProcInst(Node):
 		tail = strQuestion(ansi) + strBracketClose(ansi)
 		return self._doreprtreeMultiLine(nest, elementno, head, tail, self.content, strProcInstData, 1, ansi = ansi)
 
-	def publish(self, publisher, encoding = None, XHTML = None):
-		if self.content.find("?>")!=-1:
+	def publish(self, publisher):
+		if self.content.find(u"?>")!=-1:
 			raise IllegalProcInstError(self.startloc, self)
-		publisher(self._encode("<?", encoding, 0), self._encode(self.target, encoding, 1), self._encode(" ", encoding, 0), self._encode(self.content, encoding, 0), self._encode("?>", encoding, 0))
+		publisher(u"<?", publisher._encodeIllegal(self.target), u" ", self.content, u"?>")
 
 	def compact(self):
 		return self._decorateNode(ProcInst(self.target, self.content))
@@ -1191,7 +1135,7 @@ class Exec(ProcInst):
 	"""
 	def __init__(self, content = ""):
 		ProcInst.__init__(self, u"xsc-exec", content)
-		content = self._encode(self.content, "iso-8859-1", 0) # FIXME Python bug: why can't I exec a unicode object?
+		content = self.content.encode("iso-8859-1") # FIXME Python bug: why can't I exec a unicode object?
 		exec content in procinst.__dict__
 
 	def asHTML(self):
@@ -1218,7 +1162,7 @@ class Eval(ProcInst):
 		ProcInst.__init__(self, u"xsc-eval", content)
 
 	def asHTML(self):
-		content = self._encode(self.content, "iso-8859-1", 0) # FIXME Python bug: why can't I exec a unicode object?
+		content = self.content.encode("iso-8859-1") # FIXME Python bug: why can't I exec a unicode object?
 		function = "def __():\n\t" + content.strip().replace("\n", "\n\t") + "\n"
 		exec function in procinst.__dict__
 		return ToNode(eval("__()", procinst.__dict__)).asHTML()
@@ -1237,7 +1181,7 @@ class XML(ProcInst):
 
 	asHTML = clone
 
-	def __findAttr(self,name):
+	def __findAttr(self, name):
 		startpos = self.content.find(name)
 		if startpos != -1:
 			startpos = startpos+len(name)
@@ -1253,22 +1197,20 @@ class XML(ProcInst):
 				return self.content[startpos:endpos]
 		return None
 
-	def publish(self, publisher, encoding = None, XHTML = None):
+	def publish(self, publisher):
 		encodingfound = self.__findAttr(u"encoding")
 		versionfound = self.__findAttr(u"version")
 		standalonefound = self.__findAttr(u"standalone")
-		if encoding is None:
-			encoding = outputEncoding
-		if encoding != encodingfound: # if self has the wrong encoding specification (or none), we construct a new XML ProcInst and publish that
+		if publisher.encoding != encodingfound: # if self has the wrong encoding specification (or none), we construct a new XML ProcInst and publish that
 			node = XML(u"")
 			if versionfound is not None:
 				node.content = u"version='" + versionfound + u"' "
-			node.content += u"encoding='" + encoding + u"'"
+			node.content += u"encoding='" + publisher.encoding + u"'"
 			if standalonefound is not None:
 				node.content += u" standalone='" + standalonefound + u"'"
-			node.publish(publisher, encoding, XHTML)
+			node.publish(publisher, HTML)
 			return
-		ProcInst.publish(self, publisher, encoding, XHTML)
+		ProcInst.publish(self, publisher)
 
 class Element(Node):
 	"""
@@ -1295,7 +1237,7 @@ class Element(Node):
 	"""
 
 	empty = 1 # 0 => element with content; 1 => stand alone element
- 	attrHandlers = {} # maps attribute names to attribute classes
+	attrHandlers = {} # maps attribute names to attribute classes
 
 	def __init__(self,*content,**attrs):
 		"""
@@ -1360,7 +1302,7 @@ class Element(Node):
 	def asPlainString(self):
 		return self.content.asPlainString()
 
-	def _addImageSizeAttributes(self, imgattr, widthattr = None, heightattr = None):
+	def _addImageSizeAttributes(self, imgattr, widthattr=None, heightattr=None):
 		"""
 		<par noindent>add width and height attributes to the element for the image that can be found in the attribute
 		<argref>imgattr</argref>. If the attributes are already there, they are taken as a formatting
@@ -1379,10 +1321,12 @@ class Element(Node):
 					if self.hasAttr(widthattr):
 						try:
 							s = self[widthattr].asPlainString() % sizedict
-							s = s.encode(outputEncoding) # FIXME eval unicode("gurk")
+							s = s.encode("latin1") # FIXME eval unicode("gurk")
 							s = str(eval(s))
-							s = stringFromCode(s).encode(outputEncoding)
+							s = stringFromCode(s)
 							self[widthattr] = s
+						except TypeError: # ignore "not all argument converted"
+							pass
 						except:
 							raise ImageSizeFormatError(self, widthattr)
 					else:
@@ -1391,10 +1335,12 @@ class Element(Node):
 					if self.hasAttr(heightattr):
 						try:
 							s = self[heightattr].asPlainString() % sizedict
-							s = s.encode(outputEncoding) # FIXME eval unicode("gurk")
+							s = s.encode("latin1") # FIXME eval unicode("gurk")
 							s = str(eval(s))
-							s = stringFromCode(s).encode(outputEncoding)
+							s = stringFromCode(s)
 							self[heightattr] = s
+						except TypeError: # ignore "not all argument converted"
+							pass
 						except:
 							raise ImageSizeFormatError(self, heightattr)
 					else:
@@ -1427,47 +1373,31 @@ class Element(Node):
 				v.append([nest, self.endloc, elementno, self._str(brackets = 1, slash = -1, ansi = ansi)])
 		return v
 
-	def publish(self, publisher, encoding = None, XHTML = None):
-		"""
-		<par noindent>generates a string representing the element and adds width and height
-		attributes in the process. The URL for the image is fetched for the attribute named
-		<argref>imgattr</argref>. If the attributes are already there, they are taken as a
-		formatting template with the size passed in as a dictionary with the keys
-		<code>"width"</code> and <code>"height"</code>, i.e. you could make your image twice
-		as wide with <code>width="2*%(width)d"</code>.</par>
-
-		<par>If <argref>imgattr</argref> is <code>None</code> no image size attribute generation
-		will be done.</par>
-		"""
-
-		publisher(self._encode("<", encoding, 0), self._encode(self.name, encoding, 0)) # requires that the element is registered via registerElement()
+	def publish(self, publisher):
+		publisher(u"<", self.name) # requires that the element is registered via registerElement()
 		for attr in self.attrs.keys():
-			publisher(self._encode(" ", encoding, 0), self._encode(attr, encoding, 0))
+			publisher(u" ", attr)
 			value = self[attr]
 			if len(value):
-				publisher(self._encode('="', encoding, 0))
-				value.publish(publisher,encoding,XHTML)
-				publisher(self._encode('"', encoding, 0))
+				publisher(u'="')
+				value.publish(publisher)
+				publisher(u'"')
 		if len(self):
 			if self.empty:
 				raise EmptyElementWithContentError(self)
-			publisher(self._encode(">", encoding, 0))
-			self.content.publish(publisher,encoding,XHTML)
-			publisher(self._encode("</", encoding, 0), self._encode(self.name, encoding, 0), self._encode(">", encoding, 0))
+			publisher(u">")
+			self.content.publish(publisher)
+			publisher(u"</", self.name, u">")
 		else:
-			if XHTML is None:
-				XHTML = outputXHTML
-			if XHTML in (0,1):
+			if publisher.XHTML in (0,1):
 				if self.empty:
-					if XHTML==1:
-						publisher(self._encode(" /", encoding, 0))
-					publisher(self._encode(">", encoding, 0))
+					if publisher.XHTML==1:
+						publisher(u" /")
+					publisher(u">")
 				else:
-					publisher(self._encode("></", encoding, 0), self._encode(self.name, encoding, 0), self._encode(">", encoding, 0))
-			elif XHTML == 2:
-				publisher(self._encode("/>", encoding, 0))
-			else:
-				raise ValueError("XHTML must be 0, 1, 2 or None")
+					publisher(u"></", self.name, u">")
+			elif publisher.XHTML == 2:
+				publisher(u"/>")
 
 	def __getitem__(self, index):
 		"""
@@ -1619,20 +1549,8 @@ class Entity(Node):
 		v.append([nest, self.startloc, elementno, self._dorepr(ansi = ansi)])
 		return v
 
-	def publish(self, publisher, encoding = None, XHTML = None):
-		"""
-		<par noindent>generates a string representing the element and adds width and height
-		attributes in the process. The URL for the image is fetched for the attribute named
-		<argref>imgattr</argref>. If the attributes are already there, they are taken as a
-		formatting template with the size passed in as a dictionary with the keys
-		<code>"width"</code> and <code>"height"</code>, i.e. you could make your image twice
-		as wide with <code>width="2*%(width)d"</code>.</par>
-
-		<par>If <argref>imgattr</argref> is <code>None</code> no image size attribute generation
-		will be done.</par>
-		"""
-
-		publisher(self._encode("&", encoding, 0), self._encode(self.name, encoding, 0), self._encode(";", encoding, 0)) # requires that the element is registered via Namespace.register()
+	def publish(self, publisher):
+		publisher(u"&", self.name, u";") # requires that the element is registered via Namespace.register()
 
 	def find(self, type = None, subtype = 0, attrs = None, test = None, searchchildren = 0, searchattrs = 0):
 		node = Frag()
@@ -1650,7 +1568,7 @@ class Null(Node):
 
 	clone = compact = asHTML
 
-	def publish(self, publisher, encoding = None, XHTML = None):
+	def publish(self, publisher):
 		pass
 
 	def _dorepr(self, encoding = None, ansi = None):
@@ -1663,18 +1581,18 @@ Null = Null() # Singleton, the Python way
 
 class Attr(Frag):
 	"""
-	Base classes of all attribute classes.
+	<par noindent>Base classes of all attribute classes.</par>
 
-	The content of an attribute may be any other XSC node. This is different from
+	<par>The content of an attribute may be any other XSC node. This is different from
 	a normal DOM, where only text and character references are allowed. The reason for
-	this is to allow dynamic content (implemented as elements) to be put into attributes.
+	this is to allow dynamic content (implemented as elements) to be put into attributes.</par>
 
-	Of course, this dynamic content when finally converted to HTML will normally result in
-	a fragment consisting only of text and character references.
+	<par>Of course, this dynamic content when finally converted to HTML will normally result in
+	a fragment consisting only of text and character references.</par>
 	"""
 
 	def _dorepr(self, ansi = None):
-		return strAttrValue(Frag._dorepr(self, ansi = 0), ansi)
+		return strAttrValue(Frag._dorepr(self, ansi=0), ansi)
 
 class TextAttr(Attr):
 	"""
@@ -1738,8 +1656,8 @@ class URLAttr(Attr):
 	def _dorepr(self, ansi = None):
 		return strURL(self.asString(), ansi = ansi)
 
-	def publish(self, publisher, encoding = None, XHTML = None):
-		Text(self.forOutput().asString()).publish(publisher, encoding, XHTML)
+	def publish(self, publisher):
+		Text(self.forOutput().asString()).publish(publisher)
 
 	def asHTML(self):
 		node = Attr.asHTML(self)
@@ -2209,13 +2127,16 @@ def make():
 				outname.ext = {"hsc": "html" ,"shsc" : "shtml", "phsc": "phtml", "xsc": "html", "sxsc": "shtml", "pxsc" : "phtml"}[inname.ext]
 			except KeyError:
 				outname.ext = "html"
-			sys.stderr.write('XSC: converting ' + repr(str(inname)) + ' to ' + repr(str(outname)) + ' ...')
+			print >> sys.stderr, "XSC: converting %r" % str(inname),
 			e_in = xsc.parse(inname)
 			xsc.pushURL(inname)
+			print >> sys.stderr, "to %r ..." % str(outname),
 			e_out = e_in.asHTML()
-			s_out = e_out.asString()
+			p = publishers.BytePublisher()
+			e_out.publish(p)
+			s_out = p.asBytes()
 			__forceopen(outname.asString(), "wb").write(s_out)
-			sys.stderr.write(" " + _stransi("1", str(len(s_out))) + "\n")
+			print >> sys.stderr, _stransi("1", str(len(s_out)))
 			xsc.popURL()
 	else:
 		sys.stderr.write("XSC: no files to convert.\n")
