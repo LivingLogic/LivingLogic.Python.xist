@@ -15,8 +15,8 @@ page can be done like this:</par>
 from ll.xist import parsers, xfind
 from ll.xist.ns import html
 node = parsers.parseURL("http://www.python.org/", tidy=True)
-for link in node//html.a/html.img:
-	print link["href"]
+for img in node//html.a/html.img:
+	print img["src"]
 </prog>
 </example>
 
