@@ -150,7 +150,7 @@ class Provider:
 
 	def parseLines(self, lines):
 		self.__nesting = [xsc.Frag()]
-		parser = sgmlop.SGMLParser()
+		parser = sgmlop.XMLParser()
 		parser.register(self)
 		self.lineno = 1
 		for line in lines:
