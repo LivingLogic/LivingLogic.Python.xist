@@ -1,6 +1,9 @@
 #! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
+# This script requires XPython
+# (see http://codespeak.net/svn/user/hpk/talks/xpython-talk.txt)
+
 import os
 import glob
 
