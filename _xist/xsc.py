@@ -1962,9 +1962,6 @@ class Attrs(Node, dict):
 			dict.__setitem__(self, self._allowedattrkey(name, xml=xml), attr)
 		return attr
 
-	def _iterallitems(self):
-		return dict.iteritems(self)
-
 	def update(self, *args, **kwargs):
 		"""
 		Copies attributes over from all mappings in <arg>args</arg> and from <arg>kwargs</arg>.
@@ -2122,6 +2119,23 @@ class Attrs(Node, dict):
 
 	def items(self, xml=False):
 		return list(self.iteritems(xml=xml))
+
+	def _iterallitems(self):
+		"""
+		Iterate all items, even the unset ones
+		"""
+		# fetch the existing attribute keys/values
+		for (key, value) in dict.iteritems(self):
+			if isinstance(key, tuple):
+				yield ((value.xmlns, value.xmlname[False]), value)
+			else:
+				yield (value.xmlname[False], value)
+		# fetch the keys of attributes with a default value (if it hasn't been overwritten)
+		for (key, value) in self.iteralloweditems():
+			if value.default and not dict.has_key(self, key):
+				value = value(value.default.clone())
+				dict.__setitem__(self, key, value)
+				yield (value.xmlname[False], value)
 
 	def attr(self, name, xml=False):
 		key = self._allowedattrkey(name, xml=xml)
