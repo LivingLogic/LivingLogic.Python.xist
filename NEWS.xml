@@ -19,7 +19,6 @@ now done with <method>ll.xist.publishers.Publisher.write</method>.</item>
 
 <item>The presentation API has been simplified: You'll get a presentation
 by calling: <lit>string = <rep>presenter</rep>.present(<rep>node</rep>)</lit>.</item>
-</ulist>
 
 <item>The classmethod <method>tokenize</method> from <module>ll.toxic</module>
 has been moved to <class>ll.xist.xsc.Namespace</class>, so it's now possible
