@@ -46,7 +46,7 @@ class element(xsc.Element):
 
 	def asHTML(self):
 		return None
-xsc.registerElement("element",element)
+xsc.registerElement(element)
 
 class lookupcombobox(element):
 	attr_handlers = xsc.appendDict(element.attr_handlers,{ "module" : xsc.TextAttr , "variable" : xsc.TextAttr , "query" : xsc.TextAttr , "displayfield" : xsc.TextAttr , "valuefield" : xsc.TextAttr })
@@ -66,7 +66,7 @@ class lookupcombobox(element):
 				o["selected"] = None
 			e.append(o)
 		return e.asHTML()
-xsc.registerElement("lookupcombobox",lookupcombobox)
+xsc.registerElement(lookupcombobox)
 
 class edit(element):
 	attr_handlers = xsc.appendDict(element.attr_handlers,{ "size" : xsc.TextAttr })
@@ -77,7 +77,7 @@ class edit(element):
 			e[attr] = self[attr]
 
 		return e.asHTML()
-xsc.registerElement("edit",edit)
+xsc.registerElement(edit)
 
 class static(element):
 	def asHTML(self):
@@ -87,7 +87,7 @@ class static(element):
 			e = specials.nbsp()
 
 		return e.asHTML()
-xsc.registerElement("static",static)
+xsc.registerElement(static)
 
 class hidden(element):
 	def asHTML(self):
@@ -96,14 +96,14 @@ class hidden(element):
 			e["value"] = self["value"]
 
 		return e.asHTML()
-xsc.registerElement("hidden",hidden)
+xsc.registerElement(hidden)
 
 class target(xsc.Element):
 	empty = 0
 
 	def asHTML(self):
 		return self.content.asHTML()
-xsc.registerElement("target",target)
+xsc.registerElement(target)
 
 class template(xsc.Element):
 	empty = 0
@@ -127,7 +127,7 @@ class template(xsc.Element):
 			targets[0].append(t)
 
 		return content.asHTML()
-xsc.registerElement("template",template)
+xsc.registerElement(template)
 
 class table(xsc.Element):
 	empty = 0
@@ -161,7 +161,7 @@ class table(xsc.Element):
 				flipflop = "even"
 
 		return e.asHTML()
-xsc.registerElement("table",table)
+xsc.registerElement(table)
 
 class edittable(xsc.Element):
 	empty = 0
@@ -228,12 +228,12 @@ class edittable(xsc.Element):
 		if value is not None:
 			control["value"] = value
 		return control
-xsc.registerElement("edittable",edittable)
+xsc.registerElement(edittable)
 
 class field(xsc.Element):
 	empty = 1
 	attr_handlers = { "name" : xsc.TextAttr , "caption" : xsc.TextAttr , "type" : xsc.TextAttr , "size" : xsc.TextAttr , "lookupquery" : xsc.TextAttr , "lookupdisplayfield" : xsc.TextAttr , "lookupvaluefield" : xsc.TextAttr }
-xsc.registerElement("field",field)
+xsc.registerElement(field)
 
 if __name__ == "__main__":
 	xsc.make()

@@ -24,7 +24,7 @@ class plaintable(html.table):
 			e["border"] = "0"
 
 		return e.asHTML()
-xsc.registerElement("plaintable",plaintable)
+xsc.registerElement(plaintable)
 
 class plainbody(html.body):
 	empty = 0
@@ -41,7 +41,7 @@ class plainbody(html.body):
 			e["marginwidth"] = "0"
 
 		return e.asHTML()
-xsc.registerElement("plainbody",plainbody)
+xsc.registerElement(plainbody)
 
 class z(xsc.Element):
 	empty = 0
@@ -50,14 +50,14 @@ class z(xsc.Element):
 		e = xsc.Frag(["«" , self.content , "»" ])
 
 		return e.asHTML()
-xsc.registerElement("z",z)
+xsc.registerElement(z)
 
 class nbsp(xsc.Element):
 	empty = 1
 
 	def asHTML(self):
 		return xsc.CharRef(160)
-xsc.registerElement("nbsp",nbsp)
+xsc.registerElement(nbsp)
 
 class filesize(xsc.Element):
 	empty = 1
@@ -65,7 +65,7 @@ class filesize(xsc.Element):
 
 	def asHTML(self):
 		return xsc.Text(self["href"].FileSize())
-xsc.registerElement("filesize",filesize)
+xsc.registerElement(filesize)
 
 class x(xsc.Element):
 	"""content will be ignored: can be used to comment out stuff (e.g. linefeeds)"""
@@ -73,7 +73,7 @@ class x(xsc.Element):
 
 	def asHTML(self):
 		return None
-xsc.registerElement("x",x)
+xsc.registerElement(x)
 
 class pixel(html.img):
 	empty = 1
@@ -91,7 +91,7 @@ class pixel(html.img):
 		e["src"] = [ ":images/pixels/" , color , ".gif" ]
 
 		return e.asHTML()
-xsc.registerElement("pixel",pixel)
+xsc.registerElement(pixel)
 
 class cap(xsc.Element):
 	empty = 0
@@ -116,21 +116,21 @@ class cap(xsc.Element):
 			else:
 				collect = collect + e[i]
 		return result
-xsc.registerElement("cap",cap)
+xsc.registerElement(cap)
 
 class endash(xsc.Element):
 	empty = 1
 
 	def asHTML(self):
 		return xsc.Text("-")
-xsc.registerElement("endash",endash)
+xsc.registerElement(endash)
 
 class emdash(xsc.Element):
 	empty = 1
 
 	def asHTML(self):
 		return xsc.Text("-")
-xsc.registerElement("emdash",emdash)
+xsc.registerElement(emdash)
 
 class include(xsc.Element):
 	empty = 1
@@ -140,7 +140,7 @@ class include(xsc.Element):
 		e = xsc.xsc.parseFile(self["src"].forInput())
 
 		return e.asHTML()
-xsc.registerElement("include",include)
+xsc.registerElement(include)
 
 if __name__ == "__main__":
 	xsc.make()

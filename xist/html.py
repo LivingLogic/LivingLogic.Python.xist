@@ -23,17 +23,17 @@ cellvalign = { "valign" : xsc.TextAttr }
 class html(xsc.Element):
 	empty = 0
 	attr_handlers = i18n
-xsc.registerElement("html",html)
+xsc.registerElement(html)
 
 class head(xsc.Element):
 	empty = 0
 	attr_handlers = xsc.appendDict(i18n,{ "profile" : xsc.TextAttr })
-xsc.registerElement("head",head)
+xsc.registerElement(head)
 
 class title(xsc.Element):
 	empty = 0
 	attr_handlers = i18n
-xsc.registerElement("title",title)
+xsc.registerElement(title)
 
 class meta(xsc.Element):
 	empty = 1
@@ -46,293 +46,293 @@ class meta(xsc.Element):
 			if not self.has_attr("http-equiv"):
 				self["http-equiv"] = self["http_equiv"]
 			del self["http_equiv"]
-xsc.registerElement("meta",meta)
+xsc.registerElement(meta)
 
 class body(xsc.Element):
 	empty = 0
 	attr_handlers = xsc.appendDict(attrs,{ "onload" : xsc.TextAttr , "onunload" : xsc.TextAttr })
 	attr_handlers = xsc.appendDict(attr_handlers,{ "background" : xsc.URLAttr , "bgcolor" : xsc.ColorAttr , "text" : xsc.ColorAttr , "link" : xsc.ColorAttr , "vlink" : xsc.ColorAttr , "alink" : xsc.ColorAttr , "leftmargin" : xsc.TextAttr , "topmargin" : xsc.TextAttr , "marginwidth" : xsc.TextAttr , "marginheight" : xsc.TextAttr }) # deprecated
-xsc.registerElement("body",body)
+xsc.registerElement(body)
 
 class div(xsc.Element):
 	empty = 0
 	attr_handlers = attrs
 	attr_handlers = xsc.appendDict(attr_handlers, { "align" : xsc.TextAttr }) # deprecated
-xsc.registerElement("div",div)
+xsc.registerElement(div)
 
 class span(xsc.Element):
 	empty = 0
 	attr_handlers = attrs
-xsc.registerElement("span",span)
+xsc.registerElement(span)
 
 class h1(xsc.Element):
 	empty = 0
 	attr_handlers = attrs
 	attr_handlers = xsc.appendDict(attr_handlers, { "align" : xsc.TextAttr }) # deprecated
-xsc.registerElement("h1",h1)
+xsc.registerElement(h1)
 
 class h2(xsc.Element):
 	empty = 0
 	attr_handlers = attrs
 	attr_handlers = xsc.appendDict(attr_handlers, { "align" : xsc.TextAttr }) # deprecated
-xsc.registerElement("h2",h2)
+xsc.registerElement(h2)
 
 class h3(xsc.Element):
 	empty = 0
 	attr_handlers = attrs
 	attr_handlers = xsc.appendDict(attr_handlers, { "align" : xsc.TextAttr }) # deprecated
-xsc.registerElement("h3",h3)
+xsc.registerElement(h3)
 
 class h4(xsc.Element):
 	empty = 0
 	attr_handlers = attrs
 	attr_handlers = xsc.appendDict(attr_handlers, { "align" : xsc.TextAttr }) # deprecated
-xsc.registerElement("h4",h4)
+xsc.registerElement(h4)
 
 class h5(xsc.Element):
 	empty = 0
 	attr_handlers = attrs
 	attr_handlers = xsc.appendDict(attr_handlers, { "align" : xsc.TextAttr }) # deprecated
-xsc.registerElement("h5",h5)
+xsc.registerElement(h5)
 
 class h6(xsc.Element):
 	empty = 0
 	attr_handlers = attrs
 	attr_handlers = xsc.appendDict(attr_handlers, { "align" : xsc.TextAttr }) # deprecated
-xsc.registerElement("h6",h6)
+xsc.registerElement(h6)
 
 class address(xsc.Element):
 	empty = 0
 	attr_handlers = attrs
-xsc.registerElement("address",address)
+xsc.registerElement(address)
 
 class bdo(xsc.Element):
 	empty = 0
 	attr_handlers = xsc.appendDict(coreattrs,i18n)
-xsc.registerElement("bdo",bdo)
+xsc.registerElement(bdo)
 
 class tt(xsc.Element):
 	empty = 0
 	attr_handlers = attrs
-xsc.registerElement("tt",tt)
+xsc.registerElement(tt)
 
 class i(xsc.Element):
 	empty = 0
 	attr_handlers = attrs
-xsc.registerElement("i",i)
+xsc.registerElement(i)
 
 class b(xsc.Element):
 	empty = 0
 	attr_handlers = attrs
-xsc.registerElement("b",b)
+xsc.registerElement(b)
 
 class big(xsc.Element):
 	empty = 0
 	attr_handlers = attrs
-xsc.registerElement("big",big)
+xsc.registerElement(big)
 
 class small(xsc.Element):
 	empty = 0
 	attr_handlers = attrs
-xsc.registerElement("small",small)
+xsc.registerElement(small)
 
 class em(xsc.Element):
 	empty = 0
 	attr_handlers = attrs
-xsc.registerElement("em",em)
+xsc.registerElement(em)
 
 class strong(xsc.Element):
 	empty = 0
 	attr_handlers = attrs
-xsc.registerElement("strong",strong)
+xsc.registerElement(strong)
 
 class dfn(xsc.Element):
 	empty = 0
 	attr_handlers = attrs
-xsc.registerElement("dfn",dfn)
+xsc.registerElement(dfn)
 
 class code(xsc.Element):
 	empty = 0
 	attr_handlers = attrs
-xsc.registerElement("code",code)
+xsc.registerElement(code)
 
 class samp(xsc.Element):
 	empty = 0
 	attr_handlers = attrs
-xsc.registerElement("samp",samp)
+xsc.registerElement(samp)
 
 class kbd(xsc.Element):
 	empty = 0
 	attr_handlers = attrs
-xsc.registerElement("kbd",kbd)
+xsc.registerElement(kbd)
 
 class var(xsc.Element):
 	empty = 0
 	attr_handlers = attrs
-xsc.registerElement("var",var)
+xsc.registerElement(var)
 
 class cite(xsc.Element):
 	empty = 0
 	attr_handlers = attrs
-xsc.registerElement("cite",cite)
+xsc.registerElement(cite)
 
 class abbr(xsc.Element):
 	empty = 0
 	attr_handlers = attrs
-xsc.registerElement("abbr",abbr)
+xsc.registerElement(abbr)
 
 class acronym(xsc.Element):
 	empty = 0
 	attr_handlers = attrs
-xsc.registerElement("acronym",acronym)
+xsc.registerElement(acronym)
 
 class blockquote(xsc.Element):
 	empty = 0
 	attr_handlers = xsc.appendDict(attrs,{ "cite" : xsc.TextAttr })
-xsc.registerElement("blockquote",blockquote)
+xsc.registerElement(blockquote)
 
 class q(xsc.Element):
 	empty = 0
 	attr_handlers = xsc.appendDict(attrs,{ "cite" : xsc.TextAttr })
-xsc.registerElement("q",q)
+xsc.registerElement(q)
 
 class sub(xsc.Element):
 	empty = 0
 	attr_handlers = attrs
-xsc.registerElement("sub",sub)
+xsc.registerElement(sub)
 
 class sup(xsc.Element):
 	empty = 0
 	attr_handlers = attrs
-xsc.registerElement("sup",sup)
+xsc.registerElement(sup)
 
 class p(xsc.Element):
 	empty = 0
 	attr_handlers = attrs
 	attr_handlers = xsc.appendDict({ "align" : xsc.TextAttr }) # deprecated
-xsc.registerElement("p",p)
+xsc.registerElement(p)
 
 class br(xsc.Element):
 	empty = 1
 	attr_handlers = coreattrs
-xsc.registerElement("br",br)
+xsc.registerElement(br)
 
 class pre(xsc.Element):
 	empty = 0
 	attr_handlers = attrs
-xsc.registerElement("pre",pre)
+xsc.registerElement(pre)
 
 class ins(xsc.Element):
 	empty = 0
 	attr_handlers = xsc.appendDict(attrs,{ "cite" : xsc.TextAttr , "datetime" : xsc.TextAttr })
-xsc.registerElement("ins",ins)
+xsc.registerElement(ins)
 
-class del_(xsc.Element):
+class Del(xsc.Element):
 	empty = 0
 	attr_handlers = xsc.appendDict(attrs,{ "cite" : xsc.TextAttr , "datetime" : xsc.TextAttr })
-xsc.registerElement("del",del_)
+xsc.registerElement(Del)
 
 class ul(xsc.Element):
 	empty = 0
 	attr_handlers = attrs
 	attr_handlers = xsc.appendDict(attrs,{ "type" : xsc.TextAttr }) # deprecated
-xsc.registerElement("ul",ul)
+xsc.registerElement(ul)
 
 class ol(xsc.Element):
 	empty = 0
 	attr_handlers = attrs
 	attr_handlers = xsc.appendDict(attrs,{ "type" : xsc.TextAttr }) # deprecated
-xsc.registerElement("ol",ol)
+xsc.registerElement(ol)
 
 class li(xsc.Element):
 	empty = 0
 	attr_handlers = attrs
 	attr_handlers = xsc.appendDict(attrs,{ "type" : xsc.TextAttr }) # deprecated
-xsc.registerElement("li",li)
+xsc.registerElement(li)
 
 class dl(xsc.Element):
 	empty = 0
 	attr_handlers = attrs
-xsc.registerElement("dl",dl)
+xsc.registerElement(dl)
 
 class dt(xsc.Element):
 	empty = 0
 	attr_handlers = attrs
-xsc.registerElement("dt",dt)
+xsc.registerElement(dt)
 
 class dd(xsc.Element):
 	empty = 0
 	attr_handlers = attrs
-xsc.registerElement("dd",dd)
+xsc.registerElement(dd)
 
 class table(xsc.Element):
 	empty = 0
 	attr_handlers = xsc.appendDict(attrs,{ "summary" : xsc.TextAttr ,"width" : xsc.TextAttr ,"border" : xsc.TextAttr ,"frame" : xsc.TextAttr ,"rules" : xsc.TextAttr ,"cellspacing" : xsc.TextAttr ,"cellpadding" : xsc.TextAttr })
 	attr_handlers = xsc.appendDict(attr_handlers,{ "height" : xsc.TextAttr , "align" : xsc.TextAttr , "bgcolor" : xsc.ColorAttr }) # deprecated
-xsc.registerElement("table",table)
+xsc.registerElement(table)
 
 class caption(xsc.Element):
 	empty = 0
 	attr_handlers = attrs
-xsc.registerElement("caption",caption)
+xsc.registerElement(caption)
 
 class thead(xsc.Element):
 	empty = 0
 	attr_handlers = xsc.appendDict(attrs,cellhalign,cellvalign)
-xsc.registerElement("thead",thead)
+xsc.registerElement(thead)
 
 class tfoot(xsc.Element):
 	empty = 0
 	attr_handlers = xsc.appendDict(attrs,cellhalign,cellvalign)
-xsc.registerElement("tfoot",tfoot)
+xsc.registerElement(tfoot)
 
 class tbody(xsc.Element):
 	empty = 0
 	attr_handlers = xsc.appendDict(attrs,cellhalign,cellvalign)
-xsc.registerElement("tbody",tbody)
+xsc.registerElement(tbody)
 
 class colgroup(xsc.Element):
 	empty = 0
 	attr_handlers = xsc.appendDict(attrs,{ "span" : xsc.TextAttr , "width" : xsc.TextAttr },cellhalign,cellvalign)
-xsc.registerElement("colgroup",colgroup)
+xsc.registerElement(colgroup)
 
 class col(xsc.Element):
 	empty = 0
 	attr_handlers = xsc.appendDict(attrs,{ "span" : xsc.TextAttr , "width" : xsc.TextAttr },cellhalign,cellvalign)
-xsc.registerElement("col",col)
+xsc.registerElement(col)
 
 class tr(xsc.Element):
 	empty = 0
 	attr_handlers = xsc.appendDict(attrs,cellhalign,cellvalign)
 	attr_handlers = xsc.appendDict(attr_handlers,{ "nowrap" : xsc.TextAttr , "bgcolor" : xsc.ColorAttr , "width" : xsc.TextAttr }) # deprecated
-xsc.registerElement("tr",tr)
+xsc.registerElement(tr)
 
 class th(xsc.Element):
 	empty = 0
 	attr_handlers = xsc.appendDict(attrs,{ "abbr" : xsc.TextAttr , "axis" : xsc.TextAttr , "headers" : xsc.TextAttr , "scope" : xsc.TextAttr , "rowspan" : xsc.TextAttr , "colspan" : xsc.TextAttr },cellhalign,cellvalign)
-xsc.registerElement("th",th)
+xsc.registerElement(th)
 
 class td(xsc.Element):
 	empty = 0
 	attr_handlers = xsc.appendDict(attrs,{ "abbr" : xsc.TextAttr , "axis" : xsc.TextAttr , "headers" : xsc.TextAttr , "scope" : xsc.TextAttr , "rowspan" : xsc.TextAttr , "colspan" : xsc.TextAttr },cellhalign,cellvalign)
 	attr_handlers = xsc.appendDict(attr_handlers,{ "nowrap" : xsc.TextAttr , "bgcolor" : xsc.ColorAttr , "width" : xsc.TextAttr }) # deprecated
-xsc.registerElement("td",td)
+xsc.registerElement(td)
 
 class a(xsc.Element):
 	empty = 0
 	attr_handlers = xsc.appendDict(attrs,{ "charset" : xsc.TextAttr , "type" : xsc.TextAttr , "name" : xsc.TextAttr , "href" : xsc.URLAttr , "hreflang" : xsc.TextAttr , "rel" : xsc.TextAttr , "rev" : xsc.TextAttr , "accesskey" : xsc.TextAttr , "shape" : xsc.TextAttr , "coords" : xsc.TextAttr , "tabindex" : xsc.TextAttr , "onfocus" : xsc.TextAttr , "onblur" : xsc.TextAttr })
 	attr_handlers = xsc.appendDict(attr_handlers,{ "target" : xsc.TextAttr }) # deprecated
-xsc.registerElement("a",a)
+xsc.registerElement(a)
 
 class link(xsc.Element):
 	empty = 1
 	attr_handlers = xsc.appendDict(attrs,{ "charset" : xsc.TextAttr , "href" : xsc.URLAttr , "hreflang" : xsc.TextAttr , "type" : xsc.TextAttr , "rel" : xsc.TextAttr , "rev" : xsc.TextAttr , "media" : xsc.TextAttr })
-xsc.registerElement("link",link)
+xsc.registerElement(link)
 
 class base(xsc.Element):
 	empty = 1
 	attr_handlers = { "href" : xsc.URLAttr }
-xsc.registerElement("base",base)
+xsc.registerElement(base)
 
 class img(xsc.Element):
 	empty = 1
@@ -344,131 +344,131 @@ class img(xsc.Element):
 		e.AddImageSizeAttributes("src")
 
 		return e
-xsc.registerElement("img",img)
+xsc.registerElement(img)
 
 class object(xsc.Element):
 	empty = 0
 	attr_handlers = xsc.appendDict(attrs,{ "declare" : xsc.TextAttr , "classid" : xsc.TextAttr , "codebase" : xsc.TextAttr , "data" : xsc.TextAttr , "type" : xsc.TextAttr , "codetype" : xsc.TextAttr , "archive" : xsc.TextAttr , "standby" : xsc.TextAttr , "height" : xsc.TextAttr , "width" : xsc.TextAttr , "usemap" : xsc.TextAttr , "name" : xsc.TextAttr , "tabindex" : xsc.TextAttr })
-xsc.registerElement("object",object)
+xsc.registerElement(object)
 
 class param(xsc.Element):
 	empty = 1
 	attr_handlers = { "id" : xsc.TextAttr , "name" : xsc.TextAttr , "value" : xsc.TextAttr , "valuetype" : xsc.TextAttr , "type" : xsc.TextAttr }
-xsc.registerElement("param",param)
+xsc.registerElement(param)
 
 class map(xsc.Element):
 	empty = 0
 	attr_handlers = xsc.appendDict(attrs,{ "name" : xsc.TextAttr })
-xsc.registerElement("map",map)
+xsc.registerElement(map)
 
 class area(xsc.Element):
 	empty = 1
 	attr_handlers = xsc.appendDict(attrs,{ "shape" : xsc.TextAttr , "coords" : xsc.TextAttr , "href" : xsc.URLAttr , "nohref" : xsc.TextAttr , "alt" : xsc.TextAttr , "tabindex" : xsc.TextAttr , "accesskey" : xsc.TextAttr , "onfocus" : xsc.TextAttr , "onblur" : xsc.TextAttr })
-xsc.registerElement("area",area)
+xsc.registerElement(area)
 
 class style(xsc.Element):
 	empty = 0
 	attr_handlers = xsc.appendDict(i18n,{ "type" : xsc.TextAttr , "media" : xsc.TextAttr , "title" : xsc.TextAttr })
-xsc.registerElement("style",style)
+xsc.registerElement(style)
 
 class hr(xsc.Element):
 	empty = 1
 	attr_handlers = xsc.appendDict(coreattrs,events)
-xsc.registerElement("hr",hr)
+xsc.registerElement(hr)
 
 # The pain, the pain ...
 class frameset(xsc.Element):
 	empty = 0
 	attr_handlers = xsc.appendDict(coreattrs,{ "rows" : xsc.TextAttr ,"cols" : xsc.TextAttr ,"onload" : xsc.TextAttr ,"onunload" : xsc.TextAttr })
-xsc.registerElement("frameset",frameset)
+xsc.registerElement(frameset)
 
 class frame(xsc.Element):
 	empty = 0
 	attr_handlers = xsc.appendDict(coreattrs,{ "longdesc" : xsc.TextAttr , "name" : xsc.TextAttr , "src" : xsc.URLAttr , "frameborder" : xsc.TextAttr , "marginwidht" : xsc.TextAttr , "marginheight" : xsc.TextAttr , "noresize" : xsc.TextAttr , "scrolling" : xsc.TextAttr })
-xsc.registerElement("frame",frame)
+xsc.registerElement(frame)
 
 class noframes(xsc.Element):
 	empty = 0
 	attr_handlers = attrs
-xsc.registerElement("noframes",noframes)
+xsc.registerElement(noframes)
 
 class iframe(xsc.Element):
 	empty = 0
 	attr_handlers = xsc.appendDict(coreattrs,{ "longdesc" : xsc.TextAttr , "name" : xsc.TextAttr , "src" : xsc.URLAttr , "frameborder" : xsc.TextAttr , "marginwidht" : xsc.TextAttr , "marginheight" : xsc.TextAttr , "noresize" : xsc.TextAttr , "scrolling" : xsc.TextAttr , "align" : xsc.TextAttr , "height" : xsc.TextAttr , "width" : xsc.TextAttr })
-xsc.registerElement("iframe",iframe)
+xsc.registerElement(iframe)
 
 class form(xsc.Element):
 	empty = 0
 	attr_handlers = xsc.appendDict(attrs,{ "action" : xsc.URLAttr , "method" : xsc.TextAttr , "enctype" : xsc.TextAttr , "onsubmit" : xsc.TextAttr , "onreset" : xsc.TextAttr , "accept-charset" : xsc.TextAttr })
-xsc.registerElement("form",form)
+xsc.registerElement(form)
 
 class input(xsc.Element):
 	empty = 1
 	attr_handlers = xsc.appendDict(attrs,{ "type" : xsc.TextAttr , "name" : xsc.TextAttr , "value" : xsc.TextAttr , "checked" : xsc.TextAttr , "disabled" : xsc.TextAttr , "readonly" : xsc.TextAttr , "size" : xsc.TextAttr , "maxlength" : xsc.TextAttr , "src" : xsc.URLAttr , "alt" : xsc.TextAttr , "usemap" : xsc.TextAttr , "tabindex" : xsc.TextAttr , "accesskey" : xsc.TextAttr , "onfocus" : xsc.TextAttr , "onblur" : xsc.TextAttr , "onselect" : xsc.TextAttr , "onchange" : xsc.TextAttr , "accept" : xsc.TextAttr })
-xsc.registerElement("input",input)
+xsc.registerElement(input)
 
 class button(xsc.Element):
 	empty = 1
 	attr_handlers = xsc.appendDict(attrs,{ "name" : xsc.TextAttr , "value" : xsc.TextAttr , "type" : xsc.TextAttr , "disabled" : xsc.TextAttr , "tabindex" : xsc.TextAttr , "accesskey" : xsc.TextAttr , "onfocus" : xsc.TextAttr , "onblur" : xsc.TextAttr })
-xsc.registerElement("button",button)
+xsc.registerElement(button)
 
 class select(xsc.Element):
 	empty = 0
 	attr_handlers = xsc.appendDict(attrs,{ "name" : xsc.TextAttr , "size" : xsc.TextAttr , "multiple" : xsc.TextAttr , "disabled" : xsc.TextAttr , "tabindex" : xsc.TextAttr , "onfocus" : xsc.TextAttr , "onblur" : xsc.TextAttr , "onchange" : xsc.TextAttr })
 	attr_handlers = xsc.appendDict(attr_handlers,{ "rows" : xsc.TextAttr }) # deprecated
-xsc.registerElement("select",select)
+xsc.registerElement(select)
 
 class optgroup(xsc.Element):
 	empty = 0
 	attr_handlers = xsc.appendDict(attrs,{ "disabled" : xsc.TextAttr , "label" : xsc.TextAttr })
-xsc.registerElement("optgroup",optgroup)
+xsc.registerElement(optgroup)
 
 class option(xsc.Element):
 	empty = 0
 	attr_handlers = xsc.appendDict(attrs,{ "selected" : xsc.TextAttr , "disabled" : xsc.TextAttr , "label" : xsc.TextAttr , "value" : xsc.TextAttr })
-xsc.registerElement("option",option)
+xsc.registerElement(option)
 
 class textarea(xsc.Element):
 	empty = 0
 	attr_handlers = xsc.appendDict(attrs,{ "name" : xsc.TextAttr , "rows" : xsc.TextAttr , "cols" : xsc.TextAttr , "disabled" : xsc.TextAttr , "readonly" : xsc.TextAttr , "tabindex" : xsc.TextAttr , "accesskey" : xsc.TextAttr , "onfocus" : xsc.TextAttr , "onblur" : xsc.TextAttr , "onselect" : xsc.TextAttr , "onchange" : xsc.TextAttr })
-xsc.registerElement("textarea",textarea)
+xsc.registerElement(textarea)
 
 class label(xsc.Element):
 	empty = 0
 	attr_handlers = xsc.appendDict(attrs,{ "for" : xsc.TextAttr , "accesskey" : xsc.TextAttr , "onfocus" : xsc.TextAttr , "onblur" : xsc.TextAttr })
-xsc.registerElement("label",label)
+xsc.registerElement(label)
 
 class fieldset(xsc.Element):
 	empty = 0
 	attr_handlers = attrs
-xsc.registerElement("fieldset",fieldset)
+xsc.registerElement(fieldset)
 
 class legend(xsc.Element):
 	empty = 0
 	attr_handlers = xsc.appendDict(attrs,{ "accesskey" : xsc.TextAttr })
-xsc.registerElement("legend",legend)
+xsc.registerElement(legend)
 
 class script(xsc.Element):
 	empty = 0
 	attr_handlers = { "charset" : xsc.TextAttr , "type" : xsc.TextAttr , "src" : xsc.URLAttr , "defer" : xsc.TextAttr }
 	attr_handlers = xsc.appendDict(attr_handlers,{ "language" : xsc.TextAttr }) # deprecated
-xsc.registerElement("script",script)
+xsc.registerElement(script)
 
 class noscript(xsc.Element):
 	empty = 0
 	attr_handlers = attrs
-xsc.registerElement("noscript",noscript)
+xsc.registerElement(noscript)
 
 # More pain
 class font(xsc.Element): # deprecated
 	empty = 0
 	attr_handlers = { "face" : xsc.TextAttr , "size" : xsc.TextAttr , "color" : xsc.ColorAttr }
-xsc.registerElement("font",font)
+xsc.registerElement(font)
 
 class applet(xsc.Element): # deprecated
 	empty = 0
 	attr_handlers = { "archive" : xsc.URLAttr , "code" : xsc.URLAttr , "width" : xsc.TextAttr , "height" : xsc.TextAttr }
-xsc.registerElement("applet",applet)
+xsc.registerElement(applet)
 
 if __name__ == "__main__":
 	xsc.make()

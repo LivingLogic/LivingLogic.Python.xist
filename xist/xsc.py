@@ -39,12 +39,10 @@ class Error(Exception):
 		self.lineno = lineno
 
 	def __str__(self):
-		s = self.__class__.__name__
 		if self.lineno>0:
-			s = s + " (line " + str(self.lineno) + ")"
-		s = s + ": "
-
-		return s
+			return " (line " + str(self.lineno) + ")"
+		else:
+			return ""
 
 class EmptyElementWithContentError(Error):
 	"""exception that is raised, when an element has content, but it shouldn't (i.e. empty=1)"""
@@ -54,7 +52,7 @@ class EmptyElementWithContentError(Error):
 		self.element = element
 
 	def __str__(self):
-		return Error.__str__(self) + "element " + _strelementname(self.element.name) + " specified to be empty, but has content"
+		return Error.__str__(self) + "element " + self.element._strname() + " specified to be empty, but has content"
 
 class IllegalAttributeError(Error):
 	"""exception that is raised, when an element has an illegal attribute (i.e. one that isn't contained in it's attr_handlers)"""
@@ -73,7 +71,7 @@ class IllegalAttributeError(Error):
 		for attr in attrs:
 			v.append(_strattrname(attr))
 
-		return Error.__str__(self) + "Attribute " + _strattrname(self.attr) + " not allowed in element " + _strelementname(self.element.name) + ". Allowed attributes are: " + string.join(v,", ") + "."
+		return Error.__str__(self) + "Attribute " + _strattrname(self.attr) + " not allowed in element " + self.element._strname() + ". Allowed attributes are: " + string.join(v,", ") + "."
 
 class AttributeNotFoundError(Error):
 	"""exception that is raised, when an attribute is fetched that isn't there"""
@@ -86,7 +84,7 @@ class AttributeNotFoundError(Error):
 	def __str__(self):
 		attrs = self.element.attrs.keys();
 
-		s = Error.__str__(self) + "Attribute " + _strattrname(self.attr) + " not found in element " + _strelementname(self.element.name) +". "
+		s = Error.__str__(self) + "Attribute " + _strattrname(self.attr) + " not found in element " + self.element._strname() +". "
 
 		if len(attrs):
 			attrs.sort()
@@ -100,22 +98,25 @@ class AttributeNotFoundError(Error):
 		return s
 
 class IllegalElementError(Error):
-	"""exception that is raised, when an illegal element is encountered (i.e. one that isn't registered via RegisterElement"""
+	"""exception that is raised, when an illegal element is encountered (i.e. one that isn't registered via registerElement"""
 
-	def __init__(self,lineno,elementname):
+	def __init__(self,lineno,name):
 		Error.__init__(self,lineno)
-		self.elementname = elementname
+		self.name = name
 
 	def __str__(self):
-		elements = _element_handlers.keys();
-		elements.sort()
+		elementnames = []
+		for elementname in _element_handlers.keys():
+			for namespace in _element_handlers[elementname].keys():
+				elementnames.append(_strNodeName(_element_handlers[elementname][namespace]))
+		elementnames.sort()
 
-		v = []
+		if self.name[0]:
+			name = _strelementname(self.name[0]) + ":" + _strelementname(self.name[1])
+		else:
+			name = _strelementname(self.name[1])
 
-		for element in elements:
-			v.append(_strelementname(element))
-	
-		return Error.__str__(self) + "element " + _strelementname(self.elementname) + " not allowed. Allowed elements are: " + string.join(v,", ") + "."
+		return Error.__str__(self) + "element " + name + " not allowed. Allowed elements are: " + string.join(elementnames,", ") + "."
 
 class IllegalElementNestingError(Error):
 	"""exception that is raised, when an element has an illegal nesting (e.g. <a><b></a></b>)"""
@@ -137,7 +138,7 @@ class ImageSizeFormatError(Error):
 		self.attr = attr
 
 	def __str__(self):
-		return Error.__str__(self) + "the value '" + str(self.element[self.attr]) + "' for the image size attribute " + _strattrname(self.attr) + " of the element " + _strelementname(self.element.name) + " can't be formatted or evaluated"
+		return Error.__str__(self) + "the value '" + str(self.element[self.attr]) + "' for the image size attribute " + _strattrname(self.attr) + " of the element " + self.element._strname() + " can't be formatted or evaluated"
 
 class FileNotFoundError(Error):
 	"""exception that is raised, when XSC can't open an image for getting image size"""
@@ -170,7 +171,9 @@ class MalformedCharRefError(Error):
 		return Error.__str__(self) + "malformed character reference: &#" + self.name + ";"
 
 class UnknownEntityError(Error):
-	"""exception that is raised, when an unknown entity (i.e. one that wasn't registered via RegisterEntity) is encountered"""
+	"""
+	exception that is raised, when an unknown entity (i.e. one that wasn't registered via RegisterEntity) is encountered
+	"""
 
 	def __init__(self,lineno,name):
 		Error.__init__(self,lineno)
@@ -178,6 +181,29 @@ class UnknownEntityError(Error):
 
 	def __str__(self):
 		return Error.__str__(self) + "Unknown entitiy: &" + self.name + ";"
+
+class AmbiguousElementError(Error):
+	"""
+	exception that is raised, when an element is encountered without a namespace
+	and there is more than one element registered with this name.
+	"""
+
+	def __init__(self,lineno,name):
+		Error.__init__(self,lineno)
+		self.name = name
+
+	def __str__(self):
+		elementnames = []
+		for namespace in _element_handlers[self.name[1]].keys():
+			elementnames.append(_strNodeName(_element_handlers[self.name[1]][namespace]))
+		elementnames.sort()
+
+		if self.name[0]:
+			name = _strelementname(self.name[0]) + ":" + _strelementname(self.name[1])
+		else:
+			name = _strelementname(self.name[1])
+
+		return Error.__str__(self) + "element " + name + " is ambigous. Possible elements are: " + string.join(elementnames,", ") + "."
 
 ###
 ### helpers
@@ -189,11 +215,23 @@ def _stransi(codes,string):
 	else:
 		return string
 
-def _strelementname(name):
-	return _stransi(xsc.repransielementname,name)
+def _strelementname(elementname):
+	return _stransi(xsc.repransielementname,elementname)
 
-def _strattrname(name):
-	return _stransi(xsc.repransiattrname,name)
+def _strattrname(attrname):
+	return _stransi(xsc.repransiattrname,attrname)
+
+def nodeName(nodeClass):
+	"""
+	returns a tuple with the namespace of the node, which is the module in which the node is implemented
+	and a name which is the name of the class. Both strings are converted to lowercase.
+	"""
+	return string.lower(nodeClass.__module__) , string.lower(nodeClass.__name__)
+
+def _strNodeName(nodeClass):
+	name = nodeName(nodeClass)
+	return _stransi(nodeClass.reprnamespace,name[0]) + ":" + _stransi(nodeClass.reprname,name[1])
+
 
 def appendDict(*dicts):
 	result = {}
@@ -230,7 +268,7 @@ def ToNode(value):
 			return value
 	raise IllegalObjectError(xsc.parser.lineno,value) # none of the above, so we throw and exception
 
-_element_handlers = {} # dictionary for mapping element names to classes
+_element_handlers = {} # dictionary for mapping element names to classes, this dictionary contains the element names as keys and another dictionary as values, this second dictionary contains the namespace names as keys and the element classes as values
 
 class Node:
 	"""base class for nodes in the document tree. Derived class must implement __str__()"""
@@ -238,7 +276,8 @@ class Node:
 	# line numbers where this node starts and ends in a file (will be hidden in derived classes, but is specified here, so that no special tests are required. In derived classes both variables will be set by the parser)
 	startlineno = -1
 	endlineno = -1
-	name = "#node" # will be changed for derived classes/elements in registerElement()
+	reprnamespace = ""
+	reprname = ""
 
 	def __add__(self,other):
 		if other != None:
@@ -258,11 +297,22 @@ class Node:
 		else:
 			return self.repr()
 
+	def name(self):
+		"""
+		returns a tuple with the namespace of the node, which is the module in which the node is implemented
+		and a name which is the name of the class. Both strings are converted to lowercase.
+		"""
+		return nodeName(self.__class__)
+
+	def _strname(self):
+		return _strNodeName(self.__class__)
+
 	def clone(self):
 		"""
 		returns an identical clone of the node.
 		"""
 		pass
+	
 
 	def repr(self):
 		return self._dorepr()
@@ -347,7 +397,7 @@ class Node:
 class Text(Node):
 	"""text"""
 
-	name = "#text"
+	reprname = ""
 
 	represcapes = { '\t' : '\\t' , '\033' : '\\e' , '\\' : '\\\\' }
 	reprtreeescapes = { '\r' : '\\r' , '\n' : '\\n' , '\t' : '\\t' , '\033' : '\\e' , '\\' : '\\\\' }
@@ -432,7 +482,7 @@ class Text(Node):
 class CharRef(Node):
 	"""character reference (i.e &#42; or &#x42;)"""
 
-	name = "#charref"
+	reprname = ""
 
 	__notdirect = { ord("&") : "amp" , ord("<") : "lt" , ord(">") : "gt", ord('"') : "quot" , ord("'") : "apos" }
 	__linefeeds = [ ord("\r") , ord("\n") ]
@@ -484,7 +534,7 @@ class CharRef(Node):
 class Frag(Node):
 	"""contains a list of Nodes"""
 
-	name = "#frag"
+	reprname = ""
 
 	def __init__(self,_content = []):
 		if _content is None:
@@ -539,12 +589,12 @@ class Frag(Node):
 
 	def _doreprtree(self,nest,elementno):
 		v = []
-		v.append([nest,self.startlineno,elementno,self._strtag('fragment')])
+		v.append([nest,self.startlineno,elementno,self._strtag(self._strname())])
 		i = 0
 		for child in self:
 			v = v + child._doreprtree(nest+1,elementno + [i])
 			i = i + 1
-		v.append([nest,self.endlineno,elementno,self._strtag('/fragment')])
+		v.append([nest,self.endlineno,elementno,self._strtag(_strelementname("/")+self._strname())])
 		return v
 
 	def __str__(self):
@@ -633,7 +683,7 @@ class Frag(Node):
 class Comment(Node):
 	"""comments"""
 
-	name = "#comment"
+	reprname = ""
 
 	def __init__(self,content = ""):
 		self.__content = content
@@ -658,10 +708,13 @@ class Comment(Node):
 class DocType(Node):
 	"""document type"""
 
-	name = "#doctype"
+	reprname = ""
 
 	def __init__(self,content = ""):
 		self.__content = content
+
+	def name(self):
+		return self._strtag(_stransi(xsc.repransielementname,"doctype"))
 
 	def asHTML(self):
 		return DocType(self.__content)
@@ -683,7 +736,7 @@ class DocType(Node):
 class ProcInst(Node):
 	"""processing instructions"""
 
-	name = "#procinst"
+	reprname = ""
 
 	repransiquestion = "34"
 	repransitarget = "34"
@@ -713,11 +766,11 @@ class ProcInst(Node):
 class Element(Node):
 	"""XML elements"""
 
+	reprname = "34"
 	repransiattrquotes = "34"
 
 	empty = 1 # 0 => element with content; 1 => stand alone element
  	attr_handlers = {}
-	name = "#element" # will be changed for derived classes/elements in registerElement()
 
 	def __init__(self,_content = [],_attrs = {},**_restattrs):
 		self.content = Frag(_content)
@@ -749,25 +802,25 @@ class Element(Node):
 	def _dorepr(self):
 		v = []
 		if self.empty:
-			v.append(self._strtag(_strelementname(self.name) + self.__strattrs() + _strelementname("/")))
+			v.append(self._strname() + self.__strattrs() + _strelementname("/"))
 		else:
-			v.append(self._strtag(_strelementname(self.name) + self.__strattrs()))
+			v.append(self._strname() + self.__strattrs())
 			for child in self:
 				v.append(child._dorepr())
-			v.append(self._strtag(_strelementname("/" + self.name)))
+			v.append(self._strtag(_strelementname("/") + self._strname()))
 		return string.join(v,"")
 
 	def _doreprtree(self,nest,elementno):
 		v = []
 		if self.empty:
-			v.append([nest,self.startlineno,elementno,self._strtag(_strelementname(self.name) + self.__strattrs() + _strelementname("/"))])
+			v.append([nest,self.startlineno,elementno,self._strtag(self._strname() + self.__strattrs() + _strelementname("/"))])
 		else:
-			v.append([nest,self.startlineno,elementno,self._strtag(_strelementname(self.name) + self.__strattrs())])
+			v.append([nest,self.startlineno,elementno,self._strtag(self._strname() + self.__strattrs())])
 			i = 0
 			for child in self:
 				v = v + child._doreprtree(nest+1,elementno + [i])
 				i = i + 1
-			v.append([nest,self.endlineno,elementno,self._strtag(_strelementname("/" + self.name))])
+			v.append([nest,self.endlineno,elementno,self._strtag(_strelementname(_strelementname("/") + self._strname()))])
 		return v
 
 	def __str__(self):
@@ -775,7 +828,7 @@ class Element(Node):
 
 		v = []
 		v.append("<")
-		v.append(self.name)
+		v.append(string.lower(self.__class__.__name__))
 		for attr in self.attrs.keys():
 			v.append(' ')
 			v.append(attr)
@@ -791,7 +844,7 @@ class Element(Node):
 			v.append(">")
 			v.append(s)
 			v.append("</")
-			v.append(self.name) # name must be a string without any nasty characters
+			v.append(string.lower(self.__class__.__name__))
 			v.append(">")
 
 		return string.join(v,"")
@@ -917,10 +970,15 @@ class Element(Node):
 		return e
 
 
-def registerElement(name,element):
-	"""registers the element handler element to be used for elements with name name"""
-	_element_handlers[name] = element
-	element.name = name
+def registerElement(element):
+	"""
+	registers the element handler element to be used for elements with the appropriate name.
+	"""
+	name = nodeName(element)
+	if _element_handlers.has_key(name[1]):
+		_element_handlers[name[1]][name[0]] = element
+	else:
+		_element_handlers[name[1]] = { name[0] : element }
 
 class Attr(Node):
 	"""
@@ -1172,18 +1230,34 @@ class Parser(xmllib.XMLParser):
 			raise UnknownEntityError(xsc.parser.lineno,name)
 
 	def unknown_starttag(self,name,attrs):
-  		lowername = string.lower(name)
-		if _element_handlers.has_key(lowername):
-			e = _element_handlers[lowername]([],attrs)
-			e.startlineno = self.lineno
+  		lowername = string.split(string.lower(name),":")
+		if len(name) == 2: # namespace specified
+			name = lowername
 		else:
-			raise IllegalElementError(xsc.parser.lineno,lowername)
+			name = [	None , lowername[0] ]
+		try: # are there any elements with this name?
+			elementsfornamespaces = _element_handlers[name[1]]
+		except KeyError: # nope!
+			raise IllegalElementError(xsc.parser.lineno,name)
+		if name[0] is None: # element name was unqualified ...
+			if len(elementsfornamespaces.keys())==1: # ... and there is exactly one element with this name => use it
+				e = elementsfornamespaces.values()[0]([],attrs)
+			else:
+				raise AmbiguousElementError(xsc.parser.lineno,name) # there is more than one
+		else: # element name was qualified with a namespace
+			try:
+				element = elementsfornamespaces[name[0]]
+			except KeyError:
+				raise IllegalElementError(xsc.parser.lineno,name) # elements with this name were available, but none in this namespace
+			e = element([],attrs)
+			e.startlineno = self.lineno
 		self.__appendNode(e)
 		self.nesting.append(e) # push new innermost element onto the stack
 
 	def unknown_endtag(self,name):
-		if string.lower(name) != self.nesting[-1].name:
-			raise IllegalElementNestingError(xsc.parser.lineno,self.nesting[-1].name,name)
+		currentname = string.lower(self.nesting[-1].__class__.__name__) 
+		if string.lower(name) != currentname:
+			raise IllegalElementNestingError(xsc.parser.lineno,currentname,name)
 		self.nesting[-1].endlineno = self.lineno
 		self.nesting[-1:] = [] # pop the innermost element off the stack
 

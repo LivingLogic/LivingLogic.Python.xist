@@ -86,7 +86,7 @@ class page(xsc.Element):
 
 #		navhome = navigation(href=":index.html",img="home",text="Startseite")
 
-xsc.registerElement("page",page)
+xsc.registerElement(page)
 
 class blankpage(xsc.Element):
 	empty = 0
@@ -103,15 +103,15 @@ class blankpage(xsc.Element):
 		)
 
 		return e.asHTML()
-xsc.registerElement("blankpage",blankpage)
+xsc.registerElement(blankpage)
 
 class links(xsc.Element):
 	empty = 0
-xsc.registerElement("links",links)
+xsc.registerElement(links)
 
 class scripts(xsc.Element):
 	empty = 0
-xsc.registerElement("scripts",scripts)
+xsc.registerElement(scripts)
 
 class indent(xsc.Element):
 	empty = 1
@@ -120,14 +120,14 @@ class indent(xsc.Element):
 		e = xsc.Frag([nbsp()]*4)
 
 		return e.asHTML()
-xsc.registerElement("indent",indent)
+xsc.registerElement(indent)
 
 class _(xsc.Element):
 	empty = 1
 	
 	def asHTML(self):
 		return xsc.Text(" - ")
-xsc.registerElement("_",_)
+xsc.registerElement(_)
 
 class pfeil(html.img):
 	empty = 1
@@ -145,343 +145,343 @@ class pfeil(html.img):
 			e["src"] = [":images/links/" , rel , ".gif" ]
 
 		return e.asHTML()
-xsc.registerElement("pfeil",pfeil)
+xsc.registerElement(pfeil)
 
 class capbnv(xsc.Element):
 	empty = 1
 	
 	def asHTML(self):
 		return specials.cap("Bnv").asHTML()
-xsc.registerElement("capbnv",capbnv)
+xsc.registerElement(capbnv)
 
 class capxml(xsc.Element):
 	empty = 1
 	
 	def asHTML(self):
 		return specials.cap("Xml").asHTML()
-xsc.registerElement("capxml",capxml)
+xsc.registerElement(capxml)
 
 class capcss(xsc.Element):
 	empty = 1
 	
 	def asHTML(self):
 		return specials.cap("Css").asHTML()
-xsc.registerElement("capcss",capcss)
+xsc.registerElement(capcss)
 
 class capgeo(xsc.Element):
 	empty = 1
 	
 	def asHTML(self):
 		return specials.cap("Geo").asHTML()
-xsc.registerElement("capgeo",capgeo)
+xsc.registerElement(capgeo)
 
 class capcisco(xsc.Element):
 	empty = 1
 	
 	def asHTML(self):
 		return specials.cap("Cisco").asHTML()
-xsc.registerElement("capcisco",capcisco)
+xsc.registerElement(capcisco)
 
 class capsun(xsc.Element):
 	empty = 1
 	
 	def asHTML(self):
 		return specials.cap("Sun").asHTML()
-xsc.registerElement("capsun",capsun)
+xsc.registerElement(capsun)
 
 class capcgi(xsc.Element):
 	empty = 1
 	
 	def asHTML(self):
 		return specials.cap("Cgi").asHTML()
-xsc.registerElement("capcgi",capcgi)
+xsc.registerElement(capcgi)
 
 class capphp(xsc.Element):
 	empty = 1
 	
 	def asHTML(self):
 		return specials.cap("Php").asHTML()
-xsc.registerElement("capphp",capphp)
+xsc.registerElement(capphp)
 
 class capbin(xsc.Element):
 	empty = 1
 	
 	def asHTML(self):
 		return specials.cap("Bin").asHTML()
-xsc.registerElement("capbin",capbin)
+xsc.registerElement(capbin)
 
 class capwww(xsc.Element):
 	empty = 1
 	
 	def asHTML(self):
 		return specials.cap("www").asHTML()
-xsc.registerElement("capwww",capwww)
+xsc.registerElement(capwww)
 
 class capknf(xsc.Element):
 	empty = 1
 	
 	def asHTML(self):
 		return specials.cap("Knf").asHTML()
-xsc.registerElement("capknf",capknf)
+xsc.registerElement(capknf)
 
 class caphtml(xsc.Element):
 	empty = 1
 	
 	def asHTML(self):
 		return specials.cap("Html").asHTML()
-xsc.registerElement("caphtml",caphtml)
+xsc.registerElement(caphtml)
 
 class capowinet(xsc.Element):
 	empty = 1
 	
 	def asHTML(self):
 		return specials.cap("OwiNet").asHTML()
-xsc.registerElement("capowinet",capowinet)
+xsc.registerElement(capowinet)
 
 class capmcs(xsc.Element):
 	empty = 1
 	
 	def asHTML(self):
 		return specials.cap("Mcs").asHTML()
-xsc.registerElement("capmcs",capmcs)
+xsc.registerElement(capmcs)
 
 class capcfs(xsc.Element):
 	empty = 1
 	
 	def asHTML(self):
 		return specials.cap("Cfs").asHTML()
-xsc.registerElement("capcfs",capcfs)
+xsc.registerElement(capcfs)
 
 class capdaa(xsc.Element):
 	empty = 1
 	
 	def asHTML(self):
 		return specials.cap("Daa").asHTML()
-xsc.registerElement("capdaa",capdaa)
+xsc.registerElement(capdaa)
 
 class capvhs(xsc.Element):
 	empty = 1
 	
 	def asHTML(self):
 		return specials.cap("Vhs").asHTML()
-xsc.registerElement("capvhs",capvhs)
+xsc.registerElement(capvhs)
 
 class capakzent(xsc.Element):
 	empty = 1
 	
 	def asHTML(self):
 		return specials.cap("Akzent").asHTML()
-xsc.registerElement("capakzent",capakzent)
+xsc.registerElement(capakzent)
 
 class capcvjm(xsc.Element):
 	empty = 1
 	
 	def asHTML(self):
 		return specials.cap("Cvjm").asHTML()
-xsc.registerElement("capcvjm",capcvjm)
+xsc.registerElement(capcvjm)
 
 class capccb(xsc.Element):
 	empty = 1
 	
 	def asHTML(self):
 		return specials.cap("Ccb").asHTML()
-xsc.registerElement("capccb",capccb)
+xsc.registerElement(capccb)
 
 class capppp(xsc.Element):
 	empty = 1
 	
 	def asHTML(self):
 		return specials.cap("ppp").asHTML()
-xsc.registerElement("capppp",capppp)
+xsc.registerElement(capppp)
 
 class capmtla(xsc.Element):
 	empty = 1
 	
 	def asHTML(self):
 		return specials.cap("Mtla").asHTML()
-xsc.registerElement("capmtla",capmtla)
+xsc.registerElement(capmtla)
 
 class capbfs(xsc.Element):
 	empty = 1
 	
 	def asHTML(self):
 		return specials.cap("Bfs").asHTML()
-xsc.registerElement("capbfs",capbfs)
+xsc.registerElement(capbfs)
 
 class capihk(xsc.Element):
 	empty = 1
 	
 	def asHTML(self):
 		return specials.cap("Ihk").asHTML()
-xsc.registerElement("capihk",capihk)
+xsc.registerElement(capihk)
 
 class capdag(xsc.Element):
 	empty = 1
 	
 	def asHTML(self):
 		return specials.cap("Dag").asHTML()
-xsc.registerElement("capdag",capdag)
+xsc.registerElement(capdag)
 
 class capvwa(xsc.Element):
 	empty = 1
 	
 	def asHTML(self):
 		return specials.cap("Vwa").asHTML()
-xsc.registerElement("capvwa",capvwa)
+xsc.registerElement(capvwa)
 
 class capbfz(xsc.Element):
 	empty = 1
 	
 	def asHTML(self):
 		return specials.cap("Bfz").asHTML()
-xsc.registerElement("capbfz",capbfz)
+xsc.registerElement(capbfz)
 
 class capedv(xsc.Element):
 	empty = 1
 	
 	def asHTML(self):
 		return specials.cap("edv").asHTML()
-xsc.registerElement("capedv",capedv)
+xsc.registerElement(capedv)
 
 class capbitoek(xsc.Element):
 	empty = 1
 	
 	def asHTML(self):
 		return specials.cap("Bitök").asHTML()
-xsc.registerElement("capbitoek",capbitoek)
+xsc.registerElement(capbitoek)
 
 class capdfn(xsc.Element):
 	empty = 1
 	
 	def asHTML(self):
 		return specials.cap("Dfn").asHTML()
-xsc.registerElement("capdfn",capdfn)
+xsc.registerElement(capdfn)
 
 class capizb(xsc.Element):
 	empty = 1
 	
 	def asHTML(self):
 		return specials.cap("Izb").asHTML()
-xsc.registerElement("capizb",capizb)
+xsc.registerElement(capizb)
 
 class capdat(xsc.Element):
 	empty = 1
 	
 	def asHTML(self):
 		return specials.cap("Dat").asHTML()
-xsc.registerElement("capdat",capdat)
+xsc.registerElement(capdat)
 
 class capdns(xsc.Element):
 	empty = 1
 	
 	def asHTML(self):
 		return specials.cap("Dns").asHTML()
-xsc.registerElement("capdns",capdns)
+xsc.registerElement(capdns)
 
 class capascend(xsc.Element):
 	empty = 1
 	
 	def asHTML(self):
 		return specials.cap("Ascend").asHTML()
-xsc.registerElement("capascend",capascend)
+xsc.registerElement(capascend)
 
 class capmax(xsc.Element):
 	empty = 1
 	
 	def asHTML(self):
 		return specials.cap("Max").asHTML()
-xsc.registerElement("capmax",capmax)
+xsc.registerElement(capmax)
 
 class capisdn(xsc.Element):
 	empty = 1
 	
 	def asHTML(self):
 		return specials.cap("Isdn").asHTML()
-xsc.registerElement("capisdn",capisdn)
+xsc.registerElement(capisdn)
 
 class cappdf(xsc.Element):
 	empty = 1
 	
 	def asHTML(self):
 		return specials.cap("Pdf").asHTML()
-xsc.registerElement("cappdf",cappdf)
+xsc.registerElement(cappdf)
 
 class capiso(xsc.Element):
 	empty = 1
 	
 	def asHTML(self):
 		return specials.cap("Iso").asHTML()
-xsc.registerElement("capiso",capiso)
+xsc.registerElement(capiso)
 
 class capurl(xsc.Element):
 	empty = 1
 	
 	def asHTML(self):
 		return specials.cap("Url").asHTML()
-xsc.registerElement("capurl",capurl)
+xsc.registerElement(capurl)
 
 class caphttp(xsc.Element):
 	empty = 1
 	
 	def asHTML(self):
 		return specials.cap("Http").asHTML()
-xsc.registerElement("caphttp",caphttp)
+xsc.registerElement(caphttp)
 
 class capsmtp(xsc.Element):
 	empty = 1
 	
 	def asHTML(self):
 		return specials.cap("Smtp").asHTML()
-xsc.registerElement("capsmtp",capsmtp)
+xsc.registerElement(capsmtp)
 
 class capftp(xsc.Element):
 	empty = 1
 	
 	def asHTML(self):
 		return specials.cap("ftp").asHTML()
-xsc.registerElement("capftp",capftp)
+xsc.registerElement(capftp)
 
 class cappop3(xsc.Element):
 	empty = 1
 	
 	def asHTML(self):
 		return specials.cap("Pop3").asHTML()
-xsc.registerElement("cappop3",cappop3)
+xsc.registerElement(cappop3)
 
 class capcvs(xsc.Element):
 	empty = 1
 	
 	def asHTML(self):
 		return specials.cap("Cvs").asHTML()
-xsc.registerElement("capcvs",capcvs)
+xsc.registerElement(capcvs)
 
 class capfaq(xsc.Element):
 	empty = 1
 	
 	def asHTML(self):
 		return specials.cap("Faq").asHTML()
-xsc.registerElement("capfaq",capfaq)
+xsc.registerElement(capfaq)
 
 class capgnu(xsc.Element):
 	empty = 1
 	
 	def asHTML(self):
 		return specials.cap("Gnu").asHTML()
-xsc.registerElement("capgnu",capgnu)
+xsc.registerElement(capgnu)
 
 class caphsc(xsc.Element):
 	empty = 1
 	
 	def asHTML(self):
 		return specials.cap("Hsc").asHTML()
-xsc.registerElement("caphsc",caphsc)
+xsc.registerElement(caphsc)
 
 class capunix(xsc.Element):
 	empty = 1
 	
 	def asHTML(self):
 		return specials.cap("Unix").asHTML()
-xsc.registerElement("capunix",capunix)
+xsc.registerElement(capunix)
 
 class par(div):
 	empty = 0
@@ -498,14 +498,14 @@ class par(div):
 		if indent is not None:
 			e["class"] = "indent"
 		return e.asHTML()
-xsc.registerElement("par",par)
+xsc.registerElement(par)
 
 class blob(xsc.Element):
 	empty = 1
 	
 	def asHTML(self):
 		return (specials.nbsp() + "- ").asHTML()
-xsc.registerElement("blob",blob)
+xsc.registerElement(blob)
 
 class schulen(dl):
 	empty = 0
@@ -513,7 +513,7 @@ class schulen(dl):
 	def asHTML(self):
 		e = html.dl(self.content,self.attrs)
 		return e.asHTML()
-xsc.registerElement("schulen",schulen)
+xsc.registerElement(schulen)
 
 class schule(xsc.Element):
 	empty = 0
@@ -536,7 +536,7 @@ class schule(xsc.Element):
 			d = d + [ "Tel.: " , self["telefon"] ]
 		d = html.div(Class="schule-text")
 		return html.dt(t) + html.dd(html.div(d))
-xsc.registerElement("schule",schule)
+xsc.registerElement(schule)
 
 class fileinfo(xsc.Element):
 	empty = 1
@@ -560,7 +560,7 @@ class fileinfo(xsc.Element):
 		)
 
 		return e.asHTML()
-xsc.registerElement("fileinfo",fileinfo)
+xsc.registerElement(fileinfo)
 
 class navigation(xsc.Element):
 	empty = 1
@@ -593,21 +593,21 @@ class navigation(xsc.Element):
 		)
 
 		return e.asHTML()
-xsc.registerElement("navigation",navigation)
+xsc.registerElement(navigation)
 
 class content(xsc.Element):
 	empty = 0
-xsc.registerElement("content",content)
+xsc.registerElement(content)
 
 class bytes(xsc.Element):
 	attr_handlers = { "file" : xsc.URLAttr }
 	empty = 1
-xsc.registerElement("bytes",bytes)
+xsc.registerElement(bytes)
 
 class hrf(xsc.Element):
 	attr_handlers = { "rel" : xsc.TextAttr , "href" : xsc.URLAttr , "off" : xsc.TextAttr , "class" : xsc.TextAttr , "target" : xsc.TextAttr }
 	empty = 0
-xsc.registerElement("hrf",hrf)
+xsc.registerElement(hrf)
 
 class lnk(xsc.Element):
 	attr_handlers = { "rel" : xsc.TextAttr , "href" : xsc.URLAttr , "text" : xsc.TextAttr }
@@ -682,44 +682,44 @@ class lnk(xsc.Element):
 			)
 
 		return e.asHTML()
-xsc.registerElement("lnk",lnk)
+xsc.registerElement(lnk)
 
 class vorstand(xsc.Element):
 	attr_handlers = { "name" : xsc.TextAttr , "posten" : xsc.TextAttr , "email" : xsc.TextAttr , "homepage" : xsc.TextAttr }
 	empty = 1
-xsc.registerElement("vorstand",vorstand)
+xsc.registerElement(vorstand)
 
 class firmen(xsc.Element):
 	empty = 0
-xsc.registerElement("firmen",firmen)	
+xsc.registerElement(firmen)	
 
 class firma(xsc.Element):
 	attr_handlers = { "anschrift" : xsc.TextAttr , "telefon" : xsc.TextAttr ,  "url" : xsc.URLAttr }
 	empty = 0
-xsc.registerElement("firma",firma)	
+xsc.registerElement(firma)	
 
 class kirchen(xsc.Element):
 	empty = 0
-xsc.registerElement("kirchen",kirchen)	
+xsc.registerElement(kirchen)	
 
 class kirche(xsc.Element):
 	attr_handlers = { "ansprech" : xsc.TextAttr , "strasse" : xsc.TextAttr ,  "ort" : xsc.URLAttr , "telefon" : xsc.TextAttr , "url" : xsc.URLAttr , "dekanat" : xsc.TextAttr }
 	empty = 0
-xsc.registerElement("kirche",kirche)	
+xsc.registerElement(kirche)	
 
 class above(xsc.Element):
 	atts_handlers = { "rel" : xsc.TextAttr , "href" : xsc.TextAttr , "class" : xsc.TextAttr }
 	empty = 0
-xsc.registerElement("above",above)
+xsc.registerElement(above)
 
 class shell(xsc.Element):
 	empty = 0
-xsc.registerElement("shell",shell)
+xsc.registerElement(shell)
 
 class faq(xsc.Element):
 	attr_handlers = { "frage" : xsc.TextAttr }
 	empty = 0
-xsc.registerElement("faq",faq)
+xsc.registerElement(faq)
 
 class engines(xsc.Element):
 	empty = 0
@@ -727,7 +727,7 @@ class engines(xsc.Element):
 	def asHTML(self):
 		e = html.dl(self.content.clone())
 		return e.asHTML()
-xsc.registerElement("engines",engines)
+xsc.registerElement(engines)
 
 class engine(xsc.Element):
 	empty = 0
@@ -741,7 +741,7 @@ class engine(xsc.Element):
 
 		return e.asHTML()
 
-xsc.registerElement("engine",engine)
+xsc.registerElement(engine)
 
 class bnvereine(xsc.Element):
 	empty = 0
@@ -749,7 +749,7 @@ class bnvereine(xsc.Element):
 	def asHTML(self):
 		e = html.dl(self.content.clone())
 		return e.asHTML()
-xsc.registerElement("bnvereine",bnvereine)
+xsc.registerElement(bnvereine)
 
 class bnverein(xsc.Element):
 	empty = 0
@@ -763,7 +763,7 @@ class bnverein(xsc.Element):
 
 		return e.asHTML()
 
-xsc.registerElement("bnverein",bnverein)
+xsc.registerElement(bnverein)
 
 class fahrplansite(xsc.Element):
 	empty = 0
@@ -776,7 +776,7 @@ class fahrplansite(xsc.Element):
 		)
 
 		return e.asHTML()
-xsc.registerElement("fahrplansite",fahrplansite)
+xsc.registerElement(fahrplansite)
 
 class fahrplansites(xsc.Element):
 	empty = 0
@@ -785,7 +785,7 @@ class fahrplansites(xsc.Element):
 		e = html.dl(self.content.clone())
 
 		return e.asHTML()
-xsc.registerElement("fahrplansites",fahrplansites)
+xsc.registerElement(fahrplansites)
 
 class fahrplan(xsc.Element):
 	empty = 0
@@ -803,7 +803,7 @@ class fahrplan(xsc.Element):
 		e = specials.plaintable(halts,Class="fahrplan",cellpadding="2",cellspacing="1")
 
 		return e.asHTML()
-xsc.registerElement("fahrplan",fahrplan)
+xsc.registerElement(fahrplan)
 
 class halt(xsc.Element):
 	empty = 0
@@ -812,7 +812,7 @@ class halt(xsc.Element):
 		e = html.td(self.content.clone(),align="right",Class="halt")
 
 		return e.asHTML()
-xsc.registerElement("halt",halt)
+xsc.registerElement(halt)
 
 
 class keinhalt(xsc.Element):
@@ -822,7 +822,7 @@ class keinhalt(xsc.Element):
 		e = html.td()
 
 		return e.asHTML()
-xsc.registerElement("keinhalt",keinhalt)
+xsc.registerElement(keinhalt)
 
 class haltestelle(xsc.Element):
 	empty = 0
@@ -844,16 +844,16 @@ class haltestelle(xsc.Element):
 			e["class"] = self["class"]
 
 		return e.asHTML()
-xsc.registerElement("haltestelle",haltestelle)
+xsc.registerElement(haltestelle)
 
 class downloadsites(xsc.Element):
 	empty = 0
-xsc.registerElement("downloadsites",downloadsites)
+xsc.registerElement(downloadsites)
 
 class downloadsite(xsc.Element):
 	attr_handlers = { "name" : xsc.TextAttr , "url" : xsc.URLAttr }
 	empty = 0
-xsc.registerElement("downloadsite",downloadsite)
+xsc.registerElement(downloadsite)
 
 class newstickers(xsc.Element):
 	empty = 0
@@ -862,7 +862,7 @@ class newstickers(xsc.Element):
 		e = html.dl(self.content.clone())
 
 		return e.asHTML()
-xsc.registerElement("newstickers",newstickers)
+xsc.registerElement(newstickers)
 
 class newsticker(xsc.Element):
 	empty = 0
@@ -876,21 +876,21 @@ class newsticker(xsc.Element):
 
 		return e.asHTML()
 
-xsc.registerElement("newsticker",newsticker)
+xsc.registerElement(newsticker)
 
 class kleinanzeige(xsc.Element):
 	attr_handlers = { "bezeichnung" : xsc.TextAttr , "preis" : xsc.TextAttr , "tel" : xsc.TextAttr , "email" : xsc.TextAttr , "handy" : xsc.TextAttr , "fax" : xsc.TextAttr }
 	empty = 0
-xsc.registerElement("kleinanzeige",kleinanzeige)
+xsc.registerElement(kleinanzeige)
 
 class kleinanzeige_handy(xsc.Element):
 	empty = 0
-xsc.registerElement("kleinanzeige-handy",kleinanzeige_handy)
+xsc.registerElement(kleinanzeige_handy)
 
 
 class kleinanzeige_fax(xsc.Element):
 	empty = 0
-xsc.registerElement("kleinanzeige-fax",kleinanzeige_fax)
+xsc.registerElement(kleinanzeige_fax)
 
 class newsitems(xsc.Element):
 	empty = 0
@@ -899,7 +899,7 @@ class newsitems(xsc.Element):
 		e = specials.plaintable(self.content.clone(),Class="newsitems")
 
 		return e.asHTML()
-xsc.registerElement("newsitems",newsitems)
+xsc.registerElement(newsitems)
 
 class newsitem(xsc.Element):
 	attr_handlers = { "datum" : xsc.TextAttr , "href" : xsc.TextAttr }
@@ -912,7 +912,7 @@ class newsitem(xsc.Element):
 		,Class="newsitem")
 
 		return e.asHTML()
-xsc.registerElement("newsitem",newsitem)
+xsc.registerElement(newsitem)
 
 class pagenewsitem(xsc.Element):
 	empty = 0
@@ -922,14 +922,14 @@ class pagenewsitem(xsc.Element):
 		e = page(links()+content(self.content.clone()),title="Bürgernetz Bayreuth - Aktuelles - "+self["datum"],keywords="Bürgernetz, Bayreuth, Aktuelles")
 
 		return e.asHTML()
-xsc.registerElement("pagenewsitem",pagenewsitem)
+xsc.registerElement(pagenewsitem)
 
 class zonk(xsc.Element):
 	empty = 0
 
 	def asHTML(self):
 		return html.div(self.content.asHTML(),Class="zonk")
-xsc.registerElement("zonk",zonk)
+xsc.registerElement(zonk)
 
 class buergerfestbild(xsc.Element):
 	empty = 0
@@ -947,7 +947,7 @@ class buergerfestbild(xsc.Element):
 			),cellpadding="1",bgcolor="#000"
 		)
 		return e.asHTML()
-xsc.registerElement("buergerfestbild",buergerfestbild)
+xsc.registerElement(buergerfestbild)
 
 class buskarte(xsc.Element):
 	empty = 1
@@ -968,7 +968,7 @@ class buskarte(xsc.Element):
 			e1.append(e2)
 
 		return e1.asHTML()
-xsc.registerElement("buskarte",buskarte)
+xsc.registerElement(buskarte)
 
 class busnav(xsc.Element):
 	empty = 1
@@ -983,7 +983,7 @@ class busnav(xsc.Element):
 			href = "javascript:" + self["dir"] + "()"
 		)
 		return e.asHTML()
-xsc.registerElement("busnav",busnav)
+xsc.registerElement(busnav)
 
 if __name__ == "__main__":
 	xsc.make()
