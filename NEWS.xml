@@ -5,6 +5,9 @@
 <code>xist.ns.meta</code> that generates a
 <code>&lt;meta http-equiv="Content-Script-Type" ...&gt;</code>
 element.</item>
+<item><code>xist.ns.doc.explain</code>now generates anchor elements
+for the class, function and method description, so now the
+links on the &xist; webpages work.</item>
 </ulist>
 </section>
 
