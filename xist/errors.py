@@ -54,7 +54,7 @@ class EmptyElementWithContentError(Error):
 	"""
 
 	def __init__(self, element):
-		Error.__init__(self,self.startloc)
+		Error.__init__(self,element.startloc)
 		self.element = element
 
 	def __str__(self):
