@@ -1,14 +1,4 @@
-This example shows several things:
-
-1) Using the URL stack for relative URLs
-
-2) using the XHTML argument with the asString()
-   function
-
-3) automatic generation of height and width
-   attributes for images
-
-What it does is generate a page with all the
+This example shows how to generate a page with all the
 pictures found in http://localhost/icons/.
 To use the script as it is, you have to copy
 index.py and icons.css to http://localhost/icons/
