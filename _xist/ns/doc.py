@@ -307,9 +307,12 @@ class section(block):
 		elif issubclass(target, html):
 			context = converter[section]
 			context.numbers[-1] += 1
+			level = len(context.numbers)
 			context.numbers.append(0) # for numbering the subsections
 			ts = xsc.Frag()
-			cs = target.div(class_=self.attrs.get("role", "section"))
+			cs = target.div(class_=("section level", level))
+			if "role" in self.attrs:
+				cs["class_"].append(" ", self.attrs["role"])
 			for child in self:
 				if isinstance(child, title):
 					ts.append(child)
@@ -319,7 +322,7 @@ class section(block):
 			if self.attrs.has("id"):
 				e.append(target.a(name=self["id"], id=self["id"]))
 			try:
-				hclass = target.element("h%d" % (len(context.numbers)-1))
+				hclass = target.element("h%d" % level)
 			except LookupError: # ouch, we're nested to deep (a getter in a property in a class in a class)
 				hclass = target.h6
 			for t in ts:
@@ -740,7 +743,7 @@ _cmpname = classmethod(_cmpname)
 def _codeheader(cls, thing, name, type):
 	(args, varargs, varkw, defaults) = inspect.getargspec(thing)
 	sig = xsc.Frag()
-	sig.append(type(name), "(")
+	sig.append(type(name), u"\u200b(") # use "ZERO WIDTH SPACE" to allow linebreaks
 	offset = len(args)
 	if defaults is not None:
 		offset -= len(defaults)
@@ -830,7 +833,7 @@ def explain(cls, thing, name=None, context=[]):
 					ref = cls.pyref(cls.class_(baseclassname4text), module=baseclass.__module__, class_=baseclassname)
 				bases.append(ref)
 			bases = bases.withsep(", ")
-			bases.insert(0, "(")
+			bases.insert(0, u"\u200b(") # use "ZERO WIDTH SPACE" to allow linebreaks
 			bases.append(")")
 		node = cls.section(
 			cls.title(
@@ -894,20 +897,12 @@ def explain(cls, thing, name=None, context=[]):
 		if len(classes):
 			classes.sort(cls._cmpname)
 			node.append(
-				cls.section(
-					cls.title("Classes"),
-					[cls.explain(obj, name, context) for (obj, name) in classes],
-					role="classes"
-				)
+				[cls.explain(obj, name, context) for (obj, name) in classes],
 			)
 		if len(functions):
 			functions.sort(cls._cmpname)
 			node.append(
-				cls.section(
-					cls.title("Functions"),
-					[cls.explain(obj, name, context) for (obj, name) in functions],
-					role="functions"
-				)
+				[cls.explain(obj, name, context) for (obj, name) in functions],
 			)
 		return node
 
