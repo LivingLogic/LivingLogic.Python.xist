@@ -61,6 +61,11 @@ won't work
 ?>
 will.
 
+Make functionality has been moved to make.py, as using certain modules
+can't be used as the main script, because reimporting them in processing
+instructions won't work. Now you can simply call
+python make.py --import xist.html --import project.main foo.xsc
+
 New in 0.3.9
 ------------
 sgmlop will now be found either via
