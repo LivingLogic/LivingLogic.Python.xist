@@ -26,25 +26,25 @@ class DocTypeRuby10(xsc.DocType):
 
 class rb(xsc.Element):
 	"""
-	The rb element is the container for the text of the ruby base.
+	The <class>rb</class> element is the container for the text of the ruby base.
 	"""
 	empty = False
 
 class rbc(xsc.Element):
 	"""
-	The rbc (ruby base component) element is the container for rb elements.
+	The <class>rbc</class> (<z>ruby base component</z>) element is the container for <pyref class="rb"><class>rb</class></pyref> elements.
 	"""
 	empty = False
 
 class rp(xsc.Element):
 	"""
-	The rp element is intended to contain parenthesis characters in simple ruby.
+	The <class>rp</class> element is intended to contain parenthesis characters in simple ruby.
 	"""
 	empty = False
 
 class rt(xsc.Element):
 	"""
-	The rt element is the container for the ruby text.
+	The <class>rt</class> element is the container for the ruby text.
 	"""
 	empty = False
 	class Attrs(xsc.Element.Attrs):
@@ -52,15 +52,17 @@ class rt(xsc.Element):
 
 class rtc(xsc.Element):
 	"""
-	The rtc (ruby text component) element is the container for rt elements.
+	The <class>rtc</class> (<z>ruby text component</z>) element is the container for <pyref class="rt"><class>rt</class></pyref> elements.
 	"""
 	empty = False
 
 class ruby(xsc.Element):
 	"""
-	The ruby element is an inline (or text-level) element that serves as the
-	container for either the rb, rt and optional rp elements or the rbc and
-	rtc elements.
+	The <class>ruby</class> element is an inline (or text-level) element that serves as the
+	container for either the <pyref class="rb"><class>rb</class></pyref>,
+	<pyref class="rt"><class>rt</class></pyref> and optional
+	<pyref class="rp><class>rp</class></pyref> elements or the
+	<pyref class="rbc"><class>rbc</class></pyref> and <pyref class="irtc"><class>rtc</class></pyref> elements.
 	"""
 	empty = False
 
