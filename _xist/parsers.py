@@ -452,34 +452,35 @@ class Handler(object):
 
 	def startElement(self, name, attrs):
 		prefixes = []
-		args = 3*[False]
 		for (attrname, attrvalue) in attrs.items():
 			if attrname=="xmlns":
 				prefix = None
-				args[0] = True
+				type = xsc.Prefixes.ELEMENT
 			elif attrname.startswith("xmlns:"):
 				prefix = attrname[6:]
-				args[0] = True
+				type = xsc.Prefixes.ELEMENT
 			elif attrname=="procinstns":
 				prefix = None
-				args[1] = True
+				type = xsc.Prefixes.PROCINST
 			elif attrname.startswith("procinstns:"):
 				prefix = attrname[11:]
-				args[1] = True
+				type = xsc.Prefixes.PROCINST
 			elif attrname=="entityns":
 				prefix = None
-				args[2] = True
+				type = xsc.Prefixes.ENTITY
 			elif attrname.startswith("entityns:"):
 				prefix = attrname[9:]
-				args[2] = True
+				type = xsc.Prefixes.ENTITY
 			else:
 				continue
-			prefixes.append((args, prefix))
-			self.prefixes.startPrefixMapping(prefix, unicode(attrvalue), "replace", *args)
+			prefixes.append((type, prefix))
+			self.prefixes.startPrefixMapping(prefix, unicode(attrvalue), "replace", type)
 		node = self.prefixes.elementFromQName(name)()
 		node.parsed(self)
 		for (attrname, attrvalue) in attrs.items():
-			if attrname!="xmlns" and not attrname.startswith("xmlns:"):
+			if attrname!="xmlns" and not attrname.startswith("xmlns:") and \
+			   attrname!="procinstns" and not attrname.startswith("procinstns:") and \
+			   attrname!="entityns" and not attrname.startswith("entityns:"):
 				attrname = self.prefixes.attrnameFromQName(node, attrname)
 				node[attrname] = attrvalue
 				node[attrname].parsed(self)
@@ -494,8 +495,8 @@ class Handler(object):
 			raise errors.ElementNestingError(currentelement, element)
 		self.__nesting[-1][0].endLoc = self.getLocation()
 		# SAX specifies that the order of calls to endPrefixMapping is undefined, so we use the same order as in beginElement
-		for (args, prefix) in self.__nesting[-1][1]:
-			self.prefixes.endPrefixMapping(prefix, *args)
+		for (type, prefix) in self.__nesting[-1][1]:
+			self.prefixes.endPrefixMapping(prefix, type)
 		self.__nesting.pop() # pop the innermost element off the stack
 		self.skippingWhitespace = 0
 

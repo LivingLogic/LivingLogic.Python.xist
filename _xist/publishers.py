@@ -138,7 +138,7 @@ class Publisher(object):
 		need a <lit>xmlns</lit> attribute.</doc:par>
 		"""
 		if isinstance(node, (xsc.Element, xsc.ProcInst, xsc.Entity)):
-			if node.needsxmlns(self)==2:
+			if node.needsxmlns(self)==xsc.Prefixes.DECLAREANDUSEPREFIX:
 				return [node]
 		elif isinstance(node, xsc.Frag):
 			nodes = []
@@ -163,21 +163,21 @@ class Publisher(object):
 		# collect all the namespaces that are used and their required mode
 		for child in self.node.walk(attrs=True):
 			if isinstance(child, xsc.Element):
-				index = 0
+				type = xsc.Prefixes.ELEMENT
 			elif isinstance(child, xsc.ProcInst):
-				index = 1
+				type = xsc.Prefixes.PROCINST
 			elif isinstance(child, xsc.Entity):
-				index = 2
+				type = xsc.Prefixes.ENTITY
 			else:
 				continue
-			prefixes2use[(index, child.xmlns)] = max(prefixes2use.get((index, child.xmlns), 0), child.needsxmlns(self))
+			prefixes2use[(type, child.xmlns)] = max(prefixes2use.get((type, child.xmlns), 0), child.needsxmlns(self))
 		self.prefixes2use = {}
 		if len(prefixes2use):
 			self.publishxmlns = None # signal to the first element that it should generate xmlns attributes
 			# get the prefixes for all namespaces from the prefix mapping
-			for (index, ns) in prefixes2use:
-				nsprefix = [u"xmlns", u"procinstns", u"entityns"][index]
-				self.prefixes2use[(nsprefix, ns)] = (prefixes2use[(index, ns)], self.prefixes.prefix4ns(ns, index)[0])
+			for (type, ns) in prefixes2use:
+				nsprefix = [u"xmlns", u"procinstns", u"entityns"][type]
+				self.prefixes2use[(nsprefix, ns)] = (prefixes2use[(type, ns)], self.prefixes.prefix4ns(ns, type)[0])
 
 	def endPublication(self):
 		"""
