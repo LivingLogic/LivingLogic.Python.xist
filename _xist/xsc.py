@@ -94,6 +94,11 @@ class Base(object):
 			name = cls.__name__.split(".")[-1] + "." + name
 	__fullname__ = classmethod(__fullname__)
 
+_elements = ({}, {})
+_procinsts = ({}, {})
+_entities = ({}, {})
+_charrefs = ({}, {}, {})
+
 class Node(Base):
 	"""
 	base class for nodes in the document tree. Derived classes must
@@ -115,7 +120,8 @@ class Node(Base):
 
 	class __metaclass__(Base.__metaclass__):
 		def __new__(cls, name, bases, dict):
-			dict["xmlns"] = None
+			if "xmlns" in dict:
+				raise ValueError("################## %r %r" % (name, bases))
 			if "register" not in dict:
 				dict["register"] = True
 			# needsxmlns may be defined as a constant, this magically turns it into method
@@ -1142,24 +1148,38 @@ class ProcInst(CharacterData):
 	All other processing instructions will be handled
 	by other classes derived from <class>ProcInst</class>.</par>
 	"""
+	register = False # This is an abstract baseclass, don't register in namespace
 
 	# we don't need a constructor, because we don't have to store the target,
 	# because the target is our classname (or the class attribute name)
 
 	class __metaclass__(CharacterData.__metaclass__):
+		def __new__(cls, name, bases, dict):
+			self = CharacterData.__metaclass__.__new__(cls, name, bases, dict)
+			if self.register:
+				for xml in (False, True):
+					_procinsts[xml][self.xmlname[xml]] = self
+			self.xmlns = None
+			return self
+
 		def __repr__(self):
 			return "<procinst class %s/%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
 
 	def _registerns(cls, ns):
-		if cls is not ProcInst and cls.register:
+		if cls.register:
 			if cls.xmlns is not None:
-				for xml in (False, True):
-					del cls.xmlns._procinsts[xml][cls.xmlname[xml]]
-			cls.xmlns = None
+				map = cls.xmlns._procinsts
+			else:
+				map = _procinsts
+			for xml in (False, True):
+				del map[xml][cls.xmlname[xml]]
 			if ns is not None:
-				for xml in (False, True):
-					ns._procinsts[xml][cls.xmlname[xml]] = cls
-				cls.xmlns = ns
+				map = ns._procinsts
+			else:
+				map = _procinsts
+			for xml in (False, True):
+				map[xml][cls.xmlname[xml]] = cls
+			cls.xmlns = ns
 	_registerns = classmethod(_registerns)
 
 	def _str(cls, fullname=True, xml=True, decorate=True):
@@ -1938,6 +1958,7 @@ class Element(Node):
 	"""
 
 	empty = False # False => element with content; True => element without content
+	register = False # This is an abstract base class => don't register in namespace
 
 	class __metaclass__(Node.__metaclass__):
 		def __new__(cls, name, bases, dict):
@@ -1947,7 +1968,12 @@ class Element(Node):
 				del dict["name"]
 			if "attrHandlers" in dict:
 				errors.warn(DeprecationWarning("attrHandlers is deprecated, use a nested Attrs class instead"))
-			return Node.__metaclass__.__new__(cls, name, bases, dict)
+			self = Node.__metaclass__.__new__(cls, name, bases, dict)
+			if self.register:
+				for xml in (False, True):
+					_elements[xml][self.xmlname[xml]] = self
+			self.xmlns = None
+			return self
 		def __repr__(self):
 			return "<element class %s/%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
 
@@ -2038,15 +2064,20 @@ class Element(Node):
 			self.attrs[attrname] = attrvalue
 
 	def _registerns(cls, ns):
-		if cls is not Element and cls.register:
+		if cls.register:
 			if cls.xmlns is not None:
-				for xml in (False, True):
-					del cls.xmlns._elements[xml][cls.xmlname[xml]]
-			cls.xmlns = None
+				map = cls.xmlns._elements
+			else:
+				map = _elements
+			for xml in (False, True):
+				del map[xml][cls.xmlname[xml]]
 			if ns is not None:
-				for xml in (False, True):
-					ns._elements[xml][cls.xmlname[xml]] = cls
-				cls.xmlns = ns
+				map = ns._elements
+			else:
+				map = _elements
+			for xml in (False, True):
+				map[xml][cls.xmlname[xml]] = cls
+			cls.xmlns = ns
 	_registerns = classmethod(_registerns)
 
 	def __eq__(self, other):
@@ -2495,21 +2526,35 @@ class Entity(Node):
 	it and overwrite <pyref class="Node" method="convert"><method>convert</method></pyref>
 	and <pyref class="Node" method="__unicode__"><method>__unicode__</method></pyref>.</par>
 	"""
+	register = False # don't register in namespace
 
 	class __metaclass__(Node.__metaclass__):
+		def __new__(cls, name, bases, dict):
+			self = Node.__metaclass__.__new__(cls, name, bases, dict)
+			if self.register:
+				for xml in (False, True):
+					_entities[xml][self.xmlname[xml]] = self
+			self.xmlns = None
+			return self
+
 		def __repr__(self):
 			return "<entity class %s/%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
 
 	def _registerns(cls, ns):
-		if cls is not Entity and cls is not CharRef and cls.register:
+		if cls.register:
 			if cls.xmlns is not None:
-				for xml in (False, True):
-					del cls.xmlns._entities[xml][cls.xmlname[xml]]
-			cls.xmlns = None
+				map = cls.xmlns._entities
+			else:
+				map = _entities
+			for xml in (False, True):
+				del map[xml][cls.xmlname[xml]]
 			if ns is not None:
-				for xml in (False, True):
-					ns._entities[xml][cls.xmlname[xml]] = cls
-				cls.xmlns = ns
+				map = ns._entities
+			else:
+				map = _entities
+			for xml in (False, True):
+				map[xml][cls.xmlname[xml]] = cls
+			cls.xmlns = ns
 	_registerns = classmethod(_registerns)
 
 	def _str(cls, fullname=True, xml=True, decorate=True):
@@ -2522,10 +2567,11 @@ class Entity(Node):
 		return s
 	_str = classmethod(_str)
 
+	def clone(self):
+		return self
+	
 	def compact(self):
 		return self
-
-	clone = compact
 
 	def present(self, presenter):
 		presenter.presentEntity(self)
@@ -2551,33 +2597,71 @@ class Entity(Node):
 		self._publishname(publisher)
 		publisher.publish(u";")
 
-class CharRef(Entity):
+class CharRef(Node):
 	"""
 	<par>A simple character reference, the codepoint is in the class attribute
 	<lit>codepoint</lit>.</par>
 	"""
+	register = False # don't register in namespace
 
-	class __metaclass__(Entity.__metaclass__):
+	class __metaclass__(Node.__metaclass__):
+		def __new__(cls, name, bases, dict):
+			self = Node.__metaclass__.__new__(cls, name, bases, dict)
+			if self.register:
+				for xml in (False, True):
+					_charrefs[xml][self.xmlname[xml]] = self
+				_charrefs[2].setdefault(self.codepoint, []).append(self)
+			self.xmlns = None
+			return self
 		def __repr__(self):
 			return "<charref class %s/%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
 
 	def _registerns(cls, ns):
-		if cls is not CharRef and cls.register:
+		if cls.register:
 			if cls.xmlns is not None:
-				for xml in (False, True):
-					del cls.xmlns._charrefs[xml][cls.xmlname[xml]]
-				cls.xmlns._charrefs[2][cls.codepoint].remove(cls)
-			cls.xmlns = None
+				map = cls.xmlns._charrefs
+			else:
+				map = _charrefs
+			for xml in (False, True):
+				del map[xml][cls.xmlname[xml]]
+			l = map[2][cls.codepoint]
+			if len(l)==1:
+				del map[2][cls.codepoint]
+			else:
+				l.remove(cls)
 			if ns is not None:
+				if ns is not None:
+					map = ns._charrefs
+				else:
+					map = _charrefs
 				for xml in (False, True):
-					ns._charrefs[xml][cls.xmlname[xml]] = cls
-				ns._charrefs[2].setdefault(cls.codepoint, []).append(cls)
+					map[xml][cls.xmlname[xml]] = cls
+				map[2].setdefault(cls.codepoint, []).append(cls)
 				cls.xmlns = ns
 	_registerns = classmethod(_registerns)
+
+	def _str(cls, fullname=True, xml=True, decorate=True):
+		s = ansistyle.Text()
+		if decorate:
+			s.append(presenters.strAmp())
+		cls._strbase(presenters.strEntityName, s, fullname=fullname, xml=xml)
+		if decorate:
+			s.append(presenters.strSemi())
+		return s
+	_str = classmethod(_str)
+
+	def present(self, presenter):
+		presenter.presentEntity(self)
 
 	def convert(self, converter):
 		node = Text(unichr(self.codepoint))
 		return self._decoratenode(node)
+
+	def clone(self):
+		return self
+
+	def compact(self):
+		return self
 
 	def __unicode__(self):
 		return unichr(self.codepoint)
@@ -2955,7 +3039,7 @@ class Namespace(object):
 			for base in bases:
 				for attrname in dir(base):
 					attr = getattr(base, attrname)
-					if issubclasses(attr, (Element, ProcInst, Entity, Attrs)) and attrname not in dict:
+					if issubclasses(attr, (Element, ProcInst, Entity, CharRef, Attrs)) and attrname not in dict:
 						classdict = {"__module__": dict["__module__"]}
 						if attr.xmlname[0] != attr.xmlname[1]:
 							classdict["xmlname"] = attr.xmlname[1]
@@ -3014,7 +3098,7 @@ class Namespace(object):
 			else:
 				counts = ""
 
-			if hasattr(self, "__file__"):
+			if self.__dict__.has_key("__file__"): # no inheritance
 				fromfile = " from %r" % self.__file__
 			else:
 				fromfile = ""
@@ -3022,17 +3106,18 @@ class Namespace(object):
 
 		def __delattr__(cls, key):
 			value = cls.__dict__.get(key, None) # no inheritance
-			if issubclasses(value, (Element, ProcInst, Entity)):
+			if issubclasses(value, (Element, ProcInst, Entity, CharRef)):
 				value._registerns(None)
 			return type.__delattr__(cls, key)
 
 		def __setattr__(cls, key, value):
 			oldvalue = cls.__dict__.get(key, None) # no inheritance
-			if issubclasses(oldvalue, (Element, ProcInst, Entity)):
+			if issubclasses(oldvalue, (Element, ProcInst, Entity, CharRef)):
 				oldvalue._registerns(None)
-			if issubclasses(value, (Element, ProcInst, Entity)):
-				if value.xmlns is not None:
-					delattr(value.xmlns, key)
+			if issubclasses(value, (Element, ProcInst, Entity, CharRef)):
+				ns = value.__dict__.get("xmlns") # no inheritance
+				if ns is not None:
+					delattr(ns, key)
 				value._registerns(cls)
 			return type.__setattr__(cls, key, value)
 
