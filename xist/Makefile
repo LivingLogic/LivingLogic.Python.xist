@@ -32,6 +32,6 @@ $(DEP_CP): $(OUTPUTDIR)/% : %
 	cp --parents $< $(OUTPUTDIR)/
 
 $(OUTPUTDIR)/helpers.so: helpers.c
-	gcc -c -I/usr/local/include/python2.0 -g -O2 -fpic helpers.c -o helpers.o
+	gcc -c -I/usr/local/include/python2.0 -g -O6 -fpic helpers.c -o helpers.o
 	gcc -shared helpers.o -o $(OUTPUTDIR)/helpers.so
 

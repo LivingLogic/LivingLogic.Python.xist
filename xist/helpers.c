@@ -7,11 +7,11 @@
 ** Permission to use, copy, modify, and distribute this software and its documentation
 ** for any purpose and without fee is hereby granted, provided that the above copyright
 ** notice appears in all copies and that both that copyright notice and this permission
-** notice appear in supporting documentation, and that the name of Living Logic AG or
+** notice appear in supporting documentation, and that the name of LivingLogic AG or
 ** the author not be used in advertising or publicity pertaining to distribution of the
 ** software without specific, written prior permission.
 **
-** LIVING LOGIC AG AND THE AUTHOR DISCLAIM ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
+** LIVINGLOGIC AG AND THE AUTHOR DISCLAIM ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
 ** INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO EVENT SHALL
 ** LIVING LOGIC AG OR THE AUTHOR BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL
 ** DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER
@@ -298,53 +298,9 @@ static PyObject *escapeAttr(PyObject *self, PyObject *args)
 	}
 }
 
-static PyObject *PyObject_Unicode(PyObject *v)
-{
-	PyObject *res;
-	
-	if (v == NULL)
-		res = PyString_FromString("<NULL>");
-	else if (PyUnicode_Check(v)) {
-		Py_INCREF(v);
-		return v;
-	}
-	else if (PyString_Check(v))
-	    	res = v;
-	else if (v->ob_type->tp_str != NULL)
-		res = (*v->ob_type->tp_str)(v);
-	else {
-		PyObject *func;
-		static PyObject *strstr;
-		if (strstr == NULL) {
-			strstr= PyString_InternFromString("__str__");
-			if (strstr == NULL)
-				return NULL;
-		}
-		if (!PyInstance_Check(v) ||
-		    (func = PyObject_GetAttr(v, strstr)) == NULL) {
-			PyErr_Clear();
-			res = PyObject_Repr(v);
-		}
-		else {
-		    	res = PyEval_CallObject(func, (PyObject *)NULL);
-			Py_DECREF(func);
-		}
-	}
-	if (res == NULL)
-		return NULL;
-	if (!PyUnicode_Check(res)) {
-		PyObject* str;
-		str = PyUnicode_FromObject(res);
-		Py_DECREF(res);
-		if (str)
-			res = str;
-		else
-		    	return NULL;
-	}
-	return res;
-}
-static PyObject *
-builtin_unistr(PyObject *self, PyObject *args)
+/* reimplement unistr, which has been removed before the release of Python 2.1 */
+/*
+static PyObject *builtin_unistr(PyObject *self, PyObject *args)
 {
 	PyObject *v;
 
@@ -352,6 +308,7 @@ builtin_unistr(PyObject *self, PyObject *args)
 		return NULL;
 	return PyObject_Unicode(v);
 }
+*/
 
 static char unistr_doc[] =
 "unistr(object) -> unicode\n\
@@ -366,7 +323,9 @@ static PyMethodDef _functions[] =
 {
 	{"escapeText", escapeText, 1, escapeText__doc__},
 	{"escapeAttr", escapeAttr, 1, escapeAttr__doc__},
+	/*
 	{"unistr",	builtin_unistr, 1, unistr_doc},
+	*/
 	{NULL, NULL}
 };
 
