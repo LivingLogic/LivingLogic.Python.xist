@@ -552,13 +552,13 @@ class XSCFrag(XSCNode):
 class XSCAttrs(XSCNode):
 	"""contains a dictionary of XSCNodes which are wrapped into attribute nodes"""
 
-	def __init__(self,attr_handlers,content = {},**restcontent):
+	def __init__(self,attr_handlers,_content = {},**_restcontent):
 		self.attr_handlers = attr_handlers
 		self.content = {}
-		for attr in content.keys():
-			self[attr] = content[attr]
-		for attr in restcontent.keys():
-			self[attr] = restcontent[attr]
+		for attr in _content.keys():
+			self[attr] = _content[attr]
+		for attr in _restcontent.keys():
+			self[attr] = _restcontent[attr]
 
 	def __add__(self,other):
 		"""adds attributes to the list"""
@@ -852,6 +852,7 @@ class XSCurl(XSCElement):
 			self.content = _content.content
 		else:
 			self.content = XSCFrag(_content)
+		self.attrs = XSCAttrs(self.attr_handlers)
 
 	def _dorepr(self):
 		return URLForInput(self.content.dostr())
