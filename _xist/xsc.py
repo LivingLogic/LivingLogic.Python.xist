@@ -2960,7 +2960,7 @@ class OldPrefixes(Prefixes):
 		for ns in namespaceRegistry.all:
 			if ns.xmlurl == "http://www.w3.org/XML/1998/namespace":
 				self.addElementPrefixMapping("xml", ns, mode="append")
-				self.addProcInstPrefixMapping(ns, mode="append")
+				self.addProcInstPrefixMapping(None, ns, mode="append")
 			else:
 				self.addPrefixMapping(None, ns, mode="append")
 				self.addPrefixMapping(ns.xmlprefix, ns, mode="append")
