@@ -239,6 +239,41 @@ class javascript(html.script):
 		e = html.script(self.content, self.attrs, language="javascript", type="text/javascript")
 		return e.convert(converter)
 
+class flash(xsc.Element):
+	empty = True
+	class Attrs(xsc.Element.Attrs):
+		class src(xsc.URLAttr): required = True
+		class width(xsc.IntAttr): required = True
+		class height(xsc.IntAttr): required = True
+		class quality(xsc.TextAttr): default = "high"
+		class bgcolor(xsc.ColorAttr): pass
+
+	def convert(self, converter):
+		target = converter.target
+		e = target.object(
+			target.param(name="movie", value=self["src"]),
+			target.embed(
+				src=self["src"],
+				quality=self["quality"],
+				bgcolor=self["bgcolor"],
+				width=self["width"],
+				height=self["height"],
+				type="application/x-shockwave-flash",
+				pluginspage="http://www.macromedia.com/shockwave/download/index.cgi?P1_Prod_Version=ShockwaveFlash"
+			),
+			classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000",
+			codebase="http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=5,0,0,0",
+			width=self["width"],
+			height=self["height"]
+		)
+
+		if "quality" in self.attrs:
+			e.insert(0, target.param(name="quality", value=self["quality"]))
+		if "bgcolor" in self.attrs:
+			e.insert(0, target.param(name="bgcolor", value=self["bgcolor"]))
+
+		return e.convert(converter)
+
 class ImgAttrDecorator(specials.AttrDecorator):
 	class Attrs(html.img.Attrs):
 		pass
