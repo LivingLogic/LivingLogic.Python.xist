@@ -22,8 +22,7 @@ from ll.xist import xsc, utils, sims
 
 class XML(xsc.ProcInst):
 	"""
-	&xml; header. The encoding will be automatically set when
-	publishing.
+	&xml; declaration. The encoding will be automatically set when publishing.
 	"""
 	xmlname = "xml"
 
@@ -43,7 +42,7 @@ class XML(xsc.ProcInst):
 
 class XML10(XML):
 	"""
-	&xml; header version 1.0, i.e. <markup>&lt;?xml version="1.0"?&gt;</markup>
+	&xml; declaration with <lit>version="1.0"</lit>.
 	"""
 	xmlname = "xml10"
 	register = False # don't register this ProcInst, because it will never be parsed from a file, this is just a convenience class
@@ -54,14 +53,14 @@ class XML10(XML):
 
 class XMLStyleSheet(xsc.ProcInst):
 	"""
-	XML stylesheet declaration
+	XML stylesheet declaration.
 	"""
 	xmlname = "xml-stylesheet"
 
 
-class header(xsc.Element):
+class declaration(xsc.Element):
 	"""
-	<par>The &xml; header processing instruction as an element. This makes it
+	<par>The &xml; declaration instruction as an element. This makes it
 	possible to generate a header from within an &xml; file.
 	"""
 	model = sims.Empty()

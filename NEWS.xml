@@ -64,6 +64,9 @@ new attribute object.</item>
 
 <item><method>ll.xist.xsc.FindOld</method> has been removed.</item>
 
+<item><class>ll.xist.ns.xml.header</class> has been renamed to
+<class>ll.xist.ns.xml.declaration</class>.</item>
+
 </ulist>
 
 </section>
