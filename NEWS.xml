@@ -144,7 +144,7 @@ the node will not have the attribute <code>align</code> set.
 </ol>
 </li>
 <li><classname>xist.ns.cond.If</classname> (and <classname>xist.ns.cond.ElIf</classname>)
-can now be to test for attributes of the converter. I.e. it's possible to
+can now be used to test for attributes of the converter. I.e. it's possible to
 write the following &xml;:
 <programlisting>
 &lt;if lang="en"&gt;Title&lt;/if&gt;
