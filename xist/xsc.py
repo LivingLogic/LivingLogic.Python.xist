@@ -1,9 +1,23 @@
 #! /usr/bin/env python
 
-## Copyright 2000 by LivingLogic AG, Bayreuth, Germany.
-## Copyright 2000 by Walter Dörwald
+## Copyright 1999-2001 by LivingLogic AG, Bayreuth, Germany.
+## Copyright 1999-2001 by Walter Dörwald
 ##
-## See the file LICENSE for licensing details
+## All Rights Reserved
+##
+## Permission to use, copy, modify, and distribute this software and its documentation
+## for any purpose and without fee is hereby granted, provided that the above copyright
+## notice appears in all copies and that both that copyright notice and this permission
+## notice appear in supporting documentation, and that the name of Living Logic AG or
+## the author not be used in advertising or publicity pertaining to distribution of the
+## software without specific, written prior permission.
+##
+## LIVING LOGIC AG AND THE AUTHOR DISCLAIM ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
+## INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO EVENT SHALL
+## LIVING LOGIC AG OR THE AUTHOR BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL
+## DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER
+## IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
+## IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 """
 XIST is a HTML preprocessor/generator and an XML transformation engine.
@@ -227,8 +241,9 @@ except ImportError:
 import urllib # for reading remote files
 import procinst # our sandbox
 import url # our own new URL class
-import publishers # classes for dumping XML strings
 import providers # classes that generate XSC trees
+import presenters # classes that dump XSC trees
+import publishers # classes for writing XSC strings
 import errors # exceptions
 import options # optional stuff ;)
 import utils # misc stuff
@@ -237,101 +252,6 @@ import helpers # C stuff
 ###
 ### helpers
 ###
-
-reprEncoding = sys.getdefaultencoding()
-
-def _stransi(codes, string, ansi=None):
-	if ansi is None:
-		ansi = options.repransi
-	string = utils.stringFromCode(string).encode(reprEncoding)
-	if ansi and len(codes[ansi-1]) and string:
-		return "\033[%sm%s\033[0m" % (codes[ansi-1], string)
-	else:
-		return string
-
-def strNamespace(namespace, ansi=None):
-	return _stransi(options.repransinamespace, namespace, ansi)
-
-def strElementName(elementname, ansi=None):
-	return _stransi(options.repransielementname, elementname, ansi)
-
-def strElement(namespacename, elementname, empty=0, ansi=None):
-	s = strBracketOpen(ansi)
-	if namespacename is not None:
-		s += strNamespace(namespacename, ansi) + strColon(ansi)
-	s += strElementName(elementname, ansi)
-	if empty:
-		s += strSlash(ansi)
-	s += strBracketClose(ansi)
-	return s
-
-def strEntityName(entityname, ansi=None):
-	return _stransi(options.repransientityname, entityname, ansi)
-
-def strEntity(namespacename, entityname, ansi=None):
-	s = "&"
-	if namespacename is not None:
-		s += strNamespace(namespacename, ansi) + strColon(ansi)
-	s += strEntityName(entityname, ansi)
-	s += ";"
-	return s
-
-def strAttrName(attrname, ansi=None):
-	return _stransi(options.repransiattrname, attrname, ansi=ansi)
-
-def strAttrValue(attrvalue, ansi=None):
-	return _stransi(options.repransiattrvalue, attrvalue, ansi=ansi)
-
-def strCharRef(charref, ansi=None):
-	return _stransi(options.repransicharref, charref, ansi=ansi)
-
-def strDocTypeMarker(ansi=None):
-	return _stransi(options.repransidoctypemarker, "DOCTYPE", ansi=ansi)
-
-def strDocTypeText(text, ansi=None):
-	return _stransi(options.repransidoctypetext, text, ansi=ansi)
-
-def strCommentMarker(ansi=None):
-	return _stransi(options.repransicommentmarker, "--", ansi=ansi)
-
-def strCommentText(text, ansi=None):
-	return _stransi(options.repransicommenttext, text, ansi=ansi)
-
-def strProcInstTarget(target, ansi=None):
-	return _stransi(options.repransiprocinsttarget, target, ansi=ansi)
-
-def strProcInstData(data, ansi=None):
-	return _stransi(options.repransiprocinstdata, data, ansi=ansi)
-
-def strText(text, ansi=None):
-	return _stransi(options.repransitext, text, ansi=ansi)
-
-def strSlash(attrname, ansi=None):
-	return _stransi(options.repransislash, "/", ansi=ansi)
-
-def strBracketOpen(ansi=None):
-	return _stransi(options.repransibracket, "<", ansi=ansi)
-
-def strBracketClose(ansi=None):
-	return _stransi(options.repransibracket, ">", ansi=ansi)
-
-def strColon(ansi=None):
-	return _stransi(options.repransicolon, ":", ansi=ansi)
-
-def strQuestion(ansi=None):
-	return _stransi(options.repransiquestion, "?", ansi=ansi)
-
-def strExclamation(ansi=None):
-	return _stransi(options.repransiexclamation, "!", ansi=ansi)
-
-def strQuote(ansi=None):
-	return _stransi(options.repransiquote, '"', ansi=ansi)
-
-def strTab(count, ansi=None):
-	return _stransi(options.repransitab, options.reprtab*count, ansi=ansi)
-
-def strURL(url, ansi=None):
-	return _stransi(options.repransiurl, url, ansi=ansi)
 
 def nodeName(nodeClass):
 	"""
@@ -349,7 +269,7 @@ def nodeName(nodeClass):
 
 	return [namespacename, elementname, nodeClass.empty]
 
-def _strName(nodeName, content = None, brackets = 1, slash = None, ansi = None):
+def _strName(nodeName, content=None, brackets=1, slash=None, ansi=None):
 	# slash == -1: before; 0: nowhere; 1:after
 	if slash is None:
 		if nodeName is None:
@@ -374,13 +294,6 @@ def _strName(nodeName, content = None, brackets = 1, slash = None, ansi = None):
 def _strNode(nodeClass, content=None, brackets=None, slash=None, ansi=None):
 	name = nodeName(nodeClass)
 	return _strName(name, content, brackets, slash, ansi)
-
-def isXMLChar(char):
-	code = ord(char)
-	if code==0x9 or code==0xA or code==0xD or 0x20<=code<=0xD7FF or 0xE000<=0xFFFD: # FIXME do we handle [#x10000-#x10FFFF]?
-		return 1
-	else:
-		return 0
 
 def ToNode(value):
 	"""
@@ -432,9 +345,7 @@ class Node:
 	endloc = None
 
 	def __repr__(self):
-		encoding = reprEncoding
-		result = self.reprtree(encoding)
-		return result
+		return self.repr(presenters.defaultPresenterClass())
 
 	def _str(self, content=None, brackets=1, slash=None, ansi=None):
 		return _strNode(self.__class__, content, brackets, slash, ansi)
@@ -445,12 +356,18 @@ class Node:
 		"""
 		return Null
 
-	def repr(self, encoding=None, ansi=None):
-		return self._dorepr(encoding=encoding, ansi=ansi)
+	def repr(self, presenter=None):
+		if presenter is None:
+			presenter = presenters.defaultPresenterClass()
+		presenter.beginPresentation()
+		self.present(presenter)
+		return presenter.endPresentation()
 
-	def reprtree(self, encoding=None, ansi=None):
+	def reprtree(self, presenter=None):
+		if presenter is None:
+			presenter = presenters.Presenter()
 		nest = 0
-		lines = self._doreprtree(nest, [], encoding=encoding, ansi=ansi)
+		lines = self._doreprtree(nest, [], presenter=presenter)
 		lenloc = 0
 		lenelementno = 0
 		for line in lines: # (nest, location, elementno, string)
@@ -465,14 +382,13 @@ class Node:
 
 		return "".join([ "%*s %-*s %s\n" % (lenloc, line[1], lenelementno, line[2], line[3]) for line in lines ])
 
-	def _dorepr(self, encoding=None, ansi=None):
-		# returns a string representation of the node
-		return strBracketOpen(ansi) + strBracketClose(ansi)
+	def present(self, presenter):
+		pass
 
-	def _doreprtree(self, nest, elementno, encoding=None, ansi=None):
+	def _doreprtree(self, nest, elementno, presenter):
 		# returns an array containing arrays consisting of the
 		# (nestinglevel, location, elementnumber, string representation) of the nodes
-		return [[nest, self.startloc, elementno, self._dorepr(encoding, ansi)]]
+		return [[nest, self.startloc, elementno, self._dorepr(presenter)]]
 
 	def asHTML(self, mode=None):
 		"""
@@ -662,7 +578,7 @@ class Node:
 			res = test(self)
 		return res
 
-	def _doreprtreeMultiLine(self, nest, elementno, head, tail, text, formatter, extraFirstLine, encoding=None, ansi=None):
+	def _doreprtreeMultiLine(self, nest, elementno, head, tail, text, formatter, extraFirstLine, presenter):
 		lines = text.split("\n")
 		l = len(lines)
 		if l>1 and extraFirstLine:
@@ -675,7 +591,7 @@ class Node:
 			while len(s) and s[0] == "\t":
 				mynest += 1
 				s = s[1:]
-			s = formatter(s, ansi)
+			s = formatter(s)
 			if i == 0:
 				s = head + s
 			if i == l-1:
@@ -866,58 +782,16 @@ class Text(Node, StringMixIn):
 	def publish(self, publisher):
 		publisher.publishText(self._content)
 
-	def __strtext(self, refwhite, content, encoding=None, ansi=None):
-		if encoding == None:
-			encoding = reprEncoding
-		# we could put ANSI escapes around every character or reference that we output,
-		# but this would result in strings that are way to long, especially if output
-		# over a serial connection, so we collect runs of characters with the same
-		# highlighting and put the ANSI escapes around those. (of course, when we're
-		# not doing highlighting, this routine does way to much useless calculations)
-		v = [] # collect all colored string here
-		charref = -1 # the type of characters we're currently collecting (0==normal character, 1==character that has to be output as an entity, -1==at the start)
-		start = 0 # the position where our current run of characters for the same class started
-		end = 0 # the current position we're testing
-		while end<=len(content): # one more than the length of the string
-			do = 0 # we will have to do something with the string collected so far ...
-			if end==len(content): # ... if we're at the end of the string ...
-				do = 1
-			else:
-				c = content[end] # ... or if the character we're at is different from those we've collected so far
-				ascharref = (0 <= ord(c) <= 31) or (128 <= ord(c) <= 159)
-				if not ascharref:
-					try:
-						c.encode(encoding)
-					except UnicodeError:
-						ascharref = 1
-				if not refwhite and (c == u"\n" or c == u"\t"):
-					ascharref = 0
-				if ascharref != charref:
-					do = 1
-					charref = 1-ascharref # this does nothing, except at the start, where it enforces the correct processing
-			if do: # process the string we have so far
-				if charref: # we've collected references so far
-					s = "".join([ "&#" + str(ord(c)) + ";" for c in content[start:end]])
-					v.append(strCharRef(s, ansi))
-				else:
-					s = content[start:end]
-					v.append(strText(s.encode(encoding), ansi))
-				charref = 1-charref # switch to the other class
-				start = end # the next string we want to work on starts from here
-			end += 1 # to the next character
-		return "".join(v)
+	def present(self, presenter):
+		presenter.presentText(self)
 
-	def _dorepr(self, encoding=None, ansi=None):
-		# constructs a string of this Text with syntaxhighlighting. Special characters will be output as CharRefs (with special highlighting)
-		return self.__strtext(0, self._content, encoding, ansi)
-
-	def _doreprtree(self, nest, elementno, encoding=None, ansi=None):
+	def _doreprtree(self, nest, elementno, presenter):
 		lines = self._content.split("\n")
 		if len(lines) and lines[-1] == "":
 			del lines[-1]
 		v = []
 		for i in xrange(len(lines)):
-			s = strQuote(ansi) + strText(self.__strtext(1, lines[i], encoding, ansi), ansi) + strQuote(ansi)
+			s = presenter.strQuote() + presenter.strText(self.__strtext(1, lines[i], presenter)) + presenter.strQuote()
 			v.append([nest, self._getLoc(i), elementno, s])
 		return v
 
@@ -950,20 +824,20 @@ class Frag(Node):
 		node.__content = [ child.clone() for child in self.__content ]
 		return self._decorateNode(node)
 
-	def _dorepr(self, encoding=None, ansi=None):
-		return "".join([ child._dorepr(encoding=encoding, ansi=ansi) for child in self.__content])
+	def present(self, presenter):
+		presenter.presentFrag(self)
 
-	def _doreprtree(self, nest, elementno, encoding=None, ansi=None):
+	def _doreprtree(self, nest, elementno, presenter):
 		v = []
 		if len(self):
-			v.append([nest, self.startloc, elementno, self._str(brackets=1, ansi=ansi)])
+			v.append([nest, self.startloc, elementno, self._str(brackets=1, ansi=presenter.ansi)])
 			i = 0
 			for child in self.__content:
-				v.extend(child._doreprtree(nest+1, elementno + [i], encoding, ansi))
+				v.extend(child._doreprtree(nest+1, elementno + [i], presenter))
 				i += 1
-			v.append([nest, self.endloc, elementno, self._str(brackets=1, ansi=ansi, slash=-1)])
+			v.append([nest, self.endloc, elementno, self._str(brackets=1, ansi=presenter.ansi, slash=-1)])
 		else:
-			v.append([nest, self.startloc, elementno, self._str(brackets=1, ansi=ansi, slash=1)])
+			v.append([nest, self.startloc, elementno, self._str(brackets=1, ansi=presenter.ansi, slash=1)])
 		return v
 
 	def asPlainString(self):
@@ -1128,13 +1002,13 @@ class Comment(Node, StringMixIn):
 
 	compact = clone
 
-	def _dorepr(self, encoding=None, ansi=None):
-		return strBracketOpen(ansi) + strExclamation(ansi) + strCommentMarker(ansi) + strCommentText(self._content, ansi) + strCommentMarker(ansi) + strBracketClose(ansi)
+	def present(self, presenter):
+		presenter.presentComment(self)
 
-	def _doreprtree(self, nest, elementno, encoding, ansi):
-		head = strBracketOpen(ansi) + strExclamation(ansi) + strCommentMarker(ansi)
-		tail = strCommentMarker(ansi) + strBracketClose(ansi)
-		return self._doreprtreeMultiLine(nest, elementno, head, tail, self._content, strCommentText, 0, encoding=encoding, ansi=ansi)
+	def _doreprtree(self, nest, elementno, presenter):
+		head = presenter.strBracketOpen() + presenter.strExclamation() + presenter.strCommentMarker()
+		tail = presenter.strCommentMarker() + presenter.strBracketClose()
+		return self._doreprtreeMultiLine(nest, elementno, head, tail, self._content.encode(presenter.encoding), presenter.strCommentText, 0, presenter)
 
 	def publish(self, publisher):
 		if publisher.inAttr:
@@ -1161,13 +1035,13 @@ class DocType(Node, StringMixIn):
 
 	compact = clone
 
-	def _dorepr(self, encoding=None, ansi=None):
-		return strBracketOpen(ansi) + strExclamation(ansi) + strDocTypeMarker(ansi) + " " + strDocTypeText(self._content, ansi) + strBracketClose(ansi)
+	def present(self, presenter):
+		presenter.presentDocType(self)
 
-	def _doreprtree(self, nest, elementno, encoding, ansi):
-		head = strBracketOpen(ansi) + strExclamation(ansi) + strDocTypeMarker(ansi) + " "
-		tail = strBracketClose(ansi)
-		return self._doreprtreeMultiLine(nest, elementno, head, tail, self._content, strDocTypeText, 0, encoding=encoding, ansi=ansi)
+	def _doreprtree(self, nest, elementno, presenter):
+		head = presenter.strBracketOpen() + presenter.strExclamation() + presenter.strDocTypeMarker() + " "
+		tail = presenter.strBracketClose()
+		return self._doreprtreeMultiLine(nest, elementno, head, tail, self._content.encode(presenter.encoding), presenter.strDocTypeText, 0, presenter)
 
 	def publish(self, publisher):
 		if publisher.inAttr:
@@ -1203,13 +1077,13 @@ class ProcInst(Node, StringMixIn):
 
 	compact = clone
 
-	def _dorepr(self, encoding=None, ansi=None):
-		return self._str(content=strQuestion(ansi) + strProcInstTarget(self._target, ansi) + " " + strProcInstData(self._content, ansi) + strQuestion(ansi), brackets=1, ansi=ansi)
+	def present(self, presenter):
+		presenter.presentProcInst(self)
 
-	def _doreprtree(self, nest, elementno, encoding=None, ansi=None):
-		head = strBracketOpen(ansi) + strQuestion(ansi) + strProcInstTarget(self._target, ansi) + " "
-		tail = strQuestion(ansi) + strBracketClose(ansi)
-		return self._doreprtreeMultiLine(nest, elementno, head, tail, self._content, strProcInstData, 1, ansi=ansi)
+	def _doreprtree(self, nest, elementno, presenter):
+		head = presenter.strBracketOpen() + presenter.strQuestion() + presenter.strProcInstTarget(self._target.encode(presenter.encoding)) + " "
+		tail = presenter.strQuestion() + presenter.strBracketClose()
+		return self._doreprtreeMultiLine(nest, elementno, head, tail, self._content.encode(presenter.encoding), presenter.strProcInstData, 1, presenter)
 
 	def publish(self, publisher):
 		if publisher.inAttr:
@@ -1234,7 +1108,7 @@ class PythonCode(ProcInst):
 		tail = strQuestion(ansi) + strBracketClose(ansi)
 		code = utils.Code(self._content, 1)
 		code.indent()
-		return self._doreprtreeMultiLine(nest, elementno, head, tail, code.asString(), strProcInstData, 1, ansi=ansi)
+		return self._doreprtreeMultiLine(nest, elementno, head, tail, code.asString().encode(encoding), strProcInstData, 1, presenter)
 
 class Exec(PythonCode):
 	"""
@@ -1465,31 +1339,23 @@ class Element(Node):
 						else:
 							self[attr] = size[attr==heightattr]
 
-	def _dorepr(self, encoding=None, ansi=None):
-		v = []
-		if self.empty:
-			v.append(self._str(content=self.__strattrs(ansi), brackets=1, slash=1, ansi=ansi))
-		else:
-			v.append(self._str(content=self.__strattrs(ansi), brackets=1, ansi=ansi))
-			for child in self:
-				v.append(child._dorepr(encoding, ansi))
-			v.append(self._str(brackets=1, slash=-1, ansi=ansi))
-		return "".join(v)
+	def present(self, presenter):
+		presenter.presentElement(self)
 
-	def _doreprtree(self, nest, elementno, encoding=None, ansi=None):
+	def _doreprtree(self, nest, elementno, presenter):
 		v = []
 		if self.empty:
-			v.append([nest, self.startloc, elementno, self._str(content=self.__strattrs(ansi), brackets=1, slash=1, ansi=ansi)])
+			v.append([nest, self.startloc, elementno, self._str(content=self.__strattrs(presenter), brackets=1, slash=1, ansi=presenter.ansi)])
 		else:
-			v.append([nest, self.startloc, elementno, self._str(content=self.__strattrs(ansi), brackets=1, ansi=ansi)])
+			v.append([nest, self.startloc, elementno, self._str(content=self.__strattrs(presenter), brackets=1, ansi=presenter.ansi)])
 			i = 0
 			for child in self:
-				v.extend(child._doreprtree(nest+1, elementno + [i], encoding, ansi))
+				v.extend(child._doreprtree(nest+1, elementno + [i], presenter))
 				i += 1
 			if self.startloc is None:
-				v.append([nest, self.startloc, elementno, self._str(brackets=1, slash=-1, ansi=ansi)])
+				v.append([nest, self.startloc, elementno, self._str(brackets=1, slash=-1, ansi=presenter.ansi)])
 			else:
-				v.append([nest, self.endloc, elementno, self._str(brackets=1, slash=-1, ansi=ansi)])
+				v.append([nest, self.endloc, elementno, self._str(brackets=1, slash=-1, ansi=presenter.ansi)])
 		return v
 
 	def publish(self, publisher):
@@ -1497,7 +1363,8 @@ class Element(Node):
 			raise errors.IllegalAttrNodeError(self.startloc, self)
 		publisher.publish(u"<")
 		if publisher.usePrefix==1:
-			publisher.publish(self.namespace.prefix, u":") # requires that the element is registered via registerElement()
+			publisher.publish(self.namespace.prefix) # requires that the element is registered via registerElement()
+			publisher.publish(u":")
 		publisher.publish(self.name) # requires that the element is registered via registerElement()
 		for attrname in self.attrs.keys():
 			publisher.publish(u" ")
@@ -1631,19 +1498,6 @@ class Element(Node):
 		"""
 		return len(self.content)
 
-	def __strattrs(self, ansi=None):
-		v = []
-		for attr in self.attrs.keys():
-			v.append(" ")
-			v.append(strAttrName(attr, ansi))
-			value = self[attr]
-			if len(value):
-				v.append('=')
-				v.append(strQuote(ansi=ansi))
-				v.append(value._dorepr(ansi=ansi))
-				v.append(strQuote(ansi=ansi))
-		return "".join(v)
-
 	def compact(self):
 		node = self.__class__()
 		node.content = self.content.compact()
@@ -1697,15 +1551,11 @@ class Entity(Node):
 	def asPlainString(self):
 		return unichr(self.codepoint)
 
-	def _dorepr(self, encoding=None, ansi=None):
-		s = "&"
-		if self.namespace.prefix != "":
-			s += strNamespace(self.namespace.prefix) + ":"
-		s += strEntityName(self.name) + ";"
-		return s
+	def present(self, presenter):
+		presenter.presentEntity(self)
 
-	def _doreprtree(self, nest, elementno, encoding=None, ansi=None):
-		return [[nest, self.startloc, elementno, self._dorepr(encoding=encoding, ansi=ansi)]]
+	def _doreprtree(self, nest, elementno, presenter):
+		return [[nest, self.startloc, elementno, self._dorepr(presenter)]]
 
 	def publish(self, publisher):
 		publisher.publish(u"&")
@@ -1734,11 +1584,11 @@ class Null(Node):
 	def publish(self, publisher):
 		pass
 
-	def _dorepr(self, encoding=None, ansi=None):
-		return self._str(slash=1, ansi=ansi)
+	def present(self, presenter):
+		presenter.presentNull(self)
 
-	def _doreprtree(self, nest, elementno, encoding=None, ansi=None):
-		return [[nest, self.startloc, elementno, self._dorepr(encoding=encoding, ansi=ansi)]]
+	def _doreprtree(self, nest, elementno, presenter):
+		return [[nest, self.startloc, elementno, self._dorepr(presenter)]]
 
 Null = Null() # Singleton, the Python way
 
@@ -1754,8 +1604,10 @@ class Attr(Frag):
 	a fragment consisting only of text and character references.</par>
 	"""
 
-	def _dorepr(self, encoding=None, ansi=None):
-		return strAttrValue(Frag._dorepr(self, encoding=encoding, ansi=0), ansi)
+	def present(self, presenter):
+		presenter.inAttr = 1
+		presenter.presentAttr(self)
+		presenter.inAttr = 0
 
 	def publish(self, publisher):
 		if publisher.inAttr:
@@ -1823,8 +1675,8 @@ class URLAttr(Attr):
 		attr = " %s=%s%s%s" % (strAttrName("base", ansi), strQuote(ansi=ansi), strURL(self.base.asString(), ansi=ansi), strQuote(ansi=ansi))
 		return Attr._str(self, content=attr, brackets=brackets, slash=slash, ansi=ansi)
 
-	def _dorepr(self, encoding=None, ansi=None):
-		return strURL(self.asString(), ansi=ansi)
+	def present(self, presenter):
+		presenter.presentURLAttr(self)
 
 	def publish(self, publisher):
 		Text(self.forOutput().asPlainString()).publish(publisher)

@@ -23,6 +23,14 @@ elements. All currently implemented elements and
 entities ignore this argument, but pass it on
 in the call to their childrens' asHTML method.
 
+There is now a tools dtd2xsc.py in the tools directory
+that creates a skeleton XIST module for a dtd
+(this requires xmlproc from the PyXML package).
+
+New preliminary module for DocBook 4.12.
+(Incomplete: asHTML methods and Unicode character
+entities are missing)
+
 New in 0.4.7
 ------------
 Fixed a bug in the entity handling.

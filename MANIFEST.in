@@ -1,6 +1,6 @@
 include ANNOUNCE
 include CHANGES
 include CREDITS
-include LICENSE
 include README
+include TODO
 recursive-include examples *
