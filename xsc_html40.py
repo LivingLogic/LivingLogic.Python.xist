@@ -31,14 +31,13 @@ class meta(XSCElement):
 	close = 0
 	attr_handlers = AppendDict(i18n,{ "http_equiv" : XSCFrag , "http-equiv" : XSCFrag , "name" : XSCFrag ,"content" : XSCFrag ,"scheme" : XSCFrag })
 
-	def _doAsHTML(self): # we have two names for one and the same attribute http_equiv and http-equiv
-		e = meta(self.content,self.attrs)
-		if e.has_attr["http_equiv"]:
-			if not e.has_attr["http-equiv"]:
-				e["http-equiv"] = e["http_equiv"]
-			del e["http_equiv"]
-
-		return e
+	def __init__(self,content = [],attrs = {},**restattrs):
+		# we have two names for one and the same attribute http_equiv and http-equiv
+		apply(XSCElement.__init__,(self,content,attrs),restattrs)
+		if self.has_attr("http_equiv"):
+			if not self.has_attr("http-equiv"):
+				self["http-equiv"] = self["http_equiv"]
+			del self["http_equiv"]
 RegisterElement("meta",meta)
 
 class body(XSCElement):
