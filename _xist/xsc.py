@@ -370,8 +370,8 @@ class Node:
 	# i.e. Node, Element etc. will never be registered
 	register = 1
 
-	def __repr__(self):
-		return self.repr(presenters.defaultPresenterClass())
+	#def __repr__(self):
+	#	return self.repr(presenters.defaultPresenterClass())
 
 	def _str(self, content=None, brackets=1, slash=None, ansi=None):
 		return _strNode(self.__class__, content, brackets, slash, ansi)
@@ -2091,8 +2091,10 @@ class Namespaces:
 		returns the first entity class for the codepoint number.
 		"""
 		for namespace in self.__allNamespaces():
-			if len(namespace.entitiesByNumber[number]):
+			try:
 				return namespace.entitiesByNumber[number][0]
+			except KeyError:
+				pass
 		return None
 
 # C0 Controls and Basic Latin
