@@ -1289,7 +1289,7 @@ Null = Null() # Singleton, the Python way
 
 class Attr(Frag):
 	r"""
-	<par>Base classes of all attribute classes.</par>
+	<par>Base class of all attribute classes.</par>
 
 	<par>The content of an attribute may be any other XSC node. This is different from
 	a normal &dom;, where only text and character references are allowed. The reason for
