@@ -1544,10 +1544,8 @@ class Entity(Node):
 
 	def find(self,type = None,subtype = 0,attrs = None,test = None,searchchildren = 0,searchattrs = 0):
 		node = Frag()
-		if searchattrs:
-			for attr in self.attrs.keys():
-				node.extend(self[attr].find(type,subtype,attrs,test,searchchildren,searchattrs))
-		node.extend(self.content.find(type,subtype,attrs,test,searchchildren,searchattrs))
+		if self._matches(type,subtype,attrs,test):
+			node.append(self)
 		return node
 
 class Null(Node):
