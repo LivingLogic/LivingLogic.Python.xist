@@ -1375,7 +1375,7 @@ class Element(Node):
 		else:
 			if XHTML is None:
 				XHTML = outputXHTML
-			if XHTML==0 or XHTML==1:
+			if XHTML in (0,1):
 				if self.empty:
 					if XHTML==1:
 						v.append(" /")
