@@ -1,17 +1,20 @@
 The following people were essential for the design and
 development of XIST:
 
-Guido van Rossum - for inventing a programming language
-	where programming is fun again.
+Guido van Rossum (guido@beopen.com)
+	for inventing a programming language where
+	programming is fun again.
 
-Fredrik Lundh - parsing is a dirty job, but somebody's gotta
+Fredrik Lundh (fredrik@effbot.org)
+	parsing is a dirty job, but somebody's gotta
 	do it. ;)
 
-Thomas Aglassinger - for hsc, which started it all.
+Thomas Aglassinger (agi@giga.or.at)
+	for hsc, which started it all.
 
-Hartmut Goebel - for testing, sending comments, bugfixes
-	and patches, and for the idea and first implementation
-	of cond.py.
+Hartmut Goebel (hartmut@goebel.noris.de)
+	for testing, sending comments, bugfixes and patches,
+	and for the idea and first implementation of cond.py.
 
-Neelakantan Krishnaswami - for Signature.py, which is used
-	in the doc example.
+Neelakantan Krishnaswami (neelk@alum.mit.edu)
+	for Signature.py, which is used in the doc example.
