@@ -1178,7 +1178,8 @@ for child in node/html.li:
 </prog>
 </example>
 
-<par>In an XFind expression <lit><rep>a</rep>/<rep>b</rep></lit>,
+<par>A XFind expression returns an iterator for certain parts of the &xml; tree.
+In an XFind expression <lit><rep>a</rep>/<rep>b</rep></lit>,
 <lit><rep>a</rep></lit> must be either a node or an iterator producing nodes
 (note that an XFind expression itself is such an iterator, so
 <lit><rep>a</rep></lit> itself might be a XFind expression).
