@@ -827,7 +827,7 @@ return a reversed or sorted version of an element or fragment:</par>
 &gt;&gt;&gt; from ll.xist import xsc
 &gt;&gt;&gt; from ll.xist.ns import html
 &gt;&gt;&gt; def sort(n1, n1):
-...    return cmp(unicode(n1), uncode(n2)
+...    return cmp(unicode(n1), uncode(n2))
 &gt;&gt;&gt; node = html.div(8,4,2,1,9,6,3,0,7,5)
 &gt;&gt;&gt; print node.sorted(sort). \
 ...    reversed().withsep(",").asBytes()
