@@ -1147,14 +1147,6 @@ def getdoc(cls, thing):
 					ref["class_"] = thing.im_class.__name__
 					if "method" not in ref.attrs:
 						ref["method"] = thing.__name__
-	elif isinstance(thing, __builtin__.property):
-		for ref in refs:
-			if "module" not in ref.attrs:
-				ref["module"] = cls._getmodulename(thing)
-				if "class_" not in ref.attrs:
-					ref["class_"] = thing.im_class.__name__
-					if "property" not in ref.attrs:
-						ref["property"] = thing.__name__
 	elif inspect.isfunction(thing):
 		for ref in refs:
 			if "module" not in ref.attrs:
