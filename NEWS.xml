@@ -21,7 +21,7 @@ now done with <method>ll.xist.publishers.Publisher.write</method>.</item>
 by calling: <lit>string = <rep>presenter</rep>.present(<rep>node</rep>)</lit>.</item>
 </ulist>
 
-<item>The classmethod <classmethod>tokenize</classmethod> from <module>ll.toxic</module>
+<item>The classmethod <method>tokenize</method> from <module>ll.toxic</module>
 has been moved to <class>ll.xist.xsc.Namespace</class>, so it's now possible
 to tokenize an &xml; string for other processing instructions as well.</item>
 
