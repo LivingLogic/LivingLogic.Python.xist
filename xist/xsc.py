@@ -1463,7 +1463,7 @@ class Element(Node):
 		for attr in self.attrs.keys():
 			publisher(u" ", attr)
 			value = self[attr]
-			if isinstance(self.attrHandlers[attr], BoolAttr):
+			if isinstance(value, BoolAttr):
 				if publisher.XHTML>0:
 					publisher(u'="')
 					value.publish(attr)
