@@ -920,20 +920,20 @@ class list_style_type(prop):
 	<par>Numbering systems are specified with:</par>
 	
 	<ulist>
-	<item><lit>decimal</lit>: Decimal numbers, beginning with 1.</item> 
+	<item><lit>decimal</lit>: Decimal numbers, beginning with 1.</item>
 	<item><lit>decimal-leading-zero</lit>: Decimal numbers padded by initial zeros
-	(e.g., 01, 02, 03, ..., 98, 99).</item> 
-	<item><lit>lower-roman</lit>: Lowercase roman numerals (i, ii, iii, iv, v, etc.).</item> 
-	<item><lit>upper-roman</lit>: Uppercase roman numerals (I, II, III, IV, V, etc.).</item>
+	(e.g., 01, 02, 03, ..., 98, 99).</item>
+	<item><lit>lower-roman</lit>: Lowercase roman numerals (&#x2170;, &#x2171;, &#x2172;, &#x2173;, &#x2174;, etc.).</item>
+	<item><lit>upper-roman</lit>: Uppercase roman numerals (&#x2160;, &#x2161;, &#x2162;, &#x2163;, &#x2164;, etc.).</item>
 	<item><lit>hebrew</lit>: Traditional Hebrew numbering.</item>
 	<item><lit>georgian</lit>: Traditional Georgian numbering
 	(an, ban, gan, ..., he, tan, in, in-an, ...).</item>
 	<item><lit>armenian</lit>: Traditional Armenian numbering.</item>
 	<item><lit>cjk-ideographic</lit>: Plain ideographic numbers.</item>
-	<item><lit>hiragana</lit>: a, i, u, e, o, ka, ki, ...</item>
-	<item><lit>katakana</lit>: A, I, U, E, O, KA, KI, ...</item>
-	<item><lit>hiragana-iroha</lit>: i, ro, ha, ni, ho, he, to, ...</item>
-	<item><lit>katakana-iroha</lit>: I, RO, HA, NI, HO, HE, TO, ...</item>
+	<item><lit>hiragana</lit>: a, i, u, e, o, ka, ki, ... (&#x3042;, &#x3044;, &#x3046;, &#x3048;, &#x304a;, &#x304b;, &#x304d;, ...)</item>
+	<item><lit>katakana</lit>: A, I, U, E, O, KA, KI, ... (&#x30a2;, &#x30a4;, &#x30a6;, &#x30a8;, &#x30aa;, &#x30ab;, &#x30ad;, ...)</item>
+	<item><lit>hiragana-iroha</lit>: i, ro, ha, ni, ho, he, to, ... (&#x3044;, &#x308d;, &#x306f;, &#x306b;, &#x307b;, &#x3078;, &#x3068;, ...)</item>
+	<item><lit>katakana-iroha</lit>: I, RO, HA, NI, HO, HE, TO, ... (&#x30a4;, &#x30ed;, &#x30cf;, &#x30cb;, &#x30db;, &#x30d8;, &#x30c8;, ...)</item>
 	</ulist>
 
 	<par>Alphabetic systems are specified with:</par>

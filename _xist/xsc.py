@@ -610,7 +610,7 @@ class Node(Base):
 		publisher = publishers.FilePublisher(stream, base=base, root=root, encoding=encoding, xhtml=xhtml, prefixes=prefixes, elementmode=elementmode, procinstmode=procinstmode, entitymode=entitymode)
 		return publisher.doPublication(self)
 
-	def _walk(self, filter, path, filterpath, walkpath):
+	def _walk(self, filter, path, filterpath, walkpath, skiproot):
 		"""
 		<par>Internal helper for <pyref method="walk"><method>walk</method></pyref>.</par>
 		"""
@@ -632,7 +632,7 @@ class Node(Base):
 				else:
 					yield self
 
-	def walk(self, filter=(True, entercontent), filterpath=False, walkpath=False):
+	def walk(self, filter=(True, entercontent), filterpath=False, walkpath=False, skiproot=False):
 		"""
 		<par>Return an iterator for traversing the tree rooted at <self/>.</par>
 
@@ -677,11 +677,14 @@ class Node(Base):
 
 		<par><arg>walkpath</arg> works similar to <arg>filterpath</arg> and specifies whether
 		the node or a path to the node will be yielded from the iterator.</par>
+
+		<par><arg>skiproot</arg> is only significant if <self/> is an element: If <arg>skiproot</arg> is true,
+		the element itself will always be skipped, i.e. iteration starts with the content of the element.</par>
 		"""
-		for object in self._walk(filter, [], filterpath, walkpath):
+		for object in self._walk(filter, [], filterpath, walkpath, skiproot):
 			yield object
 
-	def _visit(self, filter, path, filterpath, visitpath):
+	def _visit(self, filter, path, filterpath, visitpath, skiproot):
 		"""
 		<par>Internal helper for <pyref method="visit"><method>visit</method></pyref>.</par>
 		"""
@@ -703,7 +706,7 @@ class Node(Base):
 				else:
 					option(self)
 
-	def visit(self, filter, filterpath=False, visitpath=False):
+	def visit(self, filter, filterpath=False, visitpath=False, skiproot=False):
 		"""
 		<par>Iterate through the tree and call a user specifyable function for each visited node.</par>
 
@@ -713,24 +716,25 @@ class Node(Base):
 		the node (or a path to the node) must be yielded, <method>visit</method> expects callable objects
 		and will pass the node (or a path to the node, if <arg>visitpath</arg> is true) to those callable objects.</par>
 
-		<par>The <arg>filterpath</arg> argument has the same meaning as for <pyref method="walk"><method>walk</method></pyref>.</par>
+		<par>The <arg>filterpath</arg> and <arg>skiproot</arg> arguments have the same meaning as for
+		<pyref method="walk"><method>walk</method></pyref>.</par>
 		"""
-		self._visit(filter, [], filterpath, visitpath)
+		self._visit(filter, [], filterpath, visitpath, skiproot)
 
-	def find(self, filter=(True, entercontent), filterpath=False):
+	def find(self, filter=(True, entercontent), filterpath=False, skiproot=False):
 		"""
 		Return a <pyref class="Frag"><class>Frag</class></pyref> containing all nodes
 		found by the filter function <arg>filter</arg>. See <pyref method="walk"><method>walk</method></pyref>
 		for an explanation of the arguments.
 		"""
-		return Frag(list(self.walk(filter, filterpath, False)))
+		return Frag(list(self.walk(filter, filterpath, False, skiproot)))
 
-	def findfirst(self, filter=(True, entercontent), filterpath=False):
+	def findfirst(self, filter=(True, entercontent), filterpath=False, skiproot=False):
 		"""
 		Return the first node found by the filter function <arg>filter</arg>.
 		See <pyref method="walk"><method>walk</method></pyref> for an explanation of the arguments.
 		"""
-		iter = self.walk(filter, filterpath, False)
+		iter = self.walk(filter, filterpath, False, skiproot)
 		try:
 			return iter.next()
 		except StopIteration:
@@ -1176,14 +1180,14 @@ class Frag(Node, list):
 		other = Frag(*others)
 		list.__setslice__(self, index, index, other)
 
-	def _walk(self, filter, path, filterpath, walkpath):
+	def _walk(self, filter, path, filterpath, walkpath, skiproot):
 		for child in self:
-			for object in child._walk(filter, path, filterpath=filterpath, walkpath=walkpath):
+			for object in child._walk(filter, path, filterpath, walkpath, False):
 				yield object
 
-	def _visit(self, filter, path, filterpath, visitpath):
+	def _visit(self, filter, path, filterpath, visitpath, skiproot):
 		for child in self:
-			child._visit(filter, path, filterpath=filterpath, visitpath=visitpath)
+			child._visit(filter, path, filterpath, visitpath, False)
 
 	def compact(self):
 		node = self._create()
@@ -1526,7 +1530,7 @@ class Attr(Frag):
 			if value not in values:
 				errors.warn(errors.IllegalAttrValueWarning(self))
 
-	def _walk(self, filter, path, filterpath, walkpath):
+	def _walk(self, filter, path, filterpath, walkpath, skiproot):
 		if filterpath or walkpath:
 			path = path + [self]
 
@@ -1546,10 +1550,10 @@ class Attr(Frag):
 					else:
 						yield self
 			elif option == entercontent:
-				for object in Frag._walk(self, filter, path, filterpath, walkpath):
+				for object in Frag._walk(self, filter, path, filterpath, walkpath, False):
 					yield object
 
-	def _visit(self, filter, path, filterpath, visitpath):
+	def _visit(self, filter, path, filterpath, visitpath, skiproot):
 		if filterpath or visitpath:
 			path = path + [self]
 
@@ -1568,7 +1572,7 @@ class Attr(Frag):
 				else:
 					option(self)
 			elif option == entercontent:
-				super(Attr, self)._visit(filter, path, filterpath, visitpath)
+				super(Attr, self)._visit(filter, path, filterpath, visitpath, False)
 
 	def parsed(self, handler, start=None):
 		self.checkvalid()
@@ -1863,14 +1867,14 @@ class Attrs(Node, dict):
 			node[attrname] = convertedattr
 		return node
 
-	def _walk(self, filter, path, filterpath, walkpath):
+	def _walk(self, filter, path, filterpath, walkpath, skiproot):
 		for child in self.itervalues():
-			for object in child._walk(filter, path, filterpath, walkpath):
+			for object in child._walk(filter, path, filterpath, walkpath, False):
 				yield object
 
-	def _visit(self, filter, path, filterpath, visitpath):
+	def _visit(self, filter, path, filterpath, visitpath, skiproot):
 		for child in self.itervalues():
-			child._visit(filter, path, filterpath, visitpath)
+			child._visit(filter, path, filterpath, visitpath, False)
 
 	def present(self, presenter):
 		presenter.presentAttrs(self)
@@ -2623,54 +2627,61 @@ class Element(Node):
 		node.attrs = self.attrs.compact()
 		return self._decoratenode(node)
 
-	def _walk(self, filter, path, filterpath, walkpath):
+	def _walk(self, filter, path, filterpath, walkpath, skiproot):
 		if filterpath or walkpath:
 			path = path + [self]
 
-		if callable(filter):
-			if filterpath:
-				found = filter(path)
-			else:
-				found = filter(self)
+		if skiproot:
+			for object in self.content._walk(filter, path, filterpath, walkpath, False):
+				yield object
 		else:
-			found = filter
+			if callable(filter):
+				if filterpath:
+					found = filter(path)
+				else:
+					found = filter(self)
+			else:
+				found = filter
 
-		for option in found:
-			if isinstance(option, bool):
-				if option:
-					if walkpath:
-						yield path
-					else:
-						yield self
-			elif option == entercontent:
-				for object in self.content._walk(filter, path, filterpath=filterpath, walkpath=walkpath):
-					yield object
-			elif option == enterattrs:
-				for object in self.attrs._walk(filter, path, filterpath=filterpath, walkpath=walkpath):
-					yield object
+			for option in found:
+				if isinstance(option, bool):
+					if option:
+						if walkpath:
+							yield path
+						else:
+							yield self
+				elif option == entercontent:
+					for object in self.content._walk(filter, path, filterpath, walkpath, False):
+						yield object
+				elif option == enterattrs:
+					for object in self.attrs._walk(filter, path, filterpath, walkpath, False):
+						yield object
 
-	def _visit(self, filter, path, filterpath, visitpath):
+	def _visit(self, filter, path, filterpath, visitpath, skiproot):
 		if filterpath or visitpath:
 			path = path + [self]
 
-		if callable(filter):
-			if filterpath:
-				found = filter(path)
-			else:
-				found = filter(self)
+		if skiproot:
+			self.content._visit(filter, path, filterpath, visitpath, False)
 		else:
-			found = filter
-
-		for option in found:
-			if callable(option):
-				if visitpath:
-					option(path)
+			if callable(filter):
+				if filterpath:
+					found = filter(path)
 				else:
-					option(self)
-			elif option == entercontent:
-				self.content._visit(filter, path, filterpath, visitpath)
-			elif option == enterattrs:
-				self.attrs._visit(filter, path, filterpath, visitpath)
+					found = filter(self)
+			else:
+				found = filter
+
+			for option in found:
+				if callable(option):
+					if visitpath:
+						option(path)
+					else:
+						option(self)
+				elif option == entercontent:
+					self.content._visit(filter, path, filterpath, visitpath, False)
+				elif option == enterattrs:
+					self.attrs._visit(filter, path, filterpath, visitpath, False)
 
 	def copyDefaultAttrs(self, fromMapping):
 		"""

@@ -1,22 +1,33 @@
-<section><title>Migrating to version ???</title>
+<section><title>Migrating to version 2.2</title>
 
 <section><title>Attribute methods</title>
 
 <par>The <class>Element</class> methods for accessing attributes
 have been deprecated. So instead of <lit><rep>node</rep>.hasattr("<rep>attr</rep>")</lit>,
 you should use:</par>
+
 <programlisting>
 "<rep>attr</rep>" in <rep>node</rep>.attrs
 </programlisting>
+
 <par>The same holds for checking whether an attribute is allowed. You can use the following code:</par>
-<programlisting>"<rep>attr</rep>" in <rep>NodeClass</rep>.Attrs
+
+<programlisting>
+"<rep>attr</rep>" in <rep>node</rep>.Attrs
+</programlisting>
+
+<par>or:</par>
+
+<programlisting>
+"<rep>attr</rep>" in <rep>NodeClass</rep>.Attrs
 </programlisting>
 
 <par>Many <class>Attrs</class> methods have gained an additional parameter
-<arg>xml</arg>, which specifies, whether an attribute name should be
-treated as the &xml; or the Python name of the attribute. Make sure,
+<arg>xml</arg>, which specifies whether an attribute name should be
+treated as the &xml; or the Python name of the attribute. Make sure
 that you're not mixing up your arguments in the function call. The
 safest method for this is using keyword arguments, e.g.:</par>
+
 <programlisting>
 <rep>node</rep>.attr.get("<rep>attr</rep>", default=42)
 </programlisting>
@@ -39,6 +50,24 @@ from the encoding specified in the publisher.</par>
 or <lit>height</lit> attributes, so e.g. setting the width to twice the image size via
 <lit>width="2*%(width)s"</lit> no longer works. You have to implement your own
 version of <class>autoimg</class> if you need this.</par>
+
+</section>
+
+<section><title><method>find</method> changes</title>
+
+<par><method>find</method> has been completely rewritten to use the new tree traversal filters.
+For backwards compatibility a filter functor <class>ll.xist.xsc.FindOld</class> exists that
+takes the same arguments as the old <method>find</method> method. I.e. you can replace:</par>
+<programlisting>
+node.find(type=html.a, attr={"href": None, searchchildren=True)
+</programlisting>
+<par>with:</par>
+<programlisting>
+node.find(xsc.FindOld(type=html.a, attr={"href": None, searchchildren=True), skiproot=True)
+</programlisting>
+<par>But one minor difference remains: when <arg>skiproot</arg> is set to true in the new
+<method>find</method> method, the attributes of the root element will <em>not</em> be traversed.
+With the old method they would be traversed.</par>
 
 </section>
 

@@ -451,8 +451,8 @@ class XISTTest(unittest.TestCase):
 		else:
 			return ".".join(map(self.node2str, node))
 
-	def check_traverse(self, node, filter, result, filterpath=False, respath=False):
-		self.assertEqual(map(self.node2str, node.walk(filter, filterpath=filterpath, walkpath=respath)), result)
+	def check_traverse(self, node, filter, result, filterpath=False, respath=False, skiproot=False):
+		self.assertEqual(map(self.node2str, node.walk(filter, filterpath=filterpath, walkpath=respath, skiproot=skiproot)), result)
 
 		res = []
 
@@ -473,7 +473,7 @@ class XISTTest(unittest.TestCase):
 			def visit(self, node):
 				res.append(node)
 
-		node.visit(VisitFilter(filter), filterpath=filterpath, visitpath=respath)
+		node.visit(VisitFilter(filter), filterpath=filterpath, visitpath=respath, skiproot=skiproot)
 		self.assertEqual(map(self.node2str, res), result)
 
 	def test_traversal(self):
@@ -511,12 +511,19 @@ class XISTTest(unittest.TestCase):
 				return (xsc.entercontent, )
 
 		self.check_traverse(node, filtertopdown, ["div", "tr", "th", "td"])
+		self.check_traverse(node, filtertopdown, ["tr", "th", "td"], skiproot=True)
 		self.check_traverse(node, filterbottomup, ["th", "td", "tr", "div"])
+		self.check_traverse(node, filterbottomup, ["th", "td", "tr"], skiproot=True)
 		self.check_traverse(node, filtertopdownattrs, ["div", "i", "tr", "b", "th", "td"])
+		self.check_traverse(node, filtertopdownattrs, ["tr", "b", "th", "td"], skiproot=True)
 		self.check_traverse(node, filtertopdownattrs, ["div", "div.class.i", "div.tr", "div.tr.id.b", "div.tr.th", "div.tr.td"], respath=True)
+		self.check_traverse(node, filtertopdownattrs, ["div.tr", "div.tr.id.b", "div.tr.th", "div.tr.td"], respath=True, skiproot=True)
 		self.check_traverse(node, filterbottomupattrs, ["div.class.i", "div.tr.id.b", "div.tr.th", "div.tr.td", "div.tr", "div"], respath=True)
+		self.check_traverse(node, filterbottomupattrs, ["div.tr.id.b", "div.tr.th", "div.tr.td", "div.tr"], respath=True, skiproot=True)
 		self.check_traverse(node, filtertopdowntextonlyinattr, ["div", "div.class.i", "div.class.i.#", "div.tr", "div.tr.id.b", "div.tr.id.b.#", "div.tr.th", "div.tr.td"], filterpath=True, respath=True)
+		self.check_traverse(node, filtertopdowntextonlyinattr, ["div.tr", "div.tr.id.b", "div.tr.id.b.#", "div.tr.th", "div.tr.td"], filterpath=True, respath=True, skiproot=True)
 		self.check_traverse(node, filtertopdownattrwithoutcontent, ["div", "div.tr", "div.tr.th", "div.tr.th.#", "div.tr.td", "div.tr.td.#", "div.tr.id", "div.class"], respath=True)
+		self.check_traverse(node, filtertopdownattrwithoutcontent, ["div.tr", "div.tr.th", "div.tr.th.#", "div.tr.td", "div.tr.td.#", "div.tr.id"], respath=True, skiproot=True)
 
 	def test_walk(self):
 		node = self.createfrag()
