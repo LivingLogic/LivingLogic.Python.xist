@@ -10,13 +10,13 @@ class quotations(xsc.Element):
 	def asHTML(self):
 		header = html.head(
 			html.title("Python quotes"),
-			html.link(rel="stylesheet",href="python-quotes.css")
+			html.link(rel="stylesheet", href="python-quotes.css")
 		)
 
-		description = html.div("(Generated from ",html.a(url,href=url),")")
+		description = html.div("(Generated from ", html.a(url, href=url), ")")
 
 		# We want to get rid of the excessive whitespace
-		quotations = self.findNodes(type = quotation)
+		quotations = self.find(type = quotation)
 
 		e = xsc.Frag(
 			html.DocTypeHTML40transitional(),
@@ -36,7 +36,7 @@ class quotation(xsc.Element):
 	empty = 0
 
 	def asHTML(self):
-		e = html.div(self.content,Class="quotation")
+		e = html.div(self.content, class_="quotation")
 
 		return e.asHTML()
 
@@ -44,7 +44,7 @@ class source(xsc.Element):
 	empty = 0
 
 	def asHTML(self):
-		e = html.div(self.content,Class="source")
+		e = html.div(self.content, class_="source")
 
 		return e.asHTML()
 
@@ -64,11 +64,11 @@ class foreign(xsc.Element):
 
 		return e.asHTML()
 
-xsc.registerAllElements(vars(),"pq")
+namespace = xsc.Namespace("pq","http://starship.python.net/crew/amk/quotations/quotations.dtd",vars())
 
 if __name__ == "__main__":
 	e = xsc.xsc.parse(url)
-	e = e.findNodes(type = quotations)[0]
+	e = e.find(type = quotations)[0]
 	e = e.compact().asHTML()
 	print e.asString()
 
