@@ -46,7 +46,7 @@ class StringInputSource(InputSource):
 			defaultEncoding = "utf-8"
 			text = text.encode(defaultEncoding)
 		if tidy:
-			(nerrors, nwarnings, outputdata, error) = Tidy.tidy(text, numeric_entities=1, output_xhtml=1, output_xml=1, quiet=1, tidy_mark=0, wrap=0)
+			(nerrors, nwarnings, outputdata, errordata) = Tidy.tidy(text, numeric_entities=1, output_xhtml=1, output_xml=1, quiet=1, tidy_mark=0, wrap=0)
 			if nerrors>0:
 				raise saxlib.SAXParseException("can't tidy %r: %r" % (systemId, errordata))
 			text = outputdata
