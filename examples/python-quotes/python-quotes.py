@@ -7,7 +7,7 @@ url = "http://starship.python.net/crew/amk/quotations/python-quotes.xml"
 class quotations(xsc.Element):
 	empty = 0
 
-	def asHTML(self):
+	def asHTML(self, mode=None):
 		header = html.head(
 			html.title("Python quotes"),
 			html.link(rel="stylesheet", href="python-quotes.css")
@@ -16,7 +16,7 @@ class quotations(xsc.Element):
 		description = html.div("(Generated from ", html.a(url, href=url), ")")
 
 		# We want to get rid of the excessive whitespace
-		quotations = self.find(type = quotation)
+		quotations = self.find(type=quotation)
 
 		e = xsc.Frag(
 			html.DocTypeHTML401transitional(),
@@ -30,45 +30,45 @@ class quotations(xsc.Element):
 			)
 		)
 
-		return e.asHTML()
+		return e.asHTML(mode)
 
 class quotation(xsc.Element):
 	empty = 0
 
-	def asHTML(self):
+	def asHTML(self, mode=None):
 		e = html.div(self.content, class_="quotation")
 
-		return e.asHTML()
+		return e.asHTML(mode)
 
 class source(xsc.Element):
 	empty = 0
 
-	def asHTML(self):
+	def asHTML(self, mode=None):
 		e = html.div(self.content, class_="source")
 
-		return e.asHTML()
+		return e.asHTML(mode)
 
 class author(xsc.Element):
 	empty = 0
 
-	def asHTML(self):
+	def asHTML(self, mode=None):
 		e = self.content
 
-		return e.asHTML()
+		return e.asHTML(mode)
 
 class foreign(xsc.Element):
 	empty = 0
 
-	def asHTML(self):
+	def asHTML(self, mode=None):
 		e = html.em(self.content)
 
-		return e.asHTML()
+		return e.asHTML(mode)
 
 namespace = xsc.Namespace("pq","http://starship.python.net/crew/amk/quotations/quotations.dtd",vars())
 
 if __name__ == "__main__":
 	e = xsc.xsc.parse(url)
-	e = e.find(type = quotations)[0]
+	e = e.find(type=quotations)[0]
 	e = e.compact().asHTML()
 	print e.asString()
 
