@@ -435,5 +435,9 @@ class XSCnoscript(XSCElement):
 RegisterElement("noscript",XSCnoscript)
 
 if __name__ == "__main__":
-	print str(xsc_parsefile(sys.argv[1]))
+	try:
+		print str(xsc.arsefile(sys.argv[1]))
+	except XSCError,e:
+		print str(e)
+
 

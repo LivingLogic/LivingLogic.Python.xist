@@ -32,7 +32,7 @@ class XSCError(Exception):
 
 	def __str__(self):
 		if self.lineno>0:
-			return "XSC: error (line " + str(self.lineno) + "): " + str(xsc.nesting)
+			return "XSC: error (line " + str(self.lineno) + "): " + str(xsc.parser.nesting)
 		else:
 			return "XSC: error: "
 
