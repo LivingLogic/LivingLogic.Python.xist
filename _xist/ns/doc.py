@@ -314,7 +314,37 @@ class pyref(xsc.Element):
 def getDoc(thing):
 	if thing.__doc__ is None:
 		return xsc.Null
-	doc = inspect.getdoc(thing)
+	lines = thing.__doc__.split("\n")
+
+	# find first nonempty line
+	for i in xrange(len(lines)):
+		if lines[i] and not lines[i].isspace():
+			if i:
+				del lines[:i]
+			break
+
+	if len(lines):
+		# find starting white space of this line
+		startwhite = ""
+		for c in lines[0]:
+			if c.isspace():
+				startwhite += c
+			else:
+				break
+
+		# remove this whitespace from every line
+		for i in xrange(len(lines)):
+			if lines[i][:len(startwhite)] == startwhite:
+				lines[i] = lines[i][len(startwhite):]
+
+		# remove empty lines
+		while len(lines) and lines[0] == "":
+			del lines[0]
+		while len(lines) and lines[-1] == "":
+			del lines[-1]
+
+	doc = "\n".join(lines)
+
 	try:
 		node = parsers.parseString(doc)
 	except SystemExit, KeyboardInterrupt:
