@@ -46,7 +46,7 @@ class Converter:
 	are nested chapter/subchapter elements with automatic numbering. For an example see the element
 	<dbl:pyref module="xist.ns.docbooklite" class="section">section</dbl:pyref>.
 	"""
-	def __init__(self, mode=None, stage=None, target=None):
+	def __init__(self, mode=None, stage="deliver", target="html"):
 		self.mode = mode
 		self.stage = stage
 		self.target = target

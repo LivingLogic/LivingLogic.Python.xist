@@ -86,11 +86,10 @@ be found in <dbl:pyref module="xist.ns.html">xist.ns.html</dbl:pyref> for exampl
 __init__(self, *content, **attrs)
 </programlisting>
 Positional arguments (i.e. items in <parameter>content</parameter>)
-will be considered child nodes of the element node (except for dictionaries). 
-Keyword arguments (i.e. <parameter>attrs</parameter> and dictionaries from 
-the <parameter>content</parameter> parameter will be attributes. 
-You can pass most builtin types to such a constructor. Strings and integers will
-be automatically converted to <classname>Text</classname> objects.
+will be considered child nodes of the element node. Keyword arguments
+will be attributes. You can pass most builtin types to such a constructor.
+Strings and integers will be automatically converted to
+<pyref module="xist.xsc" class="Text">Text</pyref> objects.
 Constructing an &html; element works like this:
 <dbl:example title="The first example">
 <programlisting>
@@ -106,7 +105,7 @@ node = html.div(
 </dbl:para>
 
 <dbl:para>For attribute names that collide with Python keywords
-(most notably <markup>class</markup>) you can add an underscore to the
+(most notably <markup>class</markup>) you can append an underscore to the
 name:
 <dbl:example title="Colliding attribute names">
 <programlisting>
@@ -116,7 +115,7 @@ node = html.div(
 )
 </programlisting>
 </dbl:example>
-Any trailing underscore will be stripped off of an attribute name in the
+One trailing underscore will be stripped off of an attribute name in the
 element constructor.
 </dbl:para>
 </dbl:section>
@@ -126,14 +125,18 @@ element constructor.
 &xml; files. For this the module <dbl:pyref module="xist.parsers">xist.parsers</dbl:pyref>
 provides four functions:
 <programlisting>
-parseString(text, parser=None, namespaces=None)
-parseFile(filename, namespaces=None, parser=None)
-parseURL(url, namespaces=None, parser=None)
-parseTidyURL(url, namespaces=None, parser=None)
+parseString(text, parser=None,
+	namespaces=None, defaultEncoding="utf-8")
+parseFile(filename, parser=None,
+	namespaces=None, defaultEncoding="utf-8")
+parseURL(url, parser=None,
+	namespaces=None, defaultEncoding="utf-8")
+parseTidyURL(url, parser=None,
+	namespaces=None, defaultEncoding="utf-8")
 </programlisting>
 <dbl:pyref module="xist.parsers" function="parseString">parseString</dbl:pyref> is for parsing strings 
 (8bit and Unicode), <dbl:pyref module="xist.parsers" function="parseFile">parseFile</dbl:pyref> for 
-parsing files. <dbl:pyref module="xist.parsers" function="parseURL">parseURL</dbl:pyref>, allows to 
+parsing files. <dbl:pyref module="xist.parsers" function="parseURL">parseURL</dbl:pyref> allows to 
 parse remote files via <pyref module="urllib">urllib</pyref> and 
 <dbl:pyref module="xist.parsers" function="parseTidyURL">parseTidyURL</dbl:pyref> pipes remote files 
 through <application>tidy</application> before parsing the result. The argument 
@@ -141,10 +144,12 @@ through <application>tidy</application> before parsing the result. The argument
 specifies the parser to be used. Any SAX2 parser can be used. &xist; provides a
 SAX2 parser for <application>sgmlop</application> named 
 <dbl:pyref module="xist.parsers" class="SGMLOPParser">SGMLOPParser</dbl:pyref> (which
-is the default if no argument is given).</dbl:para>
+is the default if no argument is given) and an &html; parser named
+<dbl:pyref module="xist.parsers" class="HTMLParser">HTMLParser</dbl:pyref>, that
+tries to make sense of &html; sources.</dbl:para>
 
-<dbl:para>All four function call
-<dbl:pyref module="xist.parsers" function="parse">parse(source, parser, namespaces)</dbl:pyref>
+<dbl:para>All four functions call
+<dbl:pyref module="xist.parsers" function="parse">parse(source, parser=None, namespaces=None)</dbl:pyref>
 internally and pass an appropriate <dbl:pyref module="xist.parsers" function="parse" arg="source">source</dbl:pyref> argument,
 which is a standard &sax; <dbl:pyref module="xml.sax.xmlreader" class="InputSource">InputSource</dbl:pyref>
 object.</dbl:para>
@@ -183,12 +188,14 @@ This gives the same object tree as
 <dbl:programlisting>
 node = html.b("Python", " is cool!")
 </dbl:programlisting>
-<dbl:pyref module="xist.xsc" class="Node" method="conv">conv</dbl:pyref> is a convenience
-method that creates a default converter for you.
+(<dbl:pyref module="xist.xsc" class="Node" method="conv">conv</dbl:pyref> simply
+calls
+<dbl:pyref module="xist.xsc" class="Node" method="convert">convert</dbl:pyref>
+with an argument. We'll come to converters in a minute.)
 </dbl:para>
-</dbl:section>
 
-<dbl:para>Note that it is vital, that you recursively call 
+<dbl:para>Note that it is vital for your own <pyref method="convert">convert</pyref>
+methods, that you recursively call
 <pyref module="xist.xsc" class="Node" method="convert">convert</pyref>
 on you own content, because otherwise some unconverted nodes
 might remain in the tree:
@@ -202,7 +209,7 @@ class python(xsc.Element):
 Now the following code:
 <dbl:programlisting>
 node = cool(python())
-node = node.convert()
+node = node.conv()
 </dbl:programlisting>
 gives a tree equivalent to
 <dbl:programlisting>
@@ -211,8 +218,86 @@ node = html.b(
 	" is cool!"
 )
 </dbl:programlisting>
+but it would give something like:
+<dbl:programlisting>
+node = html.b(
+	python(),
+	" is cool!"
+)
+</dbl:programlisting>
+if the element <pyref class="cool">cool</pyref> was written like this:
+<dbl:programlisting>
+class cool(xsc.Element):
+	empty = 0
+
+	def convert(self, converter):
+		return html.b(self.content, " is cool!")
+</dbl:programlisting>
 </dbl:para>
 
+<dbl:section><dbl:title>Converters</dbl:title>
+<dbl:para><dbl:pyref module="xist.xsc" class="Node" method="conv">conv</dbl:pyref> is a convenience
+method that creates a default converter for you. You could also call the method
+<dbl:pyref module="xist.xsc" class="Node" method="convert">convert</dbl:pyref> itself,
+which would look like this:
+<dbl:programlisting>
+from xist import converters
+
+node = cool(python())
+node = node.convert(
+	converters.Converter(None, "deliver", "html"))
+</dbl:programlisting>
+You can pass the following three arguments to the
+<dbl:pyref module="xist.converters" class="Converter">Converter</dbl:pyref> constructor
+<ul>
+<li><dbl:pyref module="xist.converters" class="Converter" method="__init__" arg="mode">mode</dbl:pyref>
+(which defaults to <code>None</code>) works the same way as modes in &xslt;. You can use this
+for implementing different conversion modes.</li>
+<li><dbl:pyref module="xist.converters" class="Converter" method="__init__" arg="stage">stage</dbl:pyref>
+(which defaults to <code>"deliver"</code>) allows you to implement multi stage conversion:
+Suppose that you want to deliver a dynamically constructed web page with &xist; that contains
+results from a database query and the current time. The data in the database changes
+infrequently, so it doesn't make sense to do the query on every request. The query is done
+every few minutes and the resulting &html; tree is stored in the servlet
+(using any of the available Python servlet technologies). For this conversion the
+<dbl:pyref module="xist.converters" class="Converter" method="__init__" arg="stage">stage</dbl:pyref>
+would be <code>"cache"</code> and your database &xml; element would do the
+query when <code><dbl:pyref module="xist.converters" class="Converter" method="__init__" arg="stage">stage</dbl:pyref>=="cache"</code>.
+Your time display element would do the conversion when
+<code><dbl:pyref module="xist.converters" class="Converter" method="__init__" arg="stage">stage</dbl:pyref>=="deliver"</code>
+and simply returns itself when 
+<code><dbl:pyref module="xist.converters" class="Converter" method="__init__" arg="stage">stage</dbl:pyref>=="cache"</code>,
+so it would still be part of the cached &dom; tree and would be converted to &html; on every request.</li>
+<li><dbl:pyref module="xist.converters" class="Converter" method="__init__" arg="target">target</dbl:pyref>
+(which defaults to <code>html</code>) specifies what the output should be. Values could
+e.g. be <code>"html"</code>, <code>"wml"</code> or <code>"docbook"</code>.</li>
+</ul>
+None of the currently implemented elements use this information yet, but you are
+free to use it in your own classes.
+</dbl:para>
+</dbl:section>
+
+<dbl:section><dbl:title>Specifying content model and attributes</dbl:title>
+</dbl:section>
+
+<dbl:section><dbl:title>Namespace objects</dbl:title>
+<dbl:para>So how does the parser know which classes to
+instantiate?</dbl:para>
+To be able to use your own classes in XML files, you have
+to tell the parser about them. This is done with
+namespace objects (see the docstring for the Namespace class).
+What you have to do is construct a namespace object for all the
+elements in your module:
+<example>
+<programlisting>
+namespace = xsc.Namespace(
+	"foo",
+	"http://www.foo.net/dtd/foo.dtd",
+	vars()
+)
+</programlisting>
+</example>
+</dbl:section>
 This object can be converted to a printable unicode string with
 the method asString():
 	print e.asString()
@@ -236,20 +321,6 @@ The class variable empty in the above example specifies
 that the element type has an empty content model (like 
 <markup>&lt;br/&gt;</markup> or <markup>&lt;img/&gt;</markup>).
 
-To be able to use your own classes in XML files, you have
-to tell the parser about them. This is done with
-namespace objects (see the docstring for the Namespace class).
-What you have to do is construct a namespace object for all the
-elements in your module:
-<example>
-<programlisting>
-namespace = xsc.Namespace(
-	"foo",
-	"http://www.foo.net/dtd/foo.dtd",
-	vars()
-)
-</programlisting>
-</example>
 
 URLs, path markers and the URL stack
 ====================================
