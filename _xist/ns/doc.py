@@ -667,7 +667,7 @@ class section(block):
 			tattrs = fo.block.Attrs(
 				font_family=context.hdfont,
 				color=context.llblue,
-				text_align=u"center",
+				text_align=u"left",
 				font_size=u"36pt",
 				space_after=u"30pt",
 				keep_with_next_within_page=u"always",
