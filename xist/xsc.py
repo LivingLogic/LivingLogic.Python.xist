@@ -1011,6 +1011,17 @@ class Frag(Node):
 		if not isinstance(newother,Null):
 			self.__content.insert(index,newother)
 
+	def extend(self,other):
+		"""
+		appends the items in the other object to the fragment.
+		"""
+		newother = ToNode(other)
+		if isinstance(newother,Frag):
+			for child in newother:
+				self.__content.append(child)
+		elif not isinstance(newother,Null):
+			self.__content.append(newother)
+
 	def nodes(self,type = None,subtype = 0,children = 0,attrs = 0):
 		e = Frag()
 		for child in self:
