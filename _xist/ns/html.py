@@ -209,9 +209,9 @@ class meta(xsc.Element):
 		class scheme(xsc.TextAttr): pass
 
 	def publish(self, publisher):
-		if self.attrs.has("http_equiv"):
+		if "http_equiv" in self.attrs:
 			ctype = unicode(self["http_equiv"]).lower()
-			if ctype == u"content-type" and self.attrs.has("content"):
+			if ctype == u"content-type" and "content" in self.attrs:
 				(contenttype, options) = cgi.parse_header(unicode(self["content"]))
 				if u"charset" not in options or options[u"charset"] != publisher.encoding:
 					options[u"charset"] = publisher.encoding
