@@ -267,7 +267,7 @@ class pyref(xsc.Element):
 			elif class_ is not None:
 				e = html.code(e, class_="pyclass")
 				if module is not None:
-					e = html.a(e, href=(self.base, ".html#", class_))
+					e = html.a(e, href=(self.base, module, ".html#", class_))
 			elif module is not None:
 				e = html.code(e, class_="pymodule")
 				e = html.a(e, href=(self.base, module, ".html"))
