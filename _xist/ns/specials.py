@@ -317,6 +317,17 @@ class wrap(xsc.Element):
 	def convert(self, converter):
 		return self.content.convert(converter)
 
+class javascript(xsc.Element):
+	"""
+	<par noindent>can be used for javascript.</par>
+	"""
+	empty = 0
+	attrHandlers = {"href": xsc.TextAttr}
+
+	def convert(self, converter):
+		e = html.script(self.content, language="javascript", type="text/javascript", src=self["href"])
+		return e.convert(converter)
+
 # Control characters (not part of HTML)
 class lf(xsc.CharRef): "line feed"; codepoint = 10
 class cr(xsc.CharRef): "carriage return"; codepoint = 13

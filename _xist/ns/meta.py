@@ -145,18 +145,6 @@ class author(xsc.Element):
 			e.append(html.link(rel="made", href=("mailto:", self["email"])))
 		return e.convert(converter)
 
-class javascript(xsc.Element):
-	"""
-	<par noindent>can be used to embed a reference to an external javascript file
-	in the page header</par>
-	"""
-	empty = 0
-	attrHandlers = {"href": xsc.TextAttr}
-
-	def convert(self, converter):
-		e = html.script(self.content, language="javascript", type="text/javascript", src=self["href"])
-		return e.convert(converter)
-
 class refresh(xsc.Element):
 	"""
 	<par noindent> a refresh header.</par>
