@@ -1263,28 +1263,51 @@ class ColorAttr(Attr):
 		return ColorAttr(self.content.asHTML())
 
 class _URL:
-	def __init__(self,url = None,scheme = None,server = None,path = None,parameters = None,query = None,fragment = None):
-		if url is not None:
-			(self.scheme,self.server,self.path,self.parameters,self.query,self.fragment) = urlparse.urlparse(url)
-			self.path = string.split(self.path,"/")
-			if self.scheme == "" and self.server == "": # do we have a local file?
-				if len(self.path) and not len(self.path[0]): # this is a server relative URL
-					del self.path[0] # drop the empty string in front of the first "/" ...
-					self.scheme = "server" # ... and use a special scheme for that
-				elif len(self.path) and len(self.path[0]) and self.path[0][0] == ":": # project relative, i.e. relative to the current directory
-					self.path[0] = self.path[0][1:] # drop of the ":" ...
-					self.scheme = "project" # special scheme name
+	def __init__(self,url = None,scheme = None,server = None,path = None,parameters = None,query = None,fragment = None,forceproject = 0):
+		if type(url) == types.StringType:
+			self.__fromString(url)
+		elif type(url) == types.InstanceType:
+			if isinstance(url,URLAttr):
+				self.__fromString(str(url))
+			elif isinstance(url,_URL):
+				self.scheme     = url.scheme
+				self.server     = url.server
+				self.path       = url.path[:]
+				self.parameters = url.parameters
+				self.query      = url.query
+				self.fragment   = url.fragment
 			else:
-				if self.scheme == "http":
-					del self.path[0] # if we had a http, the path from urlparse started with "/" too
-		else:
-			self.scheme     = scheme
-			self.server     = server
-			self.path       = path[:]
+				raise "Nix"
+
+		if scheme is not None:
+			self.scheme = scheme
+		if server is not None:
+			self.server = server
+		if path is not None:
+			self.path = path[:]
+		if parameters is not None:
 			self.parameters = parameters
-			self.query      = query
-			self.fragment   = fragment
+		if query is not None:
+			self.query = query
+		if fragment is not None:
+			self.fragment = fragment
+		if forceproject and self.scheme == "":
+			self.scheme = "project"
 		self.__optimize()
+
+	def __fromString(self,url):
+		(self.scheme,self.server,self.path,self.parameters,self.query,self.fragment) = urlparse.urlparse(url)
+		self.path = string.split(self.path,"/")
+		if self.scheme == "" and self.server == "": # do we have a local file?
+			if len(self.path) and not len(self.path[0]): # this is a server relative URL
+				del self.path[0] # drop the empty string in front of the first "/" ...
+				self.scheme = "server" # ... and use a special scheme for that
+			elif len(self.path) and len(self.path[0]) and self.path[0][0] == ":": # project relative, i.e. relative to the current directory
+				self.path[0] = self.path[0][1:] # drop of the ":" ...
+				self.scheme = "project" # special scheme name
+		else:
+			if self.scheme == "http":
+				del self.path[0] # if we had a http, the path from urlparse started with "/" too
 
 	def __repr__(self):
 		sep = "/" # use the normal URL separator by default
@@ -1300,27 +1323,32 @@ class _URL:
 
 	def __str__(self):
 		path = self.path[:]
-		if self.scheme == "project":
+		scheme = self.scheme
+		if scheme == "project":
 			scheme = "" # remove our own private scheme name
 		elif scheme == "server":
 			scheme = "" # remove our own private scheme name
-			path[:0] = [ "" ]
+			path[:0] = [ "" ] # make sure that there's a "/" at the start
 		return urlparse.urlunparse((scheme,self.server,string.join(path,"/"),self.parameters,self.query,self.fragment))
 
 	def __add__(self,other):
 		new = self.clone()
-		if other.scheme == "":
-			new.path[-1:]  = other.path[:]
-			new.parameters = other.parameters
-			new.query      = other.query
-			new.fragment   = other.fragment
-		elif other.scheme == "project" or other.scheme=="server":
-			new.path       = other.path[:]
-			new.parameters = other.parameters
-			new.query      = other.query
-			new.fragment   = other.fragment
-		else: # URL to be joined is absolute, so we the second URL
-			return other.clone()
+		newother = _URL(other)
+		
+		if newother.scheme == "":
+			new.path[-1:]  = newother.path[:]
+			new.parameters = newother.parameters
+			new.query      = newother.query
+			new.fragment   = newother.fragment
+		elif newother.scheme == "project" or newother.scheme == "server":
+			if new.scheme == "project": # if we were project relative, and the other one was server relative ...
+				new.scheme = newother.scheme # ... then now we're server relative too
+			new.path       = newother.path[:]
+			new.parameters = newother.parameters
+			new.query      = newother.query
+			new.fragment   = newother.fragment
+		else: # URL to be joined is absolute, so we return the second URL
+			return newother
 		new.__optimize()
 		return new
 
@@ -1328,10 +1356,25 @@ class _URL:
 		return _URL(scheme = self.scheme,server = self.server,path = self.path,parameters = self.parameters,query = self.query,fragment = self.fragment)
 		
 	def relativeTo(self,other):
-		if self.scheme != "" and self.scheme != "project":
-			return self.clone()
+		"""
+		returns this URL relative to another.
+		
+		note that remote URLs won't be modified in any way,
+		because although the file you read is remote, the
+		parsed XSC file that you output, isn't.
+		"""
+		newother = _URL(other)
+		new = newother+self
+		if new.scheme == "project":
+			otherpath = newother.path[:]
+			while len(otherpath)>1 and len(new.path)>1 and otherpath[0]==new.path[0]: # throw away identical directories in both paths (we don't have to go up from file and down to path for these identical directories)
+				del otherpath[0]
+				del new.path[0]
+			new.path[:0] = [".."]*(len(otherpath)-1) # now for the rest of the path we have to go up from file and down to path (the directories for this are still in path)
+			new.scheme = ""
+			return new
 		else:
-			pass
+			return new
 
 	def __optimize(self):
 		# optimize the path by removing combinations of down/up
@@ -1370,12 +1413,8 @@ class URLAttr(Attr):
 
 	repransiurl = "32"
 
-	def __make(self):
-		url = _URL(str(self.content))
-		return (url.scheme,url.server,url.path,url.parameters,url.query,url.fragment)
-
 	def _dorepr(self):
-		return repr(_URL(str(self.content)))
+		return repr(_URL(self))
 
 	def _doreprtree(self,nest,elementno):
 		return [[nest,self.startlineno,elementno,self._dorepr()]]
@@ -1387,48 +1426,18 @@ class URLAttr(Attr):
 		return URLAttr(self.content.asHTML())
 
 	def forInput(self):
-		(scheme,server,path,parameters,query,fragment) = self.__make()
-		path = path[:]
-		sep = "/" # use the normal URL separator by default
-		if scheme == "server":
-			scheme = "http"
-			server = xsc.server
-		elif scheme == "project" or scheme == "":
-			file = xsc.filename[-1].path[:]
-			if scheme == "project": # make the path relative to the directory of the file
-				path[:0] = [".."] * (len(file)-1) # go up from the file directory to the current directory
-				# now we have an URL that is relative to the file directory
-			path[:0] = file[:-1] # make it relative to the current directory by adding the directories of file
-			# now optimize the path by removing combinations of down/up
-			while 1:
-				for i in xrange(len(path)):
-					if path[i]==".." and i>0 and path[i-1]!="..": # found a down/up
-						del path[i-1:i+1] # remove it
-						break # restart the search
-				else: # no down/up found
-					break
-			# replace URL syntax with the path syntax on our system (won't do anything under UNIX, replaces / with  \ under Windows)
-			for i in range(len(path)):
-				if path[i] == "..":
-					path[i] = os.pardir
-			sep = os.sep # we have a local file, so we should use the local directory separator instead
-			scheme = "" # remove our own private scheme name
-		return urlparse.urlunparse((scheme,server,string.join(path,sep),parameters,query,fragment))
+		url = _URL(self)
+		if url.scheme == "server":
+			url = url.relativeTo(_URL(scheme = "http",server = xsc.server))
+		return str(url)
 
 	def forOutput(self):
-		(scheme,server,path,parameters,query,fragment) = self.__make()
-		path = path[:]
-		if scheme == "project":
-			file = xsc.filename[-1].path[:]
-			while len(file)>1 and len(path)>1 and file[0]==path[0]: # throw away identical directories in both paths (we don't have to go up from file and down to path for these identical directories
-				del file[0]
-				del path[0]
-			path[:0] = [".."]*(len(file)-1) # now for the rest of the path we have to go up from file and down to path (the directories for this are still in path)
-			scheme = "" # remove our own private scheme name
-		elif scheme == "server":
-			scheme = ""
-			path[:0] = [ "" ]
-		return urlparse.urlunparse((scheme,server,string.join(path,"/"),parameters,query,fragment))
+		url = _URL(self)
+		if url.scheme == "server":
+			url = url.relativeTo(_URL(scheme = "http",server = xsc.server))
+		else:
+			url = url.relativeTo(filename[-1])
+		return str(url)
 
 	def ImageSize(self):
 		"""
@@ -1566,291 +1575,15 @@ def registerEntity(name,value):
 		Parser.entitiesByNumber[newvalue.content].append(name)
 	Parser.entitiesByName[name] = newvalue
 
-registerEntity("lf",CharRef(10)) # line feed
-registerEntity("cr",CharRef(13)) # carriage return
-registerEntity("tab",CharRef(9)) # horizontal tab
-registerEntity("esc",CharRef(27)) # escape
-
-# Latin 1 characters
-registerEntity("nbsp",CharRef(160)) # no-break space = non-breaking space, U+00A0 ISOnum
-registerEntity("iexcl",CharRef(161)) # inverted exclamation mark, U+00A1 ISOnum
-registerEntity("cent",CharRef(162)) # cent sign, U+00A2 ISOnum
-registerEntity("pound",CharRef(163)) # pound sign, U+00A3 ISOnum
-registerEntity("curren",CharRef(164)) # currency sign, U+00A4 ISOnum
-registerEntity("yen",CharRef(165)) # yen sign = yuan sign, U+00A5 ISOnum
-registerEntity("brvbar",CharRef(166)) # broken bar = broken vertical bar, U+00A6 ISOnum
-registerEntity("sect",CharRef(167)) # section sign, U+00A7 ISOnum
-registerEntity("uml",CharRef(168)) # diaeresis = spacing diaeresis, U+00A8 ISOdia
-registerEntity("copy",CharRef(169)) # copyright sign, U+00A9 ISOnum
-registerEntity("ordf",CharRef(170)) # feminine ordinal indicator, U+00AA ISOnum
-registerEntity("laquo",CharRef(171)) # left-pointing double angle quotation mark = left pointing guillemet, U+00AB ISOnum
-registerEntity("not",CharRef(172)) # not sign, U+00AC ISOnum
-registerEntity("shy",CharRef(173)) # soft hyphen = discretionary hyphen, U+00AD ISOnum
-registerEntity("reg",CharRef(174)) # registered sign = registered trade mark sign, U+00AE ISOnum
-registerEntity("macr",CharRef(175)) # macron = spacing macron = overline = APL overbar, U+00AF ISOdia
-registerEntity("deg",CharRef(176)) # degree sign, U+00B0 ISOnum
-registerEntity("plusmn",CharRef(177)) # plus-minus sign = plus-or-minus sign, U+00B1 ISOnum
-registerEntity("sup2",CharRef(178)) # superscript two = superscript digit two = squared, U+00B2 ISOnum
-registerEntity("sup3",CharRef(179)) # superscript three = superscript digit three = cubed, U+00B3 ISOnum
-registerEntity("acute",CharRef(180)) # acute accent = spacing acute, U+00B4 ISOdia
-registerEntity("micro",CharRef(181)) # micro sign, U+00B5 ISOnum
-registerEntity("para",CharRef(182)) # pilcrow sign = paragraph sign, U+00B6 ISOnum
-registerEntity("middot",CharRef(183)) # middle dot = Georgian comma = Greek middle dot, U+00B7 ISOnum
-registerEntity("cedil",CharRef(184)) # cedilla = spacing cedilla, U+00B8 ISOdia
-registerEntity("sup1",CharRef(185)) # superscript one = superscript digit one, U+00B9 ISOnum
-registerEntity("ordm",CharRef(186)) # masculine ordinal indicator, U+00BA ISOnum
-registerEntity("raquo",CharRef(187)) # right-pointing double angle quotation mark = right pointing guillemet, U+00BB ISOnum
-registerEntity("frac14",CharRef(188)) # vulgar fraction one quarter = fraction one quarter, U+00BC ISOnum
-registerEntity("frac12",CharRef(189)) # vulgar fraction one half = fraction one half, U+00BD ISOnum
-registerEntity("frac34",CharRef(190)) # vulgar fraction three quarters = fraction three quarters, U+00BE ISOnum
-registerEntity("iquest",CharRef(191)) # inverted question mark = turned question mark, U+00BF ISOnum
-registerEntity("Agrave",CharRef(192)) # latin capital letter A with grave = latin capital letter A grave, U+00C0 ISOlat1
-registerEntity("Aacute",CharRef(193)) # latin capital letter A with acute, U+00C1 ISOlat1
-registerEntity("Acirc",CharRef(194)) # latin capital letter A with circumflex, U+00C2 ISOlat1
-registerEntity("Atilde",CharRef(195)) # latin capital letter A with tilde, U+00C3 ISOlat1
-registerEntity("Auml",CharRef(196)) # latin capital letter A with diaeresis, U+00C4 ISOlat1
-registerEntity("Aring",CharRef(197)) # latin capital letter A with ring above = latin capital letter A ring, U+00C5 ISOlat1
-registerEntity("AElig",CharRef(198)) # latin capital letter AE = latin capital ligature AE, U+00C6 ISOlat1
-registerEntity("Ccedil",CharRef(199)) # latin capital letter C with cedilla, U+00C7 ISOlat1
-registerEntity("Egrave",CharRef(200)) # latin capital letter E with grave, U+00C8 ISOlat1
-registerEntity("Eacute",CharRef(201)) # latin capital letter E with acute, U+00C9 ISOlat1
-registerEntity("Ecirc",CharRef(202)) # latin capital letter E with circumflex, U+00CA ISOlat1
-registerEntity("Euml",CharRef(203)) # latin capital letter E with diaeresis, U+00CB ISOlat1
-registerEntity("Igrave",CharRef(204)) # latin capital letter I with grave, U+00CC ISOlat1
-registerEntity("Iacute",CharRef(205)) # latin capital letter I with acute, U+00CD ISOlat1
-registerEntity("Icirc",CharRef(206)) # latin capital letter I with circumflex, U+00CE ISOlat1
-registerEntity("Iuml",CharRef(207)) # latin capital letter I with diaeresis, U+00CF ISOlat1
-registerEntity("ETH",CharRef(208)) # latin capital letter ETH, U+00D0 ISOlat1
-registerEntity("Ntilde",CharRef(209)) # latin capital letter N with tilde, U+00D1 ISOlat1
-registerEntity("Ograve",CharRef(210)) # latin capital letter O with grave, U+00D2 ISOlat1
-registerEntity("Oacute",CharRef(211)) # latin capital letter O with acute, U+00D3 ISOlat1
-registerEntity("Ocirc",CharRef(212)) # latin capital letter O with circumflex, U+00D4 ISOlat1
-registerEntity("Otilde",CharRef(213)) # latin capital letter O with tilde, U+00D5 ISOlat1
-registerEntity("Ouml",CharRef(214)) # latin capital letter O with diaeresis, U+00D6 ISOlat1
-registerEntity("times",CharRef(215)) # multiplication sign, U+00D7 ISOnum
-registerEntity("Oslash",CharRef(216)) # latin capital letter O with stroke = latin capital letter O slash, U+00D8 ISOlat1
-registerEntity("Ugrave",CharRef(217)) # latin capital letter U with grave, U+00D9 ISOlat1
-registerEntity("Uacute",CharRef(218)) # latin capital letter U with acute, U+00DA ISOlat1
-registerEntity("Ucirc",CharRef(219)) # latin capital letter U with circumflex, U+00DB ISOlat1
-registerEntity("Uuml",CharRef(220)) # latin capital letter U with diaeresis, U+00DC ISOlat1
-registerEntity("Yacute",CharRef(221)) # latin capital letter Y with acute, U+00DD ISOlat1
-registerEntity("THORN",CharRef(222)) # latin capital letter THORN, U+00DE ISOlat1
-registerEntity("szlig",CharRef(223)) # latin small letter sharp s = ess-zed, U+00DF ISOlat1
-registerEntity("agrave",CharRef(224)) # latin small letter a with grave = latin small letter a grave, U+00E0 ISOlat1
-registerEntity("aacute",CharRef(225)) # latin small letter a with acute, U+00E1 ISOlat1
-registerEntity("acirc",CharRef(226)) # latin small letter a with circumflex, U+00E2 ISOlat1
-registerEntity("atilde",CharRef(227)) # latin small letter a with tilde, U+00E3 ISOlat1
-registerEntity("auml",CharRef(228)) # latin small letter a with diaeresis, U+00E4 ISOlat1
-registerEntity("aring",CharRef(229)) # latin small letter a with ring above = latin small letter a ring, U+00E5 ISOlat1
-registerEntity("aelig",CharRef(230)) # latin small letter ae = latin small ligature ae, U+00E6 ISOlat1
-registerEntity("ccedil",CharRef(231)) # latin small letter c with cedilla, U+00E7 ISOlat1
-registerEntity("egrave",CharRef(232)) # latin small letter e with grave, U+00E8 ISOlat1
-registerEntity("eacute",CharRef(233)) # latin small letter e with acute, U+00E9 ISOlat1
-registerEntity("ecirc",CharRef(234)) # latin small letter e with circumflex, U+00EA ISOlat1
-registerEntity("euml",CharRef(235)) # latin small letter e with diaeresis, U+00EB ISOlat1
-registerEntity("igrave",CharRef(236)) # latin small letter i with grave, U+00EC ISOlat1
-registerEntity("iacute",CharRef(237)) # latin small letter i with acute, U+00ED ISOlat1
-registerEntity("icirc",CharRef(238)) # latin small letter i with circumflex, U+00EE ISOlat1
-registerEntity("iuml",CharRef(239)) # latin small letter i with diaeresis, U+00EF ISOlat1
-registerEntity("eth",CharRef(240)) # latin small letter eth, U+00F0 ISOlat1
-registerEntity("ntilde",CharRef(241)) # latin small letter n with tilde, U+00F1 ISOlat1
-registerEntity("ograve",CharRef(242)) # latin small letter o with grave, U+00F2 ISOlat1
-registerEntity("oacute",CharRef(243)) # latin small letter o with acute, U+00F3 ISOlat1
-registerEntity("ocirc",CharRef(244)) # latin small letter o with circumflex, U+00F4 ISOlat1
-registerEntity("otilde",CharRef(245)) # latin small letter o with tilde, U+00F5 ISOlat1
-registerEntity("ouml",CharRef(246)) # latin small letter o with diaeresis, U+00F6 ISOlat1
-registerEntity("divide",CharRef(247)) # division sign, U+00F7 ISOnum
-registerEntity("oslash",CharRef(248)) # latin small letter o with stroke, = latin small letter o slash, U+00F8 ISOlat1
-registerEntity("ugrave",CharRef(249)) # latin small letter u with grave, U+00F9 ISOlat1
-registerEntity("uacute",CharRef(250)) # latin small letter u with acute, U+00FA ISOlat1
-registerEntity("ucirc",CharRef(251)) # latin small letter u with circumflex, U+00FB ISOlat1
-registerEntity("uuml",CharRef(252)) # latin small letter u with diaeresis, U+00FC ISOlat1
-registerEntity("yacute",CharRef(253)) # latin small letter y with acute, U+00FD ISOlat1
-registerEntity("thorn",CharRef(254)) # latin small letter thorn, U+00FE ISOlat1
-registerEntity("yuml",CharRef(255)) # latin small letter y with diaeresis, U+00FF ISOlat1
+###
+###
+###
 
 # C0 Controls and Basic Latin
 registerEntity("quot",CharRef(34)) # quotation mark = APL quote, U+0022 ISOnum
 registerEntity("amp",CharRef(38)) # ampersand, U+0026 ISOnum
 registerEntity("lt",CharRef(60)) # less-than sign, U+003C ISOnum
 registerEntity("gt",CharRef(62)) # greater-than sign, U+003E ISOnum
-
-# Latin Extended-A
-registerEntity("OElig",CharRef(338)) # latin capital ligature OE, U+0152 ISOlat2
-registerEntity("oelig",CharRef(339)) # latin small ligature oe, U+0153 ISOlat2
-registerEntity("Scaron",CharRef(352)) # latin capital letter S with caron, U+0160 ISOlat2
-registerEntity("scaron",CharRef(353)) # latin small letter s with caron, U+0161 ISOlat2
-registerEntity("Yuml",CharRef(376)) # latin capital letter Y with diaeresis, U+0178 ISOlat2
-
-# Spacing Modifier Letters
-registerEntity("circ",CharRef(710)) # modifier letter circumflex accent, U+02C6 ISOpub
-registerEntity("tilde",CharRef(732)) # small tilde, U+02DC ISOdia
-
-# General Punctuation
-registerEntity("ensp",CharRef(8194)) # en space, U+2002 ISOpub
-registerEntity("emsp",CharRef(8195)) # em space, U+2003 ISOpub
-registerEntity("thinsp",CharRef(8201)) # thin space, U+2009 ISOpub
-registerEntity("zwnj",CharRef(8204)) # zero width non-joiner, U+200C NEW RFC 2070
-registerEntity("zwj",CharRef(8205)) # zero width joiner, U+200D NEW RFC 2070
-registerEntity("lrm",CharRef(8206)) # left-to-right mark, U+200E NEW RFC 2070
-registerEntity("rlm",CharRef(8207)) # right-to-left mark, U+200F NEW RFC 2070
-registerEntity("ndash",CharRef(8211)) # en dash, U+2013 ISOpub
-registerEntity("mdash",CharRef(8212)) # em dash, U+2014 ISOpub
-registerEntity("lsquo",CharRef(8216)) # left single quotation mark, U+2018 ISOnum
-registerEntity("rsquo",CharRef(8217)) # right single quotation mark, U+2019 ISOnum
-registerEntity("sbquo",CharRef(8218)) # single low-9 quotation mark, U+201A NEW
-registerEntity("ldquo",CharRef(8220)) # left double quotation mark, U+201C ISOnum
-registerEntity("rdquo",CharRef(8221)) # right double quotation mark, U+201D ISOnum
-registerEntity("bdquo",CharRef(8222)) # double low-9 quotation mark, U+201E NEW
-registerEntity("dagger",CharRef(8224)) # dagger, U+2020 ISOpub
-registerEntity("Dagger",CharRef(8225)) # double dagger, U+2021 ISOpub
-registerEntity("permil",CharRef(8240)) # per mille sign, U+2030 ISOtech
-registerEntity("lsaquo",CharRef(8249)) # single left-pointing angle quotation mark, U+2039 ISO proposed
-registerEntity("rsaquo",CharRef(8250)) # single right-pointing angle quotation mark, U+203A ISO proposed
-registerEntity("euro",CharRef(8364)) # euro sign, U+20AC NEW
-
-# Mathematical, Greek and Symbolic characters
-# Latin Extended-B
-registerEntity("fnof",CharRef(402)) # latin small f with hook = function = florin, U+0192 ISOtech
-
-# Greek
-registerEntity("Alpha",CharRef(913)) # greek capital letter alpha, U+0391
-registerEntity("Beta",CharRef(914)) # greek capital letter beta, U+0392
-registerEntity("Gamma",CharRef(915)) # greek capital letter gamma, U+0393 ISOgrk3
-registerEntity("Delta",CharRef(916)) # greek capital letter delta, U+0394 ISOgrk3
-registerEntity("Epsilon",CharRef(917)) # greek capital letter epsilon, U+0395
-registerEntity("Zeta",CharRef(918)) # greek capital letter zeta, U+0396
-registerEntity("Eta",CharRef(919)) # greek capital letter eta, U+0397
-registerEntity("Theta",CharRef(920)) # greek capital letter theta, U+0398 ISOgrk3
-registerEntity("Iota",CharRef(921)) # greek capital letter iota, U+0399
-registerEntity("Kappa",CharRef(922)) # greek capital letter kappa, U+039A
-registerEntity("Lambda",CharRef(923)) # greek capital letter lambda, U+039B ISOgrk3
-registerEntity("Mu",CharRef(924)) # greek capital letter mu, U+039C
-registerEntity("Nu",CharRef(925)) # greek capital letter nu, U+039D
-registerEntity("Xi",CharRef(926)) # greek capital letter xi, U+039E ISOgrk3
-registerEntity("Omicron",CharRef(927)) # greek capital letter omicron, U+039F
-registerEntity("Pi",CharRef(928)) # greek capital letter pi, U+03A0 ISOgrk3
-registerEntity("Rho",CharRef(929)) # greek capital letter rho, U+03A1
-registerEntity("Sigma",CharRef(931)) # greek capital letter sigma, U+03A3 ISOgrk3
-registerEntity("Tau",CharRef(932)) # greek capital letter tau, U+03A4
-registerEntity("Upsilon",CharRef(933)) # greek capital letter upsilon, U+03A5 ISOgrk3
-registerEntity("Phi",CharRef(934)) # greek capital letter phi, U+03A6 ISOgrk3
-registerEntity("Chi",CharRef(935)) # greek capital letter chi, U+03A7
-registerEntity("Psi",CharRef(936)) # greek capital letter psi, U+03A8 ISOgrk3
-registerEntity("Omega",CharRef(937)) # greek capital letter omega, U+03A9 ISOgrk3
-registerEntity("alpha",CharRef(945)) # greek small letter alpha, U+03B1 ISOgrk3
-registerEntity("beta",CharRef(946)) # greek small letter beta, U+03B2 ISOgrk3
-registerEntity("gamma",CharRef(947)) # greek small letter gamma, U+03B3 ISOgrk3
-registerEntity("delta",CharRef(948)) # greek small letter delta, U+03B4 ISOgrk3
-registerEntity("epsilon",CharRef(949)) # greek small letter epsilon, U+03B5 ISOgrk3
-registerEntity("zeta",CharRef(950)) # greek small letter zeta, U+03B6 ISOgrk3
-registerEntity("eta",CharRef(951)) # greek small letter eta, U+03B7 ISOgrk3
-registerEntity("theta",CharRef(952)) # greek small letter theta, U+03B8 ISOgrk3
-registerEntity("iota",CharRef(953)) # greek small letter iota, U+03B9 ISOgrk3
-registerEntity("kappa",CharRef(954)) # greek small letter kappa, U+03BA ISOgrk3
-registerEntity("lambda",CharRef(955)) # greek small letter lambda, U+03BB ISOgrk3
-registerEntity("mu",CharRef(956)) # greek small letter mu, U+03BC ISOgrk3
-registerEntity("nu",CharRef(957)) # greek small letter nu, U+03BD ISOgrk3
-registerEntity("xi",CharRef(958)) # greek small letter xi, U+03BE ISOgrk3
-registerEntity("omicron",CharRef(959)) # greek small letter omicron, U+03BF NEW
-registerEntity("pi",CharRef(960)) # greek small letter pi, U+03C0 ISOgrk3
-registerEntity("rho",CharRef(961)) # greek small letter rho, U+03C1 ISOgrk3
-registerEntity("sigmaf",CharRef(962)) # greek small letter final sigma, U+03C2 ISOgrk3
-registerEntity("sigma",CharRef(963)) # greek small letter sigma, U+03C3 ISOgrk3
-registerEntity("tau",CharRef(964)) # greek small letter tau, U+03C4 ISOgrk3
-registerEntity("upsilon",CharRef(965)) # greek small letter upsilon, U+03C5 ISOgrk3
-registerEntity("phi",CharRef(966)) # greek small letter phi, U+03C6 ISOgrk3
-registerEntity("chi",CharRef(967)) # greek small letter chi, U+03C7 ISOgrk3
-registerEntity("psi",CharRef(968)) # greek small letter psi, U+03C8 ISOgrk3
-registerEntity("omega",CharRef(969)) # greek small letter omega, U+03C9 ISOgrk3
-registerEntity("thetasym",CharRef(977)) # greek small letter theta symbol, U+03D1 NEW
-registerEntity("upsih",CharRef(978)) # greek upsilon with hook symbol, U+03D2 NEW
-registerEntity("piv",CharRef(982)) # greek pi symbol, U+03D6 ISOgrk3
-
-# General Punctuation
-registerEntity("bull",CharRef(8226)) # bullet = black small circle, U+2022 ISOpub
-registerEntity("hellip",CharRef(8230)) # horizontal ellipsis = three dot leader, U+2026 ISOpub
-registerEntity("prime",CharRef(8242)) # prime = minutes = feet, U+2032 ISOtech
-registerEntity("Prime",CharRef(8243)) # double prime = seconds = inches, U+2033 ISOtech
-registerEntity("oline",CharRef(8254)) # overline = spacing overscore, U+203E NEW
-registerEntity("frasl",CharRef(8260)) # fraction slash, U+2044 NEW
-
-# Letterlike Symbols
-registerEntity("weierp",CharRef(8472)) # script capital P = power set = Weierstrass p, U+2118 ISOamso
-registerEntity("image",CharRef(8465)) # blackletter capital I = imaginary part, U+2111 ISOamso
-registerEntity("real",CharRef(8476)) # blackletter capital R = real part symbol, U+211C ISOamso
-registerEntity("trade",CharRef(8482)) # trade mark sign, U+2122 ISOnum
-registerEntity("alefsym",CharRef(8501)) # alef symbol = first transfinite cardinal, U+2135 NEW
-
-# Arrows
-registerEntity("larr",CharRef(8592)) # leftwards arrow, U+2190 ISOnum
-registerEntity("uarr",CharRef(8593)) # upwards arrow, U+2191 ISOnu
-registerEntity("rarr",CharRef(8594)) # rightwards arrow, U+2192 ISOnum
-registerEntity("darr",CharRef(8595)) # downwards arrow, U+2193 ISOnum
-registerEntity("harr",CharRef(8596)) # left right arrow, U+2194 ISOamsa
-registerEntity("crarr",CharRef(8629)) # downwards arrow with corner leftwards = carriage return, U+21B5 NEW
-registerEntity("lArr",CharRef(8656)) # leftwards double arrow, U+21D0 ISOtech
-registerEntity("uArr",CharRef(8657)) # upwards double arrow, U+21D1 ISOamsa
-registerEntity("rArr",CharRef(8658)) # rightwards double arrow, U+21D2 ISOtech
-registerEntity("dArr",CharRef(8659)) # downwards double arrow, U+21D3 ISOamsa
-registerEntity("hArr",CharRef(8660)) # left right double arrow, U+21D4 ISOamsa
-
-# Mathematical Operators
-registerEntity("forall",CharRef(8704)) # for all, U+2200 ISOtech
-registerEntity("part",CharRef(8706)) # partial differential, U+2202 ISOtech
-registerEntity("exist",CharRef(8707)) # there exists, U+2203 ISOtech
-registerEntity("empty",CharRef(8709)) # empty set = null set = diameter, U+2205 ISOamso
-registerEntity("nabla",CharRef(8711)) # nabla = backward difference, U+2207 ISOtech
-registerEntity("isin",CharRef(8712)) # element of, U+2208 ISOtech
-registerEntity("notin",CharRef(8713)) # not an element of, U+2209 ISOtech
-registerEntity("ni",CharRef(8715)) # contains as member, U+220B ISOtech
-registerEntity("prod",CharRef(8719)) # n-ary product = product sign, U+220F ISOamsb
-registerEntity("sum",CharRef(8721)) # n-ary sumation, U+2211 ISOamsb
-registerEntity("minus",CharRef(8722)) # minus sign, U+2212 ISOtech
-registerEntity("lowast",CharRef(8727)) # asterisk operator, U+2217 ISOtech
-registerEntity("radic",CharRef(8730)) # square root = radical sign, U+221A ISOtech
-registerEntity("prop",CharRef(8733)) # proportional to, U+221D ISOtech
-registerEntity("infin",CharRef(8734)) # infinity, U+221E ISOtech
-registerEntity("ang",CharRef(8736)) # angle, U+2220 ISOamso
-registerEntity("and",CharRef(8743)) # logical and = wedge, U+2227 ISOtech
-registerEntity("or",CharRef(8744)) # logical or = vee, U+2228 ISOtech
-registerEntity("cap",CharRef(8745)) # intersection = cap, U+2229 ISOtech
-registerEntity("cup",CharRef(8746)) # union = cup, U+222A ISOtech
-registerEntity("int",CharRef(8747)) # integral, U+222B ISOtech
-registerEntity("there4",CharRef(8756)) # therefore, U+2234 ISOtech
-registerEntity("sim",CharRef(8764)) # tilde operator = varies with = similar to, U+223C ISOtech
-registerEntity("cong",CharRef(8773)) # approximately equal to, U+2245 ISOtech
-registerEntity("asymp",CharRef(8776)) # almost equal to = asymptotic to, U+2248 ISOamsr
-registerEntity("ne",CharRef(8800)) # not equal to, U+2260 ISOtech
-registerEntity("equiv",CharRef(8801)) # identical to, U+2261 ISOtech
-registerEntity("le",CharRef(8804)) # less-than or equal to, U+2264 ISOtech
-registerEntity("ge",CharRef(8805)) # greater-than or equal to, U+2265 ISOtech
-registerEntity("sub",CharRef(8834)) # subset of, U+2282 ISOtech
-registerEntity("sup",CharRef(8835)) # superset of, U+2283 ISOtech
-registerEntity("nsub",CharRef(8836)) # not a subset of, U+2284 ISOamsn
-registerEntity("sube",CharRef(8838)) # subset of or equal to, U+2286 ISOtech
-registerEntity("supe",CharRef(8839)) # superset of or equal to, U+2287 ISOtech
-registerEntity("oplus",CharRef(8853)) # circled plus = direct sum, U+2295 ISOamsb
-registerEntity("otimes",CharRef(8855)) # circled times = vector product, U+2297 ISOamsb
-registerEntity("perp",CharRef(8869)) # up tack = orthogonal to = perpendicular, U+22A5 ISOtech
-registerEntity("sdot",CharRef(8901)) # dot operator, U+22C5 ISOamsb
-
-# Miscellaneous Technical
-registerEntity("lceil",CharRef(8968)) # left ceiling = apl upstile, U+2308 ISOamsc
-registerEntity("rceil",CharRef(8969)) # right ceiling, U+2309 ISOamsc
-registerEntity("lfloor",CharRef(8970)) # left floor = apl downstile, U+230A ISOamsc
-registerEntity("rfloor",CharRef(8971)) # right floor, U+230B ISOamsc
-registerEntity("lang",CharRef(9001)) # left-pointing angle bracket = bra, U+2329 ISOtech
-registerEntity("rang",CharRef(9002)) # right-pointing angle bracket = ket, U+232A ISOtech
-
-# Geometric Shapes
-registerEntity("loz",CharRef(9674)) # lozenge, U+25CA ISOpub
-
-# Miscellaneous Symbols
-registerEntity("spades",CharRef(9824)) # black spade suit, U+2660 ISOpub
-registerEntity("clubs",CharRef(9827)) # black club suit = shamrock, U+2663 ISOpub
-registerEntity("hearts",CharRef(9829)) # black heart suit = valentine, U+2665 ISOpub
-registerEntity("diams",CharRef(9830)) # black diamond suit, U+2666 ISOpub
 
 ###
 ###
@@ -1869,7 +1602,7 @@ class XSC:
 		self.parser = Parser()
 
 	def __pushName(self,name):
-		url = _URL(name)
+		url = _URL(name,forceproject = 1)
 		if url.scheme == "":
 			url.scheme = "project"
 		if len(self.filename) <= 2:
@@ -1955,7 +1688,10 @@ def make():
 	infilename = sys.argv[1]
 	outfilename = sys.argv[2]
 	if len(outfilename) and outfilename[-1] == "/":
-		outfilename = outfilename + infilename
+		if infilename[-3:] == "hsc" or infilename[-3:] == "xsc":
+			outfilename = outfilename + infilename[:-3] + "html"
+		else:
+			outfilename = outfilename + infilename
 	e_in = xsc.parseFile(infilename)
 	e_out = e_in.asHTML()
 	__forceopen(outfilename,"wb").write(str(e_out))
