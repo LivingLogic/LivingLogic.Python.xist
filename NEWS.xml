@@ -956,19 +956,19 @@ allows custom names even when using <function>registerAllElements</function>.</i
 (as <link href="http://www.ietf.org/rfc/rfc2068.txt">RFC 2068</link>
 requires.)</item>
 
-<item>Image size calculation is now done in <method>asString</method> and
+<item><par>Image size calculation is now done in <method>asString</method> and
 not in <method>asHTML</method>.
-This allows to write faster code. Old method:
+This allows to write faster code. Old method:</par>
 <programlisting>e = html.div(html.img(...),gurk.hurz()).asHTML().asString()</programlisting>
-New method
+<par>New method</par>
 <programlisting>e = html.div(html.img(...),gurk.hurz().asHTML()).asString()</programlisting></item>
 
 <item>Image size calculation is now done for <markup>&lt;input type="image"&gt;</markup>.
 The <lit>size</lit> attribute is set to the image width.</item>
 
-<item>Manipulating the path in an URL is now done via the usual
+<item><par>Manipulating the path in an &url; is now done via the usual
 <method>__setitem__</method>/<method>__getitem__</method> stuff,
-which keeps the path in a consistent state.
+which keeps the path in a consistent state.</par>
 <programlisting>
 &gt;&gt;&gt; from xist.URL import URL
 &gt;&gt;&gt; u = URL("/foo/*/../bar/baz.gif")
