@@ -753,7 +753,7 @@ class Node:
 		"""
 		return ""
 
-	def findNodes(self,type = None,subtype = 0,children = 0,attrs = 0):
+	def findNodes(self,type = None,subtype = 0,searchchildren = 0,searchattrs = 0):
 		"""
 		findNodes(self,type = None,subtype = 0,searchchildren = 0,searchattrs = 0) -> fragment
 

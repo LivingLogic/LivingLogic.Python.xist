@@ -162,7 +162,7 @@ class template(xsc.Element):
 		"""
 		fills the element with the data from record (or dummy, if record is None).
 		"""
-		for field in element.findNodes(type = control,subtype = 1,children = 1,attrs = 1): # iterate over all database elements in the target
+		for field in element.findNodes(type = control,subtype = 1,searchchildren = 1,searchattrs = 1): # iterate over all database elements in the target
 			if record is not None:
 				field["value"] = str(record[field["name"].asHTML().asPlainString()]) # put the field values in
 			else:
@@ -184,7 +184,7 @@ class template(xsc.Element):
 	def asHTML(self):
 		content = self.content.clone()
 
-		targets = content.findNodes(type = target,children = 1,attrs = 1)
+		targets = content.findNodes(type = target,searchchildren = 1,searchattrs = 1)
 
 		tt = targets[0].clone() # make a copy of the target before we remove its content
 		del targets[0][:] # make the target empty (we'll put our data in there later)
