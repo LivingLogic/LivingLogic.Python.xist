@@ -753,9 +753,9 @@ class Node:
 		"""
 		return ""
 
-	def findNodes(self,type = None,subtype = 0,searchchildren = 0,searchattrs = 0):
+	def findNodes(self,type = None,searchchildren = 0,searchattrs = 0,subtype = 0,attrs = None):
 		"""
-		findNodes(self,type = None,subtype = 0,searchchildren = 0,searchattrs = 0) -> fragment
+		findNodes(self,type = None,searchchildren = 0,searchattrs = 0,subtype = 0,attrs = None) -> fragment
 
 		returns a fragment which contains child elements of this node.
 
@@ -770,24 +770,45 @@ class Node:
 
 		If you set searchattrs to 1 the attributes of the nodes (if type is Element or one
 		of its subtypes) will be searched too.
+
+		If you pass a dictionary as attrs it has to contain string pairs and is used to
+		match attribute values for elements. To match the attribute values their
+		asPlainString() representation will be used. You can use None as the value to
+		test that the attribute is set without testing the value.
+
+		Note that the node has to be of type element (or a subclass of this) to match
+		attrs.
 		"""
 		return Frag()
 
-	def _nodeOK(self,type_,subtype):
+	def _matchesAttrs(self,attrs):
+		if attrs is None:
+			return 1
+		else:
+			if isinstance(self,Element):
+				for attr in attrs.keys():
+					if not self.hasAttr(attr) or ((attrs[attr] is not None) and (self[attr].asPlainString() != attrs[attr])):
+						return 0
+				else:
+					return 1
+			else:
+				return 0
+
+	def _matches(self,type_,subtype,attrs):
 		if type_ is not None:
 			if type(type_) not in [ types.ListType, types.TupleType ]:
 				type_ = ( type_ , )
 			for t in type_:
 				if subtype:
 					if isinstance(self,t):
-						return 1
+						return self._matchesAttrs(attrs)
 				else:
 					if self.__class__ == t:
-						return 1
+						return self._matchesAttrs(attrs)
 			else:
 				return 0
 		else:
-			return 1
+			return self._matchesAttrs(attrs)
 
 	def compact(self):
 		"""
@@ -1087,13 +1108,13 @@ class Frag(Node):
 			elif newother is not Null:
 				self.__content.append(newother)
 
-	def findNodes(self,type = None,subtype = 0,searchchildren = 0,searchattrs = 0):
+	def findNodes(self,type = None,subtype = 0,searchchildren = 0,searchattrs = 0,attrs = None):
 		e = Frag()
 		for child in self:
-			if child._nodeOK(type,subtype):
+			if child._matches(type,subtype,attrs):
 				e.append(child)
-			if children:
-				e.extend(child.findNodes(type,subtype,searchchildren,searchattrs))
+			if searchchildren:
+				e.extend(child.findNodes(type,subtype,searchchildren,searchattrs,attrs))
 		return e
 
 	def compact(self):
@@ -1539,12 +1560,12 @@ class Element(Node):
 			e[attr] = self[attr].compact()
 		return e
 
-	def findNodes(self,type = None,subtype = 0,searchchildren = 0,searchattrs = 0):
+	def findNodes(self,type = None,subtype = 0,searchchildren = 0,searchattrs = 0,attrs = None):
 		e = Frag()
-		if attrs:
+		if searchattrs:
 			for attr in self.attrs.keys():
-				e.extend(self[attr].findNodes(type,subtype,searchchildren,searchattr))
-		e.extend(self.content.findNodes(type,subtype,searchchildren,searchattrs))
+				e.extend(self[attr].findNodes(type,subtype,searchchildren,searchattr,attrs))
+		e.extend(self.content.findNodes(type,subtype,searchchildren,searchattrs,attrs))
 		return e
 
 class Null(Node):
