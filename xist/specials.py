@@ -11,7 +11,7 @@ import sys
 import types
 import time as time_
 import string
-import xsc,html as html_
+import xsc, html as html_
 
 class plaintable(html_.table):
 	"""
@@ -275,16 +275,16 @@ class loremipsum(xsc.Element):
 			text = self.text
 		return xsc.Text(text)
 
-class contenttype(html.meta):
+class contenttype(html_.meta):
 	empty = 1
-	attrHandlers = html.meta.attrHandlers.copy()
+	attrHandlers = html.meta_.attrHandlers.copy()
 	del attrHandlers["http-equiv"]
 	del attrHandlers["http_equiv"]
 	del attrHandlers["name"]
 	del attrHandlers["content"]
 
 	def asHTML(self):
-		e = html.meta(self.attrs)
+		e = html_.meta(self.attrs)
 		e["http-equiv"] = "Content-Type"
 		e["content"] = "text/html"
 
