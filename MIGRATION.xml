@@ -1,3 +1,18 @@
+<section><title>Migrating to version 2.5</title>
+
+<section><title>Changes to content model</title>
+<par>The boolean class attribute <lit>empty</lit> for element classes has been
+replaced by an object <lit>model</lit>. <lit>empty</lit> is still supported,
+but issues a <class>PendingDeprecationWarning</class>. If you don't want to specify
+a proper content model for your own elements you can replace <lit>empty = False</lit>
+with <lit>model = True</lit> (which is a shortcut for <lit>model = sims.Any()</lit>)
+and <lit>empty = True</lit> with <lit>model = False</lit> (which is a shortcut
+for <lit>model = sims.Empty()</lit>).</par>
+</section>
+
+</section>
+
+
 <section><title>Migrating to version 2.4</title>
 
 <section><title>Changes to parsing</title>
