@@ -162,7 +162,7 @@ node.write(open("parrot_index.html", "wb"))
 
 <section><title>Converting &html; to &xist; code</title>
 
-<par>The class <class>ll.xist.presenters.CodePresenter()</class>
+<par>The class <pyref module="ll.xist.presenters" class="CodePresenter"><class>ll.xist.presenters.CodePresenter</class></pyref>
 makes it possible to output an &xist; tree as usable Python source code.</par>
 
 <tty>
