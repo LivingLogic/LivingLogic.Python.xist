@@ -21,7 +21,7 @@
 ## IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 """
-<doc:par>A module that allows you to embed PHP processing instructions.</doc:par>
+<par>A module that allows you to embed PHP processing instructions.</par>
 """
 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
@@ -31,8 +31,8 @@ from ll.xist import xsc
 
 class php(xsc.ProcInst):
 	"""
-	<doc:par>PHP processing instruction
-	(must be used with an explicit target php to work with &xml;)</doc:par>
+	<par>&php; processing instruction
+	(must be used with an explicit target php to work with &xml;)</par>
 	"""
 
 class If(php):
