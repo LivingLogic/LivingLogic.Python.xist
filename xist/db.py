@@ -200,7 +200,7 @@ class template(xsc.Element):
 			targets[0].append(t)
 		return content.asHTML()
 
-xsc.registerAllElement(vars(),"db")
+xsc.registerAllElements(vars(),"db")
 
 class SQLCommand:
 	"""
