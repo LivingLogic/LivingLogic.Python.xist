@@ -206,6 +206,19 @@ class include(xsc.Element):
 class center(xsc.Element):
 	empty = 0
 
+class loremipsum(xsc.Element):
+	empty = 1
+	attrHandlers = { "len" : xsc.IntAttr }
+
+	text = "Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diem nonummy nibh euismod tincidnut ut lacreet dolore magna aliguam erat volutpat. Ut wisis enim ad minim veniam, quis nostrud exerci tution ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis te feugifacilisi. Duis antem dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zril delinit au gue duis dolore te feugat nulla facilisi." 
+
+	def asHTML(self):
+		if self.hasAttr("len"):
+			text = self.text[:self["len"].asInt()]
+		else:
+			text = self.text
+		return xsc.Text(text)
+
 xsc.registerAllElements(vars(),"specials")
 
 # Control characters (not part of HTML)
