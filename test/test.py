@@ -11,8 +11,11 @@
 import sys, unittest, ExceptHook
 sys.ExceptHook = ExceptHook.ExceptHookMono()
 
-from ll.xist import xsc, parsers, presenters, converters, helpers, errors
+from ll.xist import xsc, parsers, presenters, converters, helpers, errors, options
 from ll.xist.ns import wml, ihtml, html, css, abbr, specials, htmlspecials, php, xml
+
+# set to something ASCII, so presenters work, even if the system default encoding is ascii
+options.reprtab = "  "
 
 class XISTTestCase(unittest.TestCase):
 	def check_lenunicode(self, node, _len, content):
@@ -107,7 +110,7 @@ class XISTTestCase(unittest.TestCase):
 		self.check_lenunicode(html.div(1, (2, 3)), 3, u"123")
 		self.check_lenunicode(html.div(1, (None, None)), 1, u"1")
 
-	def mappedmapper(self, node):
+	def mappedmapper(self, node, converter):
 		if isinstance(node, xsc.Text):
 			node = node.replace("gurk", "hurz")
 		return node
@@ -170,10 +173,12 @@ class XISTTestCase(unittest.TestCase):
 		node.asBytes()
 		node.find()
 		node.sorted()
-		node.mapped(self.mappedmapper)
+		node.conv(function=self.mappedmapper)
 		node.shuffled()
 		node.pretty()
 		node.normalized().compact().pretty()
+		list(node.walk(attrs=True))
+		list(node.walkpath(attrs=True))
 
 	def test_locationeq(self):
 		l1 = xsc.Location(sysID="gurk", pubID="http://gurk.com", lineNumber=42, columnNumber=666)
@@ -349,7 +354,7 @@ class XISTTestCase(unittest.TestCase):
 
 	def test_namespace(self):
 		self.assertEqual(xsc.amp.xmlname, (u"amp", u"amp"))
-		self.assert_(xsc.amp.xmlns is None)
+		self.assert_(xsc.amp.xmlns is xsc.xmlns)
 		self.assertEqual(xsc.amp.xmlprefix(), None)
 
 		self.assertEqual(html.uuml.xmlname, (u"uuml", u"uuml"))
@@ -819,8 +824,32 @@ class XISTTestCase(unittest.TestCase):
 				codepoint = 0x4242
 
 		self.check_nskeysvaluesitems(NS, "element", "el_", NS.el_)
-		self.check_nskeysvaluesitems(NS, "entity", "en_", NS.en_)
+
+		keys = NS.entitykeys(xml=False)
+		self.assertEqual(len(keys), 2)
+		self.assert_("en_" in keys)
+		self.assert_("cr_" in keys)
+		keys = NS.entitykeys(xml=True)
+		self.assertEqual(len(keys), 2)
+		self.assert_("en" in keys)
+		self.assert_("cr" in keys)
+
+		values = NS.entityvalues()
+		self.assertEqual(len(values), 2)
+		self.assert_(NS.en_ in values)
+		self.assert_(NS.cr_ in values)
+
+		items = NS.entityitems(xml=False)
+		self.assertEqual(len(items), 2)
+		self.assert_(("en_", NS.en_) in items)
+		self.assert_(("cr_", NS.cr_) in items)
+		items = NS.entityitems(xml=True)
+		self.assertEqual(len(items), 2)
+		self.assert_(("en", NS.en_) in items)
+		self.assert_(("cr", NS.cr_) in items)
+
 		self.check_nskeysvaluesitems(NS, "procinst", "pi_", NS.pi_)
+
 		self.check_nskeysvaluesitems(NS, "charref", "cr_", NS.cr_)
 
 	def test_allowedattr(self):

@@ -203,15 +203,27 @@ class Node(Base):
 		"""
 		raise NotImplementedError("present method not implemented in %s" % self.__class__.__name__)
 
-	def conv(self, converter=None, root=None, mode=None, stage=None, target=None, lang=None, makeaction=None, maketarget=None):
+	def conv(self, converter=None, root=None, mode=None, stage=None, target=None, lang=None, function=None, makeaction=None, maketarget=None):
 		"""
-		<par>returns a version of this node and its content converted to &html; (or any other target).</par>
+		<par>Convenience method for calling either <pyref method="mapped"><method>mapped</method></pyref> or
+		<pyref method="convert"><method>convert</method></pyref>, depending on whether <arg>function</arg> is specified or not.</par>
+		<par><method>conv</method> will automatically set <lit><arg>converter</arg>.node</lit> to <self/> to remember the
+		<z>document root</z> for which <method>conv</method> has been called, this means that you should not call <method>conv</method>
+		in any of the recursive calls, as you would loose this information. Call <pyref method="convert"><method>convert</method></pyref>
+		or <pyref method="mapped"><method>mapped</method></pyref> directly instead.</par>
 		"""
 		if converter is None:
-			return self.convert(converters.Converter(root=root, mode=mode, stage=stage, target=target, lang=lang, makeaction=makeaction, maketarget=maketarget))
+			converter = converters.Converter(node=self, root=root, mode=mode, stage=stage, target=target, lang=lang, function=function, makeaction=makeaction, maketarget=maketarget)
+			if converter.function is not None:
+				return self.mapped(converter)
+			else:
+				return self.convert(converter)
 		else:
-			converter.push(root=root, mode=mode, stage=stage, target=target, lang=lang, makeaction=makeaction, maketarget=maketarget)
-			node = self.convert(converter)
+			converter.push(node=self, root=root, mode=mode, stage=stage, target=target, lang=lang, function=function, makeaction=makeaction, maketarget=maketarget)
+			if converter.function is not None:
+				node = self.mapped(converter)
+			else:
+				node = self.convert(converter)
 			converter.pop()
 			return node
 
@@ -521,7 +533,7 @@ class Node(Base):
 		node.endloc = self.endloc
 		return node
 
-	def mapped(self, function):
+	def mapped(self, converter):
 		"""
 		<par>returns the node mapped through the function <arg>function</arg>.
 		This call works recursively (for <pyref class="Frag"><class>Frag</class></pyref>
@@ -531,7 +543,7 @@ class Node(Base):
 		will not be mapped. When you return a different node from <function>function</function>
 		this node will be incorporated into the result as-is.</par>
 		"""
-		node = function(self)
+		node = converter.function(self, converter)
 		assert isinstance(node, Node), "the mapped method returned the illegal object %r (type %r) when mapping %r" % (node, type(node), self)
 		return node
 
@@ -1023,18 +1035,18 @@ class Frag(Node, list):
 			del content[index]
 		return node
 
-	def mapped(self, function):
-		node = function(self)
+	def mapped(self, converter):
+		node = converter.function(self, converter)
 		assert isinstance(node, Node), "the mapped method returned the illegal object %r (type %r) when mapping %r" % (node, type(node), self)
 		if node is self:
 			node = self._create()
 			for child in self:
-				node.append(child.mapped(function))
+				node.append(child.mapped(converter))
 		return node
 
 	def normalized(self):
 		node = self._create()
-		lasttypeOK = 0
+		lasttypeOK = False
 		for child in self:
 			normalizedchild = child.normalized()
 			thistypeOK = isinstance(normalizedchild, Text)
@@ -2241,7 +2253,7 @@ class Element(Node):
 		return self.attrs.has(attrname, xml=xml)
 
 	def hasattr(self, attrname, xml=False):
-		errors.warn(DeprecationWarning("foo.hasAttr() is deprecated, use foo.attrs.has() instead"))
+		errors.warn(DeprecationWarning("foo.hasattr() is deprecated, use foo.attrs.has() instead"))
 		return self.attrs.has(attrname, xml=xml)
 
 	def isallowedattr(cls, attrname):
@@ -2418,11 +2430,11 @@ class Element(Node):
 		node.content = self.content.shuffled()
 		return node
 
-	def mapped(self, function):
-		node = function(self)
+	def mapped(self, converter):
+		node = converter.function(self, converter)
 		assert isinstance(node, Node), "the mapped method returned the illegal object %r (type %r) when mapping %r" % (node, type(node), self)
 		if node is self:
-			node = self.__class__(self.content.mapped(function))
+			node = self.__class__(self.content.mapped(converter))
 			node.attrs = self.attrs.clone()
 		return node
 

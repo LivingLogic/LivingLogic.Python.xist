@@ -19,7 +19,8 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 import xsc
 
 class ConverterState(object):
-	def __init__(self, root, mode, stage, target, lang, makeaction, maketarget):
+	def __init__(self, node, root, mode, stage, target, lang, function, makeaction, maketarget):
+		self.node = node
 		self.root = root
 		self.mode = mode
 		self.stage = stage
@@ -28,6 +29,7 @@ class ConverterState(object):
 			target = html
 		self.target = target
 		self.lang = lang
+		self.function = function
 		self.makeaction = makeaction
 		self.maketarget = maketarget
 
@@ -39,14 +41,33 @@ class Converter(object):
 	A typical example are nested chapter/subchapter elements with automatic numbering.
 	For an example see the element <pyref module="ll.xist.ns.doc" class="section"><class>ll.xist.ns.doc.section</class></pyref>.</par>
 	"""
-	def __init__(self, root=None, mode=None, stage=None, target=None, lang=None, makeaction=None, maketarget=None):
+	def __init__(self, node=None, root=None, mode=None, stage=None, target=None, lang=None, function=None, makeaction=None, maketarget=None):
 		"""
 		<par>Create a <class>Converter</class>.</par>
 		<par>Arguments are used to initialize the <class>Converter</class> properties of the
 		same name.</par>
 		"""
-		self.states = [ ConverterState(root=root, mode=mode, stage=stage, target=target, lang=lang, makeaction=makeaction, maketarget=maketarget)]
+		self.states = [ ConverterState(node=node, root=root, mode=mode, stage=stage, target=target, lang=lang, function=function, makeaction=makeaction, maketarget=maketarget)]
 		self.contexts = {}
+
+	def __getnode(self):
+		return self.states[-1].node
+
+	def __setnode(self, node):
+		self.states[-1].node = node
+
+	def __delnode(self):
+		self.states[-1].node = None
+
+	node = property(
+		__getnode,
+		__setnode,
+		__delnode,
+		"""
+		<par>The root node for which conversion has been called. This is automatically set by the
+		<pyref module="ll.xist.xsc" class="Node" method="conv"><method>conv</method></pyref> method.</par>
+		"""
+	)
 
 	def __getroot(self):
 		return self.states[-1].root
@@ -150,6 +171,24 @@ class Converter(object):
 		"""
 	)
 
+	def __getfunction(self):
+		return self.states[-1].function
+
+	def __setfunction(self, function):
+		self.states[-1].function = function
+
+	def __delfunction(self):
+		self.states[-1].function = None
+
+	function = property(
+		__getfunction,
+		__setfunction,
+		__delfunction,
+		"""
+		<par>The function to call during uses of the <pyref module="ll.xist.xsc" class="Node" method="mapped"><method>mapped</method></pyref> method.</par>
+		"""
+	)
+
 	def __getmakeaction(self):
 		return self.states[-1].makeaction
 
@@ -209,7 +248,9 @@ class Converter(object):
 		"""
 	)
 
-	def push(self, root=None, mode=None, stage=None, target=None, lang=None, makeaction=None, maketarget=None):
+	def push(self, node=None, root=None, mode=None, stage=None, target=None, lang=None, function=None, makeaction=None, maketarget=None):
+		if node is None:
+			node = self.node
 		if root is None:
 			root = self.root
 		if mode is None:
@@ -220,11 +261,13 @@ class Converter(object):
 			target = self.target
 		if lang is None:
 			lang = self.lang
+		if function is None:
+			function = self.function
 		if makeaction is None:
 			makeaction = self.makeaction
 		if maketarget is None:
 			maketarget = self.maketarget
-		self.states.append(ConverterState(root=root, mode=mode, stage=stage, target=target, lang=lang, makeaction=makeaction, maketarget=maketarget))
+		self.states.append(ConverterState(node=node, root=root, mode=mode, stage=stage, target=target, lang=lang, function=function, makeaction=makeaction, maketarget=maketarget))
 
 	def pop(self):
 		if len(self.states)==1:

@@ -161,16 +161,19 @@ class title(xsc.Element):
 	class Attrs(i18nattrs):
 		class id(xsc.IDAttr): pass
 
-	def unwrapHTML(self, node):
+	def unwrapHTML(self, node, converter):
 		if isinstance(node, xsc.Element) and node.xmlns is html: # is this one of our own elements => filter it out
 			if isinstance(node, img):
 				node = node["alt"]
 			else:
-				node = node.content.mapped(self.unwrapHTML)
+				node = node.content.mapped(converter)
 		return node
 
 	def convert(self, converter):
-		content = self.content.convert(converter).mapped(self.unwrapHTML)
+		content = self.content.convert(converter)
+		converter.push(function=self.unwrapHTML)
+		content = content.convert(converter)
+		converter.pop()
 		return title(content, self.attrs)
 
 class base(xsc.Element):
