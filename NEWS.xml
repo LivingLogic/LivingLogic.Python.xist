@@ -103,6 +103,12 @@ to make image &url;s shorter.</item>
 </ulist>
 </section>
 
+<section><title>Changes in 1.5.6 (released 11/11/2002)</title>
+<ulist>
+<item>Performance optimizations.</item>
+</ulist>
+</section>
+
 <section><title>Changes in 1.5.5 (released 11/11/2002)</title>
 <ulist>
 <item>Fixed a bug in <class>ll.xist.ns.specials.autoimg</class>:
