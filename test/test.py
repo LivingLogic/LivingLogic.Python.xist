@@ -565,6 +565,7 @@ class XISTTestCase(unittest.TestCase):
 		self.assertEquals(node.asBytes(), "<?php x?>")
 		self.assertEquals(node.asBytes(prefixes=prefixes, procinstmode=1), "<?p:php x?>")
 		self.assertEquals(node.asBytes(prefixes=prefixes, procinstmode=2), """<wrap procinstns:p="http://www.php.net/"><?p:php x?></wrap>""")
+		# FIXME this depends on dict iteration order
 		self.assertEquals(node.asBytes(prefixes=prefixes, elementmode=2, procinstmode=2), """<s:wrap procinstns:p="http://www.php.net/" xmlns:s="http://xmlns.livinglogic.de/xist/ns/specials"><?p:php x?></s:wrap>""")
 
 		prefixes = xsc.Prefixes()
@@ -572,6 +573,7 @@ class XISTTestCase(unittest.TestCase):
 		prefixes.addPrefixMapping("s", specials)
 
 		self.assertEquals(node.asBytes(prefixes=prefixes, procinstmode=2), """<wrap procinstns="http://www.php.net/"><?php x?></wrap>""")
+		# FIXME this depends on dict iteration order
 		self.assertEquals(node.asBytes(prefixes=prefixes, elementmode=2, procinstmode=2), """<s:wrap procinstns="http://www.php.net/" xmlns:s="http://xmlns.livinglogic.de/xist/ns/specials"><?php x?></s:wrap>""")
 
 if __name__ == "__main__":
