@@ -9,7 +9,7 @@ from distutils.core import setup, Extension
 
 setup(
 	name = "XIST",
-	version = "1.1.1",
+	version = "1.1.2",
 	description = "An XML-based extensible HTML generator",
 	author = "Walter Dörwald",
 	author_email = "walter@livinglogic.de",
