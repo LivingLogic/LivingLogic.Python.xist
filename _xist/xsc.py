@@ -1510,7 +1510,7 @@ class Element(Node):
 		self.content = Frag(*content)
 		self.attrs = {}
 		for (attrname, attrvalue) in attrs.items():
-			self[attrname] = attrsvalue
+			self[attrname] = attrvalue
 
 	def append(self, *items):
 		"""
