@@ -30,7 +30,7 @@ class XSCError:
 		self.lineno = lineno
 
 	def __str__(self):
-		if self.lineno>0:
+		if self.lineno != None:
 			return "XSC: error (line " + str(self.lineno) + "): "
 		else:
 			return "XSC: error: "
@@ -474,7 +474,7 @@ class XSCParser(xmllib.XMLParser):
 		xmllib.XMLParser.reset(self)
 		self.nesting = [ XSCFrag() ] # our nodes do not have a parent link, therefore we have to store the active path through the tree in a stack (which we call nesting, because stack is already used by the base class
 		self.root = self.nesting[0]
-		self.lineno = -1
+		self.lineno = None
 
 	def processingInstruction(self,target,remainder):
 		pass
