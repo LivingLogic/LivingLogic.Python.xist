@@ -12,6 +12,7 @@ from xist import xsc
 class DocType(xsc.DocType):
 	def __init__(self):
 		xsc.DocType.__init__(
+			self,
 			'struts-config PUBLIC '
 			'"-//Apache Software Foundation//DTD Struts Configuration 1.0//EN" '
 			'"http://jakarta.apache.org/struts/dtds/struts-config_1_0.dtd"'
@@ -72,7 +73,7 @@ class user_struts_config(xsc.Element):
 		e = xsc.Frag(
 			xsc.XML10(),
 			u"\n",
-			DocType()
+			DocType(),
 			u"\n",
 			struts_config(self.content)
 		)
