@@ -727,6 +727,13 @@ class Node:
 		"""
 		return Frag()
 
+	def compact(self):
+		"""
+		returns this node, where textnodes or character references that contain
+		only linefeeds are removed, i.e. potentially needless whitespace is removed.
+		"""
+		return Null
+
 	def _matchesAttrs(self,attrs):
 		if attrs is None:
 			return 1
@@ -764,10 +771,6 @@ class Node:
 			l = l + 1
 		v = []
 		for i in xrange(l):
-			if self.startloc is None:
-				no = None
-			else:
-				no = self.startloc.row + i
 			mynest = nest
 			s = lines[i]
 			while len(s) and s[0] == "\t":
@@ -778,15 +781,19 @@ class Node:
 				s = head + s
 			if i == l-1:
 				s = s + tail
-			v.append([mynest,Location(self.startloc.url,no),elementno,s])
+			v.append([mynest,self._getLoc(i),elementno,s])
 		return v
 
-	def compact(self):
+	def _getLoc(self,relrow):
 		"""
-		returns this node, where textnodes or character references that contain
-		only linefeeds are removed, i.e. potentially needless whitespace is removed.
+		Return a location that is relrow row further down than the starting location
+		for this node. Returns None if the location is unknown.
 		"""
-		return Null
+
+		if self.startloc is None:
+			return None
+		else:
+			return Location(self.startloc.url,self.startloc.startrow + relrow)
 
 class Text(Node):
 	"""
@@ -869,12 +876,8 @@ class Text(Node):
 			del lines[-1]
 		v = []
 		for i in xrange(len(lines)):
-			if self.startloc is None:
-				no = None
-			else:
-				no = self.startloc.row + i
 			s = strQuote(ansi) + strText(self.__strtext(1,lines[i],ansi),ansi) + strQuote(ansi)
-			v.append([nest,Location(self.startloc.url,no),elementno,s])
+			v.append([nest,self._getLoc(i),elementno,s])
 		return v
 
 	def compact(self):
