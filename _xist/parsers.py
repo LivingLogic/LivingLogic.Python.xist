@@ -89,7 +89,7 @@ class TidyURLInputSource(sax.xmlreader.InputSource):
 		if type(url) is types.UnicodeType:
 			url = url.encode("utf-8")
 		try:
-			(self.tidyin, self.tidyout, self.tidyerr) = os.popen3("tidy --tidy-mark no --wrap 0 --output-xhtml --numeric-entities yes --show-warnings no --quiet yes -asxml -quiet", "b") # open the pipe to and from tidy
+			(self.tidyin, self.tidyout, self.tidyerr) = os.popen3("tidy --tidy-mark no --wrap 0 --output-xhtml --numeric-entities yes --show-warnings no -asxml -quiet", "b") # open the pipe to and from tidy
 			self.tidyin.write(urllib.urlopen(url).read()) # get the desired file from the url and pipe it to tidy
 			self.tidyin.close() # tell tidy, that we're finished
 			self.tidyin = None
