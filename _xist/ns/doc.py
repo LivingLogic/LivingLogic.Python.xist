@@ -353,6 +353,20 @@ class self(xsc.Element):
 	def convert(self, converter):
 		return html.code("self", class_="self")
 
+class link(xsc.Element):
+	"""
+	A hypertext link.
+	"""
+	empty = False
+	attrHandlers = {"href": xsc.URLAttr}
+
+	def convert(self, converter):
+		if converter.target=="docbook":
+			e = docbook.link(self.content, linkend=self["href"]
+		else:
+			e = html.a(self, content, href=self["href"])
+		return e.convert(converter)
+
 class pyref(xsc.Element):
 	"""
 	reference to a Python object:
