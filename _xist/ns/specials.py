@@ -62,7 +62,6 @@ class plainbody(html_.body):
 	defaults = {"leftmargin": 0, "topmargin": 0, "marginheight": 0, "marginwidth": 0}
 
 	def convert(self, converter=None):
-		print self.attrs
 		e = html_.body(*self.content)
 		e.attrs = self.attrs
 		e.copyDefaultAttrs(self.defaults)
