@@ -910,13 +910,14 @@ class link(base):
 	empty = False
 	class Attrs(xsc.Element.Attrs):
 		class href(xsc.URLAttr): pass
+		class hreflang(xsc.TextAttr): pass
 
 	def convert_docbook(self, converter):
 		e = converter.target.link(self.content, linkend=self["href"])
 		return e.convert(converter)
 
 	def convert_html(self, converter):
-		e = converter.target.a(self.content, href=self["href"])
+		e = converter.target.a(self.content, href=self["href"], hreflang=self["href"])
 		return e.convert(converter)
 
 	def convert_fo(self, converter):
