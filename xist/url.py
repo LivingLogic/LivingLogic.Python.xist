@@ -106,9 +106,15 @@ class URL:
 			value = utils.stringFromCode(value)
 		self.__dict__[name] = value
 
+	def __getitem__(self, index):
+		"""
+		return the <argref>index</argref>th directory from the path (including path markers)
+		"""
+		return self.__path[index]
+
 	def __setitem__(self, index, value):
 		"""
-		allows you to replace the index'th path entry
+		allows you to replace the <argref>index</argref>th path entry
 		"""
 		self.__path[index] = utils.stringFromCode(value)
 		self.__normalize()
@@ -185,11 +191,11 @@ class URL:
 			v.append("fragment=" + repr(self.fragment))
 		return "URL(%s)" % ", ".join(v)
 
-	def __str__(self):
-		return self.__asString(1)
+	def asPlainString(self):
+		return self.__asString(0)
 
 	def asString(self):
-		return self.__asString(0)
+		return self.__asString(1)
 
 	def __add__(self, other):
 		"""
@@ -310,7 +316,7 @@ class URL:
 		self.query = query or None
 		self.fragment = fragment or None
 
-	def __asString(self, for__str__):
+	def __asString(self, withPathMarkers):
 		scheme = self.scheme or u""
 		server = self.server or u""
 		if self.port:
@@ -320,7 +326,7 @@ class URL:
 			scheme = u"" # remove our own private scheme name
 			path.append(u"") # make sure that there's a "/" at the start
 		for dir in self.__path:
-			if for__str__ or not _isPathMarker(dir):
+			if withPathMarkers or not _isPathMarker(dir):
 				path.append(dir)
 		file = self.file or u""
 		if self.ext:
@@ -333,7 +339,7 @@ class URL:
 		"""
 		encodes the URL with % escapes
 		"""
-		url = self.asString().encode("utf8")
+		url = self.asPlainString().encode("utf8")
 		v = []
 		for c in url:
 			if c in self.__safe:

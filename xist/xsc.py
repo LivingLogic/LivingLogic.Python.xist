@@ -1727,18 +1727,21 @@ class URLAttr(Attr):
 	"""
 
 	def __init__(self, *_content):
-		Attr.__init__(self, *_content)
 		self.base = xsc.filenames[-1]
+		if len(_content) == 1 and isinstance(_content[0], url.URL):
+			Attr.__init__(self, _content[0].relativeTo(self.base).asString())
+		else:
+			Attr.__init__(self, *_content)
 
 	def _str(self, content=None, brackets=None, slash=None, ansi=None):
-		attr = " " + strAttrName("base", ansi) + "=" + strQuote(ansi = ansi) + strURL(str(self.base), ansi = ansi) + strQuote(ansi = ansi)
+		attr = " %s=%s%s%s" % (strAttrName("base", ansi), strQuote(ansi=ansi), strURL(str(self.base), ansi=ansi), strQuote(ansi=ansi))
 		return Attr._str(self, content=attr, brackets=brackets, slash=slash, ansi=ansi)
 
 	def _dorepr(self, ansi=None):
 		return strURL(self.asString(), ansi=ansi)
 
 	def publish(self, publisher):
-		Text(self.forOutput().asString()).publish(publisher)
+		Text(self.forOutput().asPlainString()).publish(publisher)
 
 	def asHTML(self):
 		node = Attr.asHTML(self)
@@ -1747,11 +1750,13 @@ class URLAttr(Attr):
 
 	def clone(self):
 		node = Attr.clone(self)
+		node.url = self.asURL().clone()
 		node.base = self.base.clone()
 		return node
 
 	def compact(self):
 		node = Attr.compact(self)
+		node.url = self.asURL().clone()
 		node.base = self.base.clone()
 		return node
 

@@ -742,7 +742,9 @@ class font(xsc.Element): # deprecated
 	local change to font
 	"""
 	empty = 0
-	attrHandlers = {"face": xsc.TextAttr, "size": xsc.TextAttr, "color": xsc.ColorAttr}
+	attrHandlers = coreattrs.copy()
+	attrHandlers = attrs.update(i18n)
+	attrHandlers.update({"face": xsc.TextAttr, "size": xsc.TextAttr, "color": xsc.ColorAttr})
 
 class applet(xsc.Element): # deprecated
 	"""
@@ -1005,8 +1007,8 @@ class ne(xsc.Entity): "not equal to, U+2260 ISOtech"; codepoint = 8800
 class equiv(xsc.Entity): "identical to, U+2261 ISOtech"; codepoint = 8801
 class le(xsc.Entity): "less-than or equal to, U+2264 ISOtech"; codepoint = 8804
 class ge(xsc.Entity): "greater-than or equal to, U+2265 ISOtech"; codepoint = 8805
-class sub(xsc.Entity): "subset of, U+2282 ISOtech"; codepoint = 8834
-class sup(xsc.Entity): "superset of, U+2283 ISOtech"; codepoint = 8835
+class Sub(xsc.Entity): "subset of, U+2282 ISOtech"; codepoint = 8834; name = "sub"
+class Sup(xsc.Entity): "superset of, U+2283 ISOtech"; codepoint = 8835; name = "sup"
 class nsub(xsc.Entity): "not a subset of, U+2284 ISOamsn"; codepoint = 8836
 class sube(xsc.Entity): "subset of or equal to, U+2286 ISOtech"; codepoint = 8838
 class supe(xsc.Entity): "superset of or equal to, U+2287 ISOtech"; codepoint = 8839
