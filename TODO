@@ -1,21 +1,11 @@
 ToDos and stupid ideas
 ======================
 
-Unify Filename and URL.
-
-URL("/gurk/", scheme="file") does not work.
-
 Real namespace support.
 
 Implement new relative URLs as a new scheme:
 	roots://foo/bar.html
 and define the meaning of foo somewhere.
-
-Fix the problem that URL constructor arguments are ambigous,
-does query=None mean "no argument given" or does it mean
-"clear the query attribute"?
-
-Make URLs much more object oriented (one class for every scheme?)
 
 Cache parsed XML files and image sizes.
 
