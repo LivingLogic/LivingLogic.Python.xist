@@ -27,7 +27,7 @@ class URL:
 	query -- The query
 	fragment -- The fragment
 	These variables form a URL in the following way
-	<scheme>://<server>/<path>/<file>;<params>?<query>#<fragment>
+	<scheme>://<server>:<port>/<path>/<file>.<ext>;<params>?<query>#<fragment>
 	"""
 	def __init__(self,url = None,scheme = None,server = None,port = None,path = None,file = None,ext = None,parameters = None,query = None,fragment = None):
 		# initialize the defaults
