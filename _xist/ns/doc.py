@@ -1021,11 +1021,14 @@ class pyref(inline):
 		class method(xsc.TextAttr): pass
 		class property(xsc.TextAttr): pass
 		class function(xsc.TextAttr): pass
-
-	base = "http://localhost:7464/"
+	class Context(xsc.Element.Context):
+		def __init__(self):
+			xsc.Element.Context.__init__(self)
+			self.base = "http://localhost:7464/"
 
 	def convert(self, converter):
 		target = converter.target
+		context = converter[self]
 		if issubclass(target, xmlns): # our own namespace
 			return self.convert_doc(converter)
 		if "function" in self.attrs:
@@ -1057,18 +1060,18 @@ class pyref(inline):
 		if issubclass(target, html):
 			if function is not None:
 				if module is not None:
-					e = target.a(e, href=(self.base, module, "/index.html#", function))
+					e = target.a(e, href=(context.base, module, "/index.html#", function))
 			elif method is not None:
 				if class__ is not None and module is not None:
-					e = target.a(e, href=(self.base, module, "/index.html#", class__, "-", method))
+					e = target.a(e, href=(context.base, module, "/index.html#", class__, "-", method))
 			elif prop is not None:
 				if class__ is not None and module is not None:
-					e = target.a(e, href=(self.base, module, "/index.html#", class__, "-", prop))
+					e = target.a(e, href=(context.base, module, "/index.html#", class__, "-", prop))
 			elif class__ is not None:
 				if module is not None:
-					e = target.a(e, href=(self.base, module, "/index.html#", class__))
+					e = target.a(e, href=(context.base, module, "/index.html#", class__))
 			elif module is not None:
-				e = target.a(e, href=(self.base, module, "/index.html"))
+				e = target.a(e, href=(context.base, module, "/index.html"))
 		return e.convert(converter)
 
 
