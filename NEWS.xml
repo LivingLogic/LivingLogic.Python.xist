@@ -97,6 +97,8 @@ the methods <method>extend</method> and <method>__iadd__</method>.</item>
 <item>For walking the tree the <method>walk</method> has been completely
 rewritten and a new method <method>visit</method> has been added. For
 more info see the docstrings.</item>
+<item><class>Node</class> now has two new methods <method>copy</method>
+and <method>deepcopy</method> and supports the <module>copy</module>.</item>
 </ulist>
 </section>
 

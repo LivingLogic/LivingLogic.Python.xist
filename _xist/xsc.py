@@ -18,7 +18,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 
 from __future__ import generators
 
-import os, sys, random, types, new
+import os, sys, random, types, new, copy
 
 from ll import url, ansistyle
 
@@ -263,9 +263,29 @@ class Node(Base):
 
 	def clone(self):
 		"""
-		returns an identical clone of the node and its children.
+		return a clone of <self/>. Compared to <pyref method="deepcopy"><method>deepcopy</method></pyref> <method>clone</method>
+		will create multiple instances of objects that can be found in the tree more than once. <method>clone</method> can't
+		clone trees that contains cycles.
 		"""
-		raise NotImplementedError("clone method not implemented in %s" % self.__class__.__name__)
+		return self
+
+	def copy(self):
+		"""
+		return a shallow copy of <self/>.
+		"""
+		return self.__copy__()
+
+	def __copy__(self):
+		return self
+
+	def deepcopy(self):
+		"""
+		return a deep copy of <self/>.
+		"""
+		return self.__deepcopy__()
+
+	def __deepcopy__(self, memo=None):
+		return self
 
 	def repr(self, presenter=None):
 		"""
@@ -657,7 +677,7 @@ class Node(Base):
 		returns a version of <self/>, where textnodes or character references that contain
 		only linefeeds are removed, i.e. potentially needless whitespace is removed.
 		"""
-		raise NotImplementedError("compact method not implemented in %s" % self.__class__.__name__)
+		return self
 
 	def _matchesattrs(self, attrs):
 		"""
@@ -916,9 +936,6 @@ class Text(CharacterData):
 	def convert(self, converter):
 		return self
 
-	def clone(self):
-		return self
-
 	def __unicode__(self):
 		return self.content
 
@@ -992,6 +1009,19 @@ class Frag(Node, list):
 	def clone(self):
 		node = self._create()
 		list.extend(node, [ child.clone() for child in self ])
+		return self._decoratenode(node)
+
+	def __copy__(self):
+		node = self._create()
+		list.extend(node, self)
+		return self._decoratenode(node)
+
+	def __deepcopy__(self, memo=None):
+		node = self._create()
+		if memo is None:
+			memo = {}
+		memo[id(self)] = node
+		list.extend(node, [ copy.deepcopy(child, memo) for child in self ])
 		return self._decoratenode(node)
 
 	def present(self, presenter):
@@ -1247,12 +1277,6 @@ class Comment(CharacterData):
 	def convert(self, converter):
 		return self
 
-	def clone(self):
-		return self
-
-	def compact(self):
-		return self
-
 	def __unicode__(self):
 		return u""
 
@@ -1275,11 +1299,6 @@ class DocType(CharacterData):
 
 	def convert(self, converter):
 		return self
-
-	def clone(self):
-		return self
-
-	compact = clone
 
 	def present(self, presenter):
 		presenter.presentDocType(self)
@@ -1336,11 +1355,6 @@ class ProcInst(CharacterData):
 	def convert(self, converter):
 		return self
 
-	def clone(self):
-		return self
-
-	compact = clone
-
 	def present(self, presenter):
 		presenter.presentProcInst(self)
 
@@ -1391,12 +1405,6 @@ class Null(CharacterData):
 	_str = classmethod(_str)
 
 	def convert(self, converter):
-		return self
-
-	def clone(self):
-		return self
-
-	def compact(self):
 		return self
 
 	def publish(self, publisher):
@@ -1806,7 +1814,22 @@ class Attrs(Node, dict):
 		node = self._create()
 		for (key, value) in dict.iteritems(self):
 			dict.__setitem__(node, key, value.clone())
-		return node
+		return self._decoratenode(node)
+
+	def __copy__(self):
+		node = self._create()
+		for (key, value) in dict.iteritems(self):
+			dict.__setitem__(node, key, value)
+		return self._decoratenode(node)
+
+	def __deepcopy__(self, memo=None):
+		node = self._create()
+		if memo is None:
+			memo = {}
+		memo[id(self)] = node
+		for (key, value) in dict.iteritems(self):
+			dict.__setitem__(node, key, copy.deepcopy(value, memo))
+		return self._decoratenode(node)
 
 	def convert(self, converter):
 		node = self._create()
@@ -2326,6 +2349,21 @@ class Element(Node):
 		node.attrs = self.attrs.clone()
 		return self._decoratenode(node)
 
+	def __copy__(self):
+		node = self.__class__()
+		node.content = copy.copy(self.content)
+		node.attrs = copy.copy(self.attrs)
+		return self._decoratenode(node)
+
+	def __deepcopy__(self, memo=None):
+		node = self.__class__()
+		if memo is None:
+			memo = {}
+		memo[id(self)] = node
+		node.content = copy.deepcopy(self.content, memo)
+		node.attrs = copy.deepcopy(self.attrs, memo)
+		return self._decoratenode(node)
+
 	def __unicode__(self):
 		return unicode(self.content)
 
@@ -2784,9 +2822,6 @@ class Entity(Node):
 		return s
 	_str = classmethod(_str)
 
-	def clone(self):
-		return self
-	
 	def compact(self):
 		return self
 

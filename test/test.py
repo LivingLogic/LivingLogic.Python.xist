@@ -1148,6 +1148,53 @@ class XISTTest(unittest.TestCase):
 		self.assertEqual(e[1::2], cls(1, 3, 5, id=42))
 		self.assertEqual(e[::-1], cls(range(5, -1, -1), id=42))
 
+	def test_clone(self):
+		for cls in (xsc.Frag, html.div):
+			e = html.div(1)
+
+			src = cls(1, e, e)
+
+			dst = src.clone()
+			self.assert_(src is not dst)
+			self.assert_(src[0] is dst[0])
+			self.assert_(src[1] is not dst[1])
+			self.assert_(dst[1] is not dst[2])
+
+			e.append(e) # create a cycle
+
+			dst = src.copy()
+			self.assert_(src is not dst)
+			self.assert_(src[0] is dst[0])
+			self.assert_(src[1] is dst[1])
+			self.assert_(dst[1] is dst[2])
+
+			dst = src.deepcopy()
+			self.assert_(src is not dst)
+			self.assert_(src[0] is dst[0])
+			self.assert_(src[1] is not dst[1])
+			self.assert_(dst[1] is dst[2])
+
+		e = html.div(id=(17, html.div(23), 42))
+		for src in (e, e.attrs):
+			dst = src.clone()
+			self.assert_(src["id"] is not dst["id"])
+			self.assert_(src["id"][0] is dst["id"][0])
+			self.assert_(src["id"][1] is not dst["id"][1])
+
+		e["id"][1] = e # create a cycle
+		e["id"][2] = e # create a cycle
+		for src in (e, e.attrs):
+			dst = src.copy()
+			self.assert_(src["id"] is dst["id"])
+			self.assert_(src["id"][0] is dst["id"][0])
+			self.assert_(src["id"][1] is dst["id"][1])
+			self.assert_(dst["id"][1] is dst["id"][2])
+			dst = src.deepcopy()
+			self.assert_(src["id"] is not dst["id"])
+			self.assert_(src["id"][0] is dst["id"][0])
+			self.assert_(src["id"][1] is not dst["id"][1])
+			self.assert_(dst["id"][1] is dst["id"][2])
+
 class PublishTest(unittest.TestCase):
 	def test_publishelement(self):
 		node = html.html()
