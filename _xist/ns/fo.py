@@ -477,6 +477,11 @@ class show_destination(xsc.Element.Attrs):
 		xmlname = "show-destination"
 		values = ("replace", "new")
 
+class auto_restore(xsc.Element.Attrs):
+	class auto_restore(xsc.TextAttr):
+		xmlname = "auto-restore"
+		values = ("true", "false")
+
 class starting_state(xsc.Element.Attrs):
 	class starting_state(xsc.TextAttr):
 		xmlname = "starting-state"
@@ -1680,6 +1685,15 @@ class fo(xsc.Namespace):
 		empty = False
 		class Attrs(
 			common_accessibility_properties,
+			auto_restore,
+			id):
+			pass
+
+	class multi_case(xsc.Element):
+		xmlname = "multi-case"
+		empty = False
+		class Attrs(
+			common_accessibility_properties,
 			id,
 			starting_state,
 			case_name,
@@ -1736,103 +1750,7 @@ class fo(xsc.Namespace):
 	class wrapper(xsc.Element):
 		empty = False
 		class Attrs(
-			common_absolute_position_properties,
-			common_accessibility_properties,
-			common_aural_properties,
-			common_border_padding_background_properties,
-			common_font_properties,
-			common_hyphenation_properties,
-			common_margin_properties_block,
-			common_margin_properties_inline,
-			common_relative_position_properties,
-			alignment_adjust,
-			alignment_baseline,
-			baseline_shift,
-			block_progression_dimension,
-			border_after_precedence,
-			border_before_precedence,
-			border_collapse,
-			border_end_precedence,
-			border_separation,
-			border_start_precedence,
-			break_after,
-			break_before,
-			caption_side,
-			character,
-			clip,
-			color,
-			content_height,
-			content_type,
-			content_width,
-			destination_placement_offset,
-			direction,
-			display_align,
-			dominant_baseline,
-			external_destination,
-			glyph_orientation_horizontal,
-			glyph_orientation_vertical,
-			height,
-			hyphenation_keep,
-			hyphenation_ladder_count,
-			id,
-			indicate_destination,
-			inline_progression_dimension,
-			internal_destination,
-			intrusion_displace,
-			keep_together,
-			keep_with_next,
-			keep_with_previous,
-			last_line_end_indent,
-			leader_alignment,
-			leader_length,
-			leader_pattern,
-			leader_pattern_width,
-			letter_spacing,
-			line_height,
-			line_height_shift_adjustment,
-			line_stacking_strategy,
-			linefeed_treatment,
-			orphans,
-			overflow,
-			provisional_distance_between_starts,
-			provisional_label_separation,
-			ref_id,
-			reference_orientation,
-			rule_style,
-			rule_thickness,
-			scaling,
-			scaling_method,
-			score_spaces,
-			show_destination,
-			span,
-			src,
-			suppress_at_line_break,
-			switch_to,
-			table_layout,
-			table_omit_footer_at_break,
-			table_omit_header_at_break,
-			target_presentation_context,
-			target_processing_context,
-			target_stylesheet,
-			text_align,
-			text_align_last,
-			text_altitude,
-			text_decoration,
-			text_depth,
-			text_indent,
-			text_shadow,
-			text_transform,
-			treat_as_word_space,
-			unicode_bidi,
-			visibility,
-			white_space_collapse,
-			white_space_treatment,
-			widows,
-			width,
-			word_spacing,
-			wrap_option,
-			writing_mode,
-			z_index
+			id
 			):
 			pass
 
@@ -1853,3 +1771,62 @@ class fo(xsc.Namespace):
 			):
 			pass
 
+	pe_block = (block, block_container, table_and_caption, table, list_block)
+	pe_inline = (bidi_override, character, external_graphic, instream_foreign_object, inline, inline_container, leader, page_number, page_number_citation, basic_link, multi_toggle)
+	pe_neutral = (multi_switch, multi_properties, wrapper, retrieve_marker)
+
+	root.content = (layout_master_set, declarations, page_sequence)
+	declarations.content = (color_profile,)
+	color_profile.content = ()
+	page_sequence.content = (title, static_content, flow)
+	layout_master_set.content = (simple_page_master, page_sequence_master)
+	page_sequence_master.content = (single_page_master_reference, repeatable_page_master_reference, repeatable_page_master_alternatives)
+	single_page_master_reference.content = ()
+	repeatable_page_master_reference.content = ()
+	repeatable_page_master_alternatives.content = (conditional_page_master_reference,)
+	conditional_page_master_reference.content = ()
+	simple_page_master.content = (region_body, region_before, region_after, region_start, region_end)
+	region_body.content = ()
+	region_before.content = ()
+	region_after.content = ()
+	region_start.content = ()
+	region_end.content = ()
+	flow.content = pe_block + (marker,)
+	static_content.content = pe_block
+	title.content = pe_inline
+	block.content = pe_inline + pe_block
+	block_container.content = pe_block
+	bidi_override.content = pe_inline + pe_block
+	character.content = ()
+	initial_property_set.content = ()
+	external_graphic.content = ()
+	instream_foreign_object.content = ()
+	inline.content = pe_inline + pe_block
+	inline_container.content = pe_block
+	leader.content = pe_inline
+	page_number.content = ()
+	page_number_citation.content = ()
+	table_and_caption.content = (table_caption, table)
+	table.content = (table_column, table_header, table_footer, table_body)
+	table_column.content = ()
+	table_caption.content = pe_block + (marker,)
+	table_header.content = (table_row, table_cell, marker)
+	table_footer.content = (table_row, table_cell, marker)
+	table_body.content = (table_row, table_cell, marker)
+	table_row.content = (table_cell,)
+	table_cell.content = pe_block + (marker,)
+	list_block.content = (list_item, marker)
+	list_item.content = (list_item_label, list_item_body, marker)
+	list_item_body.content = pe_block + (marker,)
+	list_item_label.content = pe_block + (marker,)
+	basic_link.content = pe_inline + pe_block + (marker,)
+	multi_switch.content = (multi_case,)
+	multi_case.content = pe_inline + pe_block + (multi_toggle,) ### More attributes are allowed
+	multi_toggle.content = pe_inline + pe_block
+	multi_properties.content = (multi_property_set, wrapper)
+	multi_property_set.content = ()
+	float.content = pe_block
+	footnote.content = (pe_inline, footnote_body)
+	wrapper.content = pe_inline + pe_block + (marker,)
+	marker.content = pe_inline + pe_block
+	retrieve_marker.content = ()
