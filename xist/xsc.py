@@ -357,7 +357,10 @@ class XSCFrag(XSCNode):
 		res.preppend(other)
 
 	def _doAsHTML(self):
-		return XSCFrag(self.content)
+		v = []
+		for child in self.content:
+			v.append(child.asHTML())
+		return XSCFrag(v)
 
 	def _dorepr(self):
 		v = []
@@ -547,7 +550,7 @@ class XSCElement(XSCNode):
 		self.content.append(item)
 
 	def _doAsHTML(self):
-		return self.__class__(self.content,self.attrs) # "virtual" copy constructor
+		return self.__class__(self.content.asHTML(),self.attrs.asHTML()) # "virtual" copy constructor
 
 	def _dorepr(self):
 		v = []

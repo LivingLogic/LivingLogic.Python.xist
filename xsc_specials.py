@@ -7,7 +7,7 @@ class plaintable(table):
 	close = 1
 
 	def _doAsHTML(self):
-		e = table(self.content,self.attrs)
+		e = table(self.content.asHTML(),self.attrs.asHTML())
 		if not e.has_attr("cellpadding"):
 			e["cellpadding"] = 0
 		if not e.has_attr("cellspacing"):
@@ -22,7 +22,7 @@ class plainbody(body):
 	close = 1
 
 	def _doAsHTML(self):
-		e = body(self.content,self.attrs)
+		e = body(self.content.asHTML(),self.attrs.asHTML())
 		if not e.has_attr("leftmargin"):
 			e["leftmargin"] = 0
 		if not e.has_attr("topmargin"):
