@@ -5,6 +5,8 @@
 or publishing.</item>
 <item><code>xist.url.URL.fileSize</code> and <code>xist.url.URL.imageSize</code>
 now use the warning framework to report errors.</item>
+<item>There is a new presenter named <code>CodePresenter</code> that dumps the
+tree as Python source code.</item>
 </ulist>
 </section>
 
