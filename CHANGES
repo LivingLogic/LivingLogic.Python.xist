@@ -17,6 +17,14 @@ to write faster code:
 Image size calculation is now done for <input type="image">. The "size" attribute
 is set to the image width.
 
+Manipulating the path in an URL is now done via the usual __setitem__/__getitem__ stuff,
+which keeps the path in a consistent state.
+>>> from xist.URL import URL
+>>> u = URL("/foo/*/../bar/baz.gif")
+>>> del u[1]
+>>> u
+URL(scheme='server', path=['bar'], file='baz', ext='gif')
+
 New in 0.3.4
 ------------
 

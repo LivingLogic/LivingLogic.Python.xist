@@ -112,12 +112,25 @@ class method(xsc.Element):
 	attrHandlers = { "name" : xsc.TextAttr }
 
 	def asHTML(self):
-		e = xsc.Frag(html.h4(self["name"]))
+		e = html.div(Class="method")
 		sig = self.findNodes(type = signature)[0]
-		e.append(html.div(html.code(Self(),".",self["name"],"(",sig.findNodes(type = arg)[1:].withSeparator(", "),")",Class="method"),Class="method")) # drop the self from the arguments
+		e.append(
+			html.div(
+				html.code(
+					Self(),
+					".",
+					html.span(self["name"],Class="name"),
+					"(",
+					sig.findNodes(type = arg)[1:].withSeparator(", "), # drop the self from the arguments
+					"):",
+					Class="method"
+				),
+				Class="name"
+			)
+		)
 		descs = self.findNodes(type = desc)
 		if len(descs):
-			e.append(html.div(descs[0]))
+			e.append(descs[0])
 		return e.asHTML()
 
 class Class(xsc.Element):

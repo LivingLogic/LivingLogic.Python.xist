@@ -27,7 +27,21 @@ code.class
 }
 div.method, div.function
 {
+	margin-top: 10pt;
+	margin-bottom: 10pt;
+}
+div.method div.name, div.function div.name
+{
 	text-indent: -3em;
+	margin-left: 3em;
+}
+div.method div.name span.name
+{
+	font-weight: bold;
+}
+
+div.method div.description
+{
 	margin-left: 3em;
 }
 code.method
@@ -47,4 +61,9 @@ code.arg
 	font-family: monospace;
 	font-style: normal;
 	color: #060;
+}
+pre
+{
+	font-family: monospace;
+	font-size: 8pt;
 }
