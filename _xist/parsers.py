@@ -78,8 +78,8 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 		self._cont_handler.setDocumentLocator(self)
 		self._cont_handler.startDocument()
 		self.lineNumber = 1
-		# nothing done for the column number, because otherwise parsing would be much to slow.
-		self.headerJustRead = 0 # will be used for skipping whitespace after the XML header
+		# we don't keep a column number, because otherwise parsing would be much to slow
+		self.headerJustRead = False # will be used for skipping whitespace after the XML header
 
 		try:
 			while 1:
@@ -144,7 +144,7 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 
 	def handle_comment(self, data):
 		self._cont_handler.comment(self._makestring(data))
-		self.headerJustRead = 0
+		self.headerJustRead = False
 
 	# don't define handle_charref or handle_cdata, so we will get those through handle_data
 	# but unfortunately we have to define handle_charref here, because of a bug in
@@ -158,25 +158,25 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 			data = unichr(int(data))
 		if not self.headerJustRead or not data.isspace():
 			self._cont_handler.characters(data)
-			self.headerJustRead = 0
+			self.headerJustRead = False
 
 	def handle_data(self, data):
 		data = self._makestring(data)
 		if not self.headerJustRead or not data.isspace():
 			self._cont_handler.characters(data)
-			self.headerJustRead = 0
+			self.headerJustRead = False
 
 	def handle_proc(self, target, data):
 		target = self._makestring(target)
 		data = self._makestring(data)
 		if target!=u'xml': # Don't report <?xml?> as a processing instruction
 			self._cont_handler.processingInstruction(target, data)
-			self.headerJustRead = 0
+			self.headerJustRead = False
 		else: # extract the encoding
 			encodingFound = utils.findAttr(data, u"encoding")
 			if encodingFound is not None:
 				self.encoding = encodingFound
-			self.headerJustRead = 1
+			self.headerJustRead = True
 
 	def handle_entityref(self, name):
 		if name=="lt":
@@ -191,7 +191,7 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 			self._cont_handler.characters(u"'")
 		else:
 			self._cont_handler.skippedEntity(unicode(name, self.encoding))
-		self.headerJustRead = 0
+		self.headerJustRead = False
 
 	def finish_starttag(self, name, attrs):
 		newattrs = sax.xmlreader.AttributesImpl({})
@@ -202,11 +202,11 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 				attrvalue = self._string2Fragment(unicode(attrvalue, self.encoding))
 			newattrs._attrs[unicode(attrname, self.encoding)] = attrvalue
 		self._cont_handler.startElement(unicode(name, self.encoding), newattrs)
-		self.headerJustRead = 0
+		self.headerJustRead = False
 
 	def finish_endtag(self, name):
 		self._cont_handler.endElement(unicode(name, self.encoding))
-		self.headerJustRead = 0
+		self.headerJustRead = False
 
 	def _string2Fragment(self, text):
 		"""
