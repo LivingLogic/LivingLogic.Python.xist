@@ -21,9 +21,9 @@
 ## IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 """
-<par>A module that allows you to embed tags from
-the <link href="http://jakarta.apache.org/struts/">Struts</link>
-html custom tag library.</par>
+<doc:par>A module that allows you to embed tags from
+the <a href="http://jakarta.apache.org/struts/">Struts</a>
+html custom tag library.</doc:par>
 """
 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
