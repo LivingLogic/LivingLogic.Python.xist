@@ -64,5 +64,5 @@ setup(
 		Extension("ll.xist.csstokenizer", ["_xist/csstokenizer.cxx"]),
 		Extension("ll.xist.helpers", ["_xist/helpers.c"])
 	],
-	scripts=["scripts/dtd2xsc.py", "scripts/tld2xsc.py", "scripts/doc2txt.py", "scripts/xscmake.py" ]
+	scripts=["scripts/dtd2xsc.py", "scripts/tld2xsc.py", "scripts/doc2txt.py" ]
 )
