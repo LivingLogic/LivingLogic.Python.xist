@@ -71,7 +71,14 @@ class html(xsc.Element):
 	"""
 	empty = 0
 	attrHandlers = i18n.copy()
-	attrHandlers.update({"xmlns": xsc.TextAttr})
+	attrHandlers.update({"xmlns": xsc.TextAttr, "xml:lang": xsc.TextAttr})
+
+	def convert(self, converter):
+		if converter.lang is not None and (self["lang"].convert(converter) != converter.lang or self["xml:lang"].convert(converter) != converter.lang):
+			node = html(self.content, self.attrs, {"lang": converter.lang, "xml:lang": converter.lang})
+			return node.convert(converter)
+		else:
+			return xsc.Element.convert(self, converter)
 
 class head(xsc.Element):
 	"""
