@@ -32,7 +32,7 @@ try:
 except ImportError:
 	Image = None
 
-import os, types, urlparse, urllib
+import os, stat, types, urlparse, urllib
 
 from xist import options, errors
 
@@ -356,19 +356,12 @@ class URL:
 		size = None
 		if self.isRetrieve():
 			try:
-				info = self.info()
+				(filename, headers) = self.retrieve()
+				size = os.stat(filename)[stat.ST_SIZE]
+				urllib.urlcleanup()
 			except IOError:
+				urllib.urlcleanup()
 				raise errors.FileNotFoundError(self)
-			try:
-				size = int(info["Content-Length"])
-			except KeyError: # try the hard way
-				try:
-					(filename, headers) = self.retrieve()
-					size = os.stat(filename)[stat.ST_SIZE]
-					urllib.urlcleanup()
-				except IOError:
-					urllib.urlcleanup()
-					raise errors.FileNotFoundError(self)
 		return size
 
 	def imageSize(self):
