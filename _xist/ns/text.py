@@ -22,6 +22,7 @@ import cgi # for parse_header
 from ll.xist import xsc
 from ll.xist.ns import html as html_
 
+
 class html(html_.html):
 	def fixcharacters(self, node, converter):
 		if isinstance(node, xsc.Text):
@@ -40,6 +41,7 @@ class html(html_.html):
 		e = html_.html(self.content.convert(converter), self.attrs.convert(converter))
 		e = e.mapped(self.fixcharacters, converter)
 		return e
+
 
 class HeaderFormattingMixin(object):
 	abovetext = None
@@ -65,32 +67,39 @@ class HeaderFormattingMixin(object):
 		)
 		return e.convert(converter)
 
+
 class h1(HeaderFormattingMixin, html_.h1):
 	abovetext = "#"
 	belowtext = "#"
 	base = html_.h1
+
 
 class h2(HeaderFormattingMixin, html_.h2):
 	abovetext = "="
 	belowtext = "="
 	base = html_.h2
 
+
 class h3(HeaderFormattingMixin, html_.h3):
 	abovetext = "-"
 	belowtext = "-"
 	base = html_.h3
 
+
 class h4(HeaderFormattingMixin, html_.h4):
 	belowtext = "#"
 	base = html_.h4
+
 
 class h5(HeaderFormattingMixin, html_.h5):
 	belowtext = "="
 	base = html_.h5
 
+
 class h6(HeaderFormattingMixin, html_.h6):
 	belowtext = "-"
 	base = html_.h6
+
 
 class xmlns(html_):
 	xmlname = "text"

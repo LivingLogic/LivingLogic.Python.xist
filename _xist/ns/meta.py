@@ -21,6 +21,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 from ll.xist import xsc
 from ll.xist.ns import ihtml, html
 
+
 class contenttype(xsc.Element):
 	"""
 	<par>can be used for a <markup>&lt;meta http-equiv="Content-Type" content="text/html"/&gt;</markup>, where
@@ -45,6 +46,7 @@ class contenttype(xsc.Element):
 		e["content"] = "text/html"
 		return e.convert(converter)
 
+
 class contentscripttype(html.meta):
 	"""
 	<par>can be used for a <markup>&lt;meta http-equiv="Content-Script-Type" content="..."/&gt;</markup>.</par>
@@ -66,6 +68,7 @@ class contentscripttype(html.meta):
 		e["content"] = self["type"]
 		return e.convert(converter)
 
+
 class keywords(html.meta):
 	"""
 	<par>can be used for a <markup>&lt;meta name="keywords" content="..."/&gt;</markup>.</par>
@@ -83,6 +86,7 @@ class keywords(html.meta):
 		e["name"] = "keywords"
 		e["content"] = self.content
 		return e.convert(converter)
+
 
 class description(html.meta):
 	"""
@@ -102,6 +106,7 @@ class description(html.meta):
 		e["content"] = self.content
 		return e.convert(converter)
 
+
 class stylesheet(html.link):
 	"""
 	<par>can be used for a <markup>&lt;link rel="stylesheet" type="text/css" href="..."/&gt;</markup>.</par>
@@ -117,6 +122,7 @@ class stylesheet(html.link):
 		e = html.link(self.attrs, rel="stylesheet", type="text/css")
 		return e.convert(converter)
 
+
 class made(html.link):
 	"""
 	<par>can be used for a <markup>&lt;link rel="made" href="mailto:..."/&gt;</markup>.</par>
@@ -130,6 +136,7 @@ class made(html.link):
 	def convert(self, converter):
 		e = html.link(self.attrs, rel="made", href=("mailto:", self["href"]))
 		return e.convert(converter)
+
 
 class author(xsc.Element):
 	"""
@@ -153,6 +160,7 @@ class author(xsc.Element):
 			e.append(html.link(rel="made", href=("mailto:", self["email"])))
 		return e.convert(converter)
 
+
 class refresh(xsc.Element):
 	"""
 	<par> a refresh header.</par>
@@ -166,6 +174,7 @@ class refresh(xsc.Element):
 	def convert(self, converter):
 		e = html.meta(http_equiv="Refresh", content=(self["secs"], "; url=", self["href"]))
 		return e.convert(converter)
+
 
 class xmlns(xsc.Namespace):
 	xmlname = "meta"

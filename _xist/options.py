@@ -18,17 +18,20 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 
 import sys, os
 
+
 def getStringFromEnv(name, default):
 	try:
 		return os.environ[name]
 	except:
 		return default
 
+
 def getIntFromEnv(name, default):
 	try:
 		return int(os.environ[name])
 	except:
 		return default
+
 
 retrieveremote = getIntFromEnv("XSC_RETRIEVEREMOTE", 1)              # should remote URLs be retrieved? (for filesize and imagesize tests)
 retrievelocal = getIntFromEnv("XSC_RETRIEVELOCAL", 1)                # should local URLs be retrieved? (for filesize and imagesize tests)

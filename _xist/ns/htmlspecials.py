@@ -21,6 +21,7 @@ import sys, types, time as time_, string
 from ll.xist import xsc, parsers
 from ll.xist.ns import ihtml, html, meta, specials
 
+
 class plaintable(html.table):
 	"""
 	<par>a &html; table where the values of the attributes <lit>cellpadding</lit>,
@@ -38,6 +39,7 @@ class plaintable(html.table):
 	def convert(self, converter):
 		e = html.table(self.content, self.attrs)
 		return e.convert(converter)
+
 
 class plainbody(html.body):
 	"""
@@ -58,6 +60,7 @@ class plainbody(html.body):
 	def convert(self, converter):
 		e = html.body(self.content, self.attrs)
 		return e.convert(converter)
+
 
 class pixel(html.img):
 	"""
@@ -94,6 +97,7 @@ class pixel(html.img):
 			src=("root:px/", self.attrs.get("color"), ".gif")
 		)
 		return e.convert(converter)
+
 
 class caps(xsc.Element):
 	"""
@@ -135,6 +139,7 @@ class caps(xsc.Element):
 	def __unicode__(self):
 			return unicode(self.content).upper()
 
+
 class autoimg(html.img):
 	"""
 	<par>An image were width and height attributes are automatically generated.</par>
@@ -150,6 +155,7 @@ class autoimg(html.img):
 		src = self["src"].convert(converter).forInput(converter.root)
 		e._addimagesizeattributes(src, "width", "height")
 		return e
+
 
 class autopixel(html.img):
 	"""
@@ -178,6 +184,7 @@ class autopixel(html.img):
 		e["src"] = ("root:px/", self.attrs.get("color"), ".gif")
 		return e
 
+
 class autoinput(html.input):
 	"""
 	<par>Extends <pyref module="ll.xist.ns.html" class="input"><class>input</class></pyref>
@@ -190,6 +197,7 @@ class autoinput(html.input):
 			src = self["src"].convert(converter).forInput(converter.root)
 			e._addimagesizeattributes(src, "size", None) # no height
 		return e.convert(converter)
+
 
 class redirectpage(xsc.Element):
 	empty = True
@@ -215,6 +223,7 @@ class redirectpage(xsc.Element):
 		)
 		return e.convert(converter)
 
+
 class javascript(html.script):
 	"""
 	<par>can be used for javascript.</par>
@@ -227,6 +236,7 @@ class javascript(html.script):
 	def convert(self, converter):
 		e = html.script(self.content, self.attrs, language="javascript", type="text/javascript")
 		return e.convert(converter)
+
 
 class flash(xsc.Element):
 	empty = True
@@ -262,6 +272,7 @@ class flash(xsc.Element):
 				e.insert(0, target.param(name=attrname, value=self[attrname]))
 
 		return e.convert(converter)
+
 
 class quicktime(xsc.Element):
 	empty = True
@@ -306,25 +317,30 @@ class quicktime(xsc.Element):
 
 		return e.convert(converter)
 
+
 class ImgAttrDecorator(specials.AttrDecorator):
 	class Attrs(html.img.Attrs):
 		pass
 	idecoratable = (html.img,)
+
 
 class InputAttrDecorator(specials.AttrDecorator):
 	class Attrs(html.input.Attrs):
 		pass
 	decoratable = (html.input,)
 
+
 class FormAttrDecorator(specials.AttrDecorator):
 	class Attrs(html.form.Attrs):
 		pass
 	decoratable = (html.form,)
 
+
 class TextAreaAttrDecorator(specials.AttrDecorator):
 	class Attrs(html.textarea.Attrs):
 		pass
 	decoratable = (html.textarea,)
+
 
 class xmlns(xsc.Namespace):
 	xmlname = "htmlspecials"

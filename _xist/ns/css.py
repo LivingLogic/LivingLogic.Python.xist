@@ -19,6 +19,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 
 from ll.xist import xsc
 
+
 class css(xsc.Element):
 	"""
 	The root element
@@ -43,6 +44,7 @@ class css(xsc.Element):
 			child.publish(publisher)
 		publisher.popErrors()
 
+
 class atimport(xsc.Element):
 	"""
 	<par>The <class>atimport</class> rule allows users to import style rules from other style sheets.
@@ -64,6 +66,7 @@ class atimport(xsc.Element):
 		if "media" in self.attrs:
 			publisher.publish(u" " + unicode(self["media"]))
 		publisher.publish(u";")
+
 
 class atmedia(xsc.Element):
 	"""
@@ -107,6 +110,7 @@ class atmedia(xsc.Element):
 			child.publish(publisher)
 		publisher.publish(u"\n}")
 
+
 class atcharset(xsc.Element):
 	"""
 	<par>The character set of the stylesheet. Will be set automatically
@@ -119,6 +123,7 @@ class atcharset(xsc.Element):
 		publisher.publish(u'@charset "')
 		publisher.publish(unicode(publisher.encoding))
 		publisher.publish(u'";')
+
 
 class rule(xsc.Element):
 	"""
@@ -141,6 +146,7 @@ class rule(xsc.Element):
 			props[i].publish(publisher)
 		publisher.publish(u" }")
 
+
 class sel(xsc.Element):
 	"""
 	<par>A CSS selector.</par>
@@ -149,6 +155,7 @@ class sel(xsc.Element):
 
 	def publish(self, publisher):
 		self.content.publish(publisher)
+
 
 class prop(xsc.Element):
 	"""
@@ -166,11 +173,13 @@ class prop(xsc.Element):
 			publisher.publish(u" !important")
 		publisher.publish(u";")
 
+
 class margin_top(prop):
 	"""
 	<par>Set the top margin of a box. Allowed values are a length or the value <lit>inherit</lit>.</par>
 	"""
 	xmlname = "margin-top"
+
 
 class margin_right(prop):
 	"""
@@ -178,17 +187,20 @@ class margin_right(prop):
 	"""
 	xmlname = "margin-right"
 
+
 class margin_bottom(prop):
 	"""
 	<par>Set the bottom margin of a box. Allowed values are a length or the value <lit>inherit</lit>.</par>
 	"""
 	xmlname = "margin-bottom"
 
+
 class margin_left(prop):
 	"""
 	<par>Set the left margin of a box. Allowed values are a length or the value <lit>inherit</lit>.</par>
 	"""
 	xmlname = "margin-left"
+
 
 class margin(prop):
 	"""
@@ -206,11 +218,13 @@ class margin(prop):
 	If there are four values, they apply to the top, right, bottom, and left, respectively.</par> 
 	"""
 
+
 class padding_top(prop):
 	"""
 	<par>Set the top padding of a box. Allowed values are a length or the value <lit>inherit</lit>.
 	A percentage value is calculated with respect to the width of the generated box.</par>"""
 	xmlname = "padding-top"
+
 
 class padding_right(prop):
 	"""
@@ -219,6 +233,7 @@ class padding_right(prop):
 	"""
 	xmlname = "padding-right"
 
+
 class padding_bottom(prop):
 	"""
 	<par>Set the bottom padding of a box. Allowed values are a length or the value <lit>inherit</lit>.
@@ -226,12 +241,14 @@ class padding_bottom(prop):
 	"""
 	xmlname = "padding-bottom"
 
+
 class padding_left(prop):
 	"""
 	<par>Set the left padding of a box. Allowed values are a length or the value <lit>inherit</lit>.
 	A percentage value is calculated with respect to the width of the generated box.</par>
 	"""
 	xmlname = "padding-left"
+
 
 class padding(prop):
 	"""
@@ -249,12 +266,14 @@ class padding(prop):
 	If there are four values, they apply to the top, right, bottom, and left, respectively.</par>
 	"""
 
+
 class border_top_width(prop):
 	"""
 	<par>Set the top border width of a box. Allowed values are a length, <lit>thin</lit>,
 	<lit>medium</lit>, <lit>thick</lit> and <lit>inherit</lit>.</par>
 	"""
 	xmlname = "border-top-width"
+
 
 class border_right_width(prop):
 	"""
@@ -263,6 +282,7 @@ class border_right_width(prop):
 	"""
 	xmlname = "border-right-width"
 
+
 class border_bottom_width(prop):
 	"""
 	<par>Set the bottom border width of a box. Allowed values are a length, <lit>thin</lit>,
@@ -270,12 +290,14 @@ class border_bottom_width(prop):
 	"""
 	xmlname = "border-bottom-width"
 
+
 class border_left_width(prop):
 	"""
 	<par>Set the left border width of a box. Allowed values are a length, <lit>thin</lit>,
 	<lit>medium</lit>, <lit>thick</lit> and <lit>inherit</lit>.</par>
 	"""
 	xmlname = "border-left-width"
+
 
 class border_width(prop):
 	"""
@@ -294,11 +316,13 @@ class border_width(prop):
 	"""
 	xmlname = "border-width"
 
+
 class border_top_color(prop):
 	"""
 	<par>Set the top border color of a box. Allowed values are a color or <lit>transparent</lit>.</par>
 	"""
 	xmlname = "border-top-color"
+
 
 class border_right_color(prop):
 	"""
@@ -306,17 +330,20 @@ class border_right_color(prop):
 	"""
 	xmlname = "border-right-color"
 
+
 class border_bottom_color(prop):
 	"""
 	<par>Set the bottom border color of a box. Allowed values are a color or <lit>transparent</lit>.</par>
 	"""
 	xmlname = "border-bottom-color"
 
+
 class border_left_color(prop):
 	"""
 	<par>Set the left border color of a box. Allowed values are a color or <lit>transparent</lit>.</par>
 	"""
 	xmlname = "border-left-color"
+
 
 class border_color(prop):
 	"""
@@ -336,6 +363,7 @@ class border_color(prop):
 	property as the computed value for the border color.</par>
 	"""
 	xmlname = "border-color"
+
 
 class border_top_style(prop):
 	"""
@@ -367,6 +395,7 @@ class border_top_style(prop):
 	"""
 	xmlname = "border-top-style"
 
+
 class border_right_style(prop):
 	"""
 	<par>The <class>border_right_style</class> properties specify the line style of a 
@@ -374,6 +403,7 @@ class border_right_style(prop):
 	<pyref class="border_top_style"><class>border_top_style</class></pyref>.</par>
 	"""
 	xmlname = "border-right-style"
+
 
 class border_bottom_style(prop):
 	"""
@@ -383,6 +413,7 @@ class border_bottom_style(prop):
 	"""
 	xmlname = "border-bottom-style"
 
+
 class border_left_style(prop):
 	"""
 	<par>The <class>border_left_style</class> properties specify the line style of a 
@@ -390,6 +421,7 @@ class border_left_style(prop):
 	<pyref class="border_left_style"><class>border_left_style</class></pyref>.</par>
 	"""
 	xmlname = "border-left-style"
+
 
 class border_style(prop):
 	"""
@@ -399,12 +431,14 @@ class border_style(prop):
 	"""
 	xmlname = "border-style"
 
+
 class border_top(prop):
 	"""
 	<par>This is a shorthand property for setting the width, style, and color
 	of the top border of a box.</par>
 	"""
 	xmlname = "border-top"
+
 
 class border_right(prop):
 	"""
@@ -413,6 +447,7 @@ class border_right(prop):
 	"""
 	xmlname = "border-right"
 
+
 class border_bottom(prop):
 	"""
 	<par>This is a shorthand property for setting the width, style, and color
@@ -420,12 +455,14 @@ class border_bottom(prop):
 	"""
 	xmlname = "border-bottom"
 
+
 class border_left(prop):
 	"""
 	<par>This is a shorthand property for setting the width, style, and color
 	of the left border of a box.</par>
 	"""
 	xmlname = "border-left"
+
 
 class border(prop):
 	"""
@@ -435,6 +472,7 @@ class border(prop):
 	properties, the <class>border</class> property cannot set different values on the four borders.
 	To do so, one or more of the other border properties must be used.</par>
 	"""
+
 
 class display(prop):
 	"""
@@ -470,6 +508,7 @@ class display(prop):
 	</ulist>
 	"""
 
+
 class position(prop):
 	"""
 	<par>The <class>position</class> and <pyref class="float"><class>float</class></pyref> properties
@@ -501,11 +540,13 @@ class position(prop):
 	</ulist>
 	"""
 
+
 class top(prop):
 	"""
 	<par>This property specifies how far a box's top content edge
 	is offset below the top edge of the box's containing block.</par>
 	"""
+
 
 class right(prop):
 	"""
@@ -513,11 +554,13 @@ class right(prop):
 	is offset to the left of the right edge of the box's containing block.</par>
 	"""
 
+
 class bottom(prop):
 	"""
 	<par>This property specifies how far a box's bottom content edge
 	is offset above the bottom of the box's containing block.</par>
 	"""
+
 
 class left(prop):
 	"""
@@ -525,6 +568,7 @@ class left(prop):
 	is offset to the right of the left edge of the box's
 	containing block.</par>
 	"""
+
 
 class float(prop):
 	"""
@@ -544,6 +588,7 @@ class float(prop):
 	<item><lit>none</lit>: The box is not floated.</item>
 	</ulist>
 	"""
+
 
 class clear(prop):
 	"""
@@ -577,6 +622,7 @@ class clear(prop):
 	or both (<markup>&lt;clear&gt;both&lt;clear&gt;</markup>).</par>
 	"""
 
+
 class z_index(prop):
 	"""
 	<par>For a positioned box, the <class>z_index</class>
@@ -599,6 +645,7 @@ class z_index(prop):
 	"""
 	xmlname = "z-index"
 
+
 class direction(prop):
 	"""
 	<par>This property specifies the base writing direction of blocks
@@ -619,6 +666,7 @@ class direction(prop):
 	effect on inline-level elements, the <pyref class="unicode_bidi"><class>unicode_bidi</class></pyref>
 	property's value must be <lit>embed</lit> or <lit>override</lit>.</par>
 	"""
+
 
 class unicode_bidi(prop):
 	"""
@@ -670,6 +718,7 @@ class unicode_bidi(prop):
 	"""
 	xmlname = "unicode-bidi"
 
+
 class width(prop):
 	"""
 	<par>This property specifies the content width of boxes generated by block-level
@@ -685,17 +734,20 @@ class width(prop):
 	if the value of this property is different than <lit>auto</lit>.</par>
 	"""
 
+
 class min_width(prop):
 	"""
 	<par>This property allow the authors to constrain box widths to a certain range.</par>
 	"""
 	xmlname = "min-width"
 
+
 class max_width(prop):
 	"""
 	<par>This property allow the authors to constrain box widths to a certain range.</par>
 	"""
 	xmlname = "max-width"
+
 
 class height(prop):
 	"""
@@ -707,17 +759,20 @@ class height(prop):
 	(possibly inherited) <pyref class="line_height"><class>line_height</class></pyref> value.</par>
 	"""
 
+
 class min_height(prop):
 	"""
 	<par>This property allow the authors to constrain box heights to a certain range.</par>
 	"""
 	xmlname = "min-height"
 
+
 class max_height(prop):
 	"""
 	<par>This property allow the authors to constrain box heights to a certain range.</par>
 	"""
 	xmlname = "max-height"
+
 
 class line_height(prop):
 	"""
@@ -731,6 +786,7 @@ class line_height(prop):
 	<pyref class="height"><class>height</class></pyref> property.)</par>
 	"""
 	xmlname = "line-height"
+
 
 class vertical_align(prop):
 	"""
@@ -773,6 +829,7 @@ class vertical_align(prop):
 	"""
 	xmlname = "vertical-align"
 
+
 class overflow(prop):
 	"""
 	<par>This property specifies whether the content of a block-level element is clipped
@@ -800,6 +857,7 @@ class overflow(prop):
 	<par>Even if <class>overflow</class> is set to <lit>visible</lit>, content may be clipped
 	to a UA's document window by the native operating environment.</par>
 	"""
+
 
 class clip(prop):
 	"""
@@ -839,6 +897,7 @@ class clip(prop):
 	content may be clipped to that window by the native operating environment.</par>
 	"""
 
+
 class visibility(prop):
 	"""
 	<par>The <class>visibility</class> property specifies whether the boxes generated
@@ -858,11 +917,13 @@ class visibility(prop):
 	<par>This property may be used in conjunction with scripts to create dynamic effects.</par>
 	"""
 
+
 class content(prop):
 	"""
 	<par>This property is used with the <lit>:before</lit> and <lit>:after</lit>
 	pseudo-elements to generate content in a document.</par>
 	"""
+
 
 class quotes(prop):
 	"""
@@ -881,6 +942,7 @@ class quotes(prop):
 	</ulist>
 	"""
 
+
 class counter_reset(prop):
 	"""
 	<par>The <class>counter_reset</class> property contains a list of one or more names of counters,
@@ -888,6 +950,7 @@ class counter_reset(prop):
 	on each occurrence of the element. The default is 0.</par> 
 	"""
 	xmlname = "counter-reset"
+
 
 class counter_increment(prop):
 	"""
@@ -898,6 +961,7 @@ class counter_increment(prop):
 	"""
 	xmlname = "counter-increment"
 
+
 class marker_offset(prop):
 	"""
 	<par>This property specifies the distance between the nearest border edges of a marker box
@@ -906,6 +970,7 @@ class marker_offset(prop):
 	implementation-specific limits.</par>
 	"""
 	xmlname = "marker-offset"
+
 
 class list_style_type(prop):
 	"""
@@ -949,12 +1014,14 @@ class list_style_type(prop):
 	"""
 	xmlname = "list-style-type"
 
+
 class list_style_image(prop):
 	"""
 	<par>This property sets the image that will be used as the list item marker. When the image is available,
 	it will replace the marker set with the <pyref class="list_style_type"><class>list_style_type</class></pyref> marker.</par>
 	"""
 	xmlname = "list-style-image"
+
 
 class list_style_position(prop):
 	"""
@@ -969,6 +1036,7 @@ class list_style_position(prop):
 	"""
 	xmlname = "list-style-position"
 
+
 class list_style(prop):
 	"""
 	<par>The <class>list_style</class> property is a shorthand notation for setting the three properties
@@ -977,6 +1045,7 @@ class list_style(prop):
 	<pyref class="list_style_position"><class>list_style_position</class></pyref> at the same place in the style sheet.</par>
 	"""
 	xmlname = "list-style"
+
 
 class size(prop):
 	"""
@@ -1002,6 +1071,7 @@ class size(prop):
 
 	"""
 
+
 class marks(prop):
 	"""
 	<par>In high-quality printing, marks are often added outside the page box. This property specifies whether cross marks
@@ -1017,6 +1087,7 @@ class marks(prop):
 
 	<par>The size, style, and position of cross marks depend on the user agent.</par>
 	"""
+
 
 class page_break_before(prop):
 	"""
@@ -1042,6 +1113,7 @@ class page_break_before(prop):
 	"""
 	xmlname = "page-break-before"
 
+
 class page_break_after(prop):
 	"""
 	<par>Controls whether a page break should occur after the generated box.
@@ -1049,12 +1121,14 @@ class page_break_after(prop):
 	"""
 	xmlname = "page-break-after"
 
+
 class page_break_inside(prop):
 	"""
 	<par>Controls whether a page break should occur inside the generated box.
 	For allowed values see <pyref class="page_break_before"><class>page_break_before</class></pyref>.</par>
 	"""
 	xmlname = "page-break-inside"
+
 
 class atpage(xsc.Element):
 	"""
@@ -1071,11 +1145,13 @@ class atpage(xsc.Element):
 		self.content.publish(publisher)
 		publisher.publish(u"\n}")
 
+
 class orphans(prop):
 	"""
 	<par>The <class>orphans</class> property specifies the minimum number of lines of a paragraph
 	that must be left at the bottom of a page.</par>
 	"""
+
 
 class widows(prop):
 	"""
@@ -1083,10 +1159,12 @@ class widows(prop):
 	that must be left at the top of a page.</par>
 	"""
 
+
 class color(prop):
 	"""
 	<par>This property describes the foreground color of an element's text content.</par>
 	"""
+
 
 class background_color(prop):
 	"""
@@ -1095,6 +1173,7 @@ class background_color(prop):
 	to make the underlying colors shine through.</par>
 	"""
 	xmlname = "background-color"
+
 
 class background_image(prop):
 	"""
@@ -1107,6 +1186,7 @@ class background_image(prop):
 	when no image is used.</par>
 	"""
 	xmlname = "background-image"
+
 
 class background_repeat(prop):
 	"""
@@ -1123,6 +1203,7 @@ class background_repeat(prop):
 	"""
 	xmlname = "background-repeat"
 
+
 class background_attachment(prop):
 	"""
 	<par>If a background image is specified, this property specifies
@@ -1135,6 +1216,7 @@ class background_attachment(prop):
 	<markup>&lt;background-repeat&gt;repeat&lt;/background-repeat&gt;</markup>), it may be invisible.</par>
 	"""
 	xmlname = "background-attachment"
+
 
 class background_position(prop):
 	"""
@@ -1173,6 +1255,7 @@ class background_position(prop):
 	"""
 	xmlname = "background-position"
 
+
 class background(prop):
 	"""
 	<par>The <class>background</class> property is a shorthand property for setting the individual background properties
@@ -1187,6 +1270,7 @@ class background(prop):
 	<par>The <class>background</class> property first sets all the individual background properties
 	to their initial values, then assigns explicit values given in the declaration.</par>
 	"""
+
 
 class font_family(prop):
 	"""
@@ -1217,6 +1301,7 @@ class font_family(prop):
 	"""
 	xmlname = "font-family"
 
+
 class font_style(prop):
 	"""
 	<par>The <class>font_style</class> property requests normal (sometimes referred to as <z>roman</z> or <z>upright</z>),
@@ -1234,6 +1319,7 @@ class font_style(prop):
 	</ulist>
 	"""
 	xmlname = "font-style"
+
 
 class font_variant(prop):
 	"""
@@ -1253,6 +1339,7 @@ class font_variant(prop):
 	</ulist>
 	"""
 	xmlname = "font-variant"
+
 
 class font_weight(prop):
 	"""
@@ -1277,6 +1364,7 @@ class font_weight(prop):
 	"""
 	xmlname = "font-weight"
 
+
 class font_stretch(prop):
 	"""
 	<par>The <class>font_stretch</class> property selects a normal, condensed, or extended face from a font family.
@@ -1300,6 +1388,7 @@ class font_stretch(prop):
 	(while not decreasing it below <lit>ultra-condensed</lit>).</par>
 	"""
 	xmlname = "font-stretch"
+
 
 class font_size(prop):
 	"""
@@ -1335,6 +1424,7 @@ class font_size(prop):
 	"""
 	xmlname = "font-size"
 
+
 class font_size_adjust(prop):
 	"""
 	<par>In bicameral scripts, the subjective apparent size and legibility of a font
@@ -1361,6 +1451,7 @@ class font_size_adjust(prop):
 	"""
 	xmlname = "font-size-adjust"
 
+
 class font(prop):
 	"""
 	<par>The <class>font</class> property is <z>almost</z> a shorthand property for setting
@@ -1376,6 +1467,7 @@ class font(prop):
 	<par>For more info see the <link href="http://www.w3.org/TR/REC-CSS2/fonts.html#font-shorthand">relevant part of the &css;2 spec</link>.</par>
 	"""
 
+
 class atfontface(xsc.Element):
 	"""
 	<par>A &css;2 font descriptor.</par>
@@ -1386,6 +1478,7 @@ class atfontface(xsc.Element):
 		publisher.publish(u"@font-face\n{\n")
 		self.content.publish(publisher)
 		publisher.publish(u"\n}")
+
 
 class text_indent(prop):
 	"""
@@ -1406,6 +1499,7 @@ class text_indent(prop):
 	"""
 	xmlname = "text-indent"
 
+
 class text_align(prop):
 	"""
 	<par>This property describes how inline content of a block is aligned. Values have the following meanings:</par>
@@ -1419,6 +1513,7 @@ class text_align(prop):
 	</ulist>
 	"""
 	xmlname = "text-align"
+
 
 class text_decoration(prop):
 	"""
@@ -1441,6 +1536,7 @@ class text_decoration(prop):
 	"""
 	xmlname = "text-decoration"
 
+
 class text_shadow(prop):
 	"""
 	<par>This property accepts a comma-separated list of shadow effects to be applied to the text of the element.
@@ -1453,6 +1549,7 @@ class text_shadow(prop):
 	<par>For more info see the <link href="http://www.w3.org/TR/REC-CSS2/text.html#text-shadow-props">relevant part of the &css;2 spec</link>.</par>
 	"""
 	xmlname = "text-shadow"
+
 
 class letter_spacing(prop):
 	"""
@@ -1468,6 +1565,7 @@ class letter_spacing(prop):
 	"""
 	xmlname = "letter-spacing"
 
+
 class word_spacing(prop):
 	"""
 	<par>This property specifies spacing behavior between words. Values have the following meanings:</par>
@@ -1479,6 +1577,7 @@ class word_spacing(prop):
 	</ulist>
 	"""
 	xmlname = "word-spacing"
+
 
 class text_transform(prop):
 	"""
@@ -1492,6 +1591,7 @@ class text_transform(prop):
 	</ulist>
 	"""
 	xmlname = "text-transform"
+
 
 class white_space(prop):
 	"""
@@ -1512,6 +1612,7 @@ class white_space(prop):
 	"""
 	xmlname = "white-space"
 
+
 class caption_side(prop):
 	"""
 	<par>This property specifies the position of the caption box with respect to the table box.
@@ -1525,6 +1626,7 @@ class caption_side(prop):
 	</ulist>
 	"""
 	xmlname = "caption-side"
+
 
 class table_layout(prop):
 	"""
@@ -1540,6 +1642,7 @@ class table_layout(prop):
 	"""
 	xmlname = "table-layout"
 
+
 class border_collapse(prop):
 	"""
 	<par>This property selects a table's border model.
@@ -1549,6 +1652,7 @@ class border_collapse(prop):
 	<par>For more info see the <link href="http://www.w3.org/TR/REC-CSS2/tables.html#borders">relevant part of the &css;2 spec</link>.</par>
 	"""
 	xmlname = "border-collapse"
+
 
 class border_spacing(prop):
 	"""
@@ -1560,6 +1664,7 @@ class border_spacing(prop):
 	"""
 	xmlname = "border-spacing"
 
+
 class empty_cells(prop):
 	"""
 	<par>In the separated borders model, this property controls the rendering of borders around cells in a table that have no visible content.</par>
@@ -1567,6 +1672,7 @@ class empty_cells(prop):
 	<par>For more info see the <link href="http://www.w3.org/TR/REC-CSS2/tables.html#separated-borders">relevant part of the &css;2 spec</link>.</par>
 	"""
 	xmlname = "empty-cells"
+
 
 class speak_header(prop):
 	"""
@@ -1580,6 +1686,7 @@ class speak_header(prop):
 	</ulist>
 	"""
 	xmlname = "speak-header"
+
 
 class cursor(prop):
 	"""
@@ -1604,6 +1711,7 @@ class cursor(prop):
 	</ulist>
 	"""
 
+
 class outline(prop):
 	"""
 	<par>At times, style sheet authors may want to create outlines around visual objects
@@ -1623,12 +1731,14 @@ class outline(prop):
 	<par>For more info see the <link href="http://www.w3.org/TR/REC-CSS2/ui.html#dynamic-outlines">relevant part of the &css;2 spec</link>.</par>
 	"""
 
+
 class outline_width(prop):
 	"""
 	<par>Specifies the width of the outline. Allowed values
 	are the same as for <pyref class="border_width"><class>border_width</class></pyref>.</par>
 	"""
 	xmlname = "outline-width"
+
 
 class outline_style(prop):
 	"""
@@ -1638,6 +1748,7 @@ class outline_style(prop):
 	"""
 	xmlname = "outline-style"
 
+
 class outline_color(prop):
 	"""
 	<par>Specifies the color of the outline. Allowed values
@@ -1645,6 +1756,7 @@ class outline_color(prop):
 	special keyword <lit>invert</lit>.</par>
 	"""
 	xmlname = "outline-color"
+
 
 class volume(prop):
 	"""
@@ -1669,6 +1781,7 @@ class volume(prop):
 	</ulist>
 	"""
 
+
 class speak(prop):
 	"""
 	<par>This property specifies whether text will be rendered aurally and if so,
@@ -1689,6 +1802,7 @@ class speak(prop):
 	The former takes up the same time as if it had been spoken, including any pause before and after the element,
 	but no sound is generated. The latter requires no time and is not rendered (though its descendants may be).</par>
 	"""
+
 
 class pause_before(prop):
 	"""
@@ -1711,12 +1825,14 @@ class pause_before(prop):
 	"""
 	xmlname = "pause-before"
 
+
 class pause_after(prop):
 	"""
 	<par>These property specify a pause to be observed after speaking an element's content.
 	For allowed values see <pyref class="pause_before"><class>pause_before</class></pyref>.</par>
 	"""
 	xmlname = "pause-after"
+
 
 class pause(prop):
 	"""
@@ -1727,6 +1843,7 @@ class pause(prop):
 	and the second is <pyref class="pause_after"><class>pause_after</class></pyref>.
 	If only one value is given, it applies to both properties.</par>
 	"""
+
 
 class cue_before(prop):
 	"""
@@ -1743,12 +1860,14 @@ class cue_before(prop):
 	"""
 	xmlname = "cue-before"
 
+
 class cue_after(prop):
 	"""
 	<par>A sound may be played after the element to delimit it with <class>cue_after</class>.
 	For allowed values see <pyref class="cue_before"><class>cue_before</class></pyref></par>
 	"""
 	xmlname = "cue-after"
+
 
 class cue(prop):
 	"""
@@ -1759,6 +1878,7 @@ class cue(prop):
 	and the second is <pyref class="cue_after"><class>cue_after</class></pyref>.
 	If only one value is given, it applies to both properties.</par>
 	"""
+
 
 class play_during(prop):
 	"""
@@ -1783,6 +1903,7 @@ class play_during(prop):
 	</ulist>
 	"""
 	xmlname = "play-during"
+
 
 class azimuth(prop):
 	"""
@@ -1810,6 +1931,7 @@ class azimuth(prop):
 	</ulist>
 	"""
 
+
 class elevation(prop):
 	"""
 	<par>This property is used for spatial audio. Values have the following meaning:</par>
@@ -1824,6 +1946,7 @@ class elevation(prop):
 	<item><lit>lower</lit>: Subtracts 10 degrees from the current elevation.</item>
 	</ulist>
 	"""
+
 
 class speech_rate(prop):
 	"""
@@ -1845,6 +1968,7 @@ class speech_rate(prop):
 	"""
 	xmlname = "speech-rate"
 
+
 class voice_family(prop):
 	"""
 	<par>The value is a comma-separated, prioritized list of voice family names
@@ -1860,6 +1984,7 @@ class voice_family(prop):
 	"""
 	xmlname = "voice-family"
 
+
 class pitch(prop):
 	"""
 	<par>Specifies the average pitch (a frequency) of the speaking voice. The average pitch
@@ -1874,6 +1999,7 @@ class pitch(prop):
 	<lit>x-low</lit> is a lower frequency than <lit>low</lit>, etc.).</item>
 	</ulist>
 	"""
+
 
 class pitch_range(prop):
 	"""
@@ -1891,6 +2017,7 @@ class pitch_range(prop):
 	</ulist>
 	"""
 	xmlname = "pitch-range"
+
 
 class stress(prop):
 	"""
@@ -1910,6 +2037,7 @@ class stress(prop):
 	</ulist>
 	"""
 
+
 class richness(prop):
 	"""
 	<par>Specifies the richness, or brightness, of the speaking voice. A rich voice will <z>carry</z> in a large room,
@@ -1923,6 +2051,7 @@ class richness(prop):
 	</ulist>
 	"""
 
+
 class speak_punctuation(prop):
 	"""
 	<par>This property specifies how punctuation is spoken. Values have the following meanings:</par>
@@ -1933,6 +2062,7 @@ class speak_punctuation(prop):
 	</ulist>
 	"""
 	xmlname = "speak-punctuation"
+
 
 class speak_numeral(prop):
 	"""
@@ -1946,10 +2076,12 @@ class speak_numeral(prop):
 	"""
 	xmlname = "speak-numeral"
 
+
 class filter(prop):
 	"""
 	<par>This property is an <app>Internet Explorer</app> extensions for image processing filters.</par>
 	"""
+
 
 class _moz_opacity(prop):
 	"""
@@ -1957,8 +2089,8 @@ class _moz_opacity(prop):
 	"""
 	xmlname = "-moz-opacity"
 
+
 class xmlns(xsc.Namespace):
 	xmlname = "css"
 	xmlurl = "http://www.w3.org/TR/REC-CSS2"
 xmlns.makemod(vars())
-

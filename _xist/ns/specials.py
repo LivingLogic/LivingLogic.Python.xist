@@ -20,6 +20,7 @@ import sys, types, datetime
 
 from ll.xist import xsc, parsers
 
+
 class z(xsc.Element):
 	"""
 	<par>Put the content into double quotes</par>
@@ -32,6 +33,7 @@ class z(xsc.Element):
 
 	def __unicode__(self):
 		return u"»" + unicode(self.content) + u"«"
+
 
 class filesize(xsc.Element):
 	"""
@@ -48,6 +50,7 @@ class filesize(xsc.Element):
 			return xsc.Text(size)
 		else:
 			return xsc.Text("?")
+
 
 class filetime(xsc.Element):
 	"""
@@ -69,6 +72,7 @@ class filetime(xsc.Element):
 	def convert(self, converter):
 		format = str(self["format"].convert(converter))
 		return xsc.Text(self["href"].convert(converter).lastmodified(root=converter.root).strftime(format))
+
 
 class time(xsc.Element):
 	"""
@@ -97,6 +101,7 @@ class time(xsc.Element):
 
 		return xsc.Text(f().strftime(format))
 
+
 class x(xsc.Element):
 	"""
 	<par>Element that will be ignored when converted.</par>
@@ -109,6 +114,7 @@ class x(xsc.Element):
 	def convert(self, converter):
 		return xsc.Null
 
+
 class include(xsc.Element):
 	empty = True
 	class Attrs(xsc.Element.Attrs):
@@ -118,6 +124,7 @@ class include(xsc.Element):
 		e = parsers.parseURL(self["src"].forInput())
 
 		return e.convert(converter)
+
 
 class loremipsum(xsc.Element):
 	empty = True
@@ -132,6 +139,7 @@ class loremipsum(xsc.Element):
 		else:
 			text = self.text
 		return xsc.Text(text)
+
 
 class wrap(xsc.Element):
 	"""
@@ -148,6 +156,7 @@ class wrap(xsc.Element):
 
 	def convert(self, converter):
 		return self.content.convert(converter)
+
 
 class AttrDecorator(xsc.Element):
 	empty = False
@@ -180,11 +189,13 @@ class AttrDecorator(xsc.Element):
 		node.visit(visitor.visit)
 		return node
 
+
 # Control characters (not part of HTML)
 class lf(xsc.CharRef): "line feed"; codepoint = 10
 class cr(xsc.CharRef): "carriage return"; codepoint = 13
 class tab(xsc.CharRef): "horizontal tab"; codepoint = 9
 class esc(xsc.CharRef): "escape"; codepoint = 27
+
 
 class xmlns(xsc.Namespace):
 	xmlname = "specials"

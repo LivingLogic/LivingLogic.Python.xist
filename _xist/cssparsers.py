@@ -22,6 +22,7 @@ from ll import url
 
 import sources, csstokenizer
 
+
 class Handler(object):
 	def __init__(self):
 		self.close()
@@ -87,17 +88,20 @@ class Handler(object):
 		data = unicode(self)
 		tokenizer.register(None)
 
+
 class ParseHandler(Handler):
 	def transformURL(self, u):
 		if self.base is not None:
 			u = self.base/u
 		return u
 
+
 class PublishHandler(Handler):
 	def transformURL(self, u):
 		if self.base is not None:
 			u = u.relative(self.base)
 		return u
+
 
 class CollectHandler(Handler):
 	def startDocument(self):
@@ -108,6 +112,7 @@ class CollectHandler(Handler):
 		self.urls.append(u)
 		return u
 
+
 def parse(source, handler=None, ignorecharset=False):
 	if handler is None:
 		handler = Handler()
@@ -116,12 +121,14 @@ def parse(source, handler=None, ignorecharset=False):
 	handler.close()
 	return result
 
+
 def parseString(text, sysid="STRING", base=None, handler=None, encoding=None, ignorecharset=False):
 	return parse(sources.StringInputSource(text, sysid=sysid, base=base, encoding=encoding), handler=handler, ignorecharset=ignorecharset)
+
 
 def parseURL(id, base=None, handler=None, encoding=None, ignorecharset=False, headers=None, data=None):
 	return parse(sources.URLInputSource(id, base=base, encoding=encoding, headers=headers, data=data), handler=handler, ignorecharset=ignorecharset)
 
+
 def parseFile(filename, base=None, handler=None, encoding=None, ignoreCharset=0):
 	return parseURL(url.File(filename), base=base, encoding=encoding, handler=handler, ignorecharset=ignorecharset)
-

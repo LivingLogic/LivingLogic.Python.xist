@@ -19,6 +19,7 @@ import cgi # for parse_header
 
 from ll.xist import xsc
 
+
 class directive(xsc.Element):
 	empty = True
 	register = False # only serves as a base class
@@ -29,6 +30,7 @@ class directive(xsc.Element):
 		self.attrs.publish(publisher)
 		publisher.publish(u"%>")
 
+
 class scriptlet(xsc.ProcInst):
 	"""
 	will be published as <markup>&lt;% <rep>content</rep> %&gt;</markup>
@@ -37,6 +39,7 @@ class scriptlet(xsc.ProcInst):
 		publisher.publish(u"<% ")
 		publisher.publish(self.content)
 		publisher.publish(u" %>")
+
 
 class expression(xsc.ProcInst):
 	"""
@@ -48,6 +51,7 @@ class expression(xsc.ProcInst):
 		publisher.publish(self.content)
 		publisher.publish(u" %>")
 
+
 class declaration(xsc.ProcInst):
 	"""
 	will be published as <markup>&lt;%! <rep>content</rep> %&gt;</markup>
@@ -58,11 +62,13 @@ class declaration(xsc.ProcInst):
 		publisher.publish(self.content)
 		publisher.publish(u" %>")
 
+
 class If(scriptlet):
 	xmlname = "if"
 
 	def convert(self, converter):
 		return scriptlet(u"if(" + self.content + u"){")
+
 
 class Else(scriptlet):
 	xmlname = "else"
@@ -70,17 +76,20 @@ class Else(scriptlet):
 	def convert(self, converter):
 		return scriptlet(u"}else{")
 
+
 class ElIf(scriptlet):
 	xmlname = "elif"
 
 	def convert(self, converter):
 		return scriptlet(u"}else if (" + self.content + "){")
 
+
 class End(scriptlet):
 	xmlname = "end"
 
 	def convert(self, converter):
 		return scriptlet(u"}")
+
 
 class block(xsc.Element):
 	"""
@@ -98,16 +107,19 @@ class block(xsc.Element):
 		)
 		return e.convert(converter)
 
+
 class directive_include(directive):
 	xmlname = "include"
 	class Attrs(directive.Attrs):
 		class file(xsc.TextAttr): pass
+
 
 class directive_taglib(directive):
 	xmlname = "taglib"
 	class Attrs(directive.Attrs):
 		class uri(xsc.TextAttr): pass
 		class prefix(xsc.TextAttr): pass
+
 
 class directive_page(directive):
 	xmlname = "page"
@@ -144,6 +156,7 @@ class directive_page(directive):
 					pageEncoding=publisher.encoding
 				)
 				node.publish(publisher)
+
 
 class xmlns(xsc.Namespace):
 	xmlname = "jsp"

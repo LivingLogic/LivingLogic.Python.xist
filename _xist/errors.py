@@ -25,11 +25,13 @@ from xml.sax import saxlib
 
 import presenters
 
+
 class Error(Exception):
 	"""
 	base class for all &xist; exceptions
 	"""
 	pass
+
 
 class Warning(UserWarning):
 	"""
@@ -37,6 +39,7 @@ class Warning(UserWarning):
 	result in a program termination.)
 	"""
 	pass
+
 
 class EmptyElementWithContentError(Error):
 	"""
@@ -49,6 +52,7 @@ class EmptyElementWithContentError(Error):
 
 	def __str__(self):
 		return "element %s has EMPTY content model, but has content" % self.element._str(fullname=0, xml=0, decorate=1)
+
 
 class IllegalAttrError(Warning, LookupError):
 	"""
@@ -67,6 +71,7 @@ class IllegalAttrError(Warning, LookupError):
 		else:
 			return "Global attribute with %s name %r not allowed" % (("Python", "XML")[self.xml], self.attrname)
 
+
 class IllegalAttrValueWarning(Warning):
 	"""
 	warning that is issued when an attribute has an illegal value when parsing or publishing.
@@ -78,6 +83,7 @@ class IllegalAttrValueWarning(Warning):
 	def __str__(self):
 		attr = self.attr
 		return "Attribute value %r not allowed for %s. " % (str(attr), attr._str(fullname=True, xml=False, decorate=False))
+
 
 class RequiredAttrMissingWarning(Warning):
 	"""
@@ -98,6 +104,7 @@ class RequiredAttrMissingWarning(Warning):
 		v.append(" missing in %s." % self.attrs._str(fullname=True, xml=False, decorate=False))
 		return "".join(v)
 
+
 class IllegalDTDChildWarning(Warning):
 	"""
 	warning that is issued when the <pyref module="ll.xist.parsers" class="HTMLParser"><class>HTMLParser</class></pyref>
@@ -111,6 +118,7 @@ class IllegalDTDChildWarning(Warning):
 	def __str__(self):
 		return "Element %s not allowed as a child of element %s" % (self.childname, self.parentname)
 
+
 class IllegalCloseTagWarning(Warning):
 	"""
 	warning that is issued when the <pyref module="ll.xist.parsers" class="HTMLParser"><class>HTMLParser</class></pyref>
@@ -123,6 +131,7 @@ class IllegalCloseTagWarning(Warning):
 	def __str__(self):
 		return "Element %s has never been opened" % (self.name,)
 
+
 class IllegalPrefixError(Error, LookupError):
 	"""
 	Exception that is raised when a namespace prefix is undefined.
@@ -132,6 +141,7 @@ class IllegalPrefixError(Error, LookupError):
 
 	def __str__(self):
 		return "namespace prefix %r is undefined" % self.prefix
+
 
 class IllegalNamespaceError(Error, LookupError):
 	"""
@@ -143,6 +153,7 @@ class IllegalNamespaceError(Error, LookupError):
 
 	def __str__(self):
 		return "namespace name %r is undefined" % self.name
+
 
 class IllegalNodeError(Error, LookupError):
 	"""
@@ -158,31 +169,32 @@ class IllegalNodeError(Error, LookupError):
 	def __str__(self):
 		return "%s with %s name %r not allowed" % (self.type, ("Python", "XML")[self.xml], self.name, )
 
+
 class IllegalElementError(IllegalNodeError):
 	"""
 	exception that is raised, when an illegal element class is requested
 	"""
 	type = "element"
 
+
 class IllegalProcInstError(IllegalNodeError):
 	"""
 	exception that is raised, when an illegal processing instruction class is requested
 	"""
-
 	type = "procinst"
+
 
 class IllegalEntityError(IllegalNodeError):
 	"""
 	exception that is raised, when an illegal entity class is requested
 	"""
-
 	type = "entity"
+
 
 class IllegalCharRefError(IllegalNodeError):
 	"""
 	exception that is raised, when an illegal charref class is requested
 	"""
-
 	type = "charref"
 
 	def __str__(self):
@@ -190,6 +202,7 @@ class IllegalCharRefError(IllegalNodeError):
 			return "%s with codepoint %s not allowed" % (self.type, self.name)
 		else:
 			return IllegalNodeError.__str__(self)
+
 
 class ElementNestingError(Error):
 	"""
@@ -204,6 +217,7 @@ class ElementNestingError(Error):
 	def __str__(self):
 		return "mismatched element nesting (close tag for %s expected; close tag for %s found)" % (self.expectedelement._str(fullname=1, xml=0, decorate=1), self.foundelement._str(fullname=1, xml=0, decorate=1))
 
+
 class IllegalAttrNodeError(Error):
 	"""
 	exception that is raised, when something is found
@@ -216,12 +230,14 @@ class IllegalAttrNodeError(Error):
 	def __str__(self):
 		return "illegal node of type %s found inside attribute" % self.node.__class__.__name__
 
+
 class NodeNotFoundError(Error):
 	"""
 	exception that is raised when <pyref module="ll.xist.xsc" class="Node" method="findfirst"><method>findfirst</method></pyref> fails.
 	"""
 	def __str__(self):
 		return "no appropriate node found"
+
 
 class FileNotFoundWarning(Warning):
 	"""
@@ -235,6 +251,7 @@ class FileNotFoundWarning(Warning):
 
 	def __str__(self):
 		return "%s: %r not found (%s)" % (self.message, self.filename, self.exc)
+
 
 class IllegalObjectWarning(Warning):
 	"""
@@ -251,6 +268,7 @@ class IllegalObjectWarning(Warning):
 		s += " has been found in the XSC tree. The object will be ignored."
 		return s
 
+
 class MalformedCharRefWarning(Warning):
 	"""
 	exception that is raised when a character reference is malformed (e.g. <lit>&amp;#foo;</lit>)
@@ -261,6 +279,7 @@ class MalformedCharRefWarning(Warning):
 
 	def __str__(self):
 		return "malformed character reference: &%s;" % self.name
+
 
 class IllegalCommentContentError(Error):
 	"""
@@ -276,6 +295,7 @@ class IllegalCommentContentError(Error):
 	def __str__(self):
 		return "comment with content %s is illegal, as it contains '--' or ends in '-'." % presenters.strTextOutsideAttr(self.comment.content)
 
+
 class IllegalProcInstFormatError(Error):
 	"""
 	exception that is raised, when there is an illegal processing instruction, i.e. one containing <lit>?&gt;</lit>.
@@ -288,6 +308,7 @@ class IllegalProcInstFormatError(Error):
 
 	def __str__(self):
 		return "processing instruction with content %s is illegal, as it contains %r." % (presenters.strProcInstContent(self.procinst.content), "?>")
+
 
 class IllegalXMLDeclFormatError(Error):
 	"""
@@ -303,12 +324,14 @@ class IllegalXMLDeclFormatError(Error):
 	def __str__(self):
 		return "XML declaration with content %r is malformed." % presenters.strProcInstContent(self.procinst.content)
 
+
 class MistimedCallError(Error):
 	"""
 	exception that is raised, when a method can't be called at this point in time,
 	e.g. when you try the reconfigure a <pyref module="ll.xist.xsc" class="Prefixes"><class>Prefixes</class>
 	object, while a parse is in progress
 	"""
+
 
 class TidyWarning(saxlib.SAXParseException, Warning):
 	"""
@@ -317,6 +340,7 @@ class TidyWarning(saxlib.SAXParseException, Warning):
 	def __init__(self, msg, locator):
 		saxlib.SAXParseException.__init__(self, msg, None, locator)
 		Warning.__init__(self, msg)
+
 
 # always show warnings from XIST, not just the first time
 warnings.filterwarnings("always", category=Warning)

@@ -17,12 +17,14 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 
 from ll.xist import xsc
 
+
 class DocTypeDocBook41(xsc.DocType):
 	"""
 	document type for DocBook 4.1
 	"""
 	def __init__(self, type):
 		xsc.DocType.__init__(self, type + ' PUBLIC "-//OASIS//DTD DocBook V4.1//EN"')
+
 
 class abbrev(xsc.Element):
 	"""
@@ -45,6 +47,7 @@ class abbrev(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class abstract(xsc.Element):
 	"""
 	A summary
@@ -65,6 +68,7 @@ class abstract(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class accel(xsc.Element):
 	"""
@@ -87,6 +91,7 @@ class accel(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class ackno(xsc.Element):
 	"""
 	Acknowledgements in an Article
@@ -107,6 +112,7 @@ class ackno(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class acronym(xsc.Element):
 	"""
@@ -129,6 +135,7 @@ class acronym(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class action(xsc.Element):
 	"""
 	A response to a user event
@@ -150,6 +157,7 @@ class action(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class address(xsc.Element):
 	"""
@@ -174,6 +182,7 @@ class address(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class affiliation(xsc.Element):
 	"""
 	The institutional affiliation of an individual
@@ -194,6 +203,7 @@ class affiliation(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class alt(xsc.Element):
 	"""
@@ -216,6 +226,7 @@ class alt(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class anchor(xsc.Element):
 	"""
 	A spot in the document
@@ -237,6 +248,7 @@ class anchor(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class answer(xsc.Element):
 	"""
 	An answer to a question posed in a QandASet
@@ -257,6 +269,7 @@ class answer(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class appendix(xsc.Element):
 	"""
@@ -281,6 +294,7 @@ class appendix(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class appendixinfo(xsc.Element):
 	"""
 	
@@ -301,6 +315,7 @@ class appendixinfo(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class application(xsc.Element):
 	"""
@@ -324,6 +339,7 @@ class application(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class area(xsc.Element):
 	"""
@@ -351,6 +367,7 @@ class area(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class areaset(xsc.Element):
 	"""
 	A set of related areas in a graphic or code example
@@ -376,6 +393,7 @@ class areaset(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class areaspec(xsc.Element):
 	"""
 	A collection of regions in a graphic or code example
@@ -399,6 +417,7 @@ class areaspec(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class arg(xsc.Element):
 	"""
 	An argument in a CmdSynopsis
@@ -421,6 +440,7 @@ class arg(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class article(xsc.Element):
 	"""
@@ -446,6 +466,7 @@ class article(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class articleinfo(xsc.Element):
 	"""
 	
@@ -466,6 +487,7 @@ class articleinfo(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class artpagenums(xsc.Element):
 	"""
@@ -488,6 +510,7 @@ class artpagenums(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class attribution(xsc.Element):
 	"""
 	The source of a block quote or epigraph
@@ -508,6 +531,7 @@ class attribution(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class audiodata(xsc.Element):
 	"""
@@ -534,6 +558,7 @@ class audiodata(xsc.Element):
 		class srccredit(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class audioobject(xsc.Element):
 	"""
 	A wrapper for audio data and its associated meta-information
@@ -554,6 +579,7 @@ class audioobject(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class author(xsc.Element):
 	"""
@@ -576,6 +602,7 @@ class author(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class authorblurb(xsc.Element):
 	"""
 	A short description or note about an author
@@ -596,6 +623,7 @@ class authorblurb(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class authorgroup(xsc.Element):
 	"""
@@ -618,6 +646,7 @@ class authorgroup(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class authorinitials(xsc.Element):
 	"""
 	The initials or other short identifier for an author
@@ -638,6 +667,7 @@ class authorinitials(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class beginpage(xsc.Element):
 	"""
@@ -661,6 +691,7 @@ class beginpage(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class bibliodiv(xsc.Element):
 	"""
 	A section of a Bibliography
@@ -683,6 +714,7 @@ class bibliodiv(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class biblioentry(xsc.Element):
 	"""
 	An entry in a Bibliography
@@ -703,6 +735,7 @@ class biblioentry(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class bibliography(xsc.Element):
 	"""
@@ -726,6 +759,7 @@ class bibliography(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class bibliographyinfo(xsc.Element):
 	"""
 	
@@ -746,6 +780,7 @@ class bibliographyinfo(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class bibliomisc(xsc.Element):
 	"""
@@ -768,6 +803,7 @@ class bibliomisc(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class bibliomixed(xsc.Element):
 	"""
 	An entry in a bibliography
@@ -788,6 +824,7 @@ class bibliomixed(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class bibliomset(xsc.Element):
 	"""
@@ -811,6 +848,7 @@ class bibliomset(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 
+
 class biblioset(xsc.Element):
 	"""
 	A "raw" container for related bibliographic information
@@ -833,6 +871,7 @@ class biblioset(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class blockquote(xsc.Element):
 	"""
 	A quotation set off from the main text
@@ -853,6 +892,7 @@ class blockquote(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class book(xsc.Element):
 	"""
@@ -878,6 +918,7 @@ class book(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class bookinfo(xsc.Element):
 	"""
 	Meta-information for a Book
@@ -899,6 +940,7 @@ class bookinfo(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class bridgehead(xsc.Element):
 	"""
@@ -922,6 +964,7 @@ class bridgehead(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class callout(xsc.Element):
 	"""
 	A "called out" description of a marked Area
@@ -944,6 +987,7 @@ class callout(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class calloutlist(xsc.Element):
 	"""
 	A list of Callouts
@@ -964,6 +1008,7 @@ class calloutlist(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class caption(xsc.Element):
 	"""
@@ -986,6 +1031,7 @@ class caption(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class caution(xsc.Element):
 	"""
 	A note of caution
@@ -1006,6 +1052,7 @@ class caution(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class chapter(xsc.Element):
 	"""
@@ -1030,6 +1077,7 @@ class chapter(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class chapterinfo(xsc.Element):
 	"""
 
@@ -1050,6 +1098,7 @@ class chapterinfo(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class citation(xsc.Element):
 	"""
@@ -1072,6 +1121,7 @@ class citation(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class citerefentry(xsc.Element):
 	"""
 	A citation to a reference page
@@ -1092,6 +1142,7 @@ class citerefentry(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class citetitle(xsc.Element):
 	"""
@@ -1115,6 +1166,7 @@ class citetitle(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class city(xsc.Element):
 	"""
 	The name of a city in an address
@@ -1136,6 +1188,7 @@ class city(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class classname(xsc.Element):
 	"""
 	The name of a class, in the object-oriented programming sense
@@ -1156,6 +1209,7 @@ class classname(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class classsynopsis(xsc.Element):
 	"""
@@ -1180,6 +1234,7 @@ class classsynopsis(xsc.Element):
 		class language(xsc.TextAttr): pass
 		class class_(xsc.TextAttr): xmlname = "class"
 
+
 class classsynopsisinfo(xsc.Element):
 	"""
 	
@@ -1202,6 +1257,7 @@ class classsynopsisinfo(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class cmdsynopsis(xsc.Element):
 	"""
@@ -1227,6 +1283,7 @@ class cmdsynopsis(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class co(xsc.Element):
 	"""
 	
@@ -1250,6 +1307,7 @@ class co(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class collab(xsc.Element):
 	"""
 	Identifies a collaborator
@@ -1271,6 +1329,7 @@ class collab(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class collabname(xsc.Element):
 	"""
 	The name of a collaborator
@@ -1291,6 +1350,7 @@ class collabname(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class colophon(xsc.Element):
 	"""
@@ -1314,6 +1374,7 @@ class colophon(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class colspec(xsc.Element):
 	"""
 
@@ -1328,6 +1389,7 @@ class colspec(xsc.Element):
 		class align(xsc.TextAttr): pass
 		class char(xsc.TextAttr): pass
 		class charoff(xsc.TextAttr): pass
+
 
 class command(xsc.Element):
 	"""
@@ -1351,6 +1413,7 @@ class command(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class computeroutput(xsc.Element):
 	"""
 	Data, generally text, displayed or presented by a computer
@@ -1373,6 +1436,7 @@ class computeroutput(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class confdates(xsc.Element):
 	"""
 	The dates of a conference for which a document was written
@@ -1393,6 +1457,7 @@ class confdates(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class confgroup(xsc.Element):
 	"""
@@ -1415,6 +1480,7 @@ class confgroup(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class confnum(xsc.Element):
 	"""
 	An identifier, frequently numerical, associated with a conference for which a document was written
@@ -1435,6 +1501,7 @@ class confnum(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class confsponsor(xsc.Element):
 	"""
@@ -1457,6 +1524,7 @@ class confsponsor(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class conftitle(xsc.Element):
 	"""
 	The title of a conference for which a document was written
@@ -1477,6 +1545,7 @@ class conftitle(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class constant(xsc.Element):
 	"""
@@ -1500,6 +1569,7 @@ class constant(xsc.Element):
 		class role(xsc.TextAttr): pass
 		class class_(xsc.TextAttr): xmlname = "class"
 
+
 class constructorsynopsis(xsc.Element):
 	"""
 	
@@ -1520,6 +1590,7 @@ class constructorsynopsis(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class contractnum(xsc.Element):
 	"""
@@ -1542,6 +1613,7 @@ class contractnum(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class contractsponsor(xsc.Element):
 	"""
 	The sponsor of a contract
@@ -1562,6 +1634,7 @@ class contractsponsor(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class contrib(xsc.Element):
 	"""
@@ -1584,6 +1657,7 @@ class contrib(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class copyright(xsc.Element):
 	"""
 	Copyright information about a document
@@ -1604,6 +1678,7 @@ class copyright(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class corpauthor(xsc.Element):
 	"""
@@ -1626,6 +1701,7 @@ class corpauthor(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class corpname(xsc.Element):
 	"""
 	The name of a corporation
@@ -1647,6 +1723,7 @@ class corpname(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class country(xsc.Element):
 	"""
 	The name of a country
@@ -1667,6 +1744,7 @@ class country(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class database(xsc.Element):
 	"""
@@ -1691,6 +1769,7 @@ class database(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class date(xsc.Element):
 	"""
 	The date of publication or revision of a document
@@ -1711,6 +1790,7 @@ class date(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class dedication(xsc.Element):
 	"""
@@ -1734,6 +1814,7 @@ class dedication(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class destructorsynopsis(xsc.Element):
 	"""
 	
@@ -1754,6 +1835,7 @@ class destructorsynopsis(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class edition(xsc.Element):
 	"""
@@ -1776,6 +1858,7 @@ class edition(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class editor(xsc.Element):
 	"""
 	The name of the editor of a document
@@ -1796,6 +1879,7 @@ class editor(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class email(xsc.Element):
 	"""
@@ -1818,6 +1902,7 @@ class email(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class emphasis(xsc.Element):
 	"""
 	Emphasized text
@@ -1838,6 +1923,7 @@ class emphasis(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class entry(xsc.Element):
 	"""
@@ -1872,6 +1958,7 @@ class entry(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class entrytbl(xsc.Element):
 	"""
 	A subtable appearing in place of an Entry in a table
@@ -1904,6 +1991,7 @@ class entrytbl(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class envar(xsc.Element):
 	"""
 	A software environment variable
@@ -1925,6 +2013,7 @@ class envar(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class epigraph(xsc.Element):
 	"""
 	A short inscription at the beginning of a document or component
@@ -1945,6 +2034,7 @@ class epigraph(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class equation(xsc.Element):
 	"""
@@ -1968,6 +2058,7 @@ class equation(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class errorcode(xsc.Element):
 	"""
 	An error code
@@ -1990,6 +2081,7 @@ class errorcode(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class errorname(xsc.Element):
 	"""
 	An error message
@@ -2011,6 +2103,7 @@ class errorname(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class errortype(xsc.Element):
 	"""
 	The classification of an error message
@@ -2031,6 +2124,7 @@ class errortype(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class example(xsc.Element):
 	"""
@@ -2055,6 +2149,7 @@ class example(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class exceptionname(xsc.Element):
 	"""
 	
@@ -2075,6 +2170,7 @@ class exceptionname(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class fax(xsc.Element):
 	"""
@@ -2097,6 +2193,7 @@ class fax(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class fieldsynopsis(xsc.Element):
 	"""
 	
@@ -2117,6 +2214,7 @@ class fieldsynopsis(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class figure(xsc.Element):
 	"""
@@ -2142,6 +2240,7 @@ class figure(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class filename(xsc.Element):
 	"""
 	The name of a file
@@ -2166,6 +2265,7 @@ class filename(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class firstname(xsc.Element):
 	"""
 	The first name of a person
@@ -2186,6 +2286,7 @@ class firstname(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class firstterm(xsc.Element):
 	"""
@@ -2209,6 +2310,7 @@ class firstterm(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class footnote(xsc.Element):
 	"""
 	A footnote
@@ -2230,6 +2332,7 @@ class footnote(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class footnoteref(xsc.Element):
 	"""
@@ -2254,6 +2357,7 @@ class footnoteref(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class foreignphrase(xsc.Element):
 	"""
 	A word or phrase in a language other than the primary language of the document
@@ -2274,6 +2378,7 @@ class foreignphrase(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class formalpara(xsc.Element):
 	"""
@@ -2296,6 +2401,7 @@ class formalpara(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class funcdef(xsc.Element):
 	"""
 	A function (subroutine) name and its return type
@@ -2316,6 +2422,7 @@ class funcdef(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class funcparams(xsc.Element):
 	"""
@@ -2338,6 +2445,7 @@ class funcparams(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class funcprototype(xsc.Element):
 	"""
 	The prototype of a function
@@ -2358,6 +2466,7 @@ class funcprototype(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class funcsynopsis(xsc.Element):
 	"""
@@ -2380,6 +2489,7 @@ class funcsynopsis(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class funcsynopsisinfo(xsc.Element):
 	"""
@@ -2404,6 +2514,7 @@ class funcsynopsisinfo(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class function(xsc.Element):
 	"""
 	The name of a function or subroutine, as in a programming language
@@ -2425,6 +2536,7 @@ class function(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class glossary(xsc.Element):
 	"""
@@ -2448,6 +2560,7 @@ class glossary(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class glossaryinfo(xsc.Element):
 	"""
 	
@@ -2468,6 +2581,7 @@ class glossaryinfo(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class glossdef(xsc.Element):
 	"""
@@ -2491,6 +2605,7 @@ class glossdef(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class glossdiv(xsc.Element):
 	"""
 	A division in a Glossary
@@ -2512,6 +2627,7 @@ class glossdiv(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class glossentry(xsc.Element):
 	"""
@@ -2535,6 +2651,7 @@ class glossentry(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class glosslist(xsc.Element):
 	"""
 	A wrapper for a set of GlossEntrys
@@ -2555,6 +2672,7 @@ class glosslist(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class glosssee(xsc.Element):
 	"""
@@ -2578,6 +2696,7 @@ class glosssee(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class glossseealso(xsc.Element):
 	"""
 	A cross-reference from one GlossEntry to another
@@ -2599,6 +2718,7 @@ class glossseealso(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class glossterm(xsc.Element):
 	"""
@@ -2622,6 +2742,7 @@ class glossterm(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class graphic(xsc.Element):
 	"""
@@ -2653,6 +2774,7 @@ class graphic(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class graphicco(xsc.Element):
 	"""
 	A graphic that contains callout areas
@@ -2673,6 +2795,7 @@ class graphicco(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class group(xsc.Element):
 	"""
@@ -2697,6 +2820,7 @@ class group(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class guibutton(xsc.Element):
 	"""
 	The text on a button in a GUI
@@ -2718,6 +2842,7 @@ class guibutton(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class guiicon(xsc.Element):
 	"""
@@ -2741,6 +2866,7 @@ class guiicon(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class guilabel(xsc.Element):
 	"""
 	The text of a label in a GUI
@@ -2762,6 +2888,7 @@ class guilabel(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class guimenu(xsc.Element):
 	"""
@@ -2785,6 +2912,7 @@ class guimenu(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class guimenuitem(xsc.Element):
 	"""
 	The name of a terminal menu item in a GUI
@@ -2806,6 +2934,7 @@ class guimenuitem(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class guisubmenu(xsc.Element):
 	"""
@@ -2829,6 +2958,7 @@ class guisubmenu(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class hardware(xsc.Element):
 	"""
 	A physical part of a computer system
@@ -2851,6 +2981,7 @@ class hardware(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class highlights(xsc.Element):
 	"""
 	A summary of the main points of the discussed component
@@ -2871,6 +3002,7 @@ class highlights(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class holder(xsc.Element):
 	"""
@@ -2893,6 +3025,7 @@ class holder(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class honorific(xsc.Element):
 	"""
 	The title of a person
@@ -2913,6 +3046,7 @@ class honorific(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class imagedata(xsc.Element):
 	"""
@@ -2944,6 +3078,7 @@ class imagedata(xsc.Element):
 		class scalefit(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class imageobject(xsc.Element):
 	"""
 	A wrapper for image data and its associated meta-information
@@ -2964,6 +3099,7 @@ class imageobject(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class imageobjectco(xsc.Element):
 	"""
@@ -2986,6 +3122,7 @@ class imageobjectco(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class important(xsc.Element):
 	"""
 	An admonition set off from the text
@@ -3006,6 +3143,7 @@ class important(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class index(xsc.Element):
 	"""
@@ -3028,6 +3166,7 @@ class index(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class indexdiv(xsc.Element):
 	"""
 	A division in an index
@@ -3048,6 +3187,7 @@ class indexdiv(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class indexentry(xsc.Element):
 	"""
@@ -3070,6 +3210,7 @@ class indexentry(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class indexinfo(xsc.Element):
 	"""
 	
@@ -3090,6 +3231,7 @@ class indexinfo(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class indexterm(xsc.Element):
 	"""
@@ -3118,6 +3260,7 @@ class indexterm(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class informalequation(xsc.Element):
 	"""
 	A displayed mathematical equation without a title
@@ -3138,6 +3281,7 @@ class informalequation(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class informalexample(xsc.Element):
 	"""
@@ -3160,6 +3304,7 @@ class informalexample(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class informalfigure(xsc.Element):
 	"""
@@ -3184,6 +3329,7 @@ class informalfigure(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class informaltable(xsc.Element):
 	"""
@@ -3215,6 +3361,7 @@ class informaltable(xsc.Element):
 		class orient(xsc.TextAttr): pass
 		class pgwide(xsc.TextAttr): pass
 
+
 class initializer(xsc.Element):
 	"""
 	
@@ -3236,6 +3383,7 @@ class initializer(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class inlineequation(xsc.Element):
 	"""
 	A mathematical equation or expression occurring inline
@@ -3256,6 +3404,7 @@ class inlineequation(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class inlinegraphic(xsc.Element):
 	"""
@@ -3287,6 +3436,7 @@ class inlinegraphic(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class inlinemediaobject(xsc.Element):
 	"""
 	An inline media object (video, audio, image, and so on)
@@ -3307,6 +3457,7 @@ class inlinemediaobject(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class interface(xsc.Element):
 	"""
@@ -3330,6 +3481,7 @@ class interface(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class interfacename(xsc.Element):
 	"""
 	The name of a formal specification of a GUI
@@ -3350,6 +3502,7 @@ class interfacename(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class invpartnumber(xsc.Element):
 	"""
@@ -3372,6 +3525,7 @@ class invpartnumber(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class isbn(xsc.Element):
 	"""
 	The International Standard Book Number of a document
@@ -3392,6 +3546,7 @@ class isbn(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class issn(xsc.Element):
 	"""
@@ -3414,6 +3569,7 @@ class issn(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class issuenum(xsc.Element):
 	"""
 	The number of an issue of a journal
@@ -3434,6 +3590,7 @@ class issuenum(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class itemizedlist(xsc.Element):
 	"""
@@ -3458,6 +3615,7 @@ class itemizedlist(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class itermset(xsc.Element):
 	"""
 	A set of index terms in the meta-information of a document
@@ -3479,6 +3637,7 @@ class itermset(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class jobtitle(xsc.Element):
 	"""
 	The title of an individual in an organization
@@ -3499,6 +3658,7 @@ class jobtitle(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class keycap(xsc.Element):
 	"""
@@ -3522,6 +3682,7 @@ class keycap(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class keycode(xsc.Element):
 	"""
 	The internal, frequently numeric, identifier for a key on a
@@ -3542,6 +3703,7 @@ class keycode(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class keycombo(xsc.Element):
 	"""
@@ -3567,6 +3729,7 @@ class keycombo(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class keysym(xsc.Element):
 	"""
 	The symbolic name of a key on a keyboard
@@ -3587,6 +3750,7 @@ class keysym(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class keyword(xsc.Element):
 	"""
@@ -3609,6 +3773,7 @@ class keyword(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class keywordset(xsc.Element):
 	"""
 	A set of keywords describing the content of a document
@@ -3629,6 +3794,7 @@ class keywordset(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class label(xsc.Element):
 	"""
@@ -3651,6 +3817,7 @@ class label(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class legalnotice(xsc.Element):
 	"""
 	A statement of legal obligations or requirements
@@ -3671,6 +3838,7 @@ class legalnotice(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class lineage(xsc.Element):
 	"""
@@ -3693,6 +3861,7 @@ class lineage(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class lineannotation(xsc.Element):
 	"""
 	A comment on a line in a verbatim listing
@@ -3713,6 +3882,7 @@ class lineannotation(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class link(xsc.Element):
 	"""
@@ -3738,6 +3908,7 @@ class link(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class listitem(xsc.Element):
 	"""
 	A wrapper for the elements of a list item
@@ -3760,6 +3931,7 @@ class listitem(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class literal(xsc.Element):
 	"""
 	Inline text that is some literal value
@@ -3781,6 +3953,7 @@ class literal(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class literallayout(xsc.Element):
 	"""
@@ -3807,6 +3980,7 @@ class literallayout(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class lot(xsc.Element):
 	"""
 	 A list of the titles of formal objects (as tables or figures) in a document 
@@ -3828,6 +4002,7 @@ class lot(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class lotentry(xsc.Element):
 	"""
@@ -3853,6 +4028,7 @@ class lotentry(xsc.Element):
 		class linkend(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class manvolnum(xsc.Element):
 	"""
 	A reference volume number
@@ -3874,6 +4050,7 @@ class manvolnum(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class markup(xsc.Element):
 	"""
 	A string of formatting markup in text that is to be represented literally
@@ -3894,6 +4071,7 @@ class markup(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class medialabel(xsc.Element):
 	"""
@@ -3917,6 +4095,7 @@ class medialabel(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class mediaobject(xsc.Element):
 	"""
 	A displayed media object (video, audio, image, etc.)
@@ -3937,6 +4116,7 @@ class mediaobject(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class mediaobjectco(xsc.Element):
 	"""
@@ -3959,6 +4139,7 @@ class mediaobjectco(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class member(xsc.Element):
 	"""
 	An element of a simple list
@@ -3979,6 +4160,7 @@ class member(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class menuchoice(xsc.Element):
 	"""
@@ -4002,6 +4184,7 @@ class menuchoice(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class methodname(xsc.Element):
 	"""
 	
@@ -4022,6 +4205,7 @@ class methodname(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class methodparam(xsc.Element):
 	"""
@@ -4046,6 +4230,7 @@ class methodparam(xsc.Element):
 		class choice(xsc.TextAttr): pass
 		class rep(xsc.TextAttr): pass
 
+
 class methodsynopsis(xsc.Element):
 	"""
 	
@@ -4066,6 +4251,7 @@ class methodsynopsis(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class modespec(xsc.Element):
 	"""
@@ -4089,6 +4275,7 @@ class modespec(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class modifier(xsc.Element):
 	"""
 	
@@ -4109,6 +4296,7 @@ class modifier(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class mousebutton(xsc.Element):
 	"""
@@ -4132,6 +4320,7 @@ class mousebutton(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class msg(xsc.Element):
 	"""
 	A message in a message set
@@ -4152,6 +4341,7 @@ class msg(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class msgaud(xsc.Element):
 	"""
@@ -4174,6 +4364,7 @@ class msgaud(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class msgentry(xsc.Element):
 	"""
 	A wrapper for an entry in a message set
@@ -4194,6 +4385,7 @@ class msgentry(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class msgexplan(xsc.Element):
 	"""
@@ -4216,6 +4408,7 @@ class msgexplan(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class msginfo(xsc.Element):
 	"""
 	Information about a message in a message set
@@ -4236,6 +4429,7 @@ class msginfo(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class msglevel(xsc.Element):
 	"""
@@ -4258,6 +4452,7 @@ class msglevel(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class msgmain(xsc.Element):
 	"""
 	The primary component of a message in a message set
@@ -4278,6 +4473,7 @@ class msgmain(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class msgorig(xsc.Element):
 	"""
@@ -4300,6 +4496,7 @@ class msgorig(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class msgrel(xsc.Element):
 	"""
 	A related component of a message in a message set
@@ -4320,6 +4517,7 @@ class msgrel(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class msgset(xsc.Element):
 	"""
@@ -4342,6 +4540,7 @@ class msgset(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class msgsub(xsc.Element):
 	"""
 	A subcomponent of a message in a message set
@@ -4362,6 +4561,7 @@ class msgsub(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class msgtext(xsc.Element):
 	"""
@@ -4384,6 +4584,7 @@ class msgtext(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class note(xsc.Element):
 	"""
 	A message set off from the text
@@ -4405,6 +4606,7 @@ class note(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class objectinfo(xsc.Element):
 	"""
 	Meta-information for an object
@@ -4425,6 +4627,7 @@ class objectinfo(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class olink(xsc.Element):
 	"""
@@ -4451,6 +4654,7 @@ class olink(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class ooclass(xsc.Element):
 	"""
 	
@@ -4471,6 +4675,7 @@ class ooclass(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class ooexception(xsc.Element):
 	"""
@@ -4493,6 +4698,7 @@ class ooexception(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class oointerface(xsc.Element):
 	"""
 	
@@ -4513,6 +4719,7 @@ class oointerface(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class option(xsc.Element):
 	"""
@@ -4535,6 +4742,7 @@ class option(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class optional(xsc.Element):
 	"""
 	Optional information
@@ -4555,6 +4763,7 @@ class optional(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class orderedlist(xsc.Element):
 	"""
@@ -4581,6 +4790,7 @@ class orderedlist(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class orgdiv(xsc.Element):
 	"""
 	A division of an organization
@@ -4601,6 +4811,7 @@ class orgdiv(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class orgname(xsc.Element):
 	"""
@@ -4623,6 +4834,7 @@ class orgname(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class otheraddr(xsc.Element):
 	"""
 	Uncategorized information in address
@@ -4643,6 +4855,7 @@ class otheraddr(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class othercredit(xsc.Element):
 	"""
@@ -4665,6 +4878,7 @@ class othercredit(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class othername(xsc.Element):
 	"""
 	A component of a persons name that is not a first name, surname, or lineage
@@ -4685,6 +4899,7 @@ class othername(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class pagenums(xsc.Element):
 	"""
@@ -4707,6 +4922,7 @@ class pagenums(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class para(xsc.Element):
 	"""
 	A paragraph
@@ -4728,6 +4944,7 @@ class para(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class paramdef(xsc.Element):
 	"""
 	Information about a function parameter in a programming language
@@ -4748,6 +4965,7 @@ class paramdef(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class parameter(xsc.Element):
 	"""
@@ -4772,6 +4990,7 @@ class parameter(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class part(xsc.Element):
 	"""
 	A division in a book
@@ -4795,6 +5014,7 @@ class part(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class partinfo(xsc.Element):
 	"""
 	
@@ -4815,6 +5035,7 @@ class partinfo(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class partintro(xsc.Element):
 	"""
@@ -4838,6 +5059,7 @@ class partintro(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class phone(xsc.Element):
 	"""
 	A telephone number
@@ -4858,6 +5080,7 @@ class phone(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class phrase(xsc.Element):
 	"""
@@ -4880,6 +5103,7 @@ class phrase(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class pob(xsc.Element):
 	"""
 	A post office box in an address
@@ -4901,6 +5125,7 @@ class pob(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class postcode(xsc.Element):
 	"""
 	A postal code in an address
@@ -4921,6 +5146,7 @@ class postcode(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class preface(xsc.Element):
 	"""
@@ -4944,6 +5170,7 @@ class preface(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class prefaceinfo(xsc.Element):
 	"""
 	
@@ -4964,6 +5191,7 @@ class prefaceinfo(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class primary(xsc.Element):
 	"""
@@ -4987,6 +5215,7 @@ class primary(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class primaryie(xsc.Element):
 	"""
 	A primary term in an index entry, not in the text
@@ -5009,6 +5238,7 @@ class primaryie(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class printhistory(xsc.Element):
 	"""
 	The printing history of a document
@@ -5030,6 +5260,7 @@ class printhistory(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class procedure(xsc.Element):
 	"""
 	A list of operations to be performed in a well-defined sequence
@@ -5050,6 +5281,7 @@ class procedure(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class productname(xsc.Element):
 	"""
@@ -5073,6 +5305,7 @@ class productname(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class productnumber(xsc.Element):
 	"""
 	A number assigned to a product
@@ -5093,6 +5326,7 @@ class productnumber(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class programlisting(xsc.Element):
 	"""
@@ -5118,6 +5352,7 @@ class programlisting(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class programlistingco(xsc.Element):
 	"""
 	A program listing with associated areas used in callouts
@@ -5138,6 +5373,7 @@ class programlistingco(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class prompt(xsc.Element):
 	"""
@@ -5161,6 +5397,7 @@ class prompt(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class property(xsc.Element):
 	"""
 	A unit of data associated with some part of a computer system
@@ -5183,6 +5420,7 @@ class property(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class pubdate(xsc.Element):
 	"""
 	The date of publication of a document
@@ -5203,6 +5441,7 @@ class pubdate(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class publisher(xsc.Element):
 	"""
@@ -5225,6 +5464,7 @@ class publisher(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class publishername(xsc.Element):
 	"""
 	The name of the publisher of a document
@@ -5245,6 +5485,7 @@ class publishername(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class pubsnumber(xsc.Element):
 	"""
@@ -5267,6 +5508,7 @@ class pubsnumber(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class qandadiv(xsc.Element):
 	"""
 	A titled division in a QandASet
@@ -5288,6 +5530,7 @@ class qandadiv(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class qandaentry(xsc.Element):
 	"""
 	A question/answer set within a QandASet
@@ -5308,6 +5551,7 @@ class qandaentry(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class qandaset(xsc.Element):
 	"""
@@ -5331,6 +5575,7 @@ class qandaset(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class question(xsc.Element):
 	"""
 	A question in a QandASet
@@ -5351,6 +5596,7 @@ class question(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class quote(xsc.Element):
 	"""
@@ -5373,6 +5619,7 @@ class quote(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class refclass(xsc.Element):
 	"""
 	The scope or other indication of applicability of a reference entry 
@@ -5394,6 +5641,7 @@ class refclass(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class refdescriptor(xsc.Element):
 	"""
 	A description of the topic of a reference page
@@ -5414,6 +5662,7 @@ class refdescriptor(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class refentry(xsc.Element):
 	"""
@@ -5437,6 +5686,7 @@ class refentry(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class refentryinfo(xsc.Element):
 	"""
 	
@@ -5458,6 +5708,7 @@ class refentryinfo(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class refentrytitle(xsc.Element):
 	"""
 	The title of a reference page
@@ -5478,6 +5729,7 @@ class refentrytitle(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class reference(xsc.Element):
 	"""
@@ -5502,6 +5754,7 @@ class reference(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class referenceinfo(xsc.Element):
 	"""
 	
@@ -5523,6 +5776,7 @@ class referenceinfo(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class refmeta(xsc.Element):
 	"""
 	Meta-information for a reference entry
@@ -5543,6 +5797,7 @@ class refmeta(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class refmiscinfo(xsc.Element):
 	"""
@@ -5566,6 +5821,7 @@ class refmiscinfo(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class refname(xsc.Element):
 	"""
 	The name of (one of) the subject(s) of a reference page
@@ -5586,6 +5842,7 @@ class refname(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class refnamediv(xsc.Element):
 	"""
@@ -5608,6 +5865,7 @@ class refnamediv(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class refpurpose(xsc.Element):
 	"""
 	A short (one sentence) synopsis of the topic of a reference page
@@ -5628,6 +5886,7 @@ class refpurpose(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class refsect1(xsc.Element):
 	"""
@@ -5651,6 +5910,7 @@ class refsect1(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class refsect1info(xsc.Element):
 	"""
 	Meta-information for a RefSect1
@@ -5671,6 +5931,7 @@ class refsect1info(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class refsect2(xsc.Element):
 	"""
@@ -5694,6 +5955,7 @@ class refsect2(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class refsect2info(xsc.Element):
 	"""
 	Meta-information for a RefSect2
@@ -5714,6 +5976,7 @@ class refsect2info(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class refsect3(xsc.Element):
 	"""
@@ -5737,6 +6000,7 @@ class refsect3(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class refsect3info(xsc.Element):
 	"""
 	Meta-information for a RefSect3
@@ -5757,6 +6021,7 @@ class refsect3info(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class refsynopsisdiv(xsc.Element):
 	"""
@@ -5779,6 +6044,7 @@ class refsynopsisdiv(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class refsynopsisdivinfo(xsc.Element):
 	"""
 	Meta-information for a RefSynopsisDiv
@@ -5799,6 +6065,7 @@ class refsynopsisdivinfo(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class releaseinfo(xsc.Element):
 	"""
@@ -5821,6 +6088,7 @@ class releaseinfo(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class remark(xsc.Element):
 	"""
 	
@@ -5841,6 +6109,7 @@ class remark(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class replaceable(xsc.Element):
 	"""
@@ -5864,6 +6133,7 @@ class replaceable(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class returnvalue(xsc.Element):
 	"""
 	The value returned by a function
@@ -5884,6 +6154,7 @@ class returnvalue(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class revdescription(xsc.Element):
 	"""
@@ -5906,6 +6177,7 @@ class revdescription(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class revhistory(xsc.Element):
 	"""
 	A history of the revisions to a document
@@ -5926,6 +6198,7 @@ class revhistory(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class revision(xsc.Element):
 	"""
@@ -5948,6 +6221,7 @@ class revision(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class revnumber(xsc.Element):
 	"""
 	A document revision number
@@ -5969,6 +6243,7 @@ class revnumber(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class revremark(xsc.Element):
 	"""
 	A description of a revision to a document
@@ -5989,6 +6264,7 @@ class revremark(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class row(xsc.Element):
 	"""
@@ -6013,6 +6289,7 @@ class row(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class sbr(xsc.Element):
 	"""
 	An explicit line break in a command synopsis
@@ -6033,6 +6310,7 @@ class sbr(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class screen(xsc.Element):
 	"""
@@ -6058,6 +6336,7 @@ class screen(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class screenco(xsc.Element):
 	"""
 	A screen with associated areas used in callouts
@@ -6078,6 +6357,7 @@ class screenco(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class screeninfo(xsc.Element):
 	"""
@@ -6100,6 +6380,7 @@ class screeninfo(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class screenshot(xsc.Element):
 	"""
 	A representation of what the user sees or might see on a computer screen
@@ -6120,6 +6401,7 @@ class screenshot(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class secondary(xsc.Element):
 	"""
@@ -6143,6 +6425,7 @@ class secondary(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class secondaryie(xsc.Element):
 	"""
 	A secondary term in an index entry, rather than in the text
@@ -6164,6 +6447,7 @@ class secondaryie(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class sect1(xsc.Element):
 	"""
@@ -6189,6 +6473,7 @@ class sect1(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class sect1info(xsc.Element):
 	"""
 	Meta-information for a Sect1
@@ -6209,6 +6494,7 @@ class sect1info(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class sect2(xsc.Element):
 	"""
@@ -6234,6 +6520,7 @@ class sect2(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class sect2info(xsc.Element):
 	"""
 	Meta-information for a Sect2
@@ -6254,6 +6541,7 @@ class sect2info(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class sect3(xsc.Element):
 	"""
@@ -6279,6 +6567,7 @@ class sect3(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class sect3info(xsc.Element):
 	"""
 	Meta-information for a Sect3
@@ -6299,6 +6588,7 @@ class sect3info(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class sect4(xsc.Element):
 	"""
@@ -6324,6 +6614,7 @@ class sect4(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class sect4info(xsc.Element):
 	"""
 	Meta-information for a Sect4
@@ -6344,6 +6635,7 @@ class sect4info(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class sect5(xsc.Element):
 	"""
@@ -6369,6 +6661,7 @@ class sect5(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class sect5info(xsc.Element):
 	"""
 	Meta-information for a Sect5
@@ -6389,6 +6682,7 @@ class sect5info(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class section(xsc.Element):
 	"""
@@ -6413,6 +6707,7 @@ class section(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class sectioninfo(xsc.Element):
 	"""
 	Meta-information for a recursive section
@@ -6433,6 +6728,7 @@ class sectioninfo(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class see(xsc.Element):
 	"""
@@ -6455,6 +6751,7 @@ class see(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class seealso(xsc.Element):
 	"""
 	Part of an index term directing the reader also to another entry in the index
@@ -6475,6 +6772,7 @@ class seealso(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class seealsoie(xsc.Element):
 	"""
@@ -6498,6 +6796,7 @@ class seealsoie(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class seeie(xsc.Element):
 	"""
 	A "See" entry in an index, rather than in the text
@@ -6520,6 +6819,7 @@ class seeie(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class seg(xsc.Element):
 	"""
 	An element of a list item in a segmented list
@@ -6540,6 +6840,7 @@ class seg(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class seglistitem(xsc.Element):
 	"""
@@ -6562,6 +6863,7 @@ class seglistitem(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class segmentedlist(xsc.Element):
 	"""
 	A segmented list, a list of sets of elements
@@ -6582,6 +6884,7 @@ class segmentedlist(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class segtitle(xsc.Element):
 	"""
@@ -6604,6 +6907,7 @@ class segtitle(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class seriesvolnums(xsc.Element):
 	"""
 	Numbers of the volumes in a series of books
@@ -6624,6 +6928,7 @@ class seriesvolnums(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class set(xsc.Element):
 	"""
@@ -6648,6 +6953,7 @@ class set(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class setindex(xsc.Element):
 	"""
 	An index to a set of books
@@ -6669,6 +6975,7 @@ class setindex(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class setindexinfo(xsc.Element):
 	"""
 	
@@ -6689,6 +6996,7 @@ class setindexinfo(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class setinfo(xsc.Element):
 	"""
@@ -6712,6 +7020,7 @@ class setinfo(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class sgmltag(xsc.Element):
 	"""
 	A component of SGML markup
@@ -6734,6 +7043,7 @@ class sgmltag(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class shortaffil(xsc.Element):
 	"""
 	A brief description of an affiliation
@@ -6754,6 +7064,7 @@ class shortaffil(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class shortcut(xsc.Element):
 	"""
@@ -6779,6 +7090,7 @@ class shortcut(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class sidebar(xsc.Element):
 	"""
 	A portion of a document that is isolated from the main narrative flow
@@ -6799,6 +7111,7 @@ class sidebar(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class sidebarinfo(xsc.Element):
 	"""
@@ -6821,6 +7134,7 @@ class sidebarinfo(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class simpara(xsc.Element):
 	"""
 	A paragraph that contains only text and inline markup, no block elements
@@ -6841,6 +7155,7 @@ class simpara(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class simplelist(xsc.Element):
 	"""
@@ -6864,6 +7179,7 @@ class simplelist(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class simplemsgentry(xsc.Element):
 	"""
@@ -6889,6 +7205,7 @@ class simplemsgentry(xsc.Element):
 		class level(xsc.TextAttr): pass
 		class origin(xsc.TextAttr): pass
 
+
 class simplesect(xsc.Element):
 	"""
 	A section of a document with no subdivisions
@@ -6910,6 +7227,7 @@ class simplesect(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class spanspec(xsc.Element):
 	"""
 	Formatting information for a spanned column in a table
@@ -6924,6 +7242,7 @@ class spanspec(xsc.Element):
 		class align(xsc.TextAttr): pass
 		class char(xsc.TextAttr): pass
 		class charoff(xsc.TextAttr): pass
+
 
 class state(xsc.Element):
 	"""
@@ -6945,6 +7264,7 @@ class state(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class step(xsc.Element):
 	"""
@@ -6968,6 +7288,7 @@ class step(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class street(xsc.Element):
 	"""
 	A street address in an address
@@ -6988,6 +7309,7 @@ class street(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class structfield(xsc.Element):
 	"""
@@ -7010,6 +7332,7 @@ class structfield(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class structname(xsc.Element):
 	"""
 	The name of a structure (in the programming language sense)
@@ -7030,6 +7353,7 @@ class structname(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class subject(xsc.Element):
 	"""
@@ -7053,6 +7377,7 @@ class subject(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class subjectset(xsc.Element):
 	"""
 	A set of terms describing the subject matter of a document
@@ -7075,6 +7400,7 @@ class subjectset(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class subjectterm(xsc.Element):
 	"""
 	A term in a group of terms describing the subject matter of a document
@@ -7096,6 +7422,7 @@ class subjectterm(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class subscript(xsc.Element):
 	"""
 	A subscript (as in H2O, the molecular formula for water)
@@ -7116,6 +7443,7 @@ class subscript(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class substeps(xsc.Element):
 	"""
@@ -7139,6 +7467,7 @@ class substeps(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class subtitle(xsc.Element):
 	"""
 	The subtitle of a document
@@ -7159,6 +7488,7 @@ class subtitle(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class superscript(xsc.Element):
 	"""
@@ -7181,6 +7511,7 @@ class superscript(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class surname(xsc.Element):
 	"""
 	A family name, in western cultures the "last name"
@@ -7201,6 +7532,7 @@ class surname(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class symbol(xsc.Element):
 	"""
@@ -7224,6 +7556,7 @@ class symbol(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class synopfragment(xsc.Element):
 	"""
 	A portion of a CmdSynopsis broken out from the main body of the synopsis
@@ -7244,6 +7577,7 @@ class synopfragment(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class synopfragmentref(xsc.Element):
 	"""
@@ -7266,6 +7600,7 @@ class synopfragmentref(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class synopsis(xsc.Element):
 	"""
@@ -7291,6 +7626,7 @@ class synopsis(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class systemitem(xsc.Element):
 	"""
 	A system-related item or term
@@ -7313,6 +7649,7 @@ class systemitem(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class table(xsc.Element):
 	"""
@@ -7344,6 +7681,7 @@ class table(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class tbody(xsc.Element):
 	"""
 	A wrapper for the rows of a table or informal table
@@ -7366,6 +7704,7 @@ class tbody(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class term(xsc.Element):
 	"""
 	The word or phrase being defined or described in a variable list
@@ -7386,6 +7725,7 @@ class term(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class tertiary(xsc.Element):
 	"""
@@ -7409,6 +7749,7 @@ class tertiary(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class tertiaryie(xsc.Element):
 	"""
 	A tertiary term in an index entry, rather than in the text
@@ -7431,6 +7772,7 @@ class tertiaryie(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class textobject(xsc.Element):
 	"""
 	A wrapper for a text description of an object and its associated meta-information
@@ -7451,6 +7793,7 @@ class textobject(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class tfoot(xsc.Element):
 	"""
@@ -7473,6 +7816,7 @@ class tfoot(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class tgroup(xsc.Element):
 	"""
@@ -7502,6 +7846,7 @@ class tgroup(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class thead(xsc.Element):
 	"""
 	A table header consisting of one or more rows
@@ -7524,6 +7869,7 @@ class thead(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class tip(xsc.Element):
 	"""
 	A suggestion to the user, set off from the text
@@ -7544,6 +7890,7 @@ class tip(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class title(xsc.Element):
 	"""
@@ -7567,6 +7914,7 @@ class title(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class titleabbrev(xsc.Element):
 	"""
 	The abbreviation of a Title
@@ -7587,6 +7935,7 @@ class titleabbrev(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class toc(xsc.Element):
 	"""
@@ -7609,6 +7958,7 @@ class toc(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class tocback(xsc.Element):
 	"""
@@ -7634,6 +7984,7 @@ class tocback(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class tocchap(xsc.Element):
 	"""
 	An entry in a table of contents for a component in the body of a document
@@ -7655,6 +8006,7 @@ class tocchap(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class tocentry(xsc.Element):
 	"""
@@ -7678,6 +8030,7 @@ class tocentry(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class tocfront(xsc.Element):
 	"""
@@ -7703,6 +8056,7 @@ class tocfront(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class toclevel1(xsc.Element):
 	"""
 	A top-level entry within a table of contents entry for a chapter-like component
@@ -7723,6 +8077,7 @@ class toclevel1(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class toclevel2(xsc.Element):
 	"""
@@ -7745,6 +8100,7 @@ class toclevel2(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class toclevel3(xsc.Element):
 	"""
 	A third-level entry within a table of contents entry for a chapter-like component
@@ -7765,6 +8121,7 @@ class toclevel3(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class toclevel4(xsc.Element):
 	"""
@@ -7787,6 +8144,7 @@ class toclevel4(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class toclevel5(xsc.Element):
 	"""
 	A fifth-level entry within a table of contents entry for a chapter-like component
@@ -7807,6 +8165,7 @@ class toclevel5(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class tocpart(xsc.Element):
 	"""
@@ -7829,6 +8188,7 @@ class tocpart(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class token(xsc.Element):
 	"""
 	A unit of information
@@ -7849,6 +8209,7 @@ class token(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class trademark(xsc.Element):
 	"""
@@ -7872,6 +8233,7 @@ class trademark(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class type(xsc.Element):
 	"""
 	The classification of a value
@@ -7892,6 +8254,7 @@ class type(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class ulink(xsc.Element):
 	"""
@@ -7916,6 +8279,7 @@ class ulink(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class userinput(xsc.Element):
 	"""
 	Data entered by the user
@@ -7938,6 +8302,7 @@ class userinput(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class varargs(xsc.Element):
 	"""
 	An empty element in a function synopsis indicating a variable number of arguments
@@ -7958,6 +8323,7 @@ class varargs(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class variablelist(xsc.Element):
 	"""
@@ -7981,6 +8347,7 @@ class variablelist(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class varlistentry(xsc.Element):
 	"""
 	A wrapper for a set of terms and the associated description in a variable list
@@ -8002,6 +8369,7 @@ class varlistentry(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class varname(xsc.Element):
 	"""
 	The name of a variable
@@ -8022,6 +8390,7 @@ class varname(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class videodata(xsc.Element):
 	"""
@@ -8053,6 +8422,7 @@ class videodata(xsc.Element):
 		class scalefit(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class videoobject(xsc.Element):
 	"""
 	A wrapper for video data and its associated meta-information
@@ -8073,6 +8443,7 @@ class videoobject(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class void(xsc.Element):
 	"""
@@ -8095,6 +8466,7 @@ class void(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class volumenum(xsc.Element):
 	"""
 	The volume number of a document in a set (as of books in a set or articles in a journal)
@@ -8115,6 +8487,7 @@ class volumenum(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class warning(xsc.Element):
 	"""
@@ -8137,6 +8510,7 @@ class warning(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class wordasword(xsc.Element):
 	"""
 	A word meant specifically as a word and not representing anything else
@@ -8157,6 +8531,7 @@ class wordasword(xsc.Element):
 		class userlevel(xsc.TextAttr): pass
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
+
 
 class xref(xsc.Element):
 	"""
@@ -8181,6 +8556,7 @@ class xref(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class year(xsc.Element):
 	"""
 	The year of publication of a document
@@ -8202,8 +8578,8 @@ class year(xsc.Element):
 		class vendor(xsc.TextAttr): pass
 		class role(xsc.TextAttr): pass
 
+
 class xmlns(xsc.Namespace):
 	xmlname = "docbook"
 	xmlurl = "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd"
 xmlns.makemod(vars())
-

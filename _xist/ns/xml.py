@@ -17,6 +17,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 
 from ll.xist import xsc, utils
 
+
 class XML(xsc.ProcInst):
 	"""
 	&xml; header
@@ -38,6 +39,7 @@ class XML(xsc.ProcInst):
 			return
 		xsc.ProcInst.publish(self, publisher)
 
+
 class XML10(XML):
 	"""
 	&xml; header version 1.0, i.e. <markup>&lt;?xml version="1.0"?&gt;</markup>
@@ -48,6 +50,7 @@ class XML10(XML):
 	def __init__(self):
 		super(XML10, self).__init__('version="1.0"')
 
+
 class XMLStyleSheet(xsc.ProcInst):
 	"""
 	XML stylesheet declaration
@@ -55,6 +58,7 @@ class XMLStyleSheet(xsc.ProcInst):
 	xmlname = u"xml-stylesheet"
 
 	needsxmlns = 0
+
 
 class header(xsc.Element):
 	"""
@@ -65,6 +69,7 @@ class header(xsc.Element):
 
 	def convert(self, converter):
 		return XML10()
+
 
 class xmlns(xsc.Namespace):
 	xmlname = "xml"
@@ -82,4 +87,3 @@ class xmlns(xsc.Namespace):
 			needsxmlns = 1
 			xmlprefix = u"xml"
 xmlns.makemod(vars())
-

@@ -19,17 +19,21 @@ import string
 
 from ll.xist import xsc
 
+
 class coreattrs(xsc.Element.Attrs):
 	class id(xsc.TextAttr): pass
 	class class_(xsc.TextAttr): xmlname = "class"
+
 
 class cardevattrs(xsc.Element.Attrs):
 	class onenterforward(xsc.URLAttr): pass
 	class onenterbackward(xsc.URLAttr): pass
 	class ontimer(xsc.URLAttr): pass
 
+
 class allattrs(coreattrs, cardevattrs):
 	pass
+
 
 class DocTypeWML13(xsc.DocType):
 	"""
@@ -47,6 +51,7 @@ class wml(xsc.Element):
 	class Attrs(coreattrs):
 		pass
 
+
 class card(xsc.Element):
 	"""
 	defines and names a new card
@@ -56,6 +61,7 @@ class card(xsc.Element):
 		class title(xsc.TextAttr): pass
 		class newcontext(xsc.TextAttr): pass
 		class ordered(xsc.TextAttr): pass
+
 
 class do(xsc.Element):
 	"""
@@ -68,6 +74,7 @@ class do(xsc.Element):
 		class name(xsc.TextAttr): pass
 		class optional(xsc.BoolAttr): pass
 
+
 class onevent(xsc.Element):
 	"""
 	specifies an action to be performed when specific events occur
@@ -75,6 +82,7 @@ class onevent(xsc.Element):
 	empty = False
 	class Attrs(coreattrs):
 		class type(xsc.TextAttr): pass
+
 
 class head(xsc.Element):
 	"""
@@ -84,6 +92,7 @@ class head(xsc.Element):
 	class Attrs(coreattrs):
 		pass
 
+
 class template(xsc.Element):
 	"""
 	specifies a template containing settings that will be used deck wide
@@ -91,6 +100,7 @@ class template(xsc.Element):
 	empty = False
 	class Attrs(allattrs):
 		pass
+
 
 class access(xsc.Element):
 	"""
@@ -100,6 +110,7 @@ class access(xsc.Element):
 	class Attrs(coreattrs):
 		class domain(xsc.TextAttr): pass
 		class path(xsc.TextAttr): pass
+
 
 class meta(xsc.Element):
 	"""
@@ -112,6 +123,7 @@ class meta(xsc.Element):
 		class forua(xsc.TextAttr): pass
 		class content(xsc.TextAttr): pass
 		class scheme(xsc.TextAttr): pass
+
 
 class go(xsc.Element):
 	"""
@@ -126,6 +138,7 @@ class go(xsc.Element):
 		class cache_control(xsc.TextAttr): xmlname = "cache-control"
 		class accept_charset(xsc.TextAttr): xmlname = "accept-charset"
 
+
 class prev(xsc.Element):
 	"""
 	returns to the previous card
@@ -133,6 +146,7 @@ class prev(xsc.Element):
 	empty = False
 	class Attrs(coreattrs):
 		pass
+
 
 class refresh(xsc.Element):
 	"""
@@ -142,6 +156,7 @@ class refresh(xsc.Element):
 	class Attrs(coreattrs):
 		pass
 
+
 class noop(xsc.Element):
 	"""
 	does nothing (as in no operation)
@@ -149,6 +164,7 @@ class noop(xsc.Element):
 	empty = True
 	class Attrs(coreattrs):
 		pass
+
 
 class postfield(xsc.Element):
 	"""
@@ -159,6 +175,7 @@ class postfield(xsc.Element):
 		class name(xsc.TextAttr): pass
 		class value(xsc.TextAttr): pass
 
+
 class setvar(xsc.Element):
 	"""
 	sets a variable to a specified value
@@ -167,6 +184,7 @@ class setvar(xsc.Element):
 	class Attrs(coreattrs):
 		class name(xsc.TextAttr): pass
 		class value(xsc.TextAttr): pass
+
 
 class select(xsc.Element):
 	"""
@@ -182,6 +200,7 @@ class select(xsc.Element):
 		class multiple(xsc.TextAttr): pass
 		class tabindex(xsc.IntAttr): pass
 
+
 class optgroup(xsc.Element):
 	"""
 	groups options together so that the browser can optimize the display appropriately
@@ -189,6 +208,7 @@ class optgroup(xsc.Element):
 	empty = False
 	class Attrs(coreattrs):
 		class title(xsc.TextAttr): pass
+
 
 class option(xsc.Element):
 	"""
@@ -199,6 +219,7 @@ class option(xsc.Element):
 		class value(xsc.TextAttr): pass
 		class title(xsc.TextAttr): pass
 		class onpick(xsc.URLAttr): pass
+
 
 class input(xsc.Element):
 	"""
@@ -217,6 +238,7 @@ class input(xsc.Element):
 		class title(xsc.TextAttr): pass
 		class accesskey(xsc.TextAttr): pass
 
+
 class fieldset(xsc.Element):
 	"""
 	groups input field together so that the browser can optimize the display appropriately
@@ -224,6 +246,7 @@ class fieldset(xsc.Element):
 	empty = False
 	class Attrs(coreattrs):
 		class title(xsc.TextAttr): pass
+
 
 class timer(xsc.Element):
 	"""
@@ -233,6 +256,7 @@ class timer(xsc.Element):
 	class Attrs(coreattrs):
 		class name(xsc.TextAttr): pass
 		class value(xsc.TextAttr): pass
+
 
 class img(xsc.Element):
 	"""
@@ -249,6 +273,7 @@ class img(xsc.Element):
 		class height(xsc.TextAttr): pass
 		class width(xsc.TextAttr): pass
 
+
 class anchor(xsc.Element):
 	"""
 	creates an anchor (also called a link) associated with <pyref class="go"><class>go</class></pyref>,
@@ -258,6 +283,7 @@ class anchor(xsc.Element):
 	class Attrs(coreattrs):
 		class title(xsc.TextAttr): pass
 		class accesskey(xsc.TextAttr): pass
+
 
 class a(xsc.Element):
 	"""
@@ -269,6 +295,7 @@ class a(xsc.Element):
 		class title(xsc.TextAttr): pass
 		class accesskey(xsc.TextAttr): pass
 
+
 class table(xsc.Element):
 	"""
 	creates a columnar table providing control over table alignment
@@ -279,6 +306,7 @@ class table(xsc.Element):
 		class align(xsc.TextAttr): pass
 		class columns(xsc.IntAttr): pass
 
+
 class tr(xsc.Element):
 	"""
 	creates rows within a table
@@ -286,6 +314,7 @@ class tr(xsc.Element):
 	empty = False
 	class Attrs(coreattrs):
 		pass
+
 
 class td(xsc.Element):
 	"""
@@ -295,6 +324,7 @@ class td(xsc.Element):
 	class Attrs(coreattrs):
 		pass
 
+
 class em(xsc.Element):
 	"""
 	displays all text between <markup>&lt;em&gt;</markup> and <markup>&lt;/em&gt;</markup> formatted with emphasis
@@ -302,6 +332,7 @@ class em(xsc.Element):
 	empty = False
 	class Attrs(coreattrs):
 		pass
+
 
 class strong(xsc.Element):
 	"""
@@ -311,6 +342,7 @@ class strong(xsc.Element):
 	class Attrs(coreattrs):
 		pass
 
+
 class b(xsc.Element):
 	"""
 	displays all text between <markup>&lt;b&gt;</markup> and <markup>&lt;/b&gt;</markup> in bold text
@@ -318,6 +350,7 @@ class b(xsc.Element):
 	empty = False
 	class Attrs(coreattrs):
 		pass
+
 
 class i(xsc.Element):
 	"""
@@ -327,6 +360,7 @@ class i(xsc.Element):
 	class Attrs(coreattrs):
 		pass
 
+
 class u(xsc.Element):
 	"""
 	displays all text between <markup>&lt;u&gt;</markup> and <markup>&lt;/u&gt;</markup> as underlined text
@@ -334,6 +368,7 @@ class u(xsc.Element):
 	empty = False
 	class Attrs(coreattrs):
 		pass
+
 
 class big(xsc.Element):
 	"""
@@ -343,6 +378,7 @@ class big(xsc.Element):
 	class Attrs(coreattrs):
 		pass
 
+
 class small(xsc.Element):
 	"""
 	displays all text between <markup>&lt;small&gt;</markup> and <markup>&lt;/small&gt;</markup> in a small font
@@ -350,6 +386,7 @@ class small(xsc.Element):
 	empty = False
 	class Attrs(coreattrs):
 		pass
+
 
 class p(xsc.Element):
 	"""
@@ -360,6 +397,7 @@ class p(xsc.Element):
 		class align(xsc.TextAttr): pass
 		class mode(xsc.TextAttr): pass
 
+
 class br(xsc.Element):
 	"""
 	forces a line break
@@ -367,6 +405,7 @@ class br(xsc.Element):
 	empty = True
 	class Attrs(coreattrs):
 		class type(xsc.TextAttr): pass
+
 
 class pre(xsc.Element):
 	"""
@@ -376,9 +415,11 @@ class pre(xsc.Element):
 	class Attrs(coreattrs):
 		pass
 
+
 # Entities in DTD
 class nbsp(xsc.CharRef): "no-break space = non-breaking space, U+00A0 ISOnum"; codepoint = 160
 class shy(xsc.CharRef): "soft hyphen = discretionary hyphen, U+00AD ISOnum"; codepoint = 173
+
 
 class xmlns(xsc.Namespace):
 	xmlname = "wml"

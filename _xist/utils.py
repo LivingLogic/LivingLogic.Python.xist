@@ -20,6 +20,7 @@ from ll import url as url_
 
 import xsc
 
+
 def findAttr(content, name):
 	startpos = content.find(name)
 	if startpos != -1:
@@ -35,6 +36,7 @@ def findAttr(content, name):
 		if endpos != -1:
 			return content[startpos:endpos]
 	return None
+
 
 def replaceInitialURL(frag, callback):
 	"""

@@ -18,6 +18,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 
 from ll.xist import xsc
 
+
 class xmlns(xsc.Namespace):
 	xmlname = "tal"
 	xmlurl = "http://xml.zope.org/namespaces/tal"

@@ -31,6 +31,7 @@ from ll import url
 import xsc, errors, utils, sources, cssparsers
 from ns import ihtml, html
 
+
 class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 	"""
 	This is a rudimentary, buggy, halfworking, untested SAX2 drivers for sgmlop.
@@ -247,6 +248,7 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 			node.append(ct(u""))
 		return node
 
+
 class BadEntityParser(SGMLOPParser):
 	"""
 	<par>A &sax;2 parser that recognizes the character entities
@@ -344,6 +346,7 @@ class BadEntityParser(SGMLOPParser):
 			self._cont_handler.characters(data)
 			self.headerJustRead = False
 
+
 class HTMLParser(BadEntityParser):
 	"""
 	<par>A &sax;2 parser that can parse &html;.</par>
@@ -410,10 +413,12 @@ class HTMLParser(BadEntityParser):
 		else:
 			warnings.warn(errors.IllegalCloseTagWarning(name))
 
+
 class ExpatParser(expatreader.ExpatParser):
 	def reset(self):
 		expatreader.ExpatParser.reset(self)
 		self._parser.UseForeignDTD(True)
+
 
 class Handler(object):
 	"""
@@ -617,6 +622,7 @@ class Handler(object):
 	def createEntity(self, name):
 		return self.prefixes.entity(name)()
 
+
 def parse(source, handler=None, parser=None, prefixes=None):
 	"""
 	<par>Parse the source <arg>source</arg> (an <pyref module="ll.xist.sources" class="InputSource"><class>InputSource</class></pyref> instance)
@@ -653,11 +659,14 @@ def parse(source, handler=None, parser=None, prefixes=None):
 	handler.close()
 	return result
 
+
 def parseString(text, sysid="STRING", base=None, handler=None, parser=None, prefixes=None, encoding=None, tidy=False):
 	return parse(sources.StringInputSource(text, sysid=sysid, base=base, encoding=encoding, tidy=tidy), handler=handler, parser=parser, prefixes=prefixes)
 
+
 def parseURL(id, base=None, handler=None, parser=None, prefixes=None, encoding=None, tidy=False, headers=None, data=None):
 	return parse(sources.URLInputSource(id, base=base, encoding=encoding, tidy=tidy, headers=headers, data=data), handler=handler, parser=parser, prefixes=prefixes)
+
 
 def parseFile(filename, base=None, handler=None, parser=None, prefixes=None, encoding=None, tidy=False):
 	return parseURL(url.Filename(filename), base=base, encoding=encoding, tidy=tidy, handler=handler, parser=parser, prefixes=prefixes)

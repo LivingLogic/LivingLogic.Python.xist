@@ -22,11 +22,13 @@ from ll import url
 
 import xsc, options, helpers
 
+
 def cssescapereplace(exc):
 	if not isinstance(exc, UnicodeEncodeError):
 		raise TypeError("don't know how to handle %r" % exc)
 	return (helpers.cssescapereplace(exc.object[exc.start:exc.end], exc.encoding), exc.end)
 codecs.register_error("cssescapereplace", cssescapereplace)
+
 
 class Publisher(object):
 	"""
@@ -226,12 +228,14 @@ class Publisher(object):
 
 FilePublisher = Publisher
 
+
 class PrintPublisher(Publisher):
 	"""
 	writes the strings to <lit>sys.stdout</lit>.
 	"""
 	def __init__(self, base=None, root=None, encoding=None, xhtml=None, prefixes=None, elementmode=0, procinstmode=0, entitymode=0):
 		super(PrintPublisher, self).__init__(sys.stdout, base=base, root=root, encoding=encoding, xhtml=xhtml, prefixes=prefixes, elementmode=elementmode, procinstmode=procinstmode, entitymode=entitymode)
+
 
 class BytePublisher(Publisher):
 	"""
@@ -249,6 +253,7 @@ class BytePublisher(Publisher):
 		super(BytePublisher, self).endPublication()
 		return result
 
+
 class StringPublisher(BytePublisher):
 	"""
 	collects all strings in an array.
@@ -262,5 +267,3 @@ class StringPublisher(BytePublisher):
 	def endPublication(self):
 		result = super(StringPublisher, self).endPublication()
 		return unicode(result, "utf8")
-
-

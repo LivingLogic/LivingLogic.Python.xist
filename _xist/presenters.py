@@ -22,17 +22,20 @@ from ll import ansistyle, url
 
 import xsc, options
 
+
 def getStringFromEnv(name, default):
 	try:
 		return os.environ[name]
 	except KeyError:
 		return default
 
+
 def getIntFromEnv(name, default):
 	try:
 		return int(os.environ[name])
 	except KeyError:
 		return default
+
 
 def getColorsFromEnv(name, default):
 	try:
@@ -43,6 +46,7 @@ def getColorsFromEnv(name, default):
 	except KeyError:
 		return default
 
+
 class EnvText(ansistyle.Text):
 	def getcolor(self):
 		if options.repransi==0:
@@ -50,11 +54,13 @@ class EnvText(ansistyle.Text):
 		else:
 			return self.color[options.repransi-1]
 
+
 class EnvTextForTab(EnvText):
 	"""
 	ANSI escape sequence to be used for tabs
 	"""
 	color = getColorsFromEnv("XSC_REPRANSI_TAB", (0x4, 0x8))
+
 
 class EnvTextForQuote(EnvText):
 	"""
@@ -63,8 +69,10 @@ class EnvTextForQuote(EnvText):
 	"""
 	color = getColorsFromEnv("XSC_REPRANSI_QUOTE", (0x3, 0xf))
 
+
 class EnvTextForSlash(EnvText):
 	color = getColorsFromEnv("XSC_REPRANSI_SLASH", (0x3, 0xf))
+
 
 class EnvTextForBracket(EnvText):
 	"""
@@ -73,12 +81,14 @@ class EnvTextForBracket(EnvText):
 	"""
 	color = getColorsFromEnv("XSC_REPRANSI_BRACKET", (0x3, 0xf))
 
+
 class EnvTextForColon(EnvText):
 	"""
 	ANSI escape sequence to be used for colon
 	(i.e. namespace separator)
 	"""
 	color = getColorsFromEnv("XSC_REPRANSI_BRACKET", (0x3, 0xf))
+
 
 class EnvTextForQuestion(EnvText):
 	"""
@@ -87,6 +97,7 @@ class EnvTextForQuestion(EnvText):
 	"""
 	color = getColorsFromEnv("XSC_REPRANSI_QUESTION", (0x3, 0xf))
 
+
 class EnvTextForExclamation(EnvText):
 	"""
 	ANSI escape sequence to be used for exclamation marks
@@ -94,11 +105,13 @@ class EnvTextForExclamation(EnvText):
 	"""
 	color = getColorsFromEnv("XSC_REPRANSI_EXCLAMATION", (0x3, 0xf))
 
+
 class EnvTextForAmp(EnvText):
 	"""
 	ANSI escape sequence to be used for & (used in entity)
 	"""
 	color = getColorsFromEnv("XSC_REPRANSI_AMP", (0x3, 0xf))
+
 
 class EnvTextForSemi(EnvText):
 	"""
@@ -106,11 +119,13 @@ class EnvTextForSemi(EnvText):
 	"""
 	color = getColorsFromEnv("XSC_REPRANSI_SEMI", (0x3, 0xf))
 
+
 class EnvTextForText(EnvText):
 	"""
 	ANSI escape sequence to be used for text
 	"""
 	color = getColorsFromEnv("XSC_REPRANSI_TEXT", (0x7, 0x7))
+
 
 class EnvTextForNamespace(EnvText):
 	"""
@@ -118,11 +133,13 @@ class EnvTextForNamespace(EnvText):
 	"""
 	color = getColorsFromEnv("XSC_REPRANSI_NAMESPACE", (0xf, 0x4))
 
+
 class EnvTextForElementName(EnvText):
 	"""
 	ANSI escape sequence to be used for element names
 	"""
 	color = getColorsFromEnv("XSC_REPRANSI_ELEMENTNAME", (0xe, 0xc))
+
 
 class EnvTextForAttrName(EnvText):
 	"""
@@ -130,11 +147,13 @@ class EnvTextForAttrName(EnvText):
 	"""
 	color = getColorsFromEnv("XSC_REPRANSI_ATTRNAME", (0xe, 0xc))
 
+
 class EnvTextForAttrsName(EnvText):
 	"""
 	ANSI escape sequence to be used for attrs class name
 	"""
 	color = getColorsFromEnv("XSC_REPRANSI_ATTRSNAME", (0xe, 0xc))
+
 
 class EnvTextForEntityName(EnvText):
 	"""
@@ -142,11 +161,13 @@ class EnvTextForEntityName(EnvText):
 	"""
 	color = getColorsFromEnv("XSC_REPRANSI_ENTITYNAME", (0x5, 0x5))
 
+
 class EnvTextForAttrName(EnvText):
 	"""
 	ANSI escape sequence to be used for attribute names
 	"""
 	color = getColorsFromEnv("XSC_REPRANSI_ATTRNAME", (0xf, 0xc))
+
 
 class EnvTextForDocTypeMarker(EnvText):
 	"""
@@ -155,11 +176,13 @@ class EnvTextForDocTypeMarker(EnvText):
 	"""
 	color = getColorsFromEnv("XSC_REPRANSI_DOCTYPEMARKER", (0xf, 0xf))
 
+
 class EnvTextForDocTypeText(EnvText):
 	"""
 	ANSI escape sequence to be used for document types
 	"""
 	color = getColorsFromEnv("XSC_REPRANSI_DOCTYPETEXT", (0x7, 0x7))
+
 
 class EnvTextForCommentMarker(EnvText):
 	"""
@@ -167,11 +190,13 @@ class EnvTextForCommentMarker(EnvText):
 	"""
 	color = getColorsFromEnv("XSC_REPRANSI_COMMENTMARKER", (0x7, 0xf))
 
+
 class EnvTextForCommentText(EnvText):
 	"""
 	ANSI escape sequence to be used for comment text
 	"""
 	color = getColorsFromEnv("XSC_REPRANSI_COMMENTTEXT", (0x7, 0x7))
+
 
 class EnvTextForAttrValue(EnvText):
 	"""
@@ -179,11 +204,13 @@ class EnvTextForAttrValue(EnvText):
 	"""
 	color = getColorsFromEnv("XSC_REPRANSI_ATTRVALUE", (0x7, 0x6))
 
+
 class EnvTextForURL(EnvText):
 	"""
 	ANSI escape sequence to be used for URLs
 	"""
 	color = getColorsFromEnv("XSC_REPRANSI_URL", (0xb, 0x2))
+
 
 class EnvTextForProcInstTarget(EnvText):
 	"""
@@ -191,11 +218,13 @@ class EnvTextForProcInstTarget(EnvText):
 	"""
 	color = getColorsFromEnv("XSC_REPRANSI_PROCINSTTARGET", (0x9, 0x9))
 
+
 class EnvTextForProcInstContent(EnvText):
 	"""
 	ANSI escape sequence to be used for processing instruction content
 	"""
 	color = getColorsFromEnv("XSC_REPRANSI_PROCINSTCONTENT", (0x7, 0x7))
+
 
 class EnvTextForNumber(EnvText):
 	"""
@@ -203,11 +232,13 @@ class EnvTextForNumber(EnvText):
 	"""
 	color = getColorsFromEnv("XSC_REPRANSI_NUMBER", (0x4, 0x4))
 
+
 class EnvTextForString(EnvText):
 	"""
 	ANSI escape sequence to be used for variable strings in error messages etc.
 	"""
 	color = getColorsFromEnv("XSC_REPRANSI_STRING", (0x5, 0x5))
+
 
 class EscInlineText(ansistyle.EscapedText):
 	ascharref = "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x0b\x0c\x0d\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f<>&"
@@ -233,100 +264,131 @@ class EscInlineText(ansistyle.EscapedText):
 					return EnvTextForEntityName("&", entity.xmlname[True], ";")
 		return char
 
+
 class EscInlineAttr(EscInlineText):
 	ascharref = "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x0b\x0c\x0d\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f<>\"&"
 	ascolor   = "\x09\x0a"
+
 
 class EscOutlineText(EscInlineText):
 	ascharref = "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f<>&"
 	ascolor   = ""
 
+
 class EscOutlineAttr(EscInlineText):
 	ascharref = "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f<>\"&"
 	ascolor   = ""
 
+
 def strBracketOpen():
 	return EnvTextForBracket("<")
+
 
 def strBracketClose():
 	return EnvTextForBracket(">")
 
+
 def strAmp():
 	return EnvTextForAmp("&")
+
 
 def strSemi():
 	return EnvTextForSemi(";")
 
+
 def strSlash():
 	return EnvTextForSlash("/")
+
 
 def strColon():
 	return EnvTextForColon(":")
 
+
 def strQuestion():
 	return EnvTextForQuestion("?")
+
 
 def strExclamation():
 	return EnvTextForExclamation("!")
 
+
 def strQuote():
 	return EnvTextForQuote('"')
+
 
 def strTab(count):
 	return EnvTextForTab(options.reprtab*count)
 
+
 def strNumber(number):
 	return EnvTextForNumber(str(number))
 
+
 def strString(string):
 	return EnvTextForString(string)
+
 
 def strURL(u):
 	if isinstance(u, url.URL):
 		u = u.url
 	return EnvTextForURL(EscInlineText(u))
 
+
 def strDocTypeMarker():
 	return EnvTextForDocTypeMarker("DOCTYPE")
+
 
 def strDocTypeText(text):
 	return EnvTextForDocTypeText(EscInlineText(text))
 
+
 def strCommentMarker():
 	return EnvTextForCommentMarker("--")
+
 
 def strCommentText(text):
 	return EnvTextForCommentText(EscInlineText(text))
 
+
 def strNamespace(namespace):
 	return EnvTextForNamespace(EscInlineText(namespace))
+
 
 def strElementName(name):
 	return EnvTextForElementName(EscInlineText(name))
 
+
 def strAttrName(name):
 	return EnvTextForAttrName(EscInlineText(name))
+
 
 def strAttrsName(name):
 	return EnvTextForAttrsName(EscInlineText(name))
 
+
 def strEntityName(name):
 	return EnvTextForEntityName(EscInlineText(name))
+
 
 def strProcInstTarget(target):
 	return EnvTextForProcInstTarget(EscInlineText(target))
 
+
 def strProcInstContent(content):
 	return EnvTextForProcInstContent(EscInlineText(content))
+
 
 def strTextOutsideAttr(text):
 	return EnvTextForText(EscInlineText(text))
 
+
 def strTextInAttr(text):
 	return EnvTextForAttrValue(EscInlineAttr(text))
 
+
 def strAttrValue(attrvalue):
 	return EnvTextForAttrValue(EscInlineAttr(attrvalue))
+
 
 class Presenter:
 	"""
@@ -418,6 +480,7 @@ class Presenter:
 		"""
 		raise NotImplementedError("presentAttr")
 
+
 class PlainPresenter(Presenter):
 	"""
 	<par>This presenter shows only the root node of the tree (with a little additional
@@ -506,6 +569,7 @@ class PlainPresenter(Presenter):
 	def presentNull(self, node):
 		self.buffer = "<%s:%s object at 0x%x>" % (node.__class__.__module__, node.__class__.__fullname__(), id(node))
 
+
 class NormalPresenter(Presenter):
 	def beginPresentation(self):
 		self.buffer = ansistyle.Text()
@@ -589,6 +653,7 @@ class NormalPresenter(Presenter):
 
 	def presentAttr(self, node):
 		xsc.Frag.present(node, self)
+
 
 class TreePresenter(Presenter):
 	"""
@@ -816,6 +881,7 @@ class TreePresenter(Presenter):
 			self.buffers.append(EnvTextForAttrValue())
 		self.presentFrag(node)
 
+
 class CodePresenter(Presenter):
 	"""
 	<par>This presenter formats the object as a nested Python object tree.</par>
@@ -986,5 +1052,6 @@ class CodePresenter(Presenter):
 
 	def presentAttr(self, node):
 		self.presentFrag(node)
+
 
 defaultPresenterClass = PlainPresenter

@@ -18,6 +18,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 
 import xsc
 
+
 class ConverterState(object):
 	def __init__(self, node, root, mode, stage, target, lang, makeaction, maketarget):
 		self.node = node
@@ -31,6 +32,7 @@ class ConverterState(object):
 		self.lang = lang
 		self.makeaction = makeaction
 		self.maketarget = maketarget
+
 
 class Converter(object):
 	"""

@@ -18,15 +18,18 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 
 from ll.xist import xsc, sandbox
 
+
 class CodeAttr(xsc.Attr):
 	"""
 	used for attributes that contain Python code
 	"""
 
+
 class CondAttr(CodeAttr):
 	"""
 	used for Python conditions
 	"""
+
 
 class switch(xsc.Element):
 	empty = False
@@ -38,6 +41,7 @@ class switch(xsc.Element):
 
 		return xsc.Null
 
+
 class case(xsc.Element):
 	empty = False
 	class Attrs(xsc.Element.Attrs):
@@ -45,6 +49,7 @@ class case(xsc.Element):
 
 	def convert(self, converter):
 		return self.content.convert(converter)
+
 
 class If(xsc.Element):
 	empty = False
@@ -90,6 +95,7 @@ class If(xsc.Element):
 			result = unicode(node["lang"].convert(converter)) == converter.lang
 		return result
 
+
 class ElIf(xsc.Element):
 	empty = True
 	xmlname = "elif"
@@ -103,12 +109,14 @@ class ElIf(xsc.Element):
 	def convert(self, converter):
 		return xsc.Null
 
+
 class Else(xsc.Element):
 	empty = True
 	xmlname = "else"
 
 	def convert(self, converter):
 		return xsc.Null
+
 
 class xmlns(xsc.Namespace):
 	xmlname = "cond"

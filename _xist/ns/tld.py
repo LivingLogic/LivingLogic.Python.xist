@@ -19,8 +19,10 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 from ll.xist import xsc
 from ll.xist.ns import xndl
 
+
 class IdAttrs(xsc.Element.Attrs):
 	class id(xsc.IDAttr): pass
+
 
 class DocTypeTLD11(xsc.DocType):
 	"""
@@ -28,6 +30,7 @@ class DocTypeTLD11(xsc.DocType):
 	"""
 	def __init__(self):
 		xsc.DocType.__init__(self, 'taglib PUBLIC "-//Sun Microsystems, Inc.//DTD JSP Tag Library 1.1//EN" "http://java.sun.com/j2ee/dtds/web-jsptaglibrary_1_1.dtd"')
+
 
 class attribute(xsc.Element):
 	"""
@@ -59,6 +62,7 @@ class attribute(xsc.Element):
 		e['required'] = isRequired
 		return e.convert(converter)
 
+
 class bodycontent(xsc.Element):
 	"""
 	<par>Provides a hint as to the content of the body of this tag.
@@ -80,6 +84,7 @@ class bodycontent(xsc.Element):
 	empty = False
 	class Attrs(IdAttrs): pass
 
+
 class info(xsc.Element):
 	"""
 	<par>Defines an arbitrary text string describing the tag library.</par>
@@ -91,6 +96,7 @@ class info(xsc.Element):
 		e = xndl.doc(self.content)
 		return e.convert(converter)
 
+
 class jspversion(xsc.Element):
 	"""
 	<par>Describes the &jsp; version (number) this taglibrary requires in
@@ -99,12 +105,14 @@ class jspversion(xsc.Element):
 	empty = False
 	class Attrs(IdAttrs): pass
 
+
 class name(xsc.Element):
 	"""
 	<par>Defines the canonical name of a tag or attribute being defined.</par>
 	"""
 	empty = False
 	class Attrs(IdAttrs): pass
+
 
 class required(xsc.Element):
 	"""
@@ -114,6 +122,7 @@ class required(xsc.Element):
 	"""
 	empty = False
 	class Attrs(IdAttrs): pass
+
 
 class rtexprvalue(xsc.Element):
 	"""
@@ -127,6 +136,7 @@ class rtexprvalue(xsc.Element):
 	empty = False
 	class Attrs(IdAttrs): pass
 
+
 class shortname(xsc.Element):
 	"""
 	<par>Defines a short (default) shortname to be used for tags and
@@ -134,6 +144,7 @@ class shortname(xsc.Element):
 	"""
 	empty = False
 	class Attrs(IdAttrs): pass
+
 
 class tag(xsc.Element):
 	"""
@@ -168,6 +179,7 @@ class tag(xsc.Element):
 		return e.convert(converter)
 		
 
+
 class tagclass(xsc.Element):
 	"""
 	<par>Defines the subclass of <class>javax.serlvet.jsp.tagext.Tag</class>
@@ -176,6 +188,7 @@ class tagclass(xsc.Element):
 	"""
 	empty = False
 	class Attrs(IdAttrs): pass
+
 
 class taglib(xsc.Element):
 	"""
@@ -207,6 +220,7 @@ class taglib(xsc.Element):
 		e.append(self.content.find(xsc.FindType(tag)))
 		return e.convert(converter)
 
+
 class teiclass(xsc.Element):
 	"""
 	<par>Defines the subclass of <class>javax.servlet.jsp.tagext.TagExtraInfo</class>
@@ -217,12 +231,14 @@ class teiclass(xsc.Element):
 	empty = False
 	class Attrs(IdAttrs): pass
 
+
 class tlibversion(xsc.Element):
 	"""
 	<par>Describes this version (number) of the taglibrary (dewey decimal).</par>
 	"""
 	empty = False
 	class Attrs(IdAttrs): pass
+
 
 class uri(xsc.Element):
 	"""
@@ -232,8 +248,8 @@ class uri(xsc.Element):
 	empty = False
 	class Attrs(IdAttrs): pass
 
+
 class xmlns(xsc.Namespace):
 	xmlname = "tld"
 	xmlurl = "http://java.sun.com/j2ee/dtds/web-jsptaglibrary_1_1.dtd"
 xmlns.makemod(vars())
-

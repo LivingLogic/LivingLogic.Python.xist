@@ -22,6 +22,7 @@ import cgi # for parse_header
 from ll.xist import xsc, utils
 from ll.xist.ns import xml
 
+
 # common attributes types
 class DirAttr(xsc.TextAttr): "direction for weak/neutral text"; values = ("ltr", "rtl")
 class ContentTypeAttr(xsc.TextAttr): "media type, as per [RFC2045]"
@@ -64,10 +65,12 @@ class coreattrs(xsc.Element.Attrs):
 	class style(StyleSheetAttr): "associated style info"
 	class title(TextAttr): "advisory title/amplification"
 
+
 class i18nattrs(xsc.Element.Attrs):
 	"internationalization attributes"
 	class lang(LanguageCodeAttr): "language code (backwards compatible)"
 	class dir(DirAttr): pass
+
 
 class eventattrs(xsc.Element.Attrs):
 	"attributes for common UI events"
@@ -82,6 +85,7 @@ class eventattrs(xsc.Element.Attrs):
 	class onkeydown(ScriptAttr): "a key was pressed down"
 	class onkeyup(ScriptAttr): "a key was released"
 
+
 class focusattrs(xsc.Element.Attrs):
 	"attributes for elements that can get the focus"
 	class accesskey(CharacterAttr): "accessibility key character"
@@ -89,16 +93,20 @@ class focusattrs(xsc.Element.Attrs):
 	class onfocus(ScriptAttr): "the element got the focus"
 	class onblur(ScriptAttr): "the element lost the focus"
 
+
 class allattrs(coreattrs, i18nattrs, eventattrs):
 	pass
+
 
 class cellhalignattrs(xsc.Element.Attrs):
 	class align(xsc.TextAttr): values = ("left", "center", "right", "justify", "char")
 	class char(CharacterAttr): pass
 	class charoff(LengthAttr): pass
 
+
 class cellvalignattrs(xsc.Element.Attrs):
 	class valign(xsc.TextAttr): values = ("top", "middle", "bottom", "baseline")
+
 
 class DocTypeHTML40transitional(xsc.DocType):
 	"""
@@ -107,6 +115,7 @@ class DocTypeHTML40transitional(xsc.DocType):
 	def __init__(self):
 		xsc.DocType.__init__(self, 'html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd"')
 
+
 class DocTypeHTML401transitional(xsc.DocType):
 	"""
 	document type for HTML 4.01 transitional
@@ -114,12 +123,14 @@ class DocTypeHTML401transitional(xsc.DocType):
 	def __init__(self):
 		xsc.DocType.__init__(self, 'html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd"')
 
+
 class DocTypeXHTML10strict(xsc.DocType):
 	"""
 	document type for XHTML 1.0 strict
 	"""
 	def __init__(self):
 		xsc.DocType.__init__(self, 'html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"')
+
 
 class DocTypeXHTML10transitional(xsc.DocType):
 	"""
@@ -144,6 +155,7 @@ class html(xsc.Element):
 		else:
 			return super(html, self).convert(converter)
 
+
 class head(xsc.Element):
 	"""
 	Document Head
@@ -152,6 +164,7 @@ class head(xsc.Element):
 	class Attrs(i18nattrs):
 		class id(xsc.IDAttr): pass
 		class profile(xsc.URLAttr): pass
+
 
 class title(xsc.Element):
 	"""
@@ -174,6 +187,7 @@ class title(xsc.Element):
 		content = content.mapped(self.unwrapHTML, converter)
 		return title(content, self.attrs)
 
+
 class base(xsc.Element):
 	"""
 	document base URI
@@ -183,6 +197,7 @@ class base(xsc.Element):
 		class id(xsc.IDAttr): pass
 		class href(xsc.URLAttr): pass
 		class target(FrameTargetAttr): pass
+
 
 class meta(xsc.Element):
 	"""
@@ -212,6 +227,7 @@ class meta(xsc.Element):
 					return
 		super(meta, self).publish(publisher)
 
+
 class link(xsc.Element):
 	"""
 	a media-independent link
@@ -227,6 +243,7 @@ class link(xsc.Element):
 		class media(MediaDescAttr): pass
 		class target(FrameTargetAttr): pass
 
+
 class style(xsc.Element):
 	"""
 	style info, which may include CDATA sections
@@ -237,6 +254,7 @@ class style(xsc.Element):
 		class type(ContentTypeAttr): required = True
 		class media(MediaDescAttr): pass
 		class title(TextAttr): pass
+
 
 class script(xsc.Element):
 	"""
@@ -251,6 +269,7 @@ class script(xsc.Element):
 		class src(xsc.URLAttr): pass
 		class defer(xsc.BoolAttr): pass
 
+
 class noscript(xsc.Element):
 	"""
 	alternate content container for non script-based rendering
@@ -259,7 +278,7 @@ class noscript(xsc.Element):
 	class Attrs(allattrs):
 		pass
 
-# Frames
+
 class iframe(xsc.Element):
 	"""
 	inline subwindow
@@ -281,6 +300,7 @@ class iframe(xsc.Element):
 		class vspace(xsc.IntAttr): pass # deprecated
 		class bordercolor(xsc.ColorAttr): pass # deprecated
 
+
 class noframes(xsc.Element):
 	"""
 	alternate content container for non frame-based rendering
@@ -289,7 +309,7 @@ class noframes(xsc.Element):
 	class Attrs(allattrs):
 		pass
 
-# Document Body
+
 class body(xsc.Element):
 	"""
 	document body
@@ -310,6 +330,7 @@ class body(xsc.Element):
 		class marginwidth(xsc.IntAttr): pass # deprecated
 		class marginheight(xsc.IntAttr): pass # deprecated
 
+
 class div(xsc.Element):
 	"""
 	generic language/style container
@@ -317,6 +338,7 @@ class div(xsc.Element):
 	empty = False
 	class Attrs(allattrs):
 		class align(TextAlignAttr): pass
+
 
 class p(xsc.Element):
 	"""
@@ -326,6 +348,7 @@ class p(xsc.Element):
 	class Attrs(allattrs):
 		class align(TextAlignAttr): pass
 
+
 class h1(xsc.Element):
 	"""
 	heading
@@ -333,6 +356,7 @@ class h1(xsc.Element):
 	empty = False
 	class Attrs(allattrs):
 		class align(TextAlignAttr): pass
+
 
 class h2(xsc.Element):
 	"""
@@ -342,6 +366,7 @@ class h2(xsc.Element):
 	class Attrs(allattrs):
 		class align(TextAlignAttr): pass
 
+
 class h3(xsc.Element):
 	"""
 	heading
@@ -349,6 +374,7 @@ class h3(xsc.Element):
 	empty = False
 	class Attrs(allattrs):
 		class align(TextAlignAttr): pass
+
 
 class h4(xsc.Element):
 	"""
@@ -358,6 +384,7 @@ class h4(xsc.Element):
 	class Attrs(allattrs):
 		class align(TextAlignAttr): pass
 
+
 class h5(xsc.Element):
 	"""
 	heading
@@ -365,6 +392,7 @@ class h5(xsc.Element):
 	empty = False
 	class Attrs(allattrs):
 		class align(TextAlignAttr): pass
+
 
 class h6(xsc.Element):
 	"""
@@ -374,6 +402,7 @@ class h6(xsc.Element):
 	class Attrs(allattrs):
 		class align(TextAlignAttr): pass
 
+
 class ul(xsc.Element):
 	"""
 	unordered list
@@ -382,6 +411,7 @@ class ul(xsc.Element):
 	class Attrs(allattrs):
 		class type(ULStyleAttr): pass
 		class compact(xsc.BoolAttr): pass
+
 
 class ol(xsc.Element):
 	"""
@@ -393,6 +423,7 @@ class ol(xsc.Element):
 		class compact(xsc.BoolAttr): pass
 		class start(xsc.IntAttr): pass
 
+
 class menu(xsc.Element):
 	"""
 	single column list (deprecated)
@@ -401,6 +432,7 @@ class menu(xsc.Element):
 	class Attrs(allattrs):
 		class compact(xsc.BoolAttr): pass
 
+
 class dir(xsc.Element):
 	"""
 	multiple column list (deprecated)
@@ -408,6 +440,7 @@ class dir(xsc.Element):
 	empty = False
 	class Attrs(allattrs):
 		class compact(xsc.BoolAttr): pass
+
 
 class li(xsc.Element):
 	"""
@@ -418,6 +451,7 @@ class li(xsc.Element):
 		class type(xsc.TextAttr): pass
 		class value(xsc.IntAttr): pass
 
+
 class dl(xsc.Element):
 	"""
 	definition list
@@ -425,6 +459,7 @@ class dl(xsc.Element):
 	empty = False
 	class Attrs(allattrs):
 		class compact(xsc.BoolAttr): pass
+
 
 class dt(xsc.Element):
 	"""
@@ -434,6 +469,7 @@ class dt(xsc.Element):
 	class Attrs(allattrs):
 		pass
 
+
 class dd(xsc.Element):
 	"""
 	definition description
@@ -442,6 +478,7 @@ class dd(xsc.Element):
 	class Attrs(allattrs):
 		pass
 
+
 class address(xsc.Element):
 	"""
 	information on author
@@ -449,6 +486,7 @@ class address(xsc.Element):
 	empty = False
 	class Attrs(allattrs):
 		pass
+
 
 class hr(xsc.Element):
 	"""
@@ -462,6 +500,7 @@ class hr(xsc.Element):
 		class width(LengthAttr): pass # deprecated
 		class color(xsc.ColorAttr): pass # deprecated
 
+
 class pre(xsc.Element):
 	"""
 	preformatted text
@@ -469,6 +508,7 @@ class pre(xsc.Element):
 	empty = False
 	class Attrs(allattrs):
 		class width(xsc.IntAttr): pass
+
 
 class blockquote(xsc.Element):
 	"""
@@ -478,6 +518,7 @@ class blockquote(xsc.Element):
 	class Attrs(allattrs):
 		class cite(xsc.URLAttr): pass
 
+
 class center(xsc.Element): # deprecated
 	"""
 	centered block level element
@@ -485,6 +526,7 @@ class center(xsc.Element): # deprecated
 	empty = False
 	class Attrs(allattrs):
 		pass
+
 
 class ins(xsc.Element):
 	"""
@@ -495,6 +537,7 @@ class ins(xsc.Element):
 		class cite(xsc.URLAttr): pass
 		class datetime(DatetimeAttr): pass
 
+
 class del_(xsc.Element):
 	"""
 	deleted text
@@ -504,6 +547,7 @@ class del_(xsc.Element):
 	class Attrs(allattrs):
 		class cite(xsc.URLAttr): pass
 		class datetime(DatetimeAttr): pass
+
 
 class a(xsc.Element):
 	"""
@@ -523,6 +567,7 @@ class a(xsc.Element):
 		class target(FrameTargetAttr): pass
 		class oncontextmenu(xsc.TextAttr): pass # deprecated
 
+
 class span(xsc.Element):
 	"""
 	generic language/style container
@@ -530,6 +575,7 @@ class span(xsc.Element):
 	empty = False
 	class Attrs(allattrs):
 		pass
+
 
 class bdo(xsc.Element):
 	"""
@@ -540,6 +586,7 @@ class bdo(xsc.Element):
 		class lang(LanguageCodeAttr): pass
 		class dir(DirAttr): required = True
 
+
 class br(xsc.Element):
 	"""
 	forced line break
@@ -547,6 +594,7 @@ class br(xsc.Element):
 	empty = True
 	class Attrs(coreattrs):
 		class clear(xsc.TextAttr): values = ("left", "all", "right", "none")
+
 
 class em(xsc.Element):
 	"""
@@ -556,6 +604,7 @@ class em(xsc.Element):
 	class Attrs(allattrs):
 		pass
 
+
 class strong(xsc.Element):
 	"""
 	Indicates stronger emphasis than em.
@@ -563,6 +612,7 @@ class strong(xsc.Element):
 	empty = False
 	class Attrs(allattrs):
 		pass
+
 
 class dfn(xsc.Element):
 	"""
@@ -572,6 +622,7 @@ class dfn(xsc.Element):
 	class Attrs(allattrs):
 		pass
 
+
 class code(xsc.Element):
 	"""
 	Designates a fragment of computer code. 
@@ -579,6 +630,7 @@ class code(xsc.Element):
 	empty = False
 	class Attrs(allattrs):
 		pass
+
 
 class samp(xsc.Element):
 	"""
@@ -588,6 +640,7 @@ class samp(xsc.Element):
 	class Attrs(allattrs):
 		pass
 
+
 class kbd(xsc.Element):
 	"""
 	Indicates text to be entered by the user.
@@ -595,6 +648,7 @@ class kbd(xsc.Element):
 	empty = False
 	class Attrs(allattrs):
 		pass
+
 
 class var(xsc.Element):
 	"""
@@ -604,6 +658,7 @@ class var(xsc.Element):
 	class Attrs(allattrs):
 		pass
 
+
 class cite(xsc.Element):
 	"""
 	Contains a citation or a reference to other sources.
@@ -611,6 +666,7 @@ class cite(xsc.Element):
 	empty = False
 	class Attrs(allattrs):
 		pass
+
 
 class abbr(xsc.Element):
 	"""
@@ -620,6 +676,7 @@ class abbr(xsc.Element):
 	class Attrs(allattrs):
 		pass
 
+
 class acronym(xsc.Element):
 	"""
 	Indicates an acronym (e.g., WAC, radar, etc.).
@@ -627,6 +684,7 @@ class acronym(xsc.Element):
 	empty = False
 	class Attrs(allattrs):
 		pass
+
 
 class q(xsc.Element):
 	"""
@@ -636,6 +694,7 @@ class q(xsc.Element):
 	class Attrs(allattrs):
 		class cite(xsc.URLAttr): pass
 
+
 class sub(xsc.Element):
 	"""
 	subscript
@@ -643,6 +702,7 @@ class sub(xsc.Element):
 	empty = False
 	class Attrs(allattrs):
 		pass
+
 
 class sup(xsc.Element):
 	"""
@@ -652,6 +712,7 @@ class sup(xsc.Element):
 	class Attrs(allattrs):
 		pass
 
+
 class tt(xsc.Element):
 	"""
 	teletype or monospaced text style
@@ -659,6 +720,7 @@ class tt(xsc.Element):
 	empty = False
 	class Attrs(allattrs):
 		pass
+
 
 class i(xsc.Element):
 	"""
@@ -668,6 +730,7 @@ class i(xsc.Element):
 	class Attrs(allattrs):
 		pass
 
+
 class b(xsc.Element):
 	"""
 	bold text style
@@ -675,6 +738,7 @@ class b(xsc.Element):
 	empty = False
 	class Attrs(allattrs):
 		pass
+
 
 class big(xsc.Element):
 	"""
@@ -684,6 +748,7 @@ class big(xsc.Element):
 	class Attrs(allattrs):
 		pass
 
+
 class small(xsc.Element):
 	"""
 	small text style
@@ -691,6 +756,7 @@ class small(xsc.Element):
 	empty = False
 	class Attrs(allattrs):
 		pass
+
 
 class u(xsc.Element):
 	"""
@@ -700,6 +766,7 @@ class u(xsc.Element):
 	class Attrs(allattrs):
 		pass
 
+
 class s(xsc.Element):
 	"""
 	strike-through text style
@@ -708,6 +775,7 @@ class s(xsc.Element):
 	class Attrs(allattrs):
 		pass
 
+
 class strike(xsc.Element):
 	"""
 	strike-through text style
@@ -715,6 +783,7 @@ class strike(xsc.Element):
 	empty = False
 	class Attrs(allattrs):
 		pass
+
 
 class basefont(xsc.Element): # deprecated
 	"""
@@ -727,6 +796,7 @@ class basefont(xsc.Element): # deprecated
 		class color(xsc.ColorAttr): pass
 		class face(xsc.TextAttr): pass
 
+
 class font(xsc.Element): # deprecated
 	"""
 	local change to font
@@ -736,6 +806,7 @@ class font(xsc.Element): # deprecated
 		class face(xsc.TextAttr): pass
 		class size(xsc.TextAttr): pass
 		class color(xsc.ColorAttr): pass
+
 
 class object(xsc.Element):
 	"""
@@ -761,6 +832,7 @@ class object(xsc.Element):
 		class hspace(PixelsAttr): pass
 		class vspace(PixelsAttr): pass
 
+
 class param(xsc.Element):
 	"""
 	named property value
@@ -772,6 +844,7 @@ class param(xsc.Element):
 		class value(xsc.TextAttr): pass
 		class valuetype(xsc.TextAttr): values = ("data", "ref", "object")
 		class type(ContentTypeAttr): pass
+
 
 class applet(xsc.Element): # deprecated
 	"""
@@ -790,6 +863,7 @@ class applet(xsc.Element): # deprecated
 		class align(ImgAlignAttr): pass
 		class hspace(PixelsAttr): pass
 		class vspace(PixelsAttr): pass
+
 
 class img(xsc.Element):
 	"""
@@ -814,6 +888,7 @@ class img(xsc.Element):
 	def __unicode__(self):
 		return unicode(self["alt"])
 
+
 class map(xsc.Element):
 	"""
 	client-side image map
@@ -825,6 +900,7 @@ class map(xsc.Element):
 		class style(StyleSheetAttr): pass
 		class title(TextAttr): pass
 		class name(xsc.TextAttr): pass
+
 
 class area(xsc.Element):
 	"""
@@ -838,6 +914,7 @@ class area(xsc.Element):
 		class nohref(xsc.BoolAttr): pass
 		class alt(TextAttr): required = True
 		class target(FrameTargetAttr): pass
+
 
 class form(xsc.Element):
 	"""
@@ -854,6 +931,7 @@ class form(xsc.Element):
 		class accept_charset(CharsetsAttr): xmlname = "accept-charset"
 		class target(FrameTargetAttr): pass
 
+
 class label(xsc.Element):
 	"""
 	form field label text
@@ -864,6 +942,7 @@ class label(xsc.Element):
 		class accesskey(CharacterAttr): pass
 		class onfocus(ScriptAttr): pass
 		class onblur(ScriptAttr): pass
+
 
 class input(xsc.Element):
 	"""
@@ -888,6 +967,7 @@ class input(xsc.Element):
 		class align(ImgAlignAttr): pass
 		class border(xsc.IntAttr): pass # deprecated
 
+
 class select(xsc.Element):
 	"""
 	option selector
@@ -904,6 +984,7 @@ class select(xsc.Element):
 		class onchange(ScriptAttr): pass
 		class rows(xsc.TextAttr): pass # deprecated
 
+
 class optgroup(xsc.Element):
 	"""
 	option group
@@ -912,6 +993,7 @@ class optgroup(xsc.Element):
 	class Attrs(allattrs):
 		class disabled(xsc.BoolAttr): pass
 		class label(TextAttr): required = True
+
 
 class option(xsc.Element):
 	"""
@@ -923,6 +1005,7 @@ class option(xsc.Element):
 		class disabled(xsc.BoolAttr): pass
 		class label(TextAttr): pass
 		class value(xsc.TextAttr): pass
+
 
 class textarea(xsc.Element):
 	"""
@@ -939,6 +1022,7 @@ class textarea(xsc.Element):
 		class onchange(ScriptAttr): pass
 		class wrap(xsc.TextAttr): values = ("virtual", "physical", "off") # deprecated
 
+
 class fieldset(xsc.Element):
 	"""
 	form control group
@@ -946,6 +1030,7 @@ class fieldset(xsc.Element):
 	empty = False
 	class Attrs(allattrs):
 		pass
+
 
 class legend(xsc.Element):
 	"""
@@ -955,6 +1040,7 @@ class legend(xsc.Element):
 	class Attrs(allattrs):
 		class accesskey(xsc.TextAttr): pass
 		class align(xsc.TextAttr): values = ("top", "bottom", "left", "right")
+
 
 class button(xsc.Element):
 	"""
@@ -967,10 +1053,12 @@ class button(xsc.Element):
 		class type(xsc.TextAttr): values = ("button", "submit", "reset")
 		class disabled(xsc.BoolAttr): pass
 
+
 class isindex(xsc.Element):
 	empty = True
 	class Attrs(coreattrs, i18nattrs):
 		class prompt(TextAttr): pass
+
 
 class table(xsc.Element):
 	"""
@@ -993,6 +1081,7 @@ class table(xsc.Element):
 		class hspace(xsc.IntAttr): pass # deprecated
 		class vspace(xsc.IntAttr): pass # deprecated
 
+
 class caption(xsc.Element):
 	"""
 	table caption
@@ -1000,6 +1089,7 @@ class caption(xsc.Element):
 	empty = False
 	class Attrs(allattrs):
 		class align(CAlignAttr): pass
+
 
 class colgroup(xsc.Element):
 	"""
@@ -1010,6 +1100,7 @@ class colgroup(xsc.Element):
 		class span(xsc.TextAttr): pass
 		class width(MultiLengthAttr): pass
 
+
 class col(xsc.Element):
 	"""
 	table column
@@ -1019,6 +1110,7 @@ class col(xsc.Element):
 		class span(xsc.TextAttr): pass
 		class width(MultiLengthAttr): pass
 
+
 class thead(xsc.Element):
 	"""
 	table header
@@ -1026,6 +1118,7 @@ class thead(xsc.Element):
 	empty = False
 	class Attrs(allattrs, cellhalignattrs, cellvalignattrs):
 		pass
+
 
 class tfoot(xsc.Element):
 	"""
@@ -1035,6 +1128,7 @@ class tfoot(xsc.Element):
 	class Attrs(allattrs, cellhalignattrs, cellvalignattrs):
 		pass
 
+
 class tbody(xsc.Element):
 	"""
 	table body
@@ -1042,6 +1136,7 @@ class tbody(xsc.Element):
 	empty = False
 	class Attrs(allattrs, cellhalignattrs, cellvalignattrs):
 		pass
+
 
 class tr(xsc.Element):
 	"""
@@ -1053,6 +1148,7 @@ class tr(xsc.Element):
 		class nowrap(xsc.BoolAttr): pass # deprecated
 		class width(LengthAttr): pass # deprecated
 		class background(xsc.URLAttr): pass # deprecated
+
 
 class th(xsc.Element):
 	"""
@@ -1073,6 +1169,7 @@ class th(xsc.Element):
 		class background(xsc.URLAttr): pass # deprecated
 		class bordercolor(xsc.ColorAttr): pass # deprecated
 
+
 class td(xsc.Element):
 	"""
 	table data cell
@@ -1091,6 +1188,7 @@ class td(xsc.Element):
 		class height(LengthAttr): pass
 		class background(xsc.URLAttr): pass # deprecated
 		class bordercolor(xsc.ColorAttr): pass # deprecated
+
 
 class embed(xsc.Element):
 	"""
@@ -1111,6 +1209,7 @@ class embed(xsc.Element):
 		class bgcolor(xsc.ColorAttr): pass
 		class menu(xsc.TextAttr): pass # deprecated
 
+
 # The pain, the pain ...
 class frameset(xsc.Element):
 	"""
@@ -1129,6 +1228,7 @@ class frameset(xsc.Element):
 		class frameborder(xsc.IntAttr): pass # deprecated
 		class noresize(xsc.BoolAttr): pass # deprecated
 		class scrolling(xsc.TextAttr): pass # deprecated
+
 
 class frame(xsc.Element):
 	"""
@@ -1152,12 +1252,14 @@ class frame(xsc.Element):
 		class noresize(xsc.BoolAttr): pass # deprecated
 		class scrolling(xsc.TextAttr): pass # deprecated
 
+
 # More pain
 class nobr(xsc.Element): # deprecated
 	"""
 	prevents line breaks
 	"""
 	empty = False
+
 
 # Latin 1 characters
 class nbsp(xsc.CharRef): "no-break space = non-breaking space, U+00A0 ISOnum"; codepoint = 160
@@ -1433,6 +1535,7 @@ class spades(xsc.CharRef): "black spade suit, U+2660 ISOpub"; codepoint = 9824
 class clubs(xsc.CharRef): "black club suit = shamrock, U+2663 ISOpub"; codepoint = 9827
 class hearts(xsc.CharRef): "black heart suit = valentine, U+2665 ISOpub"; codepoint = 9829
 class diams(xsc.CharRef): "black diamond suit, U+2666 ISOpub"; codepoint = 9830
+
 
 class xmlns(xsc.Namespace):
 	xmlname = "html"

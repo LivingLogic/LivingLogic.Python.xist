@@ -20,6 +20,7 @@ import sys, keyword
 
 from ll.xist import xsc, parsers
 
+
 class Base(object):
 	def __init__(self, name):
 		self.name = name
@@ -96,6 +97,7 @@ class Base(object):
 		else:
 			lines.extend(newlines)
 
+
 class Doc(Base):
 	def __init__(self, content):
 		Base.__init__(self, None)
@@ -106,6 +108,7 @@ class Doc(Base):
 		for line in self.content.asBytes(encoding=encoding).split("\n"):
 			lines.append([level, line])
 		lines.append([level, '"""'])
+
 
 class Namespace(Base):
 	def __init__(self, name, doc, url, content):
@@ -202,6 +205,7 @@ class Namespace(Base):
 				for attr in attrs:
 					attr.share(group)
 
+
 class Element(Base):
 	def __init__(self, name, doc, empty, attrs):
 		Base.__init__(self, name)
@@ -249,6 +253,7 @@ class Element(Base):
 				newlines.append([level+2, "pass"])
 		self._addlines(newlines, lines)
 
+
 class AttrGroup(Base):
 	id = 0
 	def __init__(self, name, attrs):
@@ -264,6 +269,7 @@ class AttrGroup(Base):
 		localnames = []
 		for attr in self.attrs:
 			attr._aspy(lines, encoding, level+1, localnames, asmod)
+
 
 class Attr(Base):
 	def __init__(self, name, doc, type, required, default, values):
@@ -300,6 +306,7 @@ class Attr(Base):
 	def ident(self):
 		return (self.name, self.type, self.required, self.default, tuple(self.values))
 
+
 class ProcInst(Base):
 	def __init__(self, name, doc):
 		Base.__init__(self, name)
@@ -316,6 +323,7 @@ class ProcInst(Base):
 			newlines.append([level+1, "xmlname = %s" % self.simplify(name)])
 		self._addlines(newlines, lines)
 
+
 class Entity(Base):
 	def __init__(self, name, doc):
 		Base.__init__(self, name)
@@ -331,6 +339,7 @@ class Entity(Base):
 		if pyname != name:
 			newlines.append([level+1, "xmlname = %s" % self.simplify(name)])
 		self._addlines(newlines, lines)
+
 
 class CharRef(Entity):
 	def __init__(self, name, doc, codepoint):
@@ -349,6 +358,7 @@ class CharRef(Entity):
 		newlines.append([level+1, "codepoint = 0x%04x" % self.codepoint])
 		self._addlines(newlines, lines)
 
+
 class base(xsc.Element):
 	def finddoc(self):
 		docs = self.content.find(xsc.FindType(doc))
@@ -357,6 +367,7 @@ class base(xsc.Element):
 			return Doc(docs[0].content)
 		else:
 			return None
+
 
 class xndl(base):
 	empty = False
@@ -372,11 +383,13 @@ class xndl(base):
 			content=[ node.asdata() for node in self.content.find(xsc.FindType(element, procinst, entity, charref)) ]
 		)
 
+
 class doc(base):
 	empty = False
 
 	def asdata(self):
 		return self.content
+
 
 class element(base):
 	empty = False
@@ -391,6 +404,7 @@ class element(base):
 			empty=self.attrs.has("empty"),
 			attrs=[ a.asdata() for a in self.content.find(xsc.FindType(attr)) ]
 		)
+
 
 class attr(base):
 	empty = False
@@ -412,8 +426,10 @@ class attr(base):
 			values=[ unicode(v) for v in self.content.find(xsc.FindType(value)) ]
 		)
 
+
 class value(base):
 	empty = False
+
 
 class procinst(base):
 	empty = False
@@ -427,6 +443,7 @@ class procinst(base):
 			doc=self.finddoc()
 		)
 
+
 class entity(base):
 	empty = False
 	class Attrs(xsc.Element.Attrs):
@@ -438,6 +455,7 @@ class entity(base):
 			name=unicode(self["name"]),
 			doc=self.finddoc()
 		)
+
 
 class charref(base):
 	empty = False
@@ -451,6 +469,7 @@ class charref(base):
 			doc=self.finddoc(),
 			codepoint=int(self["codepoint"])
 		)
+
 
 class xmlns(xsc.Namespace):
 	xmlname = "xndl"

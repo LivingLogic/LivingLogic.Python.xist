@@ -19,6 +19,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 
 from ll.xist import xsc
 
+
 class taglib(xsc.ProcInst):
 	"""
 	creates a standard struts taglib header
@@ -28,12 +29,14 @@ class taglib(xsc.ProcInst):
 	def publish(self, publisher):
 		publisher.publish(u'<%%@ taglib uri="/WEB-INF/struts-html.tld" prefix="%s" %%>' % self.xmlprefix(publisher))
 
+
 class Element(xsc.Element):
 	"""
 	common base class for all the struts html elements
 	"""
 	needsxmlns = 1
 	register = False
+
 
 class PartMouseElement(Element):
 	class Attrs(Element.Attrs):
@@ -60,6 +63,7 @@ class PartMouseElement(Element):
 		class property(xsc.TextAttr): pass
 		class styleId(xsc.TextAttr): pass
 
+
 class MouseElement(PartMouseElement):
 	"""
 	common base class for all the struts elements which have mouse attributes
@@ -68,6 +72,7 @@ class MouseElement(PartMouseElement):
 		class accesskey(xsc.TextAttr): pass
 		class tabindex(xsc.TextAttr): pass
 		class disabled(xsc.TextAttr): pass
+
 
 class base(Element):
 	"""
@@ -78,6 +83,7 @@ class base(Element):
 		class target(xsc.URLAttr): pass
 		class server(xsc.TextAttr): pass
 
+
 class button(MouseElement):
 	"""
 	a button
@@ -86,11 +92,13 @@ class button(MouseElement):
 	class Attrs(MouseElement.Attrs):
 		class indexed(xsc.TextAttr): pass
 
+
 class cancel(MouseElement):
 	"""
 	a cancel button
 	"""
 	empty = False
+
 
 class checkbox(MouseElement):
 	"""
@@ -100,6 +108,7 @@ class checkbox(MouseElement):
 	class Attrs(MouseElement.Attrs):
 		class indexed(xsc.TextAttr): pass
 		class name(xsc.TextAttr): pass
+
 
 class errors(Element):
 	"""
@@ -112,6 +121,7 @@ class errors(Element):
 		class name(xsc.TextAttr): pass
 		class property(xsc.TextAttr): pass
 
+
 class file(MouseElement):
 	"""
 	html input element of type file
@@ -123,6 +133,7 @@ class file(MouseElement):
 		class maxlength(xsc.TextAttr): pass
 		class name(xsc.TextAttr): pass
 		class size(xsc.TextAttr): pass
+
 
 class form(Element):
 	"""
@@ -144,6 +155,7 @@ class form(Element):
 		class styleId(xsc.TextAttr): pass
 		class target(xsc.TextAttr): pass
 		class type(xsc.TextAttr): pass
+
 
 class frame(Element):
 	"""
@@ -177,6 +189,7 @@ class frame(Element):
 		class titleKey(xsc.TextAttr): pass
 		class transaction(xsc.TextAttr): pass
 
+
 class hidden(PartMouseElement):
 	"""
 	hidden form field
@@ -188,6 +201,7 @@ class hidden(PartMouseElement):
 		class name(xsc.TextAttr): pass
 		class write(xsc.TextAttr): pass
 
+
 class html(Element):
 	"""
 	Render a HTML html element
@@ -196,6 +210,7 @@ class html(Element):
 	class Attrs(Element.Attrs):
 		class locale(xsc.TextAttr): pass
 		class xhtml(xsc.TextAttr): pass
+
 
 class image(MouseElement):
 	"""
@@ -212,6 +227,7 @@ class image(MouseElement):
 		class pageKey(xsc.TextAttr): pass
 		class src(xsc.TextAttr): pass
 		class srcKey(xsc.TextAttr): pass
+
 
 class img(Element):
 	"""
@@ -260,6 +276,7 @@ class img(Element):
 		class vspace(xsc.TextAttr): pass
 		class width(xsc.TextAttr): pass
 
+
 class javascript(Element):
 	"""
 	Render JavaScript validation based on the validation rules loaded by the ValidatorPlugIn.
@@ -274,6 +291,7 @@ class javascript(Element):
 		class src(xsc.TextAttr): pass
 		class staticJavascript(xsc.TextAttr): pass
 		class htmlComment(xsc.TextAttr): pass
+
 
 class link(Element):
 	"""
@@ -318,6 +336,7 @@ class link(Element):
 		class titleKey(xsc.TextAttr): pass
 		class transaction(xsc.TextAttr): pass
 
+
 class messages(Element):
 	"""
 	Conditionally display a set of accumulated messages.
@@ -333,6 +352,7 @@ class messages(Element):
 		class footer(xsc.TextAttr): pass
 		class message(xsc.TextAttr): pass
 
+
 class multibox(MouseElement):
 	"""
 	multiple checkbox element
@@ -341,6 +361,7 @@ class multibox(MouseElement):
 	class Attrs(MouseElement.Attrs):
 		class name(xsc.TextAttr): pass
 
+
 class option(Element):
 	"""
 	option element
@@ -348,6 +369,7 @@ class option(Element):
 	empty = False
 	class Attrs(Element.Attrs):
 		class value(xsc.TextAttr): pass
+
 
 class options(Element):
 	"""
@@ -364,6 +386,7 @@ class options(Element):
 		class styleClass(xsc.TextAttr): pass
 		class value(xsc.TextAttr): pass
 
+
 class options(Element):
 	"""
 	Render a collection of select options
@@ -379,6 +402,7 @@ class options(Element):
 		class style(xsc.TextAttr): pass
 		class styleClass(xsc.TextAttr): pass
 
+
 class optionsCollection(Element):
 	"""
 	Render a collection of select options
@@ -393,6 +417,7 @@ class optionsCollection(Element):
 		class styleClass(xsc.TextAttr): pass
 		class value(xsc.TextAttr): pass
 
+
 class password(MouseElement):
 	"""
 	a password text input field
@@ -406,6 +431,7 @@ class password(MouseElement):
 		class redisplay(xsc.TextAttr): pass
 		class size(xsc.TextAttr): pass
 
+
 class radio(MouseElement):
 	"""
 	html input radio
@@ -415,11 +441,13 @@ class radio(MouseElement):
 		class name(xsc.TextAttr): pass
 		class idName(xsc.TextAttr): pass
 
+
 class reset(MouseElement):
 	"""
 	a reset button
 	"""
 	empty = False
+
 
 class rewrite(Element):
 	"""
@@ -440,6 +468,7 @@ class rewrite(Element):
 		class scope(xsc.TextAttr): pass
 		class transaction(xsc.TextAttr): pass
 
+
 class select(PartMouseElement):
 	"""
 	a select element text input field
@@ -453,6 +482,7 @@ class select(PartMouseElement):
 		class tabindex(xsc.TextAttr): pass
 		class size(xsc.TextAttr): pass
 
+
 class submit(MouseElement):
 	"""
 	a submit button
@@ -460,6 +490,7 @@ class submit(MouseElement):
 	empty = False
 	class Attrs(MouseElement.Attrs):
 		class indexed(xsc.TextAttr): pass
+
 
 class text(MouseElement):
 	"""
@@ -473,6 +504,7 @@ class text(MouseElement):
 		class readonly(xsc.TextAttr): pass
 		class size(xsc.TextAttr): pass
 
+
 class textarea(MouseElement):
 	"""
 	a textarea
@@ -485,14 +517,15 @@ class textarea(MouseElement):
 		class readonly(xsc.TextAttr): pass
 		class rows(xsc.TextAttr): pass
 
+
 class xhtml(Element):
 	"""
 	Render HTML tags as XHTML
 	"""
 	empty = True
 
+
 class xmlns(xsc.Namespace):
 	xmlname = "struts_html"
 	xmlurl = "http://jakarta.apache.org/struts/tags-html"
 xmlns.makemod(vars())
-

@@ -20,6 +20,7 @@ import os, sys, random, copy, warnings
 
 from ll import url, ansistyle
 
+
 ###
 ### helpers
 ###
@@ -50,6 +51,7 @@ def ToNode(value):
 	warnings.warn(errors.IllegalObjectWarning(value)) # none of the above, so we report it and maybe throw an exception
 	return Null
 
+
 ###
 ###
 ###
@@ -74,6 +76,7 @@ class Args(dict):
 
 	def copy(self):
 		return self.__class__(self.iteritems())
+
 
 ###
 ###
@@ -115,12 +118,14 @@ class Base(object):
 			name = cls.__name__.split(".")[-1] + "." + name
 	__fullname__ = classmethod(__fullname__)
 
+
 ###
 ### Magic constants for tree traversal
 ###
 
 entercontent = 1723
 enterattrs = 2342
+
 
 ###
 ### Common tree traversal filters
@@ -136,6 +141,7 @@ class FindType(object):
 	def __call__(self, node):
 		return (isinstance(node, self.types), )
 
+
 class FindTypeAll(object):
 	"""
 	Tree traversal filter, that find nodes of a certain type searching the complete tree
@@ -144,6 +150,7 @@ class FindTypeAll(object):
 		self.types = types
 	def __call__(self, node):
 		return (isinstance(node, self.types), entercontent)
+
 
 class FindTypeTop(object):
 	"""
@@ -158,6 +165,7 @@ class FindTypeTop(object):
 			return (True,)
 		else:
 			return (entercontent,)
+
 
 class FindOld(object):
 	"""
@@ -255,6 +263,7 @@ class FindOld(object):
 		if res and (self.test is not None):
 			res = self.test(node)
 		return res
+
 
 ###
 ### The DOM classes
@@ -843,6 +852,7 @@ class Node(Base):
 		warnings.warn(DeprecationWarning("withSep() is deprecated, use withsep() instead"))
 		return self.withsep(separator, clone)
 
+
 class CharacterData(Node):
 	"""
 	<par>base class for &xml; character data (text, proc insts, comment, doctype etc.)</par>
@@ -982,6 +992,7 @@ class CharacterData(Node):
 	def upper(self):
 		return self.__class__(self.__content.upper())
 
+
 class Text(CharacterData):
 	"""
 	<par>A text node. The characters <markup>&lt;</markup>, <markup>&gt;</markup>, <markup>&amp;</markup>
@@ -1009,6 +1020,7 @@ class Text(CharacterData):
 
 	def pretty(self, level=0, indent="\t"):
 		return self
+
 
 class Frag(Node, list):
 	"""
@@ -1314,6 +1326,7 @@ class Frag(Node, list):
 			i += 1
 		return node
 
+
 class Comment(CharacterData):
 	"""
 	A comment node
@@ -1337,6 +1350,7 @@ class Comment(CharacterData):
 		publisher.publish(self.content)
 		publisher.publish(u"-->")
 
+
 class DocType(CharacterData):
 	"""
 	a document type node
@@ -1357,6 +1371,7 @@ class DocType(CharacterData):
 
 	def __unicode__(self):
 		return u""
+
 
 class ProcInst(CharacterData):
 	"""
@@ -1431,6 +1446,7 @@ class ProcInst(CharacterData):
 	def __unicode__(self):
 		return u""
 
+
 class Null(CharacterData):
 	"""
 	node that does not contain anything.
@@ -1462,6 +1478,7 @@ class Null(CharacterData):
 		return u""
 
 Null = Null() # Singleton, the Python way
+
 
 class Attr(Frag):
 	r"""
@@ -1612,30 +1629,36 @@ class Attr(Frag):
 	def pretty(self, level=0, indent="\t"):
 		return self.clone()
 
+
 class TextAttr(Attr):
 	"""
 	<par>Attribute class that is used for normal text attributes.</par>
 	"""
+
 
 class IDAttr(Attr):
 	"""
 	<par>Attribute used for ids.</par>
 	"""
 
+
 class NumberAttr(Attr):
 	"""
 	<par>Attribute class that is used for normal number attributes.</par>
 	"""
+
 
 class IntAttr(NumberAttr):
 	"""
 	<par>Attribute class that is used for normal integer attributes.</par>
 	"""
 
+
 class FloatAttr(NumberAttr):
 	"""
 	<par>Attribute class that is used for normal float attributes.</par>
 	"""
+
 
 class BoolAttr(Attr):
 	"""
@@ -1654,10 +1677,12 @@ class BoolAttr(Attr):
 			publisher.publish(u"\"")
 		publisher.inAttr -= 1
 
+
 class ColorAttr(Attr):
 	"""
 	<par>Attribute class that is used for a color attributes.</par>
 	"""
+
 
 class StyleAttr(Attr):
 	"""
@@ -1688,6 +1713,7 @@ class StyleAttr(Attr):
 		urls = handler.urls
 		handler.close()
 		return urls
+
 
 class URLAttr(Attr):
 	"""
@@ -1757,6 +1783,7 @@ class URLAttr(Attr):
 		for writing to the &url;.
 		"""
 		return self.forInput(root).openwrite()
+
 
 class Attrs(Node, dict):
 	"""
@@ -2182,6 +2209,7 @@ class Attrs(Node, dict):
 		return self.filtered(lambda n: n.xmlname[xml] not in names)
 
 _Attrs = Attrs
+
 
 class Element(Node):
 	"""
@@ -2817,6 +2845,7 @@ class Element(Node):
 			node = Frag(indent*level, node)
 		return node
 
+
 class Entity(Node):
 	"""
 	<par>Class for entities. Derive your own entities from
@@ -2877,6 +2906,7 @@ class Entity(Node):
 		self._publishname(publisher)
 		publisher.publish(u";")
 
+
 class CharRef(Entity):
 	"""
 	<par>A simple character reference, the codepoint is in the class attribute
@@ -2913,8 +2943,9 @@ class CharRef(Entity):
 	def __unicode__(self):
 		return unichr(self.codepoint)
 
+
 ###
-###
+### Classes for namespace handling
 ###
 
 class Prefixes(object):
@@ -3204,6 +3235,7 @@ class Prefixes(object):
 					pass
 			raise errors.IllegalAttrError(None, qname, xml=True)
 
+
 class OldPrefixes(Prefixes):
 	"""
 	<par>Prefix mapping that is compatible to the mapping used
@@ -3218,6 +3250,7 @@ class OldPrefixes(Prefixes):
 			else:
 				self.addPrefixMapping(None, ns, mode="append")
 				self.addPrefixMapping(ns.xmlname[True], ns, mode="append")
+
 
 class DefaultPrefixes(Prefixes):
 	"""
@@ -3234,6 +3267,7 @@ class DefaultPrefixes(Prefixes):
 				self.addElementPrefixMapping(ns.xmlname[True], ns)
 				self.addProcInstPrefixMapping(None, ns)
 				self.addEntityPrefixMapping(None, ns)
+
 
 class DocPrefixes(Prefixes):
 	"""
@@ -3255,6 +3289,7 @@ class DocPrefixes(Prefixes):
 
 defaultPrefixes = Prefixes()
 
+
 ###
 ### Namespaces
 ###
@@ -3272,6 +3307,7 @@ class NamespaceAttrMixIn(object):
 		"""
 		return 2
 	needsxmlns = classmethod(needsxmlns)
+
 
 class Namespace(Base):
 	"""
@@ -3717,12 +3753,14 @@ class Namespace(Base):
 	def __init__(self, xmlprefix, xmlname, thing=None):
 		raise TypeError("Namespace classes can't be instantiated")
 
+
 # C0 Controls and Basic Latin
 class quot(CharRef): "quotation mark = APL quote, U+0022 ISOnum"; codepoint = 34
 class amp(CharRef): "ampersand, U+0026 ISOnum"; codepoint = 38
 class lt(CharRef): "less-than sign, U+003C ISOnum"; codepoint = 60
 class gt(CharRef): "greater-than sign, U+003E ISOnum"; codepoint = 62
 class apos(CharRef): "apostrophe mark, U+0027 ISOnum"; codepoint = 39
+
 
 ###
 ###
@@ -3822,4 +3860,3 @@ class Location(object):
 		return not self==other
 
 import presenters, publishers, sources, cssparsers, converters, errors, options, utils, helpers
-

@@ -22,6 +22,7 @@ from ll import url
 
 import xsc, errors
 
+
 class TidyArgs(xsc.Args):
 	add_xml_decl = True
 	assume_xml_procins = True
@@ -48,6 +49,7 @@ class TidyArgs(xsc.Args):
 	force_output = True
 	tidy_mark = False
 
+
 def tidystring(text, encoding, sysid, args):
 	args = TidyArgs(args)
 	args["input_encoding"] = encoding
@@ -70,6 +72,7 @@ def tidystring(text, encoding, sysid, args):
 		text = str(doc)
 	return (text, "utf-8")
 
+
 class InputSource(sax.xmlreader.InputSource):
 	"""
 	A class that defines an input stream from which a &sax; parser
@@ -78,6 +81,7 @@ class InputSource(sax.xmlreader.InputSource):
 	def __init__(self, base):
 		sax.xmlreader.InputSource.__init__(self)
 		self.base = url.URL(base)
+
 
 class StringInputSource(InputSource):
 	"""
@@ -116,6 +120,7 @@ class StringInputSource(InputSource):
 		if encoding is not None:
 			self.setEncoding(encoding)
 
+
 class URLInputSource(InputSource):
 	"""
 	An <class>InputSource</class> where the data is read from
@@ -152,4 +157,3 @@ class URLInputSource(InputSource):
 		self.setByteStream(resource)
 		if encoding is not None:
 			self.setEncoding(encoding)
-

@@ -19,6 +19,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 from ll.xist import xsc, utils
 from ll.xist.ns import xml
 
+
 # common attributes types
 class BaselineShiftValueAttr(xsc.TextAttr): pass
 class BooleanAttr(xsc.TextAttr): values = ("false", "true")
@@ -70,16 +71,19 @@ class TransformListAttr(xsc.TextAttr): pass
 class ViewBoxSpecAttr(xsc.TextAttr): pass
 class StructuredTextAttr(xsc.TextAttr): pass
 
+
 # common attributes sets
 class stdattrs(xsc.Element.Attrs):
 	"All elements have an ID."
 	class id(xsc.IDAttr): "document-wide unique id"
+
 
 class testattrs(xsc.Element.Attrs):
 	"Common attributes to check for system capabilities"
 	class requiredFeatures(FeatureListAttr): pass
 	class requiredExtensions(ExtensionListAttr): pass
 	class systemLanguage(LanguageCodesAttr): pass
+
 
 class graphicelementevents(xsc.Element.Attrs):
 	class onfocusin(ScriptAttr): pass
@@ -93,6 +97,7 @@ class graphicelementevents(xsc.Element.Attrs):
 	class onmouseout(ScriptAttr): pass
 	class onload(ScriptAttr): pass
 
+
 class documentevents(xsc.Element.Attrs):
 	class onunload(ScriptAttr): pass
 	class onabort(ScriptAttr): pass
@@ -101,10 +106,12 @@ class documentevents(xsc.Element.Attrs):
 	class onscroll(ScriptAttr): pass
 	class onzoom(ScriptAttr): pass
 
+
 class animationevents(xsc.Element.Attrs):
 	class onbegin(ScriptAttr): pass
 	class onend(ScriptAttr): pass
 	class onrepeat(ScriptAttr): pass
+
 
 class presentationattributescolor(xsc.Element.Attrs):
 	"These presentation attributes have to do with specifying color."
@@ -116,15 +123,18 @@ class presentationattributescolor(xsc.Element.Attrs):
 		xmlname = "color-rendering"
 		values = ("auto", "optimizeSpeed", "optimizeQuality", "inherit")
 
+
 class presentationattributescontainers(xsc.Element.Attrs):
 	"These presentation attributes apply to container elements."
 	class enable_background(EnableBackgroundValueAttr):
 		xmlname = "enable-background"
 
+
 class presentationattributesfeflood(xsc.Element.Attrs):
 	"""These presentation attributes apply to <pyref class="feFlood"><class>feFlood</class></pyref> elements."""
 	class flood_color(SVGColorAttr): xmlname = "flood-color"
 	class flood_opacity(OpacityValueAttr): xmlname = "flood-opacity"
+
 
 class presentationattributesfillstroke(xsc.Element.Attrs):
 	"These presentation attributes apply to filling and stroking operations."
@@ -144,11 +154,13 @@ class presentationattributesfillstroke(xsc.Element.Attrs):
 	class stroke_opacity(OpacityValueAttr): xmlname = "stroke-opacity"
 	class stroke_width(StrokeWidthValueAttr): xmlname = "stroke-width"
 
+
 class presentationattributesfilterprimitives(xsc.Element.Attrs):
 	"These presentation attributes apply to filter primitives."
 	class color_interpolation_filters(xsc.TextAttr):
 		xmlname = "color-interpolation-filters"
 		values = ("auto", "sRGB", "linearRGB", "inherit")
+
 
 class presentationattributesfontspecification(xsc.Element.Attrs):
 	"These presentation attributes have to do with selecting a font to use."
@@ -170,10 +182,12 @@ class presentationattributesfontspecification(xsc.Element.Attrs):
 		xmlname = "font-weight"
 		values = ("normal", "bold", "bolder", "lighter", 100, 200, 300, 400, 500, 600, 700, 800, 900, "inherit")
 
+
 class presentationattributesgradients(xsc.Element.Attrs):
 	"""These presentation attributes apply to gradient <pyref class="stop"><class>stop</class></pyref>."""
 	class stop_color(SVGColorAttr): xmlname = "stop-color"
 	class stop_opacity(OpacityValueAttr): xmlname = "stop-opacity"
+
 
 class presentationattributesgraphics(xsc.Element.Attrs):
 	"""These presentation attributes apply to graphic elements."""
@@ -203,20 +217,24 @@ class presentationattributesgraphics(xsc.Element.Attrs):
 	class visibility(xsc.TextAttr):
 		values = ("visible", "hidden", "inherit")
 
+
 class presentationattributesimages(xsc.Element.Attrs):
 	"""These presentation attributes apply to <pyref class="image"><class>image</class></pyref> elements."""
 	class color_profile(xsc.TextAttr): xmlname = "color-profile"
+
 
 class presentationattributeslightingeffects(xsc.Element.Attrs):
 	"""These presentation attributes apply to <pyref class="feDiffuseLighting"><class>feDiffuseLighting</class></pyref>
 	and <pyref class="feSpecularLighting"><class>feSpecularLighting</class></pyref> elements."""
 	class lighting_color(SVGColorAttr): xmlname = "lighting-color"
 
+
 class presentationattributesmarkers(xsc.Element.Attrs):
 	"""These presentation attributes apply to marker operations."""
 	class marker_start(MarkerValueAttr): xmlname = "marker-start"
 	class marker_mid(MarkerValueAttr): xmlname = "marker-mid"
 	class marker_end(MarkerValueAttr): xmlname = "marker-end"
+
 
 class presentationattributestextcontentelements(xsc.Element.Attrs):
 	"""These presentation attributes apply to text content elements."""
@@ -242,16 +260,19 @@ class presentationattributestextcontentelements(xsc.Element.Attrs):
 		values = ("normal", "embed", "bidi-override", "inherit")
 	class word_spacing(SpacingValueAttr): xmlname = "word-spacing"
 
+
 class presentationattributestextelements(xsc.Element.Attrs):
 	"""These presentation attributes apply to <pyref class="text"><class>text</class></pyref> elements."""
 	class writing_mode(xsc.TextAttr):
 		xmlname = "writing-mode"
 		values = ("lr-tb", "rl-tb", "tb-rl", "lr", "rl", "tb", "inherit")
 
+
 class presentationattributesviewports(xsc.Element.Attrs):
 	"""These presentation attributes apply to elements that establish viewports."""
 	class clip(ClipValueAttr): pass
 	class overflow(xsc.TextAttr): values = ("visible", "hidden", "scroll", "auto", "inherit")
+
 
 class presentationattributesall(
 	presentationattributescolor,
@@ -270,6 +291,7 @@ class presentationattributesall(
 	presentationattributesviewports):
 	"""This represents the complete list of presentation attributes."""
 
+
 class filterprimitiveattributes(xsc.Element.Attrs):
 	class x(CoordinateAttr): pass
 	class y(CoordinateAttr): pass
@@ -277,8 +299,10 @@ class filterprimitiveattributes(xsc.Element.Attrs):
 	class height(LengthAttr): pass
 	class result(xsc.TextAttr): pass
 
+
 class filterprimitiveattributeswithin(filterprimitiveattributes):
 	class in_(xsc.TextAttr): xmlname = "in"
+
 
 class componenttransferfunctionattributes(xsc.Element.Attrs):
 	class type(xsc.TextAttr):
@@ -291,9 +315,11 @@ class componenttransferfunctionattributes(xsc.Element.Attrs):
 	class exponent(NumberAttr): pass
 	class offset(NumberAttr): pass
 
+
 class animattributeattrs(xsc.Element.Attrs):
 	class attributeName(xsc.TextAttr): required = True
 	class attributeType(xsc.TextAttr): pass
+
 
 class animtimingattrs(xsc.Element.Attrs):
 	class begin(xsc.TextAttr): pass
@@ -306,6 +332,7 @@ class animtimingattrs(xsc.Element.Attrs):
 	class repeatDur(xsc.TextAttr): pass
 	class fill(xsc.TextAttr): values = ("remove", "freeze")
 
+
 class animvalueattrs(xsc.Element.Attrs):
 	class calcMode(xsc.TextAttr): values = ("discrete", "linear", "paced", "spline")
 	class values(xsc.TextAttr): pass
@@ -315,9 +342,11 @@ class animvalueattrs(xsc.Element.Attrs):
 	class to(xsc.TextAttr): pass
 	class by(xsc.TextAttr): pass
 
+
 class animadditionattrs(xsc.Element.Attrs):
 	class additive(xsc.TextAttr): values = ("replace", "sum")
 	class accumulate(xsc.TextAttr): values = ("none", "sum")
+
 
 class DocTypeSVG10(xsc.DocType):
 	"""
@@ -325,6 +354,7 @@ class DocTypeSVG10(xsc.DocType):
 	"""
 	def __init__(self):
 		xsc.DocType.__init__(self, 'svg PUBLIC "-//W3C//DTD SVG 1.0//EN" "http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd"')
+
 
 class svg(xsc.Element):
 	empty = False
@@ -343,6 +373,7 @@ class svg(xsc.Element):
 		class contentScriptType(ContentTypeAttr): pass
 		class contentStyleType(ContentTypeAttr): pass
 
+
 class g(xsc.Element):
 	empty = False
 	class Attrs(stdattrs, testattrs, presentationattributesall, graphicelementevents):
@@ -350,6 +381,7 @@ class g(xsc.Element):
 		class class_(ClassListAttr): xmlname = "class"
 		class style(xsc.StyleAttr): pass
 		class transform(TransformListAttr): pass
+
 
 class defs(xsc.Element):
 	empty = False
@@ -359,6 +391,7 @@ class defs(xsc.Element):
 		class style(xsc.StyleAttr): pass
 		class transform(TransformListAttr): pass
 
+
 class desc(xsc.Element):
 	empty = False
 	class Attrs(stdattrs):
@@ -366,12 +399,14 @@ class desc(xsc.Element):
 		class style(xsc.StyleAttr): pass
 		class content(StructuredTextAttr): pass
 
+
 class title(xsc.Element):
 	empty = False
 	class Attrs(stdattrs):
 		class class_(ClassListAttr): xmlname = "class"
 		class style(xsc.StyleAttr): pass
 		class content(StructuredTextAttr): pass
+
 
 class symbol(xsc.Element):
 	empty = False
@@ -381,6 +416,7 @@ class symbol(xsc.Element):
 		class style(xsc.StyleAttr): pass
 		class viewBox(ViewBoxSpecAttr): pass
 		class preserveAspectRatio(PreserveAspectRatioSpecAttr): pass
+
 
 class use(xsc.Element):
 	empty = False
@@ -393,6 +429,7 @@ class use(xsc.Element):
 		class y(CoordinateAttr): pass
 		class width(LengthAttr): pass
 		class height(LengthAttr): pass
+
 
 class image(xsc.Element):
 	empty = False
@@ -408,6 +445,7 @@ class image(xsc.Element):
 		class height(LengthAttr): required = True
 		class preserveAspectRatio(PreserveAspectRatioSpecAttr): pass
 
+
 class switch(xsc.Element):
 	empty = False
 	class Attrs(stdattrs, testattrs, presentationattributesall, graphicelementevents):
@@ -416,12 +454,14 @@ class switch(xsc.Element):
 		class style(xsc.StyleAttr): pass
 		class transform(TransformListAttr): pass
 
+
 class style(xsc.Element):
 	empty = False
 	class Attrs(stdattrs):
 		class type(ContentTypeAttr): required = True
 		class media(MediaDescAttr): pass
 		class title(xsc.TextAttr): pass
+
 
 class path(xsc.Element):
 	empty = False
@@ -433,6 +473,7 @@ class path(xsc.Element):
 		class transform(TransformListAttr): pass
 		class d(PathDataAttr): required = True
 		class pathLength(NumberAttr): pass
+
 
 class rect(xsc.Element):
 	empty = False
@@ -449,6 +490,7 @@ class rect(xsc.Element):
 		class rx(LengthAttr): pass
 		class ry(LengthAttr): pass
 
+
 class circle(xsc.Element):
 	empty = False
 	class Attrs(stdattrs, testattrs, presentationattributescolor, presentationattributesfillstroke,
@@ -460,6 +502,7 @@ class circle(xsc.Element):
 		class cx(CoordinateAttr): pass
 		class cy(CoordinateAttr): pass
 		class r(LengthAttr): required = True
+
 
 class ellipse(xsc.Element):
 	empty = False
@@ -474,6 +517,7 @@ class ellipse(xsc.Element):
 		class rx(LengthAttr): required = True
 		class ry(LengthAttr): required = True
 
+
 class line(xsc.Element):
 	empty = False
 	class Attrs(stdattrs, testattrs, presentationattributescolor, presentationattributesfillstroke,
@@ -487,6 +531,7 @@ class line(xsc.Element):
 		class x2(CoordinateAttr): pass
 		class y2(CoordinateAttr): pass
 
+
 class polyline(xsc.Element):
 	empty = False
 	class Attrs(stdattrs, testattrs, presentationattributescolor, presentationattributesfillstroke,
@@ -497,6 +542,7 @@ class polyline(xsc.Element):
 		class transform(TransformListAttr): pass
 		class points(PointsAttr): required = True
 
+
 class polygon(xsc.Element):
 	empty = False
 	class Attrs(stdattrs, testattrs, presentationattributescolor, presentationattributesfillstroke,
@@ -506,6 +552,7 @@ class polygon(xsc.Element):
 		class style(xsc.StyleAttr): pass
 		class transform(TransformListAttr): pass
 		class points(PointsAttr): required = True
+
 
 class text(xsc.Element):
 	empty = False
@@ -524,6 +571,7 @@ class text(xsc.Element):
 		class textLength(LengthAttr): pass
 		class lengthAdjust(xsc.TextAttr): values = ("spacing", "spacingAndGlyphs")
 
+
 class tspan(xsc.Element):
 	empty = False
 	class Attrs(stdattrs, testattrs, presentationattributescolor, presentationattributesfillstroke,
@@ -539,6 +587,7 @@ class tspan(xsc.Element):
 		class rotate(NumbersAttr): pass
 		class textLength(LengthAttr): pass
 		class lengthAdjust(xsc.TextAttr): values = ("spacing", "spacingAndGlyphs")
+
 
 class tref(xsc.Element):
 	empty = False
@@ -556,6 +605,7 @@ class tref(xsc.Element):
 		class textLength(LengthAttr): pass
 		class lengthAdjust(xsc.TextAttr): values = ("spacing", "spacingAndGlyphs")
 
+
 class textPath(xsc.Element):
 	empty = False
 	class Attrs(stdattrs, testattrs, presentationattributescolor, presentationattributesfillstroke,
@@ -569,6 +619,7 @@ class textPath(xsc.Element):
 		class lengthAdjust(xsc.TextAttr): values = ("spacing", "spacingAndGlyphs")
 		class method(xsc.TextAttr): values = ("align", "stretch")
 		class spacing(xsc.TextAttr): values = ("auto", "exact")
+
 
 class altGlyph(xsc.Element):
 	empty = False
@@ -586,15 +637,18 @@ class altGlyph(xsc.Element):
 		class dy(LengthAttr): pass
 		class rotate(NumbersAttr): pass
 
+
 class altGlyphDef(xsc.Element):
 	empty = False
 	class Attrs(stdattrs):
 		pass
 
+
 class altGlyphItem(xsc.Element):
 	empty = False
 	class Attrs(stdattrs):
 		pass
+
 
 class glyphRef(xsc.Element):
 	empty = True
@@ -607,6 +661,7 @@ class glyphRef(xsc.Element):
 		class y(NumberAttr): pass
 		class dx(NumberAttr): pass
 		class dy(NumberAttr): pass
+
 
 class marker(xsc.Element):
 	empty = False
@@ -623,6 +678,7 @@ class marker(xsc.Element):
 		class markerHeight(LengthAttr): pass
 		class orient(xsc.TextAttr): pass
 
+
 class color_profile(xsc.Element):
 	xmlname = "color-profile"
 	empty = False
@@ -632,6 +688,7 @@ class color_profile(xsc.Element):
 		class rendering_intent(xsc.TextAttr):
 			xmlname = "rendering-intent"
 			values = ("auto", "perceptual", "relative-colorimetric", "saturation", "absolute-colorimetric")
+
 
 class linearGradient(xsc.Element):
 	empty = False
@@ -646,6 +703,7 @@ class linearGradient(xsc.Element):
 		class x2(CoordinateAttr): pass
 		class y2(CoordinateAttr): pass
 		class spreadMethod(xsc.TextAttr): values = ("pad", "reflect", "repeat")
+
 
 class radialGradient(xsc.Element):
 	empty = False
@@ -662,12 +720,14 @@ class radialGradient(xsc.Element):
 		class fy(CoordinateAttr): pass
 		class spreadMethod(xsc.TextAttr): values = ("pad", "reflect", "repeat")
 
+
 class stop(xsc.Element):
 	empty = False
 	class Attrs(stdattrs, presentationattributescolor, presentationattributesgradients):
 		class class_(ClassListAttr): xmlname = "class"
 		class style(xsc.StyleAttr): pass
 		class offset(NumberOrPercentageAttr): required = True
+
 
 class pattern(xsc.Element):
 	empty = False
@@ -685,6 +745,7 @@ class pattern(xsc.Element):
 		class width(LengthAttr): pass
 		class height(LengthAttr): pass
 
+
 class clipPath(xsc.Element):
 	empty = False
 	class Attrs(stdattrs, testattrs, presentationattributescolor, presentationattributesfillstroke,
@@ -695,6 +756,7 @@ class clipPath(xsc.Element):
 		class style(xsc.StyleAttr): pass
 		class transform(TransformListAttr): pass
 		class clipPathUnits(xsc.TextAttr): values = ("userSpaceOnUse", "objectBoundingBox")
+
 
 class mask(xsc.Element):
 	empty = False
@@ -709,19 +771,6 @@ class mask(xsc.Element):
 		class width(LengthAttr): pass
 		class height(LengthAttr): pass
 
-class filter(xsc.Element):
-	empty = False
-	class Attrs(stdattrs, presentationattributesall):
-		class externalResourcesRequired(BooleanAttr): pass
-		class class_(ClassListAttr): xmlname = "class"
-		class style(xsc.StyleAttr): pass
-		class filterUnits(xsc.TextAttr): values = ("userSpaceOnUse", "objectBoundingBox")
-		class primitiveUnits(xsc.TextAttr): values = ("userSpaceOnUse", "objectBoundingBox")
-		class x(CoordinateAttr): pass
-		class y(CoordinateAttr): pass
-		class width(LengthAttr): pass
-		class height(LengthAttr): pass
-		class filterRes(NumberOptionalNumberAttr): pass
 
 class filter(xsc.Element):
 	empty = False
@@ -736,6 +785,22 @@ class filter(xsc.Element):
 		class width(LengthAttr): pass
 		class height(LengthAttr): pass
 		class filterRes(NumberOptionalNumberAttr): pass
+
+
+class filter(xsc.Element):
+	empty = False
+	class Attrs(stdattrs, presentationattributesall):
+		class externalResourcesRequired(BooleanAttr): pass
+		class class_(ClassListAttr): xmlname = "class"
+		class style(xsc.StyleAttr): pass
+		class filterUnits(xsc.TextAttr): values = ("userSpaceOnUse", "objectBoundingBox")
+		class primitiveUnits(xsc.TextAttr): values = ("userSpaceOnUse", "objectBoundingBox")
+		class x(CoordinateAttr): pass
+		class y(CoordinateAttr): pass
+		class width(LengthAttr): pass
+		class height(LengthAttr): pass
+		class filterRes(NumberOptionalNumberAttr): pass
+
 
 class feDistantLight(xsc.Element):
 	empty = False
@@ -743,12 +808,14 @@ class feDistantLight(xsc.Element):
 		class azimuth(NumberAttr): pass
 		class elevation(NumberAttr): pass
 
+
 class fePointLight(xsc.Element):
 	empty = False
 	class Attrs(stdattrs):
 		class x(NumberAttr): pass
 		class y(NumberAttr): pass
 		class z(NumberAttr): pass
+
 
 class feSpotLight(xsc.Element):
 	empty = False
@@ -762,11 +829,13 @@ class feSpotLight(xsc.Element):
 		class specularExponent(NumberAttr): pass
 		class limitingConeAngle(NumberAttr): pass
 
+
 class feBlend(xsc.Element):
 	empty = False
 	class Attrs(stdattrs, presentationattributesfilterprimitives, filterprimitiveattributeswithin):
 		class in2(xsc.TextAttr): required = True
 		class mode(xsc.TextAttr): values = ("normal", "multiply", "screen", "darken", "lighten")
+
 
 class feColorMatrix(xsc.Element):
 	empty = False
@@ -774,30 +843,36 @@ class feColorMatrix(xsc.Element):
 		class type(xsc.TextAttr): values = ("matrix", "saturate", "hueRotate", "luminanceToAlpha")
 		class values(xsc.TextAttr): pass
 
+
 class feComponentTransfer(xsc.Element):
 	empty = False
 	class Attrs(stdattrs, presentationattributesfilterprimitives, filterprimitiveattributeswithin):
 		pass
+
 
 class feFuncR(xsc.Element):
 	empty = False
 	class Attrs(stdattrs, componenttransferfunctionattributes):
 		pass
 
+
 class feFuncG(xsc.Element):
 	empty = False
 	class Attrs(stdattrs, componenttransferfunctionattributes):
 		pass
+
 
 class feFuncB(xsc.Element):
 	empty = False
 	class Attrs(stdattrs, componenttransferfunctionattributes):
 		pass
 
+
 class feFuncA(xsc.Element):
 	empty = False
 	class Attrs(stdattrs, componenttransferfunctionattributes):
 		pass
+
 
 class feComposite(xsc.Element):
 	empty = False
@@ -808,6 +883,7 @@ class feComposite(xsc.Element):
 		class k2(NumberAttr): pass
 		class k3(NumberAttr): pass
 		class k4(NumberAttr): pass
+
 
 class feConvolveMatrix(xsc.Element):
 	empty = False
@@ -822,6 +898,7 @@ class feConvolveMatrix(xsc.Element):
 		class kernelUnitLength(NumberOptionalNumberAttr): pass
 		class preserveAlpha(BooleanAttr): pass
 
+
 class feDiffuseLighting(xsc.Element):
 	empty = False
 	class Attrs(stdattrs, presentationattributescolor, presentationattributesfilterprimitives, presentationattributeslightingeffects, filterprimitiveattributeswithin):
@@ -831,6 +908,7 @@ class feDiffuseLighting(xsc.Element):
 		class diffuseConstant(NumberAttr): pass
 		class kernelUnitLength(NumberOptionalNumberAttr): pass
 
+
 class feDisplacementMap(xsc.Element):
 	empty = False
 	class Attrs(stdattrs, presentationattributesfilterprimitives, filterprimitiveattributeswithin):
@@ -839,16 +917,19 @@ class feDisplacementMap(xsc.Element):
 		class xChannelSelector(xsc.TextAttr): values = ("R", "G", "B", "A")
 		class yChannelSelector(xsc.TextAttr): values = ("R", "G", "B", "A")
 
+
 class feFlood(xsc.Element):
 	empty = False
 	class Attrs(stdattrs, presentationattributescolor, presentationattributesfeflood, presentationattributesfilterprimitives, filterprimitiveattributeswithin):
 		class class_(ClassListAttr): xmlname = "class"
 		class style(xsc.StyleAttr): pass
 
+
 class feGaussianBlur(xsc.Element):
 	empty = False
 	class Attrs(stdattrs, presentationattributesfilterprimitives, filterprimitiveattributeswithin):
 		class stdDeviation(NumberOptionalNumberAttr): pass
+
 
 class feImage(xsc.Element):
 	empty = False
@@ -857,15 +938,18 @@ class feImage(xsc.Element):
 		class class_(ClassListAttr): xmlname = "class"
 		class style(xsc.StyleAttr): pass
 
+
 class feMerge(xsc.Element):
 	empty = False
 	class Attrs(stdattrs, presentationattributesfilterprimitives, filterprimitiveattributes):
 		pass
 
+
 class feMergeNode(xsc.Element):
 	empty = False
 	class Attrs(stdattrs):
 		class in_(xsc.TextAttr): xmlname = "in"
+
 
 class feMorphology(xsc.Element):
 	empty = False
@@ -873,11 +957,13 @@ class feMorphology(xsc.Element):
 		class operator(xsc.TextAttr): values = ("erode", "dilate")
 		class radius(NumberOptionalNumberAttr): pass
 
+
 class feOffset(xsc.Element):
 	empty = False
 	class Attrs(stdattrs, presentationattributesfilterprimitives, filterprimitiveattributeswithin):
 		class dx(NumberAttr): pass
 		class dy(NumberAttr): pass
+
 
 class feSpecularLighting(xsc.Element):
 	empty = False
@@ -889,10 +975,12 @@ class feSpecularLighting(xsc.Element):
 		class specularExponent(NumberAttr): pass
 		class kernelUnitLength(NumberOptionalNumberAttr): pass
 
+
 class feTile(xsc.Element):
 	empty = False
 	class Attrs(stdattrs, presentationattributesfilterprimitives, filterprimitiveattributeswithin):
 		pass
+
 
 class feTurbulence(xsc.Element):
 	empty = False
@@ -903,12 +991,14 @@ class feTurbulence(xsc.Element):
 		class stitchTiles(xsc.TextAttr): values = ("stitch", "noStitch")
 		class type(xsc.TextAttr): values = ("fractalNoise", "turbulence")
 
+
 class cursor(xsc.Element):
 	empty = False
 	class Attrs(stdattrs, testattrs):
 		class externalResourcesRequired(BooleanAttr): pass
 		class x(CoordinateAttr): pass
 		class y(CoordinateAttr): pass
+
 
 class a(xsc.Element):
 	empty = False
@@ -919,6 +1009,7 @@ class a(xsc.Element):
 		class transform(TransformListAttr): pass
 		class target(LinkTargetAttr): pass
 
+
 class view(xsc.Element):
 	empty = False
 	class Attrs(stdattrs):
@@ -928,22 +1019,26 @@ class view(xsc.Element):
 		class zoomAndPan(xsc.TextAttr): values = ("disable", "magnify")
 		class viewTarget(xsc.TextAttr): pass
 
+
 class script(xsc.Element):
 	empty = False
 	class Attrs(stdattrs):
 		class externalResourcesRequired(BooleanAttr): pass
 		class type(ContentTypeAttr): required = True
 
+
 class animate(xsc.Element):
 	empty = False
 	class Attrs(stdattrs, testattrs, animationevents, animattributeattrs, animtimingattrs, animvalueattrs, animadditionattrs):
 		class externalResourcesRequired(BooleanAttr): pass
+
 
 class set(xsc.Element):
 	empty = False
 	class Attrs(stdattrs, testattrs, animationevents, animattributeattrs, animtimingattrs):
 		class externalResourcesRequired(BooleanAttr): pass
 		class to(xsc.TextAttr): pass
+
 
 class animateMotion(xsc.Element):
 	empty = False
@@ -961,21 +1056,25 @@ class animateMotion(xsc.Element):
 		class rotate(xsc.TextAttr): pass
 		class origin(xsc.TextAttr): pass
 
+
 class mpath(xsc.Element):
 	empty = False
 	class Attrs(stdattrs):
 		class externalResourcesRequired(BooleanAttr): pass
+
 
 class animateColor(xsc.Element):
 	empty = False
 	class Attrs(stdattrs, testattrs, animationevents, animattributeattrs, animtimingattrs, animvalueattrs, animadditionattrs):
 		class externalResourcesRequired(BooleanAttr): pass
 
+
 class animateTransform(xsc.Element):
 	empty = False
 	class Attrs(stdattrs, testattrs, animationevents, animattributeattrs, animtimingattrs, animvalueattrs, animadditionattrs):
 		class externalResourcesRequired(BooleanAttr): pass
 		class type(xsc.TextAttr): values = ("translate", "scale", "rotate", "skewX", "skewY")
+
 
 class font(xsc.Element):
 	empty = False
@@ -991,6 +1090,7 @@ class font(xsc.Element):
 		class vert_origin_x(NumberAttr): xmlname = "vert-origin-x"
 		class vert_origin_y(NumberAttr): xmlname = "vert-origin-y"
 		class vert_adv_y(NumberAttr): xmlname = "vert-adv-y"
+
 
 class glyph(xsc.Element):
 	empty = False
@@ -1008,6 +1108,7 @@ class glyph(xsc.Element):
 		class vert_origin_y(NumberAttr): xmlname = "vert-origin-y"
 		class vert_adv_y(NumberAttr): xmlname = "vert-adv-y"
 
+
 class missing_glyph(xsc.Element):
 	xmlname = "missing-glyph"
 	empty = False
@@ -1020,6 +1121,7 @@ class missing_glyph(xsc.Element):
 		class vert_origin_y(NumberAttr): xmlname = "vert-origin-y"
 		class vert_adv_y(NumberAttr): xmlname = "vert-adv-y"
 
+
 class hkern(xsc.Element):
 	empty = True
 	class Attrs(stdattrs):
@@ -1029,6 +1131,7 @@ class hkern(xsc.Element):
 		class g2(xsc.TextAttr): pass
 		class k(NumberAttr): required = True
 
+
 class vkern(xsc.Element):
 	empty = True
 	class Attrs(stdattrs):
@@ -1037,6 +1140,7 @@ class vkern(xsc.Element):
 		class u2(xsc.TextAttr): pass
 		class g2(xsc.TextAttr): pass
 		class k(NumberAttr): required = True
+
 
 class font_face(xsc.Element):
 	xmlname = "font-face"
@@ -1076,11 +1180,13 @@ class font_face(xsc.Element):
 		class overline_position(NumberAttr): xmlname = "overline-position"
 		class overline_thickness(NumberAttr): xmlname = "overline-thickness"
 
+
 class font_face_src(xsc.Element):
 	xmlname = "font-face-src"
 	empty = False
 	class Attrs(stdattrs):
 		pass
+
 
 class font_face_uri(xsc.Element):
 	xmlname = "font-face-uri"
@@ -1088,11 +1194,13 @@ class font_face_uri(xsc.Element):
 	class Attrs(stdattrs):
 		pass
 
+
 class font_face_format(xsc.Element):
 	xmlname = "font-face-format"
 	empty = True
 	class Attrs(stdattrs):
 		class string(xsc.TextAttr): pass
+
 
 class font_face_name(xsc.Element):
 	xmlname = "font-face-name"
@@ -1100,16 +1208,19 @@ class font_face_name(xsc.Element):
 	class Attrs(stdattrs):
 		class name(xsc.TextAttr): pass
 
+
 class definition_src(xsc.Element):
 	xmlname = "definition-src"
 	empty = True
 	class Attrs(stdattrs):
 		pass
 
+
 class metadata(xsc.Element):
 	empty = False
 	class Attrs(stdattrs):
 		pass
+
 
 class foreignObject(xsc.Element):
 	empty = False
@@ -1124,8 +1235,8 @@ class foreignObject(xsc.Element):
 		class height(LengthAttr): required = True
 		class content(StructuredTextAttr): pass
 
+
 class xmlns(xsc.Namespace):
 	xmlname = "svg"
 	xmlurl = "http://www.w3.org/2000/svg"
 xmlns.makemod(vars())
-

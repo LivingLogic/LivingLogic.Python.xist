@@ -19,6 +19,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 from ll.xist import xsc
 import css
 
+
 class opacity(css.prop):
 	"""
 	<par>Creates both an <pyref module="ll.xist.ns.css" class="filter"><class>filter</class></pyref>
@@ -33,6 +34,7 @@ class opacity(css.prop):
 		)
 		return e.convert(converter)
 
+
 class verdana(css.prop):
 	"""
 	<par>Creates a <pyref module="ll.xist.ns.css" class="font_family"><class>font_family</class></pyref>
@@ -43,6 +45,7 @@ class verdana(css.prop):
 		e = css.font_family('"Verdana", "Tahoma", "Arial", "XHelvetica", "Helvetica", sans-serif')
 		return e.convert(converter)
 
+
 class arialnarrow(css.prop):
 	"""
 	<par>Creates a <pyref module="ll.xist.ns.css" class="font_family"><class>font_family</class></pyref>
@@ -52,6 +55,7 @@ class arialnarrow(css.prop):
 	def convert(self, converter):
 		e = css.font_family('"Arial Narrow", "Tahoma", "Arial", "Verdana", "XHelvetica", "Helvetica", sans-serif')
 		return e.convert(converter)
+
 
 class border_leftright(css.prop):
 	"""
@@ -68,6 +72,7 @@ class border_leftright(css.prop):
 		)
 		return e.convert(converter)
 
+
 class border_topbottom(css.prop):
 	"""
 	<par>Creates both an <pyref module="ll.xist.ns.css" class="border_top"><class>border_top</class></pyref>
@@ -82,6 +87,7 @@ class border_topbottom(css.prop):
 			css.border_bottom(self.content)
 		)
 		return e.convert(converter)
+
 
 class padding_leftright(css.prop):
 	"""
@@ -98,6 +104,7 @@ class padding_leftright(css.prop):
 		)
 		return e.convert(converter)
 
+
 class padding_topbottom(css.prop):
 	"""
 	<par>Creates both an <pyref module="ll.xist.ns.css" class="padding_top"><class>padding_top</class></pyref>
@@ -112,6 +119,7 @@ class padding_topbottom(css.prop):
 			css.padding_bottom(self.content)
 		)
 		return e.convert(converter)
+
 
 class margin_leftright(css.prop):
 	"""
@@ -128,6 +136,7 @@ class margin_leftright(css.prop):
 		)
 		return e.convert(converter)
 
+
 class margin_topbottom(css.prop):
 	"""
 	<par>Creates both an <pyref module="ll.xist.ns.css" class="margin_top"><class>margin_top</class></pyref>
@@ -142,6 +151,7 @@ class margin_topbottom(css.prop):
 			css.margin_bottom(self.content)
 		)
 		return e.convert(converter)
+
 
 class xmlns(xsc.Namespace):
 	xmlname = "cssspecials"

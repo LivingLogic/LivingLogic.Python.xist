@@ -19,6 +19,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 from ll.xist import xsc
 import xml
 
+
 class DocType(xsc.DocType):
 	def __init__(self):
 		xsc.DocType.__init__(
@@ -28,17 +29,21 @@ class DocType(xsc.DocType):
 			'"http://jakarta.apache.org/struts/dtds/struts-config_1_1.dtd"'
 		)
 
+
 class ElementWithID(xsc.Element):
 	class Attrs(xsc.Element.Attrs):
 		class id(xsc.IDAttr): pass
+
 
 class struts_config(ElementWithID):
 	xmlname = "struts-config"
 	empty = False
 
+
 class data_sources(ElementWithID):
 	xmlname = "data-sources"
 	empty = False
+
 
 class data_source(ElementWithID):
 	xmlname = "data-source"
@@ -48,11 +53,13 @@ class data_source(ElementWithID):
 		class key(xsc.TextAttr): pass
 		class type(xsc.TextAttr): pass
 
+
 class form_beans(ElementWithID):
 	xmlname = "form-beans"
 	empty = False
 	class Attrs(xsc.Element.Attrs):
 		class type(xsc.TextAttr): pass
+
 
 class form_bean(ElementWithID):
 	xmlname = "form-bean"
@@ -62,6 +69,7 @@ class form_bean(ElementWithID):
 		class dynamic(xsc.TextAttr): values = ("true", "false", "yes", "no")
 		class name(xsc.TextAttr): required = True
 		class type(xsc.TextAttr): required = True
+
 
 class form_property(xsc.Element):
 	xmlname = "form-property"
@@ -73,9 +81,11 @@ class form_property(xsc.Element):
 		class size(xsc.TextAttr): pass
 		class type(xsc.TextAttr): required = True
 
+
 class global_exceptions(ElementWithID):
 	xmlname = "global-exceptions"
 	empty = False
+
 
 class exception(ElementWithID):
 	empty = False
@@ -88,11 +98,13 @@ class exception(ElementWithID):
 		class scope(xsc.TextAttr): pass
 		class type(xsc.TextAttr): required = True
 
+
 class global_forwards(ElementWithID):
 	xmlname = "global-forwards"
 	empty = False
 	class Attrs(xsc.Element.Attrs):
 		class type(xsc.TextAttr): pass
+
 
 class forward(ElementWithID):
 	empty = False
@@ -103,11 +115,13 @@ class forward(ElementWithID):
 		class path(xsc.TextAttr): required = True
 		class redirect(xsc.TextAttr): values = ("true", "false", "yes", "no")
 
+
 class action_mappings(ElementWithID):
 	xmlname = "action-mappings"
 	empty = False
 	class Attrs(xsc.Element.Attrs):
 		class type(xsc.TextAttr): pass
+
 
 class action(ElementWithID):
 	empty = False
@@ -128,6 +142,7 @@ class action(ElementWithID):
 		class unknown(xsc.TextAttr): values = ("true", "false", "yes", "no")
 		class validate(xsc.TextAttr): values = ("true", "false", "yes", "no")
 
+
 class controller(ElementWithID):
 	empty = False
 	class Attrs(xsc.Element.Attrs):
@@ -146,6 +161,7 @@ class controller(ElementWithID):
 		class processorClass(xsc.TextAttr): pass
 		class tempDir(xsc.TextAttr): pass
 
+
 class message_resources(ElementWithID):
 	xmlname = "message-resources"
 	empty = False
@@ -156,25 +172,31 @@ class message_resources(ElementWithID):
 		class null(xsc.TextAttr): values = ("true", "false", "yes", "no")
 		class parameter(xsc.TextAttr): required = True
 
+
 class plug_in(ElementWithID):
 	xmlname = "plug-in"
 	empty = False
 	class Attrs(xsc.Element.Attrs):
 		class className(xsc.TextAttr): required = True
 
+
 class description(ElementWithID):
 	empty = False
+
 
 class display_name(ElementWithID):
 	xmlname = "display-name"
 	empty = False
 
+
 class icon(ElementWithID):
 	empty = False
+
 
 class large_icon(ElementWithID):
 	xmlname = "large-icon"
 	empty = False
+
 
 class set_property(ElementWithID):
 	xmlname = "set-property"
@@ -183,9 +205,11 @@ class set_property(ElementWithID):
 		class property(xsc.TextAttr): required = True
 		class value(xsc.TextAttr): required = True
 
+
 class small_icon(ElementWithID):
 	xmlname = "small-icon"
 	empty = False
+
 
 # this is no "official" struts-config element, but nonetheless useful for generating
 # the final XML output
@@ -202,6 +226,7 @@ class user_struts_config(xsc.Element):
 			struts_config(self.content)
 		)
 		return e.convert(converter)
+
 
 class xmlns(xsc.Namespace):
 	xmlname = "struts_config"

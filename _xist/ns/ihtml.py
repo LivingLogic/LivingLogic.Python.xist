@@ -20,6 +20,7 @@ import cgi # for parse_header
 
 from ll.xist import xsc
 
+
 class a(xsc.Element):
 	empty = False
 	class Attrs(xsc.Element.Attrs):
@@ -47,6 +48,7 @@ class a(xsc.Element):
 			"Records in telphone book (3.0)"
 			xmlname = "e-mail"
 
+
 class base(xsc.Element):
 	"""
 	Designates the base URL for the relative paths used in an HTML file. (1.0)
@@ -55,17 +57,20 @@ class base(xsc.Element):
 	class Attrs(xsc.Element.Attrs):
 		class href(xsc.URLAttr): pass
 
+
 class blink(xsc.Element):
 	"""
 	Blinks the designated text. (2.0)
 	"""
 	empty = False
 
+
 class blockquote(xsc.Element):
 	"""
 	Creates a text block and displays a quote mark. (1.0)
 	"""
 	empty = False
+
 
 class body(xsc.Element):
 	"""
@@ -80,6 +85,7 @@ class body(xsc.Element):
 		class link(xsc.TextAttr):
 			"Designates link color (2.0)"
 
+
 class br(xsc.Element):
 	empty = True
 	class Attrs(xsc.Element.Attrs):
@@ -89,11 +95,13 @@ class br(xsc.Element):
 			Depending on the attribute, it also cancels the wraparound function. (1.0)
 			"""
 
+
 class center(xsc.Element):
 	"""
 	Centers character strings, images and tables. (1.0)
 	"""
 	empty = False
+
 
 class dd(xsc.Element):
 	"""
@@ -101,17 +109,20 @@ class dd(xsc.Element):
 	"""
 	empty = False
 
+
 class dir(xsc.Element):
 	"""
 	Creates a list of menus or directories. Each list item must be a <pyref class="li"><class>li</class></pyref>. (1.0)
 	"""
 	empty = False
 
+
 class div(xsc.Element):
 	empty = False
 	class Attrs(xsc.Element.Attrs):
 		class align(xsc.TextAttr):
 			"Aligns the content left or right or centers it (1.0)"
+
 
 class dl(xsc.Element):
 	"""
@@ -120,11 +131,13 @@ class dl(xsc.Element):
 	"""
 	empty = False
 
+
 class dt(xsc.Element):
 	"""
 	Designates the list heading and aligns the character string at left. (1.0)
 	"""
 	empty = False
+
 
 class font(xsc.Element):
 	"""
@@ -133,6 +146,7 @@ class font(xsc.Element):
 	empty = False
 	class Attrs(xsc.Element.Attrs):
 		class color(xsc.TextAttr): pass
+
 
 class form(xsc.Element):
 	"""
@@ -147,11 +161,13 @@ class form(xsc.Element):
 		class utn(xsc.BoolAttr):
 			"Verifies individual identification information. (3.0)"
 
+
 class head(xsc.Element):
 	"""
 	Designates the information that is used as the page title and/or by the server. The <class>head</class> tag follows the <pyref class="html"><class>html</class></pyref> tag. (1.0)
 	"""
 	empty = False
+
 
 class h1(xsc.Element):
 	"""
@@ -162,6 +178,7 @@ class h1(xsc.Element):
 		class align(xsc.TextAttr):
 			"Designates the alignment of the header. (1.0)"
 
+
 class h2(xsc.Element):
 	"""
 	Designates level 2 header. (1.0)
@@ -170,6 +187,7 @@ class h2(xsc.Element):
 	class Attrs(xsc.Element.Attrs):
 		class align(xsc.TextAttr):
 			"Designates the alignment of the header. (1.0)"
+
 
 class h3(xsc.Element):
 	"""
@@ -180,6 +198,7 @@ class h3(xsc.Element):
 		class align(xsc.TextAttr):
 			"Designates the alignment of the header. (1.0)"
 
+
 class h4(xsc.Element):
 	"""
 	Designates level 4 header. (1.0)
@@ -188,6 +207,7 @@ class h4(xsc.Element):
 	class Attrs(xsc.Element.Attrs):
 		class align(xsc.TextAttr):
 			"Designates the alignment of the header. (1.0)"
+
 
 class h5(xsc.Element):
 	"""
@@ -198,6 +218,7 @@ class h5(xsc.Element):
 		class align(xsc.TextAttr):
 			"Designates the alignment of the header. (1.0)"
 
+
 class h6(xsc.Element):
 	"""
 	Designates level 6 header. (1.0)
@@ -206,6 +227,7 @@ class h6(xsc.Element):
 	class Attrs(xsc.Element.Attrs):
 		class align(xsc.TextAttr):
 			"Designates the alignment of the header. (1.0)"
+
 
 class hr(xsc.Element):
 	"""
@@ -222,11 +244,13 @@ class hr(xsc.Element):
 		class noshade(xsc.BoolAttr):
 			"Gives the horizontal line a two-dimensional appearance. (1.0)"
 
+
 class html(xsc.Element):
 	"""
 	The root element
 	"""
 	empty = False
+
 
 class img(xsc.Element):
 	"""
@@ -251,6 +275,7 @@ class img(xsc.Element):
 			"Sets the blank space between the image and the preceding line. (1.0)"
 		class alt(xsc.TextAttr):
 			"Designates a text string that can be shown as an alternative to the image. (1.0)"
+
 
 class input(xsc.Element):
 	empty = True
@@ -279,6 +304,7 @@ class input(xsc.Element):
 		class checked(xsc.BoolAttr):
 			"Makes a selected checkbox the default. (1.0)"
 
+
 class li(xsc.Element):
 	"""
 	A list item (1.0)
@@ -292,6 +318,7 @@ class li(xsc.Element):
 			"""
 		class value(xsc.IntAttr):
 			"Designates the starting number of a list. (2.0)"
+
 
 class marquee(xsc.Element):
 	"""
@@ -319,11 +346,13 @@ class marquee(xsc.Element):
 		class scrolldelay(xsc.TextAttr):
 			"Designates the time it takes for text to scroll. (Cannot be changed by user.) (2.0)"
 
+
 class menu(xsc.Element):
 	"""
 	Creates a menu list (1.0)
 	"""
 	empty = False
+
 
 class meta(xsc.Element):
 	"""
@@ -355,6 +384,7 @@ class meta(xsc.Element):
 					return
 		super(meta, self).publish(publisher)
 
+
 class object(xsc.Element):
 	empty = True
 	class Attrs(xsc.Element.Attrs):
@@ -366,6 +396,7 @@ class object(xsc.Element):
 			"The URL of the i appli ADF that corresponds to the OBJECT tag. (3.0)"
 		class type(xsc.TextAttr):
 			"""Content type of the ADF designated in the data attribute ("application/x-jam" fixed). (2.0)"""
+
 
 class ol(xsc.Element):
 	"""
@@ -381,6 +412,7 @@ class ol(xsc.Element):
 		class start(xsc.IntAttr):
 			"Designates the starting number of a list. (2.0)"
 
+
 class option(xsc.Element):
 	empty = False
 	class Attrs(xsc.Element.Attrs):
@@ -388,6 +420,7 @@ class option(xsc.Element):
 			"Designates the selected (initial value). (2.0)"
 		class value(xsc.TextAttr):
 			"Designates selected menu items. (1.0)"
+
 
 class p(xsc.Element):
 	"""
@@ -398,17 +431,20 @@ class p(xsc.Element):
 		class align(xsc.TextAttr):
 			"Aligns the content left or right or centers it (1.0)"
 
+
 class plaintext(xsc.Element):
 	"""
 	Displays a text file exactly as entered.
 	"""
 	empty = False
 
+
 class pre(xsc.Element):
 	"""
 	Displays a source file exactly as entered, including line feeds and blank spaces.
 	"""
 	empty = False
+
 
 class select(xsc.Element):
 	empty = False
@@ -419,6 +455,7 @@ class select(xsc.Element):
 			"Designates the number of lines for the list. (1.0)"
 		class multiple(xsc.BoolAttr):
 			"Enables multiple selections. (2.0)"
+
 
 class textarea(xsc.Element):
 	empty = True
@@ -437,17 +474,20 @@ class textarea(xsc.Element):
 		class istyle(xsc.TextAttr):
 			"Designates full-size Kana, half-size Kana, Roman letters, and numerals. (2.0)"
 
+
 class title(xsc.Element):
 	"""
 	Designates the page title.
 	"""
 	empty = False
 
+
 class ul(xsc.Element):
 	"""
 	Creates a bullet point list (o).
 	"""
 	empty = False
+
 
 # Latin 1 characters
 class nbsp(xsc.CharRef): "no-break space = non-breaking space, U+00A0 ISOnum"; codepoint = 160
@@ -752,6 +792,7 @@ class fixed(xsc.CharRef): codepoint = 0xe70b
 
 # Stuff from HTML
 class euro(xsc.CharRef): "euro sign, U+20AC NEW"; codepoint = 8364
+
 
 class xmlns(xsc.Namespace):
 	xmlname = "ihtml"

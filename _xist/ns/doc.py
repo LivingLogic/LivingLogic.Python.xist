@@ -14,6 +14,7 @@ import types, inspect, warnings, __builtin__
 from ll.xist import xsc, parsers, converters
 from ll.xist.ns import html, text, docbook, fo, specials, xml
 
+
 class base(xsc.Element):
 	"""
 	The base of all element classes. Used for dispatching the
@@ -100,11 +101,13 @@ class base(xsc.Element):
 		)
 		return e
 
+
 class block(base):
 	"""
 	Base class for all block level elements
 	"""
 	register = False
+
 
 class abbr(base):
 	empty = False
@@ -125,6 +128,7 @@ class abbr(base):
 
 	def __unicode__(self):
 		return unicode(self.content)
+
 
 class prog(block):
 	"""
@@ -205,10 +209,12 @@ class prog(block):
 		context.indentcount -= 1
 		return e.convert(converter)
 
+
 class programlisting(prog):
 	def convert(self, converter):
 		warnings.warn(DeprecationWarning("programlisting is deprecated, use prog instead"))
 		return prog.convert(self, converter)
+
 
 class example(block):
 	"""
@@ -252,6 +258,7 @@ class example(block):
 				e.append(child)
 		return e.convert(converter)
 
+
 class code(base):
 	register = False
 
@@ -261,6 +268,7 @@ class code(base):
 			converter[base].codeattrs
 		)
 		return e.convert(converter)
+
 
 class option(code):
 	"""
@@ -276,6 +284,7 @@ class option(code):
 		e = converter.target.code(self.content, class_="option")
 		return e.convert(converter)
 
+
 class lit(code):
 	"""
 	Inline text that is some literal value
@@ -289,6 +298,7 @@ class lit(code):
 	def convert_html(self, converter):
 		e = converter.target.code(self.content, class_="literal")
 		return e.convert(converter)
+
 
 class function(code):
 	"""
@@ -304,6 +314,7 @@ class function(code):
 		e = converter.target.code(self.content, class_="function")
 		return e.convert(converter)
 
+
 class method(code):
 	"""
 	The name of a method or memberfunction in a programming language
@@ -317,6 +328,7 @@ class method(code):
 	def convert_html(self, converter):
 		e = converter.target.code(self.content, class_="method")
 		return e.convert(converter)
+
 
 class property(code):
 	"""
@@ -332,6 +344,7 @@ class property(code):
 		e = converter.target.code(self.content, class_="property")
 		return e.convert(converter)
 
+
 class class_(code):
 	"""
 	The name of a class, in the object-oriented programming sense
@@ -346,6 +359,7 @@ class class_(code):
 	def convert_html(self, converter):
 		e = converter.target.code(self.content, class_="class")
 		return e.convert(converter)
+
 
 class rep(base):
 	"""
@@ -365,6 +379,7 @@ class rep(base):
 		e = converter.target.inline(self.content, converter[base].repattrs)
 		return e.convert(converter)
 
+
 class markup(code):
 	"""
 	A string of formatting markup in text that is to be represented literally
@@ -378,6 +393,7 @@ class markup(code):
 	def convert_html(self, converter):
 		e = converter.target.code(self.content, class_="markup")
 		return e.convert(converter)
+
 
 class arg(code):
 	"""
@@ -393,6 +409,7 @@ class arg(code):
 		e = converter.target.code(self.content, class_="arg")
 		return e.convert(converter)
 
+
 class module(code):
 	"""
 	The name of Python module.
@@ -406,6 +423,7 @@ class module(code):
 	def convert_html(self, converter):
 		e = converter.target.code(self.content, class_="module")
 		return e.convert(converter)
+
 
 class parameter(code):
 	"""
@@ -421,6 +439,7 @@ class parameter(code):
 		e = converter.target.code(self.content, class_="parameter")
 		return e.convert(converter)
 
+
 class filename(code):
 	"""
 	The name of a file
@@ -434,6 +453,7 @@ class filename(code):
 	def convert_html(self, converter):
 		e = converter.target.code(self.content, class_="filename")
 		return e.convert(converter)
+
 
 class dirname(code):
 	"""
@@ -449,6 +469,7 @@ class dirname(code):
 		e = converter.target.code(self.content, class_="dirname")
 		return e.convert(converter)
 
+
 class username(code):
 	"""
 	The name of a user account
@@ -462,6 +483,7 @@ class username(code):
 	def convert_html(self, converter):
 		e = converter.target.code(self.content, class_="username")
 		return e.convert(converter)
+
 
 class app(base):
 	"""
@@ -493,6 +515,7 @@ class app(base):
 			e = self.content
 		return e.convert(converter)
 
+
 class title(base):
 	"""
 	The text of the title of a section of a document or of a formal block-level element
@@ -510,6 +533,7 @@ class title(base):
 	def convert_fo(self, converter):
 		e = self.content
 		return e.convert(converter)
+
 
 class section(block):
 	"""
@@ -623,6 +647,7 @@ class section(block):
 			context.indentcount -= 1
 		return e
 
+
 class par(block):
 	"""
 	A paragraph
@@ -647,6 +672,7 @@ class par(block):
 		)
 		return e.convert(converter)
 
+
 class list(block):
 	"""
 	Common baseclass for <pyref class="ulist"><class>ulist</class></pyref>,
@@ -654,6 +680,7 @@ class list(block):
 	<pyref class="dlist"><class>dlist</class></pyref>.
 	"""
 	register = False
+
 
 class ulist(list):
 	"""
@@ -680,6 +707,7 @@ class ulist(list):
 		del context.lists[-1]
 		return e
 
+
 class olist(list):
 	"""
 	A list in which each entry is marked with a sequentially incremented label
@@ -704,6 +732,7 @@ class olist(list):
 		e = e.convert(converter)
 		del context.lists[-1]
 		return e
+
 
 class dlist(list):
 	"""
@@ -737,6 +766,7 @@ class dlist(list):
 		del context.lists[-1]
 		return e
 
+
 class term(base):
 	"""
 	A term inside a <pyref class="dlist"><class>dlist</class></pyref>
@@ -757,6 +787,7 @@ class term(base):
 			font_style="italic"
 		)
 		return e.convert(converter)
+
 
 class item(base):
 	"""
@@ -813,6 +844,7 @@ class item(base):
 		context.indentcount -= 1
 		return e.convert(converter)
 
+
 class self(code):
 	"""
 	<par>use this class when referring to the object for which a method has been
@@ -842,6 +874,7 @@ class self(code):
 
 self_ = self
 
+
 class cls(base):
 	"""
 	<par>use this class when referring to the object for which a class method has been
@@ -868,6 +901,7 @@ class cls(base):
 
 	def __unicode__(self):
 		return u"cls"
+
 
 class link(base):
 	"""
@@ -896,6 +930,7 @@ class link(base):
 			e = self.content
 		return e.convert(converter)
 
+
 class xref(xsc.Element):
 	"""
 	An internal cross reference.
@@ -923,6 +958,7 @@ class xref(xsc.Element):
 			e = self.content
 		return e.convert(converter)
 
+
 class email(base):
 	"""
 	An email address.
@@ -945,6 +981,7 @@ class email(base):
 		)
 		return e.convert(converter)
 
+
 class em(base):
 	"""
 	Emphasized text:
@@ -965,6 +1002,7 @@ class em(base):
 			converter[base].emattrs
 		)
 		return e.convert(converter)
+
 
 class pyref(base):
 	"""
@@ -1312,6 +1350,7 @@ def explain(cls, thing, name=None, context=[]):
 	return xsc.Null
 explain = classmethod(explain)
 
+
 class fodoc(xsc.Element):
 	empty = False
 
@@ -1375,6 +1414,7 @@ class fodoc(xsc.Element):
 			)
 		)
 		return e
+
 
 class xmlns(xsc.Namespace):
 	xmlname = "doc"

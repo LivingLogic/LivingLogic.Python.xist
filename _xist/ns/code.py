@@ -20,6 +20,7 @@ import sys
 from ll.xist import xsc, sandbox
 import html
 
+
 class Code(object):
 	def __init__(self, text, ignorefirst=False):
 		# get the individual lines; ignore "\r" as this would mess up whitespace handling later
@@ -76,6 +77,7 @@ class Code(object):
 			v += "\n"
 		return "".join(v)
 
+
 class exec_(xsc.ProcInst):
 	"""
 	<par>here the content of the processing instruction is executed
@@ -97,6 +99,7 @@ class exec_(xsc.ProcInst):
 
 	def convert(self, converter):
 		return xsc.Null # has been executed at construction time already, so we don't have to do anything here
+
 
 class eval_(xsc.ProcInst):
 	"""
@@ -125,6 +128,7 @@ class eval_(xsc.ProcInst):
 		exec code.asString() in sandbox.__dict__ # requires Python 2.0b2 (and doesn't really work)
 		return xsc.ToNode(sandbox.__(converter)).convert(converter)
 
+
 class import_(xsc.ProcInst):
 	"""
 	<par>Imports the module named in the processing instruction content
@@ -139,6 +143,7 @@ class import_(xsc.ProcInst):
 
 	def convert(self, converter):
 		return xsc.Null # has been executed at construction time already, so we don't have to do anything here
+
 
 class xmlns(xsc.Namespace):
 	xmlname = "code"
