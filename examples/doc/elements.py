@@ -101,7 +101,7 @@ class function(xsc.Element):
 	def asHTML(self):
 		e = xsc.Frag(html.h3(self["name"]))
 		sig = self.findNodes(type = signature)[0]
-		e.append(html.div(html.code(self["name"],"(",sig.findNodes(type = arg).withSeparator(","),")",Class="function")))
+		e.append(html.div(html.code(self["name"],"(",sig.findNodes(type = arg).withSeparator(", "),")",Class="function"),Class="function"))
 		descs = self.findNodes(type = desc)
 		if len(descs):
 			e.append(html.div(descs[0]))
@@ -114,7 +114,7 @@ class method(xsc.Element):
 	def asHTML(self):
 		e = xsc.Frag(html.h4(self["name"]))
 		sig = self.findNodes(type = signature)[0]
-		e.append(html.div(html.code(Self(),".",self["name"],"(",sig.findNodes(type = arg).withSeparator(","),")",Class="function")))
+		e.append(html.div(html.code(Self(),".",self["name"],"(",sig.findNodes(type = arg).withSeparator(", "),")",Class="method"),Class="method"))
 		descs = self.findNodes(type = desc)
 		if len(descs):
 			e.append(html.div(descs[0]))

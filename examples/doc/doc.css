@@ -25,6 +25,11 @@ code.class
 	font-style: normal;
 	color: #600;
 }
+div.method, div.function
+{
+	text-indent: -3em;
+	margin-left: 3em;
+}
 code.method
 {
 	font-family: monospace;
