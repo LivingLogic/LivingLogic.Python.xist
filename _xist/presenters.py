@@ -27,7 +27,7 @@ to the terminal.
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-import os
+import os, types
 
 import ansistyle
 
@@ -184,11 +184,11 @@ class EnvTextForProcInstTarget(EnvText):
 	"""
 	color = getColorsFromEnv("XSC_REPRANSI_PROCINSTTARGET", (0x9, 0x9))
 
-class EnvTextForProcInstData(EnvText):
+class EnvTextForProcInstContent(EnvText):
 	"""
-	ANSI escape sequence to be used for processing instruction data
+	ANSI escape sequence to be used for processing instruction content
 	"""
-	color = getColorsFromEnv("XSC_REPRANSI_PROCINSTDATA", (0x7, 0x7))
+	color = getColorsFromEnv("XSC_REPRANSI_PROCINSTCONTENT", (0x7, 0x7))
 
 class EnvTextForNumber(EnvText):
 	"""
@@ -357,8 +357,8 @@ def strProcInstTarget(namespacename=None, target=None):
 	s.append(EnvTextForProcInstTarget(EscInlineText(target)))
 	return s
 
-def strProcInstData(data):
-	return EnvTextForProcInstData(EscInlineText(data))
+def strProcInstContent(content):
+	return EnvTextForProcInstContent(EscInlineText(content))
 
 def strTextOutsideAttr(text):
 	return EnvTextForText(EscInlineText(text))
@@ -435,7 +435,7 @@ class NormalPresenter:
 			strQuestion(),
 			strProcInst(node),
 			" ",
-			strProcInstData(node._content),
+			strProcInstContent(node._content),
 			strQuestion(),
 			strBracketClose()
 		)
@@ -491,37 +491,45 @@ class TreePresenter:
 				line[0] = str(line[0])
 				lenloc = max(lenloc, len(line[0]))
 			else:
-				line[0] = str(xsc.Location)
+				line[0] = str(xsc.Location())
 			lennumpath = max(lennumpath, len(line[1]))
 		result = "".join([ "%-*s %-*s %s\n" % (lenloc, line[0], lennumpath, line[1], line[3]) for line in self.lines ])
 		self.lines = []
 		return result
 
-	def _doMultiLine(self, node, lines, formatter):
+	def _doMultiLine(self, node, lines, formatter, head=None, tail=None):
 		loc = node.startLoc
 		nest = len(self.currentPath)
-		for i in xrange(len(lines)):
+		l = len(lines)
+		for i in xrange(l):
 			if loc is not None:
 				hereloc = loc.offset(i)
 			else:
 				hereloc = None
 			mynest = nest
 			s = lines[i]
-			while len(s) and s[0] == "\t":
-				mynest += 1
-				s = s[1:]
+			if type(s) in (types.StringType, types.UnicodeType):
+				while len(s) and s[0] == "\t":
+					mynest += 1
+					s = s[1:]
 			s = formatter(s)
-			#if i == 0:
-			#	s = head + s
-			#if i == l-1:
-			#	s += tail
-			self.lines.append([hereloc, self.currentPath[:], nest, s])
+			if i == 0 and head is not None:
+				s.content.insert(0, head)
+			if i == l-1 and tail is not None:
+				s.content.append(tail)
+			self.lines.append([hereloc, self.currentPath[:], mynest, s])
 
-	def strTextOutsideAttr(self, text):
+	def strTextLineOutsideAttr(self, text):
 		return ansistyle.Text(strQuote(), EnvTextForText(EscOutlineText(text)), strQuote())
 
 	def strTextInAttr(self, text):
 		return EnvTextForAttrValue(EscOutlineAttr(text))
+
+	def strProcInstContentLine(self, text):
+		return EnvTextForProcInstContent(EscOutlineText(text))
+
+	def strCommentTextLine(self, text):
+		return EnvTextForCommentText(EscOutlineText(text))
 
 	def presentFrag(self, node):
 		if self.inAttr:
@@ -534,7 +542,7 @@ class TreePresenter:
 					child.present(self)
 					self.currentPath[-1] += 1
 				del self.currentPath[-1]
-				self.lines.append([node.startLoc, self.currentPath[:], len(self.currentPath), strElementNameWithBrackets("xsc", "Frag", -1)])
+				self.lines.append([node.endLoc, self.currentPath[:], len(self.currentPath), strElementNameWithBrackets("xsc", "Frag", -1)])
 			else:
 				self.lines.append([node.startLoc, self.currentPath[:], len(self.currentPath), strElementNameWithBrackets("xsc", "Frag", 1)])
 
@@ -549,7 +557,7 @@ class TreePresenter:
 					child.present(self)
 					self.currentPath[-1] += 1
 				del self.currentPath[-1]
-				self.lines.append([node.startLoc, self.currentPath[:], len(self.currentPath), strElementWithBrackets(node, -1)])
+				self.lines.append([node.endLoc, self.currentPath[:], len(self.currentPath), strElementWithBrackets(node, -1)])
 			else:
 				self.lines.append([node.startLoc, self.currentPath[:], len(self.currentPath), strElementWithBrackets(node, 1)])
 
@@ -574,5 +582,25 @@ class TreePresenter:
 			pass
 		else:
 			self.lines.append([node.startLoc, self.currentPath[:], len(self.currentPath), strEntity(node)])
+
+	def presentProcInst(self, node):
+		if self.inAttr:
+			pass
+		else:
+			head = ansistyle.Text(strBracketOpen(), strQuestion(), strProcInst(node), " ")
+			tail = ansistyle.Text(strQuestion(), strBracketClose())
+			lines = node._content.split("\n")
+			if len(lines)>1:
+				lines.insert(0, "")
+			self._doMultiLine(node, lines, self.strProcInstContentLine, head, tail)
+
+	def presentComment(self, node):
+		if self.inAttr:
+			pass
+		else:
+			head = ansistyle.Text(strBracketOpen(), strExclamation(), strCommentMarker())
+			tail = ansistyle.Text(strCommentMarker(), strBracketClose())
+			lines = node._content.split("\n")
+			self._doMultiLine(node, lines, self.strCommentTextLine, head, tail)
 
 defaultPresenterClass = NormalPresenter

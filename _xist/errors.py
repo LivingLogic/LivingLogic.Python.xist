@@ -307,7 +307,7 @@ class IllegalProcInstFormatError(Error):
 		self.procinst = procinst
 
 	def __str__(self):
-		return Error.__str__(self) + "processing instruction with content %s is illegal, as it contains %r." % (presenters.strProcInstData(self.procinst.content), "?>")
+		return Error.__str__(self) + "processing instruction with content %s is illegal, as it contains %r." % (presenters.strProcInstContent(self.procinst._content), "?>")
 
 class IllegalXMLDeclFormatError(Error):
 	"""
@@ -322,7 +322,7 @@ class IllegalXMLDeclFormatError(Error):
 		self.procinst = procinst
 
 	def __str__(self):
-		return Error.__str__(self) + "XML declaration with content %r is malformed." % presenters.strProcInstData(self.procinst.content)
+		return Error.__str__(self) + "XML declaration with content %r is malformed." % presenters.strProcInstContent(self.procinst._content)
 
 class EncodingImpossibleError(Error):
 	"""

@@ -2122,16 +2122,16 @@ class Location:
 		which is then stored internally. In addition to that the systemID, public ID, line number
 		and column number can be overwritten by explicit arguments.
 		"""
-		if locator is not None:
-			self.__sysID = locator.getSystemId()
-			self.__pubID = locator.getPublicId()
-			self.__lineNumber = locator.getLineNumber()
-			self.__columnNumber = locator.getColumnNumber()
-		else:
+		if locator is None:
 			self.__sysID = None
 			self.__pubID = None
 			self.__lineNumber = -1
 			self.__columnNumber = -1
+		else:
+			self.__sysID = locator.getSystemId()
+			self.__pubID = locator.getPublicId()
+			self.__lineNumber = locator.getLineNumber()
+			self.__columnNumber = locator.getColumnNumber()
 		if self.__sysID is None:
 			self.__sysID = sysID
 		if self.__pubID is None:
@@ -2168,7 +2168,7 @@ class Location:
 		# get and format the system ID
 		sysID = self.getSystemId()
 		if sysID is None:
-			sysID = "<unknown>"
+			sysID = "???"
 
 		# get and format the line number
 		line = self.getLineNumber()
