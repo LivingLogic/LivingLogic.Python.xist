@@ -1,6 +1,10 @@
 ToDos and stupid ideas
 ======================
 
+Unify Filename and URL.
+
+URL("/gurk/", scheme="file") does not work.
+
 Real namespace support.
 
 Implement new relative URLs as a new scheme:
