@@ -388,6 +388,7 @@ class Handler(object):
 		if namespaces is None:
 			namespaces = xsc.defaultNamespaces
 		self.namespaces = namespaces
+		self._locator = None
 
 	def parse(self, source):
 		self.source = source
