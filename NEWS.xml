@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
-<section><title>Changes in 1.3 (released 02/12/2001)</title>
+<section><title>Changes in 1.3 (released 02/12/2002)</title>
 <ulist>
 <item>Ported to Python 2.2. <class>Node</class> is now derived from
 <class>object</class>, <class>Frag</class> from <class>list</class> and
@@ -18,6 +18,8 @@ as a list.</item>
 content of the <class>block</class> instance will simply be enclosed in a
 <lit>{}</lit> block. <module>xist.ns.php</module> got such a class too.</item>
 <item>Added a new module <module>xist.ns.ihtml</module> for iMode &html;.</item>
+<item>Added new modules <module>xist.ns.css</module> and <module>xist.ns.cssspecials</module>
+for generating &css;.</item>
 <item>Now the various attributes of the <class>Converter</class> object are collected in a
 <class>ConverterState</class> object and it's possible to push and pop those states,
 i.e. it's now easy to temporarily modify a converter object during
