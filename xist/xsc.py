@@ -1362,7 +1362,7 @@ class Element(Node):
 		v = []
 		for attr in self.attrs.keys():
 			v.append(" ")
-			v.append(_strattrname(attr,ansi))
+			v.append(strAttrName(attr,ansi))
 			value = self[attr]
 			if len(value):
 				v.append('=')
