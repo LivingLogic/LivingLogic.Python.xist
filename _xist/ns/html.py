@@ -153,7 +153,7 @@ class body(xsc.Element):
 	empty = 0
 	attrHandlers = attrs.copy()
 	attrHandlers.update({"onload": xsc.TextAttr, "onunload": xsc.TextAttr})
-	attrHandlers.update({"background": xsc.URLAttr, "bgcolor": xsc.ColorAttr, "text": xsc.ColorAttr, "link": xsc.ColorAttr, "vlink": xsc.ColorAttr, "alink": xsc.ColorAttr, "leftmargin": xsc.TextAttr, "topmargin": xsc.TextAttr, "marginwidth": xsc.TextAttr, "marginheight": xsc.TextAttr}) # deprecated
+	attrHandlers.update({"onfocus": xsc.TextAttr, "background": xsc.URLAttr, "bgcolor": xsc.ColorAttr, "text": xsc.ColorAttr, "link": xsc.ColorAttr, "vlink": xsc.ColorAttr, "alink": xsc.ColorAttr, "leftmargin": xsc.TextAttr, "topmargin": xsc.TextAttr, "marginwidth": xsc.TextAttr, "marginheight": xsc.TextAttr}) # deprecated
 
 class div(xsc.Element):
 	"""
