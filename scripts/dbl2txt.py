@@ -29,9 +29,9 @@ Usage: python docbooklite2text.py spam.xml spam.txt
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-import sys, os, getopt
+import sys, getopt
 
-from xist import xsc, parsers
+from xist import xsc, parsers, converters
 from xist.ns import html, docbooklite as dbl
 
 def xsc2txt(infilename, outfilename, title):
@@ -47,13 +47,11 @@ def xsc2txt(infilename, outfilename, title):
 		)
 	)
 
-	e = e.conv()
+	e = e.convert(converters.Converter(target="text"))
 
-	(pipein, pipeout) = os.popen2("w3m -T text/html -dump >%s" % outfilename)
-
-	pipein.write(e.asBytes())
-	pipein.close()
-	pipeout.close()
+	file = open(outfilename, "wb")
+	file.write(e.asText())
+	file.close()
 
 if __name__ == "__main__":
 	title = None

@@ -238,8 +238,9 @@ we would get:
 
 <dbl:section><dbl:title>Converters</dbl:title>
 <dbl:para><dbl:pyref module="xist.xsc" class="Node" method="conv">conv</dbl:pyref> is a convenience
-method that creates a default converter for you. You could also call the method
-<dbl:pyref module="xist.xsc" class="Node" method="convert">convert</dbl:pyref> itself,
+method that creates a default converter for you and calls
+<dbl:para><dbl:pyref module="xist.xsc" class="Node" method="convert">convert</dbl:pyref>.
+You could also call <dbl:pyref module="xist.xsc" class="Node" method="convert">convert</dbl:pyref> yourself,
 which would look like this:
 <dbl:programlisting>
 from xist import converters
@@ -526,8 +527,8 @@ UnicodeError: ASCII encoding error: ordinal not in range(128)
 <pyref module="xist.xsc" class="Node" method="asBytes" arg="XHTML">XHTML</pyref>,
 it specifies if you want pure &html; or &xhtml; as output:
 <ul>
-<li><code>XHTML==0</code> will give pure &html; as output, i.e. no final <markup>/</markup>
-for element with an empty content model, so you'll get <markup>&lt;br&gt;</markup> in the output.
+<li><code>XHTML==0</code> will give you pure &html;, i.e. no final <markup>/</markup>
+for elements with an empty content model, so you'll get <markup>&lt;br&gt;</markup> in the output.
 Elements that have no empty content model, but are empty will be published with a start and
 end tag (i.e. <markup>&lt;div&gt;&lt;/div&gt;</markup>).</li>
 <li><code>XHTML==1</code> gives &html; compatible &xhtml;. Elements with empty content
@@ -1493,6 +1494,9 @@ class ProcInst(CharacterData):
 		publisher.publish(u" ")
 		publisher.publish(self.content)
 		publisher.publish(u"?>")
+
+	def asPlainString(self):
+		return u""
 
 class PythonCode(ProcInst):
 	"""

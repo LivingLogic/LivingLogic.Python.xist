@@ -24,11 +24,15 @@ class programlisting(xsc.Element):
 			if isinstance(child, xsc.Text):
 				for c in child:
 					if c=="\t":
-						e.append(html.span(u"···", class_="tab"))
-					else:
-						e.append(c)
+						if converter.target=="text":
+							c = "   "
+						else:
+							c = html.span(u"···", class_="tab")
+					e.append(c)
 			else:
 				e.append(child)
+		if converter.target=="text":
+			e = html.blockquote(e)
 		return e.convert(converter)
 
 class example(xsc.Element):
@@ -40,7 +44,7 @@ class example(xsc.Element):
 
 	def convert(self, converter):
 		e = xsc.Frag(self.content)
-		if self.hasAttr("title"):
+		if converter.target!="text" and self.hasAttr("title"):
 			e.append(html.div(self["title"], class_="example-title"))
 		return e.convert(converter)
 
@@ -175,7 +179,12 @@ class section(xsc.Element):
 				cs.append(child)
 		e = xsc.Frag()
 		for t in ts:
-			e.append(html.namespace.elementsByName["h%d" % context.depth](t.content))
+			h = html.namespace.elementsByName["h%d" % context.depth]()
+			if converter.target=="text":
+				h.append(html.br(), t.content, html.br(), "="*len(t.content.convert(converter).asPlainString()))
+			else:
+				h.append(t.content)
+			e.append(h)
 		for c in cs:
 			e.append(c)
 		context.depth += 1
