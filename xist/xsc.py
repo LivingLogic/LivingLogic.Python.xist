@@ -193,13 +193,6 @@ def ImageSize(url):
 			raise XSCFileNotFoundError(xsc.parser.lineno,url)
 	return size
 
-def _isOnlyLinefeeds(s):
-	for i in s:
-		if i != '\n' and i != '\r':
-			return 0
-	else:
-		return 1
-
 def AppendDict(*dicts):
 	result = {}
 	for dict in dicts:
@@ -335,6 +328,12 @@ class XSCNode:
 		"""returns a fragment that contains all elements in the subtree of the node with the type name"""
 		return XSCFrag()
  
+	def withoutLinefeeds(self):
+		"""returns this node, where all linefeeds that are in a text
+		(or character reference) by themselves are removed, i.e. potentially
+		needless whitespace is removed"""
+		return None
+		
 class XSCText(XSCNode):
 	"""text"""
 
@@ -380,10 +379,19 @@ class XSCText(XSCNode):
 		s = string.joinfields(v,"") 
 		return [[nest,self.startlineno,elementno,self._strtextquotes(self._strtext(s))]]
 
+	def withoutLinefeeds(self):
+		for i in self.__content:
+			if i != '\n' and i != '\r':
+				return XSCText(self.__content)
+		else:
+			return None
+
 class XSCCharRef(XSCNode):
 	"""character reference (i.e &#42; or &#x42;)"""
 
 	__notdirect = { ord("&") : "amp" , ord("<") : "lt" , ord(">") : "gt", ord('"') : "quot" , ord("'") : "apos" }
+	__linefeeds = [ ord("\n") , ord("\r") ]
+
 	def __init__(self,content):
 		self.__content = content
 
@@ -410,6 +418,12 @@ class XSCCharRef(XSCNode):
 		if 0 <= self.__content <= 255:
 			s = s + " " + XSCText(chr(self.__content))._doreprtree(0,0)[0][-1]
 		return [[nest,self.startlineno,elementno,s]]
+
+	def withoutLinefeeds(self):
+		if self.__content in self.__linefeeds:
+			return None
+		else:
+			return XSCCharRef(self.__content)
 
 class XSCFrag(XSCNode):
 	"""contains a list of XSCNodes"""
@@ -502,18 +516,24 @@ class XSCFrag(XSCNode):
 		return len(self.content)
 
 	def append(self,other):
-		self.content.append(ToNode(other))
+		if other != None:
+			self.content.append(ToNode(other))
 
 	def preppend(self,other):
-		self.content = [ ToNode(other) ] + self.content[:]
+		if other != None:
+			self.content = [ ToNode(other) ] + self.content[:]
 
 	def findElementsNamed(self,name):
-		v = XSCFrag()
+		e = XSCFrag()
 		for child in self:
-			if child.name == name:
-				v.append(child)
-			v = v + child.findElementsNamed(name)
-		return v
+			e = e + child.findElementsNamed(name)
+		return e
+
+	def withoutLinefeeds(self):
+		e = XSCFrag()
+		for child in self:
+			e.append(child.withoutLinefeeds())
+		return e
 
 class XSCAttrs(XSCNode):
 	"""contains a dictionary of XSCNodes which are wrapped into attribute nodes"""
@@ -527,6 +547,7 @@ class XSCAttrs(XSCNode):
 			self[attr] = restcontent[attr]
 
 	def __add__(self,other):
+		"""adds attributes to the list"""
 		res = XSCAttrs(self.content)
 		for attr in other.keys():
 			res[attr] = other[attr]
@@ -594,6 +615,9 @@ class XSCAttrs(XSCNode):
 		for attr in other.keys():
 			self[attr] = other[attr]
 
+	def withoutLinefeeds(self):
+		return XSCAttrs(self.attr_handlers,self.content)
+
 class XSCComment(XSCNode):
 	"""comments"""
 
@@ -612,11 +636,17 @@ class XSCComment(XSCNode):
 	def dostr(self):
 		return "<!--" + self.__content + "-->"
 
+	def withoutLinefeeds(self):
+		return XSCComment(self.__content)
+
 class XSCDocType(XSCNode):
 	"""document type"""
 
 	def __init__(self,content = ""):
 		self.__content = content
+
+	def _doAsHTML(self):
+		return XSCDocType(self.__content)
 
 	def _dorepr(self):
 		return self._strtag("!DOCTYPE " + self.__content)
@@ -627,12 +657,18 @@ class XSCDocType(XSCNode):
 	def dostr(self):
 		return "<!DOCTYPE " + self.__content + ">"
 
+	def withoutLinefeeds(self):
+		return XSCDocType(self.__content)
+
 class XSCProcInst(XSCNode):
 	"""processing instructions"""
 
 	def __init__(self,target,content = ""):
 		self.__target = target
 		self.__content = content
+
+	def _doAsHTML(self):
+		return XSCProcInsl(self.__target,self.__content)
 
 	def _dorepr(self):
 		return self._strpi(self.__target,self.__content)
@@ -642,6 +678,9 @@ class XSCProcInst(XSCNode):
 
 	def dostr(self):
 		return "<?" + self.__target + " " + self.__content + "?>"
+
+	def withoutLinefeeds(self):
+		return XSCProcInst(self.__target,self.__content)
 
 class XSCElement(XSCNode):
 	"""XML elements"""
@@ -727,7 +766,7 @@ class XSCElement(XSCNode):
 			self.content[index] = value
 
 	def __delitem__(self,index):
-		"removes an attribute or one of the content nodes depending on whether a string (i.e. attribute name) or a number (i.e. content node index) is passed in"""
+		"""removes an attribute or one of the content nodes depending on whether a string (i.e. attribute name) or a number (i.e. content node index) is passed in"""
 		if type(index)==types.StringType:
 			del self.attrs[index]
 		else:
@@ -777,7 +816,13 @@ class XSCElement(XSCNode):
 					self[heightattr] = size[1]
 
 	def findElementsNamed(self,name):
+		v = XSCFrag()
+		if self.name == name:
+				v.append(self)
 		return self.content.findElementsNamed(name)
+
+	def withoutLinefeeds(self):
+		return self.__class__(self.content.withoutLinefeeds(),self.attrs.withoutLinefeeds())
 
 def RegisterElement(name,element):
 	"""registers the element handler element to be used for elements with name name"""
@@ -867,7 +912,7 @@ class XSCParser(xmllib.XMLParser):
 		self.nesting[-1:] = [] # pop the innermost element off the stack
 
 	def handle_data(self,data):
-		if data != "" and ((not _isOnlyLinefeeds(data)) or xsc.ignorelinefeed==0):
+		if data != "":
 			self.__appendNode(XSCText(data))
 
 	def handle_comment(self,data):
@@ -1010,7 +1055,6 @@ class XSC:
 		self.repransipitarget = "36"
 		self.repransipidata = "36"
 		self.reprtree = 1
-		self.ignorelinefeed = 0
 		self.parser = XSCParser()
 
 	def parseString(self,filename,string):
