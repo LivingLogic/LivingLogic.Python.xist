@@ -204,7 +204,7 @@ class para(xsc.Element):
 class pyref(xsc.Element):
 	"""
 	reference to a Python object:
-	package, module, class, method, function, variable or argument
+	module, class, method, function, variable or argument
 	"""
 	empty = 0
 	attrHandlers = {"module": xsc.TextAttr, "class": xsc.TextAttr, "method": xsc.TextAttr, "function": xsc.TextAttr, "var": xsc.TextAttr, "arg": xsc.TextAttr}
@@ -269,6 +269,8 @@ class pyref(xsc.Element):
 			elif module is not None:
 				e = html.code(e, class_="pymodule")
 				#e = html.a(e, href=("http://localhost:7464/", module, ".html"))
+			else:
+				e = html.code(e)
 		return e.convert(converter)
 
 namespace = xsc.Namespace("dbl", "http://www.livinglogic.de/DTDs/DocBookLite.dtd", vars())
