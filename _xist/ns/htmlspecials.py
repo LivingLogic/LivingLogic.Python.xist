@@ -158,8 +158,8 @@ class autoimg(html.img):
 	<par>An image were width and height attributes are automatically generated.
 	If the attributes are already there, they are taken as a
 	formatting template with the size passed in as a dictionary with the keys
-	<code>width</code> and <code>height</code>, i.e. you could make your image twice
-	as wide with <code>width="2*%(width)d"</code>.</par>
+	<lit>width</lit> and <lit>height</lit>, i.e. you could make your image twice
+	as wide with <lit>width="2*%(width)d"</lit>.</par>
 	"""
 	def convert(self, converter):
 		if converter.target=="ihtml":
