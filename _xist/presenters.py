@@ -463,6 +463,10 @@ class NormalPresenter:
 		self.buffer.append(strURL(node.asString()))
 
 class TreePresenter:
+	def __init__(self, showLocation=1, showPath=1):
+		self.showLocation = showLocation
+		self.showPath = showPath
+
 	def beginPresentation(self):
 		self.inAttr = 0
 		self.lines = [] # the final lines consisting of (location, numerical path, nesting, content)
@@ -473,17 +477,25 @@ class TreePresenter:
 		lenloc = 0
 		lennumpath = 0
 		for line in self.lines:
-			line[1] = ".".join(map(str, line[1]))
+			if self.showPath:
+				line[1] = ".".join(map(str, line[1]))
 			line[3] = ansistyle.Text(strTab(line[2]), line[3])
-			if line[0] is not None:
-				line[0] = str(line[0])
-				lenloc = max(lenloc, len(line[0]))
-			else:
-				line[0] = str(xsc.Location())
+			if self.showLocation:
+				if line[0] is not None:
+					line[0] = str(line[0])
+					lenloc = max(lenloc, len(line[0]))
+				else:
+					line[0] = str(xsc.Location())
 			lennumpath = max(lennumpath, len(line[1]))
-		result = "".join([ "%-*s %-*s %s\n" % (lenloc, line[0], lennumpath, line[1], line[3]) for line in self.lines ])
+		newlines = []
+		for line in self.lines:
+			if self.showLocation:
+				newlines.append("%-*s " % (lenloc, line[0]))
+			if self.showPath:
+				newlines.append("%-*s " % (lennumpath, line[1]))
+			newlines.append("%s\n" % line[3])
 		self.lines = []
-		return result
+		return "".join(newlines)
 
 	def _doMultiLine(self, node, lines, formatter, head=None, tail=None):
 		loc = node.startLoc

@@ -104,7 +104,7 @@ class TidyURLInputSource(sax.xmlreader.InputSource):
 			urllib.urlcleanup() # throw away the temporary filename
 			raise
 
-	def __del__(self):
+	def close(self):
 		if self.tidyin is not None:
 			self.tidyin.close()
 		if self.tidyout is not None:
@@ -112,6 +112,9 @@ class TidyURLInputSource(sax.xmlreader.InputSource):
 		if self.tidyerr is not None:
 			self.tidyerr.close()
 		urllib.urlcleanup()
+
+	def __del__(self):
+		self.close()
 
 class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 	"""
@@ -380,5 +383,8 @@ def parseURL(url, namespaces=None, parser=None):
 	return parse(URLInputSource(url), parser, namespaces)
 
 def parseTidyURL(url, namespaces=None, parser=None):
-	return parse(TidyURLInputSource(url), parser, namespaces)
+	source = TidyURLInputSource(url)
+	result = parse(source, parser, namespaces)
+	source.close()
+	return result
 
