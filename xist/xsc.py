@@ -1120,9 +1120,6 @@ class XSCParser(xmllib.XMLParser):
 			e = _element_handlers[lowername]([],attrs)
 			e.startlineno = self.lineno
 		else:
-			for i in self.nesting:
-				print i.name,
-			print
 			raise XSCIllegalElementError(xsc.parser.lineno,lowername)
 		self.__appendNode(e)
 		self.nesting.append(e) # push new innermost element onto the stack
