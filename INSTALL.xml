@@ -19,22 +19,22 @@ to install the source distribution.</item>
 
 
 <section><title>Installation</title>
-<par>&xist; uses <app>distutils</app>, so installation is rather simple. Execute the following command:</par>
+<par><app>distutils</app> is used for installation, so it's rather simple.
+Execute the following command:</par>
 <prog>
 python setup.py install
 </prog>
-<par>This will copy <filename>*.py</filename> files, compile *.c files and install everything
-in the <dirname>site-packages</dirname>
+<par>This will copy <filename>*.py</filename> files, compile <filename>*.c</filename>
+files and install everything in the <dirname>site-packages</dirname>
 directory as the <module>ll.xist</module> package.</par>
 
-<par>If you're updating from a version older than 1.5, remove
-the old package <module>xist</module> from your installation directory
-and remove the <dirname>build</dirname> directory (if you're building from
-<app>&cvs;</app>).</par>
+<par>If you're updating from a version older than 1.5, remove the old package
+<module>xist</module> from your installation directory and remove the
+<dirname>build</dirname> directory (if you're building from source).</par>
 
 <par>If you're updating from a version older than 1.4, remove
 the old module <module>xist.url</module> as this is no longer needed
-and might collide with the new global module <module>url</module>.</par>
+and might collide with the new global module <module>ll.url</module>.</par>
 
 <par>For Windows a binary distribution is provided. To install it,
 double click it, and follow the instructions.</par>
