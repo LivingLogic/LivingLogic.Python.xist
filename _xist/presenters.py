@@ -659,7 +659,7 @@ class TreePresenter(Presenter):
 	"""
 	This presenter shows the object as a nested tree.
 	"""
-	def __init__(self, showLocation=1, showPath=1):
+	def __init__(self, showLocation=True, showPath=True):
 		self.showLocation = showLocation
 		self.showPath = showPath
 
