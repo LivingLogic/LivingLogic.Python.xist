@@ -65,45 +65,45 @@ class EnvTextForTab(EnvText):
 	"""
 	ANSI escape sequence to be used for tabs
 	"""
-	color = getColorsFromEnv("XSC_REPRANSI_TAB", (0x8, 0x8))
+	color = getColorsFromEnv("XSC_REPRANSI_TAB", (0x4, 0x8))
 
 class EnvTextForQuote(EnvText):
 	"""
 	ANSI escape sequence to be used for quotes
 	(delimiters for text and attribute nodes)
 	"""
-	color = getColorsFromEnv("XSC_REPRANSI_QUOTE", (0xa, 0xf))
+	color = getColorsFromEnv("XSC_REPRANSI_QUOTE", (0x3, 0xf))
 
 class EnvTextForSlash(EnvText):
-	color = getColorsFromEnv("XSC_REPRANSI_SLASH", (0x7, 0xf))
+	color = getColorsFromEnv("XSC_REPRANSI_SLASH", (0x3, 0xf))
 
 class EnvTextForBracket(EnvText):
 	"""
 	ANSI escape sequence to be used for quotes
 	(delimiters for text and attribute nodes)
 	"""
-	color = getColorsFromEnv("XSC_REPRANSI_BRACKET", (0xa, 0xf))
+	color = getColorsFromEnv("XSC_REPRANSI_BRACKET", (0x3, 0xf))
 
 class EnvTextForColon(EnvText):
 	"""
 	ANSI escape sequence to be used for colon
 	(i.e. namespace separator)
 	"""
-	color = getColorsFromEnv("XSC_REPRANSI_BRACKET", (0xa, 0xf))
+	color = getColorsFromEnv("XSC_REPRANSI_BRACKET", (0x3, 0xf))
 
 class EnvTextForQuestion(EnvText):
 	"""
 	ANSI escape sequence to be used for question marks
 	(delimiters for processing instructions)
 	"""
-	color = getColorsFromEnv("XSC_REPRANSI_QUESTION", (0xa, 0xf))
+	color = getColorsFromEnv("XSC_REPRANSI_QUESTION", (0x3, 0xf))
 
 class EnvTextForExclamation(EnvText):
 	"""
 	ANSI escape sequence to be used for exclamation marks
 	(used in comments and doctypes)
 	"""
-	color = getColorsFromEnv("XSC_REPRANSI_EXCLAMATION", (0xa, 0xf))
+	color = getColorsFromEnv("XSC_REPRANSI_EXCLAMATION", (0x3, 0xf))
 
 class EnvTextForText(EnvText):
 	"""
