@@ -665,7 +665,6 @@ def explain(thing, name=None, context=[]):
 					else:
 						baseclassname4text = baseclassname
 					ref = pyref(class_(baseclassname4text), module=baseclass.__module__, class_=baseclassname)
-						ref.insert(0, baseclass.__module__, ".")
 				bases.append(ref)
 			bases = bases.withSep(", ")
 			bases.insert(0, "(")
