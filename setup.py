@@ -17,5 +17,6 @@ setup(
 	licence = "Python",
 	packages = ['xist', 'xist.ns'],
 	package_dir = {"xist": "_xist"},
-	ext_modules = [Extension("xist.helpers", ["_xist/helpers.c"])]
+	ext_modules = [Extension("xist.helpers", ["_xist/helpers.c"])],
+	scripts = ["tools/dtd2xsc.py", "tools/docbooklite2text.py", "tools/xscmake.py" ]
 )

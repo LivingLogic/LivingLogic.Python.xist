@@ -102,6 +102,11 @@ make.py -n html -n spam eggs.xsc
 With this call the parser will find element classes from the
 module with the name <code>spam</code> before those
 from <code>html</code> and those before anything else.</li>
+
+<li><filename>make.py</filename> has been renamed to
+<filename>xscmake.py</filename> and moved to the
+<filename class="directory">tools</filename> directory,
+it will be installed as a callable script with <code>python setup.py install_scripts</code>.</li>
 </ul>
 </section>
 
