@@ -873,960 +873,961 @@ class usage_context_of_suppress_at_line_break(xsc.Element.Attrs):
 		xmlname = "usage-context-of-suppress-at-line-break"
 		values = ("auto", "observe", "ignore", "inherit")
 
+class color_profile(xsc.Element):
+	xmlname = "color-profile"
+	empty = True
+	class Attrs(src, color_profile_name, rendering_intent):
+		pass
+
+class declarations(xsc.Element):
+	empty = False
+	class Attrs(
+		# inheritable attributes
+		color_profile.Attrs
+		):
+		pass
+
+class root(xsc.Element):
+	empty = False
+	class Attrs(media_usage):
+		pass
+
+class page_sequence(xsc.Element):
+	xmlname = "page-sequence"
+	empty = False
+	class Attrs(
+		country,
+		format,
+		id,
+		language,
+		letter_value,
+		grouping_separator,
+		grouping_size,
+		initial_page_number,
+		force_page_count,
+		master_reference):
+		pass
+
+class layout_master_set(xsc.Element):
+	xmlname = "layout-master-set"
+	empty = False
+
+class page_sequence_master(xsc.Element):
+	xmlname = "page-sequence-master"
+	empty = False
+	class Attrs(master_name):
+		pass
+
+class single_page_master_reference(xsc.Element):
+	xmlname = "single-page-master-reference"
+	empty = True
+	class Attrs(master_reference):
+		pass
+
+class repeatable_page_master_reference(xsc.Element):
+	xmlname = "repeatable-page-master-reference"
+	empty = True
+	class Attrs(master_reference, maximum_repeats):
+		pass
+
+class repeatable_page_master_alternatives(xsc.Element):
+	xmlname = "repeatable-page-master-alternatives"
+	empty = False
+	class Attrs(maximum_repeats):
+		pass
+
+class conditional_page_master_reference(xsc.Element):
+	xmlname = "conditional-page-master-reference"
+	empty = True
+	class Attrs(master_reference, page_position, odd_or_even, blank_or_not_blank):
+		pass
+
+class simple_page_master(xsc.Element):
+	xmlname = "simple-page-master"
+	empty = False
+	class Attrs(
+		common_margin_properties_block,
+		master_name,
+		page_height,
+		page_width,
+		reference_orientation,
+		writing_mode):
+		pass
+
+class region_body(xsc.Element):
+	xmlname = "region-body"
+	empty = True
+	class Attrs(
+		common_border_padding_background_properties,
+		common_margin_properties_block,
+		clip,
+		column_count,
+		column_gap,
+		display_align,
+		overflow,
+		reference_orientation,
+		region_name,
+		writing_mode):
+		pass
+
+class region_before(xsc.Element):
+	xmlname = "region-before"
+	empty = True
+	class Attrs(
+		common_border_padding_background_properties,
+		clip,
+		display_align,
+		extent,
+		overflow,
+		reference_orientation,
+		region_name,
+		precedence,
+		writing_mode):
+		pass
+
+class region_after(xsc.Element):
+	xmlname = "region-after"
+	empty = True
+	class Attrs(
+		common_border_padding_background_properties,
+		clip,
+		display_align,
+		extent,
+		overflow,
+		reference_orientation,
+		region_name,
+		precedence,
+		writing_mode):
+		pass
+
+class region_start(xsc.Element):
+	xmlname = "region-start"
+	empty = True
+	class Attrs(
+		common_border_padding_background_properties,
+		clip,
+		display_align,
+		extent,
+		overflow,
+		reference_orientation,
+		region_name,
+		writing_mode):
+		pass
+
+class region_end(xsc.Element):
+	xmlname = "region-end"
+	empty = True
+	class Attrs(
+		common_border_padding_background_properties,
+		clip,
+		display_align,
+		extent,
+		overflow,
+		reference_orientation,
+		region_name,
+		writing_mode):
+		pass
+
+class flow(xsc.Element):
+	empty = False
+	class Attrs(flow_name):
+		pass
+
+class static_content(xsc.Element):
+	xmlname = "static-content"
+	empty = False
+	class Attrs(flow_name):
+		pass
+
+class title(xsc.Element):
+	empty = False
+	class Attrs(
+		common_accessibility_properties,
+		common_aural_properties,
+		common_border_padding_background_properties,
+		common_font_properties,
+		common_margin_properties_inline,
+		color,
+		line_height,
+		visibility):
+		pass
+
+class block(xsc.Element):
+	empty = False
+	class Attrs(
+		common_accessibility_properties,
+		common_aural_properties,
+		common_border_padding_background_properties,
+		common_font_properties,
+		common_hyphenation_properties,
+		common_margin_properties_block,
+		common_relative_position_properties,
+		break_after,
+		break_before,
+		color,
+		text_depth,
+		text_altitude,
+		hyphenation_keep,
+		hyphenation_ladder_count,
+		id,
+		intrusion_displace,
+		keep_together,
+		keep_with_next,
+		keep_with_previous,
+		last_line_end_indent,
+		linefeed_treatment,
+		line_height,
+		line_height_shift_adjustment,
+		line_stacking_strategy,
+		orphans,
+		white_space_treatment,
+		span,
+		text_align,
+		text_align_last,
+		text_indent,
+		usage_context_of_suppress_at_line_break,
+		visibility,
+		white_space_collapse,
+		widows,
+		wrap_option):
+		pass
+
+class block_container(xsc.Element):
+	xmlname = "block-container"
+	empty = False
+	class Attrs(
+		common_absolute_position_properties,
+		common_border_padding_background_properties,
+		common_margin_properties_block,
+		block_progression_dimension,
+		break_after,
+		break_before,
+		clip,
+		display_align,
+		height,
+		id,
+		inline_progression_dimension,
+		intrusion_displace,
+		keep_together,
+		keep_with_next,
+		keep_with_previous,
+		overflow,
+		reference_orientation,
+		span,
+		width,
+		writing_mode,
+		z_index):
+		pass
+
+class bidi_override(xsc.Element):
+	xmlname = "bidi-override"
+	empty = False
+	class Attrs(
+		common_aural_properties,
+		common_font_properties,
+		common_relative_position_properties,
+		color,
+		direction,
+		id,
+		letter_spacing,
+		line_height,
+		score_spaces,
+		unicode_bidi,
+		word_spacing):
+		pass
+
+class character(xsc.Element):
+	empty = True
+	class Attrs(
+		common_aural_properties,
+		common_border_padding_background_properties,
+		common_font_properties,
+		common_hyphenation_properties,
+		common_margin_properties_inline,
+		common_relative_position_properties,
+		alignment_adjust,
+		treat_as_word_space,
+		alignment_baseline,
+		baseline_shift,
+		character,
+		color,
+		dominant_baseline,
+		text_depth,
+		text_altitude,
+		glyph_orientation_horizontal,
+		glyph_orientation_vertical,
+		id,
+		keep_with_next,
+		keep_with_previous,
+		letter_spacing,
+		line_height,
+		score_spaces,
+		suppress_at_line_break,
+		text_decoration,
+		text_shadow,
+		text_transform,
+		visibility,
+		word_spacing):
+		pass
+
+class initial_property_set(xsc.Element):
+	xmlname = "initial-property-set"
+	empty = True
+	class Attrs(
+		common_accessibility_properties,
+		common_aural_properties,
+		common_border_padding_background_properties,
+		common_font_properties,
+		common_relative_position_properties,
+		color,
+		id,
+		letter_spacing,
+		line_height,
+		score_spaces,
+		text_decoration,
+		text_shadow,
+		text_transform,
+		word_spacing):
+		pass
+
+class external_graphic(xsc.Element):
+	xmlname = "external-graphic"
+	empty = True
+	class Attrs(
+		common_accessibility_properties,
+		common_aural_properties,
+		common_border_padding_background_properties,
+		common_font_properties,
+		common_margin_properties_inline,
+		common_relative_position_properties,
+		alignment_adjust,
+		alignment_baseline,
+		baseline_shift,
+		block_progression_dimension,
+		clip,
+		content_height,
+		content_type,
+		content_width,
+		display_align,
+		dominant_baseline,
+		height,
+		id,
+		inline_progression_dimension,
+		keep_with_next,
+		keep_with_previous,
+		line_height,
+		overflow,
+		scaling,
+		scaling_method,
+		src,
+		text_align,
+		width):
+		pass
+
+class instream_foreign_object(xsc.Element):
+	xmlname = "instream-foreign-object"
+	empty = False
+	class Attrs(
+		common_accessibility_properties,
+		common_aural_properties,
+		common_border_padding_background_properties,
+		common_font_properties,
+		common_margin_properties_inline,
+		common_relative_position_properties,
+		alignment_adjust,
+		alignment_baseline,
+		baseline_shift,
+		block_progression_dimension,
+		clip,
+		content_height,
+		content_type,
+		content_width,
+		display_align,
+		dominant_baseline,
+		height,
+		id,
+		inline_progression_dimension,
+		keep_with_next,
+		keep_with_previous,
+		line_height,
+		overflow,
+		scaling,
+		scaling_method,
+		text_align,
+		width):
+		pass
+
+class inline(xsc.Element):
+	empty = False
+	class Attrs(
+		common_accessibility_properties,
+		common_aural_properties,
+		common_border_padding_background_properties,
+		common_font_properties,
+		common_margin_properties_inline,
+		common_relative_position_properties,
+		alignment_adjust,
+		alignment_baseline,
+		baseline_shift,
+		block_progression_dimension,
+		color,
+		dominant_baseline,
+		height,
+		id,
+		inline_progression_dimension,
+		keep_together,
+		keep_with_next,
+		keep_with_previous,
+		line_height,
+		text_decoration,
+		usage_context_of_suppress_at_line_break,
+		visibility,
+		width,
+		wrap_option):
+		pass
+
+class inline_container(xsc.Element):
+	xmlname = "inline-container"
+	empty = False
+	class Attrs(
+		common_border_padding_background_properties,
+		common_margin_properties_inline,
+		common_relative_position_properties,
+		alignment_adjust,
+		alignment_baseline,
+		baseline_shift,
+		block_progression_dimension,
+		clip,
+		display_align,
+		dominant_baseline,
+		height,
+		id,
+		inline_progression_dimension,
+		keep_together,
+		keep_with_next,
+		keep_with_previous,
+		line_height,
+		overflow,
+		reference_orientation,
+		width,
+		writing_mode):
+		pass
+
+class leader(xsc.Element):
+	empty = False
+	class Attrs(
+		common_accessibility_properties,
+		common_aural_properties,
+		common_border_padding_background_properties,
+		common_font_properties,
+		common_margin_properties_inline,
+		common_relative_position_properties,
+		alignment_adjust,
+		alignment_baseline,
+		baseline_shift,
+		color,
+		dominant_baseline,
+		text_depth,
+		text_altitude,
+		id,
+		keep_with_next,
+		keep_with_previous,
+		leader_alignment,
+		leader_length,
+		leader_pattern,
+		leader_pattern_width,
+		rule_style,
+		rule_thickness,
+		letter_spacing,
+		line_height,
+		text_shadow,
+		visibility,
+		word_spacing):
+		pass
+
+class page_number(xsc.Element):
+	xmlname = "page-number"
+	empty = True
+	class Attrs(
+		common_accessibility_properties,
+		common_aural_properties,
+		common_border_padding_background_properties,
+		common_font_properties,
+		common_margin_properties_inline,
+		common_relative_position_properties,
+		alignment_adjust,
+		alignment_baseline,
+		baseline_shift,
+		dominant_baseline,
+		id,
+		keep_with_next,
+		keep_with_previous,
+		letter_spacing,
+		line_height,
+		score_spaces,
+		text_altitude,
+		text_decoration,
+		text_depth,
+		text_shadow,
+		text_transform,
+		usage_context_of_suppress_at_line_break,
+		visibility,
+		word_spacing,
+		wrap_option):
+		pass
+
+class page_number_citation(xsc.Element):
+	xmlname = "page-number-citation"
+	empty = True
+	class Attrs(
+		common_accessibility_properties,
+		common_aural_properties,
+		common_border_padding_background_properties,
+		common_font_properties,
+		common_margin_properties_inline,
+		common_relative_position_properties,
+		alignment_adjust,
+		alignment_baseline,
+		baseline_shift,
+		dominant_baseline,
+		id,
+		keep_with_next,
+		keep_with_previous,
+		letter_spacing,
+		line_height,
+		ref_id,
+		score_spaces,
+		text_altitude,
+		text_decoration,
+		text_depth,
+		text_shadow,
+		text_transform,
+		usage_context_of_suppress_at_line_break,
+		visibility,
+		word_spacing,
+		wrap_option):
+		pass
+
+class table_and_caption(xsc.Element):
+	xmlname = "table-and-caption"
+	empty = False
+	class Attrs(
+		common_accessibility_properties,
+		common_aural_properties,
+		common_border_padding_background_properties,
+		common_margin_properties_block,
+		common_relative_position_properties,
+		break_after,
+		break_before,
+		caption_side,
+		id,
+		intrusion_displace,
+		keep_together,
+		keep_with_next,
+		keep_with_previous,
+		text_align):
+		pass
+
+class table(xsc.Element):
+	empty = False
+	class Attrs(
+		common_accessibility_properties,
+		common_aural_properties,
+		common_border_padding_background_properties,
+		common_margin_properties_block,
+		common_relative_position_properties,
+		block_progression_dimension,
+		border_after_precedence,
+		border_before_precedence,
+		border_collapse,
+		border_end_precedence,
+		border_separation,
+		border_start_precedence,
+		break_after,
+		break_before,
+		id,
+		inline_progression_dimension,
+		intrusion_displace,
+		height,
+		keep_together,
+		keep_with_next,
+		keep_with_previous,
+		table_layout,
+		table_omit_footer_at_break,
+		table_omit_header_at_break,
+		width,
+		writing_mode):
+		pass
+
+class table_column(xsc.Element):
+	xmlname = "table-column"
+	empty = True
+	class Attrs(
+		common_border_padding_background_properties,
+		border_after_precedence,
+		border_before_precedence,
+		border_end_precedence,
+		border_start_precedence,
+		column_number,
+		column_width,
+		number_columns_repeated,
+		number_columns_spanned,
+		visibility):
+		pass
+
+class table_caption(xsc.Element):
+	xmlname = "table-caption"
+	empty = False
+	class Attrs(
+		common_accessibility_properties,
+		common_aural_properties,
+		common_border_padding_background_properties,
+		common_relative_position_properties,
+		block_progression_dimension,
+		height,
+		id,
+		inline_progression_dimension,
+		intrusion_displace,
+		keep_together,
+		width):
+		pass
+
+class table_header(xsc.Element):
+	xmlname = "table-header"
+	empty = False
+	class Attrs(
+		common_accessibility_properties,
+		common_aural_properties,
+		common_border_padding_background_properties,
+		common_relative_position_properties,
+		border_after_precedence,
+		border_before_precedence,
+		border_end_precedence,
+		border_start_precedence,
+		id,
+		visibility):
+		pass
+
+class table_footer(xsc.Element):
+	xmlname = "table-footer"
+	empty = False
+	class Attrs(
+		common_accessibility_properties,
+		common_aural_properties,
+		common_border_padding_background_properties,
+		common_relative_position_properties,
+		border_after_precedence,
+		border_before_precedence,
+		border_end_precedence,
+		border_start_precedence,
+		id,
+		visibility):
+		pass
+
+class table_body(xsc.Element):
+	xmlname = "table-body"
+	empty = False
+	class Attrs(
+		common_accessibility_properties,
+		common_aural_properties,
+		common_border_padding_background_properties,
+		common_relative_position_properties,
+		border_after_precedence,
+		border_before_precedence,
+		border_end_precedence,
+		border_start_precedence,
+		id,
+		visibility):
+		pass
+
+class table_row(xsc.Element):
+	xmlname = "table-row"
+	empty = False
+	class Attrs(
+		common_accessibility_properties,
+		common_aural_properties,
+		common_border_padding_background_properties,
+		common_relative_position_properties,
+		block_progression_dimension,
+		border_after_precedence,
+		border_before_precedence,
+		border_end_precedence,
+		border_start_precedence,
+		break_after,
+		break_before,
+		id,
+		height,
+		keep_together,
+		keep_with_next,
+		keep_with_previous,
+		visibility):
+		pass
+
+class table_cell(xsc.Element):
+	xmlname = "table-cell"
+	empty = False
+	class Attrs(
+		common_accessibility_properties,
+		common_aural_properties,
+		common_border_padding_background_properties,
+		common_relative_position_properties,
+		border_after_precedence,
+		border_before_precedence,
+		border_end_precedence,
+		border_start_precedence,
+		block_progression_dimension,
+		column_number,
+		display_align,
+		relative_align,
+		empty_cells,
+		ends_row,
+		height,
+		id,
+		inline_progression_dimension,
+		number_columns_spanned,
+		number_rows_spanned,
+		starts_row,
+		width):
+		pass
+
+class list_block(xsc.Element):
+	xmlname = "list-block"
+	empty = False
+	class Attrs(
+		common_accessibility_properties,
+		common_aural_properties,
+		common_border_padding_background_properties,
+		common_margin_properties_block,
+		common_relative_position_properties,
+		break_after,
+		break_before,
+		id,
+		intrusion_displace,
+		keep_together,
+		keep_with_next,
+		keep_with_previous,
+		provisional_distance_between_starts,
+		provisional_label_separation):
+		pass
+
+class list_item(xsc.Element):
+	xmlname = "list-item"
+	empty = False
+	class Attrs(
+		common_accessibility_properties,
+		common_aural_properties,
+		common_border_padding_background_properties,
+		common_margin_properties_block,
+		common_relative_position_properties,
+		break_after,
+		break_before,
+		id,
+		intrusion_displace,
+		keep_together,
+		keep_with_next,
+		keep_with_previous,
+		relative_align):
+		pass
+
+class list_item_body(xsc.Element):
+	xmlname = "list-item-body"
+	empty = False
+	class Attrs(
+		common_accessibility_properties,
+		id,
+		keep_together):
+		pass
+
+class list_item_label(xsc.Element):
+	xmlname = "list-item-label"
+	empty = False
+	class Attrs(
+		common_accessibility_properties,
+		id,
+		keep_together):
+		pass
+
+class basic_link(xsc.Element):
+	xmlname = "basic-link"
+	empty = False
+	class Attrs(
+		common_accessibility_properties,
+		common_aural_properties,
+		common_border_padding_background_properties,
+		common_margin_properties_inline,
+		common_relative_position_properties,
+		alignment_adjust,
+		alignment_baseline,
+		baseline_shift,
+		destination_placement_offset,
+		dominant_baseline,
+		external_destination,
+		id,
+		indicate_destination,
+		internal_destination,
+		keep_together,
+		keep_with_next,
+		keep_with_previous,
+		line_height,
+		show_destination,
+		target_processing_context,
+		target_presentation_context,
+		target_stylesheet):
+		pass
+
+class multi_switch(xsc.Element):
+	xmlname = "multi-switch"
+	empty = False
+	class Attrs(
+		common_accessibility_properties,
+		auto_restore,
+		id):
+		pass
+
+class multi_case(xsc.Element):
+	xmlname = "multi-case"
+	empty = False
+	class Attrs(
+		common_accessibility_properties,
+		id,
+		starting_state,
+		case_name,
+		case_title):
+		pass
+
+class multi_toggle(xsc.Element):
+	xmlname = "multi-toggle"
+	empty = False
+	class Attrs(
+		common_accessibility_properties,
+		id,
+		switch_to):
+		pass
+
+class multi_properties(xsc.Element):
+	xmlname = "multi-properties"
+	empty = False
+	class Attrs(
+		common_accessibility_properties,
+		id):
+		pass
+
+class multi_property_set(xsc.Element):
+	xmlname = "multi-property-set"
+	empty = False
+	class Attrs(
+		id,
+		active_state):
+		pass
+
+class float(xsc.Element):
+	empty = False
+	class Attrs(
+		float,
+		clear):
+		pass
+
+class footnote(xsc.Element):
+	empty = False
+	class Attrs(
+		common_accessibility_properties
+		):
+		pass
+
+class footnote_body(xsc.Element):
+	xmlname = "footnote-body"
+	empty = False
+	class Attrs(
+		common_accessibility_properties
+		):
+		pass
+
+class wrapper(xsc.Element):
+	empty = False
+	class Attrs(
+		id
+		):
+		pass
+
+class marker(xsc.Element):
+	empty = False
+	class Attrs(
+		marker_class_name
+		):
+		pass
+
+class retrieve_marker(xsc.Element):
+	xmlname = "retrieve-marker"
+	empty = True
+	class Attrs(
+		retrieve_class_name,
+		retrieve_position,
+		retrieve_boundary
+		):
+		pass
+
+pe_block = (block, block_container, table_and_caption, table, list_block)
+pe_inline = (bidi_override, character, external_graphic, instream_foreign_object, inline, inline_container, leader, page_number, page_number_citation, basic_link, multi_toggle)
+pe_neutral = (multi_switch, multi_properties, wrapper, retrieve_marker)
+
+root.content = (layout_master_set, declarations, page_sequence)
+declarations.content = (color_profile,)
+color_profile.content = ()
+page_sequence.content = (title, static_content, flow)
+layout_master_set.content = (simple_page_master, page_sequence_master)
+page_sequence_master.content = (single_page_master_reference, repeatable_page_master_reference, repeatable_page_master_alternatives)
+single_page_master_reference.content = ()
+repeatable_page_master_reference.content = ()
+repeatable_page_master_alternatives.content = (conditional_page_master_reference,)
+conditional_page_master_reference.content = ()
+simple_page_master.content = (region_body, region_before, region_after, region_start, region_end)
+region_body.content = ()
+region_before.content = ()
+region_after.content = ()
+region_start.content = ()
+region_end.content = ()
+flow.content = pe_block + (marker,)
+static_content.content = pe_block
+title.content = pe_inline
+block.content = pe_inline + pe_block
+block_container.content = pe_block
+bidi_override.content = pe_inline + pe_block
+character.content = ()
+initial_property_set.content = ()
+external_graphic.content = ()
+instream_foreign_object.content = ()
+inline.content = pe_inline + pe_block
+inline_container.content = pe_block
+leader.content = pe_inline
+page_number.content = ()
+page_number_citation.content = ()
+table_and_caption.content = (table_caption, table)
+table.content = (table_column, table_header, table_footer, table_body)
+table_column.content = ()
+table_caption.content = pe_block + (marker,)
+table_header.content = (table_row, table_cell, marker)
+table_footer.content = (table_row, table_cell, marker)
+table_body.content = (table_row, table_cell, marker)
+table_row.content = (table_cell,)
+table_cell.content = pe_block + (marker,)
+list_block.content = (list_item, marker)
+list_item.content = (list_item_label, list_item_body, marker)
+list_item_body.content = pe_block + (marker,)
+list_item_label.content = pe_block + (marker,)
+basic_link.content = pe_inline + pe_block + (marker,)
+multi_switch.content = (multi_case,)
+multi_case.content = pe_inline + pe_block + (multi_toggle,) ### More attributes are allowed
+multi_toggle.content = pe_inline + pe_block
+multi_properties.content = (multi_property_set, wrapper)
+multi_property_set.content = ()
+float.content = pe_block
+footnote.content = (pe_inline, footnote_body)
+wrapper.content = pe_inline + pe_block + (marker,)
+marker.content = pe_inline + pe_block
+retrieve_marker.content = ()
+
 class fo(xsc.Namespace):
 	xmlurl = "http://www.w3.org/1999/XSL/Format"
 
-	class DocType10(xsc.DocType):
-		"""
-		document type for XSL (FO) 1.0
-		"""
-		def __init__(self):
-			xsc.DocType.__init__(self, '???svg PUBLIC "-//W3C//DTD SVG 1.0//EN" "http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd"')
+xsc.makensmodfromns(fo, vars())
 
-	class root(xsc.Element):
-		empty = False
-		class Attrs(media_usage):
-			pass
-
-	class declarations(xsc.Element):
-		empty = False
-
-	class color_profile(xsc.Element):
-		xmlname = "color-profile"
-		empty = True
-		class Attrs(src, color_profile_name, rendering_intent):
-			pass
-
-	class page_sequence(xsc.Element):
-		xmlname = "page-sequence"
-		empty = False
-		class Attrs(
-			country,
-			format,
-			id,
-			language,
-			letter_value,
-			grouping_separator,
-			grouping_size,
-			initial_page_number,
-			force_page_count,
-			master_reference):
-			pass
-
-	class layout_master_set(xsc.Element):
-		xmlname = "layout-master-set"
-		empty = False
-
-	class page_sequence_master(xsc.Element):
-		xmlname = "page-sequence-master"
-		empty = False
-		class Attrs(master_name):
-			pass
-
-	class single_page_master_reference(xsc.Element):
-		xmlname = "single-page-master-reference"
-		empty = True
-		class Attrs(master_reference):
-			pass
-
-	class repeatable_page_master_reference(xsc.Element):
-		xmlname = "repeatable-page-master-reference"
-		empty = True
-		class Attrs(master_reference, maximum_repeats):
-			pass
-
-	class repeatable_page_master_alternatives(xsc.Element):
-		xmlname = "repeatable-page-master-alternatives"
-		empty = False
-		class Attrs(maximum_repeats):
-			pass
-
-	class conditional_page_master_reference(xsc.Element):
-		xmlname = "conditional-page-master-reference"
-		empty = True
-		class Attrs(master_reference, page_position, odd_or_even, blank_or_not_blank):
-			pass
-
-	class simple_page_master(xsc.Element):
-		xmlname = "simple-page-master"
-		empty = False
-		class Attrs(
-			common_margin_properties_block,
-			master_name,
-			page_height,
-			page_width,
-			reference_orientation,
-			writing_mode):
-			pass
-
-	class region_body(xsc.Element):
-		xmlname = "region-body"
-		empty = True
-		class Attrs(
-			common_border_padding_background_properties,
-			common_margin_properties_block,
-			clip,
-			column_count,
-			column_gap,
-			display_align,
-			overflow,
-			reference_orientation,
-			region_name,
-			writing_mode):
-			pass
-
-	class region_before(xsc.Element):
-		xmlname = "region-before"
-		empty = True
-		class Attrs(
-			common_border_padding_background_properties,
-			clip,
-			display_align,
-			extent,
-			overflow,
-			reference_orientation,
-			region_name,
-			precedence,
-			writing_mode):
-			pass
-
-	class region_after(xsc.Element):
-		xmlname = "region-after"
-		empty = True
-		class Attrs(
-			common_border_padding_background_properties,
-			clip,
-			display_align,
-			extent,
-			overflow,
-			reference_orientation,
-			region_name,
-			precedence,
-			writing_mode):
-			pass
-
-	class region_start(xsc.Element):
-		xmlname = "region-start"
-		empty = True
-		class Attrs(
-			common_border_padding_background_properties,
-			clip,
-			display_align,
-			extent,
-			overflow,
-			reference_orientation,
-			region_name,
-			writing_mode):
-			pass
-
-	class region_end(xsc.Element):
-		xmlname = "region-end"
-		empty = True
-		class Attrs(
-			common_border_padding_background_properties,
-			clip,
-			display_align,
-			extent,
-			overflow,
-			reference_orientation,
-			region_name,
-			writing_mode):
-			pass
-
-	class flow(xsc.Element):
-		empty = False
-		class Attrs(flow_name):
-			pass
-
-	class static_content(xsc.Element):
-		xmlname = "static-content"
-		empty = False
-		class Attrs(flow_name):
-			pass
-
-	class title(xsc.Element):
-		empty = False
-		class Attrs(
-			common_accessibility_properties,
-			common_aural_properties,
-			common_border_padding_background_properties,
-			common_font_properties,
-			common_margin_properties_inline,
-			color,
-			line_height,
-			visibility):
-			pass
-
-	class block(xsc.Element):
-		empty = False
-		class Attrs(
-			common_accessibility_properties,
-			common_aural_properties,
-			common_border_padding_background_properties,
-			common_font_properties,
-			common_hyphenation_properties,
-			common_margin_properties_block,
-			common_relative_position_properties,
-			break_after,
-			break_before,
-			color,
-			text_depth,
-			text_altitude,
-			hyphenation_keep,
-			hyphenation_ladder_count,
-			id,
-			intrusion_displace,
-			keep_together,
-			keep_with_next,
-			keep_with_previous,
-			last_line_end_indent,
-			linefeed_treatment,
-			line_height,
-			line_height_shift_adjustment,
-			line_stacking_strategy,
-			orphans,
-			white_space_treatment,
-			span,
-			text_align,
-			text_align_last,
-			text_indent,
-			usage_context_of_suppress_at_line_break,
-			visibility,
-			white_space_collapse,
-			widows,
-			wrap_option):
-			pass
-
-	class block_container(xsc.Element):
-		xmlname = "block-container"
-		empty = False
-		class Attrs(
-			common_absolute_position_properties,
-			common_border_padding_background_properties,
-			common_margin_properties_block,
-			block_progression_dimension,
-			break_after,
-			break_before,
-			clip,
-			display_align,
-			height,
-			id,
-			inline_progression_dimension,
-			intrusion_displace,
-			keep_together,
-			keep_with_next,
-			keep_with_previous,
-			overflow,
-			reference_orientation,
-			span,
-			width,
-			writing_mode,
-			z_index):
-			pass
-
-	class bidi_override(xsc.Element):
-		xmlname = "bidi-override"
-		empty = False
-		class Attrs(
-			common_aural_properties,
-			common_font_properties,
-			common_relative_position_properties,
-			color,
-			direction,
-			id,
-			letter_spacing,
-			line_height,
-			score_spaces,
-			unicode_bidi,
-			word_spacing):
-			pass
-
-	class character(xsc.Element):
-		empty = True
-		class Attrs(
-			common_aural_properties,
-			common_border_padding_background_properties,
-			common_font_properties,
-			common_hyphenation_properties,
-			common_margin_properties_inline,
-			common_relative_position_properties,
-			alignment_adjust,
-			treat_as_word_space,
-			alignment_baseline,
-			baseline_shift,
-			character,
-			color,
-			dominant_baseline,
-			text_depth,
-			text_altitude,
-			glyph_orientation_horizontal,
-			glyph_orientation_vertical,
-			id,
-			keep_with_next,
-			keep_with_previous,
-			letter_spacing,
-			line_height,
-			score_spaces,
-			suppress_at_line_break,
-			text_decoration,
-			text_shadow,
-			text_transform,
-			visibility,
-			word_spacing):
-			pass
-
-	class initial_property_set(xsc.Element):
-		xmlname = "initial-property-set"
-		empty = True
-		class Attrs(
-			common_accessibility_properties,
-			common_aural_properties,
-			common_border_padding_background_properties,
-			common_font_properties,
-			common_relative_position_properties,
-			color,
-			id,
-			letter_spacing,
-			line_height,
-			score_spaces,
-			text_decoration,
-			text_shadow,
-			text_transform,
-			word_spacing):
-			pass
-
-	class external_graphic(xsc.Element):
-		xmlname = "external-graphic"
-		empty = True
-		class Attrs(
-			common_accessibility_properties,
-			common_aural_properties,
-			common_border_padding_background_properties,
-			common_font_properties,
-			common_margin_properties_inline,
-			common_relative_position_properties,
-			alignment_adjust,
-			alignment_baseline,
-			baseline_shift,
-			block_progression_dimension,
-			clip,
-			content_height,
-			content_type,
-			content_width,
-			display_align,
-			dominant_baseline,
-			height,
-			id,
-			inline_progression_dimension,
-			keep_with_next,
-			keep_with_previous,
-			line_height,
-			overflow,
-			scaling,
-			scaling_method,
-			src,
-			text_align,
-			width):
-			pass
-
-	class instream_foreign_object(xsc.Element):
-		xmlname = "instream-foreign-object"
-		empty = False
-		class Attrs(
-			common_accessibility_properties,
-			common_aural_properties,
-			common_border_padding_background_properties,
-			common_font_properties,
-			common_margin_properties_inline,
-			common_relative_position_properties,
-			alignment_adjust,
-			alignment_baseline,
-			baseline_shift,
-			block_progression_dimension,
-			clip,
-			content_height,
-			content_type,
-			content_width,
-			display_align,
-			dominant_baseline,
-			height,
-			id,
-			inline_progression_dimension,
-			keep_with_next,
-			keep_with_previous,
-			line_height,
-			overflow,
-			scaling,
-			scaling_method,
-			text_align,
-			width):
-			pass
-
-	class inline(xsc.Element):
-		empty = False
-		class Attrs(
-			common_accessibility_properties,
-			common_aural_properties,
-			common_border_padding_background_properties,
-			common_font_properties,
-			common_margin_properties_inline,
-			common_relative_position_properties,
-			alignment_adjust,
-			alignment_baseline,
-			baseline_shift,
-			block_progression_dimension,
-			color,
-			dominant_baseline,
-			height,
-			id,
-			inline_progression_dimension,
-			keep_together,
-			keep_with_next,
-			keep_with_previous,
-			line_height,
-			text_decoration,
-			usage_context_of_suppress_at_line_break,
-			visibility,
-			width,
-			wrap_option):
-			pass
-
-	class inline_container(xsc.Element):
-		xmlname = "inline-container"
-		empty = False
-		class Attrs(
-			common_border_padding_background_properties,
-			common_margin_properties_inline,
-			common_relative_position_properties,
-			alignment_adjust,
-			alignment_baseline,
-			baseline_shift,
-			block_progression_dimension,
-			clip,
-			display_align,
-			dominant_baseline,
-			height,
-			id,
-			inline_progression_dimension,
-			keep_together,
-			keep_with_next,
-			keep_with_previous,
-			line_height,
-			overflow,
-			reference_orientation,
-			width,
-			writing_mode):
-			pass
-
-	class leader(xsc.Element):
-		empty = False
-		class Attrs(
-			common_accessibility_properties,
-			common_aural_properties,
-			common_border_padding_background_properties,
-			common_font_properties,
-			common_margin_properties_inline,
-			common_relative_position_properties,
-			alignment_adjust,
-			alignment_baseline,
-			baseline_shift,
-			color,
-			dominant_baseline,
-			text_depth,
-			text_altitude,
-			id,
-			keep_with_next,
-			keep_with_previous,
-			leader_alignment,
-			leader_length,
-			leader_pattern,
-			leader_pattern_width,
-			rule_style,
-			rule_thickness,
-			letter_spacing,
-			line_height,
-			text_shadow,
-			visibility,
-			word_spacing):
-			pass
-
-	class page_number(xsc.Element):
-		xmlname = "page-number"
-		empty = True
-		class Attrs(
-			common_accessibility_properties,
-			common_aural_properties,
-			common_border_padding_background_properties,
-			common_font_properties,
-			common_margin_properties_inline,
-			common_relative_position_properties,
-			alignment_adjust,
-			alignment_baseline,
-			baseline_shift,
-			dominant_baseline,
-			id,
-			keep_with_next,
-			keep_with_previous,
-			letter_spacing,
-			line_height,
-			score_spaces,
-			text_altitude,
-			text_decoration,
-			text_depth,
-			text_shadow,
-			text_transform,
-			usage_context_of_suppress_at_line_break,
-			visibility,
-			word_spacing,
-			wrap_option):
-			pass
-
-	class page_number_citation(xsc.Element):
-		xmlname = "page-number-citation"
-		empty = True
-		class Attrs(
-			common_accessibility_properties,
-			common_aural_properties,
-			common_border_padding_background_properties,
-			common_font_properties,
-			common_margin_properties_inline,
-			common_relative_position_properties,
-			alignment_adjust,
-			alignment_baseline,
-			baseline_shift,
-			dominant_baseline,
-			id,
-			keep_with_next,
-			keep_with_previous,
-			letter_spacing,
-			line_height,
-			ref_id,
-			score_spaces,
-			text_altitude,
-			text_decoration,
-			text_depth,
-			text_shadow,
-			text_transform,
-			usage_context_of_suppress_at_line_break,
-			visibility,
-			word_spacing,
-			wrap_option):
-			pass
-
-	class table_and_caption(xsc.Element):
-		xmlname = "table-and-caption"
-		empty = False
-		class Attrs(
-			common_accessibility_properties,
-			common_aural_properties,
-			common_border_padding_background_properties,
-			common_margin_properties_block,
-			common_relative_position_properties,
-			break_after,
-			break_before,
-			caption_side,
-			id,
-			intrusion_displace,
-			keep_together,
-			keep_with_next,
-			keep_with_previous,
-			text_align):
-			pass
-
-	class table(xsc.Element):
-		empty = False
-		class Attrs(
-			common_accessibility_properties,
-			common_aural_properties,
-			common_border_padding_background_properties,
-			common_margin_properties_block,
-			common_relative_position_properties,
-			block_progression_dimension,
-			border_after_precedence,
-			border_before_precedence,
-			border_collapse,
-			border_end_precedence,
-			border_separation,
-			border_start_precedence,
-			break_after,
-			break_before,
-			id,
-			inline_progression_dimension,
-			intrusion_displace,
-			height,
-			keep_together,
-			keep_with_next,
-			keep_with_previous,
-			table_layout,
-			table_omit_footer_at_break,
-			table_omit_header_at_break,
-			width,
-			writing_mode):
-			pass
-
-	class table_column(xsc.Element):
-		xmlname = "table-column"
-		empty = True
-		class Attrs(
-			common_border_padding_background_properties,
-			border_after_precedence,
-			border_before_precedence,
-			border_end_precedence,
-			border_start_precedence,
-			column_number,
-			column_width,
-			number_columns_repeated,
-			number_columns_spanned,
-			visibility):
-			pass
-
-	class table_caption(xsc.Element):
-		xmlname = "table-caption"
-		empty = False
-		class Attrs(
-			common_accessibility_properties,
-			common_aural_properties,
-			common_border_padding_background_properties,
-			common_relative_position_properties,
-			block_progression_dimension,
-			height,
-			id,
-			inline_progression_dimension,
-			intrusion_displace,
-			keep_together,
-			width):
-			pass
-
-	class table_header(xsc.Element):
-		xmlname = "table-header"
-		empty = False
-		class Attrs(
-			common_accessibility_properties,
-			common_aural_properties,
-			common_border_padding_background_properties,
-			common_relative_position_properties,
-			border_after_precedence,
-			border_before_precedence,
-			border_end_precedence,
-			border_start_precedence,
-			id,
-			visibility):
-			pass
-
-	class table_footer(xsc.Element):
-		xmlname = "table-footer"
-		empty = False
-		class Attrs(
-			common_accessibility_properties,
-			common_aural_properties,
-			common_border_padding_background_properties,
-			common_relative_position_properties,
-			border_after_precedence,
-			border_before_precedence,
-			border_end_precedence,
-			border_start_precedence,
-			id,
-			visibility):
-			pass
-
-	class table_body(xsc.Element):
-		xmlname = "table-body"
-		empty = False
-		class Attrs(
-			common_accessibility_properties,
-			common_aural_properties,
-			common_border_padding_background_properties,
-			common_relative_position_properties,
-			border_after_precedence,
-			border_before_precedence,
-			border_end_precedence,
-			border_start_precedence,
-			id,
-			visibility):
-			pass
-
-	class table_row(xsc.Element):
-		xmlname = "table-row"
-		empty = False
-		class Attrs(
-			common_accessibility_properties,
-			common_aural_properties,
-			common_border_padding_background_properties,
-			common_relative_position_properties,
-			block_progression_dimension,
-			border_after_precedence,
-			border_before_precedence,
-			border_end_precedence,
-			border_start_precedence,
-			break_after,
-			break_before,
-			id,
-			height,
-			keep_together,
-			keep_with_next,
-			keep_with_previous,
-			visibility):
-			pass
-
-	class table_cell(xsc.Element):
-		xmlname = "table-cell"
-		empty = False
-		class Attrs(
-			common_accessibility_properties,
-			common_aural_properties,
-			common_border_padding_background_properties,
-			common_relative_position_properties,
-			border_after_precedence,
-			border_before_precedence,
-			border_end_precedence,
-			border_start_precedence,
-			block_progression_dimension,
-			column_number,
-			display_align,
-			relative_align,
-			empty_cells,
-			ends_row,
-			height,
-			id,
-			inline_progression_dimension,
-			number_columns_spanned,
-			number_rows_spanned,
-			starts_row,
-			width):
-			pass
-
-	class list_block(xsc.Element):
-		xmlname = "list-block"
-		empty = False
-		class Attrs(
-			common_accessibility_properties,
-			common_aural_properties,
-			common_border_padding_background_properties,
-			common_margin_properties_block,
-			common_relative_position_properties,
-			break_after,
-			break_before,
-			id,
-			intrusion_displace,
-			keep_together,
-			keep_with_next,
-			keep_with_previous,
-			provisional_distance_between_starts,
-			provisional_label_separation):
-			pass
-
-	class list_item(xsc.Element):
-		xmlname = "list-item"
-		empty = False
-		class Attrs(
-			common_accessibility_properties,
-			common_aural_properties,
-			common_border_padding_background_properties,
-			common_margin_properties_block,
-			common_relative_position_properties,
-			break_after,
-			break_before,
-			id,
-			intrusion_displace,
-			keep_together,
-			keep_with_next,
-			keep_with_previous,
-			relative_align):
-			pass
-
-	class list_item_body(xsc.Element):
-		xmlname = "list-item-body"
-		empty = False
-		class Attrs(
-			common_accessibility_properties,
-			id,
-			keep_together):
-			pass
-
-	class list_item_label(xsc.Element):
-		xmlname = "list-item-label"
-		empty = False
-		class Attrs(
-			common_accessibility_properties,
-			id,
-			keep_together):
-			pass
-
-	class basic_link(xsc.Element):
-		xmlname = "basic-link"
-		empty = False
-		class Attrs(
-			common_accessibility_properties,
-			common_aural_properties,
-			common_border_padding_background_properties,
-			common_margin_properties_inline,
-			common_relative_position_properties,
-			alignment_adjust,
-			alignment_baseline,
-			baseline_shift,
-			destination_placement_offset,
-			dominant_baseline,
-			external_destination,
-			id,
-			indicate_destination,
-			internal_destination,
-			keep_together,
-			keep_with_next,
-			keep_with_previous,
-			line_height,
-			show_destination,
-			target_processing_context,
-			target_presentation_context,
-			target_stylesheet):
-			pass
-
-	class multi_switch(xsc.Element):
-		xmlname = "multi-switch"
-		empty = False
-		class Attrs(
-			common_accessibility_properties,
-			auto_restore,
-			id):
-			pass
-
-	class multi_case(xsc.Element):
-		xmlname = "multi-case"
-		empty = False
-		class Attrs(
-			common_accessibility_properties,
-			id,
-			starting_state,
-			case_name,
-			case_title):
-			pass
-
-	class multi_toggle(xsc.Element):
-		xmlname = "multi-toggle"
-		empty = False
-		class Attrs(
-			common_accessibility_properties,
-			id,
-			switch_to):
-			pass
-
-	class multi_properties(xsc.Element):
-		xmlname = "multi-properties"
-		empty = False
-		class Attrs(
-			common_accessibility_properties,
-			id):
-			pass
-
-	class multi_property_set(xsc.Element):
-		xmlname = "multi-property-set"
-		empty = False
-		class Attrs(
-			id,
-			active_state):
-			pass
-
-	class float(xsc.Element):
-		empty = False
-		class Attrs(
-			float,
-			clear):
-			pass
-
-	class footnote(xsc.Element):
-		empty = False
-		class Attrs(
-			common_accessibility_properties
-			):
-			pass
-
-	class footnote_body(xsc.Element):
-		xmlname = "footnote-body"
-		empty = False
-		class Attrs(
-			common_accessibility_properties
-			):
-			pass
-
-	class wrapper(xsc.Element):
-		empty = False
-		class Attrs(
-			id
-			):
-			pass
-
-	class marker(xsc.Element):
-		empty = False
-		class Attrs(
-			marker_class_name
-			):
-			pass
-
-	class retrieve_marker(xsc.Element):
-		xmlname = "retrieve-marker"
-		empty = True
-		class Attrs(
-			retrieve_class_name,
-			retrieve_position,
-			retrieve_boundary
-			):
-			pass
-
-	pe_block = (block, block_container, table_and_caption, table, list_block)
-	pe_inline = (bidi_override, character, external_graphic, instream_foreign_object, inline, inline_container, leader, page_number, page_number_citation, basic_link, multi_toggle)
-	pe_neutral = (multi_switch, multi_properties, wrapper, retrieve_marker)
-
-	root.content = (layout_master_set, declarations, page_sequence)
-	declarations.content = (color_profile,)
-	color_profile.content = ()
-	page_sequence.content = (title, static_content, flow)
-	layout_master_set.content = (simple_page_master, page_sequence_master)
-	page_sequence_master.content = (single_page_master_reference, repeatable_page_master_reference, repeatable_page_master_alternatives)
-	single_page_master_reference.content = ()
-	repeatable_page_master_reference.content = ()
-	repeatable_page_master_alternatives.content = (conditional_page_master_reference,)
-	conditional_page_master_reference.content = ()
-	simple_page_master.content = (region_body, region_before, region_after, region_start, region_end)
-	region_body.content = ()
-	region_before.content = ()
-	region_after.content = ()
-	region_start.content = ()
-	region_end.content = ()
-	flow.content = pe_block + (marker,)
-	static_content.content = pe_block
-	title.content = pe_inline
-	block.content = pe_inline + pe_block
-	block_container.content = pe_block
-	bidi_override.content = pe_inline + pe_block
-	character.content = ()
-	initial_property_set.content = ()
-	external_graphic.content = ()
-	instream_foreign_object.content = ()
-	inline.content = pe_inline + pe_block
-	inline_container.content = pe_block
-	leader.content = pe_inline
-	page_number.content = ()
-	page_number_citation.content = ()
-	table_and_caption.content = (table_caption, table)
-	table.content = (table_column, table_header, table_footer, table_body)
-	table_column.content = ()
-	table_caption.content = pe_block + (marker,)
-	table_header.content = (table_row, table_cell, marker)
-	table_footer.content = (table_row, table_cell, marker)
-	table_body.content = (table_row, table_cell, marker)
-	table_row.content = (table_cell,)
-	table_cell.content = pe_block + (marker,)
-	list_block.content = (list_item, marker)
-	list_item.content = (list_item_label, list_item_body, marker)
-	list_item_body.content = pe_block + (marker,)
-	list_item_label.content = pe_block + (marker,)
-	basic_link.content = pe_inline + pe_block + (marker,)
-	multi_switch.content = (multi_case,)
-	multi_case.content = pe_inline + pe_block + (multi_toggle,) ### More attributes are allowed
-	multi_toggle.content = pe_inline + pe_block
-	multi_properties.content = (multi_property_set, wrapper)
-	multi_property_set.content = ()
-	float.content = pe_block
-	footnote.content = (pe_inline, footnote_body)
-	wrapper.content = pe_inline + pe_block + (marker,)
-	marker.content = pe_inline + pe_block
-	retrieve_marker.content = ()

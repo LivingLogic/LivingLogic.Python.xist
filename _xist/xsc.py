@@ -66,6 +66,15 @@ def ToNode(value):
 	errors.warn(errors.IllegalObjectWarning(value)) # none of the above, so we report it and maybe throw an exception
 	return Null
 
+def issubclasses(cls, classes):
+	if isinstance(cls, type):
+		if isinstance(classes, type):
+			return issubclass(cls, classes)
+		for testcls in classes:
+			if issubclass(cls, testcls):
+				return True
+	return False
+
 ###
 ###
 ###
@@ -161,6 +170,11 @@ class Node(Base):
 			list.__init__(self)
 
 	def _registerns(cls, ns):
+		"""
+		<par>Adds <arg>cls</arg> to the namespace <arg>ns</arg>. Modifying
+		the attributes of <arg>ns</arg> is <em>not</em> done here, but in
+		<pyref class="Namespace.__metaclass__" method="__setattr__"><class>Namespace.__metaclass__.__setattr__</class></pyref>.</par>
+		"""
 		cls.xmlns = None
 	_registerns = classmethod(_registerns)
 
@@ -1159,12 +1173,17 @@ class ProcInst(CharacterData):
 			return "<procinst class %s/%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
 
 	def _registerns(cls, ns):
-		if cls.xmlns:
-			del cls.xmlns.procinstsByName[cls.xmlname]
-		cls.xmlns = None
-		if ns:
-			ns.procinstsByName[cls.xmlname] = cls
-			cls.xmlns = ns
+		if cls is not ProcInst:
+			if cls.xmlns is not None:
+				for xml in (False, True):
+					del cls.xmlns._procinsts[xml][cls.xmlname[xml]]
+					del cls.xmlns._nodes[xml][cls.xmlname[xml]]
+			cls.xmlns = None
+			if ns:
+				for xml in (False, True):
+					ns._procinsts[xml][cls.xmlname[xml]] = cls
+					ns._nodes[xml][cls.xmlname[xml]] = cls
+				cls.xmlns = ns
 	_registerns = classmethod(_registerns)
 
 	def _str(cls, fullname=True, xml=True, decorate=True):
@@ -1556,25 +1575,35 @@ class Attrs(Node, dict):
 			for base in bases:
 				for attrname in dir(base):
 					attr = getattr(base, attrname)
-					if isinstance(attr, type) and issubclass(attr, Attr) and attrname not in dict:
+					if issubclasses(attr, Attr) and attrname not in dict:
 						classdict = {"__module__": dict["__module__"]}
 						if attr.xmlname[0] != attr.xmlname[1]:
 							classdict["xmlname"] = attr.xmlname[1]
 						dict[attrname] = attr.__class__(attr.__name__, (attr,), classdict)
-			res = Node.__metaclass__.__new__(cls, name, bases, dict)
-			for key in dir(res):
-				value = getattr(res, key)
-				if isinstance(value, type) and issubclass(value, Attr):
-					attrs[False][value.xmlname[False]] = value
-					attrs[True][value.xmlname[True]] = value
-			res._attrs = attrs
-			return res
+			self = Node.__metaclass__.__new__(cls, name, bases, {})
+			self._attrs = attrs
+			for (key, value) in dict.iteritems():
+				setattr(self, key, value)
+			return self
 
 		def __repr__(self):
 			return "<attrs class %s/%s with %s attrs at 0x%x>" % (self.__module__, self.__fullname__(), len(self._attrs[0]), id(self))
 
 		def __getitem__(cls, key):
 			return cls._attrs[0][key]
+
+		def __delattr__(cls, key):
+			value = getattr(cls, key)
+			if issubclasses(value, Attr):
+				for xml in (False, True):
+					del cls._attrs[xml][value.xmlname[xml]]
+			return Node.__metaclass__.__delattr__(cls, key)
+
+		def __setattr__(cls, key, value):
+			if issubclasses(value, Attr):
+				for xml in (False, True):
+					cls._attrs[xml][value.xmlname[xml]] = value
+			return Node.__metaclass__.__setattr__(cls, key, value)
 
 	def __init__(self, content=None, **attrs):
 		dict.__init__(self)
@@ -1955,7 +1984,7 @@ class Element(Node):
 			attrHandlers = {}
 			for key in dir(cls.Attrs):
 				value = getattr(cls.Attrs, key)
-				if isinstance(value, type) and issubclass(value, Attr):
+				if issubclasses(value, Attr):
 					attrHandlers[key] = value
 			cls.attrHandlers = attrHandlers
 			return cls
@@ -2051,11 +2080,15 @@ class Element(Node):
 
 	def _registerns(cls, ns):
 		if cls is not Element:
-			if cls.xmlns:
-				del cls.xmlns.elementsByName[cls.xmlname]
+			if cls.xmlns is not None:
+				for xml in (False, True):
+					del cls.xmlns._elements[xml][cls.xmlname[xml]]
+					del cls.xmlns._nodes[xml][cls.xmlname[xml]]
 			cls.xmlns = None
 			if ns:
-				ns.elementsByName[cls.xmlname] = cls
+				for xml in (False, True):
+					ns._elements[xml][cls.xmlname[xml]] = cls
+					ns._nodes[xml][cls.xmlname[xml]] = cls
 				cls.xmlns = ns
 	_registerns = classmethod(_registerns)
 
@@ -2512,11 +2545,15 @@ class Entity(Node):
 
 	def _registerns(cls, ns):
 		if cls is not Entity and cls is not CharRef:
-			if cls.xmlns:
-				del cls.xmlns.entitiesByName[cls.xmlname]
+			if cls.xmlns is not None:
+				for xml in (False, True):
+					del cls.xmlns._entities[xml][cls.xmlname[xml]]
+					del cls.xmlns._nodes[xml][cls.xmlname[xml]]
 			cls.xmlns = None
 			if ns:
-				ns.entitiesByName[cls.xmlname] = cls
+				for xml in (False, True):
+					ns._entities[xml][cls.xmlname[xml]] = cls
+					ns._nodes[xml][cls.xmlname[xml]] = cls
 				cls.xmlns = ns
 	_registerns = classmethod(_registerns)
 
@@ -2571,13 +2608,17 @@ class CharRef(Entity):
 
 	def _registerns(cls, ns):
 		if cls is not CharRef:
-			if cls.xmlns:
-				del cls.xmlns.charrefsByName[cls.xmlname]
-				cls.xmlns.charrefsByNumber[cls.codepoint].remove(cls)
+			if cls.xmlns is not None:
+				for xml in (False, True):
+					del cls.xmlns._charrefs[xml][cls.xmlname[xml]]
+					del cls.xmlns._nodes[xml][cls.xmlname[xml]]
+				cls.xmlns._charrefs[2][cls.codepoint].remove(cls)
 			cls.xmlns = None
 			if ns:
-				ns.charrefsByName[cls.xmlname] = cls
-				ns.charrefsByNumber.setdefault(cls.codepoint, []).append(cls)
+				for xml in (False, True):
+					ns._charrefs[xml][cls.xmlname[xml]] = cls
+					ns._nodes[xml][cls.xmlname[xml]] = cls
+				ns._charrefs[2].setdefault(cls.codepoint, []).append(cls)
 				cls.xmlns = ns
 	_registerns = classmethod(_registerns)
 
@@ -2978,58 +3019,27 @@ class Namespace(object):
 			for base in bases:
 				for attrname in dir(base):
 					attr = getattr(base, attrname)
-					if isinstance(attr, type) and (issubclass(attr, Element) or issubclass(attr, ProcInst) or issubclass(attr, Entity) or issubclass(attr, Attrs)) and attrname not in dict:
+					if issubclasses(attr, (Element, ProcInst, Entity, Attrs)) and attrname not in dict:
 						classdict = {"__module__": dict["__module__"]}
 						if attr.xmlname[0] != attr.xmlname[1]:
 							classdict["xmlname"] = attr.xmlname[1]
 						dict[attrname] = attr.__class__(attr.__name__, (attr,), classdict)
-			self = type.__new__(cls, name, bases, dict)
+			self = type.__new__(cls, name, bases, {})
+			self._elements = ({}, {})
+			self._procinsts = ({}, {})
+			self._entities = ({}, {})
+			self._charrefs = ({}, {}, {})
+			self._nodes = ({}, {})
+			for (key, value) in dict.iteritems():
+				setattr(self, key, value)
 			for attr in self.Attrs.iterallowedvalues():
 				attr.xmlns = self
-			for key in dir(self):
-				attr = getattr(self, key)
-				if isinstance(attr, type):
-					for nodetype in (Element, ProcInst, Entity):
-						if issubclass(attr, nodetype):
-							attr.xmlns = self
-							break
 			if self.xmlurl is not None:
 				self.nsbyname.setdefault(self.xmlname, []).insert(0, self)
 				self.nsbyurl.setdefault(self.xmlurl, []).insert(0, self)
 				self.all.append(self)
 				defaultPrefixes.addPrefixMapping(None, self, mode="prepend")
 				defaultPrefixes.addPrefixMapping(self.xmlname[True], self, mode="prepend")
-			elements = ({}, {})
-			procinsts = ({}, {})
-			entities = ({}, {})
-			charrefs = ({}, {}, {})
-			nodes = ({}, {})
-			for key in dir(self):
-				value = getattr(self, key)
-				if isinstance(value, type):
-					if issubclass(value, Element) or issubclass(value, ProcInst) or issubclass(value, Entity):
-						pyname = value.xmlname[False]
-						xmlname = value.xmlname[True]
-						nodes[False][pyname] = value
-						nodes[True][xmlname] = value
-						if issubclass(value, Element):
-							elements[False][pyname] = value
-							elements[True][xmlname] = value
-						elif issubclass(value, ProcInst):
-							procinsts[False][pyname] = value
-							procinsts[True][xmlname] = value
-						elif issubclass(value, CharRef):
-							charrefs[False][pyname] = value
-							charrefs[True][xmlname] = value
-							charrefs[2].setdefault(value.codepoint, []).append(value)
-						else:
-							entities[False][pyname] = value
-							entities[True][xmlname] = value
-			self._elements = elements
-			self._procinsts = procinsts
-			self._entities = entities
-			self._charrefs = charrefs
-			self._nodes = nodes
 			return self
 
 		def __eq__(self, other):
@@ -3068,7 +3078,25 @@ class Namespace(object):
 				counts = " with " + ", ".join(counts)
 			else:
 				counts = ""
-			return "<namespace %s/%s name=%r url=%r%s at 0x%x>" % (self.__module__, self.__name__, self.xmlname[True], self.xmlurl, counts, id(self))
+
+			if hasattr(self, "__file__"):
+				fromfile = " from %r" % self.__file__
+			else:
+				fromfile = ""
+			return "<namespace %s/%s name=%r url=%r%s%s at 0x%x>" % (self.__module__, self.__name__, self.xmlname[True], self.xmlurl, counts, fromfile, id(self))
+
+		def __delattr__(cls, key):
+			value = getattr(cls, key)
+			if issubclasses(value, (Element, ProcInst, Entity)):
+				value._registerns(None)
+			return type.__delattr__(cls, key)
+
+		def __setattr__(cls, key, value):
+			if issubclasses(value, (Element, ProcInst, Entity)):
+				if value.xmlns is not None:
+					delattr(value.xmlns, key)
+				value._registerns(cls)
+			return type.__setattr__(cls, key, value)
 
 	class Attrs(_Attrs):
 		pass
@@ -3234,19 +3262,13 @@ class Namespace(object):
 	def __init__(self, xmlprefix, xmlname, thing=None):
 		raise TypeError("Namespace classes can't be instantiated")
 
-def makensmod(name, ns):
-	sys.modules[name] = ns
-	return ns
-
-def makensmodvars(vars):
-	if "__bases__" in vars:
-		bases = vars["__bases__"]
-		del vars["__bases__"]
-	else:
-		bases = (Namespace,)
-	name = vars["__name__"]
-	ns = Namespace.__metaclass__.__new__(Namespace.__metaclass__, name, bases, vars)
-	sys.modules[name] = ns
+def makensmod(ns, vars):
+	for (key, value) in vars.iteritems():
+		if value is not ns and key not in ("__name__", "__dict__"):
+			setattr(ns, key, value)
+	# we have to keep the original module alive, otherwise Python would set all module attribute to None
+	ns.__originalmodule__ = sys.modules[vars["__name__"]]
+	sys.modules[vars["__name__"]] = ns
 	return ns
 
 # C0 Controls and Basic Latin
