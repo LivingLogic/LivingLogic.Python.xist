@@ -586,11 +586,11 @@ def parse(source, handler=None, parser=None, prefixes=None):
 	handler.close()
 	return result
 
-def parseString(text, systemId="STRING", base=None, handler=None, parser=None, prefixes=None, defaultEncoding="utf-8", tidy=0):
+def parseString(text, systemId="STRING", base=None, handler=None, parser=None, prefixes=None, defaultEncoding="utf-8", tidy=False):
 	return parse(sources.StringInputSource(text, systemId=systemId, base=base, defaultEncoding=defaultEncoding, tidy=tidy), handler=handler, parser=parser, prefixes=prefixes)
 
-def parseURL(id, base=None, handler=None, parser=None, prefixes=None, defaultEncoding="utf-8", tidy=0, headers=None, data=None):
+def parseURL(id, base=None, handler=None, parser=None, prefixes=None, defaultEncoding="utf-8", tidy=False, headers=None, data=None):
 	return parse(sources.URLInputSource(id, base=base, defaultEncoding=defaultEncoding, tidy=tidy, headers=headers, data=data), handler=handler, parser=parser, prefixes=prefixes)
 
-def parseFile(filename, base=None, handler=None, parser=None, prefixes=None, defaultEncoding="utf-8", tidy=0):
+def parseFile(filename, base=None, handler=None, parser=None, prefixes=None, defaultEncoding="utf-8", tidy=False):
 	return parseURL(url.Filename(filename), base=base, defaultEncoding=defaultEncoding, tidy=tidy, handler=handler, parser=parser, prefixes=prefixes)

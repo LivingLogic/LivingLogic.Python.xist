@@ -40,7 +40,7 @@ class InputSource(sax.xmlreader.InputSource):
 		self.base = url.URL(base)
 
 class StringInputSource(InputSource):
-	def __init__(self, text, systemId="STRING", base=None, defaultEncoding="utf-8", tidy=0):
+	def __init__(self, text, systemId="STRING", base=None, defaultEncoding="utf-8", tidy=False):
 		InputSource.__init__(self, base)
 		self.setSystemId(systemId)
 		if isinstance(text, unicode):
@@ -55,7 +55,7 @@ class StringInputSource(InputSource):
 		self.setEncoding(defaultEncoding)
 
 class URLInputSource(InputSource):
-	def __init__(self, id, base=None, defaultEncoding="utf-8", tidy=0, headers=None, data=None):
+	def __init__(self, id, base=None, defaultEncoding="utf-8", tidy=False, headers=None, data=None):
 		if isinstance(id, (str, unicode)):
 			id = url.URL(id)
 		if base is None:
