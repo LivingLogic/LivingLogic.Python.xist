@@ -20,8 +20,8 @@ import sys
 from ll.xist import xsc, sandbox
 import html
 
-class Code:
-	def __init__(self, text, ignorefirst=0):
+class Code(object):
+	def __init__(self, text, ignorefirst=False):
 		# get the individual lines; ignore "\r" as this would mess up whitespace handling later
 		# use list comprehension to get a list and not a Frag
 		lines = [ line for line in text.replace("\r", "").splitlines() ]
@@ -34,7 +34,7 @@ class Code:
 		# drop all empty lines at the beginning; if we drop a line we no longer have to handle the first specifically
 		while lines and not lines[0][1]:
 			del lines[0]
-			ignorefirst = 0
+			ignorefirst = False
 		# drop all empty lines at the end
 		while lines and not lines[-1][1]:
 			del lines[-1]
