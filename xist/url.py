@@ -205,7 +205,8 @@ class URL:
 
 	def __setattr__(self, name, value):
 		if name in ("scheme", "server", "file", "ext", "parameters", "query", "fragment"):
-			value = utils.stringFromCode(value)
+			if value is not None:
+				value = utils.stringFromCode(value)
 		self.__dict__[name] = value
 
 	def __getitem__(self, index):
