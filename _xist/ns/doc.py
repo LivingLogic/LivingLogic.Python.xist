@@ -664,17 +664,12 @@ class section(block):
 			text_indent = None
 
 		if len(context.sections)==2:
-			if context.sections[0]==1:
-				break_before = None
-			else:
-				break_before = u"page"
 			tattrs = fo.block.Attrs(
 				font_family=context.hdfont,
 				color=context.llblue,
 				text_align=u"center",
 				font_size=u"36pt",
 				space_after=u"30pt",
-				break_before=break_before,
 				keep_with_next_within_page=u"always",
 			)
 		else:
