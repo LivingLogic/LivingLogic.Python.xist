@@ -655,10 +655,13 @@ class XISTTestCase(unittest.TestCase):
 		self.assertEquals(xsc.getns(html), html.xmlns)
 
 	def test_withsep(self):
-		node = xsc.Frag(1,2,3)
-		self.assertEquals(unicode(node.withsep(",")), u"1,2,3")
-		node = html.div(1,2,3)
-		self.assertEquals(unicode(node.withsep(",")), u"1,2,3")
+		for class_ in (xsc.Frag, html.div):
+			node = class_(1,2,3)
+			self.assertEquals(unicode(node.withsep(",")), u"1,2,3")
+			node = class_(1)
+			self.assertEquals(unicode(node.withsep(",")), u"1")
+			node = class_()
+			self.assertEquals(unicode(node.withsep(",")), u"")
 
 if __name__ == "__main__":
 	unittest.main()
