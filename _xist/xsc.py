@@ -3021,7 +3021,7 @@ class Namespace(object):
 						elif issubclass(value, CharRef):
 							charrefs[False][pyname] = value
 							charrefs[True][xmlname] = value
-							charrefs[2][value.codepoint] = value
+							charrefs[2].setdefault(value.codepoint, []).append(value)
 						else:
 							entities[False][pyname] = value
 							entities[True][xmlname] = value
