@@ -1549,7 +1549,7 @@ class Attrs(Node, dict):
 			for key in dir(res):
 				value = getattr(res, key)
 				if isinstance(value, type) and issubclass(value, Attr):
-					handlersByPyName[value.__name__] = value
+					handlersByPyName[value.__name__.split(".")[-1]] = value
 					handlersByXMLName[value.xmlname] = value
 			res._handlersByPyName = handlersByPyName
 			res._handlersByXMLName = handlersByXMLName
