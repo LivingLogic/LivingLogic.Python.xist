@@ -16,9 +16,7 @@ classes and functions.
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-from __future__ import generators
-
-import os, sys, random, types, new, copy
+import os, sys, random, copy
 
 from ll import url, ansistyle
 
