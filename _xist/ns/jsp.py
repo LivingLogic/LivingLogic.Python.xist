@@ -58,25 +58,25 @@ class declaration(xsc.ProcInst):
 		publisher.publish(u" %>")
 
 class If(scriptlet):
-	realname = "if"
+	name = "if"
 
 	def convert(self, converter):
 		return scriptlet(u"if(" + self.content + u"){")
 
 class Else(scriptlet):
-	realname = "else"
+	name = "else"
 
 	def convert(self, converter):
 		return scriptlet(u"}else{")
 
 class ElIf(scriptlet):
-	realname = "elif"
+	name = "elif"
 
 	def convert(self, converter):
 		return scriptlet(u"}else if (" + self.content + "){")
 
 class End(scriptlet):
-	realname = "end"
+	name = "end"
 
 	def convert(self, converter):
 		return scriptlet(u"}")
@@ -99,7 +99,7 @@ class block(xsc.Element):
 
 class directive(xsc.Element):
 	empty = 1
-	register = 0 # only serves as a base class
+	name = None # only serves as a base class
 
 	def publish(self, publisher):
 		if self.publishPrefix is not None:
@@ -110,7 +110,7 @@ class directive(xsc.Element):
 		if publishPrefix:
 			publisher.publish(self.prefix())
 			publisher.publish(u":")
-		name = self.name()
+		name = self.name
 		pos = name.find(".")
 		if pos != -1:
 			name = name[pos+1:]
@@ -119,18 +119,15 @@ class directive(xsc.Element):
 		publisher.publish(u"%>")
 
 class directive_include(directive):
-	register = 1
-	realname = "directive.include"
+	name = "directive.include"
 	attrHandlers = {"file": xsc.TextAttr}
 
 class directive_taglib(directive):
-	register = 1
-	realname = "directive.taglib"
+	name = "directive.taglib"
 	attrHandlers = {"uri": xsc.TextAttr, "prefix": xsc.TextAttr}
 
 class directive_page(directive):
-	register = 1
-	realname = "directive.page"
+	name = "directive.page"
 	attrHandlers = {"import": xsc.TextAttr, "buffer": xsc.TextAttr, "errorPage": xsc.URLAttr, "session": xsc.TextAttr}
 
 # register all the classes we've defined so far

@@ -1053,8 +1053,8 @@ class ne(xsc.CharRef): "not equal to, U+2260 ISOtech"; codepoint = 8800
 class equiv(xsc.CharRef): "identical to, U+2261 ISOtech"; codepoint = 8801
 class le(xsc.CharRef): "less-than or equal to, U+2264 ISOtech"; codepoint = 8804
 class ge(xsc.CharRef): "greater-than or equal to, U+2265 ISOtech"; codepoint = 8805
-class Sub(xsc.CharRef): "subset of, U+2282 ISOtech"; codepoint = 8834; realname = "sub"
-class Sup(xsc.CharRef): "superset of, U+2283 ISOtech"; codepoint = 8835; realname = "sup"
+class Sub(xsc.CharRef): "subset of, U+2282 ISOtech"; codepoint = 8834; name = "sub"
+class Sup(xsc.CharRef): "superset of, U+2283 ISOtech"; codepoint = 8835; name = "sup"
 class nsub(xsc.CharRef): "not a subset of, U+2284 ISOamsn"; codepoint = 8836
 class sube(xsc.CharRef): "subset of or equal to, U+2286 ISOtech"; codepoint = 8838
 class supe(xsc.CharRef): "superset of or equal to, U+2287 ISOtech"; codepoint = 8839

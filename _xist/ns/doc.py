@@ -117,7 +117,7 @@ class class_(xsc.Element):
 	"""
 	The name of a class, in the object-oriented programming sense
 	"""
-	realname = "class"
+	name = "class"
 	empty = 0
 
 	def convert(self, converter):

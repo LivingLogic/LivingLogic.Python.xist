@@ -158,7 +158,7 @@ class cool(xsc.Element):
 </doc:example>
 You have to derive your new class from <pyref module="xist.xsc" class="Element"><class>xsc.Element</class></pyref>.
 The name of the class will be the element name. For element type names that are no valid Python
-identifiers, you can use the class attribute <lit>realname</lit> in the element class the overwrite
+identifiers, you can use the class attribute <lit>name</lit> in the element class the overwrite
 the element name.</doc:par>
 <doc:par>To be able to convert an element of this type to a new &xml; tree (&html; in most cases),
 you have to implement the <pyref module="xist.xsc" class="Node" method="convert"><method>convert</method></pyref>

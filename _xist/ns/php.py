@@ -35,25 +35,25 @@ class php(xsc.ProcInst):
 	"""
 
 class If(php):
-	realname = "if"
+	name = "if"
 
 	def convert(self, converter):
 		return php(u"if (" + self.content + "){")
 
 class Else(php):
-	realname = "else"
+	name = "else"
 
 	def convert(self, converter):
 		return php(u"}else{")
 
 class ElIf(php):
-	realname = "elif"
+	name = "elif"
 
 	def convert(self, converter):
 		return php(u"}else if (" + self.content + "){")
 
 class End(php):
-	realname = "end"
+	name = "end"
 
 	def convert(self, converter):
 		return php(u"}")

@@ -88,7 +88,6 @@ class Node(object):
 	# specifies that this class should be registered in a namespace
 	# this won't be used for all the DOM classes (Element, ProcInst etc.) themselves but only for derived classes
 	# i.e. Node, Element etc. will never be registered
-	register = 1
 
 	def __repr__(self):
 		return self.repr(presenters.defaultPresenterClass())
@@ -102,6 +101,19 @@ class Node(object):
 		"""
 		raise NotImplementedError("clone method not implemented in %s" % self.__class__.__name__)
 
+	class __metaclass__(type):
+		def __new__(cls, name, bases, dict):
+			if dict.has_key("name") and not isinstance(dict["name"], classmethod):
+				realname = dict["name"]
+				print repr(realname)
+				del dict["name"]
+			else:
+				realname = name
+				if realname.endswith("_"):
+					realname = realname[:-1]
+			dict["_name"] = realname
+			return type.__new__(cls, name, bases, dict)
+
 	def namespace(cls):
 		"""
 		return the namespace object for this class or None.
@@ -112,13 +124,10 @@ class Node(object):
 	def name(cls):
 		"""
 		<doc:par>return the name for this class (which is either
-		the class name or class attribute <lit>realname</lit>
+		the class name or class attribute <lit>name</lit>
 		if there is one.</doc:par>
 		"""
-		name = getattr(cls, "realname", cls.__name__)
-		if name.endswith("_"):
-			name = name[:-1]
-		return name
+		return cls._name
 	name = classmethod(name)
 
 	def prefix(cls):
@@ -1016,7 +1025,7 @@ class XML(ProcInst):
 	&xml; header
 	"""
 
-	realname = u"xml"
+	name = u"xml"
 	presentPrefix = 0
 	publishPrefix = 0
 
@@ -1037,7 +1046,7 @@ class XML10(XML):
 	"""
 	&xml; header version 1.0, i.e. <markup>&lt;?xml version="1.0"?&gt;</markup>
 	"""
-	register = 0 # don't register this ProcInst, because it will never be parsed from a file, this is just a convenience class
+	name = None # don't register this ProcInst, because it will never be parsed from a file, this is just a convenience class
 
 	def __init__(self):
 		XML.__init__(self, 'version="1.0"')
@@ -1047,7 +1056,7 @@ class XMLStyleSheet(ProcInst):
 	XML stylesheet declaration
 	"""
 
-	realname = u"xml-stylesheet"
+	name = u"xml-stylesheet"
 	presentPrefix = 0
 	publishPrefix = 0
 
@@ -1793,10 +1802,8 @@ class Namespace(object):
 		<pyref class="ProcInst"><class>ProcInst</class></pyref> in the following way: The class <arg>thing</arg>
 		will be registered under it's class name (<lit><arg>thing</arg>.__name__</lit>).
 		If you want to change this behaviour, do the following: set a class variable
-		<lit>realname</lit> to the name you want to be used. If you don't want
-		<arg>thing</arg> to be registered at all, set <lit>register</lit> to <lit>0</lit>.
-		(Note that you must then set <lit>register</lit> to <lit>1</lit> again in derived
-		classes to register them.)
+		<lit>name</lit> to the name you want to be used. If you don't want
+		<arg>thing</arg> to be registered at all, set <lit>name</lit> to <lit>None</lit>.
 		"""
 		self.prefix = unicode(prefix) or ""
 		self.uri = unicode(uri) or ""
@@ -1839,9 +1846,9 @@ class Namespace(object):
 				ischarref = 0
 			isprocinst = thing is not ProcInst and issubclass(thing, ProcInst)
 			if iselement or isentity or ischarref or isprocinst:
-				# if the class attribute register is 0, the class won't be registered
-				if thing.register:
-					name = thing.name()
+				# if the class attribute name is None, the class won't be registered
+				name = thing.name()
+				if thing.name is not None:
 					thing._namespace = self # this creates a cycle
 					if iselement:
 						self.elementsByName[name] = thing

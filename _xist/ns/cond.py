@@ -58,7 +58,7 @@ class case(xsc.Element):
 class If(xsc.Element):
 	empty = 0
 	attrHandlers = {"cond": CondAttr, "mode": xsc.TextAttr, "target": xsc.TextAttr, "stage": xsc.TextAttr, "lang": xsc.TextAttr}
-	realname = "if"
+	name = "if"
 
 	def convert(self, converter):
 		intruecondition = self.__testCond(self, converter)
@@ -97,14 +97,14 @@ class If(xsc.Element):
 class ElIf(xsc.Element):
 	empty = 1
 	attrHandlers = {"cond": CondAttr, "mode": xsc.TextAttr, "target": xsc.TextAttr, "stage": xsc.TextAttr, "lang": xsc.TextAttr}
-	realname = "elif"
+	name = "elif"
 
 	def convert(self, converter):
 		return xsc.Null
 
 class Else(xsc.Element):
 	empty = 1
-	realname = "else"
+	name = "else"
 
 	def convert(self, converter):
 		return xsc.Null

@@ -52,7 +52,7 @@ class import_(xsc.Element):
 	<doc:par>A CSS import rule.</doc:par>
 	"""
 	empty = 0
-	realname = "import"
+	name = "import"
 
 	def publish(self, publisher):
 		publisher.publish(u'@import url("')
@@ -97,23 +97,23 @@ class prop(xsc.Element):
 	attrHandlers = {"important": xsc.BoolAttr}
 
 	def publish(self, publisher):
-		publisher.publish(u"%s: " % self.name())
+		publisher.publish(u"%s: " % self.name)
 		self.content.publish(publisher)
 		if self.hasAttr("important"):
 			publisher.publish(u" !important")
 		publisher.publish(u";")
 
 class margin_top(prop):
-	realname = "margin-top"
+	name = "margin-top"
 
 class margin_right(prop):
-	realname = "margin-right"
+	name = "margin-right"
 
 class margin_bottom(prop):
-	realname = "margin-bottom"
+	name = "margin-bottom"
 
 class margin_left(prop):
-	realname = "margin-left"
+	name = "margin-left"
 
 # register all the classes we've defined so far
 namespace = xsc.Namespace("css", "http://www.w3.org/TR/REC-CSS2", vars())

@@ -40,34 +40,34 @@ class DocType(xsc.DocType):
 
 class data_sources(xsc.Element):
 	empty = 0
-	realname = "data-sources"
+	name = "data-sources"
 
 class data_source(xsc.Element):
 	empty = 0
-	realname = "data-source"
 	attrHandlers = {"key": xsc.TextAttr, "type": xsc.TextAttr}
+	name = "data-source"
 
 class set_property(xsc.Element):
 	empty = 0
 	attrHandlers = {"property": xsc.TextAttr, "value": xsc.TextAttr}
-	realname = "set-property"
+	name = "set-property"
 
 class struts_config(xsc.Element):
 	empty = 0
-	realname = "struts-config"
+	name = "struts-config"
 
 class form_beans(xsc.Element):
 	empty = 0
-	realname = "form-beans"
+	name = "form-beans"
 
 class form_bean(xsc.Element):
 	empty = 1
 	attrHandlers = {"type": xsc.TextAttr, "name": xsc.TextAttr}
-	realname = "form-bean"
+	name = "form-bean"
 
 class global_forwards(xsc.Element):
 	empty = 0
-	realname = "global-forwards"
+	name = "global-forwards"
 
 class forward(xsc.Element):
 	empty = 1
@@ -75,7 +75,7 @@ class forward(xsc.Element):
 
 class action_mappings(xsc.Element):
 	empty = 0
-	realname = "action-mappings"
+	name = "action-mappings"
 
 class action(xsc.Element):
 	empty = 0
@@ -88,7 +88,7 @@ class action(xsc.Element):
 # the final XML output
 class user_struts_config(xsc.Element):
 	empty = 0
-	realname = "user-struts-config"
+	name = "user-struts-config"
 
 	def convert(self, converter):
 		e = xsc.Frag(
