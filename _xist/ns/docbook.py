@@ -20,7 +20,7 @@
 ## IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 """
-A XSC module that contains definitions for all the elements in DocBook 4.12
+<doc:par>A XSC module that contains definitions for all the elements in DocBook 4.12</doc:par>
 """
 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))

@@ -20,8 +20,8 @@
 ## IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 """
-This module contains several functions and classes,
-that are used internally by XIST.
+<doc:par>This module contains several functions and classes,
+that are used internally by &xist;.</doc:par>
 """
 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))

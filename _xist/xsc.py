@@ -137,22 +137,25 @@ class Node:
 	def present(self, presenter):
 		raise NotImplementedError("present method not implemented in %s" % self.__class__.__name__)
 
-	def conv(self, converter=None, mode=None, stage=None, target=None, lang=None):
+	def conv(self, converter=None, root=None, mode=None, stage=None, target=None, lang=None):
 		"""
-		<doc:par>returns a version of this node and it's content converted to HTML (or any other target).</doc:par>
+		<doc:par>returns a version of this node and it's content converted to &html; (or any other target).</doc:par>
 		"""
 		if converter is None:
-			return self.convert(converters.Converter(mode=mode, stage=stage, target=target, lang=lang))
+			return self.convert(converters.Converter(root=root, mode=mode, stage=stage, target=target, lang=lang))
 		else:
+			oldroot = converter.root
 			oldmode = converter.mode
 			oldstage = converter.stage
 			oldtarget = converter.target
 			oldlang = converter.lang
+			converter.root = root
 			converter.mode = mode
 			converter.stage = stage
 			converter.target = target
 			converter.lang = lang
 			node = self.convert(converter)
+			converter.root = oldroot
 			converter.mode = oldmode
 			converter.stage = oldstage
 			converter.target = oldtarget
@@ -1079,7 +1082,7 @@ class Element(Node):
 	def asPlainString(self):
 		return self.content.asPlainString()
 
-	def _addImageSizeAttributes(self, publisher, imgattr, widthattr=None, heightattr=None):
+	def _addImageSizeAttributes(self, root, imgattr, widthattr=None, heightattr=None):
 		"""
 		<doc:par>add width and height attributes to the element for the image that can be found in the attribute
 		<pyref arg="imgattr">imgattr</pyref>. If the attributes are already there, they are taken as a formatting
@@ -1093,7 +1096,7 @@ class Element(Node):
 
 		if self.hasAttr(imgattr):
 			attr = self[imgattr]
-			size = attr.imageSize(publisher)
+			size = attr.imageSize(root)
 			if size is not None: # the size was retrieved so we can use it
 				sizedict = {"width": size[0], "height": size[1]}
 				for attr in (heightattr, widthattr):
@@ -1575,34 +1578,32 @@ class URLAttr(Attr):
 	def asURL(self):
 		return url.URL(self.asPlainString())
 
-	def forInput(self, publisher=None):
+	def forInput(self, root=None):
 		u = self.asURL()
-		if publisher is not None:
-			u = url.URL(publisher.base)/u
-			if u.scheme == "root":
-				u.scheme = None
-			u = url.URL(publisher.root)/u
+		if u.scheme == "root":
+			u.scheme = None
+		u = url.URL(root)/u
 		if u.scheme == "server":
 			u = url.URL(scheme="http", server=options.server)/u
 		return u
 
-	def imageSize(self, publisher=None):
+	def imageSize(self, root=None):
 		"""
 		returns the size of an image as a tuple or None if the image shouldn't be read
 		"""
-		return self.forInput(publisher).imageSize()
+		return self.forInput(root).imageSize()
 
-	def fileSize(self, publisher=None):
+	def fileSize(self, root=None):
 		"""
 		returns the size of a file in bytes or None if the file shouldn't be read
 		"""
-		return self.forInput(publisher).fileSize()
+		return self.forInput(root).fileSize()
 
-	def open(self, publisher=None):
+	def open(self, root=None):
 		"""
 		opens the URL via urllib
 		"""
-		return self.forInput(publisher).open()
+		return self.forInput(root).open()
 
 ###
 ###

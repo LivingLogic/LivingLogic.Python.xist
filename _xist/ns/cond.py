@@ -20,8 +20,8 @@
 ## IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 """
-This modules contains elements for doing conditionals
-on the XML level.
+<doc:par>This modules contains elements for doing conditionals
+on the &xml; level.</doc:par>
 """
 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))

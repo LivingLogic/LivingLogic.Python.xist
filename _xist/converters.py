@@ -43,13 +43,34 @@ class Context:
 
 class Converter:
 	"""
-	An instance of this class is passed around in calls to the
-	<pyref module="xist.xsc class="Node" method="convert">convert</pyref> method. This instance can
+	<doc:par>An instance of this class is passed around in calls to the
+	<pyref module="xist.xsc" class="Node" method="convert">convert</pyref> method. This instance can
 	be used when some element needs to keep state across a nested convert call. A typical example
 	are nested chapter/subchapter elements with automatic numbering. For an example see the element
-	<pyref module="xist.ns.doc" class="section">section</pyref>.
+	<pyref module="xist.ns.doc" class="section">section</pyref>.</doc:par>
 	"""
-	def __init__(self, mode=None, stage=None, target=None, lang=None):
+	def __init__(self, root=None, mode=None, stage=None, target=None, lang=None):
+		"""
+		<doc:par>Create a <pyref class="Converter" nolink="1">Converter</pyref>.</doc:par>
+		<doc:par>Arguments are:
+		<doc:ulist>
+		<doc:item><pyref arg="root">root</pyref>: The root URL specifies the directory
+		into which the converted tree will be published. If there are any elements that
+		need to have access to files in this directory, you have to pass in this URL (an example
+		is <pyref module="xist.ns.specials" class="autoimg">autoimg</pyref>)</doc:item>
+		<doc:item><pyref arg="mode">mode</pyref>: The conversion mode. This corresponds
+		directy with the mode in &xslt;. The default is <code>None</code>.</doc:item>
+		<doc:item><pyref arg="stage">stage</pyref>: If your conversion is done in multiple
+		steps or stages you can use this argument to specify in which stage the conversion
+		process currently is. The default is <code>"deliver"</code>.</doc:item>
+		<doc:item><pyref arg="target">target</pyref>: Specifies the conversion target. This
+		could be <code>"text"</code>, <code>"html"</code>, <code>"wml"</code>, <code>"docbook"</code>
+		or anything like that. The default is <code>"html"</code>.</doc:item>
+		<doc:item><pyref arg="lang">lang</pyref>: The target language. The default is <code>None</code>.</doc:item>
+		</doc:ulist>
+		</doc:par>
+		"""
+		self.root = root
 		self.mode = mode
 		if stage is None:
 			self.stage = "deliver"
@@ -66,7 +87,7 @@ class Converter:
 		"""
 		<doc:par>Return a context object that is unique for <pyref arg="class_">class_</pyref>,
 		which should be the class object of an element type. This means that every element type
-		gets it's own context and can store information there that needs to be available
-		across calls to <pyref module="xist.xsc class="Node" method="convert">convert</pyref>.</doc:par>
+		gets its own context and can store information there that needs to be available
+		across calls to <pyref module="xist.xsc" class="Node" method="convert">convert</pyref>.</doc:par>
 		"""
 		return self.contexts.setdefault(class_, Context())

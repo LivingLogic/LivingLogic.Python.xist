@@ -20,7 +20,7 @@
 ## IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 """
-This module contains entities for a bunch of abbreviations and acronyms.
+<doc:par>This module contains entities for many abbreviations and acronyms.</doc:par>
 """
 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))

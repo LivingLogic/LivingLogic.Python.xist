@@ -467,7 +467,7 @@ if __name__ == '__main__':
 	test_url(URL(".."), "../")
 	test_url(URL("../"), "../")
 	test_url(URL("http://aa/bb/cc.html"), "http://aa/bb/cc.html")
-	test_url(URL("/aa/bb/cc.html"), "server:aa/bb/cc.html")
+	test_url(URL("/aa/bb/cc.html"), "/aa/bb/cc.html")
 	test_url(URL("http:bb/cc/"), "http:bb/cc/")
 	# these two fail, should they?
 	#test_url(URL("http:/bb/cc/"), "http:/bb/cc/")

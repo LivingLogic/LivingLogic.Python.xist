@@ -20,8 +20,8 @@
 ## IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 """
-This module contains classes that may be used as publishing
-handler in <pyref module="xist.xsc" class="Node">publish</pyref>.
+<doc:par>This module contains classes that may be used as publishing
+handler in <pyref module="xist.xsc" class="Node">publish</pyref>.</doc:par>
 """
 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))

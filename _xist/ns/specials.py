@@ -20,7 +20,7 @@
 ## IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 """
-A XSC module that contains a collection of useful elements.
+<doc:par>A XSC module that contains a collection of useful elements.</doc:par>
 """
 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
@@ -256,10 +256,10 @@ class autoimg(html_.img):
 	<code>width</code> and <code>height</code>, i.e. you could make your image twice
 	as wide with <code>width="2*%(width)d"</code>.</doc:par>
 	"""
-	def publish(self, publisher):
+	def convert(self, converter):
 		e = html_.img(self.attrs)
-		e._addImageSizeAttributes(publisher, "src", "width", "height")
-		return e.publish(publisher)
+		e._addImageSizeAttributes(converter.root, "src", "width", "height")
+		return e.convert(converter)
 
 class autoinput(html_.input):
 	"""
@@ -270,7 +270,7 @@ class autoinput(html_.input):
 	def convert(self, converter):
 		if self.hasAttr("type") and self["type"].convert(converter).asPlainString() == u"image":
 			e = html_.input(self.content, self.attrs)
-			e._addImageSizeAttributes(converter, "src", "size", None) # no height
+			e._addImageSizeAttributes(converter.root, "src", "size", None) # no height
 			return e.convert(converter)
 		else:
 			return html.img.convert(self, converter)

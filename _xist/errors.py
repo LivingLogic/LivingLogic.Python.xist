@@ -20,11 +20,11 @@
 ## IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 """
-This module contains all the exception classes of XSC.
-But note that XSC does raise other exceptions as well.
+<doc:par>This module contains all the exception classes of &xist;.
+But note that &xist; will raise other exceptions as well.</doc:par>
 
-All exceptions defined in this module are derived from
-the base class Error.
+<doc:par>All exceptions defined in this module are derived from
+the base class <pyref class="Error">Error</pyref>.</doc:par>
 """
 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
