@@ -5,7 +5,10 @@
 has been renamed to <filename>spc.gif</filename> to avoid problems with IE.</item>
 <item>Removed a debug print in <class>ll.xist.xfind.Finder.__getitem__</class>.</item>
 <item><module>ll.xist.xfind</module> now has a new function <function>item</function>,
-that can be used to get a certain item or slice from an iterator.</item>
+that can be used to get a certain item or slice from an iterator.
+<function>xfind.first</function> and <function>xfind.last</function> have been
+changed to use <function>xfind.item</function>, so you now have to pass a
+default value to get the old behaviour.</item>
 </ulist>
 </section>
 
