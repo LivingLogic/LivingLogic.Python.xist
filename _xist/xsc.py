@@ -927,14 +927,7 @@ class Frag(Node, list):
 		list.extend(node, list.__mul__(self, factor))
 		return node
 
-	def __rmul__(self, factor):
-		"""
-		returns a <pyref class="Frag"><class>Frag</class></pyref> with <arg>factor</arg> times
-		the content of <self/>.
-		"""
-		node = self._create()
-		list.extend(node, list.__mul__(factor, self))
-		return node
+	__rmul__ = __mul__
 
 	def __nonzero__(self):
 		"""
