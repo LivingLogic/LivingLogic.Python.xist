@@ -272,13 +272,22 @@ class URL:
 		return urllib.urlretrieve(self.__quote())
 
 	def info(self):
-		return urllib.urlopen(self.__quote()).info()
+		file = urllib.urlopen(self.__quote())
+		info = file.info()
+		file.close()
+		return info
 
 	def read(self):
-		return self.open().read()
+		file = self.open()
+		data = file.read()
+		file.close()
+		return data
 
 	def readlines(self):
-		return self.open().readlines()
+		file = self.open()
+		data = file.readlines()
+		file.close()
+		return data
 
 	def __fromString(self, url):
 		(scheme, server, path, params, query, fragment) = urlparse.urlparse(url)
