@@ -22,9 +22,11 @@
 """
 This file contains everything you need to parse XIST DOMs from files, strings, URLs etc.
 
-It contains different SAX2 parser driver classes. (In fact in contains one one, the
-sgmlop driver, everything else is from PyXML) and various classes derived from
-xml.sax.xmlreader.InputSource.
+It contains different SAX2 parser driver classes (mostly for sgmlop, everything else
+is from PyXML). It includes a HTMLParser that uses sgmlop to parse HTML and emit
+SAX2 events.
+
+It also contains various classes derived from xml.sax.xmlreader.InputSource.
 """
 
 import sys, os, os.path, types, cStringIO as StringIO, urllib
