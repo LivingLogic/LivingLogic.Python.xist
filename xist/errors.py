@@ -136,7 +136,7 @@ class IllegalElementError(Error):
 class IllegalElementNestingError(Error):
 	"""
 	exception that is raised, when an element has an illegal nesting
-	(e.g. <a><b></a></b>)
+	(e.g. <code>&lt;a&gt;&lt;b&gt;&lt;/a&gt;&lt;/b&gt;</code>)
 	"""
 
 	def __init__(self,lineno,expectedelement,foundelement):
@@ -162,7 +162,7 @@ class ImageSizeFormatError(Error):
 
 class FileNotFoundError(Error):
 	"""
-	exception that is raised, when XSC can't open an image for getting image size
+	exception that is raised, when XSC can't open a file.
 	"""
 
 	def __init__(self,lineno,url):

@@ -886,8 +886,9 @@ class Text(Node):
 
 class CharRef(Node):
 	"""
-	character reference (i.e &#42; or &#x42; or &uuml;) The content member
-	of the node will be the ASCII code of the character.
+	character reference (i.e <code>&amp;#42</code>; or <code>&amp;#x42;</code>
+	or <code>&amp;uuml;</code>) The content member of the node will be the
+	ASCII code of the character.
 	"""
 
 	__notdirect = { ord("&") : "amp" , ord("<") : "lt" , ord(">") : "gt", ord('"') : "quot" , ord("'") : "apos" }
