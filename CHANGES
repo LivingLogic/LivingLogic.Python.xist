@@ -34,6 +34,9 @@ entities are missing)
 New module that implements the W3C Ruby draft:
 http://www.w3.org/TR/ruby/xhtml11-ruby-1.mod
 
+sql.py has been removed from XIST, but is available
+as a separate module.
+
 New in 0.4.7
 ------------
 Fixed a bug in the entity handling.
