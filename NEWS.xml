@@ -72,8 +72,9 @@ iMode &html;.</item>
 <module>xist.ns.cssspecials</module> for generating &css;.</item>
 <item>Now the various attributes of the <class>Converter</class> object
 are collected in a <class>ConverterState</class> object and it's possible
-to push and pop those states, i.e. it's now easy to temporarily modify a converter object during
-a <method>convert</method> call and revert back to a previous state afterwards.</item>
+to push and pop those states, i.e. it's now easy to temporarily modify a
+converter object during a <method>convert</method> call and revert back
+to a previous state afterwards.</item>
 <item><function>parseURL</function> and <function>parseTidyURL</function> now have
 an additional parameter <lit>headers</lit> which is a list of string pairs specifying
 additional headers to be passed in with the request.</item>
