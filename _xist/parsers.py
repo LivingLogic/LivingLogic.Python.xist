@@ -607,7 +607,7 @@ class Parser(object):
 	def parse(self, stream, base=None, sysid=None):
 		if sysid is None:
 			sysid = base
-		return self._parse(stream, base, self.encoding)
+		return self._parse(stream, base, sysid, self.encoding)
 
 	def parseString(self, string, base=None, sysid=None):
 		if isinstance(string, unicode):
