@@ -1082,8 +1082,7 @@ class Frag(Node):
 		for other in others:
 			newother = ToNode(other)
 			if isinstance(newother, Frag):
-				for child in newother:
-					self.__content.append(child)
+				self.__content.extend(newother)
 			elif newother is not Null:
 				self.__content.append(newother)
 
