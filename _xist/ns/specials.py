@@ -292,7 +292,7 @@ class loremipsum(xsc.Element):
 
 	def convert(self, converter):
 		if self.hasAttr("len"):
-			text = self.text[:self["len"].asInt()]
+			text = self.text[:int(self["len"].convert(converter))]
 		else:
 			text = self.text
 		return xsc.Text(text)
