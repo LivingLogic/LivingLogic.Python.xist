@@ -156,6 +156,8 @@ class pixel(html_.img):
 				color = self["color"]
 			else:
 				e[attr] = self[attr]
+		if not e.hasAttr("alt"):
+			e["alt"] = u""
 		e["src"] = ("*/Images/Pixels/", color, ".gif")
 
 		return e.asHTML()
