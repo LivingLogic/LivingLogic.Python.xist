@@ -18,8 +18,6 @@ import cStringIO as StringIO
 from xml import sax
 from xml.sax import saxlib
 
-from mx import Tidy
-
 from ll import url
 
 class InputSource(sax.xmlreader.InputSource):
@@ -58,6 +56,7 @@ class StringInputSource(InputSource):
 			encoding = "utf-8"
 			text = text.encode(encoding)
 		if tidy:
+			from mx import Tidy
 			(nerrors, nwarnings, outputdata, errordata) = Tidy.tidy(text, numeric_entities=1, output_xhtml=1, output_xml=1, quiet=1, tidy_mark=0, wrap=0)
 			if nerrors>0:
 				raise saxlib.SAXException("can't tidy %r (%d errors, %d warnings):\n%s" % (systemId, nerrors, nwarnings, errordata))
@@ -89,6 +88,7 @@ class URLInputSource(InputSource):
 		self.setSystemId(id.url)
 		resource = id.openread(headers=headers, data=data)
 		if tidy:
+			from mx import Tidy
 			(nerrors, nwarnings, outputdata, error) = Tidy.tidy(resource.read(), numeric_entities=1, output_xhtml=1, output_xml=1, quiet=1, tidy_mark=0, wrap=0)
 			if nerrors>0:
 				raise SAXParseException("can't tidy %r: %r" % (url, errordata))
