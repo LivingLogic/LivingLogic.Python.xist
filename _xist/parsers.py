@@ -514,11 +514,11 @@ class Parser(object):
 		mapping can be changed during parsing by using <lit>xmlns</lit>
 		attributes in the usual way).</item>
 
-		<term><arg>loc</arg><item>Should location information be attached to the generated nodes?</item>
+		<term><arg>loc</arg></term><item>Should location information be attached to the generated nodes?</item>
 
-		<term><arg>validate</arg><item>Should the parsed &xml; nodes be validated after parsing?</item>
+		<term><arg>validate</arg></term><item>Should the parsed &xml; nodes be validated after parsing?</item>
 
-		<term><arg>encoding</arg><item>The default encoding to use, when to source doesn't provide an &xml; header.</item>
+		<term><arg>encoding</arg></term><item>The default encoding to use, when to source doesn't provide an &xml; header.</item>
 		</dlist>
 		"""
 		self.saxparser = saxparser
