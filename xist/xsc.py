@@ -19,17 +19,18 @@
 ## OF THIS SOFTWARE.
 
 """
-XSC could be called an HTML preprocessor or generator or
-an XML transformation engine.
+XIST is a HTML preprocessor/generator and an XML transformation engine.
+It is easily extensible with new XML elements, allows embedding
+Python code in XML files and works together with httpdapy/mod_python.
 
-It was written as a replacement for HSC (http://www.giga.or.at/~agi/hsc/),
-and borrows some features and ideas from it.
+It was written as a replacement for the HTML preprocessor HSC
+(http://www.giga.or.at/~agi/hsc/), and borrows some features and ideas from it.
 
-It also borrows the basic ideas from HTMLgen
-(http://starship.skyport.net/crew/friedrich/HTMLgen/html/main.html)
+It also borrows the basic ideas (XML/HTML elements as Python objects)
+from HTMLgen (http://starship.skyport.net/crew/friedrich/HTMLgen/html/main.html)
 or HyperText (http://dustman.net/andy/python/HyperText/)
 
-But as XSC is based on XML you have two choices when constructing
+XIST is based on XML, so you have two choices when constructing
 your hierarchical tree of HTML objects: You can directly construct
 it, like HTMLgen and HyperText do, as a tree of Python objects or
 you can get a tree by parsing an XML file.
@@ -48,7 +49,7 @@ This object can be converted to a printable string with
 the method asString():
 	print e.asString()
 
-In XSC you're not limited to the HTML element types.
+In XIST you're not limited to the HTML element types.
 You can define your own! To be able to convert these
 new element types to a HTML object tree, you must implement
 the method asHTML, and you must derive your class from
@@ -58,7 +59,7 @@ xsc.Element as in the following example:
 		empty = 1
 
 		def asHTML(self):
-			return html.b("cool!")
+			return html.b("Python is cool!")
 
 Using this element is as simple as this:
 	e = cool()
@@ -181,6 +182,29 @@ with the keys "width" and "height". The resulting string is
 eval()uated and it's result is used for the attribute. So to make
 an image twice as wide and high do the following:
 	<img src="foo.png" width="%(width)d*2" height="%(height)d*2"/>
+
+Embedding Python code
+=====================
+It's possible to embed Python code into XIST XML files. For this
+XIST support two new processing instruction targets: xsc-exec and
+xsc-eval. The content of xsc-exec will be executed when the processing
+instruction node is instantiated, i.e. when the XML file is parsed.
+The result of a call to asHTML() for a xsc-eval processing instruction
+is whatever the Python code in the content returns. For example, consider
+the following XML file:
+	<?xsc-exec top = 100 ?>
+	<b>
+	<?xsc-eval
+	sum = 0
+	for i in xrange(top):
+		sum = sum+i
+	return i
+	?>
+	</b>
+Parsing this file and converting it to HTML results in the following:
+	<b>5950</b>
+
+For further information see the class ProcInst.
 
 Requirements
 ============
@@ -1191,6 +1215,9 @@ class ProcInst(Node):
 	is neccessary or allowed. The returned value will be converted to a
 	node and this resulting node will be converted to HTML.
 
+	XSC processing instructions will be evaluated and executed in the
+	namespace of the module procinst.
+
 	All other processing instructions (XML, PHP, etc.) are passed through
 	without processing of any kind.
 
@@ -1210,7 +1237,7 @@ class ProcInst(Node):
 	def asHTML(self):
 		if string.lower(self.target) == "xsc-exec": # XSC processing instruction, has been executed at construction time already, so we don't have to do anything here
 			return Null
-		elif string.lower(self.target) == "xsc-eval": # XSC processing instruction,
+		elif string.lower(self.target) == "xsc-eval": # XSC processing instruction, return the result as a node
 			function = "def __():\n\t" + string.replace(string.strip(self.content),"\n","\n\t") + "\n"
 			exec function in procinst.__dict__
 			return ToNode(eval("__()",procinst.__dict__)).asHTML()
@@ -1573,7 +1600,7 @@ class Null(Node):
 	def _doreprtree(self,nest,elementno,ansi = None):
 		return [[nest,self.startlineno,elementno,self._dorepr(ansi)]]
 
-Null = Null()
+Null = Null() # Singleton, the Python way
 
 def registerElement(element,namespacename,elementname = None):
 	"""

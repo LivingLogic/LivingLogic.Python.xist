@@ -20,4 +20,4 @@ To compile everything, simply perform the following steps.
    run "python setup.py install".
 
 If you have difficulty installing this software, send a problem report
-to <xist@bnbt.de> describing the problem.
+to Walter Dörwald <walter@bnbt.de> describing the problem.
