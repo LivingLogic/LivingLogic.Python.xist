@@ -1778,13 +1778,13 @@ class XSC:
 		self.reprtree = 1
 		self.parser = Parser()
 
-	def pushName(self,name):
-		url = URL(name)
+	def pushURL(self,url):
+		url = URL(url)
 		if len(self.filename):
 			url = self.filename[-1] + url
 		self.filename.append(url)
 
-	def popName(self):
+	def popURL(self):
 		self.filename.pop()
 
 	def parseString(self,string):
@@ -1801,11 +1801,11 @@ class XSC:
 		"""
 		Reads and parses a XML file from an URL and returns the resulting XSC
 		"""
-		self.pushName(url)
+		self.pushURL(url)
 		self.parser.reset()
 		self.parser.feed(xsc.filename[-1].read())
 		self.parser.close()
-		self.popName()
+		self.popURL()
 		return self.parser.root
 
 	def __repr__(self):
@@ -1871,12 +1871,12 @@ def make():
 				outname.ext = "html"
 			sys.stderr.write('XSC: converting "' + str(inname) + '"' + ' to "' + str(outname) + '"...')
 			e_in = xsc.parse(inname)
-			xsc.pushName(inname)
+			xsc.pushURL(inname)
 			e_out = e_in.asHTML()
 			s_out = e_out.asString()
 			__forceopen(str(outname),"wb").write(s_out)
 			sys.stderr.write(" " + str(len(s_out) + "\n")
-			xsc.popName()
+			xsc.popURL()
 	else:
 		sys.stderr.write("XSC: no files to convert.\n")
 
