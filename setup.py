@@ -10,10 +10,10 @@ from distutils.core import setup, Extension
 setup(
 	name = "XIST",
 	version = "1.0",
-	description = "An XML based extensible HTML generator",
+	description = "An XML-based extensible HTML generator",
 	author = "Walter Dörwald",
 	author_email = "walter@livinglogic.de",
-	#url = "http://",
+	url = "http://www.livinglogic.de/Python/xist/",
 	licence = "Python",
 	packages = ['xist', 'xist.ns'],
 	package_dir = {"xist": "_xist"},
