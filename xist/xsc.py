@@ -124,7 +124,7 @@ class IllegalElementError(Error):
 		elementnames = []
 		for elementname in _elementHandlers.keys():
 			for namespace in _elementHandlers[elementname].keys():
-				elementnames.append(_strNode(_elementHandlers[elementname][namespace]))
+				elementnames.append(_strNode(_elementHandlers[elementname][namespace],brackets = 1))
 		elementnames.sort()
 
 		s = Error.__str__(self) + "element " + _strName((self.name[0],self.name[1],0)) + " not allowed. "
@@ -390,7 +390,7 @@ def nodeName(nodeClass):
 	"""
 	return string.lower(nodeClass.__module__) , string.lower(nodeClass.__name__) , nodeClass.empty
 
-def _strName(nodeName,content = None,brackets = None,slash = None,ansi = None):
+def _strName(nodeName,content = None,brackets = 1,slash = None,ansi = None):
 	# slash == -1: before; 0: nowhere; 1:after
 	if slash is None:
 		if nodeName is None:
@@ -527,7 +527,7 @@ class Node:
 		"""
 		return nodeName(self.__class__)
 
-	def _str(self,content = None,brackets = None,slash = None,ansi = None):
+	def _str(self,content = None,brackets = 1,slash = None,ansi = None):
 		return _strNode(self.__class__,content,brackets,slash,ansi)
 
 	def clone(self):
