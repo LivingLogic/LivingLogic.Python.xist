@@ -573,7 +573,7 @@ class clear(prop):
 	<doc:item><lit>left</lit>: The top margin of the generated box is increased enough
 	that the top border edge is below the bottom outer edge of any left-floating boxes
 	that resulted from elements earlier in the source document.</doc:item>
-	<doc:item><lit>right</lit> The top margin of the generated box is increased enough
+	<doc:item><lit>right</lit>: The top margin of the generated box is increased enough
 	that the top border edge is below the bottom outer edge of any right-floating boxes
 	that resulted from elements earlier in the source document.</doc:item>
 	<doc:item><lit>both</lit>: The generated box is moved below all floating boxes of
