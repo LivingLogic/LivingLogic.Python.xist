@@ -726,6 +726,13 @@ class Node:
 		assert isinstance(node, Node), "the mapped method returned the illegal object %r (type %r) when mapping %r" % (node, type(node), self)
 		return node
 
+	def normalized(self):
+		"""
+		returns a normalized version of <self/>, which means, that consecutive <pyref class="Text">Text nodes</pyref>
+		are merged.
+		"""
+		return self
+
 class StringMixIn:
 	"""
 	provides nearly the same functionality as <classref>UserString</classref>, but omits
@@ -1145,6 +1152,19 @@ class Frag(Node):
 		assert isinstance(node, Node), "the mapped method returned the illegal object %r (type %r) when mapping %r" % (node, type(node), self)
 		if node is self:
 			node = Frag(*[ child.mapped(function) for child in self.__content])
+		return node
+
+	def normalized(self):
+		node = Frag()
+		lasttypeOK = 0
+		for child in self.__content:
+			normalizedchild = child.normalized()
+			thistypeOK = isinstance(normalizedchild, Text)
+			if thistypeOK and lasttypeOK:
+				node.__content[-1] += normalizedchild
+			else:
+				node.__content.append(normalizedchild)
+			lasttypeOK = thistypeOK
 		return node
 
 class Comment(Node, StringMixIn):
@@ -1754,6 +1774,13 @@ class Element(Node):
 		assert isinstance(node, Node), "the mapped method returned the illegal object %r (type %r) when mapping %r" % (node, type(node), self)
 		if node is self:
 			node = self.__class__(*self.content.mapped(function), **self.attrs)
+		return node
+
+	def normalized(self):
+		node = self.__class__()
+		node.content = self.content.normalized()
+		for (attrname, attrvalue) in self.attrs.items():
+			node[attrname] = attrvalue.normalized()
 		return node
 
 class Entity(Node):
