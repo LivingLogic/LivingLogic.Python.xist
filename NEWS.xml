@@ -1,4 +1,7 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
+<section><title>Changes in CVS (released ??/??/2001)</title>
+</section>
+
 <section><title>Changes in 1.2.2 (released 11/16/2001)</title>
 <ulist>
 <item><code>xist.url.URL.fileSize</code> and <code>xist.url.URL.imageSize</code>

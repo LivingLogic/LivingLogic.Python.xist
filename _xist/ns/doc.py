@@ -226,12 +226,13 @@ class par(xsc.Element):
 	"""
 	"""
 	empty = 0
+	attrHandlers = {"type": xsc.TextAttr}
 
 	def convert(self, converter):
 		if converter.target=="docbook":
-			e = docbook.para(self.content)
+			e = docbook.para(self.content, type=self["type"])
 		else:
-			e = html.p(self.content)
+			e = html.p(self.content, class_=self["type"])
 		return e.convert(converter)
 
 class ulist(xsc.Element):
@@ -366,7 +367,7 @@ class pyref(xsc.Element):
 
 def getDoc(thing):
 	if thing.__doc__ is None:
-		return par("(no docstring available)")
+		return par("(no docstring available)", type="noneavail")
 	lines = thing.__doc__.split("\n")
 
 	# find first nonempty line
