@@ -663,6 +663,8 @@ class common_border_padding_background_properties(xsc.Element.Attrs):
 		values = ("none", "hidden", "dotted", "dashed", "solid", "double", "groove", "ridge", "inset", "outset", "inherit")
 	class border_right_width(xsc.TextAttr):
 		xmlname = "border-right-width"
+	class padding(xsc.TextAttr):
+		xmlname = "padding"
 	class padding_before(xsc.TextAttr):
 		xmlname = "padding-before"
 	class padding_before_length(xsc.TextAttr):
