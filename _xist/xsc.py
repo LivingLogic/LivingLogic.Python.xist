@@ -2598,8 +2598,6 @@ class Namespace(Base):
 		for value in self.Attrs.allowedvalues():
 			value.xmlns = self
 		namespaceRegistry.register(self)
-		defaultPrefixes.addPrefixMapping(None, self, mode="prepend")
-		defaultPrefixes.addPrefixMapping(self.xmlprefix, self, mode="prepend")
 
 	def register(self, thing):
 		"""
@@ -2671,6 +2669,8 @@ class NamespaceRegistry(object):
 		self.byPrefix.setdefault(namespace.xmlprefix, []).insert(0, namespace)
 		self.byURL.setdefault(namespace.xmlname, []).insert(0, namespace)
 		self.all.insert(0, namespace)
+		defaultPrefixes.addPrefixMapping(None, namespace, mode="prepend")
+		defaultPrefixes.addPrefixMapping(namespace.xmlprefix, namespace, mode="prepend")
 
 namespaceRegistry = NamespaceRegistry()
 
