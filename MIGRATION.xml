@@ -85,7 +85,7 @@ With the old method they would be traversed.</par>
 <section><title><class>doc</class> changes</title>
 
 <par><class>programlisting</class> has been renamed to <class>prog</class> (but
-there's still a <class>programlisting</class> that gives a warning.</par>
+there's still a <class>programlisting</class> that gives a warning).</par>
 
 </section>
 
