@@ -503,7 +503,7 @@ class Handler(object):
 	def characters(self, content):
 		if self.skippingWhitespace:
 			# the following could be content = content.lstrip(), but this would remove nbsps
-			while content[:1] in " \t\n":
+			while content and content[0].isspace() and content[0] != "\xa0":
 				content = content[1:]
 		if content:
 			last = self.__nesting[-1]
