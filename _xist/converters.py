@@ -49,7 +49,7 @@ class Converter:
 	A typical example are nested chapter/subchapter elements with automatic numbering.
 	For an example see the element <pyref module="xist.ns.doc" class="section"><class>section</class></pyref>.</doc:par>
 	"""
-	def __init__(self, root=None, mode=None, stage=None, target=None, lang=None):
+	def __init__(self, root=None, mode=None, stage=None, target=None, lang=None, makeaction=None, maketarget=None, makeproject=None):
 		"""
 		<doc:par>Create a <class>Converter</class>.</doc:par>
 		<doc:par>Arguments are:
@@ -84,9 +84,9 @@ class Converter:
 			self.target = target
 		self.lang = lang
 		self.contexts = {}
-		self.makeaction = None
-		self.maketarget = None
-		self.makeproject = None
+		self.makeaction = makeaction
+		self.maketarget = maketarget
+		self.makeproject = makeproject
 
 	def __getitem__(self, class_):
 		"""
