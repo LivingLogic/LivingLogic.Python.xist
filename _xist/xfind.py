@@ -203,6 +203,7 @@ class contains(Operator):
 		self.class_= class_
 
 	def xwalk(self, iterator):
+		from ll.xist import xsc
 		for child in iterator:
 			if isinstance(child, (xsc.Frag, xsc.Element)):
 				for subchild in child:
@@ -219,6 +220,7 @@ class child(Operator):
 		self.class_= class_
 
 	def xwalk(self, iterator):
+		from ll.xist import xsc
 		for child in iterator:
 			if isinstance(child, (xsc.Frag, xsc.Element)):
 				for subchild in child:
@@ -235,6 +237,7 @@ class attrnamed(Operator):
 		self.xml = xml
 
 	def xwalk(self, iterator):
+		from ll.xist import xsc
 		for child in iterator:
 			if isinstance(child, xsc.Element) and child.attrs.isallowed(self.attrname, self.xml) and child.attrs.has(self.attrname, self.xml):
 				yield child.attrs.get(self.attrname, xml=self.xml)
@@ -248,6 +251,7 @@ class attr(Operator):
 		self.attr = attr
 
 	def xwalk(self, iterator):
+		from ll.xist import xsc
 		for child in iterator:
 			if isinstance(child, xsc.Element):
 				for attrvalue in child.attrs.itervalues():
