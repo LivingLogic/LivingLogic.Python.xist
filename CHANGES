@@ -5,6 +5,13 @@ Fixed a bug in the entity handling.
 Added a few deprecated elements and attributes to
 the html module.
 
+Improved the publishing of attributes. Now all attribute
+values will be published. For boolean attributes no value
+will be published for XHTML==0 and the attribute name will
+be used for XHTML==1 or XHTML==2.
+
+Element.compact now works (better) ;).
+
 New in 0.4.6
 ------------
 Now uses sgmlop.XMLParser instead of sgmlop.SGMLParser,
