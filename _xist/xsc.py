@@ -1142,6 +1142,7 @@ class Frag(Node):
 
 	def mapped(self, function):
 		node = function(self)
+		assert isinstance(node, Node), "the mapped method returned the illegal object %r (type %r) when mapping %r" % (node, type(node), self)
 		if node is self:
 			node = Frag(*[ child.mapped(function) for child in self.__content])
 		return node
@@ -1750,6 +1751,7 @@ class Element(Node):
 
 	def mapped(self, function):
 		node = function(self)
+		assert isinstance(node, Node), "the mapped method returned the illegal object %r (type %r) when mapping %r" % (node, type(node), self)
 		if node is self:
 			node = self.__class__(*self.content.mapped(function), **self.attrs)
 		return node
