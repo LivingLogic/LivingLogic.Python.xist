@@ -130,13 +130,13 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 			if state:
 				raise sax.SAXNotSupportedException("no namespace processing available")
 		else:
-			super(SGMLOPParser, self).setFeature(name, state)
+			sax.xmlreader.IncrementalParser.setFeature(self, name, state)
 
 	def getFeature(self, name):
 		if name == handler.feature_namespaces:
 			return 0
 		else:
-			super(SGMLOPParser, self).setFeature(name, state)
+			sax.xmlreader.IncrementalParser.setFeature(self, name, state)
 
 	def handle_comment(self, data):
 		self._cont_handler.comment(self._makestring(data))
@@ -293,29 +293,29 @@ class HTMLParser(BadEntityParser):
 		return sgmlop.SGMLParser()
 
 	def reset(self):
-		super(HTMLParser, self).reset()
+		BadEntityParser.reset(self)
 		self.__stack = []
 
 	def close(self):
 		while len(self.__stack): # close all open elements
 			self.finish_endtag(self.__stack[-1])
-		super(HTMLParser, self).close()
+		BadEntityParser.close(self)
 
 	def handle_comment(self, data):
 		self.__closeEmpty()
-		super(HTMLParser, self).handle_comment(data)
+		BadEntityParser.handle_comment(self, data)
 
 	def handle_data(self, data):
 		self.__closeEmpty()
-		super(HTMLParser, self).handle_data(data)
+		BadEntityParser.handle_data(data)
 
 	def handle_proc(self, target, data):
 		self.__closeEmpty()
-		super(HTMLParser, self).handle_proc(target, data)
+		BadEntityParser.handle_proc(self, target, data)
 
 	def handle_entityref(self, name):
 		self.__closeEmpty()
-		super(HTMLParser, self).handle_entityref(name)
+		BadEntityParser.handle_entityref(self, name)
 
 	def finish_starttag(self, name, attrs):
 		self.__closeEmpty()
@@ -334,7 +334,7 @@ class HTMLParser(BadEntityParser):
 				newattrs[attrname] = attrvalue
 			else:
 				errors.warn(errors.IllegalAttrError(element.Attrs, attrname))
-		super(HTMLParser, self).finish_starttag(name, newattrs)
+		BadEntityParser.finish_starttag(self, name, newattrs)
 
 	def finish_endtag(self, name):
 		name = name.lower()
@@ -343,12 +343,12 @@ class HTMLParser(BadEntityParser):
 				self.__closeEmpty()
 			if self.__stack[-1] != name:
 				self.__closeMinimizedOnEnd(name) #  maybe an open <p> tag etc. has been left open; eg. <div><p>gurk</div>
-			super(HTMLParser, self).finish_endtag(name)
+			BadEntityParser.finish_endtag(self, name)
 			del self.__stack[-1]
 
 	def __closeEmpty(self):
 		if len(self.__stack) and html.xmlns.elementsByName[self.__stack[-1]].empty:
-			self.finish_endtag(self.__stack[-1])
+			self.finish_endtag(self, self.__stack[-1])
 
 	def __closeMimimizedOnStart(self, name):
 		if len(self.__stack):
@@ -358,7 +358,7 @@ class HTMLParser(BadEntityParser):
 			except KeyError:
 				return
 			if name in minigroup: # starting a tag from the same group?
-				self.finish_endtag(name)
+				self.finish_endtag(self, name)
 
 	def __closeMinimizedOnEnd(self, name):
 		if len(self.__stack):
@@ -368,7 +368,7 @@ class HTMLParser(BadEntityParser):
 			except KeyError:
 				return
 			if name not in self.minimizedElements:
-				self.finish_endtag(lastname)
+				self.finish_endtag(self, lastname)
 
 ExpatParser = expatreader.ExpatParser
 
