@@ -130,7 +130,7 @@ is for parsing strings (8bit and Unicode) and
 parsing resources from &url;s. With
 <pyref module="ll.xist.parsers" function="parseFile"><function>parseFile</function></pyref> you can parse
 local files.</par>
-<par>All three functions call create a parser internally, parse the supplied source document and will
+<par>All three functions create a parser internally, parse the supplied source document and
 return the resulting object tree.</par>
 <par>For further info about the rest of the arguments, see the documentation
 for <pyref module="ll.xist.parsers" class="Parser"><class>ll.xist.parsers.Parser</class></pyref>.</par>
