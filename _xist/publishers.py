@@ -21,7 +21,7 @@
 
 """
 This module contains classes that may be used as publishing
-handler in <methodref module="xist.xsc" class="Node">publish</methodref>.
+handler in <pyref module="xist.xsc" class="Node">publish</pyref>.
 """
 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
