@@ -43,6 +43,9 @@ make.py has a new option --files/-f. The argument
 is a file containing a list of filenames (one
 name per line) that should be transformed.
 
+All abbreviation entities haven been moved to
+a new module abbr.py
+
 New in 0.4.7
 ------------
 Fixed a bug in the entity handling.
