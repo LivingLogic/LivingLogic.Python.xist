@@ -22,12 +22,12 @@ from ll.xist import xsc, parsers
 
 class z(xsc.Element):
 	"""
-	<par>puts it's content into french quotes</par>
+	<par>Put the content into double quotes</par>
 	"""
 	empty = False
 
 	def convert(self, converter):
-		e = xsc.Frag(u"»", self.content.convert(converter), u"«")
+		e = xsc.Frag(u"\u201c", self.content.convert(converter), u"\u201d")
 		return e
 
 	def __unicode__(self):
