@@ -1,0 +1,11 @@
+body
+{
+	background-color: #ccc;
+	color: #000;
+}
+td
+{
+	font-family: "Verdana", "Arial", "XHelvetica", "Helvetica", sans-serif;
+	font-size: 9px;
+	padding: 5px;
+}
