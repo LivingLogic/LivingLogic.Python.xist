@@ -11,7 +11,7 @@ from xsc_html40 import *
 class plaintable(table):
 	empty = 0
 
-	def _doAsHTML(self):
+	def asHTML(self):
 		e = table(self.content.asHTML(),self.attrs.asHTML())
 		if not e.has_attr("cellpadding"):
 			e["cellpadding"] = "0"
@@ -26,7 +26,7 @@ RegisterElement("plaintable",plaintable)
 class plainbody(body):
 	empty = 0
 
-	def _doAsHTML(self):
+	def asHTML(self):
 		e = body(self.content.asHTML(),self.attrs.asHTML())
 		if not e.has_attr("leftmargin"):
 			e["leftmargin"] = "0"
@@ -43,7 +43,7 @@ RegisterElement("plainbody",plainbody)
 class z(XSCElement):
 	empty = 0
 
-	def _doAsHTML(self):
+	def asHTML(self):
 		e = XSCFrag(["«" , self.content , "»" ])
 
 		return e.asHTML()
@@ -52,7 +52,7 @@ RegisterElement("z",z)
 class nbsp(XSCElement):
 	empty = 1
 
-	def _doAsHTML(self):
+	def asHTML(self):
 		return XSCCharRef(160)
 RegisterElement("nbsp",nbsp)
 
@@ -60,7 +60,7 @@ class filesize(XSCElement):
 	empty = 1
 	attr_handlers = { "href" : XSCURLAttr }
 
-	def _doAsHTML(self):
+	def asHTML(self):
 		return XSCText(self["href"].FileSize())
 RegisterElement("filesize",filesize)
 
@@ -68,7 +68,7 @@ class x(XSCElement):
 	"""content will be ignored: can be used to comment out stuff (e.g. linefeeds)"""
 	close=1
 
-	def _doAsHTML(self):
+	def asHTML(self):
 		return None
 RegisterElement("x",x)
 
@@ -91,7 +91,7 @@ RegisterElement("pixel",pixel)
 class cap(XSCElement):
 	empty = 0
 	
-	def _doAsHTML(self):
+	def asHTML(self):
 		e = str(self.content.asHTML())
 		if type(e) == types.ListType:
 			e = e[0]
@@ -116,14 +116,14 @@ RegisterElement("cap",cap)
 class endash(XSCElement):
 	empty = 1
 
-	def _doAsHTML(self):
+	def asHTML(self):
 		return XSCText("-")
 RegisterElement("endash",endash)
 
 class emdash(XSCElement):
 	empty = 1
 
-	def _doAsHTML(self):
+	def asHTML(self):
 		return XSCText("-")
 RegisterElement("emdash",emdash)
 

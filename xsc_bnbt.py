@@ -6,7 +6,7 @@ class page(XSCElement):
 	attr_handlers = { "title" : XSCTextAttr , "head" : XSCTextAttr , "align" : XSCTextAttr , "refresh" : XSCTextAttr , "class" : XSCTextAttr , "keywords" : XSCTextAttr , "description" : XSCTextAttr , "onload" : XSCTextAttr , "nohome" : XSCTextAttr , "nosearch" : XSCTextAttr , "nositemap" : XSCTextAttr , "nofaq" : XSCTextAttr }
 	empty = 0
 
-	def _doAsHTML(self):
+	def asHTML(self):
 		t = None
 		if self.has_attr("title"):
 			t = title(self["title"])
@@ -42,14 +42,14 @@ RegisterElement("links",links)
 class indent(XSCElement):
 	empty = 1
 	
-	def _doAsHTML(self):
+	def asHTML(self):
 		return XSCFrag([nbsp()]*4)
 RegisterElement("indent",indent)
 
 class _(XSCElement):
 	empty = 1
 	
-	def _doAsHTML(self):
+	def asHTML(self):
 		return " - "
 RegisterElement("_",_)
 
@@ -57,7 +57,7 @@ class pfeil(img):
 	empty = 1
 	attr_handlers = AppendDict(img.attr_handlers,{ "rel" : XSCTextAttr })
 	
-	def _doAsHTML(self):
+	def asHTML(self):
 		e = img(self.content.asHTML(),self.attrs - [ "rel" ])
 		e["border"] = 0
 		e["src"] = [":images/links/" , self["rel"] , ".gif" ]
@@ -68,336 +68,336 @@ RegisterElement("pfeil",pfeil)
 class capbnv(XSCElement):
 	empty = 1
 	
-	def _doAsHTML(self):
+	def asHTML(self):
 		return cap("Bnv").asHTML()
 RegisterElement("capbnv",capbnv)
 
 class capxml(XSCElement):
 	empty = 1
 	
-	def _doAsHTML(self):
+	def asHTML(self):
 		return cap("Xml").asHTML()
 RegisterElement("capxml",capxml)
 
 class capcss(XSCElement):
 	empty = 1
 	
-	def _doAsHTML(self):
+	def asHTML(self):
 		return cap("Css").asHTML()
 RegisterElement("capcss",capcss)
 
 class capgeo(XSCElement):
 	empty = 1
 	
-	def _doAsHTML(self):
+	def asHTML(self):
 		return cap("Geo").asHTML()
 RegisterElement("capgeo",capgeo)
 
 class capcisco(XSCElement):
 	empty = 1
 	
-	def _doAsHTML(self):
+	def asHTML(self):
 		return cap("Cisco").asHTML()
 RegisterElement("capcisco",capcisco)
 
 class capsun(XSCElement):
 	empty = 1
 	
-	def _doAsHTML(self):
+	def asHTML(self):
 		return cap("Sun").asHTML()
 RegisterElement("capsun",capsun)
 
 class capcgi(XSCElement):
 	empty = 1
 	
-	def _doAsHTML(self):
+	def asHTML(self):
 		return cap("Cgi").asHTML()
 RegisterElement("capcgi",capcgi)
 
 class capphp(XSCElement):
 	empty = 1
 	
-	def _doAsHTML(self):
+	def asHTML(self):
 		return cap("Php").asHTML()
 RegisterElement("capphp",capphp)
 
 class capbin(XSCElement):
 	empty = 1
 	
-	def _doAsHTML(self):
+	def asHTML(self):
 		return cap("Bin").asHTML()
 RegisterElement("capbin",capbin)
 
 class capwww(XSCElement):
 	empty = 1
 	
-	def _doAsHTML(self):
+	def asHTML(self):
 		return cap("www").asHTML()
 RegisterElement("capwww",capwww)
 
 class capknf(XSCElement):
 	empty = 1
 	
-	def _doAsHTML(self):
+	def asHTML(self):
 		return cap("Knf").asHTML()
 RegisterElement("capknf",capknf)
 
 class caphtml(XSCElement):
 	empty = 1
 	
-	def _doAsHTML(self):
+	def asHTML(self):
 		return cap("Html").asHTML()
 RegisterElement("caphtml",caphtml)
 
 class capowinet(XSCElement):
 	empty = 1
 	
-	def _doAsHTML(self):
+	def asHTML(self):
 		return cap("OwiNet").asHTML()
 RegisterElement("capowinet",capowinet)
 
 class capmcs(XSCElement):
 	empty = 1
 	
-	def _doAsHTML(self):
+	def asHTML(self):
 		return cap("Mcs").asHTML()
 RegisterElement("capmcs",capmcs)
 
 class capcfs(XSCElement):
 	empty = 1
 	
-	def _doAsHTML(self):
+	def asHTML(self):
 		return cap("Cfs").asHTML()
 RegisterElement("capcfs",capcfs)
 
 class capdaa(XSCElement):
 	empty = 1
 	
-	def _doAsHTML(self):
+	def asHTML(self):
 		return cap("Daa").asHTML()
 RegisterElement("capdaa",capdaa)
 
 class capvhs(XSCElement):
 	empty = 1
 	
-	def _doAsHTML(self):
+	def asHTML(self):
 		return cap("Vhs").asHTML()
 RegisterElement("capvhs",capvhs)
 
 class capakzent(XSCElement):
 	empty = 1
 	
-	def _doAsHTML(self):
+	def asHTML(self):
 		return cap("Akzent").asHTML()
 RegisterElement("capakzent",capakzent)
 
 class capcvjm(XSCElement):
 	empty = 1
 	
-	def _doAsHTML(self):
+	def asHTML(self):
 		return cap("Cvjm").asHTML()
 RegisterElement("capcvjm",capcvjm)
 
 class capccb(XSCElement):
 	empty = 1
 	
-	def _doAsHTML(self):
+	def asHTML(self):
 		return cap("Ccb").asHTML()
 RegisterElement("capccb",capccb)
 
 class capppp(XSCElement):
 	empty = 1
 	
-	def _doAsHTML(self):
+	def asHTML(self):
 		return cap("ppp").asHTML()
 RegisterElement("capppp",capppp)
 
 class capmtla(XSCElement):
 	empty = 1
 	
-	def _doAsHTML(self):
+	def asHTML(self):
 		return cap("Mtla").asHTML()
 RegisterElement("capmtla",capmtla)
 
 class capbfs(XSCElement):
 	empty = 1
 	
-	def _doAsHTML(self):
+	def asHTML(self):
 		return cap("Bfs").asHTML()
 RegisterElement("capbfs",capbfs)
 
 class capihk(XSCElement):
 	empty = 1
 	
-	def _doAsHTML(self):
+	def asHTML(self):
 		return cap("Ihk").asHTML()
 RegisterElement("capihk",capihk)
 
 class capdag(XSCElement):
 	empty = 1
 	
-	def _doAsHTML(self):
+	def asHTML(self):
 		return cap("Dag").asHTML()
 RegisterElement("capdag",capdag)
 
 class capvwa(XSCElement):
 	empty = 1
 	
-	def _doAsHTML(self):
+	def asHTML(self):
 		return cap("Vwa").asHTML()
 RegisterElement("capvwa",capvwa)
 
 class capbfz(XSCElement):
 	empty = 1
 	
-	def _doAsHTML(self):
+	def asHTML(self):
 		return cap("Bfz").asHTML()
 RegisterElement("capbfz",capbfz)
 
 class capedv(XSCElement):
 	empty = 1
 	
-	def _doAsHTML(self):
+	def asHTML(self):
 		return cap("edv").asHTML()
 RegisterElement("capedv",capedv)
 
 class capbitoek(XSCElement):
 	empty = 1
 	
-	def _doAsHTML(self):
+	def asHTML(self):
 		return cap("Bitök").asHTML()
 RegisterElement("capbitoek",capbitoek)
 
 class capdfn(XSCElement):
 	empty = 1
 	
-	def _doAsHTML(self):
+	def asHTML(self):
 		return cap("Dfn").asHTML()
 RegisterElement("capdfn",capdfn)
 
 class capizb(XSCElement):
 	empty = 1
 	
-	def _doAsHTML(self):
+	def asHTML(self):
 		return cap("Izb").asHTML()
 RegisterElement("capizb",capizb)
 
 class capdat(XSCElement):
 	empty = 1
 	
-	def _doAsHTML(self):
+	def asHTML(self):
 		return cap("Dat").asHTML()
 RegisterElement("capdat",capdat)
 
 class capdns(XSCElement):
 	empty = 1
 	
-	def _doAsHTML(self):
+	def asHTML(self):
 		return cap("Dns").asHTML()
 RegisterElement("capdns",capdns)
 
 class capascend(XSCElement):
 	empty = 1
 	
-	def _doAsHTML(self):
+	def asHTML(self):
 		return cap("Ascend").asHTML()
 RegisterElement("capascend",capascend)
 
 class capmax(XSCElement):
 	empty = 1
 	
-	def _doAsHTML(self):
+	def asHTML(self):
 		return cap("Max").asHTML()
 RegisterElement("capmax",capmax)
 
 class capisdn(XSCElement):
 	empty = 1
 	
-	def _doAsHTML(self):
+	def asHTML(self):
 		return cap("Isdn").asHTML()
 RegisterElement("capisdn",capisdn)
 
 class cappdf(XSCElement):
 	empty = 1
 	
-	def _doAsHTML(self):
+	def asHTML(self):
 		return cap("Pdf").asHTML()
 RegisterElement("cappdf",cappdf)
 
 class capiso(XSCElement):
 	empty = 1
 	
-	def _doAsHTML(self):
+	def asHTML(self):
 		return cap("Iso").asHTML()
 RegisterElement("capiso",capiso)
 
 class capurl(XSCElement):
 	empty = 1
 	
-	def _doAsHTML(self):
+	def asHTML(self):
 		return cap("Url").asHTML()
 RegisterElement("capurl",capurl)
 
 class caphttp(XSCElement):
 	empty = 1
 	
-	def _doAsHTML(self):
+	def asHTML(self):
 		return cap("Http").asHTML()
 RegisterElement("caphttp",caphttp)
 
 class capsmtp(XSCElement):
 	empty = 1
 	
-	def _doAsHTML(self):
+	def asHTML(self):
 		return cap("Smtp").asHTML()
 RegisterElement("capsmtp",capsmtp)
 
 class capftp(XSCElement):
 	empty = 1
 	
-	def _doAsHTML(self):
+	def asHTML(self):
 		return cap("ftp").asHTML()
 RegisterElement("capftp",capftp)
 
 class cappop3(XSCElement):
 	empty = 1
 	
-	def _doAsHTML(self):
+	def asHTML(self):
 		return cap("Pop3").asHTML()
 RegisterElement("cappop3",cappop3)
 
 class capcvs(XSCElement):
 	empty = 1
 	
-	def _doAsHTML(self):
+	def asHTML(self):
 		return cap("Cvs").asHTML()
 RegisterElement("capcvs",capcvs)
 
 class capfaq(XSCElement):
 	empty = 1
 	
-	def _doAsHTML(self):
+	def asHTML(self):
 		return cap("Faq").asHTML()
 RegisterElement("capfaq",capfaq)
 
 class capgnu(XSCElement):
 	empty = 1
 	
-	def _doAsHTML(self):
+	def asHTML(self):
 		return cap("Gnu").asHTML()
 RegisterElement("capgnu",capgnu)
 
 class caphsc(XSCElement):
 	empty = 1
 	
-	def _doAsHTML(self):
+	def asHTML(self):
 		return cap("Hsc").asHTML()
 RegisterElement("caphsc",caphsc)
 
 class capunix(XSCElement):
 	empty = 1
 	
-	def _doAsHTML(self):
+	def asHTML(self):
 		return cap("Unix").asHTML()
 RegisterElement("capunix",capunix)
 
@@ -405,7 +405,7 @@ class par(div):
 	empty = 0
 	attr_handlers = AppendDict(div.attr_handlers,{ "noindent" : XSCTextAttr })
 	
-	def _doAsHTML(self):
+	def asHTML(self):
 		e = div(self.content.asHTML(),(self.attrs - "noindent").asHTML())
 		if not self.has_attr("noindent"):
 			e["class"] = "indent"
@@ -415,14 +415,14 @@ RegisterElement("par",par)
 class blob(XSCElement):
 	empty = 1
 	
-	def _doAsHTML(self):
+	def asHTML(self):
 		return (nbsp() + "- ").asHTML()
 RegisterElement("blob",blob)
 
 class schulen(dl):
 	empty = 0
 
-	def _doAsHTML(self):
+	def asHTML(self):
 		return dl(self.content.asHTML(),self.attrs.asHTML())
 RegisterElement("schulen",schulen)
 
@@ -430,7 +430,7 @@ class schule(XSCElement):
 	empty = 0
 	attr_handlers = { "privat" : XSCTextAttr , "art" : XSCTextAttr , "anschrift" : XSCTextAttr , "telefon" : XSCTextAttr , "url" : XSCURLAttr }
 	
-	def _doAsHTML(self):
+	def asHTML(self):
 		t = XSCFrag()
 		if self.has_attr("url"):
 			t = t + a(b(self.content.asHTML()),href=self["url"])
@@ -452,7 +452,7 @@ RegisterElement("schule",schule)
 class fileinfo(XSCElement):
 	empty = 1
 
-	def _doAsHTML(self):
+	def asHTML(self):
 		e = tr(
 			td(indent(),rowspan=3) +
 			td(div(pfeil(rel="info") + nbsp(),Class="lnk-title"),nowrap="") +
@@ -477,7 +477,7 @@ class navigation(XSCElement):
 	empty = 1
 	attr_handlers = { "off" : XSCTextAttr , "href" : XSCURLAttr , "img" : XSCTextAttr , "text" : XSCTextAttr }
 
-	def _doAsHTML(self):
+	def asHTML(self):
 		td1 = td([nbsp()]*3,Class="links",bgcolor="#333366")
 		td2 = td(span("",Class="biglink"),Class="links",bgcolor="#333366",valign="middle",align="center")
 		e = XSCFrag(td1+td2)
@@ -545,7 +545,7 @@ RegisterElement("faq",faq)
 class engines(XSCElement):
 	empty = 0
 
-	def _doAsHTML(self):
+	def asHTML(self):
 		e = dl(self.content)
 		return e.asHTML()
 RegisterElement("engines",engines)
@@ -554,7 +554,7 @@ class engine(XSCElement):
 	empty = 0
 	attr_handlers = { "name" : XSCTextAttr , "url" : XSCURLAttr }
 
-	def _doAsHTML(self):
+	def asHTML(self):
 		e = XSCFrag(
 			dt(b(self["name"]) + " (" + hrf(self["url"],href=self["url"]) + ")")+
 			dd(div(self.content,Class="engine-text"))
@@ -567,7 +567,7 @@ RegisterElement("engine",engine)
 class bnvereine(XSCElement):
 	empty = 0
 
-	def _doAsHTML(self):
+	def asHTML(self):
 		e = dl(self.content)
 		return e.asHTML()
 RegisterElement("bnvereine",bnvereine)
@@ -576,7 +576,7 @@ class bnverein(XSCElement):
 	empty = 0
 	attr_handlers = { "name" : XSCTextAttr , "url" : XSCURLAttr }
 
-	def _doAsHTML(self):
+	def asHTML(self):
 		e = XSCFrag(
 			dt(b(self["name"]) + " (" + hrf(self["url"],href=self["url"]) + ")")+
 			dd(div(self.content,Class="bnverein-text"))
@@ -590,7 +590,7 @@ class fahrplansite(XSCElement):
 	empty = 0
 	attr_handlers = { "name" : XSCTextAttr , "url" : XSCTextAttr }
 
-	def _doAsHTML(self):
+	def asHTML(self):
 		e = dl(self.content)
 
 		return e.asHTML()
@@ -599,7 +599,7 @@ RegisterElement("fahrplansite",fahrplansite)
 class fahrplansites(XSCElement):
 	empty = 0
 
-	def _doAsHTML(self):
+	def asHTML(self):
 		e = XSCFrag(
 			dt(b(self["name"]) + " (" + hrf(self["url"],href=self["url"]) + ")")+
 			dd(div(self.content,Class="fahrplan-text"))
@@ -612,7 +612,7 @@ class fahrplan(XSCElement):
 	empty = 0
 	attr_handlers = { "name" : XSCTextAttr , "url" : XSCURLAttr }
 
-	def _doAsHTML(self):
+	def asHTML(self):
 		halts = self.findElementsNamed("haltestelle")
 		flipflop = "even"
 		for halt in halts:
@@ -629,7 +629,7 @@ RegisterElement("fahrplan",fahrplan)
 class halt(XSCElement):
 	empty = 0
 
-	def _doAsHTML(self):
+	def asHTML(self):
 		e = td(self.content,align="right",Class="halt")
 
 		return e.asHTML()
@@ -639,7 +639,7 @@ RegisterElement("halt",halt)
 class keinhalt(XSCElement):
 	empty = 1
 
-	def _doAsHTML(self):
+	def asHTML(self):
 		e = td()
 
 		return e.asHTML()
@@ -649,7 +649,7 @@ class haltestelle(XSCElement):
 	empty = 0
 	attr_handlers = { "name" : XSCTextAttr , "an" : XSCTextAttr , "class" : XSCTextAttr }
 
-	def _doAsHTML(self):
+	def asHTML(self):
 		if self.has_attr("an"):
 			anab = td("an")
 		else:
@@ -679,7 +679,7 @@ RegisterElement("downloadsite",downloadsite)
 class newstickers(XSCElement):
 	empty = 0
 
-	def _doAsHTML(self):
+	def asHTML(self):
 		e = dl(self.content)
 
 		return e.asHTML()
@@ -689,7 +689,7 @@ class newsticker(XSCElement):
 	empty = 0
 	attr_handlers = { "name" : XSCTextAttr , "url" : XSCURLAttr }
 
-	def _doAsHTML(self):
+	def asHTML(self):
 		e = XSCFrag(
 			dt(b(self["name"]) + " (" + hrf(self["url"],href=self["url"]) + ")")+
 			dd(div(self.content,Class="newsticker-text"))
@@ -716,7 +716,7 @@ RegisterElement("kleinanzeige-fax",kleinanzeige_fax)
 class newsitems(XSCElement):
 	empty = 0
 
-	def _doAsHTML(self):
+	def asHTML(self):
 		e = plaintable(self.content,Class="newsitems")
 
 		return e.asHTML()
@@ -726,7 +726,7 @@ class newsitem(XSCElement):
 	attr_handlers = { "datum" : XSCTextAttr , "href" : XSCTextAttr }
 	empty = 0
 
-	def _doAsHTML(self):
+	def asHTML(self):
 		e = tr(
 			td(b(self["datum"]+nbsp()),valign="top")+
 			td(a(self.content,href=":aktuelles/"+self["href"]+".html"))
@@ -739,7 +739,7 @@ class pagenewsitem(XSCElement):
 	empty = 0
 	attr_handlers = { "datum" : XSCTextAttr }
 
-	def _doAsHTML(self):
+	def asHTML(self):
 		e = page(links()+content(self.content),title="Bürgernetz Bayreuth - Aktuelles - "+self["datum"],keywords="Bürgernetz, Bayreuth, Aktuelles")
 
 		return e.asHTML()
@@ -748,7 +748,7 @@ RegisterElement("pagenewsitem",pagenewsitem)
 class zonk(XSCElement):
 	empty = 0
 
-	def _doAsHTML(self):
+	def asHTML(self):
 		return XSCdiv(self.content.asHTML(),Class="zonk")
 RegisterElement("zonk",zonk)
 
@@ -756,7 +756,7 @@ class buergerfestbild(XSCElement):
 	empty = 0
 	attr_handlers = { "src" : XSCTextAttr }
 
-	def _doAsHTML(self):
+	def asHTML(self):
 		e = plaintable(
 			tr(
 				td(
