@@ -11,6 +11,7 @@ __version__ = "$Revision$"[11:-2]
 import string
 import types
 import urlparse
+import urllib
 
 class URL:
 	"""
@@ -28,7 +29,7 @@ class URL:
 	These variables form a URL in the following way
 	<scheme>://<server>/<path>/<file>;<params>?<query>#<fragment>
 	"""
-	def __init__(self,url = None,scheme = None,server = None,port = None,path = None,file = None,ext = None,parameters = None,query = None,fragment = None,forceproject = 0):
+	def __init__(self,url = None,scheme = None,server = None,port = None,path = None,file = None,ext = None,parameters = None,query = None,fragment = None):
 		# initialize the defaults
 		self.scheme = None
 		self.server = None
@@ -74,9 +75,6 @@ class URL:
 			self.query = query
 		if fragment is not None:
 			self.fragment = fragment
-
-		if forceproject and not self.scheme:
-			self.scheme = "project"
 
 		self.__optimize()
 
@@ -245,3 +243,6 @@ class URL:
 					break # restart the search
 			else: # no down/up found
 				break
+
+	def read(self):
+		return urllib.urlopen(str(self)).read()

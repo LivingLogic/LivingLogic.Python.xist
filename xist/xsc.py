@@ -1636,7 +1636,7 @@ class XSC:
 		self.parser = Parser()
 
 	def pushName(self,name):
-		url = URL(name,forceproject = 1)
+		url = URL(name)
 		if len(self.filename):
 			url = self.filename[-1] + url
 		self.filename.append(url)
@@ -1659,8 +1659,7 @@ class XSC:
 		"""
 		self.pushName(url)
 		self.parser.reset()
-		name = str(xsc.filename[-1])
-		self.parser.feed(urllib.urlopen(name).read())
+		self.parser.feed(xsc.filename[-1].read())
 		self.parser.close()
 		self.popName()
 		return self.parser.root
