@@ -79,7 +79,7 @@ class IllegalAttributeError(Error):
 		for attr in attrs:
 			v.append(strAttrName(attr))
 
-		return Error.__str__(self) + "Attribute " + strAttrName(self.attr) + " not allowed in element " + self.element._str() + ". Allowed attributes are: " + string.join(v,", ") + "."
+		return Error.__str__(self) + "Attribute " + strAttrName(self.attr) + " not allowed in element " + xsc.strNode(self.element.__class__) + ". Allowed attributes are: " + string.join(v,", ") + "."
 
 class AttributeNotFoundError(Error):
 	"""
@@ -94,7 +94,7 @@ class AttributeNotFoundError(Error):
 	def __str__(self):
 		attrs = self.element.attrs.keys();
 
-		s = Error.__str__(self) + "Attribute " + strAttrName(self.attr) + " not found in element " + self.element._str() +". "
+		s = Error.__str__(self) + "Attribute " + strAttrName(self.attr) + " not found in element " + xsc.strNode(self.element.__class__) +". "
 
 		if len(attrs):
 			attrs.sort()

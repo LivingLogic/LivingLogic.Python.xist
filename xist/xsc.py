@@ -1352,12 +1352,23 @@ class Element(Node):
 		else:
 			del self.content[index]
 
-	def get_attr(self,attr,default):
+	def hasAttr(self,attr):
 		"""
+		S.hasAttr(attr) -> bool
+
+		returns, if S has an attribute named attr.
+		"""
+		
+		return self.attrs.has_key(attr)
+
+	def getAttr(self,attr,default):
+		"""
+		S.getAttr(attr,default) -> node
+
 		works like the method get() of dictionaries,
-		it returns the attribute with the name attr, or if this doesn't exist,
-		default (after converting it to a node and wrapping it into the
-		appropriate attribute node.
+		it returns the attribute with the name attr, or if S has no
+		such attribute, default (after converting it to a node and
+		wrapping it into the appropriate attribute node.
 		"""
 		try:
 			return self[attr]
@@ -1385,9 +1396,6 @@ class Element(Node):
 	def __len__(self):
 		"""return the number of children"""
 		return len(self.content)
-
-	def hasAttr(self,attr):
-		return self.attrs.has_key(attr)
 
 	def __strattrs(self,ansi = None):
 		v = []
