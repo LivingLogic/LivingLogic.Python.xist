@@ -8,7 +8,9 @@
 ##
 ## See xist/__init__.py for the license
 
-import sys, unittest, cStringIO
+import sys, unittest, cStringIO, warnings
+
+from xml.sax import saxlib
 
 from ll import url
 from ll.xist import xsc, parsers, presenters, converters, helpers, errors, options
@@ -17,7 +19,7 @@ from ll.xist.ns import wml, ihtml, html, css, abbr, specials, htmlspecials, php,
 # set to something ASCII, so presenters work, even if the system default encoding is ascii
 options.reprtab = "  "
 
-class XISTTestCase(unittest.TestCase):
+class XISTTest(unittest.TestCase):
 	def check_lenunicode(self, node, _len, content):
 		self.assertEqual(len(node), _len)
 		self.assertEqual(unicode(node), content)
@@ -110,7 +112,81 @@ class XISTTestCase(unittest.TestCase):
 		self.check_lenunicode(html.div(1, (2, 3)), 3, u"123")
 		self.check_lenunicode(html.div(1, (None, None)), 1, u"1")
 
-	def createnode(self):
+	def createattr(self):
+		return html.span.Attrs.lang(
+			True,
+			False,
+			url.URL("http://www.python.org/"),
+			html.abbr(
+				xml.XML10(),
+				"hurz",
+				specials.tab(),
+				abbr.xist(),
+				None,
+				1,
+				2.0,
+				"3",
+				u"4",
+				(5, 6),
+				[7, 8],
+				html.span("gurk"),
+				title="hurz"
+			)
+		)
+
+	def createattrs(self):
+		return html.span.Attrs(
+			lang=(
+				True,
+				False,
+				url.URL("http://www.python.org/"),
+				html.abbr(
+					xml.XML10(),
+					"hurz",
+					specials.tab(),
+					abbr.xist(),
+					None,
+					1,
+					2.0,
+					"3",
+					u"4",
+					(5, 6),
+					[7, 8],
+					html.span("gurk"),
+					title="hurz"
+				)
+			)
+		)
+
+	def createelement(self):
+		return html.span(
+			1,
+			2,
+			class_="gurk",
+			id=(1, 2, (3, 4)),
+			lang=(
+				True,
+				False,
+				url.URL("http://www.python.org/"),
+				html.abbr(
+					xml.XML10(),
+					"hurz",
+					specials.tab(),
+					abbr.xist(),
+					None,
+					1,
+					2.0,
+					"3",
+					u"4",
+					(5, 6),
+					[7, 8],
+					html.span("gurk"),
+					title="hurz"
+				)
+			)
+		)
+
+	def createfrag(self):
 		return xsc.Frag(
 			xml.XML10(),
 			html.DocTypeHTML401transitional(),
@@ -159,27 +235,39 @@ class XISTTestCase(unittest.TestCase):
 			)
 		)
 
-	def test_standardmethods(self):
-		node = self.createnode()
-		node.compact()
-		node.normalized()
-		node.find()
-		node.sorted()
-		node.shuffled()
-		node.pretty()
-		node.normalized().compact().pretty()
+	def allnodes(self):
+		return (xsc.Null, self.createattr(), self.createattrs(), self.createelement(), self.createfrag())
 
-	def test_string(self):
-		node = self.createnode()
-		unicode(node)
-		str(node)
-		node.asString()
-		node.asBytes()
-		node.asText()
-		node.asText(monochrome=True)
-		node.asText(squeezeBlankLines=True)
-		node.asText(lineNumbers=True)
-		node.asText(width=120)
+	def test_standardmethods(self):
+		for node in self.allnodes():
+			node.compact()
+			node.normalized()
+			node.find()
+			node.pretty()
+			node.clone()
+			node.conv()
+			node.normalized().compact().pretty()
+
+	def test_standardmethods2(self):
+		for node in (self.createelement(), self.createfrag()):
+			node.sorted()
+			node.shuffled()
+			node.reversed()
+
+	def test_stringify(self):
+		for node in self.allnodes():
+			unicode(node)
+			str(node)
+			node.asString()
+			node.asBytes()
+
+	def test_asText(self):
+		for node in self.allnodes():
+			node.asText()
+			node.asText(monochrome=True)
+			node.asText(squeezeBlankLines=True)
+			node.asText(lineNumbers=True)
+			node.asText(width=120)
 
 	def test_number(self):
 		node = html.div(class_=1234)
@@ -299,23 +387,23 @@ class XISTTestCase(unittest.TestCase):
 		return node
 
 	def test_conv(self):
-		node = self.createnode()
+		node = self.createfrag()
 		node.conv()
 		node.conv(converters.Converter())
 		node.conv(function=self.mappedmapper)
 
 	def test_repr(self):
-		node = self.createnode()
-		repr(node)
-		for class_ in presenters.__dict__.itervalues():
-			if isinstance(class_, type) and issubclass(class_, presenters.Presenter):
-				node.repr(class_())
-		for showLocation in (False, True):
-			for showPath in (False, True):
-				node.repr(presenters.TreePresenter(showLocation=showLocation, showPath=showPath))
+		for node in self.allnodes():
+			repr(node)
+			for class_ in presenters.__dict__.itervalues():
+				if isinstance(class_, type) and issubclass(class_, presenters.Presenter):
+					node.repr(class_())
+			for showLocation in (False, True):
+				for showPath in (False, True):
+					node.repr(presenters.TreePresenter(showLocation=showLocation, showPath=showPath))
 
 	def test_walk(self):
-		node = self.createnode()
+		node = self.createfrag()
 		def filter1(node):
 			return xsc.Found(foundstart=True, foundend=True, enter=True)
 		def filter2(path):
@@ -329,7 +417,7 @@ class XISTTestCase(unittest.TestCase):
 		list(node.walk(filter2, filterpath=True, walkpath=True))
 
 	def test_visit(self):
-		node = self.createnode()
+		node = self.createfrag()
 		def dummy1(node, start):
 			pass
 		def dummy2(path, start):
@@ -369,21 +457,6 @@ class XISTTestCase(unittest.TestCase):
 		self.assertEqual(l1.getSystemId(), l2.getSystemId())
 		self.assertEqual(l1.getPublicId(), l2.getPublicId())
 		self.assertEqual(l1.getLineNumber()+1, l2.getLineNumber())
-
-	def test_parselocationsgmlop(self):
-		node = parsers.parseString("<z>gurk&amp;hurz&#42;hinz&#x666;hunz</z>", parser=parsers.SGMLOPParser())
-		self.assertEqual(len(node), 1)
-		self.assertEqual(len(node[0]), 1)
-		self.assertEqual(node[0][0].startloc.getSystemId(), "STRING")
-		self.assertEqual(node[0][0].startloc.getLineNumber(), 1)
-
-	def test_parselocationexpat(self):
-		node = parsers.parseString("<z>gurk&amp;hurz&#42;hinz&#x666;hunz</z>", parser=parsers.ExpatParser())
-		self.assertEqual(len(node), 1)
-		self.assertEqual(len(node[0]), 1)
-		self.assertEqual(node[0][0].startloc.getSystemId(), "STRING")
-		self.assertEqual(node[0][0].startloc.getLineNumber(), 1)
-		self.assertEqual(node[0][0].startloc.getColumnNumber(), 3)
 
 	def check_namespace(self, module):
 		for obj in module.__dict__.values():
@@ -761,26 +834,6 @@ class XISTTestCase(unittest.TestCase):
 			node.attrs.iteralloweditems()
 		)
 
-	def test_nsparse(self):
-		xml = """
-			<x:a>
-				<x:a xmlns:x='http://www.w3.org/1999/xhtml'>
-					<x:a xmlns:x='http://www.nttdocomo.co.jp/imode'>gurk</x:a>
-				</x:a>
-			</x:a>
-		"""
-		check = ihtml.a(
-			html.a(
-				ihtml.a(
-					"gurk"
-				)
-			)
-		)
-		prefixes = xsc.Prefixes().addElementPrefixMapping("x", ihtml)
-		node = parsers.parseString(xml, prefixes=prefixes)
-		node = node.find(type=xsc.Element, subtype=True)[0].compact() # get rid of the Frag and whitespace
-		self.assertEquals(node, check)
-
 	def test_fragattrdefault(self):
 		class testelem(xsc.Element):
 			class Attrs(xsc.Element.Attrs):
@@ -1048,5 +1101,103 @@ class XISTTestCase(unittest.TestCase):
 		self.assertEquals(unicode(node["href"]), u"gurk2")
 		self.assertEquals(node.attrs.has("id"), False)
 
-if __name__ == "__main__":
+	def test_classrepr(self):
+		repr(xsc.Base)
+		repr(xsc.Node)
+		repr(xsc.Element)
+		repr(xsc.ProcInst)
+		repr(xsc.Entity)
+		repr(xsc.Element.Attrs)
+		repr(xml.Attrs)
+		repr(xml.Attrs.lang)
+
+class ParseTest(unittest.TestCase):
+	def test_parselocationsgmlop(self):
+		node = parsers.parseString("<z>gurk&amp;hurz&#42;hinz&#x666;hunz</z>", parser=parsers.SGMLOPParser())
+		self.assertEqual(len(node), 1)
+		self.assertEqual(len(node[0]), 1)
+		self.assertEqual(node[0][0].startloc.getSystemId(), "STRING")
+		self.assertEqual(node[0][0].startloc.getLineNumber(), 1)
+
+	def test_parselocationexpat(self):
+		node = parsers.parseString("<z>gurk&amp;hurz&#42;hinz&#x666;hunz</z>", parser=parsers.ExpatParser())
+		self.assertEqual(len(node), 1)
+		self.assertEqual(len(node[0]), 1)
+		self.assertEqual(node[0][0].startloc.getSystemId(), "STRING")
+		self.assertEqual(node[0][0].startloc.getLineNumber(), 1)
+		self.assertEqual(node[0][0].startloc.getColumnNumber(), 3)
+
+	def test_nsparse(self):
+		xml = """
+			<x:a>
+				<x:a xmlns:x='http://www.w3.org/1999/xhtml'>
+					<x:a xmlns:x='http://www.nttdocomo.co.jp/imode'>gurk</x:a>
+				</x:a>
+			</x:a>
+		"""
+		check = ihtml.a(
+			html.a(
+				ihtml.a(
+					"gurk"
+				)
+			)
+		)
+		prefixes = xsc.Prefixes().addElementPrefixMapping("x", ihtml)
+		node = parsers.parseString(xml, prefixes=prefixes)
+		node = node.find(type=xsc.Element, subtype=True)[0].compact() # get rid of the Frag and whitespace
+		self.assertEquals(node, check)
+
+	def test_parseurls(self):
+		prefixes = xsc.Prefixes()
+		prefixes.addElementPrefixMapping(None, html)
+		node = parsers.parseString('<a href="4.html" style="background-image: url(3.gif);"/>', base="root:1/2.html", prefixes=prefixes)
+		self.assertEqual(str(node[0]["style"]), "background-image: url(root:1/3.gif);")
+		self.assertEqual(node[0]["style"].urls(), [url.URL("root:1/3.gif")])
+		self.assertEqual(str(node[0]["href"]), "root:1/4.html")
+		self.assertEqual(node[0]["href"].forInput(root="gurk/hurz.html"), url.URL("gurk/1/4.html"))
+
+	def test_parserequiredattrs(self):
+		class xmlns(xsc.Namespace):
+			class Test(xsc.Element):
+				class Attrs(xsc.Element.Attrs):
+					class required(xsc.TextAttr): required = True
+
+		prefixes = xsc.Prefixes()
+		prefixes.addElementPrefixMapping(None, xmlns)
+		node = parsers.parseString('<Test required="foo"/>', prefixes=prefixes)
+		self.assertEqual(str(node[0]["required"]), "foo")
+
+		warnings.filterwarnings("error", category=errors.RequiredAttrMissingWarning)
+		try:
+			node = parsers.parseString('<Test/>', prefixes=prefixes)
+		except saxlib.SAXParseException, exc:
+			self.assert_(isinstance(exc.getException(), errors.RequiredAttrMissingWarning))
+			pass
+		else:
+			self.fail()
+
+	def test_parsevalueattrs(self):
+		class xmlns(xsc.Namespace):
+			class Test(xsc.Element):
+				class Attrs(xsc.Element.Attrs):
+					class withvalues(xsc.TextAttr): values = ("foo", "bar")
+
+		prefixes = xsc.Prefixes()
+		prefixes.addElementPrefixMapping(None, xmlns)
+
+		warnings.filterwarnings("error", category=errors.IllegalAttrValueWarning)
+		node = parsers.parseString('<Test withvalues="bar"/>', prefixes=prefixes)
+		self.assertEqual(str(node[0]["withvalues"]), "bar")
+		try:
+			node = parsers.parseString('<Test withvalues="baz"/>', prefixes=prefixes)
+		except saxlib.SAXParseException, exc:
+			self.assert_(isinstance(exc.getException(), errors.IllegalAttrValueWarning))
+			pass
+		else:
+			self.fail()
+
+def test_main():
 	unittest.main()
+
+if __name__ == "__main__":
+	test_main()
