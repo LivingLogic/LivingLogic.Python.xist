@@ -87,8 +87,9 @@ xmlns.update(vars())
 
 if __name__ == "__main__":
 	prefixes = xsc.Prefixes([xmlns, html, xml])
+	base = "root:python-quotes.html"
 	# We don't validate, because the XML contains broken HTML (<pre> inside <p>)
-	e = parsers.parseURL(url, saxparser=parsers.ExpatParser, prefixes=prefixes, validate=False)
+	e = parsers.parseURL(url, base=base, saxparser=parsers.ExpatParser, prefixes=prefixes, validate=False)
 	e = e.findfirst(xsc.FindType(quotations))
 	e = e.compact().conv()
-	e.write(open("python-quotes.html", "wb"), encoding="iso-8859-1", validate=False)
+	e.write(open("python-quotes.html", "wb"), base=base, encoding="iso-8859-1", validate=False)
