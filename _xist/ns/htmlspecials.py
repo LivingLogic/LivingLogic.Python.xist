@@ -62,20 +62,7 @@ class plainbody(html.body):
 		return e.convert(converter)
 
 
-class pixel(html.img):
-	"""
-	<par>element for single pixel images.</par>
-	
-	<par>The default is the image <filename>root:px/0.gif</filename>, but
-	you can specify the color as a three digit hex string, which will be
-	used as the filename, i.e. <markup>&lt;pixel color="000"/&gt;</markup>
-	results in <markup>&lt;img src="root:px/000.gif"&gt;</markup>.</par>
-
-	<par>In addition to that you can specify width and height attributes
-	(and every other allowed attribute for the <class>img</class> element)
-	as usual.</par>
-	"""
-
+class _pixelbase(html.img):
 	empty = True
 	class Attrs(html.img.Attrs):
 		class color(xsc.TextAttr):
@@ -97,6 +84,23 @@ class pixel(html.img):
 
 		class alt(html.img.Attrs.alt):
 			default = ""
+	
+class pixel(_pixelbase):
+	"""
+	<par>element for single pixel images.</par>
+	
+	<par>The default is the image <filename>root:px/0.gif</filename>, but
+	you can specify the color as a three digit hex string, which will be
+	used as the filename, i.e. <markup>&lt;pixel color="000"/&gt;</markup>
+	results in <markup>&lt;img src="root:px/000.gif"&gt;</markup>.</par>
+
+	<par>In addition to that you can specify width and height attributes
+	(and every other allowed attribute for the <class>img</class> element)
+	as usual.</par>
+	"""
+
+	empty = True
+	class Attrs(_pixelbase.Attrs):
 		class width(html.img.Attrs.width):
 			default = 1
 		class height(html.img.Attrs.height):
@@ -120,7 +124,7 @@ class autoimg(html.img):
 	"""
 	def convert(self, converter):
 		target = converter.target
-		if issubclass(target, ihtml) or issubclass(target, html):
+		if issubclass(target, (ihtml, html)):
 			e = target.img(self.attrs.convert(converter))
 		else:
 			raise ValueError("unknown conversion target %r" % target)
@@ -129,33 +133,13 @@ class autoimg(html.img):
 		return e
 
 
-class autopixel(html.img):
+class autopixel(_pixelbase):
 	"""
 	<par>A pixel image were width and height attributes are automatically generated.</par>
 	
 	<par>This works like <pyref class="pixel"><class>pixel</class></pyref> but the
 	size is <z>inherited</z> from the image specified via the <lit>src</lit> attribute.</par>
 	"""
-	class Attrs(html.img.Attrs):
-		class color(xsc.TextAttr):
-			"""
-			<par>The pixel color as a three digit hex value.</par>
-			"""
-			default = 0
-
-			def checkvalid(self):
-				if len(self) and not self.isfancy():
-					content = unicode(self)
-					if content != u"0":
-						if len(content) == 3:
-							for c in content:
-								if c not in "0369cf":
-									warnings.warn(errors.IllegalAttrValueWarning(self))
-						else:
-							warnings.warn(errors.IllegalAttrValueWarning(self))
-
-		class alt(html.img.Attrs.alt):
-			default = ""
 
 	def convert(self, converter):
 		target = converter.target
@@ -176,7 +160,8 @@ class autoinput(html.input):
 	has <lit>type=="image"</lit>.</par>
 	"""
 	def convert(self, converter):
-		e = html.input(self.content, self.attrs)
+		target = converter.target
+		e = target.input(self.content, self.attrs)
 		if u"type" in self.attrs and unicode(self["type"].convert(converter)) == u"image":
 			src = self["src"].convert(converter).forInput(converter.root)
 			e._addimagesizeattributes(src, "size", None) # no height
@@ -199,6 +184,7 @@ class caps(xsc.Element):
 	lowercase = unicode(string.lowercase, "latin-1") + u" "
 
 	def convert(self, converter):
+		target = converter.target
 		e = unicode(self.content.convert(converter))
 		result = xsc.Frag()
 		if e: # if we have nothing to do, we skip everything to avoid errors
@@ -207,7 +193,7 @@ class caps(xsc.Element):
 			for c in e:
 				if (c in self.lowercase) != last_was_lower:
 					if last_was_lower:
-						result.append(html.span(collect.upper(), class_="nini"))
+						result.append(target.span(collect.upper(), class_="nini"))
 					else:
 						result.append(collect)
 					last_was_lower = not last_was_lower
@@ -215,7 +201,7 @@ class caps(xsc.Element):
 				collect = collect + c
 			if collect:
 				if last_was_lower:
-					result.append(html.span(collect.upper(), class_="nini" ))
+					result.append(target.span(collect.upper(), class_="nini"))
 				else:
 					result.append(collect)
 		return result
@@ -235,15 +221,16 @@ class redirectpage(xsc.Element):
 	}
 
 	def convert(self, converter):
+		target = converter.target
 		(title, text) = self.langs.get(converter.lang, self.langs["en"])
 		url = self["href"]
-		e = html.html(
-			html.head(
+		e = target.html(
+			target.head(
 				meta.contenttype(),
-				html.title(title, url)
+				target.title(title, url)
 			),
-			html.body(
-				text, html.a(url, href=url)
+			target.body(
+				text, target.a(url, href=url)
 			)
 		)
 		return e.convert(converter)
@@ -259,7 +246,8 @@ class javascript(html.script):
 		type = None
 
 	def convert(self, converter):
-		e = html.script(self.content, self.attrs, language="javascript", type="text/javascript")
+		target = converter.target
+		e = target.script(self.content, self.attrs, language="javascript", type="text/javascript")
 		return e.convert(converter)
 
 
@@ -371,4 +359,3 @@ class xmlns(xsc.Namespace):
 	xmlname = "htmlspecials"
 	xmlurl = "http://xmlns.livinglogic.de/xist/ns/htmlspecials"
 xmlns.makemod(vars())
-
