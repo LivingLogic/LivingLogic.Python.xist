@@ -926,11 +926,10 @@ class Text(Node, StringMixIn):
 		return v
 
 	def compact(self):
-		for i in self._content:
-			if i not in string.whitespace:
-				return self
-		else:
+		if self._content.isspace():
 			return Null
+		else:
+			return self
 
 class Frag(Node):
 	"""
