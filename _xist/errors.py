@@ -30,7 +30,7 @@ the base class Error.
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-import types, exceptions
+import types
 
 import xsc, presenters
 
