@@ -1827,7 +1827,7 @@ class Element(Node):
 			<par>Return a copy of <self/> where all the attributes in <arg>nameseq</arg> are
 			removed. A name in <arg>nameseq</arg> that is not in <self/> will not raise
 			an exception (if it is allowed).</par>
-			<par>Names can be strings (<class>str</class> and <class>unicode</code>),
+			<par>Names can be strings (<class>str</class> and <class>unicode</class>),
 			(namespace/module, string) tuples (for global attributes), namespaces/modules
 			for removing all global attributes from this namespace and <lit>None</lit>
 			for removing all global attributes.</par>
