@@ -340,7 +340,9 @@ class HTMLParser(SGMLOPParser):
 		self.__nesting.append(name)
 		newattrs = {}
 		for (attrname, attrvalue) in attrs:
-			newattrs[attrname.lower()] = attrvalue
+			attrname = attrname.lower()
+			if html.namespace.elementsByName[name].attrHandlers.has_key(attrname):
+				newattrs[attrname] = attrvalue
 		SGMLOPParser.finish_starttag(self, name, newattrs)
 
 	def finish_endtag(self, name):

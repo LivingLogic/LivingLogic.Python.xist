@@ -1,4 +1,11 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
+<section><title>Changes in CVS (released ??/??/2002)</title>
+<ulist>
+<item>The <class>HTMLParser</class> now removes unknown attributes
+instead of complaining.</item>
+</ulist>
+</section>
+
 <section><title>Changes in 1.4.2 (released 03/22/2002)</title>
 <ulist>
 <item>Updated <filename>xscmake.py</filename> to be compatible with the new
