@@ -89,7 +89,7 @@ class cap(XSCElement):
 		if type(e) == types.ListType:
 			e = e[0]
 		e = e + "?"
-		result = []
+		result = XSCFrag()
 		collect = ""
 		innini = 0
 		for i in range(len(e)):
@@ -97,13 +97,13 @@ class cap(XSCElement):
 				if innini==0:
 					result.append(collect)
 				else:
-					result.append(str(span([ string.upper(collect) ],Class="nini" )))
+					result.append(span([ string.upper(collect) ],Class="nini" ))
 				if i != len(e):
 					collect = e[i]
 				innini = 1-innini
 			else:
 				collect = collect + e[i]
-		return XSCText(string.joinfields(result,""))
+		return result
 RegisterElement("cap",cap)
 
 if __name__ == "__main__":
