@@ -73,23 +73,11 @@ class Publisher:
 		"""
 		pass
 
-	def __call__(self, *texts):
-		for text in texts:
-			self.publish(text)
-
-	def escapeText(self, text):
+	def publishText(self, text):
 		if self.inAttr:
-			return escapeText(text, self.encoding)
+			self.publish(escapeText(text, self.encoding))
 		else:
-			return escapeAttr(text, self.encoding)
-
-	def escapePlain(self, text):
-		"""
-		encodes the text <argref>text</argref> with the encoding <argref>encoding</argref>.
-		anything that requires a character reference is illegal.
-		"""
-		text.encode(self.encoding)
-		return text
+			self.publish(escapeAttr(text, self.encoding))
 
 class FilePublisher(Publisher):
 	"""
@@ -147,6 +135,7 @@ class BytePublisher(Publisher):
 	def __init__(self, encoding=None, XHTML=None, usePrefix=0):
 		Publisher.__init__(self, encoding=encoding, XHTML=XHTML, usePrefix=usePrefix)
 		self.texts = []
+		self.publish = self.publish # copy the method to the object (speeds up the lookup)
 
 	def publish(self, text):
 		self.texts.append(text)
