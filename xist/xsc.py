@@ -198,11 +198,11 @@ the following XML file:
 	sum = 0
 	for i in xrange(top):
 		sum = sum+i
-	return i
+	return sum
 	?>
 	</b>
 Parsing this file and converting it to HTML results in the following:
-	<b>5950</b>
+	<b>4950</b>
 
 For further information see the class ProcInst.
 
@@ -812,6 +812,31 @@ class Node:
 		else:
 			return self._matchesAttrs(attrs)
 
+	def _doreprtreeMultiLine(self,nest,elementno,head,tail,text,formatter,extraFirstLine,ansi = None):
+  		lines = string.split(text,"\n")
+		l = len(lines)
+		if l>1 and extraFirstLine:
+			lines.insert(0,"")
+			l = l + 1
+		v = []
+		for i in xrange(l):
+			if self.startlineno == -1:
+				no = -1
+			else:
+				no = self.startlineno + i
+			mynest = nest
+			s = lines[i]
+			while len(s) and s[0] == "\t":
+				mynest = mynest + 1
+				s = s[1:]
+			s = formatter(s,ansi)
+			if i == 0:
+				s = head + s
+			if i == l-1:
+				s = s + tail
+			v.append([mynest,no,elementno,s])
+		return v
+
 	def compact(self):
 		"""
 		returns this node, where textnodes or character references that contain
@@ -1161,7 +1186,9 @@ class Comment(Node):
 		return strBracketOpen(ansi) + strExclamation(ansi) + strCommentMarker(ansi) + strCommentText(self.content,ansi) + strCommentMarker(ansi) + strBracketClose(ansi)
 
 	def _doreprtree(self,nest,elementno,ansi):
-		return [[nest,self.startlineno,elementno,self._dorepr(ansi)]]
+		head = strBracketOpen(ansi) + strExclamation(ansi) + strCommentMarker(ansi)
+		tail = strCommentMarker(ansi) + strBracketClose(ansi)
+		return self._doreprtreeMultiLine(nest,elementno,head,tail,self.content,strCommentText,0,ansi = ansi)
 
 	def asString(self,XHTML = None):
 		return "<!--" + self.content + "-->"
@@ -1251,39 +1278,9 @@ class ProcInst(Node):
 		return self._str(content = strQuestion(ansi) + strProcInstTarget(self.target,ansi) + " " + strProcInstData(self.content,ansi) + strQuestion(ansi),brackets = 1,ansi = ansi)
 
 	def _doreprtree(self,nest,elementno,ansi = None):
-		lines = string.split(self.content,"\n")
-		if len(lines) and lines[-1] == "":
-			del lines[-1]
-		if len(lines) == 1:
-			s = strBracketOpen(ansi) + strQuestion(ansi) + strProcInstTarget(self.target,ansi) + " " + strProcInstData(string.rstrip(lines[0]),ansi) + strQuestion(ansi) + strBracketClose(ansi)
-			return [[nest,self.startlineno,elementno,s]]
-		else:
-			v = []
-			for i in xrange(len(lines)+2):
-				if self.startlineno == -1:
-					no = -1
-				else:
-					if i == 0:
-						no = self.startlineno
-					elif i == lines(lines) + 1:
-						no = self.endlineno
-					else:
-						no = self.startlineno + i-1
-				if i == 0:
-					mynest = nest
-					s = strBracketOpen(ansi) + strQuestion(ansi) + strProcInstTarget(self.target,ansi)
-				elif i == len(lines)+1:
-					mynest = nest
-					s = strQuestion(ansi) + strBracketClose(ansi)
-				else:
-					mynest = nest+1
-					s = lines[i-1]
-					while len(s) and s[0] == "\t":
-						mynest = mynest + 1
-						s = s[1:]
-					s = strProcInstData(string.rstrip(s),ansi)
-				v.append([mynest,no,elementno,s])
-			return v
+		head = strBracketOpen(ansi) + strQuestion(ansi) + strProcInstTarget(self.target,ansi) + " "
+		tail = strQuestion(ansi) + strBracketClose(ansi)
+		return self._doreprtreeMultiLine(nest,elementno,head,tail,self.content,strProcInstData,1,ansi = ansi)
 
 	def asString(self,XHTML = None):
 		return "<?" + self.target + " " + self.content + "?>"
