@@ -978,6 +978,18 @@ Traceback (most recent call last):
 UnicodeEncodeError: 'ascii' codec can't encode characters in position 0-2: ordinal not in range(128)
 </tty>
 
+<par>When you include an <pyref module="ll.xist.ns.xml" class="XML10">&xml; header</pyref>
+or an <pyref module="ll.xist.ns.meta" class="contenttype">&html; meta header</pyref>,
+&xist; will automatically insert the correct encoding:</par>
+
+<tty>
+<prompt>&gt;&gt;&gt; </prompt><input>from ll.xist import xsc</input>
+<prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import xml, meta</input>
+<prompt>&gt;&gt;&gt; </prompt><input>e = xsc.Frag(xml.XML10(), meta.contenttype())</input>
+<prompt>&gt;&gt;&gt; </prompt><input>print e.conv().asBytes(encoding="iso-8859-15")</input>
+&lt;?xml version='1.0' encoding='iso-8859-15'?&gt;&lt;meta content="text/html; charset=iso-8859-15" http-equiv="Content-Type" /&gt;
+</tty>
+
 <par>Another useful parameter is <arg>xhtml</arg>,
 it specifies whether you want pure &html; or &xhtml; as output:</par>
 
