@@ -578,7 +578,9 @@ class Frag(Node):
 		self.__content = []
 		for child in content:
 			child = ToNode(child)
-			if child is not Null:
+			if isinstance(child, Frag):
+				self.__content.extend(child)
+			elif child is not Null:
 				self.__content.append(child)
 
 	def convert(self, converter):
@@ -692,9 +694,9 @@ class Frag(Node):
 		appends all items in <argref>others</argref> to <self/>.
 		"""
 		for other in others:
-			newother = ToNode(other)
-			if newother is not Null:
-				self.__content.append(newother)
+			other = ToNode(other)
+			if other is not Null:
+				self.__content.append(other)
 
 	def insert(self, index, *others):
 		"""
@@ -702,9 +704,9 @@ class Frag(Node):
 		(this is the same as <code><self/>[<argref>index</argref>:<argref>index</argref>] = <argref>others</argref></code>)
 		"""
 		for other in others:
-			newother = ToNode(other)
-			if newother is not Null:
-				self.__content.insert(index, newother)
+			other = ToNode(other)
+			if other is not Null:
+				self.__content.insert(index, other)
 				index += 1
 
 	def extend(self, *others):
@@ -712,11 +714,11 @@ class Frag(Node):
 		extends this fragment by all items in <argref>others</argref>.
 		"""
 		for other in others:
-			newother = ToNode(other)
-			if isinstance(newother, Frag):
-				self.__content.extend(newother)
-			elif newother is not Null:
-				self.__content.append(newother)
+			other = ToNode(other)
+			if isinstance(other, Frag):
+				self.__content.extend(other)
+			elif other is not Null:
+				self.__content.append(other)
 
 	def find(self, type=None, subtype=0, attrs=None, test=None, searchchildren=0, searchattrs=0):
 		node = Frag()
@@ -1032,10 +1034,17 @@ class Element(Node):
 		"""
 		positional arguments are treated as content nodes.
 
-		keyword arguments are treated as attributes.
+		keyword arguments and dictionaries are treated as attributes.
 		"""
-		self.content = Frag(*content)
 		self.attrs = {}
+		newcontent = []
+		for child in content:
+			if isinstance(child, types.DictType):
+				for (attrname, attrvalue) in child.items():
+					self[attrname] = attrvalue
+			else:
+				newcontent.append(child)
+		self.content = Frag(*newcontent)
 		for (attrname, attrvalue) in attrs.items():
 			self[attrname] = attrvalue
 
