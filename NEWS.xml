@@ -1,13 +1,20 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
-<section><title>Changes in CVS (released ??/??/2001)</title>
+<section><title>Changes in 1.2.5 (released 12/03/2001)</title>
 <ulist>
 <item>Added a new element <class>contentscripttype</class> to
 <module>xist.ns.meta</module> that generates a
 <lit>&lt;meta http-equiv="Content-Script-Type" ...&gt;</lit>
 element.</item>
-<item><function>xist.ns.doc.explain</function>now generates anchor elements
+<item><function>xist.ns.doc.explain</function> now generates anchor elements
 for the class, function and method description, so now the
 links on the &xist; webpages work.</item>
+<item>Docstrings and documentation has been reworked. Now
+<class>xist.ns.doc.pyref</class> no longer implies a font change.
+Use the classes <class>xist.ns.doc.module</class>, <class>xist.ns.doc.class</class>,
+<class>xist.ns.doc.method</class>, <class>xist.ns.doc.function</class> and
+<class>xist.ns.doc.arg</class> to mark up your Python identifiers.</item>
+<item>Added the attributes <lit>type</lit> and <lit>key</lit>
+to <class>xist.ns.struts_config.data_source</class>.</item>
 </ulist>
 </section>
 
