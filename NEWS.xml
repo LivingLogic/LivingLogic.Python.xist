@@ -118,8 +118,8 @@ and pass a node and a converter.</item>
 (it now uses code from <module>xml.sax.drivers2.drv_sgmlop_html</module>).</item>
 
 <item>The core functionality found in the script <filename>dtd2xsc.py</filename>
-has been move to <module>ll.xist.tools.dtd2xndl</module> in the new
-package <module>ll.xist.tools</module>.</item>
+has been moved to class method <method>ll.xist.ns.xndl.fromdtd</method> in the
+in the <module>ll.xist.ns.xndl</module> namespace.</item>
 </ulist>
 </section>
 
