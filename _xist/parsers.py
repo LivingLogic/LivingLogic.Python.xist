@@ -130,6 +130,9 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 		if name == handler.feature_namespaces:
 			if state:
 				raise sax.SAXNotSupportedException("no namespace processing available")
+		elif name == handler.feature_external_ges:
+			if state:
+				raise sax.SAXNotSupportedException("processing of external general entities not available")
 		else:
 			sax.xmlreader.IncrementalParser.setFeature(self, name, state)
 
@@ -353,7 +356,10 @@ class HTMLParser(BadEntityParser):
 		else:
 			errors.warn(errors.IllegalCloseTagWarning(name))
 
-ExpatParser = expatreader.ExpatParser
+class ExpatParser(expatreader.ExpatParser):
+	def reset(self):
+		expatreader.ExpatParser.reset(self)
+		self._parser.UseForeignDTD(True)
 
 class Handler(object):
 	"""
@@ -383,6 +389,7 @@ class Handler(object):
 
 		# Configure the parser
 		self.parser.setFeature(handler.feature_namespaces, False) # We do our own namespace processing
+		self.parser.setFeature(handler.feature_external_ges, False) # Don't process external entities, but pass them to skippedEntity
 
 		self.skippingWhitespace = 0
 		self.parser.parse(source)
