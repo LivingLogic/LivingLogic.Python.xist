@@ -1,4 +1,9 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
+<section><title>Changes in CVS (released ??/??/2001)</title>
+<ulist>
+</ulist>
+</section>
+
 <section><title>Changes in 1.2.4 (released 11/23/2001)</title>
 <ulist>
 <item>Added the deprecated attributes <code>start</code> to
