@@ -26,6 +26,8 @@
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
+import cgi # for parse_header
+
 from xist import xsc
 
 class scriptlet(xsc.ProcInst):
@@ -128,7 +130,22 @@ class directive_taglib(directive):
 
 class directive_page(directive):
 	name = "directive.page"
-	attrHandlers = {"import": xsc.TextAttr, "buffer": xsc.TextAttr, "errorPage": xsc.URLAttr, "session": xsc.TextAttr}
+	attrHandlers = {"import": xsc.TextAttr, "buffer": xsc.TextAttr, "errorPage": xsc.URLAttr, "session": xsc.TextAttr, "contentType": xsc.TextAttr}
 
+	def publish(self, publisher):
+		if not self.hasAttr("contentType"):
+			node = self.__class__(self.attrs, contentType="text/html; charset=%s" % publisher.encoding)
+			node.publish(publisher)
+		else:
+			(contenttype, options) = cgi.parse_header(unicode(self["contentType"]))
+			if options.has_key(u"charset") and options[u"charset"] == publisher.encoding:
+				super(directive_page, self).publish(publisher)
+			else:
+				options[u"charset"] = publisher.encoding
+				node = self.__class__(
+					self.attrs,
+					contentType=(contenttype, u"; ", u"; ".join([ "%s=%s" % option for option in options.items()]))
+				)
+				node.publish(publisher)
 # register all the classes we've defined so far
 namespace = xsc.Namespace("jsp", "http://java.sun.com/products/jsp/dtd/jsp_1_0.dtd", vars())

@@ -1,4 +1,13 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
+<section><title>Changes in 1.4.2 (released 03/22/2002)</title>
+<ulist>
+<item>Updated <filename>xscmake.py</filename> to be compatible with the new
+<module>url</module>.</item>
+<item><class>xist.ns.jsp.directive_page</class> now automatically sets the
+<lit>contentType</lit> on publishing.</item>
+</ulist>
+</section>
+
 <section><title>Changes in 1.4.1 (released 03/21/2002)</title>
 <ulist>
 <item>Removed <class>TidyURLInputSource</class>. Now it's possible
