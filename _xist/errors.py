@@ -41,9 +41,9 @@ class Warning(UserWarning):
 	pass
 
 
-class EmptyElementWithContentError(Error):
+class EmptyElementWithContentWarning(Warning):
 	"""
-	exception that is raised, when an element has content,
+	Warning that is issued, when an element has content,
 	but it shouldn't (i.e. <lit>empty==True</lit>)
 	"""
 

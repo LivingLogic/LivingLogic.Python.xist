@@ -2384,7 +2384,7 @@ class Element(Node):
 
 	def checkvalid(self):
 		if self.empty and len(self):
-			warnings.warn(errors.EmptyElementWithContentError(self))
+			warnings.warn(errors.EmptyElementWithContentWarning(self))
 		self.attrs.checkvalid()
 
 	def append(self, *items):
@@ -2504,7 +2504,7 @@ class Element(Node):
 		self.attrs.publish(publisher)
 		if len(self):
 			if self.empty:
-				raise errors.EmptyElementWithContentError(self)
+				warnings.warn(errors.EmptyElementWithContentWarning(self))
 			publisher.publish(u">")
 			self.content.publish(publisher)
 			publisher.publish(u"</")
