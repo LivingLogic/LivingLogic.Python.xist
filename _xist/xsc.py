@@ -584,8 +584,7 @@ class Node(Base):
 
 	def asBytes(self, base=None, publisher=None, **publishargs):
 		"""
-		<par>returns this node as a byte string suitable for writing
-		to an &html; file or printing from a CGI script.</par>
+		<par>Return this node as a serialized byte string.</par>
 
 		<par>For the possible parameters see the
 		<pyref module="ll.xist.publishers" class="Publisher"><class>ll.xist.publishers.Publisher</class></pyref> constructor.</par>
@@ -598,7 +597,7 @@ class Node(Base):
 
 	def write(self, stream, base=None, publisher=None, **publishargs):
 		"""
-		<par>writes <self/> to the file like object <arg>stream</arg> (which must provide
+		<par>writes <self/> to the file-like object <arg>stream</arg> (which must provide
 		a <method>write</method> method.</par>
 
 		<par>For the rest of the parameters
@@ -726,7 +725,7 @@ class Node(Base):
 
 	def mapped(self, function, converter):
 		"""
-		<par>returns the node mapped through the function <arg>function</arg>.
+		<par>Return the node mapped through the function <arg>function</arg>.
 		This call works recursively (for <pyref class="Frag"><class>Frag</class></pyref>
 		and <pyref class="Element"><class>Element</class></pyref>).</par>
 		<par>When you want an unmodified node you simply can return <self/>. <method>mapped</method>
@@ -740,42 +739,43 @@ class Node(Base):
 
 	def normalized(self):
 		"""
-		<par>return a normalized version of <self/>, which means, that consecutive
+		<par>Return a normalized version of <self/>, which means that consecutive
 		<pyref class="Text"><class>Text</class> nodes</pyref> are merged.</par>
 		"""
 		return self
 
 	def __mul__(self, factor):
 		"""
-		<par>return a <pyref class="Frag"><class>Frag</class></pyref> with <arg>factor</arg> times
-		the node as an entry. Note that the node will not be copied, i.e. it is a
-		<z>shallow <method>__mul__</method></z>.</par>
+		<par>Return a <pyref class="Frag"><class>Frag</class></pyref> with
+		<arg>factor</arg> times the node as an entry. Note that the node will not
+		be copied, i.e. it is a <z>shallow <method>__mul__</method></z>.</par>
 		"""
 		return Frag(*factor*[self])
 
 	def __rmul__(self, factor):
 		"""
-		<par>returns a <pyref class="Frag"><class>Frag</class></pyref> with <arg>factor</arg> times
-		the node as an entry.</par>
+		<par>returns a <pyref class="Frag"><class>Frag</class></pyref> with
+		<arg>factor</arg> times the node as an entry.</par>
 		"""
 		return Frag(*[self]*factor)
 
 	def pretty(self, level=0, indent="\t"):
 		"""
-		<par>Returns a prettyfied version of <self/>, i.e. one with
-		properly nested and indented tags (as far as possible). If an element
-		has mixed content (i.e. <pyref class="Text"><class>Text</class></pyref> and
-		non-<pyref class="Text"><class>Text</class></pyref> nodes) the content will be
-		returned as is.</par>
+		<par>Returns a prettyfied version of <self/>, i.e. one with properly
+		nested and indented tags (as far as possible). If an element has mixed
+		content (i.e. <pyref class="Text"><class>Text</class></pyref> and
+		non-<pyref class="Text"><class>Text</class></pyref> nodes) the content
+		will be returned as is.</par>
+
 		<par>Note that whitespace will prevent pretty printing too, so
 		you might want to call <pyref method="normalized"><method>normalized</method></pyref>
 		and <pyref method="compact"><method>compact</method></pyref> before
 		calling <method>pretty</method> to remove whitespace.</par>
 		"""
-		if level==0:
-			return self
-		else:
+		if level:
 			return Frag(indent*level, self)
+		else:
+			return self
 
 	def withSep(self, separator, clone=False):
 		warnings.warn(DeprecationWarning("withSep() is deprecated, use withsep() instead"))
@@ -784,9 +784,12 @@ class Node(Base):
 
 class CharacterData(Node):
 	"""
-	<par>base class for &xml; character data (text, proc insts, comment, doctype etc.)</par>
+	<par>Base class for &xml; character data (<pyref class="Text"><class>Text</class></pyref>,
+	<pyref class="ProcInst"><class>ProcInst</class></pyref>,
+	<pyref class="Comment"><class>Comment</class></pyref>,
+	<pyref class="DocType"><class>DocType</class></pyref>, doctype etc.)</par>
 
-	<par>provides nearly the same functionality as <class>UserString</class>,
+	<par>Provides nearly the same functionality as <class>UserString</class>,
 	but omits a few methods.</par>
 	"""
 	__slots__ = ("__content",)
