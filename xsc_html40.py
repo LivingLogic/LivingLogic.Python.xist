@@ -453,6 +453,12 @@ class noscript(XSCElement):
 	attr_handlers = attrs
 RegisterElement("noscript",noscript)
 
+# More pain
+class font(XSCElement): # deprecated
+	empty = 0
+	attr_handlers = { "face" : XSCFrag , "size" : XSCFrag , "color" : XSCFrag }
+RegisterElement("font",font)
+
 if __name__ == "__main__":
 	try:
 		print str(xsc.parseFile(sys.argv[1]).asHTML())
