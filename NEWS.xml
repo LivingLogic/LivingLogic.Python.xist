@@ -374,7 +374,7 @@ In addition to the usual dictionary methods and operators <class>Attrs</class>
 has a method <method>without</method> that returns a copy of the
 <class>Attrs</class> instance with some specified attributes removed.</item>
 <item>All the node classes now have a new method <method>walk</method> that generates
-all nodes in the tree using the new generators feature of Python 2.2.</item>
+all nodes in the tree using the new generator feature of Python 2.2.</item>
 <item>Also a new method <method>walkPath</method> has been added that works the
 same as <method>walk</method> but yields the complete path to each node
 as a list.</item>
