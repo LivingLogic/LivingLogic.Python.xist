@@ -19,6 +19,11 @@ on their content. This makes it possible to e.g. generate the keywords via &jsp;
 won't be an exception raised any more. Instead the content of the element
 will be published. This fixes problems with abbreviation entities inside
 attributes.</item>
+<item><code>xist.parsers.TidyURLInputSource</code> now uses the new
+experimental eGenix mx Extension package, which includes a Python
+port of <application>tidy</application></li>
+<li><code>__repr__</code> now uses the new class <code>presenters.PlainPresenter</code>
+which gives a little more info than the default <code>__repr__</code>.</item>
 </ulist>
 </section>
 
@@ -47,7 +52,6 @@ too.</item>
 <item><code>__repr__</code> now uses the new class <code>presenters.PlainPresenter</code>
 which gives a little more info than the default <code>__repr__</code>.</item>
 </ulist>
-</section>
 
 <section><title>Changes in 1.1.1 (released 08/01/2001)</title>
 <ulist>

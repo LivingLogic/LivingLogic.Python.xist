@@ -8,6 +8,8 @@ To use &xist; you need the following software packages:
 (a version that includes sgmlop and expat),</item>
 <item>the Python Imaging Library (available from
 <a href="http://www.pythonware.com/products/pil/">http://www.pythonware.com/products/pil/</a>)</item>
+<item>The experimental eGenix mx Extension for Python
+(available from <a href="http://www.lemburg.com/files/python/eGenix-mx-Extensions.html">http://www.lemburg.com/files/python/eGenix-mx-Extensions.html</a>).</item>
 <item>FileUtils (available from <a href="root:fileutils/index.html">http://www.livinglogic.de/Python/fileutils/</a>),</item>
 <item>ANSIStyle (available from <a href="root:ansistyle/index.html">http://www.livinglogic.de/Python/ansistyle/</a>),</item>
 <item>and a C compiler supported by <app>distutils</app>, if you want to install
