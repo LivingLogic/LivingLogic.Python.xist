@@ -555,3 +555,7 @@ def parseString(text, systemId="STRING", base=None, handler=None, parser=None, n
 def parseURL(id, base=None, handler=None, parser=None, namespaces=None, defaultEncoding="utf-8", tidy=0, headers=None, data=None):
 	return parse(URLInputSource(id, base=base, defaultEncoding=defaultEncoding, tidy=tidy, headers=headers, data=data), handler=handler, parser=parser, namespaces=namespaces)
 
+def parseFile(filename, base=None, handler=None, parser=None, namespaces=None, defaultEncoding="utf-8", tidy=0, headers=None, data=None):
+	return parseURL(url.Filename(filename), base=base, defaultEncoding=defaultEncoding, tidy=tidy, headers=headers, data=data), handler=handler, parser=parser, namespaces=namespaces)
+
+
