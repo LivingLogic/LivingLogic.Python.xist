@@ -420,4 +420,16 @@ class sms(xsc.Entity):
 	def __unicode__(self):
 		return u"SMS"
 
+class bnf(xsc.Entity):
+	def convert(self, converter):
+		return html_.abbr("BNF", title="Backus Naur Form", lang="en")
+	def __unicode__(self):
+		return u"BNF"
+
+class mime(xsc.Entity):
+	def convert(self, converter):
+		return html_.abbr("MIME", title="Multipurpose Internet Mail Extensions", lang="en")
+	def __unicode__(self):
+		return u"MIME"
+
 namespace = xsc.Namespace("abbr", "http://xmlns.livinglogic.de/xist/abbr.dtd", vars())
