@@ -155,6 +155,7 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 		self.lineNumber = 1
 		# nothing done for the column number, because otherwise parsing would be much to slow.
 
+		self.parser.register(self)
 		try:
 			while 1:
 				data = file.read(self.bufsize)
@@ -174,22 +175,19 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 				self.error_handler.fatalError(ex)
 			else:
 				raise
+		self.parser.register(None)
 		self.source = None
 
 	def setErrorHandler(self, handler):
-		self.parser.register(self)
 		self.error_handler = handler
 
 	def setContentHandler(self, handler):
-		self.parser.register(self)
 		self.content_handler = handler
 
 	def setDTDHandler(self, handler):
-		self.parser.register(self)
 		self.dtd_handler = handler
 
 	def setEntityResolver(self, handler):
-		self.parser.register(self)
 		self.entity_resolver = handler
 
 	# Locator methods will be called by the application
