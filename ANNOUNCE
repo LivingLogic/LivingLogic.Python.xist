@@ -1,0 +1,27 @@
+Hi all!
+
+XIST is a HTML preprocessor/generator and an XML transformation engine.
+Some of the significant features of XIST include:
+
+   * Easily extensible with new XML elements
+   * Can be used for offline or online page generation
+   * Allows embedding Python code in XML files
+   * Works together with httpdapy/mod_python/PyWX
+   * Simplifies handling of deeply nested directory trees
+   * Automatically generates HEIGHT and WIDTH attributes for images
+
+It was written as a replacement for the HTML preprocessor HSC
+(http://www.giga.or.at/~agi/hsc/), and borrows some features and
+ideas from it.
+
+It also borrows the basic ideas (XML/HTML elements as Python objects)
+from HTMLgen or HyperText.
+
+XIST is available from ftp://titan.bnbt.de/pub/livinglogic/xist/.
+Direct questions regarding XIST to walter@bnbt.de.
+
+<p><a href="ftp://titan.bnbt.de/pub/livinglogic/xist/">XIST 0.2</a> -
+an XML based extensible HTML generator. (16-May-2000)
+
+Bye...
+	Walter Dörwald
