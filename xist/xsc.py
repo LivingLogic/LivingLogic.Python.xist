@@ -607,14 +607,6 @@ class Node:
 		else:
 			return self.repr()
 
-	def name(self):
-		"""
-		returns a tuple with the namespace of the node, which is the module
-		in which the node is implemented and a name which is the name of the
-		class. Both strings are converted to lowercase.
-		"""
-		return nodeName(self.__class__)
-
 	def _str(self,content = None,brackets = 1,slash = None,ansi = None):
 		return _strNode(self.__class__,content,brackets,slash,ansi)
 
@@ -657,7 +649,7 @@ class Node:
 
 	def asHTML(self):
 		"""
-		returns a version of this Node and it's content converted to HTML,
+		returns a version of this node and it's content converted to HTML,
 		so when you define your own element classes you should overwrite asHTML().
 
 		E.g. when you want to define an element that packs it's content into an HTML
@@ -715,7 +707,7 @@ class Node:
 		s = self.asPlainString()
 		if decimal != ".":
 			s = string.replace(s,decimal,".")
-		return string.atof(s)
+		return float(s)
 
 	def asString(self,XHTML = None):
 		"""
