@@ -44,7 +44,8 @@ class data_sources(struts_config10.data_sources):
 	xmlname = "data-sources"
 
 class data_source(struts_config10.data_source):
-	attrHandlers = {"className": xsc.TextAttr, "key": xsc.TextAttr, "type": xsc.TextAttr}
+	class Attrs(struts_config10.data_source.Attrs):
+		class className(xsc.TextAttr): pass
 	xmlname = "data-source"
 
 class set_property(struts_config10.set_property):
@@ -59,38 +60,39 @@ class global_exceptions(xsc.Element):
 
 class exception(xsc.Element):
 	empty = True
-	attrHandlers = {
-		"className": xsc.TextAttr, "handler": xsc.TextAttr, "key": xsc.TextAttr,
-		"path": xsc.TextAttr, "scope": xsc.TextAttr, "type": xsc.TextAttr
-	}
+	class Attrs(xsc.Element.Attrs):
+		class className(xsc.TextAttr): pass
+		class handler(xsc.TextAttr): pass
+		class key(xsc.TextAttr): pass
+		class path(xsc.TextAttr): pass
+		class type(xsc.TextAttr): pass
 
 class form_beans(struts_config10.form_beans):
 	xmlname = "form-beans"
 
 class form_bean(struts_config10.form_bean):
 	empty = False
-	attrHandlers = {
-		"className": xsc.TextAttr, "dynamic": xsc.TextAttr, "name": xsc.TextAttr,
-		"type": xsc.TextAttr
-	}
+	class Attrs(struts_config10.form_bean.Attrs):
+		class className(xsc.TextAttr): pass
+		class dynamic(xsc.TextAttr): pass
 	xmlname = "form-bean"
 
 class form_property(xsc.Element):
 	empty = True
-	attrHandlers = {
-		"className": xsc.TextAttr, "initial": xsc.TextAttr, "name": xsc.TextAttr,
-		"type": xsc.TextAttr
-	}
+	class Attrs(struts_config10.form_bean.Attrs):
+		class className(xsc.TextAttr): pass
+		class initial(xsc.TextAttr): pass
+		class name(xsc.TextAttr): pass
+		class type(xsc.TextAttr): pass
 	xmlname = "form-property"
 
 class global_forwards(struts_config10.global_forwards):
 	xmlname = "global-forwards"
 
 class forward(struts_config10.forward):
-	attrHandlers = {
-		"className": xsc.TextAttr, "contextRelative": xsc.TextAttr, "name": xsc.TextAttr,
-		"path": xsc.TextAttr, "redirect": xsc.TextAttr
-	}
+	class Attrs(struts_config10.forward.Attrs):
+		class className(xsc.TextAttr): pass
+		class contextRelative(xsc.TextAttr): pass
 
 class action_mappings(struts_config10.action_mappings):
 	xmlname = "action-mappings"
