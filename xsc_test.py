@@ -9,7 +9,7 @@ x = plaintable(
 	img(src=":hurz.gif",width="%(width)d*2",height=2)+
 	img(src="hurz.gif")+
 #	pixel(color="000000")+
-#	pixel(width=2,height=3)+
+#	pixel(width="2",height="3")+
 	filesize(href="hurz.gif")+
 	nbsp()
 )
