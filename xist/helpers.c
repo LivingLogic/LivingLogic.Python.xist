@@ -17,7 +17,6 @@ static Py_UNICODE apos[] = { ((Py_UNICODE)'&'), ((Py_UNICODE)'a'), ((Py_UNICODE)
 static PyUnicodeObject *escapeUnencodable(PyUnicodeObject *str, const char *encoding)
 {
 	PyObject *test = PyUnicode_AsEncodedString((PyObject *)str, encoding, NULL);
-	PyObject *result;
 
 	if (test == NULL) /* an exception has occurred */
 	{

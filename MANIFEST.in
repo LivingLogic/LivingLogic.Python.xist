@@ -1,0 +1,6 @@
+include ANNOUNCE
+include CHANGES
+include CREDITS
+include LICENSE
+include README
+recursive-include examples *
