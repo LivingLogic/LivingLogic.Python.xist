@@ -151,7 +151,7 @@ class directive_page(directive):
 				options[u"charset"] = publisher.encoding
 				node = self.__class__(
 					self.attrs,
-					contentType=(contenttype, u"; ", u"; ".join([ "%s=%s" % option for option in options.items()])),
+					contentType=(contenttype, u"; ", u"; ".join([ "%s=%s" % option for option in options.items()])), # FIXME: Use a GE in 2.4
 					pageEncoding=publisher.encoding
 				)
 				node.publish(publisher)

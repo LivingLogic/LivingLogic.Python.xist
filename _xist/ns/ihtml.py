@@ -349,7 +349,7 @@ class meta(xsc.Element):
 					node = self.__class__(
 						self.attrs,
 						http_equiv="Content-Type",
-						content=(contenttype, u"; ", u"; ".join([ "%s=%s" % option for option in options.items()]))
+						content=(contenttype, u"; ", u"; ".join([ "%s=%s" % option for option in options.items()])) # FIXME: Use a GE in 2.4
 					)
 					node.publish(publisher)
 					return

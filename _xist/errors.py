@@ -85,7 +85,7 @@ class RequiredAttrMissingWarning(Warning):
 		v = ["Required attribute"]
 		if len(self.reqattrs)>1:
 			v.append("s ")
-			v.append(", ".join(["%r" % attr for attr in self.reqattrs]))
+			v.append(", ".join(["%r" % attr for attr in self.reqattrs])) # FIXME: Use a GE in 2.4
 		else:
 			v.append(" %r" % self.reqattrs[0])
 		v.append(" missing in %s." % self.attrs._str(fullname=True, xml=False, decorate=False))

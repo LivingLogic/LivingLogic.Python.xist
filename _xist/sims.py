@@ -39,6 +39,8 @@ class EmptyElementWithContentWarning(SIMSWarning):
 		s = "element %s" % self.node._str(fullname=True, xml=False, decorate=True)
 		if self.node.startloc is not None:
 			s += " at %s" % self.node.startloc
+		elif self.node.createloc is not None:
+			s += " created at %s" % self.node.createloc
 		s += " has EMPTY content model, but has content"
 		return s
 
@@ -58,9 +60,13 @@ class WrongElementWarning(SIMSWarning):
 		s = "element %s" % self.node._str(fullname=True, xml=False, decorate=True)
 		if self.node.startloc is not None:
 			s += " at %s" % self.node.startloc
+		elif self.node.createloc is not None:
+			s += " created at %s" % self.node.createloc
 		s += " may not contain element %s" % self.badnode._str(fullname=1, xml=0, decorate=1)
 		if self.badnode.startloc is not None:
 			s += " at %s" % self.badnode.startloc
+		elif self.badnode.createloc is not None:
+			s += " created at %s" % self.badnode.createloc
 		return s
 
 
@@ -78,9 +84,13 @@ class ElementWarning(SIMSWarning):
 		s = "element %s" % self.node._str(fullname=True, xml=False, decorate=True)
 		if self.node.startloc is not None:
 			s += " at %s" % self.node.startloc
+		elif self.node.createloc is not None:
+			s += " created at %s" % self.node.createloc
 		s += " may not contain other elements"
 		if self.badnode.startloc is not None:
 			s += " (at %s)" % self.badnode.startloc
+		elif self.badnode.createloc is not None:
+			s += " (created at %s)" % self.badnode.createloc
 		return s
 
 
@@ -97,9 +107,13 @@ class IllegalTextWarning(SIMSWarning):
 		s = "element %s" % self.node._str(fullname=True, xml=False, decorate=True)
 		if self.node.startloc is not None:
 			s += " at %s" % self.node.startloc
+		elif self.node.createloc is not None:
+			s += " created at %s" % self.node.createloc
 		s += " may not contain text nodes"
 		if self.badnode.startloc is not None:
 			s += " (at %s)" % self.badnode.startloc
+		elif self.badnode.createloc is not None:
+			s += " (created at %s)" % self.badnode.createloc
 		return s
 
 
@@ -192,7 +206,7 @@ class Elements(object):
 		self.elements = elements
 
 	def __repr__(self):
-		return "Elements(%s)" % ", ".join(["%s.%s" % (cls.__module__, cls.__name__) for cls in self.elements])
+		return "Elements(%s)" % ", ".join(["%s.%s" % (cls.__module__, cls.__name__) for cls in self.elements]) # FIXME: Use a GE in 2.4
 
 	def checkvalid(self, node):
 		"""
@@ -226,7 +240,7 @@ class ElementsOrText(Elements):
 		self.elements = elements
 
 	def __repr__(self):
-		return "ElementsOrText(%s)" % ", ".join(["%s.%s" % (cls.__module__, cls.__name__) for cls in self.elements])
+		return "ElementsOrText(%s)" % ", ".join(["%s.%s" % (cls.__module__, cls.__name__) for cls in self.elements]) # FIXME: Use a GE in 2.4
 
 	def checkvalid(self, node):
 		"""

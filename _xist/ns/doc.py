@@ -653,7 +653,7 @@ class section(block):
 		else:
 			if len(context.sections)>2:
 				number = (
-					".".join([str(x) for x in context.sections[1:-1]]),
+					".".join([str(x) for x in context.sections[1:-1]]), # FIXME: Use a GE in 2.4
 					". "
 				)
 			text_indent = None
@@ -1354,7 +1354,7 @@ def explain(cls, thing, name=None, context=[]):
 		name = name or thing.__name__
 		context = context + [(thing, name)]
 		(args, varargs, varkw, defaults) = inspect.getargspec(thing.im_func)
-		id = "-".join([info[1] for info in context[1:]]) or None
+		id = "-".join([info[1] for info in context[1:]]) or None # FIXME: Use a GE in 2.4
 		sig = xsc.Frag()
 		if name != thing.__name__ and not (thing.__name__.startswith("__") and name=="_" + thing.im_class.__name__ + thing.__name__):
 			sig.append(cls.method(name), " = ")
@@ -1363,7 +1363,7 @@ def explain(cls, thing, name=None, context=[]):
 	elif inspect.isfunction(thing):
 		name = name or thing.__name__
 		context = context + [(thing, name)]
-		id = "-".join([info[1] for info in context[1:]]) or None
+		id = "-".join([info[1] for info in context[1:]]) or None # FIXME: Use a GE in 2.4
 		sig = xsc.Frag(
 			"def ",
 			cls._codeheader(thing, name, cls.function),
@@ -1372,7 +1372,7 @@ def explain(cls, thing, name=None, context=[]):
 		return cls.section(cls.title(sig), doc, role=(visibility, " function ", hasdoc), id=id)
 	elif isinstance(thing, __builtin__.property):
 		context = context + [(thing, name)]
-		id = "-".join([info[1] for info in context[1:]]) or None
+		id = "-".join([info[1] for info in context[1:]]) or None # FIXME: Use a GE in 2.4
 		sig = xsc.Frag(
 			"property ", name, ":"
 		)
@@ -1387,7 +1387,7 @@ def explain(cls, thing, name=None, context=[]):
 	elif inspect.isclass(thing):
 		name = name or thing.__name__
 		context = context + [(thing, name)]
-		id = "-".join([info[1] for info in context[1:]]) or None
+		id = "-".join([info[1] for info in context[1:]]) or None # FIXME: Use a GE in 2.4
 		bases = xsc.Frag()
 		if len(thing.__bases__):
 			for baseclass in thing.__bases__:
