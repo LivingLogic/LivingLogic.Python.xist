@@ -282,36 +282,36 @@ class Node:
 		"""
 		raise NotImplementedError("publish method not implemented in %s" % self.__class__.__name__)
 
-	def asString(self, file=None, root=None, xhtml=None, publishPrefix=0):
+	def asString(self, base=None, root=None, xhtml=None, publishPrefix=0):
 		"""
 		<doc:par>returns this element as a unicode string.</doc:par>
 
 		<doc:par>For an explanation of <pyref arg="xhtml">xhtml</pyref> and
 		<pyref arg="publishPrefix">publishPrefix</pyref> see <pyref method="publish">publish</pyref>.</doc:par>
 		"""
-		publisher = publishers.StringPublisher(file=file, root=root, xhtml=xhtml, publishPrefix=publishPrefix)
+		publisher = publishers.StringPublisher(base=base, root=root, xhtml=xhtml, publishPrefix=publishPrefix)
 		self.publish(publisher)
 		return publisher.asString()
 
-	def asBytes(self, file=None, root=None, encoding=None, xhtml=None, publishPrefix=0):
+	def asBytes(self, base=None, root=None, encoding=None, xhtml=None, publishPrefix=0):
 		"""
 		<doc:par>returns this element as a byte string suitable for writing
 		to an &html; file or printing from a CGI script.</doc:par>
 
 		<doc:par>For the parameters see <pyref method="publish">publish</pyref>.</doc:par>
 		"""
-		publisher = publishers.BytePublisher(file=file, root=root, encoding=encoding, xhtml=xhtml, publishPrefix=publishPrefix)
+		publisher = publishers.BytePublisher(base=base, root=root, encoding=encoding, xhtml=xhtml, publishPrefix=publishPrefix)
 		self.publish(publisher)
 		return publisher.asBytes()
 
-	def write(self, stream, file=None, root=None, encoding=None, xhtml=None, publishPrefix=0):
+	def write(self, stream, base=None, root=None, encoding=None, xhtml=None, publishPrefix=0):
 		"""
 		<doc:par>writes the element to the file like
 		object <pyref arg="file">file</pyref></doc:par>
 
 		<doc:par>For the rest of the parameters see <pyref method="publish">publish</pyref>.</doc:par>
 		"""
-		publisher = publishers.FilePublisher(stream, file=file, root=root, encoding=encoding, xhtml=xhtml, publishPrefix=publishPrefix)
+		publisher = publishers.FilePublisher(stream, base=base, root=root, encoding=encoding, xhtml=xhtml, publishPrefix=publishPrefix)
 		self.publish(publisher)
 
 	def find(self, type=None, subtype=0, attrs=None, test=None, searchchildren=0, searchattrs=0):

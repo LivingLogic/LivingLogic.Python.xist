@@ -45,13 +45,13 @@ import xsc, url as url_, errors, utils
 from ns import html
 
 class InputSource(sax.xmlreader.InputSource):
-	def __init__(self, file):
+	def __init__(self, base):
 		sax.xmlreader.InputSource.__init__(self)
-		self.file = file
+		self.base = base
 
 class StringInputSource(InputSource):
-	def __init__(self, text, file=None, defaultEncoding="utf-8"):
-		InputSource.__init__(self, file)
+	def __init__(self, text, base=None, defaultEncoding="utf-8"):
+		InputSource.__init__(self, base)
 		self.setSystemId("STRING")
 		if type(text) is types.UnicodeType:
 			defaultEncoding = "utf-8"
@@ -60,9 +60,9 @@ class StringInputSource(InputSource):
 		self.setEncoding(defaultEncoding)
 
 class FileInputSource(InputSource):
-	def __init__(self, stream, file=None, defaultEncoding="utf-8"):
-		InputSource.__init__(self, file)
-		self.setSystemId(str(file))
+	def __init__(self, stream, base=None, defaultEncoding="utf-8"):
+		InputSource.__init__(self, base)
+		self.setSystemId(str(base))
 		if isinstance(stream, types.StringType) or isinstance(stream, types.UnicodeType):
 			stream = fileutils.Filename(stream)
 		if isinstance(stream, fileutils.Filename):
@@ -70,7 +70,7 @@ class FileInputSource(InputSource):
 		self.setByteStream(stream)
 		self.setEncoding(defaultEncoding)
 
-class URLInputSource(sax.xmlreader.InputSource):
+class URLInputSource(InputSource):
 	def __init__(self, url, defaultEncoding="utf-8"):
 		if isinstance(url, url_.URL):
 			url = url.asPlainString()
@@ -482,7 +482,7 @@ class Handler:
 	def startElement(self, name, attrs):
 		node = self.namespaces.elementFromName(name)()
 		for (attrname, attrvalue) in attrs.items():
-			if issubclass(node.attrHandlers[attrname], xsc.URLAttr) and hasattr(self.source, "file"):
+			if issubclass(node.attrHandlers[attrname], xsc.URLAttr) and hasattr(self.source, "base"):
 				if isinstance(attrvalue, types.UnicodeType):
 					attrvalue = xsc.Frag(attrvalue)
 				newattrvalue = xsc.Frag()
@@ -494,7 +494,7 @@ class Handler:
 						break
 				u = url_.URL(newattrvalue.asPlainString())
 				if u.scheme is None:
-					u = url_.URL(scheme="root")/url_.URL(self.source.file)/u
+					u = url_.URL(scheme="root")/url_.URL(self.source.base)/u
 					newattrvalue = xsc.Frag(u.asString())
 					i += 1
 					while i < len(attrvalue):
@@ -579,11 +579,11 @@ def parse(source, handler=None, parser=None, namespaces=None):
 	handler.parse(source)
 	return handler.root
 
-def parseString(text, file=None, handler=None, parser=None, namespaces=None, defaultEncoding="utf-8"):
-	return parse(StringInputSource(text, file=file, defaultEncoding=defaultEncoding), handler=handler, parser=parser, namespaces=namespaces)
+def parseString(text, base=None, handler=None, parser=None, namespaces=None, defaultEncoding="utf-8"):
+	return parse(StringInputSource(text, base=base, defaultEncoding=defaultEncoding), handler=handler, parser=parser, namespaces=namespaces)
 
-def parseFile(filename, file=None, handler=None, parser=None, namespaces=None, defaultEncoding="utf-8"):
-	return parse(FileInputSource(filename, file=file, defaultEncoding=defaultEncoding), handler=handler, parser=parser, namespaces=namespaces)
+def parseFile(filename, base=None, handler=None, parser=None, namespaces=None, defaultEncoding="utf-8"):
+	return parse(FileInputSource(filename, base=base, defaultEncoding=defaultEncoding), handler=handler, parser=parser, namespaces=namespaces)
 
 def parseURL(url, handler=None, parser=None, namespaces=None, defaultEncoding="utf-8"):
 	return parse(URLInputSource(url, defaultEncoding=defaultEncoding), handler=handler, parser=parser, namespaces=namespaces)

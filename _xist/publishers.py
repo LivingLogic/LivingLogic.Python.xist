@@ -36,7 +36,7 @@ class Publisher:
 	base class for all publishers.
 	"""
 
-	def __init__(self, file=None, root=None, encoding=None, xhtml=None, publishPrefix=0):
+	def __init__(self, base=None, root=None, encoding=None, xhtml=None, publishPrefix=0):
 		"""
 		<doc:par><pyref arg="base">base</pyref> specifies the url to which the result
 		will be output.</doc:par>
@@ -68,10 +68,10 @@ class Publisher:
 		<doc:par><pyref arg="publishPrefix">publishPrefix</pyref> specifies if the prefix from element name
 		should be output too.</doc:par>
 		"""
-		if file is None:
-			self.file = url.URL(scheme="root")
+		if base is None:
+			self.base = url.URL(scheme="root")
 		else:
-			self.file = url.URL(scheme="root")/url.URL(file)
+			self.base = url.URL(scheme="root")/url.URL(base)
 		if root is None:
 			self.root = url.URL(scheme="root")
 		else:
@@ -105,8 +105,8 @@ class FilePublisher(Publisher):
 	"""
 	writes the strings to a file.
 	"""
-	def __init__(self, stream, file=None, root=None, encoding=None, xhtml=None, publishPrefix=0):
-		Publisher.__init__(self, file=file, root=root, encoding=encoding, xhtml=xhtml, publishPrefix=publishPrefix)
+	def __init__(self, stream, base=None, root=None, encoding=None, xhtml=None, publishPrefix=0):
+		Publisher.__init__(self, base=base, root=root, encoding=encoding, xhtml=xhtml, publishPrefix=publishPrefix)
 		(encode, decode, streamReaderClass, streamWriterClass) = codecs.lookup(self.encoding)
 		self.stream = streamWriterClass(stream)
 
@@ -123,8 +123,8 @@ class PrintPublisher(FilePublisher):
 	"""
 	writes the strings to <code>sys.stdout</code>.
 	"""
-	def __init__(self, file=None, root=None, encoding=None, xhtml=None, publishPrefix=0):
-		FilePublisher.__init__(self, sys.stdout, file=file, root=root, encoding=encoding, xhtml=xhtml, publishPrefix=publishPrefix)
+	def __init__(self, base=None, root=None, encoding=None, xhtml=None, publishPrefix=0):
+		FilePublisher.__init__(self, sys.stdout, base=base, root=root, encoding=encoding, xhtml=xhtml, publishPrefix=publishPrefix)
 
 class StringPublisher(Publisher):
 	"""
@@ -133,8 +133,8 @@ class StringPublisher(Publisher):
 	<pyref module="xist.publishers" class="StringPublisher" method="asString">asString</pyref>
 	"""
 
-	def __init__(self, file=None, root=None, xhtml=None, publishPrefix=0):
-		Publisher.__init__(self, file=file, root=root, encoding="utf16", xhtml=xhtml, publishPrefix=publishPrefix)
+	def __init__(self, base=None, root=None, xhtml=None, publishPrefix=0):
+		Publisher.__init__(self, base=base, root=root, encoding="utf16", xhtml=xhtml, publishPrefix=publishPrefix)
 		self.texts = []
 
 	def publish(self, text):
@@ -154,8 +154,8 @@ class BytePublisher(Publisher):
 	string suitable for writing to a file.
 	"""
 
-	def __init__(self, file=None, root=None, encoding=None, xhtml=None, publishPrefix=0):
-		Publisher.__init__(self, file=file, root=root, encoding=encoding, xhtml=xhtml, publishPrefix=publishPrefix)
+	def __init__(self, base=None, root=None, encoding=None, xhtml=None, publishPrefix=0):
+		Publisher.__init__(self, base=base, root=root, encoding=encoding, xhtml=xhtml, publishPrefix=publishPrefix)
 		self.texts = []
 
 	def publish(self, text):
