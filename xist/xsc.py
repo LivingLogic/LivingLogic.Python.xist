@@ -695,14 +695,16 @@ class Node:
 				if subtype:
 					if isinstance(self,t):
 						res = self._matchesAttrs(attrs)
+						break
 				else:
 					if self.__class__ == t:
 						res = self._matchesAttrs(attrs)
+						break
 			else:
 				res = 0
 		else:
 			res = self._matchesAttrs(attrs)
-		if res and test is not None:
+		if res and (test is not None):
 			res = test(self)
 		return res
 

@@ -5,6 +5,11 @@
 ##
 ## See the file LICENSE for licensing details
 
+"""
+This module contains classes that may be used as publishing
+handler in <methodref module="xist.xsc" class="Node">publish</methodref>.
+"""
+
 import sys
 import string
 
