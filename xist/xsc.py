@@ -236,20 +236,132 @@ class AmbiguousElementError(Error):
 		return Error.__str__(self) + "element " + name + " is ambigous. Possible elements are: " + string.join(elementnames,", ") + "."
 
 ###
+### configuration
+###
+
+# chracters with an ASCII (or Unix) code above reprcharreflowerlimit wll be dumped as charcter references
+try:
+	reprcharreflowerlimit = string.atoi(os.environ["XSC_REPRCHARREFLOWERLIMIT"])
+except KeyError:
+	reprcharreflowerlimit = 128
+
+# should ANSI escape sequences be used for dumping the DOM tree?
+try:
+	repransi = string.atoi(os.environ["XSC_REPRANSI"])
+except KeyError:
+	repransi = 0
+
+# how to represent an indentation in the DOM tree
+try:
+	reprtab = os.environ["XSC_REPRTAB"]
+except KeyError:
+	reprtab = ". "
+
+# should the default ANSI escape sequences be a terminal with a dark or light background?
+try:
+	repransidark = string.atoi(os.environ["XSC_REPRANSI_DARK"])
+except KeyError:
+	repransidark = 1
+
+# ANSI escape sequence to be used for tabs
+try:
+	repransitab = os.environ["XSC_REPRANSI_TAB"]
+except KeyError:
+	repransitab = "1;34"
+
+# ANSI escape sequence to be used for quotes (delimiters for text and attribute nodes)
+try:
+	repransiquote = os.environ["XSC_REPRANSI_QUOTE"]
+except KeyError:
+	repransiquote = "1;32"
+
+# ANSI escape sequence to be used for brackets (delimiters for tags)
+try:
+	repransibracket = os.environ["XSC_REPRANSI_BRACKET"]
+except KeyError:
+	repransibracket = "1;32"
+
+# ANSI escape sequence to be used for question marks (delimiters for processing instructions)
+try:
+	repransiquestion = os.environ["XSC_REPRANSI_QUESTION"]
+except KeyError:
+	repransiquestion = "1;32"
+
+# ANSI escape sequence to be used for text
+try:
+	repransitext = os.environ["XSC_REPRANSI_TEXT"]
+except KeyError:
+	repransitext = ""
+
+# ANSI escape sequence to be used for character references
+try:
+	repransicharref = os.environ["XSC_REPRANSI_CHARREF"]
+except KeyError:
+	repransicharref = "37"
+
+# ANSI escape sequence to be used for element namespaces
+try:
+	repransielementnamespace = os.environ["XSC_REPRANSI_ELEMENTNAMESPACE"]
+except KeyError:
+	repransielementnamespace = "1;36"
+
+# ANSI escape sequence to be used for element names
+try:
+	repransielementname = os.environ["XSC_REPRANSI_ELEMENTNAME"]
+except KeyError:
+	repransielementname = "1;36"
+
+# ANSI escape sequence to be used for attribute names
+try:
+	repransiattrname = os.environ["XSC_REPRANSI_ATTRNAME"]
+except KeyError:
+	repransiattrname = "1;36"
+
+# ANSI escape sequence to be used for document types
+try:
+	repransidoctype = os.environ["XSC_REPRANSI_DOCTYPE"]
+except KeyError:
+	repransidoctype = ""
+
+# ANSI escape sequence to be used for attribute values
+try:
+	repransiattrvalue = os.environ["XSC_REPRANSI_ATTRVALUE"]
+except KeyError:
+	repransiattrvalue = ""
+
+# ANSI escape sequence to be used for URLs
+try:
+	repransiurl = os.environ["XSC_REPRANSI_URL"]
+except KeyError:
+	repransiurl = "1;33"
+
+# ANSI escape sequence to be used for processing instruction targets
+try:
+	repransiprocinsttarget = os.environ["XSC_REPRANSI_PROCINSTTARGET"]
+except KeyError:
+	repransiprocinsttarget = "1;31"
+
+# ANSI escape sequence to be used for processing instruction data
+try:
+	repransiprocinstdata = os.environ["XSC_REPRANSI_PROCINSTDATA"]
+except KeyError:
+	repransiprocinstdata = ""
+
+###
 ### helpers
 ###
 
 def _stransi(codes,string):
-	if Node.repransi and codes!="" and string!="":
+	if repransi and codes!="" and string!="":
 		return "\033[" + codes + "m" + string + "\033[0m"
 	else:
 		return string
 
 def _strelementname(elementname):
-	return _stransi(Element.repransiname,elementname)
+	return _stransi(repransielementname,elementname)
 
 def _strattrname(attrname):
-	return _stransi(Attr.repransiname,attrname)
+	return _stransi(repransiattrname,attrname)
 
 def nodeName(nodeClass):
 	"""
@@ -260,7 +372,7 @@ def nodeName(nodeClass):
 
 def _strNodeName(nodeClass):
 	name = nodeName(nodeClass)
-	return _stransi(nodeClass.repransinamespace,name[0]) + ":" + _stransi(nodeClass.repransiname,name[1])
+	return _stransi(repransielementnamespace,name[0]) + ":" + _stransi(repransielementname,name[1])
 
 def appendDict(*dicts):
 	result = {}
@@ -342,10 +454,6 @@ class Node:
 
 	repransinamespace = "31"
 	repransiname = ""
-	repransibrackets = "34;1"
-	reprtab = ". " # how to represent an indentation in the DOM tree
-	repransi = 0 # should ANSI escape sequences be used for dumping the DOM tree?
-	repransitab = "32" # ANSI escape sequence to be used for tabs
 
 	def __add__(self,other):
 		newother = ToNode(other)
@@ -399,7 +507,7 @@ class Node:
 			else:
 				line[1] = "?"
 			line[2] = string.join(map(str,line[2]),".") # convert element number to a string
-			line[3] = _stransi(self.repransitab,self.reprtab*line[0]) + line[3] # add indentation
+			line[3] = _stransi(repransitab,reprtab*line[0]) + line[3] # add indentation
 			lenlineno = max(lenlineno,len(line[1]))
 			lenelementno = max(lenelementno,len(line[2]))
 
@@ -432,7 +540,7 @@ class Node:
 		return Null()
 
 	def _strtag(self,content):
-		return _stransi(self.repransibrackets,'<') + content + _stransi(self.repransibrackets,'>')
+		return _stransi(repransibracket,'<') + content + _stransi(repransibracket,'>')
 
 	def __str__(self):
 		"""
@@ -480,7 +588,6 @@ class Text(Node):
 	"""
 
 	repransiname = ""
-	repransiquotes = "34;1"
 
 	strescapes = { '<' : 'lt' , '>' : 'gt' , '&' : 'amp' , '"' : 'quot' }
 
@@ -505,19 +612,19 @@ class Text(Node):
 				v.append(i)
 		return string.join(v,"")
 
-	def __strtext(self,refwhite):
+	def __strtext(self,refwhite,content):
 		# we could put ANSI escapes around every character or reference that we output, but this would result in strings that are way to long, especially if output over a serial connection, so we collect runs of characters with the same highlighting and put the ANSI escapes around those. (of course, when we're not doing highlighting, this routine does way to much useless calculations)
 		v = [] # collect all colored string here
 		charref = -1 # the type of characters we're currently collecting (0==normal character, 1==character that has to be output as an entity, -1==at the start)
 		start = 0 # the position where our current run of characters for the same class started
 		end = 0 # the current position we're testing
-		while end<=len(self.content): # one more than the length of the string
+		while end<=len(content): # one more than the length of the string
 			do = 0 # we will have to do something with the string collected so far ...
-			if end == len(self.content): # ... if we're at the end of the string ...
+			if end == len(content): # ... if we're at the end of the string ...
 				do = 1
 			else:
-				c = self.content[end] # ... or if the character we're at is different from those we've collected so far
-				ascharref = (0 <= ord(c) <= 31 or 128 <= ord(c))
+				c = content[end] # ... or if the character we're at is different from those we've collected so far
+				ascharref = (0 <= ord(c) <= 31 or reprcharreflowerlimit <= ord(c))
 				if not refwhite and (c == "\n" or c == "\t"):
 					ascharref = 0
 				if ascharref != charref:
@@ -526,16 +633,16 @@ class Text(Node):
 			if do: # process the string we have so far
 				if charref: # we've collected references so far
 					s = ""
-					for i in self.content[start:end]:
+					for i in content[start:end]:
 						ent = Parser.entitiesByNumber[ord(i)] # use names if a available, or number otherwise
 						if len(ent):
 							s = s + '&' + ent[0] + ';'
 						else:
 							s = s + '&#' + str(ord(i)) + ';'
-					v.append(_stransi(CharRef.repransiname,s))
+					v.append(_stransi(repransicharref,s))
 				else:
-					s = self.content[start:end]
-					v.append(_stransi(Text.repransiname,s))
+					s = content[start:end]
+					v.append(_stransi(repransitext,s))
 				charref = 1-charref # switch to the other class
 				start = end # the next string we want to work on starts from here
 			end = end + 1 # to the next character
@@ -543,11 +650,21 @@ class Text(Node):
 
 	def _dorepr(self):
 		# constructs a string of this Text with syntaxhighlighting. Special characters will be output as CharRefs (with special highlighting)
-		return self.__strtext(0)
+		return self.__strtext(0,self.content)
 
 	def _doreprtree(self,nest,elementno):
-		s = _stransi(self.repransiquotes,'"') + _stransi(self.repransiname,self.__strtext(1)) + _stransi(self.repransiquotes,'"')
-		return [[nest,self.startlineno,elementno,s]]
+		lines = string.split(self.content,"\n")
+		if len(lines) and lines[-1] == "":
+			del lines[-1]
+		v = []
+		for i in xrange(len(lines)):
+			if self.startlineno == -1:
+				no = -1
+			else:
+				no = self.startlineno + i
+			s = _stransi(repransiquote,'"') + _stransi(repransitext,self.__strtext(1,lines[i])) + _stransi(repransiquote,'"')
+			v.append([nest,no,elementno,s])
+		return v
 
 	def compact(self):
 		for i in self.content:
@@ -586,7 +703,7 @@ class CharRef(Node):
 			return '&#' + str(self.content) + ';'
 
 	def __strcharref(self,s):
-		return _stransi(self.repransiname,s)
+		return _stransi(repransicharref,s)
 
 	def _dorepr(self):
 		if len(Parser.entitiesByNumber[self.content]):
@@ -599,7 +716,7 @@ class CharRef(Node):
 		for name in Parser.entitiesByNumber[self.content]:
 			s = s + ' ' + self.__strcharref('&' + name + ';')
 		s = s + ')'
-		if 0 <= self.content <= 255:
+		if 0 <= self.content < reprcharreflowerlimit:
 			s = s + ' ' + Text(chr(self.content))._doreprtree(0,0)[0][-1]
 		return [[nest,self.startlineno,elementno,s]]
 
@@ -800,7 +917,7 @@ class DocType(Node):
 		self.__content = content
 
 	def name(self):
-		return self._strtag(_stransi(self.repransiname,"doctype"))
+		return self._strtag(_stransi(repransidoctype,"doctype"))
 
 	def asHTML(self):
 		return DocType(self.__content)
@@ -808,7 +925,7 @@ class DocType(Node):
 	clone = asHTML
 
 	def _dorepr(self):
-		return self._strtag(_stransi(self.repransiname,"!DOCTYPE " + self.__content))
+		return self._strtag(_stransi(repransidoctype,"!DOCTYPE " + self.__content))
 
 	def _doreprtree(self,nest,elementno):
 		return [[nest,self.startlineno,elementno,self._dorepr()]]
@@ -848,7 +965,6 @@ class ProcInst(Node):
 	"""
 
 	repriansiname = "34"
-	repransiquestion = "34"
 	repransidata = "36"
 
 	def __init__(self,target,content = ""):
@@ -871,36 +987,40 @@ class ProcInst(Node):
 		return ProcInst(self.target,self.content)
 
 	def _dorepr(self):
-		return self._strtag(_stransi(self.repransiquestion,"?") + _stransi(self.repransiname,self.target) + " " + _stransi(self.repransidata,self.content) + _stransi(self.repransiquestion,"?"))
+		return self._strtag(_stransi(repransiquestion,"?") + _stransi(repransiprocinsttarget,self.target) + " " + _stransi(repransiprocinstdata,self.content) + _stransi(repransiquestion,"?"))
 
 	def _doreprtree(self,nest,elementno):
 		lines = string.split(self.content,"\n")
-		while lines[0] == "":
-			del lines[0]
-		while lines[-1] == "":
+		if len(lines) and lines[-1] == "":
 			del lines[-1]
 		if len(lines) == 1:
-			return [[nest,self.startlineno,elementno,self._dorepr()]]
+			s = _stransi(repransibracket,'<')+_stransi(repransiquestion,"?") + _stransi(repransiprocinsttarget,self.target) + " " + _stransi(repransiprocinstdata,string.rstrip(lines[0])) + _stransi(repransiquestion,"?") + _stransi(repransibracket,'>')
+			return [[nest,self.startlineno,elementno,s]]
 		else:
 			v = []
 			for i in xrange(len(lines)+2):
 				if self.startlineno == -1:
 					no = -1
 				else:
-					no = self.startlineno + i
+					if i == 0:
+						no = self.startlineno
+					elif i == lines(lines) + 1:
+						no = self.endlineno
+					else:
+						no = self.startlineno + i-1
 				if i == 0:
 					mynest = nest
-					s = _stransi(self.repransibrackets,'<')+_stransi(self.repransiquestion,"?") + " " + _stransi(self.repransiname,self.target)
+					s = _stransi(repransibracket,'<')+_stransi(repransiquestion,"?") + _stransi(repransiprocinsttarget,self.target)
 				elif i == len(lines)+1:
 					mynest = nest
-					s = _stransi(self.repransiquestion,"?")+_stransi(self.repransibrackets,'>')
+					s = _stransi(repransiquestion,"?")+_stransi(repransibracket,'>')
 				else:
 					mynest = nest+1
 					s = lines[i-1]
 					while len(s) and s[0] == "\t":
 						mynest = mynest + 1
 						s = s[1:]
-				v.append([mynest,no,elementno,s])
+				v.append([mynest,no,elementno,string.rstrip(s)])
 			return v
 
 	def __str__(self):
@@ -931,7 +1051,6 @@ class Element(Node):
 	"""
 
 	repransiname = "34"
-	repransiattrquotes = "34"
 
 	empty = 1 # 0 => element with content; 1 => stand alone element
  	attrHandlers = {} # maps attribute names to attribute classes
@@ -1108,9 +1227,9 @@ class Element(Node):
 			value = self[attr]
 			if not isinstance(value.content,Null):
 				v.append('=')
-				v.append(_stransi(self.repransiattrquotes,'"'))
+				v.append(_stransi(repransiquote,'"'))
 				v.append(value._dorepr())
-				v.append(_stransi(self.repransiattrquotes,'"'))
+				v.append(_stransi(repransiquote,'"'))
 		return string.join(v,"")
 
 	def AddImageSizeAttributes(self,imgattr,widthattr = "width",heightattr = "height"):
@@ -1195,9 +1314,6 @@ class Attr(Node):
 	a fragment consisting only of text and character references.
 	"""
 
-	repransi = "33"
-	repransiname = "31"
-
 	def __init__(self,_content):
 		self.content = ToNode(_content)
 
@@ -1223,13 +1339,11 @@ class TextAttr(Attr):
 	Attribute class that is used for normal text attributes.
 	"""
 
-	repransitext = ""
-
 	def __init__(self,_content):
 		Attr.__init__(self,_content)
 
 	def _dorepr(self):
-		return _stransi(self.repransitext,str(self.content))
+		return _stransi(repransiattrvalue,str(self.content))
 
 	def _doreprtree(self,nest,elementno):
 		return [[nest,self.startlineno,elementno,self._dorepr()]]
@@ -1251,7 +1365,7 @@ class ColorAttr(Attr):
 		Attr.__init__(self,_content)
 
 	def _dorepr(self):
-		return _stransi(self.repransitext,str(self.content))
+		return _stransi(repransiattrvalue,str(self.content))
 
 	def _doreprtree(self,nest,elementno):
 		return [[nest,self.startlineno,elementno,self._dorepr()]]
@@ -1324,7 +1438,7 @@ class URL(Node):
 					path[i] = os.pardir
 			sep = os.sep # we have a local file, so we should use the local directory separator instead
 		url = urlparse.urlunparse((self.scheme,self.server,string.join(path,sep),self.parameters,self.query,self.fragment))
-		return _stransi(URLAttr.repransiurl,url)
+		return _stransi(repransiurl,url)
 
 	def __str__(self):
 		path = self.path[:]
@@ -1609,7 +1723,6 @@ class XSC:
 	def __init__(self):
 		self.filename = [ URL(":") ]
 		self.server = "localhost"
-		self.repransielementname = "35"
 		self.reprtree = 1
 		self.parser = Parser()
 
