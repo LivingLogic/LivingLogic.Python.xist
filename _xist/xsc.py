@@ -1533,25 +1533,29 @@ class IDAttr(Attr):
 
 class NumberAttr(Attr):
 	"""
-	<par>Attribute class that is used for normal number attributes.</par>
+	<par>Attribute class that is used for when the attribute value may be any kind
+	of number.</par>
 	"""
 
 
 class IntAttr(NumberAttr):
 	"""
-	<par>Attribute class that is used for normal integer attributes.</par>
+	<par>Attribute class that is used when the attribute value may be an
+	integer.</par>
 	"""
 
 
 class FloatAttr(NumberAttr):
 	"""
-	<par>Attribute class that is used for normal float attributes.</par>
+	<par>Attribute class that is used when the attribute value may be a
+	floating point value.</par>
 	"""
 
 
 class BoolAttr(Attr):
 	"""
-	<par>Attribute class that is used for boolean attributes.</par>
+	<par>Attribute class that is used for boolean attributes. When publishing
+	the value will always be the attribute name, regardless of the real value.</par>
 	"""
 
 	def publish(self, publisher):
