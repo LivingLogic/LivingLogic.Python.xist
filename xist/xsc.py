@@ -183,12 +183,14 @@ def URLForOutput(url):
 		if len(path) and len(path[0]) and path[0][0] == ":":
 			path[0] = path[0][1:] # drop the ":"
 			# split the file path too
-			file = string.splitfields(xsc.filename,"/")
-			# throw away identical directories in both path
+			file = string.split(xsc.filename,"/")
+			# throw away identical directories in both paths
 			while len(file)>1 and len(path)>1 and file[0]==path[0]:
 				del file[0]
 				del path[0]
-			url = string.joinfields(([".."]*(len(file)-1)) + path,"/")
+			path = string.join(([".."]*(len(file)-1)) + path,"/")
+		else:
+			path = string.join(path,"/")
 	return urlparse.urlunparse((scheme,server,path,parameters,query,fragment))
 
 def FileSize(url):
@@ -300,14 +302,14 @@ class XSCNode:
 				line[1] = str(line[1])
 			else:
 				line[1] = "?"
-			line[2] = string.joinfields(map(str,line[2]),".") # convert element number to a string
+			line[2] = string.join(map(str,line[2]),".") # convert element number to a string
 			line[3] = self._stransi(xsc.repransitab,xsc.reprtab*line[0]) + line[3] # add indentation
 			lenlineno = max(lenlineno,len(line[1]))
 			lenelementno = max(lenelementno,len(line[2]))
 
 		for line in lines:
 			v.append("%*s %-*s %s\n" % (lenlineno,line[1],lenelementno,line[2],line[3]))
-		return string.joinfields(v,"")
+		return string.join(v,"")
 
 	def _dorepr(self):
 		# returns a string representation of the node
@@ -387,7 +389,7 @@ class XSCText(XSCNode):
 				v.append('&#' + str(ord(i)) + ';')
 			else:
 				v.append(i)
-		return string.joinfields(v,"")
+		return string.join(v,"")
 
 	def _dorepr(self):
 		v = []
@@ -396,7 +398,7 @@ class XSCText(XSCNode):
 				v.append(self.represcapes[i])
 			else:
 				v.append(i)
-		return string.joinfields(v,"") 
+		return string.join(v,"") 
 
 	def _doreprtree(self,nest,elementno):
 		v = []
@@ -407,7 +409,7 @@ class XSCText(XSCNode):
 				v.append("\\x" + str(ord(i)))
 			else:
 				v.append(i)
-		s = string.joinfields(v,"") 
+		s = string.join(v,"") 
 		return [[nest,self.startlineno,elementno,self._strtextquotes(self._strtext(s))]]
 
 	def withoutLinefeeds(self):
@@ -499,7 +501,7 @@ class XSCFrag(XSCNode):
 		v = []
 		for child in self:
 			v.append(child._dorepr())
-		return string.joinfields(v,"")
+		return string.join(v,"")
 
 	def _doreprtree(self,nest,elementno):
 		v = []
@@ -515,7 +517,7 @@ class XSCFrag(XSCNode):
 		v = []
 		for child in self.content:
 			v.append(child.dostr())
-		return string.joinfields(v,"")
+		return string.join(v,"")
 
 	def __getitem__(self,index):
 		"""returns the index'th node for the content of the fragment"""
@@ -599,7 +601,7 @@ class XSCAttrs(XSCNode):
 		v = []
 		for attr in self.keys():
 			v.append(" " + self._strattrname(attr) + '=' + self._strattrquotes(self[attr]._dorepr()))
-		return string.joinfields(v,"")
+		return string.join(v,"")
 
 	def _doreprtree(self,nest,elementno):
 		v = [nest,self.startlineno,elementno,""]
@@ -611,8 +613,10 @@ class XSCAttrs(XSCNode):
 	def dostr(self):
 		v = []
 		for attr in self.keys():
-			v.append(' ' + attr + '="' + self[attr].dostr() + '"')
-		return string.joinfields(v,"")
+			print "="*80,attr
+			print "="*80,str(self[attr])
+			v.append(' ' + attr + '="' + str(self[attr]) + '"')
+		return string.join(v,"")
 
 	def has_attr(self,index):
 		return self.content.has_key(index)
@@ -747,7 +751,7 @@ class XSCElement(XSCNode):
 			for child in self:
 				v.append(child._dorepr())
 			v.append(self._strtag(self._strelementname("/" + self.name)))
-		return string.joinfields(v,"")
+		return string.join(v,"")
 
 	def _doreprtree(self,nest,elementno):
 		v = []
@@ -781,7 +785,7 @@ class XSCElement(XSCNode):
 			v.append(self.name) # name must be a string without any nasty characters
 			v.append(">")
 
-		return string.joinfields(v,"")
+		return string.join(v,"")
 
 	def __getitem__(self,index):
 		"returns an attribute or one of the content nodes depending on whether a string (i.e. attribute name) or a number (i.e. content node index) is passed in"""
@@ -864,6 +868,7 @@ def RegisterElement(name,element):
 
 class XSCurl(XSCElement):
 	"""URLS (may be used as an element or an attribute)"""
+	empty = 0
 
 	def __init__(self,_content = [],_attrs = {},**_restattrs):
 		if type(_content) == types.InstanceType and _content.__class__ == XSCurl:
@@ -873,14 +878,18 @@ class XSCurl(XSCElement):
 		self.attrs = XSCAttrs(self.attr_handlers)
 
 	def _dorepr(self):
-		return URLForInput(self.content.dostr())
+		url = URLForInput(self.content.dostr())
+		return self._strtextquotes(url)
 
 	def _doreprtree(self,nest,elementno):
-		url = URLForInput(self.content.dorepr())
-		return [[nest,self.startlineno,elementno,url]]
+		url = URLForInput(self.content.dostr())
+		return [[nest,self.startlineno,elementno,self._strtextquotes(url)]]
 
 	def dostr(self):
 		return URLForOutput(self.content.dostr())
+
+	def _doAsHTML(self):
+		return XSCText(URLForOutput(self.content.dostr()))
 RegisterElement("url",XSCurl)
 
 ###
