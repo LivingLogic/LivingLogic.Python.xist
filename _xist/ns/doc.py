@@ -383,7 +383,7 @@ class doc(xsc.Namespace):
 			if self.content.find(type=(doc.par, doc.olist, doc.ulist, doc.example, doc.programlisting)):
 				content = self.content
 			else:
-				content = converter.target.par(self.content)
+				content = converter.target.para(self.content)
 			return converter.target.listitem(content)
 
 		def convert_html(self, converter):
