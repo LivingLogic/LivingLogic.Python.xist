@@ -45,7 +45,7 @@ class bar(foo):
 <par>This removes the attribute <lit>baz</lit> inherited
 from <class>foo</class>.</par>
 
-<par>For attributes that are no legal Python identifiers,
+<par>For attribute names that are no legal Python identifiers,
 the same method can be used as for element classes: Define
 the real &xml; name via a class attribute. This class attribute
 has been renamed from <lit>name</lit> to <lit>xmlname</lit>.</par>
@@ -105,9 +105,9 @@ node = html.html(
 </example>
 
 <par>Instead of the module object (which must contain a
-namespace object named <lit>xmlns</lit>, you can also
+namespace object named <lit>xmlns</lit>), you can also
 pass the namespace object itself (i.e. <lit>xml.xmlns</lit>)
-or the namespace name (i.e. <lit>"http://www.w3.org/XML/1998/namespace"</lit>.</par>
+or the namespace name (i.e. <lit>"http://www.w3.org/XML/1998/namespace"</lit>).</par>
 
 </section>
 
