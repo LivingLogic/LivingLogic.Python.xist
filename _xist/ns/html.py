@@ -452,7 +452,7 @@ class table(xsc.Element):
 	empty = 0
 	attrHandlers = attrs.copy()
 	attrHandlers.update({"summary": xsc.TextAttr, "width": xsc.TextAttr, "border": xsc.TextAttr, "frame": xsc.TextAttr, "rules": xsc.TextAttr, "cellspacing": xsc.TextAttr, "cellpadding": xsc.TextAttr})
-	attrHandlers.update({"height": xsc.TextAttr, "align": xsc.TextAttr, "bgcolor": xsc.ColorAttr, "background": xsc.URLAttr, "bordercolor": xsc.ColorAttr}) # deprecated
+	attrHandlers.update({"height": xsc.TextAttr, "align": xsc.TextAttr, "bgcolor": xsc.ColorAttr, "background": xsc.URLAttr, "bordercolor": xsc.ColorAttr, "hspace": xsc.IntAttr, "vspace": xsc.IntAttr}) # deprecated
 
 class caption(xsc.Element):
 	"""
