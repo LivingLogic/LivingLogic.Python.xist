@@ -3132,8 +3132,8 @@ class OldPrefixes(Prefixes):
 				self["xml"].append(ns)
 				self[None].append(ns)
 			else:
-				self[None].append(ns)
 				self[ns.xmlname[True]].append(ns)
+				self[None].append(ns)
 
 
 class DefaultPrefixes(Prefixes):
