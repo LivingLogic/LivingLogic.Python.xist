@@ -293,16 +293,16 @@ class URL:
 	def asString(self):
 		return self.__asString(1)
 
-	def __add__(left, right):
+	def __add__(self, other):
 		"""
 		joins two URLs together. When the second URL is
 		absolute (i.e. contains a scheme other than "server"
 		or ""), you'll get a copy of the second URL.
 		"""
-		return left.__join(right)
+		return self.__join(other)
 
-	def __radd__(left, right):
-		return URL(right).__join(left)
+	def __radd__(self, other):
+		return URL(other).__join(self)
 
 	__radd__.__doc__ = __add__.__doc__
 
