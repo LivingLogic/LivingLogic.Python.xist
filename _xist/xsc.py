@@ -624,8 +624,8 @@ class Text(CharacterData):
 
 class Frag(Node):
 	"""
-	A fragment contains a list of nodes and can be used for dynamically constructing content.
-	The member content of an Element is a Frag.
+	<doc:par>A fragment contains a list of nodes and can be used for dynamically constructing content.
+	The member content of an <pyref class="Element">Element</pyref> is a <pyref nolink>Frag</pyref>.</doc:par>
 	"""
 
 	empty = 0
@@ -1494,32 +1494,32 @@ class Attr(Frag):
 
 class TextAttr(Attr):
 	"""
-	Attribute class that is used for normal text attributes.
+	<doc:par>Attribute class that is used for normal text attributes.</doc:par>
 	"""
 
 class NumberAttr(Attr):
 	"""
-	Attribute class that is used for normal number attributes.
+	<doc:par>Attribute class that is used for normal number attributes.</doc:par>
 	"""
 
 class IntAttr(NumberAttr):
 	"""
-	Attribute class that is used for normal integer attributes.
+	<doc:par>Attribute class that is used for normal integer attributes.</doc:par>
 	"""
 
 class FloatAttr(NumberAttr):
 	"""
-	Attribute class that is used for normal float attributes.
+	<doc:par>Attribute class that is used for normal float attributes.</doc:par>
 	"""
 
 class BoolAttr(Attr):
 	"""
-	Attribute class that is used for boolean attributes.
+	<doc:par>Attribute class that is used for boolean attributes.</doc:par>
 	"""
 
 class ColorAttr(Attr):
 	"""
-	Attribute class that is used for a color attributes.
+	<doc:par>Attribute class that is used for a color attributes.</doc:par>
 	"""
 
 class URLAttr(Attr):

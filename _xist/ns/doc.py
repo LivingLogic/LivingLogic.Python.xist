@@ -391,9 +391,12 @@ def explain(thing, name=None):
 	t = type(thing)
 	if t is types.MethodType:
 		(args, varargs, varkw, defaults) = inspect.getargspec(thing.im_func)
-		sig = xsc.Frag(
+		sig = xsc.Frag()
+		if name != thing.__name__:
+			sig.append(name, " = ")
+		sig.append(
 			"def ",
-			pyref(name or thing.__name__, module=inspect.getmodule(thing).__name__, class_=thing.im_class.__name__, method=thing.__name__, nolink=1),
+			pyref(thing.__name__, module=inspect.getmodule(thing).__name__, class_=thing.im_class.__name__, method=thing.__name__, nolink=1),
 			"("
 		)
 		offset = len(args)
