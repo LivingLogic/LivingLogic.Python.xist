@@ -5,6 +5,8 @@
 __version__ = "$Revision$"
 # $Source$
 
+from xsc_specials import *
+
 class dbelement(XSCElement):
 	"""
 	base element for all elements that display database content.
