@@ -100,6 +100,12 @@ class Node:
 		"""
 		raise NotImplementedError("clone method not implemented in %s" % self.__class__.__name__)
 
+	def namespace(self):
+		"""
+		return the namespace object for this object or None.
+		"""
+		return getattr(self.__class__, "_ns", None)
+
 	def repr(self, presenter=None):
 		if presenter is None:
 			presenter = presenters.defaultPresenterClass()
@@ -110,9 +116,9 @@ class Node:
 	def present(self, presenter):
 		raise NotImplementedError("present method not implemented in %s" % self.__class__.__name__)
 
-	def conv(self, converter=None):
+	def __call__(self, converter=None, mode=None, stage=None, target=None, lang=None):
 		"""
-		<par noindent>returns a version of this node and it's content converted to HTML,
+		<par noindent>returns a version of this node and it's content converted to HTML (or any other target),
 		so when you define your own element classes you should overwrite <methodref>convert</methodref>.</par>
 
 		<par>E.g. when you want to define an element that packs it's content into an HTML
@@ -128,8 +134,26 @@ class Node:
 		</par>
 		"""
 		if converter is None:
-			converter = converters.Converter()
-		return self.convert(converter)
+			return self.convert(converters.Converter(mode=mode, stage=stage, target=target, lang=lang))
+		else:
+			oldmode = converter.mode
+			oldstage = converter.stage
+			oldtarget = converter.target
+			oldlang = converter.lang
+			converter.mode = mode
+			converter.stage = stage
+			converter.target = target
+			converter.lang = lang
+			node = self.convert(converter)
+			converter.mode = oldmode
+			converter.stage = oldstage
+			converter.target = oldtarget
+			converter.lang = oldlang
+			return node
+
+	# FIXME: backwards compatibility
+	def conv(self, converter=None, mode=None, stage=None, target=None, lang=None):
+		return self(converter, mode, stage, target, lang)
 
 	def convert(self, converter):
 		"""
@@ -364,8 +388,9 @@ class Node:
 			publishPrefix = self.publishPrefix
 		else:
 			publishPrefix = publisher.publishPrefix
-		if publishPrefix and hasattr(self, "namespace"):
-			publisher.publish(self.namespace.prefix) # must be registered to work
+		ns = self.namespace()
+		if publishPrefix and ns is not None:
+			publisher.publish(ns.prefix) # must be registered to work
 			publisher.publish(u":")
 		if hasattr(self, "name"):
 			publisher.publish(self.name)
@@ -1435,6 +1460,17 @@ class Attr(Frag):
 		Frag.publish(self, publisher)
 		publisher.inAttr = 0
 
+	def __cmp__(self, other):
+		if type(other) in (types.StringType, types.UnicodeType):
+			return self.asPlainString() == other
+		elif isinstance(other, Attr):
+			return self.asPlainString() == other
+		else:
+			raise TypeError("can't compare Attr with %s" % type(other))
+
+	def __neq__(self, other):
+		return self.__eq__(other)
+
 class TextAttr(Attr):
 	"""
 	Attribute class that is used for normal text attributes.
@@ -1630,14 +1666,14 @@ class Namespace:
 			isprocinst = thing is not ProcInst and issubclass(thing, ProcInst)
 			if iselement or isentity or ischarref or isprocinst:
 				# if the class attribute register is 0, the class won't be registered
-				# and if the class already has a namespace attribute, it is already registered, so it won't be registered again
+				# and if the class already has a _ns attribute, it is already registered, so it won't be registered again
 				# (we're accessing __dict__ here, because we don't want the attribute from the base class object)
-				if thing.register and (not thing.__dict__.has_key("namespace")):
+				if thing.register and (not thing.__dict__.has_key("_ns")):
 					try:
 						name = thing.__dict__["name"] # no inheritance, otherwise we might get the name attribute from an already registered base class
 					except KeyError:
 						name = thing.__name__
-					thing.namespace = self # this creates a cycle
+					thing._ns = self # this creates a cycle
 					if name is not None:
 						name = helpers.unistr(name)
 						thing.name = name
