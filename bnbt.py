@@ -27,8 +27,8 @@ class page(xsc.Element):
 		if self.has_attr("onload"):
 			b["onload"] = self["onload"]
 
-		links = self.elementsNamed(links)[0].content
-		content = self.elementsNamed(content)[0].content
+		mylinks = self.elementsNamed(links)[0].content
+		mycontent = self.elementsNamed(content)[0].content
 
 		b.append(
 			specials.plaintable(
@@ -41,7 +41,7 @@ class page(xsc.Element):
 							html.tr(html.td(specials.pixel(height = "20"),colspan = "4"))+
 							html.tr(html.td(html.img(src = ":images/bnbt-logo.gif",alt = "Bürgernetz-Logo"),colspan = "4",align = "center",valign = "middle"))+
 							html.tr(html.td(specials.pixel(height = "40"),colspan = "4"))+
-							links+
+							mylinks+
 							fileinfo()+
 							html.tr(html.td(html.img(src = ":images/ecke_links.gif",alt = ""),colspan = "4",align = "right")),
 							Class = "links",bgcolor = "#336"
@@ -69,7 +69,7 @@ class page(xsc.Element):
 							)+
 							html.tr(
 								html.td(specials.pixel(width = "30"),bgcolor = "#fff")+
-								html.td(content,bgcolor = "#fff",valign = "top")+
+								html.td(mycontent,bgcolor = "#fff",valign = "top")+
 								html.td(specials.pixel(width = "30"),bgcolor = "#fff")
 							)+
 							html.tr(html.td(specials.pixel(height = "30"),colspan = "3",bgcolor = "#fff"))
