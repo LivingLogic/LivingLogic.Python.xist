@@ -72,7 +72,7 @@ class XSCIllegalAttributeError(XSCError):
 		for attr in attrs:
 			v.append(_strattrname(attr))
 
-		return XSCError.__str__(self) + "The attribute '" + _strattrname(self.attr) + "' is not allowed here. The only allowed attributes are: " + string.join(v,", ")
+		return XSCError.__str__(self) + "The attribute '" + _strattrname(self.attr) + "' is not allowed here. The only allowed attributes are: " + string.join(v,", ") + "."
 
 class XSCAttributeNotFoundError(XSCError):
 	"""exception that is raised, when an attribute is fetched that isn't there"""
@@ -84,14 +84,19 @@ class XSCAttributeNotFoundError(XSCError):
 
 	def __str__(self):
 		attrs = self.attrs.keys();
-		attrs.sort()
 
-		v = []
+		s = XSCError.__str__(self) + "The attribute '" + _strattrname(self.attr) + "' could not be found. "
 
-		for attr in attrs:
-			v.append(_strattrname(attr))
+		if len(attrs):
+			attrs.sort()
+			v = []
+			for attr in attrs:
+				v.append(_strattrname(attr))
+			s = s + "The only available attributes are: " + string.join(v,", ") + "."
+		else:
+			s = s + "There are no attributes available."
 
-		return XSCError.__str__(self) + "The attribute '" + _strattrname(self.attr) + "' could not be found. The only available attributes are: " + string.join(v,", ")
+		return s
 
 class XSCIllegalElementError(XSCError):
 	"""exception that is raised, when an illegal element is encountered (i.e. one that isn't registered via RegisterElement"""
@@ -109,7 +114,7 @@ class XSCIllegalElementError(XSCError):
 		for element in elements:
 			v.append(_strelementname(element))
 	
-		return XSCError.__str__(self) + "The element " + _strelementname(self.elementname) + " is not allowed. The only allowed elements are: " + string.join(v,", ")
+		return XSCError.__str__(self) + "The element " + _strelementname(self.elementname) + " is not allowed. The only allowed elements are: " + string.join(v,", ") + "."
 
 class XSCIllegalElementNestingError(XSCError):
 	"""exception that is raised, when an element has an illegal nesting (e.g. <a><b></a></b>)"""

@@ -591,7 +591,10 @@ class fahrplansite(XSCElement):
 	attr_handlers = { "name" : XSCTextAttr , "url" : XSCURLAttr }
 
 	def asHTML(self):
-		e = dl(self.content)
+		e = XSCFrag(
+			dt(b(self["name"]) + " (" + hrf(self["url"],href=self["url"]) + ")")+
+			dd(div(self.content,Class="fahrplan-text"))
+		)
 
 		return e.asHTML()
 RegisterElement("fahrplansite",fahrplansite)
@@ -600,10 +603,7 @@ class fahrplansites(XSCElement):
 	empty = 0
 
 	def asHTML(self):
-		e = XSCFrag(
-			dt(b(self["name"]) + " (" + hrf(self["url"],href=self["url"]) + ")")+
-			dd(div(self.content,Class="fahrplan-text"))
-		)
+		e = dl(self.content)
 
 		return e.asHTML()
 RegisterElement("fahrplansites",fahrplansites)
