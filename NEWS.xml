@@ -1,153 +1,153 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
 <section><title>Changes in CVS (released ??/??/2001)</title>
-<ul>
-<li>The global namespace registry now keeps a sequential list of all registered
+<ulist>
+<item>The global namespace registry now keeps a sequential list of all registered
 namespaces, which will be used by the parser when searching for names. This
 gives a predictable search order even with using <code>Namespaces</code>
 and its <code>pushNamespace</code> method: modules imported last will be searched
-first.</li>
-<li>Processing Instructions are now allowed inside attributes when
-publishing.</li>
-</ul>
+first.</item>
+<item>Processing Instructions are now allowed inside attributes when
+publishing.</item>
+</ulist>
 </section>
 
 <section><title>Changes in 1.1.2 (released 08/21/2001)</title>
-<ul>
-<li><code>__repr__</code> now uses the new class <code>presenters.PlainPresenter</code>
-which gives a little more info than the default <code>__repr__</code>.</li>
-</ul>
+<ulist>
+<item><code>__repr__</code> now uses the new class <code>presenters.PlainPresenter</code>
+which gives a little more info than the default <code>__repr__</code>.</item>
+</ulist>
 </section>
 
 <section><title>Changes in 1.1.1 (released 08/01/2001)</title>
-<ul>
-<li>Small bugfix in <code>presenters.strProcInst</code></li>
-<li>fixed <code>xist.ns.struts_html.option</code> to allow content</li>
-</ul>
+<ulist>
+<item>Small bugfix in <code>presenters.strProcInst</code></item>
+<item>fixed <code>xist.ns.struts_html.option</code> to allow content</item>
+</ulist>
 </section>
 
 <section><title>Changes in 1.1 (released 07/19/2001)</title>
-<ul>
-<li>Sequences in constructor arguments for <code>Frag</code> and
+<ulist>
+<item>Sequences in constructor arguments for <code>Frag</code> and
 <code>Element</code> are again expanded and it's again possible
 to pass dictionaries in an <code>Element</code> constructor to
 specify attributes. As sequences are always unpacked, the method
 <code>extend</code> is gone. This works for <code>append</code>
-and <code>insert</code> too.</li>
+and <code>insert</code> too.</item>
 
-<li><code>Node</code> and <code>Frag</code> implement <code>__mul__</code>
+<item><code>Node</code> and <code>Frag</code> implement <code>__mul__</code>
 and <code>__rmul__</code>, so you can do stuff like
 <programlisting>
 html.br()*5
 </programlisting>
-This returns a <code>Frag</code> with five times to same node.</li>
+This returns a <code>Frag</code> with five times to same node.</item>
 
-<li>Arguments for the converter constructor can be passed to <code>xist.xsc.Node.conv</code>
+<item>Arguments for the converter constructor can be passed to <code>xist.xsc.Node.conv</code>
 now, so it's possible to do stuff like this:
 <programlisting>
 from xist.ns import code
 print code.Eval("return converter.lang").conv(lang="en").asBytes()
 </programlisting>
-which will print <code>en</code>.</li>
-<li>The option <code>XHTML</code> for the publishers has been changed
-to lowercase.</li>
-<li><code>xist.ns.html.html</code> will automatically generate a
+which will print <code>en</code>.</item>
+<item>The option <code>XHTML</code> for the publishers has been changed
+to lowercase.</item>
+<item><code>xist.ns.html.html</code> will automatically generate a
 <code>lang</code> and <code>xml:lang</code> attribute when the
-converter has a language set.</li>
-</ul>
+converter has a language set.</item>
+</ulist>
 </section>
 
 <section><title>Changes in 1.0 (released 06/18/2001)</title>
-<ul>
-<li>New module for WML 1.3.</li>
+<ulist>
+<item>New module for WML 1.3.</item>
 
-<li>The publishing interface has changed internally
-and publishing should be faster now.</li>
+<item>The publishing interface has changed internally
+and publishing should be faster now.</item>
 
-<li>Publishers now support a new parameter:
+<item>Publishers now support a new parameter:
 <parameter>usePrefix</parameter>, which specifies if namespace prefixes
-should be output for the element names.</li>
+should be output for the element names.</item>
 
-<li>Part of the implementation of the publishing
+<item>Part of the implementation of the publishing
 stuff has been moved to C, so now you'll need
-a C compiler to install &xist;.</li>
+a C compiler to install &xist;.</item>
 
-<li>When publishing <literal>"</literal>, it will now only be replaced with
-<literal>&amp;quot;</literal> inside attributes.</li>
+<item>When publishing <literal>"</literal>, it will now only be replaced with
+<literal>&amp;quot;</literal> inside attributes.</item>
 
-<li>All the <function>asHTML</function> methods now have an additional argument
+<item>All the <function>asHTML</function> methods now have an additional argument
 <parameter>converter</parameter>. This makes it possible
 to implement different processing modes or stages
 for new elements. All currently implemented elements and
 entities ignore this argument, but pass it on
 in the call to their childrens' <function>asHTML</function> method.
 As the name <function>asHTML</function> no longer makes sense, <function>asHTML</function>
-has been renamed to <function>convert</function>.</li>
+has been renamed to <function>convert</function>.</item>
 
-<li>There is now a tool <filename>dtd2xsc.py</filename> in the <filename class="directory">scripts</filename> directory
+<item>There is now a tool <filename>dtd2xsc.py</filename> in the <filename class="directory">scripts</filename> directory
 that creates a skeleton &xist; module from a &dtd;
-(this requires xmlproc from the PyXML package).</li>
+(this requires xmlproc from the PyXML package).</item>
 
-<li>New preliminary module for DocBook 4.12.
+<item>New preliminary module for DocBook 4.12.
 (Incomplete: <function>convert</function> methods and Unicode character
-entities are missing; any volunteers for implementing 375 classes?)</li>
+entities are missing; any volunteers for implementing 375 classes?)</item>
 
-<li>New module <filename>ruby.py</filename> that implements the
+<item>New module <filename>ruby.py</filename> that implements the
 <a href="http://www.w3.org/TR/ruby/xhtml11-ruby-1.mod">W3C Ruby draft</a>.
-</li>
+</item>
 
-<li><filename>sql.py</filename> has been removed from &xist;, but is available
-as a <a href="root:sql/index.html">separate module</a>.</li>
+<item><filename>sql.py</filename> has been removed from &xist;, but is available
+as a <a href="root:sql/index.html">separate module</a>.</item>
 
-<li>The parsing interface has been changed. Parsing is now done
+<item>The parsing interface has been changed. Parsing is now done
 with the functions <function>parseFile</function>, <function>parseString</function>,
 <function>parseURL</function> and <function>parseTidyURL</function> in the module
 <code>parsers</code>. It's now possible to specify which parser should
 be used for parsing by passing a SAX2 parser instance to any of
 these functions. &xist; now includes a rudimentary SAX2 driver
 for <code>sgmlop</code> and a rudimentary &html; parser that
-emits SAX2 events.</li>
+emits SAX2 events.</item>
 
-<li>The python-quotes example has been updated to work with expat.</li>
+<item>The python-quotes example has been updated to work with expat.</item>
 
-<li>Added a new example: media.</li>
+<item>Added a new example: media.</item>
 
-<li>All abbreviation entities have been moved to
-a new module <filename>abbr.py</filename>.</li>
+<item>All abbreviation entities have been moved to
+a new module <filename>abbr.py</filename>.</item>
 
-<li>All the modules that provide new elements and entitites
-have been moved to a subpackage <code>ns</code>.</li>
+<item>All the modules that provide new elements and entitites
+have been moved to a subpackage <code>ns</code>.</item>
 
-<li><classname>Frag</classname> and <classname>Element</classname>
+<item><classname>Frag</classname> and <classname>Element</classname>
 now have new methods <function>sorted</function>,
 <function>reversed</function>, <function>filtered</function> and
 <function>shuffled</function> that return sorted, reversed, filtered 
 and shuffled versions of the <classname>Frag</classname>/<classname>Element</classname>
-object.</li>
+object.</item>
 
-<li>New namespace modules <filename>ns/jsp.py</filename> and
+<item>New namespace modules <filename>ns/jsp.py</filename> and
 <filename>ns/struts_html.py</filename> have been added that allow you to
 use <a href="http://java.sun.com/products/jsp/">&jsp;</a> and
-<a href="http://jakarta.apache.org/struts/">Struts</a> tags with &xist;.</li>
+<a href="http://jakarta.apache.org/struts/">Struts</a> tags with &xist;.</item>
 
-<li>A new method <function>asText</function> was added, that returns
+<item>A new method <function>asText</function> was added, that returns
 the node as a formatted plain &ascii; text (this requires that
 <app moreinfo="http://ei5nazha.yz.yamagata-u.ac.jp/~aito/w3m/eng/">w3m</app>
-is installed.)</li>
+is installed.)</item>
 
-<li><filename>make.py</filename> has been renamed to
+<item><filename>make.py</filename> has been renamed to
 <filename>xscmake.py</filename> and moved to the
 <filename class="directory">scripts</filename> directory,
-it will be installed as a callable script with <code>python setup.py install_scripts</code>.</li>
+it will be installed as a callable script with <code>python setup.py install_scripts</code>.</item>
 
-<li><filename>xscmake.py</filename> has a new option <option>--files</option>/<option>-f</option>.
+<item><filename>xscmake.py</filename> has a new option <option>--files</option>/<option>-f</option>.
 The argument is a file containing a list of filenames (one
-name per line) that should be converted.</li>
+name per line) that should be converted.</item>
 
-<li><filename>xscmake.py</filename> has a new option <option>-r</option>/<option>--parser</option>
+<item><filename>xscmake.py</filename> has a new option <option>-r</option>/<option>--parser</option>
 for specifying which parser to use. Allowed values are <code>sgmlop</code>
-and <code>expat</code>.</li>
+and <code>expat</code>.</item>
 
-<li><filename>xscmake.py</filename> has a new option <option>-n</option>/<option>--namespace</option>
+<item><filename>xscmake.py</filename> has a new option <option>-n</option>/<option>--namespace</option>
 that can be used for appending <classname>Namespace</classname>
 objects to the <classname>Namespaces</classname> object used by <filename>xscmake.py</filename>.
 <example title="Using the --namespace option">
@@ -157,37 +157,37 @@ xscmake.py -n html -n spam eggs.xsc
 </example>
 With this call the parser will find element classes from the
 module with the prefix name <code>spam</code> before those
-from <code>html</code> and those before anything else.</li>
+from <code>html</code> and those before anything else.</item>
 
-<li><classname>xist.url.URL</classname> no longer has an attribute
+<item><classname>xist.url.URL</classname> no longer has an attribute
 <code>ext</code>. <code>file</code> and <code>ext</code> are
-merged.</li>
+merged.</item>
 
-<li>The special treatment of sequences as constructor arguments
+<item>The special treatment of sequences as constructor arguments
 to <classname>Frag</classname> and <classname>Element</classname>
 has be removed, so &xist; will no longer remove one level of
-nesting. If you still want that, use a <literal>*</literal> argument.</li>
+nesting. If you still want that, use a <literal>*</literal> argument.</item>
 
-<li><classname>Frag</classname> and <classname>Element</classname>
+<item><classname>Frag</classname> and <classname>Element</classname>
 now have a new method <function>mapped</function>,
 that recursively maps the nodes through a function. This is like
-<function>convert</function> but via an external function.</li>
+<function>convert</function> but via an external function.</item>
 
-<li>Attribute handling has been improved thanks to a suggestion
+<item>Attribute handling has been improved thanks to a suggestion
 by Hartmut Goebel: <function>Element.__getitem__</function> now
 always works as long as the attribute name is legal. If the attribute
 is not set, an empty attribute will be returned. All empty attributes
 will be considered as being not set and so <function>hasAttr</function>
 returns <code>0</code> for them, and <function>publish</function> doesn't
 publish them. This simplifies several very common cases:
-<ol>
-<li>Copying an attribute from one element to another works regardless
-of whether the attribute is set or not;</li>
-<li>Testing for an attributes presence can now be done much
+<olist>
+<item>Copying an attribute from one element to another works regardless
+of whether the attribute is set or not;</item>
+<item>Testing for an attributes presence can now be done much
 simpler: <code>if element["attrname"]</code> instead of
 <code>if element.hasAttr("attrname")</code> (which still
-works, and should be a little faster);</li>
-<li>When you construct a &dom; tree and the presence or absence
+works, and should be a little faster);</item>
+<item>When you construct a &dom; tree and the presence or absence
 of an attribute is tied to a condition, you can construct the attribute
 in advance and use it afterwards in the tree construction:
 <programlisting>
@@ -199,10 +199,10 @@ node = html.div("spam", align=align)
 </programlisting>
 So, when the <code><replaceable>condition</replaceable></code> is false,
 the node will not have the attribute <code>align</code> set.
-</li>
-</ol>
-</li>
-<li><classname>xist.ns.cond.If</classname> (and <classname>xist.ns.cond.ElIf</classname>)
+</item>
+</olist>
+</item>
+<item><classname>xist.ns.cond.If</classname> (and <classname>xist.ns.cond.ElIf</classname>)
 can now be used to test for attributes of the converter. I.e. it's possible to
 write the following &xml;:
 <programlisting>
@@ -210,195 +210,195 @@ write the following &xml;:
 &lt;elif lang="de"&gt;Überschrift
 &lt;/if&gt;
 </programlisting>
-</li>
-<li>URL handling has be completely changed and is much, much simpler now.
+</item>
+<item>URL handling has be completely changed and is much, much simpler now.
 There are no more path markers. To specify an URL that is relative to the
-current directory use the scheme <code>root</code> (e.g. <code>root:main.css</code>).</li>
-</ul>
+current directory use the scheme <code>root</code> (e.g. <code>root:main.css</code>).</item>
+</ulist>
 </section>
 
 <section><title>Changes in 0.4.7 (released 11/24/2000)</title>
-<ul>
-<li>Fixed a bug in the entity handling.</li>
+<ulist>
+<item>Fixed a bug in the entity handling.</item>
 
-<li>Added a few deprecated elements and attributes to
-the <code>html</code> module.</li>
+<item>Added a few deprecated elements and attributes to
+the <code>html</code> module.</item>
 
-<li>Improved the publishing of attributes. Now all attribute
+<item>Improved the publishing of attributes. Now all attribute
 values will be published. For boolean attributes no value
 will be published for <code>XHTML==0</code> and the attribute
-name will be used for <code>XHTML==1</code> or <code>XHTML==2</code>.</li>
+name will be used for <code>XHTML==1</code> or <code>XHTML==2</code>.</item>
 
-<li><function>Element.compact</function> now works (better) ;).</li>
+<item><function>Element.compact</function> now works (better) ;).</item>
 
-<li>Incorparated many bug fixes from Hartmut Goebel.</li>
+<item>Incorparated many bug fixes from Hartmut Goebel.</item>
 
-<li>Implemented <function>xsc.Element.copyDefaultAttrs</function>, which copies
+<item>Implemented <function>xsc.Element.copyDefaultAttrs</function>, which copies
 unset attributes over from a dictionary (simplifies
-implementing <classname>specials.plaintable</classname> and <classname>specials.plainbody</classname>)</li>
+implementing <classname>specials.plaintable</classname> and <classname>specials.plainbody</classname>)</item>
 
-<li><function>providers.Provider.pushNamespace</function> now handles multiple
+<item><function>providers.Provider.pushNamespace</function> now handles multiple
 arguments which may be <classname>Namespace</classname> objects or modules
-(in which case, the <code><replaceable>module</replaceable>.namespace</code> will be pushed)</li>
+(in which case, the <code><replaceable>module</replaceable>.namespace</code> will be pushed)</item>
 
-<li><function>providers.Providers.popNamespace</function> can now pop multiple
-namespaces at once.</li>
+<item><function>providers.Providers.popNamespace</function> can now pop multiple
+namespaces at once.</item>
 
-<li><classname>providers.TidyURIProvider</classname> now uses <function>os.popen3</function> for
+<item><classname>providers.TidyURIProvider</classname> now uses <function>os.popen3</function> for
 piping the file through tidy, so now there will be
 no more temporary files. The call to tidy now includes
 options that hopefully make the output more suited to
-&xist;.</li>
+&xist;.</item>
 
-<li>Incorparated a new <filename>url.py</filename> by Hartmut Goebel, that fixes
+<item>Incorparated a new <filename>url.py</filename> by Hartmut Goebel, that fixes
 many problem (e.g. optimizing
 <code>http://server/foo/bar/../../baz.gif</code>
-now works.)</li>
+now works.)</item>
 
-<li><filename>make.py</filename> includes a new option <option>--path</option> for
-adding directories to <code>sys.path</code>.</li>
-</ul>
+<item><filename>make.py</filename> includes a new option <option>--path</option> for
+adding directories to <code>sys.path</code>.</item>
+</ulist>
 </section>
 
 <section><title>Changes in 0.4.6 (released 11/03/2000)</title>
-<ul>
-<li>Now uses <classname>sgmlop.XMLParser</classname> instead of
-<classname>sgmlop.SGMLParser</classname>, so case is preserved.</li>
+<ulist>
+<item>Now uses <classname>sgmlop.XMLParser</classname> instead of
+<classname>sgmlop.SGMLParser</classname>, so case is preserved.</item>
 
-<li>Fixed another regression from the URL to string conversion
-change.</li>
-</ul>
+<item>Fixed another regression from the URL to string conversion
+change.</item>
+</ulist>
 </section>
 
 
 <section><title>Changes in 0.4.5 (released 11/01/2000)</title>
-<ul>
-<li>Converting URLs to nodes is now done in <function>ToNode</function>,
-so <classname>URL</classname> objects can be used everywhere.</li>
+<ulist>
+<item>Converting URLs to nodes is now done in <function>ToNode</function>,
+so <classname>URL</classname> objects can be used everywhere.</item>
 
-<li>Fixed a few bugs in <function>Text._strtext</function> and
-<function>URLAttr._str</function>.</li>
-</ul>
+<item>Fixed a few bugs in <function>Text._strtext</function> and
+<function>URLAttr._str</function>.</item>
+</ulist>
 </section>
 
 
 <section><title>Changes in 0.4.4 (releases 10/27/2000)</title>
-<ul>
-<li>Now testing if characters can be encoded with the
+<ulist>
+<item>Now testing if characters can be encoded with the
 specified encoding is done directy. This means, that
 escaping unencodable characters now works even with
-exotic encodings (tested with <a href="http://pseudo.grad.sccs.chukyo-u.ac.jp/~kajiyama/python/"><filename>JapaneseCodecs-1.0.1.tar.gz</filename></a>).</li>
+exotic encodings (tested with <a href="http://pseudo.grad.sccs.chukyo-u.ac.jp/~kajiyama/python/"><filename>JapaneseCodecs-1.0.1.tar.gz</filename></a>).</item>
 
-<li>The <classname>URLAttr</classname> constructor now can handle a single parameter
-of the type <classname>URL</classname>.</li>
+<item>The <classname>URLAttr</classname> constructor now can handle a single parameter
+of the type <classname>URL</classname>.</item>
 
-<li>The URL to string conversion function have changed:
+<item>The URL to string conversion function have changed:
 <function>URL.asString</function> returns the URL with path markers,
-<function>URL.asPlainString</function> returns the URL without path markers.</li>
+<function>URL.asPlainString</function> returns the URL without path markers.</item>
 
-<li>Added the <code>i18n</code> attribute to the <classname>font</classname> element.</li>
+<item>Added the <code>i18n</code> attribute to the <classname>font</classname> element.</item>
 
-<li>Fixed the clashes between the class names for the elements
-and entities <code>sub</code> and <code>sup</code> in <code>html.py</code>.</li>
+<item>Fixed the clashes between the class names for the elements
+and entities <code>sub</code> and <code>sup</code> in <code>html.py</code>.</item>
 
-<li>Several small enhancements and bug fixes contributed by
-Hartmut Goebel.</li>
-</ul>
+<item>Several small enhancements and bug fixes contributed by
+Hartmut Goebel.</item>
+</ulist>
 </section>
 
 
 <section><title>Changes in 0.4.3 (released 10/19/2000)</title>
-<ul>
-<li>Now processing instruction classes are registered in the
-same way as elements and entities are.</li>
+<ulist>
+<item>Now processing instruction classes are registered in the
+same way as elements and entities are.</item>
 
-<li>The leaf nodes (<classname>Text</classname>, <classname>Comment</classname>,
+<item>The leaf nodes (<classname>Text</classname>, <classname>Comment</classname>,
 <classname>ProcInst</classname>) are now considered immutable.
 This means that their <function>asHTML</function> method can
 simply return <parameter>self</parameter>, because now those nodes can be shared between
 trees. Functionality for manipulation the objects is provided by a mixin
 class very similar to <classname>UserString</classname>. All this results
-in a speedup of about 10% for the python-quotes example.</li>
+in a speedup of about 10% for the python-quotes example.</item>
 
-<li>Small optimizations in the <function>asHTML</function> methods of <classname>Element</classname> and
+<item>Small optimizations in the <function>asHTML</function> methods of <classname>Element</classname> and
 <classname>Frag</classname> optimized away many calls to <function>append</function>, <function>extend</function>
 and <function>ToNode</function> and result in a speedup of about 30% for the python-quotes
 example. One consequence of this is that <classname>Null</classname> objects will
-no longer be ignored.</li>
-</ul>
+no longer be ignored.</item>
+</ulist>
 </section>
 
 
 <section><title>Changes in 0.4.2 (released 09/24/2000)</title>
-<ul>
-<li>New elements <classname>keywords</classname> and <classname>description</classname> in <filename>meta.py</filename>.</li>
+<ulist>
+<item>New elements <classname>keywords</classname> and <classname>description</classname> in <filename>meta.py</filename>.</item>
 
-<li>Fixed a bug in <function>Namespace.register</function>, now setting <code>name=None</code>
-to prevent an element from being registered works again.</li>
-</ul>
+<item>Fixed a bug in <function>Namespace.register</function>, now setting <code>name=None</code>
+to prevent an element from being registered works again.</item>
+</ulist>
 </section>
 
 <section><title>Changes in 0.4.1 (released 09/21/2000)</title>
-<ul>
-<li>A new module named <filename>meta.py</filename> has been created, that simplifies
-generating meta tags.</li>
+<ulist>
+<item>A new module named <filename>meta.py</filename> has been created, that simplifies
+generating meta tags.</item>
 
-<li>Various small bugfixes.</li>
-</ul>
+<item>Various small bugfixes.</item>
+</ulist>
 </section>
 
 
 <section><title>Changes in 0.4 (released 09/19/2000)</title>
-<ul>
-<li>&xist; now requires at least Python 2.0b1.</li>
+<ulist>
+<item>&xist; now requires at least Python 2.0b1.</item>
 
-<li>A new bugfixed version of the <code>sgmlop</code> source is available
-from the <a href="http://titan.bnbt.de/pub/livinglogic/xist/">&ftp; site</a>.</li>
+<item>A new bugfixed version of the <code>sgmlop</code> source is available
+from the <a href="http://titan.bnbt.de/pub/livinglogic/xist/">&ftp; site</a>.</item>
 
-<li>&xist; now completely supports Unicode. For output any
+<item>&xist; now completely supports Unicode. For output any
 encoding known to Python can be used, so now you
-can output your &html; in ASCII, Latin-1, UTF-8, UTF-16, ...</li>
+can output your &html; in ASCII, Latin-1, UTF-8, UTF-16, ...</item>
 
-<li>All publishers have been updated to support Unicode.
+<item>All publishers have been updated to support Unicode.
 The publishing interface has been streamlined (<parameter>encoding</parameter>
-and <parameter>XHTML</parameter> parameters are now attributes of the publisher).</li>
+and <parameter>XHTML</parameter> parameters are now attributes of the publisher).</item>
 
-<li><function>asString</function> will now always return a Unicode string. If you
+<item><function>asString</function> will now always return a Unicode string. If you
 want a byte string use <function>asBytes</function> instead, where the encoding
-can be specified as an argument.</li>
+can be specified as an argument.</item>
 
-<li>There an additional publisher class <classname>FilePublisher</classname>, which can
+<item>There an additional publisher class <classname>FilePublisher</classname>, which can
 be used for publishing to a file (or anything else that has
 a <function>write</function> and a <function>writelines</function> method, and is supported by the stream
-writer available through <function>codecs.lookup</function>).</li>
+writer available through <function>codecs.lookup</function>).</item>
 
-<li>Element and attribute names are no longer converted to lowercase.
+<item>Element and attribute names are no longer converted to lowercase.
 If you have an attribute name which clashes with a Python
 keyword (e.g. <parameter>class</parameter>) append an underscore (<literal>_</literal>),
 which will be removed before accessing the attribute. This is the <z>official</z>
-Python method for handling these cases.</li>
+Python method for handling these cases.</item>
 
-<li>Elements and entities are no longer registered one by one. Now
+<item>Elements and entities are no longer registered one by one. Now
 you can build <classname>Namespace</classname> objects which are used for searching
 and there are <function>pushNamespace</function> and <function>popNamespace</function>
-functions in <code>XSC.xsc</code>. For more info, see the source.</li>
+functions in <code>XSC.xsc</code>. For more info, see the source.</item>
 
-<li>Image size calculation has been removed from <classname>html.img</classname> and
+<item>Image size calculation has been removed from <classname>html.img</classname> and
 <classname>html.input</classname>. Use <classname>specials.autoimg</classname> and
-<classname>specials.autoinput</classname> for that.</li>
+<classname>specials.autoinput</classname> for that.</item>
 
-<li><function>__getitem__</function>, <function>__setitem__</function> and <function>__delitem</function>
+<item><function>__getitem__</function>, <function>__setitem__</function> and <function>__delitem</function>
 of <classname>Frag</classname> and <classname>Element</classname> now accepts a list as an argument.
 The method will be applied recursively, i.e. <literal>e[[0, 1, "foo", 2]</literal> is the
-same as <literal>e[0][1]["foo"][2]</literal>.</li>
+same as <literal>e[0][1]["foo"][2]</literal>.</item>
 
-<li>The deprecated module <filename>db.py</filename> no longer exists. Useful functions and elements
-from <filename>db.py</filename> have been moved to <filename>sql.py</filename> and <filename>form.py</filename> respectively.</li>
+<item>The deprecated module <filename>db.py</filename> no longer exists. Useful functions and elements
+from <filename>db.py</filename> have been moved to <filename>sql.py</filename> and <filename>form.py</filename> respectively.</item>
 
-<li>When using <function>xsc.make</function> the encoding and XHTML parameters to use can now
-be specified on the command line (e.g. <literal>--encoding utf-8 --xhtml 2</literal>)</li>
+<item>When using <function>xsc.make</function> the encoding and XHTML parameters to use can now
+be specified on the command line (e.g. <literal>--encoding utf-8 --xhtml 2</literal>)</item>
 
-<li>Handling of multiline <code>&lt;?xsc-eval?&gt;</code> and <code>&lt;?xsc-exec?&gt;</code>
+<item>Handling of multiline <code>&lt;?xsc-eval?&gt;</code> and <code>&lt;?xsc-exec?&gt;</code>
 has been enhanced, although, &xist; will not be able to guess the correct indentation
 in all cases. As a workarround simply add a Python comment to the beginning:
 <programlisting>
@@ -416,17 +416,17 @@ won't work
 ?&gt;
 </programlisting>
 will.
-</li>
+</item>
 
-<li>Make functionality has been moved to <filename>make.py</filename>, as certain modules can't
+<item>Make functionality has been moved to <filename>make.py</filename>, as certain modules can't
 be used as the main script, because reimporting them in processing
 instructions won't work. Now you can simply call
 <example title="The new make script">
 <programlisting>make.py --import xist.html --import spam eggs.xsc</programlisting>
 </example>
-</li>
+</item>
 
-<li>There is a new module <filename>cond.py</filename>, that contains elements that can be used for
+<item>There is a new module <filename>cond.py</filename>, that contains elements that can be used for
 conditionals:
 <programlisting>
 &lt;?xsc-exec a=42?&gt;
@@ -438,69 +438,69 @@ conditionals:
 	baz
 &lt;/if&gt;
 </programlisting>
-</li>
-</ul>
+</item>
+</ulist>
 </section>
 
 
 <section><title>Changes in 0.3.9 (released 08/10/2000)</title>
-<ul>
-<li>sgmlop will now be found either via
+<ulist>
+<item>sgmlop will now be found either via
 <literal>import sgmlop</literal>
 or via
 <literal>from xml.parsers import sgmlop</literal>
-</li>
-</ul>
+</item>
+</ulist>
 </section>
 
 
 <section><title>Changes in 0.3.8 (released 07/14/2000)</title>
-<ul>
-<li>Fixed a bug in <function>URLAttr.publish</function>, which prevented <classname>URLAttr</classname>
-from working at all.</li>
-</ul>
+<ulist>
+<item>Fixed a bug in <function>URLAttr.publish</function>, which prevented <classname>URLAttr</classname>
+from working at all.</item>
+</ulist>
 </section>
 
 
 <section><title>Changes in 0.3.7 (released 07/06/2000)</title>
-<ul>
-<li>Fixed a bug in <classname>html.img</classname> and <classname>html.input</classname>.
-Now image size calculation works again.</li>
-</ul>
+<ulist>
+<item>Fixed a bug in <classname>html.img</classname> and <classname>html.input</classname>.
+Now image size calculation works again.</item>
+</ulist>
 </section>
 
 
 <section><title>Changes in 0.3.6 (released 07/04/2000)</title>
-<ul>
-<li>Fixed a bug in <function>Node._matches</function>, which resulted in a non working
-<function>find</function>.</li>
-</ul>
+<ulist>
+<item>Fixed a bug in <function>Node._matches</function>, which resulted in a non working
+<function>find</function>.</item>
+</ulist>
 </section>
 
 
 <section><title>Changes in 0.3.5 (released 07/02/2000)</title>
-<ul>
-<li>The documentation example has been enhanced. Now documenting methods works.</li>
+<ulist>
+<item>The documentation example has been enhanced. Now documenting methods works.</item>
 
-<li>When the member <code>elementname</code> in the element class is set before calling
+<item>When the member <code>elementname</code> in the element class is set before calling
 <function>registerElement</function>, this element name will be used for the element. This
-allows custom names even when using <function>registerAllElements</function>.</li>
+allows custom names even when using <function>registerAllElements</function>.</item>
 
-<li>Comparison of scheme and server in URLs is done case insensitive
+<item>Comparison of scheme and server in URLs is done case insensitive
 (as <a href="ftp://ftp.isi.edu/in-notes/rfc2068.txt">RFC 2068</a>
-requires.)</li>
+requires.)</item>
 
-<li>Image size calculation is now done in <function>asString</function> and
+<item>Image size calculation is now done in <function>asString</function> and
 not in <function>asHTML</function>.
 This allows to write faster code. Old method:
 <programlisting>e = html.div(html.img(...),gurk.hurz()).asHTML().asString()</programlisting>
 New method
-<programlisting>e = html.div(html.img(...),gurk.hurz().asHTML()).asString()</programlisting></li>
+<programlisting>e = html.div(html.img(...),gurk.hurz().asHTML()).asString()</programlisting></item>
 
-<li>Image size calculation is now done for <markup>&lt;input type="image"&gt;</markup>.
-The <code>size</code> attribute is set to the image width.</li>
+<item>Image size calculation is now done for <markup>&lt;input type="image"&gt;</markup>.
+The <code>size</code> attribute is set to the image width.</item>
 
-<li>Manipulating the path in an URL is now done via the usual
+<item>Manipulating the path in an URL is now done via the usual
 <function>__setitem__</function>/<function>__getitem__</function> stuff,
 which keeps the path in a consistent state.
 <programlisting>
@@ -510,42 +510,42 @@ which keeps the path in a consistent state.
 &gt;&gt;&gt; u
 URL(scheme='server', path=['bar'], file='baz', ext='gif')
 </programlisting>
-</li>
+</item>
 
-<li><function>findNodes</function> (which has been shortened to <function>find</function>)
+<item><function>findNodes</function> (which has been shortened to <function>find</function>)
 has an additional argument <parameter>test</parameter>, which can be a test function that will
-be called when the node passes all other tests.</li>
+be called when the node passes all other tests.</item>
 
-<li><function>asString</function> no longer generates a string directly, but uses the new method
+<item><function>asString</function> no longer generates a string directly, but uses the new method
 <function>publish</function>, which has an additional argument <function>publisher</function>,
-to which the strings to be output are passed.</li>
-</ul>
+to which the strings to be output are passed.</item>
+</ulist>
 </section>
 
 
 <section><title>Changes in 0.3.4 (released 05/31/2000)</title>
-<ul>
-<li>Location information is now copied over in <function>clone</function>, <function>asHTML</function>
+<ulist>
+<item>Location information is now copied over in <function>clone</function>, <function>asHTML</function>
 and <function>compact</function> where appropriate, so you know even in the &html; tree
-where something came from.</li>
+where something came from.</item>
 
-<li><code>xsc.repransi</code> can now have three values:
-<ul>
-<li>0: coloring is off</li>
-<li>1: coloring is on for a dark background</li>
-<li>2: coloring is on for a light background</li>
-</ul>
+<item><code>xsc.repransi</code> can now have three values:
+<ulist>
+<item>0: coloring is off</item>
+<item>1: coloring is on for a dark background</item>
+<item>2: coloring is on for a light background</item>
+</ulist>
 All <code>repransi</code> variables are now arrays with two strings,
-the first for dark, the second for light.</li>
-</ul>
+the first for dark, the second for light.</item>
+</ulist>
 </section>
 
 
 <section><title>Changes in 0.3.3 (released 05/30/2000)</title>
-<ul>
-<li>The workaround for the trailing CDATA bug in sgmlop has been removed, so now
-you'll need a newer version of sgmlop (included in PyXML 0.5.5.1)</li>
-</ul>
+<ulist>
+<item>The workaround for the trailing CDATA bug in sgmlop has been removed, so now
+you'll need a newer version of sgmlop (included in PyXML 0.5.5.1)</item>
+</ulist>
 </section>
 
 
