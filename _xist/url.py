@@ -128,6 +128,9 @@ class URL:
 	def __repr__(self):
 		return "URL(%r)" % self.asString()
 
+	def __hash__(self):
+		return hash(str(self))
+
 	def asString(self):
 		return self._asString(0)
 
