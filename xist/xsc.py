@@ -12,7 +12,8 @@ import stat
 import Image
 
 # for parsing XML files
-import xmllib
+from xml.sax import saxlib
+from xml.sax import saxexts
 
 # for parsing URLs
 import urlparse
@@ -32,7 +33,7 @@ class XSCError(Exception):
 
 	def __str__(self):
 		if self.lineno>0:
-			return "XSC: error (line " + str(self.lineno) + "): " + str(xsc.parser.nesting)
+			return "XSC: error (line " + str(self.lineno) + "): " + str(xsc.handler.nesting)
 		else:
 			return "XSC: error: "
 
@@ -146,7 +147,7 @@ def FileSize(url):
 			urllib.urlcleanup()
 		except IOError:
 			urllib.urlcleanup()
-			raise XSCFileNotFoundError(xsc.parser.lineno,url)
+			raise XSCFileNotFoundError(xsc.handler.lineno,url)
 	return size
 
 def ImageSize(url):
@@ -163,7 +164,7 @@ def ImageSize(url):
 			urllib.urlcleanup()
 		except IOError:
 			urllib.urlcleanup()
-			raise XSCFileNotFoundError(xsc.parser.lineno,url)
+			raise XSCFileNotFoundError(xsc.handler.lineno,url)
 	return size
 
 def AppendDict(*dicts):
@@ -198,7 +199,7 @@ def ToNode(value):
 				return value
 		else:
 			return value
-	raise XSCIllegalObjectError(xsc.parser.lineno,value) # none of the above, so we throw and exception
+	raise XSCIllegalObjectError(xsc.handler.lineno,value) # none of the above, so we throw and exception
 
 element_handlers = {} # dictionary for mapping element names to classes
 
@@ -480,7 +481,7 @@ class XSCAttrs(XSCNode):
 		if self.attr_handlers.has_key(lowerindex):
 			self.content[lowerindex] = self.attr_handlers[lowerindex](ToNode(value)) # convert the attribute to a node and pack it into an attribute object
 		else:
-			raise XSCIllegalAttributeError(xsc.parser.lineno,self,index)
+			raise XSCIllegalAttributeError(xsc.handler.lineno,self,index)
 
 	def __delitem__(self,index):
 		"""removes the attribute with the name index (if there is one)"""
@@ -592,7 +593,7 @@ class XSCElement(XSCNode):
 			v.append(">")
 		else:
 			if len(s):
-				raise XSCEmptyElementWithContentError(xsc.parser.lineno,self)
+				raise XSCEmptyElementWithContentError(xsc.handler.lineno,self)
 			v.append(">")
 
 		return string.joinfields(v,"")
@@ -649,7 +650,7 @@ class XSCElement(XSCNode):
 					try:
 						self[widthattr] = eval(str(self[widthattr]) % sizedict)
 					except:
-						raise XSCImageSizeFormatError(xsc.parser.lineno,self,widthattr)
+						raise XSCImageSizeFormatError(xsc.handler.lineno,self,widthattr)
 				else:
 					self[widthattr] = size[0]
 			if size[1] != -1: # the height was retrieved so we can use it
@@ -657,7 +658,7 @@ class XSCElement(XSCNode):
 					try:
 						self[heightattr] = eval(str(self[heightattr]) % sizedict)
 					except:
-						raise XSCImageSizeFormatError(xsc.parser.lineno,self,heightattr)
+						raise XSCImageSizeFormatError(xsc.handler.lineno,self,heightattr)
 				else:
 					self[heightattr] = size[1]
 
@@ -691,153 +692,159 @@ RegisterElement("url",XSCurl)
 ###
 
 def RegisterEntity(name,number):
-	xmllib.XMLParser.entitydefs[name] = "&#" + str(number) + ";"
+	pass
+#	xmllib.XMLParser.entitydefs[name] = "&#" + str(number) + ";"
 
-class XSCParser(xmllib.XMLParser):
-	"""Reads a XML file and constructs an XSC tree from it."""
-
-	RegisterEntity("nbsp",160)
-	RegisterEntity("iexcl",161)
-	RegisterEntity("cent",162)
-	RegisterEntity("pound",163)
-	RegisterEntity("curren",164)
-	RegisterEntity("yen",165)
-	RegisterEntity("brvbar",166)
-	RegisterEntity("sect",167)
-	RegisterEntity("die",168)
-	RegisterEntity("copy",169)
-	RegisterEntity("ordf",170)
-	RegisterEntity("laquo",171)
-	RegisterEntity("not",172)
-	RegisterEntity("shy",173)
-	RegisterEntity("reg",174)
-	RegisterEntity("macr",175)
-	RegisterEntity("deg",176)
-	RegisterEntity("plusmn",177)
-	RegisterEntity("sup2",178)
-	RegisterEntity("sup3",179)
-	RegisterEntity("acute",180)
-	RegisterEntity("micro",181)
-	RegisterEntity("para",182)
-	RegisterEntity("middot",183)
-	RegisterEntity("cedil",184)
-	RegisterEntity("sup1",185)
-	RegisterEntity("ordm",186)
-	RegisterEntity("raquo",187)
-	RegisterEntity("frac14",188)
-	RegisterEntity("frac12",189)
-	RegisterEntity("frac34",190)
-	RegisterEntity("iquest",191)
-	RegisterEntity("Agrave",192)
-	RegisterEntity("Aacute",193)
-	RegisterEntity("Acirc",194)
-	RegisterEntity("Atilde",195)
-	RegisterEntity("Auml",196)
-	RegisterEntity("Aring",197)
-	RegisterEntity("AElig",198)
-	RegisterEntity("Ccedil",199)
-	RegisterEntity("Egrave",200)
-	RegisterEntity("Eacute",201)
-	RegisterEntity("Ecirc",202)
-	RegisterEntity("Euml",203)
-	RegisterEntity("Igrave",204)
-	RegisterEntity("Iacute",205)
-	RegisterEntity("Icirc",206)
-	RegisterEntity("Iuml",207)
-	RegisterEntity("ETH",208)
-	RegisterEntity("Ntilde",209)
-	RegisterEntity("Ograve",210)
-	RegisterEntity("Oacute",211)
-	RegisterEntity("Ocirc",212)
-	RegisterEntity("Otilde",213)
-	RegisterEntity("Ouml",214)
-	RegisterEntity("times",215)
-	RegisterEntity("Oslash",216)
-	RegisterEntity("Ugrave",217)
-	RegisterEntity("Uacute",218)
-	RegisterEntity("Ucirc",219)
-	RegisterEntity("Uuml",220)
-	RegisterEntity("Yacute",221)
-	RegisterEntity("THORN",222)
-	RegisterEntity("szlig",223)
-	RegisterEntity("agrave",224)
-	RegisterEntity("aacute",225)
-	RegisterEntity("acirc",226)
-	RegisterEntity("atilde",227)
-	RegisterEntity("auml",228)
-	RegisterEntity("aring",229)
-	RegisterEntity("aelig",230)
-	RegisterEntity("ccedil",231)
-	RegisterEntity("egrave",232)
-	RegisterEntity("eacute",233)
-	RegisterEntity("ecirc",234)
-	RegisterEntity("euml",235)
-	RegisterEntity("igrave",236)
-	RegisterEntity("iacute",237)
-	RegisterEntity("icirc",238)
-	RegisterEntity("iuml",239)
-	RegisterEntity("eth",240)
-	RegisterEntity("ntilde",241)
-	RegisterEntity("ograve",242)
-	RegisterEntity("oacute",243)
-	RegisterEntity("ocirc",244)
-	RegisterEntity("otilde",245)
-	RegisterEntity("ouml",246)
-	RegisterEntity("divide",247)
-	RegisterEntity("oslash",248)
-	RegisterEntity("ugrave",249)
-	RegisterEntity("uacute",250)
-	RegisterEntity("ucirc",251)
-	RegisterEntity("uuml",252)
-	RegisterEntity("yacute",253)
-	RegisterEntity("thorn",254)
-	RegisterEntity("yuml",255)
-
-	def __init__(self):
-		xmllib.XMLParser.__init__(self)
-		self.reset()
-
-	def reset(self):
-		xmllib.XMLParser.reset(self)
+class XSCHandler(saxlib.HandlerBase):
+	def startDocument(self):
 		self.nesting = [ XSCFrag() ] # our nodes do not have a parent link, therefore we have to store the active path through the tree in a stack (which we call nesting, because stack is already used by the base class
-		self.root = self.nesting[0]
 		self.lineno = -1
-		self.maxlineno = -1
+
+	def endDocument(self):
+		self.root = self.nesting[0] # we're finished parsing and the XSCFrag that we put at the bottom of the stack is our document root
 
 	def processingInstruction(self,target,remainder):
 		pass
 
-	def unknown_starttag(self,name,attrs = {}):
-		lowername = string.lower(name)
+	def startElement(self, name, attrs):
+  		lowername = string.lower(name)
 		if element_handlers.has_key(lowername):
 			e = element_handlers[lowername]([],attrs)
 			e.startlineno = self.lineno
 		else:
-			raise XSCIllegalElementError(xsc.parser.lineno,lowername)
+			raise XSCIllegalElementError(xsc.handler.lineno,lowername)
 		self.nesting[-1].append(e) # add the new element to the content of the innermost element (or to the array)
 		self.nesting.append(e) # push new innermost element onto the stack
-		self.calcmaxline()
 
-	def unknown_endtag(self,name):
+	def endElement(self, name):
 		self.nesting[-1].endlineno = self.lineno
 		self.nesting[-1:] = [] # pop the innermost element off the stack
-		self.calcmaxline()
 
-	def handle_data(self,data):
+	def characters(self, ch, start, length):
+		data = ch[start:start+length]
+
 		if data != "" and (data != "\n" or xsc.ignorelinefeed==0):
 			e = XSCText(data)
 			e.startlineno = self.lineno
 			self.nesting[-1].append(e) # add the new string to the content of the innermost element
-			self.calcmaxline()
+
+	def resolveEntity(self, publicId, systemId):
+		print "'",publicID,"'",systemId,"'"
+		return systemID
+
+	def unparsedEntityDecl(self, name, publicId, systemId, ndata):
+		print "'",name,"'",publicID,"'",systemId,"'",ndata,"'"
 
 	def handle_comment(self,comment):
 		e = XSCComment(comment) 
 		e.startlineno = self.lineno
 		self.nesting[-1].append(e)
-		self.calcmaxline()
 
-	def calcmaxline(self):
-		self.maxlineno = max(self.maxlineno,self.lineno)
+	def warning(self,exception):
+		print str(exception)
+
+	def error(self,exception):
+		raise exception
+
+	def fatalError(self,exception):
+		raise exception
+
+RegisterEntity("nbsp",160)
+RegisterEntity("iexcl",161)
+RegisterEntity("cent",162)
+RegisterEntity("pound",163)
+RegisterEntity("curren",164)
+RegisterEntity("yen",165)
+RegisterEntity("brvbar",166)
+RegisterEntity("sect",167)
+RegisterEntity("die",168)
+RegisterEntity("copy",169)
+RegisterEntity("ordf",170)
+RegisterEntity("laquo",171)
+RegisterEntity("not",172)
+RegisterEntity("shy",173)
+RegisterEntity("reg",174)
+RegisterEntity("macr",175)
+RegisterEntity("deg",176)
+RegisterEntity("plusmn",177)
+RegisterEntity("sup2",178)
+RegisterEntity("sup3",179)
+RegisterEntity("acute",180)
+RegisterEntity("micro",181)
+RegisterEntity("para",182)
+RegisterEntity("middot",183)
+RegisterEntity("cedil",184)
+RegisterEntity("sup1",185)
+RegisterEntity("ordm",186)
+RegisterEntity("raquo",187)
+RegisterEntity("frac14",188)
+RegisterEntity("frac12",189)
+RegisterEntity("frac34",190)
+RegisterEntity("iquest",191)
+RegisterEntity("Agrave",192)
+RegisterEntity("Aacute",193)
+RegisterEntity("Acirc",194)
+RegisterEntity("Atilde",195)
+RegisterEntity("Auml",196)
+RegisterEntity("Aring",197)
+RegisterEntity("AElig",198)
+RegisterEntity("Ccedil",199)
+RegisterEntity("Egrave",200)
+RegisterEntity("Eacute",201)
+RegisterEntity("Ecirc",202)
+RegisterEntity("Euml",203)
+RegisterEntity("Igrave",204)
+RegisterEntity("Iacute",205)
+RegisterEntity("Icirc",206)
+RegisterEntity("Iuml",207)
+RegisterEntity("ETH",208)
+RegisterEntity("Ntilde",209)
+RegisterEntity("Ograve",210)
+RegisterEntity("Oacute",211)
+RegisterEntity("Ocirc",212)
+RegisterEntity("Otilde",213)
+RegisterEntity("Ouml",214)
+RegisterEntity("times",215)
+RegisterEntity("Oslash",216)
+RegisterEntity("Ugrave",217)
+RegisterEntity("Uacute",218)
+RegisterEntity("Ucirc",219)
+RegisterEntity("Uuml",220)
+RegisterEntity("Yacute",221)
+RegisterEntity("THORN",222)
+RegisterEntity("szlig",223)
+RegisterEntity("agrave",224)
+RegisterEntity("aacute",225)
+RegisterEntity("acirc",226)
+RegisterEntity("atilde",227)
+RegisterEntity("auml",228)
+RegisterEntity("aring",229)
+RegisterEntity("aelig",230)
+RegisterEntity("ccedil",231)
+RegisterEntity("egrave",232)
+RegisterEntity("eacute",233)
+RegisterEntity("ecirc",234)
+RegisterEntity("euml",235)
+RegisterEntity("igrave",236)
+RegisterEntity("iacute",237)
+RegisterEntity("icirc",238)
+RegisterEntity("iuml",239)
+RegisterEntity("eth",240)
+RegisterEntity("ntilde",241)
+RegisterEntity("ograve",242)
+RegisterEntity("oacute",243)
+RegisterEntity("ocirc",244)
+RegisterEntity("otilde",245)
+RegisterEntity("ouml",246)
+RegisterEntity("divide",247)
+RegisterEntity("oslash",248)
+RegisterEntity("ugrave",249)
+RegisterEntity("uacute",250)
+RegisterEntity("ucirc",251)
+RegisterEntity("uuml",252)
+RegisterEntity("yacute",253)
+RegisterEntity("thorn",254)
+RegisterEntity("yuml",255)
 
 ###
 ###
@@ -851,8 +858,8 @@ class XSC:
 		self.server = "localhost"
 		self.retrieveremote = 1
 		self.retrievelocal  = 1
-		self.reprtab = ".  "
-		self.repransi = 0
+		self.reprtab = ". "
+		self.repransi = 1
 		self.repransitab = "32"
 		self.repransibrackets = "36"
 		self.repransielementname = "33"
@@ -861,7 +868,10 @@ class XSC:
 		self.repransiquotes = "36"
 		self.reprtree = 1
 		self.ignorelinefeed = 0
-		self.parser = XSCParser()
+		self.parser = saxexts.make_parser()
+		self.handler = XSCHandler()
+		self.parser.setDocumentHandler(self.handler) # Tell the parser to use our handler
+		self.parser.setErrorHandler(self.handler) # Use our handler for reporting errors too
 
 	def parsestring(self,filename,string):
 		"""Parses a string and returns the resulting XSC"""
@@ -874,10 +884,9 @@ class XSC:
 	def parsefile(self,filename):
 		"""Reads and parses a XML file and returns the resulting XSC"""
 		self.filename = filename
-		self.parser.reset()
-		self.parser.feed(open(filename).read())
+		self.parser.parseFile(open(filename))
 		self.parser.close()
-		return self.parser.root
+		return self.handler.root
 
 	def parseurl(self,url):
 		"""Reads and parses a XML file from an URL and returns the resulting XSC"""
