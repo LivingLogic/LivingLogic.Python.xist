@@ -11,7 +11,6 @@ import stat
 import Image
 
 # for parsing XML files
-import sys
 from xmllib import *
 
 ###
@@ -276,141 +275,10 @@ def AsString(value):
 	else:
 		return value.AsString()
 
-class html(XSCElement):
-	close = 1
-
-class head(XSCElement):
-	close = 1
-
-class title(XSCElement):
-	close = 1
-
-class link(XSCElement):
-	close = 0
-
-class body(XSCElement):
-	close = 1
-	permitted_attrs = [ "background","bgcolor","text","link","vlink","alink","leftmargin","topmargin","marginwidth","marginheight","style","onload"]
-
-class h1(XSCElement):
-	close = 1
-
-class h2(XSCElement):
-	close = 1
-
-class h3(XSCElement):
-	close = 1
-
-class h4(XSCElement):
-	close = 1
-
-class h5(XSCElement):
-	close = 1
-
-class h6(XSCElement):
-	close = 1
-
-class p(XSCElement):
-	close = 1
-
-class div(XSCElement):
-	close = 1
-
-class table(XSCElement):
-	close = 1
-
-class tr(XSCElement):
-	close = 1
-
-class th(XSCElement):
-	close = 1
-
-class td(XSCElement):
-	close = 1
-
-class img(XSCElement):
-	close = 0
-	permitted_attrs = [ "src","alt","border","width","height" ]
-
-	def AsHTML(self,mode = None):
-		e = XSCElement.AsHTML(self,mode)
-
-		e.AddImageSizeAttributes("src")
-
-		return e
-
-class br(XSCElement):
-	close = 0
-
-class hr(XSCElement):
-	close = 0
-
-class a(XSCElement):
-	close = 1
-	permitted_attrs = [ "href","name" ]
-
-	def AsHTML(self,mode = None):	
-		e = XSCElement.AsHTML(self,mode)
-
-		e.ExpandLinkAttribute("href")
-
-		return e
-
-class b(XSCElement):
-	close = 1
-
-class plaintable(table):
-	close = 1
-
-	def AsHTML(self,mode = None):
-		e = table(AsHTML(self.content,mode),AsHTML(self.attrs,mode))
-
-		if not e.has_attr("cellpadding"):
-			e["cellpadding"] = 0
-		if not e.has_attr("cellspacing"):
-			e["cellspacing"] = 0
-		if not e.has_attr("border"):
-			e["border"] = 0
-
-		return e
-
-class plainbody(body):
-	close = 1
-
-	def AsHTML(self,mode = None):
-		e = body(AsHTML(self.content,mode),AsHTML(self.attrs,mode))
-
-		if not e.has_attr("leftmargin"):
-			e["leftmargin"] = 0
-		if not e.has_attr("topmargin"):
-			e["topmargin"] = 0
-		if not e.has_attr("marginheight"):
-			e["marginheight"] = 0
-		if not e.has_attr("marginwidth"):
-			e["marginwidth"] = 0
-
-		return e
-
-class z(XSCElement):
-	close = 1
-
-	def AsHTML(self,mode = None):
-		return AsHTML(["«",AsHTML(self.content,mode),"»"],mode)
-
-class nbsp(XSCElement):
-	close = 0
-
-	def AsHTML(self,mode = None):
-		return AsHTML("\xA0",mode)
-
-class filesize(XSCElement):
-	close=1
-
-	def AsHTML(self,mode = None):
-		return FileSize(ExpandedURL(AsString(self.content)))
-
 class XSC(XMLParser):
 	"Reads a XML file and constructs an XSC tree from it."
+
+	handlers = {} # dictionary that links element names to classes
 
 	def __init__(self,filename):
 		XMLParser.__init__(self)
@@ -424,7 +292,7 @@ class XSC(XMLParser):
 		pass
 
 	def unknown_starttag(self,name,attrs = {}):
-		e = eval(name+"([],attrs)")
+		e = self.handlers[name]([],attrs)
 		self.nesting[-1].append(e) # add the new element to the content of the innermost element (or to the array)
 		self.nesting.append(e) # push new innermost element onto the stack
 		
@@ -436,8 +304,4 @@ class XSC(XMLParser):
 
 	def handle_comment(self,comment):
 		self.nesting[-1].append(XSCComment(comment))
-
-if __name__ == "__main__":
-	h = XSC(sys.argv[1])
-	print AsString(AsHTML(h.root))
 

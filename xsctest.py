@@ -1,6 +1,6 @@
 #! /usr/bin/python
 
-from hsc import *
+from xsc_specials import *
 
 try:
 	a = plaintable(
