@@ -57,7 +57,7 @@ def make(args):
 	"""
 	use XSC as a compiler script
 	"""
-	(options, args) = getopt.getopt(args, "p:i:o:e:x:m:f:r:n:t:s:l:", ["path=", "import=", "output=", "encoding=", "xhtml=", "mode=", "files=", "parser=", "namespace=", "target=", "stage=", "lang="])
+	(options, args) = getopt.getopt(args, "p:i:o:e:x:m:f:r:t:s:l:", ["path=", "import=", "output=", "encoding=", "xhtml=", "mode=", "files=", "parser=", "target=", "stage=", "lang="])
 
 	globaloutname = url.root()
 	encoding = None
@@ -68,13 +68,12 @@ def make(args):
 	lang = None
 	files = {} # handle duplicate filenames by putting all filename in a dictionary
 	parsername = "sgmlop"
-	namespaces = xsc.Namespaces()
 
 	for (option, value) in options:
 		if option=="-p" or option=="--path":
 			sys.path.append(value)
 		elif option=="-i" or option=="--import":
-			__import__(value)
+			_import__(value)
 		elif option=="-o" or option=="--output":
 			globaloutname = url.URL(value)
 		elif option=="-e" or option=="--encoding":
@@ -95,8 +94,6 @@ def make(args):
 					files[filename] = None
 		elif option=="-r" or option=="--parser":
 			parsername = value
-		elif option=="-n" or option=="--namespace":
-			namespaces.pushNamespace(xsc.namespaceRegistry.byPrefix[value.strip()])
 
 	for filename in args:
 		files[filename] = None
@@ -124,7 +121,7 @@ def make(args):
 				else:
 					outname.ext = "html"
 			t1 = time.time()
-			e_in = parsers.parseURL(inname, parser=parser, namespaces=namespaces, base=outname)
+			e_in = parsers.parseURL(inname, parser=parser, base=outname)
 			t2 = time.time()
 			e_out = e_in.convert(converter)
 			t3 = time.time()
