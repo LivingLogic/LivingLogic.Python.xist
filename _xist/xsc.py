@@ -3092,6 +3092,9 @@ class Namespace(object):
 			return type.__delattr__(cls, key)
 
 		def __setattr__(cls, key, value):
+			oldvalue = getattr(cls, key):
+			if issubclasses(oldvalue, (Element, ProcInst, Entity)):
+				oldvalue._registerns(None)
 			if issubclasses(value, (Element, ProcInst, Entity)):
 				if value.xmlns is not None:
 					delattr(value.xmlns, key)
