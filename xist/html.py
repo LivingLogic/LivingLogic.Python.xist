@@ -204,70 +204,70 @@ class small(xsc.Element):
 
 class em(xsc.Element):
 	"""
-	emphasis
+	Indicates emphasis.
 	"""
 	empty = 0
 	attrHandlers = attrs
 
 class strong(xsc.Element):
 	"""
-	strong emphasis
+	Indicates stronger emphasis than em.
 	"""
 	empty = 0
 	attrHandlers = attrs
 
 class dfn(xsc.Element):
 	"""
-	instance definition
+	Indicates that this is the defining instance of the enclosed term.
 	"""
 	empty = 0
 	attrHandlers = attrs
 
 class code(xsc.Element):
 	"""
-	computer code fragment
+	Designates a fragment of computer code. 
 	"""
 	empty = 0
 	attrHandlers = attrs
 
 class samp(xsc.Element):
 	"""
-	sample program output, scripts, etc.
+	Designates sample output from programs, scripts, etc. 
 	"""
 	empty = 0
 	attrHandlers = attrs
 
 class kbd(xsc.Element):
 	"""
-	text to be entered by the user
+	Indicates text to be entered by the user.
 	"""
 	empty = 0
 	attrHandlers = attrs
 
 class var(xsc.Element):
 	"""
-	instance of a variable or program argument
+	Indicates an instance of a variable or program argument. 
 	"""
 	empty = 0
 	attrHandlers = attrs
 
 class cite(xsc.Element):
 	"""
-	citation
+	Contains a citation or a reference to other sources.
 	"""
 	empty = 0
 	attrHandlers = attrs
 
 class abbr(xsc.Element):
 	"""
-	abbreviated form (e.g., WWW, HTTP, etc.)
+	Indicates an abbreviated form (e.g., WWW, HTTP, URI, Mass., etc.)
 	"""
 	empty = 0
 	attrHandlers = attrs
 
 class acronym(xsc.Element):
 	"""
-	acronym
+	Indicates an acronym (e.g., WAC, radar, etc.).
 	"""
 	empty = 0
 	attrHandlers = attrs
