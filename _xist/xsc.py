@@ -2185,6 +2185,9 @@ class Element(Node):
 			return "<element class %s:%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
 
 	class Attrs(Attrs):
+		"""
+		Attribute mapping for elements. This version supports global attributes.
+		"""
 		def _allowedattrkey(cls, name, xml=False):
 			if isinstance(name, tuple):
 				return (name[0], name[0].Attrs._allowedattrkey(name[1], xml=xml)) # ask namespace about global attribute
