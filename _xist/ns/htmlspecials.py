@@ -76,8 +76,8 @@ class pixel(html.img):
 	<par>element for single pixel images, the default is the image
 	<filename>root:Images/Pixels/dot_clear.gif</filename>, but you can specify the color
 	as a six digit hex string, which will be used as the filename,
-	i.e. <markup>&lt;pixel color="000000"/&gt;</markup> results in
-	<markup>&lt;img src="root:Images/Pixels/000000.gif"&gt;</markup>.</par>
+	i.e. <markup>&lt;pixel color="000"/&gt;</markup> results in
+	<markup>&lt;img src="root:images/pixels/000.gif"&gt;</markup>.</par>
 
 	<par>In addition to that you can specify width and height attributes
 	(and every other allowed attribute for the img element) as usual.</par>
