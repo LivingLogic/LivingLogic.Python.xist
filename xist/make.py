@@ -64,12 +64,13 @@ def make():
 	use XSC as a compiler script, i.e. read an input file from args[1]
 	and writes it to args[2]
 	"""
-	(options, args) = getopt.getopt(sys.argv[1:], "p:i:o:e:x:m:", ["path=", "import=", "output=", "encoding=", "xhtml=", "mode="])
+	(options, args) = getopt.getopt(sys.argv[1:], "p:i:o:e:x:m:f:", ["path=", "import=", "output=", "encoding=", "xhtml=", "mode=", "files="])
 
 	globaloutname = url.URL("*/")
 	encoding = None
 	XHTML = None
 	mode = None
+	filesname = None
 	for (option, value) in options:
 		if option=="-p" or option=="--path":
 			sys.path.append(value)
@@ -83,10 +84,20 @@ def make():
 			XHTML = int(value)
 		elif option=="-m" or option=="--mode":
 			mode = value
+		elif option=="-f" or option=="--files":
+			filesname = value
 
-	if args:
+	files = []
+	if filesname is not None:
+		for filename in open(filesname,"r").readlines():
+			filename = filename.strip()
+			if filename != "":
+				files.append(filename)
+	files.extend(args)
+
+	if files:
 		transformer = transformers.Transformer(mode)
-		for file in args:
+		for file in files:
 			inname = url.URL(file)
 			outname = globaloutname.clone()
 			if not outname.file:
