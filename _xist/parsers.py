@@ -56,9 +56,9 @@ class InputSource(sax.xmlreader.InputSource):
 		self.base = base
 
 class StringInputSource(InputSource):
-	def __init__(self, text, base=None, defaultEncoding="utf-8"):
+	def __init__(self, text, systemId="STRING", base=None, defaultEncoding="utf-8"):
 		InputSource.__init__(self, base)
-		self.setSystemId("STRING")
+		self.setSystemId(systemId)
 		if type(text) is types.UnicodeType:
 			defaultEncoding = "utf-8"
 			text = text.encode(defaultEncoding)
@@ -578,8 +578,8 @@ def parse(source, handler=None, parser=None, namespaces=None):
 	handler.parse(source)
 	return handler.root
 
-def parseString(text, base=None, handler=None, parser=None, namespaces=None, defaultEncoding="utf-8"):
-	return parse(StringInputSource(text, base=base, defaultEncoding=defaultEncoding), handler=handler, parser=parser, namespaces=namespaces)
+def parseString(text, systemId="STRING", base=None, handler=None, parser=None, namespaces=None, defaultEncoding="utf-8"):
+	return parse(StringInputSource(text, systemId=systemId, base=base, defaultEncoding=defaultEncoding), handler=handler, parser=parser, namespaces=namespaces)
 
 def parseFile(file, base=None, handler=None, parser=None, namespaces=None, defaultEncoding="utf-8"):
 	return parse(FileInputSource(file, base=base, defaultEncoding=defaultEncoding), handler=handler, parser=parser, namespaces=namespaces)
