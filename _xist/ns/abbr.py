@@ -384,4 +384,10 @@ class ssl(xsc.Entity):
 	def __unicode__(self):
 		return u"SSL"
 
+class vrml(xsc.Entity):
+	def convert(self, converter):
+		return html_.abbr("VRML", title="Virtual Reality Modelling Language", lang="en")
+	def __unicode__(self):
+		return u"VRML"
+
 namespace = xsc.Namespace("abbr", "http://xmlns.livinglogic.de/xist/abbr.dtd", vars())
