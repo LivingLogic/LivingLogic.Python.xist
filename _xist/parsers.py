@@ -40,11 +40,6 @@ from xml.sax import handler
 
 from mx import Tidy
 
-#try:
-#	import timeoutsocket
-#except ImportError:
-timeoutsocket = None
-
 from ll import url
 
 import xsc, errors, utils, sources, cssparsers
