@@ -14,7 +14,7 @@ from xml.sax import saxlib
 
 from ll import url
 from ll.xist import xsc, parsers, presenters, converters, helpers, errors, options
-from ll.xist.ns import wml, ihtml, html, css, abbr, specials, htmlspecials, php, xml, xndl
+from ll.xist.ns import wml, ihtml, html, css, abbr, specials, htmlspecials, php, xml, xndl, tld
 
 # set to something ASCII, so presenters work, even if the system default encoding is ascii
 options.reprtab = "  "
@@ -1561,6 +1561,7 @@ class DTD2XSCTest(unittest.TestCase):
 			bar_4 (bar_4a|bar_4b)    #IMPLIED
 			bar_42 (bar_42a|bar_42b) #IMPLIED
 			class CDATA              #IMPLIED
+			foo:bar CDATA            #IMPLIED
 		>
 		"""
 		ns = self.dtd2ns(dtdstring, "foo")
@@ -1572,6 +1573,8 @@ class DTD2XSCTest(unittest.TestCase):
 		self.assert_(issubclass(ns.foo.Attrs.id, xsc.IDAttr))
 		self.assert_("xmlns" not in ns.foo.Attrs)
 		self.assertEqual(ns.bar.empty, True)
+
+		self.assert_("bar" not in ns.bar.Attrs)
 
 		self.assert_(issubclass(ns.bar.Attrs.bar1, xsc.TextAttr))
 		self.assertEqual(ns.bar.Attrs.bar1.required, True)
@@ -1596,6 +1599,15 @@ class DTD2XSCTest(unittest.TestCase):
 		self.assertEqual(ns.bar.Attrs.bar_422.xmlname, ("bar_422", "bar_42"))
 		self.assertEqual(ns.bar.Attrs.bar_422.values, ("bar_42a", "bar_42b"))
 
+	def test_charref(self):
+		dtdstring = """<?xml version='1.0' encoding='us-ascii'?>
+		<!ELEMENT foo (EMPTY)>
+		<!ENTITY bar "&#xff;">
+		"""
+		ns = self.dtd2ns(dtdstring, "foo")
+
+		self.assertEqual(ns.bar.codepoint, 0xff)
+
 	def test_keyword(self):
 		dtdstring = """<?xml version='1.0' encoding='us-ascii'?>
 		<!ELEMENT foo EMPTY>
@@ -1606,6 +1618,34 @@ class DTD2XSCTest(unittest.TestCase):
 		ns = self.dtd2ns(dtdstring, "foo")
 		self.assert_(issubclass(ns.foo.Attrs.class_, xsc.TextAttr))
 		self.assertEqual(ns.foo.Attrs.class_.xmlname, ("class_", "class"))
+
+	def test_quotes(self):
+		dtdstring = """<?xml version='1.0' encoding='us-ascii'?>
+		<!ELEMENT foo EMPTY>
+		"""
+		ns = self.dtd2ns(dtdstring, "foo", xmlurl='"')
+		self.assertEqual(ns.xmlurl, '"')
+
+	def test_unicode(self):
+		dtdstring = """<?xml version='1.0' encoding='us-ascii'?>
+		<!ELEMENT foo EMPTY>
+		"""
+		ns = self.dtd2ns(dtdstring, "foo", xmlurl=u'\u3042')
+		self.assertEqual(ns.xmlurl, u'\u3042')
+
+	def test_unicodequotes(self):
+		dtdstring = """<?xml version='1.0' encoding='us-ascii'?>
+		<!ELEMENT foo EMPTY>
+		"""
+		ns = self.dtd2ns(dtdstring, "foo", xmlurl=u'"\u3042"')
+		self.assertEqual(ns.xmlurl, u'"\u3042"')
+
+	def test_badelementname(self):
+		dtdstring = """<?xml version='1.0' encoding='us-ascii'?>
+		<!ELEMENT class EMPTY>
+		"""
+		ns = self.dtd2ns(dtdstring, "foo")
+		self.assert_(issubclass(ns.class_, xsc.Element))
 
 	def test_shareattrsnone(self):
 		dtdstring = """<?xml version='1.0' encoding='us-ascii'?>
@@ -1667,8 +1707,127 @@ class DTD2XSCTest(unittest.TestCase):
 
 class TLD2XSCTest(unittest.TestCase):
 
+	def tld2ns(self, s, xmlname, shareattrs=None):
+		node = parsers.parseString(s, prefixes=xsc.Prefixes().addElementPrefixMapping(None, tld))
+		node = node.findfirst(xsc.FindType(tld.taglib))
+		node = node.conv()
+
+		data = node.asdata()
+
+		if shareattrs is not None:
+			data.shareattrs(shareattrs)
+
+		mod = {"__name__": xmlname}
+		encoding = "iso-8859-1"
+		code = data.aspy(encoding=encoding, asmod=False).encode(encoding)
+		exec code in mod
+
+		return mod["xmlns"]
+
 	def test_convert(self):
-		pass
+		tldstring = """<?xml version="1.0" encoding="ISO-8859-1"?>
+		<!DOCTYPE taglib PUBLIC "-//Sun Microsystems, Inc.//DTD JSP Tag Library 1.1//EN" "http://java.sun.com/j2ee/dtds/web-jsptaglibrary_1_1.dtd">
+		<taglib>
+			<tlibversion>1.0</tlibversion>
+			<jspversion>1.1</jspversion>
+			<shortname>foo</shortname>
+			<tag>
+				<name>bar</name>
+				<tagclass>com.foo.bar</tagclass>
+				<bodycontent>empty</bodycontent>
+				<info>info</info>
+				<attribute>
+					<name>name</name>
+					<required>true</required>
+					<rtexprvalue>true</rtexprvalue>
+				</attribute>
+				<attribute>
+					<name>response</name>
+					<required>false</required>
+					<rtexprvalue>true</rtexprvalue>
+				</attribute>
+				<attribute>
+					<name>controllerElement</name>
+					<required>false</required>
+					<rtexprvalue>true</rtexprvalue>
+				</attribute>
+				<attribute>
+					<name>type</name>
+					<required>false</required>
+					<rtexprvalue>true</rtexprvalue>
+				</attribute>
+			</tag>
+		</taglib>
+		"""
+		ns = self.tld2ns(tldstring, "foo")
+		self.assertEqual(ns.xmlname, ("xmlns", "foo"))
+		self.assertEqual(ns.bar.xmlname, ("bar", "bar"))
+		self.assertEqual(ns.bar.empty, True)
+		self.assertEqual(ns.bar.__doc__.strip(), "info")
+
+		self.assert_(issubclass(ns.bar.Attrs.name, xsc.TextAttr))
+		self.assertEqual(ns.bar.Attrs.name.required, True)
+
+		self.assert_(issubclass(ns.bar.Attrs.response, xsc.TextAttr))
+		self.assertEqual(ns.bar.Attrs.response.required, False)
+
+class XNDLTest(unittest.TestCase):
+
+	def xndl2ns(self, node):
+		data = node.asdata()
+
+		mod = {"__name__": str(node.xmlname[False])}
+		encoding = "iso-8859-1"
+		code = data.aspy(encoding=encoding, asmod=False).encode(encoding)
+		exec code in mod
+
+		return mod["xmlns"]
+
+	def test_procinst(self):
+		e = xndl.xndl(
+			xndl.procinst(xndl.doc("gurk"), target="foo")
+		)
+		ns = self.xndl2ns(e)
+		self.assert_(issubclass(ns.foo, xsc.ProcInst))
+		self.assertEqual(ns.foo.__doc__.strip(), "gurk")
+
+		e = xndl.xndl(
+			xndl.procinst(target="f-o-o")
+		)
+		ns = self.xndl2ns(e)
+		self.assert_(issubclass(ns.f_o_o, xsc.ProcInst))
+		self.assert_(ns.f_o_o.xmlname, ("f_o_o", "f-o-o"))
+
+	def test_entity(self):
+		e = xndl.xndl(
+			xndl.entity(xndl.doc("gurk"), name="foo")
+		)
+		ns = self.xndl2ns(e)
+		self.assert_(issubclass(ns.foo, xsc.Entity))
+		self.assertEqual(ns.foo.__doc__.strip(), "gurk")
+
+		e = xndl.xndl(
+			xndl.entity(name="f-o-o")
+		)
+		ns = self.xndl2ns(e)
+		self.assert_(issubclass(ns.f_o_o, xsc.Entity))
+		self.assert_(ns.f_o_o.xmlname, ("f_o_o", "f-o-o"))
+
+	def test_charref(self):
+		e = xndl.xndl(
+			xndl.charref(xndl.doc("gurk"), name="foo", codepoint=0x3042)
+		)
+		ns = self.xndl2ns(e)
+		self.assert_(issubclass(ns.foo, xsc.CharRef))
+		self.assertEqual(ns.foo.__doc__.strip(), "gurk")
+		self.assertEqual(ns.foo.codepoint, 0x3042)
+
+		e = xndl.xndl(
+			xndl.charref(name="f-o-o", codepoint=0x3042)
+		)
+		ns = self.xndl2ns(e)
+		self.assert_(issubclass(ns.f_o_o, xsc.CharRef))
+		self.assert_(ns.f_o_o.xmlname, ("f_o_o", "f-o-o"))
 
 def test_main():
 	unittest.main()
