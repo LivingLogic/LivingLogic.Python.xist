@@ -138,10 +138,16 @@ class Base(object):
 ###
 
 class Const(object):
-	pass
+	__slots__ = ("_name")
 
-entercontent = Const()
-enterattrs = Const()
+	def __init__(self, name):
+		self._name = name
+
+	def __repr__(self):
+		return "%s.%s" % (self.__module__, self._name)
+
+entercontent = Const("entercontent")
+enterattrs = Const("enterattrs")
 
 
 ###
