@@ -56,6 +56,10 @@ class links(XSCElement):
 	empty = 0
 RegisterElement("links",links)
 
+class scripts(XSCElement):
+	empty = 0
+RegisterElement("scripts",scripts)
+
 class indent(XSCElement):
 	empty = 1
 	
