@@ -106,8 +106,11 @@ def make():
 			t4 = time.clock()
 			size = p.tell()
 			sys.stderr.write(
-				"XSC(encoding=%s, XHTML=%s): %s->%s: %s (parse %ss; convert %ss; save %ss)\n" %
-				(presenters.strString(p.encoding), presenters.strNumber(p.XHTML), presenters.strURL(inname), presenters.strURL(outname), presenters.strNumber(size), presenters.strNumber("%.02f" % (t2-t1)), presenters.strNumber("%.02f" % (t3-t2)), presenters.strNumber("%.02f" % (t4-t3)))
+				"XSC(encoding=%s; XHTML=%s; parse %ss; convert %ss; save %ss; size %s bytes): %s->%s\n" %
+				(presenters.strString(p.encoding), presenters.strNumber(p.XHTML),
+				 presenters.strNumber("%.02f" % (t2-t1)), presenters.strNumber("%.02f" % (t3-t2)), presenters.strNumber("%.02f" % (t4-t3)),
+				 presenters.strNumber(size),
+				 presenters.strURL(inname), presenters.strURL(outname))
 			)
 	else:
 		sys.stderr.write("XSC: no files to convert.\n")
