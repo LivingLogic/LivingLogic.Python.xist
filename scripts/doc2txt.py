@@ -33,10 +33,10 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 import sys, getopt
 
 from ll.xist import xsc, parsers, converters
-from ll.xist.ns import html, abbr, doc, specials
+from ll.xist.ns import html
 
 def xsc2txt(infilename, outfilename, title):
-	e = parsers.parseFile(infilename, namespaces=xsc.Namespaces(doc))
+	e = parsers.parseFile(infilename, prefixes=xsc.DocPrefixes())
 
 	if title is None:
 		title = xsc.Null
@@ -48,7 +48,7 @@ def xsc2txt(infilename, outfilename, title):
 		)
 	)
 
-	e = e.convert(converters.Converter(target="text"))
+	e = e.conv(target="text")
 
 	file = open(outfilename, "wb")
 	file.write(e.asText())
