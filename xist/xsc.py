@@ -1842,6 +1842,8 @@ def extHTML2XSC(ext):
 	except KeyError:
 		return ext
 
+xsc = XSC()
+
 def make():
 	"""
 	use XSC as a compiler script, i.e. read an input file from args[1]
@@ -1875,12 +1877,10 @@ def make():
 			e_out = e_in.asHTML()
 			s_out = e_out.asString()
 			__forceopen(str(outname),"wb").write(s_out)
-			sys.stderr.write(" " + str(len(s_out) + "\n")
+			sys.stderr.write(" " + str(len(s_out)) + "\n")
 			xsc.popURL()
 	else:
 		sys.stderr.write("XSC: no files to convert.\n")
-
-xsc = XSC()
 
 if __name__ == "__main__":
 	make()
