@@ -1145,7 +1145,7 @@ class ProcInst(CharacterData):
 		def __new__(cls, name, bases, dict):
 			self = CharacterData.__metaclass__.__new__(cls, name, bases, dict)
 			if self.register is not None:
-				setattr(DefaultNamespace, name, self)
+				setattr(xmlns, name, self)
 			return self
 
 		def __repr__(self):
@@ -1950,7 +1950,7 @@ class Element(Node):
 				errors.warn(DeprecationWarning("attrHandlers is deprecated, use a nested Attrs class instead"))
 			self = Node.__metaclass__.__new__(cls, name, bases, dict)
 			if self.register is not None:
-				setattr(DefaultNamespace, name, self)
+				setattr(xmlns, name, self)
 			return self
 		def __repr__(self):
 			return "<element class %s/%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
@@ -2504,7 +2504,7 @@ class Entity(Node):
 		def __new__(cls, name, bases, dict):
 			self = Node.__metaclass__.__new__(cls, name, bases, dict)
 			if self.register is not None:
-				setattr(DefaultNamespace, name, self)
+				setattr(xmlns, name, self)
 			return self
 
 		def __repr__(self):
@@ -2572,7 +2572,7 @@ class CharRef(Entity):
 		def __new__(cls, name, bases, dict):
 			self = Node.__metaclass__.__new__(cls, name, bases, dict)
 			if self.register is not None:
-				setattr(DefaultNamespace, name, self)
+				setattr(xmlns, name, self)
 			return self
 
 		def __repr__(self):
@@ -3058,13 +3058,13 @@ class Namespace(object):
 		def __delattr__(cls, key):
 			value = cls.__dict__.get(key, None) # no inheritance
 			if isinstance(value, type) and issubclass(value, (Element, ProcInst, CharRef)):
-				value._registerns(DefaultNamespace)
+				value._registerns(xmlns)
 			return type.__delattr__(cls, key)
 
 		def __setattr__(cls, key, value):
 			oldvalue = cls.__dict__.get(key, None) # no inheritance
 			if isinstance(oldvalue, type) and issubclass(oldvalue, (Element, ProcInst, Entity)):
-				oldvalue._registerns(DefaultNamespace)
+				oldvalue._registerns(xmlns)
 			if isinstance(value, type) and issubclass(value, (Element, ProcInst, Entity)):
 				ns = value.__dict__.get("xmlns") # no inheritance
 				if ns is not None:
@@ -3219,7 +3219,7 @@ class Namespace(object):
 	def __init__(self, xmlprefix, xmlname, thing=None):
 		raise TypeError("Namespace classes can't be instantiated")
 
-class DefaultNamespace(Namespace):
+class xmlns(Namespace):
 	xmlname = None
 	xmlurl = None
 
