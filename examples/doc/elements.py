@@ -109,6 +109,7 @@ class function(xsc.Element):
 
 class method(xsc.Element):
 	empty = 0
+	attrHandlers = { "name" : xsc.TextAttr }
 
 	def asHTML(self):
 		e = xsc.Frag(html.h4(self["name"]))

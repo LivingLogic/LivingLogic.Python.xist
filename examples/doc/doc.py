@@ -96,8 +96,9 @@ def explain(thing):
 			e.append(getDoc(thing.__doc__))
 		methods = []
 		for varname in thing.__dict__.keys():
-			if type(thing.__dict__[varname]) is types.MethodType:
-				method.append(thing.__dict__[varname])
+			test = getattr(thing,varname)
+			if type(test) is types.MethodType:
+				methods.append(test)
 		if len(methods):
 			e.append(elements.methods())
 			for m in methods:
