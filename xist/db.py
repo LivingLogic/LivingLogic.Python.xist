@@ -14,7 +14,7 @@ import xsc
 import html
 import specials
 
-retrievedb = 0 # should database content be retrieved?
+retrievedb = 1 # should database content be retrieved?
 
 def _getDB(element):
 	if element.has_attr("module") and element.has_attr("variable"): # database connection via an existing one
