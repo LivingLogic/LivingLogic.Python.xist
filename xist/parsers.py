@@ -27,7 +27,7 @@ sgmlop driver, everything else is from PyXML) and various classes derived from
 xml.sax.xmlreader.InputSource.
 """
 
-import sys, os, types, cStringIO as StringIO, urllib
+import sys, os, os.path, types, cStringIO as StringIO, urllib
 
 from xml import sax
 from xml.parsers import sgmlop
@@ -57,7 +57,7 @@ class FileInputSource(sax.xmlreader.InputSource):
 	def __init__(self, filename):
 		sax.xmlreader.InputSource.__init__(self)
 		self.setSystemId(filename)
-		self.setByteStream(open(filename, "r"))
+		self.setByteStream(open(os.path.expanduser(filename), "r"))
 
 class URLInputSource(sax.xmlreader.InputSource):
 	def __init__(self, url):
