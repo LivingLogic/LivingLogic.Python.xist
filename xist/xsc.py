@@ -1903,48 +1903,36 @@ class XSC:
 	def handle_comment(self,data):
 		self.__appendNode(Comment(data))
 
-	def parseString(self,text):
-		"""
-		Parses a string and returns the resulting XSC
-		"""
+	def __parseLines(self,lines)
 		self.__nesting = [ Frag() ]
-
 		parser = sgmlop.SGMLParser()
 		parser.register(self)
-
-		lines = string.split(text,"\n")
-		for i in xrange(len(lines)):
-			lines[i] = lines[i] + "\n"
-
 		self.lineno = 1
 		for line in lines:
 			parser.feed(line)
 			self.lineno = self.lineno + 1
-		parser.feed(" ") # strange bug in sgmlop?
 		parser.close()
-
 		return self.__nesting[0]
+
+	def parseString(self,text):
+		"""
+		Parses a string and returns the resulting XSC
+		"""
+		lines = string.split(text,"\n")
+		for i in xrange(len(lines)):
+			lines[i] = lines[i] + "\n"
+		element = self.__parseLines(lines)
+		return element
 
 	def parse(self,url):
 		"""
 		Reads and parses a XML file from an URL and returns the resulting XSC
 		"""
 		self.pushURL(url)
-
-		self.__nesting = [ Frag() ]
-
 		lines = self.filename[-1].readlines()
-
-		parser = sgmlop.SGMLParser()
-		parser.register(self)
-
-		self.lineno = 1
-		for line in lines:
-			parser.feed(line)
-			self.lineno = self.lineno + 1
-		parser.close()
-
+		element = self.__parseLines(lines)
 		self.popURL()
+		return element
 
 		# our nodes do not have a parent link, therefore we have to store the active path through the tree in a stack (which we call nesting, because stack is already used by the base class (there is no base class anymore, but who cares))
 		# after we've finished parsing, the Frag that we put at the bottom of the stack will be our document root
