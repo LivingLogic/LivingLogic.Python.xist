@@ -105,7 +105,7 @@ class URL:
 			self.query    = url.query
 			self.fragment = url.fragment
 		else:
-			raise ValueError("URL argument must be either a string or an URL or None not %s" % type(url))
+			raise ValueError("URL argument must be either a string or an URL or None not %r (type %s)" % (url, type(s)))
 
 		if scheme is not None:
 			self.scheme = scheme
