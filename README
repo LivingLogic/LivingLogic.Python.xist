@@ -1,4 +1,4 @@
-XIST v1.1.3
+XIST v1.2
 
 XIST is an XML-based HTML generator written in Python.
 
@@ -9,7 +9,7 @@ For installation instruction read INSTALL.
 For a history of XIST and a list of new features in this version,
 read NEWS.
 
-XIST is available from ftp://titan.bnbt.de/pub/livinglogic/xist/
+XIST is available from ftp://ftp.livinglogic.de/pub/livinglogic/xist/
 
 The XIST web pages can be found at http://www.livinglogic.de/Python/xist/
 

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
-<section><title>Changes in CVS (released ??/??/2001)</title>
+<section><title>Changes in 1.2 (released 10/03/2001)</title>
 <ulist>
 <item><pyref module="xist.ns.meta" class="keywords">xist.ns.meta.keywords</pyref>
 and <pyref module="xist.ns.meta" class="description">xist.ns.meta.description</pyref>
@@ -400,7 +400,7 @@ generating meta tags.</item>
 <item>&xist; now requires at least Python 2.0b1.</item>
 
 <item>A new bugfixed version of the <code>sgmlop</code> source is available
-from the <a href="http://titan.bnbt.de/pub/livinglogic/xist/">&ftp; site</a>.</item>
+from the <a href="http://ftp.livinglogic.de/pub/livinglogic/xist/">&ftp; site</a>.</item>
 
 <item>&xist; now completely supports Unicode. For output any
 encoding known to Python can be used, so now you
