@@ -31,36 +31,26 @@ import sys
 import getopt
 import time
 
-import ansistyle, fileutils
+import ansistyle, url
 
-from xist import xsc, publishers, presenters, url, converters, parsers # don't do a subpackage import here, otherwise chaos will ensue, because XIST modules will be imported twice
+from xist import xsc, publishers, presenters, converters, parsers # don't do a subpackage import here, otherwise chaos will ensue, because XIST modules will be imported twice
 
-extMapping = (
-	(".hsc", ".html"),
-	(".shsc", ".shtml"),
-	(".phsc", ".phtml"),
-	(".xsc", ".html"),
-	(".sxsc", ".shtml"),
-	(".pxsc", ".phtml"),
-	(".xsc.de", ".html.de"),
-	(".sxsc.de", ".shtml.de"),
-	(".pxsc.de", ".phtml.de"),
-	(".xsc.en", ".html.en"),
-	(".sxsc.en", ".shtml.en"),
-	(".pxsc.en", ".phtml.en"),
-	(".jxsc", ".jsp"),
-	(".jxscp", ".jspp")
-)
-
-def mapExt(file):
-	for (extin, extout) in extMapping:
-		if file.endswith(extin):
-			return file[:-len(extin)] + extout
-	pos = file.rfind(".")
-	if pos != -1:
-		return file[:pos] + ".html"
-	else:
-		return file + ".html"
+exts = {
+	"hsc": "html",
+	"shsc": "shtml",
+	"phsc": "phtml",
+	"xsc": "html",
+	"sxsc": "shtml",
+	"pxsc": "phtml",
+	"xsc.de": "html.de",
+	"sxsc.de": "shtml.de",
+	"pxsc.de": "phtml.de",
+	"xsc.en": "html.en",
+	"sxsc.en": "shtml.en",
+	"pxsc.en": "phtml.en",
+	"jxsc": "jsp",
+	"jxscp": "jspp"
+}
 
 def make(args):
 	"""
@@ -68,7 +58,7 @@ def make(args):
 	"""
 	(options, args) = getopt.getopt(args, "p:i:o:e:x:m:f:r:n:t:s:l:", ["path=", "import=", "output=", "encoding=", "xhtml=", "mode=", "files=", "parser=", "namespace=", "target=", "stage=", "lang="])
 
-	globaloutname = url.URL(scheme=u"root")
+	globaloutname = url.root()
 	encoding = None
 	xhtml = None
 	mode = None
@@ -125,15 +115,13 @@ def make(args):
 			outname = globaloutname.clone()
 			if not outname.file:
 				outname /= inname
-			outname.file = mapExt(inname.file)
-			if not outname.file:
-				outname.file = "noname.html"
+			outname.ext = exts.get(inname.ext, "html")
 			t1 = time.time()
-			e_in = parsers.parseFile(inname.asString(), parser=parser, namespaces=namespaces, base=outname)
+			e_in = parsers.parseURL(inname, parser=parser, namespaces=namespaces, base=outname)
 			t2 = time.time()
 			e_out = e_in.convert(converter)
 			t3 = time.time()
-			p = publishers.FilePublisher(fileutils.Filename(outname.asPlainString()).open("wb", 65536), base=outname, encoding=encoding, xhtml=xhtml)
+			p = publishers.FilePublisher(outname.openwrite(), base=outname, encoding=encoding, xhtml=xhtml)
 			e_out.publish(p)
 			t4 = time.time()
 			size = p.tell()
