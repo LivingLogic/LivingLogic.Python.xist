@@ -1439,9 +1439,7 @@ class Element(Node):
 
 	def hasAttr(self,attr):
 		"""
-		S.hasAttr(attr) -> bool
-
-		returns, if S has an attribute named attr.
+		return whether <self/> has an attribute named <argref>attr</argref>.
 		"""
 
 		return self.attrs.has_key(attr)
