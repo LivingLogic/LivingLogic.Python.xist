@@ -753,8 +753,8 @@ class applet(xsc.Element): # deprecated
 	Java applet
 	"""
 	empty = 0
-	attrHandlers = {"archive": xsc.URLAttr, "code": xsc.URLAttr, "width": xsc.TextAttr, "height": xsc.TextAttr}
-	attrHandlers.update({"codebase": xsc.TextAttr}) # deprecated
+	attrHandlers = {"code": xsc.TextAttr, "codebase": xsc.URLAttr, "object": xsc.TextAttr, "width": xsc.TextAttr, "height": xsc.TextAttr}
+	attrHandlers.update({"archive": xsc.URLAttr}) # deprecated
 
 class nobr(xsc.Element): # deprecated
 	"""
