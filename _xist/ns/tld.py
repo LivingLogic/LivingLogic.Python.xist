@@ -46,20 +46,20 @@ class attribute(xsc.Element):
 	empty = False
 	class Attrs(IdAttrs): pass
 
-	def convert(self, converter):
-		e = xndl.attr(name=self.content.findfirst(xsc.FindType(name)).content)
+	def asxnd(self):
+		e = xnd.Attr(unicode(self.content.findfirst(xsc.FindType(name)).content), "xsc.TextAttr")
 		isRequired = None
-		l = self.content.find(xsc.FindType(required))
-		if l:
-			value = str(l[0].content)
+		node = self.content.find(xsc.FindType(required))
+		if node:
+			value = str(node[0].content)
 			if value in ('true', 'yes'):
 				isRequired = True
 			elif value in ('false', 'no'):
 				isRequired = None
 			else:
 				raise ValueError('value %s not allowed for tag <required>' % value)
-		e['required'] = isRequired
-		return e.convert(converter)
+		e.required = isRequired
+		return e
 
 
 class bodycontent(xsc.Element):
@@ -91,9 +91,8 @@ class info(xsc.Element):
 	empty = False
 	class Attrs(IdAttrs): pass
 
-	def convert(self, converter):
-		e = xndl.doc(self.content)
-		return e.convert(converter)
+	def asxnd(self):
+		return self.content.asString()
 
 
 class jspversion(xsc.Element):
@@ -160,23 +159,28 @@ class tag(xsc.Element):
 	empty = False
 	class Attrs(IdAttrs): pass
 
-	def convert(self, converter):
-		e = xndl.element(name=self.content.findfirst(xsc.FindType(name)).content)
-		l = self.content.find(xsc.FindType(bodycontent))
+	def asxnd(self):
+		e = xnd.Element(unicode(self.content.findfirst(xsc.FindType(name)).content))
+		node = self.content.find(xsc.FindType(bodycontent))
 		isEmpty = None
-		if l:
-			value = str(l[0].content)
+		if node:
+			value = str(node[0].content)
 			if value in ('tagdependent', 'JSP'):
 				isEmpty = None
 			elif value == 'empty':
 				isEmpty = True
 			else:
 				raise ValueError("value %s is not allowed for tag <bodycontent>" % value)
-		e['empty'] = isEmpty
-		e.append(self.content.find(xsc.FindType(info)))
-		e.append(self.content.find(xsc.FindType(attribute)))
-		return e.convert(converter)
-		
+		if isEmpty:
+			e.modeltype = "sims.Empty"
+		else:
+			e.modeltype = "sims.Any"
+		node = self.content.find(xsc.FindType(info))
+		if node:
+			e.doc = node[0].asxnd()
+		for attr in self.content.walk(xsc.FindType(attribute)):
+			e.attrs.append(attr.asxnd())
+		return e
 
 
 class tagclass(xsc.Element):
@@ -209,15 +213,17 @@ class taglib(xsc.Element):
 	empty = False
 	class Attrs(IdAttrs): pass
 
-	def convert(self, converter):
-		e = xndl.xndl()
-		e['name'] = str(self.content.findfirst(xsc.FindType(shortname)).content)
-		l = self.content.find(xsc.FindType(uri))
-		if l:
-			e["url"] = l[0].content
-		e.append(self.content.find(xsc.FindType(info)))
-		e.append(self.content.find(xsc.FindType(tag)))
-		return e.convert(converter)
+	def asxnd(self):
+		e = xnd.Namespace(unicode(self.content.findfirst(xsc.FindType(shortname)).content))
+		node = self.content.find(xsc.FindType(uri))
+		if node:
+			e.url = unicode(node[0].content)
+		node = self.content.find(xsc.FindType(info))
+		if node:
+			e.doc = node[0].asxnd()
+		for node in self.content.walk(xsc.FindType(tag)):
+			e.content.append(node.asxnd())
+		return e
 
 
 class teiclass(xsc.Element):

@@ -36,8 +36,7 @@ def tld2xsc(inurl, outurl, verbose, xmlname, xmlurl, shareattrs):
 
 	# get and convert the taglib object
 	node = node.findfirst(xsc.FindType(tld.taglib))
-	node = node.conv()
-	data = node.asdata()
+	data = node.asxnd()
 
 	if shareattrs=="dupes":
 		data.shareattrs(False)

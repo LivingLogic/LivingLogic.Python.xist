@@ -95,31 +95,26 @@ class Base(object):
 		else:
 			lines.extend(newlines)
 
-
-class Doc(Base):
-	def __init__(self, content):
-		Base.__init__(self, None)
-		self.content = content
-
-	def _aspy(self, lines, encoding, level, names, asmod, defaults, schema):
-		lines.append([level, '"""'])
-		for line in self.content.asBytes(encoding=encoding).split("\n"):
-			lines.append([level, line])
-		lines.append([level, '"""'])
+	def _adddoc(self, lines, level):
+		if self.doc is not None:
+			lines.append([level, '"""'])
+			for line in self.doc.splitlines():
+				lines.append([level, line])
+			lines.append([level, '"""'])
 
 
-class Namespace(Base, list):
+class Namespace(Base):
 	def __init__(self, name, url=None, doc=None):
 		Base.__init__(self, name)
-		list.__init__(self)
 		self.url = url
 		self.doc = doc
+		self.content = []
 
 	def __repr__(self):
 		return "<%s.%s name=%r url=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.name, self.url, id(self))
 
 	def __call__(self, *content):
-		self.extend(content)
+		self.content.extend(content)
 		return self
 
 	def _findgroups(self):
@@ -133,44 +128,42 @@ class Namespace(Base, list):
 		# find all attribute groups defined for the attributes
 		attrgroups = []
 		attrgroupset = {}
-		for node in self:
+		for node in self.content:
 			if isinstance(node, Element):
-				for attr in node:
-					if attr.shared is not None:
-						key = tuple(attr.shared)
-					 	if key not in attrgroupset:
-							attrgroups.append(attr.shared)
-							attrgroupset[key] = True
+				for attr in node.attrs:
+					if attr.shared is not None and attr.shared not in attrgroupset:
+						attrgroups.append(attr.shared)
+						attrgroupset[attr.shared] = True
 		return attrgroups
 
 	def _aspy(self, lines, encoding, level, names, asmod, defaults, schema):
 		# assign names to all elements
-		for child in self:
+		for child in self.content:
 			if isinstance(child, Element):
 				child.assignname(names)
 				attrnames = []
-				for attr in child:
+				for attr in child.attrs:
 					attr.assignname(attrnames)
 
 		# assign names to all processing instructions
-		for child in self:
+		for child in self.content:
 			if isinstance(child, ProcInst):
 				child.assignname(names)
 
 		# assign names to all entitites
-		for child in self:
+		for child in self.content:
 			if isinstance(child, Entity) and not isinstance(child, CharRef):
 				child.assignname(names)
 
 		# assign names to all character references
-		for child in self:
+		for child in self.content:
 			if isinstance(child, CharRef):
 				child.assignname(names)
 
 		# Assign names to attribute groups
 		attrgroups = self._findgroups()
 		for attrgroup in attrgroups:
-				child.assignname(names)
+			attrgroup.assignname(names)
 
 		# assign name to the namespace itself
 		self.assignname(names, "xmlns")
@@ -180,9 +173,7 @@ class Namespace(Base, list):
 		lines.append([0, ""])
 		lines.append([0, ""])
 
-		if self.doc is not None:
-			self.doc._aspy(lines, encoding, level, names, asmod, defaults, schema)
-			lines.append([0, ""])
+		self._adddoc(lines, level)
 
 		lines.append([level, "__version__ = \"%sRevision%s\"[11:-2]" % ("$", "$")])
 		lines.append([level, "# %sSource%s" % ("$", "$")])
@@ -197,13 +188,13 @@ class Namespace(Base, list):
 			attrgroup._aspy(lines, encoding, level, names, asmod, defaults, schema)
 
 		# output elements, procinsts, entities and charref
-		for node in self:
+		for node in self.content:
 			lines.append([0, ""])
 			lines.append([0, ""])
 			node._aspy(lines, encoding, level, names, asmod, defaults, schema)
 
 		# output schema information for the elements
-		elswithschema = [node for node in self if isinstance(node, Element) and node.modeltype is not None]
+		elswithschema = [node for node in self.content if isinstance(node, Element) and node.modeltype is not None]
 		if elswithschema:
 			lines.append([0, ""])
 			lines.append([0, ""])
@@ -233,7 +224,7 @@ class Namespace(Base, list):
 		lines.append([level, "%s.%s(vars())" % (self.pyname, method)])
 
 	def element(self, name):
-		for node in self:
+		for node in self.content:
 			if isinstance(node, Element) and node.name==name:
 				return node
 		raise ValueError("no element named %r" % name)
@@ -242,9 +233,9 @@ class Namespace(Base, list):
 		# collect all identical attributes into lists
 		identicalattrs = []
 		identicalattrset = {}
-		for node in self:
+		for node in self.content:
 			if isinstance(node, Element):
-				for attr in node:
+				for attr in node.attrs:
 					if attr.shared is None: # skip attributes that are already shared
 						ident = attr.ident()
 						try:
@@ -262,10 +253,10 @@ class Namespace(Base, list):
 					attr.share(group)
 
 
-class Element(Base, list):
+class Element(Base):
 	def __init__(self, name, modeltype=None, modelargs=None, doc=None):
 		Base.__init__(self, name)
-		list.__init__(self)
+		self.attrs = []
 		self.modeltype = modeltype
 		self.modelargs = modelargs
 		self.doc = doc
@@ -274,27 +265,26 @@ class Element(Base, list):
 		return "<%s.%s name=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.name, id(self))
 
 	def __call__(self, *content):
-		self.extend(content)
+		self.attrs.extend(content)
 		return self
 
 	def _aspy(self, lines, encoding, level, names, asmod, defaults, schema):
 		lines.append([level, "class %s(xsc.Element):" % self.pyname])
 		newlines = []
-		if self.doc is not None:
-			self.doc._aspy(newlines, encoding, level+1, names, asmod, defaults, schema)
+		self._adddoc(newlines, level+1)
 		if self.pyname != self.name:
 			newlines.append([level+1, "xmlname = %s" % self.simplify(self.name)])
 		# don't output model, because this is done after all element classes have been defined
 
-		if len(self):
+		if len(self.attrs):
 			# find the attribute groups our elements are in
 			# this means we don't have to define these attributes ourselves, but have to derive from the attribute group
 			groups = []
 			groupset = {}
 			nogroup = []
-			for attr in self:
+			for attr in self.attrs:
 				if attr.shared is not None:
-					if tuple(attr.shared) not in groupset:
+					if tuple(attr.shared.attrs) not in groupset:
 						groups.append(attr.shared)
 				else:
 					nogroup.append(attr)
@@ -312,23 +302,23 @@ class Element(Base, list):
 		self._addlines(newlines, lines)
 
 
-class AttrGroup(Base, list):
+class AttrGroup(Base):
 	id = 0
 	def __init__(self, name):
 		if name is None:
 			name = "attrgroup_%d" % self.__class__.id
 			self.__class__.id += 1
 		Base.__init__(self, name)
-		list.__init__(self)
+		self.attrs = []
 
 	def __call__(self, *content):
-		self.extend(content)
+		self.attrs.extend(content)
 		return self
 
 	def _aspy(self, lines, encoding, level, names, asmod, defaults, schema):
 		lines.append([level, "class %s(xsc.Element.Attrs):" % self.pyname])
 		localnames = []
-		for attr in self:
+		for attr in self.attrs:
 			attr._aspy(lines, encoding, level+1, localnames, asmod, defaults, schema)
 
 
@@ -357,8 +347,7 @@ class Attr(Base):
 			basename = basename[8:]
 		lines.append([level, "class %s(%s):" % (self.pyname, basename)])
 		newlines = []
-		if self.doc is not None:
-			self.doc._aspy(newlines, encoding, level+1, asmod, defaults, schema)
+		self._adddoc(newlines, level+1)
 		if self.pyname != self.name:
 			newlines.append([level+1, "xmlname = %s" % self.simplify(self.name)])
 		if self.values:
@@ -389,8 +378,7 @@ class ProcInst(Base):
 	def _aspy(self, lines, encoding, level, names, asmod, defaults, schema):
 		lines.append([level, "class %s(xsc.ProcInst):" % self.pyname])
 		newlines = []
-		if self.doc is not None:
-			self.doc._aspy(newlines, encoding, level+1, names, asmod, defaults, schema)
+		self._adddoc(newlines, level+1)
 		if self.pyname != self.name:
 			newlines.append([level+1, "xmlname = %s" % self.simplify(self.name)])
 		self._addlines(newlines, lines)
@@ -407,8 +395,7 @@ class Entity(Base):
 	def _aspy(self, lines, encoding, level, names, asmod, defaults, schema):
 		lines.append([level, "class %s(xsc.Entity):" % self.pyname])
 		newlines = []
-		if self.doc is not None:
-			self.doc._aspy(newlines, encoding, level+1, names, asmod, defaults, schema)
+		self._adddoc(newlines, level+1)
 		if self.pyname != self.name:
 			newlines.append([level+1, "xmlname = %s" % self.simplify(self.name)])
 		self._addlines(newlines, lines)
@@ -425,8 +412,7 @@ class CharRef(Entity):
 	def _aspy(self, lines, encoding, level, names, asmod, defaults, schema):
 		lines.append([level, "class %s(xsc.CharRef):" % self.pyname])
 		newlines = []
-		if self.doc is not None:
-			self.doc._aspy(newlines, encoding, level+1, names, asmod, defaults, schema)
+		self._adddoc(newlines, level+1)
 		if self.pyname != self.name:
 			newlines.append([level+1, "xmlname = %s" % self.simplify(self.name)])
 		if self.codepoint > 0xffff:
@@ -482,10 +468,11 @@ def fromdtd(dtd, xmlname, xmlurl=None):
 					required = True
 				else:
 					required = None
-				e.append(Attr(name=attrname, type=type, default=default, required=required))
+				a = Attr(name=attrname, type=type, default=default, required=required)
 				for v in values:
-					e[-1].values.append(v)
-		ns.append(e)
+					a.values.append(v)
+				e.attrs.append(a)
+		ns.content.append(e)
 
 	# Iterate through the elements a second time and add model information
 	for elemname in elements:
@@ -507,18 +494,20 @@ def fromdtd(dtd, xmlname, xmlurl=None):
 				else:
 					return {model[0]: None}
 			model = extractcont(model)
-			modeltype = "Elements"
+			modeltype = "sims.Elements"
 			modelargs = []
 			for cont in model:
 				if cont == "#PCDATA":
-					modeltype = "ElementsOrText"
+					modeltype = "sims.ElementsOrText"
+				elif cont == "EMPTY":
+					modeltype = "sims.Empty"
 				else:
 					modelargs.append(ns.element(cont))
 			if not modelargs:
-				if modeltype == "ElementsOrText":
-					modeltype = "NoElements"
+				if modeltype == "sims.ElementsOrText":
+					modeltype = "sims.NoElements"
 				else:
-					modeltype = "NoElementsOrText"
+					modeltype = "sims.NoElementsOrText"
 		e = ns.element(elemname)
 		e.modeltype = modeltype
 		e.modelargs = modelargs
@@ -529,7 +518,7 @@ def fromdtd(dtd, xmlname, xmlurl=None):
 	for entname in ents:
 		if entname not in ("quot", "apos", "gt", "lt", "amp"):
 			ent = parsers.parseString(dtd.resolve_ge(entname).value)
-			ns.append(charref(name=entname, codepoint=ord(unicode(ent[0])[0])))
+			ns.content.append(CharRef(entname, codepoint=ord(unicode(ent[0])[0])))
 
 	# if the DTD has exactly one value for all fixed "xmlns" attributes and the user didn't specify an xmlurl, use this one
 	if xmlurl is None and len(xmlns)==1:

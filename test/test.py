@@ -14,7 +14,7 @@ from xml.sax import saxlib
 from xml.parsers import expat
 
 from ll import url
-from ll.xist import xsc, parsers, cssparsers, presenters, converters, helpers, errors, options, xnd
+from ll.xist import xsc, parsers, cssparsers, presenters, converters, helpers, errors, options, sims, xnd
 from ll.xist.ns import wml, ihtml, html, chars, css, abbr, specials, htmlspecials, php, xml, tld
 
 
@@ -1722,9 +1722,7 @@ class DTD2XSCTest(unittest.TestCase):
 		from xml.parsers.xmlproc import dtdparser
 
 		dtd = dtdparser.load_dtd_string(s)
-		node = xndl.fromdtd(dtd, xmlname=xmlname, xmlurl=xmlurl)
-
-		data = node.asdata()
+		data = xnd.fromdtd(dtd, xmlname=xmlname, xmlurl=xmlurl)
 
 		if shareattrs is not None:
 			data.shareattrs(shareattrs)
@@ -1760,10 +1758,12 @@ class DTD2XSCTest(unittest.TestCase):
 		self.assert_(issubclass(ns, xsc.Namespace))
 		self.assertEqual(ns.xmlname, ("xmlns", "foo"))
 		self.assertEqual(ns.xmlurl, "http://xmlns.foo.com/foo")
-		self.assertEqual(ns.foo.empty, False)
+		self.assert_(isinstance(ns.foo.model, sims.Elements))
+		self.assertEqual(len(ns.foo.model.elements), 1)
+		self.assertEqual(ns.foo.model.elements[0], ns.bar)
 		self.assert_(issubclass(ns.foo.Attrs.id, xsc.IDAttr))
 		self.assert_("xmlns" not in ns.foo.Attrs)
-		self.assertEqual(ns.bar.empty, True)
+		self.assert_(isinstance(ns.bar.model, sims.Empty))
 
 		self.assert_("bar" not in ns.bar.Attrs)
 
@@ -1901,9 +1901,8 @@ class TLD2XSCTest(unittest.TestCase):
 	def tld2ns(self, s, xmlname, shareattrs=None):
 		node = parsers.parseString(s, prefixes=xsc.Prefixes(tld))
 		node = node.findfirst(xsc.FindType(tld.taglib))
-		node = node.conv()
 
-		data = node.asdata()
+		data = node.asxnd()
 
 		if shareattrs is not None:
 			data.shareattrs(shareattrs)
@@ -1953,7 +1952,7 @@ class TLD2XSCTest(unittest.TestCase):
 		ns = self.tld2ns(tldstring, "foo")
 		self.assertEqual(ns.xmlname, ("xmlns", "foo"))
 		self.assertEqual(ns.bar.xmlname, ("bar", "bar"))
-		self.assertEqual(ns.bar.empty, True)
+		self.assert_(isinstance(ns.bar.model, sims.Empty))
 		self.assertEqual(ns.bar.__doc__.strip(), "info")
 
 		self.assert_(issubclass(ns.bar.Attrs.name, xsc.TextAttr))
@@ -1964,10 +1963,9 @@ class TLD2XSCTest(unittest.TestCase):
 
 
 class XNDLTest(unittest.TestCase):
-	def xndl2ns(self, node):
-		data = node.asdata()
+	def xnd2ns(self, data):
 
-		mod = {"__name__": str(node.xmlname[False])}
+		mod = {"__name__": str(data.name)}
 		encoding = "iso-8859-1"
 		code = data.aspy(encoding=encoding, asmod=False).encode(encoding)
 		exec code in mod
@@ -1975,48 +1973,48 @@ class XNDLTest(unittest.TestCase):
 		return mod["xmlns"]
 
 	def test_procinst(self):
-		e = xndl.xndl(
-			xndl.procinst(xndl.doc("gurk"), target="foo")
+		e = xnd.Namespace("ns")(
+			xnd.ProcInst("foo", doc="gurk")
 		)
-		ns = self.xndl2ns(e)
+		ns = self.xnd2ns(e)
 		self.assert_(issubclass(ns.foo, xsc.ProcInst))
 		self.assertEqual(ns.foo.__doc__.strip(), "gurk")
 
-		e = xndl.xndl(
-			xndl.procinst(target="f-o-o")
+		e = xnd.Namespace("ns")(
+			xnd.ProcInst("f-o-o")
 		)
-		ns = self.xndl2ns(e)
+		ns = self.xnd2ns(e)
 		self.assert_(issubclass(ns.f_o_o, xsc.ProcInst))
 		self.assert_(ns.f_o_o.xmlname, ("f_o_o", "f-o-o"))
 
 	def test_entity(self):
-		e = xndl.xndl(
-			xndl.entity(xndl.doc("gurk"), name="foo")
+		e = xnd.Namespace("ns")(
+			xnd.Entity("foo", doc="gurk")
 		)
-		ns = self.xndl2ns(e)
+		ns = self.xnd2ns(e)
 		self.assert_(issubclass(ns.foo, xsc.Entity))
 		self.assertEqual(ns.foo.__doc__.strip(), "gurk")
 
-		e = xndl.xndl(
-			xndl.entity(name="f-o-o")
+		e = xnd.Namespace("ns")(
+			xnd.Entity("f-o-o")
 		)
-		ns = self.xndl2ns(e)
+		ns = self.xnd2ns(e)
 		self.assert_(issubclass(ns.f_o_o, xsc.Entity))
 		self.assert_(ns.f_o_o.xmlname, ("f_o_o", "f-o-o"))
 
 	def test_charref(self):
-		e = xndl.xndl(
-			xndl.charref(xndl.doc("gurk"), name="foo", codepoint=0x3042)
+		e = xnd.Namespace("ns")(
+			xnd.CharRef("foo", doc="gurk", codepoint=0x3042)
 		)
-		ns = self.xndl2ns(e)
+		ns = self.xnd2ns(e)
 		self.assert_(issubclass(ns.foo, xsc.CharRef))
 		self.assertEqual(ns.foo.__doc__.strip(), "gurk")
 		self.assertEqual(ns.foo.codepoint, 0x3042)
 
-		e = xndl.xndl(
-			xndl.charref(name="f-o-o", codepoint=0x3042)
+		e = xnd.Namespace("ns")(
+			xnd.CharRef("f-o-o", codepoint=0x3042)
 		)
-		ns = self.xndl2ns(e)
+		ns = self.xnd2ns(e)
 		self.assert_(issubclass(ns.f_o_o, xsc.CharRef))
 		self.assert_(ns.f_o_o.xmlname, ("f_o_o", "f-o-o"))
 
