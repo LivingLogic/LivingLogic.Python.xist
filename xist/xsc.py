@@ -247,7 +247,10 @@ class XSCNode:
 			return self
 
 	def __repr__(self):
-		return self.repr(xsc.reprtree)
+		if xsc.reprtree == 1:
+			return self.reprtree()
+		else:
+			return self.repr()
 
 	def repr(self):
 		return self._dorepr()
