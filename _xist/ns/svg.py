@@ -544,8 +544,8 @@ class glyphRef(xsc.Element):
 		class format(xsc.TextAttr): pass
 		class x(NumberAttr): pass
 		class y(NumberAttr): pass
-		class dx(Number: pass
-		class dy(Number: pass
+		class dx(NumberAttr): pass
+		class dy(NumberAttr): pass
 
 # register all the classes we've defined so far
 xmlns = xsc.Namespace("svg", "http://www.w3.org/2000/svg", vars())
