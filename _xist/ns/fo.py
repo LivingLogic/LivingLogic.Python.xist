@@ -30,6 +30,10 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 
 from ll.xist import xsc
 
+###
+### Attributes
+###
+
 class media_usage(xsc.Element.Attrs):
 	class media_usage(xsc.TextAttr):
 		xmlname = "media-usage"
@@ -872,6 +876,10 @@ class usage_context_of_suppress_at_line_break(xsc.Element.Attrs):
 	class usage_context_of_suppress_at_line_break(xsc.TextAttr):
 		xmlname = "usage-context-of-suppress-at-line-break"
 		values = ("auto", "observe", "ignore", "inherit")
+
+###
+### Elements
+###
 
 class color_profile(xsc.Element):
 	xmlname = "color-profile"
