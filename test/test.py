@@ -1252,32 +1252,44 @@ class PublishTest(unittest.TestCase):
 		return xmlns
 
 	def test_nsupdate(self):
-		class foo(xsc.Element):
-			pass
-		class bar(xsc.Element):
-			pass
-		class foo2(xsc.Element):
-			pass
-		class bar2(xsc.Element):
-			pass
-		ns = self.createns()
-		ns.update({"foo": foo, "bar": bar, "foo2": foo2, "bar2": bar2})
-		self.assertEquals(ns.element("foo"), foo)
-		self.assertEquals(ns.element("bar"), bar)
-		self.assertEquals(ns.element("foo2"), foo2)
-		self.assertEquals(ns.element("bar2"), bar2)
+		class ns1:
+			class foo(xsc.Element):
+				pass
+			class bar(xsc.Element):
+				pass
+			class foo2(xsc.Element):
+				pass
+			class bar2(xsc.Element):
+				pass
+		class ns2:
+			class foo(xsc.Element):
+				pass
+			class bar(xsc.Element):
+				pass
+			class foo2(xsc.Element):
+				pass
+			class bar2(xsc.Element):
+				pass
+		a = [ {"foo": ns.foo, "bar": ns.bar, "foo2": ns.foo2, "bar2": ns.bar2} for ns in (ns1, ns2) ]
 
 		ns = self.createns()
-		ns.updatenew({"foo": foo, "bar": bar, "foo2": foo2, "bar2": bar2})
+		ns.update(*a)
+		self.assertEquals(ns.element("foo"), ns2.foo)
+		self.assertEquals(ns.element("bar"), ns2.bar)
+		self.assertEquals(ns.element("foo2"), ns2.foo2)
+		self.assertEquals(ns.element("bar2"), ns2.bar2)
+
+		ns = self.createns()
+		ns.updatenew(*a)
 		self.assertEquals(ns.element("foo"), ns.foo)
 		self.assertEquals(ns.element("bar"), ns.bar)
-		self.assertEquals(ns.element("foo2"), foo2)
-		self.assertEquals(ns.element("bar2"), bar2)
+		self.assertEquals(ns.element("foo2"), ns2.foo2)
+		self.assertEquals(ns.element("bar2"), ns2.bar2)
 
 		ns = self.createns()
-		ns.updateexisting({"foo": foo, "bar": bar, "foo2": foo2, "bar2": bar2})
-		self.assertEquals(ns.element("foo"), foo)
-		self.assertEquals(ns.element("bar"), bar)
+		ns.updateexisting(*a)
+		self.assertEquals(ns.element("foo"), ns2.foo)
+		self.assertEquals(ns.element("bar"), ns2.bar)
 		self.assertRaises(errors.IllegalElementError, ns.element, "foo2")
 		self.assertRaises(errors.IllegalElementError, ns.element, "bar2")
 

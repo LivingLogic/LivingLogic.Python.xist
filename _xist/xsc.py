@@ -1951,30 +1951,35 @@ class Attrs(Node, dict):
 			dict.__setitem__(self, self._allowedattrkey(name, xml=xml), attr)
 		return attr
 
-	def update(self, mapping):
+	def update(self, *args, **kwargs):
 		"""
-		Copies attributes over from <arg>mapping</arg>.
+		Copies attributes over from all mappings in <arg>args</arg> and from <arg>kwargs</arg>.
 		"""
-		for (attrname, attrvalue) in mapping.iteritems():
-			self[attrname] = attrvalue
-
-	def updateexisting(self, mapping):
-		"""
-		Copies attributes over from <arg>mapping</arg>, but only if
-		they exist in <self/>.
-		"""
-		for (attrname, attrvalue) in mapping.iteritems():
-			if self.has(attrname):
+		for mapping in args + (kwargs,):
+			for (attrname, attrvalue) in mapping.iteritems():
 				self[attrname] = attrvalue
 
-	def updatenew(self, mapping):
+	def updateexisting(self, *args, **kwargs):
 		"""
-		Copies attributes over from <arg>mapping</arg>, but only if
-		they don't exist in <self/>.
+		Copies attributes over from all mappings in <arg>args</arg> and from <arg>kwargs</arg>,
+		but only if they exist in <self/>.
 		"""
-		for (attrname, attrvalue) in mapping.iteritems():
-			if not self.has(attrname):
-				self[attrname] = attrvalue
+		for mapping in args + (kwargs,):
+			for (attrname, attrvalue) in mapping.iteritems():
+				if self.has(attrname):
+					self[attrname] = attrvalue
+
+	def updatenew(self, *args, **kwargs):
+		"""
+		Copies attributes over from all mappings in <arg>args</arg> and from <arg>kwargs</arg>,
+		but only if they don't exist in <self/>.
+		"""
+		args = list(args)
+		args.reverse()
+		for mapping in [kwargs] + args: # Iterate in reverse order, so the last entry wins
+			for (attrname, attrvalue) in mapping.iteritems():
+				if not self.has(attrname):
+					self[attrname] = attrvalue
 
 	def copydefaults(self, fromMapping):
 		errors.warn(DeprecationWarning("Attrs.copydefaults() is deprecated, use Attrs.updateexisting() instead"))
@@ -3586,33 +3591,38 @@ class Namespace(object):
 			raise errors.IllegalCharRefError(name, xml=xml)
 	charref = classmethod(charref)
 
-	def update(cls, mapping):
+	def update(cls, *args, **kwargs):
 		"""
-		Copies attributes from <arg>mapping</arg>
+		Copies attributes over from all mappings in <arg>args</arg> and from <arg>kwargs</arg>.
 		"""
-		for (key, value) in mapping.iteritems():
-			if value is not cls and key not in ("__name__", "__dict__"):
-				setattr(cls, key, value)
+		for mapping in args + (kwargs,):
+			for (key, value) in mapping.iteritems():
+				if value is not cls and key not in ("__name__", "__dict__"):
+					setattr(cls, key, value)
 	update = classmethod(update)
 
-	def updateexisting(cls, mapping):
+	def updateexisting(cls, *args, **kwargs):
 		"""
-		Copies attributes over from <arg>mapping</arg>, but only if
-		they exist in <self/>.
+		Copies attributes over from all mappings in <arg>args</arg> and from <arg>kwargs</arg>,
+		but only if they exist in <self/>.
 		"""
-		for (key, value) in mapping.iteritems():
-			if value is not cls and key not in ("__name__", "__dict__") and hasattr(cls, key):
-				setattr(cls, key, value)
+		for mapping in args + (kwargs,):
+			for (key, value) in mapping.iteritems():
+				if value is not cls and key not in ("__name__", "__dict__") and hasattr(cls, key):
+					setattr(cls, key, value)
 	updateexisting = classmethod(updateexisting)
 
-	def updatenew(cls, mapping):
+	def updatenew(cls, *args, **kwargs):
 		"""
-		Copies attributes over from <arg>mapping</arg>, but only if
-		they don't exist in <self/>.
+		Copies attributes over from all mappings in <arg>args</arg> and from <arg>kwargs</arg>,
+		but only if they don't exist in <self/>.
 		"""
-		for (key, value) in mapping.iteritems():
-			if value is not cls and key not in ("__name__", "__dict__") and not hasattr(cls, key):
-				setattr(cls, key, value)
+		args = list(args)
+		args.reverse()
+		for mapping in [kwargs] + args: # Iterate in reverse order, so the last entry wins
+			for (key, value) in mapping.iteritems():
+				if value is not cls and key not in ("__name__", "__dict__") and not hasattr(cls, key):
+					setattr(cls, key, value)
 	updatenew = classmethod(updatenew)
 
 	def makemod(cls, vars=None):
