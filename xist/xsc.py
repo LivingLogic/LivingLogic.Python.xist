@@ -1308,6 +1308,13 @@ class XML(ProcInst):
 			return
 		ProcInst.publish(self, publisher)
 
+class XML10(XML):
+	"""
+	XML header version 1.0
+	"""
+	def __init__(self):
+		XML.__init__(self, 'version="1.0"')
+
 class XMLStyleSheet(ProcInst):
 	"""
 	XML stylesheet declaration
