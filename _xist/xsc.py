@@ -16,7 +16,7 @@ classes and functions.
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-import os, sys, random, copy, warnings
+import os, sys, random, copy, warnings, new
 
 from ll import url, ansistyle
 
@@ -3219,6 +3219,11 @@ class Namespace(Base):
 				if xmlurl is not None:
 					xmlurl = unicode(xmlurl)
 				dict["xmlurl"] = xmlurl
+			# Convert functions to staticmethods as Namespaces won't be instantiated anyway
+			# If you need a classmethod simply define one
+			for (key, value) in dict.iteritems():
+				if isinstance(value, new.function):
+					dict[key] = staticmethod(value)
 			# automatically inherit all element, procinst, entity and Attrs classes, that aren't overwritten.
 			for base in bases:
 				for attrname in dir(base):
@@ -3311,7 +3316,7 @@ class Namespace(Base):
 					oldvalue._registerns(None)
 				except AttributeError:
 					pass
-			if isinstance(value, type) and issubclass(value, (Element, ProcInst, Entity)):
+			elif isinstance(value, type) and issubclass(value, (Element, ProcInst, Entity)):
 				ns = value.__dict__.get("xmlns", None) # no inheritance
 				if ns is not None:
 					try:
@@ -3319,6 +3324,8 @@ class Namespace(Base):
 					except AttributeError:
 						pass
 				value._registerns(cls)
+			elif isinstance(value, new.function):
+				value = staticmethod(value)
 			return type.__setattr__(cls, key, value)
 
 	class Attrs(_Attrs):
