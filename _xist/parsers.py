@@ -391,7 +391,7 @@ class Handler(object):
 		self.parser.setFeature(handler.feature_namespaces, False) # We do our own namespace processing
 		self.parser.setFeature(handler.feature_external_ges, False) # Don't process external entities, but pass them to skippedEntity
 
-		self.skippingWhitespace = 0
+		self.skippingWhitespace = False
 		self.parser.parse(source)
 
 		# unregister us to break the cycles
@@ -458,7 +458,7 @@ class Handler(object):
 		node.parsed(self, start=True)
 		self.__appendNode(node)
 		self.__nesting.append((node, prefixes)) # push new innermost element onto the stack, together with the list of prefix mappings defined by this node
-		self.skippingWhitespace = 0
+		self.skippingWhitespace = False
 
 	def endElement(self, name):
 		currentelement = self.__nesting[-1][0]
@@ -471,7 +471,7 @@ class Handler(object):
 		for (type, prefix) in self.__nesting[-1][1]:
 			self.prefixes.endPrefixMapping(prefix, type)
 		self.__nesting.pop() # pop the innermost element off the stack
-		self.skippingWhitespace = 0
+		self.skippingWhitespace = False
 
 	def characters(self, content):
 		if self.skippingWhitespace:
@@ -489,22 +489,22 @@ class Handler(object):
 				last[-1] = node # replace it
 			else:
 				self.__appendNode(node)
-			self.skippingWhitespace = 0
+			self.skippingWhitespace = False
 
 	def comment(self, content):
 		node = self.createComment(content)
 		node.parsed(self)
 		self.__appendNode(node)
-		self.skippingWhitespace = 0
+		self.skippingWhitespace = False
 
 	def processingInstruction(self, target, data):
 		if target=="x":
-			self.skippingWhitespace = 1
+			self.skippingWhitespace = True
 		else:
 			node = self.createProcInst(target, data)
 			node.parsed(self)
 			self.__appendNode(node)
-			self.skippingWhitespace = 0
+			self.skippingWhitespace = False
 
 	def skippedEntity(self, name):
 		node = self.createEntity(name)
@@ -513,7 +513,7 @@ class Handler(object):
 			self.characters(unichr(node.codepoint))
 		else:
 			self.__appendNode(node)
-		self.skippingWhitespace = 0
+		self.skippingWhitespace = False
 
 	def __decorateException(self, exception):
 		if not isinstance(exception, saxlib.SAXParseException):
