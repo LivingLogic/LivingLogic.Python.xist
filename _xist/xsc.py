@@ -378,13 +378,16 @@ class Node(Base):
 				publisher.publish(u":")
 		publisher.publish(self.xmlname)
 
-	def parsed(self, handler):
+	def parsed(self, handler, begin=None):
 		"""
 		<par>This method will be called by the parsing handler <arg>handler</arg>
 		once after <self/> is created by the parser. This is e.g. used by
 		<pyref class="URLAttr"><class>URLAttr</class></pyref> to incorporate
 		the base <pyref module="ll.url" class="URL"><class>URL</class></pyref>
 		<arg>base</arg> into the attribute.</par>
+		<par>For elements <function>parsed</function> will be called twice:
+		once at the beginning of the element with <lit><arg>begin</arg>==True</lit>
+		and once at the end of the element with <lit><arg>begin</arg>==False</lit>.</par>
 		"""
 		pass
 
@@ -1331,7 +1334,7 @@ class Attr(Frag):
 			if value not in values:
 				errors.warn(errors.IllegalAttrValueWarning(self))
 
-	def parsed(self, handler):
+	def parsed(self, handler, begin=None):
 		self.checkValid()
 
 	def publish(self, publisher):
@@ -1387,7 +1390,7 @@ class StyleAttr(Attr):
 	<par>Attribute class that is used for &css; style attributes.</par>
 	"""
 
-	def parsed(self, handler):
+	def parsed(self, handler, begin=None):
 		if not self.isfancy():
 			value = cssparsers.parseString(unicode(self), handler=cssparsers.ParseHandler(), base=handler.base)
 			self[:] = (value, )
@@ -1419,7 +1422,7 @@ class URLAttr(Attr):
 	Attribute class that is used for URLs. See RFC 2396.
 	"""
 
-	def parsed(self, handler):
+	def parsed(self, handler, begin=None):
 		self[:] = utils.replaceInitialURL(self, lambda u: handler.base/u)
 
 	def publish(self, publisher):
@@ -1587,7 +1590,7 @@ class Attrs(Node, dict):
 	def present(self, presenter):
 		presenter.presentAttrs(self)
 
-	def parsed(self, handler):
+	def parsed(self, handler, begin=None):
 		attrs = [key for (key, value) in self.alloweditems() if value.required]
 		for attrname in self.keys():
 			if isinstance(attrname, tuple): # global attribute?
@@ -1958,14 +1961,16 @@ class Element(Node):
 		if self.empty and len(self):
 			raise errors.EmptyElementWithContentError(self)
 
+	def parsed(self, handler, begin=None):
+		if not begin:
+			self.checkValid()
+
 	def append(self, *items):
 		"""
 		<par>appends to content (see <pyref class="Frag" method="append"><method>Frag.append</method></pyref>
 		for more info)</par>
 		"""
-
 		self.content.append(*items)
-		self.checkValid()
 
 	def insert(self, index, *items):
 		"""
@@ -1973,7 +1978,6 @@ class Element(Node):
 		for more info)</par>
 		"""
 		self.content.insert(index, *items)
-		self.checkValid()
 
 	def convert(self, converter):
 		node = self.__class__() # "virtual" constructor
@@ -2045,6 +2049,7 @@ class Element(Node):
 	xmlprefix = classmethod(xmlprefix)
 
 	def publish(self, publisher):
+		self.checkValid()
 		if publisher.inAttr:
 			# publish the content only, when we are inside an attribute
 			# this works much like using the plain string value, but

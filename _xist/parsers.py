@@ -484,7 +484,6 @@ class Handler(object):
 			prefixes.append((type, prefix))
 			self.prefixes.startPrefixMapping(prefix, unicode(attrvalue), "replace", type)
 		node = self.prefixes.elementFromQName(name)()
-		node.parsed(self)
 		for (attrname, attrvalue) in attrs.items():
 			if attrname!="xmlns" and not attrname.startswith("xmlns:") and \
 			   attrname!="procinstns" and not attrname.startswith("procinstns:") and \
@@ -492,15 +491,17 @@ class Handler(object):
 				attrname = self.prefixes.attrnameFromQName(node, attrname)
 				node[attrname] = attrvalue
 				node[attrname].parsed(self)
+		node.parsed(self, begin=True)
 		self.__appendNode(node)
 		self.__nesting.append((node, prefixes)) # push new innermost element onto the stack, together with the list of prefix mappings defined by this node
 		self.skippingWhitespace = 0
 
 	def endElement(self, name):
-		element = self.prefixes.elementFromQName(name)
-		currentelement = self.__nesting[-1][0].__class__
-		if element is not currentelement:
-			raise errors.ElementNestingError(currentelement, element)
+		currentelement = self.__nesting[-1][0]
+		currentelement.parsed(self, begin=False)
+		elementclass = self.prefixes.elementFromQName(name)
+		if elementclass is not currentelement.__class__:
+			raise errors.ElementNestingError(currentelement.__class__, elementclass)
 		self.__nesting[-1][0].endLoc = self.getLocation()
 		# SAX specifies that the order of calls to endPrefixMapping is undefined, so we use the same order as in beginElement
 		for (type, prefix) in self.__nesting[-1][1]:
