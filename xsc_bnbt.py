@@ -612,33 +612,28 @@ class lnk(XSCElement):
 	empty = 0
 
 	def asHTML(self):
+		pfeil = None
+		text = div(
+			hrf(
+				self["text"],
+				href = self["href"]
+			)
+		)
+		if self.has_attr("rel")
+			pfeil = div(
+				hrf(
+					pfeil(rel = self["rel"]),
+					href = self["href"],
+					rel  = self["rel"]
+				)+
+				nbsp()
+			)
+			text[0]["rel"] = self["rel"]
 		e = tr(
 			td(indent(),rowspan="3")+
-			td(
-				div(
-					hrf(
-						pfeil(rel = self["rel"]),
-						href = self["href"],
-						rel  = self["rel"]
-					)+
-					nbsp()
-				),
-				Class = "links"
-			)+
-			td(
-				div(
-					hrf(
-						self["text"],
-						href = self["href"],
-						rel  = self["rel"]
-					)
-				)
-			)+
-			td(
-				indent(),
-				Class = "links",
-				nowrap = None
-			)
+			td(pfeil,Class = "links")+
+			td(text))+
+			td(indent(),Class = "links",nowrap = None)
 		)
 		e = e + tr(
 			td(
