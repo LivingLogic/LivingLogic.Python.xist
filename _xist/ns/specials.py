@@ -325,13 +325,10 @@ class esc(xsc.CharRef): "escape"; codepoint = 27
 
 class PHP(xsc.ProcInst):
 	"""
-	PHP processing instruction (must be used with a target)
+	PHP processing instruction (must be used with the target php to work with XML)
 	"""
 
 	name = u"php"
-
-	def __init__(self, content=u""):
-		xsc.ProcInst.__init__(self, u"php", content)
 
 namespace = xsc.Namespace("specials", "http://www.livinglogic.de/DTDs/specials.dtd", vars())
 

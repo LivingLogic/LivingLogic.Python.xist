@@ -1381,9 +1381,6 @@ class Eval(PythonCode):
 	name = u"eval"
 	register = 1
 
-	def __init__(self, content=u""):
-		ProcInst.__init__(self, content)
-
 	def convert(self, converter):
 		"""
 		Evaluates the code. The <argref>converter</argref> argument will be available
@@ -1402,9 +1399,6 @@ class XML(ProcInst):
 	name = u"xml"
 	presentPrefix = 0
 	publishPrefix = 0
-
-	def __init__(self, content=u""):
-		ProcInst.__init__(self, content)
 
 	def publish(self, publisher):
 		encodingfound = utils.findAttr(self._content, u"encoding")
@@ -1435,9 +1429,6 @@ class XMLStyleSheet(ProcInst):
 	name = u"xml-stylesheet"
 	presentPrefix = 0
 	publishPrefix = 0
-
-	def __init__(self, content=u""):
-		ProcInst.__init__(self, content)
 
 class Element(Node):
 	"""

@@ -13,9 +13,6 @@ class taglib(xsc.ProcInst):
 	"""
 	creates a standard struts taglib header
 	"""
-	def __init__(self, content=u""):
-		xsc.ProcInst.__init__(self, u"taglib", content)
-
 	def publish(self, publisher):
 		publisher.publish(u'<%@ taglib uri="/WEB-INF/struts-html.tld" prefix="struts_html" %>')
 
