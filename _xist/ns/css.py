@@ -103,7 +103,14 @@ class atmedia(xsc.Element):
 		publisher.publish(u"@media ")
 		publisher.publish(unicode(self["media"]))
 		publisher.publish(u"\n{\n")
-		self.content.publish(publisher)
+		imports = self.find(type=atimport)
+		for i in imports:
+			publisher.publish(u"\n")
+			i.publish(publisher)
+		content = self.find(type=rule, subtype=1)
+		for child in content:
+			publisher.publish(u"\n\t")
+			child.publish(publisher)
 		publisher.publish(u"\n}")
 
 class atcharset(xsc.Element):
