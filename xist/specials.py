@@ -468,6 +468,12 @@ class api(xsc.Entity):
 	def asPlainString(self):
 		return u"API"
 
+class sax(xsc.Entity):
+	def convert(self, converter=None):
+		return html_.span(html_.abbr("SAX", title="Simple API for XML", lang="en"), class_="caps")
+	def asPlainString(self):
+		return u"SAX"
+
 class PHP(xsc.ProcInst):
 	"""
 	PHP processing instruction (must be used with a target)
