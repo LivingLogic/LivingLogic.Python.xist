@@ -26,7 +26,7 @@ As the name <function>asHTML</function> no longer makes sense, <function>asHTML<
 has been renamed to <function>convert</function>.</li>
 
 <li>There is now a tool <filename>dtd2xsc.py</filename> in the <filename class="directory">scripts</filename> directory
-that creates a skeleton &xist; module for a &dtd;
+that creates a skeleton &xist; module from a &dtd;
 (this requires xmlproc from the PyXML package).</li>
 
 <li>New preliminary module for DocBook 4.12.

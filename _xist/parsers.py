@@ -156,19 +156,25 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 		self.lineNumber = 1
 		# nothing done for the column number, because otherwise parsing would be much to slow.
 
-		while 1:
-			data = file.read(self.bufsize)
-			if not data:
-				break
+		try:
 			while 1:
-				pos = data.find("\n")
-				if pos==-1:
+				data = file.read(self.bufsize)
+				if not data:
 					break
-				self.parser.feed(data[:pos+1])
-				data = data[pos+1:]
-				self.lineNumber += 1
-			self.parser.feed(data)
-		self.close()
+				while 1:
+					pos = data.find("\n")
+					if pos==-1:
+						break
+					self.parser.feed(data[:pos+1])
+					data = data[pos+1:]
+					self.lineNumber += 1
+				self.parser.feed(data)
+			self.close()
+		except Exception, ex: # FIXME: really catch everything?
+			if self.error_handler is not None:
+				self.error_handler.fatalError(ex)
+			else:
+				raise
 		self.source = None
 
 	def setErrorHandler(self, handler):
@@ -320,7 +326,8 @@ class Handler:
 		element = self.namespaces.elementFromName(name)
 		currentelement = self.__nesting[-1].__class__
 		if element != currentelement:
-			raise errors.IllegalElementNestingError(currentelement, element)
+			print errors.ElementNestingError(currentelement, element)
+			raise errors.ElementNestingError(currentelement, element)
 		self.__nesting[-1].endLoc = self.getLocation()
 		self.__nesting.pop() # pop the innermost element off the stack
 

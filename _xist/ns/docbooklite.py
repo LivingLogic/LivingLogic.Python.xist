@@ -1,5 +1,5 @@
 from xist import xsc, converters
-from xist.ns import html
+from xist.ns import html, docbook
 
 class itemizedlist(xsc.Element):
 	"""
@@ -190,6 +190,78 @@ class para(xsc.Element):
 
 	def convert(self, converter=None):
 		e = html.p(*self.content)
+		return e.convert(converter)
+
+class pyref(xsc.Element):
+	"""
+	reference to a Python object:
+	package, module, class, method, function, variable or argument
+	"""
+	empty = 0
+	attrHandlers = {"module": xsc.TextAttr, "class": xsc.TextAttr, "method": xsc.TextAttr, "function": xsc.TextAttr, "var": xsc.TextAttr, "arg": xsc.TextAttr}
+
+	def convert(self, converter=None):
+		if self.hasAttr("var"):
+			var = self["var"].convert(converter).asPlainString()
+		else:
+			var = None
+		if self.hasAttr("arg"):
+			arg = self["arg"].convert(converter).asPlainString()
+		else:
+			arg = None
+		if self.hasAttr("function"):
+			function = self["function"].convert(converter).asPlainString()
+		else:
+			function = None
+		if self.hasAttr("method"):
+			method = self["method"].convert(converter).asPlainString()
+		else:
+			method = None
+		if self.hasAttr("class"):
+			class_ = self["class"].convert(converter).asPlainString()
+		else:
+			class_ = None
+		if self.hasAttr("module"):
+			module = self["module"].convert(converter).asPlainString()
+		else:
+			module = None
+
+		e = self.content
+		if converter is not None and converter.target=="docbook":
+			if var is not None:
+				e = e # FIXME
+			elif arg is not None:
+				e = docbook.parameter(e)
+			elif function is not None:
+				e = docbook.function(e)
+			elif method is not None:
+				e = docbook.function(e, type="method")
+			elif class_ is not None:
+				e = docbook.classname(e)
+			elif module is not None:
+				e = e # FIXME
+		else:
+			if var is not None:
+				e = html.code(e, class_="pyvar")
+			elif arg is not None:
+				e = html.code(e, class_="pyarg")
+			elif function is not None:
+				e = html.code(e, class_="pyfunction")
+				if module is not None:
+					e = html.a(e, href=("http://localhost:7464/", module, ".html#", function))
+			elif method is not None:
+				e = html.code(e, class_="pymethod")
+				if class_ is not None and module is not None:
+					e = html.a(e, href=("http://localhost:7464/", module, ".html#", class_, "-", method))
+			elif class_ is not None:
+				e = html.code(e, class_="pyclass")
+				if module is not None:
+					e = html.a(e, href=("http://localhost:7464/", module, ".html#", class_))
+			elif module is not None:
+				e = html.a(
+					html.code(e, class_="pymodule"),
+					href=("http://localhost:7464/", module, ".html")
+				)
 		return e.convert(converter)
 
 namespace = xsc.Namespace("dbl", "http://www.livinglogic.de/DTDs/DocBookLite.dtd", vars())

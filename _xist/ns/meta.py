@@ -20,8 +20,9 @@
 ## IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 """
-A XSC module that contains elements that simplify handling
-meta data.
+<dbl:para>An &xist; module that contains elements that simplify handling
+meta data. All elements in this module will generate a <pyref module="xist.ns.html" class="meta">html.meta</pyref>
+element when converted.</dbl:para>
 """
 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
@@ -32,10 +33,10 @@ import html
 
 class contenttype(html.meta):
 	"""
-	<par noindent>can be used for a <code>&lt;meta http-equiv="Content-Type" content="text/html"/&gt;</code>, where
-	the character set will be automatically inserted on a call to <code>publish()</code>.</par>
+	<dbl:para>can be used for a <code>&lt;meta http-equiv="Content-Type" content="text/html"/&gt;</code>, where
+	the character set will be automatically inserted on a call to <code>publish()</code>.</dbl:para>
 
-	<par>Usage is simple: <code>&lt;meta:contenttype/&gt;</code></par>
+	<dbl:para>Usage is simple: <code>&lt;meta:contenttype/&gt;</code></dbl:para>
 	"""
 	empty = 1
 	attrHandlers = html.meta.attrHandlers.copy()
@@ -52,9 +53,9 @@ class contenttype(html.meta):
 
 class keywords(html.meta):
 	"""
-	<par noindent>can be used for a <code>&lt;meta name="keywords" content="..."/&gt;</code>.</par>
+	<dbl:para>can be used for a <code>&lt;meta name="keywords" content="..."/&gt;</code>.</dbl:para>
 
-	<par>Usage is simple: <code>&lt;meta:keywords&gt;foo, bar&lt;/meta:keywords&gt;</code></par>
+	<dbl:para>Usage is simple: <code>&lt;meta:keywords&gt;foo, bar&lt;/meta:keywords&gt;</code></dbl:para>
 	"""
 	empty = 0
 	attrHandlers = html.meta.attrHandlers.copy()
@@ -122,4 +123,3 @@ class made(html.link):
 		return e.convert(converter)
 
 namespace = xsc.Namespace("meta", "http://www.livinglogic.de/DTDs/meta.dtd", vars())
-

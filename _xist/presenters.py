@@ -297,19 +297,25 @@ def strElementName(namespacename=None, elementname=None, slash=0):
 def strElementNameWithBrackets(namespacename=None, elementname=None, slash=0):
 	return ansistyle.Text(strBracketOpen(), strElementName(namespacename, elementname, slash), EnvTextForBracket(">"))
 
-def strElement(node, slash=0):
-	if hasattr(node, "namespace") and node.presentPrefix!=0:
-		namespacename = node.namespace.prefix
+def strElementClass(class_, slash=0):
+	if hasattr(class_, "namespace") and class_.presentPrefix!=0:
+		namespacename = class_.namespace.prefix
 	else:
 		namespacename = None
-	if hasattr(node, "name"):
-		elementname = node.name
+	if hasattr(class_, "name"):
+		elementname = class_.name
 	else:
-		elementname = node.__class__.__name__
+		elementname = class_.__name__
 	return strElementName(namespacename, elementname, slash)
 
+def strElementClassWithBrackets(class_, slash=0):
+	return ansistyle.Text(strBracketOpen(), strElementClass(class_, slash), strBracketClose())
+
+def strElement(node, slash=0):
+	return strElementClass(node.__class__, slash)
+
 def strElementWithBrackets(node, slash=0):
-	return ansistyle.Text(strBracketOpen(), strElement(node, slash), strBracketClose())
+	return strElementClassWithBrackets(node.__class__, slash)
 
 def strEntityName(namespacename=None, entityname=None):
 	s = EnvTextForEntityName("&")

@@ -129,7 +129,7 @@ class IllegalElementError(Error):
 		allAsList = []
 		for key in allkeys:
 			element = all[key]
-			allAsList.append(str(presenters.strElementWithBrackets(element)))
+			allAsList.append(str(presenters.strElementClassWithBrackets(element)))
 
 		s = Error.__str__(self) + "element %s not allowed. " % presenters.strElementNameWithBrackets(self.name[0], self.name[1])
 		if allAsList:
@@ -169,7 +169,7 @@ class IllegalProcInstError(Error):
 			s = s + "There are no allowed procinsts."
 		return s
 
-class IllegalElementNestingError(Error):
+class ElementNestingError(Error):
 	"""
 	exception that is raised, when an element has an illegal nesting
 	(e.g. <code>&lt;a&gt;&lt;b&gt;&lt;/a&gt;&lt;/b&gt;</code>)
@@ -181,7 +181,7 @@ class IllegalElementNestingError(Error):
 		self.foundelement = foundelement
 
 	def __str__(self):
-		return Error.__str__(self) + "illegal element nesting (closing %s expected; %s found)" % (presenters.strElementWithBrackets(self.expectedelement, -1), presenters.strElementWithBrackets(self.foundelement, -1))
+		return Error.__str__(self) + "mismatched element nesting (closing %s expected; %s found)" % (presenters.strElementClassWithBrackets(self.expectedelement, -1), presenters.strElementClassWithBrackets(self.foundelement, -1))
 
 class IllegalAttrNodeError(Error):
 	"""
