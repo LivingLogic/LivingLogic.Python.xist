@@ -154,43 +154,52 @@ class title(xsc.Element):
 	The text of the title of a section of a document or of a formal block-level element
 	"""
 	empty = 0
-	attrHandlers = {"class": xsc.TextAttr}
+	attrHandlers = {"role": xsc.TextAttr}
 
 	def convert(self, converter):
-		e = self.content
-		return e.convert(converter)
+		if converter.target=="docbook":
+			return docbook.title(self.content.convert(converter), role=self["role"])
+		else:
+			return self.content.convert(converter)
 
 class section(xsc.Element):
 	"""
 	A recursive section
 	"""
 	empty = 0
+	attrHandlers = {"role": xsc.TextAttr}
 
 	def convert(self, converter):
-		context = converter[self.__class__]
-		if not hasattr(context, "depth"):
-			context.depth = 1
-		ts = xsc.Frag()
-		cs = xsc.Frag()
-		for child in self:
-			if isinstance(child, title):
-				ts.append(child)
+		if converter.target=="docbook":
+			e = docbook.section(self.content.convert(converter), role=self["role"])
+			return e
+		else:
+			context = converter[self.__class__]
+			if not hasattr(context, "depth"):
+				context.depth = 1
+			ts = xsc.Frag()
+			cs = xsc.Frag()
+			for child in self:
+				if isinstance(child, title):
+					ts.append(child)
+				else:
+					cs.append(child)
+			e = html.div(class_=self["role"])
+			for t in ts:
+				h = html.namespace.elementsByName["h%d" % context.depth](class_=t["role"])
+				if converter.target=="text":
+					h.append(html.br(), t.content, html.br(), "="*len(t.content.convert(converter).asPlainString()))
+				else:
+					h.append(t.content)
+				e.append(h)
+			if self.hasAttr("role"):
+				e.append(html.div(cs, class_="content"))
 			else:
-				cs.append(child)
-		e = xsc.Frag()
-		for t in ts:
-			h = html.namespace.elementsByName["h%d" % context.depth]()
-			if converter.target=="text":
-				h.append(html.br(), t.content, html.br(), "="*len(t.content.convert(converter).asPlainString()))
-			else:
-				h.append(t.content)
-			e.append(h)
-		for c in cs:
-			e.append(c)
-		context.depth += 1
-		e = e.convert(converter)
-		context.depth -= 1
-		return e
+				e.append(cs)
+			context.depth += 1
+			e = e.convert(converter)
+			context.depth -= 1
+			return e
 
 class para(xsc.Element):
 	"""
