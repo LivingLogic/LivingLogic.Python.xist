@@ -15,6 +15,7 @@ __version__ = "$Revision$"[11:-2]
 
 import sys
 import getopt
+import time
 from xist import xsc, html, publishers
 from xist.URL import URL
 
@@ -75,14 +76,18 @@ def make():
 				outname.ext = {"hsc": "html", "shsc": "shtml", "phsc": "phtml", "xsc": "html", "sxsc": "shtml", "pxsc": "phtml"}[inname.ext]
 			except KeyError:
 				outname.ext = "html"
+			t1 = time.time()
 			e_in = xsc.xsc.parse(inname)
+			t2 = time.time()
 			xsc.xsc.pushURL(inname)
 			e_out = e_in.asHTML()
+			t3 = time.time()
 			p = publishers.BytePublisher(encoding=encoding, XHTML=XHTML)
 			e_out.publish(p)
 			s_out = p.asBytes()
 			__forceopen(outname.asString(), "wb").write(s_out)
-			sys.stderr.write("XSC(encoding=%r, XHTML=%r): converted %r to %r: %s\n" % (encoding, XHTML, str(inname), str(outname), xsc._stransi("1", str(len(s_out)))))
+			t4 = time.time()
+			sys.stderr.write("XSC(encoding=%r, XHTML=%r): converted %r to %r: %s (%.02sp;%.02sc;%.02ss)\n" % (encoding, XHTML, str(inname), str(outname), xsc._stransi("1", str(len(s_out))), t2-t1, t3-t2, t4-t3))
 			xsc.xsc.popURL()
 	else:
 		sys.stderr.write("XSC: no files to convert.\n")

@@ -456,7 +456,7 @@ class Node:
 		"""
 		returns an identical clone of the node and it's children.
 		"""
-		pass
+		return Null
 
 	def repr(self, encoding=None, ansi=None):
 		return self._dorepr(encoding, ansi)
@@ -727,21 +727,17 @@ class StringMixIn:
 	a few methods (<code>__str__</code> etc.)
 	"""
 	def __init__(self, content):
-		self._content = content
+		self._content = stringFromCode(content)
 
 	def __iadd__(self, other):
 		other = ToNode(other)
-		if isinstance(other, self.__class__):
-			return self.__class__(self._content+other._content)
-		raise ValueError("you can only add a text to a text")
+		return self.__class__(self._content+other._content)
 
 	__add__ = __iadd__
 
 	def __radd__(self, other):
 		other = ToNode(other)
-		if isinstance(other, self.__class__):
-			return self.__class__(other._content+self._content)
-		raise ValueError("you can only add a text to a text")
+		return self.__class__(other._content+self._content)
 
 	def __imul__(self, n):
 		return self.__class__(self._content*n)
@@ -873,14 +869,14 @@ class Text(Node, StringMixIn):
 
 	def __init__(self, content=""):
 		if type(content) in (types.IntType, types.LongType, types.FloatType):
-			content = unicode(str(content),"ascii")
+			content = str(content)
 		elif type(content) in (types.StringType, types.UnicodeType):
-			content = stringFromCode(content)
+			pass
 		elif isinstance(content, Text):
 			content = content._content
 		else:
 			raise ValueError("content must be string, unicode, int, long, float or Text")
-		StringMixIn.__init__(self,content)
+		StringMixIn.__init__(self, content)
 
 	def asHTML(self):
 		return self
@@ -1151,13 +1147,12 @@ class Comment(Node, StringMixIn):
 	"""
 
 	def __init__(self, content=""):
-		content = stringFromCode(content)
 		StringMixIn.__init__(self, content)
 
 	def asHTML(self):
 		return self
 
-	clone = asHTML
+	clone = compact = asHTML
 
 	def _dorepr(self, ansi = None):
 		return strBracketOpen(ansi) + strExclamation(ansi) + strCommentMarker(ansi) + strCommentText(self._content, ansi) + strCommentMarker(ansi) + strBracketClose(ansi)
@@ -1172,35 +1167,29 @@ class Comment(Node, StringMixIn):
 			raise errors.IllegalCommentError(self.startloc, self)
 		publisher(u"<!--", self._content, u"-->")
 
-	def compact(self):
-		return self
-
-class DocType(Node):
+class DocType(Node, StringMixIn):
 	"""
 	a document type node
 	"""
 
 	def __init__(self, content=""):
-		self.content = content
+		StringMixIn.__init__(self, content)
 
 	def asHTML(self):
-		return self._decorateNode(DocType(self.content))
+		return self
 
-	clone = asHTML
+	clone = compact = asHTML
 
-	def _dorepr(self, encoding = None, ansi = None):
-		return strBracketOpen(ansi) + strExclamation(ansi) + strDocTypeMarker(ansi) + " " + strDocTypeText(self.content, ansi) + strBracketClose(ansi)
+	def _dorepr(self, encoding=None, ansi=None):
+		return strBracketOpen(ansi) + strExclamation(ansi) + strDocTypeMarker(ansi) + " " + strDocTypeText(self._content, ansi) + strBracketClose(ansi)
 
 	def _doreprtree(self, nest, elementno, encoding=None, ansi=None):
 		return [[nest, self.startloc, elementno, self._dorepr(encoding, ansi)]]
 
 	def publish(self, publisher):
-		publisher(u"<!DOCTYPE ", self.content, u">")
+		publisher(u"<!DOCTYPE ", self._content, u">")
 
-	def compact(self):
-		return self._decorateNode(DocType(self.content))
-
-class ProcInst(Node):
+class ProcInst(Node, StringMixIn):
 	"""
 	<par noindent>There are two special targets available: <code>xsc-exec</code>
 	and <code>xsc-eval</code> which will be handled by the
@@ -1215,39 +1204,36 @@ class ProcInst(Node):
 	processing of any kind.</par>
 	"""
 
-	def __init__(self, target, content = ""):
-		self.target = stringFromCode(target)
-		self.content = stringFromCode(content)
+	def __init__(self, target, content=u""):
+		self._target = stringFromCode(target)
+		StringMixIn.__init__(self, content)
 
-	def clone(self):
-		return self._decorateNode(ProcInst(self.target, self.content))
+	def asHTML(self):
+		return self
 
-	asHTML = clone
+	clone = compact = asHTML
 
 	def _dorepr(self, encoding=None, ansi=None):
-		return self._str(content = strQuestion(ansi) + strProcInstTarget(self.target, ansi) + " " + strProcInstData(self.content, ansi) + strQuestion(ansi), brackets = 1, ansi = ansi)
+		return self._str(content=strQuestion(ansi) + strProcInstTarget(self._target, ansi) + " " + strProcInstData(self._content, ansi) + strQuestion(ansi), brackets=1, ansi=ansi)
 
 	def _doreprtree(self, nest, elementno, encoding=None, ansi=None):
-		head = strBracketOpen(ansi) + strQuestion(ansi) + strProcInstTarget(self.target, ansi) + " "
+		head = strBracketOpen(ansi) + strQuestion(ansi) + strProcInstTarget(self._target, ansi) + " "
 		tail = strQuestion(ansi) + strBracketClose(ansi)
-		return self._doreprtreeMultiLine(nest, elementno, head, tail, self.content, strProcInstData, 1, ansi=ansi)
+		return self._doreprtreeMultiLine(nest, elementno, head, tail, self._content, strProcInstData, 1, ansi=ansi)
 
 	def publish(self, publisher):
-		if self.content.find(u"?>")!=-1:
+		if self._content.find(u"?>")!=-1:
 			raise errors.IllegalProcInstError(self.startloc, self)
-		publisher(u"<?", publisher._encodeIllegal(self.target), u" ", self.content, u"?>")
-
-	def compact(self):
-		return self._decorateNode(ProcInst(self.target, self.content))
+		publisher(u"<?", publisher._encodeIllegal(self._target), u" ", self._content, u"?>")
 
 class PythonCode(ProcInst):
 	"""
 	helper class
 	"""
 	def _doreprtree(self, nest, elementno, encoding=None, ansi=None):
-		head = strBracketOpen(ansi) + strQuestion(ansi) + strProcInstTarget(self.target, ansi) + " "
+		head = strBracketOpen(ansi) + strQuestion(ansi) + strProcInstTarget(self._target, ansi) + " "
 		tail = strQuestion(ansi) + strBracketClose(ansi)
-		code = Code(self.content, 1)
+		code = Code(self._content, 1)
 		code.indent()
 		return self._doreprtreeMultiLine(nest, elementno, head, tail, code.asString(), strProcInstData, 1, ansi=ansi)
 
@@ -1263,16 +1249,13 @@ class Exec(PythonCode):
 	<par>XSC processing instructions will be evaluated and executed in the
 	namespace of the module procinst.</par>
 	"""
-	def __init__(self, content=""):
+	def __init__(self, content=u""):
 		ProcInst.__init__(self, u"xsc-exec", content)
 		code = Code(self.content, 1)
-		exec code.asString() in procinst.__dict__ # requires Python 2.0b2
+		exec code.asString() in procinst.__dict__ # requires Python 2.0b2 (and doesn't really work)
 
 	def asHTML(self):
 		return Null # has been executed at construction time already, so we don't have to do anything here
-
-	def clone(self):
-		return self._decorateNode(Exec(self.content))
 
 class Eval(PythonCode):
 	"""
@@ -1288,56 +1271,46 @@ class Eval(PythonCode):
 	<par>Note that you should not define the symbol <code>__</code> in any of your XSC
 	processing instructions, as it is used by XSC for internal purposes.</par>
 	"""
-	def __init__(self, content = ""):
+	def __init__(self, content=u""):
 		ProcInst.__init__(self, u"xsc-eval", content)
 
 	def asHTML(self):
-		code = Code(self.content, 1)
+		code = Code(self._content, 1)
 		code.funcify()
-		exec code.asString() in procinst.__dict__ # requires Python 2.0b2
+		exec code.asString() in procinst.__dict__ # requires Python 2.0b2 (and doesn't really work)
 		return ToNode(eval("__()", procinst.__dict__)).asHTML()
-
-	def clone(self):
-		return self._decorateNode(Eval(self.content))
 
 class XML(ProcInst):
 	"""
 	"""
-	def __init__(self, content = u""):
+	def __init__(self, content=u""):
 		ProcInst.__init__(self, u"xml", content)
 
-	def clone(self):
-		return self._decorateNode(XML(self.content))
-
-	asHTML = clone
-
 	def __findAttr(self, name):
-		startpos = self.content.find(name)
+		startpos = self._content.find(name)
 		if startpos != -1:
 			startpos = startpos+len(name)
-			while self.content[startpos].isspace():
+			if startpos < len(self._content)
+			while self._content[startpos].isspace():
 				startpos += 1
 			startpos += 1 # skip '='
-			while self.content[startpos].isspace():
+			while self._content[startpos].isspace():
 				startpos += 1
-			char = self.content[startpos]
+			char = self._content[startpos]
 			startpos += 1
-			endpos = self.content.find(char, startpos)
+			endpos = self._content.find(char, startpos)
 			if endpos != -1:
-				return self.content[startpos:endpos]
+				return self._content[startpos:endpos]
 		return None
 
 	def publish(self, publisher):
 		encodingfound = self.__findAttr(u"encoding")
 		versionfound = self.__findAttr(u"version")
 		standalonefound = self.__findAttr(u"standalone")
-		if publisher.encoding != encodingfound: # if self has the wrong encoding specification (or none), we construct a new XML ProcInst and publish that
-			node = XML(u"")
-			if versionfound is not None:
-				node.content = u"version='" + versionfound + u"' "
-			node.content += u"encoding='" + publisher.encoding + u"'"
-			if standalonefound is not None:
-				node.content += u" standalone='" + standalonefound + u"'"
+		if publisher.encoding != encodingfound: # if self has the wrong encoding specification (or none), we construct a new XML ProcInst and publish that (this doesn't lead to infinite recursion, because the next call will skip it)
+			node = XML(u"version='" + versionfound + u"' encoding='" + publisher.encoding + u"'")
+			if standalonefound != -1:
+				node += u" standalone='" + standalonefound + u"'"
 			node.publish(publisher)
 			return
 		ProcInst.publish(self, publisher)
