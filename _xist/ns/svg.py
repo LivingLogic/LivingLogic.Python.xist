@@ -2,6 +2,14 @@
 # -*- coding: iso-8859-1 -*-
 
 
+## Copyright 1999-2004 by LivingLogic AG, Bayreuth, Germany.
+## Copyright 1999-2004 by Walter Dörwald
+##
+## All Rights Reserved
+##
+## See xist/__init__.py for the license
+
+
 __version__ = "$Revision$"[11:-2]
 # $Source$
 
@@ -1247,4 +1255,4 @@ title.model = sims.NoElements()
 class xmlns(xsc.Namespace):
 	xmlname = "svg"
 	xmlurl = "http://www.w3.org/2000/svg"
-xmlns.update(vars())
+xmlns.makemod(vars())
