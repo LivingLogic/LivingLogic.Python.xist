@@ -1188,6 +1188,7 @@ class xmlns(xsc.Namespace):
 xmlns.makemod(vars())
 
 
+# Parameter entities defined in the DTD
 pe_special_extra = (object, applet, img, map, iframe)
 pe_special_basic = (br, span, bdo)
 pe_special = pe_special_basic + pe_special_extra
@@ -1208,110 +1209,97 @@ pe_blocktext = (pre, hr, blockquote, address, center, noframes)
 pe_block = (p,) + pe_heading + (div,) + pe_lists + pe_blocktext + (isindex, fieldset, table)
 pe_Flow = pe_block + (form,) + pe_inline + pe_misc
 
-model_inline = sims.ElementsOrText(*pe_Inline)
-model_flow = sims.ElementsOrText(*pe_Flow)
-model_li = sims.Elements(li)
-model_empty = sims.Empty()
-model_noelements = sims.NoElements()
-model_object = sims.ElementsOrText(*((param,) + pe_block + (form,) + pe_inline + pe_misc))
-model_tr = sims.Elements(tr)
 
-dtd = {
-	html: sims.Elements(head, body, frameset),
-	head: sims.Elements(title, base, script, style, meta, link, object, isindex),
-	title: model_noelements,
-	base: model_empty,
-	meta: model_empty,
-	link: model_empty,
-	style: model_noelements,
-	script: model_noelements,
-	noscript: model_flow,
-	iframe: model_flow,
-	noframes: sims.Elements(body),
-	body: model_flow,
-	div: model_flow,
-	p: model_inline,
-	h1: model_inline,
-	h2: model_inline,
-	h3: model_inline,
-	h4: model_inline,
-	h5: model_inline,
-	h6: model_inline,
-	ul: model_li,
-	ol: model_li,
-	menu: model_li,
-	dir: model_li,
-	li: model_flow,
-	dl: sims.Elements(dt, dd),
-	dt: model_inline,
-	dd: model_flow,
-	address: sims.ElementsOrText(*(pe_inline + pe_misc_inline + (p,))),
-	hr: model_empty,
-	pre: sims.ElementsOrText(*((a,) + pe_special_basic + pe_fontstyle_basic + pe_phrase_basic + pe_inline_forms + pe_misc_inline)),
-	blockquote: model_flow,
-	center: model_flow,
-	ins: model_flow,
-	del_: model_flow,
-	a: sims.ElementsOrText(*(pe_special + pe_fontstyle + pe_phrase + pe_inline_forms + pe_misc_inline)),
-	span: model_inline,
-	bdo: model_inline,
-	br: model_empty,
-	em: model_inline,
-	strong: model_inline,
-	dfn: model_inline,
-	code: model_inline,
-	samp: model_inline,
-	kbd: model_inline,
-	var: model_inline,
-	cite: model_inline,
-	abbr: model_inline,
-	acronym: model_inline,
-	q: model_inline,
-	sub: model_inline,
-	sup: model_inline,
-	tt: model_inline,
-	i: model_inline,
-	b: model_inline,
-	big: model_inline,
-	small: model_inline,
-	u: model_inline,
-	s: model_inline,
-	strike: model_inline,
-	basefont: model_empty,
-	font: model_inline,
-	object: model_object,
-	param: model_empty,
-	applet: model_object,
-	img: model_empty,
-	map: sims.Elements(*(pe_block + (form,) + pe_misc + (area,))),
-	area: model_empty,
-	form: sims.ElementsOrText(*(pe_block + pe_inline + pe_misc)),
-	label: model_inline,
-	input: model_empty,
-	select: sims.Elements(optgroup, option),
-	optgroup: sims.Elements(option),
-	option: model_noelements,
-	textarea: model_noelements,
-	fieldset: sims.ElementsOrText(*((legend,) + pe_block + (form,) + pe_inline + pe_misc)),
-	legend: model_inline,
-	button: sims.ElementsOrText(*((p,) + pe_heading + (div,) + pe_lists + pe_blocktext + (table, br, span, bdo, object, applet, img, map) + pe_fontstyle + pe_phrase + pe_misc)),
-	isindex: model_empty,
-	table: sims.Elements(caption, col, colgroup, thead, tfoot, tbody, tr),
-	caption: model_inline,
-	colgroup: sims.Elements(col),
-	col: model_empty,
-	thead: model_tr,
-	tfoot: model_tr,
-	tbody: model_tr,
-	tr: sims.Elements(th, td),
-	th: model_flow,
-	td: model_flow,
-	embed: model_object,
-	frameset: sims.Elements(frameset, frame, noframes),
-	frame: model_empty,
-	nobr: model_flow,
-}
-
-# Iterate through all elements to make sure that we assign a model to each
-for element in xmlns.iterelementvalues():
-	element.model = dtd[element]
+base.model = \
+meta.model = \
+link.model = \
+hr.model = \
+br.model = \
+basefont.model = \
+param.model = \
+img.model = \
+area.model = \
+input.model = \
+isindex.model = \
+col.model = \
+frame.model = sims.Empty()
+noscript.model = \
+iframe.model = \
+body.model = \
+div.model = \
+li.model = \
+dd.model = \
+blockquote.model = \
+center.model = \
+ins.model = \
+del_.model = \
+th.model = \
+td.model = \
+nobr.model = sims.ElementsOrText(*pe_Flow)
+p.model = \
+h1.model = \
+h2.model = \
+h3.model = \
+h4.model = \
+h5.model = \
+h6.model = \
+dt.model = \
+span.model = \
+bdo.model = \
+em.model = \
+strong.model = \
+dfn.model = \
+code.model = \
+samp.model = \
+kbd.model = \
+var.model = \
+cite.model = \
+abbr.model = \
+acronym.model = \
+q.model = \
+sub.model = \
+sup.model = \
+tt.model = \
+i.model = \
+b.model = \
+big.model = \
+small.model = \
+u.model = \
+s.model = \
+strike.model = \
+font.model = \
+label.model = \
+legend.model = \
+caption.model = sims.ElementsOrText(*pe_Inline)
+ul.model = \
+ol.model = \
+menu.model = \
+dir.model = sims.Elements(li)
+title.model = \
+style.model = \
+script.model = \
+option.model = \
+textarea.model = sims.NoElements()
+object.model = \
+applet.model = \
+embed.model = sims.ElementsOrText(*((param,) + pe_block + (form,) + pe_inline + pe_misc))
+thead.model = \
+tfoot.model = \
+tbody.model = sims.Elements(tr)
+map.model = sims.Elements(*(pe_block + (form,) + pe_misc + (area,)))
+noframes.model = sims.Elements(body)
+table.model = sims.Elements(caption, col, colgroup, thead, tfoot, tbody, tr)
+colgroup.model = sims.Elements(col)
+dl.model = sims.Elements(dt, dd)
+frameset.model = sims.Elements(frameset, frame, noframes)
+html.model = sims.Elements(head, body, frameset)
+select.model = sims.Elements(optgroup, option)
+optgroup.model = sims.Elements(option)
+tr.model = sims.Elements(th, td)
+head.model = sims.Elements(title, base, script, style, meta, link, object, isindex)
+pre.model = sims.ElementsOrText(*((a,) + pe_special_basic + pe_fontstyle_basic + pe_phrase_basic + pe_inline_forms + pe_misc_inline))
+fieldset.model = sims.ElementsOrText(*((legend,) + pe_block + (form,) + pe_inline + pe_misc))
+button.model = sims.ElementsOrText(*((p,) + pe_heading + (div,) + pe_lists + pe_blocktext + (table, br, span, bdo, object, applet, img, map) + pe_fontstyle + pe_phrase + pe_misc))
+form.model = sims.ElementsOrText(*(pe_block + pe_inline + pe_misc))
+address.model = sims.ElementsOrText(*(pe_inline + pe_misc_inline + (p,)))
+a.model = sims.ElementsOrText(*(pe_special + pe_fontstyle + pe_phrase + pe_inline_forms + pe_misc_inline))
