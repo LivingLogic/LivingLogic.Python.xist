@@ -301,20 +301,7 @@ a <pyref module="ll.make"><module>make</module></pyref> script.</par>
 
 <section><title>Attributes</title>
 <par>Setting and accessing the attributes of an element works via
-the dictionary interface. So if <lit>node</lit>
-is an <pyref module="ll.xist.xsc" class="Element"><class>Element</class></pyref> that supports the
-attribute <lit>spam</lit> the following can be
-done:
-<example title="Working with attributes">
-<programlisting>
-if node.hasattr("spam"):
-	del node["spam"]
-else:
-	node["spam"] = "eggs"
-node["spam"].append("ham")
-</programlisting>
-</example>
-</par>
+the dictionary interface.</par>
 <par>All attribute values are instances of subclasses of
 the class <pyref module="ll.xist.xsc" class="Attr"><class>Attr</class></pyref>. Available
 subclasses are:</par>
