@@ -5,7 +5,7 @@ A XSC module that contains elements that simplify handling
 meta data.
 """
 
-__version__ = tuple("$Revision $"[11:-2].split("."))
+__version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
 import xsc, html

@@ -5,7 +5,7 @@ A XSC module that contains definitions for all the elements in HTML 4.0 transiti
 (and a few additional ones).
 """
 
-__version__ = tuple("$Revision $"[11:-2].split("."))
+__version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
 import string

@@ -5,7 +5,7 @@ A XSC module that contains elements that are simplify generating
 SQL statements.
 """
 
-__version__ = tuple("$Revision $"[11:-2].split("."))
+__version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
 import types

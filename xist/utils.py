@@ -10,7 +10,7 @@ This module contains several functions and classes,
 that are used internally by XIST.
 """
 
-__version__ = tuple("$Revision $"[11:-2].split("."))
+__version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
 codeEncoding = "iso-8859-1"

@@ -5,7 +5,7 @@
 This module contains only one useful variable: the URL class
 """
 
-__version__ = tuple("$Revision $"[11:-2].split("."))
+__version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
 import types

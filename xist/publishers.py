@@ -10,7 +10,7 @@ This module contains classes that may be used as publishing
 handler in <methodref module="xist.xsc" class="Node">publish</methodref>.
 """
 
-__version__ = tuple("$Revision $"[11:-2].split("."))
+__version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
 import sys, types, array, codecs

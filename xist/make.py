@@ -10,7 +10,7 @@ This modules contains stuff to be able to use XIST from
 the command line as a compiler.
 """
 
-__version__ = tuple("$Revision $"[11:-2].split("."))
+__version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
 import sys

@@ -4,7 +4,7 @@
 A XSC module that contains definitions for all the elements in WML 1.3
 """
 
-__version__ = tuple("$Revision $"[11:-2].split("."))
+__version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
 import string
