@@ -55,4 +55,3 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 
 __all__ = ["xsc", "publishers", "presenters", "parsers", "converters", "ns"]
 
-
