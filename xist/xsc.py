@@ -14,6 +14,7 @@ import Image
 # for parsing XML files
 from xml.sax import saxlib
 from xml.sax import saxexts
+from xml.parsers import xmllib
 
 # for parsing URLs
 import urlparse
@@ -33,7 +34,7 @@ class XSCError(Exception):
 
 	def __str__(self):
 		if self.lineno>0:
-			return "XSC: error (line " + str(self.lineno) + "): " + str(xsc.handler.nesting)
+			return "XSC: error (line " + str(self.lineno) + "): " + str(xsc.parser.nesting)
 		else:
 			return "XSC: error: "
 
@@ -70,7 +71,7 @@ class XSCIllegalElementError(XSCError):
 	def __str__(self):
 		elements = element_handlers.keys();
 		elements.sort()
-		return XSCError.__str__(self) + "The element '" + self.elementname + "' is not allowed. The only allowed elements are: " + elements
+		return XSCError.__str__(self) + "The element '" + self.elementname + "' is not allowed. The only allowed elements are: " + str(elements)
 
 class XSCImageSizeFormatError(XSCError):
 	"""exception that is raised, when XSC can't format or evaluate image size attributes"""
@@ -102,6 +103,16 @@ class XSCIllegalObjectError(XSCError):
 
 	def __str__(self):
 		return XSCError.__str__(self) + "an illegal object of type " + type(self.object).__name__ + " has been found in the XSC tree"
+
+class XSCMalformedCharRef(XSCError):
+	"""exception that is raised, when a character reference is malformed (e.g. &#foo;)"""
+
+	def __init__(self,lineno,name):
+		XSCError.__init__(self,lineno)
+		self.name = name
+
+	def __str__(self):
+		return XSCError.__str__(self) + "Malformed character reference: &#" + name + ";"
 
 ###
 ###
@@ -147,7 +158,7 @@ def FileSize(url):
 			urllib.urlcleanup()
 		except IOError:
 			urllib.urlcleanup()
-			raise XSCFileNotFoundError(xsc.handler.lineno,url)
+			raise XSCFileNotFoundError(xsc.parser.lineno,url)
 	return size
 
 def ImageSize(url):
@@ -164,7 +175,7 @@ def ImageSize(url):
 			urllib.urlcleanup()
 		except IOError:
 			urllib.urlcleanup()
-			raise XSCFileNotFoundError(xsc.handler.lineno,url)
+			raise XSCFileNotFoundError(xsc.parser.lineno,url)
 	return size
 
 def AppendDict(*dicts):
@@ -199,7 +210,7 @@ def ToNode(value):
 				return value
 		else:
 			return value
-	raise XSCIllegalObjectError(xsc.handler.lineno,value) # none of the above, so we throw and exception
+	raise XSCIllegalObjectError(xsc.parser.lineno,value) # none of the above, so we throw and exception
 
 element_handlers = {} # dictionary for mapping element names to classes
 
@@ -296,7 +307,7 @@ class XSCText(XSCNode):
 	"""text"""
 
 	represcapes = { '\t' : '\\t' , '\033' : '\\e' , '\\' : '\\\\' }
-	reprtreeescapes = { '\n' : '\\n' , '\t' : '\\t' , '\033' : '\\e' , '\\' : '\\\\' }
+	reprtreeescapes = { '\r' : '\\r' , '\n' : '\\n' , '\t' : '\\t' , '\033' : '\\e' , '\\' : '\\\\' }
 	strescapes = { '<' : '&lt;' , '>' : '&gt;' , '&' : '&amp;' , '"' : '&quot;' }
 
 	def __init__(self,content = ""):
@@ -336,6 +347,26 @@ class XSCText(XSCNode):
 				v.append(i)
 		s = string.joinfields(v,"") 
 		return [[nest,self.startlineno,elementno,self._strtextquotes(self._strtext(s))]]
+
+class XSCCharRef(XSCNode):
+	"""character reference (i.e &#42; or &#x42;)"""
+
+	def __init__(self,content):
+		self.content = content
+
+	def _doAsHTML(self):
+		return XSCCharRef(self.content)
+
+	def dostr(self):
+		return '&#' + str(self.content) + ';'
+
+	def _dorepr(self):
+		return '&#' + str(self.content) + ';'
+
+	def _doreprtree(self,nest,elementno):
+		s = '&#' + str(self.content) + '; (&#x' + hex(self.content)[2:] + ';)'
+		s = s + " " + XSCText(chr(self.content))._doreprtree(0,0)[0][-1]
+		return [[nest,self.startlineno,elementno,s]]
 
 class XSCFrag(XSCNode):
 	"""contains a list of XSCNodes"""
@@ -484,7 +515,7 @@ class XSCAttrs(XSCNode):
 		if self.attr_handlers.has_key(lowerindex):
 			self.content[lowerindex] = self.attr_handlers[lowerindex](ToNode(value)) # convert the attribute to a node and pack it into an attribute object
 		else:
-			raise XSCIllegalAttributeError(xsc.handler.lineno,self,index)
+			raise XSCIllegalAttributeError(xsc.parser.lineno,self,index)
 
 	def __delitem__(self,index):
 		"""removes the attribute with the name index (if there is one)"""
@@ -612,7 +643,7 @@ class XSCElement(XSCNode):
 			v.append(">")
 		else:
 			if len(s):
-				raise XSCEmptyElementWithContentError(xsc.handler.lineno,self)
+				raise XSCEmptyElementWithContentError(xsc.parser.lineno,self)
 			v.append(">")
 
 		return string.joinfields(v,"")
@@ -669,7 +700,7 @@ class XSCElement(XSCNode):
 					try:
 						self[widthattr] = eval(str(self[widthattr]) % sizedict)
 					except:
-						raise XSCImageSizeFormatError(xsc.handler.lineno,self,widthattr)
+						raise XSCImageSizeFormatError(xsc.parser.lineno,self,widthattr)
 				else:
 					self[widthattr] = size[0]
 			if size[1] != -1: # the height was retrieved so we can use it
@@ -677,7 +708,7 @@ class XSCElement(XSCNode):
 					try:
 						self[heightattr] = eval(str(self[heightattr]) % sizedict)
 					except:
-						raise XSCImageSizeFormatError(xsc.handler.lineno,self,heightattr)
+						raise XSCImageSizeFormatError(xsc.parser.lineno,self,heightattr)
 				else:
 					self[heightattr] = size[1]
 
@@ -711,68 +742,58 @@ RegisterElement("url",XSCurl)
 ###
 
 def RegisterEntity(name,number):
-	pass
-#	xmllib.XMLParser.entitydefs[name] = "&#" + str(number) + ";"
+	xmllib.XMLParser.entitydefs[name] = "&#" + str(number) + ";"
 
-class XSCHandler(saxlib.HandlerBase):
-	def startDocument(self):
-		self.nesting = [ XSCFrag() ] # our nodes do not have a parent link, therefore we have to store the active path through the tree in a stack (which we call nesting, because stack is already used by the base class
+class XSCParser(xmllib.XMLParser):
+	def reset(self):
+		xmllib.XMLParser.reset(self)
+		# our nodes do not have a parent link, therefore we have to store the active path through the tree in a stack (which we call nesting, because stack is already used by the base class
+		# after we've finished parsing the XSCFrag that we put at the bottom of the stack will be our document root
+		self.nesting = [ XSCFrag() ]
 		self.lineno = -1
 
-	def endDocument(self):
-		self.root = self.nesting[0] # we're finished parsing and the XSCFrag that we put at the bottom of the stack is our document root
+	def close(self):
+		self.root = self.nesting[0]
+		xmllib.XMLParser.close(self)
 
-	def processingInstruction(self,target,data):
-		e = XSCProcInst(target,data)
-		e.startlineno = self.lineno
-		self.nesting[-1].append(e) # add the new PI to the content of the innermost element
+	def __appendNode(self,node):
+		node.startlineno = self.lineno
+		self.nesting[-1].append(node) # add the new node to the content of the innermost element
 
-	def startElement(self, name, attrs):
+	def handle_proc(self,target,data):
+		self.__appendNode(XSCProcInst(target,data))
+
+	def handle_charref(self,name):
+		try:
+			if name[0] == 'x':
+				n = string.atoi(name[1:], 16)
+			else:
+				n = string.atoi(name)
+		except string.atoi_error:
+			raise XSCMalformedCharRef(xsc.parser.lineno,name)
+
+		self.__appendNode(XSCCharRef(n))
+
+	def unknown_starttag(self,name,attrs):
   		lowername = string.lower(name)
 		if element_handlers.has_key(lowername):
 			e = element_handlers[lowername]([],attrs)
 			e.startlineno = self.lineno
 		else:
-			raise XSCIllegalElementError(xsc.handler.lineno,lowername)
-		self.nesting[-1].append(e) # add the new element to the content of the innermost element (or to the array)
+			raise XSCIllegalElementError(xsc.parser.lineno,lowername)
+		self.__appendNode(e)
 		self.nesting.append(e) # push new innermost element onto the stack
 
-	def endElement(self, name):
+	def unknown_endtag(self,name):
 		self.nesting[-1].endlineno = self.lineno
 		self.nesting[-1:] = [] # pop the innermost element off the stack
 
-	def characters(self, ch, start, length):
-		data = ch[start:start+length]
-
+	def handle_data(self,data):
 		if data != "" and (data != "\n" or xsc.ignorelinefeed==0):
-			e = XSCText(data)
-			e.startlineno = self.lineno
-			self.nesting[-1].append(e) # add the new string to the content of the innermost element
+			self.__appendNode(XSCText(data))
 
-	def resolveEntity(self, publicId, systemId):
-		print "'",publicID,"'",systemId,"'"
-		return systemID
-
-	def unparsedEntityDecl(self, name, publicId, systemId, ndata):
-		print "'",name,"'",publicID,"'",systemId,"'",ndata,"'"
-
-	def setDocumentLocator(locator):
-		print "#"*80,locator.getLineNumber()
-		self.lineno = locator.getLineNumber()
-		
-	def handle_comment(self,comment):
-		e = XSCComment(comment) 
-		e.startlineno = self.lineno
-		self.nesting[-1].append(e)
-
-	def warning(self,exception):
-		print str(exception)
-
-	def error(self,exception):
-		raise exception
-
-	def fatalError(self,exception):
-		raise exception
+	def handle_comment(self,data):
+		self.__appendNode(XSCComment(data))
 
 RegisterEntity("nbsp",160)
 RegisterEntity("iexcl",161)
@@ -896,10 +917,7 @@ class XSC:
 		self.repransipidata = "36"
 		self.reprtree = 1
 		self.ignorelinefeed = 0
-		self.parser = saxexts.make_parser()
-		self.handler = XSCHandler()
-		self.parser.setDocumentHandler(self.handler) # Tell the parser to use our handler
-		self.parser.setErrorHandler(self.handler) # Use our handler for reporting errors too
+		self.parser = XSCParser()
 
 	def parsestring(self,filename,string):
 		"""Parses a string and returns the resulting XSC"""
@@ -912,9 +930,10 @@ class XSC:
 	def parsefile(self,filename):
 		"""Reads and parses a XML file and returns the resulting XSC"""
 		self.filename = filename
-		self.parser.parseFile(open(filename))
+		self.parser.reset()
+		self.parser.feed(open(filename).read())
 		self.parser.close()
-		return self.handler.root
+		return self.parser.root
 
 	def parseurl(self,url):
 		"""Reads and parses a XML file from an URL and returns the resulting XSC"""
