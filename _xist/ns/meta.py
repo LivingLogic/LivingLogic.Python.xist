@@ -132,11 +132,11 @@ class author(xsc.Element):
 
 	def convert(self, converter=None):
 		e = xsc.Frag()
-		if self.hasAttr("name")
+		if self.hasAttr("name"):
 			e.append(html.meta(name="author", content=self["name"]))
 			if self.hasAttr("lang"):
 				e[-1]["lang"] = self["lang"]
-		if self.hasAttr("email")
+		if self.hasAttr("email"):
 			e.append(html.link(rel="made", href=("mailto:", self["email"])))
 		return e.convert(converter)
 
