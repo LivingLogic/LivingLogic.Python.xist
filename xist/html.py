@@ -488,7 +488,7 @@ class td(xsc.Element):
 	attrHandlers = attrs.copy()
 	attrHandlers.update(cellhalign)
 	attrHandlers.update(cellvalign)
-	attrHandlers.update({"abbr": xsc.TextAttr, "axis": xsc.TextAttr, "headers": xsc.TextAttr, "scope": xsc.TextAttr, "rowspan": xsc.TextAttr, "colspan": xsc.TextAttr}
+	attrHandlers.update({"abbr": xsc.TextAttr, "axis": xsc.TextAttr, "headers": xsc.TextAttr, "scope": xsc.TextAttr, "rowspan": xsc.TextAttr, "colspan": xsc.TextAttr})
 	attrHandlers.update({"nowrap": xsc.TextAttr, "bgcolor": xsc.ColorAttr, "width": xsc.TextAttr, "height": xsc.TextAttr, "background": xsc.URLAttr}) # deprecated
 
 class a(xsc.Element):
@@ -498,7 +498,7 @@ class a(xsc.Element):
 	empty = 0
 	attrHandlers = attrs.copy()
 	attrHandlers.update({"charset": xsc.TextAttr, "type": xsc.TextAttr, "name": xsc.TextAttr, "href": xsc.URLAttr, "hreflang": xsc.TextAttr, "rel": xsc.TextAttr, "rev": xsc.TextAttr, "accesskey": xsc.TextAttr, "shape": xsc.TextAttr, "coords": xsc.TextAttr, "tabindex": xsc.TextAttr, "onfocus": xsc.TextAttr, "onblur": xsc.TextAttr})
-	attrHandlers = xsc.appendDict(attrHandlers,{ "target": xsc.TextAttr }) # deprecated
+	attrHandlers.update({"target": xsc.TextAttr}) # deprecated
 
 class link(xsc.Element):
 	"""
