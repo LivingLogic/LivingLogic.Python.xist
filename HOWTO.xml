@@ -1321,7 +1321,7 @@ in every text node on the <link href="http://www.python.org/">Python page</link>
 from ll.xist import xsc, parsers, converters
 from ll.xist.ns import html
 
-def p2p(node):
+def p2p(node, converter):
 	if isinstance(node, xsc.Text):
 		node = node.replace("Python", "Parrot")
 		node = node.replace("python", "parrot")
