@@ -41,7 +41,7 @@ class URL:
 	"""
 	__safe = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_,.-:/"
 
-	def __init__(self,url = None,scheme = None,server = None,port = None,path = None,file = None,ext = None,parameters = None,query = None,fragment = None):
+	def __init__(self, url = None, scheme = None, server = None, port = None, path = None, file = None, ext = None, parameters = None, query = None, fragment = None):
 		# initialize the defaults
 		self.scheme = self.server = self.port = None
 		self.__path = []
