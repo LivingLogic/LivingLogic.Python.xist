@@ -152,7 +152,7 @@ class pixel(html_.img):
 
 	def convert(self, converter):
 		e = html_.img()
-		color = "dot_clear"
+		color = "0"
 		for attr in self.attrs.keys():
 			if attr == "color":
 				color = self["color"]
