@@ -469,8 +469,13 @@ class Node(object):
 		"""
 		<doc:par>Returns a prettyfied version of <self/>, i.e. one with
 		properly nested and indented tags (as far as possible). If an element
-		has mixed content and the text nodes are not consisting solely of
-		whitespace this will fail.</doc:par>
+		has mixed content (i.e. <pyref class="Text"><class>Text</class></pyref> and
+		non-<pyref class="Text"><class>Text</class></pyref> nodes) the content will be
+		returned as is.</doc:par>
+		<doc:par>Note that whitespace will prevent pretty printing too, so
+		you might want to call <pyref method="normalized"><method>normalized</method></pyref>
+		and <pyref method="compact"><method>compact</method></pyref> before
+		calling <method>pretty</method> to remove whitespace.</doc:par>
 		"""
 		if level==0:
 			return self
