@@ -9,7 +9,7 @@
 ## See xist/__init__.py for the license
 
 """
-Contains everthing related to options in XIST (apart for syntax highlighting
+Contains everthing related to options in &xist; (apart for syntax highlighting
 which can be found in presenters.py).
 """
 
