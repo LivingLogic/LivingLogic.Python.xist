@@ -272,7 +272,7 @@ class lit(code):
 	"""
 	Inline text that is some literal value
 	"""
-	model = sims.ElementsOrText(code)
+	model = sims.ElementsOrText(code, rep)
 
 	def convert_docbook(self, converter):
 		e = converter.target.literal(self.content)
