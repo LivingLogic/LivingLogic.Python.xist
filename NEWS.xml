@@ -10,7 +10,7 @@ first.</item>
 publishing.</item>
 <item><code>xist.ns.docbooklite</code> has been renamed to <code>xist.ns.doc</code>. It
 can now generate &html; and Docbook output and has improved a lot. The &xist; web pages
-now use this for automatic documentation generation.</item>
+now use this for automatic documentation generation. The doc example has been removed.</item>
 <item><code>xist.url.URL</code> now has a new method <code>info</code> that returns the headers
 for the file/URL.</item>
 <item><code>xist.url.URL</code> now has a methods <code>fileSize</code> and <code>imageSize</code>
