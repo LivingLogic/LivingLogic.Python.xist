@@ -1743,6 +1743,12 @@ class URLAttr(Attr):
 				raise FileNotFoundError(self.startloc, url)
 		return size
 
+	def open(self):
+		"""
+		opens the URL via urllib
+		"""
+		return self.forInput().open()
+
 ###
 ###
 ###
