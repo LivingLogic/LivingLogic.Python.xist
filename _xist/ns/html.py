@@ -629,6 +629,7 @@ class embed(xsc.Element):
 	"""
 	empty = 0
 	attrHandlers = {"width": xsc.TextAttr, "height": xsc.TextAttr, "src": xsc.URLAttr, "controller": xsc.TextAttr, "href": xsc.URLAttr, "target": xsc.TextAttr, "border": xsc.IntAttr, "pluginspage": xsc.URLAttr, "quality": xsc.TextAttr, "type": xsc.TextAttr, "bgcolor": xsc.ColorAttr}
+	attrHandlers.update({"menu": xsc.TextAttr}) # deprecated
 
 class map(xsc.Element):
 	"""
