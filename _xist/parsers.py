@@ -501,6 +501,64 @@ class Parser(object):
 			if node is not None:
 				return node
 
+	def _parseHTML(self, stream, base, sysid, encoding):
+		import libxml2 # This requires libxml2 (see http://www.xmlsoft.org/)
+
+		def decode(s):
+			try:
+				return s.decode("utf-8")
+			except UnicodeDecodeError:
+				return s.decode("iso-8859-1")
+
+		data = stream.read()
+		doc = libxml2.htmlReadMemory(data, len(data), sysid, encoding, 0x60)
+		ns = self.nspool.get(html.xmlname, html)
+		def toxsc(node):
+			if node.type == "document_html":
+				newnode = xsc.Frag()
+				child = node.children
+				while child is not None:
+					newnode.append(toxsc(child))
+					child = child.next
+			elif node.type == "element":
+				name = decode(node.name).lower()
+				try:
+					newnode = ns.element(name, xml=True)()
+				except errors.IllegalElementError:
+					newnode = xsc.Frag()
+				else:
+					attr = node.properties
+					while attr is not None:
+						name = decode(attr.name).lower()
+						if attr.content is None:
+							content = u""
+						else:
+							content = decode(attr.content)
+						try:
+							newnode.attrs.set(name, content, xml=True).parsed(self)
+						except errors.IllegalAttrError:
+							pass
+						attr = attr.next
+					newnode.attrs.parsed(self)
+					newnode.parsed(self, start=True)
+				child = node.children
+				while child is not None:
+					newnode.append(toxsc(child))
+					child = child.next
+				if isinstance(node, xsc.Element): # if we did recognize the element, otherwise we're in a Frag
+					newnode.parsed(self, start=False)
+			elif node.type in ("text", "cdata"):
+				newnode = xsc.Text(decode(node.content))
+			elif node.type == "comment":
+				newnode = xsc.Comment(decode(node.content))
+			else:
+				newnode = xsc.Null
+			newnode.startloc = xsc.Location(sysid=sysid) # FIXME: get line from node.lineNo()
+			return newnode
+		node = toxsc(doc)
+		doc.freeDoc()
+		return node
+
 	def _parse(self, stream, base, sysid, encoding):
 		self.base = url.URL(base)
 
@@ -518,58 +576,7 @@ class Parser(object):
 		self.skippingwhitespace = False
 
 		if self.tidy:
-			import libxml2 # This requires libxml2 (see http://www.xmlsoft.org/)
-
-			def decode(s):
-				try:
-					return s.decode("utf-8")
-				except UnicodeDecodeError:
-					return s.decode("iso-8859-1")
-
-			data = stream.read()
-			doc = libxml2.htmlReadMemory(data, len(data), sysid, encoding, 0x60)
-			ns = self.nspool.get(html.xmlname, html)
-			def toxsc(node):
-				if node.type == "document_html":
-					newnode = xsc.Frag()
-					child = node.children
-					while child is not None:
-						newnode.append(toxsc(child))
-						child = child.next
-				elif node.type == "element":
-					name = decode(node.name).lower()
-					try:
-						newnode = ns.element(name, xml=True)()
-					except errors.IllegalElementError:
-						newnode = xsc.Frag()
-					else:
-						attr = node.properties
-						while attr is not None:
-							name = decode(attr.name).lower()
-							if attr.content is None:
-								content = u""
-							else:
-								content = decode(attr.content)
-							try:
-								newnode.attrs.set(name, content, xml=True)
-							except errors.IllegalAttrError:
-								pass
-							attr = attr.next
-					child = node.children
-					while child is not None:
-						newnode.append(toxsc(child))
-						child = child.next
-				elif node.type in ("text", "cdata"):
-					newnode = xsc.Text(decode(node.content))
-				elif node.type == "comment":
-					newnode = xsc.Comment(decode(node.content))
-				else:
-					newnode = xsc.Null
-				newnode.startloc = xsc.Location(sysid=sysid) # FIXME: get line from node.lineNo()
-				return newnode
-			node = toxsc(doc)
-			doc.freeDoc()
-			return node
+			return self._parseHTML(stream, base, sysid, encoding)
 
 		source = sax.xmlreader.InputSource(sysid)
 		source.setByteStream(stream)
@@ -608,7 +615,7 @@ class Parser(object):
 			encoding = self.encoding
 		stream = cStringIO.StringIO(string)
 		if base is None:
-			base = url.URL("STRING")
+			base = url.URL("root:STRING")
 		if sysid is None:
 			sysid = str(base)
 		return self._parse(stream, base, sysid, encoding)
