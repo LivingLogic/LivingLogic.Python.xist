@@ -401,14 +401,22 @@ class XISTTest(unittest.TestCase):
 		node.mapped(self.mappedmapper, converters.Converter())
 
 	def test_repr(self):
-		for node in self.allnodes():
+		tests = [parsers.parseURL("http://www.python.org", tidy=True)]
+		tests.extend(self.allnodes())
+		for node in tests:
 			repr(node)
 			for class_ in presenters.__dict__.itervalues():
 				if isinstance(class_, type) and issubclass(class_, presenters.Presenter):
-					node.repr(class_())
-			for showLocation in (False, True):
-				for showPath in (False, True):
-					node.repr(presenters.TreePresenter(showLocation=showLocation, showPath=showPath))
+					presenter = class_()
+					# do it multiple time, to make sure the presenter gets properly reset
+					for i in xrange(3):
+						node.repr(presenter)
+			for showlocation in (False, True):
+				for showpath in (False, True):
+					presenter = presenters.TreePresenter(showlocation=showlocation, showpath=showpath)
+					# do it multiple time, to make sure the presenter gets properly reset
+					for i in xrange(3):
+						node.repr(presenter)
 
 	def node2str(self, node):
 		if isinstance(node, xsc.Node):

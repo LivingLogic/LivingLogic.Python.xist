@@ -1,4 +1,13 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
+<section><title>Changes in ?.? (released ??/??/2005)</title>
+<ulist>
+<item>The attributes <lit>showLocation</lit> and <lit>showPath</lit>
+of <class>ll.xist.presenters.TreePresenter</class> have been lowercased and
+presenters are properly reset after they've done their job.</item>
+</ulist>
+</section>
+
+
 <section><title>Changes in 2.8 (released 01/03/2005)</title>
 <ulist>
 <item>&xist; requires Python 2.4 now.</item>
