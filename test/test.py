@@ -1022,24 +1022,96 @@ class XISTTest(unittest.TestCase):
 
 	def test_itemslice(self):
 		for cls in (xsc.Frag, html.div):
-			e = cls(1, 2, 3, 4, 5, 6)
-			self.assertEqual(e[2], xsc.Text(3))
-			self.assertEqual(e[-1], xsc.Text(6))
+			# __get(item|slice)__
+			e = cls(range(6))
+			self.assertEqual(e[2], xsc.Text(2))
+			self.assertEqual(e[-1], xsc.Text(5))
 			self.assertEqual(e[:], e)
-			self.assertEqual(e[:2], cls(1, 2))
-			self.assertEqual(e[-2:], cls(5, 6))
-			self.assertEqual(e[::2], cls(1, 3, 5))
-			self.assertEqual(e[1::2], cls(2, 4, 6))
-			self.assertEqual(e[::-1], cls(6, 5, 4, 3, 2, 1))
-		e = html.div(1, 2, 3, 4, 5, 6, id=42)
-		self.assertEqual(e[2], xsc.Text(3))
-		self.assertEqual(e[-1], xsc.Text(6))
+			self.assertEqual(e[:2], cls(0, 1))
+			self.assertEqual(e[-2:], cls(4, 5))
+			self.assertEqual(e[::2], cls(0, 2, 4))
+			self.assertEqual(e[1::2], cls(1, 3, 5))
+			self.assertEqual(e[::-1], cls(range(5, -1, -1)))
+			e[1] = 10
+			self.assertEqual(e, cls(0, 10, 2, 3, 4, 5))
+			e[1] = None
+			self.assertEqual(e, cls(0, 2, 3, 4, 5))
+			e[1] = ()
+			self.assertEqual(e, cls(0, 3, 4, 5))
+
+			# __set(item|slice)__
+			e = cls(range(6))
+			e[-1] = None
+			self.assertEqual(e, cls(0, 1, 2, 3, 4))
+
+			e = cls(range(6))
+			e[1:5] = (100, 200)
+			self.assertEqual(e, cls(0, 100, 200, 5))
+
+			e = cls(range(6))
+			e[:] = (100, 200)
+			self.assertEqual(e, cls(100, 200))
+
+			e = cls(range(6))
+			e[::2] = (100, 120, 140)
+			self.assertEqual(e, cls(100, 1, 120, 3, 140, 5))
+
+			e = cls(range(6))
+			e[1::2] = (110, 130, 150)
+			self.assertEqual(e, cls(0, 110, 2, 130, 4, 150))
+
+			e = cls(range(6))
+			e[::-1] = range(6)
+			self.assertEqual(e, cls(range(5, -1, -1)))
+
+			# __del(item|slice)__
+			e = cls(range(6))
+			del e[0]
+			self.assertEqual(e, cls(1, 2, 3, 4, 5))
+			del e[-1]
+			self.assertEqual(e, cls(1, 2, 3, 4))
+
+			e = cls(range(6))
+			del e[1:5]
+			self.assertEqual(e, cls(0, 5))
+
+			e = cls(range(6))
+			del e[2:]
+			self.assertEqual(e, cls(0, 1))
+
+			e = cls(range(6))
+			del e[-2:]
+			self.assertEqual(e, cls(0, 1, 2, 3))
+
+			e = cls(range(6))
+			del e[:2]
+			self.assertEqual(e, cls(2, 3, 4, 5))
+
+			e = cls(range(6))
+			del e[:-2]
+			self.assertEqual(e, cls(4, 5))
+
+			e = cls(range(6))
+			del e[:]
+			self.assertEqual(e, cls())
+
+			e = cls(range(6))
+			del e[::2]
+			self.assertEqual(e, cls(1, 3, 5))
+
+			e = cls(range(6))
+			del e[1::2]
+			self.assertEqual(e, cls(0, 2, 4))
+
+		e = html.div(range(6), id=42)
+		self.assertEqual(e[2], xsc.Text(2))
+		self.assertEqual(e[-1], xsc.Text(5))
 		self.assertEqual(e[:], e)
-		self.assertEqual(e[:2], cls(1, 2, id=42))
-		self.assertEqual(e[-2:], cls(5, 6, id=42))
-		self.assertEqual(e[::2], cls(1, 3, 5, id=42))
-		self.assertEqual(e[1::2], cls(2, 4, 6, id=42))
-		self.assertEqual(e[::-1], cls(6, 5, 4, 3, 2, 1, id=42))
+		self.assertEqual(e[:2], cls(0, 1, id=42))
+		self.assertEqual(e[-2:], cls(4, 5, id=42))
+		self.assertEqual(e[::2], cls(0, 2, 4, id=42))
+		self.assertEqual(e[1::2], cls(1, 3, 5, id=42))
+		self.assertEqual(e[::-1], cls(range(5, -1, -1), id=42))
 
 class PublishTest(unittest.TestCase):
 	def test_publishelement(self):
