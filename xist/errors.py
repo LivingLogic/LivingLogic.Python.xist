@@ -42,7 +42,7 @@ class Error(Exception):
 
 	def __str__(self):
 		if self.lineno>0:
-			return " (line " + str(self.lineno) + ")"
+			return "(line " + str(self.lineno) + ") "
 		else:
 			return ""
 
@@ -77,9 +77,9 @@ class IllegalAttributeError(Error):
 		v = []
 
 		for attr in attrs:
-			v.append(strAttrName(attr))
+			v.append(xsc.strAttrName(attr))
 
-		return Error.__str__(self) + "Attribute " + strAttrName(self.attr) + " not allowed in element " + xsc.strNode(self.element.__class__) + ". Allowed attributes are: " + string.join(v,", ") + "."
+		return Error.__str__(self) + "Attribute " + xsc.strAttrName(self.attr) + " not allowed in element " + xsc._strNode(self.element.__class__) + ". Allowed attributes are: " + string.join(v,", ") + "."
 
 class AttributeNotFoundError(Error):
 	"""
@@ -94,13 +94,13 @@ class AttributeNotFoundError(Error):
 	def __str__(self):
 		attrs = self.element.attrs.keys();
 
-		s = Error.__str__(self) + "Attribute " + strAttrName(self.attr) + " not found in element " + xsc.strNode(self.element.__class__) +". "
+		s = Error.__str__(self) + "Attribute " + strAttrName(self.attr) + " not found in element " + xsc._strNode(self.element.__class__) +". "
 
 		if len(attrs):
 			attrs.sort()
 			v = []
 			for attr in attrs:
-				v.append(strAttrName(attr))
+				v.append(xsc.strAttrName(attr))
 			s = s + "Available attributes are: " + string.join(v,", ") + "."
 		else:
 			s = s + "No attributes available."
