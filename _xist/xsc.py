@@ -3342,10 +3342,10 @@ class Namespace(Base):
 				elif issubclass(value, Entity):
 					for xml in (False, True):
 						c[2][xml][value.xmlname[xml]] = value
-				elif issubclass(value, CharRef):
-					for xml in (False, True):
-						c[3][xml][value.xmlname[xml]] = value
-					c[3][2].setdefault(value.codepoint, []).append(value)
+					if issubclass(value, CharRef):
+						for xml in (False, True):
+							c[3][xml][value.xmlname[xml]] = value
+						c[3][2].setdefault(value.codepoint, []).append(value)
 		cls._cache = c
 		return c
 	_getcache = classmethod(_getcache)
