@@ -59,6 +59,14 @@ class radio(xsc.Element):
 		e["type"] = "radio"
 		return e.convert(converter)
 
+class submit(xsc.Element):
+	attrHandlers = {"name": xsc.TextAttr, "value": xsc.TextAttr}
+
+	def convert(self, converter=None):
+		e = html.input(**self.attrs)
+		e["type"] = "submit"
+		return e.convert(converter)
+
 class memo(xsc.Element):
 	attrHandlers = {"name": xsc.TextAttr, "value": xsc.TextAttr}
 	attrHandlers.update(html.textarea.attrHandlers)
