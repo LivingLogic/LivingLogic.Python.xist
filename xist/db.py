@@ -89,9 +89,7 @@ xsc.registerElement(lookupcombobox)
 
 class checkbox(control):
 	def __str__(self):
-		e = html.input()
-		for attr in self.attrs.keys():
-			e[attr] = self[attr]
+		e = html.input(self.attrs)
 		e["type"] = "checkbox"
 		if self.has_attr("value") and string.atoi(self["value"].asPlainString()) != 0:
 			e["checked"] = None
@@ -99,14 +97,11 @@ class checkbox(control):
 			del e["checked"]
 		return str(e.asHTML())
 
-
 class edit(control):
 	attrHandlers = xsc.appendDict(control.attrHandlers,{ "size" : xsc.TextAttr })
 
 	def __str__(self):
-		e = html.input()
-		for attr in self.attrs.keys():
-			e[attr] = self[attr]
+		e = html.input(self.attrs)
 
 		return str(e.asHTML())
 xsc.registerElement(edit)
@@ -117,7 +112,7 @@ class memo(control):
 	def __str__(self):
 		e = html.textarea()
 		if self.has_attr("value"):
-			e.append(self["value"])
+			e.extend(self["value"])
 		for attr in self.attrs.keys():
 			if attr != "value":
 				e[attr] = self[attr]

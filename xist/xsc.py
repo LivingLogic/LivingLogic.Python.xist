@@ -868,7 +868,7 @@ class Frag(Node):
 	def __init__(self,*_content):
 		self.__content = []
 		for child in _content:
-			self.append(child)
+			self.extend(child)
 
 	def asHTML(self):
 		e = self.__class__()
@@ -993,7 +993,7 @@ class Frag(Node):
 			if child._nodeOK(type,subtype):
 				e.append(child)
 			if children:
-				e = e + child.nodes(type,subtype,children,attrs)
+				e.extend(child.nodes(type,subtype,children,attrs))
 		return e
 
 	def compact(self):
@@ -1187,9 +1187,13 @@ class Element(Node):
 
 	def __init__(self,*_content,**_attrs):
 		self.content = Frag()
-		for child in _content:
-			self.append(ToNode(child))
 		self.attrs = {}
+		for child in _content:
+			if type(child) == types.DictionaryType:
+				for attr in child.keys():
+					self[attr] = child[attr]
+			else:
+				self.extend(child)
 		for attr in _attrs.keys():
 			self[attr] = _attrs[attr]
 
@@ -1226,17 +1230,13 @@ class Element(Node):
 			raise EmptyElementWithContentError(xsc.parser.lineno,self)
 
 	def asHTML(self):
-		e = self.__class__() # "virtual" copy constructor
-		for child in self:
-			e.append(child.asHTML())
+		e = self.__class__(self.content.asHTML()) # "virtual" copy constructor
 		for attr in self.attrs.keys():
 			e[attr] = self[attr].asHTML()
 		return e
 
 	def clone(self):
-		e = self.__class__() # "virtual" copy constructor
-		for child in self:
-			e.append(child.clone())
+		e = self.__class__(self.content.clone()) # "virtual" copy constructor
 		for attr in self.attrs.keys():
 			e[attr] = self[attr].clone()
 		return e
@@ -1353,11 +1353,7 @@ class Element(Node):
 		"""
 		returns a copy of the element that contains a slice of the content
 		"""
-		e = self.__class__()
-		for child in self.content[index1:index2]:
-			e.append(child)
-		for attr in self.attrs.keys():
-			e[attr] = self[attr]
+		return self.__class__(self.content[index1:index2],self.attrs)
 
 	def __setslice__(self,index1,index2,sequence):
 		"""
@@ -1415,9 +1411,7 @@ class Element(Node):
 					self[heightattr] = str(size[1])
 
 	def compact(self):
-		e = self.__class__()
-		for child in self:
-			e.append(child.compact())
+		e = self.__class__(self.content.compact())
 		for attr in self.attrs.keys():
 			e[attr] = self[attr].compact()
 		return e
