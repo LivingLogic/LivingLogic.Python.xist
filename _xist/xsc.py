@@ -3159,7 +3159,9 @@ class Prefixes(object):
 		"""
 		<par>returns the Python name for an attribute for the qualified
 		&xml; name <arg>qname</arg> (which might include a prefix, in which case
-		a tuple with the namespace object and the name will be returned).</par>
+		a tuple with the namespace object and the name will be returned, otherwise
+		it will be an attribute from the element <arg>element</arg>, which must
+		be a subclass of <pyref class="Element"><class>Element</class></pyref>).</par>
 		"""
 		qname = self.__splitqname(qname)
 		if qname[0] is None:
