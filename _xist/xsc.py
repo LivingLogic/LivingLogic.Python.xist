@@ -195,7 +195,7 @@ class Node(Base):
 
 	def clone(self):
 		"""
-		returns an identical clone of the node and it's children.
+		returns an identical clone of the node and its children.
 		"""
 		raise NotImplementedError("clone method not implemented in %s" % self.__class__.__name__)
 
@@ -223,7 +223,7 @@ class Node(Base):
 
 	def conv(self, converter=None, root=None, mode=None, stage=None, target=None, lang=None, makeaction=None, maketarget=None):
 		"""
-		<par>returns a version of this node and it's content converted to &html; (or any other target).</par>
+		<par>returns a version of this node and its content converted to &html; (or any other target).</par>
 		"""
 		if converter is None:
 			return self.convert(converters.Converter(root=root, mode=mode, stage=stage, target=target, lang=lang, makeaction=makeaction, maketarget=maketarget))
@@ -238,7 +238,7 @@ class Node(Base):
 		<par>implementation of the conversion method.
 		When you define your own element classes you have to overwrite this method.</par>
 
-		<par>E.g. when you want to define an element that packs it's content into an &html;
+		<par>E.g. when you want to define an element that packs its content into an &html;
 		bold element, do the following:
 
 		<programlisting>
@@ -2008,7 +2008,7 @@ class Element(Node):
 		def without(self, names=[], namespaces=(), keepglobals=True, xml=False):
 			"""
 			<par>Return a copy of <self/> where all the attributes in <arg>names</arg> are
-			removed. In additional to that a global attribute will be removed if it's
+			removed. In additional to that a global attribute will be removed if its
 			namespace is found in <arg>namespaces</arg> or if <arg>keepglobals</arg> is false.</par>
 			<par>For testing namespaces a subclass check will be done,
 			i.e. attributes from derived namespaces will be removed, if the base namespace
