@@ -1635,12 +1635,13 @@ def registerElement(element,namespacename,elementname = None):
 	<argref>elementname</argref>. If <argref>elementname</argref> is <code>None<code>, the lowercase name
 	of the class will be used (to help prevent conflicts between Python keywords and class names
 	(e.g. for the HTML element del).</par>
+
 	<par>This function sets the class member <code>elementname</code> to the element name.
 	If this member is already present, the above method for determining the element name
 	will be skipped, and this member will be used.</par>
 	"""
 	element.namespacename = namespacename
-	if hasattr(element,"elementname"):
+	if element.__dict__.has_key("elementname"):
 		elementname = element.elementname
 	else:
 		if elementname is None:
