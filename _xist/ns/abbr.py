@@ -616,6 +616,12 @@ class wysiwyg(xsc.Entity):
 	def __unicode__(self):
 		return u"WYSIWYG"
 
+class hsc(xsc.Entity):
+	def convert(self, converter):
+		return xsc.Text("HSC")
+	def __unicode__(self):
+		return u"HSC"
+
 class xist(xsc.Entity):
 	def convert(self, converter):
 		return xsc.Text("XIST")
