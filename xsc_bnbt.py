@@ -19,7 +19,7 @@ class page(XSCElement):
 			h.append(meta(http_equiv="keywords",content=self["keywords"]))
 		if self.has_attr("description"):
 			h.append(meta(http_equiv="description",content=self["description"]))
-		b = plainbody(bgcolor="#fff",text="#000",link="#c63",vlink="#999").asHTML()
+		b = plainbody(bgcolor="#fff",text="#000",link="#c63",vlink="#999")
 		if self.has_attr("class"):
 			b["class"] = self["class"]
 		if self.has_attr("onload"):
@@ -55,7 +55,8 @@ class page(XSCElement):
 											navigation(href = ":index.shtml" ,img = "home"   ,text = "Startseite")+
 											navigation(href = ":trv/faq.html",img = "faq"    ,text = "FAQ"       )+
 											navigation(href = ":sitemap.html",img = "sitemap",text = "Sitemap"   )+
-											navigation(href = ":search.html" ,img = "search" ,text = "Suchen")
+											navigation(href = ":search.html" ,img = "search" ,text = "Suchen"    )+
+											td(img(src = ":images/ecke_biglinks.gif",alt = ""))
 										)
 									),
 									align = "left",colspan = "3"
