@@ -10,7 +10,7 @@ __version__ = "$Revision$"[11:-2]
 
 import xsc, html
 
-class contenttype(html_.meta):
+class contenttype(html.meta):
 	empty = 1
 	attrHandlers = html.meta.attrHandlers.copy()
 	del attrHandlers["http-equiv"]
@@ -19,7 +19,7 @@ class contenttype(html_.meta):
 	del attrHandlers["content"]
 
 	def asHTML(self):
-		e = html_.meta(self.attrs)
+		e = html.meta(self.attrs)
 		e["http-equiv"] = "Content-Type"
 		e["content"] = "text/html"
 
