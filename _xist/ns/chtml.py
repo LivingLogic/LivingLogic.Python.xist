@@ -695,4 +695,7 @@ class macron1(xsc.CharRef): codepoint = 0xe709
 class macron2(xsc.CharRef): codepoint = 0xe70a
 class fixed(xsc.CharRef): codepoint = 0xe70b
 
+# Stuff from HTML
+class euro(xsc.CharRef): "euro sign, U+20AC NEW"; codepoint = 8364
+
 namespace = xsc.Namespace("chtml", "http://www.nttdocomo.co.jp/imode", vars())
