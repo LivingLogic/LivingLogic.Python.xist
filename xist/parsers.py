@@ -214,7 +214,7 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 
 	def handle_proc(self, target, data):
 		if target!='xml': # Don't report <?xml?> as a processing instruction
-			self.content_handler.processingInstruction(unicode(target, self.encoding), unicode(data, self.encoding))
+			self.content_handler.processingInstruction(target, data)
 
 	def handle_charref(self, charno):
 		self.content_handler.characters(unichr(charno))
