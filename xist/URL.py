@@ -11,7 +11,7 @@ __version__ = "$Revision$"[11:-2]
 import types
 import urlparse
 import urllib
-from options import *
+import xsc
 
 class URL:
 	"""
@@ -70,7 +70,7 @@ class URL:
 		if port is not None:
 			self.port = port
 		if path is not None:
-			self.__path = map(stringFromCode, path)
+			self.__path = map(xsc.stringFromCode, path)
 		if ext is not None:
 			self.ext = ext
 		if file is not None:
@@ -86,14 +86,14 @@ class URL:
 
 	def __setattr__(self, name, value):
 		if name in ("scheme", "server", "file", "ext", "parameters", "query", "fragment"):
-			value = stringFromCode(value)
+			value = xsc.stringFromCode(value)
 		self.__dict__[name] = value
 
 	def __setitem__(self, index, value):
 		"""
 		allows you to replace the index'th path entry
 		"""
-		self.__path[index] = stringFromCode(value)
+		self.__path[index] = xsc.stringFromCode(value)
 		self.__normalize()
 
 	def __delitem__(self, index):
@@ -113,7 +113,7 @@ class URL:
 		"""
 		replaces a slice of the path
 		"""
-		self.__path[index1:index2] = map(stringFromCode, sequence)
+		self.__path[index1:index2] = map(xsc.stringFromCode, sequence)
 		self.__normalize()
 
 	def __delslice__(self, index1, index2):
@@ -134,7 +134,7 @@ class URL:
 		appends all directory names in <argref>others</argref> to the path.
 		"""
 		for other in others:
-			self.__path.append(stringFromCode(other))
+			self.__path.append(xsc.stringFromCode(other))
 		self.__normalize()
 
 	def insert(self, index, *others):
@@ -143,7 +143,7 @@ class URL:
 		(this is the same as <code><self/>[<argref>index</argref>:<argref>index</argref>] = <argref>others</argref></code>)
 		"""
 		for other in others:
-			self.__path.insert(index, stringFromCode(other))
+			self.__path.insert(index, xsc.stringFromCode(other))
 			index += 1
 
 	def isPathMarker(self, dir):
@@ -266,12 +266,12 @@ class URL:
 
 	def __fromString(self, url):
 		(scheme, server, path, parameters, query, fragment) = urlparse.urlparse(url)
-		scheme = stringFromCode(scheme)
-		server = stringFromCode(server)
-		__path = map(stringFromCode, path)
-		parameters = stringFromCode(parameters)
-		query = stringFromCode(query)
-		fragment = stringFromCode(fragment)
+		scheme = xsc.stringFromCode(scheme)
+		server = xsc.stringFromCode(server)
+		__path = map(xsc.stringFromCode, path)
+		parameters = xsc.stringFromCode(parameters)
+		query = xsc.stringFromCode(query)
+		fragment = xsc.stringFromCode(fragment)
 		if scheme == u"": # do we have a local file?
 			if len(path):
 				if path[0] == u"/": # this is a server relative URL
@@ -323,10 +323,8 @@ class URL:
 			file = file + u"." + self.ext
 		path.append(file)
 		url = urlparse.urlunparse((scheme, server, u"/".join(path), self.parameters or u"", self.query or u"", self.fragment or u""))
-		if for__str__:
-			url = url.encode(reprEncoding)
-		else:
-			url = url
+		if not for__str__:
+			pass
 			# FIXME do we do any % encoding?
 			# url = url.encode("utf8")
 			# v = []

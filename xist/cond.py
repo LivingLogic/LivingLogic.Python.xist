@@ -13,7 +13,7 @@ on the XML level.
 __version__ = "$Revision$"[11:-2]
 # $Source$
 
-from xist import xsc, html, procinst
+import xsc, html, procinst
 
 class CodeAttr(xsc.Attr):
 	"""
@@ -84,3 +84,4 @@ class Else(xsc.Element):
 		return xsc.Null
 
 namespace = xsc.Namespace("cond", "http://www.livinglogic.de/DTDs/cond.dtd", vars())
+

@@ -38,7 +38,7 @@ def getANSICodesFromEnv(name, default):
 	except:
 		return default
 	if type(var) is types.StringType:
-		var = [ var, var ]
+		var = [var, var]
 	return var
 
 retrieveremote = getIntFromEnv("XSC_RETRIEVEREMOTE", 1)                                       # should remote URLs be retrieved? (for filesize and imagesize tests)
@@ -68,18 +68,3 @@ repransiprocinsttarget = getANSICodesFromEnv("XSC_REPRANSI_PROCINSTTARGET", ["1;
 repransiprocinstdata = getANSICodesFromEnv("XSC_REPRANSI_PROCINSTDATA", ["", ""])             # ANSI escape sequence to be used for processing instruction data
 outputXHTML = getIntFromEnv("XSC_OUTPUT_XHTML", 1)                                            # XHTML output format (0 = plain HTML, 1 = HTML compatible XHTML, 2 = pure XHTML)
 outputEncoding = getStringFromEnv("XSC_OUTPUT_ENCODING", "us-ascii")                          # Encoding to be used in publish() (and asBytes())
-codeEncoding = getStringFromEnv("XSC_CODE_ENCODING", "iso-8859-1")                            # Encoding to be used when string are use in constructors of Node objects
-reprEncoding = getStringFromEnv("XSC_REPR_ENCODING", sys.getdefaultencoding())                # Encoding to be used in __repr__
-
-parseEncoding = "iso-8859-1" # We assume that all source code is in this encoding
-
-###
-### helpers
-###
-
-def stringFromCode(text):
-	if type(text) is types.StringType:
-		return unicode(text, codeEncoding)
-	else:
-		return text
-

@@ -15,10 +15,10 @@ __version__ = "$Revision$"[11:-2]
 
 import sys
 import types
-from options import stringFromCode, outputEncoding
 from encodings.aliases import aliases
 import codecs
 import options
+import xsc
 
 strescapes = {'<': 'lt', '>': 'gt', '&': 'amp', '"': 'quot'}
 
@@ -106,7 +106,7 @@ class Publisher:
 			if type(text) in (types.ListType, types.TupleType):
 				self(text)
 			else:
-				self.publish(stringFromCode(text))
+				self.publish(xsc.stringFromCode(text))
 
 	def publish(self, text):
 		"""

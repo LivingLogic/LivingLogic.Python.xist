@@ -53,8 +53,8 @@ Using this element is as simple as this:
 	print e.asHTML().asString()
 
 The class variable empty in the above example specifies
-if the element type has an empty content model (like <br/>
-or <img/>) or not.
+that the element type has an empty content model (like <br/>
+or <img/>).
 
 To be able to use your own classes in XML files, you have
 to tell the parser about them. This is done with
@@ -152,9 +152,9 @@ be combined into the following:
 
 Automatic generation of image size attributes
 =============================================
-The module special contains an element autoimg, that is an
-extension to html.img. When converted to HTML via the asHTML()
-method the size of the image will be determined and the HEIGHT
+The module special contains an element autoimg, that extends
+html.img. When converted to HTML via the asHTML() method the
+size of the image will be determined and the HEIGHT
 and WIDTH attributes will be set accordingly.
 
 This is not the whole truth. When the WIDTH or HEIGHT attribute
@@ -179,7 +179,7 @@ is whatever the Python code in the content returns. For example, consider
 the following XML file:
 	<?xsc-exec
 	# sum
-	def gauss(top = 100):
+	def gauss(top=100):
 		sum = 0
 		for i in xrange(top+1):
 			sum = sum + i
@@ -194,7 +194,7 @@ classes Eval and Exec.
 
 Requirements
 ============
-XSC requires Python 2.0b1.
+XSC requires Python 2.0b2.
 
 XSC uses sgmlop for parsing XML files, so you either need the
 Python XML package (at least 0.5.5.1) (newer versions are
@@ -225,17 +225,27 @@ import urllib # for reading remote files
 import procinst # our sandbox
 from URL import URL # our own new URL class
 import publishers # classes for dumping XML strings
-from errors import * # exceptions
-from options import * # optional stuff ;)
+import providers # classes that generate XSC trees
+import errors # exceptions
+import options # optional stuff ;)
 from code import Code # needed for formatting and executing Python code
 
 ###
 ### helpers
 ###
 
+codeEncoding = "iso-8859-1"
+reprEncoding = sys.getdefaultencoding()
+
+def stringFromCode(text):
+	if type(text) is types.StringType:
+		return unicode(text, codeEncoding)
+	else:
+		return text
+
 def _stransi(codes, string, ansi = None):
 	if ansi is None:
-		ansi = repransi
+		ansi = options.repransi
 	string = stringFromCode(string).encode(reprEncoding)
 	if ansi and len(codes[ansi-1]) and string:
 		return "\033[%sm%s\033[0m" % (codes[ansi-1], string)
@@ -417,7 +427,7 @@ def ToNode(value):
 			return Null
 		else:
 			return node
-	raise IllegalObjectError(-1, value) # none of the above, so we throw and exception
+	raise errors.IllegalObjectError(-1, value) # none of the above, so we throw and exception
 
 class Node:
 	"""
@@ -790,7 +800,7 @@ class Text(Node):
 
 	def compact(self):
 		for i in self.content:
-			if i != '\n' and i != '\r':
+			if i not in string.whitespace:
 				return self._decorateNode(Text(self.content))
 		else:
 			return Null
@@ -1059,7 +1069,7 @@ class Comment(Node):
 
 	def publish(self, publisher):
 		if self.content.find(u"--")!=-1 or self.content[-1:]==u"-":
-			raise IllegalCommentError(self.startloc, self)
+			raise errors.IllegalCommentError(self.startloc, self)
 		publisher(u"<!--", self.content, u"-->")
 
 	def compact(self):
@@ -1124,7 +1134,7 @@ class ProcInst(Node):
 
 	def publish(self, publisher):
 		if self.content.find(u"?>")!=-1:
-			raise IllegalProcInstError(self.startloc, self)
+			raise errors.IllegalProcInstError(self.startloc, self)
 		publisher(u"<?", publisher._encodeIllegal(self.target), u" ", self.content, u"?>")
 
 	def compact(self):
@@ -1285,7 +1295,7 @@ class Element(Node):
 
 		self.content.append(*items)
 		if self.empty and len(self):
-			raise EmptyElementWithContentError(self)
+			raise errors.EmptyElementWithContentError(self)
 
 	def insert(self, index, *items):
 		"""
@@ -1295,7 +1305,7 @@ class Element(Node):
 		"""
 		self.content.insert(index, *items)
 		if self.empty and len(self):
-			raise EmptyElementWithContentError(self)
+			raise errors.EmptyElementWithContentError(self)
 
 	def extend(self, *items):
 		"""
@@ -1305,7 +1315,7 @@ class Element(Node):
 		"""
 		self.content.extend(*items)
 		if self.empty and len(self):
-			raise EmptyElementWithContentError(self)
+			raise errors.EmptyElementWithContentError(self)
 
 	def asHTML(self):
 		node = self.__class__(self.content.asHTML()) # "virtual" copy constructor
@@ -1347,7 +1357,7 @@ class Element(Node):
 						except TypeError: # ignore "not all argument converted"
 							pass
 						except:
-							raise ImageSizeFormatError(self, widthattr)
+							raise errors.ImageSizeFormatError(self, widthattr)
 					else:
 						self[widthattr] = size[0]
 				if heightattr is not None: # do something to the height
@@ -1360,7 +1370,7 @@ class Element(Node):
 						except TypeError: # ignore "not all argument converted"
 							pass
 						except:
-							raise ImageSizeFormatError(self, heightattr)
+							raise errors.ImageSizeFormatError(self, heightattr)
 					else:
 						self[heightattr] = size[1]
 
@@ -1402,7 +1412,7 @@ class Element(Node):
 				publisher(u'"')
 		if len(self):
 			if self.empty:
-				raise EmptyElementWithContentError(self)
+				raise errors.EmptyElementWithContentError(self)
 			publisher(u">")
 			self.content.publish(publisher)
 			publisher(u"</", self.name, u">")
@@ -1428,7 +1438,7 @@ class Element(Node):
 			try:
 				return self.attrs[index] # we're returning the packed attribute here, because otherwise there would be no possibility to get an expanded URL
 			except KeyError:
-				raise AttributeNotFoundError(self, index)
+				raise errors.AttributeNotFoundError(self, index)
 		else:
 			return self.content[index]
 
@@ -1444,7 +1454,7 @@ class Element(Node):
 			try:
 				attr = self.attrHandlers[index]() # create an empty attribute of the right type
 			except KeyError:
-				raise IllegalAttributeError(self, index)
+				raise errors.IllegalAttributeError(self, index)
 			attr.extend(value) # put the value into the attribute
 			self.attrs[index] = attr # put the attribute in our dict
 		else:
@@ -1461,7 +1471,7 @@ class Element(Node):
 			try:
 				del self.attrs[index]
 			except KeyError:
-				raise AttributeNotFoundError(self, index)
+				raise errors.AttributeNotFoundError(self, index)
 		else:
 			del self.content[index]
 
@@ -1665,7 +1675,7 @@ class URLAttr(Attr):
 
 	def __init__(self, *_content):
 		Attr.__init__(self, *_content)
-		self.base = xsc.filename[-1]
+		self.base = xsc.filenames[-1]
 
 	def _str(self, content=None, brackets=None, slash=None, ansi=None):
 		attr = " " + strAttrName("base", ansi) + "=" + strQuote(ansi = ansi) + strURL(str(self.base), ansi = ansi) + strQuote(ansi = ansi)
@@ -1705,7 +1715,7 @@ class URLAttr(Attr):
 		return url
 
 	def forOutput(self):
-		return self.asURL().relativeTo(xsc.filename[-1])
+		return self.asURL().relativeTo(xsc.filenames[-1])
 
 	def ImageSize(self):
 		"""
@@ -1716,7 +1726,7 @@ class URLAttr(Attr):
 		size = None
 		if xsc.isRetrieve(url):
 			try:
-				(filename, headers) = urllib.urlretrieve(url.asString().encode(outputEncoding))
+				(filename, headers) = urllib.urlretrieve(url.asString().encode(options.outputEncoding))
 				if headers.maintype == "image":
 					img = Image.open(filename)
 					size = img.size
@@ -1724,7 +1734,7 @@ class URLAttr(Attr):
 				urllib.urlcleanup()
 			except IOError:
 				urllib.urlcleanup()
-				raise FileNotFoundError(self.startloc, url)
+				raise errors.FileNotFoundError(self.startloc, url)
 		return size
 
 	def FileSize(self):
@@ -1742,7 +1752,7 @@ class URLAttr(Attr):
 				urllib.urlcleanup()
 			except IOError:
 				urllib.urlcleanup()
-				raise FileNotFoundError(self.startloc, url)
+				raise errors.FileNotFoundError(self.startloc, url)
 		return size
 
 	def open(self):
@@ -1886,215 +1896,4 @@ class Location:
 ###
 ###
 
-class XSC:
-	"""
-	contains the parser and the options and functions for handling XML files
-	"""
-
-	def __init__(self):
-		self.filename = [ URL("*/") ]
-		self.namespaces = [ namespace ]
-		self.server = "localhost"
-		self.reprtree = 1
-
-	def pushURL(self, url):
-		url = URL(url)
-		if len(self.filename):
-			url = self.filename[-1] + url
-		self.filename.append(url)
-
-	def popURL(self):
-		self.filename.pop()
-
-	def pushNamespace(self, namespace):
-		self.namespaces.insert(0, namespace) # built in reverse order, so a simple "for in" finds the most recent entry.
-
-	def popNamespace(self):
-		self.namespaces.pop(0)
-
-	def __nodeFromName(self, name, type):
-		# type==0 => entity; type==1 => element
-		name = name.split(":")
-		if len(name) == 1: # no namespace specified
-			name.insert(0, None)
-		# search for the element
-		# first search the namespace stack (i.e. namespaces that are registered via the normal XML namespace mechanism)
-		# if the element can't be found, search all existing namespaces.
-		allnamespaces = self.namespaces+namespaceRegistry.byPrefix.values()
-		for namespace in allnamespaces:
-			if name[0] is None or name[0] == namespace.prefix:
-				try:
-					if type==0:
-						return namespace.entitiesByName[name[1]]
-					else:
-						return namespace.elementsByName[name[1]]
-				except KeyError: # no element/entity in this namespace with this name
-					pass
-		if type==0:
-			raise IllegalEntityError(self.__here(), name) # entities with this name couldn't be found
-		else:
-			raise IllegalElementError(self.__here(), name) # elements with this name couldn't be found
-
-	def elementFromName(self, name):
-		"""
-		returns the element class for the name name (which might include a namespace).
-		"""
-		return self.__nodeFromName(name, 1)
-
-	def entityFromName(self, name):
-		"""
-		returns the entity class for the name name (which might include a namespace).
-		"""
-		return self.__nodeFromName(name, 0)
-
-	def finish_starttag(self, name, attrs):
-		node = self.elementFromName(unicode(name, parseEncoding))()
-		for name, value in attrs:
-			node[name] = self.__string2Fragment(value)
-		self.__appendNode(node)
-		self.__nesting.append(node) # push new innermost element onto the stack
-
-	def finish_endtag(self, name):
-		element = self.elementFromName(unicode(name, parseEncoding))
-		currentelement = self.__nesting[-1].__class__
-		if element != currentelement:
-			raise IllegalElementNestingError(self.__here(), currentelement, element)
-		self.__nesting[-1].endloc = self.__here()
-		self.__nesting.pop() # pop the innermost element off the stack
-
-	def handle_data(self, data):
-		if data != "":
-			self.__appendNode(Text(unicode(data, parseEncoding)))
-
-	def handle_comment(self, data):
-		self.__appendNode(Comment(unicode(data, parseEncoding)))
-
-	def handle_special(self, data):
-		if data[:7] == "DOCTYPE":
-			self.__appendNode(DocType(data[8:]))
-
-	def handle_proc(self, target, data):
-		data = unicode(data, parseEncoding)
-		if target=="xml":
-			node = XML(data)
-		elif target=="xsc-exec":
-			node = Exec(data)
-		elif target=="xsc-eval":
-			node = Eval(data)
-		else:
-			node = ProcInst(unicode(target, parseEncoding), data)
-		self.__appendNode(node)
-
-	def handle_entityref(self, name):
-		self.__appendNode(self.entityFromName(unicode(name, parseEncoding))())
-
-	def handle_charref(self, name):
-		try:
-			if name[0] == 'x':
-				code = int(name[1:], 16)
-			else:
-				code = int(name)
-		except ValueError:
-			raise MalformedCharRefError(self.__here(), name)
-
-		self.__appendNode(CharRef(code))
-
-	def __parseLines(self, lines):
-		self.__nesting = [Frag()]
-		parser = sgmlop.SGMLParser()
-		parser.register(self)
-		self.lineno = 1
-		for line in lines:
-			parser.feed(line)
-			self.lineno += 1
-		parser.close()
-		return self.__nesting[0]
-
-	def parseString(self, text):
-		"""
-		Parses a string and returns the resulting XSC
-		"""
-		self.pushURL("STRING")
-		lines = text.split("\n")
-		for i in xrange(len(lines)):
-			lines[i] += "\n"
-		element = self.__parseLines(lines)
-		self.popURL()
-		return element
-
-	def parse(self, url):
-		"""
-		Reads and parses a XML file from an URL and returns the resulting XSC
-		"""
-		try:
-			self.pushURL(url)
-			lines = self.filename[-1].readlines()
-			element = self.__parseLines(lines)
-		finally:
-			self.popURL()
-		return element
-
-		# our nodes do not have a parent link, therefore we have to store the active
-		# path through the tree in a stack (which we call nesting, because stack is
-		# already used by the base class (there is no base class anymore, but who cares))
-
-		# after we've finished parsing, the Frag that we put at the bottom of the stack will be our document root
-		return self.__nesting[0]
-
-	def isRetrieve(self, url):
-		remote = url.isRemote()
-		if (retrieveremote and remote) or (retrievelocal and (not remote)):
-			return 1
-		else:
-			return 0
-
-	def __here(self):
-		return Location(self.filename[-1], self.lineno)
-
-	def __appendNode(self, node):
-		node.startloc = self.__here()
-		last = self.__nesting[-1]
-		if len(last) and isinstance(last[-1], Text):
-			if isinstance(node, Text):
-				last[-1].content += node.content
-				return
-			elif isinstance(node, CharRef):
-				last[-1].content += unichr(node.content)
-				return
-		last.append(node) # add the new node to the content of the innermost element (or fragment)
-
-	def __string2Fragment(self, text):
-		"""
-		parses a string that might contain entities into a fragment
-		with text nodes and character references (and other stuff,
-		if the string contains entities).
-		"""
-		node = Frag()
-		while 1:
-			try:
-				i = text.index("&")
-				if i != 0:
-					node.append(text[:i])
-					text = text[i:]
-				try:
-					i = text.index(";")
-					if text[1] == "#":
-						if text[2] == "x":
-							node.append(CharRef(int(text[3:i], 16)))
-						else:
-							node.append(CharRef(int(text[2:i])))
-					else:
-						try:
-							node.append(self.entityFromName(text[1:i])())
-						except KeyError:
-							raise UnknownEntityError(self.__here(), text[1:i])
-					text = text[i+1:]
-				except ValueError:
-					raise MalformedCharRefError(self.__here(), text)
-			except ValueError:
-				if len(text):
-					node.append(text)
-				break
-		return node
-
-xsc = XSC()
+xsc = providers.XSC()
