@@ -1,5 +1,9 @@
 New in 0.4
 ----------
+XIST now requires at least Python 2.0b1.
+
+A new bugfixed version of sgmlop is available from the FTP site.
+
 There an additional publisher class FilePublisher, which can
 be used for publishing to a file (or anything else that has
 a write method).
@@ -11,15 +15,16 @@ removed before accessing the attribute. This is the "official"
 Python method for handling these cases.
 
 Elements and entities are no longer registered one by one. Now
-you can build Namespace objects which are used for searching.
+you can build Namespace objects which are used for searching
+and there are pushNamespace and popNamespace functions in XSC.xsc.
 For more info, see the source.
 
 Image size calculation has been removed from html.img and html.input.
 Use specials.autoimg and specials.autoinput for that.
 
 {Frag,Element}.__{set,get,del}item__ now accept a list as an argument.
-The method will be applied recursively, i.e. e[[0,1,"foo",2] is the
-same e[0][1]["foo"][2].
+The method will be applied recursively, i.e. e[[0, 1, "foo", 2] is the
+same as e[0][1]["foo"][2].
 
 New in 0.3.9
 ------------
