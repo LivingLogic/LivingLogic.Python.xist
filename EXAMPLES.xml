@@ -26,7 +26,7 @@ node = xsc.Frag(
 	)
 )
 
-print node.asBytes(encoding="us-ascii")
+print node.conv().asBytes(encoding="us-ascii")
 </prog>
 
 </section>
