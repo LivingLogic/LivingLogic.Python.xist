@@ -3634,6 +3634,7 @@ class Location(object):
 	"""
 	<par>Represents a location in an &xml; entity.</par>
 	"""
+	__slots__ = ("__sysID", "__pubID", "__lineNumber", "__columnNumber")
 
 	def __init__(self, locator=None, sysID=None, pubID=None, lineNumber=-1, columnNumber=-1):
 		"""
