@@ -184,7 +184,7 @@ class URL:
 		return new
 
 	def __cmp__(self,other):
-		return cmp(self.scheme,other.scheme) or cmp(self.server,other.server) or cmp(self.port,other.port) or cmp(self.path,other.path) or cmp(self.file,other.file) or cmp(self.ext,other.ext) or cmp(self.parameters,other.parameters) or cmp(self.query,other.query) or cmp(self.fragment,other.fragment)
+		return cmp(string.lower(self.scheme),string.lower(other.scheme)) or cmp(string.lower(self.server),string.lower(other.server)) or cmp(self.port,other.port) or cmp(self.path,other.path) or cmp(self.file,other.file) or cmp(self.ext,other.ext) or cmp(self.parameters,other.parameters) or cmp(self.query,other.query) or cmp(self.fragment,other.fragment)
 
 	def open(self):
 		return urllib.urlopen(self.asString())

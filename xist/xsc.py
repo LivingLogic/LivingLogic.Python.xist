@@ -1631,10 +1631,10 @@ def registerElement(element,namespacename,elementname = None):
 	"""
 	<par noindent>registers the element handler class <argref>element</argref> to be used
 	for elements with the appropriate name.
-	The element will be registered in the namespace <argref>namespacename</argref> and the element name
-	<argref>elementname</argref>. If <argref>elementname</argref> is <code>None<code>, the lowercase name
-	of the class will be used (to help prevent conflicts between Python keywords and class names
-	(e.g. for the HTML element del).</par>
+	The element will be registered in the namespace <argref>namespacename</argref>
+	and the element name <argref>elementname</argref>. If <argref>elementname</argref>
+	is <code>None</code>, the lowercase name of the class will be used (to help prevent
+	conflicts between Python keywords and class names (e.g. for the HTML element del)).</par>
 
 	<par>This function sets the class member <code>elementname</code> to the element name.
 	If this member is already present, the above method for determining the element name
