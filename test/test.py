@@ -194,16 +194,16 @@ class XISTTestCase(unittest.TestCase):
 		node = parsers.parseString("<z>gurk&amp;hurz&#42;hinz&#x666;hunz</z>", parser=parsers.SGMLOPParser())
 		self.assertEqual(len(node), 1)
 		self.assertEqual(len(node[0]), 1)
-		self.assertEqual(node[0][0].startLoc.getSystemId(), "STRING")
-		self.assertEqual(node[0][0].startLoc.getLineNumber(), 1)
+		self.assertEqual(node[0][0].startloc.getSystemId(), "STRING")
+		self.assertEqual(node[0][0].startloc.getLineNumber(), 1)
 
 	def test_parselocationexpat(self):
 		node = parsers.parseString("<z>gurk&amp;hurz&#42;hinz&#x666;hunz</z>", parser=parsers.ExpatParser())
 		self.assertEqual(len(node), 1)
 		self.assertEqual(len(node[0]), 1)
-		self.assertEqual(node[0][0].startLoc.getSystemId(), "STRING")
-		self.assertEqual(node[0][0].startLoc.getLineNumber(), 1)
-		self.assertEqual(node[0][0].startLoc.getColumnNumber(), 3)
+		self.assertEqual(node[0][0].startloc.getSystemId(), "STRING")
+		self.assertEqual(node[0][0].startloc.getLineNumber(), 1)
+		self.assertEqual(node[0][0].startloc.getColumnNumber(), 3)
 
 	def check_namespace(self, module):
 		for obj in module.__dict__.values():

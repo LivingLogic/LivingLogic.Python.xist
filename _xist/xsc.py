@@ -115,8 +115,8 @@ class Node(Base):
 	# location of this node in the XML file (will be hidden in derived classes, but is
 	# specified here, so that no special tests are required. In derived classes
 	# this will be set by the parser)
-	startLoc = None
-	endLoc = None
+	startloc = None
+	endloc = None
 
 	# specifies that this class should be registered in a namespace
 	# this won't be used for all the DOM classes (Element, ProcInst etc.) themselves but only for derived classes
@@ -523,8 +523,8 @@ class Node(Base):
 		<arg>node</arg> with the same location information as <self/>.</par>
 		"""
 
-		node.startLoc = self.startLoc
-		node.endLoc = self.endLoc
+		node.startloc = self.startloc
+		node.endloc = self.endloc
 		return node
 
 	def mapped(self, function):

@@ -502,7 +502,7 @@ class Handler(object):
 		elementclass = self.prefixes.elementFromQName(name)
 		if elementclass is not currentelement.__class__:
 			raise errors.ElementNestingError(currentelement.__class__, elementclass)
-		self.__nesting[-1][0].endLoc = self.getLocation()
+		self.__nesting[-1][0].endloc = self.getLocation()
 		# SAX specifies that the order of calls to endPrefixMapping is undefined, so we use the same order as in beginElement
 		for (type, prefix) in self.__nesting[-1][1]:
 			self.prefixes.endPrefixMapping(prefix, type)
@@ -521,7 +521,7 @@ class Handler(object):
 			last = self.__nesting[-1][0]
 			if len(last) and isinstance(last[-1], xsc.Text):
 				node = last[-1] + node.content # join consecutive Text nodes
-				node.startLoc = last[-1].startLoc # make sure the replacement node has the original location
+				node.startloc = last[-1].startloc # make sure the replacement node has the original location
 				last[-1] = node # replace it
 			else:
 				self.__appendNode(node)
@@ -576,7 +576,7 @@ class Handler(object):
 		return xsc.Location(self._locator)
 
 	def __appendNode(self, node):
-		node.startLoc = self.getLocation()
+		node.startloc = self.getLocation()
 		self.__nesting[-1][0].append(node) # add the new node to the content of the innermost element (or fragment)
 
 def parse(source, handler=None, parser=None, prefixes=None):

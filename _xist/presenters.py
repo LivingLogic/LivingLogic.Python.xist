@@ -638,7 +638,7 @@ class TreePresenter(Presenter):
 		return "".join(newlines)
 
 	def _doMultiLine(self, node, lines, indent, formatter, head=None, tail=None):
-		loc = node.startLoc
+		loc = node.startloc
 		nest = len(self.currentPath)
 		l = len(lines)
 		for i in xrange(l):
@@ -681,15 +681,15 @@ class TreePresenter(Presenter):
 				child.present(self)
 		else:
 			if len(node):
-				self.lines.append([node.startLoc, self.currentPath[:], len(self.currentPath), ansistyle.Text(strBracketOpen(), node._str(fullname=1, xmlname=0, decorate=0), strBracketClose())])
+				self.lines.append([node.startloc, self.currentPath[:], len(self.currentPath), ansistyle.Text(strBracketOpen(), node._str(fullname=1, xmlname=0, decorate=0), strBracketClose())])
 				self.currentPath.append(0)
 				for child in node:
 					child.present(self)
 					self.currentPath[-1] += 1
 				del self.currentPath[-1]
-				self.lines.append([node.endLoc, self.currentPath[:], len(self.currentPath), ansistyle.Text(strBracketOpen(), strSlash(), node._str(fullname=1, xmlname=0, decorate=0), strBracketClose())])
+				self.lines.append([node.endloc, self.currentPath[:], len(self.currentPath), ansistyle.Text(strBracketOpen(), strSlash(), node._str(fullname=1, xmlname=0, decorate=0), strBracketClose())])
 			else:
-				self.lines.append([node.startLoc, self.currentPath[:], len(self.currentPath), ansistyle.Text(strBracketOpen(), node._str(fullname=1, xmlname=0, decorate=0), strSlash(), strBracketClose())])
+				self.lines.append([node.startloc, self.currentPath[:], len(self.currentPath), ansistyle.Text(strBracketOpen(), node._str(fullname=1, xmlname=0, decorate=0), strSlash(), strBracketClose())])
 
 	def presentAttrs(self, node):
 		if self.inAttr:
@@ -704,14 +704,14 @@ class TreePresenter(Presenter):
 				self.buffers[-1].append(strQuote())
 		else:
 			s = ansistyle.Text(strBracketOpen(), node._str(fullname=1, xmlname=0, decorate=0), strBracketClose())
-			self.lines.append([node.startLoc, self.currentPath[:], len(self.currentPath), s])
+			self.lines.append([node.startloc, self.currentPath[:], len(self.currentPath), s])
 			self.currentPath.append(None)
 			for (attrname, attrvalue) in node.items():
 				self.currentPath[-1] = attrname
 				attrvalue.present(self)
 			self.currentPath.pop()
 			s = ansistyle.Text(strBracketOpen(), strSlash(), node._str(fullname=1, xmlname=0, decorate=0), strBracketClose())
-			self.lines.append([node.endLoc, self.currentPath[:], len(self.currentPath), s])
+			self.lines.append([node.endloc, self.currentPath[:], len(self.currentPath), s])
 
 	def presentElement(self, node):
 		if self.inAttr:
@@ -732,22 +732,22 @@ class TreePresenter(Presenter):
 			self.inAttr -= 1
 			if len(node):
 				self.buffers[-1].append(strBracketClose())
-				self.lines.append([node.startLoc, self.currentPath[:], len(self.currentPath), ansistyle.Text(*self.buffers)])
+				self.lines.append([node.startloc, self.currentPath[:], len(self.currentPath), ansistyle.Text(*self.buffers)])
 				self.buffers = [] # we're done with the buffers for the header
 				self.currentPath.append(0)
 				for child in node:
 					child.present(self)
 					self.currentPath[-1] += 1
 				self.currentPath.pop()
-				self.lines.append([node.endLoc, self.currentPath[:], len(self.currentPath), ansistyle.Text(strBracketOpen(), strSlash(), node._str(fullname=1, xmlname=0, decorate=0), strBracketClose())])
+				self.lines.append([node.endloc, self.currentPath[:], len(self.currentPath), ansistyle.Text(strBracketOpen(), strSlash(), node._str(fullname=1, xmlname=0, decorate=0), strBracketClose())])
 			else:
 				self.buffers[-1].append(strSlash(), strBracketClose())
-				self.lines.append([node.startLoc, self.currentPath[:], len(self.currentPath), ansistyle.Text(*self.buffers)])
+				self.lines.append([node.startloc, self.currentPath[:], len(self.currentPath), ansistyle.Text(*self.buffers)])
 				self.buffers = [] # we're done with the buffers for the header
 
 	def presentNull(self, node):
 		if not self.inAttr:
-			self.lines.append([node.startLoc, self.currentPath[:], len(self.currentPath), node._str(fullname=1, xmlname=0, decorate=1)])
+			self.lines.append([node.startloc, self.currentPath[:], len(self.currentPath), node._str(fullname=1, xmlname=0, decorate=1)])
 
 	def presentText(self, node):
 		if self.inAttr:
@@ -760,7 +760,7 @@ class TreePresenter(Presenter):
 		if self.inAttr:
 			self.buffers[-1].append(node._str(fullname=1, xmlname=0, decorate=1))
 		else:
-			self.lines.append([node.startLoc, self.currentPath[:], len(self.currentPath), node._str(fullname=1, xmlname=0, decorate=1)])
+			self.lines.append([node.startloc, self.currentPath[:], len(self.currentPath), node._str(fullname=1, xmlname=0, decorate=1)])
 
 	def presentProcInst(self, node):
 		if self.inAttr:
