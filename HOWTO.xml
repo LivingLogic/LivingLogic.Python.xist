@@ -751,7 +751,8 @@ the processing instruction. For example, consider the following &xml; file:
 &lt;b&gt;&lt;?code:eval return gauss()?&gt;&lt;/b&gt;
 </doc:programlisting>
 Parsing this file and calling 
-<pyref module="xist.xsc" class="Node" method="convert"><method>convert</method></pyref> results in the following:
+<pyref module="xist.xsc" class="Node" method="convert"><method>convert</method></pyref>
+results in the following:
 <doc:programlisting>
 &lt;b&gt;5050&lt;/b&gt;
 </doc:programlisting>
