@@ -359,13 +359,13 @@ class URL:
 		scheme1 = self.scheme
 		if scheme1 is not None:
 			scheme1 = scheme1.lower()
-		scheme2 = self.scheme
+		scheme2 = other.scheme
 		if scheme2 is not None:
 			scheme2 = scheme2.lower()
 		server1 = self.server
 		if server1 is not None:
 			server1 = server1.lower()
-		server2 = self.server
+		server2 = other.server
 		if server2 is not None:
 			server2 = server2.lower()
 		return cmp(scheme1, scheme2) or cmp(server1, server2) or cmp(self.port, other.port) or cmp(self.__path, other.__path) or cmp(self.file, other.file) or cmp(self.ext, other.ext) or cmp(self.parameters, other.parameters) or cmp(self.query, other.query) or cmp(self.fragment, other.fragment)
