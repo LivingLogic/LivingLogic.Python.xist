@@ -17,7 +17,7 @@ is from <app moreinfo="http://pyxml.sf.net/">PyXML</app>). It includes a
 and emit &sax;2 events.</par>
 """
 
-import sys, os, os.path, types, urllib, warnings, cStringIO
+import sys, os, os.path, warnings, cStringIO
 
 from xml import sax
 from xml.parsers import sgmlop
