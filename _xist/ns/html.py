@@ -96,7 +96,7 @@ class title(xsc.Element):
 	attrHandlers = i18n
 
 	def unwrapHTML(self, node):
-		if isinstance(node, xsc.Element) and node.namespace() is namespace: # is this one of our own elements => filter it out
+		if isinstance(node, xsc.Element) and node.namespace() is self.namespace: # is this one of our own elements => filter it out
 			if isinstance(node, img):
 				node = node["alt"]
 			else:
