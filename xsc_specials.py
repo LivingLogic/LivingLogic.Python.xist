@@ -138,6 +138,5 @@ class include(XSCElement):
 RegisterElement("include",include)
 
 if __name__ == "__main__":
-	import sys
 	make(sys.argv)
 

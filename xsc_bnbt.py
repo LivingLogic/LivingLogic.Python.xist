@@ -534,14 +534,14 @@ class fileinfo(XSCElement):
 			td(indent())
 		)+tr(
 			td(pixel()) +
-			td(pixel(),colspan=2,bgcolor="#fff")
+			td(pixel(),colspan="2",bgcolor="#fff")
 		)+tr(
 			td(pixel())+
 			td(div("Now" + br() + a(href="mailto:webmaster@bnbt.de"),Class="lnk-text"),nowrap="")
 		)+tr(
-			td(pixel(height=10))
+			td(pixel(height="10"))
 		)+tr(
-			td(pixel(),colspan=4)
+			td(pixel(),colspan="4")
 		)
 
 		return e.asHTML()
@@ -976,6 +976,5 @@ class busnav(XSCElement):
 RegisterElement("busnav",busnav)
 
 if __name__ == "__main__":
-	import sys
 	make(sys.argv)
 

@@ -468,6 +468,5 @@ class applet(XSCElement): # deprecated
 RegisterElement("applet",applet)
 
 if __name__ == "__main__":
-	import sys
 	make(sys.argv)
 

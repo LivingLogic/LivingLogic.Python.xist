@@ -9,6 +9,7 @@ import os
 import string
 import types
 import exceptions
+import sys
 
 # for file size checking
 import stat
@@ -1334,6 +1335,5 @@ def make(args):
 xsc = XSC()
 
 if __name__ == "__main__":
-	import sys
 	make(sys.argv)
 
