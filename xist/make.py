@@ -70,15 +70,15 @@ def make():
 				outname.ext = {"hsc": "html", "shsc": "shtml", "phsc": "phtml", "xsc": "html", "sxsc": "shtml", "pxsc": "phtml"}[inname.ext]
 			except KeyError:
 				outname.ext = "html"
-			t1 = time.time()
+			t1 = time.clock()
 			e_in = xsc.xsc.parse(inname)
-			t2 = time.time()
+			t2 = time.clock()
 			xsc.xsc.pushURL(inname)
 			e_out = e_in.asHTML()
-			t3 = time.time()
+			t3 = time.clock()
 			p = publishers.FilePublisher(utils.forceopen(outname.asPlainString(), "wb", 65536), encoding=encoding, XHTML=XHTML)
 			e_out.publish(p)
-			t4 = time.time()
+			t4 = time.clock()
 			size = p.tell()
 			sys.stderr.write("XSC(encoding=%s, XHTML=%s): %s->%s: %s (parse %ss; transform %ss; save %ss)\n" % (formatstring(p.encoding), formatnumber(p.XHTML), xsc.strURL(inname.asString()), xsc.strURL(outname.asString()), formatnumber(size), formatnumber("%.02f" % (t2-t1)), formatnumber("%.02f" % (t3-t2)), formatnumber("%.02f" % (t4-t3))))
 			xsc.xsc.popURL()
