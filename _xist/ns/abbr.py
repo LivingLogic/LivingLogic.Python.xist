@@ -640,4 +640,13 @@ class php(xsc.Entity):
 	def __unicode__(self):
 		return u"PHP"
 
+class svg(xsc.Entity):
+	def convert(self, converter):
+		if converter.target=="docbook":
+			return docbook.abbrev("SVG", lang="en")
+		else:
+			return html_.abbr("SVG", title="Scalable Vector Graphics", lang="en")
+	def __unicode__(self):
+		return u"SVG"
+
 xmlns = xsc.Namespace("abbr", "http://xmlns.livinglogic.de/xist/ns/abbr", vars())
