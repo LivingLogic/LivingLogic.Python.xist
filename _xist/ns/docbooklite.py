@@ -132,7 +132,7 @@ class application(xsc.Element):
 	empty = 0
 
 	def convert(self, converter=None):
-		e = html.code(self.content, class_="application")
+		e = html.span(self.content, class_="application")
 		return e.convert(converter)
 
 class para(xsc.Element):
