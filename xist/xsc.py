@@ -407,16 +407,7 @@ def ToNode(value):
 	elif t is types.NoneType:
 		return Null
 	elif t in (types.ListType, types.TupleType):
-		node = Frag()
-		for i in value:
-			node.append(ToNode(i))
-		l = len(node)
-		if l==1:
-			return node[0] # recursively try to simplify the tree
-		elif l==0:
-			return Null
-		else:
-			return node
+		return Frag(*value)
 	raise errors.IllegalObjectError(-1, value) # none of the above, so we throw and exception
 
 class Node:
@@ -1108,8 +1099,7 @@ class Frag(Node):
 
 	def compact(self):
 		node = self.__class__()
-		for child in self:
-			node.append(child.compact())
+		node.__content = [ child.compact() for child in self ]
 		return self._decorateNode(node)
 
 	def withSeparator(self, separator, clone=0):
@@ -1605,7 +1595,8 @@ class Element(Node):
 		return "".join(v)
 
 	def compact(self):
-		node = self.__class__(self.content.compact())
+		node = self.__class__()
+		node.__content = self.content.compact()
 		for attr in self.attrs.keys():
 			node[attr] = self[attr].compact()
 		return self._decorateNode(node)
