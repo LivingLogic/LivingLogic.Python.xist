@@ -1212,7 +1212,12 @@ def _codeheader(cls, thing, name, type):
 	for i in xrange(len(args)):
 		if i == 0:
 			if issubclass(type, method):
-				sig.append(cls.arg(cls.self()))
+				if args[i] == "self":
+					sig.append(cls.arg(cls.self()))
+				elif args[i] == "cls":
+					sig.append(cls.arg(cls.cls()))
+				else:
+					sig.append(cls.arg(args[i]))
 			else:
 				sig.append(cls.arg(args[i]))
 		else:
