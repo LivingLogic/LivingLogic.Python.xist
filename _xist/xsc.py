@@ -64,6 +64,7 @@ def ToNode(value):
 			return Frag(*list(value))
 		except TypeError:
 			pass
+	from ll.xist import errors
 	warnings.warn(errors.IllegalObjectWarning(value)) # none of the above, so we report it and maybe throw an exception
 	return Null
 
@@ -706,6 +707,7 @@ class Node(Base):
 		"""
 		for item in self.walk(filter, filterpath, False):
 			return item
+		from ll.xist import errors
 		raise errors.NodeNotFoundError()
 
 	def __div__(self, other):
@@ -1291,9 +1293,11 @@ class Comment(CharacterData):
 
 	def publish(self, publisher):
 		if publisher.inattr:
+			from ll.xist import errors
 			raise errors.IllegalAttrNodeError(self)
 		content = self.content
 		if u"--" in content or content.endswith(u"-"):
+			from ll.xist import errors
 			warnings.warn(errors.IllegalCommentContentWarning(self))
 		publisher.write(u"<!--")
 		publisher.write(content)
@@ -1313,6 +1317,7 @@ class DocType(CharacterData):
 
 	def publish(self, publisher):
 		if publisher.inattr:
+			from ll.xist import errors
 			raise errors.IllegalAttrNodeError(self)
 		publisher.write(u"<!DOCTYPE ")
 		publisher.write(self.content)
@@ -1357,6 +1362,7 @@ class ProcInst(CharacterData):
 	def publish(self, publisher):
 		content = self.content
 		if u"?>" in content:
+			from ll.xist import errors
 			raise errors.IllegalProcInstFormatError(self)
 		publisher.write(u"<?")
 		publisher.write(self.xmlname[True])
@@ -1501,6 +1507,7 @@ class Attr(Frag):
 		if len(self) and isinstance(values, tuple) and not self.isfancy():
 			value = unicode(self)
 			if value not in values:
+				from ll.xist import errors
 				warnings.warn(errors.IllegalAttrValueWarning(self))
 
 	def _walk(self, filter, path, filterpath, walkpath):
@@ -1861,6 +1868,7 @@ class Attrs(Node, dict):
 				pass
 		# are there any required attributes remaining that haven't been specified? => warn about it
 		if attrs:
+			from ll.xist import errors
 			warnings.warn(errors.RequiredAttrMissingWarning(self, list(attrs)))
 
 	def publish(self, publisher):
@@ -2068,6 +2076,7 @@ class Attrs(Node, dict):
 		try:
 			return cls._attrs[xml][name].xmlname[False]
 		except KeyError:
+			from ll.xist import errors
 			raise errors.IllegalAttrError(cls, name, xml=xml)
 
 	@classmethod
@@ -2075,6 +2084,7 @@ class Attrs(Node, dict):
 		try:
 			return cls._attrs[xml][name]
 		except KeyError:
+			from ll.xist import errors
 			raise errors.IllegalAttrError(cls, name, xml=xml)
 
 	def __iter__(self):
@@ -2233,6 +2243,7 @@ class Element(Node):
 			try:
 				return cls._attrs[xml][name].xmlname[False]
 			except KeyError:
+				from ll.xist import errors
 				raise errors.IllegalAttrError(cls, name, xml=xml)
 
 		@classmethod
@@ -2244,6 +2255,7 @@ class Element(Node):
 				try:
 					return cls._attrs[xml][name]
 				except KeyError:
+					from ll.xist import errors
 					raise errors.IllegalAttrError(cls, name, xml=xml)
 
 		def with(self, names=[], namespaces=(), keepglobals=False, xml=False):
@@ -2414,6 +2426,7 @@ class Element(Node):
 		try:
 			size = url.openread().imagesize
 		except IOError, exc:
+			from ll.xist import errors
 			warnings.warn(errors.FileNotFoundWarning("can't read image", url, exc))
 		else:
 			for attr in (heightattr, widthattr):
@@ -2876,7 +2889,7 @@ class CharRef(Text, Entity):
 		return Text(self.content.upper())
 
 
-import presenters, publishers, cssparsers, converters, errors, utils, helpers
+import presenters, publishers, cssparsers, converters, utils, helpers
 
 ###
 ### Classes for namespace handling
@@ -2921,6 +2934,7 @@ class Prefixes(dict):
 	USEPREFIX = 1
 	DECLAREANDUSEPREFIX = 2
 
+	from ll.xist import errors
 	# Warning classes
 	IllegalElementWarning = errors.IllegalElementParseWarning
 	IllegalProcInstWarning = errors.IllegalProcInstParseWarning
