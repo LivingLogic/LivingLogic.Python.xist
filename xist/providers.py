@@ -133,8 +133,8 @@ class Provider(NestedNamespace):
 		element = self.elementFromName(unicode(name, self.encoding))
 		currentelement = self.__nesting[-1].__class__
 		if element != currentelement:
-			raise errors.IllegalElementNestingError(self.__here(), currentelement, element)
-		self.__nesting[-1].endloc = self.__here()
+			raise errors.IllegalElementNestingError(self.getLocation(), currentelement, element)
+		self.__nesting[-1].endloc = self.getLocation()
 		self.__nesting.pop() # pop the innermost element off the stack
 
 	def handle_data(self, data):
@@ -161,7 +161,7 @@ class Provider(NestedNamespace):
 			else:
 				code = int(name)
 		except ValueError:
-			raise errors.MalformedCharRefError(self.__here(), name)
+			raise errors.MalformedCharRefError(self.getLocation(), name)
 
 		self.__appendNode(xsc.Text(unichr(code)))
 
@@ -192,7 +192,7 @@ class Provider(NestedNamespace):
 		return xsc.Location(self.filenames[-1], self.lineno)
 
 	def __appendNode(self, node):
-		node.startloc = self.__here()
+		node.startloc = self.getLocation()
 		last = self.__nesting[-1]
 		if len(last) and isinstance(last[-1], xsc.Text):
 			if isinstance(node, xsc.Text):
@@ -226,10 +226,10 @@ class Provider(NestedNamespace):
 						try:
 							node.append(self.entityFromName(text[1:i])())
 						except KeyError:
-							raise errors.UnknownEntityError(self.__here(), text[1:i])
+							raise errors.UnknownEntityError(self.getLocation(), text[1:i])
 					text = text[i+1:]
 				except ValueError:
-					raise errors.MalformedCharRefError(self.__here(), text)
+					raise errors.MalformedCharRefError(self.getLocation(), text)
 			except ValueError:
 				if len(text):
 					node.append(text)
