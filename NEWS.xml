@@ -24,6 +24,8 @@ from xist.ns import code
 print code.Eval("return converter.lang")(lang="en").asBytes()
 </programlisting>
 which will print <code>en</code>.</li>
+<li>The option <code>XHTML</code> for the publishers has been changed
+to lowercase.</li>
 </ul>
 </section>
 
