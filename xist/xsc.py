@@ -205,7 +205,7 @@ def ToNode(value):
 	if type(value) == types.StringType:
 		return XSCText(value)
 	elif type(value) == types.NoneType:
-		return XSCText("")
+		return None
 	elif type(value) in [ types.IntType,types.LongType ] :
 		return XSCCharRef(value)
 	elif type(value) == types.FloatType :
@@ -221,7 +221,7 @@ def ToNode(value):
 			v[i] = ToNode(value[i])
 		return v
 	elif type(value) == types.InstanceType:
-		if value.__class__ == XSCFrag:
+		if isinstance(value,XSCFrag):
 			if len(value.content)==1:
 				return ToNode(value.content[0]) # recursively try to simplify the tree
 			else:
@@ -308,7 +308,7 @@ class XSCNode:
 		return self._strtag(_stransi(xsc.repransipiquestion,"?") + _stransi(xsc.repransipitarget,target) + " " + _stransi(xsc.repransipidata,data) + _stransi(xsc.repransipiquestion,"?"))
 
 	def __str__(self):
-		return self.dostr()
+		return ""
 
 	def findElementsNamed(self,name):
 		"""returns a fragment that contains all elements in the subtree of the node with the type name"""
@@ -333,7 +333,7 @@ class XSCText(XSCNode):
 	def asHTML(self):
 		return XSCText(self.__content)
 
-	def dostr(self):
+	def __str__(self):
 		v = []
 		for i in self.__content:
 			if i == '\r':
@@ -386,7 +386,7 @@ class XSCCharRef(XSCNode):
 	def asHTML(self):
 		return XSCCharRef(self.__content)
 
-	def dostr(self):
+	def __str__(self):
 		if 0<=self.__content<=127:
 			if self.__content != ord("\r"):
 				if self.__notdirect.has_key(self.__content):
@@ -419,7 +419,7 @@ class XSCFrag(XSCNode):
 
 	def __init__(self,_content = []):
 		if type(_content) == types.InstanceType:
-			if _content.__class__ == XSCFrag:
+			if isinstance(_content,XSCFrag):
 				self.content = map(ToNode,_content.content)
 			else:
 				self.content = [ ToNode(_content) ]
@@ -430,25 +430,27 @@ class XSCFrag(XSCNode):
 
 	def __add__(self,other):
 		res = XSCFrag(self.content)
-		newother = ToNode(other)
-		if newother.__class__ is XSCFrag:
-			res.content = res.content + newother.content
-		else:
-			res.content.append(newother)
+		if other is not None:
+			newother = ToNode(other)
+			if isinstance(newother,XSCFrag):
+				res.content = res.content + newother.content
+			else:
+				res.content.append(newother)
 		return res
 
 	def __radd__(self,other):
 		res = XSCFrag(self.content)
-		newother = ToNode(other)
-		if newother.__class__ is XSCFrag:
-			res.content = newother.content + res.content
-		else:
-			res.content = [ newother ] + res.content
+		if other is not None:
+			newother = ToNode(other)
+			if isinstance(newother,XSCFrag):
+				res.content = newother.content + res.content
+			else:
+				res.content = [ newother ] + res.content
 		return res
 
 	def asHTML(self):
 		e = XSCFrag()
-		for child in self.content:
+		for child in self:
 			e.append(child.asHTML())
 		return e
 
@@ -468,10 +470,10 @@ class XSCFrag(XSCNode):
 		v.append([nest,self.endlineno,elementno,self._strtag('/XSCFrag')])
 		return v
 
-	def dostr(self):
+	def __str__(self):
 		v = []
-		for child in self.content:
-			v.append(child.dostr())
+		for child in self:
+			v.append(str(child))
 		return string.join(v,"")
 
 	def __getitem__(self,index):
@@ -481,12 +483,124 @@ class XSCFrag(XSCNode):
 	def __setitem__(self,index,value):
 		"""allows you to replace the index'th content node of the fragment"""
 		if len(self.content)>index:
-			self.content[index] = ToNode(value)
+			self._content[index] = ToNode(value)
 
 	def __delitem__(self,index):
 		"""removes the index'th content node from the fragment"""
 		if len(self.content)>index:
-			del self.content[index]
+			del self.ontent[index]
+
+	def __getslice__(self,index1,index2):
+		"""returns a slice of the content of the fragment"""
+		return XSCFrag(self.content[index1:index2])
+
+	def __setslice__(self,index1,index2,sequence):
+		"""modifies a slice of the content of the fragment"""
+		self.content[index1:index2] = map(ToNode,sequence)
+
+	def __delslice__(self,index1,index2):
+		"""removes a slice of the content of the fragment"""
+		del self.content[index1:index2]
+
+	def __len__(self):
+		"""return the number of children"""
+		return len(self.content)
+
+	def append(self,other):
+		if other != None:
+			self.content.append(ToNode(other))
+
+	def preppend(self,other):
+		if other != None:
+			self.content = [ ToNode(other) ] + self.content[:]
+
+	def findElementsNamed(self,name):
+		e = XSCFrag()
+		for child in self:
+			e = e + child.findElementsNamed(name)
+		return e
+
+	def withoutLinefeeds(self):
+		e = XSCFrag()
+		for child in self:
+			e.append(child.withoutLinefeeds())
+		return e
+
+class XSCAttr(XSCNode):
+	"""contains an attrbute which may consist of text and charref nodes, and nothing else"""
+
+	def __init__(self,_content = []):
+		if type(_content) == types.InstanceType:
+			if isinstance(_content,XSCFrag):
+				self.content = map(ToNode,_content.content)
+			else:
+				self.content = [ ToNode(_content) ]
+		elif type(_content) in [ types.ListType , types.TupleType ]:
+			self.content = map(ToNode,_content)
+		else:
+			self.content = [ ToNode(_content) ]
+
+	def __add__(self,other):
+		res = XSCFrag(self.content)
+		if other is not None:
+			newother = ToNode(other)
+			if isinstance(newother,XSCFrag):
+				res.content = res.content + newother.content
+			else:
+				res.content.append(newother)
+		return res
+
+	def __radd__(self,other):
+		res = XSCFrag(self.content)
+		if other is not None:
+			newother = ToNode(other)
+			if isinstance(newother,XSCFrag):
+				res.content = newother.content + res.content
+			else:
+				res.content = [ newother ] + res.content
+		return res
+
+	def asHTML(self):
+		e = XSCFrag()
+		for child in self:
+			e.append(child.asHTML())
+		return e
+
+	def _dorepr(self):
+		v = []
+		for child in self:
+			v.append(child._dorepr())
+		return string.join(v,"")
+
+	def _doreprtree(self,nest,elementno):
+		v = []
+		v.append([nest,self.startlineno,elementno,self._strtag('XSCFrag')])
+		i = 0
+		for child in self:
+			v = v + child._doreprtree(nest+1,elementno + [i])
+			i = i + 1
+		v.append([nest,self.endlineno,elementno,self._strtag('/XSCFrag')])
+		return v
+
+	def __str__(self):
+		v = []
+		for child in self:
+			v.append(str(child))
+		return string.join(v,"")
+
+	def __getitem__(self,index):
+		"""returns the index'th node for the content of the fragment"""
+		return self.content[index]
+
+	def __setitem__(self,index,value):
+		"""allows you to replace the index'th content node of the fragment"""
+		if len(self.content)>index:
+			self._content[index] = ToNode(value)
+
+	def __delitem__(self,index):
+		"""removes the index'th content node from the fragment"""
+		if len(self.content)>index:
+			del self.ontent[index]
 
 	def __getslice__(self,index1,index2):
 		"""returns a slice of the content of the fragment"""
@@ -565,7 +679,7 @@ class XSCAttrs(XSCNode):
 			v[-1] = v[-1] + " " + _strattrname(attr) + '=' + self._strattrquotes(line)
 		return [v]
 
-	def dostr(self):
+	def __str__(self):
 		v = []
 		for attr in self.keys():
 			v.append(' ' + attr + '="' + str(self[attr]) + '"')
@@ -587,7 +701,7 @@ class XSCAttrs(XSCNode):
 		# values are converted to Nodes first and then wrapped into the attribute nodes as specified via the attr_handlers dictionary
 		lowerindex = string.lower(index)
 		if self.attr_handlers.has_key(lowerindex):
-			self.__content[lowerindex] = self.attr_handlers[lowerindex](ToNode(value)) # convert the attribute to a node and pack it into an attribute object
+			self.__content[lowerindex] = self.attr_handlers[lowerindex](value) # pack the attribute into an attribute object
 		else:
 			raise XSCIllegalAttributeError(xsc.parser.lineno,self,index)
 
@@ -627,7 +741,7 @@ class XSCComment(XSCNode):
 	def _doreprtree(self,nest,elementno):
 		return [[nest,self.startlineno,elementno,self._strtag("!--" + self.__content + "--")]]
 
-	def dostr(self):
+	def __str__(self):
 		return "<!--" + self.__content + "-->"
 
 	def withoutLinefeeds(self):
@@ -648,7 +762,7 @@ class XSCDocType(XSCNode):
 	def _doreprtree(self,nest,elementno):
 		return [[nest,self.startlineno,elementno,self._strtag("!DOCTYPE " + self.__content)]]
 
-	def dostr(self):
+	def __str__(self):
 		return "<!DOCTYPE " + self.__content + ">"
 
 	def withoutLinefeeds(self):
@@ -670,7 +784,7 @@ class XSCProcInst(XSCNode):
 	def _doreprtree(self,nest,elementno):
 		return [[nest,self.startlineno,elementno,self._strpi(self.__target,self.__content)]]
 
-	def dostr(self):
+	def __str__(self):
 		return "<?" + self.__target + " " + self.__content + "?>"
 
 	def withoutLinefeeds(self):
@@ -724,14 +838,14 @@ class XSCElement(XSCNode):
 			v.append([nest,self.endlineno,elementno,self._strtag(_strelementname("/" + self.name))])
 		return v
 
-	def dostr(self):
+	def __str__(self):
 		"""returns this element as a string converted to HTML"""
 
 		v = []
 		v.append("<")
 		v.append(self.name)
-		v.append(self.attrs.dostr())
-		s = self.content.dostr()
+		v.append(str(self.attrs))
+		s = str(self.content)
 		if self.empty:
 			if len(s):
 				raise XSCEmptyElementWithContentError(xsc.parser.lineno,self)
@@ -823,47 +937,52 @@ def RegisterElement(name,element):
 	_element_handlers[name] = element
 	element.name = name
 
-class XSCTextAttr(XSCFrag):
+class XSCTextAttr(XSCNode):
 	"""
 	Attribute class that is used for normal text attributes.
 	"""
 
-	def __init__(self,_content = []):
-		self.__content = ToNode(_content)
+	def __init__(self,_content):
+		self.__content = _content
 
 	def _dorepr(self):
-		return _stransi(xsc.repransitextattrs,self.__content.dostr())
+		return _stransi(xsc.repransitextattrs,str(self.__content))
 
 	def _doreprtree(self,nest,elementno):
 		return [[nest,self.startlineno,elementno,self._dorepr()]]
 
-	def dostr(self):
-		return self.__content.dostr()
+	def __str__(self):
+		v = []
+		for i in self.__content:
+			if i == '"':
+				v.append("&quot;")
+			elif ord(i)>=128:
+				v.append('&#' + str(ord(i)) + ';')
+			else:
+				v.append(i)
+		return string.join(v,"")
 
 	def asHTML(self):
 		return XSCTextAttr(self.__content)
 
-class XSCColorAttr(XSCFrag):
+class XSCColorAttr(XSCTextAttr):
 	"""
 	Attribute class that is used for a color attributes.
 	"""
 
-	def __init__(self,_content = []):
-		self.__content = ToNode(_content)
+	def __init__(self,_content):
+		XSCTextAttr.__init__(self)
 
 	def _dorepr(self):
-		return _stransi(xsc.repransicolorattrs,self.__content.dostr())
+		return _stransi(xsc.repransitextattrs,str(self.__content))
 
 	def _doreprtree(self,nest,elementno):
 		return [[nest,self.startlineno,elementno,self._dorepr()]]
 
-	def dostr(self):
-		return self.__content.dostr()
-
 	def asHTML(self):
 		return XSCColorAttr(self.__content)
 
-class XSCURLAttr(XSCFrag):
+class XSCURLAttr(XSCNode):
 	"""
 	Attribute class that is used for URLs.
 
@@ -888,8 +1007,8 @@ class XSCURLAttr(XSCFrag):
 	(http, ftp, etc.)
 	"""
 
-	def __init__(self,_content = []):
-		url = ToNode(_content).dostr()
+	def __init__(self,_content):
+		url = str(_content)
 		(self.scheme,self.server,self.path,self.parameters,self.query,self.fragment) = urlparse.urlparse(url)
 		self.path = string.split(self.path,"/")
 		if self.scheme == "" and self.server == "": # do we have a local file?
@@ -909,7 +1028,7 @@ class XSCURLAttr(XSCFrag):
 	def _doreprtree(self,nest,elementno):
 		return [[nest,self.startlineno,elementno,self._dorepr()]]
 
-	def dostr(self):
+	def __str__(self):
 		return self.forOutput()
 
 	def asHTML(self):
