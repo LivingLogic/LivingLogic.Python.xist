@@ -237,7 +237,7 @@ class EscInlineText(ansistyle.EscapedText):
 					ascharref = 1
 			if ascharref:
 				charcode = ord(char)
-				entity = xsc.defaultPrefixes.charrefFromNumber(charcode)
+				entity = xsc.defaultPrefixes.charref(charcode)
 				if entity is not None:
 					return EnvTextForEntityName("&", entity.xmlname[True], ";")
 				else:
