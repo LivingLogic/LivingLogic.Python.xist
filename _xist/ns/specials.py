@@ -256,10 +256,10 @@ class autoimg(html_.img):
 	<code>width</code> and <code>height</code>, i.e. you could make your image twice
 	as wide with <code>width="2*%(width)d"</code>.</doc:par>
 	"""
-	def convert(self, converter):
+	def publish(self, publisher):
 		e = html_.img(self.attrs)
-		e._addImageSizeAttributes(converter, "src", "width", "height")
-		return e.convert(converter)
+		e._addImageSizeAttributes(publisher, "src", "width", "height")
+		return e.publish(publisher)
 
 class autoinput(html_.input):
 	"""

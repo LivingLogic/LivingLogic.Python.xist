@@ -128,21 +128,21 @@ class URL:
 	def __repr__(self):
 		v = []
 		if self.scheme is not None:
-			v.append("scheme=" + repr(self.scheme))
+			v.append("scheme=%r" % self.scheme)
 		if self.server is not None:
-			v.append("server=" + repr(self.server))
+			v.append("server=%r" % self.server)
 		if self.port is not None:
-			v.append("port=" + repr(self.port))
+			v.append("port=%r" % self.port)
 		if self.path is not None:
-			v.append("path=" + repr(self.path))
+			v.append("path=%r" % self.path)
 		if self.file is not None:
-			v.append("file=" + repr(self.file))
+			v.append("file=%r" % self.file)
 		if self.params is not None:
-			v.append("params=" + repr(self.params))
+			v.append("params=%r" % self.params)
 		if self.query is not None:
-			v.append("query=" + repr(self.query))
+			v.append("query=%r" % self.query)
 		if self.fragment is not None:
-			v.append("fragment=" + repr(self.fragment))
+			v.append("fragment=%r" % self.fragment)
 		return "URL(%s)" % ", ".join(v)
 
 	def asString(self):
@@ -177,7 +177,7 @@ class URL:
 		path.append(file)
 		return urlparse.urlunparse((scheme, server, u"/".join(path), self.params or u"", self.query or u"", self.fragment or u""))
 
-	def __add__(self, other):
+	def __div__(self, other):
 		"""Join a base URL and a possibly relative URL to form
 		an absolute interpretation of the latter."""
 
@@ -191,11 +191,6 @@ class URL:
 		if other.file == u"" and not len(other.path) and not other.scheme:
 			other.path.append(u".")
 		return URL(urlparse.urljoin(self.asString(), other.asString()))
-
-	def __radd__(self, other):
-		return URL(other).__add__(self)
-
-	__radd__.__doc__ = __add__.__doc__
 
 	def clone(self):
 		"""
@@ -214,10 +209,10 @@ class URL:
 	def relativeTo(self, other):
 		"""
 		<par nointent>returns <self/> interpreted relative
-		to <code><self/> + other</code>, i.e. return a mimimal URL <code>rel</code>,
-		such that <code><self/> + rel = <self/> + other</code>.</par>
+		to <code><self/>/other</code>, i.e. return a mimimal URL <code>rel</code>,
+		such that <code><self/>/rel = <self/>/other</code>.</par>
 		"""
-		new = other + self # make URL absolute
+		new = other/self # make URL absolute
 		if new.scheme in urlparse.uses_relative and other.scheme==new.scheme and other.server==new.server and other.port==new.port: # test if the URL uses the same scheme and goes to the same machine
 			# if yes, the url is a relative one
 			new.scheme = None
@@ -393,7 +388,7 @@ def test_normalize(input, output):
 
 def test_url(o_lhs, o_rhs):
 	"""
-	Test whether instantiation, '+' and others have the expected effect.
+	Test whether instantiation, '/' and others have the expected effect.
 
 	Check is done via comparing against another URL or a string; in the
 	later case, the URL is converted using asString().
@@ -424,8 +419,8 @@ def test_relativeTo(from_, to, should):
 	#print "\t".join((`URL(to)`, `URL(from_)`, u, should))
 	if u != should:
 		raise str('Test failed: %r.relativeTo(%r) is %r but should be %r' % (to, from_, u, should))
-	#if from_+relu != from_+to:
-	#	raise str('Invariance test failed: from+rel=%r != from+to=%r' % (from_+relu, from_+to))
+	#if from_/relu != from_/to:
+	#	raise str('Invariance test failed: from/rel=%r != from/to=%r' % (from_/relu, from_/to))
 
 test_input = urlparse.test_input
 
@@ -479,19 +474,19 @@ if __name__ == '__main__':
 	test_url(URL("http:bb/cc/"), "http:bb/cc/")
 	# these two fail, should they?
 	#test_url(URL("http:/bb/cc/"), "http:/bb/cc/")
-	#test_url(URL("http:") + URL("/bb/cc/"), "http:/bb/cc/")
-	test_url(URL("http://test.com/index.html") + URL("impress.html"), "http://test.com/impress.html")
-	test_url(URL("/bb/cc/") + URL("http:"), "http:")
-	test_url(URL("mailto:x@y.z") + URL("index.html"), "index.html")
-	test_url(URL("javascript: return ':/:/:';") + URL("index.html"), "index.html")
-	test_url(URL("http://test.com/gurk/hurz.gif") + URL("/index.html"), "http://test.com/index.html")
-	test_url(URL("http://test.com/gurk/hurz.gif") + URL("../"), "http://test.com/")
-	test_url(URL("http://test.com/gurk/hurz.gif") + URL("../gurk.gif?foo=bar#nix"), "http://test.com/gurk.gif?foo=bar#nix")
-	test_url(URL("http://test.com/gurk/hurz.gif") + URL("../../gurk.gif?foo=bar#nix"), "http://test.com/../gurk.gif?foo=bar#nix")
-	test_url(URL("http://test.com/gurk/hurz.gif") + URL("root:gurk.gif"), "root:gurk.gif")
-	test_url(URL("root:gurk.gif") + URL("http://test.com/gurk/hurz.gif"), "http://test.com/gurk/hurz.gif")
-	test_url(URL("root:gurk/hurz/hinz.gif") + URL("hinz/kunz.gif"), "root:gurk/hurz/hinz/kunz.gif")
-	test_url(URL("root:gurk/hurz/hinz.gif") + URL("root:hinz/kunz.gif"), "root:hinz/kunz.gif")
+	#test_url(URL("http:") / URL("/bb/cc/"), "http:/bb/cc/")
+	test_url(URL("http://test.com/index.html") / URL("impress.html"), "http://test.com/impress.html")
+	test_url(URL("/bb/cc/") / URL("http:"), "http:")
+	test_url(URL("mailto:x@y.z") / URL("index.html"), "index.html")
+	test_url(URL("javascript: return ':/:/:';") / URL("index.html"), "index.html")
+	test_url(URL("http://test.com/gurk/hurz.gif") / URL("/index.html"), "http://test.com/index.html")
+	test_url(URL("http://test.com/gurk/hurz.gif") / URL("../"), "http://test.com/")
+	test_url(URL("http://test.com/gurk/hurz.gif") / URL("../gurk.gif?foo=bar#nix"), "http://test.com/gurk.gif?foo=bar#nix")
+	test_url(URL("http://test.com/gurk/hurz.gif") / URL("../../gurk.gif?foo=bar#nix"), "http://test.com/../gurk.gif?foo=bar#nix")
+	test_url(URL("http://test.com/gurk/hurz.gif") / URL("root:gurk.gif"), "root:gurk.gif")
+	test_url(URL("root:gurk.gif") / URL("http://test.com/gurk/hurz.gif"), "http://test.com/gurk/hurz.gif")
+	test_url(URL("root:gurk/hurz/hinz.gif") / URL("hinz/kunz.gif"), "root:gurk/hurz/hinz/kunz.gif")
+	test_url(URL("root:gurk/hurz/hinz.gif") / URL("root:hinz/kunz.gif"), "root:hinz/kunz.gif")
 	test_url(URL("#mark"), "#mark")
 	print 'test passed: URL()'
 

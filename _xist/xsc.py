@@ -282,36 +282,36 @@ class Node:
 		"""
 		raise NotImplementedError("publish method not implemented in %s" % self.__class__.__name__)
 
-	def asString(self, xhtml=None, publishPrefix=0):
+	def asString(self, file=None, root=None, xhtml=None, publishPrefix=0):
 		"""
 		<doc:par>returns this element as a unicode string.</doc:par>
 
 		<doc:par>For an explanation of <pyref arg="xhtml">xhtml</pyref> and
 		<pyref arg="publishPrefix">publishPrefix</pyref> see <pyref method="publish">publish</pyref>.</doc:par>
 		"""
-		publisher = publishers.StringPublisher(xhtml=xhtml, publishPrefix=publishPrefix)
+		publisher = publishers.StringPublisher(file=file, root=root, xhtml=xhtml, publishPrefix=publishPrefix)
 		self.publish(publisher)
 		return publisher.asString()
 
-	def asBytes(self, base=None, encoding=None, xhtml=None, publishPrefix=0):
+	def asBytes(self, file=None, root=None, encoding=None, xhtml=None, publishPrefix=0):
 		"""
 		<doc:par>returns this element as a byte string suitable for writing
 		to an &html; file or printing from a CGI script.</doc:par>
 
 		<doc:par>For the parameters see <pyref method="publish">publish</pyref>.</doc:par>
 		"""
-		publisher = publishers.BytePublisher(base=base, encoding=encoding, xhtml=xhtml, publishPrefix=publishPrefix)
+		publisher = publishers.BytePublisher(file=file, root=root, encoding=encoding, xhtml=xhtml, publishPrefix=publishPrefix)
 		self.publish(publisher)
 		return publisher.asBytes()
 
-	def write(self, file, base=None, encoding=None, xhtml=None, publishPrefix=0):
+	def write(self, stream, file=None, root=None, encoding=None, xhtml=None, publishPrefix=0):
 		"""
 		<doc:par>writes the element to the file like
 		object <pyref arg="file">file</pyref></doc:par>
 
 		<doc:par>For the rest of the parameters see <pyref method="publish">publish</pyref>.</doc:par>
 		"""
-		publisher = publishers.FilePublisher(file, base=base, encoding=encoding, xhtml=xhtml, publishPrefix=publishPrefix)
+		publisher = publishers.FilePublisher(stream, file=file, root=root, encoding=encoding, xhtml=xhtml, publishPrefix=publishPrefix)
 		self.publish(publisher)
 
 	def find(self, type=None, subtype=0, attrs=None, test=None, searchchildren=0, searchattrs=0):
@@ -1079,7 +1079,7 @@ class Element(Node):
 	def asPlainString(self):
 		return self.content.asPlainString()
 
-	def _addImageSizeAttributes(self, converter, imgattr, widthattr=None, heightattr=None):
+	def _addImageSizeAttributes(self, publisher, imgattr, widthattr=None, heightattr=None):
 		"""
 		<doc:par>add width and height attributes to the element for the image that can be found in the attribute
 		<pyref arg="imgattr">imgattr</pyref>. If the attributes are already there, they are taken as a formatting
@@ -1092,14 +1092,15 @@ class Element(Node):
 		"""
 
 		if self.hasAttr(imgattr):
-			size = self[imgattr].convert(converter).imageSize()
+			attr = self[imgattr]
+			size = attr.imageSize(publisher)
 			if size is not None: # the size was retrieved so we can use it
 				sizedict = {"width": size[0], "height": size[1]}
 				for attr in (heightattr, widthattr):
 					if attr is not None: # do something to the width/height
 						if self.hasAttr(attr):
 							try:
-								s = self[attr].convert(converter).asPlainString() % sizedict
+								s = self[attr].asPlainString() % sizedict
 								s = str(eval(s))
 								s = helpers.unistr(s)
 								self[attr] = s
@@ -1427,11 +1428,6 @@ class CharRef(Entity):
 		node = Text(unichr(self.codepoint))
 		return self._decorateNode(node)
 
-	def compact(self):
-		return self
-
-	clone = compact
-
 	def asPlainString(self):
 		return unichr(self.codepoint)
 
@@ -1543,10 +1539,6 @@ class URLAttr(Attr):
 	(http, ftp, etc.)
 	"""
 
-	def __init__(self, *content):
-		self.base = url.URL()
-		Attr.__init__(self, *content)
-
 	def present(self, presenter):
 		presenter.presentURLAttr(self)
 
@@ -1554,58 +1546,38 @@ class URLAttr(Attr):
 		if publisher.inAttr:
 			raise errors.IllegalAttrNodeError(self)
 		publisher.inAttr = 1
-		u = self.asURL()
-		if u.scheme is None:
-			result = Text(u.asPlainString()).publish(publisher)
-		else:
-			result = Text(u.relativeTo(publisher.base).asPlainString()).publish(publisher)
+		u = self.asURL().relativeTo(publisher.file)
+		Text(u.asPlainString()).publish(publisher)
 		publisher.inAttr = 0
-		return result
-
-	def convert(self, converter):
-		node = Attr.convert(self, converter)
-		node.base = self.base.clone()
-		return node
-
-	def clone(self):
-		node = Attr.clone(self)
-		node.base = self.base.clone()
-		return node
-
-	def compact(self):
-		node = Attr.compact(self)
-		node.base = self.base.clone()
-		return node
 
 	def asURL(self):
-		return url.URL(Attr.asPlainString(self))
+		return url.URL(self.asPlainString())
 
-	def asPlainString(self):
-		return self.asURL().asString()
-
-	def forInput(self):
-		u = self.base + self.asURL()
+	def forInput(self, publisher=None):
+		u = self.asURL()
+		if publisher is not None:
+			u = url.URL(publisher.root)/url.URL(publisher.file)/u
 		if u.scheme == "server":
-			u = url.URL(scheme="http", server=options.server) + u
+			u = url.URL(scheme="http", server=options.server)/u
 		return u
 
-	def imageSize(self):
+	def imageSize(self, publisher=None):
 		"""
 		returns the size of an image as a tuple or None if the image shouldn't be read
 		"""
-		return self.forInput().imageSize()
+		return self.forInput(publisher).imageSize()
 
-	def fileSize(self):
+	def fileSize(self, publisher=None):
 		"""
 		returns the size of a file in bytes or None if the file shouldn't be read
 		"""
-		return self.forInput().fileSize()
+		return self.forInput(publisher).fileSize()
 
-	def open(self):
+	def open(self, publisher=None):
 		"""
 		opens the URL via urllib
 		"""
-		return self.forInput().open()
+		return self.forInput(publisher).open()
 
 ###
 ###

@@ -44,10 +44,14 @@ import fileutils
 import xsc, url as url_, errors, utils
 from ns import html
 
-class StringInputSource(sax.xmlreader.InputSource):
-	def __init__(self, text, base=None, defaultEncoding="utf-8"):
+class InputSource(sax.xmlreader.InputSource):
+	def __init__(self, file):
 		sax.xmlreader.InputSource.__init__(self)
-		self.base = base
+		self.file = file
+
+class StringInputSource(InputSource):
+	def __init__(self, text, file=None, defaultEncoding="utf-8"):
+		InputSource.__init__(self, file)
 		self.setSystemId("STRING")
 		if type(text) is types.UnicodeType:
 			defaultEncoding = "utf-8"
@@ -55,20 +59,22 @@ class StringInputSource(sax.xmlreader.InputSource):
 		self.setByteStream(StringIO.StringIO(text))
 		self.setEncoding(defaultEncoding)
 
-class FileInputSource(sax.xmlreader.InputSource):
-	def __init__(self, filename, base=None, defaultEncoding="utf-8"):
-		sax.xmlreader.InputSource.__init__(self)
-		self.base = base
-		self.setSystemId(str(filename))
-		self.setByteStream(fileutils.Filename(filename).open("rb"))
+class FileInputSource(InputSource):
+	def __init__(self, stream, file=None, defaultEncoding="utf-8"):
+		InputSource.__init__(self, file)
+		self.setSystemId(str(file))
+		if isinstance(stream, types.StringType) or isinstance(stream, types.UnicodeType):
+			stream = fileutils.Filename(stream)
+		if isinstance(stream, fileutils.Filename):
+			stream = stream.open("rb")
+		self.setByteStream(stream)
 		self.setEncoding(defaultEncoding)
 
 class URLInputSource(sax.xmlreader.InputSource):
 	def __init__(self, url, defaultEncoding="utf-8"):
-		sax.xmlreader.InputSource.__init__(self)
 		if isinstance(url, url_.URL):
 			url = url.asPlainString()
-		self.base = url
+		InputSource.__init__(self, url)
 		self.setSystemId(url)
 		if type(url) is types.UnicodeType:
 			url = url.encode("utf-8")
@@ -85,13 +91,12 @@ class URLInputSource(sax.xmlreader.InputSource):
 
 class TidyURLInputSource(sax.xmlreader.InputSource):
 	def __init__(self, url, defaultEncoding="utf-8"):
-		sax.xmlreader.InputSource.__init__(self)
+		if isinstance(url, url_.URL):
+			url = url.asString()
+		InputSource.__init__(self, url)
 		self.tidyin = None
 		self.tidyout = None
 		self.tidyerr = None
-		if isinstance(url, url_.URL):
-			url = url.asString()
-		self.base = base
 		self.setSystemId(url)
 		if type(url) is types.UnicodeType:
 			url = url.encode("utf-8")
@@ -188,6 +193,7 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 		except KeyboardInterrupt:
 			raise
 		except Exception, ex:
+			raise
 			if self.error_handler is not None:
 				self.error_handler.fatalError(ex)
 			else:
@@ -476,11 +482,26 @@ class Handler:
 	def startElement(self, name, attrs):
 		node = self.namespaces.elementFromName(name)()
 		for (attrname, attrvalue) in attrs.items():
+			if issubclass(node.attrHandlers[attrname], xsc.URLAttr) and hasattr(self.source, "file"):
+				if isinstance(attrvalue, types.UnicodeType):
+					attrvalue = xsc.Frag(attrvalue)
+				newattrvalue = xsc.Frag()
+				for i in xrange(len(attrvalue)):
+					v = attrvalue[i]
+					if isinstance(v, xsc.Text) or isinstance(v, xsc.CharRef):
+						newattrvalue.append(v)
+					else:
+						break
+				u = url_.URL(newattrvalue.asPlainString())
+				if u.scheme is None:
+					u = url_.URL(scheme="root")/url_.URL(self.source.file)/u
+					newattrvalue = xsc.Frag(u.asString())
+					i += 1
+					while i < len(attrvalue):
+						newattrvalue.append(attrvalue[i])
+						i += 1
+					attrvalue = newattrvalue
 			node[attrname] = attrvalue
-			attr = node[attrname]
-			if isinstance(attr, xsc.URLAttr) and hasattr(self.source, "base"):
-				base = url_.URL(scheme="root") + url_.URL(self.source.base)
-				attr.base = base
 		self.__appendNode(node)
 		self.__nesting.append(node) # push new innermost element onto the stack
 		self.skippingWhitespace = 0
@@ -552,23 +573,24 @@ class Handler:
 		node.startLoc = self.getLocation()
 		self.__nesting[-1].append(node) # add the new node to the content of the innermost element (or fragment)
 
-def parse(source, parser=None, namespaces=None):
-	handler = Handler(parser, namespaces)
+def parse(source, handler=None, parser=None, namespaces=None):
+	if handler is None:
+		handler = Handler(parser, namespaces)
 	handler.parse(source)
 	return handler.root
 
-def parseString(text, base=None, parser=None, namespaces=None, defaultEncoding="utf-8"):
-	return parse(StringInputSource(text, base=base, defaultEncoding=defaultEncoding), parser, namespaces)
+def parseString(text, file=None, handler=None, parser=None, namespaces=None, defaultEncoding="utf-8"):
+	return parse(StringInputSource(text, file=file, defaultEncoding=defaultEncoding), handler=handler, parser=parser, namespaces=namespaces)
 
-def parseFile(filename, base=None, namespaces=None, parser=None, defaultEncoding="utf-8"):
-	return parse(FileInputSource(filename, base=base, defaultEncoding=defaultEncoding), parser, namespaces)
+def parseFile(filename, file=None, handler=None, parser=None, namespaces=None, defaultEncoding="utf-8"):
+	return parse(FileInputSource(filename, file=file, defaultEncoding=defaultEncoding), handler=handler, parser=parser, namespaces=namespaces)
 
-def parseURL(url, namespaces=None, parser=None, defaultEncoding="utf-8"):
-	return parse(URLInputSource(url, defaultEncoding=defaultEncoding), parser, namespaces)
+def parseURL(url, handler=None, parser=None, namespaces=None, defaultEncoding="utf-8"):
+	return parse(URLInputSource(url, defaultEncoding=defaultEncoding), handler=handler, parser=parser, namespaces=namespaces)
 
-def parseTidyURL(url, namespaces=None, parser=None, defaultEncoding="utf-8"):
+def parseTidyURL(url, handler=None, parser=None, namespaces=None, defaultEncoding="utf-8"):
 	source = TidyURLInputSource(url, defaultEncoding=defaultEncoding)
-	result = parse(source, parser, namespaces)
+	result = parse(source, handler=handler, parser=parser, namespaces=namespaces)
 	source.close()
 	return result
 
