@@ -291,6 +291,7 @@ class presentationattributesall(
 
 # And now for something completely different: the elements
 class svg(xsc.Element):
+	empty = False
 	class Attrs(stdattrs, testattrs, presentationattributesall, graphicelementevents, documentevents):
 		class externalResourcesRequired(BooleanAttr): pass
 		class class_(ClassListAttr): xmlname = "class"
@@ -307,6 +308,7 @@ class svg(xsc.Element):
 		class contentStyleType(ContentTypeAttr): pass
 
 class g(xsc.Element):
+	empty = False
 	class Attrs(stdattrs, testattrs, presentationattributesall, graphicelementevents):
 		class externalResourcesRequired(BooleanAttr): pass
 		class class_(ClassListAttr): xmlname = "class"
@@ -314,6 +316,7 @@ class g(xsc.Element):
 		class transform(TransformListAttr): pass
 
 class defs(xsc.Element):
+	empty = False
 	class Attrs(stdattrs, testattrs, presentationattributesall, graphicelementevents):
 		class externalResourcesRequired(BooleanAttr): pass
 		class class_(ClassListAttr): xmlname = "class"
@@ -321,18 +324,21 @@ class defs(xsc.Element):
 		class transform(TransformListAttr): pass
 
 class desc(xsc.Element):
+	empty = False
 	class Attrs(stdattrs):
 		class class_(ClassListAttr): xmlname = "class"
 		class style(xsc.StyleAttr): pass
 		class content(StructuredTextAttr): pass
 
 class title(xsc.Element):
+	empty = False
 	class Attrs(stdattrs):
 		class class_(ClassListAttr): xmlname = "class"
 		class style(xsc.StyleAttr): pass
 		class content(StructuredTextAttr): pass
 
 class symbol(xsc.Element):
+	empty = False
 	class Attrs(stdattrs, presentationattributesall, graphicelementevents):
 		class externalResourcesRequired(BooleanAttr): pass
 		class class_(ClassListAttr): xmlname = "class"
@@ -341,6 +347,7 @@ class symbol(xsc.Element):
 		class preserveAspectRatio(PreserveAspectRatioSpecAttr): values = ("xMidYMid", "meet")
 
 class use(xsc.Element):
+	empty = False
 	class Attrs(stdattrs, testattrs, presentationattributesall, graphicelementevents):
 		class externalResourcesRequired(BooleanAttr): pass
 		class class_(ClassListAttr): xmlname = "class"
@@ -352,6 +359,7 @@ class use(xsc.Element):
 		class height(LengthAttr): pass
 
 class image(xsc.Element):
+	empty = False
 	class Attrs(stdattrs, testattrs, presentationattributescolor, presentationattributesgraphics,
 		presentationattributesimages, presentationattributesviewports, graphicelementevents):
 		class externalResourcesRequired(BooleanAttr): pass
@@ -365,6 +373,7 @@ class image(xsc.Element):
 		class preserveAspectRatio(PreserveAspectRatioSpecAttr): values = ("xMidYMid", "meet")
 
 class switch(xsc.Element):
+	empty = False
 	class Attrs(stdattrs, testattrs, presentationattributesall, graphicelementevents):
 		class externalResourcesRequired(BooleanAttr): pass
 		class class_(ClassListAttr): xmlname = "class"
@@ -372,12 +381,14 @@ class switch(xsc.Element):
 		class transform(TransformListAttr): pass
 
 class style(xsc.Element):
+	empty = False
 	class Attrs(stdattrs):
 		class type(ContentTypeAttr): required = True
 		class media(MediaDescAttr): pass
 		class title(xsc.TextAttr): pass
 
 class path(xsc.Element):
+	empty = False
 	class Attrs(stdattrs, testattrs, presentationattributescolor, presentationattributesfillstroke,
 		presentationattributesgraphics, presentationattributesmarkers, graphicelementevents):
 		class externalResourcesRequired(BooleanAttr): pass
@@ -388,6 +399,7 @@ class path(xsc.Element):
 		class pathLength(NumberAttr): pass
 
 class rect(xsc.Element):
+	empty = False
 	class Attrs(stdattrs, testattrs, presentationattributescolor, presentationattributesfillstroke,
 		presentationattributesgraphics, graphicelementevents):
 		class externalResourcesRequired(BooleanAttr): pass
@@ -402,6 +414,7 @@ class rect(xsc.Element):
 		class ry(LengthAttr): pass
 
 class circle(xsc.Element):
+	empty = False
 	class Attrs(stdattrs, testattrs, presentationattributescolor, presentationattributesfillstroke,
 		presentationattributesgraphics, graphicelementevents):
 		class externalResourcesRequired(BooleanAttr): pass
@@ -413,6 +426,7 @@ class circle(xsc.Element):
 		class r(LengthAttr): pass
 
 class ellipse(xsc.Element):
+	empty = False
 	class Attrs(stdattrs, testattrs, presentationattributescolor, presentationattributesfillstroke,
 		presentationattributesgraphics, graphicelementevents):
 		class externalResourcesRequired(BooleanAttr): pass
@@ -425,6 +439,7 @@ class ellipse(xsc.Element):
 		class ry(LengthAttr): pass
 
 class line(xsc.Element):
+	empty = False
 	class Attrs(stdattrs, testattrs, presentationattributescolor, presentationattributesfillstroke,
 		presentationattributesgraphics, presentationattributesmarkers, graphicelementevents):
 		class externalResourcesRequired(BooleanAttr): pass
@@ -437,6 +452,7 @@ class line(xsc.Element):
 		class y2(CoordinateAttr): pass
 
 class polyline(xsc.Element):
+	empty = False
 	class Attrs(stdattrs, testattrs, presentationattributescolor, presentationattributesfillstroke,
 		presentationattributesgraphics, presentationattributesmarkers, graphicelementevents):
 		class externalResourcesRequired(BooleanAttr): pass
@@ -446,6 +462,7 @@ class polyline(xsc.Element):
 		class points(PointsAttr): pass
 
 class polygon(xsc.Element):
+	empty = False
 	class Attrs(stdattrs, testattrs, presentationattributescolor, presentationattributesfillstroke,
 		presentationattributesgraphics, presentationattributesmarkers, graphicelementevents):
 		class externalResourcesRequired(BooleanAttr): pass
@@ -455,6 +472,7 @@ class polygon(xsc.Element):
 		class points(PointsAttr): pass
 
 class text(xsc.Element):
+	empty = False
 	class Attrs(stdattrs, testattrs, presentationattributescolor, presentationattributesfillstroke,
 		presentationattributesfontspecification, presentationattributesgraphics,
 		presentationattributestextcontentelements, presentationattributestextelements, graphicelementevents):
@@ -471,6 +489,7 @@ class text(xsc.Element):
 		class lengthAdjust(xsc.TextAttr): values = ("spacing", "spacingAndGlyphs")
 
 class tspan(xsc.Element):
+	empty = False
 	class Attrs(stdattrs, testattrs, presentationattributescolor, presentationattributesfillstroke,
 		presentationattributesfontspecification, presentationattributesgraphics,
 		presentationattributestextcontentelements, graphicelementevents):
@@ -486,6 +505,7 @@ class tspan(xsc.Element):
 		class lengthAdjust(xsc.TextAttr): values = ("spacing", "spacingAndGlyphs")
 
 class tref(xsc.Element):
+	empty = False
 	class Attrs(stdattrs, testattrs, presentationattributescolor, presentationattributesfillstroke,
 		presentationattributesfontspecification, presentationattributesgraphics,
 		presentationattributestextcontentelements, graphicelementevents):
@@ -501,6 +521,7 @@ class tref(xsc.Element):
 		class lengthAdjust(xsc.TextAttr): values = ("spacing", "spacingAndGlyphs")
 
 class textPath(xsc.Element):
+	empty = False
 	class Attrs(stdattrs, testattrs, presentationattributescolor, presentationattributesfillstroke,
 		presentationattributesfontspecification, presentationattributesgraphics,
 		presentationattributestextcontentelements, graphicelementevents):
@@ -514,6 +535,7 @@ class textPath(xsc.Element):
 		class spacing(xsc.TextAttr): values = ("auto", "exact")
 
 class altGlyph(xsc.Element):
+	empty = False
 	class Attrs(stdattrs, testattrs, presentationattributescolor, presentationattributesfillstroke,
 		presentationattributesfontspecification, presentationattributesgraphics,
 		presentationattributestextcontentelements, graphicelementevents):
@@ -529,14 +551,17 @@ class altGlyph(xsc.Element):
 		class rotate(NumbersAttr): pass
 
 class altGlyphDef(xsc.Element):
+	empty = False
 	class Attrs(stdattrs):
 		pass
 
 class altGlyphItem(xsc.Element):
+	empty = False
 	class Attrs(stdattrs):
 		pass
 
 class glyphRef(xsc.Element):
+	empty = True
 	class Attrs(stdattrs, presentationattributesfontspecification):
 		class class_(ClassListAttr): xmlname = "class"
 		class style(xsc.StyleAttr): pass
