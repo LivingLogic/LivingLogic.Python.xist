@@ -703,7 +703,7 @@ class CharacterData(Node):
 		return self.__content.isupper()
 
 	def join(self, frag):
-		return frag.withSep(self)
+		return frag.withsep(self)
 
 	def ljust(self, width):
 		return self.__class__(self.__content.ljust(width))
@@ -2364,7 +2364,7 @@ class Element(Node):
 	def withsep(self, separator, clone=False):
 		"""
 		<par>returns a version of <self/> with a separator node between the child nodes of <self/>.
-		for more info see <pyref class="Frag" method="withSep"><method>Frag.withSep</method></pyref>.</par>
+		for more info see <pyref class="Frag" method="withsep"><method>Frag.withsep</method></pyref>.</par>
 		"""
 		node = self.__class__()
 		node.attrs = self.attrs.clone()

@@ -693,7 +693,7 @@ def explain(thing, name=None, context=[]):
 					#baseclassname4text = u".\u200b".join(baseclassname4text.split("."))
 					ref = pyref(class_(baseclassname4text), module=baseclass.__module__, class_=baseclassname)
 				bases.append(ref)
-			bases = bases.withSep(", ")
+			bases = bases.withsep(", ")
 			bases.insert(0, "(")
 			bases.append(")")
 		node = section(
