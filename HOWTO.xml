@@ -193,7 +193,10 @@ class python(xsc.Element):
 	empty = 1
 
 	def convert(self, converter):
-		return html.a("Python", href="http://www.python.org/")
+		return html.a(
+			"Python",
+			href="http://www.python.org/"
+		)
 </doc:programlisting>
 Now we can do the following:
 <doc:programlisting>
@@ -575,7 +578,7 @@ empty).
 node.find(type=html.a, attrs={"href": None, "rel": "parent"})
 </doc:programlisting>
 will find all <pyref module="xist.ns.html" class="a"><class>a</class></pyref>
-instances where the <pyref module="xist.xsc" class="Node" method="asPlainString"><method>asPlainString</method></pyref>
+instances where the <pyref module="xist.xsc" class="Node" method="__unicode__"><method>unicode</method></pyref>
 value of the <lit>rel</lit> attribute is <lit>"parent"</lit> and the <lit>href</lit>
 attribute is set.</item>
 <item><arg>test</arg> (<lit>None</lit>) is a callable object that will be called
