@@ -653,8 +653,8 @@ def parse(source, handler=None, parser=None, prefixes=None):
 	handler.close()
 	return result
 
-def parseString(text, systemId="STRING", base=None, handler=None, parser=None, prefixes=None, encoding=None, tidy=False):
-	return parse(sources.StringInputSource(text, systemId=systemId, base=base, encoding=encoding, tidy=tidy), handler=handler, parser=parser, prefixes=prefixes)
+def parseString(text, sysid="STRING", base=None, handler=None, parser=None, prefixes=None, encoding=None, tidy=False):
+	return parse(sources.StringInputSource(text, sysid=sysid, base=base, encoding=encoding, tidy=tidy), handler=handler, parser=parser, prefixes=prefixes)
 
 def parseURL(id, base=None, handler=None, parser=None, prefixes=None, encoding=None, tidy=False, headers=None, data=None):
 	return parse(sources.URLInputSource(id, base=base, encoding=encoding, tidy=tidy, headers=headers, data=data), handler=handler, parser=parser, prefixes=prefixes)

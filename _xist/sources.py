@@ -60,7 +60,7 @@ def tidystring(text, encoding, sysid, args):
 		args["quiet"] = 1
 		(nerrors, nwarnings, outputdata, errordata) = Tidy.tidy(text, **args)
 		if nerrors>0:
-			raise saxlib.SAXException("can't tidy %r (%d errors, %d warnings):\n%s" % (systemId, nerrors, nwarnings, errordata))
+			raise saxlib.SAXException("can't tidy %r (%d errors, %d warnings):\n%s" % (sysid, nerrors, nwarnings, errordata))
 		text = outputdata
 	else:
 		doc = tidy.parseString(text, **args)
@@ -84,12 +84,12 @@ class StringInputSource(InputSource):
 	An <class>InputSource</class> where the data is read from
 	a string.
 	"""
-	def __init__(self, text, systemId="STRING", base=None, encoding=None, tidy=False):
+	def __init__(self, text, sysid="STRING", base=None, encoding=None, tidy=False):
 		"""
 		<par>Create a new <class>StringInputSource</class> instance. Arguments are:</par>
 		<ulist>
 		<item><arg>text</arg>: The text to be parsed;</item>
-		<item><arg>systemId</arg>: The system id to be used;</item>
+		<item><arg>sysid</arg>: The system id to be used;</item>
 		<item><arg>base</arg>: The base &url; (it will be prepended
 		to all &url;s created during the parsing of this input source);</item>
 		<item><arg>encoding</arg>: The encoding to be used when
@@ -101,7 +101,7 @@ class StringInputSource(InputSource):
 		</ulist>
 		"""
 		InputSource.__init__(self, base)
-		self.setSystemId(systemId)
+		self.setSystemId(sysid)
 		if isinstance(text, unicode):
 			encoding = "utf-8"
 			text = text.encode(encoding)
@@ -111,7 +111,7 @@ class StringInputSource(InputSource):
 			else:
 				tidy = None
 		if tidy is not None:
-			(text, encoding) = tidystring(text, encoding, systemId, tidy)
+			(text, encoding) = tidystring(text, encoding, sysid, tidy)
 		self.setByteStream(StringIO.StringIO(text))
 		if encoding is not None:
 			self.setEncoding(encoding)
@@ -137,8 +137,8 @@ class URLInputSource(InputSource):
 		if base is None:
 			base = id.url
 		InputSource.__init__(self, base)
-		systemId = id.url
-		self.setSystemId(systemId)
+		sysid = id.url
+		self.setSystemId(sysid)
 		resource = id.openread(headers=headers, data=data)
 		if isinstance(tidy, bool):
 			if tidy:
@@ -147,17 +147,9 @@ class URLInputSource(InputSource):
 				tidy = None
 		if tidy is not None:
 			text = resource.read()
-			(text, encoding) = tidystring(text, encoding, systemId, tidy)
+			(text, encoding) = tidystring(text, encoding, sysid, tidy)
 			resource = StringIO.StringIO(text)
 		self.setByteStream(resource)
 		if encoding is not None:
 			self.setEncoding(encoding)
-
-	def setTimeout(self, secs):
-		if timeoutsocket is not None:
-			timeoutsocket.setDefaultSocketTimeout(sec)
-
-	def getTimeout(self):
-		if timeoutsocket is not None:
-			timeoutsocket.getDefaultSocketTimeout()
 

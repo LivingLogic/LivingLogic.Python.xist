@@ -72,14 +72,14 @@ class Handler(object):
 
 	def close(self):
 		self.texts = []
-		self.soure = None
+		self.source = None
 		self.base = None
 
-	def parse(self, source, ignoreCharset=0):
+	def parse(self, source, ignorecharset=False):
 		self.source = source
 		self.base = getattr(source, "base", None)
 		self.encoding = source.getEncoding()
-		self.ignoreCharset = ignoreCharset
+		self.ignorecharset = ignorecharset
 		tokenizer = csstokenizer.CSSTokenizer()
 		tokenizer.register(self)
 		data = source.getByteStream().read()
@@ -108,20 +108,20 @@ class CollectHandler(Handler):
 		self.urls.append(u)
 		return u
 
-def parse(source, handler=None, ignoreCharset=0):
+def parse(source, handler=None, ignorecharset=False):
 	if handler is None:
 		handler = Handler()
-	handler.parse(source, ignoreCharset=ignoreCharset)
+	handler.parse(source, ignorecharset=ignorecharset)
 	result = unicode(handler)
 	handler.close()
 	return result
 
-def parseString(text, systemId="STRING", base=None, handler=None, encoding="utf-8", ignoreCharset=0):
-	return parse(sources.StringInputSource(text, systemId=systemId, base=base, encoding=encoding), handler=handler, ignoreCharset=ignoreCharset)
+def parseString(text, sysid="STRING", base=None, handler=None, encoding=None, ignorecharset=False):
+	return parse(sources.StringInputSource(text, sysid=sysid, base=base, encoding=encoding), handler=handler, ignorecharset=ignorecharset)
 
-def parseURL(id, base=None, handler=None, encoding="utf-8", ignoreCharset=0, headers=None, data=None):
-	return parse(sources.URLInputSource(id, base=base, encoding=encoding, headers=headers, data=data), handler=handler, ignoreCharset=ignoreCharset)
+def parseURL(id, base=None, handler=None, encoding=None, ignorecharset=False, headers=None, data=None):
+	return parse(sources.URLInputSource(id, base=base, encoding=encoding, headers=headers, data=data), handler=handler, ignorecharset=ignorecharset)
 
-def parseFile(filename, base=None, handler=None, encoding="utf-8", ignoreCharset=0):
-	return parseURL(url.Filename(filename), base=base, encoding=encoding, handler=handler, ignoreCharset=ignoreCharset)
+def parseFile(filename, base=None, handler=None, encoding=None, ignoreCharset=0):
+	return parseURL(url.File(filename), base=base, encoding=encoding, handler=handler, ignorecharset=ignorecharset)
 

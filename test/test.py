@@ -559,13 +559,13 @@ class XISTTest(unittest.TestCase):
 		node.visit(filter2, filterpath=True, visitpath=True)
 
 	def test_locationeq(self):
-		l1 = xsc.Location(sysID="gurk", pubID="http://gurk.com", lineNumber=42, columnNumber=666)
-		l2 = xsc.Location(sysID="gurk", pubID="http://gurk.com", lineNumber=42, columnNumber=666)
-		l3 = xsc.Location(sysID="hurz", pubID="http://gurk.com", lineNumber=42, columnNumber=666)
-		l4 = xsc.Location(sysID="gurk", pubID="http://hurz.com", lineNumber=42, columnNumber=666)
-		l5 = xsc.Location(sysID="gurk", pubID="http://gurk.com", lineNumber=43, columnNumber=666)
-		l6 = xsc.Location(sysID="gurk", pubID="http://gurk.com", lineNumber=43, columnNumber=667)
-		l7 = xsc.Location(sysID="gurk", pubID="http://gurk.com")
+		l1 = xsc.Location(sysid="gurk", pubid="http://gurk.com", line=42, col=666)
+		l2 = xsc.Location(sysid="gurk", pubid="http://gurk.com", line=42, col=666)
+		l3 = xsc.Location(sysid="hurz", pubid="http://gurk.com", line=42, col=666)
+		l4 = xsc.Location(sysid="gurk", pubid="http://hurz.com", line=42, col=666)
+		l5 = xsc.Location(sysid="gurk", pubid="http://gurk.com", line=43, col=666)
+		l6 = xsc.Location(sysid="gurk", pubid="http://gurk.com", line=43, col=667)
+		l7 = xsc.Location(sysid="gurk", pubid="http://gurk.com")
 		self.assertEqual(l1, l2)
 		self.assertNotEqual(l1, l3)
 		self.assertNotEqual(l1, l4)
@@ -574,7 +574,7 @@ class XISTTest(unittest.TestCase):
 		self.assertNotEqual(l1, l7)
 
 	def test_locationoffset(self):
-		l1 = xsc.Location(sysID="gurk", pubID="http://gurk.com", lineNumber=42, columnNumber=666)
+		l1 = xsc.Location(sysid="gurk", pubid="http://gurk.com", line=42, col=666)
 		self.assertEqual(l1, l1.offset(0))
 		l2 = l1.offset(1)
 		self.assertEqual(l1.getSystemId(), l2.getSystemId())

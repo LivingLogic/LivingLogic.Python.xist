@@ -1683,7 +1683,7 @@ class StyleAttr(Attr):
 		"""
 		source = sources.StringInputSource(unicode(self))
 		handler = cssparsers.CollectHandler()
-		handler.parse(source, ignoreCharset=1)
+		handler.parse(source, ignorecharset=True)
 		urls = handler.urls
 		handler.close()
 		return urls
@@ -3731,48 +3731,52 @@ class Location(object):
 	"""
 	<par>Represents a location in an &xml; entity.</par>
 	"""
-	__slots__ = ("__sysID", "__pubID", "__lineNumber", "__columnNumber")
+	__slots__ = ("sysid", "pubid", "line", "col")
 
-	def __init__(self, locator=None, sysID=None, pubID=None, lineNumber=-1, columnNumber=-1):
+	def __init__(self, locator=None, sysid=None, pubid=None, line=None, col=None):
 		"""
 		<par>Create a new <class>Location</class> instance by reading off the current location from
 		the <arg>locator</arg>, which is then stored internally. In addition to that the system ID,
 		public ID, line number and column number can be overwritten by explicit arguments.</par>
 		"""
-		if locator is None:
-			self.__sysID = None
-			self.__pubID = None
-			self.__lineNumber = -1
-			self.__columnNumber = -1
-		else:
-			self.__sysID = locator.getSystemId()
-			self.__pubID = locator.getPublicId()
-			self.__lineNumber = locator.getLineNumber()
-			self.__columnNumber = locator.getColumnNumber()
-		if self.__sysID is None:
-			self.__sysID = sysID
-		if self.__pubID is None:
-			self.__pubID = pubID
-		if self.__lineNumber == -1:
-			self.__lineNumber = lineNumber
-		if self.__columnNumber == -1:
-			self.__columnNumber = columnNumber
+		self.sysid = None
+		self.pubid = None
+		self.line = None
+		self.col = None
+
+		if locator is not None:
+			self.sysid = locator.getSystemId()
+			self.pubid = locator.getPublicId()
+			self.line = locator.getLineNumber()
+			self.col = locator.getColumnNumber()
+
+		if sysid is not None:
+			self.sysid = sysid
+
+		if pubid is not None:
+			self.pubid = pubid
+
+		if line is not None:
+			self.line = line
+
+		if col is not None:
+			self.col = col
 
 	def getColumnNumber(self):
 		"<par>Return the column number of this location.</par>"
-		return self.__columnNumber
+		return self.col
 
 	def getLineNumber(self):
 		"<par>Return the line number of this location.</par>"
-		return self.__lineNumber
+		return self.line
 
 	def getPublicId(self):
 		"<par>Return the public identifier for this location.</par>"
-		return self.__pubID
+		return self.pubid
 
 	def getSystemId(self):
 		"<par>Return the system identifier for this location.</par>"
-		return self.__sysID
+		return self.sysid
 
 	def offset(self, offset):
 		"""
@@ -3781,37 +3785,37 @@ class Location(object):
 		"""
 		if offset==0:
 			return self
-		return Location(sysID=self.__sysID, pubID=self.__pubID, lineNumber=self.__lineNumber+offset, columnNumber=1)
+		return Location(sysid=self.sysid, pubid=self.pubid, line=self.line+offset, col=1)
 
 	def __str__(self):
 		# get and format the system ID
-		sysID = self.getSystemId()
-		if sysID is None:
-			sysID = "???"
+		sysid = self.sysid
+		if sysid is None:
+			sysid = "???"
 
 		# get and format the line number
-		line = self.getLineNumber()
-		if line==-1:
+		line = self.line
+		if line is None:
 			line = "?"
 		else:
 			line = str(line)
 
 		# get and format the column number
-		column = self.getColumnNumber()
-		if column==-1:
-			column = "?"
+		col = self.col
+		if col is None:
+			col = "?"
 		else:
-			column = str(column)
+			col = str(col)
 
 		# now we have the parts => format them
-		return "%s:%s:%s" % (presenters.strURL(sysID), presenters.strNumber(line), presenters.strNumber(column))
+		return "%s:%s:%s" % (presenters.strURL(sysid), presenters.strNumber(line), presenters.strNumber(col))
 
 	def __repr__(self):
-		return "<%s object sysID=%r, pubID=%r, lineNumber=%r, columnNumber=%r at %08x>" % \
-			(self.__class__.__name__, self.getSystemId(), self.getPublicId(), self.getLineNumber(), self.getColumnNumber(), id(self))
+		return "<%s object sysid=%r, pubid=%r, line=%r, col=%r at %08x>" % \
+			(self.__class__.__name__, self.sysid, self.pubid, self.line, self.col, id(self))
 
 	def __eq__(self, other):
-		return self.__class__ is other.__class__ and self.getPublicId()==other.getPublicId() and self.getSystemId()==other.getSystemId() and self.getLineNumber()==other.getLineNumber() and self.getColumnNumber()==other.getColumnNumber()
+		return self.__class__ is other.__class__ and self.pubid==other.pubid and self.sysid==other.sysid and self.line==other.line and self.col==other.col
 
 	def __ne__(self, other):
 		return not self==other
