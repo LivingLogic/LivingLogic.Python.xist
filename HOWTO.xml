@@ -216,7 +216,7 @@ class python(xsc.Element):
 </programlisting>
 <par>But if we forget to call
 <pyref module="ll.xist.xsc" class="Node" method="convert">convert</pyref>
-for our own content, i.e. if the element <pyref class="cool">cool</pyref>
+for our own content, i.e. if the element <pyref class="cool"><class>cool</class></pyref>
 was written like this:</par>
 <programlisting>
 class cool(xsc.Element):
