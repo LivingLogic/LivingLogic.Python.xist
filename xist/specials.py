@@ -48,21 +48,12 @@ class z(xsc.Element):
 	empty = 0
 
 	def asHTML(self):
-		e = xsc.Frag(u"«", self.content, u"»")
+		e = xsc.Frag(u"«", self.content.asHTML(), u"»")
 
-		return e.asHTML()
+		return e
 
 	def asPlainString(self):
 		return u'«' + self.content.asPlainString() + u'»'
-
-class nbsp(xsc.Element):
-	"""
-	a nonbreakable space as an element
-	"""
-	empty = 1
-
-	def asHTML(self):
-		return xsc.Text(unichr(160))
 
 class filesize(xsc.Element):
 	"""
