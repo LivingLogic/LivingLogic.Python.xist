@@ -13,6 +13,24 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 
 
 class Operator(object):
+	def __rdiv__(self, other):
+		from ll.xist import xsc
+		# Wrap node in an iterator
+		if isinstance(other, xsc.Node):
+			def iterone(node):
+				yield node
+			other = iterone(other)
+		return Finder(other, self)
+
+	def __rfloordiv__(self, other):
+		from ll.xist import xsc
+		# Wrap node in an iterator
+		if isinstance(other, xsc.Node):
+			def iterone(node):
+				yield node
+			other = iterone(other)
+		return Finder(other, all, self)
+
 	def xfind(self, iterator, *operators):
 		"""
 		Apply self to the <arg>iterator</arg> first, and then the

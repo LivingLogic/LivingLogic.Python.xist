@@ -690,7 +690,7 @@ class Node(Base):
 		specifies whether the node or a path to the node will be yielded from the
 		iterator.</par>
 		"""
-		return xfind.Finder(self._walk(filter, [], filterpath, walkpath))
+		return self._walk(filter, [], filterpath, walkpath)
 
 	def find(self, filter=(True, entercontent), filterpath=False):
 		"""
@@ -710,18 +710,6 @@ class Node(Base):
 		for item in self.walk(filter, filterpath, False):
 			return item
 		raise errors.NodeNotFoundError()
-
-	def __div__(self, other):
-		# Wrap node in an iterator
-		def iterone(node):
-			yield node
-		return xfind.Finder(iterone(self), other)
-
-	def __floordiv__(self, other):
-		# Wrap node in an iterator
-		def iterone(node):
-			yield node
-		return xfind.Finder(iterone(self), xfind.all, other)
 
 	def compact(self):
 		"""
