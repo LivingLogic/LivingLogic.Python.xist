@@ -1,21 +1,20 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
 <section><title>Changes in CVS (released ??/??/2001)</title>
 <ulist>
-<item>Ported to Python2.2. <class>Node</class> is now derived from
+<item>Ported to Python 2.2. <class>Node</class> is now derived from
 <class>object</class>, <class>Frag</class> from <class>list</class> and
 there's a new class <class>Attrs</class> which is derived from
-<class>dict</class> for the attribute mappings. <class>presenters.NormalPresenter</class>
-and <class>presenters.TreePresenter</class> have been adapted to work
-with <class>Attrs</class>.</item>
-</ulist>
+<class>dict</class> for the attribute mappings. All presenters
+have been adapted to work with <class>Attrs</class>.</item>
 <item>All the node classes now have a new method <method>walk</method> that generates
 all nodes in the tree using the new generators feature of Python 2.2.</item>
 <item>Added a new method <method>without</method> to <class>Attrs</class>.
 This returns a copy of the <class>Attrs</class> instance with some
 specified attributes removed.</item>
-<item>Added a class <class>block</class> the <module>xist.ns.jsp</module>. The
+<item>Added a class <class>block</class> to <module>xist.ns.jsp</module>. The
 content of the <class>block</class> instance will simply be enclosed in a
 <lit>{}</lit> block. <module>xist.ns.php</module> got such a class too.</item>
+</ulist>
 </section>
 
 

@@ -1,18 +1,19 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
-<doc:par>&xist; is an &xml;-based extensible &html; generator written in Python.
+<doc:par>&xist; is an &xml; based extensible &html; generator written in Python.
 It was developed as a replacement for an &html; preprocessor named
-<a href="http://www.giga.or.at/~agi/hsc/">HSC</a>, and borrows some
+<app moreinfo="http://www.giga.or.at/~agi/hsc/">HSC</app>, and borrows some
 features and ideas from it. It also borrows the basic ideas (&xml;/&html;
 elements as Python objects) from 
-<a href="http://starship.python.net/crew/friedrich/HTMLgen/html/main.html">HTMLgen</a> 
-or <a href="http://dustman.net/andy/python/HyperText/">HyperText</a>.</doc:par>
+<app moreinfo="http://starship.python.net/crew/friedrich/HTMLgen/html/main.html">HTMLgen</app> 
+or <app moreinfo="http://dustman.net/andy/python/HyperText/">HyperText</app>.</doc:par>
 
 <doc:section><doc:title>Overview</doc:title>
 <doc:par>&xist; can be used as a compiler that reads an input file
 and generates a transformed output file, or it could be used for generating
-&xml; dynamically inside a web server. In either case generating the final
-&html; or &xml; output in the form of a file or a response sent from
-the web server, requires the following three steps:</doc:par>
+&xml; dynamically inside a web server (but note that handling object trees
+<em>is</em> slower than simply printing the output string). 
+In either case generating the final &html; or &xml; output requires 
+the following three steps:</doc:par>
 <ulist>
 <item>Generating a source &xml; tree: This can be done either by
 parsing an &xml; file, or by directly constructing the
@@ -26,11 +27,9 @@ tree can be a &html; tree or a &wml; tree or any other
 your own &xml; element types you have to define your
 own element classes and implement an appropriate
 <method>convert</method> method.</item>
-<item>Publishing the target tree: For writing the final
-output to a file or generating a string that can
-be delivered as a response from a web server, all node classes
-provide a <method>publish</method> method, that
-passes the string fragments to a appropriate publishing handler.</item>
+<item>Publishing the target tree: For generating the final
+output, all node classes provide a <method>publish</method> method, that
+passes the string fragments to an appropriate publishing handler.</item>
 </ulist>
 </doc:section>
 
@@ -127,7 +126,7 @@ parsing files. <doc:pyref module="xist.parsers" function="parseURL"><function>pa
 parse remote files via <module>urllib</module> and
 <doc:pyref module="xist.parsers" function="parseTidyURL"><function>parseTidyURL</function></doc:pyref> uses Marc-André Lemburg's
 <app moreinfo="http://www.lemburg.com/files/python/">mxTidy</app> modules for cleaning up
-files before parsing the result. The argument <arg>parser</arg>
+broken &html; files before parsing the result. The argument <arg>parser</arg>
 specifies the parser to be used. Any SAX2 parser can be used. &xist; provides a
 SAX2 parser for <app>sgmlop</app> named
 <doc:pyref module="xist.parsers" class="SGMLOPParser"><class>SGMLOPParser</class></doc:pyref>
@@ -159,7 +158,7 @@ class cool(xsc.Element):
 </doc:example>
 You have to derive your new class from <pyref module="xist.xsc" class="Element"><class>xsc.Element</class></pyref>.
 The name of the class will be the element name. For element type names that are no valid Python
-identifiers, you can use the class attribute <lit>name</lit> in the element class the overwrite
+identifiers, you can use the class attribute <lit>realname</lit> in the element class the overwrite
 the element name.</doc:par>
 <doc:par>To be able to convert an element of this type to a new &xml; tree (&html; in most cases),
 you have to implement the <pyref module="xist.xsc" class="Node" method="convert"><method>convert</method></pyref>
@@ -180,13 +179,13 @@ calls
 with a default <doc:pyref module="xist.converters" class="Converter"><arg>converter</arg></doc:pyref>
 argument. We'll come to converters in a minute.
 <doc:pyref module="xist.xsc" class="Node" method="asBytes"><method>asBytes</method></doc:pyref>
-is a method that converts the node to a string. This method will be explained
+is a method that converts the node to a byte string. This method will be explained
 when we discuss the publishing interface.)
 </doc:par>
 
 <doc:par>Note that it is vital for your own <method>convert</method>
 methods that you recursively call <method>convert</method>
-on you own content, because otherwise some unconverted nodes
+on your own content, because otherwise some unconverted nodes
 might remain in the tree. Lets define a new element:
 <doc:programlisting>
 class python(xsc.Element):
@@ -275,7 +274,8 @@ class note(xsc.Element):
 			title = "Note"
 		return xsc.Frag(
 			html.h1(title),
-			html.div(self.content.convert(converter)))
+			html.div(self.content.convert(converter))
+		)
 </doc:programlisting>
 and you can test for the language with the element
 <pyref module="xist.ns.cond" class="If"><class>xist.ns.cond.If</class></pyref>, e.g.:
@@ -284,7 +284,7 @@ and you can test for the language with the element
 &lt;elif lang="ja"&gt;???
 &lt;elif lang="fr"&gt;???
 &lt;else&gt;Note
-&lt;if&gt;
+&lt;/if&gt;
 </doc:programlisting>
 </item>
 </ulist>
@@ -327,7 +327,7 @@ del node["spam"]
 node["spam"].append("ham")
 </doc:programlisting>
 </doc:example>
-this also means that after
+This also means that after
 <doc:example>
 <doc:programlisting>
 del node["spam"][0]
@@ -420,7 +420,7 @@ entities to the application via <method>skippedEntity</method>
 (<pyref module="xist.parsers" class="SGMLOPParser"><class>SGMLOPParser</class></pyref>
 in the module <pyref module="xist.parsers"><module>xist.parsers</module></pyref> does that).</doc:par>
 <doc:par>In addition to the <pyref module="xist.xsc" class="Node" method="convert"><method>convert</method></pyref>
-method you have to implement the method
+method you may implement the method
 <pyref module="xist.xsc" class="Node" method="__unicode__"><method>__unicode__</method></pyref>,
 which must return a unicode string value for the entity. The following
 example is from the module <pyref module="xist.ns.abbr"><module>xist.ns.abbr</module></pyref>:
@@ -505,7 +505,7 @@ it specifies if you want pure &html; or &xhtml; as output:</doc:par>
 <ulist>
 <item><lit>XHTML==0</lit> will give you pure &html;, i.e. no final <lit>/</lit>
 for elements with an empty content model, so you'll get e.g. <markup>&lt;br&gt;</markup> in the output.
-Elements that have no empty content model, but are empty will be published with a start and
+Elements that don't have an empty content model, but are empty will be published with a start and
 end tag (i.e. <markup>&lt;div&gt;&lt;/div&gt;</markup>).</item>
 <item><lit>XHTML==1</lit> gives &html; compatible &xhtml;. Elements with empty content
 model will be published like this: <markup>&lt;br /&gt;</markup>.</item>
@@ -578,7 +578,7 @@ empty).
 node.find(type=html.a, attrs={"href": None, "rel": "parent"})
 </doc:programlisting>
 will find all <pyref module="xist.ns.html" class="a"><class>a</class></pyref>
-instances where the <pyref module="xist.xsc" class="Node" method="__unicode__"><method>unicode</method></pyref>
+instances where the <pyref module="xist.xsc" class="Node" method="__unicode__"><method>__unicode__</method></pyref>
 value of the <lit>rel</lit> attribute is <lit>"parent"</lit> and the <lit>href</lit>
 attribute is set.</item>
 <item><arg>test</arg> (<lit>None</lit>) is a callable object that will be called
@@ -624,7 +624,7 @@ http://www.python.org/
 http://www.amk.ca/python/dev/
 </doc:programlisting>
 <doc:par>The method <pyref module="xist.xsc" class="Node" method="withSep"><method>withSep</method></pyref>
-can be used to put seperator node between the child nodes of an
+can be used to put a seperator node between the child nodes of an
 <pyref module="xist.xsc" class="Element"><class>Element</class></pyref>
 or a <pyref module="xist.xsc" class="Frag"><class>Frag</class></pyref>:
 <doc:programlisting>
