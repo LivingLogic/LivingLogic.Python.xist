@@ -356,11 +356,11 @@ class self(xsc.Element):
 	"""
 	use this class when referring to the object for which a method has been
 	called, e.g.:
-	<doc:example>
-	<doc:programlisting>
+	<example>
+	<programlisting>
 		this function fooifies the object &lt;self/&gt;.
-	</doc:programlisting>
-	</doc:example>
+	</programlisting>
+	</example>
 	"""
 	empty = False
 
@@ -512,7 +512,7 @@ def getDoc(thing):
 	else:
 		systemId = "DOCSTRING"
 	node = parsers.parseString(doc, systemId=systemId, prefixes=xsc.DocPrefixes())
-	if not node.find(type=par): # optimization: one paragraph docstrings don't need a <doc:par> element.
+	if not node.find(type=par): # optimization: one paragraph docstrings don't need a <par> element.
 		node = par(node)
 
 	refs = node.find(type=pyref, subtype=1, searchchildren=1)
@@ -599,13 +599,13 @@ def __codeHeader(thing, name, type):
 
 def explain(thing, name=None, context=[]):
 	"""
-	<doc:par>returns a &xml; representation of the documentation of
-	<arg>thing</arg>, which can be a function, method, class or module.</doc:par>
+	<par>returns a &xml; representation of the documentation of
+	<arg>thing</arg>, which can be a function, method, class or module.</par>
 
-	<doc:par>If <arg>thing</arg> is not a module, you must pass the context
+	<par>If <arg>thing</arg> is not a module, you must pass the context
 	in <arg>context</arg>, i.e. a list of names of objects into which <arg>thing</arg>
 	is nested. This means the first entry will always be module name, and
-	the other entries will be class names.</doc:par>
+	the other entries will be class names.</par>
 	"""
 
 	if inspect.ismethod(thing):
@@ -701,7 +701,7 @@ def explain(thing, name=None, context=[]):
 			node.append([explain(obj, varname, context) for (obj, varname) in properties])
 		if len(classes):
 			classes.sort(cmpName)
-			node.append([explain(obj, varname, context) for (obj, varname) in classes])
+			node.append([explain(obj, varname, context) for (obj, varname) in classes if varname != "__outerclass__"]) # avoid endless recursion
 		return node
 	elif inspect.ismodule(thing):
 		context = [name or thing.__name__]
