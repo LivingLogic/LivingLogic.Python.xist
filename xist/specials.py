@@ -4,7 +4,7 @@
 A XSC module that contains a collection of useful elements.
 """
 
-__version__ = "$Revision$"
+__version__ = "$Revision$"[11:-2]
 # $Source$
 
 import sys

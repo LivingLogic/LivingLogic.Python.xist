@@ -5,7 +5,7 @@ A XSC module that contains elements that are useful for incorparating
 database content into XSC pages.
 """
 
-__version__ = "$Revision$"
+__version__ = "$Revision$"[11:-2]
 # $Source$
 
 import sys
