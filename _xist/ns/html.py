@@ -417,7 +417,7 @@ class ol(xsc.Element):
 	"""
 	empty = 0
 	attrHandlers = attrs.copy()
-	attrHandlers.update({"type": xsc.TextAttr}) # deprecated
+	attrHandlers.update({"type": xsc.TextAttr, "start": xsc.IntAttr}) # deprecated
 
 class li(xsc.Element):
 	"""
@@ -425,7 +425,7 @@ class li(xsc.Element):
 	"""
 	empty = 0
 	attrHandlers = attrs.copy()
-	attrHandlers.update({"type": xsc.TextAttr}) # deprecated
+	attrHandlers.update({"type": xsc.TextAttr, "value": xsc.IntAttr}) # deprecated
 
 class dl(xsc.Element):
 	"""

@@ -1,4 +1,12 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
+<section><title>Changes in 1.2.4 (released 11/23/2001)</title>
+<ulist>
+<item>Added the deprecated attributes <code>start</code> to
+<code>xist.ns.html.ol</code> and <code>value</code> to
+<code>xist.ns.html.li</code>.</item>
+</ulist>
+</section>
+
 <section><title>Changes in 1.2.3 (released 11/22/2001)</title>
 <ulist>
 <item>Added missing <code>asPlainString</code> methods to
