@@ -66,6 +66,16 @@ can't be used as the main script, because reimporting them in processing
 instructions won't work. Now you can simply call
 python make.py --import xist.html --import project.main foo.xsc
 
+There is a new module cond, that contains elements that can be used for conditionals:
+<?xsc-exec a=42?>
+<if cond="a==21">
+	<b>foo</b>
+<elif cond="a==42"/>
+	<i>bar</i>
+<else/>
+	baz
+</if>
+
 New in 0.3.9
 ------------
 sgmlop will now be found either via
