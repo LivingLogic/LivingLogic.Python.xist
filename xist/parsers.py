@@ -213,7 +213,7 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 		self.content_handler.characters(data)
 
 	def handle_proc(self, target, data):
-		if target!='xml': # Don't report <?xml?> as a processing instruction
+		if target!=u'xml': # Don't report <?xml?> as a processing instruction
 			self.content_handler.processingInstruction(target, data)
 
 	def handle_charref(self, charno):
@@ -226,11 +226,8 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 	def finish_starttag(self, name, attrs):
 		newattrs = sax.xmlreader.AttributesImpl(attrs)
 		for (attrname, attrvalue) in attrs.items():
-			attrname = unicode(attrname, self.encoding)
-			if attrvalue is not None:
-				attrvalue = unicode(attrvalue, self.encoding)
 			newattrs._attrs[attrname] = attrvalue
-		self.content_handler.startElement(unicode(name, self.encoding), newattrs)
+		self.content_handler.startElement(name, newattrs)
 
 	def finish_endtag(self, name):
 		self.content_handler.endElement(name)
