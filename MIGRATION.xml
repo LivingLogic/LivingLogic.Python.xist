@@ -216,7 +216,7 @@ that are specific to &html; generation have been moved
 to the new module <module>ll.xist.ns.htmlspecials</module>.</par>
 
 <par>The module <module>ll.xist.ns.html</module> has been updated
-to the &xhtml; specification, so there might be same changes.
+to the &xhtml; specification, so there might be some changes.
 The new feature for specifying attribute restrictions has
 been used, so e.g. you'll get warnings for missing <lit>alt</lit>
 attributes in <class>img</class> elements. These warnings
