@@ -114,7 +114,7 @@ class IllegalElementError(Error):
 	"""
 
 	def __init__(self, name):
-		Error.__init__(self, location)
+		Error.__init__(self)
 		self.name = name
 
 	def __str__(self):
