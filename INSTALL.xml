@@ -5,20 +5,19 @@
 <item>Python 2.3 (available from <link href="http://www.python.org/">http://www.python.org/</link>),</item>
 <item>The Python &xml; package (available from <link href="http://pyxml.sf.net/">http://pyxml.sf.net/</link>)
 (at least version 0.8.2),</item>
-<item>the Python Imaging Library (available from
-<link href="http://www.pythonware.com/products/pil/">http://www.pythonware.com/products/pil/</link>)</item>
-<item>The eGenix mx experimental package (available from
-<link href="http://www.egenix.com/files/python/eGenix-mx-Extensions.html">http://www.egenix.com/files/python/eGenix-mx-Extensions.html</link>).</item>
 <item>URL (available from <link href="root:url/index.html">http://www.livinglogic.de/Python/url/</link>),</item>
 <item>ANSIStyle (available from <link href="root:ansistyle/index.html">http://www.livinglogic.de/Python/ansistyle/</link>),</item>
+<item>if you want to use automatic image size calculation: the Python Imaging Library (available from
+<link href="http://www.pythonware.com/products/pil/">http://www.pythonware.com/products/pil/</link>)</item>
+<item>if you want to parse broken HTML: the eGenix mx experimental package (available from
+<link href="http://www.egenix.com/files/python/eGenix-mx-Extensions.html">http://www.egenix.com/files/python/eGenix-mx-Extensions.html</link>).</item>
 <item>and a C compiler supported by <app>distutils</app>, if you want
 to install the source distribution.</item>
 </olist>
 </section>
 
 <section><title>Installation</title>
-<par>&xist; uses <app>distutils</app>, so installation
-is rather simple. Execute the following command:</par>
+<par>&xist; uses <app>distutils</app>, so installation is rather simple. Execute the following command:</par>
 <prog>
 python setup.py install
 </prog>
@@ -39,8 +38,7 @@ and might collide with the new global module <module>url</module>.</par>
 double click it, and follow the instructions.</par>
 
 <par>If you have difficulties installing this software, send a problem report
-to Walter Dörwald (<email>walter@livinglogic.de</email>)
-describing the problem.</par>
+to Walter Dörwald (<email>walter@livinglogic.de</email>).</par>
 </section>
 
 <section><title>Character encoding</title>

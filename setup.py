@@ -7,6 +7,7 @@ __version__ = tuple(map(int,"$Revision$"[11:-2].split(".")))
 # $Source$
 
 from distutils.core import setup, Extension
+import textwrap
 
 DESCRIPTION = """
 XIST is an XML based extensible HTML generator. XIST is also
@@ -43,18 +44,20 @@ WML
 iHTML
 """
 
+DESCRIPTION = "\n".join(textwrap.wrap(DESCRIPTION.strip(), width=64, replace_whitespace=True))
+
 setup(
-	name="ll-XIST",
+	name="ll-xist",
 	version="2.2",
 	description="An XML-based extensible HTML generator",
-	long_description=DESCRIPTION.strip(),
+	long_description=DESCRIPTION,
 	author="Walter Doerwald",
 	author_email="walter@livinglogic.de",
 	url="http://www.livinglogic.de/Python/xist/",
-	#download_url="http://www.livinglogic.de/Python/xist/Download.html",
+	download_url="http://www.livinglogic.de/Python/xist/Download.html",
 	license="Python",
-	classifiers=CLASSIFIERS.strip().split("\n"),
-	keywords=",".join(KEYWORDS.strip().split("\n")),
+	classifiers=CLASSIFIERS.strip().splitlines(),
+	keywords=",".join(KEYWORDS.strip().splitlines()),
 	packages=["ll", "ll.xist", "ll.xist.ns"],
 	package_dir={"ll": ".", "ll.xist": "_xist"},
 	ext_modules=[

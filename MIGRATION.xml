@@ -22,6 +22,12 @@ you should use:</par>
 "<rep>attr</rep>" in <rep>NodeClass</rep>.Attrs
 </prog>
 
+<par>or:</par>
+
+<prog>
+<rep>NodeClass</rep>.isallowed("<rep>attr</rep>")
+</prog>
+
 <par>Many <class>Attrs</class> methods have gained an additional parameter
 <arg>xml</arg>, which specifies whether an attribute name should be
 treated as the &xml; or the Python name of the attribute. Make sure
@@ -84,8 +90,36 @@ With the old method they would be traversed.</par>
 
 <section><title><class>doc</class> changes</title>
 
-<par><class>programlisting</class> has been renamed to <class>prog</class> (but
-there's still a <class>programlisting</class> that gives a warning).</par>
+<par><class>programlisting</class> has been renamed to <class>prog</class>.</par>
+
+</section>
+
+<section><title>Namespace changes</title>
+
+<par>Namespaces can no longer be instantiated. Instead you have to derive a class
+from <class>Namespace</class>. The <arg>xmlprefix</arg> argument from the constructor
+becomes a class attribute <lit>xmlname</lit> and the argument <arg>xmlname</arg>
+becomes <lit>xmlurl</lit>.</par>
+
+<par>Adding element classes to the namespace is now done with the
+<class>Namespace</class> classmethod <method>update</method>.
+If you want the turn a namespace into a module, you can use the classmethod
+<method>makemod</method> instead of <method>update</method>.</par>
+
+<example><title>Old method</title>
+<prog>
+xmlns = xsc.Namespace("foo", "http://www.foo.com/", vars()
+</prog>
+</example>
+
+<example><title>New method</title>
+<prog>
+class xmlns(xsc.Namespace):
+	xmlname = "foo"
+	xmlurl = "http://www.foo.com/"
+xmlns.makemod(vars())
+</prog>
+</example>
 
 </section>
 
