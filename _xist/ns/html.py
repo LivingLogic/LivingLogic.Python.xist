@@ -162,7 +162,7 @@ class title(xsc.Element):
 		class id(xsc.IDAttr): pass
 
 	def unwrapHTML(self, node, converter):
-		if isinstance(node, xsc.Element) and node.xmlns is html: # is this one of our own elements => filter it out
+		if isinstance(node, xsc.Element) and issubclass(node.xmlns, xmlns): # is this one of our own elements => filter it out
 			if isinstance(node, img):
 				node = node["alt"]
 			else:
