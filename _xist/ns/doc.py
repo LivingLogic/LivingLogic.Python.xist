@@ -924,7 +924,7 @@ class link(inline):
 		return e.convert(converter)
 
 	def convert_html(self, converter):
-		e = converter.target.a(self.content, href=self["href"], hreflang=self["href"])
+		e = converter.target.a(self.content, href=self["href"], hreflang=self["hreflang"])
 		return e.convert(converter)
 
 	def convert_fo(self, converter):
