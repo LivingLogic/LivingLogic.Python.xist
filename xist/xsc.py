@@ -407,7 +407,7 @@ except KeyError:
 try:
 	outputXHTML = string.atoi(os.environ["XSC_OUTPUT_XHTML"])
 except KeyError:
-	outputXHTML = 2
+	outputXHTML = 1
 
 ###
 ### helpers
@@ -747,7 +747,7 @@ class Node:
 		(all empty elements as <foo/>).
 
 		When you use the default (None) that value of the global variable
-		outputXHTML will be used, which defaults to 2, but can be overwritten
+		outputXHTML will be used, which defaults to 1, but can be overwritten
 		by the environment variable XSC_OUTPUT_XHTML and can of course be
 		changed dynamically.
 		"""
