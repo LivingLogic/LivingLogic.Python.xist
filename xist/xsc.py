@@ -1398,7 +1398,12 @@ class Element(Node):
 		return string.join(v,"")
 
 	def addImageSizeAttributes(self,imgattr,widthattr = "width",heightattr = "height"):
-		"""add width and height attributes to the element for the image that can be found in the attributes imgattr. if the attribute is already there it is taken as a formating template with the size passed in as a dictionary with the keys 'width' and 'height', i.e. you could make your image twice as wide with width='%(width)d*2'"""
+		"""
+		add width and height attributes to the element for the image that can be found in the attribute
+		<argref>imgattr</argref>. If the attributes are already there, they are taken as a formatting
+		template with the size passed in as a dictionary with the keys <code>"width"</code> and <code>"height"</code>,
+		i.e. you could make your image twice as wide with <code>width="%(width)d*2"</code>.
+		"""
 
 		if self.hasAttr(imgattr):
 			size = self[imgattr].ImageSize()
