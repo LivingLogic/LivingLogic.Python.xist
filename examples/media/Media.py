@@ -64,7 +64,7 @@ class dvd(xsc.Element):
 				if len(rcs):
 					e.append("; ")
 			if len(rcs):
-				e.append("RC ", rcs.withSep(", "))
+				e.append("RC ", rcs.withsep(", "))
 			e.append(")")
 		e.append(self.content.find(xsc.FindType(purchase)))
 		return e.convert(converter)
@@ -129,9 +129,7 @@ class xmlns(xsc.Namespace):
 xmlns.update(vars())
 
 if __name__ == "__main__":
-	prefixes = xsc.Prefixes()
-	prefixes.addPrefixMapping(None, xmlns)
-	prefixes.addPrefixMapping(None, xml)
+	prefixes = xsc.Prefixes(xmlns, xml=xml)
 	node = parsers.parseFile("Media.xml", prefixes=prefixes)
 	node = node.findfirst(xsc.FindType(media))
 	node = node.conv()

@@ -4,7 +4,7 @@
 from ll.xist import xsc, parsers
 from ll.xist.ns import html, meta
 
-url = "http://amk.ca/quotations/python-quotes.xml"
+url = "python-quotes.xml"
 
 class quotations(xsc.Element):
 	empty = False
@@ -19,7 +19,7 @@ class quotations(xsc.Element):
 		description = html.div("(Generated from ", html.a(url, href=url), ")")
 
 		# We want to get rid of the excessive whitespace
-		quotations = self.find(type=quotation)
+		quotations = self.content.find(xsc.FindType(quotation))
 
 		e = xsc.Frag(
 			html.DocTypeHTML401transitional(),
@@ -37,6 +37,8 @@ class quotations(xsc.Element):
 
 class quotation(xsc.Element):
 	empty = False
+	class Attrs(xsc.Element.Attrs):
+		class date(xsc.TextAttr): pass
 
 	def convert(self, converter):
 		e = html.div(self.content, class_="quotation")
@@ -75,9 +77,14 @@ class foreign(xsc.Element):
 
 		return e.convert(converter)
 
+class xmlns(xsc.Namespace):
+	xmlname = "quotations"
+	xmlurl = "http://xmlns.livinglogic.de/xist/examples/python-quotes"
+xmlns.update(vars())
+
 if __name__ == "__main__":
 	e = parsers.parseURL(url, parser=parsers.ExpatParser())
-	e = e.find(type=quotations)[0]
+	e = e.findfirst(xsc.FindType(quotations))
 	e = e.compact().conv()
 	print e.asBytes(encoding="iso-8859-1")
 
