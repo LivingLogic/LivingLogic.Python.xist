@@ -361,7 +361,7 @@ class HTMLParser(BadEntityParser):
 			if element.isallowedattr(attrname):
 				newattrs[attrname] = attrvalue
 			else:
-				errors.warn(IllegalAttrError(element.Attrs, attrname))
+				errors.warn(errors.IllegalAttrError(element.Attrs, attrname))
 		SGMLOPParser.finish_starttag(self, name, newattrs)
 
 	def finish_endtag(self, name):
