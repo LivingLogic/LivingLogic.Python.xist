@@ -570,11 +570,11 @@ def ToNode(value):
 					return value
 		elif isinstance(value,Node):
 			return value
-	elif t in [ types.StringType,types.IntType,types.LongType,types.FloatType ]:
+	elif t in ( types.StringType,types.IntType,types.LongType,types.FloatType ):
 		return Text(value)
 	elif t == types.NoneType:
 		return Null
-	elif t in [ types.ListType,types.TupleType ]:
+	elif t in ( types.ListType,types.TupleType ):
 		e = Frag()
 		for i in value:
 			e.append(ToNode(i))
