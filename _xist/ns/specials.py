@@ -29,15 +29,15 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 import sys, types, time as time_, string
 
 from xist import xsc, parsers
-import html as html_, meta
+import html, meta
 
 class xist(xsc.Entity):
 	def convert(self, converter):
-		return html_.span("XIST", class_="caps")
+		return html.span("XIST", class_="caps")
 	def asPlainString(self):
 		return u"XIST"
 
-class plaintable(html_.table):
+class plaintable(html.table):
 	"""
 	<doc:par>a &html; table where the values of the attributes cellpadding, cellspacing and
 	border default to 0 (which can be overwritten via the class variable
@@ -47,11 +47,11 @@ class plaintable(html_.table):
 	defaults = {"cellpadding": 0, "cellspacing": 0, "border": 0}
 
 	def convert(self, converter):
-		e = html_.table(self.content, self.attrs)
+		e = html.table(self.content, self.attrs)
 		e.copyDefaultAttrs(self.defaults)
 		return e.convert(converter)
 
-class plainbody(html_.body):
+class plainbody(html.body):
 	"""
 	<doc:par>a &html; body where the attributes leftmargin, topmargin, marginheight and
 	marginwidth default to 0 (which can be overwritten via the class variable
@@ -61,7 +61,7 @@ class plainbody(html_.body):
 	defaults = {"leftmargin": 0, "topmargin": 0, "marginheight": 0, "marginwidth": 0}
 
 	def convert(self, converter):
-		e = html_.body(self.content, self.attrs)
+		e = html.body(self.content, self.attrs)
 		e.copyDefaultAttrs(self.defaults)
 		return e.convert(converter)
 
@@ -133,7 +133,7 @@ class x(xsc.Element):
 	def convert(self, converter):
 		return xsc.Null
 
-class pixel(html_.img):
+class pixel(html.img):
 	"""
 	<doc:par>element for single pixel images, the default is the image
 	<filename>root:Images/Pixels/dot_clear.gif</filename>, but you can specify the color
@@ -146,12 +146,12 @@ class pixel(html_.img):
 	"""
 
 	empty = 1
-	attrHandlers = html_.img.attrHandlers.copy()
+	attrHandlers = html.img.attrHandlers.copy()
 	attrHandlers.update({"color": xsc.ColorAttr})
 	del attrHandlers["src"]
 
 	def convert(self, converter):
-		e = html_.img()
+		e = html.img()
 		color = "0"
 		for attr in self.attrs.keys():
 			if attr == "color":
@@ -188,7 +188,7 @@ class caps(xsc.Element):
 			for c in e:
 				if (c in self.lowercase) != last_was_lower:
 					if last_was_lower:
-						result.append(html_.span(collect.upper(), class_="nini"))
+						result.append(html.span(collect.upper(), class_="nini"))
 					else:
 						result.append(collect)
 					last_was_lower = not last_was_lower
@@ -196,7 +196,7 @@ class caps(xsc.Element):
 				collect = collect + c
 			if collect:
 				if last_was_lower:
-					result.append(html_.span(collect.upper(), class_="nini" ))
+					result.append(html.span(collect.upper(), class_="nini" ))
 				else:
 					result.append(collect)
 		return result
@@ -231,13 +231,13 @@ class include(xsc.Element):
 
 		return e.convert(converter)
 
-class par(html_.div):
+class par(html.div):
 	empty = 0
-	attrHandlers = html_.div.attrHandlers.copy()
+	attrHandlers = html.div.attrHandlers.copy()
 	attrHandlers.update({"noindent": xsc.TextAttr})
 
 	def convert(self, converter):
-		e = html_.div(*self.content)
+		e = html.div(*self.content)
 		indent = 1
 		for attr in self.attrs.keys():
 			if attr == "noindent":
@@ -248,7 +248,7 @@ class par(html_.div):
 			e["class"] = "indent"
 		return e.convert(converter)
 
-class autoimg(html_.img):
+class autoimg(html.img):
 	"""
 	<doc:par>An image were width and height attributes are automatically generated.
 	If the attributes are already there, they are taken as a
@@ -257,11 +257,11 @@ class autoimg(html_.img):
 	as wide with <code>width="2*%(width)d"</code>.</doc:par>
 	"""
 	def convert(self, converter):
-		e = html_.img(self.attrs)
+		e = html.img(self.attrs)
 		e._addImageSizeAttributes(converter.root, "src", "width", "height")
 		return e.convert(converter)
 
-class autoinput(html_.input):
+class autoinput(html.input):
 	"""
 	<doc:par>Extends <pyref module="xist.ns.html" class="input"><class>input</class></pyref>
 	with the ability to automatically set the size, if this element
@@ -269,7 +269,7 @@ class autoinput(html_.input):
 	"""
 	def convert(self, converter):
 		if self.hasAttr("type") and self["type"].convert(converter).asPlainString() == u"image":
-			e = html_.input(self.content, self.attrs)
+			e = html.input(self.content, self.attrs)
 			e._addImageSizeAttributes(converter.root, "src", "size", None) # no height
 			return e.convert(converter)
 		else:
@@ -294,14 +294,14 @@ class redirectpage(xsc.Element):
 
 	def convert(self, converter):
 		url = self["href"]
-		e = html_.html(
-			html_.head(
+		e = html.html(
+			html.head(
 				meta.contenttype(),
-				html_.title("Redirection")
+				html.title("Redirection")
 			),
-			html_.body(
+			html.body(
 				"Your browser doesn't understand redirects. This page has been redirected to ",
-				html_.a(url, href=url)
+				html.a(url, href=url)
 			)
 		)
 		return e.convert(converter)
@@ -326,7 +326,7 @@ class javascript(xsc.Element):
 	attrHandlers = {"src": xsc.TextAttr}
 
 	def convert(self, converter):
-		e = html_.script(self.content, language="javascript", type="text/javascript", src=self["src"])
+		e = html.script(self.content, language="javascript", type="text/javascript", src=self["src"])
 		return e.convert(converter)
 
 # Control characters (not part of HTML)
