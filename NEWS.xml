@@ -1,4 +1,19 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
+<section><title>Changes in 2.4.1 (released 01/05/2004)</title>
+<ulist>
+<item>Changed the xmlname of <class>ll.xist.ns.jsp.directive_page</class> back again
+(it's <lit>directive.page</lit> only for the &xml; form, which we don't use anyway.)</item>
+
+<item>Drop the default value for <class>ll.xist.ns.jsp.directive_page.Attrs.language</class>,
+as this attribute can only be used once.</item>
+
+<item>If an <class>ll.xist.xsc.Prefixes</class> object has a prefix mapping for
+a namespace it will return this prefix too, if asked for a prefix for a subclass
+of this namespace.</item>
+</ulist>
+</section>
+
+
 <section><title>Changes in 2.4 (released 01/02/2004)</title>
 <ulist>
 <item>The class <class>ll.xist.parsers.Handler</class> has been renamed to
