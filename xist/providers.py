@@ -71,7 +71,7 @@ class NestedNamespace:
 		# search for the element
 		# first search the namespace stack (i.e. namespaces that are registered via the normal XML namespace mechanism)
 		# if the element can't be found, search all existing namespaces.
-		allnamespaces = self.namespaces+namespaceRegistry.byPrefix.values()
+		allnamespaces = self.namespaces+xsc.namespaceRegistry.byPrefix.values()
 		for namespace in allnamespaces:
 			if name[0] is None or name[0] == namespace.prefix:
 				try:
