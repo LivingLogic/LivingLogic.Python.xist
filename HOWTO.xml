@@ -11,8 +11,8 @@ or <app moreinfo="http://dustman.net/andy/python/HyperText/">HyperText</app>.</d
 <doc:par>&xist; can be used as a compiler that reads an input file
 and generates a transformed output file, or it could be used for generating
 &xml; dynamically inside a web server (but note that handling object trees
-<em>is</em> slower than simply printing the output string). 
-In either case generating the final &html; or &xml; output requires 
+<em>is</em> slower than simply printing the output string).
+In either case generating the final &html; or &xml; output requires
 the following three steps:</doc:par>
 <ulist>
 <item>Generating a source &xml; tree: This can be done either by
@@ -34,8 +34,7 @@ passes the string fragments to an appropriate publishing handler.</item>
 </doc:section>
 
 <doc:section><doc:title>Constructing &xml; trees</doc:title>
-<doc:par>Like any other &dom; &api;, &xist; provides the 
-usual classes:</doc:par>
+<doc:par>Like any other &dom; &api;, &xist; provides the usual classes:</doc:par>
 <ulist>
 <item><doc:pyref module="xist.xsc" class="Text"><class>Text</class></doc:pyref> for text data</item>
 <item><doc:pyref module="xist.xsc" class="Frag"><class>Frag</class></doc:pyref> for document fragments,
@@ -44,7 +43,7 @@ of nodes,</item>
 <item><doc:pyref module="xist.xsc" class="Comment"><class>Comment</class></doc:pyref> for &xml; comments
 (e.g. <markup>&lt;!-- the comment --&gt;</markup>)</item>
 <item><doc:pyref module="xist.xsc" class="DocType"><class>DocType</class></doc:pyref> for document type
-declarations (e.g. <markup>&lt;!DOCTYPE html PUBLIC <replaceable>...</replaceable>&gt;</markup>),</item>
+declarations (e.g. <markup>&lt;!DOCTYPE html PUBLIC <rep>...</rep>&gt;</markup>),</item>
 <item><doc:pyref module="xist.xsc" class="ProcInst"><class>ProcInst</class></doc:pyref> for processing instructions
 (e.g. <markup>&lt;?php echo $spam;?&gt;</markup>,</item>
 <item><doc:pyref module="xist.xsc" class="Element"><class>Element</class></doc:pyref> for &xml; elements,</item>
@@ -706,10 +705,10 @@ and <pyref module="url" class="URL" method="relative"><method>relative</method><
 </doc:section>
 
 <doc:section><doc:title>Automatic generation of image size attributes</doc:title>
-<doc:par>The module <pyref module="xist.ns.specials"><module>xist.ns.specials</module></pyref>
-contains an element <pyref module="xist.ns.specials" class="autoimg"><class>autoimg</class></pyref>
-that extends <pyref module="xist.ns.html" class="img"><class>xist.ns.html.img</class></pyref>.
-When converted to &html; via the <pyref module="xist.ns" class="Node" method="convert"><method>convert</method></pyref>
+<doc:par>The module <pyref module="ll.xist.ns.htmlspecials"><module>ll.xist.ns.htmlspecials</module></pyref>
+contains an element <pyref module="ll.xist.ns.htmlspecials" class="autoimg"><class>autoimg</class></pyref>
+that extends <pyref module="ll.xist.ns.html" class="img"><class>ll.xist.ns.html.img</class></pyref>.
+When converted to &html; via the <pyref module="ll.xist.ns" class="Node" method="convert"><method>convert</method></pyref>
 method the size of the image will be determined and the <lit>height</lit>
 and <lit>width</lit> attributes will be set accordingly.</doc:par>
 

@@ -1,74 +1,73 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
-<doc:section><doc:title>Requirements</doc:title>
+<section><title>Requirements</title>
 To use &xist; you need the following software packages:
 <olist>
-<item>Python 2.2 (available from <a href="http://www.python.org/">http://www.python.org/</a> and
-<a href="http://python.sf.net/">http://python.sf.net/</a>),</item>
-<item>The Python &xml; package (available from <a href="http://pyxml.sf.net/">http://pyxml.sf.net/</a>)
-(a version that includes sgmlop and expat),</item>
+<item>Python 2.2 (available from <link href="http://www.python.org/">http://www.python.org/</link>),</item>
+<item>The Python &xml; package (available from <link href="http://pyxml.sf.net/">http://pyxml.sf.net/</link>)
+(a version that includes <app>sgmlop</app> and <app>expat</app>),</item>
 <item>the Python Imaging Library (available from
-<a href="http://www.pythonware.com/products/pil/">http://www.pythonware.com/products/pil/</a>)</item>
+<link href="http://www.pythonware.com/products/pil/">http://www.pythonware.com/products/pil/</link>)</item>
 <item>The experimental eGenix mx Extension for Python (available from
-<a href="http://www.lemburg.com/files/python/eGenix-mx-Extensions.html">http://www.lemburg.com/files/python/eGenix-mx-Extensions.html</a>).</item>
-<item>URL (available from <a href="root:url/index.html">http://www.livinglogic.de/Python/url/</a>),</item>
-<item>ANSIStyle (available from <a href="root:ansistyle/index.html">http://www.livinglogic.de/Python/ansistyle/</a>),</item>
+<link href="http://www.lemburg.com/files/python/eGenix-mx-Extensions.html">http://www.lemburg.com/files/python/eGenix-mx-Extensions.html</link>).</item>
+<item>URL (available from <link href="root:url/index.html">http://www.livinglogic.de/Python/url/</link>),</item>
+<item>ANSIStyle (available from <link href="root:ansistyle/index.html">http://www.livinglogic.de/Python/ansistyle/</link>),</item>
 <item>and a C++ compiler supported by <app>distutils</app>, if you want
 to install the source distribution.</item>
 </olist>
-</doc:section>
+</section>
 
-<doc:section><doc:title>Installation</doc:title>
-<doc:par>&xist; uses <app>distutils</app>, so installation
+<section><title>Installation</title>
+<par>&xist; uses <app>distutils</app>, so installation
 is rather simple. Execute the following command:
 <programlisting>
 python setup.py install
 </programlisting>
 This will copy *.py files, compile *.c files and install everything
-in the <filename class="directory">site-packages</filename>
-directory as an <code>xist</code> package.</doc:par>
+in the <dirname>site-packages</dirname>
+directory as the <module>ll.xist</module> package.</par>
 
-<doc:par>If you're updating from a version older than 1.4, remove
-the old module <module>xist.url</module> as this is no longer needed
-and might collide with the new global module <module>url</module>.</doc:par>
-
-<doc:par>If you're updating from a version older than 1.5, remove
+<par>If you're updating from a version older than 1.5, remove
 the old package <module>xist</module> from your installation directory
-and remove the <filename class="directory">build</filename> directory.</doc:par>
+and remove the <dirname>build</dirname> directory (if you're building from
+<app>&cvs;</app>).</par>
 
-<doc:par>For Windows a binary distribution is provided. To install it,
-double click it, and follow the instructions.</doc:par>
+<par>If you're updating from a version older than 1.4, remove
+the old module <module>xist.url</module> as this is no longer needed
+and might collide with the new global module <module>url</module>.</par>
 
-<doc:par>If you have difficulties installing this software, send a problem report
-to Walter Dörwald (<a href="mailto:walter@livinglogic.de">walter@livinglogic.de</a>)
-describing the problem.</doc:par>
-</doc:section>
+<par>For Windows a binary distribution is provided. To install it,
+double click it, and follow the instructions.</par>
 
-<doc:section><doc:title>Character encoding</doc:title>
-<doc:par>When you pass an 8bit string in the constructor
+<par>If you have difficulties installing this software, send a problem report
+to Walter Dörwald (<email>walter@livinglogic.de</email>)
+describing the problem.</par>
+</section>
+
+<section><title>Character encoding</title>
+<par>When you pass an 8bit string in the constructor
 of an &xist; element, these strings have to
 be converted to Unicode. &xist; assumes that these 8bit strings
 are in the system default encoding, which normally is &ascii;.
 If you want to change this you can put a script
 named <filename>sitecustomize.py</filename> somewhere
 in the Python path, with the following content:
-<doc:programlisting>
+<programlisting>
 import sys
 sys.setdefaultencoding(<rep>"iso-8859-1"</rep>)
-</doc:programlisting>
+</programlisting>
 (or any other encoding name that you want to use
-instead of <code>"iso-8859-1"</code>).</doc:par>
+instead of <rep>"iso-8859-1"</rep>).</par>
 
-<doc:section><doc:title>Display hook</doc:title>
-<doc:par>
-Currently &xist; nodes do not have a fancy <method>__repr__</method>
+<section><title>Display hook</title>
+<par>Currently &xist; nodes do not have a fancy <method>__repr__</method>
 method implemented, but the <method>repr</method> method
-can be used to generate two different display formats (this is
+can be used to generate several different display formats (this is
 extensible by implementing new presentation classes). To use e.g.
 the <class>TreePresenter</class> format in object dumps in
 an interactive Python session you can use the displayhook
 feature of Python 2.1, simply by putting the following code
 into your Python startup script:
-<doc:programlisting>
+<programlisting>
 import sys, pprint
 from ll.xist import xsc, presenters
 
@@ -80,15 +79,15 @@ def displayhook(object):
 			pprint.pprint(object)
 
 sys.displayhook = displayhook
-</doc:programlisting>
-</doc:par>
-</doc:section>
+</programlisting>
+</par>
+</section>
 
-<doc:section><doc:title>Syntax highlighting</doc:title>
-<doc:par>If you want syntax highlighting in your &xist; tree
+<section><title>Syntax highlighting</title>
+<par>If you want syntax highlighting in your &xist; tree
 dumps and have an &ansi; color capable terminal,
 set the environment variable <lit>XSC_REPRANSI</lit>
 to <lit>1</lit> or <lit>2</lit> depending on whether
 you have a light or dark background color. Setting <lit>XSC_REPRANSI</lit>
-to <lit>0</lit> turns off syntax highlighting.</doc:par>
-</doc:section>
+to <lit>0</lit> turns off syntax highlighting.</par>
+</section>

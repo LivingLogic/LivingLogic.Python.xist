@@ -1,6 +1,8 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
 <section><title>Changes in 2.0 (released ??/??/2002)</title>
 <ulist>
+<item>The &html; specific parts of <module>ll.xist.ns.specials</module>
+have been split off into a separate module <module>ll.xist.ns.htmlspecials</module>.</item>
 <item>Comparison of attributes with strings has been removed.
 You have to use <method>__unicode__</method> or <method>__str__</method>
 instead.</item>
@@ -62,9 +64,9 @@ found in a style attribute.</item>
 <section><title>Changes in 1.4.3 (released 04/29/2002)</title>
 <ulist>
 <item>New namespace module <module>xist.ns.struts_config11</module>
-allows to parse and modify <a href="http://jakarta.apache.org/struts/">Struts</a>
+allows to parse and modify <link href="http://jakarta.apache.org/struts/">Struts</link>
 configuration files conforming with the
-<a href="http://jakarta.apache.org/struts/dtds/struts-config_1_1.dtd">Struts 1.1 DTD</a>.
+<link href="http://jakarta.apache.org/struts/dtds/struts-config_1_1.dtd">Struts 1.1 DTD</link>.
 </item>
 </ulist>
 </section>
@@ -215,16 +217,16 @@ or publishing.</item>
 and <class>xist.ns.meta.description</class>
 no longer call <method>asPlainString</method>
 on their content. This makes it possible to e.g. generate the keywords via &jsp;:
-<doc:example>
-<doc:programlisting>
+<example>
+<programlisting>
 &gt;&gt;&gt; from xist import parsers
 &gt;&gt;&gt; from xist.ns import meta, jsp
 &gt;&gt;&gt; s = '&lt;keywords&gt;&lt;?jsp:expression "foo"?&gt;&lt;/keywords&gt;'
 &gt;&gt;&gt; e = parsers.parseString(s)
 &gt;&gt;&gt; print e.conv().asBytes()
 &lt;meta name="keywords" content="&lt;%= "foo" %&gt;" /&gt;
-</doc:programlisting>
-</doc:example>
+</programlisting>
+</example>
 </item>
 <item>When an element occurs inside an attribute during publishing, there
 won't be an exception raised any more. Instead the content of the element
@@ -350,20 +352,20 @@ As the name <method>asHTML</method> no longer makes sense, <method>asHTML</metho
 has been renamed to <method>convert</method>.</item>
 
 <item>There is now a tool <filename>dtd2xsc.py</filename> in the
-<filename class="directory">scripts</filename> directory
-that creates a skeleton &xist; module from a &dtd;
-(this requires xmlproc from the <app>PyXML</app> package).</item>
+<filename>scripts</filename> directory that creates
+a skeleton &xist; module from a &dtd; (this requires <app>xmlproc</app>
+from the <app>PyXML</app> package).</item>
 
 <item>New preliminary module for DocBook 4.12.
 (Incomplete: <method>convert</method> methods and Unicode character
 entities are missing; any volunteers for implementing 375 classes?)</item>
 
 <item>New module <filename>ruby.py</filename> that implements the
-<a href="http://www.w3.org/TR/ruby/xhtml11-ruby-1.mod">W3C Ruby draft</a>.
+<link href="http://www.w3.org/TR/ruby/xhtml11-ruby-1.mod">W3C Ruby draft</link>.
 </item>
 
 <item><filename>sql.py</filename> has been removed from &xist;, but is available
-as a <a href="root:sql/index.html">separate module</a>.</item>
+as a <link href="root:sql/index.html">separate module</link>.</item>
 
 <item>The parsing interface has been changed. Parsing is now done
 with the functions <function>parseFile</function>, <function>parseString</function>,
@@ -393,8 +395,8 @@ object.</item>
 
 <item>New namespace modules <filename>ns/jsp.py</filename> and
 <filename>ns/struts_html.py</filename> have been added that allow you to
-use <a href="http://java.sun.com/products/jsp/">&jsp;</a> and
-<a href="http://jakarta.apache.org/struts/">Struts</a> tags with &xist;.</item>
+use <link href="http://java.sun.com/products/jsp/">&jsp;</link> and
+<link href="http://jakarta.apache.org/struts/">Struts</link> tags with &xist;.</item>
 
 <item>A new method <method>asText</method> was added, that returns
 the node as a formatted plain &ascii; text (this requires that
@@ -403,7 +405,7 @@ is installed.)</item>
 
 <item><filename>make.py</filename> has been renamed to
 <filename>xscmake.py</filename> and moved to the
-<filename class="directory">scripts</filename> directory,
+<dirname>scripts</dirname> directory,
 it will be installed as a callable script with <lit>python setup.py install_scripts</lit>.</item>
 
 <item><filename>xscmake.py</filename> has a new option <option>--files</option>/<option>-f</option>.
@@ -458,13 +460,13 @@ works, and should be a little faster);</item>
 of an attribute is tied to a condition, you can construct the attribute
 in advance and use it afterwards in the tree construction:
 <programlisting>
-if <replaceable>condition</replaceable>:
+if <rep>condition</rep>:
 	align = "right"
 else:
 	align = None
 node = html.div("spam", align=align)
 </programlisting>
-So, when the <lit><replaceable>condition</replaceable></lit> is false,
+So, when the <lit><rep>condition</rep></lit> is false,
 the node will not have the attribute <lit>align</lit> set.
 </item>
 </olist>
@@ -507,7 +509,7 @@ implementing <class>specials.plaintable</class> and <class>specials.plainbody</c
 
 <item><method>providers.Provider.pushNamespace</method> now handles multiple
 arguments which may be <class>Namespace</class> objects or modules
-(in which case, the <lit><replaceable>module</replaceable>.namespace</lit> will be pushed)</item>
+(in which case, the <lit><rep>module</rep>.namespace</lit> will be pushed)</item>
 
 <item><method>providers.Providers.popNamespace</method> can now pop multiple
 namespaces at once.</item>
@@ -556,7 +558,7 @@ so <class>URL</class> objects can be used everywhere.</item>
 specified encoding is done directy. This means, that
 escaping unencodable characters now works even with
 exotic encodings (tested with
-<a href="http://pseudo.grad.sccs.chukyo-u.ac.jp/~kajiyama/python/"><filename>JapaneseCodecs-1.0.1.tar.gz</filename></a>).</item>
+<link href="http://pseudo.grad.sccs.chukyo-u.ac.jp/~kajiyama/python/"><filename>JapaneseCodecs-1.0.1.tar.gz</filename></link>).</item>
 
 <item>The <class>URLAttr</class> constructor now can handle a single parameter
 of the type <class>URL</class>.</item>
@@ -623,7 +625,7 @@ generating meta tags.</item>
 <item>&xist; now requires at least Python 2.0b1.</item>
 
 <item>A new bugfixed version of the <app>sgmlop</app> source is available
-from the <a href="ftp://ftp.livinglogic.de/pub/livinglogic/xist/">&ftp; site</a>.</item>
+from the <link href="ftp://ftp.livinglogic.de/pub/livinglogic/xist/">&ftp; site</link>.</item>
 
 <item>&xist; now completely supports Unicode. For output any
 encoding known to Python can be used, so now you
@@ -758,7 +760,7 @@ Now image size calculation works again.</item>
 allows custom names even when using <function>registerAllElements</function>.</item>
 
 <item>Comparison of scheme and server in URLs is done case insensitive
-(as <a href="ftp://ftp.isi.edu/in-notes/rfc2068.txt">RFC 2068</a>
+(as <link href="http://www.ietf.org/rfc/rfc2068.txt">RFC 2068</link>
 requires.)</item>
 
 <item>Image size calculation is now done in <method>asString</method> and
