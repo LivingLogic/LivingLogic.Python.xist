@@ -697,13 +697,16 @@ class TreePresenter(Presenter):
 		loc = node.startloc
 		nest = len(self.currentPath)
 		l = len(lines)
-		for i in xrange(l):
+		for i in xrange(max(1, l)):
 			if loc is not None:
 				hereloc = loc.offset(i)
 			else:
 				hereloc = None
 			mynest = nest
-			s = lines[i]
+			if i<len(lines):
+				s = lines[i]
+			else:
+				s = ""
 			if isinstance(s, (str, unicode)):
 				if indent:
 					while len(s) and s[0] == "\t":
@@ -712,7 +715,7 @@ class TreePresenter(Presenter):
 			s = formatter(s)
 			if i == 0 and head is not None:
 				s.insert(0, head)
-			if i == l-1 and tail is not None:
+			if i >= l-1 and tail is not None:
 				s.append(tail)
 			self.lines.append([hereloc, self.currentPath[:], mynest, s])
 
