@@ -309,6 +309,15 @@ to make image &url;s shorter.</item>
 </ulist>
 </section>
 
+<section><title>Changes in 1.6 (released 07/02/2003)</title>
+<ulist>
+<item>Removed the default value for the <lit>className</lit> attribute
+in <class>ll.xist.ns.struts_config11.action</class>.</item>
+<item>Added an attribute <lit>type</lit> to
+<class>ll.xist.ns.struts_config11.action_mapping</class>.</item>
+</ulist>
+</section>
+
 <section><title>Changes in 1.5.13 (released 07/01/2003)</title>
 <ulist>
 <item>Implemented <method>ll.xist.xsc.Namespace.__eq__</method>,

@@ -69,14 +69,6 @@ class forward(struts_config10.forward):
 		class contextRelative(xsc.TextAttr): pass
 
 class action(xsc.Element):
-	"""
-	<par>This element represents a struts action mapping using the
-	struts workflow extension mapping class (<class>ApplicationMapping</class>)
-	as its default instead of the action mapping class included in
-	the official struts 1.1 package. If you want to use the default
-	struts action mapping class, you have to specify its fully qualified
-	class name in the <lit>className</lit> attribute.</par>
-	"""
 	empty = False
 	class Attrs(xsc.Element.Attrs):
 		class attribute(xsc.TextAttr): pass
@@ -93,14 +85,6 @@ class action(xsc.Element):
 		class type(xsc.TextAttr): pass
 		class unknown(xsc.TextAttr): pass
 		class validate(xsc.TextAttr): pass
-
-	def convert(self, converter):
-		e = action(
-			self.content.convert(converter),
-			self.attrs.convert(converter)
-		)
-		e.setDefaultAttr("className", "com.livinglogic.struts.workflow.ApplicationMapping")
-		return e
 
 class controller(xsc.Element):
 	empty = True
@@ -148,7 +132,7 @@ class user_struts_config(xsc.Element):
 		)
 		return e.convert(converter)
 
-class xmlns(struts_config):
+class xmlns(struts_config10):
 	xmlname = "struts_config11"
 	xmlurl = "http://jakarta.apache.org/struts/dtds/struts-config_1_1.dtd"
 xmlns.makemod(vars())
