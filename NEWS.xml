@@ -61,8 +61,8 @@ have been moved to a subpackage <code>ns</code>.</li>
 <li><classname>Frag</classname> and <classname>Element</classname>
 now have new methods <function>sorted</function>,
 <function>reversed</function>, <function>filtered</function> and
-<function>jumbled</function> that return sorted, reversed, filtered 
-and jumbled versions of the <classname>Frag</classname>/<classname>Element</classname>
+<function>shuffled</function> that return sorted, reversed, filtered 
+and shuffled versions of the <classname>Frag</classname>/<classname>Element</classname>
 object.</li>
 
 <li>A new namespace module <filename>ns/jsp.py</filename> has been
@@ -106,6 +106,11 @@ merged.</li>
 to <classname>Frag</classname> and <classname>Element</classname>
 has be removed, so &xist; will no longer remove one level of
 nesting. If you still want that, use a <literal>*</literal> argument.</li>
+
+<li><classname>Frag</classname> and <classname>Element</classname>
+now have a new method <function>mapped</function>,
+that recursively maps the node content through a function. This is like <function>convert</function>
+but via an external function.</li>
 
 </ul>
 </section>

@@ -319,7 +319,7 @@ and it's two derived classes <classname>Eval</classname> and <classname>Exec</cl
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-import os, string, types, sys, stat, urllib, whrandom
+import os, string, types, sys, stat, urllib, random
 
 import Image
 
@@ -713,6 +713,18 @@ class Node:
 		if nodeClass == None:
 			nodeClass = self.__class__
 		return (converter, converter.getContext(nodeClass))
+
+	def mapped(self, function):
+		"""
+		returns the node mapped through the function <pyref arg="function">function</pyref>.
+		This call works recursively (for <pyref class="Frag">Frag</pyref> and <pyref class="Element">Element</pyref>.
+		When you want an unmodified node you simply can return <self/>. <pyref method="mapped">mapped</mapped>
+		will make a copy of it and fill the content recursively. Note that element attributes
+		will not be mapped.
+		"""
+		node = function(self)
+		assert isinstance(node, Node), "the mapped method returned the illegal object %r (type %r) when mapping %r" % (node, type(node), self)
+		return node
 
 class StringMixIn:
 	"""
@@ -1116,16 +1128,22 @@ class Frag(Node):
 		node.__content = [ child for child in self.__content if function(child) ]
 		return node
 
-	def jumbled(self):
+	def shuffled(self):
 		"""
-		return a jumbled version of <self/>.
+		return a shuffled version of <self/>.
 		"""
 		content = self.__content[:]
 		node = Frag()
 		while content:
-			index = int(whrandom.random() * len(content))
+			index = random.randrange(len(content))
 			node.__content.append(content[index])
 			del content[index]
+		return node
+
+	def mapped(self, function):
+		node = function(self)
+		if node is self:
+			node = Frag(*[ child.mapped(function) for child in self.__content])
 		return node
 
 class Comment(Node, StringMixIn):
@@ -1722,12 +1740,18 @@ class Element(Node):
 		node.content = self.content.filtered(function)
 		return node
 
-	def jumbled(self):
+	def shuffled(self):
 		"""
-		returns a jumbled version of the <self/>.
+		returns a shuffled version of the <self/>.
 		"""
 		node = self.__class__(**self.attrs)
-		node.content = self.content.jumbled()
+		node.content = self.content.shuffled()
+		return node
+
+	def mapped(self, function):
+		node = function(self)
+		if node is self:
+			node = self.__class__(*self.content.mapped(function), **self.attrs)
 		return node
 
 class Entity(Node):
