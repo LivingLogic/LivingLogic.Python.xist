@@ -1827,7 +1827,7 @@ class XSC:
 			if len(elementsfornamespaces.keys())==1: # ... and there is exactly one element with this name => use it
 				element = elementsfornamespaces.values()[0]
 			else:
-				raise AmbiguousElementError(-1,name) # there is more than one
+				raise AmbiguousElementError(self.__here(),name) # there is more than one
 		else: # element name was qualified with a namespace
 			try:
 				element = elementsfornamespaces[name[0]]

@@ -177,8 +177,8 @@ class IllegalObjectError(Error):
 	exception that is raised, when XSC finds an illegal object in its object tree
 	"""
 
-	def __init__(self,lineno,object):
-		Error.__init__(self,lineno)
+	def __init__(self,location,object):
+		Error.__init__(self,location)
 		self.object = object
 
 	def __str__(self):
@@ -193,8 +193,8 @@ class MalformedCharRefError(Error):
 	exception that is raised, when a character reference is malformed (e.g. &#foo;)
 	"""
 
-	def __init__(self,lineno,name):
-		Error.__init__(self,lineno)
+	def __init__(self,location,name):
+		Error.__init__(self,location)
 		self.name = name
 
 	def __str__(self):
@@ -206,8 +206,8 @@ class UnknownEntityError(Error):
 	(i.e. one that wasn't registered via registerEntity)
 	"""
 
-	def __init__(self,lineno,name):
-		Error.__init__(self,lineno)
+	def __init__(self,location,name):
+		Error.__init__(self,location)
 		self.name = name
 
 	def __str__(self):
@@ -219,8 +219,8 @@ class AmbiguousElementError(Error):
 	and there is more than one element registered with this name.
 	"""
 
-	def __init__(self,lineno,name):
-		Error.__init__(self,lineno)
+	def __init__(self,location,name):
+		Error.__init__(self,location)
 		self.name = name
 
 	def __str__(self):
