@@ -863,6 +863,11 @@ class retrieve_boundary(xsc.Element.Attrs):
 		xmlname = "retrieve-boundary"
 		values = ("page", "page-sequence", "document")
 
+class usage_context_of_suppress_at_line_break(xsc.Element.Attrs):
+	class usage_context_of_suppress_at_line_break(xsc.TextAttr):
+		xmlname = "usage-context-of-suppress-at-line-break"
+		values = ("auto", "observe", "ignore", "inherit")
+
 class fo(xsc.Namespace):
 	xmlurl = "http://www.w3.org/1999/XSL/Format"
 
@@ -1080,6 +1085,7 @@ class fo(xsc.Namespace):
 			text_align,
 			text_align_last,
 			text_indent,
+			usage_context_of_suppress_at_line_break,
 			visibility,
 			white_space_collapse,
 			widows,
@@ -1274,6 +1280,7 @@ class fo(xsc.Namespace):
 			keep_with_previous,
 			line_height,
 			text_decoration,
+			usage_context_of_suppress_at_line_break,
 			visibility,
 			width,
 			wrap_option):
@@ -1363,6 +1370,7 @@ class fo(xsc.Namespace):
 			text_depth,
 			text_shadow,
 			text_transform,
+			usage_context_of_suppress_at_line_break,
 			visibility,
 			word_spacing,
 			wrap_option):
@@ -1394,6 +1402,7 @@ class fo(xsc.Namespace):
 			text_depth,
 			text_shadow,
 			text_transform,
+			usage_context_of_suppress_at_line_break,
 			visibility,
 			word_spacing,
 			wrap_option):
