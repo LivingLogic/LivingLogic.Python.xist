@@ -448,9 +448,17 @@ class XISTTestCase(unittest.TestCase):
 		"""
 		from ll.xist.ns import html, ihtml
 		from ll.xist import presenters
-		node = parsers.parseString(xml, prefixes=xsc.Prefixes().addElementPrefixMapping("x", ihtml))
+		check = ihtml.a(
+			html.a(
+				ihtml.a(
+					"gurk"
+				)
+			)
+		)
+		prefixes = xsc.Prefixes().addElementPrefixMapping("x", ihtml)
+		node = parsers.parseString(xml, prefixes=prefixes)
 		node = node.find(type=xsc.Element, subtype=True)[0].compact() # get rid of the Frag and whitespace
-		self.assertEquals(node, ihtml.a(html.a(ihtml.a("gurk"))))
+		self.assertEquals(node, check)
 
 	def test_xmlns(self):
 		pass
