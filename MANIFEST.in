@@ -6,3 +6,4 @@ include TODO
 include HOWTO
 recursive-include examples *
 recursive-include scripts *.py
+include images/pixels/*.gif

@@ -7,6 +7,8 @@ or publishing.</item>
 now use the warning framework to report errors.</item>
 <item>There is a new presenter named <code>CodePresenter</code> that dumps the
 tree as Python source code.</item>
+<item>Now the images that are used by <code>xist.ns.specials.pixel</code>
+are included.</item>
 </ulist>
 </section>
 
