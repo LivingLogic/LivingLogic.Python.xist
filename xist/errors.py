@@ -153,7 +153,7 @@ class ImageSizeFormatError(Error):
 	"""
 
 	def __init__(self,lineno,element,attr):
-		Error.__init__(self,lineno)
+		Error.__init__(self,element.location)
 		self.element = element
 		self.attr = attr
 
@@ -165,8 +165,8 @@ class FileNotFoundError(Error):
 	exception that is raised, when XSC can't open a file.
 	"""
 
-	def __init__(self,lineno,url):
-		Error.__init__(self,lineno)
+	def __init__(self,location,url):
+		Error.__init__(self,location)
 		self.url = url
 
 	def __str__(self):

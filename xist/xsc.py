@@ -563,9 +563,9 @@ class Node:
 
 	empty = 1
 
-	# line numbers where this node starts and ends in a file (will be hidden in derived classes, but is specified here, so that no special tests are required. In derived classes both variables will be set by the parser)
-	startlineno = -1
-	endlineno = -1
+	# location of this node in a file (will be hidden in derived classes, but is specified here, so that no special tests are required. In derived classes this will be set by the parser)
+	startloc = None
+	endloc = None
 
 	def __repr__(self):
 		if xsc.reprtree == 1:
@@ -589,20 +589,20 @@ class Node:
 		nest = 0
 		v = []
 		lines = self._doreprtree(nest,[],ansi = ansi)
-		lenlineno = 0
+		lenloc = 0
 		lenelementno = 0
 		for line in lines:
-			if line[1] != -1: # convert line number to a string
+			if line[1] is not None: # convert location to a string
 				line[1] = str(line[1])
 			else:
-				line[1] = "?"
+				line[1] = ""
 			line[2] = string.join(map(str,line[2]),".") # convert element number to a string
 			line[3] = strTab(line[0]) + line[3] # add indentation
-			lenlineno = max(lenlineno,len(line[1]))
+			lenloc = max(lenloc,len(line[1]))
 			lenelementno = max(lenelementno,len(line[2]))
 
 		for line in lines:
-			v.append("%*s %-*s %s\n" % (lenlineno,line[1],lenelementno,line[2],line[3]))
+			v.append("%*s %-*s %s\n" % (lenloc,line[1],lenelementno,line[2],line[3]))
 		return string.join(v,"")
 
 	def _dorepr(self,ansi = None):
@@ -610,8 +610,8 @@ class Node:
 		return strBracketOpen(ansi) + strBracketClose(ansi)
 
 	def _doreprtree(self,nest,elementno,ansi = None):
-		# returns an array containing arrays consisting of the (nestinglevel,linenumber,elementnumber,string representation) of the nodes
-		return [[nest,self.startlineno,elementno,self._dorepr(ansi)]]
+		# returns an array containing arrays consisting of the (nestinglevel,location,elementnumber,string representation) of the nodes
+		return [[nest,self.startloc,elementno,self._dorepr(ansi)]]
 
 	def asHTML(self):
 		"""
@@ -764,10 +764,10 @@ class Node:
 			l = l + 1
 		v = []
 		for i in xrange(l):
-			if self.startlineno == -1:
-				no = -1
+			if self.startloc is None:
+				no = None
 			else:
-				no = self.startlineno + i
+				no = self.startloc.row + i
 			mynest = nest
 			s = lines[i]
 			while len(s) and s[0] == "\t":
@@ -778,7 +778,7 @@ class Node:
 				s = head + s
 			if i == l-1:
 				s = s + tail
-			v.append([mynest,no,elementno,s])
+			v.append([mynest,Location(self.startloc.url,no),elementno,s])
 		return v
 
 	def compact(self):
@@ -869,12 +869,12 @@ class Text(Node):
 			del lines[-1]
 		v = []
 		for i in xrange(len(lines)):
-			if self.startlineno == -1:
-				no = -1
+			if self.startloc is None:
+				no = None
 			else:
-				no = self.startlineno + i
+				no = self.startloc.row + i
 			s = strQuote(ansi) + strText(self.__strtext(1,lines[i],ansi),ansi) + strQuote(ansi)
-			v.append([nest,no,elementno,s])
+			v.append([nest,Location(self.startloc.url,no),elementno,s])
 		return v
 
 	def compact(self):
@@ -931,7 +931,7 @@ class CharRef(Node):
 		s = s + ')'
 		if 0 <= self.content < reprcharreflowerlimit:
 			s = s + ' ' + Text(chr(self.content))._doreprtree(0,0,ansi)[0][-1]
-		return [[nest,self.startlineno,elementno,s]]
+		return [[nest,self.startloc,elementno,s]]
 
 	def compact(self):
 		if self.content in self.__linefeeds:
@@ -973,14 +973,14 @@ class Frag(Node):
 	def _doreprtree(self,nest,elementno,ansi = None):
 		v = []
 		if len(self):
-			v.append([nest,self.startlineno,elementno,self._str(brackets = 1,ansi = ansi)])
+			v.append([nest,self.startloc,elementno,self._str(brackets = 1,ansi = ansi)])
 			i = 0
 			for child in self:
 				v = v + child._doreprtree(nest+1,elementno + [i],ansi)
 				i = i + 1
-			v.append([nest,self.endlineno,elementno,self._str(brackets = 1,ansi = ansi,slash = -1)])
+			v.append([nest,self.endloc,elementno,self._str(brackets = 1,ansi = ansi,slash = -1)])
 		else:
-			v.append([nest,self.startlineno,elementno,self._str(brackets = 1,ansi = ansi,slash = 1)])
+			v.append([nest,self.startloc,elementno,self._str(brackets = 1,ansi = ansi,slash = 1)])
 		return v
 
 	def asPlainString(self):
@@ -1158,7 +1158,7 @@ class DocType(Node):
 		return strBracketOpen(ansi) + strExclamation(ansi) + strDocTypeMarker(ansi) + " " + strDocTypeText(self.content,ansi) + strBracketClose(ansi)
 
 	def _doreprtree(self,nest,elementno,ansi = None):
-		return [[nest,self.startlineno,elementno,self._dorepr(ansi)]]
+		return [[nest,self.startloc,elementno,self._dorepr(ansi)]]
 
 	def asString(self,XHTML = None):
 		return "<!DOCTYPE " + self.content + ">"
@@ -1339,14 +1339,17 @@ class Element(Node):
 	def _doreprtree(self,nest,elementno,ansi = None):
 		v = []
 		if self.empty:
-			v.append([nest,self.startlineno,elementno,self._str(content = self.__strattrs(ansi),brackets = 1,slash = 1,ansi = ansi)])
+			v.append([nest,self.startloc,elementno,self._str(content = self.__strattrs(ansi),brackets = 1,slash = 1,ansi = ansi)])
 		else:
-			v.append([nest,self.startlineno,elementno,self._str(content = self.__strattrs(ansi),brackets = 1,ansi = ansi)])
+			v.append([nest,self.startloc,elementno,self._str(content = self.__strattrs(ansi),brackets = 1,ansi = ansi)])
 			i = 0
 			for child in self:
 				v = v + child._doreprtree(nest+1,elementno + [i],ansi)
 				i = i + 1
-			v.append([nest,self.endlineno,elementno,self._str(brackets = 1,slash = -1,ansi = ansi)])
+			if self.startloc is None:
+				v.append([nest,self.startloc,elementno,self._str(brackets = 1,slash = -1,ansi = ansi)])
+			else:
+				v.append([nest,self.endloc,elementno,self._str(brackets = 1,slash = -1,ansi = ansi)])
 		return v
 
 	def asString(self,XHTML = None):
@@ -1447,7 +1450,7 @@ class Element(Node):
 		works like the method get() of dictionaries,
 		it returns the attribute with the name attr, or if S has no
 		such attribute, default (after converting it to a node and
-		wrapping it into the appropriate attribute node.
+		wrapping it into the appropriate attribute node.)
 		"""
 		try:
 			return self[attr]
@@ -1500,14 +1503,14 @@ class Element(Node):
 					try:
 						self[widthattr] = eval(self[widthattr].asPlainString() % sizedict)
 					except:
-						raise ImageSizeFormatError(-1,self,widthattr)
+						raise ImageSizeFormatError(self,widthattr)
 				else:
 					self[widthattr] = size[0]
 				if self.hasAttr(heightattr):
 					try:
 						self[heightattr] = eval(self[heightattr].asPlainString() % sizedict)
 					except:
-						raise ImageSizeFormatError(-1,self,heightattr)
+						raise ImageSizeFormatError(self,heightattr)
 				else:
 					self[heightattr] = size[1]
 
@@ -1542,7 +1545,7 @@ class Null(Node):
 		return self._str(slash = 1,ansi = ansi)
 
 	def _doreprtree(self,nest,elementno,ansi = None):
-		return [[nest,self.startlineno,elementno,self._dorepr(ansi)]]
+		return [[nest,self.startloc,elementno,self._dorepr(ansi)]]
 
 Null = Null() # Singleton, the Python way
 
@@ -1678,7 +1681,7 @@ class URLAttr(Attr):
 				urllib.urlcleanup()
 			except IOError:
 				urllib.urlcleanup()
-				raise FileNotFoundError(-1,url)
+				raise FileNotFoundError(self.startloc,url)
 		return size
 
 	def FileSize(self):
@@ -1696,7 +1699,7 @@ class URLAttr(Attr):
 				urllib.urlcleanup()
 			except IOError:
 				urllib.urlcleanup()
-				raise FileNotFoundError(-1,url)
+				raise FileNotFoundError(self.startloc,url)
 		return size
 
 ###
@@ -1778,37 +1781,27 @@ registerEntity("gt",CharRef(62)) # greater-than sign, U+003E ISOnum
 
 class Location:
 	"""
-	specifies a location in an XML file.
+	specifies a position in an XML file.
 	"""
 
-	def __init__(self,url = None,startrow = None,startcol = None,endrow = None,endcol = None):
-		if url is not None:
-			self.url = URL(url)
-		else:
-			self.url = None
-		self.startrow = startrow
-		self.startcol = startcol
-		self.endrow = endrow
-		self.endcol = endcol
+	def __init__(self,url = None,row = None,col = None):
+		self.url = url
+		self.row = row
+		self.col = col
 
 	def __str__(self):
 		if self.url is not None:
-			s = '"' + str(self.url) + '"'
-			if self.startrow is not None or self.startcol is not None:
-				s = s + ' ('
-				if self.startrow is not None:
-					s = s + 'l.' + str(self.startrow)
-					if self.startcol is not None:
-						s = s + '/'
-				if self.startcol is not None:
-					s = s + 'c.' + str(self.startcol)
-				s = s + ')'
+			s = '"' + str(self.url) + '" ('
+			s = s + "L" + str(self.row)
+			if self.col is not None:
+				s = s + "C" + str(self.col)
+			s = s + ")"
 			return s
 		else:
 			return ""
 
 	def __repr__(self):
-		return "Location(" + repr(self.url) + "," + repr(self.startrow) + "," + repr(self.startcol)  + "," + repr(self.endrow) + "," + repr(self.endcol) + ")"
+		return "Location(" + repr(self.url) + "," + repr(self.row) + "," + repr(self.col) + ")"
 
 ###
 ###
@@ -1847,7 +1840,7 @@ class XSC:
 			else:
 				code = int(name)
 		except ValueError:
-			raise MalformedCharRefError(-1,name)
+			raise MalformedCharRefError(self.__here(),name)
 
 		self.__appendNode(CharRef(code))
 
@@ -1855,7 +1848,7 @@ class XSC:
 		try:
 			self.__appendNode(entitiesByName[name].clone())
 		except KeyError:
-			raise UnknownEntityError(-1,name)
+			raise UnknownEntityError(self.__here(),name)
 
 	def elementFromName(self,name):
 		"""
@@ -1893,7 +1886,7 @@ class XSC:
 		currentelement = self.__nesting[-1].__class__
 		if element != currentelement:
 			raise IllegalElementNestingError(self.__here(),currentelement,element)
-		self.__nesting[-1].endlineno = self.lineno
+		self.__nesting[-1].endloc = self.__here()
 		self.__nesting.pop() # pop the innermost element off the stack
 
 	def handle_data(self,data):
@@ -1903,7 +1896,7 @@ class XSC:
 	def handle_comment(self,data):
 		self.__appendNode(Comment(data))
 
-	def __parseLines(self,lines)
+	def __parseLines(self,lines):
 		self.__nesting = [ Frag() ]
 		parser = sgmlop.SGMLParser()
 		parser.register(self)
@@ -1952,7 +1945,7 @@ class XSC:
 		return Location(self.filename[-1],self.lineno)
 
 	def __appendNode(self,node):
-		node.startlineno = self.lineno
+		node.startloc = self.__here()
 		last = self.__nesting[-1]
 		if len(last) and isinstance(last[-1],Text):
 			if isinstance(node,Text):
