@@ -4,7 +4,7 @@ XIST v0.1
 This is a HTML generator/XML transformation engine/web publishing system
 written in Python and based on the Python XML package.
 
-For documentation read xsc.py.
+For documentation read xist/xsc.py.
 
 The only requirements for installing the package are Python 1.5.2 or
 later, a version of the Python XML package that includes xmllib and the
