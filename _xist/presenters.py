@@ -454,12 +454,6 @@ class Presenter:
 		"""
 		raise NotImplementedError("presentAttr")
 
-	def presentURLAttr(self, node):
-		"""
-		<doc:par>present an <pyref module="xist.xsc" class="URLAttr"><class>URLAttr</class></pyref> node.</doc:par>
-		"""
-		raise NotImplementedError("presentURLAttr")
-
 class PlainPresenter(Presenter):
 	"""
 	<doc:par>This presenter shows only the root node of the tree (with a little additional
@@ -534,7 +528,6 @@ class PlainPresenter(Presenter):
 		self.buffer = "<%s.%s instance at 0x%x>" % (node.__class__.__module__, node.__class__.__name__, id(node))
 
 	presentAttr = presentFrag
-	presentURLAttr = presentAttr
 
 class NormalPresenter(Presenter):
 	def beginPresentation(self):
@@ -614,9 +607,6 @@ class NormalPresenter(Presenter):
 
 	def presentAttr(self, node):
 		xsc.Frag.present(node, self)
-
-	def presentURLAttr(self, node):
-		self.buffer.append(strURL(node.asString()))
 
 class TreePresenter(Presenter):
 	"""
@@ -836,11 +826,6 @@ class TreePresenter(Presenter):
 			self.buffers.append(EnvTextForAttrValue())
 		self.presentFrag(node)
 
-	def presentURLAttr(self, node):
-		if self.inAttr:
-			self.buffers.append(EnvTextForURL())
-		self.presentFrag(node)
-
 class CodePresenter(Presenter):
 	"""
 	<doc:par>This presenter formats the object as a nested Python object tree.</doc:par>
@@ -981,9 +966,6 @@ class CodePresenter(Presenter):
 		self.buffer.append("xsc.DocType(%r)" % self._text(node.content))
 
 	def presentAttr(self, node):
-		self.presentFrag(node)
-
-	def presentURLAttr(self, node):
 		self.presentFrag(node)
 
 defaultPresenterClass = PlainPresenter

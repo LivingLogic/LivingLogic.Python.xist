@@ -98,9 +98,6 @@ class Publisher:
 		"""
 		self.publish(self.__currentTextFilter(text, self.encoding))
 
-	def _publishableURL(self, url):
-		return url.relative(self.base)
-
 	def pushTextFilter(self, filter):
 		"""
 		<doc:par>pushes a new text filter function.</doc:par>

@@ -29,9 +29,7 @@ and emit &sax;2 events. It also contains various classes derived from
 <class>xml.sax.xmlreader.InputSource</class>.</doc:par>
 """
 
-from __future__ import nested_scopes # for the lambda in the call to replaceInitialURL
-
-import sys, os, os.path, types, cStringIO as StringIO, urllib
+import sys, os, os.path, types, urllib
 
 from xml import sax
 from xml.parsers import sgmlop
@@ -47,53 +45,8 @@ timeoutsocket = None
 
 import url
 
-import xsc, errors, utils
+import xsc, errors, utils, sources, cssparsers
 from ns import ihtml, html
-
-class InputSource(sax.xmlreader.InputSource):
-	def __init__(self, base):
-		sax.xmlreader.InputSource.__init__(self)
-		self.base = url.URL(base)
-
-class StringInputSource(InputSource):
-	def __init__(self, text, systemId="STRING", base=None, defaultEncoding="utf-8", tidy=0):
-		InputSource.__init__(self, base)
-		self.setSystemId(systemId)
-		if isinstance(text, unicode):
-			defaultEncoding = "utf-8"
-			text = text.encode(defaultEncoding)
-		if tidy:
-			(nerrors, nwarnings, outputdata, error) = Tidy.tidy(text, numeric_entities=1, output_xhtml=1, output_xml=1, quiet=1, tidy_mark=0, wrap=0)
-			if nerrors>0:
-				raise SAXParseException("can't tidy %r: %r" % (systemId, errordata))
-			text = outputdata
-		self.setByteStream(StringIO.StringIO(text))
-		self.setEncoding(defaultEncoding)
-
-class URLInputSource(InputSource):
-	def __init__(self, id, base=None, defaultEncoding="utf-8", tidy=0, headers=None, data=None):
-		if isinstance(id, (str, unicode)):
-			id = url.URL(id)
-		if base is None:
-			base = id.url
-		InputSource.__init__(self, base)
-		self.setSystemId(id.url)
-		resource = id.openread(headers=headers, data=data)
-		if tidy:
-			(nerrors, nwarnings, outputdata, error) = Tidy.tidy(resource.read(), numeric_entities=1, output_xhtml=1, output_xml=1, quiet=1, tidy_mark=0, wrap=0)
-			if nerrors>0:
-				raise SAXParseException("can't tidy %r: %r" % (url, errordata))
-			resource = StringIO.StringIO(outputdata)
-		self.setByteStream(resource)
-		self.setEncoding(defaultEncoding)
-
-	def setTimeout(self, secs):
-		if timeoutsocket is not None:
-			timeoutsocket.setDefaultSocketTimeout(sec)
-
-	def getTimeout(self):
-		if timeoutsocket is not None:
-			timeoutsocket.getDefaultSocketTimeout()
 
 class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 	"""
@@ -159,6 +112,7 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 		except KeyboardInterrupt:
 			raise
 		except Exception, ex:
+			raise
 			if self.error_handler is not None:
 				self.error_handler.fatalError(ex)
 			else:
@@ -437,6 +391,7 @@ class Handler(object):
 
 	def parse(self, source):
 		self.source = source
+		self.base = getattr(self.source, "base", None)
 
 		# register us for callbacks
 		self.parser.setErrorHandler(self)
@@ -452,6 +407,11 @@ class Handler(object):
 		self.parser.setDTDHandler(None)
 		self.parser.setContentHandler(None)
 		self.parser.setErrorHandler(None)
+
+	def close(self):
+		self.root = None
+		self.source = None
+		self.base = None
 
 	def setDocumentLocator(self, locator):
 		self._locator = locator
@@ -469,14 +429,10 @@ class Handler(object):
 
 	def startElement(self, name, attrs):
 		node = self.namespaces.elementFromName(name)()
-		base = getattr(self.source, "base", None)
+		node.parsed(self)
 		for (attrname, attrvalue) in attrs.items():
-			# for URLs incorporate the base URL into the value
-			if node.attrHandlers.has_key(attrname) and issubclass(node.attrHandlers[attrname], xsc.URLAttr) and base is not None:
-				if isinstance(attrvalue, unicode):
-					attrvalue = xsc.Frag(attrvalue)
-				attrvalue = utils.replaceInitialURL(attrvalue, lambda u: base/u )
 			node[attrname] = attrvalue
+			node[attrname].parsed(self)
 		self.__appendNode(node)
 		self.__nesting.append(node) # push new innermost element onto the stack
 		self.skippingWhitespace = 0
@@ -493,31 +449,39 @@ class Handler(object):
 	def characters(self, content):
 		if self.skippingWhitespace:
 			# the following could be content = content.lstrip(), but this would remove nbsps
+			# FIXME use lstrip(???) with Python 2.3
 			while content and content[0].isspace() and content[0] != "\xa0":
 				content = content[1:]
 		if content:
+			node = xsc.Text(content)
+			node.parsed(self)
 			last = self.__nesting[-1]
 			if len(last) and isinstance(last[-1], xsc.Text):
-				node = last[-1] + content # join consecutive Text nodes
+				node = last[-1] + node.content # join consecutive Text nodes
 				node.startLoc = last[-1].startLoc # make sure the replacement node has the original location
 				last[-1] = node # replace it
 			else:
-				self.__appendNode(xsc.Text(content))
+				self.__appendNode(node)
 			self.skippingWhitespace = 0
 
 	def comment(self, content):
-		self.__appendNode(xsc.Comment(content))
+		node = xsc.Comment(content)
+		node.parsed(self)
+		self.__appendNode(node)
 		self.skippingWhitespace = 0
 
 	def processingInstruction(self, target, data):
 		if target=="x":
 			self.skippingWhitespace = 1
 		else:
-			self.__appendNode(self.namespaces.procInstFromName(target)(data))
+			node = self.namespaces.procInstFromName(target)(data)
+			node.parsed(self)
+			self.__appendNode(node)
 			self.skippingWhitespace = 0
 
 	def skippedEntity(self, name):
 		node = self.namespaces.entityFromName(name)()
+		node.parsed(self)
 		if isinstance(node, xsc.CharRef):
 			self.characters(unichr(node.codepoint))
 		else:
@@ -556,15 +520,15 @@ def parse(source, handler=None, parser=None, namespaces=None):
 	if handler is None:
 		handler = Handler(parser, namespaces)
 	handler.parse(source)
-	return handler.root
+	result = handler.root
+	handler.close()
+	return result
 
 def parseString(text, systemId="STRING", base=None, handler=None, parser=None, namespaces=None, defaultEncoding="utf-8", tidy=0):
-	return parse(StringInputSource(text, systemId=systemId, base=base, defaultEncoding=defaultEncoding, tidy=tidy), handler=handler, parser=parser, namespaces=namespaces)
+	return parse(sources.StringInputSource(text, systemId=systemId, base=base, defaultEncoding=defaultEncoding, tidy=tidy), handler=handler, parser=parser, namespaces=namespaces)
 
 def parseURL(id, base=None, handler=None, parser=None, namespaces=None, defaultEncoding="utf-8", tidy=0, headers=None, data=None):
-	return parse(URLInputSource(id, base=base, defaultEncoding=defaultEncoding, tidy=tidy, headers=headers, data=data), handler=handler, parser=parser, namespaces=namespaces)
+	return parse(sources.URLInputSource(id, base=base, defaultEncoding=defaultEncoding, tidy=tidy, headers=headers, data=data), handler=handler, parser=parser, namespaces=namespaces)
 
-def parseFile(filename, base=None, handler=None, parser=None, namespaces=None, defaultEncoding="utf-8", tidy=0, headers=None, data=None):
-	return parseURL(url.Filename(filename), base=base, defaultEncoding=defaultEncoding, tidy=tidy, headers=headers, data=data, handler=handler, parser=parser, namespaces=namespaces)
-
-
+def parseFile(filename, base=None, handler=None, parser=None, namespaces=None, defaultEncoding="utf-8", tidy=0):
+	return parseURL(url.Filename(filename), base=base, defaultEncoding=defaultEncoding, tidy=tidy, handler=handler, parser=parser, namespaces=namespaces)

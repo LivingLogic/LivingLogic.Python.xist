@@ -31,7 +31,7 @@ from __future__ import generators
 
 import os, types, sys, urllib, random
 import url
-import presenters, publishers, converters, errors, options, utils, helpers
+import presenters, publishers, sources, cssparsers, converters, errors, options, utils, helpers
 
 ###
 ### helpers
@@ -294,6 +294,16 @@ class Node(object):
 		returns this node converted to an integer.
 		"""
 		return long(unicode(self))
+
+	def parsed(self, handler):
+		"""
+		<doc:par>This method will be called by the parsing handler <arg>handler</arg>
+		once after <self/> is created by the parser. This is e.g. used by
+		<pyref class="URLAttr"><class>URLAttr</class></pyref> to incorporate
+		the base <pyref module="url" class="URL"><class>URL</class></pyref>
+		<arg>base</arg> into the attribute.</doc:par>
+		"""
+		pass
 
 	def publish(self, publisher):
 		"""
@@ -1213,6 +1223,34 @@ class ColorAttr(Attr):
 	<doc:par>Attribute class that is used for a color attributes.</doc:par>
 	"""
 
+class StyleAttr(Attr):
+	"""
+	<doc:par>Attribute class that is used for &css; style attributes.</doc:par>
+	"""
+
+	def parsed(self, handler):
+		value = cssparsers.parseString(unicode(self), handler=cssparsers.ParseHandler(), base=handler.base)
+		self[:] = value
+
+	def publish(self, publisher):
+		if publisher.inAttr:
+			raise errors.IllegalAttrNodeError(self)
+		value = cssparsers.parseString(unicode(self), handler=cssparsers.PublishHandler(), base=publisher.base)
+		new = Attr(value)
+		new.publish(publisher)
+
+	def urls(self):
+		"""
+		<doc:par>Return a list of all the <pyref module="url" class="URL"><class>URL</class></pyref>s
+		found in the style attribute.</doc:par>
+		"""
+		source = sources.StringInputSource(unicode(self))
+		handler = cssparsers.CollectHandler()
+		handler.parse(source, ignoreCharset=1)
+		urls = handler.urls
+		handler.close()
+		return urls
+
 class URLAttr(Attr):
 	"""
 	Attribute class that is used for URLs.
@@ -1234,13 +1272,13 @@ class URLAttr(Attr):
 	(http, ftp, etc.)
 	"""
 
-	def present(self, presenter):
-		presenter.presentURLAttr(self)
+	def parsed(self, handler):
+		self[:] = utils.replaceInitialURL(self, lambda u: handler.base/u)
 
 	def publish(self, publisher):
 		if publisher.inAttr:
 			raise errors.IllegalAttrNodeError(self)
-		new = utils.replaceInitialURL(self, publisher._publishableURL)
+		new = utils.replaceInitialURL(self, lambda u: u.relative(publisher.base))
 		publisher.inAttr = 1
 		new.publish(publisher)
 		publisher.inAttr = 0
