@@ -1220,13 +1220,13 @@ class Element(Node):
 	empty = 1 # 0 => element with content; 1 => stand alone element
  	attrHandlers = {} # maps attribute names to attribute classes
 
-	def __init__(self,_content = [],_attrs = {},**_restattrs):
-		self.content = Frag(_content)
+	def __init__(self,*_content,**_attrs):
+		self.content = Frag()
+		for child in _content:
+			self.append(ToNode(child))
 		self.attrs = {}
 		for attr in _attrs.keys():
 			self[attr] = _attrs[attr]
-		for attr in _restattrs.keys():
-			self[attr] = _restattrs[attr]
 
 	def append(self,item):
 		"""
