@@ -17,6 +17,14 @@ __version__ = "$Revision$"[11:-2]
 from ll.xist import xsc, sims
 
 
+class DocTypeSVG11(xsc.DocType):
+	"""
+	document type for SVG 1.1
+	"""
+	def __init__(self):
+		xsc.DocType.__init__(self, 'svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"')
+
+
 class alignment_baseline(xsc.Element.Attrs):
 	class alignment_baseline(xsc.TextAttr):
 		xmlname = "alignment-baseline"
