@@ -27,7 +27,7 @@ handler in <pyref module="xist.xsc" class="Node" method="publish"><method>publis
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-import sys, types, array, codecs
+import sys, codecs
 
 import xsc, options, utils, errors, url, helpers
 

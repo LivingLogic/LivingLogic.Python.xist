@@ -27,9 +27,7 @@ which can be found in presenters.py).
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-import sys
-import os
-import types
+import sys, os
 
 def getStringFromEnv(name, default):
 	try:
