@@ -1897,7 +1897,7 @@ class XSC:
 	def handle_comment(self,data):
 		self.__appendNode(Comment(data))
 
-	def parseString(self,string):
+	def parseString(self,text):
 		"""
 		Parses a string and returns the resulting XSC
 		"""
@@ -1906,8 +1906,14 @@ class XSC:
 		parser = sgmlop.SGMLParser()
 		parser.register(self)
 
+		lines = string.split(text,"\n")
+		for i in xrange(len(lines)):
+			lines[i] = lines[i] + "\n"
+
 		self.lineno = 1
-		parser.feed(string)
+		for line in lines:
+			parser.feed(line)
+			self.lineno = self.lineno + 1
 		parser.feed(" ") # strange bug in sgmlop?
 		parser.close()
 
