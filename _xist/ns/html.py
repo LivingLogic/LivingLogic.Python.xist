@@ -198,7 +198,9 @@ class base(xsc.Element):
 
 class meta(xsc.Element):
 	"""
-	generic metainformation
+	generic metainformation. If the <lit>http-equiv</lit> attribute
+	has the value "content-type" the encoding in the <lit>content</lit>
+	attribute will be set automatically when publishing.
 	"""
 	model = sims.Empty()
 	class Attrs(i18nattrs):
