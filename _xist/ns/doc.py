@@ -1184,14 +1184,19 @@ def _codeheader(cls, thing, name, type):
 			else:
 				sig.append(cls.arg(args[i]))
 		else:
-			sig.append(", ")
+			if sig:
+				sig.append(", ")
 			sig.append(cls.arg(args[i]))
 		if i >= offset:
 			sig.append("=", cls.lit(repr(defaults[i-offset])))
 	if varargs:
-		sig.append(", *", cls.arg(varargs))
+		if sig:
+			sig.append(", ")
+		sig.append("*", cls.arg(varargs))
 	if varkw:
-		sig.append(", **", cls.arg(varkw))
+		if sig:
+			sig.append(", ")
+		sig.append("**", cls.arg(varkw))
 	sig.append(")")
 	return sig
 _codeheader = classmethod(_codeheader)
