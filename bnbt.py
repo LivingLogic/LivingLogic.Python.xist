@@ -3,6 +3,7 @@
 import xsc
 import html
 import specials
+import glob
 
 class page(xsc.Element):
 	attr_handlers = { "title" : xsc.TextAttr , "head" : xsc.TextAttr , "align" : xsc.TextAttr , "refresh" : xsc.TextAttr , "class" : xsc.TextAttr , "keywords" : xsc.TextAttr , "description" : xsc.TextAttr , "onload" : xsc.TextAttr , "nohome" : xsc.TextAttr , "nosearch" : xsc.TextAttr , "nositemap" : xsc.TextAttr , "nofaq" : xsc.TextAttr , "notinsitemap" : xsc.TextAttr }
@@ -917,9 +918,24 @@ xsc.registerElement(kleinanzeige_fax)
 
 class newsitems(xsc.Element):
 	empty = 0
+	attr_handlers = { "count" : xsc.TextAttr }
 
 	def asHTML(self):
-		e = specials.plaintable(self.content.clone(),Class="newsitems")
+		files = glob.glob("aktuelles/????_??_??_??.hsc")
+		files.sort()
+		files.reverse()
+
+		if self.has_attr("count"):
+			count = eval(str(self["count"].asHTML()))
+			files = files[:count]
+
+		e = specials.plaintable(Class="newsitems")
+
+		for file in files:
+			content = xsc.xsc.parseFile(file)
+			datum = content.elements(pagenewsitem)[0]["datum"]
+			titel = content.asHTML().elements(html.h1,children = 1)[0]
+			e.append(newsitem(titel,datum = datum,href = file[10:-4]))
 
 		return e.asHTML()
 xsc.registerElement(newsitems)
