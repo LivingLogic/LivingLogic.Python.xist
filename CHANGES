@@ -1,7 +1,12 @@
+New in 0.?
+----------
+The documentation expample has been enhanced. Now documenting methods works.
+
+
 New in 0.3.4
 ------------
 
-Location information is now copied over in clone(), asHTML() and compact() where approrpiate,
+Location information is now copied over in clone(), asHTML() and compact() where appropriate,
 so you know even in the HTML tree, where something came from.
 
 xsc.repransi can now have three values:
@@ -10,3 +15,10 @@ xsc.repransi can now have three values:
 	2 coloring is on for a light background
 All repransi* variables are now arrays with two strings, the first for dark, the second for
 light.
+
+New in 0.3.3
+------------
+
+The workaround for the trailing cdata bug in sgmlop has been removed, so now you'll need
+a newer version of sgmlop (included in PyXML 0.5.5.1)
+

@@ -7,7 +7,7 @@ written in Python and based on the Python XML package.
 For documentation read xist/xsc.py.
 
 The only requirements for installing the package are Python 1.5.2 or
-later, the Python XML package 0.5.4 or later and the Python Imaging
+later, the Python XML package 0.5.5.1 or later and the Python Imaging
 Library. It's recommended that you have the Distutils installed;
 fetch the latest version from
 http://www.python.org/sigs/distutils-sig/.
