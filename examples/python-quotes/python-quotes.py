@@ -2,7 +2,7 @@
 
 from xist import xsc,html,specials
 
-url =	"http://starship.python.net/crew/amk/quotations/python-quotes.xml"
+url = "http://starship.python.net/crew/amk/quotations/python-quotes.xml"
 
 class quotations(xsc.Element):
 	empty = 0
