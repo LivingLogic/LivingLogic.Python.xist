@@ -760,7 +760,8 @@ class Node:
 		returns a fragment which contains child elements of this node.
 
 		If you specify type as the class of an XSC node only nodes of this class
-		will be returned.
+		will be returned. If you pass a list of classes, nodes that are an instance
+		of one of the classes will be returned.
 
 		If you set subtype to 1 nodes that are a subtype of type will be returned too.
 
@@ -772,12 +773,19 @@ class Node:
 		"""
 		return Frag()
 
-	def _nodeOK(self,type,subtype):
-		if type is not None:
-			if subtype:
-				return isinstance(self,type)
+	def _nodeOK(self,type_,subtype):
+		if type_ is not None:
+			if type(type_) not in [ types.ListType, types.TupleType ]:
+				type_ = ( type_ , )
+			for t in type_:
+				if subtype:
+					if isinstance(self,t):
+						return 1
+				else:
+					if self.__class__ == t:
+						return 1
 			else:
-				return self.__class__ == type
+				return 0
 		else:
 			return 1
 
