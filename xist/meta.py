@@ -31,7 +31,9 @@ class contenttype(html.meta):
 
 class stylesheet(html.link):
 	"""
-	can be used for a <code>&lt;link rel="stylesheet" type="text/css" href="..."/&gt;</code>
+	<par noindent>can be used for a <code>&lt;link rel="stylesheet" type="text/css" href="..."/&gt;</code>.</par>
+
+	<par>Usage is simple: <code>&lt;meta:stylesheet href="*/stylesheets/main.css"/&gt;</code></par>
 	"""
 	empty = 1
 	attrHandlers = html.link.attrHandlers.copy()
@@ -46,7 +48,9 @@ class stylesheet(html.link):
 
 class made(html.link):
 	"""
-	can be used for a <code>&lt;link rel="made" href="mailto:..."/&gt;</code>
+	<par noindent>can be used for a <code>&lt;link rel="made" href="mailto:..."/&gt;</code>.</par>
+
+	<par>Usage is simple: <code>&lt;meta:made href="foobert@bar.org"/&gt;</code>.</par>
 	"""
 	empty = 1
 	attrHandlers = html.link.attrHandlers.copy()
