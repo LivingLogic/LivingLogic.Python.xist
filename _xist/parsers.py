@@ -523,16 +523,7 @@ class Parser(object):
 			import tempfile, os
 			import libxml2 # This requires libxml2 (see http://www.xmlsoft.org/)
 			dom = libxml2.htmlReadMemory(data, len(data), sysid, encoding, 0x60)
-			try:
-				(fd, name) = tempfile.mkstemp()
-				f = os.fdopen(fd, "wb")
-				dom.dump(f)
-				f.close()
-				f = open(name, "rb")
-				data = f.read()
-				f.close()
-			finally:
-				os.remove(name)
+			data = dom.serialize()
 			stream = cStringIO.StringIO(data)
 			stream.seek(0)
 
