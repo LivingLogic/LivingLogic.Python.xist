@@ -22,6 +22,11 @@ try:
 except ImportError:
 	from xml.parsers import sgmlop # get it from the XML package
 
+try:
+	import timeoutsocket
+except ImportError:
+	timeoutsocket = None
+
 import errors
 import options
 import xsc
@@ -248,6 +253,14 @@ class URIProvider(Provider):
 		finally:
 			self.popURL()
 		return element
+
+	def setTimeout(self, secs):
+		if timeoutsocket is not None:
+			timeoutsocket.setDefaultSocketTimeout(sec)
+
+	def getTimeout(self):
+		if timeoutsocket is not None:
+			timeoutsocket.getDefaultSocketTimeout()
 
 class StringProvider(Provider):
 	def parse(self, text):
