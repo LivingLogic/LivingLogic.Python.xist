@@ -16,7 +16,7 @@ classes and functions.
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-import os, sys, random, copy, warnings, new
+import os, sys, random, copy, warnings, new, cStringIO
 
 from ll import url, ansistyle
 
@@ -69,6 +69,15 @@ class Args(dict):
 				for (key, value) in arg:
 					self[key] = value
 		self.update(kwargs)
+
+	def __getattr__(self, key):
+		return self.__getitem__(key)
+
+	def __setattr__(self, key, value):
+		self.__setitem__(key, value)
+
+	def __delattr__(self, key):
+		self.__detitem__(key)
 
 	def __repr__(self):
 		rep = [ "%s=%r" % (key, value) for (key, value) in self.iteritems() if key not in self.__class__.__dict__ or self[key] != self.__class__.__dict__[key] ]
@@ -628,17 +637,21 @@ class Node(Base):
 		"""
 		raise NotImplementedError("publish method not implemented in %s" % self.__class__.__name__)
 
-	def asString(self, base=None, root=None, xhtml=None, prefixes=None, prefixmode=0):
+	def asString(self, base=None, publisher=None, **kwargs):
 		"""
 		<par>returns this element as a unicode string.</par>
 
 		<par>For the parameters see the
 		<pyref module="ll.xist.publishers" class="Publisher"><class>ll.xist.publishers.Publisher</class></pyref> constructor.</par>
 		"""
-		publisher = publishers.StringPublisher(base=base, root=root, xhtml=xhtml, prefixes=prefixes, prefixmode=prefixmode)
-		return publisher.dopublication(self)
+		stream = cStringIO.StringIO()
+		if publisher is None:
+			publisher = publishers.Publisher(**kwargs)
+		publisher.encoding = "utf-8"
+		publisher.dopublication(stream, self, base)
+		return stream.getvalue().decode("utf-8")
 
-	def asBytes(self, base=None, root=None, encoding=None, xhtml=None, prefixes=None, prefixmode=0):
+	def asBytes(self, base=None, publisher=None, **kwargs):
 		"""
 		<par>returns this element as a byte string suitable for writing
 		to an &html; file or printing from a CGI script.</par>
@@ -646,18 +659,22 @@ class Node(Base):
 		<par>For the parameters see the
 		<pyref module="ll.xist.publishers" class="Publisher"><class>ll.xist.publishers.Publisher</class></pyref> constructor.</par>
 		"""
-		publisher = publishers.BytePublisher(base=base, root=root, encoding=encoding, xhtml=xhtml, prefixes=prefixes, prefixmode=prefixmode)
-		return publisher.dopublication(self)
+		stream = cStringIO.StringIO()
+		if publisher is None:
+			publisher = publishers.Publisher(**kwargs)
+		publisher.dopublication(stream, self, base)
+		return stream.getvalue()
 
-	def write(self, stream, base=None, root=None, encoding=None, xhtml=None, prefixes=None, prefixmode=0):
+	def write(self, stream, base=None, publisher=None, **kwargs):
 		"""
-		<par>writes the element to the file like object <arg>file</arg>.</par>
+		<par>writes the element to the file like object <arg>stream</arg>.</par>
 
 		<par>For the rest of the parameters
 		see the <pyref module="ll.xist.publishers" class="Publisher"><class>ll.xist.publishers.Publisher</class></pyref> constructor.</par>
 		"""
-		publisher = publishers.FilePublisher(stream, base=base, root=root, encoding=encoding, xhtml=xhtml, prefixes=prefixes, prefixmode=prefixmode)
-		return publisher.dopublication(self)
+		if publisher is None:
+			publisher = publishers.Publisher(**kwargs)
+		publisher.dopublication(stream, self, base)
 
 	def _walk(self, filter, path, filterpath, walkpath, skiproot):
 		"""
@@ -1018,7 +1035,7 @@ class Text(CharacterData):
 		return self.content
 
 	def publish(self, publisher):
-		publisher.publishText(self.content)
+		publisher.publishtext(self.content)
 
 	def present(self, presenter):
 		presenter.presentText(self)
@@ -1622,9 +1639,9 @@ class Attr(Frag):
 		publisher.inAttr += 1
 		self._publishname(publisher) # publish the XML name, not the Python name
 		publisher.publish(u"=\"")
-		publisher.pushTextFilter(helpers.escapeattr)
+		publisher.pushtextfilter(helpers.escapeattr)
 		self._publishAttrValue(publisher)
-		publisher.popTextFilter()
+		publisher.poptextfilter()
 		publisher.publish(u"\"")
 		publisher.inAttr -= 1
 
@@ -1673,9 +1690,9 @@ class BoolAttr(Attr):
 		self._publishname(publisher) # publish the XML name, not the Python name
 		if publisher.xhtml>0:
 			publisher.publish(u"=\"")
-			publisher.pushTextFilter(helpers.escapeattr)
+			publisher.pushtextfilter(helpers.escapeattr)
 			publisher.publish(self.__class__.xmlname[True])
-			publisher.popTextFilter()
+			publisher.poptextfilter()
 			publisher.publish(u"\"")
 		publisher.inAttr -= 1
 

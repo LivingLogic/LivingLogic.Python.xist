@@ -16,7 +16,7 @@ handler in <pyref module="ll.xist.xsc" class="Node" method="publish"><method>pub
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-import sys, codecs, cStringIO
+import sys, codecs
 
 from ll import url
 
@@ -35,11 +35,8 @@ class Publisher(object):
 	base class for all publishers.
 	"""
 
-	def __init__(self, stream, base=None, root=None, encoding=None, xhtml=None, prefixes=None, prefixmode=0):
+	def __init__(self, root=None, encoding=None, xhtml=None, prefixes=None, prefixmode=0):
 		"""
-		<par><arg>base</arg> specifies the url to which the result
-		will be output.</par>
-
 		<par><arg>encoding</arg> specifies the encoding to be used.
 		The encoding itself (i.e. calling <method>encode</method> on the
 		unicode strings) must be done by <pyref method="publish"><method>ll.xist.publishers.Publisher.publish</method></pyref>
@@ -74,10 +71,8 @@ class Publisher(object):
 		<item><lit>1</lit>: Publish prefixes, but do not use <lit>xmlns</lit> attributes;</item>
 		<item><lit>2</lit>: Publish prefixes and issue the appropriate <lit>xmlns</lit> attributes.</item>
 		</ulist>
-		<par><arg>procinstmode</arg> is used for processing instructions
-		and <arg>entitymode</arg> for entities.</par>
 		"""
-		self.base = url.URL(base)
+		self.base = None
 		self.root = url.URL(root)
 		if encoding is None:
 			encoding = options.outputEncoding
@@ -93,19 +88,6 @@ class Publisher(object):
 		self.prefixes = prefixes
 		self.prefixmode = prefixmode
 
-		self.inAttr = 0
-		self.__textfilters = [ helpers.escapetext ]
-		self.__currenttextfilter = helpers.escapetext
-
-		self.__errors = [ "xmlcharrefreplace" ]
-		self.__currenterrors = "xmlcharrefreplace"
-
-		streamwriterclass = codecs.getwriter(self.encoding)
-		self.stream = streamwriterclass(stream)
-		self.publish = self.stream.write
-
-		self.publishxmlns = None # signals that xmlns attributes should be generated to the first element encountered, if not empty
-
 	def publish(self, text):
 		"""
 		receives the strings to be printed.
@@ -114,7 +96,7 @@ class Publisher(object):
 		"""
 		self.stream.write(text)
 
-	def publishText(self, text):
+	def publishtext(self, text):
 		"""
 		<par>is used to publish text data. This uses the current
 		text filter, which is responsible for escaping characters.</par>
@@ -123,28 +105,28 @@ class Publisher(object):
 		self.publish(self.__currenttextfilter(text))
 		self.stream.errors = "strict"
 
-	def pushTextFilter(self, filter):
+	def pushtextfilter(self, filter):
 		"""
 		<par>pushes a new text filter function.</par>
 		"""
 		self.__textfilters.append(filter)
 		self.__currenttextfilter = filter
 
-	def popTextFilter(self):
+	def poptextfilter(self):
 		self.__textfilters.pop()
 		if self.__textfilters:
 			self.__currenttextfilter = self.__textfilters[-1]
 		else:
 			self.__currenttextfilter = None
 
-	def pushErrors(self, errors):
+	def pusherrors(self, errors):
 		"""
 		<par>pushes a new error handling function.</par>
 		"""
 		self.__errors.append(errors)
 		self.__currenterrors = errors
 
-	def popErrors(self):
+	def poperrors(self):
 		self.__errors.pop()
 		if self.__errors:
 			self.__currenterrors = self.__errors[-1]
@@ -165,7 +147,7 @@ class Publisher(object):
 			return nodes
 		return []
 
-	def beginpublication(self):
+	def beginpublication(self, stream, node, base=None):
 		"""
 		<par>called once before the publication of the node <arg>node</arg> begins.</par>
 		"""
@@ -176,12 +158,12 @@ class Publisher(object):
 		# because global attribute require xmlns attribute generation
 		prefixes2def = {}
 		# collect all the namespaces that are used and their required mode
-		for child in self.node.walk(iselorat):
+		for child in node.walk(iselorat):
 			if child.needsxmlns(self) == 2:
 				prefixes2def[child.xmlns] = True
 
 		# Determine if we have to introduce an artificial root element that gets the xmlns attributes
-		if prefixes2def and isinstance(self.node, xsc.Frag) and len(self.node.find(xsc.FindType(xsc.Element))) > 1:
+		if prefixes2def and isinstance(node, xsc.Frag) and len(node.find(xsc.FindType(xsc.Element))) > 1:
 			raise errors.MultipleRootsError()
 
 		if prefixes2def:
@@ -189,67 +171,45 @@ class Publisher(object):
 			# get the prefixes for all namespaces from the prefix mapping
 			for ns in prefixes2def:
 				self.publishxmlns[ns] = self.prefixes.prefix4ns(ns)[0]
+		else:
+			self.publishxmlns = None
+
+		self.inAttr = 0
+		self.__textfilters = [ helpers.escapetext ]
+		self.__currenttextfilter = helpers.escapetext
+
+		self.__errors = [ "xmlcharrefreplace" ]
+		self.__currenterrors = "xmlcharrefreplace"
+
+		streamwriterclass = codecs.getwriter(self.encoding)
+		self.stream = streamwriterclass(stream)
+		self.publish = self.stream.write
+
+		self.base = url.URL(base)
+		self.node = node
 
 	def endpublication(self):
 		"""
 		<par>called once after the publication of the node <arg>node</arg> has ended.</par>
 		"""
-		del self.node
-		self.publishxmlns = None
+		self.inAttr = 0
+		self.__textfilters = [ helpers.escapetext ]
+		self.__currenttextfilter = helpers.escapetext
 
-	def dopublication(self, node):
+		self.__errors = [ "xmlcharrefreplace" ]
+		self.__currenterrors = "xmlcharrefreplace"
+
+		del self.publish
+
+		self.publishxmlns = None # signals that xmlns attributes should be generated to the first element encountered, if not empty
+		self.stream = None
+
+	def dopublication(self, stream, node, base=None):
 		"""
 		<par>performs the publication of the node <arg>node</arg>.</par>
 		"""
-		self.node = node
-		self.beginpublication()
-		self.node.publish(self) # use self.node, because it might have been replaced by beginpublication()
-		return self.endpublication()
-
-	def tell(self):
-		"""
-		return the current position.
-		"""
-		return self.stream.tell()
-
-FilePublisher = Publisher
-
-
-class PrintPublisher(Publisher):
-	"""
-	writes the strings to <lit>sys.stdout</lit>.
-	"""
-	def __init__(self, base=None, root=None, encoding=None, xhtml=None, prefixes=None, prefixmode=0):
-		super(PrintPublisher, self).__init__(sys.stdout, base=base, root=root, encoding=encoding, xhtml=xhtml, prefixes=prefixes, prefixmode=prefixmode)
-
-
-class BytePublisher(Publisher):
-	"""
-	collects all strings in an array.
-	The joined strings are available via
-	<pyref method="asBytes"><method>asBytes</method></pyref> as a byte
-	string suitable for writing to a file.
-	"""
-
-	def __init__(self, base=None, root=None, encoding=None, xhtml=None, prefixes=None, prefixmode=0):
-		super(BytePublisher, self).__init__(cStringIO.StringIO(), base=base, root=root, encoding=encoding, xhtml=xhtml, prefixes=prefixes, prefixmode=prefixmode)
-
-	def endpublication(self):
-		result = self.stream.getvalue()
-		super(BytePublisher, self).endpublication()
-		return result
-
-
-class StringPublisher(BytePublisher):
-	"""
-	collects all strings in an array.
-	The joined strings are available via
-	<pyref module="ll.xist.publishers" class="StringPublisher" method="asString"><method>asString</method></pyref>
-	"""
-
-	def __init__(self, base=None, root=None, xhtml=None, prefixes=None, prefixmode=0):
-		super(StringPublisher, self).__init__(base=base, root=root, encoding="utf8", xhtml=xhtml, prefixes=prefixes, prefixmode=prefixmode)
-
-	def endpublication(self):
-		result = super(StringPublisher, self).endpublication()
-		return unicode(result, "utf8")
+		try:
+			self.beginpublication(stream, node, base)
+			self.node.publish(self) # use self.node, because it might have been replaced by beginpublication()
+		finally:
+			self.endpublication()

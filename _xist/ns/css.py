@@ -27,7 +27,7 @@ class css(xsc.Element):
 	empty = False
 
 	def publish(self, publisher):
-		publisher.pushErrors("cssescapereplace")
+		publisher.pusherrors("cssescapereplace")
 		# publish the imports first
 		first = True
 		for i in self.content.walk(xsc.FindType(atimport)):
@@ -42,7 +42,7 @@ class css(xsc.Element):
 			else:
 				publisher.publish(u"\n")
 			child.publish(publisher)
-		publisher.popErrors()
+		publisher.poperrors()
 
 
 class atimport(xsc.Element):
