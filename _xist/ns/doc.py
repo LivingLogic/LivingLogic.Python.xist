@@ -1344,6 +1344,12 @@ def explain(cls, thing, name=None, context=[]):
 			if testname.endswith("__"):
 				visibility = "special"
 
+	doc = cls.getdoc(thing)
+	if doc is xsc.Null:
+		hasdoc = "nodoc"
+	else:
+		hasdoc = "doc"
+
 	if inspect.ismethod(thing):
 		name = name or thing.__name__
 		context = context + [(thing, name)]
@@ -1353,7 +1359,7 @@ def explain(cls, thing, name=None, context=[]):
 		if name != thing.__name__ and not (thing.__name__.startswith("__") and name=="_" + thing.im_class.__name__ + thing.__name__):
 			sig.append(cls.method(name), " = ")
 		sig.append("def ", cls._codeheader(thing.im_func, thing.__name__, cls.method), ":")
-		return cls.section(cls.title(sig), cls.getdoc(thing), role=(visibility, " method"), id=id or None)
+		return cls.section(cls.title(sig), doc, role=(visibility, " method ", hasdoc), id=id or None)
 	elif inspect.isfunction(thing):
 		name = name or thing.__name__
 		context = context + [(thing, name)]
@@ -1363,14 +1369,14 @@ def explain(cls, thing, name=None, context=[]):
 			cls._codeheader(thing, name, cls.function),
 			":"
 		)
-		return cls.section(cls.title(sig), cls.getdoc(thing), role=(visibility, " function"), id=id)
+		return cls.section(cls.title(sig), doc, role=(visibility, " function ", hasdoc), id=id)
 	elif isinstance(thing, __builtin__.property):
 		context = context + [(thing, name)]
 		id = "-".join([info[1] for info in context[1:]]) or None
 		sig = xsc.Frag(
 			"property ", name, ":"
 		)
-		node = cls.section(cls.title(sig), cls.getdoc(thing), role=(visibility, " property"), id=id)
+		node = cls.section(cls.title(sig), doc, role=(visibility, " property ", hasdoc), id=id)
 		if thing.fget is not None:
 			node.append(cls.explain(thing.fget, "__get__", context))
 		if thing.fset is not None:
@@ -1409,8 +1415,8 @@ def explain(cls, thing, name=None, context=[]):
 				bases,
 				":"
 			),
-			cls.getdoc(thing),
-			role=(visibility, " class"),
+			doc,
+			role=(visibility, " class ", hasdoc),
 			id=id
 		)
 		# find methods, properties and classes, but filter out those methods that are attribute getters, setters or deleters
@@ -1450,8 +1456,8 @@ def explain(cls, thing, name=None, context=[]):
 		context = [(thing, name)]
 		node = cls.section(
 			cls.title("Module ", cls.module(name)),
-			cls.getdoc(thing),
-			role=(visibility, " module"),
+			doc,
+			role=(visibility, " module ", hasdoc),
 		)
 
 		functions = []
