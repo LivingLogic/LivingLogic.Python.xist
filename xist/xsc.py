@@ -350,6 +350,8 @@ class XSCText(XSCNode):
 	def dostr(self):
 		v = []
 		for i in self.__content:
+			if i == '\r':
+				continue
 			if self.strescapes.has_key(i):
 				v.append('&' + self.strescapes[i] + ';')
 			elif ord(i)>=128:
@@ -390,7 +392,7 @@ class XSCCharRef(XSCNode):
 	"""character reference (i.e &#42; or &#x42;)"""
 
 	__notdirect = { ord("&") : "amp" , ord("<") : "lt" , ord(">") : "gt", ord('"') : "quot" , ord("'") : "apos" }
-	__linefeeds = [ ord("\n") , ord("\r") ]
+	__linefeeds = [ ord("\r") , ord("\n") ]
 
 	def __init__(self,content):
 		self.__content = content
@@ -400,10 +402,11 @@ class XSCCharRef(XSCNode):
 
 	def dostr(self):
 		if 0<=self.__content<=127:
-			if self.__notdirect.has_key(self.__content):
-				return '&' + self.__notdirect[self.__content] + ';'
-			else:
-				return chr(self.__content)
+			if self.__content != ord("\r"):
+				if self.__notdirect.has_key(self.__content):
+					return '&' + self.__notdirect[self.__content] + ';'
+				else:
+					return chr(self.__content)
 		else:
 			return '&#' + str(self.__content) + ';'
 
