@@ -172,6 +172,8 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 					self.lineNumber += 1
 				self.parser.feed(data)
 			self.close()
+		except (KeyboardInterrupt, SystemExit):
+			raise
 		except Exception, ex: # FIXME: really catch everything?
 			if self.error_handler is not None:
 				self.error_handler.fatalError(ex)
