@@ -13,13 +13,19 @@
 	<xsl:if test="count(media/ld)">
 		<h2><xsl:value-of select="count(media/ld)"/> LDs</h2>
 		<ol>
-		<xsl:apply-templates select="media/ld"/>
+			<xsl:for-each select="media/ld">
+				<xsl:sort select="name">
+					<xsl:apply-templates select="."/>
+			</xsc:for-each>
 		</ol>
 	</xsl:if>
 	<xsl:if test="count(media/dvd)">
 		<h2><xsl:value-of select="count(media/dvd)"/> DVDs</h2>
 		<ol>
-		<xsl:apply-templates select="media/dvd"/>
+			<xsl:for-each select="media/dvd">
+				<xsl:sort select="name">
+					<xsl:apply-templates select="."/>
+			</xsc:for-each>
 		</ol>
 	</xsl:if>
 	</body>
