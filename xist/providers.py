@@ -258,11 +258,12 @@ class TidyURIProvider(Provider):
 		self.pushURL(url)
 		url = self.filenames[-1]
 		try:
-			(tidyin, tidyout) = os.popen2("tidy --tidy-mark no --wrap 0 --output-xhtml --numeric-entities yes --show-warnings no --quiet yes -asxml -f /dev/null -quiet") # open the pipe to and from tidy
+			(tidyin, tidyout, tidyerr) = os.popen3("tidy --tidy-mark no --wrap 0 --output-xhtml --numeric-entities yes --show-warnings no --quiet yes -asxml -quiet", "b") # open the pipe to and from tidy
 			tidyin.write(url.open().read()) # get the desired file from the url and pipe it to tidy
 			tidyin.close() # tell tidy, that we're finished
-			lines = tidyout.readlines()
+			lines = tidyout.readlines() # read the output
 			tidyout.close()
+			tidyerr.close()
 			element = self.parseLines(lines)
 			return element
 		finally:
