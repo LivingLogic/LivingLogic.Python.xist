@@ -440,7 +440,7 @@ class Node(Base):
 		publisher = publishers.FilePublisher(stream, base=base, root=root, encoding=encoding, xhtml=xhtml, prefixes=prefixes, elementmode=elementmode, procinstmode=procinstmode, entitymode=entitymode)
 		return publisher.doPublication(self)
 
-	def find(self, type=None, subtype=0, attrs=None, test=None, searchchildren=0, searchattrs=0):
+	def find(self, type=None, subtype=False, attrs=None, test=None, searchchildren=False, searchattrs=False):
 		"""
 		<par>returns a fragment which contains child elements of this node.</par>
 
@@ -964,7 +964,7 @@ class Frag(Node, list):
 		other = Frag(*others)
 		list.__setslice__(self, index, index, other)
 
-	def find(self, type=None, subtype=0, attrs=None, test=None, searchchildren=0, searchattrs=0):
+	def find(self, type=None, subtype=False, attrs=None, test=None, searchchildren=False, searchattrs=False):
 		node = Frag()
 		for child in self:
 			if child._matches(type, subtype, attrs, test):
@@ -1269,7 +1269,7 @@ class Attr(Frag):
 	to have elements and processing instructions inside of attributes even when publishing.
 	Processing instructions will be published as is and for elements their content will be
 	published.</par>
-	<example title="Elements inside attributes">
+	<example><title>Elements inside attributes</title>
 	<programlisting>
 	&gt;&gt;&gt; from ll.xist.ns import html
 	&gt;&gt;&gt; node = html.img( \
@@ -1446,12 +1446,23 @@ class URLAttr(Attr):
 		publisher.inAttr = 0
 
 	def asURL(self):
+		"""
+		<par>Return <self/> as a <pyref module="ll.url" class="URL"><class>URL</class></pyref>
+		instance (note that non-character content will be filtered out).</par>
+		"""
 		return url.URL(Attr.__unicode__(self))
 
 	def __unicode__(self):
 		return self.asURL().url
 
 	def forInput(self, root=None):
+		"""
+		<par>return a <pyref module="ll.url" class="URL"><class>URL</class></pyref> pointing
+		to the real location of the referenced resource. <arg>root</arg> must be the
+		root &url; relative to which <self/> will be interpreted and usually
+		comes from the <lit>root</lit> attribute of the <arg>converter</arg> argument in
+		<pyref class="Node" method="convert"><method>convert</method></pyref>.</par>
+		"""
 		u = self.asURL()
 		if u.scheme == "root":
 			u.scheme = None
@@ -1460,13 +1471,13 @@ class URLAttr(Attr):
 
 	def imagesize(self, root=None):
 		"""
-		returns the size of an image as a tuple or None if the image shouldn't be read
+		Return the size of an image as a tuple.
 		"""
 		return self.openread(root).imagesize
 
 	def contentlength(self, root=None):
 		"""
-		returns the size of a file in bytes or None if the file shouldn't be read
+		Return the size of a file in bytes.
 		"""
 		return self.openread(root).contentlength
 
@@ -1478,13 +1489,15 @@ class URLAttr(Attr):
 
 	def openread(self, root=None):
 		"""
-		opens the URL for reading
+		Return a <pyref module="ll.url" class="ReadResource"><class>ReadResource</class></pyref>
+		for reading from the &url;.
 		"""
 		return self.forInput(root).openread()
 
 	def openwrite(self, root=None):
 		"""
-		opens the URL for writing
+		Return a <pyref module="ll.url" class="WriteResource"><class>WriteResource</class></pyref>
+		for writing to the &url;.
 		"""
 		return self.forInput(root).openwrite()
 
@@ -1591,7 +1604,7 @@ class Attrs(Node, dict):
 			node[attrname] = convertedattr
 		return node
 
-	def find(self, type=None, subtype=0, attrs=None, test=None, searchchildren=0, searchattrs=0):
+	def find(self, type=None, subtype=False, attrs=None, test=None, searchchildren=False, searchattrs=False):
 		node = Frag()
 		if searchattrs:
 			for attrvalue in self.values():
@@ -2295,7 +2308,7 @@ class Element(Node):
 		node.attrs = self.attrs.compact()
 		return self._decorateNode(node)
 
-	def find(self, type=None, subtype=0, attrs=None, test=None, searchchildren=0, searchattrs=0):
+	def find(self, type=None, subtype=False, attrs=None, test=None, searchchildren=False, searchattrs=False):
 		node = Frag()
 		node.append(self.attrs.find(type, subtype, attrs, test, searchchildren, searchattrs))
 		node.append(self.content.find(type, subtype, attrs, test, searchchildren, searchattrs))
