@@ -970,7 +970,7 @@ class Frag(Node):
 		return e
 
 	def addSeparator(self,separator):
-		e = xsc.Frag()
+		e = Frag()
 		newseparator = ToNode(separator)
 		for child in self:
 			if len(e):
