@@ -122,7 +122,7 @@ def item(iterator, index, default=_defaultitem):
 
 	<par>Calling this function will partially or totally exhaust the iterator.</par>
 
-	<par>If <arg>default</arg> is gived, this will be the default value when
+	<par>If <arg>default</arg> is given, this will be the default value when
 	the iterator doesn't contain an item at this position. Otherwise an
 	<class>IndexError</class> will be raised.</par>
 	"""
