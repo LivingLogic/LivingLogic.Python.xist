@@ -1560,13 +1560,12 @@ class Attrs(Node, dict):
 				if isinstance(attrname, tuple): # global attribute?
 					publisher.publish(publisher.prefixes.elementprefix4ns(attrname[0])[0])
 					publisher.publish(u":")
-					publisher.publish(attrname[1])
 				else:
 					try:
 						attrs.remove(attrname)
 					except ValueError:
 						pass
-					publisher.publish(attrname)
+				publisher.publish(attrvalue.xmlname) # publish the XML name, not the Python name
 				if isinstance(attrvalue, BoolAttr):
 					if publisher.xhtml>0:
 						publisher.publish(u"=\"")
