@@ -334,13 +334,12 @@ class Handler:
 		return xsc.Location(self._locator)
 
 	def __appendNode(self, node):
-		node.startLoc = self.getLocation()
 		last = self.__nesting[-1]
-		if len(last) and isinstance(last[-1], xsc.Text):
-			if isinstance(node, xsc.Text):
-				last[-1] += node
-				return
-		last.append(node) # add the new node to the content of the innermost element (or fragment)
+		if len(last) and isinstance(last[-1], xsc.Text) and isinstance(node, xsc.Text):
+			last[-1] += node
+		else:
+			node.startLoc = self.getLocation()
+			last.append(node) # add the new node to the content of the innermost element (or fragment)
 
 	def __string2Fragment(self, text):
 		"""
