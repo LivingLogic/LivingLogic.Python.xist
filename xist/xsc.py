@@ -528,10 +528,10 @@ def ToNode(value):
 				return Null
 			else:
 				if isinstance(value,Attr):
-					e = Frag() # repack the attribute in a fragment, and we have a valid XSC node
+					node = Frag() # repack the attribute in a fragment, and we have a valid XSC node
 					for i in value:
-						e.append(ToNode(i))
-					return e
+						node.append(ToNode(i))
+					return node
 				else:
 					return value
 		elif isinstance(value,Node):
@@ -541,16 +541,16 @@ def ToNode(value):
 	elif t == types.NoneType:
 		return Null
 	elif t in ( types.ListType,types.TupleType ):
-		e = Frag()
+		node = Frag()
 		for i in value:
-			e.append(ToNode(i))
-		l = len(e)
+			node.append(ToNode(i))
+		l = len(node)
 		if l==1:
-			return e[0] # recursively try to simplify the tree
+			return node[0] # recursively try to simplify the tree
 		elif l==0:
 			return Null
 		else:
-			return e
+			return node
 	raise IllegalObjectError(-1,value) # none of the above, so we throw and exception
 
 _elementHandlers = {} # dictionary for mapping element names to classes, this dictionary contains the element names as keys and another dictionary as values, this second dictionary contains the namespace names as keys and the element classes as values
@@ -786,14 +786,19 @@ class Node:
 
 	def _getLoc(self,relrow):
 		"""
-		Return a location that is relrow row further down than the starting location
+		Return a location that is relrow rows further down than the starting location
 		for this node. Returns None if the location is unknown.
 		"""
 
 		if self.startloc is None:
 			return None
 		else:
-			return Location(self.startloc.url,self.startloc.startrow + relrow)
+			return Location(self.startloc.url,self.startloc.row + relrow)
+
+	def _decorateNode(self,node):
+		node.startloc = self.startloc
+		node.endloc = self.endloc
+		return node
 
 class Text(Node):
 	"""
@@ -810,7 +815,7 @@ class Text(Node):
 		self.content = str(content)
 
 	def asHTML(self):
-		return Text(self.content)
+		return self._decorateNode(Text(self.content))
 
 	clone = asHTML
 
@@ -883,7 +888,7 @@ class Text(Node):
 	def compact(self):
 		for i in self.content:
 			if i != '\n' and i != '\r':
-				return Text(self.content)
+				return self._decorateNode(Text(self.content))
 		else:
 			return Null
 
@@ -901,7 +906,7 @@ class CharRef(Node):
 		self.content = content
 
 	def asHTML(self):
-		return CharRef(self.content)
+		return self._decorateNode(CharRef(self.content))
 
 	clone = asHTML
 
@@ -940,7 +945,7 @@ class CharRef(Node):
 		if self.content in self.__linefeeds:
 			return Null
 		else:
-			return CharRef(self.content)
+			return self._decorateNode(CharRef(self.content))
 
 class Frag(Node):
 	"""
@@ -956,16 +961,16 @@ class Frag(Node):
 			self.extend(child)
 
 	def asHTML(self):
-		e = self.__class__()
+		node = self.__class__()
 		for child in self:
-			e.append(child.asHTML())
-		return e
+			node.append(child.asHTML())
+		return self._decorateNode(node)
 
 	def clone(self):
-		e = self.__class__()
+		node = self.__class__()
 		for child in self:
-			e.append(child.clone())
-		return e
+			node.append(child.clone())
+		return self._decorateNode(node)
 
 	def _dorepr(self,ansi = None):
 		v = []
@@ -1022,10 +1027,10 @@ class Frag(Node):
 		"""
 		returns a slice of the content of the fragment
 		"""
-		e = self.__class__()
+		node = self.__class__()
 		for child in self.__content[index1:index2]:
-			e.append(child)
-		return e
+			node.append(child)
+		return node
 
 	def __setslice__(self,index1,index2,sequence):
 		"""
@@ -1084,19 +1089,19 @@ class Frag(Node):
 				self.__content.append(newother)
 
 	def findNodes(self,type = None,subtype = 0,searchchildren = 0,searchattrs = 0,attrs = None):
-		e = Frag()
+		node = Frag()
 		for child in self:
 			if child._matches(type,subtype,attrs):
-				e.append(child)
+				node.append(child)
 			if searchchildren:
-				e.extend(child.findNodes(type,subtype,searchchildren,searchattrs,attrs))
-		return e
+				node.extend(child.findNodes(type,subtype,searchchildren,searchattrs,attrs))
+		return node
 
 	def compact(self):
-		e = self.__class__()
+		node = self.__class__()
 		for child in self:
-			e.append(child.compact())
-		return e
+			node.append(child.compact())
+		return self.decorateNode(node)
 
 	def withSeparator(self,separator,clone = 0):
 		"""
@@ -1107,15 +1112,15 @@ class Frag(Node):
 		if clone==0 one node will be inserted several times,
 		if clone==1 clones of this node will be used.
 		"""
-		e = Frag()
+		node = Frag()
 		newseparator = ToNode(separator)
 		for child in self:
-			if len(e):
-				e.append(newseparator)
+			if len(node):
+				node.append(newseparator)
 				if clone:
 					newseparator = newseparator.clone()
-			e.append(child)
-		return e
+			node.append(child)
+		return node
 
 class Comment(Node):
 	"""
@@ -1126,7 +1131,7 @@ class Comment(Node):
 		self.content = content
 
 	def asHTML(self):
-		return Comment(self.content)
+		return self._decorateNode(Comment(self.content))
 
 	clone = asHTML
 
@@ -1142,7 +1147,7 @@ class Comment(Node):
 		return "<!--" + self.content + "-->"
 
 	def compact(self):
-		return Comment(self.content)
+		return self._decorateNode(Comment(self.content))
 
 class DocType(Node):
 	"""
@@ -1153,7 +1158,7 @@ class DocType(Node):
 		self.content = content
 
 	def asHTML(self):
-		return DocType(self.content)
+		return self._decorateNode(DocType(self.content))
 
 	clone = asHTML
 
@@ -1167,7 +1172,7 @@ class DocType(Node):
 		return "<!DOCTYPE " + self.content + ">"
 
 	def compact(self):
-		return DocType(self.content)
+		return self._decorateNode(DocType(self.content))
 
 class ProcInst(Node):
 	"""
@@ -1217,10 +1222,10 @@ class ProcInst(Node):
 			exec function in procinst.__dict__
 			return ToNode(eval("__()",procinst.__dict__)).asHTML()
 		else: # anything else like XML, PHP, etc. is just passed through
-			return ProcInst(self.target,self.content)
+			return self._decorateNode(ProcInst(self.target,self.content))
 
 	def clone(self):
-		return ProcInst(self.target,self.content)
+		return self._decorateNode(ProcInst(self.target,self.content))
 
 	def _dorepr(self,ansi = None):
 		return self._str(content = strQuestion(ansi) + strProcInstTarget(self.target,ansi) + " " + strProcInstData(self.content,ansi) + strQuestion(ansi),brackets = 1,ansi = ansi)
@@ -1234,7 +1239,7 @@ class ProcInst(Node):
 		return "<?" + self.target + " " + self.content + "?>"
 
 	def compact(self):
-		return ProcInst(self.target,self.content)
+		return self._decorateNode(ProcInst(self.target,self.content))
 
 class Element(Node):
 	"""
@@ -1314,16 +1319,16 @@ class Element(Node):
 			raise EmptyElementWithContentError(self)
 
 	def asHTML(self):
-		e = self.__class__(self.content.asHTML()) # "virtual" copy constructor
+		node = self.__class__(self.content.asHTML()) # "virtual" copy constructor
 		for attr in self.attrs.keys():
-			e[attr] = self[attr].asHTML()
-		return e
+			node[attr] = self[attr].asHTML()
+		return self._decorateNode(node)
 
 	def clone(self):
-		e = self.__class__(self.content.clone()) # "virtual" copy constructor
+		node = self.__class__(self.content.clone()) # "virtual" copy constructor
 		for attr in self.attrs.keys():
-			e[attr] = self[attr].clone()
-		return e
+			node[attr] = self[attr].clone()
+		return self._decorateNode(node)
 
 	def asPlainString(self):
 		return self.content.asPlainString()
@@ -1518,18 +1523,18 @@ class Element(Node):
 					self[heightattr] = size[1]
 
 	def compact(self):
-		e = self.__class__(self.content.compact())
+		node = self.__class__(self.content.compact())
 		for attr in self.attrs.keys():
-			e[attr] = self[attr].compact()
-		return e
+			node[attr] = self[attr].compact()
+		return self._decorateNode(node)
 
 	def findNodes(self,type = None,subtype = 0,searchchildren = 0,searchattrs = 0,attrs = None):
-		e = Frag()
+		node = Frag()
 		if searchattrs:
 			for attr in self.attrs.keys():
-				e.extend(self[attr].findNodes(type,subtype,searchchildren,searchattrs,attrs))
-		e.extend(self.content.findNodes(type,subtype,searchchildren,searchattrs,attrs))
-		return e
+				node.extend(self[attr].findNodes(type,subtype,searchchildren,searchattrs,attrs))
+		node.extend(self.content.findNodes(type,subtype,searchchildren,searchattrs,attrs))
+		return node
 
 class Null(Node):
 	"""
@@ -1638,19 +1643,19 @@ class URLAttr(Attr):
 		return Text(self.forOutput().asString()).asString(XHTML)
 
 	def asHTML(self):
-		e = Attr.asHTML(self)
-		e.base = self.base.clone()
-		return e
+		node = Attr.asHTML(self)
+		node.base = self.base.clone()
+		return node
 
 	def clone(self):
-		e = Attr.clone(self)
-		e.base = self.base.clone()
-		return e
+		node = Attr.clone(self)
+		node.base = self.base.clone()
+		return node
 
 	def compact(self):
-		e = Attr.compact(self)
-		e.base = self.base.clone()
-		return e
+		node = Attr.compact(self)
+		node.base = self.base.clone()
+		return node
 
 	def _asURL(self):
 		return URL(Attr.asPlainString(self))
@@ -1878,11 +1883,11 @@ class XSC:
 		return element
 
 	def finish_starttag(self,name,attrs):
-		e = self.elementFromName(name)()
+		node = self.elementFromName(name)()
 		for name,value in attrs:
-			e[name] = self.__string2Fragment(value)
-		self.__appendNode(e)
-		self.__nesting.append(e) # push new innermost element onto the stack
+			node[name] = self.__string2Fragment(value)
+		self.__appendNode(node)
+		self.__nesting.append(node) # push new innermost element onto the stack
 
 	def finish_endtag(self,name):
 		element = self.elementFromName(name)
@@ -1965,23 +1970,23 @@ class XSC:
 		with text nodes and character references (and other stuff,
 		if the string contains entities).
 		"""
-		e = Frag()
+		node = Frag()
 		while 1:
 			try:
 				i = string.index(text,"&")
 				if i != 0:
-					e.append(text[:i])
+					node.append(text[:i])
 					text = text[i:]
 				try:
 					i = string.index(text,";")
 					if text[1] == "#":
 						if text[2] == "x":
-							e.append(CharRef(string.atoi(text[3:i],16)))
+							node.append(CharRef(string.atoi(text[3:i],16)))
 						else:
-							e.append(CharRef(int(text[2:i])))
+							node.append(CharRef(int(text[2:i])))
 					else:
 						try:
-							e.append(entitiesByName[text[1:i]])
+							node.append(entitiesByName[text[1:i]])
 						except KeyError:
 							raise UnknownEntityError(self.__here(),text[1:i])
 					text = text[i+1:]
@@ -1989,9 +1994,9 @@ class XSC:
 					raise MalformedCharRefError(self.__here(),text)
 			except ValueError:
 				if len(text):
-					e.append(text)
+					node.append(text)
 				break
-		return e
+		return node
 
 def __forceopen(name,mode):
 	try:
