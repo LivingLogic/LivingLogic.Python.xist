@@ -1173,7 +1173,6 @@ _cmpname = classmethod(_cmpname)
 def _codeheader(cls, thing, name, type):
 	(args, varargs, varkw, defaults) = inspect.getargspec(thing)
 	sig = xsc.Frag()
-	sig.append(type(name), u"\u200b(") # use "ZERO WIDTH SPACE" to allow linebreaks
 	offset = len(args)
 	if defaults is not None:
 		offset -= len(defaults)
@@ -1197,6 +1196,7 @@ def _codeheader(cls, thing, name, type):
 		if sig:
 			sig.append(", ")
 		sig.append("**", cls.arg(varkw))
+	sig.insert(0, type(name), u"\u200b(") # use "ZERO WIDTH SPACE" to allow linebreaks
 	sig.append(")")
 	return sig
 _codeheader = classmethod(_codeheader)
