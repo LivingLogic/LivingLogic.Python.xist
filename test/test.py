@@ -577,10 +577,28 @@ class XISTTestCase(unittest.TestCase):
 		self.assertEquals(node.asBytes(prefixes=prefixes, elementmode=2, procinstmode=2), """<s:wrap procinstns="http://www.php.net/" xmlns:s="http://xmlns.livinglogic.de/xist/ns/specials"><?php x?></s:wrap>""")
 
 	def test_publishboolattr(self):
+		node = html.td("?", nowrap=None)
+		self.assertEquals(node.asBytes(xhtml=0), """<td>?</td>""")
 		node = html.td("?", nowrap=True)
 		self.assertEquals(node.asBytes(xhtml=0), """<td nowrap>?</td>""")
 		self.assertEquals(node.asBytes(xhtml=1), """<td nowrap="nowrap">?</td>""")
 		self.assertEquals(node.asBytes(xhtml=2), """<td nowrap="nowrap">?</td>""")
+
+	def test_publishurlattr(self):
+		node = html.link(href=None)
+		self.assertEquals(node.asBytes(xhtml=1), """<link />""")
+		node = html.link(href="root:gurk.html")
+		self.assertEquals(node.asBytes(xhtml=1), """<link href="root:gurk.html" />""")
+		self.assertEquals(node.asBytes(xhtml=1, base="root:gurk.html"), """<link href="" />""")
+		self.assertEquals(node.asBytes(xhtml=1, base="root:hurz.html"), """<link href="gurk.html" />""")
+
+	def test_publishstyleattr(self):
+		node = html.div(style=None)
+		self.assertEquals(node.asBytes(xhtml=1), """<div></div>""")
+		node = html.div(style="background-image: url(root:gurk.html)")
+		self.assertEquals(node.asBytes(xhtml=1), """<div style="background-image: url(root:gurk.html)"></div>""")
+		self.assertEquals(node.asBytes(xhtml=1, base="root:gurk.html"), """<div style="background-image: url()"></div>""")
+		self.assertEquals(node.asBytes(xhtml=1, base="root:hurz.html"), """<div style="background-image: url(gurk.html)"></div>""")
 
 	def test_publishempty(self):
 		node = xsc.Frag(html.br(), html.div())
