@@ -407,7 +407,7 @@ except KeyError:
 try:
 	outputXHTML = os.environ["XSC_OUTPUT_XHTML"]
 except KeyError:
-	outputXHTML = 1
+	outputXHTML = 2
 
 ###
 ### helpers
@@ -728,14 +728,20 @@ class Node:
 		returns this element as a string suitable for writing to an HTML file or
 		printing from a CGI script.
 
-		The character set will be "us-ascii".
+		There will only be 7bit characters in the string, so can use "us-ascii"
+		as the chraracter set.
 
 		With the parameter XHTML you can specify if you want HTML output
-		(i.e. empty elements as <foo>) with XHTML == 0, or XHTML output
-		(i.e. empty elements as <foo/>) with XHTML == 1. When you use the
-		default (None) that value of the global variable outputXHTML will
-		be used, which defaults to 1, but can be overwritten by the environment
-		variable XSC_OUTPUT_XHTML and can of course be changed dynamically.
+		(i.e. elements with a content model EMPTY as <foo>) with XHTML == 0, or
+		XHTML output that is compatible with HTML browsers (element with an
+		empty content model as <foo /> and others that just happen to be empty
+		as <foo></foo>) with XHTML == 1 or just plain XHTML with XHTML == 2
+		(all empty elements as <foo/>).
+
+		When you use the default (None) that value of the global variable
+		outputXHTML will be used, which defaults to 2, but can be overwritten
+		by the environment variable XSC_OUTPUT_XHTML and can of course be
+		changed dynamically.
 		"""
 		return ""
 
@@ -1349,7 +1355,7 @@ class Element(Node):
 	def asString(self,XHTML = None):
 		v = []
 		v.append("<")
-		v.append(string.lower(self.__class__.__name__))
+		v.append(self.elementname) # requires that the element is registered via registerElement()
 		for attr in self.attrs.keys():
 			v.append(' ')
 			v.append(attr)
@@ -1358,22 +1364,30 @@ class Element(Node):
 				v.append('="')
 				v.append(value.asString(XHTML))
 				v.append('"')
-		s = self.content.asString(XHTML)
-		if self.empty:
-			if len(s):
+		if len(self):
+			if self.empty:
 				raise EmptyElementWithContentError(xsc.parser.lineno,self)
+			v.append(">")
+			v.append(self.content.asString(XHTML))
+			v.append("</")
+			v.append(self.elementname)
+			v.append(">")
+		else:
 			if XHTML is None:
 				XHTML = outputXHTML
-			if XHTML:
+			if XHTML==0 or XHTML==1:
+				if self.empty:
+					if XHTML==1:
+						v.append(" /")
+					v.append(">")
+				else:
+					v.append("></")
+					v.append(self.elementname)
+					v.append(">")
+			elif XHTML == 2:
 				v.append("/>")
 			else:
-				v.append(">")
-		else:
-			v.append(">")
-			v.append(s)
-			v.append("</")
-			v.append(string.lower(self.__class__.__name__))
-			v.append(">")
+				raise ValueError("XHTML must be 0, 1, 2 or None")
 
 		return string.join(v,"")
 
