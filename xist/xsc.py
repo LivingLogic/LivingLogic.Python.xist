@@ -1578,6 +1578,13 @@ class URLAttr(Attr):
 	def __str__(self):
 		return self.forOutput()
 
+	def append(self,other):
+		newother = ToNode(other)
+		if isinstance(newother,URL):
+			self[0] = newother.joined(self[0])
+		else:
+			Attr.append(self,newother)
+
 	def _asURL(self):
 		base = URL(scheme="project")
 		s = ""
