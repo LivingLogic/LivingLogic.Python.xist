@@ -58,8 +58,8 @@ instead of <code>"iso-8859-1"</code>).</doc:par>
 <doc:par>
 Currently &xist; nodes do not have a fancy <method>__repr__</method>
 method implemented, but the <method>repr</method> method
-can be used to generate two different display formats (this is extensible
-by implementing new presentation classes). To use e.g.
+can be used to generate two different display formats (this is
+extensible by implementing new presentation classes). To use e.g.
 the <class>TreePresenter</class> format in object dumps in
 an interactive Python session you can use the displayhook
 feature of Python 2.1, simply by putting the following code
