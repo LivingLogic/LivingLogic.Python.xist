@@ -8,6 +8,12 @@ startup script. For more info see the
 <link href="root:xist/Installation.html">installation instructions</link>.</par>
 </section>
 
+<section><title>Changes to the <lit>xmlns</lit> attribute</title>
+<par>Each element (or entity, or processing instruction) class had an attribute
+<lit>xmlns</lit> that references the namespace module. This attribute has been
+renamed to <lit>__ns__</lit>.</par>
+</section>
+
 </section>
 
 
