@@ -592,7 +592,7 @@ class Text(CharacterData):
 	appropriate character entities.
 	"""
 
-	def __init__(self, content=""):
+	def __init__(self, content=u""):
 		if isinstance(content, Text):
 			content = content.content
 		CharacterData.__init__(self, content)
