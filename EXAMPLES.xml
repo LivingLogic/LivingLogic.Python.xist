@@ -67,7 +67,7 @@ node = xsc.Frag(
 		),
 		html.body(
 			html.h1("PyPI links"),
-			html.ul([html.li(pypilink(name=name)) for name in names])
+			html.ul(html.li(pypilink(name=name)) for name in names)
 		)
 	)
 )
