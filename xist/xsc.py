@@ -1684,7 +1684,6 @@ class Attr(Frag):
 	The content of an attribute may be any other XSC node. This is different from
 	a normal DOM, where only text and character references are allowed. The reason for
 	this is to allow dynamic content (implemented as elements) to be put into attributes.
-	The database module db makes use of this.
 
 	Of course, this dynamic content when finally converted to HTML will normally result in
 	a fragment consisting only of text and character references.
