@@ -686,6 +686,12 @@ class Node:
 		"""
 		return string.atoi(self.asPlainString())
 
+	def asFloat(self):
+		"""
+		returns this node converted to a float.
+		"""
+		return string.atof(self.asPlainString())
+
 	def asString(self):
 		"""
 		returns this element as a string
