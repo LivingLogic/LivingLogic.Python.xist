@@ -756,6 +756,20 @@ class CodePresenter:
 			if self.level:
 				self.buffer.append("\t"*self.level)
 
+	def _text(self, text):
+		try:
+			s = text.encode("us-ascii")
+		except UnicodeError:
+			s = text
+		try:
+			i = int(s)
+		except ValueError:
+			pass
+		else:
+			if str(i) == s:
+				s = i
+		return s
+
 	def presentFrag(self, node):
 		self._indent()
 		if not self.inAttr:
@@ -791,8 +805,7 @@ class CodePresenter:
 				self.buffer.append(",")
 				if self.inAttr:
 					self.buffer.append(" ")
-			if i:
-				self._indent()
+			self._indent()
 			self.inAttr += 1
 			self.buffer.append("%s=" % attrname)
 			if len(attrvalue)==1: # optimize away the tuple ()
@@ -810,7 +823,7 @@ class CodePresenter:
 
 	def presentText(self, node):
 		self._indent()
-		self.buffer.append("%r" % node.content)
+		self.buffer.append("%r" % self._text(node.content))
 
 	def presentEntity(self, node):
 		self._indent()
@@ -818,15 +831,15 @@ class CodePresenter:
 
 	def presentProcInst(self, node):
 		self._indent()
-		self.buffer.append("%s.%s(%r)" % (node.__module__, xsc.className(node.__class__), node.content))
+		self.buffer.append("%s.%s(%r)" % (node.__module__, xsc.className(node.__class__), self._text(node.content)))
 
 	def presentComment(self, node):
 		self._indent()
-		self.buffer.append("xsc.Comment(%r)" % node.content)
+		self.buffer.append("xsc.Comment(%r)" % self._text(node.content))
 
 	def presentDocType(self, node):
 		self._indent()
-		self.buffer.append("xsc.DocType(%r)" % node.content)
+		self.buffer.append("xsc.DocType(%r)" % self._text(node.content))
 
 	def presentAttr(self, node):
 		self.presentFrag(node)
