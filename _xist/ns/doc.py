@@ -69,7 +69,7 @@ class example(xsc.Element):
 				cs.append(child)
 		
 		if converter.target=="docbook":
-			e = docbook.example(docbook.title(ts), cs)
+			e = docbook.example(ts, cs)
 		else:
 			e = cs
 			if converter.target!="text" and ts:
