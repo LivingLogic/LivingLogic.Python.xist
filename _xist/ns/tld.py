@@ -48,7 +48,7 @@ class attribute(xsc.Element):
 	def asxnd(self):
 		e = xnd.Attr(unicode(xfind.first(self/name).content), "xsc.TextAttr")
 		isRequired = None
-		node = xfind.first(self/required)
+		node = xfind.first(self/required, None)
 		if node is not None:
 			value = str(node[0].content)
 			if value in ('true', 'yes'):
@@ -153,7 +153,7 @@ class tag(xsc.Element):
 	def asxnd(self):
 		e = xnd.Element(unicode(xfind.first(self/name).content))
 		isEmpty = None
-		node = xfind.first(self/bodycontent)
+		node = xfind.first(self/bodycontent, None)
 		if node is not None:
 			value = str(node[0].content)
 			if value in ('tagdependent', 'JSP'):
@@ -166,7 +166,9 @@ class tag(xsc.Element):
 			e.modeltype = "sims.Empty"
 		else:
 			e.modeltype = "sims.Any"
-		e.doc = xfind.first(self/info).asxnd()
+		node = xfind.first(self/info, None)
+		if node is not None:
+			e.doc = node.asxnd()
 		for attr in self/attribute:
 			e.attrs.append(attr.asxnd())
 		return e
@@ -202,10 +204,10 @@ class taglib(xsc.Element):
 
 	def asxnd(self):
 		e = xnd.Namespace(unicode(xfind.first(self/shortname).content))
-		node = xfind.first(self/uri)
+		node = xfind.first(self/uri, None)
 		if node is not None:
 			e.url = unicode(node[0].content)
-		node = xfind.first(self/info)
+		node = xfind.first(self/info, None)
 		if node is not None:
 			e.doc = node[0].asxnd()
 		for node in self/tag:
