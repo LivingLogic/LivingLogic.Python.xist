@@ -40,16 +40,18 @@ class TidyArgs(xsc.Args):
 	quote_ampersand = True
 	quote_nbsp = False
 	literal_attributes = True
-	markup = True # FIXME
+	markup = True
 	wrap = 0
 	wrap_php = False
 	wrap_sections = False
 	ascii_chars = False
 	force_output = True
+	tidy_mark = False
 
-def tidystring(text, sysid, encoding, args):
+def tidystring(text, encoding, sysid, args):
 	args = TidyArgs(args)
 	args["input_encoding"] = encoding
+	args["output_encoding"] = "utf8"
 
 	try:
 		import tidy
@@ -66,7 +68,7 @@ def tidystring(text, sysid, encoding, args):
 			warning = errors.TidyWarning(error.message, xsc.Location(sysID=sysid, lineNumber=error.line, columnNumber=error.col))
 			warnings.warn(warning)
 		text = str(doc)
-	return text
+	return (text, "utf-8")
 
 class InputSource(sax.xmlreader.InputSource):
 	"""
@@ -109,7 +111,7 @@ class StringInputSource(InputSource):
 			else:
 				tidy = None
 		if tidy is not None:
-			text = tidystring(text, systemId, encoding, tidy)
+			(text, encoding) = tidystring(text, encoding, systemId, tidy)
 		self.setByteStream(StringIO.StringIO(text))
 		if encoding is not None:
 			self.setEncoding(encoding)
@@ -144,7 +146,9 @@ class URLInputSource(InputSource):
 			else:
 				tidy = None
 		if tidy is not None:
-			resource = StringIO.StringIO(tidystring(resource.read(), systemId, encoding, tidy))
+			text = resource.read()
+			(text, encoding) = tidystring(text, encoding, systemId, tidy)
+			resource = StringIO.StringIO(text)
 		self.setByteStream(resource)
 		if encoding is not None:
 			self.setEncoding(encoding)
