@@ -929,7 +929,7 @@ class Text(Node, StringMixIn):
 
 	def _dorepr(self, encoding=None, ansi=None):
 		# constructs a string of this Text with syntaxhighlighting. Special characters will be output as CharRefs (with special highlighting)
-		return self.__strtext(0, self.__content, encoding, ansi)
+		return self.__strtext(0, self._content, encoding, ansi)
 
 	def _doreprtree(self, nest, elementno, encoding=None, ansi=None):
 		lines = self._content.split("\n")
