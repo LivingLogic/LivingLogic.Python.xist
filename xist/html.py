@@ -26,14 +26,14 @@ class DocTypeHTML401transitional(xsc.DocType):
 	document type for HTML 4.0 transitional
 	"""
 	def __init__(self):
-		xsc.DocType.__init__(self,'html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd"')
+		xsc.DocType.__init__(self, 'html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd"')
 
 class DocTypeXHTML10strict(xsc.DocType):
 	"""
 	document type for XHTML 1.0 strict
 	"""
-	def __init__(self,dtd = ""):
-		xsc.DocType.__init__(self,'html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd"')
+	def __init__(self):
+		xsc.DocType.__init__(self, 'html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd"')
 
 class DocTypeXHTML10transitional(xsc.DocType):
 	"""
@@ -78,7 +78,7 @@ class meta(xsc.Element):
 	"""
 	empty = 1
 	attrHandlers = i18n.copy()
-	attrHandlers.update({"http_equiv": xsc.TextAttr, "http-equiv": xsc.TextAttr, "name": xsc.TextAttr ,"content": xsc.TextAttr ,"scheme": xsc.TextAttr})
+	attrHandlers.update({"http_equiv": xsc.TextAttr, "http-equiv": xsc.TextAttr, "name": xsc.TextAttr, "content": xsc.TextAttr, "scheme": xsc.TextAttr})
 
 	def __init__(self, *_content, **_attrs):
 		# we have two names for one and the same attribute http_equiv and http-equiv
@@ -109,7 +109,7 @@ class meta(xsc.Element):
 		startpos = content.find(u"charset")
 		if startpos != -1:
 			startpos = startpos+8 # skip '='
-			endpos = content.find(";",startpos)
+			endpos = content.find(";", startpos)
 			if endpos != -1:
 				return (startpos, endpos)
 			else:
@@ -616,7 +616,7 @@ class frameset(xsc.Element):
 	"""
 	empty = 0
 	attrHandlers = coreattrs.copy()
-	attrHandlers.update({"rows": xsc.TextAttr ,"cols": xsc.TextAttr ,"onload": xsc.TextAttr ,"onunload": xsc.TextAttr})
+	attrHandlers.update({"rows": xsc.TextAttr, "cols": xsc.TextAttr, "onload": xsc.TextAttr, "onunload": xsc.TextAttr})
 
 class frame(xsc.Element):
 	"""
@@ -1030,4 +1030,4 @@ class hearts(xsc.Entity): "black heart suit = valentine, U+2665 ISOpub"; codepoi
 class diams(xsc.Entity): "black diamond suit, U+2666 ISOpub"; codepoint = 9830
 
 # register all the classes we've defined so far
-namespace = xsc.Namespace("html","http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd",vars())
+namespace = xsc.Namespace("html", "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd", vars())
