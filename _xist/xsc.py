@@ -1293,8 +1293,6 @@ class Attr(Frag):
 			# convert the entries in values to unicode
 			if "values" in dict:
 				dict["values"] = tuple([unicode(entry) for entry in dict["values"]])
-			else:
-				dict["values"] = None
 			return Frag.__metaclass__.__new__(cls, name, bases, dict)
 		def __repr__(self):
 			return "<attribute class %s/%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
