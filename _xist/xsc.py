@@ -3026,6 +3026,7 @@ class Namespace(object):
 							classdict["xmlname"] = attr.xmlname[1]
 						dict[attrname] = attr.__class__(attr.__name__, (attr, ), classdict)
 			self = type.__new__(cls, name, bases, {})
+			self.__originalname = name # preserves the name even after makemod()
 			self._elements = ({}, {})
 			self._procinsts = ({}, {})
 			self._entities = ({}, {})
@@ -3084,7 +3085,7 @@ class Namespace(object):
 				fromfile = " from %r" % self.__file__
 			else:
 				fromfile = ""
-			return "<namespace %s/%s name=%r url=%r%s%s at 0x%x>" % (self.__module__, self.__name__, self.xmlname[True], self.xmlurl, counts, fromfile, id(self))
+			return "<namespace %s/%s name=%r url=%r%s%s at 0x%x>" % (self.__module__, self.__originalname, self.xmlname[True], self.xmlurl, counts, fromfile, id(self))
 
 		def __delattr__(cls, key):
 			value = cls.__dict__.get(key, None) # no inheritance
