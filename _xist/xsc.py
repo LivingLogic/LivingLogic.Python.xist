@@ -1546,7 +1546,7 @@ class URLAttr(Attr):
 		if publisher.inAttr:
 			raise errors.IllegalAttrNodeError(self)
 		publisher.inAttr = 1
-		u = self.asURL().relativeTo(publisher.file)
+		u = self.asURL().relativeTo(publisher.base)
 		Text(u.asPlainString()).publish(publisher)
 		publisher.inAttr = 0
 
