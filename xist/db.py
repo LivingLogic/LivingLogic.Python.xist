@@ -290,7 +290,7 @@ class SQLDelete(SQLCommand):
 
 	def __str__(self):
 		v = []
-		v.append("DELETE FROM " + table)
+		v.append("DELETE FROM " + self.table)
 		if len(self.where.keys()):
 			v.append(" WHERE ")
 			v.append(self.formatFields(self.where,1))
