@@ -173,6 +173,12 @@ class IllegalCharRefError(IllegalNodeError):
 
 	type = "charref"
 
+	def __str__(self):
+		if isinstance(self.name, (int, long)):
+			return "%s with codepoint %s not allowed" % (self.type, self.name)
+		else:
+			return IllegalNodeError.__str__(self)
+
 class ElementNestingError(Error):
 	"""
 	exception that is raised, when an element has an illegal nesting

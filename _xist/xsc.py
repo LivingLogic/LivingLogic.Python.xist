@@ -2996,6 +2996,37 @@ class Namespace(object):
 				self.all.append(self)
 				defaultPrefixes.addPrefixMapping(None, self, mode="prepend")
 				defaultPrefixes.addPrefixMapping(self.xmlname[True], self, mode="prepend")
+			elements = ({}, {})
+			procinsts = ({}, {})
+			entities = ({}, {})
+			charrefs = ({}, {}, {})
+			nodes = ({}, {})
+			for key in dir(self):
+				value = getattr(self, key)
+				if isinstance(value, type):
+					if issubclass(value, Element) or issubclass(value, ProcInst) or issubclass(value, Entity):
+						pyname = value.xmlname[False]
+						xmlname = value.xmlname[True]
+						nodes[False][pyname] = value
+						nodes[True][xmlname] = value
+						if issubclass(value, Element):
+							elements[False][pyname] = value
+							elements[True][xmlname] = value
+						elif issubclass(value, ProcInst):
+							procinsts[False][pyname] = value
+							procinsts[True][xmlname] = value
+						elif issubclass(value, CharRef):
+							charrefs[False][pyname] = value
+							charrefs[True][xmlname] = value
+							charrefs[2][value.codepoint] = value
+						else:
+							entities[False][pyname] = value
+							entities[True][xmlname] = value
+			self._elements = elements
+			self._procinsts = procinsts
+			self._entities = entities
+			self._charrefs = charrefs
+			self._nodes = nodes
 			return self
 
 		def __eq__(self, other):
@@ -3040,233 +3071,161 @@ class Namespace(object):
 		pass
 
 	def iterelementkeys(cls, xml=False):
-		for key in dir(cls):
-			attr = getattr(cls, key)
-			if isinstance(attr, type) and issubclass(attr, Element):
-				yield attr.xmlname[xml]
+		return cls._elements[xml].iterkeys()
 	iterelementkeys = classmethod(iterelementkeys)
 
 	def elementkeys(cls, xml=False):
-		return list(cls.iterelementkeys(xml=xml))
+		return cls._elements[xml].keys()
 	elementkeys = classmethod(elementkeys)
 
 	def iterelementvalues(cls):
-		for key in dir(cls):
-			attr = getattr(cls, key)
-			if isinstance(attr, type) and issubclass(attr, Element):
-				yield attr
+		return cls._elements[False].itervalues()
 	iterelementvalues = classmethod(iterelementvalues)
 
 	def elementvalues(cls):
-		return list(cls.iterelementvalues())
+		return cls._elements[False].values()
 	elementvalues = classmethod(elementvalues)
 
 	def iterelementitems(cls, xml=False):
-		for key in dir(cls):
-			attr = getattr(cls, key)
-			if isinstance(attr, type) and issubclass(attr, Element):
-				yield (attr.xmlname[xml], attr)
+		return cls._elements[xml].iteritems()
 	iterelementitems = classmethod(iterelementitems)
 
 	def elementitems(cls, xml=False):
-		return list(cls.iterelementitems(xml=xml))
+		return cls._elements[xml].items()
 	elementitems = classmethod(elementitems)
 
 	def element(cls, name, xml=False):
-		if xml:
-			for attr in cls.iterelementvalues():
-				if attr.xmlname[xml] == name:
-					return attr
-		else:
-			attr = getattr(cls, name, None)
-			if isinstance(attr, type) and issubclass(attr, Element):
-				return attr
-		raise errors.IllegalElementError(name, xml=xml)
+		try:
+			return cls._elements[xml][name]
+		except KeyError:
+			raise errors.IllegalElementError(name, xml=xml)
 	element = classmethod(element)
 
 	def iterprocinstkeys(cls, xml=False):
-		for key in dir(cls):
-			attr = getattr(cls, key)
-			if isinstance(attr, type) and issubclass(attr, ProcInst):
-				yield attr.xmlname[xml]
+		return cls._procinsts[xml].iterkeys()
 	iterprocinstkeys = classmethod(iterprocinstkeys)
 
 	def procinstkeys(cls, xml=False):
-		return list(cls.iterprocinstkeys(xml=xml))
+		return cls._procinsts[xml].keys()
 	procinstkeys = classmethod(procinstkeys)
 
 	def iterprocinstvalues(cls):
-		for key in dir(cls):
-			attr = getattr(cls, key)
-			if isinstance(attr, type) and issubclass(attr, ProcInst):
-				yield attr
+		return cls._procinsts[False].itervalues()
 	iterprocinstvalues = classmethod(iterprocinstvalues)
 
 	def procinstvalues(cls):
-		return list(cls.iterprocinstvalues())
+		return cls._procinsts[False].values()
 	procinstvalues = classmethod(procinstvalues)
 
 	def iterprocinstitems(cls, xml=False):
-		for key in dir(cls):
-			attr = getattr(cls, key)
-			if isinstance(attr, type) and issubclass(attr, ProcInst):
-				yield (attr.xmlname[xml], attr)
+		return cls._procinsts[xml].iteritems()
 	iterprocinstitems = classmethod(iterprocinstitems)
 
 	def procinstitems(cls, xml=False):
-		return list(cls.iterprocinstitems(xml=xml))
+		return cls._procinsts[xml].items()
 	procinstitems = classmethod(procinstitems)
 
 	def procinst(cls, name, xml=False):
-		if xml:
-			for attr in cls.iterprocinstvalues():
-				if attr.xmlname[xml] == name:
-					return attr
-		else:
-			attr = getattr(cls, name, None)
-			if isinstance(attr, type) and issubclass(attr, ProcInst):
-				return attr
-		raise errors.IllegalProcInstError(name, xml=xml)
+		try:
+			return cls._procinsts[xml][name]
+		except KeyError:
+			raise errors.IllegalProcInstError(name, xml=xml)
 	procinst = classmethod(procinst)
 
 	def iterentitykeys(cls, xml=False):
-		for key in dir(cls):
-			attr = getattr(cls, key)
-			if isinstance(attr, type) and issubclass(attr, Entity) and not issubclass(attr, CharRef):
-				yield attr.xmlname[xml]
+		return cls._entities[xml].iterkeys()
 	iterentitykeys = classmethod(iterentitykeys)
 
 	def entitykeys(cls, xml=False):
-		return list(cls.iterentitykeys(xml=xml))
+		return cls._entities[xml].keys()
 	entitykeys = classmethod(entitykeys)
 
 	def iterentityvalues(cls):
-		for key in dir(cls):
-			attr = getattr(cls, key)
-			if isinstance(attr, type) and issubclass(attr, Entity) and not issubclass(attr, CharRef):
-				yield attr
+		return cls._entities[False].itervalues()
 	iterentityvalues = classmethod(iterentityvalues)
 
 	def entityvalues(cls):
-		return list(cls.iterentityvalues())
+		return cls._entities[False].values()
 	entityvalues = classmethod(entityvalues)
 
 	def iterentityitems(cls, xml=False):
-		for key in dir(cls):
-			attr = getattr(cls, key)
-			if isinstance(attr, type) and issubclass(attr, Entity) and not issubclass(attr, CharRef):
-				yield (attr.xmlname[xml], attr)
+		return cls._entities[xml].iteritems()
 	iterentityitems = classmethod(iterentityitems)
 
 	def entityitems(cls, xml=False):
-		return list(cls.iterentityitems(xml=xml))
+		return cls._entities[xml].items()
 	entityitems = classmethod(entityitems)
 
 	def entity(cls, name, xml=False):
-		if xml:
-			for attr in cls.iterentityvalues():
-				if attr.xmlname[xml] == name:
-					return attr
-		else:
-			attr = getattr(cls, name, None)
-			if isinstance(attr, type) and issubclass(attr, Entity) and not issubclass(attr, CharRef):
-				return attr
-		raise errors.IllegalEntityError(name, xml=xml)
+		try:
+			return cls._entities[xml][name]
+		except KeyError:
+			raise errors.IllegalEntityError(name, xml=xml)
 	entity = classmethod(entity)
 
 	def itercharrefkeys(cls, xml=False):
-		for key in dir(cls):
-			attr = getattr(cls, key)
-			if isinstance(attr, type) and issubclass(attr, CharRef):
-				yield attr.xmlname[xml]
+		return cls._charrefs[xml].iterkeys()
 	itercharrefkeys = classmethod(itercharrefkeys)
 
 	def charrefkeys(cls, xml=False):
-		return list(cls.itercharrefkeys(xml=xml))
+		return cls._charrefs[xml].keys()
 	charrefkeys = classmethod(charrefkeys)
 
 	def itercharrefvalues(cls):
-		for key in dir(cls):
-			attr = getattr(cls, key)
-			if isinstance(attr, type) and issubclass(attr, CharRef):
-				yield attr
+		return cls._charrefs[False].itervalues()
 	itercharrefvalues = classmethod(itercharrefvalues)
 
 	def charrefvalues(cls):
-		return list(cls.itercharrefvalues())
+		return cls._charrefs[False].values()
 	charrefvalues = classmethod(charrefvalues)
 
 	def itercharrefitems(cls, xml=False):
-		for key in dir(cls):
-			attr = getattr(cls, key)
-			if isinstance(attr, type) and issubclass(attr, CharRef):
-				yield (attr.xmlname[xml], attr)
+		return cls._charrefs[xml].iteritems()
 	itercharrefitems = classmethod(itercharrefitems)
 
 	def charrefitems(cls, xml=False):
-		return list(cls.itercharrefitems(xml=xml))
+		return cls._charrefs[xml].items()
 	charrefitems = classmethod(charrefitems)
 
 	def charref(cls, name, xml=False):
-		if isinstance(name, (int, long)):
-			result = [attr for attr in cls.itercharrefvalues() if attr.codepoint==name]
-			if result:
-				return result
-		else:
-			if xml:
-				for attr in cls.itercharrefvalues():
-					if attr.xmlname[xml] == name:
-						return attr
+		try:
+			if isinstance(name, (int, long)):
+				return cls._charrefs[2][name]
 			else:
-				attr = getattr(cls, name, None)
-				if isinstance(attr, type) and issubclass(attr, CharRef):
-					return attr
-		raise errors.IllegalCharRefError(name, xml=xml)
+				return cls._charrefs[xml][name]
+		except KeyError:
+			raise errors.IllegalCharRefError(name, xml=xml)
 	charref = classmethod(charref)
 
 	def iternodekeys(cls, xml=False):
-		for key in dir(cls):
-			attr = getattr(cls, key)
-			if isinstance(attr, type) and (issubclass(attr, Element) or issubclass(attr, ProcInst) or issubclass(attr, Entity)):
-				yield attr.xmlname[xml]
+		return cls._nodes[xml].iterkeys()
 	iternodekeys = classmethod(iternodekeys)
 
 	def nodekeys(cls, xml=False):
-		return list(cls.iternodekeys(xml=xml))
+		return cls._nodes[xml].keys()
 	nodekeys = classmethod(nodekeys)
 
 	def iternodevalues(cls):
-		for key in dir(cls):
-			attr = getattr(cls, key)
-			if isinstance(attr, type) and (issubclass(attr, Element) or issubclass(attr, ProcInst) or issubclass(attr, Entity)):
-				yield attr
+		return cls._nodes[False].itervalues()
 	iternodevalues = classmethod(iternodevalues)
 
 	def nodevalues(cls):
-		return list(cls.iternodevalues())
+		return cls._nodes[False].values()
 	nodevalues = classmethod(nodevalues)
 
 	def iternodeitems(cls, xml=False):
-		for key in dir(cls):
-			attr = getattr(cls, key)
-			if isinstance(attr, type) and (issubclass(attr, Element) or issubclass(attr, ProcInst) or issubclass(attr, Entity)):
-				yield (attr.xmlname[xml], attr)
+		return cls._nodes[xml].iteritems()
 	iternodeitems = classmethod(iternodeitems)
 
 	def nodeitems(cls, xml=False):
-		return list(cls.iternodeitems(xml=xml))
+		return cls._nodes[xml].items()
 	nodeitems = classmethod(nodeitems)
 
 	def node(cls, name, xml=False):
-		if xml:
-			for attr in cls.iternodevalues():
-				if attr.xmlname[xml] == name:
-					return attr
-		else:
-			attr = getattr(cls, name, None)
-			if isinstance(attr, type) and (issubclass(attr, Element) or issubclass(attr, ProcInst) or issubclass(attr, Entity)):
-				return attr
-		raise errors.IllegalNodeError(name, xml=xml)
+		try:
+			return cls._nodes[xml][name]
+		except KeyError:
+			raise errors.IllegalNodeError(name, xml=xml)
 	node = classmethod(node)
 
 	def __init__(self, xmlprefix, xmlname, thing=None):
