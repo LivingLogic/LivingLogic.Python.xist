@@ -223,7 +223,7 @@ except ImportError:
 	from xml.parsers import sgmlop # get it from the XML package
 import urllib # for reading remote files
 import procinst # our sandbox
-from URL import URL # our own new URL class
+import url # our own new URL class
 import publishers # classes for dumping XML strings
 import providers # classes that generate XSC trees
 import errors # exceptions
@@ -333,8 +333,8 @@ def strQuote(ansi=None):
 def strTab(count, ansi=None):
 	return _stransi(options.repransitab, options.reprtab*count, ansi=ansi)
 
-def strURL(URL, ansi=None):
-	return _stransi(options.repransiurl, URL, ansi=ansi)
+def strURL(url, ansi=None):
+	return _stransi(options.repransiurl, url, ansi=ansi)
 
 def nodeName(nodeClass):
 	"""
@@ -1426,52 +1426,40 @@ class Element(Node):
 
 		if self.hasAttr(imgattr):
 			size = self[imgattr].asHTML().ImageSize()
-			sizedict = {"width": size[0], "height": size[1]}
 			if size is not None: # the size was retrieved so we can use it
-				if widthattr is not None: # do something to the width
-					if self.hasAttr(widthattr):
-						try:
-							s = self[widthattr].asPlainString() % sizedict
-							s = str(eval(s))
-							s = stringFromCode(s)
-							self[widthattr] = s
-						except TypeError: # ignore "not all argument converted"
-							pass
-						except:
-							raise errors.ImageSizeFormatError(self, widthattr)
-					else:
-						self[widthattr] = size[0]
-				if heightattr is not None: # do something to the height
-					if self.hasAttr(heightattr):
-						try:
-							s = self[heightattr].asPlainString() % sizedict
-							s = str(eval(s))
-							s = stringFromCode(s)
-							self[heightattr] = s
-						except TypeError: # ignore "not all argument converted"
-							pass
-						except:
-							raise errors.ImageSizeFormatError(self, heightattr)
-					else:
-						self[heightattr] = size[1]
+				sizedict = {"width": size[0], "height": size[1]}
+				for attr in (heightattr, widthattr):
+					if attr is not None: # do something to the width/height
+						if self.hasAttr(attr):
+							try:
+								s = self[attr].asHTML().asPlainString() % sizedict
+								s = str(eval(s))
+								s = stringFromCode(s)
+								self[attr] = s
+							except TypeError: # ignore "not all argument converted"
+								pass
+							except:
+								raise errors.ImageSizeFormatError(self, attr)
+						else:
+							self[attr] = size[attr==heightattr]
 
 	def _dorepr(self, ansi=None):
 		v = []
 		if self.empty:
-			v.append(self._str(content = self.__strattrs(ansi), brackets = 1, slash = 1, ansi = ansi))
+			v.append(self._str(content = self.__strattrs(ansi), brackets=1, slash=1, ansi=ansi))
 		else:
-			v.append(self._str(content = self.__strattrs(ansi), brackets = 1, ansi = ansi))
+			v.append(self._str(content = self.__strattrs(ansi), brackets=1, ansi=ansi))
 			for child in self:
 				v.append(child._dorepr(ansi))
-			v.append(self._str(brackets = 1, slash = -1, ansi = ansi))
+			v.append(self._str(brackets=1, slash=-1, ansi=ansi))
 		return "".join(v)
 
 	def _doreprtree(self, nest, elementno, encoding=None, ansi=None):
 		v = []
 		if self.empty:
-			v.append([nest, self.startloc, elementno, self._str(content = self.__strattrs(ansi), brackets=1, slash=1, ansi=ansi)])
+			v.append([nest, self.startloc, elementno, self._str(content=self.__strattrs(ansi), brackets=1, slash=1, ansi=ansi)])
 		else:
-			v.append([nest, self.startloc, elementno, self._str(content = self.__strattrs(ansi), brackets=1, ansi=ansi)])
+			v.append([nest, self.startloc, elementno, self._str(content=self.__strattrs(ansi), brackets=1, ansi=ansi)])
 			i = 0
 			for child in self:
 				v = v + child._doreprtree(nest+1, elementno + [i], encoding, ansi)
@@ -1638,8 +1626,7 @@ class Entity(Node):
 		return self._decorateNode(node)
 
 	def compact(self):
-		node = self.__class__() # "virtual" copy constructor
-		return self._decorateNode(node)
+		return self
 
 	clone = compact
 
@@ -1659,7 +1646,7 @@ class Entity(Node):
 		return v
 
 	def publish(self, publisher):
-		publisher(u"&", self.name, u";") # requires that the element is registered via Namespace.register()
+		publisher(u"&", self.name, u";") # requires that the entity is registered via Namespace.register()
 
 	def find(self, type=None, subtype=0, attrs=None, test=None, searchchildren=0, searchattrs=0):
 		node = Frag()
@@ -1700,7 +1687,7 @@ class Attr(Frag):
 	a fragment consisting only of text and character references.</par>
 	"""
 
-	def _dorepr(self, ansi = None):
+	def _dorepr(self, ansi=None):
 		return strAttrValue(Frag._dorepr(self, ansi=0), ansi)
 
 class TextAttr(Attr):
@@ -1784,16 +1771,16 @@ class URLAttr(Attr):
 		return node
 
 	def asURL(self):
-		return URL(Attr.asPlainString(self))
+		return url.URL(Attr.asPlainString(self))
 
 	def asPlainString(self):
 		return self.asURL().asString()
 
 	def forInput(self):
-		url = self.base + self.asURL()
-		if url.scheme == "server":
-			url = url.relativeTo(URL(scheme="http", server=xsc.server))
-		return url
+		u = self.base + self.asURL()
+		if u.scheme == "server":
+			u = u.relativeTo(url.URL(scheme="http", server=xsc.server))
+		return u
 
 	def forOutput(self):
 		return self.asURL().relativeTo(xsc.filenames[-1])
@@ -1807,7 +1794,7 @@ class URLAttr(Attr):
 		size = None
 		if xsc.isRetrieve(url):
 			try:
-				(filename, headers) = urllib.urlretrieve(url.asString().encode(options.outputEncoding))
+				(filename, headers) = url.retrieve()
 				if headers.maintype == "image":
 					img = Image.open(filename)
 					size = img.size
@@ -1828,7 +1815,7 @@ class URLAttr(Attr):
 		size = None
 		if xsc.isRetrieve(url):
 			try:
-				(filename, headers) = urllib.urlretrieve(url.asString())
+				(filename, headers) = url.retrieve()
 				size = os.stat(filename)[stat.ST_SIZE]
 				urllib.urlcleanup()
 			except IOError:
@@ -1888,7 +1875,8 @@ class Namespace:
 		<par>All other objects are ignored.</par>
 		"""
 
-		if type(thing) is types.ClassType:
+		t = type(thing)
+		if t is types.ClassType:
 			iselement = thing is not Element and issubclass(thing, Element)
 			isentity = thing is not Entity and issubclass(thing, Entity)
 			isprocinst = thing is not ProcInst and issubclass(thing, ProcInst)
@@ -1912,7 +1900,7 @@ class Namespace:
 								pass
 						else: # if isprocinst:
 							self.procInstsByName[name] = thing
-		elif type(thing) is types.DictionaryType:
+		elif t is types.DictionaryType:
 			for key in thing.keys():
 				self.register(thing[key])
 
@@ -1958,7 +1946,7 @@ class Location:
 	specifies a position in an XML file.
 	"""
 
-	def __init__(self, url = None, row = None, col = None):
+	def __init__(self, url=None, row=None, col=None):
 		self.url = url
 		self.row = row
 		self.col = col

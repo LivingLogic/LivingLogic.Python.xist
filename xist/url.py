@@ -13,6 +13,22 @@ import urlparse
 import urllib
 import xsc
 
+def _isPathMarker(dir):
+	"""
+	_isPathMarker(dir) -> bool
+	
+	returns if the directory name dir is a path marker.
+	"""
+	return dir.startswith("*")
+
+def _isNoPathMarker(dir):
+	"""
+	_isNoPathMarker(dir) -> bool
+	
+	returns not _isPathMarker(dir)
+	"""
+	return not _isPathMarker(dir)
+
 class URL:
 	"""
 	This class represents XSC URLs.
@@ -39,6 +55,7 @@ class URL:
 	will be an URL equivalent to
 		URL("/foo/bar/*root/cgi2/baz2.py")
 	"""
+
 	__safe = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_,.-:/"
 
 	def __init__(self, url = None, scheme = None, server = None, port = None, path = None, file = None, ext = None, parameters = None, query = None, fragment = None):
@@ -146,22 +163,6 @@ class URL:
 			self.__path.insert(index, xsc.stringFromCode(other))
 			index += 1
 
-	def isPathMarker(self, dir):
-		"""
-		isPathMarker(self, dir) -> bool
-		
-		returns if the directory name dir is a path marker.
-		"""
-		return dir[:1] == u"*"
-
-	def isNoPathMarker(self, dir):
-		"""
-		isNoPathMarker(self, dir) -> bool
-		
-		returns not isPathMarker(self, dir)
-		"""
-		return not self.isPathMarker(dir)
-
 	def __repr__(self):
 		v = []
 		if self.scheme:
@@ -229,9 +230,9 @@ class URL:
 		in it.</par>
 		"""
 		new = other + self
-		new.__path = filter(new.isNoPathMarker, new.__path)
+		new.__path = filter(_isNoPathMarker, new.__path)
 		if not new.scheme:
-			otherpath = filter(other.isNoPathMarker, other.__path)
+			otherpath = filter(_isNoPathMarker, other.__path)
 			while len(otherpath) and len(new.__path) and otherpath[0]==new.__path[0]: # throw away identical directories in both paths (we don't have to go up from file and down to path for these identical directories)
 				del otherpath[0]
 				del new.__path[0]
@@ -256,7 +257,10 @@ class URL:
 		return cmp(scheme1, scheme2) or cmp(server1, server2) or cmp(self.port, other.port) or cmp(self.__path, other.__path) or cmp(self.file, other.file) or cmp(self.ext, other.ext) or cmp(self.parameters, other.parameters) or cmp(self.query, other.query) or cmp(self.fragment, other.fragment)
 
 	def open(self):
-		return urllib.urlopen(self.asString().encode("iso-8859-1"))
+		return urllib.urlopen(self.__quote())
+
+	def retrieve(self):
+		return urllib.urlretrieve(self.__quote())
 
 	def read(self):
 		return self.open().read()
@@ -310,37 +314,39 @@ class URL:
 		scheme = self.scheme or u""
 		server = self.server or u""
 		if self.port:
-			server = server + u":" + str(self.port)
+			server += u":" + str(self.port)
 		path = []
 		if scheme == u"server":
 			scheme = u"" # remove our own private scheme name
 			path.append(u"") # make sure that there's a "/" at the start
 		for dir in self.__path:
-			if for__str__ or not self.isPathMarker(dir):
+			if for__str__ or not _isPathMarker(dir):
 				path.append(dir)
 		file = self.file or u""
 		if self.ext:
-			file = file + u"." + self.ext
+			file += u"." + self.ext
 		path.append(file)
 		url = urlparse.urlunparse((scheme, server, u"/".join(path), self.parameters or u"", self.query or u"", self.fragment or u""))
-		if not for__str__:
-			pass
-			# FIXME do we do any % encoding?
-			# url = url.encode("utf8")
-			# v = []
-			# for c in url:
-			# 	if c not in self.__safe:
-			# 		v.append("%%%02x" % ord(c))
-			# 	else:
-			# 		v.append(c)
-			# url = unicode("".join(v), "ascii")
 		return url
+
+	def __quote(self):
+		"""
+		encodes the URL with % escapes
+		"""
+		url = self.asString().encode("utf8")
+		v = []
+		for c in url:
+			if c in self.__safe:
+				v.append(c)
+			else:
+				v.append("%%%02x" % ord(c))
+		return "".join(v)
 
 	def __join(self, other):
 		if not other.scheme:
-			if len(other.__path) and self.isPathMarker(other.__path[0]):
+			if len(other.__path) and _isPathMarker(other.__path[0]):
 				for i in xrange(len(self.__path)-1):
-					if self.isPathMarker(self.__path[i]) and self.__path[i] == other.__path[0]:
+					if _isPathMarker(self.__path[i]) and self.__path[i] == other.__path[0]:
 						self.__path[i:] = other.__path
 						break
 				else:
@@ -385,7 +391,7 @@ class URL:
 		# if there are duplicate path markers only keep the last one
 		path = [None] * lenpath
 		for name in dirs.keys():
-			if self.isPathMarker(name):
+			if _isPathMarker(name):
 				path[max(dirs[name])] = name
 			else:
 				for i in dirs[name]:
@@ -395,7 +401,7 @@ class URL:
 
 		# remove "foo/.." combinations
 		for i in xrange(len(path)):
-			if path[i]==u".." and i>0 and path[i-1]!=u".." and self.isNoPathMarker(path[i-1]): # found a down/up
+			if path[i]==u".." and i>0 and path[i-1]!=u".." and _isNoPathMarker(path[i-1]): # found a down/up
 				path[i-1] = None # remove both directory names
 				path[i] = None
 		self.__path = [ x for x in path if x is not None ]

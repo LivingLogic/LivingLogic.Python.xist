@@ -16,8 +16,7 @@ __version__ = "$Revision$"[11:-2]
 import sys
 import getopt
 import time
-from xist import xsc, html, publishers
-from xist.URL import URL
+from xist import xsc, html, publishers, url
 
 def __forceopen(name, mode):
 	try:
@@ -51,14 +50,14 @@ def make():
 
 	(options, args) = getopt.getopt(sys.argv[1:], "i:o:e:x:", ["import=", "output=", "encoding=", "xhtml="])
 
-	globaloutname = URL("*/")
+	globaloutname = url.URL("*/")
 	encoding = None
 	XHTML = None
 	for (option, value) in options:
 		if option=="-i" or option=="--import":
 			__import__(value)
 		elif option=="-o" or option=="--output":
-			globaloutname = URL(value)
+			globaloutname = url.URL(value)
 		elif option=="-e" or option=="--encoding":
 			encoding = value
 		elif option=="-x" or option=="--xhtml":
@@ -66,7 +65,7 @@ def make():
 
 	if args:
 		for file in args:
-			inname = URL(file)
+			inname = url.URL(file)
 			outname = globaloutname.clone()
 			if not outname.file:
 				outname += inname
@@ -82,12 +81,11 @@ def make():
 			xsc.xsc.pushURL(inname)
 			e_out = e_in.asHTML()
 			t3 = time.time()
-			p = publishers.BytePublisher(encoding=encoding, XHTML=XHTML)
+			p = publishers.FilePublisher(__forceopen(outname.asString(), "wb"), encoding=encoding, XHTML=XHTML)
 			e_out.publish(p)
-			s_out = p.asBytes()
-			__forceopen(outname.asString(), "wb").write(s_out)
 			t4 = time.time()
-			sys.stderr.write("XSC(encoding=%r, XHTML=%r): %r->%r: %s (parse %.02fs; transform %.02fs; save %.02fs)\n" % (encoding, XHTML, str(inname), str(outname), xsc._stransi("1", str(len(s_out))), t2-t1, t3-t2, t4-t3))
+			size = p.tell()
+			sys.stderr.write("XSC(encoding=%s, XHTML=%s): %s->%s: %s (parse %ss; transform %ss; save %ss)\n" % (xsc._stransi("1", encoding), xsc._stransi("1", str(XHTML)), xsc.strURL(str(inname)), xsc.strURL(str(outname)), xsc._stransi("1", str(size)), xsc._stransi("1", "%.02f" % (t2-t1)), xsc._stransi("1", "%.02f" % (t3-t2)), xsc._stransi("1", "%.02f" % (t4-t3))))
 			xsc.xsc.popURL()
 	else:
 		sys.stderr.write("XSC: no files to convert.\n")

@@ -24,7 +24,7 @@ except ImportError:
 import errors
 import options
 import xsc
-import URL
+import url
 
 providers = [] # provider stack
 
@@ -39,17 +39,17 @@ class Provider:
 		self.encoding = encoding
 		self.server = "localhost"
 		if parent is None:
-			self.filenames = [URL.URL("*/")]
+			self.filenames = [url.URL("*/")]
 			self.namespaces = [xsc.namespace]
 		else:
 			self.filenames = parent.filename[:]
 			self.namespaces = parent.namespaces[:]
 
-	def pushURL(self, url):
-		url = URL.URL(url)
+	def pushURL(self, u):
+		u = url.URL(u)
 		if len(self.filenames):
-			url = self.filenames[-1] + url
-		self.filenames.append(url)
+			u = self.filenames[-1] + u
+		self.filenames.append(u)
 
 	def popURL(self):
 		self.filenames.pop()
@@ -244,11 +244,11 @@ class StringProvider(Provider):
 class TidyURIProvider(Provider):
 	def parse(self, url):
 		self.pushURL(url)
-		url = self.filenames[-1].asString()
+		url = self.filenames[-1]
 		try:
-			(name, headers) = urllib.urlretrieve(str(url)) # get the desired file from the url
-			os.system("tidy -asxml -f /dev/null -quiet -modify "+name) # tidy it up
-			lines = open(name,"r").readlines()
+			(filename, headers) = url.retrieve() # get the desired file from the url
+			os.system("tidy -asxml -f /dev/null -quiet -modify "+filename) # tidy it up
+			lines = open(filename,"r").readlines()
 			element = self.parseLines(lines)
 			return element
 		finally:
