@@ -4,7 +4,7 @@
 import sys, unittest
 
 from ll.xist import xsc, parsers, presenters, converters, helpers, errors
-from ll.xist.ns import wml, ihtml, html, css, abbr, specials, xml
+from ll.xist.ns import wml, ihtml, html, css, abbr, specials, php, xml
 
 class XISTTestCase(unittest.TestCase):
 	def check_lenunicode(self, node, _len, content):
@@ -521,16 +521,58 @@ class XISTTestCase(unittest.TestCase):
 		self.assertEquals(node.isallowedattr("notestattr"), False)
 		self.assertEquals(node.attrs.isallowed("notestattr"), False)
 
-	def test_publish(self):
+	def test_publishelement(self):
 		node = html.html()
-		prefixes1 = xsc.Prefixes()
-		prefixes1.addPrefixMapping("h", html)
-		prefixes2 = xsc.Prefixes()
-		prefixes2.addPrefixMapping(None, html)
+
+		prefixes = xsc.Prefixes()
+		prefixes.addPrefixMapping("h", html)
+
 		self.assertEquals(node.asBytes(), "<html></html>")
-		self.assertEquals(node.asBytes(prefixes=prefixes1, elementmode=1), "<h:html></h:html>")
-		self.assertEquals(node.asBytes(prefixes=prefixes1, elementmode=2), """<h:html xmlns:h="http://www.w3.org/1999/xhtml"></h:html>""")
-		self.assertEquals(node.asBytes(prefixes=prefixes2, elementmode=2), """<html xmlns="http://www.w3.org/1999/xhtml"></html>""")
+		self.assertEquals(node.asBytes(prefixes=prefixes, elementmode=1), "<h:html></h:html>")
+		self.assertEquals(node.asBytes(prefixes=prefixes, elementmode=2), """<h:html xmlns:h="http://www.w3.org/1999/xhtml"></h:html>""")
+
+		prefixes = xsc.Prefixes()
+		prefixes.addPrefixMapping(None, html)
+
+		self.assertEquals(node.asBytes(prefixes=prefixes, elementmode=2), """<html xmlns="http://www.w3.org/1999/xhtml"></html>""")
+
+	def test_publishentity(self):
+		node = abbr.xml()
+
+		prefixes = xsc.Prefixes()
+		prefixes.addPrefixMapping("a", abbr)
+		prefixes.addPrefixMapping("s", specials)
+
+		self.assertEquals(node.asBytes(), "&xml;")
+		self.assertEquals(node.asBytes(prefixes=prefixes, entitymode=1), "&a:xml;")
+		self.assertEquals(node.asBytes(prefixes=prefixes, entitymode=2), """<wrap entityns:a="http://xmlns.livinglogic.de/xist/ns/abbr">&a:xml;</wrap>""")
+		self.assertEquals(node.asBytes(prefixes=prefixes, elementmode=2, entitymode=2), """<s:wrap entityns:a="http://xmlns.livinglogic.de/xist/ns/abbr" xmlns:s="http://xmlns.livinglogic.de/xist/ns/specials">&a:xml;</s:wrap>""")
+
+		prefixes = xsc.Prefixes()
+		prefixes.addPrefixMapping(None, abbr)
+		prefixes.addPrefixMapping("s", specials)
+
+		self.assertEquals(node.asBytes(prefixes=prefixes, entitymode=2), """<wrap entityns="http://xmlns.livinglogic.de/xist/ns/abbr">&xml;</wrap>""")
+		self.assertEquals(node.asBytes(prefixes=prefixes, elementmode=2, entitymode=2), """<s:wrap entityns="http://xmlns.livinglogic.de/xist/ns/abbr" xmlns:s="http://xmlns.livinglogic.de/xist/ns/specials">&xml;</s:wrap>""")
+
+	def test_publishprocinst(self):
+		node = php.php("x")
+
+		prefixes = xsc.Prefixes()
+		prefixes.addPrefixMapping("p", php)
+		prefixes.addPrefixMapping("s", specials)
+
+		self.assertEquals(node.asBytes(), "<?php x?>")
+		self.assertEquals(node.asBytes(prefixes=prefixes, procinstmode=1), "<?p:php x?>")
+		self.assertEquals(node.asBytes(prefixes=prefixes, procinstmode=2), """<wrap procinstns:p="http://www.php.net/"><?p:php x?></wrap>""")
+		self.assertEquals(node.asBytes(prefixes=prefixes, elementmode=2, procinstmode=2), """<s:wrap procinstns:p="http://www.php.net/" xmlns:s="http://xmlns.livinglogic.de/xist/ns/specials"><?p:php x?></s:wrap>""")
+
+		prefixes = xsc.Prefixes()
+		prefixes.addPrefixMapping(None, php)
+		prefixes.addPrefixMapping("s", specials)
+
+		self.assertEquals(node.asBytes(prefixes=prefixes, procinstmode=2), """<wrap procinstns="http://www.php.net/"><?php x?></wrap>""")
+		self.assertEquals(node.asBytes(prefixes=prefixes, elementmode=2, procinstmode=2), """<s:wrap procinstns="http://www.php.net/" xmlns:s="http://xmlns.livinglogic.de/xist/ns/specials"><?php x?></s:wrap>""")
 
 if __name__ == "__main__":
 	unittest.main()
