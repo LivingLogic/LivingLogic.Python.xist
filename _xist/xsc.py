@@ -1080,6 +1080,10 @@ class Frag(Node, list):
 			elif child is not Null:
 				list.append(self, child)
 
+	def __call__(self, *content):
+		self.extend(content)
+		return self
+
 	def _str(cls, fullname=True, xml=True, decorate=True):
 		s = ansistyle.Text()
 		if decorate:
@@ -2374,6 +2378,16 @@ class Element(Node):
 		self.content = Frag(*newcontent)
 		for (attrname, attrvalue) in attrs.iteritems():
 			self.attrs[attrname] = attrvalue
+
+	def __call__(self, *content, **attrs):
+		for child in content:
+			if isinstance(child, dict):
+				self.attrs.update(child)
+			else:
+				self.content.append(child)
+		for (attrname, attrvalue) in attrs.iteritems():
+			self.attrs[attrname] = attrvalue
+		return self
 
 	def __eq__(self, other):
 		return self.__class__ is other.__class__ and self.content==other.content and self.attrs==other.attrs

@@ -4,8 +4,47 @@
 <item><class>ll.xist.ns.htmlspecials.caps</class> has been removed.</item>
 <item><class>ll.xist.xsc.CharRef</class> now inherits from
 <class>ll.xist.xsc.Text</class> too, so you don't have to special case
-<class>CharRef</class>s any more. When publishing <class>CharRef</class>s
+<class>CharRef</class>s any more. When publishing, <class>CharRef</class>s
 will be handled like <class>Text</class> nodes.</item>
+<item><p><class>ll.xist.xsc.Frag</class> and <class>ll.xist.xsc.Element</class>
+both have a <method>__call__</method> method with the same arguments as
+their constructors. Those methods will append content nodes (and set attributes
+for <class>ll.xist.xsc.Element</class>) and return <self/>, so they can be used
+when creating an object tree. This makes it possible to put the attributes close
+to the tag name, instead of putting them at the end after the content.</p>
+<p>Instead of:</p>
+<example>
+<prog>
+node = html.table(
+	html.tr(
+		html.td("foo"),
+		html.td("bar"),
+	),
+	html.tr(
+		html.td("spam"),
+		html.td("eggs")
+	),
+	class_="example"
+)
+</prog>
+</example>
+<p>you can now use the following:</p>
+<example>
+<prog>
+node = html.table(class_="example")(
+	html.tr(
+		html.td("foo"),
+		html.td("bar"),
+	),
+	html.tr(
+		html.td("spam"),
+		html.td("eggs")
+	)
+)
+</prog>
+</example>
+
+</item>
 </ulist>
 </section>
 
