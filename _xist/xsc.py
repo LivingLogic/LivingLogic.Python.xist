@@ -1983,7 +1983,7 @@ class Element(Node):
 		<par>Create a new <class>Element</class> instance.</par>
 		
 		<par>positional arguments are treated as content nodes.
-		keyword arguments and dictionaries are treated as attributes.</par>
+		Keyword arguments and dictionaries are treated as attributes.</par>
 		"""
 		self.attrs = self.Attrs()
 		newcontent = []
