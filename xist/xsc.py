@@ -112,7 +112,17 @@ class XSCMalformedCharRef(XSCError):
 		self.name = name
 
 	def __str__(self):
-		return XSCError.__str__(self) + "Malformed character reference: &#" + name + ";"
+		return XSCError.__str__(self) + "Malformed character reference: &#" + self.name + ";"
+
+class XSCUnknownEntity(XSCError):
+	"""exception that is raised, when an unknown entity (i.e. one that wasn't registered via RegisterEntity) is encountered"""
+
+	def __init__(self,lineno,name):
+		XSCError.__init__(self,lineno)
+		self.name = name
+
+	def __str__(self):
+		return XSCError.__str__(self) + "Unknown entitiy: &" + self.name + ";"
 
 ###
 ###
@@ -741,10 +751,11 @@ RegisterElement("url",XSCurl)
 ###
 ###
 
-def RegisterEntity(name,number):
-	xmllib.XMLParser.entitydefs[name] = "&#" + str(number) + ";"
-
 class XSCParser(xmllib.XMLParser):
+	entitiesByNumber = [ None ] * 65536
+
+	entitiesByName = {}
+
 	def reset(self):
 		xmllib.XMLParser.reset(self)
 		# our nodes do not have a parent link, therefore we have to store the active path through the tree in a stack (which we call nesting, because stack is already used by the base class
@@ -766,13 +777,19 @@ class XSCParser(xmllib.XMLParser):
 	def handle_charref(self,name):
 		try:
 			if name[0] == 'x':
-				n = string.atoi(name[1:], 16)
+				n = string.atoi(name[1:],16)
 			else:
 				n = string.atoi(name)
 		except string.atoi_error:
 			raise XSCMalformedCharRef(xsc.parser.lineno,name)
 
 		self.__appendNode(XSCCharRef(n))
+
+	def handle_entityref(self,name):
+		if self.entitiesByName.has_key(name):
+			self.__appendNode(XSCCharRef(self.entitiesByName[name]))
+		else:
+			raise XSCUnknownEntity(xsc.parser.lineno,name)
 
 	def unknown_starttag(self,name,attrs):
   		lowername = string.lower(name)
@@ -794,6 +811,12 @@ class XSCParser(xmllib.XMLParser):
 
 	def handle_comment(self,data):
 		self.__appendNode(XSCComment(data))
+
+def RegisterEntity(name,number):
+	if XSCParser.entitiesByNumber[number] == None:
+		XSCParser.entitiesByNumber[number] = []
+	XSCParser.entitiesByNumber[number].append(name)
+	XSCParser.entitiesByName[name] = number
 
 RegisterEntity("nbsp",160)
 RegisterEntity("iexcl",161)
