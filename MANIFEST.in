@@ -1,5 +1,5 @@
 include ANNOUNCE
-include CHANGES
+include NEWS
 include CREDITS
 include README
 include TODO

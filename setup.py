@@ -16,5 +16,6 @@ setup(
 	#url = "http://",
 	licence = "Python",
 	packages = ['xist', 'xist.ns'],
-	ext_modules = [Extension("xist.helpers", ["xist/helpers.c"])]
+	package_dir = {"xist": "_xist"},
+	ext_modules = [Extension("xist.helpers", ["_xist/helpers.c"])]
 )
