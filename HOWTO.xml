@@ -1233,6 +1233,11 @@ as expected.</par></item>
 
 </section>
 
+
+<section><title>Pretty printing &xml;</title>
+</section>
+
+
 <section><title>Automatic generation of image size attributes</title>
 
 <par>The module <pyref module="ll.xist.ns.htmlspecials"><module>ll.xist.ns.htmlspecials</module></pyref>
@@ -1244,6 +1249,7 @@ and <lit>width</lit> attributes will be set accordingly, if those attributes
 are not set already.</par>
 
 </section>
+
 
 <section><title>Embedding Python code</title>
 <par>It's possible to embed Python code into &xist; &xml; files. For this
