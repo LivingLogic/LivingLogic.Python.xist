@@ -1,3 +1,10 @@
+New in 0.4.7
+------------
+Fixed a bug in the entity handling.
+
+Added a few deprecated elements and attributes to
+the html module.
+
 New in 0.4.6
 ------------
 Now uses sgmlop.XMLParser instead of sgmlop.SGMLParser,
