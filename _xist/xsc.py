@@ -1212,7 +1212,7 @@ class Attrs(Node, dict):
 	def copydefaults(self, fromMapping):
 		"""
 		Sets attributes that are not set in <self/> to the default
-		values taken from the fromMapping mapping.
+		values taken from the <arg>fromMapping</arg> mapping.
 		"""
 
 		for (attrname, attrvalue) in fromMapping.items():
@@ -1512,7 +1512,7 @@ class Element(Node):
 	def copyDefaultAttrs(self, fromMapping):
 		"""
 		<doc:par>Sets attributes that are not set in <self/> to the default
-		values taken from the fromDict dictionary.
+		values taken from the <arg>fromMapping</arg> mapping.
 		If <arg>fromDict</arg> is omitted, defaults are taken from
 		<lit><self/>.defaults</lit>.</doc:par>
 
