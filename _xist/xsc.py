@@ -1110,13 +1110,7 @@ class Element(Node):
 							except TypeError: # ignore "not all argument converted"
 								pass
 							except Exception, exc:
-								warnings.warn(
-									"the value %s for the image size attribute %s of the element %s can't be formatted or evaluated: %s. The attribute will be dropped." %
-										(presenters.strAttrValue(self[attr].asPlainString()),
-										 presenters.strAttrName(attr),
-										 presenters.strElementWithBrackets(self),
-										 exc),
-									errors.ImageSizeFormatWarning)
+								errors.warn(errors.ImageSizeFormatWarning(self, attr, self[attr].asPlainString(), exc))
 								del self[attr]
 						else:
 							self[attr] = size[attr==heightattr]

@@ -34,16 +34,13 @@ except ImportError:
 
 import os, stat, types, urlparse, urllib, warnings
 
-from xist import options
+from xist import options, errors
 
 urlparse.uses_relative.extend(("root", "server", None))
 urlparse.uses_params.extend(("root", "server"))
 urlparse.uses_query.extend(("root", "server"))
 urlparse.uses_fragment.extend(("root", "server"))
 urlparse.non_hierarchical.append("javascript")
-
-class FileNotFoundWarning(UserWarning):
-	pass
 
 def _normalize(path):
 	"""
@@ -359,7 +356,7 @@ class URL:
 				size = os.stat(filename)[stat.ST_SIZE]
 			except (IOError, OSError), exc:
 				urllib.urlcleanup()
-				warnings.warn("can't determine file size: %s" % exc, FileNotFoundWarning)
+				errors.warn(errors.FileNotFoundWarning("can't determine file size", self, exc))
 			else:
 				urllib.urlcleanup()
 		return size
@@ -379,7 +376,7 @@ class URL:
 						del img
 				except (IOError, OSError), exc:
 					urllib.urlcleanup()
-					warnings.warn("can't determine image size: %s" % exc, FileNotFoundWarning)
+					errors.warn(errors.FileNotFoundWarning("can't determine image size", self, exc))
 				else:
 					urllib.urlcleanup()
 		return size

@@ -30,13 +30,22 @@ the base class <pyref class="Error">Error</pyref>.</doc:par>
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-import types
+import types, warnings
 
 import xsc, presenters
+
+def warn(warning):
+	warnings.warn(str(warning), UserWarning, 2) # stacklevel==2, i.e. report our caller
 
 class Error(Exception):
 	"""
 	base class for all XSC exceptions
+	"""
+	pass
+
+class Warning(UserWarning):
+	"""
+	base class for all XSC warnings
 	"""
 	pass
 
@@ -181,10 +190,34 @@ class IllegalAttrNodeError(Error):
 	def __str__(self):
 		return "illegal node of type %s found inside attribute" % self.node.__class__.__name__
 
-class ImageSizeFormatWarning(UserWarning):
+class ImageSizeFormatWarning(Warning):
 	"""
 	warning that is raised, when XSC can't format or evaluate image size attributes
 	"""
+
+	def __init__(self, element, attr, value, exc):
+		Warning.__init__(self, element, attr, value, exc)
+		self.element = element
+		self.attr = attr
+		self.value = value
+		self.exc = exc
+
+	def __str__(self):
+		return "the value %r for the image size attribute %r of the element %r can't be formatted or evaluated (%s). The attribute will be dropped." % (self.value, self.attr, self.element, self.exc)
+
+class FileNotFoundWarning(Warning):
+	"""
+	warning that is raised, when a file can't be found
+	"""
+	def __init__(self, message, filename, exc):
+		Warning.__init__(self, message, filename, exc)
+		self.element = element
+		self.message = message
+		self.filename = filename
+		self.exc = exc
+
+	def __str__(self):
+		return "%s: file %s not found (%s)" % (self.message, self.filename, self.exc)
 
 class IllegalObjectError(Error):
 	"""
