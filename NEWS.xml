@@ -3,7 +3,7 @@
 <ulist>
 
 <item><par>Namespace handling has been completely rewritten.
-Namespaces are now classes derived from <class>ll.xist.Namespace</class>.
+Namespaces are now classes derived from <class>ll.xist.xsc.Namespace</class>.
 Defining element classes can be done inside or outside the namespace
 class. If the element classes are defined outside the namespace
 class, they can be moved inside the namespace with a simple
