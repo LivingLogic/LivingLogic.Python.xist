@@ -555,7 +555,7 @@ class Parser(object):
 						newnode.append(toxsc(child))
 						child = child.next
 					return newnode
-				elif node.type == "text":
+				elif node.type in ("text", "cdata"):
 					return xsc.Text(node.content.decode("utf-8"))
 				elif node.type == "comment":
 					return xsc.Comment(node.content.decode("utf-8"))
