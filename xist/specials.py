@@ -123,7 +123,7 @@ class x(xsc.Element):
 	element whose content will be ignored when converted to HTML:
 	this can be used to comment out stuff.
 	"""
-	close=1
+	empty = 0
 
 	def asHTML(self):
 		return xsc.Null()
