@@ -1097,7 +1097,7 @@ class Frag(Node, list):
 
 class Comment(CharacterData):
 	"""
-	a comment node
+	A comment node
 	"""
 
 	def convert(self, converter):
@@ -1152,7 +1152,7 @@ class DocType(CharacterData):
 
 class ProcInst(CharacterData):
 	"""
-	<par>Class for processing instruction. This class is abstract.</par>
+	<par>Base class for processing instructions. This class is abstract.</par>
 
 	<par>Processing instruction with the target <lit>xml</lit> will be
 	handled by the derived class <pyref module="ll.xist.ns.xml" class="XML"><class>XML</class></pyref>.
@@ -1162,7 +1162,7 @@ class ProcInst(CharacterData):
 	register = None
 
 	# we don't need a constructor, because we don't have to store the target,
-	# because the target is our classname (or the class attribute name)
+	# because the target is our classname (this works the same way as for Element)
 
 	class __metaclass__(CharacterData.__metaclass__):
 		def __new__(cls, name, bases, dict):
@@ -1256,9 +1256,10 @@ class Null(CharacterData):
 		return self
 
 	def clone(self):
-		pass
+		return self
 
-	compact = clone
+	def compact(self):
+		return self
 
 	def publish(self, publisher):
 		pass
