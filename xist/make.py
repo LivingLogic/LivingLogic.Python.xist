@@ -21,7 +21,7 @@ from xist.URL import URL
 def __forceopen(name, mode):
 	try:
 		return open(name, mode)
-	except IOError,e:
+	except IOError, e:
 		if e[0] != 2: # didn't work for some other reason
 			raise
 		found = name.rfind("/")

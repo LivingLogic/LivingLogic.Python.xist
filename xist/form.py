@@ -9,7 +9,7 @@ forms. These are just abbreviations for the various
 __version__ = "$Revision$"[11:-2]
 # $Source$
 
-import xsc,html
+import xsc, html
 
 class checkbox(xsc.Element):
 	attrHandlers = { "name": xsc.TextAttr, "value": xsc.TextAttr }
@@ -50,9 +50,9 @@ class hidden(xsc.Element):
 		return ""
 
 	def asHTML(self):
-		e = html.input(type="hidden",name=self["name"])
+		e = html.input(type="hidden", name=self["name"])
 		if self.hasAttr("value"):
 			e["value"] = self["value"]
 		return e.asHTML()
 
-namespace = xsc.Namespace("form","http://www.livinglogic.de/DTDs/form.dtd",vars())
+namespace = xsc.Namespace("form", "http://www.livinglogic.de/DTDs/form.dtd", vars())

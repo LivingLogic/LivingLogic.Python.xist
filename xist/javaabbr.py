@@ -7,7 +7,7 @@ This module contains entities for a bunch of Java abbreviations and acronyms.
 __version__ = "$Revision$"[11:-2]
 # $Source$
 
-from xist import xsc,html
+from xist import xsc, html
 
 class rmi(xsc.Entity):
 	def asHTML(self):

@@ -18,7 +18,7 @@ import sys
 class Code:
 	def __init__(self, text, ignorefirst = 0):
 		# get the individual lines; ignore "\r" as this would mess up whitespace handling later
-		lines = text.replace("\r","").split("\n")
+		lines = text.replace("\r", "").split("\n")
 		# split of the whitespace at the beginning of each line
 		for i in xrange(len(lines)):
 			line = lines[i]
@@ -37,13 +37,13 @@ class Code:
 			raise ValueError("can't ignore the first line, as it does contain whitespace")
 		# find the shortest whitespace in non empty lines
 		shortestlen = sys.maxint
-		for i in xrange(ignorefirst,len(lines)):
+		for i in xrange(ignorefirst, len(lines)):
 			if lines[i][1]:
-				shortestlen = min(shortestlen,len(lines[i][0]))
+				shortestlen = min(shortestlen, len(lines[i][0]))
 		# remove the common whitespace; a check is done, whether the common whitespace is the same in all lines
 		common = None
 		if shortestlen:
-			for i in xrange(ignorefirst,len(lines)):
+			for i in xrange(ignorefirst, len(lines)):
 				if lines[i][1]:
 					test = lines[i][0][:shortestlen]
 					if common is not None:
@@ -61,7 +61,7 @@ class Code:
 
 	def funcify(self, name="__"):
 		self.indent()
-		self.lines.insert(0,[u"",u"def " + name + u"():"])
+		self.lines.insert(0, [u"", u"def " + name + u"():"])
 
 	def asString(self):
 		v = []

@@ -40,7 +40,7 @@ class plainbody(html_.body):
 	<code>defaults</code>).
 	"""
 	empty = 0
-	defaults = {"leftmargin": 0, "topmargin": 0,"marginheight": 0, "marginwidth": 0}
+	defaults = {"leftmargin": 0, "topmargin": 0, "marginheight": 0, "marginwidth": 0}
 
 	def asHTML(self):
 		e = html_.body(self.content, self.attrs)

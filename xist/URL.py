@@ -50,7 +50,7 @@ class URL:
 			pass
 		elif type(url) in (types.StringType, types.UnicodeType):
 			self.__fromString(url)
-		elif isinstance(url,URL):
+		elif isinstance(url, URL):
 			self.scheme     = url.scheme
 			self.server     = url.server
 			self.port       = url.port
@@ -148,7 +148,7 @@ class URL:
 
 	def isPathMarker(self, dir):
 		"""
-		isPathMarker(self,dir) -> bool
+		isPathMarker(self, dir) -> bool
 		
 		returns if the directory name dir is a path marker.
 		"""
@@ -156,9 +156,9 @@ class URL:
 
 	def isNoPathMarker(self, dir):
 		"""
-		isNoPathMarker(self,dir) -> bool
+		isNoPathMarker(self, dir) -> bool
 		
-		returns not isPathMarker(self,dir)
+		returns not isPathMarker(self, dir)
 		"""
 		return not self.isPathMarker(dir)
 
@@ -190,7 +190,7 @@ class URL:
 	def asString(self):
 		return self.__asString(0)
 
-	def __add__(self,other):
+	def __add__(self, other):
 		"""
 		joins two URLs together. When the second URL is
 		absolute (i.e. contains a scheme other than "server"
@@ -198,7 +198,7 @@ class URL:
 		"""
 		return self.clone().__join(URL(other))
 
-	def __radd__(self,other):
+	def __radd__(self, other):
 		return URL(other).__join(self.clone())
 
 	__radd__.__doc__ = __add__.__doc__
@@ -268,7 +268,7 @@ class URL:
 		(scheme, server, path, parameters, query, fragment) = urlparse.urlparse(url)
 		scheme = stringFromCode(scheme)
 		server = stringFromCode(server)
-		__path = map(stringFromCode,path)
+		__path = map(stringFromCode, path)
 		parameters = stringFromCode(parameters)
 		query = stringFromCode(query)
 		fragment = stringFromCode(fragment)
@@ -306,7 +306,7 @@ class URL:
 		self.query = query or None
 		self.fragment = fragment or None
 
-	def __asString(self,for__str__):
+	def __asString(self, for__str__):
 		scheme = self.scheme or u""
 		server = self.server or u""
 		if self.port:
@@ -335,7 +335,7 @@ class URL:
 			# 		v.append("%%%02x" % ord(c))
 			# 	else:
 			# 		v.append(c)
-			# url = unicode("".join(v),"ascii")
+			# url = unicode("".join(v), "ascii")
 		return url
 
 	def __join(self, other):

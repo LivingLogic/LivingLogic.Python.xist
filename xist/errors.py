@@ -54,7 +54,7 @@ class EmptyElementWithContentError(Error):
 	"""
 
 	def __init__(self, element):
-		Error.__init__(self,element.startloc)
+		Error.__init__(self, element.startloc)
 		self.element = element
 
 	def __str__(self):
@@ -121,7 +121,7 @@ class IllegalElementError(Error):
 		all = {}
 		for namespace in xsc.namespaceRegistry.byPrefix.values():
 			for element in namespace.elementsByName.values():
-				all[(element.name,element.namespace.prefix)] = element
+				all[(element.name, element.namespace.prefix)] = element
 
 		allkeys = all.keys()
 		allkeys.sort()
