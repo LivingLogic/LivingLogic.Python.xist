@@ -1909,7 +1909,8 @@ namespaceRegistry = NamespaceRegistry()
 
 class Namespaces:
 	"""
-	list of namespaces.
+	list of namespaces to be searched in a specific order
+	to instantiate elements, entities and procinsts.
 	"""
 	def __init__(self, *namespaces):
 		self.namespaces = []
@@ -1917,9 +1918,24 @@ class Namespaces:
 		self.pushNamespace(*namespaces)
 
 	def pushNamespace(self, *namespaces):
+		"""
+		pushes the namespaces onto the stack in this order,
+		i.e. the last one in the list will be the first
+		one to be searched.
+
+		items in namespaces can be:
+			1. namespace objects,
+			2. Module objects, in which case module.namespace
+			   will be used as the Namespace object
+			3. strings, which specify the namespace
+			   prefix, i.e. namespaceRegistry.byPrefix[string]
+			   will be used.
+		"""
 		for namespace in namespaces:
 			if type(namespace) is types.ModuleType:
 				namespace = namespace.namespace
+			elif type(namespace) in (types.StringType, types.UnicodeType):
+				namespace = namespaceRegistry.byPrefix[namespace]
 			self.namespaces.insert(0, namespace) # built in reverse order, so a simple "for in" finds the most recent entry.
 
 	def popNamespace(self, count=1):
