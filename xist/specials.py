@@ -84,7 +84,11 @@ class filesize(xsc.Element):
 	attrHandlers = { "href" : xsc.URLAttr }
 
 	def asHTML(self):
-		return xsc.Text(self["href"].FileSize())
+		size = self["href"].FileSize()
+		if size is not None:
+			return xsc.Text(size)
+		else:
+			return xsc.Text("?")
 
 class filetime(xsc.Element):
 	"""

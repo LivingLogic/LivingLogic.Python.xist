@@ -1,5 +1,20 @@
 Hi all!
 
+What's new?
+-----------
+* XIST now uses sgmlop directly, so it doesn't require xmllib anymore
+  and works with PyXML-0.5.4
+* A new example that generates XML documentation from Python modules,
+  so you can write your Python docstrings in XML. Note that this isn't
+  finished yet, and should be considered work in progress.
+* XIST now provides line number information in repr dumps and exceptions,
+  which greatly simplifies finding error in XML files.
+* Various enhancements and bugfixes.
+
+
+What is it?
+-----------
+
 XIST is a HTML preprocessor/generator and an XML transformation engine.
 Some of the significant features of XIST include:
 
@@ -17,8 +32,13 @@ ideas from it.
 It also borrows the basic ideas (XML/HTML elements as Python objects)
 from HTMLgen or HyperText.
 
+
+Where can I get it?
+-------------------
+
 XIST is available from ftp://titan.bnbt.de/pub/livinglogic/xist/.
 Direct questions regarding XIST to walter@bnbt.de.
+
 
 <p><a href="ftp://titan.bnbt.de/pub/livinglogic/xist/">XIST 0.2</a> -
 an XML based extensible HTML generator. (16-May-2000)

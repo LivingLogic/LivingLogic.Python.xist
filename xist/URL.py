@@ -186,8 +186,14 @@ class URL:
 	def __cmp__(self,other):
 		return cmp(self.scheme,other.scheme) or cmp(self.server,other.server) or cmp(self.port,other.port) or cmp(self.path,other.path) or cmp(self.file,other.file) or cmp(self.ext,other.ext) or cmp(self.parameters,other.parameters) or cmp(self.query,other.query) or cmp(self.fragment,other.fragment)
 
+	def open(self):
+		return urllib.urlopen(self.asString())
+
 	def read(self):
-		return urllib.urlopen(self.asString()).read()
+		return self.open().read()
+
+	def readlines(self):
+		return self.open().readlines()
 
 	def __fromString(self,url):
 		(self.scheme,self.server,self.path,self.parameters,self.query,self.fragment) = urlparse.urlparse(url)

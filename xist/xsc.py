@@ -517,40 +517,6 @@ def appendDict(*dicts):
 			result[key] = dict[key]
 	return result
 
-def string2Fragment(s):
-	"""
-	parses a string that might contain entities into a fragment
-	with text nodes and character references (and other stuff,
-	if the string contains entities).
-	"""
-	e = Frag()
-	while 1:
-		try:
-			i = string.index(s,"&")
-			if i != 0:
-				e.append(s[:i])
-				s = s[i:]
-			try:
-				i = string.index(s,";")
-				if s[1] == "#":
-					if s[2] == "x":
-						e.append(CharRef(string.atoi(s[3:i],16)))
-					else:
-						e.append(CharRef(int(s[2:i])))
-				else:
-					try:
-						e.append(entitiesByName[s[1:i]])
-					except KeyError:
-						raise UnknownEntityError(-1,s[1:i])
-				s = s[i+1:]
-			except ValueError:
-				raise MalformedCharRefError(-1,s)
-		except ValueError:
-			if len(s):
-				e.append(s)
-			break
-	return e
-
 def ToNode(value):
 	t = type(value)
 	if t == types.InstanceType:
@@ -1525,7 +1491,7 @@ class Element(Node):
 		if self.hasAttr(imgattr):
 			size = self[imgattr].ImageSize()
 			sizedict = { "width": size[0], "height": size[1] }
-			if size[0] != -1: # the width was retrieved so we can use it
+			if size is not None: # the size was retrieved so we can use it
 				if self.hasAttr(widthattr):
 					try:
 						self[widthattr] = eval(self[widthattr].asPlainString() % sizedict)
@@ -1533,7 +1499,6 @@ class Element(Node):
 						raise ImageSizeFormatError(-1,self,widthattr)
 				else:
 					self[widthattr] = size[0]
-			if size[1] != -1: # the height was retrieved so we can use it
 				if self.hasAttr(heightattr):
 					try:
 						self[heightattr] = eval(self[heightattr].asPlainString() % sizedict)
@@ -1694,11 +1659,11 @@ class URLAttr(Attr):
 
 	def ImageSize(self):
 		"""
-		returns the size of an image as a tuple or (-1,-1) if the image shouldn't be read
+		returns the size of an image as a tuple or None if the image shouldn't be read
 		"""
 
 		url = self.forInput()
-		size = (-1,-1)
+		size = None
 		if xsc.isRetrieve(url):
 			try:
 				filename,headers = urllib.urlretrieve(url.asString())
@@ -1714,12 +1679,12 @@ class URLAttr(Attr):
 
 	def FileSize(self):
 		"""
-		returns the size of a file in bytes or -1 if the file shouldn't be read
+		returns the size of a file in bytes or None if the file shouldn't be read
 		"""
 
 		url = self.forInput()
 
-		size = -1
+		size = None
 		if xsc.isRetrieve(url):
 			try:
 				filename,headers = urllib.urlretrieve(url.asString())
@@ -1913,7 +1878,7 @@ class XSC:
 	def finish_starttag(self,name,attrs):
 		e = self.elementFromName(name)()
 		for name,value in attrs:
-			e[name] = string2Fragment(value)
+			e[name] = self.__string2Fragment(value)
 		self.__appendNode(e)
 		self.__nesting.append(e) # push new innermost element onto the stack
 
@@ -1936,16 +1901,41 @@ class XSC:
 		"""
 		Parses a string and returns the resulting XSC
 		"""
-		return self.__parse(string,1)
+		self.__nesting = [ Frag() ]
+
+		parser = sgmlop.SGMLParser()
+		parser.register(self)
+
+		self.lineno = 1
+		parser.feed(string)
+		parser.close()
+
+		return self.__nesting[0]
 
 	def parse(self,url):
 		"""
 		Reads and parses a XML file from an URL and returns the resulting XSC
 		"""
 		self.pushURL(url)
-		result = self.__parse(xsc.filename[-1].read())
+
+		self.__nesting = [ Frag() ]
+
+		lines = self.filename[-1].readlines()
+
+		parser = sgmlop.SGMLParser()
+		parser.register(self)
+
+		self.lineno = 1
+		for line in lines:
+			parser.feed(line)
+			self.lineno = self.lineno + 1
+		parser.close()
+
 		self.popURL()
-		return result
+
+		# our nodes do not have a parent link, therefore we have to store the active path through the tree in a stack (which we call nesting, because stack is already used by the base class (there is no base class anymore, but who cares))
+		# after we've finished parsing, the Frag that we put at the bottom of the stack will be our document root
+		return self.__nesting[0]
 
 	def __repr__(self):
 		return '<xsc filename="' + self.filename + '" server="' + self.server + '" retrieveremote=' + [ 'no' , 'yes' ][retrieveremote] + '" retrievelocal=' + [ 'no' , 'yes' ][retrievelocal] + '>'
@@ -1958,23 +1948,10 @@ class XSC:
 			return 0
 
 	def __here(self):
-		return Location(self.filename[-1])
-
-	def __parse(self,string,pad = 0):
-		# our nodes do not have a parent link, therefore we have to store the active path through the tree in a stack (which we call nesting, because stack is already used by the base class (there is no base class anymore, but who cares))
-		# after we've finished parsing, the Frag that we put at the bottom of the stack will be our document root
-		self.__nesting = [ Frag() ]
-		self.lineno = -1
-		parser = sgmlop.SGMLParser()
-		parser.register(self)
-		parser.parse(string)
-		if pad: # strange bug in sgmlop
-			parser.parse(" ")
-		parser.close()
-		return self.__nesting[0]
+		return Location(self.filename[-1],self.lineno)
 
 	def __appendNode(self,node):
-		node.startlineno = -1
+		node.startlineno = self.lineno
 		last = self.__nesting[-1]
 		if len(last) and isinstance(last[-1],Text):
 			if isinstance(node,Text):
@@ -1984,6 +1961,40 @@ class XSC:
 				last[-1].content = last[-1].content + chr(node.content)
 				return
 		last.append(node) # add the new node to the content of the innermost element (or fragment)
+
+	def __string2Fragment(self,text):
+		"""
+		parses a string that might contain entities into a fragment
+		with text nodes and character references (and other stuff,
+		if the string contains entities).
+		"""
+		e = Frag()
+		while 1:
+			try:
+				i = string.index(text,"&")
+				if i != 0:
+					e.append(text[:i])
+					text = text[i:]
+				try:
+					i = string.index(text,";")
+					if text[1] == "#":
+						if text[2] == "x":
+							e.append(CharRef(string.atoi(text[3:i],16)))
+						else:
+							e.append(CharRef(int(text[2:i])))
+					else:
+						try:
+							e.append(entitiesByName[text[1:i]])
+						except KeyError:
+							raise UnknownEntityError(self.__here(),text[1:i])
+					text = text[i+1:]
+				except ValueError:
+					raise MalformedCharRefError(self.__here(),text)
+			except ValueError:
+				if len(text):
+					e.append(text)
+				break
+		return e
 
 def __forceopen(name,mode):
 	try:
