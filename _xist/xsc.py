@@ -477,19 +477,20 @@ class Node(Base):
 		<par>This requires that <app moreinfo="http://w3m.sf.net/">w3m</app> is installed.</par>
 		"""
 
-		options = ""
+		options = []
 		if monochrome:
-			options += " -M"
+			options.append("-M")
 		if squeezeBlankLines:
-			options += " -S"
+			options.append("-S")
 		if lineNumbers:
-			options += " -num"
+			options.append("-num")
 		if width != 80:
-			options += " -cols %d" % width
+			options.append("-cols %d" % width)
 
 		text = self.asBytes(encoding="iso-8859-1")
 
-		(stdin, stdout) = os.popen2("w3m %s -T text/html -dump" % options)
+		cmd = "w3m %s -T text/html -dump" % " ".join(options)
+		(stdin, stdout) = os.popen2(cmd)
 
 		stdin.write(text)
 		stdin.close()
