@@ -37,7 +37,7 @@ a dictionary with those classes (use <lit>vars()</lit>
 to add everthing that's defined inside your module). The method
 <method>updatenew</method> does the same, but copies only those
 attributes that don't exist in the namespace, <method>updateexisting</method>
-copies only those that don't exist. You can turn a namespace
+copies only those that do exist. You can turn a namespace
 into a module with <method>makemod</method>:</par>
 <prog>
 from ll.xist import xsc
@@ -92,22 +92,24 @@ extended slices.</item>
 <item><class>Frag</class> and <class>Element</class> now support
 the methods <method>extend</method> and <method>__iadd__</method>.</item>
 
-<item>For walking the tree the <method>walk</method> has been completely
+<item>For walking the tree the method <method>walk</method> has been completely
 rewritten and a new method <method>visit</method> has been added. For
 more info see the docstrings.</item>
 
 <item><class>Node</class> now has two new methods <method>copy</method>
-and <method>deepcopy</method> and supports the <module>copy</module>.</item>
+and <method>deepcopy</method> and supports the <module>copy</module>
+module from the Python standard library.</item>
 
 <item>Calling <method>mapped</method> through <method>conv</method> has
 been removed. You again have to call <method>mapped</method> directly
 and pass a node and a converter.</item>
 
 <item>The &html; handling of the <class>HTMLParser</class> has been improved
-(it now uses code from <module>xml.sax.drivers2.drv_sgmlop_html</module>).</item>
+(it now uses code from <module>xml.sax.drivers2.drv_sgmlop_html</module> (which
+is part of <link href="http://pyxml.sf.net">PyXML</link>)).</item>
 
 <item>The core functionality found in the script <filename>dtd2xsc.py</filename>
-has been moved to class method <method>ll.xist.ns.xndl.fromdtd</method> in the
+has been moved to a class method <method>ll.xist.ns.xndl.fromdtd</method> in the
 in the <module>ll.xist.ns.xndl</module> namespace.</item>
 
 <item><class>ll.xist.parsers.ExpatParser</class> is now a real subclass
