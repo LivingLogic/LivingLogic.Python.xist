@@ -606,7 +606,7 @@ class Node:
 		"""
 		return ""
 
-	def findNodes(self,type = None,searchchildren = 0,searchattrs = 0,subtype = 0,attrs = None):
+	def findNodes(self,type = None,subtype = 0,attrs = None,test = None,searchchildren = 0,searchattrs = 0):
 		"""
 		<par noindent>returns a fragment which contains child elements of this node.</par>
 
@@ -617,6 +617,16 @@ class Node:
 		<par>If you set <argref>subtype</argref> to <code>1</code> nodes that are a
 		subtype of <argref>type</argref> will be returned too.</par>
 
+		<par>If you pass a dictionary as <argref>attrs</argref> it has to contain
+		string pairs and is used to match attribute values for elements. To match
+		the attribute values their <code>asPlainString()</code> representation will
+		be used. You can use <code>None</code> as the value to test that the attribute
+		is set without testing the value.</par>
+
+		<par>Additionally you can pass a test function in <argref>test</argref>, that
+		returns <code>1</code>, when the node passed in has to be included in the
+		result and <code>0</code> otherwise.</par>
+
 		<par>If you set <argref>searchchildren</argref> to <code>1</code> not only the
 		immediate children but also the grandchildren will be searched for nodes
 		matching the other criteria.</par>
@@ -624,12 +634,6 @@ class Node:
 		<par>If you set <argref>searchattrs</argref> to <code>1</code> the attributes
 		of the nodes (if <argref>type</argref> is <classref>Element</classref> or one
 		of its subtypes) will be searched too.</par>
-
-		<par>If you pass a dictionary as <argref>attrs</argref> it has to contain
-		string pairs and is used to match attribute values for elements. To match
-		the attribute values their <code>asPlainString()</code> representation will
-		be used. You can use <code>None</code> as the value to test that the attribute
-		is set without testing the value.</par>
 
 		<par>Note that the node has to be of type <classref>Element</classref>
 		(or a subclass of it) to match <argref>attrs</argref>.</par>
@@ -656,21 +660,25 @@ class Node:
 			else:
 				return 0
 
-	def _matches(self,type_,subtype,attrs):
+	def _matches(self,type_,subtype,attrs,test):
+		res = 1
 		if type_ is not None:
 			if type(type_) not in [ types.ListType, types.TupleType ]:
 				type_ = ( type_ , )
 			for t in type_:
 				if subtype:
 					if isinstance(self,t):
-						return self._matchesAttrs(attrs)
+						res = self._matchesAttrs(attrs)
 				else:
 					if self.__class__ == t:
-						return self._matchesAttrs(attrs)
+						res = self._matchesAttrs(attrs)
 			else:
-				return 0
+				res = 0
 		else:
-			return self._matchesAttrs(attrs)
+			res = self._matchesAttrs(attrs)
+		if res and test is not None:
+			res = test(self)
+		return res
 
 	def _doreprtreeMultiLine(self,nest,elementno,head,tail,text,formatter,extraFirstLine,ansi = None):
   		lines = string.split(text,"\n")
@@ -1006,13 +1014,13 @@ class Frag(Node):
 			elif newother is not Null:
 				self.__content.append(newother)
 
-	def findNodes(self,type = None,subtype = 0,searchchildren = 0,searchattrs = 0,attrs = None):
+	def findNodes(self,type = None,subtype = 0,attrs = None,test = None,searchchildren = 0,searchattrs = 0):
 		node = Frag()
 		for child in self:
-			if child._matches(type,subtype,attrs):
+			if child._matches(type,subtype,attrs,test):
 				node.append(child)
 			if searchchildren:
-				node.extend(child.findNodes(type,subtype,searchchildren,searchattrs,attrs))
+				node.extend(child.findNodes(type,subtype,attrs,test,searchchildren,searchattrs))
 		return node
 
 	def compact(self):
@@ -1468,12 +1476,12 @@ class Element(Node):
 			node[attr] = self[attr].compact()
 		return self._decorateNode(node)
 
-	def findNodes(self,type = None,subtype = 0,searchchildren = 0,searchattrs = 0,attrs = None):
+	def findNodes(self,type = None,subtype = 0,attrs = None,test = None,searchchildren = 0,searchattrs = 0):
 		node = Frag()
 		if searchattrs:
 			for attr in self.attrs.keys():
-				node.extend(self[attr].findNodes(type,subtype,searchchildren,searchattrs,attrs))
-		node.extend(self.content.findNodes(type,subtype,searchchildren,searchattrs,attrs))
+				node.extend(self[attr].findNodes(type,subtype,attrs,test,searchchildren,searchattrs))
+		node.extend(self.content.findNodes(type,subtype,attrs,test,searchchildren,searchattrs))
 		return node
 
 class Null(Node):
