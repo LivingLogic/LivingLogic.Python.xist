@@ -623,6 +623,8 @@ class upper(xsc.ProcInst):
 
 </section>
 
+</section>
+
 <section><title>Publishing &xml; trees</title>
 
 <par>After creating the &xml; tree and converting the tree
