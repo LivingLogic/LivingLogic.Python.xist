@@ -27,20 +27,6 @@ class Operator(object):
 	"""
 	The base class of all XFind operators.
 	"""
-	def __rdiv__(self, other):
-		from ll.xist import xsc
-		# Wrap node in an iterator
-		if isinstance(other, xsc.Node):
-			other = iterone(other)
-		return Finder(other, self)
-
-	def __rfloordiv__(self, other):
-		from ll.xist import xsc
-		# Wrap node in an iterator
-		if isinstance(other, xsc.Node):
-			other = iterone(other)
-		return Finder(other, all, self)
-
 	def xfind(self, iterator, *operators):
 		"""
 		Apply <self/> to the nodes produced by <arg>iterator</arg> first, and
@@ -77,7 +63,12 @@ class Finder(object):
 		if isinstance(iterator, xsc.Node):
 			iterator = iterone(iterator)
 		self.iterator = iterator
-		self.operators = operators
+		operators = []
+		for operator in operators:
+			if not isinstance(operator, Operator):
+				operator = Walker(operator)
+			operator.append(operator)
+		self.operators = tuple(operators)
 
 	def next(self):
 		return self.iterator.next()
@@ -177,6 +168,16 @@ def count(iterator):
 	for node in iterator:
 		count += 1
 	return count
+
+
+class Walker(Operator):
+	def __init__(self, function):
+		self.function = function
+
+	def xwalk(self, iterator):
+		for child in iterator:
+			for subchild in child.walk(self.function):
+				yield subchild
 
 
 class all(Operator):
