@@ -59,7 +59,7 @@ possible: An existing <lit>attrHandlers</lit> attribute
 will be converted to an <class>Attrs</class> class on the
 fly (and will generate a <class>DeprecationWarning</class> when
 the class is created). An <class>Attrs</class> class will
-automatically be generated from an <lit>attrHandlers</lit> attribute,
+automatically generate an <lit>attrHandlers</lit> attribute,
 so it's possible to derive from new element classes in the old way.
 The only situation where this won't work, is with
 attributes where the Python and &xml; name differ, you
