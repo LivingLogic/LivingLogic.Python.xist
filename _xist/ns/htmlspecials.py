@@ -89,20 +89,15 @@ class pixel(html.img):
 		src = None
 
 	def convert(self, converter):
-		e = html.img()
-		color = "0"
-		for attr in self.attrs.keys():
-			if attr == "color":
-				color = self["color"]
-			else:
-				e[attr] = self[attr]
-		if not e.hasAttr("alt"):
+		color = self.getattr("color", 0)
+		e = html.img(self.attrs.without(["color"])
+		if not e.hasattr("alt"):
 			e["alt"] = u""
-		if not e.hasAttr("width"):
+		if not e.hasattr("width"):
 			e["width"] = 1
-		if not e.hasAttr("height"):
+		if not e.hasattr("height"):
 			e["height"] = 1
-		e["src"] = ("root:images/pixels/", color, ".gif")
+		e["src"] = ("root:px/", color, ".gif")
 
 		return e.convert(converter)
 
