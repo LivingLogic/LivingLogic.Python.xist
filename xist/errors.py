@@ -205,7 +205,7 @@ class FileNotFoundError(Error):
 		self.url = url
 
 	def __str__(self):
-		return Error.__str__(self) + "file " + xsc.strURL(str(self.url)) + " can't be opened"
+		return Error.__str__(self) + "file " + xsc.strURL(self.url.asString()) + " can't be opened"
 
 class IllegalObjectError(Error):
 	"""

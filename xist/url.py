@@ -91,8 +91,7 @@ def _normalize(path, removeAllMarkers=0):
 	# This allows reduction of 'aa/bb/cc/../../' to 'aa/'
 	i = 0; j = 1
 	while j < len(path):
-		if path[j] == u".." and path[i] != u".." \
-		and _isNoPathMarker(path[i]):
+		if path[j] == u".." and path[i] != u".." and _isNoPathMarker(path[i]):
 			# up/down combination found, None it out
 			path[i] = path[j] = None
 			i -= 1 ; j += 1
@@ -282,7 +281,7 @@ class URL:
 		"""
 		joins two URLs together. When the second URL is
 		absolute (i.e. contains a scheme other than "server"
-		or "", you'll get a copy of the second URL.
+		or ""), you'll get a copy of the second URL.
 		"""
 		return left.__join(right)
 
@@ -307,8 +306,7 @@ class URL:
 
 	def __hasPath(self):
 		"""returns true if path or file is given"""
-		return self.__path or self.scheme == "server" \
-		       or self.file or self.ext is not None
+		return self.__path or self.scheme == "server" or self.file or self.ext is not None
 
 	def __requiresPath(self):
 		a = self.server or self.file or self.ext is not None
@@ -338,8 +336,7 @@ class URL:
 			otherpath =_normalize(other.__path, removeAllMarkers=1)
 			if newpath == [u'.']: newpath = []
 			if otherpath == [u'.']: otherpath = []
-			while len(otherpath) and len(newpath) \
-			      and otherpath[0] == newpath[0]: 
+			while len(otherpath) and len(newpath) and otherpath[0] == newpath[0]:
 				# throw away identical directories in
 				# both paths (we don't have to go up
 				# from file and down to path for these
@@ -371,13 +368,7 @@ class URL:
 		server2 = self.server
 		if server2 is not None:
 			server2 = server2.lower()
-		return cmp(scheme1, scheme2) or cmp(server1, server2) \
-		or cmp(self.port, other.port) \
-		or cmp(self.__path, other.__path) \
-		or cmp(self.file, other.file) or cmp(self.ext, other.ext) \
-		or cmp(self.parameters, other.parameters) \
-		or cmp(self.query, other.query) \
-		or cmp(self.fragment, other.fragment)
+		return cmp(scheme1, scheme2) or cmp(server1, server2) or cmp(self.port, other.port) or cmp(self.__path, other.__path) or cmp(self.file, other.file) or cmp(self.ext, other.ext) or cmp(self.parameters, other.parameters) or cmp(self.query, other.query) or cmp(self.fragment, other.fragment)
 
 	def open(self):
 		return urllib.urlopen(self.__quote())
@@ -480,8 +471,7 @@ class URL:
 				url.scheme = base.scheme
 			if not base: # todo: gibt es das?
 				return url
-			if url.scheme != base.scheme \
-			   or url.scheme not in uses_relative:
+			if url.scheme != base.scheme or url.scheme not in uses_relative:
 				return url
 			if url.scheme in uses_netloc:
 				if url.server:
@@ -589,10 +579,10 @@ def test_normalize():
 
 def test_url():
 	"""
-	Test whether instaziation, '+' and others yet the expected effect.
+	Test whether instaziation, '+' and others have the expected effect.
 
-	Check is doen via comparing against another URL or a string; in the
-	later case, the URL converted using asString().
+	Check is done via comparing against another URL or a string; in the
+	later case, the URL is converted using asString().
 	"""
 	import types
 	for num, o_lhs, o_rhs in (
@@ -614,12 +604,12 @@ def test_url():
 		lhs = o_lhs
 		rhs = o_rhs
 		if type(lhs) != type(rhs):
-			if type(rhs) == types.StringType:
+			if type(rhs) is types.StringType:
 				if isinstance(lhs, URL):
 					lhs = o_lhs.asPlainString()
 				else:
 					lhs = str(lhs)
-			elif type(lhs) == types.StringType:
+			elif type(lhs) is types.StringType:
 				if isinstance(rhs, URL):
 					rhs = o_rhs.asPlainString()
 				else:
@@ -633,33 +623,32 @@ def test_relativeTo():
 	Test correctness of relativeTo().
 	"""
 	for From, to, should in (
-		('./',	'./',	'./'),
-		('cc.html',	'./',	'./'),
-		('./cc.html',	'./',	'./'),
-		('*/cc.html',	'*/',	'./'),
-		('*/cc.html',	'./',	'./'),
+		('./', './', './'),
+		('cc.html', './', './'),
+		('./cc.html', './', './'),
+		('*/cc.html', '*/', './'),
+		('*/cc.html', './', './'),
 
-		('cc.html',	'#mark',	'#mark'),
-		('*/cc.html',	'*/#mark',	'./#mark'),
-		('*/cc.html',	'#mark',	'#mark'),
-		('*/cc.html',	'*/cc.html#mark',	'#mark'),
-		('*/cc.html',	'*/dd.html#mark',	'dd.html#mark'),
-		('*/aa/bb/cc.html',	'*/',	'../../'),
-		#('',	'',	''),
-		#('',	'',	''),
+		('cc.html', '#mark', '#mark'),
+		('*/cc.html', '*/#mark', './#mark'),
+		('*/cc.html', '#mark', '#mark'),
+		('*/cc.html', '*/cc.html#mark', '#mark'),
+		('*/cc.html', '*/dd.html#mark', 'dd.html#mark'),
+		('*/aa/bb/cc.html', '*/', '../../'),
+		#('', '', ''),
+		#('', '', ''),
 
 		# relativeTo() does not really handle urls with scheme set
-		('http://server/aa/bb.html',	'http://server/aa/cc.html',	'http://server/aa/cc.html'),
+		('http://server/aa/bb.html', 'http://server/aa/cc.html', 'http://server/aa/cc.html'),
 
 		# testing absolute pathes is worthless, since they have
 		# a scheme = 'server' and thus are not really handled
-		('/aa/bb.html',	'/xx.html',	'/xx.html'),
+		('/aa/bb.html', '/xx.html', '/xx.html'),
 		):
 		u = URL(to).relativeTo(URL(From)).asString()
 		#print "\t".join((`URL(to)`, `URL(From)`, u, should))
 		if u != should:
-			raise str('Test failed:\n%r != %r\n(%r -> %r)' % \
-				  (u, should, From, to))
+			raise str('Test failed:\n%r != %r\n(%r -> %r)' % (u, should, From, to))
 	print 'test passed: relativeTo()'
 
 test_input = urlparse.test_input
@@ -681,7 +670,6 @@ def test_url2():
 		if len(words) == 3 and words[1] == '=':
 			if wrapped != words[2]:
 				print 'EXPECTED', words[2], '!!!!!!!!!!'
-	
 
 if __name__ == '__main__':
 	test_normalize()
