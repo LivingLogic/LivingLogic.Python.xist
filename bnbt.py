@@ -33,7 +33,7 @@ class page(xsc.Element):
 		b.append(
 			specials.plaintable(
 				html.tr(
-					html.td(pixel(height="66"),colspan="2") # eigentlich 70, aber der Netscape l‰ﬂt trotz margintop="0" zuviel Platz
+					html.td(specials.pixel(height="66"),colspan="2") # eigentlich 70, aber der Netscape l‰ﬂt trotz margintop="0" zuviel Platz
 				)+
 				html.tr(
 					html.td(
