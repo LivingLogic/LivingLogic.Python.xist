@@ -1721,15 +1721,13 @@ class XSC:
 	def __popName(self):
 		self.filename.pop()
 
-	def parseString(self,name,string):
+	def parseString(self,string):
 		"""
 		Parses a string and returns the resulting XSC
 		"""
-		self.__pushName(name)
 		self.parser.reset()
 		self.parser.feed(string)
 		self.parser.close()
-		self.__popName()
 		return self.parser.root
 
 	def parseFile(self,name):
