@@ -1,4 +1,16 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
+<section><title>Migrating to version 2.8</title>
+
+<section><title>Changes to display hooks</title>
+<par>The way &xist; uses <function>sys.displayhook</function> has been
+enhanced. To make use of this you might want to update your Python
+startup script. For more info see the
+<link href="root:xist/Installation.html">installation instructions</link>.</par>
+</section>
+
+</section>
+
+
 <section><title>Migrating to version 2.7</title>
 
 <section><title>Changes to <module>ll.xist.xfind</module></title>

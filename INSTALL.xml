@@ -65,27 +65,22 @@ and use Unicode string constants only.</par>
 
 
 <section><title>Display hook</title>
-<par>Currently &xist; nodes do not have a fancy <method>__repr__</method>
-method implemented, but the <method>repr</method> method
-can be used to generate several different display formats (this is
-extensible by implementing new presentation classes). To use e.g.
-the <class>TreePresenter</class> format in object dumps in
-an interactive Python session you can use the displayhook
-feature of Python 2.1, simply by putting the following code
-into your Python startup script:</par>
+<par>&xist; provides several different display formats for &xml; trees
+(this is extensible by implementing new presentation classes). Those display
+formats are used in two <z>pretty printing</z> modes. One is used for the
+result of <method>__repr__</method> calls and the other is used for
+output of &xist; trees in the interactive shell. To activate the interactive
+display, put something link the following in your Python startup script:</par>
+
 <prog>
-import sys, pprint
-from ll.xist import xsc, presenters
+import ll
+from ll.xist import presenters
 
-def displayhook(object):
-	if object is not None:
-		if isinstance(object, xsc.Node):
-			print object.repr(presenters.TreePresenter())
-		else:
-			pprint.pprint(object)
-
-sys.displayhook = displayhook
+ll.asdisplayhook(presenters.displayhook)
 </prog>
+
+<par>This hook uses the presenter object <lit>ll.xist.presenters.hookpresenter</lit>,
+which you can modify or replace to customize the output of &xist; trees.</par>
 </section>
 
 
