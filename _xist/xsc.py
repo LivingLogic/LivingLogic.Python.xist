@@ -3947,6 +3947,8 @@ class Location(object):
 		"""
 		if offset==0:
 			return self
+		elif self.line is None:
+			return Location(sysid=self.sysid, pubid=self.pubid, line=None, col=1)
 		return Location(sysid=self.sysid, pubid=self.pubid, line=self.line+offset, col=1)
 
 	def __str__(self):
