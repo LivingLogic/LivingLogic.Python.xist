@@ -1,0 +1,44 @@
+body
+{
+	background-color: #fff;
+	color: #000;
+	font-family: "Verdana", "Arial", "XHelvetica", "Helvetica", sans-serif;
+	font-size: 9pt;
+	margin: 20pt;
+}
+h1
+{
+	font-family: "Tahoma", "Arial", "XHelvetica", "Helvetica", sans-serif;
+	font-size: 30pt;
+	font-weight: normal;
+	color: #339;
+	margin-top: 12pt;
+	margin-bottom: 1pt;
+}
+h2
+{
+	font-family: "Tahoma", "Arial", "XHelvetica", "Helvetica", sans-serif;
+	font-size: 20pt;
+	font-weight: normal;
+	color: #339;
+	margin-top: 12pt;
+	margin-bottom: 1pt;
+}
+ol
+{
+	margin-top: 0pt;
+	margin-bottom: 0pt;
+}
+li
+{
+	margin-bottom: 2pt;
+}
+span.name
+{
+	font-weight: bold;
+	font-size: 10pt;
+}
+div.purchase
+{
+	font-size: 8pt;
+}

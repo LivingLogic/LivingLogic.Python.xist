@@ -132,5 +132,5 @@ def explain(thing):
 
 if __name__ == "__main__":
 	e = explain(elements)
-	print e.asHTML().asString()
+	print e.convert().asBytes()
 

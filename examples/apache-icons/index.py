@@ -37,7 +37,7 @@ e = html.html(
 	)
 )
 
-s = e.asHTML().asString(XHTML=0)
+s = e.convert().asBytes(encoding="us-ascii", XHTML=0)
 
 xsc.xsc.popURL() # don't forget to call popURL(), otherwise the URL stack will be messed up.
 

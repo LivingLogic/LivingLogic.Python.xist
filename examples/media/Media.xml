@@ -1,0 +1,183 @@
+<?xml version='1.0' encoding='iso-8859-1'?>
+<!DOCTYPE media SYSTEM "Media.dtd">
+<?xml-stylesheet type="text/xsl" href="Media.xsl"?>
+<media>
+	<dvd>
+		<name>Grave of the Fireflies</name>
+		<rc>1</rc>
+		<duration>88</duration>
+		<purchase>
+			<place>Planet Anime, Houston</place>
+			<date>30.12.1998</date>
+			<price currency="USD">26.96</price>
+		</purchase>
+	</dvd>
+	<dvd>
+		<name>Lola rennt</name>
+		<rc>2</rc>
+		<duration>77</duration>
+		<purchase>
+			<place>Mediamarkt Bayreuth</place>
+			<date>09.03.1999</date>
+			<price currency="DEM">54.99</price>
+		</purchase>
+	</dvd>
+	<dvd>
+		<name>The Bride with White Hair</name>
+		<rc>0</rc>
+		<duration>92</duration>
+		<purchase>
+			<place>www.dvdempire.com</place>
+			<date>01.05.1998</date>
+			<price currency="USD">20.45</price>
+		</purchase>
+	</dvd>
+	<dvd>
+		<name>Bride with White Hair 2</name>
+		<rc>0</rc>
+		<duration>80</duration>
+		<purchase>
+			<place>www.dvdempire.com</place>
+			<date>28.05.1999</date>
+			<price currency="USD">20.95</price>
+		</purchase>
+	</dvd>
+	<ld>
+		<name>Zwei Welten</name>
+		<duration>105</duration>
+		<purchase>
+			<place>MediaMarkt Regensburg</place>
+			<date>20.09.1997</date>
+			<price currency="DEM">19.95</price>
+		</purchase>
+	</ld>
+	<ld>
+		<name>The Dream is Alive</name>
+		<duration>37</duration>
+		<purchase>
+			<place>Cinemabilia</place>
+			<date>29.11.1997</date>
+			<price currency="DEM">102.9</price>
+		</purchase>
+	</ld>
+	<ld>
+		<name>Léon, der Profi</name>
+		<duration>127</duration>
+		<purchase>
+			<place>MediaMarkt Bayreuth</place>
+			<date>01.04.1998</date>
+			<price currency="DEM">79.99</price>
+		</purchase>
+	</ld>
+	<ld>
+		<name>Only Yesterday</name>
+		<duration>98</duration>
+		<purchase>
+			<place>San Fransico Laserdiscs</place>
+			<date>18.07.1998</date>
+			<price currency="USD">50.0</price>
+		</purchase>
+	</ld>
+	<dvd>
+		<name>12 Monkeys</name>
+		<rc>1</rc>
+		<duration>130</duration>
+		<purchase>
+			<place>Amazon.com</place>
+			<date>19.03.2000</date>
+			<price currency="USD">23.99</price>
+		</purchase>
+	</dvd>
+	<dvd>
+		<name>Cowboy Bebop, Volume 1</name>
+		<rc>1</rc>
+		<duration>125</duration>
+		<purchase>
+			<place>Amazon.com</place>
+			<date>07.02.2000</date>
+			<price currency="USD">17.99</price>
+		</purchase>
+	</dvd>
+	<dvd>
+		<name>Perfect Blue</name>
+		<rc>1</rc>
+		<rc>2</rc>
+		<rc>4</rc>
+		<duration>81</duration>
+		<purchase>
+			<place>Amazon.com</place>
+			<date>07.02.2000</date>
+			<price currency="USD">20.97</price>
+		</purchase>
+	</dvd>
+	<dvd>
+		<name>The Princess Bride</name>
+		<rc>1</rc>
+		<duration>98</duration>
+		<purchase>
+			<place>Amazon.com</place>
+			<date>06.06.2000</date>
+			<price currency="USD">11.99</price>
+		</purchase>
+	</dvd>
+	<dvd>
+		<name>Nach Fünf im Urwald</name>
+		<rc>2</rc>
+		<duration>93</duration>
+		<purchase>
+			<place>Amazon.de</place>
+			<date>25.08.2000</date>
+			<price currency="DEM">39.99</price>
+		</purchase>
+	</dvd>
+	<dvd>
+		<name>The King of Masks</name>
+		<rc>1</rc>
+		<duration>101</duration>
+		<purchase>
+			<place>Amazon.com</place>
+			<date>29.08.2000</date>
+			<price currency="USD">23.99</price>
+		</purchase>
+	</dvd>
+	<dvd>
+		<name>Neon Genesis Evangelion - Collection 0:1</name>
+		<rc>1</rc>
+		<duration>120</duration>
+		<purchase>
+			<place>Amazon.com</place>
+			<date>07.02.2000</date>
+			<price currency="USD">17.99</price>
+		</purchase>
+	</dvd>
+	<dvd>
+		<name>Patlabor 2 - The Movie</name>
+		<rc>1</rc>
+		<duration>100</duration>
+		<purchase>
+			<place>Amazon.com</place>
+			<date>21.08.2000</date>
+			<price currency="USD">20.96</price>
+		</purchase>
+	</dvd>
+	<dvd>
+		<name>Ein Lied von Liebe und Tod - Gloomy Sunday</name>
+		<rc>2</rc>
+		<duration>108</duration>
+		<purchase>
+			<place>Amazon.de</place>
+			<date>27.11.2000</date>
+			<price currency="DEM">44.99</price>
+		</purchase>
+	</dvd>
+	<dvd>
+		<name>Princess Mononoke</name>
+		<rc>1</rc>
+		<duration>134</duration>
+		<purchase>
+			<place>Amazon.com</place>
+			<date>21.08.2000</date>
+			<price currency="USD">23.09</price>
+		</purchase>
+	</dvd>
+</media>

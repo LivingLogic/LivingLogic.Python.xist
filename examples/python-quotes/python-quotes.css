@@ -10,6 +10,12 @@ body
 	margin-right: 50pt;
 }
 
+p
+{
+	margin-top: 0pt;
+	margin-bottom: 3pt;
+}
+
 div.quotation
 {
 	margin-top: 16pt;
@@ -22,7 +28,16 @@ div.source
 	font-family: "Verdana", "Arial", "XHelvetica", "Helvetica", sans-serif;
 	font-size: 10pt;
 	line-height: 12pt;
-	margin-top: 3pt;
+	margin-top: 1pt;
+	margin-left: 10pt;
+}
+div.note
+{
+	color: #666;
+	font-family: "Verdana", "Arial", "XHelvetica", "Helvetica", sans-serif;
+	font-size: 8pt;
+	line-height: 10pt;
+	margin-top: 1pt;
 	margin-left: 10pt;
 }
 h1

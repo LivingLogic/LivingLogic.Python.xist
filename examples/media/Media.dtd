@@ -1,0 +1,10 @@
+<!ELEMENT media (dvd,ld)*>
+<!ELEMENT dvd (name,rc+,duration,purchase*)>
+<!ELEMENT ld (name,duration,purchase*)>
+<!ELEMENT rc (#PCDATA)>
+<!ELEMENT duration (#PCDATA)>
+<!ELEMENT purchase (place, date?, price?)>
+<!ELEMENT place (#PCDATA)>
+<!ELEMENT date (#PCDATA)>
+<!ELEMENT price (#PCDATA)>
+<!ATTLIST price currency (USD|DEM) #REQUIRED>

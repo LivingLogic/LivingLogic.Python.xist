@@ -1,0 +1,48 @@
+<!-- This is the Quotation Exchange Language, version 2.0, dated Feb
+     27 2001.  It should be used with the formal public identifier:
+
+        +//IDN python.org//DTD Quotation Exchange Language 2.0//EN//XML
+
+     One valid system identifier at which this DTD will remain
+     available is:
+
+        http://www.python.org/topics/xml/dtds/qel-2.0.dtd
+
+     More information on the DTD is available at:
+
+        http://www.amk.ca/qel/
+
+    Attributes which take date/time values should encode the value
+    according to the W3C NOTE on date/time formats:
+
+        http://www.w3.org/TR/NOTE-datetime
+  -->
+
+  <!-- Reduce the number of HTMLish elements available from QEL -->
+<!ENTITY % vert "p">
+<!ENTITY % horiz "#PCDATA | abbr | acronym | br | cite | code | 
+                  em | foreign | q | pre">
+
+<!ENTITY % ibtwsh PUBLIC "-//XML-DEV List//DTD IBTWSH 6.0//EN" "ibtwsh6.dtd">
+%ibtwsh;
+
+<!--Embedded quotations from a foreign language (italics)-->
+<!ELEMENT foreign %horiz.model;>
+<!ATTLIST foreign
+	%basic;>
+
+<!ATTLIST pre xml:space (default|preserve) 'preserve'>
+
+<!-- Include the IBTWSH DTD to define the XHTML Basic subset used for 
+     rich text formatting. -->
+
+<!ELEMENT quotations (quotation)*>
+
+<!ELEMENT quotation ( %struct.model;, 
+                      author?, source?, note?) >
+<!ATTLIST quotation id   ID     #IMPLIED
+                    date CDATA  #IMPLIED>
+
+<!ELEMENT author %horiz.model;>
+<!ELEMENT source %horiz.model;>
+<!ELEMENT note %struct.model;>

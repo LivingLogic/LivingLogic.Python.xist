@@ -1,13 +1,15 @@
 #! /usr/bin/env python
 
-from xist import xsc,html,specials
+from xist import xsc, parsers
+from xist.ns import html, specials
 
-url = "http://starship.python.net/crew/amk/quotations/python-quotes.xml"
+url = "http://amk.ca/quotations/python-quotes.xml"
+url = "python-quotes.xml"
 
 class quotations(xsc.Element):
 	empty = 0
 
-	def asHTML(self, mode=None):
+	def convert(self, converter=None):
 		header = html.head(
 			html.title("Python quotes"),
 			html.link(rel="stylesheet", href="python-quotes.css")
@@ -30,45 +32,53 @@ class quotations(xsc.Element):
 			)
 		)
 
-		return e.asHTML(mode)
+		return e.convert(converter)
 
 class quotation(xsc.Element):
 	empty = 0
 
-	def asHTML(self, mode=None):
+	def convert(self, converter=None):
 		e = html.div(self.content, class_="quotation")
 
-		return e.asHTML(mode)
+		return e.convert(converter)
 
 class source(xsc.Element):
 	empty = 0
 
-	def asHTML(self, mode=None):
+	def convert(self, converter=None):
 		e = html.div(self.content, class_="source")
 
-		return e.asHTML(mode)
+		return e.convert(converter)
+
+class note(xsc.Element):
+	empty = 0
+
+	def convert(self, converter=None):
+		e = html.div(self.content, class_="note")
+
+		return e.convert(converter)
 
 class author(xsc.Element):
 	empty = 0
 
-	def asHTML(self, mode=None):
+	def convert(self, converter=None):
 		e = self.content
 
-		return e.asHTML(mode)
+		return e.convert(converter)
 
 class foreign(xsc.Element):
 	empty = 0
 
-	def asHTML(self, mode=None):
+	def convert(self, converter=None):
 		e = html.em(self.content)
 
-		return e.asHTML(mode)
+		return e.convert(converter)
 
-namespace = xsc.Namespace("pq","http://starship.python.net/crew/amk/quotations/quotations.dtd",vars())
+namespace = xsc.Namespace("pq","http://www.python.org/topics/xml/dtds/qel-2.0.dtd",vars())
 
 if __name__ == "__main__":
-	e = xsc.xsc.parse(url)
+	e = parsers.parseURL(url, parser=parsers.ExpatParser())
 	e = e.find(type=quotations)[0]
-	e = e.compact().asHTML()
-	print e.asString()
+	e = e.compact().convert()
+	print e.asBytes(encoding="iso-8859-1")
 
