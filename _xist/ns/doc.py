@@ -1125,7 +1125,7 @@ def getdoc(cls, thing):
 	if inspect.ismethod(thing):
 		sysid = "METHOD-DOCSTRING(%s.%s.%s)" % (cls._getmodulename(thing), thing.im_class.__name__, thing.__name__)
 	elif isinstance(thing, __builtin__.property):
-		sysid = "PROPERTY-DOCSTRING(%s.%s.%s)" % (cls._getmodulename(thing), "unknown")
+		sysid = "PROPERTY-DOCSTRING(%s.%s)" % (cls._getmodulename(thing), "unknown")
 	elif inspect.isfunction(thing):
 		sysid = "FUNCTION-DOCSTRING(%s.%s)" % (cls._getmodulename(thing), thing.__name__)
 	elif inspect.isclass(thing):
