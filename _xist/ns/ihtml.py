@@ -22,7 +22,7 @@ from ll.xist import xsc
 
 
 class a(xsc.Element):
-	empty = False
+	model = True
 	class Attrs(xsc.Element.Attrs):
 		class name(xsc.TextAttr):
 			"Designates a marker name within an HTML file (1.0)"
@@ -53,7 +53,7 @@ class base(xsc.Element):
 	"""
 	Designates the base URL for the relative paths used in an HTML file. (1.0)
 	"""
-	empty = True
+	model = False
 	class Attrs(xsc.Element.Attrs):
 		class href(xsc.URLAttr): pass
 
@@ -62,21 +62,21 @@ class blink(xsc.Element):
 	"""
 	Blinks the designated text. (2.0)
 	"""
-	empty = False
+	model = True
 
 
 class blockquote(xsc.Element):
 	"""
 	Creates a text block and displays a quote mark. (1.0)
 	"""
-	empty = False
+	model = True
 
 
 class body(xsc.Element):
 	"""
 	Designates content to be displayed as a page.
 	"""
-	empty = False
+	model = True
 	class Attrs(xsc.Element.Attrs):
 		class bgcolor(xsc.TextAttr):
 			"Designates background color (2.0)"
@@ -87,7 +87,7 @@ class body(xsc.Element):
 
 
 class br(xsc.Element):
-	empty = True
+	model = False
 	class Attrs(xsc.Element.Attrs):
 		class clear(xsc.TextAttr):
 			"""
@@ -100,25 +100,25 @@ class center(xsc.Element):
 	"""
 	Centers character strings, images and tables. (1.0)
 	"""
-	empty = False
+	model = True
 
 
 class dd(xsc.Element):
 	"""
 	Creates a definition list. (See <pyref class="dl"><class>dl</class></pyref>) (1.0)
 	"""
-	empty = False
+	model = True
 
 
 class dir(xsc.Element):
 	"""
 	Creates a list of menus or directories. Each list item must be a <pyref class="li"><class>li</class></pyref>. (1.0)
 	"""
-	empty = False
+	model = True
 
 
 class div(xsc.Element):
-	empty = False
+	model = True
 	class Attrs(xsc.Element.Attrs):
 		class align(xsc.TextAttr):
 			"Aligns the content left or right or centers it (1.0)"
@@ -129,21 +129,21 @@ class dl(xsc.Element):
 	Creates a definition list. The content consists of <pyref class="dd"><class>dd</class></pyref> and
 	<pyref class="dt"><class>dt</class></pyref> elements. (1.0)
 	"""
-	empty = False
+	model = True
 
 
 class dt(xsc.Element):
 	"""
 	Designates the list heading and aligns the character string at left. (1.0)
 	"""
-	empty = False
+	model = True
 
 
 class font(xsc.Element):
 	"""
 	Designates the color of a certain portion of text. (2.0)
 	"""
-	empty = False
+	model = True
 	class Attrs(xsc.Element.Attrs):
 		class color(xsc.TextAttr): pass
 
@@ -152,7 +152,7 @@ class form(xsc.Element):
 	"""
 	Encloses an area to be shown as a data input form. (1.0)
 	"""
-	empty = False
+	model = True
 	class Attrs(xsc.Element.Attrs):
 		class action(xsc.URLAttr):
 			"URL or e-mail address (mailto) the input form will be sent to. (1.0)"
@@ -166,14 +166,14 @@ class head(xsc.Element):
 	"""
 	Designates the information that is used as the page title and/or by the server. The <class>head</class> tag follows the <pyref class="html"><class>html</class></pyref> tag. (1.0)
 	"""
-	empty = False
+	model = True
 
 
 class h1(xsc.Element):
 	"""
 	Designates level 1 header. (1.0)
 	"""
-	empty = False
+	model = True
 	class Attrs(xsc.Element.Attrs):
 		class align(xsc.TextAttr):
 			"Designates the alignment of the header. (1.0)"
@@ -183,7 +183,7 @@ class h2(xsc.Element):
 	"""
 	Designates level 2 header. (1.0)
 	"""
-	empty = False
+	model = True
 	class Attrs(xsc.Element.Attrs):
 		class align(xsc.TextAttr):
 			"Designates the alignment of the header. (1.0)"
@@ -193,7 +193,7 @@ class h3(xsc.Element):
 	"""
 	Designates level 3 header. (1.0)
 	"""
-	empty = False
+	model = True
 	class Attrs(xsc.Element.Attrs):
 		class align(xsc.TextAttr):
 			"Designates the alignment of the header. (1.0)"
@@ -203,7 +203,7 @@ class h4(xsc.Element):
 	"""
 	Designates level 4 header. (1.0)
 	"""
-	empty = False
+	model = True
 	class Attrs(xsc.Element.Attrs):
 		class align(xsc.TextAttr):
 			"Designates the alignment of the header. (1.0)"
@@ -213,7 +213,7 @@ class h5(xsc.Element):
 	"""
 	Designates level 5 header. (1.0)
 	"""
-	empty = False
+	model = True
 	class Attrs(xsc.Element.Attrs):
 		class align(xsc.TextAttr):
 			"Designates the alignment of the header. (1.0)"
@@ -223,7 +223,7 @@ class h6(xsc.Element):
 	"""
 	Designates level 6 header. (1.0)
 	"""
-	empty = False
+	model = True
 	class Attrs(xsc.Element.Attrs):
 		class align(xsc.TextAttr):
 			"Designates the alignment of the header. (1.0)"
@@ -233,7 +233,7 @@ class hr(xsc.Element):
 	"""
 	Designates the settings of the horizontal dividing line. (1.0)
 	"""
-	empty = True
+	model = False
 	class Attrs(xsc.Element.Attrs):
 		class align(xsc.TextAttr):
 			"Designates the alignment of the horizontal line. (1.0)"
@@ -249,14 +249,14 @@ class html(xsc.Element):
 	"""
 	The root element
 	"""
-	empty = False
+	model = True
 
 
 class img(xsc.Element):
 	"""
 	Designates an image file (1.0)
 	"""
-	empty = True
+	model = False
 	class Attrs(xsc.Element.Attrs):
 		class src(xsc.URLAttr):
 			"the image URL (1.0)"
@@ -278,7 +278,7 @@ class img(xsc.Element):
 
 
 class input(xsc.Element):
-	empty = True
+	model = False
 	class Attrs(xsc.Element.Attrs):
 		class type(xsc.TextAttr):
 			"""
@@ -309,7 +309,7 @@ class li(xsc.Element):
 	"""
 	A list item (1.0)
 	"""
-	empty = False
+	model = True
 	class Attrs(xsc.Element.Attrs):
 		class type(xsc.TextAttr):
 			"""
@@ -324,7 +324,7 @@ class marquee(xsc.Element):
 	"""
 	Scrolls text horizontally (2.0)
 	"""
-	empty = False
+	model = True
 	class Attrs(xsc.Element.Attrs):
 		class behaviour(xsc.TextAttr):
 			"""
@@ -351,14 +351,14 @@ class menu(xsc.Element):
 	"""
 	Creates a menu list (1.0)
 	"""
-	empty = False
+	model = True
 
 
 class meta(xsc.Element):
 	"""
 	Page meta information (2.0)
 	"""
-	empty = True
+	model = False
 	class Attrs(xsc.Element.Attrs):
 		class name(xsc.TextAttr):
 			"Designates the name of the meta field"
@@ -386,7 +386,7 @@ class meta(xsc.Element):
 
 
 class object(xsc.Element):
-	empty = True
+	model = False
 	class Attrs(xsc.Element.Attrs):
 		class declare(xsc.BoolAttr):
 			"Identifier that that declares and OBJECT ??? (3.0)"
@@ -402,7 +402,7 @@ class ol(xsc.Element):
 	"""
 	Creates a numbered list. (1.0)
 	"""
-	empty = False
+	model = True
 	class Attrs(xsc.Element.Attrs):
 		class type(xsc.TextAttr):
 			"""
@@ -414,7 +414,7 @@ class ol(xsc.Element):
 
 
 class option(xsc.Element):
-	empty = False
+	model = True
 	class Attrs(xsc.Element.Attrs):
 		class selected(xsc.BoolAttr):
 			"Designates the selected (initial value). (2.0)"
@@ -426,7 +426,7 @@ class p(xsc.Element):
 	"""
 	Creates a text block. (1.0)
 	"""
-	empty = False
+	model = True
 	class Attrs(xsc.Element.Attrs):
 		class align(xsc.TextAttr):
 			"Aligns the content left or right or centers it (1.0)"
@@ -436,18 +436,18 @@ class plaintext(xsc.Element):
 	"""
 	Displays a text file exactly as entered.
 	"""
-	empty = False
+	model = True
 
 
 class pre(xsc.Element):
 	"""
 	Displays a source file exactly as entered, including line feeds and blank spaces.
 	"""
-	empty = False
+	model = True
 
 
 class select(xsc.Element):
-	empty = False
+	model = True
 	class Attrs(xsc.Element.Attrs):
 		class name(xsc.TextAttr):
 			"Designates the name of the list for passing selected items. (1.0)"
@@ -458,7 +458,7 @@ class select(xsc.Element):
 
 
 class textarea(xsc.Element):
-	empty = True
+	model = False
 	class Attrs(xsc.Element.Attrs):
 		class name(xsc.TextAttr):
 			"""
@@ -479,14 +479,14 @@ class title(xsc.Element):
 	"""
 	Designates the page title.
 	"""
-	empty = False
+	model = True
 
 
 class ul(xsc.Element):
 	"""
 	Creates a bullet point list (o).
 	"""
-	empty = False
+	model = True
 
 
 ###
