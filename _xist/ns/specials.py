@@ -152,5 +152,5 @@ class esc(xsc.CharRef): "escape"; codepoint = 27
 class xmlns(xsc.Namespace):
 	xmlname = "specials"
 	xmlurl = "http://xmlns.livinglogic.de/xist/ns/specials"
-xsc.makensmod(xmlns, vars())
+xmlns.makemod(vars())
 

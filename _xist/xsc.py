@@ -3262,17 +3262,18 @@ class Namespace(object):
 			raise errors.IllegalNodeError(name, xml=xml)
 	node = classmethod(node)
 
+	def makemod(cls, vars=None):
+		if vars is not None:
+			for (key, value) in vars.iteritems():
+				if value is not cls and key not in ("__name__", "__dict__"):
+					setattr(cls, key, value)
+		# we have to keep the original module alive, otherwise Python would set all module attribute to None
+		cls.__originalmodule__ = sys.modules[vars["__name__"]]
+		sys.modules[vars["__name__"]] = cls
+	makemod = classmethod(makemod)
+
 	def __init__(self, xmlprefix, xmlname, thing=None):
 		raise TypeError("Namespace classes can't be instantiated")
-
-def makensmod(ns, vars):
-	for (key, value) in vars.iteritems():
-		if value is not ns and key not in ("__name__", "__dict__"):
-			setattr(ns, key, value)
-	# we have to keep the original module alive, otherwise Python would set all module attribute to None
-	ns.__originalmodule__ = sys.modules[vars["__name__"]]
-	sys.modules[vars["__name__"]] = ns
-	return ns
 
 # C0 Controls and Basic Latin
 class quot(CharRef): "quotation mark = APL quote, U+0022 ISOnum"; codepoint = 34

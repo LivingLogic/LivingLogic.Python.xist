@@ -214,5 +214,5 @@ class javascript(html.script):
 class xmlns(xsc.Namespace):
 	xmlname = "htmlspecials"
 	xmlurl = "http://xmlns.livinglogic.de/xist/ns/htmlspecials"
-xsc.makensmod(xmlns, vars())
+xmlns.makemod(vars())
 

@@ -1448,5 +1448,5 @@ class diams(xsc.CharRef): "black diamond suit, U+2666 ISOpub"; codepoint = 9830
 class xmlns(xsc.Namespace):
 	xmlname = "html"
 	xmlurl = "http://www.w3.org/1999/xhtml"
-xsc.makensmod(xmlns, vars())
+xmlns.makemod(vars())
 

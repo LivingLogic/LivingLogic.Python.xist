@@ -1826,8 +1826,8 @@ wrapper.content = pe_inline + pe_block + (marker,)
 marker.content = pe_inline + pe_block
 retrieve_marker.content = ()
 
-class fo(xsc.Namespace):
+class xmlns(xsc.Namespace):
+	xmlname = "fo"
 	xmlurl = "http://www.w3.org/1999/XSL/Format"
-
-xsc.makensmodfromns(fo, vars())
+xmlns.makemod(vars())
 
