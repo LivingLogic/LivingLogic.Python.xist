@@ -137,7 +137,7 @@ class URLInputSource(InputSource):
 		</ulist>
 		<par>For the rest of the argument see <pyref class="StringInputSource" method="__init__"><method>StringInputSource.__init__</method></pyref>.</par>
 		"""
-		if isinstance(id, (str, unicode)):
+		if isinstance(id, basestring):
 			id = url.URL(id)
 		InputSource.__init__(self, base)
 		resource = id.openread(headers=headers, data=data)
