@@ -969,6 +969,15 @@ class Frag(Node):
 			e.append(child.compact())
 		return e
 
+	def addSeparator(self,separator):
+		e = xsc.Frag()
+		newseparator = ToNode(separator)
+		for child in self:
+			if len(e):
+				e.append(newseparator.clone())
+			e.append(child)
+		return e
+
 class Comment(Node):
 	"""
 	a comment node
