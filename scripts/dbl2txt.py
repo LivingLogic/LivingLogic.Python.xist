@@ -47,7 +47,7 @@ def xsc2txt(infilename, outfilename, title):
 		)
 	)
 
-	e = e.convert()
+	e = e.conv()
 
 	(pipein, pipeout) = os.popen2("w3m -T text/html -dump >%s" % outfilename)
 
