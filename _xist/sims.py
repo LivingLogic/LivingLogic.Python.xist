@@ -20,7 +20,13 @@ import warnings
 from ll.xist import xsc, errors
 
 
-class EmptyElementWithContentWarning(errors.Warning):
+class SIMSWarning(errors.Warning):
+	"""
+	Base class for simplified filtering
+	"""
+
+
+class EmptyElementWithContentWarning(SIMSWarning):
 	"""
 	Warning that is issued, when an element has content,
 	but it shouldn't (i.e. <lit>model</lit> is <pyref class="Empty"><class>Empty</class></pyref>)
@@ -37,7 +43,7 @@ class EmptyElementWithContentWarning(errors.Warning):
 		return s
 
 
-class WrongElementWarning(errors.Warning):
+class WrongElementWarning(SIMSWarning):
 	"""
 	Warning that is issued, when an element contains another element
 	but it shouldn't.
@@ -58,7 +64,7 @@ class WrongElementWarning(errors.Warning):
 		return s
 
 
-class ElementWarning(errors.Warning):
+class ElementWarning(SIMSWarning):
 	"""
 	Warning that is issued, when an element contains another element
 	but it shouldn't contain any.
@@ -78,7 +84,7 @@ class ElementWarning(errors.Warning):
 		return s
 
 
-class IllegalTextWarning(errors.Warning):
+class IllegalTextWarning(SIMSWarning):
 	"""
 	Warning that is issued, when an element contains a text node
 	but it shouldn't.
@@ -252,3 +258,7 @@ class Any(object):
 		check that the content of <arg>node</arg> is valid.
 		This method does nothing as anything is valid.
 		"""
+
+
+# always show warnings from sims errors
+warnings.filterwarnings("always", category=SIMSWarning)
