@@ -4,6 +4,8 @@
 <item>Fixed a few bugs in <class>HTMLParser</class>.</item>
 <item>Added DocBook conversion for several elements
 in <module>ll.xist.ns.doc</module>.</item>
+<item>Now the <filename>__init__.py</filename> file for the
+<module>ll</module> package is included.</item>
 </ulist>
 </section>
 
