@@ -697,7 +697,7 @@ class Node(Base):
 		<pyref method="walk"><method>walk</method></pyref> for an explanation of
 		the arguments.
 		"""
-		return Frag(list(self.walk(filter, filterpath, False)))
+		return Frag(self.walk(filter, filterpath, False))
 
 	def findfirst(self, filter=(True, entercontent), filterpath=False):
 		"""
