@@ -18,7 +18,9 @@ import os
 import types
 
 def stringFromCode(text):
-	if type(text) is types.UnicodeType:
+	if text is None:
+		return u""
+	elif type(text) is types.UnicodeType:
 		return text
 	else:
 		return unicode(str(text),"latin1")

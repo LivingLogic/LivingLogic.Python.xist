@@ -851,14 +851,8 @@ class Text(Node, StringMixIn):
 	"""
 
 	def __init__(self, content=""):
-		if type(content) in (types.IntType, types.LongType, types.FloatType):
-			content = str(content)
-		elif type(content) in (types.StringType, types.UnicodeType):
-			pass
-		elif isinstance(content, Text):
+		if isinstance(content, Text):
 			content = content._content
-		else:
-			raise ValueError("content must be string, unicode, int, long, float or Text")
 		StringMixIn.__init__(self, content)
 
 	def asHTML(self, mode=None):
