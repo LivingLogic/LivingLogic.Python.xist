@@ -65,6 +65,8 @@ class URLInputSource(sax.xmlreader.InputSource):
 		if isinstance(url, url_.URL):
 			url = url.asString()
 		self.setSystemId(url)
+		if type(url) is types.UnicodeType:
+			url = url.encode("utf-8")
 		self.setByteStream(urllib.urlopen(url))
 
 	def setTimeout(self, secs):
@@ -81,7 +83,11 @@ class TidyURLInputSource(sax.xmlreader.InputSource):
 		self.tidyin = None
 		self.tidyout = None
 		self.tidyerr = None
+		if isinstance(url, url_.URL):
+			url = url.asString()
 		self.setSystemId(url)
+		if type(url) is types.UnicodeType:
+			url = url.encode("utf-8")
 		try:
 			(self.tidyin, self.tidyout, self.tidyerr) = os.popen3("tidy --tidy-mark no --wrap 0 --output-xhtml --numeric-entities yes --show-warnings no --quiet yes -asxml -quiet", "b") # open the pipe to and from tidy
 			self.tidyin.write(urllib.urlopen(url).read()) # get the desired file from the url and pipe it to tidy
