@@ -2,13 +2,27 @@ New in 0.4
 ----------
 XIST now requires at least Python 2.0b1.
 
-A new bugfixed version of sgmlop is available from the FTP site.
+A new bugfixed version of the sgmlop source is available
+from the FTP site.
+
+XIST now completely supports Unicode. For output any
+encoding known to Python can be used, so now you
+can output your HTML in ascii, latin1, utf8, utf16, ...
+
+All publishers have been updated to support Unicode.
+The publishing interface has been streamlined (encoding
+and XHTML parameters are now attributes of the publisher)
+
+asString() will now always return a Unicode string. If you
+want a byte string use asBytes() instead, where the encoding
+can be specified as an argument.
 
 There an additional publisher class FilePublisher, which can
 be used for publishing to a file (or anything else that has
-a write method).
+a write and a writelines method, and is supported by the stream
+writer available through codecs.lookup).
 
-Element- and attributenames are no longer converted to lowercase.
+Element and attribute names are no longer converted to lowercase.
 If you have an attribute name which clashes with a Python
 keyword (e.g. "class") append an underscore (_), which will be
 removed before accessing the attribute. This is the "official"
@@ -22,9 +36,12 @@ For more info, see the source.
 Image size calculation has been removed from html.img and html.input.
 Use specials.autoimg and specials.autoinput for that.
 
-{Frag,Element}.__{set,get,del}item__ now accept a list as an argument.
+{Frag,Element}.__{set,get,del}item__ now accepts a list as an argument.
 The method will be applied recursively, i.e. e[[0, 1, "foo", 2] is the
 same as e[0][1]["foo"][2].
+
+The deprecated module db no longer exists. Useful functions and elements
+from db have been move to sql.py und form.py respectively.
 
 New in 0.3.9
 ------------
@@ -33,20 +50,24 @@ sgmlop will now be found either via
 or via
 	from xml.parsers import sgmlop
 
+
 New in 0.3.8
 ------------
 Fixed a bug in URLAttr.publish, which prevented URLAttr from working
 at all.
+
 
 New in 0.3.7
 ------------
 Fixed a bug in html.img and html.input. Now image size calculation works
 again.
 
+
 New in 0.3.6
 ------------
 Fixed a bug in Node._matches, which resulted in a non working
 find().
+
 
 New in 0.3.5
 ------------
@@ -54,7 +75,7 @@ The documentation example has been enhanced. Now documenting methods works.
 
 When the member "elementname" in the element class is set before calling
 registerElement(), this element name will be used for the element. This
-allows customs name even when used registerAllElements().
+allows custom name even when using registerAllElements().
 
 Comparison of scheme and server in URLs is done case insensitive (as RFC 2068
 requires.)
@@ -80,6 +101,7 @@ be a test function that will be called when the node passes all other tests.
 
 asString() no longer generates a string directly, but uses the new method publish, which
 has an additional argument publisher, to which the strings to be output are passed.
+
 
 New in 0.3.4
 ------------
