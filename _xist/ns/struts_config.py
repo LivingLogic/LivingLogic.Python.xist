@@ -215,7 +215,7 @@ class small_icon(ElementWithID):
 # the final XML output
 class user_struts_config(xsc.Element):
 	empty = False
-	name = "user-struts-config"
+	xmlname = "user-struts-config"
 
 	def convert(self, converter):
 		e = xsc.Frag(
@@ -232,3 +232,4 @@ class xmlns(xsc.Namespace):
 	xmlname = "struts_config"
 	xmlurl = "http://jakarta.apache.org/struts/dtds/struts-config_1_1.dtd"
 xmlns.makemod(vars())
+
