@@ -3230,6 +3230,8 @@ class Namespace(Base):
 				if isinstance(value, type):
 					if getattr(value, "__outerclass__", None) == 42:
 						value.__outerclass__ = cls
+					if issubclass(value, (Element, ProcInst, Entity)):
+						value.xmlns = cls
 			for attr in cls.Attrs.iterallowedvalues():
 				attr.xmlns = cls
 			if cls.xmlurl is not None:
