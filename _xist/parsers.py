@@ -176,6 +176,7 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 				self.parser.feed(data)
 			self.close()
 		except Exception, ex: # FIXME: really catch everything?
+			raise
 			if self.error_handler is not None:
 				self.error_handler.fatalError(ex)
 			else:
@@ -288,6 +289,9 @@ class HTMLParser(SGMLOPParser):
 	A SAX2 parser that can parse HTML.
 	"""
 
+	headElements = ("title", "base", "script", "style", "meta", "link", "object") # Elements that may appear in the <head>
+	mimizedElements = ("p") # elements that can't be nested, so a start tag automatically closes a previous end tag
+
 	def __init__(self, namespaceHandling=0, bufsize=2**16-20):
 		SGMLOPParser.__init__(self, namespaceHandling, bufsize, "iso-8859-1")
 
@@ -299,8 +303,9 @@ class HTMLParser(SGMLOPParser):
 		self.__nesting = []
 
 	def close(self):
+		while len(self.__nesting): # close all open elements
+			self.finish_endtag(self.__nesting[-1])
 		SGMLOPParser.close(self)
-		self.__nesting = []
 
 	def handle_comment(self, data):
 		print "HTML comment %r" % data
@@ -326,8 +331,15 @@ class HTMLParser(SGMLOPParser):
 		print "HTML finish_starttag", name, self.__nesting
 		self.__closeEmpty()
 		name = name.lower()
+		if name != "html":
+			if not len(self.__nesting): # root element <html> missing?
+				self.finish_starttag("html", []) # add it
+			if name in self.mimizedElements and len(self.__nesting) and self.__nesting[-1]==name: # mimimized <p> tag etc.
+				self.finish_endtag(name)
+
 		self.__nesting.append(name)
 		newattrs = {}
+		print "attrs=",attrs
 		for (attrname, attrvalue) in attrs:
 			newattrs[attrname.lower()] = attrvalue
 		SGMLOPParser.finish_starttag(self, name, newattrs)
@@ -335,10 +347,13 @@ class HTMLParser(SGMLOPParser):
 	def finish_endtag(self, name):
 		print "HTML finish_endtag", name, self.__nesting
 		name = name.lower()
-		if len(self.__nesting) and self.__nesting[-1] != name: # e.g. <div><img></div> when </div> is encountered
-			self.__closeEmpty()
-		SGMLOPParser.finish_endtag(self, name)
-		del self.__nesting[-1]
+		if len(self.__nesting): # we ignore end tag without the matching start tags
+			if self.__nesting[-1] != name: # e.g. <div><img></div> when </div> is encountered
+				self.__closeEmpty()
+			if self.__nesting[-1] != name and self.__nesting[-1] in self.minimizedElements: # maybe an open <p> tag etc. has been left open
+				self.finish_endtag(self, self.__nesting[-1])
+			SGMLOPParser.finish_endtag(self, name)
+			del self.__nesting[-1]
 
 	def __closeEmpty(self):
 		if len(self.__nesting) and html.namespace.elementsByName[self.__nesting[-1]].empty:

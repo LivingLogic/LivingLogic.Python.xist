@@ -35,6 +35,12 @@ class rmi(xsc.Entity):
 	def asPlainString(self):
 		return u"RMI"
 
+class jini(xsc.Entity):
+	def convert(self, converter=None):
+		return html_.abbr("JINI", title="Java Intelligent Network Infrastructure", lang="en")
+	def asPlainString(self):
+		return u"JINI"
+
 class jfc(xsc.Entity):
 	def convert(self, converter=None):
 		return html_.abbr("JFC", title="Java Foundation Classes", lang="en")
@@ -278,7 +284,7 @@ class sax(xsc.Entity):
 
 class dbms(xsc.Entity):
 	def convert(self, converter=None):
-		return html.span(html.abbr("DBMS", title="Database Management System", lang="en"), class_="caps")
+		return html_.span(html_.abbr("DBMS", title="Database Management System", lang="en"), class_="caps")
 	def asPlainString(self):
 		return u"DBMS"
 
@@ -323,5 +329,17 @@ class p2p(xsc.Entity):
 		return html_.abbr("P2P", title="Peer To Peer", lang="en")
 	def asPlainString(self):
 		return u"P2P"
+
+class gif(xsc.Entity):
+	def convert(self, converter=None):
+		return html_.abbr("GIF", title="Graphics Interchange Format", lang="en")
+	def asPlainString(self):
+		return u"GIF"
+
+class png(xsc.Entity):
+	def convert(self, converter=None):
+		return html_.abbr("PNG", title="Portable Network Graphics", lang="en")
+	def asPlainString(self):
+		return u"PNG"
 
 namespace = xsc.Namespace("abbr", "http://www.livinglogic.de/DTDs/abbr.dtd", vars())
