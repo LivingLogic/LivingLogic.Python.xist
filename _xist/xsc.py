@@ -73,6 +73,7 @@ def ToNode(value):
 class Base(object):
 	"""
 	<par>Base class that adds an enhanced class <method>__repr__</method>
+	and a class method <pyref method="__fullname__"><method>__fullname</method></pyref>
 	to subclasses. Subclasses of <class>Base</class> will have an attribute
 	<lit>__outerclass__</lit> that references the containing class (if there
 	is any). <method>__repr__</method> uses this to show the fully qualified
@@ -90,6 +91,10 @@ class Base(object):
 			return "<class %s/%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
 
 	def __fullname__(cls):
+		"""
+		<par>Return the fully quilified class name (i.e. including containing
+		classes, if this class has been defined inside another one).</par>
+		"""
 		name = cls.__name__
 		while 1:
 			cls = cls.__outerclass__
