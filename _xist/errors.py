@@ -23,9 +23,6 @@ import types, warnings
 
 import xsc, presenters
 
-def warn(warning, level=3): # stacklevel==3, i.e. report the caller of our caller
-	warnings.warn(warning, None, level)
-
 class Error(Exception):
 	"""
 	base class for all &xist; exceptions
@@ -252,7 +249,7 @@ class IllegalObjectWarning(Warning):
 		s += " has been found in the XSC tree. The object will be ignored."
 		return s
 
-class MalformedCharRefError(Error):
+class MalformedCharRefWarning(Warning):
 	"""
 	exception that is raised when a character reference is malformed (e.g. <lit>&amp;#foo;</lit>)
 	"""
@@ -261,7 +258,7 @@ class MalformedCharRefError(Error):
 		self.name = name
 
 	def __str__(self):
-		return "malformed character reference: &#%s;" % self.name
+		return "malformed character reference: &%s;" % self.name
 
 class IllegalCommentContentError(Error):
 	"""

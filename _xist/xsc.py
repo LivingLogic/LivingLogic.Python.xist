@@ -16,7 +16,7 @@ classes and functions.
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-import os, sys, random, copy
+import os, sys, random, copy, warnings
 
 from ll import url, ansistyle
 
@@ -49,7 +49,7 @@ def ToNode(value):
 		return Frag(*value)
 	elif isinstance(value, url.URL):
 		return Text(value)
-	errors.warn(errors.IllegalObjectWarning(value)) # none of the above, so we report it and maybe throw an exception
+	warnings.warn(errors.IllegalObjectWarning(value)) # none of the above, so we report it and maybe throw an exception
 	return Null
 
 ###
@@ -816,7 +816,7 @@ class Node(Base):
 			return Frag(indent*level, self)
 
 	def withSep(self, separator, clone=False):
-		errors.warn(DeprecationWarning("withSep() is deprecated, use withsep() instead"))
+		warnings.warn(DeprecationWarning("withSep() is deprecated, use withsep() instead"))
 		return self.withsep(separator, clone)
 
 class CharacterData(Node):
@@ -1522,7 +1522,7 @@ class Attr(Frag):
 		if len(self) and isinstance(values, tuple) and not self.isfancy():
 			value = unicode(self)
 			if value not in values:
-				errors.warn(errors.IllegalAttrValueWarning(self))
+				warnings.warn(errors.IllegalAttrValueWarning(self))
 
 	def _walk(self, filter, path, filterpath, walkpath, skiproot):
 		if filterpath or walkpath:
@@ -1890,7 +1890,7 @@ class Attrs(Node, dict):
 				pass
 		# are there any required attributes remaining that haven't been specified? => warn about it
 		if attrs:
-			errors.warn(errors.RequiredAttrMissingWarning(self, attrs.keys()))
+			warnings.warn(errors.RequiredAttrMissingWarning(self, attrs.keys()))
 
 	def publish(self, publisher):
 		# collect required attributes
@@ -1908,7 +1908,7 @@ class Attrs(Node, dict):
 			attrvalue.publish(publisher)
 		# are there any required attributes remaining that haven't been specified? => warn about it
 		if attrs:
-			errors.warn(errors.RequiredAttrMissingWarning(self, attrs.keys()))
+			warnings.warn(errors.RequiredAttrMissingWarning(self, attrs.keys()))
 
 	def __unicode__(self):
 		return u""
@@ -2022,7 +2022,7 @@ class Attrs(Node, dict):
 							self[attrname] = attrvalue
 
 	def copydefaults(self, fromMapping):
-		errors.warn(DeprecationWarning("Attrs.copydefaults() is deprecated, use Attrs.updateexisting() instead"))
+		warnings.warn(DeprecationWarning("Attrs.copydefaults() is deprecated, use Attrs.updateexisting() instead"))
 		return self.updateexisting(fromMapping)
 
 	def iterallowedkeys(cls, xml=False):
@@ -2187,11 +2187,11 @@ class Element(Node):
 	class __metaclass__(Node.__metaclass__):
 		def __new__(cls, name, bases, dict):
 			if "name" in dict and isinstance(dict["name"], basestring):
-				errors.warn(DeprecationWarning("name is deprecated, use xmlname instead"))
+				warnings.warn(DeprecationWarning("name is deprecated, use xmlname instead"))
 				dict["xmlname"] = dict["name"]
 				del dict["name"]
 			if "attrHandlers" in dict:
-				errors.warn(DeprecationWarning("attrHandlers is deprecated, use a nested Attrs class instead"))
+				warnings.warn(DeprecationWarning("attrHandlers is deprecated, use a nested Attrs class instead"))
 			return Node.__metaclass__.__new__(cls, name, bases, dict)
 		def __repr__(self):
 			return "<element class %s:%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
@@ -2388,7 +2388,7 @@ class Element(Node):
 		try:
 			size = url.openread().imagesize
 		except IOError, exc:
-			errors.warn(errors.FileNotFoundWarning("can't read image", url, exc))
+			warnings.warn(errors.FileNotFoundWarning("can't read image", url, exc))
 		else:
 			for attr in (heightattr, widthattr):
 				if attr is not None: # do something to the width/height
@@ -2540,88 +2540,88 @@ class Element(Node):
 		return self
 
 	def hasAttr(self, attrname, xml=False):
-		errors.warn(DeprecationWarning("foo.hasAttr() is deprecated, use foo.attrs.has() instead"))
+		warnings.warn(DeprecationWarning("foo.hasAttr() is deprecated, use foo.attrs.has() instead"))
 		return self.attrs.has(attrname, xml=xml)
 
 	def hasattr(self, attrname, xml=False):
-		errors.warn(DeprecationWarning("foo.hasattr() is deprecated, use foo.attrs.has() instead"))
+		warnings.warn(DeprecationWarning("foo.hasattr() is deprecated, use foo.attrs.has() instead"))
 		return self.attrs.has(attrname, xml=xml)
 
 	def isallowedattr(cls, attrname):
 		"""
 		<par>return whether the attribute named <arg>attrname</arg> is allowed for <self/>.</par>
 		"""
-		errors.warn(DeprecationWarning("foo.isallowedattr() is deprecated, use foo.Attrs.isallowed() instead"))
+		warnings.warn(DeprecationWarning("foo.isallowedattr() is deprecated, use foo.Attrs.isallowed() instead"))
 		return cls.Attrs.isallowed(attrname)
 	isallowedattr = classmethod(isallowedattr)
 
 	def getAttr(self, attrname, default=None):
-		errors.warn(DeprecationWarning("foo.getAttr() is deprecated, use foo.attrs.get() instead"))
+		warnings.warn(DeprecationWarning("foo.getAttr() is deprecated, use foo.attrs.get() instead"))
 		return self.getattr(attrname, default)
 
 	def getattr(self, attrname, default=None):
-		errors.warn(DeprecationWarning("foo.getattr() is deprecated, use foo.attrs.get() instead"))
+		warnings.warn(DeprecationWarning("foo.getattr() is deprecated, use foo.attrs.get() instead"))
 		return self.attrs.get(attrname, default)
 
 	def setDefaultAttr(self, attrname, default=None):
-		errors.warn(DeprecationWarning("foo.setDefaultAttr() is deprecated, use foo.attrs.setdefault() instead"))
+		warnings.warn(DeprecationWarning("foo.setDefaultAttr() is deprecated, use foo.attrs.setdefault() instead"))
 		return self.setdefault(attrname, default=default)
 
 	def setdefaultattr(self, attrname, default=None):
-		errors.warn(DeprecationWarning("foo.setDefaultAttr() is deprecated, use foo.attrs.setdefault() instead"))
+		warnings.warn(DeprecationWarning("foo.setDefaultAttr() is deprecated, use foo.attrs.setdefault() instead"))
 		return self.attrs.setdefault(attrname, default)
 
 	def attrkeys(self, xml=False):
-		errors.warn(DeprecationWarning("foo.attrkeys() is deprecated, use foo.attrs.keys() instead"))
+		warnings.warn(DeprecationWarning("foo.attrkeys() is deprecated, use foo.attrs.keys() instead"))
 		return self.attrs.keys(xml=xml)
 
 	def attrvalues(self):
-		errors.warn(DeprecationWarning("foo.attrvalues() is deprecated, use foo.attrs.values() instead"))
+		warnings.warn(DeprecationWarning("foo.attrvalues() is deprecated, use foo.attrs.values() instead"))
 		return self.attrs.values()
 
 	def attritems(self, xml=False):
-		errors.warn(DeprecationWarning("foo.attritems() is deprecated, use foo.attrs.items() instead"))
+		warnings.warn(DeprecationWarning("foo.attritems() is deprecated, use foo.attrs.items() instead"))
 		return self.attrs.items(xml=xml)
 
 	def iterattrkeys(self, xml=False):
-		errors.warn(DeprecationWarning("foo.iterattrkeys() is deprecated, use foo.attrs.iterkeys() instead"))
+		warnings.warn(DeprecationWarning("foo.iterattrkeys() is deprecated, use foo.attrs.iterkeys() instead"))
 		return self.attrs.iterkeys(xml=xml)
 
 	def iterattrvalues(self):
-		errors.warn(DeprecationWarning("foo.iterattrvalues() is deprecated, use foo.attrs.itervalues() instead"))
+		warnings.warn(DeprecationWarning("foo.iterattrvalues() is deprecated, use foo.attrs.itervalues() instead"))
 		return self.attrs.itervalues()
 
 	def iterattritems(self, xml=False):
-		errors.warn(DeprecationWarning("foo.iterattritems() is deprecated, use foo.attrs.iteritems() instead"))
+		warnings.warn(DeprecationWarning("foo.iterattritems() is deprecated, use foo.attrs.iteritems() instead"))
 		return self.attrs.iteritems(xml=xml)
 
 	def allowedattrkeys(cls, xml=False):
-		errors.warn(DeprecationWarning("foo.allowedattrkeys() is deprecated, use foo.attrs.allowedkeys() instead"))
+		warnings.warn(DeprecationWarning("foo.allowedattrkeys() is deprecated, use foo.attrs.allowedkeys() instead"))
 		return cls.Attrs.allowedkeys(xml=xml)
 	allowedattrkeys = classmethod(allowedattrkeys)
 
 	def allowedattrvalues(cls):
-		errors.warn(DeprecationWarning("foo.allowedattrvalues() is deprecated, use foo.attrs.allowedvalues() instead"))
+		warnings.warn(DeprecationWarning("foo.allowedattrvalues() is deprecated, use foo.attrs.allowedvalues() instead"))
 		return cls.Attrs.allowedvalues()
 	allowedattrvalues = classmethod(allowedattrvalues)
 
 	def allowedattritems(cls, xml=False):
-		errors.warn(DeprecationWarning("foo.allowedattritems() is deprecated, use foo.attrs.alloweditems() instead"))
+		warnings.warn(DeprecationWarning("foo.allowedattritems() is deprecated, use foo.attrs.alloweditems() instead"))
 		return cls.Attrs.alloweditems(xml=xml)
 	allowedattritems = classmethod(allowedattritems)
 
 	def iterallowedattrkeys(cls, xml=False):
-		errors.warn(DeprecationWarning("foo.iterallowedattrkeys() is deprecated, use foo.attrs.iterattrkeys() instead"))
+		warnings.warn(DeprecationWarning("foo.iterallowedattrkeys() is deprecated, use foo.attrs.iterattrkeys() instead"))
 		return cls.Attrs.iterallowedkeys(xml=xml)
 	iterallowedattrkeys = classmethod(iterallowedattrkeys)
 
 	def iterallowedattrvalues(cls):
-		errors.warn(DeprecationWarning("foo.iterallowedattrvalues() is deprecated, use foo.attrs.iterattrvalues() instead"))
+		warnings.warn(DeprecationWarning("foo.iterallowedattrvalues() is deprecated, use foo.attrs.iterattrvalues() instead"))
 		return cls.Attrs.iterallowedvalues()
 	iterallowedattrvalues = classmethod(iterallowedattrvalues)
 
 	def iterallowedattritems(cls, xml=False):
-		errors.warn(DeprecationWarning("foo.iterallowedattritems() is deprecated, use foo.attrs.iterattritems() instead"))
+		warnings.warn(DeprecationWarning("foo.iterallowedattritems() is deprecated, use foo.attrs.iterattritems() instead"))
 		return cls.Attrs.iteralloweditems(xml=xml)
 	iterallowedattritems = classmethod(iterallowedattritems)
 
@@ -2704,7 +2704,7 @@ class Element(Node):
 		as only the fact that a boolean attribute exists matters.</par>
 		"""
 
-		errors.warn(DeprecationWarning("foo.copyDefaultAttrs() is deprecated, use foo.attrs.updateexisting() instead"))
+		warnings.warn(DeprecationWarning("foo.copyDefaultAttrs() is deprecated, use foo.attrs.updateexisting() instead"))
 		self.attrs.updateexisting(fromMapping)
 
 	def withsep(self, separator, clone=False):

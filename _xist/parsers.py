@@ -17,7 +17,7 @@ is from <app moreinfo="http://pyxml.sf.net/">PyXML</app>). It includes a
 and emit &sax;2 events.</par>
 """
 
-import sys, os, os.path, types, urllib
+import sys, os, os.path, types, urllib, warnings
 
 from xml import sax
 from xml.parsers import sgmlop
@@ -152,7 +152,7 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 
 	def handle_charref(self, data):
 		data = self._makestring(data)
-		if data[:1] == "x":
+		if data.startswith(u"x"):
 			data = unichr(int(data[1:], 16))
 		else:
 			data = unichr(int(data))
@@ -179,18 +179,12 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 			self.headerJustRead = True
 
 	def handle_entityref(self, name):
-		if name=="lt":
-			self._cont_handler.characters(u"<")
-		elif name=="gt":
-			self._cont_handler.characters(u">")
-		elif name=="amp":
-			self._cont_handler.characters(u"&")
-		elif name=="quot":
-			self._cont_handler.characters(u'"')
-		elif name=="apos":
-			self._cont_handler.characters(u"'")
+		try:
+			c = {"lt": u"<", "gt": u">", "amp": u"&", "quot": u'"', "apos": u"'"}[name]
+		except KeyError:
+			self._cont_handler.skippedEntity(self._makestring(name))
 		else:
-			self._cont_handler.skippedEntity(unicode(name, self.encoding))
+			self._cont_handler.characters(c)
 		self.headerJustRead = False
 
 	def finish_starttag(self, name, attrs):
@@ -199,13 +193,13 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 			if attrvalue is None:
 				attrvalue = attrname
 			else:
-				attrvalue = self._string2Fragment(unicode(attrvalue, self.encoding))
-			newattrs._attrs[unicode(attrname, self.encoding)] = attrvalue
-		self._cont_handler.startElement(unicode(name, self.encoding), newattrs)
+				attrvalue = self._string2Fragment(self._makestring(attrvalue))
+			newattrs._attrs[self._makestring(attrname)] = attrvalue
+		self._cont_handler.startElement(self._makestring(name), newattrs)
 		self.headerJustRead = False
 
 	def finish_endtag(self, name):
-		self._cont_handler.endElement(unicode(name, self.encoding))
+		self._cont_handler.endElement(self._makestring(name))
 		self.headerJustRead = False
 
 	def _string2Fragment(self, text):
@@ -217,30 +211,35 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 			return xsc.Null
 		ct = self._cont_handler.createText
 		node = xsc.Frag()
-		while 1:
-			try:
-				i = text.index("&")
-				if i != 0:
-					node.append(ct(text[:i]))
-					text = text[i:]
-				try:
-					i = text.index(";")
-					if text[1] == "#":
-						if text[2] == "x":
-							node.append(ct(unichr(int(text[3:i], 16))))
-						else:
-							node.append(ct(unichr(int(text[2:i]))))
-					else:
-						node.append(self._cont_handler.createEntity(text[1:i]))
-					text = text[i+1:]
-				except ValueError:
-					raise errors.MalformedCharRefError(text)
-			except ValueError:
-				if len(text):
-					node.append(ct(text))
+		while True:
+			texts = text.split(u"&", 1)
+			text = texts[0]
+			if text:
+				node.append(ct(text))
+			if len(texts)==1:
 				break
-		if not len(node):
-			node.append(ct(""))
+			texts = texts[1].split(u";", 1)
+			name = texts[0]
+			if len(texts)==1:
+				raise errors.MalformedCharRefWarning(name)
+			if name.startswith(u"#"):
+				try:
+					if name.startswith(u"#x"):
+						node.append(ct(unichr(int(name[2:], 16))))
+					else:
+						node.append(ct(unichr(int(name[1:]))))
+				except ValueError:
+					raise errors.MalformedCharRefWarning(name)
+			else:
+				try:
+					c = {"lt": u"<", "gt": u">", "amp": u"&", "quot": u'"', "apos": u"'"}[name]
+				except KeyError:
+					node.append(self._cont_handler.createEntity(name))
+				else:
+					node.append(ct(c))
+			text = texts[1]
+		if not node:
+			node.append(ct(u""))
 		return node
 
 class BadEntityParser(SGMLOPParser):
@@ -250,6 +249,27 @@ class BadEntityParser(SGMLOPParser):
 	entities to the handler literally.</par>
 	"""
 
+	def handle_entityref(self, name):
+		try:
+			c = {"lt": u"<", "gt": u">", "amp": u"&", "quot": u'"', "apos": u"'"}[name]
+		except KeyError:
+			name = self._makestring(name)
+			try:
+				self._cont_handler.skippedEntity(name)
+			except errors.IllegalEntityError:
+				try:
+					entity = html.entity(name, xml=True)
+				except errors.IllegalEntityError:
+					self._cont_handler.characters(u"&%s;" % name)
+				else:
+					if issubclass(entity, xsc.CharRef):
+						self._cont_handler.characters(unichr(entity.codepoint))
+					else:
+						self._cont_handler.characters(u"&%s;" % name)
+		else:
+			self._cont_handler.characters(c)
+		self.headerJustRead = False
+
 	def _string2Fragment(self, text):
 		"""
 		This version tries to pass illegal content literally.
@@ -258,36 +278,66 @@ class BadEntityParser(SGMLOPParser):
 			return xsc.Null
 		node = xsc.Frag()
 		ct = self._cont_handler.createText
-		parts = text.split(u"&")
-		node.append(ct(parts[0]))
-		del parts[0]
-		for part in parts:
-			pos = part.find(u";")
-			if pos == -1: # no ; found, so it's no entity => append it literally
-				node.append(ct(u"&"+part))
-			else: # ; found
-				if part[0] != "#": # named entity
-					name = part[:pos]
+		while True:
+			texts = text.split(u"&", 1)
+			text = texts[0]
+			if text:
+				node.append(ct(text))
+			if len(texts)==1:
+				break
+			texts = texts[1].split(u";", 1)
+			name = texts[0]
+			if len(texts)==1: # no ; found, so it's no entity => append it literally
+				name = u"&" + name
+				warnings.warn(errors.MalformedCharRefWarning(name))
+				node.append(ct(name))
+				break
+			else:
+				if name.startswith(u"#"): # character reference
 					try:
-						entity = self._cont_handler.createEntity(name)
-					except errors.IllegalEntityError:
+						if name.startswith(u"#x"): # hexadecimal character reference
+							node.append(ct(unichr(int(name[2:], 16))))
+						else: # decimal character reference
+							node.append(ct(unichr(int(name[1:]))))
+					except (ValueError, OverflowError): # illegal format => append it literally
+						name = u"&%s;" % name
+						warnings.warn(errors.MalformedCharRefWarning(name))
+						node.append(ct(name))
+				else: # entity reference
+					try:
+						entity = {"lt": u"<", "gt": u">", "amp": u"&", "quot": u'"', "apos": u"'"}[name]
+					except KeyError:
 						try:
-							entity = html.entity(name, xml=True)()
+							entity = self._cont_handler.createEntity(name)
 						except errors.IllegalEntityError:
 							try:
-								entity = xsc.xmlns.entity(name, xml=True)()
+								entity = html.entity(name, xml=True)
+								if issubclass(entity, xsc.CharRef):
+									entity = ct(unichr(entity.codepoint))
+								else:
+									entity = entity()
 							except errors.IllegalEntityError:
-								entity = xsc.Frag(ct(u"&"+part))
-					node.append(entity, ct(part[pos+1:]))
-				else: # numeric entity
-					try:
-						if part[1] == "x": # hex entity
-							node.append(ct(unichr(int(part[2:pos], 16)) + part[pos+1:]))
-						else: # decimal entity
-							node.append(ct(unichr(int(part[1:pos])) + part[pos+1:]))
-					except ValueError: # illegal format => append it literally
-						node.append(ct(u"&"+part))
+								name = u"&%s;" % name
+								warnings.warn(errors.MalformedCharRefWarning(name))
+								entity = ct(name)
+					else:
+						entity = ct(entity)
+					node.append(entity)
+			text = texts[1]
 		return node
+
+	def handle_charref(self, data):
+		data = self._makestring(data)
+		try:
+			if data.startswith("x"):
+				data = unichr(int(data[1:], 16))
+			else:
+				data = unichr(int(data))
+		except (ValueError, OverflowError):
+			data = u"&#%s;" % data
+		if not self.headerJustRead or not data.isspace():
+			self._cont_handler.characters(data)
+			self.headerJustRead = False
 
 class HTMLParser(BadEntityParser):
 	"""
@@ -320,7 +370,7 @@ class HTMLParser(BadEntityParser):
 
 		# Check whether this element is allowed in the current context
 		if self._stack and name not in htmldtd.HTML_DTD.get(self._stack[-1], []):
-			errors.warn(errors.IllegalDTDChildWarning(name, self._stack[-1]))
+			warnings.warn(errors.IllegalDTDChildWarning(name, self._stack[-1]))
 
 		# Skip unknown attributes (but warn about them)
 		newattrs = {}
@@ -330,7 +380,7 @@ class HTMLParser(BadEntityParser):
 			if element.Attrs.isallowed(attrname, xml=True):
 				newattrs[attrname] = attrvalue
 			else:
-				errors.warn(errors.IllegalAttrError(element.Attrs, attrname))
+				warnings.warn(errors.IllegalAttrError(element.Attrs, attrname))
 		BadEntityParser.finish_starttag(self, name, newattrs)
 
 		if name.upper() in htmldtd.HTML_FORBIDDEN_END:
@@ -354,7 +404,7 @@ class HTMLParser(BadEntityParser):
 			BadEntityParser.finish_endtag(self, name)
 			del self._stack[-1]
 		else:
-			errors.warn(errors.IllegalCloseTagWarning(name))
+			warnings.warn(errors.IllegalCloseTagWarning(name))
 
 class ExpatParser(expatreader.ExpatParser):
 	def reset(self):
@@ -508,10 +558,10 @@ class Handler(object):
 
 	def skippedEntity(self, name):
 		node = self.createEntity(name)
-		node.parsed(self)
 		if isinstance(node, xsc.CharRef):
 			self.characters(unichr(node.codepoint))
 		else:
+			node.parsed(self)
 			self.__appendNode(node)
 		self.skippingWhitespace = False
 
@@ -526,10 +576,12 @@ class Handler(object):
 
 	def error(self, exception):
 		"Handle a recoverable error."
+		# This doesn't work properly with expat, as expat fiddles with the traceback
 		raise self.__decorateException(exception)
 
 	def fatalError(self, exception):
 		"Handle a non-recoverable error."
+		# This doesn't work properly with expat, as expat fiddles with the traceback
 		raise self.__decorateException(exception)
 
 	def warning(self, exception):

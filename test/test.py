@@ -11,6 +11,7 @@
 import sys, unittest, cStringIO, warnings
 
 from xml.sax import saxlib
+from xml.parsers import expat
 
 from ll import url
 from ll.xist import xsc, parsers, presenters, converters, helpers, errors, options
@@ -1464,6 +1465,18 @@ class PublishTest(unittest.TestCase):
 		self.assertRaises(errors.IllegalElementError, ns.element, "bar2")
 
 class ParseTest(unittest.TestCase):
+	def assertSAXRaises(self, exception, func, *args, **kwargs):
+		# assert that func(*args, **kwargs) raises exception either directly or wrapped in a SAXParseException
+		try:
+			func(*args, **kwargs)
+		except exception:
+			pass
+		except saxlib.SAXParseException, exc:
+			realexc = exc.getException()
+			self.assert_(isinstance(realexc, exception))
+		else:
+			self.fail()
+
 	def test_parselocationsgmlop(self):
 		node = parsers.parseString("<z>gurk&amp;hurz&#42;hinz&#x666;hunz</z>", parser=parsers.SGMLOPParser())
 		self.assertEqual(len(node), 1)
@@ -1520,12 +1533,7 @@ class ParseTest(unittest.TestCase):
 		self.assertEqual(str(node[0]["required"]), "foo")
 
 		warnings.filterwarnings("error", category=errors.RequiredAttrMissingWarning)
-		try:
-			node = parsers.parseString('<Test/>', prefixes=prefixes)
-		except saxlib.SAXParseException, exc:
-			self.assert_(isinstance(exc.getException(), errors.RequiredAttrMissingWarning))
-		else:
-			self.fail()
+		self.assertSAXRaises(errors.RequiredAttrMissingWarning, parsers.parseString, '<Test/>', prefixes=prefixes)
 
 	def test_parsevalueattrs(self):
 		class xmlns(xsc.Namespace):
@@ -1539,16 +1547,82 @@ class ParseTest(unittest.TestCase):
 		warnings.filterwarnings("error", category=errors.IllegalAttrValueWarning)
 		node = parsers.parseString('<Test withvalues="bar"/>', prefixes=prefixes)
 		self.assertEqual(str(node[0]["withvalues"]), "bar")
-		try:
-			node = parsers.parseString('<Test withvalues="baz"/>', prefixes=prefixes)
-		except saxlib.SAXParseException, exc:
-			self.assert_(isinstance(exc.getException(), errors.IllegalAttrValueWarning))
-			pass
-		else:
-			self.fail()
+		self.assertSAXRaises(errors.IllegalAttrValueWarning, parsers.parseString, '<Test withvalues="baz"/>', prefixes=prefixes)
+
+	class xmlns(xsc.Namespace):
+		xmlname = "foo"
+		xmlurl = "http://www.foo.com/foo"
+		class a(xsc.Element):
+			class Attrs(xsc.Element.Attrs):
+				class title(xsc.TextAttr): pass
+		class foo(xsc.Entity):
+			def __unicode__(self):
+				return u"FOO"
+		class bar(xsc.CharRef):
+			codepoint = 0x42
+
+	def check_parseentities(self, source, result, **parseargs):
+		node = parsers.parseString("""<a title="%s">%s</a>""" % (source, source), **parseargs)
+		node = node.findfirst(xsc.FindType(xsc.Element))
+		self.assertEqual(unicode(node), result)
+		self.assertEqual(unicode(node["title"]), result)
+
+	def check_parsestrictentities(self, source, result, parserfactory):
+		# in the strict parser the errors will always be raised, so ignore them to verify that
+		warnings.filterwarnings("ignore", category=errors.MalformedCharRefWarning)
+
+		prefixes = xsc.Prefixes().addPrefixMapping(None, self.__class__.xmlns)
+		self.check_parseentities(source, result, prefixes=prefixes, parser=parserfactory())
+		for bad in ("&", "&#x", "&&", "&#x;", "&#fg;", "&#999999999;", "&#;", "&#x;"):
+			self.assertSAXRaises((errors.MalformedCharRefWarning, expat.ExpatError), self.check_parseentities, bad, u"", prefixes=prefixes, parser=parserfactory())
+		self.assertSAXRaises(errors.IllegalEntityError, self.check_parseentities, "&baz;", u"", prefixes=prefixes, parser=parserfactory())
+
+	def test_parsestrictentities_sgmlop(self):
+		self.check_parsestrictentities(
+			"a&amp;b&foo;&bar;c&#32;d&#x20;&#30000;;&lt;&gt;&quot;&apos;",
+			u"""a&bFOO\x42c d %c;<>"'""" % 30000,
+			parsers.SGMLOPParser
+		)
+
+	def test_parsestrictentities_expat(self):
+		self.check_parsestrictentities(
+			"a&amp;bc&#32;d&#x20;&#30000;;&lt;&gt;&quot;&apos;",
+			u"""a&bc d %c;<>"'""" % 30000,
+			parsers.ExpatParser
+		)
+
+	def check_parsebadentities(self, parserfactory):
+		warnings.filterwarnings("ignore", category=errors.MalformedCharRefWarning)
+
+		prefixes = xsc.Prefixes().addPrefixMapping(None, self.__class__.xmlns)
+		tests = [
+			("&amp;", u"&"),
+			("&amp;amp;", u"&amp;"),
+			("x&foo;&bar;y", u"xFOO\x42y"),
+			("x&foobar;y", u"x&foobar;y"),
+			("&uuml;", u"ü"),
+			("x&x", u"x&x"),
+			("x&x;", u"x&x;"),
+			("a&amp;b&lt;c&gt;d&quot;e&apos;f", u"a&b<c>d\"e'f"),
+			("x&#;y", u"x&#;y"),
+			("x&#32;y", u"x y"),
+			("x&#x20;y", u"x y"),
+			("x&#-32;y", u"x&#-32;y"),
+			("x&#999999999;y", "x&#999999999;y"),
+			("x&#xffffffff;y", "x&#xffffffff;y"),
+			("x&#xffffffff;y", "x&#xffffffff;y"),
+			("x&#xffffffff;y&#", "x&#xffffffff;y&#")
+		]
+		for (source, result) in tests:
+			self.check_parseentities(source, result, prefixes=prefixes, parser=parserfactory())
+
+	def test_parsebadentities_badentity(self):
+		self.check_parsebadentities(parsers.BadEntityParser)
+
+	def test_parsebadentities_html(self):
+		self.check_parsebadentities(parsers.HTMLParser)
 
 class DTD2XSCTest(unittest.TestCase):
-
 	def dtd2ns(self, s, xmlname, xmlurl=None, shareattrs=None):
 		from xml.parsers.xmlproc import dtdparser
 
@@ -1728,7 +1802,6 @@ class DTD2XSCTest(unittest.TestCase):
 		self.assert_(ns.bar.Attrs.bazz.required)
 
 class TLD2XSCTest(unittest.TestCase):
-
 	def tld2ns(self, s, xmlname, shareattrs=None):
 		node = parsers.parseString(s, prefixes=xsc.Prefixes().addElementPrefixMapping(None, tld))
 		node = node.findfirst(xsc.FindType(tld.taglib))
@@ -1794,7 +1867,6 @@ class TLD2XSCTest(unittest.TestCase):
 		self.assertEqual(ns.bar.Attrs.response.required, False)
 
 class XNDLTest(unittest.TestCase):
-
 	def xndl2ns(self, node):
 		data = node.asdata()
 
