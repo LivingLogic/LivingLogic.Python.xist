@@ -16,7 +16,7 @@ __version__ = "$Revision$"[11:-2]
 import sys
 import getopt
 import time
-import xsc, html, publishers, url, utils
+from xist import xsc, html, publishers, url, utils # don't do a subpackage import here, otherwise chaos will ensue, because XIST modules will be imported twice
 
 def extXSC2HTML(ext):
 	try:

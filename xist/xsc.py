@@ -1872,7 +1872,7 @@ class Namespace:
 			isentity = thing is not Entity and issubclass(thing, Entity)
 			isprocinst = thing is not ProcInst and issubclass(thing, ProcInst)
 			if iselement or isentity or isprocinst:
-				if not thing.__dict__.has_key("namespace"): # if the class already has a namespace attribute, it is already registered (where accessing __dict__ here, because we don't want inheritance)
+				if not thing.__dict__.has_key("namespace"): # if the class already has a namespace attribute, it is already registered (we're accessing __dict__ here, because we don't want the attribute from the base class object)
 					try:
 						name = thing.__dict__["name"] # no inheritance
 					except KeyError:
@@ -1911,7 +1911,6 @@ class NamespaceRegistry:
 		self.byURI = {}
 
 	def register(self, namespace):
-		print "="*20,repr(namespace.uri)
 		self.byPrefix[namespace.prefix] = namespace
 		self.byURI[namespace.uri] = namespace
 

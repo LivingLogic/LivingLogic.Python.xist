@@ -17,7 +17,7 @@ import sys
 import types
 from encodings.aliases import aliases
 import codecs
-import options, xsc, utils
+import xsc, options, utils
 
 strescapes = {'<': 'lt', '>': 'gt', '&': 'amp', '"': 'quot'}
 
