@@ -823,9 +823,9 @@ class Element(Node):
 		"""
 		if type(index)==types.StringType:
 			lowerindex = string.lower(index)
-			if self.attrs.has_key(lowerindex):
+			try:
 				return self.attrs[lowerindex] # we're returning the packed attribute here, because otherwise there would be no possibility to get an expanded URL
-			else:
+			except KeyError:
 				raise AttributeNotFoundError(xsc.parser.lineno,self,index)
 		else:
 			return self.content[index]
@@ -856,6 +856,18 @@ class Element(Node):
 				del self.attrs[lowerindex]
 		else:
 			del self.content[index]
+
+	def get_attr(self,attr,default):
+		"""
+		works like the method get() of dictionaries,
+		it returns the attribute with the name attr, or if this doesn't exist,
+		default (after converting it to a node and wrapping it into the
+		appropriate attribute node.
+		"""
+		try:
+			return self[attr]
+		except AttributeNotFoundError:
+			return self.attr_handlers[string.lower(attr)](default) # pack the attribute into an attribute object
 
 	def __getslice__(self,index1,index2):
 		"""returns a copy of the element that contains a slice of the content"""
@@ -1434,6 +1446,17 @@ class XSC:
 			return 1
 		else:
 			return 0
+
+def __forceopen(name,mode):
+	try:
+		file = open(name,mode)
+	except IOError,e:
+		if e[0] != 2: # didn't work for some other reason
+			raise
+		path = string.split(name,"/")
+		os.makedirs(path)
+		for i in xrange(len(path-1)):
+			pass
 
 def make():
 	"""use XSC as a compiler script, i.e. read an input file from args[1] and writes it to args[2]"""
