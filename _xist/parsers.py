@@ -357,7 +357,7 @@ class HTMLParser(BadEntityParser):
 		newattrs = {}
 		for (attrname, attrvalue) in attrs:
 			attrname = attrname.lower()
-			element = html.namespace.elementsByName[name]
+			element = html.xmlns.elementsByName[name]
 			if element.isallowed(attrname):
 				newattrs[attrname] = attrvalue
 			else:
