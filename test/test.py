@@ -74,73 +74,78 @@ class XISTTest(unittest.TestCase):
 		self.check_lenunicode(xsc.Frag(1, (2, 3)), 3, u"123")
 		self.check_lenunicode(xsc.Frag(1, (None, None)), 1, u"1")
 
-	def test_fragappend(self):
-		node = xsc.Frag()
-		node.append(1)
-		self.check_lenunicode(node, 1, u"1")
-		node.append(2)
-		self.check_lenunicode(node, 2, u"12")
-		node.append()
-		self.check_lenunicode(node, 2, u"12")
-		node.append(3, 4)
-		self.check_lenunicode(node, 4, u"1234")
-		node.append(None)
-		self.check_lenunicode(node, 4, u"1234")
-		node.append((5, 6))
-		self.check_lenunicode(node, 6, u"123456")
+	def test_append(self):
+		for cls in (xsc.Frag, html.div):
+			node = cls()
+			node.append(1)
+			self.check_lenunicode(node, 1, u"1")
+			node.append(2)
+			self.check_lenunicode(node, 2, u"12")
+			node.append()
+			self.check_lenunicode(node, 2, u"12")
+			node.append(3, 4)
+			self.check_lenunicode(node, 4, u"1234")
+			node.append(None)
+			self.check_lenunicode(node, 4, u"1234")
+			node.append((5, 6))
+			self.check_lenunicode(node, 6, u"123456")
 
-	def test_fragextend(self):
-		node = xsc.Frag()
-		node.extend([1])
-		self.check_lenunicode(node, 1, u"1")
-		node.extend([2])
-		self.check_lenunicode(node, 2, u"12")
-		node.extend([])
-		self.check_lenunicode(node, 2, u"12")
-		node.extend([None])
-		self.check_lenunicode(node, 2, u"12")
-		node.extend([3, 4])
-		self.check_lenunicode(node, 4, u"1234")
-		node.extend([[], [[], [5], []]])
-		self.check_lenunicode(node, 5, u"12345")
+	def test_extend(self):
+		for cls in (xsc.Frag, html.div):
+			node = cls()
+			node.extend([1])
+			self.check_lenunicode(node, 1, u"1")
+			node.extend([2])
+			self.check_lenunicode(node, 2, u"12")
+			node.extend([])
+			self.check_lenunicode(node, 2, u"12")
+			node.extend([None])
+			self.check_lenunicode(node, 2, u"12")
+			node.extend([3, 4])
+			self.check_lenunicode(node, 4, u"1234")
+			node.extend([[], [[], [5], []]])
+			self.check_lenunicode(node, 5, u"12345")
 
-	def test_fraginsert(self):
-		node = xsc.Frag()
-		node.insert(0, 1)
-		self.check_lenunicode(node, 1, u"1")
-		node.insert(0, 2)
-		self.check_lenunicode(node, 2, u"21")
-		node.insert(0, 3, 4)
-		self.check_lenunicode(node, 4, u"3421")
-		node.insert(0, None)
-		self.check_lenunicode(node, 4, u"3421")
-		node.insert(0, (5, 6))
-		self.check_lenunicode(node, 6, u"563421")
+	def test_insert(self):
+		for cls in (xsc.Frag, html.div):
+			node = cls()
+			node.insert(0, 1)
+			self.check_lenunicode(node, 1, u"1")
+			node.insert(0, 2)
+			self.check_lenunicode(node, 2, u"21")
+			node.insert(0, 3, 4)
+			self.check_lenunicode(node, 4, u"3421")
+			node.insert(0, None)
+			self.check_lenunicode(node, 4, u"3421")
+			node.insert(0, (5, 6))
+			self.check_lenunicode(node, 6, u"563421")
 
-	def test_fragiadd(self):
-		node = xsc.Frag()
-		node += [1]
-		self.check_lenunicode(node, 1, u"1")
-		node += [2]
-		self.check_lenunicode(node, 2, u"12")
-		node += []
-		self.check_lenunicode(node, 2, u"12")
-		node += [None]
-		self.check_lenunicode(node, 2, u"12")
-		node += [3, 4]
-		self.check_lenunicode(node, 4, u"1234")
-		node += [[], [[], [5], []]]
-		self.check_lenunicode(node, 5, u"12345")
+	def test_iadd(self):
+		for cls in (xsc.Frag, html.div):
+			node = cls()
+			node += [1]
+			self.check_lenunicode(node, 1, u"1")
+			node += [2]
+			self.check_lenunicode(node, 2, u"12")
+			node += []
+			self.check_lenunicode(node, 2, u"12")
+			node += [None]
+			self.check_lenunicode(node, 2, u"12")
+			node += [3, 4]
+			self.check_lenunicode(node, 4, u"1234")
+			node += [[], [[], [5], []]]
+			self.check_lenunicode(node, 5, u"12345")
 
-	def test_elementlen(self):
-		self.check_lenunicode(html.div(), 0, u"")
-		self.check_lenunicode(html.div(1), 1, u"1")
-		self.check_lenunicode(html.div(1, 2, 3), 3, u"123")
-		self.check_lenunicode(html.div(None), 0, u"")
-		self.check_lenunicode(html.div(None, None, None), 0, u"")
-		self.check_lenunicode(html.div(1, None, 2, None, 3, None, 4), 4, u"1234")
-		self.check_lenunicode(html.div(1, (2, 3)), 3, u"123")
-		self.check_lenunicode(html.div(1, (None, None)), 1, u"1")
+	def test_len(self):
+		for cls in (xsc.Frag, html.div):
+			self.check_lenunicode(cls(), 0, u"")
+			self.check_lenunicode(cls(1), 1, u"1")
+			self.check_lenunicode(cls(1, 2, 3), 3, u"123")
+			self.check_lenunicode(cls(None), 0, u"")
+			self.check_lenunicode(cls(None, None, None), 0, u"")
+			self.check_lenunicode(cls(1, None, 2, None, 3, None, 4), 4, u"1234")
+			self.check_lenunicode(cls(1, (2, 3)), 3, u"123")
+			self.check_lenunicode(cls(1, (None, None)), 1, u"1")
 
 	def createattr(self):
 		return html.span.Attrs.lang(
