@@ -231,16 +231,19 @@ RegisterElement("del",del_)
 class ul(XSCElement):
 	empty = 0
 	attr_handlers = attrs
+	attr_handlers = AppendDict(attrs,{ "type" : XSCFrag }) # deprecated
 RegisterElement("ul",ul)
 
 class ol(XSCElement):
 	empty = 0
 	attr_handlers = attrs
+	attr_handlers = AppendDict(attrs,{ "type" : XSCFrag }) # deprecated
 RegisterElement("ol",ol)
 
 class li(XSCElement):
 	empty = 0
 	attr_handlers = attrs
+	attr_handlers = AppendDict(attrs,{ "type" : XSCFrag }) # deprecated
 RegisterElement("li",li)
 
 class dl(XSCElement):
