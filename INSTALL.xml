@@ -57,8 +57,8 @@ sys.setdefaultencoding(<rep>"iso-8859-1"</rep>)
 </prog>
 <par>(or any other encoding name that you want to use
 instead of <rep>"iso-8859-1"</rep>).</par>
-<par>Starting with Python 2.3 you should use define your
-source code encoding it the first or second line (see
+<par>Starting with Python 2.3 you should instead define your
+source code encoding in the first or second line of your script (see
 <link href="http://www.python.org/peps/pep-0263.html">PEP 263</link>)
 and use Unicode string constants only.</par>
 </section>
