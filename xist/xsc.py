@@ -269,6 +269,9 @@ class XSCNode:
  
 	def strquotes(self,content):
 		return self.stransi(xsc.repransiquotes,'"') + content + self.stransi(xsc.repransiquotes,'"')
+
+	def __str__(self):
+		return self.dostr()
  
 class XSCText(XSCNode):
 	"""text"""
@@ -279,7 +282,7 @@ class XSCText(XSCNode):
 	def __init__(self,content = ""):
 		self.content = content
 
-	def __str__(self):
+	def dostr(self):
 		v = []
 		for i in self.content:
 			if self.strescapes.has_key(i):
@@ -331,9 +334,6 @@ class XSCFrag(XSCNode):
 		res = XSCFrag(self.content)
 		res.preppend(other)
 
-	def __str__(self):
-		return string.joinfields(map(str,self.content),"")
-
 	def dorepr(self,tree,nest,elementno):
 		v = []
 		if tree!=0:
@@ -345,6 +345,12 @@ class XSCFrag(XSCNode):
 		if tree!=0:
 			v.append([nest,self.endlineno,elementno,self.strtag('/XSCFrag')])
 		return v
+
+	def dostr(self):
+		v = []
+		for child in self.content:
+			v.append(child.dostr())
+		return string.joinfields(v,"")
 
 	def __getitem__(self,index):
 		"""returns the index'th node for the content of the fragment"""
@@ -402,18 +408,18 @@ class XSCAttrs(XSCNode):
 			del res[attr]
 		return res
 
-	def __str__(self):
-		v = []
-		for attr in self.keys():
-			v.append(attr + '="' + str(self[attr]) + '"')
-		return string.joinfields(v," ")
-
 	def dorepr(self,tree,nest,elementno):
 		v = [nest,self.startlineno,elementno,""]
 		for attr in self.keys():
 			line = self[attr].dorepr(0,0,[])
 			v[-1] = v[-1] + " " + self.strattrname(attr) + '="' + line[0][-1] + '"'
 		return v
+
+	def dostr(self):
+		v = []
+		for attr in self.keys():
+			v.append(attr + '="' + self[attr].dostr() + '"')
+		return string.joinfields(v," ")
 
 	def has_attr(self,index):
 		return self.content.has_key(index)
@@ -454,11 +460,11 @@ class XSCComment(XSCNode):
 	def __init__(self,content = ""):
 		self.content = content
 
-	def __str__(self):
-		return "<!--" + self.content + "-->"
-
 	def dorepr(self,tree,nest,elementno):
 		return [[nest,self.startlineno,elementno,self.strtag("!--" + self.content + "--")]]
+
+	def dostr(self):
+		return "<!--" + self.content + "-->"
 
 class XSCDocType(XSCNode):
 	"""document type"""
@@ -466,11 +472,11 @@ class XSCDocType(XSCNode):
 	def __init__(self,content = ""):
 		self.content = content
 
-	def __str__(self):
-		return "<!DOCTYPE " + self.content + ">"
-
 	def dorepr(self,tree,nest = 0):
 		return [[nest,self.startlineno,elementno,self.strtag("!DOCTYPE " + self.content)]]
+
+	def dostr(self):
+		return "<!DOCTYPE " + self.content + ">"
 
 class XSCElement(XSCNode):
 	"""XML elements"""
@@ -502,7 +508,7 @@ class XSCElement(XSCNode):
 			v.append([nest,self.startlineno,elementno,self.strtag(self.strelementname(self.name) + self.attrs.dorepr(0,0,[])[-1] + self.strelementname("/"))])
 		return v
 
-	def __str__(self):
+	def dostr(self):
 		"""returns this element as a string converted to HTML"""
 
 		v = []
@@ -510,8 +516,8 @@ class XSCElement(XSCNode):
 		v.append(self.name)
 		if len(self.attrs):
 			v.append(" ")
-			v.append(str(self.attrs))
-		s = str(self.content)
+			v.append(self.attrs.dostr())
+		s = self.content.dostr()
 		if self.close == 1:
 			v.append(">")
 			v.append(s)
@@ -603,18 +609,9 @@ class XSCurl(XSCElement):
 		url = URLForInput(self.content.repr(0))
 		return [[nest,self.startlineno,elementno,url]]
 
-	def __str__(self):
-		url = str(self.content)
-		if url[0] == ":":
-			# split both path
-			source = string.splitfields(xsc.filename,"/")
-			dest = string.splitfields(url[1:],os.sep)
-			# throw away identical directories in both path
-			while len(source)>1 and len(dest)>1 and source[0]==dest[0]:
-				del source[0]
-				del dest[0]
-			url = string.joinfields(([".."]*(len(source)-1)) + dest,"/")
-		return url
+	def dostr(self):
+		url = self.content.dostr()
+		return URLForOutput(url)
 RegisterElement("url",XSCurl)
 
 ###
