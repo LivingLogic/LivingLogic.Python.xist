@@ -449,7 +449,7 @@ class Node:
 		lines = self._doreprtree(nest, [], encoding=encoding, ansi=ansi)
 		lenloc = 0
 		lenelementno = 0
-		for line in lines:
+		for line in lines: # (nest, location, elementno, string)
 			if line[1] is not None: # convert location to a string
 				line[1] = str(line[1])
 			else:
@@ -1157,8 +1157,10 @@ class DocType(Node, StringMixIn):
 	def _dorepr(self, encoding=None, ansi=None):
 		return strBracketOpen(ansi) + strExclamation(ansi) + strDocTypeMarker(ansi) + " " + strDocTypeText(self._content, ansi) + strBracketClose(ansi)
 
-	def _doreprtree(self, nest, elementno, encoding=None, ansi=None):
-		return [[nest, self.startloc, elementno, self._dorepr(encoding, ansi)]]
+	def _doreprtree(self, nest, elementno, encoding, ansi):
+		head = strBracketOpen(ansi) + strExclamation(ansi) + strDocTypeMarker(ansi) + " "
+		tail = strBracketClose(ansi)
+		return self._doreprtreeMultiLine(nest, elementno, head, tail, self._content, strDocTypeText, 0, encoding=encoding, ansi=ansi)
 
 	def publish(self, publisher):
 		publisher(u"<!DOCTYPE ")
