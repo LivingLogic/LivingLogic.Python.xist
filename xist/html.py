@@ -13,7 +13,7 @@ import xsc
 
 # common attributes
 coreattrs  = {"id": xsc.TextAttr, "class": xsc.TextAttr, "style": xsc.TextAttr, "title": xsc.TextAttr}
-i18n = {"lang": xsc.TextAttr, "dir"  : xsc.TextAttr}
+i18n = {"lang": xsc.TextAttr, "dir": xsc.TextAttr}
 events = {"onclick": xsc.TextAttr, "ondblclick": xsc.TextAttr, "onmousedown": xsc.TextAttr, "onmouseup": xsc.TextAttr, "onmouseover": xsc.TextAttr, "onmousemove": xsc.TextAttr, "onmouseout": xsc.TextAttr, "onkeypress": xsc.TextAttr, "onkeydown": xsc.TextAttr, "onkeyup": xsc.TextAttr}
 attrs = coreattrs.copy()
 attrs.update(i18n)
