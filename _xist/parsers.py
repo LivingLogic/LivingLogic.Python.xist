@@ -507,9 +507,14 @@ class Parser(object):
 
 		if prefixes is None:
 			prefixes = xsc.defaultPrefixes.clone()
-		self.prefixes = prefixes # the currently active prefix mapping (will be replaced, once xmlns attributes are encountered)
+		self.prefixes = prefixes # the currently active prefix mapping (will be replaced once xmlns attributes are encountered)
 
 		self._locator = None
+		if isinstance(tidy, int):
+			if tidy:
+				tidy = {}
+			else:
+				tidy = None
 		self.tidy = tidy
 		self.loc = loc
 		self.encoding = encoding
@@ -529,6 +534,10 @@ class Parser(object):
 		parser.setFeature(handler.feature_external_ges, False) # Don't process external entities, but pass them to skippedEntity
 
 		self.skippingwhitespace = False
+
+		if self.tidy is not None:
+			(text, encoding) = tidystring(stream.read(), encoding, sysid, self.tidy)
+			stream = cStringIO.StringIO(text)
 
 		source = sax.xmlreader.InputSource(sysid)
 		source.setByteStream(stream)
