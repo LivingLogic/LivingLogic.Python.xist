@@ -11,6 +11,7 @@ __version__ = "$Revision$"[11:-2]
 import types
 import urlparse
 import urllib
+from options import *
 
 class URL:
 	"""
@@ -38,6 +39,8 @@ class URL:
 	will be an URL equivalent to
 		URL("/foo/bar/*root/cgi2/baz2.py")
 	"""
+	__safe = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_,.-:/"
+
 	def __init__(self,url = None,scheme = None,server = None,port = None,path = None,file = None,ext = None,parameters = None,query = None,fragment = None):
 		# initialize the defaults
 		self.scheme = self.server = self.port = None
@@ -45,7 +48,7 @@ class URL:
 		self.file = self.ext = self.parameters = self.query = self.fragment = None
 		if url is None:
 			pass
-		elif type(url) is types.StringType:
+		elif type(url) in (types.StringType, types.UnicodeType):
 			self.__fromString(url)
 		elif isinstance(url,URL):
 			self.scheme     = url.scheme
@@ -58,7 +61,6 @@ class URL:
 			self.query      = url.query
 			self.fragment   = url.fragment
 		else:
-			print type(url)
 			raise ValueError("URL argument must be either a string or an URL or None")
 
 		if scheme is not None:
@@ -68,7 +70,7 @@ class URL:
 		if port is not None:
 			self.port = port
 		if path is not None:
-			self.__path = path[:]
+			self.__path = map(stringFromCode,path)
 		if ext is not None:
 			self.ext = ext
 		if file is not None:
@@ -82,17 +84,16 @@ class URL:
 
 		self.__normalize()
 
-	def __getitem__(self,index):
-		"""
-		returns the index'th path entry
-		"""
-		return self.__path[index]
+	def __setattr__(self,name,value):
+		if name in ("scheme","server","file","ext","parameters","query","fragment"):
+			value = stringFromCode(value)
+		self.__dict__[name] = value
 
 	def __setitem__(self,index,value):
 		"""
 		allows you to replace the index'th path entry
 		"""
-		self.__path[index] = value
+		self.__path[index] = stringFromCode(value)
 		self.__normalize()
 
 	def __delitem__(self,index):
@@ -112,7 +113,7 @@ class URL:
 		"""
 		replaces a slice of the path
 		"""
-		self.__path[index1:index2] = sequence
+		self.__path[index1:index2] = map(stringFromCode,sequence)
 		self.__normalize()
 
 	def __delslice__(self,index1,index2):
@@ -133,7 +134,7 @@ class URL:
 		appends all directory names in <argref>others</argref> to the path.
 		"""
 		for other in others:
-			self.__path.append(other)
+			self.__path.append(stringFromCode(other))
 		self.__normalize()
 
 	def insert(self,index,*others):
@@ -142,7 +143,7 @@ class URL:
 		(this is the same as <code><self/>[<argref>index</argref>:<argref>index</argref>] = <argref>others</argref></code>)
 		"""
 		for other in others:
-			self.__path.insert(index,other)
+			self.__path.insert(index,stringFromCode(other))
 			index = index + 1
 
 	def isPathMarker(self,dir):
@@ -151,7 +152,7 @@ class URL:
 		
 		returns if the directory name dir is a path marker.
 		"""
-		return dir[0] == "*"
+		return dir[0] == u"*"
 
 	def isNoPathMarker(self,dir):
 		"""
@@ -209,9 +210,9 @@ class URL:
 		return URL(scheme = self.scheme,server = self.server,port = self.port,path = self.__path,file = self.file,ext = self.ext,parameters = self.parameters,query = self.query,fragment = self.fragment)
 
 	def isRemote(self):
-		if self.scheme == "":
+		if self.scheme == u"":
 			return 0
-		elif self.scheme == "server" and self.server == "localhost":
+		elif self.scheme == u"server" and self.server == u"localhost":
 			return 0
 		else:
 			return 1
@@ -234,7 +235,7 @@ class URL:
 			while len(otherpath) and len(new.__path) and otherpath[0]==new.__path[0]: # throw away identical directories in both paths (we don't have to go up from file and down to path for these identical directories)
 				del otherpath[0]
 				del new.__path[0]
-			new.__path[:0] = [".."]*len(otherpath) # now for the rest of the path we have to go up from file and down to path (the directories for this are still in path)
+			new.__path[:0] = [u".."]*len(otherpath) # now for the rest of the path we have to go up from file and down to path (the directories for this are still in path)
 			new.scheme = None
 		new.__normalize() # Now that the path markers are gone, we try to normalize again
 		return new
@@ -264,53 +265,78 @@ class URL:
 		return self.open().readlines()
 
 	def __fromString(self,url):
-		(self.scheme,self.server,self.__path,self.parameters,self.query,self.fragment) = urlparse.urlparse(url)
-		if self.scheme == "": # do we have a local file?
-			if len(self.__path):
-				if self.__path[0] == "/": # this is a server relative URL
-					self.__path = self.__path[1:] # drop the empty string in front of the first "/" ...
-					self.scheme = "server" # ... and use a special scheme for that
-		elif self.scheme in ( "ftp" , "http" , "https" ):
-			if len(self.__path):
-				self.__path = self.__path[1:] # the path from urlparse started with "/" too
-		pos = self.server.rfind(":")
+		(scheme,server,path,parameters,query,fragment) = urlparse.urlparse(url)
+		scheme = stringFromCode(scheme)
+		server = stringFromCode(server)
+		__path = map(stringFromCode,path)
+		parameters = stringFromCode(parameters)
+		query = stringFromCode(query)
+		fragment = stringFromCode(fragment)
+		if scheme == u"": # do we have a local file?
+			if len(path):
+				if path[0] == u"/": # this is a server relative URL
+					path = path[1:] # drop the empty string in front of the first "/" ...
+					scheme = u"server" # ... and use a special scheme for that
+		elif scheme in (u"ftp", u"http", u"https"):
+			if len(path):
+				path = path[1:] # the path from urlparse started with "/" too
+		port = None
+		pos = server.rfind(u":")
 		if pos != -1:
-			self.port = int(self.server[pos+1:])
-			self.server = self.server[:pos]
-		self.__path = self.__path.split("/")
-		self.file = self.__path[-1]
-		self.__path = self.__path[:-1]
+			port = int(server[pos+1:])
+			server = server[:pos]
+		path = path.split(u"/")
+		file = path[-1]
+		path = path[:-1]
 
-		if self.scheme in [ "ftp" , "http" , "https" , "server", "" ]:
-			pos = self.file.rfind(".")
+		ext = None
+		if scheme in (u"ftp", u"http", u"https", u"server", u""):
+			pos = file.rfind(u".")
 			if pos != -1:
-				self.ext = self.file[pos+1:]
-				self.file = self.file[:pos]
+				ext = file[pos+1:]
+				file = file[:pos]
 
-		self.scheme = self.scheme or None
-		self.server = self.server or None
-		self.file = self.file or None
-		self.parameters = self.parameters or None
-		self.query = self.query or None
-		self.fragment = self.fragment or None
+		self.scheme = scheme or None
+		self.server = server or None
+		self.port = port
+		self.__path = path
+		self.file = file or None
+		self.ext = ext
+		self.parameters = parameters or None
+		self.query = query or None
+		self.fragment = fragment or None
 
-	def __asString(self,withPathMarkers):
-		scheme = self.scheme or ""
-		server = self.server or ""
+	def __asString(self,for__str__):
+		scheme = self.scheme or u""
+		server = self.server or u""
 		if self.port:
-			server = server + ":" + str(self.port)
+			server = server + u":" + str(self.port)
 		path = []
-		if scheme == "server":
-			scheme = "" # remove our own private scheme name
-			path.append("") # make sure that there's a "/" at the start
+		if scheme == u"server":
+			scheme = u"" # remove our own private scheme name
+			path.append(u"") # make sure that there's a "/" at the start
 		for dir in self.__path:
-			if withPathMarkers or not self.isPathMarker(dir):
+			if for__str__ or not self.isPathMarker(dir):
 				path.append(dir)
-		file = self.file or ""
+		file = self.file or u""
 		if self.ext:
-			file = file + "." + self.ext
+			file = file + u"." + self.ext
 		path.append(file)
-		return urlparse.urlunparse((scheme,server,"/".join(path),self.parameters or "",self.query or "",self.fragment or ""))
+		url = urlparse.urlunparse((scheme,server,u"/".join(path),self.parameters or u"",self.query or u"",self.fragment or u""))
+		if for__str__:
+			url = url.encode(reprEncoding)
+		else:
+			url = url
+			# FIXME do we do any % encoding?
+			# url = url.encode("utf8")
+			# v = []
+			# for c in url:
+			# 	if c not in self.__safe:
+			# 		v.append("%%%02x" % ord(c))
+			# 	else:
+			# 		v.append(c)
+			# url = unicode("".join(v),"ascii")
+		return url
 
 	def __join(self,other):
 		if not other.scheme:
@@ -328,9 +354,9 @@ class URL:
 			self.parameters = other.parameters
 			self.query      = other.query
 			self.fragment   = other.fragment
-		elif other.scheme == "server":
+		elif other.scheme == u"server":
 			if not self.scheme:
-				self.scheme = "server"
+				self.scheme = u"server"
 			self.__path     = other.__path[:]
 			self.file       = other.file
 			self.ext        = other.ext
@@ -371,7 +397,7 @@ class URL:
 
 		# remove "foo/.." combinations
 		for i in xrange(len(path)):
-			if path[i]==".." and i>0 and path[i-1]!=".." and self.isNoPathMarker(path[i-1]): # found a down/up
+			if path[i]==u".." and i>0 and path[i-1]!=u".." and self.isNoPathMarker(path[i-1]): # found a down/up
 				path[i-1] = None # remove both directory names
 				path[i] = None
 		self.__path = filter(lambda x: x is not None,path)

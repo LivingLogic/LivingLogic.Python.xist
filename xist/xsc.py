@@ -226,68 +226,7 @@ import procinst # our sandbox
 from URL import URL # our own new URL class
 from publishers import StringPublisher # classes for dumping XML strings
 from errors import * # exceptions
-
-###
-### configuration
-###
-
-def getStringFromEnv(name,default):
-	try:
-		return os.environ[name]
-	except:
-		return default
-
-def getIntFromEnv(name,default):
-	try:
-		return int(os.environ[name])
-	except:
-		return default
-
-def getANSICodesFromEnv(name,default):
-	"""
-	parses an environment variable from a string list and returns it or
-	the default if the environment variable can't be found or parsed.
-	"""
-	try:
-		var = eval(os.environ[name])
-	except:
-		return default
-	if type(var) is types.StringType:
-		var = [ var, var ]
-	return var
-
-retrieveremote = getIntFromEnv("XSC_RETRIEVEREMOTE",1)                                        # should remote URLs be retrieved? (for filesize and imagesize tests)
-retrievelocal = getIntFromEnv("XSC_RETRIEVELOCAL",1)                                          # should local URLs be retrieved? (for filesize and imagesize tests)
-repransi = getIntFromEnv("XSC_REPRANSI",0)                                                    # should ANSI escape sequences be used for dumping the DOM tree and which ones? (0=off,1=dark background,2=light background)
-reprtab = getStringFromEnv("XSC_REPRTAB","··")                                                # how to represent an indentation in the DOM tree?
-repransitab = getANSICodesFromEnv("XSC_REPRANSI_TAB",[ "1;30","37" ])                         # ANSI escape sequence to be used for tabs
-repransiquote = getANSICodesFromEnv("XSC_REPRANSI_QUOTE",[ "1;32","32" ])                     # ANSI escape sequence to be used for quotes (delimiters for text and attribute nodes)
-repransislash = getANSICodesFromEnv("XSC_REPRANSI_SLASH",[ "","" ])                           # ANSI escape sequence to be used for slashes in element names
-repransibracket = getANSICodesFromEnv("XSC_REPRANSI_BRACKET",[ "1;32","32" ])                 # ANSI escape sequence to be used for brackets (delimiters for tags)
-repransicolon = getANSICodesFromEnv("XSC_REPRANSI_COLON",[ "1;32","1;32" ])                   # ANSI escape sequence to be used for colon (i.e. namespace separator)
-repransiquestion = getANSICodesFromEnv("XSC_REPRANSI_QUESTION",[ "1;32","1;32" ])             # ANSI escape sequence to be used for question marks (delimiters for processing instructions)
-repransiexclamation = getANSICodesFromEnv("XSC_REPRANSI_EXCLAMATION",[ "1;32","1;32" ])       # ANSI escape sequence to be used for exclamation marks (used in comments and doctypes)
-repransitext = getANSICodesFromEnv("XSC_REPRANSI_TEXT",[ "","" ])                             # ANSI escape sequence to be used for text
-repransicharref = getANSICodesFromEnv("XSC_REPRANSI_CHARREF",[ "1;37","34" ])                 # ANSI escape sequence to be used for character references
-repransinamespace = getANSICodesFromEnv("XSC_REPRANSI_NAMESPACE",[ "1;37","36" ])             # ANSI escape sequence to be used for namespaces
-repransielementname = getANSICodesFromEnv("XSC_REPRANSI_ELEMENTNAME",[ "1;36","36" ])         # ANSI escape sequence to be used for element names
-repransientityname = getANSICodesFromEnv("XSC_REPRANSI_ENTITYNAME",[ "1;37","34" ])           # ANSI escape sequence to be used for entity names
-repransiattrname = getANSICodesFromEnv("XSC_REPRANSI_ATTRNAME",[ "1;36","36" ])               # ANSI escape sequence to be used for attribute names
-repransidoctypemarker = getANSICodesFromEnv("XSC_REPRANSI_DOCTYPEMARKER",[ "1","1" ])         # ANSI escape sequence to be used for document types marker (i.e. !DOCTYPE)
-repransidoctypetext = getANSICodesFromEnv("XSC_REPRANSI_DOCTYPETEXT",[ "","" ])               # ANSI escape sequence to be used for document types
-repransicommentmarker = getANSICodesFromEnv("XSC_REPRANSI_COMMENTMARKER",[ "","" ])           # ANSI escape sequence to be used for comment markers (i.e. --)
-repransicommenttext = getANSICodesFromEnv("XSC_REPRANSI_COMMENTTEXT",[ "","" ])               # ANSI escape sequence to be used for comment text
-repransiattrvalue = getANSICodesFromEnv("XSC_REPRANSI_ATTRVALUE",[ "","" ])                   # ANSI escape sequence to be used for attribute values
-repransiurl = getANSICodesFromEnv("XSC_REPRANSI_URL",[ "1;33","33" ])                         # ANSI escape sequence to be used for URLs
-repransiprocinsttarget = getANSICodesFromEnv("XSC_REPRANSI_PROCINSTTARGET",[ "1;31","1;31" ]) # ANSI escape sequence to be used for processing instruction targets
-repransiprocinstdata = getANSICodesFromEnv("XSC_REPRANSI_PROCINSTDATA",[ "","" ])             # ANSI escape sequence to be used for processing instruction data
-outputXHTML = getIntFromEnv("XSC_OUTPUT_XHTML",1)                                             # XHTML output format (0 = plain HTML, 1 = HTML compatible XHTML, 2 = pure XHTML)
-inputEncoding = getStringFromEnv("XSC_INPUT_ENCODING","iso-8859-1")                           # Default encoding that is assumed, when no encoding specification can be found
-outputEncoding = getStringFromEnv("XSC_OUTPUT_ENCODING","us-ascii")                           # Encoding to be used in publish() (and asString())
-codeEncoding = getStringFromEnv("XSC_CODE_ENCODING","iso-8859-1")                             # Encoding to be used when string are use in constructors of Node objects
-reprEncoding = getStringFromEnv("XSC_REPR_ENCODING","us-ascii")                               # Encoding to be used in __repr__
-
-parseEncoding = "iso-8859-1"
+from options import * # optional stuff ;)
 
 ###
 ### helpers
@@ -434,12 +373,6 @@ def appendDict(*dicts):
 		for key in dict.keys():
 			result[key] = dict[key]
 	return result
-
-def stringFromCode(text):
-	if type(text) is types.UnicodeType:
-		return text
-	else:
-		return unicode(text,codeEncoding)
 
 def ToNode(value):
 	"""
@@ -694,7 +627,7 @@ class Node:
 
 	def compact(self):
 		"""
-		returns this node, where textnodes or character references that contain
+		returns a version of <self/>, where textnodes or character references that contain
 		only linefeeds are removed, i.e. potentially needless whitespace is removed.
 		"""
 		return Null
@@ -777,7 +710,25 @@ class Node:
 		return node
 
 	_strescapes = { '<': 'lt', '>': 'gt', '&': 'amp', '"': 'quot' }
-	_maxordforenc = { "us-ascii": 128 , "ascii": 128, "iso-8859-1": 256, "latin-1": 256 }
+	# the following is from ftp://ftp.isi.edu/in-notes/iana/assignments/character-sets
+	__encsWith7Bit = ["ANSI_X3.4-1968", "iso-ir-6", "ANSI_X3.4-1986", "ISO_646.irv:1991", "ASCII", "ISO646-US", "US-ASCII", "us", "IBM367", "cp367", "csASCII"]
+	__encsWith8Bit = ["ISO_8859-1:1987", "iso-ir-100", "ISO_8859-1", "ISO-8859-1", "latin1", "l1", "IBM819", "CP819", "csISOLatin1"]
+
+	def __mustBeEncodedAsCharRef(self,char,encoding):
+		encoding = encoding.lower()
+		for enc in self.__encsWith7Bit:
+			if enc.lower() == encoding:
+				if ord(char)>=128:
+					return 1
+				else:
+					return 0
+		for enc in self.__encsWith8Bit:
+			if enc.lower() == encoding:
+				if ord(char)>=256:
+					return 1
+				else:
+					return 0
+		return 0
 
 	def _encode(self,text,encoding,charrefs = 0):
 		"""
@@ -793,23 +744,24 @@ class Node:
 		v = []
 		if encoding is None:
 			encoding = outputEncoding
-		for i in text:
-			if i == '\r':
+		for c in text:
+			if c == u'\r':
 				continue
-			if self._strescapes.has_key(i):
+			c2 = stringFromCode(c).encode(encoding)
+			if self._strescapes.has_key(c):
 				if charrefs == 0:
-					v.append(i)
+					v.append(c2)
 				elif charrefs == 1:
 					raise EncodingImpossibleError(self.startloc,encoding,text)
 				else:
-					v.append('&' + self._strescapes[i] + ';')
-			elif self._maxordforenc.has_key(encoding) and ord(i)>=self._maxordforenc[encoding]:
+					v.append('&' + self._strescapes[c] + ';')
+			elif self.__mustBeEncodedAsCharRef(c,encoding):
 				if charrefs == 2:
-					v.append('&#' + str(ord(i)) + ';')
+					v.append('&#' + str(ord(c)) + ';')
 				else:
 					raise EncodingImpossibleError(self.startloc,encoding,text)
 			else:
-				v.append(stringFromCode(i).encode(encoding))
+				v.append(c2)
 		return "".join(v)
 
 class Text(Node):
