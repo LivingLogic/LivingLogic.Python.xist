@@ -3,6 +3,7 @@
 import os
 import string
 import types
+import exceptions
 
 # for file size checking
 import stat
@@ -23,7 +24,7 @@ import urllib
 ### exceptions
 ###
 
-class XSCError:
+class XSCError(Exception):
 	"base class for all XSC exceptions"
 
 	def __init__(self,lineno):
