@@ -25,6 +25,12 @@ arguments with may be Namespace objects or modules
 providers.Providers.popNamespace() can now pop multiple
 namespaces at once.
 
+providers.TidyURIProvider now uses os.popen2 for
+piping the file through tidy, so now there will be
+no more temporary files. The call to tidy now includes
+options that hopefully make the output more suited to
+XIST.
+
 New in 0.4.6
 ------------
 Now uses sgmlop.XMLParser instead of sgmlop.SGMLParser,
