@@ -247,6 +247,18 @@ class dirname(base):
 	def convert_html(self, converter):
 		return converter.target.code(self.content, class_="dirname")
 
+class username(base):
+	"""
+	The name of a user account
+	"""
+	empty = False
+
+	def convert_docbook(self, converter):
+		return converter.target.literal(self.content, role="username")
+
+	def convert_html(self, converter):
+		return converter.target.code(self.content, class_="username")
+
 class app(base):
 	"""
 	The name of a software program
@@ -514,6 +526,20 @@ class link(base):
 
 	def convert_html(self, converter):
 		return converter.target.a(self.content, href=self["href"])
+
+class xref(xsc.Element):
+	"""
+	An internal cross reference.
+	"""
+	empty = False
+	class Attrs(xsc.Element.Attrs):
+		class ref(xsc.TextAttr): pass
+
+	def convert_docbook(self, converter):
+		return converter.target.link(self.content, linkend=self["href"])
+
+	def convert_html(self, converter):
+		return converter.target.a(self.content, href=("#", self["ref"]))
 
 class email(base):
 	"""
