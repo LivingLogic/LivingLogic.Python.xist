@@ -219,7 +219,7 @@ import stat # for file size checking
 import Image # for image size checking
 try:
 	import sgmlop # for parsing XML files
-except ImportError
+except ImportError:
 	from xml.parsers import sgmlop # get it from the XML package
 import urllib # for reading remote files
 import procinst # our sandbox
@@ -917,7 +917,7 @@ class CharRef(Node):
 		try:
 			s = self._strescapes[s]
 		except KeyError:
-			s = "#" + s
+			s = "#" + str(self.content)
 		publisher("&",self._encode(s,encoding,1),";")
 
 	def _dorepr(self,ansi = None):
@@ -1954,14 +1954,14 @@ class XSC:
 		"""
 		return self.__nodeFromName(name,0)
 
-	def handleElementStart(self,name,attrs):
+	def finish_starttag(self,name,attrs):
 		node = self.elementFromName(unicode(name,"utf8"))()
-		for name in attrs.keys():
-			node[name] = self.__string2Fragment(attrs[name])
+		for name,value in attrs:
+			node[name] = self.__string2Fragment(value)
 		self.__appendNode(node)
 		self.__nesting.append(node) # push new innermost element onto the stack
 
-	def handleElementEnd(self,name):
+	def finish_endtag(self,name):
 		element = self.elementFromName(unicode(name,"utf8"))
 		currentelement = self.__nesting[-1].__class__
 		if element != currentelement:
@@ -1969,19 +1969,22 @@ class XSC:
 		self.__nesting[-1].endloc = self.__here()
 		self.__nesting.pop() # pop the innermost element off the stack
 
-	def handleText(self,data):
+	def handle_data(self,data):
 		if data != "":
 			self.__appendNode(Text(unicode(data,"utf8")))
 
-	def handleComment(self,data):
+	def handle_comment(self,data):
 		self.__appendNode(Comment(unicode(data,"utf8")))
 
 	def handle_special(self,data):
 		if data[:7] == "DOCTYPE":
 			self.__appendNode(DocType(data[8:]))
 
-	def handleProcInst(self,target,data):
+	def handle_proc(self,target,data):
 		self.__appendNode(ProcInst(unicode(target,"utf8"),unicode(data,"utf8")))
+
+	def handle_entityref(self,name):
+		self.__appendNode(self.entityFromName(unicode(name,"utf8"))())
 
 	def handle_charref(self,name):
 		try:
@@ -1994,24 +1997,15 @@ class XSC:
 
 		self.__appendNode(CharRef(code))
 
-	def handleEntity(self,name):
-		self.__appendNode(self.entityFromName(unicode(name,"utf8")))
-
 	def __parseLines(self,lines):
 		self.__nesting = [ Frag() ]
-		parser = pyexpat.ParserCreate(inputEncoding)
-		parser.StartElementHandler = self.handleElementStart
-		parser.EndElementHandler = self.handleElementEnd
-		parser.CharacterDataHandler = self.handleText
-		parser.ProcessingInstructionHandler = self.handleProcInst
-		parser.CommentHandler = self.handleComment
-		parser.ExternalEntityRefHandler = self.handleEntity
-		parser.UnparsedEntityDeclHandler = self.handleEntity
+		parser = sgmlop.SGMLParser()
+		parser.register(self)
 		self.lineno = 1
 		for line in lines:
-			parser.Parse(line)
+			parser.feed(line)
 			self.lineno = self.lineno + 1
-		parser.Parse("",1)
+		parser.close()
 		return self.__nesting[0]
 
 	def parseString(self,text):
