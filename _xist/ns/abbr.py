@@ -616,4 +616,16 @@ class wysiwyg(xsc.Entity):
 	def __unicode__(self):
 		return u"WYSIWYG"
 
+class xist(xsc.Entity):
+	def convert(self, converter):
+		return xsc.Text("XIST")
+	def __unicode__(self):
+		return u"XIST"
+
+class xist4c(xsc.Entity):
+	def convert(self, converter):
+		return xsc.Text("XIST4C")
+	def __unicode__(self):
+		return u"XIST4C"
+
 xmlns = xsc.Namespace("abbr", "http://xmlns.livinglogic.de/xist/ns/abbr", vars())
