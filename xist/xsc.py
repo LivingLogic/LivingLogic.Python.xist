@@ -1242,7 +1242,7 @@ class ProcInst(Node):
 				e.content = e.content + u"encoding='" + encoding + u"'"
 				e.publish(publisher,encoding,XHTML)
 				return
-		publisher("<?",self._encode(self.target,encoding,0)," ",self._encode(self.content,encoding,0),"?>")
+		publisher("<?",self._encode(self.target,encoding,1)," ",self._encode(self.content,encoding,0),"?>")
 
 	def compact(self):
 		return self._decorateNode(ProcInst(self.target,self.content))
