@@ -1430,7 +1430,8 @@ class StyleAttr(Attr):
 
 class URLAttr(Attr):
 	"""
-	Attribute class that is used for URLs. See RFC 2396.
+	<par>Attribute class that is used for &url;s. See the module <pyref module="ll.url"><module>ll.url</module></pyref>
+	for more information about &url; handling.</par>
 	"""
 
 	def parsed(self, handler, begin=None):
