@@ -494,6 +494,13 @@ class XSC:
 		self.retrieveremote = 1
 		self.__parser = XSCParser()
 
+	def parsestring(self,filename,string):
+		"Parses a string and returns the resulting XSC"
+		self.filename = filename
+		self.__parser.feed(string)
+		self.__parser.close()
+		return self.__parser.root
+
 	def parsefile(self,filename):
 		"Reads and parses a XML file and returns the resulting XSC"
 		self.filename = filename
@@ -501,11 +508,12 @@ class XSC:
 		self.__parser.close()
 		return self.__parser.root
 
-	def parsestring(self,filename,string):
-		"Parses a string and returns the resulting XSC"
-		self.filename = filename
-		self.__parser.feed(string)
+	def parseurl(self,url):
+		"Reads and parses a XML file from an URL and returns the resulting XSC"
+		self.filename = url
+		self.__parser.feed(urllib.urlopen(url).read())
 		self.__parser.close()
+		urllib.urlcleanup()
 		return self.__parser.root
 
 	def __repr__(self):
