@@ -130,13 +130,13 @@ class XSCURLAttr(XSCNode):
 		url = xsc.AsString(self.data) 
 		if url[0] == ":":
 			# split both path
-			source = string.splitfields(xsc.filename,"/")
-			dest = string.splitfields(url[1:],"/")
+			source = string.splitfields(xsc.filename,os.sep)
+			dest = string.splitfields(url[1:],os.sep)
 			# throw away identical directories in both path
 			while len(source)>1 and len(dest)>1 and source[0]==dest[0]:
 				del source[0]
 				del dest[0]
-			url = string.joinfields(([".."]*(len(source)-1)) + dest,"/")
+			url = string.joinfields(([os.pardir]*(len(source)-1)) + dest,os.sep)
 		return url
 
 	def AsAbsString(self):
