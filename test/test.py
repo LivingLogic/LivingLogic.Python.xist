@@ -14,7 +14,7 @@ from xml.sax import saxlib
 from xml.parsers import expat
 
 from ll import url
-from ll.xist import xsc, parsers, cssparsers, presenters, converters, helpers, errors, options, sims, xnd
+from ll.xist import xsc, parsers, cssparsers, presenters, converters, helpers, errors, options, sims, xnd, xfind
 from ll.xist.ns import wml, ihtml, html, chars, css, abbr, specials, htmlspecials, php, xml, tld
 
 
@@ -2196,6 +2196,126 @@ class PrettyTest(unittest.TestCase):
 			),
 			"<div>\n\t<?php apple?>\n\t<p>appletree</p>\n\t<div>\n\t\t<p>apple</p>\n\t\t<p>tree</p>\n\t</div>\n\t<br />\n</div>"
 		)
+
+
+class XFindTest1(unittest.TestCase):
+	def setUp(self):
+		ds = [html.div(id=id) for id in xrange(8)]
+		ds[1].append(ds[4:7])
+		ds[2].append(ds[7])
+		ds[0].append(ds[1:4])
+		self.divs = ds
+		#      ____0____
+		#     /    |    \
+		#   _1_    2     3
+		#  / | \   |
+		# 4  5  6  7
+
+	def tearDown(self):
+		del self.divs
+
+	def checkids(self, expr, ids):
+		self.assertEqual("".join([str(e["id"]) for e in expr]), ids)
+
+	def test_all(self):
+		self.checkids(self.divs[0]//html.div, "1234567")
+
+	def test_level1(self):
+		self.checkids(self.divs[0]/html.div, "123")
+
+	def test_level2(self):
+		self.checkids(self.divs[0]/html.div/html.div, "4567")
+
+	def test_level3(self):
+		self.checkids(self.divs[0]/html.div/html.div/html.div, "")
+
+	def test_contains(self):
+		self.checkids(self.divs[0]//xfind.contains(html.div), "012")
+
+
+class XFindTest2(unittest.TestCase):
+	def setUp(self):
+		self.node = xsc.Frag(
+			html.div(
+				html.h1("The ", html.em("important"), " headline"),
+				html.p("The ", html.em("first"), " paragraph."),
+				html.p("The ", html.em("second"), " ", html.em("important"), " paragraph."),
+				align="left",
+			),
+			html.div(
+				html.h1("The headline"),
+				html.p("The ", html.em("first"), " paragraph."),
+				html.div(
+					html.h2("The ", html.em("important"), " headline"),
+					html.p("The ", html.em("second"), " ", html.em("important"), " paragraph."),
+					id="id42",
+				),
+				class_="foo",
+			),
+		)
+
+	def tearDown(self):
+		del self.node
+
+	def test_hasattr(self):
+		res = list(self.node//xfind.hasattr(html.div.Attrs.id, html.div.Attrs.align))
+		self.assertEqual(len(res), 2)
+		self.assert_(res[0] is self.node[0])
+		self.assert_(res[1] is self.node[1][-1])
+
+	def test_hasattrnamed(self):
+		res = list(self.node//xfind.hasattrnamed("class_"))
+		self.assertEqual(len(res), 1)
+		self.assert_(res[0] is self.node[1])
+
+		res = list(self.node//xfind.hasattrnamed("class", xml=True))
+		self.assertEqual(len(res), 1)
+		self.assert_(res[0] is self.node[1])
+
+	def test_is(self):
+		res = list(self.node//xfind.is_(html.h1, html.h2))
+		self.assertEqual(len(res), 3)
+		self.assert_(res[0] is self.node[0][0])
+		self.assert_(res[1] is self.node[1][0])
+		self.assert_(res[2] is self.node[1][-1][0])
+
+		res = list(self.node//html.h1/xfind.is_(html.h1, html.h2))
+		self.assertEqual(len(res), 2)
+		self.assert_(res[0] is self.node[0][0])
+		self.assert_(res[1] is self.node[1][0])
+
+	def test_isnot(self):
+		res = list(self.node//xfind.isnot(xsc.Text, html.p, html.div, html.em))
+		self.assertEqual(len(res), 3)
+		self.assert_(res[0] is self.node[0][0])
+		self.assert_(res[1] is self.node[1][0])
+		self.assert_(res[2] is self.node[1][-1][0])
+
+	def test_contains(self):
+		res = list(self.node//xfind.is_(html.h1, html.h2)/xfind.contains(html.em))
+		self.assertEqual(len(res), 2)
+		self.assert_(res[0] is self.node[0][0])
+		self.assert_(res[1] is self.node[1][-1][0])
+
+	def test_child(self):
+		res = list(self.node//html.h1/xfind.child(html.em))
+		self.assertEqual(len(res), 1)
+		self.assert_(res[0] is self.node[0][0][1])
+
+	def test_attr(self):
+		res = list(self.node//xfind.attr(html.div.Attrs.id, html.div.Attrs.align))
+		self.assertEqual(len(res), 2)
+		self.assert_(res[0] is self.node[0]["align"])
+		self.assert_(res[1] is self.node[1][-1]["id"])
+
+	def test_attrnamed(self):
+		res = list(self.node//xfind.attrnamed("class_"))
+		self.assertEqual(len(res), 1)
+		self.assert_(res[0] is self.node[1]["class_"])
+
+		res = list(self.node//xfind.attrnamed("class", xml=True))
+		self.assertEqual(len(res), 1)
+		self.assert_(res[0] is self.node[1]["class_"])
 
 
 def test_main():
