@@ -1,4 +1,11 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
+<section><title>Changes in 1.1.1 (released 08/01/2001)</title>
+<ul>
+<li>Small bugfix in <code>presenters.strProcInst</code></li>
+<li>fixed <code>xist.ns.struts_html.option</code> to allow content</li>
+</ul>
+</section>
+
 <section><title>Changes in 1.1 (released 07/19/2001)</title>
 <ul>
 <li>Sequences in constructor arguments for <code>Frag</code> and
