@@ -277,7 +277,7 @@ class loremipsum(xsc.Element):
 
 class contenttype(html_.meta):
 	empty = 1
-	attrHandlers = html.meta_.attrHandlers.copy()
+	attrHandlers = html_.meta.attrHandlers.copy()
 	del attrHandlers["http-equiv"]
 	del attrHandlers["http_equiv"]
 	del attrHandlers["name"]
