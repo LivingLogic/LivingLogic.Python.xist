@@ -82,7 +82,7 @@ def make():
 			e_out.publish(p)
 			s_out = p.asBytes()
 			__forceopen(outname.asString(), "wb").write(s_out)
-			print >> sys.stderr, "XSC(encoding=%r, XHTML=%r): converted %r to %r: %s" % (encoding, XHTML, str(inname), str(outname), xsc._stransi("1", str(len(s_out))))
+			sys.stderr.write("XSC(encoding=%r, XHTML=%r): converted %r to %r: %s\n" % (encoding, XHTML, str(inname), str(outname), xsc._stransi("1", str(len(s_out)))))
 			xsc.xsc.popURL()
 	else:
 		sys.stderr.write("XSC: no files to convert.\n")
