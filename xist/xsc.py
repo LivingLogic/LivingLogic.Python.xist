@@ -1607,12 +1607,7 @@ class URLAttr(Attr):
 		return url
 
 	def forOutput(self):
-		url = self._asURL()
-		if url.scheme == "server":
-			url = url.relativeTo(URL(scheme = "http",server = xsc.server))
-		else:
-			url = url.relativeTo(xsc.filename[-1])
-		return url
+		return self._asURL().relativeTo(xsc.filename[-1])
 
 	def ImageSize(self):
 		"""
