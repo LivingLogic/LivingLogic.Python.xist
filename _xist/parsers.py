@@ -1,5 +1,4 @@
 #! /usr/bin/env python
-			del node
 
 ## Copyright 1999-2001 by LivingLogic AG, Bayreuth, Germany.
 ## Copyright 1999-2001 by Walter Dörwald
