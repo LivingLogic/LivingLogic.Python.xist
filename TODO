@@ -1,0 +1,5 @@
+* Fix the problem the URL constructor arguments
+  are ambigous, does query=None mean "no argument
+  given" or does it mean "clear the query attribute"
+* Make URLs much more object oriented (one class
+  for every scheme?)
