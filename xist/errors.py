@@ -73,10 +73,14 @@ class IllegalAttributeError(Error):
 
 	def __str__(self):
 		attrs = self.element.attrHandlers.keys()
-		attrs.sort()
-		attrs = ", ".join(map(xsc.strAttrName, attrs))
-
-		return Error.__str__(self) + "Attribute " + xsc.strAttrName(self.attr) + " not allowed in element " + xsc._strNode(self.element.__class__) + ". Allowed attributes are: " + attrs + "."
+		s = Error.__str__(self) + "Attribute " + xsc.strAttrName(self.attr) + " not allowed in element " + xsc._strNode(self.element.__class__) + ". "
+		if len(attrs):
+			attrs.sort()
+			attrs = ", ".join(map(xsc.strAttrName, attrs))
+			s = s + "Allowed attributes are: " + attrs + "."
+		else:
+			s = s + "No attributes allowed."
+		return s
 
 class AttributeNotFoundError(Error):
 	"""
@@ -95,7 +99,7 @@ class AttributeNotFoundError(Error):
 
 		if len(attrs):
 			attrs.sort()
-			attrs = ", ".join(map(xsc.strAttrName, attr))
+			attrs = ", ".join(map(xsc.strAttrName, attrs))
 			s = s + "Available attributes are: " + attrs + "."
 		else:
 			s = s + "No attributes available."
@@ -113,19 +117,22 @@ class IllegalElementError(Error):
 		self.name = name
 
 	def __str__(self):
-		elementnames = []
-		for namespacename in xsc.namespaceRegistry.byPrefix.keys():
-			namespace = xsc.namespaceRegistry.byPrefix[namespacename]
-			try:
-				element = namespace.elementsByName[self.name[1]]
-				elementnames.append(xsc.strElement(element.namespace.prefix, element.name, element.empty))
-			except KeyError: # this namespace doesn't have an element with this name
-				pass
-		elementnames.sort()
+		# List the element sorted by name
+		all = {}
+		for namespace in xsc.namespaceRegistry.byPrefix.values():
+			for element in namespace.elementsByName.values():
+				all[(element.name,element.namespace.prefix)] = element
+
+		allkeys = all.keys()
+		allkeys.sort()
+		allAsList = []
+		for key in allkeys:
+			element = all[key]
+			allAsList.append(xsc.strElement(element.namespace.prefix, element.name, element.empty))
 
 		s = Error.__str__(self) + "element " + xsc._strName((self.name[0], self.name[1], 0)) + " not allowed. "
-		if elementnames:
-			s = s + "Allowed elements are: " + ", ".join(elementnames) + "."
+		if allAsList:
+			s = s + "Allowed elements are: " + ", ".join(allAsList) + "."
 		else:
 			s = s + "There are no allowed elements."
 		return s

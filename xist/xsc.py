@@ -248,7 +248,7 @@ def strElementName(elementname,ansi = None):
 	return _stransi(repransielementname,elementname,ansi)
 
 def strElement(namespacename,elementname,empty = 0,ansi = None):
-	s = strBracketOpen()
+	s = strBracketOpen(ansi)
 	if namespacename is not None:
 		s = s + strNamespace(namespacename,ansi) + strColon(ansi)
 	s = s + strElementName(elementname,ansi)
@@ -301,13 +301,13 @@ def strText(text,ansi = None):
 def strSlash(attrname,ansi = None):
 	return _stransi(repransislash,"/",ansi)
 
-def strBracketOpen(attrname,ansi = None):
+def strBracketOpen(ansi = None):
 	return _stransi(repransibracket,"<",ansi)
 
-def strBracketClose(attrname,ansi = None):
+def strBracketClose(ansi = None):
 	return _stransi(repransibracket,">",ansi)
 
-def strColon(attrname,ansi = None):
+def strColon(ansi = None):
 	return _stransi(repransicolon,":",ansi)
 
 def strQuestion(ansi = None):
@@ -886,7 +886,7 @@ class CharRef(Node):
 		if len(entstr):
 			s = s + ", " + ", ".join(entstr)
 		s = s + ")"
-		if (not self._maxordforenc.has_key(encoding)) or self.content<self._maxordforenc[encoding]:
+		if not self._mustBeEncodedAsCharRef(chr(self.content),encoding):
 			s = s + ' ' + Text(chr(self.content))._doreprtree(0,0,encoding,ansi)[0][-1]
 		return [[nest,self.startloc,elementno,s]]
 

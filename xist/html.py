@@ -350,6 +350,7 @@ class Del(xsc.Element):
 	empty = 0
 	attrHandlers = attrs.copy()
 	attrHandlers.update({"cite": xsc.TextAttr, "datetime": xsc.TextAttr})
+	name = "del" # we need a special name here
 
 class ul(xsc.Element):
 	"""
