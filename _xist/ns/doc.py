@@ -50,14 +50,17 @@ class option(xsc.Element):
 		e = html.code(self.content, class_="option")
 		return e.convert(converter)
 
-class literal(xsc.Element):
+class lit(xsc.Element):
 	"""
 	Inline text that is some literal value
 	"""
 	empty = 0
 
 	def convert(self, converter):
-		e = html.code(self.content, class_="literal")
+		if converter.target=="docbook":
+			e = docbook.literal(self.content)
+		else:
+			e = html.code(self.content, class_="literal")
 		return e.convert(converter)
 
 class function(xsc.Element):
