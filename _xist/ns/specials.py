@@ -28,7 +28,6 @@ class z(xsc.Element):
 
 	def convert(self, converter):
 		e = xsc.Frag(u"»", self.content.convert(converter), u"«")
-
 		return e
 
 	def __unicode__(self):
@@ -69,7 +68,7 @@ class filetime(xsc.Element):
 
 	def convert(self, converter):
 		format = str(self["format"].convert(converter))
-		return xsc.Text(self["href"].convert(converter).lastmodified(root=converter.root).Format(format))
+		return xsc.Text(self["href"].convert(converter).lastmodified(root=converter.root).strftime(format))
 
 class time(xsc.Element):
 	"""
