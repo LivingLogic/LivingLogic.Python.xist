@@ -306,5 +306,10 @@ class XISTTestCase(unittest.TestCase):
 		u = url.URL(s)
 		self.assertEqual(unicode(u), s)
 
+	def test_namespace(self):
+		self.assertEquals(xsc.amp.name, "amp")
+		self.assert_(xsc.amp.namespace() is xsc.namespace)
+		self.assertEquals(xsc.amp.prefix(), "xsc")
+
 if __name__ == "__main__":
 	unittest.main()
