@@ -552,15 +552,18 @@ class Node:
 		"""
 		return int(self.asPlainString())
 
-	def asFloat(self,decimal = "."):
+	def asFloat(self,decimal = ".",ignore=""):
 		"""
 		returns this node converted to a float. <argref>decimal</argref>
 		specifies which decimal separator is used in the value
 		(e.g. <code>"."</code> (the default) or <code>","</code>).
+		<argref>ignore</argref>specifies which character will be ignored.
 		"""
 		s = self.asPlainString()
+		for c in ignore:
+			s = string.replace(s,c,"")
 		if decimal != ".":
-			s = s.replace(decimal,".")
+			s = string.replace(s,decimal,".")
 		return float(s)
 
 	def publish(self,publisher,encoding = None,XHTML = None):
@@ -721,7 +724,7 @@ class Node:
 	__encsWith7Bit = ["ANSI_X3.4-1968", "iso-ir-6", "ANSI_X3.4-1986", "ISO_646.irv:1991", "ASCII", "ISO646-US", "US-ASCII", "us", "IBM367", "cp367", "csASCII"]
 	__encsWith8Bit = ["ISO_8859-1:1987", "iso-ir-100", "ISO_8859-1", "ISO-8859-1", "latin1", "l1", "IBM819", "CP819", "csISOLatin1"]
 
-	def __mustBeEncodedAsCharRef(self,char,encoding):
+	def _mustBeEncodedAsCharRef(self,char,encoding):
 		encoding = encoding.lower()
 		for enc in self.__encsWith7Bit:
 			if enc.lower() == encoding:
@@ -761,7 +764,7 @@ class Node:
 					raise EncodingImpossibleError(self.startloc,encoding,text,c)
 				else:
 					v.append('&' + self._strescapes[c] + ';')
-			elif self.__mustBeEncodedAsCharRef(c,encoding):
+			elif self._mustBeEncodedAsCharRef(c,encoding):
 				if charrefs == 2:
 					v.append('&#' + str(ord(c)) + ';')
 				else:
@@ -811,7 +814,7 @@ class Text(Node):
 				do = 1
 			else:
 				c = content[end] # ... or if the character we're at is different from those we've collected so far
-				ascharref = (0 <= ord(c) <= 31) or (self._maxordforenc.has_key(encoding) and ord(c) >= self._maxordforenc[encoding])
+				ascharref = (0 <= ord(c) <= 31) or self._mustBeEncodedAsCharRef(c,encoding)
 				if not refwhite and (c == u"\n" or c == u"\t"):
 					ascharref = 0
 				if ascharref != charref:
