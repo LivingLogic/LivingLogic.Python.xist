@@ -190,34 +190,41 @@ class XSCNode:
 			return self
 
 	def __repr__(self):
-		return self.dorepr(0,xsc.reprtree)
+		return self.repr(xsc.reprtree)
 
-	def dorepr(self,nest,tree):
-		return self.strline(nest,tree,self.startlineno,self.strtag("?"))
+	def repr(self,tree,nest = 0):
+		v = []
+		lines = self.dorepr(xsc.reprtree,nest,[])
+		if tree!=0:
+			lenlineno = 0
+			lenelementno = 0
+			for line in lines:
+				if line[1] != -1: # convert line number to a string
+					line[1] = str(line[1])
+				else:
+					line[1] = "?"
+				line[2] = string.joinfields(map(str,line[2]),".") # convert element number to a string
+				line[3] = self.stransi(xsc.repransitab,xsc.reprtab*line[0]) + line[3] # add indentation
+				lenlineno = max(lenlineno,len(line[1]))
+				lenelementno = max(lenelementno,len(line[2]))
+
+			for line in lines:
+				v.append("%*s %-*s %s\n" % (lenlineno,line[1],lenelementno,line[2],line[3]))
+		else:
+			v = []
+			for line in lines:
+				v.append(line[3])
+		return string.joinfields(v,"")
+	
+	def dorepr(self,tree,nest,elementno):
+		# returns and array containing arrays consisting of the (nestinglevel,linenumber,elementnumber,string representation) of the nodes
+		return [[nest,self.lineno,elementno,self.strtag("?")]]
 
 	def stransi(self,codes,string):
 		if xsc.repransi and codes!="":
 			return "\033[" + codes + "m" + string + "\033[0m"
 		else:
 			return (string)
-
-	def strline(self,nest,tree,lineno,line):
-		if line != "" and tree==1:
-			s = ""
-			if xsc.parser.maxlineno != -1:
-				places = len(str(xsc.parser.maxlineno))
-			else:
-				places = 0
-			if places != 0:
-				if lineno != -1:
-					s = "%*d " % ( places,lineno )
-				else:
-					s = "?"*places + " "
-			else:
-				s = ""
-			return s + self.stransi(xsc.repransitab,xsc.reprtab*nest)+line+"\n"
-		else:
-			return line
 
 	def strelementname(self,name):
 		return self.stransi(xsc.repransielementname,name)
@@ -254,7 +261,7 @@ class XSCText(XSCNode):
 				v.append(i)
 		return string.joinfields(v,"")
 
-	def dorepr(self,nest,tree):
+	def dorepr(self,tree,nest,elementno):
 		v = []
 		for i in self.content:
 			if self.represcapes.has_key(i):
@@ -268,9 +275,9 @@ class XSCText(XSCNode):
 				v.append(i)
 		s = string.joinfields(v,"") 
 		if tree != 0:
-			return self.strline(nest,tree,self.startlineno,self.strquotes(self.strtext(s)))
+			return [[nest,self.startlineno,elementno,self.strquotes(self.strtext(s))]]
 		else:
-			return s
+			return [[nest,self.startlineno,elementno,s]]
 
 class XSCFrag(XSCNode):
 	"""contains a list of XSCNodes"""
@@ -298,15 +305,17 @@ class XSCFrag(XSCNode):
 	def __str__(self):
 		return string.joinfields(map(str,self.content),"")
 
-	def dorepr(self,nest,tree):
-		s = ""
+	def dorepr(self,tree,nest,elementno):
+		v = []
 		if tree!=0:
-			s = s + self.strline(nest,tree,self.startlineno,self.strtag('XSCFrag'))
-		for i in self.content:
-			s = s + i.dorepr(nest+1,tree)
+			v.append([nest,self.startlineno,elementno,self.strtag('XSCFrag')])
+		i = 0
+		for child in self:
+			v = v + child.dorepr(tree,nest+1,elementno + [i])
+			i = i + 1
 		if tree!=0:
-			s = s + self.strline(nest,tree,self.endlineno,self.strtag('/XSCFrag'))
-		return s
+			v.append([nest,self.endlineno,elementno,self.strtag('/XSCFrag')])
+		return v
 
 	def __getitem__(self,index):
 		"""returns the index'th node for the content of the fragment"""
@@ -362,14 +371,12 @@ class XSCAttrs(XSCNode):
 			v.append(attr + '="' + str(self[attr]) + '"')
 		return string.joinfields(v," ")
 
-	def dorepr(self,nest,tree):
-		if len(self.content):
-			v = []
-			for attr in self.keys():
-				v.append(self.strattrname(attr) + '="' + self[attr].dorepr(0,0) + '"')
-			return " " + string.joinfields(v," ")
-		else:
-			return ""
+	def dorepr(self,tree,nest,elementno):
+		v = [nest,self.startlineno,elementno,""]
+		for attr in self.keys():
+			line = self[attr].dorepr(0,0,[])
+			v[-1].append(" " + self.strattrname(attr) + '="' + line[-1] + '"')
+		return v
 
 	def has_attr(self,index):
 		return self.content.has_key(index)
@@ -413,8 +420,8 @@ class XSCComment(XSCNode):
 	def __str__(self):
 		return "<!--" + self.content + "-->"
 
-	def dorepr(self,nest,tree):
-		return self.strline(nest,tree,self.startlineno,self.strtag("!--" + self.content + "--"))
+	def dorepr(self,tree,nest,elementno):
+		return [[nest,self.startlineno,elementno,self.strtag("!--" + self.content + "--")]]
 
 class XSCDocType(XSCNode):
 	"""document type"""
@@ -425,8 +432,8 @@ class XSCDocType(XSCNode):
 	def __str__(self):
 		return "<!DOCTYPE " + self.content + ">"
 
-	def dorepr(self,nest,tree):
-		return self.strline(nest,tree,self.startlineno,self.strtag("!DOCTYPE " + self.content))
+	def dorepr(self,tree,nest = 0):
+		return [[nest,self.startlineno,elementno,self.strtag("!DOCTYPE " + self.content)]]
 
 class XSCElement(XSCNode):
 	"""XML elements"""
@@ -445,15 +452,18 @@ class XSCElement(XSCNode):
 	def append(self,item):
 		self.content.append(item)
 
-	def dorepr(self,nest,tree):
+	def dorepr(self,tree,nest,elementno):
+		v = []
 		if self.close:
-			s = self.strline(nest,tree,self.startlineno,self.strtag(self.strelementname(self.name) + self.attrs.dorepr(0,0)))
-			for i in self.content:
-				s = s + i.dorepr(nest+1,tree)
-			s = s + self.strline(nest,tree,self.endlineno,self.strtag(self.strelementname("/" + self.name)))
+			v.append([nest,self.startlineno,elementno,self.strtag(self.strelementname(self.name) + self.attrs.dorepr(0,0,[])[-1])])
+			i = 0
+			for child in self:
+				v = v + child.dorepr(tree,nest+1,elementno + [i])
+				i = i + 1
+			v.append([nest,self.endlineno,elementno,self.strtag(self.strelementname("/" + self.name))])
 		else:
-			s = self.strline(nest,tree,self.startlineno,self.strtag(self.strelementname(self.name) + self.attrs.dorepr(0,0) + self.strelementname("/")))
-		return s
+			v.append([nest,self.startlineno,elementno,self.strtag(self.strelementname(self.name) + self.attrs.dorepr(0,0,[])[-1] + self.strelementname("/"))])
+		return v
 
 	def __str__(self):
 		"""returns this element as a string converted to HTML"""
@@ -540,8 +550,8 @@ class XSCurl(XSCElement):
 		else:
 			self.content = XSCFrag(content)
 
-	def dorepr(self,nest,tree):
-		(scheme,server,path,parameters,query,fragment) = urlparse.urlparse(repr(self.content))
+	def dorepr(self,tree,nest,elementno):
+		(scheme,server,path,parameters,query,fragment) = urlparse.urlparse(self.content)
 		if scheme == "" and server == "":
 			if len(path) and path[0] == "/": # this is a server relative URL, use the server specified in the options (usually localhost)
 				scheme = "http"
@@ -555,7 +565,7 @@ class XSCurl(XSCElement):
 					if pathsplit[i] == "..":
 						pathsplit[i] = os.pardir
 				path = string.joinfields(pathsplit,os.sep)
-		return urlparse.urlunparse((scheme,server,path,parameters,query,fragment))
+		return [[nest,self.startlineno,elementno,urlparse.urlunparse((scheme,server,path,parameters,query,fragment))]]
 
 	def __str__(self):
 		url = str(self.content)
