@@ -610,6 +610,13 @@ class Node(Base):
 		"""
 		pass
 
+	def checkvalid(self):
+		"""
+		<par>This method will be called when parsing or publishing to check whether <self/> is valid.</par>
+		<par>If the object is found to be invalid a warning should be issued through the Python warning framework.</par>
+		"""
+		pass
+
 	def publish(self, publisher):
 		"""
 		<par>generates unicode strings for the node, and passes
@@ -1615,9 +1622,6 @@ class Attr(Frag):
 				else:
 					option(self)
 
-	def parsed(self, handler, start=None):
-		self.checkvalid()
-
 	def _publishAttrValue(self, publisher):
 		Frag.publish(self, publisher)
 
@@ -1840,7 +1844,7 @@ class Attrs(Node, dict):
 			oldvalue = cls.__dict__.get(key, None) # no inheritance
 			if isinstance(oldvalue, type) and issubclass(oldvalue, Attr):
 				for xml in (False, True):
-					# ignore KeyError exception, because in the meta class constructor the attributes *are* in the class dict, but haven't gone through __setattr__, so they are not in the cache
+					# ignore KeyError exceptions, because in the meta class constructor the attributes *are* in the class dict, but haven't gone through __setattr__, so they are not in the cache
 					cls._attrs[xml].pop(oldvalue.xmlname[xml], None)
 					cls._defaultattrs[xml].pop(oldvalue.xmlname[xml], None)
 			if isinstance(value, type) and issubclass(value, Attr):
@@ -1856,8 +1860,8 @@ class Attrs(Node, dict):
 
 	def __init__(self, content=None, **attrs):
 		dict.__init__(self)
-		# set default attributes
-		for (key, value) in self._defaultattrs[False].iteritems(): # Only iterate through the attributes, that have default value
+		# set default attribute values
+		for (key, value) in self._defaultattrs[False].iteritems():
 			self[key] = value.default.clone()
 		# set attributes, this might overwrite (or delete) default attributes
 		self.update(content, **attrs)
@@ -1933,14 +1937,15 @@ class Attrs(Node, dict):
 	def present(self, presenter):
 		presenter.presentAttrs(self)
 
-	def parsed(self, handler, start=None):
+	def checkvalid(self):
 		# collect required attributes
-		attrs = {}
+		attrs = {} # FIXME: Use a set with Python 2.4
 		for (key, value) in self.iteralloweditems():
 			if value.required:
 				attrs[key] = None
-		# if a required attribute is encountered, remove from the list of outstanding ones
-		for attrname in self.iterkeys():
+		# Check each attribute and remove it from the list of required ones
+		for (attrname, attrvalue) in self.iteritems():
+			attrvalue.checkvalid()
 			try:
 				del attrs[attrname]
 			except KeyError:
@@ -2257,7 +2262,7 @@ class Element(Node):
 	class Attrs(Attrs):
 		def _allowedattrkey(cls, name, xml=False):
 			if isinstance(name, tuple):
-				return (name[0], name[0].Attrs._allowedattrkey(name[1], xml=xml))
+				return (name[0], name[0].Attrs._allowedattrkey(name[1], xml=xml)) # ask namespace about global attribute
 			try:
 				return cls._attrs[xml][name].xmlname[False]
 			except KeyError:
@@ -2266,7 +2271,7 @@ class Element(Node):
 
 		def allowedattr(cls, name, xml=False):
 			if isinstance(name, tuple):
-				return name[0].Attrs.allowedattr(name[1], xml=xml)
+				return name[0].Attrs.allowedattr(name[1], xml=xml) # ask namespace about global attribute
 			else:
 				# FIXME reimplemented here, because super does not work
 				try:
@@ -2376,11 +2381,8 @@ class Element(Node):
 
 	def checkvalid(self):
 		if self.empty and len(self):
-			raise errors.EmptyElementWithContentError(self)
-
-	def parsed(self, handler, start=None):
-		if not start:
-			self.checkvalid()
+			warnings.warn(errors.EmptyElementWithContentError(self))
+		self.attrs.checkvalid()
 
 	def append(self, *items):
 		"""

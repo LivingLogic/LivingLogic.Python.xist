@@ -16,9 +16,9 @@ generating &html;.</par>
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-import sys, types, time as time_, string
+import sys, types, time as time_, string, warnings
 
-from ll.xist import xsc, parsers
+from ll.xist import xsc, parsers, errors
 from ll.xist.ns import ihtml, html, meta, specials
 
 
@@ -83,6 +83,18 @@ class pixel(html.img):
 			The pixel color as a three digit hex value.
 			"""
 			default = 0
+
+			def checkvalid(self):
+				if len(self) and not self.isfancy():
+					content = unicode(self)
+					if content != u"0":
+						if len(content) == 3:
+							for c in content:
+								if c not in "0369cf":
+									warnings.warn(errors.IllegalAttrValueWarning(self))
+						else:
+							warnings.warn(errors.IllegalAttrValueWarning(self))
+
 		class alt(html.img.Attrs.alt):
 			default = ""
 		class width(html.img.Attrs.width):
@@ -92,10 +104,82 @@ class pixel(html.img):
 		src = None # remove source attribute
 
 	def convert(self, converter):
-		e = html.img(
+		self.attrs.checkvalid()
+		e = converter.target.img(
 			self.attrs.without(["color"]),
-			src=("root:px/", self.attrs.get("color"), ".gif")
+			src=("root:px/", self["color"], ".gif")
 		)
+		return e.convert(converter)
+
+
+class autoimg(html.img):
+	"""
+	<par>An image were width and height attributes are automatically generated.</par>
+	
+	<par>If the attributes are already there, they won't be modified.</par>
+	"""
+	def convert(self, converter):
+		target = converter.target
+		if issubclass(target, ihtml) or issubclass(target, html):
+			e = target.img(self.attrs.convert(converter))
+		else:
+			raise ValueError("unknown conversion target %r" % target)
+		src = self["src"].convert(converter).forInput(converter.root)
+		e._addimagesizeattributes(src, "width", "height")
+		return e
+
+
+class autopixel(html.img):
+	"""
+	<par>A pixel image were width and height attributes are automatically generated.</par>
+	
+	<par>This works like <pyref class="pixel"><class>pixel</class></pyref> but the
+	size is <z>inherited</z> from the image specified via the <lit>src</lit> attribute.</par>
+	"""
+	class Attrs(html.img.Attrs):
+		class color(xsc.TextAttr):
+			"""
+			<par>The pixel color as a three digit hex value.</par>
+			"""
+			default = 0
+
+			def checkvalid(self):
+				if len(self) and not self.isfancy():
+					content = unicode(self)
+					if content != u"0":
+						if len(content) == 3:
+							for c in content:
+								if c not in "0369cf":
+									warnings.warn(errors.IllegalAttrValueWarning(self))
+						else:
+							warnings.warn(errors.IllegalAttrValueWarning(self))
+
+		class alt(html.img.Attrs.alt):
+			default = ""
+
+	def convert(self, converter):
+		target = converter.target
+		if not issubclass(target, (ihtml, html)):
+			raise ValueError("unknown conversion target %r" % target)
+		self.attrs.checkvalid()
+		e = target.img(self.attrs.without(["color"]))
+		src = self["src"].convert(converter).forInput(converter.root)
+		e._addimagesizeattributes(src, "width", "height")
+		e["src"] = ("root:px/", self["color"], ".gif")
+		return e
+
+
+class autoinput(html.input):
+	"""
+	<par>Extends <pyref module="ll.xist.ns.html" class="input"><class>input</class></pyref>
+	with the ability to automatically set the size, if this element
+	has <lit>type=="image"</lit>.</par>
+	"""
+	def convert(self, converter):
+		e = html.input(self.content, self.attrs)
+		if u"type" in self.attrs and unicode(self["type"].convert(converter)) == u"image":
+			src = self["src"].convert(converter).forInput(converter.root)
+			e._addimagesizeattributes(src, "size", None) # no height
 		return e.convert(converter)
 
 
@@ -138,65 +222,6 @@ class caps(xsc.Element):
 
 	def __unicode__(self):
 			return unicode(self.content).upper()
-
-
-class autoimg(html.img):
-	"""
-	<par>An image were width and height attributes are automatically generated.</par>
-	
-	<par>If the attributes are already there, they won't be modified.</par>
-	"""
-	def convert(self, converter):
-		target = converter.target
-		if issubclass(target, ihtml) or issubclass(target, html):
-			e = target.img(self.attrs.convert(converter))
-		else:
-			raise ValueError("unknown conversion target %r" % target)
-		src = self["src"].convert(converter).forInput(converter.root)
-		e._addimagesizeattributes(src, "width", "height")
-		return e
-
-
-class autopixel(html.img):
-	"""
-	<par>A pixel image were width and height attributes are automatically generated.</par>
-	
-	<par>This works like <pyref class="pixel"><class>pixel</class></pyref> but the
-	size is <z>inherited</z> from the image specified via the <lit>src</lit> attribute.</par>
-	"""
-	class Attrs(html.img.Attrs):
-		class color(xsc.TextAttr):
-			"""
-			<par>The pixel color as a three digit hex value.</par>
-			"""
-			default = 0
-		class alt(html.img.Attrs.alt):
-			default = ""
-
-	def convert(self, converter):
-		target = converter.target
-		if issubclass(target, ihtml) or issubclass(target, html):
-			e = target.img(self.attrs.without(["color"]))
-		else:
-			raise ValueError("unknown conversion target %r" % target)
-		src = self["src"].convert(converter).forInput(converter.root)
-		e._addimagesizeattributes(src, "width", "height")
-		e["src"] = ("root:px/", self.attrs.get("color"), ".gif")
-		return e
-
-
-class autoinput(html.input):
-	"""
-	<par>Extends <pyref module="ll.xist.ns.html" class="input"><class>input</class></pyref>
-	with the ability to automatically set the size, if this element
-	has <lit>type=="image"</lit>.</par>
-	"""
-	def convert(self, converter):
-		e = html.input(self.content, self.attrs)
-		if u"type" in self.attrs and unicode(self["type"].convert(converter)) == u"image":
-			src = self["src"].convert(converter).forInput(converter.root)
-			e._addimagesizeattributes(src, "size", None) # no height
-		return e.convert(converter)
 
 
 class redirectpage(xsc.Element):
@@ -283,8 +308,8 @@ class quicktime(xsc.Element):
 		class width(xsc.IntAttr): required = True
 		class height(xsc.IntAttr): required = True
 		class bgcolor(xsc.ColorAttr): pass
-		class controller(xsc.ColorAttr): values=("true", "false")
-		class autoplay(xsc.ColorAttr): values=("true", "false")
+		class controller(xsc.ColorAttr): values = ("true", "false")
+		class autoplay(xsc.ColorAttr): values = ("true", "false")
 		class border(xsc.IntAttr): pass
 
 	def convert(self, converter):

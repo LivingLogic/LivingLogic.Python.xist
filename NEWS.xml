@@ -12,12 +12,17 @@ it is preferred over <app>mxTidy</app>.</item>
 <item>It's possible now to pass arguments to tidy simple by
 passing an argument dictionary for the <arg>tidy</arg> argument
 in the parsing functions.</item>
+<item>The methods <method>parsed</method> and <method>checkvalid</method>
+have been separated.</item>
+<item><class>ll.xist.ns.htmlspecials.pixel</class> and
+<class>ll.xist.ns.htmlspecials.autopixel</class> now check whether there
+<lit>color</lit> attribute is ok.</item>
 </ulist>
 </section>
 
+
 <section><title>Changes in 2.2 (released 07/31/2003)</title>
 <ulist>
-
 <item><par>Namespace handling has been completely rewritten.
 Namespaces are now classes derived from <class>ll.xist.xsc.Namespace</class>.
 Defining element classes can be done inside or outside the namespace
@@ -140,6 +145,7 @@ loading of external entities is switched off, which is done by
 </ulist>
 </section>
 
+
 <section><title>Changes in 2.1.4 (released 06/13/2003)</title>
 <ulist>
 <item>Remove the checks for attributes in attributes and
@@ -150,6 +156,7 @@ even inside attributes. (This is the same fix as in release 1.5.10)</item>
 </ulist>
 </section>
 
+
 <section><title>Changes in 2.1.3 (released 05/07/2003)</title>
 <ulist>
 <item>The methods <method>sorted</method>, <method>reversed</method>
@@ -159,6 +166,7 @@ use <lit>sys.maxint</lit>. This change fixes those methods for
 </ulist>
 </section>
 
+
 <section><title>Changes in 2.1.2 (released 02/27/2003)</title>
 <ulist>
 <item><class>ll.xist.ns.struts_config11.plug_in</class> now
@@ -166,6 +174,7 @@ allows content (as the &dtd; states). (This is the same fix
 as in release 1.5.8.)</item>
 </ulist>
 </section>
+
 
 <section><title>Changes in 2.1.1 (released 02/11/2003)</title>
 <ulist>
@@ -176,6 +185,7 @@ the attribute <lit>id</lit> for <class>section</class>, which specifies
 the target for an <class>xref</class>.</item>
 </ulist>
 </section>
+
 
 <section><title>Changes in 2.1 (released 12/09/2002)</title>
 <ulist>
@@ -208,6 +218,7 @@ parsing functions has been renamed to <arg>encoding</arg>.</item>
 </ulist>
 </section>
 
+
 <section><title>Changes in 2.0.8 (released 11/20/2002)</title>
 <ulist>
 <item><function>ll.xist.ns.doc.getDoc</function> has been renamed
@@ -217,6 +228,7 @@ percentage values. This has been fixed.</item>
 </ulist>
 </section>
 
+
 <section><title>Changes in 2.0.7 (released 11/12/2002)</title>
 <ulist>
 <item><method>xsc.Element.__nonzero__</method> can no longer fall back
@@ -225,11 +237,13 @@ to <method>xsc.Frag.__nonzero__</method>.
 </ulist>
 </section>
 
+
 <section><title>Changes in 2.0.6 (released 11/11/2002)</title>
 <ulist>
 <item>Performance optimizations.</item>
 </ulist>
 </section>
+
 
 <section><title>Changes in 2.0.5 (released 11/11/2002)</title>
 <ulist>
@@ -239,12 +253,14 @@ Attributes were not converted before the size check was done
 </ulist>
 </section>
 
+
 <section><title>Changes in 2.0.4 (released 11/08/2002)</title>
 <ulist>
 <item>Fixed a regression bug in <class>ll.xist.ns.jsp.directive</class>
 and several documentation issues.</item>
 </ulist>
 </section>
+
 
 <section><title>Changes in 2.0.3 (released 10/30/2002)</title>
 <ulist>
@@ -255,6 +271,7 @@ in <module>ll.xist.ns.doc</module>.</item>
 <module>ll</module> package is included.</item>
 </ulist>
 </section>
+
 
 <section><title>Changes in 2.0.2 (released 10/21/2002)</title>
 <ulist>
@@ -271,6 +288,7 @@ where all the namespaces that are newly defined will be registered too.</item>
 </ulist>
 </section>
 
+
 <section><title>Changes in 2.0.1 (released 10/17/2002)</title>
 <ulist>
 <item>Fixed <filename>xscmake.py</filename> by removing the
@@ -278,6 +296,7 @@ prefix handling. <class>OldPrefixes</class> will always
 be used for parsing now.</item>
 </ulist>
 </section>
+
 
 <section><title>Changes in 2.0 (released 10/16/2002)</title>
 <ulist>
@@ -329,6 +348,7 @@ to make image &url;s shorter.</item>
 </ulist>
 </section>
 
+
 <section><title>Changes in 1.6.1 (released 08/25/2003)</title>
 <ulist>
 <item>Updated to work with newer versions of <module>ll.ansistyle</module>.</item>
@@ -336,6 +356,7 @@ to make image &url;s shorter.</item>
 <module>ll.xist.ns.struts_config11</module> to the state of Struts 1.1 final.</item>
 </ulist>
 </section>
+
 
 <section><title>Changes in 1.6 (released 07/02/2003)</title>
 <ulist>
@@ -346,6 +367,7 @@ in <class>ll.xist.ns.struts_config11.action</class>.</item>
 </ulist>
 </section>
 
+
 <section><title>Changes in 1.5.13 (released 07/01/2003)</title>
 <ulist>
 <item>Implemented <method>ll.xist.xsc.Namespace.__eq__</method>,
@@ -354,17 +376,20 @@ so that replacing a namespace in the registry really works.</item>
 </ulist>
 </section>
 
+
 <section><title>Changes in 1.5.12 (released 06/17/2003)</title>
 <ulist>
 <item>Fixed a bug in the new <module>ll.xist.ns.jsp</module>.</item>
 </ulist>
 </section>
 
+
 <section><title>Changes in 1.5.11 (released 06/13/2003)</title>
 <ulist>
 <item>Updated <module>ll.xist.ns.jsp</module> to &jsp; 1.2.</item>
 </ulist>
 </section>
+
 
 <section><title>Changes in 1.5.10 (released 06/13/2003)</title>
 <ulist>
@@ -376,12 +401,14 @@ even inside attributes.</item>
 </ulist>
 </section>
 
+
 <section><title>Changes in 1.5.9 (released 04/30/2003)</title>
 <ulist>
 <item>Reregistering a namespace now properly overwrites
 the old version in <lit>xsc.namespaceRegistry</lit>.</item>
 </ulist>
 </section>
+
 
 <section><title>Changes in 1.5.8 (released 02/27/2003)</title>
 <ulist>
@@ -390,6 +417,7 @@ allows content (as the &dtd; states).</item>
 </ulist>
 </section>
 
+
 <section><title>Changes in 1.5.7 (released 11/12/2002)</title>
 <ulist>
 <item><method>xsc.Element.__nonzero__</method> can no longer fall back
@@ -397,11 +425,13 @@ to <method>xsc.Frag.__nonzero__</method>.</item>
 </ulist>
 </section>
 
+
 <section><title>Changes in 1.5.6 (released 11/11/2002)</title>
 <ulist>
 <item>Performance optimizations.</item>
 </ulist>
 </section>
+
 
 <section><title>Changes in 1.5.5 (released 11/11/2002)</title>
 <ulist>
@@ -409,6 +439,7 @@ to <method>xsc.Frag.__nonzero__</method>.</item>
 Attributes were not converted before the size check was done.</item>
 </ulist>
 </section>
+
 
 <section><title>Changes in 1.5.4 (released 09/30/2002)</title>
 <ulist>
@@ -419,12 +450,14 @@ is still tried first).</item>
 </ulist>
 </section>
 
+
 <section><title>Changes in 1.5.3 (released 09/25/2002)</title>
 <ulist>
 <item>Added new processing instruction class <class>ll.xist.ns.php.expression</class>
 that generates a &php; <lit>print</lit> statement from its content.</item>
 </ulist>
 </section>
+
 
 <section><title>Changes in 1.5.2 (released 09/19/2002)</title>
 <ulist>
@@ -433,6 +466,7 @@ that generates a &php; <lit>print</lit> statement from its content.</item>
 conflicted with dynamic <lit>value</lit> values.</item>
 </ulist>
 </section>
+
 
 <section><title>Changes in 1.5.1 (released 09/17/2002)</title>
 <ulist>
@@ -466,6 +500,7 @@ found in a style attribute.</item>
 </ulist>
 </section>
 
+
 <section><title>Changes in 1.4.3 (released 04/29/2002)</title>
 <ulist>
 <item>New namespace module <module>xist.ns.struts_config11</module>
@@ -476,6 +511,7 @@ configuration files conforming with the
 </ulist>
 </section>
 
+
 <section><title>Changes in 1.4.2 (released 03/22/2002)</title>
 <ulist>
 <item>Updated <filename>xscmake.py</filename> to be compatible with the new
@@ -484,6 +520,7 @@ configuration files conforming with the
 <lit>contentType</lit> on publishing.</item>
 </ulist>
 </section>
+
 
 <section><title>Changes in 1.4.1 (released 03/21/2002)</title>
 <ulist>
@@ -500,12 +537,14 @@ corresponding elements from <module>xist.ns.html</module> have.</item>
 </ulist>
 </section>
 
+
 <section><title>Changes in 1.4 (released 03/18/2002)</title>
 <ulist>
 <item>Reimplemented &url; handling again. Now the new global
 module <module>url</module> is used for that.</item>
 </ulist>
 </section>
+
 
 <section><title>Changes in 1.3.1 (released 03/14/2002)</title>
 <ulist>
@@ -516,6 +555,7 @@ class attribute, that will be set at class instantiation time
 by the meta class.</item>
 </ulist>
 </section>
+
 
 <section><title>Changes in 1.3 (released 02/12/2002)</title>
 <ulist>
@@ -1235,4 +1275,3 @@ you'll need a newer version of <app>sgmlop</app> (included in <app>PyXML 0.5.5.1
 <item>These changes predate written history.</item>
 </ulist>
 </section>
-

@@ -105,6 +105,7 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 		except KeyboardInterrupt:
 			raise
 		except Exception, exc:
+			raise
 			if self._err_handler is not None:
 				self._err_handler.fatalError(exc)
 			else:
@@ -523,6 +524,7 @@ class Handler(object):
 	def endElement(self, name):
 		currentelement = self.__nesting[-1][0]
 		currentelement.parsed(self, start=False)
+		currentelement.checkvalid()
 		element = self.createElement(name) # Unfortunately this creates the element a second time.
 		if element.__class__ is not currentelement.__class__:
 			raise errors.ElementNestingError(currentelement.__class__, element.__class__)
