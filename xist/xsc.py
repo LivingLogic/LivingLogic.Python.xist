@@ -1608,7 +1608,14 @@ class Parser(xmllib.XMLParser):
 
 	def __appendNode(self,node):
 		node.startlineno = self.lineno
-		self.nesting[-1].append(node) # add the new node to the content of the innermost element (or fragment)
+		last = self.nesting[-1]
+		if node.__class__ in [ Text, CharRef] and len(last) and last[-1].__class__ is Text:
+			if node.__class__ is Text:
+				last[-1].content = last[-1].content + node.content
+			else:
+				last[-1].content = last[-1].content + chr(node.content)
+		else:
+			last.append(node) # add the new node to the content of the innermost element (or fragment)
 
 	def handle_special(self,data):
 		if data[:7] == "DOCTYPE":
@@ -1620,17 +1627,17 @@ class Parser(xmllib.XMLParser):
 	def handle_charref(self,name):
 		try:
 			if name[0] == 'x':
-				n = string.atoi(name[1:],16)
+				code = string.atoi(name[1:],16)
 			else:
-				n = string.atoi(name)
+				code = string.atoi(name)
 		except string.atoi_error:
 			raise MalformedCharRefError(xsc.parser.lineno,name)
 
-		self.__appendNode(CharRef(n))
+		self.__appendNode(CharRef(code))
 
 	def handle_entityref(self,name):
 		try:
-			self.__appendNode(self.entitiesByName[name])
+			self.__appendNode(self.entitiesByName[name].clone())
 		except KeyError:
 			raise UnknownEntityError(xsc.parser.lineno,name)
 
