@@ -16,47 +16,61 @@ import xsc
 import html
 
 class plaintable(html.table):
+	"""
+	a HTML table where the values of the attributes cellpadding, cellspacing and
+	border default to 0.
+	"""
 	empty = 0
 
 	def asHTML(self):
 		e = html.table(self.content,self.attrs)
 		if not e.has_attr("cellpadding"):
-			e["cellpadding"] = "0"
+			e["cellpadding"] = 0
 		if not e.has_attr("cellspacing"):
-			e["cellspacing"] = "0"
+			e["cellspacing"] = 0
 		if not e.has_attr("border"):
-			e["border"] = "0"
+			e["border"] = 0
 
 		return e.asHTML()
 xsc.registerElement(plaintable)
 
 class plainbody(html.body):
+	"""
+	a HTML body where the attributes leftmaring, topmargin, marginheight and
+	marginwidth default to 0.
+	"""
 	empty = 0
 
 	def asHTML(self):
 		e = html.body(self.content,self.attrs)
 		if not e.has_attr("leftmargin"):
-			e["leftmargin"] = "0"
+			e["leftmargin"] = 0
 		if not e.has_attr("topmargin"):
-			e["topmargin"] = "0"
+			e["topmargin"] = 0
 		if not e.has_attr("marginheight"):
-			e["marginheight"] = "0"
+			e["marginheight"] = 0
 		if not e.has_attr("marginwidth"):
-			e["marginwidth"] = "0"
+			e["marginwidth"] = 0
 
 		return e.asHTML()
 xsc.registerElement(plainbody)
 
 class z(xsc.Element):
+	"""
+	puts it's content into french quotes
+	"""
 	empty = 0
 
 	def asHTML(self):
-		e = xsc.Frag(["«" , self.content , "»" ])
+		e = "«" + self.content + "»"
 
 		return e.asHTML()
 xsc.registerElement(z)
 
 class nbsp(xsc.Element):
+	"""
+	a nonbreakable space as an element
+	"""
 	empty = 1
 
 	def asHTML(self):
@@ -64,16 +78,37 @@ class nbsp(xsc.Element):
 xsc.registerElement(nbsp)
 
 class filesize(xsc.Element):
+	"""
+	the size (in bytes) of the file whose URL is the attribute href
+	as a text node.
+	"""
 	empty = 1
-	attr_handlers = { "href" : xsc.URLAttr }
+	attrHandlers = { "href" : xsc.URLAttr }
 
 	def asHTML(self):
-		return xsc.Text(self["href"].FileSize())
+		return xsc.Text(str(self["href"].FileSize()))
 xsc.registerElement(filesize)
 
-class time(xsc.Element):
+class filetime(xsc.Element):
+	"""
+	the time of the last modification of the file whose URL is in the attibute href
+	as a text node.
+	"""
 	empty = 1
-	attr_handlers = { "format" : xsc.TextAttr }
+	attrHandlers = { "href" : xsc.URLAttr , "format" : xsc.TextAttr }
+
+	def asHTML(self):
+		return xsc.Text(self["href"].FileTime())
+xsc.registerElement(filetime)
+
+class time(xsc.Element):
+	"""
+	the current time (i.e. the time when asHTML() is called). You can specify the
+	format of the string in the attribute format, which is a strftime() compatible
+	string.
+	"""
+	empty = 1
+	attrHandlers = { "format" : xsc.TextAttr }
 
 	def asHTML(self):
 		if self.has_attr("format"):
@@ -85,7 +120,10 @@ class time(xsc.Element):
 xsc.registerElement(time)
 
 class x(xsc.Element):
-	"""content will be ignored: can be used to comment out stuff (e.g. linefeeds)"""
+	"""
+	element whose content will be ignored when converted to HTML:
+	this can be used to comment out stuff.
+	"""
 	close=1
 
 	def asHTML(self):
@@ -93,9 +131,20 @@ class x(xsc.Element):
 xsc.registerElement(x)
 
 class pixel(html.img):
+	"""
+	element for single pixel images, the default is the image
+	":images/pixels/dot_clear.gif", but you can specify the color
+	as a six digit hex string, which will be used as the filename,
+	i.e. <pixel color="000000"/> results in
+	<img src=":images/pixels/000000.gif">.
+
+	In addition to that you can specify width and height attributes
+	(and every other allowed attribute for the img element) as usual.
+	"""
+
 	empty = 1
-	attr_handlers = xsc.appendDict(html.img.attr_handlers,{ "color" : xsc.ColorAttr })
-	del attr_handlers["src"]
+	attrHandlers = xsc.appendDict(html.img.attrHandlers,{ "color" : xsc.ColorAttr })
+	del attrHandlers["src"]
 
 	def asHTML(self):
 		e = html.img(self.content)
@@ -111,13 +160,17 @@ class pixel(html.img):
 xsc.registerElement(pixel)
 
 class cap(xsc.Element):
+	"""
+	returns a fragment that contains the content string converted to caps and small caps.
+	This is done by converting all lowercase letters to uppercase and packing them into a
+	<span class="nini">...</span>. Note that this only works with text and not with
+	character references. This element is meant to be a workaround until all browsers
+	support the CSS feature "font-variant: small-caps".
+	"""
 	empty = 0
 
 	def asHTML(self):
-		e = str(self.content.asHTML())
-		if type(e) == types.ListType:
-			e = e[0]
-		e = e + "?"
+		e = str(self.content.asHTML()) + "?"
 		result = xsc.Frag()
 		collect = ""
 		innini = 0
@@ -151,7 +204,7 @@ xsc.registerElement(emdash)
 
 class include(xsc.Element):
 	empty = 1
-	attr_handlers = { "src" : xsc.URLAttr }
+	attrHandlers = { "src" : xsc.URLAttr }
 
 	def asHTML(self):
 		e = xsc.xsc.parseFile(self["src"].forInput())
@@ -161,4 +214,3 @@ xsc.registerElement(include)
 
 if __name__ == "__main__":
 	xsc.make()
-

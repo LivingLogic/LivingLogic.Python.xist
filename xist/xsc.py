@@ -11,6 +11,7 @@ import string
 import types
 import exceptions
 import sys
+import _socket
 
 # for file size checking
 import stat
@@ -29,12 +30,17 @@ import urlparse
 # for reading remote files
 import urllib
 
+# our sandbox
+import procinst
+
 ###
 ### exceptions
 ###
 
 class Error(Exception):
-	"""base class for all XSC exceptions"""
+	"""
+	base class for all XSC exceptions
+	"""
 
 	def __init__(self,lineno):
 		self.lineno = lineno
@@ -46,7 +52,10 @@ class Error(Exception):
 			return ""
 
 class EmptyElementWithContentError(Error):
-	"""exception that is raised, when an element has content, but it shouldn't (i.e. empty=1)"""
+	"""
+	exception that is raised, when an element has content,
+	but it shouldn't (i.e. empty==1)
+	"""
 
 	def __init__(self,lineno,element):
 		Error.__init__(self,lineno)
@@ -56,7 +65,10 @@ class EmptyElementWithContentError(Error):
 		return Error.__str__(self) + "element " + self.element._strname() + " specified to be empty, but has content"
 
 class IllegalAttributeError(Error):
-	"""exception that is raised, when an element has an illegal attribute (i.e. one that isn't contained in it's attr_handlers)"""
+	"""
+	exception that is raised, when an element has an illegal attribute
+	(i.e. one that isn't contained in it's attrHandlers)
+	"""
 
 	def __init__(self,lineno,element,attr):
 		Error.__init__(self,lineno)
@@ -64,7 +76,7 @@ class IllegalAttributeError(Error):
 		self.attr = attr
 
 	def __str__(self):
-		attrs = self.element.attr_handlers.keys();
+		attrs = self.element.attrHandlers.keys();
 		attrs.sort()
 
 		v = []
@@ -75,7 +87,9 @@ class IllegalAttributeError(Error):
 		return Error.__str__(self) + "Attribute " + _strattrname(self.attr) + " not allowed in element " + self.element._strname() + ". Allowed attributes are: " + string.join(v,", ") + "."
 
 class AttributeNotFoundError(Error):
-	"""exception that is raised, when an attribute is fetched that isn't there"""
+	"""
+	exception that is raised, when an attribute is fetched that isn't there
+	"""
 
 	def __init__(self,lineno,element,attr):
 		Error.__init__(self,lineno)
@@ -99,7 +113,10 @@ class AttributeNotFoundError(Error):
 		return s
 
 class IllegalElementError(Error):
-	"""exception that is raised, when an illegal element is encountered (i.e. one that isn't registered via registerElement"""
+	"""
+	exception that is raised, when an illegal element is encountered
+	(i.e. one that isn't registered via registerElement
+	"""
 
 	def __init__(self,lineno,name):
 		Error.__init__(self,lineno)
@@ -107,9 +124,9 @@ class IllegalElementError(Error):
 
 	def __str__(self):
 		elementnames = []
-		for elementname in _element_handlers.keys():
-			for namespace in _element_handlers[elementname].keys():
-				elementnames.append(_strNodeName(_element_handlers[elementname][namespace]))
+		for elementname in _elementHandlers.keys():
+			for namespace in _elementHandlers[elementname].keys():
+				elementnames.append(_strNodeName(_elementHandlers[elementname][namespace]))
 		elementnames.sort()
 
 		if self.name[0]:
@@ -120,7 +137,10 @@ class IllegalElementError(Error):
 		return Error.__str__(self) + "element " + name + " not allowed. Allowed elements are: " + string.join(elementnames,", ") + "."
 
 class IllegalElementNestingError(Error):
-	"""exception that is raised, when an element has an illegal nesting (e.g. <a><b></a></b>)"""
+	"""
+	exception that is raised, when an element has an illegal nesting
+	(e.g. <a><b></a></b>)
+	"""
 
 	def __init__(self,lineno,expectedelementname,foundelementname):
 		Error.__init__(self,lineno)
@@ -131,7 +151,9 @@ class IllegalElementNestingError(Error):
 		return Error.__str__(self) + "illegal element nesting (" + _strelementname(self.expectedelementname) + " expected; " + _strelementname(self.foundelementname) + " found)"
 
 class ImageSizeFormatError(Error):
-	"""exception that is raised, when XSC can't format or evaluate image size attributes"""
+	"""
+	exception that is raised, when XSC can't format or evaluate image size attributes
+	"""
 
 	def __init__(self,lineno,element,attr):
 		Error.__init__(self,lineno)
@@ -142,7 +164,9 @@ class ImageSizeFormatError(Error):
 		return Error.__str__(self) + "the value '" + str(self.element[self.attr]) + "' for the image size attribute " + _strattrname(self.attr) + " of the element " + self.element._strname() + " can't be formatted or evaluated"
 
 class FileNotFoundError(Error):
-	"""exception that is raised, when XSC can't open an image for getting image size"""
+	"""
+	exception that is raised, when XSC can't open an image for getting image size
+	"""
 
 	def __init__(self,lineno,url):
 		Error.__init__(self,lineno)
@@ -152,7 +176,9 @@ class FileNotFoundError(Error):
 		return Error.__str__(self) + "file " + self.url.repr() + " can't be opened"
 
 class IllegalObjectError(Error):
-	"""exception that is raised, when XSC finds an illegal object in its object tree"""
+	"""
+	exception that is raised, when XSC finds an illegal object in its object tree
+	"""
 
 	def __init__(self,lineno,object):
 		Error.__init__(self,lineno)
@@ -162,7 +188,9 @@ class IllegalObjectError(Error):
 		return Error.__str__(self) + "an illegal object of type " + type(self.object).__name__ + " has been found in the XSC tree"
 
 class MalformedCharRefError(Error):
-	"""exception that is raised, when a character reference is malformed (e.g. &#foo;)"""
+	"""
+	exception that is raised, when a character reference is malformed (e.g. &#foo;)
+	"""
 
 	def __init__(self,lineno,name):
 		Error.__init__(self,lineno)
@@ -173,7 +201,8 @@ class MalformedCharRefError(Error):
 
 class UnknownEntityError(Error):
 	"""
-	exception that is raised, when an unknown entity (i.e. one that wasn't registered via RegisterEntity) is encountered
+	exception that is raised, when an unknown entity is encountered
+	(i.e. one that wasn't registered via registerEntity)
 	"""
 
 	def __init__(self,lineno,name):
@@ -195,8 +224,8 @@ class AmbiguousElementError(Error):
 
 	def __str__(self):
 		elementnames = []
-		for namespace in _element_handlers[self.name[1]].keys():
-			elementnames.append(_strNodeName(_element_handlers[self.name[1]][namespace]))
+		for namespace in _elementHandlers[self.name[1]].keys():
+			elementnames.append(_strNodeName(_elementHandlers[self.name[1]][namespace]))
 		elementnames.sort()
 
 		if self.name[0]:
@@ -211,7 +240,7 @@ class AmbiguousElementError(Error):
 ###
 
 def _stransi(codes,string):
-	if xsc.repransi and codes!="" and string!="":
+	if Node.repransi and codes!="" and string!="":
 		return "\033[" + codes + "m" + string + "\033[0m"
 	else:
 		return string
@@ -233,7 +262,6 @@ def _strNodeName(nodeClass):
 	name = nodeName(nodeClass)
 	return _stransi(nodeClass.repransinamespace,name[0]) + ":" + _stransi(nodeClass.repransiname,name[1])
 
-
 def appendDict(*dicts):
 	result = {}
 	for dict in dicts:
@@ -241,55 +269,95 @@ def appendDict(*dicts):
 			result[key] = dict[key]
 	return result
 
+def string2Fragment(s):
+	"""
+	parses a string that might contain entities into a fragment
+	with text nodes and character references.
+	"""
+	e = Frag()
+	while 1:
+		try:
+			i = string.index(s,"&")
+			if i != 0:
+				e.append(s[:i])
+				s = s[i:]
+			try:
+				i = string.index(s,";")
+				if s[1] == "#":
+					if s[2] == "x":
+						e.append(CharRef(string.atoi(s[3:i],16)))
+					else:
+						e.append(CharRef(string.atoi(s[2:i])))
+				else:
+					try:
+						e.append(Parser.entitiesByName[s[1:i]])
+					except KeyError:
+						raise UnknownEntityError(xsc.parser.lineno,s[1:i])
+				s = s[i+1:]
+			except ValueError:
+				raise MalformedCharRefError(xsc.parser.lineno,s)
+		except ValueError:
+			if len(s):
+				e.append(s)
+			break
+	return e
+
 def ToNode(value):
-	if type(value) == types.StringType:
-		return Text(value)
-	elif type(value) == types.NoneType:
-		return Null()
-	elif type(value) in [ types.IntType,types.LongType ] :
-		return CharRef(value)
-	elif type(value) == types.FloatType :
-		return Text(str(value))
-	elif type(value) in [ types.ListType,types.TupleType ]:
-		v = Frag()
-		for i in value:
-			v.append(ToNode(i))
-		return v
-	elif type(value) == types.DictType:
-		raise IllegalObjectError(xsc.parser.lineno,value) # no dictionaries allowed
-	elif type(value) == types.InstanceType:
+	t = type(value)
+	if t == types.InstanceType:
 		if isinstance(value,Frag):
-			if len(value)==1:
+			l = len(value)
+			if l==1:
 				return ToNode(value[0]) # recursively try to simplify the tree
+			elif l==0:
+				return Null()
 			else:
 				return value
-		elif isinstance(value,Attr):
+		elif isinstance(value,Attr): # unpack the attribute, and we have a valid XSC node
 			return value.content
-		else:
+		elif isinstance(value,Node):
 			return value
+	elif t in [ types.StringType,types.IntType,types.LongType,types.FloatType ]:
+		return Text(str(value))
+	elif t == types.NoneType:
+		return Null()
+	elif t in [ types.ListType,types.TupleType ]:
+		e = Frag()
+		for i in value:
+			e.append(ToNode(i))
+		return e
 	raise IllegalObjectError(xsc.parser.lineno,value) # none of the above, so we throw and exception
 
-_element_handlers = {} # dictionary for mapping element names to classes, this dictionary contains the element names as keys and another dictionary as values, this second dictionary contains the namespace names as keys and the element classes as values
+_elementHandlers = {} # dictionary for mapping element names to classes, this dictionary contains the element names as keys and another dictionary as values, this second dictionary contains the namespace names as keys and the element classes as values
 
 class Node:
-	"""base class for nodes in the document tree. Derived class must implement __str__()"""
+	"""
+	base class for nodes in the document tree. Derived classes must
+	implement asHTML() and/or __str__()
+	"""
 
 	# line numbers where this node starts and ends in a file (will be hidden in derived classes, but is specified here, so that no special tests are required. In derived classes both variables will be set by the parser)
 	startlineno = -1
 	endlineno = -1
+
 	repransinamespace = "31"
 	repransiname = ""
 	repransibrackets = "34;1"
+	reprtab = ". " # how to represent an indentation in the DOM tree
+	repransi = 0 # should ANSI escape sequences be used for dumping the DOM tree?
+	repransitab = "32" # ANSI escape sequence to be used for tabs
 
 	def __add__(self,other):
-		if (not isinstance(other,Null)) and (other is not None):
-			return Frag(self) + other
+		newother = ToNode(other)
+		if not isinstance(newother,Null):
+			return Frag(self) + newother
 		else:
 			return self
 
 	def __radd__(self,other):
-		if (not isinstance(other,Null)) and (other is not None):
-			return Frag(other) + self
+		newother = ToNode(other)
+		if not isinstance(newother,Null):
+			return Frag(newother) + self
 		else:
 			return self
 
@@ -301,8 +369,9 @@ class Node:
 
 	def name(self):
 		"""
-		returns a tuple with the namespace of the node, which is the module in which the node is implemented
-		and a name which is the name of the class. Both strings are converted to lowercase.
+		returns a tuple with the namespace of the node, which is the module
+		in which the node is implemented and a name which is the name of the
+		class. Both strings are converted to lowercase.
 		"""
 		return nodeName(self.__class__)
 
@@ -311,7 +380,7 @@ class Node:
 
 	def clone(self):
 		"""
-		returns an identical clone of the node.
+		returns an identical clone of the node and it's children.
 		"""
 		pass
 
@@ -330,7 +399,7 @@ class Node:
 			else:
 				line[1] = "?"
 			line[2] = string.join(map(str,line[2]),".") # convert element number to a string
-			line[3] = _stransi(xsc.repransitab,xsc.reprtab*line[0]) + line[3] # add indentation
+			line[3] = _stransi(self.repransitab,self.reprtab*line[0]) + line[3] # add indentation
 			lenlineno = max(lenlineno,len(line[1]))
 			lenelementno = max(lenelementno,len(line[2]))
 
@@ -347,12 +416,28 @@ class Node:
 		return [[nest,self.startlineno,elementno,self._strtag("?")]]
 
 	def asHTML(self):
+		"""
+		returns a version of this Node and it's content converted to HTML,
+		so when you define your own element classes you should overwrite asHTML().
+
+		E.g. when you want to define an element that packs it's content into an HTML
+		bold element, do the following:
+
+		def foo(xsc.Element):
+			empty = 0
+
+			def asHTML(self):
+				return html.b(self.content).asHTML()
+		"""
 		return Null()
 
 	def _strtag(self,content):
 		return _stransi(self.repransibrackets,'<') + content + _stransi(self.repransibrackets,'>')
 
 	def __str__(self):
+		"""
+		returns this element as a string
+		"""
 		return ""
 
 	def elements(self,element = None,subtype = 0,children = 0,attrs = 0):
@@ -380,33 +465,36 @@ class Node:
 		else:
 			return 1
 
-	def withoutLinefeeds(self):
-		"""returns this node, where all linefeeds that are in a text
-		(or character reference) by themselves are removed, i.e. potentially
-		needless whitespace is removed"""
+	def compact(self):
+		"""
+		returns this node, where textnodes or character references that contain
+		only linefeeds are removed, i.e. potentially needless whitespace is removed.
+		"""
 		return Null()
 
 class Text(Node):
-	"""text"""
+	"""
+	text node. The characters <, >, & and " will be "escaped" with the
+	appropriate character entities. Characters with an ASCII code bigger
+	than 127 will be escaped too.
+	"""
 
 	repransiname = ""
 	repransiquotes = "34;1"
 
-	represcapes = { '\t' : '\\t' , '\033' : '\\e' , '\\' : '\\\\' }
-	reprtreeescapes = { '\r' : '\\r' , '\n' : '\\n' , '\t' : '\\t' , '\033' : '\\e' , '\\' : '\\\\' }
 	strescapes = { '<' : 'lt' , '>' : 'gt' , '&' : 'amp' , '"' : 'quot' }
 
-	def __init__(self,content = ""):
-		self.__content = content
+	def __init__(self,_content = ""):
+		self.content = _content
 
 	def asHTML(self):
-		return Text(self.__content)
+		return Text(self.content)
 
 	clone = asHTML
 
 	def __str__(self):
 		v = []
-		for i in self.__content:
+		for i in self.content:
 			if i == '\r':
 				continue
 			if self.strescapes.has_key(i):
@@ -420,15 +508,15 @@ class Text(Node):
 	def __strtext(self,refwhite):
 		# we could put ANSI escapes around every character or reference that we output, but this would result in strings that are way to long, especially if output over a serial connection, so we collect runs of characters with the same highlighting and put the ANSI escapes around those. (of course, when we're not doing highlighting, this routine does way to much useless calculations)
 		v = [] # collect all colored string here
-		charref = -1 # the type of characters we're currently collecting (0==normal character, 1==character that have to be output as entities, -1==at the start)
+		charref = -1 # the type of characters we're currently collecting (0==normal character, 1==character that has to be output as an entity, -1==at the start)
 		start = 0 # the position where our current run of characters for the same class started
 		end = 0 # the current position we're testing
-		while end<=len(self.__content): # one more than the length of the string
+		while end<=len(self.content): # one more than the length of the string
 			do = 0 # we will have to do something with the string collected so far ...
-			if end == len(self.__content): # ... if we're at the end of the string
+			if end == len(self.content): # ... if we're at the end of the string ...
 				do = 1
 			else:
-				c = self.__content[end] # or if the character we're at is different from those we've collected so far
+				c = self.content[end] # ... or if the character we're at is different from those we've collected so far
 				ascharref = (0 <= ord(c) <= 31 or 128 <= ord(c))
 				if not refwhite and (c == "\n" or c == "\t"):
 					ascharref = 0
@@ -438,20 +526,19 @@ class Text(Node):
 			if do: # process the string we have so far
 				if charref: # we've collected references so far
 					s = ""
-					for i in self.__content[start:end]:
+					for i in self.content[start:end]:
 						ent = Parser.entitiesByNumber[ord(i)] # use names if a available, or number otherwise
 						if len(ent):
 							s = s + '&' + ent[0] + ';'
 						else:
-							s = s + '&#' + str(self.__content) + ';'
+							s = s + '&#' + str(ord(i)) + ';'
 					v.append(_stransi(CharRef.repransiname,s))
 				else:
-					s = self.__content[start:end]
+					s = self.content[start:end]
 					v.append(_stransi(Text.repransiname,s))
 				charref = 1-charref # switch to the other class
-				start = end # the next string  we want to work on starts from here
+				start = end # the next string we want to work on starts from here
 			end = end + 1 # to the next character
-
 		return string.join(v,"")
 
 	def _dorepr(self):
@@ -462,99 +549,108 @@ class Text(Node):
 		s = _stransi(self.repransiquotes,'"') + _stransi(self.repransiname,self.__strtext(1)) + _stransi(self.repransiquotes,'"')
 		return [[nest,self.startlineno,elementno,s]]
 
-	def withoutLinefeeds(self):
-		for i in self.__content:
+	def compact(self):
+		for i in self.content:
 			if i != '\n' and i != '\r':
-				return Text(self.__content)
+				return Text(self.content)
 		else:
 			return Null()
 
 class CharRef(Node):
-	"""character reference (i.e &#42; or &#x42;)"""
+	"""
+	character reference (i.e &#42; or &#x42; or &uuml;) The content member
+	of the node will be the ASCII code of the character.
+	"""
 
 	repransiname = "32"
 
 	__notdirect = { ord("&") : "amp" , ord("<") : "lt" , ord(">") : "gt", ord('"') : "quot" , ord("'") : "apos" }
 	__linefeeds = [ ord("\r") , ord("\n") ]
 
-	def __init__(self,content = 42):
-		self.__content = content
+	def __init__(self,_content = 42):
+		self.content = _content
 
 	def asHTML(self):
-		return CharRef(self.__content)
+		return CharRef(self.content)
 
 	clone = asHTML
 
 	def __str__(self):
-		if 0<=self.__content<=127:
-			if self.__content != ord("\r"):
-				if self.__notdirect.has_key(self.__content):
-					return '&' + self.__notdirect[self.__content] + ';'
+		if 0<=self.content<=127:
+			if self.content != ord("\r"):
+				if self.__notdirect.has_key(self.content):
+					return '&' + self.__notdirect[self.content] + ';'
 				else:
-					return chr(self.__content)
+					return chr(self.content)
 		else:
-			return '&#' + str(self.__content) + ';'
+			return '&#' + str(self.content) + ';'
 
 	def __strcharref(self,s):
 		return _stransi(self.repransiname,s)
 
 	def _dorepr(self):
-		if len(Parser.entitiesByNumber[self.__content]):
-			return self.__strcharref('#' + Parser.entitiesByNumber[self.__content][0] + ';')
+		if len(Parser.entitiesByNumber[self.content]):
+			return self.__strcharref('&' + Parser.entitiesByNumber[self.content][0] + ';')
 		else:
-			return self.__strcharref('&#' + str(self.__content) + ';')
+			return self.__strcharref('&#' + str(self.content) + ';')
 
 	def _doreprtree(self,nest,elementno):
-		s = self.__strcharref('&#' + str(self.__content) + ';') + ' (' + self.__strcharref('&#x' + hex(self.__content)[2:] + ';')
-		for name in Parser.entitiesByNumber[self.__content]:
+		s = self.__strcharref('&#' + str(self.content) + ';') + ' (' + self.__strcharref('&#x' + hex(self.content)[2:] + ';')
+		for name in Parser.entitiesByNumber[self.content]:
 			s = s + ' ' + self.__strcharref('&' + name + ';')
 		s = s + ')'
-		if 0 <= self.__content <= 255:
-			s = s + ' ' + Text(chr(self.__content))._doreprtree(0,0)[0][-1]
+		if 0 <= self.content <= 255:
+			s = s + ' ' + Text(chr(self.content))._doreprtree(0,0)[0][-1]
 		return [[nest,self.startlineno,elementno,s]]
 
-	def withoutLinefeeds(self):
-		if self.__content in self.__linefeeds:
+	def compact(self):
+		if self.content in self.__linefeeds:
 			return Null()
 		else:
-			return CharRef(self.__content)
+			return CharRef(self.content)
 
 class Frag(Node):
-	"""contains a list of Nodes"""
+	"""
+	A fragment contains a list of nodes and can be used for dynamically constructing content.
+	The member content of an Element is a Frag.
+	"""
 
 	repransiname = ""
 
 	def __init__(self,_content = []):
-		if (_content is None) or isinstance(_content,Null):
-			self._content = []
-		elif type(_content) == types.InstanceType:
+		t = type(_content)
+		if t == types.InstanceType:
 			if isinstance(_content,Frag):
-				self._content = map(ToNode,_content._content)
+				self.__content = _content
+			elif isinstance(_content,Null):
+				self.__content = []
 			else:
-				self._content = [ ToNode(_content) ]
-		elif type(_content) in [ types.ListType , types.TupleType ]:
-			self._content = map(ToNode,_content)
+				self.__content = [ ToNode(_content) ]
+		elif t in [ types.ListType , types.TupleType ]:
+			self.__content = map(ToNode,_content)
+		elif _content is None:
+			self.__content = []
 		else:
-			self._content = [ ToNode(_content) ]
+			self.__content = [ ToNode(_content) ]
 
 	def __add__(self,other):
-		res = Frag(self._content)
+		res = Frag(self.__content)
 		newother = ToNode(other)
 		if not isinstance(newother,Null):
 			if isinstance(newother,Frag):
-				res._content = res._content + newother._content
+				res.__content = res.__content + newother.__content
 			else:
-				res._content.append(newother)
+				res.__content.append(newother)
 		return res
 
 	def __radd__(self,other):
-		res = Frag(self._content)
+		res = Frag(self.__content)
 		newother = ToNode(other)
 		if not isinstance(newother,Null):
 			if isinstance(newother,Frag):
-				res._content = newother._content + res._content
+				res.__content = newother.__content + res.__content
 			else:
-				res._content = [ newother ] + res._content
+				res.__content.insert(0,newother)
 		return res
 
 	def asHTML(self):
@@ -592,44 +688,64 @@ class Frag(Node):
 		return string.join(v,"")
 
 	def __getitem__(self,index):
-		"""returns the index'th node for the content of the fragment"""
-		return self._content[index]
+		"""
+		returns the index'th node for the content of the fragment
+		"""
+		return self.__content[index]
 
 	def __setitem__(self,index,value):
-		"""allows you to replace the index'th content node of the fragment"""
-		if len(self._content)>index:
-			self._content[index] = ToNode(value)
+		"""
+		allows you to replace the index'th content node of the fragment
+		"""
+		if len(self.__content)>index:
+			self.__content[index] = ToNode(value)
 
 	def __delitem__(self,index):
-		"""removes the index'th content node from the fragment"""
-		if len(self._content)>index:
-			del self._content[index]
+		"""
+		removes the index'th content node from the fragment
+		"""
+		if len(self.__content)>index:
+			del self.__content[index]
 
 	def __getslice__(self,index1,index2):
-		"""returns a slice of the content of the fragment"""
-		return Frag(self._content[index1:index2])
+		"""
+		returns a slice of the content of the fragment
+		"""
+		return Frag(self.__content[index1:index2])
 
 	def __setslice__(self,index1,index2,sequence):
-		"""modifies a slice of the content of the fragment"""
-		self._content[index1:index2] = map(ToNode,sequence)
+		"""
+		replaces a slice of the content of the fragment
+		"""
+		self.__content[index1:index2] = map(ToNode,sequence)
 
 	def __delslice__(self,index1,index2):
-		"""removes a slice of the content of the fragment"""
-		del self._content[index1:index2]
+		"""
+		removes a slice of the content of the fragment
+		"""
+		del self.__content[index1:index2]
 
 	def __len__(self):
-		"""return the number of children"""
-		return len(self._content)
+		"""
+		return the number of children
+		"""
+		return len(self.__content)
 
 	def append(self,other):
+		"""
+		appends the item to the fragment.
+		"""
 		newother = ToNode(other)
 		if not isinstance(newother,Null):
-			self._content.append(newother)
+			self.__content.append(newother)
 
-	def preppend(self,other):
+	def insert(self,index,other):
+		"""
+		inserts the item into the fragment at the position index.
+		"""
 		newother = ToNode(other)
 		if not isinstance(newother,Null):
-			self._content = [ newother ] + self._content[:]
+			self.__content.insert(index,newother)
 
 	def elements(self,element = None,subtype = 0,children = 0,attrs = 0):
 		e = Frag()
@@ -640,14 +756,16 @@ class Frag(Node):
 				e = e + child.elements(element,subtype,children,attrs)
 		return e
 
-	def withoutLinefeeds(self):
+	def compact(self):
 		e = Frag()
 		for child in self:
-			e.append(child.withoutLinefeeds())
+			e.append(child.compact())
 		return e
 
 class Comment(Node):
-	"""comments"""
+	"""
+	a comment node
+	"""
 
 	repransiname = ""
 
@@ -668,11 +786,13 @@ class Comment(Node):
 	def __str__(self):
 		return "<!--" + self.__content + "-->"
 
-	def withoutLinefeeds(self):
+	def compact(self):
 		return Comment(self.__content)
 
 class DocType(Node):
-	"""document type"""
+	"""
+	a document type node
+	"""
 
 	repransiname = ""
 
@@ -696,45 +816,125 @@ class DocType(Node):
 	def __str__(self):
 		return "<!DOCTYPE " + self.__content + ">"
 
-	def withoutLinefeeds(self):
+	def compact(self):
 		return DocType(self.__content)
 
 class ProcInst(Node):
-	"""processing instructions"""
+	"""
+	processing instructions.
+
+	There are two special targets available:
+
+	xsc:exec (e.g. <?xsc:exec pass?>)
+	here the content of the processing instruction is executed
+	as Python code, so you can define and register XSC elements here.
+	Execution is done when the node is constructed, so definitions made
+	here will be available afterwards (e.g. during the rest of the
+	file parsing stage). When converted to HTML such a node will result
+	in an empty Null node.
+
+	xsc:eval (e.g. <?xsc:eval return "foo"?>)
+	here the code will be executed when the node is converted to HTML
+	as if it was the body of a function, so you can return an expression
+	here. Although the content is used as a function body no indentation
+	is neccessary or allowed. The returned value will be converted to a
+	node and this resulting node will be converted to HTML.
+
+	All other processing instructions (XML, PHP, etc.) are passed through
+	without processing of any kind.
+
+	Note that you should not define the symbol __ in any of your XSC
+	processing instructions, as it is used by XSC for internal purposes.
+	"""
 
 	repriansiname = "34"
 	repransiquestion = "34"
 	repransidata = "36"
 
 	def __init__(self,target,content = ""):
-		self.__target = target
-		self.__content = content
+		self.target = target
+		self.content = content
+		if string.lower(self.target) == "xsc:exec": # execute the code now, so that classes defined here are available for the parser
+			exec self.content in procinst.__dict__
 
 	def asHTML(self):
-		return ProcInst(self.__target,self.__content)
+		if string.lower(self.target) == "xsc:exec": # XSC processing instruction, has been executed at construction time already, so we don't have to do anything here
+			return Null()
+		elif string.lower(self.target) == "xsc:eval": # XSC processing instruction,
+			function = "def __():\n\t" + string.replace(string.strip(self.content),"\n","\n\t") + "\n"
+			exec function in procinst.__dict__
+			return ToNode(eval("__()",procinst.__dict__)).asHTML()
+		else: # anything else like XML, PHP, etc. is just passed through
+			return ProcInst(self.target,self.content)
 
-	clone = asHTML
+	def clone(self):
+		return ProcInst(self.target,self.content)
 
 	def _dorepr(self):
-		return self._strtag(_stransi(self.repransiquestion,"?") + _stransi(self.repransiname,self.__target) + " " + _stransi(self.repransidata,self.__content) + _stransi(self.repransiquestion,"?"))
+		return self._strtag(_stransi(self.repransiquestion,"?") + _stransi(self.repransiname,self.target) + " " + _stransi(self.repransidata,self.content) + _stransi(self.repransiquestion,"?"))
 
 	def _doreprtree(self,nest,elementno):
-		return [[nest,self.startlineno,elementno,self._dorepr()]]
+		lines = string.split(self.content,"\n")
+		while lines[0] == "":
+			del lines[0]
+		while lines[-1] == "":
+			del lines[-1]
+		if len(lines) == 1:
+			return [[nest,self.startlineno,elementno,self._dorepr()]]
+		else:
+			v = []
+			for i in xrange(len(lines)+2):
+				if self.startlineno == -1:
+					no = -1
+				else:
+					no = self.startlineno + i
+				if i == 0:
+					mynest = nest
+					s = _stransi(self.repransibrackets,'<')+_stransi(self.repransiquestion,"?") + " " + _stransi(self.repransiname,self.target)
+				elif i == len(lines)+1:
+					mynest = nest
+					s = _stransi(self.repransiquestion,"?")+_stransi(self.repransibrackets,'>')
+				else:
+					mynest = nest+1
+					s = lines[i-1]
+					while len(s) and s[0] == "\t":
+						mynest = mynest + 1
+						s = s[1:]
+				v.append([mynest,no,elementno,s])
+			return v
 
 	def __str__(self):
-		return "<?" + self.__target + " " + self.__content + "?>"
+		return "<?" + self.target + " " + self.content + "?>"
 
-	def withoutLinefeeds(self):
-		return ProcInst(self.__target,self.__content)
+	def compact(self):
+		return ProcInst(self.target,self.content)
 
 class Element(Node):
-	"""XML elements"""
+	"""
+	XML/XSC elements.
+
+	All elements implemented by the user must be derived from this class.
+
+	If you not only want to construct a DOM tree via a Python script
+	(by directly instantiating these classes), but to read an XML/XSC file
+	you must register the element class with the parser, this can be done
+	by passing the class object to the function registerElement().
+
+	Every element class should have two class variables:
+	empty: this is either 0 or 1 and specifies whether the element type is
+	allowed to have content or not. Note that the parser does not use this
+	as some sort of static DTD, i.e. you still must write your empty tags
+	like this: <foo/>.
+	attrHandlers: this is a dictionary that maps attribute names to attribute
+	classes, which are all derived from Attr. Assigning to an attribute with
+	a name that is not in attrHandlers.keys() is an error.
+	"""
 
 	repransiname = "34"
 	repransiattrquotes = "34"
 
 	empty = 1 # 0 => element with content; 1 => stand alone element
- 	attr_handlers = {}
+ 	attrHandlers = {} # maps attribute names to attribute classes
 
 	def __init__(self,_content = [],_attrs = {},**_restattrs):
 		self.content = Frag(_content)
@@ -745,12 +945,26 @@ class Element(Node):
 			self[attr] = _restattrs[attr]
 
 	def append(self,item):
+		"""
+		appends the item to the content of the element.
+		"""
 		newother = ToNode(item)
 		if not isinstance(newother,Null):
 			if self.empty:
 				raise EmptyElementWithContentError(xsc.parser.lineno,self)
 			else:
 				self.content.append(item)
+
+	def insert(self,index,item):
+		"""
+		inserts the item into the content of the element at the position index.
+		"""
+		newother = ToNode(item)
+		if not isinstance(newother,Null):
+			if self.empty:
+				raise EmptyElementWithContentError(xsc.parser.lineno,self)
+			else:
+				self.content.insert(index,item)
 
 	def asHTML(self):
 		e = self.__class__(self.content.asHTML()) # "virtual" copy constructor
@@ -789,8 +1003,6 @@ class Element(Node):
 		return v
 
 	def __str__(self):
-		"""returns this element as a string converted to HTML"""
-
 		v = []
 		v.append("<")
 		v.append(string.lower(self.__class__.__name__))
@@ -836,10 +1048,10 @@ class Element(Node):
 		a string (i.e. attribute name) or a number (i.e. content node index) is passed in.
 		"""
 		if type(index)==types.StringType:
-			# values are contructed via the attribute classes specified in the attr_handlers dictionary, which do the conversion
+			# values are contructed via the attribute classes specified in the attrHandlers dictionary, which do the conversion
 			lowerindex = string.lower(index)
 			try:
-				self.attrs[lowerindex] = self.attr_handlers[lowerindex](value) # pack the attribute into an attribute object
+				self.attrs[lowerindex] = self.attrHandlers[lowerindex](value) # pack the attribute into an attribute object
 			except KeyError:
 				raise IllegalAttributeError(xsc.parser.lineno,self,index)
 		else:
@@ -867,7 +1079,7 @@ class Element(Node):
 		try:
 			return self[attr]
 		except AttributeNotFoundError:
-			return self.attr_handlers[string.lower(attr)](default) # pack the attribute into an attribute object
+			return self.attrHandlers[string.lower(attr)](default) # pack the attribute into an attribute object
 
 	def __getslice__(self,index1,index2):
 		"""returns a copy of the element that contains a slice of the content"""
@@ -924,14 +1136,11 @@ class Element(Node):
 				else:
 					self[heightattr] = str(size[1])
 
-	def withoutLinefeeds(self):
-		return self.__class__(self.content.withoutLinefeeds(),self.attrs)
+	def compact(self):
+		return self.__class__(self.content.compact(),self.attrs)
 
 	def elements(self,element = None,subtype = 0,children = 0,attrs = 0):
 		e = Frag()
-		if children:
-			if self._elementOK(element,subtype):
-				e.append(self)
 		if attrs:
 			for attr in self.attrs.keys():
 				e = e + self[attr].content.elements(element,subtype,children,attr)
@@ -960,7 +1169,7 @@ class Null(Element):
 	def _doreprtree(self,nest,elementno):
 		return [[nest,self.startlineno,elementno,self._dorepr()]]
 
-	def withoutLinefeeds(self):
+	def compact(self):
 		return Null()
 
 def registerElement(element):
@@ -968,10 +1177,10 @@ def registerElement(element):
 	registers the element handler element to be used for elements with the appropriate name.
 	"""
 	name = nodeName(element)
-	if _element_handlers.has_key(name[1]):
-		_element_handlers[name[1]][name[0]] = element
+	if _elementHandlers.has_key(name[1]):
+		_elementHandlers[name[1]][name[0]] = element
 	else:
-		_element_handlers[name[1]] = { name[0] : element }
+		_elementHandlers[name[1]] = { name[0] : element }
 
 class Attr(Node):
 	"""
@@ -987,6 +1196,7 @@ class Attr(Node):
 	"""
 
 	repransi = "33"
+	repransiname = "31"
 
 	def __init__(self,_content):
 		self.content = ToNode(_content)
@@ -1013,11 +1223,13 @@ class TextAttr(Attr):
 	Attribute class that is used for normal text attributes.
 	"""
 
+	repransitext = ""
+
 	def __init__(self,_content):
 		Attr.__init__(self,_content)
 
 	def _dorepr(self):
-		return _stransi(xsc.repransitextattrs,str(self.content))
+		return _stransi(self.repransitext,str(self.content))
 
 	def _doreprtree(self,nest,elementno):
 		return [[nest,self.startlineno,elementno,self._dorepr()]]
@@ -1033,11 +1245,13 @@ class ColorAttr(Attr):
 	Attribute class that is used for a color attributes.
 	"""
 
+	repransitext = ""
+
 	def __init__(self,_content):
 		Attr.__init__(self,_content)
 
 	def _dorepr(self):
-		return _stransi(xsc.repransitextattrs,str(self.content))
+		return _stransi(self.repransitext,str(self.content))
 
 	def _doreprtree(self,nest,elementno):
 		return [[nest,self.startlineno,elementno,self._dorepr()]]
@@ -1047,6 +1261,86 @@ class ColorAttr(Attr):
 
 	def asHTML(self):
 		return ColorAttr(self.content.asHTML())
+
+class _URL:
+	def __init__(self,url = None,scheme = None,server = None,path = None,parameters = None,query = None,fragment = None):
+		if url is not None:
+			(self.scheme,self.server,self.path,self.parameters,self.query,self.fragment) = urlparse.urlparse(url)
+			self.path = string.split(self.path,"/")
+			if self.scheme == "" and self.server == "": # do we have a local file?
+				if len(self.path) and not len(self.path[0]): # this is a server relative URL
+					del self.path[0] # drop the empty string in front of the first "/" ...
+					self.scheme = "server" # ... and use a special scheme for that
+				elif len(self.path) and len(self.path[0]) and self.path[0][0] == ":": # project relative, i.e. relative to the current directory
+					self.path[0] = self.path[0][1:] # drop of the ":" ...
+					self.scheme = "project" # special scheme name
+			else:
+				if self.scheme == "http":
+					del self.path[0] # if we had a http, the path from urlparse started with "/" too
+		else:
+			self.scheme     = scheme
+			self.server     = server
+			self.path       = path[:]
+			self.parameters = parameters
+			self.query      = query
+			self.fragment   = fragment
+		self.__optimize()
+
+	def __repr__(self):
+		sep = "/" # use the normal URL separator by default
+		path = self.path[:]
+		if self.scheme == "" or self.scheme == "project":
+			# replace URL syntax with the path syntax on our system (won't do anything under UNIX, replaces / with  \ under Windows)
+			for i in range(len(path)):
+				if path[i] == "..":
+					path[i] = os.pardir
+			sep = os.sep # we have a local file, so we should use the local directory separator instead
+		url = urlparse.urlunparse((self.scheme,self.server,string.join(path,sep),self.parameters,self.query,self.fragment))
+		return _stransi(URLAttr.repransiurl,url)
+
+	def __str__(self):
+		path = self.path[:]
+		if self.scheme == "project":
+			scheme = "" # remove our own private scheme name
+		elif scheme == "server":
+			scheme = "" # remove our own private scheme name
+			path[:0] = [ "" ]
+		return urlparse.urlunparse((scheme,self.server,string.join(path,"/"),self.parameters,self.query,self.fragment))
+
+	def __add__(self,other):
+		new = _URL(scheme = self.scheme,server = self.server,path = self.path,parameters = self.parameters,query = self.query,fragment = self.fragment)
+		if other.scheme == "":
+			new.path[-1:]  = other.path[:]
+			new.parameters = other.parameters
+			new.query      = other.query
+			new.fragment   = other.fragment
+		elif other.scheme == "project" or other.scheme=="server":
+			new.path       = other.path[:]
+			new.parameters = other.parameters
+			new.query      = other.query
+			new.fragment   = other.fragment
+		else: # URL to be joined is absolute
+			new.scheme     = other.scheme
+			new.server     = other.server
+			new.path       = other.path[:]
+			new.parameters = other.parameters
+			new.query      = other.query
+			new.fragment   = other.fragment
+		new.__optimize()
+		return new
+
+	def relativeTo(self,other):
+		pass
+
+	def __optimize(self):
+		# optimize the path by removing combinations of down/up
+		while 1:
+			for i in xrange(len(self.path)):
+				if self.path[i]==".." and i>0 and self.path[i-1]!="..": # found a down/up
+					del self.path[i-1:i+1] # remove it
+					break # restart the search
+			else: # no down/up found
+				break
 
 class URLAttr(Attr):
 	"""
@@ -1059,7 +1353,7 @@ class URLAttr(Attr):
 
 	With this feature you don't have to remember how deeply you've nested your XSC file tree, you
 	can specify such file from everywhere via ":dir/to/file.xsc". XSC will change this to an URL
-	that correctly locates the file (e.g. "../../../dir/to/file", when you're nested three levels
+	that correctly locates the file (e.g. "../../../dir/to/file.xsc", when you're nested three levels
 	deep in a different directory than "dir".
 
 	When dumping these URLs in the interactive Python environment (i.e. calling __repr__) these
@@ -1073,29 +1367,14 @@ class URLAttr(Attr):
 	(http, ftp, etc.)
 	"""
 
-	repransiname = "31"
 	repransiurl = "32"
 
 	def __make(self):
-		url = str(self.content)
-		(scheme,server,path,parameters,query,fragment) = urlparse.urlparse(url)
-		path = string.split(path,"/")
-		if scheme == "" and server == "": # do we have a local file?
-			if len(path) and not len(path[0]): # this is a server relative URL
-				del path[0] # drop the empty string in front of the first "/" ...
-				scheme = "server" # ... and use a special scheme for that
-			elif len(path) and len(path[0]) and path[0][0] == ":": # project relative, i.e. relative to the current directory
-				path[0] = path[0][1:] # drop of the ":" ...
-				scheme = "project" # special scheme name
-		else:
-			if scheme == "http":
-				del path[0] # if we had a http, the path from urlparse started with "/" too
-		return (scheme,server,path,parameters,query,fragment)
+		url = _URL(str(self.content))
+		return (url.scheme,url.server,url.path,url.parameters,url.query,url.fragment)
 
 	def _dorepr(self):
-		(scheme,server,path,parameters,query,fragment) = self.__make()
-		url = urlparse.urlunparse((scheme,server,string.join(path,"/"),parameters,query,fragment))
-		return _stransi(self.repransiurl,url)
+		return repr(_URL(str(self.content)))
 
 	def _doreprtree(self,nest,elementno):
 		return [[nest,self.startlineno,elementno,self._dorepr()]]
@@ -1151,7 +1430,9 @@ class URLAttr(Attr):
 		return urlparse.urlunparse((scheme,server,string.join(path,"/"),parameters,query,fragment))
 
 	def ImageSize(self):
-		"""returns the size of an image as a tuple or (-1,-1) if the image shouldn't be read"""
+		"""
+		returns the size of an image as a tuple or (-1,-1) if the image shouldn't be read
+		"""
 
 		url = self.forInput()
 		size = (-1,-1)
@@ -1169,7 +1450,9 @@ class URLAttr(Attr):
 		return size
 
 	def FileSize(self):
-		"""returns the size of a file in bytes or -1 if the file shouldn't be read"""
+		"""
+		returns the size of a file in bytes or -1 if the file shouldn't be read
+		"""
 
 		url = self.forInput()
 
@@ -1227,24 +1510,30 @@ class Parser(xmllib.XMLParser):
 		self.__appendNode(CharRef(n))
 
 	def handle_entityref(self,name):
-		if self.entitiesByName.has_key(name):
-			self.__appendNode(CharRef(self.entitiesByName[name]))
-		else:
+		try:
+			self.__appendNode(self.entitiesByName[name])
+		except KeyError:
 			raise UnknownEntityError(xsc.parser.lineno,name)
 
+	def attributes2Fragments(self,attrs):
+		newattrs = {}
+		for attr in attrs.keys():
+			newattrs[attr] = string2Fragment(attrs[attr])
+		return newattrs
+
 	def unknown_starttag(self,name,attrs):
-  		lowername = string.split(string.lower(name),":")
+		lowername = string.split(string.lower(name),":")
 		if len(lowername) == 2: # namespace specified
 			name = lowername
 		else:
-			name = [	None , lowername[0] ]
+			name = [ None , lowername[0] ]
 		try: # are there any elements with this name?
-			elementsfornamespaces = _element_handlers[name[1]]
+			elementsfornamespaces = _elementHandlers[name[1]]
 		except KeyError: # nope!
 			raise IllegalElementError(xsc.parser.lineno,name)
 		if name[0] is None: # element name was unqualified ...
 			if len(elementsfornamespaces.keys())==1: # ... and there is exactly one element with this name => use it
-				e = elementsfornamespaces.values()[0]([],attrs)
+				element = elementsfornamespaces.values()[0]
 			else:
 				raise AmbiguousElementError(xsc.parser.lineno,name) # there is more than one
 		else: # element name was qualified with a namespace
@@ -1252,8 +1541,7 @@ class Parser(xmllib.XMLParser):
 				element = elementsfornamespaces[name[0]]
 			except KeyError:
 				raise IllegalElementError(xsc.parser.lineno,name) # elements with this name were available, but none in this namespace
-			e = element([],attrs)
-			e.startlineno = self.lineno
+		e = element([],self.attributes2Fragments(attrs))
 		self.__appendNode(e)
 		self.nesting.append(e) # push new innermost element onto the stack
 
@@ -1271,178 +1559,373 @@ class Parser(xmllib.XMLParser):
 	def handle_comment(self,data):
 		self.__appendNode(Comment(data))
 
-def registerEntity(name,number):
-	if Parser.entitiesByNumber[number] == None:
-		Parser.entitiesByNumber[number] = []
-	Parser.entitiesByNumber[number].append(name)
-	Parser.entitiesByName[name] = number
+def registerEntity(name,value):
+	newvalue = ToNode(value)
+	if isinstance(newvalue,CharRef):
+		Parser.entitiesByNumber[newvalue.content].append(name)
+	Parser.entitiesByName[name] = newvalue
 
-registerEntity("amp",38)
-registerEntity("lt",60)
-registerEntity("gt",62)
-registerEntity("apos",39)
-registerEntity("quot",34)
-registerEntity("lf",10)
-registerEntity("cr",13)
-registerEntity("ht",9)
-registerEntity("tab",9)
-registerEntity("esc",27)
-registerEntity("nbsp",160)
-registerEntity("iexcl",161)
-registerEntity("cent",162)
-registerEntity("pound",163)
-registerEntity("curren",164)
-registerEntity("yen",165)
-registerEntity("brvbar",166)
-registerEntity("sect",167)
-registerEntity("die",168)
-registerEntity("copy",169)
-registerEntity("ordf",170)
-registerEntity("laquo",171)
-registerEntity("not",172)
-registerEntity("shy",173)
-registerEntity("reg",174)
-registerEntity("macr",175)
-registerEntity("deg",176)
-registerEntity("plusmn",177)
-registerEntity("sup2",178)
-registerEntity("sup3",179)
-registerEntity("acute",180)
-registerEntity("micro",181)
-registerEntity("para",182)
-registerEntity("middot",183)
-registerEntity("cedil",184)
-registerEntity("sup1",185)
-registerEntity("ordm",186)
-registerEntity("raquo",187)
-registerEntity("frac14",188)
-registerEntity("frac12",189)
-registerEntity("frac34",190)
-registerEntity("iquest",191)
-registerEntity("Agrave",192)
-registerEntity("Aacute",193)
-registerEntity("Acirc",194)
-registerEntity("Atilde",195)
-registerEntity("Auml",196)
-registerEntity("Aring",197)
-registerEntity("AElig",198)
-registerEntity("Ccedil",199)
-registerEntity("Egrave",200)
-registerEntity("Eacute",201)
-registerEntity("Ecirc",202)
-registerEntity("Euml",203)
-registerEntity("Igrave",204)
-registerEntity("Iacute",205)
-registerEntity("Icirc",206)
-registerEntity("Iuml",207)
-registerEntity("ETH",208)
-registerEntity("Ntilde",209)
-registerEntity("Ograve",210)
-registerEntity("Oacute",211)
-registerEntity("Ocirc",212)
-registerEntity("Otilde",213)
-registerEntity("Ouml",214)
-registerEntity("times",215)
-registerEntity("Oslash",216)
-registerEntity("Ugrave",217)
-registerEntity("Uacute",218)
-registerEntity("Ucirc",219)
-registerEntity("Uuml",220)
-registerEntity("Yacute",221)
-registerEntity("THORN",222)
-registerEntity("szlig",223)
-registerEntity("agrave",224)
-registerEntity("aacute",225)
-registerEntity("acirc",226)
-registerEntity("atilde",227)
-registerEntity("auml",228)
-registerEntity("aring",229)
-registerEntity("aelig",230)
-registerEntity("ccedil",231)
-registerEntity("egrave",232)
-registerEntity("eacute",233)
-registerEntity("ecirc",234)
-registerEntity("euml",235)
-registerEntity("igrave",236)
-registerEntity("iacute",237)
-registerEntity("icirc",238)
-registerEntity("iuml",239)
-registerEntity("eth",240)
-registerEntity("ntilde",241)
-registerEntity("ograve",242)
-registerEntity("oacute",243)
-registerEntity("ocirc",244)
-registerEntity("otilde",245)
-registerEntity("ouml",246)
-registerEntity("divide",247)
-registerEntity("oslash",248)
-registerEntity("ugrave",249)
-registerEntity("uacute",250)
-registerEntity("ucirc",251)
-registerEntity("uuml",252)
-registerEntity("yacute",253)
-registerEntity("thorn",254)
-registerEntity("yuml",255)
+registerEntity("lf",CharRef(10)) # line feed
+registerEntity("cr",CharRef(13)) # carriage return
+registerEntity("tab",CharRef(9)) # horizontal tab
+registerEntity("esc",CharRef(27)) # escape
+
+# Latin 1 characters
+registerEntity("nbsp",CharRef(160)) # no-break space = non-breaking space, U+00A0 ISOnum
+registerEntity("iexcl",CharRef(161)) # inverted exclamation mark, U+00A1 ISOnum
+registerEntity("cent",CharRef(162)) # cent sign, U+00A2 ISOnum
+registerEntity("pound",CharRef(163)) # pound sign, U+00A3 ISOnum
+registerEntity("curren",CharRef(164)) # currency sign, U+00A4 ISOnum
+registerEntity("yen",CharRef(165)) # yen sign = yuan sign, U+00A5 ISOnum
+registerEntity("brvbar",CharRef(166)) # broken bar = broken vertical bar, U+00A6 ISOnum
+registerEntity("sect",CharRef(167)) # section sign, U+00A7 ISOnum
+registerEntity("uml",CharRef(168)) # diaeresis = spacing diaeresis, U+00A8 ISOdia
+registerEntity("copy",CharRef(169)) # copyright sign, U+00A9 ISOnum
+registerEntity("ordf",CharRef(170)) # feminine ordinal indicator, U+00AA ISOnum
+registerEntity("laquo",CharRef(171)) # left-pointing double angle quotation mark = left pointing guillemet, U+00AB ISOnum
+registerEntity("not",CharRef(172)) # not sign, U+00AC ISOnum
+registerEntity("shy",CharRef(173)) # soft hyphen = discretionary hyphen, U+00AD ISOnum
+registerEntity("reg",CharRef(174)) # registered sign = registered trade mark sign, U+00AE ISOnum
+registerEntity("macr",CharRef(175)) # macron = spacing macron = overline = APL overbar, U+00AF ISOdia
+registerEntity("deg",CharRef(176)) # degree sign, U+00B0 ISOnum
+registerEntity("plusmn",CharRef(177)) # plus-minus sign = plus-or-minus sign, U+00B1 ISOnum
+registerEntity("sup2",CharRef(178)) # superscript two = superscript digit two = squared, U+00B2 ISOnum
+registerEntity("sup3",CharRef(179)) # superscript three = superscript digit three = cubed, U+00B3 ISOnum
+registerEntity("acute",CharRef(180)) # acute accent = spacing acute, U+00B4 ISOdia
+registerEntity("micro",CharRef(181)) # micro sign, U+00B5 ISOnum
+registerEntity("para",CharRef(182)) # pilcrow sign = paragraph sign, U+00B6 ISOnum
+registerEntity("middot",CharRef(183)) # middle dot = Georgian comma = Greek middle dot, U+00B7 ISOnum
+registerEntity("cedil",CharRef(184)) # cedilla = spacing cedilla, U+00B8 ISOdia
+registerEntity("sup1",CharRef(185)) # superscript one = superscript digit one, U+00B9 ISOnum
+registerEntity("ordm",CharRef(186)) # masculine ordinal indicator, U+00BA ISOnum
+registerEntity("raquo",CharRef(187)) # right-pointing double angle quotation mark = right pointing guillemet, U+00BB ISOnum
+registerEntity("frac14",CharRef(188)) # vulgar fraction one quarter = fraction one quarter, U+00BC ISOnum
+registerEntity("frac12",CharRef(189)) # vulgar fraction one half = fraction one half, U+00BD ISOnum
+registerEntity("frac34",CharRef(190)) # vulgar fraction three quarters = fraction three quarters, U+00BE ISOnum
+registerEntity("iquest",CharRef(191)) # inverted question mark = turned question mark, U+00BF ISOnum
+registerEntity("Agrave",CharRef(192)) # latin capital letter A with grave = latin capital letter A grave, U+00C0 ISOlat1
+registerEntity("Aacute",CharRef(193)) # latin capital letter A with acute, U+00C1 ISOlat1
+registerEntity("Acirc",CharRef(194)) # latin capital letter A with circumflex, U+00C2 ISOlat1
+registerEntity("Atilde",CharRef(195)) # latin capital letter A with tilde, U+00C3 ISOlat1
+registerEntity("Auml",CharRef(196)) # latin capital letter A with diaeresis, U+00C4 ISOlat1
+registerEntity("Aring",CharRef(197)) # latin capital letter A with ring above = latin capital letter A ring, U+00C5 ISOlat1
+registerEntity("AElig",CharRef(198)) # latin capital letter AE = latin capital ligature AE, U+00C6 ISOlat1
+registerEntity("Ccedil",CharRef(199)) # latin capital letter C with cedilla, U+00C7 ISOlat1
+registerEntity("Egrave",CharRef(200)) # latin capital letter E with grave, U+00C8 ISOlat1
+registerEntity("Eacute",CharRef(201)) # latin capital letter E with acute, U+00C9 ISOlat1
+registerEntity("Ecirc",CharRef(202)) # latin capital letter E with circumflex, U+00CA ISOlat1
+registerEntity("Euml",CharRef(203)) # latin capital letter E with diaeresis, U+00CB ISOlat1
+registerEntity("Igrave",CharRef(204)) # latin capital letter I with grave, U+00CC ISOlat1
+registerEntity("Iacute",CharRef(205)) # latin capital letter I with acute, U+00CD ISOlat1
+registerEntity("Icirc",CharRef(206)) # latin capital letter I with circumflex, U+00CE ISOlat1
+registerEntity("Iuml",CharRef(207)) # latin capital letter I with diaeresis, U+00CF ISOlat1
+registerEntity("ETH",CharRef(208)) # latin capital letter ETH, U+00D0 ISOlat1
+registerEntity("Ntilde",CharRef(209)) # latin capital letter N with tilde, U+00D1 ISOlat1
+registerEntity("Ograve",CharRef(210)) # latin capital letter O with grave, U+00D2 ISOlat1
+registerEntity("Oacute",CharRef(211)) # latin capital letter O with acute, U+00D3 ISOlat1
+registerEntity("Ocirc",CharRef(212)) # latin capital letter O with circumflex, U+00D4 ISOlat1
+registerEntity("Otilde",CharRef(213)) # latin capital letter O with tilde, U+00D5 ISOlat1
+registerEntity("Ouml",CharRef(214)) # latin capital letter O with diaeresis, U+00D6 ISOlat1
+registerEntity("times",CharRef(215)) # multiplication sign, U+00D7 ISOnum
+registerEntity("Oslash",CharRef(216)) # latin capital letter O with stroke = latin capital letter O slash, U+00D8 ISOlat1
+registerEntity("Ugrave",CharRef(217)) # latin capital letter U with grave, U+00D9 ISOlat1
+registerEntity("Uacute",CharRef(218)) # latin capital letter U with acute, U+00DA ISOlat1
+registerEntity("Ucirc",CharRef(219)) # latin capital letter U with circumflex, U+00DB ISOlat1
+registerEntity("Uuml",CharRef(220)) # latin capital letter U with diaeresis, U+00DC ISOlat1
+registerEntity("Yacute",CharRef(221)) # latin capital letter Y with acute, U+00DD ISOlat1
+registerEntity("THORN",CharRef(222)) # latin capital letter THORN, U+00DE ISOlat1
+registerEntity("szlig",CharRef(223)) # latin small letter sharp s = ess-zed, U+00DF ISOlat1
+registerEntity("agrave",CharRef(224)) # latin small letter a with grave = latin small letter a grave, U+00E0 ISOlat1
+registerEntity("aacute",CharRef(225)) # latin small letter a with acute, U+00E1 ISOlat1
+registerEntity("acirc",CharRef(226)) # latin small letter a with circumflex, U+00E2 ISOlat1
+registerEntity("atilde",CharRef(227)) # latin small letter a with tilde, U+00E3 ISOlat1
+registerEntity("auml",CharRef(228)) # latin small letter a with diaeresis, U+00E4 ISOlat1
+registerEntity("aring",CharRef(229)) # latin small letter a with ring above = latin small letter a ring, U+00E5 ISOlat1
+registerEntity("aelig",CharRef(230)) # latin small letter ae = latin small ligature ae, U+00E6 ISOlat1
+registerEntity("ccedil",CharRef(231)) # latin small letter c with cedilla, U+00E7 ISOlat1
+registerEntity("egrave",CharRef(232)) # latin small letter e with grave, U+00E8 ISOlat1
+registerEntity("eacute",CharRef(233)) # latin small letter e with acute, U+00E9 ISOlat1
+registerEntity("ecirc",CharRef(234)) # latin small letter e with circumflex, U+00EA ISOlat1
+registerEntity("euml",CharRef(235)) # latin small letter e with diaeresis, U+00EB ISOlat1
+registerEntity("igrave",CharRef(236)) # latin small letter i with grave, U+00EC ISOlat1
+registerEntity("iacute",CharRef(237)) # latin small letter i with acute, U+00ED ISOlat1
+registerEntity("icirc",CharRef(238)) # latin small letter i with circumflex, U+00EE ISOlat1
+registerEntity("iuml",CharRef(239)) # latin small letter i with diaeresis, U+00EF ISOlat1
+registerEntity("eth",CharRef(240)) # latin small letter eth, U+00F0 ISOlat1
+registerEntity("ntilde",CharRef(241)) # latin small letter n with tilde, U+00F1 ISOlat1
+registerEntity("ograve",CharRef(242)) # latin small letter o with grave, U+00F2 ISOlat1
+registerEntity("oacute",CharRef(243)) # latin small letter o with acute, U+00F3 ISOlat1
+registerEntity("ocirc",CharRef(244)) # latin small letter o with circumflex, U+00F4 ISOlat1
+registerEntity("otilde",CharRef(245)) # latin small letter o with tilde, U+00F5 ISOlat1
+registerEntity("ouml",CharRef(246)) # latin small letter o with diaeresis, U+00F6 ISOlat1
+registerEntity("divide",CharRef(247)) # division sign, U+00F7 ISOnum
+registerEntity("oslash",CharRef(248)) # latin small letter o with stroke, = latin small letter o slash, U+00F8 ISOlat1
+registerEntity("ugrave",CharRef(249)) # latin small letter u with grave, U+00F9 ISOlat1
+registerEntity("uacute",CharRef(250)) # latin small letter u with acute, U+00FA ISOlat1
+registerEntity("ucirc",CharRef(251)) # latin small letter u with circumflex, U+00FB ISOlat1
+registerEntity("uuml",CharRef(252)) # latin small letter u with diaeresis, U+00FC ISOlat1
+registerEntity("yacute",CharRef(253)) # latin small letter y with acute, U+00FD ISOlat1
+registerEntity("thorn",CharRef(254)) # latin small letter thorn, U+00FE ISOlat1
+registerEntity("yuml",CharRef(255)) # latin small letter y with diaeresis, U+00FF ISOlat1
+
+# C0 Controls and Basic Latin
+registerEntity("quot",CharRef(34)) # quotation mark = APL quote, U+0022 ISOnum
+registerEntity("amp",CharRef(38)) # ampersand, U+0026 ISOnum
+registerEntity("lt",CharRef(60)) # less-than sign, U+003C ISOnum
+registerEntity("gt",CharRef(62)) # greater-than sign, U+003E ISOnum
+
+# Latin Extended-A
+registerEntity("OElig",CharRef(338)) # latin capital ligature OE, U+0152 ISOlat2
+registerEntity("oelig",CharRef(339)) # latin small ligature oe, U+0153 ISOlat2
+registerEntity("Scaron",CharRef(352)) # latin capital letter S with caron, U+0160 ISOlat2
+registerEntity("scaron",CharRef(353)) # latin small letter s with caron, U+0161 ISOlat2
+registerEntity("Yuml",CharRef(376)) # latin capital letter Y with diaeresis, U+0178 ISOlat2
+
+# Spacing Modifier Letters
+registerEntity("circ",CharRef(710)) # modifier letter circumflex accent, U+02C6 ISOpub
+registerEntity("tilde",CharRef(732)) # small tilde, U+02DC ISOdia
+
+# General Punctuation
+registerEntity("ensp",CharRef(8194)) # en space, U+2002 ISOpub
+registerEntity("emsp",CharRef(8195)) # em space, U+2003 ISOpub
+registerEntity("thinsp",CharRef(8201)) # thin space, U+2009 ISOpub
+registerEntity("zwnj",CharRef(8204)) # zero width non-joiner, U+200C NEW RFC 2070
+registerEntity("zwj",CharRef(8205)) # zero width joiner, U+200D NEW RFC 2070
+registerEntity("lrm",CharRef(8206)) # left-to-right mark, U+200E NEW RFC 2070
+registerEntity("rlm",CharRef(8207)) # right-to-left mark, U+200F NEW RFC 2070
+registerEntity("ndash",CharRef(8211)) # en dash, U+2013 ISOpub
+registerEntity("mdash",CharRef(8212)) # em dash, U+2014 ISOpub
+registerEntity("lsquo",CharRef(8216)) # left single quotation mark, U+2018 ISOnum
+registerEntity("rsquo",CharRef(8217)) # right single quotation mark, U+2019 ISOnum
+registerEntity("sbquo",CharRef(8218)) # single low-9 quotation mark, U+201A NEW
+registerEntity("ldquo",CharRef(8220)) # left double quotation mark, U+201C ISOnum
+registerEntity("rdquo",CharRef(8221)) # right double quotation mark, U+201D ISOnum
+registerEntity("bdquo",CharRef(8222)) # double low-9 quotation mark, U+201E NEW
+registerEntity("dagger",CharRef(8224)) # dagger, U+2020 ISOpub
+registerEntity("Dagger",CharRef(8225)) # double dagger, U+2021 ISOpub
+registerEntity("permil",CharRef(8240)) # per mille sign, U+2030 ISOtech
+registerEntity("lsaquo",CharRef(8249)) # single left-pointing angle quotation mark, U+2039 ISO proposed
+registerEntity("rsaquo",CharRef(8250)) # single right-pointing angle quotation mark, U+203A ISO proposed
+registerEntity("euro",CharRef(8364)) # euro sign, U+20AC NEW
+
+# Mathematical, Greek and Symbolic characters
+# Latin Extended-B
+registerEntity("fnof",CharRef(402)) # latin small f with hook = function = florin, U+0192 ISOtech
+
+# Greek
+registerEntity("Alpha",CharRef(913)) # greek capital letter alpha, U+0391
+registerEntity("Beta",CharRef(914)) # greek capital letter beta, U+0392
+registerEntity("Gamma",CharRef(915)) # greek capital letter gamma, U+0393 ISOgrk3
+registerEntity("Delta",CharRef(916)) # greek capital letter delta, U+0394 ISOgrk3
+registerEntity("Epsilon",CharRef(917)) # greek capital letter epsilon, U+0395
+registerEntity("Zeta",CharRef(918)) # greek capital letter zeta, U+0396
+registerEntity("Eta",CharRef(919)) # greek capital letter eta, U+0397
+registerEntity("Theta",CharRef(920)) # greek capital letter theta, U+0398 ISOgrk3
+registerEntity("Iota",CharRef(921)) # greek capital letter iota, U+0399
+registerEntity("Kappa",CharRef(922)) # greek capital letter kappa, U+039A
+registerEntity("Lambda",CharRef(923)) # greek capital letter lambda, U+039B ISOgrk3
+registerEntity("Mu",CharRef(924)) # greek capital letter mu, U+039C
+registerEntity("Nu",CharRef(925)) # greek capital letter nu, U+039D
+registerEntity("Xi",CharRef(926)) # greek capital letter xi, U+039E ISOgrk3
+registerEntity("Omicron",CharRef(927)) # greek capital letter omicron, U+039F
+registerEntity("Pi",CharRef(928)) # greek capital letter pi, U+03A0 ISOgrk3
+registerEntity("Rho",CharRef(929)) # greek capital letter rho, U+03A1
+registerEntity("Sigma",CharRef(931)) # greek capital letter sigma, U+03A3 ISOgrk3
+registerEntity("Tau",CharRef(932)) # greek capital letter tau, U+03A4
+registerEntity("Upsilon",CharRef(933)) # greek capital letter upsilon, U+03A5 ISOgrk3
+registerEntity("Phi",CharRef(934)) # greek capital letter phi, U+03A6 ISOgrk3
+registerEntity("Chi",CharRef(935)) # greek capital letter chi, U+03A7
+registerEntity("Psi",CharRef(936)) # greek capital letter psi, U+03A8 ISOgrk3
+registerEntity("Omega",CharRef(937)) # greek capital letter omega, U+03A9 ISOgrk3
+registerEntity("alpha",CharRef(945)) # greek small letter alpha, U+03B1 ISOgrk3
+registerEntity("beta",CharRef(946)) # greek small letter beta, U+03B2 ISOgrk3
+registerEntity("gamma",CharRef(947)) # greek small letter gamma, U+03B3 ISOgrk3
+registerEntity("delta",CharRef(948)) # greek small letter delta, U+03B4 ISOgrk3
+registerEntity("epsilon",CharRef(949)) # greek small letter epsilon, U+03B5 ISOgrk3
+registerEntity("zeta",CharRef(950)) # greek small letter zeta, U+03B6 ISOgrk3
+registerEntity("eta",CharRef(951)) # greek small letter eta, U+03B7 ISOgrk3
+registerEntity("theta",CharRef(952)) # greek small letter theta, U+03B8 ISOgrk3
+registerEntity("iota",CharRef(953)) # greek small letter iota, U+03B9 ISOgrk3
+registerEntity("kappa",CharRef(954)) # greek small letter kappa, U+03BA ISOgrk3
+registerEntity("lambda",CharRef(955)) # greek small letter lambda, U+03BB ISOgrk3
+registerEntity("mu",CharRef(956)) # greek small letter mu, U+03BC ISOgrk3
+registerEntity("nu",CharRef(957)) # greek small letter nu, U+03BD ISOgrk3
+registerEntity("xi",CharRef(958)) # greek small letter xi, U+03BE ISOgrk3
+registerEntity("omicron",CharRef(959)) # greek small letter omicron, U+03BF NEW
+registerEntity("pi",CharRef(960)) # greek small letter pi, U+03C0 ISOgrk3
+registerEntity("rho",CharRef(961)) # greek small letter rho, U+03C1 ISOgrk3
+registerEntity("sigmaf",CharRef(962)) # greek small letter final sigma, U+03C2 ISOgrk3
+registerEntity("sigma",CharRef(963)) # greek small letter sigma, U+03C3 ISOgrk3
+registerEntity("tau",CharRef(964)) # greek small letter tau, U+03C4 ISOgrk3
+registerEntity("upsilon",CharRef(965)) # greek small letter upsilon, U+03C5 ISOgrk3
+registerEntity("phi",CharRef(966)) # greek small letter phi, U+03C6 ISOgrk3
+registerEntity("chi",CharRef(967)) # greek small letter chi, U+03C7 ISOgrk3
+registerEntity("psi",CharRef(968)) # greek small letter psi, U+03C8 ISOgrk3
+registerEntity("omega",CharRef(969)) # greek small letter omega, U+03C9 ISOgrk3
+registerEntity("thetasym",CharRef(977)) # greek small letter theta symbol, U+03D1 NEW
+registerEntity("upsih",CharRef(978)) # greek upsilon with hook symbol, U+03D2 NEW
+registerEntity("piv",CharRef(982)) # greek pi symbol, U+03D6 ISOgrk3
+
+# General Punctuation
+registerEntity("bull",CharRef(8226)) # bullet = black small circle, U+2022 ISOpub
+registerEntity("hellip",CharRef(8230)) # horizontal ellipsis = three dot leader, U+2026 ISOpub
+registerEntity("prime",CharRef(8242)) # prime = minutes = feet, U+2032 ISOtech
+registerEntity("Prime",CharRef(8243)) # double prime = seconds = inches, U+2033 ISOtech
+registerEntity("oline",CharRef(8254)) # overline = spacing overscore, U+203E NEW
+registerEntity("frasl",CharRef(8260)) # fraction slash, U+2044 NEW
+
+# Letterlike Symbols
+registerEntity("weierp",CharRef(8472)) # script capital P = power set = Weierstrass p, U+2118 ISOamso
+registerEntity("image",CharRef(8465)) # blackletter capital I = imaginary part, U+2111 ISOamso
+registerEntity("real",CharRef(8476)) # blackletter capital R = real part symbol, U+211C ISOamso
+registerEntity("trade",CharRef(8482)) # trade mark sign, U+2122 ISOnum
+registerEntity("alefsym",CharRef(8501)) # alef symbol = first transfinite cardinal, U+2135 NEW
+
+# Arrows
+registerEntity("larr",CharRef(8592)) # leftwards arrow, U+2190 ISOnum
+registerEntity("uarr",CharRef(8593)) # upwards arrow, U+2191 ISOnu
+registerEntity("rarr",CharRef(8594)) # rightwards arrow, U+2192 ISOnum
+registerEntity("darr",CharRef(8595)) # downwards arrow, U+2193 ISOnum
+registerEntity("harr",CharRef(8596)) # left right arrow, U+2194 ISOamsa
+registerEntity("crarr",CharRef(8629)) # downwards arrow with corner leftwards = carriage return, U+21B5 NEW
+registerEntity("lArr",CharRef(8656)) # leftwards double arrow, U+21D0 ISOtech
+registerEntity("uArr",CharRef(8657)) # upwards double arrow, U+21D1 ISOamsa
+registerEntity("rArr",CharRef(8658)) # rightwards double arrow, U+21D2 ISOtech
+registerEntity("dArr",CharRef(8659)) # downwards double arrow, U+21D3 ISOamsa
+registerEntity("hArr",CharRef(8660)) # left right double arrow, U+21D4 ISOamsa
+
+# Mathematical Operators
+registerEntity("forall",CharRef(8704)) # for all, U+2200 ISOtech
+registerEntity("part",CharRef(8706)) # partial differential, U+2202 ISOtech
+registerEntity("exist",CharRef(8707)) # there exists, U+2203 ISOtech
+registerEntity("empty",CharRef(8709)) # empty set = null set = diameter, U+2205 ISOamso
+registerEntity("nabla",CharRef(8711)) # nabla = backward difference, U+2207 ISOtech
+registerEntity("isin",CharRef(8712)) # element of, U+2208 ISOtech
+registerEntity("notin",CharRef(8713)) # not an element of, U+2209 ISOtech
+registerEntity("ni",CharRef(8715)) # contains as member, U+220B ISOtech
+registerEntity("prod",CharRef(8719)) # n-ary product = product sign, U+220F ISOamsb
+registerEntity("sum",CharRef(8721)) # n-ary sumation, U+2211 ISOamsb
+registerEntity("minus",CharRef(8722)) # minus sign, U+2212 ISOtech
+registerEntity("lowast",CharRef(8727)) # asterisk operator, U+2217 ISOtech
+registerEntity("radic",CharRef(8730)) # square root = radical sign, U+221A ISOtech
+registerEntity("prop",CharRef(8733)) # proportional to, U+221D ISOtech
+registerEntity("infin",CharRef(8734)) # infinity, U+221E ISOtech
+registerEntity("ang",CharRef(8736)) # angle, U+2220 ISOamso
+registerEntity("and",CharRef(8743)) # logical and = wedge, U+2227 ISOtech
+registerEntity("or",CharRef(8744)) # logical or = vee, U+2228 ISOtech
+registerEntity("cap",CharRef(8745)) # intersection = cap, U+2229 ISOtech
+registerEntity("cup",CharRef(8746)) # union = cup, U+222A ISOtech
+registerEntity("int",CharRef(8747)) # integral, U+222B ISOtech
+registerEntity("there4",CharRef(8756)) # therefore, U+2234 ISOtech
+registerEntity("sim",CharRef(8764)) # tilde operator = varies with = similar to, U+223C ISOtech
+registerEntity("cong",CharRef(8773)) # approximately equal to, U+2245 ISOtech
+registerEntity("asymp",CharRef(8776)) # almost equal to = asymptotic to, U+2248 ISOamsr
+registerEntity("ne",CharRef(8800)) # not equal to, U+2260 ISOtech
+registerEntity("equiv",CharRef(8801)) # identical to, U+2261 ISOtech
+registerEntity("le",CharRef(8804)) # less-than or equal to, U+2264 ISOtech
+registerEntity("ge",CharRef(8805)) # greater-than or equal to, U+2265 ISOtech
+registerEntity("sub",CharRef(8834)) # subset of, U+2282 ISOtech
+registerEntity("sup",CharRef(8835)) # superset of, U+2283 ISOtech
+registerEntity("nsub",CharRef(8836)) # not a subset of, U+2284 ISOamsn
+registerEntity("sube",CharRef(8838)) # subset of or equal to, U+2286 ISOtech
+registerEntity("supe",CharRef(8839)) # superset of or equal to, U+2287 ISOtech
+registerEntity("oplus",CharRef(8853)) # circled plus = direct sum, U+2295 ISOamsb
+registerEntity("otimes",CharRef(8855)) # circled times = vector product, U+2297 ISOamsb
+registerEntity("perp",CharRef(8869)) # up tack = orthogonal to = perpendicular, U+22A5 ISOtech
+registerEntity("sdot",CharRef(8901)) # dot operator, U+22C5 ISOamsb
+
+# Miscellaneous Technical
+registerEntity("lceil",CharRef(8968)) # left ceiling = apl upstile, U+2308 ISOamsc
+registerEntity("rceil",CharRef(8969)) # right ceiling, U+2309 ISOamsc
+registerEntity("lfloor",CharRef(8970)) # left floor = apl downstile, U+230A ISOamsc
+registerEntity("rfloor",CharRef(8971)) # right floor, U+230B ISOamsc
+registerEntity("lang",CharRef(9001)) # left-pointing angle bracket = bra, U+2329 ISOtech
+registerEntity("rang",CharRef(9002)) # right-pointing angle bracket = ket, U+232A ISOtech
+
+# Geometric Shapes
+registerEntity("loz",CharRef(9674)) # lozenge, U+25CA ISOpub
+
+# Miscellaneous Symbols
+registerEntity("spades",CharRef(9824)) # black spade suit, U+2660 ISOpub
+registerEntity("clubs",CharRef(9827)) # black club suit = shamrock, U+2663 ISOpub
+registerEntity("hearts",CharRef(9829)) # black heart suit = valentine, U+2665 ISOpub
+registerEntity("diams",CharRef(9830)) # black diamond suit, U+2666 ISOpub
 
 ###
 ###
 ###
 
 class XSC:
-	"""contains the options and functions for handling the XML files"""
+	"""
+	contains the options and functions for handling the XML files
+	"""
 
 	def __init__(self):
-		self.filename = ""
+		self.filename = []
 		self.server = "localhost"
-		self.retrieveremote = 1
-		self.retrievelocal  = 1
-		self.reprtab = ". "
-		self.repransi = 1
-		self.repransitab = "32"
 		self.repransielementname = "35"
-		self.repransitextattrs = ""
-		self.repransicolorattrs = ""
 		self.reprtree = 1
 		self.parser = Parser()
 
-	def parseString(self,filename,string):
-		"""Parses a string and returns the resulting XSC"""
-		self.filename = filename
+	def __pushName(self,name):
+		url = _URL(name)
+		if url.scheme == "":
+			url.scheme = "project"
+		if len(self.filename) <= 2:
+			self.filename = [ url , url ]
+		else:
+			self.filename.append(url)
+
+	def __popName(self):
+		self.filename.pop()
+
+	def parseString(self,name,string):
+		"""
+		Parses a string and returns the resulting XSC
+		"""
+		self.__pushName(name)
 		self.parser.reset()
 		self.parser.feed(string)
 		self.parser.close()
+		self.__popName()
 		return self.parser.root
 
-	def parseFile(self,filename):
-		"""Reads and parses a XML file and returns the resulting XSC"""
-		self.filename = filename
+	def parseFile(self,name):
+		"""
+		Reads and parses a XML file and returns the resulting XSC
+		"""
+		self.__pushName(name)
 		self.parser.reset()
-		self.parser.feed(open(filename).read())
+		self.parser.feed(open(name).read())
 		self.parser.close()
+		self.__popName()
 		return self.parser.root
 
 	def parseURL(self,url):
-		"""Reads and parses a XML file from an URL and returns the resulting XSC"""
-		self.filename = url
+		"""
+		Reads and parses a XML file from an URL and returns the resulting XSC
+		"""
+		self.__pushName(name)
 		self.parser.reset()
-		self.parser.feed(urllib.urlopen(url).read())
+		self.parser.feed(urllib.urlopen(name).read())
 		self.parser.close()
 		urllib.urlcleanup()
+		self.__popName()
 		return self.parser.root
 
 	def __repr__(self):
-		return '<xsc filename="' + self.filename + '" server="' + self.server + '" retrieveremote=' + [ 'no' , 'yes' ][self.retrieveremote] + '" retrievelocal=' + [ 'no' , 'yes' ][self.retrievelocal] + '>'
+		return '<xsc filename="' + self.filename + '" server="' + self.server + '" retrieveremote=' + [ 'no' , 'yes' ][retrieveremote] + '" retrievelocal=' + [ 'no' , 'yes' ][retrievelocal] + '>'
 
 	def is_remote(self,url):
 		(scheme,server,path,parameters,query,fragment) = urlparse.urlparse(url)
 		if scheme != "":
-			return 1
-		else:
-			return 0
+			if server != "localhost" and server != _socket.gethostname():
+				return 1
+		return 0
 
 	def is_retrieve(self,url):
 		remote = self.is_remote(url)
-		if (self.retrieveremote and remote) or (self.retrievelocal and (not remote)):
+		if (retrieveremote and remote) or (retrievelocal and (not remote)):
 			return 1
 		else:
 			return 0
@@ -1459,11 +1942,17 @@ def __forceopen(name,mode):
 		os.makedirs(name[:found])
 		return open(name,mode)
 
+retrieveremote = 1 # should remote URLs be retrieved? (for filesize and imagesize tests)
+retrievelocal  = 1 # should local URLs be retrieved? (for filesize and imagesize tests)
+
 def make():
-	"""use XSC as a compiler script, i.e. read an input file from args[1] and writes it to args[2]"""
+	"""
+	use XSC as a compiler script, i.e. read an input file from args[1]
+	and writes it to args[2]
+	"""
+
 	infilename = sys.argv[1]
 	outfilename = sys.argv[2]
-	print "from:",infilename,"to:",outfilename
 	e_in = xsc.parseFile(infilename)
 	e_out = e_in.asHTML()
 	__forceopen(outfilename,"wb").write(str(e_out))
