@@ -143,7 +143,9 @@ def AppendDict(*dicts):
 def ToNode(value):
 	if type(value) == types.StringType:
 		return XSCText(value)
-	elif type(value) in [ types.NoneType,types.IntType,types.LongType,types.FloatType ] :
+	elif type(value) == types.NoneType:
+		return XSCText("")
+	elif type(value) in [ types.IntType,types.LongType,types.FloatType ] :
 		return XSCText(str(value))
 	elif type(value) in [ types.ListType,types.TupleType ]:
 		v = XSCFrag()
