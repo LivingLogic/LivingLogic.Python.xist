@@ -22,7 +22,7 @@
 """
 <doc:par>An &xist; module that contains elements that can be used to generate
 &css;2 files.</doc:par>
-<doc:par>For further info about &css;2 see <a href="http://www.w3.org/TR/REC-CSS2">http://www.w3.org/TR/REC-CSS2</a></doc:par>
+<doc:par>For further info about &css;2 see <a href="http://www.w3.org/TR/REC-CSS2">http://www.w3.org/TR/REC-CSS2</a>.</doc:par>
 """
 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
