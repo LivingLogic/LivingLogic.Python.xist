@@ -160,6 +160,12 @@ class URL:
 		path.append(file)
 		return urlparse.urlunparse((scheme, server, u"/".join(path), self.params or u"", self.query or u"", self.fragment or u""))
 
+	def __str__(self):
+		return str(self.asString())
+
+	def __unicode__(self):
+		return self.asString()
+
 	def __div__(self, other):
 		"""Join a base URL and a possibly relative URL to form
 		an absolute interpretation of the latter."""
