@@ -186,15 +186,15 @@ an image twice as wide and high do the following:
 Embedding Python code
 =====================
 It's possible to embed Python code into XIST XML files. For this
-XIST support two new processing instruction targets: xsc-exec and
-xsc-eval. The content of xsc-exec will be executed when the processing
+XIST support two new processing instruction targets: xsc:exec and
+xsc:eval. The content of xsc:exec will be executed when the processing
 instruction node is instantiated, i.e. when the XML file is parsed,
 so anything you do there will be available afterwards.
 
-The result of a call to convert() for a xsc-eval processing instruction
+The result of a call to convert() for a xsc:eval processing instruction
 is whatever the Python code in the content returns. For example, consider
 the following XML file:
-	<?xsc-exec
+	<?xsc:exec
 	# sum
 	def gauss(top=100):
 		sum = 0
@@ -202,7 +202,7 @@ the following XML file:
 			sum += i
 		return sum
 	?>
-	<b><?xsc-eval return gauss()?></b>
+	<b><?xsc:eval return gauss()?></b>
 Parsing this file and converting it to HTML results in the following:
 	<b>5050</b>
 
@@ -224,24 +224,13 @@ To determine image sizes, XSC needs the Python Imaging library
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-import os
-import string
-import types
-import sys
+import os, string, types, sys, stat, urllib
+
+import Image
 
 from xml.sax import saxutils
 
-import stat # for file size checking
-import Image # for image size checking
-import urllib # for reading remote files
-import procinst # our sandbox
-import url # our own new URL class
-import presenters # classes that dump XSC trees
-import publishers # classes for writing XSC strings
-import errors # exceptions
-import options # optional stuff ;)
-import utils # misc stuff
-import helpers # C stuff
+from xist import procinst, url, presenters, publishers, error, options, utils, helpers
 
 ###
 ### helpers
@@ -1036,8 +1025,8 @@ class DocType(Node, StringMixIn):
 
 class ProcInst(Node, StringMixIn):
 	"""
-	<par noindent>There are two special targets available: <code>xsc-exec</code>
-	and <code>xsc-eval</code> which will be handled by the
+	<par noindent>There are two special targets available: <code>xsc:exec</code>
+	and <code>xsc:eval</code> which will be handled by the
 	special classes <classref>Exec</classref> and <classref>Eval</classref>
 	derived from ProcInst.</par>
 
@@ -1118,7 +1107,7 @@ class Exec(PythonCode):
 	name = u"exec"
 
 	def __init__(self, content=u""):
-		ProcInst.__init__(self, u"xsc-exec", content)
+		ProcInst.__init__(self, u"exec", content)
 		code = utils.Code(self._content, 1)
 		exec code.asString() in procinst.__dict__ # requires Python 2.0b2 (and doesn't really work)
 
@@ -1143,7 +1132,7 @@ class Eval(PythonCode):
 	name = u"eval"
 
 	def __init__(self, content=u""):
-		ProcInst.__init__(self, u"xsc-eval", content)
+		ProcInst.__init__(self, u"eval", content)
 
 	def convert(self, converter=None):
 		"""

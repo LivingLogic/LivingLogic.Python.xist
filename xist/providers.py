@@ -31,12 +31,7 @@ import os
 import types
 import urllib
 
-import errors
-import options
-import xsc
-import url
-
-import parsers
+from xist import xsc, errors, options, url, parsers
 
 providers = [] # provider stack
 

@@ -30,8 +30,10 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 import sys
 import getopt
 import time
+
 import ansistyle
-from xist import xsc, html, publishers, presenters, url, utils, converters, parsers # don't do a subpackage import here, otherwise chaos will ensue, because XIST modules will be imported twice
+
+from xist import xsc, publishers, presenters, url, utils, converters, parsers # don't do a subpackage import here, otherwise chaos will ensue, because XIST modules will be imported twice
 
 def extXSC2HTML(ext):
 	try:

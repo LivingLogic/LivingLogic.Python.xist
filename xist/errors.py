@@ -30,10 +30,9 @@ the base class Error.
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-import xsc
-import exceptions
-import types
-import presenters
+import types, exceptions
+
+from xist import xsc, presenters
 
 class Error(Exception):
 	"""

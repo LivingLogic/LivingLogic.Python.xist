@@ -27,10 +27,7 @@ sgmlop driver, everything else is from PyXML) and various classes derived from
 xml.sax.xmlreader.InputSource.
 """
 
-import sys
-import types
-import cStringIO as StringIO
-import urllib
+import sys, types, cStringIO as StringIO, urllib
 
 from xml import sax
 from xml.parsers import sgmlop
@@ -42,8 +39,7 @@ from xml.sax import saxlib
 #except ImportError:
 timeoutsocket = None
 
-import xsc
-import url as url_
+from xist import xsc, url as url_
 
 class StringInputSource(sax.xmlreader.InputSource):
 	def __init__(self, text):

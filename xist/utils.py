@@ -27,9 +27,7 @@ that are used internally by XIST.
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-import sys
-import os
-import types
+import sys, os, types
 
 def stringFromCode(text):
 	if text is None:

@@ -27,6 +27,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
 import HTTPServlet
+
 from xist import xsc
 
 class Servlet(HTTPServlet.HTTPServlet):

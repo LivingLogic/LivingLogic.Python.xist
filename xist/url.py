@@ -27,9 +27,8 @@ This module contains only one useful variable: the URL class
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-import types
-import urlparse
-import urllib
+import types, urlparse, urllib
+
 from xist import utils, helpers
 
 # workaround for a bug in urlparse (which is fixed in urlparse.py CVS revision 1.26)

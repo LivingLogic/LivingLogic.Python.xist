@@ -28,8 +28,8 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
 import sys, types, array, codecs
-import xsc, options, utils, errors, url
-from helpers import *
+
+from xist import xsc, options, utils, errors, url, helpers
 
 class Publisher:
 	"""
@@ -91,9 +91,9 @@ class Publisher:
 
 	def publishText(self, text):
 		if self.inAttr:
-			self.publish(escapeAttr(text, self.encoding))
+			self.publish(helpers.escapeAttr(text, self.encoding))
 		else:
-			self.publish(escapeText(text, self.encoding))
+			self.publish(helpers.escapeText(text, self.encoding))
 
 class FilePublisher(Publisher):
 	"""

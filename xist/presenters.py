@@ -28,8 +28,10 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
 import os
-import xsc, options, url
+
 import ansistyle
+
+from xist import xsc, options, url
 
 def getStringFromEnv(name, default):
 	try:
