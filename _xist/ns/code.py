@@ -66,7 +66,7 @@ class Code:
 					test = lines[i][0][:shortestlen]
 					if common is not None:
 						if common != test:
-							raise SyntaxError("indentation mixmatch")
+							raise SyntaxError("indentation mismatch")
 					common = test
 					lines[i][0] = lines[i][0][shortestlen:]
 				else:
