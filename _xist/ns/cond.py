@@ -104,13 +104,13 @@ class If(xsc.Element):
 
 class ElIf(xsc.Element):
 	empty = True
+	xmlname = "elif"
 	class Attrs(xsc.Element.Attrs):
 		class cond(xsc.TextAttr): pass
 		class mode(xsc.TextAttr): pass
 		class target(xsc.TextAttr): pass
 		class stage(xsc.TextAttr): pass
 		class lang(xsc.TextAttr): pass
-	xmlname = "elif"
 
 	def convert(self, converter):
 		return xsc.Null
