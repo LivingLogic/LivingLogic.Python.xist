@@ -1908,6 +1908,7 @@ class XSC:
 
 		self.lineno = 1
 		parser.feed(string)
+		parser.feed(" ") # strange bug in sgmlop?
 		parser.close()
 
 		return self.__nesting[0]
