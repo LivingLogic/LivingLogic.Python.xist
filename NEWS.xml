@@ -4,6 +4,8 @@
 <item>It's now possible to parse &xml; without generating location
 information for each node, by passing <lit>loc=False/<lit> to
 the constructor of the <class>Handler</class>.</item>
+<item>The <class>HTMLParser</class> no longer complains about
+global attributes or <lit>xmlns</lit>.</item>
 </ulist>
 </section>
 

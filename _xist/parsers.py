@@ -378,12 +378,11 @@ class HTMLParser(BadEntityParser):
 		# Skip unknown attributes (but warn about them)
 		newattrs = {}
 		for (attrname, attrvalue) in attrs:
-			attrname = attrname.lower()
 			element = html.element(name, xml=True)
-			if element.Attrs.isallowed(attrname, xml=True):
-				newattrs[attrname] = attrvalue
+			if attrname in ("xmlns", "procinstns", "entityns") or ":" in attrname or element.Attrs.isallowed(attrname.lower(), xml=True):
+				newattrs[attrname.lower()] = attrvalue
 			else:
-				warnings.warn(errors.IllegalAttrError(element.Attrs, attrname, xml=True))
+				warnings.warn(errors.IllegalAttrError(element.Attrs, attrname.lower(), xml=True))
 		BadEntityParser.finish_starttag(self, name, newattrs)
 
 		if name.upper() in htmldtd.HTML_FORBIDDEN_END:
