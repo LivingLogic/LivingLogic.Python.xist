@@ -29,7 +29,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 import sys, types, time as time_, string
 
 from xist import xsc, parsers
-import html as html_
+import html as html_, meta
 
 class xist(xsc.Entity):
 	def convert(self, converter):
@@ -294,7 +294,10 @@ class redirectpage(xsc.Element):
 	def convert(self, converter):
 		url = self["href"]
 		e = html_.html(
-			html_.head(html_.title("Redirection")),
+			html_.head(
+				meta.contenttype(),
+				html_.title("Redirection")
+			),
 			html_.body(
 				"Your browser doesn't understand redirects. This page has been redirected to ",
 				html_.a(url, href=url)
