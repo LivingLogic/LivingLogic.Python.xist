@@ -5,9 +5,10 @@
 __version__ = "$Revision$"
 # $Source$
 
-from xsc_specials import *
+import xsc
+import specials
 
-class dbelement(XSCElement):
+class element(xsc.Element):
 	"""
 	base element for all elements that display database content.
 	the attribute name is the fieldname and value is the fieldvalue.
@@ -15,19 +16,19 @@ class dbelement(XSCElement):
 	This class in itself has no use, i.e. it should be considered abstract.
 	"""
 	emtpy = 1
-	attr_handlers = { "name" : XSCTextAttr , "value" : XSCTextAttr }
+	attr_handlers = { "name" : xsc.TextAttr , "value" : xsc.TextAttr }
 
 	def asHTML(self):
 		return None
-RegisterElement("dbelement",dbelement)
+xsc.RegisterElement("element",element)
 
-class dblookupcombobox(dbelement):
-	attr_handlers = AppendDict(dbelement.attr_handlers,{ "query" : XSCTextAttr , "displayfield" : XSCTextAttr , "valuefield" : XSCTextAttr })
+class lookupcombobox(element):
+	attr_handlers = AppendDict(element.attr_handlers,{ "query" : xsc.TextAttr , "displayfield" : xsc.TextAttr , "valuefield" : xsc.TextAttr })
 
 	def asHTML(self):
 		e = select(name = self["name"])
 
-		query = db.query(str(self["query"]))
+		query = Zeit.db.query(str(self["query"]))
 		displayfield = str(self["displayfield"].asHTML())
 		valuefield = str(self["valuefield"].asHTML())
 		for tuple in query.dictresult():
@@ -37,10 +38,10 @@ class dblookupcombobox(dbelement):
 				o["selected"] = None
 			e.append(o)
 		return e.asHTML()
-RegisterElement("dblookupcombobox",dblookupcombobox)
+xsc.RegisterElement("lookupcombobox",lookupcombobox)
 
-class dbedit(dbelement):
-	attr_handlers = AppendDict(dbelement.attr_handlers,{ "size" : XSCTextAttr })
+class edit(element):
+	attr_handlers = AppendDict(element.attr_handlers,{ "size" : xsc.TextAttr })
 
 	def asHTML(self):
 		e = input()
@@ -48,9 +49,9 @@ class dbedit(dbelement):
 			e[attr] = self[attr]
 
 		return e.asHTML()
-RegisterElement("dbedit",dbedit)
+xsc.RegisterElement("edit",edit)
 
-class dbstatic(dbelement):
+class static(element):
 	def asHTML(self):
 		if self.has_attr("value"):
 			e = self["value"].content
@@ -58,58 +59,58 @@ class dbstatic(dbelement):
 			e = nbsp()
 
 		return e.asHTML()
-RegisterElement("dbstatic",dbstatic)
+xsc.RegisterElement("static",static)
 
-class dbhidden(dbelement):
+class hidden(element):
 	def asHTML(self):
 		e = input(type="hidden",name=self["name"])
 		if self.has_attr("value"):
 			e["value"] = self["value"]
 
 		return e.asHTML()
-RegisterElement("dbhidden",dbhidden)
+xsc.RegisterElement("hidden",hidden)
 
-class dbtarget(XSCElement):
+class target(xsc.Element):
 	empty = 0
 
 	def asHTML(self):
 		return self.content.asHTML()
-RegisterElement("dbtarget",dbtarget)
+xsc.RegisterElement("target",target)
 
-class dbtemplate(XSCElement):
+class template(xsc.Element):
 	empty = 0
-	attr_handlers = { "query" : XSCTextAttr }
+	attr_handlers = { "query" : xsc.TextAttr }
 
 	def asHTML(self):
-		query = db.query(str(self["query"]))
+		query = Zeit.db.query(str(self["query"]))
 
 		content = self.content.clone()
 
-		targets = content.allElementsNamed(dbtarget)
+		targets = content.allElementsNamed(target)
 
 		targettemplate = targets[0].clone() # make a copy of the target before we remove its content
 		del targets[0][:] # make the target empty (we'll put our date in there later)
 
 		for record in query.dictresult():
 			target = targettemplate.clone() # make a new target, because we'll put the date in there
-			for field in target.allElementsDerivedFrom(dbelement): # iterate over all database elements in the target
+			for field in target.allElementsDerivedFrom(element): # iterate over all database elements in the target
 				field["value"] = str(record[str(field["name"])]) # put the field values in
 			targets[0].append(target)
 
 		return content.asHTML()
-RegisterElement("dbtemplate",dbtemplate)
+xsc.RegisterElement("template",template)
 
-class dbtable(XSCElement):
+class table(xsc.Element):
 	empty = 0
-	attr_handlers = { "query" : XSCTextAttr , "class" : XSCTextAttr }
+	attr_handlers = { "query" : xsc.TextAttr , "class" : xsc.TextAttr }
 
 	def asHTML(self):
 		e = plaintable()
 		if self.has_attr("class"):
 			e["class"] = self["class"]
 
-		query = db.query(str(self["query"]))
-		fields = self.elementsNamed(dbfield)
+		query = Zeit.db.query(str(self["query"]))
+		fields = self.elementsNamed(field)
 
 		headers = tr()
 		for field in fields:
@@ -129,19 +130,19 @@ class dbtable(XSCElement):
 				flipflop = "even"
 
 		return e.asHTML()
-RegisterElement("dbtable",dbtable)
+xsc.RegisterElement("table",table)
 
-class dbedittable(XSCElement):
+class edittable(xsc.Element):
 	empty = 0
-	attr_handlers = { "query" : XSCTextAttr , "class" : XSCTextAttr , "action" : XSCURLAttr }
+	attr_handlers = { "query" : xsc.TextAttr , "class" : xsc.TextAttr , "action" : xsc.URLAttr }
 
 	def asHTML(self):
 		e = plaintable()
 		if self.has_attr("class"):
 			e["class"] = self["class"]
 
-		query = db.query(str(self["query"]))
-		fields = self.elementsNamed(dbfield)
+		query = Zeit.db.query(str(self["query"]))
+		fields = self.elementsNamed(field)
 
 		headers = tr()
 		for field in fields:
@@ -182,24 +183,25 @@ class dbedittable(XSCElement):
 	def __control(self,field,value = None):
 		fieldtype = str(field["type"])
 		if fieldtype == "edit":
-			control = dbedit(name = field["name"])
+			control = edit(name = field["name"])
 			if field.has_attr("size"):
 				control["size"] = field["size"]
 		elif fieldtype == "lookup":
-			control = dblookupcombobox(name = field["name"],query = field["lookupquery"],displayfield = field["lookupdisplayfield"],valuefield = field["lookupvaluefield"])
+			control = lookupcombobox(name = field["name"],query = field["lookupquery"],displayfield = field["lookupdisplayfield"],valuefield = field["lookupvaluefield"])
 		elif fieldtype == "static":
-			control = dbstatic(name = field["name"])
+			control = static(name = field["name"])
 		elif fieldtype == "hidden":
-			control = dbhidden(name = field["name"])
+			control = hidden(name = field["name"])
 		if value is not None:
 			control["value"] = value
 		return control
 		
-RegisterElement("dbtable",dbtable)
+xsc.RegisterElement("table",table)
 
-class dbfield(XSCElement):
+class field(xsc.Element):
 	empty = 1
-	attr_handlers = { "name" : XSCTextAttr , "caption" : XSCTextAttr , "type" : XSCTextAttr , "size" : XSCTextAttr , "lookupquery" : XSCTextAttr , "lookupdisplayfield" : XSCTextAttr , "lookupvaluefield" : XSCTextAttr }
-RegisterElement("dbfield",dbfield)
+	attr_handlers = { "name" : xsc.TextAttr , "caption" : xsc.TextAttr , "type" : xsc.TextAttr , "size" : xsc.TextAttr , "lookupquery" : xsc.TextAttr , "lookupdisplayfield" : xsc.TextAttr , "lookupvaluefield" : xsc.TextAttr }
+xsc.RegisterElement("field",field)
 
-
+if __name__ == "__main__":
+	xsc.make()

@@ -6,13 +6,14 @@ __version__ = "$Revision$"
 # $Source$
 
 import sys
-from xsc_html40 import *
+import xsc
+import html
 
-class plaintable(table):
+class plaintable(html.table):
 	empty = 0
 
 	def asHTML(self):
-		e = table(self.content,self.attrs)
+		e = html.table(self.content,self.attrs)
 		if not e.has_attr("cellpadding"):
 			e["cellpadding"] = "0"
 		if not e.has_attr("cellspacing"):
@@ -21,13 +22,13 @@ class plaintable(table):
 			e["border"] = "0"
 
 		return e.asHTML()
-RegisterElement("plaintable",plaintable)
+xsc.registerElement("plaintable",plaintable)
 
-class plainbody(body):
+class plainbody(html.body):
 	empty = 0
 
 	def asHTML(self):
-		e = body(self.content,self.attrs)
+		e = html.body(self.content,self.attrs)
 		if not e.has_attr("leftmargin"):
 			e["leftmargin"] = "0"
 		if not e.has_attr("topmargin"):
@@ -38,43 +39,43 @@ class plainbody(body):
 			e["marginwidth"] = "0"
 
 		return e.asHTML()
-RegisterElement("plainbody",plainbody)
+xsc.registerElement("plainbody",plainbody)
 
-class z(XSCElement):
+class z(xsc.Element):
 	empty = 0
 
 	def asHTML(self):
-		e = XSCFrag(["«" , self.content , "»" ])
+		e = xsc.Frag(["«" , self.content , "»" ])
 
 		return e.asHTML()
-RegisterElement("z",z)
+xsc.registerElement("z",z)
 
-class nbsp(XSCElement):
+class nbsp(xsc.Element):
 	empty = 1
 
 	def asHTML(self):
-		return XSCCharRef(160)
-RegisterElement("nbsp",nbsp)
+		return xsc.CharRef(160)
+xsc.registerElement("nbsp",nbsp)
 
-class filesize(XSCElement):
+class filesize(xsc.Element):
 	empty = 1
-	attr_handlers = { "href" : XSCURLAttr }
+	attr_handlers = { "href" : xsc.URLAttr }
 
 	def asHTML(self):
-		return XSCText(self["href"].FileSize())
-RegisterElement("filesize",filesize)
+		return xsc.Text(self["href"].FileSize())
+xsc.registerElement("filesize",filesize)
 
-class x(XSCElement):
+class x(xsc.Element):
 	"""content will be ignored: can be used to comment out stuff (e.g. linefeeds)"""
 	close=1
 
 	def asHTML(self):
 		return None
-RegisterElement("x",x)
+xsc.registerElement("x",x)
 
 class pixel(img):
 	empty = 1
-	attr_handlers = AppendDict(img.attr_handlers,{ "color" : XSCColorAttr })
+	attr_handlers = AppendDict(img.attr_handlers,{ "color" : xsc.ColorAttr })
 	del attr_handlers["src"]
 
 	def asHTML(self):
@@ -88,9 +89,9 @@ class pixel(img):
 		e["src"] = [ ":images/pixels/" , color , ".gif" ]
 
 		return e.asHTML()
-RegisterElement("pixel",pixel)
+xsc.registerElement("pixel",pixel)
 
-class cap(XSCElement):
+class cap(xsc.Element):
 	empty = 0
 	
 	def asHTML(self):
@@ -98,7 +99,7 @@ class cap(XSCElement):
 		if type(e) == types.ListType:
 			e = e[0]
 		e = e + "?"
-		result = XSCFrag()
+		result = xsc.Frag()
 		collect = ""
 		innini = 0
 		for i in range(len(e)):
@@ -113,32 +114,32 @@ class cap(XSCElement):
 			else:
 				collect = collect + e[i]
 		return result
-RegisterElement("cap",cap)
+xsc.registerElement("cap",cap)
 
-class endash(XSCElement):
+class endash(xsc.Element):
 	empty = 1
 
 	def asHTML(self):
-		return XSCText("-")
-RegisterElement("endash",endash)
+		return xsc.Text("-")
+xsc.registerElement("endash",endash)
 
-class emdash(XSCElement):
+class emdash(xsc.Element):
 	empty = 1
 
 	def asHTML(self):
-		return XSCText("-")
-RegisterElement("emdash",emdash)
+		return xsc.Text("-")
+xsc.registerElement("emdash",emdash)
 
-class include(XSCElement):
+class include(xsc.Element):
 	empty = 1
-	attr_handlers = { "src" : XSCURLAttr }
+	attr_handlers = { "src" : xsc.URLAttr }
 
 	def asHTML(self):
-		e = xsc.parseFile(self["src"].forInput())
+		e = xsc.xsc.parseFile(self["src"].forInput())
 
 		return e.asHTML()
-RegisterElement("include",include)
+xsc.registerElement("include",include)
 
 if __name__ == "__main__":
-	make(sys.argv)
+	xsc.make()
 

@@ -32,7 +32,7 @@ import urllib
 ### exceptions
 ###
 
-class XSCError(Exception):
+class Error(Exception):
 	"""base class for all XSC exceptions"""
 
 	def __init__(self,lineno):
@@ -46,21 +46,21 @@ class XSCError(Exception):
 
 		return s
 
-class XSCEmptyElementWithContentError(XSCError):
+class EmptyElementWithContentError(Error):
 	"""exception that is raised, when an element has content, but it shouldn't (i.e. empty=1)"""
 
 	def __init__(self,lineno,element):
-		XSCError.__init__(self,lineno)
+		Error.__init__(self,lineno)
 		self.element = element
 
 	def __str__(self):
-		return XSCError.__str__(self) + "element " + _strelementname(self.element.name) + " specified to be empty, but has content"
+		return Error.__str__(self) + "element " + _strelementname(self.element.name) + " specified to be empty, but has content"
 
-class XSCIllegalAttributeError(XSCError):
+class IllegalAttributeError(Error):
 	"""exception that is raised, when an element has an illegal attribute (i.e. one that isn't contained in it's attr_handlers)"""
 
 	def __init__(self,lineno,element,attr):
-		XSCError.__init__(self,lineno)
+		Error.__init__(self,lineno)
 		self.element = element
 		self.attr = attr
 
@@ -73,20 +73,20 @@ class XSCIllegalAttributeError(XSCError):
 		for attr in attrs:
 			v.append(_strattrname(attr))
 
-		return XSCError.__str__(self) + "Attribute " + _strattrname(self.attr) + " not allowed in element " + _strelementname(self.element.name) + ". Allowed attributes are: " + string.join(v,", ") + "."
+		return Error.__str__(self) + "Attribute " + _strattrname(self.attr) + " not allowed in element " + _strelementname(self.element.name) + ". Allowed attributes are: " + string.join(v,", ") + "."
 
-class XSCAttributeNotFoundError(XSCError):
+class AttributeNotFoundError(Error):
 	"""exception that is raised, when an attribute is fetched that isn't there"""
 
 	def __init__(self,lineno,element,attr):
-		XSCError.__init__(self,lineno)
+		Error.__init__(self,lineno)
 		self.element = element
 		self.attr = attr
 
 	def __str__(self):
 		attrs = self.element.attrs.keys();
 
-		s = XSCError.__str__(self) + "Attribute " + _strattrname(self.attr) + " not found in element " + _strelementname(self.element.name) +". "
+		s = Error.__str__(self) + "Attribute " + _strattrname(self.attr) + " not found in element " + _strelementname(self.element.name) +". "
 
 		if len(attrs):
 			attrs.sort()
@@ -99,11 +99,11 @@ class XSCAttributeNotFoundError(XSCError):
 
 		return s
 
-class XSCIllegalElementError(XSCError):
+class IllegalElementError(Error):
 	"""exception that is raised, when an illegal element is encountered (i.e. one that isn't registered via RegisterElement"""
 
 	def __init__(self,lineno,elementname):
-		XSCError.__init__(self,lineno)
+		Error.__init__(self,lineno)
 		self.elementname = elementname
 
 	def __str__(self):
@@ -115,69 +115,69 @@ class XSCIllegalElementError(XSCError):
 		for element in elements:
 			v.append(_strelementname(element))
 	
-		return XSCError.__str__(self) + "element " + _strelementname(self.elementname) + " not allowed. Allowed elements are: " + string.join(v,", ") + "."
+		return Error.__str__(self) + "element " + _strelementname(self.elementname) + " not allowed. Allowed elements are: " + string.join(v,", ") + "."
 
-class XSCIllegalElementNestingError(XSCError):
+class IllegalElementNestingError(Error):
 	"""exception that is raised, when an element has an illegal nesting (e.g. <a><b></a></b>)"""
 
 	def __init__(self,lineno,expectedelementname,foundelementname):
-		XSCError.__init__(self,lineno)
+		Error.__init__(self,lineno)
 		self.expectedelementname = expectedelementname
 		self.foundelementname = foundelementname
 
 	def __str__(self):
-		return XSCError.__str__(self) + "illegal element nesting (" + _strelementname(self.expectedelementname) + " expected; " + _strelementname(self.foundelementname) + " found)"
+		return Error.__str__(self) + "illegal element nesting (" + _strelementname(self.expectedelementname) + " expected; " + _strelementname(self.foundelementname) + " found)"
 
-class XSCImageSizeFormatError(XSCError):
+class ImageSizeFormatError(Error):
 	"""exception that is raised, when XSC can't format or evaluate image size attributes"""
 
 	def __init__(self,lineno,element,attr):
-		XSCError.__init__(self,lineno)
+		Error.__init__(self,lineno)
 		self.element = element
 		self.attr = attr
 
 	def __str__(self):
-		return XSCError.__str__(self) + "the value '" + str(self.element[self.attr]) + "' for the image size attribute " + _strattrname(self.attr) + " of the element " + _strelementname(self.element.name) + " can't be formatted or evaluated"
+		return Error.__str__(self) + "the value '" + str(self.element[self.attr]) + "' for the image size attribute " + _strattrname(self.attr) + " of the element " + _strelementname(self.element.name) + " can't be formatted or evaluated"
 
-class XSCFileNotFoundError(XSCError):
+class FileNotFoundError(Error):
 	"""exception that is raised, when XSC can't open an image for getting image size"""
 
 	def __init__(self,lineno,url):
-		XSCError.__init__(self,lineno)
+		Error.__init__(self,lineno)
 		self.url = url
 
 	def __str__(self):
-		return XSCError.__str__(self) + "file " + self.url.repr() + " can't be opened"
+		return Error.__str__(self) + "file " + self.url.repr() + " can't be opened"
 
-class XSCIllegalObjectError(XSCError):
+class IllegalObjectError(Error):
 	"""exception that is raised, when XSC finds an illegal object found in its object tree"""
 
 	def __init__(self,lineno,object):
-		XSCError.__init__(self,lineno)
+		Error.__init__(self,lineno)
 		self.object = object
 
 	def __str__(self):
-		return XSCError.__str__(self) + "an illegal object of type " + type(self.object).__name__ + " has been found in the XSC tree"
+		return Error.__str__(self) + "an illegal object of type " + type(self.object).__name__ + " has been found in the XSC tree"
 
-class XSCMalformedCharRefError(XSCError):
+class MalformedCharRefError(Error):
 	"""exception that is raised, when a character reference is malformed (e.g. &#foo;)"""
 
 	def __init__(self,lineno,name):
-		XSCError.__init__(self,lineno)
+		Error.__init__(self,lineno)
 		self.name = name
 
 	def __str__(self):
-		return XSCError.__str__(self) + "malformed character reference: &#" + self.name + ";"
+		return Error.__str__(self) + "malformed character reference: &#" + self.name + ";"
 
-class XSCUnknownEntityError(XSCError):
+class UnknownEntityError(Error):
 	"""exception that is raised, when an unknown entity (i.e. one that wasn't registered via RegisterEntity) is encountered"""
 
 	def __init__(self,lineno,name):
-		XSCError.__init__(self,lineno)
+		Error.__init__(self,lineno)
 		self.name = name
 
 	def __str__(self):
-		return XSCError.__str__(self) + "Unknown entitiy: &" + self.name + ";"
+		return Error.__str__(self) + "Unknown entitiy: &" + self.name + ";"
 
 ###
 ### helpers
@@ -195,7 +195,7 @@ def _strelementname(name):
 def _strattrname(name):
 	return _stransi(xsc.repransiattrname,name)
 
-def AppendDict(*dicts):
+def appendDict(*dicts):
 	result = {}
 	for dict in dicts:
 		for key in dict.keys():
@@ -204,51 +204,51 @@ def AppendDict(*dicts):
 
 def ToNode(value):
 	if type(value) == types.StringType:
-		return XSCText(value)
+		return Text(value)
 	elif type(value) == types.NoneType:
 		return None
 	elif type(value) in [ types.IntType,types.LongType ] :
-		return XSCCharRef(value)
+		return CharRef(value)
 	elif type(value) == types.FloatType :
-		return XSCText(str(value))
+		return Text(str(value))
 	elif type(value) in [ types.ListType,types.TupleType ]:
-		v = XSCFrag()
+		v = Frag()
 		for i in value:
 			v.append(ToNode(i))
 		return v
 	elif type(value) == types.DictType:
-		raise XSCIllegalObjectError(xsc.parser.lineno,value) # no dictionaries allowed
+		raise IllegalObjectError(xsc.parser.lineno,value) # no dictionaries allowed
 	elif type(value) == types.InstanceType:
-		if isinstance(value,XSCFrag):
+		if isinstance(value,Frag):
 			if len(value)==1:
 				return ToNode(value[0]) # recursively try to simplify the tree
 			else:
 				return value
-		elif isinstance(value,XSCAttr):
+		elif isinstance(value,Attr):
 			return value.content
 		else:
 			return value
-	raise XSCIllegalObjectError(xsc.parser.lineno,value) # none of the above, so we throw and exception
+	raise IllegalObjectError(xsc.parser.lineno,value) # none of the above, so we throw and exception
 
 _element_handlers = {} # dictionary for mapping element names to classes
 
-class XSCNode:
+class Node:
 	"""base class for nodes in the document tree. Derived class must implement __str__()"""
 
 	# line numbers where this node starts and ends in a file (will be hidden in derived classes, but is specified here, so that no special tests are required. In derived classes both variables will be set by the parser)
 	startlineno = -1
 	endlineno = -1
-	name = "XSCNode" # will be changed for derived classes/elements in RegisterElement()
+	name = "Node" # will be changed for derived classes/elements in registerElement()
 
 	def __add__(self,other):
 		if other != None:
-			return XSCFrag(self) + other
+			return Frag(self) + other
 		else:
 			return self
 
 	def __radd__(self,other):
 		if other != None:
-			return XSCFrag(other) + self
+			return Frag(other) + self
 		else:
 			return self
 
@@ -308,35 +308,35 @@ class XSCNode:
 		"""
 		returns a fragment with all child elements of this node.
 		"""
-		return XSCFrag()
+		return Frag()
 
 	def elementsNamed(self,element):
 		"""
 		returns a fragment with all child elements of this node that are of the type element
 		(which has to be the class of an element).
 		"""
-		return XSCFrag()
+		return Frag()
 
 	def elementsDerivedFrom(self,element):
 		"""
 		returns a fragment with all child elements of this node that are derived from the type element
 		(which has to be the class of an element).
 		"""
-		return XSCFrag()
+		return Frag()
 
 	def allElementsNamed(self,element):
 		"""
 		returns a fragment with all elements (children and grandchildren) of this node that are of type element.
 		(which has to be the class of an element).
 		"""
-		return XSCFrag()
+		return Frag()
  
 	def allElementsDerivedFrom(self,element):
 		"""
 		returns a fragment with all elements (children and grandchildren) of this node that are derived from the type element.
 		(which has to be the class of an element).
 		"""
-		return XSCFrag()
+		return Frag()
  
 	def withoutLinefeeds(self):
 		"""returns this node, where all linefeeds that are in a text
@@ -344,10 +344,10 @@ class XSCNode:
 		needless whitespace is removed"""
 		return None
 		
-class XSCText(XSCNode):
+class Text(Node):
 	"""text"""
 
-	name = "XSCText"
+	name = "Text"
 
 	represcapes = { '\t' : '\\t' , '\033' : '\\e' , '\\' : '\\\\' }
 	reprtreeescapes = { '\r' : '\\r' , '\n' : '\\n' , '\t' : '\\t' , '\033' : '\\e' , '\\' : '\\\\' }
@@ -360,7 +360,7 @@ class XSCText(XSCNode):
 		self.__content = content
 
 	def asHTML(self):
-		return XSCText(self.__content)
+		return Text(self.__content)
 
 	clone = asHTML
 
@@ -399,15 +399,15 @@ class XSCText(XSCNode):
 				if charref: # we've collected references so far
 					s = ""
 					for i in self.__content[start:end]:
-						ent = XSCParser.entitiesByNumber[ord(i)] # use names if a available, or number otherwise
+						ent = Parser.entitiesByNumber[ord(i)] # use names if a available, or number otherwise
 						if len(ent):
 							s = s + '&' + ent[0] + ';'
 						else:
 							s = s + '&#' + str(self.__content) + ';'
-					v.append(_stransi(XSCCharRef.repransi,s))
+					v.append(_stransi(CharRef.repransi,s))
 				else:
 					s = self.__content[start:end]
-					v.append(_stransi(XSCText.repransi,s))
+					v.append(_stransi(Text.repransi,s))
 				charref = 1-charref # switch to the other class
 				start = end # the next string  we want to work on starts from here
 			end = end + 1 # to the next character
@@ -415,7 +415,7 @@ class XSCText(XSCNode):
 		return string.join(v,"")
 
 	def _dorepr(self):
-		# constructs a string of this XSCText with syntaxhighlighting. Special characters will be output as CharRefs (with special highlighting)
+		# constructs a string of this Text with syntaxhighlighting. Special characters will be output as CharRefs (with special highlighting)
 		return self.__strtext(0)
 
 	def _doreprtree(self,nest,elementno):
@@ -425,14 +425,14 @@ class XSCText(XSCNode):
 	def withoutLinefeeds(self):
 		for i in self.__content:
 			if i != '\n' and i != '\r':
-				return XSCText(self.__content)
+				return Text(self.__content)
 		else:
 			return None
 
-class XSCCharRef(XSCNode):
+class CharRef(Node):
 	"""character reference (i.e &#42; or &#x42;)"""
 
-	name = "XSCCharRef"
+	name = "CharRef"
 
 	__notdirect = { ord("&") : "amp" , ord("<") : "lt" , ord(">") : "gt", ord('"') : "quot" , ord("'") : "apos" }
 	__linefeeds = [ ord("\r") , ord("\n") ]
@@ -443,7 +443,7 @@ class XSCCharRef(XSCNode):
 		self.__content = content
 
 	def asHTML(self):
-		return XSCCharRef(self.__content)
+		return CharRef(self.__content)
 
 	clone = asHTML
 
@@ -461,36 +461,36 @@ class XSCCharRef(XSCNode):
 		return _stransi(self.repransi,s)
  
 	def _dorepr(self):
-		if len(XSCParser.entitiesByNumber[self.__content]):
-			return self.__strcharref('#' + XSCParser.entitiesByNumber[self.__content][0] + ';')
+		if len(Parser.entitiesByNumber[self.__content]):
+			return self.__strcharref('#' + Parser.entitiesByNumber[self.__content][0] + ';')
 		else:
 			return self.__strcharref('&#' + str(self.__content) + ';')
 
 	def _doreprtree(self,nest,elementno):
 		s = self.__strcharref('&#' + str(self.__content) + ';') + ' (' + self.__strcharref('&#x' + hex(self.__content)[2:] + ';')
-		for name in XSCParser.entitiesByNumber[self.__content]:
+		for name in Parser.entitiesByNumber[self.__content]:
 			s = s + ' ' + self.__strcharref('&' + name + ';')
 		s = s + ')'
 		if 0 <= self.__content <= 255:
-			s = s + ' ' + XSCText(chr(self.__content))._doreprtree(0,0)[0][-1]
+			s = s + ' ' + Text(chr(self.__content))._doreprtree(0,0)[0][-1]
 		return [[nest,self.startlineno,elementno,s]]
 
 	def withoutLinefeeds(self):
 		if self.__content in self.__linefeeds:
 			return None
 		else:
-			return XSCCharRef(self.__content)
+			return CharRef(self.__content)
 
-class XSCFrag(XSCNode):
-	"""contains a list of XSCNodes"""
+class Frag(Node):
+	"""contains a list of Nodes"""
 
-	name = "XSCFrag"
+	name = "Frag"
 
 	def __init__(self,_content = []):
 		if _content is None:
 			self._content = []
 		elif type(_content) == types.InstanceType:
-			if isinstance(_content,XSCFrag):
+			if isinstance(_content,Frag):
 				self._content = map(ToNode,_content._content)
 			else:
 				self._content = [ ToNode(_content) ]
@@ -500,33 +500,33 @@ class XSCFrag(XSCNode):
 			self._content = [ ToNode(_content) ]
 
 	def __add__(self,other):
-		res = XSCFrag(self._content)
+		res = Frag(self._content)
 		if other is not None:
 			newother = ToNode(other)
-			if isinstance(newother,XSCFrag):
+			if isinstance(newother,Frag):
 				res._content = res._content + newother._content
 			else:
 				res._content.append(newother)
 		return res
 
 	def __radd__(self,other):
-		res = XSCFrag(self._content)
+		res = Frag(self._content)
 		if other is not None:
 			newother = ToNode(other)
-			if isinstance(newother,XSCFrag):
+			if isinstance(newother,Frag):
 				res._content = newother._content + res._content
 			else:
 				res._content = [ newother ] + res._content
 		return res
 
 	def asHTML(self):
-		e = XSCFrag()
+		e = Frag()
 		for child in self:
 			e.append(child.asHTML())
 		return e
 
 	def clone(self):
-		e = XSCFrag()
+		e = Frag()
 		for child in self:
 			e.append(child.clone())
 		return e
@@ -539,12 +539,12 @@ class XSCFrag(XSCNode):
 
 	def _doreprtree(self,nest,elementno):
 		v = []
-		v.append([nest,self.startlineno,elementno,self._strtag('XSCFrag')])
+		v.append([nest,self.startlineno,elementno,self._strtag('Frag')])
 		i = 0
 		for child in self:
 			v = v + child._doreprtree(nest+1,elementno + [i])
 			i = i + 1
-		v.append([nest,self.endlineno,elementno,self._strtag('/XSCFrag')])
+		v.append([nest,self.endlineno,elementno,self._strtag('/Frag')])
 		return v
 
 	def __str__(self):
@@ -569,7 +569,7 @@ class XSCFrag(XSCNode):
 
 	def __getslice__(self,index1,index2):
 		"""returns a slice of the content of the fragment"""
-		return XSCFrag(self._content[index1:index2])
+		return Frag(self._content[index1:index2])
 
 	def __setslice__(self,index1,index2,sequence):
 		"""modifies a slice of the content of the fragment"""
@@ -592,54 +592,54 @@ class XSCFrag(XSCNode):
 			self._content = [ ToNode(other) ] + self._content[:]
 
 	def withoutLinefeeds(self):
-		e = XSCFrag()
+		e = Frag()
 		for child in self:
 			e.append(child.withoutLinefeeds())
 		return e
 
 	def elements(self):
-		e = XSCFrag()
+		e = Frag()
 		for child in self:
-			if isinstance(child,XSCElement):
+			if isinstance(child,Element):
 				e.append(child)
 		return e
 
 	def elementsNamed(self,element):
-		e = XSCFrag()
+		e = Frag()
 		for child in self:
 			if child.__class__ == element:
 				e.append(child)
 		return e
 
 	def elementsDerivedFrom(self,element):
-		e = XSCFrag()
+		e = Frag()
 		for child in self:
 			if isinstance(child,element):
 				e.append(child)
 		return e
 
 	def allElementsNamed(self,element):
-		e = XSCFrag()
+		e = Frag()
 		for child in self:
 			e = e + child.allElementsNamed(element)
 		return e
 
 	def allElementsDerivedFrom(self,element):
-		e = XSCFrag()
+		e = Frag()
 		for child in self:
 			e = e + child.allElementsDerivedFrom(element)
 		return e
 
-class XSCComment(XSCNode):
+class Comment(Node):
 	"""comments"""
 
-	name = "XSCComment"
+	name = "Comment"
 
 	def __init__(self,content = ""):
 		self.__content = content
 
 	def asHTML(self):
-		return XSCComment(self.__content)
+		return Comment(self.__content)
 
 	clone = asHTML
 
@@ -653,18 +653,18 @@ class XSCComment(XSCNode):
 		return "<!--" + self.__content + "-->"
 
 	def withoutLinefeeds(self):
-		return XSCComment(self.__content)
+		return Comment(self.__content)
 
-class XSCDocType(XSCNode):
+class DocType(Node):
 	"""document type"""
 
-	name = "XSCDocType"
+	name = "DocType"
 
 	def __init__(self,content = ""):
 		self.__content = content
 
 	def asHTML(self):
-		return XSCDocType(self.__content)
+		return DocType(self.__content)
 
 	clone = asHTML
 
@@ -678,12 +678,12 @@ class XSCDocType(XSCNode):
 		return "<!DOCTYPE " + self.__content + ">"
 
 	def withoutLinefeeds(self):
-		return XSCDocType(self.__content)
+		return DocType(self.__content)
 
-class XSCProcInst(XSCNode):
+class ProcInst(Node):
 	"""processing instructions"""
 
-	name = "XSCProcInst"
+	name = "ProcInst"
 
 	repransiquestion = "34"
 	repransitarget = "34"
@@ -694,7 +694,7 @@ class XSCProcInst(XSCNode):
 		self.__content = content
 
 	def asHTML(self):
-		return XSCProcInst(self.__target,self.__content)
+		return ProcInst(self.__target,self.__content)
 
 	clone = asHTML
 
@@ -708,19 +708,19 @@ class XSCProcInst(XSCNode):
 		return "<?" + self.__target + " " + self.__content + "?>"
 
 	def withoutLinefeeds(self):
-		return XSCProcInst(self.__target,self.__content)
+		return ProcInst(self.__target,self.__content)
 
-class XSCElement(XSCNode):
+class Element(Node):
 	"""XML elements"""
 
 	repransiattrquotes = "34"
 
 	empty = 1 # 0 => element with content; 1 => stand alone element
  	attr_handlers = {}
-	name = "XSCElement" # will be changed for derived classes/elements in RegisterElement()
+	name = "Element" # will be changed for derived classes/elements in registerElement()
 
 	def __init__(self,_content = [],_attrs = {},**_restattrs):
-		self.content = XSCFrag(_content)
+		self.content = Frag(_content)
 		self.attrs = {}
 		for attr in _attrs.keys():
 			self[attr] = _attrs[attr]
@@ -730,7 +730,7 @@ class XSCElement(XSCNode):
 	def append(self,item):
 		if item is not None:
 			if self.empty:
-				raise XSCEmptyElementWithContentError(xsc.parser.lineno,self)
+				raise EmptyElementWithContentError(xsc.parser.lineno,self)
 			else:
 				self.content.append(item)
 
@@ -785,7 +785,7 @@ class XSCElement(XSCNode):
 		s = str(self.content)
 		if self.empty:
 			if len(s):
-				raise XSCEmptyElementWithContentError(xsc.parser.lineno,self)
+				raise EmptyElementWithContentError(xsc.parser.lineno,self)
 			v.append(">")
 		else:
 			v.append(">")
@@ -806,7 +806,7 @@ class XSCElement(XSCNode):
 			if self.attrs.has_key(lowerindex):
 				return self.attrs[lowerindex] # we're returning the packed attribute here, because otherwise there would be no possibility to get an expanded URL
 			else:
-				raise XSCAttributeNotFoundError(xsc.parser.lineno,self,index)
+				raise AttributeNotFoundError(xsc.parser.lineno,self,index)
 		else:
 			return self.content[index]
 
@@ -821,7 +821,7 @@ class XSCElement(XSCNode):
 			if self.attr_handlers.has_key(lowerindex):
 				self.attrs[lowerindex] = self.attr_handlers[lowerindex](value) # pack the attribute into an attribute object
 			else:
-				raise XSCIllegalAttributeError(xsc.parser.lineno,self,index)
+				raise IllegalAttributeError(xsc.parser.lineno,self,index)
 		else:
 			self.content[index] = value
 
@@ -878,7 +878,7 @@ class XSCElement(XSCNode):
 					try:
 						self[widthattr] = str(eval(str(self[widthattr]) % sizedict))
 					except:
-						raise XSCImageSizeFormatError(xsc.parser.lineno,self,widthattr)
+						raise ImageSizeFormatError(xsc.parser.lineno,self,widthattr)
 				else:
 					self[widthattr] = str(size[0])
 			if size[1] != -1: # the height was retrieved so we can use it
@@ -886,7 +886,7 @@ class XSCElement(XSCNode):
 					try:
 						self[heightattr] = str(eval(str(self[heightattr]) % sizedict))
 					except:
-						raise XSCImageSizeFormatError(xsc.parser.lineno,self,heightattr)
+						raise ImageSizeFormatError(xsc.parser.lineno,self,heightattr)
 				else:
 					self[heightattr] = str(size[1])
 
@@ -903,26 +903,26 @@ class XSCElement(XSCNode):
 		return self.content.elementsDerivedFrom(element)
 
 	def allElementsNamed(self,element):
-		e = XSCFrag()
+		e = Frag()
 		if self.__class__ == element:
 				e.append(self)
 		e = e + self.content.allElementsNamed(element)
 		return e
 
 	def allElementsDerivedFrom(self,element):
-		e = XSCFrag()
+		e = Frag()
 		if isinstance(self,element):
 			e.append(self)
 		e = e + self.content.allElementsDerivedFrom(element)
 		return e
 
 
-def RegisterElement(name,element):
+def registerElement(name,element):
 	"""registers the element handler element to be used for elements with name name"""
 	_element_handlers[name] = element
 	element.name = name
 
-class XSCAttr(XSCNode):
+class Attr(Node):
 	"""
 	Base classes of all attribute classes
 	"""
@@ -942,13 +942,13 @@ class XSCAttr(XSCNode):
 		else:
 			return self
 
-class XSCTextAttr(XSCAttr):
+class TextAttr(Attr):
 	"""
 	Attribute class that is used for normal text attributes.
 	"""
 
 	def __init__(self,_content):
-		XSCAttr.__init__(self,_content)
+		Attr.__init__(self,_content)
 
 	def _dorepr(self):
 		return _stransi(xsc.repransitextattrs,str(self.content))
@@ -960,17 +960,17 @@ class XSCTextAttr(XSCAttr):
 		return str(self.content)
 
 	def asHTML(self):
-		return XSCTextAttr(self.content.clone())
+		return TextAttr(self.content.clone())
 
 	clone = asHTML
 
-class XSCColorAttr(XSCAttr):
+class ColorAttr(Attr):
 	"""
 	Attribute class that is used for a color attributes.
 	"""
 
 	def __init__(self,_content):
-		XSCAttr.__init__(self,_content)
+		Attr.__init__(self,_content)
 
 	def _dorepr(self):
 		return _stransi(xsc.repransitextattrs,str(self.content))
@@ -982,11 +982,11 @@ class XSCColorAttr(XSCAttr):
 		return str(self.content)
 
 	def asHTML(self):
-		return XSCColorAttr(self.content.clone())
+		return ColorAttr(self.content.clone())
 
 	clone = asHTML
 
-class XSCURLAttr(XSCAttr):
+class URLAttr(Attr):
 	"""
 	Attribute class that is used for URLs.
 
@@ -1012,7 +1012,7 @@ class XSCURLAttr(XSCAttr):
 	"""
 
 	def __init__(self,_content):
-		XSCAttr.__init__(self,_content)
+		Attr.__init__(self,_content)
 		url = str(self.content)
 		(self.scheme,self.server,self.path,self.parameters,self.query,self.fragment) = urlparse.urlparse(url)
 		self.path = string.split(self.path,"/")
@@ -1037,7 +1037,7 @@ class XSCURLAttr(XSCAttr):
 		return self.forOutput()
 
 	def asHTML(self):
-		return XSCURLAttr(XSCText(self.forOutput()))
+		return URLAttr(Text(self.forOutput()))
 
 	clone = asHTML
 
@@ -1104,7 +1104,7 @@ class XSCURLAttr(XSCAttr):
 				urllib.urlcleanup()
 			except IOError:
 				urllib.urlcleanup()
-				raise XSCFileNotFoundError(xsc.parser.lineno,self)
+				raise FileNotFoundError(xsc.parser.lineno,self)
 		return size
 
 	def FileSize(self):
@@ -1120,14 +1120,14 @@ class XSCURLAttr(XSCAttr):
 				urllib.urlcleanup()
 			except IOError:
 				urllib.urlcleanup()
-				raise XSCFileNotFoundError(xsc.parser.lineno,self)
+				raise FileNotFoundError(xsc.parser.lineno,self)
 		return size
 
 ###
 ###
 ###
 
-class XSCParser(xmllib.XMLParser):
+class Parser(xmllib.XMLParser):
 	entitiesByNumber = [ ]
 
 	for i in xrange(65536):
@@ -1138,8 +1138,8 @@ class XSCParser(xmllib.XMLParser):
 	def reset(self):
 		xmllib.XMLParser.reset(self)
 		# our nodes do not have a parent link, therefore we have to store the active path through the tree in a stack (which we call nesting, because stack is already used by the base class
-		# after we've finished parsing the XSCFrag that we put at the bottom of the stack will be our document root
-		self.nesting = [ XSCFrag() ]
+		# after we've finished parsing the Frag that we put at the bottom of the stack will be our document root
+		self.nesting = [ Frag() ]
 		self.lineno = -1
 		self.root = None
 
@@ -1152,7 +1152,7 @@ class XSCParser(xmllib.XMLParser):
 		self.nesting[-1].append(node) # add the new node to the content of the innermost element
 
 	def handle_proc(self,target,data):
-		self.__appendNode(XSCProcInst(target,data))
+		self.__appendNode(ProcInst(target,data))
 
 	def handle_charref(self,name):
 		try:
@@ -1161,15 +1161,15 @@ class XSCParser(xmllib.XMLParser):
 			else:
 				n = string.atoi(name)
 		except string.atoi_error:
-			raise XSCMalformedCharRefError(xsc.parser.lineno,name)
+			raise MalformedCharRefError(xsc.parser.lineno,name)
 
-		self.__appendNode(XSCCharRef(n))
+		self.__appendNode(CharRef(n))
 
 	def handle_entityref(self,name):
 		if self.entitiesByName.has_key(name):
-			self.__appendNode(XSCCharRef(self.entitiesByName[name]))
+			self.__appendNode(CharRef(self.entitiesByName[name]))
 		else:
-			raise XSCUnknownEntityError(xsc.parser.lineno,name)
+			raise UnknownEntityError(xsc.parser.lineno,name)
 
 	def unknown_starttag(self,name,attrs):
   		lowername = string.lower(name)
@@ -1177,135 +1177,135 @@ class XSCParser(xmllib.XMLParser):
 			e = _element_handlers[lowername]([],attrs)
 			e.startlineno = self.lineno
 		else:
-			raise XSCIllegalElementError(xsc.parser.lineno,lowername)
+			raise IllegalElementError(xsc.parser.lineno,lowername)
 		self.__appendNode(e)
 		self.nesting.append(e) # push new innermost element onto the stack
 
 	def unknown_endtag(self,name):
 		if string.lower(name) != self.nesting[-1].name:
-			raise XSCIllegalElementNestingError(xsc.parser.lineno,self.nesting[-1].name,name)
+			raise IllegalElementNestingError(xsc.parser.lineno,self.nesting[-1].name,name)
 		self.nesting[-1].endlineno = self.lineno
 		self.nesting[-1:] = [] # pop the innermost element off the stack
 
 	def handle_data(self,data):
 		if data != "":
-			self.__appendNode(XSCText(data))
+			self.__appendNode(Text(data))
 
 	def handle_comment(self,data):
-		self.__appendNode(XSCComment(data))
+		self.__appendNode(Comment(data))
 
-def RegisterEntity(name,number):
-	if XSCParser.entitiesByNumber[number] == None:
-		XSCParser.entitiesByNumber[number] = []
-	XSCParser.entitiesByNumber[number].append(name)
-	XSCParser.entitiesByName[name] = number
+def registerEntity(name,number):
+	if Parser.entitiesByNumber[number] == None:
+		Parser.entitiesByNumber[number] = []
+	Parser.entitiesByNumber[number].append(name)
+	Parser.entitiesByName[name] = number
 
-RegisterEntity("amp",38)
-RegisterEntity("lt",60)
-RegisterEntity("gt",62)
-RegisterEntity("apos",39)
-RegisterEntity("quot",34)
-RegisterEntity("lf",10)
-RegisterEntity("cr",13)
-RegisterEntity("ht",9)
-RegisterEntity("tab",9)
-RegisterEntity("esc",27)
-RegisterEntity("nbsp",160)
-RegisterEntity("iexcl",161)
-RegisterEntity("cent",162)
-RegisterEntity("pound",163)
-RegisterEntity("curren",164)
-RegisterEntity("yen",165)
-RegisterEntity("brvbar",166)
-RegisterEntity("sect",167)
-RegisterEntity("die",168)
-RegisterEntity("copy",169)
-RegisterEntity("ordf",170)
-RegisterEntity("laquo",171)
-RegisterEntity("not",172)
-RegisterEntity("shy",173)
-RegisterEntity("reg",174)
-RegisterEntity("macr",175)
-RegisterEntity("deg",176)
-RegisterEntity("plusmn",177)
-RegisterEntity("sup2",178)
-RegisterEntity("sup3",179)
-RegisterEntity("acute",180)
-RegisterEntity("micro",181)
-RegisterEntity("para",182)
-RegisterEntity("middot",183)
-RegisterEntity("cedil",184)
-RegisterEntity("sup1",185)
-RegisterEntity("ordm",186)
-RegisterEntity("raquo",187)
-RegisterEntity("frac14",188)
-RegisterEntity("frac12",189)
-RegisterEntity("frac34",190)
-RegisterEntity("iquest",191)
-RegisterEntity("Agrave",192)
-RegisterEntity("Aacute",193)
-RegisterEntity("Acirc",194)
-RegisterEntity("Atilde",195)
-RegisterEntity("Auml",196)
-RegisterEntity("Aring",197)
-RegisterEntity("AElig",198)
-RegisterEntity("Ccedil",199)
-RegisterEntity("Egrave",200)
-RegisterEntity("Eacute",201)
-RegisterEntity("Ecirc",202)
-RegisterEntity("Euml",203)
-RegisterEntity("Igrave",204)
-RegisterEntity("Iacute",205)
-RegisterEntity("Icirc",206)
-RegisterEntity("Iuml",207)
-RegisterEntity("ETH",208)
-RegisterEntity("Ntilde",209)
-RegisterEntity("Ograve",210)
-RegisterEntity("Oacute",211)
-RegisterEntity("Ocirc",212)
-RegisterEntity("Otilde",213)
-RegisterEntity("Ouml",214)
-RegisterEntity("times",215)
-RegisterEntity("Oslash",216)
-RegisterEntity("Ugrave",217)
-RegisterEntity("Uacute",218)
-RegisterEntity("Ucirc",219)
-RegisterEntity("Uuml",220)
-RegisterEntity("Yacute",221)
-RegisterEntity("THORN",222)
-RegisterEntity("szlig",223)
-RegisterEntity("agrave",224)
-RegisterEntity("aacute",225)
-RegisterEntity("acirc",226)
-RegisterEntity("atilde",227)
-RegisterEntity("auml",228)
-RegisterEntity("aring",229)
-RegisterEntity("aelig",230)
-RegisterEntity("ccedil",231)
-RegisterEntity("egrave",232)
-RegisterEntity("eacute",233)
-RegisterEntity("ecirc",234)
-RegisterEntity("euml",235)
-RegisterEntity("igrave",236)
-RegisterEntity("iacute",237)
-RegisterEntity("icirc",238)
-RegisterEntity("iuml",239)
-RegisterEntity("eth",240)
-RegisterEntity("ntilde",241)
-RegisterEntity("ograve",242)
-RegisterEntity("oacute",243)
-RegisterEntity("ocirc",244)
-RegisterEntity("otilde",245)
-RegisterEntity("ouml",246)
-RegisterEntity("divide",247)
-RegisterEntity("oslash",248)
-RegisterEntity("ugrave",249)
-RegisterEntity("uacute",250)
-RegisterEntity("ucirc",251)
-RegisterEntity("uuml",252)
-RegisterEntity("yacute",253)
-RegisterEntity("thorn",254)
-RegisterEntity("yuml",255)
+registerEntity("amp",38)
+registerEntity("lt",60)
+registerEntity("gt",62)
+registerEntity("apos",39)
+registerEntity("quot",34)
+registerEntity("lf",10)
+registerEntity("cr",13)
+registerEntity("ht",9)
+registerEntity("tab",9)
+registerEntity("esc",27)
+registerEntity("nbsp",160)
+registerEntity("iexcl",161)
+registerEntity("cent",162)
+registerEntity("pound",163)
+registerEntity("curren",164)
+registerEntity("yen",165)
+registerEntity("brvbar",166)
+registerEntity("sect",167)
+registerEntity("die",168)
+registerEntity("copy",169)
+registerEntity("ordf",170)
+registerEntity("laquo",171)
+registerEntity("not",172)
+registerEntity("shy",173)
+registerEntity("reg",174)
+registerEntity("macr",175)
+registerEntity("deg",176)
+registerEntity("plusmn",177)
+registerEntity("sup2",178)
+registerEntity("sup3",179)
+registerEntity("acute",180)
+registerEntity("micro",181)
+registerEntity("para",182)
+registerEntity("middot",183)
+registerEntity("cedil",184)
+registerEntity("sup1",185)
+registerEntity("ordm",186)
+registerEntity("raquo",187)
+registerEntity("frac14",188)
+registerEntity("frac12",189)
+registerEntity("frac34",190)
+registerEntity("iquest",191)
+registerEntity("Agrave",192)
+registerEntity("Aacute",193)
+registerEntity("Acirc",194)
+registerEntity("Atilde",195)
+registerEntity("Auml",196)
+registerEntity("Aring",197)
+registerEntity("AElig",198)
+registerEntity("Ccedil",199)
+registerEntity("Egrave",200)
+registerEntity("Eacute",201)
+registerEntity("Ecirc",202)
+registerEntity("Euml",203)
+registerEntity("Igrave",204)
+registerEntity("Iacute",205)
+registerEntity("Icirc",206)
+registerEntity("Iuml",207)
+registerEntity("ETH",208)
+registerEntity("Ntilde",209)
+registerEntity("Ograve",210)
+registerEntity("Oacute",211)
+registerEntity("Ocirc",212)
+registerEntity("Otilde",213)
+registerEntity("Ouml",214)
+registerEntity("times",215)
+registerEntity("Oslash",216)
+registerEntity("Ugrave",217)
+registerEntity("Uacute",218)
+registerEntity("Ucirc",219)
+registerEntity("Uuml",220)
+registerEntity("Yacute",221)
+registerEntity("THORN",222)
+registerEntity("szlig",223)
+registerEntity("agrave",224)
+registerEntity("aacute",225)
+registerEntity("acirc",226)
+registerEntity("atilde",227)
+registerEntity("auml",228)
+registerEntity("aring",229)
+registerEntity("aelig",230)
+registerEntity("ccedil",231)
+registerEntity("egrave",232)
+registerEntity("eacute",233)
+registerEntity("ecirc",234)
+registerEntity("euml",235)
+registerEntity("igrave",236)
+registerEntity("iacute",237)
+registerEntity("icirc",238)
+registerEntity("iuml",239)
+registerEntity("eth",240)
+registerEntity("ntilde",241)
+registerEntity("ograve",242)
+registerEntity("oacute",243)
+registerEntity("ocirc",244)
+registerEntity("otilde",245)
+registerEntity("ouml",246)
+registerEntity("divide",247)
+registerEntity("oslash",248)
+registerEntity("ugrave",249)
+registerEntity("uacute",250)
+registerEntity("ucirc",251)
+registerEntity("uuml",252)
+registerEntity("yacute",253)
+registerEntity("thorn",254)
+registerEntity("yuml",255)
 
 ###
 ###
@@ -1329,7 +1329,7 @@ class XSC:
 		self.repransitextattrs = ""
 		self.repransicolorattrs = ""
 		self.reprtree = 1
-		self.parser = XSCParser()
+		self.parser = Parser()
 
 	def parseString(self,filename,string):
 		"""Parses a string and returns the resulting XSC"""
@@ -1373,10 +1373,10 @@ class XSC:
 		else:
 			return 0
 
-def make(args):
-	"""class XSC as a compiles, i.e. read an input file from args[1] and writes it to args[2]"""
-	infilename = args[1]
-	outfilename = args[2]
+def make():
+	"""use XSC as a compiler script, i.e. read an input file from args[1] and writes it to args[2]"""
+	infilename = sys.argv[1]
+	outfilename = sys.argv[2]
 	print "from:",infilename,"to:",outfilename
 	e_in = xsc.parseFile(infilename)
 	e_out = e_in.asHTML()
@@ -1385,5 +1385,5 @@ def make(args):
 xsc = XSC()
 
 if __name__ == "__main__":
-	make(sys.argv)
+	make()
 
