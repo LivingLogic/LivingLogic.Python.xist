@@ -13,7 +13,13 @@ from Signature import Signature
 
 from xist import xsc,html,specials
 
+class module(xsc.Element):
+	empty = 0
+
 class function(xsc.Element):
+	empty = 0
+
+class name(xsc.Element):
 	empty = 0
 
 class signature(xsc.Element):
@@ -41,7 +47,7 @@ def __isOnlyWhiteSpace(text):
 	else:
 		return 1
 	
-def __preFormat(text):
+def getDoc(text):
 	lines = string.split(text,"\n")
 
 	# find first nonempty line
@@ -75,15 +81,11 @@ def __preFormat(text):
 
 	text = string.join(lines,"\n")
 
-	return text
-
-def __preParse(text):
-	text = __preFormat(text)
 	try:
 		e = xsc.xsc.parseString(text)
 	except:
 		e = xsc.Text(text)
-	return e
+	return desc(e)
 
 def explain(thing):
 	"""
@@ -91,14 +93,10 @@ def explain(thing):
 	<arg>thing</arg>, which can be a function, class or module.
 	"""
 
-	_desc = xsc.Null
-
 	if type(thing) == types.FunctionType:
-		if thing.__doc__ is not None:
-			_desc = desc(__preParse(thing.__doc__))
-
+		e = function()
+		e.append(name(thing.__name__))
 		xmlsig = signature()
-
 		sig = Signature(thing)
 		defaults = sig.defaults()
 		specials = sig.special_args()
@@ -111,8 +109,31 @@ def explain(thing):
 			xmlsig.append(positional(specials['positional']))
 		if specials.has_key('keyword'):
 			xmlsig.append(keyword(specials['keyword']))
-		return function(xmlsig,_desc)
+		e.append(xmlsig)
+		if thing.__doc__ is not None:
+			e.append(getDoc(thing.__doc__))
+		return e
+	elif type(thing) == types.ModuleType:
+		return explain(thing.__dict__)
+	elif type(thing) == types.DictType:
+		e = module()
+		try:
+			e.append(name(thing["__name__"]))
+			if thing["__doc__"] is not None:
+				e.append(getDoc(thing["__doc__"]))
+		except:
+			pass
+		for varname in thing.keys():
+			if type(thing[varname]) is not types.ModuleType:
+				e.append(explain(thing[varname]))
+		return e
+
+	return xsc.Null
 
 if __name__ == "__main__":
-	print repr(explain(explain))
+	e = explain(vars())
+	print "Tree:"
+	print e.reprtree()
+	print "Flat:"
+	print e.repr()
 
