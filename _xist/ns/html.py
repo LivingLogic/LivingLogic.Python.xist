@@ -632,7 +632,7 @@ class hr(xsc.Element):
 	empty = 1
 	attrHandlers = coreattrs.copy()
 	attrHandlers.update(events)
-	attrHandlers.update({"noshade": xsc.TextAttr, "size": xsc.TextAttr, "color": xsc.ColorAttr, "width": xsc.TextAttr, "align": xsc.TextAttr}) # deprecated
+	attrHandlers.update({"noshade": xsc.BoolAttr, "size": xsc.TextAttr, "color": xsc.ColorAttr, "width": xsc.TextAttr, "align": xsc.TextAttr}) # deprecated
 
 # The pain, the pain ...
 class frameset(xsc.Element):
