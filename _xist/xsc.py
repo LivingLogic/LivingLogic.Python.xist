@@ -1475,7 +1475,11 @@ class Attr(Frag):
 	&gt;&gt;&gt; from xist.ns import html
 	&gt;&gt;&gt; node = html.img( \
 	...    src="eggs.gif", \
-	...    alt=html.abbr("EGGS", title="Extensible Graphics Generation System", lang="en") \
+	...    alt=html.abbr( \
+	...       "EGGS", \
+	...       title="Extensible Graphics Generation System", \
+	...       lang="en" \
+	...    ) \
 	... )
 	&gt;&gt;&gt; print node.asBytes()
 	&lt;img alt="EGGS" src="eggs.gif" /&gt;
