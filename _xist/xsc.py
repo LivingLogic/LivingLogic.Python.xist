@@ -3252,6 +3252,9 @@ class Entity(Node):
 			s.append(presenters.strSemi())
 		return s
 
+	def __eq__(self, other):
+		return self.__class__ is other.__class__
+
 	def compact(self):
 		return self
 

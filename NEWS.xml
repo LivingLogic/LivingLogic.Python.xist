@@ -20,7 +20,10 @@ presenters are properly reset after they've done their job.</item>
 <item>All error and warning classes from <module>ll.xist.errors</module>
 have been merged into <module>ll.xist.xsc</module> (This avoids
 import problems).</item>
-<lit>attrHandlers</lit> have finally been removed.</item>
+<item><lit>attrHandlers</lit> have finally been removed.</item>
+<item>Instances of <class>ll.xist.xsc.Entity</class> subclasses can now be
+compared. <method>__eq__</method> simply checks if the objects are instances
+of the same class.</item>
 </ulist>
 </section>
 
