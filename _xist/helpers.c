@@ -496,11 +496,9 @@ Return a copy of the string S without any replacements.";
 static PyObject *strict(PyObject *self, PyObject *args)
 {
 	PyObject *str;
-	int oldsize;
 	const char *encoding;
-	PyObject *test;
 
-	if (!PyArg_ParseTuple(args, "O!s:cssescapereplace", &PyUnicode_Type, &str, &encoding))
+	if (!PyArg_ParseTuple(args, "O!s:strict", &PyUnicode_Type, &str, &encoding))
 		return NULL;
 
 	Py_INCREF(str);
