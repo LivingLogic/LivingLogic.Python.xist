@@ -123,8 +123,11 @@ class Base(object):
 ### Magic constants for tree traversal
 ###
 
-entercontent = 1723
-enterattrs = 2342
+class Const(object):
+	pass
+
+entercontent = Const()
+enterattrs = Const()
 
 
 ###
@@ -664,7 +667,7 @@ class Node(Base):
 			found = filter
 
 		for option in found:
-			if option is True:
+			if option is not entercontent and option is not enterattrs and option:
 				if walkpath:
 					yield path
 				else:
@@ -1578,15 +1581,16 @@ class Attr(Frag):
 			found = filter
 
 		for option in found:
-			if isinstance(option, bool):
-				if option:
-					if walkpath:
-						yield path
-					else:
-						yield self
-			elif option == entercontent:
+			if option is entercontent:
 				for object in Frag._walk(self, filter, path, filterpath, walkpath, False):
 					yield object
+			elif option is enterattrs:
+				pass
+			elif option:
+				if walkpath:
+					yield path
+				else:
+					yield self
 
 	def _visit(self, filter, path, filterpath, visitpath, skiproot):
 		if filterpath or visitpath:
@@ -1601,13 +1605,15 @@ class Attr(Frag):
 			found = filter
 
 		for option in found:
-			if callable(option):
+			if option is entercontent:
+				super(Attr, self)._visit(filter, path, filterpath, visitpath, False)
+			elif option is enterattrs:
+				pass
+			elif callable(option):
 				if visitpath:
 					option(path)
 				else:
 					option(self)
-			elif option == entercontent:
-				super(Attr, self)._visit(filter, path, filterpath, visitpath, False)
 
 	def parsed(self, handler, start=None):
 		self.checkvalid()
@@ -2706,18 +2712,18 @@ class Element(Node):
 				found = filter
 
 			for option in found:
-				if isinstance(option, bool):
+				if option is entercontent:
+					for object in self.content._walk(filter, path, filterpath, walkpath, False):
+						yield object
+				elif option is enterattrs:
+					for object in self.attrs._walk(filter, path, filterpath, walkpath, False):
+						yield object
+				elif option:
 					if option:
 						if walkpath:
 							yield path
 						else:
 							yield self
-				elif option == entercontent:
-					for object in self.content._walk(filter, path, filterpath, walkpath, False):
-						yield object
-				elif option == enterattrs:
-					for object in self.attrs._walk(filter, path, filterpath, walkpath, False):
-						yield object
 
 	def _visit(self, filter, path, filterpath, visitpath, skiproot):
 		if filterpath or visitpath:
@@ -2735,15 +2741,15 @@ class Element(Node):
 				found = filter
 
 			for option in found:
-				if callable(option):
+				if option is entercontent:
+					self.content._visit(filter, path, filterpath, visitpath, False)
+				elif option is enterattrs:
+					self.attrs._visit(filter, path, filterpath, visitpath, False)
+				elif callable(option):
 					if visitpath:
 						option(path)
 					else:
 						option(self)
-				elif option == entercontent:
-					self.content._visit(filter, path, filterpath, visitpath, False)
-				elif option == enterattrs:
-					self.attrs._visit(filter, path, filterpath, visitpath, False)
 
 	def copyDefaultAttrs(self, fromMapping):
 		"""
