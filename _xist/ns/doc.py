@@ -13,7 +13,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 
 """
 This namespace module provides classes that can be used for generating
-documentation (both &html; and XSL-DO).
+documentation (both &html; and XSL-FO).
 """
 
 # import __builtin__ to use property, which is also defined here
