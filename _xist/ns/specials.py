@@ -325,7 +325,7 @@ class javascript(xsc.Element):
 	attrHandlers = {"href": xsc.TextAttr}
 
 	def convert(self, converter):
-		e = html.script(self.content, language="javascript", type="text/javascript", src=self["href"])
+		e = html_.script(self.content, language="javascript", type="text/javascript", src=self["href"])
 		return e.convert(converter)
 
 # Control characters (not part of HTML)
