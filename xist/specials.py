@@ -219,9 +219,6 @@ class include(xsc.Element):
 
 		return e.asHTML()
 
-class center(xsc.Element):
-	empty = 0
-
 class par(html_.div):
 	empty = 0
 	attrHandlers = html_.div.attrHandlers.copy()
@@ -244,16 +241,20 @@ class autoimg(html_.img):
 	<par noindent>An image were width and height attributes are automatically generated.
 	If the attributes are already there, they are taken as a
 	formatting template with the size passed in as a dictionary with the keys
-	<code>"width"</code> and <code>"height"</code>, i.e. you could make your image twice
+	<code>width</code> and <code>height</code>, i.e. you could make your image twice
 	as wide with <code>width="2*%(width)d"</code>.</par>
 	"""
-
 	def asHTML(self):
 		e = html_.img(**self.attrs)
 		e._addImageSizeAttributes("src", "width", "height")
 		return e.asHTML()
 
 class autoinput(html_.input):
+	"""
+	Extends <classref module="html">input</classref>
+	with the ability to automatically set the size, if this element
+	has <code>type=="image"</code>.
+	"""
 	def asHTML(self):
 		if self.hasAttr("type") and self["type"].asHTML().asPlainString() == u"image":
 			e = html_.input(*self.content, **self.attrs)
