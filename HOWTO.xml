@@ -949,7 +949,10 @@ The resulting string is <lit>eval()</lit>uated and its result is used for the at
 So to make an image twice as wide and high do the following:</par>
 
 <programlisting>
-&lt;autoimg src="foo.png" width="%(width)d*2" height="%(height)d*2"/&gt;
+&lt;autoimg
+	src="foo.png"
+	width="%(width)d*2"
+	height="%(height)d*2"/&gt;
 </programlisting>
 
 </section>
