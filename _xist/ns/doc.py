@@ -136,6 +136,17 @@ class abbr(inline):
 		return unicode(self.content)
 
 
+class tab(xsc.Element):
+	"""
+	Used for displaying a tab character in the &html; output.
+	"""
+	register = False
+
+	def convert(self, converter):
+		e = converter.target.span(u"\xA0\xA0", class_="tab")
+		return e.convert(converter)
+
+
 class litblock(block):
 	"""
 	A literal text block (like source code or a shell dump)
@@ -153,7 +164,7 @@ class litblock(block):
 			if isinstance(child, xsc.Text):
 				for c in child.content:
 					if c==u"\t":
-						c = target.span(u"···", class_="tab")
+						c = self.xmlns.tab()
 					e.append(c)
 			else:
 				e.append(child)
