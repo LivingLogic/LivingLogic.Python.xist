@@ -209,10 +209,10 @@ class ins(XSCElement):
 	attr_handlers = AppendDict(attrs,{ "cite" : XSCFrag , "datetime" : XSCFrag })
 RegisterElement("ins",ins)
 
-class del(XSCElement):
+class del_(XSCElement):
 	close = 1
 	attr_handlers = AppendDict(attrs,{ "cite" : XSCFrag , "datetime" : XSCFrag })
-RegisterElement("del",del)
+RegisterElement("del",del_)
 
 class ul(XSCElement):
 	close = 1
