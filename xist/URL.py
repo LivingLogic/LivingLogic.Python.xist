@@ -170,7 +170,11 @@ class URL:
 		elif other.scheme == "project" or other.scheme == "server":
 			if self.scheme == "project": # if we were project relative, and the other one was server relative ...
 				self.scheme = other.scheme # ... then now we're server relative too
-			self.path       = other.path[:]
+			else:
+				if other.scheme == "project":
+					self.path.extend(other.path)
+				else:
+					self.path = other.path[:]
 			self.file       = other.file
 			self.ext        = other.ext
 			self.parameters = other.parameters
