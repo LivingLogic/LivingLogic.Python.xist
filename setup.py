@@ -50,7 +50,7 @@ setup(
 	version="2.7",
 	description="An extensible HTML/XML generator",
 	long_description=DESCRIPTION,
-	author="Walter Doerwald",
+	author=u"Walter Dörwald",
 	author_email="walter@livinglogic.de",
 	url="http://www.livinglogic.de/Python/xist/",
 	download_url="http://www.livinglogic.de/Python/xist/Download.html",

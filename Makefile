@@ -32,11 +32,11 @@ dist: test
 	rm NEWS INSTALL HOWTO EXAMPLES MIGRATION
 
 windist:
-	python$(PYVERSION) C:\\\\Programme\\\\Python23\\\\Scripts\\\\doc2txt.py --title History NEWS.xml NEWS
-	python$(PYVERSION) C:\\\\Programme\\\\Python23\\\\Scripts\\\\doc2txt.py --title "Requirements and installation" INSTALL.xml INSTALL
-	python$(PYVERSION) C:\\\\Programme\\\\Python23\\\\Scripts\\\\doc2txt.py --title "Documentation" HOWTO.xml HOWTO
-	python$(PYVERSION) C:\\\\Programme\\\\Python23\\\\Scripts\\\\doc2txt.py --title "Examples" EXAMPLES.xml EXAMPLES
-	python$(PYVERSION) C:\\\\Programme\\\\Python23\\\\Scripts\\\\doc2txt.py --title "Migration and modernization guide" MIGRATION.xml MIGRATION
+	python$(PYVERSION) C:\\\\Programme\\\\Python24\\\\Scripts\\\\doc2txt.py --title History NEWS.xml NEWS
+	python$(PYVERSION) C:\\\\Programme\\\\Python24\\\\Scripts\\\\doc2txt.py --title "Requirements and installation" INSTALL.xml INSTALL
+	python$(PYVERSION) C:\\\\Programme\\\\Python24\\\\Scripts\\\\doc2txt.py --title "Documentation" HOWTO.xml HOWTO
+	python$(PYVERSION) C:\\\\Programme\\\\Python24\\\\Scripts\\\\doc2txt.py --title "Examples" EXAMPLES.xml EXAMPLES
+	python$(PYVERSION) C:\\\\Programme\\\\Python24\\\\Scripts\\\\doc2txt.py --title "Migration and modernization guide" MIGRATION.xml MIGRATION
 	python$(PYVERSION) setup.py sdist --formats=zip
 	python$(PYVERSION) setup.py bdist --formats=wininst
 	rm NEWS INSTALL HOWTO EXAMPLES MIGRATION
