@@ -25,6 +25,7 @@ __version__ = "$Revision$"[11:-2]
 # $Source$
 
 import os
+import os.path
 import string
 import types
 import exceptions
@@ -440,12 +441,22 @@ def strTab(count,ansi = None):
 def strURL(URL,ansi = None):
 	return _stransi(repransiurl,URL,ansi)
 
+def nameOfMainModule():
+	if len(sys.argv)>0:
+		return os.path.splitext(os.path.split(sys.argv[0])[1])[0])
+	else:
+		return "__main__"
+
 def nodeName(nodeClass):
 	"""
 	returns a tuple with the namespace of the node, which is the module in which the node is implemented
 	and a name which is the name of the class. Both strings are converted to lowercase.
 	"""
-	return string.lower(nodeClass.__module__) , string.lower(nodeClass.__name__) , nodeClass.empty
+	namespace = string.lower(nodeClass.__module__)
+	name = string.lower(nodeClass.__name__)
+	if namespace == "__main__": # the element class came from the main module, get the name from sys.argv
+		namespace = string.lower(nameOfMainModule())
+	return (namespace,name,nodeClass.empty)
 
 def _strName(nodeName,content = None,brackets = 1,slash = None,ansi = None):
 	# slash == -1: before; 0: nowhere; 1:after
