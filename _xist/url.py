@@ -32,7 +32,7 @@ try:
 except ImportError:
 	Image = None
 
-import os, stat, types, urlparse, urllib, warnings
+import os, stat, urlparse, urllib, warnings
 
 from xist import options, errors
 
@@ -93,7 +93,7 @@ class URL:
 		self.file = self.params = self.query = self.fragment = None
 		if url is None:
 			pass
-		elif type(url) in (types.StringType, types.UnicodeType):
+		elif isinstance(url, (str, unicode)):
 			self.__fromString(url)
 		elif isinstance(url, URL):
 			self.scheme   = url.scheme
@@ -405,16 +405,15 @@ def test_url(o_lhs, o_rhs):
 	Check is done via comparing against another URL or a string; in the
 	later case, the URL is converted using asString().
 	"""
-	import types
 	lhs = o_lhs
 	rhs = o_rhs
 	if type(lhs) != type(rhs):
-		if type(rhs) is types.StringType:
+		if isinstance(rhs, str):
 			if isinstance(lhs, URL):
 				lhs = o_lhs.asString()
 			else:
 				lhs = str(lhs)
-		elif type(lhs) is types.StringType:
+		elif isinstance(lhs, str):
 			if isinstance(rhs, URL):
 				rhs = o_rhs.asString()
 			else:
