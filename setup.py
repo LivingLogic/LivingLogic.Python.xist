@@ -55,7 +55,7 @@ setup(
 	license="Python",
 	classifiers=CLASSIFIERS.strip().split("\n"),
 	keywords=",".join(KEYWORDS.strip().split("\n")),
-	packages=["ll", "ll.xist", "ll.xist.ns"],
+	packages=["ll", "ll.xist", "ll.xist.ns", "ll.xist.tools"],
 	package_dir={"ll": ".", "ll.xist": "_xist"},
 	ext_modules=[
 		Extension("ll.xist.csstokenizer", ["_xist/csstokenizer.cxx"]),

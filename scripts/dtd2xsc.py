@@ -18,79 +18,51 @@ Usage: python dtd2xsc.py foo.dtd
 __version__ = "$Revision$"[11:-2]
 # $Source$
 
-import sys, os.path
+import sys, os.path, optparse
 
 from xml.parsers.xmlproc import dtdparser
 
 from ll import url
 from ll.xist import xsc, parsers
 from ll.xist.ns import xndl
+from ll.xist.tools import dtd
 
-def dtd2xsc(dtdfilename, outfilename=None):
-	# get name of dtd without extension
-	modname = os.path.splitext(os.path.split(dtdfilename)[1])[0]
-	if outfilename is None:
-		outfilename = modname + ".py"
+def dtd2xsc(dtdurl, outurl, verbose, xmlname, xmlurl, skipxmlns, shareattrs):
+	if verbose:
+		print "Parsing DTD %s ..." % dtdurl
+	d = dtdparser.load_dtd(dtdurl.url)
 
-	# parse dtd
-	dtd = dtdparser.load_dtd(sys.argv[1])
+	if verbose:
+		print "Converting ..."
+	data = dtd.dtd2data(d, xmlname, xmlurl, skipxmlns)
 
-	# write header
-	file = open(outfilename, 'w')
+	if shareattrs=="dupes":
+		data.shareattrs(False)
+	elif shareattrs=="all":
+		data.shareattrs(True)
 
-	e = xndl.xndl(name=modname, url="... insert namespace URI ...")
-
-	# write elements
-	elements = dtd.get_elements()
-	elements.sort()
-	for elemname in elements:
-		elem = dtd.get_elem(elemname)
-		if elem.get_content_model() == ("", [], ""):
-			empty = True
-		else:
-			empty = None
-		e.append(xndl.element(name=elemname, empty=empty))
-
-		attrs = elem.get_attr_list()
-		if len(attrs):
-			attrs.sort()
-			for attrname in attrs:
-				if u":" in attrname:
-					continue # skip global attributes
-				attr = elem.get_attr(attrname)
-				values = []
-				if attr.type == "ID":
-					type = "IDAttr"
-				else:
-					type = "TextAttr"
-					if isinstance(attr.type, list):
-						if len(attr.type)>1:
-							values = attr.type
-						else:
-							type = "BoolAttr"
-				if attr.default is not None:
-					default = attr.default
-				else:
-					default = None
-				if attr.decl=="#REQUIRED":
-					required = True
-				else:
-					required = None
-				e[-1].append(xndl.attr(name=attrname, type=type, default=default, required=required))
-				for value in values:
-					e[-1][-1].append(xndl.value(value))
-
-	# write entities
-	ents = dtd.get_general_entities()
-	ents.sort()
-	for entname in ents:
-		if entname not in ("quot", "apos", "gt", "lt", "amp"):
-			ent = parsers.parseString(dtd.resolve_ge(entname).value)
-			e.append(xndl.charref(name=entname, codepoint=ord(unicode(ent[0])[0])))
-	data = e.asdata()
-	data.shareattrs(True)
+	if verbose:
+		print "Writing to %s ..." % outurl
+	file = outurl.openwrite()
 	file.write(data.aspy())
 	file.close()
 
 if __name__ == "__main__":
-	dtd2xsc(*sys.argv[1:3])
+	p = optparse.OptionParser(usage="usage: %prog [options] inputurl.dtd")
+	p.add_option("-o", "--output", dest="output", metavar="FILE", help="write output to FILE")
+	p.add_option("-v", "--verbose", action="store_true", dest="verbose")
+	p.add_option("-p", "--prefix", dest="xmlname", help="the XML prefix for this namespace", default="prefix", metavar="PREFIX")
+	p.add_option("-u", "--url", dest="xmlurl", help="the XML namespace name", default="... insert namespace name ...", metavar="URL")
+	p.add_option("-x", "--skipxmlns", dest="skipxmlns", help="Ignore any attribute declaration for 'xmlns'")
+	p.add_option("-s", "--shareattrs", dest="shareattrs", help="Should identical attributes be shared among elements?", choices=("none", "dupes", "all"), default="dupes")
+
+	(options, args) = p.parse_args()
+	if len(args) != 1:
+		p.error("incorrect number of arguments")
+		sys.exit(1)
+	input = url.URL(args[0])
+	if options.output is None:
+		output = url.File(input.withExt("py").file)
+	else:
+		output = url.URL(options.output)
+	dtd2xsc(input, output, options.verbose, options.xmlname, options.xmlurl, options.skipxmlns, options.shareattrs)

@@ -31,7 +31,7 @@ class Base(object):
 		Python identifier. This is done by replacing illegal characters with
 		<lit>_</lit> and appending an <lit>_</lit> when the name collides
 		with a Python keyword. Furthermore it is made sure that the new
-		name is not already part of the list <arg>names</arg>.</par>
+		name is not in the list <arg>names</arg>.</par>
 		"""
 		if self._pyname is None:
 			newname = []
@@ -98,7 +98,7 @@ class Base(object):
 
 class Doc(Base):
 	def __init__(self, content):
-		super(Doc, self).__init__(None)
+		Base.__init__(self, None)
 		self.content = content
 
 	def _aspy(self, lines, encoding, level, names):
@@ -109,7 +109,7 @@ class Doc(Base):
 
 class Namespace(Base):
 	def __init__(self, name, doc, url, content):
-		super(Namespace, self).__init__(name)
+		Base.__init__(self, name)
 		self.doc = doc
 		self.url = url
 		self.content = content
@@ -117,7 +117,7 @@ class Namespace(Base):
 	def _findgroups(self):
 		"""
 		<par>This methods find all attribute groups defined for any attribute.
-		As an attribute group can be reference multiple times (in fact that's
+		As an attribute group can be referenced multiple times (in fact that's
 		the reason for the attribute groups existence), we have to make sure
 		to list an attribute group only once. Furthermore the attribute groups
 		should appear in the order in which they are referenced.</par>
@@ -132,7 +132,6 @@ class Namespace(Base):
 						attrgroups.append(attr.shared)
 						attrgroupset[attr.shared] = True
 		return attrgroups
-
 
 	def _aspy(self, lines, encoding, level, names):
 		lines.append([level, "#!/usr/bin/env python"])
@@ -150,23 +149,27 @@ class Namespace(Base):
 
 		attrgroups = self._findgroups()
 
-		name = self.name
+		realname = self.name
+		self.name = "xmlns"
 		pyname = self.pyname(names)
+		self.name = realname
 
 		# output attribute groups
 		for attrgroup in attrgroups:
 			lines.append([0, ""])
 			attrgroup._aspy(lines, encoding, level, names)
 
-		lines.append([0, ""])
-		lines.append([level, "class %s(xsc.Namespace):" % pyname])
-		if pyname != name:
-			lines.append([level+1, "xmlname = %s" % self.simplify(name)])
-		lines.append([level+1, "xmlurl = %s" % self.simplify(self.url)])
-
+		# output elements
 		for node in self.content:
 			lines.append([0, ""])
-			node._aspy(lines, encoding, level+1, names)
+			node._aspy(lines, encoding, level, names)
+
+		lines.append([0, ""])
+		lines.append([level, "class %s(xsc.Namespace):" % pyname])
+		if pyname != self.name:
+			lines.append([level+1, "xmlname = %s" % self.simplify(self.name)])
+		lines.append([level+1, "xmlurl = %s" % self.simplify(self.url)])
+		lines.append([level, "%s.makemod(vars())" % pyname])
 
 	def shareattrs(self, all):
 		# collect all identical attributes into lists
@@ -185,7 +188,7 @@ class Namespace(Base):
 							identicalattrset[ident] = attrs
 						attrs.append(attr)
 		for attrs in identicalattrs:
-			# if the attribute appears more than once, define a group for it
+			# if the attribute appears more than once (or all attributes should be shared), define a group for it
 			if all or len(attrs) > 1:
 				group = AttrGroup(attrs[0].name, [attrs[0]])
 				for attr in attrs:
@@ -193,7 +196,7 @@ class Namespace(Base):
 
 class Element(Base):
 	def __init__(self, name, doc, empty, attrs):
-		super(Element, self).__init__(name)
+		Base.__init__(self, name)
 		self.doc = doc
 		self.empty = empty
 		self.attrs = attrs
@@ -244,7 +247,7 @@ class AttrGroup(Base):
 		if name is None:
 			name = "attrgroup_%d" % self.__class__.id
 			self.__class__.id += 1
-		super(AttrGroup, self).__init__(name)
+		Base.__init__(self, name)
 		self.attrs = attrs
 
 	def _aspy(self, lines, encoding, level, names):
@@ -256,13 +259,13 @@ class AttrGroup(Base):
 
 class Attr(Base):
 	def __init__(self, name, doc, type, required, default, values):
-		super(Attr, self).__init__(name)
+		Base.__init__(self, name)
 		self.doc = doc
 		self.type = type
 		self.required = required
 		self.default = default
 		self.values = values
-		self.shared = None
+		self.shared = None # if this attribute is part of a group shared will point to this group
 
 	def _aspy(self, lines, encoding, level, names):
 		name = self.name
@@ -291,7 +294,7 @@ class Attr(Base):
 
 class ProcInst(Base):
 	def __init__(self, name, doc):
-		super(ProcInst, self).__init__(name)
+		Base.__init__(self, name)
 		self.doc = doc
 
 	def _aspy(self, lines, encoding, level, names):
@@ -307,7 +310,7 @@ class ProcInst(Base):
 
 class Entity(Base):
 	def __init__(self, name, doc):
-		super(Entity, self).__init__(name)
+		Base.__init__(self, name)
 		self.doc = doc
 
 	def _aspy(self, lines, encoding, level, names):
@@ -323,7 +326,7 @@ class Entity(Base):
 
 class CharRef(Entity):
 	def __init__(self, name, doc, codepoint):
-		super(CharRef, self).__init__(name, doc)
+		Entity.__init__(self, name, doc)
 		self.codepoint = codepoint
 
 	def _aspy(self, lines, encoding, level, names):
@@ -421,7 +424,7 @@ class procinst(xsc.Element):
 		name = unicode(self["target"])
 		docs = self.content.find(xsc.FindType(doc))
 		if len(docs):
-			docs = docs[0]
+			docs = docs[0].content
 		else:
 			docs = None
 		return ProcInst(
@@ -438,7 +441,7 @@ class entity(xsc.Element):
 		name = unicode(self["name"])
 		docs = self.content.find(xsc.FindType(doc))
 		if len(docs):
-			docs = docs[0]
+			docs = docs[0].content
 		else:
 			docs = None
 		return Entity(
@@ -455,7 +458,7 @@ class charref(xsc.Element):
 	def asdata(self):
 		docs = self.content.find(xsc.FindType(doc))
 		if len(docs):
-			docs = docs[0]
+			docs = docs[0].content
 		else:
 			docs = None
 		return CharRef(
