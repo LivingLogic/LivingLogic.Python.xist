@@ -30,7 +30,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 import sys
 import getopt
 import time
-from xist import xsc, html, publishers, url, utils # don't do a subpackage import here, otherwise chaos will ensue, because XIST modules will be imported twice
+from xist import xsc, html, publishers, url, utils, presenters # don't do a subpackage import here, otherwise chaos will ensue, because XIST modules will be imported twice
 
 def extXSC2HTML(ext):
 	try:
@@ -44,11 +44,20 @@ def extHTML2XSC(ext):
 	except KeyError:
 		return ext
 
-def formatstring(string):
-	return xsc._stransi(["1", "32"], string)
+class ColoredString(presenters.Colored):
+	color = 0x2
 
-def formatnumber(number):
-	return xsc._stransi(["1", "35"], str(number))
+class ColoredNumber(presenters.Colored):
+	color = 0x5
+
+	def __init__(self, number):
+		presenters.Colored.__init__(self, str(number))
+
+class ColoredURL(presenters.Colored):
+	color = 0x4
+
+	def __init__(self, url):
+		presenters.Colored.__init__(self, url.asString())
 
 def make():
 	"""
@@ -97,7 +106,7 @@ def make():
 			e_out.publish(p)
 			t4 = time.clock()
 			size = p.tell()
-			sys.stderr.write("XSC(encoding=%s, XHTML=%s): %s->%s: %s (parse %ss; transform %ss; save %ss)\n" % (formatstring(p.encoding), formatnumber(p.XHTML), xsc.strURL(inname.asString()), xsc.strURL(outname.asString()), formatnumber(size), formatnumber("%.02f" % (t2-t1)), formatnumber("%.02f" % (t3-t2)), formatnumber("%.02f" % (t4-t3))))
+			sys.stderr.write("XSC(encoding=%s, XHTML=%s): %s->%s: %s (parse %ss; transform %ss; save %ss)\n" % (ColoredString(p.encoding), ColoredNumber(p.XHTML), ColoredURL(inname), ColoredURL(outname), ColoredNumber(size), ColoredNumber("%.02f" % (t2-t1)), ColoredNumber("%.02f" % (t3-t2)), ColoredNumber("%.02f" % (t4-t3))))
 			xsc.xsc.popURL()
 	else:
 		sys.stderr.write("XSC: no files to convert.\n")

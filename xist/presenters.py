@@ -63,6 +63,33 @@ class StringBuffer:
 	def __str__(self):
 		return "".join(self.buffer)
 
+class Colored:
+	"""
+	a colored string, that may consist of
+	many parts, some of them may be Colored
+	objects themselves.
+	"""
+	color = 0x7 # default color
+
+	def __init__(self, *texts):
+		self.texts = texts
+
+	def write(self, colorstream):
+		colorstream.pushColor(self.color)
+		for text in self.texts:
+			if isinstance(text, Colored):
+				text.write(colorstream)
+			else:
+				colorstream.write(text)
+		colorstream.popColor()
+
+	def __str__(self):
+		buffer = StringBuffer()
+		stream = ANSIColorStream(buffer)
+		self.write(stream)
+		stream.finish()
+		return str(buffer)
+
 class ANSIColorStream:
 	"""
 	adds color capability to an output stream. An ANSIColorStream
@@ -117,9 +144,13 @@ class ANSIColorStream:
 		writes the texts to the stream, and ensures,
 		that the texts will be in the correct color.
 		"""
-		self._switchColor(self._colorStack[-1])
 		for text in texts:
-			self._basestream.write(text)
+			if isinstance(text, Colored):
+				text.write(self)
+			else:
+				if len(text):
+					self._switchColor(self._colorStack[-1])
+					self._basestream.write(text)
 
 	def writeWithColor(self, color, *texts):
 		"""
