@@ -65,7 +65,7 @@ class Finder(object):
 	<pyref class="Node"><class>Node</class></pyref> object or an iterator
 	producing nodes and <lit><rep>b</rep></lit> is an operator object, such as
 	the subclasses of <pyref module="ll.xist.xsc" class="Node"><class>Node</class></pyref>
-	or the subclasses of <pyref class="Operator"><class>Operator</class></pyref>.
+	or the instances of <pyref class="Operator"><class>Operator</class></pyref>.
 	"""
 	__slots__ = ("iterator", "operators")
 
