@@ -402,6 +402,8 @@ def ToNode(value):
 				return value
 		elif isinstance(value, Node):
 			return value
+		elif isinstance(value, url.URL):
+			return Text(value.asString())
 	elif t in (types.StringType, types.UnicodeType, types.IntType, types.LongType, types.FloatType):
 		return Text(value)
 	elif t is types.NoneType:
@@ -885,7 +887,12 @@ class Text(Node, StringMixIn):
 				do = 1
 			else:
 				c = content[end] # ... or if the character we're at is different from those we've collected so far
-				ascharref = (0 <= ord(c) <= 31) or (128 <= ord(c) <= 159) or publishers.mustBeEncodedAsCharRef(c, encoding)
+				ascharref = (0 <= ord(c) <= 31) or (128 <= ord(c) <= 159)
+				if not ascharref:
+					try:
+						c.encode(encoding)
+					except UnicodeError:
+						ascharref = 1
 				if not refwhite and (c == u"\n" or c == u"\t"):
 					ascharref = 0
 				if ascharref != charref:
@@ -1728,13 +1735,10 @@ class URLAttr(Attr):
 
 	def __init__(self, *_content):
 		self.base = xsc.filenames[-1]
-		if len(_content) == 1 and isinstance(_content[0], url.URL):
-			Attr.__init__(self, _content[0].asString())
-		else:
-			Attr.__init__(self, *_content)
+		Attr.__init__(self, *_content)
 
 	def _str(self, content=None, brackets=None, slash=None, ansi=None):
-		attr = " %s=%s%s%s" % (strAttrName("base", ansi), strQuote(ansi=ansi), strURL(str(self.base), ansi=ansi), strQuote(ansi=ansi))
+		attr = " %s=%s%s%s" % (strAttrName("base", ansi), strQuote(ansi=ansi), strURL(self.base.asString(), ansi=ansi), strQuote(ansi=ansi))
 		return Attr._str(self, content=attr, brackets=brackets, slash=slash, ansi=ansi)
 
 	def _dorepr(self, ansi=None):
