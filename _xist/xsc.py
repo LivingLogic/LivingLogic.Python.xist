@@ -1228,16 +1228,30 @@ class StyleAttr(Attr):
 	<doc:par>Attribute class that is used for &css; style attributes.</doc:par>
 	"""
 
+	def __fancy(self):
+		"""
+		<doc:par>Internal helper, that checks, whether the node contains
+		non <pyref class="Text"><class>Text</class></pyref> nodes.</doc:par>
+		"""
+		for child in self:
+			if not isinstance(child, (Text, CharRef)):
+				return 1
+		return 0
+
 	def parsed(self, handler):
-		value = cssparsers.parseString(unicode(self), handler=cssparsers.ParseHandler(), base=handler.base)
-		self[:] = value
+		if not self.__fancy():
+			value = cssparsers.parseString(unicode(self), handler=cssparsers.ParseHandler(), base=handler.base)
+			self[:] = (value, )
 
 	def publish(self, publisher):
 		if publisher.inAttr:
 			raise errors.IllegalAttrNodeError(self)
-		value = cssparsers.parseString(unicode(self), handler=cssparsers.PublishHandler(), base=publisher.base)
-		new = Attr(value)
-		new.publish(publisher)
+		if not self.__fancy():
+			value = cssparsers.parseString(unicode(self), handler=cssparsers.PublishHandler(), base=publisher.base)
+			new = Attr(value)
+			new.publish(publisher)
+		else:
+			super(StyleAttr, self).publish(publisher)
 
 	def urls(self):
 		"""

@@ -7,6 +7,11 @@ instead of complaining.</item>
 is a &sax;2 parser that recognizes the character entities
 defined in &html; and tries to pass on unknown or malformed
 entities to the handler literally.</item>
+<item>To give all nodes a chance to do something after they have been parsed
+(e.g. to prepend the base URL for URLAttr nodes), the parser now calls
+the method parsed() immediately after node creation. This is used for
+the new class StyleAttr, which uses the CSSTokenizer, to prepend to
+base url to all url found in a style attribute.</item>
 </ulist>
 </section>
 
