@@ -231,7 +231,7 @@ class SQLCommand:
 			elif format==1:
 				return name + " IS NULL"
 			else:
-				return name + "NULL"
+				return "NULL"
 		else:
 			if format==0 or format==1:
 				return name + "=" + self.formatValue(value)
