@@ -40,6 +40,7 @@ from xml.sax import saxlib
 timeoutsocket = None
 
 import xsc, url as url_, errors, utils
+from ns import html
 
 class StringInputSource(sax.xmlreader.InputSource):
 	def __init__(self, text):
@@ -129,8 +130,11 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 		self.defaultEncoding = defaultEncoding
 		self.reset()
 
+	def whichParser(self):
+		return sgmlop.XMLParser()
+
 	def reset(self):
-		self.parser = sgmlop.XMLParser()
+		self.parser = self.whichParser()
 		self._parsing = 0
 		self.encoding = self.defaultEncoding
 		self.source = None
@@ -143,6 +147,7 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 		self.parser.feed(data)
 
 	def close(self):
+		self._parsing = 0
 		self.parser.close()
 		self.content_handler.endDocument()
 
@@ -228,19 +233,18 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 				self.encoding = encodingFound
 
 	def handle_entityref(self, name):
-		if hasattr(self.content_handler, "entity"):
-			self.content_handler.entity(unicode(name, self.encoding))
+		self.content_handler.skippedEntity(unicode(name, self.encoding))
 
 	def finish_starttag(self, name, attrs):
-		newattrs = sax.xmlreader.AttributesImpl(attrs)
+		newattrs = sax.xmlreader.AttributesImpl({})
 		for (attrname, attrvalue) in attrs.items():
-			newattrs._attrs[unicode(attrname, self.encoding)] = self.__string2Fragment(unicode(attrvalue, self.encoding))
+			newattrs._attrs[unicode(attrname, self.encoding)] = self._string2Fragment(unicode(attrvalue, self.encoding))
 		self.content_handler.startElement(unicode(name, self.encoding), newattrs)
 
 	def finish_endtag(self, name):
 		self.content_handler.endElement(unicode(name, self.encoding))
 
-	def __string2Fragment(self, text):
+	def _string2Fragment(self, text):
 		"""
 		parses a string that might contain entities into a fragment
 		with text nodes, entities and character references.
@@ -273,6 +277,97 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 				if len(text):
 					node.append(text)
 				break
+		return node
+
+class HTMLParser(SGMLOPParser):
+	"""
+	A SAX2 parser that can parse HTML.
+	"""
+
+	def __init__(self, namespaceHandling=0, bufsize=2**16-20):
+		SGMLOPParser.__init__(self, namespaceHandling, bufsize, "iso-8859-1")
+
+	def whichParser(self):
+		return sgmlop.SGMLParser()
+
+	def reset(self):
+		SGMLOPParser.reset(self)
+		self.__nesting = []
+
+	def close(self):
+		SGMLOPParser.close(self)
+		self.__nesting = []
+
+	def handle_comment(self, data):
+		print "HTML comment %r" % data
+		self.__closeEmpty()
+		SGMLOPParser.handle_comment(self, data)
+
+	def handle_data(self, data):
+		print "HTML data %r" % data
+		self.__closeEmpty()
+		SGMLOPParser.handle_data(self, data)
+
+	def handle_proc(self, target, data):
+		print "HTML proc %r %r" % (target, data)
+		self.__closeEmpty()
+		SGMLOPParser.handle_proc(self, target, data)
+
+	def handle_entityref(self, name):
+		print "HTML entityref %r" % name
+		self.__closeEmpty()
+		SGMLOPParser.handle_entityref(self, name)
+
+	def finish_starttag(self, name, attrs):
+		print "HTML finish_starttag", name, self.__nesting
+		self.__closeEmpty()
+		name = name.lower()
+		self.__nesting.append(name)
+		newattrs = {}
+		for (attrname, attrvalue) in attrs:
+			newattrs[attrname.lower()] = attrvalue
+		SGMLOPParser.finish_starttag(self, name, newattrs)
+
+	def finish_endtag(self, name):
+		print "HTML finish_endtag", name, self.__nesting
+		name = name.lower()
+		if len(self.__nesting) and self.__nesting[-1] != name: # e.g. <div><img></div> when </div> is encountered
+			self.__closeEmpty()
+		SGMLOPParser.finish_endtag(self, name)
+		del self.__nesting[-1]
+
+	def __closeEmpty(self):
+		if len(self.__nesting) and html.namespace.elementsByName[self.__nesting[-1]].empty:
+			self.finish_endtag(self.__nesting[-1])
+
+	def _string2Fragment(self, text):
+		"""
+		This version tries to pass illegal content literally.
+		"""
+		if text is None:
+			return xsc.Null
+		node = xsc.Frag()
+		parts = text.split("&")
+		node.append(parts[0])
+		del parts[0]
+		for part in parts:
+			pos = part.find(";")
+			if pos == -1: # no ; found, so it's no entity => append it literally
+				node.append("&", part)
+			else: # ; found
+				if part[0] != "#": # named entity
+					try:
+						node.append(html.namespace.entityFromName(part[:pos])(), part[pos+1:])
+					except KeyError: # no entity with such a name => append it literally
+						node.append("&", part)
+				else: # numeric entity
+					try:
+						if part[1] == "x": # hex entity
+							node.append(unichr(int(part[2:pos], 16)), part[pos+1:])
+						else: # decimal entity
+							node.append(unichr(int(part[1:pos])), part[pos+1:])
+					except ValueError: # illegal format => append it literally
+						node.append("&", part)
 		return node
 
 ExpatParser = expatreader.ExpatParser
@@ -355,7 +450,7 @@ class Handler:
 	def processingInstruction(self, target, data):
 		self.__appendNode(self.namespaces.procInstFromName(target)(data))
 
-	def entity(self, name):
+	def skippedEntity(self, name):
 		node = self.namespaces.entityFromName(name)()
 		if isinstance(node, xsc.CharRef):
 			self.characters(unichr(node.codepoint))
