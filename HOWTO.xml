@@ -1,11 +1,12 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
 <par>&xist; is an &xml; based extensible &html; generator written in Python.
 It was developed as a replacement for an &html; preprocessor named
-<app moreinfo="http://www.linguistik.uni-erlangen.de/~msbethke/hsc/">HSC</app>,
+<app moreinfo="http://www.linguistik.uni-erlangen.de/~msbethke/hsc/">HSC</app>
 and borrows some features and ideas from it. It also borrows the basic ideas
 (&xml;/&html; elements as Python objects) from
 <app moreinfo="http://starship.python.net/crew/friedrich/HTMLgen/html/main.html">HTMLgen</app>
 or <app moreinfo="http://dustman.net/andy/python/HyperText/">HyperText</app>.</par>
+
 
 <section><title>Overview</title>
 <par>&xist; can be used as a compiler that reads an input &xml; file
@@ -21,7 +22,7 @@ tree &mdash; as <app>HTMLgen</app> and <app>HyperText</app>
 do &mdash; as a tree of Python objects. &xist; provides a very natural
 and pythonic &api; for that.</item>
 <item>Converting the source tree into a target tree: This target
-tree can be a &html; tree or a &wml; tree or any other
+tree can be a &html; tree or a &svg; tree or XSL-Fo tree or any other
 &xml; tree you like. Every node class provides a
 <method>convert</method> method for performing the conversion. For
 your own &xml; element types you have to define your
@@ -29,10 +30,11 @@ own element classes and implement an appropriate
 <method>convert</method> method. This is possible for
 processing instructions and entity references too.</item>
 <item>Publishing the target tree: For generating the final
-output all node classes provide a <method>publish</method> method, that
-passes the string fragments to an appropriate publishing handler.</item>
+output a <class>Publisher</class> object is used that writes
+the final &xml; to an output stream.</item>
 </ulist>
 </section>
+
 
 <section><title>Constructing &xml; trees</title>
 <par>Like any other &dom; &api;, &xist; provides the usual classes:</par>
@@ -57,7 +59,7 @@ declarations (e.g. <markup>&lt;!DOCTYPE html PUBLIC <rep>...</rep>&gt;</markup>)
 <section><title>&xml; trees as Python objects</title>
 <par>&xist; works somewhat different from a normal &dom; &api;.
 Instead of only one element class, &xist; has one class for every element
-type. All the elements known to &xist; are defined in modules in
+type. All the standard elements known to &xist; are defined in modules in
 the <pyref module="ll.xist.ns"><module>ll.xist.ns</module></pyref> subpackage.
 The definition of &html; can be found in
 <pyref module="ll.xist.ns.html"><module>ll.xist.ns.html</module></pyref>
@@ -118,34 +120,23 @@ node = html.div(
 &xml; files. For this the module <pyref module="ll.xist.parsers"><module>ll.xist.parsers</module></pyref>
 provides several functions:</par>
 <prog>
-def parseString(text, systemId="STRING",
-	base=None, handler=None, parser=None,
-	prefixes=None, encoding="utf-8", tidy=False)
-
-def parseURL(id,
-	base=None, handler=None, parser=None,
-	prefixes=None, encoding="utf-8", tidy=False,
-	headers=None, data=None)
-
-def parseFile(filename,
-	base=None, handler=None, parser=None,
-	prefixes=None, encoding="utf-8", tidy=False)
+def parseString(text, base=None, sysid=None, **parserargs)
+def parseURL(id, base=None, sysid=None, **parserargs)
+def parseFile(filename, base=None, sysid=None, **parserargs)
 </prog>
 <par><pyref module="ll.xist.parsers" function="parseString"><function>parseString</function></pyref>
 is for parsing strings (8bit and Unicode) and
 <pyref module="ll.xist.parsers" function="parseURL"><function>parseURL</function></pyref> is for
-parsing files from &url;s. With
+parsing resources from &url;s. With
 <pyref module="ll.xist.parsers" function="parseFile"><function>parseFile</function></pyref> you can parse
 local files.</par>
-<par>All three functions call
-<pyref module="ll.xist.parsers" function="parse"><function>ll.xist.parsers.parse</function></pyref>
-internally and pass an appropriate <arg>source</arg> argument, which is a standard &sax;
-<class>InputSource</class> instance, so it's possible to extend the parsing machinery.</par>
-<par>For further info about the arguments, see the documentation
-for <pyref module="ll.xist.parsers" function="parse"><function>ll.xist.parsers.parse</function></pyref> and
-the classes in the module <pyref module="ll.xist.sources"><module>ll.xist.sources</module></pyref>.</par>
+<par>All three functions call create a parser internally, parse the supplied source document and will
+return the resulting object tree.</par>
+<par>For further info about the rest of the arguments, see the documentation
+for <pyref module="ll.xist.parsers" class="Parser"><class>ll.xist.parsers.Parser</class></pyref>.</par>
 </section>
 </section>
+
 
 <section><title>Defining new elements and converting &xml; trees</title>
 
@@ -337,16 +328,17 @@ subclasses are:</par>
 <ulist>
 <item><pyref module="ll.xist.xsc" class="TextAttr"><class>TextAttr</class></pyref>, for normal text attributes;</item>
 <item><pyref module="ll.xist.xsc" class="URLAttr"><class>URLAttr</class></pyref>, for attributes that are &url;s;</item>
-<item><pyref module="ll.xist.xsc" class="BoolAttr"><class>BoolAttr</class></pyref>, for boolean attributes (such an attribute
-is either present or not, but it's value will always be the same as the attribute name);</item>
+<item><pyref module="ll.xist.xsc" class="BoolAttr"><class>BoolAttr</class></pyref>, for boolean attributes (for such an attribute
+only its presence is important, it's value will always be the same as the attribute name when publishing);</item>
 <item><pyref module="ll.xist.xsc" class="IntAttr"><class>IntAttr</class></pyref>, for integer attributes;</item>
-<item><pyref module="ll.xist.xsc" class="ColorAttr"><class>ColorAttr</class></pyref>, for color attributes (e.g. <lit>#ffffff</lit>)</item>
+<item><pyref module="ll.xist.xsc" class="ColorAttr"><class>ColorAttr</class></pyref>, for color attributes (e.g. <lit>#ffffff</lit>).</item>
 </ulist>
 
 <par><pyref module="ll.xist.xsc" class="Attr"><class>Attr</class></pyref> itself is derived from
 <pyref module="ll.xist.xsc" class="Frag"><class>Frag</class></pyref> so it is possible
-to use all the sequence methods on an attribute. Unset attributes will be treated
-like empty ones so the following is possible:</par>
+to use all the sequence methods on an attribute.</par>
+
+<par>Unset attributes will be treated like empty ones so the following is possible:</par>
 
 <example>
 <prog>
@@ -381,8 +373,8 @@ if it may not.</par>
 
 <par>To specify the attributes for the element, use the class
 attribute <lit>Attrs</lit>, which must be a class derived
-from <class>Element.Attrs</class> and define the attributes
-by deriving them from one of the existing attribute classes.
+from <pyref module="ll.xist.xsc" class="Element.Attrs"><class>xsc.Element.Attrs</class></pyref>
+and define the attributes by deriving them from one of the existing attribute classes.
 We could extend our example element in the following way:</par>
 
 <example><title>Using attributes</title>
@@ -552,7 +544,7 @@ and <lit>xmlurl</lit> is the namespace name. All element classes nested inside t
 namespace class belong to the namespace.</par>
 
 <par>It's also possible to define your namespace class without any nested element classes.
-and later add those classes to the namespace with the class method
+and later add those classes to the namespace by attribute assignment or with the class method
 <pyref module="ll.xist.xsc" class="Namespace" method="update"><method>update</method></pyref>,
 which expects a dictionary as an argument. All objects found in the values of the
 dictionary will be added to the namespace as attributes. So you can put the namespace class
@@ -626,17 +618,17 @@ of the module:</par>
 &gt;&gt;&gt; import foo
 &gt;&gt;&gt; foo
 &lt;foo:xmlns namespace name=u"foo" url=u"http://www.foo.net/foo" \
-   with 2 elements from "foo.py" at 0x87654321&gt;&&FIXME
+   with 2 elements from "foo.py" at 0x87654321&gt;
 &gt;&gt;&gt; foo.python
-&lt;foo:python element at 0x87654321&gt;&&FIXME
+&lt;foo:python element at 0x87654321&gt;
 </prog>
 </section>
 
 <section><title>Subclassing namespaces</title>
 <par>Each element class that belongs to a namespace can access its
-namespace via the class attribute <lit>xmlns</lit>. When you can subclass
+namespace via the class attribute <lit>xmlns</lit>. When you're subclassing
 namespace classes, the elements in the base namespace will be automatically
-subclasses too. Of course you can explicitly subclass an element class too.
+subclassed too. Of course you can explicitly subclass an element class too.
 The following example should show the usefulness of this feature. Define
 your base namespace like this and put it into <filename>navns.py</filename>:</par>
 
@@ -851,9 +843,11 @@ class xml(xsc.Entity):
 
 <par>Now you can use this new entity in your &xml; files:</par>
 
+<example><title>Using the newly defined entity</title>
 <prog>
 &lt;cool adj="very"&gt;&amp;xml;&lt;/cool&gt;
 </prog>
+</example>
 
 </section>
 
@@ -874,9 +868,11 @@ class upper(xsc.ProcInst):
 
 <par>it can be used in an &xml; file as following:</par>
 
+<example><title>Using the newly defined processing instruction</title>
 <prog>
-&lt;?upper foo?&gt;
+&lt;cool&gt;&lt;?upper foo?&gt;&lt;/cool&gt;
 </prog>
+</example>
 
 </section>
 
@@ -918,7 +914,8 @@ Traceback (most recent call last):
     return publisher.asBytes()
   File "~/pythonroot/xist/publishers.py", line 162, in asBytes
     return u"".join(self.texts).encode(self.encoding)
-UnicodeError: ASCII encoding error: ordinal not in range(128)
+UnicodeEncodeError: 'ascii' codec can't encode \
+characters in position 0-2: ordinal not in range(128)
 </prog>
 
 <par>Another useful parameter is <arg>xhtml</arg>,
@@ -952,90 +949,55 @@ an empty tag (without an additional space): <markup>&lt;br/&gt;</markup> or <mar
 <par>All these methods use the method
 <pyref module="ll.xist.xsc" class="Node" method="publish"><method>publish</method></pyref> internally.
 <pyref module="ll.xist.xsc" class="Node" method="publish"><method>publish</method></pyref> gets passed
-an instance of <pyref module="ll.xist.publishers" class="Publisher"><class>ll.xist.publisher.Publisher</class></pyref>
-(or one of it's subclasses). All strings generated will be sent to the
-<pyref module="ll.xist.publishers" class="Publisher" method="publish"><method>publish</method></pyref> method
-of the publisher. <pyref module="ll.xist.xsc" class="Node" method="write"><method>write</method></pyref>
-uses <pyref module="ll.xist.publishers" class="FilePublisher"><class>FilePublisher</class></pyref>
-and
-<pyref module="ll.xist.xsc" class="Node" method="asBytes"><method>asBytes</method></pyref>
-uses <pyref module="ll.xist.publishers" class="BytePublisher"><class>BytePublisher</class></pyref>.</par>
+an instance of <pyref module="ll.xist.publishers" class="Publisher"><class>ll.xist.publisher.Publisher</class></pyref>.</par>
 </section>
 
-<section><title>Manipulating trees</title>
-<par>&xist; provides many methods for manipulating an
-&xml; tree. Finding nodes in a tree can be done with the method
+
+<section><title>Searching trees</title>
+
+<par>Finding nodes in a tree can be done with the method
 <pyref module="ll.xist.xsc" class="Node" method="find"><method>find</method></pyref>.
 <pyref module="ll.xist.xsc" class="Node" method="find"><method>find</method></pyref> will return
 a <pyref module="ll.xist.xsc" class="Frag"><class>Frag</class></pyref> with the nodes it finds.
-Parameters are the following:</par>
-<dlist>
-<term><arg>type</arg></term><item>This is a class object or a list of class
-objects. <pyref module="ll.xist.xsc" class="Node" method="find"><method>find</method></pyref> will
-only find nodes that are instances of these classes (or subclasses);</item>
-<term><arg>subtype</arg></term><item>A flag that indicates if instances
-of subclasses of those specified in the <arg>type</arg> parameter should
-be returned too (default <lit>False</lit>);</item>
-<term><arg>attrs</arg></term><item><par>This is a dictionary mapping attribute
-names to attribute string values (or <lit>None</lit>). This makes it possible
-to search for elements with certain attributes, e.g.</par>
-<prog>
-node.find(type=html.a, attrs={"name": None})
-</prog>
-<par>will find all nodes in <lit>node</lit> that are instances of
-<pyref module="ll.xist.ns.html" class="a"><class>html.a</class></pyref>
-and have the attribute <lit>name</lit> set (i.e. the attribute is not empty).</par>
-<prog>
-node.find(
-	type=html.a,
-	attrs={"href": None, "rel": "parent"}
-)
-</prog>
-<par>will find all <pyref module="ll.xist.ns.html" class="a"><class>a</class></pyref>
-instances where the <pyref module="ll.xist.xsc" class="Node" method="__unicode__"><method>__unicode__</method></pyref>
-value of the <lit>rel</lit> attribute is <lit>"parent"</lit> and the <lit>href</lit>
-attribute is set;</par></item>
-<term><arg>test</arg></term><item><par>This a callable object that will be called
-to test if a node should be returned from
-<pyref module="ll.xist.xsc" class="Node" method="find"><method>find</method></pyref> when it
-passes all previous tests:</par>
-<prog>
-&gt;&gt;&gt; from ll.xist import xsc
-&gt;&gt;&gt; nums = ["%d," % i for i in xrange(100)]
-&gt;&gt;&gt; node = xsc.Frag(*nums)
-&gt;&gt;&gt; def test(node):
-...    return unicode(node).startswith(u"4")
-...
-&gt;&gt;&gt; print node. \
-...    find(test=test). \
-...    asBytes()
-4,40,41,42,43,44,45,46,47,48,49,
-</prog>
-</item>
-<term><arg>searchchildren</arg></term><item>A flag that specifies if the tree
-should be searched recursively (<lit><arg>searchchildren</arg>==True</lit>) or only
-the first level (<lit><arg>searchchildren</arg>==False</lit>)</item>
-<term><arg>searchattrs</arg></term><item>A flag which specifies if attribute
-nodes should be searched too (default <lit>False</lit>).</item>
-</dlist>
+You pass a callable object to <method>find</method> which is used for determining which part of the
+tree should be searched and which nodes should be returned.</par>
+<par><module>ll.xist.xsc</module> provided several useful predefined classes for that.
+<pyref module="ll.xist.xsc" class="FindType"><class>FindType</class></pyref> will search only
+the first level of the tree and will return any node that is an instance of one of the classes
+passed to the constructor. So if you have an instance of <class>ll.xist.ns.html.ul</class>
+named <lit>node</lit> you could search for all <class>ll.xist.ns.li</class> elements inside
+with the following code:</par>
 
-<par>You could for example extract all the links on the
-<link href="http://www.python.org/">Python home page</link> with the following:</par>
+<example><title>Searching for <class>li</class> inside <class>ul</class></title>
+<prog>
+node.content.find(xsc.FindType(html.li))
+</prog>
+</example>
+
+<par><pyref module="ll.xist.xsc" class="FindTypeAll"><class>FindTypeAll</class></pyref>
+can be used when you want to search the complete tree. The following example extracts
+all the links on the <link href="http://www.python.org/">Python home page</link>:</par>
+
+<example><title>Finding all links on the Python home page</title>
+<prog>
+from ll.xist import xsc, parsers
+from ll.xist.ns import html, chars
+
+node = parsers.parseURL(
+	"http://www.python.org/",
+	encoding="latin1",
+	tidy=True)
+
+links = node.find(xsc.FindTypeAll(html.a))
+
+for link in links:
+	print link["href"]
+</prog>
+</example>
+
+<par>This gives the output:</par>
 
 <prog>
-&gt;&gt;&gt; from ll.xist import xsc, parsers
-&gt;&gt;&gt; from ll.xist.ns import html
-&gt;&gt;&gt; node = parsers.parseURL(
-...   "http://www.python.org/",
-...   encoding="iso-8859-1",
-...   tidy=True)
-&gt;&gt;&gt; links = node.find(
-...    type=html.a,
-...    attrs={"href": None},
-...    searchchildren=True)
-&gt;&gt;&gt; for link in links:
-...    print link["href"]
-...
 http://www.python.org/
 http://www.python.org/search/
 http://www.python.org/download/
@@ -1044,6 +1006,76 @@ http://www.python.org/Help.html
 http://www.python.org/dev/
 ...
 </prog>
+
+<par>The following example will find all external links on the Python home page:</par>
+
+<example><title>Finding external links on the Python home page</title>
+<prog>
+from ll.xist import xsc, parsers
+from ll.xist.ns import html, chars
+
+node = parsers.parseURL(
+	"http://www.python.org/",
+	encoding="latin1",
+	tidy=True)
+
+def isextlink(node):
+	if isinstance(node, html.a) \
+		and not unicode(node["href"]).startswith("http://www.python.org"):
+		return (True, xsc.entercontent)
+	return (xsc.entercontent,)
+
+links = node.find(isextlink)
+
+for link in links:
+	print link["href"]
+</prog>
+</example>
+
+<par>This gives the output:</par>
+
+<prog>
+http://www.jython.org/
+http://sourceforge.net/tracker/?atid=105470&amp;group%5fid=5470
+http://sourceforge.net/tracker/?atid=305470&amp;group%5fid=5470
+http://sourceforge.net/cvs/?group%5fid=5470
+http://www.python-in-business.org/
+http://www.europython.org/
+mailto:webmaster@python.org
+...
+</prog>
+
+<par>The callable (<function>isextlink</function> in the example) will be called
+for each node and must return a sequence with the following entries:</par>
+
+<dlist>
+<term><lit>ll.xist.xsc.entercontent</lit></term><item>enter the content of this element
+and continue searching;</item>
+<term><lit>ll.xist.xsc.enterattrs</lit></term><item>enter the attributes of this element
+and continue searching;</item>
+<term>boolean value</term><item>If true, the node will be part of the resulting fragment.</item>
+</dlist>
+
+<par>The sequence will be <z>executed</z> in the order you specify. To change
+the top down traversal from our example to a bottom up traversal we could change
+<function>isextlink</function> to (note the swapped tuple entries):</par>
+
+<example><title>Bottom up link traversal function</title>
+<prog>
+def isextlink(node):
+	if isinstance(node, html.a) \
+		and not unicode(node["href"]).startswith("http://www.python.org"):
+		return <em>(xsc.entercontent, True)</em>
+	return (xsc.entercontent,)
+</prog>
+</example>
+
+</section>
+
+
+<section><title>Manipulating trees</title>
+<par>&xist; provides many methods for manipulating an
+&xml; tree.</par>
 
 <par>The method <pyref module="ll.xist.xsc" class="Node" method="withsep"><method>withsep</method></pyref>
 can be used to put a seperator node between the child nodes of an
@@ -1209,22 +1241,22 @@ are not set already.</par>
 <section><title>Embedding Python code</title>
 <par>It's possible to embed Python code into &xist; &xml; files. For this
 &xist; supports two new processing instructions:
-<pyref module="ll.xist.ns.code" class="exec_"><lit>exec_</lit></pyref>
-and <pyref module="ll.xist.ns.code" class="eval_"><lit>eval_</lit></pyref> (in the module
+<pyref module="ll.xist.ns.code" class="pyexec"><lit>pyexec</lit></pyref>
+and <pyref module="ll.xist.ns.code" class="pyeval_"><lit>pyeval</lit></pyref> (in the module
 <pyref module="ll.xist.ns.code"><module>ll.xist.ns.code</module></pyref>. The content of
-<pyref module="ll.xist.ns.code" class="exec_"><lit>exec_</lit></pyref> will be
+<pyref module="ll.xist.ns.code" class="pyexec"><lit>pyexec</lit></pyref> will be
 executed when the processing instruction node is instantiated, i.e. when the
 &xml; file is parsed, so anything you do there will be available afterwards.</par>
 
 <par>The result of a call to <pyref module="ll.xist.xsc" class="Node" method="convert"><method>convert</method></pyref>
-for a <pyref module="ll.xist.ns.code" class="eval_"><lit>eval_</lit></pyref> processing instruction is whatever the
+for a <pyref module="ll.xist.ns.code" class="pyeval"><lit>pyeval</lit></pyref> processing instruction is whatever the
 Python code in the content returns. The processing instruction content is treated as the body
 of a function, so you can put multiple return statements there.
 The converter is available as the parameter <arg>converter</arg> inside
 the processing instruction. For example, consider the following &xml; file:</par>
 
 <prog>
-&lt;?code:exec
+&lt;?pyexec
 	# sum
 	def gauss(top=100):
 		sum = 0
@@ -1232,7 +1264,7 @@ the processing instruction. For example, consider the following &xml; file:</par
 			sum += i
 		return sum
 ?&gt;
-&lt;b&gt;&lt;?code:eval return gauss()?&gt;&lt;/b&gt;
+&lt;b&gt;&lt;?pyeval return gauss()?&gt;&lt;/b&gt;
 </prog>
 
 <par>Parsing this file and calling
