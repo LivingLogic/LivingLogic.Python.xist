@@ -90,7 +90,7 @@ class pixel(html.img):
 
 	def convert(self, converter):
 		color = self.getattr("color", 0)
-		e = html.img(self.attrs.without(["color"])
+		e = html.img(self.attrs.without(["color"]))
 		if not e.hasattr("alt"):
 			e["alt"] = u""
 		if not e.hasattr("width"):
