@@ -71,7 +71,7 @@ in the <lit>contentType</lit> attribute is only done when there
 is a <lit>contentType</lit> attribute, as <lit>contentType</lit>
 is optional.</item>
 
-<item><par>The converter has a new property <function>node</function>.
+<item>The converter has a new property <function>node</function>.
 <arg>node</arg> can't be passed to <method>conv</method> but
 will be set to <self/> by <method>conv</method> automatically.
 This makes it possible to access the <z>document root</z>
