@@ -98,7 +98,7 @@ class directive_taglib(directive):
 class directive_page(directive):
 	register = 1
 	name = "directive.page"
-	attrHandlers = {"import": xsc.TextAttr, "buffer": xsc.TextAttr, "errorPage": xsc.URLAttr}
+	attrHandlers = {"import": xsc.TextAttr, "buffer": xsc.TextAttr, "errorPage": xsc.URLAttr, "session": xsc.TextAttr}
 
 # register all the classes we've defined so far
 namespace = xsc.Namespace("jsp", "http://java.sun.com/products/jsp/dtd/jsp_1_0.dtd", vars())
