@@ -1,3 +1,10 @@
+New in 0.4.1
+------------
+
+New element specials.contenttype, that simplyfies generating
+a <meta http-equiv="Content-Type" ...>.
+
+
 New in 0.4
 ----------
 XIST now requires at least Python 2.0b1.
@@ -41,10 +48,10 @@ The method will be applied recursively, i.e. e[[0, 1, "foo", 2] is the
 same as e[0][1]["foo"][2].
 
 The deprecated module db no longer exists. Useful functions and elements
-from db have been move to sql.py und form.py respectively.
+from db have been moved to sql.py and form.py respectively.
 
 When using xsc.make() the encoding and XHTML parameters to use can now
-be specified one the command line (e.g. --encoding utf-8 --xhtml 2)
+be specified on the command line (e.g. --encoding utf-8 --xhtml 2)
 
 Handling of multiline <?xsc-eval?> and <?xsc-exec?> has been enhanced,
 although, XIST will not be able to guess the correct indentation in all
