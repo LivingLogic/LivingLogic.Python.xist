@@ -100,10 +100,6 @@ class base(xsc.Element):
 		)
 		return e
 
-	def xconvert_fo(self, converter):
-		e = self.content.convert(converter)
-		return e
-
 class block(base):
 	"""
 	Base class for all block level elements
