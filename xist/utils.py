@@ -13,11 +13,15 @@ that are used internally by XIST.
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-codeEncoding = "iso-8859-1"
-
 import sys
 import os
 import types
+
+def stringFromCode(text):
+	if type(text) is types.UnicodeType:
+		return text
+	else:
+		return unicode(str(text))
 
 def forceopen(name, mode="r", bufsize=-1):
 	try:

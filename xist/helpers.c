@@ -283,59 +283,66 @@ static PyObject *escapeAttr(PyObject *self, PyObject *args)
 	}
 }
 
-static char stringFromCode__doc__[] =
-"stringFromCode(string) -> unicode\n\
-\n\
-Returns an unicode representation of string.\n\
-This is the same as unistr(string) and will\n\
-disappear in Python 2.1.";
-
-PyObject *stringFromCode(PyObject *self, PyObject *args)
+static PyObject *PyObject_Unicode(PyObject *v)
 {
 	PyObject *res;
-	PyObject *v;
-
-	if (!PyArg_ParseTuple(args, "O:stringFromCode", &v))
-		return NULL;
-	if (PyUnicode_Check(v))
-	{
+	
+	if (v == NULL)
+		res = PyString_FromString("<NULL>");
+	else if (PyUnicode_Check(v)) {
 		Py_INCREF(v);
 		return v;
 	}
 	else if (PyString_Check(v))
-		res = v;
-	else if (v == Py_None)
-		res = PyUnicode_FromUnicode(NULL, 0);
+	    	res = v;
 	else if (v->ob_type->tp_str != NULL)
 		res = (*v->ob_type->tp_str)(v);
-	else
-	{
+	else {
 		PyObject *func;
-		if (!PyInstance_Check(v) || (func = PyObject_GetAttrString(v, "__str__")) == NULL)
-		{
+		static PyObject *strstr;
+		if (strstr == NULL) {
+			strstr= PyString_InternFromString("__str__");
+			if (strstr == NULL)
+				return NULL;
+		}
+		if (!PyInstance_Check(v) ||
+		    (func = PyObject_GetAttr(v, strstr)) == NULL) {
 			PyErr_Clear();
 			res = PyObject_Repr(v);
 		}
-		else
-		{
-			res = PyEval_CallObject(func, (PyObject *)NULL);
+		else {
+		    	res = PyEval_CallObject(func, (PyObject *)NULL);
 			Py_DECREF(func);
 		}
 	}
 	if (res == NULL)
 		return NULL;
-	if (!PyUnicode_Check(res))
-	{
+	if (!PyUnicode_Check(res)) {
 		PyObject* str;
 		str = PyUnicode_FromObject(res);
 		Py_DECREF(res);
 		if (str)
 			res = str;
 		else
-			return NULL;
+		    	return NULL;
 	}
 	return res;
 }
+static PyObject *
+builtin_unistr(PyObject *self, PyObject *args)
+{
+	PyObject *v;
+
+	if (!PyArg_ParseTuple(args, "O:unistr", &v))
+		return NULL;
+	return PyObject_Unicode(v);
+}
+
+static char unistr_doc[] =
+"unistr(object) -> unicode\n\
+\n\
+Return a nice unicode representation of the object.\n\
+If the argument is a unicode, the return value is the same object.";
 
 /* ==================================================================== */
 /* python module interface */
@@ -344,7 +351,7 @@ static PyMethodDef _functions[] =
 {
 	{"escapeText", escapeText, 1, escapeText__doc__},
 	{"escapeAttr", escapeAttr, 1, escapeAttr__doc__},
-	{"stringFromCode", stringFromCode, 1, stringFromCode__doc__},
+	{"unistr",	builtin_unistr, 1, unistr_doc},
 	{NULL, NULL}
 };
 
