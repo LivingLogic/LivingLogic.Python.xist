@@ -9,10 +9,12 @@
 ## See xist/__init__.py for the license
 
 """
-Module that helps to create XSC modules from DTDs.
-Needs xmlproc from the PyXML package.
-Usage: python dtd2xsc.py foo.dtd
-       to generate foo.py
+<par>Module that helps to create &xist; namespace modules from &dtd;s.
+Needs <app>xmlproc</app> from the <app>PyXML</app> package.
+For usage information type:</par>
+<programlisting>
+dtd2xsc --help
+</programlisting>
 """
 
 __version__ = "$Revision$"[11:-2]
