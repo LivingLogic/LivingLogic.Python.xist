@@ -133,7 +133,8 @@ class Converter(object):
 
 	def __gettarget(self):
 		if self.states[-1].target is None:
-			return "html"
+			from ll.xist.ns import html
+			return html
 		else:
 			return self.states[-1].target
 
@@ -141,7 +142,7 @@ class Converter(object):
 		self.states[-1].target = target
 
 	def __deltarget(self):
-		self.states[-1].targes = None
+		self.states[-1].target = None
 
 	target = property(
 		__gettarget,
@@ -231,6 +232,7 @@ class Converter(object):
 	)
 
 	def push(self, node=None, root=None, mode=None, stage=None, target=None, lang=None, makeaction=None, maketarget=None):
+		self.lastnode = None
 		if node is None:
 			node = self.node
 		if root is None:
@@ -252,7 +254,9 @@ class Converter(object):
 	def pop(self):
 		if len(self.states)==1:
 			raise IndexError("can't pop last state")
-		return self.states.pop()
+		state = self.states.pop()
+		self.lastnode = state.node
+		return state
 
 	def __getitem__(self, obj):
 		"""
@@ -265,8 +269,14 @@ class Converter(object):
 		<pyref module="ll.xist.xsc" class="Node" method="convert"><method>convert</method></pyref>.</par>
 		"""
 		contextclass = obj.Context
-		# don't use setdefault() on every call, as constructing the Context object might involve some overhead
+		# don't use setdefault(), as constructing the Context object might involve some overhead
 		try:
 			return self.contexts[contextclass]
 		except KeyError:
 			return self.contexts.setdefault(contextclass, contextclass())
+
+	def __enter__(self):
+		self.push(node=xsc.Frag())
+
+	def __leave__(self):
+		self.pop()

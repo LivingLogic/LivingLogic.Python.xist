@@ -21,6 +21,13 @@ import os, sys, random, copy, warnings, new, cStringIO
 from ll import url, ansistyle
 
 
+# XPython support
+try:
+	import iexec
+except ImportError:
+	iexec = None
+
+
 ###
 ### helpers
 ###
@@ -50,6 +57,23 @@ def ToNode(value):
 		return Text(value)
 	warnings.warn(errors.IllegalObjectWarning(value)) # none of the above, so we report it and maybe throw an exception
 	return Null
+
+
+###
+###
+###
+
+# XPython support
+if iexec is not None:
+	def append(*args, **kwargs):
+		node = iexec.getinstance((converters.Converter, Frag, Element))
+		if node is not None:
+			if isinstance(node, converters.Converter):
+				node.node.append(*args)
+			elif isinstance(node, Frag):
+				node(*args)
+			else:
+				node(*args, **kwargs)
 
 
 ###
@@ -2379,6 +2403,10 @@ class Element(Node):
 
 			return self.filtered(keep)
 
+	if iexec is not None:
+		def __enter__(self):
+			append(self)
+
 	def __init__(self, *content, **attrs):
 		"""
 		<par>Create a new <class>Element</class> instance.</par>
@@ -3792,5 +3820,6 @@ class Location(object):
 
 	def __ne__(self, other):
 		return not self==other
+
 
 import presenters, publishers, cssparsers, converters, errors, options, utils, helpers
