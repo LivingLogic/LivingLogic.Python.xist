@@ -177,14 +177,32 @@ class XSCNode:
 	endlineno = -1
 
 	def __add__(self,other):
-		return XSCFrag(self) + other
+		if other != None:
+			return XSCFrag(self) + other
+		else:
+			return self
 
 	def __radd__(self,other):
-		return XSCFrag(other) + self
+		if other != None:
+			return XSCFrag(other) + self
+		else:
+			return self
+
+	def stransi(self,codes,string):
+		if xsc.repransi:
+			return "\033[" + codes + "m" + string + "\033[0m"
+		else:
+			return (string)
 
 	def __repr__(self,nest = 0):
-		return xsc.tab*nest+"<?>\n"
+		return self.strindent(nest) + self.strtag("?") + "\n"
 
+	def strindent(self,nest):
+		return self.stransi(xsc.repransitab,xsc.reprtab*nest)
+
+	def strtag(self,content):
+		return self.stransi(xsc.repransibrackets,"<") + content + self.stransi(xsc.repransibrackets,">")
+ 
 	def strlines(self,start = None,end = None):
 		if xsc.verbose==1:
 			if start==None:
@@ -237,7 +255,7 @@ class XSCText(XSCNode):
 		if self.content=="\n" and xsc.verbose==0:
 			return ""
 		else:
-			return xsc.tab*nest + '<XSCText content=' + repr(self.content) + '>' + self.strlines(self.startlineno) + '\n'
+			return self.strindent(nest) + self.strtag('XSCText content=' + repr(self.content)) + self.strlines(self.startlineno) + '\n'
 
 class XSCFrag(XSCNode):
 	"""contains a list of XSCNodes"""
@@ -266,10 +284,10 @@ class XSCFrag(XSCNode):
 		return string.joinfields(map(str,self.content),"")
 
 	def __repr__(self,nest = 0):
-		s = xsc.tab*nest + '<XSCFrag>' + self.strlines(self.startlineno,self.endlineno) + '\n'
+		s = self.strindent(nest) + self.strtag('XSCFrag') + self.strlines(self.startlineno,self.endlineno) + '\n'
 		for i in self.content:
 			s = s + i.__class__.__repr__(i,nest+1) # call repr with additional arguments
-		s = s + xsc.tab*nest + '</XSCFrag>' + self.strlines(self.startlineno,self.endlineno) + '\n'
+		s = s + self.strindent(nest) + self.strtag('/XSCFrag') + self.strlines(self.startlineno,self.endlineno) + '\n'
 		return s
 
 	def __getitem__(self,index):
@@ -363,7 +381,7 @@ class XSCComment(XSCNode):
 		return "<!--" + self.content + "-->"
 
 	def __repr__(self,nest = 0):
-		return xsc.tab*nest + "<!--" + self.content + "-->\n"
+		return self.strindent(nest) + self.strtag("!--" + self.content + "--") + "\n"
 
 class XSCDocType(XSCNode):
 	"""document type"""
@@ -375,7 +393,7 @@ class XSCDocType(XSCNode):
 		return "<!DOCTYPE " + self.content + ">"
 
 	def __repr__(self,nest = 0):
-		return xsc.tab*nest + "<!DOCTYPE " + self.content + ">" + self.strlines(self.startlineno) + "\n"
+		return self.indent()+  self.strag("!DOCTYPE " + self.content) + self.strlines(self.startlineno) + "\n"
 
 class XSCElement(XSCNode):
 	"""XML elements"""
@@ -395,14 +413,13 @@ class XSCElement(XSCNode):
 		self.content.append(item)
 
 	def __repr__(self,nest = 0):
-		s = xsc.tab*nest + '<' + self.name
 		if self.close:
-			s = s + '>' + self.strlines(self.startlineno,self.endlineno) + '\n'
+			s = self.strindent(nest) + self.strtag(self.name) + self.strlines(self.startlineno,self.endlineno) + '\n'
 			for i in self.content:
 				s = s + i.__class__.__repr__(i,nest+1) # class repr with additional arguments
-			s = s + xsc.tab*nest + '</' + self.name + '>' + self.strlines(self.startlineno,self.endlineno) + '\n'
+			s = s + self.strindent(nest) + self.strtag("/" + self.name) + self.strlines(self.startlineno,self.endlineno) + '\n'
 		else:
-			s = s + '/>' + self.strlines(self.startlineno,self.endlineno) + '\n'
+			s = self.strindent(nest) + self.strtag(self.name + "/") + self.strlines(self.startlineno,self.endlineno) + '\n'
 		return s
 
 	def rer(self):
@@ -584,7 +601,11 @@ class XSC:
 		self.server = "localhost"
 		self.retrieveremote = 1
 		self.retrievelocal  = 1
-		self.tab = ".  "
+		self.reprtab = ".  "
+		self.repransi = 0
+		self.repransitab = "32"
+		self.repransibrackets = "36"
+		self.repransielementname = "33"
 		self.verbose = 1
 		self.parser = XSCParser()
 
