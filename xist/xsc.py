@@ -597,28 +597,29 @@ class Node:
 		"""
 		return ""
 
-	def elements(self,element = None,subtype = 0,children = 0,attrs = 0):
+	def nodes(self,type = None,subtype = 0,children = 0,attrs = 0):
 		"""
 		returns a fragment which contains child elements of this node.
 
-		If you specify element as the class of an XSC element only elements of this class
+		If you specify type as the class of an XSC node only nodes of this class
 		will be returned.
 
-		If you set subtype to 1 elements that are a subtype of element will be returned too.
+		If you set subtype to 1 nodes that are a subtype of type will be returned too.
 
 		If you set children to 1 not only the immediate children but also the grandchildren
-		will be searched for elements matching the other criteria.
+		will be searched for nodes matching the other criteria.
 
-		If you set attrs to 1 the attributes of the elements will be searched too.
+		If you set attrs to 1 the attributes of the nodes (if type is Element or one
+		of it's subtypes) will be searched too.
 		"""
 		return Frag()
 
-	def _elementOK(self,element,subtype):
-		if element is not None:
+	def _nodeOK(self,type,subtype):
+		if type is not None:
 			if subtype:
-				return isinstance(self,element)
+				return isinstance(self,type)
 			else:
-				return self.__class__ == element
+				return self.__class__ == type
 		else:
 			return 1
 
@@ -935,13 +936,13 @@ class Frag(Node):
 		if not isinstance(newother,Null):
 			self.__content.insert(index,newother)
 
-	def elements(self,element = None,subtype = 0,children = 0,attrs = 0):
+	def nodes(self,type = None,subtype = 0,children = 0,attrs = 0):
 		e = Frag()
 		for child in self:
-			if child._elementOK(element,subtype):
+			if child._nodeOK(type,subtype):
 				e.append(child)
 			if children:
-				e = e + child.elements(element,subtype,children,attrs)
+				e = e + child.nodes(type,subtype,children,attrs)
 		return e
 
 	def compact(self):
@@ -1329,12 +1330,12 @@ class Element(Node):
 	def compact(self):
 		return self.__class__(self.content.compact(),self.attrs)
 
-	def elements(self,element = None,subtype = 0,children = 0,attrs = 0):
+	def nodes(self,type = None,subtype = 0,children = 0,attrs = 0):
 		e = Frag()
 		if attrs:
 			for attr in self.attrs.keys():
-				e = e + self[attr].elements(element,subtype,children,attr)
-		e = e + self.content.elements(element,subtype,children,attrs)
+				e = e + self[attr].nodes(type,subtype,children,attr)
+		e = e + self.content.nodes(type,subtype,children,attrs)
 		return e
 
 class Null(Element):
