@@ -30,7 +30,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 import sys
 import getopt
 import time
-from xist import xsc, html, publishers, url, utils, color, converters # don't do a subpackage import here, otherwise chaos will ensue, because XIST modules will be imported twice
+from xist import xsc, html, publishers, url, utils, converters # don't do a subpackage import here, otherwise chaos will ensue, because XIST modules will be imported twice
 
 def extXSC2HTML(ext):
 	try:
@@ -44,20 +44,20 @@ def extHTML2XSC(ext):
 	except KeyError:
 		return ext
 
-class ColoredString(color.Text):
+class ColoredString(ansistyle.Text):
 	color = 0x2
 
-class ColoredNumber(color.Text):
+class ColoredNumber(ansistyle.Text):
 	color = 0x5
 
 	def __init__(self, number):
-		color.Text.__init__(self, str(number))
+		ansistyle.Text.__init__(self, str(number))
 
-class ColoredURL(color.Text):
+class ColoredURL(ansistyle.Text):
 	color = 0x4
 
 	def __init__(self, url):
-		color.Text.__init__(self, url.asString())
+		ansistyle.Text.__init__(self, url.asString())
 
 def make():
 	"""
