@@ -1556,6 +1556,8 @@ class Attrs(Node, dict):
 			res._handlersByPyName = handlersByPyName
 			res._handlersByXMLName = handlersByXMLName
 			return res
+		def __getitem__(cls, key):
+			return cls._handlersByPyName[key]
 
 	def __init__(self, content=None, **attrs):
 		dict.__init__(self)
