@@ -256,7 +256,7 @@ class URL:
 		return cmp(scheme1,scheme2) or cmp(server1,server2) or cmp(self.port,other.port) or cmp(self.__path,other.__path) or cmp(self.file,other.file) or cmp(self.ext,other.ext) or cmp(self.parameters,other.parameters) or cmp(self.query,other.query) or cmp(self.fragment,other.fragment)
 
 	def open(self):
-		return urllib.urlopen(self.asString())
+		return urllib.urlopen(self.asString().encode("iso-8859-1"))
 
 	def read(self):
 		return self.open().read()
