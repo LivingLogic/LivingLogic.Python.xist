@@ -312,24 +312,23 @@ a <pyref module="ll.make"><module>make</module></pyref> script.</par>
 <section><title>Namespace objects</title>
 <par>Now that you've defined your own elements, you have to
 tell the parser about them, so they can be instantiated when
-a file is parsed. This is done with namespace objects. At the end
+a file is parsed. This is done with namespace classes. At the end
 of your Python module after all the classes are defined, create a
-namespace object that collects all the class objects from the
+namespace class that collects all the class objects from the
 local scope:</par>
 <example>
 <prog>
-xmlns = xsc.Namespace(
-	"foo",
-	"http://www.foo.net/foo",
-	vars()
-)
+class xmlns(xsc.Namespace):
+	xmlname = "foo"
+	xmlurl = "http://www.foo.net/foo"
+xmlns.update(vars())
 </prog>
 </example>
 
 <par>For an explanation of the arguments see the
 <pyref module="ll.xist.xsc" class="Namespace" method="__init__"><class>Namespace</class> constructor</pyref>.</par>
 
-<par>All defined namespace objects will automatically be registered with the
+<par>All defined namespace classes will automatically be registered with the
 parser, so all defined elements will be used when parsing files.</par>
 </section>
 

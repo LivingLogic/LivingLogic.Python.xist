@@ -16,8 +16,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
 from ll.xist import xsc
-import html as html_
-import docbook
+import doc
 
 class base(xsc.Entity):
 	"""
@@ -25,577 +24,359 @@ class base(xsc.Entity):
 	to conversion targets.
 	"""
 	register = False
+	content = None
+	title = None
+	lang = None
 
 	def convert(self, converter):
-		target = converter.target
-		if issubclass(target, docbook):
-			e = self.convert_docbook(converter)
-		elif issubclass(target, html_):
-			e = self.convert_html(converter)
-		else:
-			raise ValueError("unknown conversion target %r" % target)
-		return e.convert(converter)
+		node = doc.abbr(self.__class__.content, title=self.__class__.title, lang=self.__class__.lang)
+		return node.convert(converter)
+
+	def __unicode__(self):
+		return unicode(self.content)
 
 class rmi(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("RMI", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("RMI", title="Remote Method Invocation", lang="en")
-	def __unicode__(self):
-		return u"RMI"
+	content = "RMI"
+	title = "Remote Method Invocation"
+	lang = "en"
 
 class jini(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("JINI", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("JINI", title="Java Intelligent Network Infrastructure", lang="en")
-	def __unicode__(self):
-		return u"JINI"
+	content = "JINI"
+	title = "Java Intelligent Network Infrastructure"
+	lang = "en"
 
 class jfc(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("JFC", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("JFC", title="Java Foundation Classes", lang="en")
-	def __unicode__(self):
-		return u"JFC"
+	content = "JFC"
+	title = "Java Foundation Classes"
+	lang = "en"
 
 class awt(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("AWT", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("AWT", title="Abstract Window Toolkit", lang="en")
-	def __unicode__(self):
-		return u"AWT"
+	content = "AWT"
+	title = "Abstract Window Toolkit"
+	lang = "en"
 
 class jdbc(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("JDBC", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("JDBC", title="Java Database Connectivity", lang="en")
-	def __unicode__(self):
-		return u"JDBC"
+	content = "JDBC"
+	title = "Java Database Connectivity"
+	lang = "en"
 
 class jndi(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("JNDI", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("JNDI", title="Java Naming and Directory Interface", lang="en")
-	def __unicode__(self):
-		return u"JNDI"
+	content = "JNDI"
+	title = "Java Naming and Directory Interface"
+	lang = "en"
 
 class jpda(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("JPDA", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("JPDA", title="Java Platform Debugger Architecture", lang="en")
-	def __unicode__(self):
-		return u"JPDA"
+	content = "JPDA"
+	title = "Java Platform Debugger Architecture"
+	lang = "en"
 
 class jvmpi(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("JVMPI", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("JVMPI", title="Java Virtual Machine Profiler Interface", lang="en")
-	def __unicode__(self):
-		return u"JVMPI"
+	content = "JVMPI"
+	title = "Java Virtual Machine Profiler Interface"
+	lang = "en"
 
 class jni(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("JNI", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("JNI", title="Java Native Interface", lang="en")
-	def __unicode__(self):
-		return u"JNI"
+	content = "JNI"
+	title = "Java Native Interface"
+	lang = "en"
 
 class ejb(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("EJB", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("EJB", title="Enterprice Java Beans", lang="en")
-	def __unicode__(self):
-		return u"EJB"
+	content = "EJB"
+	title = "Enterprice Java Beans"
+	lang = "en"
 
 class jnlp(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("JNLP", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("JNLP", title="Java Network Launch Protocol", lang="en")
-	def __unicode__(self):
-		return u"JNLP"
+	content = "JNLP"
+	title = "Java Network Launch Protocol"
+	lang = "en"
 
 class jaoe(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("JAOE", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("JAOE", title="Java Acronym Overflow Error", lang="en")
-	def __unicode__(self):
-		return u"jaoe"
+	content = "JAOE"
+	title = "Java Acronym Overflow Error"
+	lang = "en"
 
 class jgl(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("JGL", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("JGL", title="Java Generic Library", lang="en")
-	def __unicode__(self):
-		return u"JGL"
+	content = "JGL"
+	title = "Java Generic Library"
+	lang = "en"
 
 class sgml(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("SGML", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("SGML", title="Standard Generalized Markup Language", lang="en")
-	def __unicode__(self):
-		return u"SGML"
+	content = "SGML"
+	title = "Standard Generalized Markup Language"
+	lang = "en"
 
 class html(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("HTML", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("HTML", title="Hypertext Markup Language", lang="en")
-	def __unicode__(self):
-		return u"HTML"
+	content = "HTML"
+	title = "Hypertext Markup Language"
+	lang = "en"
 
 class xhtml(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("XHTML", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("XHTML")
-	def __unicode__(self):
-		return u"XHTML"
+	content = "XHTML"
 
 class xml(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("XML", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("XML", title="Extensible Markup Language", lang="en")
-	def __unicode__(self):
-		return u"XML"
+	content = "XML"
+	title = "Extensible Markup Language"
+	lang = "en"
 
 class css(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("CSS", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("CSS", title="Cascading Style Sheet", lang="en")
-	def __unicode__(self):
-		return u"CSS"
+	content = "CSS"
+	title = "Cascading Style Sheet"
+	lang = "en"
 
 class cgi(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("CGI", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("CGI", title="Common Gateway Interface", lang="en")
-	def __unicode__(self):
-		return u"CGI"
+	content = "CGI"
+	title = "Common Gateway Interface"
+	lang = "en"
 
 class www(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("WWW", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("WWW", title="World Wide Web", lang="en")
-	def __unicode__(self):
-		return u"WWW"
+	content = "WWW"
+	title = "World Wide Web"
+	lang = "en"
 
 class pdf(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("PDF", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("PDF", title="Protable Document Format", lang="en")
-	def __unicode__(self):
-		return u"PDF"
+	content = "PDF"
+	title = "Protable Document Format"
+	lang = "en"
 
 class url(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("URL", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("URL", title="Uniform Resource Locator", lang="en")
-	def __unicode__(self):
-		return u"URL"
+	content = "URL"
+	title = "Uniform Resource Locator"
+	lang = "en"
 
 class http(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("HTTP", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("HTTP", title="Hypertext Transfer Protocol", lang="en")
-	def __unicode__(self):
-		return u"HTTP"
+	content = "HTTP"
+	title = "Hypertext Transfer Protocol"
+	lang = "en"
 
 class smtp(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("SMTP", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("SMTP", title="Simple Mail Transfer Protocol", lang="en")
-	def __unicode__(self):
-		return u"SMTP"
+	content = "SMTP"
+	title = "Simple Mail Transfer Protocol"
+	lang = "en"
 
 class ftp(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("FTP", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("FTP", title="File Transfer Protocol", lang="en")
-	def __unicode__(self):
-		return u"FTP"
+	content = "FTP"
+	title = "File Transfer Protocol"
+	lang = "en"
 
 class pop3(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("POP3", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("POP3", title="Post Office Protocol 3", lang="en")
-	def __unicode__(self):
-		return u"POP3"
+	content = "POP3"
+	title = "Post Office Protocol 3"
+	lang = "en"
 
 class cvs(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("CVS", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("CVS", title="Concurrent Versions System", lang="en")
-	def __unicode__(self):
-		return u"CVS"
+	content = "CVS"
+	title = "Concurrent Versions System"
+	lang = "en"
 
 class faq(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("FAQ", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("FAQ", title="Frequently Asked Question", lang="en")
-	def __unicode__(self):
-		return u"FAQ"
+	content = "FAQ"
+	title = "Frequently Asked Question"
+	lang = "en"
 
 class gnu(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("GNU", lang="en")
-	def convert_html(self, converter):
-			# we could do it ;): return html_.abbr("GNU", title=(self, "'s Not UNIX"), lang="en")
-		return converter.target.abbr("GNU", title="GNU's Not UNIX", lang="en")
-	def __unicode__(self):
-		return u"GNU"
+	content = "GNU"
+	title = "GNU's Not UNIX"
+	lang = "en"
 
 class dns(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("DNS", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("DNS", title="Domain Name Service", lang="en")
-	def __unicode__(self):
-		return u"DNS"
+	content = "DNS"
+	title = "Domain Name Service"
+	lang = "en"
 
 class ppp(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("PPP", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("PPP", title="Point To Point Protocol", lang="en")
-	def __unicode__(self):
-		return u"PPP"
+	content = "PPP"
+	title = "Point To Point Protocol"
+	lang = "en"
 
 class isdn(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("ISDN", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("ISDN", title="Integrated Services Digital Network", lang="en")
-	def __unicode__(self):
-		return u"ISDN"
+	content = "ISDN"
+	title = "Integrated Services Digital Network"
+	lang = "en"
 
 class corba(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("CORBA", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("CORBA", title="Common Object Request Broker Architecture", lang="en")
-	def __unicode__(self):
-		return u"CORBA"
+	content = "CORBA"
+	title = "Common Object Request Broker Architecture"
+	lang = "en"
 
 class wap(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("WAP", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("WAP", title="Wireless Application Protocol", lang="en")
-	def __unicode__(self):
-		return u"WAP"
+	content = "WAP"
+	title = "Wireless Application Protocol"
+	lang = "en"
 
 class wml(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("WML", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("WML", title="Wireless Markup Language", lang="en")
-	def __unicode__(self):
-		return u"WML"
+	content = "WML"
+	title = "Wireless Markup Language"
+	lang = "en"
 
 class mac(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("MAC", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("MAC", title="Media Access Control", lang="en")
-	def __unicode__(self):
-		return u"MAC"
+	content = "MAC"
+	title = "Media Access Control"
+	lang = "en"
 
 class nat(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("NAT", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("NAT", title="Network Address Translation", lang="en")
-	def __unicode__(self):
-		return u"NAT"
+	content = "NAT"
+	title = "Network Address Translation"
+	lang = "en"
 
 class sql(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("SQL", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("SQL", title="Structured Query Language", lang="en")
-	def __unicode__(self):
-		return u"SQL"
+	content = "SQL"
+	title = "Structured Query Language"
+	lang = "en"
 
 class xsl(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("XSL", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("XSL", title="Extensible Stylesheet Language", lang="en")
-	def __unicode__(self):
-		return u"XSL"
+	content = "XSL"
+	title = "Extensible Stylesheet Language"
+	lang = "en"
 
 class xslt(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("XSLT", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("XSLT", title="Extensible Stylesheet Language For Transformations", lang="en")
-	def __unicode__(self):
-		return u"XSLT"
+	content = "XSLT"
+	title = "Extensible Stylesheet Language For Transformations"
+	lang = "en"
 
 class smil(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("SMIL", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("SMIL", title="Synchronized Multimedia Integration Language", lang="en")
-	def __unicode__(self):
-		return u"SMIL"
+	content = "SMIL"
+	title = "Synchronized Multimedia Integration Language"
+	lang = "en"
 
 class dtd(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("DTD", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("DTD", title="Document Type Definiton", lang="en")
-	def __unicode__(self):
-		return u"DTD"
+	content = "DTD"
+	title = "Document Type Definiton"
+	lang = "en"
 
 class dom(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("DOM", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("DOM", title="Document Object Model", lang="en")
-	def __unicode__(self):
-		return u"DOM"
+	content = "DOM"
+	title = "Document Object Model"
+	lang = "en"
 
 class api(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("API", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("API", title="Application Programming Interface", lang="en")
-	def __unicode__(self):
-		return u"API"
+	content = "API"
+	title = "Application Programming Interface"
+	lang = "en"
 
 class sax(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("SAX", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("SAX", title=("Simple ", self.xmlns.api(), " for ", self.xmlns.xml()), lang="en").convert(converter)
-	def __unicode__(self):
-		return u"SAX"
+	content = "SAX"
+	title = ("Simple ", api(), " for ", xml())
+	lang = "en"
 
 class dbms(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("DBMS", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("DBMS", title="Database Management System", lang="en")
-	def __unicode__(self):
-		return u"DBMS"
+	content = "DBMS"
+	title = "Database Management System"
+	lang = "en"
 
 class ansi(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("ANSI", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("ANSI", title="American National Standards Institute", lang="en")
-	def __unicode__(self):
-		return u"ANSI"
+	content = "ANSI"
+	title = "American National Standards Institute"
+	lang = "en"
 
 class jsp(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("JSP", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("JSP", title="Java Server Pages", lang="en")
-	def __unicode__(self):
-		return u"JSP"
+	content = "JSP"
+	title = "Java Server Pages"
+	lang = "en"
 
 class ascii(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("ASCII", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("ASCII", title="American Standard Code for Information Interchange", lang="en")
-	def __unicode__(self):
-		return u"ASCII"
+	content = "ASCII"
+	title = "American Standard Code for Information Interchange"
+	lang = "en"
 
 class sms(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("SMS", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("SMS", title="Small Message Service", lang="en")
-	def __unicode__(self):
-		return u"SMS"
+	content = "SMS"
+	title = "Small Message Service"
+	lang = "en"
 
 class p2p(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("P2P", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("P2P", title="Peer To Peer", lang="en")
-	def __unicode__(self):
-		return u"P2P"
+	content = "P2P"
+	title = "Peer To Peer"
+	lang = "en"
 
 class gif(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("GIF", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("GIF", title="Graphics Interchange Format", lang="en")
-	def __unicode__(self):
-		return u"GIF"
+	content = "GIF"
+	title = "Graphics Interchange Format"
+	lang = "en"
 
 class png(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("PNG", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("PNG", title="Portable Network Graphics", lang="en")
-	def __unicode__(self):
-		return u"PNG"
+	content = "PNG"
+	title = "Portable Network Graphics"
+	lang = "en"
 
 class uddi(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("UDDI", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("UDDI", title="Universal Description, Discovery and Integration", lang="en")
-	def __unicode__(self):
-		return u"UDDI"
+	content = "UDDI"
+	title = "Universal Description, Discovery and Integration"
+	lang = "en"
 
 class wsdl(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("WSDL", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("WSDL", title="Web Services Description Language", lang="en")
-	def __unicode__(self):
-		return u"WSDL"
+	content = "WSDL"
+	title = "Web Services Description Language"
+	lang = "en"
 
 class cdrom(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("CDROM", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("CDROM")
-	def __unicode__(self):
-		return u"CDROM"
+	content = "CDROM"
 
 class snmp(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("SNMP", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("SNMP", title="Simple Network Management Protocol", lang="en")
-	def __unicode__(self):
-		return u"SNMP"
+	content = "SNMP"
+	title = "Simple Network Management Protocol"
+	lang = "en"
 
 class ssl(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("SSL", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("SSL", title="Secure Socket Layer", lang="en")
-	def __unicode__(self):
-		return u"SSL"
+	content = "SSL"
+	title = "Secure Socket Layer"
+	lang = "en"
 
 class vrml(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("VRML", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("VRML", title="Virtual Reality Modelling Language", lang="en")
-	def __unicode__(self):
-		return u"VRML"
+	content = "VRML"
+	title = "Virtual Reality Modelling Language"
+	lang = "en"
 
 class tco(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("TCO", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("TCO", title="Total Cost of Ownership", lang="en")
-	def __unicode__(self):
-		return u"TCO"
+	content = "TCO"
+	title = "Total Cost of Ownership"
+	lang = "en"
 
 class crm(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("CRM", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("CRM", title="Customer Relationship Management", lang="en")
-	def __unicode__(self):
-		return u"CRM"
+	content = "CRM"
+	title = "Customer Relationship Management"
+	lang = "en"
 
 class cms(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("CMS", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("CMS", title="Content Management System", lang="en")
-	def __unicode__(self):
-		return u"CMS"
+	content = "CMS"
+	title = "Content Management System"
+	lang = "en"
 
 class bnf(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("BNF", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("BNF", title="Backus Naur Form", lang="en")
-	def __unicode__(self):
-		return u"BNF"
+	content = "BNF"
+	title = "Backus Naur Form"
+	lang = "en"
 
 class mime(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("MIME", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("MIME", title="Multipurpose Internet Mail Extensions", lang="en")
-	def __unicode__(self):
-		return u"MIME"
+	content = "MIME"
+	title = "Multipurpose Internet Mail Extensions"
+	lang = "en"
 
 class wysiwyg(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("WYSIWYG", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("WYSIWYG", title="What You See Is What You Get", lang="en")
-	def __unicode__(self):
-		return u"WYSIWYG"
+	content = "WYSIWYG"
+	title = "What You See Is What You Get"
+	lang = "en"
 
 class hsc(base):
-	def convert(self, converter):
-		return xsc.Text("HSC")
-	def __unicode__(self):
-		return u"HSC"
+	content = "HSC"
 
 class xist(base):
-	def convert(self, converter):
-		return xsc.Text("XIST")
-	def __unicode__(self):
-		return u"XIST"
+	content = "XIST"
 
 class xist4c(base):
-	def convert(self, converter):
-		return xsc.Text("XIST4C")
-	def __unicode__(self):
-		return u"XIST4C"
+	content = "XIST4C"
 
 class php(base):
-	def convert(self, converter):
-		return xsc.Text("PHP")
-	def __unicode__(self):
-		return u"PHP"
+	content = "PHP"
 
 class svg(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("SVG", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("SVG", title="Scalable Vector Graphics", lang="en")
-	def __unicode__(self):
-		return u"SVG"
+	content = "SVG"
+	title = "Scalable Vector Graphics"
+	lang = "en"
 
 class utc(base):
-	def convert_docbook(self, converter):
-		return converter.target.abbrev("UTC", lang="en")
-	def convert_html(self, converter):
-		return converter.target.abbr("UTC", title="Coordinated Universal Time", lang="en")
-	def __unicode__(self):
-		return u"UTC"
+	content = "UTC"
+	title = "Coordinated Universal Time"
+	lang = "en"
 
 class xmlns(xsc.Namespace):
 	xmlname = "abbr"
