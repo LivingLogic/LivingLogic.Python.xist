@@ -62,7 +62,7 @@ class EmptyElementWithContentError(Error):
 		self.element = element
 
 	def __str__(self):
-		return Error.__str__(self) + "element " + self.element._strname() + " specified to be empty, but has content"
+		return Error.__str__(self) + "element " + self.element._str() + " specified to be empty, but has content"
 
 class IllegalAttributeError(Error):
 	"""
@@ -99,7 +99,7 @@ class AttributeNotFoundError(Error):
 	def __str__(self):
 		attrs = self.element.attrs.keys();
 
-		s = Error.__str__(self) + "Attribute " + _strattrname(self.attr) + " not found in element " + self.element._strname() +". "
+		s = Error.__str__(self) + "Attribute " + _strattrname(self.attr) + " not found in element " + self.element._str() +". "
 
 		if len(attrs):
 			attrs.sort()
@@ -126,15 +126,10 @@ class IllegalElementError(Error):
 		elementnames = []
 		for elementname in _elementHandlers.keys():
 			for namespace in _elementHandlers[elementname].keys():
-				elementnames.append(_strNodeName(_elementHandlers[elementname][namespace]))
+				elementnames.append(_strNode(_elementHandlers[elementname][namespace]))
 		elementnames.sort()
 
-		if self.name[0]:
-			name = _strelementname(self.name[0]) + ":" + _strelementname(self.name[1])
-		else:
-			name = _strelementname(self.name[1])
-
-		return Error.__str__(self) + "element " + name + " not allowed. Allowed elements are: " + string.join(elementnames,", ") + "."
+		return Error.__str__(self) + "element " + _strName((name[0],name[1],0))+ " not allowed. Allowed elements are: " + string.join(elementnames,", ") + "."
 
 class IllegalElementNestingError(Error):
 	"""
@@ -161,7 +156,7 @@ class ImageSizeFormatError(Error):
 		self.attr = attr
 
 	def __str__(self):
-		return Error.__str__(self) + "the value '" + str(self.element[self.attr]) + "' for the image size attribute " + _strattrname(self.attr) + " of the element " + self.element._strname() + " can't be formatted or evaluated"
+		return Error.__str__(self) + "the value '" + str(self.element[self.attr]) + "' for the image size attribute " + _strattrname(self.attr) + " of the element " + self.element._str() + " can't be formatted or evaluated"
 
 class FileNotFoundError(Error):
 	"""
@@ -225,15 +220,10 @@ class AmbiguousElementError(Error):
 	def __str__(self):
 		elementnames = []
 		for namespace in _elementHandlers[self.name[1]].keys():
-			elementnames.append(_strNodeName(_elementHandlers[self.name[1]][namespace]))
+			elementnames.append(_strNode(_elementHandlers[self.name[1]][namespace]))
 		elementnames.sort()
 
-		if self.name[0]:
-			name = _strelementname(self.name[0]) + ":" + _strelementname(self.name[1])
-		else:
-			name = _strelementname(self.name[1])
-
-		return Error.__str__(self) + "element " + name + " is ambigous. Possible elements are: " + string.join(elementnames,", ") + "."
+		return Error.__str__(self) + "element " + _strName((name[0],name[1],0)) + " is ambigous. Possible elements are: " + string.join(elementnames,", ") + "."
 
 ###
 ### configuration
@@ -274,6 +264,12 @@ try:
 	repransiquote = os.environ["XSC_REPRANSI_QUOTE"]
 except KeyError:
 	repransiquote = "1;32"
+
+# ANSI escape sequence to be used for slashes in element names
+try:
+	repransislash = os.environ["XSC_REPRANSI_SLASH"]
+except KeyError:
+	repransislash = ""
 
 # ANSI escape sequence to be used for brackets (delimiters for tags)
 try:
@@ -351,28 +347,54 @@ except KeyError:
 ### helpers
 ###
 
-def _stransi(codes,string):
-	if repransi and codes!="" and string!="":
+def _stransi(codes,string,ansi = None):
+	if ansi is None:
+		ansi = repransi
+	if ansi==1 and codes!="" and string!="":
 		return "\033[" + codes + "m" + string + "\033[0m"
 	else:
 		return string
 
-def _strelementname(elementname):
-	return _stransi(repransielementname,elementname)
+def _strelementnamespace(elementnamespace,ansi = None):
+	return _stransi(repransielementnamespace,elementname,ansi)
 
-def _strattrname(attrname):
-	return _stransi(repransiattrname,attrname)
+def _strelementname(elementname,ansi = None):
+	return _stransi(repransielementname,elementname,ansi)
+
+def _strattrname(attrname,ansi = None):
+	return _stransi(repransiattrname,attrname,ansi)
 
 def nodeName(nodeClass):
 	"""
 	returns a tuple with the namespace of the node, which is the module in which the node is implemented
 	and a name which is the name of the class. Both strings are converted to lowercase.
 	"""
-	return string.lower(nodeClass.__module__) , string.lower(nodeClass.__name__)
+	return string.lower(nodeClass.__module__) , string.lower(nodeClass.__name__) , nodeClass.empty
 
-def _strNodeName(nodeClass):
+def _strName(nodeName,content = None,brackets = None,slash = None,ansi = None):
+	if slash is None:
+		if nodeName is None:
+			slash = 0
+		else:
+			slash = nodeName[2]
+	s = ""
+	if slash < 0:
+		s = s + _stransi(repransislash,"/",ansi)
+	if nodeName is not None:
+		if len(nodeName[0]):
+			s = s + _stransi(repransielementnamespace,nodeName[0],ansi) + ":"
+		s = s + _stransi(repransielementname,nodeName[1],ansi)
+	if content is not None:
+		s = s + content
+	if slash > 0:
+		s = s + _stransi(repransislash,"/",ansi)
+	if brackets is not None:
+		s = _stransi(repransibracket,'<',ansi) + s + _stransi(repransibracket,'>',ansi)
+	return s
+
+def _strNode(nodeClass,content = None,brackets = None,slash = None,ansi = None):
 	name = nodeName(nodeClass)
-	return _stransi(repransielementnamespace,name[0]) + ":" + _stransi(repransielementname,name[1])
+	return _strName(name,content,brackets,slash,ansi)
 
 def appendDict(*dicts):
 	result = {}
@@ -418,7 +440,7 @@ def ToNode(value):
 	t = type(value)
 	if t == types.InstanceType:
 		if isinstance(value,Attr): # repack the attribute in a fragment, and we have a valid XSC node
-			return ToNode(value.content)
+			return Frag(value)
 		elif isinstance(value,Frag):
 			l = len(value)
 			if l==1:
@@ -447,6 +469,8 @@ class Node:
 	base class for nodes in the document tree. Derived classes must
 	implement asHTML() and/or __str__()
 	"""
+
+	empty = 1
 
 	# line numbers where this node starts and ends in a file (will be hidden in derived classes, but is specified here, so that no special tests are required. In derived classes both variables will be set by the parser)
 	startlineno = -1
@@ -483,8 +507,8 @@ class Node:
 		"""
 		return nodeName(self.__class__)
 
-	def _strname(self):
-		return _strNodeName(self.__class__)
+	def _str(self,content = None,brackets = None,slash = None,ansi = None):
+		return _strNode(self.__class__,content,brackets,slash,ansi)
 
 	def clone(self):
 		"""
@@ -492,13 +516,13 @@ class Node:
 		"""
 		pass
 
-	def repr(self):
-		return self._dorepr()
+	def repr(self,ansi = None):
+		return self._dorepr(ansi)
 
-	def reprtree(self):
+	def reprtree(self,ansi = None):
 		nest = 0
 		v = []
-		lines = self._doreprtree(nest,[])
+		lines = self._doreprtree(nest,[],ansi = ansi)
 		lenlineno = 0
 		lenelementno = 0
 		for line in lines:
@@ -507,7 +531,7 @@ class Node:
 			else:
 				line[1] = "?"
 			line[2] = string.join(map(str,line[2]),".") # convert element number to a string
-			line[3] = _stransi(repransitab,reprtab*line[0]) + line[3] # add indentation
+			line[3] = _stransi(repransitab,reprtab*line[0],ansi = ansi) + line[3] # add indentation
 			lenlineno = max(lenlineno,len(line[1]))
 			lenelementno = max(lenelementno,len(line[2]))
 
@@ -515,13 +539,13 @@ class Node:
 			v.append("%*s %-*s %s\n" % (lenlineno,line[1],lenelementno,line[2],line[3]))
 		return string.join(v,"")
 
-	def _dorepr(self):
+	def _dorepr(self,ansi = None):
 		# returns a string representation of the node
-		return self._strtag("?")
+		return self._str(brackets = 1,ansi = ansi)
 
-	def _doreprtree(self,nest,elementno):
+	def _doreprtree(self,nest,elementno,ansi = None):
 		# returns and array containing arrays consisting of the (nestinglevel,linenumber,elementnumber,string representation) of the nodes
-		return [[nest,self.startlineno,elementno,self._strtag("?")]]
+		return [[nest,self.startlineno,elementno,self._dorepr(ansi)]]
 
 	def asHTML(self):
 		"""
@@ -538,9 +562,6 @@ class Node:
 				return html.b(self.content).asHTML()
 		"""
 		return Null()
-
-	def _strtag(self,content):
-		return _stransi(repransibracket,'<') + content + _stransi(repransibracket,'>')
 
 	def __str__(self):
 		"""
@@ -587,6 +608,8 @@ class Text(Node):
 	than 127 will be escaped too.
 	"""
 
+	empty = 1
+
 	repransiname = ""
 
 	strescapes = { '<' : 'lt' , '>' : 'gt' , '&' : 'amp' , '"' : 'quot' }
@@ -612,7 +635,7 @@ class Text(Node):
 				v.append(i)
 		return string.join(v,"")
 
-	def __strtext(self,refwhite,content):
+	def __strtext(self,refwhite,content,ansi = None):
 		# we could put ANSI escapes around every character or reference that we output, but this would result in strings that are way to long, especially if output over a serial connection, so we collect runs of characters with the same highlighting and put the ANSI escapes around those. (of course, when we're not doing highlighting, this routine does way to much useless calculations)
 		v = [] # collect all colored string here
 		charref = -1 # the type of characters we're currently collecting (0==normal character, 1==character that has to be output as an entity, -1==at the start)
@@ -639,20 +662,20 @@ class Text(Node):
 							s = s + '&' + ent[0] + ';'
 						else:
 							s = s + '&#' + str(ord(i)) + ';'
-					v.append(_stransi(repransicharref,s))
+					v.append(_stransi(repransicharref,s,ansi))
 				else:
 					s = content[start:end]
-					v.append(_stransi(repransitext,s))
+					v.append(_stransi(repransitext,s,ansi))
 				charref = 1-charref # switch to the other class
 				start = end # the next string we want to work on starts from here
 			end = end + 1 # to the next character
 		return string.join(v,"")
 
-	def _dorepr(self):
+	def _dorepr(self,ansi = None):
 		# constructs a string of this Text with syntaxhighlighting. Special characters will be output as CharRefs (with special highlighting)
-		return self.__strtext(0,self.content)
+		return self.__strtext(0,self.content,ansi)
 
-	def _doreprtree(self,nest,elementno):
+	def _doreprtree(self,nest,elementno,ansi = None):
 		lines = string.split(self.content,"\n")
 		if len(lines) and lines[-1] == "":
 			del lines[-1]
@@ -662,7 +685,7 @@ class Text(Node):
 				no = -1
 			else:
 				no = self.startlineno + i
-			s = _stransi(repransiquote,'"') + _stransi(repransitext,self.__strtext(1,lines[i])) + _stransi(repransiquote,'"')
+			s = _stransi(repransiquote,'"',ansi) + _stransi(repransitext,self.__strtext(1,lines[i],ansi),ansi) + _stransi(repransiquote,'"',ansi)
 			v.append([nest,no,elementno,s])
 		return v
 
@@ -702,22 +725,22 @@ class CharRef(Node):
 		else:
 			return '&#' + str(self.content) + ';'
 
-	def __strcharref(self,s):
-		return _stransi(repransicharref,s)
+	def __strcharref(self,s,ansi = None):
+		return _stransi(repransicharref,s,ansi)
 
-	def _dorepr(self):
+	def _dorepr(self,ansi):
 		if len(Parser.entitiesByNumber[self.content]):
-			return self.__strcharref('&' + Parser.entitiesByNumber[self.content][0] + ';')
+			return self.__strcharref('&' + Parser.entitiesByNumber[self.content][0] + ';',ansi)
 		else:
-			return self.__strcharref('&#' + str(self.content) + ';')
+			return self.__strcharref('&#' + str(self.content) + ';',ansi)
 
-	def _doreprtree(self,nest,elementno):
-		s = self.__strcharref('&#' + str(self.content) + ';') + ' (' + self.__strcharref('&#x' + hex(self.content)[2:] + ';')
+	def _doreprtree(self,nest,elementno,ansi = None):
+		s = self.__strcharref('&#' + str(self.content) + ';',ansi) + ' (' + self.__strcharref('&#x' + hex(self.content)[2:] + ';',ansi)
 		for name in Parser.entitiesByNumber[self.content]:
-			s = s + ' ' + self.__strcharref('&' + name + ';')
+			s = s + ' ' + self.__strcharref('&' + name + ';',ansi)
 		s = s + ')'
 		if 0 <= self.content < reprcharreflowerlimit:
-			s = s + ' ' + Text(chr(self.content))._doreprtree(0,0)[0][-1]
+			s = s + ' ' + Text(chr(self.content))._doreprtree(0,0,ansi)[0][-1]
 		return [[nest,self.startlineno,elementno,s]]
 
 	def compact(self):
@@ -732,12 +755,14 @@ class Frag(Node):
 	The member content of an Element is a Frag.
 	"""
 
+	empty = 0
+
 	repransiname = ""
 
 	def __init__(self,_content = []):
 		t = type(_content)
 		if t == types.InstanceType:
-			if isinstance(_content,Frag):
+			if isinstance(_content,Frag): # if this was an attribute, we have it downcast now
 				self.__content = []
 				for child in _content:
 					self.append(child)
@@ -753,17 +778,18 @@ class Frag(Node):
 			self.__content = [ ToNode(_content) ]
 
 	def __add__(self,other):
-		res = Frag(self.__content)
+		res = self.__class__(self.__content) # "virtual" copy
 		newother = ToNode(other)
 		if not isinstance(newother,Null):
 			if isinstance(newother,Frag):
-				res.__content = res.__content + newother.__content
+				for child in newother:
+					res.append(child)
 			else:
-				res.__content.append(newother)
+				res.append(newother)
 		return res
 
 	def __radd__(self,other):
-		res = Frag(self.__content)
+		res = self.__class__(self.__content) # "virtual" copy
 		newother = ToNode(other)
 		if not isinstance(newother,Null):
 			if isinstance(newother,Frag):
@@ -773,31 +799,34 @@ class Frag(Node):
 		return res
 
 	def asHTML(self):
-		e = Frag()
+		e = self.__class__([])
 		for child in self:
 			e.append(child.asHTML())
 		return e
 
 	def clone(self):
-		e = self.__class__(self)
+		e = self.__class__([])
 		for child in self:
 			e.append(child.clone())
 		return e
 
-	def _dorepr(self):
+	def _dorepr(self,ansi = None):
 		v = []
 		for child in self:
-			v.append(child._dorepr())
+			v.append(child._dorepr(ansi = ansi))
 		return string.join(v,"")
 
-	def _doreprtree(self,nest,elementno):
+	def _doreprtree(self,nest,elementno,ansi = None):
 		v = []
-		v.append([nest,self.startlineno,elementno,self._strtag(self._strname())])
-		i = 0
-		for child in self:
-			v = v + child._doreprtree(nest+1,elementno + [i])
-			i = i + 1
-		v.append([nest,self.endlineno,elementno,self._strtag(_strelementname("/")+self._strname())])
+		if len(self):
+			v.append([nest,self.startlineno,elementno,self._str(brackets = 1,ansi = ansi)])
+			i = 0
+			for child in self:
+				v = v + child._doreprtree(nest+1,elementno + [i],ansi)
+				i = i + 1
+			v.append([nest,self.endlineno,elementno,self._str(brackets = 1,ansi = ansi,slash = -1)])
+		else:
+			v.append([nest,self.startlineno,elementno,self._str(brackets = 1,ansi = ansi,slash = 1)])
 		return v
 
 	def __str__(self):
@@ -830,7 +859,7 @@ class Frag(Node):
 		"""
 		returns a slice of the content of the fragment
 		"""
-		return Frag(self.__content[index1:index2])
+		return self.__class__(self.__content[index1:index2])
 
 	def __setslice__(self,index1,index2,sequence):
 		"""
@@ -876,7 +905,7 @@ class Frag(Node):
 		return e
 
 	def compact(self):
-		e = Frag()
+		e = self.__class__()
 		for child in self:
 			e.append(child.compact())
 		return e
@@ -896,11 +925,11 @@ class Comment(Node):
 
 	clone = asHTML
 
-	def _dorepr(self):
-		return self._strtag("!--" + self.__content + "--")
+	def _dorepr(self,ansi = None):
+		return self._str(content = "!--" + self.__content + "--",brackets = 1,ansi = ansi)
 
-	def _doreprtree(self,nest,elementno):
-		return [[nest,self.startlineno,elementno,self._dorepr()]]
+	def _doreprtree(self,nest,elementno,ansi):
+		return [[nest,self.startlineno,elementno,self._dorepr(ansi)]]
 
 	def __str__(self):
 		return "<!--" + self.__content + "-->"
@@ -918,19 +947,16 @@ class DocType(Node):
 	def __init__(self,content = ""):
 		self.__content = content
 
-	def name(self):
-		return self._strtag(_stransi(repransidoctype,"doctype"))
-
 	def asHTML(self):
 		return DocType(self.__content)
 
 	clone = asHTML
 
-	def _dorepr(self):
-		return self._strtag(_stransi(repransidoctype,"!DOCTYPE " + self.__content))
+	def _dorepr(self,ansi = None):
+		return self._str(content = _stransi(repransidoctype,"!DOCTYPE " + self.__content,ansi),brackets = 1,ansi = ansi)
 
-	def _doreprtree(self,nest,elementno):
-		return [[nest,self.startlineno,elementno,self._dorepr()]]
+	def _doreprtree(self,nest,elementno,ansi = None):
+		return [[nest,self.startlineno,elementno,self._dorepr(ansi)]]
 
 	def __str__(self):
 		return "<!DOCTYPE " + self.__content + ">"
@@ -988,15 +1014,15 @@ class ProcInst(Node):
 	def clone(self):
 		return ProcInst(self.target,self.content)
 
-	def _dorepr(self):
-		return self._strtag(_stransi(repransiquestion,"?") + _stransi(repransiprocinsttarget,self.target) + " " + _stransi(repransiprocinstdata,self.content) + _stransi(repransiquestion,"?"))
+	def _dorepr(self,ansi = None):
+		return self._str(content = _stransi(repransiquestion,"?",ansi) + _stransi(repransiprocinsttarget,self.target,ansi) + " " + _stransi(repransiprocinstdata,self.content,ansi) + _stransi(repransiquestion,"?",ansi),brackets = 1,ansi = ansi)
 
-	def _doreprtree(self,nest,elementno):
+	def _doreprtree(self,nest,elementno,ansi = None):
 		lines = string.split(self.content,"\n")
 		if len(lines) and lines[-1] == "":
 			del lines[-1]
 		if len(lines) == 1:
-			s = _stransi(repransibracket,'<')+_stransi(repransiquestion,"?") + _stransi(repransiprocinsttarget,self.target) + " " + _stransi(repransiprocinstdata,string.rstrip(lines[0])) + _stransi(repransiquestion,"?") + _stransi(repransibracket,'>')
+			s = self._str(content = _stransi(repransiquestion,"?",ansi) + _stransi(repransiprocinsttarget,self.target,ansi) + " " + _stransi(repransiprocinstdata,string.rstrip(lines[0]),ansi) + _stransi(repransiquestion,"?",ansi),brackets = 1,ansi = ansi)
 			return [[nest,self.startlineno,elementno,s]]
 		else:
 			v = []
@@ -1012,10 +1038,10 @@ class ProcInst(Node):
 						no = self.startlineno + i-1
 				if i == 0:
 					mynest = nest
-					s = _stransi(repransibracket,'<')+_stransi(repransiquestion,"?") + _stransi(repransiprocinsttarget,self.target)
+					s = _stransi(repransibracket,"<",ansi)+_stransi(repransiquestion,"?",ansi) + _stransi(repransiprocinsttarget,self.target,ansi)
 				elif i == len(lines)+1:
 					mynest = nest
-					s = _stransi(repransiquestion,"?")+_stransi(repransibracket,'>')
+					s = _stransi(repransiquestion,"?",ansi)+_stransi(repransibracket,">",ansi)
 				else:
 					mynest = nest+1
 					s = lines[i-1]
@@ -1099,28 +1125,28 @@ class Element(Node):
 			e[attr] = self[attr].clone()
 		return e
 
-	def _dorepr(self):
+	def _dorepr(self,ansi = None):
 		v = []
 		if self.empty:
-			v.append(self._strtag(self._strname() + self.__strattrs() + _strelementname("/")))
+			v.append(self._str(content = self.__strattrs(ansi),brackets = 1,slash = 1,ansi = ansi))
 		else:
-			v.append(self._strtag(self._strname() + self.__strattrs()))
+			v.append(self._str(content = self.__strattrs(ansi),brackets = 1,ansi = ansi))
 			for child in self:
-				v.append(child._dorepr())
-			v.append(self._strtag(_strelementname("/") + self._strname()))
+				v.append(child._dorepr(ansi))
+			v.append(self._str(brackets = 1,slash = -1,ansi = ansi))
 		return string.join(v,"")
 
-	def _doreprtree(self,nest,elementno):
+	def _doreprtree(self,nest,elementno,ansi = None):
 		v = []
 		if self.empty:
-			v.append([nest,self.startlineno,elementno,self._strtag(self._strname() + self.__strattrs() + _strelementname("/"))])
+			v.append([nest,self.startlineno,elementno,self._str(content = self.__strattrs(ansi),brackets = 1,slash = 1,ansi = ansi)])
 		else:
-			v.append([nest,self.startlineno,elementno,self._strtag(self._strname() + self.__strattrs())])
+			v.append([nest,self.startlineno,elementno,self._str(content = self.__strattrs(ansi),brackets = 1,ansi = ansi)])
 			i = 0
 			for child in self:
-				v = v + child._doreprtree(nest+1,elementno + [i])
+				v = v + child._doreprtree(nest+1,elementno + [i],ansi)
 				i = i + 1
-			v.append([nest,self.endlineno,elementno,self._strtag(_strelementname(_strelementname("/") + self._strname()))])
+			v.append([nest,self.endlineno,elementno,self._str(brackets = 1,slash = -1,ansi = ansi)])
 		return v
 
 	def __str__(self):
@@ -1131,7 +1157,7 @@ class Element(Node):
 			v.append(' ')
 			v.append(attr)
 			value = self[attr]
-			if not isinstance(value.content,Null):
+			if len(value):
 				v.append('="')
 				v.append(str(value))
 				v.append('"')
@@ -1221,17 +1247,17 @@ class Element(Node):
 	def has_attr(self,attr):
 		return self.attrs.has_key(attr)
 
-	def __strattrs(self):
+	def __strattrs(self,ansi = None):
 		v = []
 		for attr in self.attrs.keys():
 			v.append(" ")
-			v.append(_strattrname(attr))
+			v.append(_strattrname(attr,ansi))
 			value = self[attr]
 			if len(value):
 				v.append('=')
-				v.append(_stransi(repransiquote,'"'))
-				v.append(value._dorepr())
-				v.append(_stransi(repransiquote,'"'))
+				v.append(_stransi(repransiquote,'"',ansi = ansi))
+				v.append(value._dorepr(ansi = ansi))
+				v.append(_stransi(repransiquote,'"',ansi = ansi))
 		return string.join(v,"")
 
 	def AddImageSizeAttributes(self,imgattr,widthattr = "width",heightattr = "height"):
@@ -1285,10 +1311,10 @@ class Null(Element):
 
 	def _dorepr(self):
 		# constructs a string of this Text with syntaxhighlighting. Special characters will be output as CharRefs (with special highlighting)
-		return self._strtag(self._strname() + _strelementname("/"))
+		return self._str(slash = 1,ansi = ansi)
 
-	def _doreprtree(self,nest,elementno):
-		return [[nest,self.startlineno,elementno,self._dorepr()]]
+	def _doreprtree(self,nest,elementno,ansi = None):
+		return [[nest,self.startlineno,elementno,self._dorepr(ansi)]]
 
 	def compact(self):
 		return Null()
@@ -1321,17 +1347,8 @@ class TextAttr(Attr):
 	Attribute class that is used for normal text attributes.
 	"""
 
-	def _dorepr(self):
-		return _stransi(repransiattrvalue,Attr._dorepr(self))
-
-	def _doreprtree(self,nest,elementno):
-		return [[nest,self.startlineno,elementno,self._dorepr()]]
-
-	def __str__(self):
-		return str(self.content)
-
-	def asHTML(self):
-		return TextAttr(self.content.asHTML())
+	def _dorepr(self,ansi = None):
+		return _stransi(repransiattrvalue,Attr._dorepr(self,ansi = 0),ansi)
 
 class ColorAttr(Attr):
 	"""
@@ -1340,17 +1357,8 @@ class ColorAttr(Attr):
 
 	repransitext = ""
 
-	def _dorepr(self):
-		return _stransi(repransiattrvalue,str(self.content))
-
-	def _doreprtree(self,nest,elementno):
-		return [[nest,self.startlineno,elementno,self._dorepr()]]
-
-	def __str__(self):
-		return str(self.content)
-
-	def asHTML(self):
-		return ColorAttr(self.content.asHTML())
+	def _dorepr(self,ansi = None):
+		return _stransi(repransiattrvalue,Attr._dorepr(self,ansi = 0),ansi)
 
 class URL(Node):
 	def __init__(self,url = None,scheme = None,server = None,path = None,file = None,parameters = None,query = None,fragment = None,forceproject = 0):
@@ -1406,7 +1414,7 @@ class URL(Node):
 			if self.scheme == "http":
 				del self.path[0] # if we had a http, the path from urlparse started with "/" too
 
-	def __repr__(self):
+	def _dorepr(self,ansi = None):
 		sep = "/" # use the normal URL separator by default
 		path = self.path[:]
 		path.append(self.file)
@@ -1417,7 +1425,7 @@ class URL(Node):
 					path[i] = os.pardir
 			sep = os.sep # we have a local file, so we should use the local directory separator instead
 		url = urlparse.urlunparse((self.scheme,self.server,string.join(path,sep),self.parameters,self.query,self.fragment))
-		return _stransi(repransiurl,url)
+		return _stransi(repransiurl,url,ansi)
 
 	def __str__(self):
 		path = self.path[:]
@@ -1518,17 +1526,11 @@ class URLAttr(Attr):
 		Attr.__init__(self,_content)
 		self.insert(0,xsc.filename[-1])
 
-	def _dorepr(self):
-		return repr(reduce(lambda x,y: x.joined(y),self))
-
-	def _doreprtree(self,nest,elementno):
-		return [[nest,self.startlineno,elementno,self._dorepr()]]
+	def _dorepr(self,ansi = None):
+		return _stransi(repransiurl,reduce(lambda x,y: x.joined(y),self)._dorepr(ansi = ansi),ansi = ansi)
 
 	def __str__(self):
 		return self.forOutput()
-
-	def asHTML(self):
-		return URLAttr(self.content.asHTML())
 
 	def forInput(self):
 		url = reduce(lambda x,y: x.joined(y),self)

@@ -154,7 +154,7 @@ class pixel(html.img):
 				color = self["color"]
 			else:
 				e[attr] = self[attr]
-		e["src"] = [ ":images/pixels/" , color , ".gif" ]
+		e["src"] = ":images/pixels/" + color + ".gif"
 
 		return e.asHTML()
 xsc.registerElement(pixel)
