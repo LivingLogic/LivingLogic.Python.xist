@@ -92,7 +92,7 @@ class Base(object):
 
 	def __fullname__(cls):
 		"""
-		<par>Return the fully quilified class name (i.e. including containing
+		<par>Return the fully qualified class name (i.e. including containing
 		classes, if this class has been defined inside another one).</par>
 		"""
 		name = cls.__name__
