@@ -1159,10 +1159,10 @@ class Frag(Node, list):
 	def _str(cls, fullname=True, xml=True, decorate=True):
 		s = ansistyle.Text()
 		if decorate:
-			s.append(presenters.strBracketOpen(), presenters.strSlash())
+			s.append(presenters.strBracketOpen())
 		cls._strbase(presenters.strElementName, s, fullname=fullname, xml=xml)
 		if decorate:
-			s.append(presenters.strSlash(), presenters.strBracketClose())
+			s.append(presenters.strBracketClose())
 		return s
 	_str = classmethod(_str)
 
