@@ -76,7 +76,98 @@ classes in a module with registerAllElements(dict,namespacename)
 (again see its docstring for further info).
 
 
-Requirements:
+URLs, path markers and the URL stack
+====================================
+XIST has a class for URLs (URL.URL) which is a thin
+wrapper around urlparse's features. You can add URLs
+via +, e.g.
+	URL("http://www.foo.org/") + URL("/images/bar.png")
+yields an URL object equivalent to
+	URL("http://www.foo.org/images/bar.png").
+
+Path markers
+------------
+XIST supports so called "path markers". Any directory
+name in an URL starting with "*" is not a real directory
+name, but marks a position in the path. When you add
+two URLs and the second one starts with a path marker,
+the second URL will be considered relative to the part
+of the path before the first occurence of the same path
+marker in the first URL. Example:
+	URL("http://www.foo.org/gurk/*root/hurz/hinz.html") + URL("*root/kunz/hinz.png")
+yields the following URL
+	URL("http://www.foo.org/gurk/*root/kunz/hinz.png")
+which is equivalent to
+	URL("http://www.foo.org/gurk/kunz/hinz.png").
+You can use this feature to simplify the handling of
+deeply nested directory structures.
+
+The URL stack
+-------------
+XIST maintains a stack of URLs that is used in parsing files.
+
+Whenever you parse an XML file via xsc.xsc.parse(name),
+the URL corresponding to name will be pushed onto the stack.
+All URL attributes (e.g. the href in <a>, or the src in <img>)
+encountered during the parsing of the file will be interpreted
+relative to the URL on top of the stack. After parsing the file
+the URL will be popped of the stack again. This means that
+all URLs will point to the correct location.
+
+When an URL is pushed onto the stack the URL itself will be
+interpreted relative to the old one on top of the stack.
+XIST itself always pushes "*/" onto the stack when starting
+up. ("*/" is a nameless path marker that allows you to easily
+return to the root of your directory tree)
+
+Example:
+When you parse a file "foo/bar/baz.xml" via
+	element = xsc.xsc.parse("foo/bar/baz.xml")
+and this file contains an image
+	<img src="*/images/gurk.png"/>
+the following will happen:
+The URL "foo/bar/baz.xml" will be pushed onto the stack.
+As the stack already contains the URL "*/", this will
+result in a new stacktop "*/foo/bar/baz.xml". Now when
+the image is encountered, the stacktop and the image
+URL will be added together to yield
+	"*/images/gurk.png".
+
+Output of URLs
+--------------
+So what happens with the URL "*/images/gurk.png" in the
+above example, when the element is converted to a string?
+All URLs encountered during this conversion will be made
+relative to the URL on the stacktop and output in this
+way. This means the following:
+You have to manually push the URL of the file you read
+onto the stack:
+	xsc.xsc.pushURL("foo/bar/baz.xml")
+and then the image URL "*/images/gurk.png" from above
+will be output as "../../images/gurk.png".
+(And don't forget the pop the URL again with xsc.xsc.popURL())
+
+There is another situation where you will want to manually
+push an URL onto the stack: When some of your own elements
+generate new URLs in their asHTML() methods. As this
+conversion happens sometime after the file is parsed, the URL
+of the file is already gone from the stack again. But of course
+you will want new URLs to be interpreted relative to the file
+name in which the element was encountered. So you have to push
+the URL to the stack manually. Of course all these steps can
+be combined into the following:
+	url = "foo/bar/baz.xml"
+	element = xsc.xsc.parse(url)
+	xsc.xsc.pushURL(url)
+	str = element.asHTML().asString()
+	xsc.xsc.popURL()
+
+Automatic generation of image size attributes
+=============================================
+...
+
+Requirements
+============
 XSC requires Python 1.5.2.
 
 XSC currently uses the xmllib parser from the Python XML package,
@@ -1358,7 +1449,7 @@ class Element(Node):
 
 		returns, if S has an attribute named attr.
 		"""
-		
+
 		return self.attrs.has_key(attr)
 
 	def getAttr(self,attr,default = None):
