@@ -28,7 +28,7 @@ can be used for all conversion target, because they only generate text.</par>
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-import sys, types, time as time_, string
+import sys, types, time as time_
 
 from ll.xist import xsc, parsers
 

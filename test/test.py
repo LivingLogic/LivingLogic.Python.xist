@@ -5,15 +5,7 @@ import sys, unittest, ExceptHook
 sys.ExceptHook = ExceptHook.ExceptHookMono()
 
 from ll.xist import xsc, parsers, presenters, converters, helpers, errors
-from ll.xist.ns.wml import wml
-from ll.xist.ns.ihtml import ihtml
-from ll.xist.ns.html import html
-from ll.xist.ns.css import css
-from ll.xist.ns.abbr import abbr
-from ll.xist.ns.specials import specials
-from ll.xist.ns.htmlspecials import htmlspecials
-from ll.xist.ns.php import php
-from ll.xist.ns.xml import xml
+from ll.xist.ns import wml, ihtml, html, css, abbr, specials, htmlspecials, php, xml
 
 class XISTTestCase(unittest.TestCase):
 	def check_lenunicode(self, node, _len, content):

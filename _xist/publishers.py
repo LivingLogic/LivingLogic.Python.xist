@@ -34,12 +34,11 @@ from ll import url
 
 import xsc, options, helpers
 
-if hasattr(codecs, "register_error"):
-	def cssescapereplace(exc):
-		if not isinstance(exc, UnicodeEncodeError):
-			raise TypeError("don't know how to handle %r" % exc)
-		return (helpers.cssescapereplace(exc.object[exc.start:exc.end], exc.encoding), exc.end)
-	codecs.register_error("cssescapereplace", cssescapereplace)
+def cssescapereplace(exc):
+	if not isinstance(exc, UnicodeEncodeError):
+		raise TypeError("don't know how to handle %r" % exc)
+	return (helpers.cssescapereplace(exc.object[exc.start:exc.end], exc.encoding), exc.end)
+codecs.register_error("cssescapereplace", cssescapereplace)
 
 class Publisher(object):
 	"""
@@ -125,23 +124,14 @@ class Publisher(object):
 		"""
 		self.stream.write(text)
 
-	if hasattr(codecs, "register_error"):
-		def publishText(self, text):
-			"""
-			<par>is used to publish text data. This uses the current
-			text filter, which is responsible for escaping characters.</par>
-			"""
-			self.stream.errors = self.__currenterrors
-			self.publish(self.__currenttextfilter(text))
-			self.stream.errors = "strict"
-	else:
-		def publishText(self, text):
-			"""
-			<par>is used to publish text data. This uses the current
-			text filter, which is responsible for escaping characters.</par>
-			"""
-			errorhandler = getattr(helpers, self.__currenterrors)
-			self.publish(errorhandler(self.__currenttextfilter(text), self.encoding))
+	def publishText(self, text):
+		"""
+		<par>is used to publish text data. This uses the current
+		text filter, which is responsible for escaping characters.</par>
+		"""
+		self.stream.errors = self.__currenterrors
+		self.publish(self.__currenttextfilter(text))
+		self.stream.errors = "strict"
 
 	def pushTextFilter(self, filter):
 		"""

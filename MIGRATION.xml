@@ -16,12 +16,13 @@ safest method for this is using keyword arguments, e.g.
 </section>
 
 <section><title>JSP directive page element</title>
-<par>
-A contentType attribute is no longer generated for the jsp.directive_page.
-You have to use an attribute contentType="<rep>text/html</rep>" to get
-a contentType attribute in the resulting JSP. The charset option is
-generated automatically from the encoding specified in the publisher.
-</par>
+
+<par>A <lit>contentType</lit> attribute is no longer generated for the
+<class>ll.xist.ns.jsp.directive_page</class>. You have to explicitely use an attribute
+<lit>contentType="<rep>text/html</rep>"</lit> to get a <lit>contentType</lit> attribute
+in the resulting &jsp;. The <lit>charset</lit> option is generated automatically
+from the encoding specified in the publisher.</par>
+
 </section>
 </section>
 

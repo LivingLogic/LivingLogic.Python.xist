@@ -32,7 +32,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 import cgi # for parse_header
 
 from ll.xist import xsc, utils
-from ll.xist.ns.xml import xml
+from ll.xist.ns import xml
 
 # common attributes types
 class DirAttr(xsc.TextAttr): "direction for weak/neutral text"; values = ("ltr", "rtl")
@@ -175,7 +175,7 @@ class title(xsc.Element):
 
 	def unwrapHTML(self, node):
 		if isinstance(node, xsc.Element) and node.xmlns is html: # is this one of our own elements => filter it out
-			if isinstance(node, html.img):
+			if isinstance(node, img):
 				node = node["alt"]
 			else:
 				node = node.content.mapped(self.unwrapHTML)
@@ -183,7 +183,7 @@ class title(xsc.Element):
 
 	def convert(self, converter):
 		content = self.content.convert(converter).mapped(self.unwrapHTML)
-		return html.title(content, self.attrs)
+		return title(content, self.attrs)
 
 class base(xsc.Element):
 	"""
@@ -221,7 +221,7 @@ class meta(xsc.Element):
 					)
 					node.publish(publisher)
 					return
-		super(html.meta, self).publish(publisher)
+		super(meta, self).publish(publisher)
 
 class link(xsc.Element):
 	"""

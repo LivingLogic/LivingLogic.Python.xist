@@ -30,7 +30,8 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 
 from ll.xist import xsc, utils
 
-class xlink(xsc.Namespace):
+class xmlns(xsc.Namespace):
+	xmlname = "xlink"
 	xmlurl  = "http://www.w3.org/1999/xlink"
 
 	class Attrs(xsc.Namespace.Attrs):
@@ -54,3 +55,4 @@ class xlink(xsc.Namespace):
 			xmlname = "from"
 		class to(xsc.NamespaceAttrMixIn, xsc.TextAttr):
 			pass
+xmlns.makemod(vars())

@@ -350,132 +350,134 @@ class CharRef(Entity):
 		newlines.append([level+1, "codepoint = 0x%04x" % self.codepoint])
 		self._addlines(newlines, lines)
 
-class xndl(xsc.Namespace):
+class xndl(xsc.Element):
+	empty = False
+	class Attrs(xsc.Element.Attrs):
+		class name(xsc.TextAttr): required = True
+		class url(xsc.TextAttr): default = "... insert namespace name here ..."
+
+	def asdata(self):
+		docs = self.find(type=xndl.doc)
+		if len(docs):
+			doc = Doc(docs[0])
+		else:
+			doc = None
+
+		return Namespace(
+			name=unicode(self["name"]),
+			doc=doc,
+			url=unicode(self["url"]) or None,
+			content=[ node.asdata() for node in self.find(type=(xndl.element, xndl.procinst, xndl.entity, xndl.charref)) ]
+		)
+
+class doc(xsc.Element):
+	empty = False
+
+	def asdata(self):
+		return self.content
+
+class element(xsc.Element):
+	empty = False
+	class Attrs(xsc.Element.Attrs):
+		class name(xsc.TextAttr): required = True
+		class empty(xsc.BoolAttr): pass
+
+	def asdata(self):
+		docs = self.find(type=xndl.doc)
+		if len(docs):
+			doc = Doc(docs[0])
+		else:
+			doc = None
+
+		return Element(
+			name=unicode(self["name"]),
+			doc=doc,
+			empty=self.attrs.has("empty"),
+			attrs=[ attr.asdata() for attr in self.find(type=xndl.attr) ]
+		)
+
+class attr(xsc.Element):
+	empty = False
+	class Attrs(xsc.Element.Attrs):
+		class name(xsc.TextAttr): required = True
+		class type(xsc.TextAttr):
+			default = "TextAttr"
+			required = True
+		class required(xsc.BoolAttr): pass
+		class default(xsc.TextAttr): pass
+
+	def asdata(self):
+		docs = self.find(type=xndl.doc)
+		if len(docs):
+			doc = Doc(docs[0])
+		else:
+			doc = None
+		return Attr(
+			name=unicode(self["name"]),
+			doc=doc,
+			type=str(self["type"]),
+			required=self.attrs.has("required"),
+			default=unicode(self["default"]) or None,
+			values=[ unicode(value) for value in self.find(type=xndl.value) ]
+		)
+
+class value(xsc.Element):
+	empty = False
+
+class procinst(xsc.Element):
+	empty = False
+	class Attrs(xsc.Element.Attrs):
+		class target(xsc.TextAttr): required = True
+
+	def asdata(self):
+		name = unicode(self["target"])
+		docs = self.find(type=xndl.doc)
+		if len(docs):
+			doc = docs[0]
+		else:
+			doc = None
+		return ProcInst(
+			name=name,
+			doc=doc
+		)
+
+class entity(xsc.Element):
+	empty = False
+	class Attrs(xsc.Element.Attrs):
+		class name(xsc.TextAttr): required = True
+
+	def asdata(self):
+		name = unicode(self["name"])
+		docs = self.find(type=xndl.doc)
+		if len(docs):
+			doc = docs[0]
+		else:
+			doc = None
+		return Entity(
+			name=unicode(self["name"]),
+			doc=doc
+		)
+
+class charref(xsc.Element):
+	empty = False
+	class Attrs(xsc.Element.Attrs):
+		class name(xsc.TextAttr): required = True
+		class codepoint(xsc.IntAttr): required = True
+
+	def asdata(self):
+		docs = self.find(type=xndl.doc)
+		if len(docs):
+			doc = docs[0]
+		else:
+			doc = None
+		return CharRef(
+			name=unicode(self["name"]),
+			doc=doc,
+			codepoint=int(self["codepoint"])
+		)
+
+class xmlns(xsc.Namespace):
+	xmlname = "xndl"
 	xmlurl = "http://xmlns.livinglogic.de/xist/ns/xndl"
-
-	class xndl(xsc.Element):
-		empty = False
-		class Attrs(xsc.Element.Attrs):
-			class name(xsc.TextAttr): required = True
-			class url(xsc.TextAttr): default = "... insert namespace name here ..."
-
-		def asdata(self):
-			docs = self.find(type=xndl.doc)
-			if len(docs):
-				doc = Doc(docs[0])
-			else:
-				doc = None
-
-			return Namespace(
-				name=unicode(self["name"]),
-				doc=doc,
-				url=unicode(self["url"]) or None,
-				content=[ node.asdata() for node in self.find(type=(xndl.element, xndl.procinst, xndl.entity, xndl.charref)) ]
-			)
-
-	class doc(xsc.Element):
-		empty = False
-
-		def asdata(self):
-			return self.content
-
-	class element(xsc.Element):
-		empty = False
-		class Attrs(xsc.Element.Attrs):
-			class name(xsc.TextAttr): required = True
-			class empty(xsc.BoolAttr): pass
-
-		def asdata(self):
-			docs = self.find(type=xndl.doc)
-			if len(docs):
-				doc = Doc(docs[0])
-			else:
-				doc = None
-
-			return Element(
-				name=unicode(self["name"]),
-				doc=doc,
-				empty=self.attrs.has("empty"),
-				attrs=[ attr.asdata() for attr in self.find(type=xndl.attr) ]
-			)
-
-	class attr(xsc.Element):
-		empty = False
-		class Attrs(xsc.Element.Attrs):
-			class name(xsc.TextAttr): required = True
-			class type(xsc.TextAttr):
-				default = "TextAttr"
-				required = True
-			class required(xsc.BoolAttr): pass
-			class default(xsc.TextAttr): pass
-
-		def asdata(self):
-			docs = self.find(type=xndl.doc)
-			if len(docs):
-				doc = Doc(docs[0])
-			else:
-				doc = None
-			return Attr(
-				name=unicode(self["name"]),
-				doc=doc,
-				type=str(self["type"]),
-				required=self.attrs.has("required"),
-				default=unicode(self["default"]) or None,
-				values=[ unicode(value) for value in self.find(type=xndl.value) ]
-			)
-
-	class value(xsc.Element):
-		empty = False
-
-	class procinst(xsc.Element):
-		empty = False
-		class Attrs(xsc.Element.Attrs):
-			class target(xsc.TextAttr): required = True
-
-		def asdata(self):
-			name = unicode(self["target"])
-			docs = self.find(type=xndl.doc)
-			if len(docs):
-				doc = docs[0]
-			else:
-				doc = None
-			return ProcInst(
-				name=name,
-				doc=doc
-			)
-
-	class entity(xsc.Element):
-		empty = False
-		class Attrs(xsc.Element.Attrs):
-			class name(xsc.TextAttr): required = True
-
-		def asdata(self):
-			name = unicode(self["name"])
-			docs = self.find(type=xndl.doc)
-			if len(docs):
-				doc = docs[0]
-			else:
-				doc = None
-			return Entity(
-				name=unicode(self["name"]),
-				doc=doc
-			)
-
-	class charref(xsc.Element):
-		empty = False
-		class Attrs(xsc.Element.Attrs):
-			class name(xsc.TextAttr): required = True
-			class codepoint(xsc.IntAttr): required = True
-
-		def asdata(self):
-			docs = self.find(type=xndl.doc)
-			if len(docs):
-				doc = docs[0]
-			else:
-				doc = None
-			return CharRef(
-				name=unicode(self["name"]),
-				doc=doc,
-				codepoint=int(self["codepoint"])
-			)
+xmlns.makemod(vars())
 

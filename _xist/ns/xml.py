@@ -30,7 +30,47 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 from __future__ import nested_scopes
 from ll.xist import xsc, utils
 
-class xml(xsc.Namespace):
+class XML(xsc.ProcInst):
+	"""
+	&xml; header
+	"""
+	xmlname = "xml"
+
+	needsxmlns = 0
+
+	def publish(self, publisher):
+		content = self.content
+		encodingfound = utils.findAttr(content, u"encoding")
+		versionfound = utils.findAttr(content, u"version")
+		standalonefound = utils.findAttr(content, u"standalone")
+		if publisher.encoding != encodingfound: # if self has the wrong encoding specification (or none), we construct a new XML ProcInst and publish that (this doesn't lead to infinite recursion, because the next call will skip it)
+			node = XML(u"version='" + versionfound + u"' encoding='" + publisher.encoding + u"'")
+			if standalonefound is not None:
+				node += u" standalone='" + standalonefound + u"'"
+			node.publish(publisher)
+			return
+		xsc.ProcInst.publish(self, publisher)
+
+class XML10(XML):
+	"""
+	&xml; header version 1.0, i.e. <markup>&lt;?xml version="1.0"?&gt;</markup>
+	"""
+	xmlname = "xml10"
+	register = False # don't register this ProcInst, because it will never be parsed from a file, this is just a convenience class
+
+	def __init__(self):
+		super(XML10, self).__init__('version="1.0"')
+
+class XMLStyleSheet(xsc.ProcInst):
+	"""
+	XML stylesheet declaration
+	"""
+	xmlname = u"xml-stylesheet"
+
+	needsxmlns = 0
+
+class xmlns(xsc.Namespace):
+	xmlname = "xml"
 	xmlurl = "http://www.w3.org/XML/1998/namespace"
 
 	class Attrs(xsc.Namespace.Attrs):
@@ -44,43 +84,5 @@ class xml(xsc.Namespace):
 		class base(xsc.NamespaceAttrMixIn, xsc.URLAttr):
 			needsxmlns = 1
 			xmlprefix = u"xml"
-
-	class XML(xsc.ProcInst):
-		"""
-		&xml; header
-		"""
-		xmlname = "xml"
-
-		needsxmlns = 0
-
-		def publish(self, publisher):
-			content = self.content
-			encodingfound = utils.findAttr(content, u"encoding")
-			versionfound = utils.findAttr(content, u"version")
-			standalonefound = utils.findAttr(content, u"standalone")
-			if publisher.encoding != encodingfound: # if self has the wrong encoding specification (or none), we construct a new XML ProcInst and publish that (this doesn't lead to infinite recursion, because the next call will skip it)
-				node = xml.XML(u"version='" + versionfound + u"' encoding='" + publisher.encoding + u"'")
-				if standalonefound is not None:
-					node += u" standalone='" + standalonefound + u"'"
-				node.publish(publisher)
-				return
-			xsc.ProcInst.publish(self, publisher)
-
-	class XML10(XML):
-		"""
-		&xml; header version 1.0, i.e. <markup>&lt;?xml version="1.0"?&gt;</markup>
-		"""
-		xmlname = "xml10"
-		register = False # don't register this ProcInst, because it will never be parsed from a file, this is just a convenience class
-
-		def __init__(self):
-			super(xml.XML10, self).__init__('version="1.0"')
-
-	class XMLStyleSheet(xsc.ProcInst):
-		"""
-		XML stylesheet declaration
-		"""
-		xmlname = u"xml-stylesheet"
-
-		needsxmlns = 0
+xmlns.makemod(vars())
 

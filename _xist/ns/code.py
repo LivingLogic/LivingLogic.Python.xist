@@ -30,7 +30,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 import sys
 
 from ll.xist import xsc, sandbox
-from html import html
+import html
 
 class Code:
 	def __init__(self, text, ignorefirst=0):
@@ -88,70 +88,72 @@ class Code:
 			v += "\n"
 		return "".join(v)
 
-class code(xsc.Namespace):
+class exec_(xsc.ProcInst):
+	"""
+	<par>here the content of the processing instruction is executed
+	as Python code, so you can define and register &xist; elements here.
+	Execution is done when the node is constructed, so definitions made
+	here will be available afterwards (e.g. during the rest of the
+	file parsing stage). When converted to &html; such a node will result
+	in an empty <lit>Null</lit> node.</par>
+
+	<par>These processing instructions will be evaluated and executed in the
+	namespace of the module <module>sandbox</module>.</par>
+	"""
+	xmlname = "exec"
+
+	def __init__(self, content=u""):
+		xsc.ProcInst.__init__(self, content)
+		code = Code(self.content, 1)
+		exec code.asString() in sandbox.__dict__ # requires Python 2.0b2 (and doesn't really work)
+
+	def convert(self, converter):
+		return xsc.Null # has been executed at construction time already, so we don't have to do anything here
+
+class eval_(xsc.ProcInst):
+	"""
+	<par>here the code will be executed when the node is converted to &html;
+	as if it was the body of a function, so you can return an expression
+	here. Although the content is used as a function body no indentation
+	is neccessary or allowed. The returned value will be converted to a
+	node and this resulting node will be converted to &html;.</par>
+
+	<par>These processing instructions will be evaluated and executed in the
+	namespace of the module <pyref module="ll.xist.sandbox"><module>sandbox</module></pyref>.</par>
+
+	<par>Note that you should not define the symbol <lit>__</lit> in any of your &xist;
+	processing instructions, as it is used by &xist; for internal purposes.</par>
+	"""
+	xmlname = "eval"
+
+	def convert(self, converter):
+		"""
+		<par>Evaluates the code as if it was the body of a Python funtion.
+		The <arg>converter</arg> argument will be available
+		under the name <arg>converter</arg> as an argument to the function.</par>
+		"""
+		code = Code(self.content, 1)
+		code.funcify()
+		exec code.asString() in sandbox.__dict__ # requires Python 2.0b2 (and doesn't really work)
+		return xsc.ToNode(sandbox.__(converter)).convert(converter)
+
+class import_(xsc.ProcInst):
+	"""
+	<par>Imports the module named in the processing instruction content
+	on construction time.</par>
+	<par>Converting <self/> will result in a <lit>Null</lit> object.</par>
+	"""
+	xmlname = "import"
+
+	def __init__(self, content=u""):
+		super(import_, self).__init__(content)
+		__import__(self.content)
+
+	def convert(self, converter):
+		return xsc.Null # has been executed at construction time already, so we don't have to do anything here
+
+class xmlns(xsc.Namespace):
+	xmlname = "code"
 	xmlurl = "http://xmlns.livinglogic.de/xist/ns/code"
-
-	class exec_(xsc.ProcInst):
-		"""
-		<par>here the content of the processing instruction is executed
-		as Python code, so you can define and register &xist; elements here.
-		Execution is done when the node is constructed, so definitions made
-		here will be available afterwards (e.g. during the rest of the
-		file parsing stage). When converted to &html; such a node will result
-		in an empty <lit>Null</lit> node.</par>
-
-		<par>These processing instructions will be evaluated and executed in the
-		namespace of the module <module>sandbox</module>.</par>
-		"""
-		xmlname = "exec"
-
-		def __init__(self, content=u""):
-			xsc.ProcInst.__init__(self, content)
-			code = Code(self.content, 1)
-			exec code.asString() in sandbox.__dict__ # requires Python 2.0b2 (and doesn't really work)
-
-		def convert(self, converter):
-			return xsc.Null # has been executed at construction time already, so we don't have to do anything here
-
-	class eval_(xsc.ProcInst):
-		"""
-		<par>here the code will be executed when the node is converted to &html;
-		as if it was the body of a function, so you can return an expression
-		here. Although the content is used as a function body no indentation
-		is neccessary or allowed. The returned value will be converted to a
-		node and this resulting node will be converted to &html;.</par>
-
-		<par>These processing instructions will be evaluated and executed in the
-		namespace of the module <pyref module="ll.xist.sandbox"><module>sandbox</module></pyref>.</par>
-
-		<par>Note that you should not define the symbol <lit>__</lit> in any of your &xist;
-		processing instructions, as it is used by &xist; for internal purposes.</par>
-		"""
-		xmlname = "eval"
-
-		def convert(self, converter):
-			"""
-			<par>Evaluates the code as if it was the body of a Python funtion.
-			The <arg>converter</arg> argument will be available
-			under the name <arg>converter</arg> as an argument to the function.</par>
-			"""
-			code = Code(self.content, 1)
-			code.funcify()
-			exec code.asString() in sandbox.__dict__ # requires Python 2.0b2 (and doesn't really work)
-			return xsc.ToNode(sandbox.__(converter)).convert(converter)
-
-	class import_(xsc.ProcInst):
-		"""
-		<par>Imports the module named in the processing instruction content
-		on construction time.</par>
-		<par>Converting <self/> will result in a <lit>Null</lit> object.</par>
-		"""
-		xmlname = "import"
-
-		def __init__(self, content=u""):
-			super(import_, self).__init__(content)
-			__import__(self.content)
-
-		def convert(self, converter):
-			return xsc.Null # has been executed at construction time already, so we don't have to do anything here
+xmlns.makemod(vars())
 

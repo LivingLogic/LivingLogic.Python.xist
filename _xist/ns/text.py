@@ -31,7 +31,8 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 
 import cgi # for parse_header
 
-from ll.xist.ns.html import html
+from ll.xist.ns import html
 
-class text(html):
+class xmlns(html):
 	pass
+xmlns.makemod(vars())

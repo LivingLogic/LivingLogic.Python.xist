@@ -67,13 +67,7 @@ def ToNode(value):
 	return Null
 
 def issubclasses(cls, classes):
-	if isinstance(cls, type):
-		if isinstance(classes, type):
-			return issubclass(cls, classes)
-		for testcls in classes:
-			if issubclass(cls, testcls):
-				return True
-	return False
+	return isinstance(cls, type) and issubclass(cls, classes)
 
 ###
 ###
@@ -1177,12 +1171,10 @@ class ProcInst(CharacterData):
 			if cls.xmlns is not None:
 				for xml in (False, True):
 					del cls.xmlns._procinsts[xml][cls.xmlname[xml]]
-					del cls.xmlns._nodes[xml][cls.xmlname[xml]]
 			cls.xmlns = None
-			if ns:
+			if ns is not None:
 				for xml in (False, True):
 					ns._procinsts[xml][cls.xmlname[xml]] = cls
-					ns._nodes[xml][cls.xmlname[xml]] = cls
 				cls.xmlns = ns
 	_registerns = classmethod(_registerns)
 
@@ -1288,7 +1280,7 @@ class Attr(Frag):
 	published.</par>
 	<example><title>Elements inside attributes</title>
 	<programlisting>
-	&gt;&gt;&gt; from ll.xist.ns.html import html
+	&gt;&gt;&gt; from ll.xist.ns import html
 	&gt;&gt;&gt; node = html.img( \
 	...    src="eggs.gif", \
 	...    alt=html.abbr( \
@@ -2083,12 +2075,10 @@ class Element(Node):
 			if cls.xmlns is not None:
 				for xml in (False, True):
 					del cls.xmlns._elements[xml][cls.xmlname[xml]]
-					del cls.xmlns._nodes[xml][cls.xmlname[xml]]
 			cls.xmlns = None
-			if ns:
+			if ns is not None:
 				for xml in (False, True):
 					ns._elements[xml][cls.xmlname[xml]] = cls
-					ns._nodes[xml][cls.xmlname[xml]] = cls
 				cls.xmlns = ns
 	_registerns = classmethod(_registerns)
 
@@ -2548,12 +2538,10 @@ class Entity(Node):
 			if cls.xmlns is not None:
 				for xml in (False, True):
 					del cls.xmlns._entities[xml][cls.xmlname[xml]]
-					del cls.xmlns._nodes[xml][cls.xmlname[xml]]
 			cls.xmlns = None
-			if ns:
+			if ns is not None:
 				for xml in (False, True):
 					ns._entities[xml][cls.xmlname[xml]] = cls
-					ns._nodes[xml][cls.xmlname[xml]] = cls
 				cls.xmlns = ns
 	_registerns = classmethod(_registerns)
 
@@ -2611,13 +2599,11 @@ class CharRef(Entity):
 			if cls.xmlns is not None:
 				for xml in (False, True):
 					del cls.xmlns._charrefs[xml][cls.xmlname[xml]]
-					del cls.xmlns._nodes[xml][cls.xmlname[xml]]
 				cls.xmlns._charrefs[2][cls.codepoint].remove(cls)
 			cls.xmlns = None
-			if ns:
+			if ns is not None:
 				for xml in (False, True):
 					ns._charrefs[xml][cls.xmlname[xml]] = cls
-					ns._nodes[xml][cls.xmlname[xml]] = cls
 				ns._charrefs[2].setdefault(cls.codepoint, []).append(cls)
 				cls.xmlns = ns
 	_registerns = classmethod(_registerns)
@@ -2963,10 +2949,7 @@ class DocPrefixes(Prefixes):
 	"""
 	def __init__(self, default=None):
 		super(DocPrefixes, self).__init__()
-		from ll.xist.ns.html import html
-		from ll.xist.ns.abbr import abbr
-		from ll.xist.ns.doc import doc
-		from ll.xist.ns.specials import specials
+		from ll.xist.ns import html, abbr, doc, specials
 		self.addElementPrefixMapping(None, doc)
 		self.addElementPrefixMapping(None, specials)
 		self.addEntityPrefixMapping(None, html)
@@ -3023,13 +3006,12 @@ class Namespace(object):
 						classdict = {"__module__": dict["__module__"]}
 						if attr.xmlname[0] != attr.xmlname[1]:
 							classdict["xmlname"] = attr.xmlname[1]
-						dict[attrname] = attr.__class__(attr.__name__, (attr,), classdict)
+						dict[attrname] = attr.__class__(attr.__name__, (attr, ), classdict)
 			self = type.__new__(cls, name, bases, {})
 			self._elements = ({}, {})
 			self._procinsts = ({}, {})
 			self._entities = ({}, {})
 			self._charrefs = ({}, {}, {})
-			self._nodes = ({}, {})
 			for (key, value) in dict.iteritems():
 				setattr(self, key, value)
 			for attr in self.Attrs.iterallowedvalues():
@@ -3231,42 +3213,15 @@ class Namespace(object):
 			raise errors.IllegalCharRefError(name, xml=xml)
 	charref = classmethod(charref)
 
-	def iternodekeys(cls, xml=False):
-		return cls._nodes[xml].iterkeys()
-	iternodekeys = classmethod(iternodekeys)
-
-	def nodekeys(cls, xml=False):
-		return cls._nodes[xml].keys()
-	nodekeys = classmethod(nodekeys)
-
-	def iternodevalues(cls):
-		return cls._nodes[False].itervalues()
-	iternodevalues = classmethod(iternodevalues)
-
-	def nodevalues(cls):
-		return cls._nodes[False].values()
-	nodevalues = classmethod(nodevalues)
-
-	def iternodeitems(cls, xml=False):
-		return cls._nodes[xml].iteritems()
-	iternodeitems = classmethod(iternodeitems)
-
-	def nodeitems(cls, xml=False):
-		return cls._nodes[xml].items()
-	nodeitems = classmethod(nodeitems)
-
-	def node(cls, name, xml=False):
-		try:
-			return cls._nodes[xml][name]
-		except KeyError:
-			raise errors.IllegalNodeError(name, xml=xml)
-	node = classmethod(node)
+	def addvars(cls, vars):
+		for (key, value) in vars.iteritems():
+			if value is not cls and key not in ("__name__", "__dict__"):
+				setattr(cls, key, value)
+	addvars = classmethod(addvars)
 
 	def makemod(cls, vars=None):
 		if vars is not None:
-			for (key, value) in vars.iteritems():
-				if value is not cls and key not in ("__name__", "__dict__"):
-					setattr(cls, key, value)
+			cls.addvars(vars)
 		# we have to keep the original module alive, otherwise Python would set all module attribute to None
 		cls.__originalmodule__ = sys.modules[vars["__name__"]]
 		sys.modules[vars["__name__"]] = cls

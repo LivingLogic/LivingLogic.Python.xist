@@ -36,7 +36,7 @@ class ConverterState(object):
 		self.mode = mode
 		self.stage = stage
 		if target is None:
-			from ll.xist.ns.html import html
+			from ll.xist.ns import html
 			target = html
 		self.target = target
 		self.lang = lang
