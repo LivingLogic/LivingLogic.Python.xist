@@ -82,11 +82,11 @@ class XSCFileNotFoundError(XSCError):
 	"exception that is raised, when XSC can't open an image for getting image size"
 
 	def __init__(self,lineno,url):
-		XSC.__init__(self,lineno)
+		XSCError.__init__(self,lineno)
 		self.url = url
 
 	def __str__(self):
-		return XSCError.__str__(self) + "the image file '" + self.url + "' can't be opened"
+		return XSCError.__str__(self) + "the file '" + self.url + "' can't be opened"
 
 class XSCIllegalObjectError(XSCError):
 	"exception that is raised, when XSC finds an illegal object found in its obejct tree"
@@ -106,23 +106,31 @@ def FileSize(url):
 	"returns the size of a file in bytes"
 
 	size = -1
-	if xsc.retrieveremote or (not xsc.is_remote(url)):
-		filename,headers = urllib.urlretrieve(url)
-		size = os.stat(filename)[stat.ST_SIZE]
-		urllib.urlcleanup()
+	if xsc.is_retrieve(url):
+		try:
+			filename,headers = urllib.urlretrieve(url)
+			size = os.stat(filename)[stat.ST_SIZE]
+			urllib.urlcleanup()
+		except IOError:
+			urllib.urlcleanup()
+			raise XSCFileNotFoundError(xsc.parser.lineno,url)
 	return size
 
 def ImageSize(url):
 	"returns the size of an image as a tuple"
 
 	size = (-1,-1)
-	if xsc.retrieveremote or (not xsc.is_remote(url)):
-		filename,headers = urllib.urlretrieve(url)
-		if headers.has_key("content-type") and headers["content-type"][:6] == "image/":
-			img = Image.open(filename)
-			size = img.size
-		del img
-		urllib.urlcleanup()
+	if xsc.is_retrieve(url):
+		try:
+			filename,headers = urllib.urlretrieve(url)
+			if headers.has_key("content-type") and headers["content-type"][:6] == "image/":
+				img = Image.open(filename)
+				size = img.size
+			del img
+			urllib.urlcleanup()
+		except IOError:
+			urllib.urlcleanup()
+			raise XSCFileNotFoundError(xsc.parser.lineno,url)
 	return size
 
 def AppendDict(*dicts):
@@ -503,13 +511,13 @@ class XSCParser(xmllib.XMLParser):
 ###
 
 class XSC:
-	# protocol string that will be recognised as being remote files, where no path translation takes place
-	protocols = [ "http" , "ftp" ]
+	"""contains the options and functions for handling the XML files"""
 
 	def __init__(self):
 		self.filename = ""
 		self.server = "localhost"
 		self.retrieveremote = 1
+		self.retrievelocal  = 1
 		self.parser = XSCParser()
 
 	def parsestring(self,filename,string):
@@ -538,13 +546,19 @@ class XSC:
 		return self.parser.root
 
 	def __repr__(self):
-		return '<xsc filename="' + self.filename + '" server="' + self.server + '" retrieveremote=' + [ 'no' , 'yes' ][self.retrieveremote] + '>'
+		return '<xsc filename="' + self.filename + '" server="' + self.server + '" retrieveremote=' + [ 'no' , 'yes' ][self.retrieveremote] + '" retrievelocal=' + [ 'no' , 'yes' ][self.retrievelocal] + '>'
 
 	def is_remote(self,url):
-		for protocol in self.protocols:
-			test = protocol + "://"
-			if test == url[:len(test)]: # this is a complete URL so we don't have to do any translation
-				return 1
+		(scheme,server,path,parameters,query,fragment) = urlparse.urlparse(url)
+		if scheme != "":
+			return 1
+		else:
+			return 0
+
+	def is_retrieve(self,url):
+		remote = self.is_remote(url)
+		if (self.retrieveremote and remote) or (self.retrievelocal and (not remote)):
+			return 1
 		else:
 			return 0
 
