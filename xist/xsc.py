@@ -959,16 +959,14 @@ class Frag(Node):
 			node.append(child)
 		return node
 
-	def sort(self, sorter=None):
+	def sorted(self, compare=lambda node1, node2: cmp(node1.asPlainString(), node2.asPlainString())):
 		"""
-		returns a sorted version of the <self/>. <argref>sorter</argref> is
+		returns a sorted version of the <self/>. <argref>compare</argref> is
 		a comparison function returning -1, 0, 1 respectively.
 		"""
-		if sorter==None:
-			sorter = lambda node1, node2: cmp(node1.asPlainString(), node2.asPlainString())
 		node = Frag()
 		node.__content = self.__content[:]
-		node.__content.sort(sorter)
+		node.__content.sort(compare)
 		return node
 
 class Comment(Node, StringMixIn):
@@ -1538,12 +1536,12 @@ class Element(Node):
 			if not self.hasAttr(attr):
 				self[attr] = value
 
-	def sort(self, sorter=None):
+	def sorted(self, compare=lambda node1, node2: cmp(node1.asPlainString(), node2.asPlainString())):
 		"""
 		returns a sorted version of <self/>.
 		"""
 		node = self.__class__(**self.attrs)
-		node.content = self.content.sort()
+		node.content = self.content.sorted(compare)
 		return node
 
 class Entity(Node):
