@@ -19,6 +19,26 @@ attrs      = xsc.appendDict(coreattrs,i18n,events)
 cellhalign = { "align" : xsc.TextAttr , "char" : xsc.TextAttr , "charoff" : xsc.TextAttr  }
 cellvalign = { "valign" : xsc.TextAttr }
 
+class DocTypeHTML40transitional(xsc.DocType):
+	"""
+	document type for HTML 4.0 transitional
+	"""
+	def __init__(self,dtd = ""):
+		s = 'HTML PUBLIC "-//W3C//DTD HTML 4.0 transitional//EN"'
+		if dtd:
+			s = s + " " + dtd
+		xsc.DocType.__init__(self,s)
+
+class DocTypeXHTML10strict(xsc.DocType):
+	"""
+	document type for XHTML 1.0 strict
+	"""
+	def __init__(self,dtd = ""):
+		s = 'html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"'
+		if dtd:
+			s = s + " " + dtd
+		xsc.DocType.__init__(self,s)
+
 # The global structure of an HTML document
 class html(xsc.Element):
 	"""
@@ -46,7 +66,7 @@ class title(xsc.Element):
 		e.append(self.content.asHTML().asPlainString())
 
 		return e
-		
+
 class meta(xsc.Element):
 	"""
 	generic metainformation

@@ -67,13 +67,13 @@ class control(xsc.Element):
 	emtpy = 1
 	attrHandlers = { "name" : xsc.TextAttr , "value" : xsc.TextAttr }
 
-	def asString(self):
+	def asString(self,XHTML = None):
 		return ""
 
 class lookupcombobox(control):
 	attrHandlers = xsc.appendDict(control.attrHandlers,{ "module" : xsc.TextAttr , "variable" : xsc.TextAttr , "query" : xsc.TextAttr , "displayfield" : xsc.TextAttr , "valuefield" : xsc.TextAttr })
 
-	def asString(self):
+	def asString(self,XHTML = None):
 		e = html.select(name = self["name"])
 
 		if retrievedb:
@@ -89,30 +89,30 @@ class lookupcombobox(control):
 				e.append(o)
 		else:
 			e.append(html.option("dummy"))
-		return e.asHTML().asString()
+		return e.asHTML().asString(XHTML)
 
 class checkbox(control):
-	def asString(self):
+	def asString(self,XHTML = None):
 		e = html.input(self.attrs)
 		e["type"] = "checkbox"
 		if self.has_attr("value") and string.atoi(self["value"].asPlainString()) != 0:
 			e["checked"] = None
 		else:
 			del e["checked"]
-		return e.asHTML().asString()
+		return e.asHTML().asString(XHTML)
 
 class edit(control):
 	attrHandlers = xsc.appendDict(control.attrHandlers,{ "size" : xsc.TextAttr })
 
-	def asString(self):
+	def asString(self,XHTML = None):
 		e = html.input(self.attrs)
 
-		return e.asHTML().asString()
+		return e.asHTML().asString(XHTML)
 
 class memo(control):
 	attrHandlers = xsc.appendDict(control.attrHandlers,html.textarea.attrHandlers)
 
-	def asString(self):
+	def asString(self,XHTML = None):
 		e = html.textarea()
 		if self.has_attr("value"):
 			e.extend(self["value"])
@@ -120,7 +120,7 @@ class memo(control):
 			if attr != "value":
 				e[attr] = self[attr]
 
-		return e.asHTML().asString()
+		return e.asHTML().asString(XHTML)
 
 class static(control):
 	def asPlainString(self):
@@ -129,24 +129,24 @@ class static(control):
 		else:
 			return ""
 
-	def asString(self):
+	def asString(self,XHTML = None):
 		if self.has_attr("value"):
 			e = self["value"]
 		else:
 			e = specials.nbsp()
 
-		return e.asHTML().asString()
+		return e.asHTML().asString(XHTML)
 
 class hidden(control):
 	def asPlainString(self):
 		return ""
 
-	def asString(self):
+	def asString(self,XHTML = None):
 		e = html.input(type="hidden",name=self["name"])
 		if self.has_attr("value"):
 			e["value"] = self["value"]
 
-		return e.asHTML().asString()
+		return e.asHTML().asString(XHTML)
 
 class target(xsc.Element):
 	empty = 0

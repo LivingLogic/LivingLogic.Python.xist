@@ -403,6 +403,12 @@ try:
 except KeyError:
 	repransiprocinstdata = ""
 
+# should XHTML output format (empty element have a trailing /)
+try:
+	outputXHTML = os.environ["XSC_OUTPUT_XHTML"]
+except KeyError:
+	outputXHTML = 1
+
 ###
 ### helpers
 ###
@@ -607,9 +613,6 @@ class Node:
 	startlineno = -1
 	endlineno = -1
 
-	repransinamespace = "31"
-	repransiname = ""
-
 	def __repr__(self):
 		if xsc.reprtree == 1:
 			return self.reprtree()
@@ -718,9 +721,21 @@ class Node:
 		"""
 		return string.atof(self.asPlainString())
 
-	def asString(self):
+	def asString(self,XHTML = None):
 		"""
-		returns this element as a string
+		asString(self,XHTML = None) -> string
+
+		returns this element as a string suitable for writing to an HTML file or
+		printing from a CGI script.
+
+		The character set will be "us-ascii".
+
+		With the parameter XHTML you can specify if you want HTML output
+		(i.e. empty elements as <foo>) with XHTML == 0, or XHTML output
+		(i.e. empty elements as <foo/>) with XHTML == 1. When you use the
+		default (None) that value of the global variable outputXHTML will
+		be used, which defaults to 1, but can be overwritten by the environment
+		variable XSC_OUTPUT_XHTML and can of course be changed dynamically.
 		"""
 		return ""
 
@@ -768,8 +783,6 @@ class Text(Node):
 
 	empty = 1
 
-	repransiname = ""
-
 	strescapes = { '<' : 'lt' , '>' : 'gt' , '&' : 'amp' , '"' : 'quot' }
 
 	def __init__(self,content = ""):
@@ -783,7 +796,7 @@ class Text(Node):
 	def asPlainString(self):
 		return self.content
 
-	def asString(self):
+	def asString(self,XHTML = None):
 		v = []
 		for i in self.content:
 			if i == '\r':
@@ -863,8 +876,6 @@ class CharRef(Node):
 	of the node will be the ASCII code of the character.
 	"""
 
-	repransiname = "32"
-
 	__notdirect = { ord("&") : "amp" , ord("<") : "lt" , ord(">") : "gt", ord('"') : "quot" , ord("'") : "apos" }
 	__linefeeds = [ ord("\r") , ord("\n") ]
 
@@ -879,7 +890,7 @@ class CharRef(Node):
 	def asPlainString(self):
 		return chr(self.content)
 
-	def asString(self):
+	def asString(self,XHTML = None):
 		if 0<=self.content<=127:
 			if self.content != ord("\r"):
 				if self.__notdirect.has_key(self.content):
@@ -920,8 +931,6 @@ class Frag(Node):
 	"""
 
 	empty = 0
-
-	repransiname = ""
 
 	def __init__(self,*content):
 		self.__content = []
@@ -965,10 +974,10 @@ class Frag(Node):
 			v.append(child.asPlainString())
 		return string.join(v,"")
 
-	def asString(self):
+	def asString(self,XHTML = None):
 		v = []
 		for child in self:
-			v.append(child.asString())
+			v.append(child.asString(XHTML))
 		return string.join(v,"")
 
 	def __getitem__(self,index):
@@ -1075,7 +1084,7 @@ class Frag(Node):
 			if len(e):
 				e.append(newseparator)
 				if clone:
-					newseparator = newseparator.clone()	
+					newseparator = newseparator.clone()
 			e.append(child)
 		return e
 
@@ -1098,7 +1107,7 @@ class Comment(Node):
 	def _doreprtree(self,nest,elementno,ansi):
 		return [[nest,self.startlineno,elementno,self._dorepr(ansi)]]
 
-	def asString(self):
+	def asString(self,XHTML = None):
 		return "<!--" + self.content + "-->"
 
 	def compact(self):
@@ -1123,7 +1132,7 @@ class DocType(Node):
 	def _doreprtree(self,nest,elementno,ansi = None):
 		return [[nest,self.startlineno,elementno,self._dorepr(ansi)]]
 
-	def asString(self):
+	def asString(self,XHTML = None):
 		return "<!DOCTYPE " + self.content + ">"
 
 	def compact(self):
@@ -1217,7 +1226,7 @@ class ProcInst(Node):
 				v.append([mynest,no,elementno,s])
 			return v
 
-	def asString(self):
+	def asString(self,XHTML = None):
 		return "<?" + self.target + " " + self.content + "?>"
 
 	def compact(self):
@@ -1244,12 +1253,17 @@ class Element(Node):
 	a name that is not in attrHandlers.keys() is an error.
 	"""
 
-	repransiname = "34"
-
 	empty = 1 # 0 => element with content; 1 => stand alone element
  	attrHandlers = {} # maps attribute names to attribute classes
 
 	def __init__(self,*content,**attrs):
+		"""
+		__init__(self,*content,**attrs)
+
+		positional arguments are treated as content nodes.
+
+		keyword arguments and dictionaries are treated as attributes.
+		"""
 		self.content = Frag()
 		self.attrs = {}
 		for child in content:
@@ -1332,7 +1346,7 @@ class Element(Node):
 			v.append([nest,self.endlineno,elementno,self._str(brackets = 1,slash = -1,ansi = ansi)])
 		return v
 
-	def asString(self):
+	def asString(self,XHTML = None):
 		v = []
 		v.append("<")
 		v.append(string.lower(self.__class__.__name__))
@@ -1342,13 +1356,18 @@ class Element(Node):
 			value = self[attr]
 			if len(value):
 				v.append('="')
-				v.append(value.asString())
+				v.append(value.asString(XHTML))
 				v.append('"')
-		s = self.content.asString()
+		s = self.content.asString(XHTML)
 		if self.empty:
 			if len(s):
 				raise EmptyElementWithContentError(xsc.parser.lineno,self)
-			v.append(">")
+			if XHTML is None:
+				XHTML = outputXHTML
+			if XHTML:
+				v.append("/>")
+			else:
+				v.append(">")
 		else:
 			v.append(">")
 			v.append(s)
@@ -1493,14 +1512,12 @@ class Null(Element):
 	node that does not contain anything.
 	"""
 
-	repransiname = "33"
-
 	def asHTML(self):
 		return Null()
 
 	clone = compact = asHTML
 
-	def asString(self):
+	def asString(self,XHTML = None):
 		return ""
 
 	def _dorepr(self):
@@ -1612,8 +1629,8 @@ class URLAttr(Attr):
 	def _dorepr(self,ansi = None):
 		return strURL(self.asString(),ansi = ansi)
 
-	def asString(self):
-		return Text(str(self.forOutput())).asString()
+	def asString(self,XHTML = None):
+		return Text(str(self.forOutput())).asString(XHTML)
 
 	def asHTML(self):
 		e = Attr.asHTML(self)
