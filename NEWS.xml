@@ -9,6 +9,8 @@ that can be used to get a certain item or slice from an iterator.
 <function>xfind.first</function> and <function>xfind.last</function> have been
 changed to use <function>xfind.item</function>, so you now have to pass a
 default value to get the old behaviour.</item>
+<item>Obsolete options in <module>ll.xist.options</module> have been removed
+(and <lit>reprEncoding</lit> has been renamed to <lit>reprencoding</lit>).</item>
 </ulist>
 </section>
 
