@@ -52,16 +52,22 @@ class programlisting(xsc.Element):
 
 class example(xsc.Element):
 	"""
-	A formal example, with a title
+	A formal example
 	"""
 	empty = False
-	class Attrs(xsc.Element.Attrs):
-		class title(xsc.TextAttr): pass
 
 	def convert(self, converter):
-		e = xsc.Frag(self.content)
-		if converter.target!="text" and self.hasAttr("title"):
-			e.append(html.div(self["title"], class_="example-title"))
+		ts = xsc.Frag()
+		cs = xsc.Frag()
+		for child in self:
+			if isinstance(child, title):
+				ts.append(child)
+			else:
+				cs.append(child)
+		
+		e = xsc.Frag(cs)
+		if converter.target!="text" and ts:
+			e.append(html.div(ts, class_="example-title"))
 		return e.convert(converter)
 
 class option(xsc.Element):
@@ -238,7 +244,7 @@ class app(xsc.Element):
 			e = docbook.application(self.content, moreinfo=self["moreinfo"])
 		else:
 			e = html.span(self.content, class_="app")
-			if self.hasAttr("moreinfo"):
+			if self.hasattr("moreinfo"):
 				e = html.a(e, href=self["moreinfo"])
 		return e.convert(converter)
 
@@ -294,7 +300,7 @@ class section(xsc.Element):
 				else:
 					h.append(t.content)
 				e.append(h)
-			if self.hasAttr("role"):
+			if self.hasattr("role"):
 				e.append(html.div(cs, class_=self["role"]))
 			else:
 				e.append(cs)
@@ -431,23 +437,23 @@ class pyref(xsc.Element):
 	base = "http://localhost:7464/"
 
 	def convert(self, converter):
-		if self.hasAttr("function"):
+		if self.hasattr("function"):
 			function = unicode(self["function"].convert(converter))
 		else:
 			function = None
-		if self.hasAttr("method"):
+		if self.hasattr("method"):
 			method = unicode(self["method"].convert(converter))
 		else:
 			method = None
-		if self.hasAttr("property"):
+		if self.hasattr("property"):
 			prop = unicode(self["property"].convert(converter))
 		else:
 			prop = None
-		if self.hasAttr("class_"):
+		if self.hasattr("class_"):
 			class__ = unicode(self["class_"].convert(converter)).replace(u".", u"-")
 		else:
 			class__ = None
-		if self.hasAttr("module"):
+		if self.hasattr("module"):
 			module = unicode(self["module"].convert(converter))
 			if module.startswith("ll."):
 				module = module[3:].replace(u".", u"/")
@@ -525,25 +531,25 @@ def getDoc(thing):
 	refs = node.find(type=pyref, subtype=1, searchchildren=1)
 	if inspect.ismethod(thing):
 		for ref in refs:
-			if not ref.hasAttr("module"):
+			if not ref.hasattr("module"):
 				ref["module"] = inspect.getmodule(thing).__name__
-				if not ref.hasAttr("class_"):
+				if not ref.hasattr("class_"):
 					ref["class_"] = thing.im_class.__name__
-					if not ref.hasAttr("method"):
+					if not ref.hasattr("method"):
 						ref["method"] = thing.__name__
 	elif inspect.isfunction(thing):
 		for ref in refs:
-			if not ref.hasAttr("module"):
+			if not ref.hasattr("module"):
 				ref["module"] = inspect.getmodule(thing).__name__
 	elif inspect.isclass(thing):
 		for ref in refs:
-			if not ref.hasAttr("module"):
+			if not ref.hasattr("module"):
 				ref["module"] = inspect.getmodule(thing).__name__
-				if not ref.hasAttr("class_"):
+				if not ref.hasattr("class_"):
 					ref["class_"] = thing.__name__
 	elif inspect.ismodule(thing):
 		for ref in refs:
-			if not ref.hasAttr("module"):
+			if not ref.hasattr("module"):
 				ref["module"] = thing.__name__
 	return node
 

@@ -73,7 +73,7 @@ will be attributes. You can pass most builtin types to such a constructor.
 Strings and integers will be automatically converted to
 <pyref module="ll.xist.xsc" class="Text"><class>Text</class></pyref> objects.
 So constructing an &html; element works like this:</par>
-<example title="The first example">
+<example><title>The first example</title>
 <programlisting>
 from ll.xist.ns import html
 
@@ -89,7 +89,7 @@ node = html.div(
 or are not legal identifiers (most notably <lit>class</lit>), the attribute name
 must be slightly modified, so that it's a legal Python identifier
 (for <lit>class</lit> an underscore is appended):</par>
-<example title="Colliding attribute names">
+<example><title>Colliding attribute names</title>
 <programlisting>
 node = html.div(
 	"Hello world!",
@@ -100,6 +100,7 @@ node = html.div(
 <par>(Don't worry: This modified attribute name will be mapped to the real official attribute
 name, once the output file is written.) You can pass attributes as a <class>dict</class>
 instance too:</par>
+<example><title>Passing attributes as dictionaries</title>
 <programlisting>
 node = html.div(
 	"Hello world!",
@@ -110,6 +111,7 @@ node = html.div(
 	}
 )
 </programlisting>
+</example>
 </section>
 
 <section><title>Generating &xml; trees from &xml; files</title>
@@ -152,7 +154,7 @@ the classes in the module <pyref module="ll.xist.sources"><module>ll.xist.source
 for every element type that appears in the file. Defining an element class
 for an element named <lit>cool</lit> works like this:</par>
 
-<example title="Defining a new element">
+<example><title>Defining a new element</title>
 <programlisting>
 class cool(xsc.Element):
 	empty = False
@@ -176,7 +178,7 @@ of the object.</par>
 
 <par>Using this new element is simple</par>
 
-<example title="Using the new element">
+<example><title>Using the new element</title>
 <programlisting>
 &gt;&gt;&gt; node = cool("Python")
 &gt;&gt;&gt; print node.conv().asBytes()
@@ -184,14 +186,14 @@ of the object.</par>
 </programlisting>
 </example>
 
-<par>(<pyref module="ll.xist.xsc" class="Node" method="conv"><method>conv</method></pyref> simply
+<par><pyref module="ll.xist.xsc" class="Node" method="conv"><method>conv</method></pyref> simply
 calls
 <pyref module="ll.xist.xsc" class="Node" method="convert"><method>convert</method></pyref>
 with a default <pyref module="ll.xist.converters" class="Converter"><arg>converter</arg></pyref>
 argument. We'll come to converters in a minute.
 <pyref module="ll.xist.xsc" class="Node" method="asBytes"><method>asBytes</method></pyref>
-is a method that converts the node to a byte string. (This method will be explained
-when we discuss the publishing interface.)</par>
+is a method that converts the node to a byte string. This method will be explained
+when we discuss the publishing interface.</par>
 
 <par>Note that it is vital for your own <method>convert</method>
 methods that you recursively call <method>convert</method>
@@ -231,6 +233,8 @@ class cool(xsc.Element):
 &lt;b&gt;&lt;python /&gt; is cool!&lt;/b&gt;
 </programlisting>
 
+<par>Furthermore <method>convert</method> should never modify <self/>.</par>
+
 <section><title>Converters</title>
 <par><pyref module="ll.xist.xsc" class="Node" method="conv"><method>conv</method></pyref>
 is a convenience method that creates a default converter for you and calls
@@ -255,7 +259,9 @@ node = node.convert(
 <ulist>
 <item><arg>root</arg> (which defaults to <lit>None</lit>) is the root &url; for the conversion process. When you want
 to resolve a link in some of your own <method>convert</method> methods, the &url; must be interpreted relative
-to this root &url;.</item>
+to this root &url; (You can use
+<pyref module="ll.xist.xsc" class="URLAttr" method="forInput"><method>URLAttr.forInput</method></pyref>
+for that).</item>
 <item><arg>mode</arg> (which defaults to <lit>None</lit>) works the same way as modes in &xslt;. You can use this
 for implementing different conversion modes.</item>
 <item><arg>stage</arg> (which defaults to <lit>"deliver"</lit>) allows you to implement multi stage conversion:
@@ -399,7 +405,7 @@ from <class>Element.Attrs</class> and define the attributes
 by deriving them from one of the existing attribute classes.
 We could extend our example element in the following way:</par>
 
-<example title="Using attributes">
+<example><title>Using attributes</title>
 <programlisting>
 class cool(xsc.Element):
 	empty = False
@@ -428,7 +434,7 @@ class cool(xsc.Element):
 <par>It is possible to define default values for attributes via
 the class attribute <lit>default</lit>:</par>
 
-<example title="Defining default attributes">
+<example><title>Defining default attributes</title>
 <programlisting>
 class cool(xsc.Element):
 	empty = False
@@ -448,7 +454,7 @@ class cool(xsc.Element):
 <par>Now if we instantiate the class without specifying
 <lit>adj</lit> we'll get the default:</par>
 
-<example title="Using default attributes">
+<example><title>Using default attributes</title>
 <programlisting>
 &gt;&gt;&gt; node = cool(python())
 &gt;&gt;&gt; print node.conv().asBytes()
@@ -461,7 +467,7 @@ class cool(xsc.Element):
 an <lit>adj</lit> attribute, we can pass <lit>None</lit>
 as the attribute value:</par>
 
-<example title="Removing default attributes">
+<example><title>Removing default attributes</title>
 <programlisting>
 &gt;&gt;&gt; node = cool(python(), adj=None)
 &gt;&gt;&gt; print node.conv().asBytes()
@@ -476,7 +482,7 @@ as the attribute value:</par>
 values. This can be done with the class attribute <lit>values</lit>. We could
 extend our example to look like this:</par>
 
-<example title="Defining attributes value sets">
+<example><title>Defining attributes value sets</title>
 <programlisting>
 class cool(xsc.Element):
 	empty = False
@@ -530,13 +536,13 @@ you can change that with <function>warnings.filterwarnings</function>):</par>
 
 <section><title>Required attributes</title>
 <par>Finally it's possible to specify that an attribute is required.
-This will only be checked when publishing. To specify that an
+This will only be checked when parsing or publishing. To specify that an
 attribute is required simply add the class attribute <lit>required</lit>
 with the value <lit>True</lit>. The attribute <lit>alt</lit> of the
 class <pyref module="ll.xist.ns.html" class="img"><class>ll.xist.ns.html.img</class></pyref>
 is such an attribute, so we'll get:</par>
 
-<example title="Missing required attributes">
+<example><title>Missing required attributes</title>
 <programlisting>
 &gt;&gt;&gt; from ll.xist.ns import html
 &gt;&gt;&gt; node = html.img(src="eggs.png")
@@ -568,7 +574,7 @@ method you may implement the method
 which must return a unicode string value for the entity. The following
 example is from the module <pyref module="ll.xist.ns.abbr"><module>ll.xist.ns.abbr</module></pyref>:</par>
 
-<example title="Defining new entities">
+<example><title>Defining new entities</title>
 <programlisting>
 from ll.xist import xsc
 from ll.xist.ns import html
@@ -599,7 +605,7 @@ and implement <pyref module="ll.xist.xsc" class="Node" method="convert"><method>
 The following example implements a processing instruction that returns an uppercase
 version of it's content as a text node.</par>
 
-<example title="Defining new processing instructions">
+<example><title>Defining new processing instructions</title>
 <programlisting>
 class upper(xsc.ProcInst):
 	def convert(self, converter):
@@ -744,10 +750,10 @@ passes all previous tests:
 4,40,41,42,43,44,45,46,47,48,49,
 </programlisting>
 </item>
-<item><arg>searchchildren</arg> (<lit>0</lit>), specifies if the tree
-should be searched recursively (<lit><arg>searchchildren</arg>==1</lit>) or only
-the first level (<lit><arg>searchchildren</arg>==0</lit>)</item>
-<item><arg>searchattrs</arg> (<lit>0</lit>), specifies if attribute
+<item><arg>searchchildren</arg> (<lit>False</lit>), specifies if the tree
+should be searched recursively (<lit><arg>searchchildren</arg>==True</lit>) or only
+the first level (<lit><arg>searchchildren</arg>==False</lit>)</item>
+<item><arg>searchattrs</arg> (<lit>False</lit>), specifies if attribute
 nodes should be searched too.</item>
 </ulist>
 
@@ -764,7 +770,7 @@ nodes should be searched too.</item>
 &gt;&gt;&gt; links = node.find(
 ...    type=html.a,
 ...    attrs={"href": None},
-...    searchchildren=1)
+...    searchchildren=True)
 &gt;&gt;&gt; for link in links:
 ...    print link["href"]
 ...

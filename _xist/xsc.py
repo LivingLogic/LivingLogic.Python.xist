@@ -489,7 +489,7 @@ class Node(Base):
 		else:
 			if isinstance(self, Element):
 				for attr in attrs.keys():
-					if (not self.hasAttr(attr)) or ((attrs[attr] is not None) and (unicode(self[attr]) != attrs[attr])):
+					if (not self.hasattr(attr)) or ((attrs[attr] is not None) and (unicode(self[attr]) != attrs[attr])):
 						return 0
 				return 1
 			else:
@@ -2032,7 +2032,7 @@ class Element(Node):
 		from being modified in any way.</par>
 		"""
 
-		if self.hasAttr(imgattr):
+		if self.hasattr(imgattr):
 			attr = self[imgattr]
 			try:
 				size = attr.imagesize(root)
@@ -2042,7 +2042,7 @@ class Element(Node):
 				sizedict = {"width": size[0], "height": size[1]}
 				for attr in (heightattr, widthattr):
 					if attr is not None: # do something to the width/height
-						if self.hasAttr(attr):
+						if self.hasattr(attr):
 							try:
 								s = unicode(self[attr]) % sizedict
 								s = unicode(eval(s))

@@ -120,7 +120,7 @@ class loremipsum(xsc.Element):
 	text = "Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diem nonummy nibh euismod tincidnut ut lacreet dolore magna aliguam erat volutpat. Ut wisis enim ad minim veniam, quis nostrud exerci tution ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis te feugifacilisi. Duis antem dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zril delinit au gue duis dolore te feugat nulla facilisi."
 
 	def convert(self, converter):
-		if self.hasAttr("len"):
+		if self.hasattr("len"):
 			text = self.text[:int(self["len"].convert(converter))]
 		else:
 			text = self.text

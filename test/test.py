@@ -331,10 +331,10 @@ class XISTTestCase(unittest.TestCase):
 			id=42,
 			dir="ltr"
 		)
-		self.assert_(node.hasAttr("lang"))
-		self.assert_(node.hasAttr((xml, "lang")))
-		self.assert_(node.hasAttr((xml.xmlns, "lang")))
-		self.assert_(node.hasAttr((xml.xmlns.xmlurl, "lang")))
+		self.assert_(node.hasattr("lang"))
+		self.assert_(node.hasattr((xml, "lang")))
+		self.assert_(node.hasattr((xml.xmlns, "lang")))
+		self.assert_(node.hasattr((xml.xmlns.xmlurl, "lang")))
 
 		keys = node.attrs.keys()
 		keys.sort()
@@ -368,11 +368,11 @@ class XISTTestCase(unittest.TestCase):
 				class withoutdef(xsc.TextAttr):
 					pass
 		node = Test()
-		self.assert_(node.hasAttr("withdef"))
-		self.assert_(not node.hasAttr("withoutdef"))
-		self.assertRaises(errors.IllegalAttrError, node.hasAttr, "illegal")
+		self.assert_(node.hasattr("withdef"))
+		self.assert_(not node.hasattr("withoutdef"))
+		self.assertRaises(errors.IllegalAttrError, node.hasattr, "illegal")
 		node = Test(withdef=None)
-		self.assert_(not node.hasAttr("withdef"))
+		self.assert_(not node.hasattr("withdef"))
 
 	def check_listiter(self, listexp, *lists):
 		for l in lists:
@@ -471,8 +471,8 @@ class XISTTestCase(unittest.TestCase):
 		self.assertEquals(unicode(node.conv()["testattr"]), "42")
 
 		node["testattr"].clear()
-		self.assert_(not node.hasAttr("testattr"))
-		self.assert_(not node.conv().hasAttr("testattr"))
+		self.assert_(not node.hasattr("testattr"))
+		self.assert_(not node.conv().hasattr("testattr"))
 
 		node = testelem(testattr=23)
 		self.assertEquals(unicode(node["testattr"]), "23")
@@ -483,12 +483,12 @@ class XISTTestCase(unittest.TestCase):
 		self.assertEquals(unicode(node.conv()["testattr"]), "42")
 
 		node["testattr"] = None
-		self.assert_(not node.hasAttr("testattr"))
-		self.assert_(not node.conv().hasAttr("testattr"))
+		self.assert_(not node.hasattr("testattr"))
+		self.assert_(not node.conv().hasattr("testattr"))
 
 		node = testelem(testattr=None)
-		self.assert_(not node.hasAttr("testattr"))
-		self.assert_(not node.conv().hasAttr("testattr"))
+		self.assert_(not node.hasattr("testattr"))
+		self.assert_(not node.conv().hasattr("testattr"))
 
 	def test_checkisallowed(self):
 		class testelem(xsc.Element):

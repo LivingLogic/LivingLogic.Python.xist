@@ -75,7 +75,7 @@ class atimport(xsc.Element):
 		publisher.publish(u'@import url("')
 		self.content.publish(publisher)
 		publisher.publish(u'")')
-		if self.hasAttr("media"):
+		if self.hasattr("media"):
 			publisher.publish(u" " + unicode(self["media"]))
 		publisher.publish(u";")
 
@@ -177,7 +177,7 @@ class prop(xsc.Element):
 	def publish(self, publisher):
 		publisher.publish(u"%s: " % self.xmlname)
 		self.content.publish(publisher)
-		if self.hasAttr("important"):
+		if self.hasattr("important"):
 			publisher.publish(u" !important")
 		publisher.publish(u";")
 

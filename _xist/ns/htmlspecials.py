@@ -144,7 +144,7 @@ class par(html.div):
 
 	def convert(self, converter):
 		e = html.div(self.content, self.attrs.without(["noindent"]))
-		if not self.hasAttr("noindent"):
+		if not self.hasattr("noindent"):
 			e["class_"] = "indent"
 		return e.convert(converter)
 
@@ -171,7 +171,7 @@ class autoinput(html.input):
 	has <lit>type=="image"</lit>.</par>
 	"""
 	def convert(self, converter):
-		if self.hasAttr("type") and self["type"].convert(converter) == u"image":
+		if self.hasattr("type") and self["type"].convert(converter) == u"image":
 			e = html.input(self.content, self.attrs)
 			e._addImageSizeAttributes(converter.root, "src", "size", None) # no height
 			return e.convert(converter)
