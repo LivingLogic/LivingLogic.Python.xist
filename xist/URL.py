@@ -41,15 +41,9 @@ class URL:
 	"""
 	def __init__(self,url = None,scheme = None,server = None,port = None,path = None,file = None,ext = None,parameters = None,query = None,fragment = None):
 		# initialize the defaults
-		self.scheme = None
-		self.server = None
-		self.port = None
+		self.scheme = self.server = self.port = None
 		self.__path = []
-		self.file = None
-		self.ext = None
-		self.parameters = None
-		self.query = None
-		self.fragment = None
+		self.file = self.ext = self.parameters = self.query = self.fragment = None
 		if url is None:
 			pass
 		elif type(url) is types.StringType:
@@ -157,7 +151,7 @@ class URL:
 		
 		returns if the directory name dir is a path marker.
 		"""
-		return dir[:1] == "*"
+		return dir[0] == "*"
 
 	def isNoPathMarker(self,dir):
 		"""

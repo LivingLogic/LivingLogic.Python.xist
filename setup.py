@@ -8,8 +8,8 @@ __version__ = "$Revision$"[11:-2]
 from distutils.core import setup
 
 setup(name = "XIST",
-      version = "0.3.6",
-      description = "XML based extensible HTML generator",
+      version = "0.3.8",
+      description = "An XML based extensible HTML generator",
       author = "Walter Dörwald",
       author_email = "walter@livinglogic.de",
       #url = "http://www.catsystems.de/xsc/",

@@ -1,12 +1,20 @@
+New in 0.3.8
+------------
+Fixed a bug in URLAttr.publish, which prevented URLAttr from working
+at all.
+
+New in 0.3.7
+------------
+Fixed a bug in html.img and html.input. Now image size calculation works
+again.
+
 New in 0.3.6
 ------------
-
 Fixed a bug in Node._matches, which resulted in a non working
 find().
 
 New in 0.3.5
 ------------
-
 The documentation example has been enhanced. Now documenting methods works.
 
 When the member "elementname" in the element class is set before calling
@@ -38,10 +46,8 @@ be a test function that will be called when the node passes all other tests.
 asString() no longer generates a string directly, but uses the new method publish, which
 has an additional argument publisher, the which the strings to be output are passed.
 
-
 New in 0.3.4
 ------------
-
 Location information is now copied over in clone(), asHTML() and compact() where appropriate,
 so you know even in the HTML tree, where something came from.
 
@@ -55,7 +61,6 @@ light.
 
 New in 0.3.3
 ------------
-
 The workaround for the trailing cdata bug in sgmlop has been removed, so now you'll need
 a newer version of sgmlop (included in PyXML 0.5.5.1)
 

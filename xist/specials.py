@@ -238,13 +238,14 @@ class redirectpage(xsc.Element):
 		)
 		return e.asHTML()
 
-xsc.registerAllElements(vars(),"specials")
+namespace = xsc.Namespace("specials","http://www.livinglogic.de/DTDs/specials.dtd",vars())
 
 # Control characters (not part of HTML)
-xsc.registerEntity("lf",xsc.CharRef(10))  # line feed
-xsc.registerEntity("cr",xsc.CharRef(13))  # carriage return
-xsc.registerEntity("tab",xsc.CharRef(9))  # horizontal tab
-xsc.registerEntity("esc",xsc.CharRef(27)) # escape
+namespace.registerEntity("lf",xsc.CharRef(10))  # line feed
+namespace.registerEntity("cr",xsc.CharRef(13))  # carriage return
+namespace.registerEntity("tab",xsc.CharRef(9))  # horizontal tab
+namespace.registerEntity("esc",xsc.CharRef(27)) # escape
 
 if __name__ == "__main__":
 	xsc.make()
+

@@ -1,5 +1,4 @@
-
-XIST v0.3.4
+XIST v0.3.8
 
 This is a HTML generator/XML transformation engine/web publishing system
 written in Python and based on the Python XML package.
@@ -20,4 +19,4 @@ To compile everything, simply perform the following steps.
    run "python setup.py install".
 
 If you have difficulty installing this software, send a problem report
-to Walter Dörwald <walter@bnbt.de> describing the problem.
+to Walter Dörwald <walter@livinglogic.de> describing the problem.

@@ -453,11 +453,6 @@ def ToNode(value):
 			return node
 	raise IllegalObjectError(-1,value) # none of the above, so we throw and exception
 
-# dictionary for mapping element names to classes, this dictionary contains
-# the element names as keys and another dictionary as values, this second
-# dictionary contains the namespace names as keys and the element classes as values
-_elementHandlers = {}
-
 class Node:
 	"""
 	base class for nodes in the document tree. Derived classes must
@@ -890,8 +885,8 @@ class CharRef(Node):
 
 	def _doreprtree(self,nest,elementno,ansi = None):
 		s = self.__strcharref('&#' + str(self.content) + ';',ansi) + ' (' + self.__strcharref('&#x' + hex(self.content)[2:] + ';',ansi)
-		for name in entitiesByNumber[self.content]:
-			s = s + ' ' + self.__strcharref('&' + name + ';',ansi)
+		#for name in entitiesByNumber[self.content]:
+		#	s = s + ' ' + self.__strcharref('&' + name + ';',ansi)
 		s = s + ')'
 		if 0 <= self.content < reprcharreflowerlimit:
 			s = s + ' ' + Text(chr(self.content))._doreprtree(0,0,ansi)[0][-1]
@@ -1600,7 +1595,7 @@ class URLAttr(Attr):
 	def _dorepr(self,ansi = None):
 		return strURL(self.asString(),ansi = ansi)
 
-	def publisher(self,encoding = None,XHTML = None):
+	def publish(self,publisher,encoding = None,XHTML = None):
 		Text(self.forOutput().asString()).publish(publisher,encoding,XHTML)
 
 	def asHTML(self):
@@ -1684,10 +1679,15 @@ class Namespace:
 	def __init__(self,prefix,uri,dict = None):
 		self.prefix = prefix
 		self.uri = uri
-		self.elements = {}
-		self.registerAll(dict)
+		self.elements = {} # dictionary for mapping element names to classes
+		self.entitiesByNumber = []
+		for i in xrange(65536):
+			self.entitiesByNumber.append([])
+		self.entitiesByName = {}
 
-	def register(self,thing):
+		self.registerAllElements(dict)
+
+	def registerElement(self,thing):
 		"""
 		<par noindent>this function lets you register a class that is derived from
 		<classref>Element</classref> or <classref>Entity</classref> or
@@ -1722,9 +1722,9 @@ class Namespace:
 				thing.namespace = self
 
 				if issubclass(thing,Element):
-					self.elements[name] = element
+					self.elements[name] = thing
 
-	def registerAll(self,thing):
+	def registerAllElements(self,thing):
 		"""
 		registers all classes in the dictionary <argref>thing</argref>.
 		If <argref>thing</argref> is no dictionary nothing will be done.
@@ -1732,59 +1732,30 @@ class Namespace:
 
 		if type(thing) is types.DictionaryType:
 			for key in thing.keys():
-				self.register(thing[key])
+				self.registerElement(thing[key])
+
+	def registerEntity(self,name,value):
+		"""
+		registers the value <argref>value</argref> (which will be converted to an XSC node)
+		as an entity with the name <argref>name</argref>.
+		"""
+
+		newvalue = ToNode(value)
+		if isinstance(newvalue,CharRef):
+			self.entitiesByNumber[newvalue.content].append(name)
+		self.entitiesByName[name] = newvalue
 
 ###
 ###
 ###
 
-entitiesByNumber = [ ]
-
-for i in xrange(65536):
-	entitiesByNumber.append([])
-
-entitiesByName = {}
-
-###
-###
-###
-
-def registerAllElements(dict,namespacename):
-	"""
-	registerAllElements(dict,namespacename)
-
-	registers all elements in a dictionary under the namespace namespacename.
-	This can be used to register all elements in a module simply by
-	passing vars() to the function.
-	As namespacename will be passed to registerElement(), see its
-	documentation for comments about the default value.
-	"""
-	for name in dict.keys():
-		object = dict[name]
-		if type(object) == types.ClassType and issubclass(object,Element):
-			registerElement(object,namespacename)
-
-def registerEntity(name,value):
-	"""
-	registerEntity(name,value)
-
-	registers the value value (which will be converted to an XSC node)
-	as an entity with the name name.
-	"""
-	newvalue = ToNode(value)
-	if isinstance(newvalue,CharRef):
-		entitiesByNumber[newvalue.content].append(name)
-	entitiesByName[name] = newvalue
-
-###
-###
-###
+namespace = Namespace("","")
 
 # C0 Controls and Basic Latin
-registerEntity("quot",CharRef(34)) # quotation mark = APL quote, U+0022 ISOnum
-registerEntity("amp",CharRef(38)) # ampersand, U+0026 ISOnum
-registerEntity("lt",CharRef(60)) # less-than sign, U+003C ISOnum
-registerEntity("gt",CharRef(62)) # greater-than sign, U+003E ISOnum
+namespace.registerEntity("quot",CharRef(34)) # quotation mark = APL quote, U+0022 ISOnum
+namespace.registerEntity("amp",CharRef(38)) # ampersand, U+0026 ISOnum
+namespace.registerEntity("lt",CharRef(60)) # less-than sign, U+003C ISOnum
+namespace.registerEntity("gt",CharRef(62)) # greater-than sign, U+003E ISOnum
 
 ###
 ###
@@ -1825,6 +1796,7 @@ class XSC:
 
 	def __init__(self):
 		self.filename = [ URL("*/") ]
+		self.namespaces = [ namespace ]
 		self.server = "localhost"
 		self.reprtree = 1
 
@@ -1836,6 +1808,12 @@ class XSC:
 
 	def popURL(self):
 		self.filename.pop()
+
+	def pushNamespace(self,namespace):
+		self.namespaces.insert(0,namespace) # built in reverse order, so a simple "for in" finds the most recent entry.
+
+	def popNamespace(self):
+		self.namespaces.pop(0)
 
 	def handle_special(self,data):
 		if data[:7] == "DOCTYPE":
@@ -1869,21 +1847,16 @@ class XSC:
 		if len(name) == 1: # no namespace specified
 			name.insert(0,None)
 
-		try: # are there any elements with this name?
-			elementsfornamespaces = _elementHandlers[name[1]]
-		except KeyError: # nope!
-			raise IllegalElementError(self.__here(),name)
-		if name[0] is None: # element name was unqualified ...
-			if len(elementsfornamespaces.keys())==1: # ... and there is exactly one element with this name => use it
-				element = elementsfornamespaces.values()[0]
-			else:
-				raise AmbiguousElementError(self.__here(),name) # there is more than one
-		else: # element name was qualified with a namespace
+		for namespace in self.namespaces:
+			print namespace.prefix
 			try:
-				element = elementsfornamespaces[name[0]]
+				element = namespace.elements[name[1]]
+				if name[0] is None or name[0] == namespace.prefix:
+					return element
 			except KeyError:
-				raise IllegalElementError(self.__here(),name) # elements with this name were available, but none in this namespace
-		return element
+				pass
+
+		raise IllegalElementError(self.__here(),name) # elements with this name were available, but none in this namespace
 
 	def finish_starttag(self,name,attrs):
 		node = self.elementFromName(name)()
