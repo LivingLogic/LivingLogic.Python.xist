@@ -78,13 +78,21 @@ class FileInputSource(InputSource):
 		self.setByteStream(stream)
 		self.setEncoding(defaultEncoding)
 
+def openURLwithHeaders(url, headers):
+	if len(headers):
+		urlopener = urllib.FancyURLopener()
+		urlopener.addheaders = headers
+		return urlopener.open(url)
+	else:
+		return urllib.urlopen(url)
+
 class URLInputSource(InputSource):
-	def __init__(self, url, base=None, defaultEncoding="utf-8"):
+	def __init__(self, url, base=None, defaultEncoding="utf-8", headers=[]):
 		if isinstance(url, url_.URL):
 			url = url.asPlainString()
 		if isinstance(url, unicode):
 			url = url.encode("utf-8")
-		url = urllib.urlopen(url)
+		url = openURLwithHeaders(url, headers)
 		if base is None:
 			base = url.url
 		InputSource.__init__(self, base)
@@ -101,12 +109,12 @@ class URLInputSource(InputSource):
 			timeoutsocket.getDefaultSocketTimeout()
 
 class TidyURLInputSource(InputSource):
-	def __init__(self, url, base=None, defaultEncoding="utf-8"):
+	def __init__(self, url, base=None, defaultEncoding="utf-8", headers=[]):
 		if isinstance(url, url_.URL):
 			url = url.asPlainString()
 		if isinstance(url, unicode):
 			url = url.encode("utf-8")
-		url = urllib.urlopen(url)
+		url = openURLwithHeaders(url, headers)
 		if base is None:
 			base = url.url
 		InputSource.__init__(self, base)
@@ -573,9 +581,9 @@ def parseString(text, base=None, handler=None, parser=None, namespaces=None, def
 def parseFile(file, base=None, handler=None, parser=None, namespaces=None, defaultEncoding="utf-8"):
 	return parse(FileInputSource(file, base=base, defaultEncoding=defaultEncoding), handler=handler, parser=parser, namespaces=namespaces)
 
-def parseURL(url, base=None, handler=None, parser=None, namespaces=None, defaultEncoding="utf-8"):
-	return parse(URLInputSource(url, base=base, defaultEncoding=defaultEncoding), handler=handler, parser=parser, namespaces=namespaces)
+def parseURL(url, base=None, handler=None, parser=None, namespaces=None, defaultEncoding="utf-8", headers=[]):
+	return parse(URLInputSource(url, base=base, defaultEncoding=defaultEncoding, headers=[]), handler=handler, parser=parser, namespaces=namespaces)
 
-def parseTidyURL(url, base=None, handler=None, parser=None, namespaces=None, defaultEncoding="utf-8"):
-	return parse(TidyURLInputSource(url, base=base, defaultEncoding=defaultEncoding), handler=handler, parser=parser, namespaces=namespaces)
+def parseTidyURL(url, base=None, handler=None, parser=None, namespaces=None, defaultEncoding="utf-8", headers=[]):
+	return parse(TidyURLInputSource(url, base=base, defaultEncoding=defaultEncoding, headers=[]), handler=handler, parser=parser, namespaces=namespaces)
 
