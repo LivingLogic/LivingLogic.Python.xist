@@ -1064,7 +1064,7 @@ class XSC:
 		self.reprtab = ". "
 		self.repransi = 1
 		self.repransitab = "32"
-		self.repransibrackets = "34"
+		self.repransibrackets = "34;1"
 		self.repransielementname = "35"
 		self.repransiattrname = "33"
 		self.repransitext = ""
