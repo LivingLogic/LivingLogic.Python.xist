@@ -4,16 +4,31 @@
 <item><function>ToNode</function> now tries iterating through the
 value passed in, so it's now possible to pass iterators and generators
 to <class>Frag</class> and <class>Element</class> constructors.</item>
+
 <item>The script <filename>xscmake.py</filename> (which has been unmaintained
 for a while now has been removed.</item>
+
 <item>The parses now has the option to ignore illegal elements, attributes,
 processing instructions and entities. The default behaviour is to raise and
 exception, but this can now be reconfigured via Python's warning framework.</item>
-<item>The converter attribute <lit>lang</lit> can now be a look a &http;
-<lit>Accept-Language</lit> header. The method <method>Converter.bestlang</method>
-can be used to extract the language best suited for a document that itself
-is provided in multiple languages.</item>
+
+<item>The publishing API has been simplified: Publication can now be done with
+a call to <method>ll.xist.publishers.Publisher.publish</method>, passing in a
+<class>ll.xist.xsc.Node</class>. Writing strings to the publisher output is
+now done with <method>ll.xist.publishers.Publisher.write</method>.</item>
+
+<item>The presentation API has ween simplified: You'll get a presentation
+by calling: <lit>string = <rep>presenter</rep>.present(<rep>node</rep>)</lit>.</item>
 </ulist>
+
+<item>The classmethod <classmethod>tokenize</classmethod> from <module>ll.toxic</module>
+has been moved to <class>ll.xist.xsc.Namespace</class>, so it's now possible
+to tokenize an &xml; string for other processing instructions as well.</item>
+
+<item>Add a new class <class>ll.xist.NSPool</class> that contains a pool of
+namespaces from which the parses selects the appropriate one, once an <lit>xmlns</lit>
+attribute is encountered.</item>
+</section>
 
 
 <section><title>Changes in 2.5 (released 06/30/2004)</title>

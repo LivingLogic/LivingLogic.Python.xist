@@ -2,16 +2,15 @@
 <section><title>Requirements</title>
 <par>To use &xist; you need the following software packages:</par>
 <olist>
-<item>Python 2.3 (available from <link href="http://www.python.org/">http://www.python.org/</link>),</item>
-<item>The Python &xml; package (available from <link href="http://pyxml.sf.net/">http://pyxml.sf.net/</link>)
-(at least version 0.8.2),</item>
-<item>URL 0.11.4 or newer (available from <link href="root:url/index.html">http://www.livinglogic.de/Python/url/</link>),</item>
-<item>ANSIStyle (available from <link href="root:ansistyle/index.html">http://www.livinglogic.de/Python/ansistyle/</link>),</item>
-<item>if you want to use automatic image size calculation: the Python Imaging Library (available from
-<link href="http://www.pythonware.com/products/pil/">http://www.pythonware.com/products/pil/</link>)</item>
-<item>if you want to parse broken HTML: the eGenix mx experimental package (available from
-<link href="http://www.egenix.com/files/python/eGenix-mx-Extensions.html">http://www.egenix.com/files/python/eGenix-mx-Extensions.html</link>)
-or the &micro;Tidylib (available from <link href="http://utidylib.sf.net/">http://utidylib.sf.net/</link>).</item>
+<item><link href="http://www.python.org/">Python 2.3</link>,</item>
+<item><link href="http://pyxml.sf.net/">The Python &xml; package</link> (at least version 0.8.2),</item>
+<item><link href="root:url/index.html">ll-url</link> (0.11.4 or newer),</item>
+<item><link href="root:ansistyle/index.html">ll-ansistyle</link>,</item>
+<item>if you want to use automatic image size calculation: the
+<link href="http://www.pythonware.com/products/pil/">Python Imaging Library</link>,</item>
+<item>if you want to parse broken &html;:
+<link href="http://www.rexx.com/~dkuhlman/#libxml-domlib">libxml-domlib</link> and
+<link href="http://www.xmlsoft.org/">libxml2</link>,</item>
 <item>and a C compiler supported by <app>distutils</app>, if you want
 to install the source distribution.</item>
 </olist>

@@ -392,87 +392,81 @@ class Presenter:
 	string representation of a node to be printed on the screen.</par>
 	"""
 
-	def beginPresentation(self):
-		"""
-		<par>called by once at the start when <pyref module="ll.xist.xsc" class="Node" method="repr"><method>repr</method></pyref>
-		is called. Initializes the presenter.</par>
-		"""
-		pass
-
-	def endPresentation(self):
-		"""
-		<par>called once after the call to <pyref module="ll.xist.xsc" class="Node" method="present"><method>present</method></pyref>.
-		This method handles cleanups if necessary and returns the string to be printed.</par>
-		"""
-		pass
-
-	def doPresentation(self, node):
+	def present(self, node):
 		"""
 		<par>create a string presentation for <arg>node</arg> and return the resulting string.</par>
 		"""
-		self.beginPresentation()
-		node.present(self)
-		return self.endPresentation()
+		pass
+	present = xsc.notimplemented(present) # FIXME: @notimplemented in Py2.4
 	
 	def presentText(self, node):
 		"""
 		<par>present a <pyref module="ll.xist.xsc" class="Text"><class>Text</class></pyref> node.</par>
 		"""
-		raise NotImplementedError("presentText")
+	presentText = xsc.notimplemented(presentText) # FIXME: @notimplemented in Py2.4
 
 	def presentFrag(self, node):
 		"""
 		<par>present a <pyref module="ll.xist.xsc" class="Frag"><class>Frag</class></pyref> node.</par>
 		"""
-		raise NotImplementedError("presentFrag")
+		pass
+	presentFrag = xsc.notimplemented(presentFrag) # FIXME: @notimplemented in Py2.4
 
 	def presentComment(self, node):
 		"""
 		<par>present a <pyref module="ll.xist.xsc" class="Comment"><class>Comment</class></pyref> node.</par>
 		"""
-		raise NotImplementedError("presentComment")
+		pass
+	presentComment = xsc.notimplemented(presentComment) # FIXME: @notimplemented in Py2.4
 
 	def presentDocType(self, node):
 		"""
 		<par>present a <pyref module="ll.xist.xsc" class="DocType"><class>DocType</class></pyref> node.</par>
 		"""
-		raise NotImplementedError("presentDocType")
+		pass
+	presentDocType = xsc.notimplemented(presentDocType) # FIXME: @notimplemented in Py2.4
 
 	def presentProcInst(self, node):
 		"""
 		<par>present a <pyref module="ll.xist.xsc" class="ProcInst"><class>ProcInst</class></pyref> node.</par>
 		"""
-		raise NotImplementedError("presentProcInst")
+		pass
+	presentProcInst = xsc.notimplemented(presentProcInst) # FIXME: @notimplemented in Py2.4
 
 	def presentAttrs(self, node):
 		"""
 		<par>present an <pyref module="ll.xist.xsc" class="Attrs"><class>Attrs</class></pyref> node.</par>
 		"""
-		raise NotImplementedError("presentAttrs")
+		pass
+	presentAttrs = xsc.notimplemented(presentAttrs) # FIXME: @notimplemented in Py2.4
 
 	def presentElement(self, node):
 		"""
 		<par>present an <pyref module="ll.xist.xsc" class="Element"><class>Element</class></pyref> node.</par>
 		"""
-		raise NotImplementedError("presentElement")
+		pass
+	presentElement = xsc.notimplemented(presentElement) # FIXME: @notimplemented in Py2.4
 
 	def presentEntity(self, node):
 		"""
 		<par>present a <pyref module="ll.xist.xsc" class="Entity"><class>Entity</class></pyref> node.</par>
 		"""
-		raise NotImplementedError("presentEntity")
+		pass
+	presentEntity = xsc.notimplemented(presentEntity) # FIXME: @notimplemented in Py2.4
 
 	def presentNull(self, node):
 		"""
 		<par>present the <class>Null</class> node.</par>
 		"""
-		raise NotImplementedError("presentNull")
+		pass
+	presentNull = xsc.notimplemented(presentNull) # FIXME: @notimplemented in Py2.4
 
 	def presentAttr(self, node):
 		"""
 		<par>present an <pyref module="ll.xist.xsc" class="Attr"><class>Attr</class></pyref> node.</par>
 		"""
-		raise NotImplementedError("presentAttr")
+		pass
+	presentAttr = xsc.notimplemented(presentAttr) # FIXME: @notimplemented in Py2.4
 
 
 class PlainPresenter(Presenter):
@@ -484,10 +478,9 @@ class PlainPresenter(Presenter):
 	def __init__(self, maxlen=60):
 		self.maxlen = maxlen
 
-	def beginPresentation(self):
+	def present(self, node):
 		self.buffer = None
-
-	def endPresentation(self):
+		node.present(self)
 		result = self.buffer
 		self.buffer = None
 		return result
@@ -565,11 +558,10 @@ class PlainPresenter(Presenter):
 
 
 class NormalPresenter(Presenter):
-	def beginPresentation(self):
+	def present(self, node):
 		self.buffer = ansistyle.Text()
 		self.inattr = 0
-
-	def endPresentation(self):
+		node.present(self)
 		result = str(self.buffer)
 		self.buffer = None
 		return result
@@ -657,13 +649,14 @@ class TreePresenter(Presenter):
 		self.showLocation = showLocation
 		self.showPath = showPath
 
-	def beginPresentation(self):
+	def present(self, node):
 		self.inattr = 0
 		self.lines = [] # the final lines consisting of (location, numerical path, nesting, content)
 		self.currentPath = [] # numerical path
 		self.buffers = [] # list of ansistyle.Text objects used for formatting attributes (this is a list for elements that contains elements in their attributes)
 
-	def endPresentation(self):
+		node.present(self)
+
 		lenloc = 0
 		lennumpath = 0
 		for line in self.lines:
@@ -693,7 +686,7 @@ class TreePresenter(Presenter):
 		self.lines = []
 		return "".join(newlines)
 
-	def _doMultiLine(self, node, lines, indent, formatter, head=None, tail=None):
+	def _domultiline(self, node, lines, indent, formatter, head=None, tail=None):
 		loc = node.startloc
 		nest = len(self.currentPath)
 		l = len(lines)
@@ -813,7 +806,7 @@ class TreePresenter(Presenter):
 			self.buffers[-1].append(strTextInAttr(node.content))
 		else:
 			lines = node.content.splitlines(1)
-			self._doMultiLine(node, lines, 0, self.strTextLineOutsideAttr)
+			self._domultiline(node, lines, 0, self.strTextLineOutsideAttr)
 
 	def presentEntity(self, node):
 		if self.inattr:
@@ -838,7 +831,7 @@ class TreePresenter(Presenter):
 			lines = node.content.splitlines()
 			if len(lines)>1:
 				lines.insert(0, "")
-			self._doMultiLine(node, lines, 1, self.strProcInstContentLine, head, tail)
+			self._domultiline(node, lines, 1, self.strProcInstContentLine, head, tail)
 
 	def presentComment(self, node):
 		if self.inattr:
@@ -854,7 +847,7 @@ class TreePresenter(Presenter):
 			head = ansistyle.Text(strBracketOpen(), strExclamation(), strCommentMarker())
 			tail = ansistyle.Text(strCommentMarker(), strBracketClose())
 			lines = node.content.splitlines()
-			self._doMultiLine(node, lines, 1, self.strCommentTextLine, head, tail)
+			self._domultiline(node, lines, 1, self.strCommentTextLine, head, tail)
 
 	def presentDocType(self, node):
 		if self.inattr:
@@ -870,7 +863,7 @@ class TreePresenter(Presenter):
 			head = ansistyle.Text(strBracketOpen(), strExclamation(), strDocTypeMarker(), " ")
 			tail = ansistyle.Text(strBracketClose())
 			lines = node.content.splitlines()
-			self._doMultiLine(node, lines, 1, self.strDocTypeTextLine, head, tail)
+			self._domultiline(node, lines, 1, self.strDocTypeTextLine, head, tail)
 
 	def presentAttr(self, node):
 		if self.inattr:
@@ -886,12 +879,11 @@ class CodePresenter(Presenter):
 	<par>This makes it possible to quickly convert &html;/&xml; files to &xist;
 	constructor calls.</par>
 	"""
-	def beginPresentation(self):
+	def present(self, node):
 		self.inattr = 0
 		self.buffer = []
 		self.level = 0
-
-	def endPresentation(self):
+		node.present(self)
 		s = "".join(self.buffer)
 		self.buffer = []
 		return s

@@ -25,10 +25,10 @@ class directive(xsc.Element):
 	register = False # only serves as a base class
 
 	def publish(self, publisher):
-		publisher.publish(u"<%@ ")
+		publisher.write(u"<%@ ")
 		self._publishname(publisher)
 		self.attrs.publish(publisher)
-		publisher.publish(u"%>")
+		publisher.write(u"%>")
 
 
 class scriptlet(xsc.ProcInst):
@@ -36,9 +36,9 @@ class scriptlet(xsc.ProcInst):
 	will be published as <markup>&lt;% <rep>content</rep> %&gt;</markup>
 	"""
 	def publish(self, publisher):
-		publisher.publish(u"<% ")
-		publisher.publish(self.content)
-		publisher.publish(u" %>")
+		publisher.write(u"<% ")
+		publisher.write(self.content)
+		publisher.write(u" %>")
 
 
 class expression(xsc.ProcInst):
@@ -47,9 +47,9 @@ class expression(xsc.ProcInst):
 	"""
 
 	def publish(self, publisher):
-		publisher.publish(u"<%= ")
-		publisher.publish(self.content)
-		publisher.publish(u" %>")
+		publisher.write(u"<%= ")
+		publisher.write(self.content)
+		publisher.write(u" %>")
 
 
 class declaration(xsc.ProcInst):
@@ -58,9 +58,9 @@ class declaration(xsc.ProcInst):
 	"""
 
 	def publish(self, publisher):
-		publisher.publish(u"<%! ")
-		publisher.publish(self.content)
-		publisher.publish(u" %>")
+		publisher.write(u"<%! ")
+		publisher.write(self.content)
+		publisher.write(u" %>")
 
 
 class If(scriptlet):

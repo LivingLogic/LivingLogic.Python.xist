@@ -493,11 +493,11 @@ class Parser(object):
 
 	def _last(self):
 		"""
-		return the newest node from the stack is a real node.
+		return the newest node from the stack that is a real node.
 		(There might be false node on the stack, because we are inside
 		of illegal elements).
 		"""
-		for (node, prefixes) in self._nesting[::-1]: # FIXME: Use reversed in 2.4
+		for (node, prefixes) in self._nesting[::-1]: # FIXME: Use reversed in Py2.4
 			if node is not None:
 				return node
 
@@ -519,12 +519,50 @@ class Parser(object):
 
 		if self.tidy:
 			data = stream.read()
-			import tempfile, os
 			import libxml2 # This requires libxml2 (see http://www.xmlsoft.org/)
-			dom = libxml2.htmlReadMemory(data, len(data), sysid, encoding, 0x60)
-			data = dom.serialize()
-			stream = cStringIO.StringIO(data)
-			stream.seek(0)
+			doc = libxml2.htmlReadMemory(data, len(data), sysid, encoding, 0x60)
+			from ll.xist.ns import html
+			ns = self.nspool.get(html.xmlname, html)
+			def toxsc(node):
+				if node.type == "document_html":
+					newnode = xsc.Frag()
+					child = node.children
+					while child is not None:
+						newnode.append(toxsc(child))
+						child = child.next
+					return newnode
+				elif node.type == "element":
+					name = node.name.decode("utf-8").lower()
+					try:
+						newnode = ns.element(name, xml=True)()
+					except errors.IllegalElementError:
+						newnode = xsc.Frag()
+					else:
+						attr = node.properties
+						while attr is not None:
+							name = attr.name.decode("utf-8").lower()
+							if attr.content is None:
+								content = u""
+							else:
+								content = attr.content.decode("utf-8")
+							try:
+								newnode.attrs.set(name, content, xml=True)
+							except errors.IllegalAttrError:
+								pass
+							attr = attr.next
+					child = node.children
+					while child is not None:
+						newnode.append(toxsc(child))
+						child = child.next
+					return newnode
+				elif node.type == "text":
+					return xsc.Text(node.content.decode("utf-8"))
+				elif node.type == "comment":
+					return xsc.Comment(node.content.decode("utf-8"))
+				return xsc.Null
+			node = toxsc(doc)
+			doc.freeDoc()
+			return node
 
 		source = sax.xmlreader.InputSource(sysid)
 		source.setByteStream(stream)
@@ -586,14 +624,6 @@ class Parser(object):
 			sysid = str(base)
 		return self._parse(stream, base, sysid, self.encoding)
 
-	def _parseDOM(self, dom, base, sysid):
-		pass
-
-	def parseDOM(self, dom, base=None, sysid=None):
-		if sysid is None:
-			sysid = str(base)
-		return self._parseDOM(dom.doc, base, sysid)
-	
 	def setDocumentLocator(self, locator):
 		self._locator = locator
 

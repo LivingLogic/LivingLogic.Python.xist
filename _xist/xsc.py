@@ -44,8 +44,7 @@ def ToNode(value):
 	Anything else raises an exception.</par>
 	"""
 	if isinstance(value, Node):
-		#if isinstance(value, Attr):
-		#	return Frag(*value) # repack the attribute in a fragment, and we have a valid XSC node
+		# we don't have to turn an Attr into a Frag, because this will be done once the Attr is put into the XSC tree
 		return value
 	elif isinstance(value, (basestring, int, long, float)):
 		return Text(value)
@@ -56,7 +55,7 @@ def ToNode(value):
 	elif isinstance(value, url.URL):
 		return Text(value)
 	else:
-		# Maybe it's an iterator?
+		# Maybe it's an iterator/generator?
 		try:
 			return Frag(*list(value))
 		except TypeError:
@@ -66,10 +65,9 @@ def ToNode(value):
 
 
 ###
-###
+### XPython support
 ###
 
-# XPython support
 def append(*args, **kwargs):
 	node = iexec.getinstance((converters.Converter, Frag, Element)) # requires XPython
 	if node is not None:
@@ -79,6 +77,24 @@ def append(*args, **kwargs):
 			node(*args)
 		else:
 			node(*args, **kwargs)
+
+
+###
+### Decorators
+###
+
+def notimplemented(function):
+	"""
+	A function decorator that raises a NotImplementedError when the method is called.
+	This saves you the trouble of formatting the error message yourself for each implementation.
+	"""
+	def wrapper(self, *args, **kwargs):
+		raise NotImplementedError("method %s() not implemented in %r" % (function.__name__, self.__class__))
+	wrapper.__dict__.update(function.__dict__)
+	wrapper.__doc__ = function.__doc__
+	# FIXME: Add the following in Py2.4
+	# wrapper.__name__ = function.__name__
+	return wrapper
 
 
 ###
@@ -310,7 +326,7 @@ class XFinder(object):
 
 	def __getitem__(self, index):
 		if isinstance(index, slice):
-			return list(self)[index]
+			return list(self)[index] # fall back to materializing the list
 		else:
 			if index>=0:
 				for item in self:
@@ -480,12 +496,12 @@ class Node(Base):
 		<par>Return a string representation of <self/>.
 		When you don't pass in a <arg>presenter</arg>, you'll
 		get the default presentation. Else <arg>presenter</arg>
-		should be an instance of <pyref module="ll.xist.presenters" class="Presenter"><class>xist.presenters.Presenter</class></pyref>
+		should be an instance of <pyref module="ll.xist.presenters" class="Presenter"><class>ll.xist.presenters.Presenter</class></pyref>
 		(or one of the subclasses).</par>
 		"""
 		if presenter is None:
 			presenter = presenters.defaultPresenterClass()
-		return presenter.doPresentation(self)
+		return presenter.present(self)
 
 	def present(self, presenter):
 		"""
@@ -495,13 +511,14 @@ class Node(Base):
 		presenter. The user should call <pyref method="repr"><method>repr</method></pyref>
 		instead.</par>
 		"""
-		raise NotImplementedError("present method not implemented in %s" % self.__class__.__name__)
+		# Subclasses of Node implement this method by calling the appropriate present* method in the publisher (i.e. double dispatch)
+	present = notimplemented(present) # FIXME: @notimplemented in Py2.4
 
 	def conv(self, converter=None, root=None, mode=None, stage=None, target=None, lang=None, function=None, makeaction=None, maketarget=None):
 		"""
 		<par>Convenience method for calling <pyref method="convert"><method>convert</method></pyref>.</par>
 		<par><method>conv</method> will automatically set <lit><arg>converter</arg>.node</lit> to <self/> to remember the
-		<z>document root</z> for which <method>conv</method> has been called, this means that you should not call
+		<z>document root node</z> for which <method>conv</method> has been called, this means that you should not call
 		<method>conv</method> in any of the recursive calls, as you would loose this information. Call
 		<pyref method="convert"><method>convert</method></pyref> directly instead.</par>
 		"""
@@ -516,19 +533,14 @@ class Node(Base):
 
 	def convert(self, converter):
 		"""
-		<par>implementation of the conversion method.
-		When you define your own element classes you have to overwrite this method.</par>
+		<par>implementation of the conversion method. When you define your own
+		element classes you have to overwrite this method and implement the desired
+		conversion.</par>
 
-		<par>E.g. when you want to define an element that packs its content into an &html;
-		bold element, do the following:</par>
-
-		<prog>
-		class foo(xsc.Element):
-			def convert(self, converter):
-				return html.b(self.content).convert(converter)
-		</prog>
+		<par>This method must return an instance of <class>Node</class>.</par>
 		"""
-		raise NotImplementedError("convert method not implemented in %s" % self.__class__.__name__)
+		pass
+	convert = notimplemented(convert) # FIXME: @notimplemented in Py2.4
 
 	def __unicode__(self):
 		"""
@@ -536,28 +548,11 @@ class Node(Base):
 		This means that comments and processing instructions will be filtered out.
 		For elements you'll get the element content.</par>
 
-		<par>It might be useful to overwrite this function in your own
-		elements. Suppose you have the following element:</par>
-		<prog>
-		class caps(xsc.Element):
-			def convert(self, converter):
-				return html.span(
-					self.content.convert(converter),
-					style="font-variant: small-caps;"
-				)
-		</prog>
-
-		<par>that renders its content in small caps, then it might be useful
-		to define <method>__unicode__</method> in the following way:</par>
-		<prog>
-		def __unicode__(self):
-			return unicode(self.content).upper()
-		</prog>
-
 		<par><method>__unicode__</method> can be used everywhere where
 		a plain string representation of the node is required.</par>
 		"""
-		raise NotImplementedError("__unicode__ method not implemented in %s" % self.__class__.__name__)
+		pass
+	__unicode__ = notimplemented(__unicode__) # FIXME: @notimplemented in Py2.4
 
 	def __str__(self):
 		"""
@@ -679,9 +674,9 @@ class Node(Base):
 		if self.needsxmlns(publisher)>=1:
 			prefix = self.xmlprefix(publisher)
 			if prefix is not None:
-				publisher.publish(prefix)
-				publisher.publish(u":")
-		publisher.publish(self.xmlname[True])
+				publisher.write(prefix)
+				publisher.write(u":")
+		publisher.write(self.xmlname[True])
 
 	def parsed(self, parser, start=None):
 		"""
@@ -700,7 +695,8 @@ class Node(Base):
 	def checkvalid(self):
 		"""
 		<par>This method will be called when parsing or publishing to check whether <self/> is valid.</par>
-		<par>If the object is found to be invalid a warning should be issued through the Python warning framework.</par>
+		<par>If the object is found to be invalid a warning should be issued through the
+		<pyref module="warnings">Python warning framework</pyref>.</par>
 		"""
 		pass
 
@@ -712,13 +708,14 @@ class Node(Base):
 
 		<par>The encoding and xhtml specification are taken from the <arg>publisher</arg>.</par>
 		"""
-		raise NotImplementedError("publish method not implemented in %s" % self.__class__.__name__)
+		pass
+	publish = notimplemented(publish) # FIXME: @notimplemented in Py2.4
 
 	def asString(self, base=None, publisher=None, **publishargs):
 		"""
 		<par>returns this node as a unicode string.</par>
 
-		<par>For the parameters see the
+		<par>For the possible parameters see the
 		<pyref module="ll.xist.publishers" class="Publisher"><class>ll.xist.publishers.Publisher</class></pyref> constructor.</par>
 		"""
 		stream = cStringIO.StringIO()
@@ -727,7 +724,7 @@ class Node(Base):
 		oldencoding = publisher.encoding
 		try:
 			publisher.encoding = "utf-8"
-			publisher.dopublication(stream, self, base)
+			publisher.publish(stream, self, base)
 		finally:
 			publisher.encoding = oldencoding
 		return stream.getvalue().decode("utf-8")
@@ -737,25 +734,26 @@ class Node(Base):
 		<par>returns this node as a byte string suitable for writing
 		to an &html; file or printing from a CGI script.</par>
 
-		<par>For the parameters see the
+		<par>For the possible parameters see the
 		<pyref module="ll.xist.publishers" class="Publisher"><class>ll.xist.publishers.Publisher</class></pyref> constructor.</par>
 		"""
 		stream = cStringIO.StringIO()
 		if publisher is None:
 			publisher = publishers.Publisher(**publishargs)
-		publisher.dopublication(stream, self, base)
+		publisher.publish(stream, self, base)
 		return stream.getvalue()
 
 	def write(self, stream, base=None, publisher=None, **publishargs):
 		"""
-		<par>writes <self/> to the file like object <arg>stream</arg>.</par>
+		<par>writes <self/> to the file like object <arg>stream</arg> (which must provide
+		a <method>write</method> method.</par>
 
 		<par>For the rest of the parameters
 		see the <pyref module="ll.xist.publishers" class="Publisher"><class>ll.xist.publishers.Publisher</class></pyref> constructor.</par>
 		"""
 		if publisher is None:
 			publisher = publishers.Publisher(**publishargs)
-		publisher.dopublication(stream, self, base)
+		publisher.publish(stream, self, base)
 
 	def _walk(self, filter, path, filterpath, walkpath, skiproot):
 		"""
@@ -1124,7 +1122,7 @@ class Text(CharacterData):
 		return self.content
 
 	def publish(self, publisher):
-		publisher.publishtext(self.content)
+		publisher.writetext(self.content)
 
 	def present(self, presenter):
 		presenter.presentText(self)
@@ -1199,11 +1197,17 @@ class Frag(Node, list):
 		return self._decoratenode(node)
 
 	def __copy__(self):
+		"""
+		helper for the <pyref module="copy"><module>copy</module></pyref> module.
+		"""
 		node = self._create()
 		list.extend(node, self)
 		return self._decoratenode(node)
 
 	def __deepcopy__(self, memo=None):
+		"""
+		helper for the <pyref module="copy"><module>copy</module></pyref> module.
+		"""
 		node = self._create()
 		if memo is None:
 			memo = {}
@@ -1463,9 +1467,9 @@ class Comment(CharacterData):
 			raise errors.IllegalAttrNodeError(self)
 		if self.content.find(u"--")!=-1 or self.content[-1:]==u"-":
 			warnings.warn(errors.IllegalCommentContentWarning(self))
-		publisher.publish(u"<!--")
-		publisher.publish(self.content)
-		publisher.publish(u"-->")
+		publisher.write(u"<!--")
+		publisher.write(self.content)
+		publisher.write(u"-->")
 
 
 class DocType(CharacterData):
@@ -1482,9 +1486,9 @@ class DocType(CharacterData):
 	def publish(self, publisher):
 		if publisher.inattr:
 			raise errors.IllegalAttrNodeError(self)
-		publisher.publish(u"<!DOCTYPE ")
-		publisher.publish(self.content)
-		publisher.publish(u">")
+		publisher.write(u"<!DOCTYPE ")
+		publisher.write(self.content)
+		publisher.write(u">")
 
 	def __unicode__(self):
 		return u""
@@ -1522,11 +1526,11 @@ class ProcInst(CharacterData):
 	def publish(self, publisher):
 		if self.content.find(u"?>")!=-1:
 			raise errors.IllegalProcInstFormatError(self)
-		publisher.publish(u"<?")
-		publisher.publish(self.xmlname[True])
-		publisher.publish(u" ")
-		publisher.publish(self.content)
-		publisher.publish(u"?>")
+		publisher.write(u"<?")
+		publisher.write(self.xmlname[True])
+		publisher.write(u" ")
+		publisher.write(self.content)
+		publisher.write(u"?>")
 
 	def __unicode__(self):
 		return u""
@@ -1719,11 +1723,11 @@ class Attr(Frag):
 			self.checkvalid()
 		publisher.inattr += 1
 		self._publishname(publisher) # publish the XML name, not the Python name
-		publisher.publish(u"=\"")
+		publisher.write(u"=\"")
 		publisher.pushtextfilter(helpers.escapeattr)
 		self._publishAttrValue(publisher)
 		publisher.poptextfilter()
-		publisher.publish(u"\"")
+		publisher.write(u"\"")
 		publisher.inattr -= 1
 
 	def pretty(self, level=0, indent="\t"):
@@ -1771,11 +1775,11 @@ class BoolAttr(Attr):
 		publisher.inattr += 1
 		self._publishname(publisher) # publish the XML name, not the Python name
 		if publisher.xhtml>0:
-			publisher.publish(u"=\"")
+			publisher.write(u"=\"")
 			publisher.pushtextfilter(helpers.escapeattr)
-			publisher.publish(self.__class__.xmlname[True])
+			publisher.write(self.__class__.xmlname[True])
 			publisher.poptextfilter()
-			publisher.publish(u"\"")
+			publisher.write(u"\"")
 		publisher.inattr -= 1
 
 
@@ -2052,7 +2056,7 @@ class Attrs(Node, dict):
 			if value.required:
 				attrs[key] = None
 		for (attrname, attrvalue) in self.iteritems():
-			publisher.publish(u" ")
+			publisher.write(u" ")
 			# if a required attribute is encountered, remove from the list of outstanding ones
 			try:
 				del attrs[attrname]
@@ -2590,39 +2594,39 @@ class Element(Node):
 		inside attributes (e.g. for &jsp; tag libraries), you can overwrite
 		<method>publish</method> and simply call this method.
 		"""
-		publisher.publish(u"<")
+		publisher.write(u"<")
 		self._publishname(publisher)
 		# we're the first element to be published, so we have to create the xmlns attributes
 		if publisher.publishxmlns:
 			for (ns, prefix) in publisher.publishxmlns.iteritems():
-				publisher.publish(u" xmlns")
+				publisher.write(u" xmlns")
 				if prefix is not None:
-					publisher.publish(u":")
-					publisher.publish(prefix)
-				publisher.publish(u"=\"")
-				publisher.publish(ns.xmlurl)
-				publisher.publish(u"\"")
+					publisher.write(u":")
+					publisher.write(prefix)
+				publisher.write(u"=\"")
+				publisher.write(ns.xmlurl)
+				publisher.write(u"\"")
 			# reset the note, so the next element won't create the attributes again
 			publisher.publishxmlns = None
 		self.attrs.publish(publisher)
 		if len(self):
-			publisher.publish(u">")
+			publisher.write(u">")
 			self.content.publish(publisher)
-			publisher.publish(u"</")
+			publisher.write(u"</")
 			self._publishname(publisher)
-			publisher.publish(u">")
+			publisher.write(u">")
 		else:
 			if publisher.xhtml in (0, 1):
 				if self.model is not None and self.model.empty:
 					if publisher.xhtml==1:
-						publisher.publish(u" /")
-					publisher.publish(u">")
+						publisher.write(u" /")
+					publisher.write(u">")
 				else:
-					publisher.publish(u"></")
+					publisher.write(u"></")
 					self._publishname(publisher)
-					publisher.publish(u">")
+					publisher.write(u">")
 			elif publisher.xhtml == 2:
-				publisher.publish(u"/>")
+				publisher.write(u"/>")
 
 	def publish(self, publisher):
 		if publisher.validate:
@@ -2980,9 +2984,9 @@ class Entity(Node):
 		presenter.presentEntity(self)
 
 	def publish(self, publisher):
-		publisher.publish(u"&")
-		publisher.publish(self.xmlname[True])
-		publisher.publish(u";")
+		publisher.write(u"&")
+		publisher.write(self.xmlname[True])
+		publisher.write(u";")
 
 
 class CharRef(Text, Entity):

@@ -35,12 +35,12 @@ class atimport(xsc.Element):
 		class media(xsc.TextAttr): pass
 
 	def publish(self, publisher):
-		publisher.publish(u'@import url("')
+		publisher.write(u'@import url("')
 		self.content.publish(publisher)
-		publisher.publish(u'")')
+		publisher.write(u'")')
 		if "media" in self.attrs:
-			publisher.publish(u" " + unicode(self["media"]))
-		publisher.publish(u";")
+			publisher.write(u" " + unicode(self["media"]))
+		publisher.write(u";")
 
 
 class atcharset(xsc.Element):
@@ -52,9 +52,9 @@ class atcharset(xsc.Element):
 	model = sims.Empty()
 	
 	def publish(self, publisher):
-		publisher.publish(u'@charset "')
-		publisher.publish(unicode(publisher.encoding))
-		publisher.publish(u'";')
+		publisher.write(u'@charset "')
+		publisher.write(unicode(publisher.encoding))
+		publisher.write(u'";')
 
 
 class sel(xsc.Element):
@@ -77,11 +77,11 @@ class prop(xsc.Element):
 		class important(xsc.BoolAttr): pass
 
 	def publish(self, publisher):
-		publisher.publish(u"%s: " % self.xmlname[True])
+		publisher.write(u"%s: " % self.xmlname[True])
 		self.content.publish(publisher)
 		if "important" in self.attrs:
-			publisher.publish(u" !important")
-		publisher.publish(u";")
+			publisher.write(u" !important")
+		publisher.write(u";")
 
 
 class margin_top(prop):
@@ -1049,11 +1049,11 @@ class atpage(xsc.Element):
 		class sel(xsc.TextAttr): pass
 
 	def publish(self, publisher):
-		publisher.publish(u"@page ")
-		publisher.publish(unicode(self["sel"]))
-		publisher.publish(u"\n{\n")
+		publisher.write(u"@page ")
+		publisher.write(unicode(self["sel"]))
+		publisher.write(u"\n{\n")
 		self.content.publish(publisher)
-		publisher.publish(u"\n}")
+		publisher.write(u"\n}")
 
 
 class orphans(prop):
@@ -1385,9 +1385,9 @@ class atfontface(xsc.Element):
 	model = sims.Elements(prop)
 
 	def publish(self, publisher):
-		publisher.publish(u"@font-face\n{\n")
+		publisher.write(u"@font-face\n{\n")
 		self.content.publish(publisher)
-		publisher.publish(u"\n}")
+		publisher.write(u"\n}")
 
 
 class text_indent(prop):
@@ -2012,14 +2012,14 @@ class rule(xsc.Element):
 
 		for i in xrange(len(sels)):
 			if i != 0:
-				publisher.publish(u", ")
+				publisher.write(u", ")
 			sels[i].publish(publisher)
-		publisher.publish(u" { ")
+		publisher.write(u" { ")
 		for i in xrange(len(props)):
 			if i != 0:
-				publisher.publish(u" ")
+				publisher.write(u" ")
 			props[i].publish(publisher)
-		publisher.publish(u" }")
+		publisher.write(u" }")
 
 
 class atmedia(xsc.Element):
@@ -2052,17 +2052,17 @@ class atmedia(xsc.Element):
 		class media(xsc.TextAttr): pass
 
 	def publish(self, publisher):
-		publisher.publish(u"@media ")
-		publisher.publish(unicode(self["media"]))
-		publisher.publish(u"\n{")
+		publisher.write(u"@media ")
+		publisher.write(unicode(self["media"]))
+		publisher.write(u"\n{")
 		imports = self.content.find(xsc.FindType(atimport))
 		for i in imports:
-			publisher.publish(u"\n\t")
+			publisher.write(u"\n\t")
 			i.publish(publisher)
 		for child in self.content.walk(xsc.FindType(rule)):
-			publisher.publish(u"\n\t")
+			publisher.write(u"\n\t")
 			child.publish(publisher)
-		publisher.publish(u"\n}")
+		publisher.write(u"\n}")
 
 
 class css(xsc.Element):
@@ -2079,13 +2079,13 @@ class css(xsc.Element):
 			if first:
 				first = False
 			else:
-				publisher.publish(u"\n")
+				publisher.write(u"\n")
 			i.publish(publisher)
 		for child in self.content.walk(xsc.FindType(rule, atmedia)):
 			if first:
 				first = False
 			else:
-				publisher.publish(u"\n")
+				publisher.write(u"\n")
 			child.publish(publisher)
 		publisher.poperrors()
 

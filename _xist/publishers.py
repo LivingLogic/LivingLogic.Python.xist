@@ -42,7 +42,7 @@ class Publisher(object):
 		"""
 		<par><arg>encoding</arg> specifies the encoding to be used.
 		The encoding itself (i.e. calling <method>encode</method> on the
-		unicode strings) must be done by <pyref method="publish"><method>ll.xist.publishers.Publisher.publish</method></pyref>
+		unicode strings) must be done by <pyref method="publish"><method>ll.xist.publishers.Publisher.write</method></pyref>
 		and not by <pyref module="ll.xist.xsc" class="Node"><method>ll.xist.xsc.Node.publish</method></pyref>.</par>
 
 		<par>The only exception is in the case of encodings that can't encode
@@ -50,7 +50,7 @@ class Publisher(object):
 		or <lit>iso-8859-1</lit>. In this case non encodable characters will be replaced
 		by characters references (if possible, if not (e.g. in comments or processing
 		instructions) an exception will be raised) before they are passed to
-		<pyref method="publish"><method>publish</method></pyref>.</par>
+		<pyref method="write"><method>write</method></pyref>.</par>
 
 		<par>With the parameter <arg>xhtml</arg> you can specify if you want &html; output
 		(i.e. elements with a content model EMPTY as <markup>&lt;foo&gt;</markup>) with
@@ -88,31 +88,41 @@ class Publisher(object):
 		self.prefixes = prefixes
 		self.prefixmode = prefixmode
 
-	def publish(self, text):
+	def write(self, text):
 		"""
-		receives the strings to be printed.
-		The strings are still unicode objects, and you have to do the encoding yourself.
-		overwrite this method.
+		receives the text to be written to the output. <arg>text</arg> must be a
+		<class>unicode</class> object. The publisher will apply the configured
+		encoding and error handling and write the resulting <class>str</class>
+		object to the output stream.
 		"""
 		self.stream.write(text)
 
-	def publishtext(self, text):
+	def writetext(self, text):
 		"""
-		<par>is used to publish text data. This uses the current
-		text filter, which is responsible for escaping characters.</par>
+		<par>is used to write text data to the output stream. <arg>text</arg> must
+		be a <class>unicode</class> object. The publisher will apply the configured
+		encoding, error handling and the current text filter (which escapes
+		characters that can't appear in text data (like <lit>&lt;</lit> etc.))
+		and writes the resulting<class>str</class> object to the output stream.
 		"""
 		self.stream.errors = self.__currenterrors
-		self.publish(self.__currenttextfilter(text))
+		self.write(self.__currenttextfilter(text))
 		self.stream.errors = "strict"
 
 	def pushtextfilter(self, filter):
 		"""
-		<par>pushes a new text filter function.</par>
+		<par>pushes a new text filter function on the text filter stack stack.
+		This function is responsible for escaping characters that can't appear
+		in text data (like <lit>&lt;</lit>)). This is used to switch on escaping
+		of <lit>"</lit> inside attribute values.</par>
 		"""
 		self.__textfilters.append(filter)
 		self.__currenttextfilter = filter
 
 	def poptextfilter(self):
+		"""
+		<par>pops the current text filter function from the stack.</par>
+		"""
 		self.__textfilters.pop()
 		if self.__textfilters:
 			self.__currenttextfilter = self.__textfilters[-1]
@@ -121,12 +131,15 @@ class Publisher(object):
 
 	def pusherrors(self, errors):
 		"""
-		<par>pushes a new error handling function.</par>
+		<par>pushes a new error handling scheme onto the error handling stack.</par>
 		"""
 		self.__errors.append(errors)
 		self.__currenterrors = errors
 
 	def poperrors(self):
+		"""
+		<par>pop the current error handling scheme from the error handling stack.</par>
+		"""
 		self.__errors.pop()
 		if self.__errors:
 			self.__currenterrors = self.__errors[-1]
@@ -147,9 +160,10 @@ class Publisher(object):
 			return nodes
 		return []
 
-	def beginpublication(self, stream, node, base=None):
+	def publish(self, stream, node, base=None):
 		"""
-		<par>called once before the publication of the node <arg>node</arg> begins.</par>
+		<par>publish the node <arg>node</arg> to the stream <arg>stream</arg>.
+		All &url;s will be published relative to <arg>base</arg>.</par>
 		"""
 		def iselorat(node):
 			return (isinstance(node, (xsc.Element, xsc.Attr)), xsc.entercontent, xsc.enterattrs)
@@ -162,12 +176,12 @@ class Publisher(object):
 			if child.needsxmlns(self) == 2:
 				prefixes2def[child.xmlns] = True
 
-		# Determine if we have to introduce an artificial root element that gets the xmlns attributes
+		# Determine if we have multiple roots
 		if prefixes2def and isinstance(node, xsc.Frag) and len(node.find(xsc.FindType(xsc.Element))) > 1:
 			raise errors.MultipleRootsError()
 
 		if prefixes2def:
-			self.publishxmlns = {}
+			self.publishxmlns = {} # signals that xmlns attributes should be generated to the first element encountered, if not empty
 			# get the prefixes for all namespaces from the prefix mapping
 			for ns in prefixes2def:
 				self.publishxmlns[ns] = self.prefixes.prefix4ns(ns)[0]
@@ -181,16 +195,19 @@ class Publisher(object):
 		self.__errors = [ "xmlcharrefreplace" ]
 		self.__currenterrors = "xmlcharrefreplace"
 
-		self.stream = codecs.getwriter(self.encoding)(stream)
-		self.publish = self.stream.write
-
 		self.base = url.URL(base)
 		self.node = node
 
-	def endpublication(self):
-		"""
-		<par>called once after the publication of the node <arg>node</arg> has ended.</par>
-		"""
+		self.stream = codecs.getwriter(self.encoding)(stream)
+		self.write = self.stream.write
+
+		try:
+			self.node.publish(self)
+		finally:
+			if "write" in self.__dict__: # Remove performance shortcut
+				del self.write
+			self.stream = None
+	
 		self.inattr = 0
 		self.__textfilters = [ helpers.escapetext ]
 		self.__currenttextfilter = helpers.escapetext
@@ -198,18 +215,4 @@ class Publisher(object):
 		self.__errors = [ "xmlcharrefreplace" ]
 		self.__currenterrors = "xmlcharrefreplace"
 
-		if "publish" in self.__dict__: # Remove performance shortcut
-			del self.publish
-
-		self.publishxmlns = None # signals that xmlns attributes should be generated to the first element encountered, if not empty
-		self.stream = None
-
-	def dopublication(self, stream, node, base=None):
-		"""
-		<par>performs the publication of the node <arg>node</arg>.</par>
-		"""
-		try:
-			self.beginpublication(stream, node, base)
-			self.node.publish(self) # use self.node, because it might have been replaced by beginpublication()
-		finally:
-			self.endpublication()
+		self.publishxmlns = None
