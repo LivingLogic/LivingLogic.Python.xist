@@ -159,6 +159,12 @@ class FilePublisher(Publisher):
 	def publish(self, text):
 		self.file.write(text)
 
+	def tell(self):
+		"""
+		return the current position.
+		"""
+		return self.file.tell()
+
 class PrintPublisher(FilePublisher):
 	"""
 	writes the strings to <code>sys.stdout</code>.
