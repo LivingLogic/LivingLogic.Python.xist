@@ -613,8 +613,6 @@ class XSCAttrs(XSCNode):
 	def dostr(self):
 		v = []
 		for attr in self.keys():
-			print "="*80,attr
-			print "="*80,str(self[attr])
 			v.append(' ' + attr + '="' + str(self[attr]) + '"')
 		return string.join(v,"")
 
