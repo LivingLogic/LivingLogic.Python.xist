@@ -73,7 +73,7 @@ def make(args):
 		if option=="-p" or option=="--path":
 			sys.path.append(value)
 		elif option=="-i" or option=="--import":
-			_import__(value)
+			__import__(value)
 		elif option=="-o" or option=="--output":
 			globaloutname = url.URL(value)
 		elif option=="-e" or option=="--encoding":
