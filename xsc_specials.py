@@ -106,6 +106,20 @@ class cap(XSCElement):
 		return result
 RegisterElement("cap",cap)
 
+class endash(XSCElement):
+	empty = 1
+
+	def _doAsHTML(self):
+		return XSCText("-")
+RegisterElement("endash",endash)
+
+class emdash(XSCElement):
+	empty = 1
+
+	def _doAsHTML(self):
+		return XSCText("-")
+RegisterElement("emdash",emdash)
+
 if __name__ == "__main__":
 	print str(xsc.parsefile(sys.argv[1]).asHTML())
 
