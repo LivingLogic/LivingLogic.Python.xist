@@ -309,6 +309,20 @@ to make image &url;s shorter.</item>
 </ulist>
 </section>
 
+<section><title>Changes in 1.5.13 (released 07/01/2003)</title>
+<ulist>
+<item>Implemented <method>ll.xist.xsc.Namespace.__eq__</method>,
+so that replacing a namespace in the registry really works.</item>
+<item>Added an attribute <lit>target</lit> to <class>ll.xist.ns.html.area</class>.</item>
+</ulist>
+</section>
+
+<section><title>Changes in 1.5.12 (released 06/17/2003)</title>
+<ulist>
+<item>Fixed a bug in the new <module>ll.xist.ns.jsp</module>.</item>
+</ulist>
+</section>
+
 <section><title>Changes in 1.5.11 (released 06/13/2003)</title>
 <ulist>
 <item>Updated <module>ll.xist.ns.jsp</module> to &jsp; 1.2.</item>
