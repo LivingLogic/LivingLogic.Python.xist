@@ -82,6 +82,8 @@ class Converter:
 			self.target = target
 		self.lang = lang
 		self.contexts = {}
+		self.makeaction = None
+		self.maketarget = None
 
 	def __getitem__(self, class_):
 		"""
