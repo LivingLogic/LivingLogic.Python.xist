@@ -725,9 +725,9 @@ def parseString(text, base=None, sysid=None, **parserargs):
 	return parser.parseString(text, base, sysid)
 
 
-def parseURL(id, base=None, sysid=None, **parserargs):
+def parseURL(url, base=None, sysid=None, **parserargs):
 	parser = Parser(**parserargs)
-	return parser.parseURL(id, base, sysid)
+	return parser.parseURL(url, base, sysid)
 
 
 def parseFile(filename, base=None, sysid=None, **parserargs):
