@@ -1552,7 +1552,7 @@ class Attrs(Node, dict):
 			if len(attrvalue):
 				publisher.publish(u" ")
 				if isinstance(attrname, tuple): # global attribute?
-					publisher.publish(publisher.prefixes.elementprefix4ns(attrname[0]))
+					publisher.publish(publisher.prefixes.elementprefix4ns(attrname[0])[0])
 					publisher.publish(u":")
 					publisher.publish(attrname[1])
 				else:
@@ -2000,9 +2000,10 @@ class Element(Node):
 			self._publishName(publisher)
 			# we're the first element to be published, so we have to create the xmlns attributes
 			if hasattr(publisher, "publishxmlns"):
-				for (ns, (mode, prefix)) in publisher.prefixes2use.iteritems():
+				for ((nsprefix, ns), (mode, prefix)) in publisher.prefixes2use.iteritems():
 					if mode==2:
-						publisher.publish(u" xmlns")
+						publisher.publish(u" ")
+						publisher.publish(nsprefix)
 						if prefix is not None:
 							publisher.publish(u":")
 							publisher.publish(prefix)
@@ -2605,7 +2606,7 @@ class Prefixes(object):
 		"""
 		self._prefix2ns = ({}, {}, {}) # for elements, procinsts and entities
 
-	def __addPrefixMapping(self, index, prefix, ns, mode="prepend"):
+	def _addPrefixMapping(self, index, prefix, ns, mode="prepend"):
 		"""
 		<doc:par>Add a mapping from the namespace prefix <arg>prefix</arg>
 		to the namespace <arg>ns</arg> to the current configuration.
@@ -2634,24 +2635,24 @@ class Prefixes(object):
 				raise ValueError("mode %r unknown" % mode)
 
 	def addElementPrefixMapping(self, prefix, ns, mode="prepend"):
-		self.__addPrefixMapping(0, prefix, ns, mode)
+		self._addPrefixMapping(0, prefix, ns, mode)
 		return self
 
 	def addProcInstPrefixMapping(self, prefix, ns, mode="prepend"):
-		self.__addPrefixMapping(1, prefix, ns, mode)
+		self._addPrefixMapping(1, prefix, ns, mode)
 		return self
 
 	def addEntityPrefixMapping(self, prefix, ns, mode="prepend"):
-		self.__addPrefixMapping(2, prefix, ns, mode)
+		self._addPrefixMapping(2, prefix, ns, mode)
 		return self
 
 	def addPrefixMapping(self, prefix, ns, mode="prepend"):
-		self.__addPrefixMapping(0, prefix, ns, mode)
-		self.__addPrefixMapping(1, prefix, ns, mode)
-		self.__addPrefixMapping(2, prefix, ns, mode)
+		self._addPrefixMapping(0, prefix, ns, mode)
+		self._addPrefixMapping(1, prefix, ns, mode)
+		self._addPrefixMapping(2, prefix, ns, mode)
 		return self
 
-	def __delPrefixMapping(self, index, prefix=False, ns=False):
+	def _delPrefixMapping(self, index, prefix=False, ns=False):
 		"""
 		<doc:par>Remove the mapping from the namespace prefix <arg>prefix</arg>
 		to the namespace <arg>ns</arg> from the current configuration.
@@ -2686,24 +2687,24 @@ class Prefixes(object):
 				self._prefix2ns = {}
 
 	def delElementPrefixMapping(self, prefix=False, ns=False):
-		self.__delPrefixMapping(0, prefix, ns)
+		self._delPrefixMapping(0, prefix, ns)
 		return self
 
 	def delProcInstPrefixMapping(self, prefix=False, ns=False):
-		self.__delPrefixMapping(1, prefix, ns)
+		self._delPrefixMapping(1, prefix, ns)
 		return self
 
 	def delEntityPrefixMapping(self, prefix=False, ns=False):
-		self.__delPrefixMapping(2, prefix, ns)
+		self._delPrefixMapping(2, prefix, ns)
 		return self
 
 	def delPrefixMapping(self, prefix=False, ns=False):
-		self.__delPrefixMapping(0, prefix, ns)
-		self.__delPrefixMapping(1, prefix, ns)
-		self.__delPrefixMapping(2, prefix, ns)
+		self._delPrefixMapping(0, prefix, ns)
+		self._delPrefixMapping(1, prefix, ns)
+		self._delPrefixMapping(2, prefix, ns)
 		return self
 
-	def __startPrefixMapping(self, index, prefix, ns, mode="replace"):
+	def _startPrefixMapping(self, index, prefix, ns, mode="replace"):
 		ns = getNS(ns)
 		prefix2ns = self._prefix2ns[index].setdefault(prefix, [])
 		if mode=="replace":
@@ -2721,37 +2722,37 @@ class Prefixes(object):
 			raise ValueError("mode %r unknown" % mode)
 
 	def startElementPrefixMapping(self, prefix, ns, mode="replace"):
-		self.__startPrefixMapping(0, prefix, ns, mode)
+		self._startPrefixMapping(0, prefix, ns, mode)
 
 	def startProcInstPrefixMapping(self, prefix, ns, mode="replace"):
-		self.__startPrefixMapping(1, prefix, ns, mode)
+		self._startPrefixMapping(1, prefix, ns, mode)
 
 	def startEntityPrefixMapping(self, prefix, ns, mode="replace"):
-		self.__startPrefixMapping(2, prefix, ns, mode)
+		self._startPrefixMapping(2, prefix, ns, mode)
 
 	def startPrefixMapping(self, prefix, ns, mode="replace"):
-		self.__startPrefixMapping(0, prefix, ns, mode)
-		self.__startPrefixMapping(1, prefix, ns, mode)
-		self.__startPrefixMapping(2, prefix, ns, mode)
+		self._startPrefixMapping(0, prefix, ns, mode)
+		self._startPrefixMapping(1, prefix, ns, mode)
+		self._startPrefixMapping(2, prefix, ns, mode)
 
-	def __endPrefixMapping(self, index, prefix):
+	def _endPrefixMapping(self, index, prefix):
 		self._prefix2ns[index][prefix].pop(0)
 
 	def endElementPrefixMapping(self, prefix):
-		self.__endPrefixMapping(0, prefix)
+		self._endPrefixMapping(0, prefix)
 
 	def endProcInstPrefixMapping(self, prefix):
-		self.__endPrefixMapping(1, prefix)
+		self._endPrefixMapping(1, prefix)
 
 	def endEntityPrefixMapping(self, prefix):
-		self.__endPrefixMapping(2, prefix)
+		self._endPrefixMapping(2, prefix)
 
 	def endPrefixMapping(self, prefix):
-		self.__endPrefixMapping(0, prefix)
-		self.__endPrefixMapping(1, prefix)
-		self.__endPrefixMapping(2, prefix)
+		self._endPrefixMapping(0, prefix)
+		self._endPrefixMapping(1, prefix)
+		self._endPrefixMapping(2, prefix)
 
-	def __ns4prefix(self, index, prefix):
+	def _ns4prefix(self, index, prefix):
 		"""
 		<doc:par>Return the currently active namespace list for the prefix <arg>prefix</arg>.</doc:par>
 		"""
@@ -2761,15 +2762,15 @@ class Prefixes(object):
 			return []
 
 	def ns4elementprefix(self, prefix):
-		return self.__ns4prefix(0, prefix)
+		return self._ns4prefix(0, prefix)
 
 	def ns4procinstprefix(self, prefix):
-		return self.__ns4prefix(1, prefix)
+		return self._ns4prefix(1, prefix)
 
 	def ns4entityprefix(self, prefix):
-		return self.__ns4prefix(2, prefix)
+		return self._ns4prefix(2, prefix)
 
-	def __prefix4ns(self, index, ns):
+	def _prefix4ns(self, index, ns):
 		"""
 		<doc:par>Return the currently active prefixes for the namespace <arg>ns</arg>.</doc:par>
 		"""
@@ -2784,13 +2785,13 @@ class Prefixes(object):
 			return [ns.xmlprefix]
 
 	def elementprefix4ns(self, ns):
-		return self.__prefix4ns(0, ns)
+		return self._prefix4ns(0, ns)
 
 	def procinstprefix4ns(self, ns):
-		return self.__prefix4ns(1, ns)
+		return self._prefix4ns(1, ns)
 
 	def entityprefix4ns(self, ns):
-		return self.__prefix4ns(2, ns)
+		return self._prefix4ns(2, ns)
 
 	def __splitqname(self, qname):
 		"""

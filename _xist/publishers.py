@@ -159,21 +159,31 @@ class Publisher(object):
 					from xist.ns import specials
 					self.node = specials.wrap(self.node)
 
-		self.prefixes2use = {}
+		prefixes2use = {}
 		# collect all the namespaces that are used and their required mode
 		for child in self.node.walk(attrs=True):
-			self.prefixes2use[child.xmlns] = max(self.prefixes2use.get(child.xmlns, 0), child.needsxmlns(self))
-		if len(self.prefixes2use):
+			if isinstance(child, xsc.Element):
+				index = 0
+			elif isinstance(child, xsc.ProcInst):
+				index = 1
+			elif isinstance(child, xsc.Entity):
+				index = 2
+			else:
+				continue
+			prefixes2use[(index, child.xmlns)] = max(prefixes2use.get((index, child.xmlns), 0), child.needsxmlns(self))
+		self.prefixes2use = {}
+		if len(prefixes2use):
 			self.publishxmlns = None # signal to the first element that it should generate xmlns attributes
 			# get the prefixes for all namespaces from the prefix mapping
-			for ns in self.prefixes2use:
-				self.prefixes2use[ns] = (self.prefixes2use[ns], self.prefixes.elementprefix4ns(ns)[0])
+			for (index, ns) in prefixes2use:
+				nsprefix = [u"xmlns", u"procinstns", u"entityns"][index]
+				self.prefixes2use[(nsprefix, ns)] = (prefixes2use[(index, ns)], self.prefixes._prefix4ns(index, ns)[0])
 
 	def endPublication(self):
 		"""
 		<doc:par>called once after the publication of the node <arg>node</arg> has ended.</doc:par>
 		"""
-		self.prefixes2use = {}
+		del self.prefixes2use
 		del self.node
 
 	def doPublication(self, node):
