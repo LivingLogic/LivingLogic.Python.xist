@@ -32,6 +32,8 @@ class switch(xsc.Element):
 	def asHTML(self):
 		cases = self.find(type=case)
 
+		return xsc.Null
+
 class case(xsc.Element):
 	empty = 0
 	attrHandlers = {"case": xsc.TextAttr}
