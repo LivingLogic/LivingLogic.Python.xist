@@ -222,7 +222,7 @@ class EscInlineText(ansistyle.EscapedText):
 				try:
 					char.encode(options.reprEncoding)
 				except:
-					ascharref = 1
+					ascharref = True
 			if ascharref:
 				charcode = ord(char)
 				try:
