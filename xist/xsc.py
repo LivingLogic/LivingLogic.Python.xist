@@ -1764,9 +1764,7 @@ class Namespace:
 		self.uri = stringFromCode(uri)
 		self.elementsByName = {} # dictionary for mapping element names to classes
 		self.entitiesByName = {} # dictionary for mapping entity names to classes
-		self.entitiesByNumber = []
-		for i in xrange(65536):
-			self.entitiesByNumber.append([])
+		self.entitiesByNumber = [ [] for i in xrange(65536) ]
 
 		self.register(thing)
 
