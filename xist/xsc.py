@@ -828,7 +828,7 @@ class Text(Node):
 					v.append(strCharRef(s,ansi))
 				else:
 					s = content[start:end]
-					v.append(strText(self._encode(s,encoding,1),ansi))
+					v.append(strText(self._encode(s,encoding,0),ansi))
 				charref = 1-charref # switch to the other class
 				start = end # the next string we want to work on starts from here
 			end = end + 1 # to the next character
