@@ -59,11 +59,22 @@ version of <class>autoimg</class> if you need this.</par>
 For backwards compatibility a filter functor <class>ll.xist.xsc.FindOld</class> exists that
 takes the same arguments as the old <method>find</method> method. I.e. you can replace:</par>
 <programlisting>
-node.find(type=html.a, attr={"href": None, searchchildren=True)
+node.find(
+	type=html.a,
+	attr={"href": None},
+	searchchildren=True
+)
 </programlisting>
 <par>with:</par>
 <programlisting>
-node.find(xsc.FindOld(type=html.a, attr={"href": None, searchchildren=True), skiproot=True)
+node.find(
+	xsc.FindOld(
+		type=html.a,
+		attr={"href": None},
+		searchchildren=True
+	),
+	skiproot=True
+)
 </programlisting>
 <par>But one minor difference remains: when <arg>skiproot</arg> is set to true in the new
 <method>find</method> method, the attributes of the root element will <em>not</em> be traversed.
