@@ -775,7 +775,6 @@ class CodePresenter:
 		self.buffer.append(")")
 
 	def presentElement(self, node):
-		print xsc.className(node.__class__), self.level, self.inAttr
 		self._indent()
 		self.buffer.append("%s.%s(" % (node.__module__, xsc.className(node.__class__)))
 		i = 0
