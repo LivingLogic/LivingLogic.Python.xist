@@ -819,7 +819,7 @@ class busnav(XSCElement):
 	def asHTML(self):
 		e = a(
 			img(
-				src = ":images/navigation/" + self["dir"] + ".gif",
+				src = ":lokal/verkehr/images/navigation/" + self["dir"] + ".gif",
 				border = "0"
 			),
 			href = "javascript:" + self["dir"] + "()"
