@@ -2257,7 +2257,7 @@ class Element(Node):
 				dict["xmlname"] = dict["name"]
 				del dict["name"]
 			if "attrHandlers" in dict:
-				warnings.warn(DeprecationWarning("attrHandlers is deprecated, use a nested Attrs class instead"))
+				warnings.warn(DeprecationWarning("attrHandlers is deprecated, use a nested Attrs class instead"), stacklevel=2)
 			return Node.__metaclass__.__new__(cls, name, bases, dict)
 		def __repr__(self):
 			return "<element class %s:%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
@@ -2621,11 +2621,11 @@ class Element(Node):
 	isallowedattr = classmethod(isallowedattr)
 
 	def getAttr(self, attrname, default=None):
-		warnings.warn(DeprecationWarning("foo.getAttr() is deprecated, use foo.attrs.get() instead"))
+		warnings.warn(DeprecationWarning("foo.getAttr() is deprecated, use foo.attrs.get() instead"), stacklevel=2)
 		return self.getattr(attrname, default)
 
 	def getattr(self, attrname, default=None):
-		warnings.warn(DeprecationWarning("foo.getattr() is deprecated, use foo.attrs.get() instead"))
+		warnings.warn(DeprecationWarning("foo.getattr() is deprecated, use foo.attrs.get() instead"), stacklevel=2)
 		return self.attrs.get(attrname, default)
 
 	def setDefaultAttr(self, attrname, default=None):
@@ -3310,13 +3310,15 @@ class Namespace(Base):
 			return type.__delattr__(cls, key)
 
 		def __setattr__(cls, key, value):
+			# Remove old attribute
 			oldvalue = cls.__dict__.get(key, None) # no inheritance
 			if isinstance(oldvalue, type) and issubclass(oldvalue, (Element, ProcInst, Entity)):
 				try:
 					oldvalue._registerns(None)
 				except AttributeError:
 					pass
-			elif isinstance(value, type) and issubclass(value, (Element, ProcInst, Entity)):
+			# Set new attribute
+			if isinstance(value, type) and issubclass(value, (Element, ProcInst, Entity)):
 				ns = value.__dict__.get("xmlns", None) # no inheritance
 				if ns is not None:
 					try:
