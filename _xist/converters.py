@@ -62,25 +62,8 @@ class Converter(object):
 	def __init__(self, root=None, mode=None, stage=None, target=None, lang=None, makeaction=None, maketarget=None):
 		"""
 		<doc:par>Create a <class>Converter</class>.</doc:par>
-		<doc:par>Arguments are:
-		<doc:ulist>
-		<doc:item><arg>root</arg>: The root URL specifies the directory
-		into which the converted tree will be published. If there are any elements that
-		need to have access to files in this directory, you have to pass in this URL (an example
-		is <pyref module="xist.ns.specials" class="autoimg"><class>autoimg</class></pyref>)</doc:item>
-		<doc:item><arg>mode</arg>: The conversion mode. This corresponds
-		directy with the mode in &xslt;. The default is <code>None</code>.</doc:item>
-		<doc:item><arg>stage</arg>: If your conversion is done in multiple
-		steps or stages you can use this argument to specify in which stage the conversion
-		process currently is. The default is <lit>"deliver"</lit>.</doc:item>
-		<doc:item><arg>target</arg>: Specifies the conversion target. This
-		could be <lit>"text"</lit>, <lit>"html"</lit>, <lit>"wml"</lit>, <lit>"docbook"</lit>
-		or anything like that. The default is <lit>"html"</lit>.</doc:item>
-		<doc:item><arg>lang</arg>: The target language. The default is <lit>None</lit>.</doc:item>
-		<doc:item><arg>makeaction</arg> and <arg>maketarget</arg>: These parameters are used by
-		the <pyref module="make"><module>make</module></pyref> module.</doc:item>
-		</doc:ulist>
-		</doc:par>
+		<doc:par>Arguments are used to initialized the <class>Converter</class> properties of the
+		same name.</doc:par>
 		"""
 		self.states = [ ConverterState(root=root, mode=mode, stage=stage, target=target, lang=lang, makeaction=makeaction, maketarget=maketarget)]
 		self.contexts = {}
@@ -150,13 +133,13 @@ class Converter(object):
 		if self.states[-1].target is None:
 			return "html"
 		else:
-			return self.stages[-1].target
+			return self.states[-1].target
 
 	def __settarget(self, target):
-		self.stages[-1].target = target
+		self.states[-1].target = target
 
 	def __deltarget(self):
-		self.stages[-1].targes = None
+		self.states[-1].targes = None
 
 	target = property(
 		__gettarget,
