@@ -474,7 +474,9 @@ def explain(thing, name=None):
 	t = type(thing)
 	if t is types.MethodType:
 		(args, varargs, varkw, defaults) = inspect.getargspec(thing.im_func)
-		sig = xsc.Frag()
+		sig = xsc.Frag(
+			html.a(name=(thing.im_class.__name__, "-", name or thing.__name__))
+		)
 		if name != thing.__name__ and not (thing.__name__.startswith("__") and name=="_" + thing.im_class.__name__ + thing.__name__):
 			sig.append(name, " = ")
 		sig.append(
@@ -503,7 +505,14 @@ def explain(thing, name=None):
 	elif t is types.FunctionType:
 		(args, varargs, varkw, defaults) = inspect.getargspec(thing)
 		return section(
-			title("def ", pyref(name or thing.__name__, module=inspect.getmodule(thing).__name__, function=thing.__name__, nolink=1), "(", xsc.Frag(args).withSep(", "), "):"),
+			title(
+				html.a(name=name or thing.__name__),
+				"def ",
+				pyref(name or thing.__name__, module=inspect.getmodule(thing).__name__, function=thing.__name__, nolink=1),
+				"(",
+				xsc.Frag(args).withSep(", "),
+				"):"
+			),
 			getDoc(thing),
 			role="function"
 		)
@@ -519,7 +528,13 @@ def explain(thing, name=None):
 			bases.insert(0, "(")
 			bases.append(")")
 		node = section(
-			title("class ", pyref(name or thing.__name__, module=thing.__module__, class_=thing.__name__, nolink=1), bases, ":"),
+			title(
+				html.a(name=name or thing.__name__),
+				"class ",
+				pyref(name or thing.__name__, module=thing.__module__, class_=thing.__name__, nolink=1),
+				bases,
+				":"
+			),
 			getDoc(thing),
 			role="class"
 		)
