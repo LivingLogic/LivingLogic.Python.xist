@@ -518,6 +518,8 @@ class Parser(object):
 		self.skippingwhitespace = False
 
 		if self.tidy:
+			import libxml2 # This requires libxml2 (see http://www.xmlsoft.org/)
+
 			def decode(s):
 				try:
 					return s.decode("utf-8")
@@ -525,7 +527,6 @@ class Parser(object):
 					return s.decode("iso-8859-1")
 
 			data = stream.read()
-			import libxml2 # This requires libxml2 (see http://www.xmlsoft.org/)
 			doc = libxml2.htmlReadMemory(data, len(data), sysid, encoding, 0x60)
 			ns = self.nspool.get(html.xmlname, html)
 			def toxsc(node):
