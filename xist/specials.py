@@ -219,6 +219,21 @@ class loremipsum(xsc.Element):
 			text = self.text
 		return xsc.Text(text)
 
+class redirectpage(xsc.Element):
+	empty = 1
+	attrHandlers = { "href" : xsc.URLAttr }
+
+	def asHTML(self):
+		url = self["href"]
+		e = html.html(
+			html.head(html.title("Redirection")),
+			html.body(
+				"Your browser doesn't understand redirects. This page has been redirected to ",
+				html.a(url,href = url)
+			)
+		)
+		return e.asHTML()
+
 xsc.registerAllElements(vars(),"specials")
 
 # Control characters (not part of HTML)
