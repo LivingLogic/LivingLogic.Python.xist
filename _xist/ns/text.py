@@ -38,10 +38,7 @@ class html(html_.html):
 
 	def convert(self, converter):
 		e = html_.html(self.content.convert(converter), self.attrs.convert(converter))
-		function = self.fixcharacters
-		converter.push(function=function)
-		e = e.mapped(converter)
-		converter.pop()
+		e = e.mapped(self.fixcharacters, converter)
 		return e
 
 class HeaderFormattingMixin(object):

@@ -71,6 +71,14 @@ With the old method they would be traversed.</par>
 
 </section>
 
+<section><title><method>mapped</method> changes</title>
+
+<par>Calling <method>mapped</method> through <method>conv</method> has
+been removed. You again have to call <method>mapped</method> directly
+and pass a node and a converter.</par>
+
+</section>
+
 </section>
 
 

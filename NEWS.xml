@@ -99,6 +99,11 @@ rewritten and a new method <method>visit</method> has been added. For
 more info see the docstrings.</item>
 <item><class>Node</class> now has two new methods <method>copy</method>
 and <method>deepcopy</method> and supports the <module>copy</module>.</item>
+
+<item>Calling <method>mapped</method> through <method>conv</method> has
+been removed. You again have to call <method>mapped</method> directly
+and pass a node and a converter.</item>
+
 </ulist>
 </section>
 

@@ -842,7 +842,7 @@ through a function. An example: To replace <lit>Python</lit> with <lit>Parrot</l
 in every text node on the <link href="http://www.python.org/">Python page</link>, do the following:</par>
 
 <programlisting>
-from ll.xist import xsc, parsers
+from ll.xist import xsc, parsers, converters
 from ll.xist.ns import html
 
 def p2p(node):
@@ -855,7 +855,8 @@ node = parsers.parseURL(
 	"http://www.python.org/",
 	encoding="iso-8859-1",
 	tidy=True)
-node.mapped(p2p).write(
+
+node.mapped(p2p, converters.Converter()).write(
 	open("parrot_index.html", "wb"))
 </programlisting>
 

@@ -430,7 +430,7 @@ class XISTTest(unittest.TestCase):
 		node = self.createfrag()
 		node.conv()
 		node.conv(converters.Converter())
-		node.conv(function=self.mappedmapper)
+		node.mapped(self.mappedmapper, converters.Converter())
 
 	def test_repr(self):
 		for node in self.allnodes():

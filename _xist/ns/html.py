@@ -166,14 +166,12 @@ class title(xsc.Element):
 			if isinstance(node, img):
 				node = node["alt"]
 			else:
-				node = node.content.mapped(converter)
+				node = node.content.mapped(self.unwrapHTML, converter)
 		return node
 
 	def convert(self, converter):
 		content = self.content.convert(converter)
-		converter.push(function=self.unwrapHTML)
-		content = content.convert(converter)
-		converter.pop()
+		content = content.mapped(self.unwrapHTML, converter)
 		return title(content, self.attrs)
 
 class base(xsc.Element):
