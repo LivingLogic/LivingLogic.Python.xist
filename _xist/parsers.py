@@ -188,10 +188,9 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 				self.error_handler.fatalError(ex)
 			else:
 				raise
-		finally:
-			self.parser.register(None)
-			self.source = None
-			del self.encoding
+		self.parser.register(None)
+		self.source = None
+		del self.encoding
 
 	def setErrorHandler(self, handler):
 		self.error_handler = handler
