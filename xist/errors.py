@@ -125,8 +125,8 @@ class IllegalElementError(Error):
 			namespace = xsc.NamespaceRegistry.byPrefix[namespacename]
 			try:
 				element = namespace.elementsByName[self.name[1]]
-				elementnames.append(xsc.strElement(element.namespace.prefix,element.name,element.empty),brackets = 1)
-			except KeyError:
+				elementnames.append(xsc.strElement(element.namespace.prefix,element.name,element.empty))
+			except KeyError: # this namespace doesn't have an element with this name
 				pass
 		elementnames.sort()
 
@@ -207,7 +207,7 @@ class MalformedCharRefError(Error):
 class IllegalEntityError(Error):
 	"""
 	exception that is raised, when an illegal entity is encountered
-	(i.e. one that wasn't registered via registerEntity)
+	(i.e. one that wasn't registered via Namespace.register)
 	"""
 
 	def __init__(self,location,name):
@@ -221,7 +221,7 @@ class IllegalEntityError(Error):
 			try:
 				entity = namespace.entitiesByName[self.name[1]]
 				entitynames.append(xsc.strEntity(entity.namespace.prefix,entity.name))
-			except KeyError:
+			except KeyError: # this namespace doesn't have an entity with this name
 				pass
 		entitynames.sort()
 
@@ -231,24 +231,6 @@ class IllegalEntityError(Error):
 		else:
 			s = s + "There are no allowed entities."
 		return s
-
-class AmbiguousElementError(Error):
-	"""
-	exception that is raised, when an element is encountered without a namespace
-	and there is more than one element registered with this name.
-	"""
-
-	def __init__(self,location,name):
-		Error.__init__(self,location)
-		self.name = name
-
-	def __str__(self):
-		elementnames = []
-		for namespace in xsc._elementHandlers[self.name[1]].keys():
-			elementnames.append(xsc._strNode(xsc._elementHandlers[self.name[1]][namespace]))
-		elementnames.sort()
-
-		return Error.__str__(self) + "element " + xsc._strName((self.name[0],self.name[1],0)) + " is ambigous. Possible elements are: " + string.join(elementnames,", ") + "."
 
 class IllegalCommentError(Error):
 	"""

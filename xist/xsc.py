@@ -1742,7 +1742,7 @@ class Namespace:
 	in the namespace.
 	"""
 
-	def __init__(self,prefix,uri,dict = None):
+	def __init__(self,prefix,uri,thing = None):
 		self.prefix = prefix
 		self.uri = uri
 		self.elementsByName = {} # dictionary for mapping element names to classes
@@ -1751,66 +1751,61 @@ class Namespace:
 		for i in xrange(65536):
 			self.entitiesByNumber.append([])
 
-		self.registerAll(dict)
+		self.register(thing)
 
 		NamespaceRegistry.register(self)
 
 	def register(self,thing):
 		"""
-		<par noindent>this function lets you register a class that is derived from
-		<classref>Element</classref> or <classref>Entity</classref> with the namespace.
-		All other objects are ignored.</par>
-
-		<par>The class <code>foo</code> will be registered under the name
-		it's class name (<code>foo.__name__</code>). If you want to changes this behaviour,
+		<par noindent>this function lets you register <argref>thing</argref> in the namespace.
+		If <argref>thing</argref> is a class derived from <classref>Element</classref> or
+		<classref>Entity</classref> in will be registered in the following way:
+		The class <argref>thing</argref> will be registered under it's class name
+		(<code><argref>thing</argref>.__name__</code>). If you want to change this behaviour,
 		do the following: set a class variable <code>name</code> to the name you want
-		to be used. If you don't want <code>foo</code> to be registered at all, set
-		<code>name</code> to None.
+		to be used. If you don't want <argref>thing</argref> to be registered at all, set
+		<code>name</code> to <code>None</code>.
 
-		<par>After the class <code>foo</code> will have two class variables: <code>name</code>,
+		<par>After the call <argref>thing</argref> will have two class attributes: <code>name</code>,
 		which is the name under which the class is registered and <code>namespace</code>,
 		which is the namespace itself (i.e. <self/>).</par>
+
+		<par>If <argref>thing</argref> already has an attribute <code>namespace</code>, it
+		won't be registered again.</par>
+
+		<par>If <argref>thing</argref> is a dictionary, every object in the dictionary
+		will be registered.</par>
+
+		<par>All other objects are ignored.</par>
 		"""
 
 		if type(thing) is types.ClassType:
 			iselement = thing is not Element and issubclass(thing,Element)
 			isentity = thing is not Entity and issubclass(thing,Entity)
 			if iselement or isentity:
-				try:
-					name = thing.name
-				except AttributeError:
-					name = thing.__name__
-
-				if name is None:
+				if not hasattr(thing,"namespace"): # if the class already has a namespace attribute, it is already registered
 					try:
-						del thing.namespace
+						name = thing.name
 					except AttributeError:
-						pass
-					return
-				else:
+						name = thing.__name__
+
 					thing.name = name
-				thing.namespace = self # this creates a cycle, but namespaces aren't constantly created and deleted (and Python will get a GC some day ;))
+					thing.namespace = self # this creates a cycle, but namespaces aren't constantly created and deleted (and Python will get a GC some day ;))
 
-				if iselement:
-					self.elementsByName[name] = thing
-				else:
-					self.entitiesByName[name] = thing
-					try:
-						self.entitiesByNumber[thing.codepoint].append(thing)
-					except AttributeError: # no codepoint attribute in the class, so this isn't a char ref
-						pass
-
-	def registerAll(self,thing):
-		"""
-		registers all classes in the dictionary <argref>thing</argref>.
-		If <argref>thing</argref> is no dictionary nothing will be done.
-		"""
-
-		if type(thing) is types.ModuleType:
-			thing = vars(thing)
-		if type(thing) is types.DictionaryType:
+					if iselement:
+						self.elementsByName[name] = thing
+					else:
+						self.entitiesByName[name] = thing
+						try:
+							self.entitiesByNumber[thing.codepoint].append(thing)
+						except AttributeError: # no codepoint attribute in the class, so this isn't a char ref
+							pass
+		elif type(thing) is types.DictionaryType:
 			for key in thing.keys():
 				self.register(thing[key])
+
+	def __repr__(self):
+		return "<%s.%s instance prefix=%s uri=%s at 0x%x>" % (self.__class__.__module__,self.__class__.__name__,repr(self.prefix),repr(self.uri),id(self))
 
 ###
 ### Namespace registry
@@ -1937,7 +1932,7 @@ class XSC:
 						return namespace.elementsByName[name[1]]
 					else:
 						return namespace.entitiesByName[name[1]]
-				except KeyError:
+				except KeyError: # no element/entity in this namespace with this name
 					pass
 		if element:
 			raise IllegalElementError(self.__here(),name) # elements with this name couldn't be found

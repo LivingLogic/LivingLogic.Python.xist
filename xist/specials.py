@@ -215,7 +215,7 @@ class loremipsum(xsc.Element):
 	empty = 1
 	attrHandlers = { "len" : xsc.IntAttr }
 
-	text = "Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diem nonummy nibh euismod tincidnut ut lacreet dolore magna aliguam erat volutpat. Ut wisis enim ad minim veniam, quis nostrud exerci tution ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis te feugifacilisi. Duis antem dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zril delinit au gue duis dolore te feugat nulla facilisi." 
+	text = "Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diem nonummy nibh euismod tincidnut ut lacreet dolore magna aliguam erat volutpat. Ut wisis enim ad minim veniam, quis nostrud exerci tution ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis te feugifacilisi. Duis antem dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zril delinit au gue duis dolore te feugat nulla facilisi."
 
 	def asHTML(self):
 		if self.hasAttr("len"):
@@ -341,6 +341,12 @@ class ppp(xsc.Entity):
 		return html_.abbr("PPP",title="Domain Name Service",lang="en")
 	def asPlainString(self):
 		return "PPP"
+
+class isdn(xsc.Entity):
+	def asHTML(self):
+		return html_.abbr("ISDN",title="Integrated Services Digital Network",lang="en")
+	def asPlainString(self):
+		return "ISDN"
 
 namespace = xsc.Namespace("specials","http://www.livinglogic.de/DTDs/specials.dtd",vars())
 
