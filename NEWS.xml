@@ -1,5 +1,9 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
-<section><title>Changes in CVS (released ??/??/2001)</title>
+<section><title>Changes in 1.2.3 (released 11/22/2001)</title>
+<ulist>
+<item>Added missing <code>asPlainString</code> methods to
+<code>Comment</code> and <code>DocType</code>.</item>
+</ulist>
 </section>
 
 <section><title>Changes in 1.2.2 (released 11/16/2001)</title>
