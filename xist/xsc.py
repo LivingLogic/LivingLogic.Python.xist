@@ -175,6 +175,7 @@ class XSCNode:
 	# line numbers where this node starts and ends in a file (will be hidden in derived classes, but is specified here, so that no special tests are required. In derived classes both variables will be set by the parser)
 	startlineno = -1
 	endlineno = -1
+	name = "XSCNode" # will be changed for derived classes/elements in RegisterElement()
 
 	def __add__(self,other):
 		if other != None:
@@ -188,17 +189,23 @@ class XSCNode:
 		else:
 			return self
 
+	def __repr__(self,nest = 0):
+		return self.strindent(nest) + self.strtag("?") + "\n"
+
 	def stransi(self,codes,string):
-		if xsc.repransi:
+		if xsc.repransi and codes!="":
 			return "\033[" + codes + "m" + string + "\033[0m"
 		else:
 			return (string)
 
-	def __repr__(self,nest = 0):
-		return self.strindent(nest) + self.strtag("?") + "\n"
-
 	def strindent(self,nest):
 		return self.stransi(xsc.repransitab,xsc.reprtab*nest)
+
+	def strelementname(self,name):
+		return self.stransi(xsc.repransielementname,name)
+
+	def strtext(self,name):
+		return self.stransi(xsc.repransitext,name)
 
 	def strtag(self,content):
 		return self.stransi(xsc.repransibrackets,"<") + content + self.stransi(xsc.repransibrackets,">")
@@ -255,7 +262,7 @@ class XSCText(XSCNode):
 		if self.content=="\n" and xsc.verbose==0:
 			return ""
 		else:
-			return self.strindent(nest) + self.strtag('XSCText content=' + repr(self.content)) + self.strlines(self.startlineno) + '\n'
+			return self.strindent(nest) + self.strtext(repr(self.content)) + self.strlines(self.startlineno) + '\n'
 
 class XSCFrag(XSCNode):
 	"""contains a list of XSCNodes"""
@@ -414,12 +421,12 @@ class XSCElement(XSCNode):
 
 	def __repr__(self,nest = 0):
 		if self.close:
-			s = self.strindent(nest) + self.strtag(self.name) + self.strlines(self.startlineno,self.endlineno) + '\n'
+			s = self.strindent(nest) + self.strtag(self.strelementname(self.name)) + self.strlines(self.startlineno,self.endlineno) + '\n'
 			for i in self.content:
 				s = s + i.__class__.__repr__(i,nest+1) # class repr with additional arguments
-			s = s + self.strindent(nest) + self.strtag("/" + self.name) + self.strlines(self.startlineno,self.endlineno) + '\n'
+			s = s + self.strindent(nest) + self.strtag(self.strelementname("/" + self.name)) + self.strlines(self.startlineno,self.endlineno) + '\n'
 		else:
-			s = self.strindent(nest) + self.strtag(self.name + "/") + self.strlines(self.startlineno,self.endlineno) + '\n'
+			s = self.strindent(nest) + self.strtag(self.strelementname(self.name + "/")) + self.strlines(self.startlineno,self.endlineno) + '\n'
 		return s
 
 	def rer(self):
@@ -606,6 +613,7 @@ class XSC:
 		self.repransitab = "32"
 		self.repransibrackets = "36"
 		self.repransielementname = "33"
+		self.repransitext = ""
 		self.verbose = 1
 		self.parser = XSCParser()
 
