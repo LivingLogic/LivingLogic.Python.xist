@@ -162,7 +162,7 @@ class autoimg(html.img):
 		else:
 			e = html.img(self.attrs.convert(converter))
 		e._addImageSizeAttributes(converter.root, "src", "width", "height")
-		return e.convert(converter)
+		return e
 
 class autoinput(html.input):
 	"""
