@@ -51,7 +51,8 @@ on their content. This makes it possible to e.g. generate the keywords via &jsp;
 <doc:programlisting>
 &gt;&gt;&gt; from xist import parsers
 &gt;&gt;&gt; from xist.ns import meta, jsp
-&gt;&gt;&gt; e = parsers.parseString('&lt;keywords&gt;&lt;?jsp:expression "foo"?&gt;&lt;/keywords&gt;')
+&gt;&gt;&gt; s = '&lt;keywords&gt;&lt;?jsp:expression "foo"?&gt;&lt;/keywords&gt;'
+&gt;&gt;&gt; e = parsers.parseString(s)
 &gt;&gt;&gt; print e.conv().asBytes()
 &lt;meta name="keywords" content="&lt;%= "foo" %&gt;" /&gt;
 </doc:programlisting>
