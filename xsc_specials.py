@@ -67,6 +67,24 @@ class x(XSCElement):
 		return ""
 handlers["x"] = x
 
+class pixel(img):
+	close = 0
+	permitted_attrs = img.permitted_attrs + [ "color" ]
+	permitted_attrs.remove("src")
+
+	def AsHTML(self,xsc,mode = None):
+		self.CheckAttrs()
+		e = img(xsc.AsHTML(self.content,mode),xsc.AsHTML(self.attrs,mode))
+
+		if not self.has_attr("color"):
+			e["color"] = "dot_clear"
+		e["src"] = ":Images/Pixels/" + e["color"] + ".gif"
+		del e["color"]
+		xsc.ExpandLinkAttribute(e,"src")
+
+		return e
+handlers["pixel"] = pixel
+
 if __name__ == "__main__":
 	h = XSC(sys.argv[1])
 	print str(h)
