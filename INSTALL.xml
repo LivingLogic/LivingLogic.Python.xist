@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
-<dbl:section><dbl:title>Requirements</dbl:title>
+<doc:section><doc:title>Requirements</doc:title>
 To use &xist; you need the following software packages:
 <ol>
 <li>Python 2.1 (available from <a href="http://www.python.org/">http://www.python.org/</a> and
@@ -13,44 +13,44 @@ To use &xist; you need the following software packages:
 <li>and a C compiler supported by <application>distutils</application>, if you want to install
 the source distribution.</li>
 </ol>
-</dbl:section>
+</doc:section>
 
-<dbl:section><dbl:title>Installation</dbl:title>
-<dbl:para>&xist; uses <application>distutils</application>, so installation
+<doc:section><doc:title>Installation</doc:title>
+<doc:para>&xist; uses <application>distutils</application>, so installation
 is rather simple. Execute the following command:
 <programlisting>
 python setup.py install
 </programlisting>
 This will copy *.py files, compile *.c files and install everything
 in the <filename class="directory">site-packages</filename>
-directory as an <code>xist</code> package.</dbl:para>
+directory as an <code>xist</code> package.</doc:para>
 
-<dbl:para>For Windows a binary distribution is provided. To install it,
-double click it, and follow the instructions.</dbl:para>
+<doc:para>For Windows a binary distribution is provided. To install it,
+double click it, and follow the instructions.</doc:para>
 
-<dbl:para>If you have difficulties installing this software, send a problem report
+<doc:para>If you have difficulties installing this software, send a problem report
 to Walter Dörwald (<a href="mailto:walter@livinglogic.de">walter@livinglogic.de</a>)
-describing the problem.</dbl:para>
-</dbl:section>
+describing the problem.</doc:para>
+</doc:section>
 
-<dbl:section><dbl:title>Character encoding</dbl:title>
-<dbl:para>When you pass an 8bit string in the constructor
+<doc:section><doc:title>Character encoding</doc:title>
+<doc:para>When you pass an 8bit string in the constructor
 of an &xist; element, these strings have to
 be converted to Unicode. &xist; assumes that these 8bit strings
 are in the system default encoding, which is &ascii;.
 If you want to change this you can put a script
 named <filename>sitecustomize.py</filename> somewhere
 in the Python path, with the following content:
-<dbl:programlisting>
+<doc:programlisting>
 import sys
 sys.setdefaultencoding(<replaceable>"iso-8859-1"</replaceable>)
-</dbl:programlisting>
+</doc:programlisting>
 (or any other encoding name that you want to use
-instead of <code>"iso-8859-1"</code>).</dbl:para>
-</dbl:section>
+instead of <code>"iso-8859-1"</code>).</doc:para>
+</doc:section>
 
-<dbl:section><dbl:title>Display hook</dbl:title>
-<dbl:para>
+<doc:section><doc:title>Display hook</doc:title>
+<doc:para>
 Currently &xist; nodes do not have a fancy <function>__repr__</function>
 method implemented, but the <function>repr</function> method
 can be used to generate two different display formats (this is extensible
@@ -59,7 +59,7 @@ the <code>TreePresenter</code> format in object dumps in
 an interactive Python session you can use the displayhook
 feature of Python 2.1, simply by putting the following code
 into your Python startup script:
-<dbl:programlisting>
+<doc:programlisting>
 import sys, pprint
 from xist import xsc, presenters
 
@@ -71,15 +71,15 @@ def displayhook(object):
 			pprint.pprint(object)
 
 sys.displayhook = displayhook
-</dbl:programlisting>
-</dbl:para>
-</dbl:section>
+</doc:programlisting>
+</doc:para>
+</doc:section>
 
-<dbl:section><dbl:title>Syntax highlighting</dbl:title>
-<dbl:para>If you want syntax highlighting in your &xist; tree
+<doc:section><doc:title>Syntax highlighting</doc:title>
+<doc:para>If you want syntax highlighting in your &xist; tree
 dumps and have an &ansi; color capable terminal, 
 set the environment variable <code>XSC_REPRANSI</code>
 to <code>1</code> or <code>2</code> depending on whether
 you have a light or dark background color. Setting <code>XSC_REPRANSI</code>
-to <code>0</code> turns off syntax highlighting.</dbl:para>
-</dbl:section>
+to <code>0</code> turns off syntax highlighting.</doc:para>
+</doc:section>
