@@ -1461,12 +1461,26 @@ class Attr(Frag):
 	<doc:par>Base classes of all attribute classes.</doc:par>
 
 	<doc:par>The content of an attribute may be any other XSC node. This is different from
-	a normal DOM, where only text and character references are allowed. The reason for
+	a normal &dom;, where only text and character references are allowed. The reason for
 	this is to allow dynamic content (implemented as elements or processing instructions)
 	to be put into attributes.</doc:par>
 
-	<doc:par>Of course, this dynamic content when finally converted to HTML will normally result in
-	a fragment consisting only of text and character references.</doc:par>
+	<doc:par>Of course, this dynamic content when finally converted to &html; will normally result in
+	a fragment consisting only of text and character references. But note that it is allowed
+	to have elements and processing instructions inside of attributes even when publishing.
+	Processing instructions will be published as is and for elements their content will be
+	published.</doc:par>
+	<doc:example title="Elements inside attributes">
+	<doc:programlisting>
+	&gt;&gt;&gt; from xist.ns import html
+	&gt;&gt;&gt; node = html.img( \
+	...    src="eggs.gif", \
+	...    alt=html.abbr("EGGS", title="Extensible Graphics Generation System", lang="en") \
+	... )
+	&gt;&gt;&gt; print node.asBytes()
+	&lt;img alt="EGGS" src="eggs.gif" /&gt;
+	</doc:programlisting>
+	</doc:example>
 	"""
 
 	def present(self, presenter):
