@@ -60,25 +60,18 @@ class quotations(xsc.Element):
 	model = sims.Elements(quotation)
 
 	def convert(self, converter):
-		header = html.head(
-			meta.contenttype(),
-			html.title("Python quotes"),
-			meta.stylesheet(href="python-quotes.css")
-		)
-
-		description = html.div("(Generated from ", html.a(url, href=url), ")")
-
-		# We want to get rid of the excessive whitespace
-		quotations = self.content.find(xsc.FindType(quotation))
-
 		e = xsc.Frag(
 			html.DocTypeHTML401transitional(),
 			html.html(
-				header,
+				html.head(
+					meta.contenttype(),
+					html.title("Python quotes"),
+					meta.stylesheet(href="root:python-quotes.css")
+				),
 				html.body(
 					html.h1("Python quotes"),
-					description,
-					quotations
+					html.div("(Generated from ", html.a(url, href=url), ")"),
+					self/quotation # We want to get rid of the excessive whitespace
 				)
 			)
 		)
@@ -94,7 +87,8 @@ xmlns.update(vars())
 
 if __name__ == "__main__":
 	prefixes = xsc.Prefixes([xmlns, html, xml])
-	e = parsers.parseURL(url, saxparser=parsers.ExpatParser, prefixes=prefixes)
+	# We don't validate, because the XML contains broken HTML (<pre> inside <p>)
+	e = parsers.parseURL(url, saxparser=parsers.ExpatParser, prefixes=prefixes, validate=False)
 	e = e.findfirst(xsc.FindType(quotations))
 	e = e.compact().conv()
-	e.write(open("python-quotes.html", "wb"), encoding="iso-8859-1")
+	e.write(open("python-quotes.html", "wb"), encoding="iso-8859-1", validate=False)

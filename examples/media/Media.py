@@ -59,16 +59,12 @@ class purchase(xsc.Element):
 	model = sims.Elements(place, date, price)
 
 	def convert(self, converter):
-		places = self.content.find(xsc.FindType(place))
-		dates = self.content.find(xsc.FindType(date))
-		prices = self.content.find(xsc.FindType(price))
-
-		e = html.div(places[0], class_="purchase")
-		if len(prices):
-			e.append(": ", prices[0])
+		e = html.div(self/place, class_="purchase")
+		for e2 in self/price:
+			e.append(": ", e2)
 		e.append(" ")
-		if len(dates):
-			e.append("(", dates[0], ")")
+		for e2 in self/date:
+			e.append("(", e2, ")")
 		return e.convert(converter)
 
 
@@ -77,12 +73,11 @@ class ld(xsc.Element):
 
 	def convert(self, converter):
 		e = html.li(
-			html.span(self.content.findfirst(xsc.FindType(name)), class_="name")
+			html.span(self/name, class_="name")
 		)
-		durations = self.content.find(xsc.FindType(duration))
-		if len(durations):
-			e.append(" (", durations[0], ")")
-		e.append(self.content.find(xsc.FindType(purchase)))
+		for e2 in self/duration:
+			e.append(" (", e2, ")")
+		e.append(self/purchase)
 		return e.convert(converter)
 
 
@@ -91,10 +86,10 @@ class dvd(xsc.Element):
 
 	def convert(self, converter):
 		e = html.li(
-			html.span(self.content.findfirst(xsc.FindType(name)), class_="name")
+			html.span(self/name, class_="name")
 		)
-		durations = self.content.find(xsc.FindType(duration))
-		rcs = self.content.find(xsc.FindType(rc))
+		durations = xsc.Frag(self/duration)
+		rcs = xsc.Frag(self/rc)
 		if len(durations) or len(rcs):
 			e.append(" (")
 			if len(durations):
@@ -104,7 +99,7 @@ class dvd(xsc.Element):
 			if len(rcs):
 				e.append("RC ", rcs.withsep(", "))
 			e.append(")")
-		e.append(self.content.find(xsc.FindType(purchase)))
+		e.append(self/purchase)
 		return e.convert(converter)
 
 
@@ -112,11 +107,12 @@ class media(xsc.Element):
 	model = sims.Elements(ld, dvd)
 
 	def convert(self, converter):
-		dvds = self.content.find(xsc.FindType(dvd)).sorted(nameCompare)
-		lds = self.content.find(xsc.FindType(ld)).sorted(nameCompare)
+		dvds = xsc.Frag(self/dvd).sorted(nameCompare)
+		lds = xsc.Frag(self/ld).sorted(nameCompare)
 
 		e = xsc.Frag(
-			html.DocTypeHTML401transitional(),
+			xml.XML10(), "\n",
+			html.DocTypeXHTML10transitional(), "\n",
 			html.html(
 				html.head(
 					meta.contenttype(),

@@ -109,8 +109,8 @@ class Args(dict):
 		self.__detitem__(key)
 
 	def __repr__(self):
-		rep = [ "%s=%r" % (key, value) for (key, value) in self.iteritems() if key not in self.__class__.__dict__ or self[key] != self.__class__.__dict__[key] ]
-		return "%s(%s)" % (self.__class__.__name__, ', '.join(rep))
+		rep = ", ".join([ "%s=%r" % (key, value) for (key, value) in self.iteritems() if key not in self.__class__.__dict__ or self[key] != self.__class__.__dict__[key] ]) # FIXME: Use GE in 2.4
+		return "%s(%s)" % (self.__class__.__name__, rep)
 
 	def copy(self):
 		return self.__class__(self.iteritems())
@@ -317,6 +317,54 @@ class FindOld(object):
 		return res
 
 
+###
+### XFind support
+###
+
+class _XFindWrapIter(object):
+	__slots__ = ("_iter",)
+
+	def __init__(self, iter):
+		self._iter = iter
+
+	def __iter__(self):
+		return self
+
+	def next(self):
+		return self._iter.next()
+
+	def __div__(self, other):
+		return _XFindFinder(self, other)
+
+	def __getitem__(self, index):
+		for item in self:
+			if not index:
+				return item
+			index -= 1
+		raise IndexError
+
+	def __repr__(self):
+		return "<%s.%s object for %r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self._iter, id(self))
+
+
+class _XFindFinder(_XFindWrapIter):
+	__slots__ = ("_iter", "_func")
+
+	def __init__(self, iter, func):
+		_XFindWrapIter.__init__(self, iter)
+		self._func = func
+
+	def __iter__(self):
+		return self._func.xfind(self._iter)
+
+	def __repr__(self):
+		return "<%s.%s object for %r/%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self._iter, self._func, id(self))
+
+
+###
+### Conversion context
+###
+
 class Context(Base, list):
 	"""
 	<par>This is an empty class, that can be used by the
@@ -381,6 +429,13 @@ class Node(Base):
 				xmlname = pyname
 			dict["xmlname"] = (pyname, xmlname)
 			return Base.__metaclass__.__new__(cls, name, bases, dict)
+
+		def xfind(self, lhs):
+			for child in lhs:
+				if isinstance(child, (Frag, Element)):
+					for subchild in child:
+						if isinstance(subchild, self):
+							yield subchild
 
 	class Context(_Context):
 		pass
@@ -554,7 +609,7 @@ class Node(Base):
 		stdin.close()
 		text = stdout.read()
 		stdout.close()
-		text = "\n".join([ line.rstrip() for line in text.splitlines()])
+		text = "\n".join([ line.rstrip() for line in text.splitlines()]) # FIXME: Use GE in 2.4
 		return text
 
 	def __int__(self):
@@ -789,8 +844,7 @@ class Node(Base):
 		<par><arg>skiproot</arg> is only significant if <self/> is an element: If <arg>skiproot</arg> is true,
 		the element itself will always be skipped, i.e. iteration starts with the content of the element.</par>
 		"""
-		for object in self._walk(filter, [], filterpath, walkpath, skiproot):
-			yield object
+		return _XFindWrapIter(self._walk(filter, [], filterpath, walkpath, skiproot))
 
 	def _visit(self, filter, path, filterpath, visitpath, skiproot):
 		"""
@@ -842,11 +896,14 @@ class Node(Base):
 		Return the first node found by the filter function <arg>filter</arg>.
 		See <pyref method="walk"><method>walk</method></pyref> for an explanation of the arguments.
 		"""
-		iter = self.walk(filter, filterpath, False, skiproot)
-		try:
-			return iter.next()
-		except StopIteration:
-			raise errors.NodeNotFoundError()
+		for item in self.walk(filter, filterpath, False, skiproot):
+			return item
+		raise errors.NodeNotFoundError()
+
+	def __div__(self, other):
+		def _iterone(node):
+			yield node
+		return _XFindFinder(_iterone(self), other)
 
 	def compact(self):
 		"""
@@ -933,7 +990,7 @@ class CharacterData(Node):
 	__slots__ = ("__content",)
 
 	def __init__(self, *content):
-		self.__content = u"".join([unicode(x) for x in content])
+		self.__content = u"".join([unicode(x) for x in content]) # FIXME: Use GE in 2.4
 
 	def __getcontent(self):
 		return self.__content
@@ -1148,7 +1205,7 @@ class Frag(Node, list):
 
 	def clone(self):
 		node = self._create()
-		list.extend(node, [ child.clone() for child in self ])
+		list.extend(node, [ child.clone() for child in self ]) # FIXME: Use GE in 2.4
 		return self._decoratenode(node)
 
 	def __copy__(self):
@@ -1161,14 +1218,14 @@ class Frag(Node, list):
 		if memo is None:
 			memo = {}
 		memo[id(self)] = node
-		list.extend(node, [ copy.deepcopy(child, memo) for child in self ])
+		list.extend(node, [ copy.deepcopy(child, memo) for child in self ]) # FIXME: Use GE in 2.4
 		return self._decoratenode(node)
 
 	def present(self, presenter):
 		presenter.presentFrag(self)
 
 	def __unicode__(self):
-		return u"".join([ unicode(child) for child in self ])
+		return u"".join([ unicode(child) for child in self ]) # FIXME: Use GE in 2.4
 
 	def __eq__(self, other):
 		return self.__class__ is other.__class__ and list.__eq__(self, other)
@@ -1351,7 +1408,7 @@ class Frag(Node, list):
 		<par>returns a filtered version of the <self/>.</par>
 		"""
 		node = self._create()
-		list.extend(node, [ child for child in self if function(child) ])
+		list.extend(node, [ child for child in self if function(child) ]) # FIXME: Use GE in 2.4
 		return node
 
 	def shuffled(self):
@@ -1455,10 +1512,6 @@ class ProcInst(CharacterData):
 	class __metaclass__(CharacterData.__metaclass__):
 		def __repr__(self):
 			return "<procinst class %s:%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
-
-	def __init__(self, *content, **attrs):
-		CharacterData.__init__(self, *content)
-		#self.__content = u"".join([unicode(x) for x in content])
 
 	def _str(cls, fullname=True, xml=True, decorate=True):
 		s = ansistyle.Text()
@@ -1567,10 +1620,18 @@ class Attr(Frag):
 			if "values" in dict:
 				values = dict["values"]
 				if values is not None:
-					dict["values"] = tuple([unicode(entry) for entry in dict["values"]])
+					dict["values"] = tuple([unicode(entry) for entry in dict["values"]]) # FIXME: Use GE in 2.4
 			return Frag.__metaclass__.__new__(cls, name, bases, dict)
+
 		def __repr__(self):
 			return "<attribute class %s:%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
+
+		def xfind(self, lhs):
+			for child in lhs:
+				if isinstance(child, Element):
+					for (attrname, attrvalue) in child.attrs.iteritems():
+						if isinstance(attrvalue, self):
+							yield attrvalue
 
 	def isfancy(self):
 		"""
@@ -2327,6 +2388,7 @@ class Element(Node):
 				dict["model"] = model
 			
 			return Node.__metaclass__.__new__(cls, name, bases, dict)
+
 		def __repr__(self):
 			return "<element class %s:%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
 
@@ -3014,6 +3076,35 @@ class CharRef(Text, Entity):
 ### Classes for namespace handling
 ###
 
+class NSPool(dict):
+	"""
+	<par>A pool of namespaces identified by their name.</par>
+	<par>A pool may only have one namespace for one namespace name.</par>
+	"""
+	def __init__(self, *args):
+		dict.__init__(self, [(arg.xmlurl, arg) for arg in args]) # FIXME: Use GE in 2.4
+
+	def add(self, ns):
+		"""
+		Add the namespace <arg>ns</arg> to the pool. Any previous namespace with
+		this name will be replaced.
+		"""
+		self[ns.xmlurl] = ns
+
+	def remove(self, ns):
+		"""
+		Remove the namespace <arg>ns</arg> from the pool. A different namespace
+		with the same name will be removed too. If a namespace with this name
+		is not in the pool, nothing happens.
+		"""
+		try:
+			del self[ns.xmlurl]
+		except KeyError:
+			pass
+
+defaultnspool = NSPool()
+
+
 class Prefixes(dict):
 	"""
 	<par>Specifies a mapping between namespace prefixes and namespaces both
@@ -3032,7 +3123,7 @@ class Prefixes(dict):
 			self[prefix] = ns
 
 	def __repr__(self):
-		return "<%s.%s %s at 0x%x>" % (self.__module__, self.__class__.__name__, " ".join(["%s=%r" % (key or "None", value) for (key, value) in self.iteritems()]), id(self))
+		return "<%s.%s %s at 0x%x>" % (self.__module__, self.__class__.__name__, " ".join(["%s=%r" % (key or "None", value) for (key, value) in self.iteritems()]), id(self)) # FIXME: Use GE in 2.4
 
 	def __getitem__(self, prefix):
 		return self.setdefault(prefix, [])
@@ -3295,6 +3386,7 @@ class Namespace(Base):
 				cls.all.append(cls)
 				defaultPrefixes[None].insert(0, cls)
 				defaultPrefixes[name].insert(0, cls)
+				defaultnspool.add(cls)
 			return cls
 
 		def __eq__(self, other):
