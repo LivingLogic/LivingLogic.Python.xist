@@ -248,7 +248,6 @@ import errors # exceptions
 import options # optional stuff ;)
 import utils # misc stuff
 import helpers # C stuff
-import namespace as namespace_ # namespace stuff
 
 ###
 ### helpers
