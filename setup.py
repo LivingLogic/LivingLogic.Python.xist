@@ -21,8 +21,8 @@ setup(
 	author_email="walter@livinglogic.de",
 	url="http://www.livinglogic.de/Python/xist/",
 	license="Python",
-	packages=['ll.xist', 'll.xist.ns'],
-	package_dir={"ll.xist": "_xist"},
+	packages=["ll", "ll.xist", "ll.xist.ns"],
+	package_dir={"ll": ".", "ll.xist": "_xist"},
 	ext_modules=[
 		Extension("ll.xist.csstokenizer", ["_xist/csstokenizer.cxx"]),
 		Extension("ll.xist.helpers", ["_xist/helpers.c"])
