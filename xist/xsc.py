@@ -1153,55 +1153,27 @@ class DocType(Node):
 
 class ProcInst(Node):
 	"""
-	processing instructions.
+	<par noindent>There are two special targets available: <code>xsc-exec</code>
+	and <code>xsc-eval</code> which will be handled by the
+	special classes <classref>Exec</classref> and <classref>Eval</classref>
+	derived from ProcInst.</par>
 
-	There are two special targets available:
+	<par>Processing instruction with the target <code>xml</code> will be 
+	handled by the class <classref>XML</classref>.
 
-	xsc-exec (e.g. <?xsc-exec pass?>)
-	here the content of the processing instruction is executed
-	as Python code, so you can define and register XSC elements here.
-	Execution is done when the node is constructed, so definitions made
-	here will be available afterwards (e.g. during the rest of the
-	file parsing stage). When converted to HTML such a node will result
-	in an empty Null node.
-
-	xsc-eval (e.g. <?xsc-eval return "foo"?>)
-	here the code will be executed when the node is converted to HTML
-	as if it was the body of a function, so you can return an expression
-	here. Although the content is used as a function body no indentation
-	is neccessary or allowed. The returned value will be converted to a
-	node and this resulting node will be converted to HTML.
-
-	XSC processing instructions will be evaluated and executed in the
-	namespace of the module procinst.
-
-	All other processing instructions (XML, PHP, etc.) are passed through
-	without processing of any kind.
-
-	Note that you should not define the symbol __ in any of your XSC
-	processing instructions, as it is used by XSC for internal purposes.
+	<par>All other processing instructions (PHP, etc.) will be handled
+	by <classref>ProcInst</classref> itself and are passed through without
+	processing of any kind.</par>
 	"""
 
 	def __init__(self,target,content = ""):
 		self.target = stringFromCode(target)
 		self.content = stringFromCode(content)
-		if self.target == "xsc-exec": # execute the code now, so that classes defined here are available for the parser
-			content = self._encode(self.content,"iso-8859-1",0) # FIXME Python bug: why can't I exec a unicode object
-			exec content in procinst.__dict__
-
-	def asHTML(self):
-		if self.target == "xsc-exec": # XSC processing instruction
-			return Null # has been executed at construction time already, so we don't have to do anything here
-		elif self.target == "xsc-eval": # XSC processing instruction, return the result as a node
-			content = self._encode(self.content,"iso-8859-1",0) # FIXME Python bug: why can't I exec a unicode object
-			function = "def __():\n\t" + content.strip().replace("\n","\n\t") + "\n"
-			exec function in procinst.__dict__
-			return ToNode(eval("__()",procinst.__dict__)).asHTML()
-		else: # anything else like XML, PHP, etc. is just passed through
-			return self._decorateNode(ProcInst(self.target,self.content))
 
 	def clone(self):
 		return self._decorateNode(ProcInst(self.target,self.content))
+
+	asHTML = clone
 
 	def _dorepr(self,encoding = None,ansi = None):
 		return self._str(content = strQuestion(ansi) + strProcInstTarget(self.target,ansi) + " " + strProcInstData(self.content,ansi) + strQuestion(ansi),brackets = 1,ansi = ansi)
@@ -1210,6 +1182,74 @@ class ProcInst(Node):
 		head = strBracketOpen(ansi) + strQuestion(ansi) + strProcInstTarget(self.target,ansi) + " "
 		tail = strQuestion(ansi) + strBracketClose(ansi)
 		return self._doreprtreeMultiLine(nest,elementno,head,tail,self.content,strProcInstData,1,ansi = ansi)
+
+	def publish(self,publisher,encoding = None,XHTML = None):
+		if self.content.find("?>")!=-1:
+			raise IllegalProcInstError(self.startloc,self)
+		publisher("<?",self._encode(self.target,encoding,1)," ",self._encode(self.content,encoding,0),"?>")
+
+	def compact(self):
+		return self._decorateNode(ProcInst(self.target,self.content))
+
+class Exec(ProcInst):
+	"""
+	<par noindent>here the content of the processing instruction is executed
+	as Python code, so you can define and register XSC elements here.
+	Execution is done when the node is constructed, so definitions made
+	here will be available afterwards (e.g. during the rest of the
+	file parsing stage). When converted to HTML such a node will result
+	in an empty Null node.</par>
+
+	<par>XSC processing instructions will be evaluated and executed in the
+	namespace of the module procinst.</par>
+	"""
+	def __init__(self, content = ""):
+		ProcInst.__init__(self, u"xsc-exec", content)
+		content = self._encode(self.content,"iso-8859-1",0) # FIXME Python bug: why can't I exec a unicode object?
+		exec content in procinst.__dict__
+
+	def asHTML(self):
+		return Null # has been executed at construction time already, so we don't have to do anything here
+
+	def clone(self):
+		return self._decorateNode(Exec(self.content))
+
+class Eval(ProcInst):
+	"""
+	<par noindent>here the code will be executed when the node is converted to HTML
+	as if it was the body of a function, so you can return an expression
+	here. Although the content is used as a function body no indentation
+	is neccessary or allowed. The returned value will be converted to a
+	node and this resulting node will be converted to HTML.</par>
+
+	<par>XSC processing instructions will be evaluated and executed in the
+	namespace of the module <moduleref>procinst</moduleref>.</par>
+
+	<par>Note that you should not define the symbol <code>__</code> in any of your XSC
+	processing instructions, as it is used by XSC for internal purposes.</par>
+	"""
+	def __init__(self, content = ""):
+		ProcInst.__init__(self, u"xsc-eval", content)
+
+	def asHTML(self):
+		content = self._encode(self.content,"iso-8859-1",0) # FIXME Python bug: why can't I exec a unicode object?
+		function = "def __():\n\t" + content.strip().replace("\n","\n\t") + "\n"
+		exec function in procinst.__dict__
+		return ToNode(eval("__()",procinst.__dict__)).asHTML()
+
+	def clone(self):
+		return self._decorateNode(Eval(self.content))
+
+class XML(ProcInst):
+	"""
+	"""
+	def __init__(self, content = ""):
+		ProcInst.__init__(self, u"xml", content)
+
+	def clone(self):
+		return self._decorateNode(XML(self.content))
+
+	asHTML = clone
 
 	def __findAttr(self,name):
 		startpos = self.content.find(name)
@@ -1228,24 +1268,18 @@ class ProcInst(Node):
 		return None
 
 	def publish(self,publisher,encoding = None,XHTML = None):
-		if self.content.find("?>")!=-1:
-			raise IllegalProcInstError(self.startloc,self)
-		if self.target == "xml": # XML, so we have to put the correct encoding in there
-			encodingfound = self.__findAttr("encoding")
-			versionfound = self.__findAttr("version")
-			if encoding is None:
-				encoding = outputEncoding
-			if encoding != encodingfound: # if self has the wrong encoding specification (or none), we construct a new ProcInst and publish that
-				e = ProcInst(u"xml",u"")
-				if versionfound is not None:
-					e.content = u"version='" + versionfound + u"' "
-				e.content = e.content + u"encoding='" + encoding + u"'"
-				e.publish(publisher,encoding,XHTML)
-				return
-		publisher("<?",self._encode(self.target,encoding,1)," ",self._encode(self.content,encoding,0),"?>")
-
-	def compact(self):
-		return self._decorateNode(ProcInst(self.target,self.content))
+		encodingfound = self.__findAttr("encoding")
+		versionfound = self.__findAttr("version")
+		if encoding is None:
+			encoding = outputEncoding
+		if encoding != encodingfound: # if self has the wrong encoding specification (or none), we construct a new XML ProcInst and publish that
+			e = XML(u"")
+			if versionfound is not None:
+				e.content = u"version='" + versionfound + u"' "
+			e.content = e.content + u"encoding='" + encoding + u"'"
+			e.publish(publisher,encoding,XHTML)
+			return
+		ProcInst.publish(self,publisher,encoding,XHTML)
 
 class Element(Node):
 	"""
@@ -1955,7 +1989,8 @@ class XSC:
 	def popNamespace(self):
 		self.namespaces.pop(0)
 
-	def __nodeFromName(self,name,element):
+	def __nodeFromName(self,name,type):
+		# type==0 => entity; type==1 => element
 		name = name.split(":")
 		if len(name) == 1: # no namespace specified
 			name.insert(0,None)
@@ -1966,16 +2001,16 @@ class XSC:
 		for namespace in allnamespaces:
 			if name[0] is None or name[0] == namespace.prefix:
 				try:
-					if element:
-						return namespace.elementsByName[name[1]]
-					else:
+					if type==0:
 						return namespace.entitiesByName[name[1]]
+					else:
+						return namespace.elementsByName[name[1]]
 				except KeyError: # no element/entity in this namespace with this name
 					pass
-		if element:
-			raise IllegalElementError(self.__here(),name) # elements with this name couldn't be found
-		else:
+		if type==0:
 			raise IllegalEntityError(self.__here(),name) # entities with this name couldn't be found
+		else:
+			raise IllegalElementError(self.__here(),name) # elements with this name couldn't be found
 
 	def elementFromName(self,name):
 		"""
@@ -2016,7 +2051,16 @@ class XSC:
 			self.__appendNode(DocType(data[8:]))
 
 	def handle_proc(self,target,data):
-		self.__appendNode(ProcInst(unicode(target,parseEncoding),unicode(data,parseEncoding)))
+		data = unicode(data,parseEncoding)
+		if target=="xml":
+			node = XML(data)
+		elif target=="xsc-exec":
+			node = Exec(data)
+		elif target=="xsc-eval":
+			node = Eval(data)
+		else:
+			node = ProcInst(unicode(target,parseEncoding),data)
+		self.__appendNode(node)
 
 	def handle_entityref(self,name):
 		self.__appendNode(self.entityFromName(unicode(name,parseEncoding))())
