@@ -374,6 +374,9 @@ class br(xsc.Element):
 	attrHandlers = coreattrs.copy()
 	attrHandlers.update({"clear": xsc.TextAttr}) # deprecated
 
+	def asPlainString(self):
+		return u"\n"
+
 class pre(xsc.Element):
 	"""
 	preformatted text
