@@ -886,6 +886,12 @@ class Text(Node, StringMixIn):
 			v.append([nest, self._getLoc(i), elementno, s])
 		return v
 
+	def find(self, type=None, subtype=0, attrs=None, test=None, searchchildren=0, searchattrs=0):
+		node = Frag()
+		if self._matches(type, subtype, attrs, test):
+			node.append(self)
+		return node
+
 	def compact(self):
 		if self._content.isspace():
 			return Null
