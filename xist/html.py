@@ -9,7 +9,7 @@ __version__ = "$Revision$"[11:-2]
 # $Source$
 
 import sys
-import xsc
+from xist import xsc
 
 # common attributes
 coreattrs  = { "id" : xsc.TextAttr , "class" : xsc.TextAttr , "style" : xsc.TextAttr , "title" : xsc.TextAttr }

@@ -12,9 +12,7 @@ import sys
 import os
 import string
 import types
-import xsc
-import html
-import specials
+from xist import xsc,html,specials
 
 # should database content be retrieved?
 try:

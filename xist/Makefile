@@ -4,7 +4,7 @@
 .PHONY: all clean
 
 # Output directory
-OUTPUTDIR=/data/pythonroot/
+OUTPUTDIR=/data/pythonroot/xist
 
 # collect all source files in SRC
 SRC := $(patsubst ./%,%,$(shell find . -print))
@@ -13,17 +13,20 @@ SRC := $(patsubst ./%,%,$(shell find . -print))
 SRC_PY  := $(sort $(filter %.py,$(SRC)))
 SRC_CP  := $(SRC_PY)
 
-DEP_CP  := $(patsubst %,$(OUTPUTDIR)%,$(SRC_CP))
-DEP_PYC := $(patsubst %.py,$(OUTPUTDIR)%.pyc,$(SRC_PY))
+DEP_CP  := $(patsubst %,$(OUTPUTDIR)/%,$(SRC_CP))
+DEP_PYC := $(patsubst %.py,$(OUTPUTDIR)/%.pyc,$(SRC_PY))
 
 SRC := $(SRC_CP)
 
 DEP := $(DEP_CP)
 
-all: $(DEP)
+all: $(OUTPUTDIR) $(DEP)
+
+$(OUTPUTDIR):
+	mkdir $(OUTPUTDIR)
 
 clean:
 	rm $(DEP) $(DEP_PYC)
 
-$(DEP_CP): $(OUTPUTDIR)% : %
-	cp --parents $< $(OUTPUTDIR)
+$(DEP_CP): $(OUTPUTDIR)/% : %
+	cp --parents $< $(OUTPUTDIR)/

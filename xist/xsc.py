@@ -45,14 +45,12 @@ from xml.parsers import xmllib
 import urllib
 
 # our sandbox
-import procinst
+from xist import procinst
 
 # our own new URL class
-from URL import URL
+from xist.URL import URL
 
-###
-### exceptions
-###
+# exceptions
 
 class Error(Exception):
 	"""
