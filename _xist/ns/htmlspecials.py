@@ -212,7 +212,7 @@ class redirectpage(xsc.Element):
 		e = html.html(
 			html.head(
 				meta.contenttype(),
-				html.title("Redirection")
+				html.title("Redirection to ", url)
 			),
 			html.body(
 				"Your browser doesn't understand redirects. This page has been redirected to ",
