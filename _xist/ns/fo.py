@@ -519,6 +519,10 @@ class clear(xsc.Element.Attrs):
 	class clear(xsc.TextAttr):
 		values = ("start", "end", "left", "right", "both", "none", "inherit")
 
+class marker_class_name(xsc.Element.Attrs):
+	class marker_class_name(xsc.TextAttr):
+		xmlname = "marker-class-name"
+
 class common_margin_properties_block(xsc.Element.Attrs):
 	class margin_top(xsc.TextAttr): xmlname = "margin-top"
 	class margin_bottom(xsc.TextAttr): xmlname = "margin-bottom"
@@ -844,6 +848,20 @@ class text_transform(xsc.Element.Attrs):
 	class text_transform(xsc.TextAttr):
 		xmlname = "text-transform"
 		values = ("capitalize", "uppercase", "lowercase", "none", "inherit")
+
+class retrieve_class_name(xsc.Element.Attrs):
+	class retrieve_class_name(xsc.TextAttr):
+		xmlname = "retrieve-class-name"
+
+class retrieve_position(xsc.Element.Attrs):
+	class retrieve_position(xsc.TextAttr):
+		xmlname = "retrieve-position"
+		values = ("first-starting-within-page", "first-including-carryover", "last-starting-within-page", "last-ending-within-page")
+
+class retrieve_boundary(xsc.Element.Attrs):
+	class retrieve_boundary(xsc.TextAttr):
+		xmlname = "retrieve-boundary"
+		values = ("page", "page-sequence", "document")
 
 class fo(xsc.Namespace):
 	xmlurl = "http://www.w3.org/1999/XSL/Format"
@@ -1808,3 +1826,21 @@ class fo(xsc.Namespace):
 			z_index
 			):
 			pass
+
+	class marker(xsc.Element):
+		empty = False
+		class Attrs(
+			marker_class_name
+			):
+			pass
+
+	class retrieve_marker(xsc.Element):
+		xmlname = "retrieve-marker"
+		empty = True
+		class Attrs(
+			retrieve_class_name,
+			retrieve_position,
+			retrieve_boundary
+			):
+			pass
+
