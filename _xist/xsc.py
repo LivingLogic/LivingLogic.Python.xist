@@ -400,7 +400,7 @@ class Node(object):
 	def _matches(self, type_, subtype, attrs, test):
 		res = 1
 		if type_ is not None:
-			if not issubclass(type_, list) and not issubclass(type_, tuple):
+			if not isinstance(type_, list) and not isinstance(type_, tuple):
 				type_ = (type_,)
 			for t in type_:
 				if subtype:
