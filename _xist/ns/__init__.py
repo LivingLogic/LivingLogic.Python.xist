@@ -27,6 +27,7 @@ module <pyref module="xist.ns.html"><module>xist.ns.html</module></pyref>.</doc:
 
 <doc:par>Some of these namespaces can be considered target namespaces (e.g.
 <pyref module="xist.ns.html"><module>html</module></pyref>,
+<pyref module="xist.ns.chtml"><module>chtml</module></pyref>,
 <pyref module="xist.ns.wml"><module>wml</module></pyref> and
 <pyref module="xist.ns.docbook"><module>docbook</module></pyref>). The element and
 entity classes in these namespaces don't implement a convert method, i.e. they inherit the
@@ -36,7 +37,7 @@ from <pyref module="xist.xsc" class="Element"><class>Element</class></pyref>.</d
 <doc:par>Other namespace modules provide additional functionality through
 new element classes. Calling <pyref module="xist.xsc" class="Node" method="convert"><method>convert</method></pyref>
 on these elements might convert them to one of these target namespaces
-(probably dependent on the <code>target</code> attribute of the
+(depending on the <code>target</code> attribute of the
 <pyref module="xist.converters" class="Converter"><class>Converter</class></pyref> object
 passed around.) Some of these namespace modules completely ignore the target
 and convert to one fixed target namespace (<pyref module="xist.ns.html"><module>html</module></pyref>
@@ -47,7 +48,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
 __all__ = [
-	"html", "wml", "docbook", "ruby",
+	"html", "wml", "docbook", "ruby", "chtml",
 	"jsp", "struts_html", "struts_config",
 	"php",
 	"specials", "abbr", "cond", "doc", "form", "meta"
