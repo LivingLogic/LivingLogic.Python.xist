@@ -4,11 +4,26 @@ import xsc
 import html
 import specials
 import glob
+import string
 
 class page(xsc.Element):
 	attr_handlers = { "title" : xsc.TextAttr , "head" : xsc.TextAttr , "align" : xsc.TextAttr , "refresh" : xsc.TextAttr , "class" : xsc.TextAttr , "keywords" : xsc.TextAttr , "description" : xsc.TextAttr , "onload" : xsc.TextAttr , "nohome" : xsc.TextAttr , "nosearch" : xsc.TextAttr , "nositemap" : xsc.TextAttr , "nofaq" : xsc.TextAttr , "notinsitemap" : xsc.TextAttr }
 	empty = 0
 
+	def __goUp(self,path):
+		if path[-1][:6] != "index.":
+			if len(path) == 1:
+				path[-1] = "index.shtml"
+			else:
+				path[-1] = "index.html"
+		else:
+			if len(path) == 1:
+				path = []
+			else:
+				path[-1] == "index.html"
+				del path[-2]
+		return path
+	
 	def asHTML(self):
 		h = html.head(
 			html.link(rel="stylesheet",type="text/css",href=":stylesheets/bnv.css")+
@@ -28,7 +43,20 @@ class page(xsc.Element):
 		if self.has_attr("onload"):
 			b["onload"] = self["onload"]
 
-		mylinks = self.elements(element = links)[0].content
+		path = self.__goUp(string.split(xsc.xsc.filename,"/"))
+		parentlinks = xsc.Frag()
+		while len(path):
+			if len(path) == 1:
+				link = lnk("Zurück zur Startseite",rel="home",href=":index.shtml",text = "Startseite")
+			else:
+				srcpath = path[:]
+				srcpath[-1][-4:] = "hsc"
+				title = xsc.xsc.parseFile(string.join(srcpath,"/")).elements(page)["title"]
+				link = lnk("Zurück zu " + specials.z(title),href=(":" + string.join(path,"/")),text = title)
+			parentlinks.append(link)
+			path = self.__goUp(path)
+
+		mylinks = parentlinks + self.elements(element = links)[0].content
 		mycontent = self.elements(element = content)[0].content
 
 		if self.has_attr("nohome"):
@@ -637,71 +665,29 @@ class lnk(xsc.Element):
 
 		e = html.tr(
 			html.td(indent(),rowspan="3")+
-			html.td(
-				html.div(
-					hrf(
-						pfeil(rel = rel),
-						href = self["href"],
-						rel  = rel
-					)+
-					specials.nbsp(),
-				),
-				Class = "links"
-			)+
-			html.td(
-				html.div(
-					hrf(
-						self["text"],
-						href = self["href"],
-						rel = rel
-					)
-				),
-				Class = "links"
-			)+
+			html.td(html.div(hrf(pfeil(rel = rel),href = self["href"],rel  = rel) + specials.nbsp()),Class = "links")+
+			html.td(html.div(hrf(self["text"],href = self["href"],rel = rel)),Class = "links")+
 			html.td(indent(),Class = "links",nowrap = None)
-		)
-		e = e + html.tr(
-			html.td(
-				specials.pixel()
-			)+
-			html.td(
-				specials.pixel(),
-				colspan = "2",
-				bgcolor = "#ffffff"
-			)
+		) + html.tr(
+			html.td(specials.pixel())+
+			html.td(specials.pixel(),colspan = "2",bgcolor = "#ffffff"
 		)
 
 		if len(self):
 			e.append(
 				html.tr(
-					html.td(
-						specials.pixel()
-					)+
-					html.td(
-						html.div(
-							self.content.clone(),
-							Class = "lnk-text"
-						),
-						Class = "links"
-					)+
-					html.td(
-						specials.pixel()
-					)
+					html.td(specials.pixel())+
+					html.td(html.div(self.content.clone(),Class = "lnk-text"),Class = "links"+
+					html.td(specials.pixel())
 				)+
 				html.tr(
-					html.td(
-						specials.pixel(height="20"),
-						colspan = "4"
-					)
+					html.td(specials.pixel(height="20"),colspan = "4")
 				)
 			)
 		else:
 			e.append(
 				html.tr(
-					html.td(
-						specials.pixel(height="20"),
-						colspan = "3"
-					)
+					html.td(specials.pixel(height="20"),colspan = "3")
 				)
 			)
 
