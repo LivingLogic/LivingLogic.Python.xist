@@ -57,11 +57,11 @@ if the element type has an empty content model (like <br/>
 or <img/>) or not.
 
 To be able to use your own classes in XML files, you have
-to tell the parser about them. This is done with the
-function registerElement(element,namespacename,elementname = None)
-(see its docstring) or if you want to register all element
-classes in a module with registerAllElements(dict,namespacename)
-(again see its docstring for further info).
+to tell the parser about them. This is done with
+namespace objects (see the docstring for the Namespace class).
+What you have to do is construct a namespace object for all the
+elements in your module:
+namespace = xsc.Namespace("foo","http://www.foo.net/dtd/foo.dtd",vars())
 
 
 URLs, path markers and the URL stack
@@ -587,7 +587,17 @@ class Node:
 		self.publish(publisher)
 		return publisher.asBytes()
 
-	def find(self, type = None, subtype = 0, attrs = None, test = None, searchchildren = 0, searchattrs = 0):
+	def write(self, file encoding=None, XHTML=None):
+		"""
+		<par noindent>writes the element to the file like
+		object <argref>file</argref></par>
+
+		<par>For the parameters see <funcref>publish</funcref>.</par>
+		"""
+		publisher = publishers.FilePublisher(file,encoding,XHTML)
+		self.publish(publisher)
+
+	def find(self, type=None, subtype=0, attrs=None, test=None, searchchildren=0, searchattrs=0):
 		"""
 		<par noindent>returns a fragment which contains child elements of this node.</par>
 
