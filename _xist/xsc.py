@@ -111,7 +111,9 @@ class Node(object):
 
 	def name(cls):
 		"""
-		return the name for this class or the class name if there is no _name.
+		<doc:par>return the name for this class (which is either
+		the class name or class attribute <lit>realname</lit>
+		if there is one.</doc:par>
 		"""
 		name = getattr(cls, "realname", cls.__name__)
 		if name.endswith("_"):
@@ -121,7 +123,8 @@ class Node(object):
 
 	def prefix(cls):
 		"""
-		return the namespace prefix for this class or the module name, if there is no namespace
+		return the namespace prefix for this class or the
+		module name, if there is no namespace.
 		"""
 		ns = cls.namespace()
 		if ns is not None:
@@ -131,6 +134,13 @@ class Node(object):
 	prefix = classmethod(prefix)
 
 	def repr(self, presenter=None):
+		"""
+		<doc:par>Return a string representation of <self/>.
+		When you don't pass in a <arg>presenter</arg>, you'll
+		get the default presentation. Else <arg>presenter</arg>
+		should be an instance of <pyref module="xist.presenters" class="Presenter"><class>xist.presenters.Presenter</class></pyref>
+		(or one of the subclasses).</doc:par>
+		"""
 		if presenter is None:
 			presenter = presenters.defaultPresenterClass()
 		presenter.beginPresentation()
@@ -138,6 +148,13 @@ class Node(object):
 		return presenter.endPresentation()
 
 	def present(self, presenter):
+		"""
+		<doc:par><method>present</method> is used as a central
+		dispatch method for the <pyref module="xist.presenters">presenter classes</pyref>.
+		Normally it is not called by the user, but internally by the
+		presenter. The user should call <pyref method="repr"><method>repr</method></pyref>
+		instead.</doc:par>
+		"""
 		raise NotImplementedError("present method not implemented in %s" % self.__class__.__name__)
 
 	def conv(self, converter=None, root=None, mode=None, stage=None, target=None, lang=None):
@@ -464,9 +481,15 @@ class Node(object):
 		"""
 		return Frag(*[self]*factor)
 
-	def walk(self):
+	def walk(self, before=1, after=0):
 		"""
 		<doc:par>walk the tree. This method is a generator.</doc:par>
+		<doc:par>For nodes that have content (like
+		<pyref class="Frag"><class>Frag</class>s</pyref> and
+		<pyref class="Element"><class>Element</class>s</pyref>)
+		it's possible to specify if the should be <lit>yield</lit>ed
+		before or after there children (or both, or none
+		in which case only leaf nodes will be <lit>yield</lit>ed).</doc:par>
 		"""
 		yield self
 
@@ -889,11 +912,14 @@ class Frag(Node, list):
 			lasttypeOK = thistypeOK
 		return node
 
-	def walk(self):
-		yield self
+	def walk(self, before=1, after=0):
+		if before:
+			yield self
 		for child in self:
-			for grandchild in child.walk():
+			for grandchild in child.walk(before, after):
 				yield grandchild
+		if after:
+			yield self
 
 class Comment(CharacterData):
 	"""
@@ -922,9 +948,6 @@ class Comment(CharacterData):
 		publisher.publish(u"<!--")
 		publisher.publish(self.content)
 		publisher.publish(u"-->")
-
-	def asPlainString(self):
-		return u""
 
 class DocType(CharacterData):
 	"""
@@ -1300,7 +1323,7 @@ class Element(Node):
 							except TypeError: # ignore "not all argument converted"
 								pass
 							except Exception, exc:
-								errors.warn(errors.ImageSizeFormatWarning(self, attr, self[attr].asPlainString(), exc))
+								errors.warn(errors.ImageSizeFormatWarning(self, attr, unicode(self[attr]), exc))
 								del self[attr]
 						else:
 							self[attr] = size[attr==heightattr]
@@ -1380,7 +1403,7 @@ class Element(Node):
 	def getAttr(self, attrname, default=None):
 		"""
 		<doc:par>works like the dictionary method <method>get</method>,
-		it returns the attribute with the name <arg>attr</arg>,
+		it returns the attribute with the name <arg>attrname</arg>,
 		or if <self/> has no such attribute, <arg>default</arg>
 		(after converting it to a node and wrapping it into the appropriate
 		attribute node.)</doc:par>
@@ -1531,14 +1554,17 @@ class Element(Node):
 		node.content = self.content.normalized()
 		return node
 
-	def walk(self):
-		yield self
+	def walk(self, before=1, after=0):
+		if before:
+			yield self
 		for child in self.attrs.values():
-			for grandchild in child.walk():
+			for grandchild in child.walk(before, after):
 				yield grandchild
 		for child in self.content:
-			for grandchild in child.walk():
+			for grandchild in child.walk(before, after):
 				yield grandchild
+		if after:
+			yield self
 
 class Entity(Node):
 	"""
@@ -1754,22 +1780,22 @@ class URLAttr(Attr):
 
 class Namespace(object):
 	"""
-	<doc:par>an &xml; namespace, contains the classes for the elements, entities and processing instructions
-	in the namespace.</doc:par>
+	<doc:par>an &xml; namespace, contains the classes for the elements,
+	entities and processing instructions in the namespace.</doc:par>
 	"""
 
 	def __init__(self, prefix, uri, thing=None):
 		"""
-		<par noindent>Create a new Namespace object</par>
+		<doc:par>Create a new <class>Namespace</class> instance.</doc:par>
 		
-		<par>All classes from the module the Namespace instance is in will be registered if
-		they are derived from <classref>Element</classref>, <classref>Entity</classref> or
-		<classref>ProcInst</classref> in the following way: The class <argref>thing</argref>
-		will be registered under it's class name (<code><argref>thing</argref>.__name__</code>).
+		<doc:par>All classes from the module the <class>Namespace</class> instance is in will be registered if
+		they are derived from <pyref class="Element"><class>Element</class></pyref>, <pyref class="Entity"><class>Entity</class></pyref> or
+		<pyref class="ProcInst"><class>ProcInst</class></pyref> in the following way: The class <arg>thing</arg>
+		will be registered under it's class name (<lit><arg>thing</arg>.__name__</lit>).
 		If you want to change this behaviour, do the following: set a class variable
-		<code>realname</code> to the name you want to be used. If you don't want
-		<argref>thing</argref> to be registered at all, set <code>register</code> to <code>0</code>.
-		(Note that you must then set <code>register</code> to <code>1</code> again in derived
+		<lit>realname</lit> to the name you want to be used. If you don't want
+		<arg>thing</arg> to be registered at all, set <lit>register</lit> to <lit>0</lit>.
+		(Note that you must then set <lit>register</lit> to <lit>1</lit> again in derived
 		classes to register them.)
 		"""
 		self.prefix = unicode(prefix) or ""
