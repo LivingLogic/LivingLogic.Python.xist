@@ -5,7 +5,7 @@
 <code>Element</code> are again expanded and it's again possible
 to pass dictionaries in an <code>Element</code> constructor to
 specify attributes. As sequences are always unpacked, the method
-<code>extend</code> is gone. this works for <code>append</code>
+<code>extend</code> is gone. This works for <code>append</code>
 and <code>insert</code> too.</li>
 
 <li><code>Node</code> and <code>Frag</code> implement <code>__mul__</code>
