@@ -49,6 +49,7 @@ RegisterElement("body",body)
 class div(XSCElement):
 	close = 1
 	attr_handlers = attrs
+	attr_handlers = AppendDict(attr_handlers, { "align" : XSCFrag }) # deprecated
 RegisterElement("div",div)
 
 class span(XSCElement):
