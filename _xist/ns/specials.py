@@ -111,7 +111,8 @@ class filetime(xsc.Element):
 		class format(xsc.TextAttr): pass
 
 	def convert(self, converter):
-		return xsc.Text(self["href"].lastmodified)
+		format = str(self.getAttr("format", "%d. %b. %Y, %H:%M").convert(converter))
+		return xsc.Text(self["href"].convert(converter).forInput(root=converter.root).openread().lastmodified.Format(format))
 
 class time(xsc.Element):
 	"""
@@ -124,18 +125,15 @@ class time(xsc.Element):
 		class format(xsc.TextAttr): pass
 
 	def convert(self, converter):
-		if self.hasAttr("format"):
-			format = unicode(self["format"].convert(converter))
-		else:
-			format = "%d. %b. %Y, %H:%M"
+		format = str(self.getAttr("format", "%d. %b. %Y, %H:%M").convert(converter))
 
 		return xsc.Text(time_.strftime(format, time_.gmtime(time_.time())))
 
 class x(xsc.Element):
 	"""
-	<doc:par>element whose content will be ignored when converted to &html;:
+	<doc:par>element whose content will be ignored when converted:
 	this can be used to comment out stuff. The content of the element must
-	of course still be weelformed and parsable.</doc:par>
+	of course still be wellformed.</doc:par>
 	"""
 	empty = False
 
