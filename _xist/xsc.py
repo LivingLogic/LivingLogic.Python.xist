@@ -313,8 +313,7 @@ class Node:
 
 	def write(self, stream, base=None, root=None, encoding=None, xhtml=None, publishPrefix=0):
 		"""
-		<doc:par>writes the element to the file like
-		object <pyref arg="file">file</pyref></doc:par>
+		<doc:par>writes the element to the file like object <pyref arg="file">file</pyref>.</doc:par>
 
 		<doc:par>For the rest of the parameters see <pyref method="publish">publish</pyref>.</doc:par>
 		"""
