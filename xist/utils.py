@@ -19,12 +19,6 @@ import sys
 import os
 import types
 
-def stringFromCode(text):
-	if type(text) is types.StringType:
-		return unicode(text, codeEncoding)
-	else:
-		return text
-
 def forceopen(name, mode="r", bufsize=-1):
 	try:
 		return open(name, mode, bufsize)

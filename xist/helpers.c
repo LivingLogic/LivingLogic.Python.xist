@@ -282,6 +282,61 @@ static PyObject *escapeAttr(PyObject *self, PyObject *args)
 		return (PyObject *)escapeUnencodable(result, encoding);
 	}
 }
+
+static char stringFromCode__doc__[] =
+"stringFromCode(string) -> unicode\n\
+\n\
+Returns an unicode representation of string.\n\
+This is the same as unistr(string) and will\n\
+disappear in Python 2.1.";
+
+PyObject *stringFromCode(PyObject *self, PyObject *args)
+{
+	PyObject *res;
+	PyObject *v;
+
+	if (!PyArg_ParseTuple(args, "O:stringFromCode", &v))
+		return NULL;
+	if (v == NULL)
+		res = PyString_FromString("<NULL>");
+	else if (PyUnicode_Check(v))
+	{
+		Py_INCREF(v);
+		return v;
+	}
+	else if (PyString_Check(v))
+		res = v;
+	else if (v->ob_type->tp_str != NULL)
+		res = (*v->ob_type->tp_str)(v);
+	else
+	{
+		PyObject *func;
+		if (!PyInstance_Check(v) || (func = PyObject_GetAttrString(v, "__str__")) == NULL)
+		{
+			PyErr_Clear();
+			res = PyObject_Repr(v);
+		}
+		else
+		{
+			res = PyEval_CallObject(func, (PyObject *)NULL);
+			Py_DECREF(func);
+		}
+	}
+	if (res == NULL)
+		return NULL;
+	if (!PyUnicode_Check(res))
+	{
+		PyObject* str;
+		str = PyUnicode_FromObject(res);
+		Py_DECREF(res);
+		if (str)
+			res = str;
+		else
+			return NULL;
+	}
+	return res;
+}
+
 /* ==================================================================== */
 /* python module interface */
 
@@ -289,6 +344,7 @@ static PyMethodDef _functions[] =
 {
 	{"escapeText", escapeText, 1, escapeText__doc__},
 	{"escapeAttr", escapeAttr, 1, escapeAttr__doc__},
+	{"stringFromCode", stringFromCode, 1, stringFromCode__doc__},
 	{NULL, NULL}
 };
 

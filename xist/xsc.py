@@ -243,7 +243,7 @@ reprEncoding = sys.getdefaultencoding()
 def _stransi(codes, string, ansi=None):
 	if ansi is None:
 		ansi = options.repransi
-	string = utils.stringFromCode(string).encode(reprEncoding)
+	string = helpers.stringFromCode(string).encode(reprEncoding)
 	if ansi and len(codes[ansi-1]) and string:
 		return "\033[%sm%s\033[0m" % (codes[ansi-1], string)
 	else:
@@ -710,7 +710,7 @@ class StringMixIn:
 	a few methods (<code>__str__</code> etc.)
 	"""
 	def __init__(self, content):
-		self._content = utils.stringFromCode(content)
+		self._content = helpers.stringFromCode(content)
 
 	def __iadd__(self, other):
 		other = ToNode(other)
@@ -1095,7 +1095,10 @@ class Frag(Node):
 
 	def compact(self):
 		node = self.__class__()
-		node.__content = [ child.compact() for child in self.__content ]
+		for child in self.__content:
+			newchild = child.compact()
+			if newchild is not Null:
+				node.__content.append(newchild)
 		return self._decorateNode(node)
 
 	def withSeparator(self, separator, clone=0):
@@ -1195,7 +1198,7 @@ class ProcInst(Node, StringMixIn):
 	"""
 
 	def __init__(self, target, content=u""):
-		self._target = utils.stringFromCode(target)
+		self._target = helpers.stringFromCode(target)
 		StringMixIn.__init__(self, content)
 
 	def asHTML(self, mode=None):
@@ -1459,7 +1462,7 @@ class Element(Node):
 							try:
 								s = self[attr].asHTML(mode).asPlainString() % sizedict
 								s = str(eval(s))
-								s = utils.stringFromCode(s)
+								s = helpers.stringFromCode(s)
 								self[attr] = s
 							except TypeError: # ignore "not all argument converted"
 								pass
@@ -1917,8 +1920,8 @@ class Namespace:
 	"""
 
 	def __init__(self, prefix, uri, thing=None):
-		self.prefix = utils.stringFromCode(prefix)
-		self.uri = utils.stringFromCode(uri)
+		self.prefix = helpers.stringFromCode(prefix)
+		self.uri = helpers.stringFromCode(uri)
 		self.elementsByName = {} # dictionary for mapping element names to classes
 		self.entitiesByName = {} # dictionary for mapping entity names to classes
 		self.entitiesByNumber = [ [] for i in xrange(65536) ]
@@ -1963,7 +1966,7 @@ class Namespace:
 						name = thing.__name__
 					thing.namespace = self # this creates a cycle, but namespaces aren't constantly created and deleted (and Python will get a GC some day ;))
 					if name is not None:
-						name = utils.stringFromCode(name)
+						name = helpers.stringFromCode(name)
 						thing.name = name
 						if iselement:
 							self.elementsByName[name] = thing
