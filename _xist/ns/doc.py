@@ -369,7 +369,11 @@ class item(xsc.Element):
 
 	def convert(self, converter):
 		if converter.target=="docbook":
-			e = docbook.listitem(self.content)
+			if self.content.find(type=(par, olist, ulist, example, programlisting)):
+				content = self.content
+			else:
+				content = par(self.content)
+			e = docbook.listitem(content)
 		else:
 			e = html.li(self.content)
 		return e.convert(converter)
