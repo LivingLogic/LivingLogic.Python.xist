@@ -249,27 +249,28 @@ class XSCNode:
 	def __repr__(self):
 		return self.repr(xsc.reprtree)
 
-	def repr(self,tree,nest = 0):
-		if tree!=0:
-			v = []
-			lines = self._doreprtree(nest,[])
-			lenlineno = 0
-			lenelementno = 0
-			for line in lines:
-				if line[1] != -1: # convert line number to a string
-					line[1] = str(line[1])
-				else:
-					line[1] = "?"
-				line[2] = string.joinfields(map(str,line[2]),".") # convert element number to a string
-				line[3] = self._stransi(xsc.repransitab,xsc.reprtab*line[0]) + line[3] # add indentation
-				lenlineno = max(lenlineno,len(line[1]))
-				lenelementno = max(lenelementno,len(line[2]))
+	def repr(self):
+		return self._dorepr()
 
-			for line in lines:
-				v.append("%*s %-*s %s\n" % (lenlineno,line[1],lenelementno,line[2],line[3]))
-			return string.joinfields(v,"")
-		else:
-			return self._dorepr()
+	def reprtree(self):
+		nest = 0
+		v = []
+		lines = self._doreprtree(nest,[])
+		lenlineno = 0
+		lenelementno = 0
+		for line in lines:
+			if line[1] != -1: # convert line number to a string
+				line[1] = str(line[1])
+			else:
+				line[1] = "?"
+			line[2] = string.joinfields(map(str,line[2]),".") # convert element number to a string
+			line[3] = self._stransi(xsc.repransitab,xsc.reprtab*line[0]) + line[3] # add indentation
+			lenlineno = max(lenlineno,len(line[1]))
+			lenelementno = max(lenelementno,len(line[2]))
+
+		for line in lines:
+			v.append("%*s %-*s %s\n" % (lenlineno,line[1],lenelementno,line[2],line[3]))
+		return string.joinfields(v,"")
 
 	def _dorepr(self):
 		# returns a string representation of the node
