@@ -17,7 +17,7 @@ a call to <method>ll.xist.publishers.Publisher.publish</method>, passing in a
 <class>ll.xist.xsc.Node</class>. Writing strings to the publisher output is
 now done with <method>ll.xist.publishers.Publisher.write</method>.</item>
 
-<item>The presentation API has ween simplified: You'll get a presentation
+<item>The presentation API has been simplified: You'll get a presentation
 by calling: <lit>string = <rep>presenter</rep>.present(<rep>node</rep>)</lit>.</item>
 </ulist>
 
