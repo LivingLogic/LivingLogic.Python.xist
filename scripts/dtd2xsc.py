@@ -27,7 +27,6 @@ from xml.parsers.xmlproc import dtdparser
 from ll import url
 from ll.xist import xsc, parsers
 from ll.xist.ns import xndl
-from ll.xist.tools import dtd
 
 def dtd2xsc(dtdurl, outurl, verbose, xmlname, xmlurl, shareattrs):
 	if verbose:
@@ -36,7 +35,7 @@ def dtd2xsc(dtdurl, outurl, verbose, xmlname, xmlurl, shareattrs):
 
 	if verbose:
 		print "Converting ..."
-	data = dtd.dtd2data(d, xmlname, xmlurl)
+	data = xndl.fromdtd(d, xmlname, xmlurl).asdata()
 
 	if shareattrs=="dupes":
 		data.shareattrs(False)

@@ -470,5 +470,76 @@ class charref(xsc.Element):
 class xmlns(xsc.Namespace):
 	xmlname = "xndl"
 	xmlurl = "http://xmlns.livinglogic.de/xist/ns/xndl"
+
+	def fromdtd(cls, dtd, xmlname, xmlurl=None):
+		"""
+		Convert &dtd; information (in the format that is returned by <app>xmlproc</app>s
+		<function>dtdparser.load_dtd</function> function) to an &xist; DOM using the
+		<pyref module="ll.xist.ns.xndl"><module>xndl</module></pyref> namespace.
+		"""
+
+		node = xndl(name=xmlname, url=xmlurl)
+
+		xmlns = {} # collects all the values of fixed xmlns attributes (as a set)
+
+		# Add element info
+		elements = dtd.get_elements()
+		elements.sort()
+		for elemname in elements:
+			e = dtd.get_elem(elemname)
+			if e.get_content_model() == ("", [], ""):
+				empty = True
+			else:
+				empty = None
+			node.append(element(name=elemname, empty=empty))
+
+			# Add attribute info for this element
+			attrs = e.get_attr_list()
+			if len(attrs):
+				attrs.sort()
+				for attrname in attrs:
+					a = e.get_attr(attrname)
+					if attrname=="xmlns":
+						if a.decl=="#FIXED":
+							xmlns[a.default] = None
+						continue # skip a namespace declaration
+					elif u":" in attrname:
+						continue # skip global attributes
+					values = []
+					if a.type == "ID":
+						type = "IDAttr"
+					else:
+						type = "TextAttr"
+						if isinstance(a.type, list):
+							if len(a.type)>1:
+								values = a.type
+							else:
+								type = "BoolAttr"
+					default = a.default
+					if a.decl=="#REQUIRED":
+						required = True
+					else:
+						required = None
+					node[-1].append(attr(name=attrname, type=type, default=default, required=required))
+					for v in values:
+						node[-1][-1].append(value(v))
+
+		# Add entities
+		ents = dtd.get_general_entities()
+		ents.sort()
+		for entname in ents:
+			if entname not in ("quot", "apos", "gt", "lt", "amp"):
+				ent = parsers.parseString(dtd.resolve_ge(entname).value)
+				node.append(charref(name=entname, codepoint=ord(unicode(ent[0])[0])))
+
+		# if the DTD has exactly one value for all fixed "xmlns" attributes and the user didn't specify an xmlurl, use this one
+		if xmlurl is None:
+			if len(xmlns)==1:
+				node["url"] = xmlns.popitem()[0]
+			else:
+				node["url"] = "... insert namespace name ..."
+		return node
+	fromdtd = classmethod(fromdtd)
+
 xmlns.makemod(vars())
 
