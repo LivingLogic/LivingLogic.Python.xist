@@ -131,7 +131,7 @@ xsc.registerElement(_)
 
 class pfeil(html.img):
 	empty = 1
-	attr_handlers = xsc.appendDict(img.attr_handlers,{ "rel" : xsc.TextAttr })
+	attr_handlers = xsc.appendDict(html.img.attr_handlers,{ "rel" : xsc.TextAttr })
 	
 	def asHTML(self):
 		e = html.img(self.content.clone(),border = "0")
