@@ -14,6 +14,16 @@ and <code>__rmul__</code>, so you can do stuff like
 html.br()*5
 </programlisting>
 This returns a <code>Frag</code> with five times to same node.</li>
+
+<li><code>xist.xsc.Node.conv</code> has been duplicated as
+<code>xist.xsc.Node.__call__</code>. Arguments for the converter
+constructor can be passed to <code>xist.xsc.Node.__call__</code> now,
+so it's possible to do stuff like this:
+<programlisting>
+from xist.ns import code
+print code.Eval("return converter.lang")(lang="en").asBytes()
+</programlisting>
+which will print <code>en</code>.</li>
 </ul>
 </section>
 
