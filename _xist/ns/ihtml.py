@@ -365,7 +365,7 @@ class meta(xsc.Element):
 					)
 					node.publish(publisher)
 					return
-		super(ihtml.meta, self).publish(publisher)
+		super(meta, self).publish(publisher)
 
 class object(xsc.Element):
 	empty = True
