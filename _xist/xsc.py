@@ -1324,8 +1324,8 @@ class Element(Node):
 	def find(self, type=None, subtype=0, attrs=None, test=None, searchchildren=0, searchattrs=0):
 		node = Frag()
 		if searchattrs:
-			for attr in self.attrs.keys():
-				node.append(self[attr].find(type, subtype, attrs, test, searchchildren, searchattrs))
+			for attr in self.attrsValues():
+				node.append(attr.find(type, subtype, attrs, test, searchchildren, searchattrs))
 		node.append(self.content.find(type, subtype, attrs, test, searchchildren, searchattrs))
 		return node
 
