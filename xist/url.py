@@ -387,12 +387,12 @@ class URL:
 
 	def __fromString(self, url):
 		(scheme, server, path, parameters, query, fragment) = urlparse.urlparse(url)
-		scheme = utils.stringFromCode(scheme)
-		server = utils.stringFromCode(server)
+		scheme = utils.stringFromCode(scheme) or None
+		server = utils.stringFromCode(server) or None
 		__path = map(utils.stringFromCode, path)
-		parameters = utils.stringFromCode(parameters)
-		query = utils.stringFromCode(query)
-		fragment = utils.stringFromCode(fragment)
+		parameters = utils.stringFromCode(parameters) or None
+		query = utils.stringFromCode(query) or None
+		fragment = utils.stringFromCode(fragment) or None
 		if scheme == u"": # do we have a local file?
 			if len(path):
 				if path[0] == u"/": # this is a server relative URL
