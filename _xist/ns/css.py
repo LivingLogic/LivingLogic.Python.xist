@@ -21,7 +21,8 @@
 
 """
 <doc:par>An &xist; module that contains elements that can be used to generate
-CSS files.</doc:par>
+&css;2 files.</doc:par>
+<doc:par>For further info about &css;2 see <a href="http://www.w3.org/TR/REC-CSS2">http://www.w3.org/TR/REC-CSS2</a></doc:par>
 """
 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
@@ -51,14 +52,23 @@ class css(xsc.Element):
 
 class import_(xsc.Element):
 	"""
-	<doc:par>A CSS import rule.</doc:par>
+	<doc:par>The <class>import_</class> rule allows users to import style rules from other style sheets.
+	The content is the URI of the style sheet to include.</doc:par>
+	<doc:par>So that user agents can avoid retrieving resources for unsupported media types,
+	authors may specify media-dependent <class>import_</class> rules. These conditional imports
+	specify comma-separated media types as the attribute <lit>media</lit>. In the absence of
+	any media types, the import is unconditional. Specifying <lit>all</lit> for <lit>media</lit>
+	has the same effect.</doc:par>
 	"""
 	empty = 0
 	name = "import"
+	attrHandlers = {"media": xsc.TextAttr}
 
 	def publish(self, publisher):
 		publisher.publish(u'@import url("')
 		self.content.publish(publisher)
+		if self.hasAttr("media"):
+			publisher.publish(u" " + unicode(self["media"]))
 		publisher.publish(u'");')
 
 class charset(xsc.Element):
@@ -135,7 +145,7 @@ class margin_left(prop):
 
 class margin(prop):
 	"""
-	The <class>margin</class> property is a shorthand property for setting 
+	The <class>margin</class> property is a shorthand property for setting
 	<class>margin_top</class>, <class>margin_right</class>, <class>margin_bottom</class>,
 	and <class>margin_left</class> at the same place in the style sheet.
 	"""
@@ -157,7 +167,7 @@ class padding_left(prop):
 
 class padding(prop):
 	"""
-	The <class>padding</class> property is a shorthand property for setting 
+	The <class>padding</class> property is a shorthand property for setting
 	<class>padding_top</class>, <class>padding_right</class>, <class>padding_bottom</class>,
 	and <class>padding_left</class> at the same place in the style sheet.
 	"""
@@ -180,9 +190,11 @@ class border_left_width(prop):
 
 class border_width(prop):
 	"""
-	The <class>border_width</class> property is a shorthand property for setting 
-	<class>border__top_width</class>, <class>border_right_width</class>, 
-	<class>border_bottom_width</class>, and <class>border_left_width</class> at the same place 
+	The <class>border_width</class> property is a shorthand property for setting
+	<pyref class="border_top_width"><class>border_top_width</class></pyref>,
+	<pyref class="border_right_width"><class>border_right_width</class></pyref>,
+	<pyref class="border_bottom_width"><class>border_bottom_width</class></pyref>,
+	and <pyref class="border_left_width"><class>border_left_width</class></pyref> at the same place
 	in the style sheet.
 	"""
 	name = "border-width"
@@ -205,9 +217,9 @@ class border_left_color(prop):
 
 class border_color(prop):
 	"""
-	The <class>border_color</class> property is a shorthand property for setting 
-	<class>border__top_color</class>, <class>border_right_color</class>, 
-	<class>border_bottom_color</class>, and <class>border_left_color</class> at the same place 
+	The <class>border_color</class> property is a shorthand property for setting
+	<class>border_top_color</class>, <class>border_right_color</class>,
+	<class>border_bottom_color</class>, and <class>border_left_color</class> at the same place
 	in the style sheet.
 	"""
 	name = "border-color"
@@ -230,9 +242,9 @@ class border_left_style(prop):
 
 class border_style(prop):
 	"""
-	The <class>border_style</class> property is a shorthand property for setting 
-	<class>border__top_style</class>, <class>border_right_style</class>, 
-	<class>border_bottom_style</class>, and <class>border_left_style</class> at the same place 
+	The <class>border_style</class> property is a shorthand property for setting
+	<class>border_top_style</class>, <class>border_right_style</class>,
+	<class>border_bottom_style</class>, and <class>border_left_style</class> at the same place
 	in the style sheet.
 	"""
 	name = "border-style"
@@ -255,9 +267,11 @@ class border_left(prop):
 
 class border(prop):
 	"""
-	The <class>border</class> property is a shorthand property for setting 
-	<class>border__top</class>, <class>border_right</class>, 
-	<class>border_bottom</class>, and <class>border_left</class> at the same place 
+	The <class>border</class> property is a shorthand property for setting
+	<pyref class="border_top"><class>border_top</class></pyref>,
+	<pyref class="border_right"><class>border_right</class></pyref>,
+	<pyref class="border_bottom"><class>border_bottom</class></pyref>,
+	and <pyref class="border_left"><class>border_left</class></pyref> at the same place
 	in the style sheet.
 	"""
 
@@ -266,56 +280,56 @@ class display(prop):
 	<doc:par>Sets the display type of a box. The values of this property
 	have the following meanings:</doc:par>
 	<doc:ulist>
-	<doc:item><lit>block</lit>: This value causes an element to generate a principal block box.</doc:item> 
-	<doc:item>lit>inline</lit>: This value causes an element to generate one or more inline boxes.</doc:item> 
+	<doc:item><lit>block</lit>: This value causes an element to generate a principal block box.</doc:item>
+	<doc:item><lit>inline</lit>: This value causes an element to generate one or more inline boxes.</doc:item>
 	<doc:item><lit>list-item</lit>: This value causes an element (e.g., <pyref module="xist.ns.html" class="li"><class>li</class></pyref>
-	in <pyref module="xist.ns.html">&html;</pyref>) to generate a principal block box and a 
-	list-item inline box.</doc:Item>
-	<doc:item><lit>marker</lit>: This value declares generated content before or after a box 
+	in <pyref module="xist.ns.html">&html;</pyref>) to generate a principal block box and a
+	list-item inline box.</doc:item>
+	<doc:item><lit>marker</lit>: This value declares generated content before or after a box
 	to be a marker. This value should only be used with <lit>:before</lit> and
 	<lit>:after</lit> pseudo-elements attached to block-level elements. In other cases,
 	this value is interpreted as <lit>inline</lit>.</doc:item>
-	<doc:item><lit>none</lit>: This value causes an element to generate no boxes 
-	in the formatting structure (i.e., the element has no effect on layout). Descendant elements 
-	do not generate any boxes either; this behavior cannot be overridden by setting the 
-	<class>display</class> property on the descendants. Please note that a display of 
-	<lit>none</lit> does not create an invisible box; it creates no box at all. CSS includes 
-	mechanisms that enable an element to generate boxes in the formatting structure that 
+	<doc:item><lit>none</lit>: This value causes an element to generate no boxes
+	in the formatting structure (i.e., the element has no effect on layout). Descendant elements
+	do not generate any boxes either; this behavior cannot be overridden by setting the
+	<class>display</class> property on the descendants. Please note that a display of
+	<lit>none</lit> does not create an invisible box; it creates no box at all. CSS includes
+	mechanisms that enable an element to generate boxes in the formatting structure that
 	affect formatting but are not visible themselves.</doc:item>
-	<doc:item><lit>run-in</lit> and <lit>compact</lit>: These values create either block 
-	or inline boxes, depending on context. Properties apply to run-in and compact boxes based 
-	on their final status (inline-level or block-level). For example, the 
-	<pyref class="white_space"><class>white_space</class></pyref> property only applies if the box 
-	becomes a block box.</doc:item> 
+	<doc:item><lit>run-in</lit> and <lit>compact</lit>: These values create either block
+	or inline boxes, depending on context. Properties apply to run-in and compact boxes based
+	on their final status (inline-level or block-level). For example, the
+	<pyref class="white_space"><class>white_space</class></pyref> property only applies if the box
+	becomes a block box.</doc:item>
 	<doc:item><lit>table</lit>, <lit>inline-table</lit>, <lit>table-row-group</lit>,
 	<lit>table-column</lit>, <lit>table-column-group</lit>, <lit>table-header-group</lit>,
-	<lit>table-footer-group</lit>, <lit>table-row</lit>, <lit>table-cell</lit>, and <lit>table-caption</lit>: 
+	<lit>table-footer-group</lit>, <lit>table-row</lit>, <lit>table-cell</lit>, and <lit>table-caption</lit>:
 	These values cause an element to behave like a table element.</doc:item>
 	</doc:ulist>
 	"""
 
 class position(prop):
 	"""
-	<doc:par>The <class>position</class> and <pyref class="float"><class>float</class></pyref> properties 
-	determine which of the CSS2 positioning algorithms is used to calculate the 
+	<doc:par>The <class>position</class> and <pyref class="float"><class>float</class></pyref> properties
+	determine which of the CSS2 positioning algorithms is used to calculate the
 	position of a box. The values of this property have the following meanings:</doc:par>
 	<doc:ulist>
-	<doc:item><lit>static</lit>: The box is a normal box, laid out according to the normal flow. 
+	<doc:item><lit>static</lit>: The box is a normal box, laid out according to the normal flow.
 	The <pyref class="left"><class>left</class></pyref> and <pyref class="top"><class>top</class></pyref>
-	properties do not apply.</doc:item> 
+	properties do not apply.</doc:item>
 	<doc:item><lit>relative</lit>: The box's position is calculated according to the normal flow
-	(this is called the position in normal flow). Then the box is offset relative to its normal 
-	position. When a box <lit><replaceable>B</replaceable></lit> is relatively positioned, 
-	the position of the following box is calculated as though <lit><replaceable>B</replaceable></lit>
+	(this is called the position in normal flow). Then the box is offset relative to its normal
+	position. When a box <lit><rep>B</rep></lit> is relatively positioned,
+	the position of the following box is calculated as though <lit><rep>B</rep></lit>
 	were not offset.</doc:item>
-	<doc:item><lit>absolute</lit>: The box's position (and possibly size) is specified with the 
+	<doc:item><lit>absolute</lit>: The box's position (and possibly size) is specified with the
 	<pyref class="left"><class>left</class></pyref>, <pyref class="right"><class>right</class></pyref>,
 	<pyref class="top"><class>top</class></pyref>, and <pyref class="bottom"><class>bottom</class></pyref>
 	properties. These properties specify offsets with respect to the box's containing block.
 	Absolutely positioned boxes are taken out of the normal flow. This means they have no impact
 	on the layout of later siblings. Also, though absolutely positioned boxes have margins,
 	they do not collapse with any other margins.</doc:item>
-	<doc:item><lit>fixed</lit>: The box's position is calculated according to the 
+	<doc:item><lit>fixed</lit>: The box's position is calculated according to the
 	<lit>absolute</lit> model, but in addition, the box is fixed with respect to some reference.
 	In the case of continuous media, the box is fixed with respect to the viewport
 	(and doesn't move when scrolled). In the case of paged media, the box is fixed with respect
@@ -346,7 +360,7 @@ class left(prop):
 	"""
 	This property specifies how far a box's left content edge
 	is offset to the right of the left edge of the box's
-	containing block. 
+	containing block.
 	"""
 
 class float(prop):
@@ -356,13 +370,13 @@ class float(prop):
 	generate boxes that are not absolutely positioned. The values
 	of this property have the following meanings:</doc:par>
 	<doc:ulist>
-	<doc:item><lit>left</lit>: The element generates a block box that is 
-	floated to the left. Content flows on the right side of the box, 
+	<doc:item><lit>left</lit>: The element generates a block box that is
+	floated to the left. Content flows on the right side of the box,
 	starting at the top (subject to the <pyref class="clear"><class>clear</class></pyref>
-	property). The <pyref class="display"><class>display</class></pyref> is ignored, 
-	unless it has the value <lit>none</lit>.</doc:item> 
-	<doc:item><lit>right</lit>: Same as <lit>left</lit>, but content flows on the 
-	left side of the box, starting at the top.</doc:item> 
+	property). The <pyref class="display"><class>display</class></pyref> is ignored,
+	unless it has the value <lit>none</lit>.</doc:item>
+	<doc:item><lit>right</lit>: Same as <lit>left</lit>, but content flows on the
+	left side of the box, starting at the top.</doc:item>
 	<doc:item><lit>none</lit>: The box is not floated.</doc:item>
 	</doc:ulist>
 	"""
@@ -370,7 +384,7 @@ class float(prop):
 class clear(prop):
 	"""
 	<doc:par>This property indicates which sides of an element's box(es) may <em>not</em>
-	be adjacent to an earlier floating box. (It may be that the element itself has floating 
+	be adjacent to an earlier floating box. (It may be that the element itself has floating
 	descendants; the <class>clear</class> property has no effect on those.)</doc:par>
 	
 	<doc:par>This property may only be specified for block-level elements (including floats).
@@ -382,18 +396,18 @@ class clear(prop):
 	<doc:ulist>
 	<doc:item><lit>left</lit>: The top margin of the generated box is increased enough
 	that the top border edge is below the bottom outer edge of any left-floating boxes
-	that resulted from elements earlier in the source document.</doc:item> 
+	that resulted from elements earlier in the source document.</doc:item>
 	<doc:item><lit>right</lit> The top margin of the generated box is increased enough
 	that the top border edge is below the bottom outer edge of any right-floating boxes
 	that resulted from elements earlier in the source document.</doc:item>
-	<doc:item><lit>both</lit>: The generated box is moved below all floating boxes of 
+	<doc:item><lit>both</lit>: The generated box is moved below all floating boxes of
 	earlier elements in the source document.</doc:item>
 	<doc:item><lit>none</lit>: No constraint on the box's position with respect to floats.</doc:item>
 	</doc:ulist>
 
-	<doc:par>When the property is set on floating elements, it results in a modification 
-	of the rules for positioning the float. An extra constraint is added: 
-	The top outer edge of the float must be below the bottom outer edge of all earlier 
+	<doc:par>When the property is set on floating elements, it results in a modification
+	of the rules for positioning the float. An extra constraint is added:
+	The top outer edge of the float must be below the bottom outer edge of all earlier
 	left-floating boxes (in the case of <markup>&lt;clear&gt;left&lt;clear&gt;</markup>),
 	or all earlier right-floating boxes (in the case of <markup>&lt;clear&gt;right&lt;clear&gt;</markup>),
 	or both (<markup>&lt;clear&gt;both&lt;clear&gt;</markup>).</doc:par>
@@ -412,10 +426,10 @@ class z_index(prop):
 	<doc:par>Values have the following meanings:</doc:par>
 	
 	<doc:ulist>
-	<doc:item><lit><replaceable>integer</replaceable></lit>: This integer is the stack level 
-	of the generated box in the current stacking context. The box also establishes a 
+	<doc:item><lit><rep>integer</rep></lit>: This integer is the stack level
+	of the generated box in the current stacking context. The box also establishes a
 	local stacking context in which its stack level is <lit>0</lit>.</doc:item>
-	<doc:item><lit>auto</lit>: The stack level of the generated box in the current stacking context 
+	<doc:item><lit>auto</lit>: The stack level of the generated box in the current stacking context
 	is the same as its parent's box. The box does not establish a new local stacking context.</doc:item>
 	</doc:ulist>
 	"""
@@ -423,17 +437,17 @@ class z_index(prop):
 
 class direction(prop):
 	"""
-	<doc:par>This property specifies the base writing direction of blocks 
+	<doc:par>This property specifies the base writing direction of blocks
 	and the direction of embeddings and overrides
 	(see <pyref class="unicode_bidi"><class>unicode_bidi</class></pyref>)
 	for the Unicode bidirectional algorithm. In addition, it specifies the direction
 	of table column layout, the direction of horizontal overflow, and the position
-	of an incomplete last line in a block in case of <markup>&lt;text_align&gt;justify&lt;/text_align&gt;</markup>.</doc:par> 
+	of an incomplete last line in a block in case of <markup>&lt;text_align&gt;justify&lt;/text_align&gt;</markup>.</doc:par>
 	
 	<doc:par>Values for this property have the following meanings:</doc:par>
 	
 	<doc:ulist>
-	<doc:item><lit>ltr</lit>: Left-to-right direction.</doc:item> 
+	<doc:item><lit>ltr</lit>: Left-to-right direction.</doc:item>
 
 	<doc:item><lit>rtl</lit>: Right-to-left direction.</doc:item>
 	</doc:ulist>
@@ -448,15 +462,15 @@ class unicode_bidi(prop):
 	<doc:par>Values for this property have the following meanings:</doc:par>
 
 	<doc:ulist>
-	<doc:item><lit>normal</lit>: The element does not open an additional level 
+	<doc:item><lit>normal</lit>: The element does not open an additional level
 	of embedding with respect to the bidirectional algorithm. For inline-level elements,
 	implicit reordering works across element boundaries.</doc:item>
-	<doc:item><lit>embed</lit>: If the element is inline-level, this value opens 
-	an additional level of embedding with respect to the bidirectional algorithm. 
+	<doc:item><lit>embed</lit>: If the element is inline-level, this value opens
+	an additional level of embedding with respect to the bidirectional algorithm.
 	The direction of this embedding level is given by the
-	<pyref class="direction><class>direction</class></pyref> property. Inside the element,
-	reordering is done implicitly. This corresponds to adding a LRE (U+202A; for 
-	<markup>&lt;direction&lt;/gt;ltr&lt;/direction&lt;/gt;</markup>) or RLE
+	<pyref class="direction"><class>direction</class></pyref> property. Inside the element,
+	reordering is done implicitly. This corresponds to adding a LRE (U+202A; for
+	<markup>&lt;direction&gt;ltr&lt;/direction&gt;</markup>) or RLE
 	(U+202B; for <markup>&lt;direction&lt;/gt;rtl&lt;/direction&lt;/gt;</markup>)
 	at the start of the element and a PDF (U+202C) at the end of the element.</doc:item>
 	<doc:item><lit>bidi-override</lit>: If the element is inline-level or a block-level
@@ -464,8 +478,8 @@ class unicode_bidi(prop):
 	This means that inside the element, reordering is strictly in sequence according
 	to the <pyref class="direction"><class>direction</class></pyref> property; the implicit part
 	of the bidirectional algorithm is ignored. This corresponds to adding a LRO (U+202D; for
-	<markup>&lt;direction&lt;/gt;ltr&lt;/direction&lt;/gt;</markup>) or RLO
-	(U+202E; for <markup>&lt;direction&lt;/gt;rtl&lt;/direction&lt;/gt;</markup>) at the start
+	<markup>&lt;direction&/gt;ltr&lt;/direction&gt;</markup>) or RLO
+	(U+202E; for <markup>&lt;direction&gt;rtl&lt;/direction&/gt;</markup>) at the start
 	of the element and a PDF (U+202C) at the end of the element.</doc:item>
 	</doc:ulist>
 
@@ -476,7 +490,7 @@ class unicode_bidi(prop):
 	as the styled text. In this process, non-textual entities such as images are treated as
 	neutral characters, unless their <class>unicode_bidi</class> property has a value other
 	than <lit>normal</lit>, in which case they are treated as strong characters in the
-	<pyref class="direction><class>direction</class></pyref> specified for the element.</doc:par> 
+	<pyref class="direction"><class>direction</class></pyref> specified for the element.</doc:par>
 
 	<doc:par>Please note that in order to be able to flow inline boxes in a uniform direction
 	(either entirely left-to-right or entirely right-to-left), more inline boxes
@@ -495,14 +509,14 @@ class unicode_bidi(prop):
 
 class width(prop):
 	"""
-	<doc:par>This property specifies the content width of boxes generated by block-level 
+	<doc:par>This property specifies the content width of boxes generated by block-level
 	and replaced elements.</doc:par>
 
 	<doc:par>This property does not apply to non-replaced inline-level elements.
 	The width of a non-replaced inline element's boxes is that of the rendered content
 	within them (before any relative offset of children). Recall that inline boxes flow
 	into line boxes. The width of line boxes is given by the their containing block,
-	but may be shorted by the presence of floats.</doc:par> 
+	but may be shorted by the presence of floats.</doc:par>
 	
 	<doc:par>The width of a replaced element's box is intrinsic and may be scaled by the user agent
 	if the value of this property is different than <lit>auto</lit>.</doc:par>
@@ -522,12 +536,12 @@ class max_width(prop):
 
 class height(prop):
 	"""
-	<doc:par>This property specifies the content height of boxes generated by block-level 
-	and replaced elements.</doc.par> 
+	<doc:par>This property specifies the content height of boxes generated by block-level
+	and replaced elements.</doc:par>
 
 	<doc:par>This property does not apply to non-replaced inline-level elements.
 	The height of a non-replaced inline element's boxes is given by the element's
-	(possibly inherited) <pyref class="line_height"><class>line_height</class></pyref> value.</doc:par> 
+	(possibly inherited) <pyref class="line_height"><class>line_height</class></pyref> value.</doc:par>
 	"""
 
 class min_height(prop):
@@ -546,7 +560,7 @@ class line_height(prop):
 	"""
 	<doc:par>If the property is set on a block-level element whose content
 	is composed of inline-level elements, it specifies the minimal height
-	of each generated inline box.</doc:par> 
+	of each generated inline box.</doc:par>
 
 	<doc:par>If the property is set on an inline-level element, it specifies
 	the exact height of each box generated by the element. (Except for inline
@@ -565,7 +579,7 @@ class vertical_align(prop):
 
 	<doc:ulist>
 	<doc:item><lit>baseline</lit>: Align the baseline of the box with the baseline of the parent box.
-	If the box doesn't have a baseline, align the bottom of the box with the parent's baseline.</doc:item> 
+	If the box doesn't have a baseline, align the bottom of the box with the parent's baseline.</doc:item>
 	<doc:item><lit>middle</lit>: Align the vertical midpoint of the box with the baseline
 	of the parent box plus half the x-height of the parent.</doc:item>
 	<doc:item><lit>sub</lit>: Lower the baseline of the box to the proper position
@@ -575,14 +589,14 @@ class vertical_align(prop):
 	for superscripts of the parent's box. (This value has no effect on the font size
 	of the element's text.)</doc:item>
 	<doc:item><lit>text-top</lit>: Align the top of the box with the top of the parent
-	element's font.</doc:item> 
+	element's font.</doc:item>
 	<doc:item><lit>text-bottom</lit>: Align the bottom of the box with the bottom of the
 	parent element's font.</doc:item>
-	<doc:item><lit><replaceable>percentage</replaceable></lit>: Raise (positive value)
+	<doc:item><lit><rep>percentage</rep></lit>: Raise (positive value)
 	or lower (negative value) the box by this distance (a percentage of the
 	<pyref class="line_height"><class>line_height</class></pyref> value). The value <lit>0%</lit>
-	means the same as <lit>baseline</lit>.</doc:item> 
-	<doc:item><lit><replaceable>length</replaceable></lit>: Raise (positive value)
+	means the same as <lit>baseline</lit>.</doc:item>
+	<doc:item><lit><rep>length</rep></lit>: Raise (positive value)
 	or lower (negative value) the box by this distance. The value <lit>0cm</lit>
 	means the same as <lit>baseline</lit>.</doc:item>
 	</doc:ulist>
@@ -590,8 +604,8 @@ class vertical_align(prop):
 	<doc:par>The remaining values refer to the line box in which the generated box appears:</doc:par>
 	
 	<doc:ulist>
-	<doc:item><lit>top</lit>: Align the top of the box with the top of the line box.</doc:item> 
-	<doc:item><lit>bottom</lit>: Align the bottom of the box with the bottom of the line box.</doc:item> 
+	<doc:item><lit>top</lit>: Align the top of the box with the top of the line box.</doc:item>
+	<doc:item><lit>bottom</lit>: Align the bottom of the box with the bottom of the line box.</doc:item>
 	</doc:ulist>
 	"""
 	name = "vertical-align"
@@ -603,12 +617,12 @@ class overflow(prop):
 	Values have the following meanings:</doc:par>
 	
 	<doc:ulist>
-	<doc:Item><lit>visible</lit>: This value indicates that content is not clipped, i.e.,
+	<doc:item><lit>visible</lit>: This value indicates that content is not clipped, i.e.,
 	it may be rendered outside the block box.</doc:item>
 	<doc:item><lit>hidden</lit>: This value indicates that the content is clipped
 	and that no scrolling mechanism should be provided to view the content outside
 	the clipping region; users will not have access to clipped content. The size and shape
-	of the clipping region is specified by the <pyref class="clip"><class>clip</class></pyref> property.</doc:item> 
+	of the clipping region is specified by the <pyref class="clip"><class>clip</class></pyref> property.</doc:item>
 	<doc:item><lit>scroll</lit>: This value indicates that the content is clipped and
 	that if the user agent uses scrolling mechanism that is visible on the screen
 	(such as a scroll bar or a panner), that mechanism should be displayed for a box
@@ -621,7 +635,7 @@ class overflow(prop):
 	for overflowing boxes.</doc:item>
 	</doc:ulist>
 	<doc:par>Even if <class>overflow</class> is set to <lit>visible</lit>, content may be clipped
-	to a UA's document window by the native operating environment.</doc:par> 
+	to a UA's document window by the native operating environment.</doc:par>
 	"""
 
 class clip(prop):
@@ -633,33 +647,33 @@ class clip(prop):
 	<doc:ulist>
 	<doc:item><lit>auto</lit>: The clipping region has the same size and
 	location as the element's box(es).</doc:item>
-	<doc:item><doc:par><lit><replaceable>shape</replaceable></lit>: In CSS2, the only valid
-	<lit><replaceable>shape</replaceable></lit> value is: rect
-	(<lit><replaceable>top</replaceable> <replaceable>right</replaceable> <replaceable>bottom</replaceable> <replaceable>left</replaceable></lit>)
-	where <lit><replaceable>top</replaceable></lit>, <lit><replaceable>bottom</replaceable></lit>,
-	<lit><replaceable>right</replaceable></lit>, and <lit><replaceable>left</replaceable></lit>
+	<doc:item><doc:par><lit><rep>shape</rep></lit>: In &css;2, the only valid
+	<lit><rep>shape</rep></lit> value is: rect
+	(<lit><rep>top</rep> <rep>right</rep> <rep>bottom</rep> <rep>left</rep></lit>)
+	where <lit><rep>top</rep></lit>, <lit><rep>bottom</rep></lit>,
+	<lit><rep>right</rep></lit>, and <lit><rep>left</rep></lit>
 	specify offsets from the respective sides of the box.</doc:par>
 
-	<doc:par><lit><replaceable>top</replaceable></lit>, <lit><replaceable>right</replaceable></lit>,
-	<lit><replaceable>bottom</replaceable></lit>, and <lit><replaceable>left</replaceable></lit>
-	may either have a <lit><replaceable>length</replaceable></lit> value or <lit>auto</lit>.
+	<doc:par><lit><rep>top</rep></lit>, <lit><rep>right</rep></lit>,
+	<lit><rep>bottom</rep></lit>, and <lit><rep>left</rep></lit>
+	may either have a <lit><rep>length</rep></lit> value or <lit>auto</lit>.
 	Negative lengths are permitted. The value <lit>auto</lit> means that a given edge of
 	the clipping region will be the same as the edge of the element's generated box
 	(i.e., <lit>auto</lit> means the same as <lit>0</lit>.)</doc:par>
 
 	<doc:par>When coordinates are rounded to pixel coordinates, care should be taken that
-	no pixels remain visible when <lit><replaceable>left</replaceable> + <replaceable>right</replaceable></lit>
-	is equal to the element's width (or <lit><replaceable>top</replaceable> + <replaceable>bottom</replaceable></lit>
+	no pixels remain visible when <lit><rep>left</rep> + <rep>right</rep></lit>
+	is equal to the element's width (or <lit><rep>top</rep> + <rep>bottom</rep></lit>
 	equals the element's height), and conversely that no pixels remain hidden when these values are 0.</doc:par>
 	</doc:item>
-	/doc:list>
+	</doc:ulist>
 
 	<doc:par>The element's ancestors may also have clipping regions (in case their
 	<pyref class="overflow"><class>overflow</class></pyref> property is not <lit>visible</lit>);
-	what is rendered is the intersection of the various clipping regions.</doc:par> 
+	what is rendered is the intersection of the various clipping regions.</doc:par>
 
 	<doc:par>If the clipping region exceeds the bounds of the UA's document window,
-	content may be clipped to that window by the native operating environment.</doc:par> 
+	content may be clipped to that window by the native operating environment.</doc:par>
 	"""
 
 class visibility(prop):
@@ -670,12 +684,13 @@ class visibility(prop):
 	suppress box generation altogether). Values have the following meanings:</doc:par>
 
 	<doc:ulist>
-	<doc:item><lit>visible</lit>: The generated box is visible.</doc:item> 
+	<doc:item><lit>visible</lit>: The generated box is visible.</doc:item>
 	<doc:item><lit>hidden</lit>: The generated box is invisible (fully transparent),
-	but still affects layout.</doc:item> 
+	but still affects layout.</doc:item>
 	<doc:item><lit>collapse</lit>: Used for dynamic row and column effects in tables.
 	If used on elements other than rows or columns, <lit>collapse</lit> has the same
-	meaning as <lit>hidden</lit>.</doc:par>
+	meaning as <lit>hidden</lit>.</doc:item>
+	</doc:ulist>
 
 	<doc:par>This property may be used in conjunction with scripts to create dynamic effects.</doc:par>
 	"""
@@ -683,12 +698,12 @@ class visibility(prop):
 class content(prop):
 	"""
 	<doc:par>This property is used with the <lit>:before</lit> and <lit>:after</lit>
-	pseudo-elements to generate content in a document.</doc:par> 
+	pseudo-elements to generate content in a document.</doc:par>
 	"""
 
 class quotes(prop):
 	"""
-	<doc:par>This property specifies quotation marks for any number of embedded quotations.</doc:par> 
+	<doc:par>This property specifies quotation marks for any number of embedded quotations.</doc:par>
 	"""
 
 class counter_reset(prop):
@@ -905,6 +920,25 @@ class speak_header(prop):
 
 class cursor(prop):
 	"""
+	<doc:par>This property specifies the type of cursor to be displayed for the pointing device. Values have the following meanings:</doc:par>
+
+	<doc:ulist>
+	<doc:item><lit>auto</lit>: The UA determines the cursor to display based on the current context.</doc:item>
+	<doc:item><lit>crosshair</lit>: A simple crosshair (e.g., short line segments resembling a <z>+</z> sign).</doc:item>
+	<doc:item><lit>default</lit>: The platform-dependent default cursor. Often rendered as an arrow.</doc:item>
+	<doc:item><lit>pointer</lit>: The cursor is a pointer that indicates a link.</doc:item>
+	<doc:item><lit>move</lit>: Indicates something is to be moved.</doc:item>
+	<doc:item><lit>e-resize</lit>, <lit>ne-resize</lit>, <lit>nw-resize</lit>,
+	<lit>n-resize</lit>, <lit>se-resize</lit>, <lit>sw-resize</lit>, <lit>s-resize</lit>, <lit>w-resize</lit>:
+	Indicate that some edge is to be moved. For example, the <lit>se-resize</lit> cursor is used when the movement
+	starts from the south-east corner of the box.</doc:item>
+	<doc:item><lit>text</lit>: Indicates text that may be selected. Often rendered as an I-bar.</doc:item>
+	<doc:item><lit>wait</lit>: Indicates that the program is busy and the user should wait. Often rendered as a watch or hourglass.</doc:item>
+	<doc:item><lit>help</lit>: Help is available for the object under the cursor. Often rendered as a question mark or a balloon.</doc:item>
+	<doc:item><lit><rep>uri</rep></lit>: The user agent retrieves the cursor from the resource designated by the URI.
+	If the user agent cannot handle the first cursor of a list of cursors, it should attempt to handle the second, etc.
+	If the user agent cannot handle any user-defined cursor, it must use the generic cursor at the end of the list.</doc:item>
+	</doc:ulist>
 	"""
 
 class outline(prop):
@@ -970,46 +1004,163 @@ class play_during(prop):
 
 class azimuth(prop):
 	"""
+	<doc:par>This property is used for spatial audio. Values have the following meaning:</doc:par>
+	<doc:ulist>
+	<doc:item><lit><rep>angle</rep></lit>: Position is described in terms of an angle within the range <lit>-360deg</lit>
+	to <lit>360deg</lit>. The value <lit>0deg</lit> means directly ahead in the center of the sound stage.
+	<lit>90deg</lit> is to the right, <lit>180deg</lit> behind, and <lit>270deg</lit> (or, equivalently and more conveniently,
+	<lit>-90deg</lit>) to the left.</doc:item>
+	<doc:item><lit>left-side</lit>: Same as <lit>270deg</lit>. With <lit>behind</lit>, <lit>270deg</lit> (i.e. <lit>behind left-side</lit>).</doc:item>
+	<doc:item><lit>far-left</lit>: Same as <lit>300deg</lit>. With <lit>behind</lit>, <lit>240deg</lit>.</doc:item>
+	<doc:item><lit>left</lit>: Same as <lit>320deg</lit>. With <lit>behind</lit>, <lit>220deg</lit>.</doc:item>
+	<doc:item><lit>center-left</lit>: Same as <lit>340deg</lit>. With <lit>behind</lit>, <lit>200deg</lit>.</doc:item>
+	<doc:item><lit>center</lit>: Same as <lit>0deg</lit>. With <lit>behind</lit>, <lit>180deg</lit>.</doc:item>
+	<doc:item><lit>center-right</lit>: Same as <lit>20deg</lit>. With <lit>behind</lit>, <lit>160deg</lit>.</doc:item>
+	<doc:item><lit>right</lit>: Same as <lit>40deg</lit>. With <lit>behind</lit>, <lit>140deg</lit>.</doc:item>
+	<doc:item><lit>far-right</lit>: Same as <lit>60deg</lit>. With <lit>behind</lit>, <lit>120deg</lit>.</doc:item>
+	<doc:item><lit>right-side</lit>: Same as <lit>90deg</lit>. With <lit>behind</lit>, <lit>90deg</lit>.</doc:item>
+	<doc:item><lit>leftwards</lit>: Moves the sound to the left, relative to the current angle. More precisely,
+	subtracts 20 degrees. Arithmetic is carried out modulo 360 degrees. Note that <lit>leftwards</lit> is more
+	accurately described as <z>turned counter-clockwise</z>, since it always subtracts 20 degrees, even if the
+	inherited azimuth is already behind the listener (in which case the sound actually appears to move to the right).</doc:item>
+	<doc:item><lit>rightwards</lit>: Moves the sound to the right, relative to the current angle. More precisely, adds 20 degrees.
+	See <lit>leftwards</lit> for arithmetic.</doc:item>
+	</doc:ulist>
 	"""
 
 class elevation(prop):
 	"""
+	<doc:par>This property is used for spatial audio. Values have the following meaning:</doc:par>
+	<doc:ulist>
+	<doc:item><lit><rep>angle</rep></lit>: Specifies the elevation as an angle,
+	between <lit>-90deg</lit> and <lit>90deg</lit>. <lit>0deg</lit> means on the forward horizon, which loosely
+	means level with the listener. <lit>90deg</lit> means directly overhead and <lit>-90deg</lit> means directly below.</doc:item>
+	<doc:item><lit>below</lit>: Same as <lit>-90deg</lit>.</doc:item>
+	<doc:item><lit>level</lit>: Same as <lit>0deg</lit>.</doc:item>
+	<doc:item><lit>above</lit>: Same as <lit>90deg</lit>.</doc:item>
+	<doc:item><lit>higher</lit>: Adds 10 degrees to the current elevation.</doc:item>
+	<doc:item><lit>lower</lit>: Subtracts 10 degrees from the current elevation.</doc:item>
+	</doc:ulist>
 	"""
 
 class speech_rate(prop):
 	"""
+	<doc:par>This property specifies the speaking rate. Note that both absolute and relative
+	keyword values are allowed (compare with <pyref class="font_size"><class>font_size</class></pyref>).
+	Values have the following meanings:</doc:par>
+
+	<doc:ulist>
+	<doc:item><lit><rep>number</rep></lit>: Specifies the speaking rate in words per minute,
+	a quantity that varies somewhat by language but is nevertheless widely supported by speech synthesizers.</doc:item>
+	<doc:item><lit>x-slow</lit>: Same as 80 words per minute.</doc:item>
+	<doc:item><lit>slow</lit>: Same as 120 words per minute.</doc:item>
+	<doc:item><lit>medium</lit>: Same as 180&ndash;200 words per minute.</doc:item>
+	<doc:item><lit>fast</lit>: Same as 300 words per minute.</doc:item>
+	<doc:item><lit>x-fast</lit>: Same as 500 words per minute.</doc:item>
+	<doc:item><lit>faster</lit>: Adds 40 words per minute to the current speech rate.</doc:item>
+	<doc:item><lit>slower</lit>: Subtracts 40 words per minutes from the current speech rate.</doc:item>
+	</doc:ulist>
 	"""
 	name = "speech-rate"
 
 class voice_family(prop):
 	"""
+	<doc:par>The value is a comma-separated, prioritized list of voice family names
+	(compare with <pyref class="font_family"><class>font-family</class></pyref>).
+	Values have the following meanings:</doc:par>
+	
+	<doc:ulist>
+	<doc:item><lit><rep>generic-voice</rep></lit>: Values are voice families.
+	Possible values are <lit>male</lit>, <lit>female</lit>, and <lit>child</lit>.</doc:item>
+	<doc:item><lit><rep>specific-voice</rep></lit>: Values are specific instances
+	(e.g., <lit>comedian</lit>, <lit>trinoids</lit>, <lit>carlos</lit>, <lit>lani</lit>).</doc:item>
+	</doc:ulist>
 	"""
 	name = "voice-family"
 
 class pitch(prop):
 	"""
+	<doc:par>Specifies the average pitch (a frequency) of the speaking voice. The average pitch
+	of a voice depends on the voice family. For example, the average pitch for a standard male voice
+	is around 120Hz, but for a female voice, it's around 210Hz.</doc:par>
+
+	<doc:ulist>
+	<doc:item><lit><rep>frequency</rep></lit>: Specifies the average pitch of the speaking voice in hertz (Hz).</doc:item>
+	<doc:item><lit>x-low</lit>, <lit>low</lit>, <lit>medium</lit>, <lit>high</lit>, <lit>x-high</lit>: These values do not map
+	to absolute frequencies since these values depend on the voice family. User agents should map these values to appropriate
+	frequencies based on the voice family and user environment. However, user agents must map these values in order (i.e.,
+	<lit>x-low</lit> is a lower frequency than <lit>low</lit>, etc.).</doc:item>
+	</doc:ulist>
 	"""
 
 class pitch_range(prop):
 	"""
+	<doc:par>Specifies variation in average pitch. The perceived pitch of a human voice is determined by the fundamental frequency
+	and typically has a value of 120Hz for a male voice and 210Hz for a female voice. Human languages are spoken with varying
+	inflection and pitch; these variations convey additional meaning and emphasis. Thus, a highly animated voice, i.e., one
+	that is heavily inflected, displays a high pitch range. This property specifies the range over which these variations
+	occur, i.e., how much the fundamental frequency may deviate from the average pitch.</doc:par>
+
+	<doc:par>Values have the following meanings:</doc:par>
+	<doc:ulist>
+	<doc:item><lit><rep>number</rep></lit>: A value between <lit>0</lit> and <lit>100</lit>. A pitch range of
+	<lit>0</lit> produces a flat, monotonic voice. A pitch range of <lit>50</lit> produces normal inflection.
+	Pitch ranges greater than <lit>50</lit> produce animated voices.</doc:item>
+	</doc:ulist>
 	"""
 	name = "pitch-range"
 
 class stress(prop):
 	"""
+	<doc:par>Specifies the height of <z>local peaks</z> in the intonation contour of a voice.
+	For example, English is a stressed language, and different parts of a sentence are assigned primary, secondary,
+	or tertiary stress. The value of <class>stress</class> controls the amount of inflection that results from these
+	stress markers. This property is a companion to the <pyref class="pitch_range"><class>pitch-range</class></pyref>
+	property and is provided to allow developers to exploit higher-end auditory displays.</doc:par>
+
+	<doc:par>Values have the following meanings:</doc:par>
+
+	<doc:ulist>
+	<doc:item><lit><rep>number</rep></lit>: A value, between <lit>0</lit> and <lit>100</lit>. The meaning of values
+	depends on the language being spoken. For example, a level of <lit>50</lit> for a standard, English-speaking
+	male voice (average pitch = 122Hz), speaking with normal intonation and emphasis would have a different meaning
+	than <lit>50</lit> for an Italian voice.</doc:item>
+	</doc:ulist>
 	"""
 
 class richness(prop):
 	"""
+	<doc:par>Specifies the richness, or brightness, of the speaking voice. A rich voice will <z>carry</z> in a large room,
+	a smooth voice will not. (The term <z>smooth</z> refers to how the wave form looks when drawn.)</doc:par>
+
+	<doc:par>Values have the following meanings:</doc:par>
+
+	<doc:ulist>
+	<doc:item><lit><rep>number</rep></lit>: A value between <lit>0</lit> and <lit>100</lit>. The higher the value,
+	the more the voice will carry. A lower value will produce a soft, mellifluous voice.</doc:item>
+	</doc:ulist>
 	"""
 
 class speak_punctuation(prop):
 	"""
+	<doc:par>This property specifies how punctuation is spoken. Values have the following meanings:</doc:par>
+
+	<doc:ulist>
+	<doc:item><lit>code</lit>: Punctuation such as semicolons, braces, and so on are to be spoken literally.</doc:item>
+	<doc:item><lit>none</lit>: Punctuation is not to be spoken, but instead rendered naturally as various pauses.</doc:item>
+	</doc:ulist>
 	"""
 	name = "speak-punctuation"
 
 class speak_numeral(prop):
 	"""
+	<doc:par>This property controls how numerals are spoken. Values have the following meanings:</doc:par>
+
+	<doc:ulist>
+	<doc:item><lit>digits</lit>: Speak the numeral as individual digits. Thus, <lit>237</lit> is spoken <z>Two Three Seven</z>.</doc:item>
+	<doc:item><lit>continuous</lit>: Speak the numeral as a full number. Thus,
+	<lit>237</lit> is spoken <z>Two hundred thirty seven</z>. Word representations are language-dependent.</doc:item>
+	</doc:ulist>
 	"""
 	name = "speak-numeral"
 

@@ -127,14 +127,14 @@ class class_(xsc.Element):
 			e = html.code(self.content, class_="class")
 		return e.convert(converter)
 
-class replaceable(xsc.Element):
+class rep(xsc.Element):
 	"""
 	Content that may or must be replaced by the user
 	"""
 	empty = 0
 
 	def convert(self, converter):
-		e = html.var(self.content, class_="replaceable")
+		e = html.var(self.content, class_="rep")
 		return e.convert(converter)
 
 class markup(xsc.Element):

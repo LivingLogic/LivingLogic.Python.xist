@@ -1933,10 +1933,10 @@ class Namespaces(object):
 		one to be searched. Items in namespaces can be:</doc:par>
 		<doc:olist>
 		<doc:item><pyref class="Namespace">namespace objects</pyref>,</doc:item>
-		<doc:item>Module objects, in which case <lit><replaceable>module</replaceable>.namespace</lit>
+		<doc:item>Module objects, in which case <lit><rep>module</rep>.namespace</lit>
 		will be used as the <pyref class="Namespace"><class>Namespace</class> object</pyref>,</doc:item>
 		<doc:item>strings, which specify the namespace
-		prefix, i.e. <lit>namespaceRegistry.byPrefix[<replaceable>string</replaceable>]</lit>
+		prefix, i.e. <lit>namespaceRegistry.byPrefix[<rep>string</rep>]</lit>
 		will be used.</doc:item>
 		</doc:olist>
 		"""

@@ -22,7 +22,7 @@
 """
 <doc:par>An &xist; module that contains elements that are useful for
 forms. These are just abbreviations for the various
-<lit>&lt;input type=<replaceable>...</replaceable>&gt;</lit> elements.</doc:par>
+<lit>&lt;input type=<rep>...</rep>&gt;</lit> elements.</doc:par>
 """
 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
