@@ -361,6 +361,7 @@ class XSCText(XSCNode):
 class XSCCharRef(XSCNode):
 	"""character reference (i.e &#42; or &#x42;)"""
 
+	__notdirect = { 0x3C : "lt" , 0x3E : "gt", 0x22 : "quot" , 0x27 : "apos" }
 	def __init__(self,content):
 		self.content = content
 
@@ -368,7 +369,13 @@ class XSCCharRef(XSCNode):
 		return XSCCharRef(self.content)
 
 	def dostr(self):
-		return '&#' + str(self.content) + ';'
+		if 0<=self.content<=127:
+			if self.__notdirect.has_key(self.content):
+				return '&' + self.__notdirect[self.content] + ';'
+			else:
+				return chr(self.content)
+		else:
+			return '&#' + str(self.content) + ';'
 
 	def _dorepr(self):
 		return '&#' + str(self.content) + ';'
@@ -819,6 +826,11 @@ def RegisterEntity(name,number):
 	XSCParser.entitiesByNumber[number].append(name)
 	XSCParser.entitiesByName[name] = number
 
+RegisterEntity("lf",10)
+RegisterEntity("cr",13)
+RegisterEntity("ht",9)
+RegisterEntity("tab",9)
+RegisterEntity("esc",27)
 RegisterEntity("nbsp",160)
 RegisterEntity("iexcl",161)
 RegisterEntity("cent",162)
