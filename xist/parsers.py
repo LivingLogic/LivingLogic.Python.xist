@@ -114,7 +114,7 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 	"""
 	encoding = "latin-1"
 
-	def __init__(self, naespaceHandling=0, bufsize=2**16-20):
+	def __init__(self, namespaceHandling=0, bufsize=2**16-20):
 		sax.xmlreader.IncrementalParser.__init__(self, bufsize)
 		self.bufsize = bufsize
 		self.reset()

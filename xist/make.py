@@ -52,7 +52,7 @@ def make():
 	use XSC as a compiler script, i.e. read an input file from args[1]
 	and writes it to args[2]
 	"""
-	(options, args) = getopt.getopt(sys.argv[1:], "p:i:o:e:x:m:f:", ["path=", "import=", "output=", "encoding=", "xhtml=", "mode=", "files="])
+	(options, args) = getopt.getopt(sys.argv[1:], "p:i:o:e:x:m:f:r:", ["path=", "import=", "output=", "encoding=", "xhtml=", "mode=", "files=", "parser="])
 
 	globaloutname = url.URL("*/")
 	encoding = None
@@ -74,6 +74,8 @@ def make():
 			mode = value
 		elif option=="-f" or option=="--files":
 			filesname = value
+		elif option=="-r" or option=="--parser":
+			parsername = value
 
 	files = []
 	if filesname is not None:
@@ -86,6 +88,12 @@ def make():
 	if files:
 		converter = converters.Converter(mode)
 		for file in files:
+			if parsername=="sgmlop":
+				parser = parsers.SGMLOPParser()
+			elif parsername=="expat":
+				parser = parsers.ExpatParser()
+			else:
+				raise ValueError("parser must be 'sgmlop' or 'expat', but not %r" % parsername)
 			inname = url.URL(file)
 			outname = globaloutname.clone()
 			if not outname.file:
