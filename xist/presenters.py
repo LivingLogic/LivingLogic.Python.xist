@@ -28,7 +28,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
 import os
-import xsc, options
+import xsc, options, url
 import ansistyle
 
 def getStringFromEnv(name, default):
@@ -188,6 +188,18 @@ class EnvTextForProcInstData(EnvText):
 	"""
 	color = getColorsFromEnv("XSC_REPRANSI_PROCINSTDATA", (0x7, 0x7))
 
+class EnvTextForNumber(EnvText):
+	"""
+	ANSI escape sequence to be used for numbers in error messages etc.
+	"""
+	color = getColorsFromEnv("XSC_REPRANSI_NUMBER", (0x4, 0x4))
+
+class EnvTextForString(EnvText):
+	"""
+	ANSI escape sequence to be used for variable strings in error messages etc.
+	"""
+	color = getColorsFromEnv("XSC_REPRANSI_STRING", (0x5, 0x5))
+
 class EscInlineText(ansistyle.EscapedText):
 	ascharref = "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x0b\x0c\x0d\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f<>&"
 	ascolor   = "\x09\x0a"
@@ -239,8 +251,16 @@ def strQuote():
 def strTab(count):
 	return EnvTextForTab(options.reprtab*count)
 
-def strURL(url):
-	return EnvTextForURL(EscInlineText(url))
+def strNumber(number):
+	return EnvTextForNumber(str(number))
+
+def strString(string):
+	return EnvTextForString(string)
+
+def strURL(u):
+	if isinstance(u, url.URL):
+		u = u.asString()
+	return EnvTextForURL(EscInlineText(u))
 
 def strDocTypeMarker():
 	return EnvTextForDocTypeMarker("DOCTYPE")
@@ -270,7 +290,7 @@ def strElementNameWithBrackets(namespacename=None, elementname=None):
 	return ansistyle.Text(strBracketOpen(), strElementName(namespacename, elementname), EnvTextForBracket(">"))
 
 def strElement(node):
-	if hasattr(node, "namespace"):
+	if hasattr(node, "namespace") and node.presentPrefix!=0:
 		namespacename = node.namespace.prefix
 	else:
 		namespacename = None
@@ -299,7 +319,7 @@ def strEntityName(namespacename=None, entityname=None):
 	return s
 
 def strEntity(node):
-	if hasattr(node, "namespace"):
+	if hasattr(node, "namespace") and node.presentPrefix!=0:
 		namespacename = node.namespace.prefix
 	else:
 		namespacename = None
@@ -309,8 +329,19 @@ def strEntity(node):
 		entityname = node.__class__.__name__
 	return strEntityName(namespacename, entityname)
 
-def strProcInstTarget(target):
-	return EnvTextForProcInstTarget(EscInlineText(target))
+def strProcInstTarget(namespacename=None, target=None):
+	s = ansistyle.Text()
+	if namespacename is not None:
+		if namespacename=="":
+			namespacename = "unnamed"
+		s.append(
+			EnvTextForNamespace(EscInlineText(namespacename)),
+			EnvTextForColon(":")
+		)
+	if target is None:
+		target = "unnamed"
+	s.append(EnvTextForProcInstTarget(EscInlineText(target)))
+	return s
 
 def strProcInstData(data):
 	return EnvTextForProcInstData(EscInlineText(data))
@@ -322,14 +353,18 @@ def strTextInAttr(text):
 	return EnvTextForAttrValue(EscInlineAttr(text))
 
 def strProcInst(node):
+	if hasattr(node, "namespace") and node.presentPrefix!=0:
+		namespacename = node.namespace.prefix
+	else:
+		namespacename = None
 	if hasattr(node, "name"):
 		target = node.name
 	else:
 		target = node.__class__.__name__
-	return strProcInstTarget(target)
+	return strProcInstTarget(namespacename, target)
 
-def strProcInstTargetWithBrackets(target):
-	return ansistyle.Text(strBracketOpen(), strQuestion(), strProcInstTarget(target), strQuestion(), strBracketClose())
+def strProcInstTargetWithBrackets(namespacename=None, target=None):
+	return ansistyle.Text(strBracketOpen(), strQuestion(), strProcInstTarget(namespacename, target), strQuestion(), strBracketClose())
 
 def strProcInstWithBrackets(node):
 	return ansistyle.Text(strBracketOpen(), strQuestion(), strProcInst(node), strQuestion(), strBracketClose())
@@ -384,7 +419,7 @@ class NormalPresenter:
 		self.buffer.append(
 			strBracketOpen(),
 			strQuestion(),
-			strProcInstTarget(node._target),
+			strProcInst(node),
 			" ",
 			strProcInstData(node._content),
 			strQuestion(),

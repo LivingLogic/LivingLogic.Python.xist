@@ -6,7 +6,7 @@ The publishing interface has changed internally
 and publishing should be faster now.
 
 Publishers now support a new parameter:
-usePrefix, which specifies if namespace prefixes
+publishPrefix, which specifies if namespace prefixes
 should be output for the element names.
 
 Part of the implementation of the publishing
@@ -44,7 +44,10 @@ is a file containing a list of filenames (one
 name per line) that should be transformed.
 
 All abbreviation entities haven been moved to
-a new module abbr.py
+a new module abbr.py.
+
+All the modules that provide new elements and entitites
+have been moved to a submodule ns.
 
 New in 0.4.7
 ------------

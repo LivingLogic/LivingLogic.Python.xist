@@ -7,7 +7,7 @@ For documentation read xist/xsc.py.
 
 The requirements for installing the package are Python 2.0,
 the Python XML package (http://pyxml.sourceforge.net/)
-(a newer version that includes sgmlop, 0.6.2 will do),
+(a newer version that includes sgmlop and expat, 0.6.2 will do),
 the Python Imaging Library
 (available from http://www.pythonware.com/products/pil/)
 and a C compiler.

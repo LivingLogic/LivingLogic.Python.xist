@@ -36,7 +36,7 @@ class Publisher:
 	base class for all publishers.
 	"""
 
-	def __init__(self, base=None, encoding=None, XHTML=None, usePrefix=0):
+	def __init__(self, base=None, encoding=None, XHTML=None, publishPrefix=0):
 		"""
 		<par><argref>base</argref> specifies the url to which the result
 		will be output.</par>
@@ -65,7 +65,7 @@ class Publisher:
 		by the environment variable XSC_OUTPUT_XHTML and can of course be
 		changed dynamically.</par>
 
-		<par>usePrefix specifies if the prefix from element name should be output too.</par>
+		<par>publishPrefix specifies if the prefix from element name should be output too.</par>
 		"""
 		if base is None:
 			base = url.URL("*/")
@@ -78,7 +78,7 @@ class Publisher:
 		if XHTML<0 or XHTML>2:
 			raise ValueError("XHTML must be 0, 1 or 2, not %r" % (XHTML,))
 		self.XHTML = XHTML
-		self.usePrefix = usePrefix
+		self.publishPrefix = publishPrefix
 		self.inAttr = 0
 
 	def publish(self, text):
@@ -99,8 +99,8 @@ class FilePublisher(Publisher):
 	"""
 	writes the strings to a file.
 	"""
-	def __init__(self, file, base=None, encoding=None, XHTML=None, usePrefix=0):
-		Publisher.__init__(self, base=base, encoding=encoding, XHTML=XHTML, usePrefix=usePrefix)
+	def __init__(self, file, base=None, encoding=None, XHTML=None, publishPrefix=0):
+		Publisher.__init__(self, base=base, encoding=encoding, XHTML=XHTML, publishPrefix=publishPrefix)
 		(encode, decode, streamReaderClass, streamWriterClass) = codecs.lookup(self.encoding)
 		self.file = streamWriterClass(file)
 
@@ -117,8 +117,8 @@ class PrintPublisher(FilePublisher):
 	"""
 	writes the strings to <code>sys.stdout</code>.
 	"""
-	def __init__(self, base=None, encoding=None, XHTML=None, usePrefix=0):
-		FilePublisher.__init__(self, sys.stdout, base=base, encoding=encoding, XHTML=XHTML, usePrefix=usePrefix)
+	def __init__(self, base=None, encoding=None, XHTML=None, publishPrefix=0):
+		FilePublisher.__init__(self, sys.stdout, base=base, encoding=encoding, XHTML=XHTML, publishPrefix=publishPrefix)
 
 class StringPublisher(Publisher):
 	"""
@@ -127,8 +127,8 @@ class StringPublisher(Publisher):
 	<methodref>asString</methodref>
 	"""
 
-	def __init__(self, base=None, XHTML=None, usePrefix=0):
-		Publisher.__init__(self, base=base, encoding="utf16", XHTML=XHTML, usePrefix=usePrefix)
+	def __init__(self, base=None, XHTML=None, publishPrefix=0):
+		Publisher.__init__(self, base=base, encoding="utf16", XHTML=XHTML, publishPrefix=publishPrefix)
 		self.texts = []
 
 	def publish(self, text):
@@ -148,8 +148,8 @@ class BytePublisher(Publisher):
 	string suitable for writing to a file.
 	"""
 
-	def __init__(self, base=None, encoding=None, XHTML=None, usePrefix=0):
-		Publisher.__init__(self, base=base, encoding=encoding, XHTML=XHTML, usePrefix=usePrefix)
+	def __init__(self, base=None, encoding=None, XHTML=None, publishPrefix=0):
+		Publisher.__init__(self, base=base, encoding=encoding, XHTML=XHTML, publishPrefix=publishPrefix)
 		self.texts = []
 
 	def publish(self, text):

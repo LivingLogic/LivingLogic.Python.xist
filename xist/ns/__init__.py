@@ -3,6 +3,6 @@
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-__all__ = ["xsc", "publishers", "presenters", "parsers", "publishers", "ns"]
+__all__ = ["html", "wml", "abbr", "cond", "docbook", "form", "jsp", "meta", "ruby", "specials"]
 
 

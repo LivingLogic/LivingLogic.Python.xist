@@ -56,7 +56,7 @@ class EmptyElementWithContentError(Error):
 	"""
 
 	def __init__(self, element):
-		Error.__init__(self, element.startloc)
+		Error.__init__(self, element.startLoc)
 		self.element = element
 
 	def __str__(self):
@@ -163,7 +163,7 @@ class IllegalProcInstError(Error):
 			procinst = all[key]
 			allAsList.append(str(presenters.strProcInstWithBrackets(procinst)))
 
-		s = Error.__str__(self) + "procinst %s not allowed. " % presenters.strProcInstWithBrackets(self.name[0], self.name[1])
+		s = Error.__str__(self) + "procinst %s not allowed. " % presenters.strProcInstTargetWithBrackets(self.name[0], self.name[1])
 		if allAsList:
 			s = s + "Allowed procinsts are: " + ", ".join(allAsList) + "."
 		else:
@@ -203,7 +203,7 @@ class ImageSizeFormatError(Error):
 	"""
 
 	def __init__(self, element, attrname):
-		Error.__init__(self, element.startloc)
+		Error.__init__(self, element.startLoc)
 		self.element = element
 		self.attrname = attrname
 

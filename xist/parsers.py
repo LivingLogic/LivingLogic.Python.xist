@@ -35,6 +35,7 @@ import urllib
 from xml import sax
 from xml.parsers import sgmlop
 from xml.sax import expatreader
+from xml.sax import saxlib
 
 #try:
 #	import timeoutsocket
@@ -121,6 +122,51 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 		self.bufsize = bufsize
 		self.reset()
 
+	def reset(self):
+		self.parser=sgmlop.XMLParser()
+		self._parsing = 0
+		self.source = None
+		self.lineNumber = -1
+		self.columnNumber = -1
+
+	def feed(self, data):
+		if not self._parsing:
+			self.content_handler.startDocument()
+			self._parsing = 1
+		self.parser.feed(data)
+
+	def close(self):
+		self.parser.close()
+		self.content_handler.endDocument()
+
+	def parse(self, source):
+		self.source = source
+		file = source.getByteStream()
+		self._parsing = 1
+		self.content_handler.setDocumentLocator(self)
+		self.content_handler.startDocument()
+		self.lineNumber = 1
+		# nothing done for the column number, because otherwise parsing would be much to slow.
+
+		try:
+			while 1:
+				data = file.read(self.bufsize)
+				if not data:
+					break
+				while 1:
+					pos = data.find("\n")
+					if pos==-1:
+						break
+					self.parser.feed(data[:pos+1])
+					data = data[pos+1:]
+					self.lineNumber += 1
+				self.parser.feed(data)
+			self.close()
+		except Exception, ex:
+			print ex
+			raise saxlib.SAXParseException("parse error: %s" % ex, ex, self)
+		self.source = None
+
 	def setErrorHandler(self, handler):
 		self.parser.register(self)
 		self.error_handler = handler
@@ -137,38 +183,25 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 		self.parser.register(self)
 		self.entity_resolver = handler
 
-	def parse(self, source):
-		self.source = source
-		file = source.getByteStream()
-		self._parsing = 1
-		self.content_handler.setDocumentLocator(self)
-		self.content_handler.startDocument()
-
-		while 1:
-			data = file.read(self.bufsize)
-			if not data:
-				break
-			self.parser.feed(data)
-
-		self.close()
-		self.source = None
-
 	# Locator methods will be called by the application
 	def getColumnNumber(self):
 		if self.parser is None:
 			return -1
-		return -1 # FIXME
+		return self.columnNumber
 
 	def getLineNumber(self):
 		if self.parser is None:
 			return -1
-		return -1 # FIXME
+		return self.lineNumber
 
 	def getPublicId(self):
-		if self.source is not None:
+		if self.source is None:
+			return None
 		return self.source.getPublicId()
 
 	def getSystemId(self):
+		if self.source is None:
+			return None
 		return self.source.getSystemId()
 
 	def handle_cdata(self, data):
@@ -200,22 +233,6 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 	def finish_endtag(self,name):
 		self.content_handler.endElement(unicode(name, self.encoding))
 
-	def reset(self):
-		self.parser=sgmlop.XMLParser()
-		self._parsing = 0
-		self.source = None
-		self.lineno = -1
-
-	def feed(self, data):
-		if not self._parsing:
-			self.content_handler.startDocument()
-			self._parsing = 1
-		self.parser.feed(data)
-
-	def close(self):
-		self.parser.close()
-		self.content_handler.endDocument()
-
 ExpatParser = expatreader.ExpatParser
 
 class Handler:
@@ -231,8 +248,6 @@ class Handler:
 		if namespaces is None:
 			namespaces = xsc.defaultNamespaces
 		self.namespaces = namespaces
-
-		self.server = "localhost"
 
 		parser.setErrorHandler(self)
 		parser.setContentHandler(self)
@@ -273,7 +288,7 @@ class Handler:
 		currentelement = self.__nesting[-1].__class__
 		if element != currentelement:
 			raise errors.IllegalElementNestingError(self.getLocation(), currentelement, element)
-		self.__nesting[-1].endloc = self.getLocation()
+		self.__nesting[-1].endLoc = self.getLocation()
 		self.__nesting.pop() # pop the innermost element off the stack
 
 	def characters(self, content):
@@ -288,6 +303,18 @@ class Handler:
 
 	def entity(self, name):
 		self.__appendNode(self.namespaces.entityFromName(name)())
+
+	def error(self, exception):
+		"Handle a recoverable error."
+		raise exception
+
+	def fatalError(self, exception):
+		"Handle a non-recoverable error."
+		raise exception
+
+	def warning(self, exception):
+		"Handle a warning."
+		print exception
 
 	def handle_charref(self, name):
 		try:
@@ -307,10 +334,10 @@ class Handler:
 			return 0
 
 	def getLocation(self):
-		return xsc.Location(url_.URL(self._locator.getSystemId()), self._locator.getLineNumber(), self._locator.getColumnNumber())
+		return xsc.Location(self._locator)
 
 	def __appendNode(self, node):
-		node.startloc = self.getLocation()
+		node.startLoc = self.getLocation()
 		last = self.__nesting[-1]
 		if len(last) and isinstance(last[-1], xsc.Text):
 			if isinstance(node, xsc.Text):

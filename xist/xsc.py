@@ -199,7 +199,7 @@ the following XML file:
 	def gauss(top=100):
 		sum = 0
 		for i in xrange(top+1):
-			sum = sum + i
+			sum += i
 		return sum
 	?>
 	<b><?xsc-eval return gauss()?></b>
@@ -213,15 +213,12 @@ Requirements
 ============
 XSC requires Python 2.0b2.
 
-XSC uses sgmlop for parsing XML files, so you either need the
-Python XML package (at least 0.5.5.1) (newer versions are
-available from http://sourceforge.net/projects/pyxml/),
-or a standalone version of sgmlop
-(available from http://www.pythonware.com/products/xml/
-or from ftp://titan.bnbt.de/pub/livinglogic/xist/)
+XSC uses the Python XML package for parsing XML files, so you'll
+need the Python XML package (at least 0.5.5.1)
+(available from http://pyxml.sourceforge.net/).
 
 To determine image sizes, XSC needs the Python Imaging library
-(available from http://www.pythonware.com/products/pil/)
+(available from http://www.pythonware.com/products/pil/).
 """
 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
@@ -232,16 +229,13 @@ import string
 import types
 import sys
 
+from xml.sax import saxutils
+
 import stat # for file size checking
 import Image # for image size checking
-try:
-	import sgmlop # for parsing XML files
-except ImportError:
-	from xml.parsers import sgmlop # get it from the XML package
 import urllib # for reading remote files
 import procinst # our sandbox
 import url # our own new URL class
-import providers # classes that generate XSC trees
 import presenters # classes that dump XSC trees
 import publishers # classes for writing XSC strings
 import errors # exceptions
@@ -312,11 +306,21 @@ class Node:
 
 	empty = 1
 
-	# location of this node in a file (will be hidden in derived classes, but is
+	# location of this node in the XML file (will be hidden in derived classes, but is
 	# specified here, so that no special tests are required. In derived classes
 	# this will be set by the parser)
-	startloc = None
-	endloc = None
+	startLoc = None
+	endLoc = None
+
+	# specifies if a prefix should be presented or published. Can be 0 or 1 or None
+	# which mean use the default
+	presentPrefix = None
+	publishPrefix = None
+
+	# specifies that this class should be registered in a namespace
+	# this won't be used for all the DOM classes (Element, ProcInst etc.) themselves but only for derived classes
+	# i.e. Node, Element etc. will never be registered
+	register = 1
 
 	def __repr__(self):
 		return self.repr(presenters.defaultPresenterClass())
@@ -362,7 +366,7 @@ class Node:
 	def _doreprtree(self, nest, elementno, presenter):
 		# returns an array containing arrays consisting of the
 		# (nestinglevel, location, elementnumber, string representation) of the nodes
-		return [[nest, self.startloc, elementno, self._dorepr(presenter)]]
+		return [[nest, self.startLoc, elementno, self._dorepr(presenter)]]
 
 	def convert(self, converter=None):
 		"""
@@ -446,35 +450,35 @@ class Node:
 		"""
 		pass
 
-	def asString(self, XHTML=None, usePrefix=0):
+	def asString(self, XHTML=None, publishPrefix=0):
 		"""
 		<par noindent>returns this element as a unicode string.</par>
 
-		<par>For an explanation of <argref>XHTML</argref> see <funcref>publish</funcref>.</par>
+		<par>For an explanation of <argref>XHTML</argref> and <argref>publishPrefix</argref> see <funcref>publish</funcref>.</par>
 		"""
-		publisher = publishers.StringPublisher(XHTML=XHTML, usePrefix=usePrefix)
+		publisher = publishers.StringPublisher(XHTML=XHTML, publishPrefix=publishPrefix)
 		self.publish(publisher)
 		return publisher.asString()
 
-	def asBytes(self, base=None, encoding=None, XHTML=None, usePrefix=0):
+	def asBytes(self, base=None, encoding=None, XHTML=None, publishPrefix=0):
 		"""
 		<par noindent>returns this element as a byte string suitable for writing
 		to an HTML file or printing from a CGI script.</par>
 
 		<par>For the parameters see <funcref>publish</funcref>.</par>
 		"""
-		publisher = publishers.BytePublisher(base=base, encoding=encoding, XHTML=XHTML, usePrefix=usePrefix)
+		publisher = publishers.BytePublisher(base=base, encoding=encoding, XHTML=XHTML, publishPrefix=publishPrefix)
 		self.publish(publisher)
 		return publisher.asBytes()
 
-	def write(self, file, base=None, encoding=None, XHTML=None, usePrefix=0):
+	def write(self, file, base=None, encoding=None, XHTML=None, publishPrefix=0):
 		"""
 		<par noindent>writes the element to the file like
 		object <argref>file</argref></par>
 
 		<par>For the parameters see <funcref>publish</funcref>.</par>
 		"""
-		publisher = publishers.FilePublisher(file, base=base, encoding=encoding, XHTML=XHTML, usePrefix=usePrefix)
+		publisher = publishers.FilePublisher(file, base=base, encoding=encoding, XHTML=XHTML, publishPrefix=publishPrefix)
 		self.publish(publisher)
 
 	def find(self, type=None, subtype=0, attrs=None, test=None, searchchildren=0, searchattrs=0):
@@ -580,18 +584,18 @@ class Node:
 		location is unknown.
 		"""
 
-		if self.startloc is None:
+		if self.startLoc is None:
 			return None
 		else:
-			return Location(self.startloc.url, self.startloc.row + relrow)
+			return Location(locator=self.startLoc, lineNumber=self.startLoc.getLineNumber()+relrow)
 
 	def _decorateNode(self, node):
 		"""
 		decorate the node <argref>node</argref> with the same location information as <self/>.
 		"""
 
-		node.startloc = self.startloc
-		node.endloc = self.endloc
+		node.startLoc = self.startLoc
+		node.endLoc = self.endLoc
 		return node
 
 class StringMixIn:
@@ -808,14 +812,14 @@ class Frag(Node):
 	def _doreprtree(self, nest, elementno, presenter):
 		v = []
 		if len(self):
-			v.append([nest, self.startloc, elementno, self._str(brackets=1, ansi=presenter.ansi)])
+			v.append([nest, self.startLoc, elementno, self._str(brackets=1, ansi=presenter.ansi)])
 			i = 0
 			for child in self.__content:
 				v.extend(child._doreprtree(nest+1, elementno + [i], presenter))
 				i += 1
-			v.append([nest, self.endloc, elementno, self._str(brackets=1, ansi=presenter.ansi, slash=-1)])
+			v.append([nest, self.endLoc, elementno, self._str(brackets=1, ansi=presenter.ansi, slash=-1)])
 		else:
-			v.append([nest, self.startloc, elementno, self._str(brackets=1, ansi=presenter.ansi, slash=1)])
+			v.append([nest, self.startLoc, elementno, self._str(brackets=1, ansi=presenter.ansi, slash=1)])
 		return v
 
 	def asPlainString(self):
@@ -992,9 +996,9 @@ class Comment(Node, StringMixIn):
 
 	def publish(self, publisher):
 		if publisher.inAttr:
-			raise errors.IllegalAttrNodeError(self.startloc, self)
+			raise errors.IllegalAttrNodeError(self.startLoc, self)
 		if self._content.find(u"--")!=-1 or self._content[-1:]==u"-":
-			raise errors.IllegalCommentContentError(self.startloc, self)
+			raise errors.IllegalCommentContentError(self.startLoc, self)
 		publisher.publish(u"<!--")
 		publisher.publish(self._content)
 		publisher.publish(u"-->")
@@ -1025,7 +1029,7 @@ class DocType(Node, StringMixIn):
 
 	def publish(self, publisher):
 		if publisher.inAttr:
-			raise errors.IllegalAttrNodeError(self.startloc, self)
+			raise errors.IllegalAttrNodeError(self.startLoc, self)
 		publisher.publish(u"<!DOCTYPE ")
 		publisher.publish(self._content)
 		publisher.publish(u">")
@@ -1061,16 +1065,23 @@ class ProcInst(Node, StringMixIn):
 		presenter.presentProcInst(self)
 
 	def _doreprtree(self, nest, elementno, presenter):
-		head = presenter.strBracketOpen() + presenter.strQuestion() + presenter.strProcInstTarget(self._target.encode(presenter.encoding)) + " "
+		head = presenter.strBracketOpen() + presenter.strQuestion() + presenter.strProcInst(self) + " "
 		tail = presenter.strQuestion() + presenter.strBracketClose()
 		return self._doreprtreeMultiLine(nest, elementno, head, tail, self._content.encode(presenter.encoding), presenter.strProcInstData, 1, presenter)
 
 	def publish(self, publisher):
 		if publisher.inAttr:
-			raise errors.IllegalAttrNodeError(self.startloc, self)
+			raise errors.IllegalAttrNodeError(self.startLoc, self)
 		if self._content.find(u"?>")!=-1:
-			raise errors.IllegalProcInstFormatError(self.startloc, self)
+			raise errors.IllegalProcInstFormatError(self.startLoc, self)
 		publisher.publish(u"<?")
+		if self.publishPrefix is not None:
+			publishPrefix = self.publishPrefix
+		else:
+			publishPrefix = publisher.publishPrefix
+		if publishPrefix:
+			publisher.publish(self.namespace.prefix) # must be registered to work
+			publisher.publish(u" ")
 		publisher.publish(self._target)
 		publisher.publish(u" ")
 		publisher.publish(self._content)
@@ -1081,7 +1092,9 @@ class PythonCode(ProcInst):
 	helper class
 	"""
 
-	name = None # don't register the class
+	register = 0 # don't register the class
+	presentPrefix = 1
+	publishPrefix = 1
 
 	def _doreprtree(self, nest, elementno, encoding=None, ansi=None):
 		head = strBracketOpen(ansi) + strQuestion(ansi) + strProcInstTarget(self._target, ansi) + " "
@@ -1102,7 +1115,7 @@ class Exec(PythonCode):
 	<par>XSC processing instructions will be evaluated and executed in the
 	namespace of the module procinst.</par>
 	"""
-	name = u"xsc-exec"
+	name = u"exec"
 
 	def __init__(self, content=u""):
 		ProcInst.__init__(self, u"xsc-exec", content)
@@ -1127,7 +1140,7 @@ class Eval(PythonCode):
 	processing instructions, as it is used by XSC for internal purposes.</par>
 	"""
 
-	name = u"xsc-eval"
+	name = u"eval"
 
 	def __init__(self, content=u""):
 		ProcInst.__init__(self, u"xsc-eval", content)
@@ -1148,6 +1161,8 @@ class XML(ProcInst):
 	"""
 
 	name = u"xml"
+	presentPrefix = 0
+	publishPrefix = 0
 
 	def __init__(self, content=u""):
 		ProcInst.__init__(self, u"xml", content)
@@ -1184,7 +1199,8 @@ class XML10(XML):
 	"""
 	XML header version 1.0
 	"""
-	name = None # don't register this ProcInst, because it will never be parsed from a file, this is just a convenience class
+	register = 0 # don't register this ProcInst, because it will never be parsed from a file, this is just a convenience class
+
 	def __init__(self):
 		XML.__init__(self, 'version="1.0"')
 
@@ -1194,6 +1210,8 @@ class XMLStyleSheet(ProcInst):
 	"""
 
 	name = u"xml-stylesheet"
+	presentPrefix = 0
+	publishPrefix = 0
 
 	def __init__(self, content=u""):
 		ProcInst.__init__(self, u"xml-stylesheet", content)
@@ -1329,24 +1347,28 @@ class Element(Node):
 	def _doreprtree(self, nest, elementno, presenter):
 		v = []
 		if self.empty:
-			v.append([nest, self.startloc, elementno, self._str(content=self.__strattrs(presenter), brackets=1, slash=1, ansi=presenter.ansi)])
+			v.append([nest, self.startLoc, elementno, self._str(content=self.__strattrs(presenter), brackets=1, slash=1, ansi=presenter.ansi)])
 		else:
-			v.append([nest, self.startloc, elementno, self._str(content=self.__strattrs(presenter), brackets=1, ansi=presenter.ansi)])
+			v.append([nest, self.startLoc, elementno, self._str(content=self.__strattrs(presenter), brackets=1, ansi=presenter.ansi)])
 			i = 0
 			for child in self:
 				v.extend(child._doreprtree(nest+1, elementno + [i], presenter))
 				i += 1
-			if self.startloc is None:
-				v.append([nest, self.startloc, elementno, self._str(brackets=1, slash=-1, ansi=presenter.ansi)])
+			if self.startLoc is None:
+				v.append([nest, self.startLoc, elementno, self._str(brackets=1, slash=-1, ansi=presenter.ansi)])
 			else:
-				v.append([nest, self.endloc, elementno, self._str(brackets=1, slash=-1, ansi=presenter.ansi)])
+				v.append([nest, self.endLoc, elementno, self._str(brackets=1, slash=-1, ansi=presenter.ansi)])
 		return v
 
 	def publish(self, publisher):
 		if publisher.inAttr:
-			raise errors.IllegalAttrNodeError(self.startloc, self)
+			raise errors.IllegalAttrNodeError(self.startLoc, self)
 		publisher.publish(u"<")
-		if publisher.usePrefix==1:
+		if self.publishPrefix is not None:
+			publishPrefix = self.publishPrefix
+		else:
+			publishPrefix = publisher.publishPrefix
+		if publishPrefix:
 			publisher.publish(self.namespace.prefix) # requires that the element is registered via registerElement()
 			publisher.publish(u":")
 		publisher.publish(self.name) # requires that the element is registered via registerElement()
@@ -1369,7 +1391,7 @@ class Element(Node):
 			publisher.publish(u">")
 			self.content.publish(publisher)
 			publisher.publish(u"</")
-			if publisher.usePrefix==1:
+			if publishPrefix:
 				publisher.publish(self.namespace.prefix) # requires that the element is registered via registerElement()
 				publisher.publish(u":")
 			publisher.publish(self.name)
@@ -1382,7 +1404,7 @@ class Element(Node):
 					publisher.publish(u">")
 				else:
 					publisher.publish(u"></")
-					if publisher.usePrefix==1:
+					if publishPrefix:
 						publisher.publish(self.namespace.prefix) # requires that the element is registered via registerElement()
 						publisher.publish(u":")
 					publisher.publish(self.name)
@@ -1539,10 +1561,17 @@ class Entity(Node):
 		presenter.presentEntity(self)
 
 	def _doreprtree(self, nest, elementno, presenter):
-		return [[nest, self.startloc, elementno, self._dorepr(presenter)]]
+		return [[nest, self.startLoc, elementno, self._dorepr(presenter)]]
 
 	def publish(self, publisher):
 		publisher.publish(u"&")
+		if self.publishPrefix is not None:
+			publishPrefix = self.publishPrefix
+		else:
+			publishPrefix = publisher.publishPrefix
+		if publishPrefix:
+			publisher.publish(self.namespace.prefix) # requires that the entity is registered via Namespace.register()
+			publisher.publish(u":")
 		publisher.publish(self.name) # requires that the entity is registered via Namespace.register()
 		publisher.publish(u";")
 
@@ -1572,7 +1601,7 @@ class Null(Node):
 		presenter.presentNull(self)
 
 	def _doreprtree(self, nest, elementno, presenter):
-		return [[nest, self.startloc, elementno, self._dorepr(presenter)]]
+		return [[nest, self.startLoc, elementno, self._dorepr(presenter)]]
 
 Null = Null() # Singleton, the Python way
 
@@ -1595,7 +1624,7 @@ class Attr(Frag):
 
 	def publish(self, publisher):
 		if publisher.inAttr:
-			raise errors.IllegalAttrNodeError(self.startloc, self)
+			raise errors.IllegalAttrNodeError(self.startLoc, self)
 		publisher.inAttr = 1
 		Frag.publish(self, publisher)
 		publisher.inAttr = 0
@@ -1644,8 +1673,8 @@ class URLAttr(Attr):
 	deep in a different directory than "dir".
 
 	Server relative URLs will be shown with the pseudo scheme "server". For checking these URLs
-	for image or file size, a http request will be made to the server specified in the "server"
-	option.
+	for image or file size, a http request will be made to the server specified in the server
+	option (options.server).
 
 	For all other URLs a normal request will be made corresponding to the specified scheme
 	(http, ftp, etc.)
@@ -1685,15 +1714,15 @@ class URLAttr(Attr):
 		return node
 
 	def asURL(self):
-		return self.base+url.URL(Attr.asPlainString(self))
+		return url.URL(Attr.asPlainString(self))
 
 	def asPlainString(self):
 		return self.asURL().asString()
 
 	def forInput(self):
-		u = self.asURL()
+		u = self.base + self.asURL()
 		if u.scheme == "server":
-			u = u.relativeTo(url.URL(scheme="http", server=xsc.server))
+			u = u.relativeTo(url.URL(scheme="http", server=options.server))
 		return u
 
 	def ImageSize(self):
@@ -1713,7 +1742,7 @@ class URLAttr(Attr):
 				urllib.urlcleanup()
 			except IOError:
 				urllib.urlcleanup()
-				raise errors.FileNotFoundError(self.startloc, url)
+				raise errors.FileNotFoundError(self.startLoc, url)
 		return size
 
 	def FileSize(self):
@@ -1731,7 +1760,7 @@ class URLAttr(Attr):
 				urllib.urlcleanup()
 			except IOError:
 				urllib.urlcleanup()
-				raise errors.FileNotFoundError(self.startloc, url)
+				raise errors.FileNotFoundError(self.startLoc, url)
 		return size
 
 	def open(self):
@@ -1790,12 +1819,15 @@ class Namespace:
 			isentity = thing is not Entity and issubclass(thing, Entity)
 			isprocinst = thing is not ProcInst and issubclass(thing, ProcInst)
 			if iselement or isentity or isprocinst:
-				if not thing.__dict__.has_key("namespace"): # if the class already has a namespace attribute, it is already registered (we're accessing __dict__ here, because we don't want the attribute from the base class object)
+				# if the class attribute register is 0, the class won't be registered
+				# and if the class already has a namespace attribute, it is already registered, so it won't be registered again
+				# (we're accessing __dict__ here, because we don't want the attribute from the base class object)
+				if thing.register and (not thing.__dict__.has_key("namespace")):
 					try:
-						name = thing.__dict__["name"] # no inheritance
+						name = thing.__dict__["name"] # no inheritance, otherwise we might get the name attribute from an already registered base class
 					except KeyError:
 						name = thing.__name__
-					thing.namespace = self # this creates a cycle, but namespaces aren't constantly created and deleted (and Python will get a GC some day ;))
+					thing.namespace = self # this creates a cycle
 					if name is not None:
 						name = utils.stringFromCode(name)
 						thing.name = name
@@ -1920,7 +1952,7 @@ class amp(Entity): "ampersand, U+0026 ISOnum"; codepoint = 38
 class lt(Entity): "less-than sign, U+003C ISOnum"; codepoint = 60
 class gt(Entity): "greater-than sign, U+003E ISOnum"; codepoint = 62
 
-namespace = Namespace("", "", vars())
+namespace = Namespace("xsc", "", vars())
 
 defaultNamespaces = Namespaces()
 
@@ -1930,24 +1962,73 @@ defaultNamespaces = Namespaces()
 
 class Location:
 	"""
-	specifies a position in an XML file.
+	Represents a location in an XML entity.
 	"""
 
-	def __init__(self, url=None, row=-1, col=-1):
-		self.url = url
-		self.row = row
-		self.col = col
+	def __init__(self, locator=None, sysID=None, pubID=None, lineNumber=-1, columnNumber=-1):
+		"""
+		Initialized by being passed a locator, from which it reads off the current location,
+		which is then stored internally. In addition to that the systemID, public ID, line number
+		and column number can be overwritten by explicit arguments.
+		"""
+		if locator is not None:
+			self.__sysID = locator.getSystemId()
+			self.__pubID = locator.getPublicId()
+			self.__lineNumber = locator.getLineNumber()
+			self.__columnNumber = locator.getColumnNumber()
+		else:
+			self.__sysID = None
+			self.__pubID = None
+			self.__lineNumber = -1
+			self.__columnNumber = -1
+		if self.__sysID is None:
+			self.__sysID = sysID
+		if self.__pubID is None:
+			self.__pubID = pubID
+		if self.__lineNumber == -1:
+			self.__lineNumber = lineNumber
+		if self.__columnNumber == -1:
+			self.__columnNumber = columnNumber
+
+	def getColumnNumber(self):
+		"Return the column number of this location."
+		return self.__columnNumber
+
+	def getLineNumber(self):
+		"Return the line number of this location."
+		return self.__lineNumber
+
+	def getPublicId(self):
+		"Return the public identifier for this location."
+		return self.__pubID
+
+	def getSystemId(self):
+		"Return the system identifier for this location."
+		return self.__sysID
 
 	def __str__(self):
-		if self.url is not None:
-			s = '"' + self.url.asString() + '" ('
-			s += "L" + str(self.row)
-			if self.col!=-1:
-				s += "C" + str(self.col)
-			s += ")"
-			return s
+		# get and format the system ID
+		sysID = self.getSystemId()
+		if sysID is None:
+			sysID = "<unknown>"
+
+		# get and format the line number
+		line = self.getLineNumber()
+		if line==-1:
+			line = "?"
 		else:
-			return ""
+			line = str(line)
+
+		# get and format the column number
+		column = self.getColumnNumber()
+		if column==-1:
+			column = "?"
+		else:
+			column = str(column)
+
+		# now we have the parts => format them
+		return "%s:%s:%s" % (presenters.strURL(sysID), presenters.strNumber(line), presenters.strNumber(column))
 
 	def __repr__(self):
-		return "Location(%r, %r, %r)" % (self.url, self.row, self.col)
+		return "<%s object sysID=%r, pubID=%r, lineNumber=%r, columnNumber=%r at %08x>" % \
+			(self.__class__.__name__, self.getSystemId(), self.getPublicId(), self.getLineNumber(), self.getColumnNumber(), id(self))

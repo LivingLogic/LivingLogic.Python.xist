@@ -60,3 +60,5 @@ reprtab = getStringFromEnv("XSC_REPRTAB", "  ")                                 
 outputXHTML = getIntFromEnv("XSC_OUTPUT_XHTML", 1)                                      # XHTML output format (0 = plain HTML, 1 = HTML compatible XHTML, 2 = pure XHTML)
 outputEncoding = getStringFromEnv("XSC_OUTPUT_ENCODING", "us-ascii")                    # Encoding to be used in publish() (and asBytes())
 reprEncoding = sys.getdefaultencoding()
+
+server = "localhost" # Host for server relative URLs
