@@ -609,7 +609,8 @@ You could for example extract all the links on Python's
 &gt;&gt;&gt; from xist import xsc, parsers
 &gt;&gt;&gt; from xist.ns import html
 &gt;&gt;&gt; node = parsers.parseTidyURL("http://python.sf.net/")
-&gt;&gt;&gt; links = node.find(type=html.a, attr={"href": None}, searchchildren=1)
+&gt;&gt;&gt; links = node.find(type=html.a, \
+...    attr={"href": None}, searchchildren=1)
 &gt;&gt;&gt; for link in links:
 ...    print link["href"].asPlainString()
 ...
