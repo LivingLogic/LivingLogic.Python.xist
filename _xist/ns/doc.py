@@ -162,7 +162,10 @@ class rep(xsc.Element):
 	empty = False
 
 	def convert(self, converter):
-		e = html.var(self.content, class_="rep")
+		if converter.target=="docbook":
+			e = docbook.replaceable(self.content)
+		else:
+			e = html.var(self.content, class_="rep")
 		return e.convert(converter)
 
 class markup(xsc.Element):
@@ -172,7 +175,10 @@ class markup(xsc.Element):
 	empty = False
 
 	def convert(self, converter):
-		e = html.code(self.content, class_="markup")
+		if converter.target=="docbook":
+			e = docbook.markup(self.content)
+		else:
+			e = html.code(self.content, class_="markup")
 		return e.convert(converter)
 
 class arg(xsc.Element):
