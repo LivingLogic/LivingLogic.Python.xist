@@ -243,10 +243,7 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 						else:
 							node.append(unichr(int(text[2:i])))
 					else:
-						try:
-							node.append(self.content_handler.namespaces.entityFromName(text[1:i])())
-						except KeyError:
-							raise errors.UnknownEntityError(text[1:i])
+						node.append(self.content_handler.prefixes.entityFromQName(text[1:i])())
 					text = text[i+1:]
 				except ValueError:
 					raise errors.MalformedCharRefError(text)
