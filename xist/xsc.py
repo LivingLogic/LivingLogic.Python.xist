@@ -309,7 +309,18 @@ class XSCFrag(XSCNode):
 		return s
 
 	def __getitem__(self,index):
+		"""returns the index'th node for the content of the fragment"""
 		return self.content[index]
+
+	def __setitem__(self,index,value):
+		"""allows you to replace the index'th content node of the fragment"""
+		if len(self.content)>index:
+			self.content[index] = ToNode(value)
+
+	def __delitem__(self,index):
+		"""removes the index'th content node from the fragment"""
+		if len(self.content)>index:
+			del self.content[index]
 
 	def __len__(self):
 		"""return the number of children"""
@@ -364,10 +375,11 @@ class XSCAttrs(XSCNode):
 		return self.content.has_key(index)
 
 	def __getitem__(self,index):
+		"""returns the attribute with the name index"""
 		return self.content[index] # we're returning the packed attribute here, because otherwise there would be no possibility to get an expanded URL
 
 	def __setitem__(self,index,value):
-		"""insert a value into the attribute dictionary"""
+		"""insert an attribute with the name index and the value value into the attribute dictionary"""
 		# values are converted to Nodes first and then wrapped into the attribute nodes as specified via the attr_handlers dictionary
 		lowerindex = string.lower(index)
 		if self.attr_handlers.has_key(lowerindex):
@@ -376,7 +388,7 @@ class XSCAttrs(XSCNode):
 			raise XSCIllegalAttributeError(xsc.parser.lineno,self,index)
 
 	def __delitem__(self,index):
-		"""removes a dictionary entry"""
+		"""removes the attribute with the name index (if there is one)"""
 		if self.has_attr(index):
 			del self.content[index]
 
@@ -467,14 +479,25 @@ class XSCElement(XSCNode):
 		return string.joinfields(v,"")
 
 	def __getitem__(self,index):
-		return self.attrs[index]
+		"returns an attribute or one of the content nodes depending on whether a string (i.e. attribute name) or a number (i.e. content node index) is passed in"""
+		if type(index)==types.StringType:
+			return self.attrs[index]
+		else:
+			return self.content[index]
 
 	def __setitem__(self,index,value):
-		self.attrs[index] = value
+		"sets an attribute or one of the content nodes depending on whether a string (i.e. attribute name) or a number (i.e. content node index) is passed in"""
+		if type(index)==types.StringType:
+			self.attrs[index] = value
+		else:
+			self.content[index] = value
 
 	def __delitem__(self,index):
-		if self.has_attr(index):
+		"removes an attribute or one of the content nodes depending on whether a string (i.e. attribute name) or a number (i.e. content node index) is passed in"""
+		if type(index)==types.StringType:
 			del self.attrs[index]
+		else:
+			del self.content[index]
 
 	def has_attr(self,attr):
 		return self.attrs.has_attr(attr)
