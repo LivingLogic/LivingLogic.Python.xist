@@ -1464,12 +1464,9 @@ class Attr(Frag):
 		if type(other) in (types.StringType, types.UnicodeType):
 			return self.asPlainString() == other
 		elif isinstance(other, Attr):
-			return self.asPlainString() == other
+			return self.asPlainString() == other.asPlainString()
 		else:
 			raise TypeError("can't compare Attr with %s" % type(other))
-
-	def __neq__(self, other):
-		return self.__eq__(other)
 
 class TextAttr(Attr):
 	"""
