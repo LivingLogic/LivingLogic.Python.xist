@@ -84,7 +84,7 @@ class IllegalAttrError(Error):
 			s = s + "No attributes allowed."
 		return s
 
-class AttributeNotFoundError(Error):
+class AttrNotFoundError(Error):
 	"""
 	exception that is raised, when an attribute is fetched that isn't there
 	"""
@@ -97,7 +97,7 @@ class AttributeNotFoundError(Error):
 	def __str__(self):
 		attrs = self.element.attrs.keys()
 
-		s = Error.__str__(self) + "Attribute %s not found in element %s. " % (persenters.strAttrName(self.attrname), presenters.strElementWithBrackets(self.element))
+		s = Error.__str__(self) + "Attribute %s not found in element %s. " % (presenters.strAttrName(self.attrname), presenters.strElementWithBrackets(self.element))
 
 		if len(attrs):
 			attrs.sort()

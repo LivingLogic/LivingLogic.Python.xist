@@ -1418,7 +1418,7 @@ class Element(Node):
 			try:
 				return self.attrs[index] # we're returning the packed attribute here, because otherwise there would be no possibility to get an expanded URL
 			except KeyError:
-				raise errors.AttributeNotFoundError(self, index)
+				raise errors.AttrNotFoundError(self, index)
 		else:
 			return self.content[index]
 
@@ -1451,7 +1451,7 @@ class Element(Node):
 			try:
 				del self.attrs[index]
 			except KeyError:
-				raise errors.AttributeNotFoundError(self, index)
+				raise errors.AttrNotFoundError(self, index)
 		else:
 			del self.content[index]
 
@@ -1472,7 +1472,7 @@ class Element(Node):
 		"""
 		try:
 			return self[attr]
-		except errors.AttributeNotFoundError:
+		except errors.AttrNotFoundError:
 			return self.attrHandlers[attr](default) # pack the attribute into an attribute object
 
 	def __getslice__(self, index1, index2):
