@@ -1,5 +1,5 @@
 
-XIST v0.1
+XIST v0.2
 
 This is a HTML generator/XML transformation engine/web publishing system
 written in Python and based on the Python XML package.
@@ -7,9 +7,9 @@ written in Python and based on the Python XML package.
 For documentation read xist/xsc.py.
 
 The only requirements for installing the package are Python 1.5.2 or
-later, a version of the Python XML package that includes xmllib and the
-Python Imaging Library. It's recommended that you have the Distutils
-installed; fetch the latest version from
+later, the Python XML package 0.5.4 or later and the Python Imaging
+Library. It's recommended that you have the Distutils installed;
+fetch the latest version from
 http://www.python.org/sigs/distutils-sig/.
 
 To compile everything, simply perform the following steps.

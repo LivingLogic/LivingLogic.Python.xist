@@ -28,7 +28,7 @@ has a constructor of the form
 so constructing an HTML element works like this:
 	e = html.div(
 		"Go to ",
-		html.a("Python.org",href="http://www.python.org"),
+		html.a("Python.org",href="http://www.python.org/"),
 		"!"
 	)
 
@@ -196,10 +196,10 @@ Requirements
 ============
 XSC requires Python 1.5.2.
 
-XSC currently uses the xmllib parser from the Python XML package,
-but this will change in the future, because xmllib is deprecated.
-So you need to install a version of the XML package, that
-contains xmllib (0.5.2 is fine)
+XSC uses sgmlop for parsing XML files, so you either need the
+Python XML package (tested with 0.5.4), or a standalone version
+of sgmlop (not tested; available from
+http://w1.132.telia.com/~u13208596/sgmlop.htm)
 
 To determine image sizes, XSC needs the Python Imaging library (PIL)
 
