@@ -1,7 +1,62 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
 <section><title>Changes in ??? (released ??/??/2002)</title>
 <ulist>
-<item>Namespace handling has been completely rewritten.</item>
+<item><par>Namespace handling has been completely rewritten.
+Namespaces are now classes derived from <class>ll.xist.Namespace</class>.
+Defining element classes can be done inside or outside the namespace
+class. If the element classes are defined outside the namespace
+class, they can be moved inside the namespace with a simple
+attribute assignment:</par>
+<programlisting>
+class foo(xsc.Element):
+	empty = False
+
+class xmlns(xsc.Namespace):
+	xmlname = "foo"
+	xmlurl = "http://www.foo.com/ns/foo"
+
+xmlns.foo = foo
+</programlisting>
+<par>Elements that are not assigned to any namespace are automatically
+assigned to the <z>global</z> namespace <class>ll.xist.xmlns</class>.</par>
+<par>The methods <method>elementkeys</method>, <method>iterelementkeys</method>,
+<method>elementvalues</method>, <method>iterelementvalues</method>,
+<method>elementitems</method> and <method>iterelementitems</method>
+can be used for iterating through the element classes and their
+names. You can use the method <method>element</method>
+to get an element class with a certain name:</par>
+<programlisting>
+&gt;&gt;&gt; from ll.xist.ns import html
+&gt;&gt;&gt; html.element("div")
+&lt;element class ll.xist.ns.html/div at 0x824363c&gt;
+</programlisting>
+<par>For processing instructions, entities and character references
+there are methods available too.</par>
+<par>The method <method>addvars</method> can be used to add
+many element classes to a namespace at once, simply by passing
+a dictionary with those classes (use <lit>vars()</lit>
+to add everthing that's defined inside your module). You can turn
+a namespace into a module with <method>makemod</method>:</par>
+<programlisting>
+from ll.xist import xsc
+
+class foo(xsc.Element):
+	empty = False
+
+class xmlns(xsc.Namespace):
+	xmlname = "foo"
+	xmlurl = "http://www.foo.com/ns/foo"
+xmlns.makemod(vars())
+</programlisting>
+<par>Put the above code into <filename>foo.py</filename> and
+you can do the following:</par>
+<programlisting>
+>>> import foo
+>>> foo
+&lt;namespace foo/xmlns name=u'foo' url=u'http://www.foo.com/ns/foo' \
+with 1 elements from 'foo.py' at 0x81bfc14&gt;
+</programlisting>
+</item>
 <item><function>getns</function> has been dropped, so you always
 have to pass in a <class>Namespace</class> class where a namespace
 is required.</item>
@@ -10,15 +65,19 @@ automatic generation of the correct <lit>charset</lit> option
 in the <lit>contentType</lit> attribute is only done when there
 is a <lit>contentType</lit> attribute, as <lit>contentType</lit>
 is optional.</item>
-<item><par>The <method>conv</method> has two new arguments:</par>
+<item><par>The converter has two new properties <arg>function</arg>
+and <function>node</function>:</par>
 <ulist>
-<item><arg>function</arg> which (when set to a callable object), will
-be used for calling the method <method>mapped</method> instead of
-calling <method>convert</method>. In addition to that this callable
-object will be stored in the converter, which must be passed around
-all calls to <method>mapped</method>.</item>
-<item><arg>node</arg> which will be set to <self/> by <method>conv</method>
-automatically. This makes it possible to access the <z>document root</z>
+<item><arg>function</arg> can be used as an argument when calling
+<method>conv</method>. It must be a callable object and will be
+used for calling the method <method>mapped</method> instead of
+calling <method>convert</method>. Additionally <arg>function</arg>
+will be stored in the converter, which must be passed around
+to all calls to <method>mapped</method> (instead of
+<arg>function</arg> itself).</item>
+<item><arg>node</arg> can't be passed to <method>conv</method> but
+will be set to <self/> by <method>conv</method> automatically.
+This makes it possible to access the <z>document root</z>
 during conversion.</item>
 </ulist>
 </item>
