@@ -216,7 +216,7 @@ class SQLCommand:
 			return "NULL"
 		elif t == types.StringType:
 			return "'" + string.replace(value,"'","''") + "'"
-		elif t in [ types.IntType , types.LongType , types.FloatType ]:
+		elif t in [ types.IntType, types.LongType, types.FloatType ]:
 			return str(value)
 		else:
 			raise ValueError,"unrecognised type for database field"

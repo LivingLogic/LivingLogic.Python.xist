@@ -1,3 +1,9 @@
+New in x.x.x
+------------
+There an additional publisher class FilePublisher, which can
+be used for publishing to a file (or anything else that has
+a write method)
+
 New in 0.3.8
 ------------
 Fixed a bug in URLAttr.publish, which prevented URLAttr from working
@@ -19,7 +25,7 @@ The documentation example has been enhanced. Now documenting methods works.
 
 When the member "elementname" in the element class is set before calling
 registerElement(), this element name will be used for the element. This
-allows custom name even when used registerAllElements().
+allows customs name even when used registerAllElements().
 
 Comparison of scheme and server in URLs is done case insensitive (as RFC 2068
 requires.)
@@ -44,7 +50,7 @@ findNodes() (which has been shortened to find()) has an additional argument test
 be a test function that will be called when the node passes all other tests.
 
 asString() no longer generates a string directly, but uses the new method publish, which
-has an additional argument publisher, the which the strings to be output are passed.
+has an additional argument publisher, to which the strings to be output are passed.
 
 New in 0.3.4
 ------------
