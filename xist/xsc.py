@@ -14,7 +14,7 @@ It was written as a replacement for the HTML preprocessor HSC
 (http://www.giga.or.at/~agi/hsc/), and borrows some features and ideas from it.
 
 It also borrows the basic ideas (XML/HTML elements as Python objects)
-from HTMLgen (http://starship.skyport.net/crew/friedrich/HTMLgen/html/main.html)
+from HTMLgen (http://starship.python.net/crew/friedrich/HTMLgen/html/main.html)
 or HyperText (http://dustman.net/andy/python/HyperText/)
 
 XIST is based on XML, so you have two choices when constructing
