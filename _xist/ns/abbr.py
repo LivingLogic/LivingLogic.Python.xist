@@ -408,4 +408,16 @@ class crm(xsc.Entity):
 	def __unicode__(self):
 		return u"CRM"
 
+class cms(xsc.Entity):
+	def convert(self, converter):
+		return html_.abbr("CMS", title="Content Management System", lang="en")
+	def __unicode__(self):
+		return u"CMS"
+
+class sms(xsc.Entity):
+	def convert(self, converter):
+		return html_.abbr("SMS", title="Short Message Service", lang="en")
+	def __unicode__(self):
+		return u"SMS"
+
 namespace = xsc.Namespace("abbr", "http://xmlns.livinglogic.de/xist/abbr.dtd", vars())
