@@ -1,6 +1,27 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
 <section><title>Changes in 2.0 (released ??/??/2002)</title>
 <ulist>
+<item>Attribute handling has been largely rewritten. Instead of
+a class attribute <lit>attrHandlers</lit>, the attributes
+are now defined through a nested class named <class>Attrs</class>
+inside the element. This class must be derived from <class>ll.xist.Element.Attrs</class>
+(or one of its subclasses if you want to inherit attributes from
+this class). Defining attributes is done through classes nested
+inside this attributes class and derived from any of the known
+attribute classes (like <class>TextAttr</class>, <class>URLAttr</class> etc.).
+The class name will be the attribute name (and can be overwritten
+with a class attribute <lit>xmlname</lit>. This makes it possible
+to have docstrings for attributes. Furthermore it's possible
+to define attribute default via the class attribute <lit>default</lit>,
+allowed values for the attribute via <lit>values</lit>,
+which is a list of allowed values, and whether the attribute is
+required or not via <lit>required</lit>.</item>
+<item>&xist; now has real namespace support. The new class
+<class>ll.xist.xsc.Prefixes</class> can be used to define a
+mapping between prefixes and namespace names. This can be
+used for parsing and publishing. Namespace support is even
+available for entities and processing instruction.</item>
+<item>Global attributes are supported now.</item>
 <item>The &html; specific parts of <module>ll.xist.ns.specials</module>
 have been split off into a separate module <module>ll.xist.ns.htmlspecials</module>.</item>
 <item>Comparison of attributes with strings has been removed.
