@@ -1,6 +1,6 @@
 New in 0.?
 ----------
-The documentation expample has been enhanced. Now documenting methods works.
+The documentation example has been enhanced. Now documenting methods works.
 
 When the member "elementname" in the element class is set before calling
 registerElement(), this element name will be used for the element. This
@@ -8,6 +8,11 @@ allows custom name even when used registerAllElements().
 
 Comparison of scheme and server in URLs is done case insensitive (as RFC 2068
 requires.)
+
+Image size calculation is now done in asString() and not in asHTML(). This allows
+to write faster code:
+	Old method: e = html.div(html.img(...),gurk.hurz()).asHTML().asString()
+	New method: e = html.div(html.img(...),gurk.hurz().asHTML()).asString()
 
 New in 0.3.4
 ------------
