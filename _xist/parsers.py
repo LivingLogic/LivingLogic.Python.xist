@@ -179,14 +179,19 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 					self.lineNumber += 1
 				self.parser.feed(data)
 			self.close()
-		except Exception, ex: # FIXME: really catch everything?
+		except SystemExit:
+			raise
+		except KeyboardInterrupt:
+			raise
+		except Exception, ex:
 			if self.error_handler is not None:
 				self.error_handler.fatalError(ex)
 			else:
 				raise
-		self.parser.register(None)
-		self.source = None
-		del self.encoding
+		finally:
+			self.parser.register(None)
+			self.source = None
+			del self.encoding
 
 	def setErrorHandler(self, handler):
 		self.error_handler = handler

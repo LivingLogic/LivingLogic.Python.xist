@@ -25,9 +25,29 @@ static Py_UNICODE lt[] = { ((Py_UNICODE)'&'), ((Py_UNICODE)'l'), ((Py_UNICODE)'t
 static Py_UNICODE gt[] = { ((Py_UNICODE)'&'), ((Py_UNICODE)'g'), ((Py_UNICODE)'t'), ((Py_UNICODE)';') };
 static Py_UNICODE amp[] = { ((Py_UNICODE)'&'), ((Py_UNICODE)'a'), ((Py_UNICODE)'m'), ((Py_UNICODE)'p'), ((Py_UNICODE)';') };
 static Py_UNICODE quot[] = { ((Py_UNICODE)'&'), ((Py_UNICODE)'q'), ((Py_UNICODE)'u'), ((Py_UNICODE)'o'), ((Py_UNICODE)'t'), ((Py_UNICODE)';') };
-static Py_UNICODE apos[] = { ((Py_UNICODE)'&'), ((Py_UNICODE)'a'), ((Py_UNICODE)'p'), ((Py_UNICODE)'o'), ((Py_UNICODE)'s'), ((Py_UNICODE)';') };
+
+static Py_UNICODE lt2[] = { ((Py_UNICODE)'l'), ((Py_UNICODE)'t') };
+static Py_UNICODE gt2[] = { ((Py_UNICODE)'g'), ((Py_UNICODE)'t') };
+static Py_UNICODE amp2[] = { ((Py_UNICODE)'a'), ((Py_UNICODE)'m'), ((Py_UNICODE)'p') };
+static Py_UNICODE quot2[] = { ((Py_UNICODE)'q'), ((Py_UNICODE)'u'), ((Py_UNICODE)'o'), ((Py_UNICODE)'t') };
 
 #define COUNTOF(x) (sizeof(x)/sizeof((x)[0]))
+
+struct Replacement
+{
+	Py_UNICODE  character;
+	int         size;
+	Py_UNICODE *replacement;
+};
+
+struct Replacement replacements[] =
+{
+	{'"', COUNTOF(quot2), quot2},
+	{'&', COUNTOF(amp2), amp2},
+	{'<', COUNTOF(lt2), lt2},
+	{'>', COUNTOF(gt2), gt2},
+	{'\0', 0, NULL}
+};
 
 #if PY_VERSION_HEX <= 0x020000F1
 PyObject *PyObject_Unicode(PyObject *v)
@@ -203,6 +223,146 @@ static PyUnicodeObject *escapeUnencodable(PyUnicodeObject *str, const char *enco
 	}
 }
 
+static PyObject *__escapeText2(PyUnicodeObject *unicode, const char *encoding, struct Replacement *replacements)
+{
+	int i;
+	int oldsize = PyUnicode_GET_SIZE(unicode);
+	int newsize = 0;
+
+	int *toBeReplaced = NULL;
+	int replaceCount;
+
+	PyUnicodeObject *res = NULL;
+
+	toBeReplaced = PyMem_New(int, oldsize);
+
+	if (!toBeReplaced)
+		goto error;
+
+	replaceCount = 0;
+	for (i = 0; i < oldsize; ++i)
+	{
+		PyObject *test;
+		Py_UNICODE ch = PyUnicode_AS_UNICODE(unicode)[i];
+		struct Replacement *rep;
+		for (rep = replacements; rep->character; ++rep)
+		{
+			if (ch==rep->character)
+			{
+				newsize += 1+rep->size+1;
+				goto testok;
+			}
+		}
+		/* none of the special characters => try to encode it */
+		test = PyUnicode_Encode(&ch, 1, encoding, NULL);
+
+		if (test == NULL) /* exception */
+		{
+			if (PyErr_ExceptionMatches(PyExc_UnicodeError)) /* we must create a character reference for it */
+			{
+				PyErr_Clear();
+
+				if (ch < 10)
+					newsize += 2+1+1;
+				else if (ch < 100)
+					newsize += 2+2+1;
+				else if (ch < 1000)
+					newsize += 2+3+1;
+				else if (ch < 10000)
+					newsize += 2+4+1;
+				else
+					newsize += 2+5+1;
+				toBeReplaced[replaceCount++] = i; /* remember position */
+			}
+			else /* unexpected encoding exception */
+				goto error;
+		}
+		else /* we were able to encode this character, so use it */
+		{
+			++newsize;
+			Py_DECREF(test);
+		}
+
+		testok:
+		;
+	}
+	if (oldsize==newsize) /* nothing to replace? */
+	{
+		/* return original */
+		Py_INCREF(unicode);
+		res = unicode;
+	}
+	else
+	{
+		int *currentReplacer = toBeReplaced;
+		Py_UNICODE *output;
+		res = (PyUnicodeObject *)PyUnicode_FromUnicode(NULL, newsize);
+		if (!res)
+			goto error;
+		output = PyUnicode_AS_UNICODE(res);
+
+		for (i = 0; i < oldsize; ++i)
+		{
+			Py_UNICODE ch = PyUnicode_AS_UNICODE(unicode)[i];
+
+			if (i==*currentReplacer)
+			{
+				*output++ = '&';
+				*output++ = '#';
+				if (ch>10000)
+				{
+					*output++ = ((Py_UNICODE)'0') + ch/10000;
+					ch = ch % 10000;
+				}
+				if (ch>1000)
+				{
+					*output++ = ((Py_UNICODE)'0') + ch/1000;
+					ch = ch % 1000;
+				}
+				if (ch>100)
+				{
+					*output++ = ((Py_UNICODE)'0') + ch/100;
+					ch = ch % 100;
+				}
+				if (ch>10)
+				{
+					*output++ = ((Py_UNICODE)'0') + ch/10;
+					ch = ch % 10;
+				}
+				*output++ = ((Py_UNICODE)'0') + ch;
+				*output++ = ';';
+
+				++currentReplacer;
+			}
+			else
+			{
+				struct Replacement *rep;
+				for (rep = replacements; rep->character; ++rep)
+				{
+					if (ch==rep->character)
+					{
+						*output++ = '&';
+						memcpy(output, rep->replacement, sizeof(Py_UNICODE)*rep->size);
+						output += rep->size;
+						*output++ = ';';
+
+						goto encodeok;
+					}
+				}
+				*output++ = ch;
+			}
+			encodeok:
+			;
+		}
+	}
+	goto ok;
+	error:
+	Py_XDECREF(res);
+	ok:
+	PyMem_Del(toBeReplaced);
+	return (PyObject *)res;
+}
+
 static char escapeText__doc__[] =
 "escapeText(unicode, encoding) -> unicode\n\
 \n\
@@ -273,6 +433,17 @@ static PyObject *escapeText(PyObject *self, PyObject *args)
 		}
 		return (PyObject *)escapeUnencodable(result, encoding);
 	}
+}
+
+static PyObject *escapeText2(PyObject *self, PyObject *args)
+{
+	PyUnicodeObject *unicode;
+	const char *encoding = NULL;
+
+	if (!PyArg_ParseTuple(args, "O!s:escapeText", &unicode, &encoding))
+		return NULL;
+
+	return __escapeText2(unicode, encoding, &replacements[1]);
 }
 
 static char escapeAttr__doc__[] =
@@ -375,9 +546,10 @@ If the argument is a unicode, the return value is the same object.";
 
 static PyMethodDef _functions[] =
 {
-	{"escapeText", escapeText, 1, escapeText__doc__},
-	{"escapeAttr", escapeAttr, 1, escapeAttr__doc__},
-	{"unistr",	builtin_unistr, 1, unistr_doc},
+	{"escapeText2", escapeText,     METH_VARARGS, escapeText__doc__},
+	{"escapeText",  escapeText,     METH_VARARGS, escapeText__doc__},
+	{"escapeAttr",  escapeAttr,     METH_VARARGS, escapeAttr__doc__},
+	{"unistr",      builtin_unistr, METH_VARARGS, unistr_doc},
 	{NULL, NULL}
 };
 
