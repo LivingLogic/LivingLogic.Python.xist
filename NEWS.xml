@@ -21,7 +21,10 @@ required or not via <lit>required</lit>.</item>
 mapping between prefixes and namespace names. This can be
 used for parsing and publishing. Namespace support is even
 available for entities and processing instruction.</item>
-<item>Global attributes are supported now.</item>
+<item>Global attributes are supported now. Namespace modules
+for the <lit>xml</lit> and <lit>xlink</lit> namespaces
+have been added (and <class>ll.xist.xsc.XML</class> was
+moved to <module>ll.xist.ns.xml</module>.</item>
 <item>The &html; specific parts of <module>ll.xist.ns.specials</module>
 have been split off into a separate module <module>ll.xist.ns.htmlspecials</module>.</item>
 <item>Comparison of attributes with strings has been removed.
