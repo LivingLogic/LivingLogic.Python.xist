@@ -1294,7 +1294,7 @@ class XML(ProcInst):
 		standalonefound = self.__findAttr(u"standalone")
 		if publisher.encoding != encodingfound: # if self has the wrong encoding specification (or none), we construct a new XML ProcInst and publish that (this doesn't lead to infinite recursion, because the next call will skip it)
 			node = XML(u"version='" + versionfound + u"' encoding='" + publisher.encoding + u"'")
-			if standalonefound != -1:
+			if standalonefound is not None:
 				node += u" standalone='" + standalonefound + u"'"
 			node.publish(publisher)
 			return
