@@ -392,7 +392,7 @@ def ToNode(value):
 	<par>If <argref>value</argref> is a tuple or list, it will be (recursively) converted
 	to a <classref>Frag</classref>. Integers, strings, etc. will be converted to a <classref>Text</classref>.
 	If <argref>value</argref> is a <classref>Node</classref> already, nothing will be done.
-	In the case of <code>Null</code> the XSC Null (<code>xsc.Null</code>) will be returned).
+	In the case of <code>None</code> the XSC Null (<code>xsc.Null</code>) will be returned).
 	Anything else raises an exception.</par>
 	"""
 	t = type(value)
