@@ -13,6 +13,9 @@ import urlparse
 import urllib
 from xist import utils
 
+# workaround for a bug in urlparse (which is fixed in urlparse.py CVS revision 1.26)
+urlparse.scheme_chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+-."
+
 uses_relative = urlparse.uses_relative + [None]
 uses_netloc = urlparse.uses_netloc
 
