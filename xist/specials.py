@@ -8,6 +8,8 @@ __version__ = "$Revision$"
 # $Source$
 
 import sys
+import types
+import string
 import xsc
 import html
 
@@ -109,7 +111,7 @@ class cap(xsc.Element):
 				if innini==0:
 					result.append(collect)
 				else:
-					result.append(span([ string.upper(collect) ],Class="nini" ))
+					result.append(html.span([ string.upper(collect) ],Class="nini" ))
 				if i != len(e):
 					collect = e[i]
 				innini = 1-innini

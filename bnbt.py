@@ -552,7 +552,7 @@ class fileinfo(xsc.Element):
 			html.td(specials.pixel(),colspan="2",bgcolor="#fff")
 		)+html.tr(
 			html.td(specials.pixel())+
-			html.td(html.div("Now" + br() + html.a(href="mailto:webmaster@bnbt.de"),Class="lnk-text"),nowrap="")
+			html.td(html.div("Now" + html.br() + html.a(href="mailto:webmaster@bnbt.de"),Class="lnk-text"),nowrap="")
 		)+html.tr(
 			html.td(specials.pixel(height="10"))
 		)+html.tr(
