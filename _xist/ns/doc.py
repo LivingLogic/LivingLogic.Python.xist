@@ -297,7 +297,7 @@ class section(xsc.Element):
 			e = xsc.Frag()
 			for t in ts:
 				try:
-					hclass = html.xmlns.elementsByName["h%d" % len(context.numbers)]
+					hclass = html.xmlns.elementsByName["h%d" % (len(context.numbers)-1)]
 				except KeyError: # ouch, we're nested to deep (a getter in a property in a class in a class)
 					hclass = html.h6
 				h = hclass(class_=self["role"])
