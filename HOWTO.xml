@@ -327,23 +327,11 @@ xmlns = xsc.Namespace(
 </programlisting>
 </example>
 
-<par>Arguments for the <pyref module="ll.xist.xsc" class="Namespace"><class>Namespace</class></pyref>
-constructor are:</par>
+<par>For an explanation of the arguments see the
+<pyref module="ll.xist.xsc" class="Namespace" method="__init__"><class>Namespace</class> constructor</pyref>.</par>
 
-<ulist>
-<item><arg>prefix</arg> is the namespace prefix that can be used to disambiguate elements
-in different namespaces with the same name.</item>
-<item><arg>uri</arg> is the namespace &url; for the namespace. This is currently unused.
-&xist; doesn't have real namespace support where namespace prefixes can be bound to
-namespace &url;s dynamically, but uses fixed prefixes.</item>
-<item><arg>thing</arg> is the object that should be registered in the namespace.
-To register all the element classes (and entity and processing instruction classes)
-defined in the module, simply use <lit>vars()</lit>.</item>
-</ulist>
-
-<par>All namespace objects will automatically be registered with the
-parser. Now all newly defined elements will be used when parsing
-files.</par>
+<par>All defined namespace objects will automatically be registered with the
+parser, so all defined elements will be used when parsing files.</par>
 </section>
 
 <section><title>Attributes</title>

@@ -2563,14 +2563,16 @@ class Namespace(Base):
 		"""
 		<par>Create a new <class>Namespace</class> instance.</par>
 
-		<par>All classes from the module the <class>Namespace</class> instance is in will be registered if
-		they are derived from <pyref class="Element"><class>Element</class></pyref>, <pyref class="Entity"><class>Entity</class></pyref> or
-		<pyref class="ProcInst"><class>ProcInst</class></pyref> in the following way: The class <arg>thing</arg>
-		will be registered under it's class name (<lit><arg>thing</arg>.__name__</lit>).
-		If you want to change this behaviour, do the following: set a class attribute
-		<lit>xmlname</lit> to the name you want to be used. If you don't want
-		<arg>thing</arg> to be registered at all, set the class attribute
-		<lit>register</lit> to <lit>0</lit>.
+		<par>Arguments are:</par>
+		<ulist>
+		<item><arg>prefix</arg> is the default namespace prefix that will be used for publishing
+		when no other prefix is configured.</item>
+		<item><arg>xmlname</arg> is the namespace name that can be used to disambiguate elements
+		in different namespaces with the same name. When you use namespaces in &xml; (i.e.
+		you use the <lit>xmlns</lit> attribute name/attribute prefix), the namespace
+		name in the attribute value corresponds to this argument.</item>
+		<item><arg>thing</arg> is the object that should be registered in the namespace.</item>
+		</ulist>
 		"""
 		self.xmlprefix = unicode(xmlprefix)
 		if xmlname is not None: # may be None, which mean no "xmlns:..." has to be used.
@@ -2594,7 +2596,7 @@ class Namespace(Base):
 		it will be registered under its class name (<lit><arg>thing</arg>.__name__</lit>). If you want
 		to change this behaviour, do the following: set a class variable <lit>xmlname</lit> to
 		the name you want to be used. If you don't want <arg>thing</arg> to be
-		registered at all, set <lit>register</lit> to <lit>None</lit>. (This will
+		registered at all, set <lit>register</lit> to <lit>False</lit>. (This will
 		still register <arg>thing</arg>, but it will not be used for parsing.)</par>
 
 		<par>After the call <arg>thing</arg> will have two class attributes:
@@ -2602,7 +2604,9 @@ class Namespace(Base):
 		<lit>xmlns</lit>, which is the namespace itself (i.e. <self/>).</par>
 
 		<par>If <arg>thing</arg> is a dictionary, every object in the dictionary
-		will be registered.</par>
+		will be registered. So, to register all the element classes
+		(and entity and processing instruction classes) defined in a module,
+		simply use <lit>vars()</lit> after all the classes have been defined.</par>
 
 		<par>All other objects are ignored.</par>
 		"""
