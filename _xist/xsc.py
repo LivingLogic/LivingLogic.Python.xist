@@ -1847,7 +1847,7 @@ class Namespace(object):
 			if iselement or isentity or ischarref or isprocinst:
 				# if the class attribute name is None, the class won't be registered
 				name = thing.name()
-				if thing.name is not None:
+				if name is not None:
 					thing._namespace = self # this creates a cycle
 					if iselement:
 						self.elementsByName[name] = thing
