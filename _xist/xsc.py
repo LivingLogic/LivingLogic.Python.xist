@@ -2392,22 +2392,19 @@ class Element(Node):
 
 	def append(self, *items):
 		"""
-		<par>appends to content (see <pyref class="Frag" method="append"><method>Frag.append</method></pyref>
-		for more info)</par>
+		<par>appends every item in <arg>items</arg> to the element content.</par>
 		"""
 		self.content.append(*items)
 
 	def extend(self, items):
 		"""
-		<par>appends to content (see <pyref class="Frag" method="extend"><method>Frag.extend</method></pyref>
-		for more info)</par>
+		<par>appends all items in <arg>items</arg> to element content.</par>
 		"""
 		self.content.extend(items)
 
 	def insert(self, index, *items):
 		"""
-		<par>inserts into the content (see <pyref class="Frag" method="insert"><method>Frag.insert</method></pyref>
-		for more info)</par>
+		<par>inserts every item in <arg>items</arg> at the position <arg>index</arg>.</par>
 		"""
 		self.content.insert(index, *items)
 
@@ -2446,7 +2443,7 @@ class Element(Node):
 		<par>Automatically set image width and height attributes.</par>
 		
 		<par>The size of the image with the &url; <arg>url</arg> will be determined and
-		hhe width of the image will be put into the attribute with the name <arg>widthattr</arg>
+		the width of the image will be put into the attribute with the name <arg>widthattr</arg>
 		if <arg>widthattr</arg> is not <lit>None</lit> and the attribute is not set. The
 		same will happen for the height, which will be put into the <arg>heighattr</arg>.</par>
 		"""
@@ -2568,19 +2565,19 @@ class Element(Node):
 
 	def __getslice__(self, index1, index2):
 		"""
-		returns a copy of the element that contains a slice of the content
+		Returns a copy of the element that contains a slice of the content.
 		"""
 		return self.__class__(self.content[index1:index2], self.attrs)
 
 	def __setslice__(self, index1, index2, sequence):
 		"""
-		modifies a slice of the content of the element
+		Replaces a slice of the content of the element.
 		"""
 		self.content[index1:index2] = sequence
 
 	def __delslice__(self, index1, index2):
 		"""
-		removes a slice of the content of the element
+		Removes a slice of the content of the element.
 		"""
 		del self.content[index1:index2]
 
@@ -2597,9 +2594,6 @@ class Element(Node):
 		return self.attrs.has(attrname, xml=xml)
 
 	def isallowedattr(cls, attrname):
-		"""
-		<par>return whether the attribute named <arg>attrname</arg> is allowed for <self/>.</par>
-		"""
 		warnings.warn(DeprecationWarning("foo.isallowedattr() is deprecated, use foo.Attrs.isallowed() instead"))
 		return cls.Attrs.isallowed(attrname)
 	isallowedattr = classmethod(isallowedattr)
@@ -2736,7 +2730,9 @@ class Element(Node):
 
 	def sorted(self, compare=lambda node1, node2: cmp(unicode(node1), unicode(node2))):
 		"""
-		returns a sorted version of <self/>.
+		returns a sorted version of <self/>. <arg>compare</arg> is a comparison
+		function. If <arg>compare</arg> is omitted, the character content will
+		be compared.
 		"""
 		node = self.__class__()
 		node.attrs = self.attrs.clone()
@@ -2804,9 +2800,8 @@ class Element(Node):
 
 class Entity(Node):
 	"""
-	<par>Class for entities. Derive your own entities from
-	it and overwrite <pyref class="Node" method="convert"><method>convert</method></pyref>
-	and <pyref class="Node" method="__unicode__"><method>__unicode__</method></pyref>.</par>
+	<par>Class for entities. Derive your own entities from it and overwrite
+	<pyref class="Node" method="convert"><method>convert</method></pyref>.</par>
 	"""
 	register = None
 
@@ -2922,7 +2917,7 @@ import presenters, publishers, cssparsers, converters, errors, utils, helpers
 class NSPool(dict):
 	"""
 	<par>A pool of namespaces identified by their name.</par>
-	<par>A pool may only have one namespace for one namespace name.</par>
+	<par>A pool may only have one namespace class for one namespace name.</par>
 	"""
 	def __init__(self, *args):
 		dict.__init__(self, [(arg.xmlurl, arg) for arg in args]) # FIXME: Use GE in 2.4
