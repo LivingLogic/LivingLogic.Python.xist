@@ -5,6 +5,11 @@
 <item><function>getns</function> has been dropped, so you always
 have to pass in a <class>Namespace</class> class where a namespace
 is required.</item>
+<item>
+For the jsp.directive_page element automatic generation of the correct
+charset option in the contentType attribute is only done when there
+is a contentType attribute.
+</item>
 </ulist>
 </section>
 

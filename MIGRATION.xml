@@ -14,6 +14,15 @@ safest method for this is using keyword arguments, e.g.
 <lit><rep>node</rep>.attr.get("<rep>attr</rep>", default=42)</lit>.</par>
 
 </section>
+
+<section><title>JSP directive page element</title>
+<par>
+A contentType attribute is no longer generated for the jsp.directive_page.
+You have to use an attribute contentType="<rep>text/html</rep>" to get
+a contentType attribute in the resulting JSP. The charset option is
+generated automatically from the encoding specified in the publisher.
+</par>
+</section>
 </section>
 
 
