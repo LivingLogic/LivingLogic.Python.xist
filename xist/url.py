@@ -11,7 +11,7 @@ __version__ = "$Revision$"[11:-2]
 import types
 import urlparse
 import urllib
-import xsc, utils
+import utils
 
 def _isPathMarker(dir):
 	"""
@@ -19,7 +19,7 @@ def _isPathMarker(dir):
 	
 	returns if the directory name dir is a path marker.
 	"""
-	return dir.startswith("*")
+	return dir is not None and dir.startswith("*")
 
 def _isNoPathMarker(dir):
 	"""
@@ -58,7 +58,7 @@ class URL:
 
 	__safe = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_,.-:/"
 
-	def __init__(self, url = None, scheme = None, server = None, port = None, path = None, file = None, ext = None, parameters = None, query = None, fragment = None):
+	def __init__(self, url=None, scheme=None, server=None, port=None, path=None, file=None, ext=None, parameters=None, query=None, fragment=None):
 		# initialize the defaults
 		self.scheme = self.server = self.port = None
 		self.__path = []
