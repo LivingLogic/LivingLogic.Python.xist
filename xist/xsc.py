@@ -453,10 +453,10 @@ class Text(Node):
 							s = s + '&' + ent[0] + ';'
 						else:
 							s = s + '&#' + str(self.__content) + ';'
-					v.append(_stransi(CharRef.repransi,s))
+					v.append(_stransi(CharRef.repransiname,s))
 				else:
 					s = self.__content[start:end]
-					v.append(_stransi(Text.repransi,s))
+					v.append(_stransi(Text.repransiname,s))
 				charref = 1-charref # switch to the other class
 				start = end # the next string  we want to work on starts from here
 			end = end + 1 # to the next character
@@ -505,7 +505,7 @@ class CharRef(Node):
 			return '&#' + str(self.__content) + ';'
 
 	def __strcharref(self,s):
-		return _stransi(self.repransi,s)
+		return _stransi(self.repransiname,s)
  
 	def _dorepr(self):
 		if len(Parser.entitiesByNumber[self.__content]):
