@@ -1309,12 +1309,6 @@ class ProcInst(CharacterData):
 	# because the target is our classname (this works the same way as for Element)
 
 	class __metaclass__(CharacterData.__metaclass__):
-		def __new__(cls, name, bases, dict):
-			self = CharacterData.__metaclass__.__new__(cls, name, bases, dict)
-			if self.register is not None:
-				setattr(xmlns, name, self)
-			return self
-
 		def __repr__(self):
 			return "<procinst class %s:%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
 
@@ -2161,10 +2155,7 @@ class Element(Node):
 				del dict["name"]
 			if "attrHandlers" in dict:
 				errors.warn(DeprecationWarning("attrHandlers is deprecated, use a nested Attrs class instead"))
-			self = Node.__metaclass__.__new__(cls, name, bases, dict)
-			if self.register is not None:
-				setattr(xmlns, name, self)
-			return self
+			return Node.__metaclass__.__new__(cls, name, bases, dict)
 		def __repr__(self):
 			return "<element class %s:%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
 
@@ -2764,12 +2755,6 @@ class Entity(Node):
 	register = None
 
 	class __metaclass__(Node.__metaclass__):
-		def __new__(cls, name, bases, dict):
-			self = Node.__metaclass__.__new__(cls, name, bases, dict)
-			if self.register is not None:
-				setattr(xmlns, name, self)
-			return self
-
 		def __repr__(self):
 			return "<entity class %s:%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
 
@@ -2832,12 +2817,6 @@ class CharRef(Entity):
 	register = None
 
 	class __metaclass__(Entity.__metaclass__):
-		def __new__(cls, name, bases, dict):
-			self = Node.__metaclass__.__new__(cls, name, bases, dict)
-			if self.register is not None:
-				setattr(xmlns, name, self)
-			return self
-
 		def __repr__(self):
 			return "<charref class %s:%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
 
@@ -3329,13 +3308,13 @@ class Namespace(object):
 		def __delattr__(cls, key):
 			value = cls.__dict__.get(key, None) # no inheritance
 			if isinstance(value, type) and issubclass(value, (Element, ProcInst, CharRef)):
-				value._registerns(xmlns)
+				value._registerns(None)
 			return type.__delattr__(cls, key)
 
 		def __setattr__(cls, key, value):
 			oldvalue = cls.__dict__.get(key, None) # no inheritance
 			if isinstance(oldvalue, type) and issubclass(oldvalue, (Element, ProcInst, Entity)):
-				oldvalue._registerns(xmlns)
+				oldvalue._registerns(None)
 			if isinstance(value, type) and issubclass(value, (Element, ProcInst, Entity)):
 				ns = value.__dict__.get("xmlns") # no inheritance
 				if ns is not None:
@@ -3607,14 +3586,34 @@ class Namespace(object):
 			raise errors.IllegalCharRefError(name, xml=xml)
 	charref = classmethod(charref)
 
-	def update(cls, vars):
+	def update(cls, mapping):
 		"""
-		<par>Add variables from <arg>vars</arg> to <self/>.</par>
+		Copies attributes from <arg>mapping</arg>
 		"""
-		for (key, value) in vars.iteritems():
+		for (key, value) in mapping.iteritems():
 			if value is not cls and key not in ("__name__", "__dict__"):
 				setattr(cls, key, value)
 	update = classmethod(update)
+
+	def updateexisting(cls, mapping):
+		"""
+		Copies attributes over from <arg>mapping</arg>, but only if
+		they exist in <self/>.
+		"""
+		for (key, value) in mapping.iteritems():
+			if value is not cls and key not in ("__name__", "__dict__") and hasattr(cls, key):
+				setattr(cls, key, value)
+	updateexisting = classmethod(updateexisting)
+
+	def updatenew(cls, mapping):
+		"""
+		Copies attributes over from <arg>mapping</arg>, but only if
+		they don't exist in <self/>.
+		"""
+		for (key, value) in mapping.iteritems():
+			if value is not cls and key not in ("__name__", "__dict__") and not hasattr(cls, key):
+				setattr(cls, key, value)
+	updatenew = classmethod(updatenew)
 
 	def makemod(cls, vars=None):
 		if vars is not None:
@@ -3630,15 +3629,6 @@ class Namespace(object):
 
 	def __init__(self, xmlprefix, xmlname, thing=None):
 		raise TypeError("Namespace classes can't be instantiated")
-
-class xmlns(Namespace):
-	"""
-	The default global namespace. All elements, processing instructions, entities
-	and charrefs defined outside a namespace and not assigned to one will be
-	registered in this namespace.
-	"""
-	xmlname = None
-	xmlurl = None
 
 # C0 Controls and Basic Latin
 class quot(CharRef): "quotation mark = APL quote, U+0022 ISOnum"; codepoint = 34

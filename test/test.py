@@ -629,7 +629,7 @@ class XISTTest(unittest.TestCase):
 
 	def test_namespace(self):
 		self.assertEqual(xsc.amp.xmlname, (u"amp", u"amp"))
-		self.assert_(xsc.amp.xmlns is xsc.xmlns)
+		self.assert_(xsc.amp.xmlns is None)
 		self.assertEqual(xsc.amp.xmlprefix(), None)
 
 		self.assertEqual(html.uuml.xmlname, (u"uuml", u"uuml"))
@@ -1240,6 +1240,46 @@ class PublishTest(unittest.TestCase):
 		self.assertEquals(node.asBytes(encoding="ascii"), """&lt;&amp;'"&#255;&gt;""")
 		node = html.span(class_=s)
 		self.assertEquals(node.asBytes(encoding="ascii", xhtml=2), """<span class="&lt;&amp;'&quot;&#255;&gt;"/>""")
+
+	def createns(self):
+		class xmlns(xsc.Namespace):
+			xmlname = "gurk"
+			xmlurl = "http://www.gurk.com/"
+			class foo(xsc.Element):
+				pass
+			class bar(xsc.Element):
+				pass
+		return xmlns
+
+	def test_nsupdate(self):
+		class foo(xsc.Element):
+			pass
+		class bar(xsc.Element):
+			pass
+		class foo2(xsc.Element):
+			pass
+		class bar2(xsc.Element):
+			pass
+		ns = self.createns()
+		ns.update({"foo": foo, "bar": bar, "foo2": foo2, "bar2": bar2})
+		self.assertEquals(ns.element("foo"), foo)
+		self.assertEquals(ns.element("bar"), bar)
+		self.assertEquals(ns.element("foo2"), foo2)
+		self.assertEquals(ns.element("bar2"), bar2)
+
+		ns = self.createns()
+		ns.updatenew({"foo": foo, "bar": bar, "foo2": foo2, "bar2": bar2})
+		self.assertEquals(ns.element("foo"), ns.foo)
+		self.assertEquals(ns.element("bar"), ns.bar)
+		self.assertEquals(ns.element("foo2"), foo2)
+		self.assertEquals(ns.element("bar2"), bar2)
+
+		ns = self.createns()
+		ns.updateexisting({"foo": foo, "bar": bar, "foo2": foo2, "bar2": bar2})
+		self.assertEquals(ns.element("foo"), foo)
+		self.assertEquals(ns.element("bar"), bar)
+		self.assertRaises(errors.IllegalElementError, ns.element, "foo2")
+		self.assertRaises(errors.IllegalElementError, ns.element, "bar2")
 
 class ParseTest(unittest.TestCase):
 	def test_parselocationsgmlop(self):
