@@ -13,6 +13,9 @@ import Image
 # for parsing XML files
 import xmllib
 
+# for reading remote files
+import urllib
+
 ###
 ### exceptions
 ###
@@ -91,11 +94,14 @@ def FileSize(url):
 def ImageSize(url):
 	"returns the size of an image as a tuple"
 
-	try:
-		img = Image.open(url)
-		return img.size
-	except:
-		raise EHSCFileNotFound(url)
+	size = (42,42)
+	filename,headers = urllib.urlretrieve(url)
+	if headers.has_key("content-type") and headers["content-type"][:6] == "image/":
+		img = Image.open(filename)
+		size = img.size
+	del img
+	urllib.urlcleanup()
+	return size
 
 def AppendDict(*dicts):
 	result = {}
@@ -393,6 +399,9 @@ def RegisterElement(name,element):
 class XSCurl(XSCElement):
 	"URLS (may be used as an element or an attribute)"
 
+	# protocol string that will be recognised as being remote files, where no path translation takes place
+	protocols = [ "http" , "ftp" ]
+
 	def __init__(self,content = [],attrs = {},**restattrs):
 		if type(content) == types.InstanceType and content.__class__ == XSCurl:
 			self.content = content.content
@@ -401,15 +410,22 @@ class XSCurl(XSCElement):
 
 	def __repr__(self):
 		url = repr(self.content)
-		if url[0] == ":":
-			url = url[1:]
-		elif url[0] == "/":
-			url = xsc.serverdir + url
-		urlsplit = string.splitfields(url,"/")
-		for i in range(len(urlsplit)):
-			if urlsplit[i] == "..":
-				urlsplit[i] = os.pardir
-		url = string.joinfields(urlsplit,os.sep)
+		if url[0] == "/": # this is a server relative URL, use the server specified in the options (usually localhost)
+			url = "http://" + xsc.server + url
+		else:
+			for protocol in self.protocols:
+				test = protocol + "://"
+				if test == url[:len(test)]: # this is a complete URL so we don't have to do any translation
+					break
+			else:
+				if url[0] == ":": # project relative, i.e. relative to the current directory
+					url = url[1:]
+				# now we have an URL that is relative to the current directory, replace URL syntax with the path syntax on our system (won't do anything under UNIX, replaces / with  \ under Windows
+				urlsplit = string.splitfields(url,"/")
+				for i in range(len(urlsplit)):
+					if urlsplit[i] == "..":
+						urlsplit[i] = os.pardir
+				url = string.joinfields(urlsplit,os.sep)
 		return url
 
 	def __str__(self):
@@ -433,10 +449,10 @@ RegisterElement("url",XSCurl)
 class XSC:
 	def __init__(self):
 		self.filename = ""
-		self.serverdir = os.curdir
+		self.server = "localhost"
 
 	def __repr__(self):
-		return "<xsc filename='" + self.filename + "' serverdir='" + self.serverdir + "'>"
+		return "<xsc filename='" + self.filename + "' server='" + self.server + "'>"
 		
 xsc = XSC()
 
