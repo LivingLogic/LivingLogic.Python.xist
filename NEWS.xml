@@ -25,6 +25,7 @@ available for entities and processing instruction.</item>
 for the <lit>xml</lit> and <lit>xlink</lit> namespaces
 have been added (and <class>ll.xist.xsc.XML</class> was
 moved to <module>ll.xist.ns.xml</module>.</item>
+<item>A new namespace module for &svg; 1.0 has been added: <module>ll.xist.ns.svg</module></item>
 <item>The &html; specific parts of <module>ll.xist.ns.specials</module>
 have been split off into a separate module <module>ll.xist.ns.htmlspecials</module>.</item>
 <item>Comparison of attributes with strings has been removed.

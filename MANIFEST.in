@@ -1,3 +1,4 @@
+include APACHE_LICENSE
 include NEWS
 include NEWS.xml
 include INSTALL

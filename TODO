@@ -1,8 +1,6 @@
 ToDos and stupid ideas
 ======================
 
-Real namespace support.
-
 Implement new relative URLs as a new scheme:
 	roots://foo/bar.html
 and define the meaning of foo somewhere.
@@ -19,3 +17,7 @@ as a dictionary.
 
 Have html.head.convert() automatically create a
 meta.contenttype if none is present.
+
+Have an attribute class attribute publishdefault
+that specifies whether a an attribute that has
+the default value should be published.
