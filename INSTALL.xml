@@ -17,6 +17,7 @@ to install the source distribution.</item>
 </olist>
 </section>
 
+
 <section><title>Installation</title>
 <par>&xist; uses <app>distutils</app>, so installation is rather simple. Execute the following command:</par>
 <prog>
@@ -42,6 +43,7 @@ double click it, and follow the instructions.</par>
 to Walter Dörwald (<email>walter@livinglogic.de</email>).</par>
 </section>
 
+
 <section><title>Character encoding</title>
 <par>When you pass an 8bit string in the constructor
 of an &xist; element, these strings have to
@@ -61,6 +63,7 @@ source code encoding it the first or second line (see
 <link href="http://www.python.org/peps/pep-0263.html">PEP 263</link>)
 and use Unicode string constants only.</par>
 </section>
+
 
 <section><title>Display hook</title>
 <par>Currently &xist; nodes do not have a fancy <method>__repr__</method>
@@ -85,6 +88,7 @@ def displayhook(object):
 sys.displayhook = displayhook
 </prog>
 </section>
+
 
 <section><title>Syntax highlighting</title>
 <par>If you want syntax highlighting in your &xist; tree
