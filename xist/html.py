@@ -21,25 +21,26 @@ attrs.update(events)
 cellhalign = {"align": xsc.TextAttr, "char": xsc.TextAttr, "charoff": xsc.TextAttr}
 cellvalign = {"valign": xsc.TextAttr}
 
-class DocTypeHTML40transitional(xsc.DocType):
+class DocTypeHTML401transitional(xsc.DocType):
 	"""
 	document type for HTML 4.0 transitional
 	"""
-	def __init__(self,dtd = ""):
-		s = 'HTML PUBLIC "-//W3C//DTD HTML 4.0 transitional//EN"'
-		if dtd:
-			s += " " + dtd
-		xsc.DocType.__init__(self, s)
+	def __init__(self):
+		xsc.DocType.__init__(self,'html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd"')
 
 class DocTypeXHTML10strict(xsc.DocType):
 	"""
 	document type for XHTML 1.0 strict
 	"""
 	def __init__(self,dtd = ""):
-		s = 'html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"'
-		if dtd:
-			s += " " + dtd
-		xsc.DocType.__init__(self, s)
+		xsc.DocType.__init__(self,'html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd"')
+
+class DocTypeXHTML10transitional(xsc.DocType):
+	"""
+	document type for XHTML 1.0 strict
+	"""
+	def __init__(self):
+		xsc.DocType.__init__(self, 'html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"')
 
 # The global structure of an HTML document
 class html(xsc.Element):
