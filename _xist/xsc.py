@@ -141,22 +141,9 @@ class Node:
 	def present(self, presenter):
 		raise NotImplementedError("present method not implemented in %s" % self.__class__.__name__)
 
-	def __call__(self, converter=None, mode=None, stage=None, target=None, lang=None):
+	def conv(self, converter=None, mode=None, stage=None, target=None, lang=None):
 		"""
-		<par noindent>returns a version of this node and it's content converted to HTML (or any other target),
-		so when you define your own element classes you should overwrite <methodref>convert</methodref>.</par>
-
-		<par>E.g. when you want to define an element that packs it's content into an HTML
-		bold element, do the following:
-
-		<pre>
-		class foo(xsc.Element):
-			empty = 0
-
-			def convert(self, converter):
-				return html.b(self.content).convert(converter)
-		</pre>
-		</par>
+		<par noindent>returns a version of this node and it's content converted to HTML (or any other target).</par>
 		"""
 		if converter is None:
 			return self.convert(converters.Converter(mode=mode, stage=stage, target=target, lang=lang))
@@ -176,13 +163,22 @@ class Node:
 			converter.lang = oldlang
 			return node
 
-	# FIXME: backwards compatibility
-	def conv(self, converter=None, mode=None, stage=None, target=None, lang=None):
-		return self(converter, mode, stage, target, lang)
-
 	def convert(self, converter):
 		"""
-		<par noindent>implementation of the conversion method. Has to be overwritten in subclasses.</par>
+		<par noindent>implementation of the conversion method.
+		When you define your own element classes you have to overwrite this method.</par>
+
+		<par>E.g. when you want to define an element that packs it's content into an HTML
+		bold element, do the following:
+
+		<pre>
+		class foo(xsc.Element):
+			empty = 0
+
+			def convert(self, converter):
+				return html.b(self.content).convert(converter)
+		</pre>
+		</par>
 		"""
 		raise NotImplementedError("convert method not implemented in %s" % self.__class__.__name__)
 
