@@ -390,4 +390,10 @@ class vrml(xsc.Entity):
 	def __unicode__(self):
 		return u"VRML"
 
+class tco(xsc.Entity):
+	def convert(self, converter):
+		return html_.abbr("TCO", title="Total Cost of Ownership", lang="en")
+	def __unicode__(self):
+		return u"TCO"
+
 namespace = xsc.Namespace("abbr", "http://xmlns.livinglogic.de/xist/abbr.dtd", vars())
