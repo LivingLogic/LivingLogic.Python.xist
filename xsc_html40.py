@@ -206,6 +206,7 @@ RegisterElement("sup",sup)
 class p(XSCElement):
 	empty = 0
 	attr_handlers = attrs
+	attr_handlers = AppendDict({ "align" : XSCFrag }) # deprecated
 RegisterElement("p",p)
 
 class br(XSCElement):
