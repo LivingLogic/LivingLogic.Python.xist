@@ -6,18 +6,21 @@ value passed in, so it's now possible to pass iterators and generators
 (and generator expressions in Python 2.4) to <class>Frag</class>
 and <class>Element</class> constructors.</item>
 
-<item><par>A new API named XFind for iterating through &xml; trees has been added.
-XFind expression look somewhat like XPath expressions but are pure Python expressions.
-For example finding all links in an &html; page can be done like this:</par>
-<example><title>Finding links with XFind</title>
+<item><par>A new API named XFind has been added for iterating through &xml; trees.
+XFind expressions look somewhat like XPath expressions but are pure Python expressions.
+For example finding all images inside links in an &html; page can be done like this:</par>
+<example><title>Finding linked images with XFind</title>
 <prog>
 from ll.xist import parsers, xfind
 from ll.xist.ns import html
 node = parsers.parseURL("http://www.python.org/", tidy=True)
-for link in node//html.a/xfind.hasattr(html.a.Attrs.href):
+for link in node//html.a/html.img:
 	print link["href"]
 </prog>
 </example>
+
+<par>The module <module>ll.xist.xfind</module> contains several operators
+that can be used in XFind expressions.</par>
 </item>
 
 <item>Parsing broken &html; is now done with the &html; parser from
@@ -30,8 +33,8 @@ now done with <method>ll.xist.publishers.Publisher.write</method>. The methods
 <method>beginPublication</method> and <method>endPublication</method> have been
 removed.</item>
 
-<item>The presentation API has been simplified: You'll get a presentation
-by calling: <lit>string = <rep>presenter</rep>.present(<rep>node</rep>)</lit>.
+<item>The presentation API has been simplified in the same way: You'll get a
+presentation by calling: <lit>string = <rep>presenter</rep>.present(<rep>node</rep>)</lit>.
 The methods <method>beginPresentation</method> and <method>endPresentation</method>
 have been removed.</item>
 
@@ -43,9 +46,10 @@ exception, but this can now be reconfigured via Python's warning framework.</ite
 has been moved to <class>ll.xist.xsc.Namespace</class>, so it's now possible
 to tokenize an &xml; string for other processing instructions as well.</item>
 
-<item>Add a new class <class>ll.xist.NSPool</class> that contains a pool of
-namespaces from which the parser selects the appropriate one namespace
-once an <lit>xmlns</lit> attribute is encountered.</item>
+<item>A new class <class>ll.xist.xsc.NSPool</class> has been added.
+An <class>NSPool</class> contains a pool of namespaces from which the parser
+selects the appropriate namespace once an <lit>xmlns</lit> attribute is
+encountered.</item>
 
 <item>The script <filename>xscmake.py</filename> (which has been unmaintained
 for a while now) has been removed.</item>
@@ -55,6 +59,8 @@ and <class>input</class> were add to <module>ll.xist.ns.doc</module>.</item>
 
 <item>The method <method>ll.xist.xsc.Attrs.set</method> now returns the
 new attribute object.</item>
+
+<item>The <method>visit</method> method has been removed.</item>
 
 </ulist>
 
