@@ -45,6 +45,23 @@ node = html.table(class_="example")(
 </example>
 
 </item>
+
+<item>
+<par>Creating global attributes has been simplified. Passing an instance
+of <class>ll.xist.xsc.Namespace.Attrs</class> to an <class>Element</class>
+constructor now does the right thing:</par>
+<example>
+<prog>
+from ll.xist.ns import html, xml
+node = html.html(
+	html.head(),
+	xml.Attrs(lang="de"),
+	lang="en",
+)
+</prog>
+</example>
+</item>
+
 </ulist>
 </section>
 

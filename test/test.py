@@ -874,19 +874,28 @@ class XISTTest(unittest.TestCase):
 
 	def test_attrupdate(self):
 		node = html.a(href="gurk", class_="hurz")
-		node.attrs.update({"href": "gurk2", "id": 42})
+		node.attrs.update(xml.Attrs(lang="de"), {"href": "gurk2", "id": 42})
 		self.assertEquals(unicode(node["href"]), u"gurk2")
 		self.assertEquals(unicode(node["id"]), u"42")
+		self.assertEquals(unicode(node[(xml, "lang")]), u"de")
 
 		node = html.a(href="gurk", class_="hurz")
-		node.attrs.updatenew({"href": "gurk2", "id": 42})
+		node.attrs.updatenew(xml.Attrs(lang="de"), {"href": "gurk2", "id": 42})
 		self.assertEquals(unicode(node["href"]), u"gurk")
 		self.assertEquals(unicode(node["id"]), u"42")
+		self.assertEquals(unicode(node[(xml, "lang")]), u"de")
 
 		node = html.a(href="gurk", class_="hurz")
 		node.attrs.updateexisting({"href": "gurk2", "id": 42})
 		self.assertEquals(unicode(node["href"]), u"gurk2")
-		self.assertEquals(node.attrs.has("id"), False)
+		self.assertEquals("id" in node.attrs, False)
+		self.assertEquals((xml, "lang") in node.attrs, False)
+
+		node = html.a({(xml, "lang"): "de"}, href="gurk", class_="hurz")
+		self.assertEquals(unicode(node[(xml, "lang")]), u"de")
+
+		node = html.a(xml.Attrs(lang="de"), href="gurk", class_="hurz")
+		self.assertEquals(unicode(node[(xml, "lang")]), u"de")
 
 		class Gurk(xsc.Element):
 			model = False
@@ -909,6 +918,9 @@ class XISTTest(unittest.TestCase):
 
 		attrs = Gurk.Attrs(Gurk.Attrs(hurz=None))
 		self.assert_("hurz" not in attrs)
+
+		# No global attributes inside global attributes
+		self.assertRaises(errors.IllegalAttrError, xml.Attrs, xml.Attrs(lang="de"))
 
 	def test_classrepr(self):
 		repr(xsc.Base)

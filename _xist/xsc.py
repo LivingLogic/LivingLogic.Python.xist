@@ -2055,12 +2055,16 @@ class Attrs(Node, dict):
 		"""
 		for mapping in args + (kwargs,):
 			if mapping is not None:
-				try:
+				if isinstance(mapping, Namespace.Attrs):
 					for (attrname, attrvalue) in mapping._iterallitems():
-						self[attrname] = attrvalue
-				except AttributeError:
-					for (attrname, attrvalue) in mapping.iteritems():
-						self[attrname] = attrvalue
+						self[(attrvalue.xmlns, attrname)] = attrvalue
+				else:
+					try:
+						for (attrname, attrvalue) in mapping._iterallitems():
+							self[attrname] = attrvalue
+					except AttributeError:
+						for (attrname, attrvalue) in mapping.iteritems():
+							self[attrname] = attrvalue
 
 	def updateexisting(self, *args, **kwargs):
 		"""
@@ -2069,14 +2073,19 @@ class Attrs(Node, dict):
 		"""
 		for mapping in args + (kwargs,):
 			if mapping is not None:
-				try:
+				if isinstance(mapping, Namespace.Attrs):
 					for (attrname, attrvalue) in mapping._iterallitems():
-						if attrname in self:
-							self[attrname] = attrvalue
-				except AttributeError:
-					for (attrname, attrvalue) in mapping.iteritems():
-						if attrname in self:
-							self[attrname] = attrvalue
+						if (attrvalue.xmlns, attrname) in self:
+							self[(attrvalue.xmlns, attrname)] = attrvalue
+				else:
+					try:
+						for (attrname, attrvalue) in mapping._iterallitems():
+							if attrname in self:
+								self[attrname] = attrvalue
+					except AttributeError:
+						for (attrname, attrvalue) in mapping.iteritems():
+							if attrname in self:
+								self[attrname] = attrvalue
 
 	def updatenew(self, *args, **kwargs):
 		"""
@@ -2087,14 +2096,19 @@ class Attrs(Node, dict):
 		args.reverse()
 		for mapping in [kwargs] + args: # Iterate in reverse order, so the last entry wins
 			if mapping is not None:
-				try:
+				if isinstance(mapping, Namespace.Attrs):
 					for (attrname, attrvalue) in mapping._iterallitems():
-						if attrname not in self:
-							self[attrname] = attrvalue
-				except AttributeError:
-					for (attrname, attrvalue) in mapping.iteritems():
-						if attrname not in self:
-							self[attrname] = attrvalue
+						if (attrvalue.xmlns, attrname) not in self:
+							self[(attrvalue.xmlns, attrname)] = attrvalue
+				else:
+					try:
+						for (attrname, attrvalue) in mapping._iterallitems():
+							if attrname not in self:
+								self[attrname] = attrvalue
+					except AttributeError:
+						for (attrname, attrvalue) in mapping.iteritems():
+							if attrname not in self:
+								self[attrname] = attrvalue
 
 	def copydefaults(self, fromMapping):
 		warnings.warn(DeprecationWarning("Attrs.copydefaults() is deprecated, use Attrs.updateexisting() instead"))
