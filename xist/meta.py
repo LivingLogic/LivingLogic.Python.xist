@@ -22,7 +22,18 @@ class contenttype(html.meta):
 		e = html.meta(self.attrs)
 		e["http-equiv"] = "Content-Type"
 		e["content"] = "text/html"
+		return e.asHTML()
 
+class stylesheet(html.link):
+	empty = 1
+	attrHandlers = html.link.attrHandlers.copy()
+	del attrHandlers["rel"]
+	del attrHandlers["type"]
+
+	def asHTML(self):
+		e = html.link(self.attrs)
+		e["rel"] = "stylesheet"
+		e["type"] = "text/css"
 		return e.asHTML()
 
 namespace = xsc.Namespace("meta", "http://www.livinglogic.de/DTDs/meta.dtd", vars())
