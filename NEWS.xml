@@ -30,8 +30,8 @@ from <module>ll.xist.ns.code</module> have been renamed to <class>pyexec</class>
 and <class>pyeval</class> and <class>import_</class> has been removed.</item>
 <item><class>CharRef</class>s from <module>ll.xist.ns.html</module> have been
 moved to a new module named <module>ll.xist.ns.chars</module>.</item>
-<par>The method names <method>beginPublication</method>, <method>endPublication</method>
-and <method>doPublication</method> have been lowercased.</par>
+<item>The method names <method>beginPublication</method>, <method>endPublication</method>
+and <method>doPublication</method> have been lowercased.</item>
 </ulist>
 </section>
 
