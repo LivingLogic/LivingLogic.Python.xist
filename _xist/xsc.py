@@ -1758,6 +1758,9 @@ class Attrs(Node, dict):
 			attr = attr.default
 		return len(attr)>0
 
+	def has_key(self, name, xml=False):
+		return self.has(name, xml=xml)
+
 	def get(self, name, default=None, xml=False):
 		"""
 		<par>works like the dictionary method <method>get</method>,

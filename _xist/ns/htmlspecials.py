@@ -61,40 +61,50 @@ class plainbody(html.body):
 
 class pixel(html.img):
 	"""
-	<par>element for single pixel images, the default is the image
-	<filename>root:px/dot_clear.gif</filename>, but you can specify the color
-	as a six digit hex string, which will be used as the filename,
-	i.e. <markup>&lt;pixel color="000"/&gt;</markup> results in
-	<markup>&lt;img src="root:px/000.gif"&gt;</markup>.</par>
+	<par>element for single pixel images.</par>
+	
+	<par>The default is the image <filename>root:px/0.gif</filename>, but
+	you can specify the color as a three digit hex string, which will be
+	used as the filename, i.e. <markup>&lt;pixel color="000"/&gt;</markup>
+	results in <markup>&lt;img src="root:px/000.gif"&gt;</markup>.</par>
 
 	<par>In addition to that you can specify width and height attributes
-	(and every other allowed attribute for the img element) as usual.</par>
+	(and every other allowed attribute for the <class>img</class> element)
+	as usual.</par>
 	"""
 
 	empty = True
 	class Attrs(html.img.Attrs):
-		class color(xsc.ColorAttr): pass
-		src = None
+		class color(xsc.TextAttr):
+			"""
+			The pixel color as a three digit hex value.
+			"""
+			default = 0
+		class alt(html.img.Attrs.alt):
+			default = ""
+		class width(html.img.Attrs.width):
+			default = 1
+		class height(html.img.Attrs.height):
+			default = 1
+		src = None # remove source attribute
 
 	def convert(self, converter):
-		color = self.attrs.get("color", default=0)
-		e = html.img(self.attrs.without(["color"]))
-		if not e.attrs.has("alt"):
-			e["alt"] = u""
-		if not e.attrs.has("width"):
-			e["width"] = 1
-		if not e.attrs.has("height"):
-			e["height"] = 1
-		e["src"] = ("root:px/", color, ".gif")
-
+		e = html.img(
+			self.attrs.without(["color"]),
+			src=("root:px/", self.attrs.get("color"), ".gif")
+		)
 		return e.convert(converter)
 
 class caps(xsc.Element):
 	"""
-	<par>returns a fragment that contains the content string converted to caps and small caps.
-	This is done by converting all lowercase letters to uppercase and packing them into a
-	<markup>&lt;span class="nini"&gt;...&lt;/span&gt;</markup>. This element is meant to be a workaround until all
-	browsers support the CSS feature "font-variant: small-caps".</par>
+	<par>returns a fragment that contains the content string
+	converted to caps and small caps.</par>
+	
+	<par>This is done by converting all lowercase letters to
+	uppercase and packing them into a
+	<markup>&lt;span class="nini"&gt;...&lt;/span&gt;</markup>.
+	This element is meant to be a workaround until all
+	browsers support the &css; feature <lit>font-variant: small-caps</lit>.</par>
 	"""
 	empty = False
 
@@ -150,6 +160,33 @@ class autoimg(html.img):
 			raise ValueError("unknown conversion target %r" % target)
 		src = self["src"].convert(converter).forInput(converter.root)
 		e._addimagesizeattributes(src, "width", "height")
+		return e
+
+class autopixel(html.img):
+	"""
+	<par>A pixel image were width and height attributes are automatically generated.</par>
+	
+	<par>This works like <pyref class="pixel"><class>pixel</class></pyref> but the
+	size is <z>inherited</z> from the image specified via the <lit>src</lit> attribute.</par>
+	"""
+	class Attrs(html.img.Attrs):
+		class color(xsc.TextAttr):
+			"""
+			<par>The pixel color as a three digit hex value.</par>
+			"""
+			default = 0
+		class alt(html.img.Attrs.alt):
+			default = ""
+
+	def convert(self, converter):
+		target = converter.target
+		if issubclass(target, ihtml) or issubclass(target, html):
+			e = target.img(self.attrs.without(["color"]))
+		else:
+			raise ValueError("unknown conversion target %r" % target)
+		src = self["src"].convert(converter).forInput(converter.root)
+		e._addimagesizeattributes(src, "width", "height")
+		e["src"] = ("root:px/", self.attrs.get("color"), ".gif")
 		return e
 
 class autoinput(html.input):

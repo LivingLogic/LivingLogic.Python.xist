@@ -84,6 +84,10 @@ during conversion.</item>
 <item><class>ll.xist.ns.htmlspecials.autoimg</class> no longer touches
 the existing width and height attribute. This means that %-formatting
 of the existing attributes is no longer done.</item>
+<item>Added a new class <class>ll.xist.ns.htmlspecials.autopixel</class>
+that works like <class>ll.xist.ns.htmlspecials.pixel</class> but
+inherits the size for the image specified via the <lit>src</lit>
+attribute.</item>
 </ulist>
 </section>
 
