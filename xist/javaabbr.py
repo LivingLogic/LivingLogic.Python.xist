@@ -57,4 +57,10 @@ class jni(xsc.Entity):
 	def asPlainString(self):
 		return u"JNI"
 
+class ejb(xsc.Entity):
+	def asHTML(self):
+		return html.abbr("EJB",title="Enterprice Java Beans",lang="en")
+	def asPlainString(self):
+		return u"EJB"
+
 namespace = xsc.Namespace("javaabbr","http://www.livinglogic.de/DTDs/javaabbr.dtd",vars())
