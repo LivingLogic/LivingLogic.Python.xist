@@ -17,31 +17,52 @@ Usage: python tld2xsc.py foo.tld
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-import sys, os
+import sys, optparse
 
+from ll import url
 from ll.xist import xsc, parsers, converters
 from ll.xist.ns import tld
 
-def tld2xsc(tldfilename, outfilename=None):
-	# get name of tld without extension
-	modname = os.path.splitext(os.path.split(tldfilename)[1])[0]
-	if outfilename is None:
-		outfilename = modname + ".py"
+def tld2xsc(inurl, outurl, verbose, xmlname, xmlurl, shareattrs):
+	if verbose:
+		print "Parsing TLD %s ..." % dtdurl
+	node = parsers.parseURL(inurl)
 
-	# parse tld file
-	doc = parsers.parseFile(sys.argv[1])
+	if verbose:
+		print "Converting ..."
 
-	# get and convert the tablib object
-	taglib = doc.findfirst(xsc.FindType(tld.taglib))
-	e = taglib.conv()
-	s = e.asdata().aspy()
+	# get and convert the taglib object
+	node = node.findfirst(xsc.FindType(tld.taglib))
+	node = node.conv()
+	data = node.asdata()
 
-	file = open(outfilename, 'w')
-	file.write(s)
+	if shareattrs=="dupes":
+		data.shareattrs(False)
+	elif shareattrs=="all":
+		data.shareattrs(True)
+
+	if verbose:
+		print "Writing to %s ..." % outurl
+
+	file = outurl.openwrite()
+	file.write(data.aspy())
 	file.close()
 
 if __name__ == "__main__":
-	if len(sys.argv)<2 or len(sys.argv)>3:
-		print "Usage: tld2xsc.py file.tld [file.py]"
-		sys.exit(0)
-	tld2xsc(*sys.argv[1:3])
+	p = optparse.OptionParser(usage="usage: %prog [options] inputurl.tld")
+	p.add_option("-o", "--output", dest="output", metavar="FILE", help="write output to FILE")
+	p.add_option("-v", "--verbose", action="store_true", dest="verbose")
+	p.add_option("-p", "--prefix", dest="xmlname", help="the XML prefix for this namespace", default="prefix", metavar="PREFIX")
+	p.add_option("-u", "--url", dest="xmlurl", help="the XML namespace name", metavar="URL")
+	p.add_option("-s", "--shareattrs", dest="shareattrs", help="Should identical attributes be shared among elements?", choices=("none", "dupes", "all"), default="dupes")
+
+	(options, args) = p.parse_args()
+	if len(args) != 1:
+		p.error("incorrect number of arguments")
+		sys.exit(1)
+	input = url.URL(args[0])
+	if options.output is None:
+		output = url.File(input.withExt("py").file)
+	else:
+		output = url.URL(options.output)
+	tld2xsc(input, output, options.verbose, options.xmlname, options.xmlurl, options.shareattrs)
