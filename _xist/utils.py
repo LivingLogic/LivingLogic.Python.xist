@@ -43,6 +43,22 @@ def forceopen(name, mode="r", bufsize=-1):
 		os.makedirs(name[:found])
 		return open(name, mode, bufsize)
 
+def findAttr(content, name):
+	startpos = content.find(name)
+	if startpos != -1:
+		startpos = startpos+len(name)
+		while content[startpos].isspace():
+			startpos += 1
+		startpos += 1 # skip '='
+		while content[startpos].isspace():
+			startpos += 1
+		char = content[startpos]
+		startpos += 1
+		endpos = content.find(char, startpos)
+		if endpos != -1:
+			return content[startpos:endpos]
+	return None
+
 class Code:
 	def __init__(self, text, ignorefirst=0):
 		# get the individual lines; ignore "\r" as this would mess up whitespace handling later

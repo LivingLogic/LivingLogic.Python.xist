@@ -38,15 +38,7 @@ class Error(Exception):
 	"""
 	base class for all XSC exceptions
 	"""
-
-	def __init__(self):
-		self.location = None # will be filled in by the parser, that catches us, modifies us and raises us again.
-
-	def __str__(self):
-		if self.location is not None:
-			return "%s: " % self.location
-		else:
-			return ""
+	pass
 
 class EmptyElementWithContentError(Error):
 	"""
@@ -55,11 +47,10 @@ class EmptyElementWithContentError(Error):
 	"""
 
 	def __init__(self, element):
-		Error.__init__(self)
 		self.element = element
 
 	def __str__(self):
-		return Error.__str__(self) + "element %s specified to be empty, but has content" % presenters.strElementWithBrackets(self.element)
+		return "element %s specified to be empty, but has content" % presenters.strElementWithBrackets(self.element)
 
 class IllegalAttrError(Error):
 	"""
@@ -68,13 +59,12 @@ class IllegalAttrError(Error):
 	"""
 
 	def __init__(self, element, attrname):
-		Error.__init__(self)
 		self.element = element
 		self.attrname = attrname
 
 	def __str__(self):
 		attrs = self.element.attrHandlers.keys()
-		s = Error.__str__(self) + "Attribute %s not allowed in element %s. " % (presenters.strAttrName(self.attrname), presenters.strElementWithBrackets(self.element))
+		s = "Attribute %s not allowed in element %s. " % (presenters.strAttrName(self.attrname), presenters.strElementWithBrackets(self.element))
 		if len(attrs):
 			attrs.sort()
 			attrs = ", ".join([ str(presenters.strAttrName(attr)) for attr in attrs])
@@ -89,14 +79,13 @@ class AttrNotFoundError(Error):
 	"""
 
 	def __init__(self, element, attrname):
-		Error.__init__(self)
 		self.element = element
 		self.attrname = attrname
 
 	def __str__(self):
 		attrs = self.element.attrs.keys()
 
-		s = Error.__str__(self) + "Attribute %s not found in element %s. " % (presenters.strAttrName(self.attrname), presenters.strElementWithBrackets(self.element))
+		s = "Attribute %s not found in element %s. " % (presenters.strAttrName(self.attrname), presenters.strElementWithBrackets(self.element))
 
 		if len(attrs):
 			attrs.sort()
@@ -114,7 +103,6 @@ class IllegalElementError(Error):
 	"""
 
 	def __init__(self, name):
-		Error.__init__(self)
 		self.name = name
 
 	def __str__(self):
@@ -131,7 +119,7 @@ class IllegalElementError(Error):
 			element = all[key]
 			allAsList.append(str(presenters.strElementClassWithBrackets(element)))
 
-		s = Error.__str__(self) + "element %s not allowed. " % presenters.strElementNameWithBrackets(self.name[0], self.name[1])
+		s = "element %s not allowed. " % presenters.strElementNameWithBrackets(self.name[0], self.name[1])
 		if allAsList:
 			s = s + "Allowed elements are: " + ", ".join(allAsList) + "."
 		else:
@@ -145,7 +133,6 @@ class IllegalProcInstError(Error):
 	"""
 
 	def __init__(self, name):
-		Error.__init__(self)
 		self.name = name
 
 	def __str__(self):
@@ -162,7 +149,7 @@ class IllegalProcInstError(Error):
 			procinst = all[key]
 			allAsList.append(str(presenters.strProcInstWithBrackets(procinst)))
 
-		s = Error.__str__(self) + "procinst %s not allowed. " % presenters.strProcInstTargetWithBrackets(self.name[0], self.name[1])
+		s = "procinst %s not allowed. " % presenters.strProcInstTargetWithBrackets(self.name[0], self.name[1])
 		if allAsList:
 			s = s + "Allowed procinsts are: " + ", ".join(allAsList) + "."
 		else:
@@ -176,12 +163,11 @@ class ElementNestingError(Error):
 	"""
 
 	def __init__(self, expectedelement, foundelement):
-		Error.__init__(self)
 		self.expectedelement = expectedelement
 		self.foundelement = foundelement
 
 	def __str__(self):
-		return Error.__str__(self) + "mismatched element nesting (closing %s expected; %s found)" % (presenters.strElementClassWithBrackets(self.expectedelement, -1), presenters.strElementClassWithBrackets(self.foundelement, -1))
+		return "mismatched element nesting (closing %s expected; %s found)" % (presenters.strElementClassWithBrackets(self.expectedelement, -1), presenters.strElementClassWithBrackets(self.foundelement, -1))
 
 class IllegalAttrNodeError(Error):
 	"""
@@ -190,11 +176,10 @@ class IllegalAttrNodeError(Error):
 	"""
 
 	def __init__(self, node):
-		Error.__init__(self)
 		self.node = node
 
 	def __str__(self):
-		return Error.__str__(self) + "illegal node of type %s found inside attribute" % self.node.__class__.__name__
+		return "illegal node of type %s found inside attribute" % self.node.__class__.__name__
 
 class ImageSizeFormatError(Error):
 	"""
@@ -202,12 +187,11 @@ class ImageSizeFormatError(Error):
 	"""
 
 	def __init__(self, element, attrname):
-		Error.__init__(self)
 		self.element = element
 		self.attrname = attrname
 
 	def __str__(self):
-		return Error.__str__(self) + "the value %s for the image size attribute %s of the element %s can't be formatted or evaluated" % (presenters.strAttrValue(self.element[self.attrname].asPlainString()), presenters.strAttrName(self.attrname), presenters.strElementWithBrackets(self.element))
+		return "the value %s for the image size attribute %s of the element %s can't be formatted or evaluated" % (presenters.strAttrValue(self.element[self.attrname].asPlainString()), presenters.strAttrName(self.attrname), presenters.strElementWithBrackets(self.element))
 
 class FileNotFoundError(Error):
 	"""
@@ -215,11 +199,10 @@ class FileNotFoundError(Error):
 	"""
 
 	def __init__(self, url):
-		Error.__init__(self)
 		self.url = url
 
 	def __str__(self):
-		return Error.__str__(self) + "file %s can't be opened" % presenters.strURL(self.url.asString())
+		return "file %s can't be opened" % presenters.strURL(self.url.asString())
 
 class IllegalObjectError(Error):
 	"""
@@ -227,11 +210,10 @@ class IllegalObjectError(Error):
 	"""
 
 	def __init__(self, object):
-		Error.__init__(self)
 		self.object = object
 
 	def __str__(self):
-		s = Error.__str__(self) + "an illegal object %r of type %s" + (self.object, type(self.object).__name__)
+		s = "an illegal object %r of type %s" + (self.object, type(self.object).__name__)
 		if type(self.object) is types.InstanceType:
 			s += " (class %s)" % self.object.__class__.__name__
 		s += " has been found in the XSC tree"
@@ -243,11 +225,10 @@ class MalformedCharRefError(Error):
 	"""
 
 	def __init__(self, name):
-		Error.__init__(self)
 		self.name = name
 
 	def __str__(self):
-		return Error.__str__(self) + "malformed character reference: &#%s;" % self.name
+		return "malformed character reference: &#%s;" % self.name
 
 class IllegalEntityError(Error):
 	"""
@@ -256,7 +237,6 @@ class IllegalEntityError(Error):
 	"""
 
 	def __init__(self, name):
-		Error.__init__(self)
 		self.name = name
 
 	def __str__(self):
@@ -275,7 +255,7 @@ class IllegalEntityError(Error):
 			entity = all[key]
 			allAsList.append(str(presenters.strEntity(entity)))
 
-		s = Error.__str__(self) + "entity %s not allowed. " % presenters.strEntityName(self.name[0], self.name[1])
+		s = "entity %s not allowed. " % presenters.strEntityName(self.name[0], self.name[1])
 		if allAsList:
 			s = s + "Allowed entities and charrefs are: " + ", ".join(allAsList) + "."
 		else:
@@ -291,11 +271,10 @@ class IllegalCommentContentError(Error):
 	"""
 
 	def __init__(self, comment):
-		Error.__init__(self)
 		self.comment = comment
 
 	def __str__(self):
-		return Error.__str__(self) + "comment with content %s is illegal, as it contains '--' or ends in '-'." % presenters.strTextOutsideAttr(self.comment._content)
+		return "comment with content %s is illegal, as it contains '--' or ends in '-'." % presenters.strTextOutsideAttr(self.comment._content)
 
 class IllegalProcInstFormatError(Error):
 	"""
@@ -305,11 +284,10 @@ class IllegalProcInstFormatError(Error):
 	"""
 
 	def __init__(self, procinst):
-		Error.__init__(self)
 		self.procinst = procinst
 
 	def __str__(self):
-		return Error.__str__(self) + "processing instruction with content %s is illegal, as it contains %r." % (presenters.strProcInstContent(self.procinst._content), "?>")
+		return "processing instruction with content %s is illegal, as it contains %r." % (presenters.strProcInstContent(self.procinst._content), "?>")
 
 class IllegalXMLDeclFormatError(Error):
 	"""
@@ -320,11 +298,10 @@ class IllegalXMLDeclFormatError(Error):
 	"""
 
 	def __init__(self, procinst):
-		Error.__init__(self)
 		self.procinst = procinst
 
 	def __str__(self):
-		return Error.__str__(self) + "XML declaration with content %r is malformed." % presenters.strProcInstContent(self.procinst._content)
+		return "XML declaration with content %r is malformed." % presenters.strProcInstContent(self.procinst._content)
 
 class EncodingImpossibleError(Error):
 	"""
@@ -336,12 +313,11 @@ class EncodingImpossibleError(Error):
 	"""
 
 	def __init__(self, encoding, text, char):
-		Error.__init__(self)
 		self.encoding = encoding
 		self.text = text
 		self.char = char
 
 	def __str__(self):
 		# FIXME can't use %r because this returns a Unicode string
-		return "%stext %s can't be encoded with the encoding %s because it contains the character %s." % (Error.__str__(self), repr(self.text), repr(self.encoding), repr(self.char))
+		return "text %s can't be encoded with the encoding %s because it contains the character %s." % (repr(self.text), repr(self.encoding), repr(self.char))
 

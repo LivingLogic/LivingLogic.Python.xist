@@ -1,7 +1,9 @@
-<section><title>Requirements</title>
+<?xml version='1.0' encoding='iso-8859-1'?>
+<dbl:section><dbl:title>Requirements</dbl:title>
 To use &xist; you need the following software packages:
 <ol>
-<li>Python 2.1 (available from <a href="http://www.python.org/">http://www.python.org/</a>),</li>
+<li>Python 2.1 (available from <a href="http://www.python.org/">http://www.python.org/</a> and
+<a href="http://python.sourceforge.net/">http://python.sourceforge.net/</a>),</li>
 <li>The Python &xml; package (available from <a href="http://pyxml.sourceforge.net/">http://pyxml.sourceforge.net/</a>)
 (a newer version that includes sgmlop and expat, 0.6.2 will do),</li>
 <li>the Python Imaging Library (available from
@@ -11,25 +13,27 @@ To use &xist; you need the following software packages:
 <li>and a C compiler supported by <application>distutils</application>, if you want to install
 the source distribution.</li>
 </ol>
-</section>
+</dbl:section>
 
-<section><title>Installation</title>
-<p>&xist; uses <application>distutils</application>, so installation
+<dbl:section><dbl:title>Installation</dbl:title>
+<dbl:para>&xist; uses <application>distutils</application>, so installation
 is rather simple. Execute the following command:
 <programlisting>
 python setup.py install
 </programlisting>
 This will copy *.py files, compile *.c files and install everything
 in the <filename class="directory">site-packages</filename>
-directory as an <code>xist</code> package. For Windows a binary
-distribution is provided.</p>
+directory as an <code>xist</code> package.</dbl:para>
 
-<p>If you have difficulties installing this software, send a problem report
+<dbl:para>For Windows a binary distribution is provided. To install it,
+double click it, and follow the instructions.</dbl:para>
+
+<dbl:para>If you have difficulties installing this software, send a problem report
 to Walter Dörwald (<a href="mailto:walter@livinglogic.de">walter@livinglogic.de</a>)
-describing the problem.</p>
-</section>
+describing the problem.</dbl:para>
+</dbl:section>
 
-<section><title>Miscellaneous</title>
+<dbl:section><dbl:title>Miscellaneous</dbl:title>
 When you pass an 8bit string in the constructor
 of an &xist; element, or <application>sgmlop</application>
 passes a string to &xist;, these strings have to
@@ -38,11 +42,11 @@ are in the system default encoding, which is &ascii;.
 If you want to change this you can put a script
 named <filename>sitecustomize.py</filename> somewhere
 in the Python path, with the following content:
-<programlisting>
+<dbl:programlisting>
 import sys
 sys.setdefaultencoding(<replaceable>"iso-8859-1"</replaceable>)
-</programlisting>
+</dbl:programlisting>
 (or any other encoding name, that you want to use
 instead of <code>"iso-8859-1"</code>).
 
-</section>
+</dbl:section>

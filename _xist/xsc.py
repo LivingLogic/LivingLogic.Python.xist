@@ -1441,26 +1441,10 @@ class XML(ProcInst):
 	def __init__(self, content=u""):
 		ProcInst.__init__(self, u"xml", content)
 
-	def __findAttr(self, name):
-		startpos = self._content.find(name)
-		if startpos != -1:
-			startpos = startpos+len(name)
-			while self._content[startpos].isspace():
-				startpos += 1
-			startpos += 1 # skip '='
-			while self._content[startpos].isspace():
-				startpos += 1
-			char = self._content[startpos]
-			startpos += 1
-			endpos = self._content.find(char, startpos)
-			if endpos != -1:
-				return self._content[startpos:endpos]
-		return None
-
 	def publish(self, publisher):
-		encodingfound = self.__findAttr(u"encoding")
-		versionfound = self.__findAttr(u"version")
-		standalonefound = self.__findAttr(u"standalone")
+		encodingfound = utils.findAttr(self._content, u"encoding")
+		versionfound = utils.findAttr(self._content, u"version")
+		standalonefound = utils.findAttr(self._content, u"standalone")
 		if publisher.encoding != encodingfound: # if self has the wrong encoding specification (or none), we construct a new XML ProcInst and publish that (this doesn't lead to infinite recursion, because the next call will skip it)
 			node = XML(u"version='" + versionfound + u"' encoding='" + publisher.encoding + u"'")
 			if standalonefound is not None:

@@ -39,7 +39,7 @@ from xml.sax import saxlib
 #except ImportError:
 timeoutsocket = None
 
-import xsc, url as url_, errors
+import xsc, url as url_, errors, utils
 
 class StringInputSource(sax.xmlreader.InputSource):
 	def __init__(self, text):
@@ -123,9 +123,10 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 	"""
 	encoding = "latin-1"
 
-	def __init__(self, namespaceHandling=0, bufsize=2**16-20):
+	def __init__(self, namespaceHandling=0, bufsize=2**16-20, defaultEncoding="utf-8"):
 		sax.xmlreader.IncrementalParser.__init__(self, bufsize)
 		self.bufsize = bufsize
+		self.defaultEncoding = defaultEncoding
 		self.reset()
 
 	def reset(self):
@@ -134,6 +135,7 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 		except AttributeError:
 			self.parser = sgmlop.XMLParser()
 		self._parsing = 0
+		self.encoding = self.defaultEncoding
 		self.source = None
 		self.lineNumber = -1
 
@@ -213,29 +215,35 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 		return self.source.getSystemId()
 
 	def handle_comment(self, data):
-		self.content_handler.comment(data)
+		self.content_handler.comment(unicode(data, self.encoding))
 
 	# don't define handle_charref or handle_cdata, so we will get those through handle_data
 
 	def handle_data(self, data):
-		self.content_handler.characters(data)
+		self.content_handler.characters(unicode(data, self.encoding))
 
 	def handle_proc(self, target, data):
+		target = unicode(target, self.encoding)
+		data = unicode(data, self.encoding)
 		if target!=u'xml': # Don't report <?xml?> as a processing instruction
 			self.content_handler.processingInstruction(target, data)
+		else: # extract the encoding
+			encodingFound = utils.findAttr(data, u"encoding")
+			if encodingFound is not None:
+				self.encoding = encodingFound
 
 	def handle_entityref(self, name):
 		if hasattr(self.content_handler, "entity"):
-			self.content_handler.entity(name)
+			self.content_handler.entity(unicode(name, self.encoding))
 
 	def finish_starttag(self, name, attrs):
 		newattrs = sax.xmlreader.AttributesImpl(attrs)
 		for (attrname, attrvalue) in attrs.items():
-			newattrs._attrs[attrname] = self.__string2Fragment(attrvalue)
-		self.content_handler.startElement(name, newattrs)
+			newattrs._attrs[unicode(attrname, self.encoding)] = self.__string2Fragment(unicode(attrvalue, self.encoding))
+		self.content_handler.startElement(unicode(name, self.encoding), newattrs)
 
 	def finish_endtag(self, name):
-		self.content_handler.endElement(name)
+		self.content_handler.endElement(unicode(name, self.encoding))
 
 	def __string2Fragment(self, text):
 		"""
@@ -358,14 +366,14 @@ class Handler:
 
 	def fatalError(self, exception):
 		"Handle a non-recoverable error."
-		if isinstance(exception, errors.Error):
-			exception.location = self.getLocation()
+		if not isinstance(exception, saxlib.SAXParseException):
+			exception = saxlib.SAXParseException(str(exception), exception, self._locator)
 		raise exception
 
 	def warning(self, exception):
 		"Handle a warning."
-		if isinstance(exception, errors.Error):
-			exception.location = self.getLocation()
+		if not isinstance(exception, saxlib.SAXParseException):
+			exception = saxlib.SAXParseException(str(exception), exception, self._locator)
 		print exception
 
 	def getLocation(self):
