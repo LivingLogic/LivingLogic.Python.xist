@@ -3215,7 +3215,7 @@ class DocPrefixes(Prefixes):
 defaultPrefixes = Prefixes()
 
 ###
-###
+### Namespaces
 ###
 
 class NamespaceAttrMixIn(object):
