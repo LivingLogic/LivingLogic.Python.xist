@@ -281,7 +281,7 @@ class XISTTest(unittest.TestCase):
 			node.compact()
 			node.normalized()
 			list(node.walk((True, xsc.enterattr, xsc.entercontent)))
-			node.visit((self.visit, xsc.enterattr, xsc.entercontent)))
+			node.visit((self.visit, xsc.enterattr, xsc.entercontent))
 			node.find((True, xsc.enterattr, xsc.entercontent))
 			node.pretty()
 			node.clone()
