@@ -650,6 +650,7 @@ class frame(xsc.Element):
 	empty = 0
 	attrHandlers = coreattrs.copy()
 	attrHandlers.update({"longdesc": xsc.TextAttr, "name": xsc.TextAttr, "src": xsc.URLAttr, "frameborder": xsc.TextAttr, "marginwidht": xsc.TextAttr, "marginheight": xsc.TextAttr, "noresize": xsc.BoolAttr, "scrolling": xsc.TextAttr})
+	attrHandlers.update({"framespacing": xsc.TextAttr, "border": xsc.IntAttr, "marginwidth": xsc.IntAttr, "marginheight": xsc.IntAttr, "frameborder": xsc.IntAttr, "noresize": xsc.BoolAttr, "scrolling": xsc.TextAttr}) # deprecated
 
 class noframes(xsc.Element):
 	"""
