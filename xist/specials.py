@@ -23,7 +23,7 @@ class plaintable(html_.table):
 	defaults = {"cellpadding": 0, "cellspacing": 0, "border": 0}
 
 	def asHTML(self):
-		e = html_.table(self.content, self.attrs)
+		e = html_.table(*self.content, **self.attrs)
 		if not e.hasAttr("cellpadding"):
 			e["cellpadding"] = self.defaults["cellpadding"]
 		if not e.hasAttr("cellspacing"):
@@ -43,7 +43,7 @@ class plainbody(html_.body):
 	defaults = {"leftmargin": 0, "topmargin": 0, "marginheight": 0, "marginwidth": 0}
 
 	def asHTML(self):
-		e = html_.body(self.content, self.attrs)
+		e = html_.body(*self.content, **self.attrs)
 		if not e.hasAttr("leftmargin"):
 			e["leftmargin"] = self.defaults["leftmargin"]
 		if not e.hasAttr("topmargin"):
@@ -62,12 +62,12 @@ class z(xsc.Element):
 	empty = 0
 
 	def asHTML(self):
-		e = xsc.Frag("«", self.content, "»")
+		e = xsc.Frag(u"«", self.content, u"»")
 
 		return e.asHTML()
 
 	def asPlainString(self):
-		return '«' + self.content.asPlainString() + '»'
+		return u'«' + self.content.asPlainString() + u'»'
 
 class nbsp(xsc.Element):
 	"""
@@ -84,7 +84,7 @@ class filesize(xsc.Element):
 	as a text node.
 	"""
 	empty = 1
-	attrHandlers = {"href" : xsc.URLAttr}
+	attrHandlers = {"href": xsc.URLAttr}
 
 	def asHTML(self):
 		size = self["href"].FileSize()
@@ -204,11 +204,17 @@ class endash(xsc.Element):
 	def asHTML(self):
 		return xsc.Text("-")
 
+	def asPlainString(self):
+		return u"-"
+
 class emdash(xsc.Element):
 	empty = 1
 
 	def asHTML(self):
 		return xsc.Text("-")
+
+	def asPlainString(self):
+		return u"-"
 
 class include(xsc.Element):
 	empty = 1
@@ -225,7 +231,7 @@ class par(html_.div):
 	attrHandlers.update({"noindent": xsc.TextAttr})
 
 	def asHTML(self):
-		e = html_.div(self.content.clone())
+		e = html_.div(*self.content)
 		indent = 1
 		for attr in self.attrs.keys():
 			if attr == "noindent":
@@ -286,7 +292,7 @@ class redirectpage(xsc.Element):
 			html_.head(html_.title("Redirection")),
 			html_.body(
 				"Your browser doesn't understand redirects. This page has been redirected to ",
-				html_.a(url, href = url)
+				html_.a(url, href=url)
 			)
 		)
 		return e.asHTML()
@@ -405,7 +411,7 @@ class PHP(xsc.ProcInst):
 	PHP processing instruction (must be used with a target)
 	"""
 
-	name = "php"
+	name = u"php"
 
 	def __init__(self, content=u""):
 		xsc.ProcInst.__init__(self, u"php", content)

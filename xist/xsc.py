@@ -407,16 +407,7 @@ def ToNode(value):
 	elif t is types.NoneType:
 		return Null
 	elif t in (types.ListType, types.TupleType):
-		node = Frag()
-		for i in value:
-			node.append(ToNode(i))
-		l = len(node)
-		if l==1:
-			return node[0] # recursively try to simplify the tree
-		elif l==0:
-			return Null
-		else:
-			return node
+		return Frag(*value)
 	raise errors.IllegalObjectError(-1, value) # none of the above, so we throw and exception
 
 class Node:
@@ -453,8 +444,7 @@ class Node:
 
 	def reprtree(self, encoding=None, ansi=None):
 		nest = 0
-		v = []
-		lines = self._doreprtree(nest, [], encoding = encoding, ansi = ansi)
+		lines = self._doreprtree(nest, [], encoding=encoding, ansi=ansi)
 		lenloc = 0
 		lenelementno = 0
 		for line in lines:
@@ -467,9 +457,7 @@ class Node:
 			lenloc = max(lenloc, len(line[1]))
 			lenelementno = max(lenelementno, len(line[2]))
 
-		for line in lines:
-			v.append("%*s %-*s %s\n" % (lenloc, line[1], lenelementno, line[2], line[3]))
-		return "".join(v)
+		return "".join([ "%*s %-*s %s\n" % (lenloc, line[1], lenelementno, line[2], line[3]) for line in lines ])
 
 	def _dorepr(self, encoding=None, ansi=None):
 		# returns a string representation of the node
@@ -531,7 +519,7 @@ class Node:
 		so you can safely use HTML elements in your title elements (e.g. if your
 		title is dynamically constructed from a DOM tree.)</par>
 		"""
-		return ""
+		return u""
 
 	def asInt(self):
 		"""
@@ -970,7 +958,7 @@ class Frag(Node):
 			v.append([nest, self.startloc, elementno, self._str(brackets=1, ansi=ansi)])
 			i = 0
 			for child in self.__content:
-				v.append(child._doreprtree(nest+1, elementno + [i], encoding, ansi))
+				v.extend(child._doreprtree(nest+1, elementno + [i], encoding, ansi))
 				i += 1
 			v.append([nest, self.endloc, elementno, self._str(brackets=1, ansi=ansi, slash=-1)])
 		else:
@@ -978,7 +966,7 @@ class Frag(Node):
 		return v
 
 	def asPlainString(self):
-		return "".join([ child.asPlainString() for child in self.__content ])
+		return u"".join([ child.asPlainString() for child in self.__content ])
 
 	def publish(self, publisher):
 		for child in self.__content:
@@ -1133,7 +1121,7 @@ class Comment(Node, StringMixIn):
 
 	clone = compact = asHTML
 
-	def _dorepr(self, ansi = None):
+	def _dorepr(self, ansi=None):
 		return strBracketOpen(ansi) + strExclamation(ansi) + strCommentMarker(ansi) + strCommentText(self._content, ansi) + strCommentMarker(ansi) + strBracketClose(ansi)
 
 	def _doreprtree(self, nest, elementno, encoding, ansi):
@@ -1231,7 +1219,7 @@ class Exec(PythonCode):
 	<par>XSC processing instructions will be evaluated and executed in the
 	namespace of the module procinst.</par>
 	"""
-	name = "xsc-exec"
+	name = u"xsc-exec"
 
 	def __init__(self, content=u""):
 		ProcInst.__init__(self, u"xsc-exec", content)
@@ -1256,7 +1244,7 @@ class Eval(PythonCode):
 	processing instructions, as it is used by XSC for internal purposes.</par>
 	"""
 
-	name = "xsc-eval"
+	name = u"xsc-eval"
 
 	def __init__(self, content=u""):
 		ProcInst.__init__(self, u"xsc-eval", content)
@@ -1272,7 +1260,7 @@ class XML(ProcInst):
 	XML header
 	"""
 
-	name = "xml"
+	name = u"xml"
 
 	def __init__(self, content=u""):
 		ProcInst.__init__(self, u"xml", content)
@@ -1310,7 +1298,7 @@ class XMLStyleSheet(ProcInst):
 	XML stylesheet declaration
 	"""
 
-	name = "xml-stylesheet"
+	name = u"xml-stylesheet"
 
 	def __init__(self, content=u""):
 		ProcInst.__init__(self, u"xml-stylesheet", content)
@@ -1440,9 +1428,9 @@ class Element(Node):
 	def _dorepr(self, ansi=None):
 		v = []
 		if self.empty:
-			v.append(self._str(content = self.__strattrs(ansi), brackets=1, slash=1, ansi=ansi))
+			v.append(self._str(content=self.__strattrs(ansi), brackets=1, slash=1, ansi=ansi))
 		else:
-			v.append(self._str(content = self.__strattrs(ansi), brackets=1, ansi=ansi))
+			v.append(self._str(content=self.__strattrs(ansi), brackets=1, ansi=ansi))
 			for child in self:
 				v.append(child._dorepr(ansi))
 			v.append(self._str(brackets=1, slash=-1, ansi=ansi))
@@ -1456,7 +1444,7 @@ class Element(Node):
 			v.append([nest, self.startloc, elementno, self._str(content=self.__strattrs(ansi), brackets=1, ansi=ansi)])
 			i = 0
 			for child in self:
-				v = v + child._doreprtree(nest+1, elementno + [i], encoding, ansi)
+				v.extend(child._doreprtree(nest+1, elementno + [i], encoding, ansi))
 				i += 1
 			if self.startloc is None:
 				v.append([nest, self.startloc, elementno, self._str(brackets=1, slash=-1, ansi=ansi)])
@@ -1590,9 +1578,9 @@ class Element(Node):
 			value = self[attr]
 			if len(value):
 				v.append('=')
-				v.append(strQuote(ansi = ansi))
-				v.append(value._dorepr(ansi = ansi))
-				v.append(strQuote(ansi = ansi))
+				v.append(strQuote(ansi=ansi))
+				v.append(value._dorepr(ansi=ansi))
+				v.append(strQuote(ansi=ansi))
 		return "".join(v)
 
 	def compact(self):
@@ -1640,9 +1628,7 @@ class Entity(Node):
 		return s
 
 	def _doreprtree(self, nest, elementno, encoding=None, ansi=None):
-		v = []
-		v.append([nest, self.startloc, elementno, self._dorepr(ansi=ansi)])
-		return v
+		return [[nest, self.startloc, elementno, self._dorepr(ansi=ansi)]]
 
 	def publish(self, publisher):
 		publisher(u"&", self.name, u";") # requires that the entity is registered via Namespace.register()
