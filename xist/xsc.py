@@ -72,7 +72,7 @@ class XSCIllegalAttributeError(XSCError):
 		for attr in attrs:
 			v.append(_strattrname(attr))
 
-		return XSCError.__str__(self) + "The attribute '" + _strattrname(self.attr) + "' is not allowed here. The only allowed attributes are: " + string.join(v,", ") + "."
+		return XSCError.__str__(self) + "The attribute " + _strattrname(self.attr) + " is not allowed here. The only allowed attributes are: " + string.join(v,", ") + "."
 
 class XSCAttributeNotFoundError(XSCError):
 	"""exception that is raised, when an attribute is fetched that isn't there"""
@@ -85,7 +85,7 @@ class XSCAttributeNotFoundError(XSCError):
 	def __str__(self):
 		attrs = self.attrs.keys();
 
-		s = XSCError.__str__(self) + "The attribute '" + _strattrname(self.attr) + "' could not be found. "
+		s = XSCError.__str__(self) + "The attribute " + _strattrname(self.attr) + " could not be found. "
 
 		if len(attrs):
 			attrs.sort()
