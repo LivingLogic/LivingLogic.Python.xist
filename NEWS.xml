@@ -25,6 +25,9 @@ a <method>convert</method> call and revert back to a previous state afterwards.<
 <item><function>parseURL</function> and <function>parseTidyURL</function> now have
 an additional parameter <lit>headers</lit> which is a list of string pairs specifying
 additional headers to be passed in with the request.</item>
+<item><function>parseString</function> has an additional parameter <lit>systemId</lit>
+which will be the system id of the <class>InputSource</class></item>
+<item>Various other small bugfixes and enhancements.</item>
 </ulist>
 </section>
 
