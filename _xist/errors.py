@@ -68,13 +68,13 @@ class IllegalAttrError(Error):
 	(i.e. one that isn't contained in it's attrHandlers)
 	"""
 
-	def __init__(self, element, attrname):
-		self.element = element
+	def __init__(self, attrs, attrname):
+		self.attrs = attrs
 		self.attrname = attrname
 
 	def __str__(self):
-		attrs = self.element.attrHandlers.keys()
-		s = "Attribute %s not allowed in element %s. " % (presenters.strAttrName(self.attrname), presenters.strElementWithBrackets(self.element))
+		attrs = self.attrs.handlers.keys()
+		s = "Attribute %s not allowed. " % presenters.strAttrName(self.attrname)
 		if len(attrs):
 			attrs.sort()
 			attrs = ", ".join([ str(presenters.strAttrName(attr)) for attr in attrs])
@@ -88,14 +88,14 @@ class AttrNotFoundError(Error):
 	exception that is raised, when an attribute is fetched that isn't there
 	"""
 
-	def __init__(self, element, attrname):
-		self.element = element
+	def __init__(self, attrs, attrname):
+		self.attrs = attrs
 		self.attrname = attrname
 
 	def __str__(self):
-		attrs = self.element.attrs.keys()
+		attrs = self.attrs.keys()
 
-		s = "Attribute %s not found in element %s. " % (presenters.strAttrName(self.attrname), presenters.strElementWithBrackets(self.element))
+		s = "Attribute %s not found. " % presenters.strAttrName(self.attrname)
 
 		if len(attrs):
 			attrs.sort()
@@ -120,7 +120,7 @@ class IllegalElementError(Error):
 		all = {}
 		for namespace in xsc.namespaceRegistry.byPrefix.values():
 			for element in namespace.elementsByName.values():
-				all[(element.name, xsc.classPrefix(element))] = element
+				all[(element.name(), element.prefix())] = element
 
 		allkeys = all.keys()
 		allkeys.sort()
@@ -150,7 +150,7 @@ class IllegalProcInstError(Error):
 		all = {}
 		for namespace in xsc.namespaceRegistry.byPrefix.values():
 			for procinst in namespace.procInstsByName.values():
-				all[(procinst.name, xsc.classPrefix(procinst))] = procinst
+				all[(procinst.name(), procinst.prefix())] = procinst
 
 		allkeys = all.keys()
 		allkeys.sort()
@@ -259,16 +259,16 @@ class IllegalEntityError(Error):
 		all = {}
 		for namespace in xsc.namespaceRegistry.byPrefix.values():
 			for charref in namespace.charrefsByName.values():
-				all[(charref.name, xsc.classPrefix(charref))] = charref
+				all[(charref.name(), charref.prefix())] = charref
 			for entity in namespace.entitiesByName.values():
-				all[(entity.name, xsc.classPrefix(entity))] = entity
+				all[(entity.name(), entity.prefix())] = entity
 
 		allKeys = all.keys()
 		allKeys.sort()
 		allAsList = []
 		for key in allKeys:
 			entity = all[key]
-			allAsList.append(str(presenters.strEntityName(xsc.classPrefix(entity), entity.name)))
+			allAsList.append(str(presenters.strEntityName(entity.prefix(), entity.name())))
 
 		s = "entity %s not allowed. " % presenters.strEntityName(self.name[0], self.name[1])
 		if allAsList:

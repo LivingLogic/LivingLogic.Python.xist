@@ -117,7 +117,7 @@ class class_(xsc.Element):
 	"""
 	The name of a class, in the object-oriented programming sense
 	"""
-	name = "class"
+	realname = "class"
 	empty = 0
 
 	def convert(self, converter):
@@ -445,7 +445,7 @@ def getDoc(thing):
 
 canonicalOrder = [
 	"__init__", "__del__",
-	"__repr__", "__str__",
+	"__repr__", "__str__", "__unicode__",
 	"__hash__",
 	"__lt__", "__le__", "__eq__", "__ne__", "__gt__", "__ge__",
 	"__cmp__", "__rcmp__", "__nonzero__",

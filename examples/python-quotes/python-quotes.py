@@ -75,7 +75,7 @@ class foreign(xsc.Element):
 
 		return e.convert(converter)
 
-namespace = xsc.Namespace("pq","http://www.python.org/topics/xml/dtds/qel-2.0.dtd",vars())
+namespace = xsc.Namespace("pq", "http://www.python.org/topics/xml/dtds/qel-2.0.dtd", vars())
 
 if __name__ == "__main__":
 	e = parsers.parseURL(url, parser=parsers.ExpatParser())

@@ -30,7 +30,7 @@ from xist import xsc
 
 class scriptlet(xsc.ProcInst):
 	"""
-	will be published as <markup>&lt;% data %&gt;</markup>
+	will be published as <markup>&lt;% <replaceable>content</replaceable> %&gt;</markup>
 	"""
 	def publish(self, publisher):
 		publisher.publish(u"<% ")
@@ -39,7 +39,7 @@ class scriptlet(xsc.ProcInst):
 
 class expression(xsc.ProcInst):
 	"""
-	will be published as <markup>&lt;%= data %&gt;</markup>
+	will be published as <markup>&lt;%= <replaceable>content</replaceable> %&gt;</markup>
 	"""
 
 	def publish(self, publisher):
@@ -49,7 +49,7 @@ class expression(xsc.ProcInst):
 
 class declaration(xsc.ProcInst):
 	"""
-	will be published as <markup>&lt;%! data %&gt;</markup>
+	will be published as <markup>&lt;%! <replaceable>content</replaceable> %&gt;</markup>
 	"""
 
 	def publish(self, publisher):
@@ -58,28 +58,44 @@ class declaration(xsc.ProcInst):
 		publisher.publish(u" %>")
 
 class If(scriptlet):
-	name = "if"
+	realname = "if"
 
 	def convert(self, converter):
 		return scriptlet(u"if(" + self.content + u"){")
 
 class Else(scriptlet):
-	name = "else"
+	realname = "else"
 
 	def convert(self, converter):
 		return scriptlet(u"}else{")
 
 class ElIf(scriptlet):
-	name = "elif"
+	realname = "elif"
 
 	def convert(self, converter):
 		return scriptlet(u"}else if (" + self.content + "){")
 
 class End(scriptlet):
-	name = "end"
+	realname = "end"
 
 	def convert(self, converter):
 		return scriptlet(u"}")
+
+class block(xsc.Element):
+	"""
+	<doc:par>This element embeds its content in <lit>{}</lit> brackets.</doc:par>
+	<doc:par>Note that the content itself will not be turned into a scriptlet
+	automatically but will be used as-is.</doc:par>
+	"""
+	empty = 0
+
+	def convert(self, converter):
+		e = xsc.Frag(
+			scriptlet(u"{"),
+			self.content,
+			scriptlet(u"}")
+		)
+		return e.convert(converter)
 
 class directive(xsc.Element):
 	empty = 1
@@ -94,27 +110,27 @@ class directive(xsc.Element):
 		if publishPrefix:
 			publisher.publish(self.prefix())
 			publisher.publish(u":")
-		name = self.name
+		name = self.name()
 		pos = name.find(".")
 		if pos != -1:
 			name = name[pos+1:]
 		publisher.publish(name)
-		self._publishAttrs(publisher)
+		self.attrs.publish(publisher)
 		publisher.publish(u"%>")
 
 class directive_include(directive):
 	register = 1
-	name = "directive.include"
+	realname = "directive.include"
 	attrHandlers = {"file": xsc.TextAttr}
 
 class directive_taglib(directive):
 	register = 1
-	name = "directive.taglib"
+	realname = "directive.taglib"
 	attrHandlers = {"uri": xsc.TextAttr, "prefix": xsc.TextAttr}
 
 class directive_page(directive):
 	register = 1
-	name = "directive.page"
+	realname = "directive.page"
 	attrHandlers = {"import": xsc.TextAttr, "buffer": xsc.TextAttr, "errorPage": xsc.URLAttr, "session": xsc.TextAttr}
 
 # register all the classes we've defined so far

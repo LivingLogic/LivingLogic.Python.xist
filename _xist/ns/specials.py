@@ -34,7 +34,7 @@ import html, meta
 class xist(xsc.Entity):
 	def convert(self, converter):
 		return html.span("XIST", class_="caps")
-	def asPlainString(self):
+	def __unicode__(self):
 		return u"XIST"
 
 class plaintable(html.table):
@@ -76,8 +76,8 @@ class z(xsc.Element):
 
 		return e
 
-	def asPlainString(self):
-		return u"»" + self.content.asPlainString() + u"«"
+	def __unicode__(self):
+		return u"«" + unicode(self.content) + u"»"
 
 class filesize(xsc.Element):
 	"""
@@ -116,7 +116,7 @@ class time(xsc.Element):
 
 	def convert(self, converter):
 		if self.hasAttr("format"):
-			format = self["format"].convert(converter).asPlainString()
+			format = unicode(self["format"].convert(converter))
 		else:
 			format = "%d. %b. %Y, %H:%M"
 
@@ -177,10 +177,10 @@ class caps(xsc.Element):
 	"""
 	empty = 0
 
-	lowercase = string.lowercase + ' '
+	lowercase = unicode(string.lowercase, "latin-1") + u" "
 
 	def convert(self, converter):
-		e = self.content.convert(converter).asPlainString()
+		e = unicode(self.content.convert(converter))
 		result = xsc.Frag()
 		if e: # if we have nothing to do, we skip everything to avoid errors
 			collect = ""
@@ -201,8 +201,8 @@ class caps(xsc.Element):
 					result.append(collect)
 		return result
 
-	def asPlainString(self):
-			return self.content.asPlainString().upper()
+	def __unicode__(self):
+			return unicode(self.content).upper()
 
 class endash(xsc.Element):
 	empty = 1
@@ -210,7 +210,7 @@ class endash(xsc.Element):
 	def convert(self, converter):
 		return xsc.Text("-")
 
-	def asPlainString(self):
+	def __unicode__(self):
 		return u"-"
 
 class emdash(xsc.Element):
@@ -219,7 +219,7 @@ class emdash(xsc.Element):
 	def convert(self, converter):
 		return xsc.Text("-")
 
-	def asPlainString(self):
+	def __unicode__(self):
 		return u"-"
 
 class include(xsc.Element):
@@ -268,7 +268,7 @@ class autoinput(html.input):
 	has <code>type=="image"</code>.</doc:par>
 	"""
 	def convert(self, converter):
-		if self.hasAttr("type") and self["type"].convert(converter).asPlainString() == u"image":
+		if self.hasAttr("type") and self["type"].convert(converter) == u"image":
 			e = html.input(self.content, self.attrs)
 			e._addImageSizeAttributes(converter.root, "src", "size", None) # no height
 			return e.convert(converter)

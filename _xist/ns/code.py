@@ -36,7 +36,8 @@ import html
 class Code:
 	def __init__(self, text, ignorefirst=0):
 		# get the individual lines; ignore "\r" as this would mess up whitespace handling later
-		lines = text.replace("\r", "").splitlines()
+		# use list comprehension to get a list and not a Frag
+		lines = [ line for line in text.replace("\r", "").splitlines() ]
 		# split of the whitespace at the beginning of each line
 		for i in xrange(len(lines)):
 			line = lines[i]
@@ -88,7 +89,7 @@ class Code:
 			v += "\n"
 		return "".join(v)
 
-class Exec(xsc.ProcInst):
+class exec_(xsc.ProcInst):
 	"""
 	<doc:par>here the content of the processing instruction is executed
 	as Python code, so you can define and register XSC elements here.
@@ -100,17 +101,16 @@ class Exec(xsc.ProcInst):
 	<doc:par>These processing instructions will be evaluated and executed in the
 	namespace of the module sandbox.</doc:par>
 	"""
-	name = u"exec"
 
 	def __init__(self, content=u""):
 		xsc.ProcInst.__init__(self, content)
-		code = Code(self.content, 1)
+		code = Code(unicode(self), 1)
 		exec code.asString() in sandbox.__dict__ # requires Python 2.0b2 (and doesn't really work)
 
 	def convert(self, converter):
 		return xsc.Null # has been executed at construction time already, so we don't have to do anything here
 
-class Eval(xsc.ProcInst):
+class eval_(xsc.ProcInst):
 	"""
 	<doc:par>here the code will be executed when the node is converted to &html;
 	as if it was the body of a function, so you can return an expression
@@ -125,15 +125,13 @@ class Eval(xsc.ProcInst):
 	processing instructions, as it is used by XSC for internal purposes.</doc:par>
 	"""
 
-	name = u"eval"
-
 	def convert(self, converter):
 		"""
 		<doc:par>Evaluates the code as if it was the body of a Python funtion.
 		The <pyref arg="converter">converter</pyref> argument will be available
 		under the name <code>converter</code> as an argument to the function.</doc:par>
 		"""
-		code = Code(self.content, 1)
+		code = Code(unicode(self), 1)
 		code.funcify()
 		exec code.asString() in sandbox.__dict__ # requires Python 2.0b2 (and doesn't really work)
 		return xsc.ToNode(sandbox.__(converter)).convert(converter)

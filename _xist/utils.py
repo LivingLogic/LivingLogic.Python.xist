@@ -58,19 +58,17 @@ def replaceInitialURL(frag, callback):
 	newfrag = xsc.Frag()
 	for i in xrange(len(frag)):
 		v = frag[i]
-		if isinstance(v, xsc.Text) or isinstance(v, xsc.CharRef):
+		if isinstance(v, (xsc.Text, xsc.CharRef)):
 			newfrag.append(v)
 		else:
 			break
 	else:
 		i += 1
 	if len(newfrag): # do the replacement only if we have something static
-		u = url_.URL(newfrag.asPlainString())
+		u = url_.URL(unicode(newfrag))
 		u = callback(u)
 		newfrag = xsc.Frag(u.asString())
 	while i < len(frag):
 		newfrag.append(frag[i])
 		i += 1
 	return newfrag
-
-

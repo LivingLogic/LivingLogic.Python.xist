@@ -4,8 +4,8 @@ from xist import xsc, parsers
 from xist.ns import html, specials, meta
 
 def nameCompare(node1, node2):
-	name1 = node1.find(type=name)[0].content.asPlainString()
-	name2 = node2.find(type=name)[0].content.asPlainString()
+	name1 = unicode(node1.find(type=name)[0].content)
+	name2 = unicode(node2.find(type=name)[0].content)
 	return cmp(name1, name2)
 
 class media(xsc.Element):

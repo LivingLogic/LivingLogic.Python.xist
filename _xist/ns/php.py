@@ -35,28 +35,39 @@ class php(xsc.ProcInst):
 	"""
 
 class If(php):
-	name = "if"
+	realname = "if"
 
 	def convert(self, converter):
 		return php(u"if (" + self.content + "){")
 
 class Else(php):
-	name = "else"
+	realname = "else"
 
 	def convert(self, converter):
 		return php(u"}else{")
 
 class ElIf(php):
-	name = "elif"
+	realname = "elif"
 
 	def convert(self, converter):
 		return php(u"}else if (" + self.content + "){")
 
 class End(php):
-	name = "end"
+	realname = "end"
 
 	def convert(self, converter):
 		return php(u"}")
+
+class block(xsc.Element):
+	empty = 0
+
+	def convert(self, converter):
+		e = xsc.Frag(
+			php(u"{"),
+			self.content,
+			php(u"}")
+		)
+		return e.convert(converter)
 
 # register all the classes we've defined so far
 namespace = xsc.Namespace("php", "http://www.php.net/", vars())

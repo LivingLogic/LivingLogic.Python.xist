@@ -1,4 +1,24 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
+<section><title>Changes in CVS (released ??/??/2001)</title>
+<ulist>
+<item>Ported to Python2.2. <class>Node</class> is now derived from
+<class>object</class>, <class>Frag</class> from <class>list</class> and
+there's a new class <class>Attrs</class> which is derived from
+<class>dict</class> for the attribute mappings. <class>presenters.NormalPresenter</class>
+and <class>presenters.TreePresenter</class> have been adapted to work
+with <class>Attrs</class>.</item>
+</ulist>
+<item>All the node classes now have a new method <method>walk</method> that generates
+all nodes in the tree using the new generators feature of Python 2.2.</item>
+<item>Added a new method <method>without</method> to <class>Attrs</class>.
+This returns a copy of the <class>Attrs</class> instance with some
+specified attributes removed.</item>
+<item>Added a class <class>block</class> the <module>xist.ns.jsp</module>. The
+content of the <class>block</class> instance will simply be enclosed in a
+<lit>{}</lit> block. <module>xist.ns.php</module> got such a class too.</item>
+</section>
+
+
 <section><title>Changes in 1.2.5 (released 12/03/2001)</title>
 <ulist>
 <item>Added a new element <class>contentscripttype</class> to
@@ -18,6 +38,7 @@ to <class>xist.ns.struts_config.data_source</class>.</item>
 </ulist>
 </section>
 
+
 <section><title>Changes in 1.2.4 (released 11/23/2001)</title>
 <ulist>
 <item>Added the deprecated attributes <lit>start</lit> to
@@ -26,12 +47,14 @@ to <class>xist.ns.struts_config.data_source</class>.</item>
 </ulist>
 </section>
 
+
 <section><title>Changes in 1.2.3 (released 11/22/2001)</title>
 <ulist>
 <item>Added missing <method>asPlainString</method> methods to
 <class>Comment</class> and <class>DocType</class>.</item>
 </ulist>
 </section>
+
 
 <section><title>Changes in 1.2.2 (released 11/16/2001)</title>
 <ulist>
@@ -44,12 +67,14 @@ have changed. These images are now included.</item>
 </ulist>
 </section>
 
+
 <section><title>Changes in 1.2.1 (released 10/08/2001)</title>
 <ulist>
 <item>URLs that are completely dynamic will now be left in peace when parsing
 or publishing.</item>
 </ulist>
 </section>
+
 
 <section><title>Changes in 1.2 (released 10/03/2001)</title>
 <ulist>
@@ -93,6 +118,7 @@ does).</item>
 </ulist>
 </section>
 
+
 <section><title>Changes in 1.1.3 (released 09/17/2001)</title>
 <ulist>
 <item>The global namespace registry now keeps a sequential list of all registered
@@ -113,11 +139,13 @@ too.</item>
 </ulist>
 </section>
 
+
 <section><title>Changes in 1.1.2 (released 08/21/2001)</title>
 <ulist>
 <item><method>__repr__</method> now uses the new class <class>presenters.PlainPresenter</class>
 which gives a little more info than the default <method>__repr__</method>.</item>
 </ulist>
+
 
 <section><title>Changes in 1.1.1 (released 08/01/2001)</title>
 <ulist>
@@ -125,6 +153,7 @@ which gives a little more info than the default <method>__repr__</method>.</item
 <item>fixed <class>xist.ns.struts_html.option</class> to allow content</item>
 </ulist>
 </section>
+
 
 <section><title>Changes in 1.1 (released 07/19/2001)</title>
 <ulist>
@@ -156,6 +185,7 @@ to lowercase.</item>
 converter has a language set.</item>
 </ulist>
 </section>
+
 
 <section><title>Changes in 1.0 (released 06/18/2001)</title>
 <ulist>
@@ -319,6 +349,7 @@ current directory use the scheme <lit>root</lit> (e.g. <lit>root:main.css</lit>)
 </ulist>
 </section>
 
+
 <section><title>Changes in 0.4.7 (released 11/24/2000)</title>
 <ulist>
 <item>Fixed a bug in the entity handling.</item>
@@ -360,6 +391,7 @@ now works.)</item>
 adding directories to <lit>sys.path</lit>.</item>
 </ulist>
 </section>
+
 
 <section><title>Changes in 0.4.6 (released 11/03/2000)</title>
 <ulist>
@@ -439,6 +471,7 @@ that <class>Null</class> objects will no longer be ignored.</item>
 to prevent an element from being registered works again.</item>
 </ulist>
 </section>
+
 
 <section><title>Changes in 0.4.1 (released 09/21/2000)</title>
 <ulist>

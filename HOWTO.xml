@@ -201,8 +201,9 @@ Now we can do the following:
 &gt;&gt;&gt; print node.conv().asBytes()
 &lt;b&gt;&lt;a href="http://www.python.org/"&gt;Python&lt;/a&gt; is cool!&lt;/b&gt;
 </doc:programlisting>
-But if we forget to call <method>convert</method>
-for our own content, i.e. if the element type <class>cool</class>
+But if we forget to call
+<pyref module="xist.xsc" class="Node" method="convert">convert</pyref>
+for our own content, i.e. if the element <pyref class="cool">cool</pyref> 
 was written like this:
 <doc:programlisting>
 class cool(xsc.Element):
@@ -417,7 +418,7 @@ entities to the application via <method>skippedEntity</method>
 in the module <pyref module="xist.parsers"><module>xist.parsers</module></pyref> does that).</doc:par>
 <doc:par>In addition to the <pyref module="xist.xsc" class="Node" method="convert"><method>convert</method></pyref>
 method you have to implement the method
-<pyref module="xist.xsc" class="Node" method="asPlainString"><method>asPlainString</method></pyref>,
+<pyref module="xist.xsc" class="Node" method="__unicode__"><method>__unicode__</method></pyref>,
 which must return a unicode string value for the entity. The following
 example is from the module <pyref module="xist.ns.abbr"><module>xist.ns.abbr</module></pyref>:
 <doc:example title="Defining new entities">
@@ -431,7 +432,7 @@ class xml(xsc.Entity):
 			"XML",
 			title="Extensible Markup Language",
 			lang="en")
-	def asPlainString(self):
+	def __unicode__(self):
 		return u"XML"
 </doc:programlisting>
 </doc:example>
@@ -586,7 +587,7 @@ passes all previous tests:
 &gt;&gt;&gt; nums = ["%d," % i for i in xrange(100)]
 &gt;&gt;&gt; node = xsc.Frag(*nums)
 &gt;&gt;&gt; print node. \
-...    find(test=lambda n: n.asPlainString()[0]=="4"). \
+...    find(test=lambda n: unicode(n)[0]==u"4"). \
 ...    asBytes()
 4,40,41,42,43,44,45,46,47,48,49,
 </doc:programlisting>
@@ -606,7 +607,7 @@ nodes should be searched too.</item>
 &gt;&gt;&gt; links = node.find(type=html.a, \
 ...    attr={"href": None}, searchchildren=1)
 &gt;&gt;&gt; for link in links:
-...    print link["href"].asPlainString()
+...    print link["href"]
 ...
 http://www.python.org/
 http://sourceforge.net/
@@ -650,7 +651,7 @@ return a reversed or sorted version of an element or fragment:
 &gt;&gt;&gt; from xist.ns import html
 &gt;&gt;&gt; print html.div(8,4,2,1,9,6,3,0,7,5). \
 ...    sorted(lambda n1, n2: \
-...       cmp(n1.asPlainString(), n2.asPlainString())). \
+...       cmp(unicode(n1), unicode(n2))). \
 ...    reversed().withSep(",").asBytes()
 &lt;div&gt;9,8,7,6,5,4,3,2,1,0&lt;/div&gt;
 </doc:programlisting>

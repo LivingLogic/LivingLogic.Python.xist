@@ -37,7 +37,7 @@ class checkbox(xsc.Element):
 	def convert(self, converter):
 		e = html.input(self.attrs)
 		e["type"] = "checkbox"
-		if self.hasAttr("value") and int(self["value"].asPlainString()) != 0:
+		if self.hasAttr("value") and int(self["value"]) != 0:
 			e["checked"] = None
 		else:
 			del e["checked"]
@@ -83,7 +83,7 @@ class memo(xsc.Element):
 class hidden(xsc.Element):
 	attrHandlers = {"name": xsc.TextAttr, "value": xsc.TextAttr}
 
-	def asPlainString(self):
+	def __unicode__(self):
 		return u""
 
 	def convert(self, converter):

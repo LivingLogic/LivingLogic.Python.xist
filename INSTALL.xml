@@ -2,7 +2,7 @@
 <doc:section><doc:title>Requirements</doc:title>
 To use &xist; you need the following software packages:
 <olist>
-<item>Python 2.1 (available from <a href="http://www.python.org/">http://www.python.org/</a> and
+<item>Python 2.2 (available from <a href="http://www.python.org/">http://www.python.org/</a> and
 <a href="http://python.sourceforge.net/">http://python.sourceforge.net/</a>),</item>
 <item>The Python &xml; package (available from <a href="http://pyxml.sourceforge.net/">http://pyxml.sourceforge.net/</a>)
 (a version that includes sgmlop and expat),</item>
@@ -49,7 +49,6 @@ sys.setdefaultencoding(<replaceable>"iso-8859-1"</replaceable>)
 </doc:programlisting>
 (or any other encoding name that you want to use
 instead of <code>"iso-8859-1"</code>).</doc:par>
-</doc:section>
 
 <doc:section><doc:title>Display hook</doc:title>
 <doc:par>

@@ -128,7 +128,7 @@ class StringPublisher(Publisher):
 	collects all strings in an array.
 	The joined strings are available via
 	<pyref module="xist.publishers" class="StringPublisher" method="asString"><method>asString</method></pyref>
-"""
+	"""
 
 	def __init__(self, base=None, root=None, xhtml=None, publishPrefix=0):
 		Publisher.__init__(self, base=base, root=root, encoding="utf16", xhtml=xhtml, publishPrefix=publishPrefix)

@@ -82,16 +82,16 @@ class If(xsc.Element):
 	def __testCond(self, node, converter):
 		result = 1
 		if node.hasAttr("cond"):
-			cond = node["cond"].convert(converter).asPlainString()
-			result = eval(str(cond), sandbox.__dict__)
+			cond = unicode(node["cond"].convert(converter))
+			result = eval(cond, sandbox.__dict__)
 		if result and node.hasAttr("mode"):
-			result = node["mode"].convert(converter).asPlainString() == converter.mode
+			result = node["mode"].convert(converter) == converter.mode
 		if result and node.hasAttr("target"):
-			result = node["target"].convert(converter).asPlainString() == converter.target
+			result = node["target"].convert(converter) == converter.target
 		if result and node.hasAttr("stage"):
-			result = node["stage"].convert(converter).asPlainString() == converter.stage
+			result = node["stage"].convert(converter) == converter.stage
 		if result and node.hasAttr("lang"):
-			result = node["lang"].convert(converter).asPlainString() == converter.lang
+			result = node["lang"].convert(converter) == converter.lang
 		return result
 
 class ElIf(xsc.Element):

@@ -67,7 +67,7 @@ class FileInputSource(InputSource):
 	def __init__(self, stream, base=None, defaultEncoding="utf-8"):
 		InputSource.__init__(self, base)
 		self.setSystemId(str(base))
-		if isinstance(stream, types.StringType) or isinstance(stream, types.UnicodeType):
+		if isinstance(stream, (str, unicode)):
 			stream = fileutils.Filename(stream)
 		if isinstance(stream, fileutils.Filename):
 			stream = stream.open("rb")
@@ -171,6 +171,7 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 		except KeyboardInterrupt:
 			raise
 		except Exception, ex:
+			raise
 			if self.error_handler is not None:
 				self.error_handler.fatalError(ex)
 			else:
@@ -409,7 +410,8 @@ class HTMLParser(SGMLOPParser):
 
 ExpatParser = expatreader.ExpatParser
 
-class Handler:
+level = 0
+class Handler(object):
 	"""
 	contains the parser and the options and functions for handling XML files
 	"""
@@ -446,8 +448,7 @@ class Handler:
 
 	def startDocument(self):
 		# our nodes do not have a parent link, therefore we have to store the active
-		# path through the tree in a stack (which we call nesting, because stack is
-		# already used by the base class (there is no base class anymore, but who cares))
+		# path through the tree in a stack (which we call __nesting)
 
 		# after we've finished parsing, the Frag that we put at the bottom of the stack will be our document root
 		self.__nesting = [ xsc.Frag() ]
@@ -460,8 +461,8 @@ class Handler:
 		node = self.namespaces.elementFromName(name)()
 		for (attrname, attrvalue) in attrs.items():
 			# for URLs incorporate the base URL into the value
-			if issubclass(node.attrHandlers[attrname], xsc.URLAttr) and hasattr(self.source, "base"):
-				if isinstance(attrvalue, types.UnicodeType):
+			if node.attrHandlers.has_key(attrname) and issubclass(node.attrHandlers[attrname], xsc.URLAttr) and hasattr(self.source, "base"):
+				if isinstance(attrvalue, unicode):
 					attrvalue = xsc.Frag(attrvalue)
 				attrvalue = utils.replaceInitialURL(attrvalue, lambda u: url_.URL(self.source.base)/u )
 			node[attrname] = attrvalue
@@ -472,7 +473,7 @@ class Handler:
 	def endElement(self, name):
 		element = self.namespaces.elementFromName(name)
 		currentelement = self.__nesting[-1].__class__
-		if element != currentelement:
+		if element is not currentelement:
 			raise errors.ElementNestingError(currentelement, element)
 		self.__nesting[-1].endLoc = self.getLocation()
 		self.__nesting.pop() # pop the innermost element off the stack
@@ -484,7 +485,7 @@ class Handler:
 		if content:
 			last = self.__nesting[-1]
 			if len(last) and isinstance(last[-1], xsc.Text):
-				last[-1].content += content # join consecutive Text nodes (this violates the "immutable Text restriction", but there is only one reference to the Text object)
+				last[-1] += content # join consecutive Text nodes
 			else:
 				self.__appendNode(xsc.Text(content))
 			self.skippingWhitespace = 0

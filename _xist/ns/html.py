@@ -125,9 +125,9 @@ class meta(xsc.Element):
 
 	def publish(self, publisher):
 		if self.hasAttr("http-equiv"):
-			ctype = self["http-equiv"].asPlainString().lower()
+			ctype = unicode(self["http-equiv"]).lower()
 			if ctype == u"content-type" and self.hasAttr("content"):
-				(contenttype, options) = cgi.parse_header(self["content"].asPlainString())
+				(contenttype, options) = cgi.parse_header(unicode(self["content"]))
 				if not options.has_key(u"charset") or options[u"charset"] != publisher.encoding:
 					options[u"charset"] = publisher.encoding
 					node = meta(
@@ -346,8 +346,8 @@ class q(xsc.Element):
 	attrHandlers = attrs.copy()
 	attrHandlers.update({"cite": xsc.TextAttr})
 
-	def asPlainString(self):
-		return u"«" + self.content.asPlainString() + u"»"
+	def __unicode__(self):
+		return u"«" + unicode(self.content) + u"»"
 
 class sub(xsc.Element):
 	"""
@@ -394,14 +394,13 @@ class ins(xsc.Element):
 	attrHandlers = attrs.copy()
 	attrHandlers.update({"cite": xsc.TextAttr, "datetime": xsc.TextAttr})
 
-class Del(xsc.Element):
+class del_(xsc.Element):
 	"""
 	deleted text
 	"""
 	empty = 0
 	attrHandlers = attrs.copy()
 	attrHandlers.update({"cite": xsc.TextAttr, "datetime": xsc.TextAttr})
-	name = "del" # we need a special name here
 
 class ul(xsc.Element):
 	"""
@@ -577,11 +576,8 @@ class img(xsc.Element):
 	attrHandlers.update({"src": xsc.URLAttr, "alt": xsc.TextAttr, "longdesc": xsc.TextAttr, "width": xsc.TextAttr, "height": xsc.TextAttr, "usemap": xsc.TextAttr, "ismap": xsc.TextAttr})
 	attrHandlers.update({"name": xsc.TextAttr, "border": xsc.TextAttr, "align": xsc.TextAttr, "hspace": xsc.TextAttr, "vspace": xsc.TextAttr, "lowsrc": xsc.URLAttr}) # deprecated
 
-	def asPlainString(self):
-		if self.hasAttr("alt"):
-			return self["alt"].asPlainString()
-		else:
-			return u""
+	def __unicode__(self):
+		return unicode(self["alt"])
 
 class object(xsc.Element):
 	"""
@@ -815,7 +811,7 @@ class uml(xsc.CharRef): "diaeresis = spacing diaeresis, U+00A8 ISOdia"; codepoin
 class copy(xsc.CharRef): "copyright sign, U+00A9 ISOnum"; codepoint = 169
 class ordf(xsc.CharRef): "feminine ordinal indicator, U+00AA ISOnum"; codepoint = 170
 class laquo(xsc.CharRef): "left-pointing double angle quotation mark = left pointing guillemet, U+00AB ISOnum"; codepoint = 171
-class Not(xsc.CharRef): "not sign, U+00AC ISOnum"; codepoint = 172; name = "not"
+class not_(xsc.CharRef): "not sign, U+00AC ISOnum"; codepoint = 172
 class shy(xsc.CharRef): "soft hyphen = discretionary hyphen, U+00AD ISOnum"; codepoint = 173
 class reg(xsc.CharRef): "registered sign = registered trade mark sign, U+00AE ISOnum"; codepoint = 174
 class macr(xsc.CharRef): "macron = spacing macron = overline = APL overbar, U+00AF ISOdia"; codepoint = 175
@@ -973,7 +969,7 @@ class eta(xsc.CharRef): "greek small letter eta, U+03B7 ISOgrk3"; codepoint = 95
 class theta(xsc.CharRef): "greek small letter theta, U+03B8 ISOgrk3"; codepoint = 952
 class iota(xsc.CharRef): "greek small letter iota, U+03B9 ISOgrk3"; codepoint = 953
 class kappa(xsc.CharRef): "greek small letter kappa, U+03BA ISOgrk3"; codepoint = 954
-class lambda_(xsc.CharRef): "greek small letter lambda, U+03BB ISOgrk3"; codepoint = 955; name = "lambda"
+class lambda_(xsc.CharRef): "greek small letter lambda, U+03BB ISOgrk3"; codepoint = 955
 class mu(xsc.CharRef): "greek small letter mu, U+03BC ISOgrk3"; codepoint = 956
 class nu(xsc.CharRef): "greek small letter nu, U+03BD ISOgrk3"; codepoint = 957
 class xi(xsc.CharRef): "greek small letter xi, U+03BE ISOgrk3"; codepoint = 958
@@ -1037,8 +1033,8 @@ class radic(xsc.CharRef): "square root = radical sign, U+221A ISOtech"; codepoin
 class prop(xsc.CharRef): "proportional to, U+221D ISOtech"; codepoint = 8733
 class infin(xsc.CharRef): "infinity, U+221E ISOtech"; codepoint = 8734
 class ang(xsc.CharRef): "angle, U+2220 ISOamso"; codepoint = 8736
-class and_(xsc.CharRef): "logical and = wedge, U+2227 ISOtech"; codepoint = 8743; name = "and"
-class or_(xsc.CharRef): "logical or = vee, U+2228 ISOtech"; codepoint = 8744; name = "or"
+class and_(xsc.CharRef): "logical and = wedge, U+2227 ISOtech"; codepoint = 8743
+class or_(xsc.CharRef): "logical or = vee, U+2228 ISOtech"; codepoint = 8744
 class cap(xsc.CharRef): "intersection = cap, U+2229 ISOtech"; codepoint = 8745
 class cup(xsc.CharRef): "union = cup, U+222A ISOtech"; codepoint = 8746
 class int(xsc.CharRef): "integral, U+222B ISOtech"; codepoint = 8747
@@ -1050,8 +1046,8 @@ class ne(xsc.CharRef): "not equal to, U+2260 ISOtech"; codepoint = 8800
 class equiv(xsc.CharRef): "identical to, U+2261 ISOtech"; codepoint = 8801
 class le(xsc.CharRef): "less-than or equal to, U+2264 ISOtech"; codepoint = 8804
 class ge(xsc.CharRef): "greater-than or equal to, U+2265 ISOtech"; codepoint = 8805
-class Sub(xsc.CharRef): "subset of, U+2282 ISOtech"; codepoint = 8834; name = "sub"
-class Sup(xsc.CharRef): "superset of, U+2283 ISOtech"; codepoint = 8835; name = "sup"
+class Sub(xsc.CharRef): "subset of, U+2282 ISOtech"; codepoint = 8834; realname = "sub"
+class Sup(xsc.CharRef): "superset of, U+2283 ISOtech"; codepoint = 8835; realname = "sup"
 class nsub(xsc.CharRef): "not a subset of, U+2284 ISOamsn"; codepoint = 8836
 class sube(xsc.CharRef): "subset of or equal to, U+2286 ISOtech"; codepoint = 8838
 class supe(xsc.CharRef): "superset of or equal to, U+2287 ISOtech"; codepoint = 8839
