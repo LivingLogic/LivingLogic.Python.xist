@@ -1,4 +1,23 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
+<section><title>Changes in CVS (released ??/??/2001)</title>
+<ulist>
+<item><pyref module="xist.ns.meta" class="keywords">xist.ns.meta.keywords</pyref>
+and <pyref module="xist.ns.meta" class="description">xist.ns.meta.description</pyref>
+no longer call <pyref module="xist.xsc" class="Node" method="asPlainString">asPlainString</pyref>
+on their content. This makes it possible to e.g. generate the keywords via &jsp;:
+<doc:example>
+<doc:programlisting>
+&gt;&gt;&gt; from xist import parsers
+&gt;&gt;&gt; from xist.ns import meta, jsp
+&gt;&gt;&gt; e = parsers.parseString('&lt;keywords&gt;&lt;?jsp:expression "foo"?&gt;&lt;/keywords&gt;')
+&gt;&gt;&gt; print e.conv().asBytes()
+&lt;meta name="keywords" content="&lt;%= "foo" %&gt;" /&gt;
+</doc:programlisting>
+</doc:example>
+</item>
+</ulist>
+</section>
+
 <section><title>Changes in 1.1.3 (released 09/17/2001)</title>
 <ulist>
 <item>The global namespace registry now keeps a sequential list of all registered
