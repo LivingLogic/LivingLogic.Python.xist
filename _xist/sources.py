@@ -65,7 +65,7 @@ def tidystring(text, encoding, sysid, args):
 	else:
 		doc = tidy.parseString(text, **args)
 		for error in doc.get_errors():
-			warning = errors.TidyWarning(error.message, xsc.Location(sysID=sysid, lineNumber=error.line, columnNumber=error.col))
+			warning = errors.TidyWarning(error.message, xsc.Location(sysID=sysid, line=error.line, col=error.col))
 			warnings.warn(warning)
 		text = str(doc)
 	return (text, "utf-8")
