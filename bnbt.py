@@ -23,7 +23,7 @@ class page(xsc.Element):
 				path[-1] == "index.html"
 				del path[-2]
 		return path
-	
+
 	def asHTML(self):
 		h = html.head(
 			html.link(rel="stylesheet",type="text/css",href=":stylesheets/bnv.css")+
@@ -670,14 +670,14 @@ class lnk(xsc.Element):
 			html.td(indent(),Class = "links",nowrap = None)
 		) + html.tr(
 			html.td(specials.pixel())+
-			html.td(specials.pixel(),colspan = "2",bgcolor = "#ffffff"
+			html.td(specials.pixel(),colspan = "2",bgcolor = "#ffffff")
 		)
 
 		if len(self):
 			e.append(
 				html.tr(
 					html.td(specials.pixel())+
-					html.td(html.div(self.content.clone(),Class = "lnk-text"),Class = "links"+
+					html.td(html.div(self.content.clone(),Class = "lnk-text"),Class = "links")+
 					html.td(specials.pixel())
 				)+
 				html.tr(
