@@ -38,10 +38,6 @@ class checkbox(html.input):
 
 	def convert(self, converter):
 		e = html.input(self.attrs, type="checkbox")
-		if self.hasAttr("value") and int(self["value"]) != 0:
-			e["checked"] = None
-		else:
-			del e["checked"]
 		return e.convert(converter)
 
 class edit(html.input):
