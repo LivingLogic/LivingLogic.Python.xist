@@ -345,7 +345,7 @@ class xndl(xsc.Element):
 	empty = False
 	class Attrs(xsc.Element.Attrs):
 		class name(xsc.TextAttr): required = True
-		class url(xsc.TextAttr): default = "... insert namespace name here ..."
+		class url(xsc.TextAttr): pass
 
 	def asdata(self):
 		docs = self.content.find(xsc.FindType(doc))
