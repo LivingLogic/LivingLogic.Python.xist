@@ -43,7 +43,6 @@ class attribute(xsc.Element):
 		</item>
 	</ulist>
 	"""
-	empty = False
 	class Attrs(IdAttrs): pass
 
 	def asxnd(self):
@@ -80,7 +79,6 @@ class bodycontent(xsc.Element):
 	<par>Valid values: <lit>tagdependent</lit>, <lit>JSP</lit>,
 	<lit>empty</lit>.</par>
 	"""
-	empty = False
 	class Attrs(IdAttrs): pass
 
 
@@ -88,7 +86,6 @@ class info(xsc.Element):
 	"""
 	<par>Defines an arbitrary text string describing the tag library.</par>
 	"""
-	empty = False
 	class Attrs(IdAttrs): pass
 
 	def asxnd(self):
@@ -100,7 +97,6 @@ class jspversion(xsc.Element):
 	<par>Describes the &jsp; version (number) this taglibrary requires in
 	order to function (dewey decimal). The default is <lit>1.1</lit>.</par>
 	"""
-	empty = False
 	class Attrs(IdAttrs): pass
 
 
@@ -108,7 +104,6 @@ class name(xsc.Element):
 	"""
 	<par>Defines the canonical name of a tag or attribute being defined.</par>
 	"""
-	empty = False
 	class Attrs(IdAttrs): pass
 
 
@@ -118,7 +113,6 @@ class required(xsc.Element):
 	<par>Valid values: <lit>true</lit>, <lit>false</lit>, <lit>yes</lit>,
 	<lit>no</lit>.</par>
 	"""
-	empty = False
 	class Attrs(IdAttrs): pass
 
 
@@ -131,7 +125,6 @@ class rtexprvalue(xsc.Element):
 	<par>Valid values: <lit>true</lit>, <lit>false</lit>, <lit>yes</lit>,
 	<lit>no</lit>.</par>
 	"""
-	empty = False
 	class Attrs(IdAttrs): pass
 
 
@@ -140,7 +133,6 @@ class shortname(xsc.Element):
 	<par>Defines a short (default) shortname to be used for tags and
 	variable names used/created by this tag library.</par>
 	"""
-	empty = False
 	class Attrs(IdAttrs): pass
 
 
@@ -156,7 +148,6 @@ class tag(xsc.Element):
 		<item>any attributes</item>
 	</ulist>
 	"""
-	empty = False
 	class Attrs(IdAttrs): pass
 
 	def asxnd(self):
@@ -189,7 +180,6 @@ class tagclass(xsc.Element):
 	that implements the request time semantics for this tag.</par>
 	<par>The content has to be a fully qualified Java class name.</par>
 	"""
-	empty = False
 	class Attrs(IdAttrs): pass
 
 
@@ -210,7 +200,6 @@ class taglib(xsc.Element):
 		</item>
 	</ulist>
 	"""
-	empty = False
 	class Attrs(IdAttrs): pass
 
 	def asxnd(self):
@@ -233,7 +222,6 @@ class teiclass(xsc.Element):
 	translation time.</par>
 	<par>The content has to be a fully qualified Java class name.</par>
 	"""
-	empty = False
 	class Attrs(IdAttrs): pass
 
 
@@ -241,7 +229,6 @@ class tlibversion(xsc.Element):
 	"""
 	<par>Describes this version (number) of the taglibrary (dewey decimal).</par>
 	"""
-	empty = False
 	class Attrs(IdAttrs): pass
 
 
@@ -250,7 +237,6 @@ class uri(xsc.Element):
 	<par>Defines a public URI that uniquely identifies this version of
 	the taglibrary. Leave it empty if it does not apply.</par>
 	"""
-	empty = False
 	class Attrs(IdAttrs): pass
 
 
