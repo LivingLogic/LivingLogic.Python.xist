@@ -816,10 +816,11 @@ class XSCElement(XSCNode):
 					self[heightattr] = size[1]
 
 	def findElementsNamed(self,name):
-		v = XSCFrag()
+		e = XSCFrag()
 		if self.name == name:
-				v.append(self)
-		return self.content.findElementsNamed(name)
+				e.append(self)
+		e = e + self.content.findElementsNamed(name)
+		return e
 
 	def withoutLinefeeds(self):
 		return self.__class__(self.content.withoutLinefeeds(),self.attrs.withoutLinefeeds())
