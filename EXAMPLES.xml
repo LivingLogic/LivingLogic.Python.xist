@@ -158,3 +158,48 @@ node.write(open("parrot_index.html", "wb"))
 </prog>
 
 </section>
+
+
+<section><title>Converting &html; to &xist; code</title>
+
+<tty>
+<prompt>&gt;&gt;&gt;</prompt> <input>from ll.xist import parsers, presenters</input>
+<prompt>&gt;&gt;&gt;</prompt> <input>e = parsers.parseURL("http://www.python.org/", tidy="True")</input>
+<prompt>&gt;&gt;&gt;</prompt> <input>print e.repr(presenters.CodePresenter())</input>
+ll.xist.xsc.Frag(
+	ll.xist.ns.html.html(
+		xsc.Comment(' THIS PAGE IS AUTOMATICALLY GENERATED.  DO NOT EDIT. '),
+		xsc.Comment(' Thu Jan 27 12:33:38 2005 '),
+		xsc.Comment(' USING HT2HTML 2.0 '),
+		xsc.Comment(' SEE http://ht2html.sf.net '),
+		xsc.Comment(' User-specified headers:\nTitle: Python Programming Language\n\n'),
+		ll.xist.ns.html.head(
+			ll.xist.ns.html.title(
+				'Python Programming Language'
+			),
+			ll.xist.ns.html.meta(
+				content='text/html; charset=iso-8859-1',
+				http_equiv='Content-Type'
+			),
+			ll.xist.ns.html.meta(
+				content='HT2HTML/2.0',
+				name='generator'
+			),
+			ll.xist.ns.html.meta(
+				content='Python programming language object oriented web free\n source',
+				name='keywords'
+			),
+			<rep>... Many lines deleted ...</rep>
+			xsc.Comment(' end of page table '),
+			marginheight=0,
+			alink='#ff0000',
+			text='#000000',
+			bgcolor='#ffffff',
+			link='#0000bb',
+			marginwidth=0,
+			vlink='#551a8b'
+		)
+	)
+)
+</tty>
+</section>
