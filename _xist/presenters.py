@@ -612,7 +612,7 @@ class TreePresenter(Presenter):
 				newline1 = []
 				for comp in line[1]:
 					if isinstance(comp, tuple):
-						newline1.append("%s.%s" % (comp[0].xmlprefix, comp[1]))
+						newline1.append("%s:%s" % (comp[0].xmlname[1], comp[1]))
 					else:
 						newline1.append(str(comp))
 				line[1] = "/".join(newline1)
