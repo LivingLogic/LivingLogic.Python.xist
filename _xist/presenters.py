@@ -734,4 +734,105 @@ class TreePresenter:
 			self.buffers.append(EnvTextForURL())
 		self.presentFrag(node)
 
+class CodePresenter:
+	"""
+	This presenter shows the object as a nested Python object tree, i.e.
+	it could be used to generate source code.
+	"""
+	def beginPresentation(self):
+		self.inAttr = 0
+		self.buffer = [] # the final lines consisting of (location, numerical path, nesting, content)
+		self.level = 0
+
+	def endPresentation(self):
+		s = "".join(self.buffer)
+		self.buffer = []
+		return s
+
+	def _indent(self):
+		if not self.inAttr:
+			if self.buffer:
+				self.buffer.append("\n")
+			if self.level:
+				self.buffer.append("\t"*self.level)
+
+	def presentFrag(self, node):
+		self._indent()
+		if not self.inAttr:
+			self.buffer.append("xsc.Frag")
+		self.buffer.append("(")
+		i = 0
+		self.level += 1
+		for child in node:
+			if i:
+				self.buffer.append(",")
+				if self.inAttr:
+					self.buffer.append(" ")
+			child.present(self)
+			i += 1
+		self.level -= 1
+		self._indent()
+		self.buffer.append(")")
+
+	def presentElement(self, node):
+		print xsc.className(node.__class__), self.level, self.inAttr
+		self._indent()
+		self.buffer.append("%s.%s(" % (node.__module__, xsc.className(node.__class__)))
+		i = 0
+		self.level += 1
+		for child in node:
+			if i:
+				self.buffer.append(",")
+				if self.inAttr:
+					self.buffer.append(" ")
+			child.present(self)
+			i += 1
+		for (attrname, attrvalue) in node.attrs.items():
+			if i:
+				self.buffer.append(",")
+				if self.inAttr:
+					self.buffer.append(" ")
+			if i:
+				self._indent()
+			self.inAttr += 1
+			self.buffer.append("%s=" % attrname)
+			if len(attrvalue)==1: # optimize away the tuple ()
+				attrvalue[0].present(self)
+			else:
+				attrvalue.present(self)
+			self.inAttr -= 1
+			i += 1
+		self.level -= 1
+		self._indent()
+		self.buffer.append(")")
+
+	def presentNull(self, node):
+		pass
+
+	def presentText(self, node):
+		self._indent()
+		self.buffer.append("%r" % node.content)
+
+	def presentEntity(self, node):
+		self._indent()
+		self.buffer.append("%s.%s()" % (node.__module__, xsc.className(node.__class__)))
+
+	def presentProcInst(self, node):
+		self._indent()
+		self.buffer.append("%s.%s(%r)" % (node.__module__, xsc.className(node.__class__), node.content))
+
+	def presentComment(self, node):
+		self._indent()
+		self.buffer.append("xsc.Comment(%r)" % node.content)
+
+	def presentDocType(self, node):
+		self._indent()
+		self.buffer.append("xsc.DocType(%r)" % node.content)
+
+	def presentAttr(self, node):
+		self.presentFrag(node)
+
+	def presentURLAttr(self, node):
+		self.presentFrag(node)
+
 defaultPresenterClass = PlainPresenter

@@ -59,7 +59,8 @@ def ToNode(value):
 		return Null
 	elif t in (types.ListType, types.TupleType):
 		return Frag(*value)
-	raise errors.IllegalObjectError(value) # none of the above, so we throw and exception
+	errors.warn(errors.IllegalObjectWarning(value)) # none of the above, so we report it and maybe throw an exception
+	return Null
 
 # FIXME this will become classmethods in Python 2.2
 def classNamespace(class_):
@@ -71,6 +72,9 @@ def classPrefix(class_):
 		return ns.prefix
 	else:
 		return unicode(class_.__module__)
+
+def className(class_):
+	return getattr(class_, "name", class_.__name__)
 
 ###
 ###

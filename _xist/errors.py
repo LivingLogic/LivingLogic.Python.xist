@@ -220,9 +220,9 @@ class ImageSizeFormatWarning(UserWarning):
 	def __str__(self):
 		return "the value %r for the image size attribute %r of the element %r can't be formatted or evaluated (%s). The attribute will be dropped." % (self.value, self.attr, self.element, self.exc)
 
-class IllegalObjectError(Error):
+class IllegalObjectWarning(Warning):
 	"""
-	exception that is raised, when XSC finds an illegal object in its object tree
+	warning that is issued, when XSC finds an illegal object in its object tree.
 	"""
 
 	def __init__(self, object):
@@ -232,7 +232,7 @@ class IllegalObjectError(Error):
 		s = "an illegal object %r of type %s" % (self.object, type(self.object).__name__)
 		if type(self.object) is types.InstanceType:
 			s += " (class %s)" % self.object.__class__.__name__
-		s += " has been found in the XSC tree"
+		s += " has been found in the XSC tree. The object will be ignored."
 		return s
 
 class MalformedCharRefError(Error):
