@@ -10,7 +10,7 @@ from distutils.core import setup, Extension
 
 setup(
 	name="XIST",
-	version="2.0.8",
+	version="2.1",
 	description="An XML-based extensible HTML generator",
 	long_description=\
 		"XIST is an XML based extensible HTML generator. XIST is also\n"
@@ -29,5 +29,5 @@ setup(
 		Extension("ll.xist.csstokenizer", ["_xist/csstokenizer.cxx"]),
 		Extension("ll.xist.helpers", ["_xist/helpers.c"])
 	],
-	scripts=["scripts/dtd2xsc.py", "scripts/doc2txt.py", "scripts/xscmake.py" ]
+	scripts=["scripts/dtd2xsc.py", "scripts/tld2xsc.py", "scripts/doc2txt.py", "scripts/xscmake.py" ]
 )

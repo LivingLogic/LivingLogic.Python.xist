@@ -29,89 +29,90 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
 from ll.xist import xsc
-from ll.xist.ns import xml
+from xml import xml
 
-class DocType(xsc.DocType):
-	def __init__(self):
-		xsc.DocType.__init__(
-			self,
-			'struts-config PUBLIC '
-			'"-//Apache Software Foundation//DTD Struts Configuration 1.0//EN" '
-			'"http://jakarta.apache.org/struts/dtds/struts-config_1_0.dtd"'
-		)
+class struts_config(xsc.Namespace):
+	xmlurl = "http://jakarta.apache.org/struts/dtds/struts-config_1_0.dtd"
 
-class data_sources(xsc.Element):
-	empty = False
-	xmlname = "data-sources"
+	class DocType(xsc.DocType):
+		def __init__(self):
+			xsc.DocType.__init__(
+				self,
+				'struts-config PUBLIC '
+				'"-//Apache Software Foundation//DTD Struts Configuration 1.0//EN" '
+				'"http://jakarta.apache.org/struts/dtds/struts-config_1_0.dtd"'
+			)
 
-class data_source(xsc.Element):
-	empty = False
-	class Attrs(xsc.Element.Attrs):
-		class key(xsc.TextAttr): pass
-		class type(xsc.TextAttr): pass
-	xmlname = "data-source"
+	class data_sources(xsc.Element):
+		empty = False
+		xmlname = "data-sources"
 
-class set_property(xsc.Element):
-	empty = False
-	class Attrs(xsc.Element.Attrs):
-		class property(xsc.TextAttr): pass
-		class value(xsc.TextAttr): pass
-	xmlname = "set-property"
+	class data_source(xsc.Element):
+		empty = False
+		class Attrs(xsc.Element.Attrs):
+			class key(xsc.TextAttr): pass
+			class type(xsc.TextAttr): pass
+		xmlname = "data-source"
 
-class struts_config(xsc.Element):
-	empty = False
-	xmlname = "struts-config"
+	class set_property(xsc.Element):
+		empty = False
+		class Attrs(xsc.Element.Attrs):
+			class property(xsc.TextAttr): pass
+			class value(xsc.TextAttr): pass
+		xmlname = "set-property"
 
-class form_beans(xsc.Element):
-	empty = False
-	xmlname = "form-beans"
+	class struts_config(xsc.Element):
+		empty = False
+		xmlname = "struts-config"
 
-class form_bean(xsc.Element):
-	empty = True
-	class Attrs(xsc.Element.Attrs):
-		class type(xsc.TextAttr): pass
-		class name(xsc.TextAttr): pass
-	xmlname = "form-bean"
+	class form_beans(xsc.Element):
+		empty = False
+		xmlname = "form-beans"
 
-class global_forwards(xsc.Element):
-	empty = False
-	xmlname = "global-forwards"
+	class form_bean(xsc.Element):
+		empty = True
+		class Attrs(xsc.Element.Attrs):
+			class type(xsc.TextAttr): pass
+			class name(xsc.TextAttr): pass
+		xmlname = "form-bean"
 
-class forward(xsc.Element):
-	empty = True
-	class Attrs(xsc.Element.Attrs):
-		class name(xsc.TextAttr): pass
-		class path(xsc.TextAttr): pass
-		class redirect(xsc.TextAttr): pass
+	class global_forwards(xsc.Element):
+		empty = False
+		xmlname = "global-forwards"
 
-class action_mappings(xsc.Element):
-	empty = False
-	xmlname = "action-mappings"
+	class forward(xsc.Element):
+		empty = True
+		class Attrs(xsc.Element.Attrs):
+			class name(xsc.TextAttr): pass
+			class path(xsc.TextAttr): pass
+			class redirect(xsc.TextAttr): pass
 
-class action(xsc.Element):
-	empty = False
-	class Attrs(xsc.Element.Attrs):
-		class path(xsc.TextAttr): pass
-		class type(xsc.TextAttr): pass
-		class input(xsc.TextAttr): pass
-		class name(xsc.TextAttr): pass
-		class scope(xsc.TextAttr): pass
+	class action_mappings(xsc.Element):
+		empty = False
+		xmlname = "action-mappings"
 
-# this is no "official" struts-config element, but nonetheless useful
-# for generating the final XML output
-class user_struts_config(xsc.Element):
-	empty = False
-	xmlname = "user-struts-config"
+	class action(xsc.Element):
+		empty = False
+		class Attrs(xsc.Element.Attrs):
+			class path(xsc.TextAttr): pass
+			class type(xsc.TextAttr): pass
+			class input(xsc.TextAttr): pass
+			class name(xsc.TextAttr): pass
+			class scope(xsc.TextAttr): pass
 
-	def convert(self, converter):
-		e = xsc.Frag(
-			xml.XML10(),
-			u"\n",
-			DocType(),
-			u"\n",
-			struts_config(self.content)
-		)
-		return e.convert(converter)
+	# this is no "official" struts-config element, but nonetheless useful
+	# for generating the final XML output
+	class user_struts_config(xsc.Element):
+		empty = False
+		xmlname = "user-struts-config"
 
-xmlns = xsc.Namespace("struts-config", "http://jakarta.apache.org/struts/dtds/struts-config_1_0.dtd", vars())
+		def convert(self, converter):
+			e = xsc.Frag(
+				xml.XML10(),
+				u"\n",
+				DocType(),
+				u"\n",
+				struts_config.struts_config(self.content)
+			)
+			return e.convert(converter)
 

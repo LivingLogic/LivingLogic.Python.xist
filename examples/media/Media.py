@@ -123,8 +123,6 @@ class price(xsc.Element):
 	def convert(self, converter):
 		return xsc.Frag(self.content, " ", self["currency"]).convert(converter)
 
-xmlns = xsc.Namespace("media", "http://xmlns.livinglogic.de/xist/examples/media", vars())
-
 if __name__ == "__main__":
 	parsers.parseFile("Media.xml").find(type=media).conv().write(open("Media.html","wb"))
 

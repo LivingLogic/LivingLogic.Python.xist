@@ -1,10 +1,19 @@
 #! /usr/bin/env/python
 # -*- coding: iso-8859-1 -*-
 
-import sys, unittest
+import sys, unittest, ExceptHook
+sys.ExceptHook = ExceptHook.ExceptHookMono()
 
 from ll.xist import xsc, parsers, presenters, converters, helpers, errors
-from ll.xist.ns import wml, ihtml, html, css, abbr, specials, php, xml
+from ll.xist.ns.wml import wml
+from ll.xist.ns.ihtml import ihtml
+from ll.xist.ns.html import html
+from ll.xist.ns.css import css
+from ll.xist.ns.abbr import abbr
+from ll.xist.ns.specials import specials
+from ll.xist.ns.htmlspecials import htmlspecials
+from ll.xist.ns.php import php
+from ll.xist.ns.xml import xml
 
 class XISTTestCase(unittest.TestCase):
 	def check_lenunicode(self, node, _len, content):
@@ -210,7 +219,7 @@ class XISTTestCase(unittest.TestCase):
 			if isinstance(obj, type) and issubclass(obj, xsc.Node):
 				node = obj()
 				if isinstance(node, xsc.Element):
-					for (attrname, attrvalue) in node.allowedattritems():
+					for (attrname, attrvalue) in node.attrs.alloweditems():
 						if attrvalue.required:
 							if attrvalue.values:
 								node[attrname] = attrvalue.values[0]
@@ -340,20 +349,115 @@ class XISTTestCase(unittest.TestCase):
 		e.asBytes()
 
 	def test_namespace(self):
-		self.assertEqual(xsc.amp.xmlname, "amp")
-		self.assert_(xsc.amp.xmlns is xsc.xmlns)
-		self.assertEqual(xsc.amp.xmlprefix(), "xsc")
+		self.assertEqual(xsc.amp.xmlname, (u"amp", u"amp"))
+		self.assert_(xsc.amp.xmlns is None)
+		self.assertEqual(xsc.amp.xmlprefix(), None)
+
+		self.assertEqual(html.uuml.xmlname, (u"uuml", u"uuml"))
+		self.assert_(html.uuml.xmlns is html)
+		self.assertEqual(html.uuml.xmlprefix(), "html")
+
+		self.assertEqual(html.a.Attrs.class_.xmlname, (u"class_", u"class"))
+		self.assert_(html.a.Attrs.class_.xmlns is None)
+
+		self.assertEqual(xml.Attrs.lang.xmlname, (u"lang", u"lang"))
+		self.assert_(xml.Attrs.lang.xmlns is xml)
+		self.assertEqual(xml.Attrs.lang.xmlprefix(), "xml")
 
 	def test_attributes(self):
 		node = html.h1("gurk", {(xml, "lang"): "de"}, lang="de")
-		self.assert_(node.hasattr("lang"))
-		self.assert_(node.hasattr((xml, "lang")))
-		self.assert_(node.hasattr((xml.xmlns, "lang")))
-		self.assert_(node.hasattr((xml.xmlns.xmlname, "lang")))
+		self.assert_(node.attrs.has("lang"))
+		self.assert_(node.attrs.has((xml, "lang")))
+
+	def check_attributekeysvaluesitems(self, node, xml, attrname, attrvalue):
+		self.assertEquals(node.attrs.allowedkeys(xml=xml), [attrname])
+		iter = node.attrs.iterallowedkeys(xml=xml)
+		self.assertEquals(iter.next(), attrname)
+		self.assertRaises(StopIteration, iter.next)
+
+		self.assertEquals(node.attrs.allowedvalues(), [node.Attrs.attr_])
+		iter = node.attrs.iterallowedvalues()
+		self.assertEquals(iter.next(), node.Attrs.attr_)
+		self.assertRaises(StopIteration, iter.next)
+
+		self.assertEquals(node.attrs.alloweditems(xml=xml), [(attrname, node.Attrs.attr_)])
+		iter = node.attrs.iteralloweditems(xml=xml)
+		self.assertEquals(iter.next(), (attrname, node.Attrs.attr_))
+		self.assertRaises(StopIteration, iter.next)
+
+		if attrvalue:
+			self.assertEquals(node.attrs.keys(xml=xml), [attrname])
+			iter = node.attrs.iterkeys(xml=xml)
+			self.assertEquals(iter.next(), attrname)
+			self.assertRaises(StopIteration, iter.next)
+		else:
+			self.assertEquals(node.attrs.keys(xml=xml), [])
+			iter = node.attrs.iterkeys(xml=xml)
+			self.assertRaises(StopIteration, iter.next)
+
+		if attrvalue:
+			res = node.attrs.values()
+			self.assertEquals(len(res), 1)
+			self.assertEquals(res[0].__class__, node.Attrs.attr_)
+			self.assertEquals(unicode(res[0]), attrvalue)
+			iter = node.attrs.itervalues()
+			res = iter.next()
+			self.assertEquals(res.__class__, node.Attrs.attr_)
+			self.assertEquals(unicode(res), attrvalue)
+			self.assertRaises(StopIteration, iter.next)
+		else:
+			res = node.attrs.values()
+			self.assertEquals(len(res), 0)
+			iter = node.attrs.itervalues()
+			self.assertRaises(StopIteration, iter.next)
+
+		if attrvalue:
+			res = node.attrs.items(xml=xml)
+			self.assertEquals(len(res), 1)
+			self.assertEquals(res[0][0], attrname)
+			self.assertEquals(res[0][1].__class__, node.Attrs.attr_)
+			self.assertEquals(unicode(res[0][1]), attrvalue)
+			iter = node.attrs.iteritems(xml=xml)
+			res = iter.next()
+			self.assertEquals(res[0], attrname)
+			self.assertEquals(res[1].__class__, node.Attrs.attr_)
+			self.assertEquals(unicode(res[1]), attrvalue)
+			self.assertRaises(StopIteration, iter.next)
+		else:
+			res = node.attrs.items(xml=xml)
+			self.assertEquals(len(res), 0)
+			iter = node.attrs.iteritems(xml=xml)
+			self.assertRaises(StopIteration, iter.next)
+
+	def test_attributekeysvaluesitems(self):
+		class Test1(xsc.Element):
+			class Attrs(xsc.Element.Attrs):
+				class attr_(xsc.TextAttr):
+					xmlname = "attr"
+					default = 42
+		class Test2(xsc.Element):
+			class Attrs(xsc.Element.Attrs):
+				class attr_(xsc.TextAttr):
+					xmlname = "attr"
+
+		for (xml, attrname) in ((False, u"attr_"), (True, u"attr")):
+			self.check_attributekeysvaluesitems(Test1(), xml, attrname, u"42")
+			self.check_attributekeysvaluesitems(Test1(attr_=17), xml, attrname, u"17")
+			self.check_attributekeysvaluesitems(Test1(attr_=None), xml, attrname, None)
+
+			self.check_attributekeysvaluesitems(Test2(), xml, attrname, None)
+			self.check_attributekeysvaluesitems(Test2(attr_=17), xml, attrname, u"17")
+			self.check_attributekeysvaluesitems(Test2(attr_=None), xml, attrname, None)
 
 	def test_attributeswithout(self):
+		# Use a sub namespace of xml to test the issubclass checks
+		class xml2(xml):
+			class Attrs(xml.Attrs):
+				class lang(xml.Attrs.lang):
+					default = 42
+
 		node = html.h1("gurk",
-			{(xml, "space"): 1, (xml, "lang"): "de", (xml, "base"): "http://www.livinglogic.de/"},
+			{(xml2, "space"): 1, (xml2, "lang"): "de", (xml2, "base"): "http://www.livinglogic.de/"},
 			lang="de",
 			style="color: #fff",
 			align="right",
@@ -370,13 +474,13 @@ class XISTTestCase(unittest.TestCase):
 		keys1.sort()
 		self.assertEqual(keys, keys1)
 
-		keys.remove((xml.xmlns, "space"))
+		keys.remove((xml2, "space"))
 		keys2 = node.attrs.without(["lang", (xml, "space")]).keys()
 		keys2.sort()
 		self.assertEqual(keys, keys2)
 
-		keys.remove((xml.xmlns, "lang"))
-		keys.remove((xml.xmlns, "base"))
+		keys.remove((xml2, "lang"))
+		keys.remove((xml2, "base"))
 		keys3 = node.attrs.without(["lang"], [xml]).keys()
 		keys3.sort()
 		self.assertEqual(keys, keys3)
@@ -387,8 +491,14 @@ class XISTTestCase(unittest.TestCase):
 		self.assertEqual(keys, keys4)
 
 	def test_attributeswith(self):
+		# Use a sub namespace of xml to test the issubclass checks
+		class xml2(xml):
+			class Attrs(xml.Attrs):
+				class lang(xml.Attrs.lang):
+					default = 42
+
 		node = html.h1("gurk",
-			{(xml, "space"): 1, (xml, "lang"): "de"},
+			{(xml2, "space"): 1, (xml2, "lang"): "de"},
 			lang="de",
 			align="right"
 		)
@@ -396,21 +506,21 @@ class XISTTestCase(unittest.TestCase):
 		keys.sort()
 		keys.remove("lang")
 
-		self.assertEquals(node.attrs.with(["lang"]).keys(), ["lang"])
+		self.assertEquals(node.attrs.with([u"lang"]).keys(), [u"lang"])
 
-		keys1 = node.attrs.with(["lang", "align"]).keys()
+		keys1 = node.attrs.with([u"lang", u"align"]).keys()
 		keys1.sort()
-		self.assertEqual(keys1, ["align", "lang"])
+		self.assertEqual(keys1, [u"align", u"lang"])
 
-		keys = ["lang", (xml.xmlns, "lang")]
+		keys = [u"lang", (xml2, u"lang")]
 		keys.sort()
 		keys2 = node.attrs.with(keys).keys()
 		keys2.sort()
 		self.assertEqual(keys2, keys)
 
-		keys = ["lang", (xml.xmlns, "lang"), (xml.xmlns, "space")]
+		keys = [u"lang", (xml2, u"lang"), (xml2, u"space")]
 		keys.sort()
-		keys3 = node.attrs.with(["lang"], [xml]).keys()
+		keys3 = node.attrs.with([u"lang"], [xml]).keys()
 		keys3.sort()
 		self.assertEqual(keys3, keys)
 
@@ -422,11 +532,11 @@ class XISTTestCase(unittest.TestCase):
 				class withoutdef(xsc.TextAttr):
 					pass
 		node = Test()
-		self.assert_(node.hasattr("withdef"))
-		self.assert_(not node.hasattr("withoutdef"))
-		self.assertRaises(errors.IllegalAttrError, node.hasattr, "illegal")
+		self.assert_(node.attrs.has("withdef"))
+		self.assert_(not node.attrs.has("withoutdef"))
+		self.assertRaises(errors.IllegalAttrError, node.attrs.has, "illegal")
 		node = Test(withdef=None)
-		self.assert_(not node.hasattr("withdef"))
+		self.assert_(not node.attrs.has("withdef"))
 
 	def check_listiter(self, listexp, *lists):
 		for l in lists:
@@ -450,44 +560,32 @@ class XISTTestCase(unittest.TestCase):
 
 		self.check_listiter(
 			[ "withdef", "withoutdef" ],
-			node.attrkeys(),
-			node.iterattrkeys(),
 			node.attrs.keys(),
 			node.attrs.iterkeys()
 		)
 		self.check_listiter(
 			[ Test.Attrs.withdef(42), Test.Attrs.withoutdef(42)],
-			node.attrvalues(),
-			node.iterattrvalues(),
 			node.attrs.values(),
 			node.attrs.itervalues()
 		)
 		self.check_listiter(
 			[ ("withdef", Test.Attrs.withdef(42)), ("withoutdef", Test.Attrs.withoutdef(42)) ],
-			node.attritems(),
-			node.iterattritems(),
 			node.attrs.items(),
 			node.attrs.iteritems()
 		)
 
 		self.check_listiter(
 			[ "another", "withdef", "withoutdef" ],
-			node.allowedattrkeys(),
-			node.iterallowedattrkeys(),
 			node.attrs.allowedkeys(),
 			node.attrs.iterallowedkeys()
 		)
 		self.check_listiter(
 			[ Test.Attrs.another, Test.Attrs.withdef, Test.Attrs.withoutdef ],
-			node.allowedattrvalues(),
-			node.iterallowedattrvalues(),
 			node.attrs.allowedvalues(),
 			node.attrs.iterallowedvalues()
 		)
 		self.check_listiter(
 			[ ("another", Test.Attrs.another), ("withdef", Test.Attrs.withdef), ("withoutdef", Test.Attrs.withoutdef) ],
-			node.allowedattritems(),
-			node.iterallowedattritems(),
 			node.attrs.alloweditems(),
 			node.attrs.iteralloweditems()
 		)
@@ -500,8 +598,6 @@ class XISTTestCase(unittest.TestCase):
 				</x:a>
 			</x:a>
 		"""
-		from ll.xist.ns import html, ihtml
-		from ll.xist import presenters
 		check = ihtml.a(
 			html.a(
 				ihtml.a(
@@ -525,8 +621,8 @@ class XISTTestCase(unittest.TestCase):
 		self.assertEquals(unicode(node.conv()["testattr"]), "42")
 
 		node["testattr"].clear()
-		self.assert_(not node.hasattr("testattr"))
-		self.assert_(not node.conv().hasattr("testattr"))
+		self.assert_(not node.attrs.has("testattr"))
+		self.assert_(not node.conv().attrs.has("testattr"))
 
 		node = testelem(testattr=23)
 		self.assertEquals(unicode(node["testattr"]), "23")
@@ -537,12 +633,12 @@ class XISTTestCase(unittest.TestCase):
 		self.assertEquals(unicode(node.conv()["testattr"]), "42")
 
 		node["testattr"] = None
-		self.assert_(not node.hasattr("testattr"))
-		self.assert_(not node.conv().hasattr("testattr"))
+		self.assert_(not node.attrs.has("testattr"))
+		self.assert_(not node.conv().attrs.has("testattr"))
 
 		node = testelem(testattr=None)
-		self.assert_(not node.hasattr("testattr"))
-		self.assert_(not node.conv().hasattr("testattr"))
+		self.assert_(not node.attrs.has("testattr"))
+		self.assert_(not node.conv().attrs.has("testattr"))
 
 	def test_checkisallowed(self):
 		class testelem(xsc.Element):
@@ -550,12 +646,33 @@ class XISTTestCase(unittest.TestCase):
 				class testattr(xsc.TextAttr):
 					pass
 
-		node = testelem()
-		self.assertEquals(node.isallowedattr("testattr"), True)
-		self.assertEquals(node.attrs.isallowed("testattr"), True)
+		class testelem2(testelem):
+			pass
 
-		self.assertEquals(node.isallowedattr("notestattr"), False)
+		class testelem3(testelem2):
+			class Attrs(testelem2.Attrs):
+				class testattr3(xsc.TextAttr):
+					pass
+
+		class testelem4(testelem3):
+			class Attrs(testelem3.Attrs):
+				testattr = None
+
+		node = testelem()
+		self.assertEquals(node.attrs.isallowed("testattr"), True)
 		self.assertEquals(node.attrs.isallowed("notestattr"), False)
+
+		node = testelem2()
+		self.assertEquals(node.attrs.isallowed("testattr"), True)
+		self.assertEquals(node.attrs.isallowed("notestattr"), False)
+
+		node = testelem3()
+		self.assertEquals(node.attrs.isallowed("testattr"), True)
+		self.assertEquals(node.attrs.isallowed("testattr3"), True)
+
+		node = testelem4()
+		self.assertEquals(node.attrs.isallowed("testattr"), False)
+		self.assertEquals(node.attrs.isallowed("testattr3"), True)
 
 	def test_publishelement(self):
 		node = html.html()
@@ -649,11 +766,6 @@ class XISTTestCase(unittest.TestCase):
 		node = html.span(class_=s)
 		self.assertEquals(node.asBytes(encoding="ascii", xhtml=2), """<span class="&lt;&amp;'&quot;&#255;&gt;"/>""")
 
-	def test_getns(self):
-		self.assertEquals(xsc.getns("http://www.w3.org/1999/xhtml"), html.xmlns)
-		self.assertEquals(xsc.getns(html.xmlns), html.xmlns)
-		self.assertEquals(xsc.getns(html), html.xmlns)
-
 	def test_withsep(self):
 		for class_ in (xsc.Frag, html.div):
 			node = class_(1,2,3)
@@ -662,6 +774,84 @@ class XISTTestCase(unittest.TestCase):
 			self.assertEquals(unicode(node.withsep(",")), u"1")
 			node = class_()
 			self.assertEquals(unicode(node.withsep(",")), u"")
+
+	def test_autoinherit(self):
+		class NS1(xsc.Namespace):
+			xmlname = "test"
+			xmlurl = "test"
+			class foo(xsc.Element):
+				empty = True
+				def convert(self, converter):
+					e = self.xmlns.bar()
+					return e.convert(converter)
+			class bar(xsc.Entity):
+				def convert(self, converter):
+					return xsc.Text(17)
+
+		class NS2(NS1):
+			xmlname = "test"
+			class bar(xsc.Entity):
+				def convert(self, converter):
+					return xsc.Text(23)
+
+		self.assertEquals(unicode(NS1.foo().conv()), u"17")
+		self.assertEquals(unicode(NS2.foo().conv()), u"23")
+
+	def check_nskeysvaluesitems(self, ns, method, resname, resclass):
+		self.assertEquals(getattr(ns, method + "keys")(xml=False), [resname])
+		self.assertEquals(getattr(ns, method + "keys")(xml=True), [resname[:-1]])
+
+		self.assertEquals(getattr(ns, method + "values")(), [resclass])
+
+		self.assertEquals(getattr(ns, method + "items")(xml=False), [(resname, resclass)])
+		self.assertEquals(getattr(ns, method + "items")(xml=True), [(resname[:-1], resclass)])
+
+	def test_nskeysvaluesitems(self):
+		class NS(xsc.Namespace):
+			xmlname = "test"
+			class el_(xsc.Element):
+				xmlname = "el"
+			class en_(xsc.Entity):
+				xmlname = "en"
+			class pi_(xsc.ProcInst):
+				xmlname = "pi"
+			class cr_(xsc.CharRef):
+				xmlname = "cr"
+				codepoint = 0x4242
+
+		self.check_nskeysvaluesitems(NS, "element", "el_", NS.el_)
+		self.check_nskeysvaluesitems(NS, "entity", "en_", NS.en_)
+		self.check_nskeysvaluesitems(NS, "procinst", "pi_", NS.pi_)
+		self.check_nskeysvaluesitems(NS, "charref", "cr_", NS.cr_)
+
+	def test_allowedattr(self):
+		self.assertEquals(html.a.Attrs.allowedattr("href"), html.a.Attrs.href)
+		self.assertRaises(errors.IllegalAttrError, html.a.Attrs.allowedattr, "gurk")
+		self.assertEquals(html.a.Attrs.allowedattr((xml, "lang")), xml.Attrs.lang)
+
+	def test_plaintableattrs(self):
+		e = htmlspecials.plaintable(border=3)
+		self.assert_(isinstance(e["border"], html.table.Attrs.border))
+		self.assert_(isinstance(e["cellpadding"], html.table.Attrs.cellpadding))
+		e = e.conv()
+		self.assert_(isinstance(e["border"], html.table.Attrs.border))
+		self.assert_(isinstance(e["cellpadding"], html.table.Attrs.cellpadding))
+
+	def test_attrupdate(self):
+		node = html.a(href="gurk", class_="hurz")
+		node.attrs.update({"href": "gurk2", "id": 42})
+		self.assertEquals(unicode(node["href"]), u"gurk2")
+		self.assertEquals(unicode(node["id"]), u"42")
+
+		node = html.a(href="gurk", class_="hurz")
+		node.attrs.updatenew({"href": "gurk2", "id": 42})
+		self.assertEquals(unicode(node["href"]), u"gurk")
+		self.assertEquals(unicode(node["id"]), u"42")
+
+		node = html.a(href="gurk", class_="hurz")
+		node.attrs.updateexisting({"href": "gurk2", "id": 42})
+		self.assertEquals(unicode(node["href"]), u"gurk2")
+		self.assertEquals(node.attrs.has("id"), False)
 
 if __name__ == "__main__":
 	unittest.main()

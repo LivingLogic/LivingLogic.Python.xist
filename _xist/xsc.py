@@ -30,7 +30,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 
 from __future__ import generators
 
-import os, types, sys, urllib, random
+import os, sys, random, types, new
 
 from ll import url, ansistyle
 
@@ -124,11 +124,6 @@ class Node(Base):
 
 	class __metaclass__(Base.__metaclass__):
 		def __new__(cls, name, bases, dict):
-			dict["pyname"] = unicode(name.split(".")[-1])
-			if "xmlname" in dict:
-				dict["xmlname"] = unicode(dict["xmlname"])
-			else:
-				dict["xmlname"] = dict["pyname"]
 			dict["xmlns"] = None
 			if "register" not in dict:
 				dict["register"] = True
@@ -145,6 +140,12 @@ class Node(Base):
 					def xmlprefix(cls, publisher=None):
 						return xmlprefix_value
 					dict["xmlprefix"] = classmethod(xmlprefix)
+			pyname = unicode(name.split(".")[-1])
+			if "xmlname" in dict:
+				xmlname = unicode(dict["xmlname"])
+			else:
+				xmlname = pyname
+			dict["xmlname"] = (pyname, xmlname)
 			return Base.__metaclass__.__new__(cls, name, bases, dict)
 
 	class Context(Base, list):
@@ -169,19 +170,19 @@ class Node(Base):
 	def __ne__(self, other):
 		return not self==other
 
-	def _strbase(cls, formatter, s, fullname, xmlname):
+	def _strbase(cls, formatter, s, fullname, xml):
 		if fullname:
-			if xmlname:
-				s.append(presenters.strNamespace(cls.xmlprefix()))
+			if xml:
+				s.append(presenters.strNamespace(cls.xmlname[xml]))
 			else:
 				s.append(presenters.strNamespace(cls.__module__))
 			s.append(presenters.strColon())
-		if xmlname:
-			s.append(formatter(cls.xmlname))
+		if xml:
+			s.append(formatter(cls.xmlname[xml]))
 		elif fullname:
 			s.append(formatter(cls.__fullname__()))
 		else:
-			s.append(formatter(cls.pyname))
+			s.append(formatter(cls.xmlname[xml]))
 	_strbase = classmethod(_strbase)
 
 	def clone(self):
@@ -381,7 +382,7 @@ class Node(Base):
 		if cls.xmlns is None:
 			return None
 		else:
-			return cls.xmlns.xmlprefix
+			return cls.xmlns.xmlname
 	xmlprefix = classmethod(xmlprefix)
 
 	def _publishname(self, publisher):
@@ -390,7 +391,7 @@ class Node(Base):
 			if prefix is not None:
 				publisher.publish(prefix)
 				publisher.publish(u":")
-		publisher.publish(self.xmlname)
+		publisher.publish(self.xmlname[True])
 
 	def parsed(self, handler, begin=None):
 		"""
@@ -496,7 +497,7 @@ class Node(Base):
 		else:
 			if isinstance(self, Element):
 				for attr in attrs.keys():
-					if (not self.hasattr(attr)) or ((attrs[attr] is not None) and (unicode(self[attr]) != attrs[attr])):
+					if (not self.attrs.has(attr)) or ((attrs[attr] is not None) and (unicode(self[attr]) != attrs[attr])):
 						return 0
 				return 1
 			else:
@@ -801,11 +802,11 @@ class Frag(Node, list):
 			elif child is not Null:
 				list.append(self, child)
 
-	def _str(cls, fullname=True, xmlname=True, decorate=True):
+	def _str(cls, fullname=True, xml=True, decorate=True):
 		s = ansistyle.Text()
 		if decorate:
 			s.append(presenters.strBracketOpen(), presenters.strSlash())
-		cls._strbase(presenters.strElementName, s, fullname=fullname, xmlname=xmlname)
+		cls._strbase(presenters.strElementName, s, fullname=fullname, xml=xml)
 		if decorate:
 			if cls.empty:
 				s.append(presenters.strSlash())
@@ -1166,11 +1167,11 @@ class ProcInst(CharacterData):
 			cls.xmlns = ns
 	_registerns = classmethod(_registerns)
 
-	def _str(cls, fullname=True, xmlname=True, decorate=True):
+	def _str(cls, fullname=True, xml=True, decorate=True):
 		s = ansistyle.Text()
 		if decorate:
 			s.append(presenters.strBracketOpen(), presenters.strQuestion())
-		cls._strbase(presenters.strProcInstTarget, s, fullname=fullname, xmlname=xmlname)
+		cls._strbase(presenters.strProcInstTarget, s, fullname=fullname, xml=xml)
 		if decorate:
 			s.append(presenters.strQuestion(), presenters.strBracketClose())
 		return s
@@ -1198,7 +1199,7 @@ class ProcInst(CharacterData):
 			return None
 		else:
 			if publisher is None:
-				return cls.xmlns.xmlprefix
+				return cls.xmlns.xmlname[True]
 			else:
 				return publisher.prefixes.procinstprefix4ns(cls.xmlns)[0]
 	xmlprefix = classmethod(xmlprefix)
@@ -1220,11 +1221,11 @@ class Null(CharacterData):
 	node that does not contain anything.
 	"""
 
-	def _str(cls, fullname=True, xmlname=True, decorate=True):
+	def _str(cls, fullname=True, xml=True, decorate=True):
 		s = ansistyle.Text()
 		if decorate:
 			s.append(presenters.strBracketOpen())
-		cls._strbase(presenters.strElementName, s, fullname=fullname, xmlname=xmlname)
+		cls._strbase(presenters.strElementName, s, fullname=fullname, xml=xml)
 		if decorate:
 			s.append(
 				presenters.strSlash(),
@@ -1268,7 +1269,7 @@ class Attr(Frag):
 	published.</par>
 	<example><title>Elements inside attributes</title>
 	<programlisting>
-	&gt;&gt;&gt; from ll.xist.ns import html
+	&gt;&gt;&gt; from ll.xist.ns.html import html
 	&gt;&gt;&gt; node = html.img( \
 	...    src="eggs.gif", \
 	...    alt=html.abbr( \
@@ -1324,9 +1325,9 @@ class Attr(Frag):
 				return True
 		return False
 
-	def _str(cls, fullname=True, xmlname=True, decorate=True):
+	def _str(cls, fullname=True, xml=True, decorate=True):
 		s = ansistyle.Text()
-		cls._strbase(presenters.strAttrName, s, fullname=fullname, xmlname=xmlname)
+		cls._strbase(presenters.strAttrName, s, fullname=fullname, xml=xml)
 		return s
 	_str = classmethod(_str)
 
@@ -1409,7 +1410,7 @@ class BoolAttr(Attr):
 		if publisher.xhtml>0:
 			publisher.publish(u"=\"")
 			publisher.pushTextFilter(helpers.escapeattr)
-			publisher.publish(self.__class__.xmlname)
+			publisher.publish(self.__class__.xmlname[True])
 			publisher.popTextFilter()
 			publisher.publish(u"\"")
 		publisher.inAttr -= 1
@@ -1545,24 +1546,32 @@ Null = Null() # Singleton, the Python way
 class Attrs(Node, dict):
 	"""
 	<par>An attribute map. Allowed entries are specified through nested subclasses
-	of <pyref class="Attr"><class>Attr</class></pyref></par>
+	of <pyref class="Attr"><class>Attr</class></pyref>.</par>
 	"""
 
 	class __metaclass__(Node.__metaclass__):
 		def __new__(cls, name, bases, dict):
-			handlersByPyName = {}
-			handlersByXMLName = {}
+			attrs = ({}, {})
+			# Automatically inherit the attributes from the base class (because the global Attrs require a pointer back to their defining namespace)
+			for base in bases:
+				for attrname in dir(base):
+					attr = getattr(base, attrname)
+					if isinstance(attr, type) and issubclass(attr, Attr) and attrname not in dict:
+						classdict = {"__module__": dict["__module__"]}
+						if attr.xmlname[0] != attr.xmlname[1]:
+							classdict["xmlname"] = attr.xmlname[1]
+						dict[attrname] = attr.__class__(attr.__name__, (attr,), classdict)
 			res = Node.__metaclass__.__new__(cls, name, bases, dict)
 			for key in dir(res):
 				value = getattr(res, key)
 				if isinstance(value, type) and issubclass(value, Attr):
-					handlersByPyName[value.pyname] = value
-					handlersByXMLName[value.xmlname] = value
-			res._handlersByPyName = handlersByPyName
-			res._handlersByXMLName = handlersByXMLName
+					attrs[False][value.xmlname[False]] = value
+					attrs[True][value.xmlname[True]] = value
+			res._attrs = attrs
 			return res
+
 		def __getitem__(cls, key):
-			return cls._handlersByPyName[key]
+			return cls._attrs[0][key]
 
 	def __init__(self, content=None, **attrs):
 		dict.__init__(self)
@@ -1575,9 +1584,9 @@ class Attrs(Node, dict):
 	def __eq__(self, other):
 		return self.__class__ is other.__class__ and dict.__eq__(self, other)
 
-	def _str(cls, fullname=True, xmlname=True, decorate=True):
+	def _str(cls, fullname=True, xml=True, decorate=True):
 		s = ansistyle.Text()
-		cls._strbase(presenters.strAttrsName, s, fullname=fullname, xmlname=xmlname)
+		cls._strbase(presenters.strAttrsName, s, fullname=fullname, xml=xml)
 		return s
 	_str = classmethod(_str)
 
@@ -1590,7 +1599,7 @@ class Attrs(Node, dict):
 		"""
 		makes <self/> empty. (This also removes default attributes)
 		"""
-		for attrvalue in self.values():
+		for attrvalue in self.itervalues():
 			attrvalue.clear()
 
 	def clone(self):
@@ -1601,7 +1610,7 @@ class Attrs(Node, dict):
 
 	def convert(self, converter):
 		node = self._create()
-		for (attrname, attrvalue) in self.items():
+		for (attrname, attrvalue) in self.iteritems():
 			convertedattr = attrvalue.convert(converter)
 			assert isinstance(convertedattr, Node), "the convert method returned the illegal object %r (type %r) when converting the attribute %s with the value %r" % (convertedchild, type(convertedchild), presenters.strAttrName(attrname), child)
 			node[attrname] = convertedattr
@@ -1609,7 +1618,7 @@ class Attrs(Node, dict):
 
 	def compact(self):
 		node = self._create()
-		for (attrname, attrvalue) in self.items():
+		for (attrname, attrvalue) in self.iteritems():
 			convertedattr = attrvalue.compact()
 			assert isinstance(convertedattr, Node), "the compact method returned the illegal object %r (type %r) when compacting the attribute %s with the value %r" % (convertedchild, type(convertedchild), presenters.strAttrName(attrname), child)
 			node[attrname] = convertedattr
@@ -1617,7 +1626,7 @@ class Attrs(Node, dict):
 
 	def normalized(self):
 		node = self._create()
-		for (attrname, attrvalue) in self.items():
+		for (attrname, attrvalue) in self.iteritems():
 			convertedattr = attrvalue.normalized()
 			assert isinstance(convertedattr, Node), "the normalized method returned the illegal object %r (type %r) when normalizing the attribute %s with the value %r" % (convertedchild, type(convertedchild), presenters.strAttrName(attrname), child)
 			node[attrname] = convertedattr
@@ -1626,7 +1635,7 @@ class Attrs(Node, dict):
 	def find(self, type=None, subtype=False, attrs=None, test=None, searchchildren=False, searchattrs=False):
 		node = Frag()
 		if searchattrs:
-			for attrvalue in self.values():
+			for attrvalue in self.itervalues():
 				node.append(attrvalue.find(type, subtype, attrs, test, searchchildren, searchattrs))
 		return node
 
@@ -1634,208 +1643,264 @@ class Attrs(Node, dict):
 		presenter.presentAttrs(self)
 
 	def parsed(self, handler, begin=None):
-		attrs = [key for (key, value) in self.alloweditems() if value.required]
-		for attrname in self.keys():
-			if isinstance(attrname, tuple): # global attribute?
-				try:
-					attrs.remove(attrname)
-				except KeyError:
-					pass
+		# collect required attributes
+		attrs = {}
+		for (key, value) in self.iteralloweditems():
+			if value.required:
+				attrs[key] = None
+		# if a required attribute is encountered, remove from the list of outstanding ones
+		for attrname in self.iterkeys():
+			try:
+				del attrs[attrname]
+			except KeyError:
+				pass
+		# are there any required attributes remaining that haven't been specified? => warn about it
 		if attrs:
-			errors.warn(errors.RequiredAttrMissingWarning(self, attrs))
+			errors.warn(errors.RequiredAttrMissingWarning(self, attrs.values()))
 
 	def publish(self, publisher):
 		if publisher.inAttr:
 			raise errors.IllegalAttrNodeError(self)
-		# get all required attributes
-		attrs = [key for (key, value) in self.alloweditems() if value.required]
+		# collect required attributes
+		attrs = {}
+		for (key, value) in self.iteralloweditems():
+			if value.required:
+				attrs[key] = None
 		for (attrname, attrvalue) in self.iteritems():
 			publisher.publish(u" ")
-			if not isinstance(attrname, tuple): # local attribute?
-				# if a required attribute is encountered, remove from the list of outstanding ones
-				try:
-					attrs.remove(attrname)
-				except ValueError:
-					pass
+			# if a required attribute is encountered, remove from the list of outstanding ones
+			try:
+				del attrs[attrname]
+			except KeyError:
+				pass
 			attrvalue.publish(publisher)
-		# are there any required attributes remaining that haven't be specified? => warn about it
+		# are there any required attributes remaining that haven't been specified? => warn about it
 		if attrs:
-			errors.warn(errors.RequiredAttrMissingWarning(self, attrs))
+			errors.warn(errors.RequiredAttrMissingWarning(self, attrs.values()))
 
 	def __unicode__(self):
 		return u""
 
-	def isallowed(cls, key):
-		return key in cls._handlersByPyName
+	def isallowed(cls, name, xml=False):
+		return name in cls._attrs[xml]
 	isallowed = classmethod(isallowed)
 
-	def _attrClass(cls, key):
+	def __getitem__(self, name):
+		return self.attr(name)
+
+	def __setitem__(self, name, value):
+		return self.set(name, value)
+
+	def __delitem__(self, name):
+		attr = self.allowedattr(name)
+		dict.__delitem__(self, attr.xmlname[False])
+
+	def has(self, name, xml=False):
+		"""
+		<par>return whether <self/> has an attribute named <arg>name</arg>. <arg>xml</arg>
+		speficies whether <arg>name</arg> should be treated as an &xml; name
+		(<lit><arg>xml</arg>==True</lit>) or a Python name (<lit><arg>xml</arg>==False</lit>).</par>
+		"""
+		attr = self.allowedattr(name, xml=xml)
 		try:
-			return cls._handlersByPyName[key]
+			attr = dict.__getitem__(self, attr.xmlname[False])
 		except KeyError:
-			raise errors.IllegalAttrError(cls, key)
-	_attrClass = classmethod(_attrClass)
-
-	def __getitem__(self, key):
-		# we're returning the packed attribute here, because otherwise there would be no possibility to get an expanded URL
-		try:
-			attr = dict.__getitem__(self, key)
-		except KeyError: # if the attribute is not there generate a new one (containing the default value)
-			attr = self._attrClass(key)()
-			dict.__setitem__(self, key, attr)
-		return attr
-
-	def __setitem__(self, key, value):
-		# values are constructed via the attribute classes specified as nested classes, which does the conversion
-		attr = self._attrClass(key)(value)
-		dict.__setitem__(self, key, attr) # put the attribute in our dict
-
-	def __delitem__(self, key):
-		try:
-			dict.__delitem__(self, key)
-		except KeyError: # ignore non-existing attributes (but only if the name is allowed)
-			attrclass = self._attrClass(key)
-
-	def has(self, key):
-		try:
-			attr = dict.__getitem__(self, key)
-		except KeyError:
-			attr = self._attrClass(key).default
+			attr = attr.default
 		return len(attr)>0
 
-	def get(self, key, default=None):
-		attr = self[key]
-		if attr:
-			return attr
-		else:
-			return self._attrClass(key)(default) # pack the attribute into an attribute object
-
-	def setdefault(self, key, default=None):
-		attr = self[key]
+	def get(self, name, default=None, xml=False):
+		"""
+		<par>works like the dictionary method <method>get</method>,
+		it returns the attribute with the name <arg>name</arg>,
+		or <arg>default</arg> if <self/> has no such attribute. <arg>xml</arg>
+		speficies whether <arg>name</arg> should be treated as an &xml; name
+		(<lit><arg>xml</arg>==True</lit>) or a Python name (<lit><arg>xml</arg>==False</lit>).</par>
+		"""
+		attr = self.attr(name, xml=xml)
 		if not attr:
-			attr = self._attrClass(key)(default) # pack the attribute into an attribute object
-			dict.__setitem__(self, key, attr)
+			attr = self.allowedattr(name, xml=xml)(default) # pack the attribute into an attribute object
 		return attr
 
-	def copydefaults(self, fromMapping):
-		"""
-		Sets attributes that are not set in <self/> to the default
-		values taken from the <arg>fromMapping</arg> mapping.
-		"""
+	def set(self, name, value=None, xml=False):
+		attr = self.allowedattr(name, xml=xml)(value)
+		dict.__setitem__(self, name, attr) # put the attribute in our dict
 
-		for (attrname, attrvalue) in fromMapping.items():
+	def setdefault(self, name, xml=False, default=None):
+		"""
+		<par>works like the dictionary method <method>setdefault</method>,
+		it returns the attribute with the name <arg>name</arg>.
+		If <self/> has no such attribute, it will be set to <arg>default</arg>
+		and <arg>default</arg> will be returned as the new attribute value. <arg>xml</arg>
+		speficies whether <arg>name</arg> should be treated as an &xml; name
+		(<lit><arg>xml</arg>==True</lit>) or a Python name (<lit><arg>xml</arg>==False</lit>).</par>
+		"""
+		attr = self.attr(name, xml=xml)
+		if not attr:
+			attr = self.allowedattr(name, xml=xml)(default) # pack the attribute into an attribute object
+			dict.__setitem__(self, name, attr)
+		return attr
+
+	def update(self, mapping):
+		"""
+		Copies attributes over from <arg>mapping</arg>.
+		"""
+		for (attrname, attrvalue) in mapping.iteritems():
+			self[attrname] = attrvalue
+
+	def updateexisting(self, mapping):
+		"""
+		Copies attributes over from <arg>mapping</arg>, but only if
+		they exist in <self/>.
+		"""
+		for (attrname, attrvalue) in mapping.iteritems():
+			if self.has(attrname):
+				self[attrname] = attrvalue
+
+	def updatenew(self, mapping):
+		"""
+		Copies attributes over from <arg>mapping</arg>, but only if
+		they don't exist in <self/>.
+		"""
+		for (attrname, attrvalue) in mapping.iteritems():
 			if not self.has(attrname):
 				self[attrname] = attrvalue
 
-	def iterallowedkeys(cls):
-		return cls._handlersByPyName.iterkeys()
+	def copydefaults(self, fromMapping):
+		errors.warn(DeprecationWarning("Attrs.copydefaults() is deprecated, use Attrs.updateexisting() instead"))
+		return self.updateexisting(fromMapping)
+
+	def iterallowedkeys(cls, xml=False):
+		"""
+		<par>return an iterator for iterating through the names of allowed attributes. <arg>xml</arg>
+		speficies whether &xml; names (<lit><arg>xml</arg>==True</lit>) or Python names
+		(<lit><arg>xml</arg>==False</lit>)i should be returned.</par>
+		"""
+		return cls._attrs[xml].iterkeys()
 	iterallowedkeys = classmethod(iterallowedkeys)
 
-	def allowedkeys(cls):
+	def allowedkeys(cls, xml=False):
 		"""
 		<par>return a list of allowed keys (i.e. attribute names)</par>
 		"""
-		return cls._handlersByPyName.keys()
+		return cls._attrs[xml].keys()
 	allowedkeys = classmethod(allowedkeys)
 
 	def iterallowedvalues(cls):
-		return cls._handlersByPyName.itervalues()
+		return cls._attrs[0].itervalues()
 	iterallowedvalues = classmethod(iterallowedvalues)
 
 	def allowedvalues(cls):
 		"""
 		<par>return a list of values for the allowed values.</par>
 		"""
-		return cls._handlersByPyName.values()
+		return cls._attrs[0].values()
 	allowedvalues = classmethod(allowedvalues)
 
-	def iteralloweditems(cls):
-		return cls._handlersByPyName.iteritems()
+	def iteralloweditems(cls, xml=False):
+		return cls._attrs[xml].iteritems()
 	iteralloweditems = classmethod(iteralloweditems)
 
-	def alloweditems(cls):
-		return cls._handlersByPyName.items()
+	def alloweditems(cls, xml=False):
+		return cls._attrs[xml].items()
 	alloweditems = classmethod(alloweditems)
 
+	def allowedattr(cls, name, xml=False):
+		try:
+			return cls._attrs[xml][name]
+		except KeyError:
+			raise errors.IllegalAttrError(cls, name, xml=xml)
+	allowedattr = classmethod(allowedattr)
+
 	def __iter__(self):
-		return iter(self.keys())
+		return self.iterkeys()
 
 	def __len__(self):
-		return len(self.keys())
+		return len(self._attrs[0])
 
 	def __contains__(self, key):
-		return key in self.keys()
+		return key in self._attrs[0]
 
-	def iterkeys(self):
-		return iter(self.keys())
-
-	def keys(self):
-		keys = {} # use a dict to avoid duplicates
-		# fetch the existing attribute keys
+	def iterkeys(self, xml=False):
+		found = {}
 		for (key, value) in dict.items(self):
 			if len(value):
-				keys[key] = None
+				if isinstance(key, tuple):
+					yield (value.xmlns, value.xmlname[xml])
+				else:
+					yield value.xmlname[xml]
 		# fetch the keys of attributes with a default value (if it hasn't been overwritten)
 		for (key, value) in self.alloweditems():
 			if value.default and not dict.has_key(self, key):
-				keys[key] = None
-		return keys.keys()
+				yield value.xmlname[xml]
+
+	def keys(self, xml=False):
+		return list(self.iterkeys(xml=xml))
 
 	def itervalues(self):
-		return iter(self.values())
+		# fetch the existing attribute keys/values
+		for (key, value) in dict.items(self):
+			if len(value):
+				yield value
+		# fetch the keys of attributes with a default value (if it hasn't been overwritten)
+		for (key, value) in self.alloweditems():
+			if value.default and not dict.has_key(self, key):
+				value = value(value.default.clone())
+				dict.__setitem__(self, key, value)
+				yield value
 
 	def values(self):
-		items = {} # use a dict to avoid duplicates
+		return list(self.itervalues())
+
+	def iteritems(self, xml=False):
 		# fetch the existing attribute keys/values
 		for (key, value) in dict.items(self):
 			if len(value):
-				items[key] = value
+				if isinstance(key, tuple):
+					yield ((value.xmlns, value.xmlname[xml]), value)
+				else:
+					yield (value.xmlname[xml], value)
 		# fetch the keys of attributes with a default value (if it hasn't been overwritten)
 		for (key, value) in self.alloweditems():
 			if value.default and not dict.has_key(self, key):
-				items[key] = self[key]
-		return items.values()
+				value = value(value.default.clone())
+				dict.__setitem__(self, key, value)
+				yield (value.xmlname[xml], value)
 
-	def iteritems(self):
-		return iter(self.items())
+	def items(self, xml=False):
+		return list(self.iteritems(xml=xml))
 
-	def items(self):
-		items = {} # use a dict to avoid duplicates
-		# fetch the existing attribute keys/values
-		for (key, value) in dict.items(self):
-			if len(value):
-				items[key] = value
-		# fetch the keys of attributes with a default value (if it hasn't been overwritten)
-		for (key, value) in self.alloweditems():
-			if value.default and not dict.has_key(self, key):
-				items[key] = self[key]
-		return items.items()
+	def attr(self, name, xml=False):
+		attr = self.allowedattr(name, xml=xml)
+		try:
+			attr = dict.__getitem__(self, attr.xmlname[False])
+		except KeyError: # if the attribute is not there generate a new one (containing the default value)
+			attr = attr()
+			dict.__setitem__(self, name, attr)
+		return attr
 
 	def filtered(self, function):
 		"""
 		returns a filtered version of the <self/>.
 		"""
 		node = self._create()
-		for (key, value) in self.items():
+		for (name, value) in self.iteritems():
 			if function(value):
-				node[key] = value
+				node[name] = value
 		return node
 
-	def with(self, names=[]):
+	def with(self, names=[], xml=False):
 		"""
 		<par>Return a copy of <self/> where only the attributes in <arg>names</arg> are
-		kept, all others are removed. A name in <arg>names</arg> that is not in <self/>
-		will not raise an exception (if it is allowed).</par>
+		kept, all others are removed.</par>
 		"""
-		return node.filtered(lambda n: n.pyname in names)
+		return self.filtered(lambda n: n.xmlname[xml] in names)
 
-	def without(self, names=[]):
+	def without(self, names=[], xml=False):
 		"""
 		<par>Return a copy of <self/> where all the attributes in <arg>names</arg> are
-		removed. A name in <arg>names</arg> that is not in <self/> will not raise
-		an exception (if it is allowed).</par>
+		removed.</par>
 		"""
-		return node.filtered(lambda n: n.pyname not in names)
+		return self.filtered(lambda n: n.xmlname[xml] not in names)
 
 _Attrs = Attrs
 
@@ -1874,7 +1939,6 @@ class Element(Node):
 			if "attrHandlers" in dict:
 				errors.warn(DeprecationWarning("attrHandlers is deprecated, use a nested Attrs class instead"))
 				# make it work anyway
-				import new
 				if "Attrs" in dict:
 					base = dict["Attrs"]
 				else:
@@ -1897,84 +1961,69 @@ class Element(Node):
 
 
 	class Attrs(Attrs):
-		def _attrClass(cls, key):
-			if isinstance(key, tuple):
-				key = (getns(key[0]), key[1])
-				return key[0].Attrs._attrClass(key[1])
+		def allowedattr(cls, name, xml=False):
+			if isinstance(name, tuple):
+				return name[0].Attrs.allowedattr(name[1], xml=xml)
 			else:
 				# FIXME reimplemented here, because super does not work
 				try:
-					return cls._handlersByPyName[key]
+					return cls._attrs[xml][name]
 				except KeyError:
-					raise errors.IllegalAttrError(cls, key)
-		_attrClass = classmethod(_attrClass)
+					raise errors.IllegalAttrError(cls, name, xml=xml)
+		allowedattr = classmethod(allowedattr)
 
-		def has(self, key):
-			if isinstance(key, tuple):
-				key = (getns(key[0]), key[1])
-			return _Attrs.has(self, key)
-
-		def __setitem__(self, key, value):
-			if isinstance(key, tuple):
-				key = (getns(key[0]), key[1])
-			_Attrs.__setitem__(self, key, value)
-
-		def __getitem__(self, key):
-			if isinstance(key, tuple):
-				key = (getns(key[0]), key[1])
-			return _Attrs.__getitem__(self, key)
-
-		def __delitem__(self, key):
-			if isinstance(key, tuple):
-				key = (getns(key[0]), key[1])
-			return _Attrs.__delitem__(self, key)
-
-		def with(self, names=[], namespaces=(), keepglobals=False):
+		def with(self, names=[], namespaces=(), keepglobals=False, xml=False):
 			"""
 			<par>Return a copy of <self/> where only the attributes in <arg>names</arg> are
 			kept, all others names are removed. <arg>names</arg> may contain local or
-			global names. In additional to that global attributes will be kept if the
+			global names. In additional to that, global attributes will be kept if the
 			namespace of the global attribute is in <arg>namespaces</arg>. If <arg>keepglobals</arg>
 			is true all global attributes will be kept.</par>
+			<par>For testing namespaces a subclass check will be done,
+			i.e. attributes from derived namespaces will be kept, if the base namespace
+			is specified in <arg>namespaces</arg> or <arg>names</arg>.</par>
 			"""
 
 			def keep(node):
+				name = node.xmlname[xml]
 				if node.xmlns is None:
-					return node.pyname in names
+					return name in names
 				else:
-					return keepglobals or node.xmlns in namespaces or (node.xmlns, node.pyname) in names
-
-			newnames = []
-			for name in names:
-				if isinstance(name, tuple):
-					name = (getns(name[0]), name[1])
-				newnames.append(name)
-			names = newnames
-
-			namespaces = [ getns(name) for name in namespaces ]
+					if keepglobals:
+						return True
+					for ns in namespaces:
+						if issubclass(node.xmlns, ns):
+							return True
+					for testname in names:
+						if isinstance(testname, tuple) and issubclass(node.xmlns, testname[0]) and name==testname[1]:
+							return True
+					return False
 
 			return self.filtered(keep)
 
-		def without(self, names=[], namespaces=(), keepglobals=True):
+		def without(self, names=[], namespaces=(), keepglobals=True, xml=False):
 			"""
 			<par>Return a copy of <self/> where all the attributes in <arg>names</arg> are
 			removed. In additional to that a global attribute will be removed if it's
 			namespace is found in <arg>namespaces</arg> or if <arg>keepglobals</arg> is false.</par>
+			<par>For testing namespaces a subclass check will be done,
+			i.e. attributes from derived namespaces will be removed, if the base namespace
+			is specified in <arg>namespaces</arg> or <arg>names</arg>.</par>
 			"""
 			def keep(node):
+				name = node.xmlname[xml]
 				if node.xmlns is None:
-					return node.pyname not in names
+					return name not in names
 				else:
-					return keepglobals and node.xmlns not in namespaces and (node.xmlns, node.pyname) not in names
-
-			newnames = []
-			for name in names:
-				if isinstance(name, tuple):
-					name = (getns(name[0]), name[1])
-				newnames.append(name)
-			names = newnames
-
-			namespaces = [ getns(name) for name in namespaces ]
+					if not keepglobals:
+						return False
+					for ns in namespaces:
+						if issubclass(node.xmlns, ns):
+							return False
+					for testname in names:
+						if isinstance(testname, tuple) and issubclass(node.xmlns, testname[0]) and name==testname[1]:
+							return False
+					return True
 
 			return self.filtered(keep)
 
@@ -2010,11 +2059,11 @@ class Element(Node):
 	def __eq__(self, other):
 		return self.__class__ is other.__class__ and self.content==other.content and self.attrs==other.attrs
 
-	def _str(cls, fullname=True, xmlname=True, decorate=True):
+	def _str(cls, fullname=True, xml=True, decorate=True):
 		s = ansistyle.Text()
 		if decorate:
 			s.append(presenters.strBracketOpen())
-		cls._strbase(presenters.strElementName, s, fullname=fullname, xmlname=xmlname)
+		cls._strbase(presenters.strElementName, s, fullname=fullname, xml=xml)
 		if decorate:
 			if cls.empty:
 				s.append(presenters.strSlash())
@@ -2071,7 +2120,7 @@ class Element(Node):
 		from being modified in any way.</par>
 		"""
 
-		if self.hasattr(imgattr):
+		if self.attrs.has(imgattr):
 			attr = self[imgattr]
 			try:
 				size = attr.imagesize(root)
@@ -2081,7 +2130,7 @@ class Element(Node):
 				sizedict = {"width": size[0], "height": size[1]}
 				for attr in (heightattr, widthattr):
 					if attr is not None: # do something to the width/height
-						if self.hasattr(attr):
+						if self.attrs.has(attr):
 							try:
 								s = unicode(self[attr]) % sizedict
 								s = unicode(eval(s))
@@ -2108,7 +2157,7 @@ class Element(Node):
 			return None
 		else:
 			if publisher is None:
-				return cls.xmlns.xmlprefix
+				return cls.xmlns.xmlname[True]
 			else:
 				return publisher.prefixes.elementprefix4ns(cls.xmlns)[0]
 	xmlprefix = classmethod(xmlprefix)
@@ -2133,7 +2182,7 @@ class Element(Node):
 							publisher.publish(u":")
 							publisher.publish(prefix)
 						publisher.publish(u"=\"")
-						publisher.publish(ns.xmlname)
+						publisher.publish(ns.xmlurl)
 						publisher.publish(u"\"")
 				# delete the note, so the next element won't create the attributes again
 				del publisher.publishxmlns
@@ -2191,125 +2240,90 @@ class Element(Node):
 		else:
 			del self.attrs[index]
 
-	def hasAttr(self, attrname):
-		return self.hasattr(attrname)
+	def hasAttr(self, attrname, xml=False):
+		errors.warn(DeprecationWarning("foo.hasAttr() is deprecated, use foo.attrs.has() instead"))
+		return self.attrs.has(attrname, xml=xml)
 
-	def hasattr(self, attrname):
-		"""
-		<par>return whether <self/> has an attribute named <arg>attr</arg>.</par>
-		"""
-		return self.attrs.has(attrname)
+	def hasattr(self, attrname, xml=False):
+		errors.warn(DeprecationWarning("foo.hasAttr() is deprecated, use foo.attrs.has() instead"))
+		return self.attrs.has(attrname, xml=xml)
 
 	def isallowedattr(cls, attrname):
 		"""
 		<par>return whether the attribute named <arg>attrname</arg> is allowed for <self/>.</par>
 		"""
+		errors.warn(DeprecationWarning("foo.isallowedattr() is deprecated, use foo.Attrs.isallowed() instead"))
 		return cls.Attrs.isallowed(attrname)
 	isallowedattr = classmethod(isallowedattr)
 
 	def getAttr(self, attrname, default=None):
+		errors.warn(DeprecationWarning("foo.getAttr() is deprecated, use foo.attrs.get() instead"))
 		return self.getattr(attrname, default)
 
 	def getattr(self, attrname, default=None):
-		"""
-		<par>works like the dictionary method <method>get</method>,
-		it returns the attribute with the name <arg>attrname</arg>,
-		or if <self/> has no such attribute, <arg>default</arg>
-		(after converting it to a node and wrapping it into the appropriate
-		attribute node.)</par>
-		"""
+		errors.warn(DeprecationWarning("foo.getattr() is deprecated, use foo.attrs.get() instead"))
 		return self.attrs.get(attrname, default)
 
 	def setDefaultAttr(self, attrname, default=None):
-		return self.setdefaultattr(attrname, default)
+		errors.warn(DeprecationWarning("foo.setDefaultAttr() is deprecated, use foo.attrs.setdefault() instead"))
+		return self.setdefault(attrname, default=default)
 
 	def setdefaultattr(self, attrname, default=None):
-		"""
-		<par>works like the dictionary method <method>setdefault</method>,
-		it returns the attribute with the name <arg>attrname</arg>,
-		or if <self/> has no such attribute, <arg>default</arg>
-		(after converting it to a node and wrapping it into the appropriate
-		attribute node.). In this case <arg>default</arg> will be
-		kept as the attribute value.</par>
-		"""
+		errors.warn(DeprecationWarning("foo.setDefaultAttr() is deprecated, use foo.attrs.setdefault() instead"))
 		return self.attrs.setdefault(attrname, default)
 
-	def attrkeys(self):
-		"""
-		return a list with all the attribute names of <self/>.
-		"""
-		return self.attrs.keys()
+	def attrkeys(self, xml=False):
+		errors.warn(DeprecationWarning("foo.attrkeys() is deprecated, use foo.attrs.keys() instead"))
+		return self.attrs.keys(xml=xml)
 
 	def attrvalues(self):
-		"""
-		return a list with all the attribute values of <self/>.
-		"""
+		errors.warn(DeprecationWarning("foo.attrvalues() is deprecated, use foo.attrs.values() instead"))
 		return self.attrs.values()
 
-	def attritems(self):
-		"""
-		return a list with all the attribute name/value tuples of <self/>.
-		"""
-		return self.attrs.items()
+	def attritems(self, xml=False):
+		errors.warn(DeprecationWarning("foo.attritems() is deprecated, use foo.attrs.items() instead"))
+		return self.attrs.items(xml=xml)
 
-	def iterattrkeys(self):
-		"""
-		return an iterator for the attribute names of <self/>.
-		"""
-		return self.attrs.iterkeys()
+	def iterattrkeys(self, xml=False):
+		errors.warn(DeprecationWarning("foo.iterattrkeys() is deprecated, use foo.attrs.iterkeys() instead"))
+		return self.attrs.iterkeys(xml=xml)
 
 	def iterattrvalues(self):
-		"""
-		return an iterator for the attribute values of <self/>.
-		"""
+		errors.warn(DeprecationWarning("foo.iterattrvalues() is deprecated, use foo.attrs.itervalues() instead"))
 		return self.attrs.itervalues()
 
-	def iterattritems(self):
-		"""
-		return an iterator for the attribute name/value tuples of <self/>.
-		"""
-		return self.attrs.items()
+	def iterattritems(self, xml=False):
+		errors.warn(DeprecationWarning("foo.iterattritems() is deprecated, use foo.attrs.iteritems() instead"))
+		return self.attrs.iteritems(xml=xml)
 
-	def allowedattrkeys(cls):
-		"""
-		return a list with all the allowed attribute names of <self/>.
-		"""
-		return cls.Attrs.allowedkeys()
+	def allowedattrkeys(cls, xml=False):
+		errors.warn(DeprecationWarning("foo.allowedattrkeys() is deprecated, use foo.attrs.allowedkeys() instead"))
+		return cls.Attrs.allowedkeys(xml=xml)
 	allowedattrkeys = classmethod(allowedattrkeys)
 
 	def allowedattrvalues(cls):
-		"""
-		return a list with all the allowed attribute values of <self/>.
-		"""
+		errors.warn(DeprecationWarning("foo.allowedattrvalues() is deprecated, use foo.attrs.allowedvalues() instead"))
 		return cls.Attrs.allowedvalues()
 	allowedattrvalues = classmethod(allowedattrvalues)
 
-	def allowedattritems(cls):
-		"""
-		return a list with all the allowed attribute name/value tuples of <self/>.
-		"""
-		return cls.Attrs.alloweditems()
+	def allowedattritems(cls, xml=False):
+		errors.warn(DeprecationWarning("foo.allowedattritems() is deprecated, use foo.attrs.alloweditems() instead"))
+		return cls.Attrs.alloweditems(xml=xml)
 	allowedattritems = classmethod(allowedattritems)
 
-	def iterallowedattrkeys(cls):
-		"""
-		return an iterator for the allowed attribute names of <self/>.
-		"""
-		return cls.Attrs.iterallowedkeys()
+	def iterallowedattrkeys(cls, xml=False):
+		errors.warn(DeprecationWarning("foo.iterallowedattrkeys() is deprecated, use foo.attrs.iterattrkeys() instead"))
+		return cls.Attrs.iterallowedkeys(xml=xml)
 	iterallowedattrkeys = classmethod(iterallowedattrkeys)
 
 	def iterallowedattrvalues(cls):
-		"""
-		return an iterator for the allowed attribute values of <self/>.
-		"""
+		errors.warn(DeprecationWarning("foo.iterallowedattrvalues() is deprecated, use foo.attrs.iterattrvalues() instead"))
 		return cls.Attrs.iterallowedvalues()
 	iterallowedattrvalues = classmethod(iterallowedattrvalues)
 
-	def iterallowedattritems(cls):
-		"""
-		return an iterator for the allowed attribute name/value tuples of <self/>.
-		"""
-		return cls.Attrs.iteralloweditems()
+	def iterallowedattritems(cls, xml=False):
+		errors.warn(DeprecationWarning("foo.iterallowedattritems() is deprecated, use foo.attrs.iterattritems() instead"))
+		return cls.Attrs.iteralloweditems(xml=xml)
 	iterallowedattritems = classmethod(iterallowedattritems)
 
 	def __getslice__(self, index1, index2):
@@ -2359,7 +2373,8 @@ class Element(Node):
 		as only the fact that a boolean attribute exists matters.</par>
 		"""
 
-		self.attrs.copydefaults(fromMapping)
+		errors.warn(DeprecationWarning("foo.copyDefaultAttrs() is deprecated, use foo.attrs.updateexisting() instead"))
+		self.attrs.updateexisting(fromMapping)
 
 	def withsep(self, separator, clone=False):
 		"""
@@ -2502,11 +2517,11 @@ class Entity(Node):
 				cls.xmlns = ns
 	_registerns = classmethod(_registerns)
 
-	def _str(cls, fullname=True, xmlname=True, decorate=True):
+	def _str(cls, fullname=True, xml=True, decorate=True):
 		s = ansistyle.Text()
 		if decorate:
 			s.append(presenters.strAmp())
-		cls._strbase(presenters.strEntityName, s, fullname=fullname, xmlname=xmlname)
+		cls._strbase(presenters.strEntityName, s, fullname=fullname, xml=xml)
 		if decorate:
 			s.append(presenters.strSemi())
 		return s
@@ -2531,7 +2546,7 @@ class Entity(Node):
 			return None
 		else:
 			if publisher is None:
-				return cls.xmlns.xmlprefix
+				return cls.xmlns.xmlname[True]
 			else:
 				return publisher.prefixes.entityprefix4ns(cls.xmlns)[0]
 	xmlprefix = classmethod(xmlprefix)
@@ -2574,164 +2589,6 @@ class CharRef(Entity):
 ###
 ###
 
-class NamespaceAttrMixIn(object):
-	"""
-	<par>Attributes in namespaces always need a prefix and
-	most of them (except those for the prefix <lit>xml</lit>),
-	require that their namespace is declared. This class can
-	be used as a mixin class to achieve that.</par>
-	"""
-	def needsxmlns(self, publisher=None):
-		return 2
-	needsxmlns = classmethod(needsxmlns)
-
-class Namespace(Base):
-	"""
-	<par>an &xml; namespace, contains the classes for the elements,
-	entities and processing instructions in the namespace.</par>
-	"""
-
-	class Attrs(_Attrs):
-		pass
-
-	def __init__(self, xmlprefix, xmlname, thing=None):
-		"""
-		<par>Create a new <class>Namespace</class> instance.</par>
-
-		<par>Arguments are:</par>
-		<ulist>
-		<item><arg>prefix</arg> is the default namespace prefix that will be used for publishing
-		when no other prefix is configured.</item>
-		<item><arg>xmlname</arg> is the namespace name that can be used to disambiguate elements
-		in different namespaces with the same name. When you use namespaces in &xml; (i.e.
-		you use the <lit>xmlns</lit> attribute name/attribute prefix), the namespace
-		name in the attribute value corresponds to this argument.</item>
-		<item><arg>thing</arg> is the object that should be registered in the namespace.</item>
-		</ulist>
-		"""
-		self.xmlprefix = unicode(xmlprefix)
-		if xmlname is not None: # may be None, which mean no "xmlns:..." has to be used.
-			xmlname = unicode(xmlname)
-		self.xmlname = xmlname
-		self.elementsByName = {} # dictionary for mapping element names to classes
-		self.entitiesByName = {} # dictionary for mapping entity names to classes
-		self.procinstsByName = {} # dictionary for mapping processing instruction target names to classes
-		self.charrefsByName = {} # dictionary for mapping character reference names to classes
-		self.charrefsByNumber = {} # dictionary for mapping character reference code points to classes
-		self.register(thing)
-		for value in self.Attrs.allowedvalues():
-			value.xmlns = self
-		namespaceRegistry.register(self)
-
-	def register(self, thing):
-		"""
-		<par>this function lets you register <arg>thing</arg> in the namespace.
-		If <arg>thing</arg> is a class derived from <pyref class="Element"><class>Element</class></pyref>,
-		<pyref class="Entity"><class>Entity</class></pyref> or <pyref class="ProcInst"><class>ProcInst</class></pyref>
-		it will be registered under its class name (<lit><arg>thing</arg>.__name__</lit>). If you want
-		to change this behaviour, do the following: set a class variable <lit>xmlname</lit> to
-		the name you want to be used. If you don't want <arg>thing</arg> to be
-		registered at all, set <lit>register</lit> to <lit>False</lit>. (This will
-		still register <arg>thing</arg>, but it will not be used for parsing.)</par>
-
-		<par>After the call <arg>thing</arg> will have two class attributes:
-		<lit>xmlname</lit>, which is the name under which the class is registered and
-		<lit>xmlns</lit>, which is the namespace itself (i.e. <self/>).</par>
-
-		<par>If <arg>thing</arg> is a dictionary, every object in the dictionary
-		will be registered. So, to register all the element classes
-		(and entity and processing instruction classes) defined in a module,
-		simply use <lit>vars()</lit> after all the classes have been defined.</par>
-
-		<par>All other objects are ignored.</par>
-		"""
-
-		if isinstance(thing, type) and issubclass(thing, Node): # this is a Node type
-			thing._registerns(self)
-		elif isinstance(thing, dict):
-			for key in thing.keys():
-				self.register(thing[key])
-
-	def __repr__(self):
-		counts = []
-		if len(self.elementsByName):
-			counts.append("%d elements" % len(self.elementsByName))
-		if len(self.entitiesByName):
-			counts.append("%d entities" % len(self.entitiesByName))
-		if len(self.procinstsByName):
-			counts.append("%d procinsts" % len(self.procinstsByName))
-		if len(self.charrefsByName):
-			counts.append("%d charrefs" % len(self.charrefsByName))
-		allowedattrs = self.Attrs.allowedkeys()
-		if len(allowedattrs):
-			counts.append("%d attrs" % len(allowedattrs))
-		if len(counts):
-			counts = " with " + ", ".join(counts)
-		else:
-			counts = ""
-		return "<%s.%s instance xmlprefix=%r xmlname=%r%s at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.xmlprefix, self.xmlname, counts, id(self))
-
-	def __eq__(self, other):
-		return self.xmlprefix==other.xmlprefix and self.xmlname==other.xmlname
-
-	def __ne__(self, other):
-		return not self==other
-
-	def __hash__(self):
-		return hash(self.xmlprefix) ^ hash(self.xmlname)
-
-class NamespaceRegistry(object):
-	"""
-	<par>global registry for all namespaces</par>
-	"""
-	def __init__(self):
-		self.byPrefix = {}
-		self.byURL = {}
-		self.all = []
-
-	def register(self, namespace):
-		self.byPrefix.setdefault(namespace.xmlprefix, []).insert(0, namespace)
-		self.byURL.setdefault(namespace.xmlname, []).insert(0, namespace)
-		self.all.insert(0, namespace)
-		defaultPrefixes.addPrefixMapping(None, namespace, mode="prepend")
-		defaultPrefixes.addPrefixMapping(namespace.xmlprefix, namespace, mode="prepend")
-
-namespaceRegistry = NamespaceRegistry()
-
-def getns(ns):
-	"""
-	<par>Return a <pyref class="Namespace"><class>Namespace</class></pyref> object for
-	the argument <arg>ns</arg>. <arg>ns</arg> can be:</par>
-	<ulist>
-	<item>a module, in which case <lit><arg>ns</arg>.xmlns</lit> will be returned;</item>
-	<item>a <class>Namespace</class> instance in which case <arg>ns</arg> itself will
-	be returned;</item>
-	<item>A <class>list</class> or <class>tuple</class>, in which case <function>getns</function>
-	will be applied recursively;</item>
-	<item>else <arg>ns</arg> will be interpreted as a namespace name and the <class>Namespace</class>
-	object implementing this namespace will be returned (if there is one, otherwise a
-	<class>IllegalNamespaceError</class> will be raised).</item>
-	</ulist>
-	"""
-	if isinstance(ns, types.ModuleType):
-		if not hasattr(ns, "xmlns") and hasattr(ns, "namespace"):
-			errors.warn(DeprecationWarning("the variable name namespace is deprecated, use xmlns instead"))
-			return ns.namespace
-		else:
-			return ns.xmlns
-	elif isinstance(ns, Namespace):
-		return ns
-	elif isinstance(ns, (tuple, list)):
-		newns = [getns(x) for x in ns]
-		if isinstance(ns, tuple):
-			newns = tuple(newns)
-		return newns
-	else:
-		try:
-			return namespaceRegistry.byURL[ns][0]
-		except KeyError:
-			raise errors.IllegalNamespaceError(ns)
-
 class Prefixes(object):
 	"""
 	<par>Specifies a mapping between namespace prefixes and namespaces both
@@ -2759,11 +2616,8 @@ class Prefixes(object):
 		"""
 		<par>Add a mapping from the namespace prefix <arg>prefix</arg>
 		to the namespace <arg>ns</arg> to the current configuration.
-		<arg>ns</arg> can be a <pyref class="Namespace"><class>Namespace</class></pyref> object,
-		a module or a namespace name, because <pyref function="getns"><function>getns</function></pyref>
-		is used.</par>
+		<arg>ns</arg> must be a <pyref class="Namespace"><class>Namespace</class></pyref> class.</par>
 		"""
-		ns = getns(ns)
 		if isinstance(types, int):
 			types = (types, )
 		for type in types:
@@ -2800,16 +2654,12 @@ class Prefixes(object):
 		"""
 		<par>Remove the mapping from the namespace prefix <arg>prefix</arg>
 		to the namespace <arg>ns</arg> from the current configuration.
-		<arg>ns</arg> can be a <pyref class="Namespace"><class>Namespace</class></pyref> object,
-		a module or a namespace name, because <pyref function="getns"><function>getns</function></pyref>
-		is used.</par>
+		<arg>ns</arg> must be a <pyref class="Namespace"><class>Namespace</class></pyref> class.</par>
 		<par>If <arg>prefix</arg> is not specified, all prefixes for
 		the namespace <arg>ns</arg> will be removed. If <arg>ns</arg> is not specified
 		all namespaces for the prefix <arg>prefix</arg> will be removed. If
 		both are unspecified the mapping will be empty afterwards.</par>
 		"""
-		if ns is not False:
-			ns = getns(ns)
 		if isinstance(types, int):
 			types = (types, )
 		for type in types:
@@ -2845,7 +2695,6 @@ class Prefixes(object):
 		return self.delPrefixMapping(prefix, ns, types=Prefixes.ENTITY)
 
 	def startPrefixMapping(self, prefix, ns, mode="replace", types=(ELEMENT, PROCINST, ENTITY)):
-		ns = getns(ns)
 		if isinstance(types, int):
 			types = (types, )
 		for type in types:
@@ -2910,7 +2759,6 @@ class Prefixes(object):
 		"""
 		<par>Return the currently active prefixes for the namespace <arg>ns</arg>.</par>
 		"""
-		ns = getns(ns)
 		prefixes = []
 		for (prefix, prefix2ns) in self._prefix2ns[type].iteritems():
 			if prefix2ns and ns in prefix2ns[0]:
@@ -2918,7 +2766,7 @@ class Prefixes(object):
 		if prefixes:
 			return prefixes
 		else:
-			return [ns.xmlprefix]
+			return [ns.xmlname[True]]
 
 	def elementprefix4ns(self, ns):
 		return self.prefix4ns(ns, Prefixes.ELEMENT)
@@ -2946,11 +2794,11 @@ class Prefixes(object):
 		qname = self.__splitqname(qname)
 		for ns in self.ns4elementprefix(qname[0]):
 			try:
-				cls = ns.elementsByName[qname[1]]
+				cls = ns.element(qname[1], xml=True)
 				if not cls.register:
 					continue
 				return cls
-			except KeyError: # no element in this namespace with this name
+			except LookupError: # no element in this namespace with this name
 				pass
 		raise errors.IllegalElementError(qname) # elements with this name couldn't be found
 
@@ -2962,11 +2810,11 @@ class Prefixes(object):
 		qname = self.__splitqname(qname)
 		for ns in self.ns4procinstprefix(qname[0]):
 			try:
-				cls = ns.procinstsByName[qname[1]]
+				cls = ns.procinst(qname[1], xml=True)
 				if not cls.register:
 					continue
 				return cls
-			except KeyError: # no processing instruction in this namespace with this name
+			except LookupError: # no processing instruction in this namespace with this name
 				pass
 		raise errors.IllegalProcInstError(qname) # processing instructions with this name couldn't be found
 
@@ -2980,20 +2828,20 @@ class Prefixes(object):
 		nss = self.ns4entityprefix(qname[0])
 		for ns in nss:
 			try:
-				cls = ns.charrefsByName[qname[1]]
+				cls = ns.charref(qname[1], xml=True)
 				if not cls.register:
 					continue
 				return cls
-			except KeyError: # no charref in this namespace with this name
+			except LookupError: # no charref in this namespace with this name
 				pass
 		# no charrefs => try the entities now
 		for ns in nss:
 			try:
-				cls = ns.entitiesByName[qname[1]]
+				cls = ns.entity(qname[1], xml=True)
 				if not cls.register:
 					continue
 				return cls
-			except KeyError: # no entity in this namespace with this name
+			except LookupError: # no entity in this namespace with this name
 				pass
 		raise errors.IllegalEntityError(qname) # entities with this name couldn't be found
 
@@ -3001,13 +2849,13 @@ class Prefixes(object):
 		"""
 		<par>returns the first charref class for the codepoint <arg>number</arg>.</par>
 		"""
-		for ns in namespaceRegistry.all:
+		for ns in Namespace.all:
 			try:
-				cls = ns.charrefsByNumber[number][0]
+				cls = ns.charref(number)[0]
 				if not cls.register:
 					continue
 				return cls
-			except KeyError:
+			except LookupError:
 				pass
 		return None
 
@@ -3019,15 +2867,12 @@ class Prefixes(object):
 		"""
 		qname = self.__splitqname(qname)
 		if qname[0] is None:
-			try:
-				return element.Attrs._handlersByXMLName[qname[1]].pyname
-			except KeyError:
-				raise errors.IllegalAttrError(element.Attrs, qname[1])
+			return element.Attrs.allowedattr(qname[1], xml=True).xmlname[False]
 		else:
 			for ns in self.ns4prefix(qname[0]):
 				try:
-					return (ns, ns.Attrs._handlersByXMLName[qname[1]].pyname)
-				except KeyError: # no attribute in this namespace with this name
+					return (ns, ns.Attrs.allowedattr(qname[1], xml=True).xmlname[False])
+				except errors.IllegalAttrError: # no attribute in this namespace with this name
 					pass
 			raise errors.IllegalAttrError(None, qname)
 
@@ -3038,13 +2883,13 @@ class OldPrefixes(Prefixes):
 	"""
 	def __init__(self):
 		super(OldPrefixes, self).__init__()
-		for ns in namespaceRegistry.all:
-			if ns.xmlname == "http://www.w3.org/XML/1998/namespace":
+		for ns in Namespace.all:
+			if ns.xmlurl == "http://www.w3.org/XML/1998/namespace":
 				self.addElementPrefixMapping("xml", ns, mode="append")
 				self.addProcInstPrefixMapping(None, ns, mode="append")
 			else:
 				self.addPrefixMapping(None, ns, mode="append")
-				self.addPrefixMapping(ns.xmlprefix, ns, mode="append")
+				self.addPrefixMapping(ns.xmlname[True], ns, mode="append")
 
 class DefaultPrefixes(Prefixes):
 	"""
@@ -3054,13 +2899,11 @@ class DefaultPrefixes(Prefixes):
 	"""
 	def __init__(self, default=None):
 		super(DefaultPrefixes, self).__init__()
-		if default is not None:
-			default = getns(default)
-		for ns in namespaceRegistry.all:
+		for ns in Namespace.all:
 			if ns is default:
 				self.addPrefixMapping(None, ns)
 			else:
-				self.addElementPrefixMapping(ns.xmlprefix, ns)
+				self.addElementPrefixMapping(ns.xmlname[True], ns)
 				self.addProcInstPrefixMapping(None, ns)
 				self.addEntityPrefixMapping(None, ns)
 
@@ -3076,7 +2919,10 @@ class DocPrefixes(Prefixes):
 	"""
 	def __init__(self, default=None):
 		super(DocPrefixes, self).__init__()
-		from ll.xist.ns import html, abbr, doc, specials
+		from ll.xist.ns.html import html
+		from ll.xist.ns.abbr import abbr
+		from ll.xist.ns.doc import doc
+		from ll.xist.ns.specials import specials
 		self.addElementPrefixMapping(None, doc)
 		self.addElementPrefixMapping(None, specials)
 		self.addEntityPrefixMapping(None, html)
@@ -3084,15 +2930,369 @@ class DocPrefixes(Prefixes):
 
 defaultPrefixes = Prefixes()
 
+###
+###
+###
+
+class NamespaceAttrMixIn(object):
+	"""
+	<par>Attributes in namespaces always need a prefix and
+	most of them (except those for the prefix <lit>xml</lit>),
+	require that their namespace is declared. This class can
+	be used as a mixin class to achieve that.</par>
+	"""
+	def needsxmlns(self, publisher=None):
+		return 2
+	needsxmlns = classmethod(needsxmlns)
+
+class Namespace(object):
+	"""
+	<par>an &xml; namespace, contains the classes for the elements,
+	entities and processing instructions in the namespace.</par>
+	"""
+
+	xmlname = None
+	xmlurl = None
+
+	nsbyname = {}
+	nsbyurl = {}
+	all = []
+
+	class __metaclass__(type):
+		def __new__(cls, name, bases, dict):
+			pyname = unicode(name.split(".")[-1])
+			if "xmlname" in dict:
+				xmlname = unicode(dict["xmlname"])
+			else:
+				xmlname = pyname
+			dict["xmlname"] = (pyname, xmlname)
+			if "xmlurl" in dict:
+				xmlurl = dict["xmlurl"]
+				if xmlurl is not None:
+					xmlurl = unicode(xmlurl)
+				dict["xmlurl"] = xmlurl
+			# automatically inherit all element, procinst, entity and Attrs classes, that aren't overwritten.
+			for base in bases:
+				for attrname in dir(base):
+					attr = getattr(base, attrname)
+					if isinstance(attr, type) and (issubclass(attr, Element) or issubclass(attr, ProcInst) or issubclass(attr, Entity) or issubclass(attr, Attrs)) and attrname not in dict:
+						classdict = {"__module__": dict["__module__"]}
+						if attr.xmlname[0] != attr.xmlname[1]:
+							classdict["xmlname"] = attr.xmlname[1]
+						dict[attrname] = attr.__class__(attr.__name__, (attr,), classdict)
+			self = type.__new__(cls, name, bases, dict)
+			for attr in self.Attrs.iterallowedvalues():
+				attr.xmlns = self
+			for key in dir(self):
+				attr = getattr(self, key)
+				if isinstance(attr, type):
+					for nodetype in (Element, ProcInst, Entity):
+						if issubclass(attr, nodetype):
+							attr.xmlns = self
+							break
+			if self.xmlurl is not None:
+				self.nsbyname.setdefault(self.xmlname, []).insert(0, self)
+				self.nsbyurl.setdefault(self.xmlurl, []).insert(0, self)
+				self.all.append(self)
+				defaultPrefixes.addPrefixMapping(None, self, mode="prepend")
+				defaultPrefixes.addPrefixMapping(self.xmlname[True], self, mode="prepend")
+			return self
+
+		def __eq__(self, other):
+			return self.xmlname[True]==other.xmlname[True] and self.xmlurl==other.xmlurl
+
+		def __ne__(self, other):
+			return not self==other
+
+		def __hash__(self):
+			return hash(self.xmlname[True]) ^ hash(self.xmlurl)
+
+		def __repr__(self):
+			counts = []
+
+			keys = self.elementkeys()
+			if keys:
+				counts.append("%d elements" % len(keys))
+
+			keys = self.procinstkeys()
+			if keys:
+				counts.append("%d procinsts" % len(keys))
+
+			keys = self.entitykeys()
+			if keys:
+				counts.append("%d entities" % len(keys))
+
+			keys = self.charrefkeys()
+			if keys:
+				counts.append("%d charrefs" % len(keys))
+
+			allowedattrs = self.Attrs.allowedkeys()
+			if len(allowedattrs):
+				counts.append("%d attrs" % len(allowedattrs))
+
+			if counts:
+				counts = " with " + ", ".join(counts)
+			else:
+				counts = ""
+			return "<namespace %s/%s name=%r url=%r%s at 0x%x>" % (self.__module__, self.__name__, self.xmlname[True], self.xmlurl, counts, id(self))
+
+	class Attrs(_Attrs):
+		pass
+
+	def iterelementkeys(cls, xml=False):
+		for key in dir(cls):
+			attr = getattr(cls, key)
+			if isinstance(attr, type) and issubclass(attr, Element):
+				yield attr.xmlname[xml]
+	iterelementkeys = classmethod(iterelementkeys)
+
+	def elementkeys(cls, xml=False):
+		return list(cls.iterelementkeys(xml=xml))
+	elementkeys = classmethod(elementkeys)
+
+	def iterelementvalues(cls):
+		for key in dir(cls):
+			attr = getattr(cls, key)
+			if isinstance(attr, type) and issubclass(attr, Element):
+				yield attr
+	iterelementvalues = classmethod(iterelementvalues)
+
+	def elementvalues(cls):
+		return list(cls.iterelementvalues())
+	elementvalues = classmethod(elementvalues)
+
+	def iterelementitems(cls, xml=False):
+		for key in dir(cls):
+			attr = getattr(cls, key)
+			if isinstance(attr, type) and issubclass(attr, Element):
+				yield (attr.xmlname[xml], attr)
+	iterelementitems = classmethod(iterelementitems)
+
+	def elementitems(cls, xml=False):
+		return list(cls.iterelementitems(xml=xml))
+	elementitems = classmethod(elementitems)
+
+	def element(cls, name, xml=False):
+		if xml:
+			for attr in cls.iterelementvalues():
+				if attr.xmlname[xml] == name:
+					return attr
+		else:
+			attr = getattr(cls, name, None)
+			if isinstance(attr, type) and issubclass(attr, Element):
+				return attr
+		raise errors.IllegalElementError(name, xml=xml)
+	element = classmethod(element)
+
+	def iterprocinstkeys(cls, xml=False):
+		for key in dir(cls):
+			attr = getattr(cls, key)
+			if isinstance(attr, type) and issubclass(attr, ProcInst):
+				yield attr.xmlname[xml]
+	iterprocinstkeys = classmethod(iterprocinstkeys)
+
+	def procinstkeys(cls, xml=False):
+		return list(cls.iterprocinstkeys(xml=xml))
+	procinstkeys = classmethod(procinstkeys)
+
+	def iterprocinstvalues(cls):
+		for key in dir(cls):
+			attr = getattr(cls, key)
+			if isinstance(attr, type) and issubclass(attr, ProcInst):
+				yield attr
+	iterprocinstvalues = classmethod(iterprocinstvalues)
+
+	def procinstvalues(cls):
+		return list(cls.iterprocinstvalues())
+	procinstvalues = classmethod(procinstvalues)
+
+	def iterprocinstitems(cls, xml=False):
+		for key in dir(cls):
+			attr = getattr(cls, key)
+			if isinstance(attr, type) and issubclass(attr, ProcInst):
+				yield (attr.xmlname[xml], attr)
+	iterprocinstitems = classmethod(iterprocinstitems)
+
+	def procinstitems(cls, xml=False):
+		return list(cls.iterprocinstitems(xml=xml))
+	procinstitems = classmethod(procinstitems)
+
+	def procinst(cls, name, xml=False):
+		if xml:
+			for attr in cls.iterprocinstvalues():
+				if attr.xmlname[xml] == name:
+					return attr
+		else:
+			attr = getattr(cls, name, None)
+			if isinstance(attr, type) and issubclass(attr, ProcInst):
+				return attr
+		raise errors.IllegalProcInstError(name, xml=xml)
+	procinst = classmethod(procinst)
+
+	def iterentitykeys(cls, xml=False):
+		for key in dir(cls):
+			attr = getattr(cls, key)
+			if isinstance(attr, type) and issubclass(attr, Entity) and not issubclass(attr, CharRef):
+				yield attr.xmlname[xml]
+	iterentitykeys = classmethod(iterentitykeys)
+
+	def entitykeys(cls, xml=False):
+		return list(cls.iterentitykeys(xml=xml))
+	entitykeys = classmethod(entitykeys)
+
+	def iterentityvalues(cls):
+		for key in dir(cls):
+			attr = getattr(cls, key)
+			if isinstance(attr, type) and issubclass(attr, Entity) and not issubclass(attr, CharRef):
+				yield attr
+	iterentityvalues = classmethod(iterentityvalues)
+
+	def entityvalues(cls):
+		return list(cls.iterentityvalues())
+	entityvalues = classmethod(entityvalues)
+
+	def iterentityitems(cls, xml=False):
+		for key in dir(cls):
+			attr = getattr(cls, key)
+			if isinstance(attr, type) and issubclass(attr, Entity) and not issubclass(attr, CharRef):
+				yield (attr.xmlname[xml], attr)
+	iterentityitems = classmethod(iterentityitems)
+
+	def entityitems(cls, xml=False):
+		return list(cls.iterentityitems(xml=xml))
+	entityitems = classmethod(entityitems)
+
+	def entity(cls, name, xml=False):
+		if xml:
+			for attr in cls.iterentityvalues():
+				if attr.xmlname[xml] == name:
+					return attr
+		else:
+			attr = getattr(cls, name, None)
+			if isinstance(attr, type) and issubclass(attr, Entity) and not issubclass(attr, CharRef):
+				return attr
+		raise errors.IllegalEntityError(name, xml=xml)
+	entity = classmethod(entity)
+
+	def itercharrefkeys(cls, xml=False):
+		for key in dir(cls):
+			attr = getattr(cls, key)
+			if isinstance(attr, type) and issubclass(attr, CharRef):
+				yield attr.xmlname[xml]
+	itercharrefkeys = classmethod(itercharrefkeys)
+
+	def charrefkeys(cls, xml=False):
+		return list(cls.itercharrefkeys(xml=xml))
+	charrefkeys = classmethod(charrefkeys)
+
+	def itercharrefvalues(cls):
+		for key in dir(cls):
+			attr = getattr(cls, key)
+			if isinstance(attr, type) and issubclass(attr, CharRef):
+				yield attr
+	itercharrefvalues = classmethod(itercharrefvalues)
+
+	def charrefvalues(cls):
+		return list(cls.itercharrefvalues())
+	charrefvalues = classmethod(charrefvalues)
+
+	def itercharrefitems(cls, xml=False):
+		for key in dir(cls):
+			attr = getattr(cls, key)
+			if isinstance(attr, type) and issubclass(attr, CharRef):
+				yield (attr.xmlname[xml], attr)
+	itercharrefitems = classmethod(itercharrefitems)
+
+	def charrefitems(cls, xml=False):
+		return list(cls.itercharrefitems(xml=xml))
+	charrefitems = classmethod(charrefitems)
+
+	def charref(cls, name, xml=False):
+		if isinstance(name, (int, long)):
+			result = [attr for attr in cls.itercharrefvalues() if attr.codepoint==name]
+			if result:
+				return result
+		else:
+			if xml:
+				for attr in cls.itercharrefvalues():
+					if attr.xmlname[xml] == name:
+						return attr
+			else:
+				attr = getattr(cls, name, None)
+				if isinstance(attr, type) and issubclass(attr, CharRef):
+					return attr
+		raise errors.IllegalCharRefError(name, xml=xml)
+	charref = classmethod(charref)
+
+	def iternodekeys(cls, xml=False):
+		for key in dir(cls):
+			attr = getattr(cls, key)
+			if isinstance(attr, type) and (issubclass(attr, Element) or issubclass(attr, ProcInst) or issubclass(attr, Entity)):
+				yield attr.xmlname[xml]
+	iternodekeys = classmethod(iternodekeys)
+
+	def nodekeys(cls, xml=False):
+		return list(cls.iternodekeys(xml=xml))
+	nodekeys = classmethod(nodekeys)
+
+	def iternodevalues(cls):
+		for key in dir(cls):
+			attr = getattr(cls, key)
+			if isinstance(attr, type) and (issubclass(attr, Element) or issubclass(attr, ProcInst) or issubclass(attr, Entity)):
+				yield attr
+	iternodevalues = classmethod(iternodevalues)
+
+	def nodevalues(cls):
+		return list(cls.iternodevalues())
+	nodevalues = classmethod(nodevalues)
+
+	def iternodeitems(cls, xml=False):
+		for key in dir(cls):
+			attr = getattr(cls, key)
+			if isinstance(attr, type) and (issubclass(attr, Element) or issubclass(attr, ProcInst) or issubclass(attr, Entity)):
+				yield (attr.xmlname[xml], attr)
+	iternodeitems = classmethod(iternodeitems)
+
+	def nodeitems(cls, xml=False):
+		return list(cls.iternodeitems(xml=xml))
+	nodeitems = classmethod(nodeitems)
+
+	def node(cls, name, xml=False):
+		if xml:
+			for attr in cls.iternodevalues():
+				if attr.xmlname[xml] == name:
+					return attr
+		else:
+			attr = getattr(cls, name, None)
+			if isinstance(attr, type) and (issubclass(attr, Element) or issubclass(attr, ProcInst) or issubclass(attr, Entity)):
+				return attr
+		raise errors.IllegalNodeError(name, xml=xml)
+	node = classmethod(node)
+
+	def __init__(self, xmlprefix, xmlname, thing=None):
+		raise TypeError("Namespace classes can't be instantiated")
+
+def makensmod(name, ns):
+	sys.modules[name] = ns
+	return ns
+
+def makensmodvars(vars):
+	if "__bases__" in vars:
+		bases = vars["__bases__"]
+		del vars["__bases__"]
+	else:
+		bases = (Namespace,)
+	name = vars["__name__"]
+	ns = Namespace.__metaclass__.__new__(Namespace.__metaclass__, name, bases, vars)
+	sys.modules[name] = ns
+	return ns
+
 # C0 Controls and Basic Latin
 class quot(CharRef): "quotation mark = APL quote, U+0022 ISOnum"; codepoint = 34
 class amp(CharRef): "ampersand, U+0026 ISOnum"; codepoint = 38
 class lt(CharRef): "less-than sign, U+003C ISOnum"; codepoint = 60
 class gt(CharRef): "greater-than sign, U+003E ISOnum"; codepoint = 62
 class apos(CharRef): "apostrophe mark, U+0027 ISOnum"; codepoint = 39
-
-xmlns = Namespace("xsc", None, vars())
-
 
 ###
 ###

@@ -110,6 +110,7 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 		except KeyboardInterrupt:
 			raise
 		except Exception, exc:
+			raise
 			if self._err_handler is not None:
 				self._err_handler.fatalError(exc)
 			else:
@@ -466,7 +467,8 @@ class Handler(object):
 			else:
 				continue
 			prefixes.append((type, prefix))
-			self.prefixes.startPrefixMapping(prefix, unicode(attrvalue), "replace", type)
+			ns = xsc.Namespace.nsbyurl[unicode(attrvalue)][0]
+			self.prefixes.startPrefixMapping(prefix, ns, "replace", type)
 		node = self.prefixes.elementFromQName(name)()
 		for (attrname, attrvalue) in attrs.items():
 			if attrname!="xmlns" and not attrname.startswith("xmlns:") and \

@@ -30,7 +30,9 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 
 from ll.xist import xsc, utils
 
-class Namespace(xsc.Namespace):
+class xlink(xsc.Namespace):
+	xmlurl  = "http://www.w3.org/1999/xlink"
+
 	class Attrs(xsc.Namespace.Attrs):
 		class type(xsc.NamespaceAttrMixIn, xsc.TextAttr):
 			values = ("simple", "extended", "locator", "arc", "resource", "title")
@@ -52,9 +54,3 @@ class Namespace(xsc.Namespace):
 			xmlname = "from"
 		class to(xsc.NamespaceAttrMixIn, xsc.TextAttr):
 			pass
-
-	def __init__(self, vars):
-		xsc.Namespace.__init__(self, "xlink", "http://www.w3.org/1999/xlink", vars)
-
-xmlns = Namespace(vars())
-

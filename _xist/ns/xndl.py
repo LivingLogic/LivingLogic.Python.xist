@@ -32,28 +32,6 @@ import sys, keyword
 
 from ll.xist import xsc, utils
 
-def pyify(name):
-	if keyword.iskeyword(name):
-		return name + "_"
-	else:
-		newname = []
-		for c in name:
-			if "a" <= c <= "z" or "A" <= c <= "Z" or "0" <= c <= "9" or c == "_":
-				newname.append(c)
-			else:
-				newname.append("_")
-		return "".join(newname)
-
-def simplify(value):
-	try:
-		value = int(value)
-	except ValueError:
-		try:
-			value = str(value)
-		except UnicodeError:
-			pass
-	return value
-
 class Base(xsc.Element):
 	def aspy(self, encoding=None, indent="\t"):
 		if encoding is None:
@@ -70,166 +48,194 @@ class Base(xsc.Element):
 		else:
 			lines.extend(newlines)
 
-class xndl(Base):
-	empty = False
-	class Attrs(Base.Attrs):
-		class prefix(xsc.TextAttr): required = True
-		class name(xsc.TextAttr): default = "... insert namespace name here ..."
+class xndl(xsc.Namespace):
+	xmlurl = "http://xmlns.livinglogic.de/xist/ns/xndl"
 
-	def _aspy(self, lines, encoding, level):
-		lines.append([level, "#!/usr/bin/env python"])
-		lines.append([level, "# -*- coding: %s -*-" % encoding])
-		lines.append([level, ""])
-
-		docs = self.find(type=doc)
-		if len(docs):
-			docs[0]._aspy(lines, encoding, level)
-			lines.append([level, ""])
-
-		lines.append([level, "__version__ = \"%sRevision%s\"[11:-2]" % ("$", "$")])
-		lines.append([level, "# %sSource%s" % ("$", "$")])
-		lines.append([level, ""])
-		lines.append([level, "from ll.xist import xsc"])
-
-		for el in self.find(type=(element, procinst, entity, charref)):
-			lines.append([level, ""])
-			el._aspy(lines, encoding, level)
-		lines.append([level, ""])
-		lines.append([level, "xmlns = xsc.Namespace(%r, %r, vars())" % (str(self["prefix"]), str(self["name"]))])
-		lines.append([level, ""])
-
-class doc(Base):
-	empty = False
-
-	def _aspy(self, lines, encoding, level):
-		lines.append([level, '"""'])
-		for line in self.content.asBytes(encoding=encoding).split("\n"):
-			lines.append([level, line])
-		lines.append([level, '"""'])
-
-class element(Base):
-	empty = False
-	class Attrs(Base.Attrs):
-		class name(xsc.TextAttr): required = True
-		class empty(xsc.BoolAttr): pass
-
-	def _aspy(self, lines, encoding, level):
-		name = unicode(self["name"])
-		pyname = pyify(name)
-		lines.append([level, "class %s(xsc.Element):" % pyname])
-		newlines = []
-		docs = self.find(type=doc)
-		if len(docs):
-			docs[0]._aspy(newlines, encoding, level+1)
-		if pyname != name:
-			newlines.append([level+1, "xmlname = %r" % simplify(name)])
-		if self.hasattr("empty"):
-			empty = "True"
+	def pyify(cls, name):
+		if keyword.iskeyword(name):
+			return name + "_"
 		else:
-			empty = "False"
-		newlines.append([level+1, "empty = %s" % ["False", "True"][self.hasattr("empty")]])
-		attrs = self.find(type=attr)
-		if len(attrs):
-			newlines.append([level+1, "class Attrs(xsc.Element.Attrs):"])
-			for a in attrs:
-				a._aspy(newlines, encoding, level+2)
-		self._addlines(newlines, lines)
+			newname = []
+			for c in name:
+				if "a" <= c <= "z" or "A" <= c <= "Z" or "0" <= c <= "9" or c == "_":
+					newname.append(c)
+				else:
+					newname.append("_")
+			return "".join(newname)
+	pyify = classmethod(pyify)
 
-class attr(Base):
-	empty = False
-	class Attrs(Base.Attrs):
-		class name(xsc.TextAttr): required = True
-		class type(xsc.TextAttr):
-			default = "TextAttr"
-			required = True
-		class required(xsc.BoolAttr): pass
-		class default(xsc.TextAttr): pass
+	def simplify(cls, value):
+		try:
+			value = int(value)
+		except ValueError:
+			try:
+				value = str(value)
+			except UnicodeError:
+				pass
+		return value
+	simplify = classmethod(simplify)
 
-	def _aspy(self, lines, encoding, level):
-		name = unicode(self["name"])
-		pyname = pyify(name)
-		type = str(self["type"])
-		lines.append([level, "class %s(xsc.%s):" % (pyname, type)])
-		newlines = []
-		docs = self.find(type=doc)
-		if len(docs):
-			docs[0]._aspy(newlines, encoding, level+1)
-		if pyname != name:
-			newlines.append([level+1, "xmlname = %r" % simplify(name)])
-		values = self.find(type=value)
-		if values:
-			newvaluelines = []
-			for v in values:
-				v._aspy(newvaluelines, encoding, level+1)
-			values = "(%s)" % ", ".join([ text for (sublevel, text) in newvaluelines ])
-			newlines.append([level+1, "values = %s" % (values, )])
-		default = unicode(self["default"])
-		if default:
-			newlines.append([level+1, "default = %r" % simplify(default)])
-		if self.hasattr("required"):
-			newlines.append([level+1, "required = True"])
-		self._addlines(newlines, lines)
+	class xndl(Base):
+		empty = False
+		class Attrs(Base.Attrs):
+			class prefix(xsc.TextAttr): required = True
+			class name(xsc.TextAttr): default = "... insert namespace name here ..."
 
-class value(Base):
-	empty = False
+		def _aspy(self, lines, encoding, level):
+			lines.append([level, "#!/usr/bin/env python"])
+			lines.append([level, "# -*- coding: %s -*-" % encoding])
+			lines.append([0, ""])
 
-	def _aspy(self, lines, encoding, level):
-		lines.append([level, repr(simplify(unicode(self.content)))])
+			docs = self.find(type=xndl.doc)
+			if len(docs):
+				docs[0]._aspy(lines, encoding, level)
+				lines.append([0, ""])
 
-class procinst(Base):
-	empty = False
-	class Attrs(Base.Attrs):
-		class target(xsc.TextAttr): required = True
+			lines.append([level, "__version__ = \"%sRevision%s\"[11:-2]" % ("$", "$")])
+			lines.append([level, "# %sSource%s" % ("$", "$")])
+			lines.append([0, ""])
+			lines.append([level, "from ll.xist import xsc"])
+			lines.append([0, ""])
 
-	def _aspy(self, lines, encoding, level):
-		name = unicode(self["target"])
-		pyname = pyify(name)
-		lines.append([level, "class %s(xsc.ProcInst):" % pyname])
-		newlines = []
-		docs = self.find(type=doc)
-		if len(docs):
-			docs[0]._aspy(newlines, encoding, level+1)
-		if pyname != name:
-			newlines.append([level+1, "xmlname = %r" % simplify(name)])
-		self._addlines(newlines, lines)
+			prefix = unicode(self["prefix"])
+			pyprefix = self.xmlns.pyify(prefix)
+			lines.append([level, "class %s(xsc.Namespace):" % pyprefix])
+			if pyprefix != prefix:
+				lines.append([level+1, "xmlprefix = %r" % self.xmlns.simplify(prefix)])
+			lines.append([level+1, "xmlname = %r" % self.xmlns.simplify(unicode(self["name"]))])
+			for el in self.find(type=(xndl.element, xndl.procinst, xndl.entity, xndl.charref)):
+				lines.append([0, ""])
+				el._aspy(lines, encoding, level+1)
 
-class entity(Base):
-	empty = False
-	class Attrs(Base.Attrs):
-		class name(xsc.TextAttr): required = True
+	class doc(Base):
+		empty = False
 
-	def _aspy(self, lines, encoding, level):
-		name = unicode(self["name"])
-		pyname = pyify(name)
-		lines.append([level, "class %s(xsc.Entity):" % pyname])
-		newlines = []
-		docs = self.find(type=doc)
-		if len(docs):
-			docs[0]._aspy(newlines, encoding, level+1)
-		if pyname != name:
-			newlines.append([level+1, "xmlname = %r" % simplify(name)])
-		self._addlines(newlines, lines)
+		def _aspy(self, lines, encoding, level):
+			lines.append([level, '"""'])
+			for line in self.content.asBytes(encoding=encoding).split("\n"):
+				lines.append([level, line])
+			lines.append([level, '"""'])
 
-class charref(Base):
-	empty = False
-	class Attrs(Base.Attrs):
-		class name(xsc.TextAttr): required = True
-		class codepoint(xsc.IntAttr): required = True
+	class element(Base):
+		empty = False
+		class Attrs(Base.Attrs):
+			class name(xsc.TextAttr): required = True
+			class empty(xsc.BoolAttr): pass
 
-	def _aspy(self, lines, encoding, level):
-		name = unicode(self["name"])
-		pyname = pyify(name)
-		lines.append([level, "class %s(xsc.CharRef):" % pyname])
-		newlines = []
-		docs = self.find(type=doc)
-		if len(docs):
-			docs[0]._aspy(newlines, encoding, level+1)
-		if pyname != name:
-			newlines.append([level+1, "xmlname = %r" % simplify(name)])
-		codepoint = int(self["codepoint"])
-		newlines.append([level+1, "codepoint = 0x%04x" % codepoint])
-		self._addlines(newlines, lines)
+		def _aspy(self, lines, encoding, level):
+			name = unicode(self["name"])
+			pyname = self.xmlns.pyify(name)
+			lines.append([level, "class %s(xsc.Element):" % pyname])
+			newlines = []
+			docs = self.find(type=xndl.doc)
+			if len(docs):
+				docs[0]._aspy(newlines, encoding, level+1)
+			if pyname != name:
+				newlines.append([level+1, "xmlname = %r" % self.xmlns.simplify(name)])
+			if self.attrs.has("empty"):
+				empty = "True"
+			else:
+				empty = "False"
+			newlines.append([level+1, "empty = %s" % ["False", "True"][self.attrs.has("empty")]])
+			attrs = self.find(type=xndl.attr)
+			if len(attrs):
+				newlines.append([level+1, "class Attrs(xsc.Element.Attrs):"])
+				for a in attrs:
+					a._aspy(newlines, encoding, level+2)
+			self._addlines(newlines, lines)
 
-# register all the classes we've defined so far
-xmlns = xsc.Namespace("xndl", "http://xmlns.livinglogic.de/xist/ns/xndl", vars())
+	class attr(Base):
+		empty = False
+		class Attrs(Base.Attrs):
+			class name(xsc.TextAttr): required = True
+			class type(xsc.TextAttr):
+				default = "TextAttr"
+				required = True
+			class required(xsc.BoolAttr): pass
+			class default(xsc.TextAttr): pass
+
+		def _aspy(self, lines, encoding, level):
+			name = unicode(self["name"])
+			pyname = self.xmlns.pyify(name)
+			type = str(self["type"])
+			lines.append([level, "class %s(xsc.%s):" % (pyname, type)])
+			newlines = []
+			docs = self.find(type=xndl.doc)
+			if len(docs):
+				docs[0]._aspy(newlines, encoding, level+1)
+			if pyname != name:
+				newlines.append([level+1, "xmlname = %r" % self.xmlns.simplify(name)])
+			values = self.find(type=xndl.value)
+			if values:
+				newvaluelines = []
+				for v in values:
+					v._aspy(newvaluelines, encoding, level+1)
+				values = "(%s)" % ", ".join([ text for (sublevel, text) in newvaluelines ])
+				newlines.append([level+1, "values = %s" % (values, )])
+			default = unicode(self["default"])
+			if default:
+				newlines.append([level+1, "default = %r" % self.xmlns.simplify(default)])
+			if self.attrs.has("required"):
+				newlines.append([level+1, "required = True"])
+			self._addlines(newlines, lines)
+
+	class value(Base):
+		empty = False
+
+		def _aspy(self, lines, encoding, level):
+			lines.append([level, repr(self.xmlns.simplify(unicode(self.content)))])
+
+	class procinst(Base):
+		empty = False
+		class Attrs(Base.Attrs):
+			class target(xsc.TextAttr): required = True
+
+		def _aspy(self, lines, encoding, level):
+			name = unicode(self["target"])
+			pyname = self.xmlns.pyify(name)
+			lines.append([level, "class %s(xsc.ProcInst):" % pyname])
+			newlines = []
+			docs = self.find(type=xndl.doc)
+			if len(docs):
+				docs[0]._aspy(newlines, encoding, level+1)
+			if pyname != name:
+				newlines.append([level+1, "xmlname = %r" % self.xmlns.simplify(name)])
+			self._addlines(newlines, lines)
+
+	class entity(Base):
+		empty = False
+		class Attrs(Base.Attrs):
+			class name(xsc.TextAttr): required = True
+
+		def _aspy(self, lines, encoding, level):
+			name = unicode(self["name"])
+			pyname = self.xmlns.pyify(name)
+			lines.append([level, "class %s(xsc.Entity):" % pyname])
+			newlines = []
+			docs = self.find(type=xndl.doc)
+			if len(docs):
+				docs[0]._aspy(newlines, encoding, level+1)
+			if pyname != name:
+				newlines.append([level+1, "xmlname = %r" % self.xmlns.simplify(name)])
+			self._addlines(newlines, lines)
+
+	class charref(Base):
+		empty = False
+		class Attrs(Base.Attrs):
+			class name(xsc.TextAttr): required = True
+			class codepoint(xsc.IntAttr): required = True
+
+		def _aspy(self, lines, encoding, level):
+			name = unicode(self["name"])
+			pyname = self.xmlns.pyify(name)
+			lines.append([level, "class %s(xsc.CharRef):" % pyname])
+			newlines = []
+			docs = self.find(type=xndl.doc)
+			if len(docs):
+				docs[0]._aspy(newlines, encoding, level+1)
+			if pyname != name:
+				newlines.append([level+1, "xmlname = %r" % self.xmlns.simplify(name)])
+			codepoint = int(self["codepoint"])
+			newlines.append([level+1, "codepoint = 0x%04x" % codepoint])
+			self._addlines(newlines, lines)
 

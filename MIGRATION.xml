@@ -1,3 +1,22 @@
+<section><title>Migrating to version ???</title>
+
+<section><title>Attribute methods</title>
+
+<par>The <class>Element</class> methods for accessing attributes
+have been deprecated. So instead of <lit><rep>node</rep>.hasattr("<rep>attr</rep>")</lit>,
+you should call <lit><rep>node</rep>.attrs.has("<rep>attr</rep>")</lit>.</par>
+
+<par>Many <class>Attrs</class> methods have gained an additional parameter
+<arg>xml</arg>, which specifies, whether an attribute name should be
+treated as the &xml; or the Python name of the attribute. Make sure,
+that you're not mixing up your arguments in the function call. The
+safest method for this is using keyword arguments, e.g.
+<lit><rep>node</rep>.attr.get("<rep>attr</rep>", default=42)</lit>.</par>
+
+</section>
+</section>
+
+
 <section><title>Migrating to version 2.0</title>
 
 <section><title>Attribute handling</title>

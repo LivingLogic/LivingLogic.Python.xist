@@ -239,7 +239,7 @@ class EscInlineText(ansistyle.EscapedText):
 				charcode = ord(char)
 				entity = xsc.defaultPrefixes.charrefFromNumber(charcode)
 				if entity is not None:
-					return EnvTextForEntityName("&", entity.xmlname, ";")
+					return EnvTextForEntityName("&", entity.xml(xml=True), ";")
 				else:
 					return EnvTextForEntityName("&#", str(charcode), ";")
 		return char
@@ -451,7 +451,7 @@ class PlainPresenter(Presenter):
 			content = node.content[:self.maxlen/2] + u"..." + node.content[-self.maxlen/2:]
 		else:
 			content = node.content
-		self.buffer = "<%s/%s object content=%r at 0x%x>" % (node.__class__.__module__, node.__class__.__fullname__(), content, id(node))
+		self.buffer = "<%s/%s instance content=%r at 0x%x>" % (node.__class__.__module__, node.__class__.__fullname__(), content, id(node))
 
 	presentText = presentCharacterData
 
@@ -463,7 +463,7 @@ class PlainPresenter(Presenter):
 			info = "with 1 child"
 		else:
 			info = "with %d children" % l
-		self.buffer = "<%s/%s object %s at 0x%x>" % (node.__class__.__module__, node.__class__.__fullname__(), info, id(node))
+		self.buffer = "<%s/%s instance %s at 0x%x>" % (node.__class__.__module__, node.__class__.__fullname__(), info, id(node))
 
 	def presentAttr(self, node):
 		l = len(node)
@@ -473,7 +473,7 @@ class PlainPresenter(Presenter):
 			info = "with 1 child"
 		else:
 			info = "with %d children" % l
-		self.buffer = "<%s/%s attr object %s at 0x%x>" % (node.__class__.__module__, node.__class__.__fullname__(), info, id(node))
+		self.buffer = "<attr instance %s/%s %s at 0x%x>" % (node.__class__.__module__, node.__class__.__fullname__(), info, id(node))
 
 	presentComment = presentCharacterData
 	presentDocType = presentCharacterData
@@ -482,7 +482,7 @@ class PlainPresenter(Presenter):
 			content = node.content[:self.maxlen/2] + u"..." + node.content[-self.maxlen/2:]
 		else:
 			content = node.content
-		self.buffer = "<%s/%s procinst object content=%r at 0x%x>" % (node.__class__.__module__, node.__class__.__fullname__(), content, id(node))
+		self.buffer = "<procinst instance %s/%s content=%r at 0x%x>" % (node.__class__.__module__, node.__class__.__fullname__(), content, id(node))
 
 	def presentAttrs(self, node):
 		l = len(node)
@@ -492,7 +492,7 @@ class PlainPresenter(Presenter):
 			info = "with 1 attribute"
 		else:
 			info = "with %d attributes" % l
-		self.buffer = "<%s/%s attrs object %s at 0x%x>" % (node.__class__.__module__, node.__class__.__fullname__(), info, id(node))
+		self.buffer = "<attrs instance %s/%s %s at 0x%x>" % (node.__class__.__module__, node.__class__.__fullname__(), info, id(node))
 
 	def presentElement(self, node):
 		lc = len(node.content)
@@ -509,13 +509,13 @@ class PlainPresenter(Presenter):
 			infoa = "and 1 attribute"
 		else:
 			infoa = "and %d attributes" % la
-		self.buffer = "<%s/%s element object %s %s at 0x%x>" % (node.__class__.__module__, node.__class__.__fullname__(), infoc, infoa, id(node))
+		self.buffer = "<element instance %s/%s %s %s at 0x%x>" % (node.__class__.__module__, node.__class__.__fullname__(), infoc, infoa, id(node))
 
 	def presentEntity(self, node):
-		self.buffer = "<%s/%s entity object at 0x%x>" % (node.__class__.__module__, node.__class__.__fullname__(), id(node))
+		self.buffer = "<entity instance %s/%s at 0x%x>" % (node.__class__.__module__, node.__class__.__fullname__(), id(node))
 
 	def presentNull(self, node):
-		self.buffer = "<%s/%s object at 0x%x>" % (node.__class__.__module__, node.__class__.__fullname__(), id(node))
+		self.buffer = "<instance %s/%s at 0x%x>" % (node.__class__.__module__, node.__class__.__fullname__(), id(node))
 
 class NormalPresenter(Presenter):
 	def beginPresentation(self):
@@ -561,7 +561,7 @@ class NormalPresenter(Presenter):
 		self.buffer.append(
 			strBracketOpen(),
 			strQuestion(),
-			node._str(fullname=1, xmlname=0, decorate=0),
+			node._str(fullname=1, xml=0, decorate=0),
 			" ",
 			strProcInstContent(node.content),
 			strQuestion(),
@@ -572,7 +572,7 @@ class NormalPresenter(Presenter):
 		for (attrname, attrvalue) in node.items():
 			self.buffer.append(" ")
 			if isinstance(attrname, tuple):
-				self.buffer.append(attrvalue._str(fullname=0, xmlname=0, decorate=0))
+				self.buffer.append(attrvalue._str(fullname=0, xml=0, decorate=0))
 			else:
 				self.buffer.append(strAttrName(attrname))
 			self.buffer.append("=", strQuote())
@@ -581,22 +581,22 @@ class NormalPresenter(Presenter):
 
 	def presentElement(self, node):
 		if node.empty:
-			self.buffer.append(strBracketOpen(), node._str(fullname=1, xmlname=0, decorate=0))
+			self.buffer.append(strBracketOpen(), node._str(fullname=1, xml=0, decorate=0))
 			node.attrs.present(self)
 			self.buffer.append(strSlash(), strBracketClose())
 		else:
-			self.buffer.append(strBracketOpen(), node._str(fullname=1, xmlname=0, decorate=0))
+			self.buffer.append(strBracketOpen(), node._str(fullname=1, xml=0, decorate=0))
 			node.attrs.present(self)
 			self.buffer.append(strBracketClose())
 			for child in node:
 				child.present(self)
-			self.buffer.append(strBracketOpen(), strSlash(), node._str(fullname=1, xmlname=0, decorate=0), strBracketClose())
+			self.buffer.append(strBracketOpen(), strSlash(), node._str(fullname=1, xml=0, decorate=0), strBracketClose())
 
 	def presentEntity(self, node):
-		self.buffer.append(node._str(fullname=1, xmlname=0, decorate=1))
+		self.buffer.append(node._str(fullname=1, xml=0, decorate=1))
 
 	def presentNull(self, node):
-		self.buffer.append(node._str(fullname=1, xmlname=0, decorate=0))
+		self.buffer.append(node._str(fullname=1, xml=0, decorate=0))
 
 	def presentAttr(self, node):
 		xsc.Frag.present(node, self)
@@ -689,15 +689,15 @@ class TreePresenter(Presenter):
 				child.present(self)
 		else:
 			if len(node):
-				self.lines.append([node.startloc, self.currentPath[:], len(self.currentPath), ansistyle.Text(strBracketOpen(), node._str(fullname=1, xmlname=0, decorate=0), strBracketClose())])
+				self.lines.append([node.startloc, self.currentPath[:], len(self.currentPath), ansistyle.Text(strBracketOpen(), node._str(fullname=1, xml=0, decorate=0), strBracketClose())])
 				self.currentPath.append(0)
 				for child in node:
 					child.present(self)
 					self.currentPath[-1] += 1
 				del self.currentPath[-1]
-				self.lines.append([node.endloc, self.currentPath[:], len(self.currentPath), ansistyle.Text(strBracketOpen(), strSlash(), node._str(fullname=1, xmlname=0, decorate=0), strBracketClose())])
+				self.lines.append([node.endloc, self.currentPath[:], len(self.currentPath), ansistyle.Text(strBracketOpen(), strSlash(), node._str(fullname=1, xml=0, decorate=0), strBracketClose())])
 			else:
-				self.lines.append([node.startloc, self.currentPath[:], len(self.currentPath), ansistyle.Text(strBracketOpen(), node._str(fullname=1, xmlname=0, decorate=0), strSlash(), strBracketClose())])
+				self.lines.append([node.startloc, self.currentPath[:], len(self.currentPath), ansistyle.Text(strBracketOpen(), node._str(fullname=1, xml=0, decorate=0), strSlash(), strBracketClose())])
 
 	def presentAttrs(self, node):
 		if self.inAttr:
@@ -711,30 +711,30 @@ class TreePresenter(Presenter):
 				attrvalue.present(self)
 				self.buffers[-1].append(strQuote())
 		else:
-			s = ansistyle.Text(strBracketOpen(), node._str(fullname=1, xmlname=0, decorate=0), strBracketClose())
+			s = ansistyle.Text(strBracketOpen(), node._str(fullname=1, xml=0, decorate=0), strBracketClose())
 			self.lines.append([node.startloc, self.currentPath[:], len(self.currentPath), s])
 			self.currentPath.append(None)
 			for (attrname, attrvalue) in node.items():
 				self.currentPath[-1] = attrname
 				attrvalue.present(self)
 			self.currentPath.pop()
-			s = ansistyle.Text(strBracketOpen(), strSlash(), node._str(fullname=1, xmlname=0, decorate=0), strBracketClose())
+			s = ansistyle.Text(strBracketOpen(), strSlash(), node._str(fullname=1, xml=0, decorate=0), strBracketClose())
 			self.lines.append([node.endloc, self.currentPath[:], len(self.currentPath), s])
 
 	def presentElement(self, node):
 		if self.inAttr:
-			self.buffers[-1].append(strBracketOpen(), node._str(fullname=1, xmlname=0, decorate=0))
+			self.buffers[-1].append(strBracketOpen(), node._str(fullname=1, xml=0, decorate=0))
 			self.inAttr += 1
 			node.attrs.present(self)
 			self.inAttr -= 1
 			if len(node):
 				self.buffers[-1].append(strBracketClose())
 				node.content.present(self)
-				self.buffers[-1].append(strBracketOpen(), strSlash(), node._str(fullname=1, xmlname=0, decorate=0), strBracketClose())
+				self.buffers[-1].append(strBracketOpen(), strSlash(), node._str(fullname=1, xml=0, decorate=0), strBracketClose())
 			else:
 				self.buffers[-1].append(strSlash(), strBracketClose())
 		else:
-			self.buffers.append(ansistyle.Text(strBracketOpen(), node._str(fullname=1, xmlname=0, decorate=0)))
+			self.buffers.append(ansistyle.Text(strBracketOpen(), node._str(fullname=1, xml=0, decorate=0)))
 			self.inAttr += 1
 			node.attrs.present(self)
 			self.inAttr -= 1
@@ -747,7 +747,7 @@ class TreePresenter(Presenter):
 					child.present(self)
 					self.currentPath[-1] += 1
 				self.currentPath.pop()
-				self.lines.append([node.endloc, self.currentPath[:], len(self.currentPath), ansistyle.Text(strBracketOpen(), strSlash(), node._str(fullname=1, xmlname=0, decorate=0), strBracketClose())])
+				self.lines.append([node.endloc, self.currentPath[:], len(self.currentPath), ansistyle.Text(strBracketOpen(), strSlash(), node._str(fullname=1, xml=0, decorate=0), strBracketClose())])
 			else:
 				self.buffers[-1].append(strSlash(), strBracketClose())
 				self.lines.append([node.startloc, self.currentPath[:], len(self.currentPath), ansistyle.Text(*self.buffers)])
@@ -755,7 +755,7 @@ class TreePresenter(Presenter):
 
 	def presentNull(self, node):
 		if not self.inAttr:
-			self.lines.append([node.startloc, self.currentPath[:], len(self.currentPath), node._str(fullname=1, xmlname=0, decorate=1)])
+			self.lines.append([node.startloc, self.currentPath[:], len(self.currentPath), node._str(fullname=1, xml=0, decorate=1)])
 
 	def presentText(self, node):
 		if self.inAttr:
@@ -766,23 +766,23 @@ class TreePresenter(Presenter):
 
 	def presentEntity(self, node):
 		if self.inAttr:
-			self.buffers[-1].append(node._str(fullname=1, xmlname=0, decorate=1))
+			self.buffers[-1].append(node._str(fullname=1, xml=0, decorate=1))
 		else:
-			self.lines.append([node.startloc, self.currentPath[:], len(self.currentPath), node._str(fullname=1, xmlname=0, decorate=1)])
+			self.lines.append([node.startloc, self.currentPath[:], len(self.currentPath), node._str(fullname=1, xml=0, decorate=1)])
 
 	def presentProcInst(self, node):
 		if self.inAttr:
 			self.buffers[-1].append(
 				strBracketOpen(),
 				strQuestion(),
-				node._str(fullname=1, xmlname=0, decorate=0),
+				node._str(fullname=1, xml=0, decorate=0),
 				" ",
 				EnvTextForProcInstContent(EscOutlineAttr(node.content)),
 				strQuestion(),
 				strBracketClose()
 			)
 		else:
-			head = ansistyle.Text(strBracketOpen(), strQuestion(), node._str(fullname=1, xmlname=0, decorate=0), " ")
+			head = ansistyle.Text(strBracketOpen(), strQuestion(), node._str(fullname=1, xml=0, decorate=0), " ")
 			tail = ansistyle.Text(strQuestion(), strBracketClose())
 			lines = node.content.splitlines()
 			if len(lines)>1:

@@ -29,50 +29,50 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 
 from ll.xist import xsc
 
-class php(xsc.ProcInst):
-	"""
-	<par>&php; processing instruction
-	(must be used with an explicit target php to work with &xml;)</par>
-	"""
+class php(xsc.Namespace):
+	xmlurl = "http://www.php.net/"
 
-class expression(php):
-	def convert(self, converter):
-		return php(u"print " + self.content + ";")
-	
-class If(php):
-	xmlname = "if"
+	class php(xsc.ProcInst):
+		"""
+		<par>&php; processing instruction
+		(must be used with an explicit target php to work with &xml;)</par>
+		"""
 
-	def convert(self, converter):
-		return php(u"if (" + self.content + "){")
+	class expression(php):
+		def convert(self, converter):
+			return php(u"print " + self.content + ";")
+		
+	class If(php):
+		xmlname = "if"
 
-class Else(php):
-	xmlname = "else"
+		def convert(self, converter):
+			return php(u"if (" + self.content + "){")
 
-	def convert(self, converter):
-		return php(u"}else{")
+	class Else(php):
+		xmlname = "else"
 
-class ElIf(php):
-	xmlname = "elif"
+		def convert(self, converter):
+			return php(u"}else{")
 
-	def convert(self, converter):
-		return php(u"}else if (" + self.content + "){")
+	class ElIf(php):
+		xmlname = "elif"
 
-class End(php):
-	xmlname = "end"
+		def convert(self, converter):
+			return php(u"}else if (" + self.content + "){")
 
-	def convert(self, converter):
-		return php(u"}")
+	class End(php):
+		xmlname = "end"
 
-class block(xsc.Element):
-	empty = False
+		def convert(self, converter):
+			return php(u"}")
 
-	def convert(self, converter):
-		e = xsc.Frag(
-			php(u"{"),
-			self.content,
-			php(u"}")
-		)
-		return e.convert(converter)
+	class block(xsc.Element):
+		empty = False
 
-# register all the classes we've defined so far
-xmlns = xsc.Namespace("php", "http://www.php.net/", vars())
+		def convert(self, converter):
+			e = xsc.Frag(
+				php(u"{"),
+				self.content,
+				php(u"}")
+			)
+			return e.convert(converter)

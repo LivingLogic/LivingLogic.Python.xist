@@ -64,7 +64,7 @@ class EmptyElementWithContentError(Error):
 		self.element = element
 
 	def __str__(self):
-		return "element %s has EMPTY content model, but has content" % self.element._str(fullname=0, xmlname=0, decorate=1)
+		return "element %s has EMPTY content model, but has content" % self.element._str(fullname=0, xml=0, decorate=1)
 
 class IllegalAttrError(Warning, LookupError):
 	"""
@@ -72,12 +72,13 @@ class IllegalAttrError(Warning, LookupError):
 	(i.e. one that isn't defined in the appropriate attributes class)
 	"""
 
-	def __init__(self, attrs, attrname):
+	def __init__(self, attrs, attrname, xml=False):
 		self.attrs = attrs
 		self.attrname = attrname
+		self.xml = xml
 
 	def __str__(self):
-		return "Attribute named %r not allowed for %s" % (self.attrname, self.attrs._str(fullname=True, xmlname=False, decorate=False))
+		return "Attribute with %s name %r not allowed for %s" % (("Python", "XML")[self.xml], self.attrname, self.attrs._str(fullname=True, xml=False, decorate=False))
 
 class IllegalAttrValueWarning(Warning):
 	"""
@@ -89,7 +90,7 @@ class IllegalAttrValueWarning(Warning):
 
 	def __str__(self):
 		attr = self.attr
-		return "Attribute value %r not allowed for %s. " % (str(attr), attr._str(fullname=True, xmlname=False, decorate=False))
+		return "Attribute value %r not allowed for %s. " % (str(attr), attr._str(fullname=True, xml=False, decorate=False))
 
 class RequiredAttrMissingWarning(Warning):
 	"""
@@ -107,7 +108,7 @@ class RequiredAttrMissingWarning(Warning):
 			v.append(", ".join(["%r" % attr for attr in self.reqattrs]))
 		else:
 			v.append(" %r" % self.reqattrs[0])
-		v.append(" missing in %s." % self.attrs._str(fullname=True, xmlname=False, decorate=False))
+		v.append(" missing in %s." % self.attrs._str(fullname=True, xml=False, decorate=False))
 		return "".join(v)
 
 class IllegalPrefixError(Error, LookupError):
@@ -131,29 +132,46 @@ class IllegalNamespaceError(Error, LookupError):
 	def __str__(self):
 		return "namespace name %r is undefined" % self.name
 
-class IllegalElementError(Error):
+class IllegalNodeError(Error, LookupError):
 	"""
-	exception that is raised, when an illegal element is encountered
-	(i.e. one that isn't registered via xsc.Namespace.register())
+	exception that is raised, when an illegal node class is requested
 	"""
 
-	def __init__(self, name):
+	type = "node"
+
+	def __init__(self, name, xml=False):
 		self.name = name
+		self.xml = xml
 
 	def __str__(self):
-		return "element named %r not allowed. " % (self.name, )
+		return "%s with %s name %r not allowed" % (self.type, ("Python", "XML")[self.xml], self.name, )
 
-class IllegalProcInstError(Error):
+class IllegalElementError(IllegalNodeError):
 	"""
-	exception that is raised, when an illegal processing instruction is encountered
-	(i.e. one that isn't registered via xsc.Namespace.register())
+	exception that is raised, when an illegal element class is requested
+	"""
+	type = "element"
+
+class IllegalProcInstError(IllegalNodeError):
+	"""
+	exception that is raised, when an illegal processing instruction class is requested
 	"""
 
-	def __init__(self, name):
-		self.name = name
+	type = "procinst"
 
-	def __str__(self):
-		return "procinst named %r not allowed" % (self.name, )
+class IllegalEntityError(IllegalNodeError):
+	"""
+	exception that is raised, when an illegal entity class is requested
+	"""
+
+	type = "entity"
+
+class IllegalCharRefError(IllegalNodeError):
+	"""
+	exception that is raised, when an illegal charref class is requested
+	"""
+
+	type = "charref"
 
 class ElementNestingError(Error):
 	"""
@@ -166,7 +184,7 @@ class ElementNestingError(Error):
 		self.foundelement = foundelement
 
 	def __str__(self):
-		return "mismatched element nesting (close tag for %s expected; close tag for %s found)" % (self.expectedelement._str(fullname=1, xmlname=0, decorate=1), self.foundelement._str(fullname=1, xmlname=0, decorate=1))
+		return "mismatched element nesting (close tag for %s expected; close tag for %s found)" % (self.expectedelement._str(fullname=1, xml=0, decorate=1), self.foundelement._str(fullname=1, xml=0, decorate=1))
 
 class IllegalAttrNodeError(Error):
 	"""
@@ -205,7 +223,7 @@ class ImageSizeFormatWarning(UserWarning):
 		self.exc = exc
 
 	def __str__(self):
-		return "the value %r for the image size attribute %s of the element %s can't be formatted or evaluated (%s). The attribute will be dropped." % (unicode(self.attr), self.attr._str(fullname=0, xmlname=0, decorate=0), self.element._str(fullname=1, xmlname=1, decorate=1), self.exc)
+		return "the value %r for the image size attribute %s of the element %s can't be formatted or evaluated (%s). The attribute will be dropped." % (unicode(self.attr), self.attr._str(fullname=0, xml=0, decorate=0), self.element._str(fullname=1, xml=1, decorate=1), self.exc)
 
 class IllegalObjectWarning(Warning):
 	"""
@@ -232,18 +250,6 @@ class MalformedCharRefError(Error):
 
 	def __str__(self):
 		return "malformed character reference: &#%s;" % self.name
-
-class IllegalEntityError(Error):
-	"""
-	exception that is raised, when an illegal entity or charref is encountered
-	(i.e. one that wasn't registered via Namespace.register)
-	"""
-
-	def __init__(self, name):
-		self.name = name
-
-	def __str__(self):
-		return "entity named %r not allowed" % (self.name, )
 
 class IllegalCommentContentError(Error):
 	"""

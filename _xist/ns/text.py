@@ -21,22 +21,17 @@
 ## IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 """
-<par>An &xist; module that contains definitions for the
-<link href="http://www.w3.org/TR/SVG/">&xsl;</link> 1.0 definition.</par>
+<par>An &xist; namespace that contains definitions for all the elements and
+entities in <link href="http://www.w3.org/TR/html4/loose.dtd">&html; 4.0 transitional</link>
+(and a few additional ones).</par>
 """
 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-from ll.xist import xsc
+import cgi # for parse_header
 
-class DocTypeSVG10(xsc.DocType):
-	"""
-	document type for XSL (FO) 1.0
-	"""
-	def __init__(self):
-		xsc.DocType.__init__(self, 'svg PUBLIC "-//W3C//DTD SVG 1.0//EN" "http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd"')
+from ll.xist.ns.html import html
 
-# register all the classes we've defined so far
-xmlns = xsc.Namespace("fo", "http://www.w3.org/1999/XSL/Format", vars())
-
+class text(html):
+	pass

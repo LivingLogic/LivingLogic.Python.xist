@@ -30,57 +30,58 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
 from ll.xist import xsc
-from ll.xist.ns import html
+from ll.xist.ns.html import html
 
-class checkbox(html.input):
-	class Attrs(html.input.Attrs):
-		type = None
+class form(xsc.Namespace):
+	xmlurl = "http://xmlns.livinglogic.de/xist/ns/form"
 
-	def convert(self, converter):
-		e = html.input(self.attrs, type="checkbox")
-		return e.convert(converter)
+	class checkbox(html.input):
+		class Attrs(html.input.Attrs):
+			type = None
 
-class edit(html.input):
-	class Attrs(html.input.Attrs):
-		type = None
+		def convert(self, converter):
+			e = html.input(self.attrs, type="checkbox")
+			return e.convert(converter)
 
-	def convert(self, converter):
-		e = html.input(self.attrs, type="text")
-		return e.convert(converter)
+	class edit(html.input):
+		class Attrs(html.input.Attrs):
+			type = None
 
-class radio(html.input):
-	class Attrs(html.input.Attrs):
-		type = None
+		def convert(self, converter):
+			e = html.input(self.attrs, type="text")
+			return e.convert(converter)
 
-	def convert(self, converter):
-		e = html.input(self.attrs, type="radio")
-		return e.convert(converter)
+	class radio(html.input):
+		class Attrs(html.input.Attrs):
+			type = None
 
-class submit(html.input):
-	class Attrs(html.input.Attrs):
-		type = None
+		def convert(self, converter):
+			e = html.input(self.attrs, type="radio")
+			return e.convert(converter)
 
-	def convert(self, converter):
-		e = html.input(self.attrs, type="submit")
-		return e.convert(converter)
+	class submit(html.input):
+		class Attrs(html.input.Attrs):
+			type = None
 
-class memo(html.textarea):
-	class Attrs(html.textarea.Attrs):
-		class value(xsc.TextAttr): pass
+		def convert(self, converter):
+			e = html.input(self.attrs, type="submit")
+			return e.convert(converter)
 
-	def convert(self, converter):
-		e = html.textarea(self["value"], self.attr.without(["value"]))
-		return e.convert(converter)
+	class memo(html.textarea):
+		class Attrs(html.textarea.Attrs):
+			class value(xsc.TextAttr): pass
 
-class hidden(html.input):
-	class Attrs(html.input.Attrs):
-		type = None
+		def convert(self, converter):
+			e = html.textarea(self["value"], self.attr.without(["value"]))
+			return e.convert(converter)
 
-	def __unicode__(self):
-		return u""
+	class hidden(html.input):
+		class Attrs(html.input.Attrs):
+			type = None
 
-	def convert(self, converter):
-		e = html.input(self.attrs, type="hidden")
-		return e.convert(converter)
+		def __unicode__(self):
+			return u""
 
-xmlns = xsc.Namespace("form", "http://xmlns.livinglogic.de/xist/ns/form", vars())
+		def convert(self, converter):
+			e = html.input(self.attrs, type="hidden")
+			return e.convert(converter)
