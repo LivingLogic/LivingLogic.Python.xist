@@ -20,8 +20,8 @@
 ## IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 """
-This modules contains the base class for the converter objects
-used in the call to the convert method.
+This modules contains the base class for the converter objects used in the call to the
+<pyref module="xist.xsc" class="Node" method="convert"><method>convert</method></pyref> method.
 """
 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
@@ -67,6 +67,8 @@ class Converter:
 		could be <lit>"text"</lit>, <lit>"html"</lit>, <lit>"wml"</lit>, <lit>"docbook"</lit>
 		or anything like that. The default is <lit>"html"</lit>.</doc:item>
 		<doc:item><arg>lang</arg>: The target language. The default is <lit>None</lit>.</doc:item>
+		<doc:item><arg>makeaction</arg>, <arg>maketarget</arg>, <arg>makeproject</arg>: These parameters are used by
+		the <pyref module="make"><module>make</module></pyref> module.</doc:item>
 		</doc:ulist>
 		</doc:par>
 		"""
@@ -84,6 +86,7 @@ class Converter:
 		self.contexts = {}
 		self.makeaction = None
 		self.maketarget = None
+		self.makeproject = None
 
 	def __getitem__(self, class_):
 		"""
