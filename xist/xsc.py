@@ -38,10 +38,12 @@ class XSCError(Exception):
 		self.lineno = lineno
 
 	def __str__(self):
+		s = self.__class__.__name__
 		if self.lineno>0:
-			return "XSC: error (line " + str(self.lineno) + "): " + str(xsc.parser.nesting)
-		else:
-			return "XSC: error: "
+			s = s + " (line " + str(self.lineno) + ")"
+		s = s + ": "
+
+		return s
 
 class XSCEmptyElementWithContentError(XSCError):
 	"""exception that is raised, when an element has content, but it shouldn't (i.e. empty=1)"""
