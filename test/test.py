@@ -15,7 +15,7 @@ from xml.parsers import expat
 
 from ll import url
 from ll.xist import xsc, parsers, presenters, converters, helpers, errors, options
-from ll.xist.ns import wml, ihtml, html, css, abbr, specials, htmlspecials, php, xml, xndl, tld
+from ll.xist.ns import wml, ihtml, html, chars, css, abbr, specials, htmlspecials, php, xml, xndl, tld
 
 # set to something ASCII, so presenters work, even if the system default encoding is ascii
 options.reprtab = "  "
@@ -720,9 +720,9 @@ class XISTTest(unittest.TestCase):
 		self.assert_(xsc.amp.xmlns is None)
 		self.assertEqual(xsc.amp.xmlprefix(), None)
 
-		self.assertEqual(html.uuml.xmlname, (u"uuml", u"uuml"))
-		self.assert_(html.uuml.xmlns is html)
-		self.assertEqual(html.uuml.xmlprefix(), "html")
+		self.assertEqual(chars.uuml.xmlname, (u"uuml", u"uuml"))
+		self.assert_(chars.uuml.xmlns is chars)
+		self.assertEqual(chars.uuml.xmlprefix(), "chars")
 
 		self.assertEqual(html.a.Attrs.class_.xmlname, (u"class_", u"class"))
 		self.assert_(html.a.Attrs.class_.xmlns is None)
@@ -1569,7 +1569,7 @@ class ParseTest(unittest.TestCase):
 		# in the strict parser the errors will always be raised, so ignore them to verify that
 		warnings.filterwarnings("ignore", category=errors.MalformedCharRefWarning)
 
-		prefixes = xsc.Prefixes(self.__class__.xmlns)
+		prefixes = xsc.Prefixes([self.__class__.xmlns, chars])
 		self.check_parseentities(source, result, prefixes=prefixes, parser=parserfactory())
 		for bad in ("&", "&#x", "&&", "&#x;", "&#fg;", "&#999999999;", "&#;", "&#x;"):
 			self.assertSAXRaises((errors.MalformedCharRefWarning, expat.ExpatError), self.check_parseentities, bad, u"", prefixes=prefixes, parser=parserfactory())
@@ -1592,7 +1592,7 @@ class ParseTest(unittest.TestCase):
 	def check_parsebadentities(self, parserfactory):
 		warnings.filterwarnings("ignore", category=errors.MalformedCharRefWarning)
 
-		prefixes = xsc.Prefixes(self.__class__.xmlns)
+		prefixes = xsc.Prefixes([self.__class__.xmlns, chars])
 		tests = [
 			("&amp;", u"&"),
 			("&amp;amp;", u"&amp;"),
