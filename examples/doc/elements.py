@@ -114,7 +114,7 @@ class method(xsc.Element):
 	def asHTML(self):
 		e = xsc.Frag(html.h4(self["name"]))
 		sig = self.findNodes(type = signature)[0]
-		e.append(html.div(html.code(Self(),".",self["name"],"(",sig.findNodes(type = arg).withSeparator(", "),")",Class="method"),Class="method"))
+		e.append(html.div(html.code(Self(),".",self["name"],"(",sig.findNodes(type = arg)[1:].withSeparator(", "),")",Class="method"),Class="method")) # drop the self from the arguments
 		descs = self.findNodes(type = desc)
 		if len(descs):
 			e.append(html.div(descs[0]))
