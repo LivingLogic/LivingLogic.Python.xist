@@ -150,7 +150,7 @@ class pixel(html_.img):
 		xsc.Element.publish(self,publisher,encoding,XHTML)
 
 	def asHTML(self):
-		e = html_.img()
+		e = autoimg()
 		color = "dot_clear"
 		for attr in self.attrs.keys():
 			if attr == "color":
