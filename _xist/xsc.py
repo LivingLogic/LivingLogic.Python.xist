@@ -2516,9 +2516,12 @@ class Element(Node):
 
 	def __getitem__(self, index):
 		"""
-		returns an attribute or one of the content nodes depending on whether
-		an 8bit or unicode string (i.e. attribute name) or a number or list
-		(i.e. content node index) is passed in.
+		<par>If <arg>index</arg> is a string, return the attribute with this (Python) name.</par>
+		<par>If <arg>index</arg> is a tuple consisting of a namespace and a string,
+		return the global attribute with this (Python) name.</par>
+		<par>If <arg>index</arg> is a number return the appropriate content node.</par>
+		<par><arg>index</arg> may also be a list, in with case <method>__getitem__</method>
+		will be applied recusively.</par>
 		"""
 		if isinstance(index, list):
 			node = self
@@ -2534,9 +2537,8 @@ class Element(Node):
 
 	def __setitem__(self, index, value):
 		"""
-		<par>sets an attribute or one of the content nodes depending on whether
-		an 8bit or unicode string (i.e. attribute name) or a number or list (i.e.
-		content node index) is passed in.</par>
+		<par>Set an attribute or content node to the value <arg>value</arg>.</par>
+		<par>For possible types for <arg>index</arg> see <pyref method="__getitem__"><method>__getitem__</method></pyref>.</par>
 		"""
 		if isinstance(index, list):
 			node = self
@@ -2550,8 +2552,8 @@ class Element(Node):
 
 	def __delitem__(self, index):
 		"""
-		removes an attribute or one of the content nodes depending on whether
-		a string (i.e. attribute name) or a number or list (i.e. content node index) is passed in.
+		<par>Remove an attribute or content node.</par>
+		<par>For possible types for <arg>index</arg> see <pyref method="__getitem__"><method>__getitem__</method></pyref>.</par>
 		"""
 		if isinstance(index, list):
 			if index:
@@ -2674,7 +2676,7 @@ class Element(Node):
 
 	def __len__(self):
 		"""
-		return the number of children
+		return the number of children.
 		"""
 		return len(self.content)
 
