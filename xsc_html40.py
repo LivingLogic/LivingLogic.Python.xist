@@ -261,7 +261,7 @@ RegisterElement("dd",dd)
 class table(XSCElement):
 	empty = 0
 	attr_handlers = AppendDict(attrs,{ "summary" : XSCFrag ,"width" : XSCFrag ,"border" : XSCFrag ,"frame" : XSCFrag ,"rules" : XSCFrag ,"cellspacing" : XSCFrag ,"cellpadding" : XSCFrag })
-	attr_handlers = AppendDict(attr_handlers,{ "height" : XSCFrag , "align" : XSCFrag }) # deprecated
+	attr_handlers = AppendDict(attr_handlers,{ "height" : XSCFrag , "align" : XSCFrag , "bgcolor" : XSCFrag }) # deprecated
 RegisterElement("table",table)
 
 class caption(XSCElement):
