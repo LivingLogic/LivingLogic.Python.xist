@@ -130,7 +130,7 @@ are issued via the warning framework. Refer to the documentation
 for the <module>warnings</module> module to find out how to
 configure the handling of these warnings.</par>
 
-<section>
+</section>
 
 <section><title>Miscellaneous</title>
 
@@ -153,7 +153,5 @@ have been renamed to <method>getattr</method> and
 and <method>hasAttr</method> are still there and can be called
 without generating <class>DeprecationWarning</class>s, but they
 will start to generate warnings in the upcoming versions.</par>
-
-</section>
 
 </section>
