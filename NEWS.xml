@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
-<section><title>Changes in CVS (released ??/??/2002)</title>
+<section><title>Changes in 1.4,1 (released 03/21/2002)</title>
 <ulist>
 <item>Removed <class>TidyURLInputSource</class>. Now it's possible
 to pass a <lit>tidy</lit> flag to the remaining functions <function>parseString</function>,
