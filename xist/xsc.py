@@ -1473,7 +1473,7 @@ class URL(Node):
 		parsed XSC file that you output, isn't.
 		"""
 		newother = URL(other)
-		new = newother+self
+		new = newother.joined(self)
 		if new.scheme == "project":
 			otherpath = newother.path[:]
 			while len(otherpath)>1 and len(new.path)>1 and otherpath[0]==new.path[0]: # throw away identical directories in both paths (we don't have to go up from file and down to path for these identical directories)
