@@ -3,6 +3,10 @@
 <ulist>
 <item>The <class>HTMLParser</class> now removes unknown attributes
 instead of complaining.</item>
+<item>There is a new parser class <class>BadEntityParser</class>, which
+is a &sax;2 parser that recognizes the character entities
+defined in &html; and tries to pass on unknown or malformed
+entities to the handler literally.</item>
 </ulist>
 </section>
 

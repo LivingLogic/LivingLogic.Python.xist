@@ -30,3 +30,7 @@ Matthias Bauer (mba@livinglogic.de)
 Marc-André Lemburg (mal@lemburg.com)
 	for mxTidy.
 
+The Apache Software Foundation
+	for the CSS parser from the Batik application
+	which is the base for csstokenizer.
+

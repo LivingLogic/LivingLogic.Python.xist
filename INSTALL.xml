@@ -12,8 +12,8 @@ To use &xist; you need the following software packages:
 <a href="http://www.lemburg.com/files/python/eGenix-mx-Extensions.html">http://www.lemburg.com/files/python/eGenix-mx-Extensions.html</a>).</item>
 <item>URL (available from <a href="root:url/index.html">http://www.livinglogic.de/Python/url/</a>),</item>
 <item>ANSIStyle (available from <a href="root:ansistyle/index.html">http://www.livinglogic.de/Python/ansistyle/</a>),</item>
-<item>and a C compiler supported by <app>distutils</app>, if you want to install
-the source distribution.</item>
+<item>and a C++ compiler supported by <app>distutils</app>, if you want
+to install the source distribution.</item>
 </olist>
 </doc:section>
 

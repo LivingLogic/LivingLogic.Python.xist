@@ -64,7 +64,7 @@ class EmptyElementWithContentError(Error):
 
 class IllegalAttrError(Error):
 	"""
-	exception that is raised, when an element has an illegal attribute
+	error that is issued, when an element has an illegal attribute
 	(i.e. one that isn't contained in it's attrHandlers)
 	"""
 

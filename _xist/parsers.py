@@ -290,9 +290,49 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 			node.append("")
 		return node
 
-class HTMLParser(SGMLOPParser):
+class BadEntityParser(SGMLOPParser):
 	"""
-	A SAX2 parser that can parse HTML.
+	<doc:par>A &sax;2 parser that recognizes the character entities
+	defined in &html; and tries to pass on unknown or malformed
+	entities to the handler literally.</doc:par>
+	"""
+
+	def _string2Fragment(self, text):
+		"""
+		This version tries to pass illegal content literally.
+		"""
+		if text is None:
+			return xsc.Null
+		node = xsc.Frag()
+		parts = text.split("&")
+		node.append(parts[0])
+		del parts[0]
+		for part in parts:
+			pos = part.find(";")
+			if pos == -1: # no ; found, so it's no entity => append it literally
+				node.append("&", part)
+			else: # ; found
+				if part[0] != "#": # named entity
+					name = part[:pos]
+					if html.namespace.charrefsByName.has_key(name):
+						node.append(html.namespace.charrefsByName[name](), part[pos+1:])
+					elif xsc.namespace.charrefsByName.has_key(name):
+						node.append(xsc.namespace.charrefsByName[name](), part[pos+1:])
+					else:
+						node.append("&", part)
+				else: # numeric entity
+					try:
+						if part[1] == "x": # hex entity
+							node.append(unichr(int(part[2:pos], 16)), part[pos+1:])
+						else: # decimal entity
+							node.append(unichr(int(part[1:pos])), part[pos+1:])
+					except ValueError: # illegal format => append it literally
+						node.append("&", part)
+		return node
+
+class HTMLParser(BadEntityParser):
+	"""
+	<doc:par>A &sax;2 parser that can parse &html;.</doc:par>
 	"""
 
 	headElements = ("title", "base", "script", "style", "meta", "link", "object") # Elements that may appear in the <head>
@@ -378,39 +418,6 @@ class HTMLParser(SGMLOPParser):
 				return
 			if not self.minimizedElements.has_key(name):
 				self.finish_endtag(lastname)
-
-	def _string2Fragment(self, text):
-		"""
-		This version tries to pass illegal content literally.
-		"""
-		if text is None:
-			return xsc.Null
-		node = xsc.Frag()
-		parts = text.split("&")
-		node.append(parts[0])
-		del parts[0]
-		for part in parts:
-			pos = part.find(";")
-			if pos == -1: # no ; found, so it's no entity => append it literally
-				node.append("&", part)
-			else: # ; found
-				if part[0] != "#": # named entity
-					name = part[:pos]
-					if html.namespace.charrefsByName.has_key(name):
-						node.append(html.namespace.charrefsByName[name](), part[pos+1:])
-					elif xsc.namespace.charrefsByName.has_key(name):
-						node.append(xsc.namespace.charrefsByName[name](), part[pos+1:])
-					else:
-						node.append("&", part)
-				else: # numeric entity
-					try:
-						if part[1] == "x": # hex entity
-							node.append(unichr(int(part[2:pos], 16)), part[pos+1:])
-						else: # decimal entity
-							node.append(unichr(int(part[1:pos])), part[pos+1:])
-					except ValueError: # illegal format => append it literally
-						node.append("&", part)
-		return node
 
 ExpatParser = expatreader.ExpatParser
 

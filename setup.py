@@ -21,6 +21,9 @@ setup(
 	license="Python",
 	packages=['xist', 'xist.ns'],
 	package_dir={"xist": "_xist"},
-	ext_modules=[Extension("xist.helpers", ["_xist/helpers.c"])],
+	ext_modules=[
+		Extension("xist.csstokenizer", ["_xist/csstokenizer.cxx"]),
+		Extension("xist.helpers", ["_xist/helpers.c"])
+	],
 	scripts=["scripts/dtd2xsc.py", "scripts/doc2txt.py", "scripts/xscmake.py" ]
 )
