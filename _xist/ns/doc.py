@@ -347,6 +347,8 @@ def getDoc(thing):
 
 	try:
 		node = parsers.parseString(doc)
+		if not node.find(type=par): # optimization: one paragraph docstrings don't need a <doc:par> element.
+			node = par(node)
 	except SystemExit, KeyboardInterrupt:
 		raise
 	except:
