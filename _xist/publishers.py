@@ -58,14 +58,14 @@ class Publisher(object):
 
 		<par>With the parameter <arg>xhtml</arg> you can specify if you want &html; output
 		(i.e. elements with a content model EMPTY as <markup>&lt;foo&gt;</markup>) with
-		<code><arg>xhtml</arg>==0</code>, or XHTML output that is compatible with &html; browsers
+		<lit><arg>xhtml</arg>==0</lit>, or XHTML output that is compatible with &html; browsers
 		(element with an empty content model as <markup>&lt;foo /&gt;</markup> and others that
 		just happen to be empty as <markup>&lt;foo&gt;&lt;/foo&gt;</markup>) with
-		<code><arg>xhtml</arg>==1</code> or just plain XHTML with
-		<code><arg>xhtml</arg>==2</code> (all empty elements as <markup>&lt;foo/&gt;</markup>).
-		When you use the default (<code>None</code>) that value of the global variable
-		<code>outputXHTML</code> will be used, which defaults to 1, but can be overwritten
-		by the environment variable <code>XSC_OUTPUT_XHTML</code> and can of course be
+		<lit><arg>xhtml</arg>==1</lit> or just plain XHTML with
+		<lit><arg>xhtml</arg>==2</lit> (all empty elements as <markup>&lt;foo/&gt;</markup>).
+		When you use the default (<lit>None</lit>) that value of the global variable
+		<lit>outputXHTML</lit> will be used, which defaults to <lit>1</lit>, but can be overwritten
+		by the environment variable <lit>XSC_OUTPUT_XHTML</lit> and can of course be
 		changed dynamically.</par>
 
 		<par><arg>prefixes</arg> is and instance of <pyref module="ll.xist.xsc" class="Prefixes"><class>Prefixes</class></pyref>
