@@ -14,9 +14,9 @@ http://www.python.org/sigs/distutils-sig/.
 
 To compile everything, simply perform the following steps.
 
-1) Run "python setup.py build" to copy *.py files and compile the C extensions.
+1) Run "python setup.py build" to copy *.py files.
 
-2) To install everything in the site-packages directory as an xist/ package,
+2) To install everything in the site-packages directory as a xist/ package,
    run "python setup.py install".
 
 If you have difficulty installing this software, send a problem report
