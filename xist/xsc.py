@@ -468,7 +468,7 @@ class Text(Node):
 		return self.__strtext(0)
 
 	def _doreprtree(self,nest,elementno):
-		s = _stransi(self.repransiquotes,'"') + _stransi(self.repransi,self.__strtext(1)) + _stransi(self.repransiquotes,'"')
+		s = _stransi(self.repransiquotes,'"') + _stransi(self.repransiname,self.__strtext(1)) + _stransi(self.repransiquotes,'"')
 		return [[nest,self.startlineno,elementno,s]]
 
 	def withoutLinefeeds(self):
