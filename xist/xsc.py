@@ -1230,7 +1230,7 @@ class Parser(xmllib.XMLParser):
 
 	def unknown_starttag(self,name,attrs):
   		lowername = string.split(string.lower(name),":")
-		if len(name) == 2: # namespace specified
+		if len(lowername) == 2: # namespace specified
 			name = lowername
 		else:
 			name = [	None , lowername[0] ]
