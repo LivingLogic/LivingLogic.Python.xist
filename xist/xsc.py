@@ -443,7 +443,7 @@ def strURL(URL,ansi = None):
 
 def nameOfMainModule():
 	if len(sys.argv)>0:
-		return os.path.splitext(os.path.split(sys.argv[0])[1])[0])
+		return os.path.splitext(os.path.split(sys.argv[0])[1])[0]
 	else:
 		return "__main__"
 
