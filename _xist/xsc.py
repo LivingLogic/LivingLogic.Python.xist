@@ -245,9 +245,9 @@ from xist import converters
 
 node = cool(python())
 node = node.convert(
-	converters.Converter(None, "deliver", "html"))
+	converters.Converter(None, "deliver", "html", "en"))
 </dbl:programlisting>
-You can pass the following three arguments to the
+You can pass the following four arguments to the
 <dbl:pyref module="xist.converters" class="Converter">Converter</dbl:pyref> constructor
 <ul>
 <li><dbl:pyref module="xist.converters" class="Converter" method="__init__" arg="mode">mode</dbl:pyref>
@@ -271,6 +271,9 @@ so it would still be part of the cached &dom; tree and would be converted to &ht
 <li><dbl:pyref module="xist.converters" class="Converter" method="__init__" arg="target">target</dbl:pyref>
 (which defaults to <code>html</code>) specifies what the output should be. Values could
 e.g. be <code>"html"</code>, <code>"wml"</code> or <code>"docbook"</code>.</li>
+<li><dbl:pyref module="xist.converters" class="Converter" method="__init__" arg="lang">lang</dbl:pyref>
+(which defaults to <code>None</code>) the language in which the result tree should be (e.g. <code>"en"</code>,
+<code>"de"</code> or <code>"ja"</code> etc.)</li>
 </ul>
 None of the currently implemented elements use this information yet, but you are
 free to use it in your own classes.

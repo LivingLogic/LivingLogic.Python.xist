@@ -57,18 +57,18 @@ class case(xsc.Element):
 
 class If(xsc.Element):
 	empty = 0
-	attrHandlers = {"cond": CondAttr}
+	attrHandlers = {"cond": CondAttr, "mode": xsc.TextAttr, "target": xsc.TextAttr, "stage": xsc.TextAttr, "lang": xsc.TextAttr}
 	name = "if"
 
 	def convert(self, converter):
-		intruecondition = self.__testCond(self["cond"], converter)
+		intruecondition = self.__testCond(self, converter)
 		truecondition = xsc.Frag()
 		for child in self.content:
 			if isinstance(child, ElIf):
 				if intruecondition:
 					break
 				else:
-					intruecondition = self.__testCond(child["cond"])
+					intruecondition = self.__testCond(child)
 			elif isinstance(child, Else):
 				if intruecondition:
 					break
@@ -79,14 +79,24 @@ class If(xsc.Element):
 					truecondition.append(child)
 		return truecondition.convert(converter)
 
-	def __testCond(self, attr, converter):
-		cond = attr.convert(converter).asPlainString()
-		result = eval(str(cond), procinst.__dict__)
+	def __testCond(self, node, converter):
+		result = 1
+		if node.hasAttr("cond"):
+			cond = node["cond"].convert(converter).asPlainString()
+			result = eval(str(cond), procinst.__dict__)
+		if result and node.hasAttr("mode"):
+			result = node["mode"].convert(converter).asPlainString() == converter.mode
+		if result and node.hasAttr("target"):
+			result = node["target"].convert(converter).asPlainString() == converter.target
+		if result and node.hasAttr("stage"):
+			result = node["stage"].convert(converter).asPlainString() == converter.stage
+		if result and node.hasAttr("lang"):
+			result = node["lang"].convert(converter).asPlainString() == converter.lang
 		return result
 
 class ElIf(xsc.Element):
 	empty = 1
-	attrHandlers = {"cond": CondAttr}
+	attrHandlers = {"cond": CondAttr, "mode": xsc.TextAttr, "target": xsc.TextAttr, "stage": xsc.TextAttr, "lang": xsc.TextAttr}
 	name = "elif"
 
 	def convert(self, converter):

@@ -66,12 +66,15 @@ def make(args):
 	"""
 	use XSC as a compiler script
 	"""
-	(options, args) = getopt.getopt(args, "p:i:o:e:x:m:f:r:n:s:", ["path=", "import=", "output=", "encoding=", "xhtml=", "mode=", "files=", "spacefiles=", "parser=", "namespace="])
+	(options, args) = getopt.getopt(args, "p:i:o:e:x:m:f:r:n:F:t:s:l:", ["path=", "import=", "output=", "encoding=", "xhtml=", "mode=", "files=", "spacefiles=", "parser=", "namespace=", "target=", "stage=", "lang="])
 
 	globaloutname = url.URL("*/")
 	encoding = None
 	XHTML = None
 	mode = None
+	target = None
+	stage = None
+	lang = None
 	files = {} # handle duplicate filenames by putting all filename in a dictionary
 	parsername = "sgmlop"
 	namespaces = xsc.Namespaces()
@@ -89,11 +92,17 @@ def make(args):
 			XHTML = int(value)
 		elif option=="-m" or option=="--mode":
 			mode = value
+		elif option=="-t" or option=="--target":
+			target = value
+		elif option=="-s" or option=="--stage":
+			stage = value
+		elif option=="-l" or option=="--lang":
+			lang = value
 		elif option=="-f" or option=="--files":
 			for filename in open(value, "r").read().splitlines():
 				if filename != "":
 					files[filename] = None
-		elif option=="-s" or option=="--spacefiles":
+		elif option=="-F" or option=="--spacefiles":
 			for filename in open(value, "r").read().split():
 				if filename != "":
 					files[filename] = None
@@ -108,8 +117,8 @@ def make(args):
 	files.sort()
 
 	if files:
-		converter = converters.Converter(mode)
 		for file in files:
+			converter = converters.Converter(mode=mode, target=target, stage=stage, lang=lang)
 			if parsername=="sgmlop":
 				parser = parsers.SGMLOPParser()
 			elif parsername=="expat":
