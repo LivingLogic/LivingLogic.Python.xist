@@ -75,7 +75,7 @@ def ToNode(value):
 def append(*args, **kwargs):
 	"""
 	<function>append</function> can be used with XPython. It append items in
-	<arg>args</arg> (or sets attributes in <arg>kwargs</args>) in the currenty
+	<arg>args</arg> (or sets attributes in <arg>kwargs</arg>) in the currenty
 	active node.
 	"""
 	node = iexec.getinstance((converters.Converter, Frag, Element)) # requires XPython
