@@ -104,6 +104,8 @@ class Publisher(object):
 		self.stream = streamwriterclass(stream)
 		self.publish = self.stream.write
 
+		self.publishxmlns = False # signals that xmlns attributes should be generate to the first element encountered, if true
+
 	def publish(self, text):
 		"""
 		receives the strings to be printed.
@@ -193,7 +195,7 @@ class Publisher(object):
 					continue
 				prefixes2use[(type, child.xmlns)] = max(prefixes2use.get((type, child.xmlns), 0), child.needsxmlns(self))
 			if len(prefixes2use):
-				self.publishxmlns = None # signal to the first element that it should generate xmlns attributes
+				self.publishxmlns = True # signal to the first element that it should generate xmlns attributes
 				# get the prefixes for all namespaces from the prefix mapping
 				for (type, ns) in prefixes2use:
 					nsprefix = [u"xmlns", u"procinstns", u"entityns"][type]
@@ -205,6 +207,7 @@ class Publisher(object):
 		"""
 		del self.prefixes2use
 		del self.node
+		self.publishxmlns = False
 
 	def doPublication(self, node):
 		"""

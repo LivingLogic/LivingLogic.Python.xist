@@ -2422,7 +2422,7 @@ class Element(Node):
 		publisher.publish(u"<")
 		self._publishname(publisher)
 		# we're the first element to be published, so we have to create the xmlns attributes
-		if hasattr(publisher, "publishxmlns"):
+		if publisher.publishxmlns:
 			for ((nsprefix, ns), (mode, prefix)) in publisher.prefixes2use.iteritems():
 				if mode==2:
 					publisher.publish(u" ")
@@ -2433,8 +2433,8 @@ class Element(Node):
 					publisher.publish(u"=\"")
 					publisher.publish(ns.xmlurl)
 					publisher.publish(u"\"")
-			# delete the note, so the next element won't create the attributes again
-			del publisher.publishxmlns
+			# reset the note, so the next element won't create the attributes again
+			publisher.publishxmlns = False
 		self.attrs.publish(publisher)
 		if len(self):
 			if self.empty:
