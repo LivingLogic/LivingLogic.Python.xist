@@ -756,6 +756,10 @@ class XSCHandler(saxlib.HandlerBase):
 	def unparsedEntityDecl(self, name, publicId, systemId, ndata):
 		print "'",name,"'",publicID,"'",systemId,"'",ndata,"'"
 
+	def setDocumentLocator(locator):
+		print "#"*80,locator.getLineNumber()
+		self.lineno = locator.getLineNumber()
+		
 	def handle_comment(self,comment):
 		e = XSCComment(comment) 
 		e.startlineno = self.lineno
