@@ -1,688 +1,716 @@
-#! /usr/bin/env python
+#!/usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 1999-2004 by LivingLogic AG, Bayreuth, Germany.
-## Copyright 1999-2004 by Walter Dörwald
-##
-## All Rights Reserved
-##
-## See xist/__init__.py for the license
 
-"""
-<par>An &xist; module that contains definitions for the
-<link href="http://www.w3.org/TR/SVG/">&svg;</link> 1.0 definition.</par>
-"""
-
-__version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
+__version__ = "$Revision$"[11:-2]
 # $Source$
 
-from ll.xist import xsc
-from ll.xist.ns import xml
+
+from ll.xist import xsc, sims
 
 
-# common attributes types
-class BaselineShiftValueAttr(xsc.TextAttr): pass
-class BooleanAttr(xsc.TextAttr): values = ("false", "true")
-class ClassListAttr(xsc.TextAttr): pass
-class ClipValueAttr(xsc.TextAttr): pass
-class ClipPathValueAttr(xsc.TextAttr): pass
-class ClipFillRuleAttr(xsc.TextAttr): values = ("nonzero", "evenodd", "inherit")
-class ContentTypeAttr(xsc.TextAttr): pass
-class CoordinateAttr(xsc.TextAttr): pass
-class CoordinatesAttr(xsc.TextAttr): pass
-class CursorValueAttr(xsc.TextAttr): pass
-class EnableBackgroundValueAttr(xsc.TextAttr): pass
-class ExtensionListAttr(xsc.TextAttr): pass
-class FeatureListAttr(xsc.TextAttr): pass
-class FilterValueAttr(xsc.TextAttr): pass
-class FontFamilyValueAttr(xsc.TextAttr): pass
-class FontSizeValueAttr(xsc.TextAttr): pass
-class FontSizeAdjustValueAttr(xsc.TextAttr): pass
-class GlyphOrientationHorizontalValueAttr(xsc.TextAttr): pass
-class GlyphOrientationVerticalValueAttr(xsc.TextAttr): pass
-class IntegerAttr(xsc.IntAttr): pass
-class KerningValueAttr(xsc.TextAttr): pass
-class LanguageCodeAttr(xsc.TextAttr): pass
-class LanguageCodesAttr(xsc.TextAttr): pass
-class LengthAttr(xsc.TextAttr): pass
-class LengthsAttr(xsc.TextAttr): pass
-class LinkTargetAttr(xsc.TextAttr): pass
-class MarkerValueAttr(xsc.TextAttr): pass
-class MaskValueAttr(xsc.TextAttr): pass
-class MediaDescAttr(xsc.TextAttr): pass
-class NumberAttr(xsc.TextAttr): pass
-class NumberOptionalNumberAttr(xsc.TextAttr): pass
-class NumberOrPercentageAttr(xsc.TextAttr): pass
-class NumbersAttr(xsc.TextAttr): pass
-class OpacityValueAttr(xsc.TextAttr): pass
-class PaintAttr(xsc.TextAttr): pass
-class PathDataAttr(xsc.TextAttr): pass
-class PointsAttr(xsc.TextAttr): pass
-class PreserveAspectRatioSpecAttr(xsc.TextAttr): pass
-class ScriptAttr(xsc.TextAttr): pass
-class SpacingValueAttr(xsc.TextAttr): pass
-class StrokeDashArrayValueAttr(xsc.TextAttr): pass
-class StrokeDashOffsetValueAttr(xsc.TextAttr): pass
-class StrokeMiterLimitValueAttr(xsc.TextAttr): pass
-class StrokeWidthValueAttr(xsc.TextAttr): pass
-class SVGColorAttr(xsc.TextAttr): pass
-class TextDecorationValueAttr(xsc.TextAttr): pass
-class TransformListAttr(xsc.TextAttr): pass
-class ViewBoxSpecAttr(xsc.TextAttr): pass
-class StructuredTextAttr(xsc.TextAttr): pass
+class alignment_baseline(xsc.Element.Attrs):
+	class alignment_baseline(xsc.TextAttr):
+		xmlname = "alignment-baseline"
+		values = ("auto", "baseline", "before-edge", "text-before-edge", "middle", "central", "after-edge", "text-after-edge", "ideographic", "alphabetic", "hanging", "mathematical", "inherit")
 
 
-# common attributes sets
-class stdattrs(xsc.Element.Attrs):
-	"All elements have an ID."
-	class id(xsc.IDAttr): "document-wide unique id"
+class baseline_shift(xsc.Element.Attrs):
+	class baseline_shift(xsc.TextAttr): xmlname = "baseline-shift"
 
 
-class testattrs(xsc.Element.Attrs):
-	"Common attributes to check for system capabilities"
-	class requiredFeatures(FeatureListAttr): pass
-	class requiredExtensions(ExtensionListAttr): pass
-	class systemLanguage(LanguageCodesAttr): pass
+class class_(xsc.Element.Attrs):
+	class class_(xsc.TextAttr): xmlname = "class"
 
 
-class graphicelementevents(xsc.Element.Attrs):
-	class onfocusin(ScriptAttr): pass
-	class onfocusout(ScriptAttr): pass
-	class onactivate(ScriptAttr): pass
-	class onclick(ScriptAttr): pass
-	class onmousedown(ScriptAttr): pass
-	class onmouseup(ScriptAttr): pass
-	class onmouseover(ScriptAttr): pass
-	class onmousemove(ScriptAttr): pass
-	class onmouseout(ScriptAttr): pass
-	class onload(ScriptAttr): pass
+class clip(xsc.Element.Attrs):
+	class clip(xsc.TextAttr): pass
 
 
-class documentevents(xsc.Element.Attrs):
-	class onunload(ScriptAttr): pass
-	class onabort(ScriptAttr): pass
-	class onerror(ScriptAttr): pass
-	class onresize(ScriptAttr): pass
-	class onscroll(ScriptAttr): pass
-	class onzoom(ScriptAttr): pass
+class clip_path(xsc.Element.Attrs):
+	class clip_path(xsc.TextAttr): xmlname = "clip-path"
 
 
-class animationevents(xsc.Element.Attrs):
-	class onbegin(ScriptAttr): pass
-	class onend(ScriptAttr): pass
-	class onrepeat(ScriptAttr): pass
+class clip_rule(xsc.Element.Attrs):
+	class clip_rule(xsc.TextAttr):
+		xmlname = "clip-rule"
+		values = ("nonzero", "evenodd", "inherit")
 
 
-class presentationattributescolor(xsc.Element.Attrs):
-	"These presentation attributes have to do with specifying color."
-	class color(xsc.ColorAttr): pass
+class color(xsc.Element.Attrs):
+	class color(xsc.TextAttr): pass
+
+
+class color_interpolation(xsc.Element.Attrs):
 	class color_interpolation(xsc.TextAttr):
 		xmlname = "color-interpolation"
 		values = ("auto", "sRGB", "linearRGB", "inherit")
-	class color_rendering(xsc.TextAttr):
-		xmlname = "color-rendering"
-		values = ("auto", "optimizeSpeed", "optimizeQuality", "inherit")
 
 
-class presentationattributescontainers(xsc.Element.Attrs):
-	"These presentation attributes apply to container elements."
-	class enable_background(EnableBackgroundValueAttr):
-		xmlname = "enable-background"
-
-
-class presentationattributesfeflood(xsc.Element.Attrs):
-	"""These presentation attributes apply to <pyref class="feFlood"><class>feFlood</class></pyref> elements."""
-	class flood_color(SVGColorAttr): xmlname = "flood-color"
-	class flood_opacity(OpacityValueAttr): xmlname = "flood-opacity"
-
-
-class presentationattributesfillstroke(xsc.Element.Attrs):
-	"These presentation attributes apply to filling and stroking operations."
-	class fill(PaintAttr): pass
-	class fill_opacity(OpacityValueAttr): xmlname = "fill-opacity"
-	class fill_rule(ClipFillRuleAttr): xmlname = "fill-rule"
-	class stroke(PaintAttr): pass
-	class stroke_dasharray(StrokeDashArrayValueAttr): xmlname = "stroke-dasharray"
-	class stroke_dashoffset(StrokeDashOffsetValueAttr): xmlname = "stroke-dashoffset"
-	class stroke_linecap(xsc.TextAttr):
-		xmlname = "stroke-linecap"
-		values = ("butt", "round", "square", "inherit")
-	class stroke_linejoin(xsc.TextAttr):
-		xmlname = "stroke-linejoin"
-		values = ("miter", "round", "bevel", "inherit")
-	class stroke_miterlimit(StrokeMiterLimitValueAttr): xmlname = "stroke-miterlimit"
-	class stroke_opacity(OpacityValueAttr): xmlname = "stroke-opacity"
-	class stroke_width(StrokeWidthValueAttr): xmlname = "stroke-width"
-
-
-class presentationattributesfilterprimitives(xsc.Element.Attrs):
-	"These presentation attributes apply to filter primitives."
+class color_interpolation_filters(xsc.Element.Attrs):
 	class color_interpolation_filters(xsc.TextAttr):
 		xmlname = "color-interpolation-filters"
 		values = ("auto", "sRGB", "linearRGB", "inherit")
 
 
-class presentationattributesfontspecification(xsc.Element.Attrs):
-	"These presentation attributes have to do with selecting a font to use."
-	class font_family(FontFamilyValueAttr): xmlname = "font-family"
-	class font_size(FontSizeValueAttr): xmlname = "font-size"
-	class font_size_adjust(FontSizeAdjustValueAttr): xmlname = "font-size-adjust"
+class color_profile2(xsc.Element.Attrs):
+	class color_profile(xsc.TextAttr): xmlname = "color-profile"
+
+
+class color_rendering(xsc.Element.Attrs):
+	class color_rendering(xsc.TextAttr):
+		xmlname = "color-rendering"
+		values = ("auto", "optimizeSpeed", "optimizeQuality", "inherit")
+
+
+class cursor2(xsc.Element.Attrs):
+	class cursor(xsc.TextAttr): pass
+
+
+class direction(xsc.Element.Attrs):
+	class direction(xsc.TextAttr): values = ("ltr", "rtl", "inherit")
+
+
+class display(xsc.Element.Attrs):
+	class display(xsc.TextAttr): values = ("inline", "block", "list-item", "run-in", "compact", "marker", "table", "inline-table", "table-row-group", "table-header-group", "table-footer-group", "table-row", "table-column-group", "table-column", "table-cell", "table-caption", "none", "inherit")
+
+
+class dominant_baseline(xsc.Element.Attrs):
+	class dominant_baseline(xsc.TextAttr):
+		xmlname = "dominant-baseline"
+		values = ("auto", "use-script", "no-change", "reset-size", "ideographic", "alphabetic", "hanging", "mathematical", "central", "middle", "text-after-edge", "text-before-edge", "inherit")
+
+
+class enable_background(xsc.Element.Attrs):
+	class enable_background(xsc.TextAttr): xmlname = "enable-background"
+
+
+class externalResourcesRequired(xsc.Element.Attrs):
+	class externalResourcesRequired(xsc.TextAttr): values = ("false", "true")
+
+
+class fill(xsc.Element.Attrs):
+	class fill(xsc.TextAttr): pass
+
+
+class fill_opacity(xsc.Element.Attrs):
+	class fill_opacity(xsc.TextAttr): xmlname = "fill-opacity"
+
+
+class fill_rule(xsc.Element.Attrs):
+	class fill_rule(xsc.TextAttr):
+		xmlname = "fill-rule"
+		values = ("nonzero", "evenodd", "inherit")
+
+
+class filter2(xsc.Element.Attrs):
+	class filter(xsc.TextAttr): pass
+
+
+class flood_color(xsc.Element.Attrs):
+	class flood_color(xsc.TextAttr): xmlname = "flood-color"
+
+
+class flood_opacity(xsc.Element.Attrs):
+	class flood_opacity(xsc.TextAttr): xmlname = "flood-opacity"
+
+
+class font_family(xsc.Element.Attrs):
+	class font_family(xsc.TextAttr): xmlname = "font-family"
+
+
+class font_size(xsc.Element.Attrs):
+	class font_size(xsc.TextAttr): xmlname = "font-size"
+
+
+class font_size_adjust(xsc.Element.Attrs):
+	class font_size_adjust(xsc.TextAttr): xmlname = "font-size-adjust"
+
+
+class font_stretch(xsc.Element.Attrs):
 	class font_stretch(xsc.TextAttr):
 		xmlname = "font-stretch"
-		values = ("normal", "wider", "narrower", "ultra-condensed", "extra-condensed", "condensed",
-		          "semi-condensed", "semi-expanded", "expanded", "extra-expanded", "ultra-expanded",
-		          "inherit")
+		values = ("normal", "wider", "narrower", "ultra-condensed", "extra-condensed", "condensed", "semi-condensed", "semi-expanded", "expanded", "extra-expanded", "ultra-expanded", "inherit")
+
+
+class font_style(xsc.Element.Attrs):
 	class font_style(xsc.TextAttr):
 		xmlname = "font-style"
 		values = ("normal", "italic", "oblique", "inherit")
+
+
+class font_variant(xsc.Element.Attrs):
 	class font_variant(xsc.TextAttr):
 		xmlname = "font-variant"
 		values = ("normal", "small-caps", "inherit")
+
+
+class font_weight(xsc.Element.Attrs):
 	class font_weight(xsc.TextAttr):
 		xmlname = "font-weight"
 		values = ("normal", "bold", "bolder", "lighter", 100, 200, 300, 400, 500, 600, 700, 800, 900, "inherit")
 
 
-class presentationattributesgradients(xsc.Element.Attrs):
-	"""These presentation attributes apply to gradient <pyref class="stop"><class>stop</class></pyref>."""
-	class stop_color(SVGColorAttr): xmlname = "stop-color"
-	class stop_opacity(OpacityValueAttr): xmlname = "stop-opacity"
+class glyph_orientation_horizontal(xsc.Element.Attrs):
+	class glyph_orientation_horizontal(xsc.TextAttr): xmlname = "glyph-orientation-horizontal"
 
 
-class presentationattributesgraphics(xsc.Element.Attrs):
-	"""These presentation attributes apply to graphic elements."""
-	class clip_path(ClipPathValueAttr): xmlname = "clip-path"
-	class clip_rule(ClipFillRuleAttr): xmlname = "clip-rule"
-	class cursor(CursorValueAttr): pass
-	class display(xsc.TextAttr):
-		values = ("inline", "block", "list-item", "run-in", "compact", "marker", "table", "inline-table",
-		          "table-row-group", "table-header-group", "table-footer-group", "table-row", "table-column-group",
-		          "table-column", "table-cell", "table-caption", "none", "inherit")
-	class filter(FilterValueAttr): pass
+class glyph_orientation_vertical(xsc.Element.Attrs):
+	class glyph_orientation_vertical(xsc.TextAttr): xmlname = "glyph-orientation-vertical"
+
+
+class id(xsc.Element.Attrs):
+	class id(xsc.IDAttr): pass
+
+
+class image_rendering(xsc.Element.Attrs):
 	class image_rendering(xsc.TextAttr):
 		xmlname = "image-rendering"
 		values = ("auto", "optimizeSpeed", "optimizeQuality", "inherit")
-	class mask(MaskValueAttr): pass
-	class opacity(OpacityValueAttr): pass
+
+
+class kerning(xsc.Element.Attrs):
+	class kerning(xsc.TextAttr): pass
+
+
+class letter_spacing(xsc.Element.Attrs):
+	class letter_spacing(xsc.TextAttr): xmlname = "letter-spacing"
+
+
+class lighting_color(xsc.Element.Attrs):
+	class lighting_color(xsc.TextAttr): xmlname = "lighting-color"
+
+
+class marker_end(xsc.Element.Attrs):
+	class marker_end(xsc.TextAttr): xmlname = "marker-end"
+
+
+class marker_mid(xsc.Element.Attrs):
+	class marker_mid(xsc.TextAttr): xmlname = "marker-mid"
+
+
+class marker_start(xsc.Element.Attrs):
+	class marker_start(xsc.TextAttr): xmlname = "marker-start"
+
+
+class mask2(xsc.Element.Attrs):
+	class mask(xsc.TextAttr): pass
+
+
+class onactivate(xsc.Element.Attrs):
+	class onactivate(xsc.TextAttr): pass
+
+
+class onclick(xsc.Element.Attrs):
+	class onclick(xsc.TextAttr): pass
+
+
+class onfocusin(xsc.Element.Attrs):
+	class onfocusin(xsc.TextAttr): pass
+
+
+class onfocusout(xsc.Element.Attrs):
+	class onfocusout(xsc.TextAttr): pass
+
+
+class onload(xsc.Element.Attrs):
+	class onload(xsc.TextAttr): pass
+
+
+class onmousedown(xsc.Element.Attrs):
+	class onmousedown(xsc.TextAttr): pass
+
+
+class onmousemove(xsc.Element.Attrs):
+	class onmousemove(xsc.TextAttr): pass
+
+
+class onmouseout(xsc.Element.Attrs):
+	class onmouseout(xsc.TextAttr): pass
+
+
+class onmouseover(xsc.Element.Attrs):
+	class onmouseover(xsc.TextAttr): pass
+
+
+class onmouseup(xsc.Element.Attrs):
+	class onmouseup(xsc.TextAttr): pass
+
+
+class opacity(xsc.Element.Attrs):
+	class opacity(xsc.TextAttr): pass
+
+
+class overflow(xsc.Element.Attrs):
+	class overflow(xsc.TextAttr): values = ("visible", "hidden", "scroll", "auto", "inherit")
+
+
+class pointer_events(xsc.Element.Attrs):
 	class pointer_events(xsc.TextAttr):
 		xmlname = "pointer-events"
-		values = ("visiblePainted", "visibleFill", "visibleStroke", "visible", "painted", "fill", "stroke",
-		          "all", "none", "inherit")
+		values = ("visiblePainted", "visibleFill", "visibleStroke", "visible", "painted", "fill", "stroke", "all", "none", "inherit")
+
+
+class requiredExtensions(xsc.Element.Attrs):
+	class requiredExtensions(xsc.TextAttr): pass
+
+
+class requiredFeatures(xsc.Element.Attrs):
+	class requiredFeatures(xsc.TextAttr): pass
+
+
+class shape_rendering(xsc.Element.Attrs):
 	class shape_rendering(xsc.TextAttr):
 		xmlname = "shape-rendering"
 		values = ("auto", "optimizeSpeed", "crispEdges", "geometricPrecision", "inherit")
-	class text_rendering(xsc.TextAttr):
-		xmlname = "text-rendering"
-		values = ("auto", "optimizeSpeed", "optimizeLegibility", "geometricPrecision", "inherit")
-	class visibility(xsc.TextAttr):
-		values = ("visible", "hidden", "inherit")
 
 
-class presentationattributesimages(xsc.Element.Attrs):
-	"""These presentation attributes apply to <pyref class="image"><class>image</class></pyref> elements."""
-	class color_profile(xsc.TextAttr): xmlname = "color-profile"
+class stop_color(xsc.Element.Attrs):
+	class stop_color(xsc.TextAttr): xmlname = "stop-color"
 
 
-class presentationattributeslightingeffects(xsc.Element.Attrs):
-	"""These presentation attributes apply to <pyref class="feDiffuseLighting"><class>feDiffuseLighting</class></pyref>
-	and <pyref class="feSpecularLighting"><class>feSpecularLighting</class></pyref> elements."""
-	class lighting_color(SVGColorAttr): xmlname = "lighting-color"
+class stop_opacity(xsc.Element.Attrs):
+	class stop_opacity(xsc.TextAttr): xmlname = "stop-opacity"
 
 
-class presentationattributesmarkers(xsc.Element.Attrs):
-	"""These presentation attributes apply to marker operations."""
-	class marker_start(MarkerValueAttr): xmlname = "marker-start"
-	class marker_mid(MarkerValueAttr): xmlname = "marker-mid"
-	class marker_end(MarkerValueAttr): xmlname = "marker-end"
+class stroke(xsc.Element.Attrs):
+	class stroke(xsc.TextAttr): pass
 
 
-class presentationattributestextcontentelements(xsc.Element.Attrs):
-	"""These presentation attributes apply to text content elements."""
-	class alignment_baseline(xsc.TextAttr):
-		xmlname = "alignment-baseline"
-		values = ("baseline", "top", "before-edge", "text-top", "text-before-edge", "middle", "bottom", "after-edge",
-		          "text-bottom", "text-after-edge", "ideographic", "lower", "hanging", "mathematical", "inherit")
-	class baseline_shift(BaselineShiftValueAttr): xmlname = "baseline-shift"
-	class direction(xsc.TextAttr): values = ("ltr", "rtl", "inherit")
-	class dominant_baseline(xsc.TextAttr):
-		xmlname = "dominant-baseline"
-		values = ("auto", "autosense-script", "no-change", "reset", "ideographic", "lower", "hanging", "mathematical", "inherit")
-	class glyph_orientation_horizontal(GlyphOrientationHorizontalValueAttr): xmlname = "glyph-orientation-horizontal"
-	class glyph_orientation_vertical(GlyphOrientationVerticalValueAttr): xmlname = "glyph-orientation-vertical"
-	class kerning(KerningValueAttr): pass
-	class letter_spacing(SpacingValueAttr): xmlname = "letter-spacing"
+class stroke_dasharray(xsc.Element.Attrs):
+	class stroke_dasharray(xsc.TextAttr): xmlname = "stroke-dasharray"
+
+
+class stroke_dashoffset(xsc.Element.Attrs):
+	class stroke_dashoffset(xsc.TextAttr): xmlname = "stroke-dashoffset"
+
+
+class stroke_linecap(xsc.Element.Attrs):
+	class stroke_linecap(xsc.TextAttr):
+		xmlname = "stroke-linecap"
+		values = ("butt", "round", "square", "inherit")
+
+
+class stroke_linejoin(xsc.Element.Attrs):
+	class stroke_linejoin(xsc.TextAttr):
+		xmlname = "stroke-linejoin"
+		values = ("miter", "round", "bevel", "inherit")
+
+
+class stroke_miterlimit(xsc.Element.Attrs):
+	class stroke_miterlimit(xsc.TextAttr): xmlname = "stroke-miterlimit"
+
+
+class stroke_opacity(xsc.Element.Attrs):
+	class stroke_opacity(xsc.TextAttr): xmlname = "stroke-opacity"
+
+
+class stroke_width(xsc.Element.Attrs):
+	class stroke_width(xsc.TextAttr): xmlname = "stroke-width"
+
+
+class style2(xsc.Element.Attrs):
+	class style(xsc.TextAttr): pass
+
+
+class systemLanguage(xsc.Element.Attrs):
+	class systemLanguage(xsc.TextAttr): pass
+
+
+class text_anchor(xsc.Element.Attrs):
 	class text_anchor(xsc.TextAttr):
 		xmlname = "text-anchor"
 		values = ("start", "middle", "end", "inherit")
-	class text_decoration(TextDecorationValueAttr): xmlname = "text-decoration"
+
+
+class text_decoration(xsc.Element.Attrs):
+	class text_decoration(xsc.TextAttr): xmlname = "text-decoration"
+
+
+class text_rendering(xsc.Element.Attrs):
+	class text_rendering(xsc.TextAttr):
+		xmlname = "text-rendering"
+		values = ("auto", "optimizeSpeed", "optimizeLegibility", "geometricPrecision", "inherit")
+
+
+class transform(xsc.Element.Attrs):
+	class transform(xsc.TextAttr): pass
+
+
+class unicode_bidi(xsc.Element.Attrs):
 	class unicode_bidi(xsc.TextAttr):
 		xmlname = "unicode-bidi"
 		values = ("normal", "embed", "bidi-override", "inherit")
-	class word_spacing(SpacingValueAttr): xmlname = "word-spacing"
 
 
-class presentationattributestextelements(xsc.Element.Attrs):
-	"""These presentation attributes apply to <pyref class="text"><class>text</class></pyref> elements."""
+class visibility(xsc.Element.Attrs):
+	class visibility(xsc.TextAttr): values = ("visible", "hidden", "inherit")
+
+
+class word_spacing(xsc.Element.Attrs):
+	class word_spacing(xsc.TextAttr): xmlname = "word-spacing"
+
+
+class writing_mode(xsc.Element.Attrs):
 	class writing_mode(xsc.TextAttr):
 		xmlname = "writing-mode"
 		values = ("lr-tb", "rl-tb", "tb-rl", "lr", "rl", "tb", "inherit")
 
 
-class presentationattributesviewports(xsc.Element.Attrs):
-	"""These presentation attributes apply to elements that establish viewports."""
-	class clip(ClipValueAttr): pass
-	class overflow(xsc.TextAttr): values = ("visible", "hidden", "scroll", "auto", "inherit")
+class dx(xsc.Element.Attrs):
+	class dx(xsc.TextAttr): pass
 
 
-class presentationattributesall(
-	presentationattributescolor,
-	presentationattributescontainers,
-	presentationattributesfeflood,
-	presentationattributesfillstroke,
-	presentationattributesfilterprimitives,
-	presentationattributesfontspecification,
-	presentationattributesgradients,
-	presentationattributesgraphics,
-	presentationattributesimages,
-	presentationattributeslightingeffects,
-	presentationattributesmarkers,
-	presentationattributestextcontentelements,
-	presentationattributestextelements,
-	presentationattributesviewports):
-	"""This represents the complete list of presentation attributes."""
+class dy(xsc.Element.Attrs):
+	class dy(xsc.TextAttr): pass
 
 
-class filterprimitiveattributes(xsc.Element.Attrs):
-	class x(CoordinateAttr): pass
-	class y(CoordinateAttr): pass
-	class width(LengthAttr): pass
-	class height(LengthAttr): pass
-	class result(xsc.TextAttr): pass
+class format(xsc.Element.Attrs):
+	class format(xsc.TextAttr): pass
 
 
-class filterprimitiveattributeswithin(filterprimitiveattributes):
-	class in_(xsc.TextAttr): xmlname = "in"
+class glyphRef2(xsc.Element.Attrs):
+	class glyphRef(xsc.TextAttr): pass
 
 
-class componenttransferfunctionattributes(xsc.Element.Attrs):
-	class type(xsc.TextAttr):
-		values = ("identity", "table", "discrete", "linear", "gamma")
-		required = True
-	class tableValues(xsc.TextAttr): pass
-	class slope(NumberAttr): pass
-	class intercept(NumberAttr): pass
-	class amplitude(NumberAttr): pass
-	class exponent(NumberAttr): pass
-	class offset(NumberAttr): pass
+class rotate(xsc.Element.Attrs):
+	class rotate(xsc.TextAttr): pass
 
 
-class animattributeattrs(xsc.Element.Attrs):
-	class attributeName(xsc.TextAttr): required = True
-	class attributeType(xsc.TextAttr): pass
+class x(xsc.Element.Attrs):
+	class x(xsc.TextAttr): pass
 
 
-class animtimingattrs(xsc.Element.Attrs):
-	class begin(xsc.TextAttr): pass
-	class dur(xsc.TextAttr): pass
-	class end(xsc.TextAttr): pass
-	class min(xsc.TextAttr): pass
-	class max(xsc.TextAttr): pass
-	class restart(xsc.TextAttr): values = ("always", "never", "whenNotActive")
-	class repeatCount(xsc.TextAttr): pass
-	class repeatDur(xsc.TextAttr): pass
-	class fill(xsc.TextAttr): values = ("remove", "freeze")
+class y(xsc.Element.Attrs):
+	class y(xsc.TextAttr): pass
 
 
-class animvalueattrs(xsc.Element.Attrs):
-	class calcMode(xsc.TextAttr): values = ("discrete", "linear", "paced", "spline")
-	class values(xsc.TextAttr): pass
-	class keyTimes(xsc.TextAttr): pass
-	class keySplines(xsc.TextAttr): pass
-	class from_(xsc.TextAttr): xmlname = "from"
-	class to(xsc.TextAttr): pass
-	class by(xsc.TextAttr): pass
-
-
-class animadditionattrs(xsc.Element.Attrs):
-	class additive(xsc.TextAttr): values = ("replace", "sum")
+class accumulate(xsc.Element.Attrs):
 	class accumulate(xsc.TextAttr): values = ("none", "sum")
 
 
-class DocTypeSVG10(xsc.DocType):
-	"""
-	document type for SVG 1.0
-	"""
-	def __init__(self):
-		xsc.DocType.__init__(self, 'svg PUBLIC "-//W3C//DTD SVG 1.0//EN" "http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd"')
+class additive(xsc.Element.Attrs):
+	class additive(xsc.TextAttr): values = ("replace", "sum")
 
 
-class svg(xsc.Element):
-	empty = False
-	class Attrs(stdattrs, testattrs, presentationattributesall, graphicelementevents, documentevents):
-		class externalResourcesRequired(BooleanAttr): pass
-		class class_(ClassListAttr): xmlname = "class"
-		class style(xsc.StyleAttr): pass
-		class viewBox(ViewBoxSpecAttr): pass
-		class preserveAspectRatio(PreserveAspectRatioSpecAttr): pass
-		class zoomAndPan(xsc.TextAttr): values = ("disable", "magnify")
-		class version(NumberAttr): default = "1.0"
-		class x(CoordinateAttr): pass
-		class y(CoordinateAttr): pass
-		class width(LengthAttr): pass
-		class height(LengthAttr): pass
-		class contentScriptType(ContentTypeAttr): pass
-		class contentStyleType(ContentTypeAttr): pass
+class attributeName(xsc.Element.Attrs):
+	class attributeName(xsc.TextAttr): required = True
 
 
-class g(xsc.Element):
-	empty = False
-	class Attrs(stdattrs, testattrs, presentationattributesall, graphicelementevents):
-		class externalResourcesRequired(BooleanAttr): pass
-		class class_(ClassListAttr): xmlname = "class"
-		class style(xsc.StyleAttr): pass
-		class transform(TransformListAttr): pass
+class attributeType(xsc.Element.Attrs):
+	class attributeType(xsc.TextAttr): pass
 
 
-class defs(xsc.Element):
-	empty = False
-	class Attrs(stdattrs, testattrs, presentationattributesall, graphicelementevents):
-		class externalResourcesRequired(BooleanAttr): pass
-		class class_(ClassListAttr): xmlname = "class"
-		class style(xsc.StyleAttr): pass
-		class transform(TransformListAttr): pass
+class begin(xsc.Element.Attrs):
+	class begin(xsc.TextAttr): pass
 
 
-class desc(xsc.Element):
-	empty = False
-	class Attrs(stdattrs):
-		class class_(ClassListAttr): xmlname = "class"
-		class style(xsc.StyleAttr): pass
-		class content(StructuredTextAttr): pass
+class by(xsc.Element.Attrs):
+	class by(xsc.TextAttr): pass
 
 
-class title(xsc.Element):
-	empty = False
-	class Attrs(stdattrs):
-		class class_(ClassListAttr): xmlname = "class"
-		class style(xsc.StyleAttr): pass
-		class content(StructuredTextAttr): pass
+class calcMode(xsc.Element.Attrs):
+	class calcMode(xsc.TextAttr): values = ("discrete", "linear", "paced", "spline")
 
 
-class symbol(xsc.Element):
-	empty = False
-	class Attrs(stdattrs, presentationattributesall, graphicelementevents):
-		class externalResourcesRequired(BooleanAttr): pass
-		class class_(ClassListAttr): xmlname = "class"
-		class style(xsc.StyleAttr): pass
-		class viewBox(ViewBoxSpecAttr): pass
-		class preserveAspectRatio(PreserveAspectRatioSpecAttr): pass
+class dur(xsc.Element.Attrs):
+	class dur(xsc.TextAttr): pass
 
 
-class use(xsc.Element):
-	empty = False
-	class Attrs(stdattrs, testattrs, presentationattributesall, graphicelementevents):
-		class externalResourcesRequired(BooleanAttr): pass
-		class class_(ClassListAttr): xmlname = "class"
-		class style(xsc.StyleAttr): pass
-		class transform(TransformListAttr): pass
-		class x(CoordinateAttr): pass
-		class y(CoordinateAttr): pass
-		class width(LengthAttr): pass
-		class height(LengthAttr): pass
+class end(xsc.Element.Attrs):
+	class end(xsc.TextAttr): pass
 
 
-class image(xsc.Element):
-	empty = False
-	class Attrs(stdattrs, testattrs, presentationattributescolor, presentationattributesgraphics,
-		presentationattributesimages, presentationattributesviewports, graphicelementevents):
-		class externalResourcesRequired(BooleanAttr): pass
-		class class_(ClassListAttr): xmlname = "class"
-		class style(xsc.StyleAttr): pass
-		class transform(TransformListAttr): pass
-		class x(CoordinateAttr): pass
-		class y(CoordinateAttr): pass
-		class width(LengthAttr): required = True
-		class height(LengthAttr): required = True
-		class preserveAspectRatio(PreserveAspectRatioSpecAttr): pass
+class fill2(xsc.Element.Attrs):
+	class fill(xsc.TextAttr): values = ("remove", "freeze")
 
 
-class switch(xsc.Element):
-	empty = False
-	class Attrs(stdattrs, testattrs, presentationattributesall, graphicelementevents):
-		class externalResourcesRequired(BooleanAttr): pass
-		class class_(ClassListAttr): xmlname = "class"
-		class style(xsc.StyleAttr): pass
-		class transform(TransformListAttr): pass
+class from_(xsc.Element.Attrs):
+	class from_(xsc.TextAttr): xmlname = "from"
 
 
-class style(xsc.Element):
-	empty = False
-	class Attrs(stdattrs):
-		class type(ContentTypeAttr): required = True
-		class media(MediaDescAttr): pass
-		class title(xsc.TextAttr): pass
+class keySplines(xsc.Element.Attrs):
+	class keySplines(xsc.TextAttr): pass
 
 
-class path(xsc.Element):
-	empty = False
-	class Attrs(stdattrs, testattrs, presentationattributescolor, presentationattributesfillstroke,
-		presentationattributesgraphics, presentationattributesmarkers, graphicelementevents):
-		class externalResourcesRequired(BooleanAttr): pass
-		class class_(ClassListAttr): xmlname = "class"
-		class style(xsc.StyleAttr): pass
-		class transform(TransformListAttr): pass
-		class d(PathDataAttr): required = True
-		class pathLength(NumberAttr): pass
+class keyTimes(xsc.Element.Attrs):
+	class keyTimes(xsc.TextAttr): pass
 
 
-class rect(xsc.Element):
-	empty = False
-	class Attrs(stdattrs, testattrs, presentationattributescolor, presentationattributesfillstroke,
-		presentationattributesgraphics, graphicelementevents):
-		class externalResourcesRequired(BooleanAttr): pass
-		class class_(ClassListAttr): xmlname = "class"
-		class style(xsc.StyleAttr): pass
-		class transform(TransformListAttr): pass
-		class x(CoordinateAttr): pass
-		class y(CoordinateAttr): pass
-		class width(LengthAttr): required = True
-		class height(LengthAttr): required = True
-		class rx(LengthAttr): pass
-		class ry(LengthAttr): pass
+class max(xsc.Element.Attrs):
+	class max(xsc.TextAttr): pass
 
 
-class circle(xsc.Element):
-	empty = False
-	class Attrs(stdattrs, testattrs, presentationattributescolor, presentationattributesfillstroke,
-		presentationattributesgraphics, graphicelementevents):
-		class externalResourcesRequired(BooleanAttr): pass
-		class class_(ClassListAttr): xmlname = "class"
-		class style(xsc.StyleAttr): pass
-		class transform(TransformListAttr): pass
-		class cx(CoordinateAttr): pass
-		class cy(CoordinateAttr): pass
-		class r(LengthAttr): required = True
+class min(xsc.Element.Attrs):
+	class min(xsc.TextAttr): pass
 
 
-class ellipse(xsc.Element):
-	empty = False
-	class Attrs(stdattrs, testattrs, presentationattributescolor, presentationattributesfillstroke,
-		presentationattributesgraphics, graphicelementevents):
-		class externalResourcesRequired(BooleanAttr): pass
-		class class_(ClassListAttr): xmlname = "class"
-		class style(xsc.StyleAttr): pass
-		class transform(TransformListAttr): pass
-		class cx(CoordinateAttr): pass
-		class cy(CoordinateAttr): pass
-		class rx(LengthAttr): required = True
-		class ry(LengthAttr): required = True
+class onbegin(xsc.Element.Attrs):
+	class onbegin(xsc.TextAttr): pass
 
 
-class line(xsc.Element):
-	empty = False
-	class Attrs(stdattrs, testattrs, presentationattributescolor, presentationattributesfillstroke,
-		presentationattributesgraphics, presentationattributesmarkers, graphicelementevents):
-		class externalResourcesRequired(BooleanAttr): pass
-		class class_(ClassListAttr): xmlname = "class"
-		class style(xsc.StyleAttr): pass
-		class transform(TransformListAttr): pass
-		class x1(CoordinateAttr): pass
-		class y1(CoordinateAttr): pass
-		class x2(CoordinateAttr): pass
-		class y2(CoordinateAttr): pass
+class onend(xsc.Element.Attrs):
+	class onend(xsc.TextAttr): pass
 
 
-class polyline(xsc.Element):
-	empty = False
-	class Attrs(stdattrs, testattrs, presentationattributescolor, presentationattributesfillstroke,
-		presentationattributesgraphics, presentationattributesmarkers, graphicelementevents):
-		class externalResourcesRequired(BooleanAttr): pass
-		class class_(ClassListAttr): xmlname = "class"
-		class style(xsc.StyleAttr): pass
-		class transform(TransformListAttr): pass
-		class points(PointsAttr): required = True
+class onrepeat(xsc.Element.Attrs):
+	class onrepeat(xsc.TextAttr): pass
 
 
-class polygon(xsc.Element):
-	empty = False
-	class Attrs(stdattrs, testattrs, presentationattributescolor, presentationattributesfillstroke,
-		presentationattributesgraphics, presentationattributesmarkers, graphicelementevents):
-		class externalResourcesRequired(BooleanAttr): pass
-		class class_(ClassListAttr): xmlname = "class"
-		class style(xsc.StyleAttr): pass
-		class transform(TransformListAttr): pass
-		class points(PointsAttr): required = True
+class repeatCount(xsc.Element.Attrs):
+	class repeatCount(xsc.TextAttr): pass
 
 
-class text(xsc.Element):
-	empty = False
-	class Attrs(stdattrs, testattrs, presentationattributescolor, presentationattributesfillstroke,
-		presentationattributesfontspecification, presentationattributesgraphics,
-		presentationattributestextcontentelements, presentationattributestextelements, graphicelementevents):
-		class externalResourcesRequired(BooleanAttr): pass
-		class class_(ClassListAttr): xmlname = "class"
-		class style(xsc.StyleAttr): pass
-		class transform(TransformListAttr): pass
-		class x(CoordinatesAttr): pass
-		class y(CoordinatesAttr): pass
-		class dx(LengthAttr): pass
-		class dy(LengthAttr): pass
-		class rotate(NumbersAttr): pass
-		class textLength(LengthAttr): pass
-		class lengthAdjust(xsc.TextAttr): values = ("spacing", "spacingAndGlyphs")
+class repeatDur(xsc.Element.Attrs):
+	class repeatDur(xsc.TextAttr): pass
 
 
-class tspan(xsc.Element):
-	empty = False
-	class Attrs(stdattrs, testattrs, presentationattributescolor, presentationattributesfillstroke,
-		presentationattributesfontspecification, presentationattributesgraphics,
-		presentationattributestextcontentelements, graphicelementevents):
-		class externalResourcesRequired(BooleanAttr): pass
-		class class_(ClassListAttr): xmlname = "class"
-		class style(xsc.StyleAttr): pass
-		class x(CoordinatesAttr): pass
-		class y(CoordinatesAttr): pass
-		class dx(LengthAttr): pass
-		class dy(LengthAttr): pass
-		class rotate(NumbersAttr): pass
-		class textLength(LengthAttr): pass
-		class lengthAdjust(xsc.TextAttr): values = ("spacing", "spacingAndGlyphs")
+class restart(xsc.Element.Attrs):
+	class restart(xsc.TextAttr): values = ("always", "never", "whenNotActive")
 
 
-class tref(xsc.Element):
-	empty = False
-	class Attrs(stdattrs, testattrs, presentationattributescolor, presentationattributesfillstroke,
-		presentationattributesfontspecification, presentationattributesgraphics,
-		presentationattributestextcontentelements, graphicelementevents):
-		class externalResourcesRequired(BooleanAttr): pass
-		class class_(ClassListAttr): xmlname = "class"
-		class style(xsc.StyleAttr): pass
-		class x(CoordinatesAttr): pass
-		class y(CoordinatesAttr): pass
-		class dx(LengthAttr): pass
-		class dy(LengthAttr): pass
-		class rotate(NumbersAttr): pass
-		class textLength(LengthAttr): pass
-		class lengthAdjust(xsc.TextAttr): values = ("spacing", "spacingAndGlyphs")
+class to(xsc.Element.Attrs):
+	class to(xsc.TextAttr): pass
 
 
-class textPath(xsc.Element):
-	empty = False
-	class Attrs(stdattrs, testattrs, presentationattributescolor, presentationattributesfillstroke,
-		presentationattributesfontspecification, presentationattributesgraphics,
-		presentationattributestextcontentelements, graphicelementevents):
-		class externalResourcesRequired(BooleanAttr): pass
-		class class_(ClassListAttr): xmlname = "class"
-		class style(xsc.StyleAttr): pass
-		class startOffset(LengthAttr): pass
-		class textLength(LengthAttr): pass
-		class lengthAdjust(xsc.TextAttr): values = ("spacing", "spacingAndGlyphs")
-		class method(xsc.TextAttr): values = ("align", "stretch")
-		class spacing(xsc.TextAttr): values = ("auto", "exact")
+class values(xsc.Element.Attrs):
+	class values(xsc.TextAttr): pass
+
+
+class cx(xsc.Element.Attrs):
+	class cx(xsc.TextAttr): pass
+
+
+class cy(xsc.Element.Attrs):
+	class cy(xsc.TextAttr): pass
+
+
+class height(xsc.Element.Attrs):
+	class height(xsc.TextAttr): pass
+
+
+class in_(xsc.Element.Attrs):
+	class in_(xsc.TextAttr): xmlname = "in"
+
+
+class in2(xsc.Element.Attrs):
+	class in2(xsc.TextAttr): required = True
+
+
+class result(xsc.Element.Attrs):
+	class result(xsc.TextAttr): pass
+
+
+class width(xsc.Element.Attrs):
+	class width(xsc.TextAttr): pass
+
+
+class kernelUnitLength(xsc.Element.Attrs):
+	class kernelUnitLength(xsc.TextAttr): pass
+
+
+class surfaceScale(xsc.Element.Attrs):
+	class surfaceScale(xsc.TextAttr): pass
+
+
+class amplitude(xsc.Element.Attrs):
+	class amplitude(xsc.TextAttr): pass
+
+
+class exponent(xsc.Element.Attrs):
+	class exponent(xsc.TextAttr): pass
+
+
+class intercept(xsc.Element.Attrs):
+	class intercept(xsc.TextAttr): pass
+
+
+class offset(xsc.Element.Attrs):
+	class offset(xsc.TextAttr): pass
+
+
+class slope(xsc.Element.Attrs):
+	class slope(xsc.TextAttr): pass
+
+
+class tableValues(xsc.Element.Attrs):
+	class tableValues(xsc.TextAttr): pass
+
+
+class type(xsc.Element.Attrs):
+	class type(xsc.TextAttr):
+		values = ("identity", "table", "discrete", "linear", "gamma")
+		required = True
+
+
+class preserveAspectRatio(xsc.Element.Attrs):
+	class preserveAspectRatio(xsc.TextAttr): pass
+
+
+class z(xsc.Element.Attrs):
+	class z(xsc.TextAttr): pass
+
+
+class specularExponent(xsc.Element.Attrs):
+	class specularExponent(xsc.TextAttr): pass
+
+
+class vert_adv_y(xsc.Element.Attrs):
+	class vert_adv_y(xsc.TextAttr): xmlname = "vert-adv-y"
+
+
+class vert_origin_x(xsc.Element.Attrs):
+	class vert_origin_x(xsc.TextAttr): xmlname = "vert-origin-x"
+
+
+class vert_origin_y(xsc.Element.Attrs):
+	class vert_origin_y(xsc.TextAttr): xmlname = "vert-origin-y"
+
+
+class height2(xsc.Element.Attrs):
+	class height(xsc.TextAttr): required = True
+
+
+class width2(xsc.Element.Attrs):
+	class width(xsc.TextAttr): required = True
+
+
+class d(xsc.Element.Attrs):
+	class d(xsc.TextAttr): pass
+
+
+class horiz_adv_x(xsc.Element.Attrs):
+	class horiz_adv_x(xsc.TextAttr): xmlname = "horiz-adv-x"
+
+
+class g1(xsc.Element.Attrs):
+	class g1(xsc.TextAttr): pass
+
+
+class g2(xsc.Element.Attrs):
+	class g2(xsc.TextAttr): pass
+
+
+class k(xsc.Element.Attrs):
+	class k(xsc.TextAttr): required = True
+
+
+class u1(xsc.Element.Attrs):
+	class u1(xsc.TextAttr): pass
+
+
+class u2(xsc.Element.Attrs):
+	class u2(xsc.TextAttr): pass
+
+
+class x1(xsc.Element.Attrs):
+	class x1(xsc.TextAttr): pass
+
+
+class x2(xsc.Element.Attrs):
+	class x2(xsc.TextAttr): pass
+
+
+class y1(xsc.Element.Attrs):
+	class y1(xsc.TextAttr): pass
+
+
+class y2(xsc.Element.Attrs):
+	class y2(xsc.TextAttr): pass
+
+
+class gradientTransform(xsc.Element.Attrs):
+	class gradientTransform(xsc.TextAttr): pass
+
+
+class gradientUnits(xsc.Element.Attrs):
+	class gradientUnits(xsc.TextAttr): values = ("userSpaceOnUse", "objectBoundingBox")
+
+
+class spreadMethod(xsc.Element.Attrs):
+	class spreadMethod(xsc.TextAttr): values = ("pad", "reflect", "repeat")
+
+
+class viewBox(xsc.Element.Attrs):
+	class viewBox(xsc.TextAttr): pass
+
+
+class points(xsc.Element.Attrs):
+	class points(xsc.TextAttr): required = True
+
+
+class type2(xsc.Element.Attrs):
+	class type(xsc.TextAttr): required = True
+
+
+class zoomAndPan(xsc.Element.Attrs):
+	class zoomAndPan(xsc.TextAttr): values = ("disable", "magnify")
+
+
+class lengthAdjust(xsc.Element.Attrs):
+	class lengthAdjust(xsc.TextAttr): values = ("spacing", "spacingAndGlyphs")
+
+
+class textLength(xsc.Element.Attrs):
+	class textLength(xsc.TextAttr): pass
+
+
+class a(xsc.Element):
+	class Attrs(alignment_baseline, baseline_shift, class_, clip, clip_path, clip_rule, color, color_interpolation, color_interpolation_filters, color_profile2, color_rendering, cursor2, direction, display, dominant_baseline, enable_background, externalResourcesRequired, fill, fill_opacity, fill_rule, filter2, flood_color, flood_opacity, font_family, font_size, font_size_adjust, font_stretch, font_style, font_variant, font_weight, glyph_orientation_horizontal, glyph_orientation_vertical, id, image_rendering, kerning, letter_spacing, lighting_color, marker_end, marker_mid, marker_start, mask2, onactivate, onclick, onfocusin, onfocusout, onload, onmousedown, onmousemove, onmouseout, onmouseover, onmouseup, opacity, overflow, pointer_events, requiredExtensions, requiredFeatures, shape_rendering, stop_color, stop_opacity, stroke, stroke_dasharray, stroke_dashoffset, stroke_linecap, stroke_linejoin, stroke_miterlimit, stroke_opacity, stroke_width, style2, systemLanguage, text_anchor, text_decoration, text_rendering, transform, unicode_bidi, visibility, word_spacing, writing_mode):
+		class target(xsc.TextAttr): pass
 
 
 class altGlyph(xsc.Element):
-	empty = False
-	class Attrs(stdattrs, testattrs, presentationattributescolor, presentationattributesfillstroke,
-		presentationattributesfontspecification, presentationattributesgraphics,
-		presentationattributestextcontentelements, graphicelementevents):
-		class glyphRef(xsc.TextAttr): pass
-		class format(xsc.TextAttr): pass
-		class externalResourcesRequired(BooleanAttr): pass
-		class class_(ClassListAttr): xmlname = "class"
-		class style(xsc.StyleAttr): pass
-		class x(CoordinatesAttr): pass
-		class y(CoordinatesAttr): pass
-		class dx(LengthAttr): pass
-		class dy(LengthAttr): pass
-		class rotate(NumbersAttr): pass
+	class Attrs(alignment_baseline, baseline_shift, class_, clip_path, clip_rule, color, color_interpolation, color_rendering, cursor2, direction, display, dominant_baseline, dx, dy, externalResourcesRequired, fill, fill_opacity, fill_rule, filter2, font_family, font_size, font_size_adjust, font_stretch, font_style, font_variant, font_weight, format, glyph_orientation_horizontal, glyph_orientation_vertical, glyphRef2, id, image_rendering, kerning, letter_spacing, mask2, onactivate, onclick, onfocusin, onfocusout, onload, onmousedown, onmousemove, onmouseout, onmouseover, onmouseup, opacity, pointer_events, requiredExtensions, requiredFeatures, rotate, shape_rendering, stroke, stroke_dasharray, stroke_dashoffset, stroke_linecap, stroke_linejoin, stroke_miterlimit, stroke_opacity, stroke_width, style2, systemLanguage, text_anchor, text_decoration, text_rendering, unicode_bidi, visibility, word_spacing, x, y):
+		pass
 
 
 class altGlyphDef(xsc.Element):
-	empty = False
-	class Attrs(stdattrs):
+	class Attrs(id):
 		pass
 
 
 class altGlyphItem(xsc.Element):
-	empty = False
-	class Attrs(stdattrs):
+	class Attrs(id):
 		pass
 
 
-class glyphRef(xsc.Element):
-	empty = True
-	class Attrs(stdattrs, presentationattributesfontspecification):
-		class class_(ClassListAttr): xmlname = "class"
-		class style(xsc.StyleAttr): pass
-		class glyphRef(xsc.TextAttr): pass
-		class format(xsc.TextAttr): pass
-		class x(NumberAttr): pass
-		class y(NumberAttr): pass
-		class dx(NumberAttr): pass
-		class dy(NumberAttr): pass
+class animate(xsc.Element):
+	class Attrs(accumulate, additive, attributeName, attributeType, begin, by, calcMode, dur, end, externalResourcesRequired, fill2, from_, id, keySplines, keyTimes, max, min, onbegin, onend, onload, onrepeat, repeatCount, repeatDur, requiredExtensions, requiredFeatures, restart, systemLanguage, to, values):
+		pass
 
 
-class marker(xsc.Element):
-	empty = False
-	class Attrs(stdattrs, presentationattributesall):
-		class externalResourcesRequired(BooleanAttr): pass
-		class class_(ClassListAttr): xmlname = "class"
-		class style(xsc.StyleAttr): pass
-		class viewBox(ViewBoxSpecAttr): pass
-		class preserveAspectRatio(PreserveAspectRatioSpecAttr): pass
-		class refX(CoordinateAttr): pass
-		class refY(CoordinateAttr): pass
-		class markerUnits(xsc.TextAttr): values = ("strokeWidth", "userSpaceOnUse")
-		class markerWidth(LengthAttr): pass
-		class markerHeight(LengthAttr): pass
-		class orient(xsc.TextAttr): pass
+class animateColor(xsc.Element):
+	class Attrs(accumulate, additive, attributeName, attributeType, begin, by, calcMode, dur, end, externalResourcesRequired, fill2, from_, id, keySplines, keyTimes, max, min, onbegin, onend, onload, onrepeat, repeatCount, repeatDur, requiredExtensions, requiredFeatures, restart, systemLanguage, to, values):
+		pass
+
+
+class animateMotion(xsc.Element):
+	class Attrs(accumulate, additive, begin, by, dur, end, externalResourcesRequired, fill2, from_, id, keySplines, keyTimes, max, min, onbegin, onend, onload, onrepeat, repeatCount, repeatDur, requiredExtensions, requiredFeatures, restart, rotate, systemLanguage, to, values):
+		class calcMode(xsc.TextAttr): values = ("discrete", "linear", "paced", "spline")
+		class keyPoints(xsc.TextAttr): pass
+		class origin(xsc.TextAttr): pass
+		class path(xsc.TextAttr): pass
+
+
+class animateTransform(xsc.Element):
+	class Attrs(accumulate, additive, attributeName, attributeType, begin, by, calcMode, dur, end, externalResourcesRequired, fill2, from_, id, keySplines, keyTimes, max, min, onbegin, onend, onload, onrepeat, repeatCount, repeatDur, requiredExtensions, requiredFeatures, restart, systemLanguage, to, values):
+		class type(xsc.TextAttr): values = ("translate", "scale", "rotate", "skewX", "skewY")
+
+
+class circle(xsc.Element):
+	class Attrs(class_, clip_path, clip_rule, color, color_interpolation, color_rendering, cursor2, cx, cy, display, externalResourcesRequired, fill, fill_opacity, fill_rule, filter2, id, image_rendering, mask2, onactivate, onclick, onfocusin, onfocusout, onload, onmousedown, onmousemove, onmouseout, onmouseover, onmouseup, opacity, pointer_events, requiredExtensions, requiredFeatures, shape_rendering, stroke, stroke_dasharray, stroke_dashoffset, stroke_linecap, stroke_linejoin, stroke_miterlimit, stroke_opacity, stroke_width, style2, systemLanguage, text_rendering, transform, visibility):
+		class r(xsc.TextAttr): required = True
+
+
+class clipPath(xsc.Element):
+	class Attrs(alignment_baseline, baseline_shift, class_, clip_path, clip_rule, color, color_interpolation, color_rendering, cursor2, direction, display, dominant_baseline, externalResourcesRequired, fill, fill_opacity, fill_rule, filter2, font_family, font_size, font_size_adjust, font_stretch, font_style, font_variant, font_weight, glyph_orientation_horizontal, glyph_orientation_vertical, id, image_rendering, kerning, letter_spacing, mask2, opacity, pointer_events, requiredExtensions, requiredFeatures, shape_rendering, stroke, stroke_dasharray, stroke_dashoffset, stroke_linecap, stroke_linejoin, stroke_miterlimit, stroke_opacity, stroke_width, style2, systemLanguage, text_anchor, text_decoration, text_rendering, transform, unicode_bidi, visibility, word_spacing, writing_mode):
+		class clipPathUnits(xsc.TextAttr): values = ("userSpaceOnUse", "objectBoundingBox")
 
 
 class color_profile(xsc.Element):
 	xmlname = "color-profile"
-	empty = False
-	class Attrs(stdattrs):
+	class Attrs(id):
 		class local(xsc.TextAttr): pass
 		class name(xsc.TextAttr): required = True
 		class rendering_intent(xsc.TextAttr):
@@ -690,553 +718,533 @@ class color_profile(xsc.Element):
 			values = ("auto", "perceptual", "relative-colorimetric", "saturation", "absolute-colorimetric")
 
 
-class linearGradient(xsc.Element):
-	empty = False
-	class Attrs(stdattrs, presentationattributescolor, presentationattributesgradients):
-		class externalResourcesRequired(BooleanAttr): pass
-		class class_(ClassListAttr): xmlname = "class"
-		class style(xsc.StyleAttr): pass
-		class gradientUnits(xsc.TextAttr): values = ("userSpaceOnUse", "objectBoundingBox")
-		class gradientTransform(TransformListAttr): pass
-		class x1(CoordinateAttr): pass
-		class y1(CoordinateAttr): pass
-		class x2(CoordinateAttr): pass
-		class y2(CoordinateAttr): pass
-		class spreadMethod(xsc.TextAttr): values = ("pad", "reflect", "repeat")
+class cursor(xsc.Element):
+	class Attrs(externalResourcesRequired, id, requiredExtensions, requiredFeatures, systemLanguage, x, y):
+		pass
 
 
-class radialGradient(xsc.Element):
-	empty = False
-	class Attrs(stdattrs, presentationattributescolor, presentationattributesgradients):
-		class externalResourcesRequired(BooleanAttr): pass
-		class class_(ClassListAttr): xmlname = "class"
-		class style(xsc.StyleAttr): pass
-		class gradientUnits(xsc.TextAttr): values = ("userSpaceOnUse", "objectBoundingBox")
-		class gradientTransform(TransformListAttr): pass
-		class cx(CoordinateAttr): pass
-		class cy(CoordinateAttr): pass
-		class r(LengthAttr): pass
-		class fx(CoordinateAttr): pass
-		class fy(CoordinateAttr): pass
-		class spreadMethod(xsc.TextAttr): values = ("pad", "reflect", "repeat")
+class definition_src(xsc.Element):
+	xmlname = "definition-src"
+	class Attrs(id):
+		pass
 
 
-class stop(xsc.Element):
-	empty = False
-	class Attrs(stdattrs, presentationattributescolor, presentationattributesgradients):
-		class class_(ClassListAttr): xmlname = "class"
-		class style(xsc.StyleAttr): pass
-		class offset(NumberOrPercentageAttr): required = True
+class defs(xsc.Element):
+	class Attrs(alignment_baseline, baseline_shift, class_, clip, clip_path, clip_rule, color, color_interpolation, color_interpolation_filters, color_profile2, color_rendering, cursor2, direction, display, dominant_baseline, enable_background, externalResourcesRequired, fill, fill_opacity, fill_rule, filter2, flood_color, flood_opacity, font_family, font_size, font_size_adjust, font_stretch, font_style, font_variant, font_weight, glyph_orientation_horizontal, glyph_orientation_vertical, id, image_rendering, kerning, letter_spacing, lighting_color, marker_end, marker_mid, marker_start, mask2, onactivate, onclick, onfocusin, onfocusout, onload, onmousedown, onmousemove, onmouseout, onmouseover, onmouseup, opacity, overflow, pointer_events, requiredExtensions, requiredFeatures, shape_rendering, stop_color, stop_opacity, stroke, stroke_dasharray, stroke_dashoffset, stroke_linecap, stroke_linejoin, stroke_miterlimit, stroke_opacity, stroke_width, style2, systemLanguage, text_anchor, text_decoration, text_rendering, transform, unicode_bidi, visibility, word_spacing, writing_mode):
+		pass
 
 
-class pattern(xsc.Element):
-	empty = False
-	class Attrs(stdattrs, testattrs, presentationattributesall):
-		class externalResourcesRequired(BooleanAttr): pass
-		class class_(ClassListAttr): xmlname = "class"
-		class style(xsc.StyleAttr): pass
-		class viewBox(ViewBoxSpecAttr): pass
-		class preserveAspectRatio(PreserveAspectRatioSpecAttr): pass
-		class patternUnits(xsc.TextAttr): values = ("userSpaceOnUse", "objectBoundingBox")
-		class patternContentUnits(xsc.TextAttr): values = ("userSpaceOnUse", "objectBoundingBox")
-		class patternTransform(TransformListAttr): pass
-		class x(CoordinateAttr): pass
-		class y(CoordinateAttr): pass
-		class width(LengthAttr): pass
-		class height(LengthAttr): pass
+class desc(xsc.Element):
+	class Attrs(class_, id, style2):
+		pass
 
 
-class clipPath(xsc.Element):
-	empty = False
-	class Attrs(stdattrs, testattrs, presentationattributescolor, presentationattributesfillstroke,
-		presentationattributesfontspecification, presentationattributesgraphics,
-		presentationattributestextcontentelements, presentationattributestextelements):
-		class externalResourcesRequired(BooleanAttr): pass
-		class class_(ClassListAttr): xmlname = "class"
-		class style(xsc.StyleAttr): pass
-		class transform(TransformListAttr): pass
-		class clipPathUnits(xsc.TextAttr): values = ("userSpaceOnUse", "objectBoundingBox")
-
-
-class mask(xsc.Element):
-	empty = False
-	class Attrs(stdattrs, testattrs, presentationattributesall):
-		class externalResourcesRequired(BooleanAttr): pass
-		class class_(ClassListAttr): xmlname = "class"
-		class style(xsc.StyleAttr): pass
-		class maskUnits(xsc.TextAttr): values = ("userSpaceOnUse", "objectBoundingBox")
-		class maskContentUnits(xsc.TextAttr): values = ("userSpaceOnUse", "objectBoundingBox")
-		class x(CoordinateAttr): pass
-		class y(CoordinateAttr): pass
-		class width(LengthAttr): pass
-		class height(LengthAttr): pass
-
-
-class filter(xsc.Element):
-	empty = False
-	class Attrs(stdattrs, presentationattributesall):
-		class externalResourcesRequired(BooleanAttr): pass
-		class class_(ClassListAttr): xmlname = "class"
-		class style(xsc.StyleAttr): pass
-		class filterUnits(xsc.TextAttr): values = ("userSpaceOnUse", "objectBoundingBox")
-		class primitiveUnits(xsc.TextAttr): values = ("userSpaceOnUse", "objectBoundingBox")
-		class x(CoordinateAttr): pass
-		class y(CoordinateAttr): pass
-		class width(LengthAttr): pass
-		class height(LengthAttr): pass
-		class filterRes(NumberOptionalNumberAttr): pass
-
-
-class filter(xsc.Element):
-	empty = False
-	class Attrs(stdattrs, presentationattributesall):
-		class externalResourcesRequired(BooleanAttr): pass
-		class class_(ClassListAttr): xmlname = "class"
-		class style(xsc.StyleAttr): pass
-		class filterUnits(xsc.TextAttr): values = ("userSpaceOnUse", "objectBoundingBox")
-		class primitiveUnits(xsc.TextAttr): values = ("userSpaceOnUse", "objectBoundingBox")
-		class x(CoordinateAttr): pass
-		class y(CoordinateAttr): pass
-		class width(LengthAttr): pass
-		class height(LengthAttr): pass
-		class filterRes(NumberOptionalNumberAttr): pass
-
-
-class feDistantLight(xsc.Element):
-	empty = False
-	class Attrs(stdattrs):
-		class azimuth(NumberAttr): pass
-		class elevation(NumberAttr): pass
-
-
-class fePointLight(xsc.Element):
-	empty = False
-	class Attrs(stdattrs):
-		class x(NumberAttr): pass
-		class y(NumberAttr): pass
-		class z(NumberAttr): pass
-
-
-class feSpotLight(xsc.Element):
-	empty = False
-	class Attrs(stdattrs):
-		class x(NumberAttr): pass
-		class y(NumberAttr): pass
-		class z(NumberAttr): pass
-		class pointsAtX(NumberAttr): pass
-		class pointsAtY(NumberAttr): pass
-		class pointsAtZ(NumberAttr): pass
-		class specularExponent(NumberAttr): pass
-		class limitingConeAngle(NumberAttr): pass
+class ellipse(xsc.Element):
+	class Attrs(class_, clip_path, clip_rule, color, color_interpolation, color_rendering, cursor2, cx, cy, display, externalResourcesRequired, fill, fill_opacity, fill_rule, filter2, id, image_rendering, mask2, onactivate, onclick, onfocusin, onfocusout, onload, onmousedown, onmousemove, onmouseout, onmouseover, onmouseup, opacity, pointer_events, requiredExtensions, requiredFeatures, shape_rendering, stroke, stroke_dasharray, stroke_dashoffset, stroke_linecap, stroke_linejoin, stroke_miterlimit, stroke_opacity, stroke_width, style2, systemLanguage, text_rendering, transform, visibility):
+		class rx(xsc.TextAttr): required = True
+		class ry(xsc.TextAttr): required = True
 
 
 class feBlend(xsc.Element):
-	empty = False
-	class Attrs(stdattrs, presentationattributesfilterprimitives, filterprimitiveattributeswithin):
-		class in2(xsc.TextAttr): required = True
+	class Attrs(color_interpolation_filters, height, id, in_, in2, result, width, x, y):
 		class mode(xsc.TextAttr): values = ("normal", "multiply", "screen", "darken", "lighten")
 
 
 class feColorMatrix(xsc.Element):
-	empty = False
-	class Attrs(stdattrs, presentationattributesfilterprimitives, filterprimitiveattributeswithin):
+	class Attrs(color_interpolation_filters, height, id, in_, result, values, width, x, y):
 		class type(xsc.TextAttr): values = ("matrix", "saturate", "hueRotate", "luminanceToAlpha")
-		class values(xsc.TextAttr): pass
 
 
 class feComponentTransfer(xsc.Element):
-	empty = False
-	class Attrs(stdattrs, presentationattributesfilterprimitives, filterprimitiveattributeswithin):
-		pass
-
-
-class feFuncR(xsc.Element):
-	empty = False
-	class Attrs(stdattrs, componenttransferfunctionattributes):
-		pass
-
-
-class feFuncG(xsc.Element):
-	empty = False
-	class Attrs(stdattrs, componenttransferfunctionattributes):
-		pass
-
-
-class feFuncB(xsc.Element):
-	empty = False
-	class Attrs(stdattrs, componenttransferfunctionattributes):
-		pass
-
-
-class feFuncA(xsc.Element):
-	empty = False
-	class Attrs(stdattrs, componenttransferfunctionattributes):
+	class Attrs(color_interpolation_filters, height, id, in_, result, width, x, y):
 		pass
 
 
 class feComposite(xsc.Element):
-	empty = False
-	class Attrs(stdattrs, presentationattributesfilterprimitives, filterprimitiveattributeswithin):
-		class in2(xsc.TextAttr): required = True
+	class Attrs(color_interpolation_filters, height, id, in_, in2, result, width, x, y):
+		class k1(xsc.TextAttr): pass
+		class k2(xsc.TextAttr): pass
+		class k3(xsc.TextAttr): pass
+		class k4(xsc.TextAttr): pass
 		class operator(xsc.TextAttr): values = ("over", "in", "out", "atop", "xor", "arithmetic")
-		class k1(NumberAttr): pass
-		class k2(NumberAttr): pass
-		class k3(NumberAttr): pass
-		class k4(NumberAttr): pass
 
 
 class feConvolveMatrix(xsc.Element):
-	empty = False
-	class Attrs(stdattrs, presentationattributesfilterprimitives, filterprimitiveattributeswithin):
-		class order(NumberOptionalNumberAttr): required = True
-		class kernelMatrix(xsc.TextAttr): required = True
-		class divisor(NumberAttr): pass
-		class bias(NumberAttr): pass
-		class targetX(xsc.IntAttr): pass
-		class targetY(xsc.IntAttr): pass
+	class Attrs(color_interpolation_filters, height, id, in_, kernelUnitLength, result, width, x, y):
+		class bias(xsc.TextAttr): pass
+		class divisor(xsc.TextAttr): pass
 		class edgeMode(xsc.TextAttr): values = ("duplicate", "wrap", "none")
-		class kernelUnitLength(NumberOptionalNumberAttr): pass
-		class preserveAlpha(BooleanAttr): pass
+		class kernelMatrix(xsc.TextAttr): required = True
+		class order(xsc.TextAttr): required = True
+		class preserveAlpha(xsc.TextAttr): values = ("false", "true")
+		class targetX(xsc.TextAttr): pass
+		class targetY(xsc.TextAttr): pass
 
 
 class feDiffuseLighting(xsc.Element):
-	empty = False
-	class Attrs(stdattrs, presentationattributescolor, presentationattributesfilterprimitives, presentationattributeslightingeffects, filterprimitiveattributeswithin):
-		class class_(ClassListAttr): xmlname = "class"
-		class style(xsc.StyleAttr): pass
-		class surfaceScale(NumberAttr): pass
-		class diffuseConstant(NumberAttr): pass
-		class kernelUnitLength(NumberOptionalNumberAttr): pass
+	class Attrs(class_, color, color_interpolation, color_interpolation_filters, color_rendering, height, id, in_, kernelUnitLength, lighting_color, result, style2, surfaceScale, width, x, y):
+		class diffuseConstant(xsc.TextAttr): pass
 
 
 class feDisplacementMap(xsc.Element):
-	empty = False
-	class Attrs(stdattrs, presentationattributesfilterprimitives, filterprimitiveattributeswithin):
-		class in2(xsc.TextAttr): required = True
-		class scale(NumberAttr): pass
+	class Attrs(color_interpolation_filters, height, id, in_, in2, result, width, x, y):
+		class scale(xsc.TextAttr): pass
 		class xChannelSelector(xsc.TextAttr): values = ("R", "G", "B", "A")
 		class yChannelSelector(xsc.TextAttr): values = ("R", "G", "B", "A")
 
 
+class feDistantLight(xsc.Element):
+	class Attrs(id):
+		class azimuth(xsc.TextAttr): pass
+		class elevation(xsc.TextAttr): pass
+
+
 class feFlood(xsc.Element):
-	empty = False
-	class Attrs(stdattrs, presentationattributescolor, presentationattributesfeflood, presentationattributesfilterprimitives, filterprimitiveattributeswithin):
-		class class_(ClassListAttr): xmlname = "class"
-		class style(xsc.StyleAttr): pass
+	class Attrs(class_, color, color_interpolation, color_interpolation_filters, color_rendering, flood_color, flood_opacity, height, id, in_, result, style2, width, x, y):
+		pass
+
+
+class feFuncA(xsc.Element):
+	class Attrs(amplitude, exponent, id, intercept, offset, slope, tableValues, type):
+		pass
+
+
+class feFuncB(xsc.Element):
+	class Attrs(amplitude, exponent, id, intercept, offset, slope, tableValues, type):
+		pass
+
+
+class feFuncG(xsc.Element):
+	class Attrs(amplitude, exponent, id, intercept, offset, slope, tableValues, type):
+		pass
+
+
+class feFuncR(xsc.Element):
+	class Attrs(amplitude, exponent, id, intercept, offset, slope, tableValues, type):
+		pass
 
 
 class feGaussianBlur(xsc.Element):
-	empty = False
-	class Attrs(stdattrs, presentationattributesfilterprimitives, filterprimitiveattributeswithin):
-		class stdDeviation(NumberOptionalNumberAttr): pass
+	class Attrs(color_interpolation_filters, height, id, in_, result, width, x, y):
+		class stdDeviation(xsc.TextAttr): pass
 
 
 class feImage(xsc.Element):
-	empty = False
-	class Attrs(stdattrs, presentationattributesall, filterprimitiveattributes):
-		class externalResourcesRequired(BooleanAttr): pass
-		class class_(ClassListAttr): xmlname = "class"
-		class style(xsc.StyleAttr): pass
+	class Attrs(alignment_baseline, baseline_shift, class_, clip, clip_path, clip_rule, color, color_interpolation, color_interpolation_filters, color_profile2, color_rendering, cursor2, direction, display, dominant_baseline, enable_background, externalResourcesRequired, fill, fill_opacity, fill_rule, filter2, flood_color, flood_opacity, font_family, font_size, font_size_adjust, font_stretch, font_style, font_variant, font_weight, glyph_orientation_horizontal, glyph_orientation_vertical, height, id, image_rendering, kerning, letter_spacing, lighting_color, marker_end, marker_mid, marker_start, mask2, opacity, overflow, pointer_events, preserveAspectRatio, result, shape_rendering, stop_color, stop_opacity, stroke, stroke_dasharray, stroke_dashoffset, stroke_linecap, stroke_linejoin, stroke_miterlimit, stroke_opacity, stroke_width, style2, text_anchor, text_decoration, text_rendering, unicode_bidi, visibility, width, word_spacing, writing_mode, x, y):
+		pass
 
 
 class feMerge(xsc.Element):
-	empty = False
-	class Attrs(stdattrs, presentationattributesfilterprimitives, filterprimitiveattributes):
+	class Attrs(color_interpolation_filters, height, id, result, width, x, y):
 		pass
 
 
 class feMergeNode(xsc.Element):
-	empty = False
-	class Attrs(stdattrs):
-		class in_(xsc.TextAttr): xmlname = "in"
+	class Attrs(id, in_):
+		pass
 
 
 class feMorphology(xsc.Element):
-	empty = False
-	class Attrs(stdattrs, presentationattributesfilterprimitives, filterprimitiveattributeswithin):
+	class Attrs(color_interpolation_filters, height, id, in_, result, width, x, y):
 		class operator(xsc.TextAttr): values = ("erode", "dilate")
-		class radius(NumberOptionalNumberAttr): pass
+		class radius(xsc.TextAttr): pass
 
 
 class feOffset(xsc.Element):
-	empty = False
-	class Attrs(stdattrs, presentationattributesfilterprimitives, filterprimitiveattributeswithin):
-		class dx(NumberAttr): pass
-		class dy(NumberAttr): pass
+	class Attrs(color_interpolation_filters, dx, dy, height, id, in_, result, width, x, y):
+		pass
+
+
+class fePointLight(xsc.Element):
+	class Attrs(id, x, y, z):
+		pass
 
 
 class feSpecularLighting(xsc.Element):
-	empty = False
-	class Attrs(stdattrs, presentationattributescolor, presentationattributesfilterprimitives, presentationattributeslightingeffects, filterprimitiveattributeswithin):
-		class class_(ClassListAttr): xmlname = "class"
-		class style(xsc.StyleAttr): pass
-		class surfaceScale(NumberAttr): pass
-		class specularConstant(NumberAttr): pass
-		class specularExponent(NumberAttr): pass
-		class kernelUnitLength(NumberOptionalNumberAttr): pass
+	class Attrs(class_, color, color_interpolation, color_interpolation_filters, color_rendering, height, id, in_, kernelUnitLength, lighting_color, result, specularExponent, style2, surfaceScale, width, x, y):
+		class specularConstant(xsc.TextAttr): pass
+
+
+class feSpotLight(xsc.Element):
+	class Attrs(id, specularExponent, x, y, z):
+		class limitingConeAngle(xsc.TextAttr): pass
+		class pointsAtX(xsc.TextAttr): pass
+		class pointsAtY(xsc.TextAttr): pass
+		class pointsAtZ(xsc.TextAttr): pass
 
 
 class feTile(xsc.Element):
-	empty = False
-	class Attrs(stdattrs, presentationattributesfilterprimitives, filterprimitiveattributeswithin):
+	class Attrs(color_interpolation_filters, height, id, in_, result, width, x, y):
 		pass
 
 
 class feTurbulence(xsc.Element):
-	empty = False
-	class Attrs(stdattrs, presentationattributesfilterprimitives, filterprimitiveattributes):
-		class baseFrequency(NumberOptionalNumberAttr): pass
-		class numOctaves(xsc.IntAttr): pass
-		class seed(NumberAttr): pass
+	class Attrs(color_interpolation_filters, height, id, result, width, x, y):
+		class baseFrequency(xsc.TextAttr): pass
+		class numOctaves(xsc.TextAttr): pass
+		class seed(xsc.TextAttr): pass
 		class stitchTiles(xsc.TextAttr): values = ("stitch", "noStitch")
 		class type(xsc.TextAttr): values = ("fractalNoise", "turbulence")
 
 
-class cursor(xsc.Element):
-	empty = False
-	class Attrs(stdattrs, testattrs):
-		class externalResourcesRequired(BooleanAttr): pass
-		class x(CoordinateAttr): pass
-		class y(CoordinateAttr): pass
-
-
-class a(xsc.Element):
-	empty = False
-	class Attrs(stdattrs, testattrs, presentationattributesall, graphicelementevents):
-		class externalResourcesRequired(BooleanAttr): pass
-		class class_(ClassListAttr): xmlname = "class"
-		class style(xsc.StyleAttr): pass
-		class transform(TransformListAttr): pass
-		class target(LinkTargetAttr): pass
-
-
-class view(xsc.Element):
-	empty = False
-	class Attrs(stdattrs):
-		class externalResourcesRequired(BooleanAttr): pass
-		class viewBox(ViewBoxSpecAttr): pass
-		class preserveAspectRatio(PreserveAspectRatioSpecAttr): pass
-		class zoomAndPan(xsc.TextAttr): values = ("disable", "magnify")
-		class viewTarget(xsc.TextAttr): pass
-
-
-class script(xsc.Element):
-	empty = False
-	class Attrs(stdattrs):
-		class externalResourcesRequired(BooleanAttr): pass
-		class type(ContentTypeAttr): required = True
-
-
-class animate(xsc.Element):
-	empty = False
-	class Attrs(stdattrs, testattrs, animationevents, animattributeattrs, animtimingattrs, animvalueattrs, animadditionattrs):
-		class externalResourcesRequired(BooleanAttr): pass
-
-
-class set(xsc.Element):
-	empty = False
-	class Attrs(stdattrs, testattrs, animationevents, animattributeattrs, animtimingattrs):
-		class externalResourcesRequired(BooleanAttr): pass
-		class to(xsc.TextAttr): pass
-
-
-class animateMotion(xsc.Element):
-	empty = False
-	class Attrs(stdattrs, testattrs, animationevents, animtimingattrs, animadditionattrs):
-		class externalResourcesRequired(BooleanAttr): pass
-		class calcMode(xsc.TextAttr): values = ("discrete", "linear", "paced", "spline")
-		class values(xsc.TextAttr): pass
-		class keyTimes(xsc.TextAttr): pass
-		class keySplines(xsc.TextAttr): pass
-		class from_(xsc.TextAttr): xmlname = "from"
-		class to(xsc.TextAttr): pass
-		class by(xsc.TextAttr): pass
-		class path(xsc.TextAttr): pass
-		class keyPoints(xsc.TextAttr): pass
-		class rotate(xsc.TextAttr): pass
-		class origin(xsc.TextAttr): pass
-
-
-class mpath(xsc.Element):
-	empty = False
-	class Attrs(stdattrs):
-		class externalResourcesRequired(BooleanAttr): pass
-
-
-class animateColor(xsc.Element):
-	empty = False
-	class Attrs(stdattrs, testattrs, animationevents, animattributeattrs, animtimingattrs, animvalueattrs, animadditionattrs):
-		class externalResourcesRequired(BooleanAttr): pass
-
-
-class animateTransform(xsc.Element):
-	empty = False
-	class Attrs(stdattrs, testattrs, animationevents, animattributeattrs, animtimingattrs, animvalueattrs, animadditionattrs):
-		class externalResourcesRequired(BooleanAttr): pass
-		class type(xsc.TextAttr): values = ("translate", "scale", "rotate", "skewX", "skewY")
+class filter(xsc.Element):
+	class Attrs(alignment_baseline, baseline_shift, class_, clip, clip_path, clip_rule, color, color_interpolation, color_interpolation_filters, color_profile2, color_rendering, cursor2, direction, display, dominant_baseline, enable_background, externalResourcesRequired, fill, fill_opacity, fill_rule, filter2, flood_color, flood_opacity, font_family, font_size, font_size_adjust, font_stretch, font_style, font_variant, font_weight, glyph_orientation_horizontal, glyph_orientation_vertical, height, id, image_rendering, kerning, letter_spacing, lighting_color, marker_end, marker_mid, marker_start, mask2, opacity, overflow, pointer_events, shape_rendering, stop_color, stop_opacity, stroke, stroke_dasharray, stroke_dashoffset, stroke_linecap, stroke_linejoin, stroke_miterlimit, stroke_opacity, stroke_width, style2, text_anchor, text_decoration, text_rendering, unicode_bidi, visibility, width, word_spacing, writing_mode, x, y):
+		class filterRes(xsc.TextAttr): pass
+		class filterUnits(xsc.TextAttr): values = ("userSpaceOnUse", "objectBoundingBox")
+		class primitiveUnits(xsc.TextAttr): values = ("userSpaceOnUse", "objectBoundingBox")
 
 
 class font(xsc.Element):
-	empty = False
-	class Attrs(stdattrs, presentationattributesall):
-		class externalResourcesRequired(BooleanAttr): pass
-		class class_(ClassListAttr): xmlname = "class"
-		class style(xsc.StyleAttr): pass
-		class horiz_origin_x(NumberAttr): xmlname = "horiz-origin-x"
-		class horiz_origin_y(NumberAttr): xmlname = "horiz-origin-y"
-		class horiz_adv_x(NumberAttr):
+	class Attrs(alignment_baseline, baseline_shift, class_, clip, clip_path, clip_rule, color, color_interpolation, color_interpolation_filters, color_profile2, color_rendering, cursor2, direction, display, dominant_baseline, enable_background, externalResourcesRequired, fill, fill_opacity, fill_rule, filter2, flood_color, flood_opacity, font_family, font_size, font_size_adjust, font_stretch, font_style, font_variant, font_weight, glyph_orientation_horizontal, glyph_orientation_vertical, id, image_rendering, kerning, letter_spacing, lighting_color, marker_end, marker_mid, marker_start, mask2, opacity, overflow, pointer_events, shape_rendering, stop_color, stop_opacity, stroke, stroke_dasharray, stroke_dashoffset, stroke_linecap, stroke_linejoin, stroke_miterlimit, stroke_opacity, stroke_width, style2, text_anchor, text_decoration, text_rendering, unicode_bidi, vert_adv_y, vert_origin_x, vert_origin_y, visibility, word_spacing, writing_mode):
+		class horiz_adv_x(xsc.TextAttr):
 			xmlname = "horiz-adv-x"
 			required = True
-		class vert_origin_x(NumberAttr): xmlname = "vert-origin-x"
-		class vert_origin_y(NumberAttr): xmlname = "vert-origin-y"
-		class vert_adv_y(NumberAttr): xmlname = "vert-adv-y"
-
-
-class glyph(xsc.Element):
-	empty = False
-	class Attrs(stdattrs, presentationattributesall):
-		class class_(ClassListAttr): xmlname = "class"
-		class style(xsc.StyleAttr): pass
-		class unicode(xsc.TextAttr): pass
-		class glyph_name(xsc.TextAttr): xmlname = "glyph-name"
-		class d(PathDataAttr): pass
-		class orientation(xsc.TextAttr): pass
-		class arabic_form(xsc.TextAttr): xmlname = "arabic-form"
-		class lang(LanguageCodesAttr): pass
-		class horiz_adv_x(NumberAttr): xmlname = "horiz-adv-x"
-		class vert_origin_x(NumberAttr): xmlname = "vert-origin-x"
-		class vert_origin_y(NumberAttr): xmlname = "vert-origin-y"
-		class vert_adv_y(NumberAttr): xmlname = "vert-adv-y"
-
-
-class missing_glyph(xsc.Element):
-	xmlname = "missing-glyph"
-	empty = False
-	class Attrs(stdattrs, presentationattributesall):
-		class class_(ClassListAttr): xmlname = "class"
-		class style(xsc.StyleAttr): pass
-		class d(PathDataAttr): pass
-		class horiz_adv_x(NumberAttr): xmlname = "horiz-adv-x"
-		class vert_origin_x(NumberAttr): xmlname = "vert-origin-x"
-		class vert_origin_y(NumberAttr): xmlname = "vert-origin-y"
-		class vert_adv_y(NumberAttr): xmlname = "vert-adv-y"
-
-
-class hkern(xsc.Element):
-	empty = True
-	class Attrs(stdattrs):
-		class u1(xsc.TextAttr): pass
-		class g1(xsc.TextAttr): pass
-		class u2(xsc.TextAttr): pass
-		class g2(xsc.TextAttr): pass
-		class k(NumberAttr): required = True
-
-
-class vkern(xsc.Element):
-	empty = True
-	class Attrs(stdattrs):
-		class u1(xsc.TextAttr): pass
-		class g1(xsc.TextAttr): pass
-		class u2(xsc.TextAttr): pass
-		class g2(xsc.TextAttr): pass
-		class k(NumberAttr): required = True
+		class horiz_origin_x(xsc.TextAttr): xmlname = "horiz-origin-x"
+		class horiz_origin_y(xsc.TextAttr): xmlname = "horiz-origin-y"
 
 
 class font_face(xsc.Element):
 	xmlname = "font-face"
-	empty = False
-	class Attrs(stdattrs):
-		class font_family(xsc.TextAttr): xmlname = "font-family"
+	class Attrs(font_family, font_size, id, slope):
+		class accent_height(xsc.TextAttr): xmlname = "accent-height"
+		class alphabetic(xsc.TextAttr): pass
+		class ascent(xsc.TextAttr): pass
+		class bbox(xsc.TextAttr): pass
+		class cap_height(xsc.TextAttr): xmlname = "cap-height"
+		class descent(xsc.TextAttr): pass
+		class font_stretch(xsc.TextAttr): xmlname = "font-stretch"
 		class font_style(xsc.TextAttr): xmlname = "font-style"
 		class font_variant(xsc.TextAttr): xmlname = "font-variant"
 		class font_weight(xsc.TextAttr): xmlname = "font-weight"
-		class font_stretch(xsc.TextAttr): xmlname = "font-stretch"
-		class font_size(xsc.TextAttr): xmlname = "font-size"
-		class unicode_range(xsc.TextAttr): xmlname = "unicode-range"
-		class units_per_em(NumberAttr): xmlname = "units-per-em"
+		class hanging(xsc.TextAttr): pass
+		class ideographic(xsc.TextAttr): pass
+		class mathematical(xsc.TextAttr): pass
+		class overline_position(xsc.TextAttr): xmlname = "overline-position"
+		class overline_thickness(xsc.TextAttr): xmlname = "overline-thickness"
 		class panose_1(xsc.TextAttr): xmlname = "panose-1"
-		class stemv(NumberAttr): pass
-		class stemh(NumberAttr): pass
-		class slope(NumberAttr): pass
-		class cap_height(NumberAttr): xmlname = "cap-height"
-		class x_height(NumberAttr): xmlname = "x-height"
-		class accent_height(NumberAttr): xmlname = "accent-height"
-		class ascent(NumberAttr): pass
-		class descent(NumberAttr): pass
+		class stemh(xsc.TextAttr): pass
+		class stemv(xsc.TextAttr): pass
+		class strikethrough_position(xsc.TextAttr): xmlname = "strikethrough-position"
+		class strikethrough_thickness(xsc.TextAttr): xmlname = "strikethrough-thickness"
+		class underline_position(xsc.TextAttr): xmlname = "underline-position"
+		class underline_thickness(xsc.TextAttr): xmlname = "underline-thickness"
+		class unicode_range(xsc.TextAttr): xmlname = "unicode-range"
+		class units_per_em(xsc.TextAttr): xmlname = "units-per-em"
+		class v_alphabetic(xsc.TextAttr): xmlname = "v-alphabetic"
+		class v_hanging(xsc.TextAttr): xmlname = "v-hanging"
+		class v_ideographic(xsc.TextAttr): xmlname = "v-ideographic"
+		class v_mathematical(xsc.TextAttr): xmlname = "v-mathematical"
 		class widths(xsc.TextAttr): pass
-		class bbox(xsc.TextAttr): pass
-		class ideographic(NumberAttr): pass
-		class alphabetic(NumberAttr): pass
-		class mathematical(NumberAttr): pass
-		class hanging(NumberAttr): pass
-		class v_ideographic(NumberAttr): xmlname = "v-ideographic"
-		class v_alphabetic(NumberAttr): xmlname = "v-alphabetic"
-		class v_mathematical(NumberAttr): xmlname = "v-mathematical"
-		class v_hanging(NumberAttr): xmlname = "v-hanging"
-		class underline_position(NumberAttr): xmlname = "underline-position"
-		class underline_thickness(NumberAttr): xmlname = "underline-thickness"
-		class strikethrough_position(NumberAttr): xmlname = "strikethrough-position"
-		class strikethrough_thickness(NumberAttr): xmlname = "strikethrough-thickness"
-		class overline_position(NumberAttr): xmlname = "overline-position"
-		class overline_thickness(NumberAttr): xmlname = "overline-thickness"
-
-
-class font_face_src(xsc.Element):
-	xmlname = "font-face-src"
-	empty = False
-	class Attrs(stdattrs):
-		pass
-
-
-class font_face_uri(xsc.Element):
-	xmlname = "font-face-uri"
-	empty = False
-	class Attrs(stdattrs):
-		pass
+		class x_height(xsc.TextAttr): xmlname = "x-height"
 
 
 class font_face_format(xsc.Element):
 	xmlname = "font-face-format"
-	empty = True
-	class Attrs(stdattrs):
+	class Attrs(id):
 		class string(xsc.TextAttr): pass
 
 
 class font_face_name(xsc.Element):
 	xmlname = "font-face-name"
-	empty = True
-	class Attrs(stdattrs):
+	class Attrs(id):
 		class name(xsc.TextAttr): pass
 
 
-class definition_src(xsc.Element):
-	xmlname = "definition-src"
-	empty = True
-	class Attrs(stdattrs):
+class font_face_src(xsc.Element):
+	xmlname = "font-face-src"
+	class Attrs(id):
 		pass
 
 
-class metadata(xsc.Element):
-	empty = False
-	class Attrs(stdattrs):
+class font_face_uri(xsc.Element):
+	xmlname = "font-face-uri"
+	class Attrs(id):
 		pass
 
 
 class foreignObject(xsc.Element):
-	empty = False
-	class Attrs(stdattrs, testattrs, presentationattributesall, graphicelementevents):
-		class externalResourcesRequired(BooleanAttr): pass
-		class class_(ClassListAttr): xmlname = "class"
-		class style(xsc.StyleAttr): pass
-		class transform(TransformListAttr): pass
-		class x(CoordinateAttr): pass
-		class y(CoordinateAttr): pass
-		class width(LengthAttr): required = True
-		class height(LengthAttr): required = True
-		class content(StructuredTextAttr): pass
+	class Attrs(alignment_baseline, baseline_shift, class_, clip, clip_path, clip_rule, color, color_interpolation, color_interpolation_filters, color_profile2, color_rendering, cursor2, direction, display, dominant_baseline, enable_background, externalResourcesRequired, fill, fill_opacity, fill_rule, filter2, flood_color, flood_opacity, font_family, font_size, font_size_adjust, font_stretch, font_style, font_variant, font_weight, glyph_orientation_horizontal, glyph_orientation_vertical, height2, id, image_rendering, kerning, letter_spacing, lighting_color, marker_end, marker_mid, marker_start, mask2, onactivate, onclick, onfocusin, onfocusout, onload, onmousedown, onmousemove, onmouseout, onmouseover, onmouseup, opacity, overflow, pointer_events, requiredExtensions, requiredFeatures, shape_rendering, stop_color, stop_opacity, stroke, stroke_dasharray, stroke_dashoffset, stroke_linecap, stroke_linejoin, stroke_miterlimit, stroke_opacity, stroke_width, style2, systemLanguage, text_anchor, text_decoration, text_rendering, transform, unicode_bidi, visibility, width2, word_spacing, writing_mode, x, y):
+		pass
+
+
+class g(xsc.Element):
+	class Attrs(alignment_baseline, baseline_shift, class_, clip, clip_path, clip_rule, color, color_interpolation, color_interpolation_filters, color_profile2, color_rendering, cursor2, direction, display, dominant_baseline, enable_background, externalResourcesRequired, fill, fill_opacity, fill_rule, filter2, flood_color, flood_opacity, font_family, font_size, font_size_adjust, font_stretch, font_style, font_variant, font_weight, glyph_orientation_horizontal, glyph_orientation_vertical, id, image_rendering, kerning, letter_spacing, lighting_color, marker_end, marker_mid, marker_start, mask2, onactivate, onclick, onfocusin, onfocusout, onload, onmousedown, onmousemove, onmouseout, onmouseover, onmouseup, opacity, overflow, pointer_events, requiredExtensions, requiredFeatures, shape_rendering, stop_color, stop_opacity, stroke, stroke_dasharray, stroke_dashoffset, stroke_linecap, stroke_linejoin, stroke_miterlimit, stroke_opacity, stroke_width, style2, systemLanguage, text_anchor, text_decoration, text_rendering, transform, unicode_bidi, visibility, word_spacing, writing_mode):
+		pass
+
+
+class glyph(xsc.Element):
+	class Attrs(alignment_baseline, baseline_shift, class_, clip, clip_path, clip_rule, color, color_interpolation, color_interpolation_filters, color_profile2, color_rendering, cursor2, d, direction, display, dominant_baseline, enable_background, fill, fill_opacity, fill_rule, filter2, flood_color, flood_opacity, font_family, font_size, font_size_adjust, font_stretch, font_style, font_variant, font_weight, glyph_orientation_horizontal, glyph_orientation_vertical, horiz_adv_x, id, image_rendering, kerning, letter_spacing, lighting_color, marker_end, marker_mid, marker_start, mask2, opacity, overflow, pointer_events, shape_rendering, stop_color, stop_opacity, stroke, stroke_dasharray, stroke_dashoffset, stroke_linecap, stroke_linejoin, stroke_miterlimit, stroke_opacity, stroke_width, style2, text_anchor, text_decoration, text_rendering, unicode_bidi, vert_adv_y, vert_origin_x, vert_origin_y, visibility, word_spacing, writing_mode):
+		class arabic_form(xsc.TextAttr): xmlname = "arabic-form"
+		class glyph_name(xsc.TextAttr): xmlname = "glyph-name"
+		class lang(xsc.TextAttr): pass
+		class orientation(xsc.TextAttr): pass
+		class unicode(xsc.TextAttr): pass
+
+
+class glyphRef(xsc.Element):
+	class Attrs(class_, dx, dy, font_family, font_size, font_size_adjust, font_stretch, font_style, font_variant, font_weight, format, glyphRef2, id, style2, x, y):
+		pass
+
+
+class hkern(xsc.Element):
+	class Attrs(g1, g2, id, k, u1, u2):
+		pass
+
+
+class image(xsc.Element):
+	class Attrs(class_, clip, clip_path, clip_rule, color, color_interpolation, color_profile2, color_rendering, cursor2, display, externalResourcesRequired, fill_opacity, filter2, height2, id, image_rendering, mask2, onactivate, onclick, onfocusin, onfocusout, onload, onmousedown, onmousemove, onmouseout, onmouseover, onmouseup, opacity, overflow, pointer_events, preserveAspectRatio, requiredExtensions, requiredFeatures, shape_rendering, stroke_opacity, style2, systemLanguage, text_rendering, transform, visibility, width2, x, y):
+		pass
+
+
+class line(xsc.Element):
+	class Attrs(class_, clip_path, clip_rule, color, color_interpolation, color_rendering, cursor2, display, externalResourcesRequired, fill, fill_opacity, fill_rule, filter2, id, image_rendering, marker_end, marker_mid, marker_start, mask2, onactivate, onclick, onfocusin, onfocusout, onload, onmousedown, onmousemove, onmouseout, onmouseover, onmouseup, opacity, pointer_events, requiredExtensions, requiredFeatures, shape_rendering, stroke, stroke_dasharray, stroke_dashoffset, stroke_linecap, stroke_linejoin, stroke_miterlimit, stroke_opacity, stroke_width, style2, systemLanguage, text_rendering, transform, visibility, x1, x2, y1, y2):
+		pass
+
+
+class linearGradient(xsc.Element):
+	class Attrs(class_, color, color_interpolation, color_rendering, externalResourcesRequired, gradientTransform, gradientUnits, id, spreadMethod, stop_color, stop_opacity, style2, x1, x2, y1, y2):
+		pass
+
+
+class marker(xsc.Element):
+	class Attrs(alignment_baseline, baseline_shift, class_, clip, clip_path, clip_rule, color, color_interpolation, color_interpolation_filters, color_profile2, color_rendering, cursor2, direction, display, dominant_baseline, enable_background, externalResourcesRequired, fill, fill_opacity, fill_rule, filter2, flood_color, flood_opacity, font_family, font_size, font_size_adjust, font_stretch, font_style, font_variant, font_weight, glyph_orientation_horizontal, glyph_orientation_vertical, id, image_rendering, kerning, letter_spacing, lighting_color, marker_end, marker_mid, marker_start, mask2, opacity, overflow, pointer_events, preserveAspectRatio, shape_rendering, stop_color, stop_opacity, stroke, stroke_dasharray, stroke_dashoffset, stroke_linecap, stroke_linejoin, stroke_miterlimit, stroke_opacity, stroke_width, style2, text_anchor, text_decoration, text_rendering, unicode_bidi, viewBox, visibility, word_spacing, writing_mode):
+		class markerHeight(xsc.TextAttr): pass
+		class markerUnits(xsc.TextAttr): values = ("strokeWidth", "userSpaceOnUse")
+		class markerWidth(xsc.TextAttr): pass
+		class orient(xsc.TextAttr): pass
+		class refX(xsc.TextAttr): pass
+		class refY(xsc.TextAttr): pass
+
+
+class mask(xsc.Element):
+	class Attrs(alignment_baseline, baseline_shift, class_, clip, clip_path, clip_rule, color, color_interpolation, color_interpolation_filters, color_profile2, color_rendering, cursor2, direction, display, dominant_baseline, enable_background, externalResourcesRequired, fill, fill_opacity, fill_rule, filter2, flood_color, flood_opacity, font_family, font_size, font_size_adjust, font_stretch, font_style, font_variant, font_weight, glyph_orientation_horizontal, glyph_orientation_vertical, height, id, image_rendering, kerning, letter_spacing, lighting_color, marker_end, marker_mid, marker_start, mask2, opacity, overflow, pointer_events, requiredExtensions, requiredFeatures, shape_rendering, stop_color, stop_opacity, stroke, stroke_dasharray, stroke_dashoffset, stroke_linecap, stroke_linejoin, stroke_miterlimit, stroke_opacity, stroke_width, style2, systemLanguage, text_anchor, text_decoration, text_rendering, unicode_bidi, visibility, width, word_spacing, writing_mode, x, y):
+		class maskContentUnits(xsc.TextAttr): values = ("userSpaceOnUse", "objectBoundingBox")
+		class maskUnits(xsc.TextAttr): values = ("userSpaceOnUse", "objectBoundingBox")
+
+
+class metadata(xsc.Element):
+	class Attrs(id):
+		pass
+
+
+class missing_glyph(xsc.Element):
+	xmlname = "missing-glyph"
+	class Attrs(alignment_baseline, baseline_shift, class_, clip, clip_path, clip_rule, color, color_interpolation, color_interpolation_filters, color_profile2, color_rendering, cursor2, d, direction, display, dominant_baseline, enable_background, fill, fill_opacity, fill_rule, filter2, flood_color, flood_opacity, font_family, font_size, font_size_adjust, font_stretch, font_style, font_variant, font_weight, glyph_orientation_horizontal, glyph_orientation_vertical, horiz_adv_x, id, image_rendering, kerning, letter_spacing, lighting_color, marker_end, marker_mid, marker_start, mask2, opacity, overflow, pointer_events, shape_rendering, stop_color, stop_opacity, stroke, stroke_dasharray, stroke_dashoffset, stroke_linecap, stroke_linejoin, stroke_miterlimit, stroke_opacity, stroke_width, style2, text_anchor, text_decoration, text_rendering, unicode_bidi, vert_adv_y, vert_origin_x, vert_origin_y, visibility, word_spacing, writing_mode):
+		pass
+
+
+class mpath(xsc.Element):
+	class Attrs(externalResourcesRequired, id):
+		pass
+
+
+class path(xsc.Element):
+	class Attrs(class_, clip_path, clip_rule, color, color_interpolation, color_rendering, cursor2, display, externalResourcesRequired, fill, fill_opacity, fill_rule, filter2, id, image_rendering, marker_end, marker_mid, marker_start, mask2, onactivate, onclick, onfocusin, onfocusout, onload, onmousedown, onmousemove, onmouseout, onmouseover, onmouseup, opacity, pointer_events, requiredExtensions, requiredFeatures, shape_rendering, stroke, stroke_dasharray, stroke_dashoffset, stroke_linecap, stroke_linejoin, stroke_miterlimit, stroke_opacity, stroke_width, style2, systemLanguage, text_rendering, transform, visibility):
+		class d(xsc.TextAttr): required = True
+		class pathLength(xsc.TextAttr): pass
+
+
+class pattern(xsc.Element):
+	class Attrs(alignment_baseline, baseline_shift, class_, clip, clip_path, clip_rule, color, color_interpolation, color_interpolation_filters, color_profile2, color_rendering, cursor2, direction, display, dominant_baseline, enable_background, externalResourcesRequired, fill, fill_opacity, fill_rule, filter2, flood_color, flood_opacity, font_family, font_size, font_size_adjust, font_stretch, font_style, font_variant, font_weight, glyph_orientation_horizontal, glyph_orientation_vertical, height, id, image_rendering, kerning, letter_spacing, lighting_color, marker_end, marker_mid, marker_start, mask2, opacity, overflow, pointer_events, preserveAspectRatio, requiredExtensions, requiredFeatures, shape_rendering, stop_color, stop_opacity, stroke, stroke_dasharray, stroke_dashoffset, stroke_linecap, stroke_linejoin, stroke_miterlimit, stroke_opacity, stroke_width, style2, systemLanguage, text_anchor, text_decoration, text_rendering, unicode_bidi, viewBox, visibility, width, word_spacing, writing_mode, x, y):
+		class patternContentUnits(xsc.TextAttr): values = ("userSpaceOnUse", "objectBoundingBox")
+		class patternTransform(xsc.TextAttr): pass
+		class patternUnits(xsc.TextAttr): values = ("userSpaceOnUse", "objectBoundingBox")
+
+
+class polygon(xsc.Element):
+	class Attrs(class_, clip_path, clip_rule, color, color_interpolation, color_rendering, cursor2, display, externalResourcesRequired, fill, fill_opacity, fill_rule, filter2, id, image_rendering, marker_end, marker_mid, marker_start, mask2, onactivate, onclick, onfocusin, onfocusout, onload, onmousedown, onmousemove, onmouseout, onmouseover, onmouseup, opacity, pointer_events, points, requiredExtensions, requiredFeatures, shape_rendering, stroke, stroke_dasharray, stroke_dashoffset, stroke_linecap, stroke_linejoin, stroke_miterlimit, stroke_opacity, stroke_width, style2, systemLanguage, text_rendering, transform, visibility):
+		pass
+
+
+class polyline(xsc.Element):
+	class Attrs(class_, clip_path, clip_rule, color, color_interpolation, color_rendering, cursor2, display, externalResourcesRequired, fill, fill_opacity, fill_rule, filter2, id, image_rendering, marker_end, marker_mid, marker_start, mask2, onactivate, onclick, onfocusin, onfocusout, onload, onmousedown, onmousemove, onmouseout, onmouseover, onmouseup, opacity, pointer_events, points, requiredExtensions, requiredFeatures, shape_rendering, stroke, stroke_dasharray, stroke_dashoffset, stroke_linecap, stroke_linejoin, stroke_miterlimit, stroke_opacity, stroke_width, style2, systemLanguage, text_rendering, transform, visibility):
+		pass
+
+
+class radialGradient(xsc.Element):
+	class Attrs(class_, color, color_interpolation, color_rendering, cx, cy, externalResourcesRequired, gradientTransform, gradientUnits, id, spreadMethod, stop_color, stop_opacity, style2):
+		class fx(xsc.TextAttr): pass
+		class fy(xsc.TextAttr): pass
+		class r(xsc.TextAttr): pass
+
+
+class rect(xsc.Element):
+	class Attrs(class_, clip_path, clip_rule, color, color_interpolation, color_rendering, cursor2, display, externalResourcesRequired, fill, fill_opacity, fill_rule, filter2, height2, id, image_rendering, mask2, onactivate, onclick, onfocusin, onfocusout, onload, onmousedown, onmousemove, onmouseout, onmouseover, onmouseup, opacity, pointer_events, requiredExtensions, requiredFeatures, shape_rendering, stroke, stroke_dasharray, stroke_dashoffset, stroke_linecap, stroke_linejoin, stroke_miterlimit, stroke_opacity, stroke_width, style2, systemLanguage, text_rendering, transform, visibility, width2, x, y):
+		class rx(xsc.TextAttr): pass
+		class ry(xsc.TextAttr): pass
+
+
+class script(xsc.Element):
+	class Attrs(externalResourcesRequired, id, type2):
+		pass
+
+
+class set(xsc.Element):
+	class Attrs(attributeName, attributeType, begin, dur, end, externalResourcesRequired, fill2, id, max, min, onbegin, onend, onload, onrepeat, repeatCount, repeatDur, requiredExtensions, requiredFeatures, restart, systemLanguage, to):
+		pass
+
+
+class stop(xsc.Element):
+	class Attrs(class_, color, color_interpolation, color_rendering, id, stop_color, stop_opacity, style2):
+		class offset(xsc.TextAttr): required = True
+
+
+class style(xsc.Element):
+	class Attrs(id, type2):
+		class media(xsc.TextAttr): pass
+		class title(xsc.TextAttr): pass
+
+
+class svg(xsc.Element):
+	class Attrs(alignment_baseline, baseline_shift, class_, clip, clip_path, clip_rule, color, color_interpolation, color_interpolation_filters, color_profile2, color_rendering, cursor2, direction, display, dominant_baseline, enable_background, externalResourcesRequired, fill, fill_opacity, fill_rule, filter2, flood_color, flood_opacity, font_family, font_size, font_size_adjust, font_stretch, font_style, font_variant, font_weight, glyph_orientation_horizontal, glyph_orientation_vertical, height, id, image_rendering, kerning, letter_spacing, lighting_color, marker_end, marker_mid, marker_start, mask2, onactivate, onclick, onfocusin, onfocusout, onload, onmousedown, onmousemove, onmouseout, onmouseover, onmouseup, opacity, overflow, pointer_events, preserveAspectRatio, requiredExtensions, requiredFeatures, shape_rendering, stop_color, stop_opacity, stroke, stroke_dasharray, stroke_dashoffset, stroke_linecap, stroke_linejoin, stroke_miterlimit, stroke_opacity, stroke_width, style2, systemLanguage, text_anchor, text_decoration, text_rendering, unicode_bidi, viewBox, visibility, width, word_spacing, writing_mode, x, y, zoomAndPan):
+		class baseProfile(xsc.TextAttr): pass
+		class contentScriptType(xsc.TextAttr): pass
+		class contentStyleType(xsc.TextAttr): pass
+		class onabort(xsc.TextAttr): pass
+		class onerror(xsc.TextAttr): pass
+		class onresize(xsc.TextAttr): pass
+		class onscroll(xsc.TextAttr): pass
+		class onunload(xsc.TextAttr): pass
+		class onzoom(xsc.TextAttr): pass
+		class version(xsc.TextAttr): pass
+
+
+class switch(xsc.Element):
+	class Attrs(alignment_baseline, baseline_shift, class_, clip, clip_path, clip_rule, color, color_interpolation, color_interpolation_filters, color_profile2, color_rendering, cursor2, direction, display, dominant_baseline, enable_background, externalResourcesRequired, fill, fill_opacity, fill_rule, filter2, flood_color, flood_opacity, font_family, font_size, font_size_adjust, font_stretch, font_style, font_variant, font_weight, glyph_orientation_horizontal, glyph_orientation_vertical, id, image_rendering, kerning, letter_spacing, lighting_color, marker_end, marker_mid, marker_start, mask2, onactivate, onclick, onfocusin, onfocusout, onload, onmousedown, onmousemove, onmouseout, onmouseover, onmouseup, opacity, overflow, pointer_events, requiredExtensions, requiredFeatures, shape_rendering, stop_color, stop_opacity, stroke, stroke_dasharray, stroke_dashoffset, stroke_linecap, stroke_linejoin, stroke_miterlimit, stroke_opacity, stroke_width, style2, systemLanguage, text_anchor, text_decoration, text_rendering, transform, unicode_bidi, visibility, word_spacing, writing_mode):
+		pass
+
+
+class symbol(xsc.Element):
+	class Attrs(alignment_baseline, baseline_shift, class_, clip, clip_path, clip_rule, color, color_interpolation, color_interpolation_filters, color_profile2, color_rendering, cursor2, direction, display, dominant_baseline, enable_background, externalResourcesRequired, fill, fill_opacity, fill_rule, filter2, flood_color, flood_opacity, font_family, font_size, font_size_adjust, font_stretch, font_style, font_variant, font_weight, glyph_orientation_horizontal, glyph_orientation_vertical, id, image_rendering, kerning, letter_spacing, lighting_color, marker_end, marker_mid, marker_start, mask2, onactivate, onclick, onfocusin, onfocusout, onload, onmousedown, onmousemove, onmouseout, onmouseover, onmouseup, opacity, overflow, pointer_events, preserveAspectRatio, shape_rendering, stop_color, stop_opacity, stroke, stroke_dasharray, stroke_dashoffset, stroke_linecap, stroke_linejoin, stroke_miterlimit, stroke_opacity, stroke_width, style2, text_anchor, text_decoration, text_rendering, unicode_bidi, viewBox, visibility, word_spacing, writing_mode):
+		pass
+
+
+class text(xsc.Element):
+	class Attrs(alignment_baseline, baseline_shift, class_, clip_path, clip_rule, color, color_interpolation, color_rendering, cursor2, direction, display, dominant_baseline, dx, dy, externalResourcesRequired, fill, fill_opacity, fill_rule, filter2, font_family, font_size, font_size_adjust, font_stretch, font_style, font_variant, font_weight, glyph_orientation_horizontal, glyph_orientation_vertical, id, image_rendering, kerning, lengthAdjust, letter_spacing, mask2, onactivate, onclick, onfocusin, onfocusout, onload, onmousedown, onmousemove, onmouseout, onmouseover, onmouseup, opacity, pointer_events, requiredExtensions, requiredFeatures, rotate, shape_rendering, stroke, stroke_dasharray, stroke_dashoffset, stroke_linecap, stroke_linejoin, stroke_miterlimit, stroke_opacity, stroke_width, style2, systemLanguage, text_anchor, text_decoration, text_rendering, textLength, transform, unicode_bidi, visibility, word_spacing, writing_mode, x, y):
+		pass
+
+
+class textPath(xsc.Element):
+	class Attrs(alignment_baseline, baseline_shift, class_, clip_path, clip_rule, color, color_interpolation, color_rendering, cursor2, direction, display, dominant_baseline, externalResourcesRequired, fill, fill_opacity, fill_rule, filter2, font_family, font_size, font_size_adjust, font_stretch, font_style, font_variant, font_weight, glyph_orientation_horizontal, glyph_orientation_vertical, id, image_rendering, kerning, lengthAdjust, letter_spacing, mask2, onactivate, onclick, onfocusin, onfocusout, onload, onmousedown, onmousemove, onmouseout, onmouseover, onmouseup, opacity, pointer_events, requiredExtensions, requiredFeatures, shape_rendering, stroke, stroke_dasharray, stroke_dashoffset, stroke_linecap, stroke_linejoin, stroke_miterlimit, stroke_opacity, stroke_width, style2, systemLanguage, text_anchor, text_decoration, text_rendering, textLength, unicode_bidi, visibility, word_spacing):
+		class method(xsc.TextAttr): values = ("align", "stretch")
+		class spacing(xsc.TextAttr): values = ("auto", "exact")
+		class startOffset(xsc.TextAttr): pass
+
+
+class title(xsc.Element):
+	class Attrs(class_, id, style2):
+		pass
+
+
+class tref(xsc.Element):
+	class Attrs(alignment_baseline, baseline_shift, class_, clip_path, clip_rule, color, color_interpolation, color_rendering, cursor2, direction, display, dominant_baseline, dx, dy, externalResourcesRequired, fill, fill_opacity, fill_rule, filter2, font_family, font_size, font_size_adjust, font_stretch, font_style, font_variant, font_weight, glyph_orientation_horizontal, glyph_orientation_vertical, id, image_rendering, kerning, lengthAdjust, letter_spacing, mask2, onactivate, onclick, onfocusin, onfocusout, onload, onmousedown, onmousemove, onmouseout, onmouseover, onmouseup, opacity, pointer_events, requiredExtensions, requiredFeatures, rotate, shape_rendering, stroke, stroke_dasharray, stroke_dashoffset, stroke_linecap, stroke_linejoin, stroke_miterlimit, stroke_opacity, stroke_width, style2, systemLanguage, text_anchor, text_decoration, text_rendering, textLength, unicode_bidi, visibility, word_spacing, x, y):
+		pass
+
+
+class tspan(xsc.Element):
+	class Attrs(alignment_baseline, baseline_shift, class_, clip_path, clip_rule, color, color_interpolation, color_rendering, cursor2, direction, display, dominant_baseline, dx, dy, externalResourcesRequired, fill, fill_opacity, fill_rule, filter2, font_family, font_size, font_size_adjust, font_stretch, font_style, font_variant, font_weight, glyph_orientation_horizontal, glyph_orientation_vertical, id, image_rendering, kerning, lengthAdjust, letter_spacing, mask2, onactivate, onclick, onfocusin, onfocusout, onload, onmousedown, onmousemove, onmouseout, onmouseover, onmouseup, opacity, pointer_events, requiredExtensions, requiredFeatures, rotate, shape_rendering, stroke, stroke_dasharray, stroke_dashoffset, stroke_linecap, stroke_linejoin, stroke_miterlimit, stroke_opacity, stroke_width, style2, systemLanguage, text_anchor, text_decoration, text_rendering, textLength, unicode_bidi, visibility, word_spacing, x, y):
+		pass
+
+
+class use(xsc.Element):
+	class Attrs(alignment_baseline, baseline_shift, class_, clip, clip_path, clip_rule, color, color_interpolation, color_interpolation_filters, color_profile2, color_rendering, cursor2, direction, display, dominant_baseline, enable_background, externalResourcesRequired, fill, fill_opacity, fill_rule, filter2, flood_color, flood_opacity, font_family, font_size, font_size_adjust, font_stretch, font_style, font_variant, font_weight, glyph_orientation_horizontal, glyph_orientation_vertical, height, id, image_rendering, kerning, letter_spacing, lighting_color, marker_end, marker_mid, marker_start, mask2, onactivate, onclick, onfocusin, onfocusout, onload, onmousedown, onmousemove, onmouseout, onmouseover, onmouseup, opacity, overflow, pointer_events, requiredExtensions, requiredFeatures, shape_rendering, stop_color, stop_opacity, stroke, stroke_dasharray, stroke_dashoffset, stroke_linecap, stroke_linejoin, stroke_miterlimit, stroke_opacity, stroke_width, style2, systemLanguage, text_anchor, text_decoration, text_rendering, transform, unicode_bidi, visibility, width, word_spacing, writing_mode, x, y):
+		pass
+
+
+class view(xsc.Element):
+	class Attrs(externalResourcesRequired, id, preserveAspectRatio, viewBox, zoomAndPan):
+		class viewTarget(xsc.TextAttr): pass
+
+
+class vkern(xsc.Element):
+	class Attrs(g1, g2, id, k, u1, u2):
+		pass
+
+
+altGlyphDef.model = sims.Elements(altGlyphItem, glyphRef)
+feBlend.model = \
+feColorMatrix.model = \
+feComposite.model = \
+feConvolveMatrix.model = \
+feDisplacementMap.model = \
+feDistantLight.model = \
+feFuncA.model = \
+feFuncB.model = \
+feFuncG.model = \
+feFuncR.model = \
+feGaussianBlur.model = \
+feMergeNode.model = \
+feMorphology.model = \
+feOffset.model = \
+fePointLight.model = \
+feSpotLight.model = \
+feTile.model = \
+feTurbulence.model = sims.Elements(animate, set)
+feFlood.model = \
+stop.model = sims.Elements(animate, set, animateColor)
+feImage.model = sims.Elements(animate, set, animateTransform)
+circle.model = \
+ellipse.model = \
+image.model = \
+line.model = \
+path.model = \
+polygon.model = \
+polyline.model = \
+rect.model = \
+use.model = sims.Elements(animateMotion, set, title, animateColor, animateTransform, animate, metadata, desc)
+font_face.model = sims.Elements(definition_src, desc, metadata, font_face_src, title)
+defs.model = sims.Elements(defs, set, animate, text, symbol, clipPath, use, animateColor, font_face, style, polyline, view, marker, path, line, font, color_profile, ellipse, rect, desc, a, cursor, animateMotion, polygon, g, title, svg, script, mask, altGlyphDef, filter, switch, animateTransform, linearGradient, pattern, circle, radialGradient, image, metadata)
+g.model = \
+glyph.model = \
+marker.model = \
+mask.model = \
+missing_glyph.model = \
+pattern.model = \
+svg.model = \
+symbol.model = sims.Elements(defs, set, animate, text, symbol, clipPath, use, animateColor, font_face, style, polyline, view, marker, path, line, font, color_profile, ellipse, rect, desc, a, cursor, animateMotion, polygon, g, title, svg, script, mask, altGlyphDef, filter, switch, animateTransform, linearGradient, pattern, circle, radialGradient, image, metadata)
+animateMotion.model = sims.Elements(desc, metadata, mpath, title)
+feComponentTransfer.model = sims.Elements(feFuncA, feFuncR, feFuncB, feFuncG)
+feMerge.model = sims.Elements(feMergeNode)
+filter.model = sims.Elements(feTurbulence, set, feTile, feColorMatrix, feConvolveMatrix, feMorphology, feGaussianBlur, feDisplacementMap, feComposite, animate, feMerge, feSpecularLighting, desc, feComponentTransfer, title, feDiffuseLighting, feFlood, feBlend, feOffset, feImage, metadata)
+font_face_uri.model = sims.Elements(font_face_format)
+font_face_src.model = sims.Elements(font_face_name, font_face_uri)
+altGlyphItem.model = sims.Elements(glyphRef)
+switch.model = sims.Elements(set, animate, text, image, animateMotion, animateColor, polyline, path, line, ellipse, rect, desc, a, use, polygon, g, title, svg, switch, animateTransform, foreignObject, circle, metadata)
+clipPath.model = sims.Elements(set, animate, text, use, animateColor, polyline, path, line, ellipse, rect, desc, animateMotion, polygon, title, altGlyphDef, animateTransform, circle, metadata)
+feDiffuseLighting.model = \
+feSpecularLighting.model = sims.Elements(set, fePointLight, feSpotLight, animate, feDistantLight, animateColor)
+tref.model = sims.Elements(set, title, animate, metadata, animateColor, desc)
+linearGradient.model = \
+radialGradient.model = sims.Elements(set, title, animate, metadata, stop, animateTransform, desc)
+animate.model = \
+animateColor.model = \
+animateTransform.model = \
+color_profile.model = \
+cursor.model = \
+mpath.model = \
+set.model = \
+view.model = sims.Elements(title, metadata, desc)
+font.model = sims.Elements(title, missing_glyph, font_face, vkern, hkern, metadata, glyph, desc)
+text.model = sims.ElementsOrText(a, animateMotion, set, textPath, tspan, title, animateColor, tref, animateTransform, altGlyph, animate, desc, metadata)
+textPath.model = \
+tspan.model = sims.ElementsOrText(a, set, title, tspan, animateColor, tref, altGlyph, animate, metadata, desc)
+a.model = sims.ElementsOrText(defs, set, text, symbol, clipPath, use, animateColor, font_face, style, polyline, view, marker, path, line, font, color_profile, animate, rect, desc, a, cursor, animateMotion, polygon, g, svg, title, mask, altGlyphDef, ellipse, filter, script, switch, animateTransform, linearGradient, pattern, circle, radialGradient, image, metadata)
+definition_src.model = \
+font_face_format.model = \
+font_face_name.model = \
+glyphRef.model = \
+hkern.model = \
+vkern.model = sims.Empty()
+altGlyph.model = \
+desc.model = \
+foreignObject.model = \
+metadata.model = \
+script.model = \
+style.model = \
+title.model = sims.NoElements()
 
 
 class xmlns(xsc.Namespace):
 	xmlname = "svg"
 	xmlurl = "http://www.w3.org/2000/svg"
-xmlns.makemod(vars())
+xmlns.update(vars())
