@@ -612,7 +612,10 @@ class Node:
 		<par>Note that the node has to be of type <classref>Element</classref>
 		(or a subclass of it) to match <argref>attrs</argref>.</par>
 		"""
-		raise NotImplementedError("find method not implemented in %s" % self.__class__.__name__)
+		node = Frag()
+		if self._matches(type, subtype, attrs, test):
+			node.append(self)
+		return node
 
 	def compact(self):
 		"""
@@ -885,12 +888,6 @@ class Text(Node, StringMixIn):
 			s = presenter.strQuote() + presenter.strText(self.__strtext(1, lines[i], presenter)) + presenter.strQuote()
 			v.append([nest, self._getLoc(i), elementno, s])
 		return v
-
-	def find(self, type=None, subtype=0, attrs=None, test=None, searchchildren=0, searchattrs=0):
-		node = Frag()
-		if self._matches(type, subtype, attrs, test):
-			node.append(self)
-		return node
 
 	def compact(self):
 		if self._content.isspace():
