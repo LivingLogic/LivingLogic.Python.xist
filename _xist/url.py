@@ -266,6 +266,9 @@ class URL:
 	def retrieve(self):
 		return urllib.urlretrieve(self.__quote())
 
+	def info(self):
+		return urllib.urlopen(self.__quote()).info()
+
 	def read(self):
 		return self.open().read()
 

@@ -1618,12 +1618,19 @@ class URLAttr(Attr):
 		size = None
 		if url.isRetrieve():
 			try:
-				(filename, headers) = url.retrieve()
-				size = os.stat(filename)[stat.ST_SIZE]
-				urllib.urlcleanup()
+				info = url.info()
 			except IOError:
-				urllib.urlcleanup()
 				raise errors.FileNotFoundError(url)
+			try:
+				size = int(info["Content-Length"])
+			except KeyError: # try the hard way
+				try:
+					(filename, headers) = url.retrieve()
+					size = os.stat(filename)[stat.ST_SIZE]
+					urllib.urlcleanup()
+				except IOError:
+					urllib.urlcleanup()
+					raise errors.FileNotFoundError(url)
 		return size
 
 	def open(self):
