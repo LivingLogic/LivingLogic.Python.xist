@@ -24,6 +24,15 @@ experimental eGenix mx Extension package, which includes a Python
 port of <application>tidy</application></li>
 <li><code>__repr__</code> now uses the new class <code>presenters.PlainPresenter</code>
 which gives a little more info than the default <code>__repr__</code>.</item>
+<item>URL handling has been changed again. Upto now, <code>URLAttr</code> had
+an additional instance attribute <code>base</code>, which was the <z>base</z> file/URL
+from which the attribute was parsed. Now the base URL will be directly incorporated
+into the URL. You can pass the base URL to all the parsing functions. Similar to
+that when publishing you can specify a base URL. All URLs in the tree will be
+output relative to this base URL. Joining URLs is now done via <code>__div__</code>
+and no longer via <code>__add__</code>. This makes it more consistent with
+<code>fileutils</code>. The plan is to make URLs string like immutable objects
+and to merge them with <code>fileutils.Filename</code>.</item>
 </ulist>
 </section>
 
