@@ -22,7 +22,7 @@ tree &mdash; as <app>HTMLgen</app> and <app>HyperText</app>
 do &mdash; as a tree of Python objects. &xist; provides a very natural
 and pythonic &api; for that.</item>
 <item>Converting the source tree into a target tree: This target
-tree can be a &html; tree or a &svg; tree or XSL-Fo tree or any other
+tree can be a &html; tree or a &svg; tree or XSL-FO tree or any other
 &xml; tree you like. Every node class provides a
 <method>convert</method> method for performing the conversion. For
 your own &xml; element types you have to define your
