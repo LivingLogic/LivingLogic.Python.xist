@@ -1690,10 +1690,13 @@ class NamespaceRegistry:
 	def __init__(self):
 		self.byPrefix = {}
 		self.byURI = {}
+		self.sequential = []
 
 	def register(self, namespace):
 		self.byPrefix[namespace.prefix] = namespace
 		self.byURI[namespace.uri] = namespace
+		if not namespace in self.sequential:
+			self.sequential.insert(0, namespace)
 
 namespaceRegistry = NamespaceRegistry()
 
@@ -1744,7 +1747,7 @@ class Namespaces:
 		"""
 		returns a list of all namespaces to be searched in this order
 		"""
-		return self.namespaces+namespaceRegistry.byPrefix.values()
+		return self.namespaces+namespaceRegistry.sequential
 
 	def elementFromName(self, name):
 		"""
