@@ -1834,30 +1834,6 @@ class XSC:
 	def popURL(self):
 		self.filename.pop()
 
-	def __parse(self,string,pad = 0):
-		# our nodes do not have a parent link, therefore we have to store the active path through the tree in a stack (which we call nesting, because stack is already used by the base class (there is no base class anymore, but who cares))
-		# after we've finished parsing, the Frag that we put at the bottom of the stack will be our document root
-		self.__nesting = [ Frag() ]
-		self.lineno = -1
-		parser = sgmlop.SGMLParser()
-		parser.register(self)
-		parser.parse(string)
-		if pad: # strange bug in sgmlop
-			parser.parse(" ")
-		parser.close()
-		return self.__nesting[0]
-
-	def __appendNode(self,node):
-		node.startlineno = -1
-		last = self.__nesting[-1]
-		if len(last) and last[-1].__class__ is Text and (node.__class__ is Text or (node.__class__ is CharRef and node.content < 256)): # 256 test will disappear in Python 1.6 wiht SXP
-			if node.__class__ is Text:
-				last[-1].content = last[-1].content + node.content
-			else:
-				last[-1].content = last[-1].content + chr(node.content)
-		else:
-			last.append(node) # add the new node to the content of the innermost element (or fragment)
-
 	def handle_special(self,data):
 		if data[:7] == "DOCTYPE":
 			self.__appendNode(DocType(data[8:]))
@@ -1952,6 +1928,31 @@ class XSC:
 			return 1
 		else:
 			return 0
+
+	def __parse(self,string,pad = 0):
+		# our nodes do not have a parent link, therefore we have to store the active path through the tree in a stack (which we call nesting, because stack is already used by the base class (there is no base class anymore, but who cares))
+		# after we've finished parsing, the Frag that we put at the bottom of the stack will be our document root
+		self.__nesting = [ Frag() ]
+		self.lineno = -1
+		parser = sgmlop.SGMLParser()
+		parser.register(self)
+		parser.parse(string)
+		if pad: # strange bug in sgmlop
+			parser.parse(" ")
+		parser.close()
+		return self.__nesting[0]
+
+	def __appendNode(self,node):
+		node.startlineno = -1
+		last = self.__nesting[-1]
+		if len(last) and isinstance(last[-1],Text):
+			if isinstance(node,Text):
+				last[-1].content = last[-1].content + node.content
+				return
+			elif isinstance(node,CharRef) and node.content < 256: # 256 test will disappear in Python 1.6 with SXP
+				last[-1].content = last[-1].content + chr(node.content)
+				return
+		last.append(node) # add the new node to the content of the innermost element (or fragment)
 
 def __forceopen(name,mode):
 	try:
