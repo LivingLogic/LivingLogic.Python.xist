@@ -359,21 +359,22 @@ class Handler:
 		else:
 			self.__appendNode(node)
 
+	def __decorateException(self, exception):
+		if not isinstance(exception, saxlib.SAXParseException):
+			exception = saxlib.SAXParseException("%s: %s" % (exception.__class__.__name__, exception), exception, self._locator)
+		return exception
+
 	def error(self, exception):
 		"Handle a recoverable error."
-		raise exception
+		raise self.__decorateException(exception)
 
 	def fatalError(self, exception):
 		"Handle a non-recoverable error."
-		if not isinstance(exception, saxlib.SAXParseException):
-			exception = saxlib.SAXParseException(str(exception), exception, self._locator)
-		raise exception
+		raise self.__decorateException(exception)
 
 	def warning(self, exception):
 		"Handle a warning."
-		if not isinstance(exception, saxlib.SAXParseException):
-			exception = saxlib.SAXParseException(str(exception), exception, self._locator)
-		print exception
+		print self.__decorateException(exception)
 
 	def getLocation(self):
 		return xsc.Location(self._locator)
