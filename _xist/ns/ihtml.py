@@ -262,7 +262,7 @@ class marquee(xsc.Element):
 	"""
 	Scrolls text horizontally (2.0)
 	"""
-	empty = 1
+	empty = 0
 	attrHandlers = {
 		"behaviour": xsc.TextAttr, # Designates whether text will scroll off screen, stop at the edge of the screen, etc. (<lit>scroll</lit>, <lit>slide</lit> or <lit>alternate</lit>) (2.0)
 		"direction": xsc.TextAttr, # Designates which direction text will scroll. (<lit>left</lit> or <lit>right</lit>) (2.0)
