@@ -24,6 +24,7 @@ from xml.parsers import sgmlop
 from xml.sax import expatreader
 from xml.sax import saxlib
 from xml.sax import handler
+from xml.dom import html as htmldtd
 
 from mx import Tidy
 
@@ -290,9 +291,6 @@ class HTMLParser(BadEntityParser):
 	<par>A &sax;2 parser that can parse &html;.</par>
 	"""
 
-	headElements = ("title", "base", "script", "style", "meta", "link", "object") # Elements that may appear in the <head>
-	minimizedElements = {"p": ("p",), "td": ("td", "th"), "th": ("td", "th")} # elements that can't be nested, so a start tag automatically closes a previous end tag
-
 	def __init__(self, namespaceHandling=0, bufsize=2**16-20, encoding="iso-8859-1"):
 		self._stack = []
 		BadEntityParser.__init__(self, namespaceHandling, bufsize, encoding)
@@ -305,35 +303,23 @@ class HTMLParser(BadEntityParser):
 		BadEntityParser.reset(self)
 
 	def close(self):
-		while len(self._stack): # close all open elements
+		while self._stack: # close all open elements
 			self.finish_endtag(self._stack[-1])
 		BadEntityParser.close(self)
 
-	def handle_comment(self, data):
-		self.__closeEmpty()
-		BadEntityParser.handle_comment(self, data)
-
-	def handle_data(self, data):
-		self.__closeEmpty()
-		BadEntityParser.handle_data(self, data)
-
-	def handle_proc(self, target, data):
-		self.__closeEmpty()
-		BadEntityParser.handle_proc(self, target, data)
-
-	def handle_entityref(self, name):
-		self.__closeEmpty()
-		BadEntityParser.handle_entityref(self, name)
-
 	def finish_starttag(self, name, attrs):
-		self.__closeEmpty()
 		name = name.lower()
-		if name != "html":
-			if not len(self._stack): # root element <html> missing?
-				self.finish_starttag("html", []) # add it
-			self.__closeMimimizedOnStart(name)
 
-		self._stack.append(name)
+		# guess omitted close tags
+		while self._stack and self._stack[-1].upper() in htmldtd.HTML_OPT_END and name not in htmldtd.HTML_DTD.get(self._stack[-1], []):
+			BadEntityParser.finish_endtag(self, self._stack[-1])
+			del self._stack[-1]
+
+		# Check whether this element is allowed in the current context
+		if self._stack and name not in htmldtd.HTML_DTD.get(self._stack[-1], []):
+			errors.warn(errors.IllegalDTDChildWarning(name, self._stack[-1]))
+
+		# Skip unknown attributes (but warn about them)
 		newattrs = {}
 		for (attrname, attrvalue) in attrs:
 			attrname = attrname.lower()
@@ -344,39 +330,28 @@ class HTMLParser(BadEntityParser):
 				errors.warn(errors.IllegalAttrError(element.Attrs, attrname))
 		BadEntityParser.finish_starttag(self, name, newattrs)
 
+		if name.upper() in htmldtd.HTML_FORBIDDEN_END:
+			# close immediately tags for which we won't get an end
+			BadEntityParser.finish_endtag(self, name)
+			return 0
+		else:
+			self._stack.append(name)
+		return 1
+
 	def finish_endtag(self, name):
 		name = name.lower()
-		if len(self._stack): # we ignore end tag without the matching start tags
-			if self._stack[-1] != name: # e.g. <div><img></div> when </div> is encountered
-				self.__closeEmpty()
-			if self._stack[-1] != name:
-				self.__closeMinimizedOnEnd(name) #  maybe an open <p> tag etc. has been left open; eg. <div><p>gurk</div>
+		if name.upper() in htmldtd.HTML_FORBIDDEN_END:
+			# do nothing: we've already closed it
+			return
+		if name in self._stack:
+			# close any open elements that were not closed explicitely
+			while self._stack and self._stack[-1] != name:
+				BadEntityParser.finish_endtag(self, self._stack[-1])
+				del self._stack[-1]
 			BadEntityParser.finish_endtag(self, name)
 			del self._stack[-1]
-
-	def __closeEmpty(self):
-		if len(self._stack) and html.element(self._stack[-1], xml=True).empty:
-			self.finish_endtag(self, self._stack[-1])
-
-	def __closeMimimizedOnStart(self, name):
-		if len(self._stack):
-			lastname = self._stack[-1]
-			try:
-				minigroup = self.minimizedElements[lastname]
-			except KeyError:
-				return
-			if name in minigroup: # starting a tag from the same group?
-				self.finish_endtag(self, name)
-
-	def __closeMinimizedOnEnd(self, name):
-		if len(self._stack):
-			lastname = self._stack[-1]
-			try:
-				minigroup = self.minimizedElements[lastname]
-			except KeyError:
-				return
-			if name not in self.minimizedElements:
-				self.finish_endtag(self, lastname)
+		else:
+			errors.warn(errors.IllegalCloseTagWarning(name))
 
 ExpatParser = expatreader.ExpatParser
 

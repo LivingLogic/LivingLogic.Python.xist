@@ -99,6 +99,31 @@ class RequiredAttrMissingWarning(Warning):
 		v.append(" missing in %s." % self.attrs._str(fullname=True, xml=False, decorate=False))
 		return "".join(v)
 
+class IllegalDTDChildWarning(Warning):
+	"""
+	warning that is issued when the <pyref module="ll.xist.parsers" class="HTMLParser"><class>HTMLParser</class></pyref>
+	detects an element that is not allowed inside its parent element according to the &html; &dtd;
+	"""
+
+	def __init__(self, childname, parentname):
+		self.childname = childname
+		self.parentname = parentname
+
+	def __str__(self):
+		return "Element %s not allowed as a child of element %s" % (self.childname, self.parentname)
+
+class IllegalCloseTagWarning(Warning):
+	"""
+	warning that is issued when the <pyref module="ll.xist.parsers" class="HTMLParser"><class>HTMLParser</class></pyref>
+	finds an end tag that has no corresponding start tag.
+	"""
+
+	def __init__(self, name):
+		self.name = name
+
+	def __str__(self):
+		return "Element %s has never been opened" % (self.name,)
+
 class IllegalPrefixError(Error, LookupError):
 	"""
 	Exception that is raised when a namespace prefix is undefined.
