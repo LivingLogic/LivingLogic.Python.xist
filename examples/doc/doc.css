@@ -1,0 +1,41 @@
+body
+{
+	font-family: "Verdana", "Arial", "XHelvetica", "Helvetica", sans-serif;
+	font-size: 10pt;
+	background-color: #fff;
+	color: #000;
+	margin-top: 20pt;
+	margin-bottom: 20pt;
+	margin-left: 80pt;
+	margin-right: 30pt;
+}
+var.name
+{
+	font-family: monospace;
+	font-style: normal;
+	color: #0f0;
+}
+code.class
+{
+	font-family: monospace;
+	font-style: normal;
+	color: #600;
+}
+code.method
+{
+	font-family: monospace;
+	font-style: normal;
+	color: #006;
+}
+code.function
+{
+	font-family: monospace;
+	font-style: normal;
+	color: #006;
+}
+code.arg
+{
+	font-family: monospace;
+	font-style: normal;
+	color: #060;
+}

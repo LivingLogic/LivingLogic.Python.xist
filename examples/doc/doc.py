@@ -12,72 +12,7 @@ import string
 from Signature import Signature
 
 from xist import xsc,html,specials
-
-class module(xsc.Element):
-	empty = 0
-
-class function(xsc.Element):
-	empty = 0
-
-	def asHTML(self):
-		e = xsc.Frag()
-
-		nam = self.findNodes(type = name)[0]
-		e.append(html.div(nam))
-		sig = self.findNodes(type = signature)[0]
-		e.append(html.div(nam,"(",sig.findNodes(type = sigarg).withSeparator(","),")"))
-		des = self.findNodes(type = desc)
-		if len(des):
-			e.append(html.div(des[0]))
-		return e.asHTML()
-
-class name(xsc.Element):
-	empty = 0
-
-	def asHTML(self):
-		return html.var(self.content,Class="name").asHTML()
-
-class default(xsc.Element):
-	empty = 0
-
-	def asHTML(self):
-		return html.var(self.content,Class="default").asHTML()
-
-class signature(xsc.Element):
-	empty = 0
-
-class desc(xsc.Element):
-	empty = 0
-
-class sigarg(xsc.Element):
-	empty = 0
-	attrHandlers = { "type" : xsc.TextAttr }
-
-	def asHTML(self):
-		nam  = self.findNodes(type = name)[0]
-		defs = self.findNodes(type = default)
-
-		e = xsc.Frag()
-		if self.hasAttr("type"):
-			type = self["type"].asHTML().asPlainString()
-			if type=="positional":
-				e.append("*")
-			elif type=="keyword":
-				e.append("**")
-		e.append(nam)
-		if len(defs):
-			e.append("=",defs[0])
-		return e.asHTML()
-
-class arg(xsc.Element):
-	empty = 0
-	attrHandlers = { "type" : xsc.TextAttr }
-
-	def asHTML(self):
-		return html.var(self.content,Class = "arg").asHTML()
-
-# register all the classes we've defined so far
-xsc.registerAllElements(vars(),"doc")
+import elements
 
 def __isOnlyWhiteSpace(text):
 	for c in text:
@@ -124,55 +59,77 @@ def getDoc(text):
 		e = xsc.xsc.parseString(text)
 	except:
 		e = xsc.Text(text)
-	return desc(e)
+	return elements.desc(e)
 
 def explain(thing):
 	"""
 	returns a XML representation of the documentation of
-	<arg>thing</arg>, which can be a function, class or module.
+	<argref>thing</argref>, which can be a function, method, class or module.
 	"""
 
-	if type(thing) == types.FunctionType:
-		e = function()
-		e.append(name(thing.__name__))
-		xmlsig = signature()
+	t = type(thing)
+	if t in (types.FunctionType,types.MethodType):
+		if t is types.FunctionType:	
+			e = elements.function(name = thing.__name__)
+		else:
+			e = elements.method(name = thing.__name__)
+		xmlsig = elements.signature()
 		sig = Signature(thing)
 		defaults = sig.defaults()
 		specials = sig.special_args()
 		for a in sig.ordinary_args():
+			_a = elements.arg(name = a)
 			if defaults.has_key(a):
-				xmlsig.append(sigarg(name(a),default(str(defaults[a]))))
-			else:
-				xmlsig.append(sigarg(name(a)))
+				_a["default"] = str(defaults[a])
+			xmlsig.append(_a)
 		if specials.has_key('positional'):
-			xmlsig.append(sigarg(name(specials['positional']),type="positional"))
+			xmlsig.append(elements.arg(name = specials['positional'],type="positional"))
 		if specials.has_key('keyword'):
-			xmlsig.append(sigarg(name(specials['keyword']),type="keyword"))
+			xmlsig.append(elements.arg(name = specials['keyword'],type="keyword"))
 		e.append(xmlsig)
 		if thing.__doc__ is not None:
 			e.append(getDoc(thing.__doc__))
 		return e
-	elif type(thing) == types.ModuleType:
-		return explain(thing.__dict__)
-	elif type(thing) == types.DictType:
-		e = module()
-		try:
-			e.append(name(thing["__name__"]))
-			if thing["__doc__"] is not None:
-				e.append(getDoc(thing["__doc__"]))
-		except:
-			pass
-		for varname in thing.keys():
-			if type(thing[varname]) is not types.ModuleType:
-				e.append(explain(thing[varname]))
+	elif t is types.ClassType:
+		e = elements.Class(name = thing.__name__)
+		if thing.__doc__ is not None:
+			e.append(getDoc(thing.__doc__))
+		methods = []
+		for varname in thing.__dict__.keys():
+			if type(thing.__dict__[varname]) is types.MethodType:
+				method.append(thing.__dict__[varname])
+		if len(methods):
+			e.append(elements.methods())
+			for m in methods:
+				e[-1].append(explain(m))
+		return e
+	elif t is types.ModuleType:
+		e = elements.module(name = thing.__name__)
+		if thing.__doc__ is not None:
+			e.append(getDoc(thing.__doc__))
+
+		functions = []
+		classes   = []
+		for varname in thing.__dict__.keys():
+			obj = thing.__dict__[varname]
+			t = type(obj)
+			if t is types.FunctionType:
+				functions.append(obj)
+			elif t is types.ClassType:
+				classes.append(obj)
+		if len(functions):
+			e.append(elements.functions())
+			for f in functions:
+				e[-1].append(explain(f))	
+		if len(classes):
+			e.append(elements.classes())
+			for c in classes:
+				e[-1].append(explain(c))	
 		return e
 
 	return xsc.Null
 
 if __name__ == "__main__":
-	e = explain(vars())
-	print "Tree:"
-	print e.reprtree()
-	print "Flat:"
-	print e.repr()
+	e = explain(elements)
+	print e.asHTML().asString()
 
