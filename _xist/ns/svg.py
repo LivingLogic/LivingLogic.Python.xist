@@ -12,7 +12,7 @@
 
 """
 This is a namespace module implementing
-<link href="http://www.w3.org/TR/SVG11/">&svg; 1.1.</link>.
+<link href="http://www.w3.org/TR/SVG11/">&svg; 1.1</link>.
 """
 
 
