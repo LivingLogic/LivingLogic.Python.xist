@@ -106,7 +106,7 @@ class directive(xsc.Element):
 
 	def publish(self, publisher):
 		publisher.publish(u"<%@ ")
-		self._publishName(publisher)
+		self._publishname(publisher)
 		self.attrs.publish(publisher)
 		publisher.publish(u"%>")
 
