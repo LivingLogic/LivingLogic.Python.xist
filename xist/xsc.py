@@ -318,7 +318,7 @@ class XSCText(XSCNode):
 
 	represcapes = { '\t' : '\\t' , '\033' : '\\e' , '\\' : '\\\\' }
 	reprtreeescapes = { '\r' : '\\r' , '\n' : '\\n' , '\t' : '\\t' , '\033' : '\\e' , '\\' : '\\\\' }
-	strescapes = { '<' : '&lt;' , '>' : '&gt;' , '&' : '&amp;' , '"' : '&quot;' }
+	strescapes = { '<' : 'lt' , '>' : 'gt' , '&' : 'amp' , '"' : 'quot' , "'" : 'apos' }
 
 	def __init__(self,content = ""):
 		self.content = content
@@ -330,7 +330,7 @@ class XSCText(XSCNode):
 		v = []
 		for i in self.content:
 			if self.strescapes.has_key(i):
-				v.append(self.strescapes[i])
+				v.append('&' + self.strescapes[i] + ';')
 			elif ord(i)>=128:
 				v.append('&#' + str(ord(i)) + ';')
 			else:
@@ -361,7 +361,7 @@ class XSCText(XSCNode):
 class XSCCharRef(XSCNode):
 	"""character reference (i.e &#42; or &#x42;)"""
 
-	__notdirect = { 0x3C : "lt" , 0x3E : "gt", 0x22 : "quot" , 0x27 : "apos" }
+	__notdirect = { ord("&") : "amp" , ord("<") : "lt" , ord(">") : "gt", ord('"') : "quot" , ord("'") : "apos" }
 	def __init__(self,content):
 		self.content = content
 
