@@ -541,10 +541,10 @@ def string2Fragment(s):
 					try:
 						e.append(entitiesByName[s[1:i]])
 					except KeyError:
-						raise UnknownEntityError(xsc.parser.lineno,s[1:i])
+						raise UnknownEntityError(-1,s[1:i])
 				s = s[i+1:]
 			except ValueError:
-				raise MalformedCharRefError(xsc.parser.lineno,s)
+				raise MalformedCharRefError(-1,s)
 		except ValueError:
 			if len(s):
 				e.append(s)
@@ -585,7 +585,7 @@ def ToNode(value):
 			return Null
 		else:
 			return e
-	raise IllegalObjectError(xsc.parser.lineno,value) # none of the above, so we throw and exception
+	raise IllegalObjectError(-1,value) # none of the above, so we throw and exception
 
 _elementHandlers = {} # dictionary for mapping element names to classes, this dictionary contains the element names as keys and another dictionary as values, this second dictionary contains the namespace names as keys and the element classes as values
 
@@ -1326,7 +1326,7 @@ class Element(Node):
 
 		apply(self.content.append,items)
 		if self.empty and len(self):
-			raise EmptyElementWithContentError(xsc.parser.lineno,self)
+			raise EmptyElementWithContentError(-1,self)
 
 	def insert(self,index,*items):
 		"""
@@ -1336,7 +1336,7 @@ class Element(Node):
 		"""
 		apply(self.content.insert,(index,) + items)
 		if self.empty and len(self):
-			raise EmptyElementWithContentError(xsc.parser.lineno,self)
+			raise EmptyElementWithContentError(-1,self)
 
 	def extend(self,*items):
 		"""
@@ -1346,7 +1346,7 @@ class Element(Node):
 		"""
 		apply(self.content.extend,items)
 		if self.empty and len(self):
-			raise EmptyElementWithContentError(xsc.parser.lineno,self)
+			raise EmptyElementWithContentError(-1,self)
 
 	def asHTML(self):
 		e = self.__class__(self.content.asHTML()) # "virtual" copy constructor
@@ -1401,7 +1401,7 @@ class Element(Node):
 				v.append('"')
 		if len(self):
 			if self.empty:
-				raise EmptyElementWithContentError(xsc.parser.lineno,self)
+				raise EmptyElementWithContentError(-1,self)
 			v.append(">")
 			v.append(self.content.asString(XHTML))
 			v.append("</")
@@ -1436,7 +1436,7 @@ class Element(Node):
 			try:
 				return self.attrs[lowerindex] # we're returning the packed attribute here, because otherwise there would be no possibility to get an expanded URL
 			except KeyError:
-				raise AttributeNotFoundError(xsc.parser.lineno,self,index)
+				raise AttributeNotFoundError(-1,self,index)
 		else:
 			return self.content[index]
 
@@ -1451,7 +1451,7 @@ class Element(Node):
 			try:
 				attr = self.attrHandlers[lowerindex]() # pack the attribute into an attribute object
 			except KeyError:
-				raise IllegalAttributeError(xsc.parser.lineno,self,index)
+				raise IllegalAttributeError(-1,self,index)
 			attr.extend(value)
 			self.attrs[lowerindex] = attr
 		else:
@@ -1538,7 +1538,7 @@ class Element(Node):
 					try:
 						self[widthattr] = eval(self[widthattr].asPlainString() % sizedict)
 					except:
-						raise ImageSizeFormatError(xsc.parser.lineno,self,widthattr)
+						raise ImageSizeFormatError(-1,self,widthattr)
 				else:
 					self[widthattr] = str(size[0])
 			if size[1] != -1: # the height was retrieved so we can use it
@@ -1546,7 +1546,7 @@ class Element(Node):
 					try:
 						self[heightattr] = eval(self[heightattr].asPlainString() % sizedict)
 					except:
-						raise ImageSizeFormatError(xsc.parser.lineno,self,heightattr)
+						raise ImageSizeFormatError(-1,self,heightattr)
 				else:
 					self[heightattr] = str(size[1])
 
@@ -1717,7 +1717,7 @@ class URLAttr(Attr):
 				urllib.urlcleanup()
 			except IOError:
 				urllib.urlcleanup()
-				raise FileNotFoundError(xsc.parser.lineno,url)
+				raise FileNotFoundError(-1,url)
 		return size
 
 	def FileSize(self):
@@ -1735,7 +1735,7 @@ class URLAttr(Attr):
 				urllib.urlcleanup()
 			except IOError:
 				urllib.urlcleanup()
-				raise FileNotFoundError(xsc.parser.lineno,url)
+				raise FileNotFoundError(-1,url)
 		return size
 
 ###
@@ -1872,7 +1872,7 @@ class XSC:
 			else:
 				code = int(name)
 		except ValueError:
-			raise MalformedCharRefError(xsc.parser.lineno,name)
+			raise MalformedCharRefError(-1,name)
 
 		self.__appendNode(CharRef(code))
 
@@ -1880,7 +1880,7 @@ class XSC:
 		try:
 			self.__appendNode(entitiesByName[name].clone())
 		except KeyError:
-			raise UnknownEntityError(xsc.parser.lineno,name)
+			raise UnknownEntityError(-1,name)
 
 	def elementFromName(self,name):
 		"""
@@ -1893,17 +1893,17 @@ class XSC:
 		try: # are there any elements with this name?
 			elementsfornamespaces = _elementHandlers[name[1]]
 		except KeyError: # nope!
-			raise IllegalElementError(xsc.parser.lineno,name)
+			raise IllegalElementError(-1,name)
 		if name[0] is None: # element name was unqualified ...
 			if len(elementsfornamespaces.keys())==1: # ... and there is exactly one element with this name => use it
 				element = elementsfornamespaces.values()[0]
 			else:
-				raise AmbiguousElementError(xsc.parser.lineno,name) # there is more than one
+				raise AmbiguousElementError(-1,name) # there is more than one
 		else: # element name was qualified with a namespace
 			try:
 				element = elementsfornamespaces[name[0]]
 			except KeyError:
-				raise IllegalElementError(xsc.parser.lineno,name) # elements with this name were available, but none in this namespace
+				raise IllegalElementError(-1,name) # elements with this name were available, but none in this namespace
 		return element
 
 	def finish_starttag(self,name,attrs):
@@ -1917,7 +1917,7 @@ class XSC:
 		element = self.elementFromName(name)
 		currentelement = self.__nesting[-1].__class__
 		if element != currentelement:
-			raise IllegalElementNestingError(xsc.parser.lineno,currentelement,element)
+			raise IllegalElementNestingError(-1,currentelement,element)
 		self.__nesting[-1].endlineno = self.lineno
 		self.__nesting.pop() # pop the innermost element off the stack
 
