@@ -520,8 +520,17 @@ class XISTTestCase(unittest.TestCase):
 
 		self.assertEquals(node.isallowedattr("notestattr"), False)
 		self.assertEquals(node.attrs.isallowed("notestattr"), False)
-	def test_xmlns(self):
-		pass
+
+	def test_publish(self):
+		node = html.html()
+		prefixes1 = xsc.Prefixes()
+		prefixes1.addPrefixMapping("h", html)
+		prefixes2 = xsc.Prefixes()
+		prefixes2.addPrefixMapping(None, html)
+		self.assertEquals(node.asBytes(), "<html></html>")
+		self.assertEquals(node.asBytes(prefixes=prefixes1, elementmode=1), "<h:html></h:html>")
+		self.assertEquals(node.asBytes(prefixes=prefixes1, elementmode=2), """<h:html xmlns:h="http://www.w3.org/1999/xhtml"></h:html>""")
+		self.assertEquals(node.asBytes(prefixes=prefixes2, elementmode=2), """<html xmlns="http://www.w3.org/1999/xhtml"></html>""")
 
 if __name__ == "__main__":
 	unittest.main()
