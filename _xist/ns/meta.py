@@ -152,4 +152,4 @@ class refresh(xsc.Element):
 		e = html.meta(http_equiv="Refresh", content=(self.getAttr("secs", 0), "; url=", self["href"]))
 		return e.convert(converter)
 
-namespace = xsc.Namespace("meta", "http://ns.livinglogic.de/xist/meta.dtd", vars())
+namespace = xsc.Namespace("meta", "http://xmlns.livinglogic.de/xist/meta.dtd", vars())
