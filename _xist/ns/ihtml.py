@@ -285,6 +285,7 @@ class meta(xsc.Element):
 	"""
 	empty = 1
 	attrHandlers = {
+		"name": xsc.TextAttr, # Designates the name of the meta field
 		"http-equiv": xsc.TextAttr, # Designates the HTTP header fields you want to emulate. (Fixed to <lit>Content-Type</lit>) (2.0)
 		"http_equiv": xsc.TextAttr, # copy of the above
 		"content": xsc.TextAttr # Designates content type (Fixed <lit>to text/html; charset=SHIFT_JIS</lit>) (2.0)
