@@ -387,8 +387,7 @@ class cool(xsc.Element):
 <prog>
 &gt;&gt;&gt; node = cool(python(), adj="totally")
 &gt;&gt;&gt; print node.conv().asBytes()
-&lt;a href="http://www.python.org/"&gt;Python&lt;/a&gt; is \
-&lt;em&gt;totally&lt;/em&gt; cool!
+&lt;a href="http://www.python.org/"&gt;Python&lt;/a&gt; is &lt;em&gt;totally&lt;/em&gt; cool!
 </prog>
 
 <section><title>Default attributes</title>
@@ -418,8 +417,7 @@ class cool(xsc.Element):
 <prog>
 &gt;&gt;&gt; node = cool(python())
 &gt;&gt;&gt; print node.conv().asBytes()
-&lt;a href="http://www.python.org/"&gt;Python&lt;/a&gt; is \
-&lt;em&gt;absolutely&lt;/em&gt; cool!
+&lt;a href="http://www.python.org/"&gt;Python&lt;/a&gt; is &lt;em&gt;absolutely&lt;/em&gt; cool!
 </prog>
 </example>
 
@@ -470,10 +468,8 @@ be issued:</par>
 <prog>
 &gt;&gt;&gt; s = '&lt;cool adj="pretty"&gt;&lt;python/&gt;&lt;/cool&gt;'
 &gt;&gt;&gt; node = parsers.parseString(s)
-/home/walter/pythonroot/ll/xist/xsc.py:1338: \
-    UserWarning: Attribute value 'pretty' \
-    not allowed for __main__:cool.Attrs.adj.
-  self.checkvalid()
+/home/walter/pythonroot/ll/xist/xsc.py:1665: IllegalAttrValueWarning: Attribute value 'pretty' not allowed for __main__:cool.Attrs.adj.
+  warnings.warn(errors.IllegalAttrValueWarning(self))
 </prog>
 
 <par>The warning will also be issued if we publish such a node,
@@ -484,10 +480,8 @@ you can change that with <function>warnings.filterwarnings</function>):</par>
 <prog>
 &gt;&gt;&gt; node = cool(python(), adj="pretty")
 &gt;&gt;&gt; print node.asBytes()
-/home/walter/pythonroot/ll/xist/xsc.py:1338: \
-    UserWarning: Attribute value 'pretty' \
-    not allowed for __main__:cool.Attrs.adj.
-  self.checkvalid()
+/home/walter/pythonroot/ll/xist/xsc.py:1665: IllegalAttrValueWarning: Attribute value 'pretty' not allowed for __main__:cool.Attrs.adj.
+  warnings.warn(errors.IllegalAttrValueWarning(self))
 &lt;cool adj="very"&gt;&lt;python /&gt;&lt;/cool&gt;
 </prog>
 
@@ -506,10 +500,8 @@ is such an attribute, so we'll get:</par>
 &gt;&gt;&gt; from ll.xist.ns import html
 &gt;&gt;&gt; node = html.img(src="eggs.png")
 &gt;&gt;&gt; print node.asBytes()
-/home/walter/pythonroot/ll/xist/xsc.py:2075: \
-    UserWarning: Required attribute 'alt' missing \
-    in ll.xist.ns.html:img.Attrs.
-  self.attrs.publish(publisher)
+/home/walter/pythonroot/ll/xist/xsc.py:2046: RequiredAttrMissingWarning: Required attribute 'alt' missing in ll.xist.ns.html:img.Attrs.
+  warnings.warn(errors.RequiredAttrMissingWarning(self, attrs.keys()))
 &lt;img src="eggs.png" /&gt;
 </prog>
 </example>
@@ -804,8 +796,7 @@ code doesn't contain any illegal tag nesting (like a
 &gt;&gt;&gt; from ll.xist.ns import html
 &gt;&gt;&gt; node = html.p(html.p("foo"))
 &gt;&gt;&gt; print node.asBytes()
-/home/walter/pythonroot/ll/xist/sims.py:238: WrongElementWarning: \
-   element &lt;ll.xist.ns.html:p&gt; may not contain element &lt;ll.xist.ns.html:p&gt;
+/home/walter/pythonroot/ll/xist/sims.py:238: WrongElementWarning: element &lt;ll.xist.ns.html:p&gt; may not contain element &lt;ll.xist.ns.html:p&gt;
   warnings.warn(WrongElementWarning(node, child, self.elements))
 &lt;p&gt;&lt;p&gt;foo&lt;/p&gt;&lt;/p&gt;
 </prog>
@@ -815,9 +806,9 @@ code doesn't contain any illegal tag nesting (like a
 by setting the class attribute <lit>model</lit> inside the element class.
 <lit>model</lit> must be an object that provides a <method>checkvalid</method>
 method. This method will be called with the element as an argument.
-When a schema validation is detected, the Python warning framework will be used
-to issue a warning. The module <module>ll.xist.sims</module> contains several
-classes that provide a simple validation.</par>
+When a schema validation violation is detected, the Python warning framework
+will be used to issue a warning. The module <module>ll.xist.sims</module>
+contains several classes that provide a simple validation.</par>
 
 <par><pyref module="ll.xist.sims" class="Empty"><class>ll.xist.sims.Empty</class></pyref>
 can be used to ensure that the element doesn't have any content (like
@@ -932,10 +923,7 @@ an exception):</par>
 <prog>
 &gt;&gt;&gt; from ll.xist import xsc
 &gt;&gt;&gt; from ll.xist.ns import html
-&gt;&gt;&gt; node = html.div(
-...    u"äöü",
-...    html.br(),
-...    u"ÄÖÜ")
+&gt;&gt;&gt; node = html.div(u"äöü", html.br(), u"ÄÖÜ")
 &gt;&gt;&gt; print node.asBytes(encoding="ascii")
 &lt;div&gt;&amp;#228;&amp;#246;&amp;#252;&lt;br /&gt;&amp;#196;&amp;#214;&amp;#220;&lt;/div&gt;
 &gt;&gt;&gt; print node.asBytes(encoding="iso-8859-1")
@@ -947,8 +935,7 @@ Traceback (most recent call last):
     return publisher.asBytes()
   File "~/pythonroot/xist/publishers.py", line 162, in asBytes
     return u"".join(self.texts).encode(self.encoding)
-UnicodeEncodeError: 'ascii' codec can't encode \
-characters in position 0-2: ordinal not in range(128)
+UnicodeEncodeError: 'ascii' codec can't encode characters in position 0-2: ordinal not in range(128)
 </prog>
 
 <par>Another useful parameter is <arg>xhtml</arg>,
@@ -968,15 +955,8 @@ an empty tag (without an additional space): <markup>&lt;br/&gt;</markup> or <mar
 <pyref module="ll.xist.xsc" class="Node" method="write"><method>write</method></pyref>:</par>
 <prog>
 &gt;&gt;&gt; from ll.xist.ns import html
-&gt;&gt;&gt; node = html.div(
-...    u"äöü",
-...    html.br(),
-...    u"ÄÖÜ"
-)
-&gt;&gt;&gt; node.write(
-...    open("foo.html", "wb"),
-...    encoding="ascii"
-)
+&gt;&gt;&gt; node = html.div(u"äöü", html.br(), u"ÄÖÜ")
+&gt;&gt;&gt; node.write(open("foo.html", "wb"), encoding="ascii")
 </prog>
 
 <par>All these methods use the method
@@ -1053,8 +1033,7 @@ node = parsers.parseURL(
 	tidy=True)
 
 def isextlink(node):
-	if isinstance(node, html.a) \
-		and not unicode(node["href"]).startswith("http://www.python.org"):
+	if isinstance(node, html.a) and not unicode(node["href"]).startswith("http://www.python.org"):
 		return (True, xsc.entercontent)
 	return (xsc.entercontent,)
 
@@ -1096,8 +1075,7 @@ the top down traversal from our example to a bottom up traversal we could change
 <example><title>Bottom up link traversal function</title>
 <prog>
 def isextlink(node):
-	if isinstance(node, html.a) \
-		and not unicode(node["href"]).startswith("http://www.python.org"):
+	if isinstance(node, html.a) and not unicode(node["href"]).startswith("http://www.python.org"):
 		return <em>(xsc.entercontent, True)</em>
 	return (xsc.entercontent,)
 </prog>
@@ -1119,9 +1097,7 @@ or a <pyref module="ll.xist.xsc" class="Frag"><class>Frag</class></pyref>:</par>
 &gt;&gt;&gt; from ll.xist import xsc
 &gt;&gt;&gt; from ll.xist.ns import html
 &gt;&gt;&gt; node = html.div(*xrange(10))
-&gt;&gt;&gt; print node. \
-...    withsep(", "). \
-...    asBytes()
+&gt;&gt;&gt; print node.withsep(", ").asBytes()
 &lt;div&gt;0, 1, 2, 3, 4, 5, 6, 7, 8, 9&lt;/div&gt;
 </prog>
 
@@ -1133,15 +1109,9 @@ or <pyref module="ll.xist.xsc" class="Frag"><class>Frag</class></pyref>:</par>
 &gt;&gt;&gt; from ll.xist import xsc
 &gt;&gt;&gt; from ll.xist.ns import html
 &gt;&gt;&gt; node = html.div(*xrange(10))
-&gt;&gt;&gt; print node. \
-...    shuffled(). \
-...    withsep(", "). \
-...    asBytes()
+&gt;&gt;&gt; print node.shuffled().withsep(", ").asBytes()
 &lt;div&gt;8, 1, 3, 6, 7, 5, 2, 9, 4, 0&lt;/div&gt;
-&gt;&gt;&gt; print node. \
-...    withsep(", "). \
-...    shuffled(). \
-...    asBytes()
+&gt;&gt;&gt; print node.withsep(", ").shuffled().asBytes()
 &lt;div&gt;31, 8905, 7, , , 4, 6, , , 2&lt;/div&gt;
 </prog>
 
@@ -1155,8 +1125,7 @@ return a reversed or sorted version of an element or fragment:</par>
 &gt;&gt;&gt; def sort(n1, n2):
 ...    return cmp(unicode(n1), unicode(n2))
 &gt;&gt;&gt; node = html.div(8,4,2,1,9,6,3,0,7,5)
-&gt;&gt;&gt; print node.sorted(sort). \
-...    reversed().withsep(",").asBytes()
+&gt;&gt;&gt; print node.sorted(sort).reversed().withsep(",").asBytes()
 &lt;div&gt;9,8,7,6,5,4,3,2,1,0&lt;/div&gt;
 </prog>
 
@@ -1180,8 +1149,8 @@ node = parsers.parseURL(
 	encoding="iso-8859-1",
 	tidy=True)
 
-node.mapped(p2p, converters.Converter()).write(
-	open("parrot_index.html", "wb"))
+node = node.mapped(p2p, converters.Converter())
+node.write(open("parrot_index.html", "wb"))
 </prog>
 
 <par>The function must either return a new node, in which case this
@@ -1205,9 +1174,7 @@ be prepended to all &url;s that are read during parsing:</par>
 <prog>
 &gt;&gt;&gt; from ll.xist import parsers
 &gt;&gt;&gt; from ll.xist.ns import html
-&gt;&gt;&gt; node = parsers.parseString( \
-...   '&lt;img src="eggs.png"/&gt;', \
-...   base="root:spam/index.html")
+&gt;&gt;&gt; node = parsers.parseString('&lt;img src="eggs.png"/&gt;', base="root:spam/index.html")
 &gt;&gt;&gt; print node.asBytes()
 &lt;img src="root:spam/eggs.png" /&gt;
 </prog>

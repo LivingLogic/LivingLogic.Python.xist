@@ -586,6 +586,14 @@ class Parser(object):
 			sysid = str(base)
 		return self._parse(stream, base, sysid, self.encoding)
 
+	def _parseDOM(self, dom, base, sysid):
+		pass
+
+	def parseDOM(self, dom, base=None, sysid=None):
+		if sysid is None:
+			sysid = str(base)
+		return self._parseDOM(dom.doc, base, sysid)
+	
 	def setDocumentLocator(self, locator):
 		self._locator = locator
 

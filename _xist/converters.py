@@ -34,6 +34,42 @@ class ConverterState(object):
 		self.maketarget = maketarget
 
 
+def parselang(lang):
+	"""
+	Parse an <lit>Accept-Language</lit> header into a dictionary mapping
+	language codes to quality values.
+	"""
+	result = {}
+	for part in lang.split(","):
+		parts = part.split(";", 1)
+		qual = 1.0
+		if len(parts) == 2 and parts[1].startswith("q="):
+			try:
+				qual = float(parts[1][2:])
+			except ValueError:
+				qual = 0.01
+		result[parts[0]] = qual
+	return result
+
+
+def formatlang(lang):
+	"""
+	Format a dictionary mapping language codes to quality values into an
+	<lit>Accept-Language</lit> header.
+	"""
+	fields = []
+	for (lang, qual) in lang.iteritems():
+		if qual <= 0.0:
+			continue
+		elif qual == 1.0:
+			field = lang
+		else:
+			field = "%s;q=%s" % (lang, ("%.8f" % qual).rstrip("0"))
+		fields.append((-qual, field))
+	fields.sort()
+	return ",".join([field for (qual, field) in fields]) # FIXME: Use a GE in 2.4
+
+
 class Converter(object):
 	"""
 	<par>An instance of this class is passed around in calls to the
@@ -154,6 +190,48 @@ class Converter(object):
 		"""
 	)
 
+	def bestlang(self, havelangs=None, default=None):
+		"""
+		Return the best language. <arg>havelangs</arg> specifies the language
+		provided by the document as a &http; <lit>Accept-Language</lit> header
+		string or a mapping from language codes to quality values. If
+		<arg>havelangs</arg> is <lit>None</lit> the best language from
+		<lit><self/>.lang</lit> is returned. If <lit><self/>.lang</lit> is
+		<lit>None</lit> the best language from <arg>havelangs</arg> is returned.
+		If both are <lit>None</lit>, <lit>default</lit> will be returned.
+		"""
+		def bestfromone(langs):
+			if langs is not None:
+				if isinstance(langs, basestring):
+					langs = parselang(langs)
+				items = [(qual, lang) for (lang, qual) in langs.iteritems()]
+				if items:
+					items.sort()
+					return items[-1][-1]
+			return default
+
+		wantlangs = self.lang
+		if wantlangs is None: # ignore target languages
+			return bestfromone(havelangs)
+		elif havelangs is None: # ignore document languages
+			return bestfromone(wantlangs)
+
+		wantlangs = parselang(wantlangs)
+		if isinstance(havelangs, basestring):
+			havelangs = parselang(havelangs)
+		items = []
+		for (lang, qual) in havelangs.items():
+			if lang in wantlangs:
+				items.append((1, qual*wantlangs[lang], lang))
+			elif "*" in wantlangs:
+				items.append((1, qual*wantlangs["*"], lang))
+			else:
+				items.append((0, qual, lang)) # add available languages as a fallback
+		if items:
+			items.sort()
+			return items[-1][-1]
+		return default
+
 	def __getlang(self):
 		return self.states[-1].lang
 
@@ -168,7 +246,9 @@ class Converter(object):
 		__setlang,
 		__dellang,
 		"""
-		<par>The target language. The default is <lit>None</lit>.</par>
+		<par>The target language. The default is <lit>None</lit>. This may be
+		a string in the style of the &http; <lit>Accept-Language</lit> header
+		or a simple language code (like <lit>"en"</lit> etc.).</par>
 		"""
 	)
 
