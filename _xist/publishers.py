@@ -177,7 +177,7 @@ class Publisher(object):
 			# get the prefixes for all namespaces from the prefix mapping
 			for (index, ns) in prefixes2use:
 				nsprefix = [u"xmlns", u"procinstns", u"entityns"][index]
-				self.prefixes2use[(nsprefix, ns)] = (prefixes2use[(index, ns)], self.prefixes._prefix4ns(index, ns)[0])
+				self.prefixes2use[(nsprefix, ns)] = (prefixes2use[(index, ns)], self.prefixes.prefix4ns(ns, index)[0])
 
 	def endPublication(self):
 		"""

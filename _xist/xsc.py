@@ -2606,7 +2606,7 @@ class Prefixes(object):
 		"""
 		self._prefix2ns = ({}, {}, {}) # for elements, procinsts and entities
 
-	def _addPrefixMapping(self, index, prefix, ns, mode="prepend"):
+	def addPrefixMapping(self, prefix, ns, mode="prepend", element=False, procinst=False, entity=False):
 		"""
 		<doc:par>Add a mapping from the namespace prefix <arg>prefix</arg>
 		to the namespace <arg>ns</arg> to the current configuration.
@@ -2615,44 +2615,38 @@ class Prefixes(object):
 		is used.</doc:par>
 		"""
 		ns = getNS(ns)
-		prefix2ns = self._prefix2ns[index].setdefault(prefix, [])
-		if not prefix2ns:
-			prefix2ns.append([])
-		if mode=="replace":
-			prefix2ns[0] = [ns]
-		else:
-			prefix2ns = prefix2ns[0]
-			if mode in ("append", "prepend"):
-				try:
-					prefix2ns.remove(ns)
-				except ValueError:
-					pass
-				if mode=="append":
-					prefix2ns.append(ns)
+		for (index, do) in ((0, element), (1, procinst), (2, entity)): # FIXME use enumerate() in 2.3
+			if do:
+				prefix2ns = self._prefix2ns[index].setdefault(prefix, [])
+				if not prefix2ns:
+					prefix2ns.append([])
+				if mode=="replace":
+					prefix2ns[0] = [ns]
 				else:
-					prefix2ns.insert(0, ns)
-			else:
-				raise ValueError("mode %r unknown" % mode)
+					prefix2ns = prefix2ns[0]
+					if mode in ("append", "prepend"):
+						try:
+							prefix2ns.remove(ns)
+						except ValueError:
+							pass
+						if mode=="append":
+							prefix2ns.append(ns)
+						else:
+							prefix2ns.insert(0, ns)
+					else:
+						raise ValueError("mode %r unknown" % mode)
+		return self
 
 	def addElementPrefixMapping(self, prefix, ns, mode="prepend"):
-		self._addPrefixMapping(0, prefix, ns, mode)
-		return self
+		return self.addPrefixMapping(prefix, ns, mode, element=True)
 
 	def addProcInstPrefixMapping(self, prefix, ns, mode="prepend"):
-		self._addPrefixMapping(1, prefix, ns, mode)
-		return self
+		return self.addPrefixMapping(prefix, ns, mode, procinst=True)
 
 	def addEntityPrefixMapping(self, prefix, ns, mode="prepend"):
-		self._addPrefixMapping(2, prefix, ns, mode)
-		return self
+		return self.addPrefixMapping(prefix, ns, mode, entity=True)
 
-	def addPrefixMapping(self, prefix, ns, mode="prepend"):
-		self._addPrefixMapping(0, prefix, ns, mode)
-		self._addPrefixMapping(1, prefix, ns, mode)
-		self._addPrefixMapping(2, prefix, ns, mode)
-		return self
-
-	def _delPrefixMapping(self, index, prefix=False, ns=False):
+	def delPrefixMapping(self, prefix=False, ns=False, element=False, procinst=False, entity=False):
 		"""
 		<doc:par>Remove the mapping from the namespace prefix <arg>prefix</arg>
 		to the namespace <arg>ns</arg> from the current configuration.
@@ -2666,117 +2660,106 @@ class Prefixes(object):
 		"""
 		if ns is not False:
 			ns = getNS(ns)
-			if prefix is not False:
-				try:
-					prefix2ns = self._prefix2ns[index][prefix]
-					prefix2ns[0].remove(ns)
-				except (KeyError, IndexError, ValueError):
-					pass
-			else:
-				for prefix2ns in self._prefix2ns[index].itervalues():
+		for (index, do) in ((0, element), (1, procinst), (2, entity)): # FIXME use enumerate() in 2.3
+			if do:
+				if ns is not False:
+					if prefix is not False:
+						try:
+							prefix2ns = self._prefix2ns[index][prefix]
+							prefix2ns[0].remove(ns)
+						except (KeyError, IndexError, ValueError):
+							pass
+					else:
+						for prefix2ns in self._prefix2ns[index].itervalues():
+							try:
+								prefix2ns[0].remove(ns)
+							except (IndexError, ValueError):
+								pass
+				else:
 					try:
-						prefix2ns[0].remove(ns)
-					except (IndexError, ValueError):
+						prefix2ns = self._prefix2ns[index][prefix][0] = []
+					except (KeyError, IndexError):
 						pass
-		else:
-			try:
-				prefix2ns = self._prefix2ns[index][prefix][0] = []
-			except (KeyError, IndexError):
-				pass
-			else:
-				self._prefix2ns = {}
+					else:
+						self._prefix2ns[index] = {}
+		return self
 
 	def delElementPrefixMapping(self, prefix=False, ns=False):
-		self._delPrefixMapping(0, prefix, ns)
-		return self
+		return self.delPrefixMapping(prefix, ns, element=True)
 
 	def delProcInstPrefixMapping(self, prefix=False, ns=False):
-		self._delPrefixMapping(1, prefix, ns)
-		return self
+		return self.delPrefixMapping(prefix, ns, procinst=True)
 
 	def delEntityPrefixMapping(self, prefix=False, ns=False):
-		self._delPrefixMapping(2, prefix, ns)
-		return self
+		return self.delPrefixMapping(prefix, ns, entity=True)
 
-	def delPrefixMapping(self, prefix=False, ns=False):
-		self._delPrefixMapping(0, prefix, ns)
-		self._delPrefixMapping(1, prefix, ns)
-		self._delPrefixMapping(2, prefix, ns)
-		return self
-
-	def _startPrefixMapping(self, index, prefix, ns, mode="replace"):
+	def startPrefixMapping(self, prefix, ns, mode="replace", element=False, procinst=False, entity=False):
 		ns = getNS(ns)
-		prefix2ns = self._prefix2ns[index].setdefault(prefix, [])
-		if mode=="replace":
-			prefix2ns.insert(0, [ns])
-		elif mode in ("append", "prepend"):
-			if prefix2ns:
-				old = prefix2ns[0][:]
-			else:
-				old = []
-			if mode=="append":
-				prefix2ns.insert(0, old + [ns])
-			else:
-				prefix2ns.insert(0, [ns] + old)
-		else:
-			raise ValueError("mode %r unknown" % mode)
+		for (index, do) in ((0, element), (1, procinst), (2, entity)): # FIXME use enumerate() in 2.3
+			if do:
+				prefix2ns = self._prefix2ns[index].setdefault(prefix, [])
+				if mode=="replace":
+					prefix2ns.insert(0, [ns])
+				elif mode in ("append", "prepend"):
+					if prefix2ns:
+						old = prefix2ns[0][:]
+					else:
+						old = []
+					if mode=="append":
+						prefix2ns.insert(0, old + [ns])
+					else:
+						prefix2ns.insert(0, [ns] + old)
+				else:
+					raise ValueError("mode %r unknown" % mode)
 
 	def startElementPrefixMapping(self, prefix, ns, mode="replace"):
-		self._startPrefixMapping(0, prefix, ns, mode)
+		self.startPrefixMapping(prefix, ns, mode, element=True)
 
 	def startProcInstPrefixMapping(self, prefix, ns, mode="replace"):
-		self._startPrefixMapping(1, prefix, ns, mode)
+		self.startPrefixMapping(prefix, ns, mode, procinst=True)
 
 	def startEntityPrefixMapping(self, prefix, ns, mode="replace"):
-		self._startPrefixMapping(2, prefix, ns, mode)
+		self.startPrefixMapping(prefix, ns, mode, entity=True)
 
-	def startPrefixMapping(self, prefix, ns, mode="replace"):
-		self._startPrefixMapping(0, prefix, ns, mode)
-		self._startPrefixMapping(1, prefix, ns, mode)
-		self._startPrefixMapping(2, prefix, ns, mode)
-
-	def _endPrefixMapping(self, index, prefix):
-		self._prefix2ns[index][prefix].pop(0)
+	def endPrefixMapping(self, prefix, element=False, procinst=False, entity=False):
+		for (index, do) in ((0, element), (1, procinst), (2, entity)): # FIXME use enumerate() in 2.3
+			if do:
+				self._prefix2ns[index][prefix].pop(0)
 
 	def endElementPrefixMapping(self, prefix):
-		self._endPrefixMapping(0, prefix)
+		self.endPrefixMapping(prefix, element=True)
 
 	def endProcInstPrefixMapping(self, prefix):
-		self._endPrefixMapping(1, prefix)
+		self._endPrefixMapping(prefix, procinst=True)
 
 	def endEntityPrefixMapping(self, prefix):
-		self._endPrefixMapping(2, prefix)
+		self._endPrefixMapping(prefix, entity=True)
 
-	def endPrefixMapping(self, prefix):
-		self._endPrefixMapping(0, prefix)
-		self._endPrefixMapping(1, prefix)
-		self._endPrefixMapping(2, prefix)
-
-	def _ns4prefix(self, index, prefix):
+	def ns4prefix(self, prefix, type):
 		"""
 		<doc:par>Return the currently active namespace list for the prefix <arg>prefix</arg>.</doc:par>
 		"""
 		try:
-			return self._prefix2ns[index][prefix][0]
+			return self._prefix2ns[type][prefix][0]
 		except (KeyError, IndexError):
 			return []
 
 	def ns4elementprefix(self, prefix):
-		return self._ns4prefix(0, prefix)
+		return self.ns4prefix(prefix, 0)
 
 	def ns4procinstprefix(self, prefix):
-		return self._ns4prefix(1, prefix)
+		return self.ns4prefix(prefix, 1)
 
 	def ns4entityprefix(self, prefix):
-		return self._ns4prefix(2, prefix)
+		return self.ns4prefix(prefix, 2)
 
-	def _prefix4ns(self, index, ns):
+	def prefix4ns(self, ns, type):
 		"""
 		<doc:par>Return the currently active prefixes for the namespace <arg>ns</arg>.</doc:par>
 		"""
 		ns = getNS(ns)
 		prefixes = []
-		for (prefix, prefix2ns) in self._prefix2ns[index].iteritems():
+		for (prefix, prefix2ns) in self._prefix2ns[type].iteritems():
 			if prefix2ns and ns in prefix2ns[0]:
 				prefixes.append(prefix)
 		if prefixes:
@@ -2785,13 +2768,13 @@ class Prefixes(object):
 			return [ns.xmlprefix]
 
 	def elementprefix4ns(self, ns):
-		return self._prefix4ns(0, ns)
+		return self.prefix4ns(ns, 0)
 
 	def procinstprefix4ns(self, ns):
-		return self._prefix4ns(1, ns)
+		return self.prefix4ns(ns, 1)
 
 	def entityprefix4ns(self, ns):
-		return self._prefix4ns(2, ns)
+		return self.prefix4ns(ns, 2)
 
 	def __splitqname(self, qname):
 		"""
@@ -2904,10 +2887,10 @@ class OldPrefixes(Prefixes):
 		super(OldPrefixes, self).__init__()
 		for ns in namespaceRegistry.all:
 			if ns.xmlurl == "http://www.w3.org/XML/1998/namespace":
-				self.addPrefixMapping("xml", ns)
+				self.addPrefixMapping("xml", ns, element=True, procinst=True, entity=True)
 			else:
-				self.addPrefixMapping(None, ns)
-				self.addPrefixMapping(ns.xmlprefix, ns)
+				self.addPrefixMapping(None, ns, element=True, procinst=True, entity=True)
+				self.addPrefixMapping(ns.xmlprefix, ns, element=True, procinst=True, entity=True)
 
 class DefaultPrefixes(Prefixes):
 	"""

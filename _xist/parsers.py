@@ -114,7 +114,6 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 		except KeyboardInterrupt:
 			raise
 		except Exception, ex:
-			raise
 			if self.error_handler is not None:
 				self.error_handler.fatalError(ex)
 			else:
@@ -453,29 +452,30 @@ class Handler(object):
 
 	def startElement(self, name, attrs):
 		prefixes = []
+		args = 3*[False]
 		for (attrname, attrvalue) in attrs.items():
 			if attrname=="xmlns":
 				prefix = None
-				index = 0
+				args[0] = True
 			elif attrname.startswith("xmlns:"):
 				prefix = attrname[6:]
-				index = 0
+				args[0] = True
 			elif attrname=="procinstns":
 				prefix = None
-				index = 1
+				args[1] = True
 			elif attrname.startswith("procinstns:"):
 				prefix = attrname[11:]
-				index = 1
+				args[1] = True
 			elif attrname=="entityns":
 				prefix = None
-				index = 2
+				args[2] = True
 			elif attrname.startswith("entityns:"):
-				prefix = attrname[0:]
-				index = 2
+				prefix = attrname[9:]
+				args[2] = True
 			else:
 				continue
-			prefixes.append((index, prefix))
-			self.prefixes._startPrefixMapping(index, prefix, unicode(attrvalue))
+			prefixes.append((args, prefix))
+			self.prefixes.startPrefixMapping(prefix, unicode(attrvalue), "replace", *args)
 		node = self.prefixes.elementFromQName(name)()
 		node.parsed(self)
 		for (attrname, attrvalue) in attrs.items():
@@ -494,8 +494,8 @@ class Handler(object):
 			raise errors.ElementNestingError(currentelement, element)
 		self.__nesting[-1][0].endLoc = self.getLocation()
 		# SAX specifies that the order of calls to endPrefixMapping is undefined, so we use the same order as in beginElement
-		for (index, prefix) in self.__nesting[-1][1]:
-			self.prefixes._endPrefixMapping(index, prefix)
+		for (args, prefix) in self.__nesting[-1][1]:
+			self.prefixes.endPrefixMapping(prefix, *args)
 		self.__nesting.pop() # pop the innermost element off the stack
 		self.skippingWhitespace = 0
 
