@@ -1321,7 +1321,7 @@ class Element(Node):
 		if self.empty and len(self):
 			raise EmptyElementWithContentError(xsc.parser.lineno,self)
 
-	def extend(self,items):
+	def extend(self,*items):
 		"""
 		extend(self,items)
 
