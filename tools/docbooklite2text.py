@@ -29,10 +29,10 @@ Usage: python docbooklite2text.py spam.xml spam.txt
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-import os, getopt
+import sys, os, getopt
 
 from xist import xsc, parsers
-from xist.ns import html, dokbooklite as dbl
+from xist.ns import html, docbooklite as dbl
 
 def dookbooklite2text(infilename, outfilename, title):
 	tmpfilename = "temp_links_%d.html" % os.getpid()
@@ -61,7 +61,7 @@ def dookbooklite2text(infilename, outfilename, title):
 
 if __name__ == "__main__":
 	title = None
-	(options, args) = getopt.getopt(args, "t:", ["title="])
+	(options, args) = getopt.getopt(sys.argv, "t:", ["title="])
 
 	for (option, value) in options:
 		if option=="-t" or option=="--title":
