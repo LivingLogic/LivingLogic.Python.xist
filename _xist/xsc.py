@@ -3630,9 +3630,10 @@ class Namespace(Base):
 		to the processing instructions available in <cls/>. <function>tokenize</function>
 		will generate tuples with the first item being the processing instruction
 		class and the second being the PI data. <z>Text</z> content (i.e. anything
-		other than PIs) will be returned as <lit>(str, <rep>data</rep>)</lit>. Unknown processing
-		instructions (i.e. those from namespaces other that <cls/>) will be returned as
-		literal text (i.e. as <lit>(str, "&lt;?<rep>target</rep> <rep>data</rep>?&gt;")</lit>).
+		other than PIs) will be returned as <lit>(str, <rep>data</rep>)</lit>.
+		Unknown processing instructions (i.e. those from namespaces other that
+		<cls/>) will be returned as literal text (i.e. as
+		<lit>(str, "&lt;?<rep>target</rep> <rep>data</rep>?&gt;")</lit>).
 		"""
 		pos = 0
 		while True:
@@ -3689,9 +3690,10 @@ class Location(object):
 
 	def __init__(self, locator=None, sysid=None, pubid=None, line=None, col=None):
 		"""
-		<par>Create a new <class>Location</class> instance by reading off the current location from
-		the <arg>locator</arg>, which is then stored internally. In addition to that the system ID,
-		public ID, line number and column number can be overwritten by explicit arguments.</par>
+		<par>Create a new <class>Location</class> instance by reading off the
+		current location from the <arg>locator</arg>, which is then stored
+		internally. In addition to that the system ID, public ID, line number and
+		column number can be overwritten by explicit arguments.</par>
 		"""
 		self.sysid = None
 		self.pubid = None
@@ -3734,7 +3736,7 @@ class Location(object):
 
 	def offset(self, offset):
 		"""
-		<par>returns a location where the line number is incremented by offset
+		<par>Return a location where the line number is incremented by offset
 		(and the column number is reset to 1).</par>
 		"""
 		if offset==0:
