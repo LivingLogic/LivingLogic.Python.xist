@@ -2990,8 +2990,9 @@ class Prefixes(dict):
 		"""
 		prefixes = []
 		for (prefix, namespaces) in self.iteritems():
-			if ns in namespaces:
-				prefixes.append(prefix)
+			for ourns in namespaces:
+				if issubclass(ns, ourns):
+					prefixes.append(prefix)
 		if prefixes:
 			return prefixes
 		else:
