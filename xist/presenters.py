@@ -215,6 +215,45 @@ class EscInlineAttr(EscInlineText):
 	ascharref = "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x0b\x0c\x0d\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f<>\"&"
 	ascolor   = "\x09\x0a"
 
+def strBracketOpen():
+	return EnvTextForBracket("<")
+
+def strBracketClose():
+	return EnvTextForBracket(">")
+
+def strSlash():
+	return EnvTextForSlash("/")
+
+def strColon():
+	return EnvTextForColon(":")
+
+def strQuestion():
+	return EnvTextForQuestion("?")
+
+def strExclamation():
+	return EnvTextForExclamation("!")
+
+def strQuote():
+	return EnvTextForQuote('"')
+
+def strTab(count):
+	return EnvTextForTab(options.reprtab*count)
+
+def strURL(url):
+	return EnvTextForURL(EscInlineText(url))
+
+def strDocTypeMarker():
+	return EnvTextForDocTypeMarker("DOCTYPE")
+
+def strDocTypeText(text):
+	return EnvTextForDocTypeText(EscInlineText(text))
+
+def strCommentMarker():
+	return EnvTextForCommentMarker("--")
+
+def strCommentText(text):
+	return EnvTextForCommentText(EscInlineText(text))
+
 def strElementName(namespacename=None, elementname=None):
 	s = ansistyle.Text()
 	if namespacename is not None:
@@ -228,7 +267,7 @@ def strElementName(namespacename=None, elementname=None):
 	return s
 
 def strElementNameWithBrackets(namespacename=None, elementname=None):
-	return ansistyle.Text(EnvTextForBracket("<"), strElementName(namespacename, elementname), EnvTextForBracket(">"))
+	return ansistyle.Text(strBracketOpen(), strElementName(namespacename, elementname), EnvTextForBracket(">"))
 
 def strElement(node):
 	if hasattr(node, "namespace"):
@@ -242,7 +281,7 @@ def strElement(node):
 	return strElementName(namespacename, elementname)
 
 def strElementWithBrackets(node):
-	return ansistyle.Text(EnvTextForBracket("<"), strElement(node), EnvTextForBracket(">"))
+	return ansistyle.Text(strBracketOpen(), strElement(node), strBracketClose())
 
 def strEntityName(namespacename=None, entityname=None):
 	s = ansistyle.Text("&")
@@ -270,23 +309,30 @@ def strEntity(node):
 		entityname = node.__class__.__name__
 	return strEntityName(namespacename, entityname)
 
-def strProcInstName(procinstname=None):
-	if procinstname is None:
-		procinstname = "unnamed"
-	return EnvTextForProcInstTarget(EscInlineText(procinstname))
+def strProcInstTarget(target):
+	return EnvTextForProcInstTarget(EscInlineText(target))
+
+def strProcInstData(data):
+	return EnvTextForProcInstData(EscInlineText(data))
+
+def strTextOutsideAttr(text):
+	return EnvTextForText(EscInlineText(text))
+
+def strTextInAttr(text):
+	return EnvTextForAttrValue(EscInlineAttr(text))
 
 def strProcInst(node):
 	if hasattr(node, "name"):
-		procinstname = node.name
+		target = node.name
 	else:
-		procinstname = node.__class__.__name__
-	return strProcInstName(procinstname)
+		target = node.__class__.__name__
+	return strProcInstTarget(target)
 
-def strProcInstNameWithBrackets(procinstname=None):
-	return ansistyle.Text(EnvTextForBracket("<"), EnvTextForQuestion("?"), strProcInstName(procinstname), EnvTextForQuestion("?"), EnvTextForBracket(">"))
+def strProcInstTargetWithBrackets(target):
+	return ansistyle.Text(strBracketOpen(), strQuestion(), strProcInstTarget(target), strQuestion(), strBracketClose())
 
 def strProcInstWithBrackets(node):
-	return ansistyle.Text(EnvTextForBracket("<"), EnvTextForQuestion("?"), strProcInst(node), EnvTextForQuestion("?"), EnvTextForBracket(">"))
+	return ansistyle.Text(strBracketOpen(), strQuestion(), strProcInst(node), strQuestion(), strBracketClose())
 
 def strAttrName(attrname):
 	return EnvTextForAttrName(EscInlineText(attrname))
@@ -299,72 +345,13 @@ class Presenter:
 	base class for all presenters.
 	"""
 
-	def __init__(self, namespaces=None, encoding=None, ansi=None):
-		if namespaces is None:
-			namespaces = xsc.defaultNamespaces
-		self.namespaces = namespaces
-		if encoding is None:
-			encoding = options.reprEncoding
-		self.encoding = encoding
-		self.ansi = ansi
+	def __init__(self):
+		pass
 
 	def reset(self):
 		self.buffer = ansistyle.Stream(ansistyle.StringBuffer())
 		self.inAttr = 0
 
-	def strAttrName(self, attrname):
-		return strAttrName(attrname)
-
-	def strDocTypeMarker(self):
-		return EnvTextForDocTypeMarker("DOCTYPE")
-
-	def strDocTypeText(self, text):
-		return EnvTextForDocTypeText(EscInlineText(text))
-
-	def strCommentMarker(self):
-		return EnvTextForCommentMarker("--")
-
-	def strCommentText(self, text):
-		return EnvTextForCommentText(EscInlineText(text))
-
-	def strProcInstTarget(self, target):
-		return EnvTextForProcInstTarget(EscInlineText(target))
-
-	def strProcInstData(self, data):
-		return EnvTextForProcInstData(EscInlineText(data))
-
-	def strTextOutsideAttr(self, text):
-		return EnvTextForText(EscInlineText(text))
-
-	def strTextInAttr(self, text):
-		return EnvTextForAttrValue(EscInlineAttr(text))
-
-	def strSlash(self):
-		return EnvTextForSlash("/")
-
-	def strBracketOpen(self):
-		return EnvTextForBracket("<")
-
-	def strBracketClose(self):
-		return EnvTextForBracket(">")
-
-	def strColon(self):
-		return EnvTextForColon(":")
-
-	def strQuestion(self):
-		return EnvTextForQuestion("?")
-
-	def strExclamation(self):
-		return EnvTextForExclamation("!")
-
-	def strQuote(self):
-		return EnvTextForQuote('"')
-
-	def strTab(self, count):
-		return EnvTextForTab(options.reprtab*count)
-
-	def strURL(self, url):
-		return EnvTextForURL(EscInlineText(url))
 
 class NormalPresenter(Presenter):
 	def beginPresentation(self):
@@ -378,9 +365,9 @@ class NormalPresenter(Presenter):
 
 	def presentText(self, node):
 		if self.inAttr:
-			self.buffer.append(self.strTextInAttr(node._content))
+			self.buffer.append(strTextInAttr(node._content))
 		else:
-			self.buffer.append(self.strTextOutsideAttr(node._content))
+			self.buffer.append(strTextOutsideAttr(node._content))
 
 	def presentFrag(self, node):
 		for child in node:
@@ -388,62 +375,62 @@ class NormalPresenter(Presenter):
 
 	def presentComment(self, node):
 		self.buffer.append(
-			self.strBracketOpen(),
-			self.strExclamation(),
-			self.strCommentMarker(),
-			self.strCommentText(node._content),
-			self.strCommentMarker(),
-			self.strBracketClose()
+			strBracketOpen(),
+			strExclamation(),
+			strCommentMarker(),
+			strCommentText(node._content),
+			strCommentMarker(),
+			strBracketClose()
 		)
 
 	def presentDocType(self, node):
 		self.buffer.append(
-			self.strBracketOpen(),
-			self.strExclamation(),
-			self.strDocTypeMarker(),
+			strBracketOpen(),
+			strExclamation(),
+			strDocTypeMarker(),
 			" ",
-			self.strDocTypeText(node._content),
-			self.strBracketClose()
+			strDocTypeText(node._content),
+			strBracketClose()
 		)
 
 	def presentProcInst(self, node):
 		self.buffer.append(
-			self.strBracketOpen(),
-			self.strQuestion(),
-			self.strProcInstTarget(node._target),
+			strBracketOpen(),
+			strQuestion(),
+			strProcInstTarget(node._target),
 			" ",
-			self.strProcInstData(node._content),
-			self.strQuestion(),
-			self.strBracketClose()
+			strProcInstData(node._content),
+			strQuestion(),
+			strBracketClose()
 		)
 
 	def _writeAttrs(self, dict):
 		for attr in dict.keys():
-			self.buffer.append(" ", self.strAttrName(attr))
+			self.buffer.append(" ", strAttrName(attr))
 			value = dict[attr]
 			if len(value):
-				self.buffer.append("=", self.strQuote())
+				self.buffer.append("=", strQuote())
 				value.present(self)
-				self.buffer.append(self.strQuote())
+				self.buffer.append(strQuote())
 
 	def presentElement(self, node):
 		if node.empty:
-			self.buffer.append(self.strBracketOpen(), strElement(node))
+			self.buffer.append(strBracketOpen(), strElement(node))
 			self._writeAttrs(node.attrs)
-			self.buffer.append(self.strSlash(), self.strBracketClose())
+			self.buffer.append(strSlash(), strBracketClose())
 		else:
-			self.buffer.append(self.strBracketOpen(), strElement(node))
+			self.buffer.append(strBracketOpen(), strElement(node))
 			self._writeAttrs(node.attrs)
-			self.buffer.append(self.strBracketClose())
+			self.buffer.append(strBracketClose())
 			for child in node:
 				child.present(self)
-			self.buffer.append(self.strBracketOpen(), self.strSlash(), strElement(node), self.strBracketClose())
+			self.buffer.append(strBracketOpen(), strSlash(), strElement(node), strBracketClose())
 
 	def presentEntity(self, node):
 		self.buffer.append(strEntity(node))
 
 	def presentNull(self, node):
-		self.buffer.append(self.strBracketOpen(), strElement(node), self.strSlash(), self.strBracketClose())
+		self.buffer.append(strBracketOpen(), strElement(node), strSlash(), strBracketClose())
 
 	def presentAttr(self, node):
 		self.inAttr = 1
@@ -452,7 +439,7 @@ class NormalPresenter(Presenter):
 
 	def presentURLAttr(self, node):
 		self.inAttr = 1
-		self.buffer.append(self.strURL(node.asString()))
+		self.buffer.append(strURL(node.asString()))
 		self.inAttr = 0
 
 defaultPresenterClass = NormalPresenter
