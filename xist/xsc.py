@@ -1308,7 +1308,7 @@ class _URL:
 		return urlparse.urlunparse((scheme,self.server,string.join(path,"/"),self.parameters,self.query,self.fragment))
 
 	def __add__(self,other):
-		new = _URL(scheme = self.scheme,server = self.server,path = self.path,parameters = self.parameters,query = self.query,fragment = self.fragment)
+		new = self.clone()
 		if other.scheme == "":
 			new.path[-1:]  = other.path[:]
 			new.parameters = other.parameters
@@ -1319,18 +1319,19 @@ class _URL:
 			new.parameters = other.parameters
 			new.query      = other.query
 			new.fragment   = other.fragment
-		else: # URL to be joined is absolute
-			new.scheme     = other.scheme
-			new.server     = other.server
-			new.path       = other.path[:]
-			new.parameters = other.parameters
-			new.query      = other.query
-			new.fragment   = other.fragment
+		else: # URL to be joined is absolute, so we the second URL
+			return other.clone()
 		new.__optimize()
 		return new
 
+	def clone(self):
+		return _URL(scheme = self.scheme,server = self.server,path = self.path,parameters = self.parameters,query = self.query,fragment = self.fragment)
+		
 	def relativeTo(self,other):
-		pass
+		if self.scheme != "" and self.scheme != "project":
+			return self.clone()
+		else:
+			pass
 
 	def __optimize(self):
 		# optimize the path by removing combinations of down/up
@@ -1393,7 +1394,7 @@ class URLAttr(Attr):
 			scheme = "http"
 			server = xsc.server
 		elif scheme == "project" or scheme == "":
-			file = string.split(xsc.filename,"/")
+			file = xsc.filename[-1].path[:]
 			if scheme == "project": # make the path relative to the directory of the file
 				path[:0] = [".."] * (len(file)-1) # go up from the file directory to the current directory
 				# now we have an URL that is relative to the file directory
@@ -1418,7 +1419,7 @@ class URLAttr(Attr):
 		(scheme,server,path,parameters,query,fragment) = self.__make()
 		path = path[:]
 		if scheme == "project":
-			file = string.split(xsc.filename,"/") # split the file path too
+			file = xsc.filename[-1].path[:]
 			while len(file)>1 and len(path)>1 and file[0]==path[0]: # throw away identical directories in both paths (we don't have to go up from file and down to path for these identical directories
 				del file[0]
 				del path[0]
@@ -1953,6 +1954,8 @@ def make():
 
 	infilename = sys.argv[1]
 	outfilename = sys.argv[2]
+	if len(outfilename) and outfilename[-1] == "/":
+		outfilename = outfilename + infilename
 	e_in = xsc.parseFile(infilename)
 	e_out = e_in.asHTML()
 	__forceopen(outfilename,"wb").write(str(e_out))
