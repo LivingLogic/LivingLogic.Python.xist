@@ -483,7 +483,7 @@ class capunix(xsc.Element):
 		return specials.cap("Unix").asHTML()
 xsc.registerElement(capunix)
 
-class par(div):
+class par(html.div):
 	empty = 0
 	attr_handlers = xsc.appendDict(html.div.attr_handlers,{ "noindent" : xsc.TextAttr })
 	
