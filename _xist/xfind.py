@@ -70,6 +70,8 @@ class Finder(object):
 				else:
 					raise IndexError
 
+	# We can't implement __len__, because if a Finder object is passed to list(), __len__() would be called, exhausting the iterator
+
 	def __nonzero__(self):
 		for node in self:
 			return True
