@@ -588,7 +588,7 @@ RegisterElement("bnverein",bnverein)
 
 class fahrplansite(XSCElement):
 	empty = 0
-	attr_handlers = { "name" : XSCTextAttr , "url" : XSCTextAttr }
+	attr_handlers = { "name" : XSCTextAttr , "url" : XSCURLAttr }
 
 	def asHTML(self):
 		e = dl(self.content)
