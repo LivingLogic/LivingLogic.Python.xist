@@ -2084,7 +2084,7 @@ class Attrs(Node, dict):
 					yield value.xmlname[xml]
 		# fetch the keys of attributes with a default value (if it hasn't been overwritten)
 		for (key, value) in self.alloweditems():
-			if value.default is not None and not dict.has_key(self, key):
+			if value.default and not dict.has_key(self, key):
 				yield value.xmlname[xml]
 
 	def keys(self, xml=False):
