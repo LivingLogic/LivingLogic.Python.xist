@@ -633,7 +633,6 @@ class TreePresenter(Presenter):
 		self.buffers = [] # list of ansistyle.Text objects used for formatting attributes (this is a list for elements that contains elements in their attributes)
 
 	def endPresentation(self):
-		v = []
 		lenloc = 0
 		lennumpath = 0
 		for line in self.lines:
