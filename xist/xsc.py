@@ -233,7 +233,7 @@ class XSCNode:
 				else:
 					line[1] = "?"
 				line[2] = string.joinfields(map(str,line[2]),".") # convert element number to a string
-				line[3] = self.stransi(xsc.repransitab,xsc.reprtab*line[0]) + line[3] # add indentation
+				line[3] = self._stransi(xsc.repransitab,xsc.reprtab*line[0]) + line[3] # add indentation
 				lenlineno = max(lenlineno,len(line[1]))
 				lenelementno = max(lenelementno,len(line[2]))
 
@@ -245,32 +245,35 @@ class XSCNode:
 
 	def _dorepr(self):
 		# returns a string representation of the node
-		return self.strtag("?")
+		return self._strtag("?")
 	
 	def _doreprtree(self,nest,elementno):
 		# returns and array containing arrays consisting of the (nestinglevel,linenumber,elementnumber,string representation) of the nodes
-		return [[nest,self.lineno,elementno,self.strtag("?")]]
+		return [[nest,self.lineno,elementno,self._strtag("?")]]
 
-	def stransi(self,codes,string):
+	def _stransi(self,codes,string):
 		if xsc.repransi and codes!="":
 			return "\033[" + codes + "m" + string + "\033[0m"
 		else:
 			return (string)
 
-	def strelementname(self,name):
-		return self.stransi(xsc.repransielementname,name)
+	def _strelementname(self,name):
+		return self._stransi(xsc.repransielementname,name)
 
-	def strattrname(self,name):
-		return self.stransi(xsc.repransiattrname,name)
+	def _strattrname(self,name):
+		return self._stransi(xsc.repransiattrname,name)
 
-	def strtext(self,text):
-		return self.stransi(xsc.repransitext,text)
+	def _strtext(self,text):
+		return self._stransi(xsc.repransitext,text)
 
-	def strtag(self,content):
-		return self.stransi(xsc.repransibrackets,'<') + content + self.stransi(xsc.repransibrackets,'>')
+	def _strtag(self,content):
+		return self._stransi(xsc.repransibrackets,'<') + content + self._stransi(xsc.repransibrackets,'>')
  
-	def strquotes(self,content):
-		return self.stransi(xsc.repransiquotes,'"') + content + self.stransi(xsc.repransiquotes,'"')
+	def _strtextquotes(self,content):
+		return self._stransi(xsc.repransiquotes,'"') + content + self._stransi(xsc.repransiquotes,'"')
+ 
+	def _strattrquotes(self,content):
+		return self._stransi(xsc.repransiquotes,'"') + content + self._stransi(xsc.repransiquotes,'"')
 
 	def __str__(self):
 		return self.dostr()
@@ -315,7 +318,7 @@ class XSCText(XSCNode):
 			else:
 				v.append(i)
 		s = string.joinfields(v,"") 
-		return [[nest,self.startlineno,elementno,self.strquotes(self.strtext(s))]]
+		return [[nest,self.startlineno,elementno,self._strtextquotes(self._strtext(s))]]
 
 class XSCFrag(XSCNode):
 	"""contains a list of XSCNodes"""
@@ -348,12 +351,12 @@ class XSCFrag(XSCNode):
 
 	def _doreprtree(self,nest,elementno):
 		v = []
-		v.append([nest,self.startlineno,elementno,self.strtag('XSCFrag')])
+		v.append([nest,self.startlineno,elementno,self._strtag('XSCFrag')])
 		i = 0
 		for child in self:
 			v = v + child._doreprtree(nest+1,elementno + [i])
 			i = i + 1
-		v.append([nest,self.endlineno,elementno,self.strtag('/XSCFrag')])
+		v.append([nest,self.endlineno,elementno,self._strtag('/XSCFrag')])
 		return v
 
 	def dostr(self):
@@ -425,14 +428,14 @@ class XSCAttrs(XSCNode):
 	def _dorepr(self):
 		v = []
 		for attr in self.keys():
-			v.append(" " + self.strattrname(attr) + '="' + self[attr]._dorepr() + '"')
+			v.append(" " + self._strattrname(attr) + '=' + self._strattrquotes(self[attr]._dorepr()))
 		return string.joinfields(v,"")
 
 	def _doreprtree(self,nest,elementno):
 		v = [nest,self.startlineno,elementno,""]
 		for attr in self.keys():
 			line = self[attr]._dorepr()
-			v[-1] = v[-1] + " " + self.strattrname(attr) + '="' + line + '"'
+			v[-1] = v[-1] + " " + self._strattrname(attr) + '=' + self._strattrquotes(line)
 		return v
 
 	def dostr(self):
@@ -481,10 +484,10 @@ class XSCComment(XSCNode):
 		self.content = content
 
 	def _dorepr(self):
-		return self.strtag("!--" + self.content + "--")
+		return self._strtag("!--" + self.content + "--")
 
 	def _doreprtree(self,nest,elementno):
-		return [[nest,self.startlineno,elementno,self.strtag("!--" + self.content + "--")]]
+		return [[nest,self.startlineno,elementno,self._strtag("!--" + self.content + "--")]]
 
 	def dostr(self):
 		return "<!--" + self.content + "-->"
@@ -496,10 +499,10 @@ class XSCDocType(XSCNode):
 		self.content = content
 
 	def _dorepr(self):
-		return self.strtag("!DOCTYPE " + self.content)
+		return self._strtag("!DOCTYPE " + self.content)
 
 	def _doreprtree(self,nest = 0):
-		return [[nest,self.startlineno,elementno,self.strtag("!DOCTYPE " + self.content)]]
+		return [[nest,self.startlineno,elementno,self._strtag("!DOCTYPE " + self.content)]]
 
 	def dostr(self):
 		return "<!DOCTYPE " + self.content + ">"
@@ -524,25 +527,25 @@ class XSCElement(XSCNode):
 	def _dorepr(self):
 		v = []
 		if self.close:
-			v.append(self.strtag(self.strelementname(self.name) + self.attrs._dorepr()))
+			v.append(self._strtag(self._strelementname(self.name) + self.attrs._dorepr()))
 			for child in self:
 				v.append(child._dorepr())
-			v.append(self.strtag(self.strelementname("/" + self.name)))
+			v.append(self._strtag(self._strelementname("/" + self.name)))
 		else:
-			v.append(self.strtag(self.strelementname(self.name) + self.attrs._dorepr() + self.strelementname("/")))
+			v.append(self._strtag(self._strelementname(self.name) + self.attrs._dorepr() + self._strelementname("/")))
 		return string.joinfields(v,"")
 
 	def _doreprtree(self,nest,elementno):
 		v = []
 		if self.close:
-			v.append([nest,self.startlineno,elementno,self.strtag(self.strelementname(self.name) + self.attrs._dorepr())])
+			v.append([nest,self.startlineno,elementno,self._strtag(self._strelementname(self.name) + self.attrs._dorepr())])
 			i = 0
 			for child in self:
 				v = v + child._doreprtree(nest+1,elementno + [i])
 				i = i + 1
-			v.append([nest,self.endlineno,elementno,self.strtag(self.strelementname("/" + self.name))])
+			v.append([nest,self.endlineno,elementno,self._strtag(self._strelementname("/" + self.name))])
 		else:
-			v.append([nest,self.startlineno,elementno,self.strtag(self.strelementname(self.name) + self.attrs._dorepr() + self.strelementname("/"))])
+			v.append([nest,self.startlineno,elementno,self._strtag(self._strelementname(self.name) + self.attrs._dorepr() + self._strelementname("/"))])
 		return v
 
 	def dostr(self):
