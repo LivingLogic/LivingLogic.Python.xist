@@ -36,7 +36,7 @@ def ToNode(value):
 	to a <pyref class="Frag"><class>Frag</class></pyref>. Integers, strings, etc. will be converted to a
 	<pyref class="Text"><class>Text</class></pyref>.
 	If <arg>value</arg> is a <pyref class="Node"><class>Node</class></pyref> already, nothing will be done.
-	In the case of <lit>None</lit> the &xist; Null (<class>xsc.Null</class>) will be returned).
+	In the case of <lit>None</lit> the &xist; Null (<class>xsc.Null</class>) will be returned.
 	Anything else raises an exception.</par>
 	"""
 	if isinstance(value, Node):
