@@ -285,10 +285,10 @@ class BadEntityParser(SGMLOPParser):
 			else: # ; found
 				if part[0] != "#": # named entity
 					name = part[:pos]
-					if name in html.namespace.charrefsByName:
-						node.append(html.namespace.charrefsByName[name](), part[pos+1:])
-					elif name in xsc.namespace.charrefsByName:
-						node.append(xsc.namespace.charrefsByName[name](), part[pos+1:])
+					if name in html.xmlns.charrefsByName:
+						node.append(html.xmlns.charrefsByName[name](), part[pos+1:])
+					elif name in xsc.xmlns.charrefsByName:
+						node.append(xsc.xmlns.charrefsByName[name](), part[pos+1:])
 					else:
 						node.append("&", part)
 				else: # numeric entity
@@ -353,7 +353,7 @@ class HTMLParser(BadEntityParser):
 		for (attrname, attrvalue) in attrs:
 			attrname = attrname.lower()
 			element = html.xmlns.elementsByName[name]
-			if element.isallowedattr(attrname):
+			if attrname in element.Attrs._handlersByXMLName:
 				newattrs[attrname] = attrvalue
 			else:
 				errors.warn(errors.IllegalAttrError(element.Attrs, attrname))
