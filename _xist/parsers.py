@@ -61,6 +61,8 @@ class FileInputSource(sax.xmlreader.InputSource):
 		sax.xmlreader.InputSource.__init__(self)
 		if base is None:
 			base = filename
+		if isinstance(filename, url_.URL):
+			filename = filename.asPlainString()
 		self.setSystemId(str(base))
 		self.setByteStream(fileutils.Filename(filename).open("rb"))
 		self.setEncoding(defaultEncoding)
@@ -69,7 +71,7 @@ class URLInputSource(sax.xmlreader.InputSource):
 	def __init__(self, url, defaultEncoding="utf-8"):
 		sax.xmlreader.InputSource.__init__(self)
 		if isinstance(url, url_.URL):
-			url = url.asString()
+			url = url.asPlainString()
 		self.setSystemId(url)
 		if type(url) is types.UnicodeType:
 			url = url.encode("utf-8")
