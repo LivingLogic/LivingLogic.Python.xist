@@ -244,7 +244,7 @@ node = node.convert(
 )
 </prog>
 
-<par>You can pass the following six arguments to the
+<par>You can pass the following five arguments to the
 <pyref module="ll.xist.converters" class="Converter"><class>Converter</class></pyref> constructor:</par>
 <dlist>
 <term><arg>root</arg></term><item><arg>root</arg> (which defaults to <lit>None</lit>) is the root &url;
