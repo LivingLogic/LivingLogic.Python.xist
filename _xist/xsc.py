@@ -270,10 +270,35 @@ e.g. be <code>"html"</code>, <code>"wml"</code> or <code>"docbook"</code>.</li>
 <li><dbl:pyref module="xist.converters" class="Converter" method="__init__" arg="lang">lang</dbl:pyref>
 (which defaults to <code>None</code>) the language in which the result tree should be (e.g. <code>"en"</code>,
 <code>"de"</code> or <code>"ja"</code> etc.). This can be used in the <pyref method="convert">convert</pyref> method
-to implement different conversions for different languages.</li>
+to implement different conversions for different languages, e.g.:
+<programlisting>
+class note(xsc.Element):
+	empty = 0
+
+	def convert(self, converter):
+		if converter.lang=="de":
+			title = "Anmerkung"
+		elif converter.lang=="ja":
+			title = u"???"
+		elif converter.lang=="fr":
+			title = "???"
+		else:
+			title = "Note"
+		return xsc.Frag(
+			html.h1(title),
+			html.div(self.content.convert(converter)))
+</programlisting>
+and you can test for the language with the element
+<pyref module="xist.ns.specials" class="If">xist.ns.specials.If</pyref>, e.g.:
+<programlisting>
+&lt;if lang="de">Anmerkung
+&lt;elif lang="ja">???
+&lt;elif lang="fr">???
+&lt;else>Note
+&lt;if>
+</programlisting>
+</li>
 </ul>
-Most of the currently implemented elements don't use this information, but you are
-free to use it in your own classes.
 </dbl:para>
 </dbl:section>
 
