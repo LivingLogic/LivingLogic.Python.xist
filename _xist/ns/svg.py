@@ -54,7 +54,7 @@ class clip_rule(xsc.Element.Attrs):
 
 
 class color(xsc.Element.Attrs):
-	class color(xsc.TextAttr): pass
+	class color(xsc.ColorAttr): pass
 
 
 class color_interpolation(xsc.Element.Attrs):
@@ -106,7 +106,7 @@ class externalResourcesRequired(xsc.Element.Attrs):
 
 
 class fill(xsc.Element.Attrs):
-	class fill(xsc.TextAttr): pass
+	class fill(xsc.ColorAttr): pass
 
 
 class fill_opacity(xsc.Element.Attrs):
@@ -124,7 +124,7 @@ class filter2(xsc.Element.Attrs):
 
 
 class flood_color(xsc.Element.Attrs):
-	class flood_color(xsc.TextAttr): xmlname = "flood-color"
+	class flood_color(xsc.ColorAttr): xmlname = "flood-color"
 
 
 class flood_opacity(xsc.Element.Attrs):
@@ -194,7 +194,7 @@ class letter_spacing(xsc.Element.Attrs):
 
 
 class lighting_color(xsc.Element.Attrs):
-	class lighting_color(xsc.TextAttr): xmlname = "lighting-color"
+	class lighting_color(xsc.ColorAttr): xmlname = "lighting-color"
 
 
 class marker_end(xsc.Element.Attrs):
@@ -282,7 +282,7 @@ class shape_rendering(xsc.Element.Attrs):
 
 
 class stop_color(xsc.Element.Attrs):
-	class stop_color(xsc.TextAttr): xmlname = "stop-color"
+	class stop_color(xsc.ColorAttr): xmlname = "stop-color"
 
 
 class stop_opacity(xsc.Element.Attrs):
@@ -290,7 +290,7 @@ class stop_opacity(xsc.Element.Attrs):
 
 
 class stroke(xsc.Element.Attrs):
-	class stroke(xsc.TextAttr): pass
+	class stroke(xsc.ColorAttr): pass
 
 
 class stroke_dasharray(xsc.Element.Attrs):
@@ -326,7 +326,7 @@ class stroke_width(xsc.Element.Attrs):
 
 
 class style2(xsc.Element.Attrs):
-	class style(xsc.TextAttr): pass
+	class style(xsc.StyleAttr): pass
 
 
 class systemLanguage(xsc.Element.Attrs):
@@ -793,8 +793,8 @@ class feConvolveMatrix(xsc.Element):
 		class kernelMatrix(xsc.TextAttr): required = True
 		class order(xsc.TextAttr): required = True
 		class preserveAlpha(xsc.TextAttr): values = ("false", "true")
-		class targetX(xsc.TextAttr): pass
-		class targetY(xsc.TextAttr): pass
+		class targetX(xsc.IntAttr): pass
+		class targetY(xsc.IntAttr): pass
 
 
 class feDiffuseLighting(xsc.Element):
@@ -897,7 +897,7 @@ class feTile(xsc.Element):
 class feTurbulence(xsc.Element):
 	class Attrs(color_interpolation_filters, height, id, result, width, x, y):
 		class baseFrequency(xsc.TextAttr): pass
-		class numOctaves(xsc.TextAttr): pass
+		class numOctaves(xsc.IntAttr): pass
 		class seed(xsc.TextAttr): pass
 		class stitchTiles(xsc.TextAttr): values = ("stitch", "noStitch")
 		class type(xsc.TextAttr): values = ("fractalNoise", "turbulence")
