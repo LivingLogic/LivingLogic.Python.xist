@@ -151,8 +151,8 @@ class XISTTestCase(unittest.TestCase):
 		node.repr()
 		node.repr(presenters.PlainPresenter())
 		node.repr(presenters.NormalPresenter())
-		for showLocation in (0, 1):
-			for showPath in (0, 1):
+		for showLocation in (False, True):
+			for showPath in (False, True):
 				node.repr(presenters.TreePresenter(showLocation=showLocation, showPath=showPath))
 		node.repr(presenters.CodePresenter())
 		node.conv()
