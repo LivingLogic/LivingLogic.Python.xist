@@ -204,8 +204,8 @@ class FilePublisher(Publisher):
 	"""
 	def __init__(self, stream, base=None, root=None, encoding=None, xhtml=None, prefixes=None, elementmode=0, procinstmode=0, entitymode=0):
 		super(FilePublisher, self).__init__(base=base, root=root, encoding=encoding, xhtml=xhtml, prefixes=prefixes, elementmode=elementmode, procinstmode=procinstmode, entitymode=entitymode)
-		(encode, decode, streamReaderClass, streamWriterClass) = codecs.lookup(self.encoding)
-		self.stream = streamWriterClass(stream)
+		streamwriterclass = codecs.getwriter(self.encoding)
+		self.stream = streamwriterclass(stream)
 
 	def publish(self, text):
 		self.stream.write(text)
