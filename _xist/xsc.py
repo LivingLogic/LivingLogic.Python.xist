@@ -405,7 +405,8 @@ class Node(Base):
 	def publish(self, publisher):
 		"""
 		<par>generates unicode strings for the node, and passes
-		the strings to the callable object <arg>publisher</arg>.</par>
+		the strings to <arg>publisher</arg>, which must
+		be an instance of <pyref module="ll.xist.publishers" class="Publisher"><class>ll.xist.publishers.Publisher</class></pyref>.</par>
 
 		<par>The encoding and xhtml specification are taken from the <arg>publisher</arg>.</par>
 		"""
@@ -415,7 +416,8 @@ class Node(Base):
 		"""
 		<par>returns this element as a unicode string.</par>
 
-		<par>For the parameters see <pyref method="publish"><method>publish</method></pyref>.</par>
+		<par>For the parameters see the
+		<pyref module="ll.xist.publishers" class="Publisher"><class>ll.xist.publishers.Publisher</class></pyref> constructor.</par>
 		"""
 		publisher = publishers.StringPublisher(base=base, root=root, xhtml=xhtml, prefixes=prefixes, elementmode=elementmode, procinstmode=procinstmode, entitymode=entitymode)
 		return publisher.doPublication(self)
@@ -425,7 +427,8 @@ class Node(Base):
 		<par>returns this element as a byte string suitable for writing
 		to an &html; file or printing from a CGI script.</par>
 
-		<par>For the parameters see <pyref method="publish"><method>publish</method></pyref>.</par>
+		<par>For the parameters see the
+		<pyref module="ll.xist.publishers" class="Publisher"><class>ll.xist.publishers.Publisher</class></pyref> constructor.</par>
 		"""
 		publisher = publishers.BytePublisher(base=base, root=root, encoding=encoding, xhtml=xhtml, prefixes=prefixes, elementmode=elementmode, procinstmode=procinstmode, entitymode=entitymode)
 		return publisher.doPublication(self)
@@ -434,7 +437,8 @@ class Node(Base):
 		"""
 		<par>writes the element to the file like object <arg>file</arg>.</par>
 
-		<par>For the rest of the parameters see <pyref method="publish"><method>publish</method></pyref>.</par>
+		<par>For the rest of the parameters
+		see the <pyref module="ll.xist.publishers" class="Publisher"><class>ll.xist.publishers.Publisher</class></pyref> constructor.</par>
 		"""
 		publisher = publishers.FilePublisher(stream, base=base, root=root, encoding=encoding, xhtml=xhtml, prefixes=prefixes, elementmode=elementmode, procinstmode=procinstmode, entitymode=entitymode)
 		return publisher.doPublication(self)
