@@ -66,8 +66,8 @@ class title(xsc.Element):
 	empty = 0
 	attrHandlers = i18n
 
-	def asHTML(self):
-		return title(self.content.asHTML().asPlainString(),**self.attrs)
+	def asHTML(self, mode=None):
+		return title(self.content.asHTML(mode=None).asPlainString(), **self.attrs)
 
 class meta(xsc.Element):
 	"""

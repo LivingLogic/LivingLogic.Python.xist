@@ -45,12 +45,15 @@ xsc.Element as in the following example:
 	class cool(xsc.Element):
 		empty = 1
 
-		def asHTML(self):
+		def asHTML(self, mode=None):
 			return html.b("Python is cool!")
 
 Using this element is as simple as this:
 	e = cool()
 	print e.asHTML().asString()
+
+(The additional argument mode allows you to implement
+different processing modes)
 
 The class variable empty in the above example specifies
 that the element type has an empty content model (like <br/>
@@ -471,7 +474,7 @@ class Node:
 		# (nestinglevel, location, elementnumber, string representation) of the nodes
 		return [[nest, self.startloc, elementno, self._dorepr(encoding, ansi)]]
 
-	def asHTML(self):
+	def asHTML(self, mode=None):
 		"""
 		<par noindent>returns a version of this node and it's content converted to HTML,
 		so when you define your own element classes you should overwrite <methodref>asHTML</methodref>.</par>
@@ -483,8 +486,8 @@ class Node:
 		def foo(xsc.Element):
 			empty = 0
 
-			def asHTML(self):
-				return html.b(self.content).asHTML()
+			def asHTML(self, mode=None):
+				return html.b(self.content).asHTML(mode)
 		</pre>
 		</par>
 		"""
@@ -502,9 +505,9 @@ class Node:
 		class caps(xsc.Element):
 			empty = 0
 
-			def asHTML(self):
+			def asHTML(self, mode=None):
 				return html.span(
-					self.content.asHTML(),
+					self.content.asHTML(mode),
 					style="font-variant: small-caps;"
 				)
 		</pre>
@@ -858,7 +861,7 @@ class Text(Node, StringMixIn):
 			raise ValueError("content must be string, unicode, int, long, float or Text")
 		StringMixIn.__init__(self, content)
 
-	def asHTML(self):
+	def asHTML(self, mode=None):
 		return self
 
 	clone = asHTML
@@ -943,9 +946,9 @@ class Frag(Node):
 		for child in content:
 			self.extend(child)
 
-	def asHTML(self):
+	def asHTML(self, mode=None):
 		node = self.__class__() # virtual constructor => attributes (which are derived from Frag) will be handled correctly)
-		node.__content = [ child.asHTML() for child in self.__content ]
+		node.__content = [ child.asHTML(mode) for child in self.__content ]
 		return self._decorateNode(node)
 
 	def clone(self):
@@ -1120,10 +1123,13 @@ class Comment(Node, StringMixIn):
 	def __init__(self, content=""):
 		StringMixIn.__init__(self, content)
 
-	def asHTML(self):
+	def asHTML(self, mode=None):
 		return self
 
-	clone = compact = asHTML
+	def clone(self):
+		return self
+
+	compact = clone
 
 	def _dorepr(self, encoding=None, ansi=None):
 		return strBracketOpen(ansi) + strExclamation(ansi) + strCommentMarker(ansi) + strCommentText(self._content, ansi) + strCommentMarker(ansi) + strBracketClose(ansi)
@@ -1150,10 +1156,13 @@ class DocType(Node, StringMixIn):
 	def __init__(self, content=""):
 		StringMixIn.__init__(self, content)
 
-	def asHTML(self):
+	def asHTML(self, mode=None):
 		return self
 
-	clone = compact = asHTML
+	def clone(self):
+		return self
+
+	compact = clone
 
 	def _dorepr(self, encoding=None, ansi=None):
 		return strBracketOpen(ansi) + strExclamation(ansi) + strDocTypeMarker(ansi) + " " + strDocTypeText(self._content, ansi) + strBracketClose(ansi)
@@ -1189,10 +1198,13 @@ class ProcInst(Node, StringMixIn):
 		self._target = utils.stringFromCode(target)
 		StringMixIn.__init__(self, content)
 
-	def asHTML(self):
+	def asHTML(self, mode=None):
 		return self
 
-	clone = compact = asHTML
+	def clone(self):
+		return self
+
+	compact = clone
 
 	def _dorepr(self, encoding=None, ansi=None):
 		return self._str(content=strQuestion(ansi) + strProcInstTarget(self._target, ansi) + " " + strProcInstData(self._content, ansi) + strQuestion(ansi), brackets=1, ansi=ansi)
@@ -1246,7 +1258,7 @@ class Exec(PythonCode):
 		code = utils.Code(self._content, 1)
 		exec code.asString() in procinst.__dict__ # requires Python 2.0b2 (and doesn't really work)
 
-	def asHTML(self):
+	def asHTML(self, mode=None):
 		return Null # has been executed at construction time already, so we don't have to do anything here
 
 class Eval(PythonCode):
@@ -1269,11 +1281,15 @@ class Eval(PythonCode):
 	def __init__(self, content=u""):
 		ProcInst.__init__(self, u"xsc-eval", content)
 
-	def asHTML(self):
+	def asHTML(self, mode=None):
+		"""
+		Evaluates the code. The <argref>mode</argref> argument will be available under the
+		name <code>mode</code> as an argument.
+		"""
 		code = utils.Code(self._content, 1)
 		code.funcify()
 		exec code.asString() in procinst.__dict__ # requires Python 2.0b2 (and doesn't really work)
-		return ToNode(eval("__()", procinst.__dict__)).asHTML()
+		return ToNode(procinst.__(mode)).asHTML(mode)
 
 class XML(ProcInst):
 	"""
@@ -1405,11 +1421,11 @@ class Element(Node):
 		if self.empty and len(self):
 			raise errors.EmptyElementWithContentError(self)
 
-	def asHTML(self):
+	def asHTML(self, mode=None):
 		node = self.__class__() # "virtual" copy constructor
-		node.content = self.content.asHTML() # this is faster than passing it in the constructor (no ToNode call)
+		node.content = self.content.asHTML(mode) # this is faster than passing it in the constructor (no ToNode call)
 		for attr in self.attrs.keys():
-			node.attrs[attr] = self.attrs[attr].asHTML()
+			node.attrs[attr] = self.attrs[attr].asHTML(mode)
 		return self._decorateNode(node)
 
 	def clone(self):
@@ -1422,7 +1438,7 @@ class Element(Node):
 	def asPlainString(self):
 		return self.content.asPlainString()
 
-	def _addImageSizeAttributes(self, imgattr, widthattr=None, heightattr=None):
+	def _addImageSizeAttributes(self, mode, imgattr, widthattr=None, heightattr=None):
 		"""
 		<par noindent>add width and height attributes to the element for the image that can be found in the attribute
 		<argref>imgattr</argref>. If the attributes are already there, they are taken as a formatting
@@ -1434,14 +1450,14 @@ class Element(Node):
 		"""
 
 		if self.hasAttr(imgattr):
-			size = self[imgattr].asHTML().ImageSize()
+			size = self[imgattr].asHTML(mode).ImageSize()
 			if size is not None: # the size was retrieved so we can use it
 				sizedict = {"width": size[0], "height": size[1]}
 				for attr in (heightattr, widthattr):
 					if attr is not None: # do something to the width/height
 						if self.hasAttr(attr):
 							try:
-								s = self[attr].asHTML().asPlainString() % sizedict
+								s = self[attr].asHTML(mode).asPlainString() % sizedict
 								s = str(eval(s))
 								s = utils.stringFromCode(s)
 								self[attr] = s
@@ -1672,7 +1688,7 @@ class Entity(Node):
 	you're done.</par>
 	"""
 
-	def asHTML(self):
+	def asHTML(self, mode=None):
 		node = Text(unichr(self.codepoint))
 		return self._decorateNode(node)
 
@@ -1710,10 +1726,13 @@ class Null(Node):
 	node that does not contain anything.
 	"""
 
-	def asHTML(self):
+	def asHTML(self, mode=None):
 		return self
 
-	clone = compact = asHTML
+	def clone(self):
+		pass
+
+	compact = clone
 
 	def publish(self, publisher):
 		pass
@@ -1813,8 +1832,8 @@ class URLAttr(Attr):
 	def publish(self, publisher):
 		Text(self.forOutput().asPlainString()).publish(publisher)
 
-	def asHTML(self):
-		node = Attr.asHTML(self)
+	def asHTML(self, mode=None):
+		node = Attr.asHTML(self, mode)
 		node.base = self.base.clone()
 		return node
 

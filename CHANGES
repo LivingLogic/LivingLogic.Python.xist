@@ -16,6 +16,12 @@ a C compiler to install XIST.
 When publishing ", it will now only be replaced with
 &quot; inside attributes.
 
+All the asHTML methods now have an additional argument
+mode which defaults to None. This makes it possible
+to implement different processing modes for new
+elements. All currently implemented elements and
+entities ignore this argument, but pass it on
+in the call to their childrens' asHTML method.
 
 New in 0.4.7
 ------------

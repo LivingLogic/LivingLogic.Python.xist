@@ -24,11 +24,11 @@ class contenttype(html.meta):
 	del attrHandlers["name"]
 	del attrHandlers["content"]
 
-	def asHTML(self):
+	def asHTML(self, mode=None):
 		e = html.meta(**self.attrs)
 		e["http-equiv"] = "Content-Type"
 		e["content"] = "text/html"
-		return e.asHTML()
+		return e.asHTML(mode)
 
 class keywords(html.meta):
 	"""
@@ -43,11 +43,11 @@ class keywords(html.meta):
 	del attrHandlers["name"]
 	del attrHandlers["content"]
 
-	def asHTML(self):
+	def asHTML(self, mode=None):
 		e = html.meta(**self.attrs)
 		e["name"] = "keywords"
-		e["content"] = self.content.asHTML().asPlainString()
-		return e.asHTML()
+		e["content"] = self.content.asHTML(mode).asPlainString()
+		return e.asHTML(mode)
 
 class description(html.meta):
 	"""
@@ -62,11 +62,11 @@ class description(html.meta):
 	del attrHandlers["name"]
 	del attrHandlers["content"]
 
-	def asHTML(self):
+	def asHTML(self, mode=None):
 		e = html.meta(**self.attrs)
 		e["name"] = "description"
-		e["content"] = self.content.asHTML().asPlainString()
-		return e.asHTML()
+		e["content"] = self.content.asHTML(mode).asPlainString()
+		return e.asHTML(mode)
 
 class stylesheet(html.link):
 	"""
@@ -79,11 +79,11 @@ class stylesheet(html.link):
 	del attrHandlers["rel"]
 	del attrHandlers["type"]
 
-	def asHTML(self):
+	def asHTML(self, mode=None):
 		e = html.link(**self.attrs)
 		e["rel"] = "stylesheet"
 		e["type"] = "text/css"
-		return e.asHTML()
+		return e.asHTML(mode)
 
 class made(html.link):
 	"""
@@ -95,11 +95,11 @@ class made(html.link):
 	attrHandlers = html.link.attrHandlers.copy()
 	del attrHandlers["rel"]
 
-	def asHTML(self):
+	def asHTML(self, mode=None):
 		e = html.link(**self.attrs)
 		e["rel"] = "made"
 		e["href"] = ("mailto:", e["href"])
-		return e.asHTML()
+		return e.asHTML(mode)
 
 namespace = xsc.Namespace("meta", "http://www.livinglogic.de/DTDs/meta.dtd", vars())
 

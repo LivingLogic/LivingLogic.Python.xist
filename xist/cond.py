@@ -29,7 +29,7 @@ class switch(xsc.Element):
 	empty = 0
 	attrHandlers = {"var": xsc.TextAttr}
 
-	def asHTML(self):
+	def asHTML(self, mode=None):
 		cases = self.find(type=case)
 
 		return xsc.Null
@@ -38,16 +38,16 @@ class case(xsc.Element):
 	empty = 0
 	attrHandlers = {"case": xsc.TextAttr}
 
-	def asHTML(self):
-		return self.content.asHTML()
+	def asHTML(self, mode=None):
+		return self.content.asHTML(mode)
 
 class If(xsc.Element):
 	empty = 0
 	attrHandlers = {"cond": CondAttr}
 	name = "if"
 
-	def asHTML(self):
-		intruecondition = self.__testCond(self["cond"])
+	def asHTML(self, mode=None):
+		intruecondition = self.__testCond(self["cond"], mode)
 		truecondition = xsc.Frag()
 		for child in self.content:
 			if isinstance(child, ElIf):
@@ -63,10 +63,10 @@ class If(xsc.Element):
 			else:
 				if intruecondition:
 					truecondition.append(child)
-		return truecondition.asHTML()
+		return truecondition.asHTML(mode)
 
-	def __testCond(self, attr):
-		cond = attr.asHTML().asPlainString()
+	def __testCond(self, attr, mode):
+		cond = attr.asHTML(mode).asPlainString()
 		result = eval(str(cond), procinst.__dict__)
 		return result
 
@@ -75,14 +75,14 @@ class ElIf(xsc.Element):
 	attrHandlers = {"cond": CondAttr}
 	name = "elif"
 
-	def asHTML(self):
+	def asHTML(self, mode=None):
 		return xsc.Null
 
 class Else(xsc.Element):
 	empty = 1
 	name = "else"
 
-	def asHTML(self):
+	def asHTML(self, mode=None):
 		return xsc.Null
 
 namespace = xsc.Namespace("cond", "http://www.livinglogic.de/DTDs/cond.dtd", vars())

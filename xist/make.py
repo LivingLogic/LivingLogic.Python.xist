@@ -41,11 +41,12 @@ def make():
 	use XSC as a compiler script, i.e. read an input file from args[1]
 	and writes it to args[2]
 	"""
-	(options, args) = getopt.getopt(sys.argv[1:], "p:i:o:e:x:", ["path=", "import=", "output=", "encoding=", "xhtml="])
+	(options, args) = getopt.getopt(sys.argv[1:], "p:i:o:e:x:m:", ["path=", "import=", "output=", "encoding=", "xhtml=", "mode="])
 
 	globaloutname = url.URL("*/")
 	encoding = None
 	XHTML = None
+	mode = None
 	for (option, value) in options:
 		if option=="-p" or option=="--path":
 			sys.path.append(value)
@@ -57,6 +58,8 @@ def make():
 			encoding = value
 		elif option=="-x" or option=="--xhtml":
 			XHTML = int(value)
+		elif option=="-m" or option=="--mode":
+			mode = value
 
 	if args:
 		for file in args:
@@ -74,7 +77,7 @@ def make():
 			e_in = xsc.xsc.parse(inname)
 			t2 = time.clock()
 			xsc.xsc.pushURL(inname)
-			e_out = e_in.asHTML()
+			e_out = e_in.asHTML(mode)
 			t3 = time.clock()
 			p = publishers.FilePublisher(utils.forceopen(outname.asPlainString(), "wb", 65536), encoding=encoding, XHTML=XHTML)
 			e_out.publish(p)
