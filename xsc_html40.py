@@ -311,9 +311,10 @@ class XSCimg(XSCElement):
 	attr_handlers = AppendDict(attr_handlers,{ "border" : XSCFrag }) # deprecated
 
 	def __str__(self):
-		self.AddImageSizeAttributes("src")
+		e = XSCimg(self.content,self.attrs)
+		e.AddImageSizeAttributes("src")
 
-		return XSCElement.__str__(self)
+		return XSCElement.__str__(e)
 RegisterElement("img",XSCimg)
 
 class XSCobject(XSCElement):

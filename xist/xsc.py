@@ -89,18 +89,24 @@ class EHSCIllegalObject(EHSCException):
 def FileSize(url):
 	"returns the size of a file in bytes"
 
-	return os.stat(url)[stat.ST_SIZE]
+	size = -1
+	if xsc.retrieveremote or (not xsc.is_remote(url)):
+		filename,headers = urllib.urlretrieve(url)
+		size = os.stat(filename)[stat.ST_SIZE]
+		urllib.urlcleanup()
+	return size
 
 def ImageSize(url):
 	"returns the size of an image as a tuple"
 
-	size = (42,42)
-	filename,headers = urllib.urlretrieve(url)
-	if headers.has_key("content-type") and headers["content-type"][:6] == "image/":
-		img = Image.open(filename)
-		size = img.size
-	del img
-	urllib.urlcleanup()
+	size = (-1,-1)
+	if xsc.retrieveremote or (not xsc.is_remote(url)):
+		filename,headers = urllib.urlretrieve(url)
+		if headers.has_key("content-type") and headers["content-type"][:6] == "image/":
+			img = Image.open(filename)
+			size = img.size
+		del img
+		urllib.urlcleanup()
 	return size
 
 def AppendDict(*dicts):
@@ -239,7 +245,7 @@ class XSCAttrs(XSCNode):
 		for attr in self.content.keys():
 			v.append(attr + '="' + str(self.content[attr]) + '"')
 		return string.joinfields(v," ")
-		
+
 	def __repr__(self):
 		v = []
 		for attr in self.content.keys():
@@ -299,7 +305,7 @@ class XSCDocType(XSCNode):
 class XSCElement(XSCNode):
 	"XML elements"
 
-	close = 0 # 0 => stand alone element, 1 => element with content 
+	close = 0 # 0 => stand alone element, 1 => element with content
 	attr_handlers = {}
 
 	def __init__(self,content = [],attrs = {},**restattrs):
@@ -377,20 +383,22 @@ class XSCElement(XSCNode):
 			url = repr(self[imgattr])
 			size = ImageSize(url)
 			sizedict = { "width": size[0], "height": size[1] }
-			if self.has_attr(widthattr):
-				try:
-					self[widthattr] = eval(str(self[widthattr]) % sizedict)
-				except:
-					raise EHSCImageSizeFormat(self,widthattr)
-			else:
-				self[widthattr] = size[0]
-			if self.has_attr(heightattr):
-				try:
-					self[heightattr] = eval(str(self[heightattr]) % sizedict)
-				except:
-					raise EHSCImageSizeFormat(self,heightattr)
-			else:
-				self[heightattr] = size[1]
+			if size[0] != -1: # the width was retrieved so we can use it
+				if self.has_attr(widthattr):
+					try:
+						self[widthattr] = eval(str(self[widthattr]) % sizedict)
+					except:
+						raise EHSCImageSizeFormat(self,widthattr)
+				else:
+					self[widthattr] = size[0]
+			if size[1] != -1: # the height was retrieved so we can use it
+				if self.has_attr(heightattr):
+					try:
+						self[heightattr] = eval(str(self[heightattr]) % sizedict)
+					except:
+						raise EHSCImageSizeFormat(self,heightattr)
+				else:
+					self[heightattr] = size[1]
 
 def RegisterElement(name,element):
 	element_handlers[name] = element
@@ -398,9 +406,6 @@ def RegisterElement(name,element):
 
 class XSCurl(XSCElement):
 	"URLS (may be used as an element or an attribute)"
-
-	# protocol string that will be recognised as being remote files, where no path translation takes place
-	protocols = [ "http" , "ftp" ]
 
 	def __init__(self,content = [],attrs = {},**restattrs):
 		if type(content) == types.InstanceType and content.__class__ == XSCurl:
@@ -413,11 +418,7 @@ class XSCurl(XSCElement):
 		if url[0] == "/": # this is a server relative URL, use the server specified in the options (usually localhost)
 			url = "http://" + xsc.server + url
 		else:
-			for protocol in self.protocols:
-				test = protocol + "://"
-				if test == url[:len(test)]: # this is a complete URL so we don't have to do any translation
-					break
-			else:
+			if not xsc.is_remote(url):
 				if url[0] == ":": # project relative, i.e. relative to the current directory
 					url = url[1:]
 				# now we have an URL that is relative to the current directory, replace URL syntax with the path syntax on our system (won't do anything under UNIX, replaces / with  \ under Windows
@@ -429,7 +430,7 @@ class XSCurl(XSCElement):
 		return url
 
 	def __str__(self):
-		url = str(self.content) 
+		url = str(self.content)
 		if url[0] == ":":
 			# split both path
 			source = string.splitfields(xsc.filename,"/")
@@ -447,13 +448,25 @@ RegisterElement("url",XSCurl)
 ###
 
 class XSC:
+	# protocol string that will be recognised as being remote files, where no path translation takes place
+	protocols = [ "http" , "ftp" ]
+
 	def __init__(self):
 		self.filename = ""
 		self.server = "localhost"
+		self.retrieveremote = 1
 
 	def __repr__(self):
-		return "<xsc filename='" + self.filename + "' server='" + self.server + "'>"
-		
+		return '<xsc filename="' + self.filename + '" server="' + self.server + '" retrieveremote=' + [ 'no' , 'yes' ][self.retrieveremote] + '>'
+
+	def is_remote(self,url):
+		for protocol in self.protocols:
+			test = protocol + "://"
+			if test == url[:len(test)]: # this is a complete URL so we don't have to do any translation
+				return 1
+		else:
+			return 0
+
 xsc = XSC()
 
 ###
@@ -491,7 +504,7 @@ class XSCParser(xmllib.XMLParser):
 			raise EHSCIllegalElement(lowername)
 		self.nesting[-1].append(e) # add the new element to the content of the innermost element (or to the array)
 		self.nesting.append(e) # push new innermost element onto the stack
-		
+
 	def unknown_endtag(self,name):
 		self.nesting[-1:] = [] # pop the innermost element off the stack
 
