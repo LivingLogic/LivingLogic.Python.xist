@@ -38,7 +38,7 @@ from <pyref module="ll.xist.xsc" class="Element"><class>Element</class></pyref>.
 <par>Other namespace modules provide additional functionality through
 new element classes. Calling <pyref module="ll.xist.xsc" class="Node" method="convert"><method>convert</method></pyref>
 on these elements might convert them to one of these target namespaces
-(depending on the <code>target</code> attribute of the
+(depending on the <lit>target</lit> attribute of the
 <pyref module="ll.xist.converters" class="Converter"><class>Converter</class></pyref> object
 passed around.) Some of these namespace modules completely ignore the target
 and convert to one fixed target namespace (<pyref module="ll.xist.ns.html"><module>html</module></pyref>
