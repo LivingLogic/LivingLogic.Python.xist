@@ -141,9 +141,9 @@ class URLInputSource(InputSource):
 			id = url.URL(id)
 		InputSource.__init__(self, base)
 		resource = id.openread(headers=headers, data=data)
-		sysid = resource.realurl.url
+		sysid = resource.finalurl.url
 		if base is None:
-			self.base = resource.realurl
+			self.base = resource.finalurl
 		self.setSystemId(sysid)
 		if isinstance(tidy, int):
 			if tidy:

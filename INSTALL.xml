@@ -5,7 +5,7 @@
 <item>Python 2.3 (available from <link href="http://www.python.org/">http://www.python.org/</link>),</item>
 <item>The Python &xml; package (available from <link href="http://pyxml.sf.net/">http://pyxml.sf.net/</link>)
 (at least version 0.8.2),</item>
-<item>URL 0.11.3 or newer (available from <link href="root:url/index.html">http://www.livinglogic.de/Python/url/</link>),</item>
+<item>URL 0.11.4 or newer (available from <link href="root:url/index.html">http://www.livinglogic.de/Python/url/</link>),</item>
 <item>ANSIStyle (available from <link href="root:ansistyle/index.html">http://www.livinglogic.de/Python/ansistyle/</link>),</item>
 <item>if you want to use automatic image size calculation: the Python Imaging Library (available from
 <link href="http://www.pythonware.com/products/pil/">http://www.pythonware.com/products/pil/</link>)</item>
