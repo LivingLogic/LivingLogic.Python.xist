@@ -70,10 +70,11 @@ class filetime(xsc.Element):
 	empty = True
 	class Attrs(xsc.Element.Attrs):
 		class href(xsc.URLAttr): pass
-		class format(xsc.TextAttr): pass
+		class format(xsc.TextAttr):
+			default = "%d. %b. %Y, %H:%M"
 
 	def convert(self, converter):
-		format = str(self.getAttr("format", "%d. %b. %Y, %H:%M").convert(converter))
+		format = str(self["format"].convert(converter))
 		return xsc.Text(self["href"].convert(converter).lastmodified(root=converter.root).Format(format))
 
 class time(xsc.Element):
@@ -84,10 +85,11 @@ class time(xsc.Element):
 	"""
 	empty = True
 	class Attrs(xsc.Element.Attrs):
-		class format(xsc.TextAttr): pass
+		class format(xsc.TextAttr):
+			default = "%d. %b. %Y, %H:%M"
 
 	def convert(self, converter):
-		format = str(self.getAttr("format", "%d. %b. %Y, %H:%M").convert(converter))
+		format = str(self["format"].convert(converter))
 
 		return xsc.Text(time_.strftime(format, time_.gmtime(time_.time())))
 
