@@ -118,7 +118,7 @@ def item(iterator, index, default=_defaultitem):
 	"""
 	<par>Return the <arg>index</arg>th item from the iterator <arg>iterator</arg>.
 	<arg>index</arg> may be an integer (negative integers are relative to the
-	end (i.e. the last item produced by the iterator) or a <class>slice</class>.</par>
+	end (i.e. the last item produced by the iterator)) or a <class>slice</class>.</par>
 
 	<par>Calling this function will partially or totally exhaust the iterator.</par>
 
