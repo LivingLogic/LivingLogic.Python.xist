@@ -1,3 +1,21 @@
+New in 0.4.3
+------------
+Now processing instruction classes are registered in the
+same way as elements and entities are.
+
+The leaf nodes (Text, Comment, ProcInst) are now considered
+immutable. This means that their asHTML method can simply
+return self, because now those nodes can be shared between
+trees. Functionality for manipulation the objects is provided
+by a mixin class very similar to UserString. All this results
+in a speedup of about 10% for the python-quotes example.
+
+Small optimizations in the asHTML methods of Element and
+Frag optimize away many calls to append, extend as ToNode
+and result in a speedup of about 30% for the python-quotes
+example. One consequence of this is that Null objects will
+no longer be ignored.
+
 New in 0.4.2
 ------------
 
