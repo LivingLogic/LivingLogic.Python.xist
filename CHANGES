@@ -46,6 +46,21 @@ from db have been move to sql.py und form.py respectively.
 When using xsc.make() the encoding and XHTML parameters to use can now
 be specified one the command line (e.g. --encoding utf-8 --xhtml 2)
 
+Handling of multiline <?xsc-eval?> and <?xsc-exec?> has been enhanced,
+although, XIST will not be able to guess the correct indentation in all
+cases. As a workarround simply add a Python comment to the beginning:
+<?xsc-exec
+	for i in xrange(10):
+		do(i)
+?>
+won't work
+<?xsc-exec
+	#
+	for i in xrange(10):
+		do(i)
+?>
+will.
+
 New in 0.3.9
 ------------
 sgmlop will now be found either via

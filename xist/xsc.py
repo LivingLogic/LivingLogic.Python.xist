@@ -227,6 +227,7 @@ from URL import URL # our own new URL class
 import publishers # classes for dumping XML strings
 from errors import * # exceptions
 from options import * # optional stuff ;)
+from code import Code # needed for formatting and executing Python code
 
 ###
 ### helpers
@@ -1121,7 +1122,7 @@ class ProcInst(Node):
 	def _doreprtree(self, nest, elementno, encoding = None, ansi = None):
 		head = strBracketOpen(ansi) + strQuestion(ansi) + strProcInstTarget(self.target, ansi) + " "
 		tail = strQuestion(ansi) + strBracketClose(ansi)
-		return self._doreprtreeMultiLine(nest, elementno, head, tail, self.content, strProcInstData, 1, ansi = ansi)
+		return self._doreprtreeMultiLine(nest, elementno, head, tail, self.content, strProcInstData, 1, ansi=ansi)
 
 	def publish(self, publisher):
 		if self.content.find(u"?>")!=-1:
@@ -1131,7 +1132,18 @@ class ProcInst(Node):
 	def compact(self):
 		return self._decorateNode(ProcInst(self.target, self.content))
 
-class Exec(ProcInst):
+class PythonCode(ProcInst):
+	"""
+	helper class
+	"""
+	def _doreprtree(self, nest, elementno, encoding = None, ansi = None):
+		head = strBracketOpen(ansi) + strQuestion(ansi) + strProcInstTarget(self.target, ansi) + " "
+		tail = strQuestion(ansi) + strBracketClose(ansi)
+		code = Code(self.content, 1)
+		code.indent()
+		return self._doreprtreeMultiLine(nest, elementno, head, tail, code.asString(), strProcInstData, 1, ansi=ansi)
+
+class Exec(PythonCode):
 	"""
 	<par noindent>here the content of the processing instruction is executed
 	as Python code, so you can define and register XSC elements here.
@@ -1145,8 +1157,9 @@ class Exec(ProcInst):
 	"""
 	def __init__(self, content = ""):
 		ProcInst.__init__(self, u"xsc-exec", content)
-		content = self.content.encode("iso-8859-1") # FIXME Python bug: why can't I exec a unicode object?
-		exec content in procinst.__dict__
+		print repr(self.content)
+		code = Code(self.content, 1)
+		exec str(code.asString()) in procinst.__dict__ # FIXME Why can't I exec a unicode object
 
 	def asHTML(self):
 		return Null # has been executed at construction time already, so we don't have to do anything here
@@ -1154,7 +1167,7 @@ class Exec(ProcInst):
 	def clone(self):
 		return self._decorateNode(Exec(self.content))
 
-class Eval(ProcInst):
+class Eval(PythonCode):
 	"""
 	<par noindent>here the code will be executed when the node is converted to HTML
 	as if it was the body of a function, so you can return an expression
@@ -1172,9 +1185,8 @@ class Eval(ProcInst):
 		ProcInst.__init__(self, u"xsc-eval", content)
 
 	def asHTML(self):
-		content = self.content.encode("iso-8859-1") # FIXME Python bug: why can't I exec a unicode object?
-		function = "def __():\n\t" + content.strip().replace("\n", "\n\t") + "\n"
-		exec function in procinst.__dict__
+		code = Code(self.content,1)
+		code.funcify()
 		return ToNode(eval("__()", procinst.__dict__)).asHTML()
 
 	def clone(self):
@@ -1183,7 +1195,7 @@ class Eval(ProcInst):
 class XML(ProcInst):
 	"""
 	"""
-	def __init__(self, content = ""):
+	def __init__(self, content = u""):
 		ProcInst.__init__(self, u"xml", content)
 
 	def clone(self):
