@@ -343,7 +343,7 @@ class CharRef(Entity):
 		lines.append([level, "class %s(xsc.CharRef):" % pyname])
 		newlines = []
 		if self.doc is not None:
-			self.doc._aspy(newlines, encoding, level+1, asmod)
+			self.doc._aspy(newlines, encoding, level+1, names, asmod)
 		if pyname != name:
 			newlines.append([level+1, "xmlname = %s" % self.simplify(name)])
 		newlines.append([level+1, "codepoint = 0x%04x" % self.codepoint])
