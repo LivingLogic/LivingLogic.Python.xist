@@ -414,7 +414,7 @@ class cool(xsc.Element):
 
 	def convert(self, converter):
 		node = xsc.Frag(self.content, " is")
-		if self.hasattr("adj"):
+		if self.attrs.has("adj"):
 			node.append(" ", html.em(self["adj"]))
 		node.append(" cool!")
 		return node.convert(converter)
@@ -444,7 +444,7 @@ class cool(xsc.Element):
 
 	def convert(self, converter):
 		node = xsc.Frag(self.content, " is")
-		if self.hasattr("adj"):
+		if self.attrs.has("adj"):
 			node.append(" ", html.em(self["adj"]))
 		node.append(" cool!")
 		return node.convert(converter)
@@ -497,7 +497,7 @@ class cool(xsc.Element):
 
 	def convert(self, converter):
 		node = xsc.Frag(self.content, " is")
-		if self.hasattr("adj"):
+		if self.attrs.has("adj"):
 			node.append(" ", html.em(self["adj"]))
 		node.append(" cool!")
 		return node.convert(converter)
