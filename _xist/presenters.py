@@ -30,214 +30,208 @@ def getStringFromEnv(name, default):
 		return default
 
 
-def getIntFromEnv(name, default):
+def getenvint(name, default):
 	try:
 		return int(os.environ[name])
 	except KeyError:
 		return default
 
 
-def getColorsFromEnv(name, default):
+def getenvcolors(name, default):
+	if options.repransi==0:
+		return -1
 	try:
 		var = eval(os.environ[name])
 		if type(var) is types.StringType:
 			var = (var, var)
-		return var
+		return var[options.repransi-1]
 	except KeyError:
-		return default
+		return default[options.repransi-1]
 
 
-class EnvText(ansistyle.Text):
-	def getcolor(self):
-		if options.repransi==0:
-			return -1
-		else:
-			return self.color[options.repransi-1]
-
-
-class EnvTextForTab(EnvText):
+class EnvTextForTab(ansistyle.Text):
 	"""
 	ANSI escape sequence to be used for tabs
 	"""
-	color = getColorsFromEnv("XSC_REPRANSI_TAB", (0x4, 0x8))
+	color = getenvcolors("XSC_REPRANSI_TAB", (0x4, 0x8))
 
 
-class EnvTextForQuote(EnvText):
+class EnvTextForQuote(ansistyle.Text):
 	"""
 	ANSI escape sequence to be used for quotes
 	(delimiters for text and attribute nodes)
 	"""
-	color = getColorsFromEnv("XSC_REPRANSI_QUOTE", (0x3, 0xf))
+	color = getenvcolors("XSC_REPRANSI_QUOTE", (0x3, 0xf))
 
 
-class EnvTextForSlash(EnvText):
-	color = getColorsFromEnv("XSC_REPRANSI_SLASH", (0x3, 0xf))
+class EnvTextForSlash(ansistyle.Text):
+	color = getenvcolors("XSC_REPRANSI_SLASH", (0x3, 0xf))
 
 
-class EnvTextForBracket(EnvText):
+class EnvTextForBracket(ansistyle.Text):
 	"""
 	ANSI escape sequence to be used for quotes
 	(delimiters for text and attribute nodes)
 	"""
-	color = getColorsFromEnv("XSC_REPRANSI_BRACKET", (0x3, 0xf))
+	color = getenvcolors("XSC_REPRANSI_BRACKET", (0x3, 0xf))
 
 
-class EnvTextForColon(EnvText):
+class EnvTextForColon(ansistyle.Text):
 	"""
 	ANSI escape sequence to be used for colon
 	(i.e. namespace separator)
 	"""
-	color = getColorsFromEnv("XSC_REPRANSI_BRACKET", (0x3, 0xf))
+	color = getenvcolors("XSC_REPRANSI_BRACKET", (0x3, 0xf))
 
 
-class EnvTextForQuestion(EnvText):
+class EnvTextForQuestion(ansistyle.Text):
 	"""
 	ANSI escape sequence to be used for question marks
 	(delimiters for processing instructions)
 	"""
-	color = getColorsFromEnv("XSC_REPRANSI_QUESTION", (0x3, 0xf))
+	color = getenvcolors("XSC_REPRANSI_QUESTION", (0x3, 0xf))
 
 
-class EnvTextForExclamation(EnvText):
+class EnvTextForExclamation(ansistyle.Text):
 	"""
 	ANSI escape sequence to be used for exclamation marks
 	(used in comments and doctypes)
 	"""
-	color = getColorsFromEnv("XSC_REPRANSI_EXCLAMATION", (0x3, 0xf))
+	color = getenvcolors("XSC_REPRANSI_EXCLAMATION", (0x3, 0xf))
 
 
-class EnvTextForAmp(EnvText):
+class EnvTextForAmp(ansistyle.Text):
 	"""
 	ANSI escape sequence to be used for & (used in entity)
 	"""
-	color = getColorsFromEnv("XSC_REPRANSI_AMP", (0x3, 0xf))
+	color = getenvcolors("XSC_REPRANSI_AMP", (0x3, 0xf))
 
 
-class EnvTextForSemi(EnvText):
+class EnvTextForSemi(ansistyle.Text):
 	"""
 	ANSI escape sequence to be used for semicolons (used in entities)
 	"""
-	color = getColorsFromEnv("XSC_REPRANSI_SEMI", (0x3, 0xf))
+	color = getenvcolors("XSC_REPRANSI_SEMI", (0x3, 0xf))
 
 
-class EnvTextForText(EnvText):
+class EnvTextForText(ansistyle.Text):
 	"""
 	ANSI escape sequence to be used for text
 	"""
-	color = getColorsFromEnv("XSC_REPRANSI_TEXT", (0x7, 0x7))
+	color = getenvcolors("XSC_REPRANSI_TEXT", (0x7, 0x7))
 
 
-class EnvTextForNamespace(EnvText):
+class EnvTextForNamespace(ansistyle.Text):
 	"""
 	ANSI escape sequence to be used for namespaces
 	"""
-	color = getColorsFromEnv("XSC_REPRANSI_NAMESPACE", (0xf, 0x4))
+	color = getenvcolors("XSC_REPRANSI_NAMESPACE", (0xf, 0x4))
 
 
-class EnvTextForElementName(EnvText):
+class EnvTextForElementName(ansistyle.Text):
 	"""
 	ANSI escape sequence to be used for element names
 	"""
-	color = getColorsFromEnv("XSC_REPRANSI_ELEMENTNAME", (0xe, 0xc))
+	color = getenvcolors("XSC_REPRANSI_ELEMENTNAME", (0xe, 0xc))
 
 
-class EnvTextForAttrName(EnvText):
+class EnvTextForAttrName(ansistyle.Text):
 	"""
 	ANSI escape sequence to be used for attr class name
 	"""
-	color = getColorsFromEnv("XSC_REPRANSI_ATTRNAME", (0xe, 0xc))
+	color = getenvcolors("XSC_REPRANSI_ATTRNAME", (0xe, 0xc))
 
 
-class EnvTextForAttrsName(EnvText):
+class EnvTextForAttrsName(ansistyle.Text):
 	"""
 	ANSI escape sequence to be used for attrs class name
 	"""
-	color = getColorsFromEnv("XSC_REPRANSI_ATTRSNAME", (0xe, 0xc))
+	color = getenvcolors("XSC_REPRANSI_ATTRSNAME", (0xe, 0xc))
 
 
-class EnvTextForEntityName(EnvText):
+class EnvTextForEntityName(ansistyle.Text):
 	"""
 	ANSI escape sequence to be used for entity names
 	"""
-	color = getColorsFromEnv("XSC_REPRANSI_ENTITYNAME", (0x5, 0x5))
+	color = getenvcolors("XSC_REPRANSI_ENTITYNAME", (0x5, 0x5))
 
 
-class EnvTextForAttrName(EnvText):
+class EnvTextForAttrName(ansistyle.Text):
 	"""
 	ANSI escape sequence to be used for attribute names
 	"""
-	color = getColorsFromEnv("XSC_REPRANSI_ATTRNAME", (0xf, 0xc))
+	color = getenvcolors("XSC_REPRANSI_ATTRNAME", (0xf, 0xc))
 
 
-class EnvTextForDocTypeMarker(EnvText):
+class EnvTextForDocTypeMarker(ansistyle.Text):
 	"""
 	ANSI escape sequence to be used for document types
 	marker (i.e. !DOCTYPE)
 	"""
-	color = getColorsFromEnv("XSC_REPRANSI_DOCTYPEMARKER", (0xf, 0xf))
+	color = getenvcolors("XSC_REPRANSI_DOCTYPEMARKER", (0xf, 0xf))
 
 
-class EnvTextForDocTypeText(EnvText):
+class EnvTextForDocTypeText(ansistyle.Text):
 	"""
 	ANSI escape sequence to be used for document types
 	"""
-	color = getColorsFromEnv("XSC_REPRANSI_DOCTYPETEXT", (0x7, 0x7))
+	color = getenvcolors("XSC_REPRANSI_DOCTYPETEXT", (0x7, 0x7))
 
 
-class EnvTextForCommentMarker(EnvText):
+class EnvTextForCommentMarker(ansistyle.Text):
 	"""
 	ANSI escape sequence to be used for comment markers (i.e. --)
 	"""
-	color = getColorsFromEnv("XSC_REPRANSI_COMMENTMARKER", (0x7, 0xf))
+	color = getenvcolors("XSC_REPRANSI_COMMENTMARKER", (0x7, 0xf))
 
 
-class EnvTextForCommentText(EnvText):
+class EnvTextForCommentText(ansistyle.Text):
 	"""
 	ANSI escape sequence to be used for comment text
 	"""
-	color = getColorsFromEnv("XSC_REPRANSI_COMMENTTEXT", (0x7, 0x7))
+	color = getenvcolors("XSC_REPRANSI_COMMENTTEXT", (0x7, 0x7))
 
 
-class EnvTextForAttrValue(EnvText):
+class EnvTextForAttrValue(ansistyle.Text):
 	"""
 	ANSI escape sequence to be used for attribute values
 	"""
-	color = getColorsFromEnv("XSC_REPRANSI_ATTRVALUE", (0x7, 0x6))
+	color = getenvcolors("XSC_REPRANSI_ATTRVALUE", (0x7, 0x6))
 
 
-class EnvTextForURL(EnvText):
+class EnvTextForURL(ansistyle.Text):
 	"""
 	ANSI escape sequence to be used for URLs
 	"""
-	color = getColorsFromEnv("XSC_REPRANSI_URL", (0xb, 0x2))
+	color = getenvcolors("XSC_REPRANSI_URL", (0xb, 0x2))
 
 
-class EnvTextForProcInstTarget(EnvText):
+class EnvTextForProcInstTarget(ansistyle.Text):
 	"""
 	ANSI escape sequence to be used for processing instruction targets
 	"""
-	color = getColorsFromEnv("XSC_REPRANSI_PROCINSTTARGET", (0x9, 0x9))
+	color = getenvcolors("XSC_REPRANSI_PROCINSTTARGET", (0x9, 0x9))
 
 
-class EnvTextForProcInstContent(EnvText):
+class EnvTextForProcInstContent(ansistyle.Text):
 	"""
 	ANSI escape sequence to be used for processing instruction content
 	"""
-	color = getColorsFromEnv("XSC_REPRANSI_PROCINSTCONTENT", (0x7, 0x7))
+	color = getenvcolors("XSC_REPRANSI_PROCINSTCONTENT", (0x7, 0x7))
 
 
-class EnvTextForNumber(EnvText):
+class EnvTextForNumber(ansistyle.Text):
 	"""
 	ANSI escape sequence to be used for numbers in error messages etc.
 	"""
-	color = getColorsFromEnv("XSC_REPRANSI_NUMBER", (0x4, 0x4))
+	color = getenvcolors("XSC_REPRANSI_NUMBER", (0x4, 0x4))
 
 
-class EnvTextForString(EnvText):
+class EnvTextForString(ansistyle.Text):
 	"""
 	ANSI escape sequence to be used for variable strings in error messages etc.
 	"""
-	color = getColorsFromEnv("XSC_REPRANSI_STRING", (0x5, 0x5))
+	color = getenvcolors("XSC_REPRANSI_STRING", (0x5, 0x5))
 
 
 class EscInlineText(ansistyle.EscapedText):
@@ -717,9 +711,9 @@ class TreePresenter(Presenter):
 						s = s[1:]
 			s = formatter(s)
 			if i == 0 and head is not None:
-				s.content.insert(0, head)
+				s.insert(0, head)
 			if i == l-1 and tail is not None:
-				s.content.append(tail)
+				s.append(tail)
 			self.lines.append([hereloc, self.currentPath[:], mynest, s])
 
 	def strTextLineOutsideAttr(self, text):
