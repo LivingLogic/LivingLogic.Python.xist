@@ -15,7 +15,7 @@
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-from ll.xist import xsc
+from ll.xist import xsc, sims
 
 
 class DocTypeRuby10(xsc.DocType):
@@ -30,28 +30,28 @@ class rb(xsc.Element):
 	"""
 	The <class>rb</class> element is the container for the text of the ruby base.
 	"""
-	empty = False
+	model = sims.NoElements()
 
 
 class rbc(xsc.Element):
 	"""
 	The <class>rbc</class> (<z>ruby base component</z>) element is the container for <pyref class="rb"><class>rb</class></pyref> elements.
 	"""
-	empty = False
+	model = sims.Elements(rb)
 
 
 class rp(xsc.Element):
 	"""
 	The <class>rp</class> element is intended to contain parenthesis characters in simple ruby.
 	"""
-	empty = False
+	model = sims.NoElements()
 
 
 class rt(xsc.Element):
 	"""
 	The <class>rt</class> element is the container for the ruby text.
 	"""
-	empty = False
+	model = sims.NoElements()
 	class Attrs(xsc.Element.Attrs):
 		class rbspan(xsc.TextAttr): pass
 
@@ -60,7 +60,7 @@ class rtc(xsc.Element):
 	"""
 	The <class>rtc</class> (<z>ruby text component</z>) element is the container for <pyref class="rt"><class>rt</class></pyref> elements.
 	"""
-	empty = False
+	model = sims.Elements(rt)
 
 
 class ruby(xsc.Element):
@@ -71,10 +71,10 @@ class ruby(xsc.Element):
 	<pyref class="rp><class>rp</class></pyref> elements or the
 	<pyref class="rbc"><class>rbc</class></pyref> and <pyref class="irtc"><class>rtc</class></pyref> elements.
 	"""
-	empty = False
+	model = sims.Elements(rb, rt, rp, rbc, rtc)
 
 
 class xmlns(xsc.Namespace):
 	xmlname = "ruby"
-	xmlurl = "http://www.w3.org/TR/ruby/xhtml11-ruby-1.mod"
+	xmlurl = "http://www.w3.org/TR/ruby/xhtml-ruby-1.mod
 
