@@ -321,20 +321,26 @@ class FindOld(object):
 ### XFind support
 ###
 
-class _XFindWrapIter(object):
-	__slots__ = ("_iter",)
+class _XFindBase(object):
+	def xfind(self, iterator, operators):
+		return _XFinder(self.xwalk(iterator), operators)
 
-	def __init__(self, iter):
-		self._iter = iter
 
-	def __iter__(self):
-		return self
+class _XFinder(object):
+	__slots__ = ("iterator", "operators")
+
+	def __init__(self, iterator, *operators):
+		self.iterator = iterator
+		self.operators = operators
 
 	def next(self):
-		return self._iter.next()
+		return self.iterator.next()
 
-	def __div__(self, other):
-		return _XFindFinder(self, other)
+	def __iter__(self):
+		if self.operators:
+			return self.operators[0].xfind(self.iterator, self.operators[1:])
+		else:
+			return self
 
 	def __getitem__(self, index):
 		for item in self:
@@ -343,22 +349,19 @@ class _XFindWrapIter(object):
 			index -= 1
 		raise IndexError
 
-	def __repr__(self):
-		return "<%s.%s object for %r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self._iter, id(self))
+	def __div__(self, other):
+		return _XFinder(self.iterator, *(self.operators + (other,)))
 
-
-class _XFindFinder(_XFindWrapIter):
-	__slots__ = ("_iter", "_func")
-
-	def __init__(self, iter, func):
-		_XFindWrapIter.__init__(self, iter)
-		self._func = func
-
-	def __iter__(self):
-		return self._func.xfind(self._iter)
+	def __floordiv__(self, other):
+		from ll.xist import xfind
+		return _XFinder(self.iterator, *(self.operators + (xfind.all, other)))
 
 	def __repr__(self):
-		return "<%s.%s object for %r/%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self._iter, self._func, id(self))
+		if self.operators:
+			ops = "/" + "/".join([repr(op) for op in self.operators])  # FIXME: Use a GE in Python 2.4
+		else:
+			ops = ""
+		return "<%s.%s object for %r%s at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self._iterator, ops, id(self))
 
 
 ###
@@ -404,7 +407,7 @@ class Node(Base):
 	# True:  Register with the namespace and use for parsing.
 	# If register is not set it defaults to True
 
-	class __metaclass__(Base.__metaclass__):
+	class __metaclass__(Base.__metaclass__, _XFindBase):
 		def __new__(cls, name, bases, dict):
 			if "register" not in dict:
 				dict["register"] = True
@@ -430,8 +433,8 @@ class Node(Base):
 			dict["xmlname"] = (pyname, xmlname)
 			return Base.__metaclass__.__new__(cls, name, bases, dict)
 
-		def xfind(self, lhs):
-			for child in lhs:
+		def xwalk(self, iterator):
+			for child in iterator:
 				if isinstance(child, (Frag, Element)):
 					for subchild in child:
 						if isinstance(subchild, self):
@@ -844,7 +847,7 @@ class Node(Base):
 		<par><arg>skiproot</arg> is only significant if <self/> is an element: If <arg>skiproot</arg> is true,
 		the element itself will always be skipped, i.e. iteration starts with the content of the element.</par>
 		"""
-		return _XFindWrapIter(self._walk(filter, [], filterpath, walkpath, skiproot))
+		return _XFinder(self._walk(filter, [], filterpath, walkpath, skiproot))
 
 	def _visit(self, filter, path, filterpath, visitpath, skiproot):
 		"""
@@ -903,7 +906,13 @@ class Node(Base):
 	def __div__(self, other):
 		def _iterone(node):
 			yield node
-		return _XFindFinder(_iterone(self), other)
+		return _XFinder(_iterone(self), other)
+
+	def __floordiv__(self, other):
+		def _iterone(node):
+			yield node
+		from ll.xist import xfind
+		return _XFinder(_iterone(self), xfind.all, other)
 
 	def compact(self):
 		"""
@@ -1608,7 +1617,7 @@ class Attr(Frag):
 	required = False
 	default = None
 	values = None
-	class __metaclass__(Frag.__metaclass__):
+	class __metaclass__(Frag.__metaclass__, _XFindBase):
 		def __new__(cls, name, bases, dict):
 			# can be overwritten in subclasses, to specify that this attributes is required
 			if "required" in dict:
@@ -1626,8 +1635,8 @@ class Attr(Frag):
 		def __repr__(self):
 			return "<attribute class %s:%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
 
-		def xfind(self, lhs):
-			for child in lhs:
+		def xwalk(self, iterator):
+			for child in iterator:
 				if isinstance(child, Element):
 					for (attrname, attrvalue) in child.attrs.iteritems():
 						if isinstance(attrvalue, self):

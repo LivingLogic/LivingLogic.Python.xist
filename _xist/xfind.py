@@ -15,29 +15,29 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 from ll.xist import xsc
 
 
-class all(object):
-	def xfind(self, lhs):
-		for child in lhs:
+class all(xsc._XFindBase):
+	def xwalk(self, iterator):
+		for child in iterator:
 			for subchild in child.walk():
 				yield subchild
 all = all()
 
 
-class attrs(object):
-	def xfind(self, lhs):
-		for child in lhs:
+class attrs(xsc._XFindBase):
+	def xwalk(self, iterator):
+		for child in iterator:
 			if isinstance(child, xsc.Element):
 				for (attrname, attrvalue) in child.attrs.iteritems():
 					yield attrvalue
 attrs = attrs()
 
 
-class hasattr(object):
+class hasattr(xsc._XFindBase):
 	def __init__(self, attr):
 		self.attr = attr
 
-	def xfind(self, lhs):
-		for child in lhs:
+	def xwalk(self, iterator):
+		for child in iterator:
 			if isinstance(child, xsc.Element):
 				for attrvalue in child.attrs.itervalues():
 					if isinstance(attrvalue, self.attr):
@@ -47,13 +47,13 @@ class hasattr(object):
 		return "<%s.%s object attr=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.attr, id(self))
 
 
-class hasattrnamed(object):
+class hasattrnamed(xsc._XFindBase):
 	def __init__(self, attrname, xml=False):
 		self.attrname = attrname
 		self.xml = xml
 
-	def xfind(self, lhs):
-		for child in lhs:
+	def xwalk(self, iterator):
+		for child in iterator:
 			if isinstance(child, xsc.Element) and child.attrs.isallowed(self.attrname, self.xml) and child.attrs.has(self.attrname, self.xml):
 				yield child
 
@@ -61,12 +61,12 @@ class hasattrnamed(object):
 		return "<%s.%s object attrname=%r xml=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.attrname, self.xml, id(self))
 
 
-class is_(object):
+class is_(xsc._XFindBase):
 	def __init__(self, class_):
 		self.class_= class_
 
-	def xfind(self, lhs):
-		for child in lhs:
+	def xwalk(self, iterator):
+		for child in iterator:
 			if isinstance(child, self.class_):
 				yield child
 
@@ -74,12 +74,12 @@ class is_(object):
 		return "<%s.%s object class=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.class_, id(self))
 
 
-class isnot(object):
+class isnot(xsc._XFindBase):
 	def __init__(self, class_):
 		self.class_= class_
 
-	def xfind(self, lhs):
-		for child in lhs:
+	def xwalk(self, iterator):
+		for child in iterator:
 			if not isinstance(child, self.class_):
 				yield child
 
@@ -87,12 +87,12 @@ class isnot(object):
 		return "<%s.%s object class=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.class_, id(self))
 
 
-class contains(object):
+class contains(xsc._XFindBase):
 	def __init__(self, class_):
 		self.class_= class_
 
-	def xfind(self, lhs):
-		for child in lhs:
+	def xwalk(self, iterator):
+		for child in iterator:
 			if isinstance(child, (xsc.Frag, xsc.Element)):
 				for subchild in child:
 					if isinstance(subchild, self.class_):
@@ -103,12 +103,12 @@ class contains(object):
 		return "<%s.%s object class=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.class_, id(self))
 
 
-class child(object):
+class child(xsc._XFindBase):
 	def __init__(self, class_):
 		self.class_= class_
 
-	def xfind(self, lhs):
-		for child in lhs:
+	def xwalk(self, iterator):
+		for child in iterator:
 			if isinstance(child, (xsc.Frag, xsc.Element)):
 				for subchild in child:
 					if isinstance(subchild, self.class_):
@@ -118,13 +118,13 @@ class child(object):
 		return "<%s.%s object class=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.class_, id(self))
 
 
-class attrnamed(object):
+class attrnamed(xsc._XFindBase):
 	def __init__(self, attrname, xml=False):
 		self.attrname = attrname
 		self.xml = xml
 
-	def xfind(self, lhs):
-		for child in lhs:
+	def xwalk(self, iterator):
+		for child in iterator:
 			if isinstance(child, xsc.Element) and child.attrs.isallowed(self.attrname, self.xml) and child.attrs.has(self.attrname, self.xml):
 				yield child.attrs.get(self.attrname, xml=self.xml)
 
@@ -132,12 +132,12 @@ class attrnamed(object):
 		return "<%s.%s object attrname=%r xml=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.attrname, self.xml, id(self))
 
 
-class attr(object):
+class attr(xsc._XFindBase):
 	def __init__(self, attr):
 		self.attr = attr
 
-	def xfind(self, lhs):
-		for child in lhs:
+	def xwalk(self, iterator):
+		for child in iterator:
 			if isinstance(child, xsc.Element):
 				for attrvalue in child.attrs.itervalues():
 					if isinstance(attrvalue, self.attr):
