@@ -1783,14 +1783,13 @@ class Namespace:
 
 				if name is None:
 					try:
-						del thing.name
 						del thing.namespace
 					except AttributeError:
 						pass
 					return
 				else:
 					thing.name = name
-					thing.namespace = self # this creates a cycle, but namespaces aren't constantly created and deleted (and Python will get a GC some day ;))
+				thing.namespace = self # this creates a cycle, but namespaces aren't constantly created and deleted (and Python will get a GC some day ;))
 
 				if iselement:
 					self.elementsByName[name] = thing
@@ -1798,7 +1797,7 @@ class Namespace:
 					self.entitiesByName[name] = thing
 					try:
 						self.entitiesByNumber[thing.codepoint].append(thing)
-					except AttributeError:
+					except AttributeError: # no codepoint attribute in the class, so this isn't a char ref
 						pass
 
 	def registerAll(self,thing):
