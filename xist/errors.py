@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 
-## Copyright 1999-2000 by Living Logic AG, Bayreuth, Germany.
+## Copyright 1999-2000 by LivingLogic AG, Bayreuth, Germany.
 ##
 ## All Rights Reserved
 ##
