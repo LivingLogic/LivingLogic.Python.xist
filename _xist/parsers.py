@@ -47,7 +47,7 @@ import xsc, url as url_, errors, utils
 from ns import html
 
 class StringInputSource(sax.xmlreader.InputSource):
-	def __init__(self, text, defaultEncoding="utf-8"):
+	def __init__(self, text, base=None, defaultEncoding="utf-8"):
 		sax.xmlreader.InputSource.__init__(self)
 		self.setSystemId("STRING")
 		if type(text) is types.UnicodeType:
@@ -557,8 +557,8 @@ def parse(source, parser=None, namespaces=None):
 	handler.parse(source)
 	return handler.root
 
-def parseString(text, parser=None, namespaces=None, defaultEncoding="utf-8"):
-	return parse(StringInputSource(text, defaultEncoding=defaultEncoding), parser, namespaces)
+def parseString(text, base=None, parser=None, namespaces=None, defaultEncoding="utf-8"):
+	return parse(StringInputSource(text, base=base, defaultEncoding=defaultEncoding), parser, namespaces)
 
 def parseFile(filename, base=None, namespaces=None, parser=None, defaultEncoding="utf-8"):
 	return parse(FileInputSource(filename, base=base, defaultEncoding=defaultEncoding), parser, namespaces)
