@@ -366,7 +366,7 @@ class pyref(xsc.Element):
 
 def getDoc(thing):
 	if thing.__doc__ is None:
-		return "(no docstring available)"
+		return par("(no docstring available)")
 	lines = thing.__doc__.split("\n")
 
 	# find first nonempty line
