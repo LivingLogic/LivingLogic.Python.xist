@@ -88,8 +88,17 @@ class title(xsc.Element):
 	empty = 0
 	attrHandlers = i18n
 
+	def unwrapHTML(self, node):
+		if isinstance(node, xsc.Element) and node.namespace() is namespace: # is this one of our own elements => filter it out
+			if isinstance(node, img):
+				node = node["alt"]
+			else:
+				node = node.content.mapped(self.unwrapHTML)
+		return node
+
 	def convert(self, converter):
-		return title(self.content.convert(converter).asPlainString(), **self.attrs)
+		content = self.content.convert(converter).mapped(self.unwrapHTML)
+		return title(content, self.attrs)
 
 class meta(xsc.Element):
 	"""
