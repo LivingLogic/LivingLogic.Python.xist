@@ -1079,6 +1079,14 @@ class Frag(Node):
 		node.__content.reverse()
 		return node
 
+	def filtered(self, function):
+		"""
+		returns a filtered version of the <self/>.
+		"""
+		node = Frag()
+		node.__content = [ child for child in self.__content if function(child) ]
+		return node
+
 class Comment(Node, StringMixIn):
 	"""
 	a comment node
@@ -1669,6 +1677,14 @@ class Element(Node):
 		"""
 		node = self.__class__(**self.attrs)
 		node.content = self.content.reversed()
+		return node
+
+	def filtered(self, function):
+		"""
+		returns a filtered version of the <self/>.
+		"""
+		node = self.__class__(**self.attrs)
+		node.content = self.content.filtered(function)
 		return node
 
 class Entity(Node):
