@@ -69,22 +69,3 @@ class Code:
 			v += line
 			v += "\n"
 		return "".join(v)
-
-def text2lines(text, fixfirst):
-	lines = self.content.split("\n")
-	print "vorher==>",lines
-	if len(lines)>1:
-		# find starting white space of this line
-		startwhite = ""
-		for c in lines[1]:
-			if c in string.whitespace:
-				startwhite += c
-			else:
-				break
-		lsw = len(startwhite)
-		for i in xrange(1,len(lines)):
-			if len(lines[i]) > lsw:
-				if lines[i][:lsw] != startwhite:
-					raise SyntaxError()
-				lines[i] = lines[i][lsw:]
-

@@ -56,6 +56,3 @@ class hidden(xsc.Element):
 		return e.asHTML()
 
 namespace = xsc.Namespace("form","http://www.livinglogic.de/DTDs/form.dtd",vars())
-
-if __name__ == "__main__":
-	xsc.make()

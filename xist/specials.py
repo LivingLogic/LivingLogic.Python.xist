@@ -393,6 +393,3 @@ class isdn(xsc.Entity):
 
 namespace = xsc.Namespace("specials", "http://www.livinglogic.de/DTDs/specials.dtd", vars())
 
-if __name__ == "__main__":
-	xsc.make()
-

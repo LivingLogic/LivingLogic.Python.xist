@@ -1028,7 +1028,3 @@ class diams(xsc.Entity): "black diamond suit, U+2666 ISOpub"; codepoint = 9830
 
 # register all the classes we've defined so far
 namespace = xsc.Namespace("html","http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd",vars())
-
-if __name__ == "__main__":
-	xsc.make()
-

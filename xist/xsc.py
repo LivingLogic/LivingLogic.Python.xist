@@ -213,7 +213,6 @@ import os
 import string
 import types
 import sys
-import getopt
 
 import stat # for file size checking
 import Image # for image size checking
@@ -375,40 +374,41 @@ def isXMLChar(char):
 	else:
 		return 0
 
-
 def ToNode(value):
 	"""
 	<par noindent>convert the <argref>value</argref> passed in to a XSC <classref>Node</classref>.</par>
 
 	<par>If <argref>value</argref> is a tuple or list, it will be (recursively) converted
-	to a node. Integers, strings, etc. will be converted to a <classref>Text</classref>.
+	to a <classref>Frag</classref>. Integers, strings, etc. will be converted to a <classref>Text</classref>.
 	If <argref>value</argref> is a <classref>Node</classref> already, nothing will be done.
 	In the case of <code>Null</code> the XSC Null (<code>xsc.Null</code>) will be returned).
 	Anything else raises an exception.</par>
 	"""
 	t = type(value)
-	if t == types.InstanceType:
-		if isinstance(value,Frag):
+	print "="*20,0,repr(t)
+	if t is types.InstanceType:
+		print "="*20, 1, repr(value.__class__)
+		if isinstance(value, Frag):
+			print "="*20, 2
 			l = len(value)
 			if l==1:
 				return ToNode(value[0]) # recursively try to simplify the tree
 			elif l==0:
 				return Null
+			elif isinstance(value, Attr):
+				node = Frag() # repack the attribute in a fragment, and we have a valid XSC node
+				node.extend(value.content)
+				return node
 			else:
-				if isinstance(value,Attr):
-					node = Frag() # repack the attribute in a fragment, and we have a valid XSC node
-					for i in value:
-						node.append(ToNode(i)) # FIXME is the ToNode call necessary?
-					return node
-				else:
-					return value
-		elif isinstance(value,Node):
+				return value
+		elif isinstance(value, Node):
+			print "="*20, 3
 			return value
 	elif t in (types.StringType, types.UnicodeType, types.IntType, types.LongType, types.FloatType):
 		return Text(value)
-	elif t == types.NoneType:
+	elif t is types.NoneType:
 		return Null
-	elif t in (types.ListType,types.TupleType):
+	elif t in (types.ListType, types.TupleType):
 		node = Frag()
 		for i in value:
 			node.append(ToNode(i))
@@ -419,7 +419,7 @@ def ToNode(value):
 			return Null
 		else:
 			return node
-	raise IllegalObjectError(-1,value) # none of the above, so we throw and exception
+	raise IllegalObjectError(-1, value) # none of the above, so we throw and exception
 
 class Node:
 	"""
@@ -1157,7 +1157,6 @@ class Exec(PythonCode):
 	"""
 	def __init__(self, content = ""):
 		ProcInst.__init__(self, u"xsc-exec", content)
-		print repr(self.content)
 		code = Code(self.content, 1)
 		exec str(code.asString()) in procinst.__dict__ # FIXME Why can't I exec a unicode object
 
@@ -1187,6 +1186,11 @@ class Eval(PythonCode):
 	def asHTML(self):
 		code = Code(self.content,1)
 		code.funcify()
+		exec str(code.asString()) in procinst.__dict__ # FIXME Why can't I exec a unicode object
+		node = eval("__()", procinst.__dict__)
+		print "+"*20,node
+		node = ToNode(node)
+		print "-"*20,node
 		return ToNode(eval("__()", procinst.__dict__)).asHTML()
 
 	def clone(self):
@@ -1261,7 +1265,7 @@ class Element(Node):
 	empty = 1 # 0 => element with content; 1 => stand alone element
 	attrHandlers = {} # maps attribute names to attribute classes
 
-	def __init__(self,*content,**attrs):
+	def __init__(self, *content, **attrs):
 		"""
 		positional arguments are treated as content nodes.
 
@@ -1270,7 +1274,7 @@ class Element(Node):
 		self.content = Frag()
 		self.attrs = {}
 		for child in content:
-			if type(child) == types.DictionaryType:
+			if type(child) is types.DictionaryType:
 				for attr in child.keys():
 					self[attr] = child[attr]
 			else:
@@ -1343,8 +1347,7 @@ class Element(Node):
 					if self.hasAttr(widthattr):
 						try:
 							s = self[widthattr].asPlainString() % sizedict
-							s = s.encode("latin1") # FIXME eval unicode("gurk")
-							s = str(eval(s))
+							s = str(eval(str(s))) # FIXME eval unicode("gurk")
 							s = stringFromCode(s)
 							self[widthattr] = s
 						except TypeError: # ignore "not all argument converted"
@@ -1357,8 +1360,7 @@ class Element(Node):
 					if self.hasAttr(heightattr):
 						try:
 							s = self[heightattr].asPlainString() % sizedict
-							s = s.encode("latin1") # FIXME eval unicode("gurk")
-							s = str(eval(s))
+							s = str(eval(str(s))) # FIXME eval unicode("gurk")
 							s = stringFromCode(s)
 							self[heightattr] = s
 						except TypeError: # ignore "not all argument converted"
@@ -2096,78 +2098,4 @@ class XSC:
 				break
 		return node
 
-def __forceopen(name, mode):
-	try:
-		return open(name, mode)
-	except IOError,e:
-		if e[0] != 2: # didn't work for some other reason
-			raise
-		found = name.rfind("/")
-		if found == -1:
-			raise
-		os.makedirs(name[:found])
-		return open(name, mode)
-
-def extXSC2HTML(ext):
-	try:
-		return {"hsc": "html", "shsc": "shtml", "phsc": "phtml", "xsc": "html", "sxsc": "shtml", "pxsc": "phtml"}[ext]
-	except KeyError:
-		return ext
-
-def extHTML2XSC(ext):
-	try:
-		return {"html": "hsc", "shtml": "shsc", "phtml": "phsc"}[ext]
-	except KeyError:
-		return ext
-
 xsc = XSC()
-
-def make():
-	"""
-	use XSC as a compiler script, i.e. read an input file from args[1]
-	and writes it to args[2]
-	"""
-
-	(options, args) = getopt.getopt(sys.argv[1:], "i:o:e:x:", ["include=", "output=", "encoding=", "xhtml="])
-
-	globaloutname = URL("*/")
-	encoding = None
-	XHTML = None
-	for (option, value) in options:
-		if option=="-i" or option=="--include":
-			__import__(value)
-		elif option=="-o" or option=="--output":
-			globaloutname = URL(value)
-		elif option=="-e" or option=="--encoding":
-			encoding = value
-		elif option=="-x" or option=="--xhtml":
-			XHTML = int(value)
-
-	if args:
-		for file in args:
-			inname = URL(file)
-			outname = globaloutname.clone()
-			if not outname.file:
-				outname += inname
-			if not outname.file:
-				outname.file = "noname"
-			try:
-				outname.ext = {"hsc": "html" ,"shsc" : "shtml", "phsc": "phtml", "xsc": "html", "sxsc": "shtml", "pxsc" : "phtml"}[inname.ext]
-			except KeyError:
-				outname.ext = "html"
-			print >> sys.stderr, "XSC(encoding=%r, XHTML=%r): converting %r" % (encoding, XHTML, str(inname)),
-			e_in = xsc.parse(inname)
-			xsc.pushURL(inname)
-			print >> sys.stderr, "to %r ..." % str(outname),
-			e_out = e_in.asHTML()
-			p = publishers.BytePublisher(encoding=encoding, XHTML=XHTML)
-			e_out.publish(p)
-			s_out = p.asBytes()
-			__forceopen(outname.asString(), "wb").write(s_out)
-			print >> sys.stderr, _stransi("1", str(len(s_out)))
-			xsc.popURL()
-	else:
-		sys.stderr.write("XSC: no files to convert.\n")
-
-if __name__ == "__main__":
-	make()
