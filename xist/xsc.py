@@ -501,6 +501,7 @@ class XSC:
 	def parsestring(self,filename,string):
 		"Parses a string and returns the resulting XSC"
 		self.filename = filename
+		self.__parser.reset()
 		self.__parser.feed(string)
 		self.__parser.close()
 		return self.__parser.root
@@ -508,6 +509,7 @@ class XSC:
 	def parsefile(self,filename):
 		"Reads and parses a XML file and returns the resulting XSC"
 		self.filename = filename
+		self.__parser.reset()
 		self.__parser.feed(open(filename).read())
 		self.__parser.close()
 		return self.__parser.root
@@ -515,6 +517,7 @@ class XSC:
 	def parseurl(self,url):
 		"Reads and parses a XML file from an URL and returns the resulting XSC"
 		self.filename = url
+		self.__parser.reset()
 		self.__parser.feed(urllib.urlopen(url).read())
 		self.__parser.close()
 		urllib.urlcleanup()
