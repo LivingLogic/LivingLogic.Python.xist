@@ -76,5 +76,5 @@ class ruby(xsc.Element):
 
 class xmlns(xsc.Namespace):
 	xmlname = "ruby"
-	xmlurl = "http://www.w3.org/TR/ruby/xhtml-ruby-1.mod
+	xmlurl = "http://www.w3.org/TR/ruby/xhtml-ruby-1.mod"
 

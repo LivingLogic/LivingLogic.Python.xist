@@ -1093,8 +1093,6 @@ class Frag(Node, list):
 	The member <lit>content</lit> of an <pyref class="Element"><class>Element</class></pyref> is a <class>Frag</class>.</par>
 	"""
 
-	empty = False
-
 	def __init__(self, *content):
 		list.__init__(self)
 		for child in content:
@@ -2314,7 +2312,7 @@ class Element(Node):
 				else:
 					dict["model"] = sims.Empty()
 			if "empty" in dict:
-				warnings.warn(DeprecationWarning("empty is deprecated, use model (and ll.xist.sims) instead"), stacklevel=2)
+				warnings.warn(PendingDeprecationWarning("empty is deprecated, use model (and ll.xist.sims) instead"), stacklevel=2)
 				from ll.xist import sims
 				if dict["empty"]:
 					model = sims.Empty()
