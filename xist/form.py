@@ -11,7 +11,9 @@ __version__ = "$Revision$"[11:-2]
 
 import xsc,html
 
-class checkbox(xsc.Element:
+class checkbox(xsc.Element):
+	attrHandlers = { "name": xsc.TextAttr, "value": xsc.TextAttr }
+
 	def asHTML(self):
 		e = html.input(self.attrs)
 		e["type"] = "checkbox"
@@ -22,14 +24,15 @@ class checkbox(xsc.Element:
 		return e.asHTML()
 
 class edit(xsc.Element):
-	attrHandlers = xsc.appendDict(control.attrHandlers,{ "size" : xsc.TextAttr })
+	attrHandlers = { "name": xsc.TextAttr, "value": xsc.TextAttr, "size" : xsc.TextAttr }
 
 	def asHTML(self):
 		e = html.input(self.attrs)
 		return e.asHTML()
 
 class memo(xsc.Element):
-	attrHandlers = xsc.appendDict(control.attrHandlers,html.textarea.attrHandlers)
+	attrHandlers = { "name": xsc.TextAttr, "value": xsc.TextAttr }
+	attrHandlers.update(html.textarea.attrHandlers)
 
 	def asHTML(self):
 		e = html.textarea()
@@ -41,6 +44,8 @@ class memo(xsc.Element):
 		return e.asHTML()
 
 class hidden(xsc.Element):
+	attrHandlers = { "name": xsc.TextAttr, "value": xsc.TextAttr }
+
 	def asPlainString(self):
 		return ""
 
