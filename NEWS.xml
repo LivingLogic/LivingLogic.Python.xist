@@ -1,11 +1,12 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
-<section><title>Changes in 1.1 (released ??/??/2001)</title>
+<section><title>Changes in ?.? (released ??/??/????)</title>
 <ul>
 <li>Sequences in constructor arguments for <code>Frag</code> and
 <code>Element</code> are again expanded and it's again possible
 to pass dictionaries in an <code>Element</code> constructor to
 specify attributes. As sequences are always unpacked, the method
-<code>extend</code> is gone.</li>
+<code>extend</code> is gone. this works for <code>append</code>
+and <code>insert</code> too.</li>
 
 <li><code>Node</code> and <code>Frag</code> implement <code>__mul__</code>
 and <code>__rmul__</code>, so you can do stuff like
