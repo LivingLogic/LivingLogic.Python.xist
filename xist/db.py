@@ -240,7 +240,7 @@ class SQLCommand:
 	def formatFields(self,fields,format = 0):
 		v = []
 		for field in fields.keys():
-			v.append(self.formatField(field,fields[field],isTest))
+			v.append(self.formatField(field,fields[field],format))
 		if format==0:
 			return string.join(v,",")
 		elif format==1:
