@@ -995,17 +995,22 @@ or an <pyref module="ll.xist.ns.meta" class="contenttype">&html; meta header</py
 it specifies whether you want pure &html; or &xhtml; as output:</par>
 
 <dlist>
-<term><lit>xhtml==0</lit></term><item>This will give you pure &html;, i.e. no final <lit>/</lit>
-for elements with an empty content model, so you'll get e.g. <markup>&lt;br&gt;</markup> in the output.
-Elements that don't have an empty content model, but are empty will be published with a start and
-end tag (i.e. <markup>&lt;div&gt;&lt;/div&gt;</markup>).</item>
-<term><lit>xhtml==1</lit></term><item>This gives &html; compatible &xhtml;. Elements with an empty content
-model will be published like this: <markup>&lt;br /&gt;</markup>.</item>
-<term><lit>xhtml==2</lit></term><item>This gives full &xml; output. Every empty element will be published with
-an empty tag (without an additional space): <markup>&lt;br/&gt;</markup> or <markup>&lt;div/&gt;</markup>.</item>
+<term><lit>xhtml==0</lit></term><item>This will give you pure &html;, i.e. no
+final <lit>/</lit> for elements with an empty content model, so you'll get e.g.
+<markup>&lt;br&gt;</markup> in the output. Elements that don't have an empty
+content model, but are empty will be published with a start and end tag
+(i.e. <markup>&lt;div&gt;&lt;/div&gt;</markup>).</item>
+<term><lit>xhtml==1</lit></term><item>This gives &html; compatible &xhtml;.
+Elements with an empty content model will be published like this:
+<markup>&lt;br /&gt;</markup> (This is the default).</item>
+<term><lit>xhtml==2</lit></term><item>This gives full &xml; output. Every empty
+element will be published with an empty tag (without an additional space):
+<markup>&lt;br/&gt;</markup> or <markup>&lt;div/&gt;</markup>.</item>
 </dlist>
+
 <par>Writing a node to a file can be done with the method
 <pyref module="ll.xist.xsc" class="Node" method="write"><method>write</method></pyref>:</par>
+
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
 <prompt>&gt;&gt;&gt; </prompt><input>node = html.div(u"äöü", html.br(), u"ÄÖÜ")</input>
