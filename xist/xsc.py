@@ -954,7 +954,7 @@ class Frag(Node):
 
 	def _dorepr(self, ansi=None):
 		v = []
-		for child in self:
+		for child in self.__content:
 			v.append(child._dorepr(ansi=ansi))
 		return "".join(v)
 
@@ -963,7 +963,7 @@ class Frag(Node):
 		if len(self):
 			v.append([nest, self.startloc, elementno, self._str(brackets=1, ansi=ansi)])
 			i = 0
-			for child in self:
+			for child in self.__content:
 				v = v + child._doreprtree(nest+1, elementno + [i], encoding, ansi)
 				i += 1
 			v.append([nest, self.endloc, elementno, self._str(brackets=1, ansi=ansi, slash=-1)])
@@ -973,12 +973,12 @@ class Frag(Node):
 
 	def asPlainString(self):
 		v = []
-		for child in self:
+		for child in self.__content:
 			v.append(child.asPlainString())
 		return "".join(v)
 
 	def publish(self, publisher):
-		for child in self:
+		for child in self.__content:
 			child.publish(publisher)
 
 	def __getitem__(self, index):
@@ -1088,7 +1088,7 @@ class Frag(Node):
 
 	def find(self, type=None, subtype=0, attrs=None, test=None, searchchildren=0, searchattrs=0):
 		node = Frag()
-		for child in self:
+		for child in self.__content:
 			if child._matches(type, subtype, attrs, test):
 				node.append(child)
 			if searchchildren:
@@ -1097,7 +1097,7 @@ class Frag(Node):
 
 	def compact(self):
 		node = self.__class__()
-		node.__content = [ child.compact() for child in self ]
+		node.__content = [ child.compact() for child in self.__content ]
 		return self._decorateNode(node)
 
 	def withSeparator(self, separator, clone=0):
@@ -1109,7 +1109,7 @@ class Frag(Node):
 		"""
 		node = Frag()
 		newseparator = ToNode(separator)
-		for child in self:
+		for child in self.__content:
 			if len(node):
 				node.append(newseparator)
 				if clone:
