@@ -1488,9 +1488,9 @@ class Attr(Frag):
 
 	def __cmp__(self, other):
 		if type(other) in (types.StringType, types.UnicodeType):
-			return self.asPlainString() == other
+			return cmp(self.asPlainString(), other)
 		elif isinstance(other, Attr):
-			return self.asPlainString() == other.asPlainString()
+			return cmp(self.asPlainString(), other.asPlainString())
 		else:
 			raise TypeError("can't compare Attr with %s" % type(other))
 
