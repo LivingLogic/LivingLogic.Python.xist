@@ -527,7 +527,6 @@ class Parser(object):
 			data = stream.read()
 			import libxml2 # This requires libxml2 (see http://www.xmlsoft.org/)
 			doc = libxml2.htmlReadMemory(data, len(data), sysid, encoding, 0x60)
-			from ll.xist.ns import html
 			ns = self.nspool.get(html.xmlname, html)
 			def toxsc(node):
 				if node.type == "document_html":
