@@ -417,10 +417,11 @@ class Node(Base):
 
 	def asText(self, monochrome=True, squeezeBlankLines=False, lineNumbers=False, width=72):
 		"""
-		<par>Return the node as a formatted plain &ascii; string.
-		Note that this really only make sense for &html; trees.</par>
+		<par>Return the node as a formatted plain string. Note that this really
+		only make sense for &html; trees.</par>
 
-		<par>This requires that <app moreinfo="http://w3m.sf.net/">w3m</app> is installed.</par>
+		<par>This requires that <app moreinfo="http://w3m.sf.net/">w3m</app> is
+		installed.</par>
 		"""
 
 		options = []
@@ -447,20 +448,20 @@ class Node(Base):
 
 	def __int__(self):
 		"""
-		returns this node converted to an integer.
+		Convert the character content of <self/> to an <class>int</class>.
 		"""
 		return int(unicode(self))
 
 	def __long__(self):
 		"""
-		returns this node converted to a long integer.
+		Convert the character content of <self/> to an <class>long</class>.
 		"""
 		return long(unicode(self))
 
 	def asFloat(self, decimal=".", ignore=""):
 		"""
-		<par>returns this node converted to a float. <arg>decimal</arg>
-		specifies which decimal separator is used in the value
+		<par>Convert the character content of <self/> to an <class>float</class>.
+		<arg>decimal</arg> specifies which decimal separator is used in the value
 		(e.g. <lit>"."</lit> (the default) or <lit>","</lit>).
 		<arg>ignore</arg> specifies which character will be ignored.</par>
 		"""
@@ -473,29 +474,27 @@ class Node(Base):
 
 	def __float__(self):
 		"""
-		returns this node converted to a float.
+		Convert the character content of <self/> to an <class>float</class>.
 		"""
 		return self.asFloat()
 
 	def __complex__(self):
 		"""
-		returns this node converted to a complex number.
+		Convert the character content of <self/> to an <class>complex</class>.
 		"""
 		return complex(unicode(self))
 
 	def needsxmlns(self, publisher=None):
 		"""
-		<par>Return what type of namespace prefix/declaration
-		is needed for <self/> when publishing. Possible return
-		values are:</par>
+		<par>Return what type of namespace prefix/declaration is needed for
+		<self/> when publishing. Possible return values are:</par>
 		<ulist>
-		<item><lit>0</lit>: Neither a prefix nor a declaration
-		is required;</item>
-		<item><lit>1</lit>: A prefix is required, but no
-		declaration (e.g. for the <pyref module="ll.xist.ns.xml"><module>xml</module></pyref>
-		namespace, whose prefix is always defined.</item>
-		<item><lit>2</lit>: Both a prefix and a declaration
-		for this prefix are required.</item>
+		<item><lit>0</lit>: Neither a prefix nor a declaration is required;</item>
+		<item><lit>1</lit>: A prefix is required, but no declaration (e.g. for the
+		<pyref module="ll.xist.ns.xml"><module>xml</module></pyref> namespace,
+		whose prefix is always defined.</item>
+		<item><lit>2</lit>: Both a prefix and a declaration for this prefix are
+		required.</item>
 		</ulist>
 		"""
 		if publisher is not None:
@@ -506,10 +505,9 @@ class Node(Base):
 
 	def xmlprefix(cls, publisher=None):
 		"""
-		<par>Return the namespace prefix configured for publishing elements
-		of this class with the publisher <arg>publisher</arg>
-		(or the default prefix from the namespace if <arg>publisher</arg>
-		is <lit>None</lit>.</par>
+		Return the namespace prefix configured for publishing elements of this
+		class with the publisher <arg>publisher</arg> (or the default prefix
+		from the namespace if <arg>publisher</arg> is <lit>None</lit>.</par>
 		"""
 		if cls.xmlns is None:
 			return None
@@ -522,8 +520,8 @@ class Node(Base):
 
 	def _publishname(self, publisher):
 		"""
-		<par>publishes the name of <self/> to the <arg>publisher</arg> including
-		a namespace prefix if required.</par>
+		Publish the name of <self/> to the <arg>publisher</arg> including a
+		namespace prefix if required.
 		"""
 		if self.needsxmlns(publisher)>=1:
 			prefix = self.xmlprefix(publisher)
@@ -534,31 +532,35 @@ class Node(Base):
 
 	def parsed(self, parser, start=None):
 		"""
-		<par>This method will be called by the parser <arg>parser</arg>
-		once after <self/> is created by the parser. This is e.g. used by
+		This method will be called by the parser <arg>parser</arg> once after
+		<self/> is created by the parser. This is e.g. used by
 		<pyref class="URLAttr"><class>URLAttr</class></pyref> to incorporate
 		the base <pyref module="ll.url" class="URL"><class>URL</class></pyref>
 		into the attribute.</par>
 
 		<par>For elements <function>parsed</function> will be called twice:
-		once at the beginning (i.e. before the content is parsed) with <lit><arg>start</arg>==True</lit>
-		and once at the end after parsing of the content is finished <lit><arg>start</arg>==False</lit>.</par>
+		Once at the beginning (i.e. before the content is parsed) with
+		<lit><arg>start</arg>==True</lit> and once at the end after parsing of
+		the content is finished <lit><arg>start</arg>==False</lit>.</par>
 		"""
 		pass
 
 	def checkvalid(self):
 		"""
-		<par>This method will be called when parsing or publishing to check whether <self/> is valid.</par>
-		<par>If the object is found to be invalid a warning should be issued through the
-		<pyref module="warnings">Python warning framework</pyref>.</par>
+		<par>This method will be called when parsing or publishing to check
+		whether <self/> is valid.</par>
+	
+		<par>If <self/> is found to be invalid a warning should be issued through
+		the <pyref module="warnings">Python warning framework</pyref>.</par>
 		"""
 		pass
 
 	def publish(self, publisher):
 		"""
-		<par>generates unicode strings for the node, and passes
-		the strings to <arg>publisher</arg>, which must
-		be an instance of <pyref module="ll.xist.publishers" class="Publisher"><class>ll.xist.publishers.Publisher</class></pyref>.</par>
+		Generate unicode strings for the node, and pass the strings to
+		<lit><arg>publisher</arg>.write</lit>. <arg>publisher</arg> must be an
+		instance of
+		<pyref module="ll.xist.publishers" class="Publisher"><class>ll.xist.publishers.Publisher</class></pyref>.
 
 		<par>The encoding and xhtml specification are taken from the <arg>publisher</arg>.</par>
 		"""
@@ -567,10 +569,11 @@ class Node(Base):
 
 	def asString(self, base=None, publisher=None, **publishargs):
 		"""
-		<par>returns this node as a unicode string.</par>
+		<par>Return this node as a serialized unicode string.</par>
 
 		<par>For the possible parameters see the
-		<pyref module="ll.xist.publishers" class="Publisher"><class>ll.xist.publishers.Publisher</class></pyref> constructor.</par>
+		<pyref module="ll.xist.publishers" class="Publisher"><class>ll.xist.publishers.Publisher</class></pyref>
+		constructor.</par>
 		"""
 		stream = cStringIO.StringIO()
 		if publisher is None:
@@ -588,7 +591,8 @@ class Node(Base):
 		<par>Return this node as a serialized byte string.</par>
 
 		<par>For the possible parameters see the
-		<pyref module="ll.xist.publishers" class="Publisher"><class>ll.xist.publishers.Publisher</class></pyref> constructor.</par>
+		<pyref module="ll.xist.publishers" class="Publisher"><class>ll.xist.publishers.Publisher</class></pyref>
+		constructor.</par>
 		"""
 		stream = cStringIO.StringIO()
 		if publisher is None:
@@ -598,11 +602,12 @@ class Node(Base):
 
 	def write(self, stream, base=None, publisher=None, **publishargs):
 		"""
-		<par>writes <self/> to the file-like object <arg>stream</arg> (which must provide
-		a <method>write</method> method.</par>
+		<par>Write <self/> to the file-like object <arg>stream</arg> (which must
+		provide a <method>write</method> method.</par>
 
-		<par>For the rest of the parameters
-		see the <pyref module="ll.xist.publishers" class="Publisher"><class>ll.xist.publishers.Publisher</class></pyref> constructor.</par>
+		<par>For the rest of the parameters see the
+		<pyref module="ll.xist.publishers" class="Publisher"><class>ll.xist.publishers.Publisher</class></pyref>
+		constructor.</par>
 		"""
 		if publisher is None:
 			publisher = publishers.Publisher(**publishargs)
@@ -1385,7 +1390,7 @@ Null = Null() # Singleton, the Python way
 
 
 class Attr(Frag):
-	r"""
+	"""
 	<par>Base class of all attribute classes.</par>
 
 	<par>The content of an attribute may be any other XSC node. This is different from
