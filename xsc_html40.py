@@ -333,7 +333,7 @@ RegisterElement("base",base)
 class img(XSCElement):
 	empty = 1
 	attr_handlers = AppendDict(attrs,{ "src" : XSCURLAttr , "alt" : XSCTextAttr , "longdesc" : XSCTextAttr , "width" : XSCTextAttr , "height" : XSCTextAttr , "usemap" : XSCTextAttr , "ismap" : XSCTextAttr })
-	attr_handlers = AppendDict(attr_handlers,{ "border" : XSCTextAttr , "align" : XSCTextAttr , "hspace" : XSCTextAttr , "vspace" : XSCTextAttr , "lowsrc" : XSCURLAttr }) # deprecated
+	attr_handlers = AppendDict(attr_handlers,{ "name" : XSCTextAttr , "border" : XSCTextAttr , "align" : XSCTextAttr , "hspace" : XSCTextAttr , "vspace" : XSCTextAttr , "lowsrc" : XSCURLAttr }) # deprecated
 
 	def asHTML(self):
 		e = img(self.content.asHTML(),self.attrs.asHTML())
