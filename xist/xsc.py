@@ -1262,17 +1262,18 @@ class ColorAttr(Attr):
 	def asHTML(self):
 		return ColorAttr(self.content.asHTML())
 
-class _URL:
-	def __init__(self,url = None,scheme = None,server = None,path = None,parameters = None,query = None,fragment = None,forceproject = 0):
+class URL(Node):
+	def __init__(self,url = None,scheme = None,server = None,path = None,file = None,parameters = None,query = None,fragment = None,forceproject = 0):
 		if type(url) == types.StringType:
 			self.__fromString(url)
 		elif type(url) == types.InstanceType:
 			if isinstance(url,URLAttr):
 				self.__fromString(str(url.content))
-			elif isinstance(url,_URL):
+			elif isinstance(url,URL):
 				self.scheme     = url.scheme
 				self.server     = url.server
 				self.path       = url.path[:]
+				self.file       = url.file
 				self.parameters = url.parameters
 				self.query      = url.query
 				self.fragment   = url.fragment
@@ -1285,6 +1286,8 @@ class _URL:
 			self.server = server
 		if path is not None:
 			self.path = path[:]
+		if file is not None:
+			self.file = file
 		if parameters is not None:
 			self.parameters = parameters
 		if query is not None:
@@ -1298,7 +1301,9 @@ class _URL:
 	def __fromString(self,url):
 		(self.scheme,self.server,self.path,self.parameters,self.query,self.fragment) = urlparse.urlparse(url)
 		self.path = string.split(self.path,"/")
-		if self.scheme == "" and self.server == "": # do we have a local file?
+		self.file = self.path[-1]
+		self.path = self.path[:-1]
+		if self.scheme == "": # do we have a local file?
 			if len(self.path) and not len(self.path[0]): # this is a server relative URL
 				del self.path[0] # drop the empty string in front of the first "/" ...
 				self.scheme = "server" # ... and use a special scheme for that
@@ -1331,12 +1336,15 @@ class _URL:
 			path[:0] = [ "" ] # make sure that there's a "/" at the start
 		return urlparse.urlunparse((scheme,self.server,string.join(path,"/"),self.parameters,self.query,self.fragment))
 
-	def __add__(self,other):
+	def joined(self,other):
 		new = self.clone()
-		newother = _URL(other)
-		
+		newother = URL(other)
+
 		if newother.scheme == "":
-			new.path[-1:]  = newother.path[:]
+			if len(new.path) and new.path[-1] != "": # if this as only a dir
+				new.path[-1:]  = newother.path[:]
+			else:
+				new.path.extend(newother.path[:])
 			new.parameters = newother.parameters
 			new.query      = newother.query
 			new.fragment   = newother.fragment
@@ -1353,7 +1361,7 @@ class _URL:
 		return new
 
 	def clone(self):
-		return _URL(scheme = self.scheme,server = self.server,path = self.path,parameters = self.parameters,query = self.query,fragment = self.fragment)
+		return URL(scheme = self.scheme,server = self.server,path = self.path,parameters = self.parameters,query = self.query,fragment = self.fragment)
 		
 	def relativeTo(self,other):
 		"""
@@ -1363,7 +1371,7 @@ class _URL:
 		because although the file you read is remote, the
 		parsed XSC file that you output, isn't.
 		"""
-		newother = _URL(other)
+		newother = URL(other)
 		new = newother+self
 		if new.scheme == "project":
 			otherpath = newother.path[:]
@@ -1418,7 +1426,7 @@ class URLAttr(Attr):
 		self.content = str(xsc.filename[-1] + self)
 
 	def _dorepr(self):
-		return repr(_URL(self))
+		return repr(URL(self))
 
 	def _doreprtree(self,nest,elementno):
 		return [[nest,self.startlineno,elementno,self._dorepr()]]
@@ -1430,15 +1438,15 @@ class URLAttr(Attr):
 		return URLAttr(self.content.asHTML())
 
 	def forInput(self):
-		url = _URL(self)
+		url = URL(self)
 		if url.scheme == "server":
-			url = url.relativeTo(_URL(scheme = "http",server = xsc.server))
+			url = url.relativeTo(URL(scheme = "http",server = xsc.server))
 		return str(url)
 
 	def forOutput(self):
-		url = _URL(self)
+		url = URL(self)
 		if url.scheme == "server":
-			url = url.relativeTo(_URL(scheme = "http",server = xsc.server))
+			url = url.relativeTo(URL(scheme = "http",server = xsc.server))
 		else:
 			url = url.relativeTo(filename[-1])
 		return str(url)
@@ -1599,14 +1607,14 @@ class XSC:
 	"""
 
 	def __init__(self):
-		self.filename = [ _URL(":") ]
+		self.filename = [ URL(":") ]
 		self.server = "localhost"
 		self.repransielementname = "35"
 		self.reprtree = 1
 		self.parser = Parser()
 
 	def __pushName(self,name):
-		url = _URL(name,forceproject = 1)
+		url = URL(name,forceproject = 1)
 		self.filename.append(url)
 
 	def __popName(self):
