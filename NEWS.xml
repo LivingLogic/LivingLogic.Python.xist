@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
-<section><title>Changes in 2.? (released ??/??/2004)</title>
+<section><title>Changes in 2.6 (released 10/26/2004)</title>
 <ulist>
 <item><function>ToNode</function> now tries iterating through the
 value passed in, so it's now possible to pass iterators and generators
