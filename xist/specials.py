@@ -264,11 +264,11 @@ class loremipsum(xsc.Element):
 
 class redirectpage(xsc.Element):
 	empty = 1
-	attrHandlers = { "href" : xsc.URLAttr }
+	attrHandlers = {"href": xsc.URLAttr}
 
 	def asHTML(self):
 		url = self["href"]
-		e = html_.html_(
+		e = html_.html(
 			html_.head(html_.title("Redirection")),
 			html_.body(
 				"Your browser doesn't understand redirects. This page has been redirected to ",
