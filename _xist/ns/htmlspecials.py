@@ -19,7 +19,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 import sys, types, time as time_, string
 
 from ll.xist import xsc, parsers
-from ll.xist.ns import ihtml, html, meta
+from ll.xist.ns import ihtml, html, meta, specials
 
 class plaintable(html.table):
 	"""
@@ -233,6 +233,11 @@ class javascript(html.script):
 	def convert(self, converter):
 		e = html.script(self.content, self.attrs, language="javascript", type="text/javascript")
 		return e.convert(converter)
+
+class ImgAttrDecorator(specials.AttrDecorator):
+	class Attrs(html.img.Attrs):
+		pass
+	idecoratable = (html.img,)
 
 class xmlns(xsc.Namespace):
 	xmlname = "htmlspecials"

@@ -16,7 +16,7 @@ can be used for all conversion target, because they only generate text.</par>
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-import sys, types, time as time_
+import sys, types, datetime
 
 from ll.xist import xsc, parsers
 
@@ -52,13 +52,19 @@ class filesize(xsc.Element):
 
 class filetime(xsc.Element):
 	"""
-	<par>the time of the last modification of the file whose URL is in the attibute href
-	as a text node.</par>
+	<par>the time of the last modification of the file whose &url; is in the attribute <lit>href</lit>
+	as a text node. This will always be an &utc; timestamp.</par>
 	"""
 	empty = True
 	class Attrs(xsc.Element.Attrs):
 		class href(xsc.URLAttr): pass
+			"""
+			<par>The &url; of the file.</par>
+			"""
 		class format(xsc.TextAttr):
+			"""
+			<par>A <function>strftime</function> compatible formatstring for formatting the timestamp.</par>
+			"""
 			default = "%d. %b. %Y, %H:%M"
 
 	def convert(self, converter):
@@ -74,18 +80,30 @@ class time(xsc.Element):
 	empty = True
 	class Attrs(xsc.Element.Attrs):
 		class format(xsc.TextAttr):
+			"""
+			<par>A <function>strftime</function> compatible formatstring for formatting the timestamp.</par>
+			"""
 			default = "%d. %b. %Y, %H:%M"
+		class utc(xsc.BoolAttr):
+			"""
+			<par>Should &utc; be used or local time?</par>
+			"""
 
 	def convert(self, converter):
 		format = str(self["format"].convert(converter))
+		if "utc" in self.attrs:
+			f = datetime.datetime.utcnow
+		else:
+			f = datetime.datetime.now
 
-		return xsc.Text(time_.strftime(format, time_.gmtime(time_.time())))
+		return xsc.Text(f().strftime(format))
 
 class x(xsc.Element):
 	"""
-	<par>element whose content will be ignored when converted:
-	this can be used to comment out stuff. The content of the element must
-	of course still be wellformed.</par>
+	<par>Element that will be ignored when converted.</par>
+
+	<par><class>x</class> can be used to comment out stuff.
+	The content of the element must of course still be wellformed.</par>
 	"""
 	empty = False
 
@@ -118,10 +136,12 @@ class loremipsum(xsc.Element):
 
 class wrap(xsc.Element):
 	"""
-	<par>a wrapper element that returns its content.
-	This is e.g. useful if you want to parse a
+	<par>a wrapper element that returns its content when converted.</par>
+
+	<par>This is e.g. useful if you want to parse a
 	file that starts with <pyref module="ll.xist.ns.jsp"><module>&jsp;</module></pyref>
 	processing instructions.</par>
+
 	<par>This is also used for publishing, when <lit>xmlns</lit> attributes
 	are required, but the root is not an element.</par>
 	"""
@@ -129,6 +149,38 @@ class wrap(xsc.Element):
 
 	def convert(self, converter):
 		return self.content.convert(converter)
+
+class AttrDecorator(xsc.Element):
+	empty = False
+	register = False
+
+	decoratable = ()
+
+	class Visitor(object):
+
+		def __init__(self, decorator, converter):
+			self.decorator = decorator
+			self.converter = converter
+
+		def isdecoratable(self, node):
+			return isinstance(node, self.decorator.decoratable)
+
+		def visit(self, node):
+			found = xsc.Found(enter=True)
+			if self.isdecoratable(node):
+				found.foundstart = self.decorate
+			return found
+
+		def decorate(self, node, start):
+			for (attrname, attrvalue) in self.decorator.attrs.iteritems():
+				if attrname not in node.attrs:
+					node[attrname] = attrvalue.convert(self.converter)
+
+	def convert(self, converter):
+		node = self.content.convert(converter)
+		visitor = self.Visitor(self, converter)
+		node.visit(visitor.visit)
+		return node
 
 # Control characters (not part of HTML)
 class lf(xsc.CharRef): "line feed"; codepoint = 10
