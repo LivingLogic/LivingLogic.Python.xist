@@ -67,24 +67,29 @@ class StringInputSource(InputSource):
 
 class FileInputSource(InputSource):
 	def __init__(self, stream, base=None, defaultEncoding="utf-8"):
-		InputSource.__init__(self, base)
-		self.setSystemId(str(base))
 		if isinstance(stream, (str, unicode)):
 			stream = fileutils.Filename(stream)
 		if isinstance(stream, fileutils.Filename):
 			stream = stream.open("rb")
+		if base is None:
+			base = stream.name
+		InputSource.__init__(self, base)
+		self.setSystemId(str(base))
 		self.setByteStream(stream)
 		self.setEncoding(defaultEncoding)
 
 class URLInputSource(InputSource):
-	def __init__(self, url, defaultEncoding="utf-8"):
+	def __init__(self, url, base=None, defaultEncoding="utf-8"):
 		if isinstance(url, url_.URL):
 			url = url.asPlainString()
-		InputSource.__init__(self, url)
-		self.setSystemId(url)
-		if type(url) is types.UnicodeType:
+		if isinstance(url, unicode):
 			url = url.encode("utf-8")
-		self.setByteStream(urllib.urlopen(url))
+		url = urllib.urlopen(url)
+		if base is None:
+			base = url.url
+		InputSource.__init__(self, base)
+		self.setSystemId(str(base))
+		self.setByteStream(url)
 		self.setEncoding(defaultEncoding)
 
 	def setTimeout(self, secs):
@@ -96,14 +101,18 @@ class URLInputSource(InputSource):
 			timeoutsocket.getDefaultSocketTimeout()
 
 class TidyURLInputSource(InputSource):
-	def __init__(self, url, defaultEncoding="utf-8"):
+	def __init__(self, url, base=None, defaultEncoding="utf-8"):
 		if isinstance(url, url_.URL):
 			url = url.asPlainString()
-		InputSource.__init__(self, url)
-		self.setSystemId(url)
-		if type(url) is types.UnicodeType:
+		if isinstance(url, unicode):
 			url = url.encode("utf-8")
-		(nerrors, nwarnings, outputdata, error) = Tidy.tidy(urllib.urlopen(url).read(), numeric_entities=1, output_xhtml=1, output_xml=1, quiet=1, tidy_mark=0, wrap=0)
+		url = urllib.urlopen(url)
+		if base is None:
+			base = url.url
+		InputSource.__init__(self, url)
+		self.setSystemId(str(base))
+		self.setSystemId(url)
+		(nerrors, nwarnings, outputdata, error) = Tidy.tidy(url.read(), numeric_entities=1, output_xhtml=1, output_xml=1, quiet=1, tidy_mark=0, wrap=0)
 		if nerrors>0:
 			raise SAXParseException("can't tidy %r: %r" % (url, errordata))
 		self.setByteStream(StringIO.StringIO(outputdata))
@@ -560,12 +569,12 @@ def parse(source, handler=None, parser=None, namespaces=None):
 def parseString(text, base=None, handler=None, parser=None, namespaces=None, defaultEncoding="utf-8"):
 	return parse(StringInputSource(text, base=base, defaultEncoding=defaultEncoding), handler=handler, parser=parser, namespaces=namespaces)
 
-def parseFile(filename, base=None, handler=None, parser=None, namespaces=None, defaultEncoding="utf-8"):
-	return parse(FileInputSource(filename, base=base, defaultEncoding=defaultEncoding), handler=handler, parser=parser, namespaces=namespaces)
+def parseFile(file, base=None, handler=None, parser=None, namespaces=None, defaultEncoding="utf-8"):
+	return parse(FileInputSource(file, base=base, defaultEncoding=defaultEncoding), handler=handler, parser=parser, namespaces=namespaces)
 
-def parseURL(url, handler=None, parser=None, namespaces=None, defaultEncoding="utf-8"):
-	return parse(URLInputSource(url, defaultEncoding=defaultEncoding), handler=handler, parser=parser, namespaces=namespaces)
+def parseURL(url, base=None, handler=None, parser=None, namespaces=None, defaultEncoding="utf-8"):
+	return parse(URLInputSource(url, base=base, defaultEncoding=defaultEncoding), handler=handler, parser=parser, namespaces=namespaces)
 
-def parseTidyURL(url, handler=None, parser=None, namespaces=None, defaultEncoding="utf-8"):
-	return parse(TidyURLInputSource(url, defaultEncoding=defaultEncoding), handler=handler, parser=parser, namespaces=namespaces)
+def parseTidyURL(url, base=None, handler=None, parser=None, namespaces=None, defaultEncoding="utf-8"):
+	return parse(TidyURLInputSource(url, base=base, defaultEncoding=defaultEncoding), handler=handler, parser=parser, namespaces=namespaces)
 
