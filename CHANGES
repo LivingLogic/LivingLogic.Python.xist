@@ -3,7 +3,7 @@ New in 0.5
 New module for WML 1.3.
 
 The publishing interface has changed internally
-and publishing should be faster now:
+and publishing should be faster now.
 
 Publishers now support a new parameter:
 usePrefix, which specifies if namespace prefixes
@@ -17,18 +17,20 @@ When publishing ", it will now only be replaced with
 &quot; inside attributes.
 
 All the asHTML methods now have an additional argument
-mode which defaults to None. This makes it possible
-to implement different processing modes for new
-elements. All currently implemented elements and
+transformer which defaults to None. This makes it possible
+to implement different processing modes or stages
+for new elements. All currently implemented elements and
 entities ignore this argument, but pass it on
 in the call to their childrens' asHTML method.
+As the name asHTML no longer makes sense, asHTML
+has been renamed to transform.
 
 There is now a tools dtd2xsc.py in the tools directory
 that creates a skeleton XIST module for a dtd
 (this requires xmlproc from the PyXML package).
 
 New preliminary module for DocBook 4.12.
-(Incomplete: asHTML methods and Unicode character
+(Incomplete: transform methods and Unicode character
 entities are missing)
 
 New module that implements the W3C Ruby draft:
