@@ -858,6 +858,11 @@ def RegisterEntity(name,number):
 	XSCParser.entitiesByNumber[number].append(name)
 	XSCParser.entitiesByName[name] = number
 
+RegisterEntity("amp",38)
+RegisterEntity("lt",60)
+RegisterEntity("gt",62)
+RegisterEntity("apos",39)
+RegisterEntity("quot",34)
 RegisterEntity("lf",10)
 RegisterEntity("cr",13)
 RegisterEntity("ht",9)
