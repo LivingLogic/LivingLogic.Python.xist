@@ -2035,12 +2035,12 @@ def make():
 				outname.ext = { "hsc" : "html" , "shsc" : "shtml" , "phsc" : "phtml" , "xsc" : "html" , "sxsc" : "shtml" , "pxsc" : "phtml"}[inname.ext]
 			except KeyError:
 				outname.ext = "html"
-			sys.stderr.write('XSC: converting "' + inname.asString() + '"' + ' to "' + outname.asString() + '" ...')
+			sys.stderr.write('XSC: converting "' + str(inname) + '"' + ' to "' + str(outname) + '" ...')
 			e_in = xsc.parse(inname)
 			xsc.pushURL(inname)
 			e_out = e_in.asHTML()
 			s_out = e_out.asString()
-			__forceopen(str(outname),"wb").write(s_out)
+			__forceopen(outname.asString(),"wb").write(s_out)
 			sys.stderr.write(" " + _stransi("1",str(len(s_out))) + "\n")
 			xsc.popURL()
 	else:
