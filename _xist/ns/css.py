@@ -1044,7 +1044,7 @@ class atpage(xsc.Element):
 	"""
 	The &css;2 rule for specifying the page box.
 	"""
-	empty = False
+	model = sims.Elements(rule)
 	class Attrs(xsc.Element.Attrs):
 		class sel(xsc.TextAttr): pass
 
@@ -1382,7 +1382,7 @@ class atfontface(xsc.Element):
 	"""
 	<par>A &css;2 font descriptor.</par>
 	"""
-	empty = False
+	model = sims.Elements(rule)
 
 	def publish(self, publisher):
 		publisher.publish(u"@font-face\n{\n")
