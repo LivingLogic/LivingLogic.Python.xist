@@ -35,7 +35,7 @@ class checkbox(xsc.Element):
 	attrHandlers = {"name": xsc.TextAttr, "value": xsc.TextAttr}
 
 	def convert(self, converter):
-		e = html.input(**self.attrs)
+		e = html.input(self.attrs)
 		e["type"] = "checkbox"
 		if self.hasAttr("value") and int(self["value"].asPlainString()) != 0:
 			e["checked"] = None
@@ -47,7 +47,7 @@ class edit(xsc.Element):
 	attrHandlers = {"name": xsc.TextAttr, "value": xsc.TextAttr, "size": xsc.TextAttr}
 
 	def convert(self, converter):
-		e = html.input(**self.attrs)
+		e = html.input(self.attrs)
 		e["type"] = "text"
 		return e.convert(converter)
 
@@ -55,7 +55,7 @@ class radio(xsc.Element):
 	attrHandlers = {"name": xsc.TextAttr, "value": xsc.TextAttr, "checked": xsc.BoolAttr}
 
 	def convert(self, converter):
-		e = html.input(**self.attrs)
+		e = html.input(self.attrs)
 		e["type"] = "radio"
 		return e.convert(converter)
 
@@ -63,7 +63,7 @@ class submit(xsc.Element):
 	attrHandlers = {"name": xsc.TextAttr, "value": xsc.TextAttr}
 
 	def convert(self, converter):
-		e = html.input(**self.attrs)
+		e = html.input(self.attrs)
 		e["type"] = "submit"
 		return e.convert(converter)
 
