@@ -458,12 +458,12 @@ class Parser(object):
 		</ulist>
 		</item>
 	
-		<term><arg>nspool</arg></term><item>an instance of <pyref module="ll.xist.xsc" class="NSPool"><class>ll.xist.xsc.NSPool</class></pyref>
-		is the namespace pool from which namespaces are used when the parser
+		<term><arg>nspool</arg></term><item>an instance of <pyref module="ll.xist.xsc" class="NSPool"><class>ll.xist.xsc.NSPool</class></pyref>;
+		From this namespace pool namespaces will be taken when the parser
 		encounters <lit>xmlns</lit> attributes.</item>
 
-		<term><arg>prefixes</arg></term><item>an instance of <pyref module="ll.xist.xsc" class="Prefixes"><class>ll.xist.xsc.Prefixes</class></pyref>
-		specifies which namespace modules should be available during parsing
+		<term><arg>prefixes</arg></term><item>an instance of <pyref module="ll.xist.xsc" class="Prefixes"><class>ll.xist.xsc.Prefixes</class></pyref>;
+		Specifies which namespace modules should be available during parsing
 		and to which prefixes they are mapped (but of course this
 		mapping can be changed during parsing by using <lit>xmlns</lit>
 		attributes in the usual way).</item>
