@@ -342,4 +342,10 @@ class png(xsc.Entity):
 	def asPlainString(self):
 		return u"PNG"
 
+class wsdl(xsc.Entity):
+	def convert(self, converter):
+		return html_.abbr("WSDL", title="Web Services Description Language", lang="en")
+	def asPlainString(self):
+		return u"WSDL"
+
 namespace = xsc.Namespace("abbr", "http://www.livinglogic.de/DTDs/abbr.dtd", vars())
