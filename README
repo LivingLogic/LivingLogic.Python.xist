@@ -1,23 +1,14 @@
 XIST v0.5
 
-This is a HTML generator/XML transformation engine/web publishing system
-written in Python.
+XIST ist an XML based HTML generator written in Python.
 
 For documentation read xist/xsc.py.
 
-The requirements for installing the package are Python 2.0,
-the Python XML package (http://pyxml.sourceforge.net/)
-(a newer version that includes sgmlop and expat, 0.6.2 will do),
-the Python Imaging Library
-(available from http://www.pythonware.com/products/pil/)
-and a C compiler.
+For installation instruction read INSTALL.
 
-To compile everything, simply perform the following steps.
+For a history of XIST and a list of new features in this version,
+read NEWS.
 
-1) Run "python setup.py build" to copy *.py files and compile *.c files.
+XIST is available from ftp://titan.bnbt.de/pub/livinglogic/xist/
 
-2) To install everything in the site-packages directory as an xist/ package,
-   run "python setup.py install".
-
-If you have difficulties installing this software, send a problem report
-to Walter Dörwald <walter@livinglogic.de> describing the problem.
+-- Walter Dörwald <walter@livinglogic.de>

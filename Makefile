@@ -28,9 +28,10 @@ DEP := $(DEP_CP) $(DEP_SCRIPTS)
 all: $(OUTPUTDIR)/xist $(OUTPUTDIR)/xist/ns $(SCRIPTDIR) $(DEP) $(OUTPUTDIR)/xist/helpers.so
 
 dist:
-	docbooklite2text.py --title History --import xist.ns.abbr --import xist.ns.docbooklite --import xist.ns.specials NEWS.xml NEWS
+	docbooklite2text.py --title History --import xist.ns.specials --import xist.ns.abbr --import xist.ns.docbooklite --import xist.ns.specials NEWS.xml NEWS
+	docbooklite2text.py --title "Requirements and instalaltion" --import xist.ns.specials --import xist.ns.abbr --import xist.ns.docbooklite --import xist.ns.specials INSTALL.xml INSTALL
 	python setup.py sdist --formats=bztar,gztar
-	rm NEWS
+	rm NEWS INSTALL
 
 $(OUTPUTDIR)/xist:
 	mkdir -p $(OUTPUTDIR)/xist

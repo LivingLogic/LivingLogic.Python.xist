@@ -1,5 +1,6 @@
 include ANNOUNCE
 include NEWS
+include INSTALL
 include CREDITS
 include README
 include TODO

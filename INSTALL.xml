@@ -1,0 +1,33 @@
+<section><title>Requirements</title>
+To use &xist; you need the following software packages:
+<ol>
+<li>Python 2.1 (available from <a href="http://www.python.org/">http://www.python.org/</a>),</li>
+<li>The Python &xml; package (available from <a href="http://pyxml.sourceforge.net/">http://pyxml.sourceforge.net/</a>)
+(a newer version that includes sgmlop and expat, 0.6.2 will do),</li>
+<li>the Python Imaging Library (available from 
+<a href="http://www.pythonware.com/products/pil/">http://www.pythonware.com/products/pil/</a>)</li>
+<li>and a C compiler supported by <application>distutils</application></li>
+</ol>
+</section>
+
+<section><title>Installation</title>
+To compile and install everything, simply perform the following steps:
+<ol>
+<li>Execute the command
+<programlisting>
+python setup.py build
+</programlisting>
+to copy *.py files and compile *.c files.</li>
+
+<li>To install everything in the <filename class="directory">site-packages</filename>
+directory as an <code>xist</code> package,
+execute the command
+<programlisting>
+python setup.py install
+</programlisting></li>
+</ol>
+
+If you have difficulties installing this software, send a problem report
+to Walter Dörwald (<a href="mailto:walter@livinglogic.de">walter@livinglogic.de</a>)
+describing the problem.
+</section>

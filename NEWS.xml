@@ -1,15 +1,3 @@
-<?xsc:exec
-	from xist import xsc
-	from xist.ns import html
-
-	class xist(xsc.Entity):
-		def convert(self, converter=None):
-			return html.span("XIST", class_="caps")
-		def asPlainString(self):
-			return u"XIST"
-
-	namespace = xsc.Namespace("xist", "", vars())
-?>
 <section><title>Changes in 0.5 (released ??/??/2001)</title>
 <ul>
 <li>New module for WML 1.3.</li>
