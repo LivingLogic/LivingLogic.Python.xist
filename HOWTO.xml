@@ -276,9 +276,9 @@ when <lit><arg>stage</arg>=="deliver"</lit> and simply returns itself when
 and would be converted to &html; on every request.</item>
 <item><arg>target</arg> (which defaults to <lit>"html"</lit>) specifies what the output should be. Values could
 e.g. be <lit>"html"</lit>, <lit>"wml"</lit> or <lit>"docbook"</lit>.</item>
-<item><arg>lang</arg> (which defaults to <lit>None</lit>) is the language in which the result tree should be.
+<item><par><arg>lang</arg> (which defaults to <lit>None</lit>) is the language in which the result tree should be.
 This can be used in the <method>convert</method> method
-to implement different conversions for different languages, e.g.:
+to implement different conversions for different languages, e.g.:</par>
 <programlisting>
 class note(xsc.Element):
 	empty = False
@@ -295,8 +295,8 @@ class note(xsc.Element):
 			html.div(self.content.convert(converter))
 		)
 </programlisting>
-and you can test for the language with the element
-<pyref module="ll.xist.ns.cond" class="If"><class>ll.xist.ns.cond.If</class></pyref>, e.g.:
+<par>and you can test for the language with the element
+<pyref module="ll.xist.ns.cond" class="If"><class>ll.xist.ns.cond.If</class></pyref>, e.g.:</par>
 <programlisting>
 &lt;if lang="de"&gt;Anmerkung
 &lt;elif lang="en"&gt;Note
