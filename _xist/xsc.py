@@ -733,11 +733,8 @@ class Frag(Node):
 		inserts all items in <argref>others</argref> at the position <argref>index</argref>.
 		(this is the same as <code><self/>[<argref>index</argref>:<argref>index</argref>] = <argref>others</argref></code>)
 		"""
-		for other in others:
-			other = ToNode(other)
-			if other is not Null:
-				self.__content.insert(index, other)
-				index += 1
+		other = Frag(*others)
+		self.__content[index:index] = other.__content
 
 	def find(self, type=None, subtype=0, attrs=None, test=None, searchchildren=0, searchattrs=0):
 		node = Frag()
