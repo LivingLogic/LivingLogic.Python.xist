@@ -117,6 +117,9 @@ and pass a node and a converter.</item>
 <item>The &html; handling of the <class>HTMLParser</class> has been improved
 (it now uses code from <module>xml.sax.drivers2.drv_sgmlop_html</module>).</item>
 
+<item>The core functionality found in the script <filename>dtd2xsc.py</filename>
+has been move to <module>ll.xist.tools.dtd2xndl</module> in the new
+package <module>ll.xist.tools</module>.</item>
 </ulist>
 </section>
 
