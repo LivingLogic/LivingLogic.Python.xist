@@ -1203,19 +1203,17 @@ class Frag(Node, list):
 		a comparison function returning -1, 0, 1 respectively and defaults to comparing the
 		<pyref class="Node" method="__unicode__"><class>__unicode__</class></pyref> value.</par>
 		"""
-		node = self._create()
-		list.extend(node, list.__getslice__(self, 0, sys.maxint))
-		list.sort(node, compare)
-		return node
+		node = list(self)
+		node.sort(compare)
+		return self.__class__(node)
 
 	def reversed(self):
 		"""
 		<par>returns a reversed version of the <self/>.</par>
 		"""
-		node = self._create()
-		list.extend(node, list.__getslice__(self, 0, sys.maxint))
-		list.reverse(node)
-		return node
+		node = list(self)
+		node.reverse()
+		return self.__class__(node)
 
 	def filtered(self, function):
 		"""
@@ -1229,7 +1227,7 @@ class Frag(Node, list):
 		"""
 		<par>return a shuffled version of <self/>.</par>
 		"""
-		content = list.__getslice__(self, 0, sys.maxint)
+		content = list(self)
 		node = self._create()
 		while content:
 			index = random.randrange(len(content))
