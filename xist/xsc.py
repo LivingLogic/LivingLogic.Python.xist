@@ -952,22 +952,50 @@ class Frag(Node):
 
 	def __getitem__(self,index):
 		"""
-		returns the index'th node for the content of the fragment
+		Return the <argref>index</argref>'th node for the content of the fragment.
+		If <argref>index</argref> is a list <code>__getitem__</code> will work
+		recursively. If <argref>index</argref> is empty, <self/> will be returned.
 		"""
-		return self.__content[index]
+		if type(index) is types.ListType:
+			node = self
+			for subindex in index:
+				node = node[subindex]
+			return node
+		else:
+			return self.__content[index]
 
 	def __setitem__(self,index,value):
 		"""
-		allows you to replace the index'th content node of the fragment
+		Allows you to replace the <argref>index</argref>'th content node of the fragment
+		with the new value <argref>value</argref> (which will be converted to a node).
+		If  <argref>index</argref> is a list <code>__setitem__</code> will be applied
+		to the innermost index after traversing the rest of <argref>index</argref> recursively.
+		If <argref>index</argref> is empty the call will be ignored.
 		"""
-		if len(self.__content)>index:
-			self.__content[index] = ToNode(value)
+		value = ToNode(value)
+		if type(index) is types.ListType:
+			if len(index):
+				node = self
+				for subindex in index[:-1]:
+					node = node[subindex]
+				node[index[-1]] = value
+		else:
+			self.__content[index] = value
 
 	def __delitem__(self,index):
 		"""
-		removes the index'th content node from the fragment
+		Remove the <argref>index</argref>'th content node from the fragment.
+		If <argref>index</argref> is a list, the innermost index will be deleted,
+		after traversing the rest of <argref>index</argref> recursively.
+		If <argref>index</argref> is empty the call will be ignored.
 		"""
-		if len(self.__content)>index:
+		if type(index) is types.ListType:
+			if len(index):
+				node = self
+				for subindex in index[:-1]:
+					node = node[subindex]
+				del node[index[-1]]
+		else:
 			del self.__content[index]
 
 	def __getslice__(self,index1,index2):
@@ -1183,24 +1211,35 @@ class ProcInst(Node):
 		tail = strQuestion(ansi) + strBracketClose(ansi)
 		return self._doreprtreeMultiLine(nest,elementno,head,tail,self.content,strProcInstData,1,ansi = ansi)
 
+	def __findAttr(self,name):
+		startpos = self.content.find(name)
+		if startpos != -1:
+			startpos = startpos+len(name)
+			while self.content[startpos].isspace():
+				startpos = startpos+1
+			startpos = startpos + 1 # skip '='
+			while self.content[startpos].isspace():
+				startpos = startpos+1
+			char = self.content[startpos]
+			startpos = startpos+1
+			endpos = self.content.find(char,startpos)
+			if endpos != -1:
+				return self.content[startpos:endpos]
+		return None
+
 	def publish(self,publisher,encoding = None,XHTML = None):
 		if self.content.find("?>")!=-1:
 			raise IllegalProcInstError(self.startloc,self)
 		if self.target == "xml": # XML, so we have to put the correct encoding in there
-			encodingfound = None
-			startpos = self.content.find("encoding")
-			if startpos != -1:
-				startpos = startpos+9
-				char = self.content[startpos]
-				startpos = startpos+1
-				endpos = self.content.find(char,startpos)
-				if endpos != -1:
-					encodingfound = self.content[startpos:endpos]
-			if encodingfound is not None and encoding != encodingfound:
-				e = self.clone()
-				if encoding is None:
-					encoding = outputEncoding
-				e.content = self.content[:startpos] + encoding + self.content[endpos:]
+			encodingfound = self.__findAttr("encoding")
+			versionfound = self.__findAttr("version")
+			if encoding is None:
+				encoding = outputEncoding
+			if encoding != encodingfound: # if self has the wrong encoding specification (or none), we construct a new ProcInst and publish that
+				e = ProcInst(u"xml",u"")
+				if versionfound is not None:
+					e.content = u"version='" + versionfound + u"' "
+				e.content = e.content + u"encoding='" + encoding + u"'"
 				e.publish(publisher,encoding,XHTML)
 				return
 		publisher("<?",self._encode(self.target,encoding,0)," ",self._encode(self.content,encoding,0),"?>")
@@ -1412,7 +1451,7 @@ class Element(Node):
 	def __getitem__(self,index):
 		"""
 		returns an attribute or one of the content nodes depending on whether
-		a string (i.e. attribute name) or a number (i.e. content node index) is passed in.
+		a string (i.e. attribute name) or a number or list (i.e. content node index) is passed in.
 		"""
 		if type(index) in (types.StringType, types.UnicodeType):
 			if index[-1] == "_":
@@ -1427,31 +1466,33 @@ class Element(Node):
 	def __setitem__(self,index,value):
 		"""
 		sets an attribute or one of the content nodes depending on whether
-		a string (i.e. attribute name) or a number (i.e. content node index) is passed in.
+		a string (i.e. attribute name) or a number or list (i.e. content node index) is passed in.
 		"""
 		if type(index) in (types.StringType, types.UnicodeType):
 			if index[-1] == "_":
 				index = index[:-1]
 			# values are contructed via the attribute classes specified in the attrHandlers dictionary, which do the conversion
 			try:
-				attr = self.attrHandlers[index]() # pack the attribute into an attribute object
+				attr = self.attrHandlers[index]() # create an empty attribute of the right type
 			except KeyError:
 				raise IllegalAttributeError(self,index)
-			attr.extend(value)
-			self.attrs[index] = attr
+			attr.extend(value) # put the value into the attribute
+			self.attrs[index] = attr # put the attribute in our dict
 		else:
 			self.content[index] = value
 
 	def __delitem__(self,index):
 		"""
 		removes an attribute or one of the content nodes depending on whether
-		a string (i.e. attribute name) or a number (i.e. content node index) is passed in.
+		a string (i.e. attribute name) or a number or list (i.e. content node index) is passed in.
 		"""
 		if type(index) in (types.StringType, types.UnicodeType):
 			if index[-1] == "_":
 				index = index[:-1]
-			if self.attrs.has_key(index):
+			try:
 				del self.attrs[index]
+			except KeyError:
+				raise AttributeNotFoundError(self,index)
 		else:
 			del self.content[index]
 

@@ -3,6 +3,6 @@
 __version__ = "$Revision$"[11:-2]
 # $Source$
 
-__all__ = [ "xsc" , "html", "specials", "db" ]
+__all__ = ["xsc", "publishers", "html", "specials", "form", "javaabbr"]
 
 

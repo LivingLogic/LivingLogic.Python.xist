@@ -254,6 +254,21 @@ class IllegalProcInstError(Error):
 	def __str__(self):
 		return Error.__str__(self) + "processing instruction with content " + repr(self.procinst.content) + " is illegal, as it contains " + repr("?>") + "."
 
+class IllegalXMLDeclError(Error):
+	"""
+	exception that is raised, when there is an illegal XML declaration,
+	i.e. there something wrong in <code><&lt;?xml ...?&gt;</code>.
+	(This can only happen, when the processing instruction is instantiated by the
+	program, not when parsed from an XML file.)
+	"""
+
+	def __init__(self, location, procinst):
+		Error.__init__(self, location)
+		self.procinst = procinst
+
+	def __str__(self):
+		return Error.__str__(self) + "XML declaration with content " + repr(self.procinst.content) + " is malformed."
+
 class EncodingImpossibleError(Error):
 	"""
 	exception that is raised, when the XML tree can't be encoded, because
