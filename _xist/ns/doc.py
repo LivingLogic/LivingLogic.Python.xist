@@ -248,7 +248,7 @@ class section(xsc.Element):
 			for t in ts:
 				h = html.namespace.elementsByName["h%d" % context.depth](class_=self["role"])
 				if converter.target=="text":
-					h.append(html.br(), t.content, html.br(), "="*len(t.content.convert(converter).asPlainString()))
+					h.append(html.br(), t.content, html.br(), "="*len(unicode(t.content.convert(converter))))
 				else:
 					h.append(t.content)
 				e.append(h)
@@ -341,27 +341,27 @@ class pyref(xsc.Element):
 
 	def convert(self, converter):
 		if self.hasAttr("var"):
-			var = self["var"].convert(converter).asPlainString()
+			var = unicode(self["var"].convert(converter))
 		else:
 			var = None
 		if self.hasAttr("arg"):
-			arg = self["arg"].convert(converter).asPlainString()
+			arg = unicode(self["arg"].convert(converter))
 		else:
 			arg = None
 		if self.hasAttr("function"):
-			function = self["function"].convert(converter).asPlainString()
+			function = unicode(self["function"].convert(converter))
 		else:
 			function = None
 		if self.hasAttr("method"):
-			method = self["method"].convert(converter).asPlainString()
+			method = unicode(self["method"].convert(converter))
 		else:
 			method = None
 		if self.hasAttr("class"):
-			class__ = self["class"].convert(converter).asPlainString()
+			class__ = unicode(self["class"].convert(converter))
 		else:
 			class__ = None
 		if self.hasAttr("module"):
-			module = self["module"].convert(converter).asPlainString().replace(u".", u"/")
+			module = unicode(self["module"].convert(converter)).replace(u".", u"/")
 		else:
 			module = None
 
@@ -419,7 +419,7 @@ def getDoc(thing):
 		node = par(node)
 
 	refs = node.find(type=pyref, subtype=1, searchchildren=1)
-	if type(thing) is types.MethodType:
+	if inspect.ismethod(thing):
 		for ref in refs:
 			if not ref.hasAttr("module"):
 				ref["module"] = inspect.getmodule(thing).__name__
@@ -427,17 +427,17 @@ def getDoc(thing):
 					ref["class"] = thing.im_class.__name__
 					if not ref.hasAttr("method"):
 						ref["method"] = thing.__name__
-	elif type(thing) is types.FunctionType:
+	elif inspect.isfunction(thing):
 		for ref in refs:
 			if not ref.hasAttr("module"):
 				ref["module"] = inspect.getmodule(thing).__name__
-	elif type(thing) is types.ClassType:
+	elif inspect.isclass(thing):
 		for ref in refs:
 			if not ref.hasAttr("module"):
 				ref["module"] = inspect.getmodule(thing).__name__
 				if not ref.hasAttr("class"):
 					ref["class"] = thing.__name__
-	elif type(thing) is types.ModuleType:
+	elif inspect.ismodule(thing):
 		for ref in refs:
 			if not ref.hasAttr("module"):
 				ref["module"] = thing.__name__
@@ -506,8 +506,7 @@ def explain(thing, name=None):
 	<arg>thing</arg>, which can be a function, method, class or module.
 	"""
 
-	t = type(thing)
-	if t is types.MethodType:
+	if inspect.ismethod(thing):
 		(args, varargs, varkw, defaults) = inspect.getargspec(thing.im_func)
 		sig = xsc.Frag(
 			html.a(name=(thing.im_class.__name__, "-", name or thing.__name__))
@@ -516,7 +515,7 @@ def explain(thing, name=None):
 			sig.append(name, " = ")
 		sig.append("def ", __codeHeader(thing.im_func, thing.__name__, method), ":")
 		return section(title(sig), getDoc(thing), role="method")
-	elif t is types.FunctionType:
+	elif inspect.isfunction(thing):
 		return section(
 			title(
 				html.a(name=name or thing.__name__),
@@ -527,13 +526,16 @@ def explain(thing, name=None):
 			getDoc(thing),
 			role="function"
 		)
-	elif t is types.ClassType:
+	elif inspect.isclass(thing):
 		bases = xsc.Frag()
 		if len(thing.__bases__):
 			for baseclass in thing.__bases__:
-				ref = pyref(class_(baseclass.__name__), module=baseclass.__module__, class_=baseclass.__name__)
-				if thing.__module__ != baseclass.__module__:
-					ref.insert(0, baseclass.__module__, ".")
+				if baseclass.__module__ == "__builtin__":
+					ref = class_(baseclass.__name__)
+				else:
+					ref = pyref(class_(baseclass.__name__), module=baseclass.__module__, class_=baseclass.__name__)
+					if thing.__module__ != baseclass.__module__:
+						ref.insert(0, baseclass.__module__, ".")
 				bases.append(ref)
 			bases = bases.withSep(", ")
 			bases.insert(0, "(")
@@ -558,7 +560,7 @@ def explain(thing, name=None):
 			methods.sort(cmpName)
 			node.append([explain(*m) for m in methods])
 		return node
-	elif t is types.ModuleType:
+	elif inspect.ismodule(thing):
 		if hasattr(thing, "__all__"):
 			moduletype = "Package"
 		else:
