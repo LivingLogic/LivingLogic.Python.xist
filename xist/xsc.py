@@ -25,7 +25,7 @@ import urllib
 ###
 
 class XSCError(Exception):
-	"base class for all XSC exceptions"
+	"""base class for all XSC exceptions"""
 
 	def __init__(self,lineno):
 		self.lineno = lineno
@@ -37,7 +37,7 @@ class XSCError(Exception):
 			return "XSC: error: "
 
 class XSCEmptyElementWithContentError(XSCError):
-	"exception that is raised, when an element has content, but it shouldn't (i.e. close==0)"
+	"""exception that is raised, when an element has content, but it shouldn't (i.e. close==0)"""
 
 	def __init__(self,lineno,element):
 		XSCError.__init__(self,lineno)
@@ -47,7 +47,7 @@ class XSCEmptyElementWithContentError(XSCError):
 		return XSCError.__str__(self) + "the element '" + self.element.name + "' is specified to be empty, but has content"
 
 class XSCIllegalAttributeError(XSCError):
-	"exception that is raised, when an element has an illegal attribute (i.e. one that isn't contained in it's attr_handlers)"
+	"""exception that is raised, when an element has an illegal attribute (i.e. one that isn't contained in it's attr_handlers)"""
 
 	def __init__(self,lineno,attrs,attr):
 		XSCError.__init__(self,lineno)
@@ -58,7 +58,7 @@ class XSCIllegalAttributeError(XSCError):
 		return XSCError.__str__(self) + "The attribute '" + self.attr + "' is not allowed here. The only allowed attributes are: " + str(self.attrs.attr_handlers.keys())
 
 class XSCIllegalElementError(XSCError):
-	"exception that is raised, when an illegal element is encountered (i.e. one that isn't registered via RegisterElement"
+	"""exception that is raised, when an illegal element is encountered (i.e. one that isn't registered via RegisterElement"""
 
 	def __init__(self,lineno,elementname):
 		XSCError.__init__(self,lineno)
@@ -68,7 +68,7 @@ class XSCIllegalElementError(XSCError):
 		return XSCError.__str__(self) + "The element '" + self.elementname + "' is not allowed. The only allowed elements are: " + str(element_handlers.keys())
 
 class XSCImageSizeFormatError(XSCError):
-	"exception that is raised, when XSC can't format or evaluate image size attributes"
+	"""exception that is raised, when XSC can't format or evaluate image size attributes"""
 
 	def __init__(self,lineno,element,attr):
 		XSCError.__init__(self,lineno)
@@ -79,7 +79,7 @@ class XSCImageSizeFormatError(XSCError):
 		return XSCError.__str__(self) + "the value '" + str(self.element[self.attr]) + "' for the image size attribute '" + self.attr + "' of the element '" + self.element.name + "' can't be formatted or evaluated"
 
 class XSCFileNotFoundError(XSCError):
-	"exception that is raised, when XSC can't open an image for getting image size"
+	"""exception that is raised, when XSC can't open an image for getting image size"""
 
 	def __init__(self,lineno,url):
 		XSCError.__init__(self,lineno)
@@ -89,7 +89,7 @@ class XSCFileNotFoundError(XSCError):
 		return XSCError.__str__(self) + "the file '" + self.url + "' can't be opened"
 
 class XSCIllegalObjectError(XSCError):
-	"exception that is raised, when XSC finds an illegal object found in its obejct tree"
+	"""exception that is raised, when XSC finds an illegal object found in its obejct tree"""
 
 	def __init__(self,lineno,object):
 		XSCError.__init__(self,lineno)
@@ -103,7 +103,7 @@ class XSCIllegalObjectError(XSCError):
 ###
 
 def FileSize(url):
-	"returns the size of a file in bytes"
+	"""returns the size of a file in bytes or -1 if the file shouldn't be read"""
 
 	size = -1
 	if xsc.is_retrieve(url):
@@ -117,7 +117,7 @@ def FileSize(url):
 	return size
 
 def ImageSize(url):
-	"returns the size of an image as a tuple"
+	"""returns the size of an image as a tuple or (-1,-1) if the image shouldn't be read"""
 
 	size = (-1,-1)
 	if xsc.is_retrieve(url):
@@ -170,7 +170,7 @@ def ToNode(value):
 element_handlers = {} # dictionary for mapping element names to classes
 
 class XSCNode:
-	"base class for nodes in the document tree. Derived class must implement __str__()"
+	"""base class for nodes in the document tree. Derived class must implement __str__()"""
 
 	def __add__(self,other):
 		return XSCFrag(self) + other
@@ -182,7 +182,7 @@ class XSCNode:
 		return "<?>"
 
 class XSCText(XSCNode):
-	"text"
+	"""text"""
 
 	def __init__(self,content = ""):
 		self.content = content
@@ -208,7 +208,7 @@ class XSCText(XSCNode):
 		return self.content
 
 class XSCFrag(XSCNode):
-	"contains a list of XSCNodes"
+	"""contains a list of XSCNodes"""
 
 	def __init__(self,content = []):
 		if type(content) == types.InstanceType:
@@ -236,6 +236,10 @@ class XSCFrag(XSCNode):
 	def __repr__(self):
 		return string.joinfields(map(repr,self.content),"")
 
+	def __len__(self):
+		"""return the number of children"""
+		return len(self.content)
+
 	def append(self,other):
 		self.content.append(ToNode(other))
 
@@ -243,7 +247,7 @@ class XSCFrag(XSCNode):
 		self.content = [ ToNode(other) ] + self.content[:]
 
 class XSCAttrs(XSCNode):
-	"contains a dictionary of XSCNodes which are wrapped into attribute nodes"
+	"""contains a dictionary of XSCNodes which are wrapped into attribute nodes"""
 
 	def __init__(self,attr_handlers,content = {},**restcontent):
 		self.attr_handlers = attr_handlers
@@ -260,7 +264,7 @@ class XSCAttrs(XSCNode):
 		return res
 
 	def __sub__(self,attrs):
-		"removes attributes from the list"
+		"""removes attributes from the list"""
 		res = XSCAttrs(self.content)
 		for attr in attrs:
 			del res[attr]
@@ -285,7 +289,7 @@ class XSCAttrs(XSCNode):
 		return self.content[index] # we're returning the packed attribute here, because otherwise there would be no possibility to get an expanded URL
 
 	def __setitem__(self,index,value):
-		"insert a value into the attribute dictionary"
+		"""insert a value into the attribute dictionary"""
 		# values are converted to Nodes first and then wrapped into the attribute nodes as specified via the attr_handlers dictionary
 		lowerindex = string.lower(index)
 		if self.attr_handlers.has_key(lowerindex):
@@ -294,16 +298,16 @@ class XSCAttrs(XSCNode):
 			raise XSCIllegalAttributeError(xsc.parser.lineno,self,index)
 
 	def __delitem__(self,index):
-		"removes a dictionary entry"
+		"""removes a dictionary entry"""
 		if self.has_attr(index):
 			del self.content[index]
 
 	def keys(self):
-		"returns the keys of the dictionary, i.e. a list of the attribute names"
+		"""returns the keys of the dictionary, i.e. a list of the attribute names"""
 		return self.content.keys()
 
 	def __len__(self):
-		"return the number of attributes"
+		"""return the number of attributes"""
 		return len(self.keys())
 
 	def update(self,other):
@@ -311,7 +315,7 @@ class XSCAttrs(XSCNode):
 			self[attr] = other[attr]
 
 class XSCComment(XSCNode):
-	"comments"
+	"""comments"""
 
 	def __init__(self,content = ""):
 		self.content = content
@@ -320,7 +324,7 @@ class XSCComment(XSCNode):
 		return "<!--" + self.content + "-->"
 
 class XSCDocType(XSCNode):
-	"document type"
+	"""document type"""
 
 	def __init__(self,content = ""):
 		self.content = content
@@ -329,7 +333,7 @@ class XSCDocType(XSCNode):
 		return "<!DOCTYPE " + self.content + ">"
 
 class XSCElement(XSCNode):
-	"XML elements"
+	"""XML elements"""
 
 	close = 0 # 0 => stand alone element, 1 => element with content
 	attr_handlers = {}
@@ -345,7 +349,7 @@ class XSCElement(XSCNode):
 		self.content.append(item)
 
 	def __repr__(self):
-		"returns this element as a string"
+		"""returns this element as a string"""
 		v = []
 		v.append("<")
 		v.append(self.name)
@@ -367,7 +371,7 @@ class XSCElement(XSCNode):
 		return string.joinfields(v,"")
 
 	def __str__(self):
-		"returns this element as a string converted to HTML"
+		"""returns this element as a string converted to HTML"""
 
 		v = []
 		v.append("<")
@@ -403,7 +407,7 @@ class XSCElement(XSCNode):
 		return self.attrs.has_attr(attr)
 
 	def AddImageSizeAttributes(self,imgattr,widthattr = "width",heightattr = "height"):
-		"add width and height attributes to the element for the image that can be found in the attributes imgattr. if the attribute is already there it is taken as a formating template with the size passed in as a dictionary with the keys 'width' and 'height', i.e. you could make your image twice as wide with width='%(width)d*2'"
+		"""add width and height attributes to the element for the image that can be found in the attributes imgattr. if the attribute is already there it is taken as a formating template with the size passed in as a dictionary with the keys 'width' and 'height', i.e. you could make your image twice as wide with width='%(width)d*2'"""
 
 		if self.has_attr(imgattr):
 			url = repr(self[imgattr])
@@ -427,11 +431,12 @@ class XSCElement(XSCNode):
 					self[heightattr] = size[1]
 
 def RegisterElement(name,element):
+	"""registers the element handler element to be used for elements with name name"""
 	element_handlers[name] = element
 	element.name = name
 
 class XSCurl(XSCElement):
-	"URLS (may be used as an element or an attribute)"
+	"""URLS (may be used as an element or an attribute)"""
 
 	def __init__(self,content = [],attrs = {},**restattrs):
 		if type(content) == types.InstanceType and content.__class__ == XSCurl:
@@ -475,7 +480,7 @@ RegisterElement("url",XSCurl)
 ###
 
 class XSCParser(xmllib.XMLParser):
-	"Reads a XML file and constructs an XSC tree from it."
+	"""Reads a XML file and constructs an XSC tree from it."""
 
 	def __init__(self):
 		xmllib.XMLParser.__init__(self)
@@ -523,7 +528,7 @@ class XSC:
 		self.parser = XSCParser()
 
 	def parsestring(self,filename,string):
-		"Parses a string and returns the resulting XSC"
+		"""Parses a string and returns the resulting XSC"""
 		self.filename = filename
 		self.parser.reset()
 		self.parser.feed(string)
@@ -531,7 +536,7 @@ class XSC:
 		return self.parser.root
 
 	def parsefile(self,filename):
-		"Reads and parses a XML file and returns the resulting XSC"
+		"""Reads and parses a XML file and returns the resulting XSC"""
 		self.filename = filename
 		self.parser.reset()
 		self.parser.feed(open(filename).read())
@@ -539,7 +544,7 @@ class XSC:
 		return self.parser.root
 
 	def parseurl(self,url):
-		"Reads and parses a XML file from an URL and returns the resulting XSC"
+		"""Reads and parses a XML file from an URL and returns the resulting XSC"""
 		self.filename = url
 		self.parser.reset()
 		self.parser.feed(urllib.urlopen(url).read())
