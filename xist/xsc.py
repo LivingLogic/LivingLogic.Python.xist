@@ -751,14 +751,14 @@ class Node:
 				if charrefs == 0:
 					v.append(stringFromCode(c).encode(encoding))
 				elif charrefs == 1:
-					raise EncodingImpossibleError(self.startloc,encoding,text)
+					raise EncodingImpossibleError(self.startloc,encoding,text,c)
 				else:
 					v.append('&' + self._strescapes[c] + ';')
 			elif self.__mustBeEncodedAsCharRef(c,encoding):
 				if charrefs == 2:
 					v.append('&#' + str(ord(c)) + ';')
 				else:
-					raise EncodingImpossibleError(self.startloc,encoding,text)
+					raise EncodingImpossibleError(self.startloc,encoding,text,c)
 			else:
 				v.append(stringFromCode(c).encode(encoding))
 		return "".join(v)

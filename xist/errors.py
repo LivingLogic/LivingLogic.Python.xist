@@ -254,11 +254,12 @@ class EncodingImpossibleError(Error):
 	be replaced with character references (e.g. inside a comment)
 	"""
 
-	def __init__(self,location,encoding,text):
+	def __init__(self,location,encoding,text,char):
 		Error.__init__(self,location)
 		self.encoding = encoding
 		self.text = text
+		self.char = char
 
 	def __str__(self):
-		return Error.__str__(self) + "text " + repr(self.text) + " can't be encoded with the encoding " + repr(self.encoding) + "."
+		return Error.__str__(self) + "text " + repr(self.text) + " can't be encoded with the encoding " + repr(self.encoding) + "because it contains the character" + repr(self.char) + "."
 
