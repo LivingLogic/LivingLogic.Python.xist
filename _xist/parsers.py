@@ -211,31 +211,32 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 		"""
 		if text is None:
 			return xsc.Null
+		ct = self._cont_handler.createText
 		node = xsc.Frag()
 		while 1:
 			try:
 				i = text.index("&")
 				if i != 0:
-					node.append(text[:i])
+					node.append(ct(text[:i]))
 					text = text[i:]
 				try:
 					i = text.index(";")
 					if text[1] == "#":
 						if text[2] == "x":
-							node.append(unichr(int(text[3:i], 16)))
+							node.append(ct(unichr(int(text[3:i], 16))))
 						else:
-							node.append(unichr(int(text[2:i])))
+							node.append(ct(unichr(int(text[2:i]))))
 					else:
-						node.append(self._cont_handler.prefixes.entity(text[1:i])())
+						node.append(self._cont_handler.createEntity(text[1:i]))
 					text = text[i+1:]
 				except ValueError:
 					raise errors.MalformedCharRefError(text)
 			except ValueError:
 				if len(text):
-					node.append(text)
+					node.append(ct(text))
 				break
 		if not len(node):
-			node.append("")
+			node.append(ct(""))
 		return node
 
 class BadEntityParser(SGMLOPParser):
@@ -252,30 +253,36 @@ class BadEntityParser(SGMLOPParser):
 		if text is None:
 			return xsc.Null
 		node = xsc.Frag()
-		parts = text.split("&")
-		node.append(parts[0])
+		ct = self.self._cont_handler.createText
+		parts = text.split(u"&")
+		node.append(ct(parts[0]))
 		del parts[0]
 		for part in parts:
-			pos = part.find(";")
+			pos = part.find(u";")
 			if pos == -1: # no ; found, so it's no entity => append it literally
-				node.append("&", part)
+				node.append(ct(u"&"+part))
 			else: # ; found
 				if part[0] != "#": # named entity
 					name = part[:pos]
-					if name in html.xmlns.charrefsByName:
-						node.append(html.xmlns.charrefsByName[name](), part[pos+1:])
-					elif name in xsc.xmlns.charrefsByName:
-						node.append(xsc.xmlns.charrefsByName[name](), part[pos+1:])
-					else:
-						node.append("&", part)
+					try:
+						entity = self._cont_handler.createEntity(name)
+					except errors.IllegalEntityError:
+						try:
+							entity = html.entity(name, xml=True)
+						except errors.IllegalEntityError:
+							try:
+								entity = xsc.xmlns.entity(name, xml=True)
+							except errors.IllegalEntityError:
+								entity = xsc.Frag(ct(u"&"+part))
+					node.append(entity, ct(part[pos+1:]))
 				else: # numeric entity
 					try:
 						if part[1] == "x": # hex entity
-							node.append(unichr(int(part[2:pos], 16)), part[pos+1:])
+							node.append(ct(unichr(int(part[2:pos], 16)) + part[pos+1:]))
 						else: # decimal entity
-							node.append(unichr(int(part[1:pos])), part[pos+1:])
+							node.append(ct(unichr(int(part[1:pos])) + part[pos+1:]))
 					except ValueError: # illegal format => append it literally
-						node.append("&", part)
+						node.append(ct(u"&"+part))
 		return node
 
 class HTMLParser(BadEntityParser):
@@ -456,7 +463,7 @@ class Handler(object):
 			prefixes.append((type, prefix))
 			ns = xsc.Namespace.nsbyurl[unicode(attrvalue)][0]
 			self.prefixes.startPrefixMapping(prefix, ns, "replace", type)
-		node = self.prefixes.element(name)()
+		node = self.createElement(name)
 		for (attrname, attrvalue) in attrs.items():
 			if attrname!="xmlns" and not attrname.startswith("xmlns:") and \
 			   attrname!="procinstns" and not attrname.startswith("procinstns:") and \
@@ -472,9 +479,9 @@ class Handler(object):
 	def endElement(self, name):
 		currentelement = self.__nesting[-1][0]
 		currentelement.parsed(self, begin=False)
-		elementclass = self.prefixes.element(name)
-		if elementclass is not currentelement.__class__:
-			raise errors.ElementNestingError(currentelement.__class__, elementclass)
+		element = self.createElement(name) # Unfortunately this creates the element a second time.
+		if element.__class__ is not currentelement.__class__:
+			raise errors.ElementNestingError(currentelement.__class__, element.__class__)
 		self.__nesting[-1][0].endloc = self.getLocation()
 		# SAX specifies that the order of calls to endPrefixMapping is undefined, so we use the same order as in beginElement
 		for (type, prefix) in self.__nesting[-1][1]:
@@ -489,7 +496,7 @@ class Handler(object):
 			while content and content[0].isspace() and content[0] != "\xa0":
 				content = content[1:]
 		if content:
-			node = xsc.Text(content)
+			node = self.createText(content)
 			node.parsed(self)
 			last = self.__nesting[-1][0]
 			if len(last) and isinstance(last[-1], xsc.Text):
@@ -501,7 +508,7 @@ class Handler(object):
 			self.skippingWhitespace = 0
 
 	def comment(self, content):
-		node = xsc.Comment(content)
+		node = self.createComment(content)
 		node.parsed(self)
 		self.__appendNode(node)
 		self.skippingWhitespace = 0
@@ -510,13 +517,13 @@ class Handler(object):
 		if target=="x":
 			self.skippingWhitespace = 1
 		else:
-			node = self.prefixes.procinst(target)(data)
+			node = self.createProcInst(target, data)
 			node.parsed(self)
 			self.__appendNode(node)
 			self.skippingWhitespace = 0
 
 	def skippedEntity(self, name):
-		node = self.prefixes.entity(name)()
+		node = self.createEntity(name)
 		node.parsed(self)
 		if isinstance(node, xsc.CharRef):
 			self.characters(unichr(node.codepoint))
@@ -551,6 +558,24 @@ class Handler(object):
 	def __appendNode(self, node):
 		node.startloc = self.getLocation()
 		self.__nesting[-1][0].append(node) # add the new node to the content of the innermost element (or fragment)
+
+	def createText(self, content):
+		return xsc.Text(content)
+
+	def createComment(self, content):
+		return xsc.Comment(content)
+
+	def createElement(self, name):
+		return self.prefixes.procinst(target)(data)
+
+	def createProcInst(self, target, data):
+		return self.prefixes.procinst(target)(data)
+
+	def createEntity(self, name):
+		return self.prefixes.entity(name)()
+
+	def createElement(self, name):
+		return self.prefixes.element(name)()
 
 def parse(source, handler=None, parser=None, prefixes=None):
 	"""
