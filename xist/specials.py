@@ -24,7 +24,7 @@ class plaintable(html_.table):
 
 	def asHTML(self):
 		e = html_.table(*self.content, **self.attrs)
-		e.copyDefaultAttrs(self.default)
+		e.copyDefaultAttrs(self.defaults)
 		return e.asHTML()
 
 class plainbody(html_.body):
@@ -38,7 +38,7 @@ class plainbody(html_.body):
 
 	def asHTML(self):
 		e = html_.body(*self.content, **self.attrs)
-		e.copyDefaultAttrs(self.default)
+		e.copyDefaultAttrs(self.defaults)
 		return e.asHTML()
 
 class z(xsc.Element):
