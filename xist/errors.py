@@ -38,7 +38,7 @@ class Error(Exception):
 	base class for all XSC exceptions
 	"""
 
-	def __init__(self,location = None):
+	def __init__(self, location = None):
 		self.location = location
 
 	def __str__(self):
@@ -53,7 +53,7 @@ class EmptyElementWithContentError(Error):
 	but it shouldn't (i.e. empty==1)
 	"""
 
-	def __init__(self,element):
+	def __init__(self, element):
 		Error.__init__(self)
 		self.element = element
 
@@ -66,43 +66,37 @@ class IllegalAttributeError(Error):
 	(i.e. one that isn't contained in it's attrHandlers)
 	"""
 
-	def __init__(self,element,attr):
+	def __init__(self, element, attr):
 		Error.__init__(self)
 		self.element = element
 		self.attr = attr
 
 	def __str__(self):
-		attrs = self.element.attrHandlers.keys();
+		attrs = self.element.attrHandlers.keys()
 		attrs.sort()
+		attrs = ", ".join(map(xsc.strAttrName, attr))
 
-		v = []
-
-		for attr in attrs:
-			v.append(xsc.strAttrName(attr))
-
-		return Error.__str__(self) + "Attribute " + xsc.strAttrName(self.attr) + " not allowed in element " + xsc._strNode(self.element.__class__) + ". Allowed attributes are: " + ", ".join(v) + "."
+		return Error.__str__(self) + "Attribute " + xsc.strAttrName(self.attr) + " not allowed in element " + xsc._strNode(self.element.__class__) + ". Allowed attributes are: " + attrs + "."
 
 class AttributeNotFoundError(Error):
 	"""
 	exception that is raised, when an attribute is fetched that isn't there
 	"""
 
-	def __init__(self,element,attr):
+	def __init__(self, element, attr):
 		Error.__init__(self)
 		self.element = element
 		self.attr = attr
 
 	def __str__(self):
-		attrs = self.element.attrs.keys();
+		attrs = self.element.attrs.keys()
 
 		s = Error.__str__(self) + "Attribute " + xsc.strAttrName(self.attr) + " not found in element " + xsc._strNode(self.element.__class__) +". "
 
 		if len(attrs):
 			attrs.sort()
-			v = []
-			for attr in attrs:
-				v.append(xsc.strAttrName(attr))
-			s = s + "Available attributes are: " + ", ".join(v) + "."
+			attrs = ", ".join(map(xsc.strAttrName, attr))
+			s = s + "Available attributes are: " + attrs + "."
 		else:
 			s = s + "No attributes available."
 
@@ -114,8 +108,8 @@ class IllegalElementError(Error):
 	(i.e. one that isn't registered via registerElement)
 	"""
 
-	def __init__(self,location,name):
-		Error.__init__(self,location)
+	def __init__(self, location, name):
+		Error.__init__(self, location)
 		self.name = name
 
 	def __str__(self):
@@ -124,12 +118,12 @@ class IllegalElementError(Error):
 			namespace = xsc.namespaceRegistry.byPrefix[namespacename]
 			try:
 				element = namespace.elementsByName[self.name[1]]
-				elementnames.append(xsc.strElement(element.namespace.prefix,element.name,element.empty))
+				elementnames.append(xsc.strElement(element.namespace.prefix, element.name, element.empty))
 			except KeyError: # this namespace doesn't have an element with this name
 				pass
 		elementnames.sort()
 
-		s = Error.__str__(self) + "element " + xsc._strName((self.name[0],self.name[1],0)) + " not allowed. "
+		s = Error.__str__(self) + "element " + xsc._strName((self.name[0], self.name[1], 0)) + " not allowed. "
 		if elementnames:
 			s = s + "Allowed elements are: " + ", ".join(elementnames) + "."
 		else:
@@ -142,8 +136,8 @@ class IllegalElementNestingError(Error):
 	(e.g. <code>&lt;a&gt;&lt;b&gt;&lt;/a&gt;&lt;/b&gt;</code>)
 	"""
 
-	def __init__(self,lineno,expectedelement,foundelement):
-		Error.__init__(self,lineno)
+	def __init__(self, lineno, expectedelement, foundelement):
+		Error.__init__(self, lineno)
 		self.expectedelement = expectedelement
 		self.foundelement = foundelement
 
@@ -155,8 +149,8 @@ class ImageSizeFormatError(Error):
 	exception that is raised, when XSC can't format or evaluate image size attributes
 	"""
 
-	def __init__(self,element,attr):
-		Error.__init__(self,element.startloc)
+	def __init__(self, element, attr):
+		Error.__init__(self, element.startloc)
 		self.element = element
 		self.attr = attr
 
@@ -168,8 +162,8 @@ class FileNotFoundError(Error):
 	exception that is raised, when XSC can't open a file.
 	"""
 
-	def __init__(self,location,url):
-		Error.__init__(self,location)
+	def __init__(self, location, url):
+		Error.__init__(self, location)
 		self.url = url
 
 	def __str__(self):
@@ -180,8 +174,8 @@ class IllegalObjectError(Error):
 	exception that is raised, when XSC finds an illegal object in its object tree
 	"""
 
-	def __init__(self,location,object):
-		Error.__init__(self,location)
+	def __init__(self, location, object):
+		Error.__init__(self, location)
 		self.object = object
 
 	def __str__(self):
@@ -196,8 +190,8 @@ class MalformedCharRefError(Error):
 	exception that is raised, when a character reference is malformed (e.g. &#foo;)
 	"""
 
-	def __init__(self,location,name):
-		Error.__init__(self,location)
+	def __init__(self, location, name):
+		Error.__init__(self, location)
 		self.name = name
 
 	def __str__(self):
@@ -209,8 +203,8 @@ class IllegalEntityError(Error):
 	(i.e. one that wasn't registered via Namespace.register)
 	"""
 
-	def __init__(self,location,name):
-		Error.__init__(self,location)
+	def __init__(self, location, name):
+		Error.__init__(self, location)
 		self.name = name
 
 	def __str__(self):
@@ -219,12 +213,12 @@ class IllegalEntityError(Error):
 			namespace = xsc.NamespaceRegistry.byPrefix[namespacename]
 			try:
 				entity = namespace.entitiesByName[self.name[1]]
-				entitynames.append(xsc.strEntity(entity.namespace.prefix,entity.name))
+				entitynames.append(xsc.strEntity(entity.namespace.prefix, entity.name))
 			except KeyError: # this namespace doesn't have an entity with this name
 				pass
 		entitynames.sort()
 
-		s = Error.__str__(self) + "entity " + xsc.strEntity(self.name[0],self.name[1]) + " not allowed. "
+		s = Error.__str__(self) + "entity " + xsc.strEntity(self.name[0], self.name[1]) + " not allowed. "
 		if entitynames:
 			s = s + "Allowed entities are: " + ", ".join(entitynames) + "."
 		else:
@@ -233,17 +227,18 @@ class IllegalEntityError(Error):
 
 class IllegalCommentError(Error):
 	"""
-	exception that is raised, when there is an illegal comment, i.e. one containing <code>--</code>.
+	exception that is raised, when there is an illegal comment, i.e. one
+	containing <code>--</code> or ending in <code>-</code>.
 	(This can only happen, when the comment is instantiated by the
 	program, not when parsed from an XML file.)
 	"""
 
-	def __init__(self,location,comment):
-		Error.__init__(self,location)
+	def __init__(self, location, comment):
+		Error.__init__(self, location)
 		self.comment = comment
 
 	def __str__(self):
-		return "%scomment with content %s is illegal, as it contains %s or ends in %s." % (Error.__str__(self), repr(self.comment.content), repr("--"), repr("-"))
+		return Error.__str__(self) + "comment with content " + repr(self.comment.content) + " is illegal, as it contains '--' or ends in '-'."
 
 class IllegalProcInstError(Error):
 	"""
@@ -252,8 +247,8 @@ class IllegalProcInstError(Error):
 	program, not when parsed from an XML file.)
 	"""
 
-	def __init__(self,location,procinst):
-		Error.__init__(self,location)
+	def __init__(self, location, procinst):
+		Error.__init__(self, location)
 		self.procinst = procinst
 
 	def __str__(self):
@@ -268,8 +263,8 @@ class EncodingImpossibleError(Error):
 	be replaced with character references (e.g. inside a comment)
 	"""
 
-	def __init__(self,location,encoding,text,char):
-		Error.__init__(self,location)
+	def __init__(self, location, encoding, text, char):
+		Error.__init__(self, location)
 		self.encoding = encoding
 		self.text = text
 		self.char = char
