@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
-<section><title>Changes in 2.4 (released ??/??/2004)</title>
+<section><title>Changes in 2.4 (released 01/02/2004)</title>
 <ulist>
 <item>The class <class>ll.xist.parsers.Handler</class> has been renamed to
 <class>Parser</class> and has been made reusable, i.e. it is possible to
