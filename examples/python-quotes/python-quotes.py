@@ -19,7 +19,7 @@ class quotations(xsc.Element):
 		quotations = self.find(type = quotation)
 
 		e = xsc.Frag(
-			html.DocTypeHTML40transitional(),
+			html.DocTypeHTML401transitional(),
 			html.html(
 				header,
 				html.body(
