@@ -1513,8 +1513,9 @@ class URL(Node):
 		returns this URL relative to another.
 
 		note that remote URLs won't be modified in any way,
-		because although the file you read is remote, the
-		parsed XSC file that you output, isn't.
+		because although the file you've read might have been
+		remote, the parsed XSC file that you output, probably
+		isn't.
 		"""
 		newother = URL(other)
 		new = newother.joined(self)
