@@ -1,7 +1,7 @@
 import sys, unittest
 
 from xist import xsc, parsers, presenters, converters, helpers
-from xist.ns import wml, chtml, html, css, specials
+from xist.ns import wml, ihtml, html, css, specials
 
 class XISTTestCase(unittest.TestCase):
 	def check_lenunicode(self, node, _len, content):
@@ -208,8 +208,8 @@ class XISTTestCase(unittest.TestCase):
 	def test_html(self):
 		self.check_namespace(html)
 
-	def test_chtml(self):
-		self.check_namespace(chtml)
+	def test_ihtml(self):
+		self.check_namespace(ihtml)
 
 	def test_wml(self):
 		self.check_namespace(wml)

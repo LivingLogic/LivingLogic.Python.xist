@@ -27,7 +27,7 @@ module <pyref module="xist.ns.html"><module>xist.ns.html</module></pyref>.</doc:
 
 <doc:par>Some of these namespaces can be considered target namespaces (e.g.
 <pyref module="xist.ns.html"><module>html</module></pyref>,
-<pyref module="xist.ns.chtml"><module>chtml</module></pyref>,
+<pyref module="xist.ns.ihtml"><module>ihtml</module></pyref>,
 <pyref module="xist.ns.wml"><module>wml</module></pyref> and
 <pyref module="xist.ns.docbook"><module>docbook</module></pyref>). The element and
 entity classes in these namespaces don't implement a convert method, i.e. they inherit the
@@ -48,7 +48,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
 __all__ = [
-	"html", "wml", "docbook", "ruby", "chtml",
+	"html", "wml", "docbook", "ruby", "ihtml",
 	"jsp", "struts_html", "struts_config",
 	"php",
 	"specials", "abbr", "cond", "doc", "form", "meta"

@@ -36,7 +36,7 @@ class a(xsc.Element):
 	attrHandlers = {
 		"name": xsc.TextAttr, # Designates a marker name within an HTML file (1.0)
 		"accesskey": xsc.TextAttr, # Directkey function (1.0)
-		"href": xsc.URLAttr, # Designates a link to a Web site (http), e-amil address (mailto) or phone number (tel) (1.0)
+		"href": xsc.URLAttr, # Designates a link to a Web site (http), e-mail address (mailto) or phone number (tel) (1.0)
 		"cti": xsc.TextAttr, # Dial function + tone input function (2.0)
 		"ijam": xsc.TextAttr, # Designates the ID of the downloaded i appli that the OBJECT tag specifies. (3.0)
 		"utn": xsc.BoolAttr, # Verifies individual identification information (3.0)
@@ -698,4 +698,4 @@ class fixed(xsc.CharRef): codepoint = 0xe70b
 # Stuff from HTML
 class euro(xsc.CharRef): "euro sign, U+20AC NEW"; codepoint = 8364
 
-namespace = xsc.Namespace("chtml", "http://www.nttdocomo.co.jp/imode", vars())
+namespace = xsc.Namespace("ihtml", "http://www.nttdocomo.co.jp/imode", vars())

@@ -50,18 +50,17 @@ class css(xsc.Element):
 			r.publish(publisher)
 		publisher.popTextFilter()
 
-class import_(xsc.Element):
+class atimport(xsc.Element):
 	"""
-	<doc:par>The <class>import_</class> rule allows users to import style rules from other style sheets.
+	<doc:par>The <class>atimport</class> rule allows users to import style rules from other style sheets.
 	The content is the URI of the style sheet to include.</doc:par>
 	<doc:par>So that user agents can avoid retrieving resources for unsupported media types,
-	authors may specify media-dependent <class>import_</class> rules. These conditional imports
+	authors may specify media-dependent <class>atimport</class> rules. These conditional imports
 	specify comma-separated media types as the attribute <lit>media</lit>. In the absence of
 	any media types, the import is unconditional. Specifying <lit>all</lit> for <lit>media</lit>
 	has the same effect.</doc:par>
 	"""
 	empty = 0
-	name = "import"
 	attrHandlers = {"media": xsc.TextAttr}
 
 	def publish(self, publisher):
@@ -71,7 +70,35 @@ class import_(xsc.Element):
 			publisher.publish(u" " + unicode(self["media"]))
 		publisher.publish(u'");')
 
-class charset(xsc.Element):
+class atmedia(xsc.Element):
+	"""
+	<doc:par>An <class>atmedia</class> rule specifies the target media types (separated by commas in the attribute
+	<lit>media</lit>) of a set of rules (in the content). The <class>atmedia</class> element allows style sheet rules
+	for various media in the same style sheet.</doc:par>
+	<doc:par>Possible media types are:</doc:par>
+	<doc:ulist>
+	<doc:item><lit>all</lit>: Suitable for all devices.</doc:item>
+	<doc:item><lit>aural</lit>: Intended for speech synthesizers.</doc:item>
+	<doc:item><lit>braille</lit>: Intended for braille tactile feedback devices.</doc:item>
+	<doc:item><lit>embossed</lit>: Intended for paged braille printers.</doc:item>
+	<doc:item><lit>handheld</lit>: Intended for handheld devices (typically small screen, monochrome, limited bandwidth).</doc:item>
+	<doc:item><lit>print</lit>: Intended for paged, opaque material and for documents viewed on screen
+	in print preview mode.</doc:item>
+	<doc:item><lit>projection</lit>: Intended for projected presentations, for example projectors
+	or print to transparencies.</doc:item>
+	<doc:item><lit>screen</lit>: Intended primarily for color computer screens.</doc:item>
+	<doc:item><lit>tty</lit>: Intended for media using a fixed-pitch character grid, such as teletypes,
+	terminals, or portable devices with limited display capabilities. Authors should not use pixel units
+	with the <lit>tty</lit> media type.</doc:item>
+	<doc:item><lit>tv</lit>: Intended for television-type devices (low resolution, color, limited-scrollability screens, sound available).</doc:item>
+	</doc:ulist>
+	<doc:par>Media type names are case-insensitive.</doc:par>
+	"""
+	empty = 0
+	attrHandlers = {"media": xsc.TextAttr}
+
+
+class atcharset(xsc.Element):
 	"""
 	<doc:par>The character set of the stylesheet. Will be set automatically
 	on publishing.</doc:par>
