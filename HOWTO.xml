@@ -12,7 +12,7 @@ or <a href="http://dustman.net/andy/python/HyperText/">HyperText</a>.</dbl:para>
 and generates a transformed output file, or it could be used for generating
 &xml; dynamically inside a web server. In either case generating the final
 &html; or &xml; output in the form of a file or a response sent from
-the web server, requires the following three steps:
+the web server, requires the following three steps:</dbl:para>
 <ul>
 <li>Generating a source &xml; tree: This can be done either by
 parsing an &xml; file, or by directly constructing the
@@ -32,12 +32,11 @@ be delivered as a response from a web server, all node classes
 provide a <function>publish</function> method, that
 passes the string fragments to a appropriate publishing handler.</li>
 </ul>
-</dbl:para>
 </dbl:section>
 
 <dbl:section><dbl:title>Constructing &xml; trees</dbl:title>
 <dbl:para>Like any other &dom; &api;, &xist; provides the 
-usual classes:
+usual classes:</dbl:para>
 <ul>
 <li><dbl:pyref module="xist.xsc" class="Text">Text</dbl:pyref> for text data</li>
 <li><dbl:pyref module="xist.xsc" class="Frag">Frag</dbl:pyref> for document fragments,
@@ -53,7 +52,6 @@ declarations (e.g. <markup>&lt;!DOCTYPE html PUBLIC <replaceable>...</replaceabl
 <li><dbl:pyref module="xist.xsc" class="Entity">Entity</dbl:pyref> for entities (e.g. <markup>&amp;parrot;</markup>) and</li>
 <li><dbl:pyref module="xist.xsc" class="Attr">Attr</dbl:pyref> for attributes.</li>
 </ul>
-</dbl:para>
 
 <dbl:section><dbl:title>&xml; trees as Python objects</dbl:title>
 <dbl:para>&xist; works somewhat different from a normal &dom; &api;.
@@ -229,7 +227,7 @@ node = node.convert(
 	converters.Converter(None, "deliver", "html", None))
 </dbl:programlisting>
 You can pass the following four arguments to the
-<dbl:pyref module="xist.converters" class="Converter">Converter</dbl:pyref> constructor
+<dbl:pyref module="xist.converters" class="Converter">Converter</dbl:pyref> constructor</dbl:para>
 <ul>
 <li><dbl:pyref module="xist.converters" class="Converter" method="__init__" arg="mode">mode</dbl:pyref>
 (which defaults to <code>None</code>) works the same way as modes in &xslt;. You can use this
@@ -284,7 +282,6 @@ and you can test for the language with the element
 </programlisting>
 </li>
 </ul>
-</dbl:para>
 </dbl:section>
 
 <dbl:section><dbl:title>Attributes</dbl:title>
@@ -305,7 +302,7 @@ node["spam"].append("ham")
 </dbl:para>
 <dbl:para>All attribute values are instances of subclasses of
 the class <pyref module="xist.xsc" class="Attr">Attr</pyref>. Available
-subclasses are:
+subclasses are:</dbl:para>
 <ul>
 <li><pyref module="xist.xsc" class="TextAttr">TextAttr</pyref>, for normal text attributes;</li>
 <li><pyref module="xist.xsc" class="URLAttr">URLAttr</pyref>, for attributes that are URLs;</li>
@@ -314,7 +311,7 @@ is either present or not, but it's value will be ignored);</li>
 <li><pyref module="xist.xsc" class="IntAttr">IntAttr</pyref>, for integer attributes;</li>
 <li><pyref module="xist.xsc" class="ColorAttr">ColorAttr</pyref>, for color attributes (e.g. <code>#ffffff</code>)</li>
 </ul>
-<pyref module="xist.xsc" class="Attr">Attr</pyref> itself is derived from
+<dbl:para><pyref module="xist.xsc" class="Attr">Attr</pyref> itself is derived from
 <pyref module="xist.xsc" class="Frag">Frag</pyref> so it is possible
 to use all the sequence methods on an attribute. Unset attributes will be treated
 like empty ones so the following is possible:
@@ -336,13 +333,13 @@ Such attributes will be ignored when publishing.
 </dbl:section>
 
 <dbl:section><dbl:title>Specifying content model and attributes</dbl:title>
-<dbl:para>When you define a new element you have to specify two thing:
+<dbl:para>When you define a new element you have to specify two things:</dbl:para>
+
 <ol>
 <li>If the element has an empty content model (like <markup>&lt;br/&gt;</markup>
 or <markup>&lt;img/&gt;</markup> do in &html;) or not.</li>
 <li>what attributes the element supports and of which type they are.</li>
 </ol>
-</dbl:para>
 
 <dbl:para>Specifying the content model is done with the class attribute <code>empty</code>.
 Set it to <code>0</code>, when your element may have content and to <code>1</code>
@@ -392,7 +389,7 @@ namespace = xsc.Namespace(
 </programlisting>
 </example>
 Arguments for the <pyref module="xist.xsc" class="Namespace">Namespace</pyref>
-constructor are:
+constructor are:</dbl:para>
 <ul>
 <li><pyref module="xist.xsc" class="Namespace" method="__init__" arg="prefix">prefix</pyref> is
 the namespace prefix that can be used to disambiguate elements in different namespaces
@@ -406,7 +403,6 @@ the object that should be registered in the namespace. To register all the eleme
 classes (and entities and processing instruction classes) defined in the module, simply
 use <code>vars()</code>.</li>
 </ul>
-</dbl:para>
 
 <dbl:para>All namespace objects will automatically be registered with the
 parser. Now all newly defined elements will be used when parsing
@@ -504,7 +500,7 @@ UnicodeError: ASCII encoding error: ordinal not in range(128)
 </dbl:para>
 <dbl:para>Another useful parameter is
 <pyref module="xist.xsc" class="Node" method="asBytes" arg="XHTML">XHTML</pyref>,
-it specifies if you want pure &html; or &xhtml; as output:
+it specifies if you want pure &html; or &xhtml; as output:</dbl:para>
 <ul>
 <li><code>XHTML==0</code> will give you pure &html;, i.e. no final <markup>/</markup>
 for elements with an empty content model, so you'll get e.g. <markup>&lt;br&gt;</markup> in the output.
@@ -514,7 +510,7 @@ end tag (i.e. <markup>&lt;div&gt;&lt;/div&gt;</markup>).</li>
 model will be published like this: <markup>&lt;br /&gt;</markup>.</li>
 <li><code>XHTML==2</code> gives full &xml; output. Every empty element will be published with
 an empty tag (without an additional space): <markup>&lt;br/&gt;</markup> or <markup>&lt;div/&gt;</markup>.</li>
-</ul></dbl:para>
+</ul>
 <dbl:para>Writing a node to a file can be done with the method
 <pyref module="xist.xsc" class="Node" method="write">write</pyref>:
 <programlisting>
@@ -560,7 +556,7 @@ class FilePublisher(Publisher):
 <pyref module="xist.xsc" class="Node" method="find">find</pyref>.
 <pyref module="xist.xsc" class="Node" method="find">find</pyref> will return
 a <pyref module="xist.xsc" class="Frag">Frag</pyref> with the nodes it finds.
-Parameters are (with defaults listed in parenthesis):
+Parameters are (with defaults listed in parenthesis):</dbl:para>
 <ul>
 <li><code>type</code> (<code>None</code>), which is a class object or a list of class
 objects. <pyref module="xist.xsc" class="Node" method="find">find</pyref> will
@@ -603,8 +599,8 @@ the first level (<code>searchchildren==0</code>)</li>
 <li><code>searchattrs</code> (<code>0</code>), specifies if attribute
 nodes should be searched too.</li>
 </ul>
-You could for example extract all the links on Python's
-<a href="http://python.sf.net/">SourceForge page</a> with the following:
+<dbl:para>You could for example extract all the links on Python's
+<a href="http://python.sf.net/">SourceForge page</a> with the following:</dbl:para>
 <programlisting>
 &gt;&gt;&gt; from xist import xsc, parsers
 &gt;&gt;&gt; from xist.ns import html
@@ -625,7 +621,6 @@ snapshots/
 http://www.python.org/
 http://www.amk.ca/python/dev/
 </programlisting>
-</dbl:para>
 <dbl:para>The method <pyref module="xist.xsc" class="Node" method="withSep">withSep</pyref>
 can be used to put seperator node between the child nodes of an
 <pyref module="xist.xsc" class="Element">Element</pyref>

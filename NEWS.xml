@@ -283,7 +283,7 @@ Hartmut Goebel.</li>
 </section>
 
 
-<section><title>Changes in 0.4.3 (10/19/2000)</title>
+<section><title>Changes in 0.4.3 (released 10/19/2000)</title>
 <ul>
 <li>Now processing instruction classes are registered in the
 same way as elements and entities are.</li>
