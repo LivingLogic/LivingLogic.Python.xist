@@ -100,7 +100,7 @@ class Expr(object):
 	"""
 	A <class>Expr</class> object is a <z>parsed</z> XFind expression.
 	The expression <lit><rep>a</rep>/<rep>b</rep></lit> will return an
-	<class>Finder</class> object if <lit><rep>a</rep></lit> is either a
+	<class>Expr</class> object if <lit><rep>a</rep></lit> is either a
 	<pyref class="Node"><class>Node</class></pyref> object or an iterator
 	producing nodes and <lit><rep>b</rep></lit> is an operator object, such as
 	the subclasses of <pyref module="ll.xist.xsc" class="Node"><class>Node</class></pyref>
@@ -127,7 +127,7 @@ class Expr(object):
 	def __getitem__(self, index):
 		return item(self, index)
 
-	# We can't implement __len__, because if a Finder object is passed to list(), __len__() would be called, exhausting the iterator
+	# We can't implement __len__, because if a Expr object is passed to list(), __len__() would be called, exhausting the iterator
 
 	def __nonzero__(self):
 		for node in self:
