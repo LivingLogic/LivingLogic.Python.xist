@@ -1943,7 +1943,7 @@ class Location:
 
 	def __str__(self):
 		if self.url is not None:
-			s = '"' + str(self.url) + '" ('
+			s = '"' + self.url.asString() + '" ('
 			s += "L" + str(self.row)
 			if self.col is not None:
 				s += "C" + str(self.col)

@@ -107,8 +107,8 @@ class Provider:
 
 	def finish_starttag(self, name, attrs):
 		node = self.elementFromName(unicode(name, self.encoding))()
-		for name, value in attrs:
-			node[name] = self.__string2Fragment(value)
+		for name in attrs.keys():
+			node[name] = self.__string2Fragment(attrs[name])
 		self.__appendNode(node)
 		self.__nesting.append(node) # push new innermost element onto the stack
 
@@ -189,6 +189,8 @@ class Provider:
 		with text nodes and character references (and other stuff,
 		if the string contains entities).
 		"""
+		if text is None:
+			return xsc.Null
 		node = xsc.Frag()
 		while 1:
 			try:

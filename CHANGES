@@ -1,3 +1,11 @@
+New in 0.4.6
+------------
+Now uses sgmlop.XMLParser instead of sgmlop.SGMLParser,
+so case is preserved.
+
+Fixed another regression from the URL->string conversion
+change.
+
 New in 0.4.5
 ------------
 Converting URLs to Nodes is now done in ToNode,
