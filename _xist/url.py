@@ -182,12 +182,10 @@ class URL:
 		return URL(self)
 
 	def isRemote(self):
-		if not self.scheme: # may be None or ""
-			return 0
-		elif self.scheme == u"server" and self.server == u"localhost":
-			return 0
-		else:
+		if self.scheme and self.scheme != "root" and self.scheme != "file":
 			return 1
+		else:
+			return 0
 
 	def relativeTo(self, other):
 		"""
