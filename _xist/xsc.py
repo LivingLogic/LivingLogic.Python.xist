@@ -1227,7 +1227,7 @@ class Attr(Frag):
 	published.</par>
 	<example title="Elements inside attributes">
 	<programlisting>
-	&gt;&gt;&gt; from xist.ns import html
+	&gt;&gt;&gt; from ll.xist.ns import html
 	&gt;&gt;&gt; node = html.img( \
 	...    src="eggs.gif", \
 	...    alt=html.abbr( \
