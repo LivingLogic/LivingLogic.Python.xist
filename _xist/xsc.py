@@ -1675,7 +1675,7 @@ class NamespaceRegistry:
 	def register(self, namespace):
 		self.byPrefix[namespace.prefix] = namespace
 		self.byURI[namespace.uri] = namespace
-		if not namespace in self.sequential:
+		if namespace not in self.sequential:
 			self.sequential.insert(0, namespace)
 
 namespaceRegistry = NamespaceRegistry()
