@@ -377,8 +377,8 @@ class HTMLParser(BadEntityParser):
 
 		# Skip unknown attributes (but warn about them)
 		newattrs = {}
+		element = html.element(name, xml=True)
 		for (attrname, attrvalue) in attrs:
-			element = html.element(name, xml=True)
 			if attrname in ("xmlns", "procinstns", "entityns") or ":" in attrname or element.Attrs.isallowed(attrname.lower(), xml=True):
 				newattrs[attrname.lower()] = attrvalue
 			else:
@@ -386,7 +386,7 @@ class HTMLParser(BadEntityParser):
 		BadEntityParser.finish_starttag(self, name, newattrs)
 
 		if name.upper() in htmldtd.HTML_FORBIDDEN_END:
-			# close immediately tags for which we won't get an end
+			# close tags immediately for which we won't get an end
 			BadEntityParser.finish_endtag(self, name)
 			return 0
 		else:
