@@ -2731,11 +2731,10 @@ class Element(Node):
 					for object in self.attrs._walk(filter, path, filterpath, walkpath, False):
 						yield object
 				elif option:
-					if option:
-						if walkpath:
-							yield path
-						else:
-							yield self
+					if walkpath:
+						yield path
+					else:
+						yield self
 
 	def _visit(self, filter, path, filterpath, visitpath, skiproot):
 		if filterpath or visitpath:
