@@ -21,7 +21,7 @@ def stringFromCode(text):
 	if type(text) is types.UnicodeType:
 		return text
 	else:
-		return unicode(str(text))
+		return unicode(str(text),"latin1")
 
 def forceopen(name, mode="r", bufsize=-1):
 	try:
