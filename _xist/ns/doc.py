@@ -36,8 +36,8 @@ class programlisting(xsc.Element):
 		for child in self.content:
 			child = child.convert(converter)
 			if isinstance(child, xsc.Text):
-				for c in child:
-					if c=="\t":
+				for c in child.content:
+					if c==u"\t":
 						if converter.target=="text":
 							c = "   "
 						else:
