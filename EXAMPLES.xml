@@ -34,7 +34,8 @@ print node.asBytes(encoding="us-ascii")
 
 <section><title>Defining new elements</title>
 
-<par>You can define new elements and how they should be converted to &html; (or other &xml; vocabularies) like this:</par>
+<par>You can define new elements and how they should be converted to &html;
+(or other &xml; vocabularies) like this:</par>
 
 <prog>
 from ll.xist import xsc
@@ -45,8 +46,16 @@ class pypilink(xsc.Element):
 		class name(xsc.TextAttr): pass
 
 	def convert(self, converter):
-		e = html.a(self["name"], href=("http://www.python.org/pypi?:action=display&amp;name=", self["name"]))
+		e = html.a(
+			self["name"],
+			href=(
+				"http://www.python.org/pypi?:action=display&amp;name=",
+				self["name"]
+			)
+		)
 		return e.convert(converter)
+
+names = ["ll-xist", "cx_Oracle", "PIL"]
 
 node = xsc.Frag(
 	xml.XML10(),
@@ -58,11 +67,7 @@ node = xsc.Frag(
 		),
 		html.body(
 			html.h1("PyPI links"),
-			html.ul(
-				[
-					html.li(pypilink(name=name)) for name in ["ll-xist", "cx_Oracle", "PIL"]
-				]
-			)
+			html.ul([html.li(pypilink(name=name)) for name in names])
 		)
 	)
 )
@@ -88,7 +93,8 @@ node = parsers.parseURL("http://www.python.org/", tidy=True)
 
 <section><title>Finding and counting nodes</title>
 
-<par>The following example shows how to output the &url;s of all images inside links on Python's homepage:</par>
+<par>The following example shows you how to output the &url;s of all images
+inside links on Python's homepage:</par>
 
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist import parsers</input>
@@ -102,7 +108,8 @@ http://www.python.org/pics/donate.gif
 http://www.python.org/pics/osi-certified-120x100.gif
 </tty>
 
-<par>If you want to output both the links and the image &url;s, do the following:</par>
+<par>If you want to output both the links and the image &url;s, do the
+following:</par>
 
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist import parsers, xfind</input>
@@ -115,7 +122,8 @@ http://www.python.org/psf/donations.html http://www.python.org/pics/donate.gif
 http://www.opensource.org/ http://www.python.org/pics/osi-certified-120x100.gif
 </tty>
 
-<par>If you want the count the number of links on the page you can do the following:</par>
+<par>If you want to count the number of links on the page you can do the
+following:</par>
 
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist import parsers</input>
@@ -130,7 +138,8 @@ http://www.opensource.org/ http://www.python.org/pics/osi-certified-120x100.gif
 
 <section><title>Replacing text</title>
 
-<par>This example demonstrates how to make a copy of an &xml; tree with some text replacements:</par>
+<par>This example demonstrates how to make a copy of an &xml; tree with some
+text replacements:</par>
 
 <prog>
 from ll.xist import xsc, parsers, converters
