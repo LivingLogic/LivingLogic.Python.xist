@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
 <section><title>Requirements</title>
-To use &xist; you need the following software packages:
+<par>To use &xist; you need the following software packages:</par>
 <olist>
 <item>Python 2.2.1 (available from <link href="http://www.python.org/">http://www.python.org/</link>),</item>
 <item>The Python &xml; package (available from <link href="http://pyxml.sf.net/">http://pyxml.sf.net/</link>)
@@ -18,11 +18,11 @@ to install the source distribution.</item>
 
 <section><title>Installation</title>
 <par>&xist; uses <app>distutils</app>, so installation
-is rather simple. Execute the following command:
+is rather simple. Execute the following command:</par>
 <programlisting>
 python setup.py install
 </programlisting>
-This will copy *.py files, compile *.c files and install everything
+<par>This will copy <filename>*.py</filename> files, compile *.c files and install everything
 in the <dirname>site-packages</dirname>
 directory as the <module>ll.xist</module> package.</par>
 
@@ -50,12 +50,12 @@ be converted to Unicode. &xist; assumes that these 8bit strings
 are in the system default encoding, which normally is &ascii;.
 If you want to change this you can put a script
 named <filename>sitecustomize.py</filename> somewhere
-in the Python path, with the following content:
+in the Python path, with the following content:</par>
 <programlisting>
 import sys
 sys.setdefaultencoding(<rep>"iso-8859-1"</rep>)
 </programlisting>
-(or any other encoding name that you want to use
+<par>(or any other encoding name that you want to use
 instead of <rep>"iso-8859-1"</rep>).</par>
 
 <section><title>Display hook</title>
@@ -66,7 +66,7 @@ extensible by implementing new presentation classes). To use e.g.
 the <class>TreePresenter</class> format in object dumps in
 an interactive Python session you can use the displayhook
 feature of Python 2.1, simply by putting the following code
-into your Python startup script:
+into your Python startup script:</par>
 <programlisting>
 import sys, pprint
 from ll.xist import xsc, presenters
@@ -80,7 +80,6 @@ def displayhook(object):
 
 sys.displayhook = displayhook
 </programlisting>
-</par>
 </section>
 
 <section><title>Syntax highlighting</title>
