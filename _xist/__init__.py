@@ -21,7 +21,7 @@
 ## IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 """
-<par>&xist; is an &xml; based extensible &html; generator written in Python.
+<par>&xist; is an extensible &html;/&xml; generator written in Python.
 &xist; is also a &dom; parser (built on top of &sax;2) with a very simple and
 pythonesque tree &api;. Every &xml; element type corresponds to a Python class and these
 Python classes provide a conversion method to transform the &xml; tree (e.g. into
