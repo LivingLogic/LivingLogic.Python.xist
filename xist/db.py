@@ -218,20 +218,32 @@ class SQLCommand:
 		else:
 			raise ValueError,"unrecognised type for database field"
 
-	def formatField(self,name,value,isTest = 0):
+	def formatField(self,name,value,format = 0):
+		"""
+		format == 0: setting
+		format == 1: testing
+		format == 2: inserting
+		"""
 		if value is None:
-			if isTest:
+			if format==0:
+				return name + "=NULL"
+			elif format==1:
 				return name + " IS NULL"
 			else:
-				return name + "=NULL"
+				return name + "NULL"
 		else:
-			return name + "=" + self.formatValue(value)
+			if format==0 or format==1:
+				return name + "=" + self.formatValue(value)
+			else:
+				return self.formatValue(value)
 
-	def formatFields(self,fields,isTest = 0):
+	def formatFields(self,fields,format = 0):
 		v = []
 		for field in fields.keys():
 			v.append(self.formatField(field,fields[field],isTest))
-		if isTest:
+		if format==0:
+			return string.join(v,",")
+		elif format==1:
 			return string.join(v," AND ")
 		else:
 			return string.join(v,",")
@@ -257,7 +269,7 @@ class SQLInsert(SQLCommand):
 			vv.append(field)
 		v.append(string.join(vv,","))
 		v.append(") VALUES (")
-		v.append(self.formatFields(self.set,0))
+		v.append(self.formatFields(self.set,2))
 		v.append(");")
 		return string.join(v,"")
 
