@@ -287,6 +287,8 @@ outputEncoding = getStringFromEnv("XSC_OUTPUT_ENCODING","us-ascii")             
 codeEncoding = getStringFromEnv("XSC_CODE_ENCODING","iso-8859-1")                             # Encoding to be used when string are use in constructors of Node objects
 reprEncoding = getStringFromEnv("XSC_REPR_ENCODING","us-ascii")                               # Encoding to be used in __repr__
 
+parseEncoding = "iso-8859-1"
+
 ###
 ### helpers
 ###
@@ -773,8 +775,8 @@ class Node:
 		node.endloc = self.endloc
 		return node
 
-	_strescapes = { '<' : 'lt' , '>' : 'gt' , '&' : 'amp' , '"' : 'quot' }
-	_maxordforenc = { "us-ascii" : 128 , "iso-8859-1" : 256 }
+	_strescapes = { '<': 'lt', '>': 'gt', '&': 'amp', '"': 'quot' }
+	_maxordforenc = { "us-ascii": 128 , "ascii": 128, "iso-8859-1": 256, "latin-1": 256 }
 
 	def _encode(self,text,encoding,charrefs = 0):
 		"""
@@ -1955,14 +1957,14 @@ class XSC:
 		return self.__nodeFromName(name,0)
 
 	def finish_starttag(self,name,attrs):
-		node = self.elementFromName(unicode(name,"utf8"))()
+		node = self.elementFromName(unicode(name,parseEncoding))()
 		for name,value in attrs:
 			node[name] = self.__string2Fragment(value)
 		self.__appendNode(node)
 		self.__nesting.append(node) # push new innermost element onto the stack
 
 	def finish_endtag(self,name):
-		element = self.elementFromName(unicode(name,"utf8"))
+		element = self.elementFromName(unicode(name,parseEncoding))
 		currentelement = self.__nesting[-1].__class__
 		if element != currentelement:
 			raise IllegalElementNestingError(self.__here(),currentelement,element)
@@ -1971,20 +1973,20 @@ class XSC:
 
 	def handle_data(self,data):
 		if data != "":
-			self.__appendNode(Text(unicode(data,"utf8")))
+			self.__appendNode(Text(unicode(data,parseEncoding)))
 
 	def handle_comment(self,data):
-		self.__appendNode(Comment(unicode(data,"utf8")))
+		self.__appendNode(Comment(unicode(data,parseEncoding)))
 
 	def handle_special(self,data):
 		if data[:7] == "DOCTYPE":
 			self.__appendNode(DocType(data[8:]))
 
 	def handle_proc(self,target,data):
-		self.__appendNode(ProcInst(unicode(target,"utf8"),unicode(data,"utf8")))
+		self.__appendNode(ProcInst(unicode(target,parseEncoding),unicode(data,parseEncoding)))
 
 	def handle_entityref(self,name):
-		self.__appendNode(self.entityFromName(unicode(name,"utf8"))())
+		self.__appendNode(self.entityFromName(unicode(name,parseEncoding))())
 
 	def handle_charref(self,name):
 		try:
