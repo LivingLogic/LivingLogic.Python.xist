@@ -29,7 +29,7 @@ RegisterElement("title",title)
 
 class meta(XSCElement):
 	close = 0
-	attr_handlers = AppendDict(i18n,{ "http-equiv" : XSCFrag , "name" : XSCFrag ,"content" : XSCFrag ,"scheme" : XSCFrag })
+	attr_handlers = AppendDict(i18n,{ "http_equiv" : XSCFrag , "name" : XSCFrag ,"content" : XSCFrag ,"scheme" : XSCFrag })
 RegisterElement("meta",meta)
 
 class body(XSCElement):
