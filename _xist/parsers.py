@@ -26,8 +26,6 @@ from xml.sax import saxlib
 from xml.sax import handler
 from xml.dom import html as htmldtd
 
-from mx import Tidy
-
 from ll import url
 
 import xsc, errors, utils, sources, cssparsers
