@@ -21,7 +21,7 @@
 ## IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 """
-<doc:par>An &xist; module that allows embedding Python code in &xml;</doc:par>
+<par>An &xist; module that allows embedding Python code in &xml;</par>
 """
 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
@@ -90,15 +90,15 @@ class Code:
 
 class exec_(xsc.ProcInst):
 	"""
-	<doc:par>here the content of the processing instruction is executed
+	<par>here the content of the processing instruction is executed
 	as Python code, so you can define and register &xist; elements here.
 	Execution is done when the node is constructed, so definitions made
 	here will be available afterwards (e.g. during the rest of the
 	file parsing stage). When converted to &html; such a node will result
-	in an empty <lit>Null</lit> node.</doc:par>
+	in an empty <lit>Null</lit> node.</par>
 
-	<doc:par>These processing instructions will be evaluated and executed in the
-	namespace of the module <module>sandbox</module>.</doc:par>
+	<par>These processing instructions will be evaluated and executed in the
+	namespace of the module <module>sandbox</module>.</par>
 	"""
 	xmlname = "exec"
 
@@ -112,25 +112,25 @@ class exec_(xsc.ProcInst):
 
 class eval_(xsc.ProcInst):
 	"""
-	<doc:par>here the code will be executed when the node is converted to &html;
+	<par>here the code will be executed when the node is converted to &html;
 	as if it was the body of a function, so you can return an expression
 	here. Although the content is used as a function body no indentation
 	is neccessary or allowed. The returned value will be converted to a
-	node and this resulting node will be converted to &html;.</doc:par>
+	node and this resulting node will be converted to &html;.</par>
 
-	<doc:par>These processing instructions will be evaluated and executed in the
-	namespace of the module <pyref module="ll.xist.sandbox"><module>sandbox</module></pyref>.</doc:par>
+	<par>These processing instructions will be evaluated and executed in the
+	namespace of the module <pyref module="ll.xist.sandbox"><module>sandbox</module></pyref>.</par>
 
-	<doc:par>Note that you should not define the symbol <lit>__</lit> in any of your &xist;
-	processing instructions, as it is used by &xist; for internal purposes.</doc:par>
+	<par>Note that you should not define the symbol <lit>__</lit> in any of your &xist;
+	processing instructions, as it is used by &xist; for internal purposes.</par>
 	"""
 	xmlname = "eval"
 
 	def convert(self, converter):
 		"""
-		<doc:par>Evaluates the code as if it was the body of a Python funtion.
+		<par>Evaluates the code as if it was the body of a Python funtion.
 		The <arg>converter</arg> argument will be available
-		under the name <arg>converter</arg> as an argument to the function.</doc:par>
+		under the name <arg>converter</arg> as an argument to the function.</par>
 		"""
 		code = Code(self.content, 1)
 		code.funcify()
