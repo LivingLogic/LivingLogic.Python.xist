@@ -1441,7 +1441,10 @@ class ProcInst(CharacterData):
 			if publisher is None:
 				return cls.xmlns.xmlname[True]
 			else:
-				return publisher.prefixes.procinstprefix4ns(cls.xmlns)[0]
+				if publisher.procinstmode:
+					return publisher.prefixes.prefix4ns(cls.xmlns)[0]
+				else:
+					return None
 	xmlprefix = classmethod(xmlprefix)
 
 	def publish(self, publisher):
@@ -2471,7 +2474,10 @@ class Element(Node):
 			if publisher is None:
 				return cls.xmlns.xmlname[True]
 			else:
-				return publisher.prefixes.elementprefix4ns(cls.xmlns)[0]
+				if publisher.elementmode:
+					return publisher.prefixes.prefix4ns(cls.xmlns)[0]
+				else:
+					return None
 	xmlprefix = classmethod(xmlprefix)
 
 	def _publishfull(self, publisher):
@@ -2484,10 +2490,9 @@ class Element(Node):
 		self._publishname(publisher)
 		# we're the first element to be published, so we have to create the xmlns attributes
 		if publisher.publishxmlns:
-			for ((nsprefix, ns), (mode, prefix)) in publisher.prefixes2use.iteritems():
+			for (ns, (mode, prefix)) in publisher.prefixes2use.iteritems():
 				if mode==2:
-					publisher.publish(u" ")
-					publisher.publish(nsprefix)
+					publisher.publish(u" xmlns")
 					if prefix is not None:
 						publisher.publish(u":")
 						publisher.publish(prefix)
@@ -2906,7 +2911,10 @@ class Entity(Node):
 			if publisher is None:
 				return cls.xmlns.xmlname[True]
 			else:
-				return publisher.prefixes.entityprefix4ns(cls.xmlns)[0]
+				if publisher.entitymode:
+					return publisher.prefixes.prefix4ns(cls.xmlns)[0]
+				else:
+					return None
 	xmlprefix = classmethod(xmlprefix)
 
 	def publish(self, publisher):
@@ -2956,7 +2964,7 @@ class CharRef(Entity):
 ### Classes for namespace handling
 ###
 
-class Prefixes(object):
+class Prefixes(dict):
 	"""
 	<par>Specifies a mapping between namespace prefixes and namespaces both
 	for parsing and publishing. Each namespace can have multiple prefixes, and
@@ -2965,184 +2973,46 @@ class Prefixes(object):
 	one for <pyref class="ProcInst">processing instructions</pyref> and one
 	for <pyref class="Entity">entities</pyref>.</par>
 	"""
-	ELEMENT = 0
-	PROCINST = 1
-	ENTITY = 2
-
 	NOPREFIX = 0
 	USEPREFIX = 1
 	DECLAREANDUSEPREFIX = 2
 
-	def __init__(self):
+	def __init__(self, nswithoutprefix=None, **nswithprefix):
+		dict.__init__(self)
+		if nswithoutprefix is not None:
+			self[None] = nswithoutprefix
+		for (prefix, ns) in nswithprefix.iteritems():
+			self[prefix] = ns
+
+	def __repr__(self):
+		return "<%s.%s %s at 0x%x>" % (self.__module__, self.__class__.__name__, " ".join(["%s=%r" % (key or "None", value) for (key, value) in self.iteritems()]), id(self))
+
+	def __getitem__(self, prefix):
+		return self.setdefault(prefix, [])
+
+	def __setitem__(self, prefix, namespaces):
+		if isinstance(namespaces, type) and issubclass(namespaces, Namespace):
+			namespaces = [namespaces]
+		dict.__setitem__(self, prefix, namespaces)
+
+	def ns4prefix(self, prefix):
 		"""
-		Create a <class>Prefixes</class> instance.
+		<par>Return the namespace list for the prefix <arg>prefix</arg>.</par>
 		"""
-		self._prefix2ns = ({}, {}, {}) # for elements, procinsts and entities
+		return self[prefix]
 
-	def addPrefixMapping(self, prefix, ns, mode="prepend", types=(ELEMENT, PROCINST, ENTITY)):
+	def prefix4ns(self, ns):
 		"""
-		<par>Add a mapping from the namespace prefix <arg>prefix</arg>
-		to the namespace <arg>ns</arg> to the current configuration.
-		<arg>ns</arg> must be a <pyref class="Namespace"><class>Namespace</class></pyref> class.</par>
-		"""
-		if isinstance(types, int):
-			types = (types, )
-		for type in types:
-			prefix2ns = self._prefix2ns[type].setdefault(prefix, [])
-			if not prefix2ns:
-				prefix2ns.append([])
-			if mode=="replace":
-				prefix2ns[0] = [ns]
-			else:
-				prefix2ns = prefix2ns[0]
-				if mode in ("append", "prepend"):
-					try:
-						prefix2ns.remove(ns)
-					except ValueError:
-						pass
-					if mode=="append":
-						prefix2ns.append(ns)
-					else:
-						prefix2ns.insert(0, ns)
-				else:
-					raise ValueError("mode %r unknown" % mode)
-		return self
-
-	def addElementPrefixMapping(self, prefix, ns, mode="prepend"):
-		return self.addPrefixMapping(prefix, ns, mode, types=Prefixes.ELEMENT)
-
-	def addProcInstPrefixMapping(self, prefix, ns, mode="prepend"):
-		return self.addPrefixMapping(prefix, ns, mode, types=Prefixes.PROCINST)
-
-	def addEntityPrefixMapping(self, prefix, ns, mode="prepend"):
-		return self.addPrefixMapping(prefix, ns, mode, types=Prefixes.ENTITY)
-
-	def delPrefixMapping(self, prefix=False, ns=False, types=(ELEMENT, PROCINST, ENTITY)):
-		"""
-		<par>Remove the mapping from the namespace prefix <arg>prefix</arg>
-		to the namespace <arg>ns</arg> from the current configuration.
-		<arg>ns</arg> must be a <pyref class="Namespace"><class>Namespace</class></pyref> class.</par>
-		<par>If <arg>prefix</arg> is not specified, all prefixes for
-		the namespace <arg>ns</arg> will be removed. If <arg>ns</arg> is not specified
-		all namespaces for the prefix <arg>prefix</arg> will be removed. If
-		both are unspecified the mapping will be empty afterwards.</par>
-		"""
-		if isinstance(types, int):
-			types = (types, )
-		for type in types:
-			if ns is not False:
-				if prefix is not False:
-					try:
-						prefix2ns = self._prefix2ns[type][prefix]
-						prefix2ns[0].remove(ns)
-					except (KeyError, IndexError, ValueError):
-						pass
-				else:
-					for prefix2ns in self._prefix2ns[type].itervalues():
-						try:
-							prefix2ns[0].remove(ns)
-						except (IndexError, ValueError):
-							pass
-			else:
-				try:
-					prefix2ns = self._prefix2ns[type][prefix][0] = []
-				except (KeyError, IndexError):
-					pass
-				else:
-					self._prefix2ns[type] = {}
-		return self
-
-	def delElementPrefixMapping(self, prefix=False, ns=False):
-		return self.delPrefixMapping(prefix, ns, types=Prefixes.ELEMENT)
-
-	def delProcInstPrefixMapping(self, prefix=False, ns=False):
-		return self.delPrefixMapping(prefix, ns, types=Prefixes.PROCINST)
-
-	def delEntityPrefixMapping(self, prefix=False, ns=False):
-		return self.delPrefixMapping(prefix, ns, types=Prefixes.ENTITY)
-
-	def startPrefixMapping(self, prefix, ns, mode="replace", types=(ELEMENT, PROCINST, ENTITY)):
-		if isinstance(types, int):
-			types = (types, )
-		for type in types:
-			prefix2ns = self._prefix2ns[type].setdefault(prefix, [])
-			if mode=="replace":
-				prefix2ns.insert(0, [ns])
-			elif mode in ("append", "prepend"):
-				if prefix2ns:
-					old = prefix2ns[0][:]
-				else:
-					old = []
-				if mode=="append":
-					prefix2ns.insert(0, old + [ns])
-				else:
-					prefix2ns.insert(0, [ns] + old)
-			else:
-				raise ValueError("mode %r unknown" % mode)
-
-	def startElementPrefixMapping(self, prefix, ns, mode="replace"):
-		self.startPrefixMapping(prefix, ns, mode, types=Prefixes.ELEMENT)
-
-	def startProcInstPrefixMapping(self, prefix, ns, mode="replace"):
-		self.startPrefixMapping(prefix, ns, mode, types=Prefixes.PROCINST)
-
-	def startEntityPrefixMapping(self, prefix, ns, mode="replace"):
-		self.startPrefixMapping(prefix, ns, mode, types=Prefixes.ENTITY)
-
-	def endPrefixMapping(self, prefix, types=(ELEMENT, PROCINST, ENTITY)):
-		if isinstance(types, int):
-			types = (types, )
-		for type in types:
-			self._prefix2ns[type][prefix].pop(0)
-
-	def endElementPrefixMapping(self, prefix):
-		self.endPrefixMapping(prefix, types=Prefixes.ELEMENT)
-
-	def endProcInstPrefixMapping(self, prefix):
-		self._endPrefixMapping(prefix, types=Prefixes.PROCINST)
-
-	def endEntityPrefixMapping(self, prefix):
-		self._endPrefixMapping(prefix, types=Prefixes.ENTITY)
-
-	def ns4prefix(self, prefix, type):
-		"""
-		<par>Return the currently active namespace list for the prefix <arg>prefix</arg>.</par>
-		"""
-		try:
-			return self._prefix2ns[type][prefix][0]
-		except (KeyError, IndexError):
-			return []
-
-	def ns4elementprefix(self, prefix):
-		return self.ns4prefix(prefix, Prefixes.ELEMENT)
-
-	def ns4procinstprefix(self, prefix):
-		return self.ns4prefix(prefix, Prefixes.PROCINST)
-
-	def ns4entityprefix(self, prefix):
-		return self.ns4prefix(prefix, Prefixes.ENTITY)
-
-	def prefix4ns(self, ns, type):
-		"""
-		<par>Return the currently active prefixes for the namespace <arg>ns</arg>.</par>
+		<par>Return the prefixes for the namespace <arg>ns</arg>.</par>
 		"""
 		prefixes = []
-		for (prefix, prefix2ns) in self._prefix2ns[type].iteritems():
-			if prefix2ns and ns in prefix2ns[0]:
+		for (prefix, namespaces) in self.iteritems():
+			if ns in namespaces:
 				prefixes.append(prefix)
 		if prefixes:
 			return prefixes
 		else:
 			return [ns.xmlname[True]]
-
-	def elementprefix4ns(self, ns):
-		return self.prefix4ns(ns, Prefixes.ELEMENT)
-
-	def procinstprefix4ns(self, ns):
-		return self.prefix4ns(ns, Prefixes.PROCINST)
-
-	def entityprefix4ns(self, ns):
-		return self.prefix4ns(ns, Prefixes.ENTITY)
 
 	def __splitqname(self, qname):
 		"""
@@ -3160,7 +3030,7 @@ class Prefixes(object):
 		<arg>qname</arg> (which might include a prefix).</par>
 		"""
 		qname = self.__splitqname(qname)
-		for ns in self.ns4elementprefix(qname[0]):
+		for ns in self[qname[0]]:
 			try:
 				element = ns.element(qname[1], xml=True)
 				if element.register:
@@ -3175,7 +3045,7 @@ class Prefixes(object):
 		<arg>qname</arg> (which might include a prefix).</par>
 		"""
 		qname = self.__splitqname(qname)
-		for ns in self.ns4procinstprefix(qname[0]):
+		for ns in self[qname[0]]:
 			try:
 				procinst = ns.procinst(qname[1], xml=True)
 				if procinst.register:
@@ -3190,7 +3060,7 @@ class Prefixes(object):
 		<arg>qname</arg> (which might include a prefix).</par>
 		"""
 		qname = self.__splitqname(qname)
-		for ns in self.ns4entityprefix(qname[0]):
+		for ns in self[qname[0]]:
 			try:
 				entity = ns.entity(qname[1], xml=True)
 				if entity.register:
@@ -3205,7 +3075,7 @@ class Prefixes(object):
 		"""
 		if isinstance(qname, basestring):
 			qname = self.__splitqname(qname)
-			for ns in self.ns4entityprefix(qname[0]):
+			for ns in self[qname[0]]:
 				try:
 					charref = ns.charref(qname[1], xml=True)
 					if charref.register:
@@ -3222,7 +3092,7 @@ class Prefixes(object):
 					pass
 		raise errors.IllegalCharRefError(qname, xml=True) # charref with this name/codepoint couldn't be found
 
-	def attrnameFromQName(self, element, qname):
+	def attrnamefromqname(self, element, qname):
 		"""
 		<par>returns the Python name for an attribute for the qualified
 		&xml; name <arg>qname</arg> (which might include a prefix, in which case
@@ -3234,7 +3104,7 @@ class Prefixes(object):
 		if qname[0] is None:
 			return element.Attrs.allowedattr(qname[1], xml=True).xmlname[False]
 		else:
-			for ns in self.ns4elementprefix(qname[0]):
+			for ns in self[qname[0]]:
 				try:
 					attr = ns.Attrs.allowedattr(qname[1], xml=True)
 					if attr.register:
@@ -3242,6 +3112,12 @@ class Prefixes(object):
 				except errors.IllegalAttrError: # no attribute in this namespace with this name
 					pass
 			raise errors.IllegalAttrError(None, qname, xml=True)
+
+	def clone(self):
+		other = self.__class__()
+		for (key, value) in self.iteritems():
+			other[key] = value[:]
+		return other
 
 
 class OldPrefixes(Prefixes):
@@ -3253,11 +3129,11 @@ class OldPrefixes(Prefixes):
 		super(OldPrefixes, self).__init__()
 		for ns in Namespace.all:
 			if ns.xmlurl == "http://www.w3.org/XML/1998/namespace":
-				self.addElementPrefixMapping("xml", ns, mode="append")
-				self.addProcInstPrefixMapping(None, ns, mode="append")
+				self["xml"].append(ns)
+				self[None].append(ns)
 			else:
-				self.addPrefixMapping(None, ns, mode="append")
-				self.addPrefixMapping(ns.xmlname[True], ns, mode="append")
+				self[None].append(ns)
+				self[ns.xmlname[True]].append(ns)
 
 
 class DefaultPrefixes(Prefixes):
@@ -3270,11 +3146,9 @@ class DefaultPrefixes(Prefixes):
 		super(DefaultPrefixes, self).__init__()
 		for ns in Namespace.all:
 			if ns is default:
-				self.addPrefixMapping(None, ns)
+				self[None] = ns
 			else:
-				self.addElementPrefixMapping(ns.xmlname[True], ns)
-				self.addProcInstPrefixMapping(None, ns)
-				self.addEntityPrefixMapping(None, ns)
+				self[ns.xmlname[True]] = ns
 
 
 class DocPrefixes(Prefixes):
@@ -3290,10 +3164,7 @@ class DocPrefixes(Prefixes):
 	def __init__(self, default=None):
 		super(DocPrefixes, self).__init__()
 		from ll.xist.ns import html, abbr, doc, specials
-		self.addElementPrefixMapping(None, doc)
-		self.addElementPrefixMapping(None, specials)
-		self.addEntityPrefixMapping(None, html)
-		self.addEntityPrefixMapping(None, abbr)
+		self[None] = [doc, specials, html, abbr]
 
 defaultPrefixes = Prefixes()
 
@@ -3373,11 +3244,12 @@ class Namespace(Base):
 			for attr in cls.Attrs.iterallowedvalues():
 				attr.xmlns = cls
 			if cls.xmlurl is not None:
-				cls.nsbyname.setdefault(cls.xmlname, []).insert(0, cls)
+				name = cls.xmlname[True]
+				cls.nsbyname.setdefault(name, []).insert(0, cls)
 				cls.nsbyurl.setdefault(cls.xmlurl, []).insert(0, cls)
 				cls.all.append(cls)
-				defaultPrefixes.addPrefixMapping(None, cls, mode="prepend")
-				defaultPrefixes.addPrefixMapping(cls.xmlname[True], cls, mode="prepend")
+				defaultPrefixes[None].insert(0, cls)
+				defaultPrefixes[name].insert(0, cls)
 			return cls
 
 		def __eq__(self, other):

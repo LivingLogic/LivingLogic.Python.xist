@@ -20,6 +20,10 @@ have been separated.</item>
 <item>The base &url; is not set correctly when parsing from an &url;
 even if the original &url; does a redirect. (This requires <module>ll.url</module>
 version 0.11.3.</item>
+<item>Namespace handling has been rewritten again: Now there is no separate
+mapping for entities and processing instructions any more. Prefix mappings
+can be created much simpler, and they no longer contain any namespace stack
+for parsing, as this is now done by the parser itself.</item>
 </ulist>
 </section>
 

@@ -1323,57 +1323,47 @@ class PublishTest(unittest.TestCase):
 	def test_publishelement(self):
 		node = html.html()
 
-		prefixes = xsc.Prefixes()
-		prefixes.addPrefixMapping("h", html)
+		prefixes = xsc.Prefixes(h=html)
 
 		self.assertEquals(node.asBytes(), "<html></html>")
 		self.assertEquals(node.asBytes(prefixes=prefixes, elementmode=1), "<h:html></h:html>")
 		self.assertEquals(node.asBytes(prefixes=prefixes, elementmode=2), """<h:html xmlns:h="http://www.w3.org/1999/xhtml"></h:html>""")
 
-		prefixes = xsc.Prefixes()
-		prefixes.addPrefixMapping(None, html)
+		prefixes = xsc.Prefixes(html)
 
 		self.assertEquals(node.asBytes(prefixes=prefixes, elementmode=2), """<html xmlns="http://www.w3.org/1999/xhtml"></html>""")
 
 	def test_publishentity(self):
 		node = abbr.xml()
 
-		prefixes = xsc.Prefixes()
-		prefixes.addPrefixMapping("a", abbr)
-		prefixes.addPrefixMapping("s", specials)
+		prefixes = xsc.Prefixes(a=abbr, s=specials)
 
 		self.assertEquals(node.asBytes(), "&xml;")
 		self.assertEquals(node.asBytes(prefixes=prefixes, entitymode=1), "&a:xml;")
-		self.assertEquals(node.asBytes(prefixes=prefixes, entitymode=2), """<wrap entityns:a="http://xmlns.livinglogic.de/xist/ns/abbr">&a:xml;</wrap>""")
-		self.assertEquals(node.asBytes(prefixes=prefixes, elementmode=2, entitymode=2), """<s:wrap entityns:a="http://xmlns.livinglogic.de/xist/ns/abbr" xmlns:s="http://xmlns.livinglogic.de/xist/ns/specials">&a:xml;</s:wrap>""")
+		self.assertEquals(node.asBytes(prefixes=prefixes, entitymode=2), """<wrap xmlns:a="http://xmlns.livinglogic.de/xist/ns/abbr">&a:xml;</wrap>""")
+		self.assertEquals(node.asBytes(prefixes=prefixes, elementmode=2, entitymode=2), """<s:wrap xmlns:s="http://xmlns.livinglogic.de/xist/ns/specials" xmlns:a="http://xmlns.livinglogic.de/xist/ns/abbr">&a:xml;</s:wrap>""")
 
-		prefixes = xsc.Prefixes()
-		prefixes.addPrefixMapping(None, abbr)
-		prefixes.addPrefixMapping("s", specials)
+		prefixes = xsc.Prefixes(abbr, s=specials)
 
-		self.assertEquals(node.asBytes(prefixes=prefixes, entitymode=2), """<wrap entityns="http://xmlns.livinglogic.de/xist/ns/abbr">&xml;</wrap>""")
-		self.assertEquals(node.asBytes(prefixes=prefixes, elementmode=2, entitymode=2), """<s:wrap entityns="http://xmlns.livinglogic.de/xist/ns/abbr" xmlns:s="http://xmlns.livinglogic.de/xist/ns/specials">&xml;</s:wrap>""")
+		self.assertEquals(node.asBytes(prefixes=prefixes, entitymode=2), """<wrap xmlns="http://xmlns.livinglogic.de/xist/ns/abbr">&xml;</wrap>""")
+		self.assertEquals(node.asBytes(prefixes=prefixes, elementmode=2, entitymode=2), """<s:wrap xmlns:s="http://xmlns.livinglogic.de/xist/ns/specials" xmlns="http://xmlns.livinglogic.de/xist/ns/abbr">&xml;</s:wrap>""")
 
 	def test_publishprocinst(self):
 		node = php.php("x")
 
-		prefixes = xsc.Prefixes()
-		prefixes.addPrefixMapping("p", php)
-		prefixes.addPrefixMapping("s", specials)
+		prefixes = xsc.Prefixes(p=php, s=specials)
 
 		self.assertEquals(node.asBytes(), "<?php x?>")
 		self.assertEquals(node.asBytes(prefixes=prefixes, procinstmode=1), "<?p:php x?>")
-		self.assertEquals(node.asBytes(prefixes=prefixes, procinstmode=2), """<wrap procinstns:p="http://www.php.net/"><?p:php x?></wrap>""")
+		self.assertEquals(node.asBytes(prefixes=prefixes, procinstmode=2), """<wrap xmlns:p="http://www.php.net/"><?p:php x?></wrap>""")
 		# FIXME this depends on dict iteration order
-		self.assertEquals(node.asBytes(prefixes=prefixes, elementmode=2, procinstmode=2), """<s:wrap procinstns:p="http://www.php.net/" xmlns:s="http://xmlns.livinglogic.de/xist/ns/specials"><?p:php x?></s:wrap>""")
+		self.assertEquals(node.asBytes(prefixes=prefixes, elementmode=2, procinstmode=2), """<s:wrap xmlns:s="http://xmlns.livinglogic.de/xist/ns/specials" xmlns:p="http://www.php.net/"><?p:php x?></s:wrap>""")
 
-		prefixes = xsc.Prefixes()
-		prefixes.addPrefixMapping(None, php)
-		prefixes.addPrefixMapping("s", specials)
+		prefixes = xsc.Prefixes(php, s=specials)
 
-		self.assertEquals(node.asBytes(prefixes=prefixes, procinstmode=2), """<wrap procinstns="http://www.php.net/"><?php x?></wrap>""")
+		self.assertEquals(node.asBytes(prefixes=prefixes, procinstmode=2), """<wrap xmlns="http://www.php.net/"><?php x?></wrap>""")
 		# FIXME this depends on dict iteration order
-		self.assertEquals(node.asBytes(prefixes=prefixes, elementmode=2, procinstmode=2), """<s:wrap procinstns="http://www.php.net/" xmlns:s="http://xmlns.livinglogic.de/xist/ns/specials"><?php x?></s:wrap>""")
+		self.assertEquals(node.asBytes(prefixes=prefixes, elementmode=2, procinstmode=2), """<s:wrap xmlns:s="http://xmlns.livinglogic.de/xist/ns/specials" xmlns="http://www.php.net/"><?php x?></s:wrap>""")
 
 	def test_publishboolattr(self):
 		node = html.td("?", nowrap=None)
@@ -1507,14 +1497,13 @@ class ParseTest(unittest.TestCase):
 				)
 			)
 		)
-		prefixes = xsc.Prefixes().addElementPrefixMapping("x", ihtml)
+		prefixes = xsc.Prefixes(x=ihtml)
 		node = parsers.parseString(xml, prefixes=prefixes)
 		node = node.findfirst(xsc.FindType(xsc.Element)).compact() # get rid of the Frag and whitespace
 		self.assertEquals(node, check)
 
 	def test_parseurls(self):
-		prefixes = xsc.Prefixes()
-		prefixes.addElementPrefixMapping(None, html)
+		prefixes = xsc.Prefixes(html)
 		node = parsers.parseString('<a href="4.html" style="background-image: url(3.gif);"/>', base="root:1/2.html", prefixes=prefixes)
 		self.assertEqual(str(node[0]["style"]), "background-image: url(root:1/3.gif);")
 		self.assertEqual(node[0]["style"].urls(), [url.URL("root:1/3.gif")])
@@ -1527,8 +1516,7 @@ class ParseTest(unittest.TestCase):
 				class Attrs(xsc.Element.Attrs):
 					class required(xsc.TextAttr): required = True
 
-		prefixes = xsc.Prefixes()
-		prefixes.addElementPrefixMapping(None, xmlns)
+		prefixes = xsc.Prefixes(xmlns)
 		node = parsers.parseString('<Test required="foo"/>', prefixes=prefixes)
 		self.assertEqual(str(node[0]["required"]), "foo")
 
@@ -1541,8 +1529,7 @@ class ParseTest(unittest.TestCase):
 				class Attrs(xsc.Element.Attrs):
 					class withvalues(xsc.TextAttr): values = ("foo", "bar")
 
-		prefixes = xsc.Prefixes()
-		prefixes.addElementPrefixMapping(None, xmlns)
+		prefixes = xsc.Prefixes(xmlns)
 
 		warnings.filterwarnings("error", category=errors.IllegalAttrValueWarning)
 		node = parsers.parseString('<Test withvalues="bar"/>', prefixes=prefixes)
@@ -1571,7 +1558,7 @@ class ParseTest(unittest.TestCase):
 		# in the strict parser the errors will always be raised, so ignore them to verify that
 		warnings.filterwarnings("ignore", category=errors.MalformedCharRefWarning)
 
-		prefixes = xsc.Prefixes().addPrefixMapping(None, self.__class__.xmlns)
+		prefixes = xsc.Prefixes(self.__class__.xmlns)
 		self.check_parseentities(source, result, prefixes=prefixes, parser=parserfactory())
 		for bad in ("&", "&#x", "&&", "&#x;", "&#fg;", "&#999999999;", "&#;", "&#x;"):
 			self.assertSAXRaises((errors.MalformedCharRefWarning, expat.ExpatError), self.check_parseentities, bad, u"", prefixes=prefixes, parser=parserfactory())
@@ -1594,7 +1581,7 @@ class ParseTest(unittest.TestCase):
 	def check_parsebadentities(self, parserfactory):
 		warnings.filterwarnings("ignore", category=errors.MalformedCharRefWarning)
 
-		prefixes = xsc.Prefixes().addPrefixMapping(None, self.__class__.xmlns)
+		prefixes = xsc.Prefixes(self.__class__.xmlns)
 		tests = [
 			("&amp;", u"&"),
 			("&amp;amp;", u"&amp;"),
@@ -1803,7 +1790,7 @@ class DTD2XSCTest(unittest.TestCase):
 
 class TLD2XSCTest(unittest.TestCase):
 	def tld2ns(self, s, xmlname, shareattrs=None):
-		node = parsers.parseString(s, prefixes=xsc.Prefixes().addElementPrefixMapping(None, tld))
+		node = parsers.parseString(s, prefixes=xsc.Prefixes(tld))
 		node = node.findfirst(xsc.FindType(tld.taglib))
 		node = node.conv()
 

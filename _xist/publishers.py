@@ -187,21 +187,13 @@ class Publisher(object):
 			prefixes2use = {}
 			# collect all the namespaces that are used and their required mode
 			for child in self.node.walk((True, xsc.entercontent, xsc.enterattrs)):
-				if isinstance(child, xsc.Element):
-					type = xsc.Prefixes.ELEMENT
-				elif isinstance(child, xsc.ProcInst):
-					type = xsc.Prefixes.PROCINST
-				elif isinstance(child, xsc.Entity):
-					type = xsc.Prefixes.ENTITY
-				else:
-					continue
-				prefixes2use[(type, child.xmlns)] = max(prefixes2use.get((type, child.xmlns), 0), child.needsxmlns(self))
+				if isinstance(child, (xsc.Element, xsc.ProcInst, xsc.Entity)):
+					prefixes2use[child.xmlns] = max(prefixes2use.get(child.xmlns, 0), child.needsxmlns(self))
 			if len(prefixes2use):
 				self.publishxmlns = True # signal to the first element that it should generate xmlns attributes
 				# get the prefixes for all namespaces from the prefix mapping
-				for (type, ns) in prefixes2use:
-					nsprefix = [u"xmlns", u"procinstns", u"entityns"][type]
-					self.prefixes2use[(nsprefix, ns)] = (prefixes2use[(type, ns)], self.prefixes.prefix4ns(ns, type)[0])
+				for (ns, mode) in prefixes2use.iteritems():
+					self.prefixes2use[ns] = (mode, self.prefixes.prefix4ns(ns)[0])
 
 	def endPublication(self):
 		"""

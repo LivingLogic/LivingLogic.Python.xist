@@ -432,8 +432,8 @@ class Handler(object):
 		self.parser = parser
 
 		if prefixes is None:
-			prefixes = xsc.defaultPrefixes
-		self.prefixes = prefixes
+			prefixes = xsc.defaultPrefixes.clone()
+		self.prefixes = prefixes # the currently active prefix mapping (will be replaced, once xmlns attributes are encountered)
 
 		self._locator = None
 		self.loc = loc
@@ -452,7 +452,7 @@ class Handler(object):
 		self.parser.setFeature(handler.feature_namespaces, False) # We do our own namespace processing
 		self.parser.setFeature(handler.feature_external_ges, False) # Don't process external entities, but pass them to skippedEntity
 
-		self.skippingWhitespace = False
+		self.skippingwhitespace = False
 		self.parser.parse(source)
 
 		# unregister us to break the cycles
@@ -471,88 +471,71 @@ class Handler(object):
 
 	def startDocument(self):
 		# our nodes do not have a parent link, therefore we have to store the active
-		# path through the tree in a stack (which we call __nesting)
+		# path through the tree in a stack (which we call _nesting)
 		# and we store the namespace prefixes defined by the elements
 
 		# after we've finished parsing, the Frag that we put at the bottom of the stack will be our document root
-		self.__nesting = [ (xsc.Frag(),) ]
+		root = xsc.Frag()
+		self._nesting = [ (root, self.prefixes) ]
 
 	def endDocument(self):
-		self.root = self.__nesting[0][0]
-		self.__nesting = None
+		self.root = self._nesting[0][0]
+		self._nesting = None
 
 	def startElement(self, name, attrs):
-		prefixes = []
+		newprefixes = {}
 		for (attrname, attrvalue) in attrs.items():
-			if attrname=="xmlns":
-				prefix = None
-				type = xsc.Prefixes.ELEMENT
-			elif attrname.startswith("xmlns:"):
-				prefix = attrname[6:]
-				type = xsc.Prefixes.ELEMENT
-			elif attrname=="procinstns":
-				prefix = None
-				type = xsc.Prefixes.PROCINST
-			elif attrname.startswith("procinstns:"):
-				prefix = attrname[11:]
-				type = xsc.Prefixes.PROCINST
-			elif attrname=="entityns":
-				prefix = None
-				type = xsc.Prefixes.ENTITY
-			elif attrname.startswith("entityns:"):
-				prefix = attrname[9:]
-				type = xsc.Prefixes.ENTITY
-			else:
-				continue
-			prefixes.append((type, prefix))
-			ns = xsc.Namespace.nsbyurl[unicode(attrvalue)][0]
-			self.prefixes.startPrefixMapping(prefix, ns, "replace", type)
+			if attrname=="xmlns" or attrname.startswith("xmlns:"):
+				ns = xsc.Namespace.nsbyurl[unicode(attrvalue)][0]
+				newprefixes[attrname[6:] or None] = [ns]
+
+		prefixes = self.prefixes
+		if newprefixes:
+			prefixes = prefixes.clone()
+			prefixes.update(newprefixes)
+			self.prefixes = prefixes
 		node = self.createElement(name)
 		for (attrname, attrvalue) in attrs.items():
-			if attrname!="xmlns" and not attrname.startswith("xmlns:") and \
-			   attrname!="procinstns" and not attrname.startswith("procinstns:") and \
-			   attrname!="entityns" and not attrname.startswith("entityns:"):
-				attrname = self.prefixes.attrnameFromQName(node, attrname)
+			if attrname!="xmlns" and not attrname.startswith("xmlns:"):
+				attrname = prefixes.attrnamefromqname(node, attrname)
 				node[attrname] = attrvalue
 				node[attrname].parsed(self)
 		node.attrs.parsed(self)
 		node.parsed(self, start=True)
 		self.__appendNode(node)
-		self.__nesting.append((node, prefixes)) # push new innermost element onto the stack, together with the list of prefix mappings defined by this node
-		self.skippingWhitespace = False
+		self._nesting.append((node, prefixes)) # push new innermost element onto the stack, together with the list of prefix mappings defined by this node
+		self.skippingwhitespace = False
 
 	def endElement(self, name):
-		currentelement = self.__nesting[-1][0]
+		currentelement = self._nesting[-1][0]
 		currentelement.parsed(self, start=False)
 		currentelement.checkvalid()
+		if self.loc:
+			self._nesting[-1][0].endloc = self.getLocation()
+		self.prefixes = self._nesting.pop()[1] # pop the innermost element off the stack and restore the old prefixes mapping
+
+		# We have to check after the old prefix mapping from this element has been dropped
 		element = self.createElement(name) # Unfortunately this creates the element a second time.
 		if element.__class__ is not currentelement.__class__:
 			raise errors.ElementNestingError(currentelement.__class__, element.__class__)
-		if self.loc:
-			self.__nesting[-1][0].endloc = self.getLocation()
-		# SAX specifies that the order of calls to endPrefixMapping is undefined, so we use the same order as in startElement
-		for (type, prefix) in self.__nesting[-1][1]:
-			self.prefixes.endPrefixMapping(prefix, type)
-		self.__nesting.pop() # pop the innermost element off the stack
-		self.skippingWhitespace = False
+		self.skippingwhitespace = False
 
 	def characters(self, content):
-		if self.skippingWhitespace:
+		if self.skippingwhitespace:
 			# the following could be content = content.lstrip(), but this would remove nbsps
-			# FIXME use lstrip(???) with Python 2.3
 			while content and content[0].isspace() and content[0] != u"\xa0":
 				content = content[1:]
 		if content:
 			node = self.createText(content)
 			node.parsed(self)
-			last = self.__nesting[-1][0]
+			last = self._nesting[-1][0]
 			if len(last) and isinstance(last[-1], xsc.Text):
 				node = last[-1] + node.content # join consecutive Text nodes
 				node.startloc = last[-1].startloc # make sure the replacement node has the original location
 				last[-1] = node # replace it
 			else:
 				self.__appendNode(node)
-			self.skippingWhitespace = False
+			self.skippingwhitespace = False
 
 	def comment(self, content):
 		node = self.createComment(content)
@@ -607,7 +590,7 @@ class Handler(object):
 	def __appendNode(self, node):
 		if self.loc:
 			node.startloc = self.getLocation()
-		self.__nesting[-1][0].append(node) # add the new node to the content of the innermost element (or fragment)
+		self._nesting[-1][0].append(node) # add the new node to the content of the innermost element (or fragment)
 
 	def createText(self, content):
 		return xsc.Text(content)
