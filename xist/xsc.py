@@ -1734,7 +1734,7 @@ class URLAttr(Attr):
 	"""
 
 	def __init__(self, *_content):
-		self.base = xsc.filenames[-1]
+		self.base = providers.getURL()
 		Attr.__init__(self, *_content)
 
 	def _str(self, content=None, brackets=None, slash=None, ansi=None):
@@ -1775,7 +1775,7 @@ class URLAttr(Attr):
 		return u
 
 	def forOutput(self):
-		return self.asURL().relativeTo(xsc.filenames[-1])
+		return self.asURL().relativeTo(providers.getURL())
 
 	def ImageSize(self):
 		"""

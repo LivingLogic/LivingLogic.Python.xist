@@ -430,7 +430,7 @@ class table(xsc.Element):
 	empty = 0
 	attrHandlers = attrs.copy()
 	attrHandlers.update({"summary": xsc.TextAttr, "width": xsc.TextAttr, "border": xsc.TextAttr, "frame": xsc.TextAttr, "rules": xsc.TextAttr, "cellspacing": xsc.TextAttr, "cellpadding": xsc.TextAttr})
-	attrHandlers.update({"height": xsc.TextAttr, "align": xsc.TextAttr, "bgcolor": xsc.ColorAttr, "background": xsc.URLAttr}) # deprecated
+	attrHandlers.update({"height": xsc.TextAttr, "align": xsc.TextAttr, "bgcolor": xsc.ColorAttr, "background": xsc.URLAttr, "bordercolor": xsc.ColorAttr}) # deprecated
 
 class caption(xsc.Element):
 	"""
@@ -516,7 +516,7 @@ class td(xsc.Element):
 	attrHandlers.update(cellhalign)
 	attrHandlers.update(cellvalign)
 	attrHandlers.update({"abbr": xsc.TextAttr, "axis": xsc.TextAttr, "headers": xsc.TextAttr, "scope": xsc.TextAttr, "rowspan": xsc.TextAttr, "colspan": xsc.TextAttr})
-	attrHandlers.update({"nowrap": xsc.TextAttr, "bgcolor": xsc.ColorAttr, "width": xsc.TextAttr, "height": xsc.TextAttr, "background": xsc.URLAttr}) # deprecated
+	attrHandlers.update({"nowrap": xsc.TextAttr, "bgcolor": xsc.ColorAttr, "width": xsc.TextAttr, "height": xsc.TextAttr, "background": xsc.URLAttr, "bordercolor": xsc.ColorAttr}) # deprecated
 
 class a(xsc.Element):
 	"""
@@ -614,6 +614,7 @@ class frameset(xsc.Element):
 	empty = 0
 	attrHandlers = coreattrs.copy()
 	attrHandlers.update({"rows": xsc.TextAttr, "cols": xsc.TextAttr, "onload": xsc.TextAttr, "onunload": xsc.TextAttr})
+	attrHandlers.update({"framespacing": xsc.TextAttr, "border": xsc.IntAttr, "marginwidth": xsc.IntAttr, "marginheight": xsc.IntAttr}) # deprecated
 
 class frame(xsc.Element):
 	"""
@@ -646,6 +647,7 @@ class form(xsc.Element):
 	attrHandlers = attrs.copy()
 	attrHandlers.update({"action": xsc.URLAttr, "method": xsc.TextAttr, "enctype": xsc.TextAttr, "onsubmit": xsc.TextAttr, "onreset": xsc.TextAttr, "accept-charset": xsc.TextAttr})
 	attrHandlers.update({"target": xsc.TextAttr}) # frame
+	attrHandlers.update({"name": xsc.TextAttr}) # deprecated
 
 class input(xsc.Element):
 	"""
@@ -756,6 +758,12 @@ class applet(xsc.Element): # deprecated
 class nobr(xsc.Element): # deprecated
 	"""
 	prevents line breaks
+	"""
+	empty = 0
+
+class center(xsc.Element): # deprecated
+	"""
+	centered block level element
 	"""
 	empty = 0
 

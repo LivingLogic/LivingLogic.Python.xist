@@ -247,8 +247,8 @@ class IllegalEntityError(Error):
 
 	def __str__(self):
 		entitynames = []
-		for namespacename in xsc.NamespaceRegistry.byPrefix.keys():
-			namespace = xsc.NamespaceRegistry.byPrefix[namespacename]
+		for namespacename in xsc.namespaceRegistry.byPrefix.keys():
+			namespace = xsc.namespaceRegistry.byPrefix[namespacename]
 			try:
 				entity = namespace.entitiesByName[self.name[1]]
 				entitynames.append(xsc.strEntity(entity.namespace.prefix, entity.name))

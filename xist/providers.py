@@ -28,22 +28,28 @@ import url
 
 providers = [] # provider stack
 
+def getURL():
+	if len(providers):
+		return providers[-1].filenames[-1]
+	else:
+		return url.URL("*/")
+
 class Provider:
 	"""
 	contains the parser and the options and functions for handling XML files
 	"""
 
-	def __init__(self, encoding=None, parent=None):
+	def __init__(self, encoding=None):
 		if encoding is None:
 			encoding = "iso-8859-1" # We assume that all source code is in this encoding
 		self.encoding = encoding
 		self.server = "localhost"
-		if parent is None:
+		if len(providers) == 0:
 			self.filenames = [url.URL("*/")]
 			self.namespaces = [xsc.namespace]
 		else:
-			self.filenames = parent.filename[:]
-			self.namespaces = parent.namespaces[:]
+			self.filenames = [ providers[-1].filenames[-1] ]
+			self.namespaces = providers[-1].namespaces[:]
 
 	def pushURL(self, u):
 		u = url.URL(u)
