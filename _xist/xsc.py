@@ -324,10 +324,10 @@ class FindOld(object):
 class _XFindBase(object):
 	def xfind(self, iterator, *operators):
 		# we have to resolve the iterator here
-		return iter(_XFinder(self.xwalk(iterator), *operators))
+		return iter(XFinder(self.xwalk(iterator), *operators))
 
 
-class _XFinder(object):
+class XFinder(object):
 	__slots__ = ("iterator", "operators")
 
 	def __init__(self, iterator, *operators):
@@ -366,11 +366,11 @@ class _XFinder(object):
 					raise IndexError
 
 	def __div__(self, other):
-		return _XFinder(self.iterator, *(self.operators + (other,)))
+		return XFinder(self.iterator, *(self.operators + (other,)))
 
 	def __floordiv__(self, other):
 		from ll.xist import xfind
-		return _XFinder(self.iterator, *(self.operators + (xfind.all, other)))
+		return XFinder(self.iterator, *(self.operators + (xfind.all, other)))
 
 	def __repr__(self):
 		if self.operators:
@@ -863,7 +863,7 @@ class Node(Base):
 		<par><arg>skiproot</arg> is only significant if <self/> is an element: If <arg>skiproot</arg> is true,
 		the element itself will always be skipped, i.e. iteration starts with the content of the element.</par>
 		"""
-		return _XFinder(self._walk(filter, [], filterpath, walkpath, skiproot))
+		return XFinder(self._walk(filter, [], filterpath, walkpath, skiproot))
 
 	def _visit(self, filter, path, filterpath, visitpath, skiproot):
 		"""
@@ -922,13 +922,13 @@ class Node(Base):
 	def __div__(self, other):
 		def _iterone(node):
 			yield node
-		return _XFinder(_iterone(self), other)
+		return XFinder(_iterone(self), other)
 
 	def __floordiv__(self, other):
 		def _iterone(node):
 			yield node
 		from ll.xist import xfind
-		return _XFinder(_iterone(self), xfind.all, other)
+		return XFinder(_iterone(self), xfind.all, other)
 
 	def compact(self):
 		"""
