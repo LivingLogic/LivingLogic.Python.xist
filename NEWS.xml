@@ -28,6 +28,9 @@ to tokenize an &xml; string for other processing instructions as well.</item>
 <item>Add a new class <class>ll.xist.NSPool</class> that contains a pool of
 namespaces from which the parses selects the appropriate one, once an <lit>xmlns</lit>
 attribute is encountered.</item>
+
+</ulist>
+
 </section>
 
 
