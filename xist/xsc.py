@@ -893,7 +893,6 @@ class Text(Node, StringMixIn):
 	def publish(self, publisher):
 		publisher(publisher._encodeLegal(self._content))
 
-
 	def __strtext(self, refwhite, content, encoding=None, ansi=None):
 		if encoding == None:
 			encoding = reprEncoding
@@ -949,7 +948,7 @@ class Text(Node, StringMixIn):
 	def compact(self):
 		for i in self._content:
 			if i not in string.whitespace:
-				return self._decorateNode(Text(self._content))
+				return self
 		else:
 			return Null
 
@@ -1146,34 +1145,35 @@ class Frag(Node):
 			node.append(child)
 		return node
 
-class Comment(Node):
+class Comment(Node, StringMixIn):
 	"""
 	a comment node
 	"""
 
-	def __init__(self, content = ""):
-		self.content = stringFromCode(content)
+	def __init__(self, content=""):
+		content = stringFromCode(content)
+		StringMixIn.__init__(self, content)
 
 	def asHTML(self):
-		return self._decorateNode(Comment(self.content))
+		return self
 
 	clone = asHTML
 
 	def _dorepr(self, ansi = None):
-		return strBracketOpen(ansi) + strExclamation(ansi) + strCommentMarker(ansi) + strCommentText(self.content, ansi) + strCommentMarker(ansi) + strBracketClose(ansi)
+		return strBracketOpen(ansi) + strExclamation(ansi) + strCommentMarker(ansi) + strCommentText(self._content, ansi) + strCommentMarker(ansi) + strBracketClose(ansi)
 
 	def _doreprtree(self, nest, elementno, encoding, ansi):
 		head = strBracketOpen(ansi) + strExclamation(ansi) + strCommentMarker(ansi)
 		tail = strCommentMarker(ansi) + strBracketClose(ansi)
-		return self._doreprtreeMultiLine(nest, elementno, head, tail, self.content, strCommentText, 0, encoding=encoding, ansi=ansi)
+		return self._doreprtreeMultiLine(nest, elementno, head, tail, self._content, strCommentText, 0, encoding=encoding, ansi=ansi)
 
 	def publish(self, publisher):
-		if self.content.find(u"--")!=-1 or self.content[-1:]==u"-":
+		if self._content.find(u"--")!=-1 or self._content[-1:]==u"-":
 			raise errors.IllegalCommentError(self.startloc, self)
-		publisher(u"<!--", self.content, u"-->")
+		publisher(u"<!--", self._content, u"-->")
 
 	def compact(self):
-		return self._decorateNode(Comment(self.content))
+		return self
 
 class DocType(Node):
 	"""
