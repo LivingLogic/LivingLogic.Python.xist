@@ -12,7 +12,7 @@ import types
 import time
 time_ = time
 import string
-from xist import xsc,html
+import xsc,html
 
 class plaintable(html.table):
 	"""
