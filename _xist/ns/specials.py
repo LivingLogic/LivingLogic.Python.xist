@@ -33,9 +33,15 @@ import chtml, html, meta
 
 class xist(xsc.Entity):
 	def convert(self, converter):
-		return html.span("XIST", class_="caps")
+		return xsc.Text("XIST")
 	def __unicode__(self):
 		return u"XIST"
+
+class xist4c(xsc.Entity):
+	def convert(self, converter):
+		return xsc.Text("XIST4C")
+	def __unicode__(self):
+		return u"XIST4C"
 
 class plaintable(html.table):
 	"""
