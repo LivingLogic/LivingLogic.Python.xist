@@ -44,10 +44,10 @@ class Error(Exception):
 		self.location = location
 
 	def __str__(self):
-		s = str(self.location)
-		if s:
-			s = s + ": "
-		return s
+		if self.location is not None:
+			return "%s: " % self.location
+		else:
+			return ""
 
 class EmptyElementWithContentError(Error):
 	"""
@@ -187,7 +187,7 @@ class IllegalElementNestingError(Error):
 class IllegalAttrNodeError(Error):
 	"""
 	exception that is raised, when something is found
-	in an element attribute that doesn't belong there.
+	in an attribute that doesn't belong there (e.g. an element or a comment).
 	"""
 
 	def __init__(self, lineno, node):
@@ -195,7 +195,7 @@ class IllegalAttrNodeError(Error):
 		self.node = node
 
 	def __str__(self):
-		return Error.__str__(self) + "illegal node of type " + self.node.__class__.__name__ + " found inside attribute"
+		return Error.__str__(self) + "illegal node of type %s found inside attribute" % self.node.__class__.__name__
 
 class ImageSizeFormatError(Error):
 	"""
@@ -220,7 +220,7 @@ class FileNotFoundError(Error):
 		self.url = url
 
 	def __str__(self):
-		return Error.__str__(self) + "file " + str(presenters.EnvTextForURL(self.url.asString())) + " can't be opened"
+		return Error.__str__(self) + "file %s can't be opened" % presenters.strURL(self.url.asString())
 
 class IllegalObjectError(Error):
 	"""
@@ -232,10 +232,10 @@ class IllegalObjectError(Error):
 		self.object = object
 
 	def __str__(self):
-		s = Error.__str__(self) + "an illegal object " + repr(self.object) + " of type " + type(self.object).__name__
-		if type(self.object) == types.InstanceType:
-			s = s + " (class " + self.object.__class__.__name__ + ")"
-		s = s + " has been found in the XSC tree"
+		s = Error.__str__(self) + "an illegal object %r of type %s" + (self.object, type(self.object).__name__)
+		if type(self.object) is types.InstanceType:
+			s += " (class %s)" % self.object.__class__.__name__
+		s += " has been found in the XSC tree"
 		return s
 
 class MalformedCharRefError(Error):
@@ -248,7 +248,7 @@ class MalformedCharRefError(Error):
 		self.name = name
 
 	def __str__(self):
-		return Error.__str__(self) + "malformed character reference: &#" + self.name + ";"
+		return Error.__str__(self) + "malformed character reference: &#%s;" % self.name
 
 class IllegalEntityError(Error):
 	"""
@@ -294,7 +294,7 @@ class IllegalCommentContentError(Error):
 		self.comment = comment
 
 	def __str__(self):
-		return Error.__str__(self) + "comment with content " + repr(self.comment.content) + " is illegal, as it contains '--' or ends in '-'."
+		return Error.__str__(self) + "comment with content %s is illegal, as it contains '--' or ends in '-'." % presenters.strTextOutsideAttr(self.comment._content)
 
 class IllegalProcInstFormatError(Error):
 	"""
@@ -308,7 +308,7 @@ class IllegalProcInstFormatError(Error):
 		self.procinst = procinst
 
 	def __str__(self):
-		return Error.__str__(self) + "processing instruction with content " + repr(self.procinst.content) + " is illegal, as it contains " + repr("?>") + "."
+		return Error.__str__(self) + "processing instruction with content %s is illegal, as it contains %r." % (presenters.strProcInstData(self.procinst.content), "?>")
 
 class IllegalXMLDeclFormatError(Error):
 	"""
@@ -323,7 +323,7 @@ class IllegalXMLDeclFormatError(Error):
 		self.procinst = procinst
 
 	def __str__(self):
-		return Error.__str__(self) + "XML declaration with content " + repr(self.procinst.content) + " is malformed."
+		return Error.__str__(self) + "XML declaration with content %r is malformed." % presenters.strProcInstData(self.procinst.content)
 
 class EncodingImpossibleError(Error):
 	"""
