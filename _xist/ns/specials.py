@@ -29,7 +29,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 import sys, types, time as time_, string
 
 from xist import xsc, parsers
-import html, ihtml, meta
+import ihtml, html, meta
 
 class xist(xsc.Entity):
 	def convert(self, converter):
