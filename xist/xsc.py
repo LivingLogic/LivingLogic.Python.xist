@@ -853,6 +853,14 @@ class XSCElement(XSCNode):
 	def withoutLinefeeds(self):
 		return self.__class__(self.content.withoutLinefeeds(),self.attrs.withoutLinefeeds())
 
+	def elements(self):
+		e = XSCFrag()
+		for child in self:
+			if isinstance(child,XSCElement):
+				e.append(child)
+
+		return e
+
 def RegisterElement(name,element):
 	"""registers the element handler element to be used for elements with name name"""
 	_element_handlers[name] = element
