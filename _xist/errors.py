@@ -301,22 +301,13 @@ class IllegalXMLDeclFormatError(Error):
 	def __str__(self):
 		return "XML declaration with content %r is malformed." % presenters.strProcInstContent(self.procinst.content)
 
-class EncodingImpossibleError(Error):
+class MistimedCallError(Error):
 	"""
-	exception that is raised, when the &xml; tree can't be encoded, because
-	an encoding is used that requires character references for certain
-	characters (e.g. <lit>us-ascii</lit> or <lit>iso-8859-1</lit>)
-	and those characters where encountered in a place where they can't
-	be replaced with character references (e.g. inside a comment)
+	exception that is raised, when a method can't be called at this point in time,
+	e.g. when you try the reconfigure a <pyref module="ll.xist.xsc" class="Prefixes"><class>Prefixes</class>
+	object, while a parse is in progress
 	"""
 
-	def __init__(self, encoding, text, char):
-		self.encoding = encoding
-		self.text = text
-		self.char = char
-
-	def __str__(self):
-		return "text %r can't be encoded with the encoding %r because it contains the character %r." % (self.text, self.encoding, self.char)
-
+# always show warnings from XIST, not just the first time
 warnings.filterwarnings("always", category=Warning)
 
