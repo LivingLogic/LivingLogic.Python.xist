@@ -80,6 +80,6 @@ namespace = xsc.Namespace("pq","http://www.python.org/topics/xml/dtds/qel-2.0.dt
 if __name__ == "__main__":
 	e = parsers.parseURL(url, parser=parsers.ExpatParser())
 	e = e.find(type=quotations)[0]
-	e = e.compact().convert()
+	e = e.compact().conv()
 	print e.asBytes(encoding="iso-8859-1")
 
