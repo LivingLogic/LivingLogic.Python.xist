@@ -831,7 +831,7 @@ class XSCElement(XSCNode):
 
 	def findElementsNamed(self,name):
 		e = XSCFrag()
-		if self.name == name:
+		if self.name == string.lower(name):
 				e.append(self)
 		e = e + self.content.findElementsNamed(name)
 		return e
@@ -923,7 +923,7 @@ class XSCParser(xmllib.XMLParser):
 		self.nesting.append(e) # push new innermost element onto the stack
 
 	def unknown_endtag(self,name):
-		if name != self.nesting[-1].name:
+		if string.lower(name) != self.nesting[-1].name:
 			raise XSCIllegalElementNestingError(xsc.parser.lineno,self.nesting[-1].name,name)
 		self.nesting[-1].endlineno = self.lineno
 		self.nesting[-1:] = [] # pop the innermost element off the stack
