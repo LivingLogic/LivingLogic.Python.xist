@@ -409,16 +409,16 @@ class XSCCharRef(XSCNode):
 class XSCFrag(XSCNode):
 	"""contains a list of XSCNodes"""
 
-	def __init__(self,content = []):
-		if type(content) == types.InstanceType:
-			if content.__class__ == XSCFrag:
-				self.content = map(ToNode,content.content)
+	def __init__(self,_content = []):
+		if type(_content) == types.InstanceType:
+			if _content.__class__ == XSCFrag:
+				self.content = map(ToNode,_content.content)
 			else:
-				self.content = [ ToNode(content) ]
-		elif type(content) in [ types.ListType , types.TupleType ]:
-			self.content = map(ToNode,content)
+				self.content = [ ToNode(_content) ]
+		elif type(_content) in [ types.ListType , types.TupleType ]:
+			self.content = map(ToNode,_content)
 		else:
-			self.content = [ ToNode(content) ]
+			self.content = [ ToNode(_content) ]
 
 	def __add__(self,other):
 		res = XSCFrag(self.content)
@@ -645,12 +645,12 @@ class XSCElement(XSCNode):
  	attr_handlers = {}
 	name = "XSCElement" # will be changed for derived classes/elements in RegisterElement()
 
-	def __init__(self,content = [],attrs = {},**restattrs):
-		self.content = XSCFrag(content)
+	def __init__(self,_content = [],_attrs = {},**_restattrs):
+		self.content = XSCFrag(_content)
 		self.attrs = XSCAttrs(self.attr_handlers,{})
 
-		self.attrs.update(attrs)
-		self.attrs.update(restattrs)
+		self.attrs.update(_attrs)
+		self.attrs.update(_restattrs)
 
 	def append(self,item):
 		if item is not None:
@@ -782,11 +782,11 @@ def RegisterElement(name,element):
 class XSCurl(XSCElement):
 	"""URLS (may be used as an element or an attribute)"""
 
-	def __init__(self,content = [],attrs = {},**restattrs):
-		if type(content) == types.InstanceType and content.__class__ == XSCurl:
-			self.content = content.content
+	def __init__(self,_content = [],_attrs = {},**_restattrs):
+		if type(_content) == types.InstanceType and _content.__class__ == XSCurl:
+			self.content = _content.content
 		else:
-			self.content = XSCFrag(content)
+			self.content = XSCFrag(_content)
 
 	def _dorepr(self):
 		return URLForInput(self.content.dostr())

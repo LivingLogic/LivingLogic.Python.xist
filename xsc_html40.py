@@ -31,9 +31,9 @@ class meta(XSCElement):
 	empty = 1
 	attr_handlers = AppendDict(i18n,{ "http_equiv" : XSCFrag , "http-equiv" : XSCFrag , "name" : XSCFrag ,"content" : XSCFrag ,"scheme" : XSCFrag })
 
-	def __init__(self,content = [],attrs = {},**restattrs):
+	def __init__(self,_content = [],_attrs = {},**_restattrs):
 		# we have two names for one and the same attribute http_equiv and http-equiv
-		apply(XSCElement.__init__,(self,content,attrs),restattrs)
+		apply(XSCElement.__init__,(self,_content,_attrs),_restattrs)
 		if self.has_attr("http_equiv"):
 			if not self.has_attr("http-equiv"):
 				self["http-equiv"] = self["http_equiv"]
