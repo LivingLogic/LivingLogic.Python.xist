@@ -126,6 +126,9 @@ class Empty(object):
 	"""
 	empty = True
 
+	def __repr__(self):
+		return "Empty()"
+
 	def checkvalid(self, node):
 		"""
 		check that the content of <arg>node</arg> is valid.
@@ -141,6 +144,9 @@ class NoElements(object):
 	from the same namespace.
 	"""
 	empty = False
+
+	def __repr__(self):
+		return "NoElements()"
 
 	def checkvalid(self, node):
 		"""
@@ -158,6 +164,9 @@ class NoElementsOrText(object):
 	from the same namespace nor real (i.e. not-whitespace) text nodes.
 	"""
 	empty = False
+
+	def __repr__(self):
+		return "NoElementsOrText()"
 
 	def checkvalid(self, node):
 		"""
@@ -178,6 +187,9 @@ class Elements(object):
 	nor real (i.e. not-whitespace) text nodes.
 	"""
 	empty = False
+
+	def __repr__(self):
+		return "Elements(%s)" % ", ".join(["%s.%s" % (cls.__module__, cls.__name__) for cls in self.elements])
 
 	def __init__(self, *elements):
 		"""
@@ -213,6 +225,9 @@ class ElementsOrText(Elements):
 	from the same namespace except those specified in the constructor.
 	"""
 
+	def __repr__(self):
+		return "ElementsOrText(%s)" % ", ".join(["%s.%s" % (cls.__module__, cls.__name__) for cls in self.elements])
+
 	def checkvalid(self, node):
 		"""
 		check that the content of <arg>node</arg> is valid.
@@ -228,6 +243,9 @@ class Any(object):
 	This validator declares any content to be valid.
 	"""
 	empty = False
+
+	def __repr__(self):
+		return "Any()"
 
 	def checkvalid(self, node):
 		"""
