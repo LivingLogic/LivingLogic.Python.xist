@@ -404,10 +404,7 @@ def ToNode(value):
 			elif l==0:
 				return Null
 			elif isinstance(value, Attr):
-				node = Frag() # repack the attribute in a fragment, and we have a valid XSC node
-				for child in value:
-					node.extend(child)
-				return node
+				return Frag(*value) # repack the attribute in a fragment, and we have a valid XSC node
 			else:
 				return value
 		elif isinstance(value, Node):
