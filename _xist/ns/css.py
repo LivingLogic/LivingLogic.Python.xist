@@ -1054,9 +1054,20 @@ class page_break_inside(prop):
 	"""
 	name = "page-break-inside"
 
-class atpage(prop):
+class atpage(xsc.Element):
 	"""
+	The &css;2 rule for specifying the page box.
 	"""
+	empty = 0
+	attrHandlers = {"sel": xsc.TextAttr}
+
+
+	def publish(self, publisher):
+		publisher.publish(u"@page ")
+		publisher.publish(unicode(self["sel"]))
+		publisher.publish(u"\n{\n")
+		self.content.publish(publisher)
+		publisher.publish(u"\n}")
 
 class orphans(prop):
 	"""
