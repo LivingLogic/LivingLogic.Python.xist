@@ -97,7 +97,7 @@ class checkbox(control):
 	def asString(self,XHTML = None):
 		e = html.input(self.attrs)
 		e["type"] = "checkbox"
-		if self.hasAttr("value") and string.atoi(self["value"].asPlainString()) != 0:
+		if self.hasAttr("value") and int(self["value"].asPlainString()) != 0:
 			e["checked"] = None
 		else:
 			del e["checked"]

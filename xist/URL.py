@@ -100,7 +100,7 @@ class URL:
 				self.path = self.path[1:] # if we had a http, the path from urlparse started with "/" too
 		pos = string.rfind(self.server,":")
 		if pos != -1:
-			self.port = string.atoi(self.server[pos+1:])
+			self.port = int(self.server[pos+1:])
 			self.server = self.server[:pos]
 		self.path = string.split(self.path,"/")
 		self.file = self.path[-1]

@@ -241,25 +241,25 @@ from errors import *
 
 # should remote URLs be retrieved? (for filesize and imagesize tests)
 try:
-	retrieveremote = string.atoi(os.environ["XSC_RETRIEVEREMOTE"])
+	retrieveremote = int(os.environ["XSC_RETRIEVEREMOTE"])
 except KeyError:
 	retrieveremote = 1
 
 # should local URLs be retrieved? (for filesize and imagesize tests)
 try:
-	retrievelocal = string.atoi(os.environ["XSC_RETRIEVELOCAL"])
+	retrievelocal = int(os.environ["XSC_RETRIEVELOCAL"])
 except KeyError:
 	retrievelocal = 1
 
 # chracters with an ASCII (or Unix) code above reprcharreflowerlimit wll be dumped as charcter references
 try:
-	reprcharreflowerlimit = string.atoi(os.environ["XSC_REPRCHARREFLOWERLIMIT"])
+	reprcharreflowerlimit = int(os.environ["XSC_REPRCHARREFLOWERLIMIT"])
 except KeyError:
 	reprcharreflowerlimit = 128
 
 # should ANSI escape sequences be used for dumping the DOM tree?
 try:
-	repransi = string.atoi(os.environ["XSC_REPRANSI"])
+	repransi = int(os.environ["XSC_REPRANSI"])
 except KeyError:
 	repransi = 0
 
@@ -271,7 +271,7 @@ except KeyError:
 
 # should the default ANSI escape sequences be a terminal with a dark or light background?
 try:
-	repransidark = string.atoi(os.environ["XSC_REPRANSI_DARK"])
+	repransidark = int(os.environ["XSC_REPRANSI_DARK"])
 except KeyError:
 	repransidark = 1
 
@@ -391,7 +391,7 @@ except KeyError:
 
 # should XHTML output format (empty element have a trailing /)
 try:
-	outputXHTML = string.atoi(os.environ["XSC_OUTPUT_XHTML"])
+	outputXHTML = int(os.environ["XSC_OUTPUT_XHTML"])
 except KeyError:
 	outputXHTML = 1
 
@@ -534,7 +534,7 @@ def string2Fragment(s):
 					if s[2] == "x":
 						e.append(CharRef(string.atoi(s[3:i],16)))
 					else:
-						e.append(CharRef(string.atoi(s[2:i])))
+						e.append(CharRef(int(s[2:i])))
 				else:
 					try:
 						e.append(entitiesByName[s[1:i]])
@@ -699,7 +699,7 @@ class Node:
 		"""
 		returns this node converted to an integer.
 		"""
-		return string.atoi(self.asPlainString())
+		return int(self.asPlainString())
 
 	def asFloat(self,decimal = "."):
 		"""
@@ -1868,8 +1868,8 @@ class XSC:
 			if name[0] == 'x':
 				code = string.atoi(name[1:],16)
 			else:
-				code = string.atoi(name)
-		except string.atoi_error:
+				code = int(name)
+		except ValueError:
 			raise MalformedCharRefError(xsc.parser.lineno,name)
 
 		self.__appendNode(CharRef(code))
