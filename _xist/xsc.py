@@ -2546,9 +2546,9 @@ class Attrs(Node, dict):
 		kept, all others are removed.</par>
 		"""
 		if xml:
-			return self.filtered(lambda n: n.__name__ in names)
-		else:
 			return self.filtered(lambda n: n.xmlname in names)
+		else:
+			return self.filtered(lambda n: n.__class__.__name__ in names)
 
 	def without(self, names=[], xml=False):
 		"""
@@ -2556,9 +2556,9 @@ class Attrs(Node, dict):
 		removed.</par>
 		"""
 		if xml:
-			return self.filtered(lambda n: n.__name__ not in names)
-		else:
 			return self.filtered(lambda n: n.xmlname not in names)
+		else:
+			return self.filtered(lambda n: n.__class__.__name__ not in names)
 
 _Attrs = Attrs
 
@@ -2683,9 +2683,9 @@ class Element(Node):
 			"""
 			def keep(node):
 				if xml:
-					name = node.__name__
-				else:
 					name = node.xmlname
+				else:
+					name = node.__class__.__name__
 				if node.__ns__ is None:
 					return name not in names
 				else:

@@ -662,25 +662,25 @@ class XISTTest(unittest.TestCase):
 		)
 		keys = node.attrs.keys()
 		keys.sort()
-		keys.remove("lang")
+		keys.remove("class_")
 
-		keys1 = node.attrs.without(["lang"]).keys()
+		keys1 = node.attrs.without(["class_"]).keys()
 		keys1.sort()
 		self.assertEqual(keys, keys1)
 
 		keys.remove((xml2, "space"))
-		keys2 = node.attrs.without(["lang", (xml, "space")]).keys()
+		keys2 = node.attrs.without(["class_", (xml, "space")]).keys()
 		keys2.sort()
 		self.assertEqual(keys, keys2)
 
 		keys.remove((xml2, "lang"))
 		keys.remove((xml2, "base"))
-		keys3 = node.attrs.without(["lang"], [xml]).keys()
+		keys3 = node.attrs.without(["class_"], [xml]).keys()
 		keys3.sort()
 		self.assertEqual(keys, keys3)
 
 		# Check that non existing attrs are handled correctly
-		keys4 = node.attrs.without(["lang", "src"], keepglobals=False).keys()
+		keys4 = node.attrs.without(["class_", "src"], keepglobals=False).keys()
 		keys4.sort()
 		self.assertEqual(keys, keys4)
 
