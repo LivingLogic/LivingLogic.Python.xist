@@ -537,24 +537,25 @@ is such an attribute, so we'll get:</par>
 
 <section><title>Namespaces</title>
 
-<par>Now that you've defined your own elements, you have to
-tell the parser about them, so they can be instantiated when
-a file is parsed. This is done with namespace classes.</par>
+<par>Now that you've defined your own elements, you have to tell the parser
+about them, so they can be instantiated when a file is parsed. This is done
+with namespace classes.</par>
 
 <par>Namespace classes can be thought of as object oriented versions of
 &xml; namespaces. Two class attributes can be used to configure the namespace:
-<lit>xmlname</lit> specifies the default namespace prefix to use for the namespace
-and <lit>xmlurl</lit> is the namespace name. All element classes nested inside the
-namespace class belong to the namespace.</par>
+<lit>xmlname</lit> specifies the default namespace prefix to use for the
+namespace and <lit>xmlurl</lit> is the namespace name. All element classes
+nested inside the namespace class belong to the namespace.</par>
 
-<par>It's also possible to define your namespace class without any nested element classes
-and later add those classes to the namespace by attribute assignment or with the class method
+<par>It's also possible to define your namespace class without any nested
+element classes and later add those classes to the namespace by attribute
+assignment or with the class method
 <pyref module="ll.xist.xsc" class="Namespace" method="update"><method>update</method></pyref>,
-which expects a dictionary as an argument. All objects found in the values of the
-dictionary will be added to the namespace as attributes. So you can put the namespace class
-at the end of your Python module after all the element classes are defined and
-add all the objects from the local scope to the namespace. Your complete namespace
-might looks like this:</par>
+which expects a dictionary as an argument. All objects found in the values of
+the dictionary will be added to the namespace as attributes. So you can put the
+namespace class at the end of your Python module after all the element classes
+are defined and add all the objects from the local scope to the namespace. Your
+complete namespace might looks like this:</par>
 <example><title>Defining and populating a namespace</title>
 <prog>
 class python(xsc.Element):
