@@ -361,13 +361,13 @@ def strTextInAttr(text):
 
 def strProcInst(node):
 	if node.presentPrefix!=0:
-		namespacename = node.prefix()
+		namespacename = xsc.classPrefix(node)
 	else:
 		namespacename = None
 	if hasattr(node, "name"):
 		target = node.name
 	else:
-		target = node.__class__.__name__
+		target = node.__name__
 	return strProcInstTarget(namespacename, target)
 
 def strProcInstTargetWithBrackets(namespacename=None, target=None):
