@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-from xist import xsc, html, specials, meta
+from xist import xsc, parsers
+from xist.ns import html, specials, meta
 
 class media(xsc.Element):
 	empty = 0
@@ -120,7 +121,7 @@ namespace = xsc.Namespace("media", "http://www.livinglogic.de/DTDs/Media.dtd", v
 if __name__=="__main__":
 	import time
 	t1 = time.clock()
-	xsc.xsc.parse("Media.xml").find(type=media).convert().write(open("Media.html","wb"))
+	parsers.parseFile("Media.xml").find(type=media).convert().write(open("Media.html","wb"))
 	t2 = time.clock()
 	print "%.02f sec" % (t2-t1)
 
