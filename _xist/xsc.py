@@ -238,8 +238,7 @@ class Node(Base):
 	"""
 	base class for nodes in the document tree. Derived classes must
 	overwrite <pyref method="convert"><method>convert</method></pyref>
-	and may overwrite <pyref method="publish"><method>publish</method></pyref>
-	and <pyref method="__unicode__"><method>__unicode__</method></pyref>.
+	and may overwrite <pyref method="publish"><method>publish</method></pyref>.
 	"""
 	# location of this node in the XML file (will be hidden in derived classes, but is
 	# specified here, so that no special tests are required. In derived classes
