@@ -464,8 +464,8 @@ class XISTTest(unittest.TestCase):
 		else:
 			return ".".join(map(self.node2str, node))
 
-	def check_walk(self, node, filter, result, filterpath=False, walkpath=False):
-		self.assertEqual(map(self.node2str, node.walk(filter, filterpath=filterpath, walkpath=walkpath)), result)
+	def check_walk(self, node, filter, result, filtermode=xsc.walknode, walkmode=xsc.walknode):
+		self.assertEqual(map(self.node2str, node.walk(filter, filtermode=filtermode, walkmode=walkmode)), result)
 
 	def test_walk1(self):
 		node = self.createfrag()
@@ -475,11 +475,11 @@ class XISTTest(unittest.TestCase):
 			return (True, xsc.enterattrs, xsc.entercontent, True)
 
 		list(node.walk((True, xsc.entercontent, True)))
-		list(node.walk((True, xsc.entercontent, True), walkpath=True))
+		list(node.walk((True, xsc.entercontent, True), walkmode=xsc.walkpath))
 		list(node.walk(filter1))
-		list(node.walk(filter1, walkpath=True))
-		list(node.walk(filter2, filterpath=True))
-		list(node.walk(filter2, filterpath=True, walkpath=True))
+		list(node.walk(filter1, walkmode=xsc.walkpath))
+		list(node.walk(filter2, filtermode=xsc.walkpath))
+		list(node.walk(filter2, filtermode=xsc.walkpath, walkmode=xsc.walkpath))
 
 	def test_walk2(self):
 		node = html.div(html.tr(html.th("gurk"), html.td("hurz"), id=html.b(42)), class_=html.i("hinz"))
@@ -518,10 +518,10 @@ class XISTTest(unittest.TestCase):
 		self.check_walk(node, filtertopdown, ["div", "tr", "th", "td"])
 		self.check_walk(node, filterbottomup, ["th", "td", "tr", "div"])
 		self.check_walk(node, filtertopdownattrs, ["div", "i", "tr", "b", "th", "td"])
-		self.check_walk(node, filtertopdownattrs, ["div", "div.class.i", "div.tr", "div.tr.id.b", "div.tr.th", "div.tr.td"], walkpath=True)
-		self.check_walk(node, filterbottomupattrs, ["div.class.i", "div.tr.id.b", "div.tr.th", "div.tr.td", "div.tr", "div"], walkpath=True)
-		self.check_walk(node, filtertopdowntextonlyinattr, ["div", "div.class.i", "div.class.i.#", "div.tr", "div.tr.id.b", "div.tr.id.b.#", "div.tr.th", "div.tr.td"], filterpath=True, walkpath=True)
-		self.check_walk(node, filtertopdownattrwithoutcontent, ["div", "div.tr", "div.tr.th", "div.tr.th.#", "div.tr.td", "div.tr.td.#", "div.tr.id", "div.class"], walkpath=True)
+		self.check_walk(node, filtertopdownattrs, ["div", "div.class.i", "div.tr", "div.tr.id.b", "div.tr.th", "div.tr.td"], walkmode=xsc.walkpath)
+		self.check_walk(node, filterbottomupattrs, ["div.class.i", "div.tr.id.b", "div.tr.th", "div.tr.td", "div.tr", "div"], walkmode=xsc.walkpath)
+		self.check_walk(node, filtertopdowntextonlyinattr, ["div", "div.class.i", "div.class.i.#", "div.tr", "div.tr.id.b", "div.tr.id.b.#", "div.tr.th", "div.tr.td"], filtermode=xsc.walkpath, walkmode=xsc.walkpath)
+		self.check_walk(node, filtertopdownattrwithoutcontent, ["div", "div.tr", "div.tr.th", "div.tr.th.#", "div.tr.td", "div.tr.td.#", "div.tr.id", "div.class"], walkmode=xsc.walkpath)
 
 	def test_locationeq(self):
 		l1 = xsc.Location(sysid="gurk", pubid="http://gurk.com", line=42, col=666)
