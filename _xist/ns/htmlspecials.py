@@ -135,17 +135,6 @@ class caps(xsc.Element):
 	def __unicode__(self):
 			return unicode(self.content).upper()
 
-class par(html.div):
-	empty = False
-	class Attrs(html.div.Attrs):
-		class noindent(xsc.BoolAttr): pass
-
-	def convert(self, converter):
-		e = html.div(self.content, self.attrs.without(["noindent"]))
-		if not self.attrs.has("noindent"):
-			e["class_"] = "indent"
-		return e.convert(converter)
-
 class autoimg(html.img):
 	"""
 	<par>An image were width and height attributes are automatically generated.</par>
