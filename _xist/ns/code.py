@@ -104,7 +104,7 @@ class exec_(xsc.ProcInst):
 
 	def __init__(self, content=u""):
 		xsc.ProcInst.__init__(self, content)
-		code = Code(unicode(self), 1)
+		code = Code(self.content, 1)
 		exec code.asString() in sandbox.__dict__ # requires Python 2.0b2 (and doesn't really work)
 
 	def convert(self, converter):
@@ -131,7 +131,7 @@ class eval_(xsc.ProcInst):
 		The <pyref arg="converter">converter</pyref> argument will be available
 		under the name <code>converter</code> as an argument to the function.</doc:par>
 		"""
-		code = Code(unicode(self), 1)
+		code = Code(self.content, 1)
 		code.funcify()
 		exec code.asString() in sandbox.__dict__ # requires Python 2.0b2 (and doesn't really work)
 		return xsc.ToNode(sandbox.__(converter)).convert(converter)
