@@ -36,7 +36,7 @@ class css(xsc.Element):
 			else:
 				publisher.publish(u"\n")
 			i.publish(publisher)
-		content = self.find(type=(rule, atmedia), subtype=1)
+		content = self.find(type=(rule, atmedia), subtype=True)
 		for child in content:
 			if first:
 				first = False
@@ -104,7 +104,7 @@ class atmedia(xsc.Element):
 		for i in imports:
 			publisher.publish(u"\n\t")
 			i.publish(publisher)
-		content = self.find(type=rule, subtype=1)
+		content = self.find(type=rule, subtype=True)
 		for child in content:
 			publisher.publish(u"\n\t")
 			child.publish(publisher)
