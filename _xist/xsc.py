@@ -55,6 +55,12 @@ def ToNode(value):
 		return Frag(*value)
 	elif isinstance(value, url.URL):
 		return Text(value)
+	else:
+		# Maybe it's an iterator?
+		try:
+			return Frag(*list(value))
+		except TypeError:
+			pass
 	warnings.warn(errors.IllegalObjectWarning(value)) # none of the above, so we report it and maybe throw an exception
 	return Null
 

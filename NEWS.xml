@@ -1,4 +1,12 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
+<section><title>Changes in 2.? (released ??/??/2004)</title>
+<ulist>
+<item><function>ToNode</function> now tries iterating through the
+value passed in, so it's now possible to pass iterators and generators
+to <class>Frag</class> and <class>Element</class> constructors.</item>
+</ulist>
+
+
 <section><title>Changes in 2.5 (released 06/30/2004)</title>
 <ulist>
 
