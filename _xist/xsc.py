@@ -814,7 +814,13 @@ class Frag(Node, list):
 		list.extend(node, list.__mul__(factor, self))
 		return node
 
-	# no need to implement __nonzero__ or __len__
+	def __nonzero__(self):
+		"""
+		<doc:par>return whether this fragment is not empty.</doc:par>
+		"""
+		return len(self) != 0
+
+	# no need to implement __len__
 
 	def append(self, *others):
 		"""
