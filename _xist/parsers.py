@@ -383,7 +383,7 @@ class HTMLParser(BadEntityParser):
 			if element.Attrs.isallowed(attrname, xml=True):
 				newattrs[attrname] = attrvalue
 			else:
-				warnings.warn(errors.IllegalAttrError(element.Attrs, attrname))
+				warnings.warn(errors.IllegalAttrError(element.Attrs, attrname, xml=True))
 		BadEntityParser.finish_starttag(self, name, newattrs)
 
 		if name.upper() in htmldtd.HTML_FORBIDDEN_END:
