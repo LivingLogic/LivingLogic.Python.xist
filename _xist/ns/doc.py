@@ -32,7 +32,12 @@ class base(xsc.Element):
 			raise ValueError("unknown conversion target %r" % target)
 		return e.convert(converter)
 
-class programlisting(base):
+class block(base):
+	"""
+	Base class for all block level elements
+	"""
+
+class programlisting(block):
 	"""
 	A literal listing of all or part of a program
 	"""
@@ -60,7 +65,7 @@ class programlisting(base):
 			e = target.blockquote(e)
 		return e
 
-class example(base):
+class example(block):
 	"""
 	A formal example
 	"""
@@ -267,7 +272,7 @@ class title(base):
 	def convert_html(self, converter):
 		return self.content.convert(converter)
 
-class section(base):
+class section(block):
 	"""
 	A recursive section
 	"""
@@ -319,7 +324,7 @@ class section(base):
 		else:
 			raise ValueError("unknown conversion target %r" % target)
 
-class par(base):
+class par(block):
 	"""
 	A paragraph
 	"""
@@ -333,7 +338,7 @@ class par(base):
 	def convert_html(self, converter):
 		return converter.target.p(self.content, class_=self["type"])
 
-class ulist(base):
+class ulist(block):
 	"""
 	A list in which each entry is marked with a bullet or other dingbat
 	"""
@@ -345,7 +350,7 @@ class ulist(base):
 	def convert_html(self, converter):
 		return converter.target.ul(self.content)
 
-class olist(base):
+class olist(block):
 	"""
 	A list in which each entry is marked with a sequentially incremented label
 	"""
@@ -357,7 +362,7 @@ class olist(base):
 	def convert_html(self, converter):
 		return converter.target.ol(self.content)
 
-class item(base):
+class item(block):
 	"""
 	A wrapper for the elements of a list item
 	"""
