@@ -4,6 +4,8 @@ New in 0.4.1
 A new module named meta has been created, that simplifies
 generating meta tags.
 
+Various small bugfixes.
+
 
 New in 0.4
 ----------
