@@ -2916,10 +2916,10 @@ class OldPrefixes(Prefixes):
 		super(OldPrefixes, self).__init__()
 		for ns in namespaceRegistry.all:
 			if ns.xmlurl == "http://www.w3.org/XML/1998/namespace":
-				self.addPrefixMapping("xml", ns)
+				self.addPrefixMapping("xml", ns, mode="append")
 			else:
-				self.addPrefixMapping(None, ns)
-				self.addPrefixMapping(ns.xmlprefix, ns)
+				self.addPrefixMapping(None, ns, mode="append")
+				self.addPrefixMapping(ns.xmlprefix, ns, mode="append")
 
 class DefaultPrefixes(Prefixes):
 	"""
