@@ -86,10 +86,10 @@ def dtd2xsc(dtdfilename, outfilename=None):
 		if pyelemname != elemname:
 			file.write('\txmlname = "%s"\n' % elemname)
 		elem = dtd.get_elem(elemname)
-		if elem.get_content_model()[1]:
-			empty = "False"
-		else:
+		if elem.get_content_model() == ("", [], ""):
 			empty = "True"
+		else:
+			empty = "False"
 
 		# write empty and attribute class
 		file.write('\tempty = %s\n' % empty)
