@@ -55,25 +55,28 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 		self.defaultEncoding = defaultEncoding
 		self.reset()
 
-	def whichParser(self):
+	def _whichparser(self):
 		return sgmlop.XMLParser()
 
+	def _makestring(self, data):
+		return unicode(data, self.encoding).replace(u"\r\n", u"\n").replace(u"\r", u"\n")
+
 	def reset(self):
-		self.parser = self.whichParser()
+		self.parser = self._whichparser()
 		self._parsing = 0
 		self.source = None
 		self.lineNumber = -1
 
 	def feed(self, data):
 		if not self._parsing:
-			self.content_handler.startDocument()
+			self._cont_handler.startDocument()
 			self._parsing = 1
 		self.parser.feed(data)
 
 	def close(self):
 		self._parsing = 0
 		self.parser.close()
-		self.content_handler.endDocument()
+		self._cont_handler.endDocument()
 
 	def parse(self, source):
 		self.source = source
@@ -82,8 +85,8 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 		if self.encoding is None:
 			self.encoding = self.defaultEncoding
 		self._parsing = 1
-		self.content_handler.setDocumentLocator(self)
-		self.content_handler.startDocument()
+		self._cont_handler.setDocumentLocator(self)
+		self._cont_handler.startDocument()
 		self.lineNumber = 1
 		# nothing done for the column number, because otherwise parsing would be much to slow.
 		self.headerJustRead = 0 # will be used for skipping whitespace after the XML header
@@ -108,25 +111,13 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 		except KeyboardInterrupt:
 			raise
 		except Exception, exc:
-			if self.error_handler is not None:
-				self.error_handler.fatalError(exc)
+			if self._err_handler is not None:
+				self._err_handler.fatalError(exc)
 			else:
 				raise
 		self.parser.register(None)
 		self.source = None
 		del self.encoding
-
-	def setErrorHandler(self, handler):
-		self.error_handler = handler
-
-	def setContentHandler(self, handler):
-		self.content_handler = handler
-
-	def setDTDHandler(self, handler):
-		self.dtd_handler = handler
-
-	def setEntityResolver(self, handler):
-		self.entity_resolver = handler
 
 	# Locator methods will be called by the application
 	def getColumnNumber(self):
@@ -161,7 +152,7 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 			super(SGMLOPParser, self).setFeature(name, state)
 
 	def handle_comment(self, data):
-		self.content_handler.comment(unicode(data, self.encoding))
+		self._cont_handler.comment(unicode(data, self.encoding))
 		self.headerJustRead = 0
 
 	# don't define handle_charref or handle_cdata, so we will get those through handle_data
@@ -175,20 +166,20 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 		else:
 			data = unichr(int(data))
 		if not self.headerJustRead or not data.isspace():
-			self.content_handler.characters(data)
+			self._cont_handler.characters(data)
 			self.headerJustRead = 0
 
 	def handle_data(self, data):
 		data = unicode(data, self.encoding).replace(u"\r\n", u"\n").replace(u"\r", u"\n")
 		if not self.headerJustRead or not data.isspace():
-			self.content_handler.characters(data)
+			self._cont_handler.characters(data)
 			self.headerJustRead = 0
 
 	def handle_proc(self, target, data):
 		target = unicode(target, self.encoding)
 		data = unicode(data, self.encoding)
 		if target!=u'xml': # Don't report <?xml?> as a processing instruction
-			self.content_handler.processingInstruction(target, data)
+			self._cont_handler.processingInstruction(target, data)
 			self.headerJustRead = 0
 		else: # extract the encoding
 			encodingFound = utils.findAttr(data, u"encoding")
@@ -198,17 +189,17 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 
 	def handle_entityref(self, name):
 		if name=="lt":
-			self.content_handler.characters(u"<")
+			self._cont_handler.characters(u"<")
 		elif name=="gt":
-			self.content_handler.characters(u">")
+			self._cont_handler.characters(u">")
 		elif name=="amp":
-			self.content_handler.characters(u"&")
+			self._cont_handler.characters(u"&")
 		elif name=="quot":
-			self.content_handler.characters(u'"')
+			self._cont_handler.characters(u'"')
 		elif name=="apos":
-			self.content_handler.characters(u"'")
+			self._cont_handler.characters(u"'")
 		else:
-			self.content_handler.skippedEntity(unicode(name, self.encoding))
+			self._cont_handler.skippedEntity(unicode(name, self.encoding))
 		self.headerJustRead = 0
 
 	def finish_starttag(self, name, attrs):
@@ -219,11 +210,11 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 			else:
 				attrvalue = self._string2Fragment(unicode(attrvalue, self.encoding))
 			newattrs._attrs[unicode(attrname, self.encoding)] = attrvalue
-		self.content_handler.startElement(unicode(name, self.encoding), newattrs)
+		self._cont_handler.startElement(unicode(name, self.encoding), newattrs)
 		self.headerJustRead = 0
 
 	def finish_endtag(self, name):
-		self.content_handler.endElement(unicode(name, self.encoding))
+		self._cont_handler.endElement(unicode(name, self.encoding))
 		self.headerJustRead = 0
 
 	def _string2Fragment(self, text):
@@ -248,7 +239,7 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 						else:
 							node.append(unichr(int(text[2:i])))
 					else:
-						node.append(self.content_handler.prefixes.entityFromQName(text[1:i])())
+						node.append(self._cont_handler.prefixes.entityFromQName(text[1:i])())
 					text = text[i+1:]
 				except ValueError:
 					raise errors.MalformedCharRefError(text)
@@ -311,39 +302,39 @@ class HTMLParser(BadEntityParser):
 	def __init__(self, namespaceHandling=0, bufsize=2**16-20, defaultEncoding="iso-8859-1"):
 		SGMLOPParser.__init__(self, namespaceHandling, bufsize, defaultEncoding)
 
-	def whichParser(self):
+	def _whichparser(self):
 		return sgmlop.SGMLParser()
 
 	def reset(self):
-		SGMLOPParser.reset(self)
-		self.__nesting = []
+		super(HTMLParser, self).reset()
+		self.__stack = []
 
 	def close(self):
-		while len(self.__nesting): # close all open elements
-			self.finish_endtag(self.__nesting[-1])
-		SGMLOPParser.close(self)
+		while len(self.__stack): # close all open elements
+			self.finish_endtag(self.__stack[-1])
+		super(HTMLParser, self).close()
 
 	def handle_comment(self, data):
 		self.__closeEmpty()
-		SGMLOPParser.handle_comment(self, data)
+		super(HTMLParser, self).handle_comment(data)
 
 	def handle_data(self, data):
 		self.__closeEmpty()
-		SGMLOPParser.handle_data(self, data)
+		super(HTMLParser, self).handle_data(data)
 
 	def handle_proc(self, target, data):
 		self.__closeEmpty()
-		SGMLOPParser.handle_proc(self, target, data)
+		super(HTMLParser, self).handle_proc(target, data)
 
 	def handle_entityref(self, name):
 		self.__closeEmpty()
-		SGMLOPParser.handle_entityref(self, name)
+		super(HTMLParser, self).handle_entityref(name)
 
 	def finish_starttag(self, name, attrs):
 		self.__closeEmpty()
 		name = name.lower()
 		if name != "html":
-			if not len(self.__nesting): # root element <html> missing?
+			if not len(self.__stack): # root element <html> missing?
 				self.finish_starttag("html", []) # add it
 			self.__closeMimimizedOnStart(name)
 
@@ -356,25 +347,25 @@ class HTMLParser(BadEntityParser):
 				newattrs[attrname] = attrvalue
 			else:
 				errors.warn(errors.IllegalAttrError(element.Attrs, attrname))
-		SGMLOPParser.finish_starttag(self, name, newattrs)
+		super(HTMLParser, self).finish_starttag(name, newattrs)
 
 	def finish_endtag(self, name):
 		name = name.lower()
-		if len(self.__nesting): # we ignore end tag without the matching start tags
-			if self.__nesting[-1] != name: # e.g. <div><img></div> when </div> is encountered
+		if len(self.__stack): # we ignore end tag without the matching start tags
+			if self.__stack[-1] != name: # e.g. <div><img></div> when </div> is encountered
 				self.__closeEmpty()
-			if self.__nesting[-1] != name:
+			if self.__stack[-1] != name:
 				self.__closeMinimizedOnEnd(name) #  maybe an open <p> tag etc. has been left open; eg. <div><p>gurk</div>
-			SGMLOPParser.finish_endtag(self, name)
-			del self.__nesting[-1]
+			super(HTMLParser, self).finish_endtag(name)
+			del self.__stack[-1]
 
 	def __closeEmpty(self):
-		if len(self.__nesting) and html.xmlns.elementsByName[self.__nesting[-1]].empty:
-			self.finish_endtag(self.__nesting[-1])
+		if len(self.__stack) and html.xmlns.elementsByName[self.__stack[-1]].empty:
+			self.finish_endtag(self.__stack[-1])
 
 	def __closeMimimizedOnStart(self, name):
-		if len(self.__nesting):
-			lastname = self.__nesting[-1]
+		if len(self.__stack):
+			lastname = self.__stack[-1]
 			try:
 				minigroup = self.minimizedElements[lastname]
 			except KeyError:
@@ -383,8 +374,8 @@ class HTMLParser(BadEntityParser):
 				self.finish_endtag(name)
 
 	def __closeMinimizedOnEnd(self, name):
-		if len(self.__nesting):
-			lastname = self.__nesting[-1]
+		if len(self.__stack):
+			lastname = self.__stack[-1]
 			try:
 				minigroup = self.minimizedElements[lastname]
 			except KeyError:
