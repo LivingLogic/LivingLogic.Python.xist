@@ -3,11 +3,11 @@
 import sys
 from xsc_html40 import *
 
-class XSCplaintable(XSCtable):
+class plaintable(table):
 	close = 1
 
 	def __str__(self):
-		e = XSCtable(self.content,self.attrs)
+		e = table(self.content,self.attrs)
 		if not e.has_attr("cellpadding"):
 			e["cellpadding"] = 0
 		if not e.has_attr("cellspacing"):
@@ -16,13 +16,13 @@ class XSCplaintable(XSCtable):
 			e["border"] = 0
 
 		return str(e)
-RegisterElement("plaintable",XSCplaintable)
+RegisterElement("plaintable",plaintable)
 
-class XSCplainbody(XSCbody):
+class plainbody(body):
 	close = 1
 
 	def __str__(self):
-		e = XSCbody(self.content,self.attrs)
+		e = body(self.content,self.attrs)
 		if not e.has_attr("leftmargin"):
 			e["leftmargin"] = 0
 		if not e.has_attr("topmargin"):
@@ -33,45 +33,45 @@ class XSCplainbody(XSCbody):
 			e["marginwidth"] = 0
 
 		return str(e)
-RegisterElement("plainbody",XSCplainbody)
+RegisterElement("plainbody",plainbody)
 
-class XSCz(XSCElement):
+class z(XSCElement):
 	close = 1
 
 	def __str__(self):
 		return str(XSCFrag(["«" , self.content , "»" ]))
-RegisterElement("z",XSCz)
+RegisterElement("z",z)
 
-class XSCnbsp(XSCElement):
+class nbsp(XSCElement):
 	close = 0
 
 	def __str__(self):
 		return "&nbsp;"
-RegisterElement("nbsp",XSCnbsp)
+RegisterElement("nbsp",nbsp)
 
-class XSCfilesize(XSCElement):
+class filesize(XSCElement):
 	close = 0
 	attr_handlers = { "href" : XSCurl }
 
 	def __str__(self):
 		return str(FileSize(str(self["href"])))
-RegisterElement("filesize",XSCfilesize)
+RegisterElement("filesize",filesize)
 
-class XSCx(XSCElement):
-	"content will be ignored: can be used to comment out stuff (e.g. linefeeds)"
+class x(XSCElement):
+	"""content will be ignored: can be used to comment out stuff (e.g. linefeeds)"""
 	close=1
 
 	def __str__(self):
 		return ""
-RegisterElement("x",XSCx)
+RegisterElement("x",x)
 
-class XSCpixel(XSCimg):
+class pixel(img):
 	close = 0
-	attr_handlers = AppendDict(XSCimg.attr_handlers,{ "color" : XSCFrag })
+	attr_handlers = AppendDict(img.attr_handlers,{ "color" : XSCFrag })
 	del attr_handlers["src"]
 
 	def __str__(self):
-		e = XSCimg(self.content,self.attrs - [ "color" ])
+		e = img(self.content,self.attrs - [ "color" ])
 		if self.has_attr("color"):
 			color = self["color"]
 		else:
@@ -79,9 +79,9 @@ class XSCpixel(XSCimg):
 		e["src"] = XSCFrag([":Images/Pixels/" , color , ".gif" ])
 
 		return str(e)
-RegisterElement("pixel",XSCpixel)
+RegisterElement("pixel",pixel)
 
-class XSCcap(XSCElement):
+class cap(XSCElement):
 	close = 1
 	
 	def __str__(self):
@@ -97,15 +97,15 @@ class XSCcap(XSCElement):
 				if innini==0:
 					result.append(collect)
 				else:
-					result.append(str(XSCspan([ string.upper(collect) ],Class="nini" )))
+					result.append(str(span([ string.upper(collect) ],Class="nini" )))
 				if i != len(e):
 					collect = e[i]
 				innini = 1-innini
 			else:
 				collect = collect + e[i]
 		return string.joinfields(result,"")
-RegisterElement("cap",XSCcap)
+RegisterElement("cap",cap)
 
 if __name__ == "__main__":
-	print str(xsc_parsefile(sys.argv[1]))
+	print str(xsc.parsefile(sys.argv[1]))
 
