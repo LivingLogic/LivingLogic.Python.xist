@@ -3,7 +3,7 @@
 from xsc_specials import *
 
 class page(XSCElement):
-	attr_handlers = { "title" : XSCTextAttr , "head" : XSCTextAttr , "align" : XSCTextAttr , "refresh" : XSCTextAttr , "class" : XSCTextAttr , "keywords" : XSCTextAttr , "description" : XSCTextAttr , "onload" : XSCTextAttr , "nohome" : XSCTextAttr , "nosearch" : XSCTextAttr , "nositemap" : XSCTextAttr , "nofaq" : XSCTextAttr }
+	attr_handlers = { "title" : XSCTextAttr , "head" : XSCTextAttr , "align" : XSCTextAttr , "refresh" : XSCTextAttr , "class" : XSCTextAttr , "keywords" : XSCTextAttr , "description" : XSCTextAttr , "onload" : XSCTextAttr , "nohome" : XSCTextAttr , "nosearch" : XSCTextAttr , "nositemap" : XSCTextAttr , "nofaq" : XSCTextAttr , "notinsitemap" : XSCTextAttr }
 	empty = 0
 
 	def asHTML(self):
