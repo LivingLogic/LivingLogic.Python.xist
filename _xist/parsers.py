@@ -424,10 +424,10 @@ class HTMLParser(SGMLOPParser):
 			else: # ; found
 				if part[0] != "#": # named entity
 					name = part[:pos]
-					if html.namespace.entitiesByName.has_key(name):
-						node.append(html.namespace.entitiesByName[name](), part[pos+1:])
-					elif xsc.namespace.entitiesByName.has_key(name):
-						node.append(xsc.namespace.entitiesByName[name](), part[pos+1:])
+					if html.namespace.charrefsByName.has_key(name):
+						node.append(html.namespace.charrefsByName[name](), part[pos+1:])
+					elif xsc.namespace.charrefsByName.has_key(name):
+						node.append(xsc.namespace.charrefsByName[name](), part[pos+1:])
 					else:
 						node.append("&", part)
 				else: # numeric entity
