@@ -34,6 +34,7 @@ import sys, keyword, os.path
 
 from xml.parsers.xmlproc import dtdparser
 
+from ll import url
 from ll.xist import xsc, parsers
 
 def pyify(name):
@@ -42,22 +43,33 @@ def pyify(name):
 	else:
 		newname = []
 		for c in name:
-			if "a" <= c <= "z" or "A" <= c <= "Z" or "0" <= c <= "z" or c == "_":
+			if "a" <= c <= "z" or "A" <= c <= "Z" or "0" <= c <= "9" or c == "_":
 				newname.append(c)
 			else:
 				newname.append("_")
 		return "".join(newname)
 
-def dtd2xsc(dtdfilename):
+def simplify(value):
+	try:
+		value = int(value)
+	except ValueError:
+		try:
+			value = str(value)
+		except UnicodeError:
+			pass
+	return value
+
+def dtd2xsc(dtdfilename, outfilename=None):
 	# get name of dtd without extension
 	modname = os.path.splitext(os.path.split(dtdfilename)[1])[0]
-	xscfilename = modname + ".py"
+	if outfilename is None:
+		outfilename = modname + ".py"
 
 	# parse dtd
 	dtd = dtdparser.load_dtd(sys.argv[1])
 
 	# write header
-	file = open(xscfilename, 'w')
+	file = open(outfilename, 'w')
 	file.write('#! /usr/bin/env python\n\n')
 	file.write('"""\n')
 	file.write('"""\n\n')
@@ -79,18 +91,50 @@ def dtd2xsc(dtdfilename):
 		else:
 			empty = "False"
 
-		# write empty and attributes
+		# write empty and attribute class
 		file.write('\tempty = %s\n' % empty)
 		attrs = elem.get_attr_list()
 		if len(attrs):
+			attrs.sort()
 			file.write('\tclass Attrs(xsc.Element.Attrs):\n')
 			for attrname in attrs:
-				pyattrname = pyify(attrname)
-				file.write('\t\tclass %s(xsc.TextAttr): ' % pyattrname)
-				if pyattrname != attrname:
-					file.write('xmlname = "%s"' % attrname)
+				if u":" in attrname:
+					continue # skip global attributes
+				pyattrname = pyify(attrname) # get a version of the name that can be used as a Python identifier.
+				attr = elem.get_attr(attrname)
+				values = None
+				if attr.type == "ID":
+					type = "IDAttr"
 				else:
-					file.write('pass')
+					type = "TextAttr"
+					if isinstance(attr.type, list):
+						if len(attr.type)>1:
+							values = repr(tuple([ simplify(value) for value in attr.type]))
+						else:
+							type = "BoolAttr"
+				if attr.default is not None:
+					default = repr(simplify(attr.default))
+				else:
+					default = None
+				if attr.decl=="#REQUIRED":
+					required = True
+				else:
+					required = None
+				file.write('\t\tclass %s(xsc.%s):' % (pyattrname, type))
+				if values is not None or default is not None or required is not None:
+					if pyattrname != attrname:
+						file.write('\n\t\t\txmlname = "%s"' % attrname)
+					if values is not None:
+						file.write('\n\t\t\tvalues = %s' % values)
+					if default is not None:
+						file.write('\n\t\t\tdefault = %s' % default)
+					if required is not None:
+						file.write('\n\t\t\trequired = True')
+				else:
+					if pyattrname != attrname:
+						file.write(' xmlname = "%s"' % attrname)
+					else:
+						file.write(' pass')
 				file.write('\n')
 		file.write('\n')
 
@@ -108,4 +152,4 @@ def dtd2xsc(dtdfilename):
 	file.close()
 
 if __name__ == "__main__":
-	dtd2xsc(sys.argv[1])
+	dtd2xsc(*sys.argv[1:3])
