@@ -518,9 +518,8 @@ class xmlns(xsc.Namespace):
 				node.append(charref(name=entname, codepoint=ord(unicode(ent[0])[0])))
 
 		# if the DTD has exactly one value for all fixed "xmlns" attributes and the user didn't specify an xmlurl, use this one
-		if xmlurl is None:
-			if len(xmlns)==1:
-				node["url"] = xmlns.popitem()[0]
+		if xmlurl is None and len(xmlns)==1:
+			node["url"] = xmlns.popitem()[0]
 		return node
 	fromdtd = classmethod(fromdtd)
 
