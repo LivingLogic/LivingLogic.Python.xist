@@ -602,3 +602,11 @@ class abbr(xsc.Namespace):
 			return converter.target.abbr("SVG", title="Scalable Vector Graphics", lang="en")
 		def __unicode__(self):
 			return u"SVG"
+
+	class utc(base):
+		def convert_docbook(self, converter):
+			return converter.target.abbrev("UTC", lang="en")
+		def convert_html(self, converter):
+			return converter.target.abbr("UTC", title="Coordinated Universal Time", lang="en")
+		def __unicode__(self):
+			return u"UTC"
