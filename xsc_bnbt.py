@@ -820,9 +820,9 @@ class busnav(XSCElement):
 		e = a(
 			img(
 				src = ":images/navigation/" + self["dir"] + ".gif",
-				border = 0
+				border = "0"
 			),
-			href = "javascript:" + dir + "()"
+			href = "javascript:" + self["dir"] + "()"
 		)
 		return e.asHTML()
 RegisterElement("busnav",busnav)
