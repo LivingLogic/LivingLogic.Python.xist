@@ -9,6 +9,10 @@ body
 	margin-left: 80pt;
 	margin-right: 30pt;
 }
+div.indent
+{
+	text-indent: 1.5em;
+}
 var.name
 {
 	font-family: monospace;

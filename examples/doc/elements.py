@@ -19,6 +19,22 @@ import string
 
 from xist import xsc,html,specials
 
+class par(html.div):
+	empty = 0
+	attrHandlers = xsc.appendDict(html.div.attrHandlers,{ "noindent" : xsc.TextAttr })
+
+	def asHTML(self):
+		e = html.div(self.content.clone())
+		indent = 1
+		for attr in self.attrs.keys():
+			if attr == "noindent":
+				indent = None
+			else:
+				e[attr] = self[attr]
+		if indent is not None:
+			e["class"] = "indent"
+		return e.asHTML()
+
 class module(xsc.Element):
 	"""
 	is the top element of a module description it contains a name (as an attribute),
