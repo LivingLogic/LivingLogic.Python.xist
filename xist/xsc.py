@@ -809,7 +809,7 @@ class XSCElement(XSCNode):
 		"""add width and height attributes to the element for the image that can be found in the attributes imgattr. if the attribute is already there it is taken as a formating template with the size passed in as a dictionary with the keys 'width' and 'height', i.e. you could make your image twice as wide with width='%(width)d*2'"""
 
 		if self.has_attr(imgattr):
-			url = str(self[imgattr])
+			url = URLForInput(str(self[imgattr]))
 			size = ImageSize(url)
 			sizedict = { "width": size[0], "height": size[1] }
 			if size[0] != -1: # the width was retrieved so we can use it
