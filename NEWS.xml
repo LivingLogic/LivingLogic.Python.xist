@@ -1,6 +1,11 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
 <section><title>Changes in CVS (released ??/??/2001)</title>
 <ul>
+<li>The global namespace registry now keeps a sequential list of all registered
+namespaces, which will be used by the parser when searching for names. This
+gives a predictable search order even with using <code>Namespaces/<code>
+and its <code>pushNamespace</code> method: modules imported last will be searched
+first.</li>
 <li>Processing Instructions are now allowed inside attributes when
 publishing.</li>
 </ul>
