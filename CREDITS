@@ -18,7 +18,7 @@ Hartmut Goebel (hartmut@goebel.noris.de)
 	and for the idea for handling empty attributes.
 
 Thoralf Hänsel (thoralf_haensel@hotmail.com)
-	for his WML module, ruby.py, dtd2xsc.py and docbook.py.
+	for his WML module, ruby.py, doc2xsc.py and docbook.py.
 
 Henning Thielemann (lemming@henning-thielemann.de)
 	for his idea of having a target language for the
