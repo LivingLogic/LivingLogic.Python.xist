@@ -1723,7 +1723,7 @@ class Namespaces:
 
 	def __splitName(self, name):
 		"""
-		split a qualified name into a namespace,name pair
+		split a qualified name into a (namespace, name) pair
 		"""
 		name = name.split(":")
 		if len(name) == 1: # no namespace specified
@@ -1732,13 +1732,14 @@ class Namespaces:
 
 	def __allNamespaces(self):
 		"""
-		returns a list of all namespaces to be searched in this order
+		<doc:par>returns a list of all namespaces to be searched in this order.</doc:par>
 		"""
 		return self.namespaces+namespaceRegistry.sequential
 
 	def elementFromName(self, name):
 		"""
-		returns the element class for the name name (which might include a namespace).
+		<doc:par>returns the element class for the name
+		<pyref arg="name">name</pyref> (which might include a namespace).</doc:par>
 		"""
 		name = self.__splitName(name)
 		for namespace in self.__allNamespaces():
@@ -1751,7 +1752,8 @@ class Namespaces:
 
 	def entityFromName(self, name):
 		"""
-		returns the entity or charref class for the name name (which might include a namespace).
+		<doc:par>returns the entity or charref class for the name
+		<pyref arg="name">name</pyref> (which might include a namespace).</doc:par>
 		"""
 		name = self.__splitName(name)
 		namespaces = self.__allNamespaces()
@@ -1773,7 +1775,8 @@ class Namespaces:
 
 	def procInstFromName(self, name):
 		"""
-		returns the processing instruction class for the name name (which might include a namespace).
+		<doc:par>returns the processing instruction class for the name
+		<pyref arg="name">name</pyref> (which might include a namespace).</doc:par>
 		"""
 		name = self.__splitName(name)
 		for namespace in self.__allNamespaces():
@@ -1786,7 +1789,7 @@ class Namespaces:
 
 	def charrefFromNumber(self, number):
 		"""
-		returns the first charref class for the codepoint number.
+		<doc:par>returns the first charref class for the codepoint <pyref arg="number">number</number>.</doc:par>
 		"""
 		for namespace in self.__allNamespaces():
 			try:
