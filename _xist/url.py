@@ -163,10 +163,10 @@ class URL:
 		if self.port is not None:
 			server += u":%d" % self.port
 		path = _normalize(self.path)
+		if scheme==u"server":
+			scheme = u"" # remove our own private scheme name
+			path.insert(0, u"") # make sure that there's a "/" at the start
 		if plain:
-			if scheme==u"server":
-				scheme = u"" # remove our own private scheme name
-				path.insert(0, u"") # make sure that there's a "/" at the start
 			if scheme == u"root":
 				scheme = u""
 		if self.scheme in urlparse.uses_netloc and (self.server is not None or self.port is not None) and not path:

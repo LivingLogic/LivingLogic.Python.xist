@@ -68,14 +68,8 @@ class Publisher:
 		<doc:par><pyref arg="publishPrefix">publishPrefix</pyref> specifies if the prefix from element name
 		should be output too.</doc:par>
 		"""
-		if base is None:
-			self.base = url.URL(scheme="root")
-		else:
-			self.base = url.URL(scheme="root")/url.URL(base)
-		if root is None:
-			self.root = url.URL(scheme="root")
-		else:
-			self.root = url.URL(scheme="root")/url.URL(root)
+		self.base = url.URL(base)
+		self.root = url.URL(root)
 		if encoding is None:
 			encoding = options.outputEncoding
 		self.encoding = encoding
@@ -100,6 +94,9 @@ class Publisher:
 			self.publish(helpers.escapeAttr(text, self.encoding))
 		else:
 			self.publish(helpers.escapeText(text, self.encoding))
+
+	def _publishableURL(self, url):
+		return url.relativeTo(self.base)
 
 class FilePublisher(Publisher):
 	"""

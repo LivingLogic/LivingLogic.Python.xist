@@ -27,6 +27,8 @@ is from PyXML). It includes a HTMLParser that uses sgmlop to parse HTML and emit
 SAX2 events. It also contains various classes derived from xml.sax.xmlreader.InputSource.</doc:par>
 """
 
+from __future__ import nested_scopes # for the lambda in the call to replaceInitialURL
+
 import sys, os, os.path, types, cStringIO as StringIO, urllib
 
 from xml import sax
@@ -482,25 +484,11 @@ class Handler:
 	def startElement(self, name, attrs):
 		node = self.namespaces.elementFromName(name)()
 		for (attrname, attrvalue) in attrs.items():
+			# for URLs incorporate the base URL into the value
 			if issubclass(node.attrHandlers[attrname], xsc.URLAttr) and hasattr(self.source, "base"):
 				if isinstance(attrvalue, types.UnicodeType):
 					attrvalue = xsc.Frag(attrvalue)
-				newattrvalue = xsc.Frag()
-				for i in xrange(len(attrvalue)):
-					v = attrvalue[i]
-					if isinstance(v, xsc.Text) or isinstance(v, xsc.CharRef):
-						newattrvalue.append(v)
-					else:
-						break
-				u = url_.URL(newattrvalue.asPlainString())
-				if u.scheme is None:
-					u = url_.URL(self.source.base)/u
-					newattrvalue = xsc.Frag(u.asString())
-					i += 1
-					while i < len(attrvalue):
-						newattrvalue.append(attrvalue[i])
-						i += 1
-					attrvalue = newattrvalue
+				attrvalue = utils.replaceInitalURL(attrvalue, lambda u: url_.URL(self.source.base)/u )
 			node[attrname] = attrvalue
 		self.__appendNode(node)
 		self.__nesting.append(node) # push new innermost element onto the stack

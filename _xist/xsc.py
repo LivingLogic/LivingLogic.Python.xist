@@ -1545,9 +1545,9 @@ class URLAttr(Attr):
 	def publish(self, publisher):
 		if publisher.inAttr:
 			raise errors.IllegalAttrNodeError(self)
+		new = utils.replaceInitialURL(self, publisher._publishableURL)
 		publisher.inAttr = 1
-		u = self.asURL().relativeTo(publisher.base)
-		Text(u.asPlainString()).publish(publisher)
+		new.publish(publisher)
 		publisher.inAttr = 0
 
 	def asURL(self):
@@ -1556,7 +1556,10 @@ class URLAttr(Attr):
 	def forInput(self, publisher=None):
 		u = self.asURL()
 		if publisher is not None:
-			u = url.URL(publisher.root)/url.URL(publisher.base)/u
+			u = url.URL(publisher.base)/u
+			if u.scheme == "root":
+				u.scheme = None
+			u = url.URL(publisher.root)/u
 		if u.scheme == "server":
 			u = url.URL(scheme="http", server=options.server)/u
 		return u
