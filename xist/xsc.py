@@ -724,7 +724,7 @@ class Node:
 		node.endloc = self.endloc
 		return node
 
-class Text(Node):
+class Text(Node, UserString):
 	"""
 	text node. The characters <, >, & and " will be "escaped" with the
 	appropriate character entities.
@@ -733,10 +733,11 @@ class Text(Node):
 	def __init__(self, content=""):
 		if type(content) in (types.IntType, types.LongType, types.FloatType):
 			content = str(content)
-		self.content = stringFromCode(content)
+		content = stringFromCode(content)
+		UserString.__init__(content)
 
 	def asHTML(self):
-		return self._decorateNode(Text(self.content))
+		return self
 
 	clone = asHTML
 
@@ -764,7 +765,7 @@ class Text(Node):
 				do = 1
 			else:
 				c = content[end] # ... or if the character we're at is different from those we've collected so far
-				ascharref = (0 <= ord(c) <= 31) or publishers.mustBeEncodedAsCharRef(c, encoding)
+				ascharref = (0 <= ord(c) <= 31) or (128 <= ord(c) <= 159) or publishers.mustBeEncodedAsCharRef(c, encoding)
 				if not refwhite and (c == u"\n" or c == u"\t"):
 					ascharref = 0
 				if ascharref != charref:
@@ -804,54 +805,6 @@ class Text(Node):
 				return self._decorateNode(Text(self.content))
 		else:
 			return Null
-
-class CharRef(Node):
-	"""
-	character reference (i.e <code>&amp;#42</code>; or <code>&amp;#x42;</code>
-	or <code>&amp;uuml;</code>) The content member of the node will be the
-	ASCII code of the character.
-	"""
-
-	def __init__(self, content = 42):
-		self.content = content
-
-	def asHTML(self):
-		return self._decorateNode(CharRef(self.content))
-
-	clone = asHTML
-
-	def asPlainString(self):
-		return unichr(self.content)
-
-	def publish(self, publisher):
-		s = chr(self.content)
-		try:
-			s = publishers.strescapes[s]
-		except KeyError:
-			s = "#" + str(self.content)
-		publisher(u"&", publisher._encodeIllegal(s), u";")
-
-	def _dorepr(self, ansi = None):
-		return strCharRef("&#"+str(self.content)+";", ansi)
-
-	def _doreprtree(self, nest, elementno, encoding=None, ansi=None):
-		s = strCharRef("&#" + str(self.content) + ";", ansi) + " (" + strCharRef("&#x" + hex(self.content)[2:] + ";", ansi)
-		entstr = []
-		for name in namespaceRegistry.byPrefix.keys():
-			for entity in namespaceRegistry.byPrefix[name].entitiesByNumber[self.content]:
-				entstr.append(entity()._dorepr(ansi = ansi))
-		if len(entstr):
-			s += ", " + ", ".join(entstr)
-		s += ")"
-		if not publishers.mustBeEncodedAsCharRef(chr(self.content), encoding):
-			s += ' ' + Text(chr(self.content))._doreprtree(0, 0, encoding, ansi)[0][-1]
-		return [[nest, self.startloc, elementno, s]]
-
-	def compact(self):
-		if self.content in self.__linefeeds:
-			return Null
-		else:
-			return self._decorateNode(CharRef(self.content))
 
 class Frag(Node):
 	"""
@@ -1553,7 +1506,7 @@ class Entity(Node):
 	"""
 
 	def asHTML(self):
-		node = CharRef(self.codepoint)
+		node = Text(unichr(self.codepoint))
 		return self._decorateNode(node)
 
 	def compact(self):

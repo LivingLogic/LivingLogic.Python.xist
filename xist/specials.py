@@ -76,7 +76,7 @@ class nbsp(xsc.Element):
 	empty = 1
 
 	def asHTML(self):
-		return xsc.CharRef(160)
+		return xsc.Text(unichr(160))
 
 class filesize(xsc.Element):
 	"""

@@ -144,7 +144,7 @@ class Provider:
 		except ValueError:
 			raise errors.MalformedCharRefError(self.__here(), name)
 
-		self.__appendNode(xsc.CharRef(code))
+		self.__appendNode(xsc.Text(unichr(code)))
 
 	def parseLines(self, lines):
 		self.__nesting = [xsc.Frag()]
@@ -179,9 +179,6 @@ class Provider:
 			if isinstance(node, xsc.Text):
 				last[-1].content += node.content
 				return
-			elif isinstance(node, xsc.CharRef):
-				last[-1].content += unichr(node.content)
-				return
 		last.append(node) # add the new node to the content of the innermost element (or fragment)
 
 	def __string2Fragment(self, text):
@@ -201,9 +198,9 @@ class Provider:
 					i = text.index(";")
 					if text[1] == "#":
 						if text[2] == "x":
-							node.append(xsc.CharRef(int(text[3:i], 16)))
+							node.append(xsc.Text(unichr(int(text[3:i], 16))))
 						else:
-							node.append(xsc.CharRef(int(text[2:i])))
+							node.append(xsc.Text(unichr(int(text[2:i]))))
 					else:
 						try:
 							node.append(self.entityFromName(text[1:i])())
