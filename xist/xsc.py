@@ -53,21 +53,21 @@ the method asString():
 In XIST you're not limited to the HTML element types.
 You can define your own! To be able to convert these
 new element types to a HTML object tree, you must implement
-the method asHTML, and you must derive your class from
+the method transform, and you must derive your class from
 xsc.Element as in the following example:
 
 	class cool(xsc.Element):
 		empty = 1
 
-		def asHTML(self, mode=None):
+		def transform(self, transformer=None):
 			return html.b("Python is cool!")
 
 Using this element is as simple as this:
 	e = cool()
-	print e.asHTML().asString()
+	print e.transform().asString()
 
-(The additional argument mode allows you to implement
-different processing modes)
+(The additional argument transformer allows you to implement
+different processing modes or stages)
 
 The class variable empty in the above example specifies
 that the element type has an empty content model (like <br/>
@@ -154,7 +154,7 @@ will be output as "../../images/gurk.png".
 
 There is another situation where you will want to manually
 push an URL onto the stack: When some of your own elements
-generate new URLs in their asHTML() methods. As this
+generate new URLs in their transform() methods. As this
 conversion happens sometime after the file is parsed, the URL
 of the file is already gone from the stack. But of course
 you will want new URLs to be interpreted relative to the file
@@ -164,13 +164,13 @@ be combined into the following:
 	url = "foo/bar/baz.xml"
 	element = xsc.xsc.parse(url)
 	xsc.xsc.pushURL(url)
-	str = element.asHTML().asString()
+	str = element.transform().asString()
 	xsc.xsc.popURL()
 
 Automatic generation of image size attributes
 =============================================
 The module special contains an element autoimg, that extends
-html.img. When converted to HTML via the asHTML() method the
+html.img. When converted to HTML via the transform() method the
 size of the image will be determined and the HEIGHT
 and WIDTH attributes will be set accordingly.
 
@@ -191,7 +191,7 @@ xsc-eval. The content of xsc-exec will be executed when the processing
 instruction node is instantiated, i.e. when the XML file is parsed,
 so anything you do there will be available afterwards.
 
-The result of a call to asHTML() for a xsc-eval processing instruction
+The result of a call to transform() for a xsc-eval processing instruction
 is whatever the Python code in the content returns. For example, consider
 the following XML file:
 	<?xsc-exec
@@ -332,7 +332,7 @@ def ToNode(value):
 class Node:
 	"""
 	base class for nodes in the document tree. Derived classes must
-	implement <methodref>asHTML</methodref> and may implement
+	implement <methodref>transform</methodref> and may implement
 	<methodref>publish</methodref> and <methodref>asPlainString</methodref>.
 	"""
 
@@ -390,10 +390,10 @@ class Node:
 		# (nestinglevel, location, elementnumber, string representation) of the nodes
 		return [[nest, self.startloc, elementno, self._dorepr(presenter)]]
 
-	def asHTML(self, mode=None):
+	def transform(self, transformer=None):
 		"""
 		<par noindent>returns a version of this node and it's content converted to HTML,
-		so when you define your own element classes you should overwrite <methodref>asHTML</methodref>.</par>
+		so when you define your own element classes you should overwrite <methodref>transform</methodref>.</par>
 
 		<par>E.g. when you want to define an element that packs it's content into an HTML
 		bold element, do the following:
@@ -402,8 +402,8 @@ class Node:
 		def foo(xsc.Element):
 			empty = 0
 
-			def asHTML(self, mode=None):
-				return html.b(self.content).asHTML(mode)
+			def transform(self, transformer=None):
+				return html.b(self.content).transform(transformer)
 		</pre>
 		</par>
 		"""
@@ -421,9 +421,9 @@ class Node:
 		class caps(xsc.Element):
 			empty = 0
 
-			def asHTML(self, mode=None):
+			def transform(self, transformer=None):
 				return html.span(
-					self.content.asHTML(mode),
+					self.content.transform(transformer),
 					style="font-variant: small-caps;"
 				)
 		</pre>
@@ -771,10 +771,10 @@ class Text(Node, StringMixIn):
 			content = content._content
 		StringMixIn.__init__(self, content)
 
-	def asHTML(self, mode=None):
+	def transform(self, transformer=None):
 		return self
 
-	clone = asHTML
+	clone = transform
 
 	def asPlainString(self):
 		return self._content
@@ -814,9 +814,9 @@ class Frag(Node):
 		for child in content:
 			self.extend(child)
 
-	def asHTML(self, mode=None):
+	def transform(self, transformer=None):
 		node = self.__class__() # virtual constructor => attributes (which are derived from Frag) will be handled correctly)
-		node.__content = [ child.asHTML(mode) for child in self.__content ]
+		node.__content = [ child.transform(transformer) for child in self.__content ]
 		return self._decorateNode(node)
 
 	def clone(self):
@@ -994,7 +994,7 @@ class Comment(Node, StringMixIn):
 	def __init__(self, content=""):
 		StringMixIn.__init__(self, content)
 
-	def asHTML(self, mode=None):
+	def transform(self, transformer=None):
 		return self
 
 	def clone(self):
@@ -1027,7 +1027,7 @@ class DocType(Node, StringMixIn):
 	def __init__(self, content=""):
 		StringMixIn.__init__(self, content)
 
-	def asHTML(self, mode=None):
+	def transform(self, transformer=None):
 		return self
 
 	def clone(self):
@@ -1069,7 +1069,7 @@ class ProcInst(Node, StringMixIn):
 		self._target = utils.stringFromCode(target)
 		StringMixIn.__init__(self, content)
 
-	def asHTML(self, mode=None):
+	def transform(self, transformer=None):
 		return self
 
 	def clone(self):
@@ -1129,7 +1129,7 @@ class Exec(PythonCode):
 		code = utils.Code(self._content, 1)
 		exec code.asString() in procinst.__dict__ # requires Python 2.0b2 (and doesn't really work)
 
-	def asHTML(self, mode=None):
+	def transform(self, transformer=None):
 		return Null # has been executed at construction time already, so we don't have to do anything here
 
 class Eval(PythonCode):
@@ -1152,15 +1152,15 @@ class Eval(PythonCode):
 	def __init__(self, content=u""):
 		ProcInst.__init__(self, u"xsc-eval", content)
 
-	def asHTML(self, mode=None):
+	def transform(self, transformer=None):
 		"""
-		Evaluates the code. The <argref>mode</argref> argument will be available under the
-		name <code>mode</code> as an argument.
+		Evaluates the code. The <argref>transformer</argref> argument will be available
+		under the name <code>transformer</code> as an argument.
 		"""
 		code = utils.Code(self._content, 1)
 		code.funcify()
 		exec code.asString() in procinst.__dict__ # requires Python 2.0b2 (and doesn't really work)
-		return ToNode(procinst.__(mode)).asHTML(mode)
+		return ToNode(procinst.__(transformer)).transform(transformer)
 
 class XML(ProcInst):
 	"""
@@ -1292,11 +1292,11 @@ class Element(Node):
 		if self.empty and len(self):
 			raise errors.EmptyElementWithContentError(self)
 
-	def asHTML(self, mode=None):
+	def transform(self, transformer=None):
 		node = self.__class__() # "virtual" copy constructor
-		node.content = self.content.asHTML(mode) # this is faster than passing it in the constructor (no ToNode call)
+		node.content = self.content.transform(transformer) # this is faster than passing it in the constructor (no ToNode call)
 		for attr in self.attrs.keys():
-			node.attrs[attr] = self.attrs[attr].asHTML(mode)
+			node.attrs[attr] = self.attrs[attr].transform(transformer)
 		return self._decorateNode(node)
 
 	def clone(self):
@@ -1309,7 +1309,7 @@ class Element(Node):
 	def asPlainString(self):
 		return self.content.asPlainString()
 
-	def _addImageSizeAttributes(self, mode, imgattr, widthattr=None, heightattr=None):
+	def _addImageSizeAttributes(self, transformer, imgattr, widthattr=None, heightattr=None):
 		"""
 		<par noindent>add width and height attributes to the element for the image that can be found in the attribute
 		<argref>imgattr</argref>. If the attributes are already there, they are taken as a formatting
@@ -1321,14 +1321,14 @@ class Element(Node):
 		"""
 
 		if self.hasAttr(imgattr):
-			size = self[imgattr].asHTML(mode).ImageSize()
+			size = self[imgattr].transform(transformer).ImageSize()
 			if size is not None: # the size was retrieved so we can use it
 				sizedict = {"width": size[0], "height": size[1]}
 				for attr in (heightattr, widthattr):
 					if attr is not None: # do something to the width/height
 						if self.hasAttr(attr):
 							try:
-								s = self[attr].asHTML(mode).asPlainString() % sizedict
+								s = self[attr].transform(transformer).asPlainString() % sizedict
 								s = str(eval(s))
 								s = utils.stringFromCode(s)
 								self[attr] = s
@@ -1532,14 +1532,14 @@ class Element(Node):
 class Entity(Node):
 	"""
 	<par noindent>Class for entities. Derive your own entities from
-	it and implement <code>asHTML()</code> and <code>asPlainString()</code>.</par>
+	it and implement <code>transform()</code> and <code>asPlainString()</code>.</par>
 
 	<par>If this entity is a simple character reference, you don't have to implement
 	those functions. Simply set the class attribute <code>codepoint</code>, and
 	you're done.</par>
 	"""
 
-	def asHTML(self, mode=None):
+	def transform(self, transformer=None):
 		node = Text(unichr(self.codepoint))
 		return self._decorateNode(node)
 
@@ -1573,7 +1573,7 @@ class Null(Node):
 	node that does not contain anything.
 	"""
 
-	def asHTML(self, mode=None):
+	def transform(self, transformer=None):
 		return self
 
 	def clone(self):
@@ -1681,8 +1681,8 @@ class URLAttr(Attr):
 	def publish(self, publisher):
 		Text(self.forOutput().asPlainString()).publish(publisher)
 
-	def asHTML(self, mode=None):
-		node = Attr.asHTML(self, mode)
+	def transform(self, transformer=None):
+		node = Attr.transform(self, transformer)
 		node.base = self.base.clone()
 		return node
 

@@ -100,7 +100,7 @@ def make():
 			e_in = xsc.xsc.parse(inname)
 			t2 = time.clock()
 			xsc.xsc.pushURL(inname)
-			e_out = e_in.asHTML(mode)
+			e_out = e_in.transform(transformer)
 			t3 = time.clock()
 			p = publishers.FilePublisher(utils.forceopen(outname.asPlainString(), "wb", 65536), encoding=encoding, XHTML=XHTML)
 			e_out.publish(p)

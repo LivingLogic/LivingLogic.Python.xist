@@ -38,11 +38,13 @@ class StringBuffer:
 
 class Text(UserList.UserList):
 	"""
-	a colored string, that may consist of
-	many parts, some of them may be Text
-	objects themselves.
+	a colored string, colors can be numbers from
+	0 to 15 for the 16 ANSI colors or -1 if this
+	Text should use the current color. A Text object
+	itself is a list, the list entries may either be
+	strings or Text objects themselves.
 	"""
-	color = 0x7 # default color
+	color = -1 # the default color, which means "do not switch color"
 
 	def __init__(self, *data):
 		UserList.UserList.__init__(self, data)
@@ -58,30 +60,60 @@ class Text(UserList.UserList):
 		"""
 		writes self to the Stream object stream.
 		"""
-		stream.pushColor(self.getColor())
+		color = self.getColor()
+		if color != -1:
+			stream.pushColor(color)
 		for text in self.data:
 			if isinstance(text, Text):
 				text.write(stream)
 			else:
 				stream.write(text)
-		stream.popColor()
+		if color != -1:
+			stream.popColor()
 
 	def __repr__(self):
 		return self.__class__.__name__ + "(" + ", ".join([ repr(text) for text in self.data ]) + ")"
 
 	def __str__(self):
+		"""
+		return the resulting string with ANSI color escape sequences.
+		"""
 		buffer = StringBuffer()
 		stream = Stream(buffer)
 		self.write(stream)
 		stream.finish()
 		return str(buffer)
 
+class EscapedText(Text):
+	"""
+	An extension to the text class. Special characters can be replaced
+	by customized Text objects via the escapeChar method.
+	"""
+	def __init__(self, *data):
+		newdata = []
+		for text in data:
+			if isinstance(text, Text):
+				newdata.append(text)
+			else:
+				for c in text:
+					c = self.escapeChar(c)
+					newdata.append(c)
+		Text.__init__(self, *newdata)
+
+	def escapeChar(self, char):
+		"""
+		return a replacement Text object for the character char
+		or char itself, if the character should be used as is.
+		This method should be overwritten by subclasses.
+		"""
+		return char
+
 class Stream:
 	"""
 	adds color capability to an output stream. A Stream
 	keeps track of the current color and writes ANSI color escape
 	sequences to the stream where appropriate. colors are numbers
-	from 0 to 15.
+	from 0 to 15 (or -1 for "no color change").
 	"""
 
 	def __init__(self, stream):
@@ -108,10 +140,10 @@ class Stream:
 		"""
 		internal method: switches to the color color.
 		If color is different from the currently active
-		color, the appropriate ANSI escape sequence will
-		be written to the stream.
+		color (and not -1), the appropriate ANSI escape
+		sequence will be written to the stream.
 		"""
-		if self._activeColor != color:
+		if color != -1 and self._activeColor != color:
 			if color == 0x7:
 				s = "0"
 			else:
@@ -145,3 +177,4 @@ class Stream:
 		color.
 		"""
 		self._switchColor(7)
+

@@ -43,7 +43,7 @@ class switch(xsc.Element):
 	empty = 0
 	attrHandlers = {"var": xsc.TextAttr}
 
-	def asHTML(self, mode=None):
+	def transform(self, transformer=None):
 		cases = self.find(type=case)
 
 		return xsc.Null
@@ -52,16 +52,16 @@ class case(xsc.Element):
 	empty = 0
 	attrHandlers = {"case": xsc.TextAttr}
 
-	def asHTML(self, mode=None):
-		return self.content.asHTML(mode)
+	def transform(self, transformer=None):
+		return self.content.transform(transformer)
 
 class If(xsc.Element):
 	empty = 0
 	attrHandlers = {"cond": CondAttr}
 	name = "if"
 
-	def asHTML(self, mode=None):
-		intruecondition = self.__testCond(self["cond"], mode)
+	def transform(self, transformer=None):
+		intruecondition = self.__testCond(self["cond"], transformer)
 		truecondition = xsc.Frag()
 		for child in self.content:
 			if isinstance(child, ElIf):
@@ -77,10 +77,10 @@ class If(xsc.Element):
 			else:
 				if intruecondition:
 					truecondition.append(child)
-		return truecondition.asHTML(mode)
+		return truecondition.transform(transformer)
 
-	def __testCond(self, attr, mode):
-		cond = attr.asHTML(mode).asPlainString()
+	def __testCond(self, attr, transformer):
+		cond = attr.transform(transformer).asPlainString()
 		result = eval(str(cond), procinst.__dict__)
 		return result
 
@@ -89,14 +89,14 @@ class ElIf(xsc.Element):
 	attrHandlers = {"cond": CondAttr}
 	name = "elif"
 
-	def asHTML(self, mode=None):
+	def transform(self, transformer=None):
 		return xsc.Null
 
 class Else(xsc.Element):
 	empty = 1
 	name = "else"
 
-	def asHTML(self, mode=None):
+	def transform(self, transformer=None):
 		return xsc.Null
 
 namespace = xsc.Namespace("cond", "http://www.livinglogic.de/DTDs/cond.dtd", vars())

@@ -298,7 +298,7 @@ class p(xsc.Element):
 	"""
 	empty = 0
 	attrHandlers = coreattrs.copy()
-	attrHandlers.update({"align": xsc.TextAttr, "mode": xsc.TextAttr}) 
+	attrHandlers.update({"align": xsc.TextAttr, "mode": xsc.TextAttr})
 
 class br(xsc.Element):
 	"""
@@ -306,7 +306,7 @@ class br(xsc.Element):
 	"""
 	empty = 1
 	attrHandlers = coreattrs.copy()
-	attrHandlers.update({"type": xsc.TextAttr}) 
+	attrHandlers.update({"type": xsc.TextAttr})
 
 class pre(xsc.Element):
 	"""

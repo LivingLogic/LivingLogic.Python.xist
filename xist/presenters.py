@@ -42,26 +42,21 @@ def getIntFromEnv(name, default):
 	except:
 		return default
 
-def getANSICodesFromEnv(name, default):
-	"""
-	parses an environment variable from a string list and returns it or
-	the default if the environment variable can't be found or parsed.
-	"""
-
 class EnvText(color.Text):
 	def __init__(self, *data):
 		color.Text.__init__(self, *data)
-		try:
-			var = eval(os.environ[self.envname])
-			if type(var) is types.StringType:
-				var = [var, var]
-			self.color = var
-		except:
-			self.color = self.default
+		if not "color" in self.__class__.__dict__.keys(): # no inheritance
+			try:
+				var = eval(os.environ[self.envname])
+				if type(var) is types.StringType:
+					var = (var, var)
+				self.__class__.color = var
+			except:
+				self.__class__.color = self.default
 
 	def getColor(self):
 		if options.repransi==0:
-			return 0x7
+			return -1
 		else:
 			return self.color[options.repransi-1]
 
@@ -215,6 +210,33 @@ class EnvTextForProcInstData(EnvText):
 	envname = "XSC_REPRANSI_PROCINSTDATA"
 	default = (0x7, 0x7)
 
+class EscInlineText(color.EscapedText):
+	ascharref = "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x0b\x0c\x0d\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f<>&"
+	ascolor   = "\x09\x0a"
+
+	def escapeChar(self, char):
+		if char in self.ascolor:
+			return EnvTextForTab(char)
+		else:
+			ascharref = char in self.ascharref
+			if not ascharref:
+				try:
+					char.encode(options.reprEncoding)
+				except:
+					ascharref = 1
+			if ascharref:
+				charcode = ord(char)
+				entity = xsc.defaultNamespaces.entityFromNumber(charcode)
+				if entity is not None:
+					return EnvTextForCharRef("&", entity.name, ";")
+				else:
+					return EnvTextForCharRef("&#", str(charcode), ";")
+		return char
+
+class EscInlineAttr(EscInlineText):
+	ascharref = "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x0b\x0c\x0d\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f<>\"&"
+	ascolor   = "\x09\x0a"
+
 class Presenter:
 	"""
 	base class for all presenters.
@@ -227,157 +249,93 @@ class Presenter:
 		if encoding is None:
 			encoding = options.reprEncoding
 		self.encoding = encoding
-		self.refwhite = 0
 		self.ansi = ansi
 
 	def reset(self):
-		self.buffer = StringBuffer()
-		self.stream = NamedANSIColorStream(self.buffer, self.ansi)
+		self.buffer = color.StringBuffer()
+		self.stream = color.Stream(self.buffer)
 		self.inAttr = 0
 
-	def _colorText(self, text):
-		v = [] # collect all colored string here
-		for c in text:
-			oc = ord(c)
-			ascharref = (oc <= 31) or (128 <= oc <= 159)
-			if not ascharref:
-				try:
-					c.encode(self.encoding)
-				except UnicodeError:
-					ascharref = 1
-			if (c == "\n" or c == "\t") and not self.refwhite:
-				self.stream.writeWithColor("tab", c)
-			elif ascharref:
-				entity = self.namespaces.entityFromNumber(oc)
-				if entity is not None:
-					self.stream.writeWithColor("charref", "&", entity.name, ";")
-				else:
-					self.stream.writeWithColor("charref", "&#", str(oc), ";")
-			else:
-				self.stream.write(c.encode(self.encoding))
-
-	def writeElement(self, node):
+	def strElement(self, node):
+		s = color.Text()
 		if hasattr(node, "namespace"):
-			self.stream.pushColor("namespace")
-			self._colorText(node.namespace.prefix)
-			self.stream.popColor()
-			self.writeColon()
+			s.append(EnvTextForNamespace(EscInlineText(node.namespace.prefix)))
+			s.append(self.strColon())
 		if hasattr(node, "name"):
 			name = node.name
 		else:
 			name = node.__class__.name
-		self.stream.pushColor("elementname")
-		self._colorText(name)
-		self.stream.popColor()
+		s.append(EnvTextForElementName(EscInlineText(name)))
+		return s
 
-	def writeEntity(self, node):
-		self.stream.write("&")
+	def strEntity(self, node):
+		s = color.Text("&")
 		if hasattr(node, "namespace"):
-			self.stream.pushColor("namespace")
-			self._colorText(node.namespace.prefix)
-			self.writeColon()
-			self.stream.popColor()
+			s.append(EnvTextForNamespace(EscInlineText(node.namespace.prefix)))
+			s.append(EnvTextForColon(":"))
 		if hasattr(node, "name"):
 			name = node.name
 		else:
 			name = node.__class__.name
-		self.stream.pushColor("entityname")
-		self._colorText(name)
-		self.stream.popColor()
-		self.stream.write(";")
+		s.append(EnvTextForEntityName(EscInlineText(name)))
+		s.append(";")
+		return s
 
-	def writeAttrName(self, attrname):
-		self.stream.pushColor("attrname")
-		self._colorText(attrname)
-		self.stream.popColor()
+	def strAttrName(self, attrname):
+		return EnvTextForAttrName(EscInlineText(attrname))
 
-	def writeAttrValue(self, attrvalue):
-		self.buffer.pushColor("attrvalue")
-		self._colorText(attrvalue)
-		self.buffer.popColor()
+	def strDocTypeMarker(self):
+		return EnvTextForDocTypeMarker("DOCTYPE")
 
-	def writeDocTypeMarker(self):
-		self.stream.pushColor("doctypemarker")
-		self.stream.write("DOCTYPE")
-		self.stream.popColor()
+	def strDocTypeText(self, text):
+		return EnvTextForDocTypeText(EscInlineText(text))
 
-	def writeDocTypeText(self, text):
-		self.stream.pushColor("doctypetext")
-		self._colorText(text)
-		self.stream.popColor()
+	def strCommentMarker(self):
+		return EnvTextForCommentMarker("--")
 
-	def writeCommentMarker(self):
-		self.stream.pushColor("commentmarker")
-		self.stream.write("--")
-		self.stream.popColor()
+	def strCommentText(self, text):
+		return EnvTextForCommentText(EscInlineText(text))
 
-	def writeCommentText(self, text):
-		self.stream.pushColor("commenttext")
-		self._colorText(text)
-		self.stream.popColor()
+	def strProcInstTarget(self, target):
+		return EnvTextForProcInstTarget(EscInlineText(target))
 
-	def writeProcInstTarget(self, target):
-		self.stream.pushColor("procinsttarget")
-		self._colorText(target)
-		self.stream.popColor()
+	def strProcInstData(self, data):
+		return EnvTextForProcInstData(EscInlineText(data))
 
-	def writeProcInstData(self, data):
-		self.stream.pushColor("procinstdata")
-		self._colorText(data)
-		self.stream.popColor()
+	def strTextOutsideAttr(self, text):
+		return EnvTextForText(EscInlineText(text))
 
-	def writeText(self, text):
-		self.stream.pushColor("text")
-		self._colorText(text)
-		self.stream.popColor()
+	def strTextInAttr(self, text):
+		return EnvTextForAttrValue(EscInlineAttr(text))
 
-	def writeSlash(self):
-		self.stream.writeWithColor("slash", "/")
+	def strSlash(self):
+		return EnvTextForSlash("/")
 
-	def writeBracketOpen(self):
-		self.stream.writeWithColor("bracket", "<")
+	def strBracketOpen(self):
+		return EnvTextForBracket("<")
 
-	def writeBracketClose(self):
-		self.stream.writeWithColor("bracket", ">")
+	def strBracketClose(self):
+		return EnvTextForBracket(">")
 
-	def writeColon(self):
-		self.stream.writeWithColor("colon", ":")
+	def strColon(self):
+		return EnvTextForColon(":")
 
-	def writeQuestion(self):
-		self.stream.writeWithColor("question", "?")
+	def strQuestion(self):
+		return EnvTextForQuestion("?")
 
-	def writeExclamation(self):
-		self.stream.writeWithColor("exclamation", "!")
+	def strExclamation(self):
+		return EnvTextForExclamation("!")
 
-	def writeQuote(self):
-		self.stream.writeWithColor("quote", '"')
+	def strQuote(self):
+		return EnvTextForQuote('"')
 
-	def writeTab(self, count):
-		self.stream.writeWithColor("tab", options.reprtab*count)
+	def strTab(self, count):
+		return EnvTextForTab(options.reprtab*count)
 
-	def writeURL(self, url):
-		self.stream.pushColor("url")
-		self._colorText(url)
-		self.stream.popColor()
-
-	def _colorAttrs(self, dict):
-		v = []
-		for attr in dict.keys():
-			v.append(" ")
-			v.append(self.strAttrName(attr))
-			value = dict[attr]
-			if len(value):
-				v.append('=')
-				v.append(self.strQuote())
-				v.append(self.strAttrValue(value.asPlainString().encode(self.encoding)))
-				v.append(self.strQuote())
-		return "".join(v)
+	def strURL(self, url):
+		return EnvTextForURL(EscInlineText(url))
 
 class NormalPresenter(Presenter):
-	def __init__(self, encoding=None, ansi=None):
-		Presenter.__init__(self, encoding, ansi)
-		self.refwhite = 0
-
 	def beginPresentation(self):
 		self.reset()
 
@@ -388,70 +346,103 @@ class NormalPresenter(Presenter):
 		return result
 
 	def presentText(self, node):
-		self.writeText(node._content)
+		if self.inAttr:
+			self.stream.write(self.strTextInAttr(node._content))
+		else:
+			self.stream.write(self.strTextOutsideAttr(node._content))
 
 	def presentFrag(self, node):
 		for child in node:
 			child.present(self)
 
 	def presentComment(self, node):
-		self.writeBracketOpen()
-		self.writeExclamation()
-		self.writeCommentMarker()
-		self.writeCommentText(node._content)
-		self.writeCommentMarker()
-		self.writeBracketClose()
+		self.stream.write(
+			self.strBracketOpen(),
+			self.strExclamation(),
+			self.strCommentMarker(),
+			self.strCommentText(node._content),
+			self.strCommentMarker(),
+			self.strBracketClose()
+		)
 
 	def presentDocType(self, node):
-		self.writeBracketOpen()
-		self.writeExclamation()
-		self.writeDocTypeMarker()
-		self.buffer.write(" ")
-		self.writeDocTypeText(node._content)
-		self.writeBracketClose()
+		self.stream.write(
+			self.strBracketOpen(),
+			self.strExclamation(),
+			self.strDocTypeMarker(),
+			" ",
+			self.strDocTypeText(node._content),
+			self.strBracketClose()
+		)
 
 	def presentProcInst(self, node):
-		self.writeBracketOpen()
-		self.writeQuestion()
-		self.writeProcInstTarget(node._target)
-		self.buffer.write(" ")
-		self.writeProcInstData(node._content)
-		self.writeQuestion()
-		self.writeBracketClose()
+		self.stream.write(
+			self.strBracketOpen(),
+			self.strQuestion(),
+			self.strProcInstTarget(node._target),
+			" ",
+			self.strProcInstData(node._content),
+			self.strQuestion(),
+			self.strBracketClose()
+		)
+
+	def _writeAttrs(self, dict):
+		for attr in dict.keys():
+			self.stream.write(" ")
+			self.stream.write(self.strAttrName(attr))
+			value = dict[attr]
+			if len(value):
+				self.stream.write("=")
+				self.stream.write(self.strQuote())
+				value.present(self)
+				self.stream.write(self.strQuote())
 
 	def presentElement(self, node):
 		if node.empty:
-			self.writeBracketOpen()
-			self.writeElement(node)
-			self.writeSlash()
-			self.writeBracketClose()
+			self.stream.write(
+				self.strBracketOpen(),
+				self.strElement(node)
+			)
+			self._writeAttrs(node.attrs)
+			self.stream.write(
+				self.strSlash(),
+				self.strBracketClose()
+			)
 		else:
-			self.writeBracketOpen()
-			self.writeElement(node)
-			self.writeBracketClose()
+			self.stream.write(
+				self.strBracketOpen(),
+				self.strElement(node)
+			)
+			self._writeAttrs(node.attrs)
+			self.stream.write(self.strBracketClose())
 			for child in node:
 				child.present(self)
-			self.writeBracketOpen()
-			self.writeSlash()
-			self.writeElement(node)
-			self.writeBracketClose()
+			self.stream.write(
+				self.strBracketOpen(),
+				self.strSlash(),
+				self.strElement(node),
+				self.strBracketClose()
+			)
 
 	def presentEntity(self, node):
-		self.writeEntity(node)
+		self.stream.write(self.strEntity(node))
 
 	def presentNull(self, node):
-		self.writeBracketOpen()
-		self.writeElement(node)
-		self.writeSlash()
-		self.writeBracketClose()
+		self.stream.write(
+			self.strBracketOpen(),
+			self.strElement(node),
+			self.strSlash(),
+			self.strBracketClose()
+		)
 
 	def presentAttr(self, node):
-		ansi = self.ansi
-		self.ansi = 0
-		self.v.append(self.strAttrValue(xsc.Frag.present(node, self)))
-		self.ansi = ansi
+		self.inAttr = 1
+		xsc.Frag.present(node, self)
+		self.inAttr = 0
 
 	def presentURLAttr(self, node):
-		self.v.append(self.strURL(node.asString()))
+		self.inAttr = 1
+		self.stream.write(self.strURL(node.asString()))
+		self.inAttr = 0
 
 defaultPresenterClass = NormalPresenter

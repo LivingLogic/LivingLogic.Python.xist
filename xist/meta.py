@@ -43,11 +43,11 @@ class contenttype(html.meta):
 	del attrHandlers["name"]
 	del attrHandlers["content"]
 
-	def asHTML(self, mode=None):
+	def transform(self, transformer=None):
 		e = html.meta(**self.attrs)
 		e["http-equiv"] = "Content-Type"
 		e["content"] = "text/html"
-		return e.asHTML(mode)
+		return e.transform(transformer)
 
 class keywords(html.meta):
 	"""
@@ -62,11 +62,11 @@ class keywords(html.meta):
 	del attrHandlers["name"]
 	del attrHandlers["content"]
 
-	def asHTML(self, mode=None):
+	def transform(self, transformer=None):
 		e = html.meta(**self.attrs)
 		e["name"] = "keywords"
-		e["content"] = self.content.asHTML(mode).asPlainString()
-		return e.asHTML(mode)
+		e["content"] = self.content.transform(transformer).asPlainString()
+		return e.transform(transformer)
 
 class description(html.meta):
 	"""
@@ -81,11 +81,11 @@ class description(html.meta):
 	del attrHandlers["name"]
 	del attrHandlers["content"]
 
-	def asHTML(self, mode=None):
+	def transform(self, transformer=None):
 		e = html.meta(**self.attrs)
 		e["name"] = "description"
-		e["content"] = self.content.asHTML(mode).asPlainString()
-		return e.asHTML(mode)
+		e["content"] = self.content.transform(transformer).asPlainString()
+		return e.transform(transformer)
 
 class stylesheet(html.link):
 	"""
@@ -98,11 +98,11 @@ class stylesheet(html.link):
 	del attrHandlers["rel"]
 	del attrHandlers["type"]
 
-	def asHTML(self, mode=None):
+	def transform(self, transformer=None):
 		e = html.link(**self.attrs)
 		e["rel"] = "stylesheet"
 		e["type"] = "text/css"
-		return e.asHTML(mode)
+		return e.transform(transformer)
 
 class made(html.link):
 	"""
@@ -114,11 +114,11 @@ class made(html.link):
 	attrHandlers = html.link.attrHandlers.copy()
 	del attrHandlers["rel"]
 
-	def asHTML(self, mode=None):
+	def transform(self, transformer=None):
 		e = html.link(**self.attrs)
 		e["rel"] = "made"
 		e["href"] = ("mailto:", e["href"])
-		return e.asHTML(mode)
+		return e.transform(transformer)
 
 namespace = xsc.Namespace("meta", "http://www.livinglogic.de/DTDs/meta.dtd", vars())
 
