@@ -17,11 +17,11 @@ class SQLCommand:
 
 	def formatValue(self, value):
 		t = type(value)
-		if t == types.NoneType:
+		if t is types.NoneType:
 			return "NULL"
-		elif t == types.StringType:
+		elif t in (types.StringType, types.UnicodeType):
 			return ("'" + value.replace("'", "''") + "'").encode("latin1")
-		elif t in [ types.IntType, types.LongType, types.FloatType ]:
+		elif t in (types.IntType, types.LongType, types.FloatType):
 			return str(value)
 		else:
 			raise ValueError, "unrecognised type for database field"
