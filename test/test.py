@@ -1524,7 +1524,6 @@ class ParseTest(unittest.TestCase):
 			node = parsers.parseString('<Test/>', prefixes=prefixes)
 		except saxlib.SAXParseException, exc:
 			self.assert_(isinstance(exc.getException(), errors.RequiredAttrMissingWarning))
-			pass
 		else:
 			self.fail()
 
