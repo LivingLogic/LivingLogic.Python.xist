@@ -516,26 +516,26 @@ class section(block):
 		level = len(context.sections)
 		context.sections.append(0) # for numbering the subsections
 		ts = xsc.Frag()
-		cs = target.div(class_=("section level", level))
-		if "role" in self.attrs:
-			cs["class_"].append(" ", self.attrs["role"])
+		cs = html.div(class_="content")
 		for child in self:
 			if isinstance(child, title):
 				ts.append(child)
 			else:
 				cs.append(child)
-		e = xsc.Frag()
-		if "id" in self.attrs:
-			e.append(target.a(name=self["id"], id=self["id"]))
+		e = target.div(class_=("section level", level), id=self["id"])
+		if "role" in self.attrs:
+			e["class_"].append(" ", self.attrs["role"])
+		#if "id" in self.attrs:
+		#	e.append(target.a(name=self["id"], id=self["id"]))
 		try:
 			hclass = target.element("h%d" % level)
 		except LookupError: # ouch, we're nested to deep (a getter in a property in a class in a class)
 			hclass = target.h6
 		for t in ts:
-			h = hclass(t.content, class_=self["role"])
+			h = hclass(t.content)
 			e.append(h)
 		e.append(cs)
-		# make sure to call the inner convert, before popping the number off of the stack
+		# make sure to call the inner convert() before popping the number off of the stack
 		e = e.convert(converter)
 		del context.sections[-1]
 		return e
@@ -1021,6 +1021,7 @@ class pyref(inline):
 		class method(xsc.TextAttr): pass
 		class property(xsc.TextAttr): pass
 		class function(xsc.TextAttr): pass
+
 	class Context(xsc.Element.Context):
 		def __init__(self):
 			xsc.Element.Context.__init__(self)
@@ -1120,8 +1121,8 @@ def getdoc(cls, thing):
 
 	if inspect.ismethod(thing):
 		sysid = "METHOD-DOCSTRING(%s.%s.%s)" % (cls._getmodulename(thing), thing.im_class.__name__, thing.__name__)
-	elif isinstance(thing, property):
-		sysid = "PROPERTY-DOCSTRING(%s.%s.%s)" % (cls._getmodulename(thing), thing.im_class.__name__, "unknown")
+	elif isinstance(thing, __builtin__.property):
+		sysid = "PROPERTY-DOCSTRING(%s.%s.%s)" % (cls._getmodulename(thing), "unknown")
 	elif inspect.isfunction(thing):
 		sysid = "FUNCTION-DOCSTRING(%s.%s)" % (cls._getmodulename(thing), thing.__name__)
 	elif inspect.isclass(thing):
@@ -1143,7 +1144,7 @@ def getdoc(cls, thing):
 					ref["class_"] = thing.im_class.__name__
 					if "method" not in ref.attrs:
 						ref["method"] = thing.__name__
-	elif isinstance(thing, property):
+	elif isinstance(thing, __builtin__.property):
 		for ref in refs:
 			if "module" not in ref.attrs:
 				ref["module"] = cls._getmodulename(thing)
