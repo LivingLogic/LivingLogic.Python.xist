@@ -828,7 +828,7 @@ def explain(cls, thing, name=None, context=[]):
 			obj = getattr(thing, varname)
 			if isinstance(obj, __builtin__.property):
 				properties.append((obj, varname))
-			elif inspect.isclass(obj):
+			elif inspect.isclass(obj) and not issubclass(obj, xsc.Namespace):
 				classes.append((obj, varname))
 			elif inspect.ismethod(obj):
 				# skip the method if it's a property getter, setter or deleter
@@ -866,7 +866,7 @@ def explain(cls, thing, name=None, context=[]):
 			obj = getattr(thing, varname)
 			if inspect.isfunction(obj):
 				functions.append((obj, varname))
-			elif inspect.isclass(obj):
+			elif inspect.isclass(obj) and not issubclass(obj, xsc.Namespace):
 				classes.append((obj, varname))
 		if len(classes):
 			classes.sort(cls._cmpname)
