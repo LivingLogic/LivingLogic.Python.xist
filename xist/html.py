@@ -614,7 +614,7 @@ class frameset(xsc.Element):
 	empty = 0
 	attrHandlers = coreattrs.copy()
 	attrHandlers.update({"rows": xsc.TextAttr, "cols": xsc.TextAttr, "onload": xsc.TextAttr, "onunload": xsc.TextAttr})
-	attrHandlers.update({"framespacing": xsc.TextAttr, "border": xsc.IntAttr, "marginwidth": xsc.IntAttr, "marginheight": xsc.IntAttr}) # deprecated
+	attrHandlers.update({"framespacing": xsc.TextAttr, "border": xsc.IntAttr, "marginwidth": xsc.IntAttr, "marginheight": xsc.IntAttr, "frameborder": xsc.IntAttr, "noresize": xsc.BoolAttr}) # deprecated
 
 class frame(xsc.Element):
 	"""
@@ -622,7 +622,7 @@ class frame(xsc.Element):
 	"""
 	empty = 0
 	attrHandlers = coreattrs.copy()
-	attrHandlers.update({"longdesc": xsc.TextAttr, "name": xsc.TextAttr, "src": xsc.URLAttr, "frameborder": xsc.TextAttr, "marginwidht": xsc.TextAttr, "marginheight": xsc.TextAttr, "noresize": xsc.TextAttr, "scrolling": xsc.TextAttr})
+	attrHandlers.update({"longdesc": xsc.TextAttr, "name": xsc.TextAttr, "src": xsc.URLAttr, "frameborder": xsc.TextAttr, "marginwidht": xsc.TextAttr, "marginheight": xsc.TextAttr, "noresize": xsc.BoolAttr, "scrolling": xsc.TextAttr})
 
 class noframes(xsc.Element):
 	"""
@@ -637,7 +637,7 @@ class iframe(xsc.Element):
 	"""
 	empty = 0
 	attrHandlers = coreattrs.copy()
-	attrHandlers.update({"longdesc": xsc.TextAttr, "name": xsc.TextAttr, "src": xsc.URLAttr, "frameborder": xsc.TextAttr, "marginwidht": xsc.TextAttr, "marginheight": xsc.TextAttr, "noresize": xsc.TextAttr, "scrolling": xsc.TextAttr, "align": xsc.TextAttr, "height": xsc.TextAttr, "width": xsc.TextAttr})
+	attrHandlers.update({"longdesc": xsc.TextAttr, "name": xsc.TextAttr, "src": xsc.URLAttr, "frameborder": xsc.TextAttr, "marginwidht": xsc.TextAttr, "marginheight": xsc.TextAttr, "noresize": xsc.BoolAttr, "scrolling": xsc.TextAttr, "align": xsc.TextAttr, "height": xsc.TextAttr, "width": xsc.TextAttr})
 
 class form(xsc.Element):
 	"""
