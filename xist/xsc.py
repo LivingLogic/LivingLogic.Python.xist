@@ -1188,6 +1188,8 @@ class ProcInst(Node):
 		return self._doreprtreeMultiLine(nest,elementno,head,tail,self.content,strProcInstData,1,ansi = ansi)
 
 	def publish(self,publisher,encoding = None,XHTML = None):
+		if self.content.find("?>")!=-1:
+			raise IllegalProcInstError(self.startloc,self)
 		publisher("<?",self._encode(self.target,encoding,0)," ",self._encode(self.content,encoding,0),"?>")
 
 	def compact(self):
