@@ -10,10 +10,13 @@ OUTPUTDIR=$(HOME)/pythonroot
 SCRIPTDIR=$(HOME)/pythonscripts
 
 all:
-	python2.2 setup.py install --install-lib $(OUTPUTDIR) --install-scripts $(SCRIPTDIR)
+	python setup.py install --install-lib $(OUTPUTDIR) --install-scripts $(SCRIPTDIR)
+
+install:
+	python setup.py install
 
 clean:
-	python2.2 setup.py clean
+	python setup.py clean
 
 dist:
 	doc2txt.py --title History --import xist.ns.specials --import xist.ns.abbr --import xist.ns.doc --import xist.ns.specials NEWS.xml NEWS
@@ -24,9 +27,9 @@ dist:
 	#rm NEWS INSTALL HOWTO
 
 windist:
-	python2.2 D:\\\\Programme\\\\Python21\\\\Scripts\\\\doc2txt.py --title History --import xist.ns.specials --import xist.ns.abbr --import xist.ns.doc --import xist.ns.specials NEWS.xml NEWS
-	python2.2 D:\\\\Programme\\\\Python21\\\\Scripts\\\\doc2txt.py --title "Requirements and installation" --import xist.ns.specials --import xist.ns.abbr --import xist.ns.doc --import xist.ns.specials INSTALL.xml INSTALL
-	python2.2 D:\\\\Programme\\\\Python21\\\\Scripts\\\\doc2txt.py --title "Documentation" --import xist.ns.specials --import xist.ns.abbr --import xist.ns.doc --import xist.ns.specials HOWTO.xml HOWTO
-	python2.2 setup.py sdist --formats=zip
-	python2.2 setup.py bdist --formats=wininst
+	python C:\\\\Programme\\\\Python22\\\\Scripts\\\\doc2txt.py --title History --import xist.ns.specials --import xist.ns.abbr --import xist.ns.doc --import xist.ns.specials NEWS.xml NEWS
+	python C:\\\\Programme\\\\Python22\\\\Scripts\\\\doc2txt.py --title "Requirements and installation" --import xist.ns.specials --import xist.ns.abbr --import xist.ns.doc --import xist.ns.specials INSTALL.xml INSTALL
+	python C:\\\\Programme\\\\Python22\\\\Scripts\\\\doc2txt.py --title "Documentation" --import xist.ns.specials --import xist.ns.abbr --import xist.ns.doc --import xist.ns.specials HOWTO.xml HOWTO
+	python setup.py sdist --formats=zip
+	python setup.py bdist --formats=wininst
 	rm NEWS INSTALL HOWTO
