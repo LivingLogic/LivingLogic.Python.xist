@@ -15,6 +15,6 @@ setup(
 	author_email = "walter@livinglogic.de",
 	#url = "http://",
 	licence = "Python",
-	packages = ['xist'],
+	packages = ['xist', 'xist.ns'],
 	ext_modules = [Extension("xist.helpers", ["xist/helpers.c"])]
 )
