@@ -45,7 +45,8 @@ class Error(Exception):
 
 class Warning(UserWarning):
 	"""
-	base class for all XSC warnings
+	base class for all warning exceptions (i.e. those that won't
+	result in a program termination.)
 	"""
 	pass
 
@@ -190,21 +191,6 @@ class IllegalAttrNodeError(Error):
 	def __str__(self):
 		return "illegal node of type %s found inside attribute" % self.node.__class__.__name__
 
-class ImageSizeFormatWarning(Warning):
-	"""
-	warning that is raised, when XSC can't format or evaluate image size attributes
-	"""
-
-	def __init__(self, element, attr, value, exc):
-		Warning.__init__(self, element, attr, value, exc)
-		self.element = element
-		self.attr = attr
-		self.value = value
-		self.exc = exc
-
-	def __str__(self):
-		return "the value %r for the image size attribute %r of the element %r can't be formatted or evaluated (%s). The attribute will be dropped." % (self.value, self.attr, self.element, self.exc)
-
 class FileNotFoundWarning(Warning):
 	"""
 	warning that is raised, when a file can't be found
@@ -218,6 +204,21 @@ class FileNotFoundWarning(Warning):
 
 	def __str__(self):
 		return "%s: file %s not found (%s)" % (self.message, self.filename, self.exc)
+
+class ImageSizeFormatWarning(UserWarning):
+	"""
+	warning that is raised, when XSC can't format or evaluate image size attributes.
+	"""
+
+	def __init__(self, element, attr, value, exc):
+		Warning.__init__(self, element, attr, value, exc)
+		self.element = element
+		self.attr = attr
+		self.value = value
+		self.exc = exc
+
+	def __str__(self):
+		return "the value %r for the image size attribute %r of the element %r can't be formatted or evaluated (%s). The attribute will be dropped." % (self.value, self.attr, self.element, self.exc)
 
 class IllegalObjectError(Error):
 	"""
