@@ -21,7 +21,7 @@
 ## IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 """
-<par>A module that allows you to embed JSP content as processing instructions.</par>
+<par>A module that allows you to embed &jsp; content as processing instructions.</par>
 """
 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
