@@ -63,4 +63,10 @@ class ejb(xsc.Entity):
 	def asPlainString(self):
 		return u"EJB"
 
+class jgl(xsc.Entity):
+	def asHTML(self):
+		return html.abbr("JGL",title="Java Generic Library",lang="en")
+	def asPlainString(self):
+		return u"JGL"
+
 namespace = xsc.Namespace("javaabbr","http://www.livinglogic.de/DTDs/javaabbr.dtd",vars())
