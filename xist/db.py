@@ -162,6 +162,30 @@ class template(xsc.Element):
 	empty = 0
 	attrHandlers = xsc.appendDict(_connectionAttrs,{ "query" : xsc.TextAttr })
 
+	def __fill(self,element,record = None):
+		"""
+		fills the element with the data from record (or dummy, if record is None).
+		"""
+		for field in element.elements(element = control,subtype = 1,children = 1,attrs = 1): # iterate over all database elements in the target
+			if record is not None: 
+				field["value"] = str(record[str(field["name"].asHTML())]) # put the field values in
+			else:
+				field["value"] = "dummy"
+		return element
+
+	def __fill2(self,element,record = None):
+		"""
+		fills the element with the data from record (or dummy, if record is None).
+
+		This is done twice: once with the element as it is, and one with the result
+		for the first fill operation converted to HTML.
+		"""
+		element = self.__fill(element,record)
+		element = element.asHTML()
+		element = self.__fill(element,record)
+		return element
+		
+
 	def asHTML(self):
 		content = self.content.clone()
 
@@ -175,14 +199,10 @@ class template(xsc.Element):
 			query = db.query(str(self["query"].asHTML()))
 
 			for record in query.dictresult():
-				t = tt.asHTML() # make a new target, because we'll put the data in there
-				for field in t.elements(element = control,subtype = 1,children = 1,attrs = 1): # iterate over all database elements in the target
-					field["value"] = str(record[str(field["name"].asHTML())]) # put the field values in
+				t = self.__fill2(tt.clone(),record) # make a new target, because we'll put the data in there
 				targets[0].append(t)
 		else:
-			t = tt.asHTML() # make a new target, because we'll put the data in there
-			for field in t.elements(element = control,subtype = 1,children = 1,attrs = 1): # iterate over all database elements in the target
-				field["value"] = "dummy" # put dummy field values in
+			t = self.__fill2(tt.clone()) # make a new target, because we'll put the data in there
 			targets[0].append(t)
 		return content.asHTML()
 xsc.registerElement(template)
