@@ -811,6 +811,9 @@ class StringMixIn:
 	def istitle(self):
 		return self._content.istitle()
 
+	def join(self, frag):
+		return frag.withSeparator(self)
+
 	def isupper(self):
 		return self._content.isupper()
 
