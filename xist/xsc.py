@@ -1268,7 +1268,7 @@ class _URL:
 			self.__fromString(url)
 		elif type(url) == types.InstanceType:
 			if isinstance(url,URLAttr):
-				self.__fromString(str(url))
+				self.__fromString(str(url.content))
 			elif isinstance(url,_URL):
 				self.scheme     = url.scheme
 				self.server     = url.server
@@ -1396,7 +1396,7 @@ class URLAttr(Attr):
 	current directory.
 
 	With this feature you don't have to remember how deeply you've nested your XSC file tree, you
-	can specify such file from everywhere via ":dir/to/file.xsc". XSC will change this to an URL
+	can specify a file from everywhere via ":dir/to/file.xsc". XSC will change this to an URL
 	that correctly locates the file (e.g. "../../../dir/to/file.xsc", when you're nested three levels
 	deep in a different directory than "dir".
 
@@ -1412,6 +1412,10 @@ class URLAttr(Attr):
 	"""
 
 	repransiurl = "32"
+
+	def __init__(self,_content):
+		Attr.__init__(self,_content)
+		self.content = str(xsc.filename[-1] + self)
 
 	def _dorepr(self):
 		return repr(_URL(self))
@@ -1595,7 +1599,7 @@ class XSC:
 	"""
 
 	def __init__(self):
-		self.filename = []
+		self.filename = [ _URL(":") ]
 		self.server = "localhost"
 		self.repransielementname = "35"
 		self.reprtree = 1
@@ -1603,12 +1607,7 @@ class XSC:
 
 	def __pushName(self,name):
 		url = _URL(name,forceproject = 1)
-		if url.scheme == "":
-			url.scheme = "project"
-		if len(self.filename) <= 2:
-			self.filename = [ url , url ]
-		else:
-			self.filename.append(url)
+		self.filename.append(url)
 
 	def __popName(self):
 		self.filename.pop()
