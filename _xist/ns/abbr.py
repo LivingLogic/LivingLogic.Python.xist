@@ -300,7 +300,7 @@ class api(base):
 
 class sax(base):
 	content = u"SAX"
-	title = u("Simple ", api(), u" for ", xml())
+	title = (u"Simple ", api(), u" for ", xml())
 	lang = u"en"
 
 
