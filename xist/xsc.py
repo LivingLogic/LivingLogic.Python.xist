@@ -319,6 +319,12 @@ try:
 except KeyError:
 	repransiquestion = "1;32"
 
+# ANSI escape sequence to be used for exclamation marks (used in comments and doctypes)
+try:
+	repransiexclamation = os.environ["XSC_REPRANSI_EXCLAMATION"]
+except KeyError:
+	repransiexclamation = "1;32"
+
 # ANSI escape sequence to be used for text
 try:
 	repransitext = os.environ["XSC_REPRANSI_TEXT"]
@@ -353,7 +359,7 @@ except KeyError:
 try:
 	repransidoctypemarker = os.environ["XSC_REPRANSI_DOCTYPEMARKER"]
 except KeyError:
-	repransidoctypemarker = ""
+	repransidoctypemarker = "1"
 
 # ANSI escape sequence to be used for document types
 try:
@@ -361,7 +367,7 @@ try:
 except KeyError:
 	repransidoctypetext = ""
 
-# ANSI escape sequence to be used for comment markers (i.e. !-- and --)
+# ANSI escape sequence to be used for comment markers (i.e. --)
 try:
 	repransicommentmarker = os.environ["XSC_REPRANSI_COMMENTMARKER"]
 except KeyError:
@@ -425,15 +431,12 @@ def strCharRef(charref,ansi = None):
 	return _stransi(repransicharref,charref,ansi = ansi)
 
 def strDocTypeMarker(ansi = None):
-	return _stransi(repransidoctypemarker,"!DOCTYPE",ansi = ansi)
+	return _stransi(repransidoctypemarker,"DOCTYPE",ansi = ansi)
 
 def strDocTypeText(text,ansi = None):
 	return _stransi(repransidoctypetext,text,ansi = ansi)
 
-def strCommentMarkerBegin(ansi = None):
-	return _stransi(repransicommentmarker,"!--",ansi = ansi)
-
-def strCommentMarkerEnd(ansi = None):
+def strCommentMarker(ansi = None):
 	return _stransi(repransicommentmarker,"--",ansi = ansi)
 
 def strCommentText(text,ansi = None):
@@ -460,6 +463,9 @@ def strBracketClose(attrname,ansi = None):
 def strQuestion(ansi = None):
 	return _stransi(repransiquestion,"?",ansi)
 
+def strExclamation(ansi = None):
+	return _stransi(repransiexclamation,"!",ansi)
+
 def strQuote(ansi = None):
 	return _stransi(repransiquote,'"',ansi)
 
@@ -477,11 +483,11 @@ def nodeName(nodeClass):
 	try:
 		namespacename = nodeClass.namespacename
 	except AttributeError:
-		namespacename = nodeClass.__name__ # this is (hopefully) an XSC class, so use the classname
+		namespacename = "xsc" # this is (hopefully) an XSC class
 	try:
 		elementname = nodeClass.elementname
 	except AttributeError:
-		elementname = "xsc"
+		elementname = nodeClass.__name__
 
 	return [namespacename,elementname,nodeClass.empty]
 
@@ -1079,24 +1085,24 @@ class Comment(Node):
 	"""
 
 	def __init__(self,content = ""):
-		self.__content = content
+		self.content = content
 
 	def asHTML(self):
-		return Comment(self.__content)
+		return Comment(self.content)
 
 	clone = asHTML
 
 	def _dorepr(self,ansi = None):
-		return strBracketOpen(ansi) + strCommentMarkerBegin(ansi) + strCommentText(self.content,ansi) + strCommentMarkerEnd(ansi) + strBracketClose(ansi)
+		return strBracketOpen(ansi) + strExclamation(ansi) + strCommentMarker(ansi) + strCommentText(self.content,ansi) + strCommentMarker(ansi) + strBracketClose(ansi)
 
 	def _doreprtree(self,nest,elementno,ansi):
 		return [[nest,self.startlineno,elementno,self._dorepr(ansi)]]
 
 	def asString(self):
-		return "<!--" + self.__content + "-->"
+		return "<!--" + self.content + "-->"
 
 	def compact(self):
-		return Comment(self.__content)
+		return Comment(self.content)
 
 class DocType(Node):
 	"""
@@ -1112,7 +1118,7 @@ class DocType(Node):
 	clone = asHTML
 
 	def _dorepr(self,ansi = None):
-		return strBracketOpen(ansi) + strDocTypeMarker(ansi) + strDocTypeText(self.content,ansi) + strBracketClose(ansi)
+		return strBracketOpen(ansi) + strExclamation(ansi) + strDocTypeMarker(ansi) + " " + strDocTypeText(self.content,ansi) + strBracketClose(ansi)
 
 	def _doreprtree(self,nest,elementno,ansi = None):
 		return [[nest,self.startlineno,elementno,self._dorepr(ansi)]]
@@ -1129,7 +1135,7 @@ class ProcInst(Node):
 
 	There are two special targets available:
 
-	xsc:exec (e.g. <?xsc:exec pass?>)
+	xsc-exec (e.g. <?xsc-exec pass?>)
 	here the content of the processing instruction is executed
 	as Python code, so you can define and register XSC elements here.
 	Execution is done when the node is constructed, so definitions made
@@ -1137,7 +1143,7 @@ class ProcInst(Node):
 	file parsing stage). When converted to HTML such a node will result
 	in an empty Null node.
 
-	xsc:eval (e.g. <?xsc:eval return "foo"?>)
+	xsc-eval (e.g. <?xsc-eval return "foo"?>)
 	here the code will be executed when the node is converted to HTML
 	as if it was the body of a function, so you can return an expression
 	here. Although the content is used as a function body no indentation
@@ -1157,13 +1163,13 @@ class ProcInst(Node):
 	def __init__(self,target,content = ""):
 		self.target = target
 		self.content = content
-		if string.lower(self.target) == "xsc:exec": # execute the code now, so that classes defined here are available for the parser
+		if string.lower(self.target) == "xsc-exec": # execute the code now, so that classes defined here are available for the parser
 			exec self.content in procinst.__dict__
 
 	def asHTML(self):
-		if string.lower(self.target) == "xsc:exec": # XSC processing instruction, has been executed at construction time already, so we don't have to do anything here
+		if string.lower(self.target) == "xsc-exec": # XSC processing instruction, has been executed at construction time already, so we don't have to do anything here
 			return Null()
-		elif string.lower(self.target) == "xsc:eval": # XSC processing instruction,
+		elif string.lower(self.target) == "xsc-eval": # XSC processing instruction,
 			function = "def __():\n\t" + string.replace(string.strip(self.content),"\n","\n\t") + "\n"
 			exec function in procinst.__dict__
 			return ToNode(eval("__()",procinst.__dict__)).asHTML()
@@ -1181,7 +1187,7 @@ class ProcInst(Node):
 		if len(lines) and lines[-1] == "":
 			del lines[-1]
 		if len(lines) == 1:
-			s = strBacketOpen(ansi) + strQuestion(ansi) + strProcInstTarget(self.target,ansi) + " " + strProcInstData(string.rstrip(lines[0]),ansi) + strQuestion(ansi) + strBracketClose(ansi)
+			s = strBracketOpen(ansi) + strQuestion(ansi) + strProcInstTarget(self.target,ansi) + " " + strProcInstData(string.rstrip(lines[0]),ansi) + strQuestion(ansi) + strBracketClose(ansi)
 			return [[nest,self.startlineno,elementno,s]]
 		else:
 			v = []
@@ -1692,7 +1698,7 @@ class Parser(xmllib.XMLParser):
 	def reset(self):
 		xmllib.XMLParser.reset(self)
 		# our nodes do not have a parent link, therefore we have to store the active path through the tree in a stack (which we call nesting, because stack is already used by the base class
-		# after we've finished parsing the Frag that we put at the bottom of the stack will be our document root
+		# after we've finished parsing, the Frag that we put at the bottom of the stack will be our document root
 		self.nesting = [ Frag() ]
 		self.lineno = -1
 		self.root = None
@@ -1703,7 +1709,11 @@ class Parser(xmllib.XMLParser):
 
 	def __appendNode(self,node):
 		node.startlineno = self.lineno
-		self.nesting[-1].append(node) # add the new node to the content of the innermost element
+		self.nesting[-1].append(node) # add the new node to the content of the innermost element (or fragment)
+
+	def handle_special(self,data):
+		if data[:7] == "DOCTYPE":
+			self.__appendNode(DocType(data[8:]))
 
 	def handle_proc(self,target,data):
 		self.__appendNode(ProcInst(target,data))
