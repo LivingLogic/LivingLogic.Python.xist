@@ -36,10 +36,7 @@ import types, warnings
 import xsc, presenters
 
 def warn(warning, level=3): # stacklevel==3, i.e. report the caller of our caller
-	cls = UserWarning
-	if isinstance(warning, DeprecationWarning):
-		cls = DeprecationWarning
-	warnings.warn(str(warning), cls, level)
+	warnings.warn(warning, None, level)
 
 class Error(Exception):
 	"""
