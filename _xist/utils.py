@@ -68,11 +68,9 @@ def replaceInitialURL(frag, callback):
 		u = url_.URL(newfrag.asPlainString())
 		u = callback(u)
 		newfrag = xsc.Frag(u.asString())
-		while i < len(frag):
-			newfrag.append(frag[i])
-			i += 1
-		return newfrag
-	else:
-		return frag
+	while i < len(frag):
+		newfrag.append(frag[i])
+		i += 1
+	return newfrag
 
 
