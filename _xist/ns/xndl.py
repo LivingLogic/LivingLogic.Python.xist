@@ -140,6 +140,7 @@ class Namespace(Base):
 		lines.append([level, "#!/usr/bin/env python"])
 		lines.append([level, "# -*- coding: %s -*-" % encoding])
 		lines.append([0, ""])
+		lines.append([0, ""])
 
 		if self.doc is not None:
 			self.doc._aspy(lines, encoding, level, names, asmod)
@@ -147,6 +148,7 @@ class Namespace(Base):
 
 		lines.append([level, "__version__ = \"%sRevision%s\"[11:-2]" % ("$", "$")])
 		lines.append([level, "# %sSource%s" % ("$", "$")])
+		lines.append([0, ""])
 		lines.append([0, ""])
 		lines.append([level, "from ll.xist import xsc"])
 
@@ -160,13 +162,16 @@ class Namespace(Base):
 		# output attribute groups
 		for attrgroup in attrgroups:
 			lines.append([0, ""])
+			lines.append([0, ""])
 			attrgroup._aspy(lines, encoding, level, names, asmod)
 
 		# output elements
 		for node in self.content:
 			lines.append([0, ""])
+			lines.append([0, ""])
 			node._aspy(lines, encoding, level, names, asmod)
 
+		lines.append([0, ""])
 		lines.append([0, ""])
 		lines.append([level, "class %s(xsc.Namespace):" % pyname])
 		if pyname != self.name:
