@@ -45,7 +45,7 @@ named <filename>sitecustomize.py</filename> somewhere
 in the Python path, with the following content:
 <doc:programlisting>
 import sys
-sys.setdefaultencoding(<replaceable>"iso-8859-1"</replaceable>)
+sys.setdefaultencoding(<rep>"iso-8859-1"</rep>)
 </doc:programlisting>
 (or any other encoding name that you want to use
 instead of <code>"iso-8859-1"</code>).</doc:par>

@@ -161,6 +161,8 @@ class XISTTestCase(unittest.TestCase):
 		node.sorted()
 		node.mapped(self.mappedmapper)
 		node.shuffled()
+		node.pretty()
+		node.normalized().compact().pretty()
 
 	def test_locationeq(self):
 		l1 = xsc.Location(sysID="gurk", pubID="http://gurk.com", lineNumber=42, columnNumber=666)

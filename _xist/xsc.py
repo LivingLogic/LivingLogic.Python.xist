@@ -28,7 +28,8 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
 from __future__ import generators
-import os, types, sys, stat, urllib, random, warnings
+
+import os, types, sys, urllib, random
 import url, presenters, publishers, converters, errors, options, utils, helpers
 
 ###
@@ -464,6 +465,18 @@ class Node(object):
 		"""
 		return Frag(*[self]*factor)
 
+	def pretty(self, level=0, indent="\t"):
+		"""
+		<doc:par>Returns a prettyfied version of <self/>, i.e. one with
+		properly nested and indented tags (as far as possible). If an element
+		has mixed content and the text nodes are not consisting solely of
+		whitespace this will fail.</doc:par>
+		"""
+		if level==0:
+			return self
+		else:
+			return Frag(indent*level, self)
+
 	def walk(self, before=1, after=0):
 		"""
 		<doc:par>walk the tree. This method is a generator.</doc:par>
@@ -651,6 +664,9 @@ class Text(CharacterData):
 			return Null
 		else:
 			return self
+
+	def pretty(self, level=0, indent="\t"):
+		return self
 
 class Frag(Node, list):
 	"""
@@ -908,6 +924,16 @@ class Frag(Node, list):
 			else:
 				list.append(node, normalizedchild)
 			lasttypeOK = thistypeOK
+		return node
+
+	def pretty(self, level=0, indent="\t"):
+		node = Frag()
+		i = 0
+		for child in self:
+			if i:
+				node.append("\n")
+			node.append(child.pretty(level, indent))
+			i += 1
 		return node
 
 	def walk(self, before=1, after=0):
@@ -1562,6 +1588,32 @@ class Element(Node):
 		node.content = self.content.normalized()
 		return node
 
+	def pretty(self, level=0, indent="\t"):
+		node = self.__class__(self.attrs)
+		if len(self)==1 and isinstance(self[0], Text):
+			node.append(self[0])
+		elif len(self)==0:
+			pass
+		else:
+			# search for mixed content
+			text = 0
+			nontext = 0
+			for child in self:
+				if isinstance(child, Text):
+					text += 1
+				else:
+					nontext += 1
+			# if mixed content, leave it alone
+			if text and nontext:
+				node.append(self.content.clone())
+			else:
+				for child in self:
+					node.append("\n", child.pretty(level+1, indent))
+				node.append("\n", indent*level)
+		if level>0:
+			node = Frag(indent*level, node)
+		return node
+
 	def walk(self, before=1, after=0):
 		if before:
 			yield self
@@ -1638,6 +1690,9 @@ class Null(CharacterData):
 	def present(self, presenter):
 		presenter.presentNull(self)
 
+	def pretty(self, level=0):
+		return self
+
 Null = Null() # Singleton, the Python way
 
 class Attr(Frag):
@@ -1700,6 +1755,9 @@ class Attr(Frag):
 
 	def __ge__(self, other):
 		return unicode(self) >= other
+
+	def pretty(self, level=0, indent="\t"):
+		return self.clone()
 
 class TextAttr(Attr):
 	"""
