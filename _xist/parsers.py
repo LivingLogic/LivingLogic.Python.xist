@@ -290,9 +290,9 @@ class BadEntityParser(SGMLOPParser):
 			else: # ; found
 				if part[0] != "#": # named entity
 					name = part[:pos]
-					if html.namespace.charrefsByName.has_key(name):
+					if name in html.namespace.charrefsByName:
 						node.append(html.namespace.charrefsByName[name](), part[pos+1:])
-					elif xsc.namespace.charrefsByName.has_key(name):
+					elif name in xsc.namespace.charrefsByName:
 						node.append(xsc.namespace.charrefsByName[name](), part[pos+1:])
 					else:
 						node.append("&", part)
@@ -395,7 +395,7 @@ class HTMLParser(BadEntityParser):
 				minigroup = self.minimizedElements[lastname]
 			except KeyError:
 				return
-			if not self.minimizedElements.has_key(name):
+			if name not in self.minimizedElements:
 				self.finish_endtag(lastname)
 
 ExpatParser = expatreader.ExpatParser

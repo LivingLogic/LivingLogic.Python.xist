@@ -131,28 +131,12 @@ class directive_page(directive):
 		class contentType(xsc.TextAttr): pass
 
 	def publish(self, publisher):
-		if not self.hasAttr("contentType"):
+		if not self.hasattr("contentType"):
 			node = self.__class__(self.attrs, contentType="text/html; charset=%s" % publisher.encoding)
 			node.publish(publisher)
 		else:
 			(contenttype, options) = cgi.parse_header(unicode(self["contentType"]))
-			if options.has_key(u"charset") and options[u"charset"] == publisher.encoding:
-				super(directive_page, self).publish(publisher)
-			else:
-				options[u"charset"] = publisher.encoding
-				node = self.__class__(
-					self.attrs,
-					contentType=(contenttype, u"; ", u"; ".join([ "%s=%s" % option for option in options.items()]))
-				)
-				node.publish(publisher)
-
-	def publish(self, publisher):
-		if not self.hasAttr("contentType"):
-			node = self.__class__(self.attrs, contentType="text/html; charset=%s" % publisher.encoding)
-			node.publish(publisher)
-		else:
-			(contenttype, options) = cgi.parse_header(unicode(self["contentType"]))
-			if options.has_key(u"charset") and options[u"charset"] == publisher.encoding:
+			if u"charset" in options and options[u"charset"] == publisher.encoding:
 				super(directive_page, self).publish(publisher)
 			else:
 				options[u"charset"] = publisher.encoding
