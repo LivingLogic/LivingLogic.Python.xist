@@ -693,7 +693,7 @@ class TreePresenter(Presenter):
 			for (attrname, attrvalue) in node.items():
 				self.buffers[-1].append(" ")
 				if isinstance(attrname, tuple):
-					self.buffers[-1].append(strNamespace(attrname[0].xmlprefix), strColon(), strAttrName(attrname[1]))
+					self.buffers[-1].append(strNamespace(attrname[0].xmlname[1]), strColon(), strAttrName(attrname[1]))
 				else:
 					self.buffers[-1].append(strAttrName(attrname))
 				self.buffers[-1].append("=", strQuote())
