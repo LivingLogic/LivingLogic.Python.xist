@@ -68,10 +68,20 @@ class directive(xsc.Element):
 		self._publishAttrs(publisher)
 		publisher.publish(u"%>")
 
-class directive_import(directive):
+class directive_include(directive):
 	register = 1
-	name = "directive.import"
-	attrHandlers = {"buffer": xsc.TextAttr}
+	name = "directive.include"
+	attrHandlers = {"file": xsc.TextAttr}
+
+class directive_taglib(directive):
+	register = 1
+	name = "directive.taglib"
+	attrHandlers = {"uri": xsc.TextAttr, "prefix": xsc.TextAttr}
+
+class directive_page(directive):
+	register = 1
+	name = "directive.page"
+	attrHandlers = {"import": xsc.TextAttr}
 
 # register all the classes we've defined so far
 namespace = xsc.Namespace("jsp", "http://java.sun.com/procudts/jsp/dtd/jsp_1_0.dtd", vars())
