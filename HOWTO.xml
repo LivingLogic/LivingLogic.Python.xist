@@ -37,21 +37,21 @@ passes the string fragments to an appropriate publishing handler.</item>
 <section><title>Constructing &xml; trees</title>
 <par>Like any other &dom; &api;, &xist; provides the usual classes:</par>
 <ulist>
-<item><pyref module="xist.xsc" class="Text"><class>Text</class></pyref> for text data</item>
-<item><pyref module="xist.xsc" class="Frag"><class>Frag</class></pyref> for document fragments,
-a <pyref module="xist.xsc" class="Frag"><class>Frag</class></pyref> object is simply a list
+<item><pyref module="ll.xist.xsc" class="Text"><class>Text</class></pyref> for text data</item>
+<item><pyref module="ll.xist.xsc" class="Frag"><class>Frag</class></pyref> for document fragments,
+a <pyref module="ll.xist.xsc" class="Frag"><class>Frag</class></pyref> object is simply a list
 of nodes,</item>
-<item><pyref module="xist.xsc" class="Comment"><class>Comment</class></pyref> for &xml; comments
+<item><pyref module="ll.xist.xsc" class="Comment"><class>Comment</class></pyref> for &xml; comments
 (e.g. <markup>&lt;!-- the comment --&gt;</markup>)</item>
-<item><pyref module="xist.xsc" class="DocType"><class>DocType</class></pyref> for document type
+<item><pyref module="ll.xist.xsc" class="DocType"><class>DocType</class></pyref> for document type
 declarations (e.g. <markup>&lt;!DOCTYPE html PUBLIC <rep>...</rep>&gt;</markup>),</item>
-<item><pyref module="xist.xsc" class="ProcInst"><class>ProcInst</class></pyref> for processing instructions
+<item><pyref module="ll.xist.xsc" class="ProcInst"><class>ProcInst</class></pyref> for processing instructions
 (e.g. <markup>&lt;?php echo $spam;?&gt;</markup>,</item>
-<item><pyref module="xist.xsc" class="Element"><class>Element</class></pyref> for &xml; elements,</item>
-<item><pyref module="xist.xsc" class="Entity"><class>Entity</class></pyref> for entities
+<item><pyref module="ll.xist.xsc" class="Element"><class>Element</class></pyref> for &xml; elements,</item>
+<item><pyref module="ll.xist.xsc" class="Entity"><class>Entity</class></pyref> for entities
 (e.g. <markup>&amp;parrot;</markup>),</item>
-<item><pyref module="xist.xsc" class="Attr"><class>Attr</class></pyref> for attributes and</item>
-<item><pyref module="xist.xsc" class="Attrs"><class>Attrs</class></pyref> for attribute mappings.</item>
+<item><pyref module="ll.xist.xsc" class="Attr"><class>Attr</class></pyref> for attributes and</item>
+<item><pyref module="ll.xist.xsc" class="Attrs"><class>Attrs</class></pyref> for attribute mappings.</item>
 </ulist>
 
 <section><title>&xml; trees as Python objects</title>
@@ -71,7 +71,7 @@ Positional arguments (i.e. items in <arg>content</arg>)
 will be the child nodes of the element node. Keyword arguments
 will be attributes. You can pass most builtin types to such a constructor.
 Strings and integers will be automatically converted to
-<pyref module="xist.xsc" class="Text"><class>Text</class></pyref> objects.
+<pyref module="ll.xist.xsc" class="Text"><class>Text</class></pyref> objects.
 So constructing an &html; element works like this:
 <example title="The first example">
 <programlisting>
@@ -162,13 +162,13 @@ class cool(xsc.Element):
 </programlisting>
 </example>
 You have to derive your new class from
-<pyref module="xist.xsc" class="Element"><class>xsc.Element</class></pyref>.
+<pyref module="ll.xist.xsc" class="Element"><class>xsc.Element</class></pyref>.
 The name of the class will be the element name. For element type names that
 are no valid Python identifiers, you can use the class attribute <lit>name</lit>
 in the element class the overwrite the element name.</par>
 <par>To be able to convert an element of this type to a new &xml; tree
 (&html; in most cases), you have to implement the
-<pyref module="xist.xsc" class="Node" method="convert"><method>convert</method></pyref>
+<pyref module="ll.xist.xsc" class="Node" method="convert"><method>convert</method></pyref>
 method. In this method you can build a new &xml; tree from the content and attributes
 of the object.</par>
 
@@ -180,12 +180,12 @@ of the object.</par>
 &lt;b&gt;Python is cool!&lt;/b&gt;
 </programlisting>
 </example>
-(<pyref module="xist.xsc" class="Node" method="conv"><method>conv</method></pyref> simply
+(<pyref module="ll.xist.xsc" class="Node" method="conv"><method>conv</method></pyref> simply
 calls
-<pyref module="xist.xsc" class="Node" method="convert"><method>convert</method></pyref>
-with a default <pyref module="xist.converters" class="Converter"><arg>converter</arg></pyref>
+<pyref module="ll.xist.xsc" class="Node" method="convert"><method>convert</method></pyref>
+with a default <pyref module="ll.xist.converters" class="Converter"><arg>converter</arg></pyref>
 argument. We'll come to converters in a minute.
-<pyref module="xist.xsc" class="Node" method="asBytes"><method>asBytes</method></pyref>
+<pyref module="ll.xist.xsc" class="Node" method="asBytes"><method>asBytes</method></pyref>
 is a method that converts the node to a byte string. This method will be explained
 when we discuss the publishing interface.)
 </par>
@@ -211,7 +211,7 @@ Now we can do the following:
 &lt;b&gt;&lt;a href="http://www.python.org/"&gt;Python&lt;/a&gt; is cool!&lt;/b&gt;
 </programlisting>
 But if we forget to call
-<pyref module="xist.xsc" class="Node" method="convert">convert</pyref>
+<pyref module="ll.xist.xsc" class="Node" method="convert">convert</pyref>
 for our own content, i.e. if the element <pyref class="cool">cool</pyref> 
 was written like this:
 <programlisting>
@@ -230,10 +230,10 @@ we would get:
 </par>
 
 <section><title>Converters</title>
-<par><pyref module="xist.xsc" class="Node" method="conv"><method>conv</method></pyref>
+<par><pyref module="ll.xist.xsc" class="Node" method="conv"><method>conv</method></pyref>
 is a convenience method that creates a default converter for you and calls
-<pyref module="xist.xsc" class="Node" method="convert"><method>convert</method></pyref>.
-You could also call <pyref module="xist.xsc" class="Node" method="convert"><method>convert</method></pyref> yourself,
+<pyref module="ll.xist.xsc" class="Node" method="convert"><method>convert</method></pyref>.
+You could also call <pyref module="ll.xist.xsc" class="Node" method="convert"><method>convert</method></pyref> yourself,
 which would look like this:
 <programlisting>
 from ll.xist import converters
@@ -243,7 +243,7 @@ node = node.convert(converters.Converter(None, None,
 	"deliver", "html", None))
 </programlisting>
 You can pass the following five arguments to the
-<pyref module="xist.converters" class="Converter"><class>Converter</class></pyref> constructor</par>
+<pyref module="ll.xist.converters" class="Converter"><class>Converter</class></pyref> constructor</par>
 <ulist>
 <item><arg>root</arg> (which defaults to <lit>None</lit>) is the root &url; for the conversion process. When you want
 to resolve a link in some of your own <method>convert</method> methods, the &url; must be interpreted relative
@@ -285,7 +285,7 @@ class note(xsc.Element):
 		)
 </programlisting>
 and you can test for the language with the element
-<pyref module="xist.ns.cond" class="If"><class>xist.ns.cond.If</class></pyref>, e.g.:
+<pyref module="ll.xist.ns.cond" class="If"><class>xist.ns.cond.If</class></pyref>, e.g.:
 <programlisting>
 &lt;if lang="de"&gt;Anmerkung
 &lt;elif lang="ja"&gt;???
@@ -296,18 +296,18 @@ and you can test for the language with the element
 </item>
 </ulist>
 <par>Additional arguments are passed when a converter is created in the context of
-a <pyref module="make"><module>make</module></pyref> script.</par>
+a <pyref module="ll.make"><module>make</module></pyref> script.</par>
 </section>
 
 <section><title>Attributes</title>
 <par>Setting and accessing the attributes of an element works via
 the dictionary interface. So if <lit>node</lit>
-is an <pyref module="xist.xsc" class="Element"><class>Element</class></pyref> that supports the
+is an <pyref module="ll.xist.xsc" class="Element"><class>Element</class></pyref> that supports the
 attribute <lit>spam</lit> the following can be
 done:
 <example title="Working with attributes">
 <programlisting>
-if node.hasAttr("spam"):
+if node.hasattr("spam"):
 	del node["spam"]
 else:
 	node["spam"] = "eggs"
@@ -316,18 +316,18 @@ node["spam"].append("ham")
 </example>
 </par>
 <par>All attribute values are instances of subclasses of
-the class <pyref module="xist.xsc" class="Attr"><class>Attr</class></pyref>. Available
+the class <pyref module="ll.xist.xsc" class="Attr"><class>Attr</class></pyref>. Available
 subclasses are:</par>
 <ulist>
-<item><pyref module="xist.xsc" class="TextAttr"><class>TextAttr</class></pyref>, for normal text attributes;</item>
-<item><pyref module="xist.xsc" class="URLAttr"><class>URLAttr</class></pyref>, for attributes that are &url;s;</item>
-<item><pyref module="xist.xsc" class="BoolAttr"><class>BoolAttr</class></pyref>, for boolean attributes (such an attribute
+<item><pyref module="ll.xist.xsc" class="TextAttr"><class>TextAttr</class></pyref>, for normal text attributes;</item>
+<item><pyref module="ll.xist.xsc" class="URLAttr"><class>URLAttr</class></pyref>, for attributes that are &url;s;</item>
+<item><pyref module="ll.xist.xsc" class="BoolAttr"><class>BoolAttr</class></pyref>, for boolean attributes (such an attribute
 is either present or not, but it's value will be ignored);</item>
-<item><pyref module="xist.xsc" class="IntAttr"><class>IntAttr</class></pyref>, for integer attributes;</item>
-<item><pyref module="xist.xsc" class="ColorAttr"><class>ColorAttr</class></pyref>, for color attributes (e.g. <code>#ffffff</code>)</item>
+<item><pyref module="ll.xist.xsc" class="IntAttr"><class>IntAttr</class></pyref>, for integer attributes;</item>
+<item><pyref module="ll.xist.xsc" class="ColorAttr"><class>ColorAttr</class></pyref>, for color attributes (e.g. <code>#ffffff</code>)</item>
 </ulist>
-<par><pyref module="xist.xsc" class="Attr"><class>Attr</class></pyref> itself is derived from
-<pyref module="xist.xsc" class="Frag"><class>Frag</class></pyref> so it is possible
+<par><pyref module="ll.xist.xsc" class="Attr"><class>Attr</class></pyref> itself is derived from
+<pyref module="ll.xist.xsc" class="Frag"><class>Frag</class></pyref> so it is possible
 to use all the sequence methods on an attribute. Unset attributes will be treated
 like empty ones so the following is possible:
 <example>
@@ -405,7 +405,7 @@ xmlns = xsc.Namespace(
 )
 </programlisting>
 </example>
-Arguments for the <pyref module="xist.xsc" class="Namespace"><class>Namespace</class></pyref>
+Arguments for the <pyref module="ll.xist.xsc" class="Namespace"><class>Namespace</class></pyref>
 constructor are:</par>
 <ulist>
 <item><arg>prefix</arg> is the namespace prefix that can be used to disambiguate elements
@@ -428,13 +428,13 @@ files.</par>
 entities and processing instructions. But to be able to use the new entities
 in an &xml; file you have to use a parser that supports reporting undefined
 entities to the application via <method>skippedEntity</method>
-(<pyref module="xist.parsers" class="SGMLOPParser"><class>SGMLOPParser</class></pyref>
-in the module <pyref module="xist.parsers"><module>xist.parsers</module></pyref> does that).</par>
-<par>In addition to the <pyref module="xist.xsc" class="Node" method="convert"><method>convert</method></pyref>
+(<pyref module="ll.xist.parsers" class="SGMLOPParser"><class>SGMLOPParser</class></pyref>
+in the module <pyref module="ll.xist.parsers"><module>xist.parsers</module></pyref> does that).</par>
+<par>In addition to the <pyref module="ll.xist.xsc" class="Node" method="convert"><method>convert</method></pyref>
 method you may implement the method
-<pyref module="xist.xsc" class="Node" method="__unicode__"><method>__unicode__</method></pyref>,
+<pyref module="ll.xist.xsc" class="Node" method="__unicode__"><method>__unicode__</method></pyref>,
 which must return a unicode string value for the entity. The following
-example is from the module <pyref module="xist.ns.abbr"><module>xist.ns.abbr</module></pyref>:
+example is from the module <pyref module="ll.xist.ns.abbr"><module>xist.ns.abbr</module></pyref>:
 <example title="Defining new entities">
 <programlisting>
 from ll.xist import xsc
@@ -456,8 +456,8 @@ Now you can use this new entity in your &xml; files:
 </programlisting>
 </par>
 <par>Defining processing instructions works the same way. Derive a
-new class from <pyref module="xist.xsc" class="ProcInst"><class>xist.xsc.ProcInst</class></pyref>
-and implement <pyref module="xist.xsc" class="Node" method="convert"><method>convert</method></pyref>.
+new class from <pyref module="ll.xist.xsc" class="ProcInst"><class>xist.xsc.ProcInst</class></pyref>
+and implement <pyref module="ll.xist.xsc" class="Node" method="convert"><method>convert</method></pyref>.
 The following example implements a processing instruction that returns an uppercase
 version of it's content as a text node.
 <example title="Defining new processing instructions">
@@ -480,10 +480,10 @@ it can be used in an &xml; file as following:
 into its final output form, you have to write the resulting tree
 to a file. This can be done with the publishing &api;. Two methods
 that use the publishing &api; are
-<pyref module="xist.xsc" class="Node" method="asBytes"><method>asBytes</method></pyref>
+<pyref module="ll.xist.xsc" class="Node" method="asBytes"><method>asBytes</method></pyref>
 and
-<pyref module="xist.xsc" class="Node" method="write"><method>write</method></pyref>.
-<pyref module="xist.xsc" class="Node" method="asBytes"><method>asBytes</method></pyref>
+<pyref module="ll.xist.xsc" class="Node" method="write"><method>write</method></pyref>.
+<pyref module="ll.xist.xsc" class="Node" method="asBytes"><method>asBytes</method></pyref>
 returns an 8bit &xml; string. You can specify the encoding with the
 parameter <arg>encoding</arg> (with <lit>"us-ascii"</lit> being the default).
 Unencodable characters will be escaped with numeric character references when possible
@@ -524,7 +524,7 @@ model will be published like this: <markup>&lt;br /&gt;</markup>.</item>
 an empty tag (without an additional space): <markup>&lt;br/&gt;</markup> or <markup>&lt;div/&gt;</markup>.</item>
 </ulist>
 <par>Writing a node to a file can be done with the method
-<pyref module="xist.xsc" class="Node" method="write"><method>write</method></pyref>:
+<pyref module="ll.xist.xsc" class="Node" method="write"><method>write</method></pyref>:
 <programlisting>
 &gt;&gt;&gt; from ll.xist.ns import html
 &gt;&gt;&gt; html.div(
@@ -534,17 +534,17 @@ an empty tag (without an additional space): <markup>&lt;br/&gt;</markup> or <mar
 </programlisting>
 </par>
 <par>All these methods use the method
-<pyref module="xist.xsc" class="Node" method="publish"><method>publish</method></pyref> internally.
-<pyref module="xist.xsc" class="Node" method="publish"><method>publish</method></pyref> gets passed
-an instance of <pyref module="xist.publishers" class="Publisher"><class>xist.publisher.Publisher</class></pyref>
+<pyref module="ll.xist.xsc" class="Node" method="publish"><method>publish</method></pyref> internally.
+<pyref module="ll.xist.xsc" class="Node" method="publish"><method>publish</method></pyref> gets passed
+an instance of <pyref module="ll.xist.publishers" class="Publisher"><class>xist.publisher.Publisher</class></pyref>
 (or one of it's subclasses). All strings generated will be sent to the
-<pyref module="xist.publishers" class="Publisher" method="publish"><method>publish</method></pyref> method
-of the publisher. <pyref module="xist.xsc" class="Node" method="write"><method>write</method></pyref>
-uses <pyref module="xist.publishers" class="FilePublisher"><class>FilePublisher</class></pyref>
+<pyref module="ll.xist.publishers" class="Publisher" method="publish"><method>publish</method></pyref> method
+of the publisher. <pyref module="ll.xist.xsc" class="Node" method="write"><method>write</method></pyref>
+uses <pyref module="ll.xist.publishers" class="FilePublisher"><class>FilePublisher</class></pyref>
 and
-<pyref module="xist.xsc" class="Node" method="asBytes"><method>asBytes</method></pyref>
-uses <pyref module="xist.publishers" class="BytePublisher"><class>BytePublisher</class></pyref>.
-For example <pyref module="xist.publishers" class="FilePublisher"><class>FilePublisher</class></pyref>
+<pyref module="ll.xist.xsc" class="Node" method="asBytes"><method>asBytes</method></pyref>
+uses <pyref module="ll.xist.publishers" class="BytePublisher"><class>BytePublisher</class></pyref>.
+For example <pyref module="ll.xist.publishers" class="FilePublisher"><class>FilePublisher</class></pyref>
 looks like this:
 <programlisting>
 class FilePublisher(Publisher):
@@ -565,13 +565,13 @@ class FilePublisher(Publisher):
 <section><title>Manipulating trees</title>
 <par>&xist; provides many methods for manipulating an
 &xml; tree. Finding nodes in a tree can be done with the method
-<pyref module="xist.xsc" class="Node" method="find"><method>find</method></pyref>.
-<pyref module="xist.xsc" class="Node" method="find"><method>find</method></pyref> will return
-a <pyref module="xist.xsc" class="Frag"><class>Frag</class></pyref> with the nodes it finds.
+<pyref module="ll.xist.xsc" class="Node" method="find"><method>find</method></pyref>.
+<pyref module="ll.xist.xsc" class="Node" method="find"><method>find</method></pyref> will return
+a <pyref module="ll.xist.xsc" class="Frag"><class>Frag</class></pyref> with the nodes it finds.
 Parameters are (with defaults listed in parenthesis):</par>
 <ulist>
 <item><arg>type</arg> (<lit>None</lit>), which is a class object or a list of class
-objects. <pyref module="xist.xsc" class="Node" method="find"><method>find</method></pyref> will
+objects. <pyref module="ll.xist.xsc" class="Node" method="find"><method>find</method></pyref> will
 only find nodes that are instances of these classes (or subclasses);</item>
 <item><arg>subtype</arg> (<lit>0</lit>), a flag that indicates if instances
 of subclasses of those specified in the <arg>type</arg> parameter should
@@ -582,19 +582,19 @@ to search for elements with certain attributes, e.g.
 <programlisting>
 node.find(type=html.a, attrs={"name": None})
 </programlisting>
-will find all nodes in <lit>node</lit> that are <pyref module="xist.ns.html" class="a"><class>a</class></pyref>
+will find all nodes in <lit>node</lit> that are <pyref module="ll.xist.ns.html" class="a"><class>a</class></pyref>
 instances and have the attribute <lit>name</lit> set (i.e. the attribute is not
 empty).
 <programlisting>
 node.find(type=html.a, attrs={"href": None, "rel": "parent"})
 </programlisting>
-will find all <pyref module="xist.ns.html" class="a"><class>a</class></pyref>
-instances where the <pyref module="xist.xsc" class="Node" method="__unicode__"><method>__unicode__</method></pyref>
+will find all <pyref module="ll.xist.ns.html" class="a"><class>a</class></pyref>
+instances where the <pyref module="ll.xist.xsc" class="Node" method="__unicode__"><method>__unicode__</method></pyref>
 value of the <lit>rel</lit> attribute is <lit>"parent"</lit> and the <lit>href</lit>
 attribute is set;</item>
 <item><arg>test</arg> (<lit>None</lit>) is a callable object that will be called
 to test if a node should be returned from
-<pyref module="xist.xsc" class="Node" method="find"><method>find</method></pyref> when it
+<pyref module="ll.xist.xsc" class="Node" method="find"><method>find</method></pyref> when it
 passes all previous tests:
 <programlisting>
 &gt;&gt;&gt; from ll.xist import xsc
@@ -634,10 +634,10 @@ snapshots/
 http://www.python.org/
 http://www.amk.ca/python/dev/
 </programlisting>
-<par>The method <pyref module="xist.xsc" class="Node" method="withSep"><method>withSep</method></pyref>
+<par>The method <pyref module="ll.xist.xsc" class="Node" method="withSep"><method>withSep</method></pyref>
 can be used to put a seperator node between the child nodes of an
-<pyref module="xist.xsc" class="Element"><class>Element</class></pyref>
-or a <pyref module="xist.xsc" class="Frag"><class>Frag</class></pyref>:
+<pyref module="ll.xist.xsc" class="Element"><class>Element</class></pyref>
+or a <pyref module="ll.xist.xsc" class="Frag"><class>Frag</class></pyref>:
 <programlisting>
 &gt;&gt;&gt; from ll.xist import xsc
 &gt;&gt;&gt; from ll.xist.ns import html
@@ -645,9 +645,9 @@ or a <pyref module="xist.xsc" class="Frag"><class>Frag</class></pyref>:
 &lt;div&gt;0, 1, 2, 3, 4, 5, 6, 7, 8, 9&lt;/div&gt;
 </programlisting>
 </par>
-<par>The method <pyref module="xist.xsc" class="Node" method="shuffled"><method>shuffled</method></pyref>
-returns a shuffled version of the <pyref module="xist.xsc" class="Element"><class>Element</class></pyref>
-or <pyref module="xist.xsc" class="Frag"><class>Frag</class></pyref>:
+<par>The method <pyref module="ll.xist.xsc" class="Node" method="shuffled"><method>shuffled</method></pyref>
+returns a shuffled version of the <pyref module="ll.xist.xsc" class="Element"><class>Element</class></pyref>
+or <pyref module="ll.xist.xsc" class="Frag"><class>Frag</class></pyref>:
 <programlisting>
 &gt;&gt;&gt; from ll.xist import xsc
 &gt;&gt;&gt; from ll.xist.ns import html
@@ -657,8 +657,8 @@ or <pyref module="xist.xsc" class="Frag"><class>Frag</class></pyref>:
 &lt;div&gt;31, 8905, 7, , , 4, 6, , , 2&lt;/div&gt;
 </programlisting>
 </par>
-<par>There are methods named <pyref module="xist.xsc" class="Node" method="reversed"><method>reversed</method></pyref>
-and <pyref module="xist.xsc" class="Node" method="sorted"><method>sorted</method></pyref>, that
+<par>There are methods named <pyref module="ll.xist.xsc" class="Node" method="reversed"><method>reversed</method></pyref>
+and <pyref module="ll.xist.xsc" class="Node" method="sorted"><method>sorted</method></pyref>, that
 return a reversed or sorted version of an element or fragment:
 <programlisting>
 &gt;&gt;&gt; from ll.xist import xsc
@@ -670,7 +670,7 @@ return a reversed or sorted version of an element or fragment:
 &lt;div&gt;9,8,7,6,5,4,3,2,1,0&lt;/div&gt;
 </programlisting>
 </par>
-<par>The method <pyref module="xist.xsc" class="Node" method="mapped"><method>mapped</method></pyref>
+<par>The method <pyref module="ll.xist.xsc" class="Node" method="mapped"><method>mapped</method></pyref>
 recursively walks the tree and generates a new tree, where all the nodes are mapped
 through a function. For example to replace <lit>Python</lit> with <lit>Parrot</lit>
 in every text node on the <a href="http://python.sf.net/">SourceForge page</a>, do the following:
@@ -689,17 +689,17 @@ node.mapped(p2p).write(open("parrot_index.html", "wb"))
 </programlisting>
 The function must either return a new node, in which case this
 new node will be used instead of the old one, or return the
-old node to tell <pyref module="xist.xsc" class="Node" method="mapped"><method>mapped</method></pyref>
+old node to tell <pyref module="ll.xist.xsc" class="Node" method="mapped"><method>mapped</method></pyref>
 that it should recursively continue with the content of the node.
 </par>
 </section>
 
 <section><title>&url;s</title>
 <par>For &url; handling &xist; uses the module
-<pyref module="url"><module>url</module></pyref>. Refer to its documentation
+<pyref module="ll.url"><module>ll.url</module></pyref>. Refer to its documentation
 for the basic functionality (especially regarding the methods
-<pyref module="url" class="URL" method="__div__"><method>__div__</method></pyref>
-and <pyref module="url" class="URL" method="relative"><method>relative</method></pyref>).</par>
+<pyref module="ll.url" class="URL" method="__div__"><method>__div__</method></pyref>
+and <pyref module="ll.url" class="URL" method="relative"><method>relative</method></pyref>).</par>
 <par></par>
 </section>
 
@@ -726,15 +726,15 @@ So to make an image twice as wide and high do the following:
 <section><title>Embedding Python code</title>
 <par>It's possible to embed Python code into &xist; &xml; files. For this
 &xist; supports two new processing instructions:
-<pyref module="xist.ns.code" class="Exec"><lit>code:exec</lit></pyref>
-and <pyref module="xist.ns.code" class="Eval"><lit>code:eval</lit></pyref> (in the module
-<pyref module="xist.ns.code"><module>xist.ns.code</module></pyref>. The content of
-<pyref module="xist.ns.code" class="Exec"><lit>code:exec</lit></pyref> will be
+<pyref module="ll.xist.ns.code" class="Exec"><lit>code:exec</lit></pyref>
+and <pyref module="ll.xist.ns.code" class="Eval"><lit>code:eval</lit></pyref> (in the module
+<pyref module="ll.xist.ns.code"><module>xist.ns.code</module></pyref>. The content of
+<pyref module="ll.xist.ns.code" class="Exec"><lit>code:exec</lit></pyref> will be
 executed when the processing instruction node is instantiated, i.e. when the
 &xml; file is parsed, so anything you do there will be available afterwards.</par>
 
-<par>The result of a call to <pyref module="xist.xsc" class="Node" method="convert"><method>convert</method></pyref>
-for a <pyref module="xist.ns.code" class="Eval"><lit>code:eval</lit></pyref> processing instruction is whatever the
+<par>The result of a call to <pyref module="ll.xist.xsc" class="Node" method="convert"><method>convert</method></pyref>
+for a <pyref module="ll.xist.ns.code" class="Eval"><lit>code:eval</lit></pyref> processing instruction is whatever the
 Python code in the content returns. The processing instruction content is treated as the body
 of a function, so you can put multiple return statements there.
 The converter is available as the parameter <arg>converter</arg> inside
@@ -751,7 +751,7 @@ the processing instruction. For example, consider the following &xml; file:
 &lt;b&gt;&lt;?code:eval return gauss()?&gt;&lt;/b&gt;
 </programlisting>
 Parsing this file and calling 
-<pyref module="xist.xsc" class="Node" method="convert"><method>convert</method></pyref>
+<pyref module="ll.xist.xsc" class="Node" method="convert"><method>convert</method></pyref>
 results in the following:
 <programlisting>
 &lt;b&gt;5050&lt;/b&gt;
