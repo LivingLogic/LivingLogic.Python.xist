@@ -42,6 +42,8 @@ now calls the method <method>parsed</method> immediately after node creation.
 This is used for the new class <class>StyleAttr</class>, which uses the
 <class>CSSTokenizer</class>, to prepend to base &url; to all &url;s
 found in a style attribute.</item>
+<item>The pixel images have been move to the directory <dirname>px</dirname>
+to make image &url; shorter.</item>
 </ulist>
 </section>
 
