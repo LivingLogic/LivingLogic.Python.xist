@@ -405,7 +405,7 @@ except KeyError:
 
 # should XHTML output format (empty element have a trailing /)
 try:
-	outputXHTML = os.environ["XSC_OUTPUT_XHTML"]
+	outputXHTML = string.atoi(os.environ["XSC_OUTPUT_XHTML"])
 except KeyError:
 	outputXHTML = 2
 
