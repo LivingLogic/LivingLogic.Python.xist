@@ -686,8 +686,7 @@ class Frag(Node, list):
 		for child in self:
 			convertedchild = child.convert(converter)
 			assert isinstance(convertedchild, Node), "the convert method returned the illegal object %r (type %r) when converting %r" % (convertedchild, type(convertedchild), self)
-			if convertedchild is not Null:
-				list.append(node, convertedchild)
+			node.append(convertedchild)
 		return self._decorateNode(node)
 
 	def clone(self):
