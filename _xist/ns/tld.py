@@ -47,17 +47,17 @@ class attribute(xsc.Element):
 
 	def asxnd(self):
 		e = xnd.Attr(unicode(xfind.first(self/name).content), u"xsc.TextAttr")
-		required = None
+		isrequired = None
 		node = xfind.first(self/required, None)
 		if node is not None:
 			value = unicode(node[0].content)
 			if value in (u"true", u"yes"):
-				required = True
+				isrequired = True
 			elif value in (u"false", u"no"):
-				required = None
+				isrequired = None
 			else:
 				raise ValueError("value %s not allowed for tag <required>" % value)
-		e.required = required
+		e.required = isrequired
 		return e
 
 
