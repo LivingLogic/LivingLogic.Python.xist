@@ -1016,6 +1016,8 @@ you'll need a newer version of <app>sgmlop</app> (included in <app>PyXML 0.5.5.1
 
 
 <section><title>Changes before 0.3.3</title>
-These changes predate written history.
+<ulist>
+<item>These changes predate written history.</item>
+</ulist>
 </section>
 
