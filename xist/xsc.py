@@ -718,8 +718,8 @@ class XSCElement(XSCNode):
 			del self.content[index]
 
 	def __getslice__(self,index1,index2):
-		"""returns a slice of the content of the element"""
-		return self.content[index1:index2]
+		"""returns a copy of the element that contains a slice of the content"""
+		return self.__class__(self.content[index1:index2],self.attrs)
 
 	def __setslice__(self,index1,index2,sequence):
 		"""modifies a slice of the content of the element"""
