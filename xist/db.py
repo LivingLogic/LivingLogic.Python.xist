@@ -58,8 +58,8 @@ class control(xsc.Element):
 	This class in itself has no use, i.e. it should be considered abstract.
 
 	control and all derived elements implement no asHTML(), but do their
-	conversion to HTML in the __str__ function, because otherwise they
-	would all have to be directly in the target element, an can't be embedded
+	conversion to HTML in the asString() function, because otherwise they
+	would all have to be directly in the target element, and can't be embedded
 	into other element, because then the template wouldn't be able to find
 	them.
 
@@ -69,13 +69,13 @@ class control(xsc.Element):
 	emtpy = 1
 	attrHandlers = { "name" : xsc.TextAttr , "value" : xsc.TextAttr }
 
-	def __str__(self):
+	def asString(self):
 		return ""
 
 class lookupcombobox(control):
 	attrHandlers = xsc.appendDict(control.attrHandlers,{ "module" : xsc.TextAttr , "variable" : xsc.TextAttr , "query" : xsc.TextAttr , "displayfield" : xsc.TextAttr , "valuefield" : xsc.TextAttr })
 
-	def __str__(self):
+	def asString(self):
 		e = html.select(name = self["name"])
 
 		if retrievedb:
@@ -91,30 +91,30 @@ class lookupcombobox(control):
 				e.append(o)
 		else:
 			e.append(html.option("dummy"))
-		return str(e.asHTML())
+		return e.asHTML().asString()
 
 class checkbox(control):
-	def __str__(self):
+	def asString(self):
 		e = html.input(self.attrs)
 		e["type"] = "checkbox"
 		if self.has_attr("value") and string.atoi(self["value"].asPlainString()) != 0:
 			e["checked"] = None
 		else:
 			del e["checked"]
-		return str(e.asHTML())
+		return e.asHTML().asString()
 
 class edit(control):
 	attrHandlers = xsc.appendDict(control.attrHandlers,{ "size" : xsc.TextAttr })
 
-	def __str__(self):
+	def asString(self):
 		e = html.input(self.attrs)
 
-		return str(e.asHTML())
+		return e.asHTML().asString()
 
 class memo(control):
 	attrHandlers = xsc.appendDict(control.attrHandlers,html.textarea.attrHandlers)
 
-	def __str__(self):
+	def asString(self):
 		e = html.textarea()
 		if self.has_attr("value"):
 			e.extend(self["value"])
@@ -122,7 +122,7 @@ class memo(control):
 			if attr != "value":
 				e[attr] = self[attr]
 
-		return str(e.asHTML())
+		return e.asHTML().asString()
 
 class static(control):
 	def asPlainString(self):
@@ -131,21 +131,24 @@ class static(control):
 		else:
 			return ""
 
-	def __str__(self):
+	def asString(self):
 		if self.has_attr("value"):
 			e = self["value"]
 		else:
 			e = specials.nbsp()
 
-		return str(e.asHTML())
+		return e.asHTML().asString()
 
 class hidden(control):
-	def __str__(self):
+	def asPlainString(self):
+		return ""
+
+	def asString(self):
 		e = html.input(type="hidden",name=self["name"])
 		if self.has_attr("value"):
 			e["value"] = self["value"]
 
-		return str(e.asHTML())
+		return e.asHTML().asString()
 
 class target(xsc.Element):
 	empty = 0

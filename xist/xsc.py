@@ -572,7 +572,7 @@ _elementHandlers = {} # dictionary for mapping element names to classes, this di
 class Node:
 	"""
 	base class for nodes in the document tree. Derived classes must
-	implement asHTML() and/or __str__()
+	implement asHTML() and/or asString()
 	"""
 
 	empty = 1
@@ -686,7 +686,7 @@ class Node:
 		"""
 		return string.atoi(self.asPlainString())
 
-	def __str__(self):
+	def asString(self):
 		"""
 		returns this element as a string
 		"""
@@ -738,8 +738,8 @@ class Text(Node):
 
 	strescapes = { '<' : 'lt' , '>' : 'gt' , '&' : 'amp' , '"' : 'quot' }
 
-	def __init__(self,_content = ""):
-		self.content = str(_content)
+	def __init__(self,content = ""):
+		self.content = str(content)
 
 	def asHTML(self):
 		return Text(self.content)
@@ -749,7 +749,7 @@ class Text(Node):
 	def asPlainString(self):
 		return self.content
 
-	def __str__(self):
+	def asString(self):
 		v = []
 		for i in self.content:
 			if i == '\r':
@@ -834,8 +834,8 @@ class CharRef(Node):
 	__notdirect = { ord("&") : "amp" , ord("<") : "lt" , ord(">") : "gt", ord('"') : "quot" , ord("'") : "apos" }
 	__linefeeds = [ ord("\r") , ord("\n") ]
 
-	def __init__(self,_content = 42):
-		self.content = _content
+	def __init__(self,content = 42):
+		self.content = content
 
 	def asHTML(self):
 		return CharRef(self.content)
@@ -845,7 +845,7 @@ class CharRef(Node):
 	def asPlainString(self):
 		return chr(self.content)
 
-	def __str__(self):
+	def asString(self):
 		if 0<=self.content<=127:
 			if self.content != ord("\r"):
 				if self.__notdirect.has_key(self.content):
@@ -889,9 +889,9 @@ class Frag(Node):
 
 	repransiname = ""
 
-	def __init__(self,*_content):
+	def __init__(self,*content):
 		self.__content = []
-		for child in _content:
+		for child in content:
 			self.extend(child)
 
 	def asHTML(self):
@@ -931,10 +931,10 @@ class Frag(Node):
 			v.append(child.asPlainString())
 		return string.join(v,"")
 
-	def __str__(self):
+	def asString(self):
 		v = []
 		for child in self:
-			v.append(str(child))
+			v.append(child.asString())
 		return string.join(v,"")
 
 	def __getitem__(self,index):
@@ -1056,7 +1056,7 @@ class Comment(Node):
 	def _doreprtree(self,nest,elementno,ansi):
 		return [[nest,self.startlineno,elementno,self._dorepr(ansi)]]
 
-	def __str__(self):
+	def asString(self):
 		return "<!--" + self.__content + "-->"
 
 	def compact(self):
@@ -1083,7 +1083,7 @@ class DocType(Node):
 	def _doreprtree(self,nest,elementno,ansi = None):
 		return [[nest,self.startlineno,elementno,self._dorepr(ansi)]]
 
-	def __str__(self):
+	def asString(self):
 		return "<!DOCTYPE " + self.__content + ">"
 
 	def compact(self):
@@ -1177,7 +1177,7 @@ class ProcInst(Node):
 				v.append([mynest,no,elementno,s])
 			return v
 
-	def __str__(self):
+	def asString(self):
 		return "<?" + self.target + " " + self.content + "?>"
 
 	def compact(self):
@@ -1209,17 +1209,17 @@ class Element(Node):
 	empty = 1 # 0 => element with content; 1 => stand alone element
  	attrHandlers = {} # maps attribute names to attribute classes
 
-	def __init__(self,*_content,**_attrs):
+	def __init__(self,*content,**attrs):
 		self.content = Frag()
 		self.attrs = {}
-		for child in _content:
+		for child in content:
 			if type(child) == types.DictionaryType:
 				for attr in child.keys():
 					self[attr] = child[attr]
 			else:
 				self.extend(child)
-		for attr in _attrs.keys():
-			self[attr] = _attrs[attr]
+		for attr in attrs.keys():
+			self[attr] = attrs[attr]
 
 	def append(self,item):
 		"""
@@ -1292,7 +1292,7 @@ class Element(Node):
 			v.append([nest,self.endlineno,elementno,self._str(brackets = 1,slash = -1,ansi = ansi)])
 		return v
 
-	def __str__(self):
+	def asString(self):
 		v = []
 		v.append("<")
 		v.append(string.lower(self.__class__.__name__))
@@ -1302,9 +1302,9 @@ class Element(Node):
 			value = self[attr]
 			if len(value):
 				v.append('="')
-				v.append(str(value))
+				v.append(value.asString())
 				v.append('"')
-		s = str(self.content)
+		s = self.content.asString()
 		if self.empty:
 			if len(s):
 				raise EmptyElementWithContentError(xsc.parser.lineno,self)
@@ -1460,7 +1460,7 @@ class Null(Element):
 
 	clone = compact = asHTML
 
-	def __str__(self):
+	def asString(self):
 		return ""
 
 	def _dorepr(self):
@@ -1574,10 +1574,10 @@ class URLAttr(Attr):
 		return Attr._str(self,content = attr,brackets = brackets,slash = slash,ansi = ansi)
 
 	def _dorepr(self,ansi = None):
-		return strURL(str(self),ansi = ansi)
+		return strURL(self.asString(),ansi = ansi)
 
-	def __str__(self):
-		return str(Text(str(self.forOutput())))
+	def asString(self):
+		return Text(str(self.forOutput())).asString()
 
 	def asHTML(self):
 		e = Attr.asHTML(self)
@@ -1878,7 +1878,7 @@ def make():
 			e_in = xsc.parse(inname)
 			xsc.pushName(inname)
 			e_out = e_in.asHTML()
-			__forceopen(str(outname),"wb").write(str(e_out))
+			__forceopen(str(outname),"wb").write(e_out.asString())
 			xsc.popName()
 	else:
 		sys.stderr.write("XSC: no files to convert.\n")
