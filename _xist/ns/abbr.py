@@ -300,4 +300,10 @@ class dtd(xsc.Entity):
 	def asPlainString(self):
 		return u"DTD"
 
+class ftp(xsc.Entity):
+	def convert(self, converter=None):
+		return html_.abbr("FTP", title="File Transfer Protocol", lang="en")
+	def asPlainString(self):
+		return u"FTP"
+
 namespace = xsc.Namespace("abbr", "http://www.livinglogic.de/DTDs/abbr.dtd", vars())
