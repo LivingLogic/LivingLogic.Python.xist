@@ -245,7 +245,7 @@ class EscInlineText(ansistyle.EscapedText):
 			ascharref = char in self.ascharref
 			if not ascharref:
 				try:
-					char.encode(options.reprEncoding)
+					char.encode(options.reprencoding)
 				except:
 					ascharref = True
 			if ascharref:

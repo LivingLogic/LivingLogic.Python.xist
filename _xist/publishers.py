@@ -57,12 +57,8 @@ class Publisher(object):
 		<lit><arg>xhtml</arg>==0</lit>, or XHTML output that is compatible with &html; browsers
 		(element with an empty content model as <markup>&lt;foo /&gt;</markup> and others that
 		just happen to be empty as <markup>&lt;foo&gt;&lt;/foo&gt;</markup>) with
-		<lit><arg>xhtml</arg>==1</lit> or just plain XHTML with
-		<lit><arg>xhtml</arg>==2</lit> (all empty elements as <markup>&lt;foo/&gt;</markup>).
-		When you use the default (<lit>None</lit>) that value of the global variable
-		<lit>outputXHTML</lit> will be used, which defaults to <lit>1</lit>, but can be overwritten
-		by the environment variable <lit>XSC_OUTPUT_XHTML</lit> and can of course be
-		changed dynamically.</par>
+		<lit><arg>xhtml</arg>==1</lit> (the default) or just plain XHTML with
+		<lit><arg>xhtml</arg>==2</lit> (all empty elements as <markup>&lt;foo/&gt;</markup>).</par>
 
 		<par><arg>validate</arg> specifies whether validation should be done before
 		publishing.</par>
