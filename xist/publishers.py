@@ -14,9 +14,8 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
 import sys, types, array, codecs
-import xsc, options, utils, errors, helpers
-
-strescapes = (u'&', u'<', u'>', u'"', u"'")
+import xsc, options, utils, errors
+from helpers import *
 
 class Publisher:
 	"""
@@ -54,6 +53,8 @@ class Publisher:
 
 		<par>usePrefixe specifies if the prefix from element name should be output too.</par>
 		"""
+		self.escape = None
+		self.inAttr = 0
 		if encoding is None:
 			encoding = options.outputEncoding
 		self.encoding = encoding
@@ -64,49 +65,31 @@ class Publisher:
 		self.XHTML = XHTML
 		self.usePrefix = usePrefix
 
-	def publish(self, *texts):
+	def publish(self, text):
 		"""
 		receives the strings to be printed.
 		The strings are still unicode objects, and you have to do the encoding yourself.
-		overwrite this method
+		overwrite this method.
 		"""
 		pass
 
-	def publishQuoted(self, text):
-		"""
-		encodes the text <argref>text</argref> with the encoding <code><self/>.encoding</code>.
-		using character references for <code>&amp;lt;</code> etc. and non encodabel characters
-		is legal.
-		"""
-		text = helpers.escapeText(text)
-
-		try:
-			text.encode(self.encoding)
+	def __call__(self, *texts):
+		for text in texts:
 			self.publish(text)
-		except UnicodeError:
-			v = []
-			for c in text:
-				try:
-					c.encode(self.encoding)
-					v.append(c)
-				except UnicodeError:
-					v.append(u"&#" + str(ord(c)) + u";")
-			self.publish(u"".join(v))
 
-	def publishPlain(self, text):
-		"""
-		encodes the text <argref>text</argref> with the encoding <code><self/>.encoding</code>.
-		anything that requires a character reference (e.g. element names) is illegal.
-		"""
-		for c in strescapes:
-			if c in text:
-				raise errors.EncodingImpossibleError(None, self.encoding, text, c)
+	def escapeText(self, text):
+		if self.inAttr:
+			return escapeText(text, self.encoding)
+		else:
+			return escapeAttr(text, self.encoding)
 
-		try:
-			text.encode(self.encoding)
-			self.publish(text)
-		except UnicodeError:
-			raise error.EncodingImpossibleError(None, self.encoding, text, "")
+	def escapePlain(self, text):
+		"""
+		encodes the text <argref>text</argref> with the encoding <argref>encoding</argref>.
+		anything that requires a character reference is illegal.
+		"""
+		text.encode(self.encoding)
+		return text
 
 class FilePublisher(Publisher):
 	"""
@@ -117,9 +100,8 @@ class FilePublisher(Publisher):
 		(encode, decode, streamReaderClass, streamWriterClass) = codecs.lookup(self.encoding)
 		self.file = streamWriterClass(file)
 
-	def publish(self, *texts):
-		for text in texts:
-			self.file.write(text)
+	def publish(self, text):
+		self.file.write(text)
 
 	def tell(self):
 		"""
@@ -145,8 +127,8 @@ class StringPublisher(Publisher):
 		Publisher.__init__(self, encoding="utf16", XHTML=XHTML, usePrefix=usePrefix)
 		self.texts = []
 
-	def publish(self, *texts):
-		self.texts.extend(texts)
+	def publish(self, text):
+		self.texts.append(text)
 
 	def asString(self):
 		"""
@@ -166,8 +148,8 @@ class BytePublisher(Publisher):
 		Publisher.__init__(self, encoding=encoding, XHTML=XHTML, usePrefix=usePrefix)
 		self.texts = []
 
-	def publish(self, *texts):
-		self.texts.extend(texts)
+	def publish(self, text):
+		self.texts.append(text)
 
 	def asBytes(self):
 		"""

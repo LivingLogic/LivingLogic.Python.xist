@@ -229,6 +229,7 @@ import providers # classes that generate XSC trees
 import errors # exceptions
 import options # optional stuff ;)
 import utils # misc stuff
+import helpers # C stuff
 
 ###
 ### helpers
@@ -866,7 +867,7 @@ class Text(Node, StringMixIn):
 		return self._content
 
 	def publish(self, publisher):
-		publisher.publishQuoted(self._content)
+		publisher(publisher.escapeText(self._content))
 
 	def __strtext(self, refwhite, content, encoding=None, ansi=None):
 		if encoding == None:
@@ -903,7 +904,7 @@ class Text(Node, StringMixIn):
 					v.append(strCharRef(s, ansi))
 				else:
 					s = content[start:end]
-					v.append(strText(s.encode(Encoding), ansi))
+					v.append(strText(s.encode(encoding), ansi))
 				charref = 1-charref # switch to the other class
 				start = end # the next string we want to work on starts from here
 			end += 1 # to the next character
@@ -1133,9 +1134,11 @@ class Comment(Node, StringMixIn):
 		return self._doreprtreeMultiLine(nest, elementno, head, tail, self._content, strCommentText, 0, encoding=encoding, ansi=ansi)
 
 	def publish(self, publisher):
+		if publisher.inAttr:
+			raise errors.IllegalAttrNode(self.startloc, self)
 		if self._content.find(u"--")!=-1 or self._content[-1:]==u"-":
 			raise errors.IllegalCommentContentError(self.startloc, self)
-		publisher.publish(u"<!--", self._content, u"-->")
+		publisher(u"<!--", publisher.escapePlain(self._content), u"-->")
 
 class DocType(Node, StringMixIn):
 	"""
@@ -1159,7 +1162,9 @@ class DocType(Node, StringMixIn):
 		return self._doreprtreeMultiLine(nest, elementno, head, tail, self._content, strDocTypeText, 0, encoding=encoding, ansi=ansi)
 
 	def publish(self, publisher):
-		publisher.publish(u"<!DOCTYPE ", self._content, u">")
+		if publisher.inAttr:
+			raise errors.IllegalAttrNode(self.startloc, self)
+		publisher(u"<!DOCTYPE ", publisher.escapePlain(self._content), u">")
 
 class ProcInst(Node, StringMixIn):
 	"""
@@ -1194,11 +1199,11 @@ class ProcInst(Node, StringMixIn):
 		return self._doreprtreeMultiLine(nest, elementno, head, tail, self._content, strProcInstData, 1, ansi=ansi)
 
 	def publish(self, publisher):
+		if publisher.inAttr:
+			raise errors.IllegalAttrNode(self.startloc, self)
 		if self._content.find(u"?>")!=-1:
 			raise errors.IllegalProcInstFormatError(self.startloc, self)
-		publisher.publish(u"<?")
-		publisher.publishPlain(self._target)
-		publisher.publish(u" ", self._content, u"?>")
+		publisher(u"<?", publisher.escapePlain(self._target), u" ", publisher.escapePlain(self._content), u"?>")
 
 class PythonCode(ProcInst):
 	"""
@@ -1467,42 +1472,44 @@ class Element(Node):
 		return v
 
 	def publish(self, publisher):
-		publisher.publish(u"<")
+		if publisher.inAttr:
+			raise errors.IllegalAttrNode(self.startloc, self)
+		publisher(u"<")
 		if publisher.usePrefix==1:
-			publisher.publish(self.namespace.prefix, u":") # requires that the element is registered via registerElement()
-		publisher.publish(self.name) # requires that the element is registered via registerElement()
+			publisher(self.namespace.prefix, u":") # requires that the element is registered via registerElement()
+		publisher(self.name) # requires that the element is registered via registerElement()
 		for attrname in self.attrs.keys():
-			publisher.publish(u" ", attrname)
+			publisher(u" ", attrname)
 			value = self[attrname]
 			if isinstance(value, BoolAttr):
 				if publisher.XHTML>0:
-					publisher.publish(u'="', attrname, u'"')
+					publisher(u"=\"", attrname, u"\"")
 			else:
-				publisher.publish(u'="')
+				publisher(u"=\"")
 				value.publish(publisher)
-				publisher.publish(u'"')
+				publisher(u"\"")
 		if len(self):
 			if self.empty:
 				raise errors.EmptyElementWithContentError(self)
-			publisher.publish(u">")
+			publisher(u">")
 			self.content.publish(publisher)
-			publisher.publish(u"</")
+			publisher(u"</")
 			if publisher.usePrefix==1:
-				publisher.publish(self.namespace.prefix, u":") # requires that the element is registered via registerElement()
-			publisher.publish(self.name, u">")
+				publisher(self.namespace.prefix, u":") # requires that the element is registered via registerElement()
+			publisher(self.name, u">")
 		else:
 			if publisher.XHTML in (0, 1):
 				if self.empty:
 					if publisher.XHTML==1:
-						publisher.publish(u" /")
-					publisher.publish(u">")
+						publisher(u" /")
+					publisher(u">")
 				else:
-					publisher.publish(u"></")
+					publisher(u"></")
 					if publisher.usePrefix==1:
-						publisher.publish(self.namespace.prefix, u":") # requires that the element is registered via registerElement()
-					publisher.publish(self.name, u">")
+						publisher(self.namespace.prefix, u":") # requires that the element is registered via registerElement()
+					publisher(self.name, u">")
 			elif publisher.XHTML == 2:
-				publisher.publish(u"/>")
+				publisher(u"/>")
 
 	def __getitem__(self, index):
 		"""
@@ -1531,7 +1538,7 @@ class Element(Node):
 			try:
 				attr = self.attrHandlers[index]() # create an empty attribute of the right type
 			except KeyError:
-				raise errors.IllegalAttributeError(self, index)
+				raise errors.IllegalAttrError(self, index)
 			attr.extend(value) # put the value into the attribute
 			self.attrs[index] = attr # put the attribute in our dict
 		else:
@@ -1673,7 +1680,7 @@ class Entity(Node):
 		return [[nest, self.startloc, elementno, self._dorepr(encoding=encoding, ansi=ansi)]]
 
 	def publish(self, publisher):
-		publisher.publish(u"&", self.name, u";") # requires that the entity is registered via Namespace.register()
+		publisher(u"&", self.name, u";") # requires that the entity is registered via Namespace.register()
 
 	def find(self, type=None, subtype=0, attrs=None, test=None, searchchildren=0, searchattrs=0):
 		node = Frag()
@@ -1716,6 +1723,13 @@ class Attr(Frag):
 
 	def _dorepr(self, encoding=None, ansi=None):
 		return strAttrValue(Frag._dorepr(self, encoding=encoding, ansi=0), ansi)
+
+	def publish(self, publisher):
+		if publisher.inAttr:
+			raise errors.IllegalAttrNode(self.startloc, self)
+		publisher.inAttr = 1
+		Frag.publish(self, publisher)
+		publisher.inAttr = 0
 
 class TextAttr(Attr):
 	"""

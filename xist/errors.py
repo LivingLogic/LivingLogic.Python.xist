@@ -182,6 +182,19 @@ class IllegalElementNestingError(Error):
 	def __str__(self):
 		return Error.__str__(self) + "illegal element nesting (" + xsc._strNode(self.expectedelement) + " expected; " + xsc._strNode(self.foundelement) + " found)"
 
+class IllegalAttrNode(Error):
+	"""
+	exception that is raised, when an something is found
+	in an element that doesn't belong there.
+	"""
+
+	def __init__(self, lineno, node):
+		Error.__init__(self, lineno)
+		self.node = node
+
+	def __str__(self):
+		return Error.__str__(self) + "illegal node of type " + self.node.__class__.__name__ + " found inside attribute"
+
 class ImageSizeFormatError(Error):
 	"""
 	exception that is raised, when XSC can't format or evaluate image size attributes
