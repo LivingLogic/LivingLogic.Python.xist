@@ -164,7 +164,23 @@ be combined into the following:
 
 Automatic generation of image size attributes
 =============================================
-...
+Most elements from the html module (i.e. the HTML
+"tags") don't do anything fancy in their own asHTML()
+member (They only call asHTML() recursively for their
+own content)
+
+The img element is one exception. Its asHTML() method
+determines the size of the image and sets the HEIGHT
+and WIDTH attribute accordingly.
+
+This is not the whole truth. When the WIDTH or HEIGHT attribute
+is already specified, the following happens:
+%-formatting is used on the attribute value, and the width and
+height of the image is passed to the & operator as a dictionary
+with the keys "width" and "height". The resulting string is
+eval()uated and it's result is used for the attribute. So to make
+an image twice as wide and high do the following:
+	<img src="foo.png" width="%(width)d*2" height="%(height)d*2"/>
 
 Requirements
 ============
