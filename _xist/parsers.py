@@ -565,6 +565,7 @@ class Parser(object):
 		return self._parse(stream, base, sysid, encoding)
 
 	def parseURL(self, name, base=None, sysid=None, headers=None, data=None):
+		name = url.URL(name)
 		stream = name.openread(headers=headers, data=data)
 		if base is None:
 			base = stream.finalurl
