@@ -31,9 +31,6 @@ import types, urlparse, urllib
 
 from xist import helpers, options
 
-# workaround for a bug in urlparse (which is fixed in urlparse.py CVS revision 1.26)
-urlparse.scheme_chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+-."
-
 uses_relative = urlparse.uses_relative + [None]
 uses_netloc = urlparse.uses_netloc
 
@@ -485,7 +482,7 @@ class URL:
 				url.server = base.server
 			if len(url.__path) and url.__path[0] == u'':
 				return url
-			if not url.__path and not url.file:
+			if not url.__path and  url.file is None:
 				# neither path nor filename set
 				url.__path = base.__path[:] # copy
 				url.file = base.file
