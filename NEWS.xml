@@ -152,9 +152,9 @@ write the following &xml;:
 &lt;/if&gt;
 </programlisting>
 </li>
-<li>URL handling has be conpletely changed and is much, much simpler now.
+<li>URL handling has be completely changed and is much, much simpler now.
 There are no more path markers. To specify an URL that is relative to the
-current directory use the scheme <code>root</code> (e.g. <code>root:main.css</code>.</li>
+current directory use the scheme <code>root</code> (e.g. <code>root:main.css</code>).</li>
 </ul>
 </section>
 

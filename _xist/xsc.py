@@ -20,7 +20,7 @@
 ## IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 """
-<dbl:para>&xist; is a &html; generator based on Python and &xml;. It was written
+<dbl:para>&xist; is an &xml; based &html; generator written in Python. It was developed
 as a replacement for an &html; preprocessor named
 <a href="http://www.giga.or.at/~agi/hsc/">HSC</a>, and borrows some
 features and ideas from it. It also borrows the basic ideas (&xml;/&html;
@@ -1487,7 +1487,7 @@ class Element(Node):
 		"""
 		positional arguments are treated as content nodes.
 
-		keyword arguments and dictionaries are treated as attributes.
+		keyword arguments are treated as attributes.
 		"""
 		self.content = Frag(*content)
 		self.attrs = {}
