@@ -52,9 +52,9 @@ class URL:
 		self.fragment = None
 		if url is None:
 			pass
-		elif type(url) == types.StringType:
+		elif type(url) is types.StringType:
 			self.__fromString(url)
-		elif type(url) == types.InstanceType and isinstance(url,URL):
+		elif isinstance(url,URL):
 			self.scheme     = url.scheme
 			self.server     = url.server
 			self.port       = url.port
@@ -65,7 +65,7 @@ class URL:
 			self.query      = url.query
 			self.fragment   = url.fragment
 		else:
-			raise ValueError("URL argument must be either a string or an URL")
+			raise ValueError("URL argument must be either a string or an URL or None")
 
 		if scheme is not None:
 			self.scheme = scheme
@@ -86,38 +86,7 @@ class URL:
 		if fragment is not None:
 			self.fragment = fragment
 
-		self.__optimize()
-
-	def __fromString(self,url):
-		(self.scheme,self.server,self.path,self.parameters,self.query,self.fragment) = urlparse.urlparse(url)
-		if self.scheme == "": # do we have a local file?
-			if len(self.path):
-				if self.path[0] == "/": # this is a server relative URL
-					self.path = self.path[1:] # drop the empty string in front of the first "/" ...
-					self.scheme = "server" # ... and use a special scheme for that
-		elif self.scheme == "http":
-			if len(self.path):
-				self.path = self.path[1:] # if we had a http, the path from urlparse started with "/" too
-		pos = string.rfind(self.server,":")
-		if pos != -1:
-			self.port = int(self.server[pos+1:])
-			self.server = self.server[:pos]
-		self.path = string.split(self.path,"/")
-		self.file = self.path[-1]
-		self.path = self.path[:-1]
-
-		if self.scheme in [ "ftp" , "http" , "https" , "server", "" ]:
-			pos = string.rfind(self.file,".")
-			if pos != -1:
-				self.ext = self.file[pos+1:]
-				self.file = self.file[:pos]
-
-		self.scheme = self.scheme or None
-		self.server = self.server or None
-		self.file = self.file or None
-		self.parameters = self.parameters or None
-		self.query = self.query or None
-		self.fragment = self.fragment or None
+		self.__normalize()
 
 	def isPathMarker(self,dir):
 		"""
@@ -125,10 +94,7 @@ class URL:
 		
 		returns if the directory name dir is a path marker.
 		"""
-		if len(dir) and dir[0] == "*":
-			return 1
-		else:
-			return 0
+		return dir[:1] == "*"
 
 	def isNoPathMarker(self,dir):
 		"""
@@ -161,56 +127,10 @@ class URL:
 		return "URL(" + string.join(v,", ") + ")"
 
 	def __str__(self):
-		scheme = self.scheme or ""
+		return self.__asString(1)
 
-		server = self.server or ""
-		if self.port:
-			server = server + ":" + str(self.port)
-
-		path = []
-		if scheme == "server":
-			scheme = "" # remove our own private scheme name
-			path.append("") # make sure that there's a "/" at the start
-		for dir in self.path:
-			if not self.isPathMarker(dir):
-				path.append(dir)
-
-		file = self.file or ""
-		if self.ext:
-			file = file + "." + self.ext
-		path.append(file)
-
-		return urlparse.urlunparse((scheme,server,string.join(path,"/"),self.parameters or "",self.query or "",self.fragment or ""))
-
-	def __join(self,other):
-		if not other.scheme:
-			if len(other.path) and self.isPathMarker(other.path[0]):
-				for i in xrange(len(self.path)-1):
-					if self.isPathMarker(self.path[i]) and self.path[i] == other.path[0]:
-						self.path[i:] = other.path
-						break
-				else:
-					self.path.extend(other.path)
-			else:
-				self.path.extend(other.path)
-			self.file       = other.file or self.file
-			self.ext        = other.ext or self.ext
-			self.parameters = other.parameters
-			self.query      = other.query
-			self.fragment   = other.fragment
-		elif other.scheme == "server":
-			if not self.scheme:
-				self.scheme = "server"
-			self.path       = other.path[:]
-			self.file       = other.file
-			self.ext        = other.ext
-			self.parameters = other.parameters
-			self.query      = other.query
-			self.fragment   = other.fragment
-		else: # URL to be joined is absolute, so we return the second URL
-			return other
-		self.__optimize()
-		return self
+	def asString(self):
+		return self.__asString(0)
 
 	def __add__(self,other):
 		"""
@@ -260,23 +180,122 @@ class URL:
 				del new.path[0]
 			new.path[:0] = [".."]*len(otherpath) # now for the rest of the path we have to go up from file and down to path (the directories for this are still in path)
 			new.scheme = None
-		new.__optimize() # Now that the path markers are gone, we try to optimize again
+		new.__normalize() # Now that the path markers are gone, we try to normalize again
 		return new
 
 	def __cmp__(self,other):
 		return cmp(self.scheme,other.scheme) or cmp(self.server,other.server) or cmp(self.port,other.port) or cmp(self.path,other.path) or cmp(self.file,other.file) or cmp(self.ext,other.ext) or cmp(self.parameters,other.parameters) or cmp(self.query,other.query) or cmp(self.fragment,other.fragment)
 
-	def __optimize(self):
-		"""
-		optimize the path by removing combinations of down/up
-		"""
-		while 1:
-			for i in xrange(len(self.path)):
-				if self.path[i]==".." and i>0 and self.path[i-1]!=".." and self.isNoPathMarker(self.path[-1]): # found a down/up
-					del self.path[i-1:i+1] # remove both directory names
-					break # restart the search
-			else: # no down/up found
-				break
-
 	def read(self):
-		return urllib.urlopen(str(self)).read()
+		return urllib.urlopen(self.asString()).read()
+
+	def __fromString(self,url):
+		(self.scheme,self.server,self.path,self.parameters,self.query,self.fragment) = urlparse.urlparse(url)
+		if self.scheme == "": # do we have a local file?
+			if len(self.path):
+				if self.path[0] == "/": # this is a server relative URL
+					self.path = self.path[1:] # drop the empty string in front of the first "/" ...
+					self.scheme = "server" # ... and use a special scheme for that
+		elif self.scheme in ( "ftp" , "http" , "https" ):
+			if len(self.path):
+				self.path = self.path[1:] # the path from urlparse started with "/" too
+		pos = string.rfind(self.server,":")
+		if pos != -1:
+			self.port = int(self.server[pos+1:])
+			self.server = self.server[:pos]
+		self.path = string.split(self.path,"/")
+		self.file = self.path[-1]
+		self.path = self.path[:-1]
+
+		if self.scheme in [ "ftp" , "http" , "https" , "server", "" ]:
+			pos = string.rfind(self.file,".")
+			if pos != -1:
+				self.ext = self.file[pos+1:]
+				self.file = self.file[:pos]
+
+		self.scheme = self.scheme or None
+		self.server = self.server or None
+		self.file = self.file or None
+		self.parameters = self.parameters or None
+		self.query = self.query or None
+		self.fragment = self.fragment or None
+
+	def __asString(self,withPathMarkers):
+		scheme = self.scheme or ""
+		server = self.server or ""
+		if self.port:
+			server = server + ":" + str(self.port)
+		path = []
+		if scheme == "server":
+			scheme = "" # remove our own private scheme name
+			path.append("") # make sure that there's a "/" at the start
+		for dir in self.path:
+			if withPathMarkers or not self.isPathMarker(dir):
+				path.append(dir)
+		file = self.file or ""
+		if self.ext:
+			file = file + "." + self.ext
+		path.append(file)
+		return urlparse.urlunparse((scheme,server,string.join(path,"/"),self.parameters or "",self.query or "",self.fragment or ""))
+
+	def __join(self,other):
+		if not other.scheme:
+			if len(other.path) and self.isPathMarker(other.path[0]):
+				for i in xrange(len(self.path)-1):
+					if self.isPathMarker(self.path[i]) and self.path[i] == other.path[0]:
+						self.path[i:] = other.path
+						break
+				else:
+					self.path.extend(other.path)
+			else:
+				self.path.extend(other.path)
+			self.file       = other.file or self.file
+			self.ext        = other.ext or self.ext
+			self.parameters = other.parameters
+			self.query      = other.query
+			self.fragment   = other.fragment
+		elif other.scheme == "server":
+			if not self.scheme:
+				self.scheme = "server"
+			self.path       = other.path[:]
+			self.file       = other.file
+			self.ext        = other.ext
+			self.parameters = other.parameters
+			self.query      = other.query
+			self.fragment   = other.fragment
+		else: # URL to be joined is absolute, so we return the second URL
+			return other
+		self.__normalize()
+		return self
+
+	def __normalize(self):
+		"""
+		normalize the path by removing combinations of down/up
+		and removing duplicate path markers.
+		"""
+
+		# remove duplicate path markers: first find the position of all names
+		dirs = {}
+		for i in xrange(len(self.path)):
+			try:
+				dirs[self.path[i]].append(i)
+			except KeyError:
+				dirs[self.path[i]] = [ i ]
+
+		# if there are duplicate path markers only keep the last one
+		path = [ None ] * len(self.path)
+		for name in dirs.keys():
+			if self.isPathMarker(name):
+				path[max(dirs[name])] = name
+			else:
+				for i in dirs[name]:
+					path[i] = name
+
+		# put back together what we have
+
+		# remove "foo/.." combinations
+		for i in xrange(len(path)):
+			if path[i]==".." and i>0 and path[i-1]!=".." and self.isNoPathMarker(path[i-1]): # found a down/up
+				path[i-1] = None # remove both directory names
+				path[i] = None
+		self.path = filter(lambda x: x is not None,path)

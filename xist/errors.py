@@ -39,14 +39,14 @@ class Error(Exception):
 	base class for all XSC exceptions
 	"""
 
-	def __init__(self,lineno):
-		self.lineno = lineno
+	def __init__(self,location = None):
+		self.location = location
 
 	def __str__(self):
-		if self.lineno>0:
-			return "(line " + str(self.lineno) + ") "
-		else:
-			return ""
+		s = str(self.location)
+		if s:
+			s = s + ": "
+		return s
 
 class EmptyElementWithContentError(Error):
 	"""
@@ -54,8 +54,8 @@ class EmptyElementWithContentError(Error):
 	but it shouldn't (i.e. empty==1)
 	"""
 
-	def __init__(self,lineno,element):
-		Error.__init__(self,lineno)
+	def __init__(self,element):
+		Error.__init__(self)
 		self.element = element
 
 	def __str__(self):
@@ -67,8 +67,8 @@ class IllegalAttributeError(Error):
 	(i.e. one that isn't contained in it's attrHandlers)
 	"""
 
-	def __init__(self,lineno,element,attr):
-		Error.__init__(self,lineno)
+	def __init__(self,element,attr):
+		Error.__init__(self)
 		self.element = element
 		self.attr = attr
 
@@ -88,8 +88,8 @@ class AttributeNotFoundError(Error):
 	exception that is raised, when an attribute is fetched that isn't there
 	"""
 
-	def __init__(self,lineno,element,attr):
-		Error.__init__(self,lineno)
+	def __init__(self,element,attr):
+		Error.__init__(self)
 		self.element = element
 		self.attr = attr
 
@@ -115,8 +115,8 @@ class IllegalElementError(Error):
 	(i.e. one that isn't registered via registerElement
 	"""
 
-	def __init__(self,lineno,name):
-		Error.__init__(self,lineno)
+	def __init__(self,location,name):
+		Error.__init__(self,location)
 		self.name = name
 
 	def __str__(self):
@@ -145,7 +145,7 @@ class IllegalElementNestingError(Error):
 		self.foundelement = foundelement
 
 	def __str__(self):
-		return Error.__str__(self) + "illegal element nesting (" + _strNode(self.expectedelement) + " expected; " + _strNode(self.foundelement) + " found)"
+		return Error.__str__(self) + "illegal element nesting (" + xsc._strNode(self.expectedelement) + " expected; " + xsc._strNode(self.foundelement) + " found)"
 
 class ImageSizeFormatError(Error):
 	"""

@@ -1318,7 +1318,7 @@ class Element(Node):
 
 		apply(self.content.append,items)
 		if self.empty and len(self):
-			raise EmptyElementWithContentError(-1,self)
+			raise EmptyElementWithContentError(self)
 
 	def insert(self,index,*items):
 		"""
@@ -1328,7 +1328,7 @@ class Element(Node):
 		"""
 		apply(self.content.insert,(index,) + items)
 		if self.empty and len(self):
-			raise EmptyElementWithContentError(-1,self)
+			raise EmptyElementWithContentError(self)
 
 	def extend(self,*items):
 		"""
@@ -1338,7 +1338,7 @@ class Element(Node):
 		"""
 		apply(self.content.extend,items)
 		if self.empty and len(self):
-			raise EmptyElementWithContentError(-1,self)
+			raise EmptyElementWithContentError(self)
 
 	def asHTML(self):
 		e = self.__class__(self.content.asHTML()) # "virtual" copy constructor
@@ -1393,7 +1393,7 @@ class Element(Node):
 				v.append('"')
 		if len(self):
 			if self.empty:
-				raise EmptyElementWithContentError(-1,self)
+				raise EmptyElementWithContentError(self)
 			v.append(">")
 			v.append(self.content.asString(XHTML))
 			v.append("</")
@@ -1428,7 +1428,7 @@ class Element(Node):
 			try:
 				return self.attrs[lowerindex] # we're returning the packed attribute here, because otherwise there would be no possibility to get an expanded URL
 			except KeyError:
-				raise AttributeNotFoundError(-1,self,index)
+				raise AttributeNotFoundError(self,index)
 		else:
 			return self.content[index]
 
@@ -1443,7 +1443,7 @@ class Element(Node):
 			try:
 				attr = self.attrHandlers[lowerindex]() # pack the attribute into an attribute object
 			except KeyError:
-				raise IllegalAttributeError(-1,self,index)
+				raise IllegalAttributeError(self,index)
 			attr.extend(value)
 			self.attrs[lowerindex] = attr
 		else:
@@ -1532,7 +1532,7 @@ class Element(Node):
 					except:
 						raise ImageSizeFormatError(-1,self,widthattr)
 				else:
-					self[widthattr] = str(size[0])
+					self[widthattr] = size[0]
 			if size[1] != -1: # the height was retrieved so we can use it
 				if self.hasAttr(heightattr):
 					try:
@@ -1540,7 +1540,7 @@ class Element(Node):
 					except:
 						raise ImageSizeFormatError(-1,self,heightattr)
 				else:
-					self[heightattr] = str(size[1])
+					self[heightattr] = size[1]
 
 	def compact(self):
 		e = self.__class__(self.content.compact())
@@ -1660,7 +1660,7 @@ class URLAttr(Attr):
 		return strURL(self.asString(),ansi = ansi)
 
 	def asString(self,XHTML = None):
-		return Text(str(self.forOutput())).asString(XHTML)
+		return Text(self.forOutput().asString()).asString(XHTML)
 
 	def asHTML(self):
 		e = Attr.asHTML(self)
@@ -1681,7 +1681,7 @@ class URLAttr(Attr):
 		return URL(Attr.asPlainString(self))
 
 	def asPlainString(self):
-		return str(self._asURL())
+		return self._asURL().asString()
 
 	def forInput(self):
 		url = self.base + self._asURL()
@@ -1701,7 +1701,7 @@ class URLAttr(Attr):
 		size = (-1,-1)
 		if xsc.isRetrieve(url):
 			try:
-				filename,headers = urllib.urlretrieve(str(url))
+				filename,headers = urllib.urlretrieve(url.asString())
 				if headers.maintype == "image":
 					img = Image.open(filename)
 					size = img.size
@@ -1722,7 +1722,7 @@ class URLAttr(Attr):
 		size = -1
 		if xsc.isRetrieve(url):
 			try:
-				filename,headers = urllib.urlretrieve(str(url))
+				filename,headers = urllib.urlretrieve(url.asString())
 				size = os.stat(filename)[stat.ST_SIZE]
 				urllib.urlcleanup()
 			except IOError:
@@ -1807,6 +1807,42 @@ registerEntity("gt",CharRef(62)) # greater-than sign, U+003E ISOnum
 ###
 ###
 
+class Location:
+	"""
+	specifies a location in an XML file.
+	"""
+
+	def __init__(self,url = None,row = None,col = None):
+		if url is not None:
+			self.url = URL(url)
+		else:
+			self.url = None
+		self.row = row
+		self.col = col
+
+	def __str__(self):
+		if self.url is not None:
+			s = '"' + str(self.url) + '"'
+			if self.row is not None or self.col is not None:
+				s = s + ' ('
+				if self.row is not None:
+					s = s + 'l.' + str(self.row)
+					if self.col is not None:
+						s = s + '/'
+				if self.col is not None:
+					s = s + 'c.' + str(self.col)
+				s = s + ')'
+			return s
+		else:
+			return ""
+
+	def __repr__(self):
+		return "Location(" + repr(self.url) + "," + repr(self.row) + "," + repr(self.col) + ")"
+
+###
+###
+###
+
 class XSC:
 	"""
 	contains the parser and the options and functions for handling XML files
@@ -1861,7 +1897,7 @@ class XSC:
 		try: # are there any elements with this name?
 			elementsfornamespaces = _elementHandlers[name[1]]
 		except KeyError: # nope!
-			raise IllegalElementError(-1,name)
+			raise IllegalElementError(Location(self.filename[-1]),name)
 		if name[0] is None: # element name was unqualified ...
 			if len(elementsfornamespaces.keys())==1: # ... and there is exactly one element with this name => use it
 				element = elementsfornamespaces.values()[0]
@@ -1871,7 +1907,7 @@ class XSC:
 			try:
 				element = elementsfornamespaces[name[0]]
 			except KeyError:
-				raise IllegalElementError(-1,name) # elements with this name were available, but none in this namespace
+				raise IllegalElementError(Location(self.filename[-1]),name) # elements with this name were available, but none in this namespace
 		return element
 
 	def finish_starttag(self,name,attrs):
@@ -1999,7 +2035,7 @@ def make():
 				outname.ext = { "hsc" : "html" , "shsc" : "shtml" , "phsc" : "phtml" , "xsc" : "html" , "sxsc" : "shtml" , "pxsc" : "phtml"}[inname.ext]
 			except KeyError:
 				outname.ext = "html"
-			sys.stderr.write('XSC: converting "' + str(inname) + '"' + ' to "' + str(outname) + '" ...')
+			sys.stderr.write('XSC: converting "' + inname.asString() + '"' + ' to "' + outname.asString() + '" ...')
 			e_in = xsc.parse(inname)
 			xsc.pushURL(inname)
 			e_out = e_in.asHTML()
