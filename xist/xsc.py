@@ -183,7 +183,7 @@ class IllegalObjectError(Error):
 		self.object = object
 
 	def __str__(self):
-		s = Error.__str__(self) + "an illegal object of type " + type(self.object).__name__
+		s = Error.__str__(self) + "an illegal object " + repr(self.object) + " of type " + type(self.object).__name__
 		if type(self.object) == types.InstanceType:
 			s = s + " (class " + self.object.__class__.__name__ + ")"
 		s = s + " has been found in the XSC tree"
