@@ -2876,7 +2876,7 @@ class Prefixes(object):
 				return ns.charref(name)[0]
 			except LookupError:
 				pass
-		raise errors.IllegalCharRefError(qname, xml=True) # charref with this name/codepoint couldn't be found
+		raise errors.IllegalCharRefError(name, xml=True) # charref with this name/codepoint couldn't be found
 
 	def attrnameFromQName(self, element, qname):
 		"""
