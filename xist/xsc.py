@@ -192,17 +192,16 @@ instruction node is instantiated, i.e. when the XML file is parsed.
 The result of a call to asHTML() for a xsc-eval processing instruction
 is whatever the Python code in the content returns. For example, consider
 the following XML file:
-	<?xsc-exec top = 100 ?>
-	<b>
-	<?xsc-eval
-	sum = 0
-	for i in xrange(top):
-		sum = sum+i
-	return sum
+	<?xsc-exec
+	def gauss(top = 100):
+		sum = 0
+		for i in xrange(top+1):
+			sum = sum + i
+		return sum
 	?>
-	</b>
+	<b><?xsc-eval return gauss() ?></b>
 Parsing this file and converting it to HTML results in the following:
-	<b>4950</b>
+	<b>5050</b>
 
 For further information see the class ProcInst.
 
