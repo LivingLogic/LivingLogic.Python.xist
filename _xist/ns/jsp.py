@@ -112,29 +112,41 @@ class directive_taglib(directive):
 class directive_page(directive):
 	xmlname = "page"
 	class Attrs(directive.Attrs):
+		class language(xsc.TextAttr):
+			values = ("java",)
+			default = "java"
+		class extends(xsc.TextAttr): pass
 		class import_(xsc.TextAttr): xmlname = "import"
+		class session(xsc.TextAttr): values = ("true", "false")
 		class buffer(xsc.TextAttr): pass
+		class autoFlush(xsc.TextAttr): values = ("true", "false")
+		class isThreadSafe(xsc.TextAttr): values = ("true", "false")
+		class info(xsc.TextAttr): pass
 		class errorPage(xsc.URLAttr): pass
-		class session(xsc.TextAttr): pass
 		class contentType(xsc.TextAttr): pass
+		class isErrorPage(xsc.TextAttr): values = ("true", "false")
+		class pageEncoding(xsc.TextAttr): pass
 
 	def publish(self, publisher):
-		if not self.attrs.has("contentType") or self["contentType"].isfancy():
+		# Only a contentType attribute trigger the special code
+		if "contentType" not in self.attrs or self["contentType"].isfancy() or self["pageEncoding"].isfancy():
 			super(directive_page, self).publish(publisher)
 		else:
 			(contenttype, options) = cgi.parse_header(unicode(self["contentType"]))
-			if u"charset" in options and options[u"charset"] == publisher.encoding:
+			pageencoding = unicode(self["pageEncoding"])
+			if u"charset" in options and options[u"charset"] == pageencoding == publisher.encoding:
 				super(directive_page, self).publish(publisher)
 			else:
 				options[u"charset"] = publisher.encoding
 				node = self.__class__(
 					self.attrs,
-					contentType=(contenttype, u"; ", u"; ".join([ "%s=%s" % option for option in options.items()]))
+					contentType=(contenttype, u"; ", u"; ".join([ "%s=%s" % option for option in options.items()])),
+					pageEncoding=publisher.encoding
 				)
 				node.publish(publisher)
 
 class xmlns(xsc.Namespace):
 	xmlname = "jsp"
-	xmlurl = "http://java.sun.com/products/jsp/dtd/jsp_1_0.dtd"
+	xmlurl = "http://java.sun.com/JSP/Page"
 xmlns.makemod(vars())
 
