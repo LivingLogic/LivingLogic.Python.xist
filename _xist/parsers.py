@@ -238,7 +238,9 @@ class SGMLOPParser(sax.xmlreader.IncrementalParser, sax.xmlreader.Locator):
 	def finish_starttag(self, name, attrs):
 		newattrs = sax.xmlreader.AttributesImpl({})
 		for (attrname, attrvalue) in attrs.items():
-			newattrs._attrs[unicode(attrname, self.encoding)] = self._string2Fragment(unicode(attrvalue, self.encoding))
+			if attrvalue is not None:
+				attrvalue = self._string2Fragment(unicode(attrvalue, self.encoding))
+			newattrs._attrs[unicode(attrname, self.encoding)] = attrvalue
 		self.content_handler.startElement(unicode(name, self.encoding), newattrs)
 
 	def finish_endtag(self, name):
