@@ -25,7 +25,7 @@ in the call to their childrens' <function>asHTML</function> method.
 As the name <function>asHTML</function> no longer makes sense, <function>asHTML</function>
 has been renamed to <function>convert</function>.</li>
 
-<li>There is now a tool <filename>dtd2xsc.py</filename> in the <filename class="directory">tools</filename> directory
+<li>There is now a tool <filename>dtd2xsc.py</filename> in the <filename class="directory">scripts</filename> directory
 that creates a skeleton &xist; module for a &dtd;
 (this requires xmlproc from the PyXML package).</li>
 
@@ -94,7 +94,7 @@ from <code>html</code> and those before anything else.</li>
 
 <li><filename>make.py</filename> has been renamed to
 <filename>xscmake.py</filename> and moved to the
-<filename class="directory">tools</filename> directory,
+<filename class="directory">scripts</filename> directory,
 it will be installed as a callable script with <code>python setup.py install_scripts</code>.</li>
 </ul>
 </section>
