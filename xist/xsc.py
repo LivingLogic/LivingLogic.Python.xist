@@ -1448,12 +1448,11 @@ class Element(Node):
 
 	def getAttr(self,attr,default = None):
 		"""
-		S.getAttr(attr,default = None) -> node
-
-		works like the method get() of dictionaries,
-		it returns the attribute with the name attr, or if S has no
-		such attribute, default (after converting it to a node and
-		wrapping it into the appropriate attribute node.)
+		works like the method <code>get()</code> of dictionaries,
+		it returns the attribute with the name <argref>attr</argref>,
+		or if <self/> has no such attribute, <argref>default</argref>
+		(after converting it to a node and wrapping it into the appropriate
+		attribute node.)
 		"""
 		try:
 			return self[attr]
