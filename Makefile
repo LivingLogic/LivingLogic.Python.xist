@@ -14,11 +14,11 @@ SRC := $(patsubst ./%,%,$(shell find . -print))
 
 # list of all files that just have to be copied
 SRC_PY      := $(sort $(filter _xist/%.py,$(SRC)))
-SRC_SCRIPTS := $(sort $(filter tools/%.py,$(SRC)))
+SRC_SCRIPTS := $(sort $(filter scripts/%.py,$(SRC)))
 SRC_CP      := $(SRC_PY)
 
 DEP_CP      := $(patsubst _xist/%,$(OUTPUTDIR)/xist/%,$(SRC_CP))
-DEP_SCRIPTS := $(patsubst tools/%,$(SCRIPTDIR)/%,$(SRC_SCRIPTS))
+DEP_SCRIPTS := $(patsubst scripts/%,$(SCRIPTDIR)/%,$(SRC_SCRIPTS))
 DEP_PYC     := $(patsubst _xist/%.py,$(OUTPUTDIR)/xist/%.pyc,$(SRC_PY))
 
 SRC := $(SRC_CP) $(SRC_SCRIPTS)
@@ -48,8 +48,8 @@ clean:
 $(DEP_CP): $(OUTPUTDIR)/xist/% : _xist/%
 	cp $< $(patsubst _xist/%, $(OUTPUTDIR)/xist/%, $<)
 
-$(DEP_SCRIPTS): $(SCRIPTDIR)/% : tools/%
-	cp $< $(patsubst tools/%, $(SCRIPTDIR)/%, $<)
+$(DEP_SCRIPTS): $(SCRIPTDIR)/% : scripts/%
+	cp $< $(patsubst scripts/%, $(SCRIPTDIR)/%, $<)
 
 $(OUTPUTDIR)/xist/helpers.so: _xist/helpers.c
 	gcc -c -I/usr/local/include/python2.1 -g -O6 -fpic _xist/helpers.c -o _xist/helpers.o
