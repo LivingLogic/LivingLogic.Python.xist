@@ -803,8 +803,8 @@ class Node:
 
 	def normalized(self):
 		"""
-		returns a normalized version of <self/>, which means, that consecutive <pyref class="Text">Text nodes</pyref>
-		are merged.
+		returns a normalized version of <self/>, which means, that consecutive
+		<pyref class="Text">Text nodes</pyref> are merged.
 		"""
 		return self
 
@@ -1110,6 +1110,12 @@ class Frag(Node):
 		removes a slice of the content of the fragment
 		"""
 		del self.__content[index1:index2]
+
+	def __nonzero__(self):
+		"""
+		return whether the fragment is not empty (this should be a little faster than defaulting to __len__)
+		"""
+		return len(self.__content)>0
 
 	def __len__(self):
 		"""
@@ -1617,18 +1623,19 @@ class Element(Node):
 		publishes the attributes. Factored out, so that it
 		can be reused.
 		"""
-		for attrname in self.attrs.keys():
+		for (attrname, attrvalue) in self.attrs.items():
+			if not len(attrvalue): # skip empty attributes
+				continue
 			publisher.publish(u" ")
 			publisher.publish(attrname)
-			value = self[attrname]
-			if isinstance(value, BoolAttr):
+			if isinstance(attrvalue, BoolAttr):
 				if publisher.XHTML>0:
 					publisher.publish(u"=\"")
 					publisher.publish(attrname)
 					publisher.publish(u"\"")
 			else:
 				publisher.publish(u"=\"")
-				value.publish(publisher)
+				attrvalue.publish(publisher)
 				publisher.publish(u"\"")
 
 	def publish(self, publisher):
@@ -1674,27 +1681,34 @@ class Element(Node):
 	def __getitem__(self, index):
 		"""
 		returns an attribute or one of the content nodes depending on whether
-		a string (i.e. attribute name) or a number or list (i.e. content node index) is passed in.
+		an 8bit or unicode string (i.e. attribute name) or a number or list
+		(i.e. content node index) is passed in.
 		"""
 		if type(index) in (types.StringType, types.UnicodeType):
 			if index[-1] == "_":
 				index = index[:-1]
+			# we're returning the packed attribute here, because otherwise there would be no possibility to get an expanded URL
 			try:
-				return self.attrs[index] # we're returning the packed attribute here, because otherwise there would be no possibility to get an expanded URL
-			except KeyError:
-				raise errors.AttrNotFoundError(self, index)
+				attr = self.attrs[index]
+			except KeyError: # if the attribute is not there generate an empty one ...
+				try:
+					attr = self.attrHandlers[index]()
+				except KeyError: # ... if we can
+					raise errors.IllegalAttrError(self, index)
+				self.attrs[index] = attr
+			return attr
 		else:
 			return self.content[index]
 
 	def __setitem__(self, index, value):
 		"""
 		sets an attribute or one of the content nodes depending on whether
-		a string (i.e. attribute name) or a number or list (i.e. content node index) is passed in.
+		an 8bit or unicode string (i.e. attribute name) or a number or list (i.e. content node index) is passed in.
 		"""
 		if type(index) in (types.StringType, types.UnicodeType):
 			if index[-1] == "_":
 				index = index[:-1]
-			# values are contructed via the attribute classes specified in the attrHandlers dictionary, which do the conversion
+			# values are constructed via the attribute classes specified in the attrHandlers dictionary, which do the conversion
 			try:
 				attr = self.attrHandlers[index]() # create an empty attribute of the right type
 			except KeyError:
@@ -1714,19 +1728,22 @@ class Element(Node):
 				index = index[:-1]
 			try:
 				del self.attrs[index]
-			except KeyError:
-				raise errors.AttrNotFoundError(self, index)
+			except KeyError: # ignore non-existing attributes (even if the name is not in self.attrHandlers.keys()
+				pass
 		else:
 			del self.content[index]
 
-	def hasAttr(self, attr):
+	def hasAttr(self, attrname):
 		"""
 		return whether <self/> has an attribute named <argref>attr</argref>.
 		"""
+		try:
+			attr = self.attrs[attrname]
+		except KeyError:
+			return 0
+		return len(attr)>0
 
-		return self.attrs.has_key(attr)
-
-	def getAttr(self, attr, default=None):
+	def getAttr(self, attrname, default=None):
 		"""
 		works like the method <code>get()</code> of dictionaries,
 		it returns the attribute with the name <argref>attr</argref>,
@@ -1734,10 +1751,26 @@ class Element(Node):
 		(after converting it to a node and wrapping it into the appropriate
 		attribute node.)
 		"""
-		try:
-			return self[attr]
-		except errors.AttrNotFoundError:
-			return self.attrHandlers[attr](default) # pack the attribute into an attribute object
+		attr = self[attrname]
+		if attr:
+			return attr
+		else:
+			return self.attrHandlers[attrname](default) # pack the attribute into an attribute object
+
+	def setDefaultAttr(self, attrname, default=None):
+		"""
+		works like the method <code>setdefault()</code> of dictionaries,
+		it returns the attribute with the name <argref>attr</argref>,
+		or if <self/> has no such attribute, <argref>default</argref>
+		(after converting it to a node and wrapping it into the appropriate
+		attribute node.). In this case <argref>default</argref> will be
+		kept as the attribute value.
+		"""
+		attr = self[attrname]
+		if not attr:
+			attr = self.attrHandlers[attrname](default) # pack the attribute into an attribute object
+			self.attrs[index] = attr
+		return attr
 
 	def __getslice__(self, index1, index2):
 		"""
@@ -1756,6 +1789,12 @@ class Element(Node):
 		removes a slice of the content of the element
 		"""
 		del self.content[index1:index2]
+
+	def __nonzero__(self):
+		"""
+		return whether the element is not empty (this should be a little faster than defaulting to __len__)
+		"""
+		return self.content.__nonzero__()
 
 	def __len__(self):
 		"""
@@ -1792,9 +1831,9 @@ class Element(Node):
 
 		if fromDict is None:
 			fromDict = self.defaults
-		for (attr, value) in fromDict.items():
-			if not self.hasAttr(attr):
-				self[attr] = value
+		for (attrname, attrvalue) in fromDict.items():
+			if not self.hasAttr(attrname):
+				self[attrname] = attrvalue
 
 	def sorted(self, compare=lambda node1, node2: cmp(node1.asPlainString(), node2.asPlainString())):
 		"""
@@ -1816,16 +1855,18 @@ class Element(Node):
 		"""
 		returns a filtered version of the <self/>.
 		"""
-		node = self.__class__(**self.attrs)
+		node = self.__class__()
 		node.content = self.content.filtered(function)
+		node.attrs = self.attrs
 		return node
 
 	def shuffled(self):
 		"""
 		returns a shuffled version of the <self/>.
 		"""
-		node = self.__class__(**self.attrs)
+		node = self.__class__()
 		node.content = self.content.shuffled()
+		node.attrs = self.attrs
 		return node
 
 	def mapped(self, function):

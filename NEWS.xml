@@ -113,6 +113,35 @@ now have a new method <function>mapped</function>,
 that recursively maps the node content through a function. This is like <function>convert</function>
 but via an external function.</li>
 
+<li>Attribute handling has been improved thanks to a suggestion
+by Hartmut Goebel: <function>Element.__getitem__</function> now
+always works as long as the attribute name is legal. If the attribute
+is not set, an empty attribute will be returned. All empty attributes
+will be considered as being not set and so <function>hasAttr</function>
+returns <code>0</code> for them, and <function>publish</function> doesn't
+publish them. This simplifies several very common cases:
+<ol>
+<li>Copying an attribute from one element to another works regardless
+of whether the attribute is set or not;</li>
+<li>Testing for an attributes presence can now be done much
+simpler: <code>if element["attrname"]</code> instead of
+<code>if element.hasAttr("attrname")</code> (which still
+works);</li>
+<li>When you construct a &dom; tree and the presence or absence
+of an attribute is tied to a condition, you can construct the attribute
+in advance and use it afterwards in the tree construction:
+<programlisting>
+if <replaceable>condition</replaceable>:
+	align = "right"
+else:
+	align = None
+node = html.div("spam", align=align)
+</programlisting>
+So, when the <replaceable>condition</replaceable> is false,
+the node will not have the attribute <code>align</code> set.
+</li>
+</ol>
+</li>
 </ul>
 </section>
 
