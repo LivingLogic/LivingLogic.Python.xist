@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 1999-2004 by LivingLogic AG, Bayreuth, Germany.
-## Copyright 1999-2004 by Walter Dörwald
+## Copyright 1999-2005 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 1999-2005 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -256,7 +256,7 @@ class EscInlineText(ansistyle.EscapedText):
 				except LookupError:
 					return EnvTextForEntityName("&#", str(charcode), ";")
 				else:
-					return EnvTextForEntityName("&", entity.xmlname[True], ";")
+					return EnvTextForEntityName("&", entity.xmlname, ";")
 		return char
 
 
@@ -658,7 +658,7 @@ class TreePresenter(Presenter):
 					newline1 = []
 					for comp in line[1]:
 						if isinstance(comp, tuple):
-							newline1.append("%s:%s" % (comp[0].xmlname[1], comp[1]))
+							newline1.append("%s:%s" % (comp[0].xmlname, comp[1]))
 						else:
 							newline1.append(str(comp))
 					line[1] = "/".join(newline1)
@@ -746,7 +746,7 @@ class TreePresenter(Presenter):
 			for (attrname, attrvalue) in node.items():
 				self._buffers[-1].append(" ")
 				if isinstance(attrname, tuple):
-					self._buffers[-1].append(strNamespace(attrname[0].xmlname[1]), strColon(), strAttrName(attrname[1]))
+					self._buffers[-1].append(strNamespace(attrname[0].xmlname), strColon(), strAttrName(attrname[1]))
 				else:
 					self._buffers[-1].append(strAttrName(attrname))
 				self._buffers[-1].append("=", strQuote())

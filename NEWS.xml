@@ -12,6 +12,8 @@ reading from an &url; and no default encoding has been specified the one
 from the <lit>Content-Type</lit> header is used. If this still doesn't
 result in a usable encoding, <lit>"utf-8"</lit> is used when parsing &xml;
 and <lit>iso-8859-1</lit> is used when parsing broken &html;.</item>
+<item><class>DeprecationWarning</class>s for <lit>name</lit> and
+<lit>attrHandlers</lit> have finally been removed.</item>
 </ulist>
 </section>
 

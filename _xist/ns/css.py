@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 1999-2004 by LivingLogic AG, Bayreuth, Germany.
-## Copyright 1999-2004 by Walter Dörwald
+## Copyright 1999-2005 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 1999-2005 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -77,7 +77,7 @@ class prop(xsc.Element):
 		class important(xsc.BoolAttr): pass
 
 	def publish(self, publisher):
-		publisher.write(u"%s: " % self.xmlname[True])
+		publisher.write(u"%s: " % self.xmlname)
 		self.content.publish(publisher)
 		if u"important" in self.attrs:
 			publisher.write(u" !important")

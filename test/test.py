@@ -1,8 +1,8 @@
 #! /usr/bin/env/python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 1999-2004 by LivingLogic AG, Bayreuth, Germany.
-## Copyright 1999-2004 by Walter Dörwald
+## Copyright 1999-2005 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 1999-2005 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -460,7 +460,7 @@ class XISTTest(unittest.TestCase):
 			if isinstance(node, xsc.Text):
 				return "#"
 			else:
-				return node.xmlname[True]
+				return node.xmlname
 		else:
 			return ".".join(map(self.node2str, node))
 
@@ -700,21 +700,21 @@ class XISTTest(unittest.TestCase):
 		keys.sort()
 		keys.remove("lang")
 
-		self.assertEquals(node.attrs.with([u"lang"]).keys(), [u"lang"])
+		self.assertEquals(node.attrs.with(["lang"]).keys(), ["lang"])
 
-		keys1 = node.attrs.with([u"lang", u"align"]).keys()
+		keys1 = node.attrs.with(["lang", "align"]).keys()
 		keys1.sort()
-		self.assertEqual(keys1, [u"align", u"lang"])
+		self.assertEqual(keys1, ["align", "lang"])
 
-		keys = [u"lang", (xml2, u"lang")]
+		keys = ["lang", (xml2, "lang")]
 		keys.sort()
 		keys2 = node.attrs.with(keys).keys()
 		keys2.sort()
 		self.assertEqual(keys2, keys)
 
-		keys = [u"lang", (xml2, u"lang"), (xml2, u"space")]
+		keys = ["lang", (xml2, "lang"), (xml2, "space")]
 		keys.sort()
-		keys3 = node.attrs.with([u"lang"], [xml]).keys()
+		keys3 = node.attrs.with(["lang"], [xml]).keys()
 		keys3.sort()
 		self.assertEqual(keys3, keys)
 
@@ -1220,18 +1220,22 @@ class NamespaceTest(unittest.TestCase):
 		self.assertRaises(xsc.IllegalElementError, ns.element, "bar2")
 
 	def test_attributeexamples(self):
-		self.assertEqual(xsc.amp.xmlname, (u"amp", u"amp"))
+		self.assertEqual(xsc.amp.__name__, "amp")
+		self.assertEqual(xsc.amp.xmlname, u"amp")
 		self.assert_(xsc.amp.__ns__ is None)
 		self.assertEqual(xsc.amp.xmlprefix(), None)
 
-		self.assertEqual(chars.uuml.xmlname, (u"uuml", u"uuml"))
+		self.assertEqual(chars.uuml.__name__, "uuml")
+		self.assertEqual(chars.uuml.xmlname, u"uuml")
 		self.assert_(chars.uuml.__ns__ is chars)
 		self.assertEqual(chars.uuml.xmlprefix(), "chars")
 
-		self.assertEqual(html.a.Attrs.class_.xmlname, (u"class_", u"class"))
+		self.assertEqual(html.a.Attrs.class_.__name__, "class_")
+		self.assertEqual(html.a.Attrs.class_.xmlname, u"class")
 		self.assert_(html.a.Attrs.class_.__ns__ is None)
 
-		self.assertEqual(xml.Attrs.lang.xmlname, (u"lang", u"lang"))
+		self.assertEqual(xml.Attrs.lang.__name__, "lang")
+		self.assertEqual(xml.Attrs.lang.xmlname, u"lang")
 		self.assert_(xml.Attrs.lang.__ns__ is xml)
 		self.assertEqual(xml.Attrs.lang.xmlprefix(), "xml")
 
@@ -1760,7 +1764,7 @@ class DTD2XSCTest(unittest.TestCase):
 		ns = self.dtd2ns(dtdstring, "foo")
 
 		self.assert_(issubclass(ns, xsc.Namespace))
-		self.assertEqual(ns.xmlname, ("__ns__", "foo"))
+		self.assertEqual(ns.xmlname, "foo")
 		self.assertEqual(ns.xmlurl, "http://xmlns.foo.com/foo")
 		self.assert_(isinstance(ns.foo.model, sims.Elements))
 		self.assertEqual(len(ns.foo.model.elements), 1)
@@ -1783,15 +1787,15 @@ class DTD2XSCTest(unittest.TestCase):
 
 		# Attributes are alphabetically sorted
 		self.assert_(issubclass(ns.bar.Attrs.bar_4, xsc.TextAttr))
-		self.assertEqual(ns.bar.Attrs.bar_4.xmlname, ("bar_4", "bar-4"))
+		self.assertEqual(ns.bar.Attrs.bar_4.xmlname, "bar-4")
 		self.assertEqual(ns.bar.Attrs.bar_4.values, ("bar-4a", "bar-4b"))
 
 		self.assert_(issubclass(ns.bar.Attrs.bar_42, xsc.TextAttr))
-		self.assertEqual(ns.bar.Attrs.bar_42.xmlname, ("bar_42", "bar_4"))
+		self.assertEqual(ns.bar.Attrs.bar_42.xmlname, "bar_4")
 		self.assertEqual(ns.bar.Attrs.bar_42.values, ("bar_4a", "bar_4b"))
 
 		self.assert_(issubclass(ns.bar.Attrs.bar_422, xsc.TextAttr))
-		self.assertEqual(ns.bar.Attrs.bar_422.xmlname, ("bar_422", "bar_42"))
+		self.assertEqual(ns.bar.Attrs.bar_422.xmlname, "bar_42")
 		self.assertEqual(ns.bar.Attrs.bar_422.values, ("bar_42a", "bar_42b"))
 
 	def test_charref(self):
@@ -1812,7 +1816,8 @@ class DTD2XSCTest(unittest.TestCase):
 		"""
 		ns = self.dtd2ns(dtdstring, "foo")
 		self.assert_(issubclass(ns.foo.Attrs.class_, xsc.TextAttr))
-		self.assertEqual(ns.foo.Attrs.class_.xmlname, ("class_", "class"))
+		self.assertEqual(ns.foo.Attrs.class_.__name__, "class_")
+		self.assertEqual(ns.foo.Attrs.class_.xmlname, u"class")
 
 	def test_quotes(self):
 		dtdstring = """<?xml version='1.0' encoding='us-ascii'?>
@@ -1954,8 +1959,8 @@ class TLD2XSCTest(unittest.TestCase):
 		</taglib>
 		"""
 		ns = self.tld2ns(tldstring, "foo")
-		self.assertEqual(ns.xmlname, ("__ns__", "foo"))
-		self.assertEqual(ns.bar.xmlname, ("bar", "bar"))
+		self.assertEqual(ns.xmlname, u"foo")
+		self.assertEqual(ns.bar.xmlname, u"bar")
 		self.assert_(isinstance(ns.bar.model, sims.Empty))
 		self.assertEqual(ns.bar.__doc__.strip(), "info")
 

@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 1999-2004 by LivingLogic AG, Bayreuth, Germany.
-## Copyright 1999-2004 by Walter Dörwald
+## Copyright 1999-2005 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 1999-2005 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -2076,8 +2076,8 @@ def fixattributesandmodel(element):
 				if child is not element: # avoid endless recursion
 					fixattributesandmodel(child) # make sure the child element already have their inheritable attributes added
 					for attr in child.Attrs.iterallowedvalues():
-						if not element.Attrs.isallowed(attr.xmlname[0]):
-							setattr(element.Attrs, attr.xmlname[0], attr) # add child attribute to element
+						if not element.Attrs.isallowed(attr.__name__):
+							setattr(element.Attrs, attr.__name__, attr) # add child attribute to element
 
 for element in __ns__.iterelementvalues():
 	fixattributesandmodel(element)

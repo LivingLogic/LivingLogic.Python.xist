@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 1999-2004 by LivingLogic AG, Bayreuth, Germany.
-## Copyright 1999-2004 by Walter Dörwald
+## Copyright 1999-2005 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 1999-2005 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -324,7 +324,7 @@ class code(inline):
 		return e.convert(converter)
 
 	def convert_html(self, converter):
-		e = converter.target.code(self.content, class_=self.xmlname[True])
+		e = converter.target.code(self.content, class_=self.xmlname)
 		return e.convert(converter)
 
 

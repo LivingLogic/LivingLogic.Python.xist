@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 1999-2004 by LivingLogic AG, Bayreuth, Germany.
-## Copyright 1999-2004 by Walter Dörwald
+## Copyright 1999-2005 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 1999-2005 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -18,10 +18,12 @@ Usage: python docbooklite2text.py spam.xml spam.txt
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
+
 import sys, getopt
 
 from ll.xist import xsc, parsers, converters
 from ll.xist.ns import html, doc, text
+
 
 def xsc2txt(infilename, outfilename, title, width):
 	e = parsers.parseFile(infilename, prefixes=xsc.DocPrefixes())
@@ -41,6 +43,7 @@ def xsc2txt(infilename, outfilename, title, width):
 	file = open(outfilename, "wb")
 	file.write(e.asText(width=width))
 	file.close()
+
 
 if __name__ == "__main__":
 	title = None

@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 1999-2004 by LivingLogic AG, Bayreuth, Germany.
-## Copyright 1999-2004 by Walter Dörwald
+## Copyright 1999-2005 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 1999-2005 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -640,12 +640,7 @@ class _Node_Meta(Base.__metaclass__, xfind.Operator):
 				def xmlprefix(cls, publisher=None):
 					return xmlprefix_value
 				dict["xmlprefix"] = xmlprefix
-		pyname = unicode(name.split(".")[-1])
-		if "xmlname" in dict:
-			xmlname = unicode(dict["xmlname"])
-		else:
-			xmlname = pyname
-		dict["xmlname"] = (pyname, xmlname)
+		dict["xmlname"] = dict.get("xmlname", name).split(".")[-1]
 		return super(_Node_Meta, cls).__new__(cls, name, bases, dict)
 
 	def xwalk(self, iterator):
@@ -698,16 +693,16 @@ class Node(Base):
 	def _strbase(cls, formatter, s, fullname, xml):
 		if fullname:
 			if xml:
-				s.append(presenters.strNamespace(cls.xmlname[xml]))
+				s.append(presenters.strNamespace(cls.xmlname))
 			else:
 				s.append(presenters.strNamespace(cls.__module__))
 			s.append(presenters.strColon())
 		if xml:
-			s.append(formatter(cls.xmlname[xml]))
+			s.append(formatter(cls.xmlname))
 		elif fullname:
 			s.append(formatter(cls.__fullname__()))
 		else:
-			s.append(formatter(cls.xmlname[xml]))
+			s.append(formatter(cls.__name__))
 
 	def clone(self):
 		"""
@@ -904,7 +899,7 @@ class Node(Base):
 			return None
 		else:
 			if publisher is None:
-				return cls.__ns__.xmlname[True]
+				return cls.__ns__.xmlname
 			else:
 				return publisher.prefixes.prefix4ns(cls.__ns__)[0]
 
@@ -918,7 +913,7 @@ class Node(Base):
 			if prefix is not None:
 				publisher.write(prefix)
 				publisher.write(u":")
-		publisher.write(self.xmlname[True])
+		publisher.write(self.xmlname)
 
 	def parsed(self, parser, start=None):
 		"""
@@ -1752,7 +1747,7 @@ class ProcInst(CharacterData):
 		if u"?>" in content:
 			raise IllegalProcInstFormatError(self)
 		publisher.write(u"<?")
-		publisher.write(self.xmlname[True])
+		publisher.write(self.xmlname)
 		publisher.write(u" ")
 		publisher.write(content)
 		publisher.write(u"?>")
@@ -1986,7 +1981,7 @@ class BoolAttr(Attr):
 		if publisher.xhtml>0:
 			publisher.write(u"=\"")
 			publisher.pushtextfilter(helpers.escapeattr)
-			publisher.write(self.__class__.xmlname[True])
+			publisher.write(self.__class__.xmlname)
 			publisher.poptextfilter()
 			publisher.write(u"\"")
 		publisher.inattr -= 1
@@ -2107,8 +2102,8 @@ class _Attrs_Meta(Node.__metaclass__):
 				attr = getattr(base, attrname)
 				if isinstance(attr, type) and issubclass(attr, Attr) and attrname not in dict:
 					classdict = {"__module__": dict["__module__"]}
-					if attr.xmlname[False] != attr.xmlname[True]:
-						classdict["xmlname"] = attr.xmlname[True]
+					if attr.__name__ != attr.xmlname:
+						classdict["xmlname"] = attr.xmlname
 					classdict["__outerclass__"] = 42
 					dict[attrname] = attr.__class__(attr.__name__, (attr,), classdict)
 		dict["_attrs"] = ({}, {}) # cache for attributes (by Python name and by XML name)
@@ -2132,8 +2127,7 @@ class _Attrs_Meta(Node.__metaclass__):
 	def __delattr__(self, key):
 		value = self.__dict__.get(key, None) # no inheritance
 		if isinstance(value, type) and issubclass(value, Attr):
-			for xml in (False, True):
-				name = value.xmlname[xml]
+			for (xml, name) in ((False, value.__name__), (True, value.xmlname)):
 				self._attrs[xml].pop(name, None)
 				self._defaultattrs[xml].pop(name, None)
 		return super(_Attrs_Meta, self).__delattr__(key)
@@ -2141,13 +2135,12 @@ class _Attrs_Meta(Node.__metaclass__):
 	def __setattr__(self, key, value):
 		oldvalue = self.__dict__.get(key, None) # no inheritance
 		if isinstance(oldvalue, type) and issubclass(oldvalue, Attr):
-			for xml in (False, True):
+			for (xml, name) in ((False, oldvalue.__name__), (True, oldvalue.xmlname)):
 				# ignore KeyError exceptions, because in the meta class constructor the attributes *are* in the class dict, but haven't gone through __setattr__, so they are not in the cache
-				self._attrs[xml].pop(oldvalue.xmlname[xml], None)
-				self._defaultattrs[xml].pop(oldvalue.xmlname[xml], None)
+				self._attrs[xml].pop(name, None)
+				self._defaultattrs[xml].pop(name, None)
 		if isinstance(value, type) and issubclass(value, Attr):
-			for xml in (False, True):
-				name = value.xmlname[xml]
+			for (xml, name) in ((False, value.__name__), (True, value.xmlname)):
 				self._attrs[xml][name] = value
 				if value.default:
 					self._defaultattrs[xml][name] = value
@@ -2284,7 +2277,7 @@ class Attrs(Node, dict):
 		else:
 			return sup.__setattr__(name, value)
 
-	def __detattr__(self, name):
+	def __delattr__(self, name):
 		sup = super(Attrs, self)
 		if name in sup.__getattribute__("_attrs")[False]: # avoid recursion
 			return self.__detitem__(name)
@@ -2299,7 +2292,7 @@ class Attrs(Node, dict):
 
 	def __delitem__(self, name):
 		attr = self.allowedattr(name)
-		dict.__delitem__(self, attr.xmlname[False])
+		dict.__delitem__(self, attr.__name__)
 
 	def has(self, name, xml=False):
 		"""
@@ -2459,7 +2452,7 @@ class Attrs(Node, dict):
 	@classmethod
 	def _allowedattrkey(cls, name, xml=False):
 		try:
-			return cls._attrs[xml][name].xmlname[False]
+			return cls._attrs[xml][name].__name__
 		except KeyError:
 			raise IllegalAttrError(cls, name, xml=xml)
 
@@ -2484,9 +2477,15 @@ class Attrs(Node, dict):
 		for (key, value) in dict.iteritems(self):
 			if value:
 				if isinstance(key, tuple):
-					yield (value.__ns__, value.xmlname[xml])
+					if xml:
+						yield (value.__ns__, value.xmlname)
+					else:
+						yield (value.__ns__, value.__class__.__name__)
 				else:
-					yield value.xmlname[xml]
+					if xml:
+						yield value.xmlname
+					else:
+						yield value.__class__.__name__
 
 	def keys(self, xml=False):
 		return list(self.iterkeys(xml=xml))
@@ -2503,9 +2502,15 @@ class Attrs(Node, dict):
 		for (key, value) in dict.iteritems(self):
 			if value:
 				if isinstance(key, tuple):
-					yield ((value.__ns__, value.xmlname[xml]), value)
+					if xml:
+						yield ((value.__ns__, value.xmlname), value)
+					else:
+						yield ((value.__ns__, value.__class__.__name__), value)
 				else:
-					yield (value.xmlname[xml], value)
+					if xml:
+						yield (value.xmlname, value)
+					else:
+						yield (value.__class__.__name__, value)
 
 	def items(self, xml=False):
 		return list(self.iteritems(xml=xml))
@@ -2516,9 +2521,9 @@ class Attrs(Node, dict):
 		"""
 		for (key, value) in dict.iteritems(self):
 			if isinstance(key, tuple):
-				yield ((value.__ns__, value.xmlname[False]), value)
+				yield ((value.__ns__, value.__class__.__name__), value)
 			else:
-				yield (value.xmlname[False], value)
+				yield (value.__class__.__name__, value)
 
 	def attr(self, name, xml=False):
 		key = self._allowedattrkey(name, xml=xml)
@@ -2544,26 +2549,26 @@ class Attrs(Node, dict):
 		<par>Return a copy of <self/> where only the attributes in <arg>names</arg> are
 		kept, all others are removed.</par>
 		"""
-		return self.filtered(lambda n: n.xmlname[xml] in names)
+		if xml:
+			return self.filtered(lambda n: n.__name__ in names)
+		else:
+			return self.filtered(lambda n: n.xmlname in names)
 
 	def without(self, names=[], xml=False):
 		"""
 		<par>Return a copy of <self/> where all the attributes in <arg>names</arg> are
 		removed.</par>
 		"""
-		return self.filtered(lambda n: n.xmlname[xml] not in names)
+		if xml:
+			return self.filtered(lambda n: n.__name__ not in names)
+		else:
+			return self.filtered(lambda n: n.xmlname not in names)
 
 _Attrs = Attrs
 
 
 class _Element_Meta(Node.__metaclass__):
 	def __new__(cls, name, bases, dict):
-		if "name" in dict and isinstance(dict["name"], basestring):
-			warnings.warn(DeprecationWarning("name is deprecated, use xmlname instead"))
-			dict["xmlname"] = dict["name"]
-			del dict["name"]
-		if "attrHandlers" in dict:
-			warnings.warn(DeprecationWarning("attrHandlers is deprecated, use a nested Attrs class instead"), stacklevel=2)
 		if "model" in dict and isinstance(dict["model"], bool):
 			from ll.xist import sims
 			if dict["model"]:
@@ -2624,7 +2629,7 @@ class Element(Node):
 			if isinstance(name, tuple):
 				return (name[0], name[0].Attrs._allowedattrkey(name[1], xml=xml)) # ask namespace about global attribute
 			try:
-				return cls._attrs[xml][name].xmlname[False]
+				return cls._attrs[xml][name].__name__
 			except KeyError:
 				raise IllegalAttrError(cls, name, xml=xml)
 
@@ -2652,7 +2657,10 @@ class Element(Node):
 			"""
 
 			def keep(node):
-				name = node.xmlname[xml]
+				if xml:
+					name = node.__name__
+				else:
+					name = node.xmlname
 				if node.__ns__ is None:
 					return name in names
 				else:
@@ -2678,7 +2686,10 @@ class Element(Node):
 			is specified in <arg>namespaces</arg> or <arg>names</arg>.</par>
 			"""
 			def keep(node):
-				name = node.xmlname[xml]
+				if xml:
+					name = node.__name__
+				else:
+					name = node.xmlname
 				if node.__ns__ is None:
 					return name not in names
 				else:
@@ -3186,7 +3197,7 @@ class Entity(Node):
 
 	def publish(self, publisher):
 		publisher.write(u"&")
-		publisher.write(self.xmlname[True])
+		publisher.write(self.xmlname)
 		publisher.write(u";")
 
 
@@ -3360,7 +3371,7 @@ class Prefixes(dict):
 		if prefixes:
 			return prefixes
 		else:
-			return [ns.xmlname[True]]
+			return [ns.xmlname]
 
 	def __splitqname(self, qname):
 		"""
@@ -3475,7 +3486,7 @@ class Prefixes(dict):
 		qname = self.__splitqname(qname)
 		if qname[0] is None:
 			try:
-				return element.Attrs.allowedattr(qname[1], xml=True).xmlname[False]
+				return element.Attrs.allowedattr(qname[1], xml=True).__name__
 			except IllegalAttrError:
 				warnings.warn(self.IllegalAttrWarning(element.attrs, qname[1], xml=True))
 		else:
@@ -3483,7 +3494,7 @@ class Prefixes(dict):
 				try:
 					attr = ns.Attrs.allowedattr(qname[1], xml=True)
 					if attr.register:
-						return (ns, attr.xmlname[False])
+						return (ns, attr.__name__)
 				except IllegalAttrError: # no attribute in this namespace with this name
 					pass
 			warnings.warn(self.IllegalAttrWarning(None, qname, xml=True))
@@ -3508,7 +3519,7 @@ class OldPrefixes(Prefixes):
 				self["xml"].append(ns)
 				self[None].append(ns)
 			else:
-				self[ns.xmlname[True]].append(ns)
+				self[ns.xmlname].append(ns)
 				self[None].append(ns)
 
 
@@ -3524,7 +3535,7 @@ class DefaultPrefixes(Prefixes):
 			if ns is default:
 				self[None] = ns
 			else:
-				self[ns.xmlname[True]] = ns
+				self[ns.xmlname] = ns
 
 
 class DocPrefixes(Prefixes):
@@ -3551,14 +3562,7 @@ defaultPrefixes = Prefixes()
 
 class _Namespace_Meta(Base.__metaclass__, ll.Namespace.__metaclass__):
 	def __new__(cls, name, bases, dict):
-		pyname = unicode(name.split(".")[-1])
-		if "xmlname" in dict:
-			xmlname = dict["xmlname"]
-			if isinstance(xmlname, str):
-				xmlname = unicode(xmlname)
-		else:
-			xmlname = pyname
-		dict["xmlname"] = (pyname, xmlname)
+		dict["xmlname"] = dict.get("xmlname", name).split(".")[-1]
 		if "xmlurl" in dict:
 			xmlurl = dict["xmlurl"]
 			if xmlurl is not None:
@@ -3575,8 +3579,8 @@ class _Namespace_Meta(Base.__metaclass__, ll.Namespace.__metaclass__):
 				attr = getattr(base, attrname)
 				if isinstance(attr, type) and issubclass(attr, (Element, ProcInst, Entity, Attrs)) and attrname not in dict:
 					classdict = {"__module__": dict["__module__"]}
-					if attr.xmlname[0] != attr.xmlname[1]:
-						classdict["xmlname"] = attr.xmlname[1]
+					if attr.__name__ != attr.xmlname:
+						classdict["xmlname"] = attr.xmlname
 					classdict["__outerclass__"] = 42
 					dict[attrname] = attr.__class__(attr.__name__, (attr, ), classdict)
 		dict["_cache"] = None
@@ -3591,7 +3595,7 @@ class _Namespace_Meta(Base.__metaclass__, ll.Namespace.__metaclass__):
 		for attr in self.Attrs.iterallowedvalues():
 			attr.__ns__ = self
 		if self.xmlurl is not None:
-			name = self.xmlname[True]
+			name = self.xmlname
 			self.nsbyname.setdefault(name, []).insert(0, self)
 			self.nsbyurl.setdefault(self.xmlurl, []).insert(0, self)
 			self.all.append(self)
@@ -3602,14 +3606,14 @@ class _Namespace_Meta(Base.__metaclass__, ll.Namespace.__metaclass__):
 
 	def __eq__(self, other):
 		if isinstance(other, type) and issubclass(other, Namespace):
-			return self.xmlname[True]==other.xmlname[True] and self.xmlurl==other.xmlurl
+			return self.xmlname==other.xmlname and self.xmlurl==other.xmlurl
 		return False
 
 	def __ne__(self, other):
 		return not self==other
 
 	def __hash__(self):
-		return hash(self.xmlname[True]) ^ hash(self.xmlurl)
+		return hash(self.xmlname) ^ hash(self.xmlurl)
 
 	def __repr__(self):
 		counts = []
@@ -3644,7 +3648,7 @@ class _Namespace_Meta(Base.__metaclass__, ll.Namespace.__metaclass__):
 			fromfile = " from %r" % self.__file__
 		else:
 			fromfile = ""
-		return "<namespace %s:%s name=%r url=%r%s%s at 0x%x>" % (self.__module__, self.__originalname, self.xmlname[True], self.xmlurl, counts, fromfile, id(self))
+		return "<namespace %s:%s name=%r url=%r%s%s at 0x%x>" % (self.__module__, self.__originalname, self.xmlname, self.xmlurl, counts, fromfile, id(self))
 
 	def __delattr__(self, key):
 		value = self.__dict__.get(key, None) # no inheritance
@@ -3680,7 +3684,6 @@ class Namespace(Base, ll.Namespace):
 	"""
 	__metaclass__ = _Namespace_Meta
 
-	xmlname = None
 	xmlurl = None
 
 	nsbyname = {}
@@ -3712,17 +3715,17 @@ class Namespace(Base, ll.Namespace):
 			value = getattr(cls, key)
 			if isinstance(value, type):
 				if issubclass(value, Element):
-					for xml in (False, True):
-						c[0][xml][value.xmlname[xml]] = value
+					c[0][False][value.__name__] = value
+					c[0][True][value.xmlname] = value
 				elif issubclass(value, ProcInst):
-					for xml in (False, True):
-						c[1][xml][value.xmlname[xml]] = value
+					c[1][False][value.__name__] = value
+					c[1][True][value.xmlname] = value
 				elif issubclass(value, Entity):
-					for xml in (False, True):
-						c[2][xml][value.xmlname[xml]] = value
+					c[2][False][value.__name__] = value
+					c[2][True][value.xmlname] = value
 					if issubclass(value, CharRef):
-						for xml in (False, True):
-							c[3][xml][value.xmlname[xml]] = value
+						c[3][False][value.__name__] = value
+						c[3][True][value.xmlname] = value
 						c[3][2].setdefault(value.codepoint, []).append(value)
 		cls._cache = c
 		return c
