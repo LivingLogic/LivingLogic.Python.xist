@@ -114,9 +114,15 @@ class Node(Base):
 	startloc = None
 	endloc = None
 
-	# specifies that this class should be registered in a namespace
-	# this won't be used for all the DOM classes (Element, ProcInst etc.) themselves but only for derived classes
-	# i.e. Node, Element etc. will never be registered
+	# Subclasses relevant for parsing (i.e. Element, ProcInst, Entity and CharRef)
+	# have an additional class attribute named register. This attribute may have three values:
+	# None:  don't add this class to a namespace, not even to the "global" namespace,
+	#        the xmlns attribute of those classes will be None. This is used for Element etc.
+	#        to avoid bootstrapping problems and should never be used by user classes
+	# False: Register with the namespace, i.e. ns.element("foo") will return it and foo.xmlns
+	#        will be set to the namespace class, but don't use this class for parsing
+	# True:  Register with the namespace and use for parsing.
+	# If register is not set it defaults to True
 
 	class __metaclass__(Base.__metaclass__):
 		def __new__(cls, name, bases, dict):
@@ -489,18 +495,18 @@ class Node(Base):
 
 	def _matchesattrs(self, attrs):
 		if attrs is None:
-			return 1
+			return True
 		else:
 			if isinstance(self, Element):
 				for attr in attrs.keys():
 					if (not self.attrs.has(attr)) or ((attrs[attr] is not None) and (unicode(self[attr]) != attrs[attr])):
-						return 0
-				return 1
+						return False
+				return True
 			else:
-				return 0
+				return False
 
 	def _matches(self, type_, subtype, attrs, test):
-		res = 1
+		res = True
 		if type_ is not None:
 			if not isinstance(type_, list) and not isinstance(type_, tuple):
 				type_ = (type_,)
@@ -514,12 +520,12 @@ class Node(Base):
 						res = self._matchesattrs(attrs)
 						break
 			else:
-				res = 0
+				res = False
 		else:
 			res = self._matchesattrs(attrs)
 		if res and (test is not None):
 			res = test(self)
-		return res
+		return bool(res)
 
 	def _decoratenode(self, node):
 		"""
@@ -1146,7 +1152,7 @@ class ProcInst(CharacterData):
 	All other processing instructions will be handled
 	by other classes derived from <class>ProcInst</class>.</par>
 	"""
-	register = False # This is an abstract baseclass, don't register in namespace
+	register = None
 
 	# we don't need a constructor, because we don't have to store the target,
 	# because the target is our classname (or the class attribute name)
@@ -1154,17 +1160,19 @@ class ProcInst(CharacterData):
 	class __metaclass__(CharacterData.__metaclass__):
 		def __new__(cls, name, bases, dict):
 			self = CharacterData.__metaclass__.__new__(cls, name, bases, dict)
-			if self.register:
+			if self.register is not None:
 				for xml in (False, True):
 					_procinsts[xml][self.xmlname[xml]] = self
-			self.xmlns = None
+				self.xmlns = None
+			else:
+				self.xmlns = None
 			return self
 
 		def __repr__(self):
 			return "<procinst class %s/%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
 
 	def _registerns(cls, ns):
-		if cls.register:
+		if cls.register is not None:
 			if cls.xmlns is not None:
 				map = cls.xmlns._procinsts
 			else:
@@ -1956,7 +1964,7 @@ class Element(Node):
 	"""
 
 	empty = False # False => element with content; True => element without content
-	register = False # This is an abstract base class => don't register in namespace
+	register = None
 
 	class __metaclass__(Node.__metaclass__):
 		def __new__(cls, name, bases, dict):
@@ -1967,10 +1975,12 @@ class Element(Node):
 			if "attrHandlers" in dict:
 				errors.warn(DeprecationWarning("attrHandlers is deprecated, use a nested Attrs class instead"))
 			self = Node.__metaclass__.__new__(cls, name, bases, dict)
-			if self.register:
+			if self.register is not None:
 				for xml in (False, True):
 					_elements[xml][self.xmlname[xml]] = self
-			self.xmlns = None
+				self.xmlns = None
+			else:
+				self.xmlns = None
 			return self
 		def __repr__(self):
 			return "<element class %s/%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
@@ -2062,7 +2072,7 @@ class Element(Node):
 			self.attrs[attrname] = attrvalue
 
 	def _registerns(cls, ns):
-		if cls.register:
+		if cls.register is not None:
 			if cls.xmlns is not None:
 				map = cls.xmlns._elements
 			else:
@@ -2524,22 +2534,24 @@ class Entity(Node):
 	it and overwrite <pyref class="Node" method="convert"><method>convert</method></pyref>
 	and <pyref class="Node" method="__unicode__"><method>__unicode__</method></pyref>.</par>
 	"""
-	register = False # don't register in namespace
+	register = None
 
 	class __metaclass__(Node.__metaclass__):
 		def __new__(cls, name, bases, dict):
 			self = Node.__metaclass__.__new__(cls, name, bases, dict)
-			if self.register:
+			if self.register is not None:
 				for xml in (False, True):
 					_entities[xml][self.xmlname[xml]] = self
-			self.xmlns = None
+				self.xmlns = None
+			else:
+				self.xmlns = None
 			return self
 
 		def __repr__(self):
 			return "<entity class %s/%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
 
 	def _registerns(cls, ns):
-		if cls.register:
+		if cls.register is not None:
 			if cls.xmlns is not None:
 				map = cls.xmlns._entities
 			else:
@@ -2600,22 +2612,25 @@ class CharRef(Node):
 	<par>A simple character reference, the codepoint is in the class attribute
 	<lit>codepoint</lit>.</par>
 	"""
-	register = False # don't register in namespace
+	register = None
 
 	class __metaclass__(Node.__metaclass__):
 		def __new__(cls, name, bases, dict):
 			self = Node.__metaclass__.__new__(cls, name, bases, dict)
-			if self.register:
+			if self.register is not None:
 				for xml in (False, True):
 					_charrefs[xml][self.xmlname[xml]] = self
 				_charrefs[2].setdefault(self.codepoint, []).append(self)
-			self.xmlns = None
+				self.xmlns = None
+			else:
+				self.xmlns = None
 			return self
+
 		def __repr__(self):
 			return "<charref class %s/%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
 
 	def _registerns(cls, ns):
-		if cls.register:
+		if cls.register is not None:
 			if cls.xmlns is not None:
 				map = cls.xmlns._charrefs
 			else:
@@ -2874,7 +2889,9 @@ class Prefixes(object):
 		qname = self.__splitqname(qname)
 		for ns in self.ns4elementprefix(qname[0]):
 			try:
-				return ns.element(qname[1], xml=True)
+				element = ns.element(qname[1], xml=True)
+				if element.register:
+					return element
 			except LookupError: # no element in this namespace with this name
 				pass
 		raise errors.IllegalElementError(qname, xml=True) # elements with this name couldn't be found
@@ -2887,7 +2904,9 @@ class Prefixes(object):
 		qname = self.__splitqname(qname)
 		for ns in self.ns4procinstprefix(qname[0]):
 			try:
-				return ns.procinst(qname[1], xml=True)
+				procinst = ns.procinst(qname[1], xml=True)
+				if procinst.register:
+					return procinst
 			except LookupError: # no processing instruction in this namespace with this name
 				pass
 		raise errors.IllegalProcInstError(qname, xml=True) # processing instructions with this name couldn't be found
@@ -2902,13 +2921,17 @@ class Prefixes(object):
 		nss = self.ns4entityprefix(qname[0])
 		for ns in nss:
 			try:
-				return ns.charref(qname[1], xml=True)
+				entity = ns.charref(qname[1], xml=True)
+				if entity.register:
+					return entity
 			except LookupError: # no charref in this namespace with this name
 				pass
 		# no charrefs => try the entities now
 		for ns in nss:
 			try:
-				return ns.entity(qname[1], xml=True)
+				entity = ns.entity(qname[1], xml=True)
+				if entity.register:
+					return entity
 			except LookupError: # no entity in this namespace with this name
 				pass
 		raise errors.IllegalEntityError(qname, xml=True) # entities with this name couldn't be found
@@ -2919,7 +2942,9 @@ class Prefixes(object):
 		"""
 		for ns in Namespace.all:
 			try:
-				return ns.charref(name)[0]
+				charref = ns.charref(name)[0]
+				if charref.register:
+					return charref
 			except LookupError:
 				pass
 		raise errors.IllegalCharRefError(name, xml=True) # charref with this name/codepoint couldn't be found
@@ -2934,7 +2959,7 @@ class Prefixes(object):
 		if qname[0] is None:
 			return element.Attrs.allowedattr(qname[1], xml=True).xmlname[False]
 		else:
-			for ns in self.ns4prefix(qname[0]):
+			for ns in self.ns4elementprefix(qname[0]):
 				try:
 					return (ns, ns.Attrs.allowedattr(qname[1], xml=True).xmlname[False])
 				except errors.IllegalAttrError: # no attribute in this namespace with this name

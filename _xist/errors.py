@@ -63,7 +63,10 @@ class IllegalAttrError(Warning, LookupError):
 		self.xml = xml
 
 	def __str__(self):
-		return "Attribute with %s name %r not allowed for %s" % (("Python", "XML")[self.xml], self.attrname, self.attrs._str(fullname=True, xml=False, decorate=False))
+		if self.attrs is not None:
+			return "Attribute with %s name %r not allowed for %s" % (("Python", "XML")[self.xml], self.attrname, self.attrs._str(fullname=True, xml=False, decorate=False))
+		else:
+			return "Global attribute with %s name %r not allowed" % (("Python", "XML")[self.xml], self.attrname)
 
 class IllegalAttrValueWarning(Warning):
 	"""
