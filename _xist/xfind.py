@@ -63,12 +63,12 @@ class Finder(object):
 		if isinstance(iterator, xsc.Node):
 			iterator = iterone(iterator)
 		self.iterator = iterator
-		operators = []
+		newoperators = []
 		for operator in operators:
 			if not isinstance(operator, Operator):
 				operator = Walker(operator)
-			operator.append(operator)
-		self.operators = tuple(operators)
+			newoperators.append(operator)
+		self.operators = tuple(newoperators)
 
 	def next(self):
 		return self.iterator.next()
