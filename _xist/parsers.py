@@ -484,6 +484,7 @@ class Handler:
 			raise errors.ElementNestingError(currentelement, element)
 		self.__nesting[-1].endLoc = self.getLocation()
 		self.__nesting.pop() # pop the innermost element off the stack
+		self.skippingWhitespace = 0
 
 	def characters(self, content):
 		if self.skippingWhitespace:

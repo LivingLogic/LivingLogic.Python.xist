@@ -12,6 +12,7 @@ Python classes provide a conversion method to transform the &xml; tree (e.g. int
 <li>Easily extensible with new &xml; elements,</li>
 <li>Can be used for offline or online page generation,</li>
 <li>Allows embedding Python code in &xml; files,</li>
+<li>Supports separation of layout and logic,</li>
 <li>Can be used together with <a href="http://www.modpython.org/">mod_python</a>,
 <a href="http://pywx.idyll.org/">PyWX</a> or <a href="http://webware.sourceforge.net/">Webware</a> to generate dynamic pages,</li>
 <li>Simplifies handling of deeply nested directory trees,</li>
