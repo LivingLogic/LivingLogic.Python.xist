@@ -581,7 +581,7 @@ class XSCAttrs(XSCNode):
 		"""insert an attribute with the name index and the value value into the attribute dictionary"""
 		# values are converted to Nodes first and then wrapped into the attribute nodes as specified via the attr_handlers dictionary
 		lowerindex = string.lower(index)
-		if self.__content.has_key(lowerindex):
+		if self.attr_handlers.has_key(lowerindex):
 			self.__content[lowerindex] = self.attr_handlers[lowerindex](ToNode(value)) # convert the attribute to a node and pack it into an attribute object
 		else:
 			raise XSCIllegalAttributeError(xsc.parser.lineno,self,index)
