@@ -341,7 +341,7 @@ class Node:
 	def _dorepr(self):
 		# returns a string representation of the node
 		return self._strtag("?")
-	
+
 	def _doreprtree(self,nest,elementno):
 		# returns and array containing arrays consisting of the (nestinglevel,linenumber,elementnumber,string representation) of the nodes
 		return [[nest,self.startlineno,elementno,self._strtag("?")]]
@@ -351,7 +351,7 @@ class Node:
 
 	def _strtag(self,content):
 		return _stransi(self.repransibrackets,'<') + content + _stransi(self.repransibrackets,'>')
- 
+
 	def __str__(self):
 		return ""
 
@@ -451,7 +451,7 @@ class Text(Node):
 				charref = 1-charref # switch to the other class
 				start = end # the next string  we want to work on starts from here
 			end = end + 1 # to the next character
-				
+
 		return string.join(v,"")
 
 	def _dorepr(self):
@@ -497,7 +497,7 @@ class CharRef(Node):
 
 	def __strcharref(self,s):
 		return _stransi(self.repransiname,s)
- 
+
 	def _dorepr(self):
 		if len(Parser.entitiesByNumber[self.__content]):
 			return self.__strcharref('#' + Parser.entitiesByNumber[self.__content][0] + ';')
@@ -767,9 +767,9 @@ class Element(Node):
 	def _dorepr(self):
 		v = []
 		if self.empty:
-			v.append(self._strname() + self.__strattrs() + _strelementname("/"))
+			v.append(self._strtag(self._strname() + self.__strattrs() + _strelementname("/")))
 		else:
-			v.append(self._strname() + self.__strattrs())
+			v.append(self._strtag(self._strname() + self.__strattrs()))
 			for child in self:
 				v.append(child._dorepr())
 			v.append(self._strtag(_strelementname("/") + self._strname()))
@@ -1245,7 +1245,7 @@ class Parser(xmllib.XMLParser):
 		self.nesting.append(e) # push new innermost element onto the stack
 
 	def unknown_endtag(self,name):
-		currentname = string.lower(self.nesting[-1].__class__.__name__) 
+		currentname = string.lower(self.nesting[-1].__class__.__name__)
 		if string.lower(name) != currentname:
 			raise IllegalElementNestingError(xsc.parser.lineno,currentname,name)
 		self.nesting[-1].endlineno = self.lineno
