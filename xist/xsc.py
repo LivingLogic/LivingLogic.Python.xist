@@ -69,7 +69,7 @@ class XSCIllegalElementError(XSCError):
 		self.elementname = elementname
 
 	def __str__(self):
-		elements = element_handlers.keys();
+		elements = _element_handlers.keys();
 		elements.sort()
 		return XSCError.__str__(self) + "The element '" + self.elementname + "' is not allowed. The only allowed elements are: " + str(elements)
 
@@ -224,7 +224,7 @@ def ToNode(value):
 			return value
 	raise XSCIllegalObjectError(xsc.parser.lineno,value) # none of the above, so we throw and exception
 
-element_handlers = {} # dictionary for mapping element names to classes
+_element_handlers = {} # dictionary for mapping element names to classes
 
 class XSCNode:
 	"""base class for nodes in the document tree. Derived class must implement __str__()"""
@@ -765,7 +765,7 @@ class XSCElement(XSCNode):
 
 def RegisterElement(name,element):
 	"""registers the element handler element to be used for elements with name name"""
-	element_handlers[name] = element
+	_element_handlers[name] = element
 	element.name = name
 
 class XSCurl(XSCElement):
@@ -837,8 +837,8 @@ class XSCParser(xmllib.XMLParser):
 
 	def unknown_starttag(self,name,attrs):
   		lowername = string.lower(name)
-		if element_handlers.has_key(lowername):
-			e = element_handlers[lowername]([],attrs)
+		if _element_handlers.has_key(lowername):
+			e = _element_handlers[lowername]([],attrs)
 			e.startlineno = self.lineno
 		else:
 			raise XSCIllegalElementError(xsc.parser.lineno,lowername)
