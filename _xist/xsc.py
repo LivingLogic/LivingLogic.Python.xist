@@ -1721,6 +1721,24 @@ class Element(Node):
 			self.attrs[index] = attr
 		return attr
 
+	def attrKeys(self):
+		"""
+		return a list with all the attribute names of <self/>.
+		"""
+		return [ attrname for (attrname, attrvalue) in self.attrs.items() if len(attrvalue) ]
+
+	def attrValues(self):
+		"""
+		return a list with all the attribute values of <self/>.
+		"""
+		return [ attrvalue for (attrname, attrvalue) in self.attrs.items() if len(attrvalue) ]
+
+	def attrItems(self):
+		"""
+		return a list with all the attribute name/value tuples of <self/>.
+		"""
+		return [ (attrname, attrvalue) for (attrname, attrvalue) in self.attrs.items() if len(attrvalue) ]
+
 	def __getslice__(self, index1, index2):
 		"""
 		returns a copy of the element that contains a slice of the content

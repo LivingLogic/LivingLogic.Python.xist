@@ -436,24 +436,22 @@ class NormalPresenter:
 			strBracketClose()
 		)
 
-	def _appendAttrs(self, dict):
+	def _appendAttrs(self, node):
 		self.inAttr += 1
-		for (attrname, attrvalue) in dict.items():
-			self.buffer.append(" ", strAttrName(attrname))
-			if len(attrvalue):
-				self.buffer.append("=", strQuote())
-				attrvalue.present(self)
-				self.buffer.append(strQuote())
+		for (attrname, attrvalue) in node.attrItems():
+			self.buffer.append(" ", strAttrName(attrname), "=", strQuote())
+			attrvalue.present(self)
+			self.buffer.append(strQuote())
 		self.inAttr -= 1
 
 	def presentElement(self, node):
 		if node.empty:
 			self.buffer.append(strBracketOpen(), strElement(node))
-			self._appendAttrs(node.attrs)
+			self._appendAttrs(node)
 			self.buffer.append(strSlash(), strBracketClose())
 		else:
 			self.buffer.append(strBracketOpen(), strElement(node))
-			self._appendAttrs(node.attrs)
+			self._appendAttrs(node)
 			self.buffer.append(strBracketClose())
 			for child in node:
 				child.present(self)
@@ -561,20 +559,18 @@ class TreePresenter:
 			else:
 				self.lines.append([node.startLoc, self.currentPath[:], len(self.currentPath), strElementWithBrackets(node, 1)])
 
-	def _appendAttrs(self, text, dict):
+	def _appendAttrs(self, text, node):
 		# increment the "in attribute counter".
 		# Because an attribute itself is a fragment and thus may
 		# contains elements itself (which in turn might have attributes with elements etc.)
 		# it is a nesting counter and not simply a flag.
 		# This is the reason why self.buffers is a list too.
 		self.inAttr += 1
-		for (attrname, attrvalue) in dict.items():
-			text.append(" ", strAttrName(attrname))
-			if len(attrvalue):
-				text.append("=", strQuote())
-				attrvalue.present(self) # this pushes the appropriate text buffer onto the stack
-				text.append(self.buffers[-1], strQuote())
-				self.buffers.pop() # pop the buffer from the stack
+		for (attrname, attrvalue) in node.attrItems():
+			text.append(" ", strAttrName(attrname), "=", strQuote())
+			attrvalue.present(self) # this pushes the appropriate text buffer onto the stack
+			text.append(self.buffers[-1], strQuote())
+			self.buffers.pop() # pop the buffer from the stack
 		self.inAttr -= 1
 
 	def presentElement(self, node):
@@ -582,7 +578,7 @@ class TreePresenter:
 			pass
 		else:
 			s = ansistyle.Text(strBracketOpen(), strElement(node))
-			self._appendAttrs(s, node.attrs)
+			self._appendAttrs(s, node)
 			if len(node):
 				s.append(strBracketClose())
 				self.lines.append([node.startLoc, self.currentPath[:], len(self.currentPath), s])
