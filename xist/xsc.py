@@ -1449,14 +1449,15 @@ class XSC:
 
 def __forceopen(name,mode):
 	try:
-		file = open(name,mode)
+		return open(name,mode)
 	except IOError,e:
 		if e[0] != 2: # didn't work for some other reason
 			raise
-		path = string.split(name,"/")
-		os.makedirs(path)
-		for i in xrange(len(path-1)):
-			pass
+		found = string.rfind(name,"/")
+		if found == -1:
+			raise
+		os.makedirs(name[:found])
+		return open(name,mode)
 
 def make():
 	"""use XSC as a compiler script, i.e. read an input file from args[1] and writes it to args[2]"""
@@ -1465,7 +1466,7 @@ def make():
 	print "from:",infilename,"to:",outfilename
 	e_in = xsc.parseFile(infilename)
 	e_out = e_in.asHTML()
-	open(outfilename,"wb").write(str(e_out))
+	__forceopen(outfilename,"wb").write(str(e_out))
 
 xsc = XSC()
 
