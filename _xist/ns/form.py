@@ -52,7 +52,7 @@ class edit(xsc.Element):
 		return e.convert(converter)
 
 class radio(xsc.Element):
-	attrHandlers = {"name": xsc.TextAttr, "value": xsc.TextAttr}
+	attrHandlers = {"name": xsc.TextAttr, "value": xsc.TextAttr, "checked": xsc.BoolAttr}
 
 	def convert(self, converter):
 		e = html.input(**self.attrs)
