@@ -58,7 +58,7 @@ if __name__ == "__main__":
 	p.add_option("-p", "--prefix", dest="xmlname", help="the XML prefix for this namespace", default="prefix", metavar="PREFIX")
 	p.add_option("-u", "--url", dest="xmlurl", help="the XML namespace name", metavar="URL")
 	p.add_option("-a", "--shareattrs", dest="shareattrs", help="Should identical attributes be shared among elements?", choices=("none", "dupes", "all"), default="dupes")
-	p.add_option("-m", "--asmod", action="store_true", dest="asmod", help="Call makemod() instead of update() for creating the namespace")
+	p.add_option("-m", "--nomod", action="store_false", dest="asmod", default=True, help="Call update() instead of makemod() for creating the namespace")
 	p.add_option("-d", "--defaults", action="store_true", dest="defaults", help="Output default values for attributes")
 
 	(options, args) = p.parse_args()
