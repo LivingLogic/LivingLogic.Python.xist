@@ -401,6 +401,12 @@ class wml(xsc.Entity):
 	def asPlainString(self):
 		return u"WML"
 
+class mac(xsc.Entity):
+	def asHTML(self, mode=None):
+		return html_.span(html_.abbr("MAC", title="Media Access Control", lang="en"), class_="caps")
+	def asPlainString(self):
+		return u"MAC"
+
 class PHP(xsc.ProcInst):
 	"""
 	PHP processing instruction (must be used with a target)
