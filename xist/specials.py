@@ -1,6 +1,8 @@
 #! /usr/bin/env python
 
-""""""
+"""
+A XSC module that contains a collection of useful elements.
+"""
 
 __version__ = "$Revision$"
 # $Source$
@@ -73,13 +75,13 @@ class x(xsc.Element):
 		return None
 xsc.registerElement("x",x)
 
-class pixel(img):
+class pixel(html.img):
 	empty = 1
-	attr_handlers = AppendDict(img.attr_handlers,{ "color" : xsc.ColorAttr })
+	attr_handlers = xsc.appendDict(html.img.attr_handlers,{ "color" : xsc.ColorAttr })
 	del attr_handlers["src"]
 
 	def asHTML(self):
-		e = img(self.content)
+		e = html.img(self.content)
 		color = "dot_clear"
 		for attr in self.attrs.keys():
 			if attr == "color":

@@ -129,7 +129,7 @@ class _(xsc.Element):
 		return xsc.Text(" - ")
 xsc.registerElement("_",_)
 
-class pfeil(img):
+class pfeil(html.img):
 	empty = 1
 	attr_handlers = xsc.appendDict(img.attr_handlers,{ "rel" : xsc.TextAttr })
 	

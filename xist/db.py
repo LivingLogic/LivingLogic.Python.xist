@@ -1,6 +1,9 @@
 #! /usr/bin/env python
 
-""""""
+"""
+A XSC module that contains elements that are useful for incorparating
+database content into XSC pages.
+"""
 
 __version__ = "$Revision$"
 # $Source$
@@ -20,15 +23,16 @@ class element(xsc.Element):
 
 	def asHTML(self):
 		return None
-xsc.RegisterElement("element",element)
+xsc.registerElement("element",element)
 
 class lookupcombobox(element):
-	attr_handlers = AppendDict(element.attr_handlers,{ "query" : xsc.TextAttr , "displayfield" : xsc.TextAttr , "valuefield" : xsc.TextAttr })
+	attr_handlers = xsc.appendDict(element.attr_handlers,{ "db" : xsc.TextAttr , "query" : xsc.TextAttr , "displayfield" : xsc.TextAttr , "valuefield" : xsc.TextAttr })
 
 	def asHTML(self):
 		e = select(name = self["name"])
 
-		query = Zeit.db.query(str(self["query"]))
+		db = eval(str(self["db"]))
+		query = db.query(str(self["query"]))
 		displayfield = str(self["displayfield"].asHTML())
 		valuefield = str(self["valuefield"].asHTML())
 		for tuple in query.dictresult():
@@ -38,10 +42,10 @@ class lookupcombobox(element):
 				o["selected"] = None
 			e.append(o)
 		return e.asHTML()
-xsc.RegisterElement("lookupcombobox",lookupcombobox)
+xsc.registerElement("lookupcombobox",lookupcombobox)
 
 class edit(element):
-	attr_handlers = AppendDict(element.attr_handlers,{ "size" : xsc.TextAttr })
+	attr_handlers = xsc.appendDict(element.attr_handlers,{ "size" : xsc.TextAttr })
 
 	def asHTML(self):
 		e = input()
@@ -49,7 +53,7 @@ class edit(element):
 			e[attr] = self[attr]
 
 		return e.asHTML()
-xsc.RegisterElement("edit",edit)
+xsc.registerElement("edit",edit)
 
 class static(element):
 	def asHTML(self):
@@ -59,7 +63,7 @@ class static(element):
 			e = nbsp()
 
 		return e.asHTML()
-xsc.RegisterElement("static",static)
+xsc.registerElement("static",static)
 
 class hidden(element):
 	def asHTML(self):
@@ -68,21 +72,22 @@ class hidden(element):
 			e["value"] = self["value"]
 
 		return e.asHTML()
-xsc.RegisterElement("hidden",hidden)
+xsc.registerElement("hidden",hidden)
 
 class target(xsc.Element):
 	empty = 0
 
 	def asHTML(self):
 		return self.content.asHTML()
-xsc.RegisterElement("target",target)
+xsc.registerElement("target",target)
 
 class template(xsc.Element):
 	empty = 0
-	attr_handlers = { "query" : xsc.TextAttr }
+	attr_handlers = { "db" : xsc.TextAttr , "query" : xsc.TextAttr }
 
 	def asHTML(self):
-		query = Zeit.db.query(str(self["query"]))
+		db = eval(str(self["db"]))
+		query = db.query(str(self["query"]))
 
 		content = self.content.clone()
 
@@ -98,18 +103,20 @@ class template(xsc.Element):
 			targets[0].append(target)
 
 		return content.asHTML()
-xsc.RegisterElement("template",template)
+xsc.registerElement("template",template)
 
 class table(xsc.Element):
 	empty = 0
-	attr_handlers = { "query" : xsc.TextAttr , "class" : xsc.TextAttr }
+	attr_handlers = { "db" : xsc.TextAttr , "query" : xsc.TextAttr , "class" : xsc.TextAttr }
 
 	def asHTML(self):
+		db = eval(str(self["db"]))
+		query = db.query(str(self["query"]))
+
 		e = plaintable()
 		if self.has_attr("class"):
 			e["class"] = self["class"]
 
-		query = Zeit.db.query(str(self["query"]))
 		fields = self.elementsNamed(field)
 
 		headers = tr()
@@ -130,18 +137,20 @@ class table(xsc.Element):
 				flipflop = "even"
 
 		return e.asHTML()
-xsc.RegisterElement("table",table)
+xsc.registerElement("table",table)
 
 class edittable(xsc.Element):
 	empty = 0
-	attr_handlers = { "query" : xsc.TextAttr , "class" : xsc.TextAttr , "action" : xsc.URLAttr }
+	attr_handlers = { "db" : xsc.TextAttr , "query" : xsc.TextAttr , "class" : xsc.TextAttr , "action" : xsc.URLAttr }
 
 	def asHTML(self):
-		e = plaintable()
+		db = eval(str(self["db"]))
+		query = db.query(str(self["query"]))
+
+		e = specials.plaintable()
 		if self.has_attr("class"):
 			e["class"] = self["class"]
 
-		query = Zeit.db.query(str(self["query"]))
 		fields = self.elementsNamed(field)
 
 		headers = tr()
@@ -196,12 +205,12 @@ class edittable(xsc.Element):
 			control["value"] = value
 		return control
 		
-xsc.RegisterElement("table",table)
+xsc.registerElement("table",table)
 
 class field(xsc.Element):
 	empty = 1
 	attr_handlers = { "name" : xsc.TextAttr , "caption" : xsc.TextAttr , "type" : xsc.TextAttr , "size" : xsc.TextAttr , "lookupquery" : xsc.TextAttr , "lookupdisplayfield" : xsc.TextAttr , "lookupvaluefield" : xsc.TextAttr }
-xsc.RegisterElement("field",field)
+xsc.registerElement("field",field)
 
 if __name__ == "__main__":
 	xsc.make()

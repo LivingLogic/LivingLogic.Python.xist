@@ -1,6 +1,9 @@
 #! /usr/bin/env python
 
-""""""
+"""
+A XSC module that contains definition for all the elements in HTML 4.0 transitional
+(and a few additional ones).
+"""
 
 __version__ = "$Revision$"
 # $Source$
