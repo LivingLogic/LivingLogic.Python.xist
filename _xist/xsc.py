@@ -723,7 +723,9 @@ class Frag(Node):
 		"""
 		for other in others:
 			other = ToNode(other)
-			if other is not Null:
+			if isinstance(other, Frag):
+				self.__content.extend(other)
+			elif other is not Null:
 				self.__content.append(other)
 
 	def insert(self, index, *others):
