@@ -1583,8 +1583,8 @@ class Attrs(Node, dict):
 		"""
 		makes <self/> empty. (This also removes default attributes)
 		"""
-		for (key, value) in self.items():
-			value.clear()
+		for attrvalue in self.values():
+			attrvalue.clear()
 
 	def clone(self):
 		node = self._create()
@@ -1778,10 +1778,16 @@ class Attrs(Node, dict):
 		return iter(self.values())
 
 	def values(self):
-		values = []
-		for key in self.keys():
-			values.append(self[key])
-		return values
+		items = {} # use a dict to avoid duplicates
+		# fetch the existing attribute keys/values
+		for (key, value) in dict.items(self):
+			if len(value):
+				items[key] = value
+		# fetch the keys of attributes with a default value (if it hasn't been overwritten)
+		for (key, value) in self.alloweditems():
+			if value.default and not dict.has_key(self, key):
+				items[key] = self[key]
+		return items.values()
 
 	def iteritems(self):
 		return iter(self.items())
@@ -2299,12 +2305,6 @@ class Element(Node):
 		removes a slice of the content of the element
 		"""
 		del self.content[index1:index2]
-
-	def __nonzero__(self):
-		"""
-		return whether the element is not empty (this should be a little faster than defaulting to __len__)
-		"""
-		return self.content.__nonzero__()
 
 	def __len__(self):
 		"""

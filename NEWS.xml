@@ -1,4 +1,12 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
+<section><title>Changes in 2.0.7 (released 11/12/2002)</title>
+<ulist>
+<item><method>xsc.Element.__nonzero__</method> can no longer fall back
+to <method>xsc.Frag.__nonzero__</method>.
+(this is the same fix as in 1.5.7).</item>
+</ulist>
+</section>
+
 <section><title>Changes in 2.0.6 (released 11/11/2002)</title>
 <ulist>
 <item>Performance optimizations.</item>
@@ -100,6 +108,13 @@ This is used for the new class <class>StyleAttr</class>, which uses the
 found in a style attribute.</item>
 <item>The pixel images have been moved to the directory <dirname>px</dirname>
 to make image &url;s shorter.</item>
+</ulist>
+</section>
+
+<section><title>Changes in 1.5.7 (released 11/12/2002)</title>
+<ulist>
+<item><method>xsc.Element.__nonzero__</method> can no longer fall back
+to <method>xsc.Frag.__nonzero__</method>.</item>
 </ulist>
 </section>
 
