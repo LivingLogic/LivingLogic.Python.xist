@@ -13,11 +13,12 @@ setup(
 	version="2.0.8",
 	description="An XML-based extensible HTML generator",
 	long_description="XIST is an XML based extensible HTML generator. XIST is also\n"
-		"a DOM parser (built on top of SAX2) with a very simple and pythonesque tree API.\n"
-		"Every XML element type corresponds to a Python class and these Python classes\n"
-		"provide a conversion method to transform the XML tree (e.g. into HTML).\n"
-		"XIST can be considered 'object oriented XSL'.",
-	author="Walter Dörwald",
+		"a DOM parser (built on top of SAX2) with a very simple and\n"
+		"pythonesque tree API. Every XML element type corresponds to a\n"
+		"Python class and these Python classes provide a conversion method\n"
+		"to transform the XML tree (e.g. into HTML). XIST can be considered\n"
+		"'object oriented XSL'.",
+	author="Walter Doerwald",
 	author_email="walter@livinglogic.de",
 	url="http://www.livinglogic.de/Python/xist/",
 	license="Python",
