@@ -9,6 +9,7 @@ __version__ = "$Revision$"[11:-2]
 # $Source$
 
 import sys
+import os
 import string
 import xsc
 import html

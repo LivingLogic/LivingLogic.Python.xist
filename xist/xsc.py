@@ -1650,6 +1650,7 @@ class XSC:
 		"""
 		self.parser.reset()
 		self.parser.feed(string)
+		self.parser.feed(" ")
 		self.parser.close()
 		return self.parser.root
 
