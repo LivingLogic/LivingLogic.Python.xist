@@ -48,13 +48,13 @@ def make():
 	and writes it to args[2]
 	"""
 
-	(options, args) = getopt.getopt(sys.argv[1:], "i:o:e:x:", ["include=", "output=", "encoding=", "xhtml="])
+	(options, args) = getopt.getopt(sys.argv[1:], "i:o:e:x:", ["import=", "output=", "encoding=", "xhtml="])
 
 	globaloutname = URL("*/")
 	encoding = None
 	XHTML = None
 	for (option, value) in options:
-		if option=="-i" or option=="--include":
+		if option=="-i" or option=="--import":
 			__import__(value)
 		elif option=="-o" or option=="--output":
 			globaloutname = URL(value)
@@ -72,7 +72,7 @@ def make():
 			if not outname.file:
 				outname.file = "noname"
 			try:
-				outname.ext = {"hsc": "html" ,"shsc" : "shtml", "phsc": "phtml", "xsc": "html", "sxsc": "shtml", "pxsc" : "phtml"}[inname.ext]
+				outname.ext = {"hsc": "html", "shsc": "shtml", "phsc": "phtml", "xsc": "html", "sxsc": "shtml", "pxsc": "phtml"}[inname.ext]
 			except KeyError:
 				outname.ext = "html"
 			print >> sys.stderr, "XSC(encoding=%r, XHTML=%r): converting %r" % (encoding, XHTML, str(inname)),
