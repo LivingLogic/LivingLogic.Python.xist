@@ -61,7 +61,7 @@ to tell the parser about them. This is done with
 namespace objects (see the docstring for the Namespace class).
 What you have to do is construct a namespace object for all the
 elements in your module:
-namespace = xsc.Namespace("foo","http://www.foo.net/dtd/foo.dtd",vars())
+namespace = xsc.Namespace("foo", "http://www.foo.net/dtd/foo.dtd", vars())
 
 
 URLs, path markers and the URL stack
@@ -362,9 +362,9 @@ def _strName(nodeName, content = None, brackets = 1, slash = None, ansi = None):
 		s = strBracketOpen(ansi) + s + strBracketClose(ansi)
 	return s
 
-def _strNode(nodeClass,content = None,brackets = None,slash = None,ansi = None):
+def _strNode(nodeClass, content=None, brackets=None, slash=None, ansi=None):
 	name = nodeName(nodeClass)
-	return _strName(name,content,brackets,slash,ansi)
+	return _strName(name, content, brackets, slash, ansi)
 
 def isXMLChar(char):
 	code = ord(char)
@@ -465,7 +465,7 @@ class Node:
 				line[1] = ""
 			line[2] = ".".join(map(str, line[2])) # convert element number to a string
 			line[3] = strTab(line[0]) + line[3] # add indentation
-			lenloc = max(lenloc,len(line[1]))
+			lenloc = max(lenloc, len(line[1]))
 			lenelementno = max(lenelementno, len(line[2]))
 
 		for line in lines:
@@ -478,7 +478,7 @@ class Node:
 
 	def _doreprtree(self, nest, elementno, encoding=None, ansi=None):
 		# returns an array containing arrays consisting of the
-		# (nestinglevel,location,elementnumber,string representation) of the nodes
+		# (nestinglevel, location, elementnumber, string representation) of the nodes
 		return [[nest, self.startloc, elementno, self._dorepr(encoding, ansi)]]
 
 	def asHTML(self):
@@ -540,7 +540,7 @@ class Node:
 		"""
 		return int(self.asPlainString())
 
-	def asFloat(self, decimal = ".", ignore=""):
+	def asFloat(self, decimal=".", ignore=""):
 		"""
 		returns this node converted to a float. <argref>decimal</argref>
 		specifies which decimal separator is used in the value
@@ -549,9 +549,9 @@ class Node:
 		"""
 		s = self.asPlainString()
 		for c in ignore:
-			s = string.replace(s,c,"")
+			s = string.replace(s, c, "")
 		if decimal != ".":
-			s = string.replace(s,decimal,".")
+			s = string.replace(s, decimal, ".")
 		return float(s)
 
 	def publish(self, publisher):
@@ -580,7 +580,7 @@ class Node:
 
 		<par>For the parameters see <funcref>publish</funcref>.</par>
 		"""
-		publisher = publishers.BytePublisher(encoding,XHTML)
+		publisher = publishers.BytePublisher(encoding, XHTML)
 		self.publish(publisher)
 		return publisher.asBytes()
 
@@ -591,7 +591,7 @@ class Node:
 
 		<par>For the parameters see <funcref>publish</funcref>.</par>
 		"""
-		publisher = publishers.FilePublisher(file,encoding,XHTML)
+		publisher = publishers.FilePublisher(file, encoding, XHTML)
 		self.publish(publisher)
 
 	def find(self, type=None, subtype=0, attrs=None, test=None, searchchildren=0, searchattrs=0):
@@ -639,7 +639,7 @@ class Node:
 		if attrs is None:
 			return 1
 		else:
-			if isinstance(self,Element):
+			if isinstance(self, Element):
 				for attr in attrs.keys():
 					if not self.hasAttr(attr) or ((attrs[attr] is not None) and (self[attr].asPlainString() != attrs[attr])):
 						return 0
@@ -718,7 +718,7 @@ class Text(Node):
 	appropriate character entities.
 	"""
 
-	def __init__(self,content = ""):
+	def __init__(self, content=""):
 		if type(content) in (types.IntType, types.LongType, types.FloatType):
 			content = str(content)
 		self.content = stringFromCode(content)
@@ -752,7 +752,7 @@ class Text(Node):
 				do = 1
 			else:
 				c = content[end] # ... or if the character we're at is different from those we've collected so far
-				ascharref = (0 <= ord(c) <= 31) or publishers.mustBeEncodedAsCharRef(c,encoding)
+				ascharref = (0 <= ord(c) <= 31) or publishers.mustBeEncodedAsCharRef(c, encoding)
 				if not refwhite and (c == u"\n" or c == u"\t"):
 					ascharref = 0
 				if ascharref != charref:
@@ -849,7 +849,7 @@ class Frag(Node):
 
 	empty = 0
 
-	def __init__(self,*content):
+	def __init__(self, *content):
 		self.__content = []
 		for child in content:
 			self.extend(child)
@@ -878,7 +878,7 @@ class Frag(Node):
 			v.append([nest, self.startloc, elementno, self._str(brackets=1, ansi=ansi)])
 			i = 0
 			for child in self:
-				v = v + child._doreprtree(nest+1,elementno + [i],encoding,ansi)
+				v = v + child._doreprtree(nest+1, elementno + [i], encoding, ansi)
 				i += 1
 			v.append([nest, self.endloc, elementno, self._str(brackets=1, ansi=ansi, slash=-1)])
 		else:
@@ -1050,7 +1050,7 @@ class Comment(Node):
 	def _dorepr(self, ansi = None):
 		return strBracketOpen(ansi) + strExclamation(ansi) + strCommentMarker(ansi) + strCommentText(self.content, ansi) + strCommentMarker(ansi) + strBracketClose(ansi)
 
-	def _doreprtree(self,nest,elementno,encoding,ansi):
+	def _doreprtree(self, nest, elementno, encoding, ansi):
 		head = strBracketOpen(ansi) + strExclamation(ansi) + strCommentMarker(ansi)
 		tail = strCommentMarker(ansi) + strBracketClose(ansi)
 		return self._doreprtreeMultiLine(nest, elementno, head, tail, self.content, strCommentText, 0, encoding=encoding, ansi=ansi)
@@ -1077,7 +1077,7 @@ class DocType(Node):
 	clone = asHTML
 
 	def _dorepr(self, encoding = None, ansi = None):
-		return strBracketOpen(ansi) + strExclamation(ansi) + strDocTypeMarker(ansi) + " " + strDocTypeText(self.content,ansi) + strBracketClose(ansi)
+		return strBracketOpen(ansi) + strExclamation(ansi) + strDocTypeMarker(ansi) + " " + strDocTypeText(self.content, ansi) + strBracketClose(ansi)
 
 	def _doreprtree(self, nest, elementno, encoding=None, ansi=None):
 		return [[nest, self.startloc, elementno, self._dorepr(encoding, ansi)]]
@@ -1180,7 +1180,7 @@ class Eval(PythonCode):
 		ProcInst.__init__(self, u"xsc-eval", content)
 
 	def asHTML(self):
-		code = Code(self.content,1)
+		code = Code(self.content, 1)
 		code.funcify()
 		exec str(code.asString()) in procinst.__dict__ # FIXME Why can't I exec a unicode object
 		return ToNode(eval("__()", procinst.__dict__)).asHTML()
@@ -1276,7 +1276,7 @@ class Element(Node):
 
 	def append(self, *items):
 		"""
-		append(self,*items)
+		append(self, *items)
 
 		appends to the content (see Frag.append for more info)
 		"""
@@ -1287,17 +1287,17 @@ class Element(Node):
 
 	def insert(self, index, *items):
 		"""
-		insert(self,index,*items)
+		insert(self, index, *items)
 
 		inserts into the content (see Frag.insert for more info)
 		"""
-		self.content.insert(index,*items)
+		self.content.insert(index, *items)
 		if self.empty and len(self):
 			raise EmptyElementWithContentError(self)
 
 	def extend(self, *items):
 		"""
-		extend(self,items)
+		extend(self, items)
 
 		extends the content (see Frag.extend for more info)
 		"""
@@ -1405,7 +1405,7 @@ class Element(Node):
 			self.content.publish(publisher)
 			publisher(u"</", self.name, u">")
 		else:
-			if publisher.XHTML in (0,1):
+			if publisher.XHTML in (0, 1):
 				if self.empty:
 					if publisher.XHTML==1:
 						publisher(u" /")
@@ -1714,7 +1714,7 @@ class URLAttr(Attr):
 		size = None
 		if xsc.isRetrieve(url):
 			try:
-				filename,headers = urllib.urlretrieve(url.asString().encode(outputEncoding))
+				(filename, headers) = urllib.urlretrieve(url.asString().encode(outputEncoding))
 				if headers.maintype == "image":
 					img = Image.open(filename)
 					size = img.size
@@ -1735,7 +1735,7 @@ class URLAttr(Attr):
 		size = None
 		if xsc.isRetrieve(url):
 			try:
-				filename,headers = urllib.urlretrieve(url.asString())
+				(filename, headers) = urllib.urlretrieve(url.asString())
 				size = os.stat(filename)[stat.ST_SIZE]
 				urllib.urlcleanup()
 			except IOError:
@@ -1795,8 +1795,8 @@ class Namespace:
 		"""
 
 		if type(thing) is types.ClassType:
-			iselement = thing is not Element and issubclass(thing,Element)
-			isentity = thing is not Entity and issubclass(thing,Entity)
+			iselement = thing is not Element and issubclass(thing, Element)
+			isentity = thing is not Entity and issubclass(thing, Entity)
 			if iselement or isentity:
 				if not thing.__dict__.has_key("namespace"): # if the class already has a namespace attribute, it is already registered (where accessing __dict__ here, because we don't want inheritance)
 					try:
@@ -1878,7 +1878,7 @@ class Location:
 			return ""
 
 	def __repr__(self):
-		return "Location(%r,%r,%r)" % (self.url, self.row, self.col)
+		return "Location(%r, %r, %r)" % (self.url, self.row, self.col)
 
 ###
 ###
@@ -1947,7 +1947,7 @@ class XSC:
 
 	def finish_starttag(self, name, attrs):
 		node = self.elementFromName(unicode(name, parseEncoding))()
-		for name,value in attrs:
+		for name, value in attrs:
 			node[name] = self.__string2Fragment(value)
 		self.__appendNode(node)
 		self.__nesting.append(node) # push new innermost element onto the stack
