@@ -1242,7 +1242,7 @@ are not set already.</par>
 <par>It's possible to embed Python code into &xist; &xml; files. For this
 &xist; supports two new processing instructions:
 <pyref module="ll.xist.ns.code" class="pyexec"><lit>pyexec</lit></pyref>
-and <pyref module="ll.xist.ns.code" class="pyeval_"><lit>pyeval</lit></pyref> (in the module
+and <pyref module="ll.xist.ns.code" class="pyeval"><lit>pyeval</lit></pyref> (in the module
 <pyref module="ll.xist.ns.code"><module>ll.xist.ns.code</module></pyref>. The content of
 <pyref module="ll.xist.ns.code" class="pyexec"><lit>pyexec</lit></pyref> will be
 executed when the processing instruction node is instantiated, i.e. when the
