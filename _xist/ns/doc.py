@@ -423,7 +423,7 @@ def explain(thing, name=None):
 	if t is types.MethodType:
 		(args, varargs, varkw, defaults) = inspect.getargspec(thing.im_func)
 		sig = xsc.Frag()
-		if name != thing.__name__:
+		if name != thing.__name__ and not (thing.__name__.startswith("__") and name=="_" + thing.im_class.__name__ + thing.__name__):
 			sig.append(name, " = ")
 		sig.append(
 			"def ",
