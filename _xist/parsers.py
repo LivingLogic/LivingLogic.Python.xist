@@ -268,10 +268,10 @@ class BadEntityParser(SGMLOPParser):
 						entity = self._cont_handler.createEntity(name)
 					except errors.IllegalEntityError:
 						try:
-							entity = html.entity(name, xml=True)
+							entity = html.entity(name, xml=True)()
 						except errors.IllegalEntityError:
 							try:
-								entity = xsc.xmlns.entity(name, xml=True)
+								entity = xsc.xmlns.entity(name, xml=True)()
 							except errors.IllegalEntityError:
 								entity = xsc.Frag(ct(u"&"+part))
 					node.append(entity, ct(part[pos+1:]))
@@ -294,18 +294,19 @@ class HTMLParser(BadEntityParser):
 	minimizedElements = {"p": ("p",), "td": ("td", "th"), "th": ("td", "th")} # elements that can't be nested, so a start tag automatically closes a previous end tag
 
 	def __init__(self, namespaceHandling=0, bufsize=2**16-20, encoding="iso-8859-1"):
+		self._stack = []
 		BadEntityParser.__init__(self, namespaceHandling, bufsize, encoding)
 
 	def _whichparser(self):
 		return sgmlop.SGMLParser()
 
 	def reset(self):
+		self._stack = []
 		BadEntityParser.reset(self)
-		self.__stack = []
 
 	def close(self):
-		while len(self.__stack): # close all open elements
-			self.finish_endtag(self.__stack[-1])
+		while len(self._stack): # close all open elements
+			self.finish_endtag(self._stack[-1])
 		BadEntityParser.close(self)
 
 	def handle_comment(self, data):
@@ -314,7 +315,7 @@ class HTMLParser(BadEntityParser):
 
 	def handle_data(self, data):
 		self.__closeEmpty()
-		BadEntityParser.handle_data(data)
+		BadEntityParser.handle_data(self, data)
 
 	def handle_proc(self, target, data):
 		self.__closeEmpty()
@@ -328,15 +329,15 @@ class HTMLParser(BadEntityParser):
 		self.__closeEmpty()
 		name = name.lower()
 		if name != "html":
-			if not len(self.__stack): # root element <html> missing?
+			if not len(self._stack): # root element <html> missing?
 				self.finish_starttag("html", []) # add it
 			self.__closeMimimizedOnStart(name)
 
-		self.__nesting.append(name)
+		self._stack.append(name)
 		newattrs = {}
 		for (attrname, attrvalue) in attrs:
 			attrname = attrname.lower()
-			element = html.xmlns.elementsByName[name]
+			element = html.element(name, xml=True)
 			if element.Attrs.isallowed(attrname, xml=True):
 				newattrs[attrname] = attrvalue
 			else:
@@ -345,21 +346,21 @@ class HTMLParser(BadEntityParser):
 
 	def finish_endtag(self, name):
 		name = name.lower()
-		if len(self.__stack): # we ignore end tag without the matching start tags
-			if self.__stack[-1] != name: # e.g. <div><img></div> when </div> is encountered
+		if len(self._stack): # we ignore end tag without the matching start tags
+			if self._stack[-1] != name: # e.g. <div><img></div> when </div> is encountered
 				self.__closeEmpty()
-			if self.__stack[-1] != name:
+			if self._stack[-1] != name:
 				self.__closeMinimizedOnEnd(name) #  maybe an open <p> tag etc. has been left open; eg. <div><p>gurk</div>
 			BadEntityParser.finish_endtag(self, name)
-			del self.__stack[-1]
+			del self._stack[-1]
 
 	def __closeEmpty(self):
-		if len(self.__stack) and html.xmlns.elementsByName[self.__stack[-1]].empty:
-			self.finish_endtag(self, self.__stack[-1])
+		if len(self._stack) and html.element(self._stack[-1], xml=True).empty:
+			self.finish_endtag(self, self._stack[-1])
 
 	def __closeMimimizedOnStart(self, name):
-		if len(self.__stack):
-			lastname = self.__stack[-1]
+		if len(self._stack):
+			lastname = self._stack[-1]
 			try:
 				minigroup = self.minimizedElements[lastname]
 			except KeyError:
@@ -368,8 +369,8 @@ class HTMLParser(BadEntityParser):
 				self.finish_endtag(self, name)
 
 	def __closeMinimizedOnEnd(self, name):
-		if len(self.__stack):
-			lastname = self.__stack[-1]
+		if len(self._stack):
+			lastname = self._stack[-1]
 			try:
 				minigroup = self.minimizedElements[lastname]
 			except KeyError:
@@ -566,16 +567,13 @@ class Handler(object):
 		return xsc.Comment(content)
 
 	def createElement(self, name):
-		return self.prefixes.procinst(target)(data)
+		return self.prefixes.element(name)()
 
 	def createProcInst(self, target, data):
 		return self.prefixes.procinst(target)(data)
 
 	def createEntity(self, name):
 		return self.prefixes.entity(name)()
-
-	def createElement(self, name):
-		return self.prefixes.element(name)()
 
 def parse(source, handler=None, parser=None, prefixes=None):
 	"""
