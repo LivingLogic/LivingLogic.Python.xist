@@ -220,7 +220,7 @@ class FileNotFoundError(Error):
 		self.url = url
 
 	def __str__(self):
-		return Error.__str__(self) + "file " + str(presenter.EnvTextForURL(self.url.asString())) + " can't be opened"
+		return Error.__str__(self) + "file " + str(presenters.EnvTextForURL(self.url.asString())) + " can't be opened"
 
 class IllegalObjectError(Error):
 	"""
