@@ -36,5 +36,16 @@ class stylesheet(html.link):
 		e["type"] = "text/css"
 		return e.asHTML()
 
+class made(html.link):
+	empty = 1
+	attrHandlers = html.link.attrHandlers.copy()
+	del attrHandlers["rel"]
+
+	def asHTML(self):
+		e = html.link(self.attrs)
+		e["rel"] = "made"
+		e["href"] = ("mailto:", e["href"])
+		return e.asHTML()
+
 namespace = xsc.Namespace("meta", "http://www.livinglogic.de/DTDs/meta.dtd", vars())
 
