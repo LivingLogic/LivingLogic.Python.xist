@@ -601,8 +601,8 @@ class Parser(object):
 		#
 		# The parser provides the ability to skip illegal elements, attributes,
 		# processing instructions or entity references, but for illegal elements,
-		# it must still record the new namespaces defined by the illegal element
-		# in this case None is stored in the stack instead of the element node.
+		# it must still record the new namespaces defined by the illegal element.
+		# In this case None is stored in the stack instead of the element node.
 
 		self._nesting = [ (xsc.Frag(), self.prefixes) ]
 		try:

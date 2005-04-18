@@ -1480,6 +1480,8 @@ class Frag(Node, list):
 			for subindex in index:
 				node = node[subindex]
 			return node
+		elif isinstance(index, type) and issubclass(index, Node):
+			return Frag(child for child in self if isinstance(child, index))
 		elif isinstance(index, slice):
 			return self.__class__(list.__getitem__(self, index))
 		else:
@@ -2945,6 +2947,8 @@ class Element(Node):
 			for subindex in index:
 				node = node[subindex]
 			return node
+		elif isinstance(index, type) and issubclass(index, Node):
+			return self.content[index]
 		elif isinstance(index, (int, long)):
 			return self.content[index]
 		elif isinstance(index, slice):

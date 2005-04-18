@@ -12,18 +12,24 @@ imports.</item>
 reading from an &url; and no default encoding has been specified the one
 from the <lit>Content-Type</lit> header is used. If this still doesn't
 result in a usable encoding, <lit>"utf-8"</lit> is used when parsing &xml;
-and <lit>iso-8859-1</lit> is used when parsing broken &html;.</item>
-<item><class>DeprecationWarning</class>s for <lit>name</lit> and
+and <lit>"iso-8859-1"</lit> is used when parsing broken &html;.</item>
 <item>The attributes <lit>showLocation</lit> and <lit>showPath</lit>
 of <class>ll.xist.presenters.TreePresenter</class> have been lowercased and
 presenters are properly reset after they've done their job.</item>
 <item>All error and warning classes from <module>ll.xist.errors</module>
 have been merged into <module>ll.xist.xsc</module> (This avoids
 import problems).</item>
-<item><lit>attrHandlers</lit> have finally been removed.</item>
+<item><class>DeprecationWarning</class>s for <lit>name</lit> and
+<lit>attrHandlers</lit> have finally been removed.</item>
 <item>Instances of <class>ll.xist.xsc.Entity</class> subclasses can now be
 compared. <method>__eq__</method> simply checks if the objects are instances
 of the same class.</item>
+<item><class>Frag</class> and <class>Element</class> now support <class>Node</class>
+subclasses in their <method>__getitem__</method> method: A <class>Frag</class>
+will be returned that contains all children that are of the specified type.</item>
+<item>The class attribute <lit>xmlname</lit> will no longer be turned into a list
+containing the Python and the &xml; name, but will be the &xml; name only. You
+can get the Python name from <lit>foo.__class__.__name__</lit>.</item>
 </ulist>
 </section>
 
