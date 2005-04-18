@@ -422,10 +422,14 @@ class XISTTest(unittest.TestCase):
 	def test_getsetitem(self):
 		for cls in (xsc.Frag, html.div):
 			for attr in ("class_", (xml, "lang")):
-				node = cls(html.div(html.div({attr: "gurk"})))
-				self.assertEqual(str(node[[0, 0, attr]]), "gurk")
-				node[[0, 0, attr]] = "hurz"
-				self.assertEqual(str(node[[0, 0, attr]]), "hurz")
+				node = cls(html.div("foo", html.div({attr: "gurk"}), "bar"))
+				self.assertEqual(str(node[[0, 1, attr]]), "gurk")
+				node[[0, 1, attr]] = "hurz"
+				self.assertEqual(str(node[[0, 1, attr]]), "hurz")
+				i = node[0][xsc.Text]
+				self.assertEqual(str(i.next()), "foo")
+				self.assertEqual(str(i.next()), "bar")
+				self.assertRaises(StopIteration, i.next)
 
 	def mappedmapper(self, node, converter):
 		if isinstance(node, xsc.Text):

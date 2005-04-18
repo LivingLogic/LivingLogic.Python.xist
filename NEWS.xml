@@ -25,8 +25,8 @@ import problems).</item>
 compared. <method>__eq__</method> simply checks if the objects are instances
 of the same class.</item>
 <item><class>Frag</class> and <class>Element</class> now support <class>Node</class>
-subclasses in their <method>__getitem__</method> method: A <class>Frag</class>
-will be returned that contains all children that are of the specified type.</item>
+subclasses in their <method>__getitem__</method> method: An iterator will be
+returned that yields all children that are of the specified type.</item>
 <item>The class attribute <lit>xmlname</lit> will no longer be turned into a list
 containing the Python and the &xml; name, but will be the &xml; name only. You
 can get the Python name from <lit>foo.__class__.__name__</lit>.</item>
