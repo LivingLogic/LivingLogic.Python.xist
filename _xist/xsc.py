@@ -151,6 +151,7 @@ enterattrs = Const("enterattrs")
 walknode = Const("walknode")
 walkpath = Const("walkpath")
 walkindex = Const("walkindex")
+walkrootindex = Const("walkrootindex")
 
 
 ###
@@ -1001,39 +1002,38 @@ class Node(Base):
 			publisher = publishers.Publisher(**publishargs)
 		publisher.publish(stream, self, base)
 
-	def _walk(self, filter, path, index, filtermode, walkmode):
+	def _walk(self, filter, path, index, inmode, outmode):
 		"""
 		<par>Internal helper for <pyref method="walk"><method>walk</method></pyref>.</par>
 		"""
-		if filtermode is walkpath or walkmode is walkpath:
-			path = path + [self]
-		if filtermode is walkindex or walkmode is walkindex:
-			raise "FIXME"
-
 		if callable(filter):
-			if filtermode is walknode:
+			if inmode is walknode:
 				found = filter(self)
-			elif filtermode is walkpath:
+			elif inmode is walkpath:
 				found = filter(path)
-			elif filtermode is walkindex:
-				raise "FIXME"
+			elif inmode is walkindex:
+				found = filter(index)
+			elif inmode is walkrootindex:
+				found = filter(path[0], index)
 			else:
-				raise ValueError("wrong filtermode %r" % filtermode)
+				raise ValueError("unknown inmode %r" % inmode)
 		else:
 			found = filter
 
 		for option in found:
 			if option is not entercontent and option is not enterattrs and option:
-				if walkmode is walknode:
+				if outmode is walknode:
 					yield self
-				elif walkmode is walkpath:
-					yield path
-				elif walkmode is walkindex:
-					raise "FIXME"
+				elif outmode is walkpath:
+					yield path[:]
+				elif outmode is walkindex:
+					yield index[:]
+				elif outmode is walkrootindex:
+					yield (path[0], index[:])
 				else:
-					raise ValueError("wrong walkmode %r" % walkmode)
+					raise ValueError("unknown outmode %r" % outmode)
 
-	def walk(self, filter=(True, entercontent), filtermode=walknode, walkmode=walknode):
+	def walk(self, filter=(True, entercontent), inmode=walknode, outmode=walknode):
 		"""
 		<par>Return an iterator for traversing the tree rooted at <self/>.</par>
 
@@ -1050,8 +1050,7 @@ class Node(Base):
 		<dlist>
 		<term><lit>True</lit></term><item>This tells <method>walk</method> to
 		yield this node from the iterator.</item>
-		<term><lit>False</lit></term><item>Don't yield this node from the iterator
-		(or simply leave this entry away).</item>
+		<term><lit>False</lit></term><item>Don't yield this node from the iterator.</item>
 		<term><lit>enterattrs</lit></term><item>This is a global constant in
 		<module>ll.xist.xsc</module> and tells <method>walk</method> to traverse
 		the attributes of this node (if it's an
@@ -1078,40 +1077,41 @@ class Node(Base):
 		<rep>node</rep>.walk((xsc.entercontent, True))
 		</prog>
 
-		<par><arg>filtermode</arg> specifies how <arg>filter</arg> will be called.
-		There are three constant that can be passed:</par>
+		<par><arg>immode</arg> specifies how <arg>filter</arg> will be called.
+		There are four constant that can be passed:</par>
 		<dlist>
 		<term><lit>walknode</lit></term><item><method>walk</method>
 		will pass the node itself to the filter function;</item>
 		<term><lit>walkpath</lit></term><item>a list containing the complete path
 		from the root node to the node to be tested will be passed to <arg>filter</arg>;</item>
-		<term><lit>walkindex</lit><term><item>A tuple will be passed to the filter
-		function. The first entry will contain the root node and the second entry
-		will contain a list of child indizes and attribute names that specifies the
-		path to the node in question.</item>
+		<term><lit>walkindex</lit><term><item>A list of child indizes and attribute
+		names that specifies the path to the node in question is passed.</item>
+		<term><lit>walkrootindex</lit><term><item>Two arguments will be passed to
+		the filter function. The first is the root node and the second is an index
+		path (just like for <lit>walkindex</lit>).</item>
 		</dlist>
 
-		<par><arg>walkmode</arg> works similar to <arg>filtermode</arg> and
+		<par><arg>outmode</arg> works similar to <arg>inmode</arg> and
 		specifies what will be yielded from the iterator.</par>
 		"""
-		return self._walk(filter, [], [], filtermode, walkmode)
+		return self._walk(filter, [self], [], inmode, outmode)
 
-	def find(self, filter=(True, entercontent), filtermode=walknode):
+	def find(self, filter=(True, entercontent), inmode=walknode):
 		"""
 		Return a <pyref class="Frag"><class>Frag</class></pyref> containing all
 		nodes found by the filter function <arg>filter</arg>. See
 		<pyref method="walk"><method>walk</method></pyref> for an explanation of
 		the arguments.
 		"""
-		return Frag(self.walk(filter, filtermode, walknode))
+		return Frag(self.walk(filter, inmode, walknode))
 
-	def findfirst(self, filter=(True, entercontent), filtermode=walknode):
+	def findfirst(self, filter=(True, entercontent), inmode=walknode):
 		"""
 		Return the first node found by the filter function <arg>filter</arg>.
 		See <pyref method="walk"><method>walk</method></pyref> for an explanation
 		of the arguments.
 		"""
-		for item in self.walk(filter, filtermode, walknode):
+		for item in self.walk(filter, inmode, walknode):
 			return item
 		raise NodeNotFoundError()
 
@@ -1592,10 +1592,16 @@ class Frag(Node, list):
 		other = Frag(*others)
 		list.__setslice__(self, index, index, other)
 
-	def _walk(self, filter, path, index, filtermode, walkmode):
+	def _walk(self, filter, path, index, inmode, outmode):
+		path.append(None)
+		index.append(0)
 		for child in self:
-			for object in child._walk(filter, path, index, filtermode, walkmode):
-				yield object
+			path[-1] = child
+			for result in child._walk(filter, path, index, inmode, outmode):
+				yield result
+			index[-1] += 1
+		path.pop()
+		index.pop()
 
 	def compact(self):
 		node = self._create()
@@ -1923,39 +1929,38 @@ class Attr(Frag):
 			if value not in values:
 				warnings.warn(IllegalAttrValueWarning(self))
 
-	def _walk(self, filter, path, index, filtermode, walkmode):
-		if filtermode is walkpath or walkmode is walkpath:
-			path = path + [self]
-		if filtermode is walkindex or walkmode is walkindex:
-			raise "FIXME"
-
+	def _walk(self, filter, path, index, inmode, outmode):
 		if callable(filter):
-			if filtermode is walknode:
+			if inmode is walknode:
 				found = filter(self)
-			elif filtermode is walkpath:
+			elif inmode is walkpath:
 				found = filter(path)
-			elif filtermode is walkindex:
-				raise "FIXME"
+			elif inmode is walkindex:
+				found = filter(index)
+			elif inmode is walkrootindex:
+				found = filter(path[0], index)
 			else:
-				raise ValueError("wrong filtermode %r" % filtermode)
+				raise ValueError("unknown inmode %r" % inmode)
 		else:
 			found = filter
 
 		for option in found:
 			if option is entercontent:
-				for object in Frag._walk(self, filter, path, index, filtermode, walkmode):
+				for object in Frag._walk(self, filter, path, index, inmode, outmode):
 					yield object
 			elif option is enterattrs:
 				pass
 			elif option:
-				if walkmode is walknode:
+				if outmode is walknode:
 					yield self
-				elif walkmode is walkpath:
-					yield path
-				elif walkmode is walkindex:
-					raise "FIXME"
+				elif outmode is walkpath:
+					yield path[:]
+				elif outmode is walkindex:
+					yield index[:]
+				elif outmode is walkrootindex:
+					yield (path[0], index[:])
 				else:
-					raise ValueError("wrong walkmode %r" % walkmode)
+					raise ValueError("unknown outmode %r" % outmode)
 
 	def _publishAttrValue(self, publisher):
 		Frag.publish(self, publisher)
@@ -2266,10 +2271,16 @@ class Attrs(Node, dict):
 			node[attrname] = convertedattr
 		return node
 
-	def _walk(self, filter, path, index, filtermode, walkmode):
-		for child in self.itervalues():
-			for object in child._walk(filter, path, index, filtermode, walkmode):
-				yield object
+	def _walk(self, filter, path, index, inmode, outmode):
+		path.append(None)
+		index.append(None)
+		for (key, child) in self.iteritems():
+			path[-1] = child
+			index[-1] = key
+			for result in child._walk(filter, path, index, inmode, outmode):
+				yield result
+		path.pop()
+		index.pop()
 
 	def present(self, presenter):
 		presenter.presentAttrs(self)
@@ -3109,40 +3120,39 @@ class Element(Node):
 		node.attrs = self.attrs.compact()
 		return self._decoratenode(node)
 
-	def _walk(self, filter, path, index, filtermode, walkmode):
-		if filtermode is walkpath or walkmode is walkpath:
-			path = path + [self]
-		if filtermode is walkindex or walkmode is walkindex:
-			raise "FIXME"
-
+	def _walk(self, filter, path, index, inmode, outmode):
 		if callable(filter):
-			if filtermode is walknode:
+			if inmode is walknode:
 				found = filter(self)
-			elif filtermode is walkpath:
+			elif inmode is walkpath:
 				found = filter(path)
-			elif filtermode is walkindex:
-				raise "FIXME"
+			elif inmode is walkindex:
+				found = filter(index)
+			elif inmode is walkrootindex:
+				found = filter(path[0], index)
 			else:
-				raise ValueError("wrong filtermode %r" % filtermode)
+				raise ValueError("unknown inmode %r" % inmode)
 		else:
 			found = filter
 
 		for option in found:
 			if option is entercontent:
-				for object in self.content._walk(filter, path, index, filtermode, walkmode):
+				for object in self.content._walk(filter, path, index, inmode, outmode):
 					yield object
 			elif option is enterattrs:
-				for object in self.attrs._walk(filter, path, index, filtermode, walkmode):
+				for object in self.attrs._walk(filter, path, index, inmode, outmode):
 					yield object
 			elif option:
-				if walkmode is walknode:
+				if outmode is walknode:
 					yield self
-				elif walkmode is walkpath:
-					yield path
-				elif walkmode is walkindex:
-					raise "FIXME"
+				elif outmode is walkpath:
+					yield path[:]
+				elif outmode is walkindex:
+					yield index[:]
+				elif outmode is walkrootindex:
+					yield (path[0], index[:])
 				else:
-					raise ValueError("wrong walkmode %r" % walkmode)
+					raise ValueError("unknown outmode %r" % outmode)
 
 	def copyDefaultAttrs(self, fromMapping):
 		"""

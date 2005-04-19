@@ -27,6 +27,137 @@ options.reprtab = "  "
 restrictedchars = re.compile(u"[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F-\x84\x86-\x9F]")
 
 
+def createattr():
+	return html.span.Attrs.lang(
+		True,
+		False,
+		url.URL("http://www.python.org/"),
+		html.abbr(
+			xml.XML10(),
+			"hurz",
+			specials.tab(),
+			abbr.xist(),
+			None,
+			1,
+			2.0,
+			"3",
+			u"4",
+			(5, 6),
+			[7, 8],
+			html.span("gurk"),
+			title="hurz"
+		)
+	)
+
+
+def createattrs():
+	return html.span.Attrs(
+		lang=(
+			True,
+			False,
+			url.URL("http://www.python.org/"),
+			html.abbr(
+				xml.XML10(),
+				"hurz",
+				specials.tab(),
+				abbr.xist(),
+				None,
+				1,
+				2.0,
+				"3",
+				u"4",
+				(5, 6),
+				[7, 8],
+				html.span("gurk"),
+				title="hurz"
+			)
+		)
+	)
+
+
+def createelement():
+	return html.span(
+		1,
+		2,
+		class_="gurk",
+		id=(1, 2, (3, 4)),
+		lang=(
+			True,
+			False,
+			url.URL("http://www.python.org/"),
+			html.abbr(
+				xml.XML10(),
+				"hurz",
+				specials.tab(),
+				abbr.xist(),
+				None,
+				1,
+				2.0,
+				"3",
+				u"4",
+				(5, 6),
+				[7, 8],
+				html.span("gurk"),
+				title="hurz"
+			)
+		)
+	)
+
+
+def createfrag():
+	return xsc.Frag(
+		xml.XML10(),
+		html.DocTypeHTML401transitional(),
+		xsc.Comment("gurk"),
+		"hurz",
+		specials.tab(),
+		abbr.xist(),
+		None,
+		True,
+		False,
+		1,
+		2.0,
+		"3",
+		u"4",
+		(5, 6),
+		[7, 8],
+		html.div(
+			align="left"
+		),
+		url.URL("http://www.python.org/"),
+		html.span(
+			1,
+			2,
+			class_="gurk",
+			id=(1, 2, (3, 4)),
+			lang=(
+				True,
+				False,
+				url.URL("http://www.python.org/"),
+				html.abbr(
+					xml.XML10(),
+					"hurz",
+					specials.tab(),
+					abbr.xist(),
+					None,
+					1,
+					2.0,
+					"3",
+					u"4",
+					(5, 6),
+					[7, 8],
+					html.span("gurk"),
+					title="hurz"
+				)
+			)
+		)
+	)
+
+
+def allnodes():
+	return (xsc.Null, createattr(), createattrs(), createelement(), createfrag())
+
+
 class XISTTest(unittest.TestCase):
 	def check_lenunicode(self, node, _len, content):
 		self.assertEqual(len(node), _len)
@@ -155,134 +286,8 @@ class XISTTest(unittest.TestCase):
 			self.check_lenunicode(cls(1, (2, 3)), 3, u"123")
 			self.check_lenunicode(cls(1, (None, None)), 1, u"1")
 
-	def createattr(self):
-		return html.span.Attrs.lang(
-			True,
-			False,
-			url.URL("http://www.python.org/"),
-			html.abbr(
-				xml.XML10(),
-				"hurz",
-				specials.tab(),
-				abbr.xist(),
-				None,
-				1,
-				2.0,
-				"3",
-				u"4",
-				(5, 6),
-				[7, 8],
-				html.span("gurk"),
-				title="hurz"
-			)
-		)
-
-	def createattrs(self):
-		return html.span.Attrs(
-			lang=(
-				True,
-				False,
-				url.URL("http://www.python.org/"),
-				html.abbr(
-					xml.XML10(),
-					"hurz",
-					specials.tab(),
-					abbr.xist(),
-					None,
-					1,
-					2.0,
-					"3",
-					u"4",
-					(5, 6),
-					[7, 8],
-					html.span("gurk"),
-					title="hurz"
-				)
-			)
-		)
-
-	def createelement(self):
-		return html.span(
-			1,
-			2,
-			class_="gurk",
-			id=(1, 2, (3, 4)),
-			lang=(
-				True,
-				False,
-				url.URL("http://www.python.org/"),
-				html.abbr(
-					xml.XML10(),
-					"hurz",
-					specials.tab(),
-					abbr.xist(),
-					None,
-					1,
-					2.0,
-					"3",
-					u"4",
-					(5, 6),
-					[7, 8],
-					html.span("gurk"),
-					title="hurz"
-				)
-			)
-		)
-
-	def createfrag(self):
-		return xsc.Frag(
-			xml.XML10(),
-			html.DocTypeHTML401transitional(),
-			xsc.Comment("gurk"),
-			"hurz",
-			specials.tab(),
-			abbr.xist(),
-			None,
-			True,
-			False,
-			1,
-			2.0,
-			"3",
-			u"4",
-			(5, 6),
-			[7, 8],
-			html.div(
-				align="left"
-			),
-			url.URL("http://www.python.org/"),
-			html.span(
-				1,
-				2,
-				class_="gurk",
-				id=(1, 2, (3, 4)),
-				lang=(
-					True,
-					False,
-					url.URL("http://www.python.org/"),
-					html.abbr(
-						xml.XML10(),
-						"hurz",
-						specials.tab(),
-						abbr.xist(),
-						None,
-						1,
-						2.0,
-						"3",
-						u"4",
-						(5, 6),
-						[7, 8],
-						html.span("gurk"),
-						title="hurz"
-					)
-				)
-			)
-		)
-
-	def allnodes(self):
-		return (xsc.Null, self.createattr(), self.createattrs(), self.createelement(), self.createfrag())
-
 	def test_standardmethods(self):
-		for node in self.allnodes():
+		for node in allnodes():
 			node.compact()
 			node.normalized()
 			list(node.walk((True, xsc.enterattrs, xsc.entercontent)))
@@ -293,20 +298,20 @@ class XISTTest(unittest.TestCase):
 			node.normalized().compact().pretty()
 
 	def test_standardmethods2(self):
-		for node in (self.createelement(), self.createfrag()):
+		for node in (createelement(), createfrag()):
 			node.sorted()
 			node.shuffled()
 			node.reversed()
 
 	def test_stringify(self):
-		for node in self.allnodes():
+		for node in allnodes():
 			unicode(node)
 			str(node)
 			node.asString()
 			node.asBytes()
 
 	def test_asText(self):
-		for node in self.allnodes():
+		for node in allnodes():
 			node.asText()
 			node.asText(monochrome=True)
 			node.asText(squeezeBlankLines=True)
@@ -437,13 +442,13 @@ class XISTTest(unittest.TestCase):
 		return node
 
 	def test_conv(self):
-		node = self.createfrag()
+		node = createfrag()
 		node.conv()
 		node.conv(converters.Converter())
 		node.mapped(self.mappedmapper, converters.Converter())
 
 	def test_repr(self):
-		tests = self.allnodes()
+		tests = allnodes()
 		allpresenters = [c for c in presenters.__dict__.itervalues() if isinstance(c, type) and c is not presenters.Presenter and issubclass(c, presenters.Presenter)]
 		for node in tests:
 			repr(node)
@@ -458,74 +463,6 @@ class XISTTest(unittest.TestCase):
 					# do it multiple time, to make sure the presenter gets properly reset
 					for i in xrange(3):
 						node.repr(presenter)
-
-	def node2str(self, node):
-		if isinstance(node, xsc.Node):
-			if isinstance(node, xsc.Text):
-				return "#"
-			else:
-				return node.xmlname
-		else:
-			return ".".join(map(self.node2str, node))
-
-	def check_walk(self, node, filter, result, filtermode=xsc.walknode, walkmode=xsc.walknode):
-		self.assertEqual(map(self.node2str, node.walk(filter, filtermode=filtermode, walkmode=walkmode)), result)
-
-	def test_walk1(self):
-		node = self.createfrag()
-		def filter1(node):
-			return (True, xsc.enterattrs, xsc.entercontent, True)
-		def filter2(path):
-			return (True, xsc.enterattrs, xsc.entercontent, True)
-
-		list(node.walk((True, xsc.entercontent, True)))
-		list(node.walk((True, xsc.entercontent, True), walkmode=xsc.walkpath))
-		list(node.walk(filter1))
-		list(node.walk(filter1, walkmode=xsc.walkpath))
-		list(node.walk(filter2, filtermode=xsc.walkpath))
-		list(node.walk(filter2, filtermode=xsc.walkpath, walkmode=xsc.walkpath))
-
-	def test_walk2(self):
-		node = html.div(html.tr(html.th("gurk"), html.td("hurz"), id=html.b(42)), class_=html.i("hinz"))
-
-		def filtertopdown(node):
-			return (isinstance(node, xsc.Element), xsc.entercontent)
-		def filterbottomup(node):
-			return (xsc.entercontent, isinstance(node, xsc.Element))
-		def filtertopdownattrs(node):
-			return (isinstance(node, xsc.Element), xsc.enterattrs, xsc.entercontent)
-		def filterbottomupattrs(node):
-			return (xsc.enterattrs, xsc.entercontent, isinstance(node, xsc.Element))
-		def filtertopdowntextonlyinattr(path):
-			for node in path:
-				if isinstance(node, xsc.Attr):
-					inattr = True
-					break
-			else:
-				inattr = False
-			node = path[-1]
-			if isinstance(node, xsc.Element):
-				return (True, xsc.enterattrs, xsc.entercontent)
-			if inattr and isinstance(node, xsc.Text):
-				return (True, )
-			else:
-				return (xsc.entercontent, )
-
-		def filtertopdownattrwithoutcontent(node):
-			if isinstance(node, xsc.Element):
-				return (True, xsc.entercontent, xsc.enterattrs)
-			elif isinstance(node, (xsc.Attr, xsc.Text)):
-				return (True, )
-			else:
-				return (xsc.entercontent, )
-
-		self.check_walk(node, filtertopdown, ["div", "tr", "th", "td"])
-		self.check_walk(node, filterbottomup, ["th", "td", "tr", "div"])
-		self.check_walk(node, filtertopdownattrs, ["div", "i", "tr", "b", "th", "td"])
-		self.check_walk(node, filtertopdownattrs, ["div", "div.class.i", "div.tr", "div.tr.id.b", "div.tr.th", "div.tr.td"], walkmode=xsc.walkpath)
-		self.check_walk(node, filterbottomupattrs, ["div.class.i", "div.tr.id.b", "div.tr.th", "div.tr.td", "div.tr", "div"], walkmode=xsc.walkpath)
-		self.check_walk(node, filtertopdowntextonlyinattr, ["div", "div.class.i", "div.class.i.#", "div.tr", "div.tr.id.b", "div.tr.id.b.#", "div.tr.th", "div.tr.td"], filtermode=xsc.walkpath, walkmode=xsc.walkpath)
-		self.check_walk(node, filtertopdownattrwithoutcontent, ["div", "div.tr", "div.tr.th", "div.tr.th.#", "div.tr.td", "div.tr.td.#", "div.tr.id", "div.class"], walkmode=xsc.walkpath)
 
 	def test_locationeq(self):
 		l1 = xsc.Location(sysid="gurk", pubid="http://gurk.com", line=42, col=666)
@@ -2449,6 +2386,93 @@ class PickleTest(unittest.TestCase):
 		e2 = cPickle.loads(cPickle.dumps(e))
 		self.assertEqual(e, e2)
 		self.assert_(e2[3] is e2[-1])
+
+
+class WalkTest(unittest.TestCase):
+	def node2str(self, node):
+		if isinstance(node, xsc.Node):
+			if isinstance(node, xsc.Text):
+				return "#"
+			else:
+				return node.xmlname
+		else:
+			return ".".join(map(self.node2str, node))
+
+	def check_walk(self, node, filter, result, inmode=xsc.walknode, outmode=xsc.walknode):
+		self.assertEqual(map(self.node2str, node.walk(filter, inmode=inmode, outmode=outmode)), result)
+
+	def test_walk1(self):
+		node = createfrag()
+		def filter(*args):
+			return (True, xsc.enterattrs, xsc.entercontent, True)
+
+		modes = (xsc.walknode, xsc.walkpath, xsc.walkindex, xsc.walkrootindex)
+		for inmode in modes:
+			for outmode in modes:
+				list(node.walk((True, xsc.entercontent, True), inmode=inmode, outmode=outmode))
+				list(node.walk(filter, inmode=inmode, outmode=outmode))
+
+	def test_walk2(self):
+		node = html.div(html.tr(html.th("gurk"), html.td("hurz"), id=html.b(42)), class_=html.i("hinz"))
+
+		def filtertopdown(node):
+			return (isinstance(node, xsc.Element), xsc.entercontent)
+		def filterbottomup(node):
+			return (xsc.entercontent, isinstance(node, xsc.Element))
+		def filtertopdownattrs(node):
+			return (isinstance(node, xsc.Element), xsc.enterattrs, xsc.entercontent)
+		def filterbottomupattrs(node):
+			return (xsc.enterattrs, xsc.entercontent, isinstance(node, xsc.Element))
+		def filtertopdowntextonlyinattr(path):
+			for node in path:
+				if isinstance(node, xsc.Attr):
+					inattr = True
+					break
+			else:
+				inattr = False
+			node = path[-1]
+			if isinstance(node, xsc.Element):
+				return (True, xsc.enterattrs, xsc.entercontent)
+			if inattr and isinstance(node, xsc.Text):
+				return (True, )
+			else:
+				return (xsc.entercontent, )
+
+		def filtertopdownattrwithoutcontent(node):
+			if isinstance(node, xsc.Element):
+				return (True, xsc.entercontent, xsc.enterattrs)
+			elif isinstance(node, (xsc.Attr, xsc.Text)):
+				return (True, )
+			else:
+				return (xsc.entercontent, )
+
+		self.check_walk(node, filtertopdown, ["div", "tr", "th", "td"])
+		self.check_walk(node, filterbottomup, ["th", "td", "tr", "div"])
+		self.check_walk(node, filtertopdownattrs, ["div", "i", "tr", "b", "th", "td"])
+		self.check_walk(node, filtertopdownattrs, ["div", "div.class.i", "div.tr", "div.tr.id.b", "div.tr.th", "div.tr.td"], outmode=xsc.walkpath)
+		self.check_walk(node, filterbottomupattrs, ["div.class.i", "div.tr.id.b", "div.tr.th", "div.tr.td", "div.tr", "div"], outmode=xsc.walkpath)
+		self.check_walk(node, filtertopdowntextonlyinattr, ["div", "div.class.i", "div.class.i.#", "div.tr", "div.tr.id.b", "div.tr.id.b.#", "div.tr.th", "div.tr.td"], inmode=xsc.walkpath, outmode=xsc.walkpath)
+		self.check_walk(node, filtertopdownattrwithoutcontent, ["div", "div.tr", "div.tr.th", "div.tr.th.#", "div.tr.td", "div.tr.td.#", "div.tr.id", "div.class"], outmode=xsc.walkpath)
+
+	def test_walkindex(self):
+		e = html.div(
+			"foo",
+			html.a(
+				"bar",
+				xml.Attrs(lang="en"),
+				href="baz",
+			),
+			"gurk",
+		)
+		res = list(e.walk(xsc.FindTypeAllAttrs(xsc.Text), outmode=xsc.walkindex))
+		exp = [
+			[0],
+			[1, 0],
+			[1, "href", 0],
+			[1, (xml, "lang"), 0], # FIXME: This depends on dictionary iteration order
+			[2]
+		]
+		self.assertEqual(res, exp)
 
 
 def test_main():
