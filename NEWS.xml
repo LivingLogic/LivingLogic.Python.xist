@@ -30,6 +30,21 @@ returned that yields all children that are of the specified type.</item>
 <item>The class attribute <lit>xmlname</lit> will no longer be turned into a list
 containing the Python and the &xml; name, but will be the &xml; name only. You
 can get the Python name from <lit>foo.__class__.__name__</lit>.</item>
+<item><par>To arguments of the <method>walk</method> method have been renamed:
+<arg>filtermode</arg> has been renamed to <arg>inmode</arg> and <arg>walkmode</arg>
+has been renamed to <arg>outmode</arg>. For these modes two new values are
+supported:</par>
+<dlist>
+<term><lit>ll.xist.xsc.walkindex</lit></term><item>The value passed to the filter
+function or yielded from the iterator is a list containing child indizes and
+attribute names that specify the path to the node in question.</item>
+<term><lit>ll.xist.xsc.walkrootindex</lit></term><item>The filter function
+will be called with to arguments: The first is the root node of the tree (i.e.
+the node for which <method>walk</method> has been called), the second one is
+an index path (just like for <lit>ll.xist.xsc.walkindex</lit>). If used as
+an <arg>outmode</arg> a tuple with these two values will be yielded.</item>
+</dlist>
+</item>
 </ulist>
 </section>
 
