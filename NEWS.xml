@@ -1,24 +1,21 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
 <section><title>Changes in 2.9 (released ??/??/2005)</title>
 <ulist>
-<item>&xist; trees can now be pickled. The only restriction is the global
+<item>&xist; trees can now be pickled. The only restriction is that global
 attributes must come from a namespace that has been turned into a module
 via <method>makemod</method>, so that this module can be imported on
 unpickling.</item>
-<item>The content of <module>ll.xist.errors</module> has been moved into
-<module>ll.xist.xsc</module>. This avoids import problems with circular
-imports.</item>
+<item>All error and warning classes from <module>ll.xist.errors</module>
+have been merged into <module>ll.xist.xsc</module>. This avoids import
+problems with circular imports.</item>
 <item>The encoding used for parsing now default to <lit>None</lit>. When
 reading from an &url; and no default encoding has been specified the one
-from the <lit>Content-Type</lit> header is used. If this still doesn't
-result in a usable encoding, <lit>"utf-8"</lit> is used when parsing &xml;
-and <lit>"iso-8859-1"</lit> is used when parsing broken &html;.</item>
+from the <lit>Content-Type</lit> header will be used. If this still doesn't
+result in a usable encoding, <lit>"utf-8"</lit> will be used when parsing &xml;
+and <lit>"iso-8859-1"</lit> will be used when parsing broken &html;.</item>
 <item>The attributes <lit>showLocation</lit> and <lit>showPath</lit>
 of <class>ll.xist.presenters.TreePresenter</class> have been lowercased and
 presenters are properly reset after they've done their job.</item>
-<item>All error and warning classes from <module>ll.xist.errors</module>
-have been merged into <module>ll.xist.xsc</module> (This avoids
-import problems).</item>
 <item><class>DeprecationWarning</class>s for <lit>name</lit> and
 <lit>attrHandlers</lit> have finally been removed.</item>
 <item>Instances of <class>ll.xist.xsc.Entity</class> subclasses can now be
@@ -30,7 +27,7 @@ returned that yields all children that are of the specified type.</item>
 <item>The class attribute <lit>xmlname</lit> will no longer be turned into a list
 containing the Python and the &xml; name, but will be the &xml; name only. You
 can get the Python name from <lit>foo.__class__.__name__</lit>.</item>
-<item><par>To arguments of the <method>walk</method> method have been renamed:
+<item><par>Two arguments of the <method>walk</method> method have been renamed:
 <arg>filtermode</arg> has been renamed to <arg>inmode</arg> and <arg>walkmode</arg>
 has been renamed to <arg>outmode</arg>. For these modes two new values are
 supported:</par>
@@ -39,7 +36,7 @@ supported:</par>
 function or yielded from the iterator is a list containing child indizes and
 attribute names that specify the path to the node in question.</item>
 <term><lit>ll.xist.xsc.walkrootindex</lit></term><item>The filter function
-will be called with to arguments: The first is the root node of the tree (i.e.
+will be called with two arguments: The first is the root node of the tree (i.e.
 the node for which <method>walk</method> has been called), the second one is
 an index path (just like for <lit>ll.xist.xsc.walkindex</lit>). If used as
 an <arg>outmode</arg> a tuple with these two values will be yielded.</item>
