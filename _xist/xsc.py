@@ -1501,11 +1501,12 @@ class Frag(Node, list):
 		If <arg>index</arg> is an empty list, the call will be ignored.</par>
 		"""
 		if isinstance(index, list):
-			if index:
-				node = self
-				for subindex in index[:-1]:
-					node = node[subindex]
-				node[index[-1]] = value
+			if not index:
+				raise ValueError("can't replace self")
+			node = self
+			for subindex in index[:-1]:
+				node = node[subindex]
+			node[index[-1]] = value
 		else:
 			value = Frag(value)
 			if isinstance(index, slice):
@@ -1525,11 +1526,12 @@ class Frag(Node, list):
 		If <arg>index</arg> is an empty list the call will be ignored.</par>
 		"""
 		if isinstance(index, list):
-			if index:
-				node = self
-				for subindex in index[:-1]:
-					node = node[subindex]
-				del node[index[-1]]
+			if not index:
+				raise ValueError("can't delete self")
+			node = self
+			for subindex in index[:-1]:
+				node = node[subindex]
+			del node[index[-1]]
 		else:
 			list.__delitem__(self, index)
 
@@ -2347,11 +2349,27 @@ class Attrs(Node, dict):
 			return self.attr(name)
 
 	def __setitem__(self, name, value):
-		return self.set(name, value)
+		if isinstance(name, list):
+			if not name:
+				raise ValueError("can't replace self")
+			node = self
+			for subname in name[:-1]:
+				node = node[subname]
+			node[name[-1]] = value
+		else:
+			return self.set(name, value)
 
 	def __delitem__(self, name):
-		attr = self.allowedattr(name)
-		dict.__delitem__(self, attr.__name__)
+		if isinstance(name, list):
+			if not name:
+				raise ValueError("can't delete self")
+			node = self
+			for subname in name[:-1]:
+				node = node[subname]
+			del node[name[-1]]
+		else:
+			attr = self.allowedattr(name)
+			dict.__delitem__(self, attr.__name__)
 
 	def has(self, name, xml=False):
 		"""
@@ -2984,6 +3002,8 @@ class Element(Node):
 		<par>For possible types for <arg>index</arg> see <pyref method="__getitem__"><method>__getitem__</method></pyref>.</par>
 		"""
 		if isinstance(index, list):
+			if not index:
+				raise ValueError("can't replace self")
 			node = self
 			for subindex in index[:-1]:
 				node = node[subindex]
@@ -2999,11 +3019,12 @@ class Element(Node):
 		<par>For possible types for <arg>index</arg> see <pyref method="__getitem__"><method>__getitem__</method></pyref>.</par>
 		"""
 		if isinstance(index, list):
-			if index:
-				node = self
-				for subindex in index[:-1]:
-					node = node[subindex]
-				del node[index[-1]]
+			if not index:
+				raise ValueError("can't delete self")
+			node = self
+			for subindex in index[:-1]:
+				node = node[subindex]
+			del node[index[-1]]
 		elif isinstance(index, (int, long, slice)):
 			del self.content[index]
 		else:
