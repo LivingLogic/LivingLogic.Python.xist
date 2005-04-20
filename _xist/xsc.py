@@ -3589,7 +3589,7 @@ class Prefixes(dict):
 		"""
 		<par>Return the Python name for an attribute for the qualified
 		&xml; name <arg>qname</arg> (which might include a prefix, in which case
-		a tuple with the namespace object and the name will be returned, otherwise
+		a tuple with the namespace class and the name will be returned, otherwise
 		it will be an attribute from the element <arg>element</arg>, which must
 		be a subclass of <pyref class="Element"><class>Element</class></pyref>).</par>
 		<par>If the attribute can't be found issue a warning
