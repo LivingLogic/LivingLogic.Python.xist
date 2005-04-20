@@ -2339,7 +2339,10 @@ class Attrs(Node, dict):
 
 	def __getitem__(self, name):
 		if isinstance(name, list):
-			return self[name[0]][name[1:]]
+			node = self
+			for subname in name:
+				node = node[subname]
+			return node
 		else:
 			return self.attr(name)
 
