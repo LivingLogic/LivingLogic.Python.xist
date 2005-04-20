@@ -1204,8 +1204,8 @@ class CharacterData(Node):
 	"""
 	<par>Base class for &xml; character data (<pyref class="Text"><class>Text</class></pyref>,
 	<pyref class="ProcInst"><class>ProcInst</class></pyref>,
-	<pyref class="Comment"><class>Comment</class></pyref>,
-	<pyref class="DocType"><class>DocType</class></pyref>, doctype etc.)</par>
+	<pyref class="Comment"><class>Comment</class></pyref> and
+	<pyref class="DocType"><class>DocType</class></pyref>)</par>
 
 	<par>Provides nearly the same functionality as <class>UserString</class>,
 	but omits a few methods.</par>
