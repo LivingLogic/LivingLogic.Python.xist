@@ -42,6 +42,16 @@ an index path (just like for <lit>ll.xist.xsc.walkindex</lit>). If used as
 an <arg>outmode</arg> a tuple with these two values will be yielded.</item>
 </dlist>
 </item>
+<item><par>Attribute mappings now support <method>__getitem__</method>,
+<method>__setitem__</method> and <method>__delitem__</method> with list
+arguments, i.e. you can do:</par>
+<prog>
+<prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
+<prompt>&gt;&gt;&gt; </prompt><input>e = html.a("foo", href="bar")</input>
+<prompt>&gt;&gt;&gt; </prompt><input>print e.attrs[["href", 0]]</input>
+bar
+</prog>
+</item>
 </ulist>
 </section>
 
