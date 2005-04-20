@@ -1084,9 +1084,9 @@ class Node(Base):
 		will pass the node itself to the filter function;</item>
 		<term><lit>walkpath</lit></term><item>a list containing the complete path
 		from the root node to the node to be tested will be passed to <arg>filter</arg>;</item>
-		<term><lit>walkindex</lit><term><item>A list of child indizes and attribute
+		<term><lit>walkindex</lit></term><item>A list of child indizes and attribute
 		names that specifies the path to the node in question is passed.</item>
-		<term><lit>walkrootindex</lit><term><item>Two arguments will be passed to
+		<term><lit>walkrootindex</lit></term><item>Two arguments will be passed to
 		the filter function. The first is the root node and the second is an index
 		path (just like for <lit>walkindex</lit>).</item>
 		</dlist>
