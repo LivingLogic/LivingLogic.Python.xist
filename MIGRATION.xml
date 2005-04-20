@@ -12,6 +12,11 @@ containing both the Python and the &xml; name. If you want to get the Python nam
 use <lit><rep>foo</rep>.__class__.__name__</lit>.</par>
 </section>
 
+<section><title>Changes to the methods <method>walk</method>, <method>find</method> and <method>findfirst</method></title>
+<par>The argument <arg>filtermode</arg> has been renamed to <arg>inmode</arg>
+and (for <method>walk</method>) <arg>walkmode</arg> has been renamed to <arg>outmode</arg>.</par>
+</section>
+
 </section>
 
 
