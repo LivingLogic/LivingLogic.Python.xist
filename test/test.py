@@ -2475,13 +2475,17 @@ class WalkTest(unittest.TestCase):
 		self.assertEqual(res, exp)
 
 	def test_walkindexisnode(self):
-		# Check that xsc.walknode and xsc.walkindex return the same data
+		# Check that all walk modes return the same data
 		for node in (createfrag(), createelement()):
 			l1 = list(node.walk(xsc.FindTypeAllAttrs(xsc.Text), outmode=xsc.walknode))
-			l2 = list(node.walk(xsc.FindTypeAllAttrs(xsc.Text), outmode=xsc.walkindex))
-			self.assertEqual(len(l1), len(l2))
-			for (subnode, index) in zip(l1, l2):
+			l2 = list(node.walk(xsc.FindTypeAllAttrs(xsc.Text), outmode=xsc.walkpath))
+			l3 = list(node.walk(xsc.FindTypeAllAttrs(xsc.Text), outmode=xsc.walkindex))
+			l4 = list(node.walk(xsc.FindTypeAllAttrs(xsc.Text), outmode=xsc.walkrootindex))
+			self.assert_(len(l1) == len(l2) == len(l3) == len(l4))
+			for (subnode, path, index, (root, rindex)) in zip(l1, l2, l3, l4):
+				self.assert_(subnode is path[-1])
 				self.assert_(subnode is node[index])
+				self.assert_(subnode is root[rindex])
 
 
 def test_main():
