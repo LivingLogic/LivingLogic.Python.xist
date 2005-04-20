@@ -5,18 +5,6 @@
 attributes must come from a namespace that has been turned into a module
 via <method>makemod</method>, so that this module can be imported on
 unpickling.</item>
-<item>All error and warning classes from <module>ll.xist.errors</module>
-have been merged into <module>ll.xist.xsc</module>. This avoids import
-problems with circular imports.</item>
-<item>The encoding used for parsing now default to <lit>None</lit>. When
-reading from an &url; and no default encoding has been specified the one
-from the <lit>Content-Type</lit> header will be used. If this still doesn't
-result in a usable encoding, <lit>"utf-8"</lit> will be used when parsing &xml;
-and <lit>"iso-8859-1"</lit> will be used when parsing broken &html;.</item>
-<item>The attributes <lit>showLocation</lit> and <lit>showPath</lit>
-of <class>ll.xist.presenters.TreePresenter</class> have been lowercased and
-presenters are properly reset after they've done their job.</item>
-<item><class>DeprecationWarning</class>s for <lit>name</lit> and
 <item><class>Frag</class> and <class>Element</class> now support <class>Node</class>
 subclasses in their <method>__getitem__</method> method: An iterator will be
 returned that yields all children that are of the specified type.</item>
@@ -53,6 +41,28 @@ baz
 <prompt>&gt;&gt;&gt; </prompt><input>print e["href"]</input>
 </prog>
 </item>
+<item><par>&xml; attributes can now be accessed as Python attributes, i.e.</par>
+<prog>
+<prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
+<prompt>&gt;&gt;&gt; </prompt><input>e = html.a("spam", href="eggs")</input>
+<prompt>&gt;&gt;&gt; </prompt><input>print e.attrs.href</input>
+eggs
+</prog>
+<par>(Don't confuse this with <lit>e.Attrs.href</lit> which gives to
+attribute class.)</par>
+</item>
+<item>The encoding used for parsing now default to <lit>None</lit>. When
+reading from an &url; and no default encoding has been specified the one
+from the <lit>Content-Type</lit> header will be used. If this still doesn't
+result in a usable encoding, <lit>"utf-8"</lit> will be used when parsing &xml;
+and <lit>"iso-8859-1"</lit> will be used when parsing broken &html;.</item>
+<item>The attributes <lit>showLocation</lit> and <lit>showPath</lit>
+of <class>ll.xist.presenters.TreePresenter</class> have been lowercased and
+presenters are properly reset after they've done their job.</item>
+<item>All error and warning classes from <module>ll.xist.errors</module>
+have been merged into <module>ll.xist.xsc</module>. This avoids import
+problems with circular imports.</item>
+<item><class>DeprecationWarning</class>s for <lit>name</lit> and
 <lit>attrHandlers</lit> have finally been removed.</item>
 <item>Instances of <class>ll.xist.xsc.Entity</class> subclasses can now be
 compared. <method>__eq__</method> simply checks if the objects are instances
