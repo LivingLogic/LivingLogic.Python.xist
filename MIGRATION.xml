@@ -137,7 +137,7 @@ parsing functions not just <function>parseString</function>.</item>
 <section><title>Changes to converter contexts</title>
 <par><method>ll.xist.converters.Converter.__getitem__</method> now doesn't use
 the key passed in, but <lit><rep>key</rep>.Context</lit> as the real dictionary
-key. This has the following several consequences:</par>
+key. This has the following consequences:</par>
 <ulist>
 <item><par>If you want a unique context for your own element class,
 you <em>must</em> implement a new <class>Context</class> class (otherwise you'd
