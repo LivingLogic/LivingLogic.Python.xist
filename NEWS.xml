@@ -6,8 +6,8 @@ attributes must come from a namespace that has been turned into a module
 via <method>makemod</method>, so that this module can be imported on
 unpickling.</item>
 <item><class>Frag</class> and <class>Element</class> now support <class>Node</class>
-subclasses in their <method>__getitem__</method> method: An iterator will be
-returned that yields all children that are of the specified type.</item>
+subclasses in their <method>__getitem__</method> method: An iterator for all children
+of the specified type will be returned.</item>
 <item>The class attribute <lit>xmlname</lit> will no longer be turned into a list
 containing the Python and the &xml; name, but will be the &xml; name only. You
 can get the Python name from <lit><rep>foo</rep>.__class__.__name__</lit>.</item>
