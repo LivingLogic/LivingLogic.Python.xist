@@ -2338,7 +2338,10 @@ class Attrs(Node, dict):
 			return sup.__delattr__(name)
 
 	def __getitem__(self, name):
-		return self.attr(name)
+		if isinstance(name, list):
+			return self[name[0]][name[1:]]
+		else:
+			return self.attr(name)
 
 	def __setitem__(self, name, value):
 		return self.set(name, value)

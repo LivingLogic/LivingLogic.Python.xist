@@ -2476,7 +2476,7 @@ class WalkTest(unittest.TestCase):
 
 	def test_walkindexisnode(self):
 		# Check that all walk modes return the same data
-		for node in (createfrag(), createelement()):
+		for node in allnodes():
 			l1 = list(node.walk(xsc.FindTypeAllAttrs(xsc.Text), outmode=xsc.walknode))
 			l2 = list(node.walk(xsc.FindTypeAllAttrs(xsc.Text), outmode=xsc.walkpath))
 			l3 = list(node.walk(xsc.FindTypeAllAttrs(xsc.Text), outmode=xsc.walkindex))
