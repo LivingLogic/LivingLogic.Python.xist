@@ -31,14 +31,15 @@ an <arg>outmode</arg> a tuple with these two values will be yielded.</item>
 arguments, i.e. you can do:</par>
 <prog>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
-<prompt>&gt;&gt;&gt; </prompt><input>e = html.a("foo", href="bar")</input>
+<prompt>&gt;&gt;&gt; </prompt><input>e = html.a("gurk", href=("hinz", "kunz"))</input>
 <prompt>&gt;&gt;&gt; </prompt><input>print e.attrs[["href", 0]]</input>
-bar
-<prompt>&gt;&gt;&gt; </prompt><input>e.attrs[["href", 0]] = "baz"</input>
+hinz
+<prompt>&gt;&gt;&gt; </prompt><input>e.attrs[["href", 0]] = "hurz"</input>
 <prompt>&gt;&gt;&gt; </prompt><input>print e["href"]</input>
-baz
+hurzkunz
 <prompt>&gt;&gt;&gt; </prompt><input>del e.attrs[["href", 0]]</input>
 <prompt>&gt;&gt;&gt; </prompt><input>print e["href"]</input>
+kunz
 </prog>
 </item>
 <item><par>&xml; attributes can now be accessed as Python attributes, i.e.</par>
