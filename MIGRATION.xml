@@ -260,7 +260,7 @@ from the encoding specified in the publisher.</par>
 
 <section><title><class>autoimg</class> changes</title>
 
-<par><class>ll.xist.htmlspecials.autoimg</class> will no longer touch existing <lit>width</lit>
+<par><class>ll.xist.htmlspecials.autoimg</class> will no longer touches existing <lit>width</lit>
 or <lit>height</lit> attributes, so e.g. setting the width to twice the image size via
 <lit>width="2*%(width)s"</lit> no longer works. You have to implement your own
 version of <class>autoimg</class> if you need this.</par>
