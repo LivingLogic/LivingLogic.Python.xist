@@ -48,7 +48,7 @@ baz
 <prompt>&gt;&gt;&gt; </prompt><input>print e.attrs.href</input>
 eggs
 </prog>
-<par>(Don't confuse this with <lit>e.Attrs.href</lit> which gives to
+<par>(Don't confuse this with <lit>e.Attrs.href</lit> which is the
 attribute class.)</par>
 </item>
 <item>The encoding used for parsing now default to <lit>None</lit>. When
