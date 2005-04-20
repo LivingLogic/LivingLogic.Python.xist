@@ -1183,7 +1183,7 @@ def getdoc(cls, thing):
 
 		# remove this whitespace from every line
 		for i in xrange(len(lines)):
-			if lines[i][:len(startwhite)] == startwhite:
+			if lines[i].startswith(startwhite):
 				lines[i] = lines[i][len(startwhite):]
 
 		# remove empty lines
