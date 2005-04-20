@@ -9,8 +9,8 @@
 ## See xist/__init__.py for the license
 
 """
-This module contains all the central &xml; tree classes, the namespace classes
-and a few helper classes and functions.
+This module contains all the central &xml; tree classes, the namespace classes,
+exception and warning classes and a few helper classes and functions.
 """
 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
