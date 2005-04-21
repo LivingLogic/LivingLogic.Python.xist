@@ -24,7 +24,7 @@ clean:
 dist: test
 	python$(PYVERSION) `which doc2txt.py` --title History NEWS.xml NEWS
 	python$(PYVERSION) `which doc2txt.py` --title "Requirements and installation" INSTALL.xml INSTALL
-	python$(PYVERSION) `which doc2txt.py` --title "Documentation" HOWTO.xml HOWTO
+	python$(PYVERSION) `which doc2txt.py` --title "Howto" HOWTO.xml HOWTO
 	python$(PYVERSION) `which doc2txt.py` --title "Examples" EXAMPLES.xml EXAMPLES
 	python$(PYVERSION) `which doc2txt.py` --title "Migration and modernization guide" MIGRATION.xml MIGRATION
 	python$(PYVERSION) setup.py sdist --formats=bztar,gztar
@@ -34,7 +34,7 @@ dist: test
 windist:
 	python$(PYVERSION) C:\\\\Programme\\\\Python24\\\\Scripts\\\\doc2txt.py --title History NEWS.xml NEWS
 	python$(PYVERSION) C:\\\\Programme\\\\Python24\\\\Scripts\\\\doc2txt.py --title "Requirements and installation" INSTALL.xml INSTALL
-	python$(PYVERSION) C:\\\\Programme\\\\Python24\\\\Scripts\\\\doc2txt.py --title "Documentation" HOWTO.xml HOWTO
+	python$(PYVERSION) C:\\\\Programme\\\\Python24\\\\Scripts\\\\doc2txt.py --title "Howto" HOWTO.xml HOWTO
 	python$(PYVERSION) C:\\\\Programme\\\\Python24\\\\Scripts\\\\doc2txt.py --title "Examples" EXAMPLES.xml EXAMPLES
 	python$(PYVERSION) C:\\\\Programme\\\\Python24\\\\Scripts\\\\doc2txt.py --title "Migration and modernization guide" MIGRATION.xml MIGRATION
 	python$(PYVERSION) setup.py sdist --formats=zip
