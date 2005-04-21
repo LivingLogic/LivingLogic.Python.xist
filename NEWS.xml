@@ -49,7 +49,7 @@ attribute class.)</par>
 <item><class>Frag</class> and <class>Element</class> now support <class>Node</class>
 subclasses in their <method>__getitem__</method> method: An iterator for all children
 of the specified type will be returned.</item>
-<item>The encoding used for parsing now default to <lit>None</lit>. When
+<item>The encoding used for parsing now defaults to <lit>None</lit>. When
 reading from an &url; and no default encoding has been specified the one
 from the <lit>Content-Type</lit> header will be used. If this still doesn't
 result in a usable encoding, <lit>"utf-8"</lit> will be used when parsing &xml;
