@@ -5,12 +5,6 @@
 attributes must come from a namespace that has been turned into a module
 via <method>makemod</method>, so that this module can be imported on
 unpickling.</item>
-<item><class>Frag</class> and <class>Element</class> now support <class>Node</class>
-subclasses in their <method>__getitem__</method> method: An iterator for all children
-of the specified type will be returned.</item>
-<item>The class attribute <lit>xmlname</lit> will no longer be turned into a list
-containing the Python and the &xml; name, but will be the &xml; name only. You
-can get the Python name from <lit><rep>foo</rep>.__class__.__name__</lit>.</item>
 <item><par>Two arguments of the <method>walk</method> method have been renamed:
 <arg>filtermode</arg> has been renamed to <arg>inmode</arg> and <arg>walkmode</arg>
 has been renamed to <arg>outmode</arg>. For these modes two new values are
@@ -52,6 +46,9 @@ eggs
 <par>(Don't confuse this with <lit>e.Attrs.href</lit> which is the
 attribute class.)</par>
 </item>
+<item><class>Frag</class> and <class>Element</class> now support <class>Node</class>
+subclasses in their <method>__getitem__</method> method: An iterator for all children
+of the specified type will be returned.</item>
 <item>The encoding used for parsing now default to <lit>None</lit>. When
 reading from an &url; and no default encoding has been specified the one
 from the <lit>Content-Type</lit> header will be used. If this still doesn't
@@ -63,6 +60,9 @@ presenters are properly reset after they've done their job.</item>
 <item>All error and warning classes from <module>ll.xist.errors</module>
 have been merged into <module>ll.xist.xsc</module>. This avoids import
 problems with circular imports.</item>
+<item>The class attribute <lit>xmlname</lit> will no longer be turned into a list
+containing the Python and the &xml; name, but will be the &xml; name only. You
+can get the Python name from <lit><rep>foo</rep>.__class__.__name__</lit>.</item>
 <item><class>DeprecationWarning</class>s for <lit>name</lit> and
 <lit>attrHandlers</lit> have finally been removed.</item>
 <item>Instances of <class>ll.xist.xsc.Entity</class> subclasses can now be
