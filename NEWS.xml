@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
-<section><title>Changes in 2.9 (released ??/??/2005)</title>
+<section><title>Changes in 2.9 (released 04/21/2005)</title>
 <ulist>
 <item>&xist; trees can now be pickled. The only restriction is that global
 attributes must come from a namespace that has been turned into a module
