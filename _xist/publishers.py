@@ -20,7 +20,7 @@ import sys, codecs
 
 from ll import url
 
-import xsc, options, helpers
+import xsc, options, helpers, xfind
 
 
 def cssescapereplace(exc):
@@ -173,7 +173,7 @@ class Publisher(object):
 				prefixes2def[child.__ns__] = True
 
 		# Determine if we have multiple roots
-		if prefixes2def and isinstance(node, xsc.Frag) and len(node.find(xsc.FindType(xsc.Element))) > 1:
+		if prefixes2def and isinstance(node, xsc.Frag) and xfind.count(node[xsc.Element]) > 1:
 			raise xsc.MultipleRootsError()
 
 		if prefixes2def:
