@@ -26,7 +26,7 @@ and pythonic &api; for that.</item>
 <item>Converting the source tree into a target tree: This target
 tree can be a &html; tree or a &svg; tree or XSL-FO tree or any other
 &xml; tree you like. Every node class provides a
-<method>convert</method> method for performing the conversion. For
+<method>convert</method> method for performing this conversion. For
 your own &xml; element types you have to define your
 own element classes and implement an appropriate
 <method>convert</method> method. This is possible for
@@ -39,7 +39,7 @@ the final &xml; to an output stream.</item>
 
 
 <section><title>Constructing &xml; trees</title>
-<par>Like any other tree &api;, &xist; provides the usual classes:</par>
+<par>Like any other &xml; tree &api;, &xist; provides the usual classes:</par>
 <ulist>
 <item><pyref module="ll.xist.xsc" class="Element"><class>Element</class></pyref> for &xml; elements;</item>
 <item><pyref module="ll.xist.xsc" class="Attr"><class>Attr</class></pyref> for attributes;</item>
@@ -205,11 +205,11 @@ when we discuss the publishing interface.</par>
 <par>Note that it is vital for your own <method>convert</method>
 methods that you recursively call <method>convert</method>
 on your own content, because otherwise some unconverted nodes
-might remain in the tree. Lets define a new element:</par>
+might remain in the tree. Let's define a new element:</par>
 <prog>
 class python(xsc.Element):
 	def convert(self, converter):
-		return html.a(u"Python", href="http://www.python.org/")
+		return html.a(u"Python", href=u"http://www.python.org/")
 </prog>
 <par>Now we can do the following:</par>
 <tty>
@@ -242,7 +242,7 @@ is a convenience method that creates a default converter for you and calls
 <pyref module="ll.xist.xsc" class="Node" method="convert"><method>convert</method></pyref>.
 This converter is created once and is passed to all <method>convert</method>
 calls. It is used to store parameters for the conversion process and it allows
-elements to pass information from to other nodes. You can also call
+elements to pass information to other nodes. You can also call
 <pyref module="ll.xist.xsc" class="Node" method="convert"><method>convert</method></pyref>
 yourself, which would look like this:</par>
 
@@ -285,12 +285,12 @@ to implement different conversions for different languages, e.g.:</par>
 <prog>
 class note(xsc.Element):
 	def convert(self, converter):
-		if converter.lang=="de":
-			title = "Anmerkung"
-		elif converter.lang=="en":
-			title = "Note"
+		if converter.lang==u"de":
+			title = u"Anmerkung"
+		elif converter.lang==u"en":
+			title = u"Note"
 		else:
-			title = "???"
+			title = u"???"
 		return xsc.Frag(
 			html.h1(title),
 			html.div(self.content.convert(converter))
@@ -317,14 +317,14 @@ a <pyref module="ll.make"><module>make</module></pyref> script.</par>
 the dictionary interface:</par>
 <example>
 <tty>
-<prompt>&gt;&gt;&gt; </prompt><input>node = html.a("Python", href="http://www.python.org")</input>
-<prompt>&gt;&gt;&gt; </prompt><input>print node["href"].asBytes()</input>
+<prompt>&gt;&gt;&gt; </prompt><input>node = html.a(u"Python", href=u"http://www.python.org")</input>
+<prompt>&gt;&gt;&gt; </prompt><input>print node[u"href"].asBytes()</input>
 http://www.python.org/
-<prompt>&gt;&gt;&gt; </prompt><input>del node["href"]</input>
-<prompt>&gt;&gt;&gt; </prompt><input>print node["href"].asBytes()</input>
+<prompt>&gt;&gt;&gt; </prompt><input>del node[u"href"]</input>
+<prompt>&gt;&gt;&gt; </prompt><input>print node[u"href"].asBytes()</input>
 
-<prompt>&gt;&gt;&gt; </prompt><input>node["href"] = "http://www.python.org"</input>
-<prompt>&gt;&gt;&gt; </prompt><input>print node["href"].asBytes()</input>
+<prompt>&gt;&gt;&gt; </prompt><input>node[u"href"] = u"http://www.python.org"</input>
+<prompt>&gt;&gt;&gt; </prompt><input>print node[u"href"].asBytes()</input>
 http://www.python.org/
 </tty>
 </example>
@@ -343,7 +343,7 @@ only its presence is important, it's value will always be the same as the attrib
 </ulist>
 
 <par><class>IntAttr</class> and <class>ColorAttr</class> mostly serve as documentation
-of the attribute's purpose. Both classes have no added functionality.</par>
+of the attributes purpose. Both classes have no added functionality.</par>
 
 <par><pyref module="ll.xist.xsc" class="Attr"><class>Attr</class></pyref> itself is derived from
 <pyref module="ll.xist.xsc" class="Frag"><class>Frag</class></pyref> so it is possible
@@ -371,9 +371,9 @@ import random
 if random.random() &lt; 0.5:
 	class_ = None
 else:
-	class_ = "foo"
+	class_ = u"foo"
 
-node = html.div("foo", class_=class_)
+node = html.div(u"foo", class_=class_)
 </prog>
 
 <par>In 50% of the cases the generated <class>div</class> element will not
@@ -395,10 +395,10 @@ class cool(xsc.Element):
 		class adj(xsc.TextAttr): pass
 
 	def convert(self, converter):
-		node = xsc.Frag(self.content, " is")
-		if "adj" in self.attrs:
-			node.append(" ", html.em(self["adj"]))
-		node.append(" cool!")
+		node = xsc.Frag(self.content, u" is")
+		if u"adj" in self.attrs:
+			node.append(u" ", html.em(self[u"adj"]))
+		node.append(u" cool!")
 		return node.convert(converter)
 </prog>
 </example>
@@ -406,7 +406,7 @@ class cool(xsc.Element):
 <par>and use it like this:</par>
 
 <tty>
-<prompt>&gt;&gt;&gt; </prompt><input>node = cool(python(), adj="totally")</input>
+<prompt>&gt;&gt;&gt; </prompt><input>node = cool(python(), adj=u"totally")</input>
 <prompt>&gt;&gt;&gt; </prompt><input>node.conv().asBytes()</input>
 &lt;a href="http://www.python.org/"&gt;Python&lt;/a&gt; is &lt;em&gt;totally&lt;/em&gt; cool!
 </tty>
@@ -420,13 +420,13 @@ the class attribute <lit>default</lit>:</par>
 class cool(xsc.Element):
 	class Attrs(xsc.Element.Attrs):
 		class adj(xsc.TextAttr):
-			default = "absolutely"
+			default = u"absolutely"
 
 	def convert(self, converter):
-		node = xsc.Frag(self.content, " is")
-		if "adj" in self.attrs:
-			node.append(" ", html.em(self["adj"]))
-		node.append(" cool!")
+		node = xsc.Frag(self.content, u" is")
+		if u"adj" in self.attrs:
+			node.append(u" ", html.em(self[u"adj"]))
+		node.append(u" cool!")
 		return node.convert(converter)
 </prog>
 </example>
@@ -467,17 +467,13 @@ class cool(xsc.Element):
 	class Attrs(xsc.Element.Attrs):
 		class adj(xsc.TextAttr):
 			default = "absolutely"
-			values = (
-				"absolutely",
-				"totally",
-				"very"
-			)
+			values = (u"absolutely", u"totally", u"very")
 
 	def convert(self, converter):
-		node = xsc.Frag(self.content, " is")
-		if "adj" in self.attrs:
-			node.append(" ", html.em(self["adj"]))
-		node.append(" cool!")
+		node = xsc.Frag(self.content, u" is")
+		if u"adj" in self.attrs:
+			node.append(" ", html.em(self[u"adj"]))
+		node.append(u" cool!")
 		return node.convert(converter)
 </prog>
 </example>
@@ -499,7 +495,7 @@ so the warning will be printed only once (but of course
 you can change that with <function>warnings.filterwarnings</function>):</par>
 
 <tty>
-<prompt>&gt;&gt;&gt; </prompt><input>node = cool(python(), adj="pretty")</input>
+<prompt>&gt;&gt;&gt; </prompt><input>node = cool(python(), adj=u"pretty")</input>
 <prompt>&gt;&gt;&gt; </prompt><input>print node.asBytes()</input>
 /home/walter/pythonroot/ll/xist/xsc.py:1665: IllegalAttrValueWarning: Attribute value 'pretty' not allowed for __main__:cool.Attrs.adj.
   warnings.warn(errors.IllegalAttrValueWarning(self))
@@ -559,13 +555,13 @@ complete namespace might looks like this:</par>
 class python(xsc.Element):
 	def convert(self, converter):
 		return html.a(
-			"Python",
-			href="http://www.python.org/"
+			u"Python",
+			href=u"http://www.python.org/"
 		)
 
 class cool(xsc.Element):
 	def convert(self, converter):
-		node = html.b(self.content, " is cool!")
+		node = html.b(self.content, u" is cool!")
 		return node.convert(converter)
 
 class __ns__(xsc.Namespace):
@@ -592,13 +588,13 @@ instead of <method>update</method>:</par>
 class python(xsc.Element):
 	def convert(self, converter):
 		return html.a(
-			"Python",
-			href="http://www.python.org/"
+			u"Python",
+			href=u"http://www.python.org/"
 		)
 
 class cool(xsc.Element):
 	def convert(self, converter):
-		node = html.b(self.content, " is cool!")
+		node = html.b(self.content, u" is cool!")
 		return node.convert(converter)
 
 class __ns__(xsc.Namespace):
@@ -643,8 +639,8 @@ __ns__.makemod(vars())
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
 <prompt>&gt;&gt;&gt; </prompt><input>import foo</input>
-<prompt>&gt;&gt;&gt; </prompt><input>node = html.div("foo", {(foo, "foo"): "bar")</input>
-<prompt>&gt;&gt;&gt; </prompt><input>str(node[foo, "foo"])</input>
+<prompt>&gt;&gt;&gt; </prompt><input>node = html.div(u"foo", {(foo, u"foo"): u"bar")</input>
+<prompt>&gt;&gt;&gt; </prompt><input>str(node[foo, u"foo"])</input>
 'bar'
 </tty>
 
@@ -654,8 +650,8 @@ like this:</par>
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
 <prompt>&gt;&gt;&gt; </prompt><input>import foo</input>
-<prompt>&gt;&gt;&gt; </prompt><input>node = html.div("foo", foo.Attrs(foo="baz"))</input>
-<prompt>&gt;&gt;&gt; </prompt><input>str(node[foo, "foo"])</input>
+<prompt>&gt;&gt;&gt; </prompt><input>node = html.div(u"foo", foo.Attrs(foo=u"baz"))</input>
+<prompt>&gt;&gt;&gt; </prompt><input>str(node[foo, u"foo"])</input>
 'baz'
 </tty>
 
@@ -674,10 +670,10 @@ from ll.xist import xsc
 from ll.xist.ns import html
 
 languages = [
-	("Python", "http://www.python.org/"),
-	("Perl", "http://www.perl.org/"),
-	("PHP", "http://www.php.net/"),
-	("Java", "http://java.sun.com/")
+	(u"Python", u"http://www.python.org/"),
+	(u"Perl", u"http://www.perl.org/"),
+	(u"PHP", u"http://www.php.net/"),
+	(u"Java", u"http://java.sun.com/")
 ]
 
 class navigation(xsc.Element):
@@ -697,7 +693,7 @@ class link(xsc.Element):
 		class href(xsc.URLAttr): pass
 
 	def convert(self, converter):
-		node = html.div(html.a(self.content, href=self["href"]))
+		node = html.div(html.a(self.content, href=self[u"href"]))
 		return node.convert(converter)
 
 class __ns__(xsc.Namespace):
@@ -736,7 +732,7 @@ class __ns__(navns):
 				border=0,
 				cellpadding=0,
 				cellspacing=0,
-				class_="navigation"
+				class_=u"navigation",
 			)
 			return node.convert(converter)
 
@@ -746,7 +742,7 @@ class __ns__(navns):
 				html.td(
 					html.a(
 						self.content,
-						href=self["href"]
+						href=self[u"href"],
 					)
 				)
 			)
@@ -771,7 +767,7 @@ the following output:</par>
 
 <par>Notice that we automatically got an element class <class>nav2ns.navigation</class>,
 that this element class inherited the <method>convert</method> method from its
-base class and that the call the <method>convert</method> on the inherited class
+base class and that the call to <method>convert</method> on the derived class
 did instantiate the link classes from the derived namespace.</par>
 
 </section>
@@ -785,8 +781,8 @@ namespace to which <self/> should be converted.</par>
 <par>You can check which conversion is wanted with <function>issubclass</function>.
 Once this is determined you can use element classes from the target to create the
 required &xml; object tree. This makes it possible to customize the conversion by
-passing a derived namespace to the <method>convert</method> method. We have to change
-our example namespace from above like this:</par>
+passing a derived namespace to the <method>convert</method> method. To demonstrate
+this, we change our example namespace from above into the following:</par>
 
 <prog>
 import navns
@@ -799,7 +795,7 @@ class __ns__(navns):
 				border=0,
 				cellpadding=0,
 				cellspacing=0,
-				class_="navigation"
+				class_=u"navigation",
 			)
 			return node.convert(converter)
 
@@ -810,7 +806,7 @@ class __ns__(navns):
 				target.td(
 					target.a(
 						self.content,
-						href=self["href"]
+						href=self[u"href"],
 					)
 				)
 			)
@@ -828,7 +824,7 @@ from ll.xist.ns import html
 class __ns__(html):
 	class a(html.a):
 		def convert(self, converter):
-			node = html.a(self.content, self.attrs, target="_top")
+			node = html.a(self.content, self.attrs, target=u"_top")
 			return node.convert(converter)
 </prog>
 
@@ -849,7 +845,7 @@ code doesn't contain any illegal tag nesting (like a
 <example>
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
-<prompt>&gt;&gt;&gt; </prompt><input>node = html.p(html.p("foo"))</input>
+<prompt>&gt;&gt;&gt; </prompt><input>node = html.p(html.p(u"foo"))</input>
 <prompt>&gt;&gt;&gt; </prompt><input>print node.asBytes()</input>
 /home/walter/pythonroot/ll/xist/sims.py:238: WrongElementWarning: element &lt;ll.xist.ns.html:p&gt; may not contain element &lt;ll.xist.ns.html:p&gt;
   warnings.warn(WrongElementWarning(node, child, self.elements))
@@ -862,8 +858,8 @@ by setting the class attribute <lit>model</lit> inside the element class.
 <lit>model</lit> must be an object that provides a <method>checkvalid</method>
 method. This method will be called during parsing or publishing with the element
 as an argument. When a validation violation is detected, the Python warning
-framework will be used to issue a warning. The module <module>ll.xist.sims</module>
-contains several classes that provide a simple validation.</par>
+framework should be used to issue a warning. The module <module>ll.xist.sims</module>
+contains several classes that provide simple validation methods.</par>
 
 <par><pyref module="ll.xist.sims" class="Empty"><class>ll.xist.sims.Empty</class></pyref>
 can be used to ensure that the element doesn't have any content (like
@@ -907,14 +903,14 @@ from ll.xist.ns import html
 class html(xsc.Entity):
 	def convert(self, converter):
 		return html.abbr(
-			"HTML",
-			title="Hypertext Markup Language",
-			lang="en"
+			u"HTML",
+			title=u"Hypertext Markup Language",
+			lang=u"en"
 		)
 </prog>
 </example>
 
-<par>Now you can use this new entity in your &xml; files:</par>
+<par>You can use this entity in your &xml; files like this:</par>
 
 <example><title>Using the newly defined entity</title>
 <prog>
@@ -940,7 +936,7 @@ class upper(xsc.ProcInst):
 </prog>
 </example>
 
-<par>it can be used in an &xml; file as following:</par>
+<par>It can be used in an &xml; file as following:</par>
 
 <example><title>Using the newly defined processing instruction</title>
 <prog>
@@ -972,7 +968,7 @@ that use the publishing &api; are
 and
 <pyref module="ll.xist.xsc" class="Node" method="write"><method>write</method></pyref>.
 <pyref module="ll.xist.xsc" class="Node" method="asBytes"><method>asBytes</method></pyref>
-returns an 8bit &xml; string. You can specify the encoding with the
+returns an 8-bit &xml; string. You can specify the encoding with the
 parameter <arg>encoding</arg> (with <lit>"utf-8"</lit> being the default).
 Unencodable characters will be escaped with character references when possible
 (i.e. inside text nodes, for comments or processing instructions you'll get
@@ -981,7 +977,7 @@ an exception):</par>
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist import xsc</input>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
-<prompt>&gt;&gt;&gt; </prompt><input>s = u"Aä\u03a9\u8a9e"</input>
+<prompt>&gt;&gt;&gt; </prompt><input>s = u"A\e4\u03a9\u8a9e"</input>
 <prompt>&gt;&gt;&gt; </prompt><input>node = html.div(s)</input>
 <prompt>&gt;&gt;&gt; </prompt><input>print node.asBytes(encoding="ascii")</input>
 &lt;div&gt;A&amp;#228;&amp;#937;&amp;#35486;&gt;
@@ -1008,7 +1004,7 @@ or an <pyref module="ll.xist.ns.meta" class="contenttype">&html; meta header</py
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist import xsc</input>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import xml, meta</input>
-<prompt>&gt;&gt;&gt; </prompt><input>e = xsc.Frag(xml.XML10(), "\n", meta.contenttype())</input>
+<prompt>&gt;&gt;&gt; </prompt><input>e = xsc.Frag(xml.XML10(), u"\n", meta.contenttype())</input>
 <prompt>&gt;&gt;&gt; </prompt><input>print e.conv().asBytes(encoding="iso-8859-15")</input>
 &lt;?xml version='1.0' encoding='iso-8859-15'?&gt;
 &lt;meta content="text/html; charset=iso-8859-15" http-equiv="Content-Type" /&gt;
@@ -1086,7 +1082,7 @@ from ll.xist.ns import html, chars
 node = parsers.parseURL("http://www.python.org/", tidy=True)
 
 for link in node.walk(xsc.FindTypeAll(html.a)):
-	print link["href"]
+	print link[u"href"]
 </prog>
 </example>
 
@@ -1113,12 +1109,12 @@ from ll.xist.ns import html, chars
 node = parsers.parseURL("http://www.python.org/", tidy=True)
 
 def isextlink(node):
-	if isinstance(node, html.a) and not unicode(node["href"]).startswith("http://www.python.org"):
+	if isinstance(node, html.a) and not unicode(node[u"href"]).startswith(u"http://www.python.org"):
 		return (True, xsc.entercontent)
 	return (xsc.entercontent,)
 
 for link in node.walk(isextlink):
-	print link["href"]
+	print link[u"href"]
 </prog>
 </example>
 
@@ -1149,12 +1145,12 @@ fragment.</item>
 
 <par>The sequence will be <z>executed</z> in the order you specify. To change
 the top down traversal from our example to a bottom up traversal we could change
-<function>isextlink</function> to (note the swapped tuple entries):</par>
+<function>isextlink</function> to the following (note the swapped tuple entries):</par>
 
 <example><title>Bottom up link traversal function</title>
 <prog>
 def isextlink(node):
-	if isinstance(node, html.a) and not unicode(node["href"]).startswith("http://www.python.org"):
+	if isinstance(node, html.a) and not unicode(node[u"href"]).startswith(u"http://www.python.org"):
 		return <em>(xsc.entercontent, True)</em>
 	return (xsc.entercontent,)
 </prog>
@@ -1328,8 +1324,8 @@ from ll.xist.ns import html
 
 def p2p(node, converter):
 	if isinstance(node, xsc.Text):
-		node = node.replace("Python", "Parrot")
-		node = node.replace("python", "parrot")
+		node = node.replace(u"Python", u"Parrot")
+		node = node.replace(u"python", u"parrot")
 	return node
 
 node = parsers.parseURL("http://www.python.org/", tidy=True)
@@ -1412,19 +1408,19 @@ elements:</par>
 <example>
 <prog>
 from ll.xist.ns import html
-e = html.html(
+node = html.html(
 	html.head(
-		html.title("foo"),
+		html.title(u"foo"),
 	),
 	html.body(
 		html.div(
-			html.h1("The ", html.em("foo"), " page!"),
-			html.p("Welcome to the ", html.em("foo"), " page."),
+			html.h1(u"The ", html.em(u"foo"), u" page!"),
+			html.p(u"Welcome to the ", html.em(u"foo"), u" page."),
 		),
 	),
 )
 
-print e.pretty().asBytes()
+print node.pretty().asBytes()
 </prog>
 </example>
 <par>This will print:</par>

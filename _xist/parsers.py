@@ -450,14 +450,16 @@ class Parser(object):
 		(all based on Fredrik Lundh's <app>sgmlop</app> from <app moreinfo="http://pyxml.sf.net/">PyXML</app>):</par>
 		<ulist>
 		<item><pyref module="ll.xist.parsers" class="SGMLOPParser"><class>ll.xist.parsers.SGMLOPParser</class></pyref>
-		(which is the default if the <arg>parser</arg> argument is not given);</item>
+		(which is the default if the <arg>saxparser</arg> argument is not given);</item>
 		<item><pyref module="ll.xist.parsers" class="BadEntityParser"><class>ll.xist.parsers.BadEntityParser</class></pyref>
 		(which is based on <class>SGMLOPParser</class> and tries to pass on unknown entity references as literal content);</item>
 		<item><pyref module="ll.xist.parsers" class="HTMLParser"><class>HTMLParser</class></pyref> (which is
 		based on BadEntityParser and tries to make sense of &html; sources).</item>
 		</ulist>
 		</item>
-	
+
+		<term><arg>tidy</arg></term><item>If <arg>tidy</arg> is true, <link href="http://xmlsoft.org/">libxml2</link>'s
+		&html; parser will be used for parsing broken &html;.</item>
 		<term><arg>nspool</arg></term><item>an instance of <pyref module="ll.xist.xsc" class="NSPool"><class>ll.xist.xsc.NSPool</class></pyref>;
 		From this namespace pool namespaces will be taken when the parser
 		encounters <lit>xmlns</lit> attributes.</item>
