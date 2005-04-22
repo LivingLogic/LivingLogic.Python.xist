@@ -1859,7 +1859,7 @@ class Attr(Frag):
 	"""
 	<par>Base class of all attribute classes.</par>
 
-	<par>The content of an attribute may be any other XSC node. This is different from
+	<par>The content of an attribute may be any other &xist; node. This is different from
 	a normal &dom;, where only text and character references are allowed. The reason for
 	this is to allow dynamic content (implemented as elements or processing instructions)
 	to be put into attributes.</par>
