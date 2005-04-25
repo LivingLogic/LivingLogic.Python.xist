@@ -1266,6 +1266,40 @@ http://www.opensource.org/
 <par>Note that using the <lit>all</lit> operator twice in an XFind expression
 currently won't give you the expected result, as nodes might be produced twice.</par> 
 
+<par>Every XFind operator supports <method>__getitem</method>. This gives an
+item operator. Such an item operator only return the item (or slice) of those
+nodes returned by the base iterator. An example:</par>
+
+<prog>
+<prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
+<prompt>&gt;&gt;&gt; </prompt><input>e = html.table(html.tr(html.td(j) for j in xrange(i, i+3)) for i in xrange(1, 9, 3))</input>
+<prompt>&gt;&gt;&gt; </prompt><input>for td in e/html.tr/html.td:</input>
+<prompt>... </prompt><input>	print td</input>
+<prompt>... </prompt><input></input>
+1
+2
+3
+4
+5
+6
+7
+8
+9
+<prompt>&gt;&gt;&gt; </prompt><input>for td in e/html.tr/html.td[0]:</input>
+<prompt>... </prompt><input>	print td</input>
+1
+4
+7
+<prompt>&gt;&gt;&gt; </prompt><input>for td in e/html.tr[0]/html.td:</input>
+<prompt>... </prompt><input>	print td</input>
+1
+2
+3
+<prompt>&gt;&gt;&gt; </prompt><input>for td in e/(html.tr/html.td)[0]:</input>
+<prompt>... </prompt><input>	print td</input>
+1
+</prog>
+
 </section>
 
 </section>
