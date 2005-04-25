@@ -1291,6 +1291,7 @@ nodes returned by the base iterator. An example:</par>
 		&lt;td&gt;9&lt;/td&gt;
 	&lt;/tr&gt;
 &lt;/table&gt;
+<prompt>&gt;&gt;&gt; </prompt><input># Every cell</input>
 <prompt>&gt;&gt;&gt; </prompt><input>for td in e/html.tr/html.td:</input>
 <prompt>... </prompt><input>	print td</input>
 <prompt>... </prompt><input></input>
@@ -1303,16 +1304,19 @@ nodes returned by the base iterator. An example:</par>
 7
 8
 9
+<prompt>&gt;&gt;&gt; </prompt><input># Every first cell in each row</input>
 <prompt>&gt;&gt;&gt; </prompt><input>for td in e/html.tr/html.td[0]:</input>
 <prompt>... </prompt><input>	print td</input>
 1
 4
 7
+<prompt>&gt;&gt;&gt; </prompt><input># Every cell in the first row</input>
 <prompt>&gt;&gt;&gt; </prompt><input>for td in e/html.tr[0]/html.td:</input>
 <prompt>... </prompt><input>	print td</input>
 1
 2
 3
+<prompt>&gt;&gt;&gt; </prompt><input># The first of all cells</input>
 <prompt>&gt;&gt;&gt; </prompt><input>for td in e/(html.tr/html.td)[0]:</input>
 <prompt>... </prompt><input>	print td</input>
 1
