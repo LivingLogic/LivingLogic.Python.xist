@@ -1264,11 +1264,11 @@ http://www.opensource.org/
 </tty>
 
 <par>Note that using the <lit>all</lit> operator twice in an XFind expression
-currently won't give you the expected result, as nodes might be produced twice.</par> 
+currently won't give you the expected result, as nodes might be produced twice.</par>
 
 <par>Every XFind operator supports <method>__getitem__</method>. This gives an
-item operator. Such an item operator only return the item (or slice) of those
-nodes returned by the base iterator. An example:</par>
+item operator. Such an item operator only returns a specific item (or slice) of
+those nodes returned by the base iterator. An example:</par>
 
 <prog>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
