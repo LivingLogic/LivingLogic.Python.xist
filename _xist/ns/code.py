@@ -80,33 +80,27 @@ class Code(object):
 
 class pyexec(xsc.ProcInst):
 	"""
-	<par>here the content of the processing instruction is executed
-	as Python code, so you can define and register &xist; elements here.
-	Execution is done when the node is constructed, so definitions made
-	here will be available afterwards (e.g. during the rest of the
-	file parsing stage). When converted to &html; such a node will result
-	in an empty <lit>Null</lit> node.</par>
+	<par>Here the content of the processing instruction is executed as
+	Python code. Execution is done when the node is coverted. When converted
+	such a node will result in an empty <lit>Null</lit> node.</par>
 
 	<par>These processing instructions will be evaluated and executed in the
 	namespace of the module <module>sandbox</module>.</par>
 	"""
 
-	def __init__(self, content=u""):
-		xsc.ProcInst.__init__(self, content)
+	def convert(self, converter):
 		code = Code(self.content, 1)
 		exec code.asString() in sandbox.__dict__ # requires Python 2.0b2 (and doesn't really work)
-
-	def convert(self, converter):
-		return xsc.Null # has been executed at construction time already, so we don't have to do anything here
+		return xsc.Null
 
 
 class pyeval(xsc.ProcInst):
 	"""
-	<par>here the code will be executed when the node is converted to &html;
+	<par>Here the code will be executed when the node is converted to &html;
 	as if it was the body of a function, so you can return an expression
 	here. Although the content is used as a function body no indentation
 	is neccessary or allowed. The returned value will be converted to a
-	node and this resulting node will be converted to &html;.</par>
+	node and this resulting node will be converted.</par>
 
 	<par>These processing instructions will be evaluated and executed in the
 	namespace of the module <module>ll.xist.sandbox</module>.</par>

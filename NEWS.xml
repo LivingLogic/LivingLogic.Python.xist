@@ -1,4 +1,12 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
+<section><title>Changes in 2.10 (released ??/??/2005)</title>
+<ulist>
+<item><class>ll.xist.ns.code.pyexec</class> processing instructions will not
+be executed at construction time, but at conversion time.</item>
+</ulist>
+</section>
+
+
 <section><title>Changes in 2.9 (released 04/21/2005)</title>
 <ulist>
 <item>&xist; trees can now be pickled. The only restriction is that global
