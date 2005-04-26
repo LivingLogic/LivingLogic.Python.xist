@@ -39,7 +39,7 @@ class filesize(xsc.Element):
 	"""
 	model = sims.Empty()
 	class Attrs(xsc.Element.Attrs):
-		class href(xsc.URLAttr): pass
+		class href(xsc.URLAttr): required = True
 
 	def convert(self, converter):
 		size = self[u"href"].convert(converter).contentlength(root=converter.root)
@@ -60,6 +60,8 @@ class filetime(xsc.Element):
 			"""
 			<par>The &url; of the file.</par>
 			"""
+			required = True
+
 		class format(xsc.TextAttr):
 			"""
 			<par>A <function>strftime</function> compatible formatstring for formatting the timestamp.</par>
