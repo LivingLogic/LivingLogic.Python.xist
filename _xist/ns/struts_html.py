@@ -28,7 +28,9 @@ class taglib(xsc.ProcInst):
 	xmlprefix = "struts-html"
 
 	def publish(self, publisher):
-		publisher.write(u'<%%@ taglib uri="/WEB-INF/struts-html.tld" prefix="%s" %%>' % self.xmlprefix(publisher))
+		yield publisher.write(u'<%@ taglib uri="/WEB-INF/struts-html.tld" prefix="')
+		yield publisher.encode(self.xmlprefix(publisher))
+		yield publisher.encode(u'" %>')
 
 
 class Element(xsc.Element):

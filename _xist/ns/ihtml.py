@@ -351,9 +351,8 @@ class meta(xsc.Element):
 						http_equiv=u"Content-Type",
 						content=(contenttype, u"; ", u"; ".join(u"%s=%s" % option for option in options.items()))
 					)
-					node.publish(publisher)
-					return
-		super(meta, self).publish(publisher)
+					return node.publish(publisher) # return a generator
+		return super(meta, self).publish(publisher) # return a generator
 
 
 class object(xsc.Element):

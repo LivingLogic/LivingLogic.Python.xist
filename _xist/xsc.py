@@ -97,7 +97,7 @@ class _Base_Meta(type):
 		dict["__outerclass__"] = None
 		self = super(_Base_Meta, cls).__new__(cls, name, bases, dict)
 		for (key, value) in dict.iteritems():
-			if isinstance(value, type):
+			if isinstance(value, type) and getattr(value, "__outerclass__", None) is None:
 				value.__outerclass__ = self
 		return self
 
@@ -909,15 +909,13 @@ class Node(Base):
 
 	def _publishname(self, publisher):
 		"""
-		Publish the name of <self/> to the <arg>publisher</arg> including a
-		namespace prefix if required.
+		Return the name as <self/> as used for publishing.
 		"""
 		if self.needsxmlns(publisher)>=1:
 			prefix = self.xmlprefix(publisher)
 			if prefix is not None:
-				publisher.write(prefix)
-				publisher.write(u":")
-		publisher.write(self.xmlname)
+				return u"%s:%s" % (prefix, self.xmlname)
+		return self.xmlname
 
 	def parsed(self, parser, start=None):
 		"""
@@ -954,26 +952,21 @@ class Node(Base):
 
 		<par>The encoding and xhtml specification are taken from the <arg>publisher</arg>.</par>
 		"""
-		pass
+		if False:
+			yield ""
 
-	def asString(self, base=None, publisher=None, **publishargs):
+	def bytes(self, base=None, publisher=None, **publishargs):
 		"""
-		<par>Return this node as a serialized unicode string.</par>
+		<par>A generator that will produce this node as a serialized byte string.</par>
 
 		<par>For the possible parameters see the
 		<pyref module="ll.xist.publishers" class="Publisher"><class>ll.xist.publishers.Publisher</class></pyref>
 		constructor.</par>
 		"""
-		stream = cStringIO.StringIO()
 		if publisher is None:
 			publisher = publishers.Publisher(**publishargs)
-		oldencoding = publisher.encoding
-		try:
-			publisher.encoding = "utf-8"
-			publisher.publish(stream, self, base)
-		finally:
-			publisher.encoding = oldencoding
-		return stream.getvalue().decode("utf-8")
+		
+		return publisher.publish(self, base) # return a generator
 
 	def asBytes(self, base=None, publisher=None, **publishargs):
 		"""
@@ -983,13 +976,27 @@ class Node(Base):
 		<pyref module="ll.xist.publishers" class="Publisher"><class>ll.xist.publishers.Publisher</class></pyref>
 		constructor.</par>
 		"""
-		stream = cStringIO.StringIO()
+		return "".join(self.bytes(base, publisher, **publishargs))
+
+	def asString(self, base=None, publisher=None, **publishargs):
+		"""
+		<par>Return this node as a serialized unicode string.</par>
+
+		<par>For the possible parameters see the
+		<pyref module="ll.xist.publishers" class="Publisher"><class>ll.xist.publishers.Publisher</class></pyref>
+		constructor.</par>
+		"""
 		if publisher is None:
 			publisher = publishers.Publisher(**publishargs)
-		publisher.publish(stream, self, base)
-		return stream.getvalue()
+		oldencoding = publisher.encoding
+		try:
+			publisher.encoding = "utf-8"
+			result = "".join(publisher.publish(self, base))
+		finally:
+			publisher.encoding = oldencoding
+		return result.decode("utf-8")
 
-	def write(self, stream, base=None, publisher=None, **publishargs):
+	def write(self, stream, *args, **publishargs):
 		"""
 		<par>Write <self/> to the file-like object <arg>stream</arg> (which must
 		provide a <method>write</method> method).</par>
@@ -998,9 +1005,8 @@ class Node(Base):
 		<pyref module="ll.xist.publishers" class="Publisher"><class>ll.xist.publishers.Publisher</class></pyref>
 		constructor.</par>
 		"""
-		if publisher is None:
-			publisher = publishers.Publisher(**publishargs)
-		publisher.publish(stream, self, base)
+		for part in self.bytes(*args, **publishargs):
+			stream.write(part)
 
 	def _walk(self, filter, path, index, inmode, outmode):
 		"""
@@ -1365,7 +1371,7 @@ class Text(CharacterData):
 		return self._content
 
 	def publish(self, publisher):
-		publisher.writetext(self._content)
+		yield publisher.encodetext(self._content)
 
 	def present(self, presenter):
 		presenter.presentText(self)
@@ -1467,7 +1473,8 @@ class Frag(Node, list):
 
 	def publish(self, publisher):
 		for child in self:
-			child.publish(publisher)
+			for part in child.publish(publisher):
+				yield part
 
 	def __getitem__(self, index):
 		"""
@@ -1723,9 +1730,9 @@ class Comment(CharacterData):
 		content = self.content
 		if u"--" in content or content.endswith(u"-"):
 			warnings.warn(IllegalCommentContentWarning(self))
-		publisher.write(u"<!--")
-		publisher.write(content)
-		publisher.write(u"-->")
+		yield publisher.encode(u"<!--")
+		yield publisher.encode(content)
+		yield publisher.encode(u"-->")
 
 
 class DocType(CharacterData):
@@ -1742,9 +1749,9 @@ class DocType(CharacterData):
 	def publish(self, publisher):
 		if publisher.inattr:
 			raise IllegalAttrNodeError(self)
-		publisher.write(u"<!DOCTYPE ")
-		publisher.write(self.content)
-		publisher.write(u">")
+		yield publisher.encode(u"<!DOCTYPE ")
+		yield publisher.encode(self.content)
+		yield publisher.encode(u">")
 
 	def __unicode__(self):
 		return u""
@@ -1786,11 +1793,11 @@ class ProcInst(CharacterData):
 		content = self.content
 		if u"?>" in content:
 			raise IllegalProcInstFormatError(self)
-		publisher.write(u"<?")
-		publisher.write(self.xmlname)
-		publisher.write(u" ")
-		publisher.write(content)
-		publisher.write(u"?>")
+		yield publisher.encode(u"<?")
+		yield publisher.encode(self.xmlname)
+		yield publisher.encode(u" ")
+		yield publisher.encode(content)
+		yield publisher.encode(u"?>")
 
 	def __unicode__(self):
 		return u""
@@ -1818,7 +1825,8 @@ class Null(CharacterData):
 		return self
 
 	def publish(self, publisher):
-		pass
+		if False:
+			yield ""
 
 	def present(self, presenter):
 		presenter.presentNull(self)
@@ -1965,18 +1973,20 @@ class Attr(Frag):
 					raise ValueError("unknown outmode %r" % outmode)
 
 	def _publishAttrValue(self, publisher):
-		Frag.publish(self, publisher)
+		for part in Frag.publish(self, publisher):
+			yield part
 
 	def publish(self, publisher):
 		if publisher.validate:
 			self.checkvalid()
 		publisher.inattr += 1
-		self._publishname(publisher) # publish the XML name, not the Python name
-		publisher.write(u"=\"")
+		yield publisher.encode(self._publishname(publisher)) # publish the XML name, not the Python name
+		yield publisher.encode(u"=\"")
 		publisher.pushtextfilter(helpers.escapeattr)
-		self._publishAttrValue(publisher)
+		for part in self._publishAttrValue(publisher):
+			yield part
 		publisher.poptextfilter()
-		publisher.write(u"\"")
+		yield publisher.encode(u"\"")
 		publisher.inattr -= 1
 
 	def pretty(self, level=0, indent="\t"):
@@ -2026,13 +2036,13 @@ class BoolAttr(Attr):
 		if publisher.validate:
 			self.checkvalid()
 		publisher.inattr += 1
-		self._publishname(publisher) # publish the XML name, not the Python name
+		yield self._publishname(publisher) # publish the XML name, not the Python name
 		if publisher.xhtml>0:
-			publisher.write(u"=\"")
+			yield publisher.encode(u"=\"")
 			publisher.pushtextfilter(helpers.escapeattr)
-			publisher.write(self.__class__.xmlname)
+			yield publisher.encode(self.__class__.xmlname)
 			publisher.poptextfilter()
-			publisher.write(u"\"")
+			yield publisher.encode(u"\"")
 		publisher.inattr -= 1
 
 
@@ -2058,9 +2068,11 @@ class StyleAttr(Attr):
 			csshandler = cssparsers.PublishHandler(ignorecharset=True)
 			value = csshandler.parseString(unicode(self), base=publisher.base)
 			new = Frag(value)
-			new.publish(publisher)
+			for part in new.publish(publisher):
+				yield part
 		else:
-			super(StyleAttr, self)._publishAttrValue(publisher)
+			for part in super(StyleAttr, self)._publishAttrValue(publisher):
+				yield part
 
 	def urls(self, base=None):
 		"""
@@ -2084,7 +2096,8 @@ class URLAttr(Attr):
 
 	def _publishAttrValue(self, publisher):
 		new = utils.replaceInitialURL(self, lambda u: u.relative(publisher.base))
-		new.publish(publisher)
+		for part in new.publish(publisher):
+			yield part
 
 	def asURL(self):
 		"""
@@ -2153,18 +2166,14 @@ class _Attrs_Meta(Node.__metaclass__):
 					classdict = {"__module__": dict["__module__"]}
 					if attr.__name__ != attr.xmlname:
 						classdict["xmlname"] = attr.xmlname
-					classdict["__outerclass__"] = 42
 					dict[attrname] = attr.__class__(attr.__name__, (attr,), classdict)
 		dict["_attrs"] = ({}, {}) # cache for attributes (by Python name and by XML name)
 		dict["_defaultattrs"] = ({}, {}) # cache for attributes that have a default value (by Python name and by XML name)
 		self = super(_Attrs_Meta, cls).__new__(cls, name, bases, dict)
 		# go through the attributes and put them in the cache
 		for (key, value) in self.__dict__.iteritems():
-			if isinstance(value, type):
-				if getattr(value, "__outerclass__", None) == 42:
-					value.__outerclass__ = self
-				if issubclass(value, Attr):
-					setattr(self, key, value)
+			if isinstance(value, type) and issubclass(value, Attr):
+				setattr(self, key, value)
 		return self
 
 	def __repr__(self):
@@ -2308,8 +2317,9 @@ class Attrs(Node, dict):
 		if publisher.validate:
 			self.checkvalid()
 		for (attrname, attrvalue) in self.iteritems():
-			publisher.write(u" ")
-			attrvalue.publish(publisher)
+			yield publisher.encode(u" ")
+			for part in attrvalue.publish(publisher):
+				yield part
 
 	def __unicode__(self):
 		return u""
@@ -2929,39 +2939,42 @@ class Element(Node):
 		inside attributes (e.g. for &jsp; tag libraries), you can overwrite
 		<method>publish</method> and simply call this method.
 		"""
-		publisher.write(u"<")
-		self._publishname(publisher)
+		name = self._publishname(publisher)
+		yield publisher.encode(u"<")
+		yield publisher.encode(name)
 		# we're the first element to be published, so we have to create the xmlns attributes
 		if publisher.publishxmlns:
 			for (ns, prefix) in publisher.publishxmlns.iteritems():
-				publisher.write(u" xmlns")
+				yield publisher.encode(u" xmlns")
 				if prefix is not None:
-					publisher.write(u":")
-					publisher.write(prefix)
-				publisher.write(u"=\"")
-				publisher.write(ns.xmlurl)
-				publisher.write(u"\"")
+					yield publisher.encode(u":")
+					yield publisher.encode(prefix)
+				yield publisher.encode(u'="')
+				yield publisher.encode(ns.xmlurl)
+				yield publisher.encode('"')
 			# reset the note, so the next element won't create the attributes again
 			publisher.publishxmlns = None
-		self.attrs.publish(publisher)
+		for part in self.attrs.publish(publisher):
+			yield part
 		if len(self):
-			publisher.write(u">")
-			self.content.publish(publisher)
-			publisher.write(u"</")
-			self._publishname(publisher)
-			publisher.write(u">")
+			yield publisher.encode(u">")
+			for part in self.content.publish(publisher):
+				yield part
+			yield publisher.encode(u"</")
+			yield publisher.encode(name)
+			yield publisher.encode(u">")
 		else:
 			if publisher.xhtml in (0, 1):
 				if self.model is not None and self.model.empty:
 					if publisher.xhtml==1:
-						publisher.write(u" /")
-					publisher.write(u">")
+						yield publisher.encode(u" /")
+					yield publisher.encode(u">")
 				else:
-					publisher.write(u"></")
-					self._publishname(publisher)
-					publisher.write(u">")
+					yield publisher.encode(u"></")
+					yield publisher.encode(name)
+					yield publisher.encode(u">")
 			elif publisher.xhtml == 2:
-				publisher.write(u"/>")
+				yield publisher.encode(u"/>")
 
 	def publish(self, publisher):
 		if publisher.validate:
@@ -2969,9 +2982,9 @@ class Element(Node):
 		if publisher.inattr:
 			# publish the content only when we are inside an attribute. This works much like using the plain string value,
 			# but even works with processing instructions, or what the abbreviation entities return
-			self.content.publish(publisher)
+			return self.content.publish(publisher) # return a generator
 		else:
-			self._publishfull(publisher)
+			return self._publishfull(publisher) # return a generator
 
 	def __getitem__(self, index):
 		"""
@@ -3308,9 +3321,9 @@ class Entity(Node):
 		presenter.presentEntity(self)
 
 	def publish(self, publisher):
-		publisher.write(u"&")
-		publisher.write(self.xmlname)
-		publisher.write(u";")
+		yield publisher.encode(u"&")
+		yield publisher.encode(self.xmlname)
+		yield publisher.encode(u";")
 
 
 class _CharRef_Meta(Entity.__metaclass__): # don't subclass Text.__metaclass__, as this is redundant

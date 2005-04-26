@@ -34,9 +34,8 @@ class XML(xsc.ProcInst):
 			node = XML(u"version='%s' encoding='%s'" % (versionfound, publisher.encoding))
 			if standalonefound is not None:
 				node += u" standalone='%s'" % standalonefound
-			node.publish(publisher)
-			return
-		xsc.ProcInst.publish(self, publisher)
+			return node.publish(publisher) # return a generator
+		return xsc.ProcInst.publish(self, publisher) # return a generator
 
 
 class XML10(XML):

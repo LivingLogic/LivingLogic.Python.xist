@@ -15,8 +15,12 @@ from xml.parsers import expat
 
 from ll import url
 from ll.xist import xsc, parsers, cssparsers, presenters, converters, helpers, options, sims, xnd, xfind
-from ll.xist.ns import wml, ihtml, html, chars, css, abbr, specials, htmlspecials, php, xml, tld
+from ll.xist.ns import wml, ihtml, html, chars, abbr, specials, htmlspecials, meta, form, php, xml, tld, docbook
 
+
+import warnings
+warnings.filterwarnings("error", category=xsc.RequiredAttrMissingWarning)
+warnings.filterwarnings("error", category=xsc.FileNotFoundWarning)
 
 # set to something ASCII, so presenters work, even if the system default encoding is ascii
 options.reprtab = "  "
@@ -1068,18 +1072,23 @@ class NamespaceTest(unittest.TestCase):
 				name = name.swapcase()
 			self.assertEqual(unicode(node.attrs.get(name, xml=True)), value)
 
-	def check_namespace(self, module):
-		for obj in module.__dict__.values():
-			if isinstance(obj, type) and issubclass(obj, xsc.Node):
+	def check_namespace(self, ns, *skip):
+		for obj in ns.iterelementvalues():
+			if not issubclass(obj, skip):
 				node = obj()
-				if isinstance(node, xsc.Element):
-					for (attrname, attrvalue) in node.attrs.alloweditems():
-						if attrvalue.required:
-							if attrvalue.values:
-								node[attrname] = attrvalue.values[0]
-							else:
-								node[attrname] = "foo"
-				node.conv().asBytes()
+				for (attrname, attrvalue) in node.attrs.alloweditems():
+					if attrvalue.required:
+						if attrvalue.values:
+							node[attrname] = attrvalue.values[0]
+						else:
+							node[attrname] = "foo"
+			node.conv().asBytes()
+		for obj in ns.iterentityvalues():
+			node = obj()
+			node.conv().asBytes()
+		for obj in ns.iterprocinstvalues():
+			node = obj()
+			node.conv().asBytes()
 
 	def test_html(self):
 		self.check_namespace(html)
@@ -1090,71 +1099,55 @@ class NamespaceTest(unittest.TestCase):
 	def test_wml(self):
 		self.check_namespace(wml)
 
-	def test_css(self):
-		self.check_namespace(css)
-
 	def test_specials(self):
-		self.check_namespace(css)
+		self.check_namespace(specials, specials.include)
 
 	def test_form(self):
-		self.check_namespace(css)
+		self.check_namespace(form)
 
 	def test_meta(self):
-		self.check_namespace(css)
+		self.check_namespace(meta)
 
 	def test_htmlspecials(self):
-		self.check_namespace(css)
-
-	def test_cssspecials(self):
-		self.check_namespace(css)
+		self.check_namespace(htmlspecials, htmlspecials.autoimg, htmlspecials.autopixel)
 
 	def test_docbook(self):
-		self.check_namespace(css)
+		self.check_namespace(docbook)
 
 	def createns(self):
 		class __ns__(xsc.Namespace):
 			xmlname = "gurk"
 			xmlurl = "http://www.gurk.com/"
-			class foo(xsc.Element):
-				pass
-			class bar(xsc.Element):
-				pass
+			class foo(xsc.Element): pass
+			class bar(xsc.Element): pass
 		return __ns__
 
 	def test_nsupdate(self):
 		class ns1:
-			class foo(xsc.Element):
-				pass
-			class bar(xsc.Element):
-				pass
-			class foo2(xsc.Element):
-				pass
-			class bar2(xsc.Element):
-				pass
+			class foo(xsc.Element): pass
+			class bar(xsc.Element): pass
+			class foo2(xsc.Element): pass
+			class bar2(xsc.Element): pass
 		class ns2:
-			class foo(xsc.Element):
-				pass
-			class bar(xsc.Element):
-				pass
-			class foo2(xsc.Element):
-				pass
-			class bar2(xsc.Element):
-				pass
+			class foo(xsc.Element): pass
+			class bar(xsc.Element): pass
+			class foo2(xsc.Element): pass
+			class bar2(xsc.Element): pass
 		a = [ {"foo": ns.foo, "bar": ns.bar, "foo2": ns.foo2, "bar2": ns.bar2} for ns in (ns1, ns2) ]
 
 		ns = self.createns()
 		ns.update(*a)
-		self.assertEquals(ns.element("foo"), ns2.foo)
-		self.assertEquals(ns.element("bar"), ns2.bar)
-		self.assertEquals(ns.element("foo2"), ns2.foo2)
-		self.assertEquals(ns.element("bar2"), ns2.bar2)
+		self.assert_(ns.element("foo") is ns2.foo)
+		self.assert_(ns.element("bar") is ns2.bar)
+		self.assert_(ns.element("foo2") is ns2.foo2)
+		self.assert_(ns.element("bar2") is ns2.bar2)
 
 		ns = self.createns()
 		ns.updatenew(*a)
-		self.assertEquals(ns.element("foo"), ns.foo)
-		self.assertEquals(ns.element("bar"), ns.bar)
-		self.assertEquals(ns.element("foo2"), ns2.foo2)
-		self.assertEquals(ns.element("bar2"), ns2.bar2)
+		self.assert_(ns.element("foo") is ns.foo)
+		self.assert_(ns.element("bar") is ns.bar)
+		self.assert_(ns.element("foo2") is ns2.foo2)
+		self.assert_(ns.element("bar2") is ns2.bar2)
 
 		ns = self.createns()
 		ns.updateexisting(*a)
@@ -1421,30 +1414,23 @@ class PublishTest(unittest.TestCase):
 		escapeOutput = u"".join(escapeOutput)
 		self.assertEqual(helpers.cssescapereplace(self.escapeInput, "ascii"), escapeOutput)
 
-	def test_csspublish(self):
-		e = css.css(
-			css.atimport("http://www.gurk.org/gurk.css"),
-			css.atimport("http://www.gurk.org/print.css", media="print"),
-			css.atimport("http://www.gurk.org/screen.css", media="screen"),
-			css.rule(
-				css.sel("body"),
-				css.font_family("Verdana, sans-serif"),
-				css.font_size("10pt"),
-				css.background_color("#000"),
-				css.color("#fff")
-			),
-			css.atmedia(
-				css.rule(
-					css.sel("div, p"),
-					css.font_family("Verdana, sans-serif"),
-					css.font_size("10pt"),
-					css.background_color("#000"),
-					css.color("#fff")
-				),
-				media="print"
+	def test_encoding(self):
+		for encoding in ("utf-8", "utf-16", "utf-16-be", "utf-16-le", "latin-1", "ascii"):
+			node = xsc.Frag(
+				html.div(
+					php.php("echo $foo"),
+					abbr.html(),
+					html.div("gurk", class_="hurz"),
+					u"\u3042",
+				)
 			)
-		)
-		e.asBytes()
+			s = node.asBytes(encoding=encoding)
+			node2 = parsers.parseString(
+				s,
+				saxparser=parsers.ExpatParser,
+				prefixes=xsc.Prefixes([html, php, abbr]),
+			)
+			self.assertEqual(node, node2)
 
 
 class ParseTest(unittest.TestCase):

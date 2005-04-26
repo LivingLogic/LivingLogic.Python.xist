@@ -33,6 +33,22 @@ def cssescapereplace(exc):
 codecs.register_error("cssescapereplace", cssescapereplace)
 
 
+class _Queue(object):
+	"""
+	queue: write bytes at one end, read bytes from the other end
+	"""
+	def __init__(self):
+		self._buffer = ""
+
+	def write(self, chars):
+		self._buffer += chars
+
+	def read(self):
+		s = self._buffer
+		self._buffer = ""
+		return s
+
+
 class Publisher(object):
 	"""
 	base class for all publishers.
@@ -84,16 +100,15 @@ class Publisher(object):
 		self.prefixes = prefixes
 		self.prefixmode = prefixmode
 
-	def write(self, text):
+	def encode(self, text):
 		"""
-		receives the text to be written to the output. <arg>text</arg> must be a
-		<class>unicode</class> object. The publisher will apply the configured
-		encoding and error handling and write the resulting <class>str</class>
-		object to the output stream.
+		Encode <arg>text</arg> with the specified encoding and error handling
+		and return the resulting byte string.
 		"""
-		self.stream.write(text)
+		self.charstream.write(text)
+		return self.bytestream.read()
 
-	def writetext(self, text):
+	def encodetext(self, text):
 		"""
 		<par>is used to write text data to the output stream. <arg>text</arg> must
 		be a <class>unicode</class> object. The publisher will apply the configured
@@ -101,9 +116,10 @@ class Publisher(object):
 		characters that can't appear in text data (like <lit>&lt;</lit> etc.))
 		and writes the resulting<class>str</class> object to the output stream.
 		"""
-		self.stream.errors = self.__currenterrors
-		self.write(self.__currenttextfilter(text))
-		self.stream.errors = "strict"
+		self.charstream.errors = self.__errors[-1]
+		result = self.encode(self.__textfilters[-1](text))
+		self.charstream.errors = "strict"
+		return result
 
 	def pushtextfilter(self, filter):
 		"""
@@ -113,34 +129,24 @@ class Publisher(object):
 		of <lit>"</lit> inside attribute values.</par>
 		"""
 		self.__textfilters.append(filter)
-		self.__currenttextfilter = filter
 
 	def poptextfilter(self):
 		"""
 		<par>pops the current text filter function from the stack.</par>
 		"""
 		self.__textfilters.pop()
-		if self.__textfilters:
-			self.__currenttextfilter = self.__textfilters[-1]
-		else:
-			self.__currenttextfilter = None
 
 	def pusherrors(self, errors):
 		"""
 		<par>pushes a new error handling scheme onto the error handling stack.</par>
 		"""
 		self.__errors.append(errors)
-		self.__currenterrors = errors
 
 	def poperrors(self):
 		"""
 		<par>pop the current error handling scheme from the error handling stack.</par>
 		"""
 		self.__errors.pop()
-		if self.__errors:
-			self.__currenterrors = self.__errors[-1]
-		else:
-			self.__currenterrors = "strict"
 
 	def _neededxmlnsdefs(self, node):
 		"""
@@ -156,7 +162,7 @@ class Publisher(object):
 			return nodes
 		return []
 
-	def publish(self, stream, node, base=None):
+	def publish(self, node, base=None):
 		"""
 		<par>publish the node <arg>node</arg> to the stream <arg>stream</arg>.
 		All &url;s will be published relative to <arg>base</arg>.</par>
@@ -186,29 +192,24 @@ class Publisher(object):
 
 		self.inattr = 0
 		self.__textfilters = [ helpers.escapetext ]
-		self.__currenttextfilter = helpers.escapetext
 
 		self.__errors = [ "xmlcharrefreplace" ]
-		self.__currenterrors = "xmlcharrefreplace"
 
 		self.base = url.URL(base)
 		self.node = node
 
-		self.stream = codecs.getwriter(self.encoding)(stream)
-		self.write = self.stream.write
+		self.bytestream = _Queue()
+		self.charstream = codecs.getwriter(self.encoding)(self.bytestream)
 
-		try:
-			self.node.publish(self)
-		finally:
-			if "write" in self.__dict__: # Remove performance shortcut
-				del self.write
-			self.stream = None
+		for part in self.node.publish(self):
+			yield part
 	
 		self.inattr = 0
 		self.__textfilters = [ helpers.escapetext ]
-		self.__currenttextfilter = helpers.escapetext
 
 		self.__errors = [ "xmlcharrefreplace" ]
-		self.__currenterrors = "xmlcharrefreplace"
 
 		self.publishxmlns = None
+
+		del self.bytestream
+		del self.charstream

@@ -67,7 +67,7 @@ class filetime(xsc.Element):
 			default = u"%d. %b. %Y, %H:%M"
 
 	def convert(self, converter):
-		format = unicode(self[u"format"].convert(converter))
+		format = str(self[u"format"].convert(converter))
 		return xsc.Text(self[u"href"].convert(converter).lastmodified(root=converter.root).strftime(format))
 
 
@@ -90,7 +90,7 @@ class time(xsc.Element):
 			"""
 
 	def convert(self, converter):
-		format = unicode(self[u"format"].convert(converter))
+		format = str(self[u"format"].convert(converter))
 		if u"utc" in self.attrs:
 			f = datetime.datetime.utcnow
 		else:
@@ -161,28 +161,20 @@ class AttrDecorator(xsc.Element):
 
 	decoratable = ()
 
-	class Visitor(object):
-		def __init__(self, decorator, converter):
-			self.decorator = decorator
-			self.converter = converter
-
-		def isdecoratable(self, node):
-			return isinstance(node, self.decorator.decoratable)
-
-		def visit(self, node):
-			if self.isdecoratable(node):
-				return (True, xsc.entercontent)
-			return (xsc.entercontent,)
-
-		def decorate(self, node, start):
-			for (attrname, attrvalue) in self.decorator.attrs.iteritems():
+	def _mapper(self, node, converter):
+		if isinstance(node, self.decoratable):
+			node = node.__class__(
+				node.content.mapped(self._mapper, converter),
+				node.attrs.mapped(self._mapper, converter),
+			)
+			for (attrname, attrvalue) in self.attrs.iteritems():
 				if attrname not in node.attrs:
-					node[attrname] = attrvalue.convert(self.converter)
+					node[attrname] = attrvalue.convert(converter)
+		return node
 
 	def convert(self, converter):
 		node = self.content.convert(converter)
-		visitor = self.Visitor(self, converter)
-		node.visit(visitor.visit)
+		node = node.mapped(self._mapper, converter)
 		return node
 
 

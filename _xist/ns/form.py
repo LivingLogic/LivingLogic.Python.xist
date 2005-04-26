@@ -62,7 +62,7 @@ class memo(html.textarea):
 		class value(xsc.TextAttr): pass
 
 	def convert(self, converter):
-		e = html.textarea(self[u"value"], self.attr.without([u"value"]))
+		e = html.textarea(self[u"value"], self.attrs.without([u"value"]))
 		return e.convert(converter)
 
 

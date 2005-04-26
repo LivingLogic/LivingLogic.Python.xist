@@ -34,11 +34,13 @@ class contenttype(html.meta):
 		http_equiv = None
 		name = None
 		content = None
-		class mimetype(xsc.TextAttr): default = u"text/html"
+		class mimetype(xsc.TextAttr):
+			required = True
+			default = u"text/html"
 
 	def convert(self, converter):
 		target = converter.target
-		if issubclass(target, ihtml) or issubclass(target, html):
+		if issubclass(target, (ihtml, html)):
 			e = target.meta(
 				self.attrs.without([u"mimetype"]),
 				http_equiv=u"Content-Type",
@@ -50,7 +52,7 @@ class contenttype(html.meta):
 
 	def publish(self, publisher):
 		# fall back to the Element method
-		xsc.Element.publish(self, publisher)
+		return xsc.Element.publish(self, publisher) # return a generator
 
 
 class contentscripttype(html.meta):
@@ -66,9 +68,7 @@ class contentscripttype(html.meta):
 		class type(xsc.TextAttr): pass
 
 	def convert(self, converter):
-		attrs = self.attrs.copy()
-		del attrs[u"type"]
-		e = html.meta(attrs)
+		e = html.meta(self.attrs.without([u"type"]))
 		e[u"http_equiv"] = u"Content-Script-Type"
 		e[u"content"] = self[u"type"]
 		return e.convert(converter)

@@ -25,10 +25,11 @@ class directive(xsc.Element):
 	register = False # only serves as a base class
 
 	def publish(self, publisher):
-		publisher.write(u"<%@ ")
-		self._publishname(publisher)
-		self.attrs.publish(publisher)
-		publisher.write(u"%>")
+		yield publisher.encode(u"<%@ ")
+		yield self._publishname(publisher)
+		for part in self.attrs.publish(publisher):
+			yield part
+		yield publisher.encode(u"%>")
 
 
 class scriptlet(xsc.ProcInst):
@@ -36,9 +37,9 @@ class scriptlet(xsc.ProcInst):
 	will be published as <markup>&lt;% <rep>content</rep> %&gt;</markup>
 	"""
 	def publish(self, publisher):
-		publisher.write(u"<% ")
-		publisher.write(self.content)
-		publisher.write(u" %>")
+		yield publisher.encode(u"<% ")
+		yield publisher.encode(self.content)
+		yield publisher.encode(u" %>")
 
 
 class expression(xsc.ProcInst):
@@ -47,9 +48,9 @@ class expression(xsc.ProcInst):
 	"""
 
 	def publish(self, publisher):
-		publisher.write(u"<%= ")
-		publisher.write(self.content)
-		publisher.write(u" %>")
+		yield publisher.encode(u"<%= ")
+		yield publisher.encode(self.content)
+		yield publisher.encode(u" %>")
 
 
 class declaration(xsc.ProcInst):
@@ -58,9 +59,9 @@ class declaration(xsc.ProcInst):
 	"""
 
 	def publish(self, publisher):
-		publisher.write(u"<%! ")
-		publisher.write(self.content)
-		publisher.write(u" %>")
+		yield publisher.encode(u"<%! ")
+		yield publisher.encode(self.content)
+		yield publisher.encode(u" %>")
 
 
 class If(scriptlet):
@@ -140,21 +141,18 @@ class directive_page(directive):
 
 	def publish(self, publisher):
 		# Only a contentType attribute trigger the special code
-		if u"contentType" not in self.attrs or self[u"contentType"].isfancy() or self[u"pageEncoding"].isfancy():
-			super(directive_page, self).publish(publisher)
-		else:
+		if u"contentType" in self.attrs and not self[u"contentType"].isfancy() and not self[u"pageEncoding"].isfancy():
 			(contenttype, options) = cgi.parse_header(unicode(self[u"contentType"]))
 			pageencoding = unicode(self[u"pageEncoding"])
-			if u"charset" in options and options[u"charset"] == pageencoding == publisher.encoding:
-				super(directive_page, self).publish(publisher)
-			else:
+			if u"charset" not in options or not (options[u"charset"] == pageencoding == publisher.encoding):
 				options[u"charset"] = publisher.encoding
 				node = self.__class__(
 					self.attrs,
 					contentType=(contenttype, u"; ", u"; ".join("%s=%s" % option for option in options.items())),
 					pageEncoding=publisher.encoding
 				)
-				node.publish(publisher)
+				return node.publish(publisher) # return a generator
+		return super(directive_page, self).publish(publisher) # return a generator
 
 
 class __ns__(xsc.Namespace):
