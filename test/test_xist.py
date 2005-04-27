@@ -8,7 +8,7 @@
 ##
 ## See xist/__init__.py for the license
 
-import sys, unittest, cStringIO, warnings, re, cPickle
+import sys, unittest, cStringIO, warnings, re
 
 from xml.sax import saxlib
 from xml.parsers import expat
@@ -1832,69 +1832,68 @@ class DTD2XSCTest(unittest.TestCase):
 		self.assert_(ns.bar.Attrs.bazz.required)
 
 
-class TLD2XSCTest(unittest.TestCase):
-	def tld2ns(self, s, xmlname, shareattrs=None):
-		node = parsers.parseString(s, prefixes=xsc.Prefixes(tld))
-		node = node.findfirst(xsc.FindType(tld.taglib))
+def tld2ns(s, xmlname, shareattrs=None):
+	node = parsers.parseString(s, prefixes=xsc.Prefixes(tld))
+	node = node.findfirst(xsc.FindType(tld.taglib))
 
-		data = node.asxnd()
+	data = node.asxnd()
 
-		if shareattrs is not None:
-			data.shareattrs(shareattrs)
+	if shareattrs is not None:
+		data.shareattrs(shareattrs)
 
-		mod = {"__name__": xmlname}
-		encoding = "iso-8859-1"
-		code = data.aspy(encoding=encoding, asmod=False).encode(encoding)
-		exec code in mod
+	mod = {"__name__": xmlname}
+	encoding = "iso-8859-1"
+	code = data.aspy(encoding=encoding, asmod=False).encode(encoding)
+	exec code in mod
 
-		return mod["__ns__"]
+	return mod["__ns__"]
 
-	def test_convert(self):
-		tldstring = """<?xml version="1.0" encoding="ISO-8859-1"?>
-		<!DOCTYPE taglib PUBLIC "-//Sun Microsystems, Inc.//DTD JSP Tag Library 1.1//EN" "http://java.sun.com/j2ee/dtds/web-jsptaglibrary_1_1.dtd">
-		<taglib>
-			<tlibversion>1.0</tlibversion>
-			<jspversion>1.1</jspversion>
-			<shortname>foo</shortname>
-			<tag>
-				<name>bar</name>
-				<tagclass>com.foo.bar</tagclass>
-				<bodycontent>empty</bodycontent>
-				<info>info</info>
-				<attribute>
-					<name>name</name>
-					<required>true</required>
-					<rtexprvalue>true</rtexprvalue>
-				</attribute>
-				<attribute>
-					<name>response</name>
-					<required>false</required>
-					<rtexprvalue>true</rtexprvalue>
-				</attribute>
-				<attribute>
-					<name>controllerElement</name>
-					<required>false</required>
-					<rtexprvalue>true</rtexprvalue>
-				</attribute>
-				<attribute>
-					<name>type</name>
-					<required>false</required>
-					<rtexprvalue>true</rtexprvalue>
-				</attribute>
-			</tag>
-		</taglib>
-		"""
-		ns = self.tld2ns(tldstring, "foo")
-		self.assertEqual(ns.xmlname, u"foo")
-		self.assertEqual(ns.bar.xmlname, u"bar")
-		self.assert_(isinstance(ns.bar.model, sims.Empty))
-		self.assertEqual(ns.bar.__doc__.strip(), "info")
+def test_tld2xsc():
+	tldstring = """<?xml version="1.0" encoding="ISO-8859-1"?>
+	<!DOCTYPE taglib PUBLIC "-//Sun Microsystems, Inc.//DTD JSP Tag Library 1.1//EN" "http://java.sun.com/j2ee/dtds/web-jsptaglibrary_1_1.dtd">
+	<taglib>
+		<tlibversion>1.0</tlibversion>
+		<jspversion>1.1</jspversion>
+		<shortname>foo</shortname>
+		<tag>
+			<name>bar</name>
+			<tagclass>com.foo.bar</tagclass>
+			<bodycontent>empty</bodycontent>
+			<info>info</info>
+			<attribute>
+				<name>name</name>
+				<required>true</required>
+				<rtexprvalue>true</rtexprvalue>
+			</attribute>
+			<attribute>
+				<name>response</name>
+				<required>false</required>
+				<rtexprvalue>true</rtexprvalue>
+			</attribute>
+			<attribute>
+				<name>controllerElement</name>
+				<required>false</required>
+				<rtexprvalue>true</rtexprvalue>
+			</attribute>
+			<attribute>
+				<name>type</name>
+				<required>false</required>
+				<rtexprvalue>true</rtexprvalue>
+			</attribute>
+		</tag>
+	</taglib>
+	"""
+	ns = tld2ns(tldstring, "foo")
+	assert ns.xmlname == u"foo"
+	assert ns.bar.xmlname == u"bar"
+	assert isinstance(ns.bar.model, sims.Empty)
+	assert ns.bar.__doc__.strip() == "info"
 
-		self.assert_(issubclass(ns.bar.Attrs.name, xsc.TextAttr))
-		self.assertEqual(ns.bar.Attrs.name.required, True)
+	assert issubclass(ns.bar.Attrs.name, xsc.TextAttr)
+	assert ns.bar.Attrs.name.required is True
 
-		self.assert_(issubclass(ns.bar.Attrs.response, xsc.TextAttr))
-		self.assertEqual(ns.bar.Attrs.response.required, False)
+	assert issubclass(ns.bar.Attrs.response, xsc.TextAttr)
+	assert ns.bar.Attrs.response.required is False
 
 
 class XNDTest(unittest.TestCase):
@@ -2145,20 +2144,20 @@ class SIMSTest(unittest.TestCase):
 		e.asBytes()
 
 
-class PrettyTest(unittest.TestCase):
-	def check(self, node, result):
-		self.assertEqual(node.pretty().asBytes(), result)
+def test_pretty():
+	def check(node, result):
+		assert node.pretty().asBytes() == result
 
-	def test_pretty(self):
-		self.check(html.p("apple", "tree"), "<p>appletree</p>")
-		self.check(html.p("apple", html.br(), "tree"), "<p>apple<br />tree</p>")
-		self.check(html.p(php.php("apple")), "<p>\n\t<?php apple?>\n</p>")
-		self.check(html.p(php.php("apple"), "tree"), "<p><?php apple?>tree</p>")
-		self.check(
+	tests = [
+		(html.p("apple", "tree"), "<p>appletree</p>"),
+		(html.p("apple", html.br(), "tree"), "<p>apple<br />tree</p>"),
+		(html.p(php.php("apple")), "<p>\n\t<?php apple?>\n</p>"),
+		(html.p(php.php("apple"), "tree"), "<p><?php apple?>tree</p>"),
+		(
 			html.div(2*html.p("apple", "tree"), html.br()),
 			"<div>\n\t<p>appletree</p>\n\t<p>appletree</p>\n\t<br />\n</div>"
-		)
-		self.check(
+		),
+		(
 			html.div(
 				php.php("apple"),
 				html.p("apple", "tree"),
@@ -2169,313 +2168,312 @@ class PrettyTest(unittest.TestCase):
 				html.br()
 			),
 			"<div>\n\t<?php apple?>\n\t<p>appletree</p>\n\t<div>\n\t\t<p>apple</p>\n\t\t<p>tree</p>\n\t</div>\n\t<br />\n</div>"
-		)
+		),
+	]
+	for (got, exp) in tests:
+		yield check, got, exp
 
 
-class XFindTestLevels(unittest.TestCase):
-	def setUp(self):
-		ds = [html.div(id=id) for id in xrange(8)]
-		ds[1].append(ds[4:7])
-		ds[2].append(ds[7])
-		ds[0].append(ds[1:4])
-		self.divs = ds
-		#      ____0____
-		#     /    |    \
-		#   _1_    2     3
-		#  / | \   |
-		# 4  5  6  7
+def test_xfind_levels():
+	def check(expr, ids):
+		assert "".join(str(e["id"]) for e in expr) == ids
 
-	def tearDown(self):
-		del self.divs
+	ds = [html.div(id=id) for id in xrange(8)]
+	ds[1].append(ds[4:7])
+	ds[2].append(ds[7])
+	ds[0].append(ds[1:4])
+	#      ____0____
+	#     /    |    \
+	#   _1_    2     3
+	#  / | \   |
+	# 4  5  6  7
 
-	def checkids(self, expr, ids):
-		self.assertEqual("".join(str(e["id"]) for e in expr), ids)
-
-	def test_all(self):
-		self.checkids(self.divs[0]//html.div, "1234567")
-
-	def test_level1(self):
-		self.checkids(self.divs[0]/html.div, "123")
-
-	def test_level2(self):
-		self.checkids(self.divs[0]/html.div/html.div, "4567")
-
-	def test_level3(self):
-		self.checkids(self.divs[0]/html.div/html.div/html.div, "")
-
-	def test_contains(self):
-		self.checkids(self.divs[0]//xfind.contains(html.div), "012")
+	tests = [
+		(ds[0]//html.div, "1234567"),
+		(ds[0]/html.div, "123"),
+		(ds[0]/html.div/html.div, "4567"),
+		(ds[0]/html.div/html.div/html.div, ""),
+		(ds[0]//xfind.contains(html.div), "012"),
+	]
+	for (got, exp) in tests:
+		yield check, got, exp
 
 
-class XFindTestOperators(unittest.TestCase):
-	def setUp(self):
-		self.node = xsc.Frag(
+def xfindnode():
+	return xsc.Frag(
+		html.div(
+			html.h1("The ", html.em("important"), " headline"),
+			html.p("The ", html.em("first"), " paragraph."),
+			html.p("The ", html.em("second"), " ", html.em("important"), " paragraph."),
+			align="left",
+		),
+		html.div(
+			html.h1("The headline"),
+			html.p("The ", html.em("first"), " paragraph."),
 			html.div(
-				html.h1("The ", html.em("important"), " headline"),
-				html.p("The ", html.em("first"), " paragraph."),
+				html.h2("The ", html.em("important"), " headline"),
 				html.p("The ", html.em("second"), " ", html.em("important"), " paragraph."),
-				align="left",
+				id="id42",
 			),
-			html.div(
-				html.h1("The headline"),
-				html.p("The ", html.em("first"), " paragraph."),
-				html.div(
-					html.h2("The ", html.em("important"), " headline"),
-					html.p("The ", html.em("second"), " ", html.em("important"), " paragraph."),
-					id="id42",
-				),
-				class_="foo",
-			),
-		)
-
-	def tearDown(self):
-		del self.node
-
-	def test_hasattr(self):
-		res = list(self.node//xfind.hasattr(html.div.Attrs.id, html.div.Attrs.align))
-		self.assertEqual(len(res), 2)
-		self.assert_(res[0] is self.node[0])
-		self.assert_(res[1] is self.node[1][-1])
-
-	def test_hasattrnamed(self):
-		res = list(self.node//xfind.hasattrnamed("class_"))
-		self.assertEqual(len(res), 1)
-		self.assert_(res[0] is self.node[1])
-
-		res = list(self.node//xfind.hasattrnamed("class", xml=True))
-		self.assertEqual(len(res), 1)
-		self.assert_(res[0] is self.node[1])
-
-	def test_is(self):
-		res = list(self.node//xfind.is_(html.h1, html.h2))
-		self.assertEqual(len(res), 3)
-		self.assert_(res[0] is self.node[0][0])
-		self.assert_(res[1] is self.node[1][0])
-		self.assert_(res[2] is self.node[1][-1][0])
-
-		res = list(self.node//html.h1/xfind.is_(html.h1, html.h2))
-		self.assertEqual(len(res), 2)
-		self.assert_(res[0] is self.node[0][0])
-		self.assert_(res[1] is self.node[1][0])
-
-	def test_isnot(self):
-		res = list(self.node//xfind.isnot(xsc.Text, html.p, html.div, html.em))
-		self.assertEqual(len(res), 3)
-		self.assert_(res[0] is self.node[0][0])
-		self.assert_(res[1] is self.node[1][0])
-		self.assert_(res[2] is self.node[1][-1][0])
-
-	def test_contains(self):
-		res = list(self.node//xfind.is_(html.h1, html.h2)/xfind.contains(html.em))
-		self.assertEqual(len(res), 2)
-		self.assert_(res[0] is self.node[0][0])
-		self.assert_(res[1] is self.node[1][-1][0])
-
-	def test_child(self):
-		res = list(self.node//html.h1/xfind.child(html.em))
-		self.assertEqual(len(res), 1)
-		self.assert_(res[0] is self.node[0][0][1])
-
-	def test_attr(self):
-		res = list(self.node//xfind.attr(html.div.Attrs.id, html.div.Attrs.align))
-		self.assertEqual(len(res), 2)
-		self.assert_(res[0] is self.node[0]["align"])
-		self.assert_(res[1] is self.node[1][-1]["id"])
-
-	def test_attrnamed(self):
-		res = list(self.node//xfind.attrnamed("class_"))
-		self.assertEqual(len(res), 1)
-		self.assert_(res[0] is self.node[1]["class_"])
-
-		res = list(self.node//xfind.attrnamed("class", xml=True))
-		self.assertEqual(len(res), 1)
-		self.assert_(res[0] is self.node[1]["class_"])
+			class_="foo",
+		),
+	)
 
 
-class XFindTestMisc(unittest.TestCase):
-	def checkids(self, expr, ids):
-		self.assertEqual("".join(str(e["id"]) for e in expr), ids)
-
-	def test_frag(self):
-		e = parsers.parseString("das ist <b>klaus</b>. das ist <b>erich</b>", prefixes=xsc.Prefixes(html))
-		# The following won't generate any nodes, because e/xfind.all iterates all
-		# nodes in the tree (but not the Frag root) and ../html.b filters the bold
-		# *children*, but there are none.
-		self.assertEqual(u"".join(map(unicode, e//html.b)), u"")
-		# The following *will* produce these nodes
-		self.assertEqual(u"".join(map(unicode, e//xfind.is_(html.b))), u"klauserich")
-
-	def test_multiall(self):
-		#        ____0____
-		#       /         \
-		#     _1_         _2_
-		#    /   \       /   \
-		#   3     4     5     6
-		#  / \   / \   / \   / \
-		# 7   8 9   a b   c d   e
-		ds = [html.div(id=hex(id).lower()[2:]) for id in xrange(15)]
-		for i in xrange(7):
-			ds[i].append(ds[2*i+1:2*i+3])
-		# Using // multiple times might produce certain nodes twice
-		self.checkids(ds[0]//html.div//html.div, "34789a56bcde789abcde")
+def test_xfind_hasattr():
+	node = xfindnode()
+	res = list(node//xfind.hasattr(html.div.Attrs.id, html.div.Attrs.align))
+	assert len(res) == 2
+	assert res[0] is node[0]
+	assert res[1] is node[1][-1]
 
 
-class XFindTestItemSlice(unittest.TestCase):
-	def checkids(self, expr, ids):
-		self.assertEqual("".join(str(e["id"]) for e in expr), ids)
+def test_xfind_hasattrnamed():
+	node = xfindnode()
+	res = list(node//xfind.hasattrnamed("class_"))
+	assert len(res) == 1
+	assert res[0] is node[1]
 
-	def test_itemsslices(self):
-		#        ____0____
-		#       /    |    \
-		#     _1_   _2_   _3_
-		#    /   \ /   \ /   \
-		#   4     5     6     7
-		ds = [html.div(id=id) for id in xrange(8)]
-		ds[0].append(ds[1], ds[2], ds[3])
-		ds[1].append(ds[4], ds[5])
-		ds[2].append(ds[5], ds[6])
-		ds[3].append(ds[6], ds[7])
+	res = list(node//xfind.hasattrnamed("class", xml=True))
+	assert len(res) == 1
+	assert res[0] is node[1]
 
-		self.checkids(ds[0]/html.div[0]/html.div[-1], "5")
-		self.checkids(ds[0]/html.div/html.div[-1], "567")
-		self.checkids(ds[0]/html.div[-1]/html.div, "67")
-		self.checkids(ds[0]/(html.div/html.div), "455667") # we get 5 and 6 twice
-		self.checkids(ds[0]/(html.div/html.div)[2], "5") # we get 5 and 6 twice
-		self.checkids(ds[0]/html.div[:]/html.div[:], "455667")
-		self.checkids(ds[0]/html.div/html.p[0], "")
-		self.checkids(ds[0]/html.p[0]/html.p[0], "")
 
+def test_xfind_is():
+	node = xfindnode()
+	res = list(node//xfind.is_(html.h1, html.h2))
+	assert len(res) == 3
+	assert res[0] is node[0][0]
+	assert res[1] is node[1][0]
+	assert res[2] is node[1][-1][0]
+
+	res = list(node//html.h1/xfind.is_(html.h1, html.h2))
+	assert len(res) == 2
+	assert res[0] is node[0][0]
+	assert res[1] is node[1][0]
+
+
+def test_xfind_isnot():
+	node = xfindnode()
+	res = list(node//xfind.isnot(xsc.Text, html.p, html.div, html.em))
+	assert len(res) == 3
+	assert res[0] is node[0][0]
+	assert res[1] is node[1][0]
+	assert res[2] is node[1][-1][0]
+
+
+def test_xfind_contains():
+	node = xfindnode()
+	res = list(node//xfind.is_(html.h1, html.h2)/xfind.contains(html.em))
+	assert len(res) == 2
+	assert res[0] is node[0][0]
+	assert res[1] is node[1][-1][0]
+
+
+def test_xfind_child():
+	node = xfindnode()
+	res = list(node//html.h1/xfind.child(html.em))
+	assert len(res) == 1
+	assert res[0] is node[0][0][1]
+
+
+def test_xfind_attr():
+	node = xfindnode()
+	res = list(node//xfind.attr(html.div.Attrs.id, html.div.Attrs.align))
+	assert len(res) == 2
+	assert res[0] is node[0]["align"]
+	assert res[1] is node[1][-1]["id"]
+
+
+def test_xfind_attrnamed():
+	node = xfindnode()
+	res = list(node//xfind.attrnamed("class_"))
+	assert len(res) == 1
+	assert res[0] is node[1]["class_"]
+
+	res = list(node//xfind.attrnamed("class", xml=True))
+	assert len(res) == 1
+	assert res[0] is node[1]["class_"]
+
+
+def test_xfind_frag():
+	e = parsers.parseString("das ist <b>klaus</b>. das ist <b>erich</b>", prefixes=xsc.Prefixes(html))
+	# The following won't generate any nodes, because e/xfind.all iterates all
+	# nodes in the tree (but not the Frag root) and ../html.b filters the bold
+	# *children*, but there are none.
+	assert u"".join(map(unicode, e//html.b)) == u""
+	# The following *will* produce these nodes
+	assert u"".join(map(unicode, e//xfind.is_(html.b))) == u"klauserich"
+
+
+def test_xfind_multiall():
+	def check(expr, ids):
+		assert "".join(str(e["id"]) for e in expr) == ids
+
+	#        ____0____
+	#       /         \
+	#     _1_         _2_
+	#    /   \       /   \
+	#   3     4     5     6
+	#  / \   / \   / \   / \
+	# 7   8 9   a b   c d   e
+	ds = [html.div(id=hex(id).lower()[2:]) for id in xrange(15)]
+	for i in xrange(7):
+		ds[i].append(ds[2*i+1:2*i+3])
+	# Using // multiple times might produce certain nodes twice
+	check(ds[0]//html.div//html.div, "34789a56bcde789abcde")
+
+
+def test_xfind_itemsslices():
+	def check(expr, ids):
+		assert "".join(str(e["id"]) for e in expr) == ids
+
+	#        ____0____
+	#       /    |    \
+	#     _1_   _2_   _3_
+	#    /   \ /   \ /   \
+	#   4     5     6     7
+	ds = [html.div(id=id) for id in xrange(8)]
+	ds[0].append(ds[1], ds[2], ds[3])
+	ds[1].append(ds[4], ds[5])
+	ds[2].append(ds[5], ds[6])
+	ds[3].append(ds[6], ds[7])
+
+	tests = [
+		(ds[0]/html.div[0]/html.div[-1], "5"),
+		(ds[0]/html.div/html.div[-1], "567"),
+		(ds[0]/html.div[-1]/html.div, "67"),
+		(ds[0]/(html.div/html.div), "455667"), # we get 5 and 6 twice
+		(ds[0]/(html.div/html.div)[2], "5"), # we get 5 and 6 twice
+		(ds[0]/html.div[:]/html.div[:], "455667"),
+		(ds[0]/html.div/html.p[0], ""),
+		(ds[0]/html.p[0]/html.p[0], ""),
+	
 		# The following might be a surprise, but is perfectly normal:
 		# each node is visited and the div children are yielded.
 		# div(id=0) does have div children and those will be yielded.
 		# This is why the sequence starts with "12" and not "14"
-		self.checkids(ds[0]//html.div, "123455667")
-
-		self.checkids(ds[0]/html.div[1:2], "2")
-		self.checkids(ds[0]/html.div[1:-1]/html.div[1:-1], "")
-		self.checkids(ds[0]/html.div[1:-1]/html.div[-1:], "6")
-
-
-class PickleTest(unittest.TestCase):
-	def test_pickle(self):
-		e = xsc.Frag(
-			xml.XML10(),
-			html.DocTypeXHTML10transitional(),
-			xsc.Comment("foo"),
-			html.html(xml.Attrs(lang="de"), lang="de"),
-			php.expression("$foo"),
-			chars.nbsp(),
-			abbr.xml(),
-		)
-		e.append(e[3])
-		e2 = cPickle.loads(cPickle.dumps(e))
-		self.assertEqual(e, e2)
-		self.assert_(e2[3] is e2[-1])
+		(ds[0]//html.div, "123455667"),
+	
+		(ds[0]/html.div[1:2], "2"),
+		(ds[0]/html.div[1:-1]/html.div[1:-1], ""),
+		(ds[0]/html.div[1:-1]/html.div[-1:], "6"),
+	]
+	for (got, exp) in tests:
+		yield check, got, exp
 
 
-class WalkTest(unittest.TestCase):
-	def node2str(self, node):
-		if isinstance(node, xsc.Node):
-			if isinstance(node, xsc.Text):
-				return "#"
+def test_walk_1():
+	node = createfrag()
+	def filter(*args):
+		return (True, xsc.enterattrs, xsc.entercontent, True)
+
+	def check(inmode, outmode):
+		# call only for code coverage
+		list(node.walk((True, xsc.entercontent, True), inmode=inmode, outmode=outmode))
+		list(node.walk(filter, inmode=inmode, outmode=outmode))
+
+	modes = (xsc.walknode, xsc.walkpath, xsc.walkindex, xsc.walkrootindex)
+	for inmode in modes:
+		for outmode in modes:
+			yield check, inmode, outmode
+
+
+def test_walk_2():
+	def check(node, filter, result, inmode=xsc.walknode, outmode=xsc.walknode):
+		def node2str(node):
+			if isinstance(node, xsc.Node):
+				if isinstance(node, xsc.Text):
+					return "#"
+				else:
+					return node.xmlname
 			else:
-				return node.xmlname
+				return ".".join(map(node2str, node))
+	
+		assert map(node2str, node.walk(filter, inmode=inmode, outmode=outmode)) == result
+
+	node = html.div(
+		html.tr(
+			html.th("gurk"),
+			html.td("hurz"),
+			id=html.b(42)
+		),
+		class_=html.i("hinz")
+	)
+
+	def filtertopdown(node):
+		return (isinstance(node, xsc.Element), xsc.entercontent)
+	def filterbottomup(node):
+		return (xsc.entercontent, isinstance(node, xsc.Element))
+	def filtertopdownattrs(node):
+		return (isinstance(node, xsc.Element), xsc.enterattrs, xsc.entercontent)
+	def filterbottomupattrs(node):
+		return (xsc.enterattrs, xsc.entercontent, isinstance(node, xsc.Element))
+	def filtertopdowntextonlyinattr(path):
+		for node in path:
+			if isinstance(node, xsc.Attr):
+				inattr = True
+				break
 		else:
-			return ".".join(map(self.node2str, node))
+			inattr = False
+		node = path[-1]
+		if isinstance(node, xsc.Element):
+			return (True, xsc.enterattrs, xsc.entercontent)
+		if inattr and isinstance(node, xsc.Text):
+			return (True, )
+		else:
+			return (xsc.entercontent, )
 
-	def check_walk(self, node, filter, result, inmode=xsc.walknode, outmode=xsc.walknode):
-		self.assertEqual(map(self.node2str, node.walk(filter, inmode=inmode, outmode=outmode)), result)
+	def filtertopdownattrwithoutcontent(node):
+		if isinstance(node, xsc.Element):
+			return (True, xsc.entercontent, xsc.enterattrs)
+		elif isinstance(node, (xsc.Attr, xsc.Text)):
+			return (True, )
+		else:
+			return (xsc.entercontent, )
 
-	def test_walk1(self):
-		node = createfrag()
-		def filter(*args):
-			return (True, xsc.enterattrs, xsc.entercontent, True)
-
-		modes = (xsc.walknode, xsc.walkpath, xsc.walkindex, xsc.walkrootindex)
-		for inmode in modes:
-			for outmode in modes:
-				list(node.walk((True, xsc.entercontent, True), inmode=inmode, outmode=outmode))
-				list(node.walk(filter, inmode=inmode, outmode=outmode))
-
-	def test_walk2(self):
-		node = html.div(html.tr(html.th("gurk"), html.td("hurz"), id=html.b(42)), class_=html.i("hinz"))
-
-		def filtertopdown(node):
-			return (isinstance(node, xsc.Element), xsc.entercontent)
-		def filterbottomup(node):
-			return (xsc.entercontent, isinstance(node, xsc.Element))
-		def filtertopdownattrs(node):
-			return (isinstance(node, xsc.Element), xsc.enterattrs, xsc.entercontent)
-		def filterbottomupattrs(node):
-			return (xsc.enterattrs, xsc.entercontent, isinstance(node, xsc.Element))
-		def filtertopdowntextonlyinattr(path):
-			for node in path:
-				if isinstance(node, xsc.Attr):
-					inattr = True
-					break
-			else:
-				inattr = False
-			node = path[-1]
-			if isinstance(node, xsc.Element):
-				return (True, xsc.enterattrs, xsc.entercontent)
-			if inattr and isinstance(node, xsc.Text):
-				return (True, )
-			else:
-				return (xsc.entercontent, )
-
-		def filtertopdownattrwithoutcontent(node):
-			if isinstance(node, xsc.Element):
-				return (True, xsc.entercontent, xsc.enterattrs)
-			elif isinstance(node, (xsc.Attr, xsc.Text)):
-				return (True, )
-			else:
-				return (xsc.entercontent, )
-
-		self.check_walk(node, filtertopdown, ["div", "tr", "th", "td"])
-		self.check_walk(node, filterbottomup, ["th", "td", "tr", "div"])
-		self.check_walk(node, filtertopdownattrs, ["div", "i", "tr", "b", "th", "td"])
-		self.check_walk(node, filtertopdownattrs, ["div", "div.class.i", "div.tr", "div.tr.id.b", "div.tr.th", "div.tr.td"], outmode=xsc.walkpath)
-		self.check_walk(node, filterbottomupattrs, ["div.class.i", "div.tr.id.b", "div.tr.th", "div.tr.td", "div.tr", "div"], outmode=xsc.walkpath)
-		self.check_walk(node, filtertopdowntextonlyinattr, ["div", "div.class.i", "div.class.i.#", "div.tr", "div.tr.id.b", "div.tr.id.b.#", "div.tr.th", "div.tr.td"], inmode=xsc.walkpath, outmode=xsc.walkpath)
-		self.check_walk(node, filtertopdownattrwithoutcontent, ["div", "div.tr", "div.tr.th", "div.tr.th.#", "div.tr.td", "div.tr.td.#", "div.tr.id", "div.class"], outmode=xsc.walkpath)
-
-	def test_walkindex(self):
-		e = html.div(
-			"foo",
-			html.a(
-				"bar",
-				xml.Attrs(lang="en"),
-				href="baz",
-			),
-			"gurk",
-		)
-		res = list(e.walk(xsc.FindTypeAllAttrs(xsc.Text), outmode=xsc.walkindex))
-		exp = [
-			[0],
-			[1, 0],
-			[1, "href", 0],
-			[1, (xml, "lang"), 0], # FIXME: This depends on dictionary iteration order
-			[2]
-		]
-		self.assertEqual(res, exp)
-
-	def test_walkindexisnode(self):
-		# Check that all walk modes return the same data
-		for node in allnodes():
-			l1 = list(node.walk(xsc.FindTypeAllAttrs(xsc.Text), outmode=xsc.walknode))
-			l2 = list(node.walk(xsc.FindTypeAllAttrs(xsc.Text), outmode=xsc.walkpath))
-			l3 = list(node.walk(xsc.FindTypeAllAttrs(xsc.Text), outmode=xsc.walkindex))
-			l4 = list(node.walk(xsc.FindTypeAllAttrs(xsc.Text), outmode=xsc.walkrootindex))
-			self.assert_(len(l1) == len(l2) == len(l3) == len(l4))
-			for (subnode, path, index, (root, rindex)) in zip(l1, l2, l3, l4):
-				self.assert_(subnode is path[-1])
-				self.assert_(subnode is node[index])
-				self.assert_(subnode is root[rindex])
+	yield check, node, filtertopdown, ["div", "tr", "th", "td"]
+	yield check, node, filterbottomup, ["th", "td", "tr", "div"]
+	yield check, node, filtertopdownattrs, ["div", "i", "tr", "b", "th", "td"]
+	yield check, node, filtertopdownattrs, ["div", "div.class.i", "div.tr", "div.tr.id.b", "div.tr.th", "div.tr.td"], xsc.walknode, xsc.walkpath
+	yield check, node, filterbottomupattrs, ["div.class.i", "div.tr.id.b", "div.tr.th", "div.tr.td", "div.tr", "div"], xsc.walknode, xsc.walkpath
+	yield check, node, filtertopdowntextonlyinattr, ["div", "div.class.i", "div.class.i.#", "div.tr", "div.tr.id.b", "div.tr.id.b.#", "div.tr.th", "div.tr.td"], xsc.walkpath, xsc.walkpath
+	yield check, node, filtertopdownattrwithoutcontent, ["div", "div.tr", "div.tr.th", "div.tr.th.#", "div.tr.td", "div.tr.td.#", "div.tr.id", "div.class"], xsc.walknode, xsc.walkpath
 
 
-def test_main():
-	unittest.main()
+def test_walk_walkindex():
+	e = html.div(
+		"foo",
+		html.a(
+			"bar",
+			xml.Attrs(lang="en"),
+			href="baz",
+		),
+		"gurk",
+	)
+	res = list(e.walk(xsc.FindTypeAllAttrs(xsc.Text), outmode=xsc.walkindex))
+	exp = [
+		[0],
+		[1, 0],
+		[1, "href", 0],
+		[1, (xml, "lang"), 0], # FIXME: This depends on dictionary iteration order
+		[2]
+	]
+	assert res == exp
 
 
-if __name__ == "__main__":
-	test_main()
+def test_walk_walkindexisnode():
+	# Check that all walk modes return the same data
+	def check(node):
+		l1 = list(node.walk(xsc.FindTypeAllAttrs(xsc.Text), outmode=xsc.walknode))
+		l2 = list(node.walk(xsc.FindTypeAllAttrs(xsc.Text), outmode=xsc.walkpath))
+		l3 = list(node.walk(xsc.FindTypeAllAttrs(xsc.Text), outmode=xsc.walkindex))
+		l4 = list(node.walk(xsc.FindTypeAllAttrs(xsc.Text), outmode=xsc.walkrootindex))
+		assert len(l1) == len(l2) == len(l3) == len(l4)
+		for (subnode, path, index, (root, rindex)) in zip(l1, l2, l3, l4):
+			assert subnode is path[-1]
+			assert subnode is node[index]
+			assert subnode is root[rindex]
+
+	for node in allnodes():
+		yield check, node
