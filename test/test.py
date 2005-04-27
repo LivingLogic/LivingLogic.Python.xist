@@ -1100,7 +1100,7 @@ class NamespaceTest(unittest.TestCase):
 		self.check_namespace(wml)
 
 	def test_specials(self):
-		self.check_namespace(specials, specials.include)
+		self.check_namespace(specials, specials.include, specials.filetime, specials.filesize)
 
 	def test_form(self):
 		self.check_namespace(form)
