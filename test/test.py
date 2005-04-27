@@ -18,10 +18,6 @@ from ll.xist import xsc, parsers, cssparsers, presenters, converters, helpers, o
 from ll.xist.ns import wml, ihtml, html, chars, abbr, specials, htmlspecials, meta, form, php, xml, tld, docbook
 
 
-import warnings
-warnings.filterwarnings("error", category=xsc.RequiredAttrMissingWarning)
-warnings.filterwarnings("error", category=xsc.FileNotFoundWarning)
-
 # set to something ASCII, so presenters work, even if the system default encoding is ascii
 options.reprtab = "  "
 
