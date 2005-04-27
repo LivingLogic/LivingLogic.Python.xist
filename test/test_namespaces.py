@@ -9,8 +9,10 @@
 ## See xist/__init__.py for the license
 
 
+import py.test
+
 from ll.xist import xsc
-from ll.xist.ns import html, xml, chars, abbr, ihtml
+from ll.xist.ns import html, xml, chars, abbr, ihtml, wml, specials, htmlspecials, form, meta, svg, fo, docbook, jsp, struts_html, struts_config, tld
 
 
 def test_mixedattrnames():
@@ -38,6 +40,8 @@ def test_mixedattrnames():
 	def check(name, value):
 		assert unicode(node[name]) == value
 		assert unicode(node.attrs[name]) == value
+		if not isinstance(name, tuple):
+			assert unicode(getattr(node.attrs, name)) == value
 		assert unicode(node.attrs.get(name, xml=False)) == value
 		if isinstance(name, tuple):
 			name = (name[0], name[1].swapcase())
@@ -81,11 +85,17 @@ def test_variousnamespaces():
 	yield check, form
 	yield check, meta
 	yield check, htmlspecials, htmlspecials.autoimg, htmlspecials.autopixel
+	yield check, svg
+	yield check, fo
 	yield check, docbook
+	yield check, jsp
+	yield check, struts_html
+	yield check, struts_config
+	yield check, tld
 
 
 def test_nsupdate():
-	def createns(self):
+	def createns():
 		class __ns__(xsc.Namespace):
 			xmlname = "gurk"
 			xmlurl = "http://www.gurk.com/"
