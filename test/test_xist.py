@@ -13,6 +13,8 @@ import sys, unittest, cStringIO, warnings
 from xml.sax import saxlib
 from xml.parsers import expat
 
+import py.test
+
 from ll import url
 from ll.xist import xsc, parsers, cssparsers, presenters, converters, helpers, options, sims, xnd, xfind
 from ll.xist.ns import wml, ihtml, html, chars, abbr, specials, htmlspecials, meta, form, php, xml, tld, docbook
@@ -159,14 +161,14 @@ def check_lenunicode(node, _len, content):
 
 
 def test_fraglen():
-	yield check_lenunicode, xsc.Frag(), 0, u""
-	yield check_lenunicode, xsc.Frag(1), 1, u"1"
-	yield check_lenunicode, xsc.Frag(1, 2, 3), 3, u"123"
-	yield check_lenunicode, xsc.Frag(None), 0, u""
-	yield check_lenunicode, xsc.Frag(None, None, None), 0, u""
-	yield check_lenunicode, xsc.Frag(1, None, 2, None, 3, None, 4), 4, u"1234"
-	yield check_lenunicode, xsc.Frag(1, (2, 3)), 3, u"123"
-	yield check_lenunicode, xsc.Frag(1, (None, None)), 1, u"1"
+	check_lenunicode(xsc.Frag(), 0, u"")
+	check_lenunicode(xsc.Frag(1), 1, u"1")
+	check_lenunicode(xsc.Frag(1, 2, 3), 3, u"123")
+	check_lenunicode(xsc.Frag(None), 0, u"")
+	check_lenunicode(xsc.Frag(None, None, None), 0, u"")
+	check_lenunicode(xsc.Frag(1, None, 2, None, 3, None, 4), 4, u"1234")
+	check_lenunicode(xsc.Frag(1, (2, 3)), 3, u"123")
+	check_lenunicode(xsc.Frag(1, (None, None)), 1, u"1")
 
 
 def test_append():
@@ -358,105 +360,112 @@ def test_text():
 	assert node.title() == xsc.Text("Test")
 	assert node.upper() == xsc.Text("TEST")
 
-class XISTTest(unittest.TestCase):
+
+def test_charref():
+	node = chars.ouml()
+	hash(node)
+	assert len(node) == 1
+	assert node[0] == xsc.Text(u"ö")
+	assert 3*node == xsc.Text(u"ööö")
+	assert node*3 == xsc.Text(u"ööö")
+	assert node[1:-2] == xsc.Text()
+	assert node.capitalize() == xsc.Text(u"Ö")
+	assert node.center(5) == xsc.Text(u"  ö  ")
+	assert node.count(u"t") == 0
+	assert node.endswith(u"ö") is True
+	assert node.index(u"ö") == 0
+	assert node.isalpha() is True
+	assert node.isalnum() is True
+	assert node.isdecimal() is False
+	assert node.isdigit() is False
+	assert node.islower() is True
+	assert node.isnumeric() is False
+	assert node.isspace() is False
+	assert node.istitle() is False
+	assert node.isupper() is False
+	assert node.ljust(3) == xsc.Text(u"ö  ")
+	assert node.ljust(3, ".") == xsc.Text(u"ö..")
+	assert node.lower() == xsc.Text(u"ö")
+	assert node.replace(u"ö", "x") == xsc.Text("x")
+	assert node.rjust(3) == xsc.Text(u"  ö")
+	assert node.rjust(3, ".") == xsc.Text(u"..ö")
+	assert node.rfind(u"ö") == 0
+	assert node.rindex(u"ö") == 0
+	assert node.startswith(u"ö") is True
+	assert node.swapcase() == xsc.Text(u"Ö")
+	assert node.title() == xsc.Text(u"Ö")
+	assert node.upper() == xsc.Text(u"Ö")
 
 
+def test_getsetitem():
+	for cls in (xsc.Frag, html.div):
+		for attr in ("class_", (xml, "lang")):
+			node = cls(html.div("foo", html.div({attr: "gurk"}), "bar"))
+			assert node[[]] is node
+			assert str(node[[0, 1, attr]]) == "gurk"
+			node[[0, 1, attr]] = "hurz"
+			assert str(node[[0, 1, attr]]) == "hurz"
+			i = node[0][xsc.Text]
+			assert str(i.next()) == "foo"
+			assert str(i.next()) == "bar"
+			py.test.raises(StopIteration, i.next)
+			py.test.raises(ValueError, node.__setitem__, [], None)
+			py.test.raises(ValueError, node.__delitem__, [])
 
 
-	def test_charref(self):
-		node = chars.ouml()
-		hash(node)
-		self.assertEqual(len(node), 1)
-		self.assertEqual(node[0], xsc.Text(u"ö"))
-		self.assertEqual(3*node, xsc.Text(u"ööö"))
-		self.assertEqual(node*3, xsc.Text(u"ööö"))
-		self.assertEqual(node[1:-2], xsc.Text())
-		self.assertEqual(node.capitalize(), xsc.Text(u"Ö"))
-		self.assertEqual(node.center(5), xsc.Text(u"  ö  "))
-		self.assertEqual(node.count(u"t"), 0)
-		self.assertEqual(node.endswith(u"ö"), True)
-		self.assertEqual(node.index(u"ö"), 0)
-		self.assertEqual(node.isalpha(), True)
-		self.assertEqual(node.isalnum(), True)
-		self.assertEqual(node.isdecimal(), False)
-		self.assertEqual(node.isdigit(), False)
-		self.assertEqual(node.islower(), True)
-		self.assertEqual(node.isnumeric(), False)
-		self.assertEqual(node.isspace(), False)
-		self.assertEqual(node.istitle(), False)
-		self.assertEqual(node.isupper(), False)
-		self.assertEqual(node.ljust(3), xsc.Text(u"ö  "))
-		self.assertEqual(node.ljust(3, "."), xsc.Text(u"ö.."))
-		self.assertEqual(node.lower(), xsc.Text(u"ö"))
-		self.assertEqual(node.replace(u"ö", "x"), xsc.Text("x"))
-		self.assertEqual(node.rjust(3), xsc.Text(u"  ö"))
-		self.assertEqual(node.rjust(3, "."), xsc.Text(u"..ö"))
-		self.assertEqual(node.rfind(u"ö"), 0)
-		self.assertEqual(node.rindex(u"ö"), 0)
-		self.assertEqual(node.startswith(u"ö"), True)
-		self.assertEqual(node.swapcase(), xsc.Text(u"Ö"))
-		self.assertEqual(node.title(), xsc.Text(u"Ö"))
-		self.assertEqual(node.upper(), xsc.Text(u"Ö"))
-
-	def test_getsetitem(self):
-		for cls in (xsc.Frag, html.div):
-			for attr in ("class_", (xml, "lang")):
-				node = cls(html.div("foo", html.div({attr: "gurk"}), "bar"))
-				self.assert_(node[[]] is node)
-				self.assertEqual(str(node[[0, 1, attr]]), "gurk")
-				node[[0, 1, attr]] = "hurz"
-				self.assertEqual(str(node[[0, 1, attr]]), "hurz")
-				i = node[0][xsc.Text]
-				self.assertEqual(str(i.next()), "foo")
-				self.assertEqual(str(i.next()), "bar")
-				self.assertRaises(StopIteration, i.next)
-				self.assertRaises(ValueError, node.__setitem__, [], None)
-				self.assertRaises(ValueError, node.__delitem__, [])
-
-	def mappedmapper(self, node, converter):
+def test_conv():
+	def mappedmapper(node, converter):
 		if isinstance(node, xsc.Text):
 			node = node.replace("gurk", "hurz")
 		return node
 
-	def test_conv(self):
-		node = createfrag()
-		node.conv()
-		node.conv(converters.Converter())
-		node.mapped(self.mappedmapper, converters.Converter())
+	node = createfrag()
+	node.conv()
+	node.conv(converters.Converter())
+	node.mapped(mappedmapper, converters.Converter())
 
-	def test_repr(self):
-		tests = allnodes()
-		allpresenters = [c for c in presenters.__dict__.itervalues() if isinstance(c, type) and c is not presenters.Presenter and issubclass(c, presenters.Presenter)]
-		for node in tests:
-			repr(node)
-			for class_ in allpresenters:
-				presenter = class_()
+
+def test_repr():
+	tests = allnodes()
+	allpresenters = [c for c in presenters.__dict__.itervalues() if isinstance(c, type) and c is not presenters.Presenter and issubclass(c, presenters.Presenter)]
+	for node in tests:
+		repr(node)
+		for class_ in allpresenters:
+			presenter = class_()
+			# do it multiple time, to make sure the presenter gets properly reset
+			for i in xrange(3):
+				node.repr(presenter)
+		for showlocation in (False, True):
+			for showpath in (False, True):
+				presenter = presenters.TreePresenter(showlocation=showlocation, showpath=showpath)
 				# do it multiple time, to make sure the presenter gets properly reset
 				for i in xrange(3):
 					node.repr(presenter)
-			for showlocation in (False, True):
-				for showpath in (False, True):
-					presenter = presenters.TreePresenter(showlocation=showlocation, showpath=showpath)
-					# do it multiple time, to make sure the presenter gets properly reset
-					for i in xrange(3):
-						node.repr(presenter)
 
-	def test_attrsclone(self):
-		class newa(html.a):
-			def convert(self, converter):
-				attrs = self.attrs.clone()
-				attrs["href"].insert(0, "foo")
-				e = html.a(self.content, attrs)
-				return e.convert(converter)
-		e = newa("gurk", href="hurz")
-		e = e.conv().conv()
-		self.assertEqual(unicode(e["href"]), "foohurz")
-		self.assertEqual(str(e["href"]), "foohurz")
 
-	def test_attributes(self):
-		node = html.h1("gurk", {(xml, "lang"): "de"}, lang="de")
-		self.assert_(node.attrs.has("lang"))
-		self.assert_(node.attrs.has((xml, "lang")))
+def test_attrsclone():
+	class newa(html.a):
+		def convert(self, converter):
+			attrs = self.attrs.clone()
+			attrs["href"].insert(0, "foo")
+			e = html.a(self.content, attrs)
+			return e.convert(converter)
+	e = newa("gurk", href="hurz")
+	e = e.conv().conv()
+	assert unicode(e["href"]) == "foohurz"
+	assert str(e["href"]) == "foohurz"
+
+
+def test_attributes():
+	node = html.h1("gurk", {(xml, "lang"): "de"}, lang="de")
+	assert node.attrs.has("lang")
+	assert node.attrs.has((xml, "lang"))
+	assert "lang" in node.attrs
+	assert (xml, "lang") in node.attrs
+
+
+class XISTTest(unittest.TestCase):
+
 
 	def check_attributekeysvaluesitems(self, node, xml, attrname, attrvalue):
 		self.assertEquals(node.attrs.allowedkeys(xml=xml), [attrname])
