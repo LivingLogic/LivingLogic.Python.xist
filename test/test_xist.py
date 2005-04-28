@@ -545,212 +545,219 @@ def test_attributekeysvaluesitems():
 		check(Test2(attr_=None), xml, attrname, None)
 
 
-class XISTTest(unittest.TestCase):
-	def test_attributeswithout(self):
-		# Use a sub namespace of xml to test the issubclass checks
-		class xml2(xml):
-			class Attrs(xml.Attrs):
-				class lang(xml.Attrs.lang):
-					default = 42
+def test_attributeswithout():
+	# Use a sub namespace of xml to test the issubclass checks
+	class xml2(xml):
+		class Attrs(xml.Attrs):
+			class lang(xml.Attrs.lang):
+				default = 42
 
-		node = html.h1("gurk",
-			{(xml2, "space"): 1, (xml2, "lang"): "de", (xml2, "base"): "http://www.livinglogic.de/"},
-			lang="de",
-			style="color: #fff",
-			align="right",
-			title="gurk",
-			class_="important",
-			id=42,
-			dir="ltr"
-		)
-		keys = node.attrs.keys()
-		keys.sort()
-		keys.remove("class_")
+	node = html.h1("gurk",
+		{(xml2, "space"): 1, (xml2, "lang"): "de", (xml2, "base"): "http://www.livinglogic.de/"},
+		lang="de",
+		style="color: #fff",
+		align="right",
+		title="gurk",
+		class_="important",
+		id=42,
+		dir="ltr"
+	)
+	keys = node.attrs.keys()
+	keys.sort()
+	keys.remove("class_")
 
-		keys1 = node.attrs.without(["class_"]).keys()
-		keys1.sort()
-		self.assertEqual(keys, keys1)
+	keys1 = node.attrs.without(["class_"]).keys()
+	keys1.sort()
+	assert keys == keys1
 
-		keys.remove((xml2, "space"))
-		keys2 = node.attrs.without(["class_", (xml, "space")]).keys()
-		keys2.sort()
-		self.assertEqual(keys, keys2)
+	keys.remove((xml2, "space"))
+	keys2 = node.attrs.without(["class_", (xml, "space")]).keys()
+	keys2.sort()
+	assert keys == keys2
 
-		keys.remove((xml2, "lang"))
-		keys.remove((xml2, "base"))
-		keys3 = node.attrs.without(["class_"], [xml]).keys()
-		keys3.sort()
-		self.assertEqual(keys, keys3)
+	keys.remove((xml2, "lang"))
+	keys.remove((xml2, "base"))
+	keys3 = node.attrs.without(["class_"], [xml]).keys()
+	keys3.sort()
+	assert keys == keys3
 
-		# Check that non existing attrs are handled correctly
-		keys4 = node.attrs.without(["class_", "src"], keepglobals=False).keys()
-		keys4.sort()
-		self.assertEqual(keys, keys4)
+	# Check that non existing attrs are handled correctly
+	keys4 = node.attrs.without(["class_", "src"], keepglobals=False).keys()
+	keys4.sort()
+	assert keys == keys4
 
-	def test_attributeswith(self):
-		# Use a sub namespace of xml to test the issubclass checks
-		class xml2(xml):
-			class Attrs(xml.Attrs):
-				class lang(xml.Attrs.lang):
-					default = 42
 
-		node = html.h1("gurk",
-			{(xml2, "space"): 1, (xml2, "lang"): "de"},
-			lang="de",
-			align="right"
-		)
-		keys = node.attrs.keys()
-		keys.sort()
-		keys.remove("lang")
+def test_attributeswith():
+	# Use a sub namespace of xml to test the issubclass checks
+	class xml2(xml):
+		class Attrs(xml.Attrs):
+			class lang(xml.Attrs.lang):
+				default = 42
 
-		self.assertEquals(node.attrs.with(["lang"]).keys(), ["lang"])
+	node = html.h1("gurk",
+		{(xml2, "space"): 1, (xml2, "lang"): "de"},
+		lang="de",
+		align="right"
+	)
+	keys = node.attrs.keys()
+	keys.sort()
+	keys.remove("lang")
 
-		keys1 = node.attrs.with(["lang", "align"]).keys()
-		keys1.sort()
-		self.assertEqual(keys1, ["align", "lang"])
+	assert node.attrs.with(["lang"]).keys() == ["lang"]
 
-		keys = ["lang", (xml2, "lang")]
-		keys.sort()
-		keys2 = node.attrs.with(keys).keys()
-		keys2.sort()
-		self.assertEqual(keys2, keys)
+	keys1 = node.attrs.with(["lang", "align"]).keys()
+	keys1.sort()
+	assert keys1 == ["align", "lang"]
 
-		keys = ["lang", (xml2, "lang"), (xml2, "space")]
-		keys.sort()
-		keys3 = node.attrs.with(["lang"], [xml]).keys()
-		keys3.sort()
-		self.assertEqual(keys3, keys)
+	keys = ["lang", (xml2, "lang")]
+	keys.sort()
+	keys2 = node.attrs.with(keys).keys()
+	keys2.sort()
+	assert keys2 == keys
 
-	def test_defaultattributes(self):
-		class Test(xsc.Element):
-			class Attrs(xsc.Element.Attrs):
-				class withdef(xsc.TextAttr):
-					default = 42
-				class withoutdef(xsc.TextAttr):
-					pass
-		node = Test()
-		self.assert_(node.attrs.has("withdef"))
-		self.assert_(not node.attrs.has("withoutdef"))
-		self.assertRaises(xsc.IllegalAttrError, node.attrs.has, "illegal")
-		node = Test(withdef=None)
-		self.assert_(not node.attrs.has("withdef"))
+	keys = ["lang", (xml2, "lang"), (xml2, "space")]
+	keys.sort()
+	keys3 = node.attrs.with(["lang"], [xml]).keys()
+	keys3.sort()
+	assert keys3 == keys
 
-	def check_listiter(self, listexp, *lists):
+
+def test_defaultattributes():
+	class Test(xsc.Element):
+		class Attrs(xsc.Element.Attrs):
+			class withdef(xsc.TextAttr):
+				default = 42
+			class withoutdef(xsc.TextAttr):
+				pass
+	node = Test()
+	assert "withdef" in node.attrs
+	assert "withoutdef" not in node.attrs
+	py.test.raises(xsc.IllegalAttrError, node.attrs.__contains__, "illegal")
+	node = Test(withdef=None)
+	assert "withdef" not in node.attrs
+
+
+def test_attributedictmethods():
+	def check(listexp, *lists):
 		for l in lists:
 			count = 0
 			for item in l:
-				self.assert_(item in listexp)
+				assert item in listexp
 				count += 1
-			self.assertEqual(count, len(listexp))
+			assert count == len(listexp)
 
-	def test_attributedictmethods(self):
-		class Test(xsc.Element):
-			class Attrs(xsc.Element.Attrs):
-				class withdef(xsc.TextAttr):
-					default = 42
-				class withoutdef(xsc.TextAttr):
-					pass
-				class another(xsc.URLAttr):
-					pass
+	class Test(xsc.Element):
+		class Attrs(xsc.Element.Attrs):
+			class withdef(xsc.TextAttr):
+				default = 42
+			class withoutdef(xsc.TextAttr):
+				pass
+			class another(xsc.URLAttr):
+				pass
 
-		node = Test(withoutdef=42)
+	node = Test(withoutdef=42)
 
-		self.check_listiter(
-			[ "withdef", "withoutdef" ],
-			node.attrs.keys(),
-			node.attrs.iterkeys()
-		)
-		self.check_listiter(
-			[ Test.Attrs.withdef(42), Test.Attrs.withoutdef(42)],
-			node.attrs.values(),
-			node.attrs.itervalues()
-		)
-		self.check_listiter(
-			[ ("withdef", Test.Attrs.withdef(42)), ("withoutdef", Test.Attrs.withoutdef(42)) ],
-			node.attrs.items(),
-			node.attrs.iteritems()
-		)
+	check(
+		[ "withdef", "withoutdef" ],
+		node.attrs.keys(),
+		node.attrs.iterkeys()
+	)
+	check(
+		[ Test.Attrs.withdef(42), Test.Attrs.withoutdef(42)],
+		node.attrs.values(),
+		node.attrs.itervalues()
+	)
+	check(
+		[ ("withdef", Test.Attrs.withdef(42)), ("withoutdef", Test.Attrs.withoutdef(42)) ],
+		node.attrs.items(),
+		node.attrs.iteritems()
+	)
 
-		self.check_listiter(
-			[ "another", "withdef", "withoutdef" ],
-			node.attrs.allowedkeys(),
-			node.attrs.iterallowedkeys()
-		)
-		self.check_listiter(
-			[ Test.Attrs.another, Test.Attrs.withdef, Test.Attrs.withoutdef ],
-			node.attrs.allowedvalues(),
-			node.attrs.iterallowedvalues()
-		)
-		self.check_listiter(
-			[ ("another", Test.Attrs.another), ("withdef", Test.Attrs.withdef), ("withoutdef", Test.Attrs.withoutdef) ],
-			node.attrs.alloweditems(),
-			node.attrs.iteralloweditems()
-		)
+	check(
+		[ "another", "withdef", "withoutdef" ],
+		node.attrs.allowedkeys(),
+		node.attrs.iterallowedkeys()
+	)
+	check(
+		[ Test.Attrs.another, Test.Attrs.withdef, Test.Attrs.withoutdef ],
+		node.attrs.allowedvalues(),
+		node.attrs.iterallowedvalues()
+	)
+	check(
+		[ ("another", Test.Attrs.another), ("withdef", Test.Attrs.withdef), ("withoutdef", Test.Attrs.withoutdef) ],
+		node.attrs.alloweditems(),
+		node.attrs.iteralloweditems()
+	)
 
-	def test_fragattrdefault(self):
-		class testelem(xsc.Element):
-			class Attrs(xsc.Element.Attrs):
-				class testattr(xsc.TextAttr):
-					default = 42
 
-		node = testelem()
-		self.assertEquals(unicode(node["testattr"]), "42")
-		self.assertEquals(unicode(node.conv()["testattr"]), "42")
+def test_fragattrdefault():
+	class testelem(xsc.Element):
+		class Attrs(xsc.Element.Attrs):
+			class testattr(xsc.TextAttr):
+				default = 42
 
-		node["testattr"].clear()
-		self.assert_(not node.attrs.has("testattr"))
-		self.assert_(not node.conv().attrs.has("testattr"))
+	node = testelem()
+	assert unicode(node["testattr"]) == "42"
+	assert unicode(node.conv()["testattr"]) == "42"
 
-		node = testelem(testattr=23)
-		self.assertEquals(unicode(node["testattr"]), "23")
-		self.assertEquals(unicode(node.conv()["testattr"]), "23")
+	node["testattr"].clear()
+	assert "testattr" not in node.attrs
+	assert "testattr" not in node.conv().attrs
 
-		del node["testattr"]
-		self.assertEquals(unicode(node["testattr"]), "")
-		self.assertEquals(unicode(node.conv()["testattr"]), "")
+	node = testelem(testattr=23)
+	assert unicode(node["testattr"]) == "23"
+	assert unicode(node.conv()["testattr"]) == "23"
 
-		node["testattr"] = 23
-		node["testattr"] = None
-		self.assert_("testattr" not in node.attrs)
-		self.assert_("testattr" not in node.conv().attrs)
+	del node["testattr"]
+	assert unicode(node["testattr"]) == ""
+	assert unicode(node.conv()["testattr"]) == ""
 
-		node = testelem(testattr=None)
-		self.assert_("testattr" not in node.attrs)
-		self.assert_("testattr" not in node.conv().attrs)
+	node["testattr"] = 23
+	node["testattr"] = None
+	assert "testattr" not in node.attrs
+	assert "testattr" not in node.conv().attrs
 
-	def test_checkisallowed(self):
-		class testelem(xsc.Element):
-			class Attrs(xsc.Element.Attrs):
-				class testattr(xsc.TextAttr):
-					pass
+	node = testelem(testattr=None)
+	assert "testattr" not in node.attrs
+	assert "testattr" not in node.conv().attrs
 
-		class testelem2(testelem):
-			pass
 
-		class testelem3(testelem2):
-			class Attrs(testelem2.Attrs):
-				class testattr3(xsc.TextAttr):
-					pass
+def test_checkisallowed():
+	class testelem(xsc.Element):
+		class Attrs(xsc.Element.Attrs):
+			class testattr(xsc.TextAttr):
+				pass
 
-		class testelem4(testelem3):
-			class Attrs(testelem3.Attrs):
-				testattr = None
+	class testelem2(testelem):
+		pass
 
-		node = testelem()
-		self.assertEquals(node.attrs.isallowed("testattr"), True)
-		self.assertEquals(node.attrs.isallowed("notestattr"), False)
+	class testelem3(testelem2):
+		class Attrs(testelem2.Attrs):
+			class testattr3(xsc.TextAttr):
+				pass
 
-		node = testelem2()
-		self.assertEquals(node.attrs.isallowed("testattr"), True)
-		self.assertEquals(node.attrs.isallowed("notestattr"), False)
+	class testelem4(testelem3):
+		class Attrs(testelem3.Attrs):
+			testattr = None
 
-		node = testelem3()
-		self.assertEquals(node.attrs.isallowed("testattr"), True)
-		self.assertEquals(node.attrs.isallowed("testattr3"), True)
+	node = testelem()
+	assert node.attrs.isallowed("testattr") is True
+	assert node.attrs.isallowed("notestattr") is False
 
-		node = testelem4()
-		self.assertEquals(node.attrs.isallowed("testattr"), False)
-		self.assertEquals(node.attrs.isallowed("testattr3"), True)
+	node = testelem2()
+	assert node.attrs.isallowed("testattr") is True
+	assert node.attrs.isallowed("notestattr") is False
+
+	node = testelem3()
+	assert node.attrs.isallowed("testattr") is True
+	assert node.attrs.isallowed("testattr3") is True
+
+	node = testelem4()
+	assert node.attrs.isallowed("testattr") is False
+	assert node.attrs.isallowed("testattr3") is True
+
+
+class XISTTest(unittest.TestCase):
 
 	def test_withsep(self):
 		for class_ in (xsc.Frag, html.div):
