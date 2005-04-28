@@ -757,30 +757,32 @@ def test_checkisallowed():
 	assert node.attrs.isallowed("testattr3") is True
 
 
+def test_withsep():
+	for class_ in (xsc.Frag, html.div):
+		node = class_(1,2,3)
+		assert unicode(node.withsep(",")) == u"1,2,3"
+		node = class_(1)
+		assert unicode(node.withsep(",")) == u"1"
+		node = class_()
+		assert unicode(node.withsep(",")) == u""
+
+
+def test_allowedattr():
+	assert html.a.Attrs.allowedattr("href") is html.a.Attrs.href
+	py.test.raises(xsc.IllegalAttrError, html.a.Attrs.allowedattr, "gurk")
+	assert html.a.Attrs.allowedattr((xml, "lang")) is xml.Attrs.lang
+
+
+def test_plaintableattrs():
+	e = htmlspecials.plaintable(border=3)
+	assert isinstance(e["border"], html.table.Attrs.border)
+	assert isinstance(e["cellpadding"], html.table.Attrs.cellpadding)
+	e = e.conv()
+	assert isinstance(e["border"], html.table.Attrs.border)
+	assert isinstance(e["cellpadding"], html.table.Attrs.cellpadding)
+
+
 class XISTTest(unittest.TestCase):
-
-	def test_withsep(self):
-		for class_ in (xsc.Frag, html.div):
-			node = class_(1,2,3)
-			self.assertEquals(unicode(node.withsep(",")), u"1,2,3")
-			node = class_(1)
-			self.assertEquals(unicode(node.withsep(",")), u"1")
-			node = class_()
-			self.assertEquals(unicode(node.withsep(",")), u"")
-
-	def test_allowedattr(self):
-		self.assertEquals(html.a.Attrs.allowedattr("href"), html.a.Attrs.href)
-		self.assertRaises(xsc.IllegalAttrError, html.a.Attrs.allowedattr, "gurk")
-		self.assertEquals(html.a.Attrs.allowedattr((xml, "lang")), xml.Attrs.lang)
-
-	def test_plaintableattrs(self):
-		e = htmlspecials.plaintable(border=3)
-		self.assert_(isinstance(e["border"], html.table.Attrs.border))
-		self.assert_(isinstance(e["cellpadding"], html.table.Attrs.cellpadding))
-		e = e.conv()
-		self.assert_(isinstance(e["border"], html.table.Attrs.border))
-		self.assert_(isinstance(e["cellpadding"], html.table.Attrs.cellpadding))
-
 	def test_attrupdate(self):
 		node = html.a(href="gurk", class_="hurz")
 		node.attrs.update(xml.Attrs(lang="de"), {"href": "gurk2", "id": 42})
