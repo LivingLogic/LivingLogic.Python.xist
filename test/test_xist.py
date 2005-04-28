@@ -173,183 +173,195 @@ def test_append():
 	for cls in (xsc.Frag, html.div):
 		node = cls()
 		node.append(1)
-		yield check_lenunicode, node, 1, u"1"
+		check_lenunicode(node, 1, u"1")
 		node.append(2)
-		yield check_lenunicode, node, 2, u"12"
+		check_lenunicode(node, 2, u"12")
 		node.append()
-		yield check_lenunicode, node, 2, u"12"
+		check_lenunicode(node, 2, u"12")
 		node.append(3, 4)
-		yield check_lenunicode, node, 4, u"1234"
+		check_lenunicode(node, 4, u"1234")
 		node.append(None)
-		yield check_lenunicode, node, 4, u"1234"
+		check_lenunicode(node, 4, u"1234")
 		node.append((5, 6))
-		yield check_lenunicode, node, 6, u"123456"
+		check_lenunicode(node, 6, u"123456")
 
 
 def test_extend():
 	for cls in (xsc.Frag, html.div):
 		node = cls()
 		node.extend([1])
-		yield check_lenunicode, node, 1, u"1"
+		check_lenunicode(node, 1, u"1")
 		node.extend([2])
-		yield check_lenunicode, node, 2, u"12"
+		check_lenunicode(node, 2, u"12")
 		node.extend([])
-		yield check_lenunicode, node, 2, u"12"
+		check_lenunicode(node, 2, u"12")
 		node.extend([None])
-		yield check_lenunicode, node, 2, u"12"
+		check_lenunicode(node, 2, u"12")
 		node.extend([3, 4])
-		yield check_lenunicode, node, 4, u"1234"
+		check_lenunicode(node, 4, u"1234")
 		node.extend([[], [[], [5], []]])
-		yield check_lenunicode, node, 5, u"12345"
+		check_lenunicode(node, 5, u"12345")
 
 
 def test_insert():
 	for cls in (xsc.Frag, html.div):
 		node = cls()
 		node.insert(0, 1)
-		yield check_lenunicode, node, 1, u"1"
+		check_lenunicode(node, 1, u"1")
 		node.insert(0, 2)
-		yield check_lenunicode, node, 2, u"21"
+		check_lenunicode(node, 2, u"21")
 		node.insert(0, 3, 4)
-		yield check_lenunicode, node, 4, u"3421"
+		check_lenunicode(node, 4, u"3421")
 		node.insert(0, None)
-		yield check_lenunicode, node, 4, u"3421"
+		check_lenunicode(node, 4, u"3421")
 		node.insert(0, (5, 6))
-		yield check_lenunicode, node, 6, u"563421"
+		check_lenunicode(node, 6, u"563421")
 
 
 def test_iadd():
 	for cls in (xsc.Frag, html.div):
 		node = cls()
 		node += [1]
-		yield check_lenunicode, node, 1, u"1"
+		check_lenunicode(node, 1, u"1")
 		node += [2]
-		yield check_lenunicode, node, 2, u"12"
+		check_lenunicode(node, 2, u"12")
 		node += []
-		yield check_lenunicode, node, 2, u"12"
+		check_lenunicode(node, 2, u"12")
 		node += [None]
-		yield check_lenunicode, node, 2, u"12"
+		check_lenunicode(node, 2, u"12")
 		node += [3, 4]
-		yield check_lenunicode, node, 4, u"1234"
+		check_lenunicode(node, 4, u"1234")
 		node += [[], [[], [5], []]]
-		yield check_lenunicode, node, 5, u"12345"
+		check_lenunicode(node, 5, u"12345")
 
 
 def test_len():
 	for cls in (xsc.Frag, html.div):
-		yield check_lenunicode, cls(), 0, u""
-		yield check_lenunicode, cls(1), 1, u"1"
-		yield check_lenunicode, cls(1, 2, 3), 3, u"123"
-		yield check_lenunicode, cls(None), 0, u""
-		yield check_lenunicode, cls(None, None, None), 0, u""
-		yield check_lenunicode, cls(1, None, 2, None, 3, None, 4), 4, u"1234"
-		yield check_lenunicode, cls(1, (2, 3)), 3, u"123"
-		yield check_lenunicode, cls(1, (None, None)), 1, u"1"
+		check_lenunicode(cls(), 0, u"")
+		check_lenunicode(cls(1), 1, u"1")
+		check_lenunicode(cls(1, 2, 3), 3, u"123")
+		check_lenunicode(cls(None), 0, u"")
+		check_lenunicode(cls(None, None, None), 0, u"")
+		check_lenunicode(cls(1, None, 2, None, 3, None, 4), 4, u"1234")
+		check_lenunicode(cls(1, (2, 3)), 3, u"123")
+		check_lenunicode(cls(1, (None, None)), 1, u"1")
 
+
+def test_standardmethods():
+	for node in allnodes():
+		node.compact()
+		node.normalized()
+		list(node.walk((True, xsc.enterattrs, xsc.entercontent)))
+		node.find((True, xsc.enterattrs, xsc.entercontent))
+		node.pretty()
+		node.clone()
+		node.conv()
+		node.normalized().compact().pretty()
+
+
+def test_standardmethods2():
+	for node in (createelement(), createfrag()):
+		node.sorted()
+		node.shuffled()
+		node.reversed()
+
+
+def test_stringify():
+	for node in allnodes():
+		unicode(node)
+		str(node)
+		node.asString()
+		node.asBytes()
+
+
+def test_asText():
+	for node in allnodes():
+		node.asText()
+		node.asText(monochrome=True)
+		node.asText(squeezeBlankLines=True)
+		node.asText(lineNumbers=True)
+		node.asText(width=120)
+
+
+def test_number():
+	node = html.div(class_=1234)
+	assert int(node["class_"]) == 1234
+	assert long(node["class_"]) == 1234L
+	assert abs(float(node["class_"]) - 1234.) < 1e-2
+	node = html.div(class_="1+1j")
+	compl = complex(node["class_"])
+	assert abs(compl.real - 1.) < 1e-2
+	assert abs(compl.imag - 1.) < 1e-2
+
+
+def test_prefix():
+	node = html.div()
+	assert node.xmlprefix() == "html"
+
+
+def test_write():
+	node = html.div()
+	io = cStringIO.StringIO()
+	node.write(io, xhtml=2)
+	assert io.getvalue() == "<div/>"
+
+
+def test_mul():
+	node = xsc.Frag("a")
+	assert 3*node == xsc.Frag(list("aaa"))
+	assert node*3 == xsc.Frag(list("aaa"))
+
+	node = html.div()
+	assert 3*node == xsc.Frag(html.div(), html.div(), html.div())
+	assert node*3 == xsc.Frag(html.div(), html.div(), html.div())
+
+
+def test_text():
+	s = "test"
+	node = xsc.Text(s)
+	hash(node)
+	assert len(node), 4
+	assert node[1] == xsc.Text("e")
+	assert 3*node == xsc.Text(3*s)
+	assert node*3 == xsc.Text(s*3)
+	assert node[1:3] == xsc.Text("es")
+	assert node.capitalize() == xsc.Text("Test")
+	assert node.center(8) == xsc.Text("  test  ")
+	assert node.count("t") == 2
+	assert node.endswith("st") is True
+	assert node.index("s") == 2
+	assert node.isalpha() is True
+	assert node.isalnum() is True
+	assert node.isdecimal() is False
+	assert node.isdigit() is False
+	assert node.islower() is True
+	assert node.isnumeric() is False
+	assert node.isspace() is False
+	assert node.istitle() is False
+	assert node.isupper() is False
+	assert node.join(xsc.Frag(list("abc"))) == xsc.Frag("a", "test", "b", "test", "c")
+	assert node.ljust(6) == xsc.Text("test  ")
+	assert node.ljust(6, ".") == xsc.Text("test..")
+	assert node.lower() == xsc.Text("test")
+	assert xsc.Text("  test").lstrip() == xsc.Text("test")
+	assert node.replace("s", "x") == xsc.Text("text")
+	assert node.rjust(6) == xsc.Text("  test")
+	assert node.rjust(6, ".") == xsc.Text("..test")
+	assert xsc.Text("test  ").rstrip() == xsc.Text("test")
+	assert node.rfind("s") == 2
+	assert node.rindex("s") == 2
+	assert node.split("e") == xsc.Frag("t", "st")
+	assert xsc.Text("a\nb\n").splitlines() == xsc.Frag("a", "b")
+	assert node.startswith("te") is True
+	assert xsc.Text("  test  ").strip() == xsc.Text("test")
+	assert node.swapcase() == xsc.Text("TEST")
+	assert node.title() == xsc.Text("Test")
+	assert node.upper() == xsc.Text("TEST")
 
 class XISTTest(unittest.TestCase):
-	def test_standardmethods(self):
-		for node in allnodes():
-			node.compact()
-			node.normalized()
-			list(node.walk((True, xsc.enterattrs, xsc.entercontent)))
-			node.find((True, xsc.enterattrs, xsc.entercontent))
-			node.pretty()
-			node.clone()
-			node.conv()
-			node.normalized().compact().pretty()
 
-	def test_standardmethods2(self):
-		for node in (createelement(), createfrag()):
-			node.sorted()
-			node.shuffled()
-			node.reversed()
 
-	def test_stringify(self):
-		for node in allnodes():
-			unicode(node)
-			str(node)
-			node.asString()
-			node.asBytes()
 
-	def test_asText(self):
-		for node in allnodes():
-			node.asText()
-			node.asText(monochrome=True)
-			node.asText(squeezeBlankLines=True)
-			node.asText(lineNumbers=True)
-			node.asText(width=120)
-
-	def test_number(self):
-		node = html.div(class_=1234)
-		self.assertEqual(int(node["class_"]), 1234)
-		self.assertEqual(long(node["class_"]), 1234L)
-		self.assertAlmostEqual(float(node["class_"]), 1234.)
-		node = html.div(class_="1+1j")
-		compl = complex(node["class_"])
-		self.assertAlmostEqual(compl.real, 1.)
-		self.assertAlmostEqual(compl.imag, 1.)
-
-	def test_prefix(self):
-		node = html.div()
-		self.assertEqual(node.xmlprefix(), "html")
-
-	def test_write(self):
-		node = html.div()
-		io = cStringIO.StringIO()
-		node.write(io, xhtml=2)
-		self.assertEqual(io.getvalue(), "<div/>")
-
-	def test_mul(self):
-		node = xsc.Frag("a")
-		self.assertEqual(3*node, xsc.Frag(list("aaa")))
-		self.assertEqual(node*3, xsc.Frag(list("aaa")))
-
-		node = html.div()
-		self.assertEqual(3*node, xsc.Frag(html.div(), html.div(), html.div()))
-		self.assertEqual(node*3, xsc.Frag(html.div(), html.div(), html.div()))
-
-	def test_text(self):
-		s = "test"
-		node = xsc.Text(s)
-		hash(node)
-		self.assertEqual(len(node), 4)
-		self.assertEqual(node[1], xsc.Text("e"))
-		self.assertEqual(3*node, xsc.Text(3*s))
-		self.assertEqual(node*3, xsc.Text(s*3))
-		self.assertEqual(node[1:3], xsc.Text("es"))
-		self.assertEqual(node.capitalize(), xsc.Text("Test"))
-		self.assertEqual(node.center(8), xsc.Text("  test  "))
-		self.assertEqual(node.count("t"), 2)
-		self.assertEqual(node.endswith("st"), True)
-		self.assertEqual(node.index("s"), 2)
-		self.assertEqual(node.isalpha(), True)
-		self.assertEqual(node.isalnum(), True)
-		self.assertEqual(node.isdecimal(), False)
-		self.assertEqual(node.isdigit(), False)
-		self.assertEqual(node.islower(), True)
-		self.assertEqual(node.isnumeric(), False)
-		self.assertEqual(node.isspace(), False)
-		self.assertEqual(node.istitle(), False)
-		self.assertEqual(node.isupper(), False)
-		self.assertEqual(node.join(xsc.Frag(list("abc"))), xsc.Frag("a", "test", "b", "test", "c"))
-		self.assertEqual(node.ljust(6), xsc.Text("test  "))
-		self.assertEqual(node.ljust(6, "."), xsc.Text("test.."))
-		self.assertEqual(node.lower(), xsc.Text("test"))
-		self.assertEqual(xsc.Text("  test").lstrip(), xsc.Text("test"))
-		self.assertEqual(node.replace("s", "x"), xsc.Text("text"))
-		self.assertEqual(node.rjust(6), xsc.Text("  test"))
-		self.assertEqual(node.rjust(6, "."), xsc.Text("..test"))
-		self.assertEqual(xsc.Text("test  ").rstrip(), xsc.Text("test"))
-		self.assertEqual(node.rfind("s"), 2)
-		self.assertEqual(node.rindex("s"), 2)
-		self.assertEqual(node.split("e"), xsc.Frag("t", "st"))
-		self.assertEqual(xsc.Text("a\nb\n").splitlines(), xsc.Frag("a", "b"))
-		self.assertEqual(node.startswith("te"), True)
-		self.assertEqual(xsc.Text("  test  ").strip(), xsc.Text("test"))
-		self.assertEqual(node.swapcase(), xsc.Text("TEST"))
-		self.assertEqual(node.title(), xsc.Text("Test"))
-		self.assertEqual(node.upper(), xsc.Text("TEST"))
 
 	def test_charref(self):
 		node = chars.ouml()
