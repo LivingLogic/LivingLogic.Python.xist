@@ -464,89 +464,88 @@ def test_attributes():
 	assert (xml, "lang") in node.attrs
 
 
-class XISTTest(unittest.TestCase):
-
-
-	def check_attributekeysvaluesitems(self, node, xml, attrname, attrvalue):
-		self.assertEquals(node.attrs.allowedkeys(xml=xml), [attrname])
+def test_attributekeysvaluesitems():
+	def check(node, xml, attrname, attrvalue):
+		assert node.attrs.allowedkeys(xml=xml) == [attrname]
 		iter = node.attrs.iterallowedkeys(xml=xml)
-		self.assertEquals(iter.next(), attrname)
-		self.assertRaises(StopIteration, iter.next)
+		assert iter.next() == attrname
+		py.test.raises(StopIteration, iter.next)
 
-		self.assertEquals(node.attrs.allowedvalues(), [node.Attrs.attr_])
+		assert node.attrs.allowedvalues() == [node.Attrs.attr_]
 		iter = node.attrs.iterallowedvalues()
-		self.assertEquals(iter.next(), node.Attrs.attr_)
-		self.assertRaises(StopIteration, iter.next)
+		assert iter.next() == node.Attrs.attr_
+		py.test.raises(StopIteration, iter.next)
 
-		self.assertEquals(node.attrs.alloweditems(xml=xml), [(attrname, node.Attrs.attr_)])
+		assert node.attrs.alloweditems(xml=xml) == [(attrname, node.Attrs.attr_)]
 		iter = node.attrs.iteralloweditems(xml=xml)
-		self.assertEquals(iter.next(), (attrname, node.Attrs.attr_))
-		self.assertRaises(StopIteration, iter.next)
+		assert iter.next() == (attrname, node.Attrs.attr_)
+		py.test.raises(StopIteration, iter.next)
 
 		if attrvalue:
-			self.assertEquals(node.attrs.keys(xml=xml), [attrname])
+			assert node.attrs.keys(xml=xml) == [attrname]
 			iter = node.attrs.iterkeys(xml=xml)
-			self.assertEquals(iter.next(), attrname)
-			self.assertRaises(StopIteration, iter.next)
+			assert iter.next() == attrname
+			py.test.raises(StopIteration, iter.next)
 		else:
-			self.assertEquals(node.attrs.keys(xml=xml), [])
+			assert node.attrs.keys(xml=xml) == []
 			iter = node.attrs.iterkeys(xml=xml)
-			self.assertRaises(StopIteration, iter.next)
+			py.test.raises(StopIteration, iter.next)
 
 		if attrvalue:
 			res = node.attrs.values()
-			self.assertEquals(len(res), 1)
-			self.assertEquals(res[0].__class__, node.Attrs.attr_)
-			self.assertEquals(unicode(res[0]), attrvalue)
+			assert len(res) == 1
+			assert res[0].__class__ is node.Attrs.attr_
+			assert unicode(res[0]) == attrvalue
 			iter = node.attrs.itervalues()
 			res = iter.next()
-			self.assertEquals(res.__class__, node.Attrs.attr_)
-			self.assertEquals(unicode(res), attrvalue)
-			self.assertRaises(StopIteration, iter.next)
+			assert res.__class__ is node.Attrs.attr_
+			assert unicode(res) == attrvalue
+			py.test.raises(StopIteration, iter.next)
 		else:
 			res = node.attrs.values()
-			self.assertEquals(len(res), 0)
+			assert len(res) == 0
 			iter = node.attrs.itervalues()
-			self.assertRaises(StopIteration, iter.next)
+			py.test.raises(StopIteration, iter.next)
 
 		if attrvalue:
 			res = node.attrs.items(xml=xml)
-			self.assertEquals(len(res), 1)
-			self.assertEquals(res[0][0], attrname)
-			self.assertEquals(res[0][1].__class__, node.Attrs.attr_)
-			self.assertEquals(unicode(res[0][1]), attrvalue)
+			assert len(res) == 1
+			assert res[0][0] == attrname
+			assert res[0][1].__class__ is node.Attrs.attr_
+			assert unicode(res[0][1]) == attrvalue
 			iter = node.attrs.iteritems(xml=xml)
 			res = iter.next()
-			self.assertEquals(res[0], attrname)
-			self.assertEquals(res[1].__class__, node.Attrs.attr_)
-			self.assertEquals(unicode(res[1]), attrvalue)
-			self.assertRaises(StopIteration, iter.next)
+			assert res[0] == attrname
+			assert res[1].__class__ is node.Attrs.attr_
+			assert unicode(res[1]) == attrvalue
+			py.test.raises(StopIteration, iter.next)
 		else:
 			res = node.attrs.items(xml=xml)
-			self.assertEquals(len(res), 0)
+			assert len(res) == 0
 			iter = node.attrs.iteritems(xml=xml)
-			self.assertRaises(StopIteration, iter.next)
+			py.test.raises(StopIteration, iter.next)
 
-	def test_attributekeysvaluesitems(self):
-		class Test1(xsc.Element):
-			class Attrs(xsc.Element.Attrs):
-				class attr_(xsc.TextAttr):
-					xmlname = "attr"
-					default = 42
-		class Test2(xsc.Element):
-			class Attrs(xsc.Element.Attrs):
-				class attr_(xsc.TextAttr):
-					xmlname = "attr"
+	class Test1(xsc.Element):
+		class Attrs(xsc.Element.Attrs):
+			class attr_(xsc.TextAttr):
+				xmlname = "attr"
+				default = 42
+	class Test2(xsc.Element):
+		class Attrs(xsc.Element.Attrs):
+			class attr_(xsc.TextAttr):
+				xmlname = "attr"
 
-		for (xml, attrname) in ((False, u"attr_"), (True, u"attr")):
-			self.check_attributekeysvaluesitems(Test1(), xml, attrname, u"42")
-			self.check_attributekeysvaluesitems(Test1(attr_=17), xml, attrname, u"17")
-			self.check_attributekeysvaluesitems(Test1(attr_=None), xml, attrname, None)
+	for (xml, attrname) in ((False, u"attr_"), (True, u"attr")):
+		check(Test1(), xml, attrname, u"42")
+		check(Test1(attr_=17), xml, attrname, u"17")
+		check(Test1(attr_=None), xml, attrname, None)
 
-			self.check_attributekeysvaluesitems(Test2(), xml, attrname, None)
-			self.check_attributekeysvaluesitems(Test2(attr_=17), xml, attrname, u"17")
-			self.check_attributekeysvaluesitems(Test2(attr_=None), xml, attrname, None)
+		check(Test2(), xml, attrname, None)
+		check(Test2(attr_=17), xml, attrname, u"17")
+		check(Test2(attr_=None), xml, attrname, None)
 
+
+class XISTTest(unittest.TestCase):
 	def test_attributeswithout(self):
 		# Use a sub namespace of xml to test the issubclass checks
 		class xml2(xml):
