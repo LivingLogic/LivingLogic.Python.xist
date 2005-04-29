@@ -1001,44 +1001,6 @@ def test_sortedreversed():
 	yield check, "reversed"
 
 
-class CSSParseTest(unittest.TestCase):
-	def test_parse(self):
-		csshandler = cssparsers.ParseHandler()
-		s = "div {border: 0px;}"
-		self.assertEqual(csshandler.parseString(s), s)
-		s = "div {background-image: url(gurk.gif);}"
-		self.assertEqual(csshandler.parseString(s), s)
-		s = "div {background-image: url(gurk.gif);}"
-		self.assertEqual(
-			csshandler.parseString(s, base="root:hurz/index.css"),
-			"div {background-image: url(root:hurz/gurk.gif);}"
-		)
-
-	def test_publish(self):
-		csshandler = cssparsers.PublishHandler()
-		s = "div {border: 0px;}"
-		self.assertEqual(csshandler.parseString(s), s)
-		s = "div {background-image: url(gurk.gif);}"
-		self.assertEqual(csshandler.parseString(s), s)
-		s = "div {background-image: url(root:hurz/gurk.gif);}"
-		self.assertEqual(
-			csshandler.parseString(s, base="root:hurz/index.css"),
-			"div {background-image: url(gurk.gif);}"
-		)
-
-	def test_collect(self):
-		csshandler = cssparsers.CollectHandler()
-		s = """
-			div.c1 {background-image: url(root:hurz/hinz.gif);}
-			div.c1 {background-image: url(root:hurz/kunz.gif);}
-		"""
-		csshandler.parseString(s)
-		self.assertEqual(len(csshandler.urls), 2)
-		self.assertEqual(csshandler.urls[0], url.URL("root:hurz/hinz.gif"))
-		self.assertEqual(csshandler.urls[1], url.URL("root:hurz/kunz.gif"))
-
-
-
 def test_walk_1():
 	node = createfrag()
 	def filter(*args):
