@@ -782,223 +782,223 @@ def test_plaintableattrs():
 	assert isinstance(e["cellpadding"], html.table.Attrs.cellpadding)
 
 
-class XISTTest(unittest.TestCase):
-	def test_attrupdate(self):
-		node = html.a(href="gurk", class_="hurz")
-		node.attrs.update(xml.Attrs(lang="de"), {"href": "gurk2", "id": 42})
-		self.assertEquals(unicode(node["href"]), u"gurk2")
-		self.assertEquals(unicode(node["id"]), u"42")
-		self.assertEquals(unicode(node[(xml, "lang")]), u"de")
+def test_attrupdate():
+	node = html.a(href="gurk", class_="hurz")
+	node.attrs.update(xml.Attrs(lang="de"), {"href": "gurk2", "id": 42})
+	assert unicode(node["href"]) == u"gurk2"
+	assert unicode(node["id"]) == u"42"
+	assert unicode(node[(xml, "lang")]) == u"de"
 
-		node = html.a(href="gurk", class_="hurz")
-		node.attrs.updatenew(xml.Attrs(lang="de"), {"href": "gurk2", "id": 42})
-		self.assertEquals(unicode(node["href"]), u"gurk")
-		self.assertEquals(unicode(node["id"]), u"42")
-		self.assertEquals(unicode(node[(xml, "lang")]), u"de")
+	node = html.a(href="gurk", class_="hurz")
+	node.attrs.updatenew(xml.Attrs(lang="de"), {"href": "gurk2", "id": 42})
+	assert unicode(node["href"]) == u"gurk"
+	assert unicode(node["id"]) == u"42"
+	assert unicode(node[(xml, "lang")]) == u"de"
 
-		node = html.a(href="gurk", class_="hurz")
-		node.attrs.updateexisting({"href": "gurk2", "id": 42})
-		self.assertEquals(unicode(node["href"]), u"gurk2")
-		self.assertEquals("id" in node.attrs, False)
-		self.assertEquals((xml, "lang") in node.attrs, False)
+	node = html.a(href="gurk", class_="hurz")
+	node.attrs.updateexisting({"href": "gurk2", "id": 42})
+	assert unicode(node["href"]) == u"gurk2"
+	assert "id" not in node.attrs
+	assert (xml, "lang") not in node.attrs
 
-		node = html.a({(xml, "lang"): "de"}, href="gurk", class_="hurz")
-		self.assertEquals(unicode(node[(xml, "lang")]), u"de")
+	node = html.a({(xml, "lang"): "de"}, href="gurk", class_="hurz")
+	assert unicode(node[(xml, "lang")]) == u"de"
 
-		node = html.a(xml.Attrs(lang="de"), href="gurk", class_="hurz")
-		self.assertEquals(unicode(node[(xml, "lang")]), u"de")
+	node = html.a(xml.Attrs(lang="de"), href="gurk", class_="hurz")
+	assert unicode(node[(xml, "lang")]) == u"de"
 
-		class Gurk(xsc.Element):
-			model = False
-			class Attrs(xsc.Element.Attrs):
-				class gurk(xsc.TextAttr): pass
-				class hurz(xsc.TextAttr): default = "hinz+kunz"
+	class Gurk(xsc.Element):
+		model = False
+		class Attrs(xsc.Element.Attrs):
+			class gurk(xsc.TextAttr): pass
+			class hurz(xsc.TextAttr): default = "hinz+kunz"
 
-		node1 = Gurk()
-		node2 = Gurk(hurz=None)
-		node1.attrs.update(node2.attrs)
-		self.assert_("hurz" not in node1.attrs)
+	node1 = Gurk()
+	node2 = Gurk(hurz=None)
+	node1.attrs.update(node2.attrs)
+	assert "hurz" not in node1.attrs
 
-		node1 = Gurk(hurz=None)
-		node2 = Gurk()
-		node1.attrs.update(node2.attrs)
-		self.assert_("hurz" in node1.attrs)
+	node1 = Gurk(hurz=None)
+	node2 = Gurk()
+	node1.attrs.update(node2.attrs)
+	assert "hurz" in node1.attrs
 
-		node = Gurk(Gurk(hurz=None).attrs)
-		self.assert_("hurz" not in node.attrs)
+	node = Gurk(Gurk(hurz=None).attrs)
+	assert "hurz" not in node.attrs
 
-		attrs = Gurk.Attrs(Gurk.Attrs(hurz=None))
-		self.assert_("hurz" not in attrs)
+	attrs = Gurk.Attrs(Gurk.Attrs(hurz=None))
+	assert "hurz" not in attrs
 
-		# No global attributes inside global attributes
-		self.assertRaises(xsc.IllegalAttrError, xml.Attrs, xml.Attrs(lang="de"))
+	# No global attributes inside global attributes
+	py.test.raises(xsc.IllegalAttrError, xml.Attrs, xml.Attrs(lang="de"))
 
-	def test_classrepr(self):
-		repr(xsc.Base)
-		repr(xsc.Node)
-		repr(xsc.Null.__class__)
-		repr(xsc.Element)
-		repr(xsc.ProcInst)
-		repr(xsc.Entity)
-		repr(xsc.CharRef)
-		repr(xsc.Element.Attrs)
-		repr(xml.Attrs)
-		repr(xml.Attrs.lang)
 
-	def test_itemslice(self):
-		for cls in (xsc.Frag, html.div):
-			# __get(item|slice)__
-			e = cls(range(6))
-			self.assertEqual(e[2], xsc.Text(2))
-			self.assertEqual(e[-1], xsc.Text(5))
-			self.assertEqual(e[:], e)
-			self.assertEqual(e[:2], cls(0, 1))
-			self.assertEqual(e[-2:], cls(4, 5))
-			self.assertEqual(e[::2], cls(0, 2, 4))
-			self.assertEqual(e[1::2], cls(1, 3, 5))
-			self.assertEqual(e[::-1], cls(range(5, -1, -1)))
-			e[1] = 10
-			self.assertEqual(e, cls(0, 10, 2, 3, 4, 5))
-			e[1] = None
-			self.assertEqual(e, cls(0, 2, 3, 4, 5))
-			e[1] = ()
-			self.assertEqual(e, cls(0, 3, 4, 5))
+def test_classrepr():
+	repr(xsc.Base)
+	repr(xsc.Node)
+	repr(xsc.Null.__class__)
+	repr(xsc.Element)
+	repr(xsc.ProcInst)
+	repr(xsc.Entity)
+	repr(xsc.CharRef)
+	repr(xsc.Element.Attrs)
+	repr(xml.Attrs)
+	repr(xml.Attrs.lang)
 
-			# __set(item|slice)__
-			e = cls(range(6))
-			e[-1] = None
-			self.assertEqual(e, cls(0, 1, 2, 3, 4))
 
-			e = cls(range(6))
-			e[1:5] = (100, 200)
-			self.assertEqual(e, cls(0, 100, 200, 5))
+def test_itemslice():
+	for cls in (xsc.Frag, html.div):
+		# __get(item|slice)__
+		e = cls(range(6))
+		assert e[2] == xsc.Text(2)
+		assert e[-1] == xsc.Text(5)
+		assert e[:] == e
+		assert e[:2] == cls(0, 1)
+		assert e[-2:] == cls(4, 5)
+		assert e[::2] == cls(0, 2, 4)
+		assert e[1::2] == cls(1, 3, 5)
+		assert e[::-1] == cls(range(5, -1, -1))
+		e[1] = 10
+		assert e == cls(0, 10, 2, 3, 4, 5)
+		e[1] = None
+		assert e == cls(0, 2, 3, 4, 5)
+		e[1] = ()
+		assert e == cls(0, 3, 4, 5)
 
-			e = cls(range(6))
-			e[:] = (100, 200)
-			self.assertEqual(e, cls(100, 200))
+		# __set(item|slice)__
+		e = cls(range(6))
+		e[-1] = None
+		assert e == cls(0, 1, 2, 3, 4)
 
-			e = cls(range(6))
-			e[::2] = (100, 120, 140)
-			self.assertEqual(e, cls(100, 1, 120, 3, 140, 5))
+		e = cls(range(6))
+		e[1:5] = (100, 200)
+		assert e == cls(0, 100, 200, 5)
 
-			e = cls(range(6))
-			e[1::2] = (110, 130, 150)
-			self.assertEqual(e, cls(0, 110, 2, 130, 4, 150))
+		e = cls(range(6))
+		e[:] = (100, 200)
+		assert e == cls(100, 200)
 
-			e = cls(range(6))
-			e[::-1] = range(6)
-			self.assertEqual(e, cls(range(5, -1, -1)))
+		e = cls(range(6))
+		e[::2] = (100, 120, 140)
+		assert e == cls(100, 1, 120, 3, 140, 5)
 
-			# __del(item|slice)__
-			e = cls(range(6))
-			del e[0]
-			self.assertEqual(e, cls(1, 2, 3, 4, 5))
-			del e[-1]
-			self.assertEqual(e, cls(1, 2, 3, 4))
+		e = cls(range(6))
+		e[1::2] = (110, 130, 150)
+		assert e == cls(0, 110, 2, 130, 4, 150)
 
-			e = cls(range(6))
-			del e[1:5]
-			self.assertEqual(e, cls(0, 5))
+		e = cls(range(6))
+		e[::-1] = range(6)
+		assert e == cls(range(5, -1, -1))
 
-			e = cls(range(6))
-			del e[2:]
-			self.assertEqual(e, cls(0, 1))
+		# __del(item|slice)__
+		e = cls(range(6))
+		del e[0]
+		assert e == cls(1, 2, 3, 4, 5)
+		del e[-1]
+		assert e == cls(1, 2, 3, 4)
 
-			e = cls(range(6))
-			del e[-2:]
-			self.assertEqual(e, cls(0, 1, 2, 3))
+		e = cls(range(6))
+		del e[1:5]
+		assert e == cls(0, 5)
 
-			e = cls(range(6))
-			del e[:2]
-			self.assertEqual(e, cls(2, 3, 4, 5))
+		e = cls(range(6))
+		del e[2:]
+		assert e == cls(0, 1)
 
-			e = cls(range(6))
-			del e[:-2]
-			self.assertEqual(e, cls(4, 5))
+		e = cls(range(6))
+		del e[-2:]
+		assert e == cls(0, 1, 2, 3)
 
-			e = cls(range(6))
-			del e[:]
-			self.assertEqual(e, cls())
+		e = cls(range(6))
+		del e[:2]
+		assert e == cls(2, 3, 4, 5)
 
-			e = cls(range(6))
-			del e[::2]
-			self.assertEqual(e, cls(1, 3, 5))
+		e = cls(range(6))
+		del e[:-2]
+		assert e == cls(4, 5)
 
-			e = cls(range(6))
-			del e[1::2]
-			self.assertEqual(e, cls(0, 2, 4))
+		e = cls(range(6))
+		del e[:]
+		assert e == cls()
 
-		e = html.div(range(6), id=42)
-		self.assertEqual(e[2], xsc.Text(2))
-		self.assertEqual(e[-1], xsc.Text(5))
-		self.assertEqual(e[:], e)
-		self.assertEqual(e[:2], cls(0, 1, id=42))
-		self.assertEqual(e[-2:], cls(4, 5, id=42))
-		self.assertEqual(e[::2], cls(0, 2, 4, id=42))
-		self.assertEqual(e[1::2], cls(1, 3, 5, id=42))
-		self.assertEqual(e[::-1], cls(range(5, -1, -1), id=42))
+		e = cls(range(6))
+		del e[::2]
+		assert e == cls(1, 3, 5)
 
-	def test_clone(self):
-		for cls in (xsc.Frag, html.div):
-			e = html.div(1)
+		e = cls(range(6))
+		del e[1::2]
+		assert e == cls(0, 2, 4)
 
-			src = cls(1, e, e)
+	e = html.div(range(6), id=42)
+	assert e[2] == xsc.Text(2)
+	assert e[-1] == xsc.Text(5)
+	assert e[:] == e
+	assert e[:2] == cls(0, 1, id=42)
+	assert e[-2:] == cls(4, 5, id=42)
+	assert e[::2] == cls(0, 2, 4, id=42)
+	assert e[1::2] == cls(1, 3, 5, id=42)
+	assert e[::-1] == cls(range(5, -1, -1), id=42)
 
-			dst = src.clone()
-			self.assert_(src is not dst)
-			self.assert_(src[0] is dst[0])
-			self.assert_(src[1] is not dst[1])
-			self.assert_(dst[1] is not dst[2])
 
-			e.append(e) # create a cycle
+def test_clone():
+	for cls in (xsc.Frag, html.div):
+		e = html.div(1)
 
-			dst = src.copy()
-			self.assert_(src is not dst)
-			self.assert_(src[0] is dst[0])
-			self.assert_(src[1] is dst[1])
-			self.assert_(dst[1] is dst[2])
+		src = cls(1, e, e)
 
-			dst = src.deepcopy()
-			self.assert_(src is not dst)
-			self.assert_(src[0] is dst[0])
-			self.assert_(src[1] is not dst[1])
-			self.assert_(dst[1] is dst[2])
+		dst = src.clone()
+		assert src is not dst
+		assert src[0] is dst[0]
+		assert src[1] is not dst[1]
+		assert dst[1] is not dst[2]
 
-		e = html.div(id=(17, html.div(23), 42))
-		for src in (e, e.attrs):
-			dst = src.clone()
-			self.assert_(src["id"] is not dst["id"])
-			self.assert_(src["id"][0] is dst["id"][0])
-			self.assert_(src["id"][1] is not dst["id"][1])
+		e.append(e) # create a cycle
 
-		e["id"][1] = e # create a cycle
-		e["id"][2] = e # create a cycle
-		for src in (e, e.attrs):
-			dst = src.copy()
-			self.assert_(src["id"] is dst["id"])
-			self.assert_(src["id"][0] is dst["id"][0])
-			self.assert_(src["id"][1] is dst["id"][1])
-			self.assert_(dst["id"][1] is dst["id"][2])
-			dst = src.deepcopy()
-			self.assert_(src["id"] is not dst["id"])
-			self.assert_(src["id"][0] is dst["id"][0])
-			self.assert_(src["id"][1] is not dst["id"][1])
-			self.assert_(dst["id"][1] is dst["id"][2])
+		dst = src.copy()
+		assert src is not dst
+		assert src[0] is dst[0]
+		assert src[1] is dst[1]
+		assert dst[1] is dst[2]
 
-	def check_sortreverse(self, method):
+		dst = src.deepcopy()
+		assert src is not dst
+		assert src[0] is dst[0]
+		assert src[1] is not dst[1]
+		assert dst[1] is dst[2]
+
+	e = html.div(id=(17, html.div(23), 42))
+	for src in (e, e.attrs):
+		dst = src.clone()
+		assert src["id"] is not dst["id"]
+		assert src["id"][0] is dst["id"][0]
+		assert src["id"][1] is not dst["id"][1]
+
+	e["id"][1] = e # create a cycle
+	e["id"][2] = e # create a cycle
+	for src in (e, e.attrs):
+		dst = src.copy()
+		assert src["id"] is dst["id"]
+		assert src["id"][0] is dst["id"][0]
+		assert src["id"][1] is dst["id"][1]
+		assert dst["id"][1] is dst["id"][2]
+		dst = src.deepcopy()
+		assert src["id"] is not dst["id"]
+		assert src["id"][0] is dst["id"][0]
+		assert src["id"][1] is not dst["id"][1]
+		assert dst["id"][1] is dst["id"][2]
+
+
+
+def test_sortedreversed():
+	def check(method):
 		for class_ in (xsc.Frag, html.div):
 			node = class_(3, 2, 1)
 			node2 = getattr(node, method)()
-			self.assertEqual(node, class_(3, 2, 1))
-			self.assertEqual(node2, class_(1, 2, 3))
+			assert node == class_(3, 2, 1)
+			assert node2 == class_(1, 2, 3)
 
-	def test_sorted(self):
-		self.check_sortreverse("sorted")
-
-	def test_reversed(self):
-		self.check_sortreverse("reversed")
-
-
+	yield check, "sorted"
+	yield check, "reversed"
 
 
 class CSSParseTest(unittest.TestCase):
