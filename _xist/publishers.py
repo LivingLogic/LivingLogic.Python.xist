@@ -58,8 +58,9 @@ class Publisher(object):
 		"""
 		<par><arg>encoding</arg> specifies the encoding to be used.
 		The encoding itself (i.e. calling <method>encode</method> on the
-		unicode strings) must be done by <pyref method="publish"><method>ll.xist.publishers.Publisher.write</method></pyref>
-		and not by <pyref module="ll.xist.xsc" class="Node"><method>ll.xist.xsc.Node.publish</method></pyref>.</par>
+		unicode strings) must be done by <pyref method="encode"><method>encode</method></pyref>
+		(or <pyref method="encodetext"><method>encodetext</method></pyref>)
+		and not by <pyref module="ll.xist.xsc" class="Node"><method>publish</method></pyref>.</par>
 
 		<par>The only exception is in the case of encodings that can't encode
 		the full range of unicode characters like <lit>us-ascii</lit>
