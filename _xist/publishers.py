@@ -62,13 +62,6 @@ class Publisher(object):
 		(or <pyref method="encodetext"><method>encodetext</method></pyref>)
 		and not by <pyref module="ll.xist.xsc" class="Node"><method>publish</method></pyref>.</par>
 
-		<par>The only exception is in the case of encodings that can't encode
-		the full range of unicode characters like <lit>us-ascii</lit>
-		or <lit>iso-8859-1</lit>. In this case non encodable characters will be replaced
-		by characters references (if possible, if not (e.g. in comments or processing
-		instructions) an exception will be raised) before they are passed to
-		<pyref method="write"><method>write</method></pyref>.</par>
-
 		<par>With the parameter <arg>xhtml</arg> you can specify if you want &html; output
 		(i.e. elements with a content model EMPTY as <markup>&lt;foo&gt;</markup>) with
 		<lit><arg>xhtml</arg>==0</lit>, or XHTML output that is compatible with &html; browsers
