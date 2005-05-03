@@ -110,11 +110,11 @@ class Publisher(object):
 
 	def encodetext(self, text):
 		"""
-		<par>is used to write text data to the output stream. <arg>text</arg> must
+		<par>Encode <arg>test</arg> as text data. <arg>text</arg> must
 		be a <class>unicode</class> object. The publisher will apply the configured
 		encoding, error handling and the current text filter (which escapes
 		characters that can't appear in text data (like <lit>&lt;</lit> etc.))
-		and writes the resulting<class>str</class> object to the output stream.
+		and return the resulting <class>str</class> object.
 		"""
 		self.charstream.errors = self.__errors[-1]
 		result = self.encode(self.__textfilters[-1](text))
@@ -164,8 +164,8 @@ class Publisher(object):
 
 	def publish(self, node, base=None):
 		"""
-		<par>publish the node <arg>node</arg> to the stream <arg>stream</arg>.
-		All &url;s will be published relative to <arg>base</arg>.</par>
+		<par>publish the node <arg>node</arg>. This method is a generator that
+		will yield the resulting &xml; byte string in fragments.</par>
 		"""
 		def iselorat(node):
 			return (isinstance(node, (xsc.Element, xsc.Attr)), xsc.entercontent, xsc.enterattrs)
