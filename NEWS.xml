@@ -3,6 +3,10 @@
 <ulist>
 <item><class>ll.xist.ns.code.pyexec</class> processing instructions will not
 be executed at construction time, but at conversion time.</item>
+<item>The tests have been ported to <link href="http://codespeak.net/py/current/doc/test.html">py.test</link>.</item>
+<item>The method <method>mapped</method> is now callable without arguments.
+In this case a converter will be created on the fly. You can pass constructor
+arguments for this converter to <method>mapped</method> as keyword arguments.</item>
 </ulist>
 </section>
 

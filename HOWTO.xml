@@ -1375,8 +1375,7 @@ through a function. An example: To replace <lit>Python</lit> with <lit>Parrot</l
 in every text node on the <link href="http://www.python.org/">Python page</link>, do the following:</par>
 
 <prog>
-from ll.xist import xsc, parsers, converters
-from ll.xist.ns import html
+from ll.xist import xsc, parsers
 
 def p2p(node, converter):
 	if isinstance(node, xsc.Text):
@@ -1385,7 +1384,7 @@ def p2p(node, converter):
 	return node
 
 node = parsers.parseURL("http://www.python.org/", tidy=True)
-node = node.mapped(p2p, converters.Converter())
+node = node.mapped(p2p)
 node.write(open("parrot_index.html", "wb"))
 </prog>
 

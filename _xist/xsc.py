@@ -1145,7 +1145,7 @@ class Node(Base):
 		node.endloc = self.endloc
 		return node
 
-	def mapped(self, function, converter):
+	def mapped(self, function, converter=None, **converterargs):
 		"""
 		<par>Return the node mapped through the function <arg>function</arg>. This
 		call works recursively (for <pyref class="Frag"><class>Frag</class></pyref>
@@ -1157,6 +1157,8 @@ class Node(Base):
 		return a different node from <function>function</function> this node will
 		be incorporated into the result as-is.
 		"""
+		if converter is None:
+			converter = converters.Converter(**converterargs)
 		node = function(self, converter)
 		assert isinstance(node, Node), "the mapped method returned the illegal object %r (type %r) when mapping %r" % (node, type(node), self)
 		return node
@@ -1679,7 +1681,9 @@ class Frag(Node, list):
 			del content[index]
 		return node
 
-	def mapped(self, function, converter):
+	def mapped(self, function, converter=None, **converterargs):
+		if converter is None:
+			converter = converters.Converter(**converterargs)
 		node = function(self, converter)
 		assert isinstance(node, Node), "the mapped method returned the illegal object %r (type %r) when mapping %r" % (node, type(node), self)
 		if node is self:
@@ -3255,7 +3259,9 @@ class Element(Node):
 		node.content = self.content.shuffled()
 		return node
 
-	def mapped(self, function, converter):
+	def mapped(self, function, converter=None, **converterargs):
+		if converter is None:
+			converter = converters.Converter(**converterargs)
 		node = function(self, converter)
 		assert isinstance(node, Node), "the mapped method returned the illegal object %r (type %r) when mapping %r" % (node, type(node), self)
 		if node is self:
