@@ -23,7 +23,7 @@ from ll.xist import xsc, parsers, sims
 
 class z(xsc.Element):
 	"""
-	<par>Put the content into double quotes</par>
+	<par>Put the content into double quotes.</par>
 	"""
 	model = sims.Any()
 
