@@ -147,9 +147,6 @@ class wrap(xsc.Element):
 	<par>This is e.g. useful if you want to parse a
 	file that starts with <pyref module="ll.xist.ns.jsp"><module>&jsp;</module></pyref>
 	processing instructions.</par>
-
-	<par>This is also used for publishing, when <lit>xmlns</lit> attributes
-	are required, but the root is not an element.</par>
 	"""
 	model = sims.Any()
 
