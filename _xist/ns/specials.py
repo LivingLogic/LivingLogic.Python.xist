@@ -76,7 +76,7 @@ class filetime(xsc.Element):
 class time(xsc.Element):
 	"""
 	<par>the current time (i.e. the time when <pyref method="convert"><method>convert</method></pyref>
-	is called). You can specify the format of the string in the attribute format, which is a
+	is called). You can specify the format of the string in the attribute <lit>format</lit>, which is a
 	<function>strftime</function> compatible string.</par>
 	"""
 	model = sims.Empty()
