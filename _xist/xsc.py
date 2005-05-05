@@ -966,7 +966,7 @@ class Node(Base):
 		if publisher is None:
 			publisher = publishers.Publisher(**publishargs)
 		
-		return publisher.publish(self, base) # return a generator
+		return publisher.publish(self, base) # return a generator-iterator
 
 	def asBytes(self, base=None, publisher=None, **publishargs):
 		"""
@@ -2986,9 +2986,9 @@ class Element(Node):
 		if publisher.inattr:
 			# publish the content only when we are inside an attribute. This works much like using the plain string value,
 			# but even works with processing instructions, or what the abbreviation entities return
-			return self.content.publish(publisher) # return a generator
+			return self.content.publish(publisher) # return a generator-iterator
 		else:
-			return self._publishfull(publisher) # return a generator
+			return self._publishfull(publisher) # return a generator-iterator
 
 	def __getitem__(self, index):
 		"""

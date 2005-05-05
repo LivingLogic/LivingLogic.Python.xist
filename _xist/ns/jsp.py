@@ -151,8 +151,8 @@ class directive_page(directive):
 					contentType=(contenttype, u"; ", u"; ".join("%s=%s" % option for option in options.items())),
 					pageEncoding=publisher.encoding
 				)
-				return node.publish(publisher) # return a generator
-		return super(directive_page, self).publish(publisher) # return a generator
+				return node.publish(publisher) # return a generator-iterator
+		return super(directive_page, self).publish(publisher) # return a generator-iterator
 
 
 class __ns__(xsc.Namespace):

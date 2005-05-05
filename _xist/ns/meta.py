@@ -52,7 +52,7 @@ class contenttype(html.meta):
 
 	def publish(self, publisher):
 		# fall back to the Element method
-		return xsc.Element.publish(self, publisher) # return a generator
+		return xsc.Element.publish(self, publisher) # return a generator-iterator
 
 
 class contentscripttype(html.meta):
