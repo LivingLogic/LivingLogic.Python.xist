@@ -7,6 +7,14 @@ be executed at construction time, but at conversion time.</item>
 <item>The method <method>mapped</method> is now callable without arguments.
 In this case a converter will be created on the fly. You can pass constructor
 arguments for this converter to <method>mapped</method> as keyword arguments.</item>
+<item>The publishing &api; has changed again: <method>ll.xist.publishers.Publisher.publish</method>
+now longer accepts an argument <arg>stream</arg> to which the byte strings are
+written, but it is a generator now. The publisher methods <method>write</method>
+and <method>writetext</method> have been renamed to <method>encode</method> and
+<method>encodetext</method> and return the encoded byte string, instead of
+writing it directly to the stream. There's a new generator method
+<method>bytes</method> for nodes now, which can be passed the same arguments
+as <method>asBytes</method>.</item>
 </ulist>
 </section>
 
@@ -147,7 +155,7 @@ value passed in, so it's now possible to pass iterators and generators
 (and generator expressions in Python 2.4) to <class>Frag</class>
 and <class>Element</class> constructors.</item>
 
-<item><par>A new API named XFind has been added for iterating through &xml;
+<item><par>A new &api; named XFind has been added for iterating through &xml;
 trees. XFind expressions look somewhat like XPath expressions but are pure
 Python expressions. For example finding all images inside links in an &html;
 page can be done like this:</par>
@@ -170,14 +178,14 @@ that can be used in XFind expressions.</par>
 no longer accept options for tidy, only the boolean value of the <arg>tidy</arg>
 argument is used.</item>
 
-<item>The publishing API has been simplified: Publication can now be done with
+<item>The publishing &api; has been simplified: Publication can now be done with
 a call to <method>ll.xist.publishers.Publisher.publish</method>, passing in a
 <class>ll.xist.xsc.Node</class>. Writing strings to the publisher output is
 now done with <method>ll.xist.publishers.Publisher.write</method>. The methods
 <method>beginPublication</method> and <method>endPublication</method> have been
 removed.</item>
 
-<item>The presentation API has been simplified in the same way: You'll get a
+<item>The presentation &api; has been simplified in the same way: You'll get a
 presentation by calling: <lit>string = <rep>presenter</rep>.present(<rep>node</rep>)</lit>.
 The methods <method>beginPresentation</method> and <method>endPresentation</method>
 have been removed.</item>
