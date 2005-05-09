@@ -16,6 +16,8 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
 
+import collections
+
 import ll
 
 
@@ -43,13 +45,13 @@ def item(iterator, index, default=_defaultitem):
 			i -= 1
 	else:
 		i = -index
-		cache = []
+		cache = collections.deque()
 		for item in iterator:
 			cache.append(item)
 			if len(cache)>i:
-				cache.pop(0)
+				cache.popleft()
 		if len(cache)==i:
-			return cache[0]
+			return cache.popleft()
 	if default is _defaultitem:
 		raise IndexError(index)
 	else:
@@ -93,10 +95,39 @@ def iterone(node):
 
 
 ###
+###
+###
+
+class Iterator(object):
+	__slots__ = "iterator"
+
+	def __init__(self, iterator):
+		self.iterator = iterator
+
+	def __getitem__(self, index):
+		if isinstance(index, slice):
+			return list(self.iterator)[index]
+		return item(self, index)
+
+	def __iter__(self):
+		return self
+
+	def next(self):
+		return self.iterator.next()
+
+	# We can't implement __len__, because if such an object is passed to list(), __len__() would be called, exhausting the iterator
+
+	def __nonzero__(self):
+		for node in self:
+			return True
+		return False
+
+
+###
 ### XFind expression
 ###
 
-class Expr(object):
+class Expr(Iterator):
 	"""
 	A <class>Expr</class> object is a <z>parsed</z> XFind expression.
 	The expression <lit><rep>a</rep>/<rep>b</rep></lit> will return an
@@ -112,27 +143,14 @@ class Expr(object):
 		from ll.xist import xsc
 		if isinstance(iterator, xsc.Node):
 			iterator = iterone(iterator)
-		self.iterator = iterator
+		Iterator.__init__(self, iterator)
 		self.operator = OperatorChain(*operators)
-
-	def next(self):
-		return self.iterator.next()
 
 	def __iter__(self):
 		if self.operator.operators:
 			return self.operator.xfind(self.iterator)
 		else:
 			return self.iterator
-
-	def __getitem__(self, index):
-		return item(self, index)
-
-	# We can't implement __len__, because if a Expr object is passed to list(), __len__() would be called, exhausting the iterator
-
-	def __nonzero__(self):
-		for node in self:
-			return True
-		return False
 
 	def __div__(self, other):
 		return Expr(self.iterator, self.operator/other)

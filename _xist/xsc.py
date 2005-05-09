@@ -1490,12 +1490,11 @@ class Frag(Node, list):
 				node = node[subindex]
 			return node
 		elif isinstance(index, type) and issubclass(index, Node):
-			# We can't use yield directly, because this method can't be both a function and a generator
 			def iterate(self, index):
 				for child in self:
 					if isinstance(child, index):
 						yield child
-			return iterate(self, index)
+			return xfind.Iterator(iterate(self, index))
 		elif isinstance(index, slice):
 			return self.__class__(list.__getitem__(self, index))
 		else:
