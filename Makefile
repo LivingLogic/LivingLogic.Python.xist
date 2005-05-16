@@ -1,7 +1,7 @@
 # $Header$
 
 # List of pseudo targets
-.PHONY: all clean dist windist
+.PHONY: all test install clean dist windist
 
 # Output directory
 OUTPUTDIR=$(HOME)/pythonroot
