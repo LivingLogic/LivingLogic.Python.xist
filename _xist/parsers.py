@@ -499,7 +499,7 @@ class Parser(object):
 	def _last(self):
 		"""
 		return the newest node from the stack that is a real node.
-		(There might be false node on the stack, because we are inside
+		(There might be a fake node on the stack, because we are inside
 		of illegal elements).
 		"""
 		for (node, prefixes) in reversed(self._nesting):
