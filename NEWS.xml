@@ -67,8 +67,8 @@ eggs
 attribute class.)</par>
 </item>
 <item><class>Frag</class> and <class>Element</class> now support <class>Node</class>
-subclasses in their <method>__getitem__</method> method: An iterator for all children
-of the specified type will be returned.</item>
+subclasses as arguments to their <method>__getitem__</method> method: An iterator
+for all children of the specified type will be returned.</item>
 <item>The encoding used for parsing now defaults to <lit>None</lit>. When
 reading from an &url; and no default encoding has been specified the one
 from the <lit>Content-Type</lit> header will be used. If this still doesn't
