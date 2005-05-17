@@ -203,3 +203,68 @@ ll.xist.xsc.Frag(
 )
 </tty>
 </section>
+
+
+<section><title>Using converter contexts to pass information between elements</title>
+
+<par>Converter contexts can be used to pass information between elements.
+The following example will generate &html; <lit>&lt;h1&gt;</lit>, ..., <lit>&lt;h6&gt;</lit>
+elements according to the nesting depth of a <lit>&lt;section&gt;</lit> element.</par>
+
+<prog>
+from ll.xist import xsc
+
+class section(xsc.Element):
+	class Attrs(xsc.Element.Attrs):
+		class title(xsc.TextAttr): pass
+
+	class Context(xsc.Element.Context):
+		def __init__(self):
+			xsc.Element.Context.__init__(self)
+			self.level = 1
+
+	def convert(self, converter):
+		context = converter[self]
+		node = xsc.Frag(
+			converter.target.element("h%d" % min(context.level, 6))(self["title"]),
+			self.content
+		)
+		context.level += 1
+		node = node.convert(converter)
+		context.level -= 1
+		return node
+
+document = section(title="Python Tutorial")(
+	section(title="Using the Python Interpreter")(
+		section(title="Invoking the Interpreter")(
+			section(title="Argument Passing"),
+			section(title="Interactive Mode")
+		),
+		section(title="The Interpreter and Its Environment")(
+			section(title="Error Handling"),
+			section(title="Executable Python Scripts"),
+			section(title="Source Code Encoding"),
+			section(title="The Interactive Startup File")
+		)
+	)
+)
+
+print document.conv().asBytes()
+</prog>
+
+<par>The output of this script will be:</par>
+
+<tty>
+&lt;h1&gt;Python Tutorial&lt;/h1&gt;
+&lt;h2&gt;Using the Python Interpreter&lt;/h2&gt;
+&lt;h3&gt;Invoking the Interpreter&lt;/h3&gt;
+&lt;h4&gt;Argument Passing&lt;/h4&gt;
+&lt;h4&gt;Interactive Mode&lt;/h4&gt;
+&lt;h3&gt;The Interpreter and Its Environment&lt;/h3&gt;
+&lt;h4&gt;Error Handling&lt;/h4&gt;
+&lt;h4&gt;Executable Python Scripts&lt;/h4&gt;
+&lt;h4&gt;Source Code Encoding&lt;/h4&gt;
+&lt;h4&gt;The Interactive Startup File&lt;/h4&gt;
+</tty>
+
+</section>
