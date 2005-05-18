@@ -7,7 +7,7 @@ to <module>ll.xist.xsc</module>.</par>
 </section>
 
 <section><title>Changes to &xml; name handling</title>
-<par>The class attribute <lit>xmlname</lit> no longer gets replace with a tuple
+<par>The class attribute <lit>xmlname</lit> no longer gets replaced with a tuple
 containing both the Python and the &xml; name. If you want to get the Python name,
 use <lit><rep>foo</rep>.__class__.__name__</lit>.</par>
 </section>
@@ -24,7 +24,7 @@ and (for <method>walk</method>) <arg>walkmode</arg> has been renamed to <arg>out
 
 <section><title>Changes to display hooks</title>
 <par>The way &xist; uses <function>sys.displayhook</function> has been
-enhanced. To make use of this you might want to update your Python
+enhanced. To make use of this, you might want to update your Python
 startup script. For more info see the
 <link href="root:xist/Installation.html">installation instructions</link>.</par>
 </section>
