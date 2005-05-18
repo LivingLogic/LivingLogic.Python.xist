@@ -33,19 +33,15 @@ def cssescapereplace(exc):
 codecs.register_error("cssescapereplace", cssescapereplace)
 
 
-class _Queue(object):
+class Queue(list):
 	"""
 	queue: write bytes at one end, read bytes from the other end
 	"""
-	def __init__(self):
-		self._buffer = ""
-
-	def write(self, chars):
-		self._buffer += chars
+	write = list.append
 
 	def read(self):
-		s = self._buffer
-		self._buffer = ""
+		s = "".join(self)
+		del self[:]
 		return s
 
 
@@ -192,7 +188,7 @@ class Publisher(object):
 		self.base = url.URL(base)
 		self.node = node
 
-		self.bytestream = _Queue()
+		self.bytestream = Queue()
 		self.charstream = codecs.getwriter(self.encoding)(self.bytestream)
 
 		for part in self.node.publish(self):
