@@ -15,6 +15,8 @@ and <method>writetext</method> have been renamed to <method>encode</method> and
 writing it directly to the stream. There's a new generator method
 <method>bytes</method> for nodes now, which can be passed the same arguments
 as <method>asBytes</method>.</item>
+<item>Several bugs in the namespaces <module>ll.xist.ns.meta</module> and
+<module>ll.xist.ns.specials</module> have been fixed.</item>
 </ulist>
 </section>
 
