@@ -9,7 +9,8 @@
 <item><link href="root:ansistyle/index.html">ll-ansistyle</link> (0.6 or newer),</item>
 <item>if you want to use automatic image size calculation: the
 <link href="http://www.pythonware.com/products/pil/">Python Imaging Library</link>,</item>
-<item>if you want to parse broken &html;: <link href="http://www.xmlsoft.org/">libxml2</link>,</item>
+<item>if you want to parse broken &html;: <link href="http://www.xmlsoft.org/">libxml2</link>
+(including its Python wrapper),</item>
 <item>if you want want to use the method <method>asText</method> to convert &html; to
 plain text: <link href="http://w3m.browser.org/">w3m</link>,</item>
 <item>if you want to run the test suite: <link href="http://codespeak.net/py/current/doc/test.html">py.test</link>,</item>
