@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
 <section><title>Changes in 2.10 (released ??/??/2005)</title>
 <ulist>
-<item>The content of the processing instructions <class>ll.xist.ns.code.pyexec</class>
+<item>The content of the processing instruction <class>ll.xist.ns.code.pyexec</class>
 will not be executed at construction time, but at conversion time.</item>
 <item>The tests have been ported to <link href="http://codespeak.net/py/current/doc/test.html">py.test</link>.</item>
 <item>The method <method>mapped</method> is now callable without arguments.
