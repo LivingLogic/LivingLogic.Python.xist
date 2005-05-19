@@ -450,6 +450,12 @@ class utc(base):
 	lang = u"en"
 
 
+class wsgi(base):
+	content = u"WSGI"
+	title = u"Web Server Gateway Interface"
+	lang = u"en"
+
+
 class __ns__(xsc.Namespace):
 	xmlname = "abbr"
 	xmlurl = "http://xmlns.livinglogic.de/xist/ns/abbr"
