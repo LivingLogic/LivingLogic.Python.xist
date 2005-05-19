@@ -17,7 +17,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 
 import sys
 
-from ll.xist import xsc, sandbox
+from ll.xist import xsc
 import html
 
 
@@ -90,7 +90,8 @@ class pyexec(xsc.ProcInst):
 
 	def convert(self, converter):
 		code = Code(self.content, 1)
-		exec code.asString() in sandbox.__dict__ # requires Python 2.0b2 (and doesn't really work)
+		sandbox = converter[self.__ns__].sandbox
+		exec code.asString() in sandbox # requires Python 2.0b2 (and doesn't really work)
 		return xsc.Null
 
 
@@ -117,12 +118,19 @@ class pyeval(xsc.ProcInst):
 		"""
 		code = Code(self.content, 1)
 		code.funcify()
-		exec code.asString() in sandbox.__dict__ # requires Python 2.0b2 (and doesn't really work)
-		return xsc.ToNode(sandbox.__(converter)).convert(converter)
+		sandbox = converter[self.__ns__].sandbox
+		exec code.asString() in sandbox # requires Python 2.0b2 (and doesn't really work)
+		return xsc.ToNode(sandbox["__"](converter)).convert(converter)
 
 
 class __ns__(xsc.Namespace):
 	xmlname = "code"
 	xmlurl = "http://xmlns.livinglogic.de/xist/ns/code"
+
+	class Context(xsc.Namespace.Context):
+		def __init__(self):
+			xsc.Namespace.Context.__init__(self)
+			self.sandbox = {}
+
 __ns__.makemod(vars())
 
