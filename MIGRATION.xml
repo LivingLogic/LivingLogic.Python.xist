@@ -23,6 +23,11 @@ this fact (e.g. to make a namespace available for parsing the rest of the
 &xml; file) you will have to change your code.</par>
 </section>
 
+<section><title>Removed namespaces</title>
+<item>The namespace modules <module>ll.xist.ns.css</module> and
+<module>ll.xist.ns.cssspecials</module> have been removed.</item>
+</section>
+
 </section>
 
 
