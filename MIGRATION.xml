@@ -11,6 +11,18 @@ with <lit>yield publisher.encode(<rep>foo</rep>)</lit> and
 <lit>yield publisher.encodetext(<rep>foo</rep>)</lit>.</par>
 </section>
 
+<section><title>Changes to the test suite</title>
+<par>The test suite now uses <link href="http://codespeak.net/py/current/doc/test.html">py.test</link>,
+so if you want to run it you'll need py.test.</par>
+</section>
+
+<section><title>Changes to <module>ll.xist.ns.code</module></title>
+<par>The code in a <class>ll.xist.ns.code.pyeval</class> object is no longer
+executed at construction time, but at conversion time. So if you relied on
+this fact (e.g. to make a namespace available for parsing the rest of the
+&xml; file) you will have to change your code.</par>
+</section>
+
 </section>
 
 
