@@ -24,8 +24,8 @@ this fact (e.g. to make a namespace available for parsing the rest of the
 </section>
 
 <section><title>Removed namespaces</title>
-<item>The namespace modules <module>ll.xist.ns.css</module> and
-<module>ll.xist.ns.cssspecials</module> have been removed.</item>
+<par>The namespace modules <module>ll.xist.ns.css</module> and
+<module>ll.xist.ns.cssspecials</module> have been removed.</par>
 </section>
 
 </section>
