@@ -1100,7 +1100,7 @@ class Node(Base):
 		<par><arg>outmode</arg> works similar to <arg>inmode</arg> and
 		specifies what will be yielded from the iterator.</par>
 		"""
-		return self._walk(filter, [self], [], inmode, outmode)
+		return xfind.Iterator(self._walk(filter, [self], [], inmode, outmode))
 
 	def find(self, filter=(True, entercontent), inmode=walknode):
 		"""
