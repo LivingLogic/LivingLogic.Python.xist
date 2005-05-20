@@ -290,7 +290,7 @@ def test_conv():
 			node = node.replace("gurk", "hurz")
 		return node
 
-	node = createfrag()
+	node = common.createfrag()
 	node.conv()
 	node.conv(converters.Converter())
 	node.mapped(mappedmapper, converters.Converter())
