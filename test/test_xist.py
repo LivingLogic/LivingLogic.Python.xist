@@ -19,140 +19,11 @@ from ll import url
 from ll.xist import xsc, parsers, cssparsers, presenters, converters, helpers, options, sims, xnd, xfind
 from ll.xist.ns import wml, ihtml, html, chars, abbr, specials, htmlspecials, meta, form, php, xml, tld, docbook
 
+import common
+
 
 # set to something ASCII, so presenters work, even if the system default encoding is ascii
 options.reprtab = "  "
-
-
-def createattr():
-	return html.span.Attrs.lang(
-		True,
-		False,
-		url.URL("http://www.python.org/"),
-		html.abbr(
-			xml.XML10(),
-			"hurz",
-			specials.tab(),
-			abbr.xist(),
-			None,
-			1,
-			2.0,
-			"3",
-			u"4",
-			(5, 6),
-			[7, 8],
-			html.span("gurk"),
-			title="hurz"
-		)
-	)
-
-
-def createattrs():
-	return html.span.Attrs(
-		lang=(
-			True,
-			False,
-			url.URL("http://www.python.org/"),
-			html.abbr(
-				xml.XML10(),
-				"hurz",
-				specials.tab(),
-				abbr.xist(),
-				None,
-				1,
-				2.0,
-				"3",
-				u"4",
-				(5, 6),
-				[7, 8],
-				html.span("gurk"),
-				title="hurz"
-			)
-		)
-	)
-
-
-def createelement():
-	return html.span(
-		1,
-		2,
-		class_="gurk",
-		id=(1, 2, (3, 4)),
-		lang=(
-			True,
-			False,
-			url.URL("http://www.python.org/"),
-			html.abbr(
-				xml.XML10(),
-				"hurz",
-				specials.tab(),
-				abbr.xist(),
-				None,
-				1,
-				2.0,
-				"3",
-				u"4",
-				(5, 6),
-				[7, 8],
-				html.span("gurk"),
-				title="hurz"
-			)
-		)
-	)
-
-
-def createfrag():
-	return xsc.Frag(
-		xml.XML10(),
-		html.DocTypeHTML401transitional(),
-		xsc.Comment("gurk"),
-		"hurz",
-		specials.tab(),
-		abbr.xist(),
-		None,
-		True,
-		False,
-		1,
-		2.0,
-		"3",
-		u"4",
-		(5, 6),
-		[7, 8],
-		html.div(
-			align="left"
-		),
-		url.URL("http://www.python.org/"),
-		html.span(
-			1,
-			2,
-			class_="gurk",
-			id=(1, 2, (3, 4)),
-			lang=(
-				True,
-				False,
-				url.URL("http://www.python.org/"),
-				html.abbr(
-					xml.XML10(),
-					"hurz",
-					specials.tab(),
-					abbr.xist(),
-					None,
-					1,
-					2.0,
-					"3",
-					u"4",
-					(5, 6),
-					[7, 8],
-					html.span("gurk"),
-					title="hurz"
-				)
-			)
-		)
-	)
-
-
-def allnodes():
-	return (xsc.Null, createattr(), createattrs(), createelement(), createfrag())
 
 
 def check_lenunicode(node, _len, content):
@@ -250,7 +121,7 @@ def test_len():
 
 
 def test_standardmethods():
-	for node in allnodes():
+	for node in common.allnodes():
 		node.compact()
 		node.normalized()
 		list(node.walk((True, xsc.enterattrs, xsc.entercontent)))
@@ -262,14 +133,14 @@ def test_standardmethods():
 
 
 def test_standardmethods2():
-	for node in (createelement(), createfrag()):
+	for node in (common.createelement(), common.createfrag()):
 		node.sorted()
 		node.shuffled()
 		node.reversed()
 
 
 def test_stringify():
-	for node in allnodes():
+	for node in common.allnodes():
 		unicode(node)
 		str(node)
 		node.asString()
@@ -277,7 +148,7 @@ def test_stringify():
 
 
 def test_asText():
-	for node in allnodes():
+	for node in common.allnodes():
 		node.asText()
 		node.asText(monochrome=True)
 		node.asText(squeezeBlankLines=True)
@@ -426,7 +297,7 @@ def test_conv():
 
 
 def test_repr():
-	tests = allnodes()
+	tests = common.allnodes()
 	allpresenters = [c for c in presenters.__dict__.itervalues() if isinstance(c, type) and c is not presenters.Presenter and issubclass(c, presenters.Presenter)]
 	for node in tests:
 		repr(node)
@@ -999,119 +870,3 @@ def test_sortedreversed():
 
 	yield check, "sorted"
 	yield check, "reversed"
-
-
-def test_walk_1():
-	node = createfrag()
-	def filter(*args):
-		return (True, xsc.enterattrs, xsc.entercontent, True)
-
-	def check(inmode, outmode):
-		# call only for code coverage
-		list(node.walk((True, xsc.entercontent, True), inmode=inmode, outmode=outmode))
-		list(node.walk(filter, inmode=inmode, outmode=outmode))
-
-	modes = (xsc.walknode, xsc.walkpath, xsc.walkindex, xsc.walkrootindex)
-	for inmode in modes:
-		for outmode in modes:
-			yield check, inmode, outmode
-
-
-def test_walk_2():
-	def check(node, filter, result, inmode=xsc.walknode, outmode=xsc.walknode):
-		def node2str(node):
-			if isinstance(node, xsc.Node):
-				if isinstance(node, xsc.Text):
-					return "#"
-				else:
-					return node.xmlname
-			else:
-				return ".".join(map(node2str, node))
-	
-		assert map(node2str, node.walk(filter, inmode=inmode, outmode=outmode)) == result
-
-	node = html.div(
-		html.tr(
-			html.th("gurk"),
-			html.td("hurz"),
-			id=html.b(42)
-		),
-		class_=html.i("hinz")
-	)
-
-	def filtertopdown(node):
-		return (isinstance(node, xsc.Element), xsc.entercontent)
-	def filterbottomup(node):
-		return (xsc.entercontent, isinstance(node, xsc.Element))
-	def filtertopdownattrs(node):
-		return (isinstance(node, xsc.Element), xsc.enterattrs, xsc.entercontent)
-	def filterbottomupattrs(node):
-		return (xsc.enterattrs, xsc.entercontent, isinstance(node, xsc.Element))
-	def filtertopdowntextonlyinattr(path):
-		for node in path:
-			if isinstance(node, xsc.Attr):
-				inattr = True
-				break
-		else:
-			inattr = False
-		node = path[-1]
-		if isinstance(node, xsc.Element):
-			return (True, xsc.enterattrs, xsc.entercontent)
-		if inattr and isinstance(node, xsc.Text):
-			return (True, )
-		else:
-			return (xsc.entercontent, )
-
-	def filtertopdownattrwithoutcontent(node):
-		if isinstance(node, xsc.Element):
-			return (True, xsc.entercontent, xsc.enterattrs)
-		elif isinstance(node, (xsc.Attr, xsc.Text)):
-			return (True, )
-		else:
-			return (xsc.entercontent, )
-
-	yield check, node, filtertopdown, ["div", "tr", "th", "td"]
-	yield check, node, filterbottomup, ["th", "td", "tr", "div"]
-	yield check, node, filtertopdownattrs, ["div", "i", "tr", "b", "th", "td"]
-	yield check, node, filtertopdownattrs, ["div", "div.class.i", "div.tr", "div.tr.id.b", "div.tr.th", "div.tr.td"], xsc.walknode, xsc.walkpath
-	yield check, node, filterbottomupattrs, ["div.class.i", "div.tr.id.b", "div.tr.th", "div.tr.td", "div.tr", "div"], xsc.walknode, xsc.walkpath
-	yield check, node, filtertopdowntextonlyinattr, ["div", "div.class.i", "div.class.i.#", "div.tr", "div.tr.id.b", "div.tr.id.b.#", "div.tr.th", "div.tr.td"], xsc.walkpath, xsc.walkpath
-	yield check, node, filtertopdownattrwithoutcontent, ["div", "div.tr", "div.tr.th", "div.tr.th.#", "div.tr.td", "div.tr.td.#", "div.tr.id", "div.class"], xsc.walknode, xsc.walkpath
-
-
-def test_walk_walkindex():
-	e = html.div(
-		"foo",
-		html.a(
-			"bar",
-			xml.Attrs(lang="en"),
-			href="baz",
-		),
-		"gurk",
-	)
-	res = list(e.walk(xsc.FindTypeAllAttrs(xsc.Text), outmode=xsc.walkindex))
-	exp = [
-		[0],
-		[1, 0],
-		[1, "href", 0],
-		[1, (xml, "lang"), 0], # FIXME: This depends on dictionary iteration order
-		[2]
-	]
-	assert res == exp
-
-
-def test_walk_walkindexisnode():
-	# Check that all walk modes return the same data
-	def check(node):
-		l1 = list(node.walk(xsc.FindTypeAllAttrs(xsc.Text), outmode=xsc.walknode))
-		l2 = list(node.walk(xsc.FindTypeAllAttrs(xsc.Text), outmode=xsc.walkpath))
-		l3 = list(node.walk(xsc.FindTypeAllAttrs(xsc.Text), outmode=xsc.walkindex))
-		l4 = list(node.walk(xsc.FindTypeAllAttrs(xsc.Text), outmode=xsc.walkrootindex))
-		assert len(l1) == len(l2) == len(l3) == len(l4)
-		for (subnode, path, index, (root, rindex)) in zip(l1, l2, l3, l4):
-			assert subnode is path[-1]
-			assert subnode is node[index]
-			assert subnode is root[rindex]
-
-	for node in allnodes():
-		yield check, node
