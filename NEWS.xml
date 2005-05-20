@@ -23,9 +23,9 @@ as <method>asBytes</method>. These changes should help when using
 <item>The iterator returned from <method>Element.__getitem__</method>,
 <method>Frag.__getitem__</method> and the <method>walk</method> method
 now supports <method>__getitem__</method> itself, so you can write
-<lit>node[html.tr][0]</lit> to get the first row from a table <lit>node</lit>
-or page.walk(xsc.FindTypeAll(html.td))[-1] to get the last table cell from
-a page.</item>
+<lit><rep>node</rep>[html.tr][0]</lit> to get the first row from a table or
+<lit><rep>page</rep>.walk(xsc.FindTypeAll(html.td))[-1]</lit> to get the last table cell
+from a complete &html; page.</item>
 <item>Several bugs in the namespaces <module>ll.xist.ns.meta</module>,
 <module>ll.xist.ns.form</module> and
 <module>ll.xist.ns.specials</module> have been fixed.</item>
