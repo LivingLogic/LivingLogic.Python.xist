@@ -1,4 +1,15 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
+<section><title>Changes in 2.11 (released ??/??/2005)</title>
+<ulist>
+<item>Fixed a bug with element/attribute names that contained a <lit>.</lit>
+character. (This broke <module>ll.xist.ns.fo</module>.)</item>
+
+<item>Removed iterator stuff from <module>ll.xist.xfind</module>, as this
+is now part of the <module>ll</module> package/module.</item>
+</ulist>
+</section>
+
+
 <section><title>Changes in 2.10 (released 05/20/2005)</title>
 <ulist>
 <item>The content of the processing instruction <class>ll.xist.ns.code.pyexec</class>

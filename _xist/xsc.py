@@ -644,7 +644,8 @@ class _Node_Meta(Base.__metaclass__, xfind.Operator):
 				def xmlprefix(cls, publisher=None):
 					return xmlprefix_value
 				dict["xmlprefix"] = xmlprefix
-		dict["xmlname"] = dict.get("xmlname", name).split(".")[-1]
+		if "xmlname" not in dict:
+			dict["xmlname"] = name.split(".")[-1]
 		return super(_Node_Meta, cls).__new__(cls, name, bases, dict)
 
 	def xwalk(self, iterator):
@@ -1100,7 +1101,7 @@ class Node(Base):
 		<par><arg>outmode</arg> works similar to <arg>inmode</arg> and
 		specifies what will be yielded from the iterator.</par>
 		"""
-		return xfind.Iterator(self._walk(filter, [self], [], inmode, outmode))
+		return ll.Iterator(self._walk(filter, [self], [], inmode, outmode))
 
 	def find(self, filter=(True, entercontent), inmode=walknode):
 		"""
@@ -1494,7 +1495,7 @@ class Frag(Node, list):
 				for child in self:
 					if isinstance(child, index):
 						yield child
-			return xfind.Iterator(iterate(self, index))
+			return ll.Iterator(iterate(self, index))
 		elif isinstance(index, slice):
 			return self.__class__(list.__getitem__(self, index))
 		else:

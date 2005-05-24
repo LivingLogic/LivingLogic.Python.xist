@@ -18,9 +18,10 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 
 import sys, codecs
 
+import ll
 from ll import url
 
-import xsc, options, helpers, xfind
+import xsc, options, helpers
 
 
 def cssescapereplace(exc):
@@ -169,7 +170,7 @@ class Publisher(object):
 				prefixes2def[child.__ns__] = True
 
 		# Determine if we have multiple roots
-		if prefixes2def and isinstance(node, xsc.Frag) and xfind.count(node[xsc.Element]) > 1:
+		if prefixes2def and isinstance(node, xsc.Frag) and ll.count(node[xsc.Element]) > 1:
 			raise xsc.MultipleRootsError()
 
 		if prefixes2def:

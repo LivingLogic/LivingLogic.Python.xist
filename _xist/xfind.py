@@ -16,118 +16,14 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
 
-import collections
-
 import ll
-
-
-###
-### General iterator utilities
-###
-
-_defaultitem = object()
-
-def item(iterator, index, default=_defaultitem):
-	"""
-	<par>Return the <arg>index</arg>th item from the iterator <arg>iterator</arg>.
-	<arg>index</arg> must be an integer (negative integers are relative to the
-	end (i.e. the last item produced by the iterator)).</par>
-
-	<par>If <arg>default</arg> is given, this will be the default value when
-	the iterator doesn't contain an item at this position. Otherwise an
-	<class>IndexError</class> will be raised.</par>
-	"""
-	i = index
-	if i>=0:
-		for item in iterator:
-			if not i:
-				return item
-			i -= 1
-	else:
-		i = -index
-		cache = collections.deque()
-		for item in iterator:
-			cache.append(item)
-			if len(cache)>i:
-				cache.popleft()
-		if len(cache)==i:
-			return cache.popleft()
-	if default is _defaultitem:
-		raise IndexError(index)
-	else:
-		return default
-
-
-def first(iterator, default=_defaultitem):
-	"""
-	<par>Return the first object produced by the iterator <arg>iterator</arg> or
-	<arg>default</arg> if the iterator didn't produce any items.</par>
-	<par>Calling this function will consume one item from the iterator.</par>
-	"""
-	return item(iterator, 0, default)
-
-
-def last(iterator, default=_defaultitem):
-	"""
-	<par>Return the last object from the iterator <arg>iterator</arg> or
-	<arg>default</arg> if the iterator didn't produce any items.</par>
-	<par>Calling this function will exhaust the iterator.</par>
-	"""
-	return item(iterator, -1, default)
-
-
-def count(iterator):
-	"""
-	<par>Return the number of items produced by the iterator <arg>iterator</arg>.</par>
-	<par>Calling this function will exhaust the iterator.</par>
-	"""
-	count = 0
-	for node in iterator:
-		count += 1
-	return count
-
-
-def iterone(node):
-	"""
-	Return an iterator that will produce one item: <arg>node</arg>.
-	"""
-	yield node
-
-
-###
-###
-###
-
-class Iterator(object):
-	__slots__ = "iterator"
-
-	def __init__(self, iterator):
-		self.iterator = iterator
-
-	def __getitem__(self, index):
-		if isinstance(index, slice):
-			return list(self.iterator)[index]
-		return item(self, index)
-
-	def __iter__(self):
-		return self
-
-	def next(self):
-		return self.iterator.next()
-
-	# We can't implement __len__, because if such an object is passed to list(), __len__() would be called, exhausting the iterator
-
-	def __nonzero__(self):
-		for node in self:
-			return True
-		return False
 
 
 ###
 ### XFind expression
 ###
 
-class Expr(Iterator):
+class Expr(ll.Iterator):
 	"""
 	A <class>Expr</class> object is a <z>parsed</z> XFind expression.
 	The expression <lit><rep>a</rep>/<rep>b</rep></lit> will return an
@@ -142,8 +38,8 @@ class Expr(Iterator):
 	def __init__(self, iterator, *operators):
 		from ll.xist import xsc
 		if isinstance(iterator, xsc.Node):
-			iterator = iterone(iterator)
-		Iterator.__init__(self, iterator)
+			iterator = ll.iterone(iterator)
+		ll.Iterator.__init__(self, iterator)
 		self.operator = OperatorChain(*operators)
 
 	def __iter__(self):
@@ -217,7 +113,7 @@ class Operator(object):
 		node from the result.
 		"""
 		if isinstance(index, slice):
-			return SliceOperator(self, slice)
+			return SliceOperator(self, index)
 		else:
 			return ItemOperator(self, index)
 
