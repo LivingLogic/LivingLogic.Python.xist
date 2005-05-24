@@ -148,10 +148,6 @@ class Const(object):
 
 entercontent = Const("entercontent")
 enterattrs = Const("enterattrs")
-walknode = Const("walknode")
-walkpath = Const("walkpath")
-walkindex = Const("walkindex")
-walkrootindex = Const("walkrootindex")
 
 
 ###
@@ -166,8 +162,8 @@ class FindType(object):
 	def __init__(self, *types):
 		self.types = types
 
-	def __call__(self, node):
-		return (isinstance(node, self.types), )
+	def __call__(self, cursor):
+		return (isinstance(cursor.node, self.types), )
 
 
 class FindTypeAll(object):
@@ -178,8 +174,8 @@ class FindTypeAll(object):
 	def __init__(self, *types):
 		self.types = types
 
-	def __call__(self, node):
-		return (isinstance(node, self.types), entercontent)
+	def __call__(self, cursor):
+		return (isinstance(cursor.node, self.types), entercontent)
 
 
 class FindTypeAllAttrs(object):
@@ -190,8 +186,8 @@ class FindTypeAllAttrs(object):
 	def __init__(self, *types):
 		self.types = types
 
-	def __call__(self, node):
-		return (isinstance(node, self.types), entercontent, enterattrs)
+	def __call__(self, cursor):
+		return (isinstance(cursor.node, self.types), entercontent, enterattrs)
 
 
 class FindTypeTop(object):
@@ -202,11 +198,24 @@ class FindTypeTop(object):
 	"""
 	def __init__(self, *types):
 		self.types = types
-	def __call__(self, node):
-		if isinstance(node, self.types):
+
+	def __call__(self, cursor):
+		if isinstance(cursor.node, self.types):
 			return (True,)
 		else:
 			return (entercontent,)
+
+
+###
+### Cursor for tree walking
+###
+
+class Cursor(object):
+	def __init__(self, node):
+		self.root = node
+		self.node = node
+		self.path = [node]
+		self.index = []
 
 
 ###
@@ -1009,38 +1018,20 @@ class Node(Base):
 		for part in self.bytes(*args, **publishargs):
 			stream.write(part)
 
-	def _walk(self, filter, path, index, inmode, outmode):
+	def _walk(self, filter, cursor):
 		"""
 		<par>Internal helper for <pyref method="walk"><method>walk</method></pyref>.</par>
 		"""
 		if callable(filter):
-			if inmode is walknode:
-				found = filter(self)
-			elif inmode is walkpath:
-				found = filter(path)
-			elif inmode is walkindex:
-				found = filter(index)
-			elif inmode is walkrootindex:
-				found = filter(path[0], index)
-			else:
-				raise ValueError("unknown inmode %r" % inmode)
+			found = filter(cursor)
 		else:
 			found = filter
 
 		for option in found:
 			if option is not entercontent and option is not enterattrs and option:
-				if outmode is walknode:
-					yield self
-				elif outmode is walkpath:
-					yield path[:]
-				elif outmode is walkindex:
-					yield index[:]
-				elif outmode is walkrootindex:
-					yield (path[0], index[:])
-				else:
-					raise ValueError("unknown outmode %r" % outmode)
+				yield cursor
 
-	def walk(self, filter=(True, entercontent), inmode=walknode, outmode=walknode):
+	def walk(self, filter=(True, entercontent)):
 		"""
 		<par>Return an iterator for traversing the tree rooted at <self/>.</par>
 
@@ -1101,25 +1092,48 @@ class Node(Base):
 		<par><arg>outmode</arg> works similar to <arg>inmode</arg> and
 		specifies what will be yielded from the iterator.</par>
 		"""
-		return ll.Iterator(self._walk(filter, [self], [], inmode, outmode))
+		cursor = Cursor(self)
+		return ll.Iterator(self._walk(filter, cursor))
 
-	def find(self, filter=(True, entercontent), inmode=walknode):
+	def walknode(self, filter=(True, entercontent)):
+		cursor = Cursor(self)
+		def iterate(cursor):
+			for cursor in self._walk(filter, cursor):
+				yield cursor.node
+		return ll.Iterator(iterate(cursor))
+
+	def walkpath(self, filter=(True, entercontent)):
+		cursor = Cursor(self)
+		def iterate(cursor):
+			for cursor in self._walk(filter, cursor):
+				yield cursor.path[:]
+		return ll.Iterator(iterate(cursor))
+
+	def walkindex(self, filter=(True, entercontent)):
+		cursor = Cursor(self)
+		def iterate(cursor):
+			for cursor in self._walk(filter, cursor):
+				yield cursor.index[:]
+		return ll.Iterator(iterate(cursor))
+
+	def find(self, filter=(True, entercontent)):
 		"""
 		Return a <pyref class="Frag"><class>Frag</class></pyref> containing all
 		nodes found by the filter function <arg>filter</arg>. See
 		<pyref method="walk"><method>walk</method></pyref> for an explanation of
 		the arguments.
 		"""
-		return Frag(self.walk(filter, inmode, walknode))
+		cursor = Cursor(self)
+		return Frag(cursor.node for node in self._walk(filter, cursor))
 
-	def findfirst(self, filter=(True, entercontent), inmode=walknode):
+	def findfirst(self, filter=(True, entercontent)):
 		"""
 		Return the first node found by the filter function <arg>filter</arg>.
 		See <pyref method="walk"><method>walk</method></pyref> for an explanation
 		of the arguments.
 		"""
-		for item in self.walk(filter, inmode, walknode):
-			return item
+		for cursor in self.walk(filter):
+			return cursor.node
 		raise NodeNotFoundError()
 
 	def __div__(self, other):
@@ -1603,16 +1617,18 @@ class Frag(Node, list):
 		other = Frag(*others)
 		list.__setslice__(self, index, index, other)
 
-	def _walk(self, filter, path, index, inmode, outmode):
-		path.append(None)
-		index.append(0)
+	def _walk(self, filter, cursor):
+		cursor.node = self
+		cursor.path.append(None)
+		cursor.index.append(0)
 		for child in self:
-			path[-1] = child
-			for result in child._walk(filter, path, index, inmode, outmode):
+			cursor.node = child
+			cursor.path[-1] = child
+			for result in child._walk(filter, cursor):
 				yield result
-			index[-1] += 1
-		path.pop()
-		index.pop()
+			cursor.index[-1] += 1
+		cursor.path.pop()
+		cursor.index.pop()
 
 	def compact(self):
 		node = self._create()
@@ -1943,38 +1959,20 @@ class Attr(Frag):
 			if value not in values:
 				warnings.warn(IllegalAttrValueWarning(self))
 
-	def _walk(self, filter, path, index, inmode, outmode):
+	def _walk(self, filter, cursor):
 		if callable(filter):
-			if inmode is walknode:
-				found = filter(self)
-			elif inmode is walkpath:
-				found = filter(path)
-			elif inmode is walkindex:
-				found = filter(index)
-			elif inmode is walkrootindex:
-				found = filter(path[0], index)
-			else:
-				raise ValueError("unknown inmode %r" % inmode)
+			found = filter(cursor)
 		else:
 			found = filter
 
 		for option in found:
 			if option is entercontent:
-				for object in Frag._walk(self, filter, path, index, inmode, outmode):
-					yield object
+				for result in Frag._walk(self, filter, cursor):
+					yield result
 			elif option is enterattrs:
 				pass
 			elif option:
-				if outmode is walknode:
-					yield self
-				elif outmode is walkpath:
-					yield path[:]
-				elif outmode is walkindex:
-					yield index[:]
-				elif outmode is walkrootindex:
-					yield (path[0], index[:])
-				else:
-					raise ValueError("unknown outmode %r" % outmode)
+				yield cursor
 
 	def _publishAttrValue(self, publisher):
 		for part in Frag.publish(self, publisher):
@@ -2286,16 +2284,18 @@ class Attrs(Node, dict):
 			node[attrname] = convertedattr
 		return node
 
-	def _walk(self, filter, path, index, inmode, outmode):
-		path.append(None)
-		index.append(None)
+	def _walk(self, filter, cursor):
+		cursor.node = self
+		cursor.path.append(None)
+		cursor.index.append(None)
 		for (key, child) in self.iteritems():
-			path[-1] = child
-			index[-1] = key
-			for result in child._walk(filter, path, index, inmode, outmode):
+			cursor.node = child
+			cursor.path[-1] = child
+			cursor.index[-1] = key
+			for result in child._walk(filter, cursor):
 				yield result
-		path.pop()
-		index.pop()
+		cursor.path.pop()
+		cursor.index.pop()
 
 	def present(self, presenter):
 		presenter.presentAttrs(self)
@@ -3164,39 +3164,21 @@ class Element(Node):
 		node.attrs = self.attrs.compact()
 		return self._decoratenode(node)
 
-	def _walk(self, filter, path, index, inmode, outmode):
+	def _walk(self, filter, cursor):
 		if callable(filter):
-			if inmode is walknode:
-				found = filter(self)
-			elif inmode is walkpath:
-				found = filter(path)
-			elif inmode is walkindex:
-				found = filter(index)
-			elif inmode is walkrootindex:
-				found = filter(path[0], index)
-			else:
-				raise ValueError("unknown inmode %r" % inmode)
+			found = filter(cursor)
 		else:
 			found = filter
 
 		for option in found:
 			if option is entercontent:
-				for object in self.content._walk(filter, path, index, inmode, outmode):
-					yield object
+				for result in self.content._walk(filter, cursor):
+					yield result
 			elif option is enterattrs:
-				for object in self.attrs._walk(filter, path, index, inmode, outmode):
-					yield object
+				for result in self.attrs._walk(filter, cursor):
+					yield result
 			elif option:
-				if outmode is walknode:
-					yield self
-				elif outmode is walkpath:
-					yield path[:]
-				elif outmode is walkindex:
-					yield index[:]
-				elif outmode is walkrootindex:
-					yield (path[0], index[:])
-				else:
-					raise ValueError("unknown outmode %r" % outmode)
+				yield cursor
 
 	def copyDefaultAttrs(self, fromMapping):
 		"""
