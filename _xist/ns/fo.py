@@ -2081,7 +2081,10 @@ def fixattributesandmodel(element):
 
 for element in __ns__.iterelementvalues():
 	fixattributesandmodel(element)
-del dtd # don't pollute the namespace
+
+# don't pollute the namespace
+del dtd
+del fixattributesandmodel
 
 # make sure, we assigned a model to every element
 assert sum(x.model is not None for x in __ns__.iterelementvalues()) == len(__ns__.elementvalues())
