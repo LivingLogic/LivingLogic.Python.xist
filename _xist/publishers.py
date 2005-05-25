@@ -158,16 +158,16 @@ class Publisher(object):
 		<par>publish the node <arg>node</arg>. This method is a generator that
 		will yield the resulting &xml; byte string in fragments.</par>
 		"""
-		def iselorat(node):
-			return (isinstance(node, (xsc.Element, xsc.Attr)), xsc.entercontent, xsc.enterattrs)
+		def iselorat(cursor):
+			return (isinstance(cursor.node, (xsc.Element, xsc.Attr)), xsc.entercontent, xsc.enterattrs)
 
 		# We have to search for namespaces even if the prefix doesn't specify it,
 		# because global attribute require xmlns attribute generation
-		prefixes2def = {}
+		prefixes2def = set()
 		# collect all the namespaces that are used and their required mode
-		for child in node.walk(iselorat):
-			if child.needsxmlns(self) == 2:
-				prefixes2def[child.__ns__] = True
+		for cursor in node.walk(iselorat):
+			if cursor.node.needsxmlns(self) == 2:
+				prefixes2def.add(cursor.node.__ns__)
 
 		# Determine if we have multiple roots
 		if prefixes2def and isinstance(node, xsc.Frag) and ll.count(node[xsc.Element]) > 1:

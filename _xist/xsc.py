@@ -1132,7 +1132,8 @@ class Node(Base):
 		See <pyref method="walk"><method>walk</method></pyref> for an explanation
 		of the arguments.
 		"""
-		for cursor in self.walk(filter):
+		cursor = Cursor(self)
+		for cursor in self._walk(filter, cursor):
 			return cursor.node
 		raise NodeNotFoundError()
 

@@ -16,6 +16,7 @@ descriptor (<lit>.tld</lit>) (&xml;) file format/syntax.</par>
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
+import ll
 from ll.xist import xsc, sims, xnd, xfind
 
 
@@ -46,9 +47,9 @@ class attribute(xsc.Element):
 	class Attrs(IdAttrs): pass
 
 	def asxnd(self):
-		e = xnd.Attr(unicode(xfind.first(self/name).content), u"xsc.TextAttr")
+		e = xnd.Attr(unicode(ll.first(self/name).content), u"xsc.TextAttr")
 		isrequired = None
-		node = xfind.first(self/required, None)
+		node = ll.first(self/required, None)
 		if node is not None:
 			value = unicode(node[0].content)
 			if value in (u"true", u"yes"):
@@ -151,9 +152,9 @@ class tag(xsc.Element):
 	class Attrs(IdAttrs): pass
 
 	def asxnd(self):
-		e = xnd.Element(unicode(xfind.first(self/name).content))
+		e = xnd.Element(unicode(ll.first(self/name).content))
 		empty = None
-		node = xfind.first(self/bodycontent, None)
+		node = ll.first(self/bodycontent, None)
 		if node is not None:
 			value = unicode(node[0].content)
 			if value in (u"tagdependent", u"JSP"):
@@ -166,7 +167,7 @@ class tag(xsc.Element):
 			e.modeltype = "sims.Empty"
 		else:
 			e.modeltype = "sims.Any"
-		node = xfind.first(self/info, None)
+		node = ll.first(self/info, None)
 		if node is not None:
 			e.doc = node.asxnd()
 		for attr in self/attribute:
@@ -203,11 +204,11 @@ class taglib(xsc.Element):
 	class Attrs(IdAttrs): pass
 
 	def asxnd(self):
-		e = xnd.Namespace(unicode(xfind.first(self/shortname).content))
-		node = xfind.first(self/uri, None)
+		e = xnd.Namespace(unicode(ll.first(self/shortname).content))
+		node = ll.first(self/uri, None)
 		if node is not None:
 			e.url = unicode(node[0].content)
-		node = xfind.first(self/info, None)
+		node = ll.first(self/info, None)
 		if node is not None:
 			e.doc = node[0].asxnd()
 		for node in self/tag:

@@ -19,6 +19,7 @@ documentation (both &html; and XSL-FO).
 # import __builtin__ to use property, which is also defined here
 import types, inspect, warnings, __builtin__
 
+import ll
 from ll.xist import xsc, parsers, sims, xfind
 from ll.xist.ns import html, text, docbook, fo, specials, xml
 
@@ -739,7 +740,7 @@ class item(base):
 	model = sims.ElementsOrText(block, inline) # if it contains no block elements, the content will be promoted to a paragraph
 
 	def convert_docbook(self, converter):
-		if xfind.count(self/block):
+		if ll.count(self/block):
 			content = self.content
 		else:
 			content = converter.target.para(self.content)

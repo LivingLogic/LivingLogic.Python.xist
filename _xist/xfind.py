@@ -134,7 +134,7 @@ class ItemOperator(Operator):
 
 	def xwalk(self, iterator):
 		for child in iterator:
-			node = item(child/self.operator, self.index, None)
+			node = ll.item(child/self.operator, self.index, None)
 			if node is not None:
 				yield node
 
@@ -198,15 +198,15 @@ class Walker(Operator):
 
 	def xwalk(self, iterator):
 		for child in iterator:
-			for subchild in child.walk(self.function):
-				yield subchild
+			for cursor in child.walk(self.function):
+				yield cursor.node
 
 
 class all(Operator):
 	def xwalk(self, iterator):
 		for child in iterator:
-			for subchild in child.walk():
-				yield subchild
+			for cursor in child.walk():
+				yield cursor.node
 all = all()
 
 
@@ -291,7 +291,7 @@ class is_(Operator):
 				yield child
 
 	def __repr__(self):
-		return "<%s.%s object class=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.class_, id(self))
+		return "<%s.%s object class=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.types, id(self))
 
 
 class isnot(Operator):
