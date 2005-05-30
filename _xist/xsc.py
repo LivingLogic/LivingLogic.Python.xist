@@ -207,15 +207,39 @@ class FindTypeTop(object):
 
 
 ###
-### Cursor for tree walking
+### Cursor for tree traversal
 ###
 
 class Cursor(object):
+	"""
+	<par>A <class>Cursor</class> object references a node in an &xist; tree in several
+	ways. It it used by the <pyref class="Node" method="walk"><method>walk</method></pyref>
+	method.</par>
+	
+	<par>A cursor has the following attributes:</par>
+
+	<dlist>
+	<term><lit>root</lit></term><item>The root of the traversed tree;</item>
+	<term><lit>node</lit></term><item>The node the cursor points to;</item>
+	<term><lit>path</lit></term><item>A list of nodes containing a path from the
+	root to the node, i.e. <lit><rep>cursor</rep>.path[0] is <rep>cursor</rep>.root</lit>
+	and <lit><rep>cursor</rep>.path[-1] is <rep>cursor</rep>.node</lit>;</item>
+	<term><lit>index</lit></term><item>A list containing child indizes and
+	attribute names that specify the path to the node in question
+	(<lit><rep>cursor</rep>.root[<rep>cursor</rep>.index] is <rep>cursor</rep>.node</lit>).</item>
+	</dlist>
+	"""
 	def __init__(self, node):
 		self.root = node
 		self.node = node
 		self.path = [node]
 		self.index = []
+
+	def clone(self):
+		clone = Cursor(self.root)
+		clone.node = self.node
+		clone.path = self.path[:]
+		clone.index = self.index[:]
 
 
 ###
@@ -962,8 +986,6 @@ class Node(Base):
 
 		<par>The encoding and xhtml specification are taken from the <arg>publisher</arg>.</par>
 		"""
-		if False:
-			yield ""
 
 	def bytes(self, base=None, publisher=None, **publishargs):
 		"""
@@ -1038,12 +1060,13 @@ class Node(Base):
 		<par><arg>filter</arg> is used for specifying whether or not a node should
 		be yielded and when the children of this node should be traversed. If
 		<arg>filter</arg> is callable, it will be called for each node visited
-		during the traversal and must return a sequence of <z>node handling
-		options</z>. Otherwise (i.e. if <arg>filter</arg> is not callable)
-		<arg>filter</arg> must be a sequence of node handling options that will
-		be used for all visited nodes.</par>
+		during the traversal. A <pyref class="Cursor"><class>Cursor</class></pyref>
+		object will be passed to the filter on each call and the filter must return
+		a sequence of <z>node handling options</z>. If <arg>filter</arg> is not
+		callable, it must be a sequence of node handling options that will be used
+		for all visited nodes.</par>
 
-		<par>Entries in this sequence can be the following:</par>
+		<par>Entries in this returned sequence can be the following:</par>
 
 		<dlist>
 		<term><lit>True</lit></term><item>This tells <method>walk</method> to
@@ -1075,27 +1098,20 @@ class Node(Base):
 		<rep>node</rep>.walk((xsc.entercontent, True))
 		</prog>
 
-		<par><arg>immode</arg> specifies how <arg>filter</arg> will be called.
-		There are four constant that can be passed:</par>
-		<dlist>
-		<term><lit>walknode</lit></term><item><method>walk</method>
-		will pass the node itself to the filter function;</item>
-		<term><lit>walkpath</lit></term><item>a list containing the complete path
-		from the root node to the node to be tested will be passed to <arg>filter</arg>;</item>
-		<term><lit>walkindex</lit></term><item>A list of child indizes and attribute
-		names that specifies the path to the node in question is passed.</item>
-		<term><lit>walkrootindex</lit></term><item>Two arguments will be passed to
-		the filter function. The first is the root node and the second is an index
-		path (just like for <lit>walkindex</lit>).</item>
-		</dlist>
-
-		<par><arg>outmode</arg> works similar to <arg>inmode</arg> and
-		specifies what will be yielded from the iterator.</par>
+		<par>Each item produced by the iterator is a <pyref class="Cursor"><class>Cursor</class></pyref>
+		that points to the node in question. <method>walk</method> reuses the
+		cursor, so you can't rely on the values of the cursor attributes remaining
+		the same across calls to <method>next</method>.</par>
 		"""
 		cursor = Cursor(self)
 		return ll.Iterator(self._walk(filter, cursor))
 
 	def walknode(self, filter=(True, entercontent)):
+		"""
+		Return an iterator for traversing the tree. <arg>filter</arg> work the
+		same as the <arg>filter</arg> argument for <pyref method="walk"><method>walk</method></pyref>.
+		The items produced by the iterator are the nodes themselves.
+		"""
 		cursor = Cursor(self)
 		def iterate(cursor):
 			for cursor in self._walk(filter, cursor):
@@ -1103,6 +1119,13 @@ class Node(Base):
 		return ll.Iterator(iterate(cursor))
 
 	def walkpath(self, filter=(True, entercontent)):
+		"""
+		Return an iterator for traversing the tree. <arg>filter</arg> work the
+		same as the <arg>filter</arg> argument for <pyref method="walk"><method>walk</method></pyref>.
+		The items produced by the iterator are lists containing a path from the root
+		node (i.e. the one for which <method>walkpath</method> has been called)
+		to the node in question.
+		"""
 		cursor = Cursor(self)
 		def iterate(cursor):
 			for cursor in self._walk(filter, cursor):
@@ -1110,6 +1133,13 @@ class Node(Base):
 		return ll.Iterator(iterate(cursor))
 
 	def walkindex(self, filter=(True, entercontent)):
+		"""
+		Return an iterator for traversing the tree. <arg>filter</arg> work the
+		same as the <arg>filter</arg> argument for <pyref method="walk"><method>walk</method></pyref>.
+		The items produced by the iterator are lists containing an index path from
+		the root node (i.e. the one for which <method>walkindex</method> has been
+		called) to the node in question.
+		"""
 		cursor = Cursor(self)
 		def iterate(cursor):
 			for cursor in self._walk(filter, cursor):
