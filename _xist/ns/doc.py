@@ -17,7 +17,7 @@ documentation (both &html; and XSL-FO).
 """
 
 # import __builtin__ to use property, which is also defined here
-import types, inspect, warnings, __builtin__
+import types, inspect, warnings, operator, __builtin__
 
 import ll
 from ll.xist import xsc, parsers, sims, xfind
@@ -1236,38 +1236,21 @@ def getdoc(cls, thing):
 	return node
 
 
-canonicalOrder = [
-	"__init__", "__del__",
-	"__repr__", "__str__", "__unicode__",
-	"__hash__",
-	"__eq__", "__ne__", "__lt__", "__le__", "__gt__", "__ge__",
-	"__cmp__", "__rcmp__", "__nonzero__",
-	"__getattr__", "__setattr__", "__delattr__",
-	"__call__",
-	"__len__", "__getitem__", "__setitem__", "__delitem__", "__getslice__", "__setslice__", "__delslice__", "__contains__",
-	"__add__", "__sub__", "__mul__", "__div__", "__mod__", "__divmod__", "__pow__", "__lshift__", "__rshift__", "__and__", "__xor__", "__or__",
-	"__radd__", "__rsub__", "__rmul__", "__rdiv__", "__rmod__", "__rdivmod__", "__rpow__", "__rlshift__", "__rrshift__", "__rand__", "__rxor__", "__ror__",
-	"__iadd__", "__isub__", "__imul__", "__idiv__", "__imod__", "__ipow__", "__ilshift__", "__irshift__", "__iand__", "__ixor__", "__ior__",
-	"__neg__", "__pos__", "__abs__", "__invert__",
-	"__complex__", "__int__", "__long__", "__float__", "__oct__", "__hex__", "__coerce__"
-]
-
-
 @classmethod
-def _namekey(cls, (obj, name)):
+def _namekey(cls, obj, name):
 	name = name or obj.__name__
-	try:
-		pos = cls.canonicalOrder.index(name)
-	except ValueError:
-		if name.startswith("__"):
-			if name.endswith("__"):
-				pos = 1000
-			else:
-				pos = 4000
-		elif name.startswith("_"):
-			pos = 3000
-		else:
-			pos = 2000
+	if isinstance(obj, __builtin__.property):
+		pos = 999999999
+		if obj.fget is not None:
+			pos = min(pos, obj.fget.func_code.co_firstlineno)
+		if obj.fset is not None:
+			pos = min(pos, obj.fset.func_code.co_firstlineno)
+		if obj.fdel is not None:
+			pos = min(pos, obj.fdel.func_code.co_firstlineno)
+	else:
+		while hasattr(obj, "__wrapped__"):
+			obj = obj.__wrapped__
+		pos = inspect.getsourcelines(obj)[-1]
 	return (pos, name)
 
 
@@ -1316,10 +1299,17 @@ def explain(cls, thing, name=None, context=[]):
 
 	<par>If <arg>thing</arg> is not a module, you must pass the context
 	in <arg>context</arg>, i.e. a list of names of objects into which <arg>thing</arg>
-	is nested. This means the first entry will always be module name, and
+	is nested. This means the first entry will always be the module name, and
 	the other entries will be class names.</par>
 	"""
 
+	def _append(all, obj, var):
+		try:
+			all.append((cls._namekey(obj, varname), obj, varname))
+		except (IOError, TypeError):
+			pass
+
+	# Determine visibility
 	visibility = u"public"
 	testname = name or thing.__name__
 	if testname.startswith("_"):
@@ -1329,12 +1319,14 @@ def explain(cls, thing, name=None, context=[]):
 			if testname.endswith("__"):
 				visibility = u"special"
 
+	# Determine whether thing has a docstring
 	doc = cls.getdoc(thing)
 	if doc is xsc.Null:
 		hasdoc = u"nodoc"
 	else:
 		hasdoc = u"doc"
 
+	# Determine type
 	if inspect.ismethod(thing):
 		name = name or thing.__name__
 		context = context + [(thing, name)]
@@ -1405,60 +1397,51 @@ def explain(cls, thing, name=None, context=[]):
 			id=id
 		)
 		# find methods, properties and classes, but filter out those methods that are attribute getters, setters or deleters
-		methods = []
+		all = []
 		properties = []
 		classes = []
+
 		for varname in thing.__dict__.keys():
 			obj = getattr(thing, varname)
 			if isinstance(obj, __builtin__.property):
 				properties.append((obj, varname))
+				_append(all, obj, varname)
 			elif inspect.isclass(obj) and not (issubclass(obj, xsc.Namespace) and hasattr(obj, "__file__")):
-				classes.append((obj, varname))
+				for (superclass, supername) in context:
+					if obj is superclass: # avoid endless recursion for __outerclass__ which references a class further up in the context path.
+						break
+				else:
+					classes.append((obj, varname))
+					_append(all, obj, varname)
 			elif inspect.ismethod(obj):
 				# skip the method if it's a property getter, setter or deleter
 				for (prop, name) in properties:
 					if obj.im_func==prop.fget or obj.im_func==prop.fset or obj.im_func==prop.fdel:
 						break
 				else:
-					methods.append((obj, varname))
-		if len(methods):
-			methods.sort(key=cls._namekey)
-			node.append([cls.explain(obj, varname, context) for (obj, varname) in methods])
-		if len(properties):
-			properties.sort(key=cls._namekey)
-			node.append([cls.explain(obj, varname, context) for (obj, varname) in properties])
-		if len(classes):
-			classes.sort(key=cls._namekey)
-			for (subclass, subname) in classes:
-				for (superclass, supername) in context:
-					if subclass is superclass: # avoid endless recursion for __outerclass__ which references a class further up in the context path.
-						break
-				else:
-					node.append(cls.explain(subclass, subname, context))
+					_append(all, obj, varname)
+		if all:
+			all.sort()
+			for (key, subobj, subname) in all:
+				node.append(cls.explain(subobj, subname, context))
 		return node
 	elif inspect.ismodule(thing):
 		name = name or thing.__name__
 		context = [(thing, name)]
 		node = xsc.Frag(doc)
 
-		functions = []
-		classes = []
-		for varname in thing.__dict__.keys():
+		all = []
+
+		for varname in thing.__dict__:
 			obj = getattr(thing, varname)
-			if inspect.isfunction(obj):
-				functions.append((obj, varname))
-			elif inspect.isclass(obj) and not (issubclass(obj, xsc.Namespace) and hasattr(obj, "__file__")):
-				classes.append((obj, varname))
-		if len(classes):
-			classes.sort(key=cls._namekey)
-			node.append(
-				[cls.explain(obj, name, context) for (obj, name) in classes],
-			)
-		if len(functions):
-			functions.sort(key=cls._namekey)
-			node.append(
-				[cls.explain(obj, name, context) for (obj, name) in functions],
-			)
+			if inspect.isfunction(obj) or (inspect.isclass(obj) and not (issubclass(obj, xsc.Namespace) and hasattr(obj, "__file__"))):
+				_append(all, obj, varname)
+		if all:
+			all.sort()
+			for (key, obj, name) in all:
+				node.append(
+					cls.explain(obj, name, context),
+				)
 		return node
 
 	return xsc.Null
