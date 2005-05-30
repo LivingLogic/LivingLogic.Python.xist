@@ -1255,7 +1255,7 @@ def getsourceline(cls, obj):
 
 @classmethod
 def _namekey(cls, obj, name):
-	return (name or obj.__name__, cls.getsourceline(obj))
+	return (cls.getsourceline(obj), name or obj.__name__)
 
 
 @classmethod
