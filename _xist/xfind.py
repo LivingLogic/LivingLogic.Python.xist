@@ -243,7 +243,7 @@ class hasattr(Operator):
 						break
 
 	def __repr__(self):
-		return "<%s.%s object attr=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.attr, id(self))
+		return "<%s.%s object attrs=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.attrs, id(self))
 
 
 class hasattrnamed(Operator):
@@ -313,7 +313,7 @@ class isnot(Operator):
 				yield child
 
 	def __repr__(self):
-		return "<%s.%s object class=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.class_, id(self))
+		return "<%s.%s object class=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.types, id(self))
 
 
 class contains(Operator):
@@ -340,7 +340,7 @@ class contains(Operator):
 						break
 
 	def __repr__(self):
-		return "<%s.%s object class=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.class_, id(self))
+		return "<%s.%s object class=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.types, id(self))
 
 
 class child(Operator):
@@ -366,7 +366,7 @@ class child(Operator):
 						yield subchild
 
 	def __repr__(self):
-		return "<%s.%s object class=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.class_, id(self))
+		return "<%s.%s object class=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.types, id(self))
 
 
 class attrnamed(Operator):
