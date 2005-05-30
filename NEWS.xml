@@ -6,6 +6,9 @@ character. (This broke <module>ll.xist.ns.fo</module>.)</item>
 
 <item>Removed iterator stuff from <module>ll.xist.xfind</module>, as this
 is now part of the <module>ll</module> package/module.</item>
+
+<item>The function <function>ToNode</function> has been renamed to
+<function>tonode</function>.</item>
 </ulist>
 </section>
 

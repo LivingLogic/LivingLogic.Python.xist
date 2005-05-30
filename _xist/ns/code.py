@@ -120,7 +120,7 @@ class pyeval(xsc.ProcInst):
 		code.funcify()
 		sandbox = converter[self.__ns__].sandbox
 		exec code.asString() in sandbox # requires Python 2.0b2 (and doesn't really work)
-		return xsc.ToNode(sandbox["__"](converter)).convert(converter)
+		return xsc.tonode(sandbox["__"](converter)).convert(converter)
 
 
 class __ns__(xsc.Namespace):

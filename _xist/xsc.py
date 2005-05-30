@@ -33,7 +33,7 @@ except ImportError:
 ### helpers
 ###
 
-def ToNode(value):
+def tonode(value):
 	"""
 	<par>convert <arg>value</arg> to an &xist; <pyref class="Node"><class>Node</class></pyref>.</par>
 
@@ -1443,7 +1443,7 @@ class Frag(Node, list):
 	def __init__(self, *content):
 		list.__init__(self)
 		for child in content:
-			child = ToNode(child)
+			child = tonode(child)
 			if isinstance(child, Frag):
 				list.extend(self, child)
 			elif child is not Null:
@@ -1628,7 +1628,7 @@ class Frag(Node, list):
 		<par>Append every item in <arg>others</arg> to <self/>.</par>
 		"""
 		for other in others:
-			other = ToNode(other)
+			other = tonode(other)
 			if isinstance(other, Frag):
 				list.extend(self, other)
 			elif other is not Null:
@@ -1678,7 +1678,7 @@ class Frag(Node, list):
 		if <arg>clone</arg> is true, clones of this node will be used.</par>
 		"""
 		node = self._create()
-		newseparator = ToNode(separator)
+		newseparator = tonode(separator)
 		for child in self:
 			if len(node):
 				node.append(newseparator)
@@ -2923,7 +2923,7 @@ class Element(Node):
 
 	def clone(self):
 		node = self.__class__() # "virtual" constructor
-		node.content = self.content.clone() # this is faster than passing it in the constructor (no ToNode call)
+		node.content = self.content.clone() # this is faster than passing it in the constructor (no tonode call)
 		node.attrs = self.attrs.clone()
 		return self._decoratenode(node)
 
