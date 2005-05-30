@@ -1237,8 +1237,7 @@ def getdoc(cls, thing):
 
 
 @classmethod
-def _namekey(cls, obj, name):
-	name = name or obj.__name__
+def getsourceline(cls, obj):
 	if isinstance(obj, __builtin__.property):
 		pos = 999999999
 		if obj.fget is not None:
@@ -1251,7 +1250,12 @@ def _namekey(cls, obj, name):
 		while hasattr(obj, "__wrapped__"):
 			obj = obj.__wrapped__
 		pos = inspect.getsourcelines(obj)[-1]
-	return (pos, name)
+	return pos
+
+
+@classmethod
+def _namekey(cls, obj, name):
+	return (name or obj.__name__, cls.getsourceline(obj))
 
 
 @classmethod
