@@ -192,7 +192,7 @@ class FindTypeAllAttrs(object):
 
 class FindTypeTop(object):
 	"""
-	Tree traversal filter, that find nodes of a certain type searching the
+	Tree traversal filter that finds nodes of a certain type searching the
 	complete tree, but traversal of the children of a node is skipped if this
 	node is of the specified type.
 	"""
