@@ -1,4 +1,19 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
+<section><title>Migrating to version 2.11</title>
+
+<section><title>Changes to <module>ll.xist.xsc</module></title>
+<par>The function <function>ToNode</function> has been renamed to
+<function>tonode</function>.</par>
+
+<par>The iterator stuff from <module>ll.xist.xfind</module> has been moved to
+the <module>ll</module> package/module, i.e. you have to use
+<function>ll.first</function> instead of <function>ll.xist.xfind.first</function>.</par>
+
+</section>
+
+</section>
+
+
 <section><title>Migrating to version 2.10</title>
 
 <section><title>Changes to publishing</title>

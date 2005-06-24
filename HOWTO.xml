@@ -962,17 +962,21 @@ will be published as <lit>&lt;%= foo&gt;</lit>.</par>
 
 <par>After creating the &xml; tree and converting the tree
 into its final output form, you have to write the resulting tree
-to a file. This can be done with the publishing &api;. Two methods
+to a file. This can be done with the publishing &api;. Three methods
 that use the publishing &api; are
+<pyref module="ll.xist.xsc" class="Node" method="bytes"><method>bytes</method></pyref>,
 <pyref module="ll.xist.xsc" class="Node" method="asBytes"><method>asBytes</method></pyref>
 and
 <pyref module="ll.xist.xsc" class="Node" method="write"><method>write</method></pyref>.
+<pyref module="ll.xist.xsc" class="Node" method="bytes"><method>bytes</method></pyref>
+is a generator that will yield the complete 8-bit &xml; string in fragments.
 <pyref module="ll.xist.xsc" class="Node" method="asBytes"><method>asBytes</method></pyref>
-returns an 8-bit &xml; string. You can specify the encoding with the
-parameter <arg>encoding</arg> (with <lit>"utf-8"</lit> being the default).
-Unencodable characters will be escaped with character references when possible
-(i.e. inside text nodes, for comments or processing instructions you'll get
-an exception):</par>
+returns the 8-bit &xml; string.</par>
+
+<par>You can specify the encoding with the parameter <arg>encoding</arg>
+(with <lit>"utf-8"</lit> being the default). Unencodable characters will be
+escaped with character references when possible (i.e. inside text nodes, for
+comments or processing instructions you'll get an exception):</par>
 
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist import xsc</input>
@@ -1051,10 +1055,12 @@ expressions.</par>
 
 <section><title>The <method>walk</method> method</title>
 <par>The method <pyref module="ll.xist.xsc" class="Node" method="walk"><method>walk</method></pyref>
-will return an iterator. You pass a callable object to <method>walk</method>
+is a generator. You pass a callable object to <method>walk</method>
 which is used for determining which part of the tree should be searched and
-which nodes should be returned.</par> <par><module>ll.xist.xsc</module> provides
-several useful predefined classes for that.
+which nodes should be returned.</par>
+
+<par><module>ll.xist.xsc</module> provides several useful predefined classes for
+specifying what should be returned from <method>walk</method>:
 <pyref module="ll.xist.xsc" class="FindType"><class>FindType</class></pyref>
 will search only the first level of the tree and will return any node that is an
 instance of one of the classes passed to the constructor. So if you have an
@@ -1064,8 +1070,8 @@ following code:</par>
 
 <example><title>Searching for <class>li</class> inside <class>ul</class> with <method>walk</method></title>
 <prog>
-for child in node.content.walk(xsc.FindType(html.li)):
-	print unicode(child)
+for cursor in node.content.walk(xsc.FindType(html.li)):
+	print unicode(cursor.node)
 </prog>
 </example>
 
@@ -1081,8 +1087,8 @@ from ll.xist.ns import html, chars
 
 node = parsers.parseURL("http://www.python.org/", tidy=True)
 
-for link in node.walk(xsc.FindTypeAll(html.a)):
-	print link[u"href"]
+for cursor in node.walk(xsc.FindTypeAll(html.a)):
+	print cursor.node[u"href"]
 </prog>
 </example>
 
@@ -1108,13 +1114,13 @@ from ll.xist.ns import html, chars
 
 node = parsers.parseURL("http://www.python.org/", tidy=True)
 
-def isextlink(node):
-	if isinstance(node, html.a) and not unicode(node[u"href"]).startswith(u"http://www.python.org"):
+def isextlink(cursor):
+	if isinstance(cursor.node, html.a) and not unicode(cursor.node[u"href"]).startswith(u"http://www.python.org"):
 		return (True, xsc.entercontent)
 	return (xsc.entercontent,)
 
-for link in node.walk(isextlink):
-	print link[u"href"]
+for cursor in node.walk(isextlink):
+	print cursor.node[u"href"]
 </prog>
 </example>
 
@@ -1132,7 +1138,10 @@ mailto:webmaster@python.org
 </tty>
 
 <par>The callable (<function>isextlink</function> in the example) will be called
-for each node and must return a sequence with the following entries:</par>
+for each node visited. The <arg>cursor</arg> argument has an attribute <lit>node</lit>
+that is the node in question.</par>
+
+<par>The callable must return a sequence with the following entries:</par>
 
 <dlist>
 <term><lit>ll.xist.xsc.entercontent</lit></term><item>enter the content of this
