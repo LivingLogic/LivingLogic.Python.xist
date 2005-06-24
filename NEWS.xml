@@ -15,6 +15,10 @@ is now part of the <module>ll</module> package/module.</item>
 <function>tonode</function>.</item>
 
 <item><class>ll.xist.Context</class> now longer subclasses <class>list</class>.</item>
+
+<item><class>ll.xist.ns.doc.explain</class> will now try to output the objects
+in the order in which they appear in the Python source.</item>
+
 </ulist>
 </section>
 
