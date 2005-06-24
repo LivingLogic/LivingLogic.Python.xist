@@ -9,9 +9,9 @@
 the <module>ll</module> package/module, i.e. you have to use
 <function>ll.first</function> instead of <function>ll.xist.xfind.first</function>.</par>
 
-<item><class>ll.xist.Context</class> now longer subclasses <class>list</class>.
-If you need a stack for your context, simply use a list attribute your
-context class constructor.</item>
+<par><class>ll.xist.Context</class> no longer subclasses <class>list</class>.
+If you need a stack for your context, simply add the list as an attribute
+of the context object.</par>
 
 </section>
 
