@@ -13,6 +13,8 @@ is now part of the <module>ll</module> package/module.</item>
 
 <item>The function <function>ToNode</function> has been renamed to
 <function>tonode</function>.</item>
+
+<item><class>ll.xist.Context</class> now longer subclasses <class>list</class>.</item>
 </ulist>
 </section>
 

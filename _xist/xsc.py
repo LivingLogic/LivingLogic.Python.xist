@@ -246,7 +246,7 @@ class Cursor(object):
 ### Conversion context
 ###
 
-class Context(Base, list):
+class Context(Base):
 	"""
 	<par>This is an empty class, that can be used by the
 	<pyref class="Node" method="convert"><method>convert</method></pyref>
@@ -851,7 +851,7 @@ class Node(Base):
 		if monochrome:
 			options.append("-M")
 		if squeezeBlankLines:
-			options.append("-S")
+			options.append("-s")
 		if lineNumbers:
 			options.append("-num")
 		if width != 80:
