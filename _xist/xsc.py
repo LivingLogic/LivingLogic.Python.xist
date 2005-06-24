@@ -43,7 +43,7 @@ def tonode(value):
 	If <arg>value</arg> is a <pyref class="Node"><class>Node</class></pyref> already,
 	it will be returned unchanged. In the case of <lit>None</lit> the &xist; Null
 	(<class>ll.xist.xsc.Null</class>) will be returned. If <arg>value</arg> is
-	iteratable, a <class>Frag</class> will be generated from the items.
+	iterable, a <class>Frag</class> will be generated from the items.
 	Anything else will issue a warning and will be ignored (by returning
 	<class>Null</class>).</par>
 	"""
