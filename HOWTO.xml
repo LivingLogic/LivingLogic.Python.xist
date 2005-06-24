@@ -1139,7 +1139,8 @@ mailto:webmaster@python.org
 
 <par>The callable (<function>isextlink</function> in the example) will be called
 for each node visited. The <arg>cursor</arg> argument has an attribute <lit>node</lit>
-that is the node in question.</par>
+that is the node in question. For the other attributes see the
+<pyref module="ll.xist.xsc" class="Cursor"><class>Cursor</class> class</pyref>.</par>
 
 <par>The callable must return a sequence with the following entries:</par>
 
@@ -1164,6 +1165,10 @@ def isextlink(node):
 	return (xsc.entercontent,)
 </prog>
 </example>
+
+<par>The cursor yielded from <method>walk</method> will be reused by subsequent
+<method>next</method> calls, so you should not modify the cursor and you can't
+rely on attributes of the cursor after reentry to <method>walk</method>.</par>
 
 </section>
 
