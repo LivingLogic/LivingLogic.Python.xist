@@ -29,6 +29,10 @@ update them. For different output modes you can use the methods <method>walknode
 <method>walkpath</method> or <method>walkindex</method> instead of using
 the cursor yielded by <method>walk</method>.</par>
 
+<par>The node methods <method>find</method> and <method>findfirst</method>
+have been removed. Use <lit>xsc.Frag(node.walk(<rep>...</rep>)</lit> or
+<lit>node.walk(<rep>...</rep>)[0]</lit> instead.</par>
+
 </section>
 
 </section>

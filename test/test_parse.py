@@ -51,7 +51,7 @@ class __ns__(xsc.Namespace):
 
 def check_parseentities(source, result, **parseargs):
 	node = parsers.parseString("""<a title="%s">%s</a>""" % (source, source), **parseargs)
-	node = node.findfirst(xsc.FindType(xsc.Element))
+	node = node.walknode(xsc.FindType(xsc.Element))[0]
 	assert unicode(node) == result
 	assert unicode(node["title"]) == result
 
@@ -137,7 +137,7 @@ class Test:
 		)
 		prefixes = xsc.Prefixes(x=ihtml)
 		node = parsers.parseString(xml, prefixes=prefixes)
-		node = node.findfirst(xsc.FindType(xsc.Element)).compact() # get rid of the Frag and whitespace
+		node = node.walknode(xsc.FindType(xsc.Element))[0].compact() # get rid of the Frag and whitespace
 		assert node == check
 	
 	

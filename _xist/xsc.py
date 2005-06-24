@@ -1145,27 +1145,6 @@ class Node(Base):
 				yield cursor.index[:]
 		return ll.Iterator(iterate(cursor))
 
-	def find(self, filter=(True, entercontent)):
-		"""
-		Return a <pyref class="Frag"><class>Frag</class></pyref> containing all
-		nodes found by the filter function <arg>filter</arg>. See
-		<pyref method="walk"><method>walk</method></pyref> for an explanation of
-		the arguments.
-		"""
-		cursor = Cursor(self)
-		return Frag(cursor.node for node in self._walk(filter, cursor))
-
-	def findfirst(self, filter=(True, entercontent)):
-		"""
-		Return the first node found by the filter function <arg>filter</arg>.
-		See <pyref method="walk"><method>walk</method></pyref> for an explanation
-		of the arguments.
-		"""
-		cursor = Cursor(self)
-		for cursor in self._walk(filter, cursor):
-			return cursor.node
-		raise NodeNotFoundError()
-
 	def __div__(self, other):
 		return xfind.Expr(self, other)
 		
@@ -1316,8 +1295,6 @@ class CharacterData(Node):
 
 	def count(self, sub, start=0, end=sys.maxint):
 		return self._content.count(sub, start, end)
-
-	# find will be the one inherited from Node
 
 	def endswith(self, suffix, start=0, end=sys.maxint):
 		return self._content.endswith(suffix, start, end)

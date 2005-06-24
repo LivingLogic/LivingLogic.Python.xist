@@ -15,7 +15,7 @@ from ll.xist.ns import tld
 
 def tld2ns(s, xmlname, shareattrs=None):
 	node = parsers.parseString(s, prefixes=xsc.Prefixes(tld))
-	node = node.findfirst(xsc.FindType(tld.taglib))
+	node = node.walknode(xsc.FindType(tld.taglib))[0]
 
 	data = node.asxnd()
 
