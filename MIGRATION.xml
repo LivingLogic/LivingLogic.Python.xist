@@ -2,16 +2,32 @@
 <section><title>Migrating to version 2.11</title>
 
 <section><title>Changes to <module>ll.xist.xsc</module></title>
+
 <par>The function <function>ToNode</function> has been renamed to
 <function>tonode</function>.</par>
+
+<par><class>ll.xist.Context</class> no longer subclasses <class>list</class>.
+If you need a stack for your context, simply add the list as an attribute
+of the context object.</par>
+
+</section>
+
+<section><title>Code rearrangements</title>
 
 <par>The iterator stuff from <module>ll.xist.xfind</module> has been moved to
 the <module>ll</module> package/module, i.e. you have to use
 <function>ll.first</function> instead of <function>ll.xist.xfind.first</function>.</par>
 
-<par><class>ll.xist.Context</class> no longer subclasses <class>list</class>.
-If you need a stack for your context, simply add the list as an attribute
-of the context object.</par>
+</section>
+
+<section><title>Changes to the <method>walk</method> method</title>
+
+<par>The <method>walk</method> method has changed again. There are no inmodes
+and outmodes any longer. Instead input and output are <class>Cursor</class>
+objects. If you're using your own <method>walk</method> filters, you have to
+update them. For different output modes you can use the methods <method>walknode</method>,
+<method>walkpath</method> or <method>walkindex</method> instead of using
+the cursor yielded by <method>walk</method>.</par>
 
 </section>
 
