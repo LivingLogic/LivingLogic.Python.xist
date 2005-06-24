@@ -13,8 +13,8 @@
 
 <par>It contains different &sax;2 parser driver classes (mostly for sgmlop, everything else
 is from <app moreinfo="http://pyxml.sf.net/">PyXML</app>). It includes a
-<pyref class="HTMLParser"><class>HTMLParser</class></pyref> that uses sgmlop to parse &html;
-and emit &sax;2 events.</par>
+<pyref class="HTMLParser"><class>HTMLParser</class></pyref> that uses sgmlop
+to parse &html; and emit &sax;2 events.</par>
 """
 
 import sys, os, os.path, warnings, cStringIO
@@ -229,7 +229,7 @@ class SGMLOPParser(sax.xmlreader.XMLReader, sax.xmlreader.Locator):
 		"""
 		if text is None:
 			return xsc.Null
-		ct = self.getContentHandler().createText
+		ct = getattr(self.getContentHandler(), "createText", xsc.Text)
 		node = xsc.Frag()
 		while True:
 			texts = text.split(u"&", 1)
