@@ -649,12 +649,12 @@ class TreePresenter(Presenter):
 		<term><arg>showpath</arg></term><item><par>This specifies if and how
 		the path (i.e. the position of the node in the tree) should be displayed.
 		Possible values are:</par>
-		<dlist>
-		<term><lit>0</lit></term><item>Don't show a path.</item>
-		<term><lit>1</lit></term><item>Show a path (e.g. as <lit>0/2/3</lit>,
+		<ulist>
+		<item><lit>0</lit>: Don't show a path.</item>
+		<item><lit>1</lit>: Show a path (e.g. as <lit>0/2/3</lit>,
 		i.e. this node is the 4th child of the 3rd child of the 1st child of the
 		root node). This is the default.</item>
-		<term><lit>2</lit></term><item>Show a path as a usable Python
+		<item><lit>2</lit>: Show a path as a usable Python
 		expression (e.g. as <lit>[0,2,3]</lit>).</item>
 		</dlist>
 		</item>
