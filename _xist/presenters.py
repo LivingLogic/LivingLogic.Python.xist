@@ -638,7 +638,28 @@ class TreePresenter(Presenter):
 	"""
 	This presenter shows the object as a nested tree.
 	"""
-	def __init__(self, showlocation=True, showpath=True):
+	def __init__(self, showlocation=True, showpath=1):
+		"""
+		<par>Create a <class>TreePresenter</class> instance. Arguments have the
+		following meaning:</par>
+		<dlist>
+		<term><arg>showlocation</arg></term><item>Should the location of the
+		node (i.e. system id, line and column number) be displayed as the first
+		column? (default <lit>True</lit>).</item>
+		<term><arg>showpath</arg></term><item><par>This specifies if and how
+		the path (i.e. the position of the node in the tree) should be displayed.
+		Possible values are:</par>
+		<dlist>
+		<term><lit>0</lit></term><item>Don't show a path.</item>
+		<term><lit>1</lit></term><item>Show a path (e.g. as <lit>0/2/3</lit>,
+		i.e. this node is the 4th child of the 3rd child of the 1st child of the
+		root node). This is the default.</item>
+		<term><lit>2</lit></term><item>Show a path as a usable Python
+		expression (e.g. as <lit>[0,2,3]</lit>).</item>
+		</dlist>
+		</item>
+		</dlist>
+		"""
 		self.showlocation = showlocation
 		self.showpath = showpath
 
@@ -656,12 +677,20 @@ class TreePresenter(Presenter):
 			for line in self._lines:
 				if self.showpath:
 					newline1 = []
-					for comp in line[1]:
-						if isinstance(comp, tuple):
-							newline1.append("%s:%s" % (comp[0].xmlname, comp[1]))
-						else:
-							newline1.append(str(comp))
-					line[1] = "/".join(newline1)
+					if self.showpath == 1:
+						for comp in line[1]:
+							if isinstance(comp, tuple):
+								newline1.append("%s:%s" % (comp[0].xmlname, comp[1]))
+							else:
+								newline1.append(str(comp))
+						line[1] = "/".join(newline1)
+					else:
+						for comp in line[1]:
+							if isinstance(comp, tuple):
+								newline1.append("(%s,%r)" % (comp[0].xmlname, comp[1]))
+							else:
+								newline1.append(repr(comp))
+						line[1] = "[%s]" % ",".join(newline1)
 				line[3] = ansistyle.Text(strTab(line[2]), line[3])
 				if self.showlocation:
 					if line[0] is not None:
