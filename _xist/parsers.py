@@ -499,7 +499,7 @@ class Parser(object):
 	def _last(self):
 		"""
 		return the newest node from the stack that is a real node.
-		(There might be a fake node on the stack, because we are inside
+		(There might be fake nodes on the stack, because we are inside
 		of illegal elements).
 		"""
 		for (node, prefixes) in reversed(self._nesting):
@@ -615,17 +615,27 @@ class Parser(object):
 		return root
 
 	def parse(self, stream, base=None, sysid=None):
+		"""
+		Parse &xml; from the stream <arg>stream</arg> into an &xist; tree.
+		<arg>base</arg> is the base &url; for the parsing process, <arg>sysid</arg>
+		is the &xml; system identifier (defaulting to <arg>base</arg> if it is <lit>None</lit>).
+		"""
 		if sysid is None:
 			sysid = base
 		return self._parse(stream, base, sysid, self.encoding)
 
-	def parseString(self, string, base=None, sysid=None):
-		if isinstance(string, unicode):
+	def parseString(self, text, base=None, sysid=None):
+		"""
+		Parse the string <arg>text</arg> (<class>str</class> or <class>unicode</class>)
+		into an &xist; tree. <arg>base</arg> is the base &url; for the parsing process, <arg>sysid</arg>
+		is the &xml; system identifier (defaulting to <arg>base</arg> if it is <lit>None</lit>).
+		"""
+		if isinstance(text, unicode):
 			encoding = "utf-8"
-			string = string.encode(encoding)
+			text = text.encode(encoding)
 		else:
 			encoding = self.encoding
-		stream = cStringIO.StringIO(string)
+		stream = cStringIO.StringIO(text)
 		if base is None:
 			base = url.URL("STRING")
 		if sysid is None:
@@ -633,6 +643,17 @@ class Parser(object):
 		return self._parse(stream, base, sysid, encoding)
 
 	def parseURL(self, name, base=None, sysid=None, headers=None, data=None):
+		"""
+		Parse &xml; input from the &url; <arg>name</arg> which might be a string
+		or an <pyref module="ll.url" class="URL"><class>URL</class></pyref> object
+		into an &xist; tree. <arg>base</arg> is the base &url; for the parsing process
+		(defaulting to the final &url; of the response (i.e. including redirects)),
+		<arg>sysid</arg> is the &xml; system identifier (defaulting to <arg>base</arg>
+		if it is <lit>None</lit>). <arg>headers</arg> is a dictionary with additional
+		headers used in the &http; request. If <arg>data</arg> is not <lit>None</lit>
+		it must be a dictionary. In this case <arg>data</arg> will be used as the data
+		for a <lit>POST</lit> request.
+		"""
 		name = url.URL(name)
 		stream = name.openread(headers=headers, data=data)
 		if base is None:
@@ -644,11 +665,16 @@ class Parser(object):
 			encoding = stream.encoding
 		return self._parse(stream, base, sysid, encoding)
 
-	def parseFile(self, name, base=None, sysid=None):
-		name = os.path.expanduser(name)
-		stream = open(name, "rb")
+	def parseFile(self, filename, base=None, sysid=None):
+		"""
+		Parse &xml; input from the file named <arg>filename</arg>. <arg>base</arg> is
+		the base &url; for the parsing process (defaulting to <arg>name</arg>),
+		<arg>sysid</arg> is the &xml; system identifier (defaulting to <arg>base</arg>).
+		"""
+		name = os.path.expanduser(filename)
+		stream = open(filename, "rb")
 		if base is None:
-			base = url.File(name)
+			base = url.File(filename)
 		if sysid is None:
 			sysid = str(base)
 		return self._parse(stream, base, sysid, self.encoding)
@@ -806,20 +832,54 @@ class Parser(object):
 
 
 def parse(stream, base, sysid=None, **parserargs):
+	"""
+	Parse &xml; from the stream <arg>stream</arg> into an &xist; tree.
+	For the arguments <arg>base</arg> and <arg>sysid</arg> see the method
+	<pyref class="Parser" method="parse"><method>parse</method></pyref>
+	in the <class>Parser</class> class. You can pass any other argument that the
+	<pyref class="Parser" method="__init__"><class>Parser</class> constructor</pyref>
+	takes as keyword arguments via <arg>parserargs</arg>.
+	"""
 	parser = Parser(**parserargs)
 	return parser.parse(stream, base, sysid)
 
 
 def parseString(text, base=None, sysid=None, **parserargs):
+	"""
+	Parse the string <arg>text</arg> (<class>str</class> or <class>unicode</class>) into an
+	&xist; tree. For the arguments <arg>base</arg> and <arg>sysid</arg> see the method
+	<pyref class="Parser" method="parseString"><method>parseString</method></pyref>
+	in the <class>Parser</class> class. You can pass any other argument that the
+	<pyref class="Parser" method="__init__"><class>Parser</class> constructor</pyref>
+	takes as keyword arguments via <arg>parserargs</arg>.
+	"""
 	parser = Parser(**parserargs)
 	return parser.parseString(text, base, sysid)
 
 
 def parseURL(url, base=None, sysid=None, headers=None, data=None, **parserargs):
+	"""
+	Parse &xml; input from the &url; <arg>name</arg> which might be a string
+	or an <pyref module="ll.url" class="URL"><class>URL</class></pyref> object
+	into an &xist; tree. For the arguments <arg>base</arg>, <arg>sysid</arg>,
+	<arg>headers</arg> and <arg>data</arg> see the method
+	<pyref class="Parser" method="parseURL"><method>parseURL</method></pyref>
+	in the <class>Parser</class> class. You can pass any other argument that the
+	<pyref class="Parser" method="__init__"><class>Parser</class> constructor</pyref>
+	takes as keyword arguments via <arg>parserargs</arg>.
+	"""
 	parser = Parser(**parserargs)
 	return parser.parseURL(url, base, sysid, headers, data)
 
 
 def parseFile(filename, base=None, sysid=None, **parserargs):
+	"""
+	Parse &xml; input from the file named <arg>filename</arg>. For the arguments
+	<arg>base</arg> and <arg>sysid</arg> see the method
+	<pyref class="Parser" method="parseFile"><method>parseFile</method></pyref>
+	in the <class>Parser</class> class. You can pass any other argument that the
+	<pyref class="Parser" method="__init__"><class>Parser</class> constructor</pyref>
+	takes as keyword arguments via <arg>parserargs</arg>.
+	"""
 	parser = Parser(**parserargs)
 	return parser.parseFile(filename, base, sysid)
