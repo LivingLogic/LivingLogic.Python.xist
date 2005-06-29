@@ -671,7 +671,7 @@ class Parser(object):
 		the base &url; for the parsing process (defaulting to <arg>name</arg>),
 		<arg>sysid</arg> is the &xml; system identifier (defaulting to <arg>base</arg>).
 		"""
-		name = os.path.expanduser(filename)
+		filename = os.path.expanduser(filename)
 		stream = open(filename, "rb")
 		if base is None:
 			base = url.File(filename)
