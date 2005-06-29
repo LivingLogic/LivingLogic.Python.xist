@@ -656,7 +656,7 @@ class TreePresenter(Presenter):
 		root node). This is the default.</item>
 		<item><lit>2</lit>: Show a path as a usable Python
 		expression (e.g. as <lit>[0,2,3]</lit>).</item>
-		</dlist>
+		</ulist>
 		</item>
 		</dlist>
 		"""
