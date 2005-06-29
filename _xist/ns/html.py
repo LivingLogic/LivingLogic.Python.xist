@@ -139,6 +139,14 @@ class DocTypeXHTML10transitional(xsc.DocType):
 		xsc.DocType.__init__(self, 'html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"')
 
 
+class DocTypeXHTML11(xsc.DocType):
+	"""
+	document type for XHTML 1.1
+	"""
+	def __init__(self):
+		xsc.DocType.__init__(self, 'html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd"')
+
+
 # The global structure of an HTML document
 class html(xsc.Element):
 	"""
