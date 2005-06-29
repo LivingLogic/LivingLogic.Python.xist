@@ -5,6 +5,9 @@
 can be used to parse an &xml; file and generate a rudimentary &xist; namespace
 from it.</item>
 
+<item>A <class>DocType</class> for XHTML 1.1 has been added
+(suggested by Elvelind Grandin).</item>
+
 <item>Fixed a bug with element/attribute names that contained a <lit>.</lit>
 character. (This broke <module>ll.xist.ns.fo</module>.)</item>
 
