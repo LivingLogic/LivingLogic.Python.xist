@@ -668,7 +668,7 @@ class Parser(object):
 	def parseFile(self, filename, base=None, sysid=None):
 		"""
 		Parse &xml; input from the file named <arg>filename</arg>. <arg>base</arg> is
-		the base &url; for the parsing process (defaulting to <arg>name</arg>),
+		the base &url; for the parsing process (defaulting to <arg>filename</arg>),
 		<arg>sysid</arg> is the &xml; system identifier (defaulting to <arg>base</arg>).
 		"""
 		filename = os.path.expanduser(filename)
