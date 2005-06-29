@@ -767,10 +767,10 @@ class item(base):
 		elif type=="olist":
 			label = "%d." % context.lists[-1][1]
 		context.indentcount += 1
-		if self.content.find(xsc.FindType(block)):
-			content = self.content
+		if self[block]: # Do we have a block in our content?
+			content = self.content # yes => use the content as is
 		else:
-			content = self.__ns__.par(self.content)
+			content = self.__ns__.par(self.content) # no => wrap it in a paragraph
 		if type=="dlist":
 			e = target.block(
 				content,
