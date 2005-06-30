@@ -225,8 +225,9 @@ class section(xsc.Element):
 
 	def convert(self, converter):
 		context = converter[self]
+		elementname = "h%d" % min(context.level, 6)
 		node = xsc.Frag(
-			converter.target.element("h%d" % min(context.level, 6))(self["title"]),
+			converter.target.element(elementname)(self["title"]),
 			self.content
 		)
 		context.level += 1
