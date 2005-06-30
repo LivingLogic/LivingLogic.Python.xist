@@ -498,7 +498,7 @@ class Parser(object):
 
 	def _last(self):
 		"""
-		return the newest node from the stack that is a real node.
+		Return the newest node from the stack that is a real node.
 		(There might be fake nodes on the stack, because we are inside
 		of illegal elements).
 		"""
@@ -507,6 +507,9 @@ class Parser(object):
 				return node
 
 	def _parseHTML(self, stream, base, sysid, encoding):
+		"""
+		Internal helper method for parsing &html; via <module>libxml2</module>.
+		"""
 		import libxml2 # This requires libxml2 (see http://www.xmlsoft.org/)
 
 		def decode(s):
