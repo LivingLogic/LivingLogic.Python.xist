@@ -2,13 +2,7 @@
 # -*- coding: iso-8859-1 -*-
 
 from ll.xist import xsc, sims, parsers
-from ll.xist.ns import html, htmlspecials, meta, xml
-
-
-def comparename(node1, node2):
-	name1 = unicode(node1[name][0].content)
-	name2 = unicode(node2[name][0].content)
-	return cmp(name1, name2)
+from ll.xist.ns import html, htmlspecials, meta, xml, chars
 
 
 class name(xsc.Element):
@@ -107,8 +101,11 @@ class media(xsc.Element):
 	model = sims.Elements(ld, dvd)
 
 	def convert(self, converter):
-		dvds = xsc.Frag(self[dvd]).sorted(comparename)
-		lds = xsc.Frag(self[ld]).sorted(comparename)
+		def namekey(node):
+			return unicode(node[name][0].content)
+
+		dvds = xsc.Frag(self[dvd]).sorted(key=namekey)
+		lds = xsc.Frag(self[ld]).sorted(key=namekey)
 
 		e = xsc.Frag(
 			xml.XML10(), "\n",
@@ -138,7 +135,7 @@ __ns__.update(vars())
 
 
 if __name__ == "__main__":
-	prefixes = xsc.Prefixes(__ns__, xml=xml)
+	prefixes = xsc.Prefixes([__ns__, chars], xml=xml)
 	node = parsers.parseFile("Media.xml", prefixes=prefixes)
 	node = node[media][0]
 	node = node.conv()
