@@ -71,7 +71,7 @@ class quotations(xsc.Element):
 				html.body(
 					html.h1("Python quotes"),
 					html.div("(Generated from ", html.a(url, href=url), ")"),
-					self/quotation # We want to get rid of the excessive whitespace
+					self[quotation] # We want to get rid of the excessive whitespace
 				)
 			)
 		)
@@ -90,6 +90,6 @@ if __name__ == "__main__":
 	base = "root:python-quotes.html"
 	# We don't validate, because the XML contains broken HTML (<pre> inside <p>)
 	e = parsers.parseURL(url, base=base, saxparser=parsers.ExpatParser, prefixes=prefixes, validate=False)
-	e = xfind.first(e/quotations)
+	e = e[quotations][0]
 	e = e.compact().conv()
 	e.write(open("python-quotes.html", "wb"), base=base, encoding="iso-8859-1", validate=False)
