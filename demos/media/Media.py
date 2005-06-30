@@ -5,9 +5,9 @@ from ll.xist import xsc, sims, parsers
 from ll.xist.ns import html, htmlspecials, meta, xml
 
 
-def nameCompare(node1, node2):
-	name1 = unicode(node1.content.findfirst(xsc.FindType(name)).content)
-	name2 = unicode(node2.content.findfirst(xsc.FindType(name)).content)
+def comparename(node1, node2):
+	name1 = unicode(node1[name][0].content)
+	name2 = unicode(node2[name][0].content)
 	return cmp(name1, name2)
 
 
@@ -59,11 +59,11 @@ class purchase(xsc.Element):
 	model = sims.Elements(place, date, price)
 
 	def convert(self, converter):
-		e = html.div(self/place, class_="purchase")
-		for e2 in self/price:
+		e = html.div(self[place], class_="purchase")
+		for e2 in self[price]:
 			e.append(": ", e2)
 		e.append(" ")
-		for e2 in self/date:
+		for e2 in self[date]:
 			e.append("(", e2, ")")
 		return e.convert(converter)
 
@@ -73,11 +73,11 @@ class ld(xsc.Element):
 
 	def convert(self, converter):
 		e = html.li(
-			html.span(self/name, class_="name")
+			html.span(self[name], class_="name")
 		)
-		for e2 in self/duration:
+		for e2 in self[duration]:
 			e.append(" (", e2, ")")
-		e.append(self/purchase)
+		e.append(self[purchase])
 		return e.convert(converter)
 
 
@@ -86,10 +86,10 @@ class dvd(xsc.Element):
 
 	def convert(self, converter):
 		e = html.li(
-			html.span(self/name, class_="name")
+			html.span(self[name], class_="name")
 		)
-		durations = xsc.Frag(self/duration)
-		rcs = xsc.Frag(self/rc)
+		durations = xsc.Frag(self[duration])
+		rcs = xsc.Frag(self[rc])
 		if len(durations) or len(rcs):
 			e.append(" (")
 			if len(durations):
@@ -99,7 +99,7 @@ class dvd(xsc.Element):
 			if len(rcs):
 				e.append("RC ", rcs.withsep(", "))
 			e.append(")")
-		e.append(self/purchase)
+		e.append(self[purchase])
 		return e.convert(converter)
 
 
@@ -107,8 +107,8 @@ class media(xsc.Element):
 	model = sims.Elements(ld, dvd)
 
 	def convert(self, converter):
-		dvds = xsc.Frag(self/dvd).sorted(nameCompare)
-		lds = xsc.Frag(self/ld).sorted(nameCompare)
+		dvds = xsc.Frag(self[dvd]).sorted(comparename)
+		lds = xsc.Frag(self[ld]).sorted(comparename)
 
 		e = xsc.Frag(
 			xml.XML10(), "\n",
@@ -140,6 +140,6 @@ __ns__.update(vars())
 if __name__ == "__main__":
 	prefixes = xsc.Prefixes(__ns__, xml=xml)
 	node = parsers.parseFile("Media.xml", prefixes=prefixes)
-	node = node.findfirst(xsc.FindType(media))
+	node = node[media][0]
 	node = node.conv()
 	node.write(open("Media.html","wb"), encoding="us-ascii")
