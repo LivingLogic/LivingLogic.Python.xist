@@ -1663,15 +1663,13 @@ class Frag(Node, list):
 			node.append(child)
 		return node
 
-	def sorted(self, compare=lambda node1, node2: cmp(unicode(node1), unicode(node2))):
+	def sorted(self, cmp=None, key=None, reverse=False):
 		"""
-		<par>Return a sorted version of the <self/>. <arg>compare</arg> is
-		a comparison function returning -1, 0, 1 respectively and defaults to comparing the
-		<pyref class="Node" method="__unicode__"><class>__unicode__</class></pyref> value.</par>
+		<par>Return a sorted version of the <self/>. <arg>cmp</arg>, <arg>key</arg>
+		and <arg>reverse</arg> have to same meaning as for the builtin function
+		<function>sorted</function>.
 		"""
-		node = list(self)
-		node.sort(compare)
-		return self.__class__(node)
+		return self.__class__(sorted(self, cmp, key, reverse))
 
 	def reversed(self):
 		"""

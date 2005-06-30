@@ -10,6 +10,9 @@ from it.</item>
 
 <item>Line number information is now added when parsing &html;.</item>
 
+<item>The <method>sorted</method> now supports the same arguments
+as <method>list.sort</method> and <function>sorted</function> in Python 2.4.</item>
+
 <item>Fixed a bug with element/attribute names that contained a <lit>.</lit>
 character. (This broke <module>ll.xist.ns.fo</module>.)</item>
 
