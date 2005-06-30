@@ -98,12 +98,7 @@ class SGMLOPParser(sax.xmlreader.XMLReader, sax.xmlreader.Locator):
 					self.lineNumber += 1
 				self.feed(data)
 				self.parsed = True
-		except SystemExit:
-			self.close()
-			self.source = None
-			self.encoding = None
-			raise
-		except KeyboardInterrupt:
+		except (SystemExit, KeyboardInterrupt):
 			self.close()
 			self.source = None
 			self.encoding = None
@@ -704,31 +699,35 @@ class Parser(object):
 		pass
 
 	def startElement(self, name, attrs):
+		oldprefixes = self.prefixes
+
 		newprefixes = {}
 		for (attrname, attrvalue) in attrs.items():
 			if attrname==u"xmlns" or attrname.startswith(u"xmlns:"):
 				ns = self.nspool[unicode(attrvalue)]
 				newprefixes[attrname[6:] or None] = [ns]
 
-		prefixes = self.prefixes
 		if newprefixes:
-			prefixes = prefixes.clone()
+			prefixes = oldprefixes.clone()
 			prefixes.update(newprefixes)
-			self.prefixes = prefixes
+			self.prefixes = newprefixes = prefixes
+		else:
+			newprefixes = oldprefixes
+
 		node = self.createElement(name)
 		if node is not None:
 			for (attrname, attrvalue) in attrs.items():
 				if attrname != u"xmlns" and not attrname.startswith(u"xmlns:"):
-					attrname = prefixes.attrnamefromqname(node, attrname)
+					attrname = newprefixes.attrnamefromqname(node, attrname)
 					if attrname is not None: # None means an illegal attribute
 						node[attrname] = attrvalue
 						node[attrname].parsed(self)
 			node.attrs.parsed(self)
 			node.parsed(self, start=True)
 			self.__appendNode(node)
-		# push new innermost element onto the stack, together with the list of prefix mappings defined by this node
+		# push new innermost element onto the stack, together with the list of prefix mappings to which we have to return when we leave this element
 		# If the element is bad (i.e. createElement returned None), we push None as the node
-		self._nesting.append((node, prefixes))
+		self._nesting.append((node, oldprefixes))
 		self.skippingwhitespace = False
 
 	def endElement(self, name):
@@ -739,12 +738,14 @@ class Parser(object):
 				currentelement.checkvalid()
 			if self.loc:
 				currentelement.endloc = self.getLocation()
-		self.prefixes = self._nesting.pop()[1] # pop the innermost element off the stack and restore the old prefixes mapping
 
-		# We have to check after the old prefix mapping from this element has been dropped
+		# We have to check with the currently active prefixes
 		element = self.createElement(name) # Unfortunately this creates the element a second time.
 		if element is not None and element.__class__ is not currentelement.__class__:
 			raise xsc.ElementNestingError(currentelement.__class__, element.__class__)
+
+		self.prefixes = self._nesting.pop()[1] # pop the innermost element off the stack and restore the old prefixes mapping (from outside this element)
+
 		self.skippingwhitespace = False
 
 	def characters(self, content):
