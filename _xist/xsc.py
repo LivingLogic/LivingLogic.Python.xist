@@ -4280,14 +4280,14 @@ class Location(object):
 
 		# get and format the line number
 		line = self.line
-		if line is None:
+		if line is None or line < 0:
 			line = "?"
 		else:
 			line = str(line)
 
 		# get and format the column number
 		col = self.col
-		if col is None:
+		if col is None or col < 0:
 			col = "?"
 		else:
 			col = str(col)
