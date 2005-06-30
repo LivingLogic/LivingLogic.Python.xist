@@ -20,7 +20,7 @@ character. (This broke <module>ll.xist.ns.fo</module>.)</item>
 When an element ended the parser restored the wrong prefix mapping.</item>
 
 <item>The <dirname>python-quotes</dirname> demo has been updated to use the
-current version of AMK's &xml file.
+current version of AMK's &xml file.</item>
 
 <item>Removed iterator stuff from <module>ll.xist.xfind</module>, as this
 is now part of the <module>ll</module> package/module.</item>
