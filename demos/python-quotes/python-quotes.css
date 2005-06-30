@@ -51,6 +51,11 @@ h2
 	color: #0050b2;
 	margin: 0pt 0pt 0pt 0pt;
 }
+pre
+{
+	margin: 6pt 0pt 6pt 3em;
+}
+
 div.description
 {
 	color: #666;

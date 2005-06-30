@@ -148,7 +148,7 @@ class em(xsc.Element):
 
 class pre(xsc.Element):
 	def convert(self, converter):
-		e = html.em(self.content)
+		e = html.pre(self.content)
 
 		return e.convert(converter)
 
