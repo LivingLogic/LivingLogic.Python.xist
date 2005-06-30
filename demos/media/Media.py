@@ -133,7 +133,7 @@ class media(xsc.Element):
 
 class __ns__(xsc.Namespace):
 	xmlname = "media"
-	xmlurl = "http://xmlns.livinglogic.de/xist/example/media"
+	xmlurl = "http://xmlns.livinglogic.de/xist/demo/media"
 __ns__.update(vars())
 
 
