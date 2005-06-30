@@ -8,6 +8,8 @@ from it.</item>
 <item>A <class>DocType</class> for XHTML 1.1 has been added
 (suggested by Elvelind Grandin).</item>
 
+<item>Line number information is now added when parsing &html;.</item>
+
 <item>Fixed a bug with element/attribute names that contained a <lit>.</lit>
 character. (This broke <module>ll.xist.ns.fo</module>.)</item>
 
