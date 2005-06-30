@@ -518,9 +518,6 @@ class Parser(object):
 			except UnicodeDecodeError:
 				return s.decode("iso-8859-1")
 
-		data = stream.read()
-		doc = libxml2.htmlReadMemory(data, len(data), sysid, encoding, 0x60)
-		ns = self.nspool.get(html.xmlname, html)
 		def toxsc(node):
 			if node.type == "document_html":
 				newnode = xsc.Frag()
@@ -532,6 +529,8 @@ class Parser(object):
 				name = decode(node.name).lower()
 				try:
 					newnode = ns.element(name, xml=True)()
+					if self.loc:
+						newnode.startloc = xsc.Location(sysid=sysid, line=node.lineNo())
 				except xsc.IllegalElementError:
 					newnode = xsc.Frag()
 				else:
@@ -559,14 +558,27 @@ class Parser(object):
 					newnode.parsed(self, start=False)
 			elif node.type in ("text", "cdata"):
 				newnode = xsc.Text(decode(node.content))
+				if self.loc:
+					newnode.startloc = xsc.Location(sysid=sysid, line=node.lineNo())
 			elif node.type == "comment":
 				newnode = xsc.Comment(decode(node.content))
+				if self.loc:
+					newnode.startloc = xsc.Location(sysid=sysid, line=node.lineNo())
 			else:
 				newnode = xsc.Null
-			newnode.startloc = xsc.Location(sysid=sysid) # FIXME: get line from node.lineNo()
 			return newnode
-		node = toxsc(doc)
-		doc.freeDoc()
+
+		data = stream.read()
+		ns = self.nspool.get(html.xmlname, html)
+		try:
+			olddefault = libxml2.lineNumbersDefault(1)
+			doc = libxml2.htmlReadMemory(data, len(data), sysid, encoding, 0x160)
+			try:
+				node = toxsc(doc)
+			finally:
+				doc.freeDoc()
+		finally:
+			libxml2.lineNumbersDefault(olddefault)
 		return node
 
 	def _parse(self, stream, base, sysid, encoding):
