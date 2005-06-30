@@ -218,7 +218,7 @@ class python(xsc.Element):
 &lt;b&gt;&lt;a href="http://www.python.org/"&gt;Python&lt;/a&gt; is cool!&lt;/b&gt;
 </tty>
 <par>But if we forget to call
-<pyref module="ll.xist.xsc" class="Node" method="convert">convert</pyref>
+<pyref module="ll.xist.xsc" class="Node" method="convert"><method>convert</method></pyref>
 for our own content, i.e. if the element <pyref class="cool"><class>cool</class></pyref>
 was written like this:</par>
 <prog>
