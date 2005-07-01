@@ -861,14 +861,16 @@ def test_clone():
 		assert dst["id"][1] is dst["id"][2]
 
 
-
 def test_sortedreversed():
-	def check(method):
-		for class_ in (xsc.Frag, html.div):
-			node = class_(3, 2, 1)
-			node2 = getattr(node, method)()
-			assert node == class_(3, 2, 1)
-			assert node2 == class_(1, 2, 3)
+	for class_ in (xsc.Frag, html.div):
+		node = class_(3, 2, 1)
+		node2 = node.sorted(key=str)
+		assert node == class_(3, 2, 1)
+		assert node2 == class_(1, 2, 3)
 
-	yield check, "sorted"
-	yield check, "reversed"
+	for class_ in (xsc.Frag, html.div):
+		node = class_(3, 2, 1)
+		node2 = node.reversed()
+		assert node == class_(3, 2, 1)
+		assert node2 == class_(1, 2, 3)
+

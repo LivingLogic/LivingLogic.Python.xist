@@ -3208,7 +3208,7 @@ class Element(Node):
 		node.content = self.content.withsep(separator, clone)
 		return node
 
-	def sorted(self, compare=lambda node1, node2: cmp(unicode(node1), unicode(node2))):
+	def sorted(self, cmp=None, key=None, reverse=False):
 		"""
 		returns a sorted version of <self/>. <arg>compare</arg> is a comparison
 		function. If <arg>compare</arg> is omitted, the character content will
@@ -3216,7 +3216,7 @@ class Element(Node):
 		"""
 		node = self.__class__()
 		node.attrs = self.attrs.clone()
-		node.content = self.content.sorted(compare)
+		node.content = self.content.sorted(cmp, key, reverse)
 		return node
 
 	def reversed(self):
