@@ -873,4 +873,3 @@ def test_sortedreversed():
 		node2 = node.reversed()
 		assert node == class_(3, 2, 1)
 		assert node2 == class_(1, 2, 3)
-
