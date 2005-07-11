@@ -366,7 +366,7 @@ class IllegalPrefixError(Error, LookupError):
 		return "namespace prefix %r is undefined" % self.prefix
 
 
-class IllegalNamespaceError(Error, LookupError):
+class IllegalNamespaceError(Error, KeyError):
 	"""
 	Exception that is raised when a namespace name is undefined
 	i.e. if there is no namespace with this name.
@@ -3429,6 +3429,12 @@ class NSPool(dict):
 			del self[ns.xmlurl]
 		except KeyError:
 			pass
+
+	def __getitem__(self, name):
+		try:
+			return dict.__getitem__(self, name)
+		except KeyError:
+			raise IllegalNamespaceError(name)
 
 defaultnspool = NSPool()
 

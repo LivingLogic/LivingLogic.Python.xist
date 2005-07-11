@@ -8,10 +8,12 @@
 ##
 ## See xist/__init__.py for the license
 
+
 """
 This module contains classes that are used for dumping elements
 to the terminal.
 """
+
 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
@@ -24,224 +26,131 @@ from ll import ansistyle, url
 import xsc, options
 
 
-def getStringFromEnv(name, default):
-	try:
-		return os.environ[name]
-	except KeyError:
-		return default
-
-
 def getenvint(name, default):
 	try:
-		return int(os.environ[name])
+		return int(os.environ[name], 0)
 	except KeyError:
 		return default
 
 
-def getenvcolors(name, default):
-	if options.repransi==0:
+def getenvcolors(name, default1, default2):
+	if options.repransi == 1:
+		return getenvint(name, default1)
+	elif options.repransi == 2:
+		return getenvint(name, default2)
+	else:
 		return -1
-	try:
-		var = eval(os.environ[name])
-		if isintance(var, str):
-			var = (var, var)
-		return var[options.repransi-1]
-	except KeyError:
-		return default[options.repransi-1]
 
 
-class EnvTextForTab(ansistyle.Text):
-	"""
-	ANSI escape sequence to be used for tabs
-	"""
-	color = getenvcolors("XSC_REPRANSI_TAB", (0x4, 0x8))
+# ANSI escape sequence to be used for tabs
+color4tab = getenvcolors("LL_XIST_REPRANSI_TAB", 0x4, 0x8)
 
 
-class EnvTextForQuote(ansistyle.Text):
-	"""
-	ANSI escape sequence to be used for quotes
-	(delimiters for text and attribute nodes)
-	"""
-	color = getenvcolors("XSC_REPRANSI_QUOTE", (0x3, 0xf))
+# ANSI escape sequence to be used for quotes (delimiters for text and attribute nodes)
+color4quote = getenvcolors("LL_XIST_REPRANSI_QUOTE", 0x3, 0xf)
 
 
-class EnvTextForSlash(ansistyle.Text):
-	color = getenvcolors("XSC_REPRANSI_SLASH", (0x3, 0xf))
+color4slash = getenvcolors("LL_XIST_REPRANSI_SLASH", 0x3, 0xf)
 
 
-class EnvTextForBracket(ansistyle.Text):
-	"""
-	ANSI escape sequence to be used for quotes
-	(delimiters for text and attribute nodes)
-	"""
-	color = getenvcolors("XSC_REPRANSI_BRACKET", (0x3, 0xf))
+# ANSI escape sequence to be used for brackets
+color4bracket = getenvcolors("LL_XIST_REPRANSI_BRACKET", 0x3, 0xf)
 
 
-class EnvTextForColon(ansistyle.Text):
-	"""
-	ANSI escape sequence to be used for colon
-	(i.e. namespace separator)
-	"""
-	color = getenvcolors("XSC_REPRANSI_BRACKET", (0x3, 0xf))
+# ANSI escape sequence to be used for colon (i.e. namespace separator)
+color4colon = getenvcolors("LL_XIST_REPRANSI_COLON", 0x3, 0xf)
 
 
-class EnvTextForQuestion(ansistyle.Text):
-	"""
-	ANSI escape sequence to be used for question marks
-	(delimiters for processing instructions)
-	"""
-	color = getenvcolors("XSC_REPRANSI_QUESTION", (0x3, 0xf))
+# ANSI escape sequence to be used for question marks (delimiters for processing instructions)
+color4question = getenvcolors("LL_XIST_REPRANSI_QUESTION", 0x3, 0xf)
 
 
-class EnvTextForExclamation(ansistyle.Text):
-	"""
-	ANSI escape sequence to be used for exclamation marks
-	(used in comments and doctypes)
-	"""
-	color = getenvcolors("XSC_REPRANSI_EXCLAMATION", (0x3, 0xf))
+# ANSI escape sequence to be used for exclamation marks (used in comments and doctypes)
+color4exclamation = getenvcolors("LL_XIST_REPRANSI_EXCLAMATION", 0x3, 0xf)
 
 
-class EnvTextForAmp(ansistyle.Text):
-	"""
-	ANSI escape sequence to be used for & (used in entity)
-	"""
-	color = getenvcolors("XSC_REPRANSI_AMP", (0x3, 0xf))
+# ANSI escape sequence to be used for & (used in entity)
+color4amp = getenvcolors("LL_XIST_REPRANSI_AMP", 0x3, 0xf)
 
 
-class EnvTextForSemi(ansistyle.Text):
-	"""
-	ANSI escape sequence to be used for semicolons (used in entities)
-	"""
-	color = getenvcolors("XSC_REPRANSI_SEMI", (0x3, 0xf))
+# ANSI escape sequence to be used for semicolons (used in entities)
+color4semi = getenvcolors("LL_XIST_REPRANSI_SEMI", 0x3, 0xf)
 
 
-class EnvTextForText(ansistyle.Text):
-	"""
-	ANSI escape sequence to be used for text
-	"""
-	color = getenvcolors("XSC_REPRANSI_TEXT", (0x7, 0x7))
+# ANSI escape sequence to be used for text
+color4text = getenvcolors("LL_XIST_REPRANSI_TEXT", 0x7, 0x7)
 
 
-class EnvTextForNamespace(ansistyle.Text):
-	"""
-	ANSI escape sequence to be used for namespaces
-	"""
-	color = getenvcolors("XSC_REPRANSI_NAMESPACE", (0xf, 0x4))
+# ANSI escape sequence to be used for namespaces
+color4namespace = getenvcolors("LL_XIST_REPRANSI_NAMESPACE", 0xf, 0x4)
 
 
-class EnvTextForElementName(ansistyle.Text):
-	"""
-	ANSI escape sequence to be used for element names
-	"""
-	color = getenvcolors("XSC_REPRANSI_ELEMENTNAME", (0xe, 0xc))
+# ANSI escape sequence to be used for element names
+color4elementname = getenvcolors("LL_XIST_REPRANSI_ELEMENTNAME", 0xe, 0xc)
 
 
-class EnvTextForAttrName(ansistyle.Text):
-	"""
-	ANSI escape sequence to be used for attr class name
-	"""
-	color = getenvcolors("XSC_REPRANSI_ATTRNAME", (0xe, 0xc))
+# ANSI escape sequence to be used for attribute names
+color4attrname = getenvcolors("LL_XIST_REPRANSI_ATTRNAME", 0xf, 0xc)
 
 
-class EnvTextForAttrsName(ansistyle.Text):
-	"""
-	ANSI escape sequence to be used for attrs class name
-	"""
-	color = getenvcolors("XSC_REPRANSI_ATTRSNAME", (0xe, 0xc))
+# ANSI escape sequence to be used for attrs class name
+color4attrsname = getenvcolors("LL_XIST_REPRANSI_ATTRSNAME", 0xe, 0xc)
 
 
-class EnvTextForEntityName(ansistyle.Text):
-	"""
-	ANSI escape sequence to be used for entity names
-	"""
-	color = getenvcolors("XSC_REPRANSI_ENTITYNAME", (0x5, 0x5))
+# ANSI escape sequence to be used for entity names
+color4entityname = getenvcolors("LL_XIST_REPRANSI_ENTITYNAME", 0x5, 0x5)
 
 
-class EnvTextForAttrName(ansistyle.Text):
-	"""
-	ANSI escape sequence to be used for attribute names
-	"""
-	color = getenvcolors("XSC_REPRANSI_ATTRNAME", (0xf, 0xc))
+# ANSI escape sequence to be used for document types marker (i.e. !DOCTYPE)
+color4doctypemarker = getenvcolors("LL_XIST_REPRANSI_DOCTYPEMARKER", 0xf, 0xf)
 
 
-class EnvTextForDocTypeMarker(ansistyle.Text):
-	"""
-	ANSI escape sequence to be used for document types
-	marker (i.e. !DOCTYPE)
-	"""
-	color = getenvcolors("XSC_REPRANSI_DOCTYPEMARKER", (0xf, 0xf))
+# ANSI escape sequence to be used for document types
+color4doctypetext = getenvcolors("LL_XIST_REPRANSI_DOCTYPETEXT", 0x7, 0x7)
 
 
-class EnvTextForDocTypeText(ansistyle.Text):
-	"""
-	ANSI escape sequence to be used for document types
-	"""
-	color = getenvcolors("XSC_REPRANSI_DOCTYPETEXT", (0x7, 0x7))
+# ANSI escape sequence to be used for comment markers (i.e. --)
+color4commentmarker = getenvcolors("LL_XIST_REPRANSI_COMMENTMARKER", 0x7, 0xf)
 
 
-class EnvTextForCommentMarker(ansistyle.Text):
-	"""
-	ANSI escape sequence to be used for comment markers (i.e. --)
-	"""
-	color = getenvcolors("XSC_REPRANSI_COMMENTMARKER", (0x7, 0xf))
+# ANSI escape sequence to be used for comment text
+color4commenttext = getenvcolors("LL_XIST_REPRANSI_COMMENTTEXT", 0x8, 0x8)
 
 
-class EnvTextForCommentText(ansistyle.Text):
-	"""
-	ANSI escape sequence to be used for comment text
-	"""
-	color = getenvcolors("XSC_REPRANSI_COMMENTTEXT", (0x8, 0x8))
+# ANSI escape sequence to be used for attribute values
+color4attrvalue = getenvcolors("LL_XIST_REPRANSI_ATTRVALUE", 0x7, 0x6)
 
 
-class EnvTextForAttrValue(ansistyle.Text):
-	"""
-	ANSI escape sequence to be used for attribute values
-	"""
-	color = getenvcolors("XSC_REPRANSI_ATTRVALUE", (0x7, 0x6))
+# ANSI escape sequence to be used for URLs
+color4url = getenvcolors("LL_XIST_REPRANSI_URL", 0xb, 0x2)
 
 
-class EnvTextForURL(ansistyle.Text):
-	"""
-	ANSI escape sequence to be used for URLs
-	"""
-	color = getenvcolors("XSC_REPRANSI_URL", (0xb, 0x2))
+# ANSI escape sequence to be used for processing instruction targets
+color4procinsttarget = getenvcolors("LL_XIST_REPRANSI_PROCINSTTARGET", 0x9, 0x9)
 
 
-class EnvTextForProcInstTarget(ansistyle.Text):
-	"""
-	ANSI escape sequence to be used for processing instruction targets
-	"""
-	color = getenvcolors("XSC_REPRANSI_PROCINSTTARGET", (0x9, 0x9))
+# ANSI escape sequence to be used for processing instruction content
+color4procinstcontent = getenvcolors("LL_XIST_REPRANSI_PROCINSTCONTENT", 0x7, 0x7)
 
 
-class EnvTextForProcInstContent(ansistyle.Text):
-	"""
-	ANSI escape sequence to be used for processing instruction content
-	"""
-	color = getenvcolors("XSC_REPRANSI_PROCINSTCONTENT", (0x7, 0x7))
+# ANSI escape sequence to be used for numbers in error messages etc.
+color4number = getenvcolors("LL_XIST_REPRANSI_NUMBER", 0x4, 0x4)
 
 
-class EnvTextForNumber(ansistyle.Text):
-	"""
-	ANSI escape sequence to be used for numbers in error messages etc.
-	"""
-	color = getenvcolors("XSC_REPRANSI_NUMBER", (0x4, 0x4))
-
-
-class EnvTextForString(ansistyle.Text):
-	"""
-	ANSI escape sequence to be used for variable strings in error messages etc.
-	"""
-	color = getenvcolors("XSC_REPRANSI_STRING", (0x5, 0x5))
+# ANSI escape sequence to be used for variable strings in error messages etc.
+color4string = getenvcolors("LL_XIST_REPRANSI_STRING", 0x5, 0x5)
 
 
 class EscInlineText(ansistyle.EscapedText):
 	ascharref = "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x0b\x0c\x0d\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f<>&"
 	ascolor   = "\x09\x0a"
 
+	def __init__(self, *content):
+		ansistyle.EscapedText.__init__(self, -1, *content)
+
 	def escapechar(self, char):
 		if char in self.ascolor:
-			return EnvTextForTab(char)
+			return ansistyle.Text(color4tab, char)
 		else:
 			ascharref = char in self.ascharref
 			if not ascharref:
@@ -254,9 +163,9 @@ class EscInlineText(ansistyle.EscapedText):
 				try:
 					entity = xsc.defaultPrefixes.charref(charcode)
 				except LookupError:
-					return EnvTextForEntityName("&#", str(charcode), ";")
+					return ansistyle.Text(color4entityname, "&#", str(charcode), ";")
 				else:
-					return EnvTextForEntityName("&", entity.xmlname, ";")
+					return ansistyle.Text(color4entityname, "&", entity.xmlname, ";")
 		return char
 
 
@@ -276,113 +185,113 @@ class EscOutlineAttr(EscInlineText):
 
 
 def strBracketOpen():
-	return EnvTextForBracket("<")
+	return ansistyle.Text(color4bracket, "<")
 
 
 def strBracketClose():
-	return EnvTextForBracket(">")
+	return ansistyle.Text(color4bracket, ">")
 
 
 def strAmp():
-	return EnvTextForAmp("&")
+	return ansistyle.Text(color4amp, "&")
 
 
 def strSemi():
-	return EnvTextForSemi(";")
+	return ansistyle.Text(color4semi, ";")
 
 
 def strSlash():
-	return EnvTextForSlash("/")
+	return ansistyle.Text(color4slash, "/")
 
 
 def strColon():
-	return EnvTextForColon(":")
+	return ansistyle.Text(color4colon, ":")
 
 
 def strQuestion():
-	return EnvTextForQuestion("?")
+	return ansistyle.Text(color4question, "?")
 
 
 def strExclamation():
-	return EnvTextForExclamation("!")
+	return ansistyle.Text(color4exclamation, "!")
 
 
 def strQuote():
-	return EnvTextForQuote('"')
+	return ansistyle.Text(color4quote, '"')
 
 
 def strTab(count):
-	return EnvTextForTab(options.reprtab*count)
+	return ansistyle.Text(color4tab, options.reprtab*count)
 
 
 def strNumber(number):
-	return EnvTextForNumber(str(number))
+	return ansistyle.Text(color4number, str(number))
 
 
 def strString(string):
-	return EnvTextForString(string)
+	return ansistyle.Text(color4string, string)
 
 
 def strURL(u):
 	if isinstance(u, url.URL):
 		u = u.url
-	return EnvTextForURL(EscInlineText(u))
+	return ansistyle.Text(color4url, EscInlineText(u))
 
 
 def strDocTypeMarker():
-	return EnvTextForDocTypeMarker("DOCTYPE")
+	return ansistyle.Text(color4doctypemarker, "DOCTYPE")
 
 
 def strDocTypeText(text):
-	return EnvTextForDocTypeText(EscInlineText(text))
+	return ansistyle.Text(color4doctypetext, EscInlineText(text))
 
 
 def strCommentMarker():
-	return EnvTextForCommentMarker("--")
+	return ansistyle.Text(color4commentmarker, "--")
 
 
 def strCommentText(text):
-	return EnvTextForCommentText(EscInlineText(text))
+	return ansistyle.Text(color4commenttext, EscInlineText(text))
 
 
 def strNamespace(namespace):
-	return EnvTextForNamespace(EscInlineText(namespace))
+	return ansistyle.Text(color4namespace, EscInlineText(namespace))
 
 
 def strElementName(name):
-	return EnvTextForElementName(EscInlineText(name))
+	return ansistyle.Text(color4elementname, EscInlineText(name))
 
 
 def strAttrName(name):
-	return EnvTextForAttrName(EscInlineText(name))
+	return ansistyle.Text(color4attrname, EscInlineText(name))
 
 
 def strAttrsName(name):
-	return EnvTextForAttrsName(EscInlineText(name))
+	return ansistyle.Text(color4attrsname, EscInlineText(name))
 
 
 def strEntityName(name):
-	return EnvTextForEntityName(EscInlineText(name))
+	return ansistyle.Text(color4entityname, EscInlineText(name))
 
 
 def strProcInstTarget(target):
-	return EnvTextForProcInstTarget(EscInlineText(target))
+	return ansistyle.Text(color4procinsttarget, EscInlineText(target))
 
 
 def strProcInstContent(content):
-	return EnvTextForProcInstContent(EscInlineText(content))
+	return ansistyle.Text(color4procinstcontent, EscInlineText(content))
 
 
 def strTextOutsideAttr(text):
-	return EnvTextForText(EscInlineText(text))
+	return ansistyle.Text(color4text, EscInlineText(text))
 
 
 def strTextInAttr(text):
-	return EnvTextForAttrValue(EscInlineAttr(text))
+	return ansistyle.Text(color4attrvalue, EscInlineAttr(text))
 
 
 def strAttrValue(attrvalue):
-	return EnvTextForAttrValue(EscInlineAttr(attrvalue))
+	return ansistyle.Text(color4attrvalue, EscInlineAttr(attrvalue))
 
 
 class Presenter(object):
@@ -691,7 +600,7 @@ class TreePresenter(Presenter):
 							else:
 								newline1.append(repr(comp))
 						line[1] = "[%s]" % ",".join(newline1)
-				line[3] = ansistyle.Text(strTab(line[2]), line[3])
+				line[3] = ansistyle.Text()(strTab(line[2]), line[3])
 				if self.showlocation:
 					if line[0] is not None:
 						line[0] = str(line[0])
@@ -740,19 +649,19 @@ class TreePresenter(Presenter):
 			self._lines.append([hereloc, self._currentpath[:], mynest, s])
 
 	def strTextLineOutsideAttr(self, text):
-		return ansistyle.Text(strQuote(), EnvTextForText(EscOutlineText(text)), strQuote())
+		return ansistyle.Text()(strQuote(), ansistyle.Text(color4text, EscOutlineText(text)), strQuote())
 
 	def strTextInAttr(self, text):
-		return EnvTextForAttrValue(EscOutlineAttr(text))
+		return ansistyle.Text(color4attrvalue, EscOutlineAttr(text))
 
 	def strProcInstContentLine(self, text):
-		return EnvTextForProcInstContent(EscOutlineText(text))
+		return ansistyle.Text(color4procinstcontent, EscOutlineText(text))
 
 	def strCommentTextLine(self, text):
-		return EnvTextForCommentText(EscOutlineText(text))
+		return ansistyle.Text(color4commenttext, EscOutlineText(text))
 
 	def strDocTypeTextLine(self, text):
-		return EnvTextForDocTypeText(EscOutlineText(text))
+		return ansistyle.Text(color4doctypetext, EscOutlineText(text))
 
 	def presentFrag(self, node):
 		if self._inattr:
@@ -760,15 +669,15 @@ class TreePresenter(Presenter):
 				child.present(self)
 		else:
 			if len(node):
-				self._lines.append([node.startloc, self._currentpath[:], len(self._currentpath), ansistyle.Text(strBracketOpen(), node._str(fullname=1, xml=0, decorate=0), strBracketClose())])
+				self._lines.append([node.startloc, self._currentpath[:], len(self._currentpath), ansistyle.Text()(strBracketOpen(), node._str(fullname=1, xml=0, decorate=0), strBracketClose())])
 				self._currentpath.append(0)
 				for child in node:
 					child.present(self)
 					self._currentpath[-1] += 1
 				del self._currentpath[-1]
-				self._lines.append([node.endloc, self._currentpath[:], len(self._currentpath), ansistyle.Text(strBracketOpen(), strSlash(), node._str(fullname=1, xml=0, decorate=0), strBracketClose())])
+				self._lines.append([node.endloc, self._currentpath[:], len(self._currentpath), ansistyle.Text()(strBracketOpen(), strSlash(), node._str(fullname=1, xml=0, decorate=0), strBracketClose())])
 			else:
-				self._lines.append([node.startloc, self._currentpath[:], len(self._currentpath), ansistyle.Text(strBracketOpen(), node._str(fullname=1, xml=0, decorate=0), strSlash(), strBracketClose())])
+				self._lines.append([node.startloc, self._currentpath[:], len(self._currentpath), ansistyle.Text()(strBracketOpen(), node._str(fullname=1, xml=0, decorate=0), strSlash(), strBracketClose())])
 
 	def presentAttrs(self, node):
 		if self._inattr:
@@ -782,14 +691,14 @@ class TreePresenter(Presenter):
 				attrvalue.present(self)
 				self._buffers[-1].append(strQuote())
 		else:
-			s = ansistyle.Text(strBracketOpen(), node._str(fullname=1, xml=0, decorate=0), strBracketClose())
+			s = ansistyle.Text()(strBracketOpen(), node._str(fullname=1, xml=0, decorate=0), strBracketClose())
 			self._lines.append([node.startloc, self._currentpath[:], len(self._currentpath), s])
 			self._currentpath.append(None)
 			for (attrname, attrvalue) in node.items():
 				self._currentpath[-1] = attrname
 				attrvalue.present(self)
 			self._currentpath.pop()
-			s = ansistyle.Text(strBracketOpen(), strSlash(), node._str(fullname=1, xml=0, decorate=0), strBracketClose())
+			s = ansistyle.Text()(strBracketOpen(), strSlash(), node._str(fullname=1, xml=0, decorate=0), strBracketClose())
 			self._lines.append([node.endloc, self._currentpath[:], len(self._currentpath), s])
 
 	def presentElement(self, node):
@@ -805,23 +714,23 @@ class TreePresenter(Presenter):
 			else:
 				self._buffers[-1].append(strSlash(), strBracketClose())
 		else:
-			self._buffers.append(ansistyle.Text(strBracketOpen(), node._str(fullname=1, xml=0, decorate=0)))
+			self._buffers.append(ansistyle.Text()(strBracketOpen(), node._str(fullname=1, xml=0, decorate=0)))
 			self._inattr += 1
 			node.attrs.present(self)
 			self._inattr -= 1
 			if len(node):
 				self._buffers[-1].append(strBracketClose())
-				self._lines.append([node.startloc, self._currentpath[:], len(self._currentpath), ansistyle.Text(*self._buffers)])
+				self._lines.append([node.startloc, self._currentpath[:], len(self._currentpath), ansistyle.Text()(*self._buffers)])
 				self._buffers = [] # we're done with the buffers for the header
 				self._currentpath.append(0)
 				for child in node:
 					child.present(self)
 					self._currentpath[-1] += 1
 				self._currentpath.pop()
-				self._lines.append([node.endloc, self._currentpath[:], len(self._currentpath), ansistyle.Text(strBracketOpen(), strSlash(), node._str(fullname=1, xml=0, decorate=0), strBracketClose())])
+				self._lines.append([node.endloc, self._currentpath[:], len(self._currentpath), ansistyle.Text()(strBracketOpen(), strSlash(), node._str(fullname=1, xml=0, decorate=0), strBracketClose())])
 			else:
 				self._buffers[-1].append(strSlash(), strBracketClose())
-				self._lines.append([node.startloc, self._currentpath[:], len(self._currentpath), ansistyle.Text(*self._buffers)])
+				self._lines.append([node.startloc, self._currentpath[:], len(self._currentpath), ansistyle.Text()(*self._buffers)])
 				self._buffers = [] # we're done with the buffers for the header
 
 	def presentNull(self, node):
@@ -848,13 +757,13 @@ class TreePresenter(Presenter):
 				strQuestion(),
 				node._str(fullname=1, xml=0, decorate=0),
 				" ",
-				EnvTextForProcInstContent(EscOutlineAttr(node.content)),
+				ansistyle.Text(color4procinstcontent, EscOutlineAttr(node.content)),
 				strQuestion(),
 				strBracketClose()
 			)
 		else:
-			head = ansistyle.Text(strBracketOpen(), strQuestion(), node._str(fullname=1, xml=0, decorate=0), " ")
-			tail = ansistyle.Text(strQuestion(), strBracketClose())
+			head = ansistyle.Text()(strBracketOpen(), strQuestion(), node._str(fullname=1, xml=0, decorate=0), " ")
+			tail = ansistyle.Text()(strQuestion(), strBracketClose())
 			lines = node.content.splitlines()
 			if len(lines)>1:
 				lines.insert(0, "")
@@ -871,8 +780,8 @@ class TreePresenter(Presenter):
 				strBracketClose()
 			)
 		else:
-			head = ansistyle.Text(strBracketOpen(), strExclamation(), strCommentMarker())
-			tail = ansistyle.Text(strCommentMarker(), strBracketClose())
+			head = ansistyle.Text()(strBracketOpen(), strExclamation(), strCommentMarker())
+			tail = ansistyle.Text()(strCommentMarker(), strBracketClose())
 			lines = node.content.splitlines()
 			self._domultiline(node, lines, 1, self.strCommentTextLine, head, tail)
 
@@ -887,15 +796,15 @@ class TreePresenter(Presenter):
 				strBracketClose()
 			)
 		else:
-			head = ansistyle.Text(strBracketOpen(), strExclamation(), strDocTypeMarker(), " ")
-			tail = ansistyle.Text(strBracketClose())
+			head = ansistyle.Text()(strBracketOpen(), strExclamation(), strDocTypeMarker(), " ")
+			tail = ansistyle.Text()(strBracketClose())
 			lines = node.content.splitlines()
 			self._domultiline(node, lines, 1, self.strDocTypeTextLine, head, tail)
 
 	def presentAttr(self, node):
 		if self._inattr:
 			# this will not be popped at the and of this method, because presentElement needs it
-			self._buffers.append(EnvTextForAttrValue())
+			self._buffers.append(ansistyle.Text(color4attrvalue))
 		self.presentFrag(node)
 
 

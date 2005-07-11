@@ -16,7 +16,7 @@ on the &xml; level.</par>
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-from ll.xist import xsc, sandbox, sims
+from ll.xist import xsc, sims
 
 
 class CodeAttr(xsc.Attr):
@@ -62,14 +62,14 @@ class If(xsc.Element):
 	xmlname = "if"
 
 	def convert(self, converter):
-		intruecondition = self.__testCond(self, converter)
+		intruecondition = self._testcond(self, converter)
 		truecondition = xsc.Frag()
 		for child in self.content:
 			if isinstance(child, ElIf):
 				if intruecondition:
 					break
 				else:
-					intruecondition = self.__testCond(child, converter)
+					intruecondition = self._testcond(child, converter)
 			elif isinstance(child, Else):
 				if intruecondition:
 					break
@@ -80,11 +80,11 @@ class If(xsc.Element):
 					truecondition.append(child)
 		return truecondition.convert(converter)
 
-	def __testCond(self, node, converter):
+	def _testcond(self, node, converter):
 		result = True
 		if u"cond" in node.attrs:
 			cond = unicode(node[u"cond"].convert(converter))
-			result = eval(cond, sandbox.__dict__)
+			result = eval(cond, converter[self.__ns__].sandbox)
 		if result and u"mode" in node.attrs:
 			result = unicode(node[u"mode"].convert(converter)) == converter.mode
 		if result and u"target" in node.attrs:
@@ -121,4 +121,10 @@ class Else(xsc.Element):
 class __ns__(xsc.Namespace):
 	xmlname = "cond"
 	xmlurl = "http://xmlns.livinglogic.de/xist/ns/cond"
+
+	class Context(xsc.Namespace.Context):
+		def __init__(self):
+			xsc.Namespace.Context.__init__(self)
+			self.sandbox = {}
+
 __ns__.makemod(vars())

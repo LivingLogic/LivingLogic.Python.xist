@@ -36,6 +36,8 @@ in the order in which they appear in the Python source.</item>
 <item>The node methods <method>find</method> and <method>findfirst</method>
 have been removed.</item>
 
+<item><module>ll.xist.ns.cond</module> now uses a sandbox dictionary in a
+converter context for evaluating expression.</item>
 </ulist>
 </section>
 
@@ -191,6 +193,13 @@ changed to use <function>xfind.item</function>, so you now have to pass a
 default value to get the old behaviour.</item>
 <item>Obsolete options in <module>ll.xist.options</module> have been removed
 (and <lit>reprEncoding</lit> has been renamed to <lit>reprencoding</lit>).</item>
+</ulist>
+</section>
+
+
+<section><title>Changes in 2.6.2 (released 06/06/2005)</title>
+<ulist>
+<item>Fixed a bug in <method>ll.xist.parsers.Parser.parse</method>.</item>
 </ulist>
 </section>
 
