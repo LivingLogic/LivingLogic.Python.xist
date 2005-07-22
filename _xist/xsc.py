@@ -979,9 +979,8 @@ class Node(Base):
 	@ll.notimplemented
 	def publish(self, publisher):
 		"""
-		Generate unicode strings for the node. <arg>publisher</arg> must be an
-		instance of
-		<pyref module="ll.xist.publishers" class="Publisher"><class>ll.xist.publishers.Publisher</class></pyref>.
+		<par>Generate unicode strings for the node. <arg>publisher</arg> must be an instance of
+		<pyref module="ll.xist.publishers" class="Publisher"><class>ll.xist.publishers.Publisher</class></pyref>.</par>
 
 		<par>The encoding and xhtml specification are taken from the <arg>publisher</arg>.</par>
 		"""
