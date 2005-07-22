@@ -746,7 +746,7 @@ class Node(Base):
 		"""
 		return a clone of <self/>. Compared to <pyref method="deepcopy"><method>deepcopy</method></pyref> <method>clone</method>
 		will create multiple instances of objects that can be found in the tree more than once. <method>clone</method> can't
-		clone trees that contains cycles.
+		clone trees that contain cycles.
 		"""
 		return self
 
