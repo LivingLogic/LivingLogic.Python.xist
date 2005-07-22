@@ -444,9 +444,9 @@ class Parser(object):
 		&xist; itself provides several &sax;2 parsers
 		(all based on Fredrik Lundh's <app>sgmlop</app> from <app moreinfo="http://pyxml.sf.net/">PyXML</app>):</par>
 		<ulist>
-		<item><pyref module="ll.xist.parsers" class="SGMLOPParser"><class>ll.xist.parsers.SGMLOPParser</class></pyref>
+		<item><pyref module="ll.xist.parsers" class="SGMLOPParser"><class>SGMLOPParser</class></pyref>
 		(which is the default if the <arg>saxparser</arg> argument is not given);</item>
-		<item><pyref module="ll.xist.parsers" class="BadEntityParser"><class>ll.xist.parsers.BadEntityParser</class></pyref>
+		<item><pyref module="ll.xist.parsers" class="BadEntityParser"><class>BadEntityParser</class></pyref>
 		(which is based on <class>SGMLOPParser</class> and tries to pass on unknown entity references as literal content);</item>
 		<item><pyref module="ll.xist.parsers" class="HTMLParser"><class>HTMLParser</class></pyref> (which is
 		based on BadEntityParser and tries to make sense of &html; sources).</item>
@@ -461,16 +461,15 @@ class Parser(object):
 
 		<term><arg>prefixes</arg></term><item>an instance of <pyref module="ll.xist.xsc" class="Prefixes"><class>ll.xist.xsc.Prefixes</class></pyref>;
 		Specifies which namespace modules should be available during parsing
-		and to which prefixes they are mapped (but of course this
-		mapping can be changed during parsing by using <lit>xmlns</lit>
-		attributes in the usual way).</item>
+		and to which prefixes they are mapped (this mapping can change during
+		parsing by <lit>xmlns</lit> attributes are encountered).</item>
 
 		<term><arg>loc</arg></term><item>Should location information be attached to the generated nodes?</item>
 
 		<term><arg>validate</arg></term><item>Should the parsed &xml; nodes be validated after parsing?</item>
 
 		<term><arg>encoding</arg></term><item>The default encoding to use, when the
-		source doesn't provide an &xml; header. The default <lit>None</lit> results in
+		source doesn't provide an encoding. The default <lit>None</lit> results in
 		<lit>"utf-8"</lit> for parsing &xml; and <lit>"iso-8859-1"</lit> when parsing
 		broken &html; (when <lit><arg>tidy</arg></lit> is true).</item>
 		</dlist>
@@ -847,7 +846,7 @@ class Parser(object):
 		return entity
 
 
-def parse(stream, base, sysid=None, **parserargs):
+def parse(stream, base=None, sysid=None, **parserargs):
 	"""
 	Parse &xml; from the stream <arg>stream</arg> into an &xist; tree.
 	For the arguments <arg>base</arg> and <arg>sysid</arg> see the method

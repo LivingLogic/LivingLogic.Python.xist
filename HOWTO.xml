@@ -32,8 +32,9 @@ own element classes and implement an appropriate
 <method>convert</method> method. This is possible for
 processing instructions and entity references too.</item>
 <item>Publishing the target tree: For generating the final
-output a <class>Publisher</class> object is used that writes
-the final &xml; to an output stream.</item>
+output a <class>Publisher</class> object is used that generates
+the encoded byte string fragments that can be written to an output stream
+(or yielded from a WSGI application, etc.).</item>
 </ulist>
 </section>
 
@@ -52,7 +53,7 @@ of nodes);</item>
 (e.g. <markup>&lt;!-- the comment --&gt;</markup>);</item>
 <item><pyref module="ll.xist.xsc" class="ProcInst"><class>ProcInst</class></pyref> for processing instructions
 (e.g. <markup>&lt;?php echo $spam;?&gt;</markup>);</item>
-<item><pyref module="ll.xist.xsc" class="Entity"><class>Entity</class></pyref> for entities
+<item><pyref module="ll.xist.xsc" class="Entity"><class>Entity</class></pyref> for entity references
 (e.g. <markup>&amp;parrot;</markup>) and</item>
 <item><pyref module="ll.xist.xsc" class="DocType"><class>DocType</class></pyref> for document type
 declarations (e.g. <markup>&lt;!DOCTYPE html PUBLIC <rep>...</rep>&gt;</markup>).</item>
@@ -73,8 +74,8 @@ for example.</par>
 __init__(self, *content, **attrs)
 </prog>
 <par>Positional arguments (i.e. items in <arg>content</arg>)
-will be the child nodes of the element node. Keyword arguments
-will be attributes. You can pass most builtin types to such a constructor.
+will be the child nodes of the element node. Keyword arguments will be attributes.
+You can pass most of Python's builtin types to such a constructor.
 Strings (<class>str</class> and <class>unicode</class>) and integers
 will be automatically converted to
 <pyref module="ll.xist.xsc" class="Text"><class>Text</class></pyref> objects.
@@ -92,7 +93,7 @@ node = html.div(
 </example>
 
 <par>For attribute names that collide with Python keywords
-or are not legal identifiers (most notably <lit>class</lit> in &html;),
+or are not legal identifiers (most notably <lit>class</lit> in &html;)
 the attribute name must be slightly modified, so that it's a legal
 Python identifier (for <lit>class</lit> an underscore is appended):</par>
 <example><title>Illegal attribute names</title>
@@ -104,7 +105,9 @@ node = html.div(
 </prog>
 </example>
 <par>(Don't worry: This modified attribute name will be mapped to the real official attribute
-name once the output is generated.) You can pass attributes as a dictionary too:</par>
+name once the output is generated.)</par>
+
+<par>You can pass attributes as a dictionary too:</par>
 <example><title>Passing attributes as dictionaries</title>
 <prog>
 node = html.div(
@@ -127,7 +130,7 @@ provides several functions:</par>
 def parseString(text, base=None, sysid=None, **parserargs)
 def parseURL(url, base=None, sysid=None, **parserargs)
 def parseFile(filename, base=None, sysid=None, **parserargs)
-def parse(stream, base, sysid=None, **parserargs)
+def parse(stream, base=None, sysid=None, **parserargs)
 </prog>
 <par><pyref module="ll.xist.parsers" function="parseString"><function>parseString</function></pyref>
 is for parsing strings (<class>str</class> and <class>unicode</class>) and
@@ -138,7 +141,7 @@ you can parse local files and with <pyref module="ll.xist.parsers" function="par
 you can directly parse from a file-like object.</par>
 <par>All four functions create a parser internally, parse the supplied source document and
 return the resulting object tree.</par>
-<par>Parsing a string can be done like this:</par>
+<par>For example, parsing a string can be done like this:</par>
 <example>
 <prog>
 from ll.xist import parsers
@@ -160,8 +163,9 @@ functions, see the documentation for
 <section><title>Defining new elements and converting &xml; trees</title>
 
 <par>To be able to parse an &xml; file, you have to provide an element class
-for every element type that appears in the file. Defining an element class
-for an element named <lit>cool</lit> works like this:</par>
+for every element type that appears in the file. These classes either come from
+modules provided by &xist; or you can define your own. Defining your own
+element class for an element named <lit>cool</lit> works like this:</par>
 
 <example><title>Defining a new element</title>
 <prog>
@@ -291,18 +295,11 @@ class note(xsc.Element):
 			title = u"Note"
 		else:
 			title = u"???"
-		return xsc.Frag(
+		node = xsc.Frag(
 			html.h1(title),
-			html.div(self.content.convert(converter))
+			html.div(self.content)
 		)
-</prog>
-<par>and you can test for the language with the element
-<pyref module="ll.xist.ns.cond" class="If"><class>ll.xist.ns.cond.If</class></pyref>, e.g.:</par>
-<prog>
-&lt;if lang="de"&gt;Anmerkung
-&lt;elif lang="en"&gt;Note
-&lt;else&gt;???
-&lt;/if&gt;
+		return node.convert(converter)
 </prog>
 </item>
 </dlist>
@@ -317,7 +314,7 @@ a <pyref module="ll.make"><module>make</module></pyref> script.</par>
 the dictionary interface:</par>
 <example>
 <tty>
-<prompt>&gt;&gt;&gt; </prompt><input>node = html.a(u"Python", href=u"http://www.python.org")</input>
+<prompt>&gt;&gt;&gt; </prompt><input>node = html.a(u"Python", href=u"http://www.python.org/")</input>
 <prompt>&gt;&gt;&gt; </prompt><input>print node[u"href"].asBytes()</input>
 http://www.python.org/
 <prompt>&gt;&gt;&gt; </prompt><input>del node[u"href"]</input>
@@ -363,7 +360,7 @@ will be empty again and will be considered to be unset.
 Such attributes will be skipped when publishing.</par>
 
 <par>The main purpose of this is to allow you to construct values conditionally
-and then to use those values as attribute values:</par>
+and then use those values as attribute values:</par>
 
 <prog>
 import random
@@ -782,7 +779,7 @@ namespace to which <self/> should be converted.</par>
 Once this is determined you can use element classes from the target to create the
 required &xml; object tree. This makes it possible to customize the conversion by
 passing a derived namespace to the <method>convert</method> method. To demonstrate
-this, we change our example namespace from above into the following:</par>
+this, we change our example namespace to use the conversion target like this:</par>
 
 <prog>
 import navns
@@ -838,7 +835,7 @@ will have a <lit>target="_top"</lit>.</par>
 <section><title>Validation and content models</title>
 
 <par>When generating &html; you might want to make sure that your generated
-code doesn't contain any illegal tag nesting (like a
+code doesn't contain any illegal tag nesting (i.e. something bad like
 <markup>&lt;p&gt;&lt;p&gt;Foo&lt;/p&gt;&lt;/p&gt;</markup>). The module
 <module>ll.xist.ns.html</module> does this automatically:</par>
 
@@ -853,26 +850,28 @@ code doesn't contain any illegal tag nesting (like a
 </tty>
 </example>
 
-<par>For your own elemens you can specify the content model too. This is done
+<par>For your own elements you can specify the content model too. This is done
 by setting the class attribute <lit>model</lit> inside the element class.
 <lit>model</lit> must be an object that provides a <method>checkvalid</method>
 method. This method will be called during parsing or publishing with the element
 as an argument. When a validation violation is detected, the Python warning
-framework should be used to issue a warning. The module <module>ll.xist.sims</module>
-contains several classes that provide simple validation methods.</par>
+framework should be used to issue a warning.</par>
 
-<par><pyref module="ll.xist.sims" class="Empty"><class>ll.xist.sims.Empty</class></pyref>
+<par>The module <module>ll.xist.sims</module> contains several classes that
+provide simple validation methods:
+<pyref module="ll.xist.sims" class="Empty"><class>Empty</class></pyref>
 can be used to ensure that the element doesn't have any content (like
 <markup>br</markup> and <markup>img</markup> in &html;).
-<pyref module="ll.xist.sims" class="Any"><class>ll.xist.sims.Any</class></pyref>
+<pyref module="ll.xist.sims" class="Any"><class>Any</class></pyref>
 does allow any content.
-<pyref module="ll.xist.sims" class="NoElements"><class>ll.xist.sims.NoElements</class></pyref>
-will warn about elements from the same namespace.
-<pyref module="ll.xist.sims" class="NoElementsOrText"><class>ll.xist.sims.NoElementsOrText</class></pyref>
+<pyref module="ll.xist.sims" class="NoElements"><class>NoElements</class></pyref>
+will warn about elements from the same namespace (elements from other namespaces
+will be OK).
+<pyref module="ll.xist.sims" class="NoElementsOrText"><class>NoElementsOrText</class></pyref>
 will warn about elements from the same namespace and non-whitespace text content.
-<pyref module="ll.xist.sims" class="Elements"><class>ll.xist.sims.Elements</class></pyref>
+<pyref module="ll.xist.sims" class="Elements"><class>Elements</class></pyref>
 will only allow the elements specified in the constructor.
-<pyref module="ll.xist.sims" class="ElementsOrText"><class>ll.xist.sims.ElementsOrText</class></pyref>
+<pyref module="ll.xist.sims" class="ElementsOrText"><class>ElementsOrText</class></pyref>
 will only allow the elements specified in the constructor and text.</par>
 
 <par>None of these classes will check the number of child elements or their
@@ -936,7 +935,7 @@ class upper(xsc.ProcInst):
 </prog>
 </example>
 
-<par>It can be used in an &xml; file as following:</par>
+<par>It can be used in an &xml; file like this:</par>
 
 <example><title>Using the newly defined processing instruction</title>
 <prog>
@@ -971,7 +970,7 @@ and
 <pyref module="ll.xist.xsc" class="Node" method="bytes"><method>bytes</method></pyref>
 is a generator that will yield the complete 8-bit &xml; string in fragments.
 <pyref module="ll.xist.xsc" class="Node" method="asBytes"><method>asBytes</method></pyref>
-returns the 8-bit &xml; string.</par>
+returns the complete 8-bit &xml; string.</par>
 
 <par>You can specify the encoding with the parameter <arg>encoding</arg>
 (with <lit>"utf-8"</lit> being the default). Unencodable characters will be
@@ -1083,7 +1082,7 @@ extracts all the links on the
 <example><title>Finding all links on the Python home page</title>
 <prog>
 from ll.xist import xsc, parsers
-from ll.xist.ns import html, chars
+from ll.xist.ns import html
 
 node = parsers.parseURL("http://www.python.org/", tidy=True)
 
@@ -1110,7 +1109,7 @@ page:</par>
 <example><title>Finding external links on the Python home page</title>
 <prog>
 from ll.xist import xsc, parsers
-from ll.xist.ns import html, chars
+from ll.xist.ns import html
 
 node = parsers.parseURL("http://www.python.org/", tidy=True)
 
@@ -1149,8 +1148,7 @@ that is the node in question. For the other attributes see the
 element and continue searching;</item>
 <term><lit>ll.xist.xsc.enterattrs</lit></term><item>enter the attributes of this
 element and continue searching;</item>
-<term>boolean value</term><item>If true, the node will be part of the resulting
-fragment.</item>
+<term>boolean value</term><item>If true, the node will be part of the result.</item>
 </dlist>
 
 <par>The sequence will be <z>executed</z> in the order you specify. To change
@@ -1166,9 +1164,10 @@ def isextlink(node):
 </prog>
 </example>
 
-<par>The cursor yielded from <method>walk</method> will be reused by subsequent
-<method>next</method> calls, so you should not modify the cursor and you can't
-rely on attributes of the cursor after reentry to <method>walk</method>.</par>
+<par>Note that the cursor yielded from <method>walk</method> will be reused by
+subsequent <method>next</method> calls, so you should not modify the cursor and
+you can't rely on attributes of the cursor after reentry to
+<method>walk</method>.</par>
 
 </section>
 
@@ -1280,7 +1279,7 @@ http://www.opensource.org/
 <par>Note that using the <lit>all</lit> operator twice in an XFind expression
 currently won't give you the expected result, as nodes might be produced twice.</par>
 
-<par>Every XFind operator supports <method>__getitem__</method>. This gives an
+<par>Calling <method>__getitem__</method> on an XFind operator gives you an
 item operator. Such an item operator only returns a specific item (or slice) of
 those nodes returned by the base iterator. An example:</par>
 
@@ -1344,7 +1343,7 @@ those nodes returned by the base iterator. An example:</par>
 <section><title>Manipulating trees</title>
 <par>&xist; provides many methods for manipulating an &xml; tree.</par>
 
-<par>The method <pyref module="ll.xist.xsc" class="Node" method="withsep"><method>withsep</method></pyref>
+<par>The method <pyref module="ll.xist.xsc" class="Frag" method="withsep"><method>withsep</method></pyref>
 can be used to put a seperator node between the child nodes of an
 <pyref module="ll.xist.xsc" class="Element"><class>Element</class></pyref>
 or a <pyref module="ll.xist.xsc" class="Frag"><class>Frag</class></pyref>:</par>
@@ -1357,7 +1356,7 @@ or a <pyref module="ll.xist.xsc" class="Frag"><class>Frag</class></pyref>:</par>
 &lt;div&gt;0, 1, 2, 3, 4, 5, 6, 7, 8, 9&lt;/div&gt;
 </tty>
 
-<par>The method <pyref module="ll.xist.xsc" class="Node" method="shuffled"><method>shuffled</method></pyref>
+<par>The method <pyref module="ll.xist.xsc" class="Frag" method="shuffled"><method>shuffled</method></pyref>
 returns a shuffled version of the <pyref module="ll.xist.xsc" class="Element"><class>Element</class></pyref>
 or <pyref module="ll.xist.xsc" class="Frag"><class>Frag</class></pyref>:</par>
 
@@ -1369,17 +1368,17 @@ or <pyref module="ll.xist.xsc" class="Frag"><class>Frag</class></pyref>:</par>
 &lt;div&gt;8, 1, 3, 6, 7, 5, 2, 9, 4, 0&lt;/div&gt;
 </tty>
 
-<par>There are methods named <pyref module="ll.xist.xsc" class="Node" method="reversed"><method>reversed</method></pyref>
-and <pyref module="ll.xist.xsc" class="Node" method="sorted"><method>sorted</method></pyref>, that
+<par>There are methods named <pyref module="ll.xist.xsc" class="Frag" method="reversed"><method>reversed</method></pyref>
+and <pyref module="ll.xist.xsc" class="Frag" method="sorted"><method>sorted</method></pyref> that
 return a reversed or sorted version of an element or fragment:</par>
 
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist import xsc</input>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
-<prompt>&gt;&gt;&gt; </prompt><input>def sort(n1, n2):</input>
-<prompt>... </prompt><input>   return cmp(unicode(n1), unicode(n2))</input>
+<prompt>&gt;&gt;&gt; </prompt><input>def key(n):</input>
+<prompt>... </prompt><input>   return unicode(n)</input>
 <prompt>&gt;&gt;&gt; </prompt><input>node = html.div(8,4,2,1,9,6,3,0,7,5)</input>
-<prompt>&gt;&gt;&gt; </prompt><input>print node.sorted(sort).reversed().withsep(",").asBytes()</input>
+<prompt>&gt;&gt;&gt; </prompt><input>print node.sorted(key=key).reversed().withsep(",").asBytes()</input>
 &lt;div&gt;9,8,7,6,5,4,3,2,1,0&lt;/div&gt;
 </tty>
 
@@ -1443,7 +1442,7 @@ omit the <arg>base</arg> argument, so it will default to the
 &url; being parsing, so that links, images, etc. on the page
 will still point back to their original location, or you
 might want to use the empty &url; <lit>URL()</lit> as the
-base, so you'll get all &url; in the page as they are.</item>
+base, so you'll get all &url;s in the page as they are.</item>
 <item><par>When &xist; is used as a compiler for static pages, you're
 going to read source &xml; files, do a conversion and write the
 result to a new target file. In this case you should probably
@@ -1533,8 +1532,7 @@ are not set already).</par>
 and <pyref module="ll.xist.ns.code" class="pyeval"><lit>pyeval</lit></pyref> (in the module
 <pyref module="ll.xist.ns.code"><module>ll.xist.ns.code</module></pyref>). The content of
 <pyref module="ll.xist.ns.code" class="pyexec"><lit>pyexec</lit></pyref> will be
-executed when the processing instruction node is instantiated, i.e. when the
-&xml; file is parsed, so anything you do there will be available afterwards.</par>
+executed when the processing instruction node is converted.</par>
 
 <par>The result of a call to <pyref module="ll.xist.xsc" class="Node" method="convert"><method>convert</method></pyref>
 for a <pyref module="ll.xist.ns.code" class="pyeval"><lit>pyeval</lit></pyref> processing instruction is whatever the

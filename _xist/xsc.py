@@ -1450,7 +1450,7 @@ class Frag(Node, list):
 
 	def clear(self):
 		"""
-		makes <self/> empty.
+		Make <self/> empty.
 		"""
 		del self[:]
 
@@ -1691,7 +1691,7 @@ class Frag(Node, list):
 
 	def shuffled(self):
 		"""
-		<par>Return a shuffled version of <self/>i, i.e. a copy of <self/> where
+		<par>Return a shuffled version of <self/>, i.e. a copy of <self/> where
 		the content nodes are randomly reshuffled.</par>
 		"""
 		content = list(self)

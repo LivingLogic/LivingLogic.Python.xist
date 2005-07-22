@@ -22,13 +22,13 @@ from ll.xist import xsc
 
 class SIMSWarning(xsc.Warning):
 	"""
-	Base class for simplified filtering
+	Base class for all warning classes in this module.
 	"""
 
 
 class EmptyElementWithContentWarning(SIMSWarning):
 	"""
-	Warning that is issued, when an element has content, but it shouldn't
+	Warning that is issued when an element has content, but it shouldn't
 	(i.e. <lit>model</lit> is <pyref class="Empty"><class>Empty</class></pyref>)
 	"""
 
@@ -45,7 +45,7 @@ class EmptyElementWithContentWarning(SIMSWarning):
 
 class WrongElementWarning(SIMSWarning):
 	"""
-	Warning that is issued, when an element contains another element of a
+	Warning that is issued when an element contains another element of a
 	certain type, but shouldn't.
 	"""
 
@@ -66,7 +66,7 @@ class WrongElementWarning(SIMSWarning):
 
 class ElementWarning(SIMSWarning):
 	"""
-	Warning that is issued, when an element contains another element but
+	Warning that is issued when an element contains another element but
 	shouldn't contain any.
 	"""
 
@@ -86,7 +86,7 @@ class ElementWarning(SIMSWarning):
 
 class IllegalTextWarning(SIMSWarning):
 	"""
-	Warning that is issued, when an element contains a text node but shouldn't.
+	Warning that is issued when an element contains a text node but shouldn't.
 	"""
 
 	def __init__(self, node, badnode):
@@ -107,7 +107,7 @@ def badtext(node):
 	"""
 	Return whether <arg>node</arg> is a text node (i.e.
 	<pyref module="ll.xist" class="Text"><class>Text</class></pyref>
-	that does not consist of whitespace only.
+	that does not consist of whitespace only).
 	"""
 	if isinstance(node, xsc.Text):
 		if node and not node.isspace():
@@ -187,7 +187,8 @@ class Elements(object):
 		"""
 		Every element in <lit>elements</lit> may be in the content of the
 		node to which this validator is attached. Any other element from one
-		of the namespaces of those elements is invalid.
+		of the namespaces of those elements is invalid. Elements from other
+		namespaces are OK.
 		"""
 		self.elements = elements
 
@@ -220,7 +221,8 @@ class ElementsOrText(Elements):
 		"""
 		Every element in <lit>elements</lit> may be in the content of the
 		node to which this validator is attached. Any other element from one
-		of the namespaces of those elements is invalid.
+		of the namespaces of those elements is invalid. Elements from other
+		namespaces are OK.
 		"""
 		self.elements = elements
 
@@ -252,7 +254,7 @@ class Any(object):
 
 	def checkvalid(self, node):
 		"""
-		check that the content of <arg>node</arg> is valid.
+		Check that the content of <arg>node</arg> is valid.
 		This method does nothing as anything is valid.
 		"""
 

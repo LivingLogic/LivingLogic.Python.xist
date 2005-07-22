@@ -24,8 +24,8 @@ from ll.xist.ns import ihtml, html
 
 class contenttype(html.meta):
 	"""
-	<par>can be used for a <markup>&lt;meta http-equiv="Content-Type" content="text/html"/&gt;</markup>, where
-	the character set will be automatically inserted on a call to
+	<par>Can be used for a <markup>&lt;meta http-equiv="Content-Type" content="text/html"/&gt;</markup>,
+	where the character set will be automatically inserted on a call to
 	<pyref module="ll.xist.xsc" class="Node" method="publish"><method>publish</method></pyref>.</par>
 
 	<par>Usage is simple: <markup>&lt;meta:contenttype/&gt;</markup></par>
@@ -57,7 +57,7 @@ class contenttype(html.meta):
 
 class contentscripttype(html.meta):
 	"""
-	<par>can be used for a <markup>&lt;meta http-equiv="Content-Script-Type" content="..."/&gt;</markup>.</par>
+	<par>Can be used for a <markup>&lt;meta http-equiv="Content-Script-Type" content="..."/&gt;</markup>.</par>
 
 	<par>Usage is simple: <markup>&lt;meta:contentscripttype type="text/javascript"/&gt;</markup></par>
 	"""
@@ -76,7 +76,7 @@ class contentscripttype(html.meta):
 
 class keywords(html.meta):
 	"""
-	<par>can be used for a <markup>&lt;meta name="keywords" content="..."/&gt;</markup>.</par>
+	<par>Can be used for a <markup>&lt;meta name="keywords" content="..."/&gt;</markup>.</par>
 
 	<par>Usage is simple: <markup>&lt;meta:keywords&gt;foo, bar&lt;/meta:keywords&gt;</markup></par>
 	"""
@@ -95,7 +95,7 @@ class keywords(html.meta):
 
 class description(html.meta):
 	"""
-	<par>can be used for a <markup>&lt;meta name="description" content="..."/&gt;</markup>.</par>
+	<par>Can be used for a <markup>&lt;meta name="description" content="..."/&gt;</markup>.</par>
 
 	<par>Usage is simple: <markup>&lt;meta:description&gt;This page describes the ...&lt;/meta:description&gt;</markup></par>
 	"""
@@ -114,7 +114,7 @@ class description(html.meta):
 
 class stylesheet(html.link):
 	"""
-	<par>can be used for a <markup>&lt;link rel="stylesheet" type="text/css" href="..."/&gt;</markup>.</par>
+	<par>Can be used for a <markup>&lt;link rel="stylesheet" type="text/css" href="..."/&gt;</markup>.</par>
 
 	<par>Usage is simple: <markup>&lt;meta:stylesheet href="root:stylesheets/main.css"/&gt;</markup></par>
 	"""
@@ -129,7 +129,7 @@ class stylesheet(html.link):
 
 class made(html.link):
 	"""
-	<par>can be used for a <markup>&lt;link rel="made" href="mailto:..."/&gt;</markup>.</par>
+	<par>Can be used for a <markup>&lt;link rel="made" href="mailto:..."/&gt;</markup>.</par>
 
 	<par>Usage is simple: <markup>&lt;meta:made href="foobert@bar.org"/&gt;</markup>.</par>
 	"""
@@ -143,7 +143,7 @@ class made(html.link):
 
 class author(xsc.Element):
 	"""
-	<par>can be used to embed author information in the header.
+	<par>Can be used to embed author information in the header.
 	It will generate <markup>&lt;link rel="made"/&gt;</markup> and
 	<markup>&lt;meta name="author"/&gt;</markup> elements.</par>
 	"""
@@ -166,7 +166,7 @@ class author(xsc.Element):
 
 class refresh(xsc.Element):
 	"""
-	<par> a refresh header.</par>
+	<par>A refresh header.</par>
 	"""
 	model = sims.Empty()
 	class Attrs(xsc.Element.Attrs):
