@@ -780,6 +780,18 @@ class Node(Base):
 			presenter = presenters.defaultpresenter
 		return presenter.present(self)
 
+	def asrepr(self, presenter=None):
+		"""
+		<par>Return a string representation of <self/>. When you don't pass in a
+		<arg>presenter</arg>, you'll get the default presentation. Else
+		<arg>presenter</arg> should be an instance of
+		<pyref module="ll.xist.presenters" class="Presenter"><class>ll.xist.presenters.Presenter</class></pyref>
+		(or one of the subclasses).</par>
+		"""
+		if presenter is None:
+			presenter = presenters.defaultpresenter
+		return "".join(presenter.present(self))
+
 	@ll.notimplemented
 	def present(self, presenter):
 		"""
@@ -1397,7 +1409,7 @@ class Text(CharacterData):
 		yield publisher.encodetext(self._content)
 
 	def present(self, presenter):
-		presenter.presentText(self)
+		return presenter.presentText(self) # return a generator-iterator
 
 	def compact(self):
 		if self.content.isspace():
@@ -1486,7 +1498,7 @@ class Frag(Node, list):
 		return self._decoratenode(node)
 
 	def present(self, presenter):
-		presenter.presentFrag(self)
+		return presenter.presentFrag(self) # return a generator-iterator
 
 	def __unicode__(self):
 		return u"".join(unicode(child) for child in self)
@@ -1746,7 +1758,7 @@ class Comment(CharacterData):
 		return u""
 
 	def present(self, presenter):
-		presenter.presentComment(self)
+		return presenter.presentComment(self)  # return a generator-iterator
 
 	def publish(self, publisher):
 		if publisher.inattr:
@@ -1768,7 +1780,7 @@ class DocType(CharacterData):
 		return self
 
 	def present(self, presenter):
-		presenter.presentDocType(self)
+		return presenter.presentDocType(self) # return a generator-iterator
 
 	def publish(self, publisher):
 		if publisher.inattr:
@@ -1811,7 +1823,7 @@ class ProcInst(CharacterData):
 		return self
 
 	def present(self, presenter):
-		presenter.presentProcInst(self)
+		return presenter.presentProcInst(self) # return a generator-iterator
 
 	def publish(self, publisher):
 		content = self.content
@@ -1853,7 +1865,7 @@ class Null(CharacterData):
 			yield ""
 
 	def present(self, presenter):
-		presenter.presentNull(self)
+		return presenter.presentNull(self) # return a generator-iterator
 
 	def __unicode__(self):
 		return u""
@@ -1939,7 +1951,7 @@ class Attr(Frag):
 		return s
 
 	def present(self, presenter):
-		presenter.presentAttr(self)
+		return presenter.presentAttr(self) # return a generator-iterator
 
 	@classmethod
 	def needsxmlns(self, publisher=None):
@@ -2302,7 +2314,7 @@ class Attrs(Node, dict):
 		cursor.index.pop()
 
 	def present(self, presenter):
-		presenter.presentAttrs(self)
+		return presenter.presentAttrs(self) # return a generator-iterator
 
 	def checkvalid(self):
 		# collect required attributes
@@ -2939,7 +2951,7 @@ class Element(Node):
 						self[attr] = size[attr==heightattr]
 
 	def present(self, presenter):
-		presenter.presentElement(self)
+		return presenter.presentElement(self) # return a generator-iterator
 
 	def _publishfull(self, publisher):
 		"""
@@ -3310,7 +3322,7 @@ class Entity(Node):
 		return self
 
 	def present(self, presenter):
-		presenter.presentEntity(self)
+		return presenter.presentEntity(self) # return a generator-iterator
 
 	def publish(self, publisher):
 		yield publisher.encode(u"&")
@@ -3336,7 +3348,7 @@ class CharRef(Text, Entity):
 		Entity.__init__(self)
 
 	def present(self, presenter):
-		presenter.presentEntity(self)
+		return presenter.presentEntity(self) # return a generator-iterator
 
 	# The rest is the same as for Text, but does not return CharRefs, but Texts
 	def __getitem__(self, index):

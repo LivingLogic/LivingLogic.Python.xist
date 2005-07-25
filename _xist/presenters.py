@@ -43,102 +43,102 @@ def getenvcolors(name, default1, default2):
 
 
 # ANSI escape sequence to be used for tabs
-color4tab = getenvcolors("LL_XIST_REPRANSI_TAB", 0x4, 0x8)
+color4tab = getenvcolors("LL_XIST_REPRANSI_TAB", 0040, 0100)
 
 
 # ANSI escape sequence to be used for quotes (delimiters for text and attribute nodes)
-color4quote = getenvcolors("LL_XIST_REPRANSI_QUOTE", 0x3, 0xf)
+color4quote = getenvcolors("LL_XIST_REPRANSI_QUOTE", 0030, 0170)
 
 
-color4slash = getenvcolors("LL_XIST_REPRANSI_SLASH", 0x3, 0xf)
+color4slash = getenvcolors("LL_XIST_REPRANSI_SLASH", 0030, 0170)
 
 
 # ANSI escape sequence to be used for brackets
-color4bracket = getenvcolors("LL_XIST_REPRANSI_BRACKET", 0x3, 0xf)
+color4bracket = getenvcolors("LL_XIST_REPRANSI_BRACKET", 0030, 0170)
 
 
 # ANSI escape sequence to be used for colon (i.e. namespace separator)
-color4colon = getenvcolors("LL_XIST_REPRANSI_COLON", 0x3, 0xf)
+color4colon = getenvcolors("LL_XIST_REPRANSI_COLON", 0030, 0170)
 
 
 # ANSI escape sequence to be used for question marks (delimiters for processing instructions)
-color4question = getenvcolors("LL_XIST_REPRANSI_QUESTION", 0x3, 0xf)
+color4question = getenvcolors("LL_XIST_REPRANSI_QUESTION", 0030, 0170)
 
 
 # ANSI escape sequence to be used for exclamation marks (used in comments and doctypes)
-color4exclamation = getenvcolors("LL_XIST_REPRANSI_EXCLAMATION", 0x3, 0xf)
+color4exclamation = getenvcolors("LL_XIST_REPRANSI_EXCLAMATION", 0030, 0170)
 
 
 # ANSI escape sequence to be used for & (used in entity)
-color4amp = getenvcolors("LL_XIST_REPRANSI_AMP", 0x3, 0xf)
+color4amp = getenvcolors("LL_XIST_REPRANSI_AMP", 0030, 0170)
 
 
 # ANSI escape sequence to be used for semicolons (used in entities)
-color4semi = getenvcolors("LL_XIST_REPRANSI_SEMI", 0x3, 0xf)
+color4semi = getenvcolors("LL_XIST_REPRANSI_SEMI", 0030, 0170)
 
 
 # ANSI escape sequence to be used for text
-color4text = getenvcolors("LL_XIST_REPRANSI_TEXT", 0x7, 0x7)
+color4text = getenvcolors("LL_XIST_REPRANSI_TEXT", 0070, 0070)
 
 
 # ANSI escape sequence to be used for namespaces
-color4namespace = getenvcolors("LL_XIST_REPRANSI_NAMESPACE", 0xf, 0x4)
+color4namespace = getenvcolors("LL_XIST_REPRANSI_NAMESPACE", 0170, 0040)
 
 
 # ANSI escape sequence to be used for element names
-color4elementname = getenvcolors("LL_XIST_REPRANSI_ELEMENTNAME", 0xe, 0xc)
+color4elementname = getenvcolors("LL_XIST_REPRANSI_ELEMENTNAME", 0160, 0140)
 
 
 # ANSI escape sequence to be used for attribute names
-color4attrname = getenvcolors("LL_XIST_REPRANSI_ATTRNAME", 0xf, 0xc)
+color4attrname = getenvcolors("LL_XIST_REPRANSI_ATTRNAME", 0170, 0140)
 
 
 # ANSI escape sequence to be used for attrs class name
-color4attrsname = getenvcolors("LL_XIST_REPRANSI_ATTRSNAME", 0xe, 0xc)
+color4attrsname = getenvcolors("LL_XIST_REPRANSI_ATTRSNAME", 0160, 0140)
 
 
 # ANSI escape sequence to be used for entity names
-color4entityname = getenvcolors("LL_XIST_REPRANSI_ENTITYNAME", 0x5, 0x5)
+color4entityname = getenvcolors("LL_XIST_REPRANSI_ENTITYNAME", 0050, 0050)
 
 
 # ANSI escape sequence to be used for document types marker (i.e. !DOCTYPE)
-color4doctypemarker = getenvcolors("LL_XIST_REPRANSI_DOCTYPEMARKER", 0xf, 0xf)
+color4doctypemarker = getenvcolors("LL_XIST_REPRANSI_DOCTYPEMARKER", 0170, 0170)
 
 
 # ANSI escape sequence to be used for document types
-color4doctypetext = getenvcolors("LL_XIST_REPRANSI_DOCTYPETEXT", 0x7, 0x7)
+color4doctypetext = getenvcolors("LL_XIST_REPRANSI_DOCTYPETEXT", 0170, 0170)
 
 
 # ANSI escape sequence to be used for comment markers (i.e. --)
-color4commentmarker = getenvcolors("LL_XIST_REPRANSI_COMMENTMARKER", 0x7, 0xf)
+color4commentmarker = getenvcolors("LL_XIST_REPRANSI_COMMENTMARKER", 0170, 0170)
 
 
 # ANSI escape sequence to be used for comment text
-color4commenttext = getenvcolors("LL_XIST_REPRANSI_COMMENTTEXT", 0x8, 0x8)
+color4commenttext = getenvcolors("LL_XIST_REPRANSI_COMMENTTEXT", 0100, 0100)
 
 
 # ANSI escape sequence to be used for attribute values
-color4attrvalue = getenvcolors("LL_XIST_REPRANSI_ATTRVALUE", 0x7, 0x6)
+color4attrvalue = getenvcolors("LL_XIST_REPRANSI_ATTRVALUE", 0020, 0060)
 
 
 # ANSI escape sequence to be used for URLs
-color4url = getenvcolors("LL_XIST_REPRANSI_URL", 0xb, 0x2)
+color4url = getenvcolors("LL_XIST_REPRANSI_URL", 0130, 0020)
 
 
 # ANSI escape sequence to be used for processing instruction targets
-color4procinsttarget = getenvcolors("LL_XIST_REPRANSI_PROCINSTTARGET", 0x9, 0x9)
+color4procinsttarget = getenvcolors("LL_XIST_REPRANSI_PROCINSTTARGET", 0110, 0110)
 
 
 # ANSI escape sequence to be used for processing instruction content
-color4procinstcontent = getenvcolors("LL_XIST_REPRANSI_PROCINSTCONTENT", 0x7, 0x7)
+color4procinstcontent = getenvcolors("LL_XIST_REPRANSI_PROCINSTCONTENT", 0070, 0070)
 
 
 # ANSI escape sequence to be used for numbers in error messages etc.
-color4number = getenvcolors("LL_XIST_REPRANSI_NUMBER", 0x4, 0x4)
+color4number = getenvcolors("LL_XIST_REPRANSI_NUMBER", 0040, 0040)
 
 
 # ANSI escape sequence to be used for variable strings in error messages etc.
-color4string = getenvcolors("LL_XIST_REPRANSI_STRING", 0x5, 0x5)
+color4string = getenvcolors("LL_XIST_REPRANSI_STRING", 0050, 005)
 
 
 class EscInlineText(ansistyle.EscapedText):
@@ -302,11 +302,14 @@ class Presenter(object):
 	string representation of a node to be printed on the screen.</par>
 	"""
 
-	@ll.notimplemented
 	def present(self, node):
 		"""
-		<par>create a string presentation for <arg>node</arg> and return the resulting string.</par>
+		<par>create a string presentation for <arg>node</arg> and an iterator the resulting string
+		fragments.</par>
 		"""
+		for part in node.present(self):
+			yield part
+
 	
 	@ll.notimplemented
 	def presentText(self, node):
@@ -378,20 +381,11 @@ class PlainPresenter(Presenter):
 	def __init__(self, maxlen=60):
 		self.maxlen = maxlen
 
-	def present(self, node):
-		self.buffer = None
-		try:
-			node.present(self)
-			result = self.buffer
-		finally:
-			self.buffer = None
-		return result
-
 	def presentCharacterData(self, node):
 		content = node.content
 		if len(content)>self.maxlen:
 			content = content[:self.maxlen/2] + u"..." + content[-self.maxlen/2:]
-		self.buffer = "<%s:%s object content=%r at 0x%x>" % (node.__class__.__module__, node.__class__.__fullname__(), content, id(node))
+		yield "<%s:%s object content=%r at 0x%x>" % (node.__class__.__module__, node.__class__.__fullname__(), content, id(node))
 
 	presentText = presentCharacterData
 
@@ -403,7 +397,7 @@ class PlainPresenter(Presenter):
 			info = "with 1 child"
 		else:
 			info = "with %d children" % l
-		self.buffer = "<%s:%s object %s at 0x%x>" % (node.__class__.__module__, node.__class__.__fullname__(), info, id(node))
+		yield "<%s:%s object %s at 0x%x>" % (node.__class__.__module__, node.__class__.__fullname__(), info, id(node))
 
 	def presentAttr(self, node):
 		l = len(node)
@@ -413,7 +407,7 @@ class PlainPresenter(Presenter):
 			info = "with 1 child"
 		else:
 			info = "with %d children" % l
-		self.buffer = "<%s:%s attr object %s at 0x%x>" % (node.__class__.__module__, node.__class__.__fullname__(), info, id(node))
+		yield "<%s:%s attr object %s at 0x%x>" % (node.__class__.__module__, node.__class__.__fullname__(), info, id(node))
 
 	presentComment = presentCharacterData
 	presentDocType = presentCharacterData
@@ -421,7 +415,7 @@ class PlainPresenter(Presenter):
 		content = node.content
 		if len(content)>self.maxlen:
 			content = content[:self.maxlen/2] + u"..." + content[-self.maxlen/2:]
-		self.buffer = "<%s:%s procinst object content=%r at 0x%x>" % (node.__class__.__module__, node.__class__.__fullname__(), content, id(node))
+		yield "<%s:%s procinst object content=%r at 0x%x>" % (node.__class__.__module__, node.__class__.__fullname__(), content, id(node))
 
 	def presentAttrs(self, node):
 		l = len(node)
@@ -431,7 +425,7 @@ class PlainPresenter(Presenter):
 			info = "with 1 attribute"
 		else:
 			info = "with %d attributes" % l
-		self.buffer = "<%s:%s attrs object %s at 0x%x>" % (node.__class__.__module__, node.__class__.__fullname__(), info, id(node))
+		yield "<%s:%s attrs object %s at 0x%x>" % (node.__class__.__module__, node.__class__.__fullname__(), info, id(node))
 
 	def presentElement(self, node):
 		lc = len(node.content)
@@ -448,58 +442,62 @@ class PlainPresenter(Presenter):
 			infoa = "and 1 attribute"
 		else:
 			infoa = "and %d attributes" % la
-		self.buffer = "<%s:%s element object %s %s at 0x%x>" % (node.__class__.__module__, node.__class__.__fullname__(), infoc, infoa, id(node))
+		yield "<%s:%s element object %s %s at 0x%x>" % (node.__class__.__module__, node.__class__.__fullname__(), infoc, infoa, id(node))
 
 	def presentEntity(self, node):
-		self.buffer = "<%s:%s entity object at 0x%x>" % (node.__class__.__module__, node.__class__.__fullname__(), id(node))
+		yield "<%s:%s entity object at 0x%x>" % (node.__class__.__module__, node.__class__.__fullname__(), id(node))
 
 	def presentNull(self, node):
-		self.buffer = "<%s:%s object at 0x%x>" % (node.__class__.__module__, node.__class__.__fullname__(), id(node))
+		yield "<%s:%s object at 0x%x>" % (node.__class__.__module__, node.__class__.__fullname__(), id(node))
 
 
 class NormalPresenter(Presenter):
 	def present(self, node):
-		self.buffer = ansistyle.Text()
+		self.buffer = ansistyle.Colorizer()
 		self.inattr = 0
-		try:
-			node.present(self)
-			result = str(self.buffer)
-		finally:
-			self.buffer = None
-		return result
+		for part in node.present(self):
+			yield part
+		for part in self.buffer.feed(None):
+			yield part
+		yield "\n"
+		self.buffer = None
 
 	def presentText(self, node):
 		if self.inattr:
-			self.buffer.append(strTextInAttr(node.content))
+			s = strTextInAttr(node.content)
 		else:
-			self.buffer.append(strTextOutsideAttr(node.content))
+			s = strTextOutsideAttr(node.content)
+		return self.buffer.feed(s) # return a generator-iterator
 
 	def presentFrag(self, node):
 		for child in node:
-			child.present(self)
+			for part in child.present(self):
+				yield part
 
 	def presentComment(self, node):
-		self.buffer.append(
+		for part in self.buffer.feed(
 			strBracketOpen(),
 			strExclamation(),
 			strCommentMarker(),
 			strCommentText(node.content),
 			strCommentMarker(),
 			strBracketClose()
-		)
+		):
+			yield part
 
 	def presentDocType(self, node):
-		self.buffer.append(
+		for part in self.buffer.feed(
 			strBracketOpen(),
 			strExclamation(),
 			strDocTypeMarker(),
 			" ",
 			strDocTypeText(node.content),
 			strBracketClose()
-		)
+		):
+			yield part
 
 	def presentProcInst(self, node):
-		self.buffer.append(
+		for part in self.buffer.feed(
 			strBracketOpen(),
 			strQuestion(),
 			node._str(fullname=1, xml=0, decorate=0),
@@ -507,40 +505,58 @@ class NormalPresenter(Presenter):
 			strProcInstContent(node.content),
 			strQuestion(),
 			strBracketClose()
-		)
+		):
+			yield part
 
 	def presentAttrs(self, node):
+		self.inattr += 1
 		for (attrname, attrvalue) in node.items():
-			self.buffer.append(" ")
+			for part in self.buffer.feed(" "):
+				yield part
 			if isinstance(attrname, tuple):
-				self.buffer.append(attrvalue._str(fullname=0, xml=0, decorate=0))
+				s = attrvalue._str(fullname=0, xml=0, decorate=0)
 			else:
-				self.buffer.append(strAttrName(attrname))
-			self.buffer.append("=", strQuote())
-			attrvalue.present(self)
-			self.buffer.append(strQuote())
+				s = strAttrName(attrname)
+			for part in self.buffer.feed(s, "=", strQuote()):
+				yield part
+			for part in attrvalue.present(self):
+				yield part
+			for part in self.buffer.feed(strQuote()):
+				yield part
+		self.inattr -= 1
 
 	def presentElement(self, node):
 		if node.model and node.model.empty:
-			self.buffer.append(strBracketOpen(), node._str(fullname=1, xml=0, decorate=0))
-			node.attrs.present(self)
-			self.buffer.append(strSlash(), strBracketClose())
+			for part in self.buffer.feed(strBracketOpen(), node._str(fullname=1, xml=0, decorate=0)):
+				yield part
+			for part in node.attrs.present(self):
+				yield part
+			for part in self.buffer.feed(strSlash(), strBracketClose()):
+				yield part
 		else:
-			self.buffer.append(strBracketOpen(), node._str(fullname=1, xml=0, decorate=0))
-			node.attrs.present(self)
-			self.buffer.append(strBracketClose())
+			for part in self.buffer.feed(strBracketOpen(), node._str(fullname=1, xml=0, decorate=0)):
+				yield part
+			for part in node.attrs.present(self):
+				yield part
+			for part in self.buffer.feed(strBracketClose()):
+				yield part
 			for child in node:
-				child.present(self)
-			self.buffer.append(strBracketOpen(), strSlash(), node._str(fullname=1, xml=0, decorate=0), strBracketClose())
+				for part in child.present(self):
+					yield part
+			for part in self.buffer.feed(strBracketOpen(), strSlash(), node._str(fullname=1, xml=0, decorate=0), strBracketClose()):
+				yield part
 
 	def presentEntity(self, node):
-		self.buffer.append(node._str(fullname=1, xml=0, decorate=1))
+		for part in self.buffer.feed(node._str(fullname=1, xml=0, decorate=1)):
+			yield part
 
 	def presentNull(self, node):
-		self.buffer.append(node._str(fullname=1, xml=0, decorate=0))
+		for part in self.buffer.feed(node._str(fullname=1, xml=0, decorate=0)):
+			yield part
 
 	def presentAttr(self, node):
-		xsc.Frag.present(node, self)
+		for part in xsc.Frag.present(node, self):
+			yield part
 
 
 class TreePresenter(Presenter):
@@ -600,7 +616,7 @@ class TreePresenter(Presenter):
 							else:
 								newline1.append(repr(comp))
 						line[1] = "[%s]" % ",".join(newline1)
-				line[3] = ansistyle.Text()(strTab(line[2]), line[3])
+				line[3] = ansistyle.Text(strTab(line[2]), line[3])
 				if self.showlocation:
 					if line[0] is not None:
 						line[0] = str(line[0])
@@ -636,7 +652,7 @@ class TreePresenter(Presenter):
 				s = lines[i]
 			else:
 				s = ""
-			if isinstance(s, (str, unicode)):
+			if isinstance(s, basestring):
 				if indent:
 					while len(s) and s[0] == "\t":
 						mynest += 1
@@ -649,7 +665,7 @@ class TreePresenter(Presenter):
 			self._lines.append([hereloc, self._currentpath[:], mynest, s])
 
 	def strTextLineOutsideAttr(self, text):
-		return ansistyle.Text()(strQuote(), ansistyle.Text(color4text, EscOutlineText(text)), strQuote())
+		return ansistyle.Text(strQuote(), ansistyle.Text(color4text, EscOutlineText(text)), strQuote())
 
 	def strTextInAttr(self, text):
 		return ansistyle.Text(color4attrvalue, EscOutlineAttr(text))
@@ -669,15 +685,15 @@ class TreePresenter(Presenter):
 				child.present(self)
 		else:
 			if len(node):
-				self._lines.append([node.startloc, self._currentpath[:], len(self._currentpath), ansistyle.Text()(strBracketOpen(), node._str(fullname=1, xml=0, decorate=0), strBracketClose())])
+				self._lines.append([node.startloc, self._currentpath[:], len(self._currentpath), ansistyle.Text(strBracketOpen(), node._str(fullname=1, xml=0, decorate=0), strBracketClose())])
 				self._currentpath.append(0)
 				for child in node:
 					child.present(self)
 					self._currentpath[-1] += 1
 				del self._currentpath[-1]
-				self._lines.append([node.endloc, self._currentpath[:], len(self._currentpath), ansistyle.Text()(strBracketOpen(), strSlash(), node._str(fullname=1, xml=0, decorate=0), strBracketClose())])
+				self._lines.append([node.endloc, self._currentpath[:], len(self._currentpath), ansistyle.Text(strBracketOpen(), strSlash(), node._str(fullname=1, xml=0, decorate=0), strBracketClose())])
 			else:
-				self._lines.append([node.startloc, self._currentpath[:], len(self._currentpath), ansistyle.Text()(strBracketOpen(), node._str(fullname=1, xml=0, decorate=0), strSlash(), strBracketClose())])
+				self._lines.append([node.startloc, self._currentpath[:], len(self._currentpath), ansistyle.Text(strBracketOpen(), node._str(fullname=1, xml=0, decorate=0), strSlash(), strBracketClose())])
 
 	def presentAttrs(self, node):
 		if self._inattr:
@@ -691,14 +707,14 @@ class TreePresenter(Presenter):
 				attrvalue.present(self)
 				self._buffers[-1].append(strQuote())
 		else:
-			s = ansistyle.Text()(strBracketOpen(), node._str(fullname=1, xml=0, decorate=0), strBracketClose())
+			s = ansistyle.Text(strBracketOpen(), node._str(fullname=1, xml=0, decorate=0), strBracketClose())
 			self._lines.append([node.startloc, self._currentpath[:], len(self._currentpath), s])
 			self._currentpath.append(None)
 			for (attrname, attrvalue) in node.items():
 				self._currentpath[-1] = attrname
 				attrvalue.present(self)
 			self._currentpath.pop()
-			s = ansistyle.Text()(strBracketOpen(), strSlash(), node._str(fullname=1, xml=0, decorate=0), strBracketClose())
+			s = ansistyle.Text(strBracketOpen(), strSlash(), node._str(fullname=1, xml=0, decorate=0), strBracketClose())
 			self._lines.append([node.endloc, self._currentpath[:], len(self._currentpath), s])
 
 	def presentElement(self, node):
@@ -714,23 +730,23 @@ class TreePresenter(Presenter):
 			else:
 				self._buffers[-1].append(strSlash(), strBracketClose())
 		else:
-			self._buffers.append(ansistyle.Text()(strBracketOpen(), node._str(fullname=1, xml=0, decorate=0)))
+			self._buffers.append(ansistyle.Text(strBracketOpen(), node._str(fullname=1, xml=0, decorate=0)))
 			self._inattr += 1
 			node.attrs.present(self)
 			self._inattr -= 1
 			if len(node):
 				self._buffers[-1].append(strBracketClose())
-				self._lines.append([node.startloc, self._currentpath[:], len(self._currentpath), ansistyle.Text()(*self._buffers)])
+				self._lines.append([node.startloc, self._currentpath[:], len(self._currentpath), ansistyle.Text(*self._buffers)])
 				self._buffers = [] # we're done with the buffers for the header
 				self._currentpath.append(0)
 				for child in node:
 					child.present(self)
 					self._currentpath[-1] += 1
 				self._currentpath.pop()
-				self._lines.append([node.endloc, self._currentpath[:], len(self._currentpath), ansistyle.Text()(strBracketOpen(), strSlash(), node._str(fullname=1, xml=0, decorate=0), strBracketClose())])
+				self._lines.append([node.endloc, self._currentpath[:], len(self._currentpath), ansistyle.Text(strBracketOpen(), strSlash(), node._str(fullname=1, xml=0, decorate=0), strBracketClose())])
 			else:
 				self._buffers[-1].append(strSlash(), strBracketClose())
-				self._lines.append([node.startloc, self._currentpath[:], len(self._currentpath), ansistyle.Text()(*self._buffers)])
+				self._lines.append([node.startloc, self._currentpath[:], len(self._currentpath), ansistyle.Text(*self._buffers)])
 				self._buffers = [] # we're done with the buffers for the header
 
 	def presentNull(self, node):
@@ -762,8 +778,8 @@ class TreePresenter(Presenter):
 				strBracketClose()
 			)
 		else:
-			head = ansistyle.Text()(strBracketOpen(), strQuestion(), node._str(fullname=1, xml=0, decorate=0), " ")
-			tail = ansistyle.Text()(strQuestion(), strBracketClose())
+			head = ansistyle.Text(strBracketOpen(), strQuestion(), node._str(fullname=1, xml=0, decorate=0), " ")
+			tail = ansistyle.Text(strQuestion(), strBracketClose())
 			lines = node.content.splitlines()
 			if len(lines)>1:
 				lines.insert(0, "")
@@ -780,8 +796,8 @@ class TreePresenter(Presenter):
 				strBracketClose()
 			)
 		else:
-			head = ansistyle.Text()(strBracketOpen(), strExclamation(), strCommentMarker())
-			tail = ansistyle.Text()(strCommentMarker(), strBracketClose())
+			head = ansistyle.Text(strBracketOpen(), strExclamation(), strCommentMarker())
+			tail = ansistyle.Text(strCommentMarker(), strBracketClose())
 			lines = node.content.splitlines()
 			self._domultiline(node, lines, 1, self.strCommentTextLine, head, tail)
 
@@ -796,8 +812,8 @@ class TreePresenter(Presenter):
 				strBracketClose()
 			)
 		else:
-			head = ansistyle.Text()(strBracketOpen(), strExclamation(), strDocTypeMarker(), " ")
-			tail = ansistyle.Text()(strBracketClose())
+			head = ansistyle.Text(strBracketOpen(), strExclamation(), strDocTypeMarker(), " ")
+			tail = ansistyle.Text(strBracketClose())
 			lines = node.content.splitlines()
 			self._domultiline(node, lines, 1, self.strDocTypeTextLine, head, tail)
 
@@ -817,23 +833,24 @@ class CodePresenter(Presenter):
 	"""
 	def present(self, node):
 		self._inattr = 0
-		self._buffer = []
+		self._first = True
 		self._level = 0
-		try:
-			node.present(self)
-			s = "".join(self._buffer)
-		finally:
-			del self._level
-			del self._buffer
-			del self._inattr
-		return s
+		for part in node.present(self):
+			if part:
+				yield part
+		del self._level
+		del self._first
+		del self._inattr
 
 	def _indent(self):
+		s = ""
 		if not self._inattr:
-			if self._buffer:
-				self._buffer.append("\n")
+			if not self._first:
+				s = "\n"
 			if self._level:
-				self._buffer.append("\t"*self._level)
+				s += "\t"*self._level
+		self._first = False
+		return s
 
 	def _text(self, text):
 		try:
@@ -850,69 +867,73 @@ class CodePresenter(Presenter):
 		return s
 
 	def presentFrag(self, node):
-		self._indent()
+		yield self._indent()
 		if not self._inattr:
-			self._buffer.append("%s.%s" % (node.__module__, node.__fullname__()))
-		self._buffer.append("(")
+			yield "%s.%s" % (node.__module__, node.__fullname__())
+		yield "("
 		if len(node):
 			i = 0
 			self._level += 1
 			for child in node:
 				if i:
-					self._buffer.append(",")
+					yield ","
 					if self._inattr:
-						self._buffer.append(" ")
-				child.present(self)
+						yield " "
+				for part in child.present(self):
+					yield part
 				i += 1
 			self._level -= 1
-			self._indent()
-		self._buffer.append(")")
+			yield self._indent()
+		yield ")"
 
 	def presentAttrs(self, node):
-		self._indent()
-		self._buffer.append("{")
+		yield self._indent()
+		yield "{"
 		self._level += 1
 		i = 0
 		for (attrname, attrvalue) in node.iteritems():
 			if i:
-				self._buffer.append(",")
+				yield ","
 				if self._inattr:
-					self._buffer.append(" ")
-			self._indent()
+					yield " "
+			yield self._indent()
 			self._inattr += 1
 			if isinstance(attrname, tuple):
 				ns = attrname[0].__module__
 				attrname = attrname[1]
 				if keyword.iskeyword(attrname):
 					attrname += "_"
-				self._buffer.append("(%s, %r): " % (ns, attrname))
+				yield "(%s, %r): " % (ns, attrname)
 			else:
 				if keyword.iskeyword(attrname):
 					attrname += "_"
-				self._buffer.append("%r: " % attrname)
+				yield "%r: " % attrname
 			if len(attrvalue)==1: # optimize away the tuple ()
-				attrvalue[0].present(self)
+				for part in attrvalue[0].present(self):
+					yield part
 			else:
-				attrvalue.present(self)
-			self._indent()
+				for part in attrvalue.present(self):
+					yield part
+			yield self._indent()
 			self._inattr -= 1
 			i += 1
 		self._level -= 1
-		self._indent()
-		self._buffer.append("}")
+		yield self._indent()
+		yield "}"
 
 	def presentElement(self, node):
-		self._indent()
-		self._buffer.append("%s.%s(" % (node.__module__, node.__class__.__fullname__()))
+		yield self._indent()
+		yield "%s.%s(" % (node.__module__, node.__class__.__fullname__())
 		if len(node.content) or len(node.attrs):
 			i = 0
 			self._level += 1
 			for child in node:
 				if i:
-					self._buffer.append(",")
+					yield ","
 					if self._inattr:
-						self._buffer.append(" ")
-				child.present(self)
+						yield " "
+				for part in child.present(self):
+					yield part
 				i += 1
 			globalattrs = {}
 			for (attrname, attrvalue) in node.attrs.iteritems():
@@ -921,66 +942,70 @@ class CodePresenter(Presenter):
 			if len(globalattrs):
 				for (attrname, attrvalue) in globalattrs.iteritems():
 					if i:
-						self._buffer.append(", ")
+						yield ", "
 						if self._inattr:
-							self._buffer.append(" ")
-					self._indent()
-					self._buffer.append("{ ")
+							yield " "
+					yield self._indent()
+					yield "{ "
 					self._inattr += 1
 					ns = attrname[0].__module__
 					attrname = attrname[1]
-					self._buffer.append("(%s, %r): " % (ns, attrname))
+					yield "(%s, %r): " % (ns, attrname)
 					if len(attrvalue)==1: # optimize away the tuple ()
-						attrvalue[0].present(self)
+						for part in attrvalue[0].present(self):
+							yield part
 					else:
-						attrvalue.present(self)
+						for part in attrvalue.present(self):
+							yield part
 					self._inattr -= 1
-					self._buffer.append(" }")
+					yield " }"
 					i += 1
 			for (attrname, attrvalue) in node.attrs.iteritems():
 				if not isinstance(attrname, tuple):
 					if i:
-						self._buffer.append(",")
+						yield ","
 						if self._inattr:
-							self._buffer.append(" ")
-					self._indent()
+							yield " "
+					yield self._indent()
 					self._inattr += 1
-					self._buffer.append("%s=" % attrname)
+					yield "%s=" % attrname
 					if len(attrvalue)==1: # optimize away the tuple ()
-						attrvalue[0].present(self)
+						for part in attrvalue[0].present(self):
+							yield part
 					else:
-						attrvalue.present(self)
+						for part in attrvalue.present(self):
+							yield part
 					self._inattr -= 1
 					i += 1
 			self._level -= 1
-			self._indent()
-		self._buffer.append(")")
+			yield self._indent()
+		yield ")"
 
 	def presentNull(self, node):
 		pass
 
 	def presentText(self, node):
-		self._indent()
-		self._buffer.append("%r" % self._text(node.content))
+		yield self._indent()
+		yield "%r" % self._text(node.content)
 
 	def presentEntity(self, node):
-		self._indent()
-		self._buffer.append("%s.%s()" % (node.__module__, node.__class__.__fullname__()))
+		yield self._indent()
+		yield "%s.%s()" % (node.__module__, node.__class__.__fullname__())
 
 	def presentProcInst(self, node):
-		self._indent()
-		self._buffer.append("%s.%s(%r)" % (node.__module__, node.__class__.__fullname__(), self._text(node.content)))
+		yield self._indent()
+		yield "%s.%s(%r)" % (node.__module__, node.__class__.__fullname__(), self._text(node.content))
 
 	def presentComment(self, node):
-		self._indent()
-		self._buffer.append("xsc.Comment(%r)" % self._text(node.content))
+		yield self._indent()
+		yield "xsc.Comment(%r)" % self._text(node.content)
 
 	def presentDocType(self, node):
-		self._indent()
-		self._buffer.append("xsc.DocType(%r)" % self._text(node.content))
+		yield self._indent()
+		yield "xsc.DocType(%r)" % self._text(node.content)
 
 	def presentAttr(self, node):
-		self.presentFrag(node)
+		return self.presentFrag(node)
 
 
 defaultpresenter = PlainPresenter() # used for __repr__
@@ -989,6 +1014,7 @@ hookpresenter = TreePresenter() # used in the displayhook below
 
 def displayhook(obj):
 	if isinstance(obj, xsc.Node):
-		sys.stdout.write(obj.repr(hookpresenter))
+		for part in obj.repr(hookpresenter):
+			sys.stdout.write(part)
 		return True
 	return False
