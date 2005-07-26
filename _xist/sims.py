@@ -36,7 +36,7 @@ class EmptyElementWithContentWarning(SIMSWarning):
 		self.node = node
 
 	def __str__(self):
-		s = "element %s" % self.node._str(fullname=True, xml=False, decorate=True)
+		s = "element %r" % self.node
 		if self.node.startloc is not None:
 			s += " at %s" % self.node.startloc
 		s += " has EMPTY content model, but has content"
@@ -55,10 +55,10 @@ class WrongElementWarning(SIMSWarning):
 		self.elements = elements
 
 	def __str__(self):
-		s = "element %s" % self.node._str(fullname=True, xml=False, decorate=True)
+		s = "element %r" % self.node
 		if self.node.startloc is not None:
 			s += " at %s" % self.node.startloc
-		s += " may not contain element %s" % self.badnode._str(fullname=1, xml=0, decorate=1)
+		s += " may not contain element %r" % self.badnode
 		if self.badnode.startloc is not None:
 			s += " at %s" % self.badnode.startloc
 		return s
@@ -75,7 +75,7 @@ class ElementWarning(SIMSWarning):
 		self.badnode = badnode
 
 	def __str__(self):
-		s = "element %s" % self.node._str(fullname=True, xml=False, decorate=True)
+		s = "element %r" % self.node
 		if self.node.startloc is not None:
 			s += " at %s" % self.node.startloc
 		s += " may not contain other elements"
@@ -94,7 +94,7 @@ class IllegalTextWarning(SIMSWarning):
 		self.badnode = badnode
 
 	def __str__(self):
-		s = "element %s" % self.node._str(fullname=True, xml=False, decorate=True)
+		s = "element %r" % self.node
 		if self.node.startloc is not None:
 			s += " at %s" % self.node.startloc
 		s += " may not contain text nodes"

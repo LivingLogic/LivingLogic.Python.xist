@@ -294,6 +294,30 @@ def strAttrValue(attrvalue):
 	return ansistyle.Text(color4attrvalue, EscInlineAttr(attrvalue))
 
 
+def strLocation(loc):
+	# get and format the system ID
+	sysid = loc.sysid
+	if sysid is None:
+		sysid = "???"
+
+	# get and format the line number
+	line = loc.line
+	if line is None or line < 0:
+		line = "?"
+	else:
+		line = str(line)
+
+	# get and format the column number
+	col = loc.col
+	if col is None or col < 0:
+		col = "?"
+	else:
+		col = str(col)
+
+	# now we have the parts => format them
+	return ansistyle.Text(strURL(sysid), ":", strNumber(line), ":", strNumber(col))
+
+
 class Presenter(object):
 	"""
 	<par>This class is the base of the presenter classes. It is abstract
@@ -392,22 +416,22 @@ class PlainPresenter(Presenter):
 	def presentFrag(self, node):
 		l = len(node)
 		if l==0:
-			info = "with no children"
+			info = "no children"
 		elif l==1:
-			info = "with 1 child"
+			info = "1 child"
 		else:
-			info = "with %d children" % l
-		yield "<%s:%s object %s at 0x%x>" % (node.__class__.__module__, node.__class__.__fullname__(), info, id(node))
+			info = "%d children" % l
+		yield "<%s:%s object (%s) at 0x%x>" % (node.__class__.__module__, node.__class__.__fullname__(), info, id(node))
 
 	def presentAttr(self, node):
 		l = len(node)
 		if l==0:
-			info = "with no children"
+			info = "no children"
 		elif l==1:
-			info = "with 1 child"
+			info = "1 child"
 		else:
-			info = "with %d children" % l
-		yield "<%s:%s attr object %s at 0x%x>" % (node.__class__.__module__, node.__class__.__fullname__(), info, id(node))
+			info = "%d children" % l
+		yield "<%s:%s attr object (%s) at 0x%x>" % (node.__class__.__module__, node.__class__.__fullname__(), info, id(node))
 
 	presentComment = presentCharacterData
 	presentDocType = presentCharacterData
@@ -420,29 +444,29 @@ class PlainPresenter(Presenter):
 	def presentAttrs(self, node):
 		l = len(node)
 		if l==0:
-			info = "with no attributes"
+			info = "(no attrs)"
 		elif l==1:
-			info = "with 1 attribute"
+			info = "(1 attr)"
 		else:
-			info = "with %d attributes" % l
+			info = "(%d attrs)" % l
 		yield "<%s:%s attrs object %s at 0x%x>" % (node.__class__.__module__, node.__class__.__fullname__(), info, id(node))
 
 	def presentElement(self, node):
 		lc = len(node.content)
 		if lc==0:
-			infoc = "with no children"
+			infoc = "no children"
 		elif lc==1:
-			infoc = "with 1 child"
+			infoc = "1 child"
 		else:
-			infoc = "with %d children" % lc
+			infoc = "%d children" % lc
 		la = len(node.attrs)
 		if la==0:
-			infoa = "and no attributes"
+			infoa = "no attrs"
 		elif la==1:
-			infoa = "and 1 attribute"
+			infoa = "1 attr"
 		else:
-			infoa = "and %d attributes" % la
-		yield "<%s:%s element object %s %s at 0x%x>" % (node.__class__.__module__, node.__class__.__fullname__(), infoc, infoa, id(node))
+			infoa = "%d attrs" % la
+		yield "<%s:%s element object (%s/%s) at 0x%x>" % (node.__class__.__module__, node.__class__.__fullname__(), infoc, infoa, id(node))
 
 	def presentEntity(self, node):
 		yield "<%s:%s entity object at 0x%x>" % (node.__class__.__module__, node.__class__.__fullname__(), id(node))
@@ -590,16 +614,34 @@ class TreePresenter(Presenter):
 
 	def present(self, node):
 		self._inattr = 0
-		self._lines = [] # the final lines consisting of (location, numerical path, nesting, content)
 		self._currentpath = [] # numerical path
 		self._buffers = [] # list of ansistyle.Text objects used for formatting attributes (this is a list for elements that contains elements in their attributes)
 
-		try:
-			node.present(self)
+		c = ansistyle.Colorizer()
+		if not self.showpath and not self.showlocation:
+			# we need no column formatting, so we can output yield the result directly
+			for line in node.present(self):
+				for part in c.feed(line[2]):
+					yield part
+				yield "\n"
+			for part in c.feed(None):
+				yield part
+		else:
+			lines = list(node.present(self))
 	
 			lenloc = 0
 			lennumpath = 0
-			for line in self._lines:
+			for line in lines:
+				# format and calculate width of location info
+				if self.showlocation:
+					loc = line[0]
+					if loc is None:
+						loc = xsc.Location()
+					loc = strLocation(loc)
+					line[0] = loc = (len(loc.string(False)), loc)
+					lenloc = max(lenloc, loc[0])
+
+				# format and calculate width of path info
 				if self.showpath:
 					newline1 = []
 					if self.showpath == 1:
@@ -616,27 +658,24 @@ class TreePresenter(Presenter):
 							else:
 								newline1.append(repr(comp))
 						line[1] = "[%s]" % ",".join(newline1)
-				line[3] = ansistyle.Text(strTab(line[2]), line[3])
-				if self.showlocation:
-					if line[0] is not None:
-						line[0] = str(line[0])
-						lenloc = max(lenloc, len(line[0]))
-					else:
-						line[0] = str(xsc.Location())
 				lennumpath = max(lennumpath, len(line[1]))
+
 			newlines = []
-			for line in self._lines:
+			for line in lines:
 				if self.showlocation:
-					newlines.append("%-*s " % (lenloc, line[0]))
+					for part in c.feed(line[0][1], " " * (lenloc-line[0][0]+1), None):
+						yield part
 				if self.showpath:
-					newlines.append("%-*s " % (lennumpath, line[1]))
-				newlines.append("%s\n" % line[3])
-		finally:
-			del self._inattr
-			del self._lines
-			del self._buffers
-			del self._currentpath
-		return "".join(newlines)
+					for part in c.feed(line[1], " " * (lennumpath-len(line[1])+1), None):
+						yield part
+				for part in c.feed(line[2]):
+					yield part
+				yield "\n"
+			for part in c.feed(None):
+				yield part
+		del self._inattr
+		del self._buffers
+		del self._currentpath
 
 	def _domultiline(self, node, lines, indent, formatter, head=None, tail=None):
 		loc = node.startloc
@@ -654,7 +693,7 @@ class TreePresenter(Presenter):
 				s = ""
 			if isinstance(s, basestring):
 				if indent:
-					while len(s) and s[0] == "\t":
+					while s.startswith("\t"):
 						mynest += 1
 						s = s[1:]
 			s = formatter(s)
@@ -662,7 +701,7 @@ class TreePresenter(Presenter):
 				s.insert(0, head)
 			if i >= l-1 and tail is not None:
 				s.append(tail)
-			self._lines.append([hereloc, self._currentpath[:], mynest, s])
+			yield [hereloc, self._currentpath[:], ansistyle.Text(strTab(mynest), s)]
 
 	def strTextLineOutsideAttr(self, text):
 		return ansistyle.Text(strQuote(), ansistyle.Text(color4text, EscOutlineText(text)), strQuote())
@@ -682,18 +721,48 @@ class TreePresenter(Presenter):
 	def presentFrag(self, node):
 		if self._inattr:
 			for child in node:
-				child.present(self)
+				for line in child.present(self):
+					yield line
 		else:
 			if len(node):
-				self._lines.append([node.startloc, self._currentpath[:], len(self._currentpath), ansistyle.Text(strBracketOpen(), node._str(fullname=1, xml=0, decorate=0), strBracketClose())])
+				yield [
+					node.startloc,
+					self._currentpath[:],
+					ansistyle.Text(
+						strTab(len(self._currentpath)),
+						strBracketOpen(),
+						node._str(fullname=1, xml=0, decorate=0),
+						strBracketClose()
+					)
+				]
 				self._currentpath.append(0)
 				for child in node:
-					child.present(self)
+					for line in child.present(self):
+						yield line
 					self._currentpath[-1] += 1
-				del self._currentpath[-1]
-				self._lines.append([node.endloc, self._currentpath[:], len(self._currentpath), ansistyle.Text(strBracketOpen(), strSlash(), node._str(fullname=1, xml=0, decorate=0), strBracketClose())])
+				self._currentpath.pop(-1)
+				yield [
+					node.endloc,
+					self._currentpath[:],
+					ansistyle.Text(
+						strTab(len(self._currentpath)),
+						strBracketOpen(),
+						strSlash(),
+						node._str(fullname=1, xml=0, decorate=0),
+						strBracketClose()
+					)
+				]
 			else:
-				self._lines.append([node.startloc, self._currentpath[:], len(self._currentpath), ansistyle.Text(strBracketOpen(), node._str(fullname=1, xml=0, decorate=0), strSlash(), strBracketClose())])
+				yield [
+					node.startloc,
+					self._currentpath[:], ansistyle.Text(
+						strTab(len(self._currentpath)),
+						strBracketOpen(),
+						node._str(fullname=1, xml=0, decorate=0),
+						strSlash(),
+						strBracketClose()
+					)
+				]
 
 	def presentAttrs(self, node):
 		if self._inattr:
@@ -704,67 +773,129 @@ class TreePresenter(Presenter):
 				else:
 					self._buffers[-1].append(strAttrName(attrname))
 				self._buffers[-1].append("=", strQuote())
-				attrvalue.present(self)
+				for line in attrvalue.present(self):
+					yield line
 				self._buffers[-1].append(strQuote())
 		else:
-			s = ansistyle.Text(strBracketOpen(), node._str(fullname=1, xml=0, decorate=0), strBracketClose())
-			self._lines.append([node.startloc, self._currentpath[:], len(self._currentpath), s])
+			yield [
+				node.startloc,
+				self._currentpath[:],
+				ansistyle.Text(
+					strTab(len(self._currentpath)),
+					strBracketOpen(),
+					node._str(fullname=1, xml=0, decorate=0),
+					strBracketClose()
+				)
+			]
 			self._currentpath.append(None)
 			for (attrname, attrvalue) in node.items():
 				self._currentpath[-1] = attrname
-				attrvalue.present(self)
+				for line in attrvalue.present(self):
+					yield line
 			self._currentpath.pop()
-			s = ansistyle.Text(strBracketOpen(), strSlash(), node._str(fullname=1, xml=0, decorate=0), strBracketClose())
-			self._lines.append([node.endloc, self._currentpath[:], len(self._currentpath), s])
+			yield [
+				node.endloc,
+				self._currentpath[:],
+				ansistyle.Text(
+					strTab(len(self._currentpath)),
+					strBracketOpen(),
+					strSlash(),
+					node._str(fullname=1, xml=0, decorate=0),
+					strBracketClose()
+				)
+			]
 
 	def presentElement(self, node):
 		if self._inattr:
 			self._buffers[-1].append(strBracketOpen(), node._str(fullname=1, xml=0, decorate=0))
 			self._inattr += 1
-			node.attrs.present(self)
+			for line in node.attrs.present(self):
+				yield line
 			self._inattr -= 1
 			if len(node):
 				self._buffers[-1].append(strBracketClose())
-				node.content.present(self)
+				for line in node.content.present(self):
+					yield line
 				self._buffers[-1].append(strBracketOpen(), strSlash(), node._str(fullname=1, xml=0, decorate=0), strBracketClose())
 			else:
 				self._buffers[-1].append(strSlash(), strBracketClose())
 		else:
 			self._buffers.append(ansistyle.Text(strBracketOpen(), node._str(fullname=1, xml=0, decorate=0)))
 			self._inattr += 1
-			node.attrs.present(self)
+			for line in node.attrs.present(self):
+				yield line
 			self._inattr -= 1
 			if len(node):
 				self._buffers[-1].append(strBracketClose())
-				self._lines.append([node.startloc, self._currentpath[:], len(self._currentpath), ansistyle.Text(*self._buffers)])
+				yield [
+					node.startloc,
+					self._currentpath[:],
+					ansistyle.Text(
+						strTab(len(self._currentpath)),
+						*self._buffers
+					)
+				]
 				self._buffers = [] # we're done with the buffers for the header
 				self._currentpath.append(0)
 				for child in node:
-					child.present(self)
+					for line in child.present(self):
+						yield line
 					self._currentpath[-1] += 1
 				self._currentpath.pop()
-				self._lines.append([node.endloc, self._currentpath[:], len(self._currentpath), ansistyle.Text(strBracketOpen(), strSlash(), node._str(fullname=1, xml=0, decorate=0), strBracketClose())])
+				yield [
+					node.endloc,
+					self._currentpath[:],
+					ansistyle.Text(
+						strTab(len(self._currentpath)),
+						strBracketOpen(),
+						strSlash(),
+						node._str(fullname=1, xml=0, decorate=0),
+						strBracketClose()
+					)
+				]
 			else:
 				self._buffers[-1].append(strSlash(), strBracketClose())
-				self._lines.append([node.startloc, self._currentpath[:], len(self._currentpath), ansistyle.Text(*self._buffers)])
+				yield [
+					node.startloc,
+					self._currentpath[:],
+					ansistyle.Text(
+						strTab(len(self._currentpath)),
+						*self._buffers
+					)
+				]
 				self._buffers = [] # we're done with the buffers for the header
 
 	def presentNull(self, node):
 		if not self._inattr:
-			self._lines.append([node.startloc, self._currentpath[:], len(self._currentpath), node._str(fullname=1, xml=0, decorate=1)])
+			yield [
+				node.startloc,
+				self._currentpath[:],
+				ansistyle.Text(
+					strTab(len(self._currentpath)),
+					node._str(fullname=1, xml=0, decorate=1)
+				)
+			]
 
 	def presentText(self, node):
 		if self._inattr:
 			self._buffers[-1].append(strTextInAttr(node.content))
 		else:
-			lines = node.content.splitlines(1)
-			self._domultiline(node, lines, 0, self.strTextLineOutsideAttr)
+			lines = node.content.splitlines(True)
+			for line in self._domultiline(node, lines, 0, self.strTextLineOutsideAttr):
+				yield line
 
 	def presentEntity(self, node):
 		if self._inattr:
 			self._buffers[-1].append(node._str(fullname=1, xml=0, decorate=1))
 		else:
-			self._lines.append([node.startloc, self._currentpath[:], len(self._currentpath), node._str(fullname=1, xml=0, decorate=1)])
+			yield [
+				node.startloc,
+				self._currentpath[:],
+				ansistyle.Text(
+					strTab(len(self._currentpath)),
+					node._str(fullname=1, xml=0, decorate=1)
+				)
+			]
 
 	def presentProcInst(self, node):
 		if self._inattr:
@@ -783,7 +914,8 @@ class TreePresenter(Presenter):
 			lines = node.content.splitlines()
 			if len(lines)>1:
 				lines.insert(0, "")
-			self._domultiline(node, lines, 1, self.strProcInstContentLine, head, tail)
+			for line in self._domultiline(node, lines, 1, self.strProcInstContentLine, head, tail):
+				yield line
 
 	def presentComment(self, node):
 		if self._inattr:
@@ -799,7 +931,8 @@ class TreePresenter(Presenter):
 			head = ansistyle.Text(strBracketOpen(), strExclamation(), strCommentMarker())
 			tail = ansistyle.Text(strCommentMarker(), strBracketClose())
 			lines = node.content.splitlines()
-			self._domultiline(node, lines, 1, self.strCommentTextLine, head, tail)
+			for line in self._domultiline(node, lines, 1, self.strCommentTextLine, head, tail):
+				yield line
 
 	def presentDocType(self, node):
 		if self._inattr:
@@ -815,13 +948,15 @@ class TreePresenter(Presenter):
 			head = ansistyle.Text(strBracketOpen(), strExclamation(), strDocTypeMarker(), " ")
 			tail = ansistyle.Text(strBracketClose())
 			lines = node.content.splitlines()
-			self._domultiline(node, lines, 1, self.strDocTypeTextLine, head, tail)
+			for line in self._domultiline(node, lines, 1, self.strDocTypeTextLine, head, tail):
+				yield line
 
 	def presentAttr(self, node):
 		if self._inattr:
 			# this will not be popped at the and of this method, because presentElement needs it
 			self._buffers.append(ansistyle.Text(color4attrvalue))
-		self.presentFrag(node)
+		for line in self.presentFrag(node):
+			yield line
 
 
 class CodePresenter(Presenter):

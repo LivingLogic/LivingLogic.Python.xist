@@ -722,7 +722,7 @@ class Node(Base):
 		<pyref module="ll.xist.presenters"><module>ll.xist.presenters</module></pyref>)
 		to return a string representation.</par>
 		"""
-		return self.repr(presenters.defaultpresenter)
+		return self.asrepr(presenters.defaultpresenter)
 
 	def __ne__(self, other):
 		return not self==other
@@ -4308,11 +4308,10 @@ class Location(object):
 			col = str(col)
 
 		# now we have the parts => format them
-		return "%s:%s:%s" % (presenters.strURL(sysid), presenters.strNumber(line), presenters.strNumber(col))
+		return "%s:%s:%s" % (sysid, line, col)
 
 	def __repr__(self):
-		return "<%s object sysid=%r, pubid=%r, line=%r, col=%r at %08x>" % \
-			(self.__class__.__name__, self.sysid, self.pubid, self.line, self.col, id(self))
+		return "<%s object sysid=%r, pubid=%r, line=%r, col=%r at %08x>" % (self.__class__.__name__, self.sysid, self.pubid, self.line, self.col, id(self))
 
 	def __eq__(self, other):
 		return self.__class__ is other.__class__ and self.pubid==other.pubid and self.sysid==other.sysid and self.line==other.line and self.col==other.col
