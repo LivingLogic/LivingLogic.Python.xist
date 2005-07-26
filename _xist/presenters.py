@@ -146,7 +146,7 @@ class EscInlineText(ansistyle.EscapedText):
 	ascolor   = "\x09\x0a"
 
 	def __init__(self, *content):
-		ansistyle.EscapedText.__init__(self, -1, *content)
+		ansistyle.EscapedText.__init__(self, *content)
 
 	def escapechar(self, char):
 		if char in self.ascolor:
