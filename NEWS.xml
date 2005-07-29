@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
-<section><title>Changes in 2.11 (released ??/??/2005)</title>
+<section><title>Changes in 2.11 (released 07/29/2005)</title>
 <ulist>
 <item>A script <filename>xml2xsc.py</filename> has been added, that
 can be used to parse an &xml; file and generate a rudimentary &xist; namespace
