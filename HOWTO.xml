@@ -142,7 +142,7 @@ you can directly parse from a file-like object.</par>
 <par>All four functions create a parser internally, parse the supplied source document and
 return the resulting object tree.</par>
 <par>For example, parsing a string can be done like this:</par>
-<example>
+<example><title>Parsing a string</title>
 <prog>
 from ll.xist import parsers
 from ll.xist.ns import html
@@ -377,7 +377,8 @@ node = html.div(u"foo", class_=class_)
 have a <lit>class</lit> attribute.</par>
 
 
-<section><title>Specifying attributes</title>
+<section><title>Defining attributes</title>
+
 <par>When you define a new element you have to specify the attributes allowed
 for this element. For this use the class attribute <lit>Attrs</lit>
 (which must be a class derived from
@@ -407,6 +408,9 @@ class cool(xsc.Element):
 <prompt>&gt;&gt;&gt; </prompt><input>node.conv().asBytes()</input>
 &lt;a href="http://www.python.org/"&gt;Python&lt;/a&gt; is &lt;em&gt;totally&lt;/em&gt; cool!
 </tty>
+
+</section>
+
 
 <section><title>Default attributes</title>
 <par>It is possible to define default values for attributes via
@@ -519,8 +523,6 @@ is such an attribute, so we'll get:</par>
 &lt;img src="eggs.png" /&gt;
 </tty>
 </example>
-
-</section>
 
 </section>
 
