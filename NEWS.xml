@@ -11,7 +11,18 @@ from it.</item>
 <item>Line number information is now added when parsing &html;.</item>
 
 <item>The <method>sorted</method> method now supports the same arguments
-as <method>list.sort</method> and <function>sorted</function> in Python 2.4.</item>
+(<arg>cmp</arg>, <arg>key</arg> and <arg>reverse</arg>) as
+<method>list.sort</method> and <function>sorted</function> in Python 2.4.</item>
+
+<item>The <method>walk</method> doesn't yield the node directly, but yields
+a <class>Cursor</class> object now, with has several ways of referencing the node.</item>
+
+<item>New methods <method>walknode</method>, <method>walkpath</method> and
+<method>walkindex</method> have been added.</item>
+
+<item>Presenters use an iterator &api; instead of a stream &api; now. Dumping
+an &xml; tree presentation to the terminal can now start immediately instead
+of having to wait for the complete string to be formatted.</item>
 
 <item>Fixed a bug with element/attribute names that contained a <lit>.</lit>
 character. (This broke <module>ll.xist.ns.fo</module>.)</item>

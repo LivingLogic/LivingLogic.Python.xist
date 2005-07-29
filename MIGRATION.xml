@@ -35,6 +35,23 @@ have been removed. Use <lit>xsc.Frag(node.walk(<rep>...</rep>)</lit> or
 
 </section>
 
+<section><title>Changes to publishing</title>
+
+<par>Publishing has changed: If you've used the method <method>repr</method>
+before to get a string representation of an &xml; tree, you have to use
+<method>asrepr</method> instead now (<method>repr</method> is a generator
+which will produce the string in pieces).</par>
+
+</section>
+
+
+<section><title>Changes to the <module>xfind</module> module</title>
+
+<par>The functions <function>item</function>, <function>first</function>,
+<function>last</function>, <function>count</function> and
+<function>iterone</function> as well as the class <class>Iterator</class>
+have been moved to the <module>ll</module> module.</par>
+
 </section>
 
 
