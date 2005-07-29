@@ -740,7 +740,7 @@ class item(base):
 	model = sims.ElementsOrText(block, inline) # if it contains no block elements, the content will be promoted to a paragraph
 
 	def convert_docbook(self, converter):
-		if ll.count(self/block):
+		if self[block]:
 			content = self.content
 		else:
 			content = converter.target.para(self.content)
