@@ -99,9 +99,9 @@ class pixel(_pixelbase):
 	"""
 
 	class Attrs(_pixelbase.Attrs):
-		class width(html.img.Attrs.width):
+		class width(_pixelbase.Attrs.width):
 			default = 1
-		class height(html.img.Attrs.height):
+		class height(_pixelbase.Attrs.height):
 			default = 1
 		src = None # remove source attribute
 
