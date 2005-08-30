@@ -39,7 +39,7 @@ is now part of the <module>ll</module> package/module.</item>
 <item>The function <function>ToNode</function> has been renamed to
 <function>tonode</function>.</item>
 
-<item><class>ll.xist.Context</class> now longer subclasses <class>list</class>.</item>
+<item><class>ll.xist.Context</class> no longer subclasses <class>list</class>.</item>
 
 <item><class>ll.xist.ns.doc.explain</class> will now try to output the objects
 in the order in which they appear in the Python source.</item>
@@ -66,7 +66,7 @@ of the <module>ll.xist.ns.code</module> namespace.</item>
 In this case a converter will be created on the fly. You can pass constructor
 arguments for this converter to <method>mapped</method> as keyword arguments.</item>
 <item>The publishing &api; has changed again: <method>ll.xist.publishers.Publisher.publish</method>
-now longer accepts an argument <arg>stream</arg> to which the byte strings are
+no longer accepts an argument <arg>stream</arg> to which the byte strings are
 written, but it is a generator now. The publisher methods <method>write</method>
 and <method>writetext</method> have been renamed to <method>encode</method> and
 <method>encodetext</method> and return the encoded byte string, instead of
