@@ -1539,7 +1539,7 @@ class Frag(Node, list):
 		with the new value <arg>value</arg> (which will be converted to a node).
 		If  <arg>index</arg> is a list <method>__setitem__</method> will be applied
 		to the innermost index after traversing the rest of <arg>index</arg> recursively.
-		If <arg>index</arg> is an empty list, the call will be ignored.</par>
+		If <arg>index</arg> is an empty list, an exception will be raised.</par>
 		"""
 		if isinstance(index, list):
 			if not index:
@@ -1564,7 +1564,7 @@ class Frag(Node, list):
 		<par>Remove the <arg>index</arg>'th content node from the fragment.
 		If <arg>index</arg> is a list, the innermost index will be deleted,
 		after traversing the rest of <arg>index</arg> recursively.
-		If <arg>index</arg> is an empty list the call will be ignored.</par>
+		If <arg>index</arg> is an empty list, an exception will be raised.</par>
 		"""
 		if isinstance(index, list):
 			if not index:
