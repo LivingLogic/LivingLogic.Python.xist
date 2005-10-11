@@ -18,7 +18,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 from ll.xist import xsc, sims
 
 
-class DocTypeDocBook41(xsc.DocType):
+class DocTypeDocBook43(xsc.DocType):
 	"""
 	document type for DocBook 4.3
 	"""
