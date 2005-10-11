@@ -8,13 +8,16 @@
 ##
 ## See xist/__init__.py for the license
 
+
+"""
+<par>This namespace module provides classes that can be used for generating
+documentation (in &html;, DocBook and XSL-FO).</par>
+"""
+
+
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-"""
-This namespace module provides classes that can be used for generating
-documentation (both &html; and XSL-FO).
-"""
 
 # import __builtin__ to use property, which is also defined here
 import types, inspect, warnings, operator, __builtin__
@@ -1249,7 +1252,10 @@ def getsourceline(cls, obj):
 	else:
 		while hasattr(obj, "__wrapped__"):
 			obj = obj.__wrapped__
-		pos = inspect.getsourcelines(obj)[-1]
+		try: # FIXME: Python SF bug #1315961
+			pos = inspect.getsourcelines(obj)[-1]
+		except IndentationError:
+			pos = 42
 	return pos
 
 
