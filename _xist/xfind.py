@@ -16,14 +16,14 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
 
-import ll
+from ll import misc
 
 
 ###
 ### XFind expression
 ###
 
-class Expr(ll.Iterator):
+class Expr(misc.Iterator):
 	"""
 	A <class>Expr</class> object is a <z>parsed</z> XFind expression.
 	The expression <lit><rep>a</rep>/<rep>b</rep></lit> will return an
@@ -38,8 +38,8 @@ class Expr(ll.Iterator):
 	def __init__(self, iterator, *operators):
 		from ll.xist import xsc
 		if isinstance(iterator, xsc.Node):
-			iterator = ll.iterone(iterator)
-		ll.Iterator.__init__(self, iterator)
+			iterator = misc.iterone(iterator)
+		misc.Iterator.__init__(self, iterator)
 		self.operator = OperatorChain(*operators)
 
 	def __iter__(self):
@@ -81,7 +81,7 @@ class Operator(object):
 		# we have to resolve the iterator here
 		return iter(Expr(self.xwalk(iterator), *operators))
 
-	@ll.notimplemented
+	@misc.notimplemented
 	def xwalk(self, iterator):
 		"""
 		Apply <self/> to the nodes produced by <arg>iterator</arg> and return
@@ -134,7 +134,7 @@ class ItemOperator(Operator):
 
 	def xwalk(self, iterator):
 		for child in iterator:
-			node = ll.item(child/self.operator, self.index, None)
+			node = misc.item(child/self.operator, self.index, None)
 			if node is not None:
 				yield node
 

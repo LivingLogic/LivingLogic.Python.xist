@@ -54,6 +54,7 @@ __all__ = [
 	"metal",
 	"meta",
 	"php",
+	"rng",
 	"ruby",
 	"specials",
 	"struts_config",

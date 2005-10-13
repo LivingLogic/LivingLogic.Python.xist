@@ -41,13 +41,14 @@ XSL-FO
 SVG
 WML
 iHTML
+Relax NG
 """
 
 DESCRIPTION = "\n".join(textwrap.wrap(DESCRIPTION.strip(), width=64, replace_whitespace=True))
 
 setup(
 	name="ll-xist",
-	version="2.11",
+	version="2.12",
 	description="An extensible HTML/XML generator",
 	long_description=DESCRIPTION,
 	author=u"Walter Dörwald",
@@ -63,5 +64,10 @@ setup(
 		Extension("ll.xist.csstokenizer", ["_xist/csstokenizer.cxx"]),
 		Extension("ll.xist.helpers", ["_xist/helpers.c"])
 	],
-	scripts=["scripts/dtd2xsc.py", "scripts/tld2xsc.py", "scripts/doc2txt.py", "scripts/xml2xsc.py" ]
+	scripts=[
+		"scripts/dtd2xsc.py",
+		"scripts/tld2xsc.py",
+		"scripts/doc2txt.py",
+		"scripts/xml2xsc.py",
+	]
 )

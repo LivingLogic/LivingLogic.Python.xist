@@ -20,8 +20,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 
 import sys, os, keyword
 
-import ll
-from ll import ansistyle, url
+from ll import misc, ansistyle, url
 
 import xsc, options
 
@@ -335,61 +334,61 @@ class Presenter(object):
 			yield part
 
 	
-	@ll.notimplemented
+	@misc.notimplemented
 	def presentText(self, node):
 		"""
 		<par>present a <pyref module="ll.xist.xsc" class="Text"><class>Text</class></pyref> node.</par>
 		"""
 
-	@ll.notimplemented
+	@misc.notimplemented
 	def presentFrag(self, node):
 		"""
 		<par>present a <pyref module="ll.xist.xsc" class="Frag"><class>Frag</class></pyref> node.</par>
 		"""
 
-	@ll.notimplemented
+	@misc.notimplemented
 	def presentComment(self, node):
 		"""
 		<par>present a <pyref module="ll.xist.xsc" class="Comment"><class>Comment</class></pyref> node.</par>
 		"""
 
-	@ll.notimplemented
+	@misc.notimplemented
 	def presentDocType(self, node):
 		"""
 		<par>present a <pyref module="ll.xist.xsc" class="DocType"><class>DocType</class></pyref> node.</par>
 		"""
 
-	@ll.notimplemented
+	@misc.notimplemented
 	def presentProcInst(self, node):
 		"""
 		<par>present a <pyref module="ll.xist.xsc" class="ProcInst"><class>ProcInst</class></pyref> node.</par>
 		"""
 
-	@ll.notimplemented
+	@misc.notimplemented
 	def presentAttrs(self, node):
 		"""
 		<par>present an <pyref module="ll.xist.xsc" class="Attrs"><class>Attrs</class></pyref> node.</par>
 		"""
 
-	@ll.notimplemented
+	@misc.notimplemented
 	def presentElement(self, node):
 		"""
 		<par>present an <pyref module="ll.xist.xsc" class="Element"><class>Element</class></pyref> node.</par>
 		"""
 
-	@ll.notimplemented
+	@misc.notimplemented
 	def presentEntity(self, node):
 		"""
 		<par>present a <pyref module="ll.xist.xsc" class="Entity"><class>Entity</class></pyref> node.</par>
 		"""
 
-	@ll.notimplemented
+	@misc.notimplemented
 	def presentNull(self, node):
 		"""
 		<par>present the <class>Null</class> node.</par>
 		"""
 
-	@ll.notimplemented
+	@misc.notimplemented
 	def presentAttr(self, node):
 		"""
 		<par>present an <pyref module="ll.xist.xsc" class="Attr"><class>Attr</class></pyref> node.</par>

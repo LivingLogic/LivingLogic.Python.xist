@@ -18,8 +18,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 
 import os, sys, random, copy, warnings, new, cStringIO, cPickle
 
-import ll
-from ll import url, ansistyle
+from ll import misc, url, ansistyle
 
 
 # XPython support
@@ -792,7 +791,7 @@ class Node(Base):
 			presenter = presenters.defaultpresenter
 		return "".join(presenter.present(self))
 
-	@ll.notimplemented
+	@misc.notimplemented
 	def present(self, presenter):
 		"""
 		<par><method>present</method> is used as a central dispatch method for
@@ -820,7 +819,7 @@ class Node(Base):
 			converter.pop()
 			return node
 
-	@ll.notimplemented
+	@misc.notimplemented
 	def convert(self, converter):
 		"""
 		<par>implementation of the conversion method. When you define your own
@@ -831,7 +830,7 @@ class Node(Base):
 		"""
 		pass
 
-	@ll.notimplemented
+	@misc.notimplemented
 	def __unicode__(self):
 		"""
 		<par>Return the character content of <self/> as a unicode string.
@@ -988,7 +987,7 @@ class Node(Base):
 		"""
 		pass
 
-	@ll.notimplemented
+	@misc.notimplemented
 	def publish(self, publisher):
 		"""
 		<par>Generate unicode strings for the node. <arg>publisher</arg> must be an instance of
@@ -1114,7 +1113,7 @@ class Node(Base):
 		the same across calls to <method>next</method>.</par>
 		"""
 		cursor = Cursor(self)
-		return ll.Iterator(self._walk(filter, cursor))
+		return misc.Iterator(self._walk(filter, cursor))
 
 	def walknode(self, filter=(True, entercontent)):
 		"""
@@ -1126,7 +1125,7 @@ class Node(Base):
 		def iterate(cursor):
 			for cursor in self._walk(filter, cursor):
 				yield cursor.node
-		return ll.Iterator(iterate(cursor))
+		return misc.Iterator(iterate(cursor))
 
 	def walkpath(self, filter=(True, entercontent)):
 		"""
@@ -1140,7 +1139,7 @@ class Node(Base):
 		def iterate(cursor):
 			for cursor in self._walk(filter, cursor):
 				yield cursor.path[:]
-		return ll.Iterator(iterate(cursor))
+		return misc.Iterator(iterate(cursor))
 
 	def walkindex(self, filter=(True, entercontent)):
 		"""
@@ -1154,7 +1153,7 @@ class Node(Base):
 		def iterate(cursor):
 			for cursor in self._walk(filter, cursor):
 				yield cursor.index[:]
-		return ll.Iterator(iterate(cursor))
+		return misc.Iterator(iterate(cursor))
 
 	def __div__(self, other):
 		return xfind.Expr(self, other)
@@ -1264,7 +1263,7 @@ class CharacterData(Node):
 	def __setstate__(self, content):
 		self._content = content
 
-	class content(ll.propclass):
+	class content(misc.propclass):
 		"""
 		The text content of the node as a <class>unicode</class> object.
 		"""
@@ -1527,7 +1526,7 @@ class Frag(Node, list):
 				for child in self:
 					if isinstance(child, index):
 						yield child
-			return ll.Iterator(iterate(self, index))
+			return misc.Iterator(iterate(self, index))
 		elif isinstance(index, slice):
 			return self.__class__(list.__getitem__(self, index))
 		else:
@@ -3695,7 +3694,7 @@ defaultPrefixes = Prefixes()
 ### Namespaces
 ###
 
-class _Namespace_Meta(Base.__metaclass__, ll.Namespace.__metaclass__):
+class _Namespace_Meta(Base.__metaclass__, misc.Namespace.__metaclass__):
 	def __new__(cls, name, bases, dict):
 		dict["xmlname"] = dict.get("xmlname", name).split(".")[-1]
 		if "xmlurl" in dict:
@@ -3809,7 +3808,7 @@ class _Namespace_Meta(Base.__metaclass__, ll.Namespace.__metaclass__):
 		return super(_Namespace_Meta, self).__setattr__(key, value)
 
 
-class Namespace(Base, ll.Namespace):
+class Namespace(Base, misc.Namespace):
 	"""
 	<par>An &xml; namespace.</par>
 	

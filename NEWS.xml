@@ -1,4 +1,18 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
+<section><title>Changes in 2.12 (released 10/13/2005)</title>
+<ulist>
+<item>Namespaces for <link href="http://www.relaxng.org/">Relax NG</link> and
+<link href="http://kid.lesscode.org/">Kid</link> have been added.</item>
+
+<item>&xist; requires version 1.0 of the core package now.</item>
+
+<item>The class name for the DocBook &dtd; class has been fixed.</item>
+
+</ulist>
+
+</section>
+
+
 <section><title>Changes in 2.11 (released 07/29/2005)</title>
 <ulist>
 <item>A script <filename>xml2xsc.py</filename> has been added, that

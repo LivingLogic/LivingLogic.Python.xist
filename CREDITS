@@ -6,8 +6,7 @@ Guido van Rossum (guido@digicool.com)
 	programming is fun again.
 
 Fredrik Lundh (fredrik@effbot.org)
-	parsing is a dirty job, but somebody's gotta
-	do it. ;)
+	parsing is a dirty job, but somebody's gotta do it. ;)
 
 Thomas Aglassinger (agi@giga.or.at)
 	for hsc, which started it all.
@@ -28,7 +27,7 @@ Matthias Bauer (mba@livinglogic.de)
 	for his work on the JSP and Struts stuff.
 
 Alexander Lamm (alex@livinglogic.de)
-	for xist.ns.struts_config11.
+	for ll.xist.ns.struts_config11.
 
 Marc-André Lemburg (mal@lemburg.com)
 	for mxTidy.
@@ -37,3 +36,5 @@ The Apache Software Foundation
 	for the CSS parser from the Batik application
 	which is the base for csstokenizer.
 
+Doris Aschenbrenner
+	for ll.xist.ns.rng

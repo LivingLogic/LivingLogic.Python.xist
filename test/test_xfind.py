@@ -11,7 +11,7 @@
 
 import py.test
 
-import ll
+from ll import misc
 from ll.xist import xsc, xfind, parsers
 from ll.xist.ns import html
 
@@ -213,5 +213,5 @@ def test_item():
 	assert str(e[xsc.Text][-10]) == "0"
 	py.test.raises(IndexError, e[xsc.Text].__getitem__, 10)
 	py.test.raises(IndexError, e[xsc.Text].__getitem__, -11)
-	assert str(ll.item(e[xsc.Text], 10, "x")) == "x"
-	assert str(ll.item(e[xsc.Text], -11, "x")) == "x"
+	assert str(misc.item(e[xsc.Text], 10, "x")) == "x"
+	assert str(misc.item(e[xsc.Text], -11, "x")) == "x"

@@ -16,7 +16,7 @@ This modules contains the base class for the converter objects used in the call 
 __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 # $Source$
 
-import ll
+from ll import misc
 import xsc
 
 
@@ -52,7 +52,7 @@ class Converter(object):
 		self.states = [ ConverterState(node=node, root=root, mode=mode, stage=stage, target=target, lang=lang, makeaction=makeaction, maketarget=maketarget)]
 		self.contexts = {}
 
-	class node(ll.propclass):
+	class node(misc.propclass):
 		"""
 		<par>The root node for which conversion has been called. This is automatically set by the
 		<pyref module="ll.xist.xsc" class="Node" method="conv"><method>conv</method></pyref> method.</par>
@@ -66,7 +66,7 @@ class Converter(object):
 		def __delete__(self):
 			self.states[-1].node = None
 
-	class root(ll.propclass):
+	class root(misc.propclass):
 		"""
 		<par>The root &url; for the conversion. Resolving &url;s during the conversion process should be done
 		relative to <lit>root</lit>.</par>
@@ -80,7 +80,7 @@ class Converter(object):
 		def __delete__(self):
 			self.states[-1].root = None
 
-	class mode(ll.propclass):
+	class mode(misc.propclass):
 		"""
 		<par>The conversion mode. This corresponds directly to the mode in &xslt;.
 		The default is <lit>None</lit>.</par>
@@ -94,7 +94,7 @@ class Converter(object):
 		def __delete__(self):
 			self.states[-1].mode = None
 
-	class stage(ll.propclass):
+	class stage(misc.propclass):
 		"""
 		<par>If your conversion is done in multiple steps or stages you can use this property
 		to specify in which stage the conversion process currently is. The default is
@@ -112,7 +112,7 @@ class Converter(object):
 		def __delete__(self):
 			self.states[-1].stage = None
 
-	class target(ll.propclass):
+	class target(misc.propclass):
 		"""
 		<par>Specifies the conversion target. This must be a
 		<pyref module="ll.xist.xsc" class="Namespace"><class>Namespace</class></pyref> subclass.</par>
@@ -130,7 +130,7 @@ class Converter(object):
 		def __delete__(self):
 			self.states[-1].target = None
 
-	class lang(ll.propclass):
+	class lang(misc.propclass):
 		"""
 		<par>The target language. The default is <lit>None</lit>.</par>
 		"""
@@ -143,7 +143,7 @@ class Converter(object):
 		def __delete__(self):
 			self.states[-1].lang = None
 
-	class makeaction(ll.propclass):
+	class makeaction(misc.propclass):
 		"""
 		<par>If an &xist; conversion is done by an <pyref module="ll.make" class="XISTConvertAction"><class>XISTConvertAction</class></pyref>
 		this property will hold the action object during that conversion. If you're not using the
@@ -158,7 +158,7 @@ class Converter(object):
 		def __delete__(self):
 			self.states[-1].makeaction = None
 
-	class maketarget(ll.propclass):
+	class maketarget(misc.propclass):
 		"""
 		<par>If an &xist; conversion is done by an <pyref module="ll.make" class="XISTConvertAction"><class>XISTConvertAction</class></pyref>
 		this property will hold the <pyref module="ll.make" class="Target"><class>Target</class></pyref> object during that conversion.
@@ -174,7 +174,7 @@ class Converter(object):
 		def __delete__(self):
 			self.states[-1].maketarget = None
 
-	class makeproject(ll.propclass):
+	class makeproject(misc.propclass):
 		"""
 		<par>If an &xist; conversion is done by an <pyref module="ll.make" class="XISTConvertAction"><class>XISTConvertAction</class></pyref>
 		this property will hold the <pyref module="ll.make" class="Project"><class>Project</class></pyref> object during that conversion.

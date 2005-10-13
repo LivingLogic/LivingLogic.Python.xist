@@ -18,8 +18,7 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 
 import sys, codecs
 
-import ll
-from ll import url
+from ll import misc, url
 
 import xsc, options, helpers
 
@@ -170,7 +169,7 @@ class Publisher(object):
 				prefixes2def.add(cursor.node.__ns__)
 
 		# Determine if we have multiple roots
-		if prefixes2def and isinstance(node, xsc.Frag) and ll.count(node[xsc.Element]) > 1:
+		if prefixes2def and isinstance(node, xsc.Frag) and misc.count(node[xsc.Element]) > 1:
 			raise xsc.MultipleRootsError()
 
 		if prefixes2def:
