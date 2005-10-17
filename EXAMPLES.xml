@@ -165,7 +165,7 @@ makes it possible to output an &xist; tree as usable Python source code:</par>
 <tty>
 <prompt>&gt;&gt;&gt;</prompt> <input>from ll.xist import parsers, presenters</input>
 <prompt>&gt;&gt;&gt;</prompt> <input>e = parsers.parseURL("http://www.python.org/", tidy=True)</input>
-<prompt>&gt;&gt;&gt;</prompt> <input>print e.repr(presenters.CodePresenter())</input>
+<prompt>&gt;&gt;&gt;</prompt> <input>print e.asrepr(presenters.CodePresenter())</input>
 ll.xist.xsc.Frag(
 	ll.xist.ns.html.html(
 		xsc.Comment(' THIS PAGE IS AUTOMATICALLY GENERATED.  DO NOT EDIT. '),
