@@ -1,4 +1,19 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
+<section><title>Changes in 2.13 (released 10/31/2005)</title>
+<ulist>
+<item><method>ll.xist.xsc.Namespace.tokenize</method> requires a
+<class>unicode</class> object as input now. This makes it possible
+to use encodings that are not ASCII compatible (such as UTF-16).
+The <arg>encoding</arg> argument is gone.</item>
+
+<item><method>ll.xist.xsc.Node.asString</method> uses the <arg>encoding</arg>
+argument to determine which characters have to be output as character references
+now. (You'll still get a unicode object as the result.)</item>
+</ulist>
+
+</section>
+
+
 <section><title>Changes in 2.12 (released 10/13/2005)</title>
 <ulist>
 <item>Namespaces for <link href="http://www.relaxng.org/">Relax NG</link> and

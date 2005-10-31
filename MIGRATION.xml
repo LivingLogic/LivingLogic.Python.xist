@@ -1,4 +1,17 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
+<section><title>Migrating to version 2.13</title>
+
+<section><title>Changes to <module>ll.xist.xsc</module></title>
+
+<par><method>xsc.Namespace.tokenize</method> no longer has an <arg>encoding</arg>
+argument, but operates on a unicode string directly. You can either use the
+result of a <method>asString</method> call or decode the result of an
+<method>asBytes</method> call yourself.</par>
+</section>
+
+</section>
+
+
 <section><title>Migrating to version 2.11</title>
 
 <section><title>Changes to <module>ll.xist.xsc</module></title>
