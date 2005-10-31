@@ -177,6 +177,15 @@ class AttrDecorator(xsc.Element):
 		return node
 
 
+class literal(xsc.ProcInst):
+	"""
+	<class>literal</class> is a processing instruction that will output
+	its content literally when published.
+	"""
+	def publish(self, publisher):
+		yield publisher.encode(self.content)
+
+
 # Control characters (not part of HTML)
 class lf(xsc.CharRef): "line feed"; codepoint = 10
 class cr(xsc.CharRef): "carriage return"; codepoint = 13
@@ -188,4 +197,3 @@ class __ns__(xsc.Namespace):
 	xmlname = "specials"
 	xmlurl = "http://xmlns.livinglogic.de/xist/ns/specials"
 __ns__.makemod(vars())
-

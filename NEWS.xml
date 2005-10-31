@@ -9,6 +9,9 @@ The <arg>encoding</arg> argument is gone.</item>
 <item><method>ll.xist.xsc.Node.asString</method> uses the <arg>encoding</arg>
 argument to determine which characters have to be output as character references
 now. (You'll still get a unicode object as the result.)</item>
+
+<item>A new processing instruction class <class>ll.xist.ns.specials.literal</class>
+has been added, that will output it's content literally when published.</item>
 </ulist>
 
 </section>
