@@ -11,7 +11,9 @@ argument to determine which characters have to be output as character references
 now. (You'll still get a unicode object as the result.)</item>
 
 <item>A new processing instruction class <class>ll.xist.ns.specials.literal</class>
-has been added, that will output it's content literally when published.</item>
+has been added, that will output it's content literally when published. This
+can be used for embedding preformatted &xml; (e.g. from a database) into an
+XIST tree.</item>
 </ulist>
 
 </section>
