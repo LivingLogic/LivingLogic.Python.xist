@@ -234,6 +234,9 @@ class Cursor(object):
 		self.path = [node]
 		self.index = []
 
+	def iattrs(self):
+		return ("index", "node")
+
 	def clone(self):
 		clone = Cursor(self.root)
 		clone.node = self.node
