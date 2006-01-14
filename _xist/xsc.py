@@ -829,7 +829,8 @@ class Node(Base):
 		element classes you have to overwrite this method and implement the desired
 		conversion.</par>
 
-		<par>This method must return an instance of <class>Node</class>.</par>
+		<par>This method must return an instance of <class>Node</class>.
+		It may <em>not</em> change <self/>.</par>
 		"""
 		pass
 
