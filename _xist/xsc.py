@@ -788,6 +788,44 @@ class NodeOutsideContextError(Error):
 
 
 ###
+### Helper functions for ipipe
+###
+
+
+def _ipipe_ns(node):
+	"The namespace name"
+	ns = getattr(node, "__ns__", None)
+	if ns is not None:
+		ns = ns.xmlurl
+	return ns
+_ipipe_ns.__name__ = "ns"
+
+
+def _ipipe_type(node):
+	"The type of the node"
+	return node.__fullname__()
+_ipipe_type.__name__ = "type"
+
+
+def _ipipe_childrencount(node):
+	"The number of child nodes"
+	return len(node.content)
+_ipipe_childrencount.__name__ = "# children"
+
+
+def _ipipe_attrscount(node):
+	"The number of attribute nodes"
+	return len(node.attrs)
+_ipipe_attrscount.__name__ = "# attrs"
+
+
+def _ipipe_content(node):
+	"The text content"
+	return unicode(node)
+_ipipe_content.__name__ = "content"
+
+
+###
 ### The DOM classes
 ###
 
@@ -1379,6 +1417,9 @@ class Node(Base):
 		warnings.warn(DeprecationWarning("withSep() is deprecated, use withsep() instead"))
 		return self.withsep(separator, clone)
 
+	def __iattrs__(self, mode):
+		return (_ipipe_ns, _ipipe_type)
+
 	def __irepr__(self, mode):
 		if mode == "header":
 			return self.__fullname__()
@@ -1532,6 +1573,9 @@ class CharacterData(Node):
 
 	def upper(self):
 		return self.__class__(self._content.upper())
+
+	def __iattrs__(self, mode):
+		return (_ipipe_ns, _ipipe_type, _ipipe_content)
 
 
 class Text(CharacterData):
@@ -1884,6 +1928,9 @@ class Frag(Node, list):
 			node.append(child.pretty(level, indent))
 		return node
 
+	def __iattrs__(self, mode):
+		return (_ipipe_ns, _ipipe_type, _ipipe_childrencount)
+
 
 class Comment(CharacterData):
 	"""
@@ -1973,6 +2020,9 @@ class ProcInst(CharacterData):
 
 	def __unicode__(self):
 		return u""
+
+	def __iattrs__(self, mode):
+		return (_ipipe_ns, _ipipe_type, _ipipe_content)
 
 
 class Null(CharacterData):
@@ -3414,6 +3464,9 @@ class Element(Node):
 			node = Frag(indent*level, node)
 		return node
 
+	def __iattrs__(self, mode):
+		return (_ipipe_ns, _ipipe_type, _ipipe_childrencount, _ipipe_attrscount)
+
 	def __irepr__(self, mode):
 		if mode == "header":
 			return "<%s:%s>" % (self.__class__.__module__, self.__class__.__name__)
@@ -3460,6 +3513,9 @@ class Entity(Node):
 		yield publisher.encode(u"&")
 		yield publisher.encode(self.xmlname)
 		yield publisher.encode(u";")
+
+	def __iattrs__(self, mode):
+		return (_ipipe_ns, _ipipe_type, _ipipe_childrencount, _ipipe_attrscount)
 
 
 class _CharRef_Meta(Entity.__metaclass__): # don't subclass Text.__metaclass__, as this is redundant
