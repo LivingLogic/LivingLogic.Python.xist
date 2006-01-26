@@ -34,7 +34,7 @@ def getenvint(name, default):
 
 
 repransi = getenvint("LL_XIST_REPRANSI", 0)  # should ANSI escape sequences be used for dumping the DOM tree and which ones? (0=off, 1=dark background, 2=light background)
-reprtab = getenvstr("LL_XIST_REPR_TAB", "  ") # how to represent an indentation in the DOM tree?
+reprtab = getenvstr("LL_XIST_REPR_TAB", u"  ") # how to represent an indentation in the DOM tree?
 reprencoding = sys.getdefaultencoding()
 
 server = "localhost" # Host for server relative URLs
