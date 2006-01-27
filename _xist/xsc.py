@@ -821,7 +821,7 @@ _ipipe_attrscount.__name__ = "# attrs"
 
 def _ipipe_content(node):
 	"The text content"
-	return unicode(node)
+	return unicode(node.content)
 _ipipe_content.__name__ = "content"
 
 
