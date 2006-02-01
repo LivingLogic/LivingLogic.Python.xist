@@ -3472,7 +3472,7 @@ class Element(Node):
 			return "<%s:%s>" % (self.__class__.__module__, self.__class__.__name__)
 		return repr(self)
 
-	def __ienter__(self):
+	def __ienter__(self, mode):
 		if self.content:
 			return self
 		else:
