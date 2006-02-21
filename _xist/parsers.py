@@ -586,8 +586,14 @@ class Parser(object):
 		parser.setEntityResolver(self)
 
 		# Configure the parser
-		parser.setFeature(handler.feature_namespaces, False) # We do our own namespace processing
-		parser.setFeature(handler.feature_external_ges, False) # Don't process external entities, but pass them to skippedEntity
+		try:
+			parser.setFeature(handler.feature_namespaces, False) # We do our own namespace processing
+		except sax.SAXNotSupportedException:
+			pass
+		try:
+			parser.setFeature(handler.feature_external_ges, False) # Don't process external entities, but pass them to skippedEntity
+		except sax.SAXNotSupportedException:
+			pass
 
 		self.skippingwhitespace = False
 
