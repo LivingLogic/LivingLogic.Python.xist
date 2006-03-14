@@ -1,4 +1,12 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
+<section><title>Changes in ?.? (released ?/?/2006)</title>
+<ulist>
+<item>On publishing <class>ll.xist.ns.html.html</class> now only adds a
+<lit>lang</lit> and <lit>xml:lang</lit> attribute, if neither of them exists.</item>
+</ulist>
+</section>
+
+
 <section><title>Changes in 2.13 (released 10/31/2005)</title>
 <ulist>
 <item><method>ll.xist.xsc.Namespace.tokenize</method> requires a

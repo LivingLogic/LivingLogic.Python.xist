@@ -150,13 +150,13 @@ class DocTypeXHTML11(xsc.DocType):
 # The global structure of an HTML document
 class html(xsc.Element):
 	"""
-	Document Structure
+	document structure
 	"""
 	class Attrs(i18nattrs):
 		class id(xsc.IDAttr): pass
 
 	def convert(self, converter):
-		if converter.lang is not None and (unicode(self["lang"].convert(converter)) != converter.lang or unicode(self[(xml, "lang")].convert(converter)) != converter.lang):
+		if converter.lang is not None and "lang" not in self.attrs and (xml, "lang") not in self.attrs:
 			node = html(self.content, self.attrs, {"lang": converter.lang, (xml, "lang"): converter.lang})
 			return node.convert(converter)
 		else:
@@ -165,7 +165,7 @@ class html(xsc.Element):
 
 class head(xsc.Element):
 	"""
-	Document Head
+	document head
 	"""
 	class Attrs(i18nattrs):
 		class id(xsc.IDAttr): pass
@@ -219,7 +219,7 @@ class meta(xsc.Element):
 		class scheme(xsc.TextAttr): pass
 
 	def publish(self, publisher):
-		if u"http_equiv" in self.attrs:
+		if u"http_equiv" in self.attrs and not self.attrs.http_equiv.isfancy():
 			ctype = unicode(self[u"http_equiv"]).lower()
 			if ctype == u"content-type" and u"content" in self.attrs:
 				(contenttype, options) = cgi.parse_header(unicode(self[u"content"]))
