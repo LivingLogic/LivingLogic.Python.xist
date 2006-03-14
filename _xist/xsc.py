@@ -1417,12 +1417,6 @@ class Node(Base):
 		warnings.warn(DeprecationWarning("withSep() is deprecated, use withsep() instead"))
 		return self.withsep(separator, clone)
 
-	def __enter__(self):
-		pass
-
-	def __leave__(self):
-		pass
-
 	def __iattrs__(self, mode):
 		return (_ipipe_ns, _ipipe_type)
 
