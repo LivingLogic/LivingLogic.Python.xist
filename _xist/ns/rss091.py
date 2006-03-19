@@ -2,6 +2,11 @@
 # -*- coding: iso-8859-1 -*-
 
 
+"""
+This is a namespace module implementing RSS 0.91.
+"""
+
+
 __version__ = "$Revision$"[11:-2]
 # $Source$
 
@@ -136,7 +141,7 @@ class rss(xsc.Element):
 		class version(xsc.TextAttr):
 			required = True
 			default = "0.91"
-			values = ("0.91,")
+			values = ("0.91",)
 
 
 class skipDays(xsc.Element):
