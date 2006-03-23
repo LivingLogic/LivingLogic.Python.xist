@@ -798,6 +798,30 @@ class NodeOutsideContextError(Error):
 ###
 
 
+def _ipipe_type(node):
+	"The type of the node"
+	if node is Null:
+		return "null"
+	elif isinstance(node, Element):
+		return "element"
+	elif isinstance(node, ProcInst):
+		return "procinst"
+	elif isinstance(node, CharRef):
+		return "charref"
+	elif isinstance(node, Entity):
+		return "entity"
+	elif isinstance(node, Text):
+		return "text"
+	elif isinstance(node, Comment):
+		return "comment"
+	elif isinstance(node, DocType):
+		return "doctype"
+	elif isinstance(node, Frag):
+		return "frag"
+	raise AttributeError
+_ipipe_type.__name__ = "type"
+
+
 def _ipipe_ns(node):
 	"The namespace name"
 	ns = getattr(node, "__ns__", None)
@@ -807,27 +831,35 @@ def _ipipe_ns(node):
 _ipipe_ns.__name__ = "ns"
 
 
-def _ipipe_type(node):
-	"The type of the node"
+def _ipipe_name(node):
+	"The element/procinst/entity name of the node"
 	return node.__fullname__()
-_ipipe_type.__name__ = "type"
+_ipipe_name.__name__ = "name"
 
 
 def _ipipe_childrencount(node):
 	"The number of child nodes"
-	return len(node.content)
+	if isinstance(node, Element):
+		return len(node.content)
+	elif isinstance(node, Frag):
+		return len(node)
+	raise AttributeError
 _ipipe_childrencount.__name__ = "# children"
 
 
 def _ipipe_attrscount(node):
 	"The number of attribute nodes"
-	return len(node.attrs)
+	if isinstance(node, Element):
+		return len(node.attrs)
+	raise AttributeError
 _ipipe_attrscount.__name__ = "# attrs"
 
 
 def _ipipe_content(node):
 	"The text content"
-	return unicode(node.content)
+	if isinstance(node, CharacterData):
+		return unicode(node.content)
+	raise AttributeError
 _ipipe_content.__name__ = "content"
 
 
@@ -1424,7 +1456,7 @@ class Node(Base):
 		return self.withsep(separator, clone)
 
 	def __xattrs__(self, mode):
-		return (_ipipe_ns, _ipipe_type)
+		return (_ipipe_type, _ipipe_ns, _ipipe_name, _ipipe_content, _ipipe_childrencount, _ipipe_attrscount)
 
 	def __xrepr__(self, mode):
 		yield (-1, True)
@@ -1581,9 +1613,6 @@ class CharacterData(Node):
 
 	def upper(self):
 		return self.__class__(self._content.upper())
-
-	def __xattrs__(self, mode):
-		return (_ipipe_ns, _ipipe_type, _ipipe_content)
 
 
 class Text(CharacterData):
@@ -1936,9 +1965,6 @@ class Frag(Node, list):
 			node.append(child.pretty(level, indent))
 		return node
 
-	def __xattrs__(self, mode):
-		return (_ipipe_ns, _ipipe_type, _ipipe_childrencount)
-
 
 class Comment(CharacterData):
 	"""
@@ -2028,9 +2054,6 @@ class ProcInst(CharacterData):
 
 	def __unicode__(self):
 		return u""
-
-	def __xattrs__(self, mode):
-		return (_ipipe_ns, _ipipe_type, _ipipe_content)
 
 
 class Null(CharacterData):
@@ -3472,9 +3495,6 @@ class Element(Node):
 			node = Frag(indent*level, node)
 		return node
 
-	def __xattrs__(self, mode):
-		return (_ipipe_ns, _ipipe_type, _ipipe_childrencount, _ipipe_attrscount)
-
 	def __xrepr__(self, mode):
 		yield (-1, True)
 		if mode == "header":
@@ -3528,9 +3548,6 @@ class Entity(Node):
 		yield publisher.encode(u"&")
 		yield publisher.encode(self.xmlname)
 		yield publisher.encode(u";")
-
-	def __xattrs__(self, mode):
-		return (_ipipe_ns, _ipipe_type, _ipipe_childrencount, _ipipe_attrscount)
 
 
 class _CharRef_Meta(Entity.__metaclass__): # don't subclass Text.__metaclass__, as this is redundant
