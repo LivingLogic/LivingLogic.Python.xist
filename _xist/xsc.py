@@ -26,6 +26,12 @@ try:
 	import iexec
 except ImportError:
 	iexec = None
+	
+# IPython/ipipe support
+try:
+	from IPython.Extensions import ipipe
+except ImportError:
+	ipipe = None
 
 
 ###
@@ -234,7 +240,7 @@ class Cursor(object):
 		self.path = [node]
 		self.index = []
 
-	def __iattrs__(self):
+	def __xattrs__(self, mode):
 		return ("index", "node")
 
 	def clone(self):
@@ -1417,13 +1423,15 @@ class Node(Base):
 		warnings.warn(DeprecationWarning("withSep() is deprecated, use withsep() instead"))
 		return self.withsep(separator, clone)
 
-	def __iattrs__(self, mode):
+	def __xattrs__(self, mode):
 		return (_ipipe_ns, _ipipe_type)
 
-	def __irepr__(self, mode):
+	def __xrepr__(self, mode):
+		yield (-1, True)
 		if mode == "header":
-			return self.__fullname__()
-		return repr(self)
+			yield (ipipe.style_default, self.__fullname__())
+		else:
+			yield (ipipe.style_default, repr(self))
 
 
 class CharacterData(Node):
@@ -1574,7 +1582,7 @@ class CharacterData(Node):
 	def upper(self):
 		return self.__class__(self._content.upper())
 
-	def __iattrs__(self, mode):
+	def __xattrs__(self, mode):
 		return (_ipipe_ns, _ipipe_type, _ipipe_content)
 
 
@@ -1928,7 +1936,7 @@ class Frag(Node, list):
 			node.append(child.pretty(level, indent))
 		return node
 
-	def __iattrs__(self, mode):
+	def __xattrs__(self, mode):
 		return (_ipipe_ns, _ipipe_type, _ipipe_childrencount)
 
 
@@ -2021,7 +2029,7 @@ class ProcInst(CharacterData):
 	def __unicode__(self):
 		return u""
 
-	def __iattrs__(self, mode):
+	def __xattrs__(self, mode):
 		return (_ipipe_ns, _ipipe_type, _ipipe_content)
 
 
@@ -3464,19 +3472,26 @@ class Element(Node):
 			node = Frag(indent*level, node)
 		return node
 
-	def __iattrs__(self, mode):
+	def __xattrs__(self, mode):
 		return (_ipipe_ns, _ipipe_type, _ipipe_childrencount, _ipipe_attrscount)
 
-	def __irepr__(self, mode):
+	def __xrepr__(self, mode):
+		yield (-1, True)
 		if mode == "header":
-			return "<%s:%s>" % (self.__class__.__module__, self.__class__.__name__)
-		return repr(self)
-
-	def __ienter__(self, mode):
-		if self.content:
-			return self
+			yield (ipipe.style_default, "<%s:%s>" % (self.__class__.__module__, self.__class__.__name__))
 		else:
-			return None
+			yield (ipipe.style_default, repr(self))
+
+	def __xiter__(self, mode):
+		if mode is None:
+			yield ipipe.XMode(self, "content", "content", "the element content (%d children)" % len(self.content))
+			yield ipipe.XMode(self, "attrs", "attributes", "the element content (%d attributes)" % len(self.attrs))
+		elif mode == "attrs":
+			for attr in self.attrs:
+				yield attr
+		else:
+			for child in self.content:
+				yield child
 
 
 class _Entity_Meta(Node.__metaclass__):
@@ -3514,7 +3529,7 @@ class Entity(Node):
 		yield publisher.encode(self.xmlname)
 		yield publisher.encode(u";")
 
-	def __iattrs__(self, mode):
+	def __xattrs__(self, mode):
 		return (_ipipe_ns, _ipipe_type, _ipipe_childrencount, _ipipe_attrscount)
 
 
