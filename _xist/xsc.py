@@ -816,6 +816,8 @@ def _ipipe_type(node):
 		return "comment"
 	elif isinstance(node, DocType):
 		return "doctype"
+	elif isinstance(node, Attr):
+		return "attr"
 	elif isinstance(node, Frag):
 		return "frag"
 	raise AttributeError
@@ -829,8 +831,8 @@ _ipipe_ns.__name__ = "ns"
 
 
 def _ipipe_name(node):
-	"The element/procinst/entity name of the node"
-	if isinstance(node, (Element, ProcInst, Entity)):
+	"The element/procinst/entity/attribute name of the node"
+	if isinstance(node, (Element, ProcInst, Entity, Attr)):
 		return node.__fullname__()
 	raise AttributeError
 _ipipe_name.__name__ = "name"
@@ -858,6 +860,8 @@ def _ipipe_content(node):
 	"The text content"
 	if isinstance(node, CharacterData):
 		return unicode(node.content)
+	elif isinstance(node, Attr):
+		return unicode(node)
 	raise AttributeError
 _ipipe_content.__name__ = "content"
 
@@ -1455,7 +1459,7 @@ class Node(Base):
 		return self.withsep(separator, clone)
 
 	def __xattrs__(self, mode):
-		return (_ipipe_type, _ipipe_ns, _ipipe_name, _ipipe_content, _ipipe_childrencount, _ipipe_attrscount)
+		return ("startloc", _ipipe_type, _ipipe_ns, _ipipe_name, _ipipe_content, _ipipe_childrencount, _ipipe_attrscount)
 
 	def __xrepr__(self, mode):
 		yield (-1, True)
@@ -2873,6 +2877,9 @@ class Attrs(Node, dict):
 		else:
 			return self.filtered(lambda n: n.__class__.__name__ not in names)
 
+	def __xiter__(self, mode):
+		return self.itervalues()
+
 _Attrs = Attrs
 
 
@@ -3506,7 +3513,7 @@ class Element(Node):
 			yield ipipe.XMode(self, "content", "content", "the element content (%d children)" % len(self.content))
 			yield ipipe.XMode(self, "attrs", "attributes", "the element content (%d attributes)" % len(self.attrs))
 		elif mode == "attrs":
-			for attr in self.attrs:
+			for attr in self.attrs.itervalues():
 				yield attr
 		else:
 			for child in self.content:
@@ -4037,17 +4044,25 @@ class _Namespace_Meta(Base.__metaclass__, misc.Namespace.__metaclass__):
 
 	def __xiter__(self, mode):
 		if mode is None:
-			yield ipipe.XMode(self, "elements", "elements", "elements in this namespace (%d)" % misc.count(self.iterelementkeys()))
-			yield ipipe.XMode(self, "procinsts", "procinsts", "processing instructions in this namespace (%d)" % misc.count(self.iterprocinstkeys()))
-			yield ipipe.XMode(self, "entities", "entities", "entities in this namespace (including charrefs) (%d)" % misc.count(self.iterentitykeys()))
-			yield ipipe.XMode(self, "charrefs", "charrefs", "character reference entities in this namespace (%d)" % misc.count(self.itercharrefkeys()))
-		elif mode == "procinsts":
+			celements = misc.count(self.iterelementkeys())
+			cprocinsts = misc.count(self.iterprocinstkeys())
+			centities = misc.count(self.iterentitykeys())
+			ccharrefs = misc.count(self.itercharrefkeys())
+			yield ipipe.XMode(self, "elements", "elements", "elements in this namespace (%d)" % celements)
+			yield ipipe.XMode(self, "procinsts", "procinsts", "processing instructions in this namespace (%d)" % cprocinsts)
+			yield ipipe.XMode(self, "entities", "entities", "entities in this namespace (including charrefs) (%d)" % centities)
+			yield ipipe.XMode(self, "charrefs", "charrefs", "character reference entities in this namespace (%d)" % ccharrefs)
+			yield ipipe.XMode(self, "all", "all", "all objects in this namespace (%d)" % (celements+cprocinsts+centities+ccharrefs))
+		elif mode == "elements" or mode == "all":
+			for element in self.iterelementvalues():
+				yield element
+		elif mode == "procinsts" or mode == "all":
 			for procinst in self.iterprocinstvalues():
 				yield procinst
-		elif mode == "entities":
+		elif mode == "entities" or mode == "all":
 			for entity in self.iterentityvalues():
 				yield entity
-		elif mode == "charrefs":
+		elif mode == "charrefs" or mode == "all":
 			for charref in self.itercharrefvalues():
 				yield charref
 		else:
@@ -4570,3 +4585,16 @@ class Location(object):
 
 	def __ne__(self, other):
 		return not self==other
+
+	def __xattrs__(self, mode):
+		return ("sysid", "pubid", "line", "col")
+
+	def __xrepr__(self, mode):
+		yield (-1, True)
+		yield (ipipe.style_url, self.sysid)
+		yield (ipipe.style_default, ":")
+		for part in ipipe.xrepr(self.line, mode):
+			yield part
+		yield (ipipe.style_default, ":")
+		for part in ipipe.xrepr(self.col, mode):
+			yield part
