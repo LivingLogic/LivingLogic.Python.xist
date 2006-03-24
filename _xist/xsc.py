@@ -823,11 +823,8 @@ _ipipe_type.__name__ = "type"
 
 
 def _ipipe_ns(node):
-	"The namespace name"
-	ns = getattr(node, "__ns__", None)
-	if ns is not None:
-		ns = ns.xmlurl
-	return ns
+	"The namespace"
+	return getattr(node, "__ns__", None)
 _ipipe_ns.__name__ = "ns"
 
 
@@ -4027,6 +4024,14 @@ class _Namespace_Meta(Base.__metaclass__, misc.Namespace.__metaclass__):
 			self._cache = None
 			value.__ns__ = self
 		return super(_Namespace_Meta, self).__setattr__(key, value)
+
+	def __xrepr__(self, mode):
+		if mode == "cell":
+			yield (-1, True)
+			yield (ipipe.style_url, self.xmlurl)
+		else:
+			yield (-1, True)
+			yield (ipipe.style_default, repr(self))
 
 	def __xiter__(self, mode):
 		if mode is None:
