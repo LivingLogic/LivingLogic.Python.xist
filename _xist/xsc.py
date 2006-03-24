@@ -4028,6 +4028,25 @@ class _Namespace_Meta(Base.__metaclass__, misc.Namespace.__metaclass__):
 			value.__ns__ = self
 		return super(_Namespace_Meta, self).__setattr__(key, value)
 
+	def __xiter__(self, mode):
+		if mode is None:
+			yield ipipe.XMode(self, "elements", "elements", "elements in this namespace")
+			yield ipipe.XMode(self, "procinsts", "procinsts", "processing instructions in this namespace")
+			yield ipipe.XMode(self, "entities", "entities", "entities in this namespace (including charrefs)")
+			yield ipipe.XMode(self, "charrefs", "charrefs", "character reference entities in this namespace")
+		elif mode == "procinsts":
+			for procinst in self.iterprocinstvalues():
+				yield procinst
+		elif mode == "entities":
+			for entity in self.iterentityvalues():
+				yield entity
+		elif mode == "charrefs":
+			for charref in self.itercharrefvalues():
+				yield charref
+		else:
+			for element in self.iterelementvalues():
+				yield element
+
 
 class Namespace(Base, misc.Namespace):
 	"""
