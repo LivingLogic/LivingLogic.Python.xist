@@ -4035,10 +4035,10 @@ class _Namespace_Meta(Base.__metaclass__, misc.Namespace.__metaclass__):
 
 	def __xiter__(self, mode):
 		if mode is None:
-			yield ipipe.XMode(self, "elements", "elements", "elements in this namespace")
-			yield ipipe.XMode(self, "procinsts", "procinsts", "processing instructions in this namespace")
-			yield ipipe.XMode(self, "entities", "entities", "entities in this namespace (including charrefs)")
-			yield ipipe.XMode(self, "charrefs", "charrefs", "character reference entities in this namespace")
+			yield ipipe.XMode(self, "elements", "elements", "elements in this namespace (%d)" % misc.count(self.iterelementkeys()))
+			yield ipipe.XMode(self, "procinsts", "procinsts", "processing instructions in this namespace (%d)" % misc.count(self.iterprocinstkeys()))
+			yield ipipe.XMode(self, "entities", "entities", "entities in this namespace (including charrefs) (%d)" % misc.count(self.iterentitykeys()))
+			yield ipipe.XMode(self, "charrefs", "charrefs", "character reference entities in this namespace (%d)" % misc.count(self.itercharrefkeys()))
 		elif mode == "procinsts":
 			for procinst in self.iterprocinstvalues():
 				yield procinst
