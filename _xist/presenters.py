@@ -236,7 +236,9 @@ def strTextInAttr(text):
 if ipipe is not None:
 	presenterbase = ipipe.Table
 else:
-	presenterbase = object
+	class presenterbase(object):
+		def __iter__(self):
+			return self.__xiter__("default")
 
 
 class Presenter(presenterbase):
