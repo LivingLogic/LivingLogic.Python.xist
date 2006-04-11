@@ -788,14 +788,6 @@ class Node(Base):
 	class Context(_Context):
 		pass
 
-	def __repr__(self):
-		"""
-		<par>Use the default presenter (defined in
-		<pyref module="ll.xist.presenters"><module>ll.xist.presenters</module></pyref>)
-		to return a string representation.</par>
-		"""
-		return self.asrepr(presenters.defaultpresenter())
-
 	def __ne__(self, other):
 		return not self==other
 
@@ -854,7 +846,7 @@ class Node(Base):
 		"""
 		if presenter is None:
 			presenter = presenters.defaultpresenter(**presenterargs)
-		return presenter.present(self)
+		return presenter(self)
 
 	def asrepr(self, presenter=None, **presenterargs):
 		"""
@@ -863,9 +855,7 @@ class Node(Base):
 		<arg>presenter</arg> should be an instance of
 		<pyref module="ll.xist.presenters" class="Presenter"><class>ll.xist.presenters.Presenter</class></pyref>.</par>
 		"""
-		if presenter is None:
-			presenter = presenters.defaultpresenter(**presenterargs)
-		return astyle.astr().join(presenter.present(self))
+		return str(self.repr(presenter, **presenterargs))
 
 	@misc.notimplemented
 	def present(self, presenter):
@@ -1319,10 +1309,7 @@ class Node(Base):
 
 	def __xrepr__(self, mode):
 		yield (-1, True)
-		if mode == "header":
-			yield (ipipe.style_default, self.__fullname__())
-		else:
-			yield (ipipe.style_default, repr(self))
+		yield (ipipe.style_default, repr(self))
 
 
 class CharacterData(Node):
@@ -1472,6 +1459,17 @@ class CharacterData(Node):
 
 	def upper(self):
 		return self.__class__(self._content.upper())
+
+	def __xiter__(self, mode="default"):
+		# Prevent ibrowe from iterating over the characters
+		raise TypeError("can't iterate over %s" % self.__class__.__name__)
+
+	def __repr__(self):
+		if self.startloc is not None:
+			loc = " (from %s)" % self.startloc
+		else:
+			loc = ""
+		return "<%s.%s content=%r%s at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.content, loc, id(self))
 
 
 class Text(CharacterData):
@@ -1824,6 +1822,20 @@ class Frag(Node, list):
 			node.append(child.pretty(level, indent))
 		return node
 
+	def __repr__(self):
+		l = len(self)
+		if l==0:
+			info = "no children"
+		elif l==1:
+			info = "1 child"
+		else:
+			info = "%d children" % l
+		if self.startloc is not None:
+			loc = " (from %s)" % self.startloc
+		else:
+			loc = ""
+		return "<%s.%s object (%s)%s at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, info, loc, id(self))
+
 
 class Comment(CharacterData):
 	"""
@@ -1914,6 +1926,13 @@ class ProcInst(CharacterData):
 	def __unicode__(self):
 		return u""
 
+	def __repr__(self):
+		if self.startloc is not None:
+			loc = " (from %s)" % self.startloc
+		else:
+			loc = ""
+		return "<%s.%s procinst content=%r%s at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.content, loc, id(self))
+
 
 class Null(CharacterData):
 	"""
@@ -1939,6 +1958,10 @@ class Null(CharacterData):
 
 	def __unicode__(self):
 		return u""
+
+	def __repr__(self):
+		return "<null>"
+
 
 Null = Null() # Singleton, the Python way
 
@@ -2077,6 +2100,20 @@ class Attr(Frag):
 
 	def pretty(self, level=0, indent="\t"):
 		return self.clone()
+
+	def __repr__(self):
+		l = len(self)
+		if l==0:
+			info = u"no children"
+		elif l==1:
+			info = u"1 child"
+		else:
+			info = u"%d children" % l
+		if self.startloc is not None:
+			loc = " (from %s)" % self.startloc
+		else:
+			loc = ""
+		return "<%s.%s attr object (%s)%s at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, info, loc, id(self))
 
 
 class TextAttr(Attr):
@@ -2733,6 +2770,20 @@ class Attrs(Node, dict):
 		else:
 			return self.filtered(lambda n: n.__class__.__name__ not in names)
 
+	def __repr__(self):
+		l = len(self)
+		if l==0:
+			info = "(no attrs)"
+		elif l==1:
+			info = "(1 attr)"
+		else:
+			info = "(%d attrs)" % l
+		if self.startloc is not None:
+			loc = " (from %s)" % self.startloc
+		else:
+			loc = ""
+		return "<%s.%s attrs %s%s at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, info, loc, id(self))
+		
 	def __xiter__(self, mode):
 		return self.itervalues()
 
@@ -3357,12 +3408,30 @@ class Element(Node):
 			node = Frag(indent*level, node)
 		return node
 
+	def __repr__(self):
+		lc = len(self.content)
+		if lc==0:
+			infoc = "no children"
+		elif lc==1:
+			infoc = "1 child"
+		else:
+			infoc = "%d children" % lc
+		la = len(self.attrs)
+		if la==0:
+			infoa = "no attrs"
+		elif la==1:
+			infoa = "1 attr"
+		else:
+			infoa = "%d attrs" % la
+		if self.startloc is not None:
+			loc = " (from %s)" % self.startloc
+		else:
+			loc = ""
+		return "<%s.%s element object (%s/%s)%s at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, infoc, infoa, loc, id(self))
+
 	def __xrepr__(self, mode):
 		yield (-1, True)
-		if mode == "header":
-			yield (ipipe.style_default, "<%s:%s>" % (self.__class__.__module__, self.__class__.__name__))
-		else:
-			yield (ipipe.style_default, repr(self))
+		yield (ipipe.style_default, repr(self))
 
 	def __xiter__(self, mode):
 		if mode is None:
@@ -3411,6 +3480,12 @@ class Entity(Node):
 		yield publisher.encode(self.xmlname)
 		yield publisher.encode(u";")
 
+	def __repr__(self):
+		if self.startloc is not None:
+			loc = " (from %s)" % self.startloc
+		else:
+			loc = ""
+		return "<%s.%s entity object%s at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, loc, id(self))
 
 class _CharRef_Meta(Entity.__metaclass__): # don't subclass Text.__metaclass__, as this is redundant
 	def __repr__(self):
@@ -3891,11 +3966,10 @@ class _Namespace_Meta(Base.__metaclass__, misc.Namespace.__metaclass__):
 		return super(_Namespace_Meta, self).__setattr__(key, value)
 
 	def __xrepr__(self, mode):
+		yield (-1, True)
 		if mode == "cell":
-			yield (-1, True)
 			yield (ipipe.style_url, self.xmlurl)
 		else:
-			yield (-1, True)
 			yield (ipipe.style_default, repr(self))
 
 	def __xiter__(self, mode):

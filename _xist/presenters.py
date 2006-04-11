@@ -21,10 +21,15 @@ __version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
 
 import sys, os, keyword, codecs
 
+# IPython/ipipe support
+try:
+	from IPython.Extensions import ipipe
+except ImportError:
+	ipipe = None
+
 from ll import misc, astyle, url
 
 import xsc, options
-
 
 
 ###
@@ -228,7 +233,13 @@ def strTextInAttr(text):
 	return s4attrvalue(text)
 
 
-class Presenter(object):
+if ipipe is not None:
+	presenterbase = ipipe.Table
+else:
+	presenterbase = object
+
+
+class Presenter(presenterbase):
 	"""
 	<par>This class is the base of the presenter classes. It is abstract
 	and only serves as documentation for the methods.</par>
@@ -236,21 +247,8 @@ class Presenter(object):
 	string representation of a node to be printed on the screen.</par>
 	"""
 
-	def __init__(self, encoding=None):
-		if encoding is None:
-			encoding = options.reprencoding
-		self.encoding = encoding
-
-	def present(self, node):
-		"""
-		<par>create a string presentation for <arg>node</arg> and return an
-		iterator the resulting string fragments.</par>
-		"""
-		def parts():
-			for part in node.present(self):
-				for subpart in astyle.iteransi(part):
-					yield subpart
-		return encode(self.encoding, parts())
+	def __init__(self, node):
+		self.node = node
 
 	@misc.notimplemented
 	def presentText(self, node):
@@ -834,25 +832,29 @@ class CodePresenter(Presenter):
 	<par>This makes it possible to quickly convert &html;/&xml; files to &xist;
 	constructor calls.</par>
 	"""
+	def __init__(self, node, indent="\t"):
+		Presenter.__init__(self, node)
+		self.indent = indent
+
+	def __str__(self):
+		return "\n".join(iter(self))
+
 	def present(self, node):
 		self._inattr = 0
-		self._first = True
 		self._level = 0
-		for part in Presenter.present(self, node):
+		for part in node.present(self):
 			yield part
 		del self._level
-		del self._first
 		del self._inattr
 
+	def __xiter__(self, mode="default"):
+		return self.present(self.node)
+
 	def _indent(self):
-		s = ""
-		if not self._inattr:
-			if not self._first:
-				s = "\n"
-			if self._level:
-				s += "\t"*self._level
-		self._first = False
-		return s
+		if self._inattr:
+			return ""
+		else:
+			return self.indent*self._level
 
 	def _text(self, text):
 		try:
@@ -869,24 +871,30 @@ class CodePresenter(Presenter):
 		return s
 
 	def presentFrag(self, node):
-		yield self._indent()
-		if not self._inattr:
-			yield "%s.%s" % (node.__module__, node.__fullname__())
-		yield "("
 		if len(node):
-			i = 0
+			if self._inattr:
+				yield "("
+			else:
+				yield "%s%s.%s(" % (self._indent(), node.__class__.__module__, node.__class__.__name__)
 			self._level += 1
-			for child in node:
-				if i:
-					yield ","
-					if self._inattr:
-						yield " "
-				for part in child.present(self):
-					yield part
-				i += 1
+			for (i, child) in enumerate(node):
+				if i==len(node)-1:
+					for line in child.present(self):
+						yield line
+				else:
+					lines = list(child.present(self))
+					for (j, line) in enumerate(lines):
+						if i==len(node)-1:
+							yield line
+						else:
+							yield "%s," % line
 			self._level -= 1
-			yield self._indent()
-		yield ")"
+			yield "%s)" % self._indent()
+		else:
+			if self._inattr:
+				yield "()"
+			else:
+				yield "%s%s.%s()" % (self._indent(), node.__class__.__module__, node.__class__.__name__)
 
 	def presentAttrs(self, node):
 		yield self._indent()
@@ -924,87 +932,78 @@ class CodePresenter(Presenter):
 		yield "}"
 
 	def presentElement(self, node):
-		yield self._indent()
-		yield "%s.%s(" % (node.__module__, node.__class__.__fullname__())
 		if len(node.content) or len(node.attrs):
-			i = 0
+			yield "%s%s.%s(" % (self._indent(), node.__class__.__module__, node.__class__.__name__)
+
 			self._level += 1
-			for child in node:
-				if i:
-					yield ","
-					if self._inattr:
-						yield " "
-				for part in child.present(self):
-					yield part
-				i += 1
+			for (i, child) in enumerate(node):
+				if i==len(node)-1 and not node.attrs:
+					for line in child.present(self):
+						yield line
+				else:
+					lines = list(child.present(self))
+					for (j, line) in enumerate(lines):
+						if j == len(lines)-1:
+							line += ","
+						yield line
+
 			globalattrs = {}
+			localattrs = {}
 			for (attrname, attrvalue) in node.attrs.iteritems():
 				if isinstance(attrname, tuple):
 					globalattrs[attrname] = attrvalue
+				else:
+					localattrs[attrname] = attrvalue
+
 			if len(globalattrs):
-				for (attrname, attrvalue) in globalattrs.iteritems():
-					if i:
-						yield ", "
-						if self._inattr:
-							yield " "
-					yield self._indent()
-					yield "{ "
+				yield "%s{" % self._indent()
+				for (i, (attrname, attrvalue)) in enumerate(globalattrs.iteritems()):
+					attrname = "(%s, %r)" % (attrname[0].__module__, attrname[1])
 					self._inattr += 1
-					ns = attrname[0].__module__
-					attrname = attrname[1]
-					yield "(%s, %r): " % (ns, attrname)
 					if len(attrvalue)==1: # optimize away the tuple ()
-						for part in attrvalue[0].present(self):
-							yield part
-					else:
-						for part in attrvalue.present(self):
-							yield part
+						attrvalue = attrvalue[0]
+					attrvalue = " ".join(attrvalue.present(self))
 					self._inattr -= 1
-					yield " }"
-					i += 1
-			for (attrname, attrvalue) in node.attrs.iteritems():
-				if not isinstance(attrname, tuple):
-					if i:
-						yield ","
-						if self._inattr:
-							yield " "
-					yield self._indent()
-					self._inattr += 1
-					yield "%s=" % attrname
-					if len(attrvalue)==1: # optimize away the tuple ()
-						for part in attrvalue[0].present(self):
-							yield part
-					else:
-						for part in attrvalue.present(self):
-							yield part
-					self._inattr -= 1
-					i += 1
+					self._level += 1
+					line = "%s%s: %s" % (self._indent(), attrname, attrvalue)
+					if i != len(globalattrs) or not localattrs:
+						line += ","
+					yield line
+					self._level -= 1
+				line = "%s}" % self._indent()
+				yield line
+			for (i, (attrname, attrvalue)) in enumerate(localattrs.iteritems()):
+				self._inattr += 1
+				if len(attrvalue)==1: # optimize away the tuple ()
+					attrvalue = attrvalue[0]
+				attrvalue = " ".join(attrvalue.present(self))
+				self._inattr -= 1
+				line = "%s%s=%s" % (self._indent(), attrname, attrvalue)
+				if i != len(localattrs)-1:
+					line += ","
+				yield line
 			self._level -= 1
-			yield self._indent()
-		yield ")"
+			yield "%s)" % self._indent()
+		else:
+			yield "%s%s.%s()" % (self._indent(), node.__class__.__module__, node.__class__.__name__)
 
 	def presentNull(self, node):
-		pass
+		yield "xsc.Null"
 
 	def presentText(self, node):
-		yield self._indent()
-		yield "%r" % self._text(node.content)
+		yield "%s%r" % (self._indent(), self._text(node.content))
 
 	def presentEntity(self, node):
-		yield self._indent()
-		yield "%s.%s()" % (node.__module__, node.__class__.__fullname__())
+		yield "%s%s.%s()" % (self._indent(), node.__module__, node.__class__.__fullname__())
 
 	def presentProcInst(self, node):
-		yield self._indent()
-		yield "%s.%s(%r)" % (node.__module__, node.__class__.__fullname__(), self._text(node.content))
+		yield "%s%s.%s(%r)" % (self._indent(), node.__module__, node.__class__.__fullname__(), self._text(node.content))
 
 	def presentComment(self, node):
-		yield self._indent()
-		yield "xsc.Comment(%r)" % self._text(node.content)
+		yield "%sxsc.Comment(%r)" % (self._indent(), self._text(node.content))
 
 	def presentDocType(self, node):
-		yield self._indent()
-		yield "xsc.DocType(%r)" % self._text(node.content)
+		yield "%sxsc.DocType(%r)" % (self._indent(), self._text(node.content))
 
 	def presentAttr(self, node):
 		return self.presentFrag(node)
