@@ -267,126 +267,6 @@ _Context = Context
 
 
 ###
-### Colors for output
-###
-
-# ANSI escape sequence to be used for tabs
-c4tab = astyle.Color.fromenv("LL_XIST_REPRANSI_TAB", 0100)
-
-
-# ANSI escape sequence to be used for quotes (delimiters for text and attribute nodes)
-c4quote = astyle.Color.fromenv("LL_XIST_REPRANSI_QUOTE", 0170)
-
-
-# ANSI escape sequence to be used for text
-c4text = astyle.Color.fromenv("LL_XIST_REPRANSI_TEXT", 0070)
-
-
-# ANSI escape sequence to be used for namespaces
-c4ns = astyle.Color.fromenv("LL_XIST_REPRANSI_NAMESPACE", 0040)
-
-
-# ANSI escape sequence to be used for Null object
-c4null = astyle.Color.fromenv("LL_XIST_REPRANSI_NULL", 0170)
-
-
-# ANSI escape sequence to be used for Null name
-c4nullname = astyle.Color.fromenv("LL_XIST_REPRANSI_NULLNAME", 0170)
-
-
-# ANSI escape sequence to be used a Frag object
-c4frag = astyle.Color.fromenv("LL_XIST_REPRANSI_FRAG", 0170)
-
-
-# ANSI escape sequence to be used for Frag name
-c4fragname = astyle.Color.fromenv("LL_XIST_REPRANSI_FRAGNAME", 0170)
-
-
-# ANSI escape sequence to be used for elements (i.e. the <, > and / characters
-c4element = astyle.Color.fromenv("LL_XIST_REPRANSI_ELEMENT", 0170)
-
-
-# ANSI escape sequence to be used for element names
-c4elementname = astyle.Color.fromenv("LL_XIST_REPRANSI_ELEMENTNAME", 0140)
-
-
-# ANSI escape sequence to be used for processing instructions
-c4procinst = astyle.Color.fromenv("LL_XIST_REPRANSI_PROCINST", 0110)
-
-
-# ANSI escape sequence to be used for processing instruction targets
-c4procinsttarget = astyle.Color.fromenv("LL_XIST_REPRANSI_PROCINSTTARGET", 0110)
-
-
-# ANSI escape sequence to be used for processing instruction content
-c4procinstcontent = astyle.Color.fromenv("LL_XIST_REPRANSI_PROCINSTCONTENT", 0070)
-
-
-# ANSI escape sequence to be used for attributes (i.e. the quotes around their value)
-c4attr = astyle.Color.fromenv("LL_XIST_REPRANSI_ATTR", 0140)
-
-
-# ANSI escape sequence to be used for attribute names
-c4attrname = astyle.Color.fromenv("LL_XIST_REPRANSI_ATTRNAME", 0140)
-
-
-# ANSI escape sequence to be used for attrs class name
-c4attrs = astyle.Color.fromenv("LL_XIST_REPRANSI_ATTRS", 0140)
-
-
-# ANSI escape sequence to be used for attrs class name
-c4attrsname = astyle.Color.fromenv("LL_XIST_REPRANSI_ATTRSNAME", 0140)
-
-
-# ANSI escape sequence to be used for entities
-c4entity = astyle.Color.fromenv("LL_XIST_REPRANSI_ENTITY", 0050)
-
-
-# ANSI escape sequence to be used for entity names
-c4entityname = astyle.Color.fromenv("LL_XIST_REPRANSI_ENTITYNAME", 0050)
-
-
-# ANSI escape sequence to be used for charref names or codepoints
-c4charrefname = astyle.Color.fromenv("LL_XIST_REPRANSI_CHARREFNAME", 0050)
-
-
-# ANSI escape sequence to be used for document types
-c4doctype = astyle.Color.fromenv("LL_XIST_REPRANSI_DOCTYPE", 0170)
-
-
-# ANSI escape sequence to be used for document types
-c4doctypetext = astyle.Color.fromenv("LL_XIST_REPRANSI_DOCTYPETEXT", 0170)
-
-
-# ANSI escape sequence to be used for comment (i.e. <!-- and -->)
-c4comment = astyle.Color.fromenv("LL_XIST_REPRANSI_COMMENT", 0100)
-
-
-# ANSI escape sequence to be used for comment text
-c4commenttext = astyle.Color.fromenv("LL_XIST_REPRANSI_COMMENTTEXT", 0100)
-
-
-# ANSI escape sequence to be used for attribute values
-c4attrvalue = astyle.Color.fromenv("LL_XIST_REPRANSI_ATTRVALUE", 0060)
-
-
-# ANSI escape sequence to be used for URLs
-c4url = astyle.Color.fromenv("LL_XIST_REPRANSI_URL", 0020)
-
-
-# ANSI escape sequence to be used for numbers in error messages etc.
-c4number = astyle.Color.fromenv("LL_XIST_REPRANSI_NUMBER", 0040)
-
-
-# ANSI escape sequence to be used for variable strings in error messages etc.
-c4string = astyle.Color.fromenv("LL_XIST_REPRANSI_STRING", 005)
-
-
-# ANSI escape sequence to be used for IDs in repr()
-c4id = astyle.Color.fromenv("LL_XIST_REPRANSI_ID", 0060)
-
-
-###
 ### Exceptions and warnings
 ###
 
@@ -418,9 +298,9 @@ class IllegalAttrError(Warning, LookupError):
 
 	def __str__(self):
 		if self.attrs is not None:
-			return astyle.color("Attribute with ", ("Python", "XML")[self.xml], " name ", c4attrname(self.attrname), " not allowed for ", self.attrs._str(fullname=True, xml=False, decorate=False))
+			return "Attribute with %s name %s not allowed for %s" % (("Python", "XML")[self.xml], self.attrname, self.attrs._str(fullname=True, xml=False, decorate=False))
 		else:
-			return astyle.color("Global attribute with ", ("Python", "XML")[self.xml], " name ", c4attrname(self.attrname), " not allowed")
+			return "Global attribute with %s name %s not allowed" % (("Python", "XML")[self.xml], self.attrname)
 
 
 class IllegalAttrValueWarning(Warning):
@@ -433,7 +313,7 @@ class IllegalAttrValueWarning(Warning):
 
 	def __str__(self):
 		attr = self.attr
-		return astyle.color("Attribute value ", repr(str(attr)), " not allowed for ", attr._str(fullname=True, xml=False, decorate=False), ".")
+		return "Attribute value %s not allowed for %s", (repr(str(attr)), attr._str(fullname=True, xml=False, decorate=False))
 
 
 class RequiredAttrMissingWarning(Warning):
@@ -446,15 +326,7 @@ class RequiredAttrMissingWarning(Warning):
 		self.reqattrs = reqattrs
 
 	def __str__(self):
-		v = ["Required attribute"]
-		if len(self.reqattrs)>1:
-			v.append("s")
-		v.append(" ")
-		v.append(astyle.color(", ").join(c4attrname(attr) for attr in self.reqattrs))
-		v.append(" missing in ")
-		v.append(self.attrs._str(fullname=True, xml=False, decorate=False))
-		v.append(".")
-		return astyle.color().join(v)
+		return "Required attribute%s %s missing in %s" % ("s"[len(self.reqattrs)==0], ", ".join(attr for attr in self.reqattrs), self.attrs._str(fullname=True, xml=False, decorate=False))
 
 
 class IllegalDTDChildWarning(Warning):
@@ -468,7 +340,7 @@ class IllegalDTDChildWarning(Warning):
 		self.parentname = parentname
 
 	def __str__(self):
-		return astyle.color("Element ", c4elementname(self.childname), " not allowed as a child of element ", c4elementname(self.parentname))
+		return "Element %s not allowed as a child of element %s" % (self.childname, self.parentname)
 
 
 class IllegalCloseTagWarning(Warning):
@@ -481,7 +353,7 @@ class IllegalCloseTagWarning(Warning):
 		self.name = name
 
 	def __str__(self):
-		return astyle.color("Element ", self.name, " has never been opened")
+		return "Element %s has never been opened" % (self.name,)
 
 
 class IllegalPrefixError(Error, LookupError):
@@ -492,7 +364,7 @@ class IllegalPrefixError(Error, LookupError):
 		self.prefix = prefix
 
 	def __str__(self):
-		return astyle.color("namespace prefix ", c4ns(repr(self.prefix)), " is undefined")
+		return "namespace prefix %r is undefined" % (self.prefix,)
 
 
 class IllegalNamespaceError(Error, KeyError):
@@ -504,7 +376,7 @@ class IllegalNamespaceError(Error, KeyError):
 		self.name = name
 
 	def __str__(self):
-		return astyle.color("namespace name ", c4ns(repr(self.name)), " is undefined")
+		return "namespace name %r is undefined" % (self.name,)
 
 
 class IllegalNodeError(Error, LookupError):
@@ -513,38 +385,33 @@ class IllegalNodeError(Error, LookupError):
 	"""
 
 	type = "node"
-	color = astyle.color
 
 	def __init__(self, name, xml=False):
 		self.name = name
 		self.xml = xml
 
 	def __str__(self):
-		return astyle.color(self.type, " with ", ("Python", "XML")[self.xml], " name ", self.color(self.name), " not allowed")
+		return "%s with %s name %s not allowed" % (self.type, ("Python", "XML")[self.xml], self.name)
 
 
 class IllegalElementError(IllegalNodeError):
 	type = "element"
-	color = c4elementname
 
 
 class IllegalProcInstError(IllegalNodeError):
 	type = "procinst"
-	color = c4procinsttarget
 
 
 class IllegalEntityError(IllegalNodeError):
 	type = "entity"
-	color = c4entityname
 
 
 class IllegalCharRefError(IllegalNodeError):
 	type = "charref"
-	color = c4charrefname
 
 	def __str__(self):
 		if isinstance(self.name, (int, long)):
-			return astyle.color(self.type, " with codepoint ", self.name, " not allowed")
+			return "%s with codepoint %s not allowed" % (self.type, self.name)
 		else:
 			return IllegalNodeError.__str__(self)
 
@@ -555,33 +422,29 @@ class AmbiguousNodeError(Error, LookupError):
 	"""
 
 	type = "node"
-	color = astyle.color
 
 	def __init__(self, name, xml=False):
 		self.name = name
 		self.xml = xml
 
 	def __str__(self):
-		return astyle.color(self.type, " with ", ("Python", "XML")[self.xml], " name ", self.color(self.name), " is ambigous")
+		return "%s with %s name %s is ambigous" % (self.type, ("Python", "XML")[self.xml], self.name)
 
 
 class AmbiguousProcInstError(AmbiguousNodeError):
 	type = "procinst"
-	color = c4procinsttarget
 
 
 class AmbiguousEntityError(AmbiguousNodeError):
 	type = "entity"
-	color = c4entityname
 
 
 class AmbiguousCharRefError(AmbiguousNodeError):
 	type = "charref"
-	color = c4charrefname
 
 	def __str__(self):
 		if isinstance(self.name, (int, long)):
-			return astyle.color(self.type, " with codepoint ", self.color(self.name), " is ambigous")
+			return "%s with codepoint %s is ambigous" % (self.type, self.name)
 		else:
 			return AmbiguousNodeError.__str__(self)
 
@@ -602,13 +465,7 @@ class ElementNestingError(Error):
 		self.foundelement = foundelement
 
 	def __str__(self):
-		return astyle.color(
-			"mismatched element nesting (close tag for ",
-			self.expectedelement._str(fullname=True, xml=False, decorate=True),
-			" expected; close tag for ",
-			self.foundelement._str(fullname=True, xml=False, decorate=True),
-			" found)"
-		)
+		return "mismatched element nesting (close tag for %s expected; close tag for %s found)" % (self.expectedelement._str(fullname=True, xml=False, decorate=True), self.foundelement._str(fullname=True, xml=False, decorate=True))
 
 
 class IllegalAttrNodeError(Error):
@@ -682,7 +539,7 @@ class IllegalCommentContentWarning(Warning):
 		self.comment = comment
 
 	def __str__(self):
-		return "comment with content %s is illegal, as it contains '--' or ends in '-'." % presenters.strTextOutsideAttr(self.comment.content)
+		return "comment with content %r is illegal, as it contains '--' or ends in '-'." % self.comment.content
 
 
 class IllegalProcInstFormatError(Error):
@@ -696,7 +553,7 @@ class IllegalProcInstFormatError(Error):
 		self.procinst = procinst
 
 	def __str__(self):
-		return astyle.color("processing instruction with content ", c4procinstcontent(repr(self.procinst.content)), " is illegal, as it contains '?>'.")
+		return astyle.color("processing instruction with content %r is illegal, as it contains '?>'." % self.procinst.content)
 
 
 class IllegalXMLDeclFormatError(Error):
@@ -711,7 +568,7 @@ class IllegalXMLDeclFormatError(Error):
 		self.procinst = procinst
 
 	def __str__(self):
-		return astyle.color("XML declaration with content ", c4procinstcontent(repr(self.procinst.content)), " is malformed.")
+		return astyle.color("XML declaration with content %r is malformed." % self.procinst.content)
 
 
 class ParseWarning(Warning):
@@ -786,10 +643,10 @@ class NodeOutsideContextError(Error):
 		self.outerclass = outerclass
 
 	def __str__(self):
-		s = astyle.color("node ", self.node._str(fullname=True, xml=False, decorate=True))
+		s = "node %s" % self.node._str(fullname=True, xml=False, decorate=True)
 		if self.node.startloc is not None:
-			s += astyle.color(" at ", self.node.startloc)
-		s += astyle.color(" outside of ", self.outerclass._str(fullname=True, xml=False, decorate=True))
+			s += " at %r" % self.node.startloc
+		s += " outside of %s" % self.outerclass._str(fullname=True, xml=False, decorate=True)
 		return s
 
 
@@ -943,24 +800,23 @@ class Node(Base):
 		return not self==other
 
 	@classmethod
-	def _strbase(cls, color, fullname, xml):
+	def _strbase(cls, fullname, xml):
 		v = []
 		if fullname:
 			if xml:
 				ns = cls.__ns__.xmlname
 			else:
 				ns = cls.__module__
-			sep = u":"
-		else:
-			ns = u""
-			sep = u""
+			v.append(ns)
+			v.append(":")
 		if xml:
 			name = cls.xmlname
 		elif fullname:
 			name = cls.__fullname__()
 		else:
 			name = cls.__name__
-		return color(c4ns(unicode(ns)), sep, unicode(name))
+		v.append(name)
+		return "".join(v)
 
 	def clone(self):
 		"""
@@ -1668,9 +1524,9 @@ class Frag(Node, list):
 
 	@classmethod
 	def _str(cls, fullname=True, xml=True, decorate=True):
-		s = cls._strbase(c4fragname, fullname=fullname, xml=xml)
+		s = cls._strbase(fullname=fullname, xml=xml)
 		if decorate:
-			s = c4frag(u"<", s, u">")
+			s = "<%s>" % s
 		return s
 
 	def _create(self):
@@ -2034,9 +1890,9 @@ class ProcInst(CharacterData):
 
 	@classmethod
 	def _str(cls, fullname=True, xml=True, decorate=True):
-		s = cls._strbase(c4procinsttarget, fullname=fullname, xml=xml)
+		s = cls._strbase(fullname=fullname, xml=xml)
 		if decorate:
-			s = c4procinst(u"<?", s, u"?>")
+			s = "<%s>" % s
 		return s
 
 	def convert(self, converter):
@@ -2066,9 +1922,9 @@ class Null(CharacterData):
 
 	@classmethod
 	def _str(cls, fullname=True, xml=True, decorate=True):
-		s = cls._strbase(c4nullname, fullname=fullname, xml=xml)
+		s = cls._strbase(fullname=fullname, xml=xml)
 		if decorate:
-			s = c4null(u"<", s, u"/>")
+			s = "<%s>" % s
 		return s
 
 	def convert(self, converter):
@@ -2160,7 +2016,7 @@ class Attr(Frag):
 
 	@classmethod
 	def _str(cls, fullname=True, xml=True, decorate=True):
-		return cls._strbase(c4attrname, fullname=fullname, xml=xml)
+		return cls._strbase(fullname=fullname, xml=xml)
 
 	def present(self, presenter):
 		return presenter.presentAttr(self) # return a generator-iterator
@@ -2458,7 +2314,7 @@ class Attrs(Node, dict):
 
 	@classmethod
 	def _str(cls, fullname=True, xml=True, decorate=True):
-		return cls._strbase(c4attrname, fullname=fullname, xml=xml)
+		return cls._strbase(fullname=fullname, xml=xml)
 
 	def _create(self):
 		node = self.__class__() # "virtual" constructor
@@ -3080,12 +2936,12 @@ class Element(Node):
 
 	@classmethod
 	def _str(cls, fullname=True, xml=True, decorate=True):
-		s = cls._strbase(c4elementname, fullname=fullname, xml=xml)
+		s = cls._strbase(fullname=fullname, xml=xml)
 		if decorate:
 			if cls.model is not None and cls.model.empty:
-				s = c4element(u"<", s, u"/>")
+				s = "<%s/>" % s
 			else:
-				s = c4element(u"<", s, u">")
+				s = "<%s>" % s
 		return s
 
 	def checkvalid(self):
@@ -3536,9 +3392,9 @@ class Entity(Node):
 
 	@classmethod
 	def _str(cls, fullname=True, xml=True, decorate=True):
-		s = cls._strbase(c4entityname, fullname=fullname, xml=xml)
+		s = cls._strbase(fullname=fullname, xml=xml)
 		if decorate:
-			s = c4entity(u"&", s, u";")
+			s = "&%s;" % s
 		return s
 
 	def __eq__(self, other):
@@ -4575,7 +4431,7 @@ class Location(object):
 			col = str(col)
 
 		# now we have the parts => format them
-		return astyle.color(c4url(sysid), ":", c4number(line), ":", c4number(col))
+		return "%s:%s:%s" % (sysid, line, col)
 
 	def __repr__(self):
 		return "<%s object sysid=%r, pubid=%r, line=%r, col=%r at %08x>" % (self.__class__.__name__, self.sysid, self.pubid, self.line, self.col, id(self))
