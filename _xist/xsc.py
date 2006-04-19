@@ -2162,11 +2162,12 @@ class BoolAttr(Attr):
 		if publisher.validate:
 			self.checkvalid()
 		publisher.inattr += 1
-		yield publisher.encode(self._publishname(publisher)) # publish the XML name, not the Python name
+		name = self._publishname(publisher)
+		yield publisher.encode(name) # publish the XML name, not the Python name
 		if publisher.xhtml>0:
 			yield publisher.encode(u"=\"")
 			publisher.pushtextfilter(helpers.escapeattr)
-			yield publisher.encode(self.__class__.xmlname)
+			yield publisher.encode(name)
 			publisher.poptextfilter()
 			yield publisher.encode(u"\"")
 		publisher.inattr -= 1
