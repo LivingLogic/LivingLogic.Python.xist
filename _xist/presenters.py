@@ -874,7 +874,7 @@ class CodePresenter(Presenter):
 
 	def presentFrag(self, node):
 		if len(node):
-			if not self._inattr: # skip "(" for attributes, they will be added by presentAttr()
+			if not self._inattr: # skip "(" for attributes, they will be added by presentElement()
 				yield "%s%s.%s(" % (self._indent(), node.__class__.__module__, node.__class__.__name__)
 			self._level += 1
 			for (i, child) in enumerate(node):
@@ -989,7 +989,7 @@ class CodePresenter(Presenter):
 			yield "%s%s.%s()" % (self._indent(), node.__class__.__module__, node.__class__.__name__)
 
 	def presentNull(self, node):
-		yield "xsc.Null"
+		yield "%sxsc.Null" % self._indent()
 
 	def presentText(self, node):
 		yield "%s%r" % (self._indent(), self._text(node.content))
