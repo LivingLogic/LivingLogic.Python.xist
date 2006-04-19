@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 1999-2005 by LivingLogic AG, Bayreuth/Germany.
-## Copyright 1999-2005 by Walter Dörwald
+## Copyright 1999-2006 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 1999-2006 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -14,7 +14,7 @@ modules. From that info a skeleton implementation of the namespace module
 can be generated.</par>
 """
 
-__version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
+__version__ = "$Revision$".split()[1]
 # $Source$
 
 import sys, keyword
@@ -174,7 +174,8 @@ class Namespace(Base):
 
 		self._adddoc(lines, level)
 
-		lines.append([level, "__version__ = \"%sRevision%s\"[11:-2]" % ("$", "$")])
+		# Prevent CVS from messing with the keyword
+		lines.append([level, "__version__ = \"%sRevision ? %s\".split()[1]" % ("$", "$")])
 		lines.append([level, "# %sSource%s" % ("$", "$")])
 		lines.append([0, ""])
 		lines.append([0, ""])

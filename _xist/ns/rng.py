@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 2005 by LivingLogic AG, Bayreuth/Germany.
-## Copyright 2005 by Walter Dörwald
+## Copyright 2005-2006 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 2005-2006 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -13,7 +13,7 @@ This module is an &xist; namespace for
 <link href="http://relaxng.org/">Relax NG</link> files.
 """
 
-__version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
+__version__ = "$Revision$".split()[1]
 # $Source$
 
 

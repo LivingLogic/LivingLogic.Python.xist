@@ -1,11 +1,19 @@
-#!/usr/bin/env python
+#! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
+
+## Copyright 2006 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 2006 by Walter Dörwald
+##
+## All Rights Reserved
+##
+## See xist/__init__.py for the license
+
 
 """
 This is a namespace module implementing RSS 2.0.
 """
 
-__version__ = "$Revision$"[11:-2]
+__version__ = "$Revision$".split()[1]
 # $Source$
 
 

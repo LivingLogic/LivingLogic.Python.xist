@@ -2,8 +2,8 @@
 # -*- coding: iso-8859-1 -*-
 
 
-## Copyright 1999-2005 by LivingLogic AG, Bayreuth/Germany.
-## Copyright 1999-2005 by Walter Dörwald
+## Copyright 1999-2006 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 1999-2006 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -16,7 +16,7 @@ This is a namespace module implementing
 """
 
 
-__version__ = "$Revision$"[11:-2]
+__version__ = "$Revision$".split()[1]
 # $Source$
 
 

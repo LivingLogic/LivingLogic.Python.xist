@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 1999-2005 by LivingLogic AG, Bayreuth/Germany.
-## Copyright 1999-2005 by Walter Dörwald
+## Copyright 1999-2006 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 1999-2006 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -13,7 +13,7 @@ This module contains all the central &xml; tree classes, the namespace classes,
 exception and warning classes and a few helper classes and functions.
 """
 
-__version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
+__version__ = "$Revision$".split()[1]
 # $Source$
 
 import sys, os, random, copy, warnings, new, cPickle

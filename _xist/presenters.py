@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 1999-2005 by LivingLogic AG, Bayreuth/Germany.
-## Copyright 1999-2005 by Walter Dörwald
+## Copyright 1999-2006 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 1999-2006 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -15,7 +15,7 @@ to the terminal.
 """
 
 
-__version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
+__version__ = "$Revision$".split()[1]
 # $Source$
 
 
