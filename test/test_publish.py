@@ -71,6 +71,13 @@ def test_publishboolattr():
 	assert node.asBytes(xhtml=1) == """<td nowrap="nowrap">?</td>"""
 	assert node.asBytes(xhtml=2) == """<td nowrap="nowrap">?</td>"""
 
+	class foo(xsc.Element):
+		class Attrs(xsc.Element.Attrs):
+			class bar(xsc.BoolAttr):
+				xmlname = "baz"
+
+	assert foo("?", bar=True).asBytes(xhtml=2) == """<foo baz="baz">?</foo>"""
+
 
 def test_publishurlattr():
 	node = html.link(href=None)
