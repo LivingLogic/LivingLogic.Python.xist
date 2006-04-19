@@ -2082,6 +2082,8 @@ class Attr(Frag):
 				yield cursor
 
 	def _publishattrvalue(self, publisher):
+		# Internal helper that is used to publish the attribute value
+		# (can be overwritten in subclass (done by e.g. StyleAttr and URLAttr)
 		for part in Frag.publish(self, publisher):
 			yield part
 
@@ -2156,10 +2158,11 @@ class BoolAttr(Attr):
 	"""
 
 	def publish(self, publisher):
+		# We can't simply overwrite _publishattrvalue(), because for xhtml==0 we don't output a "proper" attribute
 		if publisher.validate:
 			self.checkvalid()
 		publisher.inattr += 1
-		yield self._publishname(publisher) # publish the XML name, not the Python name
+		yield publisher.encode(self._publishname(publisher)) # publish the XML name, not the Python name
 		if publisher.xhtml>0:
 			yield publisher.encode(u"=\"")
 			publisher.pushtextfilter(helpers.escapeattr)
