@@ -35,7 +35,7 @@ codecs.register_error("cssescapereplace", cssescapereplace)
 
 class Queue(list):
 	"""
-	queue: write bytes at one end, read bytes from the other end
+	Helper class: Write bytes at one end, read bytes from the other end
 	"""
 	write = list.append
 
@@ -43,6 +43,28 @@ class Queue(list):
 		s = "".join(self)
 		del self[:]
 		return s
+
+
+class Encoder(object):
+	"""
+	Helper class that emulates an incremental encoder (via a byte queue
+	and a stream reader.
+	"""
+	def __init__(self, encoding):
+		self.bytestream = Queue()
+		self.charstream = codecs.getwriter(encoding)(self.bytestream)
+
+	def encode(self, input):
+		self.charstream.write(input)
+		return self.bytestream.read()
+
+	def _seterrors(self, errors):
+		self.charstream.errors = errors
+
+	def _geterrors(self):
+		return self.charstream.errors
+
+	errors = property(_geterrors, _seterrors)
 
 
 class Publisher(object):
@@ -95,8 +117,7 @@ class Publisher(object):
 		Encode <arg>text</arg> with the specified encoding and error handling
 		and return the resulting byte string.
 		"""
-		self.charstream.write(text)
-		return self.bytestream.read()
+		return self.encoder.encode(text)
 
 	def encodetext(self, text):
 		"""
@@ -106,9 +127,9 @@ class Publisher(object):
 		characters that can't appear in text data (like <lit>&lt;</lit> etc.))
 		and return the resulting <class>str</class> object.
 		"""
-		self.charstream.errors = self.__errors[-1]
-		result = self.encode(self.__textfilters[-1](text))
-		self.charstream.errors = "strict"
+		self.encoder.errors = self.__errors[-1]
+		result = self.encoder.encode(self.__textfilters[-1](text))
+		self.encoder.errors = "strict"
 		return result
 
 	def pushtextfilter(self, filter):
@@ -188,8 +209,10 @@ class Publisher(object):
 		self.base = url.URL(base)
 		self.node = node
 
-		self.bytestream = Queue()
-		self.charstream = codecs.getwriter(self.encoding)(self.bytestream)
+		try:
+			self.encoder = codecs.getincrementalencoder(self.encoding)()
+		except AttributeError:
+			self.encoder = Encoder(self.encoding)
 
 		for part in self.node.publish(self):
 			yield part
@@ -201,5 +224,4 @@ class Publisher(object):
 
 		self.publishxmlns = None
 
-		del self.bytestream
-		del self.charstream
+		del self.encoder
