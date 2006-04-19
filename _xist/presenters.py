@@ -859,6 +859,7 @@ class CodePresenter(Presenter):
 			return self.indent*self._level
 
 	def _text(self, text):
+		# Find the simplest object to display
 		try:
 			s = text.encode("us-ascii")
 		except UnicodeError:
