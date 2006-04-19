@@ -2081,7 +2081,7 @@ class Attr(Frag):
 			elif option:
 				yield cursor
 
-	def _publishAttrValue(self, publisher):
+	def _publishattrvalue(self, publisher):
 		for part in Frag.publish(self, publisher):
 			yield part
 
@@ -2092,7 +2092,7 @@ class Attr(Frag):
 		yield publisher.encode(self._publishname(publisher)) # publish the XML name, not the Python name
 		yield publisher.encode(u"=\"")
 		publisher.pushtextfilter(helpers.escapeattr)
-		for part in self._publishAttrValue(publisher):
+		for part in self._publishattrvalue(publisher):
 			yield part
 		publisher.poptextfilter()
 		yield publisher.encode(u"\"")
@@ -2186,7 +2186,7 @@ class StyleAttr(Attr):
 			value = csshandler.parseString(unicode(self), base=parser.base)
 			self[:] = (value, )
 
-	def _publishAttrValue(self, publisher):
+	def _publishattrvalue(self, publisher):
 		if not self.isfancy():
 			csshandler = cssparsers.PublishHandler(ignorecharset=True)
 			value = csshandler.parseString(unicode(self), base=publisher.base)
@@ -2194,7 +2194,7 @@ class StyleAttr(Attr):
 			for part in new.publish(publisher):
 				yield part
 		else:
-			for part in super(StyleAttr, self)._publishAttrValue(publisher):
+			for part in super(StyleAttr, self)._publishattrvalue(publisher):
 				yield part
 
 	def urls(self, base=None):
@@ -2217,7 +2217,7 @@ class URLAttr(Attr):
 	def parsed(self, parser, start=None):
 		self[:] = utils.replaceInitialURL(self, lambda u: parser.base/u)
 
-	def _publishAttrValue(self, publisher):
+	def _publishattrvalue(self, publisher):
 		new = utils.replaceInitialURL(self, lambda u: u.relative(publisher.base))
 		for part in new.publish(publisher):
 			yield part
