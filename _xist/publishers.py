@@ -54,7 +54,7 @@ class Encoder(object):
 		self.bytestream = Queue()
 		self.charstream = codecs.getwriter(encoding)(self.bytestream)
 
-	def encode(self, input):
+	def encode(self, input, final=False):
 		self.charstream.write(input)
 		return self.bytestream.read()
 
@@ -216,6 +216,7 @@ class Publisher(object):
 
 		for part in self.node.publish(self):
 			yield part
+		yield self.encoder.encode(u"", True) # finish encoding and flush buffers
 	
 		self.inattr = 0
 		self.__textfilters = [ helpers.escapetext ]
