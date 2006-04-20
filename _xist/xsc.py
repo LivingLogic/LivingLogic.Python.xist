@@ -2157,8 +2157,8 @@ class BoolAttr(Attr):
 	the value will always be the attribute name, regardless of the real value.</par>
 	"""
 
+	# We can't simply overwrite _publishattrvalue(), because for xhtml==0 we don't output a "proper" attribute
 	def publish(self, publisher):
-		# We can't simply overwrite _publishattrvalue(), because for xhtml==0 we don't output a "proper" attribute
 		if publisher.validate:
 			self.checkvalid()
 		publisher.inattr += 1
