@@ -1,5 +1,0 @@
-This example shows how to generate a page with all the
-pictures found in http://localhost/icons/.
-To use the script as it is, you have to copy
-index.py and icons.css to http://localhost/icons/
-and configure Apache to execute index.py as a CGI script.

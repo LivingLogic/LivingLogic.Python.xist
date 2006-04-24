@@ -1,0 +1,5 @@
+This example shows how to generate a page with all the
+pictures found in a certail directory (which you can
+specify on the command line).
+
+To use the script you need CherryPy (http://www.cherrypy.org/).
