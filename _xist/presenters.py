@@ -944,64 +944,6 @@ class CodePresenter(Presenter):
 		else:
 			yield "%s%s.%s()" % (self._indent(), node.__class__.__module__, node.__fullname__())
 
-
-		"""
-		if len(node):
-			if not self._inattr: # skip "(" for attributes, they will be added by presentElement()
-				yield "%s%s.%s(" % (self._indent(), node.__class__.__module__, node.__fullname__())
-			self._level += 1
-			for (i, child) in enumerate(node):
-				if i==len(node)-1:
-					for line in child.present(self):
-						yield line
-				else:
-					lines = list(child.present(self))
-					for (j, line) in enumerate(lines):
-						if i==len(node)-1:
-							yield line
-						else:
-							yield "%s," % line
-			self._level -= 1
-			if not self._inattr:
-				yield "%s)" % self._indent()
-		else:
-			if not self._inattr:
-				yield "%s%s.%s()" % (self._indent(), node.__class__.__module__, node.__fullname__())
-		yield self._indent()
-		yield "{"
-		self._level += 1
-		i = 0
-		for (attrname, attrvalue) in node.iteritems():
-			if i:
-				yield ","
-				if self._inattr:
-					yield " "
-			yield self._indent()
-			self._inattr += 1
-			if isinstance(attrname, tuple):
-				ns = attrname[0].__module__
-				attrname = attrname[1]
-				if keyword.iskeyword(attrname):
-					attrname += "_"
-				yield "(%s, %r): " % (ns, attrname)
-			else:
-				if keyword.iskeyword(attrname):
-					attrname += "_"
-				yield "%r: " % attrname
-			if len(attrvalue)==1: # optimize away the tuple ()
-				for part in attrvalue[0].present(self):
-					yield part
-			else:
-				for part in attrvalue.present(self):
-					yield part
-			yield self._indent()
-			self._inattr -= 1
-			i += 1
-		self._level -= 1
-		yield self._indent()
-		yield "}"
-		"""
-
 	def presentElement(self, node):
 		if len(node.content) or len(node.attrs):
 			yield "%s%s.%s(" % (self._indent(), node.__class__.__module__, node.__fullname__())
