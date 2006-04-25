@@ -1469,7 +1469,7 @@ class CharacterData(Node):
 			loc = " (from %s)" % self.startloc
 		else:
 			loc = ""
-		return "<%s.%s content=%r%s at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.content, loc, id(self))
+		return "<%s.%s content=%r%s at 0x%x>" % (self.__class__.__module__, self.__fullname__(), self.content, loc, id(self))
 
 
 class Text(CharacterData):
@@ -1834,7 +1834,7 @@ class Frag(Node, list):
 			loc = " (from %s)" % self.startloc
 		else:
 			loc = ""
-		return "<%s.%s object (%s)%s at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, info, loc, id(self))
+		return "<%s.%s object (%s)%s at 0x%x>" % (self.__class__.__module__, self.__fullname__(), info, loc, id(self))
 
 
 class Comment(CharacterData):
@@ -1931,7 +1931,7 @@ class ProcInst(CharacterData):
 			loc = " (from %s)" % self.startloc
 		else:
 			loc = ""
-		return "<%s.%s procinst content=%r%s at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.content, loc, id(self))
+		return "<%s.%s procinst content=%r%s at 0x%x>" % (self.__class__.__module__, self.__fullname__(), self.content, loc, id(self))
 
 
 class Null(CharacterData):
@@ -2115,7 +2115,7 @@ class Attr(Frag):
 			loc = " (from %s)" % self.startloc
 		else:
 			loc = ""
-		return "<%s.%s attr object (%s)%s at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, info, loc, id(self))
+		return "<%s.%s attr object (%s)%s at 0x%x>" % (self.__class__.__module__, self.__fullname__(), info, loc, id(self))
 
 
 class TextAttr(Attr):
@@ -2786,7 +2786,7 @@ class Attrs(Node, dict):
 			loc = " (from %s)" % self.startloc
 		else:
 			loc = ""
-		return "<%s.%s attrs %s%s at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, info, loc, id(self))
+		return "<%s.%s attrs %s%s at 0x%x>" % (self.__class__.__module__, self.__fullname__(), info, loc, id(self))
 		
 	def __xiter__(self, mode):
 		return self.itervalues()
@@ -3431,7 +3431,7 @@ class Element(Node):
 			loc = " (from %s)" % self.startloc
 		else:
 			loc = ""
-		return "<%s.%s element object (%s/%s)%s at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, infoc, infoa, loc, id(self))
+		return "<%s.%s element object (%s/%s)%s at 0x%x>" % (self.__class__.__module__, self.__fullname__(), infoc, infoa, loc, id(self))
 
 	def __xrepr__(self, mode):
 		yield (-1, True)
@@ -3489,7 +3489,8 @@ class Entity(Node):
 			loc = " (from %s)" % self.startloc
 		else:
 			loc = ""
-		return "<%s.%s entity object%s at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, loc, id(self))
+		return "<%s.%s entity object%s at 0x%x>" % (self.__class__.__module__, self.__fullname__(), loc, id(self))
+
 
 class _CharRef_Meta(Entity.__metaclass__): # don't subclass Text.__metaclass__, as this is redundant
 	def __repr__(self):
