@@ -1023,7 +1023,8 @@ class CodePresenter(Presenter):
 		return self.presentFrag(node)
 
 
-defaultpresenter = CodePresenter # used in the displayhook below
+# used by the IPython displayhook below (set to None to disable)
+defaultpresenter = CodePresenter
 
 try:
 	from IPython import ipapi
@@ -1033,7 +1034,7 @@ except (ImportError, AttributeError):
 
 if api is not None:
 	def displayhook(self, obj):
-		if isinstance(obj, xsc.Node):
+		if isinstance(obj, xsc.Node) and defaultpresenter is not None:
 			(defaultpresenter(obj) | ipipe.defaultdisplay).display()
 		raise ipapi.TryNext
 	api.set_hook("result_display", displayhook)
