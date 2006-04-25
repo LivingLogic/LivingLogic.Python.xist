@@ -12,7 +12,7 @@
 """
 This module contains presenter classes, which are used for displaying &xist;
 nodes on screen (either on the terminal or via
-<pyref module="IPython.Extensions.ipipe"><module>ipipe</module></pyref> browser).
+<pyref module="IPython.Extensions.ipipe"><module>ipipe</module></pyref> browsers).
 """
 
 
