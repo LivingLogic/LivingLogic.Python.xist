@@ -317,11 +317,10 @@ class Presenter(presenterbase):
 class PlainPresenter(Presenter):
 	"""
 	<par>This presenter shows only the root node of the tree (with a little additional
-	information about the number of nested nodes). It is used as the default presenter
-	in <pyref module="ll.xist.xsc" class="Node" method="__repr__"><method>Node.__repr__</method></pyref>.</par>
+	information about the number of nested nodes).</par>
 	"""
-	def __init__(self, encoding=None, maxlen=60):
-		Presenter.__init__(self, encoding)
+	def __init__(self, node, maxlen=60):
+		Presenter.__init__(self, node)
 		self.maxlen = maxlen
 
 	def presentCharacterData(self, node):
@@ -842,16 +841,14 @@ class CodePresenter(Presenter):
 	def __str__(self):
 		return "\n".join(self)
 
-	def present(self, node):
+	def __xiter__(self, mode="default"):
 		self._inattr = 0
 		self._level = 0
-		for part in node.present(self):
-			yield part
+		return self.node.present(self)
+
+	def present(self, node):
 		del self._level
 		del self._inattr
-
-	def __xiter__(self, mode="default"):
-		return self.present(self.node)
 
 	def _indent(self):
 		if self._inattr:
@@ -886,10 +883,9 @@ class CodePresenter(Presenter):
 				else:
 					lines = list(child.present(self))
 					for (j, line) in enumerate(lines):
-						if i==len(node)-1:
-							yield line
-						else:
-							yield "%s," % line
+						if j==len(lines)-1:
+							line += ","
+						yield line
 			self._level -= 1
 			if not self._inattr:
 				yield "%s)" % self._indent()
@@ -1027,15 +1023,17 @@ class CodePresenter(Presenter):
 		return self.presentFrag(node)
 
 
-defaultpresenter = PlainPresenter # used for __repr__
-hookpresenter = TreePresenter # used in the displayhook below
+defaultpresenter = CodePresenter # used in the displayhook below
 
+try:
+	from IPython import ipapi
+	api = ipapi.get()
+except (ImportError, AttributeError):
+	api = None
 
-def displayhook(out, obj):
-	if isinstance(obj, xsc.Node):
-		encoding = getattr(sys.stdout, "encoding", sys.getdefaultencoding())
-		for part in obj.repr(hookpresenter(encoding=encoding)):
-			out.write(part)
-		out.write("\n")
-		return True
-	return False
+if api is not None:
+	def displayhook(self, obj):
+		if isinstance(obj, xsc.Node):
+			(defaultpresenter(obj) | ipipe.defaultdisplay).display()
+		raise ipapi.TryNext
+	api.set_hook("result_display", displayhook)
