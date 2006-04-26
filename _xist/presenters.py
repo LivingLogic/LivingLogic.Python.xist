@@ -956,6 +956,6 @@ except (ImportError, AttributeError):
 if api is not None:
 	def displayhook(self, obj):
 		if isinstance(obj, xsc.Node) and defaultpresenter is not None:
-			(defaultpresenter(obj) | ipipe.defaultdisplay).display()
-		raise ipapi.TryNext
+			obj = defaultpresenter(obj)
+		raise ipapi.TryNext(obj)
 	api.set_hook("result_display", displayhook)
