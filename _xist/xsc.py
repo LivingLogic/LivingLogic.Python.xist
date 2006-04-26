@@ -690,7 +690,7 @@ _ipipe_ns.__name__ = "ns"
 def _ipipe_name(node):
 	"The element/procinst/entity/attribute name of the node"
 	if isinstance(node, (Element, ProcInst, Entity, Attr)):
-		return node.__fullname__()
+		return "%s.%s" % (node.__class__.__module__, node.__fullname__())
 	raise AttributeError
 _ipipe_name.__name__ = "name"
 
