@@ -678,13 +678,13 @@ def _ipipe_type(node):
 	elif isinstance(node, Frag):
 		return "frag"
 	raise AttributeError
-_ipipe_type.__name__ = "type"
+_ipipe_type.__xname__ = "type"
 
 
 def _ipipe_ns(node):
 	"The namespace"
 	return getattr(node, "__ns__", None)
-_ipipe_ns.__name__ = "ns"
+_ipipe_ns.__xname__ = "ns"
 
 
 def _ipipe_name(node):
@@ -692,7 +692,7 @@ def _ipipe_name(node):
 	if isinstance(node, (Element, ProcInst, Entity, Attr)):
 		return "%s.%s" % (node.__class__.__module__, node.__fullname__())
 	raise AttributeError
-_ipipe_name.__name__ = "name"
+_ipipe_name.__xname__ = "name"
 
 
 def _ipipe_childrencount(node):
@@ -702,7 +702,7 @@ def _ipipe_childrencount(node):
 	elif isinstance(node, Frag):
 		return len(node)
 	raise AttributeError
-_ipipe_childrencount.__name__ = "# children"
+_ipipe_childrencount.__xname__ = "# children"
 
 
 def _ipipe_attrscount(node):
@@ -710,7 +710,7 @@ def _ipipe_attrscount(node):
 	if isinstance(node, Element):
 		return len(node.attrs)
 	raise AttributeError
-_ipipe_attrscount.__name__ = "# attrs"
+_ipipe_attrscount.__xname__ = "# attrs"
 
 
 def _ipipe_content(node):
@@ -720,7 +720,7 @@ def _ipipe_content(node):
 	elif isinstance(node, Attr):
 		return unicode(node)
 	raise AttributeError
-_ipipe_content.__name__ = "content"
+_ipipe_content.__xname__ = "content"
 
 
 ###
