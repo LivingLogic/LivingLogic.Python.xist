@@ -32,7 +32,7 @@ class Code(object):
 			rest = line.lstrip()
 			white = line[:len(line)-len(rest)]
 			lines[i] = [white, rest]
-		# drop all empty lines at the beginning; if we drop a line we no longer have to handle the first specifically
+		# drop all empty lines at the beginning; if we drop a line, we no longer have to handle the first specifically
 		while lines and not lines[0][1]:
 			del lines[0]
 			ignorefirst = False
@@ -70,11 +70,11 @@ class Code(object):
 		self.indent()
 		self.lines.insert(0, [u"", u"def %s(converter):" % name])
 
-	def asString(self):
+	def asstring(self):
 		v = []
 		for line in self.lines:
-			v += line
-			v += u"\n"
+			v.extend(line)
+			v.append(u"\n")
 		return u"".join(v)
 
 
@@ -89,9 +89,9 @@ class pyexec(xsc.ProcInst):
 	"""
 
 	def convert(self, converter):
-		code = Code(self.content, 1)
+		code = Code(self.content, True)
 		sandbox = converter[self.__ns__].sandbox
-		exec code.asString() in sandbox # requires Python 2.0b2 (and doesn't really work)
+		exec code.asstring() in sandbox # requires Python 2.0b2 (and doesn't really work)
 		return xsc.Null
 
 
@@ -116,10 +116,10 @@ class pyeval(xsc.ProcInst):
 		The <arg>converter</arg> argument will be available
 		under the name <arg>converter</arg> as an argument to the function.</par>
 		"""
-		code = Code(self.content, 1)
+		code = Code(self.content, True)
 		code.funcify()
 		sandbox = converter[self.__ns__].sandbox
-		exec code.asString() in sandbox # requires Python 2.0b2 (and doesn't really work)
+		exec code.asstring() in sandbox # requires Python 2.0b2 (and doesn't really work)
 		return xsc.tonode(sandbox["__"](converter)).convert(converter)
 
 
@@ -133,4 +133,3 @@ class __ns__(xsc.Namespace):
 			self.sandbox = {}
 
 __ns__.makemod(vars())
-
