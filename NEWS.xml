@@ -3,7 +3,7 @@
 <ulist>
 <item>On publishing <class>ll.xist.ns.html.html</class> now only adds a
 <lit>lang</lit> and <lit>xml:lang</lit> attribute, if neither of them exists.</item>
-<item>Namespaces for RSS 0.91 and RSS 2.0 have been added.</item>
+<item>Namespaces for RSS 0.91, RSS 2.0 and Atom 1.0 have been added.</item>
 </ulist>
 </section>
 
