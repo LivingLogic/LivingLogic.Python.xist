@@ -26,7 +26,7 @@ import sys, os, keyword, codecs
 try:
 	from IPython.Extensions import ipipe
 except ImportError:
-	ipipe = None
+	from ll import ipipe
 
 from ll import misc, astyle, url
 
@@ -234,15 +234,7 @@ def strTextInAttr(text):
 	return s4attrvalue(text)
 
 
-if ipipe is not None:
-	presenterbase = ipipe.Table
-else:
-	class presenterbase(object):
-		def __iter__(self):
-			return self.__xiter__("default")
-
-
-class Presenter(presenterbase):
+class Presenter(ipipe.Table):
 	"""
 	<par>This class is the base of the presenter classes. It is abstract
 	and only serves as documentation for the methods.</par>
