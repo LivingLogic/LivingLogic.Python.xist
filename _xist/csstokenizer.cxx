@@ -1508,7 +1508,7 @@ static void parser_del(CSSTokenizer *self)
 	Py_XDECREF(self->startDocument);
 	Py_XDECREF(self->endDocument);
 	Py_XDECREF(self->token);
-	PyMem_DEL(self);
+	PyObject_DEL(self);
 }
 
 static PyObject *parser_getattr(CSSTokenizer *self, char *name)
