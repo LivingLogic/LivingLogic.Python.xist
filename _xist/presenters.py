@@ -235,7 +235,7 @@ def strTextInAttr(text):
 	return s4attrvalue(text)
 
 
-class Presenter(ipipe.Table):
+class Presenter(table):
 	"""
 	<par>This class is the base of the presenter classes. It is abstract
 	and only serves as documentation for the methods.</par>
