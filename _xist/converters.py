@@ -21,7 +21,7 @@ import xsc
 
 
 class ConverterState(object):
-	def __init__(self, node, root, mode, stage, target, lang, makeaction, maketarget):
+	def __init__(self, node, root, mode, stage, target, lang, makeaction, makeproject):
 		self.node = node
 		self.root = root
 		self.mode = mode
@@ -32,7 +32,7 @@ class ConverterState(object):
 		self.target = target
 		self.lang = lang
 		self.makeaction = makeaction
-		self.maketarget = maketarget
+		self.makeproject = makeproject
 
 
 class Converter(object):
@@ -43,7 +43,7 @@ class Converter(object):
 	A typical example are nested chapter/subchapter elements with automatic numbering.
 	For an example see the element <pyref module="ll.xist.ns.doc" class="section"><class>ll.xist.ns.doc.section</class></pyref>.</par>
 	"""
-	def __init__(self, node=None, root=None, mode=None, stage=None, target=None, lang=None, makeaction=None, maketarget=None):
+	def __init__(self, node=None, root=None, mode=None, stage=None, target=None, lang=None, makeaction=None, makeproject=None):
 		"""
 		<par>Create a <class>Converter</class>.</par>
 		<par>Arguments are used to initialize the <class>Converter</class> properties of the
