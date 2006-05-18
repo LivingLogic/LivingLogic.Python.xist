@@ -25,8 +25,9 @@ import sys, os, keyword, codecs
 # IPython/ipipe support
 try:
 	from IPython.Extensions import ipipe
+	table = ipipe.Table
 except ImportError:
-	from ll import ipipe
+	table = object
 
 from ll import misc, astyle, url
 
