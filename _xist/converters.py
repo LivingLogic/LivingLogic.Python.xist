@@ -49,7 +49,7 @@ class Converter(object):
 		<par>Arguments are used to initialize the <class>Converter</class> properties of the
 		same name.</par>
 		"""
-		self.states = [ ConverterState(node=node, root=root, mode=mode, stage=stage, target=target, lang=lang, makeaction=makeaction, maketarget=maketarget)]
+		self.states = [ ConverterState(node=node, root=root, mode=mode, stage=stage, target=target, lang=lang, makeaction=makeaction, makeproject=makeproject)]
 		self.contexts = {}
 
 	class node(misc.propclass):
