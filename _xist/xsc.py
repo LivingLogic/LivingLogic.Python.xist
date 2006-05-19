@@ -1307,10 +1307,6 @@ class Node(Base):
 	def __xattrs__(self, mode):
 		return ("startloc", _ipipe_type, _ipipe_ns, _ipipe_name, _ipipe_content, _ipipe_childrencount, _ipipe_attrscount)
 
-	def __xrepr__(self, mode):
-		yield (-1, True)
-		yield (ipipe.style_default, repr(self))
-
 
 class CharacterData(Node):
 	"""
@@ -3433,10 +3429,6 @@ class Element(Node):
 			loc = ""
 		return "<%s.%s element object (%s/%s)%s at 0x%x>" % (self.__class__.__module__, self.__fullname__(), infoc, infoa, loc, id(self))
 
-	def __xrepr__(self, mode):
-		yield (-1, True)
-		yield (ipipe.style_default, repr(self))
-
 	def __xiter__(self, mode):
 		if mode is None:
 			yield ipipe.XMode(self, "content", "content", "the element content (%d children)" % len(self.content))
@@ -3971,11 +3963,10 @@ class _Namespace_Meta(Base.__metaclass__, misc.Namespace.__metaclass__):
 		return super(_Namespace_Meta, self).__setattr__(key, value)
 
 	def __xrepr__(self, mode):
-		yield (-1, True)
 		if mode == "cell":
-			yield (ipipe.style_url, self.xmlurl)
+			yield (astyle.style_url, self.xmlurl)
 		else:
-			yield (ipipe.style_default, repr(self))
+			yield (astyle.style_default, repr(self))
 
 	def __xiter__(self, mode):
 		if mode is None:
@@ -4525,11 +4516,10 @@ class Location(object):
 		return ("sysid", "pubid", "line", "col")
 
 	def __xrepr__(self, mode):
-		yield (-1, True)
-		yield (ipipe.style_url, self.sysid)
-		yield (ipipe.style_default, ":")
+		yield (astyle.style_url, self.sysid)
+		yield (astyle.style_default, ":")
 		for part in ipipe.xrepr(self.line, mode):
 			yield part
-		yield (ipipe.style_default, ":")
+		yield (astyle.style_default, ":")
 		for part in ipipe.xrepr(self.col, mode):
 			yield part
