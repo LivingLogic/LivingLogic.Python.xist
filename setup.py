@@ -6,7 +6,11 @@
 __version__ = tuple(map(int,"$Revision$"[11:-2].split(".")))
 # $Source$
 
-from distutils.core import setup, Extension
+try:
+	import setuptools as tools
+except ImportError:
+	from distutils import core as tools
+
 import textwrap
 
 DESCRIPTION = """
@@ -46,9 +50,10 @@ Relax NG
 
 DESCRIPTION = "\n".join(textwrap.wrap(DESCRIPTION.strip(), width=64, replace_whitespace=True))
 
-setup(
+
+args = dict(
 	name="ll-xist",
-	version="2.13",
+	version="2.14",
 	description="An extensible HTML/XML generator",
 	long_description=DESCRIPTION,
 	author=u"Walter Dörwald".encode("utf-8"),
@@ -58,16 +63,22 @@ setup(
 	license="Python",
 	classifiers=CLASSIFIERS.strip().splitlines(),
 	keywords=",".join(KEYWORDS.strip().splitlines()),
-	packages=["ll.xist", "ll.xist.ns"],
-	package_dir={"ll.xist": "_xist"},
+	package_dir={"src": ""},
+	packages=["ll", "ll.xist", "ll.xist.ns"],
 	ext_modules=[
-		Extension("ll.xist.csstokenizer", ["_xist/csstokenizer.cxx"]),
-		Extension("ll.xist.helpers", ["_xist/helpers.c"])
+		tools.Extension("ll.xist.csstokenizer", ["ll/xist/csstokenizer.cxx"]),
+		tools.Extension("ll.xist.helpers", ["ll/xist/helpers.c"])
 	],
 	scripts=[
 		"scripts/dtd2xsc.py",
 		"scripts/tld2xsc.py",
 		"scripts/doc2txt.py",
 		"scripts/xml2xsc.py",
-	]
+	],
+	namespace_packages=["ll"],
+	always_unzip=True
 )
+
+
+if __name__ == "__main__":
+	tools.setup(**args)
