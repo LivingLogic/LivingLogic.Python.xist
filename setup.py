@@ -6,12 +6,14 @@
 __version__ = tuple(map(int,"$Revision$"[11:-2].split(".")))
 # $Source$
 
+
 try:
 	import setuptools as tools
 except ImportError:
 	from distutils import core as tools
 
 import textwrap
+
 
 DESCRIPTION = """
 XIST is an extensible HTML and XML generator. XIST is also a DOM parser
@@ -64,19 +66,34 @@ args = dict(
 	classifiers=CLASSIFIERS.strip().splitlines(),
 	keywords=",".join(KEYWORDS.strip().splitlines()),
 	package_dir={"": "src"},
-	packages=["ll", "ll.xist", "ll.xist.ns"],
+	packages=["ll", "ll.xist", "ll.xist.ns", "ll.xist.scripts"],
 	ext_modules=[
 		tools.Extension("ll.xist.csstokenizer", ["src/ll/xist/csstokenizer.cxx"]),
 		tools.Extension("ll.xist.helpers", ["src/ll/xist/helpers.c"])
 	],
+	entry_points=dict(
+		console_scripts=[
+			"dtd2xsc = ll.xist.scripts.dtd2xsc:main",
+			"tld2xsc = ll.xist.scripts.tld2xsc:main",
+			"doc2txt = ll.xist.scripts.doc2txt:main",
+			"xml2xsc = ll.xist.scripts.xml2xsc:main",
+		]
+	),
 	scripts=[
 		"scripts/dtd2xsc.py",
 		"scripts/tld2xsc.py",
 		"scripts/doc2txt.py",
 		"scripts/xml2xsc.py",
 	],
+	install_requires=[
+		"ll-core >= 1.3",
+		"PyXML >= 0.8.4",
+	],
 	namespace_packages=["ll"],
-	zip_safe=False
+	zip_safe=False,
+	dependency_links=[
+		"http://sourceforge.net/project/showfiles.php?group_id=6473", # PyXML
+	],
 )
 
 
