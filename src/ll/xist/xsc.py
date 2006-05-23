@@ -868,7 +868,7 @@ class Node(Base):
 		"""
 		# Subclasses of Node implement this method by calling the appropriate present* method in the publisher (i.e. double dispatch)
 
-	def conv(self, converter=None, root=None, mode=None, stage=None, target=None, lang=None, function=None, makeaction=None, maketarget=None):
+	def conv(self, converter=None, root=None, mode=None, stage=None, target=None, lang=None, function=None, makeaction=None, makeproject=None):
 		"""
 		<par>Convenience method for calling <pyref method="convert"><method>convert</method></pyref>.</par>
 		<par><method>conv</method> will automatically set <lit><arg>converter</arg>.node</lit> to <self/> to remember the
@@ -877,10 +877,10 @@ class Node(Base):
 		<pyref method="convert"><method>convert</method></pyref> directly instead.</par>
 		"""
 		if converter is None:
-			converter = converters.Converter(node=self, root=root, mode=mode, stage=stage, target=target, lang=lang, makeaction=makeaction, maketarget=maketarget)
+			converter = converters.Converter(node=self, root=root, mode=mode, stage=stage, target=target, lang=lang, makeaction=makeaction, makeproject=makeproject)
 			return self.convert(converter)
 		else:
-			converter.push(node=self, root=root, mode=mode, stage=stage, target=target, lang=lang, makeaction=makeaction, maketarget=maketarget)
+			converter.push(node=self, root=root, mode=mode, stage=stage, target=target, lang=lang, makeaction=makeaction, makeproject=makeproject)
 			node = self.convert(converter)
 			converter.pop()
 			return node

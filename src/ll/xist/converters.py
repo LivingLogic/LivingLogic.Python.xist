@@ -158,22 +158,6 @@ class Converter(object):
 		def __delete__(self):
 			self.states[-1].makeaction = None
 
-	class maketarget(misc.propclass):
-		"""
-		<par>If an &xist; conversion is done by an <pyref module="ll.make" class="XISTConvertAction"><class>XISTConvertAction</class></pyref>
-		this property will hold the <pyref module="ll.make" class="Target"><class>Target</class></pyref> object during that conversion.
-		If you're not using the <pyref module="ll.make"><module>make</module></pyref> module you can simply ignore this property.
-		The default is <lit>None</lit>.</par>
-		"""
-		def __get__(self):
-			return self.states[-1].maketarget
-	
-		def __set__(self, maketarget):
-			self.states[-1].maketarget = maketarget
-	
-		def __delete__(self):
-			self.states[-1].maketarget = None
-
 	class makeproject(misc.propclass):
 		"""
 		<par>If an &xist; conversion is done by an <pyref module="ll.make" class="XISTConvertAction"><class>XISTConvertAction</class></pyref>
@@ -181,13 +165,15 @@ class Converter(object):
 		If you're not using the <pyref module="ll.make"><module>make</module></pyref> module you can simply ignore this property.
 		"""
 		def __get__(self):
-			maketarget = self.maketarget
-			if maketarget is None:
-				return None
-			else:
-				return maketarget.project
+			return self.states[-1].makeproject
+	
+		def __set__(self, makeproject):
+			self.states[-1].makeproject = makeproject
+	
+		def __delete__(self):
+			self.states[-1].makeproject = None
 
-	def push(self, node=None, root=None, mode=None, stage=None, target=None, lang=None, makeaction=None, maketarget=None):
+	def push(self, node=None, root=None, mode=None, stage=None, target=None, lang=None, makeaction=None, makeproject=None):
 		self.lastnode = None
 		if node is None:
 			node = self.node
@@ -203,9 +189,9 @@ class Converter(object):
 			lang = self.lang
 		if makeaction is None:
 			makeaction = self.makeaction
-		if maketarget is None:
-			maketarget = self.maketarget
-		self.states.append(ConverterState(node=node, root=root, mode=mode, stage=stage, target=target, lang=lang, makeaction=makeaction, maketarget=maketarget))
+		if makeproject is None:
+			makeproject = self.makeproject
+		self.states.append(ConverterState(node=node, root=root, mode=mode, stage=stage, target=target, lang=lang, makeaction=makeaction, makeproject=makeproject))
 
 	def pop(self):
 		if len(self.states)==1:
