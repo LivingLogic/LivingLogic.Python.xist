@@ -63,11 +63,11 @@ args = dict(
 	license="Python",
 	classifiers=CLASSIFIERS.strip().splitlines(),
 	keywords=",".join(KEYWORDS.strip().splitlines()),
-	package_dir={"src": ""},
+	package_dir={"": "src"},
 	packages=["ll", "ll.xist", "ll.xist.ns"],
 	ext_modules=[
-		tools.Extension("ll.xist.csstokenizer", ["ll/xist/csstokenizer.cxx"]),
-		tools.Extension("ll.xist.helpers", ["ll/xist/helpers.c"])
+		tools.Extension("ll.xist.csstokenizer", ["src/ll/xist/csstokenizer.cxx"]),
+		tools.Extension("ll.xist.helpers", ["src/ll/xist/helpers.c"])
 	],
 	scripts=[
 		"scripts/dtd2xsc.py",
@@ -76,7 +76,7 @@ args = dict(
 		"scripts/xml2xsc.py",
 	],
 	namespace_packages=["ll"],
-	always_unzip=True
+	zip_safe=False
 )
 
 
