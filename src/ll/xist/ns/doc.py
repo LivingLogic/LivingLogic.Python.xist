@@ -49,30 +49,30 @@ class base(xsc.Element):
 
 			self.indentcount = 0
 
-			self.vspaceattrs = {
-				u"space_before": u"0pt",
-				u"space_after_minimum": u"4pt",
-				u"space_after_optimum": u"6pt",
-				u"space_after_maximum": u"12pt",
-				u"space_after_conditionality": u"discard",
-			}
+			self.vspaceattrs = dict(
+				space_before=u"0pt",
+				space_after_minimum=u"4pt",
+				space_after_optimum=u"6pt",
+				space_after_maximum=u"12pt",
+				space_after_conditionality=u"discard",
+			)
 
-			self.linkattrs = {
-				u"color": u"blue",
-				u"text_decoration": u"underline"
-			}
+			self.linkattrs = dict(
+				color=u"blue",
+				text_decoration=u"underline",
+			)
 
-			self.codeattrs = {
-				u"font_family": self.ttfont
-			}
+			self.codeattrs = dict(
+				font_family=self.ttfont,
+			)
 
-			self.repattrs = {
-				u"font_style": u"italic"
-			}
+			self.repattrs = dict(
+				font_style=u"italic",
+			)
 
-			self.emattrs = {
-				u"font_weight": u"bold"
-			}
+			self.emattrs = dict(
+				font_weight=u"bold",
+			)
 
 		def dedent(self):
 			return u"-0.7cm"
