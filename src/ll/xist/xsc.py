@@ -3905,39 +3905,11 @@ class _Namespace_Meta(Base.__metaclass__, misc.Namespace.__metaclass__):
 		return hash(self.xmlname) ^ hash(self.xmlurl)
 
 	def __repr__(self):
-		counts = []
-
-		elementkeys = self.elementkeys()
-		if elementkeys:
-			counts.append("%d elements" % len(elementkeys))
-
-		procinstkeys = self.procinstkeys()
-		if procinstkeys:
-			counts.append("%d procinsts" % len(procinstkeys))
-
-		entitykeys = self.entitykeys()
-		charrefkeys = self.charrefkeys()
-		count = len(entitykeys)-len(charrefkeys)
-		if count:
-			counts.append("%d entities" % count)
-
-		if len(charrefkeys):
-			counts.append("%d charrefs" % len(charrefkeys))
-
-		allowedattrs = self.Attrs.allowedkeys()
-		if len(allowedattrs):
-			counts.append("%d attrs" % len(allowedattrs))
-
-		if counts:
-			counts = " with " + ", ".join(counts)
-		else:
-			counts = ""
-
 		if "__file__" in self.__dict__: # no inheritance
 			fromfile = " from %r" % self.__file__
 		else:
 			fromfile = ""
-		return "<namespace %s:%s name=%r url=%r%s%s at 0x%x>" % (self.__module__, self.__originalname, self.xmlname, self.xmlurl, counts, fromfile, id(self))
+		return "<namespace %s:%s name=%r url=%r%s at 0x%x>" % (self.__module__, self.__originalname, self.xmlname, self.xmlurl, fromfile, id(self))
 
 	def __delattr__(self, key):
 		value = self.__dict__.get(key, None) # no inheritance
