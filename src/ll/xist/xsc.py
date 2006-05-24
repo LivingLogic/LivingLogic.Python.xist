@@ -3909,7 +3909,7 @@ class _Namespace_Meta(Base.__metaclass__, misc.Namespace.__metaclass__):
 			fromfile = " from %r" % self.__file__
 		else:
 			fromfile = ""
-		return "<namespace %s:%s url=%r%s at 0x%x>" % (self.__module__, self.__originalname, self.xmlurl, fromfile, id(self))
+		return "<ns %s:%s url=%r%s at 0x%x>" % (self.__module__, self.__originalname, self.xmlurl, fromfile, id(self))
 
 	def __delattr__(self, key):
 		value = self.__dict__.get(key, None) # no inheritance
