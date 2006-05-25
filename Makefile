@@ -3,20 +3,11 @@
 # List of pseudo targets
 .PHONY: all test install clean dist windist
 
-# Output directory
-OUTPUTDIR=$(HOME)/pythonroot
-
-# Install directory for globally callable scripts
-SCRIPTDIR=$(HOME)/pythonscripts
-
 all:
-	python$(PYVERSION) setup.py install --install-lib $(OUTPUTDIR) --install-scripts $(SCRIPTDIR)
+	python$(PYVERSION) setup.py install
 
 test: all
 	py.test
-
-install:
-	python$(PYVERSION) setup.py install
 
 clean:
 	python$(PYVERSION) setup.py clean
