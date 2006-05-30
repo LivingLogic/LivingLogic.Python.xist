@@ -2338,13 +2338,13 @@ class Attrs(Node, dict):
 	"""
 	__metaclass__ = _Attrs_Meta
 
-	def __init__(self, content=None, **attrs):
+	def __init__(self, _content=None, **attrs):
 		dict.__init__(self)
 		# set default attribute values
 		for (key, value) in self._defaultattrs[False].iteritems():
 			self[key] = value.default.clone()
 		# set attributes, this might overwrite (or delete) default attributes
-		self.update(content, **attrs)
+		self.update(_content, **attrs)
 
 	def __eq__(self, other):
 		return self.__class__ is other.__class__ and dict.__eq__(self, other)
