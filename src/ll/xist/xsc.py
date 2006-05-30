@@ -142,17 +142,8 @@ class Base(object):
 ### Magic constants for tree traversal
 ###
 
-class Const(object):
-	__slots__ = ("_name")
-
-	def __init__(self, name):
-		self._name = name
-
-	def __repr__(self):
-		return "%s.%s" % (self.__module__, self._name)
-
-entercontent = Const("entercontent")
-enterattrs = Const("enterattrs")
+entercontent = misc.Const("entercontent")
+enterattrs = misc.Const("enterattrs")
 
 
 ###
