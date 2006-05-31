@@ -10,107 +10,53 @@
 
 #include "Python.h"
 
-static Py_UNICODE lt[] = { ((Py_UNICODE)'&'), ((Py_UNICODE)'l'), ((Py_UNICODE)'t'), ((Py_UNICODE)';') };
-static Py_UNICODE gt[] = { ((Py_UNICODE)'&'), ((Py_UNICODE)'g'), ((Py_UNICODE)'t'), ((Py_UNICODE)';') };
-static Py_UNICODE amp[] = { ((Py_UNICODE)'&'), ((Py_UNICODE)'a'), ((Py_UNICODE)'m'), ((Py_UNICODE)'p'), ((Py_UNICODE)';') };
-static Py_UNICODE quot[] = { ((Py_UNICODE)'&'), ((Py_UNICODE)'q'), ((Py_UNICODE)'u'), ((Py_UNICODE)'o'), ((Py_UNICODE)'t'), ((Py_UNICODE)';') };
 
-static Py_UNICODE hexdigits[] = { (Py_UNICODE)'0', (Py_UNICODE)'1', (Py_UNICODE)'2', (Py_UNICODE)'3', (Py_UNICODE)'4', (Py_UNICODE)'5', (Py_UNICODE)'6', (Py_UNICODE)'7', (Py_UNICODE)'8', (Py_UNICODE)'9', (Py_UNICODE)'A', (Py_UNICODE)'B', (Py_UNICODE)'C', (Py_UNICODE)'D', (Py_UNICODE)'E', (Py_UNICODE)'F' };
+/* define unicode version of escape */
+#define STRINGLIB_NAME escape_unicode
+#define STRINGLIB_CHAR Py_UNICODE
+#define STRINGLIB_LEN  PyUnicode_GET_SIZE
+#define STRINGLIB_NEW  PyUnicode_FromUnicode
+#define STRINGLIB_STR  PyUnicode_AS_UNICODE
 
-#define COUNTOF(x) (sizeof(x)/sizeof((x)[0]))
+#include "helpers.h"
+
+#undef STRINGLIB_NAME
+#undef STRINGLIB_CHAR
+#undef STRINGLIB_LEN
+#undef STRINGLIB_NEW
+#undef STRINGLIB_STR
+
+
+/* define str version of escape */
+#define STRINGLIB_NAME escape_str
+#define STRINGLIB_CHAR unsigned char
+#define STRINGLIB_LEN PyString_GET_SIZE
+#define STRINGLIB_NEW PyString_FromStringAndSize
+#define STRINGLIB_STR PyString_AS_STRING
+
+#include "helpers.h"
+
+#undef STRINGLIB_NAME
+#undef STRINGLIB_CHAR
+#undef STRINGLIB_LEN
+#undef STRINGLIB_NEW
+#undef STRINGLIB_STR
 
 
 static PyObject *escape(PyObject *str, int inattr)
 {
-	int i;
-	int oldsize;
-	int newsize = 0;
-
-	oldsize = PyUnicode_GET_SIZE(str);
-	for (i = 0; i < oldsize; ++i)
+	if (PyUnicode_Check(str))
 	{
-		Py_UNICODE ch = PyUnicode_AS_UNICODE(str)[i];
-		if (ch == ((Py_UNICODE)'<'))
-			newsize += COUNTOF(lt);
-		else if (ch == (Py_UNICODE)'>') /* Note that we always replace '>' with its entity, not just in case it is part of ']]>' */
-			newsize += COUNTOF(gt);
-		else if (ch == (Py_UNICODE)'&')
-			newsize += COUNTOF(amp);
-		else if ((ch == (Py_UNICODE)'"') && inattr)
-			newsize += COUNTOF(quot);
-		else if (ch <= 0x8)
-			newsize += 4;
-		else if ((ch >= 0xB) && (ch <= 0x1F) && (ch != 0xD))
-			newsize += 5;
-		else if ((ch >= 0x7F) && (ch <= 0x9F) && (ch != 0x85))
-			newsize += 6;
-		else
-			newsize++;
+		return escape_unicode(str, inattr);
 	}
-	if (oldsize==newsize)
+	else if (PyString_Check(str))
 	{
-		/* nothing to replace => return original */
-		Py_INCREF(str);
-		return str;
+		return escape_str(str, inattr);
 	}
 	else
 	{
-		PyObject *result = PyUnicode_FromUnicode(NULL, newsize);
-		Py_UNICODE *p;
-		if (result == NULL)
-			return NULL;
-		p = PyUnicode_AS_UNICODE(result);
-		for (i = 0; i < oldsize; ++i)
-		{
-			Py_UNICODE ch = PyUnicode_AS_UNICODE(str)[i];
-			if (ch == (Py_UNICODE)'<')
-			{
-				Py_UNICODE_COPY(p, lt, COUNTOF(lt));
-				p += COUNTOF(lt);
-			}
-			else if (ch == (Py_UNICODE)'>')
-			{
-				Py_UNICODE_COPY(p, gt, COUNTOF(gt));
-				p += COUNTOF(gt);
-			}
-			else if (ch == (Py_UNICODE)'&')
-			{
-				Py_UNICODE_COPY(p, amp, COUNTOF(amp));
-				p += COUNTOF(amp);
-			}
-			else if ((ch == (Py_UNICODE)'"') && inattr)
-			{
-				Py_UNICODE_COPY(p, quot, COUNTOF(quot));
-				p += COUNTOF(quot);
-			}
-			else if (ch <= 0x8)
-			{
-				*p++ = (Py_UNICODE)'&';
-				*p++ = (Py_UNICODE)'#';
-				*p++ = (Py_UNICODE)('0'+ch);
-				*p++ = (Py_UNICODE)';';
-			}
-			else if ((ch >= 0xB) && (ch <= 0x1F) && (ch != 0xD))
-			{
-				*p++ = (Py_UNICODE)'&';
-				*p++ = (Py_UNICODE)'#';
-				*p++ = (Py_UNICODE)('0'+ch/10);
-				*p++ = (Py_UNICODE)('0'+ch%10);
-				*p++ = (Py_UNICODE)';';
-			}
-			else if ((ch >= 0x7F) && (ch <= 0x9F) && (ch != 0x85))
-			{
-				*p++ = (Py_UNICODE)'&';
-				*p++ = (Py_UNICODE)'#';
-				*p++ = (Py_UNICODE)('0'+ch/100);
-				*p++ = (Py_UNICODE)('0'+(ch/10)%10);
-				*p++ = (Py_UNICODE)('0'+ch%10);
-				*p++ = (Py_UNICODE)';';
-			}
-			else
-				*p++ = ch;
-		}
-		return result;
+		PyErr_SetString(PyExc_TypeError, "need str or unicode");
+		return NULL;
 	}
 }
 
@@ -123,14 +69,9 @@ Return a copy of the string S, where every occurrence of\n\
 with its XML character entity or character reference.";
 
 
-static PyObject *escapetext(PyObject *self, PyObject *args)
+static PyObject *escapetext(PyObject *self, PyObject *arg)
 {
-	PyObject *str;
-
-	if (!PyArg_ParseTuple(args, "O!:escapetext", &PyUnicode_Type, &str))
-		return NULL;
-
-	return escape(str, 0);
+	return escape(arg, 0);
 }
 
 
@@ -142,14 +83,9 @@ Return a copy of the string S, where every occurrence of\n\
 with their XML character entity or character reference.";
 
 
-static PyObject *escapeattr(PyObject *self, PyObject *args)
+static PyObject *escapeattr(PyObject *self, PyObject *arg)
 {
-	PyObject *str;
-
-	if (!PyArg_ParseTuple(args, "O!:escapeattr", &PyUnicode_Type, &str))
-		return NULL;
-
-	return escape(str, 1);
+	return escape(arg, 1);
 }
 
 
@@ -160,6 +96,8 @@ Return a copy of the string S, where every unencodable character\n\
 in the specified encoding has been replaced with a \\xx hexadecimal\n\
 escape sequence.";
 
+
+static Py_UNICODE hexdigits[] = { (Py_UNICODE)'0', (Py_UNICODE)'1', (Py_UNICODE)'2', (Py_UNICODE)'3', (Py_UNICODE)'4', (Py_UNICODE)'5', (Py_UNICODE)'6', (Py_UNICODE)'7', (Py_UNICODE)'8', (Py_UNICODE)'9', (Py_UNICODE)'A', (Py_UNICODE)'B', (Py_UNICODE)'C', (Py_UNICODE)'D', (Py_UNICODE)'E', (Py_UNICODE)'F' };
 
 static PyObject *cssescapereplace(PyObject *self, PyObject *args)
 {
@@ -307,34 +245,14 @@ static PyObject *cssescapereplace(PyObject *self, PyObject *args)
 }
 
 
-static char strict__doc__[] =
-"strict(unicode, encoding) -> unicode\n\
-\n\
-Return a copy of the string S without any replacements.";
-
-
-static PyObject *strict(PyObject *self, PyObject *args)
-{
-	PyObject *str;
-	const char *encoding;
-
-	if (!PyArg_ParseTuple(args, "O!s:strict", &PyUnicode_Type, &str, &encoding))
-		return NULL;
-
-	Py_INCREF(str);
-	return str;
-}
-
-
 /* ==================================================================== */
 /* python module interface */
 
 static PyMethodDef _functions[] =
 {
 	{"cssescapereplace", cssescapereplace, METH_VARARGS, cssescapereplace__doc__ },
-	{"strict",           strict,           METH_VARARGS, strict__doc__ },
-	{"escapetext",       escapetext,       METH_VARARGS, escapetext__doc__},
-	{"escapeattr",       escapeattr,       METH_VARARGS, escapeattr__doc__},
+	{"escapetext",       escapetext,       METH_O      , escapetext__doc__},
+	{"escapeattr",       escapeattr,       METH_O      , escapeattr__doc__},
 	{NULL, NULL}
 };
 
