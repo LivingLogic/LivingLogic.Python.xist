@@ -4,6 +4,11 @@
 <item>On publishing <class>ll.xist.ns.html.html</class> now only adds a
 <lit>lang</lit> and <lit>xml:lang</lit> attribute, if neither of them exists.</item>
 <item>Namespaces for RSS 0.91, RSS 2.0 and Atom 1.0 have been added.</item>
+<item>A new namespace <module>ll.xist.ns.venom</module> has been added that
+is similar to <module>ll.toxic</module> but can be used to generate Python
+code instead of PL/SQL code. Using <module>venom</module> templates is about
+50 times faster then using &xist; trees directly and about 10 times faster then
+<link href="http://kid.lesscode.org/">Kid</link>.</item>
 </ulist>
 </section>
 
