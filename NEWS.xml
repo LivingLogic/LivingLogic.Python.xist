@@ -7,7 +7,7 @@
 <item>A new namespace <module>ll.xist.ns.venom</module> has been added that
 is similar to <module>ll.toxic</module> but can be used to generate Python
 code instead of PL/SQL code. Using <module>venom</module> templates is about
-50 times faster then using &xist; trees directly and about 10 times faster then
+50 times faster than using &xist; trees directly and about 10 times faster than
 <link href="http://kid.lesscode.org/">Kid</link>.</item>
 </ulist>
 </section>
