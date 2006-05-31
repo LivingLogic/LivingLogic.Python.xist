@@ -4354,7 +4354,7 @@ class Namespace(Base, misc.Namespace):
 			else:
 				data = u""
 			try:
-				procinst = cls.procinst(target)
+				procinst = cls.procinst(target, xml=True)
 			except IllegalProcInstError:
 				# return unknown PIs as text
 				procinst = unicode
