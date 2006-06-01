@@ -312,7 +312,7 @@ def xml2py(cls, source):
 
 
 @classmethod
-def xml2mod(cls, source, name=None, filename="<string>", store=True, loader=None):
+def xml2mod(cls, source, name=None, filename="<string>", store=False, loader=None):
 	name = name or "ll.xist.ns.venom.sandbox_%x" % (hash(filename) + sys.maxint + 1)
 	module = new.module(name)
 	module.__file__ = filename
@@ -325,8 +325,9 @@ def xml2mod(cls, source, name=None, filename="<string>", store=True, loader=None
 	return module
 
 
-VENOMEXT = ".venom"
-VENOMFILE = object()
+# The following stuff has been copied from Kid's import hook
+
+VENOM_EXT = ".venom"
 
 
 @classmethod
@@ -340,7 +341,7 @@ def enable_import(cls, suffixes=None):
 
 		def find_module(self, fullname):
 			path = os.path.join(self.path, fullname.split(".")[-1])
-			for ext in [cls.VENOMEXT] + self.suffixes:
+			for ext in [cls.VENOM_EXT] + self.suffixes:
 				if os.path.exists(path + ext):
 					self.filename = path + ext
 					return self
@@ -350,7 +351,7 @@ def enable_import(cls, suffixes=None):
 			try:
 				return sys.modules[fullname]
 			except KeyError:
-				return cls.xml2mod(open(self.filename, "r").read(), fullname, self.filename, True, self)
+				return cls.xml2mod(open(self.filename, "r").read(), name=fullname, filename=self.filename, store=True, loader=self)
 
 	VenomLoader.suffixes = suffixes or []
 	sys.path_hooks.append(VenomLoader)
@@ -358,6 +359,6 @@ def enable_import(cls, suffixes=None):
 
 
 class __ns__(xsc.Namespace):
-	xmlname = "pox"
-	xmlurl = "http://xmlns.livinglogic.de/xist/ns/pox"
+	xmlname = "venom"
+	xmlurl = "http://xmlns.livinglogic.de/xist/ns/venom"
 __ns__.makemod(vars())
