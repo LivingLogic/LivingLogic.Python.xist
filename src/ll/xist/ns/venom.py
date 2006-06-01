@@ -130,7 +130,7 @@ __version__ = "$Revision$".split()[1]
 # $Source$
 
 
-import datetime
+import datetime, new
 
 from ll.xist import xsc
 
@@ -263,6 +263,13 @@ def xml2py(cls, source):
 		elif issubclass(t, endif):
 			endscope(if_)
 	return "\n".join(lines)
+
+
+@classmethod
+def xml2mod(cls, source, name="venom"):
+	mod = new.module(name)
+	exec cls.xml2py(source) in mod.__dict__
+	return mod
 
 
 class __ns__(xsc.Namespace):
