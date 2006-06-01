@@ -345,21 +345,21 @@ def xml2py(cls, source):
 
 	for (t, s) in cls.tokenize(source):
 		if t is unicode:
+			# ignore output outside of functions
 			if stackoutput and stackoutput[-1]:
 				lines.append("%syield %r" % (len(stack)*cls.indent, s))
-			# ignore output outside of functions
 		elif issubclass(t, expr):
+			# ignore output outside of functions
 			if stackoutput and stackoutput[-1]:
 				lines.append("%syield %s" % (len(stack)*cls.indent, s))
-			# ignore output outside of functions
 		elif issubclass(t, textexpr):
+			# ignore output outside of functions
 			if stackoutput and stackoutput[-1]:
 				lines.append("%syield __venom_escapetext__(%s)" % (len(stack)*cls.indent, s))
-			# ignore output outside of functions
 		elif issubclass(t, attrexpr):
+			# ignore output outside of functions
 			if stackoutput and stackoutput[-1]:
 				lines.append("%syield __venom_escapeattr__(%s)" % (len(stack)*cls.indent, s))
-			# ignore output outside of functions
 		elif issubclass(t, code):
 			lines.append("%s%s" % (len(stack)*cls.indent, s))
 		elif issubclass(t, def_):
