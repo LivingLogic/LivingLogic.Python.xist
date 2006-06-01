@@ -19,8 +19,8 @@ based on processing instructions embedded in &xml; or plain text.</par>
 from ll.xist.ns import venom
 
 template = """
-<?def helloworld()?>
-	<?for i in xrange(10)?>
+<?def helloworld(n=10)?>
+	<?for i in xrange(n)?>
 		Hello, World!
 	<?endfor?>
 <?enddef?>
