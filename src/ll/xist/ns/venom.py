@@ -11,116 +11,25 @@
 
 '''
 <par>This module is an &xist; namespace. It provides a simple template language
-based on processing intructions embedded in &xml; or plain text.</par>
+based on processing instructions embedded in &xml; or plain text.</par>
 
-<par>An example that generates an &html; table containing the result
-of a search for names in a <lit>person</lit> table might look
-like this:</par>
+<par>The following example is a simple Hello, World type template:</par>
 
-<example>
-<prog>
-from ll.xist import xsc
-from ll.xist.ns import html, htmlspecials
-from ll import toxic
+<prog><![CDATA[
+from ll.xist.ns import venom
 
-class search(xsc.Element):
-	def convert(self, converter):
-		e = xsc.Frag(
-			toxic.args("search varchar2"),
-			toxic.vars("i integer;"),
-			toxic.type("varchar2(32000);"),
-			htmlspecials.plaintable(
-				toxic.code("""
-					i := 1;
-					for row in (select name from person where name like search) loop
-						"""),
-						html.tr(
-							html.th(toxic.expr("i"), align="right"),
-							html.td(toxic.expr("xmlescape(row.name)"))
-						),
-						toxic.code("""
-						i := i+1;
-					end loop;
-				""")
-			)
-		)
-		return e.convert(converter)
+template = """
+<?def helloworld()?>
+	<?for i in xrange(10)?>
+		Hello, World!
+	<?endfor?>
+<?enddef?>
+"""
 
-print toxic.xml2ora(search().conv().asBytes("us-ascii"), "us-ascii")
-</prog>
-</example>
+module = venom.xml2mod(template)
 
-<par>Running this script will give the following output
-(the indentation will be different though):</par>
-
-<prog>
-(
-	search varchar2
-)
-return varchar2
-as
-	c_out varchar2(32000);
-	i integer;
-begin
-	c_out := c_out || '&lt;table cellpadding="0" border="0" cellspacing="0"&gt;';
-	i := 1;
-	for row in (select name from person where name like search) loop
-		c_out := c_out || '&lt;tr&gt;&lt;th align="right"&gt;';
-		c_out := c_out || i;
-		c_out := c_out || '&lt;/th&gt;&lt;td&gt;';
-		c_out := c_out || xmlescape(row.name);
-		c_out := c_out || '&lt;/td&gt;&lt;/tr&gt;';
-		i := i+1;
-	end loop;
-	c_out := c_out || '&lt;/table&gt;';
-	return c_out;
-end;
-</prog>
-
-<par>Instead of generating the &xml; from a single &xist; element,
-it's of course also possible to use an &xml; file. One that generates
-the same function as the one above looks like this:</par>
-
-<example>
-<prog>
-&lt;?args
-	search varchar2
-?&gt;
-&lt;?vars
-	i integer;
-?&gt;
-&lt;plaintable class="search"&gt;
-	&lt;?code
-		i := 1;
-		for row in (select name from person where name like search) loop
-			?&gt;
-			&lt;tr&gt;
-				&lt;th align="right"&gt;&lt;?expr i?&gt;&lt;/th&gt;
-				&lt;td&gt;&lt;?expr xmlescape(row.name)?&gt;&lt;/td&gt;
-			&lt;/tr&gt;
-			&lt;?code
-			i := i + 1;
-		end loop;
-	?&gt;
-&lt;/plaintable&gt;
-</prog>
-</example>
-
-<par>When we save the file above as <filename>search.sqlxsc</filename> then
-parsing the file, transforming it and printing the function body
-works like this:</par>
-
-<example>
-<prog>
-from ll.xist import parsers
-from ll.xist.ns import html, htmlspecials
-from ll import toxic
-
-node = parsers.parseFile("search.sqlxsc")
-node = node.conv()
-print toxic.xml2ora(node.asString("us-ascii"), "us-ascii")
-</prog>
-</example>
+print "".join(module.helloworld())
+]]></prog>
 '''
 
 
@@ -128,7 +37,7 @@ __version__ = "$Revision$".split()[1]
 # $Source$
 
 
-import datetime, new
+import sys, os, datetime, new
 
 from ll.xist import xsc
 
@@ -403,10 +312,49 @@ def xml2py(cls, source):
 
 
 @classmethod
-def xml2mod(cls, source, name="venom"):
-	mod = new.module(name)
-	exec cls.xml2py(source) in mod.__dict__
-	return mod
+def xml2mod(cls, source, name=None, filename="<string>", store=True, loader=None):
+	name = name or "ll.xist.ns.venom.sandbox_%x" % (hash(filename) + sys.maxint + 1)
+	module = new.module(name)
+	module.__file__ = filename
+	if loader is not None:
+		module.__loader__ = loader
+	if store:
+		sys.modules[name] = module
+	code = compile(cls.xml2py(source), filename, "exec")
+	exec code in module.__dict__
+	return module
+
+
+VENOMEXT = ".venom"
+VENOMFILE = object()
+
+
+@classmethod
+def enable_import(cls, suffixes=None):
+	class VenomLoader(object):
+		def __init__(self, path=None):
+			if path and os.path.isdir(path):
+				self.path = path
+			else:
+				raise ImportError
+
+		def find_module(self, fullname):
+			path = os.path.join(self.path, fullname.split(".")[-1])
+			for ext in [cls.VENOMEXT] + self.suffixes:
+				if os.path.exists(path + ext):
+					self.filename = path + ext
+					return self
+			return None
+
+		def load_module(self, fullname):
+			try:
+				return sys.modules[fullname]
+			except KeyError:
+				return cls.xml2mod(open(self.filename, "r").read(), fullname, self.filename, True, self)
+
+	VenomLoader.suffixes = suffixes or []
+	sys.path_hooks.append(VenomLoader)
+	sys.path_importer_cache.clear()
 
 
 class __ns__(xsc.Namespace):
