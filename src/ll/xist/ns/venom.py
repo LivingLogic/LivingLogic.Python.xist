@@ -13,7 +13,7 @@
 <par>This module is an &xist; namespace. It provides a simple template language
 based on processing instructions embedded in &xml; or plain text.</par>
 
-<par>The following example is a simple Hello, World type template:</par>
+<par>The following example is a simple <z>Hello, World</z> type template:</par>
 
 <prog><![CDATA[
 from ll.xist.ns import venom
