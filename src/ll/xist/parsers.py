@@ -774,17 +774,17 @@ class Parser(object):
 		node = self.createComment(content)
 		node.parsed(self)
 		self.__appendNode(node)
-		self.skippingWhitespace = False
+		self.skippingwhitespace = False
 
 	def processingInstruction(self, target, data):
 		if target=="x":
-			self.skippingWhitespace = True
+			self.skippingwhitespace = True
 		else:
 			node = self.createProcInst(target, data)
 			if node is not None:
 				node.parsed(self)
 				self.__appendNode(node)
-			self.skippingWhitespace = False
+			self.skippingwhitespace = False
 
 	def skippedEntity(self, name):
 		node = self.createEntity(name)
@@ -794,7 +794,7 @@ class Parser(object):
 			else:
 				node.parsed(self)
 				self.__appendNode(node)
-		self.skippingWhitespace = False
+		self.skippingwhitespace = False
 
 	def __decorateException(self, exception):
 		if not isinstance(exception, saxlib.SAXParseException):
