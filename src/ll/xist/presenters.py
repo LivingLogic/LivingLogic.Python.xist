@@ -383,90 +383,50 @@ class NormalPresenter(Presenter):
 			yield part
 
 
+class TreeLine(object):
+	__slots__ = ("loc", "path", "content", "node")
+
+	def __init__(self, loc, path, content, node):
+		self.loc = loc
+		self.path = path
+		self.content = content
+		self.node = node
+
+	def __iter__(self):
+		return iter(defaultpresenter(self.node))
+
+	def __xattrs__(self, mode="default"):
+		if mode == "detail":
+			return ("loc", "path", "content", "node")
+		return ("loc", "path", "content")
+
+
 class TreePresenter(Presenter):
 	"""
 	This presenter shows the object as a nested tree.
 	"""
-	def __init__(self, encoding=None, showlocation=True, showpath=1):
-		"""
-		<par>Create a <class>TreePresenter</class> instance. Arguments have the
-		following meaning:</par>
-		<dlist>
-		<term><arg>showlocation</arg></term><item>Should the location of the
-		node (i.e. system id, line and column number) be displayed as the first
-		column? (default <lit>True</lit>).</item>
-		<term><arg>showpath</arg></term><item><par>This specifies if and how
-		the path (i.e. the position of the node in the tree) should be displayed.
-		Possible values are:</par>
-		<ulist>
-		<item><lit>0</lit>: Don't show a path.</item>
-		<item><lit>1</lit>: Show a path (e.g. as <lit>0/2/3</lit>,
-		i.e. this node is the 4th child of the 3rd child of the 1st child of the
-		root node). This is the default.</item>
-		<item><lit>2</lit>: Show a path as a usable Python
-		expression (e.g. as <lit>[0,2,3]</lit>).</item>
-		</ulist>
-		</item>
-		</dlist>
-		"""
-		Presenter.__init__(self, encoding)
-		self.showlocation = showlocation
-		self.showpath = showpath
 
-	def present(self, node):
+	def __init__(self, node, indent="\t"):
+		Presenter.__init__(self, node)
+		self.indent = indent
+
+	def __str__(self):
+		return "\n".join(str(line.content) for line in self)
+
+	def strindent(self, level):
+		indent = self.indent
+		if indent == "\t":
+			indent = "|--"
+		return s4tab(level*indent)
+
+	def __iter__(self):
 		self._inattr = 0
 		self._currentpath = [] # numerical path
 		self._buffers = [] # list of [color, string] lists used for formatting attributes (this is a list, because elements may contain elements in their attributes)
 
-		if not self.showpath and not self.showlocation:
-			# we need no column formatting, so we can yield the result directly
-			for (loc, path, line) in node.present(self):
-				yield line
-				yield u"\n"
-		else:
-			lines = list(node.present(self))
+		for line in self.node.present(self):
+			yield line
 	
-			lenloc = 0
-			lennumpath = 0
-			for line in lines:
-				# format and calculate width of location info
-				if self.showlocation:
-					loc = line[0]
-					if loc is None:
-						loc = xsc.Location()
-					loc = str(loc)
-					lenloc = max(lenloc, len(loc))
-					line[0] = loc
-
-				# format and calculate width of path info
-				if self.showpath:
-					newline1 = []
-					if self.showpath == 1:
-						for comp in line[1]:
-							if isinstance(comp, tuple):
-								newline1.append(u"%s:%s" % (comp[0].xmlname, comp[1]))
-							else:
-								newline1.append(unicode(comp))
-						line[1] = u"/".join(newline1)
-					else:
-						for comp in line[1]:
-							if isinstance(comp, tuple):
-								newline1.append(u"(%s,%r)" % (comp[0].xmlname, comp[1]))
-							else:
-								newline1.append(repr(comp))
-						line[1] = u"[%s]" % u",".join(newline1)
-				lennumpath = max(lennumpath, len(line[1]))
-
-			newlines = []
-			for line in lines:
-				if self.showlocation:
-					yield line[0]
-					yield u" " * (lenloc-len(line[0])+1) # filler
-				if self.showpath:
-					yield line[1]
-					yield u" " * (lennumpath-len(line[1])+1) # filler
-				yield line[2]
-				yield "\n"
 		del self._inattr
 		del self._buffers
 		del self._currentpath
@@ -494,22 +454,22 @@ class TreePresenter(Presenter):
 				s = head + s
 			if i >= l-1 and tail is not None: # append tail to last line
 				s = s + tail
-			yield [hereloc, self._currentpath[:], strtab(mynest) + s]
+			yield TreeLine(hereloc, self._currentpath[:], self.strindent(mynest) + s, node)
 
 	def strTextLineOutsideAttr(self, text):
-		return s4text(s4quote(u'"'), astyle.aunicode().join(EscOutlineText.parts(xsc.c4text, text)), s4quote(u'"'))
+		return s4text(s4quote(u'"'), text, s4quote(u'"'))
 
 	def strTextInAttr(self, text):
-		return astyle.aunicode().join(EscOutlineAttr.parts(xsc.c4attrvalue, text))
+		return s4attrvalue(text)
 
 	def strProcInstContentLine(self, text):
-		return astyle.aunicode().join(EscOutlineText.parts(xsc.c4procinstcontent, text))
+		return s4procinstcontent(text)
 
 	def strCommentTextLine(self, text):
-		return astyle.aunicode().join(EscOutlineText.parts(xsc.c4commenttext, text))
+		return s4commenttext(text)
 
 	def strDocTypeTextLine(self, text):
-		return astyle.aunicode().join(EscOutlineText(xsc.c4doctypetext, text).parts(text))
+		return s4doctypetext(text)
 
 	def presentFrag(self, node):
 		if self._inattr:
@@ -518,50 +478,53 @@ class TreePresenter(Presenter):
 					yield line
 		else:
 			if len(node):
-				yield [
+				yield TreeLine(
 					node.startloc,
 					self._currentpath[:],
 					s4frag(
-						strtab(len(self._currentpath)),
+						self.strindent(len(self._currentpath)),
 						u"<",
 						node._str(fullname=True, xml=False, decorate=False),
 						u">",
-					)
-				]
+					),
+					node
+				)
 				self._currentpath.append(0)
 				for child in node:
 					for line in child.present(self):
 						yield line
 					self._currentpath[-1] += 1
 				self._currentpath.pop(-1)
-				yield [
+				yield TreeLine(
 					node.endloc,
 					self._currentpath[:],
 					s4frag(
-						strtab(len(self._currentpath)),
+						self.strindent(len(self._currentpath)),
 						u"</",
 						node._str(fullname=True, xml=False, decorate=False),
 						u">",
-					)
-				]
+					),
+					node
+				)
 			else:
-				yield [
+				yield TreeLine(
 					node.startloc,
 					self._currentpath[:],
 					s4frag(
-						strtab(len(self._currentpath)),
+						self.strindent(len(self._currentpath)),
 						u"<",
 						node._str(fullname=True, xml=False, decorate=False),
 						u"/>",
-					)
-				]
+					),
+					node
+				)
 
 	def presentAttrs(self, node):
 		if self._inattr:
 			for (attrname, attrvalue) in node.iteritems():
-				self._buffers[-1] += xsc.c4attrs(" ")
+				self._buffers[-1] += s4attrs(" ")
 				if isinstance(attrname, tuple):
-					self._buffers[-1] += s4attr(xsc.c4ns(unicode(attrname[0].xmlname)), u":", s4attrname(unicode(attrname[1])))
+					self._buffers[-1] += s4attr(s4ns(unicode(attrname[0].xmlname)), u":", s4attrname(unicode(attrname[1])))
 				else:
 					self._buffers[-1] += s4attrname(unicode(attrname))
 				self._buffers[-1] += s4attr(u'="')
@@ -618,14 +581,15 @@ class TreePresenter(Presenter):
 			self._inattr -= 1
 			if len(node):
 				self._buffers[-1] += s4element(u">")
-				yield [
+				yield TreeLine(
 					node.startloc,
 					self._currentpath[:],
 					s4element(
-						strtab(len(self._currentpath)),
+						self.strindent(len(self._currentpath)),
 						*self._buffers
-					)
-				]
+					),
+					node
+				)
 				self._buffers = [] # we're done with the buffers for the header
 				self._currentpath.append(0)
 				for child in node:
@@ -633,38 +597,41 @@ class TreePresenter(Presenter):
 						yield line
 					self._currentpath[-1] += 1
 				self._currentpath.pop()
-				yield [
+				yield TreeLine(
 					node.endloc,
 					self._currentpath[:],
 					s4element(
-						strtab(len(self._currentpath)),
+						self.strindent(len(self._currentpath)),
 						u"</",
 						node._str(fullname=True, xml=False, decorate=False),
 						u">",
-					)
-				]
+					),
+					node
+				)
 			else:
-				self._buffers[-1] += xsc.c4element(u"/>")
-				yield [
+				self._buffers[-1] += s4element(u"/>")
+				yield TreeLine(
 					node.startloc,
 					self._currentpath[:],
 					s4element(
-						strtab(len(self._currentpath)),
+						self.strindent(len(self._currentpath)),
 						*self._buffers
-					)
-				]
+					),
+					node
+				)
 				self._buffers = [] # we're done with the buffers for the header
 
 	def presentNull(self, node):
 		if not self._inattr:
-			yield [
+			yield TreeLine(
 				node.startloc,
 				self._currentpath[:],
 				s4null(
-					strtab(len(self._currentpath)),
+					self.strindent(len(self._currentpath)),
 					node._str(fullname=True, xml=False, decorate=True)
-				)
-			]
+				),
+				node
+			)
 
 	def presentText(self, node):
 		if self._inattr:
@@ -678,18 +645,19 @@ class TreePresenter(Presenter):
 		if self._inattr:
 			self._buffers[-1].append(node._str(fullname=True, xml=False, decorate=True))
 		else:
-			yield [
+			yield TreeLine(
 				node.startloc,
 				self._currentpath[:],
 				s4entity(
-					strtab(len(self._currentpath)),
+					self.strindent(len(self._currentpath)),
 					node._str(fullname=True, xml=False, decorate=True)
-				)
-			]
+				),
+				node
+			)
 
 	def presentProcInst(self, node):
 		if self._inattr:
-			self._buffers[-1] += xsc.c4procinst(
+			self._buffers[-1] += s4procinst(
 				u"<?",
 				node._str(fullname=True, xml=False, decorate=False),
 				u" ",
