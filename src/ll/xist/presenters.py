@@ -39,119 +39,119 @@ import xsc, options
 ###
 
 # style to be used for tabs
-s4tab = astyle.Style.fromenv("LL_XIST_REPRANSI_TAB", "black:black:bold")
+s4tab = astyle.Style.fromenv("LL_XIST_STYLE_TAB", "black:black:bold")
 
 
 # style to be used for quotes (delimiters for text and attribute nodes)
-s4quote = astyle.Style.fromenv("LL_XIST_REPRANSI_QUOTE", "white:black:bold")
+s4quote = astyle.Style.fromenv("LL_XIST_STYLE_QUOTE", "white:black:bold")
 
 
 # style to be used for text
-s4text = astyle.Style.fromenv("LL_XIST_REPRANSI_TEXT", "white:black")
+s4text = astyle.Style.fromenv("LL_XIST_STYLE_TEXT", "white:black")
 
 
 # style to be used for namespaces
-s4ns = astyle.Style.fromenv("LL_XIST_REPRANSI_NAMESPACE", "blue:black")
+s4ns = astyle.Style.fromenv("LL_XIST_STYLE_NAMESPACE", "blue:black")
 
 
 # style to be used for Null object
-s4null = astyle.Style.fromenv("LL_XIST_REPRANSI_NULL", "white:black:bold")
+s4null = astyle.Style.fromenv("LL_XIST_STYLE_NULL", "white:black:bold")
 
 
 # style to be used for Null name
-s4nullname = astyle.Style.fromenv("LL_XIST_REPRANSI_NULLNAME", "white:black:bold")
+s4nullname = astyle.Style.fromenv("LL_XIST_STYLE_NULLNAME", "white:black:bold")
 
 
 # style to be used a Frag object
-s4frag = astyle.Style.fromenv("LL_XIST_REPRANSI_FRAG", "white:black:bold")
+s4frag = astyle.Style.fromenv("LL_XIST_STYLE_FRAG", "white:black:bold")
 
 
 # style to be used for Frag name
-s4fragname = astyle.Style.fromenv("LL_XIST_REPRANSI_FRAGNAME", "white:black:bold")
+s4fragname = astyle.Style.fromenv("LL_XIST_STYLE_FRAGNAME", "white:black:bold")
 
 
 # style to be used for elements (i.e. the <, > and / characters
-s4element = astyle.Style.fromenv("LL_XIST_REPRANSI_ELEMENT", "white:black:bold")
+s4element = astyle.Style.fromenv("LL_XIST_STYLE_ELEMENT", "white:black:bold")
 
 
 # style to be used for element names
-s4elementname = astyle.Style.fromenv("LL_XIST_REPRANSI_ELEMENTNAME", "blue:black:bold")
+s4elementname = astyle.Style.fromenv("LL_XIST_STYLE_ELEMENTNAME", "blue:black:bold")
 
 
 # style to be used for processing instructions
-s4procinst = astyle.Style.fromenv("LL_XIST_REPRANSI_PROCINST", "red:black:bold")
+s4procinst = astyle.Style.fromenv("LL_XIST_STYLE_PROCINST", "red:black:bold")
 
 
 # style to be used for processing instruction targets
-s4procinsttarget = astyle.Style.fromenv("LL_XIST_REPRANSI_PROCINSTTARGET", "red:black:bold")
+s4procinsttarget = astyle.Style.fromenv("LL_XIST_STYLE_PROCINSTTARGET", "red:black:bold")
 
 
 # style to be used for processing instruction content
-s4procinstcontent = astyle.Style.fromenv("LL_XIST_REPRANSI_PROCINSTCONTENT", "white:black")
+s4procinstcontent = astyle.Style.fromenv("LL_XIST_STYLE_PROCINSTCONTENT", "white:black")
 
 
 # style to be used for attributes (i.e. the quotes around their value)
-s4attr = astyle.Style.fromenv("LL_XIST_REPRANSI_ATTR", "blue:black:bold")
+s4attr = astyle.Style.fromenv("LL_XIST_STYLE_ATTR", "blue:black:bold")
 
 
 # style to be used for attribute names
-s4attrname = astyle.Style.fromenv("LL_XIST_REPRANSI_ATTRNAME", "blue:black:bold")
+s4attrname = astyle.Style.fromenv("LL_XIST_STYLE_ATTRNAME", "blue:black:bold")
 
 
 # style to be used for attrs class name
-s4attrs = astyle.Style.fromenv("LL_XIST_REPRANSI_ATTRS", "blue:black:bold")
+s4attrs = astyle.Style.fromenv("LL_XIST_STYLE_ATTRS", "blue:black:bold")
 
 
 # style to be used for attrs class name
-s4attrsname = astyle.Style.fromenv("LL_XIST_REPRANSI_ATTRSNAME", "blue:black:bold")
+s4attrsname = astyle.Style.fromenv("LL_XIST_STYLE_ATTRSNAME", "blue:black:bold")
 
 
 # style to be used for entities
-s4entity = astyle.Style.fromenv("LL_XIST_REPRANSI_ENTITY", "magenta:black")
+s4entity = astyle.Style.fromenv("LL_XIST_STYLE_ENTITY", "magenta:black")
 
 
 # style to be used for entity names
-s4entityname = astyle.Style.fromenv("LL_XIST_REPRANSI_ENTITYNAME", "magenta:black")
+s4entityname = astyle.Style.fromenv("LL_XIST_STYLE_ENTITYNAME", "magenta:black")
 
 
 # style to be used for charref names or codepoints
-s4charrefname = astyle.Style.fromenv("LL_XIST_REPRANSI_CHARREFNAME", "magenta:black")
+s4charrefname = astyle.Style.fromenv("LL_XIST_STYLE_CHARREFNAME", "magenta:black")
 
 
 # style to be used for document types
-s4doctype = astyle.Style.fromenv("LL_XIST_REPRANSI_DOCTYPE", "white:black:bold")
+s4doctype = astyle.Style.fromenv("LL_XIST_STYLE_DOCTYPE", "white:black:bold")
 
 
 # style to be used for document types
-s4doctypetext = astyle.Style.fromenv("LL_XIST_REPRANSI_DOCTYPETEXT", "white:black:bold")
+s4doctypetext = astyle.Style.fromenv("LL_XIST_STYLE_DOCTYPETEXT", "white:black:bold")
 
 
 # style to be used for comment (i.e. <!-- and -->)
-s4comment = astyle.Style.fromenv("LL_XIST_REPRANSI_COMMENT", "black:black:bold")
+s4comment = astyle.Style.fromenv("LL_XIST_STYLE_COMMENT", "black:black:bold")
 
 
 # style to be used for comment text
-s4commenttext = astyle.Style.fromenv("LL_XIST_REPRANSI_COMMENTTEXT", "black:black:bold")
+s4commenttext = astyle.Style.fromenv("LL_XIST_STYLE_COMMENTTEXT", "black:black:bold")
 
 
 # style to be used for attribute values
-s4attrvalue = astyle.Style.fromenv("LL_XIST_REPRANSI_ATTRVALUE", "yellow:black")
+s4attrvalue = astyle.Style.fromenv("LL_XIST_STYLE_ATTRVALUE", "yellow:black")
 
 
 # style to be used for URLs
-s4url = astyle.Style.fromenv("LL_XIST_REPRANSI_URL", "green:black")
+s4url = astyle.Style.fromenv("LL_XIST_STYLE_URL", "green:black")
 
 
 # style to be used for numbers in error messages etc.
-s4number = astyle.Style.fromenv("LL_XIST_REPRANSI_NUMBER", "blue:black")
+s4number = astyle.Style.fromenv("LL_XIST_STYLE_NUMBER", "blue:black")
 
 
 # style to be used for variable strings in error messages etc.
-s4string = astyle.Style.fromenv("LL_XIST_REPRANSI_STRING", "magenta:black")
+s4string = astyle.Style.fromenv("LL_XIST_STYLE_STRING", "magenta:black")
 
 
 # style to be used for IDs in repr()
-s4id = astyle.Style.fromenv("LL_XIST_REPRANSI_ID", "yellow:black")
+s4id = astyle.Style.fromenv("LL_XIST_STYLE_ID", "yellow:black")
 
 
 class Queue(object):
@@ -231,8 +231,8 @@ def strtab(count):
 	return s4tab(unicode(options.reprtab)*count)
 
 
-def strTextInAttr(text):
-	return s4attrvalue(text)
+def strtext(text):
+	return s4text(s4quote(u'"'), text, s4quote(u'"'))
 
 
 class Presenter(table):
@@ -383,7 +383,7 @@ class NormalPresenter(Presenter):
 			yield part
 
 
-class TreeLine(object):
+class Line(object):
 	__slots__ = ("loc", "path", "content", "node")
 
 	def __init__(self, loc, path, content, node):
@@ -406,8 +406,10 @@ class TreePresenter(Presenter):
 	This presenter shows the object as a nested tree.
 	"""
 
-	def __init__(self, node, indent="\t"):
+	def __init__(self, node, indent=None):
 		Presenter.__init__(self, node)
+		if indent is None:
+			indent = os.environ.get("LL_XIST_INDENT", "\t")
 		self.indent = indent
 
 	def __str__(self):
@@ -416,7 +418,7 @@ class TreePresenter(Presenter):
 	def strindent(self, level):
 		indent = self.indent
 		if indent == "\t":
-			indent = "|--"
+			indent = "   "
 		return s4tab(level*indent)
 
 	def __iter__(self):
@@ -449,27 +451,12 @@ class TreePresenter(Presenter):
 				oldlen = len(s)
 				s = s.lstrip(u"\t")
 				mynest += len(s)-oldlen
-			s = formatter(s)
+			s = formatter(repr(s)[2:-1])
 			if i == 0 and head is not None: # prepend head to first line
 				s = head + s
 			if i >= l-1 and tail is not None: # append tail to last line
 				s = s + tail
-			yield TreeLine(hereloc, self._currentpath[:], self.strindent(mynest) + s, node)
-
-	def strTextLineOutsideAttr(self, text):
-		return s4text(s4quote(u'"'), text, s4quote(u'"'))
-
-	def strTextInAttr(self, text):
-		return s4attrvalue(text)
-
-	def strProcInstContentLine(self, text):
-		return s4procinstcontent(text)
-
-	def strCommentTextLine(self, text):
-		return s4commenttext(text)
-
-	def strDocTypeTextLine(self, text):
-		return s4doctypetext(text)
+			yield Line(hereloc, self._currentpath[:], self.strindent(mynest) + s, node)
 
 	def presentFrag(self, node):
 		if self._inattr:
@@ -478,7 +465,7 @@ class TreePresenter(Presenter):
 					yield line
 		else:
 			if len(node):
-				yield TreeLine(
+				yield Line(
 					node.startloc,
 					self._currentpath[:],
 					s4frag(
@@ -495,7 +482,7 @@ class TreePresenter(Presenter):
 						yield line
 					self._currentpath[-1] += 1
 				self._currentpath.pop(-1)
-				yield TreeLine(
+				yield Line(
 					node.endloc,
 					self._currentpath[:],
 					s4frag(
@@ -507,7 +494,7 @@ class TreePresenter(Presenter):
 					node
 				)
 			else:
-				yield TreeLine(
+				yield Line(
 					node.startloc,
 					self._currentpath[:],
 					s4frag(
@@ -581,7 +568,7 @@ class TreePresenter(Presenter):
 			self._inattr -= 1
 			if len(node):
 				self._buffers[-1] += s4element(u">")
-				yield TreeLine(
+				yield Line(
 					node.startloc,
 					self._currentpath[:],
 					s4element(
@@ -597,7 +584,7 @@ class TreePresenter(Presenter):
 						yield line
 					self._currentpath[-1] += 1
 				self._currentpath.pop()
-				yield TreeLine(
+				yield Line(
 					node.endloc,
 					self._currentpath[:],
 					s4element(
@@ -610,7 +597,7 @@ class TreePresenter(Presenter):
 				)
 			else:
 				self._buffers[-1] += s4element(u"/>")
-				yield TreeLine(
+				yield Line(
 					node.startloc,
 					self._currentpath[:],
 					s4element(
@@ -623,7 +610,7 @@ class TreePresenter(Presenter):
 
 	def presentNull(self, node):
 		if not self._inattr:
-			yield TreeLine(
+			yield Line(
 				node.startloc,
 				self._currentpath[:],
 				s4null(
@@ -635,17 +622,17 @@ class TreePresenter(Presenter):
 
 	def presentText(self, node):
 		if self._inattr:
-			self._buffers[-1] += strTextInAttr(node.content)
+			self._buffers[-1] += s4attrvalue(node.content)
 		else:
 			lines = node.content.splitlines(True)
-			for line in self._domultiline(node, lines, 0, self.strTextLineOutsideAttr):
+			for line in self._domultiline(node, lines, 0, strtext):
 				yield line
 
 	def presentEntity(self, node):
 		if self._inattr:
 			self._buffers[-1].append(node._str(fullname=True, xml=False, decorate=True))
 		else:
-			yield TreeLine(
+			yield Line(
 				node.startloc,
 				self._currentpath[:],
 				s4entity(
@@ -670,7 +657,7 @@ class TreePresenter(Presenter):
 			lines = node.content.splitlines()
 			if len(lines)>1:
 				lines.insert(0, u"")
-			for line in self._domultiline(node, lines, 1, self.strProcInstContentLine, head, tail):
+			for line in self._domultiline(node, lines, 1, s4procinstcontent, head, tail):
 				yield line
 
 	def presentComment(self, node):
@@ -684,7 +671,7 @@ class TreePresenter(Presenter):
 			head = s4comment(u"<!--")
 			tail = s4comment(u"-->")
 			lines = node.content.splitlines()
-			for line in self._domultiline(node, lines, 1, self.strCommentTextLine, head, tail):
+			for line in self._domultiline(node, lines, 1, s4commenttext, head, tail):
 				yield line
 
 	def presentDocType(self, node):
@@ -698,7 +685,7 @@ class TreePresenter(Presenter):
 			head = s4doctype(u"<!DOCTYPE ")
 			tail = s4doctype(u">")
 			lines = node.content.splitlines()
-			for line in self._domultiline(node, lines, 1, self.strDocTypeTextLine, head, tail):
+			for line in self._domultiline(node, lines, 1, s4doctypetext, head, tail):
 				yield line
 
 	def presentAttr(self, node):
@@ -716,8 +703,10 @@ class CodePresenter(Presenter):
 	<par>This makes it possible to quickly convert &html;/&xml; files to &xist;
 	constructor calls.</par>
 	"""
-	def __init__(self, node, indent="\t"):
+	def __init__(self, node, indent=None):
 		Presenter.__init__(self, node)
+		if indent is None:
+			indent = os.environ.get("LL_XIST_INDENT", "\t")
 		self.indent = indent
 
 	def __str__(self):
