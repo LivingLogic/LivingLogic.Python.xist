@@ -421,6 +421,9 @@ class TreePresenter(Presenter):
 			indent = "   "
 		return s4tab(level*indent)
 
+	def text(self, text):
+		return repr(text)[2:-1]
+
 	def __iter__(self):
 		self._inattr = 0
 		self._currentpath = [] # numerical path
@@ -451,7 +454,7 @@ class TreePresenter(Presenter):
 				oldlen = len(s)
 				s = s.lstrip(u"\t")
 				mynest += len(s)-oldlen
-			s = formatter(repr(s)[2:-1])
+			s = formatter(self.text(s))
 			if i == 0 and head is not None: # prepend head to first line
 				s = head + s
 			if i >= l-1 and tail is not None: # append tail to last line
@@ -462,7 +465,7 @@ class TreePresenter(Presenter):
 		if self._inattr:
 			for child in node:
 				for line in child.present(self):
-					yield line
+					pass
 		else:
 			if len(node):
 				yield Line(
@@ -470,9 +473,9 @@ class TreePresenter(Presenter):
 					self._currentpath[:],
 					s4frag(
 						self.strindent(len(self._currentpath)),
-						u"<",
+						"<",
 						node._str(fullname=True, xml=False, decorate=False),
-						u">",
+						">",
 					),
 					node
 				)
@@ -487,9 +490,9 @@ class TreePresenter(Presenter):
 					self._currentpath[:],
 					s4frag(
 						self.strindent(len(self._currentpath)),
-						u"</",
+						"</",
 						node._str(fullname=True, xml=False, decorate=False),
-						u">",
+						">",
 					),
 					node
 				)
@@ -499,9 +502,9 @@ class TreePresenter(Presenter):
 					self._currentpath[:],
 					s4frag(
 						self.strindent(len(self._currentpath)),
-						u"<",
+						"<",
 						node._str(fullname=True, xml=False, decorate=False),
-						u"/>",
+						"/>",
 					),
 					node
 				)
@@ -511,22 +514,22 @@ class TreePresenter(Presenter):
 			for (attrname, attrvalue) in node.iteritems():
 				self._buffers[-1] += s4attrs(" ")
 				if isinstance(attrname, tuple):
-					self._buffers[-1] += s4attr(s4ns(unicode(attrname[0].xmlname)), u":", s4attrname(unicode(attrname[1])))
+					self._buffers[-1] += s4attr(s4ns(self.text(unicode(attrname[0].xmlname))), ":", s4attrname(self.text(unicode(attrname[1]))))
 				else:
-					self._buffers[-1] += s4attrname(unicode(attrname))
-				self._buffers[-1] += s4attr(u'="')
+					self._buffers[-1] += s4attrname(self.text(unicode(attrname)))
+				self._buffers[-1] += s4attr('="')
 				for line in attrvalue.present(self):
-					yield line
-				self._buffers[-1] += s4attr(u'"')
+					pass
+				self._buffers[-1] += s4attr('"')
 		else:
 			yield Line(
 				node.startloc,
 				self._currentpath[:],
 				s4attrs(
 					strtab(len(self._currentpath)),
-					u"<",
+					"<",
 					node._str(fullname=True, xml=False, decorate=False),
-					u">",
+					">",
 				),
 				node
 			)
@@ -541,9 +544,9 @@ class TreePresenter(Presenter):
 				self._currentpath[:],
 				s4attrs(
 					strtab(len(self._currentpath)),
-					u"</",
+					"</",
 					node._str(fullname=True, xml=False, decorate=False),
-					u">",
+					">",
 				),
 				node
 			)
@@ -553,15 +556,15 @@ class TreePresenter(Presenter):
 			self._buffers[-1] += s4element(u"<", node._str(fullname=True, xml=False, decorate=False))
 			self._inattr += 1
 			for line in node.attrs.present(self):
-				yield line
+				pass
 			self._inattr -= 1
 			if len(node):
-				self._buffers[-1] += s4element(u">")
+				self._buffers[-1] += s4element(">")
 				for line in node.content.present(self):
-					yield line
-				self._buffers[-1] += s4element(u"</", node._str(fullname=True, xml=False, decorate=False), u">")
+					pass
+				self._buffers[-1] += s4element("</", node._str(fullname=True, xml=False, decorate=False), ">")
 			else:
-				self._buffers[-1] += s4element(u"/>")
+				self._buffers[-1] += s4element("/>")
 		else:
 			self._buffers.append(s4element(u"<", node._str(fullname=True, xml=False, decorate=False)))
 			self._inattr += 1
@@ -591,9 +594,9 @@ class TreePresenter(Presenter):
 					self._currentpath[:],
 					s4element(
 						self.strindent(len(self._currentpath)),
-						u"</",
+						"</",
 						node._str(fullname=True, xml=False, decorate=False),
-						u">",
+						">",
 					),
 					node
 				)
@@ -624,7 +627,7 @@ class TreePresenter(Presenter):
 
 	def presentText(self, node):
 		if self._inattr:
-			self._buffers[-1] += s4attrvalue(node.content)
+			self._buffers[-1] += s4attrvalue(self.text(node.content))
 		else:
 			lines = node.content.splitlines(True)
 			for line in self._domultiline(node, lines, 0, strtext):
@@ -647,11 +650,11 @@ class TreePresenter(Presenter):
 	def presentProcInst(self, node):
 		if self._inattr:
 			self._buffers[-1] += s4procinst(
-				u"<?",
+				"<?",
 				node._str(fullname=True, xml=False, decorate=False),
-				u" ",
-				astyle.Text(color4procinstcontent, EscOutlineAttr(node.content)),
-				u"?>",
+				" ",
+				color4procinstcontent(self.text(node.content)),
+				"?>",
 			)
 		else:
 			head = s4procinst(u"<?", node._str(fullname=True, xml=False, decorate=False), u" ")
@@ -665,9 +668,9 @@ class TreePresenter(Presenter):
 	def presentComment(self, node):
 		if self._inattr:
 			self._buffers[-1] += s4comment(
-				u"<!--",
-				EnvTextForCommentText(EscOutlineAttr(node.content)),
-				u"-->",
+				"<!--",
+				self.text(node.content),
+				"-->",
 			)
 		else:
 			head = s4comment(u"<!--")
@@ -679,9 +682,9 @@ class TreePresenter(Presenter):
 	def presentDocType(self, node):
 		if self._inattr:
 			self._buffers[-1] += s4doctype(
-				u"<!DOCTYPE ",
-				EnvTextForDocTypeText(EscOutlineAttr(node.content)),
-				u">",
+				"<!DOCTYPE ",
+				s4doctypetext(self.text(node.content)),
+				">",
 			)
 		else:
 			head = s4doctype(u"<!DOCTYPE ")
