@@ -519,7 +519,7 @@ class TreePresenter(Presenter):
 					yield line
 				self._buffers[-1] += s4attr(u'"')
 		else:
-			yield [
+			yield Line(
 				node.startloc,
 				self._currentpath[:],
 				s4attrs(
@@ -527,15 +527,16 @@ class TreePresenter(Presenter):
 					u"<",
 					node._str(fullname=True, xml=False, decorate=False),
 					u">",
-				)
-			]
+				),
+				node
+			)
 			self._currentpath.append(None)
 			for (attrname, attrvalue) in node.iteritems():
 				self._currentpath[-1] = attrname
 				for line in attrvalue.present(self):
 					yield line
 			self._currentpath.pop()
-			yield [
+			yield Line(
 				node.endloc,
 				self._currentpath[:],
 				s4attrs(
@@ -543,8 +544,9 @@ class TreePresenter(Presenter):
 					u"</",
 					node._str(fullname=True, xml=False, decorate=False),
 					u">",
-				)
-			]
+				),
+				node
+			)
 
 	def presentElement(self, node):
 		if self._inattr:
