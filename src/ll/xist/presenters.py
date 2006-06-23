@@ -735,6 +735,23 @@ class CodePresenter(Presenter):
 			if not self._inattr:
 				yield astyle.style_default(self._indent(), name, "()")
 
+	def _formatattrvalue(self, attrvalue):
+		attrtext = astyle.Text()
+		if len(attrvalue)==1: # optimize away the tuple ()
+			for part in attrvalue[0].present(self):
+				if attrtext:
+					attrtext.append(" ")
+				attrtext.append(part)
+		else:
+			for part in attrvalue.present(self):
+				if attrtext:
+					attrtext.append(" ")
+				else:
+					attrtext.append("(")
+				attrtext.append(part)
+			attrtext.append(")")
+		return attrtext
+
 	def presentAttrs(self, node):
 		name = s4attrs(s4ns(node.__class__.__module__), ".", s4attrsname(node.__fullname__()))
 		if len(node):
@@ -751,31 +768,25 @@ class CodePresenter(Presenter):
 			if globalattrs:
 				yield "%s{" % self._indent()
 				for (i, (attrname, attrvalue)) in enumerate(globalattrs.iteritems()):
-					attrname = "(%s, %r)" % (attrname[0].__module__, attrname[1])
+					attrname = astyle.style_default("(", s4ns(attrname[0].__module__), ", ", s4attrname(attrname[1]), ")")
 					self._inattr += 1
-					if len(attrvalue)==1: # optimize away the tuple ()
-						attrvalue = " ".join(attrvalue[0].present(self))
-					else:
-						attrvalue = "(%s)" % " ".join(attrvalue.present(self))
+					attrvalue = self._formatattrvalue(attrvalue)
 					self._inattr -= 1
 					self._level += 1
-					line = "%s%s: %s" % (self._indent(), attrname, attrvalue)
+					line = astyle.style_default(self._indent(), s4attrname(attrname), ": ", s4attrvalue(attrvalue))
 					if i != len(globalattrs) or not localattrs:
 						line += ","
 					yield line
 					self._level -= 1
-				line = "%s}" % self._indent()
+				line = astyle.style_default(self._indent(), "}")
 				if localattrs:
 					line += ","
 				yield line
 			for (i, (attrname, attrvalue)) in enumerate(localattrs.iteritems()):
 				self._inattr += 1
-				if len(attrvalue)==1: # optimize away the tuple ()
-					attrvalue = " ".join(attrvalue[0].present(self))
-				else:
-					attrvalue = "(%s)" % " ".join(attrvalue.present(self))
+				attrvalue = self._formatattrvalue(attrvalue)
 				self._inattr -= 1
-				line = "%s%s=%s" % (self._indent(), attrname, attrvalue)
+				line = astyle.style_default(self._indent(), s4attrname(attrname), "=", s4attrvalue(attrvalue))
 				if i != len(localattrs)-1:
 					line += ","
 				yield line
@@ -813,23 +824,10 @@ class CodePresenter(Presenter):
 				for (i, (attrname, attrvalue)) in enumerate(globalattrs.iteritems()):
 					attrname = astyle.style_default("(", s4ns(attrname[0].__module__), ", ", s4attrname(attrname[1]), ")")
 					self._inattr += 1
-					attrtext = astyle.Text()
-					if len(attrvalue)==1: # optimize away the tuple ()
-						for part in attrvalue[0].present(self):
-							if attrtext:
-								attrtext.append(" ")
-							attrtext.append(part)
-					else:
-						for part in attrvalue.present(self):
-							if attrtext:
-								attrtext.append(" ")
-							else:
-								attrtext.append("(")
-							attrtext.append(part)
-						attrtext.append(")")
+					attrvalue = self._formatattrvalue(attrvalue)
 					self._inattr -= 1
 					self._level += 1
-					line = astyle.style_default(self._indent(), s4attrname(attrname), ": ", s4attrvalue(attrtext))
+					line = astyle.style_default(self._indent(), s4attrname(attrname), ": ", s4attrvalue(attrvalue))
 					if i != len(globalattrs) or not localattrs:
 						line += ","
 					yield line
@@ -840,22 +838,9 @@ class CodePresenter(Presenter):
 				yield line
 			for (i, (attrname, attrvalue)) in enumerate(localattrs.iteritems()):
 				self._inattr += 1
-				attrtext = astyle.Text()
-				if len(attrvalue)==1: # optimize away the tuple ()
-					for part in attrvalue[0].present(self):
-						if attrtext:
-							attrtext.append(" ")
-						attrtext.append(part)
-				else:
-					for part in attrvalue.present(self):
-						if attrtext:
-							attrtext.append(" ")
-						else:
-							attrtext.append("(")
-						attrtext.append(part)
-					attrtext.append(")")
+				attrvalue = self._formatattrvalue(attrvalue)
 				self._inattr -= 1
-				line = astyle.style_default(self._indent(), s4attrname(attrname), "=", s4attrvalue(attrtext))
+				line = astyle.style_default(self._indent(), s4attrname(attrname), "=", s4attrvalue(attrvalue))
 				if i != len(localattrs)-1:
 					line += ","
 				yield line
