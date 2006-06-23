@@ -51,31 +51,31 @@ s4text = astyle.Style.fromenv("LL_XIST_STYLE_TEXT", "white:black")
 
 
 # style to be used for namespaces
-s4ns = astyle.Style.fromenv("LL_XIST_STYLE_NAMESPACE", "blue:black")
+s4ns = astyle.Style.fromenv("LL_XIST_STYLE_NAMESPACE", "magenta:black")
 
 
 # style to be used for Null object
-s4null = astyle.Style.fromenv("LL_XIST_STYLE_NULL", "white:black:bold")
+s4null = astyle.Style.fromenv("LL_XIST_STYLE_NULL", "red:black")
 
 
 # style to be used for Null name
-s4nullname = astyle.Style.fromenv("LL_XIST_STYLE_NULLNAME", "red:black:bold")
+s4nullname = astyle.Style.fromenv("LL_XIST_STYLE_NULLNAME", "red:black")
 
 
 # style to be used a Frag object
-s4frag = astyle.Style.fromenv("LL_XIST_STYLE_FRAG", "white:black:bold")
+s4frag = astyle.Style.fromenv("LL_XIST_STYLE_FRAG", "yellow:black")
 
 
 # style to be used for Frag name
-s4fragname = astyle.Style.fromenv("LL_XIST_STYLE_FRAGNAME", "blue:black:bold")
+s4fragname = astyle.Style.fromenv("LL_XIST_STYLE_FRAGNAME", "yellow:black")
 
 
 # style to be used for elements (i.e. the <, > and / characters
-s4element = astyle.Style.fromenv("LL_XIST_STYLE_ELEMENT", "white:black:bold")
+s4element = astyle.Style.fromenv("LL_XIST_STYLE_ELEMENT", "yellow:black")
 
 
 # style to be used for element names
-s4elementname = astyle.Style.fromenv("LL_XIST_STYLE_ELEMENTNAME", "blue:black:bold")
+s4elementname = astyle.Style.fromenv("LL_XIST_STYLE_ELEMENTNAME", "yellow:black")
 
 
 # style to be used for processing instructions
@@ -95,15 +95,15 @@ s4attr = astyle.Style.fromenv("LL_XIST_STYLE_ATTR", "blue:black:bold")
 
 
 # style to be used for attribute names
-s4attrname = astyle.Style.fromenv("LL_XIST_STYLE_ATTRNAME", "blue:black:bold")
+s4attrname = astyle.Style.fromenv("LL_XIST_STYLE_ATTRNAME", "cyan:black")
 
 
 # style to be used for attrs class name
-s4attrs = astyle.Style.fromenv("LL_XIST_STYLE_ATTRS", "blue:black:bold")
+s4attrs = astyle.Style.fromenv("LL_XIST_STYLE_ATTRS", "yellow:black")
 
 
 # style to be used for attrs class name
-s4attrsname = astyle.Style.fromenv("LL_XIST_STYLE_ATTRSNAME", "blue:black:bold")
+s4attrsname = astyle.Style.fromenv("LL_XIST_STYLE_ATTRSNAME", "yellow:black:bold")
 
 
 # style to be used for entities
@@ -127,11 +127,11 @@ s4doctypetext = astyle.Style.fromenv("LL_XIST_STYLE_DOCTYPETEXT", "white:black:b
 
 
 # style to be used for comment (i.e. <!-- and -->)
-s4comment = astyle.Style.fromenv("LL_XIST_STYLE_COMMENT", "black:black:bold")
+s4comment = astyle.Style.fromenv("LL_XIST_STYLE_COMMENT", "blue:black")
 
 
 # style to be used for comment text
-s4commenttext = astyle.Style.fromenv("LL_XIST_STYLE_COMMENTTEXT", "black:black:bold")
+s4commenttext = astyle.Style.fromenv("LL_XIST_STYLE_COMMENTTEXT", "blue:black")
 
 
 # style to be used for attribute values
@@ -421,7 +421,7 @@ class TreePresenter(Presenter):
 	def strindent(self, level):
 		indent = self.indent
 		if indent == "\t":
-			indent = "  "
+			indent = "   "
 		return s4tab(level*indent)
 
 	def text(self, text):
@@ -558,7 +558,7 @@ class TreePresenter(Presenter):
 				firstline.append(line)
 			self._inattr -= 1
 			if len(node):
-				firstline.append(">")
+				firstline.append(s4element(">"))
 				yield Line(
 					node.startloc,
 					self._currentpath[:],
@@ -578,7 +578,7 @@ class TreePresenter(Presenter):
 					node
 				)
 			else:
-				firstline.append("/>")
+				firstline.append(s4element("/>"))
 				yield Line(
 					node.startloc,
 					self._currentpath[:],
@@ -677,7 +677,7 @@ class CodePresenter(Presenter):
 		self.indent = indent
 
 	def __str__(self):
-		return "\n".join(self)
+		return "\n".join(str(s) for s in self)
 
 	def __xiter__(self, mode="default"):
 		self._inattr = 0
@@ -692,7 +692,10 @@ class CodePresenter(Presenter):
 		if self._inattr:
 			return ""
 		else:
-			return self.indent*self._level
+			indent = self.indent
+			if indent == "\t":
+				indent = "   "
+			return s4tab(self.indent*self._level)
 
 	def _text(self, text):
 		# Find the simplest object to display
@@ -710,9 +713,10 @@ class CodePresenter(Presenter):
 		return s
 
 	def presentFrag(self, node):
+		name = s4frag(s4ns(node.__class__.__module__), ".", s4fragname(node.__fullname__()))
 		if len(node):
 			if not self._inattr: # skip "(" for attributes, they will be added by presentElement()
-				yield "%s%s.%s(" % (self._indent(), node.__class__.__module__, node.__fullname__())
+				yield astyle.style_default(self._indent(), name, "(")
 			self._level += 1
 			for (i, child) in enumerate(node):
 				if i==len(node)-1:
@@ -726,12 +730,13 @@ class CodePresenter(Presenter):
 						yield line
 			self._level -= 1
 			if not self._inattr:
-				yield "%s)" % self._indent()
+				yield astyle.style_default(self._indent(), ")")
 		else:
 			if not self._inattr:
-				yield "%s%s.%s()" % (self._indent(), node.__class__.__module__, node.__fullname__())
+				yield astyle.style_default(self._indent(), name, "()")
 
 	def presentAttrs(self, node):
+		name = s4attrs(s4ns(node.__class__.__module__), ".", s4attrsname(node.__fullname__()))
 		if len(node):
 			globalattrs = {}
 			localattrs = {}
@@ -741,7 +746,7 @@ class CodePresenter(Presenter):
 				else:
 					localattrs[attrname] = attrvalue
 
-			yield "%s%s.%s(" % (self._indent(), node.__class__.__module__, node.__fullname__())
+			yield astyle.style_default(self._indent(), name, "(")
 			self._level += 1
 			if globalattrs:
 				yield "%s{" % self._indent()
@@ -775,14 +780,14 @@ class CodePresenter(Presenter):
 					line += ","
 				yield line
 			self._level -= 1
-			yield "%s)" % self._indent()
+			yield astyle.style_default(self._indent(), ")")
 		else:
-			yield "%s%s.%s()" % (self._indent(), node.__class__.__module__, node.__fullname__())
+			yield astyle.style_default(self._indent(), name, "()")
 
 	def presentElement(self, node):
+		name = s4element(s4ns(node.__class__.__module__), ".", s4elementname(node.__fullname__()))
 		if len(node.content) or len(node.attrs):
-			yield "%s%s.%s(" % (self._indent(), node.__class__.__module__, node.__fullname__())
-
+			yield astyle.style_default(self._indent(), name, "(")
 			self._level += 1
 			for (i, child) in enumerate(node):
 				if i==len(node)-1 and not node.attrs:
@@ -804,55 +809,80 @@ class CodePresenter(Presenter):
 					localattrs[attrname] = attrvalue
 
 			if globalattrs:
-				yield "%s{" % self._indent()
+				yield astyle.style_default(self._indent(), "{")
 				for (i, (attrname, attrvalue)) in enumerate(globalattrs.iteritems()):
-					attrname = "(%s, %r)" % (attrname[0].__module__, attrname[1])
+					attrname = astyle.style_default("(", s4ns(attrname[0].__module__), ", ", s4attrname(attrname[1]), ")")
 					self._inattr += 1
+					attrtext = astyle.Text()
 					if len(attrvalue)==1: # optimize away the tuple ()
-						attrvalue = " ".join(attrvalue[0].present(self))
+						for part in attrvalue[0].present(self):
+							if attrtext:
+								attrtext.append(" ")
+							attrtext.append(part)
 					else:
-						attrvalue = "(%s)" % " ".join(attrvalue.present(self))
+						for part in attrvalue.present(self):
+							if attrtext:
+								attrtext.append(" ")
+							else:
+								attrtext.append("(")
+							attrtext.append(part)
+						attrtext.append(")")
 					self._inattr -= 1
 					self._level += 1
-					line = "%s%s: %s" % (self._indent(), attrname, attrvalue)
+					line = astyle.style_default(self._indent(), s4attrname(attrname), ": ", s4attrvalue(attrtext))
 					if i != len(globalattrs) or not localattrs:
 						line += ","
 					yield line
 					self._level -= 1
-				line = "%s}" % self._indent()
+				line = astyle.style_default(self._indent(), "}")
 				if localattrs:
 					line += ","
 				yield line
 			for (i, (attrname, attrvalue)) in enumerate(localattrs.iteritems()):
 				self._inattr += 1
+				attrtext = astyle.Text()
 				if len(attrvalue)==1: # optimize away the tuple ()
-					attrvalue = " ".join(attrvalue[0].present(self))
+					for part in attrvalue[0].present(self):
+						if attrtext:
+							attrtext.append(" ")
+						attrtext.append(part)
 				else:
-					attrvalue = "(%s)" % " ".join(attrvalue.present(self))
+					for part in attrvalue.present(self):
+						if attrtext:
+							attrtext.append(" ")
+						else:
+							attrtext.append("(")
+						attrtext.append(part)
+					attrtext.append(")")
 				self._inattr -= 1
-				line = "%s%s=%s" % (self._indent(), attrname, attrvalue)
+				line = astyle.style_default(self._indent(), s4attrname(attrname), "=", s4attrvalue(attrtext))
 				if i != len(localattrs)-1:
 					line += ","
 				yield line
 			self._level -= 1
-			yield "%s)" % self._indent()
+			yield astyle.style_default(self._indent(), ")")
 		else:
-			yield "%s%s.%s()" % (self._indent(), node.__class__.__module__, node.__fullname__())
+			yield astyle.style_default(self._indent(), name, "()")
 
 	def presentNull(self, node):
-		yield "%sxsc.Null" % self._indent()
+		name = s4null(s4ns(node.__class__.__module__), ".", s4nullname(node.__fullname__()))
+		yield astyle.style_default(self._indent(), name)
 
 	def presentText(self, node):
-		yield "%s%r" % (self._indent(), self._text(node.content))
+		if self._inattr:
+			yield astyle.style_default(self._indent(), s4attrvalue(repr(self._text(node.content))))
+		else:
+			yield astyle.style_default(self._indent(), s4text(repr(self._text(node.content))))
 
 	def presentEntity(self, node):
-		yield "%s%s.%s()" % (self._indent(), node.__module__, node.__fullname__())
+		name = s4entity(s4ns(node.__class__.__module__), ".", s4entityname(node.__fullname__()))
+		yield astyle.style_default(self._indent, name, "()")
 
 	def presentProcInst(self, node):
 		yield "%s%s.%s(%r)" % (self._indent(), node.__module__, node.__fullname__(), self._text(node.content))
 
 	def presentComment(self, node):
-		yield "%sxsc.Comment(%r)" % (self._indent(), self._text(node.content))
+		yield astyle.style_default(self._indent(), s4comment("xsc.Comment"), "(", s4commenttext(repr(self._text(node.content))), ")")
 
 	def presentDocType(self, node):
 		yield "%sxsc.DocType(%r)" % (self._indent(), self._text(node.content))
