@@ -39,7 +39,7 @@ import xsc, options
 ###
 
 # style to be used for tabs
-s4tab = astyle.Style.fromenv("LL_XIST_STYLE_TAB", "black:black:bold")
+s4tab = astyle.Style.fromenv("LL_XIST_STYLE_TAB", "blue:black")
 
 
 # style to be used for quotes (delimiters for text and attribute nodes)
@@ -679,9 +679,10 @@ class CodePresenter(Presenter):
 	def __xiter__(self, mode="default"):
 		self._inattr = 0
 		self._level = 0
-		return self.node.present(self)
-
-	def present(self, node):
+		self._path = []
+		for line in self.node.present(self):
+			yield line
+		del self._path
 		del self._level
 		del self._inattr
 
@@ -713,8 +714,9 @@ class CodePresenter(Presenter):
 		name = s4frag(s4ns(node.__class__.__module__), ".", s4fragname(node.__fullname__()))
 		if len(node):
 			if not self._inattr: # skip "(" for attributes, they will be added by presentElement()
-				yield Line(node, node.startloc, None, astyle.style_default(self._indent(), name, "("))
+				yield Line(node, node.startloc, self._path[:], astyle.style_default(self._indent(), name, "("))
 			self._level += 1
+			self._path.append(0)
 			for (i, child) in enumerate(node):
 				if i==len(node)-1:
 					for line in child.present(self):
@@ -725,12 +727,14 @@ class CodePresenter(Presenter):
 						if j==len(lines)-1:
 							line.content += ","
 						yield line
+				self._path[-1] += 1
 			self._level -= 1
+			self._path.pop()
 			if not self._inattr:
-				yield Line(node, node.startloc, None, astyle.style_default(self._indent(), ")"))
+				yield Line(node, node.startloc, self._path[:], astyle.style_default(self._indent(), ")"))
 		else:
 			if not self._inattr:
-				yield Line(node, node.startloc, None, astyle.style_default(self._indent(), name, "()"))
+				yield Line(node, node.startloc, self._path[:], astyle.style_default(self._indent(), name, "()"))
 
 	def _formatattrvalue(self, attrvalue):
 		attrtext = astyle.Text()
@@ -760,10 +764,10 @@ class CodePresenter(Presenter):
 				else:
 					localattrs[attrname] = attrvalue
 
-			yield Line(node, node.startloc, None, astyle.style_default(self._indent(), name, "("))
+			yield Line(node, node.startloc, self._path[:], astyle.style_default(self._indent(), name, "("))
 			self._level += 1
 			if globalattrs:
-				yield Line(node, node.startloc, None, astyle.style_default(self._indent(), "{"))
+				yield Line(node, node.startloc, self._path[:], astyle.style_default(self._indent(), "{"))
 				for (i, (attrname, attrvalue)) in enumerate(globalattrs.iteritems()):
 					attrname = astyle.style_default("(", s4ns(attrname[0].__module__), ", ", s4attrname(attrname[1]), ")")
 					self._inattr += 1
@@ -773,12 +777,12 @@ class CodePresenter(Presenter):
 					line = astyle.style_default(self._indent(), s4attrname(attrname), ": ", s4attrvalue(attrvalue))
 					if i != len(globalattrs) or not localattrs:
 						line += ","
-					yield Line(attrvalue, attrvalue.startloc, None, line)
+					yield Line(attrvalue, attrvalue.startloc, self._path[:], line)
 					self._level -= 1
 				line = astyle.style_default(self._indent(), "}")
 				if localattrs:
 					line += ","
-				yield Line(node.attrs, node.attrs.startloc, None, line)
+				yield Line(node.attrs, node.attrs.startloc, self._path[:], line)
 			for (i, (attrname, attrvalue)) in enumerate(localattrs.iteritems()):
 				self._inattr += 1
 				attrtext = self._formatattrvalue(attrvalue)
@@ -786,17 +790,18 @@ class CodePresenter(Presenter):
 				line = astyle.style_default(self._indent(), s4attrname(attrname), "=", s4attrvalue(attrtext))
 				if i != len(localattrs)-1:
 					line += ","
-				yield Line(attrvalue, attrvalue.startloc, None, line)
+				yield Line(attrvalue, attrvalue.startloc, self._path[:], line)
 			self._level -= 1
-			yield Line(node, node.endloc, None, astyle.style_default(self._indent(), ")"))
+			yield Line(node, node.endloc, self._path[:], astyle.style_default(self._indent(), ")"))
 		else:
-			yield Line(node, node.startloc, None, astyle.style_default(self._indent(), name, "()"))
+			yield Line(node, node.startloc, self._path[:], astyle.style_default(self._indent(), name, "()"))
 
 	def presentElement(self, node):
 		name = s4element(s4ns(node.__class__.__module__), ".", s4elementname(node.__fullname__()))
 		if len(node.content) or len(node.attrs):
-			yield Line(node, node.startloc, None, astyle.style_default(self._indent(), name, "("))
+			yield Line(node, node.startloc, self._path[:], astyle.style_default(self._indent(), name, "("))
 			self._level += 1
+			self._path.append(0)
 			for (i, child) in enumerate(node):
 				if i==len(node)-1 and not node.attrs:
 					for line in child.present(self):
@@ -807,6 +812,8 @@ class CodePresenter(Presenter):
 						if j == len(lines)-1:
 							line.content += ","
 						yield line
+				self._path[-1] += 1
+			self._path.pop()
 
 			globalattrs = {}
 			localattrs = {}
@@ -817,8 +824,9 @@ class CodePresenter(Presenter):
 					localattrs[attrname] = attrvalue
 
 			if globalattrs:
-				yield Line(node.attrs, node.attrs.startloc, None, astyle.style_default(self._indent(), "{"))
+				yield Line(node.attrs, node.attrs.startloc, self._path[:], astyle.style_default(self._indent(), "{"))
 				for (i, (attrname, attrvalue)) in enumerate(globalattrs.iteritems()):
+					self._path.append(attrname)
 					attrname = astyle.style_default("(", s4ns(attrname[0].__module__), ", ", s4attrname(attrname[1]), ")")
 					self._inattr += 1
 					attrtext = self._formatattrvalue(attrvalue)
@@ -827,12 +835,13 @@ class CodePresenter(Presenter):
 					line = astyle.style_default(self._indent(), s4attrname(attrname), ": ", s4attrvalue(attrtext))
 					if i != len(globalattrs) or not localattrs:
 						line += ","
-					yield Line(attrvalue, attrvalue.startloc, None, line)
+					yield Line(attrvalue, attrvalue.startloc, self._path[:], line)
+					self._path.pop()
 					self._level -= 1
 				line = astyle.style_default(self._indent(), "}")
 				if localattrs:
 					line += ","
-				yield Line(node.attrs, node.attrs.startloc, None, line)
+				yield Line(node.attrs, node.attrs.startloc, self._path[:], line)
 			for (i, (attrname, attrvalue)) in enumerate(localattrs.iteritems()):
 				self._inattr += 1
 				attrtext = self._formatattrvalue(attrvalue)
@@ -840,38 +849,40 @@ class CodePresenter(Presenter):
 				line = astyle.style_default(self._indent(), s4attrname(attrname), "=", s4attrvalue(attrtext))
 				if i != len(localattrs)-1:
 					line += ","
-				yield Line(attrvalue, attrvalue.startloc, None, line)
+				self._path.append(attrname)
+				yield Line(attrvalue, attrvalue.startloc, self._path[:], line)
+				self._path.pop()
 			self._level -= 1
-			yield Line(node, node.endloc, None, astyle.style_default(self._indent(), ")"))
+			yield Line(node, node.endloc, self._path[:], astyle.style_default(self._indent(), ")"))
 		else:
-			yield Line(node, node.startloc, None, astyle.style_default(self._indent(), name, "()"))
+			yield Line(node, node.startloc, self._path[:], astyle.style_default(self._indent(), name, "()"))
 
 	def presentNull(self, node):
 		name = s4null(s4ns(node.__class__.__module__), ".", s4nullname(node.__fullname__()))
-		yield Line(node, node.startloc, None, astyle.style_default(self._indent(), name))
+		yield Line(node, node.startloc, self._path[:], astyle.style_default(self._indent(), name))
 
 	def presentText(self, node):
 		if self._inattr:
 			formatter = s4attrvalue
 		else:
 			formatter = s4text
-		yield Line(node, node.startloc, None, astyle.style_default(self._indent(), formatter(repr(self._text(node.content)))))
+		yield Line(node, node.startloc, self._path[:], astyle.style_default(self._indent(), formatter(repr(self._text(node.content)))))
 
 	def presentEntity(self, node):
 		name = s4entity(s4ns(node.__class__.__module__), ".", s4entityname(node.__fullname__()))
-		yield Line(node, node.startloc, None, astyle.style_default(self._indent, name, "()"))
+		yield Line(node, node.startloc, self._path[:], astyle.style_default(self._indent, name, "()"))
 
 	def presentProcInst(self, node):
 		name = s4procinst(s4ns(node.__class__.__module__), ".", s4procinstname(node.__fullname__()))
-		yield Line(node, node.startloc, None, astyle.style_default(self._indent(), name, "(", s4procinstcontent(repr(self._text(node.content))), ")"))
+		yield Line(node, node.startloc, self._path[:], astyle.style_default(self._indent(), name, "(", s4procinstcontent(repr(self._text(node.content))), ")"))
 
 	def presentComment(self, node):
 		name = s4comment(s4ns(node.__class__.__module__), ".", node.__fullname__())
-		yield Line(node, node.startloc, None, astyle.style_default(self._indent(), name, "(", s4commenttext(repr(self._text(node.content))), ")"))
+		yield Line(node, node.startloc, self._path[:], astyle.style_default(self._indent(), name, "(", s4commenttext(repr(self._text(node.content))), ")"))
 
 	def presentDocType(self, node):
 		name = s4doctype(s4ns(node.__class__.__module__), ".", node.__fullname__())
-		yield Line(node, node.startloc, None, astyle.style_default(self._indent(), name, "(", s4doctypetext(repr(self._text(node.content))), ")"))
+		yield Line(node, node.startloc, self._path[:], astyle.style_default(self._indent(), name, "(", s4doctypetext(repr(self._text(node.content))), ")"))
 
 	def presentAttr(self, node):
 		return self.presentFrag(node)
