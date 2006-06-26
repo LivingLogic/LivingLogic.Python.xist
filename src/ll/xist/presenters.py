@@ -429,17 +429,17 @@ class TreePresenter(Presenter):
 
 	def __iter__(self):
 		self._inattr = 0
-		self._currentpath = [] # numerical path
+		self._path = [] # numerical path
 
 		for line in self.node.present(self):
 			yield line
 	
 		del self._inattr
-		del self._currentpath
+		del self._path
 
 	def _domultiline(self, node, lines, indent, formatter, head=None, tail=None):
 		loc = node.startloc
-		nest = len(self._currentpath)
+		nest = len(self._path)
 		l = len(lines)
 		for i in xrange(max(1, l)): # at least one line
 			if loc is not None:
@@ -460,7 +460,7 @@ class TreePresenter(Presenter):
 				s = head + s
 			if i >= l-1 and tail is not None: # append tail to last line
 				s = s + tail
-			yield Line(node, hereloc, self._currentpath[:], self.strindent(mynest) + s)
+			yield Line(node, hereloc, self._path[:], self.strindent(mynest) + s)
 
 	def presentFrag(self, node):
 		if self._inattr:
@@ -468,33 +468,33 @@ class TreePresenter(Presenter):
 				for text in child.present(self):
 					yield text
 		else:
-			indent = self.strindent(len(self._currentpath))
+			indent = self.strindent(len(self._path))
 			ns = s4ns(node.__class__.__module__)
 			name = s4fragname(node.__fullname__())
 			if len(node):
 				yield Line(
 					node,
 					node.startloc,
-					self._currentpath[:],
+					self._path[:],
 					s4frag(indent, "<", ns, ":", name, ">"),
 				)
-				self._currentpath.append(0)
+				self._path.append(0)
 				for child in node:
 					for line in child.present(self):
 						yield line
-					self._currentpath[-1] += 1
-				self._currentpath.pop(-1)
+					self._path[-1] += 1
+				self._path.pop(-1)
 				yield Line(
 					node,
 					node.endloc,
-					self._currentpath[:],
+					self._path[:],
 					s4frag(indent, "</", ns, ":", name, ">"),
 				)
 			else:
 				yield Line(
 					node,
 					node.startloc,
-					self._currentpath[:],
+					self._path[:],
 					s4frag(indent, "<", ns, ":", name, "/>"),
 				)
 
@@ -511,25 +511,25 @@ class TreePresenter(Presenter):
 					yield text
 				yield s4attr('"')
 		else:
-			indent = self.strindent(len(self._currentpath))
+			indent = self.strindent(len(self._path))
 			ns = s4ns(node.__class__.__module__)
 			name = s4attrsname(node.__fullname__())
 			yield Line(
 				node,
 				node.startloc,
-				self._currentpath[:],
+				self._path[:],
 				s4attrs(indent, "<", ns, ":", name, ">"),
 			)
-			self._currentpath.append(None)
+			self._path.append(None)
 			for (attrname, attrvalue) in node.iteritems():
-				self._currentpath[-1] = attrname
+				self._path[-1] = attrname
 				for line in attrvalue.present(self):
 					yield line
-			self._currentpath.pop()
+			self._path.pop()
 			yield Line(
 				node,
 				node.endloc,
-				self._currentpath[:],
+				self._path[:],
 				s4attrs(indent, "</", ns, ":", name, ">"),
 			)
 
@@ -551,7 +551,7 @@ class TreePresenter(Presenter):
 				yield s4element("/>")
 		else:
 			firstline = s4element("<", ns, ":", name)
-			indent = self.strindent(len(self._currentpath))
+			indent = self.strindent(len(self._path))
 
 			self._inattr += 1
 			for line in node.attrs.present(self):
@@ -562,19 +562,19 @@ class TreePresenter(Presenter):
 				yield Line(
 					node,
 					node.startloc,
-					self._currentpath[:],
+					self._path[:],
 					indent + firstline,
 				)
-				self._currentpath.append(0)
+				self._path.append(0)
 				for child in node:
 					for line in child.present(self):
 						yield line
-					self._currentpath[-1] += 1
-				self._currentpath.pop()
+					self._path[-1] += 1
+				self._path.pop()
 				yield Line(
 					node,
 					node.endloc,
-					self._currentpath[:],
+					self._path[:],
 					s4element(indent, "</", ns, ":", name, ">"),
 				)
 			else:
@@ -582,19 +582,19 @@ class TreePresenter(Presenter):
 				yield Line(
 					node,
 					node.startloc,
-					self._currentpath[:],
+					self._path[:],
 					indent + firstline,
 				)
 
 	def presentNull(self, node):
 		if not self._inattr:
-			indent = self.strindent(len(self._currentpath))
+			indent = self.strindent(len(self._path))
 			ns = s4ns(node.__class__.__module__)
 			name = s4nullname(node.__fullname__())
 			yield Line(
 				node,
 				node.startloc,
-				self._currentpath[:],
+				self._path[:],
 				s4null(indent, "<", ns, ":", name, "/>"),
 			)
 
@@ -612,11 +612,11 @@ class TreePresenter(Presenter):
 		if self._inattr:
 			yield s4entity("&", ns, ":", name, ";")
 		else:
-			indent = self.strindent(len(self._currentpath))
+			indent = self.strindent(len(self._path))
 			yield Line(
 				node,
 				node.startloc,
-				self._currentpath[:],
+				self._path[:],
 				s4entity(indent, "&", ns, ":", name, ";"),
 			)
 
