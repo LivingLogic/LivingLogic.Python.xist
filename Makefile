@@ -20,6 +20,7 @@ dist: test
 	python$(PYVERSION) `which doc2txt.py` --title "Migration and modernization guide" MIGRATION.xml MIGRATION
 	python$(PYVERSION) setup.py sdist --formats=bztar,gztar
 	python$(PYVERSION) setup.py bdist --formats=rpm
+	python$(PYVERSION) setup.py bdist --formats=egg
 	rm NEWS INSTALL HOWTO EXAMPLES MIGRATION
 
 windist:
@@ -30,4 +31,5 @@ windist:
 	python$(PYVERSION) C:\\\\Programme\\\\Python24\\\\Scripts\\\\doc2txt.py --title "Migration and modernization guide" MIGRATION.xml MIGRATION
 	python$(PYVERSION) setup.py sdist --formats=zip
 	python$(PYVERSION) setup.py bdist --formats=wininst
+	python$(PYVERSION) setup.py bdist --formats=egg
 	rm NEWS INSTALL HOWTO EXAMPLES MIGRATION
