@@ -10,7 +10,7 @@ code instead of PL/SQL code. Using <module>detox</module> templates is about
 <link href="http://kid.lesscode.org/">Kid</link>.</item>
 
 <item>Presenters are now compatible to <link href="http://ipython.scipy.org/">IPython</link>'s
-ipipe modules. This means that you can browse &xist; trees interactively
+ipipe module. This means that you can browse &xist; trees interactively
 if you have IPython installed. <class>NormalPresenter</class> and the
 <class>Node</class> methods <method>repr</method> and <method>asrepr</method>
 have been removed.</item>
