@@ -304,16 +304,11 @@ def test_repr():
 	for node in tests:
 		repr(node)
 		for class_ in allpresenters:
-			presenter = class_()
+			presenter = class_(node)
 			# do it multiple time, to make sure the presenter gets properly reset
 			for i in xrange(3):
-				node.asrepr(presenter)
-		for showlocation in (False, True):
-			for showpath in (False, True):
-				presenter = presenters.TreePresenter(showlocation=showlocation, showpath=showpath)
-				# do it multiple time, to make sure the presenter gets properly reset
-				for i in xrange(3):
-					node.asrepr(presenter)
+				list(presenter)
+				str(presenter)
 
 
 def test_attrsclone():

@@ -55,13 +55,7 @@ class WrongElementWarning(SIMSWarning):
 		self.elements = elements
 
 	def __str__(self):
-		s = "element %r" % self.node
-		if self.node.startloc is not None:
-			s += " at %s" % self.node.startloc
-		s += " may not contain element %r" % self.badnode
-		if self.badnode.startloc is not None:
-			s += " at %s" % self.badnode.startloc
-		return s
+		return "element %r may not contain element %r" % (self.node, self.badnode)
 
 
 class ElementWarning(SIMSWarning):
@@ -75,13 +69,7 @@ class ElementWarning(SIMSWarning):
 		self.badnode = badnode
 
 	def __str__(self):
-		s = "element %r" % self.node
-		if self.node.startloc is not None:
-			s += " at %s" % self.node.startloc
-		s += " may not contain other elements"
-		if self.badnode.startloc is not None:
-			s += " (at %s)" % self.badnode.startloc
-		return s
+		return "element %r may not contain other elements" % self.node
 
 
 class IllegalTextWarning(SIMSWarning):
@@ -94,13 +82,7 @@ class IllegalTextWarning(SIMSWarning):
 		self.badnode = badnode
 
 	def __str__(self):
-		s = "element %r" % self.node
-		if self.node.startloc is not None:
-			s += " at %s" % self.node.startloc
-		s += " may not contain text nodes"
-		if self.badnode.startloc is not None:
-			s += " (at %s)" % self.badnode.startloc
-		return s
+		return "element %r may not contain text nodes" % self.node
 
 
 def badtext(node):

@@ -1,14 +1,26 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
-<section><title>Changes in ?.? (released ?/?/2006)</title>
+<section><title>Changes in 2.14 (released 06/28/2006)</title>
 <ulist>
-<item>On publishing <class>ll.xist.ns.html.html</class> now only adds a
-<lit>lang</lit> and <lit>xml:lang</lit> attribute, if neither of them exists.</item>
 <item>Namespaces for RSS 0.91, RSS 2.0 and Atom 1.0 have been added.</item>
-<item>A new namespace <module>ll.xist.ns.venom</module> has been added that
+
+<item>A new namespace <module>ll.xist.ns.detox</module> has been added that
 is similar to <module>ll.toxic</module> but can be used to generate Python
-code instead of PL/SQL code. Using <module>venom</module> templates is about
+code instead of PL/SQL code. Using <module>detox</module> templates is about
 50 times faster than using &xist; trees directly and about 10 times faster than
 <link href="http://kid.lesscode.org/">Kid</link>.</item>
+
+<item>Presenters are now compatible to <link href="http://ipython.scipy.org/">IPython</link>'s
+ipipe modules. This means that you can browse &xist; trees interactively
+if you have IPython installed.</item>
+
+<item>A new processing instruction <class>ll.xist.ns.specials.url</class>
+has been added that does the same &url; transformation as
+<class>ll.xist.xsc.URLAttr</class> does.</item>
+
+<item>On publishing <class>ll.xist.ns.html.html</class> now only adds a
+<lit>lang</lit> and <lit>xml:lang</lit> attribute, if neither of them exists.</item>
+
+<item><module>setuptools</module> is now supported for installation.</item>
 </ulist>
 </section>
 

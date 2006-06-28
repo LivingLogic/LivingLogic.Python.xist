@@ -154,79 +154,6 @@ s4string = astyle.Style.fromenv("LL_XIST_STYLE_STRING", "magenta:black")
 s4id = astyle.Style.fromenv("LL_XIST_STYLE_ID", "yellow:black")
 
 
-class Queue(object):
-	"""
-	queue: write bytes at one end, read bytes from the other end
-	"""
-	def __init__(self):
-		self._buffer = ""
-
-	def write(self, chars):
-		self._buffer += chars
-
-	def read(self, size=-1):
-		if size<0:
-			s = self._buffer
-			self._buffer = ""
-			return s
-		else:
-			s = self._buffer[:size]
-			self._buffer = self._buffer[size:]
-			return s
-
-
-def encode(encoding, *iterators):
-	queue = Queue()
-	writer = codecs.getwriter(encoding)(queue)
-	for iterator in iterators:
-		for text in iterator:
-			writer.write(text)
-			yield queue.read()
-
-
-class EscInlineText(object):
-	ascharref = "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x0b\x0c\x0d\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f<>&"
-	ascolor   = "\x09"
-
-	@classmethod
-	def parts(cls, style, string):
-		for char in string:
-			if char in cls.ascolor:
-				yield s4tab(char)
-			else:
-				ascharref = char in cls.ascharref
-				if not ascharref:
-					try:
-						char.encode(options.reprencoding)
-					except:
-						ascharref = True
-				if ascharref:
-					charcode = ord(char)
-					try:
-						entity = xsc.defaultPrefixes.charref(charcode)
-					except LookupError:
-						yield s4charrefname(u"&#", unicode(charcode), u";")
-					else:
-						yield s4entityname(u"&", unicode(entity.xmlname), u";")
-				else:
-					yield style(char)
-
-
-class EscInlineAttr(EscInlineText):
-	ascharref = "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x0b\x0c\x0d\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f<>\"&"
-	ascolor   = "\x09\x0a"
-
-
-class EscOutlineText(EscInlineText):
-	ascharref = "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f<>&"
-	ascolor   = ""
-
-
-class EscOutlineAttr(EscInlineText):
-	ascharref = "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f<>\"&"
-	ascolor   = ""
-
-
 def strtab(count):
 	return s4tab(unicode(options.reprtab)*count)
 
@@ -305,82 +232,6 @@ class Presenter(table):
 		"""
 		<par>present an <pyref module="ll.xist.xsc" class="Attr"><class>Attr</class></pyref> node.</par>
 		"""
-
-
-class NormalPresenter(Presenter):
-	def present(self, node):
-		self.inattr = 0
-		for part in node.present(self):
-			yield part
-
-	def presentText(self, node):
-		if self.inattr:
-			yield astyle.aunicode().join(EscOutlineAttr.parts(xsc.c4attrvalue, node.content))
-		else:
-			yield astyle.aunicode().join(EscInlineText.parts(astyle.color, node.content))
-
-	def presentFrag(self, node):
-		for child in node:
-			for part in child.present(self):
-				yield part
-
-	def presentComment(self, node):
-		yield s4comment(u"<!--")
-		yield astyle.aunicode().join(EscOutlineText.parts(xsc.c4commenttext, node.content))
-		yield s4comment(u"-->")
-
-	def presentDocType(self, node):
-		yield s4doctype(u"<!DOCTYPE ")
-		yield astyle.aunicode().join(EscOutlineText.parts(xsc.c4doctypetext, node.content))
-		yield s4doctype(u">")
-
-	def presentProcInst(self, node):
-		yield s4procinst(u"<?")
-		yield node._str(fullname=True, xml=False, decorate=False)
-		yield s4procinst(u" ")
-		yield astyle.aunicode().join(EscOutlineText.parts(xsc.c4doctypetext, node.content))
-		yield s4procinst(u"?>")
-
-	def presentAttrs(self, node):
-		self.inattr += 1
-		for (attrname, attrvalue) in node.iteritems():
-			yield u" "
-			if isinstance(attrname, tuple):
-				yield attrvalue._str(fullname=False, xml=False, decorate=False)
-			else:
-				yield s4attrname(attrname)
-			yield u"="
-			yield s4attr(u'"')
-			for part in attrvalue.present(self):
-				yield part
-			yield s4attr(u'"')
-		self.inattr -= 1
-
-	def presentElement(self, node):
-		yield s4element(u"<")
-		yield node._str(fullname=True, xml=False, decorate=False)
-		for part in node.attrs.present(self):
-			yield part
-		if not len(node) and node.model and node.model.empty:
-			yield s4element(u"/>")
-		else:
-			yield s4element(u">")
-			for child in node:
-				for part in child.present(self):
-					yield part
-			yield s4element(u"</")
-			yield node._str(fullname=True, xml=False, decorate=False)
-			yield s4element(u">")
-
-	def presentEntity(self, node):
-		yield node._str(fullname=True, xml=False, decorate=True)
-
-	def presentNull(self, node):
-		yield node._str(fullname=True, xml=False, decorate=True)
-
-	def presentAttr(self, node):
-		for part in xsc.Frag.present(node, self):
-			yield part
 
 
 class Line(object):
@@ -873,7 +724,7 @@ class CodePresenter(Presenter):
 		yield Line(node, node.startloc, self._path[:], astyle.style_default(self._indent, name, "()"))
 
 	def presentProcInst(self, node):
-		name = s4procinst(s4ns(node.__class__.__module__), ".", s4procinstname(node.__fullname__()))
+		name = s4procinst(s4ns(node.__class__.__module__), ".", s4procinsttarget(node.__fullname__()))
 		yield Line(node, node.startloc, self._path[:], astyle.style_default(self._indent(), name, "(", s4procinstcontent(repr(self._text(node.content))), ")"))
 
 	def presentComment(self, node):

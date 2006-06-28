@@ -540,16 +540,16 @@ class Parser(object):
 						except xsc.IllegalAttrError:
 							pass
 						else:
-							attrnode.parsed(self)
+							attrnode = attrnode.parsed(self)
 						attr = attr.next
-					newnode.attrs.parsed(self)
-					newnode.parsed(self, start=True)
+					newnode.attrs = newnode.attrs.parsed(self)
+					newnode = newnode.parsed(self, start=True)
 				child = node.children
 				while child is not None:
 					newnode.append(toxsc(child))
 					child = child.next
 				if isinstance(node, xsc.Element): # if we did recognize the element, otherwise we're in a Frag
-					newnode.parsed(self, start=False)
+					newnode = newnode.parsed(self, start=False)
 			elif node.type in ("text", "cdata"):
 				newnode = xsc.Text(decode(node.content))
 				if self.loc:
@@ -726,9 +726,9 @@ class Parser(object):
 					attrname = newprefixes.attrnamefromqname(node, attrname)
 					if attrname is not None: # None means an illegal attribute
 						node[attrname] = attrvalue
-						node[attrname].parsed(self)
-			node.attrs.parsed(self)
-			node.parsed(self, start=True)
+						node[attrname] = node[attrname].parsed(self)
+			node.attrs = node.attrs.parsed(self)
+			node = node.parsed(self, start=True)
 			self.__appendNode(node)
 		# push new innermost element onto the stack, together with the list of prefix mappings to which we have to return when we leave this element
 		# If the element is bad (i.e. createElement returned None), we push None as the node
@@ -738,7 +738,7 @@ class Parser(object):
 	def endElement(self, name):
 		currentelement = self._last()
 		if currentelement is not None: # we're not in an bad element
-			currentelement.parsed(self, start=False)
+			currentelement.parsed(self, start=False) # ignore return value
 			if self.validate:
 				currentelement.checkvalid()
 			if self.loc:
@@ -760,7 +760,7 @@ class Parser(object):
 				content = content[1:]
 		if content:
 			node = self.createText(content)
-			node.parsed(self)
+			node = node.parsed(self)
 			last = self._last()
 			if len(last) and isinstance(last[-1], xsc.Text):
 				node = last[-1] + unicode(node) # join consecutive Text nodes
@@ -772,7 +772,7 @@ class Parser(object):
 
 	def comment(self, content):
 		node = self.createComment(content)
-		node.parsed(self)
+		node = node.parsed(self)
 		self.__appendNode(node)
 		self.skippingwhitespace = False
 
@@ -782,7 +782,7 @@ class Parser(object):
 		else:
 			node = self.createProcInst(target, data)
 			if node is not None:
-				node.parsed(self)
+				node = node.parsed(self)
 				self.__appendNode(node)
 			self.skippingwhitespace = False
 
@@ -792,7 +792,7 @@ class Parser(object):
 			if isinstance(node, xsc.CharRef):
 				self.characters(unichr(node.codepoint))
 			else:
-				node.parsed(self)
+				node = node.parsed(self)
 				self.__appendNode(node)
 		self.skippingwhitespace = False
 

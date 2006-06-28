@@ -18,7 +18,7 @@ __version__ = "$Revision$".split()[1]
 
 import sys, os, random, copy, warnings, new, cPickle
 
-from ll import misc, url, astyle
+from ll import misc, url as url_
 
 
 # XPython support
@@ -27,6 +27,11 @@ try:
 except ImportError:
 	iexec = None
 	
+try:
+	from IPython.Extensions import astyle
+except ImportError:
+	from ll import astyle
+
 # IPython/ipipe support
 try:
 	from IPython.Extensions import ipipe
@@ -61,7 +66,7 @@ def tonode(value):
 		return Null
 	elif isinstance(value, (list, tuple)):
 		return Frag(*value)
-	elif isinstance(value, url.URL):
+	elif isinstance(value, url_.URL):
 		return Text(value)
 	else:
 		# Maybe it's an iterator/generator?
@@ -304,7 +309,7 @@ class IllegalAttrValueWarning(Warning):
 
 	def __str__(self):
 		attr = self.attr
-		return "Attribute value %s not allowed for %s", (repr(str(attr)), attr._str(fullname=True, xml=False, decorate=False))
+		return "Attribute value %r not allowed for %s" % (unicode(attr), attr._str(fullname=True, xml=False, decorate=False))
 
 
 class RequiredAttrMissingWarning(Warning):
@@ -503,7 +508,7 @@ class IllegalObjectWarning(Warning):
 		self.object = object
 
 	def __str__(self):
-		return "an illegal object %r of type %s has been found in the XSC tree. The object will be ignored." % (self.object, type(self.object).__name__)
+		return "an illegal object %r of type %s has been found in the XIST tree." % (self.object, type(self.object).__name__)
 
 
 class MalformedCharRefWarning(Warning):
@@ -544,7 +549,7 @@ class IllegalProcInstFormatError(Error):
 		self.procinst = procinst
 
 	def __str__(self):
-		return astyle.color("processing instruction with content %r is illegal, as it contains '?>'." % self.procinst.content)
+		return "processing instruction with content %r is illegal, as it contains '?>'." % self.procinst.content
 
 
 class IllegalXMLDeclFormatError(Error):
@@ -559,7 +564,7 @@ class IllegalXMLDeclFormatError(Error):
 		self.procinst = procinst
 
 	def __str__(self):
-		return astyle.color("XML declaration with content %r is malformed." % self.procinst.content)
+		return "XML declaration with content %r is malformed." % self.procinst.content
 
 
 class ParseWarning(Warning):
@@ -634,11 +639,7 @@ class NodeOutsideContextError(Error):
 		self.outerclass = outerclass
 
 	def __str__(self):
-		s = "node %s" % self.node._str(fullname=True, xml=False, decorate=True)
-		if self.node.startloc is not None:
-			s += " at %r" % self.node.startloc
-		s += " outside of %s" % self.outerclass._str(fullname=True, xml=False, decorate=True)
-		return s
+		return "node %s outside of %s" % (self.node._str(fullname=True, xml=False, decorate=True), self.outerclass._str(fullname=True, xml=False, decorate=True))
 
 
 ###
@@ -827,27 +828,6 @@ class Node(Base):
 	def __deepcopy__(self, memo=None):
 		return self
 
-	def repr(self, presenter=None, **presenterargs):
-		"""
-		<par>Return a string representation of <self/>. When you don't pass in a
-		<arg>presenter</arg>, you'll get the default presentation. Else
-		<arg>presenter</arg> should be an instance of
-		<pyref module="ll.xist.presenters" class="Presenter"><class>ll.xist.presenters.Presenter</class></pyref>
-		(or one of the subclasses).</par>
-		"""
-		if presenter is None:
-			presenter = presenters.defaultpresenter(**presenterargs)
-		return presenter(self)
-
-	def asrepr(self, presenter=None, **presenterargs):
-		"""
-		<par>Return a string representation of <self/>. When you don't pass in a
-		<arg>presenter</arg>, you'll get the default presentation. Else
-		<arg>presenter</arg> should be an instance of
-		<pyref module="ll.xist.presenters" class="Presenter"><class>ll.xist.presenters.Presenter</class></pyref>.</par>
-		"""
-		return str(self.repr(presenter, **presenterargs))
-
 	@misc.notimplemented
 	def present(self, presenter):
 		"""
@@ -1023,7 +1003,8 @@ class Node(Base):
 	def parsed(self, parser, start=None):
 		"""
 		<par>This method will be called by the parser <arg>parser</arg> once after
-		<self/> is created by the parser. This is e.g. used by
+		<self/> is created by the parser and must return the node that is to be
+		put into the tree (in most cases this is <self/>, it's used e.g. by
 		<pyref class="URLAttr"><class>URLAttr</class></pyref> to incorporate
 		the base <pyref module="ll.url" class="URL"><class>URL</class></pyref>
 		into the attribute.</par>
@@ -1031,9 +1012,10 @@ class Node(Base):
 		<par>For elements <function>parsed</function> will be called twice:
 		Once at the beginning (i.e. before the content is parsed) with
 		<lit><arg>start</arg>==True</lit> and once at the end after parsing of
-		the content is finished <lit><arg>start</arg>==False</lit>.</par>
+		the content is finished <lit><arg>start</arg>==False</lit>. For the
+		second call the return value will be ignored.</par>
 		"""
-		pass
+		return self
 
 	def checkvalid(self):
 		"""
@@ -1043,7 +1025,6 @@ class Node(Base):
 		<par>If <self/> is found to be invalid a warning should be issued through
 		the <pyref module="warnings">Python warning framework</pyref>.</par>
 		"""
-		pass
 
 	@misc.notimplemented
 	def publish(self, publisher):
@@ -2175,7 +2156,8 @@ class StyleAttr(Attr):
 		if not self.isfancy():
 			csshandler = cssparsers.ParseHandler(ignorecharset=True)
 			value = csshandler.parseString(unicode(self), base=parser.base)
-			self[:] = (value, )
+			return self.__class__(value)
+		return self
 
 	def _publishattrvalue(self, publisher):
 		if not self.isfancy():
@@ -2206,7 +2188,7 @@ class URLAttr(Attr):
 	"""
 
 	def parsed(self, parser, start=None):
-		self[:] = utils.replaceInitialURL(self, lambda u: parser.base/u)
+		return self.__class__(utils.replaceInitialURL(self, lambda u: parser.base/u))
 
 	def _publishattrvalue(self, publisher):
 		new = utils.replaceInitialURL(self, lambda u: u.relative(publisher.base))
@@ -2218,7 +2200,7 @@ class URLAttr(Attr):
 		<par>Return <self/> as a <pyref module="ll.url" class="URL"><class>URL</class></pyref>
 		instance (note that non-character content will be filtered out).</par>
 		"""
-		return url.URL(Attr.__unicode__(self))
+		return url_.URL(Attr.__unicode__(self))
 
 	def __unicode__(self):
 		return self.asURL().url
@@ -2234,7 +2216,7 @@ class URLAttr(Attr):
 		u = self.asURL()
 		if u.scheme == "root":
 			u.scheme = None
-		u = url.URL(root)/u
+		u = url_.URL(root)/u
 		return u
 
 	def imagesize(self, root=None):

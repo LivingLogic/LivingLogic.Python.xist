@@ -18,6 +18,7 @@ __version__ = "$Revision$".split()[1]
 
 import sys, types, datetime
 
+from ll import url as url_
 from ll.xist import xsc, parsers, sims
 
 
@@ -184,6 +185,19 @@ class literal(xsc.ProcInst):
 	"""
 	def publish(self, publisher):
 		yield publisher.encode(self.content)
+
+
+class url(xsc.ProcInst):
+	"""
+	<class>url</class> is a processing instruction containing an &url;.
+	On publishing it will be replaced by an &url; that is relative to the base
+	&url; of the publisher.
+	"""
+	def parsed(self, parser, start=None):
+		return self.__class__(unicode(parser.base/self.content))
+
+	def publish(self, publisher):
+		yield publisher.encodetext(unicode(url_.URL(self.content).relative(publisher.base)))
 
 
 # Control characters (not part of HTML)
