@@ -11,7 +11,9 @@ code instead of PL/SQL code. Using <module>detox</module> templates is about
 
 <item>Presenters are now compatible to <link href="http://ipython.scipy.org/">IPython</link>'s
 ipipe modules. This means that you can browse &xist; trees interactively
-if you have IPython installed.</item>
+if you have IPython installed. <class>NormalPresenter</class> and the
+<class>Node</class> methods <method>repr</method> and <method>asrepr</method>
+have been removed.</item>
 
 <item>A new processing instruction <class>ll.xist.ns.specials.url</class>
 has been added that does the same &url; transformation as

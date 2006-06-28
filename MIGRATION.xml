@@ -1,4 +1,21 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
+<section><title>Migrating to version 2.14</title>
+
+<section><title>Changes to presenters</title>
+
+<par>Presenters work differently now. Instead of:</par>
+
+<prog>print node.asrepr(presenters.CodePresenter)</prog>
+
+<par>simply do the following:</par>
+
+<prog>print presenters.CodePresenter(node)</prog>
+
+</section>
+
+</section>
+
+
 <section><title>Migrating to version 2.13</title>
 
 <section><title>Changes to <module>ll.xist.xsc</module></title>
