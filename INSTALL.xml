@@ -21,26 +21,23 @@ to install the source distribution.</item>
 
 
 <section><title>Installation</title>
-<par><app>setuptools</app> is used for installation so you can install this
-module with the following command:</par>
+<par><app moreinfo="http://peak.telecommunity.com/DevCenter/setuptools">setuptools</app>
+is used for installation so you can install this module with the following command:</par>
 
 <prog>
 easy_install ll-xist
 </prog>
 
 <par>If you want to install from source, you can download one of the
-<link href="Download.html">distribution archives</link>, unpack it, enter the
-directory and xecute the following command:</par>
+<link href="root:xist/Download.html">distribution archives</link>, unpack it,
+enter the directory and execute the following command:</par>
 <prog>
 python setup.py install
 </prog>
 
 <par>This will copy <filename>*.py</filename> files, compile <filename>*.c</filename>
 files and install everything in the <dirname>site-packages</dirname>
-directory as the <module>ll.xist</module> package. <app>distutils</app> might
-complain about a missing <filename>__init__.py</filename>, but you can ignore
-this: The main package init file (for the <module>ll</module> package) is
-provided by <pyref module="ll">ll-core</pyref>.</par>
+directory as the <module>ll.xist</module> package.</par>
 
 <par>For Windows a binary distribution is provided. To install it,
 double click it, and follow the instructions.</par>
@@ -68,10 +65,10 @@ a detailed description).</par>
 <section><title>IPython display hooks</title>
 <par>If you're using &xist; in an
 <link href="http://ipython.scipy.org/">IPython shell</link>, &xist; allows you
-to browse through your &xist; trees using any of the browsers provided by
-IPython's <link href="http://projects.scipy.org/ipython/ipython/wiki/UsingIPipe">ipipe module</link>.</par>
+to browse through your trees using any of the browsers provided by IPython's
+<link href="http://projects.scipy.org/ipython/ipython/wiki/UsingIPipe">ipipe module</link>.</par>
 
-<par>You can specify which format gets used be changing the value of the
+<par>You can specify which format gets used by changing the value of the
 <lit>defaultpresenter</lit> variable in the module <module>ll.xist.presenters</module>:</par>
 
 <prog>
