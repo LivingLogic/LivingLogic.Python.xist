@@ -4,7 +4,7 @@
 <olist>
 <item><link href="http://www.python.org/">Python 2.4</link>,</item>
 <item><link href="http://pyxml.sf.net/">The Python &xml; package</link> (at least version 0.8.4),</item>
-<item><link href="root:core/index.html">ll-core</link> (1.0 or newer),</item>
+<item><link href="root:core/index.html">ll-core</link> (1.3 or newer),</item>
 <item>if you want to use automatic image size calculation: the
 <link href="http://www.pythonware.com/products/pil/">Python Imaging Library</link>,</item>
 <item>if you want to parse broken &html;: <link href="http://www.xmlsoft.org/">libxml2</link>
@@ -21,25 +21,26 @@ to install the source distribution.</item>
 
 
 <section><title>Installation</title>
-<par><app>distutils</app> is used for installation, so it's rather simple.
-Execute the following command:</par>
+<par><app>setuptools</app> is used for installation so you can install this
+module with the following command:</par>
+
+<prog>
+easy_install ll-xist
+</prog>
+
+<par>If you want to install from source, you can download one of the
+<link href="Download.html">distribution archives</link>, unpack it, enter the
+directory and xecute the following command:</par>
 <prog>
 python setup.py install
 </prog>
+
 <par>This will copy <filename>*.py</filename> files, compile <filename>*.c</filename>
 files and install everything in the <dirname>site-packages</dirname>
 directory as the <module>ll.xist</module> package. <app>distutils</app> might
 complain about a missing <filename>__init__.py</filename>, but you can ignore
 this: The main package init file (for the <module>ll</module> package) is
 provided by <pyref module="ll">ll-core</pyref>.</par>
-
-<par>If you're updating from a version older than 1.5, remove the old package
-<module>xist</module> from your installation directory and remove the
-<dirname>build</dirname> directory (if you're building from source).</par>
-
-<par>If you're updating from a version older than 1.4, remove
-the old module <module>xist.url</module> as this is no longer needed
-and might collide with the new global module <module>ll.url</module>.</par>
 
 <par>For Windows a binary distribution is provided. To install it,
 double click it, and follow the instructions.</par>
@@ -53,48 +54,31 @@ to Walter Dörwald (<email>walter@livinglogic.de</email>).</par>
 <par>When you pass an 8bit string in the constructor
 of an &xist; element, these strings have to
 be converted to Unicode. &xist; assumes that these 8bit strings
-are in the system default encoding, which normally is &ascii;.
-If you want to change this you can put a script
-named <filename>sitecustomize.py</filename> somewhere
-in the Python path, with the following content:</par>
-<prog>
-import sys
-sys.setdefaultencoding(<rep>"iso-8859-1"</rep>)
-</prog>
-<par>(or any other encoding name that you want to use
-instead of <rep>"iso-8859-1"</rep>).</par>
-<par>Starting with Python 2.3 you should instead define your
-source code encoding in the first or second line of your script (see
-<link href="http://www.python.org/peps/pep-0263.html">PEP 263</link>)
-and use Unicode string constants only.</par>
+are in the system default encoding, which normally is &ascii;.</par>
+
+<par>If your strings contain non-&ascii; characters you <em>must</em>
+pass them as unicode strings to the &xist; constructors and you <em>must</em>
+specify the encoding you're using in your source code in the first or second
+line of your script (see
+<link href="http://www.python.org/peps/pep-0263.html">PEP 263</link> for
+a detailed description).</par>
 </section>
 
 
-<section><title>Display hook</title>
-<par>&xist; provides several different display formats for &xml; trees
-(this is extensible by implementing new presentation classes). Those display
-formats are used in two <z>pretty printing</z> modes. One is used for the
-result of <method>__repr__</method> calls and the other is used for
-output of &xist; trees in the interactive shell. To activate the interactive
-display, put something like the following in your Python startup script:</par>
+<section><title>IPython display hooks</title>
+<par>If you're using &xist; in an
+<link href="http://ipython.scipy.org/">IPython shell</link>, &xist; allows you
+to browse through your &xist; trees using any of the browsers provided by
+IPython's <link href="http://projects.scipy.org/ipython/ipython/wiki/UsingIPipe">ipipe module</link>.</par>
+
+<par>You can specify which format gets used be changing the value of the
+<lit>defaultpresenter</lit> variable in the module <module>ll.xist.presenters</module>:</par>
 
 <prog>
-import ll
 from ll.xist import presenters
-
-ll.asdisplayhook(presenters.displayhook)
+presenters.defaultpresenter = presenters.TreePresenter
 </prog>
 
-<par>This hook uses the presenter object <lit>ll.xist.presenters.hookpresenter</lit>,
-which you can modify or replace to customize the output of &xist; trees.</par>
-</section>
+<par>Setting this value to <lit>None</lit> turns off the display hook.</par>
 
-
-<section><title>Syntax highlighting</title>
-<par>If you want syntax highlighting in your &xist; tree
-dumps and have an &ansi; color capable terminal,
-set the environment variable <lit>XSC_REPRANSI</lit>
-to <lit>1</lit> or <lit>2</lit> depending on whether
-you have a light or dark background color. Setting <lit>XSC_REPRANSI</lit>
-to <lit>0</lit> turns off syntax highlighting.</par>
 </section>

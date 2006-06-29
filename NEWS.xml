@@ -1,4 +1,13 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
+<section><title>Changes in 2.14.1 (released 06/29/2006)</title>
+<ulist>
+<item>Fixed a bug in the <method>presentEntity</method> method of
+<class>ll.xist.presenters.CodePresenter</class>.</item>
+<item>Updated installation instructions.</item>
+</ulist>
+</section>
+
+
 <section><title>Changes in 2.14 (released 06/28/2006)</title>
 <ulist>
 <item>Namespaces for RSS 0.91, RSS 2.0 and Atom 1.0 have been added.</item>
