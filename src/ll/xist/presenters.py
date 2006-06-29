@@ -721,7 +721,7 @@ class CodePresenter(Presenter):
 
 	def presentEntity(self, node):
 		name = s4entity(s4ns(node.__class__.__module__), ".", s4entityname(node.__fullname__()))
-		yield Line(node, node.startloc, self._path[:], astyle.style_default(self._indent, name, "()"))
+		yield Line(node, node.startloc, self._path[:], astyle.style_default(self._indent(), name, "()"))
 
 	def presentProcInst(self, node):
 		name = s4procinst(s4ns(node.__class__.__module__), ".", s4procinsttarget(node.__fullname__()))
