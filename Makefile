@@ -22,6 +22,13 @@ dist: test
 	python$(PYVERSION) setup.py bdist --formats=egg
 	rm NEWS INSTALL HOWTO EXAMPLES MIGRATION
 
+register:
+	python$(PYVERSION) setup.py register
+
+upload:
+	python$(PYVERSION) setup.py sdist --formats=bztar,gztar upload
+	python$(PYVERSION) setup.py bdist --formats=egg upload
+
 windist:
 	python$(PYVERSION) C:\\\\Programme\\\\Python24\\\\Scripts\\\\doc2txt.py --title History NEWS.xml NEWS
 	python$(PYVERSION) C:\\\\Programme\\\\Python24\\\\Scripts\\\\doc2txt.py --title "Requirements and installation" INSTALL.xml INSTALL
@@ -32,3 +39,4 @@ windist:
 	python$(PYVERSION) setup.py bdist --formats=wininst
 	python$(PYVERSION) setup.py bdist --formats=egg
 	rm NEWS INSTALL HOWTO EXAMPLES MIGRATION
+
