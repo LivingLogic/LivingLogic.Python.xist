@@ -1,6 +1,9 @@
 # $Header$
 
 
+.PHONY: install test dist register upload windist livinglogic
+
+
 install:
 	python$(PYVERSION) setup.py install
 
