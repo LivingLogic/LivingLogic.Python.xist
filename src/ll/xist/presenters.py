@@ -405,8 +405,8 @@ class TreePresenter(Presenter):
 			indent = self.strindent(len(self._path))
 
 			self._inattr += 1
-			for line in node.attrs.present(self):
-				firstline.append(line)
+			for text in node.attrs.present(self):
+				firstline.append(text)
 			self._inattr -= 1
 			if len(node):
 				firstline.append(s4element(">"))
@@ -506,9 +506,7 @@ class TreePresenter(Presenter):
 				yield line
 
 	def presentAttr(self, node):
-		if not self._inattr:
-			for line in self.presentFrag(node):
-				yield line
+		return self.presentFrag(node)
 
 
 class CodePresenter(Presenter):

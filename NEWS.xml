@@ -1,4 +1,12 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
+<section><title>Changes in 2.14.2 (released 07/04/2006)</title>
+<ulist>
+<item>Fixed a bug in the <method>presentAttr</method> method of
+<class>ll.xist.presenters.TreePresenter</class>.</item>
+</ulist>
+</section>
+
+
 <section><title>Changes in 2.14.1 (released 06/29/2006)</title>
 <ulist>
 <item>Fixed a bug in the <method>presentEntity</method> method of
