@@ -8,7 +8,7 @@ install:
 	python$(PYVERSION) setup.py install
 
 
-test: all
+test: install
 	py.test
 
 
