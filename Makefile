@@ -45,16 +45,16 @@ upload: text
 
 
 wintext:
-	$(WINPYTHON)python $(WINPYTHON)\\\\Scripts\\\\doc2txt.py --title History NEWS.xml NEWS
-	$(WINPYTHON)python $(WINPYTHON)\\\\Scripts\\\\doc2txt.py --title "Requirements and installation" INSTALL.xml INSTALL
-	$(WINPYTHON)python $(WINPYTHON)\\\\Scripts\\\\doc2txt.py --title "Howto" HOWTO.xml HOWTO
-	$(WINPYTHON)python $(WINPYTHON)\\\\Scripts\\\\doc2txt.py --title "Examples" EXAMPLES.xml EXAMPLES
-	$(WINPYTHON)python $(WINPYTHON)\\\\Scripts\\\\doc2txt.py --title "Migration and modernization guide" MIGRATION.xml MIGRATION
+	python$(PYVERSION) $(WINPYTHON)\\\\Scripts\\\\doc2txt.py --title History NEWS.xml NEWS
+	python$(PYVERSION) $(WINPYTHON)\\\\Scripts\\\\doc2txt.py --title "Requirements and installation" INSTALL.xml INSTALL
+	python$(PYVERSION) $(WINPYTHON)\\\\Scripts\\\\doc2txt.py --title "Howto" HOWTO.xml HOWTO
+	python$(PYVERSION) $(WINPYTHON)\\\\Scripts\\\\doc2txt.py --title "Examples" EXAMPLES.xml EXAMPLES
+	python$(PYVERSION) $(WINPYTHON)\\\\Scripts\\\\doc2txt.py --title "Migration and modernization guide" MIGRATION.xml MIGRATION
 
 
 windist: wintext
-	$(WINPYTHON)python setup.py bdist --formats=wininst
-	$(WINPYTHON)python setup.py bdist --formats=egg
+	python$(PYVERSION) setup.py bdist --formats=wininst
+	python$(PYVERSION) setup.py bdist --formats=egg
 	cd dist && python -mscp -v -uftp -gftp *.exe *.egg root@isar.livinglogic.de:~ftp/pub/livinglogic/core/
 
 
