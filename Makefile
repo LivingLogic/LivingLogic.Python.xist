@@ -73,4 +73,4 @@ winupload: wintext
 winlivinglogic: wintext
 	python$(PYVERSION) setup.py bdist --formats=wininst
 	python$(PYVERSION) setup.py bdist --formats=egg
-	cd dist && scp.py -v -uintranet -gintranet *.exe *.egg intranet@intranet.livinglogic.de:~/documentroot/intranet.livinglogic.de/python-downloads/
+	cd dist && python$(PYVERSION) -mscp scp.py -v -uintranet -gintranet *.exe *.egg intranet@intranet.livinglogic.de:~/documentroot/intranet.livinglogic.de/python-downloads/
