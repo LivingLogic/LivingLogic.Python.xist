@@ -52,6 +52,7 @@ wintext:
 windist: wintext
 	python$(PYVERSION) setup.py bdist --formats=wininst
 	python$(PYVERSION) setup.py bdist --formats=egg
+	cd dist && python -mscp -v -uftp -gftp *.exe *.egg root@isar.livinglogic.de:~ftp/pub/livinglogic/core/
 
 
 livinglogic: text
