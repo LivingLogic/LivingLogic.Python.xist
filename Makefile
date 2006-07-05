@@ -1,6 +1,9 @@
 # $Header$
 
 
+WINPYTHON := C:\\\\Programme\\\\Python24\\\\
+
+
 .PHONY: develop install test text dist register upload wintext windist livinglogic
 
 
@@ -42,16 +45,16 @@ upload: text
 
 
 wintext:
-	python$(PYVERSION) C:\\\\Programme\\\\Python24\\\\Scripts\\\\doc2txt.py --title History NEWS.xml NEWS
-	python$(PYVERSION) C:\\\\Programme\\\\Python24\\\\Scripts\\\\doc2txt.py --title "Requirements and installation" INSTALL.xml INSTALL
-	python$(PYVERSION) C:\\\\Programme\\\\Python24\\\\Scripts\\\\doc2txt.py --title "Howto" HOWTO.xml HOWTO
-	python$(PYVERSION) C:\\\\Programme\\\\Python24\\\\Scripts\\\\doc2txt.py --title "Examples" EXAMPLES.xml EXAMPLES
-	python$(PYVERSION) C:\\\\Programme\\\\Python24\\\\Scripts\\\\doc2txt.py --title "Migration and modernization guide" MIGRATION.xml MIGRATION
+	$(WINPYTHON)python $(WINPYTHON)\\\\Scripts\\\\doc2txt.py --title History NEWS.xml NEWS
+	$(WINPYTHON)python $(WINPYTHON)\\\\Scripts\\\\doc2txt.py --title "Requirements and installation" INSTALL.xml INSTALL
+	$(WINPYTHON)python $(WINPYTHON)\\\\Scripts\\\\doc2txt.py --title "Howto" HOWTO.xml HOWTO
+	$(WINPYTHON)python $(WINPYTHON)\\\\Scripts\\\\doc2txt.py --title "Examples" EXAMPLES.xml EXAMPLES
+	$(WINPYTHON)python $(WINPYTHON)\\\\Scripts\\\\doc2txt.py --title "Migration and modernization guide" MIGRATION.xml MIGRATION
 
 
 windist: wintext
-	python$(PYVERSION) setup.py bdist --formats=wininst
-	python$(PYVERSION) setup.py bdist --formats=egg
+	$(WINPYTHON)python setup.py bdist --formats=wininst
+	$(WINPYTHON)python setup.py bdist --formats=egg
 	cd dist && python -mscp -v -uftp -gftp *.exe *.egg root@isar.livinglogic.de:~ftp/pub/livinglogic/core/
 
 
