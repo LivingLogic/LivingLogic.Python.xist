@@ -24,8 +24,11 @@
 # $Revision$
 # $Source$
 
+
 try:
 	__import__("pkg_resources").declare_namespace(__name__)
-except ImportError:
+except (SystemExit, KeyboardInterrupt):
+	raise
+except Exception:
 	pass
 
