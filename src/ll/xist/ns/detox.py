@@ -44,7 +44,7 @@ from ll.xist import xsc
 
 class expr(xsc.ProcInst):
 	"""
-	Embed the value of the expression 
+	Embed the value of the expression
 	"""
 	pass
 
