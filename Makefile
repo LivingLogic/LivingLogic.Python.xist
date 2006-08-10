@@ -7,12 +7,12 @@ WINPYTHON := C:\\\\Programme\\\\Python24\\\\
 .PHONY: develop install test text dist register upload wintext windist livinglogic
 
 
-develop:
-	python$(PYVERSION) setup.py develop
-
-
 install:
 	python$(PYVERSION) setup.py install
+
+
+develop:
+	python$(PYVERSION) setup.py develop
 
 
 test: install
