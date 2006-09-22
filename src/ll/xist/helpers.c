@@ -11,6 +11,13 @@
 #include "Python.h"
 
 
+/* Backwards compatibility defines */
+#if PY_VERSION_HEX < 0x02050000
+typedef int Py_ssize_t;
+#define PY_SSIZE_T_MAX INT_MAX
+#define PY_SSIZE_T_MIN INT_MIN
+#endif
+
 /* define unicode version of escape */
 #define STRINGLIB_NAME escape_unicode
 #define STRINGLIB_CHAR Py_UNICODE
