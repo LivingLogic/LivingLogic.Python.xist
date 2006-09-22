@@ -1,8 +1,8 @@
 #! /usr/bin/env/python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 1999-2005 by LivingLogic AG, Bayreuth/Germany.
-## Copyright 1999-2005 by Walter Dörwald
+## Copyright 1999-2006 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 1999-2006 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -10,7 +10,6 @@
 
 import sys, unittest, cStringIO, warnings
 
-from xml.sax import saxlib
 from xml.parsers import expat
 
 import py.test
@@ -149,13 +148,10 @@ def test_stringify():
 		node.asBytes()
 
 
-def test_asText():
+def test_astext():
 	for node in common.allnodes():
-		node.asText()
-		node.asText(monochrome=True)
-		node.asText(squeezeBlankLines=True)
-		node.asText(lineNumbers=True)
-		node.asText(width=120)
+		html.astext(node)
+		html.astext(node, width=120)
 
 
 def test_number():
@@ -434,23 +430,23 @@ def test_attributeswithout():
 	keys.sort()
 	keys.remove("class_")
 
-	keys1 = node.attrs.without(["class_"]).keys()
+	keys1 = node.attrs.withoutnames(["class_"]).keys()
 	keys1.sort()
 	assert keys == keys1
 
 	keys.remove((xml2, "space"))
-	keys2 = node.attrs.without(["class_", (xml, "space")]).keys()
+	keys2 = node.attrs.withoutnames(["class_", (xml, "space")]).keys()
 	keys2.sort()
 	assert keys == keys2
 
 	keys.remove((xml2, "lang"))
 	keys.remove((xml2, "base"))
-	keys3 = node.attrs.without(["class_"], [xml]).keys()
+	keys3 = node.attrs.withoutnames(["class_"], [xml]).keys()
 	keys3.sort()
 	assert keys == keys3
 
 	# Check that non existing attrs are handled correctly
-	keys4 = node.attrs.without(["class_", "src"], keepglobals=False).keys()
+	keys4 = node.attrs.withoutnames(["class_", "src"], keepglobals=False).keys()
 	keys4.sort()
 	assert keys == keys4
 
@@ -471,21 +467,21 @@ def test_attributeswith():
 	keys.sort()
 	keys.remove("lang")
 
-	assert node.attrs.with(["lang"]).keys() == ["lang"]
+	assert node.attrs.withnames(["lang"]).keys() == ["lang"]
 
-	keys1 = node.attrs.with(["lang", "align"]).keys()
+	keys1 = node.attrs.withnames(["lang", "align"]).keys()
 	keys1.sort()
 	assert keys1 == ["align", "lang"]
 
 	keys = ["lang", (xml2, "lang")]
 	keys.sort()
-	keys2 = node.attrs.with(keys).keys()
+	keys2 = node.attrs.withnames(keys).keys()
 	keys2.sort()
 	assert keys2 == keys
 
 	keys = ["lang", (xml2, "lang"), (xml2, "space")]
 	keys.sort()
-	keys3 = node.attrs.with(["lang"], [xml]).keys()
+	keys3 = node.attrs.withnames(["lang"], [xml]).keys()
 	keys3.sort()
 	assert keys3 == keys
 

@@ -1,5 +1,5 @@
 /*
-** Copyright 1999-2006 by LivingLogic AG, Bayreuth, Germany.
+** Copyright 1999-2006 by LivingLogic AG, Bayreuth/Germany.
 ** Copyright 1999-2006 by Walter Dörwald
 **
 ** All Rights Reserved
@@ -102,7 +102,7 @@ static Py_UNICODE hexdigits[] = { (Py_UNICODE)'0', (Py_UNICODE)'1', (Py_UNICODE)
 static PyObject *cssescapereplace(PyObject *self, PyObject *args)
 {
 	PyObject *str;
-	int oldsize;
+	Py_ssize_t oldsize;
 	const char *encoding;
 	PyObject *test;
 
@@ -116,9 +116,9 @@ static PyObject *cssescapereplace(PyObject *self, PyObject *args)
 	{
 		if (PyErr_ExceptionMatches(PyExc_UnicodeError)) /* OK, we try it character by character */
 		{
-			int i;
-			int oldsize = PyUnicode_GET_SIZE(str);
-			int newsize = 0;
+			Py_ssize_t i;
+			Py_ssize_t oldsize = PyUnicode_GET_SIZE(str);
+			Py_ssize_t newsize = 0;
 			PyObject *result;
 			Py_UNICODE *p;
 

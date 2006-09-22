@@ -61,24 +61,16 @@ class plainbody(html.body):
 
 
 class _pixelbase(html.img):
+	class Context(html.img.Context):
+		def __init__(self):
+			self.src = "root:px/spc.gif"
+
 	class Attrs(html.img.Attrs):
 		class color(xsc.TextAttr):
 			"""
-			The pixel color as a three digit hex value or <lit>spc</lit> to
-			get a transparent pixel.
+			The pixel color as a &css; value. Leave it blank to get a transparent
+			pixel.
 			"""
-			default = u"spc"
-
-			def checkvalid(self):
-				if len(self) and not self.isfancy():
-					content = unicode(self)
-					if content != u"spc":
-						if len(content) == 3:
-							for c in content:
-								if c not in u"0369cf":
-									warnings.warn(xsc.IllegalAttrValueWarning(self))
-						else:
-							warnings.warn(xsc.IllegalAttrValueWarning(self))
 
 		class alt(html.img.Attrs.alt):
 			default = ""
@@ -86,12 +78,10 @@ class _pixelbase(html.img):
 
 class pixel(_pixelbase):
 	"""
-	<par>element for single pixel images.</par>
+	<par>element for single transparent pixel image.</par>
 	
-	<par>The default is the image <filename>root:px/0.gif</filename>, but
-	you can specify the color as a three digit hex string, which will be
-	used as the filename, i.e. <markup>&lt;pixel color="000"/&gt;</markup>
-	results in <markup>&lt;img src="root:px/000.gif"&gt;</markup>.</par>
+	<par>You can specify the pixel color via the <lit>color</lit>
+	attribute (which will set the background-color in the style attribute.</par>
 
 	<par>In addition to that you can specify width and height attributes
 	(and every other allowed attribute for the <class>img</class> element)
@@ -103,13 +93,23 @@ class pixel(_pixelbase):
 			default = 1
 		class height(_pixelbase.Attrs.height):
 			default = 1
-		src = None # remove source attribute
 
 	def convert(self, converter):
-		self.attrs.checkvalid()
+		if self.attrs.src:
+			src = self.attrs.src
+		else:
+			src = converter[self].src
+		if self.attrs.color:
+			style = ["background-color: ", self.attrs.color, ";"]
+			if self.attrs.style:
+				style.append(" ")
+				style.append(self.attrs.style)
+		else:
+			style = self.attrs.style
 		e = converter.target.img(
-			self.attrs.without([u"color"]),
-			src=(u"root:px/", self[u"color"], u".gif")
+			self.attrs.withoutnames([u"color"]),
+			style=style,
+			src=src,
 		)
 		return e.convert(converter)
 
@@ -143,11 +143,10 @@ class autopixel(_pixelbase):
 		target = converter.target
 		if not issubclass(target, (ihtml, html)):
 			raise ValueError("unknown conversion target %r" % target)
-		self.attrs.checkvalid()
-		e = target.img(self.attrs.without([u"color"]))
-		src = self[u"src"].convert(converter).forInput(converter.root)
+		e = target.img(self.attrs.withoutnames([u"color"]))
+		src = self.attrs.src.convert(converter).forInput(converter.root)
 		e._addimagesizeattributes(src, u"width", u"height")
-		e[u"src"] = (u"root:px/", self[u"color"], u".gif")
+		e.attrs.src = converter[self].src
 		return e
 
 

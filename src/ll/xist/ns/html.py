@@ -16,7 +16,7 @@ in <link href="http://www.w3.org/TR/html4/loose.dtd">&html; 4.0 transitional</li
 __version__ = "$Revision$".split()[1]
 # $Source$
 
-import cgi # for parse_header
+import os, cgi
 
 from ll.xist import xsc, utils, sims
 from ll.xist.ns import xml
@@ -1189,6 +1189,42 @@ class nobr(xsc.Element): # deprecated
 	"""
 	prevents line breaks
 	"""
+
+
+def astext(node, encoding="iso-8859-1", width=72):
+	"""
+	<par>Return the node <arg>node</arg> as a formatted plain string. <arg>node</arg>
+	must contain an &html; trees.</par>
+
+	<par>This requires that <app moreinfo="http://elinks.or.cz/">elinks</app> is
+	installed.</par>
+
+	<par><arg>encoding</arg> specifies the output encoding. <arg>width</arg>
+	specifies the output width.</par>
+	"""
+
+	options = [
+		"-dump 1",
+		"-dump-charset %s" % encoding,
+		"-dump-width %d" % width,
+		"-force-html",
+		"-no-home",
+		"-no-numbering",
+		"-no-references",
+		"-verbose 0",
+	]
+
+	text = node.asBytes(encoding="utf-8")
+
+	cmd = "elinks %s" % " ".join(options)
+	(stdin, stdout) = os.popen2(cmd)
+
+	stdin.write(text)
+	stdin.close()
+	text = stdout.read()
+	stdout.close()
+	text = "\n".join(line.rstrip() for line in text.splitlines())
+	return text
 
 
 class __ns__(xsc.Namespace):

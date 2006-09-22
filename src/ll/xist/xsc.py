@@ -887,37 +887,6 @@ class Node(Base):
 		"""
 		return str(unicode(self))
 
-	def asText(self, monochrome=True, squeezeBlankLines=False, lineNumbers=False, width=72):
-		"""
-		<par>Return the node as a formatted plain string. Note that this really
-		only make sense for &html; trees.</par>
-
-		<par>This requires that <app moreinfo="http://w3m.sf.net/">w3m</app> is
-		installed.</par>
-		"""
-
-		options = []
-		if monochrome:
-			options.append("-M")
-		if squeezeBlankLines:
-			options.append("-s")
-		if lineNumbers:
-			options.append("-num")
-		if width != 80:
-			options.append("-cols %d" % width)
-
-		text = self.asBytes(encoding="iso-8859-1")
-
-		cmd = "w3m %s -T text/html -dump" % " ".join(options)
-		(stdin, stdout) = os.popen2(cmd)
-
-		stdin.write(text)
-		stdin.close()
-		text = stdout.read()
-		stdout.close()
-		text = "\n".join(line.rstrip() for line in text.splitlines())
-		return text
-
 	def __int__(self):
 		"""
 		Convert the character content of <self/> to an <class>int</class>.
@@ -1271,10 +1240,6 @@ class Node(Base):
 			return Frag(indent*level, self)
 		else:
 			return self
-
-	def withSep(self, separator, clone=False):
-		warnings.warn(DeprecationWarning("withSep() is deprecated, use withsep() instead"))
-		return self.withsep(separator, clone)
 
 	def __xattrs__(self, mode):
 		return ("startloc", _ipipe_type, _ipipe_ns, _ipipe_name, _ipipe_content, _ipipe_childrencount, _ipipe_attrscount)
@@ -2723,7 +2688,7 @@ class Attrs(Node, dict):
 				node[name] = value
 		return node
 
-	def with(self, names=[], xml=False):
+	def withnames(self, names=[], xml=False):
 		"""
 		<par>Return a copy of <self/> where only the attributes in <arg>names</arg> are
 		kept, all others are removed.</par>
@@ -2733,7 +2698,7 @@ class Attrs(Node, dict):
 		else:
 			return self.filtered(lambda n: n.__class__.__name__ in names)
 
-	def without(self, names=[], xml=False):
+	def withoutnames(self, names=[], xml=False):
 		"""
 		<par>Return a copy of <self/> where all the attributes in <arg>names</arg> are
 		removed.</par>
@@ -2840,7 +2805,7 @@ class Element(Node):
 				except KeyError:
 					raise IllegalAttrError(cls, name, xml=xml)
 
-		def with(self, names=[], namespaces=(), keepglobals=False, xml=False):
+		def withnames(self, names=[], namespaces=(), keepglobals=False, xml=False):
 			"""
 			<par>Return a copy of <self/> where only the attributes in <arg>names</arg> are
 			kept, all others names are removed. <arg>names</arg> may contain local or
@@ -2872,7 +2837,7 @@ class Element(Node):
 
 			return self.filtered(keep)
 
-		def without(self, names=[], namespaces=(), keepglobals=True, xml=False):
+		def withoutnames(self, names=[], namespaces=(), keepglobals=True, xml=False):
 			"""
 			<par>Return a copy of <self/> where all the attributes in <arg>names</arg> are
 			removed. In additional to that a global attribute will be removed if its

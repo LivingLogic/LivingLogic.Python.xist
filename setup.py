@@ -55,7 +55,7 @@ DESCRIPTION = "\n".join(textwrap.wrap(DESCRIPTION.strip(), width=64, replace_whi
 
 args = dict(
 	name="ll-xist",
-	version="2.14.2",
+	version="2.15",
 	description="An extensible HTML/XML generator",
 	long_description=DESCRIPTION,
 	author="Walter Doerwald",
@@ -69,7 +69,8 @@ args = dict(
 	packages=["ll", "ll.xist", "ll.xist.ns", "ll.xist.scripts"],
 	ext_modules=[
 		tools.Extension("ll.xist.csstokenizer", ["src/ll/xist/csstokenizer.cxx"]),
-		tools.Extension("ll.xist.helpers", ["src/ll/xist/helpers.c"])
+		tools.Extension("ll.xist.helpers", ["src/ll/xist/helpers.c"]),
+		tools.Extension("ll.xist.sgmlop", ["src/ll/xist/sgmlop.c"])
 	],
 	entry_points=dict(
 		console_scripts=[
@@ -86,7 +87,7 @@ args = dict(
 		"scripts/xml2xsc.py",
 	],
 	install_requires=[
-		"ll-core >= 1.3",
+		"ll-core >= 1.5",
 		"PyXML >= 0.8.4",
 	],
 	namespace_packages=["ll"],

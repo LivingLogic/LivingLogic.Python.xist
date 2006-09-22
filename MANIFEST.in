@@ -14,4 +14,4 @@ include README
 include Makefile
 recursive-include demos *
 recursive-include scripts *.py
-include px/*.gif
+include px/spc.gif

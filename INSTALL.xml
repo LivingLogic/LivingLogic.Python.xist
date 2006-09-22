@@ -9,8 +9,8 @@
 <link href="http://www.pythonware.com/products/pil/">Python Imaging Library</link>,</item>
 <item>if you want to parse broken &html;: <link href="http://www.xmlsoft.org/">libxml2</link>
 (including its Python wrapper),</item>
-<item>if you want want to use the method <method>asText</method> to convert &html; to
-plain text: <link href="http://w3m.sourceforge.net/">w3m</link>,</item>
+<item>if you want want to use the function <function>ll.xist.ns.html.astext</function>
+to convert &html; to plain text: <link href="http://elinks.or.cz/">elinks</link>,</item>
 <item>if you want to install this package as an egg:
 <link href="http://peak.telecommunity.com/DevCenter/setuptools">setuptools</link>.</item>
 <item>if you want to run the test suite: <link href="http://codespeak.net/py/current/doc/test.html">py.test</link>,</item>

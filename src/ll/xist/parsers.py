@@ -20,16 +20,111 @@ to parse &html; and emit &sax;2 events.</par>
 import sys, os, os.path, warnings, cStringIO
 
 from xml import sax
-from xml.parsers import sgmlop
 from xml.sax import expatreader
-from xml.sax import saxlib
 from xml.sax import handler
-from xml.dom import html as htmldtd
 
 from ll import url
+from ll.xist import xsc, utils, cssparsers, sgmlop
+from ll.xist.ns import html
 
-import xsc, utils, cssparsers
-from ns import html
+# from PyXML/dom/html/__init__.py
+HTML_OPT_END = ["body", "colgroup", "dd", "dt", "head", "html", "li", "option", "p", "tbody", "td", "tfoot", "th", "thead", "tr"]
+
+HTML_FORBIDDEN_END = ["area", "base", "basefont", "br", "col", "frame", "hr", "img", "input", "isindex", "link", "meta", "param"]
+
+HTML_DTD = {
+	"col": [],
+	"u": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
+	"p": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
+	"caption": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
+	"q": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
+	"i": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
+	"textarea": ["#PCDATA"],
+	"center": ["#PCDATA", "a", "abbr", "acronym", "address", "applet", "b", "basefont", "bdo", "big", "blockquote", "br", "button", "center", "cite", "code", "del", "dfn", "dir", "div", "dl", "em", "fieldset", "font", "form", "h1", "h2", "h3", "h4", "h5", "h6", "hr", "i", "iframe", "img", "input", "ins", "isindex", "kbd", "label", "map", "menu", "noframes", "noscript", "object", "ol", "p", "pre", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "table", "textarea", "tt", "u", "ul", "var"],
+	"script": ["#PCDATA"],
+	"ol": ["li"],
+	"a": ["#PCDATA", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
+	"legend": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
+	"strong": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
+	"address": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
+	"br": [],
+	"base": [],
+	"object": ["#PCDATA", "a", "abbr", "acronym", "address", "applet", "b", "basefont", "bdo", "big", "blockquote", "br", "button", "center", "cite", "code", "del", "dfn", "dir", "div", "dl", "em", "fieldset", "font", "form", "h1", "h2", "h3", "h4", "h5", "h6", "hr", "i", "iframe", "img", "input", "ins", "isindex", "kbd", "label", "map", "menu", "noframes", "noscript", "object", "ol", "p", "param", "pre", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "table", "textarea", "tt", "u", "ul", "var"],
+	"basefont": [],
+	"map": ["address", "area", "blockquote", "center", "del", "dir", "div", "dl", "fieldset", "form", "h1", "h2", "h3", "h4", "h5", "h6", "hr", "ins", "isindex", "menu", "noframes", "noscript", "ol", "p", "pre", "script", "table", "ul"],
+	"body": ["#PCDATA", "a", "abbr", "acronym", "address", "applet", "b", "basefont", "bdo", "big", "blockquote", "br", "button", "center", "cite", "code", "del", "dfn", "dir", "div", "dl", "em", "fieldset", "font", "form", "h1", "h2", "h3", "h4", "h5", "h6", "hr", "i", "iframe", "img", "input", "ins", "isindex", "kbd", "label", "map", "menu", "noframes", "noscript", "object", "ol", "p", "pre", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "table", "textarea", "tt", "u", "ul", "var"],
+	"samp": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
+	"dl": ["dd", "dt"],
+	"acronym": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
+	"html": ["body", "frameset", "head"],
+	"em": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
+	"label": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
+	"tbody": ["tr"],
+	"bdo": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
+	"sub": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
+	"meta": [],
+	"ins": ["#PCDATA", "a", "abbr", "acronym", "address", "applet", "b", "basefont", "bdo", "big", "blockquote", "br", "button", "center", "cite", "code", "del", "dfn", "dir", "div", "dl", "em", "fieldset", "font", "form", "h1", "h2", "h3", "h4", "h5", "h6", "hr", "i", "iframe", "img", "input", "ins", "isindex", "kbd", "label", "map", "menu", "noframes", "noscript", "object", "ol", "p", "pre", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "table", "textarea", "tt", "u", "ul", "var"],
+	"frame": [],
+	"s": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
+	"title": ["#PCDATA"],
+	"frameset": ["frame", "frameset", "noframes"],
+	"pre": ["#PCDATA", "a", "abbr", "acronym", "b", "bdo", "br", "button", "cite", "code", "dfn", "em", "i", "input", "kbd", "label", "map", "q", "s", "samp", "select", "span", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
+	"dir": ["li"],
+	"div": ["#PCDATA", "a", "abbr", "acronym", "address", "applet", "b", "basefont", "bdo", "big", "blockquote", "br", "button", "center", "cite", "code", "del", "dfn", "dir", "div", "dl", "em", "fieldset", "font", "form", "h1", "h2", "h3", "h4", "h5", "h6", "hr", "i", "iframe", "img", "input", "ins", "isindex", "kbd", "label", "map", "menu", "noframes", "noscript", "object", "ol", "p", "pre", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "table", "textarea", "tt", "u", "ul", "var"],
+	"small": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
+	"iframe": ["#PCDATA", "a", "abbr", "acronym", "address", "applet", "b", "basefont", "bdo", "big", "blockquote", "br", "button", "center", "cite", "code", "del", "dfn", "dir", "div", "dl", "em", "fieldset", "font", "form", "h1", "h2", "h3", "h4", "h5", "h6", "hr", "i", "iframe", "img", "input", "ins", "isindex", "kbd", "label", "map", "menu", "noframes", "noscript", "object", "ol", "p", "pre", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "table", "textarea", "tt", "u", "ul", "var"],
+	"del": ["#PCDATA", "a", "abbr", "acronym", "address", "applet", "b", "basefont", "bdo", "big", "blockquote", "br", "button", "center", "cite", "code", "del", "dfn", "dir", "div", "dl", "em", "fieldset", "font", "form", "h1", "h2", "h3", "h4", "h5", "h6", "hr", "i", "iframe", "img", "input", "ins", "isindex", "kbd", "label", "map", "menu", "noframes", "noscript", "object", "ol", "p", "pre", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "table", "textarea", "tt", "u", "ul", "var"],
+	"applet": ["#PCDATA", "a", "abbr", "acronym", "address", "applet", "b", "basefont", "bdo", "big", "blockquote", "br", "button", "center", "cite", "code", "del", "dfn", "dir", "div", "dl", "em", "fieldset", "font", "form", "h1", "h2", "h3", "h4", "h5", "h6", "hr", "i", "iframe", "img", "input", "ins", "isindex", "kbd", "label", "map", "menu", "noframes", "noscript", "object", "ol", "p", "param", "pre", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "table", "textarea", "tt", "u", "ul", "var"],
+	"ul": ["li"],
+	"isindex": [],
+	"button": ["#PCDATA", "abbr", "acronym", "address", "applet", "b", "basefont", "bdo", "big", "blockquote", "br", "center", "cite", "code", "del", "dfn", "dir", "div", "dl", "em", "font", "h1", "h2", "h3", "h4", "h5", "h6", "hr", "i", "img", "ins", "kbd", "map", "menu", "noframes", "noscript", "object", "ol", "p", "pre", "q", "s", "samp", "script", "small", "span", "strike", "strong", "sub", "sup", "table", "tt", "u", "ul", "var"],
+	"colgroup": ["col"],
+	"b": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
+	"table": ["caption", "col", "colgroup", "tbody", "tfoot", "thead", "tr"],
+	"dt": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
+	"optgroup": ["option"],
+	"abbr": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
+	"link": [],
+	"h4": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
+	"dd": ["#PCDATA", "a", "abbr", "acronym", "address", "applet", "b", "basefont", "bdo", "big", "blockquote", "br", "button", "center", "cite", "code", "del", "dfn", "dir", "div", "dl", "em", "fieldset", "font", "form", "h1", "h2", "h3", "h4", "h5", "h6", "hr", "i", "iframe", "img", "input", "ins", "isindex", "kbd", "label", "map", "menu", "noframes", "noscript", "object", "ol", "p", "pre", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "table", "textarea", "tt", "u", "ul", "var"],
+	"big": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
+	"hr": [],
+	"form": ["#PCDATA", "a", "abbr", "acronym", "address", "applet", "b", "basefont", "bdo", "big", "blockquote", "br", "button", "center", "cite", "code", "del", "dfn", "dir", "div", "dl", "em", "fieldset", "font", "h1", "h2", "h3", "h4", "h5", "h6", "hr", "i", "iframe", "img", "input", "ins", "isindex", "kbd", "label", "map", "menu", "noframes", "noscript", "object", "ol", "p", "pre", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "table", "textarea", "tt", "u", "ul", "var"],
+	"option": ["#PCDATA"],
+	"fieldset": ["#PCDATA", "a", "abbr", "acronym", "address", "applet", "b", "basefont", "bdo", "big", "blockquote", "br", "button", "center", "cite", "code", "del", "dfn", "dir", "div", "dl", "em", "fieldset", "font", "form", "h1", "h2", "h3", "h4", "h5", "h6", "hr", "i", "iframe", "img", "input", "ins", "isindex", "kbd", "label", "legend", "map", "menu", "noframes", "noscript", "object", "ol", "p", "pre", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "table", "textarea", "tt", "u", "ul", "var"],
+	"blockquote": ["#PCDATA", "a", "abbr", "acronym", "address", "applet", "b", "basefont", "bdo", "big", "blockquote", "br", "button", "center", "cite", "code", "del", "dfn", "dir", "div", "dl", "em", "fieldset", "font", "form", "h1", "h2", "h3", "h4", "h5", "h6", "hr", "i", "iframe", "img", "input", "ins", "isindex", "kbd", "label", "map", "menu", "noframes", "noscript", "object", "ol", "p", "pre", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "table", "textarea", "tt", "u", "ul", "var"],
+	"head": ["base", "isindex", "link", "meta", "object", "script", "style", "title"],
+	"thead": ["tr"],
+	"cite": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
+	"td": ["#PCDATA", "a", "abbr", "acronym", "address", "applet", "b", "basefont", "bdo", "big", "blockquote", "br", "button", "center", "cite", "code", "del", "dfn", "dir", "div", "dl", "em", "fieldset", "font", "form", "h1", "h2", "h3", "h4", "h5", "h6", "hr", "i", "iframe", "img", "input", "ins", "isindex", "kbd", "label", "map", "menu", "noframes", "noscript", "object", "ol", "p", "pre", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "table", "textarea", "tt", "u", "ul", "var"],
+	"input": [],
+	"var": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
+	"th": ["#PCDATA", "a", "abbr", "acronym", "address", "applet", "b", "basefont", "bdo", "big", "blockquote", "br", "button", "center", "cite", "code", "del", "dfn", "dir", "div", "dl", "em", "fieldset", "font", "form", "h1", "h2", "h3", "h4", "h5", "h6", "hr", "i", "iframe", "img", "input", "ins", "isindex", "kbd", "label", "map", "menu", "noframes", "noscript", "object", "ol", "p", "pre", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "table", "textarea", "tt", "u", "ul", "var"],
+	"tfoot": ["tr"],
+	"dfn": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
+	"li": ["#PCDATA", "a", "abbr", "acronym", "address", "applet", "b", "basefont", "bdo", "big", "blockquote", "br", "button", "center", "cite", "code", "del", "dfn", "dir", "div", "dl", "em", "fieldset", "font", "form", "h1", "h2", "h3", "h4", "h5", "h6", "hr", "i", "iframe", "img", "input", "ins", "isindex", "kbd", "label", "map", "menu", "noframes", "noscript", "object", "ol", "p", "pre", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "table", "textarea", "tt", "u", "ul", "var"],
+	"param": [],
+	"tr": ["td", "th"],
+	"tt": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
+	"menu": ["li"],
+	"area": [],
+	"img": [],
+	"span": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
+	"style": [],
+	"noscript": ["#PCDATA", "a", "abbr", "acronym", "address", "applet", "b", "basefont", "bdo", "big", "blockquote", "br", "button", "center", "cite", "code", "del", "dfn", "dir", "div", "dl", "em", "fieldset", "font", "form", "h1", "h2", "h3", "h4", "h5", "h6", "hr", "i", "iframe", "img", "input", "ins", "isindex", "kbd", "label", "map", "menu", "noframes", "noscript", "object", "ol", "p", "pre", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "table", "textarea", "tt", "u", "ul", "var"],
+	"noframes": ["#PCDATA", "a", "abbr", "acronym", "address", "applet", "b", "basefont", "bdo", "big", "blockquote", "br", "button", "center", "cite", "code", "del", "dfn", "dir", "div", "dl", "em", "fieldset", "font", "form", "h1", "h2", "h3", "h4", "h5", "h6", "hr", "i", "iframe", "img", "input", "ins", "isindex", "kbd", "label", "map", "menu", "noframes", "noscript", "object", "ol", "p", "pre", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "table", "textarea", "tt", "u", "ul", "var"],
+	"select": ["optgroup", "option"],
+	"font": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
+	"strike": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
+	"sup": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
+	"h5": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
+	"kbd": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
+	"h6": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
+	"h1": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
+	"h3": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
+	"h2": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
+	"code": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"]
+}
 
 
 class SGMLOPParser(sax.xmlreader.XMLReader, sax.xmlreader.Locator):
@@ -380,12 +475,12 @@ class HTMLParser(BadEntityParser):
 		name = name.lower()
 
 		# guess omitted close tags
-		while self._stack and self._stack[-1].upper() in htmldtd.HTML_OPT_END and name not in htmldtd.HTML_DTD.get(self._stack[-1], []):
+		while self._stack and self._stack[-1] in HTML_OPT_END and name not in HTML_DTD.get(self._stack[-1], []):
 			BadEntityParser.finish_endtag(self, self._stack[-1])
 			del self._stack[-1]
 
 		# Check whether this element is allowed in the current context
-		if self._stack and name not in htmldtd.HTML_DTD.get(self._stack[-1], []):
+		if self._stack and name not in HTML_DTD.get(self._stack[-1], []):
 			warnings.warn(xsc.IllegalDTDChildWarning(name, self._stack[-1]))
 
 		# Skip unknown attributes (but warn about them)
@@ -398,7 +493,7 @@ class HTMLParser(BadEntityParser):
 				warnings.warn(xsc.IllegalAttrError(element.Attrs, attrname.lower(), xml=True))
 		BadEntityParser.finish_starttag(self, name, newattrs)
 
-		if name.upper() in htmldtd.HTML_FORBIDDEN_END:
+		if name in HTML_FORBIDDEN_END:
 			# close tags immediately for which we won't get an end
 			BadEntityParser.finish_endtag(self, name)
 			return 0
@@ -408,7 +503,7 @@ class HTMLParser(BadEntityParser):
 
 	def finish_endtag(self, name):
 		name = name.lower()
-		if name.upper() in htmldtd.HTML_FORBIDDEN_END:
+		if name in HTML_FORBIDDEN_END:
 			# do nothing: we've already closed it
 			return
 		if name in self._stack:
@@ -423,6 +518,10 @@ class HTMLParser(BadEntityParser):
 
 
 class ExpatParser(expatreader.ExpatParser):
+	def external_entity_ref(self, context, base, sysid, pubid):
+		print locals()
+		return expatreader.ExpatParser.external_entity_ref(self, context, base, sysid, pubid)
+
 	def reset(self):
 		expatreader.ExpatParser.reset(self)
 		self._parser.UseForeignDTD(True)
@@ -797,12 +896,12 @@ class Parser(object):
 		self.skippingwhitespace = False
 
 	def __decorateException(self, exception):
-		if not isinstance(exception, saxlib.SAXParseException):
+		if not isinstance(exception, sax.SAXParseException):
 			msg = exception.__class__.__name__
 			msg2 = str(exception)
 			if msg2:
 				msg += ": " + msg2
-			exception = saxlib.SAXParseException(msg, exception, self._locator)
+			exception = sax.SAXParseException(msg, exception, self._locator)
 		return exception
 
 	def error(self, exception):

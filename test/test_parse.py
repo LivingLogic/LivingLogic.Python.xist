@@ -1,8 +1,8 @@
 #! /usr/bin/env/python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 1999-2005 by LivingLogic AG, Bayreuth/Germany.
-## Copyright 1999-2005 by Walter Dörwald
+## Copyright 1999-2006 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 1999-2006 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -12,7 +12,8 @@
 import warnings
 
 import py.test
-from xml.sax import saxlib
+
+from xml import sax
 from xml.parsers import expat
 
 from ll import url
@@ -29,7 +30,7 @@ def raisesSAX(exception, func, *args, **kwargs):
 		func(*args, **kwargs)
 	except exception:
 		pass
-	except saxlib.SAXParseException, exc:
+	except sax.SAXParseException, exc:
 		realexc = exc.getException()
 		assert isinstance(realexc, exception)
 	else:

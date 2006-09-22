@@ -1,4 +1,33 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
+<section><title>Migrating to version 2.15</title>
+
+<section><title>Changes to plain text conversion</title>
+
+<par>The node method <method>asText</method> has been moved to the
+<module>html</module> namespace, os you have to replace:</par>
+
+<prog>print node.asText()</prog>
+
+<par>with:</par>
+
+<prog>
+from ll.xist.ns import html
+print html.astext(node)
+</prog>
+
+</section>
+
+<section><title>Changes to <class>htmlspecials.pixel</class></title>
+
+<par>If you've been using the <lit>color</lit> attribute for
+<class>htmlspecials.pixel</class>, you have to add a <lit>#</lit> in from of
+the value, as it is a &css; color value now. (And if've you've been using
+<lit>color</lit> and a &css; padding of a different color: This will no longer
+work).</par>
+
+</section>
+
+
 <section><title>Migrating to version 2.14</title>
 
 <section><title>Changes to presenters</title>

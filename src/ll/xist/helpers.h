@@ -8,11 +8,11 @@
 */
 
 
-static PyObject *STRINGLIB_NAME(PyObject *str, int inattr)
+static PyObject *STRINGLIB_NAME(PyObject *str, Py_ssize_t inattr)
 {
-	int i;
-	int oldsize;
-	int newsize = 0;
+	Py_ssize_t i;
+	Py_ssize_t oldsize;
+	Py_ssize_t newsize = 0;
 
 	oldsize = STRINGLIB_LEN(str);
 	for (i = 0; i < oldsize; ++i)

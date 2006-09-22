@@ -1,4 +1,26 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
+<section><title>Changes in 2.15 (released ??/??/2006)</title>
+<ulist>
+<item>&xist; has been made compatible with Python 2.5: Code has been updated
+to use the proper C API for memory management and <link href="http://www.python.org/dev/peps/pep-0353/">PEP 353</link>
+support has been added. &xist; now includes its own fixed version of <module>sgmlop</module>.</item>
+<item>The <class>ll.xist.xsc.Attrs</class> methods <method>with</method> and
+<method>without</method> have been renamed to <method>withnames</method> and
+<method>withoutnames</method> for Python 2.5 compatibility.</item>
+<item><class>ll.xist.ns.htmlspecials.pixel</class> no longer handles colors
+via different GIFs. It uses the <lit>background-color</lit> in the <lit>style</lit>
+attribute instead. The same change has been implemented for
+<class>ll.xist.ns.htmlspecials.autopixel</class>. It's now possible to overwrite
+the default <lit>src</lit> attribute value of <lit>root:px/spc.gif</lit> either
+via the &xml; attribute or via the converter context.</item>
+<item>The node method <method>asText</method> has been made a function, moved
+into the <module>html</module> namespace and renamed to <function>astext</function>.
+Furthermore <app moreinfo="http://elinks.or.cz/">elinks</app> is used for plain text
+formatting now instead of <app moreinfo="http://w3m.sourceforge.net/">w3m</app>.</item>
+</ulist>
+</section>
+
+
 <section><title>Changes in 2.14.2 (released 07/04/2006)</title>
 <ulist>
 <item>Fixed a bug in the <method>presentAttr</method> method of
