@@ -26,7 +26,7 @@
  * 2000-07-05 fl  Fixed attribute handling in empty tags (@SGMLOP6)
  * 2001-12-28 wd  Add XMLUnicodeParser
  * 2001-12-31 mvl Properly process large character references
- * 2006-09-20 wd  Python 2.6 updates: memory API and Py_ssize_t
+ * 2006-09-20 wd  Python 2.5 updates: memory API and Py_ssize_t
  *
  * Copyright (c) 1998-2000 by Secret Labs AB
  * Copyright (c) 1998-2000 by Fredrik Lundh
@@ -67,10 +67,12 @@
 #define PyUnicode_GetMax()  (0xffff)
 #endif
 
-#if PY_VERSION_HEX < 0x02050000
+#if PY_VERSION_HEX < 0x02050000 && !defined(PY_SSIZE_T_MIN)
 typedef int Py_ssize_t;
 #define PY_SSIZE_T_MAX INT_MAX
 #define PY_SSIZE_T_MIN INT_MIN
+#define lenfunc inquiry
+#define ssizeargfunc intargfunc
 #endif
 
 #ifdef SGMLOP_UNICODE_SUPPORT
