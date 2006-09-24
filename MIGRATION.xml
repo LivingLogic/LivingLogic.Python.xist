@@ -4,7 +4,7 @@
 <section><title>Changes to plain text conversion</title>
 
 <par>The node method <method>asText</method> has been moved to the
-<module>html</module> namespace, os you have to replace:</par>
+<module>html</module> namespace, so you have to replace:</par>
 
 <prog>print node.asText()</prog>
 
