@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
-<section><title>Changes in 2.15 (released ??/??/2006)</title>
+<section><title>Changes in 2.15 (released 09/24/2006)</title>
 <ulist>
 <item>&xist; has been made compatible with Python 2.5: Code has been updated
 to use the proper C API for memory management and <link href="http://www.python.org/dev/peps/pep-0353/">PEP 353</link>
