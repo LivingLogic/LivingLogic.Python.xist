@@ -1431,7 +1431,7 @@ attrparse(FastSGMLParserObject* self, const CHAR_T* p, Py_ssize_t len)
  * returns true on error, false on success
  */
 static int
-fetchEncoding(FastSGMLParserObject* self, const CHAR_T* data, int len)
+fetchEncoding(FastSGMLParserObject* self, const CHAR_T* data, Py_ssize_z len)
 {
     const char *found = NULL;
     char quote;
