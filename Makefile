@@ -28,6 +28,7 @@ text:
 
 
 dist: test text
+	rm -rf dist/*
 	python$(PYVERSION) setup.py sdist --formats=bztar,gztar
 	python$(PYVERSION) setup.py sdist --formats=zip
 	python$(PYVERSION) setup.py bdist --formats=egg
