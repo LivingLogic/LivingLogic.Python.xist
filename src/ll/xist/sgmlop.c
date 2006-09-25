@@ -1312,7 +1312,7 @@ fastfeed(FastSGMLParserObject* self)
 }
 
 static PyObject*
-attrparse(FastSGMLParserObject* self, const CHAR_T* p, int len)
+attrparse(FastSGMLParserObject* self, const CHAR_T* p, Py_ssize_t len)
 {
     PyObject* attrs;
     PyObject* key = NULL;
