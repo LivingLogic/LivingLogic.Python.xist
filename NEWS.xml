@@ -1,4 +1,12 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
+<section><title>Changes in 2.15.1 (released 09/25/2006)</title>
+<ulist>
+<item>Fixed a few bugs in the <module>sgmlop</module> function declarations.</item>
+<item>Readded the spacer pixel.</item>
+</ulist>
+</section>
+
+
 <section><title>Changes in 2.15 (released 09/24/2006)</title>
 <ulist>
 <item>&xist; has been made compatible with Python 2.5: Code has been updated

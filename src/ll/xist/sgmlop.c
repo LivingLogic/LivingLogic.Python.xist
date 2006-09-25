@@ -146,12 +146,12 @@ staticforward PyTypeObject FastSGMLParser_Type;
 
 /* forward declarations */
 static int fastfeed(FastSGMLParserObject* self);
-static PyObject* attrparse(FastSGMLParserObject* self, const CHAR_T* p, int len);
-static int fetchEncoding(FastSGMLParserObject* self, const CHAR_T* data, int len);
-static PyObject* stringFromData(FastSGMLParserObject* self, const CHAR_T* data, int len);
-static int callWithString(FastSGMLParserObject* self, PyObject* callback, const CHAR_T* data, int len);
-static int callWith2Strings(FastSGMLParserObject* self, PyObject* callback, const CHAR_T* data1, int len1, const CHAR_T* data2, int len2);
-static int callWithStringAndObj(FastSGMLParserObject* self, PyObject* callback, const CHAR_T* data, int len, PyObject* obj);
+static PyObject* attrparse(FastSGMLParserObject* self, const CHAR_T* p, Py_ssize_t len);
+static int fetchEncoding(FastSGMLParserObject* self, const CHAR_T* data, Py_ssize_t len);
+static PyObject* stringFromData(FastSGMLParserObject* self, const CHAR_T* data, Py_ssize_t len);
+static int callWithString(FastSGMLParserObject* self, PyObject* callback, const CHAR_T* data, Py_ssize_t len);
+static int callWith2Strings(FastSGMLParserObject* self, PyObject* callback, const CHAR_T* data1, Py_ssize_t len1, const CHAR_T* data2, Py_ssize_t len2);
+static int callWithStringAndObj(FastSGMLParserObject* self, PyObject* callback, const CHAR_T* data, Py_ssize_t len, PyObject* obj);
 
 #define callHandleData(self, data, len) callWithString((self), (self)->handle_data, (data), (len))
 #define callHandleCData(self, data, len) callWithString((self), (self)->handle_cdata, (data), (len))

@@ -1,4 +1,3 @@
-include LICENSE
 include NEWS
 include NEWS.xml
 include INSTALL
