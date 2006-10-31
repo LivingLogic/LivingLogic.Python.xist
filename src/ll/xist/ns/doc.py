@@ -1215,14 +1215,21 @@ def getdoc(cls, thing):
 		node = cls.par(node)
 
 	if inspect.ismethod(thing):
+		# Use the original method instead of the decorator
+		realthing = thing
+		while hasattr(realthing, "__wrapped__"):
+			realthing = realthing.__wrapped__
 		for ref in node//pyref:
 			if u"module" not in ref.attrs:
-				ref[u"module"] = cls._getmodulename(thing)
+				ref[u"module"] = cls._getmodulename(realthing)
 				if u"class_" not in ref.attrs:
 					ref[u"class_"] = thing.im_class.__name__
 					if u"method" not in ref.attrs:
 						ref[u"method"] = thing.__name__
 	elif inspect.isfunction(thing):
+		# Use the original method instead of the decorator
+		while hasattr(thing, "__wrapped__"):
+			thing = thing.__wrapped__
 		for ref in node//pyref:
 			if u"module" not in ref.attrs:
 				ref[u"module"] = cls._getmodulename(thing)
