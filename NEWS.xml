@@ -1,4 +1,12 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
+<section><title>Changes in 2.16 (released ??/??/2006)</title>
+<ulist>
+<item><class>ll.xist.ns.doc.pyref</class> no copes better with decorated
+methods.</item>
+</ulist>
+</section>
+
+
 <section><title>Changes in 2.15.1 (released 09/25/2006)</title>
 <ulist>
 <item>Fixed a few bugs in the <module>sgmlop</module> function declarations.</item>
