@@ -16,17 +16,10 @@ exception and warning classes and a few helper classes and functions.
 __version__ = "$Revision$".split()[1]
 # $Source$
 
-import sys, os, random, copy, warnings, new, cPickle
+import sys, os, random, copy, warnings, new, cPickle, threading
 
 from ll import misc, url as url_
 
-
-# XPython support
-try:
-	import iexec
-except ImportError:
-	iexec = None
-	
 try:
 	from IPython.Extensions import astyle
 except ImportError:
@@ -37,6 +30,17 @@ try:
 	from IPython.Extensions import ipipe
 except ImportError:
 	ipipe = None
+
+
+local = threading.local()
+
+def getstack():
+	try:
+		stack = getattr(local, "ll.xist.xsc.nodes")
+	except AttributeError:
+		stack = []
+		setattr(local, "ll.xist.xsc.nodes", stack)
+	return stack
 
 
 ###
@@ -78,9 +82,7 @@ def tonode(value):
 	return Null
 
 
-###
-### XPython support
-###
+stack = []
 
 def append(*args, **kwargs):
 	"""
@@ -88,14 +90,8 @@ def append(*args, **kwargs):
 	<arg>args</arg> (or sets attributes in <arg>kwargs</arg>) in the currenty
 	active node.
 	"""
-	node = iexec.getinstance((converters.Converter, Frag, Element)) # requires XPython
-	if node is not None:
-		if isinstance(node, converters.Converter):
-			node.node.append(*args)
-		elif isinstance(node, Frag):
-			node(*args)
-		else:
-			node(*args, **kwargs)
+	if stack:
+		stack[-1](*args, **kwargs)
 
 
 ###
@@ -236,7 +232,7 @@ class Cursor(object):
 		self.path = [node]
 		self.index = []
 
-	def __xattrs__(self, mode):
+	def __xattrs__(self, mode="default"):
 		return ("index", "node")
 
 	def clone(self):
@@ -1241,9 +1237,10 @@ class Node(Base):
 		else:
 			return self
 
-	def __xattrs__(self, mode):
+	def __xattrs__(self, mode="default"):
 		return ("startloc", _ipipe_type, _ipipe_ns, _ipipe_name, _ipipe_content, _ipipe_childrencount, _ipipe_attrscount)
 
+stack = []
 
 class CharacterData(Node):
 	"""
@@ -2866,9 +2863,15 @@ class Element(Node):
 
 			return self.filtered(keep)
 
-	# XPython support
 	def __enter__(self):
-		append(self)
+		getstack().append(self)
+		return self
+
+	def __exit__(self, *args):
+		getstack().pop()
+
+	def __pos__(self):
+		getstack()[-1].append(self)
 
 	def __init__(self, *content, **attrs):
 		"""
@@ -2997,7 +3000,7 @@ class Element(Node):
 		"""
 
 		try:
-			size = url.openread().imagesize
+			size = url.imagesize()
 		except IOError, exc:
 			warnings.warn(FileNotFoundWarning("can't read image", url, exc))
 		else:
@@ -3872,7 +3875,7 @@ class _Namespace_Meta(Base.__metaclass__, misc.Namespace.__metaclass__):
 			value.__ns__ = self
 		return super(_Namespace_Meta, self).__setattr__(key, value)
 
-	def __xrepr__(self, mode):
+	def __xrepr__(self, mode="default"):
 		if mode == "cell":
 			yield (astyle.style_url, self.xmlurl)
 		else:
@@ -4422,10 +4425,10 @@ class Location(object):
 	def __ne__(self, other):
 		return not self==other
 
-	def __xattrs__(self, mode):
+	def __xattrs__(self, mode="default"):
 		return ("sysid", "pubid", "line", "col")
 
-	def __xrepr__(self, mode):
+	def __xrepr__(self, mode="default"):
 		yield (astyle.style_url, self.sysid)
 		yield (astyle.style_default, ":")
 		for part in ipipe.xrepr(self.line, mode):

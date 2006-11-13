@@ -194,28 +194,17 @@ class SGMLOPParser(sax.xmlreader.XMLReader, sax.xmlreader.Locator):
 				self.feed(data)
 				self.parsed = True
 		except (SystemExit, KeyboardInterrupt):
-			self.close()
-			self.source = None
-			self.encoding = None
 			raise
 		except Exception, exc:
-			try:
-				self.close()
-			except SystemExit:
-				raise
-			except KeyboardInterrupt:
-				raise
-			except Exception, exc2:
-				self.source = None
-				self.encoding = None
 			errhandler = self.getErrorHandler()
 			if errhandler is not None:
 				errhandler.fatalError(exc)
 			else:
 				raise
-		self.close()
-		self.source = None
-		self.encoding = None
+		finally:
+			self.close()
+			self.source = None
+			self.encoding = None
 
 	# Locator methods will be called by the application
 	def getColumnNumber(self):
@@ -519,7 +508,6 @@ class HTMLParser(BadEntityParser):
 
 class ExpatParser(expatreader.ExpatParser):
 	def external_entity_ref(self, context, base, sysid, pubid):
-		print locals()
 		return expatreader.ExpatParser.external_entity_ref(self, context, base, sysid, pubid)
 
 	def reset(self):
@@ -756,27 +744,25 @@ class Parser(object):
 			sysid = str(base)
 		return self._parse(stream, base, sysid, encoding)
 
-	def parseURL(self, name, base=None, sysid=None, headers=None, data=None):
+	def parseURL(self, name, base=None, sysid=None, *args, **kwargs):
 		"""
 		Parse &xml; input from the &url; <arg>name</arg> which might be a string
 		or an <pyref module="ll.url" class="URL"><class>URL</class></pyref> object
 		into an &xist; tree. <arg>base</arg> is the base &url; for the parsing process
 		(defaulting to the final &url; of the response (i.e. including redirects)),
 		<arg>sysid</arg> is the &xml; system identifier (defaulting to <arg>base</arg>
-		if it is <lit>None</lit>). <arg>headers</arg> is a dictionary with additional
-		headers used in the &http; request. If <arg>data</arg> is not <lit>None</lit>
-		it must be a dictionary. In this case <arg>data</arg> will be used as the data
-		for a <lit>POST</lit> request.
+		if it is <lit>None</lit>). <arg>*args</arg> and <arg>**kwargs</arg> will
+		be passed on to the <method>open</method> call.
 		"""
 		name = url.URL(name)
-		stream = name.openread(headers=headers, data=data)
+		stream = name.open("rb", *args, **kwargs)
 		if base is None:
-			base = stream.finalurl
+			base = stream.finalurl()
 		if sysid is None:
 			sysid = str(base)
 		encoding = self.encoding
 		if encoding is None:
-			encoding = stream.encoding
+			encoding = stream.encoding()
 		return self._parse(stream, base, sysid, encoding)
 
 	def parseFile(self, filename, base=None, sysid=None):
@@ -989,7 +975,7 @@ def parseURL(url, base=None, sysid=None, headers=None, data=None, **parserargs):
 	takes as keyword arguments via <arg>parserargs</arg>.
 	"""
 	parser = Parser(**parserargs)
-	return parser.parseURL(url, base, sysid, headers, data)
+	return parser.parseURL(url, base, sysid, headers=headers, data=data)
 
 
 def parseFile(filename, base=None, sysid=None, **parserargs):
