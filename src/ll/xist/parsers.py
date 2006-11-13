@@ -169,9 +169,9 @@ class SGMLOPParser(sax.xmlreader.XMLReader, sax.xmlreader.Locator):
 		if encoding is None:
 			encoding = "utf-8"
 		self.encoding = encoding
+		self.lineNumber = 1
 		self._cont_handler.setDocumentLocator(self)
 		self._cont_handler.startDocument()
-		self.lineNumber = 1
 		# we don't keep a column number, because otherwise parsing would be much to slow
 		self.headerJustRead = False # will be used for skipping whitespace after the XML header
 
@@ -193,6 +193,8 @@ class SGMLOPParser(sax.xmlreader.XMLReader, sax.xmlreader.Locator):
 					self.lineNumber += 1
 				self.feed(data)
 				self.parsed = True
+			self._cont_handler.endDocument()
+			self._cont_handler.setDocumentLocator(None)
 		except (SystemExit, KeyboardInterrupt):
 			raise
 		except Exception, exc:
