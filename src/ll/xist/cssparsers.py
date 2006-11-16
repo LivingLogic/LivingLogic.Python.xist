@@ -76,12 +76,14 @@ class Handler(object):
 		self.encoding = encoding
 		tokenizer = csstokenizer.CSSTokenizer()
 		tokenizer.register(self)
-		data = stream.read()
-		tokenizer.parse(data)
-		data = unicode(self)
-		tokenizer.register(None)
-		self.texts = []
-		self.base = None
+		try:
+			data = stream.read()
+			tokenizer.parse(data)
+			data = unicode(self)
+		finally:
+			tokenizer.register(None)
+			self.texts = []
+			self.base = None
 		return data
 
 	def parse(self, stream, base=None):
