@@ -765,7 +765,9 @@ class Parser(object):
 		encoding = self.encoding
 		if encoding is None:
 			encoding = stream.encoding()
-		return self._parse(stream, base, sysid, encoding)
+		result = self._parse(stream, base, sysid, encoding)
+		stream.close()
+		return result
 
 	def parseFile(self, filename, base=None, sysid=None):
 		"""
@@ -779,7 +781,9 @@ class Parser(object):
 			base = url.File(filename)
 		if sysid is None:
 			sysid = str(base)
-		return self._parse(stream, base, sysid, self.encoding)
+		result = self._parse(stream, base, sysid, self.encoding)
+		stream.close()
+		return result
 
 	def setDocumentLocator(self, locator):
 		self._locator = locator
