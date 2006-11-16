@@ -1389,7 +1389,7 @@ def explain(cls, thing, name=None, context=[]):
 					ref = cls.class_(baseclass.__name__)
 				else:
 					try:
-						baseclassname = baseclass.__fullname__()
+						baseclassname = baseclass.__fullname__
 					except AttributeError:
 						baseclassname = baseclass.__name__
 					if thing.__module__ != baseclass.__module__:

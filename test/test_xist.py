@@ -698,7 +698,6 @@ def test_attrupdate():
 
 
 def test_classrepr():
-	repr(xsc.Base)
 	repr(xsc.Node)
 	repr(xsc.Null.__class__)
 	repr(xsc.Element)

@@ -95,51 +95,6 @@ def append(*args, **kwargs):
 
 
 ###
-###
-###
-
-class _Base_Meta(type):
-	def __new__(cls, name, bases, dict):
-		dict["__outerclass__"] = None
-		self = super(_Base_Meta, cls).__new__(cls, name, bases, dict)
-		for (key, value) in dict.iteritems():
-			if isinstance(value, type) and getattr(value, "__outerclass__", None) is None:
-				value.__outerclass__ = self
-		return self
-
-	def __repr__(self):
-		return "<class %s:%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
-
-
-class Base(object):
-	"""
-	<par>Base class that adds an enhanced class <method>__repr__</method> method
-	and a class method <pyref method="__fullname__"><method>__fullname__</method></pyref>
-	to subclasses. Subclasses of <class>Base</class> will have an attribute
-	<lit>__outerclass__</lit> that references the containing class (if there
-	is any). <method>__repr__</method> uses this to show the fully qualified
-	class name.</par>
-	"""
-	__metaclass__ = _Base_Meta
-
-	def __repr__(self):
-		return "<%s:%s object at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
-
-	@classmethod
-	def __fullname__(cls):
-		"""
-		<par>Return the fully qualified class name (i.e. including containing
-		classes, if this class has been defined inside another one).</par>
-		"""
-		name = cls.__name__.split(".")[-1]
-		while True:
-			cls = cls.__outerclass__
-			if cls is None:
-				return name
-			name = cls.__name__.split(".")[-1] + "." + name
-
-
-###
 ### Magic constants for tree traversal
 ###
 
@@ -246,7 +201,7 @@ class Cursor(object):
 ### Conversion context
 ###
 
-class Context(Base):
+class Context(object):
 	"""
 	<par>This is an empty class, that can be used by the
 	<pyref class="Node" method="convert"><method>convert</method></pyref>
@@ -678,7 +633,7 @@ _ipipe_ns.__xname__ = "ns"
 def _ipipe_name(node):
 	"The element/procinst/entity/attribute name of the node"
 	if isinstance(node, (Element, ProcInst, Entity, Attr)):
-		return "%s.%s" % (node.__class__.__module__, node.__fullname__())
+		return "%s.%s" % (node.__class__.__module__, node.__fullname__)
 	raise AttributeError
 _ipipe_name.__xname__ = "name"
 
@@ -717,8 +672,9 @@ _ipipe_content.__xname__ = "content"
 
 import xfind
 
-class _Node_Meta(Base.__metaclass__, xfind.Operator):
+class _Node_Meta(type, xfind.Operator):
 	def __new__(cls, name, bases, dict):
+		dict["__fullname__"] = name
 		if "register" not in dict:
 			dict["register"] = True
 		dict["__ns__"] = None
@@ -739,7 +695,10 @@ class _Node_Meta(Base.__metaclass__, xfind.Operator):
 				dict["xmlprefix"] = xmlprefix
 		if "xmlname" not in dict:
 			dict["xmlname"] = name.split(".")[-1]
-		return super(_Node_Meta, cls).__new__(cls, name, bases, dict)
+		return type.__new__(cls, name, bases, dict)
+
+	def __repr__(self):
+		return "<class %s:%s at 0x%x>" % (self.__module__, self.__fullname__, id(self))
 
 	def xwalk(self, iterator):
 		for child in iterator:
@@ -749,7 +708,7 @@ class _Node_Meta(Base.__metaclass__, xfind.Operator):
 						yield subchild
 
 
-class Node(Base):
+class Node(object):
 	"""
 	base class for nodes in the document tree. Derived classes must
 	overwrite <pyref method="convert"><method>convert</method></pyref>
@@ -776,6 +735,9 @@ class Node(Base):
 	class Context(_Context):
 		pass
 
+	def __repr__(self):
+		return "<%s:%s object at 0x%x>" % (self.__module__, self.__fullname__, id(self))
+
 	def __ne__(self, other):
 		return not self==other
 
@@ -792,7 +754,7 @@ class Node(Base):
 		if xml:
 			name = cls.xmlname
 		elif fullname:
-			name = cls.__fullname__()
+			name = cls.__fullname__
 		else:
 			name = cls.__name__
 		v.append(name)
@@ -1399,7 +1361,7 @@ class CharacterData(Node):
 			loc = " (from %s)" % self.startloc
 		else:
 			loc = ""
-		return "<%s.%s content=%r%s at 0x%x>" % (self.__class__.__module__, self.__fullname__(), self.content, loc, id(self))
+		return "<%s.%s content=%r%s at 0x%x>" % (self.__class__.__module__, self.__fullname__, self.content, loc, id(self))
 
 
 class Text(CharacterData):
@@ -1764,7 +1726,7 @@ class Frag(Node, list):
 			loc = " (from %s)" % self.startloc
 		else:
 			loc = ""
-		return "<%s.%s object (%s)%s at 0x%x>" % (self.__class__.__module__, self.__fullname__(), info, loc, id(self))
+		return "<%s.%s object (%s)%s at 0x%x>" % (self.__class__.__module__, self.__fullname__, info, loc, id(self))
 
 
 class Comment(CharacterData):
@@ -1816,7 +1778,7 @@ class DocType(CharacterData):
 
 class _ProcInst_Meta(CharacterData.__metaclass__):
 	def __repr__(self):
-		return "<procinst class %s:%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
+		return "<procinst class %s:%s at 0x%x>" % (self.__module__, self.__fullname__, id(self))
 
 
 class ProcInst(CharacterData):
@@ -1861,7 +1823,7 @@ class ProcInst(CharacterData):
 			loc = " (from %s)" % self.startloc
 		else:
 			loc = ""
-		return "<%s.%s procinst content=%r%s at 0x%x>" % (self.__class__.__module__, self.__fullname__(), self.content, loc, id(self))
+		return "<%s.%s procinst content=%r%s at 0x%x>" % (self.__class__.__module__, self.__fullname__, self.content, loc, id(self))
 
 
 class Null(CharacterData):
@@ -1912,7 +1874,7 @@ class _Attr_Meta(Frag.__metaclass__, xfind.Operator):
 		return super(_Attr_Meta, cls).__new__(cls, name, bases, dict)
 
 	def __repr__(self):
-		return "<attribute class %s:%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
+		return "<attribute class %s:%s at 0x%x>" % (self.__module__, self.__fullname__, id(self))
 
 	def xwalk(self, iterator):
 		for child in iterator:
@@ -2045,7 +2007,7 @@ class Attr(Frag):
 			loc = " (from %s)" % self.startloc
 		else:
 			loc = ""
-		return "<%s.%s attr object (%s)%s at 0x%x>" % (self.__class__.__module__, self.__fullname__(), info, loc, id(self))
+		return "<%s.%s attr object (%s)%s at 0x%x>" % (self.__class__.__module__, self.__fullname__, info, loc, id(self))
 
 
 class TextAttr(Attr):
@@ -2235,7 +2197,7 @@ class _Attrs_Meta(Node.__metaclass__):
 		return self
 
 	def __repr__(self):
-		return "<attrs class %s:%s with %s attrs at 0x%x>" % (self.__module__, self.__fullname__(), len(self._attrs[0]), id(self))
+		return "<attrs class %s:%s with %s attrs at 0x%x>" % (self.__module__, self.__fullname__, len(self._attrs[0]), id(self))
 
 	def __getitem__(self, key):
 		return self._attrs[False][key]
@@ -2717,7 +2679,7 @@ class Attrs(Node, dict):
 			loc = " (from %s)" % self.startloc
 		else:
 			loc = ""
-		return "<%s.%s attrs %s%s at 0x%x>" % (self.__class__.__module__, self.__fullname__(), info, loc, id(self))
+		return "<%s.%s attrs %s%s at 0x%x>" % (self.__class__.__module__, self.__fullname__, info, loc, id(self))
 		
 	def __xiter__(self, mode):
 		return self.itervalues()
@@ -2742,11 +2704,30 @@ class _Element_Meta(Node.__metaclass__):
 				model = sims.Any()
 			del dict["empty"]
 			dict["model"] = model
-		
+
+		# If attributes have been provided patch up the class names
+		try:
+			attrs = dict["Attrs"]
+		except KeyError:
+			pass
+		else:
+			attrs.__fullname__ = "%s.Attrs" % name
+			for (key, value) in attrs.__dict__.iteritems():
+				if isinstance(value, type) and issubclass(value, Attr):
+					value.__fullname__ = "%s.Attrs.%s" % (name, key)
+
+		# If a context has been provided patch up the class names
+		try:
+			context = dict["Context"]
+		except KeyError:
+			pass
+		else:
+			context.__fullname__ = "%s.Context" % name
+
 		return super(_Element_Meta, cls).__new__(cls, name, bases, dict)
 
 	def __repr__(self):
-		return "<element class %s:%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
+		return "<element class %s:%s at 0x%x>" % (self.__module__, self.__fullname__, id(self))
 
 
 class Element(Node):
@@ -3368,7 +3349,7 @@ class Element(Node):
 			loc = " (from %s)" % self.startloc
 		else:
 			loc = ""
-		return "<%s.%s element object (%s/%s)%s at 0x%x>" % (self.__class__.__module__, self.__fullname__(), infoc, infoa, loc, id(self))
+		return "<%s.%s element object (%s/%s)%s at 0x%x>" % (self.__class__.__module__, self.__fullname__, infoc, infoa, loc, id(self))
 
 	def __xiter__(self, mode):
 		if mode is None:
@@ -3384,7 +3365,7 @@ class Element(Node):
 
 class _Entity_Meta(Node.__metaclass__):
 	def __repr__(self):
-		return "<entity class %s:%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
+		return "<entity class %s:%s at 0x%x>" % (self.__module__, self.__fullname__, id(self))
 
 
 class Entity(Node):
@@ -3422,12 +3403,12 @@ class Entity(Node):
 			loc = " (from %s)" % self.startloc
 		else:
 			loc = ""
-		return "<%s.%s entity object%s at 0x%x>" % (self.__class__.__module__, self.__fullname__(), loc, id(self))
+		return "<%s.%s entity object%s at 0x%x>" % (self.__class__.__module__, self.__fullname__, loc, id(self))
 
 
 class _CharRef_Meta(Entity.__metaclass__): # don't subclass Text.__metaclass__, as this is redundant
 	def __repr__(self):
-		return "<charref class %s:%s at 0x%x>" % (self.__module__, self.__fullname__(), id(self))
+		return "<charref class %s:%s at 0x%x>" % (self.__module__, self.__fullname__, id(self))
 
 
 class CharRef(Text, Entity):
@@ -3790,7 +3771,7 @@ defaultPrefixes = Prefixes()
 ### Namespaces
 ###
 
-class _Namespace_Meta(Base.__metaclass__, misc.Namespace.__metaclass__):
+class _Namespace_Meta(misc.Namespace.__metaclass__):
 	def __new__(cls, name, bases, dict):
 		dict["xmlname"] = dict.get("xmlname", name).split(".")[-1]
 		if "xmlurl" in dict:
@@ -3811,17 +3792,14 @@ class _Namespace_Meta(Base.__metaclass__, misc.Namespace.__metaclass__):
 					classdict = {"__module__": dict["__module__"]}
 					if attr.__name__ != attr.xmlname:
 						classdict["xmlname"] = attr.xmlname
-					classdict["__outerclass__"] = 42
 					dict[attrname] = attr.__class__(attr.__name__, (attr, ), classdict)
 		dict["_cache"] = None
 		self = super(_Namespace_Meta, cls).__new__(cls, name, bases, dict)
 		self.__originalname = name # preserves the name even after makemod() (used by __repr__)
+		#_updatefullname(name, self.__dict__)
 		for (key, value) in self.__dict__.iteritems():
-			if isinstance(value, type):
-				if getattr(value, "__outerclass__", None) == 42:
-					value.__outerclass__ = self
-				if issubclass(value, (Element, ProcInst, Entity)):
-					value.__ns__ = self
+			if isinstance(value, type) and issubclass(value, (Element, ProcInst, Entity)):
+				value.__ns__ = self
 		for attr in self.Attrs.iterallowedvalues():
 			attr.__ns__ = self
 		if self.xmlurl is not None:
@@ -3909,7 +3887,7 @@ class _Namespace_Meta(Base.__metaclass__, misc.Namespace.__metaclass__):
 				yield element
 
 
-class Namespace(Base, misc.Namespace):
+class Namespace(misc.Namespace):
 	"""
 	<par>An &xml; namespace.</par>
 	

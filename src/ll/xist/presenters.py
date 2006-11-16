@@ -321,7 +321,7 @@ class TreePresenter(Presenter):
 		else:
 			indent = self.strindent(len(self._path))
 			ns = s4ns(node.__class__.__module__)
-			name = s4fragname(node.__fullname__())
+			name = s4fragname(node.__fullname__)
 			if len(node):
 				yield Line(
 					node,
@@ -364,7 +364,7 @@ class TreePresenter(Presenter):
 		else:
 			indent = self.strindent(len(self._path))
 			ns = s4ns(node.__class__.__module__)
-			name = s4attrsname(node.__fullname__())
+			name = s4attrsname(node.__fullname__)
 			yield Line(
 				node,
 				node.startloc,
@@ -386,7 +386,7 @@ class TreePresenter(Presenter):
 
 	def presentElement(self, node):
 		ns = s4ns(node.__class__.__module__)
-		name = s4elementname(node.__fullname__())
+		name = s4elementname(node.__fullname__)
 		if self._inattr:
 			yield s4element("<", ns, ":", name)
 			self._inattr += 1
@@ -441,7 +441,7 @@ class TreePresenter(Presenter):
 		if not self._inattr:
 			indent = self.strindent(len(self._path))
 			ns = s4ns(node.__class__.__module__)
-			name = s4nullname(node.__fullname__())
+			name = s4nullname(node.__fullname__)
 			yield Line(
 				node,
 				node.startloc,
@@ -459,7 +459,7 @@ class TreePresenter(Presenter):
 
 	def presentEntity(self, node):
 		ns = s4ns(node.__class__.__module__)
-		name = s4entityname(node.__fullname__())
+		name = s4entityname(node.__fullname__)
 		if self._inattr:
 			yield s4entity("&", ns, ":", name, ";")
 		else:
@@ -473,7 +473,7 @@ class TreePresenter(Presenter):
 
 	def presentProcInst(self, node):
 		ns = s4ns(node.__class__.__module__)
-		name = s4procinsttarget(node.__fullname__())
+		name = s4procinsttarget(node.__fullname__)
 		if self._inattr:
 			yield s4procinst("<?", ns, ":", name, " ", s4procinstcontent(self.text(node.content)), "?>")
 		else:
@@ -525,7 +525,7 @@ class CodePresenter(Presenter):
 	def __str__(self):
 		return "\n".join(str(s) for s in self)
 
-	def __xiter__(self, mode="default"):
+	def __iter__(self):
 		self._inattr = 0
 		self._level = 0
 		self._path = []
@@ -560,7 +560,7 @@ class CodePresenter(Presenter):
 		return s
 
 	def presentFrag(self, node):
-		name = s4frag(s4ns(node.__class__.__module__), ".", s4fragname(node.__fullname__()))
+		name = s4frag(s4ns(node.__class__.__module__), ".", s4fragname(node.__fullname__))
 		if len(node):
 			if not self._inattr: # skip "(" for attributes, they will be added by presentElement()
 				yield Line(node, node.startloc, self._path[:], astyle.style_default(self._indent(), name, "("))
@@ -603,7 +603,7 @@ class CodePresenter(Presenter):
 		return attrtext
 
 	def presentAttrs(self, node):
-		name = s4attrs(s4ns(node.__class__.__module__), ".", s4attrsname(node.__fullname__()))
+		name = s4attrs(s4ns(node.__class__.__module__), ".", s4attrsname(node.__fullname__))
 		if len(node):
 			globalattrs = {}
 			localattrs = {}
@@ -646,7 +646,7 @@ class CodePresenter(Presenter):
 			yield Line(node, node.startloc, self._path[:], astyle.style_default(self._indent(), name, "()"))
 
 	def presentElement(self, node):
-		name = s4element(s4ns(node.__class__.__module__), ".", s4elementname(node.__fullname__()))
+		name = s4element(s4ns(node.__class__.__module__), ".", s4elementname(node.__fullname__))
 		if len(node.content) or len(node.attrs):
 			yield Line(node, node.startloc, self._path[:], astyle.style_default(self._indent(), name, "("))
 			self._level += 1
@@ -707,7 +707,7 @@ class CodePresenter(Presenter):
 			yield Line(node, node.startloc, self._path[:], astyle.style_default(self._indent(), name, "()"))
 
 	def presentNull(self, node):
-		name = s4null(s4ns(node.__class__.__module__), ".", s4nullname(node.__fullname__()))
+		name = s4null(s4ns(node.__class__.__module__), ".", s4nullname(node.__fullname__))
 		yield Line(node, node.startloc, self._path[:], astyle.style_default(self._indent(), name))
 
 	def presentText(self, node):
@@ -718,19 +718,19 @@ class CodePresenter(Presenter):
 		yield Line(node, node.startloc, self._path[:], astyle.style_default(self._indent(), formatter(repr(self._text(node.content)))))
 
 	def presentEntity(self, node):
-		name = s4entity(s4ns(node.__class__.__module__), ".", s4entityname(node.__fullname__()))
+		name = s4entity(s4ns(node.__class__.__module__), ".", s4entityname(node.__fullname__))
 		yield Line(node, node.startloc, self._path[:], astyle.style_default(self._indent(), name, "()"))
 
 	def presentProcInst(self, node):
-		name = s4procinst(s4ns(node.__class__.__module__), ".", s4procinsttarget(node.__fullname__()))
+		name = s4procinst(s4ns(node.__class__.__module__), ".", s4procinsttarget(node.__fullname__))
 		yield Line(node, node.startloc, self._path[:], astyle.style_default(self._indent(), name, "(", s4procinstcontent(repr(self._text(node.content))), ")"))
 
 	def presentComment(self, node):
-		name = s4comment(s4ns(node.__class__.__module__), ".", node.__fullname__())
+		name = s4comment(s4ns(node.__class__.__module__), ".", node.__fullname__)
 		yield Line(node, node.startloc, self._path[:], astyle.style_default(self._indent(), name, "(", s4commenttext(repr(self._text(node.content))), ")"))
 
 	def presentDocType(self, node):
-		name = s4doctype(s4ns(node.__class__.__module__), ".", node.__fullname__())
+		name = s4doctype(s4ns(node.__class__.__module__), ".", node.__fullname__)
 		yield Line(node, node.startloc, self._path[:], astyle.style_default(self._indent(), name, "(", s4doctypetext(repr(self._text(node.content))), ")"))
 
 	def presentAttr(self, node):
