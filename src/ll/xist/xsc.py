@@ -82,14 +82,13 @@ def tonode(value):
 	return Null
 
 
-stack = []
-
 def append(*args, **kwargs):
 	"""
 	<function>append</function> can be used with XPython. It append items in
 	<arg>args</arg> (or sets attributes in <arg>kwargs</arg>) in the currenty
 	active node.
 	"""
+	stack = getstack()
 	if stack:
 		stack[-1](*args, **kwargs)
 
@@ -1202,7 +1201,6 @@ class Node(object):
 	def __xattrs__(self, mode="default"):
 		return ("startloc", _ipipe_type, _ipipe_ns, _ipipe_name, _ipipe_content, _ipipe_childrencount, _ipipe_attrscount)
 
-stack = []
 
 class CharacterData(Node):
 	"""
