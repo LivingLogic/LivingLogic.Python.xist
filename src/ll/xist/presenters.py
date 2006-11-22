@@ -738,7 +738,7 @@ class CodePresenter(Presenter):
 
 
 # used by the IPython displayhook below (set to None to disable)
-defaultpresenter = CodePresenter
+defaultpresenter = TreePresenter
 
 try:
 	from IPython import ipapi
