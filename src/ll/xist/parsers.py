@@ -629,7 +629,7 @@ class Parser(object):
 						except xsc.IllegalAttrError:
 							pass
 						else:
-							attrnode = attrnode.parsed(self)
+							newnode.attrs.set(name, attrnode.parsed(self), xml=True)
 						attr = attr.next
 					newnode.attrs = newnode.attrs.parsed(self)
 					newnode = newnode.parsed(self, start=True)
@@ -650,6 +650,8 @@ class Parser(object):
 			else:
 				newnode = xsc.Null
 			return newnode
+
+		self.base = base
 
 		data = stream.read()
 		ns = self.nspool.get(html.xmlname, html)

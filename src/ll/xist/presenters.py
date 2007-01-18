@@ -523,7 +523,7 @@ class CodePresenter(Presenter):
 		self.indent = indent
 
 	def __str__(self):
-		return "\n".join(str(s) for s in self)
+		return "\n".join(str(line.content) for line in self)
 
 	def __iter__(self):
 		self._inattr = 0

@@ -1,8 +1,9 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
-<section><title>Changes in 2.16 (released ??/??/2006)</title>
+<section><title>Changes in 2.15.2 (released 01/18/2007)</title>
 <ulist>
-<item><class>ll.xist.ns.doc.pyref</class> no copes better with decorated
-methods.</item>
+<item>Fixed a bug in <method>presenters.CodePresenter.__str__</method>.</item>
+<item>Fixed base URL handling for tidy parsing.</item>
+<item>Updated examples.</item>
 </ulist>
 </section>
 

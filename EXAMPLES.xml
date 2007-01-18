@@ -5,6 +5,7 @@
 <par>You can create and output &html; like this:</par>
 
 <prog>
+from ll.xist import xsc
 from ll.xist.ns import html, xml, meta
 
 node = xsc.Frag(
@@ -83,8 +84,8 @@ print node.conv().asBytes(encoding="us-ascii")
 from ll.xist import parsers
 
 node = parsers.parseURL("http://www.python.org/", tidy=True)
-</prog>
-
+</prog>p
+u
 </section>
 
 
@@ -96,13 +97,14 @@ inside links on Python's homepage:</par>
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist import parsers</input>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
-<prompt>&gt;&gt;&gt; </prompt><input>node = parsers.parseURL("http://www.python.org/", tidy=True)</input>
+<prompt>&gt;&gt;&gt; </prompt><input>node = parsers.parseURL("http://www.python.org/", utidy=True)</input>
 <prompt>&gt;&gt;&gt; </prompt><input>for img in node//html.a/html.img:</input>
 <prompt>... </prompt><input>   print img["src"]</input>
 <prompt>... </prompt><input></input>
-http://www.python.org/pics/PyBanner032.gif
-http://www.python.org/pics/donate.gif
-http://www.python.org/pics/osi-certified-120x100.gif
+http://www.python.org/images/python-logo.gif
+http://www.python.org/images/trans.gif
+http://www.python.org/images/trans.gif
+http://www.python.org/images/success/nasa.jpg
 </tty>
 
 <par>If you want to output both the links and the image &url;s, do the
@@ -113,21 +115,23 @@ following:</par>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
 <prompt>&gt;&gt;&gt; </prompt><input>node = parsers.parseURL("http://www.python.org/", tidy=True)</input>
 <prompt>&gt;&gt;&gt; </prompt><input>for link in node//html.a/xfind.contains(html.img):</input>
-<prompt>... </prompt><input>   print link["href"], str(xfind.first(link/html.img)["src"])</input>
-http://www.python.org/ http://www.python.org/pics/PyBanner032.gif
-http://www.python.org/psf/donations.html http://www.python.org/pics/donate.gif
-http://www.opensource.org/ http://www.python.org/pics/osi-certified-120x100.gif
+<prompt>... </prompt><input>   print link["href"], str((link/html.img)[0]["src"])</input>
+http://www.python.org/ http://www.python.org/images/python-logo.gif
+http://www.python.org/#left%2dhand%2dnavigation http://www.python.org/images/trans.gif
+http://www.python.org/#content%2dbody http://www.python.org/images/trans.gif
+http://www.python.org/about/success/usa http://www.python.org/images/success/nasa.jpg
 </tty>
 
 <par>If you want to count the number of links on the page you can do the
 following:</par>
 
 <tty>
+<prompt>&gt;&gt;&gt; </prompt><input>from ll import misc</input>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist import parsers</input>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
 <prompt>&gt;&gt;&gt; </prompt><input>node = parsers.parseURL("http://www.python.org/", tidy=True)</input>
-<prompt>&gt;&gt;&gt; </prompt><input>xfind.count(node//html.a)</input>
-66
+<prompt>&gt;&gt;&gt; </prompt><input>misc.count(node//html.a)</input>
+90
 </tty>
 
 </section>
@@ -139,10 +143,9 @@ following:</par>
 text replacements:</par>
 
 <prog>
-from ll.xist import xsc, parsers, converters
-from ll.xist.ns import html
+from ll.xist import xsc, parsers
 
-def p2p(node):
+def p2p(node, converter):
 	if isinstance(node, xsc.Text):
 		node = node.replace("Python", "Parrot")
 		node = node.replace("python", "parrot")
@@ -150,7 +153,7 @@ def p2p(node):
 
 node = parsers.parseURL("http://www.python.org/", tidy=True)
 
-node = node.mapped(p2p, converters.Converter())
+node = node.mapped(p2p)
 node.write(open("parrot_index.html", "wb"))
 </prog>
 
