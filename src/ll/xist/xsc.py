@@ -1198,8 +1198,21 @@ class Node(object):
 		else:
 			return self
 
-	def __xattrs__(self, mode="default"):
-		return ("startloc", _ipipe_type, _ipipe_ns, _ipipe_name, _ipipe_content, _ipipe_childrencount, _ipipe_attrscount)
+
+if ipipe is not None:
+	@ipipe.xattrs.when_type(Node)
+	def xattrs_node(self, mode="default"):
+		yield ipipe.AttributeDescriptor("startloc", doc="the locate in the XML file")
+		yield ipipe.FunctionDescriptor(_ipipe_type)
+		yield ipipe.AttributeDescriptor("xmlns", doc="the XML namespace of the node")
+		yield ipipe.FunctionDescriptor(_ipipe_name, "name")
+		yield ipipe.FunctionDescriptor(_ipipe_content, "content")
+		if mode == "detail":
+			yield ipipe.IterAttributeDescriptor("children", "the element content")
+			yield ipipe.IterAttributeDescriptor("attrs", "the element attributes")
+		else:
+			yield ipipe.FunctionDescriptor(_ipipe_childrencount, "children")
+			yield ipipe.FunctionDescriptor(_ipipe_attrscount, "attrs")
 
 
 class CharacterData(Node):
@@ -3857,32 +3870,28 @@ class _Namespace_Meta(misc.Namespace.__metaclass__):
 		else:
 			yield (astyle.style_default, repr(self))
 
-	def __xiter__(self, mode):
-		if mode is None:
-			celements = misc.count(self.iterelementkeys())
-			cprocinsts = misc.count(self.iterprocinstkeys())
-			centities = misc.count(self.iterentitykeys())
-			ccharrefs = misc.count(self.itercharrefkeys())
-			yield ipipe.XMode(self, "elements", "elements", "elements in this namespace (%d)" % celements)
-			yield ipipe.XMode(self, "procinsts", "procinsts", "processing instructions in this namespace (%d)" % cprocinsts)
-			yield ipipe.XMode(self, "entities", "entities", "entities in this namespace (including charrefs) (%d)" % centities)
-			yield ipipe.XMode(self, "charrefs", "charrefs", "character reference entities in this namespace (%d)" % ccharrefs)
-			yield ipipe.XMode(self, "all", "all", "all objects in this namespace (%d)" % (celements+cprocinsts+centities+ccharrefs))
-		elif mode == "elements" or mode == "all":
-			for element in self.iterelementvalues():
-				yield element
-		elif mode == "procinsts" or mode == "all":
-			for procinst in self.iterprocinstvalues():
-				yield procinst
-		elif mode == "entities" or mode == "all":
-			for entity in self.iterentityvalues():
-				yield entity
-		elif mode == "charrefs" or mode == "all":
-			for charref in self.itercharrefvalues():
-				yield charref
-		else:
-			for element in self.iterelementvalues():
-				yield element
+if ipipe is not None:
+	@ipipe.xattrs.when_type(_Namespace_Meta)
+	def xattrs_namespace(self, mode="default"):
+		yield ipipe.AttributeDescriptor("xmlname", "default prefix")
+		yield ipipe.AttributeDescriptor("xmlurl", "namespace name")
+		if mode == "detail":
+			yield ipipe.IterMethodDescriptor("iterelementvalues", "elements in this namespace (%d)" % misc.count(self.iterelementkeys()))
+			yield ipipe.IterMethodDescriptor("iterprocinstvalues", "processing instructions in this namespace (%d)" % misc.count(self.iterprocinstkeys()))
+			yield ipipe.IterMethodDescriptor("iterentityvalues", "entities in this namespace (%d)" % misc.count(self.iterentitykeys()))
+			yield ipipe.IterMethodDescriptor("itercharrefvalues", "charrefs in this namespace (%d)" % misc.count(self.itercharrefkeys()))
+
+	@ipipe.xiter.when_type(_Namespace_Meta)
+	def xiter_namespace(self):
+		print "gurk"
+		for value in  self.iterelementvalues():
+			yield value
+		for value in  self.iterprocinstvalues():
+			yield value
+		for value in  self.iterentityvalues():
+			yield value
+		for value in  self.itercharrefvalues():
+			yield value
 
 
 class Namespace(misc.Namespace):
