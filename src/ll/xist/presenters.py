@@ -24,12 +24,12 @@ import sys, os, keyword, codecs
 
 # IPython/ipipe support
 try:
-	from IPython.Extensions import ipipe
+	import ipipe
 	table = ipipe.Table
 except ImportError:
 	table = object
 
-from ll import misc, astyle, url
+from ll import misc, url
 
 import xsc, options
 
@@ -37,6 +37,12 @@ import xsc, options
 ###
 ### Colors for output
 ###
+
+try:
+	import astyle
+except ImportError:
+	from ll import astyle
+
 
 # style to be used for tabs
 s4tab = astyle.Style.fromenv("LL_XIST_STYLE_TAB", "blue:black")
@@ -284,7 +290,7 @@ class TreePresenter(Presenter):
 
 		for line in self.node.present(self):
 			yield line
-	
+
 		del self._inattr
 		del self._path
 
@@ -512,7 +518,7 @@ class TreePresenter(Presenter):
 class CodePresenter(Presenter):
 	"""
 	<par>This presenter formats the object as a nested Python object tree.</par>
-	
+
 	<par>This makes it possible to quickly convert &html;/&xml; files to &xist;
 	constructor calls.</par>
 	"""

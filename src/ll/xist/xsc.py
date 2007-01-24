@@ -16,18 +16,18 @@ exception and warning classes and a few helper classes and functions.
 __version__ = "$Revision$".split()[1]
 # $Source$
 
-import sys, os, random, copy, warnings, new, cPickle, threading
+import sys, os, random, copy, warnings, cPickle, threading, types
 
 from ll import misc, url as url_
 
 try:
-	from IPython.Extensions import astyle
+	 import astyle
 except ImportError:
-	from ll import astyle
+	astyle = None
 
 # IPython/ipipe support
 try:
-	from IPython.Extensions import ipipe
+	import ipipe
 except ImportError:
 	ipipe = None
 
@@ -3780,7 +3780,7 @@ class _Namespace_Meta(misc.Namespace.__metaclass__):
 		# Convert functions to staticmethods as Namespaces won't be instantiated anyway
 		# If you need a classmethod simply define one
 		for (key, value) in dict.iteritems():
-			if isinstance(value, new.function):
+			if isinstance(value, types.FunctionType):
 				dict[key] = staticmethod(value)
 		# automatically inherit all element, procinst, entity and Attrs classes, that aren't overwritten.
 		for base in bases:

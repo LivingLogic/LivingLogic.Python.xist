@@ -37,7 +37,7 @@ __version__ = "$Revision$".split()[1]
 # $Source$
 
 
-import sys, os, datetime, new
+import sys, os, datetime, types
 
 from ll.xist import xsc
 
@@ -314,7 +314,7 @@ def xml2py(cls, source):
 @classmethod
 def xml2mod(cls, source, name=None, filename="<string>", store=False, loader=None):
 	name = name or "ll.xist.ns.detox.sandbox_%x" % (hash(filename) + sys.maxint + 1)
-	module = new.module(name)
+	module = types.ModuleType(name)
 	module.__file__ = filename
 	if loader is not None:
 		module.__loader__ = loader
@@ -325,7 +325,7 @@ def xml2mod(cls, source, name=None, filename="<string>", store=False, loader=Non
 	return module
 
 
-# The following stuff has been copied from Kid's import hook
+# The following stuff has been copied from Kids import hook
 
 DETOX_EXT = ".detox"
 
