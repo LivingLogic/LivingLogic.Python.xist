@@ -87,7 +87,7 @@ args = dict(
 		"scripts/xml2xsc.py",
 	],
 	install_requires=[
-		"ll-core >= 1.5",
+		"ll-core >= 1.7.1",
 		"PyXML >= 0.8.4",
 	],
 	namespace_packages=["ll"],

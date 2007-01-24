@@ -4,7 +4,7 @@
 <olist>
 <item><link href="http://www.python.org/">Python 2.4</link>,</item>
 <item><link href="http://pyxml.sf.net/">The Python &xml; package</link> (at least version 0.8.4),</item>
-<item><link href="root:core/index.html">ll-core</link> (1.3 or newer),</item>
+<item><link href="root:core/index.html">ll-core</link> (1.7.1 or newer),</item>
 <item>if you want to use automatic image size calculation: the
 <link href="http://www.pythonware.com/products/pil/">Python Imaging Library</link>,</item>
 <item>if you want to parse broken &html;: <link href="http://www.xmlsoft.org/">libxml2</link>
