@@ -177,32 +177,33 @@ class SGMLOPParser(sax.xmlreader.XMLReader, sax.xmlreader.Locator):
 
 		parsed = False
 		try:
-			while True:
-				data = stream.read(self._bufsize)
-				if not data:
-					if not parsed:
-						self.feed("")
-					break
+			try:
 				while True:
-					pos = data.find("\n")
-					if pos==-1:
+					data = stream.read(self._bufsize)
+					if not data:
+						if not parsed:
+							self.feed("")
 						break
-					self.feed(data[:pos+1])
+					while True:
+						pos = data.find("\n")
+						if pos==-1:
+							break
+						self.feed(data[:pos+1])
+						self.parsed = True
+						data = data[pos+1:]
+						self.lineNumber += 1
+					self.feed(data)
 					self.parsed = True
-					data = data[pos+1:]
-					self.lineNumber += 1
-				self.feed(data)
-				self.parsed = True
-			self._cont_handler.endDocument()
-			self._cont_handler.setDocumentLocator(None)
-		except (SystemExit, KeyboardInterrupt):
-			raise
-		except Exception, exc:
-			errhandler = self.getErrorHandler()
-			if errhandler is not None:
-				errhandler.fatalError(exc)
-			else:
+				self._cont_handler.endDocument()
+				self._cont_handler.setDocumentLocator(None)
+			except (SystemExit, KeyboardInterrupt):
 				raise
+			except Exception, exc:
+				errhandler = self.getErrorHandler()
+				if errhandler is not None:
+					errhandler.fatalError(exc)
+				else:
+					raise
 		finally:
 			self.close()
 			self.source = None
