@@ -33,40 +33,6 @@ def cssescapereplace(exc):
 codecs.register_error("cssescapereplace", cssescapereplace)
 
 
-class Queue(list):
-	"""
-	Helper class: Write bytes at one end, read bytes from the other end
-	"""
-	write = list.append
-
-	def read(self):
-		s = "".join(self)
-		del self[:]
-		return s
-
-
-class Encoder(object):
-	"""
-	Helper class that emulates an incremental encoder (via a byte queue
-	and a stream reader).
-	"""
-	def __init__(self, encoding):
-		self.bytestream = Queue()
-		self.charstream = codecs.getwriter(encoding)(self.bytestream)
-
-	def encode(self, input, final=False):
-		self.charstream.write(input)
-		return self.bytestream.read()
-
-	def _seterrors(self, errors):
-		self.charstream.errors = errors
-
-	def _geterrors(self):
-		return self.charstream.errors
-
-	errors = property(_geterrors, _seterrors)
-
-
 class Publisher(object):
 	"""
 	A <class>Publisher</class> object is used for serializing an &xist; tree into
@@ -243,10 +209,7 @@ class Publisher(object):
 		self.base = url.URL(base)
 		self.node = node
 
-		try:
-			self.encoder = codecs.getincrementalencoder(self.encoding)()
-		except AttributeError:
-			self.encoder = Encoder(self.encoding)
+		self.encoder = codecs.getincrementalencoder(self.encoding)()
 
 		for part in self.node.publish(self):
 			yield part
