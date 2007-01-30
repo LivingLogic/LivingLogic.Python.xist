@@ -18,20 +18,20 @@ from ll.xist.ns import html, php, chars, abbr
 
 
 def test_basics():
-	# empty registry
-	r = xsc.Registry()
+	# empty pool
+	r = xsc.Pool()
 	py.test.raises(xsc.IllegalElementError, r.element_py, "a", html)
 	py.test.raises(xsc.IllegalElementError, r.element_xml, "a", html)
 
 	# register one element
-	r = xsc.Registry(html.a)
+	r = xsc.Pool(html.a)
 	assert r.element_py("a", html) is html.a
 	assert r.element_xml("a", html) is html.a
 	py.test.raises(xsc.IllegalElementError, r.element_py, "b", html)
 	py.test.raises(xsc.IllegalElementError, r.element_xml, "b", html)
 
 	# register a module
-	r = xsc.Registry(html)
+	r = xsc.Pool(html)
 	assert r.element_py("a", html) is html.a
 	assert r.element_xml("a", html) is html.a
 	assert r.element_py("b", html) is html.b
@@ -40,7 +40,7 @@ def test_basics():
 	py.test.raises(xsc.IllegalElementError, r.element_xml, "c", html)
 
 	# procinsts
-	r = xsc.Registry(php.php)
+	r = xsc.Pool(php.php)
 	assert r.procinst_py("php") is php.php
 	assert r.procinst_xml("php") is php.php
 	assert r.create_procinst_py("php", "foo") == php.php("foo")
@@ -49,7 +49,7 @@ def test_basics():
 	py.test.raises(xsc.IllegalProcInstError, r.procinst_xml, "nophp")
 
 	# entities
-	r = xsc.Registry(abbr)
+	r = xsc.Pool(abbr)
 	assert r.entity_py("xist") is abbr.xist
 	assert r.entity_xml("xist") is abbr.xist
 	assert r.create_entity_py("xist") == abbr.xist()
@@ -58,7 +58,7 @@ def test_basics():
 	py.test.raises(xsc.IllegalEntityError, r.entity_xml, "dontxist")
 
 	# charrefs
-	r = xsc.Registry(chars)
+	r = xsc.Pool(chars)
 	assert r.charref_py("ouml") is chars.ouml
 	assert r.charref_xml("ouml") is chars.ouml
 	assert r.charref_py(ord(u"ö")) is chars.ouml
@@ -72,13 +72,13 @@ def test_basics():
 
 
 def test_textcomment():
-	r = xsc.Registry()
+	r = xsc.Pool()
 	assert r.create_text("foo") == xsc.Text("foo")
 	assert r.create_comment("foo") == xsc.Comment("foo")
 
 
-def test_defaultregistry():
-	r = xsc.defaultregistry
+def test_defaultpool():
+	r = xsc.defaultpool
 	assert r.element_py("a", html) is html.a
 	assert r.element_xml("a", html) is html.a
 	assert r.procinst_py("php") is php.php
@@ -93,7 +93,7 @@ def test_defaultregistry():
 
 def test_names():
 	# Test classes where the Python and the XML name differ
-	with xsc.Registry() as r:
+	with xsc.Pool() as r:
 		class element(xsc.Element):
 			xmlname = "-element"
 			xmlns = "nix"
@@ -112,9 +112,9 @@ def test_names():
 	assert r.create_element_xml("-element", "nix") == element()
 	py.test.raises(xsc.IllegalElementError, r.element_py, "-element", "nix")
 	py.test.raises(xsc.IllegalElementError, r.element_xml, "element", "nix")
-	# make sure that the default registry didn't pick up the new class
-	py.test.raises(xsc.IllegalElementError, xsc.defaultregistry.element_py, "element", "nix")
-	py.test.raises(xsc.IllegalElementError, xsc.defaultregistry.element_xml, "-element", "nix")
+	# make sure that the default pool didn't pick up the new class
+	py.test.raises(xsc.IllegalElementError, xsc.defaultpool.element_py, "element", "nix")
+	py.test.raises(xsc.IllegalElementError, xsc.defaultpool.element_xml, "-element", "nix")
 
 	# procinsts
 	assert r.procinst_py("procinst") is procinst
@@ -123,9 +123,9 @@ def test_names():
 	assert r.create_procinst_xml("-procinst", "spam") == procinst("spam")
 	py.test.raises(xsc.IllegalProcInstError, r.procinst_py, "-procinst")
 	py.test.raises(xsc.IllegalProcInstError, r.procinst_xml, "procinst")
-	# make sure that the default registry didn't pick up the new class
-	py.test.raises(xsc.IllegalProcInstError, xsc.defaultregistry.procinst_py, "procinst")
-	py.test.raises(xsc.IllegalProcInstError, xsc.defaultregistry.procinst_xml, "-procinst")
+	# make sure that the default pool didn't pick up the new class
+	py.test.raises(xsc.IllegalProcInstError, xsc.defaultpool.procinst_py, "procinst")
+	py.test.raises(xsc.IllegalProcInstError, xsc.defaultpool.procinst_xml, "-procinst")
 
 	# entities
 	assert r.entity_py("entity") is entity
@@ -134,9 +134,9 @@ def test_names():
 	assert r.create_entity_xml("-entity") == entity()
 	py.test.raises(xsc.IllegalEntityError, r.entity_py, "-entity")
 	py.test.raises(xsc.IllegalEntityError, r.entity_xml, "entity")
-	# make sure that the default registry didn't pick up the new class
-	py.test.raises(xsc.IllegalEntityError, xsc.defaultregistry.entity_py, "entity")
-	py.test.raises(xsc.IllegalEntityError, xsc.defaultregistry.entity_xml, "-entity")
+	# make sure that the default pool didn't pick up the new class
+	py.test.raises(xsc.IllegalEntityError, xsc.defaultpool.entity_py, "entity")
+	py.test.raises(xsc.IllegalEntityError, xsc.defaultpool.entity_xml, "-entity")
 	# the charref is an entity too
 	assert r.entity_py("charref") is charref
 	assert r.entity_xml("-charref") is charref
@@ -144,9 +144,9 @@ def test_names():
 	assert r.create_entity_xml("-charref") == charref()
 	py.test.raises(xsc.IllegalEntityError, r.entity_py, "-charref")
 	py.test.raises(xsc.IllegalEntityError, r.entity_xml, "charref")
-	# make sure that the default registry didn't pick up the new class
-	py.test.raises(xsc.IllegalEntityError, xsc.defaultregistry.entity_py, "charref")
-	py.test.raises(xsc.IllegalEntityError, xsc.defaultregistry.entity_xml, "-charref")
+	# make sure that the default pool didn't pick up the new class
+	py.test.raises(xsc.IllegalEntityError, xsc.defaultpool.entity_py, "charref")
+	py.test.raises(xsc.IllegalEntityError, xsc.defaultpool.entity_xml, "-charref")
 
 	# charrefs
 	assert r.charref_py("charref") is charref
@@ -159,20 +159,20 @@ def test_names():
 	assert r.create_charref_xml(42) == charref()
 	py.test.raises(xsc.IllegalEntityError, r.charref_py, "-charref")
 	py.test.raises(xsc.IllegalEntityError, r.charref_xml, "charref")
-	# make sure that the default registry didn't pick up the new class
-	py.test.raises(xsc.IllegalEntityError, xsc.defaultregistry.charref_py, "charref")
-	py.test.raises(xsc.IllegalEntityError, xsc.defaultregistry.charref_xml, "-charref")
+	# make sure that the default pool didn't pick up the new class
+	py.test.raises(xsc.IllegalEntityError, xsc.defaultpool.charref_py, "charref")
+	py.test.raises(xsc.IllegalEntityError, xsc.defaultpool.charref_xml, "-charref")
 	# make sure that entity has not been register as a charref
-	py.test.raises(xsc.IllegalEntityError, xsc.defaultregistry.charref_py, "entity")
-	py.test.raises(xsc.IllegalEntityError, xsc.defaultregistry.charref_xml, "-entity")
+	py.test.raises(xsc.IllegalEntityError, xsc.defaultpool.charref_py, "entity")
+	py.test.raises(xsc.IllegalEntityError, xsc.defaultpool.charref_xml, "-entity")
 
 
 def test_stack():
-	with xsc.Registry() as r1:
+	with xsc.Pool() as r1:
 		class foo1(xsc.Element):
 			xmlname = "foo"
 			xmlns = "nix"
-		with xsc.Registry() as r2:
+		with xsc.Pool() as r2:
 			class foo2(xsc.Element):
 				xmlname = "foo"
 				xmlns = "nix"
@@ -182,14 +182,14 @@ def test_stack():
 
 
 def test_base():
-	with xsc.Registry() as r1:
+	with xsc.Pool() as r1:
 		class foo1(xsc.Element):
 			xmlname = "foo"
 			xmlns = "nix"
 		class baz(xsc.Element):
 			xmlns = "nix"
 
-	with xsc.Registry(r1) as r2:
+	with xsc.Pool(r1) as r2:
 		class foo2(xsc.Element):
 			xmlname = "foo"
 			xmlns = "nix"
@@ -206,11 +206,11 @@ def test_base():
 
 
 def test_defaultbase():
-	with xsc.Registry() as r1:
+	with xsc.Pool() as r1:
 		class foo(xsc.Element):
 			xmlns = "nix"
 
-		with xsc.Registry(True) as r2:
+		with xsc.Pool(True) as r2:
 			class bar(xsc.Element):
 				xmlns = "nix"
 

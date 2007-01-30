@@ -18,7 +18,7 @@ from ll.xist.ns import html, xml, chars, abbr, ihtml, wml, specials, htmlspecial
 
 
 def test_mixedattrnames():
-	with xsc.Registry() as r:
+	with xsc.Pool() as r:
 		xmlns = "test"
 
 		class Attrs(xsc.Attrs):
@@ -147,8 +147,8 @@ def test_subclassing():
 	assert unicode(NS2.foo().conv()) == u"23"
 
 
-def test_registrykeysvaluesitems():
-	with xsc.Registry() as r:
+def test_poolkeysvaluesitems():
+	with xsc.Pool() as r:
 		class el_(xsc.Element):
 			xmlname = "el"
 		class en_(xsc.Entity):

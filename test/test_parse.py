@@ -154,7 +154,7 @@ class Test:
 		prefixes = {None: xmlns}
 
 		# Parser should complain about required attributes that are missing
-		with url.Registry():
+		with xsc.Pool():
 			class Test(xsc.Element):
 				xmlns = xmlns
 				class Attrs(xsc.Element.Attrs):
@@ -175,7 +175,7 @@ class Test:
 		prefixes = {None: xmlns}
 
 		# Parser should complain about attributes with illegal values, when a set of values is specified
-		with url.Registry():
+		with xsc.Pool():
 			class Test(xsc.Element):
 				xmlns = xmlns
 				class Attrs(xsc.Element.Attrs):

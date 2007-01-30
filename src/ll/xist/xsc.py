@@ -1788,8 +1788,8 @@ class DocType(CharacterData):
 class _ProcInst_Meta(Node.__metaclass__):
 	def __new__(cls, name, bases, dict):
 		self = super(_ProcInst_Meta, cls).__new__(cls, name, bases, dict)
-		if dict.get("register") is not None: # check here as getregistrystack isn't defined yet
-			getregistrystack()[-1].register(self)
+		if dict.get("register") is not None: # check here as getpoolstack isn't defined yet
+			getpoolstack()[-1].register(self)
 		return self
 
 	def __repr__(self):
@@ -1888,7 +1888,7 @@ class _Attr_Meta(Frag.__metaclass__, xfind.Operator):
 				dict["values"] = tuple(unicode(entry) for entry in dict["values"])
 		self = super(_Attr_Meta, cls).__new__(cls, name, bases, dict)
 		if self.xmlns is not None:
-			getregistrystack()[-1].register(self)
+			getpoolstack()[-1].register(self)
 		return self
 
 	def xwalk(self, iterator):
@@ -2545,7 +2545,7 @@ class Attrs(Node, dict):
 	@classmethod
 	def _allowedattrkey(cls, name, xmlns=None, xml=False):
 		if xmlns is not None:
-			return getregistrystack()[-1].attrname(name, xmlns, xml) # ask registry about global attribute
+			return getpoolstack()[-1].attrname(name, xmlns, xml) # ask pool about global attribute
 		try:
 			if xml:
 				return cls._byxmlname[name].__name__
@@ -2557,7 +2557,7 @@ class Attrs(Node, dict):
 	@classmethod
 	def allowedattr(cls, name, xmlns=None, xml=False):
 		if xmlns is not None:
-			return getregistrystack()[-1].attrclass(name, xmlns, xml) # return global attribute
+			return getpoolstack()[-1].attrclass(name, xmlns, xml) # return global attribute
 		else:
 			try:
 				if xml:
@@ -2717,7 +2717,7 @@ class _Element_Meta(Node.__metaclass__):
 		_patchclassnames(dict, name)
 		self = super(_Element_Meta, cls).__new__(cls, name, bases, dict)
 		if dict.get("register") is not None:
-			getregistrystack()[-1].register(self)
+			getpoolstack()[-1].register(self)
 		return self
 
 	def __repr__(self):
@@ -3184,7 +3184,7 @@ class _Entity_Meta(Node.__metaclass__):
 	def __new__(cls, name, bases, dict):
 		self = super(_Entity_Meta, cls).__new__(cls, name, bases, dict)
 		if dict.get("register") is not None:
-			getregistrystack()[-1].register(self)
+			getpoolstack()[-1].register(self)
 		return self
 
 	def __repr__(self):
@@ -3312,18 +3312,18 @@ import publishers, cssparsers, converters, utils, helpers
 
 
 ###
-### XML class registry
+### XML class pool
 ###
 
-class Registry(object):
+class Pool(object):
 	"""
-	Registry for <pyref class="Element">element</pyref>,
+	Class pool for <pyref class="Element">element</pyref>,
 	<pyref class="ProcInst">procinst</pyref>, <pyref class="Entity">entity</pyref>,
 	<pyref class="CharRef">charref</pyref> and <pyref class="Attr">attribute</pyref> classes.
 	"""
 	def __init__(self, *objects):
 		"""
-		<par>Create a new registry.</par>
+		<par>Create a new pool.</par>
 		</dlist>
 		"""
 		self._elementsbyxmlname = weakref.WeakValueDictionary()
@@ -3339,13 +3339,7 @@ class Registry(object):
 		self._attrsbypyname = weakref.WeakValueDictionary()
 		self.bases = []
 		for object in objects:
-			if object is True:
-				stack = getregistrystack()
-				object = stack[-1] if object else None
-			if isinstance(object, Registry):
-				self.bases.append(object)
-			else:
-				self.register(object)
+			self.register(object)
 
 	def register(self, object):
 		if isinstance(object, type):
@@ -3376,13 +3370,17 @@ class Registry(object):
 			for value in object.__dict__.itervalues():
 				if isinstance(value, type): # This avoids recursive module registration
 					self.register(value)
+		elif object is True:
+			self.bases.append(getpoolstack()[-1])
+		elif isinstance(object, Pool):
+			self.bases.append(object)
 
 	def __enter__(self):
-		getregistrystack().append(self)
+		getpoolstack().append(self)
 		return self
 
 	def __exit__(self, type, value, traceback):
-		getregistrystack().pop()
+		getpoolstack().pop()
 
 	def element_keys_py(self):
 		return self._elementsbypyname.iterkeys()
@@ -3641,17 +3639,17 @@ class Registry(object):
 		return Comment(content)
 
 
-def getregistrystack():
+# Default class pool
+defaultpool = Pool()
+
+
+def getpoolstack():
 	try:
-		stack = getattr(local, "ll.xist.xsc.registries")
+		stack = getattr(local, "ll.xist.xsc.pools")
 	except AttributeError:
-		stack = [defaultregistry]
-		setattr(local, "ll.xist.xsc.registries", stack)
+		stack = [defaultpool]
+		setattr(local, "ll.xist.xsc.pools", stack)
 	return stack
-
-
-# Default registry
-defaultregistry = Registry(None)
 
 
 ###
