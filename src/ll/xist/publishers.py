@@ -77,11 +77,11 @@ class Publisher(object):
 		<term>A string</term>
 		<item>Use this prefix for the namespace.</item>
 
-		<par>If an element or attribute is encountered whose namespace can not be
-		in <arg>prefixes</arg> <arg>prefixdefault</arg> is used as the fallback.</par>
+		<par>If an element or attribute is encountered whose namespace is not in
+		<arg>prefixes</arg> <arg>prefixdefault</arg> is used as the fallback.</par>
 		<ulist>
 
-		<par><arg>hidexmlns</arg> can be a list are set that contains namespace names
+		<par><arg>hidexmlns</arg> can be a list or set that contains namespace names
 		for which no <lit>xmlns</lit> attributes should be published. (This can be
 		used to hide the namespaces e.g. for Java taglibs.)</par>
 		</ulist>
