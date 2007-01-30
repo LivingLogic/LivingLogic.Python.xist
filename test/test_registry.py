@@ -183,18 +183,26 @@ def test_stack():
 
 def test_base():
 	with xsc.Registry() as r1:
-		class foo(xsc.Element):
+		class foo1(xsc.Element):
+			xmlname = "foo"
+			xmlns = "nix"
+		class baz(xsc.Element):
 			xmlns = "nix"
 
 	with xsc.Registry(r1) as r2:
+		class foo2(xsc.Element):
+			xmlname = "foo"
+			xmlns = "nix"
 		class bar(xsc.Element):
 			xmlns = "nix"
 
-	assert r1.element_xml("foo", "nix") is foo
+	assert r1.element_xml("foo", "nix") is foo1
 	py.test.raises(xsc.IllegalElementError, r1.element_py, "bar", "nix")
+	assert r1.element_xml("baz", "nix") is baz
 
-	assert r2.element_xml("foo", "nix") is foo
+	assert r2.element_xml("foo", "nix") is foo2
 	assert r2.element_xml("bar", "nix") is bar
+	assert r2.element_xml("baz", "nix") is baz
 
 
 def test_defaultbase():
