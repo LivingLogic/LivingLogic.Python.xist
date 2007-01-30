@@ -162,6 +162,52 @@ def test_names():
 	# make sure that the default registry didn't pick up the new class
 	py.test.raises(xsc.IllegalEntityError, xsc.defaultregistry.charref_py, "charref")
 	py.test.raises(xsc.IllegalEntityError, xsc.defaultregistry.charref_xml, "-charref")
-	# make sure that entity has now been register as a charref
+	# make sure that entity has not been register as a charref
 	py.test.raises(xsc.IllegalEntityError, xsc.defaultregistry.charref_py, "entity")
 	py.test.raises(xsc.IllegalEntityError, xsc.defaultregistry.charref_xml, "-entity")
+
+
+def test_stack():
+	with xsc.Registry() as r1:
+		class foo1(xsc.Element):
+			xmlname = "foo"
+			xmlns = "nix"
+		with xsc.Registry() as r2:
+			class foo2(xsc.Element):
+				xmlname = "foo"
+				xmlns = "nix"
+
+	assert r1.element_xml("foo", "nix") is foo1
+	assert r2.element_xml("foo", "nix") is foo2
+
+
+def test_base():
+	with xsc.Registry() as r1:
+		class foo(xsc.Element):
+			xmlns = "nix"
+
+	with xsc.Registry(r1) as r2:
+		class bar(xsc.Element):
+			xmlns = "nix"
+
+	assert r1.element_xml("foo", "nix") is foo
+	py.test.raises(xsc.IllegalElementError, r1.element_py, "bar", "nix")
+
+	assert r2.element_xml("foo", "nix") is foo
+	assert r2.element_xml("bar", "nix") is bar
+
+
+def test_defaultbase():
+	with xsc.Registry() as r1:
+		class foo(xsc.Element):
+			xmlns = "nix"
+
+		with xsc.Registry(True) as r2:
+			class bar(xsc.Element):
+				xmlns = "nix"
+
+	assert r1.element_xml("foo", "nix") is foo
+	py.test.raises(xsc.IllegalElementError, r1.element_py, "bar", "nix")
+
+	assert r2.element_xml("foo", "nix") is foo
+	assert r2.element_xml("bar", "nix") is bar
