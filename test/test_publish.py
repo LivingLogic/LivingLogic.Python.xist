@@ -23,33 +23,41 @@ restrictedchars = re.compile(u"[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F-\x84\x86-\x9F]")
 def test_publishelement():
 	node = html.html()
 
-	assert node.asBytes(prefixes={html: None}) == """<html></html>"""
-	assert node.asBytes(prefixes={html: "h"}) == """<h:html></h:html>"""
-	assert node.asBytes(prefixes=prefixes, prefixmode=2) == """<h:html xmlns:h="http://www.w3.org/1999/xhtml"></h:html>"""
-
-	assert node.asBytes(prefixes=prefixes, prefixmode=0) == """<html></html>"""
-	assert node.asBytes(prefixes=prefixes, prefixmode=1) == """<html></html>"""
-	assert node.asBytes(prefixes=prefixes, prefixmode=2) == """<html xmlns="http://www.w3.org/1999/xhtml"></html>"""
+	assert node.asBytes(prefixdefault=False) == """<html></html>"""
+	assert node.asBytes(prefixdefault=None) == """<html xmlns="http://www.w3.org/1999/xhtml"></html>"""
+	assert node.asBytes(prefixdefault="h") == """<h:html xmlns:h="http://www.w3.org/1999/xhtml"></h:html>"""
+	assert node.asBytes(prefixdefault=True) == """<ns:html xmlns:ns="http://www.w3.org/1999/xhtml"></ns:html>"""
+	assert node.asBytes(prefixes={html: False}) == """<html></html>"""
+	assert node.asBytes(prefixes={html: None}) == """<html xmlns="http://www.w3.org/1999/xhtml"></html>"""
+	assert node.asBytes(prefixes={html: "h"}) == """<h:html xmlns:h="http://www.w3.org/1999/xhtml"></h:html>"""
+	assert node.asBytes(prefixes={html: True}) == """<ns:html xmlns:ns="http://www.w3.org/1999/xhtml"></ns:html>"""
+	assert node.asBytes(prefixdefault="h", hidexmlns=[html]) == """<h:html></h:html>"""
 
 
 def test_publishentity():
 	node = abbr.xml()
 
-	assert node.asBytes(prefixes={abbr: "a", specials: "s"}) == """&xml;"""
-	assert node.asBytes(prefixes={abbr: None, specials: "s"}) == """&xml;"""
-	assert node.asBytes(prefixdefault=True) == """&xml;"""
+	assert node.asBytes(prefixdefault=False) == """&xml;"""
 	assert node.asBytes(prefixdefault=None) == """&xml;"""
 	assert node.asBytes(prefixdefault="x") == """&xml;"""
+	assert node.asBytes(prefixdefault=True) == """&xml;"""
+	assert node.asBytes(prefixes={abbr: False}) == """&xml;"""
+	assert node.asBytes(prefixes={abbr: None}) == """&xml;"""
+	assert node.asBytes(prefixes={abbr: "x"}) == """&xml;"""
+	assert node.asBytes(prefixes={abbr: True}) == """&xml;"""
 
 
 def test_publishprocinst():
 	node = php.php("x")
 
-	assert node.asBytes(prefixes={php: "h", specials: "s"}) == """<?php x?>"""
-	assert node.asBytes(prefixes={php: None, specials: "s"}) == """<?php x?>"""
-	assert node.asBytes(prefixdefault=True) == """<?php x?>"""
+	assert node.asBytes(prefixdefault=False) == """<?php x?>"""
 	assert node.asBytes(prefixdefault=None) == """<?php x?>"""
-	assert node.asBytes(prefixdefault="x") == """<?php x?>"""
+	assert node.asBytes(prefixdefault="p") == """<?php x?>"""
+	assert node.asBytes(prefixdefault=True) == """<?php x?>"""
+	assert node.asBytes(prefixes={php: False}) == """<?php x?>"""
+	assert node.asBytes(prefixes={php: None}) == """<?php x?>"""
+	assert node.asBytes(prefixes={php: "p"}) == """<?php x?>"""
+	assert node.asBytes(prefixes={php: True}) == """<?php x?>"""
 
 
 def test_publishboolattr():
@@ -66,6 +74,7 @@ def test_publishboolattr():
 			class bar(xsc.BoolAttr):
 				xmlname = "baz"
 
+	# Check that the XML name is used as the value
 	assert foo("?", bar=True).asBytes(xhtml=2) == """<foo baz="baz">?</foo>"""
 
 
@@ -91,19 +100,22 @@ def test_publishstyleattr():
 
 def test_publishxmlattr():
 	node = html.html(xml.Attrs(space="preserve"))
-	prefixes = {html: "h"}
-	assert node.asBytes(prefixes=prefixes) == """<h:html xmlns:h="http://www.w3.org/1999/xhtml" xml:space="preserve"></h:html>"""
+	assert node.asBytes(prefixdefault=False) == """<html xml:space="preserve"></html>"""
 	assert node.asBytes(prefixdefault=True) == """<ns:html xmlns:ns="http://www.w3.org/1999/xhtml" xml:space="preserve"></ns:html>"""
 	assert node.asBytes(prefixdefault=None) == """<html xmlns="http://www.w3.org/1999/xhtml" xml:space="preserve"></html>"""
+	assert node.asBytes(prefixes={html: "h"}) == """<h:html xmlns:h="http://www.w3.org/1999/xhtml" xml:space="preserve"></h:html>"""
+	# Prefix for XML namespace can't be overwritten
+	assert node.asBytes(prefixes={html: "h", xml: "spam"}) == """<h:html xmlns:h="http://www.w3.org/1999/xhtml" xml:space="preserve"></h:html>"""
 
 
 def test_publishglobalattr():
+	# FIXME: Some of those tests depend on dict iteration order
 	node = html.html(xlink.Attrs(title="the foo bar"))
-	prefixes = {html: "h", xlink: "xl"}
-	assert node.asBytes() == """<html xmlns:xl="http://www.w3.org/1999/xlink" xl:title="the foo bar"></html>"""
-	assert node.asBytes(prefixes=prefixes) == """<h:html xmlns:xl="http://www.w3.org/1999/xlink" xl:title="the foo bar"></h:html>"""
-	# FIXME: this depends on dict iteration order
-	assert node.asBytes(prefixes=prefixes) == """<h:html xmlns:xl="http://www.w3.org/1999/xlink" xmlns:h="http://www.w3.org/1999/xhtml" xl:title="the foo bar"></h:html>"""
+	assert node.asBytes(prefixdefault=False) == """<html xmlns:ns="http://www.w3.org/1999/xlink" ns:title="the foo bar"></html>"""
+	assert node.asBytes(prefixdefault=None) == """<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ns="http://www.w3.org/1999/xlink" ns:title="the foo bar"></html>"""
+	assert node.asBytes(prefixdefault=True) == """<ns:html xmlns:ns="http://www.w3.org/1999/xhtml" xmlns:ns2="http://www.w3.org/1999/xlink" ns2:title="the foo bar"></ns:html>"""
+	assert node.asBytes(prefixdefault="h") == """<h:html xmlns:h="http://www.w3.org/1999/xhtml" xmlns:ns="http://www.w3.org/1999/xlink" ns:title="the foo bar"></h:html>"""
+	assert node.asBytes(prefixes={html: "h", xlink: "xl"}) == """<h:html xmlns:h="http://www.w3.org/1999/xhtml" xmlns:xl="http://www.w3.org/1999/xlink" xl:title="the foo bar"></h:html>"""
 
 
 def test_publishempty():
@@ -121,55 +133,55 @@ def test_publishescaped():
 	assert node.asBytes(encoding="ascii", xhtml=2) == """<span class="&lt;&amp;'&quot;&#255;&gt;"/>"""
 
 
-escapeInput = u"".join([unichr(i) for i in xrange(1000)] + [unichr(i) for i in xrange(sys.maxunicode-10, sys.maxunicode+1)])
+escape_input = u"".join([unichr(i) for i in xrange(1000)] + [unichr(i) for i in xrange(sys.maxunicode-10, sys.maxunicode+1)])
 
 
 def test_helpersescapetext():
-	escapeOutput = []
-	for c in escapeInput:
+	escape_output = []
+	for c in escape_input:
 		if c==u"&":
-			escapeOutput.append(u"&amp;")
+			escape_output.append(u"&amp;")
 		elif c==u"<":
-			escapeOutput.append(u"&lt;")
+			escape_output.append(u"&lt;")
 		elif c==u">":
-			escapeOutput.append(u"&gt;")
+			escape_output.append(u"&gt;")
 		elif restrictedchars.match(c) is not None:
-			escapeOutput.append(u"&#%d;" % ord(c))
+			escape_output.append(u"&#%d;" % ord(c))
 		else:
-			escapeOutput.append(c)
-	escapeOutput = "".join(escapeOutput)
-	assert helpers.escapetext(escapeInput) == escapeOutput
+			escape_output.append(c)
+	escape_output = "".join(escape_output)
+	assert helpers.escapetext(escape_input) == escape_output
 
 
 def test_helpersescapeattr():
-	escapeOutput = []
-	for c in escapeInput:
+	escape_output = []
+	for c in escape_input:
 		if c==u"&":
-			escapeOutput.append(u"&amp;")
+			escape_output.append(u"&amp;")
 		elif c==u"<":
-			escapeOutput.append(u"&lt;")
+			escape_output.append(u"&lt;")
 		elif c==u">":
-			escapeOutput.append(u"&gt;")
+			escape_output.append(u"&gt;")
 		elif c==u'"':
-			escapeOutput.append(u"&quot;")
+			escape_output.append(u"&quot;")
 		elif restrictedchars.match(c) is not None:
-			escapeOutput.append(u"&#%d;" % ord(c))
+			escape_output.append(u"&#%d;" % ord(c))
 		else:
-			escapeOutput.append(c)
-	escapeOutput = "".join(escapeOutput)
-	assert helpers.escapeattr(escapeInput) == escapeOutput
+			escape_output.append(c)
+	escape_output = "".join(escape_output)
+	assert helpers.escapeattr(escape_input) == escape_output
 
 
 def test_helpercssescapereplace():
-	escapeOutput = []
-	for c in escapeInput:
+	escape_output = []
+	for c in escape_input:
 		try:
 			c.encode("ascii")
-			escapeOutput.append(c)
+			escape_output.append(c)
 		except UnicodeError:
-			escapeOutput.append((u"\\%x" % ord(c)).upper())
-	escapeOutput = u"".join(escapeOutput)
-	assert helpers.cssescapereplace(escapeInput, "ascii") == escapeOutput
+			escape_output.append((u"\\%x" % ord(c)).upper())
+	escape_output = u"".join(escape_output)
+	assert helpers.cssescapereplace(escape_input, "ascii") == escape_output
 
 
 def test_encoding():
@@ -183,11 +195,7 @@ def test_encoding():
 			)
 		)
 		s = node.asBytes(encoding=encoding)
-		node2 = parsers.parseString(
-			s,
-			saxparser=parsers.ExpatParser,
-			prefixes={None: [html, php, abbr]},
-		)
+		node2 = parsers.parseString(s, saxparser=parsers.ExpatParser, prefixes={None: [html, php, abbr]})
 		assert node == node2
 
 	for encoding in ("utf-8", "utf-16", "utf-16-be", "utf-16-le", "latin-1", "ascii"):
