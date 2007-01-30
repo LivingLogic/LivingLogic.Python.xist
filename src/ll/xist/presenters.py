@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 1999-2006 by LivingLogic AG, Bayreuth/Germany.
-## Copyright 1999-2006 by Walter Dörwald
+## Copyright 1999-2007 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 1999-2007 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -360,7 +360,7 @@ class TreePresenter(Presenter):
 			for (attrname, attrvalue) in node.iteritems():
 				yield " "
 				if isinstance(attrname, tuple):
-					yield s4attr(s4ns(self.text(unicode(attrname[0].xmlname))), ":", s4attrname(self.text(unicode(attrname[1]))))
+					yield s4attr(s4ns(self.text(unicode(attrvalue.__class__.__module__))), ":", s4attrname(self.text(unicode(attrname[0]))))
 				else:
 					yield s4attrname(self.text(unicode(attrname)))
 				yield s4attr('="')

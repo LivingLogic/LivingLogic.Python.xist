@@ -1,8 +1,8 @@
 #! /usr/bin/env/python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 1999-2006 by LivingLogic AG, Bayreuth/Germany.
-## Copyright 1999-2006 by Walter Dörwald
+## Copyright 1999-2007 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 1999-2007 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -14,7 +14,7 @@ from ll.xist.ns import tld
 
 
 def tld2ns(s, xmlname, shareattrs=None):
-	node = parsers.parseString(s, prefixes=xsc.Prefixes(tld))
+	node = parsers.parseString(s, prefixes=xsc.Prefixes(tld.xmlns))
 	node = node.walknode(xsc.FindType(tld.taglib))[0]
 
 	data = node.asxnd()
@@ -24,10 +24,10 @@ def tld2ns(s, xmlname, shareattrs=None):
 
 	mod = {"__name__": xmlname}
 	encoding = "iso-8859-1"
-	code = data.aspy(encoding=encoding, asmod=False).encode(encoding)
+	code = data.aspy(encoding=encoding).encode(encoding)
 	exec code in mod
 
-	return mod["__ns__"]
+	return mod["xmlns"]
 
 
 def test_tld2xsc():

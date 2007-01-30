@@ -1,4 +1,27 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
+<section><title>Changes in 3.0 (released ??/??/2007)</title>
+<ulist>
+<item>A class attribute <lit>empty</lit> insided element classes will now no
+longer get converted into <lit>model</lit>.</item>
+<item><class>ll.xist.ns.doc.pyref</class> now copes better with decorated
+methods.</item>
+<item>The deprecated <class>Element</class> methods <method>hasAttr</method>,
+<method>hasattr</method>, <method>isallowedattr</method>, <method>getAttr</method>,
+<method>getattr</method>, <method>setDefaultAttr</method>,
+<method>setdefaultattr</method>, <method>attrkeys</method>,
+<method>attrvalues</method>, <method>attritems</method>,
+<method>iterattrkeys</method>, <method>iterattrvalues</method>,
+<method>iterattritems</method>, <method>allowedattrkeys</method>,
+<method>allowedattrvalues</method>, <method>allowedattritems</method>,
+<method>iterallowedattrkeys</method>, <method>iterallowedattrvalues</method>,
+<method>iterallowedattritems</method> and <method>copyDefaultAttrs</method>
+have been removed. The deprecated <class>Attrs</class> method
+<method>copydefaults</method> has been removed too.</item>
+<item>The namespace module <module>ll.xist.ns.cond</module> has been removed.</item>
+</ulist>
+</section>
+
+
 <section><title>Changes in 2.15.2 (released 01/24/2007)</title>
 <ulist>
 <item>Fixed a bug in <method>presenters.CodePresenter.__str__</method>.</item>

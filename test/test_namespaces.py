@@ -1,13 +1,15 @@
 #! /usr/bin/env/python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 1999-2006 by LivingLogic AG, Bayreuth/Germany.
-## Copyright 1999-2006 by Walter Dörwald
+## Copyright 1999-2007 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 1999-2007 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
 ## See xist/__init__.py for the license
 
+
+from __future__ import with_statement
 
 import py.test
 
@@ -16,22 +18,28 @@ from ll.xist.ns import html, xml, chars, abbr, ihtml, wml, specials, htmlspecial
 
 
 def test_mixedattrnames():
-	class __ns__(xsc.Namespace):
-		xmlname = "test"
-		xmlurl = "test"
+	with xsc.Registry() as r:
+		xmlns = "test"
 
-		class Attrs(xsc.Namespace.Attrs):
-			class a(xsc.TextAttr): xmlname = "A"
-			class A(xsc.TextAttr): xmlname = "a"
+		class Attrs(xsc.Attrs):
+			class a(xsc.TextAttr):
+				xmlns = xmlns
+				xmlname = "A"
+			class A(xsc.TextAttr):
+				xmlns = xmlns
+				xmlname = "a"
+	
 		class Test(xsc.Element):
 			class Attrs(xsc.Element.Attrs):
-				class a(xsc.TextAttr): xmlname = "A"
-				class A(xsc.TextAttr): xmlname = "a"
+				class a(xsc.TextAttr):
+					xmlname = "A"
+				class A(xsc.TextAttr):
+					xmlname = "a"
 
-	node = __ns__.Test(
+	node = Test(
 		{
-			(__ns__, "a"): "a2",
-			(__ns__, "A"): "A2",
+			("a", xmlns): "a2",
+			("A", xmlns): "A2",
 		},
 		a="a",
 		A="A"
@@ -52,8 +60,8 @@ def test_mixedattrnames():
 	tests = [
 		("a", "a"),
 		("A", "A"),
-		((__ns__, "a"), "a2"),
-		((__ns__, "A"), "A2")
+		(("a", xmlns), "a2"),
+		(("A", xmlns), "A2")
 	]
 	for (name, value) in tests:
 		yield check, name, value
@@ -61,8 +69,8 @@ def test_mixedattrnames():
 
 def test_variousnamespaces():
 	def check(ns, *skip):
-		for obj in ns.iterelementvalues():
-			if not issubclass(obj, skip):
+		for obj in vars(ns).itervalues():
+			if isinstance(obj, type) and issubclass(obj, xsc.Element) and not issubclass(obj, skip):
 				node = obj()
 				for (attrname, attrvalue) in node.attrs.alloweditems():
 					if attrvalue.required:
@@ -70,13 +78,15 @@ def test_variousnamespaces():
 							node[attrname] = attrvalue.values[0]
 						else:
 							node[attrname] = "foo"
-			node.conv().asBytes()
-		for obj in ns.iterentityvalues():
-			node = obj()
-			node.conv().asBytes()
-		for obj in ns.iterprocinstvalues():
-			node = obj()
-			node.conv().asBytes()
+				node.conv().asBytes()
+		for obj in vars(ns).itervalues():
+			if isinstance(obj, type) and issubclass(obj, xsc.Entity):
+				node = obj()
+				node.conv().asBytes()
+		for obj in vars(ns).itervalues():
+			if isinstance(obj, type) and issubclass(obj, xsc.ProcInst):
+				node = obj()
+				node.conv().asBytes()
 
 	yield check, html
 	yield check, ihtml
@@ -94,85 +104,41 @@ def test_variousnamespaces():
 	yield check, tld
 
 
-def test_nsupdate():
-	def createns():
-		class __ns__(xsc.Namespace):
-			xmlname = "gurk"
-			xmlurl = "http://www.gurk.com/"
-			class foo(xsc.Element): pass
-			class bar(xsc.Element): pass
-		return __ns__
-	
-	class ns1:
-		class foo(xsc.Element): pass
-		class bar(xsc.Element): pass
-		class foo2(xsc.Element): pass
-		class bar2(xsc.Element): pass
-	class ns2:
-		class foo(xsc.Element): pass
-		class bar(xsc.Element): pass
-		class foo2(xsc.Element): pass
-		class bar2(xsc.Element): pass
-	a = [ {"foo": ns.foo, "bar": ns.bar, "foo2": ns.foo2, "bar2": ns.bar2} for ns in (ns1, ns2) ]
-
-	ns = createns()
-	ns.update(*a)
-	assert ns.element("foo") is ns2.foo
-	assert ns.element("bar") is ns2.bar
-	assert ns.element("foo2") is ns2.foo2
-	assert ns.element("bar2") is ns2.bar2
-
-	ns = createns()
-	ns.updatenew(*a)
-	assert ns.element("foo") is ns.foo
-	assert ns.element("bar") is ns.bar
-	assert ns.element("foo2") is ns2.foo2
-	assert ns.element("bar2") is ns2.bar2
-
-	ns = createns()
-	ns.updateexisting(*a)
-	assert ns.element("foo") == ns2.foo
-	assert ns.element("bar") == ns2.bar
-	py.test.raises(xsc.IllegalElementError, ns.element, "foo2")
-	py.test.raises(xsc.IllegalElementError, ns.element, "bar2")
-
-
 def test_attributeexamples():
 	assert xsc.amp.__name__ == "amp"
 	assert xsc.amp.xmlname == u"amp"
-	assert xsc.amp.__ns__ is None
-	assert xsc.amp.xmlprefix() is None
+	assert xsc.amp.xmlns is None
 
 	assert chars.uuml.__name__ == "uuml"
 	assert chars.uuml.xmlname == u"uuml"
-	assert chars.uuml.__ns__ is chars
-	assert chars.uuml.xmlprefix() == "chars"
+	assert chars.uuml.xmlns is None
 
 	assert html.a.Attrs.class_.__name__ == "class_"
 	assert html.a.Attrs.class_.xmlname == u"class"
-	assert html.a.Attrs.class_.__ns__ is None
+	assert html.a.Attrs.class_.xmlns is None
 
 	assert xml.Attrs.lang.__name__ == "lang"
 	assert xml.Attrs.lang.xmlname == u"lang"
-	assert xml.Attrs.lang.__ns__ is xml
-	assert xml.Attrs.lang.xmlprefix() == "xml"
+	assert xml.Attrs.lang.xmlns == xml.xmlns
 
 
-def test_autoinherit():
+def test_subclassing():
 	class NS1(xsc.Namespace):
 		xmlname = "test"
-		xmlurl = "test"
+
 		class foo(xsc.Element):
 			model = False
 			def convert(self, converter):
-				e = self.__ns__.bar()
+				e = self.xmlns().bar()
 				return e.convert(converter)
+
 		class bar(xsc.Entity):
 			def convert(self, converter):
 				return xsc.Text(17)
 
 	class NS2(NS1):
 		xmlname = "test"
+
 		class bar(xsc.Entity):
 			def convert(self, converter):
 				return xsc.Text(23)
@@ -181,19 +147,8 @@ def test_autoinherit():
 	assert unicode(NS2.foo().conv()) == u"23"
 
 
-def check_nskeysvaluesitems(ns, method, resname, resclass):
-	assert getattr(ns, method + "keys")(xml=False) == [resname]
-	assert getattr(ns, method + "keys")(xml=True) == [resname[:-1]]
-
-	assert getattr(ns, method + "values")() == [resclass]
-
-	assert getattr(ns, method + "items")(xml=False) == [(resname, resclass)]
-	assert getattr(ns, method + "items")(xml=True) == [(resname[:-1], resclass)]
-
-
-def test_nskeysvaluesitems():
-	class NS(xsc.Namespace):
-		xmlname = "test"
+def test_registrykeysvaluesitems():
+	with xsc.Registry() as r:
 		class el_(xsc.Element):
 			xmlname = "el"
 		class en_(xsc.Entity):
@@ -204,54 +159,60 @@ def test_nskeysvaluesitems():
 			xmlname = "cr"
 			codepoint = 0x4242
 
-	check_nskeysvaluesitems(NS, "element", "el_", NS.el_)
-
-	keys = NS.entitykeys(xml=False)
+	# Test elements
+	keys = list(r.elementkeys(xml=False))
+	assert keys == [("el_", None)]
+	keys = list(r.elementkeys(xml=True))
+	assert keys == [("el", None)]
+	values = list(r.elementvalues())
+	assert values == [el_]
+	items = list(r.elementitems(xml=False))
+	assert items == [(("el_", None), el_)]
+	items = list(r.elementitems(xml=True))
+	assert items == [(("el", None), el_)]
+	
+	# Test entities
+	keys = list(r.entitykeys(xml=False))
 	assert len(keys) == 2
 	assert "en_" in keys
 	assert "cr_" in keys
-	keys = NS.entitykeys(xml=True)
+	keys = list(r.entitykeys(xml=True))
 	assert len(keys) == 2
 	assert "en" in keys
 	assert "cr" in keys
-
-	values = NS.entityvalues()
+	values = list(r.entityvalues())
 	assert len(values) == 2
-	assert NS.en_ in values
-	assert NS.cr_ in values
-
-	items = NS.entityitems(xml=False)
+	assert en_ in values
+	assert cr_ in values
+	items = list(r.entityitems(xml=False))
 	assert len(items) == 2
-	assert ("en_", NS.en_) in items
-	assert ("cr_", NS.cr_) in items
-	items = NS.entityitems(xml=True)
+	assert ("en_", en_) in items
+	assert ("cr_", cr_) in items
+	items = list(r.entityitems(xml=True))
 	assert len(items) == 2
-	assert ("en", NS.en_) in items
-	assert ("cr", NS.cr_) in items
+	assert ("en", en_) in items
+	assert ("cr", cr_) in items
 
-	check_nskeysvaluesitems(NS, "procinst", "pi_", NS.pi_)
+	# Test procinsts
+	keys = list(r.procinstkeys(xml=False))
+	assert keys == ["pi_"]
+	keys = list(r.procinstkeys(xml=True))
+	assert keys == ["pi"]
+	values = list(r.procinstvalues())
+	assert values == [pi_]
+	items = list(r.procinstitems(xml=False))
+	assert items == [("pi_", pi_)]
+	items = list(r.procinstitems(xml=True))
+	assert items == [("pi", pi_)]
 
-	check_nskeysvaluesitems(NS, "charref", "cr_", NS.cr_)
-
-
-def test_prefixsubclasses():
-	class NS1(xsc.Namespace):
-		xmlname = "ns"
-		xmlurl = "http://xmlns.ns.info/"
-
-		class gurk(xsc.Element):
-			model = False
-
-	class NS2(NS1):
-		xmlname = "ns"
-
-	p = xsc.Prefixes(ns=NS1)
-
-	assert \
-		NS1.gurk().asBytes(xhtml=2, prefixmode=2, prefixes=p) == \
-		'<ns:gurk xmlns:ns="http://xmlns.ns.info/"/>'
-
-	# The sub namespace should pick up the prefix defined for the first one
-	assert \
-		NS2.gurk().asBytes(xhtml=2, prefixmode=2, prefixes=p) == \
-		'<ns:gurk xmlns:ns="http://xmlns.ns.info/"/>'
+	# Test charrefs
+	keys = list(r.charrefkeys(xml=False))
+	assert keys == ["cr_"]
+	keys = list(r.charrefkeys(xml=True))
+	assert keys == ["cr"]
+	values = list(r.charrefvalues())
+	assert values == [cr_]
+	items = list(r.charrefitems(xml=False))
+	assert items == [("cr_", cr_)]
+	items = list(r.charrefitems(xml=True))
+	assert items == [("cr", cr_)]

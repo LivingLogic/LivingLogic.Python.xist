@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 1999-2006 by LivingLogic AG, Bayreuth/Germany.
-## Copyright 1999-2006 by Walter Dörwald
+## Copyright 1999-2007 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 1999-2007 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -17,6 +17,9 @@ __version__ = "$Revision$".split()[1]
 
 from ll.xist import xsc
 import doc
+
+
+xmlns = "http://xmlns.livinglogic.de/xist/ns/abbr"
 
 
 class base(xsc.Entity):
@@ -454,10 +457,3 @@ class wsgi(base):
 	content = u"WSGI"
 	title = u"Web Server Gateway Interface"
 	lang = u"en"
-
-
-class __ns__(xsc.Namespace):
-	xmlname = "abbr"
-	xmlurl = "http://xmlns.livinglogic.de/xist/ns/abbr"
-__ns__.makemod(vars())
-

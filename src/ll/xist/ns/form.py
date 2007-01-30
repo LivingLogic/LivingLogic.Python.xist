@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 1999-2006 by LivingLogic AG, Bayreuth/Germany.
-## Copyright 1999-2006 by Walter Dörwald
+## Copyright 1999-2007 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 1999-2007 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -21,7 +21,11 @@ from ll.xist import xsc
 from ll.xist.ns import html
 
 
+xmlns = "http://xmlns.livinglogic.de/xist/ns/form"
+
+
 class checkbox(html.input):
+	xmlns = xmlns
 	class Attrs(html.input.Attrs):
 		type = None
 
@@ -31,6 +35,7 @@ class checkbox(html.input):
 
 
 class edit(html.input):
+	xmlns = xmlns
 	class Attrs(html.input.Attrs):
 		type = None
 
@@ -40,6 +45,7 @@ class edit(html.input):
 
 
 class radio(html.input):
+	xmlns = xmlns
 	class Attrs(html.input.Attrs):
 		type = None
 
@@ -49,6 +55,7 @@ class radio(html.input):
 
 
 class submit(html.input):
+	xmlns = xmlns
 	class Attrs(html.input.Attrs):
 		type = None
 
@@ -58,6 +65,7 @@ class submit(html.input):
 
 
 class memo(html.textarea):
+	xmlns = xmlns
 	class Attrs(html.textarea.Attrs):
 		class value(xsc.TextAttr): pass
 
@@ -67,6 +75,7 @@ class memo(html.textarea):
 
 
 class hidden(html.input):
+	xmlns = xmlns
 	class Attrs(html.input.Attrs):
 		type = None
 
@@ -76,9 +85,3 @@ class hidden(html.input):
 	def convert(self, converter):
 		e = html.input(self.attrs, type=u"hidden")
 		return e.convert(converter)
-
-
-class __ns__(xsc.Namespace):
-	xmlname = "form"
-	xmlurl = "http://xmlns.livinglogic.de/xist/ns/form"
-__ns__.makemod(vars())

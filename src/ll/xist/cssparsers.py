@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 1999-2006 by LivingLogic AG, Bayreuth/Germany.
-## Copyright 1999-2006 by Walter Dörwald
+## Copyright 1999-2007 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 1999-2007 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -103,7 +103,7 @@ class Handler(object):
 	def parseURL(self, name, base=None, headers=None, data=None):
 		stream = name.openread(headers=headers, data=data)
 		if base is None:
-			base = stream.finalurl
+			base = stream.finalurl()
 		return self._parse(stream, base, self.encoding)
 
 	def parseFile(self, name, base=None):

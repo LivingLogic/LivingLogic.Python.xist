@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 2006 by LivingLogic AG, Bayreuth/Germany.
-## Copyright 2006 by Walter Dörwald
+## Copyright 2007 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 2007 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -21,10 +21,14 @@ __version__ = "$Revision$".split()[1]
 from ll.xist import xsc, sims
 
 
+xmlns = "http://my.netscape.com/publish/formats/rss-0.91.dtd"
+
+
 class DocType(xsc.DocType):
 	"""
 	Document type for RSS 0.91
 	"""
+
 	def __init__(self):
 		xsc.DocType.__init__(self, 'rss PUBLIC "-//Netscape Communications//DTD RSS 0.91//EN" "http://my.netscape.com/publish/formats/rss-0.91.dtd"')
 
@@ -34,18 +38,21 @@ class channel(xsc.Element):
 	Information about a particular channel. Everything pertaining to an individual
 	channel is contained within this tag.
 	"""
+	xmlns = xmlns
 
 
 class copyright(xsc.Element):
 	"""
 	Copyright string.
 	"""
+	xmlns = xmlns
 
 
 class day(xsc.Element):
 	"""
 	The day of the week, spelled out in English.
 	"""
+	xmlns = xmlns
 
 
 class description(xsc.Element):
@@ -53,12 +60,14 @@ class description(xsc.Element):
 	A plain text description of an <class>item</class>, <class>channel</class>,
 	<class>image</class>, or <class>textinput</class>.
 	"""
+	xmlns = xmlns
 
 
 class docs(xsc.Element):
 	"""
 	This tag should contain a &url; that references a description of the channel.
 	"""
+	xmlns = xmlns
 
 
 class height(xsc.Element):
@@ -66,6 +75,7 @@ class height(xsc.Element):
 	Specifies the height of an <pyref class="image"><class>image</class></pyref>.
 	Should be an integer value.
 	"""
+	xmlns = xmlns
 
 
 class hour(xsc.Element):
@@ -73,6 +83,7 @@ class hour(xsc.Element):
 	Specifies an hour of the day. Should be an integer value between 0 and 23.
 	See <pyref class="skipHours"><class>skipHours</class></pyref>.
 	"""
+	xmlns = xmlns
 
 
 class image(xsc.Element):
@@ -80,6 +91,7 @@ class image(xsc.Element):
 	Specifies an image associated with a
 	<pyref class="channel"><class>channel</class></pyref>.
 	"""
+	xmlns = xmlns
 
 
 class item(xsc.Element):
@@ -91,18 +103,21 @@ class item(xsc.Element):
 	<pyref class="link"><class>link</class></pyref>. A
 	<pyref class="description"><class>description</class></pyref> is optional.
 	"""
+	xmlns = xmlns
 
 
 class language(xsc.Element):
 	"""
 	Specifies the language of a channel.
 	"""
+	xmlns = xmlns
 
 
 class lastBuildDate(xsc.Element):
 	"""
 	The last time the channel was modified.
 	"""
+	xmlns = xmlns
 
 
 class link(xsc.Element):
@@ -111,6 +126,7 @@ class link(xsc.Element):
 	<pyref class="url"><class>url</class></pyref> that is for loading a resource,
 	such as an image.
 	"""
+	xmlns = xmlns
 
 
 class managingEditor(xsc.Element):
@@ -118,6 +134,7 @@ class managingEditor(xsc.Element):
 	The email address of the managing editor of the site, the person to contact
 	for editorial inquiries.
 	"""
+	xmlns = xmlns
 
 
 class name(xsc.Element):
@@ -126,24 +143,28 @@ class name(xsc.Element):
 	&html; <pyref module="ll.xist.ns.html" class="input"><class>input</class></pyref> element.
 	Currently, this only applies to <pyref class="textinput"><class>textinput</class></pyref>.
 	"""
+	xmlns = xmlns
 
 
 class pubDate(xsc.Element):
 	"""
 	Date when channel was published.
 	"""
+	xmlns = xmlns
 
 
 class rating(xsc.Element):
 	"""
 	PICS rating of the channel.
 	"""
+	xmlns = xmlns
 
 
 class rss(xsc.Element):
 	"""
 	Root element.
 	"""
+	xmlns = xmlns
 	class Attrs(xsc.Element.Attrs):
 		class version(xsc.TextAttr):
 			required = True
@@ -158,6 +179,7 @@ class skipDays(xsc.Element):
 	with <pyref class="activeHours"><class>activeHours</class></pyref>, if you
 	know your channel will never be updated on Saturday or Sunday, for example.
 	"""
+	xmlns = xmlns
 
 
 class skipHours(xsc.Element):
@@ -166,6 +188,7 @@ class skipHours(xsc.Element):
 	hours in the day, GMT, when the channel is unlikely to be updated. If this
 	sub-item is omitted, the channel is assumed to be updated hourly.
 	"""
+	xmlns = xmlns
 
 
 class textinput(xsc.Element):
@@ -173,6 +196,7 @@ class textinput(xsc.Element):
 	An input field for the purpose of allowing users to submit queries back to
 	the publisher's site.
 	"""
+	xmlns = xmlns
 
 
 class title(xsc.Element):
@@ -185,6 +209,7 @@ class title(xsc.Element):
 	title. When used in a <pyref class="textinput"><class>textinput</class></pyref>,
 	this is the the textinput's title.
 	"""
+	xmlns = xmlns
 
 
 class url(xsc.Element):
@@ -193,6 +218,7 @@ class url(xsc.Element):
 	the <pyref class="link"><class>link</class></pyref> tag, which specifies where
 	a user should be re-directed to if a resource is selected.
 	"""
+	xmlns = xmlns
 
 
 class webMaster(xsc.Element):
@@ -200,6 +226,7 @@ class webMaster(xsc.Element):
 	The email address of the webmaster for the site, the person to contact if
 	there are technical problems with the channel.
 	"""
+	xmlns = xmlns
 
 
 class width(xsc.Element):
@@ -207,6 +234,7 @@ class width(xsc.Element):
 	Specifies the width of an <pyref class="image"><class>image</class></pyref>.
 	Should be an integer value.
 	"""
+	xmlns = xmlns
 
 
 rss.model = sims.Elements(channel)
@@ -233,9 +261,3 @@ title.model = \
 url.model = \
 webMaster.model = \
 width.model = sims.NoElements()
-
-
-class __ns__(xsc.Namespace):
-	xmlname = "rss"
-	xmlurl = "http://my.netscape.com/publish/formats/rss-0.91.dtd"
-__ns__.makemod(vars())

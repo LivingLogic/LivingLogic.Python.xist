@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 1999-2006 by LivingLogic AG, Bayreuth/Germany.
-## Copyright 1999-2006 by Walter Dörwald
+## Copyright 1999-2007 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 1999-2007 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -115,12 +115,12 @@ class Converter(object):
 	class target(misc.propclass):
 		"""
 		<par>Specifies the conversion target. This must be a
-		<pyref module="ll.xist.xsc" class="Namespace"><class>Namespace</class></pyref> subclass.</par>
+		namespace module or simiar object.</par>
 		"""
 		def __get__(self):
 			if self.states[-1].target is None:
 				from ll.xist.ns import html
-				return html
+				return html.xmlns
 			else:
 				return self.states[-1].target
 	
@@ -203,8 +203,7 @@ class Converter(object):
 	def __getitem__(self, obj):
 		"""
 		<par>Return a context object for <arg>obj</arg>, which should be an
-		<pyref module="ll.xist.xsc" class="Node"><class>Node</class></pyref> or
-		<pyref module="ll.xist.xsc" class="Namespace"><class>Namespace</class></pyref> subclass.
+		<pyref module="ll.xist.xsc" class="Node"><class>Node</class></pyref> subclass.
 		Each of these classes that defines its own
 		<pyref module="ll.xist.xsc" class="Element.Context"><class>Context</class></pyref>
 		class gets a unique instance of this class. This instance will be created

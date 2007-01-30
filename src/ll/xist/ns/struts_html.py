@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 1999-2006 by LivingLogic AG, Bayreuth/Germany.
-## Copyright 1999-2006 by Walter Dörwald
+## Copyright 1999-2007 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 1999-2007 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -20,16 +20,24 @@ __version__ = "$Revision$".split()[1]
 from ll.xist import xsc, sims
 
 
+xmlns = "http://jakarta.apache.org/struts/tags-html"
+
+
 class taglib(xsc.ProcInst):
 	"""
 	creates a standard struts taglib header
 	"""
-	needsxmlns = 1
-	xmlprefix = "struts-html"
 
 	def publish(self, publisher):
 		yield publisher.encode(u'<%@ taglib uri="/WEB-INF/struts-html.tld" prefix="')
-		yield publisher.encode(self.xmlprefix(publisher))
+		try:
+			prefix = publisher._ns2prefix[xmlns]
+		except KeyError:
+			raise xsc.PrefixNeededError(xmlns)
+		else:
+			if prefix is None:
+				raise xsc.PrefixNeededError(xmlns)
+			yield publisher.encode(prefix)
 		yield publisher.encode(u'" %>')
 
 
@@ -37,12 +45,11 @@ class Element(xsc.Element):
 	"""
 	common base class for all the struts html elements
 	"""
-	needsxmlns = 1
-	xmlprefix = "struts-html"
 	register = False
 
 
 class PartMouseElement(Element):
+	xmlns = xmlns
 	class Attrs(Element.Attrs):
 		class onblur(xsc.TextAttr): pass
 		class onchange(xsc.TextAttr): pass
@@ -72,6 +79,7 @@ class MouseElement(PartMouseElement):
 	"""
 	common base class for all the struts elements which have mouse attributes
 	"""
+	xmlns = xmlns
 	class Attrs(PartMouseElement.Attrs):
 		class accesskey(xsc.TextAttr): pass
 		class tabindex(xsc.TextAttr): pass
@@ -82,6 +90,7 @@ class base(Element):
 	"""
 	document base URI
 	"""
+	xmlns = xmlns
 	model = sims.Empty()
 	class Attrs(Element.Attrs):
 		class target(xsc.URLAttr): pass
@@ -92,6 +101,7 @@ class button(MouseElement):
 	"""
 	a button
 	"""
+	xmlns = xmlns
 	model = sims.Any()
 	class Attrs(MouseElement.Attrs):
 		class indexed(xsc.TextAttr): pass
@@ -101,6 +111,7 @@ class cancel(MouseElement):
 	"""
 	a cancel button
 	"""
+	xmlns = xmlns
 	model = sims.Any()
 
 
@@ -108,6 +119,7 @@ class checkbox(MouseElement):
 	"""
 	a html checkbox element
 	"""
+	xmlns = xmlns
 	model = sims.Any()
 	class Attrs(MouseElement.Attrs):
 		class indexed(xsc.TextAttr): pass
@@ -118,6 +130,7 @@ class errors(Element):
 	"""
 	displays error messages which have been generated from an action or a validation method
 	"""
+	xmlns = xmlns
 	model = sims.Empty()
 	class Attrs(Element.Attrs):
 		class bundle(xsc.TextAttr): pass
@@ -130,6 +143,7 @@ class file(MouseElement):
 	"""
 	html input element of type file
 	"""
+	xmlns = xmlns
 	model = sims.Any()
 	class Attrs(MouseElement.Attrs):
 		class accept(xsc.TextAttr): pass
@@ -143,6 +157,7 @@ class form(Element):
 	"""
 	html form
 	"""
+	xmlns = xmlns
 	model = sims.Any()
 	class Attrs(Element.Attrs):
 		class action(xsc.TextAttr): pass
@@ -165,6 +180,7 @@ class frame(Element):
 	"""
 	Render an HTML frame element
 	"""
+	xmlns = xmlns
 	model = sims.Any()
 	class Attrs(Element.Attrs):
 		class action(xsc.TextAttr): pass
@@ -198,6 +214,7 @@ class hidden(PartMouseElement):
 	"""
 	hidden form field
 	"""
+	xmlns = xmlns
 	model = sims.Empty()
 	class Attrs(PartMouseElement.Attrs):
 		class accesskey(xsc.TextAttr): pass
@@ -210,6 +227,7 @@ class html(Element):
 	"""
 	Render a HTML html element
 	"""
+	xmlns = xmlns
 	model = sims.Any()
 	class Attrs(Element.Attrs):
 		class locale(xsc.TextAttr): pass
@@ -220,6 +238,7 @@ class image(MouseElement):
 	"""
 	image input
 	"""
+	xmlns = xmlns
 	model = sims.Empty()
 	class Attrs(MouseElement.Attrs):
 		class align(xsc.TextAttr): pass
@@ -237,6 +256,7 @@ class img(Element):
 	"""
 	html img tag
 	"""
+	xmlns = xmlns
 	model = sims.Any()
 	class Attrs(Element.Attrs):
 		class align(xsc.TextAttr): pass
@@ -285,6 +305,7 @@ class javascript(Element):
 	"""
 	Render JavaScript validation based on the validation rules loaded by the ValidatorPlugIn.
 	"""
+	xmlns = xmlns
 	model = sims.Empty()
 	class Attrs(Element.Attrs):
 		class cdata(xsc.TextAttr): pass
@@ -301,6 +322,7 @@ class link(Element):
 	"""
 	html link
 	"""
+	xmlns = xmlns
 	model = sims.Any()
 	class Attrs(Element.Attrs):
 		class accesskey(xsc.TextAttr): pass
@@ -345,6 +367,7 @@ class messages(Element):
 	"""
 	Conditionally display a set of accumulated messages.
 	"""
+	xmlns = xmlns
 	model = sims.Any()
 	class Attrs(Element.Attrs):
 		class id(xsc.TextAttr): pass
@@ -361,6 +384,7 @@ class multibox(MouseElement):
 	"""
 	multiple checkbox element
 	"""
+	xmlns = xmlns
 	model = sims.Any()
 	class Attrs(MouseElement.Attrs):
 		class name(xsc.TextAttr): pass
@@ -370,6 +394,7 @@ class option(Element):
 	"""
 	option element
 	"""
+	xmlns = xmlns
 	model = sims.Any()
 	class Attrs(Element.Attrs):
 		class value(xsc.TextAttr): pass
@@ -379,6 +404,7 @@ class options(Element):
 	"""
 	struts html options element
 	"""
+	xmlns = xmlns
 	model = sims.Empty()
 	class Attrs(Element.Attrs):
 		class bundle(xsc.TextAttr): pass
@@ -395,6 +421,7 @@ class options(Element):
 	"""
 	Render a collection of select options
 	"""
+	xmlns = xmlns
 	model = sims.Empty()
 	class Attrs(Element.Attrs):
 		class collection(xsc.TextAttr): pass
@@ -411,6 +438,7 @@ class optionsCollection(Element):
 	"""
 	Render a collection of select options
 	"""
+	xmlns = xmlns
 	model = sims.Empty()
 	class Attrs(Element.Attrs):
 		class filter(xsc.TextAttr): pass
@@ -426,6 +454,7 @@ class password(MouseElement):
 	"""
 	a password text input field
 	"""
+	xmlns = xmlns
 	model = sims.Any()
 	class Attrs(MouseElement.Attrs):
 		class indexed(xsc.TextAttr): pass
@@ -440,6 +469,7 @@ class radio(MouseElement):
 	"""
 	html input radio
 	"""
+	xmlns = xmlns
 	class Attrs(MouseElement.Attrs):
 		class indexed(xsc.TextAttr): pass
 		class name(xsc.TextAttr): pass
@@ -450,6 +480,7 @@ class reset(MouseElement):
 	"""
 	a reset button
 	"""
+	xmlns = xmlns
 	model = sims.Any()
 
 
@@ -457,6 +488,7 @@ class rewrite(Element):
 	"""
 	render a request uri like html link
 	"""
+	xmlns = xmlns
 	model = sims.Any()
 	class Attrs(Element.Attrs):
 		class anchor(xsc.TextAttr): pass
@@ -477,6 +509,7 @@ class select(PartMouseElement):
 	"""
 	a select element text input field
 	"""
+	xmlns = xmlns
 	model = sims.Any()
 	class Attrs(PartMouseElement.Attrs):
 		class disabled(xsc.TextAttr): pass
@@ -491,6 +524,7 @@ class submit(MouseElement):
 	"""
 	a submit button
 	"""
+	xmlns = xmlns
 	model = sims.Any()
 	class Attrs(MouseElement.Attrs):
 		class indexed(xsc.TextAttr): pass
@@ -500,6 +534,7 @@ class text(MouseElement):
 	"""
 	a text input field
 	"""
+	xmlns = xmlns
 	model = sims.Any()
 	class Attrs(MouseElement.Attrs):
 		class indexed(xsc.TextAttr): pass
@@ -513,6 +548,7 @@ class textarea(MouseElement):
 	"""
 	a textarea
 	"""
+	xmlns = xmlns
 	model = sims.Any()
 	class Attrs(MouseElement.Attrs):
 		class cols(xsc.TextAttr): pass
@@ -526,10 +562,5 @@ class xhtml(Element):
 	"""
 	Render HTML tags as XHTML
 	"""
+	xmlns = xmlns
 	model = sims.Empty()
-
-
-class __ns__(xsc.Namespace):
-	xmlname = "struts_html"
-	xmlurl = "http://jakarta.apache.org/struts/tags-html"
-__ns__.makemod(vars())

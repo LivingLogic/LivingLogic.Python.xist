@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 1999-2006 by LivingLogic AG, Bayreuth/Germany.
-## Copyright 1999-2006 by Walter Dörwald
+## Copyright 1999-2007 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 1999-2007 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -19,17 +19,29 @@ __version__ = "$Revision$".split()[1]
 from ll.xist import xsc
 
 
-class __ns__(xsc.Namespace):
-	xmlname = "tal"
-	xmlurl = "http://xml.zope.org/namespaces/tal"
+xmlns = "http://xml.zope.org/namespaces/tal"
 
-	class Attrs(xsc.Namespace.Attrs):
-		class define(xsc.TextAttr): pass
-		class attributes(xsc.TextAttr): pass
-		class condition(xsc.TextAttr): pass
-		class replace(xsc.TextAttr): pass
-		class repeat(xsc.TextAttr): pass
-		class on_error(xsc.TextAttr): xmlname = "on-error"
-		class omit_tag(xsc.TextAttr): xmlname = "omit-tag"
 
-__ns__.makemod(vars())
+class Attrs(xsc.Attrs):
+	class define(xsc.TextAttr):
+		xmlns = xmlns
+		
+	class attributes(xsc.TextAttr):
+		xmlns = xmlns
+
+	class condition(xsc.TextAttr):
+		xmlns = xmlns
+
+	class replace(xsc.TextAttr):
+		xmlns = xmlns
+
+	class repeat(xsc.TextAttr):
+		xmlns = xmlns
+
+	class on_error(xsc.TextAttr):
+		xmlns = xmlns
+		xmlname = "on-error"
+
+	class omit_tag(xsc.TextAttr):
+		xmlns = xmlns
+		xmlname = "omit-tag"

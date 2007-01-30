@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 1999-2006 by LivingLogic AG, Bayreuth/Germany.
-## Copyright 1999-2006 by Walter Dörwald
+## Copyright 1999-2007 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 1999-2007 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -20,7 +20,7 @@ import sys, codecs
 
 from ll import misc, url
 
-import xsc, options, helpers
+import xsc, helpers
 
 
 def cssescapereplace(exc):
@@ -48,7 +48,7 @@ class Queue(list):
 class Encoder(object):
 	"""
 	Helper class that emulates an incremental encoder (via a byte queue
-	and a stream reader.
+	and a stream reader).
 	"""
 	def __init__(self, encoding):
 		self.bytestream = Queue()
@@ -69,53 +69,69 @@ class Encoder(object):
 
 class Publisher(object):
 	"""
-	base class for all publishers.
+	A <class>Publisher</class> object is used for serializing an &xist; tree into
+	a byte sequence.
 	"""
 
-	def __init__(self, encoding="utf-8", xhtml=1, validate=True, prefixes=None, prefixmode=0):
+	def __init__(self, encoding="utf-8", xhtml=1, validate=True, prefixes={}, prefixdefault=False, hidexmlns=set()):
 		"""
-		<par><arg>encoding</arg> specifies the encoding to be used.
-		The encoding itself (i.e. calling <method>encode</method> on the
-		unicode strings) must be done by <pyref method="encode"><method>encode</method></pyref>
-		(or <pyref method="encodetext"><method>encodetext</method></pyref>)
-		and not by <pyref module="ll.xist.xsc" class="Node"><method>publish</method></pyref>.</par>
+		<par><arg>encoding</arg> specifies the encoding to be used for the byte sequence.</par>
 
-		<par>With the parameter <arg>xhtml</arg> you can specify if you want &html; output
-		(i.e. elements with a content model EMPTY as <markup>&lt;foo&gt;</markup>) with
-		<lit><arg>xhtml</arg>==0</lit>, or XHTML output that is compatible with &html; browsers
-		(element with an empty content model as <markup>&lt;foo /&gt;</markup> and others that
-		just happen to be empty as <markup>&lt;foo&gt;&lt;/foo&gt;</markup>) with
-		<lit><arg>xhtml</arg>==1</lit> (the default) or just plain XHTML with
-		<lit><arg>xhtml</arg>==2</lit> (all empty elements as <markup>&lt;foo/&gt;</markup>).</par>
+		<par>With the parameter <arg>xhtml</arg> you can specify if you want &html; output:</par>
+		<dlist>
+		<term>&html; (<lit><arg>xhtml</arg>==0</lit>)</term>
+		<item>Elements with a empty content model will be published as
+		<markup>&lt;foo&gt;</markup>.</item>
+		<term>&html; browser compatible &xml; (<lit><arg>xhtml</arg>=1</lit>)</term>
+		<itemElement with an empty content model will be published as <markup>&lt;foo /&gt;</markup>
+		and others that just happen to be empty as <markup>&lt;foo&gt;&lt;/foo&gt;</markup>. This
+		is the default.</item>
+		<term>Pure &xml; (<lit><arg>xhtml</arg>=1</lit>)</term>
+		<lit>All empty elements will be published as <markup>&lt;foo/&gt;</markup>.</item>
+		</dlist>
 
 		<par><arg>validate</arg> specifies whether validation should be done before
 		publishing.</par>
 
-		<par><arg>prefixes</arg> is an instance of <pyref module="ll.xist.xsc" class="Prefixes"><class>Prefixes</class></pyref>
-		and maps <pyref module="ll.xist.xsc" class="Namespace"><class>Namespace</class></pyref>
-		objects to prefixes that should be used (or <lit>None</lit>, if no prefix should be used).
-		With <arg>prefixmode</arg> you can specify how prefixes for elements should be
-		treated:</par>
+		<par><arg>prefixes</arg> is a dictionary that specifies which namespace
+		prefixes should be used for publishing. Keys in the dictionary are either
+		namespace names or objects that have an <lit>xmlns</lit> attribute which
+		is the namespace name. Value can be:</par>
+
+		<dlist>
+		<term><lit>False</lit></term>
+		<item>Treat elements in this namespace as if they are not in any namespace
+		(if global attributes from this namespace are encountered, a prefix will
+		be used nonetheless).</item>
+		<term><lit>None</lit></term>
+		<item>Treat the namespace as the default namespaces (i.e. use unprefixed
+		element names). Global attributes will again result in a prefix.</item>
+		<term><lit>True</lit></term>
+		<item>The publisher uses a unique non-empty prefix for this namespace.</item>
+		<term>A string</term>
+		<item>Use this prefix for the namespace.</item>
+
+		<par>If an element or attribute is encountered whose namespace can not be
+		in <arg>prefixes</arg> <arg>prefixdefault</arg> is used as the fallback.</par>
 		<ulist>
-		<item><lit>0</lit>: Never publish a prefix;</item>
-		<item><lit>1</lit>: Publish prefixes, but do not use <lit>xmlns</lit> attributes;</item>
-		<item><lit>2</lit>: Publish prefixes and issue the appropriate <lit>xmlns</lit> attributes.</item>
+
+		<par><arg>hidexmlns</arg> can be a list are set that contains namespace names
+		for which no <lit>xmlns</lit> attributes should be published. (This can be
+		used to hide the namespaces e.g. for Java taglibs.)</par>
 		</ulist>
 		"""
 		self.base = None
 		self.encoding = encoding
 		self.xhtml = xhtml
 		self.validate = validate
-
-		if prefixes is None:
-			prefixes = xsc.OldPrefixes()
-		self.prefixes = prefixes
-		self.prefixmode = prefixmode
+		self.prefixes = dict((xsc.nsname(xmlns), prefix) for (xmlns, prefix) in prefixes.iteritems())
+		self.prefixdefault = prefixdefault
+		self.hidexmlns = set(xsc.nsname(xmlns) for xmlns in hidexmlns)
 
 	def encode(self, text):
 		"""
-		Encode <arg>text</arg> with the specified encoding and error handling
-		and return the resulting byte string.
+		Encode <arg>text</arg> with the encoding and error handling currently
+		active and return the resulting byte string.
 		"""
 		return self.encoder.encode(text)
 
@@ -134,7 +150,7 @@ class Publisher(object):
 
 	def pushtextfilter(self, filter):
 		"""
-		<par>pushes a new text filter function on the text filter stack stack.
+		<par>pushes a new text filter function on the text filter stack.
 		This function is responsible for escaping characters that can't appear
 		in text data (like <lit>&lt;</lit>)). This is used to switch on escaping
 		of <lit>"</lit> inside attribute values.</par>
@@ -159,47 +175,65 @@ class Publisher(object):
 		"""
 		self.__errors.pop()
 
-	def _neededxmlnsdefs(self, node):
-		"""
-		<par>Return a list of nodes in <arg>node</arg> that
-		need a <lit>xmlns</lit> attribute.</par>
-		"""
-		if isinstance(node, xsc.Element):
-			return [node]
-		elif isinstance(node, xsc.Frag):
-			nodes = []
-			for child in node:
-				nodes.extend(self._neededxmlnsdefs(child))
-			return nodes
-		return []
+	def _newprefix(self):
+		prefix = "ns"
+		suffix = 2
+		while True:
+			if prefix not in self._prefix2ns:
+				return prefix
+			prefix = "ns%d" % suffix
+			suffix += 1
 
 	def publish(self, node, base=None):
 		"""
 		<par>publish the node <arg>node</arg>. This method is a generator that
-		will yield the resulting &xml; byte string in fragments.</par>
+		will yield the resulting &xml; byte sequence in fragments.</par>
 		"""
 		def iselorat(cursor):
 			return (isinstance(cursor.node, (xsc.Element, xsc.Attr)), xsc.entercontent, xsc.enterattrs)
 
-		# We have to search for namespaces even if the prefix doesn't specify it,
-		# because global attribute require xmlns attribute generation
-		prefixes2def = set()
-		# collect all the namespaces that are used and their required mode
+		self._ns2prefix = {}
+		self._prefix2ns = {}
+		# iterate through every node in the tree
 		for cursor in node.walk(iselorat):
-			if cursor.node.needsxmlns(self) == 2:
-				prefixes2def.add(cursor.node.__ns__)
+			n = cursor.node
+			ns = n.xmlns
+			if ns is not None:
+				try:
+					prefix = self._ns2prefix[ns]
+				except KeyError: # A namespace we haven't encountered yet
+					if ns != xsc.xml_xmlns: # We don't need an xmlns attribute for the xml namespace
+						prefix = self.prefixes.get(ns, self.prefixdefault)
+						# global attributes always require prefixed names
+						if prefix is True or ((prefix is None or prefix is False) and isinstance(n, xsc.Attr)):
+							prefix = self._newprefix()
+						if prefix is not False:
+							try:
+								oldns = self._prefix2ns[prefix]
+							except KeyError:
+								pass
+							else:
+								# If this prefix has already been used for another namespace, we need a new one
+								if oldns != ns:
+									prefix = self._newprefix()
+							self._ns2prefix[ns] = prefix
+							self._prefix2ns[prefix] = ns
+				else:
+					# We can't use the unprefixes names for global attributes
+					if (prefix is None or prefix is False) and isinstance(n, xsc.Attr):
+						# Use a new one
+						prefix = self._newprefix()
+						self._ns2prefix[ns] = prefix
+						self._prefix2ns[prefix] = ns
 
-		# Determine if we have multiple roots
-		if prefixes2def and isinstance(node, xsc.Frag) and misc.count(node[xsc.Element]) > 1:
-			raise xsc.MultipleRootsError()
-
-		if prefixes2def:
-			self.publishxmlns = {} # signals that xmlns attributes should be generated to the first element encountered, if not empty
-			# get the prefixes for all namespaces from the prefix mapping
-			for ns in prefixes2def:
-				self.publishxmlns[ns] = self.prefixes.prefix4ns(ns)[0]
+		# Do we have to publish xmlns attributes?
+		if self._ns2prefix:
+			# Determine if we have multiple roots
+			if isinstance(node, xsc.Frag) and misc.count(node[xsc.Element]) > 1:
+				raise xsc.MultipleRootsError()
+			self._publishxmlns = True
 		else:
-			self.publishxmlns = None
+			self._publishxmlns = False
 
 		self.inattr = 0
 		self.__textfilters = [ helpers.escapetext ]
@@ -216,13 +250,17 @@ class Publisher(object):
 
 		for part in self.node.publish(self):
 			yield part
-		yield self.encoder.encode(u"", True) # finish encoding and flush buffers
+		rest = self.encoder.encode(u"", True) # finish encoding and flush buffers
+		if rest:
+			yield rest
 	
 		self.inattr = 0
 		self.__textfilters = [ helpers.escapetext ]
 
 		self.__errors = [ "xmlcharrefreplace" ]
 
-		self.publishxmlns = None
+		self.publishxmlns = False
+		self._ns2prefix = None
+		self._prefixes = None
 
 		del self.encoder

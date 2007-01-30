@@ -1,24 +1,27 @@
 #! /usr/bin/env/python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 1999-2006 by LivingLogic AG, Bayreuth/Germany.
-## Copyright 1999-2006 by Walter Dörwald
+## Copyright 1999-2007 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 1999-2007 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
 ## See xist/__init__.py for the license
 
 
+import new
+
 from ll.xist import xsc, xnd, sims
 
 
 def xnd2ns(data):
-	mod = {"__name__": str(data.name)}
+	mod = new.module("test")
+	mod.__file__ = "test.py"
 	encoding = "iso-8859-1"
-	code = data.aspy(encoding=encoding, asmod=False).encode(encoding)
-	exec code in mod
-
-	return mod["__ns__"]
+	code = data.aspy(encoding=encoding).encode(encoding)
+	code = compile(code, "test.py", "exec")
+	exec code in mod.__dict__
+	return mod
 
 
 def test_procinst():

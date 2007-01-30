@@ -1,13 +1,15 @@
 #! /usr/bin/env/python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 1999-2006 by LivingLogic AG, Bayreuth/Germany.
-## Copyright 1999-2006 by Walter Dörwald
+## Copyright 1999-2007 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 1999-2007 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
 ## See xist/__init__.py for the license
 
+
+from __future__ import with_statement
 
 import warnings
 
@@ -37,17 +39,19 @@ def raisesSAX(exception, func, *args, **kwargs):
 		raise py.test.fail("exception not raised")
 
 
-class __ns__(xsc.Namespace):
-	xmlname = "foo"
-	xmlurl = "http://www.foo.com/foo"
-	class a(xsc.Element):
-		class Attrs(xsc.Element.Attrs):
-			class title(xsc.TextAttr): pass
-	class foo(xsc.Entity):
-		def __unicode__(self):
-			return u"FOO"
-	class bar(xsc.CharRef):
-		codepoint = 0x42
+class a(xsc.Element):
+	xmlns = "http://www.example.com/foo"
+	class Attrs(xsc.Element.Attrs):
+		class title(xsc.TextAttr): pass
+
+
+class foo(xsc.Entity):
+	def __unicode__(self):
+		return u"FOO"
+
+
+class bar(xsc.CharRef):
+	codepoint = 0x42
 
 
 def check_parseentities(source, result, **parseargs):
@@ -58,7 +62,7 @@ def check_parseentities(source, result, **parseargs):
 
 
 def check_parsestrictentities(source, result, parserfactory):
-	prefixes = xsc.Prefixes([__ns__, chars])
+	prefixes = {None: (a.xmlns, chars)}
 	check_parseentities(source, result, prefixes=prefixes, saxparser=parserfactory)
 
 	warnings.filterwarnings("error", category=xsc.MalformedCharRefWarning)
@@ -68,7 +72,7 @@ def check_parsestrictentities(source, result, parserfactory):
 
 
 def check_parsebadentities(parserfactory):
-	prefixes = xsc.Prefixes([__ns__, chars])
+	prefixes = {None: (a.xmlns, chars)}
 	tests = [
 		("&amp;", u"&"),
 		("&amp;amp;", u"&amp;"),
@@ -132,48 +136,57 @@ class Test:
 				)
 			)
 		)
-		prefixes = xsc.Prefixes(x=ihtml)
-		node = parsers.parseString(xml, prefixes=prefixes)
+		node = parsers.parseString(xml, prefixes=dict(x=ihtml))
 		node = node.walknode(xsc.FindType(xsc.Element))[0].compact() # get rid of the Frag and whitespace
 		assert node == check
 
 	def test_parseurls(self):
 		# Check proper URL handling when parsing URLAttr or StyleAttr attributes
-		prefixes = xsc.Prefixes(html)
-		node = parsers.parseString('<a href="4.html" style="background-image: url(3.gif);"/>', base="root:1/2.html", prefixes=prefixes)
+		node = parsers.parseString('<a href="4.html" style="background-image: url(3.gif);"/>', base="root:1/2.html", prefixes={None: html})
 		assert str(node[0]["style"]) == "background-image: url(root:1/3.gif);"
 		assert node[0]["style"].urls() == [url.URL("root:1/3.gif")]
 		assert str(node[0]["href"]) == "root:1/4.html"
 		assert node[0]["href"].forInput(root="gurk/hurz.html") == url.URL("gurk/1/4.html")
 
 	def test_parserequiredattrs(self):
+		xmlns = "http://www.example.com/required"
+
+		prefixes = {None: xmlns}
+
 		# Parser should complain about required attributes that are missing
-		class __ns__(xsc.Namespace):
+		with url.Registry():
 			class Test(xsc.Element):
+				xmlns = xmlns
 				class Attrs(xsc.Element.Attrs):
-					class required(xsc.TextAttr): required = True
+					class required(xsc.TextAttr):
+						required = True
 
-		prefixes = xsc.Prefixes(__ns__)
-		node = parsers.parseString('<Test required="foo"/>', prefixes=prefixes)
-		assert str(node[0]["required"]) == "foo"
+			node = parsers.parseString('<Test required="foo"/>', prefixes=prefixes)
+			assert str(node[0]["required"]) == "foo"
+	
+			warnings.filterwarnings("error", category=xsc.RequiredAttrMissingWarning)
+			raisesSAX(xsc.RequiredAttrMissingWarning, parsers.parseString, '<Test/>', prefixes=prefixes)
 
-		warnings.filterwarnings("error", category=xsc.RequiredAttrMissingWarning)
-		raisesSAX(xsc.RequiredAttrMissingWarning, parsers.parseString, '<Test/>', prefixes=prefixes)
+		py.test.assertRaises(xsc.IllegalElementError, parsers.parseString, '<Test required="foo"/>', prefixes=prefixes)
 
 	def test_parsevalueattrs(self):
+		xmlns = "http://www.example.com/required2"
+
+		prefixes = {None: xmlns}
+
 		# Parser should complain about attributes with illegal values, when a set of values is specified
-		class __ns__(xsc.Namespace):
+		with url.Registry():
 			class Test(xsc.Element):
+				xmlns = xmlns
 				class Attrs(xsc.Element.Attrs):
-					class withvalues(xsc.TextAttr): values = ("foo", "bar")
+					class withvalues(xsc.TextAttr):
+						values = ("foo", "bar")
 
-		prefixes = xsc.Prefixes(__ns__)
-
-		node = parsers.parseString('<Test withvalues="bar"/>', prefixes=prefixes)
-		assert str(node[0]["withvalues"]) == "bar"
-
-		warnings.filterwarnings("error", category=xsc.IllegalAttrValueWarning)
-		raisesSAX(xsc.IllegalAttrValueWarning, parsers.parseString, '<Test withvalues="baz"/>', prefixes=prefixes)
+			node = parsers.parseString('<Test withvalues="bar"/>', prefixes=prefixes)
+			assert str(node[0]["withvalues"]) == "bar"
+	
+			warnings.filterwarnings("error", category=xsc.IllegalAttrValueWarning)
+			raisesSAX(xsc.IllegalAttrValueWarning, parsers.parseString, '<Test withvalues="baz"/>', prefixes=prefixes)
 
 	def test_parsestrictentities_sgmlop(self):
 		check_parsestrictentities(
@@ -223,11 +236,9 @@ class Test:
 
 
 def test_xmlns():
-	s = '''
-	<z xmlns="http://xmlns.livinglogic.de/xist/ns/specials">
-	<rb xmlns="http://www.w3.org/TR/ruby/xhtml-ruby-1.mod"/>
-	<z/>
-	</z>
-	'''
+	s = '''<z xmlns="%s"><rb xmlns="%s"/><z/></z>''' % (specials.xmlns, ruby.xmlns)
 	# After the <rb/> element is left the parser must return to the proper previous mapping
-	parsers.parseString(s, nspool=xsc.NSPool(specials, ruby))
+	e = parsers.parseString(s)
+
+	assert e[0].xmlns == specials.xmlns
+	assert e[0][0].xmlns == ruby.xmlns

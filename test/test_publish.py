@@ -1,8 +1,8 @@
 #! /usr/bin/env/python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 1999-2006 by LivingLogic AG, Bayreuth/Germany.
-## Copyright 1999-2006 by Walter Dörwald
+## Copyright 1999-2007 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 1999-2007 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -23,12 +23,10 @@ restrictedchars = re.compile(u"[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F-\x84\x86-\x9F]")
 def test_publishelement():
 	node = html.html()
 
-	prefixes = xsc.Prefixes(h=html)
-	assert node.asBytes(prefixes=prefixes, prefixmode=0) == """<html></html>"""
-	assert node.asBytes(prefixes=prefixes, prefixmode=1) == """<h:html></h:html>"""
+	assert node.asBytes(prefixes={html: None}) == """<html></html>"""
+	assert node.asBytes(prefixes={html: "h"}) == """<h:html></h:html>"""
 	assert node.asBytes(prefixes=prefixes, prefixmode=2) == """<h:html xmlns:h="http://www.w3.org/1999/xhtml"></h:html>"""
 
-	prefixes = xsc.Prefixes(html)
 	assert node.asBytes(prefixes=prefixes, prefixmode=0) == """<html></html>"""
 	assert node.asBytes(prefixes=prefixes, prefixmode=1) == """<html></html>"""
 	assert node.asBytes(prefixes=prefixes, prefixmode=2) == """<html xmlns="http://www.w3.org/1999/xhtml"></html>"""
@@ -37,29 +35,21 @@ def test_publishelement():
 def test_publishentity():
 	node = abbr.xml()
 
-	prefixes = xsc.Prefixes(a=abbr, s=specials)
-	assert node.asBytes(prefixes=prefixes, prefixmode=0) == """&xml;"""
-	assert node.asBytes(prefixes=prefixes, prefixmode=1) == """&xml;"""
-	assert node.asBytes(prefixes=prefixes, prefixmode=2) == """&xml;"""
-
-	prefixes = xsc.Prefixes(abbr, s=specials)
-	assert node.asBytes(prefixes=prefixes, prefixmode=0) == """&xml;"""
-	assert node.asBytes(prefixes=prefixes, prefixmode=1) == """&xml;"""
-	assert node.asBytes(prefixes=prefixes, prefixmode=2) == """&xml;"""
+	assert node.asBytes(prefixes={abbr: "a", specials: "s"}) == """&xml;"""
+	assert node.asBytes(prefixes={abbr: None, specials: "s"}) == """&xml;"""
+	assert node.asBytes(prefixdefault=True) == """&xml;"""
+	assert node.asBytes(prefixdefault=None) == """&xml;"""
+	assert node.asBytes(prefixdefault="x") == """&xml;"""
 
 
 def test_publishprocinst():
 	node = php.php("x")
 
-	prefixes = xsc.Prefixes(p=php, s=specials)
-	assert node.asBytes(prefixes=prefixes, prefixmode=0) == """<?php x?>"""
-	assert node.asBytes(prefixes=prefixes, prefixmode=1) == """<?php x?>"""
-	assert node.asBytes(prefixes=prefixes, prefixmode=2) == """<?php x?>"""
-
-	prefixes = xsc.Prefixes(php, s=specials)
-	assert node.asBytes(prefixes=prefixes, prefixmode=0) == """<?php x?>"""
-	assert node.asBytes(prefixes=prefixes, prefixmode=1) == """<?php x?>"""
-	assert node.asBytes(prefixes=prefixes, prefixmode=2) == """<?php x?>"""
+	assert node.asBytes(prefixes={php: "h", specials: "s"}) == """<?php x?>"""
+	assert node.asBytes(prefixes={php: None, specials: "s"}) == """<?php x?>"""
+	assert node.asBytes(prefixdefault=True) == """<?php x?>"""
+	assert node.asBytes(prefixdefault=None) == """<?php x?>"""
+	assert node.asBytes(prefixdefault="x") == """<?php x?>"""
 
 
 def test_publishboolattr():
@@ -101,19 +91,19 @@ def test_publishstyleattr():
 
 def test_publishxmlattr():
 	node = html.html(xml.Attrs(space="preserve"))
-	prefixes = xsc.Prefixes(h=html)
-	assert node.asBytes(prefixes=prefixes, prefixmode=0) == """<html xml:space="preserve"></html>"""
-	assert node.asBytes(prefixes=prefixes, prefixmode=1) == """<h:html xml:space="preserve"></h:html>"""
-	assert node.asBytes(prefixes=prefixes, prefixmode=2) == """<h:html xmlns:h="http://www.w3.org/1999/xhtml" xml:space="preserve"></h:html>"""
+	prefixes = {html: "h"}
+	assert node.asBytes(prefixes=prefixes) == """<h:html xmlns:h="http://www.w3.org/1999/xhtml" xml:space="preserve"></h:html>"""
+	assert node.asBytes(prefixdefault=True) == """<ns:html xmlns:ns="http://www.w3.org/1999/xhtml" xml:space="preserve"></ns:html>"""
+	assert node.asBytes(prefixdefault=None) == """<html xmlns="http://www.w3.org/1999/xhtml" xml:space="preserve"></html>"""
 
 
 def test_publishglobalattr():
 	node = html.html(xlink.Attrs(title="the foo bar"))
-	prefixes = xsc.Prefixes(h=html, xl=xlink)
-	assert node.asBytes(prefixes=prefixes, prefixmode=0) == """<html xmlns:xl="http://www.w3.org/1999/xlink" xl:title="the foo bar"></html>"""
-	assert node.asBytes(prefixes=prefixes, prefixmode=1) == """<h:html xmlns:xl="http://www.w3.org/1999/xlink" xl:title="the foo bar"></h:html>"""
+	prefixes = {html: "h", xlink: "xl"}
+	assert node.asBytes() == """<html xmlns:xl="http://www.w3.org/1999/xlink" xl:title="the foo bar"></html>"""
+	assert node.asBytes(prefixes=prefixes) == """<h:html xmlns:xl="http://www.w3.org/1999/xlink" xl:title="the foo bar"></h:html>"""
 	# FIXME: this depends on dict iteration order
-	assert node.asBytes(prefixes=prefixes, prefixmode=2) == """<h:html xmlns:xl="http://www.w3.org/1999/xlink" xmlns:h="http://www.w3.org/1999/xhtml" xl:title="the foo bar"></h:html>"""
+	assert node.asBytes(prefixes=prefixes) == """<h:html xmlns:xl="http://www.w3.org/1999/xlink" xmlns:h="http://www.w3.org/1999/xhtml" xl:title="the foo bar"></h:html>"""
 
 
 def test_publishempty():
@@ -196,7 +186,7 @@ def test_encoding():
 		node2 = parsers.parseString(
 			s,
 			saxparser=parsers.ExpatParser,
-			prefixes=xsc.Prefixes([html, php, abbr]),
+			prefixes={None: [html, php, abbr]},
 		)
 		assert node == node2
 

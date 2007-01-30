@@ -1,8 +1,8 @@
 #! /usr/bin/env/python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 1999-2006 by LivingLogic AG, Bayreuth/Germany.
-## Copyright 1999-2006 by Walter Dörwald
+## Copyright 1999-2007 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 1999-2007 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -139,7 +139,7 @@ def test_attrnamed():
 
 
 def test_frag():
-	e = parsers.parseString("das ist <b>klaus</b>. das ist <b>erich</b>", prefixes=xsc.Prefixes(html))
+	e = parsers.parseString("das ist <b>klaus</b>. das ist <b>erich</b>", prefixes={None: html})
 	# The following won't generate any nodes, because e/xfind.all iterates all
 	# nodes in the tree (but not the Frag root) and ../html.b filters the bold
 	# *children*, but there are none.

@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 1999-2006 by LivingLogic AG, Bayreuth/Germany.
-## Copyright 1999-2006 by Walter Dörwald
+## Copyright 1999-2007 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 1999-2007 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -20,7 +20,11 @@ import cgi # for parse_header
 from ll.xist import xsc, sims
 
 
+xmlns = "http://java.sun.com/JSP/Page"
+
+
 class directive(xsc.Element):
+	xmlns = xmlns
 	model = sims.Empty()
 	register = False # only serves as a base class
 
@@ -36,6 +40,7 @@ class scriptlet(xsc.ProcInst):
 	"""
 	will be published as <markup>&lt;% <rep>content</rep> %&gt;</markup>
 	"""
+
 	def publish(self, publisher):
 		yield publisher.encode(u"<% ")
 		yield publisher.encode(self.content)
@@ -65,31 +70,35 @@ class declaration(xsc.ProcInst):
 
 
 class If(scriptlet):
+	xmlns = xmlns
 	xmlname = "if"
 
 	def convert(self, converter):
-		return self.__ns__.scriptlet(u"if(", self.content, u"){")
+		return scriptlet(u"if(", self.content, u"){")
 
 
 class Else(scriptlet):
+	xmlns = xmlns
 	xmlname = "else"
 
 	def convert(self, converter):
-		return self.__ns__.scriptlet(u"}else{")
+		return scriptlet(u"}else{")
 
 
 class ElIf(scriptlet):
+	xmlns = xmlns
 	xmlname = "elif"
 
 	def convert(self, converter):
-		return self.__ns__.scriptlet(u"}else if (", self.content, u"){")
+		return scriptlet(u"}else if (", self.content, u"){")
 
 
 class End(scriptlet):
+	xmlns = xmlns
 	xmlname = "end"
 
 	def convert(self, converter):
-		return self.__ns__.scriptlet(u"}")
+		return scriptlet(u"}")
 
 
 class block(xsc.Element):
@@ -98,24 +107,27 @@ class block(xsc.Element):
 	<par>Note that the content itself will not be turned into a scriptlet
 	automatically but will be used as-is.</par>
 	"""
+	xmlns = xmlns
 	model = sims.Any()
 
 	def convert(self, converter):
 		e = xsc.Frag(
-			self.__ns__.scriptlet(u"{"),
+			scriptlet(u"{"),
 			self.content,
-			self.__ns__.scriptlet(u"}")
+			scriptlet(u"}")
 		)
 		return e.convert(converter)
 
 
 class directive_include(directive):
+	xmlns = xmlns
 	xmlname = "include"
 	class Attrs(directive.Attrs):
 		class file(xsc.TextAttr): pass
 
 
 class directive_taglib(directive):
+	xmlns = xmlns
 	xmlname = "taglib"
 	class Attrs(directive.Attrs):
 		class uri(xsc.TextAttr): pass
@@ -123,6 +135,7 @@ class directive_taglib(directive):
 
 
 class directive_page(directive):
+	xmlns = xmlns
 	xmlname = "page"
 	class Attrs(directive.Attrs):
 		class language(xsc.TextAttr):
@@ -153,9 +166,3 @@ class directive_page(directive):
 				)
 				return node.publish(publisher) # return a generator-iterator
 		return super(directive_page, self).publish(publisher) # return a generator-iterator
-
-
-class __ns__(xsc.Namespace):
-	xmlname = "jsp"
-	xmlurl = "http://java.sun.com/JSP/Page"
-__ns__.makemod(vars())

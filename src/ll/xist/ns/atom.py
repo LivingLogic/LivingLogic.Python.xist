@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 2006 by LivingLogic AG, Bayreuth/Germany.
-## Copyright 2006 by Walter Dörwald
+## Copyright 2007 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 2007 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -23,12 +23,16 @@ from ll.xist import xsc, sims
 from ll.xist.ns import html
 
 
+xmlns = "http://www.w3.org/2005/Atom"
+
+
 class feed(xsc.Element):
 	"""
 	The <class>feed</class> element is the document (i.e., top-level) element of
 	an Atom Feed Document, acting as a container for metadata and data associated
 	with the feed.
 	"""
+	xmlns = xmlns
 
 
 class entry(xsc.Element):
@@ -36,6 +40,7 @@ class entry(xsc.Element):
 	The <class>entry</class> element represents an individual entry, acting as a
 	container for metadata and data associated with the entry.
 	"""
+	xmlns = xmlns
 
 
 class content(xsc.Element):
@@ -43,6 +48,7 @@ class content(xsc.Element):
 	The <class>content</class> element either contains or links to the content of
 	the <pyref class="entry><class>entry</class></pyref>.
 	"""
+	xmlns = xmlns
 	class Attrs(xsc.Element.Attrs):
 		class type(xsc.TextAttr): pass
 		class src(xsc.URLAttr): pass
@@ -54,6 +60,7 @@ class author(xsc.Element):
 	<pyref class="entry"><class>entry</class></pyref> or
 	<pyref class="feed"><class>feed</class></pyref>.
 	"""
+	xmlns = xmlns
 
 
 class category(xsc.Element):
@@ -62,6 +69,7 @@ class category(xsc.Element):
 	associated with an <pyref class="entry"><class>entry</class></pyref> or
 	<pyref class="feed"><class>feed</class></pyref>.
 	"""
+	xmlns = xmlns
 	class Attrs(xsc.Element.Attrs):
 		class term(xsc.TextAttr): required = True
 		class scheme(xsc.URLAttr): pass
@@ -74,6 +82,7 @@ class contributor(xsc.Element):
 	who contributed <pyref class="entry"><class>entry</class></pyref> or
 	<pyref class="feed"><class>feed</class></pyref>.
 	"""
+	xmlns = xmlns
 
 
 class generator(xsc.Element):
@@ -81,6 +90,7 @@ class generator(xsc.Element):
 	The <class>generator</class> element's content identifies the agent used to
 	generate a feed, for debugging and other purposes.
 	"""
+	xmlns = xmlns
 	class Attrs(xsc.Element.Attrs):
 		class uri(xsc.URLAttr): pass
 		class version(xsc.TextAttr): pass
@@ -91,7 +101,7 @@ class icon(xsc.Element):
 	The <class>icon</class> element's content is an IRI reference that identifies
 	an image that provides iconic visual identification for a feed.
 	"""
-
+	xmlns = xmlns
 
 
 class id(xsc.Element):
@@ -100,6 +110,7 @@ class id(xsc.Element):
 	for an <pyref class="entry"><class>entry</class></pyref> or
 	<pyref class="feed"><class>feed</class></pyref>.
 	"""
+	xmlns = xmlns
 
 
 class link(xsc.Element):
@@ -108,6 +119,7 @@ class link(xsc.Element):
 	<pyref class="entry"><class>entry</class></pyref> or
 	<pyref class="feed"><class>feed</class></pyref> to a Web resource.
 	"""
+	xmlns = xmlns
 	class Attrs(xsc.Element.Attrs):
 		class href(xsc.URLAttr): required = True
 		class rel(xsc.TextAttr): pass
@@ -122,6 +134,7 @@ class logo(xsc.Element):
 	The <class>logo</class> element's content is an IRI reference that identifies
 	an image that provides visual identification for a <pyref class="feed"><class>feed</class></pyref>.
 	"""
+	xmlns = xmlns
 
 
 class published(xsc.Element):
@@ -129,6 +142,7 @@ class published(xsc.Element):
 	The <class>published</class> element indicatesg an instant in time associated
 	with an event early in the life cycle of the <pyref class="entry"><class>entry</class></pyref>.
 	"""
+	xmlns = xmlns
 
 
 class rights(xsc.Element):
@@ -137,6 +151,7 @@ class rights(xsc.Element):
 	rights held in and over an <pyref class="entry"><class>entry</class></pyref>
 	or <pyref class="feed"><class>feed</class></pyref>.
 	"""
+	xmlns = xmlns
 	class Attrs(xsc.Element.Attrs):
 		class type(xsc.TextAttr): pass
 
@@ -152,6 +167,7 @@ class source(xsc.Element):
 	source <class>feed</class>'s Metadata elements as the <class>source</class>
 	element's children.
 	"""
+	xmlns = xmlns
 
 
 class subtitle(xsc.Element):
@@ -159,6 +175,7 @@ class subtitle(xsc.Element):
 	The <class>subtitle</class> element contains text that conveys a human-readable
 	description or subtitle for a <pyref class="feed"><class>feed</class></pyref>.
 	"""
+	xmlns = xmlns
 	class Attrs(xsc.Element.Attrs):
 		class type(xsc.TextAttr): pass
 
@@ -168,6 +185,7 @@ class summary(xsc.Element):
 	The <class>summary</class> element contains text that conveys a short summary,
 	abstract, or excerpt of an entry.
 	"""
+	xmlns = xmlns
 	class Attrs(xsc.Element.Attrs):
 		class type(xsc.TextAttr): pass
 
@@ -178,6 +196,7 @@ class title(xsc.Element):
 	title for an <pyref class="entry"><class>entry</class></pyref> or
 	<pyref class="feed"><class>feed</class></pyref>.
 	"""
+	xmlns = xmlns
 	class Attrs(xsc.Element.Attrs):
 		class type(xsc.TextAttr): pass
 
@@ -189,24 +208,28 @@ class updated(xsc.Element):
 	<pyref class="feed"><class>feed</class></pyref> was modified in a way the
 	publisher considers significant.
 	"""
+	xmlns = xmlns
 
 
 class email(xsc.Element):
 	"""
 	The <class>email</class> element's content conveys an e-mail address associated with the person.
 	"""
+	xmlns = xmlns
 
 
 class uri(xsc.Element):
 	"""
 	The <class>uri</class> element's content conveys an IRI associated with the person.
 	"""
+	xmlns = xmlns
 
 
 class name(xsc.Element):
 	"""
 	The <class>name</class> element's content conveys a human-readable name for the person.
 	"""
+	xmlns = xmlns
 
 
 link.model = \
@@ -230,9 +253,3 @@ generator.model = \
 email.model = \
 uri.model = \
 name.model = sims.NoElements()
-
-
-class __ns__(xsc.Namespace):
-	xmlname = "atom"
-	xmlurl = "http://www.w3.org/2005/Atom"
-__ns__.makemod(vars())

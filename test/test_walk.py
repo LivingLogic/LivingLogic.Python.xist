@@ -1,8 +1,8 @@
 #! /usr/bin/env/python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 1999-2006 by LivingLogic AG, Bayreuth/Germany.
-## Copyright 1999-2006 by Walter Dörwald
+## Copyright 1999-2007 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 1999-2007 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -103,7 +103,7 @@ def test_walkindex():
 		[0],
 		[1, 0],
 		[1, "href", 0],
-		[1, (xml, "lang"), 0], # FIXME: This depends on dictionary iteration order
+		[1, ("lang", xml.xmlns), 0], # FIXME: This depends on dictionary iteration order
 		[2]
 	]
 	assert res == exp

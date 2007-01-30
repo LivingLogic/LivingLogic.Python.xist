@@ -1,8 +1,8 @@
 #! /usr/bin/env/python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 1999-2006 by LivingLogic AG, Bayreuth/Germany.
-## Copyright 1999-2006 by Walter Dörwald
+## Copyright 1999-2007 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 1999-2007 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -268,7 +268,7 @@ def test_charref():
 
 def test_getsetitem():
 	for cls in (xsc.Frag, html.div):
-		for attr in ("class_", (xml, "lang")):
+		for attr in ("class_", ("lang", xml)):
 			node = cls(html.div("foo", html.div({attr: "gurk"}), "bar"))
 			assert node[[]] is node
 			assert str(node[[0, 1, attr]]) == "gurk"
@@ -321,11 +321,11 @@ def test_attrsclone():
 
 
 def test_attributes():
-	node = html.h1("gurk", {(xml, "lang"): "de"}, lang="de")
+	node = html.h1("gurk", {("lang", xml): "de"}, lang="de")
 	assert node.attrs.has("lang")
-	assert node.attrs.has((xml, "lang"))
+	assert node.attrs.has("lang", xml)
 	assert "lang" in node.attrs
-	assert (xml, "lang") in node.attrs
+	assert ("lang", xml) in node.attrs
 
 
 def test_attributekeysvaluesitems():
@@ -411,13 +411,13 @@ def test_attributekeysvaluesitems():
 
 def test_attributeswithout():
 	# Use a sub namespace of xml to test the issubclass checks
-	class xml2(xml):
-		class Attrs(xml.Attrs):
-			class lang(xml.Attrs.lang):
-				default = 42
+	class Attrs(xml.Attrs):
+		class lang(xml.Attrs.lang):
+			xmlns = "http://xmlns.example.com/"
+			default = 42
 
 	node = html.h1("gurk",
-		{(xml2, "space"): 1, (xml2, "lang"): "de", (xml2, "base"): "http://www.livinglogic.de/"},
+		{("space", xml): 1, ("lang", Attrs.lang): "de", ("base", xml): "http://www.livinglogic.de/"},
 		lang="de",
 		style="color: #fff",
 		align="right",
@@ -435,13 +435,13 @@ def test_attributeswithout():
 	assert keys == keys1
 
 	keys.remove((xml2, "space"))
-	keys2 = node.attrs.withoutnames(["class_", (xml, "space")]).keys()
+	keys2 = node.attrs.withoutnames(["class_", (xml.xmlns, "space")]).keys()
 	keys2.sort()
 	assert keys == keys2
 
 	keys.remove((xml2, "lang"))
 	keys.remove((xml2, "base"))
-	keys3 = node.attrs.withoutnames(["class_"], [xml]).keys()
+	keys3 = node.attrs.withoutnames(["class_"], [xml.xmlns]).keys()
 	keys3.sort()
 	assert keys == keys3
 
@@ -453,13 +453,13 @@ def test_attributeswithout():
 
 def test_attributeswith():
 	# Use a sub namespace of xml to test the issubclass checks
-	class xml2(xml):
-		class Attrs(xml.Attrs):
-			class lang(xml.Attrs.lang):
-				default = 42
+	class Attrs(xml.Attrs):
+		class lang(xml.Attrs.lang):
+			xmlns = "http://xmlns.example.com/"
+			default = 42
 
 	node = html.h1("gurk",
-		{(xml2, "space"): 1, (xml2, "lang"): "de"},
+		{("space", xml): 1, ("lang", Attrs.lang): "de"},
 		lang="de",
 		align="right"
 	)
@@ -481,7 +481,7 @@ def test_attributeswith():
 
 	keys = ["lang", (xml2, "lang"), (xml2, "space")]
 	keys.sort()
-	keys3 = node.attrs.withnames(["lang"], [xml]).keys()
+	keys3 = node.attrs.withnames(["lang"], [Attrs.xmlns]).keys()
 	keys3.sort()
 	assert keys3 == keys
 
@@ -489,10 +489,8 @@ def test_attributeswith():
 def test_defaultattributes():
 	class Test(xsc.Element):
 		class Attrs(xsc.Element.Attrs):
-			class withdef(xsc.TextAttr):
-				default = 42
-			class withoutdef(xsc.TextAttr):
-				pass
+			class withdef(xsc.TextAttr): default = 42
+			class withoutdef(xsc.TextAttr): pass
 	node = Test()
 	assert "withdef" in node.attrs
 	assert "withoutdef" not in node.attrs
@@ -634,7 +632,7 @@ def test_withsep():
 def test_allowedattr():
 	assert html.a.Attrs.allowedattr("href") is html.a.Attrs.href
 	py.test.raises(xsc.IllegalAttrError, html.a.Attrs.allowedattr, "gurk")
-	assert html.a.Attrs.allowedattr((xml, "lang")) is xml.Attrs.lang
+	assert html.a.Attrs.allowedattr("lang", xml) is xml.Attrs.lang
 
 
 def test_plaintableattrs():
@@ -651,25 +649,13 @@ def test_attrupdate():
 	node.attrs.update(xml.Attrs(lang="de"), {"href": "gurk2", "id": 42})
 	assert unicode(node["href"]) == u"gurk2"
 	assert unicode(node["id"]) == u"42"
-	assert unicode(node[(xml, "lang")]) == u"de"
+	assert unicode(node["lang", xml]) == u"de"
 
-	node = html.a(href="gurk", class_="hurz")
-	node.attrs.updatenew(xml.Attrs(lang="de"), {"href": "gurk2", "id": 42})
-	assert unicode(node["href"]) == u"gurk"
-	assert unicode(node["id"]) == u"42"
-	assert unicode(node[(xml, "lang")]) == u"de"
-
-	node = html.a(href="gurk", class_="hurz")
-	node.attrs.updateexisting({"href": "gurk2", "id": 42})
-	assert unicode(node["href"]) == u"gurk2"
-	assert "id" not in node.attrs
-	assert (xml, "lang") not in node.attrs
-
-	node = html.a({(xml, "lang"): "de"}, href="gurk", class_="hurz")
-	assert unicode(node[(xml, "lang")]) == u"de"
+	node = html.a({("lang", xml): "de"}, href="gurk", class_="hurz")
+	assert unicode(node["lang", xml]) == u"de"
 
 	node = html.a(xml.Attrs(lang="de"), href="gurk", class_="hurz")
-	assert unicode(node[(xml, "lang")]) == u"de"
+	assert unicode(node["lang", xml]) == u"de"
 
 	class Gurk(xsc.Element):
 		model = False

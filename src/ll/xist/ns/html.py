@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 1999-2006 by LivingLogic AG, Bayreuth/Germany.
-## Copyright 1999-2006 by Walter Dörwald
+## Copyright 1999-2007 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 1999-2007 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -20,6 +20,9 @@ import os, cgi
 
 from ll.xist import xsc, utils, sims
 from ll.xist.ns import xml
+
+
+xmlns = "http://www.w3.org/1999/xhtml"
 
 
 # common attributes types
@@ -57,7 +60,7 @@ class ScopeAttr(xsc.TextAttr): values = (u"row", u"col", u"rowgroup", u"colgroup
 
 
 # common attributes sets
-class coreattrs(xsc.Element.Attrs):
+class coreattrs(xsc.Attrs):
 	"core attributes common to most elements"
 	class id(xsc.IDAttr): "document-wide unique id"
 	class class_(xsc.TextAttr): "space separated list of classes"; xmlname = "class"
@@ -65,13 +68,13 @@ class coreattrs(xsc.Element.Attrs):
 	class title(TextAttr): "advisory title/amplification"
 
 
-class i18nattrs(xsc.Element.Attrs):
+class i18nattrs(xsc.Attrs):
 	"internationalization attributes"
 	class lang(LanguageCodeAttr): "language code (backwards compatible)"
 	class dir(DirAttr): pass
 
 
-class eventattrs(xsc.Element.Attrs):
+class eventattrs(xsc.Attrs):
 	"attributes for common UI events"
 	class onclick(ScriptAttr): "a pointer button was clicked"
 	class ondblclick(ScriptAttr): "a pointer button was double clicked"
@@ -85,7 +88,7 @@ class eventattrs(xsc.Element.Attrs):
 	class onkeyup(ScriptAttr): "a key was released"
 
 
-class focusattrs(xsc.Element.Attrs):
+class focusattrs(xsc.Attrs):
 	"attributes for elements that can get the focus"
 	class accesskey(CharacterAttr): "accessibility key character"
 	class tabindex(xsc.IntAttr): "position in tabbing order"
@@ -97,13 +100,13 @@ class allattrs(coreattrs, i18nattrs, eventattrs):
 	pass
 
 
-class cellhalignattrs(xsc.Element.Attrs):
+class cellhalignattrs(xsc.Attrs):
 	class align(xsc.TextAttr): values = ("left", "center", "right", "justify", "char")
 	class char(CharacterAttr): pass
 	class charoff(LengthAttr): pass
 
 
-class cellvalignattrs(xsc.Element.Attrs):
+class cellvalignattrs(xsc.Attrs):
 	class valign(xsc.TextAttr): values = ("top", "middle", "bottom", "baseline")
 
 
@@ -152,12 +155,13 @@ class html(xsc.Element):
 	"""
 	document structure
 	"""
+	xmlns = xmlns
 	class Attrs(i18nattrs):
 		class id(xsc.IDAttr): pass
 
 	def convert(self, converter):
-		if converter.lang is not None and "lang" not in self.attrs and (xml, "lang") not in self.attrs:
-			node = html(self.content, self.attrs, {"lang": converter.lang, (xml, "lang"): converter.lang})
+		if converter.lang is not None and "lang" not in self.attrs and ("lang", xml) not in self.attrs:
+			node = html(self.content, self.attrs, {"lang": converter.lang, ("lang", xml): converter.lang})
 			return node.convert(converter)
 		else:
 			return super(html, self).convert(converter)
@@ -167,6 +171,7 @@ class head(xsc.Element):
 	"""
 	document head
 	"""
+	xmlns = xmlns
 	class Attrs(i18nattrs):
 		class id(xsc.IDAttr): pass
 		class profile(xsc.URLAttr): pass
@@ -176,11 +181,12 @@ class title(xsc.Element):
 	"""
 	document title
 	"""
+	xmlns = xmlns
 	class Attrs(i18nattrs):
 		class id(xsc.IDAttr): pass
 
 	def unwrapHTML(self, node, converter):
-		if isinstance(node, xsc.Element) and issubclass(node.__ns__, __ns__): # is this one of our own elements => filter it out
+		if isinstance(node, xsc.Element) and node.xmlns==xmlns: # is this one of our own elements => filter it out
 			if isinstance(node, img):
 				node = node["alt"]
 			else:
@@ -197,7 +203,9 @@ class base(xsc.Element):
 	"""
 	document base URI
 	"""
+	xmlns = xmlns
 	model = sims.Empty()
+
 	class Attrs(xsc.Element.Attrs):
 		class id(xsc.IDAttr): pass
 		class href(xsc.URLAttr): pass
@@ -210,7 +218,9 @@ class meta(xsc.Element):
 	has the value "content-type" the encoding in the <lit>content</lit>
 	attribute will be set automatically when publishing.
 	"""
+	xmlns = xmlns
 	model = sims.Empty()
+
 	class Attrs(i18nattrs):
 		class id(xsc.IDAttr): pass
 		class http_equiv(xsc.TextAttr): xmlname = "http-equiv"
@@ -238,7 +248,9 @@ class link(xsc.Element):
 	"""
 	a media-independent link
 	"""
+	xmlns = xmlns
 	model = sims.Empty()
+
 	class Attrs(allattrs):
 		class charset(CharsetAttr): pass
 		class href(xsc.URLAttr): pass
@@ -254,7 +266,9 @@ class style(xsc.Element):
 	"""
 	style info, which may include CDATA sections
 	"""
+	xmlns = xmlns
 	model = sims.NoElements()
+
 	class Attrs(i18nattrs):
 		class id(xsc.IDAttr): pass
 		class type(ContentTypeAttr): required = True
@@ -266,7 +280,9 @@ class script(xsc.Element):
 	"""
 	script statements, which may include CDATA sections
 	"""
+	xmlns = xmlns
 	model = sims.NoElements()
+
 	class Attrs(xsc.Element.Attrs):
 		class id(xsc.IDAttr): pass
 		class charset(CharsetAttr): pass
@@ -280,6 +296,7 @@ class noscript(xsc.Element):
 	"""
 	alternate content container for non script-based rendering
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs):
 		pass
 
@@ -288,6 +305,7 @@ class iframe(xsc.Element):
 	"""
 	inline subwindow
 	"""
+	xmlns = xmlns
 	class Attrs(coreattrs):
 		class longdesc(xsc.URLAttr): pass
 		class name(xsc.TextAttr): pass
@@ -309,6 +327,7 @@ class noframes(xsc.Element):
 	"""
 	alternate content container for non frame-based rendering
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs):
 		pass
 
@@ -317,6 +336,7 @@ class body(xsc.Element):
 	"""
 	document body
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs):
 		class onload(ScriptAttr): pass
 		class onunload(ScriptAttr): pass
@@ -337,6 +357,7 @@ class div(xsc.Element):
 	"""
 	generic language/style container
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs):
 		class align(TextAlignAttr): pass
 
@@ -345,6 +366,7 @@ class p(xsc.Element):
 	"""
 	paragraph
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs):
 		class align(TextAlignAttr): pass
 
@@ -353,6 +375,7 @@ class h1(xsc.Element):
 	"""
 	heading
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs):
 		class align(TextAlignAttr): pass
 
@@ -361,6 +384,7 @@ class h2(xsc.Element):
 	"""
 	heading
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs):
 		class align(TextAlignAttr): pass
 
@@ -369,6 +393,7 @@ class h3(xsc.Element):
 	"""
 	heading
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs):
 		class align(TextAlignAttr): pass
 
@@ -377,6 +402,7 @@ class h4(xsc.Element):
 	"""
 	heading
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs):
 		class align(TextAlignAttr): pass
 
@@ -385,6 +411,7 @@ class h5(xsc.Element):
 	"""
 	heading
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs):
 		class align(TextAlignAttr): pass
 
@@ -393,6 +420,7 @@ class h6(xsc.Element):
 	"""
 	heading
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs):
 		class align(TextAlignAttr): pass
 
@@ -401,6 +429,7 @@ class ul(xsc.Element):
 	"""
 	unordered list
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs):
 		class type(ULStyleAttr): pass
 		class compact(xsc.BoolAttr): pass
@@ -410,6 +439,7 @@ class ol(xsc.Element):
 	"""
 	ordered list
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs):
 		class type(OLStyleAttr): pass
 		class compact(xsc.BoolAttr): pass
@@ -420,6 +450,7 @@ class menu(xsc.Element):
 	"""
 	single column list (deprecated)
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs):
 		class compact(xsc.BoolAttr): pass
 
@@ -428,6 +459,7 @@ class dir(xsc.Element):
 	"""
 	multiple column list (deprecated)
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs):
 		class compact(xsc.BoolAttr): pass
 
@@ -436,6 +468,7 @@ class li(xsc.Element):
 	"""
 	list item
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs):
 		class type(xsc.TextAttr): pass
 		class value(xsc.IntAttr): pass
@@ -445,6 +478,7 @@ class dl(xsc.Element):
 	"""
 	definition list
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs):
 		class compact(xsc.BoolAttr): pass
 
@@ -453,6 +487,7 @@ class dt(xsc.Element):
 	"""
 	definition term
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs):
 		pass
 
@@ -461,6 +496,7 @@ class dd(xsc.Element):
 	"""
 	definition description
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs):
 		pass
 
@@ -469,6 +505,7 @@ class address(xsc.Element):
 	"""
 	information on author
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs):
 		pass
 
@@ -477,6 +514,7 @@ class hr(xsc.Element):
 	"""
 	horizontal rule
 	"""
+	xmlns = xmlns
 	model = sims.Empty()
 	class Attrs(allattrs):
 		class align(xsc.TextAttr): values = (u"left", u"right", u"center")
@@ -490,6 +528,7 @@ class pre(xsc.Element):
 	"""
 	preformatted text
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs):
 		class width(xsc.IntAttr): pass
 
@@ -498,6 +537,7 @@ class blockquote(xsc.Element):
 	"""
 	block-like quotes
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs):
 		class cite(xsc.URLAttr): pass
 
@@ -506,6 +546,7 @@ class center(xsc.Element): # deprecated
 	"""
 	centered block level element
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs):
 		pass
 
@@ -514,6 +555,7 @@ class ins(xsc.Element):
 	"""
 	inserted text
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs):
 		class cite(xsc.URLAttr): pass
 		class datetime(DatetimeAttr): pass
@@ -523,7 +565,9 @@ class del_(xsc.Element):
 	"""
 	deleted text
 	"""
+	xmlns = xmlns
 	xmlname = "del"
+
 	class Attrs(allattrs):
 		class cite(xsc.URLAttr): pass
 		class datetime(DatetimeAttr): pass
@@ -533,6 +577,7 @@ class a(xsc.Element):
 	"""
 	anchor
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs, focusattrs):
 		class charset(CharsetAttr): pass
 		class type(ContentTypeAttr): pass
@@ -551,6 +596,7 @@ class span(xsc.Element):
 	"""
 	generic language/style container
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs):
 		pass
 
@@ -559,6 +605,7 @@ class bdo(xsc.Element):
 	"""
 	I18N BiDi over-ride
 	"""
+	xmlns = xmlns
 	class Attrs(coreattrs, eventattrs):
 		class lang(LanguageCodeAttr): pass
 		class dir(DirAttr): required = True
@@ -568,7 +615,9 @@ class br(xsc.Element):
 	"""
 	forced line break
 	"""
+	xmlns = xmlns
 	model = sims.Empty()
+
 	class Attrs(coreattrs):
 		class clear(xsc.TextAttr): values = (u"left", u"all", u"right", u"none")
 
@@ -577,6 +626,7 @@ class em(xsc.Element):
 	"""
 	Indicates emphasis.
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs):
 		pass
 
@@ -585,6 +635,7 @@ class strong(xsc.Element):
 	"""
 	Indicates stronger emphasis than em.
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs):
 		pass
 
@@ -593,6 +644,7 @@ class dfn(xsc.Element):
 	"""
 	Indicates that this is the defining instance of the enclosed term.
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs):
 		pass
 
@@ -601,6 +653,7 @@ class code(xsc.Element):
 	"""
 	Designates a fragment of computer code.
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs):
 		pass
 
@@ -609,6 +662,7 @@ class samp(xsc.Element):
 	"""
 	Designates sample output from programs, scripts, etc.
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs):
 		pass
 
@@ -617,6 +671,7 @@ class kbd(xsc.Element):
 	"""
 	Indicates text to be entered by the user.
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs):
 		pass
 
@@ -625,6 +680,7 @@ class var(xsc.Element):
 	"""
 	Indicates an instance of a variable or program argument.
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs):
 		pass
 
@@ -633,6 +689,7 @@ class cite(xsc.Element):
 	"""
 	Contains a citation or a reference to other sources.
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs):
 		pass
 
@@ -641,6 +698,7 @@ class abbr(xsc.Element):
 	"""
 	Indicates an abbreviated form (e.g., WWW, HTTP, URI, Mass., etc.)
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs):
 		pass
 
@@ -649,6 +707,7 @@ class acronym(xsc.Element):
 	"""
 	Indicates an acronym (e.g., WAC, radar, etc.).
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs):
 		pass
 
@@ -657,6 +716,7 @@ class q(xsc.Element):
 	"""
 	short inline quotation
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs):
 		class cite(xsc.URLAttr): pass
 
@@ -665,6 +725,7 @@ class sub(xsc.Element):
 	"""
 	subscript
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs):
 		pass
 
@@ -673,6 +734,7 @@ class sup(xsc.Element):
 	"""
 	superscript
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs):
 		pass
 
@@ -681,6 +743,7 @@ class tt(xsc.Element):
 	"""
 	teletype or monospaced text style
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs):
 		pass
 
@@ -689,6 +752,7 @@ class i(xsc.Element):
 	"""
 	italic text style
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs):
 		pass
 
@@ -697,6 +761,7 @@ class b(xsc.Element):
 	"""
 	bold text style
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs):
 		pass
 
@@ -705,6 +770,7 @@ class big(xsc.Element):
 	"""
 	large text style
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs):
 		pass
 
@@ -713,6 +779,7 @@ class small(xsc.Element):
 	"""
 	small text style
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs):
 		pass
 
@@ -721,6 +788,7 @@ class u(xsc.Element):
 	"""
 	underline text style
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs):
 		pass
 
@@ -729,6 +797,7 @@ class s(xsc.Element):
 	"""
 	strike-through text style
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs):
 		pass
 
@@ -737,6 +806,7 @@ class strike(xsc.Element):
 	"""
 	strike-through text style
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs):
 		pass
 
@@ -745,7 +815,9 @@ class basefont(xsc.Element): # deprecated
 	"""
 	base font size
 	"""
+	xmlns = xmlns
 	model = sims.Empty()
+
 	class Attrs(coreattrs, i18nattrs):
 		class id(xsc.IDAttr): pass
 		class size(xsc.TextAttr): required = True
@@ -757,6 +829,7 @@ class font(xsc.Element): # deprecated
 	"""
 	local change to font
 	"""
+	xmlns = xmlns
 	class Attrs(coreattrs, i18nattrs):
 		class face(xsc.TextAttr): pass
 		class size(xsc.TextAttr): pass
@@ -767,6 +840,7 @@ class object(xsc.Element):
 	"""
 	generic embedded object
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs):
 		class declare(xsc.BoolAttr): pass
 		class classid(xsc.URLAttr): pass
@@ -791,7 +865,9 @@ class param(xsc.Element):
 	"""
 	named property value
 	"""
+	xmlns = xmlns
 	model = sims.Empty()
+
 	class Attrs(xsc.Element.Attrs):
 		class id(xsc.IDAttr): pass
 		class name(xsc.TextAttr): required = True
@@ -804,6 +880,7 @@ class applet(xsc.Element): # deprecated
 	"""
 	Java applet
 	"""
+	xmlns = xmlns
 	class Attrs(coreattrs):
 		class codebase(xsc.URLAttr): pass
 		class archive(xsc.TextAttr): pass
@@ -822,7 +899,9 @@ class img(xsc.Element):
 	"""
 	Embedded image
 	"""
+	xmlns = xmlns
 	model = sims.Empty()
+
 	class Attrs(allattrs):
 		class src(xsc.URLAttr): required = True
 		class alt(TextAttr): required = True
@@ -846,6 +925,7 @@ class map(xsc.Element):
 	"""
 	client-side image map
 	"""
+	xmlns = xmlns
 	class Attrs(i18nattrs, eventattrs):
 		class id(xsc.IDAttr): required = True
 		class class_(xsc.TextAttr): pass
@@ -858,7 +938,9 @@ class area(xsc.Element):
 	"""
 	client-side image map area
 	"""
+	xmlns = xmlns
 	model = sims.Empty()
+
 	class Attrs(allattrs, focusattrs):
 		class shape(ShapeAttr): pass
 		class coords(CoordsAttr): pass
@@ -872,6 +954,7 @@ class form(xsc.Element):
 	"""
 	interactive form
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs):
 		class action(xsc.URLAttr): required = True
 		class method(xsc.TextAttr): values = (u"get", u"post")
@@ -887,6 +970,7 @@ class label(xsc.Element):
 	"""
 	form field label text
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs):
 		class for_(xsc.TextAttr): xmlname = "for"
 		class accesskey(CharacterAttr): pass
@@ -898,7 +982,9 @@ class input(xsc.Element):
 	"""
 	form control
 	"""
+	xmlns = xmlns
 	model = sims.Empty()
+
 	class Attrs(allattrs, focusattrs):
 		class type(InputTypeAttr): pass
 		class name(xsc.TextAttr): pass
@@ -922,6 +1008,7 @@ class select(xsc.Element):
 	"""
 	option selector
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs):
 		class name(xsc.TextAttr): pass
 		class size(xsc.IntAttr): pass
@@ -938,6 +1025,7 @@ class optgroup(xsc.Element):
 	"""
 	option group
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs):
 		class disabled(xsc.BoolAttr): pass
 		class label(TextAttr): required = True
@@ -947,6 +1035,7 @@ class option(xsc.Element):
 	"""
 	selectable choice
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs):
 		class selected(xsc.BoolAttr): pass
 		class disabled(xsc.BoolAttr): pass
@@ -958,6 +1047,7 @@ class textarea(xsc.Element):
 	"""
 	multi-line text field
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs, focusattrs):
 		class name(xsc.TextAttr): pass
 		class rows(xsc.IntAttr): required = True
@@ -973,6 +1063,7 @@ class fieldset(xsc.Element):
 	"""
 	form control group
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs):
 		pass
 
@@ -981,6 +1072,7 @@ class legend(xsc.Element):
 	"""
 	fieldset legend
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs):
 		class accesskey(xsc.TextAttr): pass
 		class align(xsc.TextAttr): values = (u"top", u"bottom", u"left", u"right")
@@ -990,6 +1082,7 @@ class button(xsc.Element):
 	"""
 	push button
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs, focusattrs):
 		class name(xsc.TextAttr): pass
 		class value(xsc.TextAttr): pass
@@ -998,6 +1091,7 @@ class button(xsc.Element):
 
 
 class isindex(xsc.Element):
+	xmlns = xmlns
 	model = sims.Empty()
 	class Attrs(coreattrs, i18nattrs):
 		class prompt(TextAttr): pass
@@ -1007,6 +1101,7 @@ class table(xsc.Element):
 	"""
 	table
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs):
 		class summary(TextAttr): pass
 		class width(LengthAttr): pass
@@ -1028,6 +1123,7 @@ class caption(xsc.Element):
 	"""
 	table caption
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs):
 		class align(CAlignAttr): pass
 
@@ -1036,6 +1132,7 @@ class colgroup(xsc.Element):
 	"""
 	table column group
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs, cellhalignattrs, cellvalignattrs):
 		class span(xsc.TextAttr): pass
 		class width(MultiLengthAttr): pass
@@ -1045,6 +1142,7 @@ class col(xsc.Element):
 	"""
 	table column
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs, cellhalignattrs, cellvalignattrs):
 		class span(xsc.TextAttr): pass
 		class width(MultiLengthAttr): pass
@@ -1054,6 +1152,7 @@ class thead(xsc.Element):
 	"""
 	table header
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs, cellhalignattrs, cellvalignattrs):
 		pass
 
@@ -1062,6 +1161,7 @@ class tfoot(xsc.Element):
 	"""
 	table footer
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs, cellhalignattrs, cellvalignattrs):
 		pass
 
@@ -1070,6 +1170,7 @@ class tbody(xsc.Element):
 	"""
 	table body
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs, cellhalignattrs, cellvalignattrs):
 		pass
 
@@ -1078,6 +1179,7 @@ class tr(xsc.Element):
 	"""
 	table row
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs, cellhalignattrs, cellvalignattrs):
 		class bgcolor(xsc.ColorAttr): pass
 		class nowrap(xsc.BoolAttr): pass # deprecated
@@ -1089,6 +1191,7 @@ class th(xsc.Element):
 	"""
 	table header cell
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs, cellhalignattrs, cellvalignattrs):
 		class abbr(TextAttr): pass
 		class axis(xsc.TextAttr): pass
@@ -1108,6 +1211,7 @@ class td(xsc.Element):
 	"""
 	table data cell
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs, cellhalignattrs, cellvalignattrs):
 		class abbr(TextAttr): pass
 		class axis(xsc.TextAttr): pass
@@ -1127,6 +1231,7 @@ class embed(xsc.Element):
 	"""
 	generic embedded object (Internet Exploder)
 	"""
+	xmlns = xmlns
 	class Attrs(xsc.Element.Attrs):
 		class width(xsc.TextAttr): pass
 		class height(xsc.TextAttr): pass
@@ -1147,6 +1252,7 @@ class frameset(xsc.Element):
 	"""
 	window subdivision
 	"""
+	xmlns = xmlns
 	class Attrs(coreattrs):
 		class rows(xsc.TextAttr): pass
 		class cols(xsc.TextAttr): pass
@@ -1165,6 +1271,7 @@ class frame(xsc.Element):
 	"""
 	subwindow
 	"""
+	xmlns = xmlns
 	model = sims.Empty()
 	class Attrs(coreattrs):
 		class longdesc(xsc.TextAttr): pass
@@ -1189,6 +1296,7 @@ class nobr(xsc.Element): # deprecated
 	"""
 	prevents line breaks
 	"""
+	xmlns = xmlns
 
 
 def astext(node, encoding="iso-8859-1", width=72):
@@ -1225,12 +1333,6 @@ def astext(node, encoding="iso-8859-1", width=72):
 	stdout.close()
 	text = "\n".join(line.rstrip() for line in text.splitlines())
 	return text
-
-
-class __ns__(xsc.Namespace):
-	xmlname = "html"
-	xmlurl = "http://www.w3.org/1999/xhtml"
-__ns__.makemod(vars())
 
 
 # Parameter entities defined in the DTD

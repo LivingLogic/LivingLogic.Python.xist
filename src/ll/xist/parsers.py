@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 1999-2006 by LivingLogic AG, Bayreuth/Germany.
-## Copyright 1999-2006 by Walter Dörwald
+## Copyright 1999-2007 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 1999-2007 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -361,7 +361,7 @@ class BadEntityParser(SGMLOPParser):
 				self.getContentHandler().skippedEntity(name)
 			except xsc.IllegalEntityError:
 				try:
-					entity = html.entity(name, xml=True)
+					entity = xsc.Entity.create(name, xml=True)
 				except xsc.IllegalEntityError:
 					self.getContentHandler().characters(u"&%s;" % name)
 				else:
@@ -414,7 +414,7 @@ class BadEntityParser(SGMLOPParser):
 							entity = self.getContentHandler().createEntity(name)
 						except xsc.IllegalEntityError:
 							try:
-								entity = html.entity(name, xml=True)
+								entity = xsc.Entity.create(name, xml=True)
 								if issubclass(entity, xsc.CharRef):
 									entity = ct(unichr(entity.codepoint))
 								else:
@@ -453,6 +453,8 @@ class HTMLParser(BadEntityParser):
 	def __init__(self, bufsize=2**16-20):
 		BadEntityParser.__init__(self, bufsize)
 		self._stack = []
+		self.registry = xsc.Registry()
+		self.registry.register_module(html)
 
 	def reset(self):
 		self._stack = []
@@ -477,12 +479,12 @@ class HTMLParser(BadEntityParser):
 
 		# Skip unknown attributes (but warn about them)
 		newattrs = {}
-		element = html.element(name, xml=True)
+		element = self.registry.element(name, html, xml=True)
 		for (attrname, attrvalue) in attrs:
 			if attrname=="xmlns" or ":" in attrname or element.Attrs.isallowed(attrname.lower(), xml=True):
 				newattrs[attrname.lower()] = attrvalue
 			else:
-				warnings.warn(xsc.IllegalAttrError(element.Attrs, attrname.lower(), xml=True))
+				warnings.warn(xsc.IllegalAttrError(attrname.lower(), None, xml=True))
 		BadEntityParser.finish_starttag(self, name, newattrs)
 
 		if name in HTML_FORBIDDEN_END:
@@ -518,13 +520,132 @@ class ExpatParser(expatreader.ExpatParser):
 		self._parser.UseForeignDTD(True)
 
 
+class Factory(object):
+	def element(self, name, xmlns):
+		if isinstance(xmlns, (list, tuple)):
+			for onexmlns in xmlns:
+				try:
+					return xsc.Element._byxmlname[name, xsc.nsname(onexmlns)]()
+				except KeyError:
+					pass
+			raise xsc.IllegalElementError(name, xmlns, True)
+		else:
+			try:
+				return xsc.Element._byxmlname[name, xsc.nsname(xmlns)]()
+			except KeyError:
+				raise xsc.IllegalElementError(name, xmlns, True)
+
+	def procinst(self, name, content):
+		return xsc.ProcInst.create(name, content, True)
+
+	def entity(self, name):
+		return xsc.Entity.create(name, True)
+
+	def attrname(self, name, xmlns):
+		if isinstance(xmlns, (list, tuple)):
+			for onexmlns in xmlns:
+				onexmlns = xsc.nsname(onexmlns)
+				if (name, onexmlns) in xsc.Attr._byxmlname:
+					return (name, onexmlns)
+		else:
+			xmlns = xsc.nsname(xmlns)
+			if (name, xmlns) in xsc.Attr._byxmlname:
+				return (name, xmlns)
+		raise xsc.IllegalAttrError(name, xmlns, True)
+
+	def text(self, content):
+		return xsc.Text(content)
+
+	def comment(self, content):
+		return xsc.Comment(content)
+
+factory = Factory()
+
+
+class LaxAttrs(xsc.Attrs):
+	@classmethod
+	def _allowedattrkey(cls, name, xmlns=None, xml=False):
+		if xmlns is not None:
+			xmlns = xsc.nsname(xmlns)
+			try:
+				return (Attr.get(name, xmlns, xml).__name__, xmlns) # ask namespace about global attribute
+			except xsc.IllegalAttrError:
+				return (name, xmlns)
+		return name
+
+	def set(self, name, xmlns=None, value=None, xml=False):
+		"""
+		<par>Set the attribute named <arg>name</arg> to the value <arg>value</arg>.
+		<arg>xml</arg> specifies whether <arg>name</arg> should be treated as an
+		&xml; name (<lit><arg>xml</arg>==True</lit>) or a Python name
+		(<lit><arg>xml</arg>==False</lit>).</par>
+		<par>The newly set attribute will be returned.</par>
+		"""
+		attr = self.allowedattr(name, xmlns, xml)(value)()
+		attr.xmlname = name
+		dict.__setitem__(self, self._allowedattrkey(name, xmlns, xml), attr) # put the attribute in our dict
+		return attr
+
+	@classmethod
+	def allowedattr(cls, name, xmlns, xml=False):
+		if xmlns is not None:
+			xmlns = xsc.nsname(xmlns)
+			try:
+				return Attr.get(name, xmlns, xml) # return global attribute
+			except xsc.IllegalAttrError:
+				return xsc.TextAttr
+		else:
+			return xsc.TextAttr
+
+
+class LaxElement(xsc.Element):
+	Attrs = LaxAttrs
+
+
+class LaxFactory(Factory):
+	def element(self, name, xmlns):
+		try:
+			return xsc.Element.create(name, xmlns, True)
+		except xsc.IllegalElementError:
+			result = LaxElement()
+			result.xmlname = name
+			result.xmlns = xmlns
+			return result
+
+	def procinst(self, name, content):
+		try:
+			return xsc.ProcInst.create(name, True)
+		except xsc.IllegalProcInstError:
+			result = xsc.ProcInst()
+			result.xmlname = name
+			return result
+
+	def entity(self, name):
+		try:
+			return xsc.Entity.create(name, True)
+		except xsc.IllegalEntityError:
+			result = xsc.Entity()
+			result.xmlname = name
+			return result
+
+	def attr(self, name, xmlns):
+		try:
+			return xsc.Attr.create(name, xmlns, True)
+		except xsc.IllegalAttrError:
+			result = xsc.TextAttr()
+			result.xmlname = name
+			result.xmlns = xmlns
+			return result
+laxfactory = LaxFactory()
+
+
 class Parser(object):
 	"""
 	<par>It is the job of a <class>Parser</class> to create the object tree from the
 	&sax; events generated by the underlying &sax; parser.</par>
 	"""
 
-	def __init__(self, saxparser=SGMLOPParser, nspool=None, prefixes=None, tidy=False, loc=True, validate=True, encoding=None):
+	def __init__(self, saxparser=SGMLOPParser, nspool=None, prefixes={}, tidy=False, loc=True, validate=True, encoding=None, registry=None):
 		"""
 		<par>Create a new <class>Parser</class> instance.</par>
 
@@ -566,29 +687,20 @@ class Parser(object):
 		"""
 		self.saxparser = saxparser
 
-		if nspool is None:
-			nspool = xsc.defaultnspool
-		self.nspool = nspool
-
-		if prefixes is None:
-			prefixes = xsc.defaultPrefixes.clone()
-		self.prefixes = prefixes # the currently active prefix mapping (will be replaced once xmlns attributes are encountered)
+		# the currently active prefix mapping (will be replaced once xmlns attributes are encountered)
+		self.prefixes = {}
+		for (prefix, xmlns) in prefixes.iteritems():
+			if isinstance(xmlns, (list, tuple)):
+				self.prefixes[prefix] = map(xsc.nsname, xmlns)
+			else:
+				self.prefixes[prefix] = xsc.nsname(xmlns)
 
 		self._locator = None
 		self.tidy = tidy
 		self.loc = loc
 		self.validate = validate
 		self.encoding = encoding
-
-	def _last(self):
-		"""
-		Return the newest node from the stack that is a real node.
-		(There might be fake nodes on the stack, because we are inside
-		of illegal elements).
-		"""
-		for (node, prefixes) in reversed(self._nesting):
-			if node is not None:
-				return node
+		self.registry = registry
 
 	def _parseHTML(self, stream, base, sysid, encoding):
 		"""
@@ -612,7 +724,7 @@ class Parser(object):
 			elif node.type == "element":
 				name = decode(node.name).lower()
 				try:
-					newnode = ns.element(name, xml=True)()
+					newnode = self.factory.element(name, html)
 					if self.loc:
 						newnode.startloc = xsc.Location(sysid=sysid, line=node.lineNo())
 				except xsc.IllegalElementError:
@@ -626,11 +738,12 @@ class Parser(object):
 						else:
 							content = decode(attr.content)
 						try:
-							attrnode = newnode.attrs.set(name, content, xml=True)
+							attrnode = newnode.attrs.set(name, value=content, xml=True)
 						except xsc.IllegalAttrError:
 							pass
 						else:
-							newnode.attrs.set(name, attrnode.parsed(self), xml=True)
+							attrnode = attrnode.parsed(self)
+							newnode.attrs.set(name, value=attrnode, xml=True)
 						attr = attr.next
 					newnode.attrs = newnode.attrs.parsed(self)
 					newnode = newnode.parsed(self, start=True)
@@ -641,11 +754,11 @@ class Parser(object):
 				if isinstance(node, xsc.Element): # if we did recognize the element, otherwise we're in a Frag
 					newnode = newnode.parsed(self, start=False)
 			elif node.type in ("text", "cdata"):
-				newnode = xsc.Text(decode(node.content))
+				newnode = self.factory.text(decode(node.content))
 				if self.loc:
 					newnode.startloc = xsc.Location(sysid=sysid, line=node.lineNo())
 			elif node.type == "comment":
-				newnode = xsc.Comment(decode(node.content))
+				newnode = self.factory.comment(decode(node.content))
 				if self.loc:
 					newnode.startloc = xsc.Location(sysid=sysid, line=node.lineNo())
 			else:
@@ -655,7 +768,6 @@ class Parser(object):
 		self.base = base
 
 		data = stream.read()
-		ns = self.nspool.get(html.xmlname, html)
 		try:
 			olddefault = libxml2.lineNumbersDefault(1)
 			doc = libxml2.htmlReadMemory(data, len(data), sysid, encoding, 0x160)
@@ -669,6 +781,8 @@ class Parser(object):
 
 	def _parse(self, stream, base, sysid, encoding):
 		self.base = url.URL(base)
+
+		self._registry = (self.registry if self.registry is not None else xsc.getregistrystack()[-1])
 
 		parser = self.saxparser()
 		# register us for callbacks
@@ -800,48 +914,61 @@ class Parser(object):
 	def startElement(self, name, attrs):
 		oldprefixes = self.prefixes
 
+		attritems = attrs.items()
 		newprefixes = {}
-		for (attrname, attrvalue) in attrs.items():
+		for (attrname, xmlns) in attritems:
 			if attrname==u"xmlns" or attrname.startswith(u"xmlns:"):
-				ns = self.nspool[unicode(attrvalue)]
-				newprefixes[attrname[6:] or None] = [ns]
+				prefix = attrname[6:] or None
+				newprefixes[prefix] = unicode(xmlns)
 
 		if newprefixes:
-			prefixes = oldprefixes.clone()
+			prefixes = oldprefixes.copy()
 			prefixes.update(newprefixes)
 			self.prefixes = newprefixes = prefixes
 		else:
 			newprefixes = oldprefixes
+		if u":" in name:
+			(prefix, name) = name.split(u":", 1)
+		else:
+			prefix = None
 
-		node = self.createElement(name)
-		if node is not None:
-			for (attrname, attrvalue) in attrs.items():
-				if attrname != u"xmlns" and not attrname.startswith(u"xmlns:"):
-					attrname = newprefixes.attrnamefromqname(node, attrname)
-					if attrname is not None: # None means an illegal attribute
-						node[attrname] = attrvalue
-						node[attrname] = node[attrname].parsed(self)
-			node.attrs = node.attrs.parsed(self)
-			node = node.parsed(self, start=True)
-			self.__appendNode(node)
+		try:
+			xmlns = newprefixes[prefix]
+		except KeyError:
+			raise xsc.IllegalPrefixError(prefix)
+		else:
+			node = self._registry.element(name, xmlns, True)
+
+		for (attrname, attrvalue) in attritems:
+			if attrname != u"xmlns" and not attrname.startswith(u"xmlns:"):
+				if u":" in attrname:
+					(attrprefix, attrname) = attrname.split(u":", 1)
+					if attrprefix == "xml":
+						xmlns = xsc.xml_xmlns
+					else:
+						try:
+							xmlns = newprefixes[attrprefix]
+						except KeyError:
+							raise xsc.IllegalPrefixError(attrprefix)
+				else:
+					xmlns = None
+				attrname = node.Attrs._allowedattrkey(attrname, xmlns, True)
+				node[attrname] = attrvalue
+				node[attrname] = node[attrname].parsed(self)
+		node.attrs = node.attrs.parsed(self)
+		node = node.parsed(self, start=True)
+		self.__appendNode(node)
 		# push new innermost element onto the stack, together with the list of prefix mappings to which we have to return when we leave this element
-		# If the element is bad (i.e. createElement returned None), we push None as the node
 		self._nesting.append((node, oldprefixes))
 		self.skippingwhitespace = False
 
 	def endElement(self, name):
-		currentelement = self._last()
-		if currentelement is not None: # we're not in an bad element
-			currentelement.parsed(self, start=False) # ignore return value
-			if self.validate:
-				currentelement.checkvalid()
-			if self.loc:
-				currentelement.endloc = self.getLocation()
-
-		# We have to check with the currently active prefixes
-		element = self.createElement(name) # Unfortunately this creates the element a second time.
-		if element is not None and element.__class__ is not currentelement.__class__:
-			raise xsc.ElementNestingError(currentelement.__class__, element.__class__)
+		currentelement = self._nesting[-1][0]
+		currentelement.parsed(self, start=False) # ignore return value
+		if self.validate:
+			currentelement.checkvalid()
+		if self.loc:
+			currentelement.endloc = self.getLocation()
 
 		self.prefixes = self._nesting.pop()[1] # pop the innermost element off the stack and restore the old prefixes mapping (from outside this element)
 
@@ -853,9 +980,9 @@ class Parser(object):
 			while content and content[0].isspace() and content[0] != u"\xa0":
 				content = content[1:]
 		if content:
-			node = self.createText(content)
+			node = self._registry.text(content)
 			node = node.parsed(self)
-			last = self._last()
+			last = self._nesting[-1][0]
 			if len(last) and isinstance(last[-1], xsc.Text):
 				node = last[-1] + unicode(node) # join consecutive Text nodes
 				node.startloc = last[-1].startloc # make sure the replacement node has the original location
@@ -865,7 +992,7 @@ class Parser(object):
 			self.skippingwhitespace = False
 
 	def comment(self, content):
-		node = self.createComment(content)
+		node = self._registry.comment(content)
 		node = node.parsed(self)
 		self.__appendNode(node)
 		self.skippingwhitespace = False
@@ -874,20 +1001,18 @@ class Parser(object):
 		if target=="x":
 			self.skippingwhitespace = True
 		else:
-			node = self.createProcInst(target, data)
-			if node is not None:
-				node = node.parsed(self)
-				self.__appendNode(node)
+			node = self._registry.procinst(target, data, True)
+			node = node.parsed(self)
+			self.__appendNode(node)
 			self.skippingwhitespace = False
 
 	def skippedEntity(self, name):
-		node = self.createEntity(name)
-		if node is not None:
-			if isinstance(node, xsc.CharRef):
-				self.characters(unichr(node.codepoint))
-			else:
-				node = node.parsed(self)
-				self.__appendNode(node)
+		node = self._registry.entity(name, True)
+		if isinstance(node, xsc.CharRef):
+			self.characters(unichr(node.codepoint))
+		else:
+			node = node.parsed(self)
+			self.__appendNode(node)
 		self.skippingwhitespace = False
 
 	def __decorateException(self, exception):
@@ -919,31 +1044,7 @@ class Parser(object):
 	def __appendNode(self, node):
 		if self.loc:
 			node.startloc = self.getLocation()
-		self._last().append(node) # add the new node to the content of the innermost element (or fragment)
-
-	def createText(self, content):
-		return xsc.Text(content)
-
-	def createComment(self, content):
-		return xsc.Comment(content)
-
-	def createElement(self, name):
-		element = self.prefixes.element(name)
-		if element is not None: # None means that the element should be ignored
-			element = element()
-		return element
-
-	def createProcInst(self, target, data):
-		procinst = self.prefixes.procinst(target)
-		if procinst is not None: # None means that the procinst should be ignored
-			procinst = procinst(data)
-		return procinst
-
-	def createEntity(self, name):
-		entity = self.prefixes.entity(name)
-		if entity is not None: # None means that the entity should be ignored
-			entity = entity()
-		return entity
+		self._nesting[-1][0].append(node) # add the new node to the content of the innermost element (or fragment)
 
 
 def parse(stream, base=None, sysid=None, **parserargs):

@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 1999-2006 by LivingLogic AG, Bayreuth/Germany.
-## Copyright 1999-2006 by Walter Dörwald
+## Copyright 1999-2007 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 1999-2007 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -30,7 +30,7 @@ from ll import url
 from ll.xist import xsc, parsers, xnd
 
 
-def dtd2xsc(dtdurl, outurl, verbose, xmlname, xmlurl, shareattrs, asmod, defaults):
+def dtd2xsc(dtdurl, outurl, verbose, xmlname, xmlurl, shareattrs, model, defaults):
 	if verbose:
 		print "Parsing DTD %s ..." % dtdurl
 	d = dtdparser.load_dtd(dtdurl.url)
@@ -47,7 +47,7 @@ def dtd2xsc(dtdurl, outurl, verbose, xmlname, xmlurl, shareattrs, asmod, default
 	if verbose:
 		print "Writing to %s ..." % outurl
 	file = outurl.openwrite()
-	file.write(data.aspy(asmod=asmod, defaults=defaults))
+	file.write(data.aspy(model=model, defaults=defaults))
 	file.close()
 
 

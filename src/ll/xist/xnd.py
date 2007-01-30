@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 1999-2006 by LivingLogic AG, Bayreuth/Germany.
-## Copyright 1999-2006 by Walter Dörwald
+## Copyright 1999-2007 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 1999-2007 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -136,6 +136,9 @@ class Namespace(Base):
 		return attrgroups
 
 	def _aspy(self, lines, level, names, options):
+		# assign name to the namespace itself
+		self.assignname(names, "xmlns")
+
 		# assign names to all elements
 		for child in self.content:
 			if isinstance(child, Element):
@@ -164,9 +167,6 @@ class Namespace(Base):
 		for attrgroup in attrgroups:
 			attrgroup.assignname(names)
 
-		# assign name to the namespace itself
-		self.assignname(names, "__ns__")
-
 		lines.append([level, "#!/usr/bin/env python"])
 		lines.append([level, "# -*- coding: %s -*-" % options.encoding])
 		lines.append([0, ""])
@@ -180,6 +180,14 @@ class Namespace(Base):
 		lines.append([0, ""])
 		lines.append([0, ""])
 		lines.append([level, "from ll.xist import xsc, sims"])
+
+		lines.append([0, ""])
+		lines.append([0, ""])
+		if self.url is None:
+			url = "... insert namespace name ..."
+		else:
+			url = self.url
+		lines.append([level, "%s = %s" % (self.pyname, self.simplify(url))])
 
 		# output attribute groups
 		for attrgroup in attrgroups:
@@ -218,22 +226,6 @@ class Namespace(Base):
 						if i != len(newlines)-1 and code == newlines[i+1][1]:
 							code = "\\"
 						lines.append([0, "%s = %s" % (var, code)])
-
-		lines.append([0, ""])
-		lines.append([0, ""])
-		lines.append([level, "class %s(xsc.Namespace):" % self.pyname])
-		if self.pyname != self.name:
-			lines.append([level+1, "xmlname = %s" % self.simplify(self.name)])
-		if self.url is None:
-			url = "... insert namespace name ..."
-		else:
-			url = self.url
-		lines.append([level+1, "xmlurl = %s" % self.simplify(url)])
-		if options.asmod:
-			method = "makemod"
-		else:
-			method = "update"
-		lines.append([level, "%s.%s(vars())" % (self.pyname, method)])
 
 	def element(self, name):
 		for node in self.content:
@@ -284,6 +276,7 @@ class Element(Base):
 		lines.append([level, "class %s(xsc.Element):" % self.pyname])
 		newlines = []
 		self._adddoc(newlines, level+1)
+		newlines.append([level+1, "xmlns = xmlns"])
 		if self.pyname != self.name:
 			newlines.append([level+1, "xmlname = %s" % self.simplify(self.name)])
 		# only output model, if it is a bool, otherwise it might reference other element,
@@ -394,6 +387,7 @@ class ProcInst(Base):
 		lines.append([level, "class %s(xsc.ProcInst):" % self.pyname])
 		newlines = []
 		self._adddoc(newlines, level+1)
+		newlines.append([level+1, "xmlns = xmlns"])
 		if self.pyname != self.name:
 			newlines.append([level+1, "xmlname = %s" % self.simplify(self.name)])
 		self._addlines(newlines, lines)
@@ -411,6 +405,7 @@ class Entity(Base):
 		lines.append([level, "class %s(xsc.Entity):" % self.pyname])
 		newlines = []
 		self._adddoc(newlines, level+1)
+		newlines.append([level+1, "xmlns = xmlns"])
 		if self.pyname != self.name:
 			newlines.append([level+1, "xmlname = %s" % self.simplify(self.name)])
 		self._addlines(newlines, lines)
@@ -428,6 +423,7 @@ class CharRef(Entity):
 		lines.append([level, "class %s(xsc.CharRef):" % self.pyname])
 		newlines = []
 		self._adddoc(newlines, level+1)
+		newlines.append([level+1, "xmlns = xmlns"])
 		if self.pyname != self.name:
 			newlines.append([level+1, "xmlname = %s" % self.simplify(self.name)])
 		if self.codepoint > 0xffff:
@@ -439,12 +435,11 @@ class CharRef(Entity):
 
 
 class Options(object):
-	def __init__(self, indent="\t", encoding=None, asmod=True, defaults=False, model="once"):
+	def __init__(self, indent="\t", encoding=None, defaults=False, model="once"):
 		self.indent = indent
 		if encoding is None:
 			encoding = sys.getdefaultencoding()
 		self.encoding = encoding
-		self.asmod = asmod
 		self.defaults = defaults
 		self.model = model
 

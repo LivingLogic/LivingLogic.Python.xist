@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 1999-2006 by LivingLogic AG, Bayreuth/Germany.
-## Copyright 1999-2006 by Walter Dörwald
+## Copyright 1999-2007 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 1999-2007 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -22,11 +22,15 @@ from ll.xist import xsc, parsers, sims
 from ll.xist.ns import ihtml, html, meta, specials
 
 
+xmlns = "http://xmlns.livinglogic.de/xist/ns/htmlspecials"
+
+
 class plaintable(html.table):
 	"""
 	<par>a &html; table where the values of the attributes <lit>cellpadding</lit>,
 	<lit>cellspacing</lit> and <lit>border</lit> default to <lit>0</lit>.</par>
 	"""
+	xmlns = xmlns
 	class Attrs(html.table.Attrs):
 		class cellpadding(html.table.Attrs.cellpadding):
 			default = 0
@@ -45,6 +49,7 @@ class plainbody(html.body):
 	<par>a &html; body where the attributes <lit>leftmargin</lit>, <lit>topmargin</lit>,
 	<lit>marginheight</lit> and <lit>marginwidth</lit> default to <lit>0</lit>.</par>
 	"""
+	xmlns = xmlns
 	class Attrs(html.body.Attrs):
 		class leftmargin(html.body.Attrs.leftmargin):
 			default = 0
@@ -61,6 +66,7 @@ class plainbody(html.body):
 
 
 class _pixelbase(html.img):
+	xmlns = xmlns
 	class Context(html.img.Context):
 		def __init__(self):
 			self.src = "root:px/spc.gif"
@@ -87,7 +93,7 @@ class pixel(_pixelbase):
 	(and every other allowed attribute for the <class>img</class> element)
 	as usual.</par>
 	"""
-
+	xmlns = xmlns
 	class Attrs(_pixelbase.Attrs):
 		class width(_pixelbase.Attrs.width):
 			default = 1
@@ -120,9 +126,10 @@ class autoimg(html.img):
 	
 	<par>If the attributes are already there, they won't be modified.</par>
 	"""
+	xmlns = xmlns
 	def convert(self, converter):
 		target = converter.target
-		if issubclass(target, (ihtml, html)):
+		if target.xmlns in (ihtml.xmlns, html.xmlns):
 			e = target.img(self.attrs.convert(converter))
 		else:
 			raise ValueError("unknown conversion target %r" % target)
@@ -138,7 +145,7 @@ class autopixel(_pixelbase):
 	<par>This works like <pyref class="pixel"><class>pixel</class></pyref> but the
 	size is <z>inherited</z> from the image specified via the <lit>src</lit> attribute.</par>
 	"""
-
+	xmlns = xmlns
 	def convert(self, converter):
 		target = converter.target
 		if not issubclass(target, (ihtml, html)):
@@ -156,6 +163,7 @@ class autoinput(html.input):
 	with the ability to automatically set the size, if this element
 	has <lit>type=="image"</lit>.</par>
 	"""
+	xmlns = xmlns
 	def convert(self, converter):
 		target = converter.target
 		e = target.input(self.content, self.attrs)
@@ -166,6 +174,7 @@ class autoinput(html.input):
 
 
 class redirectpage(xsc.Element):
+	xmlns = xmlns
 	model = sims.Empty()
 	class Attrs(xsc.Element.Attrs):
 		class href(xsc.URLAttr): required = True
@@ -195,6 +204,7 @@ class javascript(html.script):
 	"""
 	<par>can be used for javascript.</par>
 	"""
+	xmlns = xmlns
 	class Attrs(html.script.Attrs):
 		language = None
 		type = None
@@ -206,6 +216,7 @@ class javascript(html.script):
 
 
 class flash(xsc.Element):
+	xmlns = xmlns
 	model = sims.Empty()
 	class Attrs(xsc.Element.Attrs):
 		class src(xsc.URLAttr): required = True
@@ -242,6 +253,7 @@ class flash(xsc.Element):
 
 
 class quicktime(xsc.Element):
+	xmlns = xmlns
 	model = sims.Empty()
 	class Attrs(xsc.Element.Attrs):
 		class src(xsc.URLAttr): required = True
@@ -286,30 +298,28 @@ class quicktime(xsc.Element):
 
 
 class ImgAttrDecorator(specials.AttrDecorator):
+	xmlns = xmlns
 	class Attrs(html.img.Attrs):
 		pass
 	idecoratable = (html.img,)
 
 
 class InputAttrDecorator(specials.AttrDecorator):
+	xmlns = xmlns
 	class Attrs(html.input.Attrs):
 		pass
 	decoratable = (html.input,)
 
 
 class FormAttrDecorator(specials.AttrDecorator):
+	xmlns = xmlns
 	class Attrs(html.form.Attrs):
 		pass
 	decoratable = (html.form,)
 
 
 class TextAreaAttrDecorator(specials.AttrDecorator):
+	xmlns = xmlns
 	class Attrs(html.textarea.Attrs):
 		pass
 	decoratable = (html.textarea,)
-
-
-class __ns__(xsc.Namespace):
-	xmlname = "htmlspecials"
-	xmlurl = "http://xmlns.livinglogic.de/xist/ns/htmlspecials"
-__ns__.makemod(vars())

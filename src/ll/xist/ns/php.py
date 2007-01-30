@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 1999-2006 by LivingLogic AG, Bayreuth/Germany.
-## Copyright 1999-2006 by Walter Dörwald
+## Copyright 1999-2007 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 1999-2007 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -15,7 +15,11 @@
 __version__ = "$Revision$".split()[1]
 # $Source$
 
+
 from ll.xist import xsc, sims
+
+
+xmlns = "http://www.php.net/"
 
 
 class php(xsc.ProcInst):
@@ -27,50 +31,45 @@ class php(xsc.ProcInst):
 
 class expression(php):
 	def convert(self, converter):
-		return self.__ns__.php(u"print ", self.content, u";")
+		return php(u"print ", self.content, u";")
 
 
 class If(php):
 	xmlname = "if"
 
 	def convert(self, converter):
-		return self.__ns__.php(u"if (", self.content, u"){")
+		return php(u"if (", self.content, u"){")
 
 
 class Else(php):
 	xmlname = "else"
 
 	def convert(self, converter):
-		return self.__ns__.php(u"}else{")
+		return php(u"}else{")
 
 
 class ElIf(php):
 	xmlname = "elif"
 
 	def convert(self, converter):
-		return self.__ns__.php(u"}else if (", self.content, u"){")
+		return php(u"}else if (", self.content, u"){")
 
 
 class End(php):
 	xmlname = "end"
 
 	def convert(self, converter):
-		return self.__ns__.php(u"}")
+		return php(u"}")
 
 
 class block(xsc.Element):
+	xmlns = xmlns
 	model = sims.Any()
 
 	def convert(self, converter):
 		e = xsc.Frag(
-			self.__ns__.php(u"{"),
+			php(u"{"),
 			self.content,
-			self.__ns__.php(u"}")
+			php(u"}")
 		)
 		return e.convert(converter)
-
-
-class __ns__(xsc.Namespace):
-	xmlname = "php"
-	xmlurl = "http://www.php.net/"
-__ns__.makemod(vars())

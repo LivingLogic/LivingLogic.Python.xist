@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 1999-2006 by LivingLogic AG, Bayreuth/Germany.
-## Copyright 1999-2006 by Walter Dörwald
+## Copyright 1999-2007 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 1999-2007 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -46,7 +46,6 @@ class expr(xsc.ProcInst):
 	"""
 	Embed the value of the expression
 	"""
-	pass
 
 
 class textexpr(xsc.ProcInst):
@@ -106,12 +105,6 @@ class else_(xsc.ProcInst):
 	xmlname = "else"
 
 
-class endif(xsc.ProcInst):
-	"""
-	Ends an <pyref class="if_">if block</pyref>.
-	"""
-
-
 class def_(xsc.ProcInst):
 	"""
 	<par>Start a function (or method) definition. A function definition must be
@@ -148,12 +141,6 @@ class def_(xsc.ProcInst):
 	xmlname = "def"
 
 
-class enddef(xsc.ProcInst):
-	"""
-	<par>Ends a <pyref class="def_">function definition</pyref>.</par>
-	"""
-
-
 class class_(xsc.ProcInst):
 	"""
 	<par>Start a class definition. A class definition must be closed with an
@@ -175,12 +162,6 @@ class class_(xsc.ProcInst):
 	xmlname = "class"
 
 
-class endclass(xsc.ProcInst):
-	"""
-	<par>Ends a <pyref class="class_">class definition</pyref>.</par>
-	"""
-
-
 class for_(xsc.ProcInst):
 	"""
 	<par>Start a <lit>for</lit> loop. A for loop must be closed with an
@@ -196,12 +177,6 @@ class for_(xsc.ProcInst):
 	]]></prog>
 	"""
 	xmlname = "for"
-
-
-class endfor(xsc.ProcInst):
-	"""
-	<par>Ends a <pyref class="for_">for loop</pyref>.</par>
-	"""
 
 
 class while_(xsc.ProcInst):
@@ -223,9 +198,13 @@ class while_(xsc.ProcInst):
 	xmlname = "while"
 
 
-class endwhile(xsc.ProcInst):
+class end(xsc.ProcInst):
 	"""
-	<par>Ends a <pyref class="while_">while loop</pyref>.</par>
+	<par>Ends a <pyref class="while_">while</pyref> or
+	<pyref class="for_">for</pyref> loop or a
+	<pyref class="if_">if</pyref>, <pyref class="def_">def</pyref> or
+	<pyref class="class_">class</pyref> block.
+	</par>
 	"""
 
 
@@ -233,8 +212,55 @@ class endwhile(xsc.ProcInst):
 indent = "\t"
 
 
-@classmethod
-def xml2py(cls, source):
+# The name of al available processing instructions
+targets = set(value.xmlname for value in vars().itervalues() if isinstance(value, type) and issubclass(value, xsc.ProcInst))
+
+
+def tokenize(string):
+	"""
+	Tokenize the <class>unicode</class> object <arg>string</arg> (which must
+	be an &xml; string) according to the processing instructions in this namespace.
+	<function>tokenize</function> will generate tuples with the first
+	item being the processing instruction target name and the second being the PI
+	data. <z>Text</z> content (i.e. anything other than PIs) will be returned
+	as <lit>(None, <rep>data</rep>)</lit>. Unknown processing instructions
+	will be returned as literal text (i.e. as <lit>(None, u"&lt;?<rep>target</rep>
+	<rep>data</rep>?&gt;")</lit>).
+	"""
+
+	pos = 0
+	while True:
+		pos1 = string.find("<?", pos)
+		if pos1<0:
+			part = string[pos:]
+			if part:
+				yield (None, part)
+			return
+		pos2 = string.find("?>", pos1)
+		if pos2<0:
+			part = string[pos:]
+			if part:
+				yield (None, part)
+			return
+		part = string[pos:pos1]
+		if part:
+			yield (None, part)
+		part = string[pos1+2: pos2].strip()
+		parts = part.split(None, 1)
+		target = parts[0]
+		if len(parts) > 1:
+			data = parts[1]
+		else:
+			data = ""
+		if target not in targets:
+			# return unknown PIs as text
+			data = "<?%s %s?>" % (target, data)
+			target = None
+		yield (target, data)
+		pos = pos2+2
+
+
+def xml2py(source):
 	stack = []
 	stackoutput = [] # stack containing only True for def and False for class
 
@@ -247,72 +273,63 @@ def xml2py(cls, source):
 
 	def endscope(action):
 		if not stack:
-			raise SyntaxError("can't end %s scope: no active scope" % action._str(fullname=True, xml=False, decorate=False))
-		if not issubclass(stack[-1][0], action):
-			raise SyntaxError("can't end %s scope: active scope is: %s %s" % (action._str(fullname=True, xml=False, decorate=False), stack[-1][0]._str(fullname=True, xml=False, decorate=False), stack[-1][1]))
-		stack.pop(-1)
+			raise SyntaxError("can't end %s scope: no active scope" % (action or "unnamed"))
+		if action and action != stack[-1][0]:
+			raise SyntaxError("can't end %s scope: active scope is: %s %s" % (action, stack[-1][0], stack[-1][1]))
+		return stack.pop()
 
-	for (t, s) in cls.tokenize(source):
-		if t is unicode:
+	for (t, s) in tokenize(source):
+		if t is None:
 			# ignore output outside of functions
 			if stackoutput and stackoutput[-1]:
-				lines.append("%syield %r" % (len(stack)*cls.indent, s))
-		elif issubclass(t, expr):
+				lines.append("%syield %r" % (len(stack)*indent, s))
+		elif t == "expr":
 			# ignore output outside of functions
 			if stackoutput and stackoutput[-1]:
-				lines.append("%syield %s" % (len(stack)*cls.indent, s))
-		elif issubclass(t, textexpr):
+				lines.append("%syield %s" % (len(stack)*indent, s))
+		elif t == "textexpr":
 			# ignore output outside of functions
 			if stackoutput and stackoutput[-1]:
-				lines.append("%syield __detox_escapetext__(%s)" % (len(stack)*cls.indent, s))
-		elif issubclass(t, attrexpr):
+				lines.append("%syield __detox_escapetext__(%s)" % (len(stack)*indent, s))
+		elif t == "attrexpr":
 			# ignore output outside of functions
 			if stackoutput and stackoutput[-1]:
-				lines.append("%syield __detox_escapeattr__(%s)" % (len(stack)*cls.indent, s))
-		elif issubclass(t, code):
-			lines.append("%s%s" % (len(stack)*cls.indent, s))
-		elif issubclass(t, def_):
+				lines.append("%syield __detox_escapeattr__(%s)" % (len(stack)*indent, s))
+		elif t == "code":
+			lines.append("%s%s" % (len(stack)*indent, s))
+		elif t == "def":
 			lines.append("")
-			lines.append("%sdef %s:" % (len(stack)*cls.indent, s))
+			lines.append("%sdef %s:" % (len(stack)*indent, s))
 			stack.append((t, s))
 			stackoutput.append(True)
-		elif issubclass(t, enddef):
-			endscope(def_)
-			stackoutput.pop()
-		elif issubclass(t, class_):
+		elif t == "class":
 			lines.append("")
-			lines.append("%sclass %s:" % (len(stack)*cls.indent, s))
+			lines.append("%sclass %s:" % (len(stack)*indent, s))
 			stack.append((t, s))
 			stackoutput.append(False)
-		elif issubclass(t, endclass):
-			endscope(class_)
-			stackoutput.pop()
-		elif issubclass(t, for_):
-			lines.append("%sfor %s:" % (len(stack)*cls.indent, s))
+		elif t == "for":
+			lines.append("%sfor %s:" % (len(stack)*indent, s))
 			stack.append((t, s))
-		elif issubclass(t, endfor):
-			endscope(for_)
-		elif issubclass(t, while_):
-			lines.append("%swhile %s:" % (len(stack)*cls.indent, s))
+		elif t == "while":
+			lines.append("%swhile %s:" % (len(stack)*indent, s))
 			stack.append((t, s))
-		elif issubclass(t, endwhile):
-			endscope(while_)
-		elif issubclass(t, if_):
-			lines.append("%sif %s:" % (len(stack)*cls.indent, s))
+		elif t == "if":
+			lines.append("%sif %s:" % (len(stack)*indent, s))
 			stack.append((t, s))
-		elif issubclass(t, else_):
-			lines.append("%selse:" % ((len(stack)-1)*cls.indent))
-		elif issubclass(t, elif_):
-			lines.append("%selif %s:" % ((len(stack)-1)*cls.indent, s))
-		elif issubclass(t, endif):
-			endscope(if_)
+		elif t == "else":
+			lines.append("%selse:" % ((len(stack)-1)*indent))
+		elif t == "elif":
+			lines.append("%selif %s:" % ((len(stack)-1)*indent, s))
+		elif t == "end":
+			scope = endscope(s)
+			if scope in ("def", "class"):
+				stackoutput.pop()
 	if stack:
-		raise SyntaxError("unclosed scopes remaining")
+		raise SyntaxError("unclosed scopes remaining: %s" % ", ".join(scope[0] for scope in stack))
 	return "\n".join(lines)
 
 
-@classmethod
-def xml2mod(cls, source, name=None, filename="<string>", store=False, loader=None):
+def xml2mod(source, name=None, filename="<string>", store=False, loader=None):
 	name = name or "ll.xist.ns.detox.sandbox_%x" % (hash(filename) + sys.maxint + 1)
 	module = types.ModuleType(name)
 	module.__file__ = filename
@@ -320,7 +337,7 @@ def xml2mod(cls, source, name=None, filename="<string>", store=False, loader=Non
 		module.__loader__ = loader
 	if store:
 		sys.modules[name] = module
-	code = compile(cls.xml2py(source), filename, "exec")
+	code = compile(xml2py(source), filename, "exec")
 	exec code in module.__dict__
 	return module
 
@@ -330,9 +347,8 @@ def xml2mod(cls, source, name=None, filename="<string>", store=False, loader=Non
 DETOX_EXT = ".detox"
 
 
-@classmethod
-def enable_import(cls, suffixes=None):
-	class VenomLoader(object):
+def enable_import(suffixes=None):
+	class DetoxLoader(object):
 		def __init__(self, path=None):
 			if path and os.path.isdir(path):
 				self.path = path
@@ -351,14 +367,8 @@ def enable_import(cls, suffixes=None):
 			try:
 				return sys.modules[fullname]
 			except KeyError:
-				return cls.xml2mod(open(self.filename, "r").read(), name=fullname, filename=self.filename, store=True, loader=self)
+				return xml2mod(open(self.filename, "r").read(), name=fullname, filename=self.filename, store=True, loader=self)
 
-	VenomLoader.suffixes = suffixes or []
-	sys.path_hooks.append(VenomLoader)
+	DetoxLoader.suffixes = suffixes or []
+	sys.path_hooks.append(DetoxLoader)
 	sys.path_importer_cache.clear()
-
-
-class __ns__(xsc.Namespace):
-	xmlname = "detox"
-	xmlurl = "http://xmlns.livinglogic.de/xist/ns/detox"
-__ns__.makemod(vars())

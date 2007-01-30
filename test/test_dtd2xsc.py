@@ -1,18 +1,19 @@
 #! /usr/bin/env/python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 1999-2006 by LivingLogic AG, Bayreuth/Germany.
-## Copyright 1999-2006 by Walter Dörwald
+## Copyright 1999-2007 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 1999-2007 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
 ## See xist/__init__.py for the license
 
 
+import new
 from ll.xist import xsc, xnd, sims
 
 
-def dtd2ns(s, xmlname, xmlurl=None, shareattrs=None):
+def dtd2mod(s, xmlname, xmlurl=None, shareattrs=None):
 	from xml.parsers.xmlproc import dtdparser
 
 	dtd = dtdparser.load_dtd_string(s)
@@ -21,12 +22,16 @@ def dtd2ns(s, xmlname, xmlurl=None, shareattrs=None):
 	if shareattrs is not None:
 		data.shareattrs(shareattrs)
 
-	mod = {"__name__": xmlname}
+	mod = new.module(xmlname)
 	encoding = "iso-8859-1"
-	code = data.aspy(encoding=encoding, asmod=False).encode(encoding)
-	exec code in mod
+	code = data.aspy(encoding=encoding).encode(encoding)
+	exec code in mod.__dict__
 
-	return mod["__ns__"]
+	return mod
+
+
+def dtd2ns(s, xmlname, xmlurl=None, shareattrs=None):
+	return dtd2mod(s, xmlname, xmlurl, shareattrs).xmlns
 
 
 def test_convert():
@@ -50,9 +55,7 @@ def test_convert():
 	"""
 	ns = dtd2ns(dtdstring, "foo")
 
-	assert issubclass(ns, xsc.Namespace)
-	assert ns.xmlname == "foo"
-	assert ns.xmlurl == "http://xmlns.foo.com/foo"
+	assert ns.xmlns == "http://xmlns.foo.com/foo"
 	assert isinstance(ns.foo.model, sims.Elements)
 	assert len(ns.foo.model.elements) == 1
 	assert ns.foo.model.elements[0] == ns.bar
@@ -114,7 +117,7 @@ def test_quotes():
 	<!ELEMENT foo EMPTY>
 	"""
 	ns = dtd2ns(dtdstring, "foo", xmlurl='"')
-	assert ns.xmlurl == '"'
+	assert ns.xmlns == '"'
 
 
 def test_unicode():
@@ -122,7 +125,7 @@ def test_unicode():
 	<!ELEMENT foo EMPTY>
 	"""
 	ns = dtd2ns(dtdstring, "foo", xmlurl=u'\u3042')
-	assert ns.xmlurl == u'\u3042'
+	assert ns.xmlns == u'\u3042'
 
 
 def test_unicodequotes():
@@ -130,7 +133,7 @@ def test_unicodequotes():
 	<!ELEMENT foo EMPTY>
 	"""
 	ns = dtd2ns(dtdstring, "foo", xmlurl=u'"\u3042"')
-	assert ns.xmlurl == u'"\u3042"'
+	assert ns.xmlns == u'"\u3042"'
 
 
 def test_badelementname():
@@ -169,12 +172,12 @@ def test_shareattrsdupes():
 		baz2 CDATA             #REQUIRED
 	>
 	"""
-	ns = dtd2ns(dtdstring, "foo", shareattrs=False)
-	assert issubclass(ns.foo.Attrs.baz, ns.baz.baz)
-	assert issubclass(ns.bar.Attrs.baz, ns.baz.baz)
-	assert not hasattr(ns, "baz2")
-	assert not ns.foo.Attrs.baz2.required
-	assert ns.bar.Attrs.baz2.required
+	mod = dtd2mod(dtdstring, "foo", shareattrs=False)
+	assert issubclass(mod.foo.Attrs.baz, mod.baz.baz)
+	assert issubclass(mod.bar.Attrs.baz, mod.baz.baz)
+	assert not hasattr(mod, "baz2")
+	assert not mod.foo.Attrs.baz2.required
+	assert mod.bar.Attrs.baz2.required
 
 
 def test_shareattrsall():
@@ -190,13 +193,13 @@ def test_shareattrsall():
 		bazz CDATA             #REQUIRED
 	>
 	"""
-	ns = dtd2ns(dtdstring, "foo", shareattrs=True)
-	assert issubclass(ns.foo.Attrs.baz, ns.baz.baz)
-	assert issubclass(ns.bar.Attrs.baz, ns.baz.baz)
+	mod = dtd2mod(dtdstring, "foo", shareattrs=True)
+	assert issubclass(mod.foo.Attrs.baz, mod.baz.baz)
+	assert issubclass(mod.bar.Attrs.baz, mod.baz.baz)
 
-	assert ns.foo.Attrs.bazz.__bases__[0] is not xsc.TextAttr
-	assert ns.bar.Attrs.bazz.__bases__[0] is not xsc.TextAttr
-	assert ns.foo.Attrs.bazz.__bases__ != ns.bar.Attrs.bazz.__bases__
+	assert mod.foo.Attrs.bazz.__bases__[0] is not xsc.TextAttr
+	assert mod.bar.Attrs.bazz.__bases__[0] is not xsc.TextAttr
+	assert mod.foo.Attrs.bazz.__bases__ != mod.bar.Attrs.bazz.__bases__
 
-	assert not ns.foo.Attrs.bazz.required
-	assert ns.bar.Attrs.bazz.required
+	assert not mod.foo.Attrs.bazz.required
+	assert mod.bar.Attrs.bazz.required

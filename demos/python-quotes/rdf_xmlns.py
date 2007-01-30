@@ -13,8 +13,8 @@ class __ns__(xsc.Namespace):
 	xmlname = "rdf"
 	xmlurl = "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
 
-	class Attrs(xsc.Namespace.Attrs):
-		class about(xsc.TextAttr): pass
-		class resource(xsc.TextAttr): pass
 
-__ns__.makemod(vars())
+class Attrs(xsc.Namespace.Attrs):
+	xmlns = xmlns
+	class about(xsc.TextAttr): pass
+	class resource(xsc.TextAttr): pass

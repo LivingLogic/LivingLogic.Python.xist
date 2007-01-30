@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 2006 by LivingLogic AG, Bayreuth/Germany.
-## Copyright 2006 by Walter Dörwald
+## Copyright 2007 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 2007 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -20,10 +20,14 @@ __version__ = "$Revision$".split()[1]
 from ll.xist import xsc, sims
 
 
+xmlns = "http://feedvalidator.org/docs/rss2.html" # Just a guess
+
+
 class rss(xsc.Element):
 	"""
 	The root element.
 	"""
+	xmlns = xmlns
 	class Attrs(xsc.Element.Attrs):
 		class version(xsc.TextAttr):
 			required = True
@@ -36,6 +40,7 @@ class channel(xsc.Element):
 	Information about a particular channel. Everything pertaining to an individual
 	channel is contained within this tag.
 	"""
+	xmlns = xmlns
 
 
 class title(xsc.Element):
@@ -45,6 +50,7 @@ class title(xsc.Element):
 	<pyref class="image"><class>image</class></pyref> or
 	<pyref class="textInput"><class>textInput</class></pyref>.
 	"""
+	xmlns = xmlns
 
 
 class link(xsc.Element):
@@ -56,6 +62,7 @@ class link(xsc.Element):
 	Inside <pyref class="textInput"><class>textInput</class></pyref> element it's
 	the &url; of the CGI script that processes text input requests.
 	"""
+	xmlns = xmlns
 
 
 class description(xsc.Element):
@@ -64,48 +71,56 @@ class description(xsc.Element):
 	<pyref class="item"><class>item</class></pyref> or
 	<pyref class="textInput"><class>textInput</class></pyref>.
 	"""
+	xmlns = xmlns
 
 
 class language(xsc.Element):
 	"""
 	The language the channel is written in.
 	"""
+	xmlns = xmlns
 
 
 class copyright(xsc.Element):
 	"""
 	Copyright notice for content in the channel.
 	"""
+	xmlns = xmlns
 
 
 class managingEditor(xsc.Element):
 	"""
 	Email address for person responsible for editorial content.
 	"""
+	xmlns = xmlns
 
 
 class webMaster(xsc.Element):
 	"""
 	Email address for person responsible for technical issues relating to channel.
 	"""
+	xmlns = xmlns
 
 
 class pubDate(xsc.Element):
 	"""
 	The publication date for the content in the channel.
 	"""
+	xmlns = xmlns
 
 
 class lastBuildDate(xsc.Element):
 	"""
 	The last time the content of the channel changed.
 	"""
+	xmlns = xmlns
 
 
 class category(xsc.Element):
 	"""
 	Specify one or more categories that the channel or item belongs to.
 	"""
+	xmlns = xmlns
 	class Attrs(xsc.Element.Attrs):
 		class domain(xsc.TextAttr): pass
 
@@ -114,12 +129,14 @@ class generator(xsc.Element):
 	"""
 	A string indicating the program used to generate the channel.
 	"""
+	xmlns = xmlns
 
 
 class docs(xsc.Element):
 	"""
 	A URL that points to the documentation for the format used in the RSS file.
 	"""
+	xmlns = xmlns
 
 
 class cloud(xsc.Element):
@@ -127,6 +144,7 @@ class cloud(xsc.Element):
 	Allows processes to register with a cloud to be notified of updates to the
 	channel, implementing a lightweight publish-subscribe protocol for RSS feeds.
 	"""
+	xmlns = xmlns
 	class Attrs(xsc.Element.Attrs):
 		class domain(xsc.TextAttr): pass
 		class port(xsc.IntAttr): pass
@@ -140,19 +158,21 @@ class ttl(xsc.Element):
 	<class>ttl</class> stands for time to live. It's a number of minutes that
 	indicates how long a channel can be cached before refreshing from the source.
 	"""
-	pass
+	xmlns = xmlns
 
 
 class image(xsc.Element):
 	"""
 	Specifies a GIF, JPEG or PNG image that can be displayed with the channel.
 	"""
+	xmlns = xmlns
 
 
 class textInput(xsc.Element):
 	"""
 	Specifies a text input box that can be displayed with the channel.
 	"""
+	xmlns = xmlns
 
 
 class name(xsc.Element):
@@ -160,24 +180,28 @@ class name(xsc.Element):
 	The name of the text object in the 
 	<pyref class="textInput"><class>textInput</class></pyref> area.
 	"""
+	xmlns = xmlns
 
 
 class skipHours(xsc.Element):
 	"""
 	A hint for aggregators telling them which hours they can skip.
 	"""
+	xmlns = xmlns
 
 
 class skipDays(xsc.Element):
 	"""
 	A hint for aggregators telling them which days they can skip.
 	"""
+	xmlns = xmlns
 
 
 class day(xsc.Element):
 	"""
 	The day of the week, spelled out in English.
 	"""
+	xmlns = xmlns
 
 
 class hour(xsc.Element):
@@ -185,24 +209,28 @@ class hour(xsc.Element):
 	Specifies an hour of the day. Should be an integer value between 0 and 23.
 	See <pyref class="skipHours"><class>skipHours</class></pyref>.
 	"""
+	xmlns = xmlns
 
 
 class url(xsc.Element):
 	"""
 	The URL of a GIF, JPEG or PNG image that represents the channel.
 	"""
+	xmlns = xmlns
 
 
 class width(xsc.Element):
 	"""
 	Image width.
 	"""
+	xmlns = xmlns
 
 
 class height(xsc.Element):
 	"""
 	Image height.
 	"""
+	xmlns = xmlns
 
 
 class item(xsc.Element):
@@ -213,23 +241,28 @@ class item(xsc.Element):
 	<pyref class="title"><class>title</class></pyref> or
 	<pyref class="description"><class>description</class></pyref>.
 	"""
+	xmlns = xmlns
+
 
 class author(xsc.Element):
 	"""
 	Author of an <pyref class="item"><class>item</class></pyref>.
 	"""
+	xmlns = xmlns
 
 
 class comments(xsc.Element):
 	"""
 	&url; of a page for comments relating to the item.
 	"""
+	xmlns = xmlns
 
 
 class enclosure(xsc.Element):
 	"""
 	Describes a media object that is attached to the item.
 	"""
+	xmlns = xmlns
 	class Attrs(xsc.Element.Attrs):
 		class url(xsc.URLAttr): required = True
 		class length(xsc.IntAttr): required = True
@@ -240,6 +273,7 @@ class guid(xsc.Element):
 	"""
 	A string that uniquely identifies the item.
 	"""
+	xmlns = xmlns
 	class Attrs(xsc.Element.Attrs):
 		class isPermaLink(xsc.URLAttr):
 			values = ("false", "true")
@@ -249,6 +283,7 @@ class source(xsc.Element):
 	"""
 	The RSS channel that the item came from.
 	"""
+	xmlns = xmlns
 	class Attrs(xsc.Element.Attrs):
 		class url(xsc.URLAttr): required = True
 
@@ -285,9 +320,3 @@ comments.model = \
 source.model = \
 generator.model = \
 width.model = sims.NoElements()
-
-
-class __ns__(xsc.Namespace):
-	xmlname = "rss"
-	xmlurl = "http://feedvalidator.org/docs/rss2.html" # Just a guess
-__ns__.makemod(vars())

@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 1999-2006 by LivingLogic AG, Bayreuth/Germany.
-## Copyright 1999-2006 by Walter Dörwald
+## Copyright 1999-2007 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 1999-2007 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -22,6 +22,9 @@ from ll.xist import xsc, sims
 from ll.xist.ns import ihtml, html
 
 
+xmlns = "http://xmlns.livinglogic.de/xist/ns/meta"
+
+
 class contenttype(html.meta):
 	"""
 	<par>Can be used for a <markup>&lt;meta http-equiv="Content-Type" content="text/html"/&gt;</markup>,
@@ -30,6 +33,7 @@ class contenttype(html.meta):
 
 	<par>Usage is simple: <markup>&lt;meta:contenttype/&gt;</markup></par>
 	"""
+	xmlns = xmlns
 	class Attrs(html.meta.Attrs):
 		http_equiv = None
 		name = None
@@ -40,7 +44,7 @@ class contenttype(html.meta):
 
 	def convert(self, converter):
 		target = converter.target
-		if issubclass(target, (ihtml, html)):
+		if target.xmlns in (ihtml.xmlns, html.xmlns):
 			e = target.meta(
 				self.attrs.withoutnames([u"mimetype"]),
 				http_equiv=u"Content-Type",
@@ -61,6 +65,7 @@ class contentscripttype(html.meta):
 
 	<par>Usage is simple: <markup>&lt;meta:contentscripttype type="text/javascript"/&gt;</markup></par>
 	"""
+	xmlns = xmlns
 	class Attrs(html.meta.Attrs):
 		http_equiv = None
 		name = None
@@ -80,6 +85,7 @@ class keywords(html.meta):
 
 	<par>Usage is simple: <markup>&lt;meta:keywords&gt;foo, bar&lt;/meta:keywords&gt;</markup></par>
 	"""
+	xmlns = xmlns
 	model = sims.NoElements()
 	class Attrs(html.meta.Attrs):
 		http_equiv = None
@@ -99,6 +105,7 @@ class description(html.meta):
 
 	<par>Usage is simple: <markup>&lt;meta:description&gt;This page describes the ...&lt;/meta:description&gt;</markup></par>
 	"""
+	xmlns = xmlns
 	model = sims.NoElements()
 	class Attrs(html.meta.Attrs):
 		http_equiv = None
@@ -118,6 +125,7 @@ class stylesheet(html.link):
 
 	<par>Usage is simple: <markup>&lt;meta:stylesheet href="root:stylesheets/main.css"/&gt;</markup></par>
 	"""
+	xmlns = xmlns
 	class Attrs(html.link.Attrs):
 		rel = None
 		type = None
@@ -133,6 +141,7 @@ class made(html.link):
 
 	<par>Usage is simple: <markup>&lt;meta:made href="foobert@bar.org"/&gt;</markup>.</par>
 	"""
+	xmlns = xmlns
 	class Attrs(html.link.Attrs):
 		rel = None
 
@@ -147,6 +156,7 @@ class author(xsc.Element):
 	It will generate <markup>&lt;link rel="made"/&gt;</markup> and
 	<markup>&lt;meta name="author"/&gt;</markup> elements.</par>
 	"""
+	xmlns = xmlns
 	model = sims.Empty()
 	class Attrs(xsc.Element.Attrs):
 		class lang(xsc.TextAttr): pass
@@ -168,6 +178,7 @@ class refresh(xsc.Element):
 	"""
 	<par>A refresh header.</par>
 	"""
+	xmlns = xmlns
 	model = sims.Empty()
 	class Attrs(xsc.Element.Attrs):
 		class secs(xsc.IntAttr):
@@ -177,9 +188,3 @@ class refresh(xsc.Element):
 	def convert(self, converter):
 		e = html.meta(http_equiv=u"Refresh", content=(self[u"secs"], u"; url=", self[u"href"]))
 		return e.convert(converter)
-
-
-class __ns__(xsc.Namespace):
-	xmlname = "meta"
-	xmlurl = "http://xmlns.livinglogic.de/xist/ns/meta"
-__ns__.makemod(vars())

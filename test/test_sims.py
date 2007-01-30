@@ -57,16 +57,12 @@ def test_empty():
 
 def test_elements():
 	class ns1(xsc.Namespace):
-		class el1(xsc.Element):
-			pass
-		class el2(xsc.Element):
-			pass
+		class el1(xsc.Element): pass
+		class el2(xsc.Element): pass
 
 	class ns2(xsc.Namespace):
-		class el1(xsc.Element):
-			pass
-		class el2(xsc.Element):
-			pass
+		class el1(xsc.Element): pass
+		class el2(xsc.Element): pass
 
 	ns1.el1.model = sims.Elements(ns1.el1, ns2.el1)
 
@@ -97,16 +93,12 @@ def test_elements():
 
 def test_elementsortext():
 	class ns1(xsc.Namespace):
-		class el1(xsc.Element):
-			pass
-		class el2(xsc.Element):
-			pass
+		class el1(xsc.Element): pass
+		class el2(xsc.Element): pass
 
 	class ns2(xsc.Namespace):
-		class el1(xsc.Element):
-			pass
-		class el2(xsc.Element):
-			pass
+		class el1(xsc.Element): pass
+		class el2(xsc.Element): pass
 
 	ns1.el1.model = sims.ElementsOrText(ns1.el1, ns2.el1)
 
@@ -141,8 +133,7 @@ def test_noelements():
 			model = sims.NoElements()
 
 	class ns2(xsc.Namespace):
-		class el1(xsc.Element):
-			pass
+		class el1(xsc.Element): pass
 
 	e = ns1.el1()
 	e.asBytes()
@@ -169,8 +160,7 @@ def test_noelementsortext():
 			model = sims.NoElementsOrText()
 
 	class ns2(xsc.Namespace):
-		class el1(xsc.Element):
-			pass
+		class el1(xsc.Element): pass
 
 	e = ns1.el1()
 	e.asBytes()

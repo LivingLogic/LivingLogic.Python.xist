@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 1999-2006 by LivingLogic AG, Bayreuth/Germany.
-## Copyright 1999-2006 by Walter Dörwald
+## Copyright 1999-2007 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 1999-2007 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -19,108 +19,111 @@ __version__ = "$Revision$".split()[1]
 from ll.xist import xsc, sims
 
 
+xmlns = "http://www.w3.org/1999/XSL/Format"
+
+
 ###
 ### Attributes
 ###
 
-class media_usage(xsc.Element.Attrs):
+class media_usage(xsc.Attrs):
 	class media_usage(xsc.TextAttr):
 		xmlname = "media-usage"
 		values = (u"auto", u"paginate", u"bounded-in-one-dimension", u"unbounded")
 
 
-class src(xsc.Element.Attrs):
+class src(xsc.Attrs):
 	class src(xsc.URLAttr):
 		pass
 
 
-class color_profile_name(xsc.Element.Attrs):
+class color_profile_name(xsc.Attrs):
 	class color_profile_name(xsc.TextAttr):
 		xmlname = "color-profile-name"
 
 
-class rendering_intent(xsc.Element.Attrs):
+class rendering_intent(xsc.Attrs):
 	class rendering_intent(xsc.TextAttr):
 		xmlname = "rendering-intent"
 		values = (u"auto", u"perceptual", u"relative-colorimetric", u"saturation", u"absolute-colorimetric", u"inherit")
 
 
-class country(xsc.Element.Attrs):
+class country(xsc.Attrs):
 	class country(xsc.TextAttr):
 		pass
 
 
-class format(xsc.Element.Attrs):
+class format(xsc.Attrs):
 	class format(xsc.TextAttr):
 		pass
 
 
-class language(xsc.Element.Attrs):
+class language(xsc.Attrs):
 	class language(xsc.TextAttr):
 		pass
 
 
-class letter_value(xsc.Element.Attrs):
+class letter_value(xsc.Attrs):
 	class letter_value(xsc.TextAttr):
 		xmlname = "letter-value"
 		values = (u"auto", u"alphabetic", u"traditional")
 
 
-class grouping_separator(xsc.Element.Attrs):
+class grouping_separator(xsc.Attrs):
 	class grouping_separator(xsc.TextAttr):
 		xmlname = "grouping-separator"
 
 
-class grouping_size(xsc.Element.Attrs):
+class grouping_size(xsc.Attrs):
 	class grouping_size(xsc.TextAttr):
 		xmlname = "grouping-size"
 
 
-class initial_page_number(xsc.Element.Attrs):
+class initial_page_number(xsc.Attrs):
 	class initial_page_number(xsc.TextAttr):
 		xmlname = "initial-page-number"
 
 
-class force_page_count(xsc.Element.Attrs):
+class force_page_count(xsc.Attrs):
 	class force_page_count(xsc.TextAttr):
 		xmlname = "force-page-count"
 		values = (u"auto", u"even", u"odd", u"end-on-even", u"end-on-odd", u"no-force", u"inherit")
 
 
-class master_reference(xsc.Element.Attrs):
+class master_reference(xsc.Attrs):
 	class master_reference(xsc.TextAttr):
 		xmlname = "master-reference"
 
 
-class master_name(xsc.Element.Attrs):
+class master_name(xsc.Attrs):
 	class master_name(xsc.TextAttr):
 		xmlname = "master-name"
 
 
-class maximum_repeats(xsc.Element.Attrs):
+class maximum_repeats(xsc.Attrs):
 	class maximum_repeats(xsc.TextAttr):
 		xmlname = "maximum-repeats"
 
 
-class page_position(xsc.Element.Attrs):
+class page_position(xsc.Attrs):
 	class page_position(xsc.TextAttr):
 		xmlname = "page-position"
 		values = (u"first", u"last", u"rest", u"any", u"inherit")
 
 
-class odd_or_even(xsc.Element.Attrs):
+class odd_or_even(xsc.Attrs):
 	class odd_or_even(xsc.TextAttr):
 		xmlname = "odd-or-even"
 		values = (u"odd", u"even", u"any", u"inherit")
 
 
-class blank_or_not_blank(xsc.Element.Attrs):
+class blank_or_not_blank(xsc.Attrs):
 	class blank_or_not_blank(xsc.TextAttr):
 		xmlname = "blank-or-not-blank"
 		values = (u"blank", u"not-blank", u"any", u"inherit")
 
 
-class size(xsc.Element.Attrs):
+class size(xsc.Attrs):
 	class size(xsc.TextAttr):
 		pass
 
@@ -135,80 +138,80 @@ class page_width(size):
 		xmlname = "page-width"
 
 
-class reference_orientation(xsc.Element.Attrs):
+class reference_orientation(xsc.Attrs):
 	class reference_orientation(xsc.TextAttr):
 		xmlname = "reference-orientation"
 		values = (0, 90, 180, 270, -90, -180, -270, u"inherit")
 
 
-class writing_mode(xsc.Element.Attrs):
+class writing_mode(xsc.Attrs):
 	class writing_mode(xsc.TextAttr):
 		xmlname = "writing-mode"
 		values = (u"lr-tb", u"rl-tb", u"tb-rl", u"lr", u"rl", u"tb", u"inherit")
 
 
-class clip(xsc.Element.Attrs):
+class clip(xsc.Attrs):
 	class clip(xsc.TextAttr):
 		pass
 
 
-class column_count(xsc.Element.Attrs):
+class column_count(xsc.Attrs):
 	class column_count(xsc.TextAttr):
 		xmlname = "column-count"
 
 
-class column_gap(xsc.Element.Attrs):
+class column_gap(xsc.Attrs):
 	class column_gap(xsc.TextAttr):
 		xmlname = "column-gap"
 
 
-class display_align(xsc.Element.Attrs):
+class display_align(xsc.Attrs):
 	class display_align(xsc.TextAttr):
 		xmlname = "display-align"
 		values = (u"auto", u"before", u"center", u"after", u"inherit")
 
 
-class overflow(xsc.Element.Attrs):
+class overflow(xsc.Attrs):
 	class overflow(xsc.TextAttr):
 		values = (u"visible", u"hidden", u"scroll", u"error-if-overflow", u"auto", u"inherit")
 
 
-class region_name(xsc.Element.Attrs):
+class region_name(xsc.Attrs):
 	class region_name(xsc.TextAttr):
 		xmlname = "region-name"
 
 
-class extent(xsc.Element.Attrs):
+class extent(xsc.Attrs):
 	class extent(xsc.TextAttr):
 		pass
 
 
-class precedence(xsc.Element.Attrs):
+class precedence(xsc.Attrs):
 	class precedence(xsc.TextAttr):
 		values = (u"true", u"false", u"inherit")
 
 
-class flow_name(xsc.Element.Attrs):
+class flow_name(xsc.Attrs):
 	class flow_name(xsc.TextAttr):
 		xmlname = "flow-name"
 
 
-class color(xsc.Element.Attrs):
+class color(xsc.Attrs):
 	class color(xsc.ColorAttr):
 		pass
 
 
-class line_height(xsc.Element.Attrs):
+class line_height(xsc.Attrs):
 	class line_height(xsc.TextAttr):
 		xmlname = "line-height"
 
 
-class visibility(xsc.Element.Attrs):
+class visibility(xsc.Attrs):
 	class visibility(xsc.TextAttr):
 		values = (u"visible", u"hidden", u"collapse", u"inherit")
 
 
-class page_break_after(xsc.Element.Attrs):
+class page_break_after(xsc.Attrs):
 	class page_break_after(xsc.TextAttr):
 		xmlname = "page-break-after"
 		values = (u"auto", u"always", u"avoid", u"left", u"right", u"inherit")
@@ -220,7 +223,7 @@ class break_after(page_break_after):
 		values = (u"auto", u"column", u"page", u"even-page", u"odd-page", u"inherit")
 
 
-class page_break_before(xsc.Element.Attrs):
+class page_break_before(xsc.Attrs):
 	class page_break_before(xsc.TextAttr):
 		xmlname = "page-break-before"
 		values = (u"auto", u"always", u"avoid", u"left", u"right", u"inherit")
@@ -232,34 +235,34 @@ class break_before(page_break_before):
 		values = (u"auto", u"column", u"page", u"even-page", u"odd-page", u"inherit")
 
 
-class text_depth(xsc.Element.Attrs):
+class text_depth(xsc.Attrs):
 	class text_depth(xsc.TextAttr):
 		xmlname = "text-depth"
 
 
-class text_altitude(xsc.Element.Attrs):
+class text_altitude(xsc.Attrs):
 	class text_altitude(xsc.TextAttr):
 		xmlname = "text-altitude"
 
 
-class hyphenation_keep(xsc.Element.Attrs):
-	class hyphenation_keep(xsc.Element.Attrs):
+class hyphenation_keep(xsc.Attrs):
+	class hyphenation_keep(xsc.Attrs):
 		xmlname = "hyphenation-keep"
 		values = (u"auto", u"column", u"page", u"inherit")
 
 
-class hyphenation_ladder_count(xsc.Element.Attrs):
+class hyphenation_ladder_count(xsc.Attrs):
 	class hyphenation_ladder_count(xsc.TextAttr):
 		xmlname = "hyphenation-ladder-count"
 
 
-class intrusion_displace(xsc.Element.Attrs):
+class intrusion_displace(xsc.Attrs):
 	class intrusion_displace(xsc.TextAttr):
 		xmlname = "intrusion-displace"
 		values = (u"auto", u"none", u"line", u"indent", u"block", u"inherit")
 
 
-class page_break_inside(xsc.Element.Attrs):
+class page_break_inside(xsc.Attrs):
 	class page_break_inside(xsc.TextAttr):
 		xmlname = "page-break-inside"
 		values = (u"avoid", u"auto", u"inherit")
@@ -298,12 +301,12 @@ class keep_with_previous(page_break_before):
 		xmlname = "keep-with-previous.within-page"
 
 
-class last_line_end_indent(xsc.Element.Attrs):
+class last_line_end_indent(xsc.Attrs):
 	class last_line_end_indent(xsc.TextAttr):
 		xmlname = "last-line-end-indent"
 
 
-class white_space(xsc.Element.Attrs):
+class white_space(xsc.Attrs):
 	class white_space(xsc.TextAttr):
 		xmlname = "white-space"
 		values = (u"normal", u"pre", u"nowrap", u"inherit")
@@ -315,19 +318,19 @@ class linefeed_treatment(white_space):
 		values = (u"ignore", u"preserve", u"treat-as-space", u"treat-as-zero-width-space", u"inherit")
 
 
-class line_height_shift_adjustment(xsc.Element.Attrs):
+class line_height_shift_adjustment(xsc.Attrs):
 	class line_height_shift_adjustment(xsc.TextAttr):
 		xmlname = "line-height-shift-adjustment"
 		values = (u"consider-shifts", u"disregard-shifts", u"inherit")
 
 
-class line_stacking_strategy(xsc.Element.Attrs):
+class line_stacking_strategy(xsc.Attrs):
 	class line_stacking_strategy(xsc.TextAttr):
 		xmlname = "line-stacking-strategy"
 		values = (u"line-height", u"font-height", u"max-height", u"inherit")
 
 
-class orphans(xsc.Element.Attrs):
+class orphans(xsc.Attrs):
 	class orphans(xsc.TextAttr):
 		pass
 
@@ -338,23 +341,23 @@ class white_space_treatment(white_space):
 		values = (u"ignore", u"preserve", u"ignore-if-before-linefeed", u"ignore-if-after-linefeed", u"ignore-if-surrounding-linefeed", u"inherit")
 
 
-class span(xsc.Element.Attrs):
+class span(xsc.Attrs):
 	class span(xsc.TextAttr):
 		values = (u"none", u"all", u"inherit")
 
 
-class text_align(xsc.Element.Attrs):
+class text_align(xsc.Attrs):
 	class text_align(xsc.TextAttr):
 		xmlname = "text-align"
 
 
-class text_align_last(xsc.Element.Attrs):
+class text_align_last(xsc.Attrs):
 	class text_align_last(xsc.TextAttr):
 		xmlname = "text-align-last"
 		values = (u"relative", u"start", u"center", u"end", u"justify", u"inside", u"outside", u"left", u"right", u"inherit")
 
 
-class text_indent(xsc.Element.Attrs):
+class text_indent(xsc.Attrs):
 	class text_indent(xsc.TextAttr):
 		xmlname = "text-indent"
 
@@ -365,7 +368,7 @@ class white_space_collapse(white_space):
 		values = (u"false", u"true", u"inherit")
 
 
-class widows(xsc.Element.Attrs):
+class widows(xsc.Attrs):
 	class widows(xsc.TextAttr):
 		pass
 
@@ -376,66 +379,66 @@ class wrap_option(white_space):
 		values = (u"no-wrap", u"wrap", u"inherit")
 
 
-class score_spaces(xsc.Element.Attrs):
+class score_spaces(xsc.Attrs):
 	class score_spaces(xsc.TextAttr):
 		xmlname = "score-spaces"
 		values = (u"true", u"false", u"inherit")
 
 
-class text_decoration(xsc.Element.Attrs):
+class text_decoration(xsc.Attrs):
 	class text_decoration(xsc.TextAttr):
 		xmlname = "text-decoration"
 
 
-class content_height(xsc.Element.Attrs):
+class content_height(xsc.Attrs):
 	class content_height(xsc.TextAttr):
 		xmlname = "content-height"
 
 
-class content_width(xsc.Element.Attrs):
+class content_width(xsc.Attrs):
 	class content_width(xsc.TextAttr):
 		xmlname = "content-width"
 
 
-class content_type(xsc.Element.Attrs):
+class content_type(xsc.Attrs):
 	class content_type(xsc.TextAttr):
 		xmlname = "content-type"
 
 
-class scaling(xsc.Element.Attrs):
+class scaling(xsc.Attrs):
 	class scaling(xsc.TextAttr):
 		values = (u"uniform", u"non-uniform", u"inherit")
 
 
-class scaling_method(xsc.Element.Attrs):
+class scaling_method(xsc.Attrs):
 	class scaling_method(xsc.TextAttr):
 		xmlname = "scaling-method"
 		values = (u"auto", u"integer-pixels", u"resample-any-method", u"inherit")
 
 
-class id(xsc.Element.Attrs):
+class id(xsc.Attrs):
 	class id(xsc.IDAttr):
 		pass
 
 
-class leader_alignment(xsc.Element.Attrs):
+class leader_alignment(xsc.Attrs):
 	class leader_alignment(xsc.TextAttr):
 		xmlname = "leader-alignment"
 		values = (u"none", u"reference-area", u"page", u"inherit")
 
 
-class leader_pattern(xsc.Element.Attrs):
+class leader_pattern(xsc.Attrs):
 	class leader_pattern(xsc.TextAttr):
 		xmlname = "leader-pattern"
 		values = (u"space", u"rule", u"dots", u"use-content", u"inherit")
 
 
-class leader_pattern_width(xsc.Element.Attrs):
+class leader_pattern_width(xsc.Attrs):
 	class leader_pattern_width(xsc.TextAttr):
 		xmlname = "leader-pattern-width"
 
 
-class leader_length(xsc.Element.Attrs):
+class leader_length(xsc.Attrs):
 	class leader_length(xsc.TextAttr):
 		xmlname = "leader-length"
 	class leader_length_minimum(xsc.TextAttr):
@@ -446,55 +449,55 @@ class leader_length(xsc.Element.Attrs):
 		xmlname = "leader-length.maximum"
 
 
-class rule_style(xsc.Element.Attrs):
+class rule_style(xsc.Attrs):
 	class rule_style(xsc.TextAttr):
 		xmlname = "rule-style"
 		values = (u"none", u"dotted", u"dashed", u"solid", u"double", u"groove", u"ridge", u"inherit")
 
 
-class rule_thickness(xsc.Element.Attrs):
+class rule_thickness(xsc.Attrs):
 	class rule_thickness(xsc.TextAttr):
 		xmlname = "rule-thickness"
 
 
-class ref_id(xsc.Element.Attrs):
+class ref_id(xsc.Attrs):
 	class ref_id(xsc.TextAttr):
 		xmlname = "ref-id"
 
 
-class caption_side(xsc.Element.Attrs):
+class caption_side(xsc.Attrs):
 	class caption_side(xsc.TextAttr):
 		xmlname = "caption-side"
 		values = (u"before", u"after", u"start", u"end", u"top", u"bottom", u"left", u"right", u"inherit")
 
 
-class border_after_precedence(xsc.Element.Attrs):
+class border_after_precedence(xsc.Attrs):
 	class border_after_precedence(xsc.TextAttr):
 		xmlname = "border-after-precedence"
 
 
-class border_before_precedence(xsc.Element.Attrs):
+class border_before_precedence(xsc.Attrs):
 	class border_before_precedence(xsc.TextAttr):
 		xmlname = "border-before-precedence"
 
 
-class border_start_precedence(xsc.Element.Attrs):
+class border_start_precedence(xsc.Attrs):
 	class border_start_precedence(xsc.TextAttr):
 		xmlname = "border-start-precedence"
 
 
-class border_end_precedence(xsc.Element.Attrs):
+class border_end_precedence(xsc.Attrs):
 	class border_end_precedence(xsc.TextAttr):
 		xmlname = "border-end-precedence"
 
 
-class border_collapse(xsc.Element.Attrs):
+class border_collapse(xsc.Attrs):
 	class border_collapse(xsc.TextAttr):
 		xmlname = "border-collapse"
 		values = (u"collapse", u"collapse-with-precedence", u"separate", u"inherit")
 
 
-class border_separation(xsc.Element.Attrs):
+class border_separation(xsc.Attrs):
 	class border_separation(xsc.TextAttr):
 		xmlname = "border-separation"
 	class border_separation_block_progression_direction(xsc.TextAttr):
@@ -505,174 +508,174 @@ class border_separation(xsc.Element.Attrs):
 		xmlname = "border-spacing"
 
 
-class table_layout(xsc.Element.Attrs):
+class table_layout(xsc.Attrs):
 	class table_layout(xsc.TextAttr):
 		xmlname = "table-layout"
 		values = (u"auto", u"fixed", u"inherit")
 
 
-class table_omit_footer_at_break(xsc.Element.Attrs):
+class table_omit_footer_at_break(xsc.Attrs):
 	class table_omit_footer_at_break(xsc.TextAttr):
 		xmlname = "table-omit-footer-at-break"
 		values = (u"true", u"false")
 
 
-class table_omit_header_at_break(xsc.Element.Attrs):
+class table_omit_header_at_break(xsc.Attrs):
 	class table_omit_header_at_break(xsc.TextAttr):
 		xmlname = "table-omit-header-at-break"
 		values = (u"true", u"false")
 
 
-class column_number(xsc.Element.Attrs):
+class column_number(xsc.Attrs):
 	class column_number(xsc.TextAttr):
 		xmlname = "column-number"
 
 
-class column_width(xsc.Element.Attrs):
+class column_width(xsc.Attrs):
 	class column_width(xsc.TextAttr):
 		xmlname = "column-width"
 
 
-class number_columns_repeated(xsc.Element.Attrs):
+class number_columns_repeated(xsc.Attrs):
 	class number_columns_repeated(xsc.TextAttr):
 		xmlname = "number-columns-repeated"
 
 
-class number_columns_spanned(xsc.Element.Attrs):
+class number_columns_spanned(xsc.Attrs):
 	class number_columns_spanned(xsc.TextAttr):
 		xmlname = "number-columns-spanned"
 
 
-class relative_align(xsc.Element.Attrs):
+class relative_align(xsc.Attrs):
 	class relative_align(xsc.TextAttr):
 		xmlname = "relative-align"
 		values = (u"before", u"baseline", u"inherit")
 
 
-class empty_cells(xsc.Element.Attrs):
+class empty_cells(xsc.Attrs):
 	class empty_cells(xsc.TextAttr):
 		xmlname = "empty-cells"
 		values = (u"show", u"hide", u"inherit")
 
 
-class ends_row(xsc.Element.Attrs):
+class ends_row(xsc.Attrs):
 	class ends_row(xsc.TextAttr):
 		xmlname = "ends-row"
 		values = (u"true", u"false")
 
 
-class starts_row(xsc.Element.Attrs):
+class starts_row(xsc.Attrs):
 	class starts_row(xsc.TextAttr):
 		xmlname = "starts-row"
 		values = (u"true", u"false")
 
 
-class number_rows_spanned(xsc.Element.Attrs):
+class number_rows_spanned(xsc.Attrs):
 	class number_rows_spanned(xsc.TextAttr):
 		xmlname = "number-rows-spanned"
 
 
-class provisional_distance_between_starts(xsc.Element.Attrs):
+class provisional_distance_between_starts(xsc.Attrs):
 	class provisional_distance_between_starts(xsc.TextAttr):
 		xmlname = "provisional-distance-between-starts"
 
 
-class provisional_label_separation(xsc.Element.Attrs):
+class provisional_label_separation(xsc.Attrs):
 	class provisional_label_separation(xsc.TextAttr):
 		xmlname = "provisional-label-separation"
 
 
-class destination_placement_offset(xsc.Element.Attrs):
+class destination_placement_offset(xsc.Attrs):
 	class destination_placement_offset(xsc.TextAttr):
 		xmlname = "destination-placement-offset"
 
 
-class external_destination(xsc.Element.Attrs):
+class external_destination(xsc.Attrs):
 	class external_destination(xsc.URLAttr):
 		xmlname = "external-destination"
 
 
-class indicate_destination(xsc.Element.Attrs):
+class indicate_destination(xsc.Attrs):
 	class indicate_destination(xsc.TextAttr):
 		xmlname = "indicate-destination"
 		values = (u"true", u"false")
 
 
-class internal_destination(xsc.Element.Attrs):
+class internal_destination(xsc.Attrs):
 	class internal_destination(xsc.TextAttr):
 		xmlname = "internal-destination"
 
 
-class show_destination(xsc.Element.Attrs):
+class show_destination(xsc.Attrs):
 	class show_destination(xsc.TextAttr):
 		xmlname = "show-destination"
 		values = (u"replace", u"new")
 
 
-class auto_restore(xsc.Element.Attrs):
+class auto_restore(xsc.Attrs):
 	class auto_restore(xsc.TextAttr):
 		xmlname = "auto-restore"
 		values = (u"true", u"false")
 
 
-class starting_state(xsc.Element.Attrs):
+class starting_state(xsc.Attrs):
 	class starting_state(xsc.TextAttr):
 		xmlname = "starting-state"
 		values = (u"show", u"hide")
 
 
-class switch_to(xsc.Element.Attrs):
+class switch_to(xsc.Attrs):
 	class switch_to(xsc.TextAttr):
 		xmlname = "switch-to"
 
 
-class target_presentation_context(xsc.Element.Attrs):
+class target_presentation_context(xsc.Attrs):
 	class target_presentation_context(xsc.TextAttr):
 		xmlname = "target-presentation-context"
 
 
-class target_processing_context(xsc.Element.Attrs):
+class target_processing_context(xsc.Attrs):
 	class target_processing_context(xsc.TextAttr):
 		xmlname = "target-processing-context"
 
 
-class target_stylesheet(xsc.Element.Attrs):
+class target_stylesheet(xsc.Attrs):
 	class target_stylesheet(xsc.TextAttr):
 		xmlname = "target-stylesheet"
 
 
-class case_name(xsc.Element.Attrs):
+class case_name(xsc.Attrs):
 	class case_name(xsc.TextAttr):
 		xmlname = "case-name"
 
 
-class case_title(xsc.Element.Attrs):
+class case_title(xsc.Attrs):
 	class case_title(xsc.TextAttr):
 		xmlname = "case-title"
 
 
-class active_state(xsc.Element.Attrs):
+class active_state(xsc.Attrs):
 	class active_state(xsc.TextAttr):
 		xmlname = "active-state"
 		values = (u"link", u"visited", u"active", u"hover", u"focus")
 
 
-class float(xsc.Element.Attrs):
+class float(xsc.Attrs):
 	class float(xsc.TextAttr):
 		values = (u"start", u"end", u"left", u"right", u"both", u"none", u"inherit")
 
 
-class clear(xsc.Element.Attrs):
+class clear(xsc.Attrs):
 	class clear(xsc.TextAttr):
 		values = (u"start", u"end", u"left", u"right", u"both", u"none", u"inherit")
 
 
-class marker_class_name(xsc.Element.Attrs):
+class marker_class_name(xsc.Attrs):
 	class marker_class_name(xsc.TextAttr):
 		xmlname = "marker-class-name"
 
 
-class common_margin_properties_block(xsc.Element.Attrs):
+class common_margin_properties_block(xsc.Attrs):
 	class margin(xsc.TextAttr): pass
 	class margin_top(xsc.TextAttr): xmlname = "margin-top"
 	class margin_bottom(xsc.TextAttr): xmlname = "margin-bottom"
@@ -694,7 +697,7 @@ class common_margin_properties_block(xsc.Element.Attrs):
 	class end_indent(xsc.TextAttr): xmlname = "end-indent"
 
 
-class common_margin_properties_inline(xsc.Element.Attrs):
+class common_margin_properties_inline(xsc.Attrs):
 	class space_end(xsc.TextAttr): xmlname = "space-end"
 	class space_end_minimum(xsc.TextAttr): xmlname = "space-end.minimum"
 	class space_end_optimum(xsc.TextAttr): xmlname = "space-end.optimum"
@@ -709,7 +712,7 @@ class common_margin_properties_inline(xsc.Element.Attrs):
 	class space_start_precedence(xsc.TextAttr): xmlname = "space-start.precedence"
 
 
-class common_border_padding_background_properties(xsc.Element.Attrs):
+class common_border_padding_background_properties(xsc.Attrs):
 	class background(xsc.TextAttr):
 		pass
 	class background_attachment(xsc.TextAttr):
@@ -852,12 +855,12 @@ class common_border_padding_background_properties(xsc.Element.Attrs):
 		xmlname = "padding-right"
 
 
-class common_accessibility_properties(xsc.Element.Attrs):
+class common_accessibility_properties(xsc.Attrs):
 	class source_document(xsc.TextAttr): xmlname = "source-document"
 	class role(xsc.TextAttr): pass
 
 
-class common_aural_properties(xsc.Element.Attrs):
+class common_aural_properties(xsc.Attrs):
 	class azimuth(xsc.TextAttr): pass
 	class cue(xsc.TextAttr): pass
 	class cue_after(xsc.TextAttr): xmlname = "cue-after"
@@ -880,7 +883,7 @@ class common_aural_properties(xsc.Element.Attrs):
 	class volume(xsc.TextAttr): pass
 
 
-class common_font_properties(xsc.Element.Attrs):
+class common_font_properties(xsc.Attrs):
 	class font(xsc.TextAttr):
 		pass
 	class font_family(xsc.TextAttr):
@@ -914,7 +917,7 @@ class common_hyphenation_properties(country, language):
 	class hyphenation_remain_character_count(xsc.TextAttr): xmlname = "hyphenation-remain-character-count"
 
 
-class position(xsc.Element.Attrs):
+class position(xsc.Attrs):
 	class position(xsc.TextAttr):
 		values = (u"static", u"relative", u"absolute", u"fixed")
 
@@ -939,7 +942,7 @@ class common_absolute_position_properties(position):
 		pass
 
 
-class block_progression_dimension(xsc.Element.Attrs):
+class block_progression_dimension(xsc.Attrs):
 	class block_progression_dimension(xsc.TextAttr):
 		xmlname = "block-progression-dimension"
 	class block_progression_dimension_minimum(xsc.TextAttr):
@@ -950,7 +953,7 @@ class block_progression_dimension(xsc.Element.Attrs):
 		xmlname = "block-progression-dimension.maximum"
 
 
-class inline_progression_dimension(xsc.Element.Attrs):
+class inline_progression_dimension(xsc.Attrs):
 	class inline_progression_dimension(xsc.TextAttr):
 		xmlname = "inline-progression-dimension"
 	class inline_progression_dimension_minimum(xsc.TextAttr):
@@ -961,43 +964,43 @@ class inline_progression_dimension(xsc.Element.Attrs):
 		xmlname = "inline-progression-dimension.maximum"
 
 
-class height(xsc.Element.Attrs):
+class height(xsc.Attrs):
 	class height(xsc.TextAttr):
 		pass
 
 
-class width(xsc.Element.Attrs):
+class width(xsc.Attrs):
 	class width(xsc.TextAttr):
 		pass
 
 
-class z_index(xsc.Element.Attrs):
+class z_index(xsc.Attrs):
 	class z_index(xsc.TextAttr):
 		xmlname = "z-index"
 
 
-class direction(xsc.Element.Attrs):
+class direction(xsc.Attrs):
 	class direction(xsc.TextAttr):
 		values = ("ltr", "rtl", "inherit")
 
 
-class letter_spacing(xsc.Element.Attrs):
+class letter_spacing(xsc.Attrs):
 	class letter_spacing(xsc.TextAttr):
 		xmlname = "letter-spacing"
 
 
-class unicode_bidi(xsc.Element.Attrs):
+class unicode_bidi(xsc.Attrs):
 	class unicode_bidi(xsc.TextAttr):
 		xmlname = "unicode-bidi"
 		values = (u"normal", u"embed", u"bidi-override", u"inherit")
 
 
-class word_spacing(xsc.Element.Attrs):
+class word_spacing(xsc.Attrs):
 	class word_spacing(xsc.TextAttr):
 		xmlname = "word-spacing"
 
 
-class vertical_align(xsc.Element.Attrs):
+class vertical_align(xsc.Attrs):
 	class vertical_align(xsc.TextAttr):
 		xmlname = "vertical-align"
 
@@ -1007,7 +1010,7 @@ class alignment_adjust(vertical_align):
 		xmlname = "alignment-adjust"
 
 
-class treat_as_word_space(xsc.Element.Attrs):
+class treat_as_word_space(xsc.Attrs):
 	class treat_as_word_space(xsc.TextAttr):
 		xmlname = "treat-as-word-space"
 		values = (u"auto", u"true", u"false", u"inherit")
@@ -1024,7 +1027,7 @@ class baseline_shift(vertical_align):
 		xmlname = "baseline-shift"
 
 
-class character(xsc.Element.Attrs):
+class character(xsc.Attrs):
 	class character(xsc.TextAttr):
 		pass
 
@@ -1035,56 +1038,56 @@ class dominant_baseline(vertical_align):
 		values = (u"auto", u"use-script", u"no-change", u"reset-size", u"ideographic", u"alphabetic", u"hanging", u"mathematical", u"central", u"middle", u"text-after-edge", u"text-before-edge", u"inherit")
 
 
-class glyph_orientation_horizontal(xsc.Element.Attrs):
+class glyph_orientation_horizontal(xsc.Attrs):
 	class glyph_orientation_horizontal(xsc.TextAttr):
 		xmlname = "glyph-orientation-horizontal"
 
 
-class glyph_orientation_vertical(xsc.Element.Attrs):
+class glyph_orientation_vertical(xsc.Attrs):
 	class glyph_orientation_vertical(xsc.TextAttr):
 		xmlname = "glyph-orientation-vertical"
 
 
-class suppress_at_line_break(xsc.Element.Attrs):
+class suppress_at_line_break(xsc.Attrs):
 	class suppress_at_line_break(xsc.TextAttr):
 		xmlname = "suppress-at-line-break"
 		values = (u"auto", u"suppress", u"retain", u"inherit")
 
 
-class text_decoration(xsc.Element.Attrs):
+class text_decoration(xsc.Attrs):
 	class text_decoration(xsc.TextAttr):
 		xmlname = "text-decoration"
 
 
-class text_shadow(xsc.Element.Attrs):
+class text_shadow(xsc.Attrs):
 	class text_shadow(xsc.TextAttr):
 		xmlname = "text-shadow"
 
 
-class text_transform(xsc.Element.Attrs):
+class text_transform(xsc.Attrs):
 	class text_transform(xsc.TextAttr):
 		xmlname = "text-transform"
 		values = (u"capitalize", u"uppercase", u"lowercase", u"none", u"inherit")
 
 
-class retrieve_class_name(xsc.Element.Attrs):
+class retrieve_class_name(xsc.Attrs):
 	class retrieve_class_name(xsc.TextAttr):
 		xmlname = "retrieve-class-name"
 
 
-class retrieve_position(xsc.Element.Attrs):
+class retrieve_position(xsc.Attrs):
 	class retrieve_position(xsc.TextAttr):
 		xmlname = "retrieve-position"
 		values = (u"first-starting-within-page", u"first-including-carryover", u"last-starting-within-page", u"last-ending-within-page")
 
 
-class retrieve_boundary(xsc.Element.Attrs):
+class retrieve_boundary(xsc.Attrs):
 	class retrieve_boundary(xsc.TextAttr):
 		xmlname = "retrieve-boundary"
 		values = (u"page", u"page-sequence", u"document")
 
 
-class usage_context_of_suppress_at_line_break(xsc.Element.Attrs):
+class usage_context_of_suppress_at_line_break(xsc.Attrs):
 	class usage_context_of_suppress_at_line_break(xsc.TextAttr):
 		xmlname = "usage-context-of-suppress-at-line-break"
 		values = (u"auto", u"observe", u"ignore", u"inherit")
@@ -1092,18 +1095,20 @@ class usage_context_of_suppress_at_line_break(xsc.Element.Attrs):
 
 ###
 ### Elements
-### Only applicable attributes are specified as class creation time.
+### Only applicable attributes are specified at class creation time.
 ### Inheritable attributes will be added afterwards.
 ### The schema information will be added in the same step.
 ###
 
 class color_profile(xsc.Element):
+	xmlns = xmlns
 	xmlname = "color-profile"
 	class Attrs(src, color_profile_name, rendering_intent):
 		pass
 
 
 class declarations(xsc.Element):
+	xmlns = xmlns
 	class Attrs(
 		# inheritable attributes
 		color_profile.Attrs
@@ -1112,11 +1117,13 @@ class declarations(xsc.Element):
 
 
 class root(xsc.Element):
+	xmlns = xmlns
 	class Attrs(media_usage):
 		pass
 
 
 class page_sequence(xsc.Element):
+	xmlns = xmlns
 	xmlname = "page-sequence"
 	class Attrs(
 		country,
@@ -1133,42 +1140,49 @@ class page_sequence(xsc.Element):
 
 
 class layout_master_set(xsc.Element):
+	xmlns = xmlns
 	xmlname = "layout-master-set"
 	class Attrs(xsc.Element.Attrs): # this is required, otherwise adding inherited attributes would modify xsc.Element.Attrs
 		pass
 
 
 class page_sequence_master(xsc.Element):
+	xmlns = xmlns
 	xmlname = "page-sequence-master"
 	class Attrs(master_name):
 		pass
 
 
 class single_page_master_reference(xsc.Element):
+	xmlns = xmlns
 	xmlname = "single-page-master-reference"
 	class Attrs(master_reference):
 		pass
 
 
 class repeatable_page_master_reference(xsc.Element):
+	xmlns = xmlns
 	xmlname = "repeatable-page-master-reference"
 	class Attrs(master_reference, maximum_repeats):
 		pass
 
 
 class repeatable_page_master_alternatives(xsc.Element):
+	xmlns = xmlns
 	xmlname = "repeatable-page-master-alternatives"
 	class Attrs(maximum_repeats):
 		pass
 
 
 class conditional_page_master_reference(xsc.Element):
+	xmlns = xmlns
 	xmlname = "conditional-page-master-reference"
 	class Attrs(master_reference, page_position, odd_or_even, blank_or_not_blank):
 		pass
 
 
 class simple_page_master(xsc.Element):
+	xmlns = xmlns
 	xmlname = "simple-page-master"
 	class Attrs(
 		common_margin_properties_block,
@@ -1181,6 +1195,7 @@ class simple_page_master(xsc.Element):
 
 
 class region_body(xsc.Element):
+	xmlns = xmlns
 	xmlname = "region-body"
 	class Attrs(
 		common_border_padding_background_properties,
@@ -1197,6 +1212,7 @@ class region_body(xsc.Element):
 
 
 class region_before(xsc.Element):
+	xmlns = xmlns
 	xmlname = "region-before"
 	class Attrs(
 		common_border_padding_background_properties,
@@ -1212,6 +1228,7 @@ class region_before(xsc.Element):
 
 
 class region_after(xsc.Element):
+	xmlns = xmlns
 	xmlname = "region-after"
 	class Attrs(
 		common_border_padding_background_properties,
@@ -1227,6 +1244,7 @@ class region_after(xsc.Element):
 
 
 class region_start(xsc.Element):
+	xmlns = xmlns
 	xmlname = "region-start"
 	class Attrs(
 		common_border_padding_background_properties,
@@ -1241,6 +1259,7 @@ class region_start(xsc.Element):
 
 
 class region_end(xsc.Element):
+	xmlns = xmlns
 	xmlname = "region-end"
 	class Attrs(
 		common_border_padding_background_properties,
@@ -1255,17 +1274,20 @@ class region_end(xsc.Element):
 
 
 class flow(xsc.Element):
+	xmlns = xmlns
 	class Attrs(flow_name):
 		pass
 
 
 class static_content(xsc.Element):
+	xmlns = xmlns
 	xmlname = "static-content"
 	class Attrs(flow_name):
 		pass
 
 
 class title(xsc.Element):
+	xmlns = xmlns
 	class Attrs(
 		common_accessibility_properties,
 		common_aural_properties,
@@ -1279,6 +1301,7 @@ class title(xsc.Element):
 
 
 class block(xsc.Element):
+	xmlns = xmlns
 	class Attrs(
 		common_accessibility_properties,
 		common_aural_properties,
@@ -1319,6 +1342,7 @@ class block(xsc.Element):
 
 
 class block_container(xsc.Element):
+	xmlns = xmlns
 	xmlname = "block-container"
 	class Attrs(
 		common_absolute_position_properties,
@@ -1346,6 +1370,7 @@ class block_container(xsc.Element):
 
 
 class bidi_override(xsc.Element):
+	xmlns = xmlns
 	xmlname = "bidi-override"
 	class Attrs(
 		common_aural_properties,
@@ -1363,6 +1388,7 @@ class bidi_override(xsc.Element):
 
 
 class character(xsc.Element):
+	xmlns = xmlns
 	class Attrs(
 		common_aural_properties,
 		common_border_padding_background_properties,
@@ -1397,6 +1423,7 @@ class character(xsc.Element):
 
 
 class initial_property_set(xsc.Element):
+	xmlns = xmlns
 	xmlname = "initial-property-set"
 	class Attrs(
 		common_accessibility_properties,
@@ -1417,6 +1444,7 @@ class initial_property_set(xsc.Element):
 
 
 class external_graphic(xsc.Element):
+	xmlns = xmlns
 	xmlname = "external-graphic"
 	class Attrs(
 		common_accessibility_properties,
@@ -1451,6 +1479,7 @@ class external_graphic(xsc.Element):
 
 
 class instream_foreign_object(xsc.Element):
+	xmlns = xmlns
 	xmlname = "instream-foreign-object"
 	class Attrs(
 		common_accessibility_properties,
@@ -1484,6 +1513,7 @@ class instream_foreign_object(xsc.Element):
 
 
 class inline(xsc.Element):
+	xmlns = xmlns
 	class Attrs(
 		common_accessibility_properties,
 		common_aural_properties,
@@ -1513,6 +1543,7 @@ class inline(xsc.Element):
 
 
 class inline_container(xsc.Element):
+	xmlns = xmlns
 	xmlname = "inline-container"
 	class Attrs(
 		common_border_padding_background_properties,
@@ -1540,6 +1571,7 @@ class inline_container(xsc.Element):
 
 
 class leader(xsc.Element):
+	xmlns = xmlns
 	class Attrs(
 		common_accessibility_properties,
 		common_aural_properties,
@@ -1572,6 +1604,7 @@ class leader(xsc.Element):
 
 
 class page_number(xsc.Element):
+	xmlns = xmlns
 	xmlname = "page-number"
 	class Attrs(
 		common_accessibility_properties,
@@ -1603,6 +1636,7 @@ class page_number(xsc.Element):
 
 
 class page_number_citation(xsc.Element):
+	xmlns = xmlns
 	xmlname = "page-number-citation"
 	class Attrs(
 		common_accessibility_properties,
@@ -1635,6 +1669,7 @@ class page_number_citation(xsc.Element):
 
 
 class table_and_caption(xsc.Element):
+	xmlns = xmlns
 	xmlname = "table-and-caption"
 	class Attrs(
 		common_accessibility_properties,
@@ -1655,6 +1690,7 @@ class table_and_caption(xsc.Element):
 
 
 class table(xsc.Element):
+	xmlns = xmlns
 	class Attrs(
 		common_accessibility_properties,
 		common_aural_properties,
@@ -1686,6 +1722,7 @@ class table(xsc.Element):
 
 
 class table_column(xsc.Element):
+	xmlns = xmlns
 	xmlname = "table-column"
 	class Attrs(
 		common_border_padding_background_properties,
@@ -1702,6 +1739,7 @@ class table_column(xsc.Element):
 
 
 class table_caption(xsc.Element):
+	xmlns = xmlns
 	xmlname = "table-caption"
 	class Attrs(
 		common_accessibility_properties,
@@ -1719,6 +1757,7 @@ class table_caption(xsc.Element):
 
 
 class table_header(xsc.Element):
+	xmlns = xmlns
 	xmlname = "table-header"
 	class Attrs(
 		common_accessibility_properties,
@@ -1735,6 +1774,7 @@ class table_header(xsc.Element):
 
 
 class table_footer(xsc.Element):
+	xmlns = xmlns
 	xmlname = "table-footer"
 	class Attrs(
 		common_accessibility_properties,
@@ -1751,6 +1791,7 @@ class table_footer(xsc.Element):
 
 
 class table_body(xsc.Element):
+	xmlns = xmlns
 	xmlname = "table-body"
 	class Attrs(
 		common_accessibility_properties,
@@ -1767,6 +1808,7 @@ class table_body(xsc.Element):
 
 
 class table_row(xsc.Element):
+	xmlns = xmlns
 	xmlname = "table-row"
 	class Attrs(
 		common_accessibility_properties,
@@ -1790,6 +1832,7 @@ class table_row(xsc.Element):
 
 
 class table_cell(xsc.Element):
+	xmlns = xmlns
 	xmlname = "table-cell"
 	class Attrs(
 		common_accessibility_properties,
@@ -1817,6 +1860,7 @@ class table_cell(xsc.Element):
 
 
 class list_block(xsc.Element):
+	xmlns = xmlns
 	xmlname = "list-block"
 	class Attrs(
 		common_accessibility_properties,
@@ -1837,6 +1881,7 @@ class list_block(xsc.Element):
 
 
 class list_item(xsc.Element):
+	xmlns = xmlns
 	xmlname = "list-item"
 	class Attrs(
 		common_accessibility_properties,
@@ -1856,6 +1901,7 @@ class list_item(xsc.Element):
 
 
 class list_item_body(xsc.Element):
+	xmlns = xmlns
 	xmlname = "list-item-body"
 	class Attrs(
 		common_accessibility_properties,
@@ -1865,6 +1911,7 @@ class list_item_body(xsc.Element):
 
 
 class list_item_label(xsc.Element):
+	xmlns = xmlns
 	xmlname = "list-item-label"
 	class Attrs(
 		common_accessibility_properties,
@@ -1874,6 +1921,7 @@ class list_item_label(xsc.Element):
 
 
 class basic_link(xsc.Element):
+	xmlns = xmlns
 	xmlname = "basic-link"
 	class Attrs(
 		common_accessibility_properties,
@@ -1902,6 +1950,7 @@ class basic_link(xsc.Element):
 
 
 class multi_switch(xsc.Element):
+	xmlns = xmlns
 	xmlname = "multi-switch"
 	class Attrs(
 		common_accessibility_properties,
@@ -1911,6 +1960,7 @@ class multi_switch(xsc.Element):
 
 
 class multi_case(xsc.Element):
+	xmlns = xmlns
 	xmlname = "multi-case"
 	class Attrs(
 		common_accessibility_properties,
@@ -1922,6 +1972,7 @@ class multi_case(xsc.Element):
 
 
 class multi_toggle(xsc.Element):
+	xmlns = xmlns
 	xmlname = "multi-toggle"
 	class Attrs(
 		common_accessibility_properties,
@@ -1931,6 +1982,7 @@ class multi_toggle(xsc.Element):
 
 
 class multi_properties(xsc.Element):
+	xmlns = xmlns
 	xmlname = "multi-properties"
 	class Attrs(
 		common_accessibility_properties,
@@ -1939,6 +1991,7 @@ class multi_properties(xsc.Element):
 
 
 class multi_property_set(xsc.Element):
+	xmlns = xmlns
 	xmlname = "multi-property-set"
 	class Attrs(
 		id,
@@ -1947,6 +2000,7 @@ class multi_property_set(xsc.Element):
 
 
 class float(xsc.Element):
+	xmlns = xmlns
 	class Attrs(
 		float,
 		clear):
@@ -1954,6 +2008,7 @@ class float(xsc.Element):
 
 
 class footnote(xsc.Element):
+	xmlns = xmlns
 	class Attrs(
 		common_accessibility_properties
 		):
@@ -1961,6 +2016,7 @@ class footnote(xsc.Element):
 
 
 class footnote_body(xsc.Element):
+	xmlns = xmlns
 	xmlname = "footnote-body"
 	class Attrs(
 		common_accessibility_properties
@@ -1969,6 +2025,7 @@ class footnote_body(xsc.Element):
 
 
 class wrapper(xsc.Element):
+	xmlns = xmlns
 	class Attrs(
 		id
 		):
@@ -1976,6 +2033,7 @@ class wrapper(xsc.Element):
 
 
 class marker(xsc.Element):
+	xmlns = xmlns
 	class Attrs(
 		marker_class_name
 		):
@@ -1983,6 +2041,7 @@ class marker(xsc.Element):
 
 
 class retrieve_marker(xsc.Element):
+	xmlns = xmlns
 	xmlname = "retrieve-marker"
 	class Attrs(
 		retrieve_class_name,
@@ -1990,12 +2049,6 @@ class retrieve_marker(xsc.Element):
 		retrieve_boundary
 		):
 		pass
-
-
-class __ns__(xsc.Namespace):
-	xmlname = "fo"
-	xmlurl = "http://www.w3.org/1999/XSL/Format"
-__ns__.makemod(vars())
 
 
 # Parameter entities defined in the XSL specification
@@ -2077,14 +2130,20 @@ def fixattributesandmodel(element):
 					fixattributesandmodel(child) # make sure the child element already have their inheritable attributes added
 					for attr in child.Attrs.iterallowedvalues():
 						if not element.Attrs.isallowed(attr.__name__):
-							setattr(element.Attrs, attr.__name__, attr) # add child attribute to element
+							element.Attrs.add(attr) # add child attribute to element
 
-for element in __ns__.iterelementvalues():
-	fixattributesandmodel(element)
+varitems = vars().items()
+
+for (key, value) in varitems:
+	if isinstance(value, type) and issubclass(value, xsc.Element):
+		fixattributesandmodel(value)
+
+# make sure, we assigned a model to every element
+for (key, value) in varitems:
+	if isinstance(value, type) and issubclass(value, xsc.Element):
+		assert value.model is not None
 
 # don't pollute the namespace
 del dtd
 del fixattributesandmodel
-
-# make sure, we assigned a model to every element
-assert sum(x.model is not None for x in __ns__.iterelementvalues()) == len(__ns__.elementvalues())
+del varitems

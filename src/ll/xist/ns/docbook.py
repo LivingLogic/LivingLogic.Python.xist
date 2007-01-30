@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 1999-2006 by LivingLogic AG, Bayreuth/Germany.
-## Copyright 1999-2006 by Walter Dörwald
+## Copyright 1999-2007 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 1999-2007 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -18,6 +18,9 @@ __version__ = "$Revision$".split()[1]
 from ll.xist import xsc, sims
 
 
+xmlns = "http://www.docbook.org/xml/4.3/docbookx.dtd"
+
+
 class DocTypeDocBook43(xsc.DocType):
 	"""
 	document type for DocBook 4.3
@@ -26,530 +29,552 @@ class DocTypeDocBook43(xsc.DocType):
 		xsc.DocType.__init__(self, type + ' PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN" "http://www.docbook.org/xml/4.3/docbookx.dtd"')
 
 
-class arch(xsc.Element.Attrs):
+###
+### Attributes
+###
+
+class arch(xsc.Attrs):
 	class arch(xsc.TextAttr): pass
 
 
-class condition(xsc.Element.Attrs):
+class condition(xsc.Attrs):
 	class condition(xsc.TextAttr): pass
 
 
-class conformance(xsc.Element.Attrs):
+class conformance(xsc.Attrs):
 	class conformance(xsc.TextAttr): pass
 
 
-class dir(xsc.Element.Attrs):
+class dir(xsc.Attrs):
 	class dir(xsc.TextAttr): values = (u"ltr", u"rtl", u"lro", u"rlo")
 
 
-class id(xsc.Element.Attrs):
+class id(xsc.Attrs):
 	class id(xsc.IDAttr): pass
 
 
-class lang(xsc.Element.Attrs):
+class lang(xsc.Attrs):
 	class lang(xsc.TextAttr): pass
 
 
-class os(xsc.Element.Attrs):
+class os(xsc.Attrs):
 	class os(xsc.TextAttr): pass
 
 
-class remap(xsc.Element.Attrs):
+class remap(xsc.Attrs):
 	class remap(xsc.TextAttr): pass
 
 
-class revision2(xsc.Element.Attrs):
+class revision2(xsc.Attrs):
 	class revision(xsc.TextAttr): pass
 
 
-class revisionflag(xsc.Element.Attrs):
+class revisionflag(xsc.Attrs):
 	class revisionflag(xsc.TextAttr): values = ("changed", "added", "deleted", "off")
 
 
-class role(xsc.Element.Attrs):
+class role(xsc.Attrs):
 	class role(xsc.TextAttr): pass
 
 
-class security(xsc.Element.Attrs):
+class security(xsc.Attrs):
 	class security(xsc.TextAttr): pass
 
 
-class userlevel(xsc.Element.Attrs):
+class userlevel(xsc.Attrs):
 	class userlevel(xsc.TextAttr): pass
 
 
-class vendor(xsc.Element.Attrs):
+class vendor(xsc.Attrs):
 	class vendor(xsc.TextAttr): pass
 
 
-class xreflabel(xsc.Element.Attrs):
+class xreflabel(xsc.Attrs):
 	class xreflabel(xsc.TextAttr): pass
 
 
-class moreinfo(xsc.Element.Attrs):
+class moreinfo(xsc.Attrs):
 	class moreinfo(xsc.TextAttr): values = (u"refentry", u"none")
 
 
-class continuation(xsc.Element.Attrs):
+class continuation(xsc.Attrs):
 	class continuation(xsc.TextAttr): values = (u"continues", u"restarts")
 
 
-class format(xsc.Element.Attrs):
+class format(xsc.Attrs):
 	class format(xsc.TextAttr): pass
 
 
-class language(xsc.Element.Attrs):
+class language(xsc.Attrs):
 	class language(xsc.TextAttr): pass
 
 
-class linenumbering(xsc.Element.Attrs):
+class linenumbering(xsc.Attrs):
 	class linenumbering(xsc.TextAttr): values = (u"numbered", u"unnumbered")
 
 
-class startinglinenumber(xsc.Element.Attrs):
+class startinglinenumber(xsc.Attrs):
 	class startinglinenumber(xsc.TextAttr): pass
 
 
-class id2(xsc.Element.Attrs):
+class id2(xsc.Attrs):
 	class id(xsc.IDAttr): required = True
 
 
-class pagenum(xsc.Element.Attrs):
+class pagenum(xsc.Attrs):
 	class pagenum(xsc.TextAttr): pass
 
 
-class label2(xsc.Element.Attrs):
+class label2(xsc.Attrs):
 	class label(xsc.TextAttr): pass
 
 
-class status(xsc.Element.Attrs):
+class status(xsc.Attrs):
 	class status(xsc.TextAttr): pass
 
 
-class coords(xsc.Element.Attrs):
+class coords(xsc.Attrs):
 	class coords(xsc.TextAttr): required = True
 
 
-class linkends(xsc.Element.Attrs):
+class linkends(xsc.Attrs):
 	class linkends(xsc.TextAttr): pass
 
 
-class otherunits(xsc.Element.Attrs):
+class otherunits(xsc.Attrs):
 	class otherunits(xsc.TextAttr): pass
 
 
-class units(xsc.Element.Attrs):
+class units(xsc.Attrs):
 	class units(xsc.TextAttr): values = (u"calspair", u"linecolumn", u"linerange", u"linecolumnpair", u"other")
 
 
-class choice(xsc.Element.Attrs):
+class choice(xsc.Attrs):
 	class choice(xsc.TextAttr): values = (u"opt", u"req", u"plain")
 
 
-class rep(xsc.Element.Attrs):
+class rep(xsc.Attrs):
 	class rep(xsc.TextAttr): values = (u"norepeat", u"repeat")
 
 
-class entityref(xsc.Element.Attrs):
+class entityref(xsc.Attrs):
 	class entityref(xsc.TextAttr): pass
 
 
-class fileref(xsc.Element.Attrs):
+class fileref(xsc.Attrs):
 	class fileref(xsc.TextAttr): pass
 
 
-class format2(xsc.Element.Attrs):
+class format2(xsc.Attrs):
 	class format(xsc.TextAttr): values = (u"BMP", u"CGM-CHAR", u"CGM-BINARY", u"CGM-CLEAR", u"DITROFF", u"DVI", u"EPS", u"EQN", u"FAX", u"GIF", u"GIF87a", u"GIF89a", u"JPG", u"JPEG", u"IGES", u"PCX", u"PIC", u"PNG", u"PS", u"SGML", u"TBL", u"TEX", u"TIFF", u"WMF", u"WPG", u"SVG", u"PDF", u"SWF", u"linespecific")
 
 
-class srccredit(xsc.Element.Attrs):
+class srccredit(xsc.Attrs):
 	class srccredit(xsc.TextAttr): pass
 
 
-class class_(xsc.Element.Attrs):
+class class_(xsc.Attrs):
 	class class_(xsc.TextAttr):
 		xmlname = u"class"
 		values = (u"uri", u"doi", u"isbn", u"issn", u"libraryofcongress", u"pubnumber", u"other")
 
 
-class otherclass(xsc.Element.Attrs):
+class otherclass(xsc.Attrs):
 	class otherclass(xsc.TextAttr): pass
 
 
-class relation(xsc.Element.Attrs):
+class relation(xsc.Attrs):
 	class relation(xsc.TextAttr): pass
 
 
-class fpi(xsc.Element.Attrs):
+class fpi(xsc.Attrs):
 	class fpi(xsc.TextAttr): pass
 
 
-class contents(xsc.Element.Attrs):
+class contents(xsc.Attrs):
 	class contents(xsc.TextAttr): pass
 
 
-class class2(xsc.Element.Attrs):
+class class2(xsc.Attrs):
 	class class_(xsc.TextAttr): xmlname = "class"
 
 
-class onclick(xsc.Element.Attrs):
+class onclick(xsc.Attrs):
 	class onclick(xsc.TextAttr): pass
 
 
-class ondblclick(xsc.Element.Attrs):
+class ondblclick(xsc.Attrs):
 	class ondblclick(xsc.TextAttr): pass
 
 
-class onkeydown(xsc.Element.Attrs):
+class onkeydown(xsc.Attrs):
 	class onkeydown(xsc.TextAttr): pass
 
 
-class onkeypress(xsc.Element.Attrs):
+class onkeypress(xsc.Attrs):
 	class onkeypress(xsc.TextAttr): pass
 
 
-class onkeyup(xsc.Element.Attrs):
+class onkeyup(xsc.Attrs):
 	class onkeyup(xsc.TextAttr): pass
 
 
-class onmousedown(xsc.Element.Attrs):
+class onmousedown(xsc.Attrs):
 	class onmousedown(xsc.TextAttr): pass
 
 
-class onmousemove(xsc.Element.Attrs):
+class onmousemove(xsc.Attrs):
 	class onmousemove(xsc.TextAttr): pass
 
 
-class onmouseout(xsc.Element.Attrs):
+class onmouseout(xsc.Attrs):
 	class onmouseout(xsc.TextAttr): pass
 
 
-class onmouseover(xsc.Element.Attrs):
+class onmouseover(xsc.Attrs):
 	class onmouseover(xsc.TextAttr): pass
 
 
-class onmouseup(xsc.Element.Attrs):
+class onmouseup(xsc.Attrs):
 	class onmouseup(xsc.TextAttr): pass
 
 
-class style(xsc.Element.Attrs):
+class style(xsc.Attrs):
 	class style(xsc.TextAttr): pass
 
 
-class title2(xsc.Element.Attrs):
+class title2(xsc.Attrs):
 	class title(xsc.TextAttr): pass
 
 
-class align(xsc.Element.Attrs):
+class align(xsc.Attrs):
 	class align(xsc.TextAttr): values = (u"left", u"center", u"right", u"justify", u"char")
 
 
-class char(xsc.Element.Attrs):
+class char(xsc.Attrs):
 	class char(xsc.TextAttr): pass
 
 
-class charoff(xsc.Element.Attrs):
+class charoff(xsc.Attrs):
 	class charoff(xsc.TextAttr): pass
 
 
-class span(xsc.Element.Attrs):
+class span(xsc.Attrs):
 	class span(xsc.TextAttr): pass
 
 
-class valign(xsc.Element.Attrs):
+class valign(xsc.Attrs):
 	class valign(xsc.TextAttr): values = (u"top", u"middle", u"bottom", u"baseline")
 
 
-class width(xsc.Element.Attrs):
+class width(xsc.Attrs):
 	class width(xsc.TextAttr): pass
 
 
-class align2(xsc.Element.Attrs):
+class align2(xsc.Attrs):
 	class align(xsc.TextAttr): values = (u"left", u"right", u"center", u"justify", u"char")
 
 
-class colname(xsc.Element.Attrs):
+class colname(xsc.Attrs):
 	class colname(xsc.TextAttr): pass
 
 
-class colsep(xsc.Element.Attrs):
+class colsep(xsc.Attrs):
 	class colsep(xsc.TextAttr): pass
 
 
-class rowsep(xsc.Element.Attrs):
+class rowsep(xsc.Attrs):
 	class rowsep(xsc.TextAttr): pass
 
 
-class class3(xsc.Element.Attrs):
+class class3(xsc.Attrs):
 	class class_(xsc.BoolAttr): xmlname = "class"
 
 
-class linkend(xsc.Element.Attrs):
+class linkend(xsc.Attrs):
 	class linkend(xsc.TextAttr): required = True
 
 
-class class4(xsc.Element.Attrs):
+class class4(xsc.Attrs):
 	class class_(xsc.TextAttr):
 		xmlname = "class"
 		values = (u"graphicdesigner", u"productioneditor", u"copyeditor", u"technicaleditor", u"translator", u"other")
 
 
-class nameend(xsc.Element.Attrs):
+class nameend(xsc.Attrs):
 	class nameend(xsc.TextAttr): pass
 
 
-class namest(xsc.Element.Attrs):
+class namest(xsc.Attrs):
 	class namest(xsc.TextAttr): pass
 
 
-class spanname(xsc.Element.Attrs):
+class spanname(xsc.Attrs):
 	class spanname(xsc.TextAttr): pass
 
 
-class valign2(xsc.Element.Attrs):
+class valign2(xsc.Attrs):
 	class valign(xsc.TextAttr): values = (u"top", u"middle", u"bottom")
 
 
-class cols(xsc.Element.Attrs):
+class cols(xsc.Attrs):
 	class cols(xsc.TextAttr): required = True
 
 
-class tgroupstyle(xsc.Element.Attrs):
+class tgroupstyle(xsc.Attrs):
 	class tgroupstyle(xsc.TextAttr): pass
 
 
-class floatstyle(xsc.Element.Attrs):
+class floatstyle(xsc.Attrs):
 	class floatstyle(xsc.TextAttr): pass
 
 
-class float(xsc.Element.Attrs):
+class float(xsc.Attrs):
 	class float(xsc.TextAttr): pass
 
 
-class pgwide(xsc.Element.Attrs):
+class pgwide(xsc.Attrs):
 	class pgwide(xsc.TextAttr): pass
 
 
-class baseform(xsc.Element.Attrs):
+class baseform(xsc.Attrs):
 	class baseform(xsc.TextAttr): pass
 
 
-class linkend2(xsc.Element.Attrs):
+class linkend2(xsc.Attrs):
 	class linkend(xsc.TextAttr): pass
 
 
-class sortas(xsc.Element.Attrs):
+class sortas(xsc.Attrs):
 	class sortas(xsc.TextAttr): pass
 
 
-class otherterm(xsc.Element.Attrs):
+class otherterm(xsc.Attrs):
 	class otherterm(xsc.TextAttr): pass
 
 
-class align3(xsc.Element.Attrs):
+class align3(xsc.Attrs):
 	class align(xsc.TextAttr): values = (u"left", u"right", u"center")
 
 
-class contentdepth(xsc.Element.Attrs):
+class contentdepth(xsc.Attrs):
 	class contentdepth(xsc.TextAttr): pass
 
 
-class contentwidth(xsc.Element.Attrs):
+class contentwidth(xsc.Attrs):
 	class contentwidth(xsc.TextAttr): pass
 
 
-class depth(xsc.Element.Attrs):
+class depth(xsc.Attrs):
 	class depth(xsc.TextAttr): pass
 
 
-class scale(xsc.Element.Attrs):
+class scale(xsc.Attrs):
 	class scale(xsc.TextAttr): pass
 
 
-class scalefit(xsc.Element.Attrs):
+class scalefit(xsc.Attrs):
 	class scalefit(xsc.TextAttr): pass
 
 
-class type2(xsc.Element.Attrs):
+class type2(xsc.Attrs):
 	class type(xsc.TextAttr): pass
 
 
-class align4(xsc.Element.Attrs):
+class align4(xsc.Attrs):
 	class align(xsc.TextAttr): values = (u"left", u"center", u"right")
 
 
-class bgcolor(xsc.Element.Attrs):
+class bgcolor(xsc.Attrs):
 	class bgcolor(xsc.TextAttr): pass
 
 
-class border(xsc.Element.Attrs):
+class border(xsc.Attrs):
 	class border(xsc.TextAttr): pass
 
 
-class cellpadding(xsc.Element.Attrs):
+class cellpadding(xsc.Attrs):
 	class cellpadding(xsc.TextAttr): pass
 
 
-class cellspacing(xsc.Element.Attrs):
+class cellspacing(xsc.Attrs):
 	class cellspacing(xsc.TextAttr): pass
 
 
-class frame(xsc.Element.Attrs):
+class frame(xsc.Attrs):
 	class frame(xsc.TextAttr): values = (u"void", u"above", u"below", u"hsides", u"lhs", u"rhs", u"vsides", u"box", u"border", u"top", u"bottom", u"topbot", u"all", u"sides", u"none")
 
 
-class orient(xsc.Element.Attrs):
+class orient(xsc.Attrs):
 	class orient(xsc.TextAttr): values = (u"port", u"land")
 
 
-class rules(xsc.Element.Attrs):
+class rules(xsc.Attrs):
 	class rules(xsc.TextAttr): values = (u"none", u"groups", u"rows", u"cols", u"all")
 
 
-class shortentry(xsc.Element.Attrs):
+class shortentry(xsc.Attrs):
 	class shortentry(xsc.TextAttr): pass
 
 
-class summary(xsc.Element.Attrs):
+class summary(xsc.Attrs):
 	class summary(xsc.TextAttr): pass
 
 
-class tabstyle(xsc.Element.Attrs):
+class tabstyle(xsc.Attrs):
 	class tabstyle(xsc.TextAttr): pass
 
 
-class tocentry2(xsc.Element.Attrs):
+class tocentry2(xsc.Attrs):
 	class tocentry(xsc.TextAttr): pass
 
 
-class spacing(xsc.Element.Attrs):
+class spacing(xsc.Attrs):
 	class spacing(xsc.TextAttr): values = (u"normal", u"compact")
 
 
-class action2(xsc.Element.Attrs):
+class action2(xsc.Attrs):
 	class action(xsc.TextAttr): values = (u"click", u"double-click", u"press", u"seq", u"simul", u"other")
 
 
-class otheraction(xsc.Element.Attrs):
+class otheraction(xsc.Attrs):
 	class otheraction(xsc.TextAttr): pass
 
 
-class endterm(xsc.Element.Attrs):
+class endterm(xsc.Attrs):
 	class endterm(xsc.TextAttr): pass
 
 
-class xrefstyle(xsc.Element.Attrs):
+class xrefstyle(xsc.Attrs):
 	class xrefstyle(xsc.TextAttr): pass
 
 
-class class5(xsc.Element.Attrs):
+class class5(xsc.Attrs):
 	class class_(xsc.TextAttr):
 		xmlname = "class"
 		values = (u"service", u"trade", u"registered", u"copyright")
 
 
-class performance(xsc.Element.Attrs):
+class performance(xsc.Attrs):
 	class performance(xsc.TextAttr): values = (u"optional", u"required")
 
 
-class abbr(xsc.Element.Attrs):
+class abbr(xsc.Attrs):
 	class abbr(xsc.TextAttr): pass
 
 
-class axis(xsc.Element.Attrs):
+class axis(xsc.Attrs):
 	class axis(xsc.TextAttr): pass
 
 
-class colspan(xsc.Element.Attrs):
+class colspan(xsc.Attrs):
 	class colspan(xsc.TextAttr): pass
 
 
-class headers(xsc.Element.Attrs):
+class headers(xsc.Attrs):
 	class headers(xsc.TextAttr): pass
 
 
-class height(xsc.Element.Attrs):
+class height(xsc.Attrs):
 	class height(xsc.TextAttr): pass
 
 
-class nowrap(xsc.Element.Attrs):
+class nowrap(xsc.Attrs):
 	class nowrap(xsc.BoolAttr): pass
 
 
-class rowspan(xsc.Element.Attrs):
+class rowspan(xsc.Attrs):
 	class rowspan(xsc.TextAttr): pass
 
 
-class scope(xsc.Element.Attrs):
+class scope(xsc.Attrs):
 	class scope(xsc.TextAttr): values = (u"row", u"col", u"rowgroup", u"colgroup")
 
 
+###
+### Elements
+###
+
 class abbrev(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class abstract(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class accel(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class ackno(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class acronym(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class action(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, moreinfo, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class address(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, continuation, dir, format, id, lang, language, linenumbering, os, remap, revision2, revisionflag, role, security, startinglinenumber, userlevel, vendor, xreflabel):
 		pass
 
 
 class affiliation(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class alt(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class anchor(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, id2, os, pagenum, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class answer(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class appendix(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, label2, lang, os, remap, revision2, revisionflag, role, security, status, userlevel, vendor, xreflabel):
 		pass
 
 
 class appendixinfo(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class application(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, moreinfo, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		class class_(xsc.TextAttr):
 			xmlname = "class"
@@ -557,26 +582,31 @@ class application(xsc.Element):
 
 
 class area(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, coords, dir, id2, label2, lang, linkends, os, otherunits, remap, revision2, revisionflag, role, security, units, userlevel, vendor, xreflabel):
 		pass
 
 
 class areaset(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, coords, dir, id2, label2, lang, os, otherunits, remap, revision2, revisionflag, role, security, units, userlevel, vendor, xreflabel):
 		pass
 
 
 class areaspec(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, otherunits, remap, revision2, revisionflag, role, security, units, userlevel, vendor, xreflabel):
 		pass
 
 
 class arg(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, choice, condition, conformance, dir, id, lang, os, remap, rep, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class article(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, status, userlevel, vendor, xreflabel):
 		class class_(xsc.TextAttr):
 			xmlname = "class"
@@ -585,56 +615,67 @@ class article(xsc.Element):
 
 
 class articleinfo(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class artpagenums(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class attribution(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class audiodata(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, entityref, fileref, format2, id, lang, os, remap, revision2, revisionflag, role, security, srccredit, userlevel, vendor, xreflabel):
 		pass
 
 
 class audioobject(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class author(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class authorblurb(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class authorgroup(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class authorinitials(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class beginpage(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, pagenum, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class bibliocoverage(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		class otherspatial(xsc.TextAttr): pass
 		class othertemporal(xsc.TextAttr): pass
@@ -643,147 +684,176 @@ class bibliocoverage(xsc.Element):
 
 
 class bibliodiv(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, status, userlevel, vendor, xreflabel):
 		pass
 
 
 class biblioentry(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class bibliography(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, status, userlevel, vendor, xreflabel):
 		pass
 
 
 class bibliographyinfo(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class biblioid(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, class_, condition, conformance, dir, id, lang, os, otherclass, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class bibliomisc(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class bibliomixed(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class bibliomset(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, relation, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class bibliorelation(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, class_, condition, conformance, dir, id, lang, os, otherclass, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		class othertype(xsc.TextAttr): pass
 		class type(xsc.TextAttr): values = (u"isversionof", u"hasversion", u"isreplacedby", u"replaces", u"isrequiredby", u"requires", u"ispartof", u"haspart", u"isreferencedby", u"references", u"isformatof", u"hasformat", u"othertype")
 
 
 class biblioset(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, relation, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class bibliosource(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, class_, condition, conformance, dir, id, lang, os, otherclass, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class blockinfo(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class blockquote(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class book(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, fpi, id, label2, lang, os, remap, revision2, revisionflag, role, security, status, userlevel, vendor, xreflabel):
 		pass
 
 
 class bookinfo(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, contents, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class bridgehead(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		class renderas(xsc.TextAttr): values = (u"other", u"sect1", u"sect2", u"sect3", u"sect4", u"sect5")
 
 
 class callout(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		class arearefs(xsc.TextAttr): required = True
 
 
 class calloutlist(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class caption(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, class2, condition, conformance, dir, id, lang, onclick, ondblclick, onkeydown, onkeypress, onkeyup, onmousedown, onmousemove, onmouseout, onmouseover, onmouseup, os, remap, revision2, revisionflag, role, security, style, title2, userlevel, vendor, xreflabel):
 		class align(xsc.TextAttr): values = (u"top", u"bottom", u"left", u"right")
 
 
 class caution(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class chapter(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, label2, lang, os, remap, revision2, revisionflag, role, security, status, userlevel, vendor, xreflabel):
 		pass
 
 
 class chapterinfo(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class citation(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class citebiblioid(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, class_, condition, conformance, dir, id, lang, os, otherclass, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class citerefentry(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class citetitle(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		class pubwork(xsc.TextAttr): values = (u"article", u"book", u"chapter", u"part", u"refentry", u"section", u"journal", u"series", u"set", u"manuscript", u"cdrom", u"dvd", u"wiki", u"gopher", u"bbs", u"emailmessage", u"webpage", u"newsposting")
 
 
 class city(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class classname(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class classsynopsis(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, language, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		class class_(xsc.TextAttr):
 			xmlname = "class"
@@ -791,148 +861,177 @@ class classsynopsis(xsc.Element):
 
 
 class classsynopsisinfo(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, continuation, dir, format, id, lang, language, linenumbering, os, remap, revision2, revisionflag, role, security, startinglinenumber, userlevel, vendor, xreflabel):
 		pass
 
 
 class cmdsynopsis(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, label2, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		class cmdlength(xsc.TextAttr): pass
 		class sepchar(xsc.TextAttr): pass
 
 
 class co(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id2, label2, lang, linkends, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class code(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, language, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class col(xsc.Element):
+	xmlns = xmlns
 	class Attrs(align, char, charoff, class2, id, onclick, ondblclick, onkeydown, onkeypress, onkeyup, onmousedown, onmousemove, onmouseout, onmouseover, onmouseup, span, style, title2, valign, width):
 		pass
 
 
 class colgroup(xsc.Element):
+	xmlns = xmlns
 	class Attrs(align, char, charoff, class2, id, onclick, ondblclick, onkeydown, onkeypress, onkeyup, onmousedown, onmousemove, onmouseout, onmouseover, onmouseup, span, style, title2, valign, width):
 		pass
 
 
 class collab(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class collabname(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class colophon(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, status, userlevel, vendor, xreflabel):
 		pass
 
 
 class colspec(xsc.Element):
+	xmlns = xmlns
 	class Attrs(align2, char, charoff, colname, colsep, rowsep):
 		class colnum(xsc.TextAttr): pass
 		class colwidth(xsc.TextAttr): pass
 
 
 class command(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, moreinfo, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class computeroutput(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, moreinfo, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class confdates(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class confgroup(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class confnum(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class confsponsor(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class conftitle(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class constant(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, class3, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class constructorsynopsis(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, language, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class contractnum(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class contractsponsor(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class contrib(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class copyright(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class coref(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, label2, lang, linkend, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class corpauthor(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class corpcredit(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, class4, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class corpname(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class country(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class database(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, moreinfo, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		class class_(xsc.TextAttr):
 			xmlname = "class"
@@ -940,112 +1039,134 @@ class database(xsc.Element):
 
 
 class date(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class dedication(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, status, userlevel, vendor, xreflabel):
 		pass
 
 
 class destructorsynopsis(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, language, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class edition(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class editor(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class email(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class emphasis(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class entry(xsc.Element):
+	xmlns = xmlns
 	class Attrs(align2, arch, char, charoff, class2, colname, colsep, condition, conformance, dir, id, lang, nameend, namest, onclick, ondblclick, onkeydown, onkeypress, onkeyup, onmousedown, onmousemove, onmouseout, onmouseover, onmouseup, os, remap, revision2, revisionflag, role, rowsep, security, spanname, style, title2, userlevel, valign2, vendor, xreflabel):
 		class morerows(xsc.TextAttr): pass
 		class rotate(xsc.TextAttr): pass
 
 
 class entrytbl(xsc.Element):
+	xmlns = xmlns
 	class Attrs(align2, arch, char, charoff, class2, colname, cols, colsep, condition, conformance, dir, id, lang, nameend, namest, onclick, ondblclick, onkeydown, onkeypress, onkeyup, onmousedown, onmousemove, onmouseout, onmouseover, onmouseup, os, remap, revision2, revisionflag, role, rowsep, security, spanname, style, tgroupstyle, title2, userlevel, vendor, xreflabel):
 		pass
 
 
 class envar(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class epigraph(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class equation(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, floatstyle, id, label2, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class errorcode(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, moreinfo, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class errorname(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class errortext(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class errortype(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class example(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, floatstyle, id, label2, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, width, xreflabel):
 		pass
 
 
 class exceptionname(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class fax(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class fieldsynopsis(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, language, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class figure(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, float, floatstyle, id, label2, lang, os, pgwide, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class filename(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, moreinfo, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		class class_(xsc.TextAttr):
 			xmlname = "class"
@@ -1054,216 +1175,259 @@ class filename(xsc.Element):
 
 
 class firstname(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class firstterm(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, baseform, condition, conformance, dir, id, lang, linkend2, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class footnote(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, label2, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class footnoteref(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, label2, lang, linkend, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class foreignphrase(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class formalpara(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class funcdef(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class funcparams(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class funcprototype(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class funcsynopsis(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, label2, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class funcsynopsisinfo(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, continuation, dir, format, id, lang, language, linenumbering, os, remap, revision2, revisionflag, role, security, startinglinenumber, userlevel, vendor, xreflabel):
 		pass
 
 
 class function(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, moreinfo, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class glossary(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, status, userlevel, vendor, xreflabel):
 		pass
 
 
 class glossaryinfo(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class glossdef(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		class subject(xsc.TextAttr): pass
 
 
 class glossdiv(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, status, userlevel, vendor, xreflabel):
 		pass
 
 
 class glossentry(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, sortas, userlevel, vendor, xreflabel):
 		pass
 
 
 class glosslist(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class glosssee(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, otherterm, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class glossseealso(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, otherterm, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class glossterm(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, baseform, condition, conformance, dir, id, lang, linkend2, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class graphic(xsc.Element):
+	xmlns = xmlns
 	class Attrs(align3, arch, condition, conformance, contentdepth, contentwidth, depth, dir, entityref, fileref, format2, id, lang, os, remap, revision2, revisionflag, role, scale, scalefit, security, srccredit, userlevel, valign2, vendor, width, xreflabel):
 		pass
 
 
 class graphicco(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class group(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, choice, condition, conformance, dir, id, lang, os, remap, rep, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class guibutton(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, moreinfo, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class guiicon(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, moreinfo, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class guilabel(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, moreinfo, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class guimenu(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, moreinfo, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class guimenuitem(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, moreinfo, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class guisubmenu(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, moreinfo, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class hardware(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, moreinfo, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class highlights(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class holder(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class honorific(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class imagedata(xsc.Element):
+	xmlns = xmlns
 	class Attrs(align3, arch, condition, conformance, contentdepth, contentwidth, depth, dir, entityref, fileref, format2, id, lang, os, remap, revision2, revisionflag, role, scale, scalefit, security, srccredit, userlevel, valign2, vendor, width, xreflabel):
 		pass
 
 
 class imageobject(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class imageobjectco(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class important(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class index(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, type2, userlevel, vendor, xreflabel):
 		pass
 
 
 class indexdiv(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class indexentry(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class indexinfo(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class indexterm(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, pagenum, remap, revision2, revisionflag, role, security, type2, userlevel, vendor, xreflabel):
 		class class_(xsc.TextAttr):
 			xmlname = "class"
@@ -1275,157 +1439,188 @@ class indexterm(xsc.Element):
 
 
 class informalequation(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, floatstyle, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class informalexample(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, floatstyle, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, width, xreflabel):
 		pass
 
 
 class informalfigure(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, float, floatstyle, id, label2, lang, os, pgwide, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class informaltable(xsc.Element):
+	xmlns = xmlns
 	class Attrs(align4, arch, bgcolor, border, cellpadding, cellspacing, class2, colsep, condition, conformance, dir, floatstyle, frame, id, label2, lang, onclick, ondblclick, onkeydown, onkeypress, onkeyup, onmousedown, onmousemove, onmouseout, onmouseover, onmouseup, orient, os, pgwide, remap, revision2, revisionflag, role, rowsep, rules, security, shortentry, style, summary, tabstyle, title2, tocentry2, userlevel, vendor, width, xreflabel):
 		pass
 
 
 class initializer(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class inlineequation(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class inlinegraphic(xsc.Element):
+	xmlns = xmlns
 	class Attrs(align3, arch, condition, conformance, contentdepth, contentwidth, depth, dir, entityref, fileref, format2, id, lang, os, remap, revision2, revisionflag, role, scale, scalefit, security, srccredit, userlevel, valign2, vendor, width, xreflabel):
 		pass
 
 
 class inlinemediaobject(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class interface(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, moreinfo, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class interfacename(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class invpartnumber(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class isbn(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class issn(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class issuenum(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class itemizedlist(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, spacing, userlevel, vendor, xreflabel):
 		class mark(xsc.TextAttr): pass
 
 
 class itermset(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class jobtitle(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class keycap(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, moreinfo, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		class function(xsc.TextAttr): values = (u"alt", u"control", u"shift", u"meta", u"escape", u"enter", u"tab", u"backspace", u"command", u"option", u"space", u"delete", u"insert", u"up", u"down", u"left", u"right", u"home", u"end", u"pageup", u"pagedown", u"other")
 		class otherfunction(xsc.TextAttr): pass
 
 
 class keycode(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class keycombo(xsc.Element):
+	xmlns = xmlns
 	class Attrs(action2, arch, condition, conformance, dir, id, lang, moreinfo, os, otheraction, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class keysym(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class keyword(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class keywordset(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class label(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class legalnotice(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class lineage(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class lineannotation(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class link(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, endterm, id, lang, linkend, os, remap, revision2, revisionflag, role, security, type2, userlevel, vendor, xreflabel, xrefstyle):
 		pass
 
 
 class listitem(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		class override(xsc.TextAttr): pass
 
 
 class literal(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, moreinfo, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class literallayout(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, continuation, dir, format, id, lang, language, linenumbering, os, remap, revision2, revisionflag, role, security, startinglinenumber, userlevel, vendor, width, xreflabel):
 		class class_(xsc.TextAttr):
 			xmlname = "class"
@@ -1433,26 +1628,31 @@ class literallayout(xsc.Element):
 
 
 class lot(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, label2, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class lotentry(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, linkend2, os, pagenum, remap, revision2, revisionflag, role, security, srccredit, userlevel, vendor, xreflabel):
 		pass
 
 
 class manvolnum(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class markup(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class medialabel(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		class class_(xsc.TextAttr):
 			xmlname = "class"
@@ -1460,126 +1660,151 @@ class medialabel(xsc.Element):
 
 
 class mediaobject(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class mediaobjectco(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class member(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class menuchoice(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, moreinfo, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class methodname(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class methodparam(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, rep, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		class choice(xsc.TextAttr): values = (u"opt", u"req", u"plain")
 
 
 class methodsynopsis(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, language, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class modespec(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		class application(xsc.TextAttr): pass
 
 
 class modifier(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class mousebutton(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, moreinfo, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class msg(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class msgaud(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class msgentry(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class msgexplan(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class msginfo(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class msglevel(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class msgmain(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class msgorig(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class msgrel(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class msgset(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class msgsub(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class msgtext(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class note(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class objectinfo(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class olink(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, type2, userlevel, vendor, xreflabel, xrefstyle):
 		class linkmode(xsc.TextAttr): pass
 		class localinfo(xsc.TextAttr): pass
@@ -1589,31 +1814,37 @@ class olink(xsc.Element):
 
 
 class ooclass(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class ooexception(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class oointerface(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class option(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class optional(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class orderedlist(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, spacing, userlevel, vendor, xreflabel):
 		class continuation(xsc.TextAttr): values = (u"continues", u"restarts")
 		class inheritnum(xsc.TextAttr): values = (u"inherit", u"ignore")
@@ -1621,11 +1852,13 @@ class orderedlist(xsc.Element):
 
 
 class orgdiv(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class orgname(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, otherclass, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		class class_(xsc.TextAttr):
 			xmlname = "class"
@@ -1633,36 +1866,43 @@ class orgname(xsc.Element):
 
 
 class otheraddr(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class othercredit(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, class4, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class othername(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class pagenums(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class para(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class paramdef(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		class choice(xsc.TextAttr): values = (u"opt", u"req")
 
 
 class parameter(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, moreinfo, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		class class_(xsc.TextAttr):
 			xmlname = "class"
@@ -1670,276 +1910,331 @@ class parameter(xsc.Element):
 
 
 class part(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, label2, lang, os, remap, revision2, revisionflag, role, security, status, userlevel, vendor, xreflabel):
 		pass
 
 
 class partinfo(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class partintro(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, label2, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class personblurb(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class personname(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class phone(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class phrase(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class pob(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class postcode(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class preface(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, status, userlevel, vendor, xreflabel):
 		pass
 
 
 class prefaceinfo(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class primary(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, sortas, userlevel, vendor, xreflabel):
 		pass
 
 
 class primaryie(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, linkends, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class printhistory(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class procedure(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class productname(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, class5, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class productnumber(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class programlisting(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, continuation, dir, format, id, lang, language, linenumbering, os, remap, revision2, revisionflag, role, security, startinglinenumber, userlevel, vendor, width, xreflabel):
 		pass
 
 
 class programlistingco(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class prompt(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, moreinfo, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class property(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, moreinfo, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class pubdate(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class publisher(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class publishername(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class pubsnumber(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class qandadiv(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class qandaentry(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class qandaset(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		class defaultlabel(xsc.TextAttr): values = (u"qanda", u"number", u"none")
 
 
 class question(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class quote(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class refclass(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class refdescriptor(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class refentry(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, status, userlevel, vendor, xreflabel):
 		pass
 
 
 class refentryinfo(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class refentrytitle(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class reference(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, label2, lang, os, remap, revision2, revisionflag, role, security, status, userlevel, vendor, xreflabel):
 		pass
 
 
 class referenceinfo(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class refmeta(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class refmiscinfo(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, class2, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class refname(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class refnamediv(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class refpurpose(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class refsect1(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, status, userlevel, vendor, xreflabel):
 		pass
 
 
 class refsect1info(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class refsect2(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, status, userlevel, vendor, xreflabel):
 		pass
 
 
 class refsect2info(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class refsect3(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, status, userlevel, vendor, xreflabel):
 		pass
 
 
 class refsect3info(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class refsection(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, status, userlevel, vendor, xreflabel):
 		pass
 
 
 class refsectioninfo(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class refsynopsisdiv(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class refsynopsisdivinfo(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class releaseinfo(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class remark(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class replaceable(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		class class_(xsc.TextAttr):
 			xmlname = "class"
@@ -1947,201 +2242,241 @@ class replaceable(xsc.Element):
 
 
 class returnvalue(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class revdescription(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class revhistory(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class revision(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class revnumber(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class revremark(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class row(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, class2, condition, conformance, dir, id, lang, onclick, ondblclick, onkeydown, onkeypress, onkeyup, onmousedown, onmousemove, onmouseout, onmouseover, onmouseup, os, remap, revision2, revisionflag, role, rowsep, security, style, title2, userlevel, valign2, vendor, xreflabel):
 		pass
 
 
 class sbr(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class screen(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, continuation, dir, format, id, lang, language, linenumbering, os, remap, revision2, revisionflag, role, security, startinglinenumber, userlevel, vendor, width, xreflabel):
 		pass
 
 
 class screenco(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class screeninfo(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class screenshot(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class secondary(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, sortas, userlevel, vendor, xreflabel):
 		pass
 
 
 class secondaryie(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, linkends, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class sect1(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, label2, lang, os, remap, revision2, revisionflag, role, security, status, userlevel, vendor, xreflabel):
 		class renderas(xsc.TextAttr): values = (u"sect2", u"sect3", u"sect4", u"sect5")
 
 
 class sect1info(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class sect2(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, label2, lang, os, remap, revision2, revisionflag, role, security, status, userlevel, vendor, xreflabel):
 		class renderas(xsc.TextAttr): values = (u"sect1", u"sect3", u"sect4", u"sect5")
 
 
 class sect2info(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class sect3(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, label2, lang, os, remap, revision2, revisionflag, role, security, status, userlevel, vendor, xreflabel):
 		class renderas(xsc.TextAttr): values = (u"sect1", u"sect2", u"sect4", u"sect5")
 
 
 class sect3info(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class sect4(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, label2, lang, os, remap, revision2, revisionflag, role, security, status, userlevel, vendor, xreflabel):
 		class renderas(xsc.TextAttr): values = (u"sect1", u"sect2", u"sect3", u"sect5")
 
 
 class sect4info(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class sect5(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, label2, lang, os, remap, revision2, revisionflag, role, security, status, userlevel, vendor, xreflabel):
 		class renderas(xsc.TextAttr): values = (u"sect1", u"sect2", u"sect3", u"sect4")
 
 
 class sect5info(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class section(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, label2, lang, os, remap, revision2, revisionflag, role, security, status, userlevel, vendor, xreflabel):
 		pass
 
 
 class sectioninfo(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class see(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class seealso(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class seealsoie(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, linkends, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class seeie(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, linkend2, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class seg(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class seglistitem(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class segmentedlist(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class segtitle(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class seriesvolnums(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class set(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, fpi, id, lang, os, remap, revision2, revisionflag, role, security, status, userlevel, vendor, xreflabel):
 		pass
 
 
 class setindex(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class setindexinfo(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class setinfo(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, contents, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class sgmltag(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		class class_(xsc.TextAttr):
 			xmlname = "class"
@@ -2150,37 +2485,44 @@ class sgmltag(xsc.Element):
 
 
 class shortaffil(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class shortcut(xsc.Element):
+	xmlns = xmlns
 	class Attrs(action2, arch, condition, conformance, dir, id, lang, moreinfo, os, otheraction, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class sidebar(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class sidebarinfo(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class simpara(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class simplelist(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		class columns(xsc.TextAttr): pass
 		class type(xsc.TextAttr): values = (u"inline", u"vert", u"horiz")
 
 
 class simplemsgentry(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		class audience(xsc.TextAttr): pass
 		class level(xsc.TextAttr): pass
@@ -2188,11 +2530,13 @@ class simplemsgentry(xsc.Element):
 
 
 class simplesect(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class spanspec(xsc.Element):
+	xmlns = xmlns
 	class Attrs(align2, char, charoff, colsep, rowsep):
 		class nameend(xsc.TextAttr): required = True
 		class namest(xsc.TextAttr): required = True
@@ -2200,96 +2544,115 @@ class spanspec(xsc.Element):
 
 
 class state(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class step(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, performance, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class stepalternatives(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, performance, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class street(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class structfield(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class structname(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class subject(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		class weight(xsc.TextAttr): pass
 
 
 class subjectset(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		class scheme(xsc.TextAttr): pass
 
 
 class subjectterm(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class subscript(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class substeps(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, performance, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class subtitle(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class superscript(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class surname(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class symbol(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, class3, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class synopfragment(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id2, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class synopfragmentref(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, linkend, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class synopsis(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, continuation, dir, format, id, label2, lang, language, linenumbering, os, remap, revision2, revisionflag, role, security, startinglinenumber, userlevel, vendor, xreflabel):
 		pass
 
 
 class systemitem(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, moreinfo, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		class class_(xsc.TextAttr):
 			xmlname = "class"
@@ -2297,246 +2660,295 @@ class systemitem(xsc.Element):
 
 
 class table(xsc.Element):
+	xmlns = xmlns
 	class Attrs(align4, arch, bgcolor, border, cellpadding, cellspacing, class2, colsep, condition, conformance, dir, floatstyle, frame, id, label2, lang, onclick, ondblclick, onkeydown, onkeypress, onkeyup, onmousedown, onmousemove, onmouseout, onmouseover, onmouseup, orient, os, pgwide, remap, revision2, revisionflag, role, rowsep, rules, security, shortentry, style, summary, tabstyle, title2, tocentry2, userlevel, vendor, width, xreflabel):
 		pass
 
 
 class task(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class taskprerequisites(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class taskrelated(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class tasksummary(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class tbody(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, class2, condition, conformance, dir, id, lang, onclick, ondblclick, onkeydown, onkeypress, onkeyup, onmousedown, onmousemove, onmouseout, onmouseover, onmouseup, os, remap, revision2, revisionflag, role, security, style, title2, userlevel, valign2, vendor, xreflabel):
 		pass
 
 
 class td(xsc.Element):
+	xmlns = xmlns
 	class Attrs(abbr, align, axis, bgcolor, char, charoff, class2, colspan, headers, height, id, nowrap, onclick, ondblclick, onkeydown, onkeypress, onkeyup, onmousedown, onmousemove, onmouseout, onmouseover, onmouseup, rowspan, scope, style, title2, valign, width):
 		pass
 
 
 class term(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class tertiary(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, sortas, userlevel, vendor, xreflabel):
 		pass
 
 
 class tertiaryie(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, linkends, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class textdata(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, entityref, fileref, format2, id, lang, os, remap, revision2, revisionflag, role, security, srccredit, userlevel, vendor, xreflabel):
 		class encoding(xsc.TextAttr): pass
 
 
 class textobject(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class tfoot(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, class2, condition, conformance, dir, id, lang, onclick, ondblclick, onkeydown, onkeypress, onkeyup, onmousedown, onmousemove, onmouseout, onmouseover, onmouseup, os, remap, revision2, revisionflag, role, security, style, title2, userlevel, valign2, vendor, xreflabel):
 		pass
 
 
 class tgroup(xsc.Element):
+	xmlns = xmlns
 	class Attrs(align2, arch, char, charoff, class2, cols, colsep, condition, conformance, dir, id, lang, onclick, ondblclick, onkeydown, onkeypress, onkeyup, onmousedown, onmousemove, onmouseout, onmouseover, onmouseup, os, remap, revision2, revisionflag, role, rowsep, security, style, tgroupstyle, title2, userlevel, vendor, xreflabel):
 		pass
 
 
 class th(xsc.Element):
+	xmlns = xmlns
 	class Attrs(abbr, align, axis, bgcolor, char, charoff, class2, colspan, headers, height, id, nowrap, onclick, ondblclick, onkeydown, onkeypress, onkeyup, onmousedown, onmousemove, onmouseout, onmouseover, onmouseup, rowspan, scope, style, title2, valign, width):
 		pass
 
 
 class thead(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, class2, condition, conformance, dir, id, lang, onclick, ondblclick, onkeydown, onkeypress, onkeyup, onmousedown, onmousemove, onmouseout, onmouseover, onmouseup, os, remap, revision2, revisionflag, role, security, style, title2, userlevel, valign2, vendor, xreflabel):
 		pass
 
 
 class tip(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class title(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, pagenum, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class titleabbrev(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class toc(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, pagenum, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class tocback(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, label2, lang, linkend2, os, pagenum, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class tocchap(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, label2, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class tocentry(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, linkend2, os, pagenum, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class tocfront(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, label2, lang, linkend2, os, pagenum, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class toclevel1(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class toclevel2(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class toclevel3(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class toclevel4(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class toclevel5(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class tocpart(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class token(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class tr(xsc.Element):
+	xmlns = xmlns
 	class Attrs(align, bgcolor, char, charoff, class2, id, onclick, ondblclick, onkeydown, onkeypress, onkeyup, onmousedown, onmousemove, onmouseout, onmouseover, onmouseup, style, title2, valign):
 		pass
 
 
 class trademark(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, class5, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class type(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class ulink(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, type2, userlevel, vendor, xreflabel, xrefstyle):
 		class url(xsc.TextAttr): required = True
 
 
 class uri(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, type2, userlevel, vendor, xreflabel):
 		pass
 
 
 class userinput(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, moreinfo, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class varargs(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class variablelist(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		class termlength(xsc.TextAttr): pass
 
 
 class varlistentry(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class varname(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class videodata(xsc.Element):
+	xmlns = xmlns
 	class Attrs(align3, arch, condition, conformance, contentdepth, contentwidth, depth, dir, entityref, fileref, format2, id, lang, os, remap, revision2, revisionflag, role, scale, scalefit, security, srccredit, userlevel, valign2, vendor, width, xreflabel):
 		pass
 
 
 class videoobject(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class void(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class volumenum(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class warning(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class wordasword(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
 
 class xref(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, endterm, id, lang, linkend, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel, xrefstyle):
 		pass
 
 
 class year(xsc.Element):
+	xmlns = xmlns
 	class Attrs(arch, condition, conformance, dir, id, lang, os, remap, revision2, revisionflag, role, security, userlevel, vendor, xreflabel):
 		pass
 
@@ -2942,9 +3354,3 @@ alt.model = \
 keyword.model = \
 subjectterm.model = \
 synopfragmentref.model = sims.NoElements()
-
-
-class __ns__(xsc.Namespace):
-	xmlname = "docbook"
-	xmlurl = "http://www.docbook.org/xml/4.3/docbookx.dtd"
-__ns__.makemod(vars())

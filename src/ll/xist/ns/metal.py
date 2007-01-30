@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 1999-2006 by LivingLogic AG, Bayreuth/Germany.
-## Copyright 1999-2006 by Walter Dörwald
+## Copyright 1999-2007 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 1999-2007 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -19,14 +19,22 @@ __version__ = "$Revision$".split()[1]
 from ll.xist import xsc
 
 
-class __ns__(xsc.Namespace):
-	xmlname = "metal"
-	xmlurl = "http://xml.zope.org/namespaces/metal"
+xmlns = "http://xml.zope.org/namespaces/metal"
 
-	class Attrs(xsc.Namespace.Attrs):
-		class define_macro(xsc.TextAttr): xmlname = "define-macro"
-		class use_macro(xsc.TextAttr): xmlname = "use-macro"
-		class define_slot(xsc.TextAttr): xmlname = "define-slot"
-		class use_slot(xsc.TextAttr): xmlname = "use-slot"
 
-__ns__.makemod(vars())
+class Attrs(xsc.Attrs):
+	class define_macro(xsc.TextAttr):
+		xmlns = xmlns
+		xmlname = "define-macro"
+
+	class use_macro(xsc.TextAttr):
+		xmlns = xmlns
+		xmlname = "use-macro"
+
+	class define_slot(xsc.TextAttr):
+		xmlns = xmlns
+		xmlname = "define-slot"
+
+	class use_slot(xsc.TextAttr):
+		xmlns = xmlns
+		xmlname = "use-slot"

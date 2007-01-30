@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 1999-2006 by LivingLogic AG, Bayreuth/Germany.
-## Copyright 1999-2006 by Walter Dörwald
+## Copyright 1999-2007 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 1999-2007 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -20,7 +20,10 @@ from ll import misc
 from ll.xist import xsc, sims, xnd, xfind
 
 
-class IdAttrs(xsc.Element.Attrs):
+xmlns = "http://java.sun.com/j2ee/dtds/web-jsptaglibrary_1_1.dtd"
+
+
+class IdAttrs(xsc.Attrs):
 	class id(xsc.IDAttr): pass
 
 
@@ -44,6 +47,7 @@ class attribute(xsc.Element):
 		</item>
 	</ulist>
 	"""
+	xmlns = xmlns
 	class Attrs(IdAttrs): pass
 
 	def asxnd(self):
@@ -80,6 +84,7 @@ class bodycontent(xsc.Element):
 	<par>Valid values: <lit>tagdependent</lit>, <lit>JSP</lit>,
 	<lit>empty</lit>.</par>
 	"""
+	xmlns = xmlns
 	class Attrs(IdAttrs): pass
 
 
@@ -87,6 +92,7 @@ class info(xsc.Element):
 	"""
 	<par>Defines an arbitrary text string describing the tag library.</par>
 	"""
+	xmlns = xmlns
 	class Attrs(IdAttrs): pass
 
 	def asxnd(self):
@@ -98,6 +104,7 @@ class jspversion(xsc.Element):
 	<par>Describes the &jsp; version (number) this taglibrary requires in
 	order to function (dewey decimal). The default is <lit>1.1</lit>.</par>
 	"""
+	xmlns = xmlns
 	class Attrs(IdAttrs): pass
 
 
@@ -105,6 +112,7 @@ class name(xsc.Element):
 	"""
 	<par>Defines the canonical name of a tag or attribute being defined.</par>
 	"""
+	xmlns = xmlns
 	class Attrs(IdAttrs): pass
 
 
@@ -114,6 +122,7 @@ class required(xsc.Element):
 	<par>Valid values: <lit>true</lit>, <lit>false</lit>, <lit>yes</lit>,
 	<lit>no</lit>.</par>
 	"""
+	xmlns = xmlns
 	class Attrs(IdAttrs): pass
 
 
@@ -126,6 +135,7 @@ class rtexprvalue(xsc.Element):
 	<par>Valid values: <lit>true</lit>, <lit>false</lit>, <lit>yes</lit>,
 	<lit>no</lit>.</par>
 	"""
+	xmlns = xmlns
 	class Attrs(IdAttrs): pass
 
 
@@ -134,6 +144,7 @@ class shortname(xsc.Element):
 	<par>Defines a short (default) shortname to be used for tags and
 	variable names used/created by this tag library.</par>
 	"""
+	xmlns = xmlns
 	class Attrs(IdAttrs): pass
 
 
@@ -149,6 +160,7 @@ class tag(xsc.Element):
 		<item>any attributes</item>
 	</ulist>
 	"""
+	xmlns = xmlns
 	class Attrs(IdAttrs): pass
 
 	def asxnd(self):
@@ -181,6 +193,7 @@ class tagclass(xsc.Element):
 	that implements the request time semantics for this tag.</par>
 	<par>The content has to be a fully qualified Java class name.</par>
 	"""
+	xmlns = xmlns
 	class Attrs(IdAttrs): pass
 
 
@@ -201,6 +214,7 @@ class taglib(xsc.Element):
 		</item>
 	</ulist>
 	"""
+	xmlns = xmlns
 	class Attrs(IdAttrs): pass
 
 	def asxnd(self):
@@ -223,6 +237,7 @@ class teiclass(xsc.Element):
 	translation time.</par>
 	<par>The content has to be a fully qualified Java class name.</par>
 	"""
+	xmlns = xmlns
 	class Attrs(IdAttrs): pass
 
 
@@ -230,6 +245,7 @@ class tlibversion(xsc.Element):
 	"""
 	<par>Describes this version (number) of the taglibrary (dewey decimal).</par>
 	"""
+	xmlns = xmlns
 	class Attrs(IdAttrs): pass
 
 
@@ -238,6 +254,7 @@ class uri(xsc.Element):
 	<par>Defines a public URI that uniquely identifies this version of
 	the taglibrary. Leave it empty if it does not apply.</par>
 	"""
+	xmlns = xmlns
 	class Attrs(IdAttrs): pass
 
 
@@ -255,9 +272,3 @@ tagclass.model = \
 teiclass.model = \
 tlibversion.model = \
 uri.model = sims.NoElements()
-
-
-class __ns__(xsc.Namespace):
-	xmlname = "tld"
-	xmlurl = "http://java.sun.com/j2ee/dtds/web-jsptaglibrary_1_1.dtd"
-__ns__.makemod(vars())

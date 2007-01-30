@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 1999-2006 by LivingLogic AG, Bayreuth/Germany.
-## Copyright 1999-2006 by Walter Dörwald
+## Copyright 1999-2007 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 1999-2007 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -23,7 +23,11 @@ from ll.xist import xsc
 from ll.xist.ns import html as html_, chars
 
 
+xmlns = "http://xmlns.livinglogic.de/xist/ns/text"
+
+
 class html(html_.html):
+	xmlns = xmlns
 	def fixcharacters(self, node, converter):
 		if isinstance(node, xsc.Text):
 			node = node.replace(unichr(chars.mdash.codepoint), u"--")
@@ -63,36 +67,36 @@ class HeaderFormattingMixin(object):
 
 
 class h1(HeaderFormattingMixin, html_.h1):
+	xmlns = xmlns
 	underline = u"="
 	base = html_.h1
 
 
 class h2(HeaderFormattingMixin, html_.h2):
+	xmlns = xmlns
 	underline = u"="
 	base = html_.h2
 
 
 class h3(HeaderFormattingMixin, html_.h3):
+	xmlns = xmlns
 	underline = u"-"
 	base = html_.h3
 
 
 class h4(HeaderFormattingMixin, html_.h4):
+	xmlns = xmlns
 	underline = u"-"
 	base = html_.h4
 
 
 class h5(HeaderFormattingMixin, html_.h5):
+	xmlns = xmlns
 	underline = u"-"
 	base = html_.h5
 
 
 class h6(HeaderFormattingMixin, html_.h6):
+	xmlns = xmlns
 	underline = u"-"
 	base = html_.h6
-
-
-class __ns__(html_):
-	xmlname = "text"
-	xmlurl = "http://xmlns.livinglogic.de/xist/ns/text"
-__ns__.makemod(vars())

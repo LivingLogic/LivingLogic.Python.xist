@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 1999-2006 by LivingLogic AG, Bayreuth/Germany.
-## Copyright 1999-2006 by Walter Dörwald
+## Copyright 1999-2007 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 1999-2007 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -131,7 +131,7 @@ class NoElements(object):
 		"""
 		if isinstance(node, xsc.Element):
 			for child in node.content:
-				if isinstance(child, xsc.Element) and node.__ns__ is not None and child.__ns__ is not None and issubclass(child.__ns__, node.__ns__):
+				if isinstance(child, xsc.Element) and node.xmlns is not None and child.xmlns is not None and child.xmlns == node.xmlns:
 					warnings.warn(ElementWarning(node, child))
 
 
@@ -153,7 +153,7 @@ class NoElementsOrText(object):
 			for child in node.content:
 				if badtext(child):
 					warnings.warn(IllegalTextWarning(node, child))
-				elif isinstance(child, xsc.Element) and node.__ns__ is not None and child.__ns__ is not None and issubclass(child.__ns__, node.__ns__):
+				elif isinstance(child, xsc.Element) and node.xmlns is not None and child.xmlns is not None and child.xmlns == node.xmlns:
 					warnings.warn(ElementWarning(node, child))
 
 
@@ -186,10 +186,10 @@ class Elements(object):
 			for child in node.content:
 				if badtext(child):
 					warnings.warn(IllegalTextWarning(node, child))
-				elif isinstance(child, xsc.Element) and node.__ns__ is not None and not isinstance(child, self.elements):
-					if ns is None:
-						ns = tuple(el.__ns__ for el in self.elements if el.__ns__ is not None)
-					if child.__ns__ is not None and issubclass(child.__ns__, ns):
+				elif isinstance(child, xsc.Element) and node.xmlns is not None and not isinstance(child, self.elements):
+					if ns is None: # Calculate the first time we need it
+						ns = set(el.xmlns for el in self.elements if el.xmlns is not None)
+					if child.xmlns in ns:
 						warnings.warn(WrongElementWarning(node, child, self.elements))
 
 
@@ -218,10 +218,10 @@ class ElementsOrText(Elements):
 		ns = None
 		if isinstance(node, xsc.Element):
 			for child in node.content:
-				if isinstance(child, xsc.Element) and node.__ns__ is not None and not isinstance(child, self.elements):
-					if ns is None:
-						ns = tuple(el.__ns__ for el in self.elements if el.__ns__ is not None)
-					if child.__ns__ is not None and issubclass(child.__ns__, ns):
+				if isinstance(child, xsc.Element) and node.xmlns is not None and not isinstance(child, self.elements):
+					if ns is None: # Calculate the first time we need it
+						ns = set(el.xmlns for el in self.elements if el.xmlns is not None)
+					if child.xmlns in ns:
 						warnings.warn(WrongElementWarning(node, child, self.elements))
 
 

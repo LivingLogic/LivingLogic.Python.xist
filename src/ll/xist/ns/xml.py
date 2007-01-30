@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 1999-2006 by LivingLogic AG, Bayreuth/Germany.
-## Copyright 1999-2006 by Walter Dörwald
+## Copyright 1999-2007 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 1999-2007 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -17,6 +17,21 @@ __version__ = "$Revision$".split()[1]
 # $Source$
 
 from ll.xist import xsc, utils, sims
+
+
+xmlns = xsc.xml_xmlns
+
+
+class Attrs(xsc.Attrs):
+	class space(xsc.TextAttr):
+		xmlns = xmlns
+		values = (u"default", u"preserve")
+
+	class lang(xsc.TextAttr):
+		xmlns = xmlns
+
+	class base(xsc.URLAttr):
+		xmlns = xmlns
 
 
 class XML(xsc.ProcInst):
@@ -42,6 +57,7 @@ class XML10(XML):
 	"""
 	&xml; declaration with <lit>version="1.0"</lit>.
 	"""
+	xmlns = xmlns
 	xmlname = "xml10"
 	register = False # don't register this ProcInst, because it will never be parsed from a file, this is just a convenience class
 
@@ -61,26 +77,9 @@ class declaration(xsc.Element):
 	<par>The &xml; declaration as an element. This makes it possible to generate
 	a declaration from within an &xml; file.
 	"""
+	xmlns = xmlns
 	model = sims.Empty()
 
 	def convert(self, converter):
 		node = XML10()
 		return node.convert(converter)
-
-
-class __ns__(xsc.Namespace):
-	xmlname = "xml"
-	xmlurl = "http://www.w3.org/XML/1998/namespace"
-
-	class Attrs(xsc.Namespace.Attrs):
-		class space(xsc.TextAttr):
-			xmlprefix = "xml"
-			needsxmlns = 1
-			values = (u"default", u"preserve")
-		class lang(xsc.TextAttr):
-			xmlprefix = "xml"
-			needsxmlns = 1
-		class base(xsc.URLAttr):
-			xmlprefix = "xml"
-			needsxmlns = 1
-__ns__.makemod(vars())

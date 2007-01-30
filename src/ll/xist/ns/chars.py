@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 1999-2006 by LivingLogic AG, Bayreuth/Germany.
-## Copyright 1999-2006 by Walter Dörwald
+## Copyright 1999-2007 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 1999-2007 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -16,6 +16,10 @@ __version__ = "$Revision$".split()[1]
 # $Source$
 
 from ll.xist import xsc
+
+
+xmlns = "http://xmlns.livinglogic.de/xist/ns/chars"
+
 
 # Latin 1 characters
 class nbsp(xsc.CharRef): "no-break space = non-breaking space, U+00A0 ISOnum"; codepoint = 160
@@ -291,9 +295,3 @@ class spades(xsc.CharRef): "black spade suit, U+2660 ISOpub"; codepoint = 9824
 class clubs(xsc.CharRef): "black club suit = shamrock, U+2663 ISOpub"; codepoint = 9827
 class hearts(xsc.CharRef): "black heart suit = valentine, U+2665 ISOpub"; codepoint = 9829
 class diams(xsc.CharRef): "black diamond suit, U+2666 ISOpub"; codepoint = 9830
-
-
-class __ns__(xsc.Namespace):
-	xmlname = "chars"
-	xmlurl = "http://xmlns.livinglogic.de/xist/ns/chars"
-__ns__.makemod(vars())

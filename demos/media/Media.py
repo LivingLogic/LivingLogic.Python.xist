@@ -5,7 +5,13 @@ from ll.xist import xsc, sims, parsers
 from ll.xist.ns import html, htmlspecials, meta, xml, chars
 
 
+class xmlns(xsc.Namespace):
+	xmlname = "media"
+	xmlurl = "http://xmlns.livinglogic.de/xist/demo/media"
+
+
 class name(xsc.Element):
+	xmlns = xmlns
 	model = sims.NoElements()
 
 	def convert(self, converter):
@@ -13,6 +19,7 @@ class name(xsc.Element):
 
 
 class rc(xsc.Element):
+	xmlns = xmlns
 	model = sims.NoElements()
 
 	def convert(self, converter):
@@ -20,6 +27,7 @@ class rc(xsc.Element):
 
 
 class duration(xsc.Element):
+	xmlns = xmlns
 	model = sims.NoElements()
 
 	def convert(self, converter):
@@ -27,6 +35,7 @@ class duration(xsc.Element):
 
 
 class place(xsc.Element):
+	xmlns = xmlns
 	model = sims.NoElements()
 
 	def convert(self, converter):
@@ -34,6 +43,7 @@ class place(xsc.Element):
 
 
 class date(xsc.Element):
+	xmlns = xmlns
 	model = sims.NoElements()
 
 	def convert(self, converter):
@@ -41,6 +51,7 @@ class date(xsc.Element):
 
 
 class price(xsc.Element):
+	xmlns = xmlns
 	model = sims.NoElements()
 	class Attrs(xsc.Element.Attrs):
 		class currency(xsc.TextAttr): pass
@@ -50,6 +61,7 @@ class price(xsc.Element):
 
 
 class purchase(xsc.Element):
+	xmlns = xmlns
 	model = sims.Elements(place, date, price)
 
 	def convert(self, converter):
@@ -63,6 +75,7 @@ class purchase(xsc.Element):
 
 
 class ld(xsc.Element):
+	xmlns = xmlns
 	model = sims.Elements(name, duration, purchase)
 
 	def convert(self, converter):
@@ -76,6 +89,7 @@ class ld(xsc.Element):
 
 
 class dvd(xsc.Element):
+	xmlns = xmlns
 	model = sims.Elements(name, rc, duration, purchase)
 
 	def convert(self, converter):
@@ -98,6 +112,7 @@ class dvd(xsc.Element):
 
 
 class media(xsc.Element):
+	xmlns = xmlns
 	model = sims.Elements(ld, dvd)
 
 	def convert(self, converter):
@@ -128,14 +143,10 @@ class media(xsc.Element):
 		return e.convert(converter)
 
 
-class __ns__(xsc.Namespace):
-	xmlname = "media"
-	xmlurl = "http://xmlns.livinglogic.de/xist/demo/media"
-__ns__.update(vars())
 
 
 if __name__ == "__main__":
-	prefixes = xsc.Prefixes([__ns__, chars], xml=xml)
+	prefixes = xsc.Prefixes([xmlns, chars.xmlns], xml=xml)
 	node = parsers.parseFile("Media.xml", prefixes=prefixes)
 	node = node[media][0]
 	node = node.conv()

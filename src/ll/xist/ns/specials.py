@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 1999-2006 by LivingLogic AG, Bayreuth/Germany.
-## Copyright 1999-2006 by Walter Dörwald
+## Copyright 1999-2007 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 1999-2007 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -22,10 +22,14 @@ from ll import url as url_
 from ll.xist import xsc, parsers, sims
 
 
+xmlns = "http://xmlns.livinglogic.de/xist/ns/specials"
+
+
 class z(xsc.Element):
 	"""
 	<par>Put the content into double quotes.</par>
 	"""
+	xmlns = xmlns
 	model = sims.Any()
 
 	def convert(self, converter):
@@ -38,6 +42,7 @@ class filesize(xsc.Element):
 	<par>the size (in bytes) of the file whose URL is the attribute href
 	as a text node.</par>
 	"""
+	xmlns = xmlns
 	model = sims.Empty()
 	class Attrs(xsc.Element.Attrs):
 		class href(xsc.URLAttr): required = True
@@ -55,6 +60,7 @@ class filetime(xsc.Element):
 	<par>the time of the last modification of the file whose &url; is in the attribute <lit>href</lit>
 	as a text node. This will always be an &utc; timestamp.</par>
 	"""
+	xmlns = xmlns
 	model = sims.Empty()
 	class Attrs(xsc.Element.Attrs):
 		class href(xsc.URLAttr):
@@ -80,6 +86,7 @@ class time(xsc.Element):
 	is called). You can specify the format of the string in the attribute <lit>format</lit>, which is a
 	<function>strftime</function> compatible string.</par>
 	"""
+	xmlns = xmlns
 	model = sims.Empty()
 	class Attrs(xsc.Element.Attrs):
 		class format(xsc.TextAttr):
@@ -109,6 +116,7 @@ class ignore(xsc.Element):
 	<par><class>ignore</class> can be used to comment out stuff.
 	The content of the element must of course still be wellformed.</par>
 	"""
+	xmlns = xmlns
 	model = sims.Any()
 
 	def convert(self, converter):
@@ -116,6 +124,7 @@ class ignore(xsc.Element):
 
 
 class include(xsc.Element):
+	xmlns = xmlns
 	model = sims.Empty()
 	class Attrs(xsc.Element.Attrs):
 		class src(xsc.URLAttr): pass
@@ -127,6 +136,7 @@ class include(xsc.Element):
 
 
 class loremipsum(xsc.Element):
+	xmlns = xmlns
 	model = sims.Empty()
 	class Attrs(xsc.Element.Attrs):
 		class len(xsc.IntAttr): pass
@@ -149,6 +159,7 @@ class wrap(xsc.Element):
 	file that starts with <pyref module="ll.xist.ns.jsp"><module>&jsp;</module></pyref>
 	processing instructions.</par>
 	"""
+	xmlns = xmlns
 	model = sims.Any()
 
 	def convert(self, converter):
@@ -156,6 +167,7 @@ class wrap(xsc.Element):
 
 
 class AttrDecorator(xsc.Element):
+	xmlns = xmlns
 	model = sims.Any()
 	register = False
 
@@ -201,13 +213,7 @@ class url(xsc.ProcInst):
 
 
 # Control characters (not part of HTML)
-class lf(xsc.CharRef): "line feed"; codepoint = 10
-class cr(xsc.CharRef): "carriage return"; codepoint = 13
-class tab(xsc.CharRef): "horizontal tab"; codepoint = 9
-class esc(xsc.CharRef): "escape"; codepoint = 27
-
-
-class __ns__(xsc.Namespace):
-	xmlname = "specials"
-	xmlurl = "http://xmlns.livinglogic.de/xist/ns/specials"
-__ns__.makemod(vars())
+class lf(xsc.CharRef): "line feed"; xmlns = xmlns; codepoint = 10
+class cr(xsc.CharRef): "carriage return"; xmlns = xmlns; codepoint = 13
+class tab(xsc.CharRef): "horizontal tab"; xmlns = xmlns; codepoint = 9
+class esc(xsc.CharRef): "escape"; xmlns = xmlns; codepoint = 27

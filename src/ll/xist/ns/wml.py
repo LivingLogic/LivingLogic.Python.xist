@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 1999-2006 by LivingLogic AG, Bayreuth/Germany.
-## Copyright 1999-2006 by Walter Dörwald
+## Copyright 1999-2007 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 1999-2007 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -20,12 +20,15 @@ import string
 from ll.xist import xsc, sims
 
 
-class coreattrs(xsc.Element.Attrs):
+xmlns = "http://www.wapforum.org/DTD/wml13.dtd"
+
+
+class coreattrs(xsc.Attrs):
 	class id(xsc.TextAttr): pass
 	class class_(xsc.TextAttr): xmlname = "class"
 
 
-class cardevattrs(xsc.Element.Attrs):
+class cardevattrs(xsc.Attrs):
 	class onenterforward(xsc.URLAttr): pass
 	class onenterbackward(xsc.URLAttr): pass
 	class ontimer(xsc.URLAttr): pass
@@ -39,6 +42,7 @@ class DocTypeWML13(xsc.DocType):
 	"""
 	document type for WML 1.3
 	"""
+
 	def __init__(self):
 		xsc.DocType.__init__(self, 'wml PUBLIC "-//WAPFORUM//DTD WML 1.3 //EN" "http://www.wapforum.org/DTD/wml13.dtd"')
 
@@ -48,6 +52,7 @@ class wml(xsc.Element):
 	"""
 	creates a WML deck consisting of one or more cards
 	"""
+	xmlns = xmlns
 	class Attrs(coreattrs):
 		pass
 
@@ -56,6 +61,7 @@ class card(xsc.Element):
 	"""
 	defines and names a new card
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs):
 		class title(xsc.TextAttr): pass
 		class newcontext(xsc.TextAttr): pass
@@ -66,6 +72,7 @@ class do(xsc.Element):
 	"""
 	mechanism used to allow user actions within a card
 	"""
+	xmlns = xmlns
 	class Attrs(coreattrs):
 		class type(xsc.TextAttr): pass
 		class label(xsc.TextAttr): pass
@@ -77,6 +84,7 @@ class onevent(xsc.Element):
 	"""
 	specifies an action to be performed when specific events occur
 	"""
+	xmlns = xmlns
 	class Attrs(coreattrs):
 		class type(xsc.TextAttr): pass
 
@@ -85,6 +93,7 @@ class head(xsc.Element):
 	"""
 	provides information for an entire deck
 	"""
+	xmlns = xmlns
 	class Attrs(coreattrs):
 		pass
 
@@ -93,6 +102,7 @@ class template(xsc.Element):
 	"""
 	specifies a template containing settings that will be used deck wide
 	"""
+	xmlns = xmlns
 	class Attrs(allattrs):
 		pass
 
@@ -101,6 +111,7 @@ class access(xsc.Element):
 	"""
 	applies access-control rules to a deck effectively restricting referred access
 	"""
+	xmlns = xmlns
 	class Attrs(coreattrs):
 		class domain(xsc.TextAttr): pass
 		class path(xsc.TextAttr): pass
@@ -110,6 +121,7 @@ class meta(xsc.Element):
 	"""
 	specifies deck-specific meta information within a <pyref class="head"><class>head</class></pyref> block
 	"""
+	xmlns = xmlns
 	class Attrs(coreattrs):
 		class http_equiv(xsc.TextAttr): xmlname = "http-equiv"
 		class name(xsc.TextAttr): pass
@@ -122,6 +134,7 @@ class go(xsc.Element):
 	"""
 	opens a specified URL using GET or POST methods
 	"""
+	xmlns = xmlns
 	class Attrs(coreattrs):
 		class href(xsc.URLAttr): pass
 		class sendreferer(xsc.TextAttr): pass
@@ -135,6 +148,7 @@ class prev(xsc.Element):
 	"""
 	returns to the previous card
 	"""
+	xmlns = xmlns
 	class Attrs(coreattrs):
 		pass
 
@@ -143,6 +157,7 @@ class refresh(xsc.Element):
 	"""
 	refreshes (or resets) variables to initial or updated values
 	"""
+	xmlns = xmlns
 	class Attrs(coreattrs):
 		pass
 
@@ -151,6 +166,7 @@ class noop(xsc.Element):
 	"""
 	does nothing (as in no operation)
 	"""
+	xmlns = xmlns
 	class Attrs(coreattrs):
 		pass
 
@@ -159,6 +175,7 @@ class postfield(xsc.Element):
 	"""
 	specifies a field and value to be sent to a URL
 	"""
+	xmlns = xmlns
 	class Attrs(coreattrs):
 		class name(xsc.TextAttr): pass
 		class value(xsc.TextAttr): pass
@@ -168,6 +185,7 @@ class setvar(xsc.Element):
 	"""
 	sets a variable to a specified value
 	"""
+	xmlns = xmlns
 	class Attrs(coreattrs):
 		class name(xsc.TextAttr): pass
 		class value(xsc.TextAttr): pass
@@ -177,6 +195,7 @@ class select(xsc.Element):
 	"""
 	displays a list of options for user selection
 	"""
+	xmlns = xmlns
 	class Attrs(coreattrs):
 		class title(xsc.TextAttr): pass
 		class name(xsc.TextAttr): pass
@@ -191,6 +210,7 @@ class optgroup(xsc.Element):
 	"""
 	groups options together so that the browser can optimize the display appropriately
 	"""
+	xmlns = xmlns
 	class Attrs(coreattrs):
 		class title(xsc.TextAttr): pass
 
@@ -199,6 +219,7 @@ class option(xsc.Element):
 	"""
 	creates options within a <pyref class="select"><class>select</class></pyref> list
 	"""
+	xmlns = xmlns
 	class Attrs(coreattrs):
 		class value(xsc.TextAttr): pass
 		class title(xsc.TextAttr): pass
@@ -209,6 +230,7 @@ class input(xsc.Element):
 	"""
 	prompts for user input which will be saved to a variable
 	"""
+	xmlns = xmlns
 	class Attrs(coreattrs):
 		class name(xsc.TextAttr): pass
 		class type(xsc.TextAttr): pass
@@ -226,6 +248,7 @@ class fieldset(xsc.Element):
 	"""
 	groups input field together so that the browser can optimize the display appropriately
 	"""
+	xmlns = xmlns
 	class Attrs(coreattrs):
 		class title(xsc.TextAttr): pass
 
@@ -234,6 +257,7 @@ class timer(xsc.Element):
 	"""
 	invokes a timer after a specified amount of inactivity
 	"""
+	xmlns = xmlns
 	class Attrs(coreattrs):
 		class name(xsc.TextAttr): pass
 		class value(xsc.TextAttr): pass
@@ -243,6 +267,7 @@ class img(xsc.Element):
 	"""
 	displays an image in the browser
 	"""
+	xmlns = xmlns
 	class Attrs(coreattrs):
 		class alt(xsc.TextAttr): pass
 		class src(xsc.URLAttr): pass
@@ -259,6 +284,7 @@ class anchor(xsc.Element):
 	creates an anchor (also called a link) associated with <pyref class="go"><class>go</class></pyref>,
 	<pyref class="prev"><class>prev</class></pyref> or <pyref class="refresh"><class>refresh</class></pyref> tasks.
 	"""
+	xmlns = xmlns
 	class Attrs(coreattrs):
 		class title(xsc.TextAttr): pass
 		class accesskey(xsc.TextAttr): pass
@@ -268,6 +294,7 @@ class a(xsc.Element):
 	"""
 	creates an anchor (also called a link)
 	"""
+	xmlns = xmlns
 	class Attrs(coreattrs):
 		class href(xsc.URLAttr): pass
 		class title(xsc.TextAttr): pass
@@ -278,6 +305,7 @@ class table(xsc.Element):
 	"""
 	creates a columnar table providing control over table alignment
 	"""
+	xmlns = xmlns
 	class Attrs(coreattrs):
 		class title(xsc.TextAttr): pass
 		class align(xsc.TextAttr): pass
@@ -288,6 +316,7 @@ class tr(xsc.Element):
 	"""
 	creates rows within a table
 	"""
+	xmlns = xmlns
 	class Attrs(coreattrs):
 		pass
 
@@ -296,6 +325,7 @@ class td(xsc.Element):
 	"""
 	creates cells within table rows
 	"""
+	xmlns = xmlns
 	class Attrs(coreattrs):
 		pass
 
@@ -304,6 +334,7 @@ class em(xsc.Element):
 	"""
 	displays all text between <markup>&lt;em&gt;</markup> and <markup>&lt;/em&gt;</markup> formatted with emphasis
 	"""
+	xmlns = xmlns
 	class Attrs(coreattrs):
 		pass
 
@@ -312,6 +343,7 @@ class strong(xsc.Element):
 	"""
 	displays all text between <markup>&lt;strong&gt;</markup> and <markup>&lt;/strong&gt;</markup> formatted with strong emphasis
 	"""
+	xmlns = xmlns
 	class Attrs(coreattrs):
 		pass
 
@@ -320,6 +352,7 @@ class b(xsc.Element):
 	"""
 	displays all text between <markup>&lt;b&gt;</markup> and <markup>&lt;/b&gt;</markup> in bold text
 	"""
+	xmlns = xmlns
 	class Attrs(coreattrs):
 		pass
 
@@ -328,6 +361,7 @@ class i(xsc.Element):
 	"""
 	displays all text between <markup>&lt;i&gt;</markup> and <markup>&lt;/i&gt;</markup> in italic text
 	"""
+	xmlns = xmlns
 	class Attrs(coreattrs):
 		pass
 
@@ -336,6 +370,7 @@ class u(xsc.Element):
 	"""
 	displays all text between <markup>&lt;u&gt;</markup> and <markup>&lt;/u&gt;</markup> as underlined text
 	"""
+	xmlns = xmlns
 	class Attrs(coreattrs):
 		pass
 
@@ -344,6 +379,7 @@ class big(xsc.Element):
 	"""
 	displays all text between <markup>&lt;big&gt;</markup> and <markup>&lt;/big&gt;</markup> in a large font
 	"""
+	xmlns = xmlns
 	class Attrs(coreattrs):
 		pass
 
@@ -352,6 +388,7 @@ class small(xsc.Element):
 	"""
 	displays all text between <markup>&lt;small&gt;</markup> and <markup>&lt;/small&gt;</markup> in a small font
 	"""
+	xmlns = xmlns
 	class Attrs(coreattrs):
 		pass
 
@@ -360,6 +397,7 @@ class p(xsc.Element):
 	"""
 	creates a paragraph, establishing alignment and wrapping for all text within it
 	"""
+	xmlns = xmlns
 	class Attrs(coreattrs):
 		class align(xsc.TextAttr): pass
 		class mode(xsc.TextAttr): pass
@@ -369,6 +407,7 @@ class br(xsc.Element):
 	"""
 	forces a line break
 	"""
+	xmlns = xmlns
 	class Attrs(coreattrs):
 		class type(xsc.TextAttr): pass
 
@@ -377,6 +416,7 @@ class pre(xsc.Element):
 	"""
 	preformatted text
 	"""
+	xmlns = xmlns
 	class Attrs(coreattrs):
 		pass
 
@@ -417,9 +457,3 @@ noop.model = \
 postfield.model = \
 setvar.model = \
 timer.model = sims.Empty()
-
-
-class __ns__(xsc.Namespace):
-	xmlname = "wml"
-	xmlurl = "http://www.wapforum.org/DTD/wml13.dtd"
-__ns__.makemod(vars())

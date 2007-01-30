@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
-## Copyright 1999-2006 by LivingLogic AG, Bayreuth/Germany.
-## Copyright 1999-2006 by Walter Dörwald
+## Copyright 1999-2007 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 1999-2007 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -78,24 +78,34 @@ class Code(object):
 		return u"".join(v)
 
 
-class pyexec(xsc.ProcInst):
+class _base(xsc.ProcInst):
+	register = False
+
+	class Context(xsc.ProcInst.Context):
+		def __init__(self):
+			xsc.ProcInst.Context.__init__(self)
+			self.sandbox = {}
+
+
+class pyexec(_base):
 	"""
 	<par>Here the content of the processing instruction is executed as
-	Python code. Execution is done when the node is coverted. When converted
+	Python code. Execution is done when the node is converted. When converted
 	such a node will result in an empty <lit>Null</lit> node.</par>
 
 	<par>These processing instructions will be evaluated and executed in the
-	namespace of the module <module>sandbox</module>.</par>
+	namespace of the module sandbox (which is a dictionary in the converter
+	context for the namespace).</par>
 	"""
 
 	def convert(self, converter):
 		code = Code(self.content, True)
-		sandbox = converter[self.__ns__].sandbox
+		sandbox = converter[self].sandbox
 		exec code.asstring() in sandbox # requires Python 2.0b2 (and doesn't really work)
 		return xsc.Null
 
 
-class pyeval(xsc.ProcInst):
+class pyeval(_base):
 	"""
 	<par>Here the code will be executed when the node is converted to &html;
 	as if it was the body of a function, so you can return an expression
@@ -104,7 +114,7 @@ class pyeval(xsc.ProcInst):
 	node and this resulting node will be converted.</par>
 
 	<par>These processing instructions will be evaluated and executed in the
-	namespace of the module <module>ll.xist.sandbox</module>.</par>
+	namespace of the module sandbox.</par>
 
 	<par>Note that you should not define the symbol <lit>__</lit> in any of your &xist;
 	processing instructions, as it is used by &xist; for internal purposes.</par>
@@ -118,18 +128,6 @@ class pyeval(xsc.ProcInst):
 		"""
 		code = Code(self.content, True)
 		code.funcify()
-		sandbox = converter[self.__ns__].sandbox
+		sandbox = converter[self].sandbox
 		exec code.asstring() in sandbox # requires Python 2.0b2 (and doesn't really work)
 		return xsc.tonode(sandbox["__"](converter)).convert(converter)
-
-
-class __ns__(xsc.Namespace):
-	xmlname = "code"
-	xmlurl = "http://xmlns.livinglogic.de/xist/ns/code"
-
-	class Context(xsc.Namespace.Context):
-		def __init__(self):
-			xsc.Namespace.Context.__init__(self)
-			self.sandbox = {}
-
-__ns__.makemod(vars())
