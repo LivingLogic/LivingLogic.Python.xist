@@ -179,7 +179,7 @@ class Test:
 		# Parser should complain about attributes with illegal values, when a set of values is specified
 		with xsc.Pool():
 			class Test(xsc.Element):
-				xmlns = xmlns
+				xmlns = "http://www.example.com/required2"
 				class Attrs(xsc.Element.Attrs):
 					class withvalues(xsc.TextAttr):
 						values = ("foo", "bar")
