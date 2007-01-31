@@ -165,11 +165,6 @@ def test_number():
 	assert abs(compl.imag - 1.) < 1e-2
 
 
-def test_prefix():
-	node = html.div()
-	assert node.xmlprefix() == "html"
-
-
 def test_write():
 	node = html.div()
 	io = cStringIO.StringIO()
@@ -330,64 +325,53 @@ def test_attributes():
 
 def test_attributekeysvaluesitems():
 	def check(node, xml, attrname, attrvalue):
-		assert node.attrs.allowedkeys(xml=xml) == [attrname]
-		iter = node.attrs.iterallowedkeys(xml=xml)
-		assert iter.next() == attrname
-		py.test.raises(StopIteration, iter.next)
-
-		assert node.attrs.allowedvalues() == [node.Attrs.attr_]
-		iter = node.attrs.iterallowedvalues()
-		assert iter.next() == node.Attrs.attr_
-		py.test.raises(StopIteration, iter.next)
-
-		assert node.attrs.alloweditems(xml=xml) == [(attrname, node.Attrs.attr_)]
-		iter = node.attrs.iteralloweditems(xml=xml)
-		assert iter.next() == (attrname, node.Attrs.attr_)
-		py.test.raises(StopIteration, iter.next)
-
-		if attrvalue:
-			assert node.attrs.keys(xml=xml) == [attrname]
-			iter = node.attrs.iterkeys(xml=xml)
-			assert iter.next() == attrname
-			py.test.raises(StopIteration, iter.next)
+		if xml:
+			assert list(node.attrs.allowedkeys_xml()) == [attrname]
 		else:
-			assert node.attrs.keys(xml=xml) == []
-			iter = node.attrs.iterkeys(xml=xml)
-			py.test.raises(StopIteration, iter.next)
+			assert list(node.attrs.allowedkeys()) == [attrname]
+
+		assert list(node.attrs.allowedvalues()) == [node.Attrs.attr_]
+
+		if xml:
+			assert list(node.attrs.alloweditems_xml()) == [(attrname, node.Attrs.attr_)]
+		else:
+			assert list(node.attrs.alloweditems()) == [(attrname, node.Attrs.attr_)]
 
 		if attrvalue:
-			res = node.attrs.values()
+			if xml:
+				assert list(node.attrs.keys_xml()) == [attrname]
+			else:
+				assert list(node.attrs.keys()) == [attrname]
+		else:
+			if xml:
+				assert list(node.attrs.keys_xml()) == []
+			else:
+				assert list(node.attrs.keys()) == []
+
+		if attrvalue:
+			res = list(node.attrs.values())
 			assert len(res) == 1
 			assert res[0].__class__ is node.Attrs.attr_
 			assert unicode(res[0]) == attrvalue
-			iter = node.attrs.itervalues()
-			res = iter.next()
-			assert res.__class__ is node.Attrs.attr_
-			assert unicode(res) == attrvalue
-			py.test.raises(StopIteration, iter.next)
 		else:
-			res = node.attrs.values()
+			res = list(node.attrs.values())
 			assert len(res) == 0
-			iter = node.attrs.itervalues()
-			py.test.raises(StopIteration, iter.next)
 
 		if attrvalue:
-			res = node.attrs.items(xml=xml)
+			if xml:
+				res = list(node.attrs.items_xml())
+			else:
+				res = list(node.attrs.items())
 			assert len(res) == 1
 			assert res[0][0] == attrname
 			assert res[0][1].__class__ is node.Attrs.attr_
 			assert unicode(res[0][1]) == attrvalue
-			iter = node.attrs.iteritems(xml=xml)
-			res = iter.next()
-			assert res[0] == attrname
-			assert res[1].__class__ is node.Attrs.attr_
-			assert unicode(res[1]) == attrvalue
-			py.test.raises(StopIteration, iter.next)
 		else:
-			res = node.attrs.items(xml=xml)
+			if xml:
+				res = list(node.attrs.items_xml())
+			else:
+				res = list(node.attrs.items())
 			assert len(res) == 0
-			iter = node.attrs.iteritems(xml=xml)
-			py.test.raises(StopIteration, iter.next)
 
 	class Test1(xsc.Element):
 		class Attrs(xsc.Element.Attrs):
@@ -410,7 +394,6 @@ def test_attributekeysvaluesitems():
 
 
 def test_attributeswithout():
-	# Use a sub namespace of xml to test the issubclass checks
 	class Attrs(xml.Attrs):
 		class lang(xml.Attrs.lang):
 			xmlns = "http://xmlns.example.com/"
@@ -426,28 +409,23 @@ def test_attributeswithout():
 		id=42,
 		dir="ltr"
 	)
-	keys = node.attrs.keys()
-	keys.sort()
+	keys = sorted(node.attrs.keys())
 	keys.remove("class_")
 
-	keys1 = node.attrs.withoutnames(["class_"]).keys()
-	keys1.sort()
+	keys1 = sorted(node.attrs.withoutnames(["class_"]).keys())
 	assert keys == keys1
 
 	keys.remove((xml2, "space"))
-	keys2 = node.attrs.withoutnames(["class_", (xml.xmlns, "space")]).keys()
-	keys2.sort()
+	keys2 = sorted(node.attrs.withoutnames(["class_", (xml.xmlns, "space")]).keys())
 	assert keys == keys2
 
 	keys.remove((xml2, "lang"))
 	keys.remove((xml2, "base"))
-	keys3 = node.attrs.withoutnames(["class_"], [xml.xmlns]).keys()
-	keys3.sort()
+	keys3 = sorted(node.attrs.withoutnames(["class_"], [xml.xmlns]).keys())
 	assert keys == keys3
 
 	# Check that non existing attrs are handled correctly
-	keys4 = node.attrs.withoutnames(["class_", "src"], keepglobals=False).keys()
-	keys4.sort()
+	keys4 = sorted(node.attrs.withoutnames(["class_", "src"], keepglobals=False).keys())
 	assert keys == keys4
 
 
@@ -463,26 +441,20 @@ def test_attributeswith():
 		lang="de",
 		align="right"
 	)
-	keys = node.attrs.keys()
-	keys.sort()
+	keys = sorted(node.attrs.keys())
 	keys.remove("lang")
 
-	assert node.attrs.withnames(["lang"]).keys() == ["lang"]
+	assert list(node.attrs.withnames(["lang"]).keys()) == ["lang"]
 
-	keys1 = node.attrs.withnames(["lang", "align"]).keys()
-	keys1.sort()
+	keys1 = sorted(node.attrs.withnames(["lang", "align"]).keys())
 	assert keys1 == ["align", "lang"]
 
-	keys = ["lang", (xml2, "lang")]
-	keys.sort()
-	keys2 = node.attrs.withnames(keys).keys()
-	keys2.sort()
+	keys = sorted(["lang", (xml2, "lang")])
+	keys2 = sorted(node.attrs.withnames(keys).keys())
 	assert keys2 == keys
 
-	keys = ["lang", (xml2, "lang"), (xml2, "space")]
-	keys.sort()
-	keys3 = node.attrs.withnames(["lang"], [Attrs.xmlns]).keys()
-	keys3.sort()
+	keys = sorted(["lang", (xml2, "lang"), (xml2, "space")])
+	keys3 = sorted(node.attrs.withnames(["lang"], [Attrs.xmlns]).keys())
 	assert keys3 == keys
 
 
@@ -500,13 +472,12 @@ def test_defaultattributes():
 
 
 def test_attributedictmethods():
-	def check(listexp, *lists):
-		for l in lists:
-			count = 0
-			for item in l:
-				assert item in listexp
-				count += 1
-			assert count == len(listexp)
+	def check(listexp, iter):
+		count = 0
+		for item in iter:
+			assert item in listexp
+			count += 1
+		assert count == len(listexp)
 
 	class Test(xsc.Element):
 		class Attrs(xsc.Element.Attrs):
@@ -522,33 +493,27 @@ def test_attributedictmethods():
 	check(
 		[ "withdef", "withoutdef" ],
 		node.attrs.keys(),
-		node.attrs.iterkeys()
 	)
 	check(
 		[ Test.Attrs.withdef(42), Test.Attrs.withoutdef(42)],
 		node.attrs.values(),
-		node.attrs.itervalues()
 	)
 	check(
 		[ ("withdef", Test.Attrs.withdef(42)), ("withoutdef", Test.Attrs.withoutdef(42)) ],
 		node.attrs.items(),
-		node.attrs.iteritems()
 	)
 
 	check(
 		[ "another", "withdef", "withoutdef" ],
 		node.attrs.allowedkeys(),
-		node.attrs.iterallowedkeys()
 	)
 	check(
 		[ Test.Attrs.another, Test.Attrs.withdef, Test.Attrs.withoutdef ],
 		node.attrs.allowedvalues(),
-		node.attrs.iterallowedvalues()
 	)
 	check(
 		[ ("another", Test.Attrs.another), ("withdef", Test.Attrs.withdef), ("withoutdef", Test.Attrs.withoutdef) ],
 		node.attrs.alloweditems(),
-		node.attrs.iteralloweditems()
 	)
 
 

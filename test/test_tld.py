@@ -14,7 +14,7 @@ from ll.xist.ns import tld
 
 
 def tld2ns(s, xmlname, shareattrs=None):
-	node = parsers.parseString(s, prefixes=xsc.Prefixes(tld.xmlns))
+	node = parsers.parseString(s, prefixes={None: tld}, pool=xsc.Pool(tld))
 	node = node.walknode(xsc.FindType(tld.taglib))[0]
 
 	data = node.asxnd()
@@ -66,7 +66,6 @@ def test_tld2xsc():
 	</taglib>
 	"""
 	ns = tld2ns(tldstring, "foo")
-	assert ns.xmlname == u"foo"
 	assert ns.bar.xmlname == u"bar"
 	assert isinstance(ns.bar.model, sims.Empty)
 	assert ns.bar.__doc__.strip() == "info"

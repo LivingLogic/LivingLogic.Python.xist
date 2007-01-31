@@ -76,7 +76,7 @@ def test_hasattrnamed():
 	assert len(res) == 1
 	assert res[0] is node[1]
 
-	res = list(node//xfind.hasattrnamed("class", xml=True))
+	res = list(node//xfind.hasattrnamed_xml("class"))
 	assert len(res) == 1
 	assert res[0] is node[1]
 
@@ -133,7 +133,7 @@ def test_attrnamed():
 	assert len(res) == 1
 	assert res[0] is node[1]["class_"]
 
-	res = list(node//xfind.attrnamed("class", xml=True))
+	res = list(node//xfind.attrnamed_xml("class"))
 	assert len(res) == 1
 	assert res[0] is node[1]["class_"]
 

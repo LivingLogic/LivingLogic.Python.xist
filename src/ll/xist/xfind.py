@@ -250,26 +250,46 @@ class hasattrnamed(Operator):
 	"""
 	An XFind operator that acts as a filter: Only produces those element nodes
 	from the left hand side of the XFind expresssion, that have an attribute
-	with a name specified in the constructor.
+	with a Python name specified in the constructor.
 	"""
-	def __init__(self, attrname, xml=False):
+	def __init__(self, attrname):
 		"""
 		Create a <class>hasattrnamed</class> operator. Only elements having an
-		attribute with the name <arg>attrname</arg> will be produced.
-		<arg>xml</arg> specifies whether <arg>attrname</arg> is a Python or an
-		&xml; name.
+		attribute with the Python name <arg>attrname</arg> will be produced.
 		"""
 		self.attrname = attrname
-		self.xml = xml
 
 	def xwalk(self, iterator):
 		from ll.xist import xsc
 		for child in iterator:
-			if isinstance(child, xsc.Element) and child.attrs.isallowed(self.attrname, self.xml) and child.attrs.has(self.attrname, self.xml):
+			if isinstance(child, xsc.Element) and child.attrs.isallowed(self.attrname) and child.attrs.has(self.attrname):
 				yield child
 
 	def __repr__(self):
-		return "<%s.%s object attrname=%r xml=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.attrname, self.xml, id(self))
+		return "<%s.%s object attrname=%r 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.attrname, id(self))
+
+
+class hasattrnamed_xml(Operator):
+	"""
+	An XFind operator that acts as a filter: Only produces those element nodes
+	from the left hand side of the XFind expresssion, that have an attribute
+	with an XML name specified in the constructor.
+	"""
+	def __init__(self, attrname):
+		"""
+		Create a <class>hasattrnamed</class> operator. Only elements having an
+		attribute with the XML name <arg>attrname</arg> will be produced.
+		"""
+		self.attrname = attrname
+
+	def xwalk(self, iterator):
+		from ll.xist import xsc
+		for child in iterator:
+			if isinstance(child, xsc.Element) and child.attrs.isallowed_xml(self.attrname) and child.attrs.has_xml(self.attrname):
+				yield child
+
+	def __repr__(self):
+		return "<%s.%s object attrname=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.attrname, id(self))
 
 
 class is_(Operator):
@@ -371,7 +391,7 @@ class child(Operator):
 
 class attrnamed(Operator):
 	"""
-	An XFind operator that produces all the attribute nodes having a name
+	An XFind operator that produces all the attribute nodes having a Python name
 	specified in the constructor for the elements from the left hand side of the
 	XFind expresssion.
 	"""
@@ -379,18 +399,41 @@ class attrnamed(Operator):
 	def __init__(self, attrname, xml=False):
 		"""
 		Create an <class>attrnamed</class> operator. All attribute nodes having
-		a name <arg>attrname</arg> from the elements from the left hand side of
-		the XFind expression will be produced. <arg>xml</arg> specifies whether
-		<arg>attrname</arg> is a Python or an &xml; name.
+		a Python name <arg>attrname</arg> from the elements from the left hand side of
+		the XFind expression will be produced.
 		"""
 		self.attrname = attrname
-		self.xml = xml
 
 	def xwalk(self, iterator):
 		from ll.xist import xsc
 		for child in iterator:
-			if isinstance(child, xsc.Element) and child.attrs.isallowed(self.attrname, self.xml) and child.attrs.has(self.attrname, self.xml):
-				yield child.attrs.get(self.attrname, xml=self.xml)
+			if isinstance(child, xsc.Element) and child.attrs.isallowed(self.attrname) and child.attrs.has(self.attrname):
+				yield child.attrs.get(self.attrname)
+
+	def __repr__(self):
+		return "<%s.%s object attrname=%r xml=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.attrname, self.xml, id(self))
+
+
+class attrnamed_xml(Operator):
+	"""
+	An XFind operator that produces all the attribute nodes having an XML name
+	specified in the constructor for the elements from the left hand side of the
+	XFind expresssion.
+	"""
+
+	def __init__(self, attrname, xml=False):
+		"""
+		Create an <class>attrnamed</class> operator. All attribute nodes having
+		an XML name <arg>attrname</arg> from the elements from the left hand side of
+		the XFind expression will be produced.
+		"""
+		self.attrname = attrname
+
+	def xwalk(self, iterator):
+		from ll.xist import xsc
+		for child in iterator:
+			if isinstance(child, xsc.Element) and child.attrs.isallowed_xml(self.attrname) and child.attrs.has_xml(self.attrname):
+				yield child.attrs.get_xml(self.attrname)
 
 	def __repr__(self):
 		return "<%s.%s object attrname=%r xml=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.attrname, self.xml, id(self))

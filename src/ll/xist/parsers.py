@@ -312,7 +312,7 @@ class SGMLOPParser(sax.xmlreader.XMLReader, sax.xmlreader.Locator):
 		if text is None:
 			return xsc.Null
 		pool = getattr(self.getContentHandler(), "pool", None)
-		ct = (pool.create_text if pool is not None else xsc.Text)
+		ct = (pool.text if pool is not None else xsc.Text)
 		node = xsc.Frag()
 		while True:
 			texts = text.split(u"&", 1)
@@ -374,7 +374,7 @@ class BadEntityParser(SGMLOPParser):
 			return xsc.Null
 		node = xsc.Frag()
 		pool = getattr(self.getContentHandler(), "pool", None)
-		ct = (pool.create_text if pool is not None else xsc.Text)
+		ct = (pool.text if pool is not None else xsc.Text)
 		while True:
 			texts = text.split(u"&", 1)
 			text = texts[0]
@@ -465,12 +465,12 @@ class HTMLParser(BadEntityParser):
 
 		# Skip unknown attributes (but warn about them)
 		newattrs = {}
-		element = self.pool.create_element_xml(name, html)
+		element = self.pool.element_xml(name, html)
 		for (attrname, attrvalue) in attrs:
-			if attrname=="xmlns" or ":" in attrname or element.Attrs.isallowed(attrname.lower(), xml=True):
+			if attrname=="xmlns" or ":" in attrname or element.Attrs.isallowed_xml(attrname.lower()):
 				newattrs[attrname.lower()] = attrvalue
 			else:
-				warnings.warn(xsc.IllegalAttrError(attrname.lower(), None, xml=True))
+				warnings.warn(xsc.IllegalAttrError(attrname.lower(), None, True))
 		BadEntityParser.finish_starttag(self, name, newattrs)
 
 		if name in HTML_FORBIDDEN_END:
@@ -508,34 +508,54 @@ class ExpatParser(expatreader.ExpatParser):
 
 class LaxAttrs(xsc.Attrs):
 	@classmethod
-	def _allowedattrkey(cls, name, xmlns=None, xml=False):
+	def _allowedattrkey(cls, name, xmlns=None):
 		if xmlns is not None:
 			xmlns = xsc.nsname(xmlns)
 			try:
-				return (Attr.get(name, xmlns, xml).__name__, xmlns) # ask namespace about global attribute
+				return (xsc.getpoolstack()[-1].attrname(name, xmlns), xmlns) # ask namespace about global attribute
 			except xsc.IllegalAttrError:
 				return (name, xmlns)
 		return name
 
-	def set(self, name, xmlns=None, value=None, xml=False):
-		"""
-		<par>Set the attribute named <arg>name</arg> to the value <arg>value</arg>.
-		<arg>xml</arg> specifies whether <arg>name</arg> should be treated as an
-		&xml; name (<lit><arg>xml</arg>==True</lit>) or a Python name
-		(<lit><arg>xml</arg>==False</lit>).</par>
-		<par>The newly set attribute will be returned.</par>
-		"""
-		attr = self.allowedattr(name, xmlns, xml)(value)()
+	@classmethod
+	def _allowedattrkey_xml(cls, name, xmlns=None):
+		if xmlns is not None:
+			xmlns = xsc.nsname(xmlns)
+			try:
+				return (xsc.getpoolstack()[-1].attrname_xml(name, xmlns), xmlns) # ask namespace about global attribute
+			except xsc.IllegalAttrError:
+				return (name, xmlns)
+		return name
+
+	def set(self, name, xmlns=None, value=None):
+		attr = self.allowedattr(name, xmlns)(value)()
 		attr.xmlname = name
-		dict.__setitem__(self, self._allowedattrkey(name, xmlns, xml), attr) # put the attribute in our dict
+		dict.__setitem__(self, self._allowedattrkey(name, xmlns), attr) # put the attribute in our dict
 		return attr
+
+	def set_xml(self, name, xmlns=None, value=None):
+		attr = self.allowedattr_xml(name, xmlns)(value)()
+		attr.xmlname = name
+		dict.__setitem__(self, self._allowedattrkey_xml(name, xmlns), attr) # put the attribute in our dict
+		return attr
+
+	@classmethod
+	def allowedattr(cls, name, xmlns):
+		if xmlns is not None:
+			xmlns = xsc.nsname(xmlns)
+			try:
+				return xsc.getpoolstack()[-1].attrclass(name, xmlns) # return global attribute
+			except xsc.IllegalAttrError:
+				return xsc.TextAttr
+		else:
+			return xsc.TextAttr
 
 	@classmethod
 	def allowedattr(cls, name, xmlns, xml=False):
 		if xmlns is not None:
 			xmlns = xsc.nsname(xmlns)
 			try:
-				return Attr.get(name, xmlns, xml) # return global attribute
+				return xsc.getpoolstack()[-1].attrclass_xml(name, xmlns) # return global attribute
 			except xsc.IllegalAttrError:
 				return xsc.TextAttr
 		else:
@@ -599,7 +619,7 @@ class Parser(object):
 		if prefixes is None:
 			# make all currently known namespaces available without prefix
 			# (if there are elements with colliding namespace, which one will be used is random (based on dict iteration order))
-			self.prefixes = {None: list(set(xsc.nsname(c.xmlns) for c in self.pool.element_values()))}
+			self.prefixes = {None: list(set(c.xmlns for c in self.pool.elementvalues()))}
 		else:
 			self.prefixes = {}
 			for (prefix, xmlns) in prefixes.iteritems():
@@ -638,7 +658,7 @@ class Parser(object):
 			elif node.type == "element":
 				name = decode(node.name).lower()
 				try:
-					newnode = self.pool.create_element_xml(name, html)
+					newnode = self.pool.element_xml(name, html)
 					if self.loc:
 						newnode.startloc = xsc.Location(sysid=sysid, line=node.lineNo())
 				except xsc.IllegalElementError:
@@ -668,11 +688,11 @@ class Parser(object):
 				if isinstance(node, xsc.Element): # if we did recognize the element, otherwise we're in a Frag
 					newnode = newnode.parsed(self, start=False)
 			elif node.type in ("text", "cdata"):
-				newnode = self.pool.create_text(decode(node.content))
+				newnode = self.pool.text(decode(node.content))
 				if self.loc:
 					newnode.startloc = xsc.Location(sysid=sysid, line=node.lineNo())
 			elif node.type == "comment":
-				newnode = self.pool.create_comment(decode(node.content))
+				newnode = self.pool.comment(decode(node.content))
 				if self.loc:
 					newnode.startloc = xsc.Location(sysid=sysid, line=node.lineNo())
 			else:
@@ -849,7 +869,7 @@ class Parser(object):
 		except KeyError:
 			raise xsc.IllegalPrefixError(prefix)
 		else:
-			node = self.pool.create_element_xml(name, xmlns)
+			node = self.pool.element_xml(name, xmlns)
 
 		for (attrname, attrvalue) in attritems:
 			if attrname != u"xmlns" and not attrname.startswith(u"xmlns:"):
@@ -864,7 +884,7 @@ class Parser(object):
 							raise xsc.IllegalPrefixError(attrprefix)
 				else:
 					xmlns = None
-				attrname = node.Attrs._allowedattrkey(attrname, xmlns, True)
+				attrname = node.Attrs._allowedattrkey_xml(attrname, xmlns)
 				node[attrname] = attrvalue
 				node[attrname] = node[attrname].parsed(self)
 		node.attrs = node.attrs.parsed(self)
@@ -892,7 +912,7 @@ class Parser(object):
 			while content and content[0].isspace() and content[0] != u"\xa0":
 				content = content[1:]
 		if content:
-			node = self.pool.create_text(content)
+			node = self.pool.text(content)
 			node = node.parsed(self)
 			last = self._nesting[-1][0]
 			if len(last) and isinstance(last[-1], xsc.Text):
@@ -904,7 +924,7 @@ class Parser(object):
 			self.skippingwhitespace = False
 
 	def comment(self, content):
-		node = self.pool.create_comment(content)
+		node = self.pool.comment(content)
 		node = node.parsed(self)
 		self.__appendNode(node)
 		self.skippingwhitespace = False
@@ -913,13 +933,13 @@ class Parser(object):
 		if target=="x":
 			self.skippingwhitespace = True
 		else:
-			node = self.pool.create_procinst_xml(target, data)
+			node = self.pool.procinst_xml(target, data)
 			node = node.parsed(self)
 			self.__appendNode(node)
 			self.skippingwhitespace = False
 
 	def createEntity(self, name):
-		node = self.pool.create_entity_xml(name)
+		node = self.pool.entity_xml(name)
 		if isinstance(node, xsc.CharRef):
 			return xsc.Text(unichr(node.codepoint))
 		else:
@@ -927,7 +947,7 @@ class Parser(object):
 			return node
 
 	def skippedEntity(self, name):
-		node = self.pool.create_entity_xml(name)
+		node = self.pool.entity_xml(name)
 		if isinstance(node, xsc.CharRef):
 			self.characters(unichr(node.codepoint))
 		else:

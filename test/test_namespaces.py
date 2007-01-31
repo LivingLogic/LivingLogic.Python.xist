@@ -30,6 +30,7 @@ def test_mixedattrnames():
 				xmlname = "a"
 	
 		class Test(xsc.Element):
+			xmlns = "test"
 			class Attrs(xsc.Element.Attrs):
 				class a(xsc.TextAttr):
 					xmlname = "A"
@@ -50,12 +51,12 @@ def test_mixedattrnames():
 		assert unicode(node.attrs[name]) == value
 		if not isinstance(name, tuple):
 			assert unicode(getattr(node.attrs, name)) == value
-		assert unicode(node.attrs.get(name, xml=False)) == value
+		assert unicode(node.attrs.get(name)) == value
 		if isinstance(name, tuple):
 			name = (name[0], name[1].swapcase())
 		else:
 			name = name.swapcase()
-		assert unicode(node.attrs.get(name, xml=True)) == value
+		assert unicode(node.attrs.get_xml(name)) == value
 
 	tests = [
 		("a", "a"),
@@ -78,15 +79,15 @@ def test_variousnamespaces():
 							node[attrname] = attrvalue.values[0]
 						else:
 							node[attrname] = "foo"
-				node.conv().asBytes()
+				node.conv().asBytes(prefixdefault=True)
 		for obj in vars(ns).itervalues():
-			if isinstance(obj, type) and issubclass(obj, xsc.Entity):
+			if isinstance(obj, type) and issubclass(obj, xsc.Entity) and not issubclass(obj, skip):
 				node = obj()
-				node.conv().asBytes()
+				node.conv().asBytes(prefixdefault=True)
 		for obj in vars(ns).itervalues():
-			if isinstance(obj, type) and issubclass(obj, xsc.ProcInst):
+			if isinstance(obj, type) and issubclass(obj, xsc.ProcInst) and not issubclass(obj, skip):
 				node = obj()
-				node.conv().asBytes()
+				node.conv().asBytes(prefixdefault=True)
 
 	yield check, html
 	yield check, ihtml
@@ -99,7 +100,7 @@ def test_variousnamespaces():
 	yield check, fo
 	yield check, docbook
 	yield check, jsp
-	yield check, struts_html
+	yield check, struts_html, struts_html.taglib # taglib requires a custom prefix mapping for publishing
 	yield check, struts_config
 	yield check, tld
 
@@ -160,59 +161,44 @@ def test_poolkeysvaluesitems():
 			codepoint = 0x4242
 
 	# Test elements
-	keys = list(r.element_keys_py())
-	assert keys == [("el_", None)]
-	keys = list(r.element_keys_xml())
-	assert keys == [("el", None)]
-	values = list(r.element_values())
-	assert values == [el_]
-	items = list(r.element_items_py())
-	assert items == [(("el_", None), el_)]
-	items = list(r.element_items_xml())
-	assert items == [(("el", None), el_)]
+	assert list(r.elementkeys()) == [("el_", None)]
+	assert list(r.elementkeys_xml()) == [("el", None)]
+	assert list(r.elementvalues()) == [el_]
+	assert list(r.elementitems()) == [(("el_", None), el_)]
+	assert list(r.elementitems_xml()) == [(("el", None), el_)]
 	
 	# Test entities
-	keys = list(r.entity_keys_py())
+	keys = list(r.entitykeys())
 	assert len(keys) == 2
 	assert "en_" in keys
 	assert "cr_" in keys
-	keys = list(r.entity_keys_xml())
+	keys = list(r.entitykeys_xml())
 	assert len(keys) == 2
 	assert "en" in keys
 	assert "cr" in keys
-	values = list(r.entity_values())
+	values = list(r.entityvalues())
 	assert len(values) == 2
 	assert en_ in values
 	assert cr_ in values
-	items = list(r.entity_items_py())
+	items = list(r.entityitems())
 	assert len(items) == 2
 	assert ("en_", en_) in items
 	assert ("cr_", cr_) in items
-	items = list(r.entity_items_xml())
+	items = list(r.entityitems_xml())
 	assert len(items) == 2
 	assert ("en", en_) in items
 	assert ("cr", cr_) in items
 
 	# Test procinsts
-	keys = list(r.procinst_keys_py())
-	assert keys == ["pi_"]
-	keys = list(r.procinst_keys_xml())
-	assert keys == ["pi"]
-	values = list(r.procinst_values())
-	assert values == [pi_]
-	items = list(r.procinst_items_py())
-	assert items == [("pi_", pi_)]
-	items = list(r.procinst_items_xml())
-	assert items == [("pi", pi_)]
+	assert list(r.procinstkeys()) == ["pi_"]
+	assert list(r.procinstkeys_xml()) == ["pi"]
+	assert list(r.procinstvalues()) == [pi_]
+	assert list(r.procinstitems()) == [("pi_", pi_)]
+	assert list(r.procinstitems_xml()) == [("pi", pi_)]
 
 	# Test charrefs
-	keys = list(r.charref_keys_py())
-	assert keys == ["cr_"]
-	keys = list(r.charref_keys_xml())
-	assert keys == ["cr"]
-	values = list(r.charref_values())
-	assert values == [cr_]
-	items = list(r.charref_items_py())
-	assert items == [("cr_", cr_)]
-	items = list(r.charref_items_xml())
-	assert items == [("cr", cr_)]
+	assert list(r.charrefkeys()) == ["cr_"]
+	assert list(r.charrefkeys_xml()) == ["cr"]
+	assert list(r.charrefvalues()) == [cr_]
+	assert list(r.charrefitems()) == [("cr_", cr_)]
+	assert list(r.charrefitems_xml()) == [("cr", cr_)]

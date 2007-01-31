@@ -2128,7 +2128,7 @@ def fixattributesandmodel(element):
 			for child in model.elements:
 				if child is not element: # avoid endless recursion
 					fixattributesandmodel(child) # make sure the child element already have their inheritable attributes added
-					for attr in child.Attrs.iterallowedvalues():
+					for attr in child.Attrs.allowedvalues():
 						if not element.Attrs.isallowed(attr.__name__):
 							element.Attrs.add(attr) # add child attribute to element
 
