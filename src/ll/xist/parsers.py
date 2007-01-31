@@ -606,11 +606,13 @@ class Parser(object):
 		"""
 		self.saxparser = saxparser
 
+		self.pool = (pool if pool is not None else xsc.getpoolstack()[-1])
+
 		# the currently active prefix mapping (will be replaced once xmlns attributes are encountered)
 		if prefixes is None:
 			# make all currently known namespaces available without prefix
 			# (if there are elements with colliding namespace, which one will be used is random (based on dict iteration order)
-			self.prefixes = {None: list(set(xsc.nsname(c.xmlns) for c in xsc.getpoolstack()[-1].element_values()))}
+			self.prefixes = {None: list(set(xsc.nsname(c.xmlns) for c in self.pool.element_values()))}
 		else:
 			self.prefixes = {}
 			for (prefix, xmlns) in prefixes.iteritems():
@@ -624,7 +626,6 @@ class Parser(object):
 		self.loc = loc
 		self.validate = validate
 		self.encoding = encoding
-		self.pool = (pool if pool is not None else xsc.getpoolstack()[-1])
 
 	def _parseHTML(self, stream, base, sysid, encoding):
 		"""
