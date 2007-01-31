@@ -39,7 +39,7 @@ class Publisher(object):
 	a byte sequence.
 	"""
 
-	def __init__(self, encoding="utf-8", xhtml=1, validate=True, prefixes={}, prefixdefault=False, hidexmlns=set()):
+	def __init__(self, encoding="utf-8", xhtml=1, validate=True, prefixes={}, prefixdefault=False, hidexmlns=()):
 		"""
 		<par><arg>encoding</arg> specifies the encoding to be used for the byte sequence.</par>
 
