@@ -67,7 +67,7 @@ def main():
 		return 1
 	input = url.URL(args[0])
 	if options.output is None:
-		output = url.File(input.withExt("py").file)
+		output = url.File(input.withext("py").file)
 	else:
 		output = url.URL(options.output)
 	dtd2xsc(input, output, options.verbose, options.xmlname, options.xmlurl, options.shareattrs, options.model, options.defaults)
