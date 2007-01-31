@@ -1978,8 +1978,7 @@ class Attr(Frag):
 	def _publishattrvalue(self, publisher):
 		# Internal helper that is used to publish the attribute value
 		# (can be overwritten in subclass (done by e.g. StyleAttr and URLAttr)
-		for part in Frag.publish(self, publisher):
-			yield part
+		return Frag.publish(self, publisher)
 
 	def publish(self, publisher):
 		if publisher.validate:
