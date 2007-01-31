@@ -118,6 +118,13 @@ def test_publishglobalattr():
 	assert node.asBytes(prefixes={html: "h", xlink: "xl"}) == """<h:html xmlns:h="http://www.w3.org/1999/xhtml" xmlns:xl="http://www.w3.org/1999/xlink" xl:title="the foo bar"></h:html>"""
 
 
+def test_publishspecialsurl():
+	node = specials.url("root:gurk.html")
+	assert node.asBytes() == """root:gurk.html"""
+	assert node.asBytes(base="root:gurk.html") == """"""
+	assert node.asBytes(base="root:hurz.html") == """gurk.html"""
+
+
 def test_publishempty():
 	node = xsc.Frag(html.br(), html.div())
 	assert node.asBytes(xhtml=0) == """<br><div></div>"""
