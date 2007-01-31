@@ -23,10 +23,10 @@ def test_mixedattrnames():
 
 		class Attrs(xsc.Attrs):
 			class a(xsc.TextAttr):
-				xmlns = xmlns
+				xmlns = "test"
 				xmlname = "A"
 			class A(xsc.TextAttr):
-				xmlns = xmlns
+				xmlns = "test"
 				xmlname = "a"
 	
 		class Test(xsc.Element):
@@ -160,59 +160,59 @@ def test_poolkeysvaluesitems():
 			codepoint = 0x4242
 
 	# Test elements
-	keys = list(r.elementkeys(xml=False))
+	keys = list(r.element_keys_py())
 	assert keys == [("el_", None)]
-	keys = list(r.elementkeys(xml=True))
+	keys = list(r.element_keys_xml())
 	assert keys == [("el", None)]
-	values = list(r.elementvalues())
+	values = list(r.element_values())
 	assert values == [el_]
-	items = list(r.elementitems(xml=False))
+	items = list(r.element_items_py())
 	assert items == [(("el_", None), el_)]
-	items = list(r.elementitems(xml=True))
+	items = list(r.element_items_xml())
 	assert items == [(("el", None), el_)]
 	
 	# Test entities
-	keys = list(r.entitykeys(xml=False))
+	keys = list(r.entity_keys_py())
 	assert len(keys) == 2
 	assert "en_" in keys
 	assert "cr_" in keys
-	keys = list(r.entitykeys(xml=True))
+	keys = list(r.entity_keys_xml())
 	assert len(keys) == 2
 	assert "en" in keys
 	assert "cr" in keys
-	values = list(r.entityvalues())
+	values = list(r.entity_values())
 	assert len(values) == 2
 	assert en_ in values
 	assert cr_ in values
-	items = list(r.entityitems(xml=False))
+	items = list(r.entity_items_py())
 	assert len(items) == 2
 	assert ("en_", en_) in items
 	assert ("cr_", cr_) in items
-	items = list(r.entityitems(xml=True))
+	items = list(r.entity_items_xml())
 	assert len(items) == 2
 	assert ("en", en_) in items
 	assert ("cr", cr_) in items
 
 	# Test procinsts
-	keys = list(r.procinstkeys(xml=False))
+	keys = list(r.procinst_keys_py())
 	assert keys == ["pi_"]
-	keys = list(r.procinstkeys(xml=True))
+	keys = list(r.procinstkeys_xml())
 	assert keys == ["pi"]
-	values = list(r.procinstvalues())
+	values = list(r.procinst_values())
 	assert values == [pi_]
-	items = list(r.procinstitems(xml=False))
+	items = list(r.procinst_items_py())
 	assert items == [("pi_", pi_)]
-	items = list(r.procinstitems(xml=True))
+	items = list(r.procinst_items_xml())
 	assert items == [("pi", pi_)]
 
 	# Test charrefs
-	keys = list(r.charrefkeys(xml=False))
+	keys = list(r.charref_keys_py())
 	assert keys == ["cr_"]
-	keys = list(r.charrefkeys(xml=True))
+	keys = list(r.charref_keys_xml())
 	assert keys == ["cr"]
-	values = list(r.charrefvalues())
+	values = list(r.charref_values())
 	assert values == [cr_]
-	items = list(r.charrefitems(xml=False))
+	items = list(r.charref_items_py())
 	assert items == [("cr_", cr_)]
-	items = list(r.charrefitems(xml=True))
+	items = list(r.charref_items_xml())
 	assert items == [("cr", cr_)]
