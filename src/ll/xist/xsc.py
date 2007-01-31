@@ -3625,9 +3625,9 @@ class Pool(object):
 					return self._attrsbypyname[(name, xmlns)]
 			except KeyError:
 				pass
-		for base in bases:
+		for base in self.bases:
 			try:
-				return self.base.attrclass(name, xmlns, xml)
+				return base.attrclass(name, xmlns, xml)
 			except IllegalAttrError:
 				pass
 		raise IllegalAttrError(name, xmlns, xml)
