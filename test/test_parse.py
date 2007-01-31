@@ -27,7 +27,7 @@ oldfilters = None
 
 
 def raisesSAX(exception, func, *args, **kwargs):
-	# assert that func(*args, **kwargs) raises exception either directly or wrapped in a SAXParseException
+	# assert that func(*args, **kwargs) raises exception (either directly or wrapped in a SAXParseException)
 	try:
 		func(*args, **kwargs)
 	except exception:
@@ -95,6 +95,25 @@ def check_parsebadentities(parserfactory):
 		check_parseentities(source, result, prefixes=prefixes, saxparser=parserfactory)
 
 
+def test_parselocationsgmlop():
+	# Check that SGMLOP gets the location info right (at least the line numbers)
+	node = parsers.parseString("<z>gurk&amp;hurz&#42;hinz&#x666;hunz</z>", saxparser=parsers.SGMLOPParser)
+	assert len(node) == 1
+	assert len(node[0]) == 1
+	assert node[0][0].startloc.getSystemId() == "STRING"
+	assert node[0][0].startloc.getLineNumber() == 1
+
+
+def test_parselocationexpat():
+	# Check that expat gets the location info right
+	node = parsers.parseString("<z>gurk&amp;hurz&#42;hinz&#x666;hunz</z>", saxparser=parsers.ExpatParser)
+	assert len(node) == 1
+	assert len(node[0]) == 1
+	assert node[0][0].startloc.getSystemId() == "STRING"
+	assert node[0][0].startloc.getLineNumber() == 1
+	assert node[0][0].startloc.getColumnNumber() == 3
+
+
 class Test:
 	def setup_method(self, method):
 		global oldfilters
@@ -102,23 +121,6 @@ class Test:
 
 	def teardown_method(self, method):
 		warnings.filters = oldfilters
-
-	def test_parselocationsgmlop(self):
-		# Check that SGMLOP gets the location info right (at least the line numbers)
-		node = parsers.parseString("<z>gurk&amp;hurz&#42;hinz&#x666;hunz</z>", saxparser=parsers.SGMLOPParser)
-		assert len(node) == 1
-		assert len(node[0]) == 1
-		assert node[0][0].startloc.getSystemId() == "STRING"
-		assert node[0][0].startloc.getLineNumber() == 1
-
-	def test_parselocationexpat(self):
-		# Check that expat gets the location info right
-		node = parsers.parseString("<z>gurk&amp;hurz&#42;hinz&#x666;hunz</z>", saxparser=parsers.ExpatParser)
-		assert len(node) == 1
-		assert len(node[0]) == 1
-		assert node[0][0].startloc.getSystemId() == "STRING"
-		assert node[0][0].startloc.getLineNumber() == 1
-		assert node[0][0].startloc.getColumnNumber() == 3
 
 	def test_nsparse(self):
 		# A prepopulated prefix mapping and xmlns attributes should work together
@@ -156,7 +158,7 @@ class Test:
 		# Parser should complain about required attributes that are missing
 		with xsc.Pool():
 			class Test(xsc.Element):
-				xmlns = xmlns
+				xmlns = "http://www.example.com/required"
 				class Attrs(xsc.Element.Attrs):
 					class required(xsc.TextAttr):
 						required = True
@@ -167,7 +169,7 @@ class Test:
 			warnings.filterwarnings("error", category=xsc.RequiredAttrMissingWarning)
 			raisesSAX(xsc.RequiredAttrMissingWarning, parsers.parseString, '<Test/>', prefixes=prefixes)
 
-		py.test.assertRaises(xsc.IllegalElementError, parsers.parseString, '<Test required="foo"/>', prefixes=prefixes)
+		py.test.raises(xsc.IllegalElementError, parsers.parseString, '<Test required="foo"/>', prefixes=prefixes)
 
 	def test_parsevalueattrs(self):
 		xmlns = "http://www.example.com/required2"
@@ -223,22 +225,38 @@ class Test:
 		for saxparser in (parsers.SGMLOPParser, parsers.BadEntityParser, parsers.HTMLParser, parsers.ExpatParser):
 			yield check, saxparser
 
-	def test_sysid(self):
-		# Default system ids and explicitely specified system ids should end up in the location info of the resulting XML tree
-		node = parsers.parseString("gurk")
-		assert node[0].startloc.sysid == "STRING"
 
-		node = parsers.parseString("gurk", base="root:gurk.xmlxsc")
-		assert node[0].startloc.sysid == "root:gurk.xmlxsc"
+def test_sysid():
+	# Default system ids and explicitely specified system ids should end up in the location info of the resulting XML tree
+	node = parsers.parseString("gurk")
+	assert node[0].startloc.sysid == "STRING"
 
-		node = parsers.parseString("gurk", base="root:gurk.xmlxsc", sysid="hurz")
-		assert node[0].startloc.sysid == "hurz"
+	node = parsers.parseString("gurk", base="root:gurk.xmlxsc")
+	assert node[0].startloc.sysid == "root:gurk.xmlxsc"
+
+	node = parsers.parseString("gurk", base="root:gurk.xmlxsc", sysid="hurz")
+	assert node[0].startloc.sysid == "hurz"
 
 
 def test_xmlns():
-	s = '''<z xmlns="%s"><rb xmlns="%s"/><z/></z>''' % (specials.xmlns, ruby.xmlns)
-	# After the <rb/> element is left the parser must return to the proper previous mapping
+	s = "<z xmlns=%r><rb xmlns=%r/><z/></z>" % (specials.xmlns, ruby.xmlns)
 	e = parsers.parseString(s)
 
 	assert e[0].xmlns == specials.xmlns
 	assert e[0][0].xmlns == ruby.xmlns
+
+	s = "<a xmlns=%r><a xmlns=%r/></a>" % (html.xmlns, ihtml.xmlns)
+	e = parsers.parseString(s, pool=xsc.Pool(html, ihtml))
+	assert isinstance(e[0], html.a)
+	assert isinstance(e[0][0], ihtml.a)
+
+	s = "<a><a xmlns=%r/></a>" % ihtml.xmlns
+	py.test.raises(xsc.IllegalElementError, parsers.parseString, s, prefixes={None: html}, pool=xsc.Pool(ihtml))
+	e = parsers.parseString(s, prefixes={None: html}, pool=xsc.Pool(html, ihtml))
+	assert isinstance(e[0], html.a)
+	assert isinstance(e[0][0], ihtml.a)
+
+	s = "<z xmlns=%r/>" % specials.xmlns
+	e = parsers.parseString(s, pool=xsc.Pool(specials.z))
+	assert isinstance(e[0], specials.z)
+	py.test.raises(xsc.IllegalElementError, parsers.parseString, s, pool=xsc.Pool())

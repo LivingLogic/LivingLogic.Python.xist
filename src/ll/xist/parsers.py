@@ -611,11 +611,13 @@ class Parser(object):
 		# the currently active prefix mapping (will be replaced once xmlns attributes are encountered)
 		if prefixes is None:
 			# make all currently known namespaces available without prefix
-			# (if there are elements with colliding namespace, which one will be used is random (based on dict iteration order)
+			# (if there are elements with colliding namespace, which one will be used is random (based on dict iteration order))
 			self.prefixes = {None: list(set(xsc.nsname(c.xmlns) for c in self.pool.element_values()))}
 		else:
 			self.prefixes = {}
 			for (prefix, xmlns) in prefixes.iteritems():
+				if prefix is not None and not isinstance(prefix, basestring):
+					raise TypeError("Prefix must be None or string, not %r" % prefix)
 				if isinstance(xmlns, (list, tuple)):
 					self.prefixes[prefix] = map(xsc.nsname, xmlns)
 				else:
