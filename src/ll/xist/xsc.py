@@ -829,25 +829,6 @@ class Node(object):
 		"""
 		return complex(unicode(self))
 
-	@classmethod
-	def needsxmlns(self, publisher=None):
-		"""
-		<par>Return what type of namespace prefix/declaration is needed for
-		<self/> when publishing. Possible return values are:</par>
-		<ulist>
-		<item><lit>0</lit>: Neither a prefix nor a declaration is required;</item>
-		<item><lit>1</lit>: A prefix is required, but no declaration (e.g. for the
-		<pyref module="ll.xist.ns.xml"><module>xml</module></pyref> namespace,
-		whose prefix is always defined.</item>
-		<item><lit>2</lit>: Both a prefix and a declaration for this prefix are
-		required.</item>
-		</ulist>
-		"""
-		if publisher is not None:
-			return publisher.prefixmode
-		else:
-			return 0
-
 	def parsed(self, parser, start=None):
 		"""
 		<par>This method will be called by the parser <arg>parser</arg> once after
@@ -1953,13 +1934,6 @@ class Attr(Frag):
 
 	def present(self, presenter):
 		return presenter.presentAttr(self) # return a generator-iterator
-
-	@classmethod
-	def needsxmlns(self, publisher=None):
-		if self.xmlns is not None:
-			return 2
-		else:
-			return 0
 
 	def checkvalid(self):
 		"""
