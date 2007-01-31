@@ -30,14 +30,14 @@ from ll import url
 from ll.xist import xsc, parsers, xnd
 
 
-def dtd2xsc(dtdurl, outurl, verbose, xmlname, xmlurl, shareattrs, model, defaults):
+def dtd2xsc(dtdurl, outurl, verbose, xmlns, shareattrs, model, defaults):
 	if verbose:
 		print "Parsing DTD %s ..." % dtdurl
 	d = dtdparser.load_dtd(dtdurl.url)
 
 	if verbose:
 		print "Converting ..."
-	data = xnd.fromdtd(d, xmlname, xmlurl)
+	data = xnd.fromdtd(d, xmlns)
 
 	if shareattrs=="dupes":
 		data.shareattrs(False)
@@ -55,8 +55,7 @@ def main():
 	p = optparse.OptionParser(usage="usage: %prog [options] inputurl.dtd")
 	p.add_option("-o", "--output", dest="output", metavar="FILE", help="write output to FILE")
 	p.add_option("-v", "--verbose", action="store_true", dest="verbose")
-	p.add_option("-p", "--prefix", dest="xmlname", help="the XML prefix for this namespace", default="prefix", metavar="PREFIX")
-	p.add_option("-u", "--url", dest="xmlurl", help="the XML namespace name", metavar="URL")
+	p.add_option("-x", "--xmlns", dest="xmlns", help="the namespace name for this module")
 	p.add_option("-a", "--shareattrs", dest="shareattrs", help="Should identical attributes be shared among elements?", choices=("none", "dupes", "all"), default="dupes")
 	p.add_option("-m", "--model", dest="model", default="once", help="Add sims information to the namespace", choices=("no", "all", "once"))
 	p.add_option("-d", "--defaults", action="store_true", dest="defaults", help="Output default values for attributes")
@@ -70,7 +69,7 @@ def main():
 		output = url.File(input.withext("py").file)
 	else:
 		output = url.URL(options.output)
-	dtd2xsc(input, output, options.verbose, options.xmlname, options.xmlurl, options.shareattrs, options.model, options.defaults)
+	dtd2xsc(input, output, options.verbose, options.xmlns, options.shareattrs, options.model, options.defaults)
 
 
 if __name__ == "__main__":

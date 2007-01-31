@@ -9,11 +9,13 @@
 ## See xist/__init__.py for the license
 
 
+import types
+
 from ll.xist import xsc, parsers, sims
 from ll.xist.ns import tld
 
 
-def tld2ns(s, xmlname, shareattrs=None):
+def tld2ns(s, xmlns, shareattrs=None):
 	node = parsers.parseString(s, prefixes={None: tld}, pool=xsc.Pool(tld))
 	node = node.walknode(xsc.FindType(tld.taglib))[0]
 
@@ -22,12 +24,13 @@ def tld2ns(s, xmlname, shareattrs=None):
 	if shareattrs is not None:
 		data.shareattrs(shareattrs)
 
-	mod = {"__name__": xmlname}
+	mod = types.ModuleType(xmlns)
+	mod.__file__ = "test.py"
 	encoding = "iso-8859-1"
 	code = data.aspy(encoding=encoding).encode(encoding)
-	exec code in mod
-
-	return mod["xmlns"]
+	code = compile(code, "test.py", "exec")
+	exec code in mod.__dict__
+	return mod
 
 
 def test_tld2xsc():

@@ -218,7 +218,7 @@ class taglib(xsc.Element):
 	class Attrs(IdAttrs): pass
 
 	def asxnd(self):
-		e = xnd.Namespace(unicode(misc.first(self/shortname).content))
+		e = xnd.Module(unicode(misc.first(self/shortname).content))
 		node = misc.first(self/uri, None)
 		if node is not None:
 			e.url = unicode(node[0].content)

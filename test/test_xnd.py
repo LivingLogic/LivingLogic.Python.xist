@@ -9,30 +9,43 @@
 ## See xist/__init__.py for the license
 
 
-import new
+from __future__ import with_statement
+
+import types
 
 from ll.xist import xsc, xnd, sims
 
 
+xmlns = "http://xmlns.example.com/"
+
+
 def xnd2ns(data):
-	mod = new.module("test")
-	mod.__file__ = "test.py"
-	encoding = "iso-8859-1"
-	code = data.aspy(encoding=encoding).encode(encoding)
-	code = compile(code, "test.py", "exec")
-	exec code in mod.__dict__
-	return mod
+	with xsc.Pool(): # don't pollute the defaultpool
+		mod = types.ModuleType("test")
+		mod.__file__ = "test.py"
+		encoding = "iso-8859-1"
+		code = data.aspy(encoding=encoding).encode(encoding)
+		code = compile(code, "test.py", "exec")
+		exec code in mod.__dict__
+		return mod
+
+
+def test_xmlns():
+	e = xnd.Module(xmlns)()
+	ns = xnd2ns(e)
+	assert ns.xmlns == xmlns
 
 
 def test_procinst():
-	e = xnd.Namespace("ns")(
+	e = xnd.Module(xmlns)(
 		xnd.ProcInst("foo", doc="gurk")
 	)
 	ns = xnd2ns(e)
+
 	assert issubclass(ns.foo, xsc.ProcInst)
 	assert ns.foo.__doc__.strip() == "gurk"
 
-	e = xnd.Namespace("ns")(
+	e = xnd.Module(xmlns)(
 		xnd.ProcInst("f-o-o")
 	)
 	ns = xnd2ns(e)
@@ -41,14 +54,14 @@ def test_procinst():
 
 
 def test_entity():
-	e = xnd.Namespace("ns")(
+	e = xnd.Module(xmlns)(
 		xnd.Entity("foo", doc="gurk")
 	)
 	ns = xnd2ns(e)
 	assert issubclass(ns.foo, xsc.Entity)
 	assert ns.foo.__doc__.strip() == "gurk"
 
-	e = xnd.Namespace("ns")(
+	e = xnd.Module(xmlns)(
 		xnd.Entity("f-o-o")
 	)
 	ns = xnd2ns(e)
@@ -57,7 +70,7 @@ def test_entity():
 
 
 def test_charref():
-	e = xnd.Namespace("ns")(
+	e = xnd.Module(xmlns)(
 		xnd.CharRef("foo", doc="gurk", codepoint=0x3042)
 	)
 	ns = xnd2ns(e)
@@ -65,7 +78,7 @@ def test_charref():
 	assert ns.foo.__doc__.strip() == "gurk"
 	assert ns.foo.codepoint == 0x3042
 
-	e = xnd.Namespace("ns")(
+	e = xnd.Module(xmlns)(
 		xnd.CharRef("f-o-o", codepoint=0x3042)
 	)
 	ns = xnd2ns(e)
@@ -74,13 +87,13 @@ def test_charref():
 
 
 def test_model():
-	e = xnd.Namespace("ns")(
+	e = xnd.Module(xmlns)(
 		xnd.Element("foo", modeltype=True)
 	)
 	ns = xnd2ns(e)
 	assert isinstance(ns.foo.model, sims.Any)
 
-	e = xnd.Namespace("ns")(
+	e = xnd.Module(xmlns)(
 		xnd.Element("foo", modeltype=False)
 	)
 	ns = xnd2ns(e)

@@ -59,8 +59,8 @@ class Base(object):
 	def simplify(cls, value):
 		"""
 		<par>Return a string, whose value can be used as an intializer for an attribute values.
-		If the value is an <class>int</class> strip the quotes, if it fits into ASCII drop
-		the <lit>u</lit> prefix.</par>
+		(If the value is an <class>int</class> strip the quotes, if it fits into ASCII drop
+		the <lit>u</lit> prefix.)</par>
 		"""
 		try:
 			value = int(value)
@@ -83,7 +83,7 @@ class Base(object):
 		options = Options(**options)
 		lines = []
 		self._aspy(lines, 0, [], options)
-		return "\n".join("%s%s" % (level*options.indent, text) for (level, text) in lines)
+		return "".join("%s%s\n" % (level*options.indent, text) for (level, text) in lines)
 
 	def _addlines(self, newlines, lines):
 		l = len(newlines)
@@ -102,10 +102,10 @@ class Base(object):
 			lines.append([level, '"""'])
 
 
-class Namespace(Base):
-	def __init__(self, name, url=None, doc=None):
-		Base.__init__(self, name)
-		self.url = url
+class Module(Base):
+	def __init__(self, xmlns=None, doc=None):
+		Base.__init__(self, "xmlns")
+		self.xmlns = xmlns
 		self.doc = doc
 		self.content = []
 
@@ -136,7 +136,7 @@ class Namespace(Base):
 		return attrgroups
 
 	def _aspy(self, lines, level, names, options):
-		# assign name to the namespace itself
+		# used as a variable name for the namespace name (must always work, i.e. be the original name)
 		self.assignname(names, "xmlns")
 
 		# assign names to all elements
@@ -167,7 +167,6 @@ class Namespace(Base):
 		for attrgroup in attrgroups:
 			attrgroup.assignname(names)
 
-		lines.append([level, "#!/usr/bin/env python"])
 		lines.append([level, "# -*- coding: %s -*-" % options.encoding])
 		lines.append([0, ""])
 		lines.append([0, ""])
@@ -183,11 +182,7 @@ class Namespace(Base):
 
 		lines.append([0, ""])
 		lines.append([0, ""])
-		if self.url is None:
-			url = "... insert namespace name ..."
-		else:
-			url = self.url
-		lines.append([level, "%s = %s" % (self.pyname, self.simplify(url))])
+		lines.append([level, "%s = %s" % (self.pyname, self.simplify(self.xmlns if self.xmlns is not None else "... insert namespace name ..."))])
 
 		# output attribute groups
 		for attrgroup in attrgroups:
@@ -444,16 +439,16 @@ class Options(object):
 		self.model = model
 
 
-def fromdtd(dtd, xmlname, xmlurl=None):
+def fromdtd(dtd, xmlns=None):
 	"""
 	Convert &dtd; information (in the format that is returned by <app>xmlproc</app>s
 	<function>dtdparser.load_dtd</function> function) to an &xist; &dom; using the
 	<pyref module="ll.xist.ns.xndl"><module>xndl</module></pyref> namespace.
 	"""
 
-	ns = Namespace(name=xmlname, url=xmlurl)
+	ns = Module(xmlns)
 
-	xmlns = {} # collects all the values of fixed xmlns attributes (as a set)
+	foundxmlns = set() # collects all the values of fixed xmlns attributes
 
 	# Add element info
 	elements = dtd.get_elements()
@@ -470,7 +465,7 @@ def fromdtd(dtd, xmlname, xmlurl=None):
 				dtd_a = dtd_e.get_attr(attrname)
 				if attrname=="xmlns":
 					if dtd_a.decl=="#FIXED":
-						xmlns[dtd_a.default] = None
+						foundxmlns.add(dtd_a.default)
 					continue # skip a namespace declaration
 				elif u":" in attrname:
 					continue # skip global attributes
@@ -541,7 +536,7 @@ def fromdtd(dtd, xmlname, xmlurl=None):
 			ent = parsers.parseString(dtd.resolve_ge(entname).value)
 			ns.content.append(CharRef(entname, codepoint=ord(unicode(ent[0])[0])))
 
-	# if the DTD has exactly one value for all fixed "xmlns" attributes and the user didn't specify an xmlurl, use this one
-	if xmlurl is None and len(xmlns)==1:
-		ns.url = xmlns.popitem()[0]
+	# if the DTD has exactly one value for all fixed "xmlns" attributes and the user didn't specify xmlns, use this one
+	if xmlns is None and len(foundxmlns)==1:
+		ns.xmlns = foundxmlns.popitem()[0]
 	return ns

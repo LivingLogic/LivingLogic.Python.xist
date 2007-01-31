@@ -9,29 +9,31 @@
 ## See xist/__init__.py for the license
 
 
-import new
+import types
+
 from ll.xist import xsc, xnd, sims
 
 
-def dtd2mod(s, xmlname, xmlurl=None, shareattrs=None):
+def dtd2mod(s, xmlns=None, shareattrs=None):
 	from xml.parsers.xmlproc import dtdparser
 
 	dtd = dtdparser.load_dtd_string(s)
-	data = xnd.fromdtd(dtd, xmlname=xmlname, xmlurl=xmlurl)
+	data = xnd.fromdtd(dtd, xmlns)
 
 	if shareattrs is not None:
 		data.shareattrs(shareattrs)
 
-	mod = new.module(xmlname)
+	mod = types.ModuleType(xmlns)
+	mod.__file__ = "test.py"
 	encoding = "iso-8859-1"
 	code = data.aspy(encoding=encoding).encode(encoding)
+	code = compile(code, "test.py", "exec")
 	exec code in mod.__dict__
-
 	return mod
 
 
-def dtd2ns(s, xmlname, xmlurl=None, shareattrs=None):
-	return dtd2mod(s, xmlname, xmlurl, shareattrs).xmlns
+def dtd2ns(s, xmlns=None, shareattrs=None):
+	return dtd2mod(s, xmlns, shareattrs).xmlns
 
 
 def test_convert():
@@ -116,7 +118,7 @@ def test_quotes():
 	dtdstring = """<?xml version='1.0' encoding='us-ascii'?>
 	<!ELEMENT foo EMPTY>
 	"""
-	ns = dtd2ns(dtdstring, "foo", xmlurl='"')
+	ns = dtd2ns(dtdstring, '"')
 	assert ns.xmlns == '"'
 
 
@@ -124,7 +126,7 @@ def test_unicode():
 	dtdstring = """<?xml version='1.0' encoding='us-ascii'?>
 	<!ELEMENT foo EMPTY>
 	"""
-	ns = dtd2ns(dtdstring, "foo", xmlurl=u'\u3042')
+	ns = dtd2ns(dtdstring, u'\u3042')
 	assert ns.xmlns == u'\u3042'
 
 
@@ -132,7 +134,7 @@ def test_unicodequotes():
 	dtdstring = """<?xml version='1.0' encoding='us-ascii'?>
 	<!ELEMENT foo EMPTY>
 	"""
-	ns = dtd2ns(dtdstring, "foo", xmlurl=u'"\u3042"')
+	ns = dtd2ns(dtdstring, u'"\u3042"')
 	assert ns.xmlns == u'"\u3042"'
 
 
@@ -196,10 +198,6 @@ def test_shareattrsall():
 	mod = dtd2mod(dtdstring, "foo", shareattrs=True)
 	assert issubclass(mod.foo.Attrs.baz, mod.baz.baz)
 	assert issubclass(mod.bar.Attrs.baz, mod.baz.baz)
-
-	assert mod.foo.Attrs.bazz.__bases__[0] is not xsc.TextAttr
-	assert mod.bar.Attrs.bazz.__bases__[0] is not xsc.TextAttr
-	assert mod.foo.Attrs.bazz.__bases__ != mod.bar.Attrs.bazz.__bases__
 
 	assert not mod.foo.Attrs.bazz.required
 	assert mod.bar.Attrs.bazz.required
