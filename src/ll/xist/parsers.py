@@ -519,48 +519,6 @@ class ExpatParser(expatreader.ExpatParser):
 		self._parser.UseForeignDTD(True)
 
 
-class Factory(object):
-	def element(self, name, xmlns):
-		if isinstance(xmlns, (list, tuple)):
-			for onexmlns in xmlns:
-				try:
-					return xsc.Element._byxmlname[name, xsc.nsname(onexmlns)]()
-				except KeyError:
-					pass
-			raise xsc.IllegalElementError(name, xmlns, True)
-		else:
-			try:
-				return xsc.Element._byxmlname[name, xsc.nsname(xmlns)]()
-			except KeyError:
-				raise xsc.IllegalElementError(name, xmlns, True)
-
-	def procinst(self, name, content):
-		return xsc.ProcInst.create(name, content, True)
-
-	def entity(self, name):
-		return xsc.Entity.create(name, True)
-
-	def attrname(self, name, xmlns):
-		if isinstance(xmlns, (list, tuple)):
-			for onexmlns in xmlns:
-				onexmlns = xsc.nsname(onexmlns)
-				if (name, onexmlns) in xsc.Attr._byxmlname:
-					return (name, onexmlns)
-		else:
-			xmlns = xsc.nsname(xmlns)
-			if (name, xmlns) in xsc.Attr._byxmlname:
-				return (name, xmlns)
-		raise xsc.IllegalAttrError(name, xmlns, True)
-
-	def text(self, content):
-		return xsc.Text(content)
-
-	def comment(self, content):
-		return xsc.Comment(content)
-
-factory = Factory()
-
-
 class LaxAttrs(xsc.Attrs):
 	@classmethod
 	def _allowedattrkey(cls, name, xmlns=None, xml=False):
@@ -599,43 +557,6 @@ class LaxAttrs(xsc.Attrs):
 
 class LaxElement(xsc.Element):
 	Attrs = LaxAttrs
-
-
-class LaxFactory(Factory):
-	def element(self, name, xmlns):
-		try:
-			return xsc.Element.create(name, xmlns, True)
-		except xsc.IllegalElementError:
-			result = LaxElement()
-			result.xmlname = name
-			result.xmlns = xmlns
-			return result
-
-	def procinst(self, name, content):
-		try:
-			return xsc.ProcInst.create(name, True)
-		except xsc.IllegalProcInstError:
-			result = xsc.ProcInst()
-			result.xmlname = name
-			return result
-
-	def entity(self, name):
-		try:
-			return xsc.Entity.create(name, True)
-		except xsc.IllegalEntityError:
-			result = xsc.Entity()
-			result.xmlname = name
-			return result
-
-	def attr(self, name, xmlns):
-		try:
-			return xsc.Attr.create(name, xmlns, True)
-		except xsc.IllegalAttrError:
-			result = xsc.TextAttr()
-			result.xmlname = name
-			result.xmlns = xmlns
-			return result
-laxfactory = LaxFactory()
 
 
 class Parser(object):
