@@ -311,7 +311,8 @@ class SGMLOPParser(sax.xmlreader.XMLReader, sax.xmlreader.Locator):
 		"""
 		if text is None:
 			return xsc.Null
-		ct = getattr(self.getContentHandler(), "createText", xsc.Text)
+		pool = getattr(self.getContentHandler(), "pool", None)
+		ct = (pool.create_text if pool is not None else xsc.Text)
 		node = xsc.Frag()
 		while True:
 			texts = text.split(u"&", 1)
@@ -360,15 +361,7 @@ class BadEntityParser(SGMLOPParser):
 			try:
 				self.getContentHandler().skippedEntity(name)
 			except xsc.IllegalEntityError:
-				try:
-					entity = xsc.Entity.create(name, xml=True)
-				except xsc.IllegalEntityError:
-					self.getContentHandler().characters(u"&%s;" % name)
-				else:
-					if issubclass(entity, xsc.CharRef):
-						self.getContentHandler().characters(unichr(entity.codepoint))
-					else:
-						self.getContentHandler().characters(u"&%s;" % name)
+				self.getContentHandler().characters(u"&%s;" % name)
 		else:
 			self.getContentHandler().characters(c)
 		self.headerJustRead = False
@@ -380,7 +373,8 @@ class BadEntityParser(SGMLOPParser):
 		if text is None:
 			return xsc.Null
 		node = xsc.Frag()
-		ct = self.getContentHandler().createText
+		pool = getattr(self.getContentHandler(), "pool", None)
+		ct = (pool.create_text if pool is not None else xsc.Text)
 		while True:
 			texts = text.split(u"&", 1)
 			text = texts[0]
@@ -413,16 +407,9 @@ class BadEntityParser(SGMLOPParser):
 						try:
 							entity = self.getContentHandler().createEntity(name)
 						except xsc.IllegalEntityError:
-							try:
-								entity = xsc.Entity.create(name, xml=True)
-								if issubclass(entity, xsc.CharRef):
-									entity = ct(unichr(entity.codepoint))
-								else:
-									entity = entity()
-							except xsc.IllegalEntityError:
-								name = u"&%s;" % name
-								warnings.warn(xsc.MalformedCharRefWarning(name))
-								entity = ct(name)
+							name = u"&%s;" % name
+							warnings.warn(xsc.MalformedCharRefWarning(name))
+							entity = ct(name)
 					else:
 						entity = ct(entity)
 					node.append(entity)
@@ -930,6 +917,14 @@ class Parser(object):
 			node = node.parsed(self)
 			self.__appendNode(node)
 			self.skippingwhitespace = False
+
+	def createEntity(self, name):
+		node = self.pool.create_entity_xml(name)
+		if isinstance(node, xsc.CharRef):
+			return xsc.Text(unichr(node.codepoint))
+		else:
+			node = node.parsed(self)
+			return node
 
 	def skippedEntity(self, name):
 		node = self.pool.create_entity_xml(name)
