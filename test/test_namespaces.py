@@ -196,7 +196,7 @@ def test_poolkeysvaluesitems():
 	# Test procinsts
 	keys = list(r.procinst_keys_py())
 	assert keys == ["pi_"]
-	keys = list(r.procinstkeys_xml())
+	keys = list(r.procinst_keys_xml())
 	assert keys == ["pi"]
 	values = list(r.procinst_values())
 	assert values == [pi_]
