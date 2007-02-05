@@ -3467,6 +3467,12 @@ class Pool(object):
 	def element_xml(self, name, xmlns):
 		return self.elementclass_xml(name, xmlns)()
 
+	def haselement(self, name, xmlns):
+		return (name, nsname(xmlns)) in self._elementsbypyname
+
+	def haselement_xml(self, name, xmlns):
+		return (name, nsname(xmlns)) in self._elementsbyxmlname
+
 	def procinstkeys(self):
 		return self._procinstsbypyname.iterkeys()
 
@@ -3510,6 +3516,12 @@ class Pool(object):
 	def procinst_xml(self, name, content):
 		return self.procinstclass_xml(name)(content)
 
+	def hasprocinst(self, name):
+		return name in self._procinstsbypyname
+
+	def hasprocinst_xml(self, name):
+		return name in self._procinstsbyxmlname
+
 	def entitykeys(self):
 		return self._entitiesbypyname.iterkeys()
 
@@ -3552,6 +3564,12 @@ class Pool(object):
 
 	def entity_xml(self, name):
 		return self.entityclass_xml(name)()
+
+	def hasentity(self, name):
+		return name in self._entitiesbypyname
+
+	def hasentity_xml(self, name):
+		return name in self._entitiesbyxmlname
 
 	def charrefkeys(self):
 		return self._charrefsbypyname.iterkeys()
@@ -3599,6 +3617,18 @@ class Pool(object):
 
 	def charref_xml(self, name):
 		return self.charrefclass_xml(name)()
+
+	def hascharref(self, name):
+		if isinstance(name, (int, long)):
+			return name in self._charrefsbycodepoint
+		else:
+			return name in self._charrefsbypyname
+
+	def hascharref_xml(self, name):
+		if isinstance(name, (int, long)):
+			return name in self._charrefsbycodepoint
+		else:
+			return name in self._charrefsbypyname
 
 	def attrname(self, name, xmlns):
 		if not isinstance(xmlns, (list, tuple)):
