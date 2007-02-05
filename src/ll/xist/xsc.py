@@ -3389,6 +3389,9 @@ class Pool(object):
 			for value in object.__dict__.itervalues():
 				if isinstance(value, type): # This avoids recursive module registration
 					self.register(value)
+		elif isinstance(object, dict):
+			for value in object.itervalues():
+				self.register(value)
 		elif object is True:
 			self.bases.append(getpoolstack()[-1])
 		elif isinstance(object, Pool):
