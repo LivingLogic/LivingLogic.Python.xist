@@ -9,6 +9,8 @@
 ## See xist/__init__.py for the license
 
 
+from __future__ import with_statement
+
 import warnings
 
 import py.test
@@ -35,147 +37,161 @@ def teardown_module(module):
 
 
 def test_empty():
-	class ns1(xsc.Namespace):
+	with xsc.Pool():
 		class el1(xsc.Element):
 			model = sims.Empty()
 
-	e = ns1.el1()
-	e.asBytes()
-
-	e = ns1.el1("gurk")
-	py.test.raises(sims.EmptyElementWithContentWarning, e.asBytes)
-
-	e = ns1.el1(php.php("gurk"))
-	py.test.raises(sims.EmptyElementWithContentWarning, e.asBytes)
-
-	e = ns1.el1(xsc.Comment("gurk"))
-	py.test.raises(sims.EmptyElementWithContentWarning, e.asBytes)
-
-	e = ns1.el1(ns1.el1())
-	py.test.raises(sims.EmptyElementWithContentWarning, e.asBytes)
+		e = el1()
+		e.asBytes()
+	
+		e = el1("gurk")
+		py.test.raises(sims.EmptyElementWithContentWarning, e.asBytes)
+	
+		e = el1(php.php("gurk"))
+		py.test.raises(sims.EmptyElementWithContentWarning, e.asBytes)
+	
+		e = el1(xsc.Comment("gurk"))
+		py.test.raises(sims.EmptyElementWithContentWarning, e.asBytes)
+	
+		e = el1(el1())
+		py.test.raises(sims.EmptyElementWithContentWarning, e.asBytes)
 
 
 def test_elements():
-	class ns1(xsc.Namespace):
-		class el1(xsc.Element): pass
-		class el2(xsc.Element): pass
+	with xsc.Pool():
+		class el11(xsc.Element):
+			xmlname = "el1"
+			xmlns = "ns1"
+		class el12(xsc.Element):
+			xmlname = "el2"
+			xmlns = "ns1"
+		class el21(xsc.Element):
+			xmlname = "el1"
+			xmlns = "ns2"
+		class el22(xsc.Element):
+			xmlname = "el2"
+			xmlns = "ns2"
 
-	class ns2(xsc.Namespace):
-		class el1(xsc.Element): pass
-		class el2(xsc.Element): pass
-
-	ns1.el1.model = sims.Elements(ns1.el1, ns2.el1)
-
-	e = ns1.el1()
-	e.asBytes()
-
-	e = ns1.el1("foo")
-	py.test.raises(sims.IllegalTextWarning, e.asBytes)
-
-	e = ns1.el1(php.php("gurk"))
-	e.asBytes()
-
-	e = ns1.el1(xsc.Comment("gurk"))
-	e.asBytes()
-
-	e = ns1.el1(ns1.el1())
-	e.asBytes()
-
-	e = ns1.el1(ns2.el1())
-	e.asBytes()
-
-	e = ns1.el1(ns1.el2())
-	py.test.raises(sims.WrongElementWarning, e.asBytes)
-
-	e = ns1.el1(ns2.el2())
-	py.test.raises(sims.WrongElementWarning, e.asBytes)
+		el11.model = sims.Elements(el11, el21)
+	
+		e = el11()
+		e.asBytes()
+	
+		e = el11("foo")
+		py.test.raises(sims.IllegalTextWarning, e.asBytes)
+	
+		e = el11(php.php("gurk"))
+		e.asBytes()
+	
+		e = el11(xsc.Comment("gurk"))
+		e.asBytes()
+	
+		e = el11(el11())
+		e.asBytes()
+	
+		e = el11(el21())
+		e.asBytes()
+	
+		e = el11(el12())
+		py.test.raises(sims.WrongElementWarning, e.asBytes)
+	
+		e = el11(el22())
+		py.test.raises(sims.WrongElementWarning, e.asBytes)
 
 
 def test_elementsortext():
-	class ns1(xsc.Namespace):
-		class el1(xsc.Element): pass
-		class el2(xsc.Element): pass
+	with xsc.Pool():
+		class el11(xsc.Element):
+			xmlname = "el1"
+			xmlns = "ns1"
+		class el12(xsc.Element):
+			xmlname = "el2"
+			xmlns = "ns1"
+		class el21(xsc.Element):
+			xmlname = "el1"
+			xmlns = "ns2"
+		class el22(xsc.Element):
+			xmlname = "el2"
+			xmlns = "ns2"
 
-	class ns2(xsc.Namespace):
-		class el1(xsc.Element): pass
-		class el2(xsc.Element): pass
-
-	ns1.el1.model = sims.ElementsOrText(ns1.el1, ns2.el1)
-
-	e = ns1.el1()
-	e.asBytes()
-
-	e = ns1.el1("foo")
-	e.asBytes()
-
-	e = ns1.el1(php.php("gurk"))
-	e.asBytes()
-
-	e = ns1.el1(xsc.Comment("gurk"))
-	e.asBytes()
-
-	e = ns1.el1(ns1.el1())
-	e.asBytes()
-
-	e = ns1.el1(ns2.el1())
-	e.asBytes()
-
-	e = ns1.el1(ns1.el2())
-	py.test.raises(sims.WrongElementWarning, e.asBytes)
-
-	e = ns1.el1(ns2.el2())
-	py.test.raises(sims.WrongElementWarning, e.asBytes)
+		el11.model = sims.ElementsOrText(el11, el21)
+	
+		e = el11()
+		e.asBytes()
+	
+		e = el11("foo")
+		e.asBytes()
+	
+		e = el11(php.php("gurk"))
+		e.asBytes()
+	
+		e = el11(xsc.Comment("gurk"))
+		e.asBytes()
+	
+		e = el11(el11())
+		e.asBytes()
+	
+		e = el11(el21())
+		e.asBytes()
+	
+		e = el11(el12())
+		py.test.raises(sims.WrongElementWarning, e.asBytes)
+	
+		e = el11(el22())
+		py.test.raises(sims.WrongElementWarning, e.asBytes)
 
 
 def test_noelements():
-	class ns1(xsc.Namespace):
+	with xsc.Pool():
 		class el1(xsc.Element):
+			xmlns = "ns1"
 			model = sims.NoElements()
+		class el2(xsc.Element):
+			xmlns = "ns2"
 
-	class ns2(xsc.Namespace):
-		class el1(xsc.Element): pass
+		e = el1()
+		e.asBytes()
+	
+		e = el1("foo")
+		e.asBytes()
+	
+		e = el1(php.php("gurk"))
+		e.asBytes()
+	
+		e = el1(xsc.Comment("gurk"))
+		e.asBytes()
+	
+		e = el1(el1())
+		py.test.raises(sims.ElementWarning, e.asBytes)
 
-	e = ns1.el1()
-	e.asBytes()
-
-	e = ns1.el1("foo")
-	e.asBytes()
-
-	e = ns1.el1(php.php("gurk"))
-	e.asBytes()
-
-	e = ns1.el1(xsc.Comment("gurk"))
-	e.asBytes()
-
-	e = ns1.el1(ns1.el1())
-	py.test.raises(sims.ElementWarning, e.asBytes)
-
-	e = ns1.el1(ns2.el1())
-	e.asBytes()
+		# Elements from a different namespace are OK
+		e = el1(el2())
+		e.asBytes()
 
 
 def test_noelementsortext():
-	class ns1(xsc.Namespace):
+	with xsc.Pool():
 		class el1(xsc.Element):
+			xmlns = "ns1"
 			model = sims.NoElementsOrText()
+		class el2(xsc.Element):
+			xmlns = "ns2"
 
-	class ns2(xsc.Namespace):
-		class el1(xsc.Element): pass
-
-	e = ns1.el1()
-	e.asBytes()
-
-	e = ns1.el1("foo")
-	py.test.raises(sims.IllegalTextWarning, e.asBytes)
-
-	e = ns1.el1(php.php("gurk"))
-	e.asBytes()
-
-	e = ns1.el1(xsc.Comment("gurk"))
-	e.asBytes()
-
-	e = ns1.el1(ns1.el1())
-	py.test.raises(sims.ElementWarning, e.asBytes)
-
-	e = ns1.el1(ns2.el1())
-	e.asBytes()
+		e = el1()
+		e.asBytes()
+	
+		e = el1("foo")
+		py.test.raises(sims.IllegalTextWarning, e.asBytes)
+	
+		e = el1(php.php("gurk"))
+		e.asBytes()
+	
+		e = el1(xsc.Comment("gurk"))
+		e.asBytes()
+	
+		e = el1(el1())
+		py.test.raises(sims.ElementWarning, e.asBytes)
+	
+		# Elements from a different namespace are OK
+		e = el1(el2())
+		e.asBytes()
