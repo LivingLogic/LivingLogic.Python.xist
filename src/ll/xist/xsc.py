@@ -3700,6 +3700,24 @@ class Pool(object):
 	def comment(self, content):
 		return Comment(content)
 
+	def clone(self):
+		"""
+		Return a copy of <self/>
+		"""
+		copy = Pool()
+		copy._elementsbyxmlname = self._elementsbyxmlname.copy()
+		copy._elementsbypyname = self._elementsbypyname.copy()
+		copy._procinstsbyxmlname = self._procinstsbyxmlname.copy()
+		copy._procinstsbypyname = self._procinstsbypyname.copy()
+		copy._entitiesbyxmlname = self._entitiesbyxmlname.copy()
+		copy._entitiesbypyname = self._entitiesbypyname.copy()
+		copy._charrefsbyxmlname = self._charrefsbyxmlname.copy()
+		copy._charrefsbypyname = self._charrefsbypyname.copy()
+		copy._charrefsbycodepoint = self._charrefsbycodepoint.copy()
+		copy._attrsbyxmlname = self._attrsbyxmlname.copy()
+		copy._attrsbypyname = self._attrsbypyname.copy()
+		copy.bases = self.bases[:]
+		return copy
 
 # Default class pool
 defaultpool = Pool()
