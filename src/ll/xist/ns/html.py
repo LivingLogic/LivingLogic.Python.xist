@@ -371,58 +371,56 @@ class p(xsc.Element):
 		class align(TextAlignAttr): pass
 
 
-class h1(xsc.Element):
+class h(xsc.Element):
 	"""
 	heading
 	"""
+	register = False
 	xmlns = xmlns
 	class Attrs(allattrs):
 		class align(TextAlignAttr): pass
 
 
-class h2(xsc.Element):
+class h1(h):
 	"""
 	heading
 	"""
 	xmlns = xmlns
-	class Attrs(allattrs):
-		class align(TextAlignAttr): pass
 
 
-class h3(xsc.Element):
+class h2(h):
 	"""
 	heading
 	"""
 	xmlns = xmlns
-	class Attrs(allattrs):
-		class align(TextAlignAttr): pass
 
 
-class h4(xsc.Element):
+class h3(h):
 	"""
 	heading
 	"""
 	xmlns = xmlns
-	class Attrs(allattrs):
-		class align(TextAlignAttr): pass
 
 
-class h5(xsc.Element):
+class h4(h):
 	"""
 	heading
 	"""
 	xmlns = xmlns
-	class Attrs(allattrs):
-		class align(TextAlignAttr): pass
 
 
-class h6(xsc.Element):
+class h5(h):
 	"""
 	heading
 	"""
 	xmlns = xmlns
-	class Attrs(allattrs):
-		class align(TextAlignAttr): pass
+
+
+class h6(h):
+	"""
+	heading
+	"""
+	xmlns = xmlns
 
 
 class ul(xsc.Element):
