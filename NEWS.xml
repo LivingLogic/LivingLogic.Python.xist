@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
 <section><title>Changes in 3.0 (released ??/??/2007)</title>
 <ulist>
-<item>A class attribute <lit>empty</lit> insided element classes will now no
+<item>A class attribute <lit>empty</lit> inside element classes will now no
 longer get converted into <lit>model</lit>.</item>
 <item><class>ll.xist.ns.doc.pyref</class> now copes better with decorated
 methods.</item>
@@ -18,6 +18,10 @@ methods.</item>
 have been removed. The deprecated <class>Attrs</class> method
 <method>copydefaults</method> has been removed too.</item>
 <item>The namespace module <module>ll.xist.ns.cond</module> has been removed.</item>
+<item>When calling the function <function>ll.xist.parsers.parseURL</function>
+the arguments <arg>headers</arg> and <arg>data</arg> are now passed along
+to the parser's method only if they are specified. This makes it possible to
+pass ssh &url;s to <function>ll.xist.parsers.parseURL</function>.</item>
 </ulist>
 </section>
 
