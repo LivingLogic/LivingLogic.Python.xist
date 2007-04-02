@@ -425,6 +425,19 @@ def test_attributeswithoutnames():
 	assert keys == keys3
 
 
+def test_attributeswithoutnames_xml():
+	node = html.h1("gurk",
+		title="gurk",
+		class_="important",
+		id=42,
+	)
+	keys = sorted(node.attrs.keys())
+	keys.remove("class_")
+
+	keys1 = sorted(node.attrs.withoutnames_xml("class").keys())
+	assert keys == keys1
+
+
 def test_attributeswithnames():
 	# Use a sub namespace of xml to test the issubclass checks
 	class Attrs(xml.Attrs):
@@ -435,12 +448,11 @@ def test_attributeswithnames():
 	node = html.h1("gurk",
 		{("space", xml): 1, ("lang", Attrs.lang): "de"},
 		lang="de",
+		class_="gurk",
 		align="right"
 	)
-	keys = sorted(node.attrs.keys())
-	keys.remove("lang")
 
-	assert list(node.attrs.withnames("lang").keys()) == ["lang"]
+	assert list(node.attrs.withnames("class_").keys()) == ["class_"]
 
 	keys1 = sorted(node.attrs.withnames("lang", "align").keys())
 	assert keys1 == ["align", "lang"]
@@ -448,6 +460,17 @@ def test_attributeswithnames():
 	keys = sorted(["lang", ("lang", Attrs.lang.xmlns)])
 	keys2 = sorted(node.attrs.withnames(*keys).keys())
 	assert keys2 == keys
+
+
+def test_attributeswithnames_xml():
+	node = html.h1("gurk",
+		{("space", xml): 1},
+		lang="de",
+		class_="gurk",
+		align="right"
+	)
+	assert list(node.attrs.withnames_xml("class").keys_xml()) == ["class"]
+	assert list(node.attrs.withnames_xml(("space", xml)).keys_xml()) == [("space", xml.xmlns)]
 
 
 
