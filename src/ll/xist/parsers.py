@@ -1025,7 +1025,12 @@ def parseURL(url, base=None, sysid=None, headers=None, data=None, **parserargs):
 	takes as keyword arguments via <arg>parserargs</arg>.
 	"""
 	parser = Parser(**parserargs)
-	return parser.parseURL(url, base, sysid, headers=headers, data=data)
+	parseargs = {}
+	if headers is not None:
+		parseargs["headers"] = headers
+	if data is not None:
+		parseargs["data"] = data
+	return parser.parseURL(url, base, sysid, *parseargs)
 
 
 def parseFile(filename, base=None, sysid=None, **parserargs):
