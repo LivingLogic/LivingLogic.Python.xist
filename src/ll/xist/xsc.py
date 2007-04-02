@@ -690,10 +690,7 @@ class Node(object):
 	def _strbase(cls, fullname, xml):
 		v = []
 		if fullname:
-			if xml:
-				ns = cls.xmlns
-			else:
-				ns = cls.__module__
+			ns = cls.xmlns if xml else cls.__module__
 			if ns is not None:
 				v.append(ns)
 				v.append(":")
@@ -1705,10 +1702,7 @@ class Frag(Node, list):
 			info = "1 child"
 		else:
 			info = "%d children" % l
-		if self.startloc is not None:
-			loc = " (from %s)" % self.startloc
-		else:
-			loc = ""
+		loc = " (from %s)" % self.startloc if self.startloc is not None else ""
 		return "<%s.%s object (%s)%s at 0x%x>" % (self.__class__.__module__, self.__fullname__, info, loc, id(self))
 
 
@@ -1967,10 +1961,7 @@ class Attr(Frag):
 
 	def _publishname(self, publisher):
 		if self.xmlns is not None:
-			if self.xmlns == xml_xmlns:
-				prefix = u"xml"
-			else:
-				prefix = publisher._ns2prefix.get(self.xmlns)
+			prefix = publisher._ns2prefix.get(self.xmlns) if self.xmlns != xml_xmlns else u"xml"
 			if prefix is not None:
 				return u"%s:%s" % (prefix, self.xmlname)
 		return self.xmlname
@@ -2004,10 +1995,7 @@ class Attr(Frag):
 			info = u"1 child"
 		else:
 			info = u"%d children" % l
-		if self.startloc is not None:
-			loc = " (from %s)" % self.startloc
-		else:
-			loc = ""
+		loc = " (from %s)" % self.startloc if self.startloc is not None else ""
 		return "<%s.%s attr object (%s)%s at 0x%x>" % (self.__class__.__module__, self.__fullname__, info, loc, id(self))
 
 
