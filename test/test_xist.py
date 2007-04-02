@@ -393,7 +393,7 @@ def test_attributekeysvaluesitems():
 		check(Test2(attr_=None), xml, attrname, None)
 
 
-def test_attributeswithout():
+def test_attributeswithoutnames():
 	class Attrs(xml.Attrs):
 		class lang(xml.Attrs.lang):
 			xmlns = "http://xmlns.example.com/"
@@ -425,7 +425,7 @@ def test_attributeswithout():
 	assert keys == keys3
 
 
-def test_attributeswith():
+def test_attributeswithnames():
 	# Use a sub namespace of xml to test the issubclass checks
 	class Attrs(xml.Attrs):
 		class lang(xml.Attrs.lang):
@@ -440,18 +440,15 @@ def test_attributeswith():
 	keys = sorted(node.attrs.keys())
 	keys.remove("lang")
 
-	assert list(node.attrs.withnames(["lang"]).keys()) == ["lang"]
+	assert list(node.attrs.withnames("lang").keys()) == ["lang"]
 
-	keys1 = sorted(node.attrs.withnames(["lang", "align"]).keys())
+	keys1 = sorted(node.attrs.withnames("lang", "align").keys())
 	assert keys1 == ["align", "lang"]
 
-	keys = sorted(["lang", (xml2, "lang")])
-	keys2 = sorted(node.attrs.withnames(keys).keys())
+	keys = sorted(["lang", ("lang", Attrs.lang.xmlns)])
+	keys2 = sorted(node.attrs.withnames(*keys).keys())
 	assert keys2 == keys
 
-	keys = sorted(["lang", (xml2, "lang"), (xml2, "space")])
-	keys3 = sorted(node.attrs.withnames(["lang"], [Attrs.xmlns]).keys())
-	assert keys3 == keys
 
 
 def test_defaultattributes():
