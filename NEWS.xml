@@ -22,6 +22,10 @@ have been removed. The deprecated <class>Attrs</class> method
 the arguments <arg>headers</arg> and <arg>data</arg> are now passed along
 to the parser's method only if they are specified. This makes it possible to
 pass ssh &url;s to <function>ll.xist.parsers.parseURL</function>.</item>
+<item>The methods <method>withnames</method> and <method>withoutnames</method> have
+been split into into two that take Python names and two that take XML names.
+Multiple arguments are used now (instead of one argument that must be a sequence).
+Passing a namespace to remove all atrtributes from the namespace is no longer supported.</item>
 </ulist>
 </section>
 

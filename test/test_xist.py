@@ -400,7 +400,7 @@ def test_attributeswithout():
 			default = 42
 
 	node = html.h1("gurk",
-		{("space", xml): 1, ("lang", Attrs.lang): "de", ("base", xml): "http://www.livinglogic.de/"},
+		{("space", xml): 1, ("lang", xml): "de", ("base", xml): "http://www.livinglogic.de/"},
 		lang="de",
 		style="color: #fff",
 		align="right",
@@ -412,20 +412,20 @@ def test_attributeswithout():
 	keys = sorted(node.attrs.keys())
 	keys.remove("class_")
 
-	keys1 = sorted(node.attrs.withoutnames(["class_"]).keys())
+	keys1 = sorted(node.attrs.withoutnames("class_").keys())
 	assert keys == keys1
 
-	keys.remove((xml2, "space"))
-	keys2 = sorted(node.attrs.withoutnames(["class_", (xml.xmlns, "space")]).keys())
+	keys.remove(("space", xml.xmlns))
+	keys2 = sorted(node.attrs.withoutnames("class_", ("space", xml)).keys())
 	assert keys == keys2
 
-	keys.remove((xml2, "lang"))
-	keys.remove((xml2, "base"))
-	keys3 = sorted(node.attrs.withoutnames(["class_"], [xml.xmlns]).keys())
+	keys.remove(("lang", xml.xmlns))
+	keys.remove(("base", xml.xmlns))
+	keys3 = sorted(node.attrs.withoutnames("class_", ("space", xml), ("lang", xml), ("base", xml)).keys())
 	assert keys == keys3
 
 	# Check that non existing attrs are handled correctly
-	keys4 = sorted(node.attrs.withoutnames(["class_", "src"], keepglobals=False).keys())
+	keys4 = sorted(node.attrs.withoutnames("class_", "src", ("space", xml), ("lang", xml), ("base", xml)).keys())
 	assert keys == keys4
 
 

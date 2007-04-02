@@ -2654,25 +2654,69 @@ class Attrs(Node, dict):
 				node[name] = value
 		return node
 
-	def withnames(self, names=[], xml=False):
-		"""
-		<par>Return a copy of <self/> where only the attributes in <arg>names</arg> are
-		kept, all others are removed.</par>
-		"""
-		if xml:
-			return self.filtered(lambda n: n.xmlname in names)
-		else:
-			return self.filtered(lambda n: n.__class__.__name__ in names)
+	def _fixnames(self, names):
+		newnames = []
+		for name in names:
+			if isinstance(name, tuple):
+				name = (name[0], nsname(name[1]))
+			newnames.append(name)
+		return newnames
 
-	def withoutnames(self, names=[], xml=False):
+	def withnames(self, *names):
 		"""
-		<par>Return a copy of <self/> where all the attributes in <arg>names</arg> are
-		removed.</par>
+		<par>Return a copy of <self/> where only the attributes with Python names
+		in <arg>names</arg> are kept, all others are removed.</par>
 		"""
-		if xml:
-			return self.filtered(lambda n: n.xmlname not in names)
-		else:
-			return self.filtered(lambda n: n.__class__.__name__ not in names)
+		def isok(node):
+			if node.xmlns is None:
+				return node.__class__.__name__ in names
+			else:
+				return (node.__class__.__name__, node.xmlns) in names
+
+		names = self._fixnames(names)
+		return self.filtered(isok)
+
+	def withnames_xml(self, *names):
+		"""
+		<par>Return a copy of <self/> where only the attributes with XML names
+		in <arg>names</arg> are kept, all others are removed.</par>
+		"""
+		def isok(node):
+			if node.xmlns is None:
+				return node.xmlname in names
+			else:
+				return (node.xmlname, node.xmlns) in names
+
+		names = self._fixnames(names)
+		return self.filtered(isok)
+
+	def withoutnames(self, *names):
+		"""
+		<par>Return a copy of <self/> where all the attributes with Python names
+		in <arg>names</arg> are removed.</par>
+		"""
+		def isok(node):
+			if node.xmlns is None:
+				return node.__class__.__name__ not in names
+			else:
+				return (node.__class__.__name__, node.xmlns) not in names
+
+		names = self._fixnames(names)
+		return self.filtered(isok)
+
+	def withoutnames_xml(self, *names):
+		"""
+		<par>Return a copy of <self/> where all the attributes with XML names
+		in <arg>names</arg> are removed.</par>
+		"""
+		def isok(node):
+			if node.xmlns is None:
+				return node.xmlname not in names
+			else:
+				return (node.xmlname, node.xmlns) not in names
+
+		names = self._fixnames(names)
+		return self.filtered(isok)
 
 	def __repr__(self):
 		l = len(self)
