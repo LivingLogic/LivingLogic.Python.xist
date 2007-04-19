@@ -672,12 +672,12 @@ class Parser(object):
 						else:
 							content = decode(attr.content)
 						try:
-							attrnode = newnode.attrs.set(name, value=content, xml=True)
+							attrnode = newnode.attrs.set_xml(name, value=content)
 						except xsc.IllegalAttrError:
 							pass
 						else:
 							attrnode = attrnode.parsed(self)
-							newnode.attrs.set(name, value=attrnode, xml=True)
+							newnode.attrs.set_xml(name, value=attrnode)
 						attr = attr.next
 					newnode.attrs = newnode.attrs.parsed(self)
 					newnode = newnode.parsed(self, start=True)
