@@ -9,7 +9,7 @@
 ## See xist/__init__.py for the license
 
 """
-<par>An &xist; namespace module that contains definitions for all the elements in DocBook 4.12</par>
+<par>An &xist; namespace module that contains definitions for all the elements in DocBook 4.3</par>
 """
 
 __version__ = "$Revision$".split()[1]
