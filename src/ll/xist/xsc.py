@@ -8,13 +8,16 @@
 ##
 ## See xist/__init__.py for the license
 
+
 """
 This module contains all the central &xml; tree classes, the namespace classes,
 exception and warning classes and a few helper classes and functions.
 """
 
+
 __version__ = "$Revision$".split()[1]
 # $Source$
+
 
 import sys, os, random, copy, warnings, cPickle, threading, weakref, itertools, types
 
@@ -2442,7 +2445,7 @@ class Attrs(Node, dict):
 		<par>Set the attribute with the XML <arg>name</arg> to the value <arg>value</arg>.
 		<par>The newly set attribute will be returned.</par>
 		"""
-		attr = self.allowed_attr_xml(name, xmlns)(value)
+		attr = self.allowedattr_xml(name, xmlns)(value)
 		dict.__setitem__(self, self._allowedattrkey_xml(name, xmlns), attr) # put the attribute in our dict
 		return attr
 
