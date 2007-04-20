@@ -1,0 +1,622 @@
+#! /usr/bin/env python
+# -*- coding: iso-8859-1 -*-
+
+## Copyright 2007 by LivingLogic AG, Bayreuth/Germany.
+## Copyright 2007 by Walter Dörwald
+##
+## All Rights Reserved
+##
+## See xist/__init__.py for the license
+
+
+"""
+"""
+
+
+__version__ = "$Revision$".split()[1]
+# $Source$
+
+
+import cssutils
+from cssutils.css import cssstylerule
+from cssutils.css import cssnamespacerule
+
+from ll import misc
+from ll.xist import xsc
+
+
+def _is_nth_node(iterator, node, index):
+	# Return whether node is the index'th node in iterator (starting at 1)
+	# index is an int or int string or "even" or "odd"
+	if index == "even":
+		for (i, child) in enumerate(iterator):
+			if child is node:
+				return i % 2 == 1
+		return False
+	elif index == "odd":
+		for (i, child) in enumerate(iterator):
+			if child is node:
+				return i % 2 == 0
+		return False
+	else:
+		if not isinstance(index, (int, long)):
+			try:
+				index = int(index)
+			except ValueError:
+				raise ValueError("illegal argument %r" % index)
+			else:
+				if index < 1:
+					return False
+		try:
+			return iterator[index-1] is node
+		except IndexError:
+			return False
+
+
+def _is_nth_last_node(iterator, node, index):
+	# Return whether node is the index'th last node in iterator
+	# index is an int or int string or "even" or "odd"
+	if index == "even":
+		pos = None
+		for (i, child) in enumerate(iterator):
+			if child is node:
+				pos = i
+		return pos is None or (i-pos) % 2 == 1
+	elif index == "odd":
+		pos = None
+		for (i, child) in enumerate(iterator):
+			if child is node:
+				pos = i
+		return pos is None or (i-pos) % 2 == 0
+	else:
+		if not isinstance(index, (int, long)):
+			try:
+				index = int(index)
+			except ValueError:
+				raise ValueError("illegal argument %r" % index)
+			else:
+				if index < 1:
+					return False
+		try:
+			return iterator[-index] is node
+		except IndexError:
+			return False
+
+
+def _children_of_type(node, type):
+	for child in node.content:
+		if isinstance(child, xsc.Element) and child.xmlname == type:
+			yield child
+
+
+class Selector(object):
+	def __repr__(self):
+		return "<%s.%s object selector=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, str(self), id(self))
+
+
+class HasAttributeSelector(Selector):
+	def __init__(self, attributename):
+		self.attributename = attributename
+
+	def match(self, path):
+		node = path[-1]
+		if not node.Attrs.isallowed_xml(self.attributename):
+			return False
+		return node.attrs.has_xml(self.attributename)
+
+	def __str__(self):
+		return "[%s]" % self.attributename
+
+
+class AttributeIsSelector(Selector):
+	def __init__(self, attributename, attributevalue):
+		self.attributename = attributename
+		self.attributevalue = attributevalue
+
+	def match(self, path):
+		node = path[-1]
+		if not node.Attrs.isallowed_xml(self.attributename):
+			return False
+		attr = node.attrs.get_xml(self.attributename)
+		if attr.isfancy(): # if there are PIs, say no
+			return False
+		return unicode(attr) == self.attributevalue
+
+	def __str__(self):
+		return "[%s=%s]" % (self.attributename, self.attributevalue)
+
+
+class AttributeListSelector(Selector):
+	def __init__(self, attributename, attributevalue):
+		self.attributename = attributename
+		self.attributevalue = attributevalue
+
+	def match(self, path):
+		node = path[-1]
+		if not node.Attrs.isallowed_xml(self.attributename):
+			return False
+		attr = node.attrs.get_xml(self.attributename)
+		return self.attributevalue in unicode(attr).split()
+
+	def __str__(self):
+		return "[%s~=%s]" % (self.attributename, self.attributevalue)
+
+
+class AttributeLangSelector(Selector):
+	def __init__(self, attributename, attributevalue):
+		self.attributename = attributename
+		self.attributevalue = attributevalue
+
+	def match(self, path):
+		node = path[-1]
+		if not node.Attrs.isallowed_xml(self.attributename):
+			return False
+		attr = node.attrs.get_xml(self.attributename)
+		parts = unicode(attr).split("-", 1)
+		if not parts:
+			return False
+		return parts[0] == self.attributevalue
+
+	def __str__(self):
+		return "[%s|=%s]" % (self.attributename, self.attributevalue)
+
+
+class AttributeStartsWithSelector(Selector):
+	def __init__(self, attributename, attributevalue):
+		self.attributename = attributename
+		self.attributevalue = attributevalue
+
+	def match(self, path):
+		node = path[-1]
+		if not node.Attrs.isallowed_xml(self.attributename):
+			return False
+		attr = node.attrs.get_xml(self.attributename)
+		return unicode(attr).startswith(self.attributevalue)
+
+	def __str__(self):
+		return "[%s^=%s]" % (self.attributename, self.attributevalue)
+
+
+class AttributeEndsWithSelector(Selector):
+	def __init__(self, attributename, attributevalue):
+		self.attributename = attributename
+		self.attributevalue = attributevalue
+
+	def match(self, path):
+		node = path[-1]
+		if not node.Attrs.isallowed_xml(self.attributename):
+			return False
+		attr = node.attrs.get_xml(self.attributename)
+		return unicode(attr).endswith(self.attributevalue)
+
+	def __str__(self):
+		return "[%s$=%s]" % (self.attributename, self.attributevalue)
+
+
+class AttributeContainsSelector(Selector):
+	def __init__(self, attributename, attributevalue):
+		self.attributename = attributename
+		self.attributevalue = attributevalue
+
+	def match(self, path):
+		node = path[-1]
+		if not node.Attrs.isallowed_xml(self.attributename):
+			return False
+		attr = node.attrs.get_xml(self.attributename)
+		return self.attributevalue in unicode(attr)
+
+	def __str__(self):
+		return "[%s*=%s]" % (self.attributename, self.attributevalue)
+
+
+class ClassSelector(Selector):
+	def __init__(self, classname):
+		self.classname = classname
+
+	def match(self, path):
+		node = path[-1]
+		return node.Attrs.isallowed("class_") and not node.attrs.class_.isfancy() and self.classname in unicode(node.attrs.class_).split()
+
+	def __str__(self):
+		return ".%s" % (self.classname)
+
+
+class IDSelector(Selector):
+	def __init__(self, id):
+		self.id = id
+
+	def match(self, path):
+		node = path[-1]
+		return node.Attrs.isallowed("id") and not node.attrs.id.isfancy() and unicode(node.attrs.id) == self.id
+
+	def __str__(self):
+		return "#%s" % (self.id)
+
+
+class FirstChildSelector(Selector):
+	def match(self, path):
+		return len(path) >= 2 and _is_nth_node(path[-2][xsc.Element], path[-1], 1)
+
+	def __str__(self):
+		return ":first-child"
+
+
+class LastChildSelector(Selector):
+	def match(self, path):
+		return len(path) >= 2 and _is_nth_last_node(path[-2][xsc.Element], path[-1], 1)
+
+	def __str__(self):
+		return ":last-child"
+
+
+class FirstOfTypeSelector(Selector):
+	def match(self, path):
+		if len(path) < 2:
+			return False
+		node = path[-1]
+		return isinstance(node, xsc.Element) and _is_nth_node(misc.Iterator(_children_of_type(path[-2], node.xmlname)), node, 1)
+
+	def __str__(self):
+		return ":first-of-type"
+
+
+class LastOfTypeSelector(Selector):
+	def match(self, path):
+		if len(path) < 2:
+			return False
+		node = path[-1]
+		return isinstance(node, xsc.Element) and _is_nth_last_node(misc.Iterator(_children_of_type(path[-2], node.xmlname)), node, 1)
+
+	def __str__(self):
+		return ":last-of-type"
+
+
+class OnlyChildSelector(Selector):
+	def match(self, path):
+		if len(path) < 2:
+			return False
+		node = path[-1]
+		for child in path[-2][xsc.Element]:
+			if child is not node:
+				return False
+		return True
+
+	def __str__(self):
+		return ":only-child"
+
+
+class OnlyOfTypeSelector(Selector):
+	def match(self, path):
+		if len(path) < 2:
+			return False
+		node = path[-1]
+		if not isinstance(path[-1], xsc.Element):
+			return False
+		for child in _children_of_type(path[-2], node.xmlname):
+			if child is not node:
+				return False
+		return True
+
+	def __str__(self):
+		return ":only-of-type"
+
+
+class EmptySelector(Selector):
+	def match(self, path):
+		if not path:
+			return False
+		for child in path[-1].content:
+			if isinstance(child, xsc.Element) or (isinstance(child, xsc.Text) and child):
+				return False
+		return True
+
+	def __str__(self):
+		return ":empty"
+
+
+class RootSelector(Selector):
+	def match(self, path):
+		return len(path) == 1
+
+	def __str__(self):
+		return ":root"
+
+
+class FunctionSelector(Selector):
+	def __init__(self, value=None):
+		self.value = value
+
+
+class NthChildSelector(FunctionSelector):
+	def match(self, path):
+		if len(path) < 2:
+			return False
+		node = path[-1]
+		if not isinstance(node, xsc.Element):
+			return False
+		return _is_nth_node(path[-2][xsc.Element], node, self.value)
+
+	def __str__(self):
+		return ":nth-child(%s)" % self.value
+
+
+class NthLastChildSelector(FunctionSelector):
+	def match(self, path):
+		if len(path) < 2:
+			return False
+		node = path[-1]
+		if not isinstance(node, xsc.Element):
+			return False
+		return _is_nth_last_node(path[-2][xsc.Element], node, self.value)
+
+	def __str__(self):
+		return ":nth-last-child(%s)" % self.value
+
+
+class NthOfTypeSelector(FunctionSelector):
+	def match(self, path):
+		if len(path) < 2:
+			return False
+		node = path[-1]
+		if not isinstance(node, xsc.Element):
+			return False
+		return _is_nth_node(self._children_of_type(path[-2], node.xmlname), node, self.value)
+
+	def __str__(self):
+		return ":nth-of-type(%s)" % self.value
+
+
+class NthLastOfTypeSelector(FunctionSelector):
+	def match(self, path):
+		if len(path) < 2:
+			return False
+		node = path[-1]
+		if not isinstance(node, xsc.Element):
+			return False
+		return _is_nth_last_node(self._children_of_type(path[-2], node.xmlname), node, self.value)
+
+	def __str__(self):
+		return ":nth-last-of-type(%s)" % self.value
+
+
+class Combinator(Selector):
+	def __init__(self, parent):
+		self.parent = parent
+
+
+class ChildCombinator(Combinator):
+	def match(self, path):
+		if not path:
+			return False
+		return self.parent.match(path[:-1])
+
+	def __str__(self):
+		return "%s>" % self.parent
+
+
+class DescendantCombinator(Combinator):
+	def match(self, path):
+		while path:
+			path = path[:-1]
+			if self.parent.match(path):
+				return True
+		return False
+
+	def __str__(self):
+		return "%s " % self.parent
+
+
+class AdjacentSiblingCombinator(Combinator):
+	def match(self, path):
+		if len(path) < 2:
+			return False
+		# Find sibling
+		node = path[-1]
+		sibling = None
+		for child in path[-2][xsc.Element]:
+			if child is node:
+				break
+			sibling = child
+		if sibling is None:
+			return False
+		return self.parent.match(path[:-1]+[sibling])
+
+	def __str__(self):
+		return "%s+" % self.parent
+
+
+class GeneralSiblingCombinator(Combinator):
+	def match(self, path):
+		if len(path) < 2:
+			return False
+		node = path[-1]
+		for child in path[-2][xsc.Element]:
+			if child is node:
+				return False
+			if self.parent.match(path[:-1]+[child]):
+				return True
+		return False # can't happen
+
+	def __str__(self):
+		return "%s~" % self.parent
+
+
+class TypeSelector(Selector):
+	def __init__(self, parentcombinator=None, type="*", xmlns="*", *selectors):
+		self.parentcombinator = parentcombinator
+		self.type = type
+		self.xmlns = xmlns
+		self.selectors = [] # id, class, attribute etc. selectors for this node
+
+	def match(self, path):
+		if not path:
+			return False
+		node = path[-1]
+		if self.type != "*" and node.xmlname != self.type:
+			return False
+		if self.xmlns != "*" and node.xmlns != self.xmlns:
+			return False
+		for selector in self.selectors:
+			if not selector.match(path):
+				return False
+		if self.parentcombinator is not None:
+			return self.parentcombinator.match(path)
+		return True
+
+	def __str__(self):
+		v = []
+		if self.parentcombinator is not None:
+			v.append(str(self.parentcombinator))
+		xmlns = self.xmlns
+		if xmlns != "*":
+			if xmlns is None:
+				xmlns = ""
+			v.append(xmlns)
+			v.append("|")
+		type = self.type
+		if type != "*" or self.selectors:
+			v.append(type)
+		for selector in self.selectors:
+			v.append(str(selector))
+		return "".join(v)
+
+
+_attributecombinator2class = {
+	"=": AttributeIsSelector,
+	"~=": AttributeListSelector,
+	"|=": AttributeLangSelector,
+	"$=": AttributeStartsWithSelector,
+	"$=": AttributeEndsWithSelector,
+	"*=": AttributeContainsSelector,
+}
+
+_combinator2class = {
+	" ": DescendantCombinator,
+	">": ChildCombinator,
+	"+": AdjacentSiblingCombinator,
+	"~": GeneralSiblingCombinator,
+}
+
+_pseudoname2class = {
+	"first-child": FirstChildSelector,
+	"last-child": LastChildSelector,
+	"first-of-type": FirstOfTypeSelector,
+	"last-of-type": LastOfTypeSelector,
+	"only-child": OnlyChildSelector,
+	"only-of-type": OnlyOfTypeSelector,
+	"empty": EmptySelector,
+	"root": RootSelector,
+}
+
+_function2class = {
+	"nth-child": NthChildSelector,
+	"nth-last-child": NthLastChildSelector,
+	"nth-of-type": NthOfTypeSelector,
+	"nth-last-of-type": NthLastOfTypeSelector,
+}
+
+
+class FindCSS(object):
+	"""
+	Tree traversal filter that finds nodes that match a CSS selector.
+	"""
+
+	def __init__(self, selectors, prefixes=None):
+		"""
+		Create a new <class>FindCSS<class>. <arg>selectors</arg> can be a string
+		or a <class>cssutils.css.selector.Selector</class> object. <arg>prefixes</arg>
+		may is a mapping mapping namespace prefixes to namespace names.
+		"""
+			
+		if isinstance(selectors, basestring):
+			if prefixes is not None:
+				prefixes = dict((key, xsc.nsname(value)) for (key, value) in prefixes.iteritems())
+				selectors = "%s\n%s{}" % ("\n".join("@namespace %s %r;" % (key if key is not None else "", value) for (key, value) in prefixes.iteritems()), selectors)
+			else:
+				selectors = "%s{}" % selectors
+			self.prefixes = prefixes
+			for rule in cssutils.CSSParser().parseString(selectors).cssRules:
+				if isinstance(rule, cssstylerule.CSSStyleRule):
+					selectors = rule.selectorList
+					break
+			else:
+				raise ValueError("can't happen")
+		else:
+			raise TypeError # FIXME: cssutils object
+		self.selectors = []
+		for selector in selectors:
+			rule = TypeSelector()
+			prefix = None
+			attributename = None
+			attributevalue = None
+			combinator = None
+			inattr = False
+			for x in selector.seq:
+				type = x["type"]
+				value = x["value"]
+				if type == "prefix":
+					prefix = value
+				elif type == "pipe":
+					if prefix != "*":
+						try:
+							xmlns = prefixes[prefix]
+						except KeyError:
+							raise xsc.IllegalPrefixError(prefix)
+						rule.type = xmlns
+					prefix = None
+				elif type == "type":
+					rule.type = value
+				elif type == "id":
+					rule.selectors.append(IDSelector(value.lstrip("#")))
+				elif type == "classname":
+					rule.selectors.append(ClassSelector(value))
+				elif type == "pseudoname":
+					try:
+						rule.selectors.append(_pseudoname2class[value]())
+					except KeyError:
+						raise ValueError("unknown pseudoname %s" % value)
+				elif type == "function":
+					try:
+						rule.selectors.append(_function2class[value.rstrip("(")]())
+					except KeyError:
+						raise ValueError("unknown function %s" % value)
+					rule.function = value
+				elif type == "functionvalue":
+					rule.selectors[-1].value = value
+				elif type == "attributename":
+					attributename = value
+				elif type == "attributevalue":
+					attributevalue = value
+				elif type == "attribute selector":
+					combinator = None
+					inattr = True
+				elif type == "attribute selector end":
+					if combinator is None:
+						rule.selectors.append(HasAttributeSelector(attributename))
+					else:
+						try:
+							rule.selectors.append(_attributecombinator2class[combinator](attributename, attributevalue))
+						except KeyError:
+							raise ValueError("unknown combinator %s" % attributevalue)
+					inattr = False
+				elif type == "combinator":
+					if inattr:
+						combinator = value
+					else:
+						try:
+							rule = TypeSelector(parentcombinator=_combinator2class[value](rule))
+						except KeyError:
+							raise ValueError("unknown combinator %s" % value)
+						xmlns = "*"
+			self.selectors.append(rule)
+
+	def __call__(self, cursor):
+		if isinstance(cursor.node, xsc.Element):
+			for selector in self.selectors:
+				if selector.match(cursor.path):
+					return (True, xsc.entercontent)
+		return (xsc.entercontent,)
+
+	def __repr__(self):
+		return "<%s.%s object selectors=%r prefixes=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, ", ".join(str(x) for x in self.selectors), self.prefixes, id(self))
+
