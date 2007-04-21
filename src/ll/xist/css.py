@@ -89,7 +89,7 @@ def _children_of_type(node, type):
 			yield child
 
 
-class Selector(object):
+class Selector(xsc.FindVisitAll):
 	def __repr__(self):
 		return "<%s.%s object selector=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, str(self), id(self))
 
@@ -100,7 +100,7 @@ class HasAttributeSelector(Selector):
 
 	def match(self, path):
 		node = path[-1]
-		if not node.Attrs.isallowed_xml(self.attributename):
+		if not isinstance(node, xsc.Element) or not node.Attrs.isallowed_xml(self.attributename):
 			return False
 		return node.attrs.has_xml(self.attributename)
 
@@ -115,7 +115,7 @@ class AttributeIsSelector(Selector):
 
 	def match(self, path):
 		node = path[-1]
-		if not node.Attrs.isallowed_xml(self.attributename):
+		if not isinstance(node, xsc.Element) or not node.Attrs.isallowed_xml(self.attributename):
 			return False
 		attr = node.attrs.get_xml(self.attributename)
 		if attr.isfancy(): # if there are PIs, say no
@@ -133,7 +133,7 @@ class AttributeListSelector(Selector):
 
 	def match(self, path):
 		node = path[-1]
-		if not node.Attrs.isallowed_xml(self.attributename):
+		if not isinstance(node, xsc.Element) or not node.Attrs.isallowed_xml(self.attributename):
 			return False
 		attr = node.attrs.get_xml(self.attributename)
 		return self.attributevalue in unicode(attr).split()
@@ -149,7 +149,7 @@ class AttributeLangSelector(Selector):
 
 	def match(self, path):
 		node = path[-1]
-		if not node.Attrs.isallowed_xml(self.attributename):
+		if not isinstance(node, xsc.Element) or not node.Attrs.isallowed_xml(self.attributename):
 			return False
 		attr = node.attrs.get_xml(self.attributename)
 		parts = unicode(attr).split("-", 1)
@@ -168,7 +168,7 @@ class AttributeStartsWithSelector(Selector):
 
 	def match(self, path):
 		node = path[-1]
-		if not node.Attrs.isallowed_xml(self.attributename):
+		if not isinstance(node, xsc.Element) or not node.Attrs.isallowed_xml(self.attributename):
 			return False
 		attr = node.attrs.get_xml(self.attributename)
 		return unicode(attr).startswith(self.attributevalue)
@@ -184,7 +184,7 @@ class AttributeEndsWithSelector(Selector):
 
 	def match(self, path):
 		node = path[-1]
-		if not node.Attrs.isallowed_xml(self.attributename):
+		if not isinstance(node, xsc.Element) or not node.Attrs.isallowed_xml(self.attributename):
 			return False
 		attr = node.attrs.get_xml(self.attributename)
 		return unicode(attr).endswith(self.attributevalue)
@@ -200,7 +200,7 @@ class AttributeContainsSelector(Selector):
 
 	def match(self, path):
 		node = path[-1]
-		if not node.Attrs.isallowed_xml(self.attributename):
+		if not isinstance(node, xsc.Element) or not node.Attrs.isallowed_xml(self.attributename):
 			return False
 		attr = node.attrs.get_xml(self.attributename)
 		return self.attributevalue in unicode(attr)
@@ -215,7 +215,7 @@ class ClassSelector(Selector):
 
 	def match(self, path):
 		node = path[-1]
-		return node.Attrs.isallowed("class_") and not node.attrs.class_.isfancy() and self.classname in unicode(node.attrs.class_).split()
+		return isinstance(node, xsc.Element) and node.Attrs.isallowed("class_") and not node.attrs.class_.isfancy() and self.classname in unicode(node.attrs.class_).split()
 
 	def __str__(self):
 		return ".%s" % (self.classname)
@@ -227,7 +227,7 @@ class IDSelector(Selector):
 
 	def match(self, path):
 		node = path[-1]
-		return node.Attrs.isallowed("id") and not node.attrs.id.isfancy() and unicode(node.attrs.id) == self.id
+		return isinstance(node, xsc.Element) and node.Attrs.isallowed("id") and not node.attrs.id.isfancy() and unicode(node.attrs.id) == self.id
 
 	def __str__(self):
 		return "#%s" % (self.id)
@@ -290,7 +290,7 @@ class OnlyOfTypeSelector(Selector):
 		if len(path) < 2:
 			return False
 		node = path[-1]
-		if not isinstance(path[-1], xsc.Element):
+		if not isinstance(node, xsc.Element):
 			return False
 		for child in _children_of_type(path[-2], node.xmlname):
 			if child is not node:
@@ -305,6 +305,9 @@ class EmptySelector(Selector):
 	def match(self, path):
 		if not path:
 			return False
+		node = path[-1]
+		if not isinstance(node, xsc.Element):
+			return False
 		for child in path[-1].content:
 			if isinstance(child, xsc.Element) or (isinstance(child, xsc.Text) and child):
 				return False
@@ -316,7 +319,7 @@ class EmptySelector(Selector):
 
 class RootSelector(Selector):
 	def match(self, path):
-		return len(path) == 1
+		return len(path) == 1 and isinstance(path[-1], xsc.Element)
 
 	def __str__(self):
 		return ":root"
@@ -516,7 +519,7 @@ _function2class = {
 }
 
 
-class FindCSS(object):
+class FindCSS(xsc.FindVisitAll):
 	"""
 	Tree traversal filter that finds nodes that match a CSS selector.
 	"""
@@ -610,12 +613,10 @@ class FindCSS(object):
 						xmlns = "*"
 			self.selectors.append(rule)
 
-	def __call__(self, cursor):
-		if isinstance(cursor.node, xsc.Element):
-			for selector in self.selectors:
-				if selector.match(cursor.path):
-					return (True, xsc.entercontent)
-		return (xsc.entercontent,)
+	def match(self, path):
+		if not isinstance(path[-1], xsc.Element):
+			return False
+		return any(selector.match(path) for selector in self.selectors)
 
 	def __repr__(self):
 		return "<%s.%s object selectors=%r prefixes=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, ", ".join(str(x) for x in self.selectors), self.prefixes, id(self))

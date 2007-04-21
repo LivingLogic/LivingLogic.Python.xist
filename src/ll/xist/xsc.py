@@ -163,6 +163,22 @@ class FindTypeTop(object):
 			return (entercontent,)
 
 
+class FindVisitAll(object):
+	"""
+	Base class for all filters that visit the complete tree (except attributes).
+	"""
+	@misc.notimplemented
+	def match(self, path):
+		"""
+		"""
+
+	def __call__(self, cursor):
+		if self.match(cursor.path):
+			return (True, entercontent)
+		else:
+			return (entercontent,)
+
+
 ###
 ### Cursor for tree traversal
 ###
