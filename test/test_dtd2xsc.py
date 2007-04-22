@@ -130,7 +130,7 @@ def test_unicodequotes():
 	dtdstring = """<?xml version='1.0' encoding='us-ascii'?>
 	<!ELEMENT foo EMPTY>
 	"""
-	ns = dtd2ns(dtdstring, u'"\u3042"')
+	ns = dtd2mod(dtdstring, u'"\u3042"')
 	assert ns.xmlns == u'"\u3042"'
 
 
