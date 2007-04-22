@@ -46,7 +46,7 @@ class contenttype(html.meta):
 		target = converter.target
 		if target.xmlns in (ihtml.xmlns, html.xmlns):
 			e = target.meta(
-				self.attrs.withoutnames([u"mimetype"]),
+				self.attrs.withoutnames(u"mimetype"),
 				http_equiv=u"Content-Type",
 				content=self[u"mimetype"],
 			)
@@ -73,7 +73,7 @@ class contentscripttype(html.meta):
 		class type(xsc.TextAttr): pass
 
 	def convert(self, converter):
-		e = html.meta(self.attrs.withoutnames([u"type"]))
+		e = html.meta(self.attrs.withoutnames(u"type"))
 		e[u"http_equiv"] = u"Content-Script-Type"
 		e[u"content"] = self[u"type"]
 		return e.convert(converter)
