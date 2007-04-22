@@ -119,8 +119,8 @@ class FindType(object):
 	def __init__(self, *types):
 		self.types = types
 
-	def __call__(self, cursor):
-		return (isinstance(cursor.node, self.types), )
+	def __call__(self, path):
+		return (isinstance(path[-1], self.types), )
 
 
 class FindTypeAll(object):
@@ -131,8 +131,8 @@ class FindTypeAll(object):
 	def __init__(self, *types):
 		self.types = types
 
-	def __call__(self, cursor):
-		return (isinstance(cursor.node, self.types), entercontent)
+	def __call__(self, path):
+		return (isinstance(path[-1], self.types), entercontent)
 
 
 class FindTypeAllAttrs(object):
@@ -143,8 +143,8 @@ class FindTypeAllAttrs(object):
 	def __init__(self, *types):
 		self.types = types
 
-	def __call__(self, cursor):
-		return (isinstance(cursor.node, self.types), entercontent, enterattrs)
+	def __call__(self, path):
+		return (isinstance(path[-1], self.types), entercontent, enterattrs)
 
 
 class FindTypeTop(object):
@@ -156,8 +156,8 @@ class FindTypeTop(object):
 	def __init__(self, *types):
 		self.types = types
 
-	def __call__(self, cursor):
-		if isinstance(cursor.node, self.types):
+	def __call__(self, path):
+		if isinstance(path[-1], self.types):
 			return (True,)
 		else:
 			return (entercontent,)
@@ -172,50 +172,8 @@ class FindVisitAll(object):
 		"""
 		"""
 
-	def __call__(self, cursor):
-		if self.match(cursor.path):
-			return (True, entercontent)
-		else:
-			return (entercontent,)
-
-
-###
-### Cursor for tree traversal
-###
-
-class Cursor(object):
-	"""
-	<par>A <class>Cursor</class> object references a node in an &xist; tree in several
-	ways. It it used by the <pyref class="Node" method="walk"><method>walk</method></pyref>
-	method.</par>
-	
-	<par>A cursor has the following attributes:</par>
-
-	<dlist>
-	<term><lit>root</lit></term><item>The root of the traversed tree;</item>
-	<term><lit>node</lit></term><item>The node the cursor points to;</item>
-	<term><lit>path</lit></term><item>A list of nodes containing a path from the
-	root to the node, i.e. <lit><rep>cursor</rep>.path[0] is <rep>cursor</rep>.root</lit>
-	and <lit><rep>cursor</rep>.path[-1] is <rep>cursor</rep>.node</lit>;</item>
-	<term><lit>index</lit></term><item>A list containing child indizes and
-	attribute names that specify the path to the node in question
-	(<lit><rep>cursor</rep>.root[<rep>cursor</rep>.index] is <rep>cursor</rep>.node</lit>).</item>
-	</dlist>
-	"""
-	def __init__(self, node):
-		self.root = node
-		self.node = node
-		self.path = [node]
-		self.index = []
-
-	def __xattrs__(self, mode="default"):
-		return ("index", "node")
-
-	def clone(self):
-		clone = Cursor(self.root)
-		clone.node = self.node
-		clone.path = self.path[:]
-		clone.index = self.index[:]
+	def __call__(self, path):
+		return (True, entercontent) if self.match(path) else (entercontent,)
 
 
 ###
@@ -929,18 +887,18 @@ class Node(object):
 		for part in self.bytes(*args, **publishargs):
 			stream.write(part)
 
-	def _walk(self, filter, cursor):
+	def _walk(self, filter, path):
 		"""
 		<par>Internal helper for <pyref method="walk"><method>walk</method></pyref>.</par>
 		"""
 		if callable(filter):
-			found = filter(cursor)
+			found = filter(path)
 		else:
 			found = filter
 
 		for option in found:
 			if option is not entercontent and option is not enterattrs and option:
-				yield cursor
+				yield path
 
 	def walk(self, filter=(True, entercontent)):
 		"""
@@ -949,11 +907,11 @@ class Node(object):
 		<par><arg>filter</arg> is used for specifying whether or not a node should
 		be yielded and when the children of this node should be traversed. If
 		<arg>filter</arg> is callable, it will be called for each node visited
-		during the traversal. A <pyref class="Cursor"><class>Cursor</class></pyref>
-		object will be passed to the filter on each call and the filter must return
-		a sequence of <z>node handling options</z>. If <arg>filter</arg> is not
-		callable, it must be a sequence of node handling options that will be used
-		for all visited nodes.</par>
+		during the traversal. A path (i.e. a list of all nodes from the root to
+		the current node) will be passed to the filter on each call and the
+		filter must return a sequence of <z>node handling options</z>.
+		If <arg>filter</arg> is not callable, it must be a sequence of node
+		handling options that will be used for all visited nodes.</par>
 
 		<par>Entries in this returned sequence can be the following:</par>
 
@@ -987,53 +945,33 @@ class Node(object):
 		<rep>node</rep>.walk((xsc.entercontent, True))
 		</prog>
 
-		<par>Each item produced by the iterator is a <pyref class="Cursor"><class>Cursor</class></pyref>
-		that points to the node in question. <method>walk</method> reuses the
-		cursor, so you can't rely on the values of the cursor attributes remaining
-		the same across calls to <method>next</method>.</par>
+		<par>Each item produced by the iterator is a path list.
+		<method>walk</method> reuses this list, so you can't rely on the value
+		of the list being the same across calls to <method>next</method>.</par>
 		"""
-		cursor = Cursor(self)
-		return misc.Iterator(self._walk(filter, cursor))
+		return self._walk(filter, [self])
 
 	def walknode(self, filter=(True, entercontent)):
 		"""
-		Return an iterator for traversing the tree. <arg>filter</arg> work the
+		Return an iterator for traversing the tree. <arg>filter</arg> works the
 		same as the <arg>filter</arg> argument for <pyref method="walk"><method>walk</method></pyref>.
 		The items produced by the iterator are the nodes themselves.
 		"""
-		cursor = Cursor(self)
-		def iterate(cursor):
-			for cursor in self._walk(filter, cursor):
-				yield cursor.node
-		return misc.Iterator(iterate(cursor))
+		def iterate(path):
+			for path in self._walk(filter, path):
+				yield path[-1]
+		return misc.Iterator(iterate([self]))
 
 	def walkpath(self, filter=(True, entercontent)):
 		"""
-		Return an iterator for traversing the tree. <arg>filter</arg> work the
+		Return an iterator for traversing the tree. <arg>filter</arg> works the
 		same as the <arg>filter</arg> argument for <pyref method="walk"><method>walk</method></pyref>.
-		The items produced by the iterator are lists containing a path from the root
-		node (i.e. the one for which <method>walkpath</method> has been called)
-		to the node in question.
+		The items produced by the iterator are copies of the path.
 		"""
-		cursor = Cursor(self)
-		def iterate(cursor):
-			for cursor in self._walk(filter, cursor):
-				yield cursor.path[:]
-		return misc.Iterator(iterate(cursor))
-
-	def walkindex(self, filter=(True, entercontent)):
-		"""
-		Return an iterator for traversing the tree. <arg>filter</arg> work the
-		same as the <arg>filter</arg> argument for <pyref method="walk"><method>walk</method></pyref>.
-		The items produced by the iterator are lists containing an index path from
-		the root node (i.e. the one for which <method>walkindex</method> has been
-		called) to the node in question.
-		"""
-		cursor = Cursor(self)
-		def iterate(cursor):
-			for cursor in self._walk(filter, cursor):
-				yield cursor.index[:]
-		return misc.Iterator(iterate(cursor))
+		def iterate(path):
+			for path in self._walk(filter, path):
+				yield path[:]
+		return misc.Iterator(iterate([self]))
 
 	def __div__(self, other):
 		return xfind.Expr(self, other)
@@ -1603,18 +1541,13 @@ class Frag(Node, list):
 		other = Frag(*others)
 		list.__setslice__(self, index, index, other)
 
-	def _walk(self, filter, cursor):
-		cursor.node = self
-		cursor.path.append(None)
-		cursor.index.append(0)
+	def _walk(self, filter, path):
+		path.append(None)
 		for child in self:
-			cursor.node = child
-			cursor.path[-1] = child
-			for result in child._walk(filter, cursor):
+			path[-1] = child
+			for result in child._walk(filter, path):
 				yield result
-			cursor.index[-1] += 1
-		cursor.path.pop()
-		cursor.index.pop()
+		path.pop()
 
 	def compact(self):
 		node = self._create()
@@ -1963,20 +1896,20 @@ class Attr(Frag):
 			if value not in values:
 				warnings.warn(IllegalAttrValueWarning(self))
 
-	def _walk(self, filter, cursor):
+	def _walk(self, filter, path):
 		if callable(filter):
-			found = filter(cursor)
+			found = filter(path)
 		else:
 			found = filter
 
 		for option in found:
 			if option is entercontent:
-				for result in Frag._walk(self, filter, cursor):
+				for result in Frag._walk(self, filter, path):
 					yield result
 			elif option is enterattrs:
 				pass
 			elif option:
-				yield cursor
+				yield path
 
 	def _publishname(self, publisher):
 		if self.xmlns is not None:
@@ -2289,18 +2222,13 @@ class Attrs(Node, dict):
 			node[attrname] = convertedattr
 		return node
 
-	def _walk(self, filter, cursor):
-		cursor.node = self
-		cursor.path.append(None)
-		cursor.index.append(None)
+	def _walk(self, filter, path):
+		path.append(None)
 		for (key, child) in self.iteritems():
-			cursor.node = child
-			cursor.path[-1] = child
-			cursor.index[-1] = key
-			for result in child._walk(filter, cursor):
+			path[-1] = child
+			for result in child._walk(filter, path):
 				yield result
-		cursor.path.pop()
-		cursor.index.pop()
+		path.pop()
 
 	def present(self, presenter):
 		return presenter.presentAttrs(self) # return a generator-iterator
@@ -3130,21 +3058,21 @@ class Element(Node):
 		node.attrs = self.attrs.compact()
 		return self._decoratenode(node)
 
-	def _walk(self, filter, cursor):
+	def _walk(self, filter, path):
 		if callable(filter):
-			found = filter(cursor)
+			found = filter(path)
 		else:
 			found = filter
 
 		for option in found:
 			if option is entercontent:
-				for result in self.content._walk(filter, cursor):
+				for result in self.content._walk(filter, path):
 					yield result
 			elif option is enterattrs:
-				for result in self.attrs._walk(filter, cursor):
+				for result in self.attrs._walk(filter, path):
 					yield result
 			elif option:
-				yield cursor
+				yield path
 
 	def withsep(self, separator, clone=False):
 		"""

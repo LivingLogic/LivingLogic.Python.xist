@@ -198,15 +198,15 @@ class Walker(Operator):
 
 	def xwalk(self, iterator):
 		for child in iterator:
-			for cursor in child.walk(self.function):
-				yield cursor.node
+			for path in child.walk(self.function):
+				yield path[-1]
 
 
 class all(Operator):
 	def xwalk(self, iterator):
 		for child in iterator:
-			for cursor in child.walk():
-				yield cursor.node
+			for path in child.walk():
+				yield path[-1]
 all = all()
 
 

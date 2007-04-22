@@ -22,9 +22,9 @@ def test_walk_coverage():
 		return (True, xsc.enterattrs, xsc.entercontent, True)
 
 	# call only for code coverage
-	for cursor in node.walk((True, xsc.entercontent, True)):
+	for path in node.walk((True, xsc.entercontent, True)):
 		pass
-	for cursor in node.walk(filter):
+	for path in node.walk(filter):
 		pass
 
 
@@ -35,8 +35,8 @@ def test_walk_result():
 				return "#"
 			else:
 				return node.xmlname
-		def path2str(cursor):
-			return ".".join(map(node2str, cursor.path))
+		def path2str(path):
+			return ".".join(map(node2str, path))
 
 		assert map(path2str, node.walk(filter)) == result
 
@@ -49,33 +49,33 @@ def test_walk_result():
 		class_=html.i("hinz")
 	)
 
-	def filtertopdown(cursor):
-		return (isinstance(cursor.node, xsc.Element), xsc.entercontent)
-	def filterbottomup(cursor):
-		return (xsc.entercontent, isinstance(cursor.node, xsc.Element))
-	def filtertopdownattrs(cursor):
-		return (isinstance(cursor.node, xsc.Element), xsc.enterattrs, xsc.entercontent)
-	def filterbottomupattrs(cursor):
-		return (xsc.enterattrs, xsc.entercontent, isinstance(cursor.node, xsc.Element))
-	def filtertopdowntextonlyinattr(cursor):
-		for node in cursor.path:
+	def filtertopdown(path):
+		return (isinstance(path[-1], xsc.Element), xsc.entercontent)
+	def filterbottomup(path):
+		return (xsc.entercontent, isinstance(path[-1], xsc.Element))
+	def filtertopdownattrs(path):
+		return (isinstance(path[-1], xsc.Element), xsc.enterattrs, xsc.entercontent)
+	def filterbottomupattrs(path):
+		return (xsc.enterattrs, xsc.entercontent, isinstance(path[-1], xsc.Element))
+	def filtertopdowntextonlyinattr(path):
+		for node in path:
 			if isinstance(node, xsc.Attr):
 				inattr = True
 				break
 		else:
 			inattr = False
-		node = cursor.path[-1]
-		if isinstance(cursor.node, xsc.Element):
+		node = path[-1]
+		if isinstance(node, xsc.Element):
 			return (True, xsc.enterattrs, xsc.entercontent)
-		if inattr and isinstance(cursor.node, xsc.Text):
+		if inattr and isinstance(node, xsc.Text):
 			return (True, )
 		else:
 			return (xsc.entercontent, )
 
-	def filtertopdownattrwithoutcontent(cursor):
-		if isinstance(cursor.node, xsc.Element):
+	def filtertopdownattrwithoutcontent(path):
+		if isinstance(path[-1], xsc.Element):
 			return (True, xsc.entercontent, xsc.enterattrs)
-		elif isinstance(cursor.node, (xsc.Attr, xsc.Text)):
+		elif isinstance(path[-1], (xsc.Attr, xsc.Text)):
 			return (True, )
 		else:
 			return (xsc.entercontent, )
@@ -86,38 +86,6 @@ def test_walk_result():
 	yield check, node, filterbottomupattrs, ["div.class.i", "div.tr.id.b", "div.tr.th", "div.tr.td", "div.tr", "div"]
 	yield check, node, filtertopdowntextonlyinattr, ["div", "div.class.i", "div.class.i.#", "div.tr", "div.tr.id.b", "div.tr.id.b.#", "div.tr.th", "div.tr.td"]
 	yield check, node, filtertopdownattrwithoutcontent, ["div", "div.tr", "div.tr.th", "div.tr.th.#", "div.tr.td", "div.tr.td.#", "div.tr.id", "div.class"]
-
-
-def test_walkindex():
-	e = html.div(
-		"foo",
-		html.a(
-			"bar",
-			xml.Attrs(lang="en"),
-			href="baz",
-		),
-		"gurk",
-	)
-	res = list(e.walkindex(xsc.FindTypeAllAttrs(xsc.Text)))
-	exp = [
-		[0],
-		[1, 0],
-		[1, "href", 0],
-		[1, ("lang", xml.xmlns), 0], # FIXME: This depends on dictionary iteration order
-		[2]
-	]
-	assert res == exp
-
-
-def test_cursor():
-	# Check that all cursor attributes point to the same nodes
-	def check(node):
-		for cursor in node.walk(xsc.FindTypeAllAttrs(xsc.Text)):
-			assert cursor.node is cursor.path[-1]
-			assert cursor.node is cursor.root[cursor.index]
-
-	for node in common.allnodes():
-		yield check, node
 
 
 def test_walkgetitem():
@@ -131,7 +99,11 @@ def test_walkgetitem():
 		)
 	)
 	isdiv = xsc.FindTypeAll(html.div)
-	assert str(e.walk(isdiv)[0].node) == "123"
-	assert str(e.walk(isdiv)[-1].node) == "3"
-	py.test.raises(IndexError, e.walk(isdiv).__getitem__, 3)
-	py.test.raises(IndexError, e.walk(isdiv).__getitem__, -4)
+	assert str(e.walknode(isdiv)[0]) == "123"
+	assert str(e.walknode(isdiv)[-1]) == "3"
+	py.test.raises(IndexError, e.walknode(isdiv).__getitem__, 3)
+	py.test.raises(IndexError, e.walknode(isdiv).__getitem__, -4)
+	assert str(e.walkpath(isdiv)[0][-1]) == "123"
+	assert str(e.walkpath(isdiv)[-1][-1]) == "3"
+	py.test.raises(IndexError, e.walkpath(isdiv).__getitem__, 3)
+	py.test.raises(IndexError, e.walkpath(isdiv).__getitem__, -4)

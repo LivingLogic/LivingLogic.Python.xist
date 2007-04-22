@@ -155,14 +155,13 @@ class Publisher(object):
 		<par>publish the node <arg>node</arg>. This method is a generator that
 		will yield the resulting &xml; byte sequence in fragments.</par>
 		"""
-		def iselorat(cursor):
-			return (isinstance(cursor.node, (xsc.Element, xsc.Attr)), xsc.entercontent, xsc.enterattrs)
+		def iselorat(path):
+			return (isinstance(path[-1], (xsc.Element, xsc.Attr)), xsc.entercontent, xsc.enterattrs)
 
 		self._ns2prefix = {}
 		self._prefix2ns = {}
 		# iterate through every node in the tree
-		for cursor in node.walk(iselorat):
-			n = cursor.node
+		for n in node.walknode(iselorat):
 			ns = n.xmlns
 			if ns is not None:
 				try:

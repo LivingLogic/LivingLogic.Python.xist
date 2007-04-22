@@ -125,7 +125,6 @@ def test_standardmethods():
 		node.normalized()
 		list(node.walk((True, xsc.enterattrs, xsc.entercontent)))
 		list(node.walknode((True, xsc.enterattrs, xsc.entercontent)))
-		list(node.walkindex((True, xsc.enterattrs, xsc.entercontent)))
 		list(node.walkpath((True, xsc.enterattrs, xsc.entercontent)))
 		node.pretty()
 		node.clone()
