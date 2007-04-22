@@ -443,7 +443,7 @@ def fromdtd(dtd, xmlns=None):
 	"""
 	Convert &dtd; information (in the format that is returned by <app>xmlproc</app>s
 	<function>dtdparser.load_dtd</function> function) to an &xist; &dom; using the
-	<pyref module="ll.xist.ns.xndl"><module>xndl</module></pyref> namespace.
+	<pyref module="ll.xist.xnd"><module>xnd</module></pyref> namespace.
 	"""
 
 	ns = Module(xmlns)
@@ -538,5 +538,5 @@ def fromdtd(dtd, xmlns=None):
 
 	# if the DTD has exactly one value for all fixed "xmlns" attributes and the user didn't specify xmlns, use this one
 	if xmlns is None and len(foundxmlns)==1:
-		ns.xmlns = foundxmlns.popitem()[0]
+		ns.xmlns = foundxmlns.pop()
 	return ns
