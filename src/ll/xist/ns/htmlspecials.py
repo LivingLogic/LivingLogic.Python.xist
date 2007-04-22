@@ -113,7 +113,7 @@ class pixel(_pixelbase):
 		else:
 			style = self.attrs.style
 		e = converter.target.img(
-			self.attrs.withoutnames([u"color"]),
+			self.attrs.withoutnames(u"color"),
 			style=style,
 			src=src,
 		)
@@ -150,7 +150,7 @@ class autopixel(_pixelbase):
 		target = converter.target
 		if not issubclass(target, (ihtml, html)):
 			raise ValueError("unknown conversion target %r" % target)
-		e = target.img(self.attrs.withoutnames([u"color"]))
+		e = target.img(self.attrs.withoutnames(u"color"))
 		src = self.attrs.src.convert(converter).forInput(converter.root)
 		e._addimagesizeattributes(src, u"width", u"height")
 		e.attrs.src = converter[self].src
