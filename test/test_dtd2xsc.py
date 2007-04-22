@@ -23,17 +23,13 @@ def dtd2mod(s, xmlns=None, shareattrs=None):
 	if shareattrs is not None:
 		data.shareattrs(shareattrs)
 
-	mod = types.ModuleType(xmlns)
+	mod = types.ModuleType("test")
 	mod.__file__ = "test.py"
 	encoding = "iso-8859-1"
 	code = data.aspy(encoding=encoding).encode(encoding)
 	code = compile(code, "test.py", "exec")
 	exec code in mod.__dict__
 	return mod
-
-
-def dtd2ns(s, xmlns=None, shareattrs=None):
-	return dtd2mod(s, xmlns, shareattrs).xmlns
 
 
 def test_convert():
@@ -55,7 +51,7 @@ def test_convert():
 		foo:bar CDATA            #IMPLIED
 	>
 	"""
-	ns = dtd2ns(dtdstring, "foo")
+	ns = dtd2mod(dtdstring)
 
 	assert ns.xmlns == "http://xmlns.foo.com/foo"
 	assert isinstance(ns.foo.model, sims.Elements)
@@ -96,7 +92,7 @@ def test_charref():
 	<!ELEMENT foo (EMPTY)>
 	<!ENTITY bar "&#xff;">
 	"""
-	ns = dtd2ns(dtdstring, "foo")
+	ns = dtd2mod(dtdstring, "foo")
 
 	assert ns.bar.codepoint == 0xff
 
@@ -108,7 +104,7 @@ def test_keyword():
 		class CDATA              #IMPLIED
 	>
 	"""
-	ns = dtd2ns(dtdstring, "foo")
+	ns = dtd2mod(dtdstring, "foo")
 	assert issubclass(ns.foo.Attrs.class_, xsc.TextAttr)
 	assert ns.foo.Attrs.class_.__name__ == "class_"
 	assert ns.foo.Attrs.class_.xmlname == u"class"
@@ -118,7 +114,7 @@ def test_quotes():
 	dtdstring = """<?xml version='1.0' encoding='us-ascii'?>
 	<!ELEMENT foo EMPTY>
 	"""
-	ns = dtd2ns(dtdstring, '"')
+	ns = dtd2mod(dtdstring, '"')
 	assert ns.xmlns == '"'
 
 
@@ -126,7 +122,7 @@ def test_unicode():
 	dtdstring = """<?xml version='1.0' encoding='us-ascii'?>
 	<!ELEMENT foo EMPTY>
 	"""
-	ns = dtd2ns(dtdstring, u'\u3042')
+	ns = dtd2mod(dtdstring, u'\u3042')
 	assert ns.xmlns == u'\u3042'
 
 
@@ -142,7 +138,7 @@ def test_badelementname():
 	dtdstring = """<?xml version='1.0' encoding='us-ascii'?>
 	<!ELEMENT class EMPTY>
 	"""
-	ns = dtd2ns(dtdstring, "foo")
+	ns = dtd2mod(dtdstring, "foo")
 	assert issubclass(ns.class_, xsc.Element)
 
 
@@ -157,7 +153,7 @@ def test_shareattrsnone():
 		baz CDATA              #IMPLIED
 	>
 	"""
-	ns = dtd2ns(dtdstring, "foo", shareattrs=None)
+	ns = dtd2mod(dtdstring, "foo", shareattrs=None)
 	assert not hasattr(ns, "baz")
 
 
