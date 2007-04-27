@@ -3456,9 +3456,17 @@ class Pool(object):
 		return self.elementclass_xml(name, xmlns)()
 
 	def haselement(self, name, xmlns):
+		"""
+		Is there a registered element class in <self/> for the element type
+		with the Python name <arg>name</arg> and the namespace <arg>xmlns</arg>?
+		"""
 		return (name, nsname(xmlns)) in self._elementsbypyname
 
 	def haselement_xml(self, name, xmlns):
+		"""
+		Is there a registered element class in <self/> for the element type
+		with the &xml; name <arg>name</arg> and the namespace <arg>xmlns</arg>?
+		"""
 		return (name, nsname(xmlns)) in self._elementsbyxmlname
 
 	def procinsts(self):
