@@ -3687,22 +3687,6 @@ class Pool(object):
 		else:
 			return name in self._charrefsbypyname
 
-	def attrname(self, name, xmlns):
-		if not isinstance(xmlns, (list, tuple)):
-			xmlns = (xmlns,)
-		for xmlns in xmlns:
-			xmlns = nsname(xmlns)
-			try:
-				return (self._attrsbypyname[(name, xmlns)].__name__, xmlns)
-			except KeyError:
-				pass
-		for base in self.bases:
-			try:
-				return base.attrname(name, xmlns)
-			except IllegalAttrError:
-				pass
-		raise IllegalAttrError(name, xmlns, False)
-
 	def attrclass(self, name, xmlns):
 		if not isinstance(xmlns, (list, tuple)):
 			xmlns = (xmlns,)
