@@ -3720,9 +3720,15 @@ class Pool(object):
 		raise IllegalAttrError(name, xmlns, True)
 
 	def text(self, content):
+		"""
+		Create a text node with the content <arg>content</arg>.
+		"""
 		return Text(content)
 
 	def comment(self, content):
+		"""
+		Create a comment node with the content <arg>content</arg>.
+		"""
 		return Comment(content)
 
 	def clone(self):
