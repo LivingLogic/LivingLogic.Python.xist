@@ -3733,7 +3733,7 @@ class Pool(object):
 
 	def clone(self):
 		"""
-		Return a copy of <self/>
+		Return a copy of <self/>.
 		"""
 		copy = Pool()
 		copy._elementsbyxmlname = self._elementsbyxmlname.copy()
