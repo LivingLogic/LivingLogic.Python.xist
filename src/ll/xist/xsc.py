@@ -3528,21 +3528,29 @@ class Pool(object):
 	def hasprocinst(self, name):
 		"""
 		Is there a registered processing instruction class in <self/> for the
-		PI with the Python name <arg>name</arg> and the namespace <arg>xmlns</arg>?
+		PI with the Python name <arg>name</arg>?
 		"""
 		return name in self._procinstsbypyname
 
 	def hasprocinst_xml(self, name):
 		"""
 		Is there a registered processing instruction class in <self/> for the
-		PI with the &xml; name <arg>name</arg> and the namespace <arg>xmlns</arg>?
+		PI with the &xml; name <arg>name</arg>?
 		"""
 		return name in self._procinstsbyxmlname
 
 	def entities(self):
+		"""
+		Return an iterator for all registered entity classes.
+		"""
 		return self._entitiesbypyname.itervalues()
 
 	def entityclass(self, name):
+		"""
+		Return the entity for the entity with the Python name <arg>name</arg>.
+		If the class can't be found the search continues in the base pools. If the
+		element can't be found a <class>IllegalProcInstError</class> will be raised.
+		"""
 		try:
 			return self._entitiesbypyname[name]
 		except KeyError:
@@ -3554,6 +3562,11 @@ class Pool(object):
 			raise IllegalEntityError(name, False)
 
 	def entityclass_xml(self, name):
+		"""
+		Return the entity for the entity with the &xml; name <arg>name</arg>.
+		If the class can't be found the search continues in the base pools. If the
+		element can't be found a <class>IllegalProcInstError</class> will be raised.
+		"""
 		try:
 			return self._entitiesbyxmlname[name]
 		except KeyError:
@@ -3565,15 +3578,33 @@ class Pool(object):
 			raise IllegalEntityError(name, True)
 
 	def entity(self, name):
+		"""
+		Return an entity object for the entity with the Python name
+		<arg>name</arg>. If the class can't be found the search continues in
+		the base pools.
+		"""
 		return self.entityclass(name)()
 
 	def entity_xml(self, name):
+		"""
+		Return an entity object for the entity with the &xml; name
+		<arg>name</arg>. If the class can't be found the search continues in
+		the base pools.
+		"""
 		return self.entityclass_xml(name)()
 
 	def hasentity(self, name):
+		"""
+		Is there a registered entity class in <self/> for the entity with the
+		Python name <arg>name</arg>?
+		"""
 		return name in self._entitiesbypyname
 
 	def hasentity_xml(self, name):
+		"""
+		Is there a registered entity class in <self/> for the entity with the
+		&xml; name <arg>name</arg>?
+		"""
 		return name in self._entitiesbyxmlname
 
 	def charrefs(self):
