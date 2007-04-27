@@ -3470,9 +3470,18 @@ class Pool(object):
 		return (name, nsname(xmlns)) in self._elementsbyxmlname
 
 	def procinsts(self):
+		"""
+		Return an iterator for all registered processing instruction classes.
+		"""
 		return self._procinstsbypyname.itervalues()
 
 	def procinstclass(self, name):
+		"""
+		Return the processing instruction class for the PI with the Python name
+		<arg>name</arg>. If the class can't be found the search continues in the
+		base pools. If the element can't be found a <class>IllegalProcInstError</class>
+		will be raised.
+		"""
 		try:
 			return self._procinstsbypyname[name]
 		except KeyError:
@@ -3484,6 +3493,12 @@ class Pool(object):
 			raise IllegalProcInstError(name, False)
 
 	def procinstclass_xml(self, name):
+		"""
+		Return the processing instruction class for the PI with the &xml; name
+		<arg>name</arg>. If the class can't be found the search continues in the
+		base pools. If the element can't be found a <class>IllegalProcInstError</class>
+		will be raised.
+		"""
 		try:
 			return self._procinstsbyxmlname[name]
 		except KeyError:
@@ -3495,15 +3510,33 @@ class Pool(object):
 			raise IllegalProcInstError(name, True)
 
 	def procinst(self, name, content):
+		"""
+		Return a processing instruction object for the PI type with the Python
+		target name <arg>name</arg>. If the class can't be found the search
+		continues in the base pools.
+		"""
 		return self.procinstclass(name)(content)
 
 	def procinst_xml(self, name, content):
+		"""
+		Return a processing instruction object for the PI type with the &xml;
+		target name <arg>name</arg>. If the class can't be found the search
+		continues in the base pools.
+		"""
 		return self.procinstclass_xml(name)(content)
 
 	def hasprocinst(self, name):
+		"""
+		Is there a registered processing instruction class in <self/> for the
+		PI with the Python name <arg>name</arg> and the namespace <arg>xmlns</arg>?
+		"""
 		return name in self._procinstsbypyname
 
 	def hasprocinst_xml(self, name):
+		"""
+		Is there a registered processing instruction class in <self/> for the
+		PI with the &xml; name <arg>name</arg> and the namespace <arg>xmlns</arg>?
+		"""
 		return name in self._procinstsbyxmlname
 
 	def entities(self):
