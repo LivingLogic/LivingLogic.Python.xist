@@ -3286,9 +3286,11 @@ import publishers, cssparsers, converters, utils, helpers
 
 class Pool(object):
 	"""
-	Class pool for <pyref class="Element">element</pyref>,
+	<par>Class pool for <pyref class="Element">element</pyref>,
 	<pyref class="ProcInst">procinst</pyref>, <pyref class="Entity">entity</pyref>,
-	<pyref class="CharRef">charref</pyref> and <pyref class="Attr">attribute</pyref> classes.
+	<pyref class="CharRef">charref</pyref> and <pyref class="Attr">attribute</pyref> classes.</par>
+
+	<par>This is used by the parser to map names to classes.</par>
 	"""
 	def __init__(self, *objects):
 		"""
@@ -3311,6 +3313,27 @@ class Pool(object):
 			self.register(object)
 
 	def register(self, object):
+		"""
+		<par>Register <arg>object</arg> in the pool. <arg>object</arg> can be:</par>
+		<ulist>
+		<item>A <pyref class="Element"><class>Element</class></pyref>,
+		<pyref class="ProcInst"><class>ProcInst</class></pyref>,
+		<pyref class="Entity"><class>Entity</class></pyref>,
+		<pyref class="CharRef"><class>CharRef</class></pyref> class;</item>
+		<item>An <pyref class="Attr"><class>Attr</class></pyref> class
+		for a global attribute;</item>
+		<item>An <pyref class="Attrs"><class>Attrs</class></pyref> class
+		containing global attributes;</item>
+		<item>A <class>dict</class> (all <class>Node</class> classes in the
+		values will be registered, this makes it possible to e.g. register all
+		local variables by passing <lit>vars()</lit>);</item>
+		<item>A module (all <class>Node</class> classes in the
+		module will be registered);</item>
+		<item>A <class>Pool</class> object (if a class isn't found in <self/>
+		the search continues in this fallback pool;</item>
+		<item><lit>True</lit>use the current default pool as a fallback.</item>
+		</ulist>
+		"""
 		if isinstance(object, type):
 			if issubclass(object, Element):
 				if object.register:
@@ -3341,7 +3364,8 @@ class Pool(object):
 					self.register(value)
 		elif isinstance(object, dict):
 			for value in object.itervalues():
-				self.register(value)
+				if isinstance(value, type): # This avoids recursive module registration
+					self.register(value)
 		elif object is True:
 			self.bases.append(getpoolstack()[-1])
 		elif isinstance(object, Pool):
