@@ -3329,9 +3329,10 @@ class Pool(object):
 		local variables by passing <lit>vars()</lit>);</item>
 		<item>A module (all <class>Node</class> classes in the
 		module will be registered);</item>
-		<item>A <class>Pool</class> object (if a class isn't found in <self/>
-		the search continues in this fallback pool;</item>
-		<item><lit>True</lit>use the current default pool as a fallback.</item>
+		<item>A <class>Pool</class> object (this pool object will be added to the
+		base pools. If a class isn't found in <self/> the search continues in these
+		base pool;</item>
+		<item><lit>True</lit>, which add the current default pool to the base pools.</item>
 		</ulist>
 		"""
 		if isinstance(object, type):
@@ -3379,9 +3380,17 @@ class Pool(object):
 		getpoolstack().pop()
 
 	def elements(self):
+		"""
+		Return an iterator for all registered element classes.
+		"""
 		return self._elementsbypyname.itervalues()
 
 	def elementclass(self, name, xmlns):
+		"""
+		Return the element class for the element with the Python name
+		<arg>name</arg> and the namespace <arg>xmlns</arg>. If the class can't
+		be found the search continues in the base pools.
+		"""
 		if isinstance(xmlns, (list, tuple)):
 			for xmlns in xmlns:
 				xmlns = nsname(xmlns)
@@ -3403,6 +3412,11 @@ class Pool(object):
 		raise IllegalElementError(name, xmlns, False)
 
 	def elementclass_xml(self, name, xmlns):
+		"""
+		Return the element class for the element type with the &xml; name
+		<arg>name</arg> and the namespace <arg>xmlns</arg>. If the class can't
+		be found the search continues in the base pools.
+		"""
 		if isinstance(xmlns, (list, tuple)):
 			for xmlns in xmlns:
 				xmlns = nsname(xmlns)
@@ -3424,9 +3438,19 @@ class Pool(object):
 		raise IllegalElementError(name, xmlns, True)
 
 	def element(self, name, xmlns):
+		"""
+		Return an element object for the element type with the Python name
+		<arg>name</arg> and the namespace <arg>xmlns</arg>. If the class can't
+		be found the search continues in the base pools.
+		"""
 		return self.elementclass(name, xmlns)()
 
 	def element_xml(self, name, xmlns):
+		"""
+		Return an element object for the element type with the &xml; name
+		<arg>name</arg> and the namespace <arg>xmlns</arg>. If the class can't
+		be found the search continues in the base pools.
+		"""
 		return self.elementclass_xml(name, xmlns)()
 
 	def haselement(self, name, xmlns):
