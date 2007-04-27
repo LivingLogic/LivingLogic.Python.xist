@@ -3549,7 +3549,7 @@ class Pool(object):
 		"""
 		Return the entity for the entity with the Python name <arg>name</arg>.
 		If the class can't be found the search continues in the base pools. If the
-		element can't be found a <class>IllegalProcInstError</class> will be raised.
+		element can't be found a <class>IllegalEntityError</class> will be raised.
 		"""
 		try:
 			return self._entitiesbypyname[name]
@@ -3565,7 +3565,7 @@ class Pool(object):
 		"""
 		Return the entity for the entity with the &xml; name <arg>name</arg>.
 		If the class can't be found the search continues in the base pools. If the
-		element can't be found a <class>IllegalProcInstError</class> will be raised.
+		element can't be found a <class>IllegalEntityError</class> will be raised.
 		"""
 		try:
 			return self._entitiesbyxmlname[name]
@@ -3608,9 +3608,18 @@ class Pool(object):
 		return name in self._entitiesbyxmlname
 
 	def charrefs(self):
+		"""
+		Return an iterator for all character entity classes.
+		"""
 		return self._charrefsbypyname.itervalues()
 
 	def charrefclass(self, name):
+		"""
+		Return the character entity with the Python name <arg>name</arg>.
+		<arg>name</arg> can also be an <class>int</class> specifying the codepoint.
+		If the class can't be found the search continues in the base pools. If the
+		element can't be found a <class>IllegalEntityError</class> will be raised.
+		"""
 		try:
 			if isinstance(name, (int, long)):
 				return self._charrefsbycodepoint[name]
@@ -3624,6 +3633,12 @@ class Pool(object):
 			raise IllegalEntityError(name, False)
 
 	def charrefclass_xml(self, name):
+		"""
+		Return the character entity with the &xml; name <arg>name</arg>.
+		<arg>name</arg> can also be an <class>int</class> specifying the codepoint.
+		If the class can't be found the search continues in the base pools. If the
+		element can't be found a <class>IllegalEntityError</class> will be raised.
+		"""
 		try:
 			if isinstance(name, (int, long)):
 				return self._charrefsbycodepoint[name]
@@ -3637,18 +3652,36 @@ class Pool(object):
 			raise IllegalEntityError(name, True)
 
 	def charref(self, name):
+		"""
+		Return a character entity object for the chacter with the Python name
+		or codepoint <arg>name</arg>. If the class can't be found the search
+		continues in the base pools.
+		"""
 		return self.charrefclass(name)()
 
 	def charref_xml(self, name):
+		"""
+		Return a character entity object for the chacter with the &xml; name
+		or codepoint <arg>name</arg>. If the class can't be found the search
+		continues in the base pools.
+		"""
 		return self.charrefclass_xml(name)()
 
 	def hascharref(self, name):
+		"""
+		Is there a registered character entity class in <self/> with the Python
+		name or codepoint <arg>name</arg>?
+		"""
 		if isinstance(name, (int, long)):
 			return name in self._charrefsbycodepoint
 		else:
 			return name in self._charrefsbypyname
 
 	def hascharref_xml(self, name):
+		"""
+		Is there a registered character entity class in <self/> with the &xml;
+		name or codepoint <arg>name</arg>?
+		"""
 		if isinstance(name, (int, long)):
 			return name in self._charrefsbycodepoint
 		else:
