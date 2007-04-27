@@ -619,7 +619,7 @@ class Parser(object):
 		if prefixes is None:
 			# make all currently known namespaces available without prefix
 			# (if there are elements with colliding namespace, which one will be used is random (based on dict iteration order))
-			self.prefixes = {None: list(set(c.xmlns for c in self.pool.elementvalues()))}
+			self.prefixes = {None: list(set(c.xmlns for c in self.pool.elements()))}
 		else:
 			self.prefixes = {}
 			for (prefix, xmlns) in prefixes.iteritems():
@@ -884,9 +884,10 @@ class Parser(object):
 							raise xsc.IllegalPrefixError(attrprefix)
 				else:
 					xmlns = None
-				attrname = node.Attrs._allowedattrkey_xml(attrname, xmlns)
-				node[attrname] = attrvalue
-				node[attrname] = node[attrname].parsed(self)
+				if xmlns is not None:
+					attrname = self.pool.attrclass_xml(attrname, xmlns)
+				attrvalue = node.attrs.set_xml(attrname, attrvalue)
+				node.attrs.set_xml(attrname, attrvalue.parsed(self))
 		node.attrs = node.attrs.parsed(self)
 		node = node.parsed(self, start=True)
 		self.__appendNode(node)

@@ -97,7 +97,7 @@ s4procinstcontent = astyle.Style.fromenv("LL_XIST_STYLE_PROCINSTCONTENT", "white
 
 
 # style to be used for attributes (i.e. the quotes around their value)
-s4attr = astyle.Style.fromenv("LL_XIST_STYLE_ATTR", "blue:black:bold")
+s4attr = astyle.Style.fromenv("LL_XIST_STYLE_ATTR", "yellow:black")
 
 
 # style to be used for attribute names
@@ -357,12 +357,12 @@ class TreePresenter(Presenter):
 
 	def presentAttrs(self, node):
 		if self._inattr:
-			for (attrname, attrvalue) in node.iteritems():
+			for (attrclass, attrvalue) in node.iteritems():
 				yield " "
-				if isinstance(attrname, tuple):
-					yield s4attr(s4ns(self.text(unicode(attrvalue.__class__.__module__))), ":", s4attrname(self.text(unicode(attrname[0]))))
+				if attrclass.xmlns is not None:
+					yield s4attr(s4ns(self.text(unicode(attrclass.__module__))), ":", s4attrname(self.text(unicode(attrclass.__fullname__))))
 				else:
-					yield s4attrname(self.text(unicode(attrname)))
+					yield s4attrname(self.text(unicode(attrclass.__name__)))
 				yield s4attr('="')
 				for text in attrvalue.present(self):
 					yield text
@@ -378,8 +378,8 @@ class TreePresenter(Presenter):
 				s4attrs(indent, "<", ns, ":", name, ">"),
 			)
 			self._path.append(None)
-			for (attrname, attrvalue) in node.iteritems():
-				self._path[-1] = attrname
+			for (attrclass, attrvalue) in node.iteritems():
+				self._path[-1] = attrclass
 				for line in attrvalue.present(self):
 					yield line
 			self._path.pop()
@@ -613,39 +613,43 @@ class CodePresenter(Presenter):
 		if len(node):
 			globalattrs = {}
 			localattrs = {}
-			for (attrname, attrvalue) in node.iteritems():
-				if isinstance(attrname, tuple):
-					globalattrs[attrname] = attrvalue
+			for (attrclass, attrvalue) in node.iteritems():
+				if attrclass.xmlns is not None:
+					globalattrs[attrclass] = attrvalue
 				else:
-					localattrs[attrname] = attrvalue
+					localattrs[attrclass] = attrvalue
 
 			yield Line(node, node.startloc, self._path[:], astyle.style_default(self._indent(), name, "("))
 			self._level += 1
 			if globalattrs:
 				yield Line(node, node.startloc, self._path[:], astyle.style_default(self._indent(), "{"))
-				for (i, (attrname, attrvalue)) in enumerate(globalattrs.iteritems()):
-					attrname = astyle.style_default("(", s4ns(attrname[0].__module__), ", ", s4attrname(attrname[1]), ")")
+				for (i, (attrclass, attrvalue)) in enumerate(globalattrs.iteritems()):
+					self._path.append(attrclass)
+					attrname = astyle.style_default(s4ns(attrclass.__module__), ".", s4attrname(attrclass.__fullname__))
 					self._inattr += 1
-					attrvalue = self._formatattrvalue(attrvalue)
+					attrtext = self._formatattrvalue(attrvalue)
 					self._inattr -= 1
 					self._level += 1
-					line = astyle.style_default(self._indent(), s4attrname(attrname), ": ", s4attrvalue(attrvalue))
+					line = astyle.style_default(self._indent(), attrname, ": ", s4attrvalue(attrtext))
 					if i != len(globalattrs) or not localattrs:
 						line += ","
 					yield Line(attrvalue, attrvalue.startloc, self._path[:], line)
+					self._path.pop()
 					self._level -= 1
 				line = astyle.style_default(self._indent(), "}")
 				if localattrs:
 					line += ","
-				yield Line(node.attrs, node.attrs.startloc, self._path[:], line)
-			for (i, (attrname, attrvalue)) in enumerate(localattrs.iteritems()):
+				yield Line(node, node.startloc, self._path[:], line)
+			for (i, (attrclass, attrvalue)) in enumerate(localattrs.iteritems()):
+				self._path.append(attrclass.__name__)
 				self._inattr += 1
 				attrtext = self._formatattrvalue(attrvalue)
 				self._inattr -= 1
-				line = astyle.style_default(self._indent(), s4attrname(attrname), "=", s4attrvalue(attrtext))
+				line = astyle.style_default(self._indent(), s4attrname(attrclass.__name__), "=", s4attrvalue(attrtext))
 				if i != len(localattrs)-1:
 					line += ","
 				yield Line(attrvalue, attrvalue.startloc, self._path[:], line)
+				self._path.pop()
 			self._level -= 1
 			yield Line(node, node.endloc, self._path[:], astyle.style_default(self._indent(), ")"))
 		else:
@@ -672,22 +676,22 @@ class CodePresenter(Presenter):
 
 			globalattrs = {}
 			localattrs = {}
-			for (attrname, attrvalue) in node.attrs.iteritems():
-				if isinstance(attrname, tuple):
-					globalattrs[attrname] = attrvalue
+			for (attrclass, attrvalue) in node.attrs.iteritems():
+				if attrclass.xmlns is not None:
+					globalattrs[attrclass] = attrvalue
 				else:
-					localattrs[attrname] = attrvalue
+					localattrs[attrclass] = attrvalue
 
 			if globalattrs:
 				yield Line(node.attrs, node.attrs.startloc, self._path[:], astyle.style_default(self._indent(), "{"))
-				for (i, (attrname, attrvalue)) in enumerate(globalattrs.iteritems()):
-					self._path.append(attrname)
-					attrname = astyle.style_default("(", s4ns(attrname[0].__module__), ", ", s4attrname(attrname[1]), ")")
+				for (i, (attrclass, attrvalue)) in enumerate(globalattrs.iteritems()):
+					self._path.append(attrclass)
+					attrname = astyle.style_default(s4ns(attrclass.__module__), ".", s4attrname(attrclass.__fullname__))
 					self._inattr += 1
 					attrtext = self._formatattrvalue(attrvalue)
 					self._inattr -= 1
 					self._level += 1
-					line = astyle.style_default(self._indent(), s4attrname(attrname), ": ", s4attrvalue(attrtext))
+					line = astyle.style_default(self._indent(), attrname, ": ", s4attrvalue(attrtext))
 					if i != len(globalattrs) or not localattrs:
 						line += ","
 					yield Line(attrvalue, attrvalue.startloc, self._path[:], line)
@@ -697,14 +701,14 @@ class CodePresenter(Presenter):
 				if localattrs:
 					line += ","
 				yield Line(node.attrs, node.attrs.startloc, self._path[:], line)
-			for (i, (attrname, attrvalue)) in enumerate(localattrs.iteritems()):
+			for (i, (attrclass, attrvalue)) in enumerate(localattrs.iteritems()):
 				self._inattr += 1
 				attrtext = self._formatattrvalue(attrvalue)
 				self._inattr -= 1
-				line = astyle.style_default(self._indent(), s4attrname(attrname), "=", s4attrvalue(attrtext))
+				line = astyle.style_default(self._indent(), s4attrname(attrclass.__name__), "=", s4attrvalue(attrtext))
 				if i != len(localattrs)-1:
 					line += ","
-				self._path.append(attrname)
+				self._path.append(attrclass.__name__)
 				yield Line(attrvalue, attrvalue.startloc, self._path[:], line)
 				self._path.pop()
 			self._level -= 1

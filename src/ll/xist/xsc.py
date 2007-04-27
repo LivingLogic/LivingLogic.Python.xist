@@ -233,7 +233,7 @@ class RequiredAttrMissingWarning(Warning):
 		self.reqattrs = reqattrs
 
 	def __str__(self):
-		return "Required attribute%s %s missing in %s" % ("s"[len(self.reqattrs)==0], ", ".join(attr for attr in self.reqattrs), self.attrs._str(fullname=True, xml=False, decorate=False))
+		return "Required attribute%s %s missing in %s" % (("s" if len(self.reqattrs)>1 else ""), ", ".join(attr.__class__.__name__ for attr in self.reqattrs), self.attrs._str(fullname=True, xml=False, decorate=False))
 
 
 class IllegalDTDChildWarning(Warning):
@@ -359,21 +359,21 @@ class IllegalCharRefError(Error, LookupError):
 
 class IllegalAttrError(Error, LookupError):
 	"""
-	Exception that is raised, when an illegal attribute class is requested
+	Exception that is raised, when an illegal attribute is requested.
 	"""
 
-	def __init__(self, name, xmlns, xml=False):
+	def __init__(self, name, cls, xml=False):
 		self.name = name
-		self.xmlns = xmlns
+		self.cls = cls
 		self.xml = xml
 
 	def __str__(self):
-		xmlns = self.xmlns
-		if isinstance(xmlns, (list, tuple)):
-			if len(xmlns) > 1:
-				return "no attribute with %s name %s in namespaces %s" % (("Python", "XML")[self.xml], self.name, ", ".join(nsclark(xmlns) for xmlns in xmlns))
-			xmlns = xmlns[0]
-		return "no attribute with %s name %s%s" % (("Python", "XML")[self.xml], nsclark(xmlns), self.name)
+		if isinstance(self.name, basestring):
+			return "no local attribute with %s name %s in %r" % (("Python", "XML")[self.xml], self.name, self.cls)
+		elif self.name.xmlns is None:
+			return "no local attribute with class %r in %r" % (self.name, self.cls)
+		else:
+			return "no global attribute with class %r" % self.name
 
 
 class AmbiguousNodeError(Error, LookupError):
@@ -1130,6 +1130,10 @@ if ipipe is not None:
 	_ipipe_content.__xname__ = "content"
 	
 	
+	@ipipe.xrepr.when_type(_Node_Meta)
+	def repr_nodeclass(self, mode="default"):
+		yield (astyle.style_type_type, "%s.%s" % (self.__module__, self.__fullname__))
+
 	@ipipe.xattrs.when_type(Node)
 	def xattrs_nodeclass(self, mode="default"):
 		yield ipipe.AttributeDescriptor("startloc", doc="the locate in the XML file")
@@ -1138,7 +1142,7 @@ if ipipe is not None:
 		yield ipipe.FunctionDescriptor(_ipipe_name, "name")
 		yield ipipe.FunctionDescriptor(_ipipe_content, "content")
 		if mode == "detail":
-			yield ipipe.IterAttributeDescriptor("children", "the element content")
+			yield ipipe.IterAttributeDescriptor("content", "the element content")
 			yield ipipe.IterAttributeDescriptor("attrs", "the element attributes")
 		else:
 			yield ipipe.FunctionDescriptor(_ipipe_childrencount, "children")
@@ -1812,7 +1816,7 @@ class _Attr_Meta(Frag.__metaclass__, xfind.Operator):
 		if "values" in dict:
 			values = dict["values"]
 			if values is not None:
-				dict["values"] = tuple(unicode(entry) for entry in dict["values"])
+				dict["values"] = tuple(unicode(entry) for entry in values)
 		self = super(_Attr_Meta, cls).__new__(cls, name, bases, dict)
 		if self.xmlns is not None:
 			getpoolstack()[-1].register(self)
@@ -2136,7 +2140,11 @@ class _Attrs_Meta(Node.__metaclass__):
 		return "<attrs class %s:%s with %s attrs at 0x%x>" % (self.__module__, self.__fullname__, len(self._bypyname), id(self))
 
 	def __contains__(self, key):
-		return key in self._bypyname
+		if isinstance(key, basestring):
+			return key in self._bypyname
+		if key.xmlns is not None:
+			return True
+		return self._bypyname.get(key.__name__, None) is key
 
 
 class Attrs(Node, dict):
@@ -2179,14 +2187,14 @@ class Attrs(Node, dict):
 
 	def clone(self):
 		node = self._create()
-		for (key, value) in dict.iteritems(self):
-			dict.__setitem__(node, key, value.clone())
+		for value in dict.values(self):
+			dict.__setitem__(node, value.__class__, value.clone())
 		return self._decoratenode(node)
 
 	def __copy__(self):
 		node = self._create()
-		for (key, value) in dict.iteritems(self):
-			dict.__setitem__(node, key, value)
+		for value in dict.values(self):
+			dict.__setitem__(node, value.__class__, value)
 		return self._decoratenode(node)
 
 	def __deepcopy__(self, memo=None):
@@ -2194,37 +2202,37 @@ class Attrs(Node, dict):
 		if memo is None:
 			memo = {}
 		memo[id(self)] = node
-		for (key, value) in dict.iteritems(self):
-			dict.__setitem__(node, key, copy.deepcopy(value, memo))
+		for value in dict.values(self):
+			dict.__setitem__(node, value.__class__, copy.deepcopy(value, memo))
 		return self._decoratenode(node)
 
 	def convert(self, converter):
 		node = self._create()
-		for (attrname, attrvalue) in self.iteritems():
-			convertedattr = attrvalue.convert(converter)
-			assert isinstance(convertedattr, Node), "the convert method returned the illegal object %r (type %r) when converting the attribute %s with the value %r" % (convertedchild, type(convertedchild), attrname, child)
-			node[attrname] = convertedattr
+		for value in self.values():
+			newvalue = value.convert(converter)
+			assert isinstance(newvalue, Node), "the convert method returned the illegal object %r (type %r) when converting the attribute %s with the value %r" % (newvalue, type(newvalue), value.__class__.__name__, value)
+			node[value.__class__] = newvalue
 		return node
 
 	def compact(self):
 		node = self._create()
-		for (attrname, attrvalue) in self.iteritems():
-			convertedattr = attrvalue.compact()
-			assert isinstance(convertedattr, Node), "the compact method returned the illegal object %r (type %r) when compacting the attribute %s with the value %r" % (convertedchild, type(convertedchild), attrname, child)
-			node[attrname] = convertedattr
+		for value in self.values():
+			newvalue = value.compact()
+			assert isinstance(newvalue, Node), "the compact method returned the illegal object %r (type %r) when compacting the attribute %s with the value %r" % (newvalue, type(newvalue), value.__class__.__name__, value)
+			node[value.__class__] = newvalue
 		return node
 
 	def normalized(self):
 		node = self._create()
-		for (attrname, attrvalue) in self.iteritems():
-			convertedattr = attrvalue.normalized()
-			assert isinstance(convertedattr, Node), "the normalized method returned the illegal object %r (type %r) when normalizing the attribute %s with the value %r" % (convertedchild, type(convertedchild), attrname, child)
-			node[attrname] = convertedattr
+		for value in self.values():
+			newvalue = value.normalized()
+			assert isinstance(newvalue, Node), "the normalized method returned the illegal object %r (type %r) when normalizing the attribute %s with the value %r" % (newvalue, type(newvalue), value.__class__.__name__, value)
+			node[value.__class__] = newvalue
 		return node
 
 	def _walk(self, filter, path):
 		path.append(None)
-		for (key, child) in self.iteritems():
+		for child in self.values():
 			path[-1] = child
 			for result in child._walk(filter, path):
 				yield result
@@ -2236,14 +2244,14 @@ class Attrs(Node, dict):
 	def checkvalid(self):
 		# collect required attributes
 		attrs = set()
-		for (key, value) in self.alloweditems():
+		for value in self.allowedattrs():
 			if value.required:
-				attrs.add(key)
+				attrs.add(value)
 		# Check each attribute and remove it from the list of required ones
-		for (attrname, attrvalue) in self.iteritems():
-			attrvalue.checkvalid()
+		for value in self.values():
+			value.checkvalid()
 			try:
-				attrs.remove(attrname)
+				attrs.remove(value.__class__)
 			except KeyError:
 				pass
 		# are there any required attributes remaining that haven't been specified? => warn about it
@@ -2253,25 +2261,39 @@ class Attrs(Node, dict):
 	def publish(self, publisher):
 		if publisher.validate:
 			self.checkvalid()
-		for (attrname, attrvalue) in self.iteritems():
+		for value in self.values():
 			yield publisher.encode(u" ")
-			for part in attrvalue.publish(publisher):
+			for part in value.publish(publisher):
 				yield part
 
 	def __unicode__(self):
 		return u""
 
 	@classmethod
-	def isallowed(cls, name, xmlns=None):
-		if xmlns is None:
+	def isallowed(cls, name):
+		if isinstance(name, basestring):
 			return name in cls._bypyname
-		return (name, nsname(xmlns)) in Attr._bypyname
+		if name.xmlns is not None:
+			return True
+		try:
+			candidate = cls._bypyname[name.__name__]
+		except KeyError:
+			return False
+		# make sure that both Python name and XML name match
+		return candidate.xmlname == name.xmlname
 
 	@classmethod
 	def isallowed_xml(cls, name, xmlns=None):
-		if xmlns is None:
+		if isinstance(name, basestring):
 			return name in cls._byxmlname
-		return (name, nsname(xmlns)) in Attr._byxmlname
+		if name.xmlns is not None:
+			return True
+		try:
+			candidate = cls._bypyname[name.__name__]
+		except KeyError:
+			return False
+		# make sure that both Python name and XML name match
+		return candidate.xmlname == name.xmlname
 
 	def __getattribute__(self, name):
 		sup = super(Attrs, self)
@@ -2300,10 +2322,7 @@ class Attrs(Node, dict):
 			for subname in name:
 				node = node[subname]
 			return node
-		elif isinstance(name, tuple):
-			return self.attr(*name)
-		else:
-			return self.attr(name)
+		return self.attr(name)
 
 	def __setitem__(self, name, value):
 		if isinstance(name, list):
@@ -2313,10 +2332,7 @@ class Attrs(Node, dict):
 			for subname in name[:-1]:
 				node = node[subname]
 			node[name[-1]] = value
-		elif isinstance(name, tuple):
-			return self.set(name[0], xmlns=name[1], value=value)
-		else:
-			return self.set(name, value=value)
+		return self.set(name, value)
 
 	def __delitem__(self, name):
 		if isinstance(name, list):
@@ -2326,98 +2342,109 @@ class Attrs(Node, dict):
 			for subname in name[:-1]:
 				node = node[subname]
 			del node[name[-1]]
-		elif isinstance(name, tuple):
-			dict.__delitem__(self, self._allowedattrkey(*name))
-		else:
-			dict.__delitem__(self, self._allowedattrkey(name))
+		dict.__delitem__(self, self.allowedattr(name))
 
-	def has(self, name, xmlns=None):
+	def has(self, name):
 		"""
 		<par>return whether <self/> has an attribute with a Python name <arg>name</arg>.
-		If <arg>xmlns</arg> is not <lit>None</lit> it is used as a namespace name.</par>
+		<arg>name</arg> may also be an attribute class (either from <lit><self/>.Attrs</lit>
+		are a global attribute).</par>
 		"""
 		try:
-			attr = dict.__getitem__(self, self._allowedattrkey(name, xmlns))
+			attr = dict.__getitem__(self, self.allowedattr(name))
 		except KeyError:
 			return False
 		return len(attr)>0
 
-	def has_xml(self, name, xmlns=None):
+	def has_xml(self, name):
 		"""
 		<par>return whether <self/> has an attribute with an XML name <arg>name</arg>.
-		If <arg>xmlns</arg> is not <lit>None</lit> it is used as a namespace name.</par>
+		<arg>name</arg> may also be an attribute class (either from <lit><self/>.Attrs</lit>
+		or for a global attribute).</par>
 		"""
 		try:
-			attr = dict.__getitem__(self, self._allowedattrkey_xml(name, xmlns))
+			attr = dict.__getitem__(self, self.allowedattr_xml(name))
 		except KeyError:
 			return False
 		return len(attr)>0
 
-	def get(self, name, xmlns=None, default=None):
+	def __contains__(self, name):
+		return self.has(name)
+
+	def get(self, name, default=None):
 		"""
 		<par>works like the dictionary method <method>get</method>,
 		it returns the attribute with the Python name <arg>name</arg>,
-		or <arg>default</arg> if <self/> has no such attribute.</par>
+		or <arg>default</arg> if <self/> has no such attribute.
+		<arg>name</arg> may also be an attribute class (either from
+		<lit><self/>.Attrs</lit> or for a global attribute).</par>
 		"""
-		attr = self.attr(name, xmlns)
+		attr = self.attr(name)
 		if not attr:
-			attr = self.allowedattr(name, xmlns)(default) # pack the attribute into an attribute object
+			attr = self.allowedattr(name)(default) # pack the attribute into an attribute object
 		return attr
 
-	def get_xml(self, name, xmlns=None, default=None):
+	def get_xml(self, name, default=None):
 		"""
 		<par>works like the dictionary method <method>get</method>,
 		it returns the attribute with the XML name <arg>name</arg>,
-		or <arg>default</arg> if <self/> has no such attribute.</par>
+		or <arg>default</arg> if <self/> has no such attribute.
+		<arg>name</arg> may also be an attribute class (either from
+		<lit><self/>.Attrs</lit> or for a global attribute).</par>
 		"""
-		attr = self.attr_xml(name, xmlns)
+		attr = self.attr_xml(name)
 		if not attr:
-			attr = self.allowedattr_xml(name, xmlns)(default) # pack the attribute into an attribute object
+			attr = self.allowedattr_xml(name)(default) # pack the attribute into an attribute object
 		return attr
 
-	def set(self, name, xmlns=None, value=None):
+	def set(self, name, value):
 		"""
 		<par>Set the attribute with the Python <arg>name</arg> to the value <arg>value</arg>.
+		<arg>name</arg> may be a string or an attribute class.</par>
 		<par>The newly set attribute will be returned.</par>
 		"""
-		attr = self.allowedattr(name, xmlns)(value)
-		dict.__setitem__(self, self._allowedattrkey(name, xmlns), attr) # put the attribute in our dict
-		return attr
+		attr = self.allowedattr(name)
+		value = attr(value)
+		dict.__setitem__(self, attr, value) # put the attribute in our dict
+		return value
 
-	def set_xml(self, name, xmlns=None, value=None):
+	def set_xml(self, name, value):
 		"""
 		<par>Set the attribute with the XML <arg>name</arg> to the value <arg>value</arg>.
 		<par>The newly set attribute will be returned.</par>
 		"""
-		attr = self.allowedattr_xml(name, xmlns)(value)
-		dict.__setitem__(self, self._allowedattrkey_xml(name, xmlns), attr) # put the attribute in our dict
-		return attr
+		attr = self.allowedattr_xml(name)
+		value = attr(value)
+		dict.__setitem__(self, attr, value) # put the attribute in our dict
+		return value
 
-	def setdefault(self, name, xmlns=None, default=None):
+	def setdefault(self, name, default):
 		"""
 		<par>works like the dictionary method <method>setdefault</method>,
 		it returns the attribute with the Python name <arg>name</arg>.
 		If <self/> has no such attribute, it will be set to <arg>default</arg>
 		and <arg>default</arg> will be returned as the new attribute value.</par>
 		"""
-		attr = self.attr(name, xmlns)
-		if not attr:
-			attr = self.allowedattr(name, xmlns)(default) # pack the attribute into an attribute object
-			dict.__setitem__(self, self._allowedattrkey(name, xmlns), attr)
-		return attr
+		value = self.attr(name)
+		if not value:
+			attr = self.allowedattr(name)
+			value = attr(default) # pack the attribute into an attribute object
+			dict.__setitem__(self, attr, value)
+		return value
 
-	def setdefault_xml(self, name, xmlns=None, default=None):
+	def setdefault_xml(self, name, default):
 		"""
 		<par>works like the dictionary method <method>setdefault</method>,
 		it returns the attribute with the XML name <arg>name</arg>.
 		If <self/> has no such attribute, it will be set to <arg>default</arg>
 		and <arg>default</arg> will be returned as the new attribute value.</par>
 		"""
-		attr = self.attr_xml(name, xmlns)
-		if not attr:
-			attr = self.allowedattr_xml(name, xmlns)(default) # pack the attribute into an attribute object
-			dict.__setitem__(self, self._allowedattrkey_xml(name, xmlns), attr)
-		return attr
+		value = self.attr_xml(name)
+		if not value:
+			attr = self.allowedattr(name)
+			value = attr(default) # pack the attribute into an attribute object
+			dict.__setitem__(self, attr, value)
+		return value
 
 	def update(self, *args, **kwargs):
 		"""
@@ -2427,118 +2454,71 @@ class Attrs(Node, dict):
 			if mapping is not None:
 				if isinstance(mapping, Attrs):
 					# This makes sure that global attributes are copied properly
-					for (attrname, attrvalue) in mapping._iterallitems():
-						self[attrvalue.__class__.__name__, attrvalue.xmlns] = attrvalue
+					for value in mapping._iterallvalues():
+						self[value.__class__] = value
 				else:
 					for (attrname, attrvalue) in mapping.iteritems():
 						self[attrname] = attrvalue
 
 	@classmethod
-	def allowedkeys(cls):
+	def allowedattrs(cls):
 		"""
-		<par>Return an iterator over the Python names of all allowed attributes.
-		"""
-		return cls._bypyname.iterkeys()
-
-	@classmethod
-	def allowedkeys_xml(cls):
-		"""
-		<par>Return an iterator over the XML names of all allowed attributes.
-		"""
-		return cls._byxmlname.iterkeys()
-
-	@classmethod
-	def allowedvalues(cls):
-		"""
-		<par>Return an iterator over all attribute classes.
+		<par>Return an iterator over all allowed attribute classes.
 		"""
 		return cls._bypyname.itervalues()
 
 	@classmethod
-	def alloweditems(cls):
-		"""
-		<par>Return an iterator over the Python names and classes of all allowed attributes.
-		"""
-		return cls._bypyname.iteritems()
-
-	@classmethod
-	def alloweditems_xml(cls):
-		"""
-		<par>Return an iterator over the Python names and classes of all allowed attributes.
-		"""
-		return cls._byxmlname.iteritems()
-
-	@classmethod
-	def _allowedattrkey(cls, name, xmlns=None):
-		if xmlns is not None:
-			return getpoolstack()[-1].attrname(name, xmlns) # ask pool about global attribute
-		try:
-			return cls._bypyname[name].__name__
-		except KeyError:
-			raise IllegalAttrError(name, xmlns, False)
-
-	@classmethod
-	def _allowedattrkey_xml(cls, name, xmlns=None):
-		if xmlns is not None:
-			return getpoolstack()[-1].attrname_xml(name, xmlns) # ask pool about global attribute
-		try:
-			return cls._byxmlname[name].__name__
-		except KeyError:
-			raise IllegalAttrError(name, xmlns, True)
-
-	@classmethod
-	def allowedattr(cls, name, xmlns=None):
-		if xmlns is not None:
-			return getpoolstack()[-1].attrclass(name, xmlns) # return global attribute
-		else:
+	def allowedattr(cls, name):
+		if isinstance(name, basestring):
 			try:
 				return cls._bypyname[name]
 			except KeyError:
-				raise IllegalAttrError(name, xmlns, False)
+				raise IllegalAttrError(name, cls, False)
+		# name is an attribute class
+		if name.xmlns is not None: # if the attribute class is for a global attribute we accept it
+			return name
+		try:
+			candidate = cls._bypyname[name.__name__]
+		except KeyError:
+			raise IllegalAttrError(name, cls, False)
+		else:
+			# make sure that both Python name and XML name match
+			if candidate.xmlname == name.xmlname:
+				return candidate
+			raise IllegalAttrError(name, cls, False)
 
 	@classmethod
-	def allowedattr_xml(cls, name, xmlns=None):
-		if xmlns is not None:
-			return getpoolstack()[-1].attrclass_xml(name, xmlns) # return global attribute
-		else:
+	def allowedattr_xml(cls, name):
+		if isinstance(name, basestring):
 			try:
 				return cls._byxmlname[name]
 			except KeyError:
-				raise IllegalAttrError(name, xmlns, True)
-
-	def __iter__(self):
-		return self.iterkeys()
+				raise IllegalAttrError(name, cls, True)
+		# name is an attribute class
+		if name.xmlns is not None: # if the attribute class is for a global attribute we accept it
+			return name
+		try:
+			candidate = cls._bypyname[name.__name__]
+		except KeyError:
+			raise IllegalAttrError(name, cls, False)
+		else:
+			# make sure that both Python name and XML name match
+			if candidate.xmlname == name.xmlname:
+				return candidate
+			raise IllegalAttrError(name, cls, True)
 
 	def __len__(self):
-		return len(self._bypyname)
+		return misc.count(self.values())
 
-	def __contains__(self, key):
-		if isinstance(key, tuple):
-			return self.has(*key)
-		else:
-			return self.has(key)
+	def __iter__(self):
+		return self.keys()
 
 	def keys(self):
-		found = {}
-		for (key, value) in dict.iteritems(self):
+		for value in dict.itervalues(self):
 			if value:
-				if isinstance(key, tuple):
-					yield (value.__class__.__name__, value.xmlns)
-				else:
-					yield value.__class__.__name__
+				yield value.__class__
 
 	iterkeys = keys
-
-	def keys_xml(self):
-		found = {}
-		for (key, value) in dict.iteritems(self):
-			if value:
-				if isinstance(key, tuple):
-					yield (value.xmlname, value.xmlns)
-				else:
-					yield value.xmlname
-
-	iterkeys_xml = keys_xml
 
 	def values(self):
 		for value in dict.itervalues(self):
@@ -2548,55 +2528,42 @@ class Attrs(Node, dict):
 	itervalues = values
 
 	def items(self):
-		for (key, value) in dict.iteritems(self):
+		for value in dict.itervalues(self):
 			if value:
-				if isinstance(key, tuple):
-					yield ((value.__class__.__name__, value.xmlns), value)
-				else:
-					yield (value.__class__.__name__, value)
+				yield (value.__class__, value)
 
 	iteritems = items
 
-	def items_xml(self):
-		for (key, value) in dict.iteritems(self):
-			if value:
-				if isinstance(key, tuple):
-					yield ((value.xmlname, value.xmlns), value)
-				else:
-					yield (value.xmlname, value)
-
-	iteritems_xml = items_xml
-
-	def _iterallitems(self):
+	def _iterallvalues(self):
 		"""
-		Iterate all items, even the unset ones
+		Iterate all values, even the unset ones
 		"""
-		return dict.iteritems(self)
+		return dict.itervalues(self)
 
-	def attr(self, name, xmlns=None):
-		key = self._allowedattrkey(name, xmlns)
+	def attr(self, name):
+		attr = self.allowedattr(name)
 		try:
-			attr = dict.__getitem__(self, key)
+			value = dict.__getitem__(self, attr)
 		except KeyError: # if the attribute is not there generate a new empty one
-			attr = self.allowedattr(name, xmlns)()
-			dict.__setitem__(self, key, attr)
-		return attr
+			value = attr()
+			dict.__setitem__(self, attr, value)
+		return value
 
-	def attr_xml(self, name, xmlns=None):
-		key = self._allowedattrkey_xml(name, xmlns)
+	def attr_xml(self, name):
+		attr = self.allowedattr_xml(name)
 		try:
-			attr = dict.__getitem__(self, key)
+			value = dict.__getitem__(self, attr)
 		except KeyError: # if the attribute is not there generate a new empty one
-			attr = self.allowedattr_xml(name, xmlns)()
-			dict.__setitem__(self, key, attr)
-		return attr
+			value = attr()
+			dict.__setitem__(self, attr, value)
+		return value
 
 	def filtered(self, function):
 		"""
 		returns a filtered version of the <self/>.
 		"""
 		node = self._create()
-		for (name, value) in self.iteritems():
+		for (name, value) in self.items():
 			if function(value):
 				node[name] = value
 		return node
@@ -2604,10 +2571,24 @@ class Attrs(Node, dict):
 	def _fixnames(self, names):
 		newnames = []
 		for name in names:
-			if isinstance(name, tuple):
-				name = (name[0], nsname(name[1]))
+			if isinstance(name, basestring):
+				try:
+					name = self.allowedattr(name)
+				except IllegalAttrError:
+					continue
 			newnames.append(name)
-		return newnames
+		return tuple(newnames)
+
+	def _fixnames_xml(self, names):
+		newnames = []
+		for name in names:
+			if isinstance(name, basestring):
+				try:
+					name = self.allowedattr_xml(name)
+				except IllegalAttrError:
+					continue
+			newnames.append(name)
+		return tuple(newnames)
 
 	def withnames(self, *names):
 		"""
@@ -2615,10 +2596,7 @@ class Attrs(Node, dict):
 		in <arg>names</arg> are kept, all others are removed.</par>
 		"""
 		def isok(node):
-			if node.xmlns is None:
-				return node.__class__.__name__ in names
-			else:
-				return (node.__class__.__name__, node.xmlns) in names
+			return isinstance(node, names)
 
 		names = self._fixnames(names)
 		return self.filtered(isok)
@@ -2629,12 +2607,9 @@ class Attrs(Node, dict):
 		in <arg>names</arg> are kept, all others are removed.</par>
 		"""
 		def isok(node):
-			if node.xmlns is None:
-				return node.xmlname in names
-			else:
-				return (node.xmlname, node.xmlns) in names
+			return isinstance(node, names)
 
-		names = self._fixnames(names)
+		names = self._fixnames_xml(names)
 		return self.filtered(isok)
 
 	def withoutnames(self, *names):
@@ -2643,10 +2618,7 @@ class Attrs(Node, dict):
 		in <arg>names</arg> are removed.</par>
 		"""
 		def isok(node):
-			if node.xmlns is None:
-				return node.__class__.__name__ not in names
-			else:
-				return (node.__class__.__name__, node.xmlns) not in names
+			return not isinstance(node, names)
 
 		names = self._fixnames(names)
 		return self.filtered(isok)
@@ -2657,12 +2629,9 @@ class Attrs(Node, dict):
 		in <arg>names</arg> are removed.</par>
 		"""
 		def isok(node):
-			if node.xmlns is None:
-				return node.xmlname not in names
-			else:
-				return (node.xmlname, node.xmlns) not in names
+			return not isinstance(node, names)
 
-		names = self._fixnames(names)
+		names = self._fixnames_xml(names)
 		return self.filtered(isok)
 
 	def __repr__(self):
@@ -2789,8 +2758,7 @@ class Element(Node):
 			else:
 				newcontent.append(child)
 		self.content = Frag(*newcontent)
-		for (attrname, attrvalue) in attrs.iteritems():
-			self.attrs[attrname] = attrvalue
+		self.attrs.update(attrs)
 
 	def __getstate__(self):
 		attrs = {}
@@ -2978,8 +2946,11 @@ class Element(Node):
 			for subindex in index:
 				node = node[subindex]
 			return node
-		elif isinstance(index, type) and issubclass(index, Node):
-			return self.content[index]
+		elif isinstance(index, type):
+			if issubclass(index, Node):
+				if issubclass(index, Attr):
+					return self.attrs[index]
+				return self.content[index]
 		elif isinstance(index, (int, long)):
 			return self.content[index]
 		elif isinstance(index, slice):
@@ -3362,7 +3333,7 @@ class Pool(object):
 					self._attrsbyxmlname[(object.xmlname, object.xmlns)] = object
 					self._attrsbypyname[(object.__name__, object.xmlns)] = object
 			elif issubclass(object, Attrs):
-				for attr in object.allowedvalues():
+				for attr in object.allowedattrs():
 					self.register(attr)
 		elif isinstance(object, types.ModuleType):
 			for value in object.__dict__.itervalues():
@@ -3383,20 +3354,8 @@ class Pool(object):
 	def __exit__(self, type, value, traceback):
 		getpoolstack().pop()
 
-	def elementkeys(self):
-		return self._elementsbypyname.iterkeys()
-
-	def elementkeys_xml(self):
-		return self._elementsbyxmlname.iterkeys()
-
-	def elementvalues(self):
+	def elements(self):
 		return self._elementsbypyname.itervalues()
-
-	def elementitems(self):
-		return self._elementsbypyname.iteritems()
-
-	def elementitems_xml(self):
-		return self._elementsbyxmlname.iteritems()
 
 	def elementclass(self, name, xmlns):
 		if isinstance(xmlns, (list, tuple)):
@@ -3452,20 +3411,8 @@ class Pool(object):
 	def haselement_xml(self, name, xmlns):
 		return (name, nsname(xmlns)) in self._elementsbyxmlname
 
-	def procinstkeys(self):
-		return self._procinstsbypyname.iterkeys()
-
-	def procinstkeys_xml(self):
-		return self._procinstsbyxmlname.iterkeys()
-
-	def procinstvalues(self):
+	def procinsts(self):
 		return self._procinstsbypyname.itervalues()
-
-	def procinstitems(self):
-		return self._procinstsbypyname.iteritems()
-
-	def procinstitems_xml(self):
-		return self._procinstsbyxmlname.iteritems()
 
 	def procinstclass(self, name):
 		try:
@@ -3501,20 +3448,8 @@ class Pool(object):
 	def hasprocinst_xml(self, name):
 		return name in self._procinstsbyxmlname
 
-	def entitykeys(self):
-		return self._entitiesbypyname.iterkeys()
-
-	def entitykeys_xml(self):
-		return self._entitiesbyxmlname.iterkeys()
-
-	def entityvalues(self):
+	def entities(self):
 		return self._entitiesbypyname.itervalues()
-
-	def entityitems(self):
-		return self._entitiesbypyname.iteritems()
-
-	def entityitems_xml(self):
-		return self._entitiesbyxmlname.iteritems()
 
 	def entityclass(self, name):
 		try:
@@ -3550,20 +3485,8 @@ class Pool(object):
 	def hasentity_xml(self, name):
 		return name in self._entitiesbyxmlname
 
-	def charrefkeys(self):
-		return self._charrefsbypyname.iterkeys()
-
-	def charrefkeys_xml(self):
-		return self._charrefsbyxmlname.iterkeys()
-
-	def charrefvalues(self):
+	def charrefs(self):
 		return self._charrefsbypyname.itervalues()
-
-	def charrefitems(self):
-		return self._charrefsbypyname.iteritems()
-
-	def charrefitems_xml(self):
-		return self._charrefsbyxmlname.iteritems()
 
 	def charrefclass(self, name):
 		try:
@@ -3618,28 +3541,12 @@ class Pool(object):
 				return (self._attrsbypyname[(name, xmlns)].__name__, xmlns)
 			except KeyError:
 				pass
-		for base in bases:
+		for base in self.bases:
 			try:
-				return self.base.attrname(name, xmlns)
+				return base.attrname(name, xmlns)
 			except IllegalAttrError:
 				pass
 		raise IllegalAttrError(name, xmlns, False)
-
-	def attrname_xml(self, name, xmlns):
-		if not isinstance(xmlns, (list, tuple)):
-			xmlns = (xmlns,)
-		for xmlns in xmlns:
-			xmlns = nsname(xmlns)
-			try:
-				return (self._attrsbyxmlname[(name, xmlns)].__name__, xmlns)
-			except KeyError:
-				pass
-		for base in bases:
-			try:
-				return self.base.attrname_xml(name, xmlns)
-			except IllegalAttrError:
-				pass
-		raise IllegalAttrError(name, xmlns, True)
 
 	def attrclass(self, name, xmlns):
 		if not isinstance(xmlns, (list, tuple)):

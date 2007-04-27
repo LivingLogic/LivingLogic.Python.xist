@@ -22,12 +22,12 @@ def test_variousnamespaces():
 		for obj in vars(ns).itervalues():
 			if isinstance(obj, type) and issubclass(obj, xsc.Element) and not issubclass(obj, skip):
 				node = obj()
-				for (attrname, attrvalue) in node.attrs.alloweditems():
-					if attrvalue.required:
-						if attrvalue.values:
-							node[attrname] = attrvalue.values[0]
+				for attrclass in node.attrs.allowedattrs():
+					if attrclass.required:
+						if attrclass.values:
+							node[attrclass] = attrclass.values[0]
 						else:
-							node[attrname] = "foo"
+							node[attrclass] = "foo"
 				node.conv().asBytes(prefixdefault=True)
 		for obj in vars(ns).itervalues():
 			if isinstance(obj, type) and issubclass(obj, xsc.Entity) and not issubclass(obj, skip):

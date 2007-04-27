@@ -262,7 +262,7 @@ def test_charref():
 
 def test_getsetitem():
 	for cls in (xsc.Frag, html.div):
-		for attr in ("class_", ("lang", xml)):
+		for attr in ("class_", xml.Attrs.lang):
 			node = cls(html.div("foo", html.div({attr: "gurk"}), "bar"))
 			assert node[[]] is node
 			assert str(node[[0, 1, attr]]) == "gurk"
@@ -315,37 +315,29 @@ def test_attrsclone():
 
 
 def test_attributes():
-	node = html.h1("gurk", {("lang", xml): "de"}, lang="de")
+	node = html.h1("gurk", {xml.Attrs.lang: "de"}, lang="de")
 	assert node.attrs.has("lang")
-	assert node.attrs.has("lang", xml)
+	assert node.attrs.has_xml("lang")
+
+	assert node.attrs.has(html.h1.Attrs.lang)
+	assert node.attrs.has_xml(html.h1.Attrs.lang)
+
+	assert node.attrs.has(xml.Attrs.lang)
+	assert node.attrs.has_xml(xml.Attrs.lang)
+
 	assert "lang" in node.attrs
-	assert ("lang", xml) in node.attrs
+	assert html.h1.Attrs.lang in node.attrs
+	assert xml.Attrs.lang in node.attrs
 
 
 def test_attributekeysvaluesitems():
-	def check(node, xml, attrname, attrvalue):
-		if xml:
-			assert list(node.attrs.allowedkeys_xml()) == [attrname]
-		else:
-			assert list(node.attrs.allowedkeys()) == [attrname]
-
-		assert list(node.attrs.allowedvalues()) == [node.Attrs.attr_]
-
-		if xml:
-			assert list(node.attrs.alloweditems_xml()) == [(attrname, node.Attrs.attr_)]
-		else:
-			assert list(node.attrs.alloweditems()) == [(attrname, node.Attrs.attr_)]
+	def check(node, attrclass, attrvalue):
+		assert list(node.attrs.allowedattrs()) == [attrclass]
 
 		if attrvalue:
-			if xml:
-				assert list(node.attrs.keys_xml()) == [attrname]
-			else:
-				assert list(node.attrs.keys()) == [attrname]
+			assert list(node.attrs.keys()) == [attrclass]
 		else:
-			if xml:
-				assert list(node.attrs.keys_xml()) == []
-			else:
-				assert list(node.attrs.keys()) == []
+			assert list(node.attrs.keys()) == []
 
 		if attrvalue:
 			res = list(node.attrs.values())
@@ -357,19 +349,13 @@ def test_attributekeysvaluesitems():
 			assert len(res) == 0
 
 		if attrvalue:
-			if xml:
-				res = list(node.attrs.items_xml())
-			else:
-				res = list(node.attrs.items())
+			res = list(node.attrs.items())
 			assert len(res) == 1
-			assert res[0][0] == attrname
-			assert res[0][1].__class__ is node.Attrs.attr_
+			assert res[0][0] is attrclass
+			assert res[0][1].__class__ is attrclass
 			assert unicode(res[0][1]) == attrvalue
 		else:
-			if xml:
-				res = list(node.attrs.items_xml())
-			else:
-				res = list(node.attrs.items())
+			res = list(node.attrs.items())
 			assert len(res) == 0
 
 	class Test1(xsc.Element):
@@ -382,24 +368,18 @@ def test_attributekeysvaluesitems():
 			class attr_(xsc.TextAttr):
 				xmlname = "attr"
 
-	for (xml, attrname) in ((False, u"attr_"), (True, u"attr")):
-		check(Test1(), xml, attrname, u"42")
-		check(Test1(attr_=17), xml, attrname, u"17")
-		check(Test1(attr_=None), xml, attrname, None)
+	yield check, Test1(), Test1.Attrs.attr_, u"42"
+	yield check, Test1(attr_=17), Test1.Attrs.attr_, u"17"
+	yield check, Test1(attr_=None), Test1.Attrs.attr_, None
 
-		check(Test2(), xml, attrname, None)
-		check(Test2(attr_=17), xml, attrname, u"17")
-		check(Test2(attr_=None), xml, attrname, None)
+	yield check, Test2(), Test2.Attrs.attr_, None
+	yield check, Test2(attr_=17), Test2.Attrs.attr_, u"17"
+	yield check, Test2(attr_=None), Test2.Attrs.attr_, None
 
 
 def test_attributeswithoutnames():
-	class Attrs(xml.Attrs):
-		class lang(xml.Attrs.lang):
-			xmlns = "http://xmlns.example.com/"
-			default = 42
-
 	node = html.h1("gurk",
-		{("lang", xml): "de", ("base", xml): "http://www.livinglogic.de/"},
+		{xml.Attrs.lang: "de", xml.Attrs.base: "http://www.livinglogic.de/"},
 		lang="de",
 		style="color: #fff",
 		align="right",
@@ -408,19 +388,19 @@ def test_attributeswithoutnames():
 		id=42,
 		dir="ltr"
 	)
-	keys = sorted(node.attrs.keys())
-	keys.remove("class_")
+	keys = set(node.attrs.keys())
+	keys.remove(html.h1.Attrs.class_)
 
-	keys1 = sorted(node.attrs.withoutnames("class_").keys())
+	keys1 = set(node.attrs.withoutnames("class_").keys())
 	assert keys == keys1
 
-	keys.remove(("lang", xml.xmlns))
-	keys.remove(("base", xml.xmlns))
-	keys2 = sorted(node.attrs.withoutnames("class_", ("lang", xml), ("base", xml)).keys())
+	keys.remove(xml.Attrs.lang)
+	keys.remove(xml.Attrs.base)
+	keys2 = set(node.attrs.withoutnames("class_", xml.Attrs.lang, xml.Attrs.base).keys())
 	assert keys == keys2
 
 	# Check that non existing attrs are handled correctly
-	keys3 = sorted(node.attrs.withoutnames("class_", "src", ("lang", xml), ("base", xml)).keys())
+	keys3 = set(node.attrs.withoutnames("class_", "src", xml.Attrs.lang, xml.Attrs.base).keys())
 	assert keys == keys3
 
 
@@ -430,46 +410,63 @@ def test_attributeswithoutnames_xml():
 		class_="important",
 		id=42,
 	)
-	keys = sorted(node.attrs.keys())
-	keys.remove("class_")
+	keys = set(node.attrs.keys())
+	keys.remove(html.h1.Attrs.class_)
 
-	keys1 = sorted(node.attrs.withoutnames_xml("class").keys())
+	keys1 = set(node.attrs.withoutnames_xml("class").keys())
 	assert keys == keys1
 
 
 def test_attributeswithnames():
-	# Use a sub namespace of xml to test the issubclass checks
-	class Attrs(xml.Attrs):
-		class lang(xml.Attrs.lang):
-			xmlns = "http://xmlns.example.com/"
-			default = 42
+	class h1(html.h1):
+		class Attrs(html.h1.Attrs):
+			class lang(html.h1.Attrs.lang):
+				default = 42
+
+	node = h1("gurk",
+		{xml.Attrs.space: 1, xml.Attrs.lang: "de"},
+		class_="gurk",
+		align="right"
+	)
+
+	assert set(node.attrs.withnames("id").keys()) == set()
+
+	assert set(node.attrs.withnames("class_").keys()) == set([html.h1.Attrs.class_])
+
+	assert set(node.attrs.withnames("lang", "align").keys()) == set([h1.Attrs.lang, html.h1.Attrs.align])
+
+	assert set(node.attrs.withnames(h1.Attrs.lang, "align").keys()) == set([h1.Attrs.lang, html.h1.Attrs.align])
+
+	assert set(node.attrs.withnames(html.h1.Attrs.lang, "align").keys()) == set([h1.Attrs.lang, html.h1.Attrs.align])
 
 	node = html.h1("gurk",
-		{("space", xml): 1, ("lang", Attrs.lang): "de"},
+		{xml.Attrs.space: 1, xml.Attrs.lang: "de"},
 		lang="de",
 		class_="gurk",
 		align="right"
 	)
 
-	assert list(node.attrs.withnames("class_").keys()) == ["class_"]
+	assert set(node.attrs.withnames("id").keys()) == set()
 
-	keys1 = sorted(node.attrs.withnames("lang", "align").keys())
-	assert keys1 == ["align", "lang"]
+	assert set(node.attrs.withnames("class_").keys()) == set([html.h1.Attrs.class_])
 
-	keys = sorted(["lang", ("lang", Attrs.lang.xmlns)])
-	keys2 = sorted(node.attrs.withnames(*keys).keys())
-	assert keys2 == keys
+	assert set(node.attrs.withnames("lang", "align").keys()) == set([html.h1.Attrs.lang, html.h1.Attrs.align])
+
+	# no h1.Attrs.lang
+	assert set(node.attrs.withnames(h1.Attrs.lang, "align").keys()) == set([html.h1.Attrs.align])
+
+	assert set(node.attrs.withnames(html.h1.Attrs.lang, "align").keys()) == set([html.h1.Attrs.lang, html.h1.Attrs.align])
 
 
 def test_attributeswithnames_xml():
 	node = html.h1("gurk",
-		{("space", xml): 1},
+		{xml.Attrs.space: 1},
 		lang="de",
 		class_="gurk",
 		align="right"
 	)
-	assert list(node.attrs.withnames_xml("class").keys_xml()) == ["class"]
-	assert list(node.attrs.withnames_xml(("space", xml)).keys_xml()) == [("space", xml.xmlns)]
+	assert set(node.attrs.withnames_xml("class").keys()) == set([html.h1.Attrs.class_])
+	assert set(node.attrs.withnames_xml(xml.Attrs.space).keys()) == set([xml.Attrs.space])
 
 
 
@@ -506,7 +503,7 @@ def test_attributedictmethods():
 	node = Test(withoutdef=42)
 
 	check(
-		[ "withdef", "withoutdef" ],
+		[ Test.Attrs.withdef, Test.Attrs.withoutdef ],
 		node.attrs.keys(),
 	)
 	check(
@@ -514,21 +511,13 @@ def test_attributedictmethods():
 		node.attrs.values(),
 	)
 	check(
-		[ ("withdef", Test.Attrs.withdef(42)), ("withoutdef", Test.Attrs.withoutdef(42)) ],
+		[ (Test.Attrs.withdef, Test.Attrs.withdef(42)), (Test.Attrs.withoutdef, Test.Attrs.withoutdef(42)) ],
 		node.attrs.items(),
 	)
 
 	check(
-		[ "another", "withdef", "withoutdef" ],
-		node.attrs.allowedkeys(),
-	)
-	check(
 		[ Test.Attrs.another, Test.Attrs.withdef, Test.Attrs.withoutdef ],
-		node.attrs.allowedvalues(),
-	)
-	check(
-		[ ("another", Test.Attrs.another), ("withdef", Test.Attrs.withdef), ("withoutdef", Test.Attrs.withoutdef) ],
-		node.attrs.alloweditems(),
+		node.attrs.allowedattrs(),
 	)
 
 
@@ -612,7 +601,12 @@ def test_withsep():
 def test_allowedattr():
 	assert html.a.Attrs.allowedattr("href") is html.a.Attrs.href
 	py.test.raises(xsc.IllegalAttrError, html.a.Attrs.allowedattr, "gurk")
-	assert html.a.Attrs.allowedattr("lang", xml) is xml.Attrs.lang
+	assert html.a.Attrs.allowedattr(xml.Attrs.lang) is xml.Attrs.lang
+
+	# Check inherited attributes
+	assert htmlspecials.plaintable.Attrs.allowedattr("border") is htmlspecials.plaintable.Attrs.border
+	assert htmlspecials.plaintable.Attrs.allowedattr(htmlspecials.plaintable.Attrs.border) is htmlspecials.plaintable.Attrs.border
+	assert html.table.Attrs.allowedattr(htmlspecials.plaintable.Attrs.border) is html.table.Attrs.border
 
 
 def test_plaintableattrs():
@@ -626,16 +620,16 @@ def test_plaintableattrs():
 
 def test_attrupdate():
 	node = html.a(href="gurk", class_="hurz")
-	node.attrs.update(xml.Attrs(lang="de"), {"href": "gurk2", "id": 42})
+	node.attrs.update(xml.Attrs(lang="de"), {"href": "gurk2", html.a.Attrs.id: 42})
 	assert unicode(node["href"]) == u"gurk2"
 	assert unicode(node["id"]) == u"42"
-	assert unicode(node["lang", xml]) == u"de"
+	assert unicode(node[xml.Attrs.lang]) == u"de"
 
-	node = html.a({("lang", xml): "de"}, href="gurk", class_="hurz")
-	assert unicode(node["lang", xml]) == u"de"
+	node = html.a({xml.Attrs.lang: "de"}, href="gurk", class_="hurz")
+	assert unicode(node[xml.Attrs.lang]) == u"de"
 
 	node = html.a(xml.Attrs(lang="de"), href="gurk", class_="hurz")
-	assert unicode(node["lang", xml]) == u"de"
+	assert unicode(node[xml.Attrs.lang]) == u"de"
 
 	class Gurk(xsc.Element):
 		model = False
@@ -658,9 +652,6 @@ def test_attrupdate():
 
 	attrs = Gurk.Attrs(Gurk.Attrs(hurz=None))
 	assert "hurz" not in attrs
-
-	# No global attributes inside global attributes
-	py.test.raises(xsc.IllegalAttrError, xml.Attrs, xml.Attrs(lang="de"))
 
 
 def test_classrepr():

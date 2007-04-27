@@ -104,6 +104,10 @@ def test_names():
 		class charref(xsc.CharRef):
 			xmlname = "-charref"
 			codepoint = 42
+		class Attrs(xsc.Attrs):
+			class attr(xsc.TextAttr):
+				xmlname = "-attr"
+				xmlns = "nix"
 
 	# elements
 	assert r.elementclass("element", "nix") is element
@@ -166,6 +170,15 @@ def test_names():
 	py.test.raises(xsc.IllegalEntityError, xsc.defaultpool.charrefclass, "entity")
 	py.test.raises(xsc.IllegalEntityError, xsc.defaultpool.charrefclass_xml, "-entity")
 
+	# attributes
+	assert r.attrclass("attr", "nix") is Attrs.attr
+	assert r.attrclass_xml("-attr", "nix") is Attrs.attr
+	py.test.raises(xsc.IllegalAttrError, r.attrclass, "-attr", "nix")
+	py.test.raises(xsc.IllegalAttrError, r.attrclass_xml, "attr", "nix")
+	# make sure that the default pool didn't pick up the new class
+	py.test.raises(xsc.IllegalAttrError, xsc.defaultpool.attrclass, "attr", "nix")
+	py.test.raises(xsc.IllegalAttrError, xsc.defaultpool.attrclass_xml, "-attr", "nix")
+
 
 def test_names2():
 	with xsc.Pool() as r:
@@ -180,47 +193,16 @@ def test_names2():
 			codepoint = 0x4242
 
 	# Test elements
-	assert list(r.elementkeys()) == [("el_", None)]
-	assert list(r.elementkeys_xml()) == [("el", None)]
-	assert list(r.elementvalues()) == [el_]
-	assert list(r.elementitems()) == [(("el_", None), el_)]
-	assert list(r.elementitems_xml()) == [(("el", None), el_)]
+	assert set(r.elements()) == set([el_])
 	
 	# Test entities
-	keys = list(r.entitykeys())
-	assert len(keys) == 2
-	assert "en_" in keys
-	assert "cr_" in keys
-	keys = list(r.entitykeys_xml())
-	assert len(keys) == 2
-	assert "en" in keys
-	assert "cr" in keys
-	values = list(r.entityvalues())
-	assert len(values) == 2
-	assert en_ in values
-	assert cr_ in values
-	items = list(r.entityitems())
-	assert len(items) == 2
-	assert ("en_", en_) in items
-	assert ("cr_", cr_) in items
-	items = list(r.entityitems_xml())
-	assert len(items) == 2
-	assert ("en", en_) in items
-	assert ("cr", cr_) in items
+	assert set(r.entities()) == set([cr_, en_])
 
 	# Test procinsts
-	assert list(r.procinstkeys()) == ["pi_"]
-	assert list(r.procinstkeys_xml()) == ["pi"]
-	assert list(r.procinstvalues()) == [pi_]
-	assert list(r.procinstitems()) == [("pi_", pi_)]
-	assert list(r.procinstitems_xml()) == [("pi", pi_)]
+	assert set(r.procinsts()) == set([pi_])
 
 	# Test charrefs
-	assert list(r.charrefkeys()) == ["cr_"]
-	assert list(r.charrefkeys_xml()) == ["cr"]
-	assert list(r.charrefvalues()) == [cr_]
-	assert list(r.charrefitems()) == [("cr_", cr_)]
-	assert list(r.charrefitems_xml()) == [("cr", cr_)]
+	assert set(r.charrefs()) == set([cr_])
 
 
 def test_stack():
@@ -279,8 +261,6 @@ def test_defaultbase():
 
 def test_mixedattrnames():
 	with xsc.Pool() as r:
-		xmlns = "test"
-
 		class Attrs(xsc.Attrs):
 			class a(xsc.TextAttr):
 				xmlns = "test"
@@ -297,10 +277,12 @@ def test_mixedattrnames():
 				class A(xsc.TextAttr):
 					xmlname = "a"
 
+	xmlns = "test"
+
 	node = Test(
 		{
-			("a", xmlns): "a2",
-			("A", xmlns): "A2",
+			Attrs.a: "a2",
+			Attrs.A: "A2",
 		},
 		a="a",
 		A="A"
@@ -309,20 +291,19 @@ def test_mixedattrnames():
 	def check(name, value):
 		assert unicode(node[name]) == value
 		assert unicode(node.attrs[name]) == value
-		if not isinstance(name, tuple):
+		if isinstance(name, basestring):
 			assert unicode(getattr(node.attrs, name)) == value
 		assert unicode(node.attrs.get(name)) == value
-		if isinstance(name, tuple):
-			name = (name[0], name[1].swapcase())
-		else:
-			name = name.swapcase()
-		assert unicode(node.attrs.get_xml(name)) == value
+		if isinstance(name, basestring):
+			assert unicode(node.attrs.get_xml(name.swapcase())) == value
 
 	tests = [
 		("a", "a"),
 		("A", "A"),
-		(("a", xmlns), "a2"),
-		(("A", xmlns), "A2")
+		(Test.Attrs.a, "a"),
+		(Test.Attrs.A, "A"),
+		(Attrs.a, "a2"),
+		(Attrs.A, "A2")
 	]
 	for (name, value) in tests:
 		yield check, name, value
