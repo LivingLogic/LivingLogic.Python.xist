@@ -3389,7 +3389,8 @@ class Pool(object):
 		"""
 		Return the element class for the element with the Python name
 		<arg>name</arg> and the namespace <arg>xmlns</arg>. If the class can't
-		be found the search continues in the base pools.
+		be found the search continues in the base pools. If the element can't be
+		found a <class>IllegalElementError</class> will be raised.
 		"""
 		if isinstance(xmlns, (list, tuple)):
 			for xmlns in xmlns:
@@ -3415,7 +3416,8 @@ class Pool(object):
 		"""
 		Return the element class for the element type with the &xml; name
 		<arg>name</arg> and the namespace <arg>xmlns</arg>. If the class can't
-		be found the search continues in the base pools.
+		be found the search continues in the base pools. If the element can't be
+		found a <class>IllegalElementError</class> will be raised.
 		"""
 		if isinstance(xmlns, (list, tuple)):
 			for xmlns in xmlns:
