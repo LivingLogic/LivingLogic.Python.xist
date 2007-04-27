@@ -3688,6 +3688,12 @@ class Pool(object):
 			return name in self._charrefsbypyname
 
 	def attrclass(self, name, xmlns):
+		"""
+		Return the aatribute class for the global attribute with the Python name
+		<arg>name</arg> and the namespace <arg>xmlns</arg>. If the class can't be
+		found the search continues in the base pools. If the attribute can't be
+		found a <class>IllegalAttrError</class> will be raised.
+		"""
 		if not isinstance(xmlns, (list, tuple)):
 			xmlns = (xmlns,)
 		for xmlns in xmlns:
@@ -3704,6 +3710,12 @@ class Pool(object):
 		raise IllegalAttrError(name, xmlns, False)
 
 	def attrclass_xml(self, name, xmlns):
+		"""
+		Return the aatribute class for the global attribute with the &xml; name
+		<arg>name</arg> and the namespace <arg>xmlns</arg>. If the class can't be
+		found the search continues in the base pools. If the attribute can't be
+		found a <class>IllegalAttrError</class> will be raised.
+		"""
 		if not isinstance(xmlns, (list, tuple)):
 			xmlns = (xmlns,)
 		for xmlns in xmlns:
@@ -3776,12 +3788,20 @@ def docprefixes():
 
 
 def nsname(xmlns):
+	"""
+	If <arg>xmlns</arg> is a module, return <lit><arg>xmlns</arg>.xmlns</lit>.
+	Else return <arg>xmlns</arg> unchanged.
+	"""
 	if xmlns is not None and not isinstance(xmlns, basestring):
 		xmlns = xmlns.xmlns
 	return xmlns
 
 
 def nsclark(xmlns):
+	"""
+	Return a namespace name in Clark notation. <arg>xmlns</arg> can be
+	<lit>None</lit>, a string or a module.
+	"""
 	if xmlns is None:
 		return "{}"
 	elif not isinstance(xmlns, basestring):
