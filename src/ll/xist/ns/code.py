@@ -18,7 +18,7 @@ __version__ = "$Revision$".split()[1]
 import sys
 
 from ll.xist import xsc
-import html
+from ll.xist.ns import html
 
 
 class Code(object):
