@@ -25,6 +25,6 @@ def test_pickle():
 		abbr.xml(),
 	)
 	e.append(e[3])
-	e2 = cPickle.loads(cPickle.dumps(e))
+	e2 = cPickle.loads(cPickle.dumps(e, 2))
 	assert e == e2
 	assert e2[3] is e2[-1]

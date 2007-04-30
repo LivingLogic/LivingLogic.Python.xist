@@ -1165,6 +1165,9 @@ class CharacterData(Node, unicode):
 		def __get__(self):
 			return unicode.__add__(self, u"")
 
+	def __getnewargs__(self):
+		return (self.content,)
+
 	def __eq__(self, other):
 		return self.__class__ is other.__class__ and self.content==other.content
 
@@ -2697,6 +2700,10 @@ class Element(Node):
 	def __getstate__(self):
 		attrs = {}
 		for (key, value) in self.attrs.iteritems():
+			if key.xmlns is None:
+				key = key.__name__
+			else:
+				key = (key.__module__, key.__fullname__)
 			attrs[key] = Frag(value)
 		return (self.content, attrs)
 
@@ -2704,6 +2711,13 @@ class Element(Node):
 		self.content = content
 		self.attrs = self.Attrs()
 		for (key, value) in attrs.iteritems():
+			if not isinstance(key, basestring):
+				obj = __import__(key[0])
+				for name in key[0].split(".")[1:]:
+					obj = getattr(obj, name)
+				for name in key[1].split("."):
+					obj = getattr(obj, name)
+				key = obj
 			self.attrs[key] = value
 
 	def __call__(self, *content, **attrs):
@@ -3147,6 +3161,9 @@ class CharRef(Text, Entity):
 
 	def __new__(cls):
 		return Text.__new__(cls, unichr(cls.codepoint))
+
+	def __getnewargs__(self):
+		return ()
 
 	def present(self, presenter):
 		return presenter.presentEntity(self) # return a generator-iterator
