@@ -938,10 +938,7 @@ class section(block):
 			e[u"class_"].append(u" ", self.attrs[u"role"])
 		#if u"id" in self.attrs:
 		#	e.append(target.a(name=self[u"id"], id=self[u"id"]))
-		try:
-			hclass = target.element(u"h%d" % level)
-		except LookupError: # ouch, we're nested to deep (a getter in a property in a class in a class)
-			hclass = target.h6
+		hclass = getattr(target, u"h%d" % level, target.h6)
 		for t in ts:
 			h = hclass(t.content)
 			e.append(h)
@@ -1427,7 +1424,7 @@ class pyref(inline):
 	def convert(self, converter):
 		target = converter.target
 		context = converter[self]
-		if issubclass(target, xmlns): # our own namespace
+		if target.xmlns == xmlns: # our own namespace
 			return self.convert_doc(converter)
 		if u"function" in self.attrs:
 			function = unicode(self[u"function"].convert(converter))
