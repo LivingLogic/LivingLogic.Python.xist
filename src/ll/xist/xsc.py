@@ -746,11 +746,17 @@ class Node(object):
 		"""
 		pass
 
-	# __unicode__ returns the character content of <self/> as a unicode string.
-	# This means that comments and processing instructions will be filtered out.
-	# For elements you'll get the element content.
-	# <method>__unicode__</method> can be used everywhere where
-	# a plain string representation of the node is required.</par>
+	@misc.notimplemented
+	def __unicode__(self):
+		"""
+		<par>Return the character content of <self/> as a unicode string.
+		This means that comments and processing instructions will be filtered out.
+		For elements you'll get the element content.</par>
+
+		<par><method>__unicode__</method> can be used everywhere where
+		a plain string representation of the node is required.</par>
+		"""
+		pass
 
 	def __str__(self):
 		"""
@@ -818,7 +824,7 @@ class Node(object):
 		"""
 		<par>This method will be called when parsing or publishing to check
 		whether <self/> is valid.</par>
-	
+
 		<par>If <self/> is found to be invalid a warning should be issued through
 		the <pyref module="warnings">Python warning framework</pyref>.</par>
 		"""
@@ -842,7 +848,7 @@ class Node(object):
 		"""
 		if publisher is None:
 			publisher = publishers.Publisher(**publishargs)
-		
+
 		return publisher.publish(self, base) # return a generator-iterator
 
 	def asBytes(self, base=None, publisher=None, **publishargs):
@@ -969,10 +975,10 @@ class Node(object):
 
 	def __div__(self, other):
 		return xfind.Expr(self, other)
-		
+
 	def __floordiv__(self, other):
 		return xfind.Expr(self, xfind.all, other)
-		
+
 	def compact(self):
 		"""
 		Return a version of <self/>, where textnodes or character references that
@@ -1144,7 +1150,7 @@ if ipipe is not None:
 			yield ipipe.FunctionDescriptor(_ipipe_attrscount, "attrs")
 
 
-class CharacterData(Node, unicode):
+class CharacterData(Node):
 	"""
 	<par>Base class for &xml; character data (<pyref class="Text"><class>Text</class></pyref>,
 	<pyref class="ProcInst"><class>ProcInst</class></pyref>,
@@ -1154,88 +1160,143 @@ class CharacterData(Node, unicode):
 	<par>Provides nearly the same functionality as <class>UserString</class>,
 	but omits a few methods.</par>
 	"""
+	__slots__ = ("_content",)
 
-	def __new__(cls, *content):
-		return unicode.__new__(cls, u"".join(unicode(x) for x in content))
+	def __init__(self, *content):
+		self._content = u"".join(unicode(x) for x in content)
+
+	def __getstate__(self):
+		return self._content
+
+	def __setstate__(self, content):
+		self._content = content
 
 	class content(misc.propclass):
 		"""
 		The text content of the node as a <class>unicode</class> object.
 		"""
 		def __get__(self):
-			return unicode.__add__(self, u"")
+			return self._content
 
-	def __getnewargs__(self):
-		return (self.content,)
+	def __hash__(self):
+		return self._content.__hash__()
 
 	def __eq__(self, other):
-		return self.__class__ is other.__class__ and self.content==other.content
+		return self.__class__ is other.__class__ and self._content==other._content
+
+	def __len__(self):
+		return self._content.__len__()
 
 	def __getitem__(self, index):
-		return self.__class__(unicode.__getitem__(self, index))
+		return self.__class__(self._content.__getitem__(index))
 
 	def __add__(self, other):
-		return self.__class__(unicode.__add__(self, other))
+		return self.__class__(self._content + other)
 
 	def __radd__(self, other):
-		return self.__class__(unicode.__radd__(other, self))
+		return self.__class__(unicode(other) + self._content)
 
 	def __mul__(self, n):
-		return self.__class__(unicode.__mul__(self, n))
+		return self.__class__(n * self._content)
 
 	def __rmul__(self, n):
-		return self.__class__(unicode.__mul__(self, n))
+		return self.__class__(n * self._content)
 
 	def __getslice__(self, index1, index2):
-		return self.__class__(unicode.__getslice__(self, index1, index2))
+		return self.__class__(self._content.__getslice__(index1, index2))
 
 	def capitalize(self):
-		return self.__class__(unicode.capitalize(self))
+		return self.__class__(self._content.capitalize())
 
 	def center(self, width):
-		return self.__class__(unicode.center(self, width))
+		return self.__class__(self._content.center(width))
+
+	def count(self, sub, start=0, end=sys.maxint):
+		return self._content.count(sub, start, end)
+
+	def endswith(self, suffix, start=0, end=sys.maxint):
+		return self._content.endswith(suffix, start, end)
+
+	def index(self, sub, start=0, end=sys.maxint):
+		return self._content.index(sub, start, end)
+
+	def isalpha(self):
+		return self._content.isalpha()
+
+	def isalnum(self):
+		return self._content.isalnum()
+
+	def isdecimal(self):
+		return self._content.isdecimal()
+
+	def isdigit(self):
+		return self._content.isdigit()
+
+	def islower(self):
+		return self._content.islower()
+
+	def isnumeric(self):
+		return self._content.isnumeric()
+
+	def isspace(self):
+		return self._content.isspace()
+
+	def istitle(self):
+		return self._content.istitle()
+
+	def isupper(self):
+		return self._content.isupper()
 
 	def join(self, frag):
 		return frag.withsep(self)
 
 	def ljust(self, width, fill=u" "):
-		return self.__class__(unicode.ljust(self, width, fill))
+		return self.__class__(self._content.ljust(width, fill))
 
 	def lower(self):
-		return self.__class__(unicode.lower(self))
+		return self.__class__(self._content.lower())
 
 	def lstrip(self, chars=None):
-		return self.__class__(unicode.lstrip(self, chars))
+		return self.__class__(self._content.lstrip(chars))
 
 	def replace(self, old, new, maxsplit=-1):
-		return self.__class__(unicode.replace(self, old, new, maxsplit))
+		return self.__class__(self._content.replace(old, new, maxsplit))
 
 	def rjust(self, width, fill=u" "):
-		return self.__class__(unicode.rjust(self, width, fill))
+		return self.__class__(self._content.rjust(width, fill))
 
 	def rstrip(self, chars=None):
-		return self.__class__(unicode.rstrip(self, chars))
+		return self.__class__(self._content.rstrip(chars))
+
+	def rfind(self, sub, start=0, end=sys.maxint):
+		return self._content.rfind(sub, start, end)
+
+	def rindex(self, sub, start=0, end=sys.maxint):
+		return self._content.rindex(sub, start, end)
 
 	def split(self, sep=None, maxsplit=-1):
-		return Frag(unicode.split(self, sep, maxsplit))
+		return Frag(self._content.split(sep, maxsplit))
 
-	def splitlines(self, keepends=False):
-		return Frag(unicode.splitlines(self, keepends))
+	def splitlines(self, keepends=0):
+		return Frag(self._content.splitlines(keepends))
+
+	def startswith(self, prefix, start=0, end=sys.maxint):
+		return self._content.startswith(prefix, start, end)
 
 	def strip(self, chars=None):
-		return self.__class__(unicode.strip(self, chars))
+		return self.__class__(self._content.strip(chars))
 
 	def swapcase(self):
-		return self.__class__(unicode.swapcase(self))
+		return self.__class__(self._content.swapcase())
 
 	def title(self):
-		return self.__class__(unicode.title(self))
+		return self.__class__(self._content.title())
 
 	def translate(self, table):
-		return self.__class__(unicode.translate(self, table))
+		return self.__class__(self._content.translate(table))
 
 	def upper(self):
-		return self.__class__(unicode.upper(self))
+		return self.__class__(self._content.upper())
 
 	def __repr__(self):
 		if self.startloc is not None:
@@ -1255,8 +1316,11 @@ class Text(CharacterData):
 	def convert(self, converter):
 		return self
 
+	def __unicode__(self):
+		return self._content
+
 	def publish(self, publisher):
-		yield publisher.encodetext(unicode(self))
+		yield publisher.encodetext(self._content)
 
 	def present(self, presenter):
 		return presenter.presentText(self) # return a generator-iterator
@@ -2584,7 +2648,7 @@ class Attrs(Node, dict):
 		else:
 			loc = ""
 		return "<%s.%s attrs %s%s at 0x%x>" % (self.__class__.__module__, self.__fullname__, info, loc, id(self))
-		
+
 	def __iter__(self):
 		return self.itervalues()
 
@@ -2683,7 +2747,7 @@ class Element(Node):
 	def __init__(self, *content, **attrs):
 		"""
 		<par>Create a new <class>Element</class> instance.</par>
-		
+
 		<par>positional arguments are treated as content nodes.
 		Keyword arguments and dictionaries are treated as attributes.</par>
 		"""
@@ -2799,7 +2863,7 @@ class Element(Node):
 	def _addimagesizeattributes(self, url, widthattr=None, heightattr=None):
 		"""
 		<par>Automatically set image width and height attributes.</par>
-		
+
 		<par>The size of the image with the &url; <arg>url</arg> will be determined and
 		the width of the image will be put into the attribute with the name <arg>widthattr</arg>
 		if <arg>widthattr</arg> is not <lit>None</lit> and the attribute is not set. The
@@ -3159,8 +3223,9 @@ class CharRef(Text, Entity):
 	__metaclass__ = _CharRef_Meta
 	register = None
 
-	def __new__(cls):
-		return Text.__new__(cls, unichr(cls.codepoint))
+	def __init__(self):
+		Text.__init__(self, unichr(self.codepoint))
+		Entity.__init__(self)
 
 	def __getnewargs__(self):
 		return ()
