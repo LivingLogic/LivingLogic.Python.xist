@@ -1029,7 +1029,7 @@ class par(block):
 		return e.convert(converter)
 
 
-class term(base):
+class term(block):
 	"""
 	A term inside a <pyref class="dlist"><class>dlist</class></pyref>
 	"""
@@ -1052,7 +1052,7 @@ class term(base):
 		return e.convert(converter)
 
 
-class item(base):
+class item(block):
 	"""
 	A wrapper for the elements of a list item
 	"""
