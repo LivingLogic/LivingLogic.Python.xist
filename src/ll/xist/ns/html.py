@@ -1323,7 +1323,6 @@ def astext(node, encoding="iso-8859-1", width=72):
 			underline,
 			node.attrs,
 		)
-		return e.convert(converter)
 
 	def decorate(node, converter):
 		if isinstance(node, xsc.Text):
