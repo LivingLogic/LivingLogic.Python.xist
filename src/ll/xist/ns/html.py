@@ -1300,7 +1300,7 @@ class nobr(xsc.Element): # deprecated
 def astext(node, encoding="iso-8859-1", width=72):
 	"""
 	<par>Return the node <arg>node</arg> as a formatted plain string. <arg>node</arg>
-	must contain an &html; trees.</par>
+	must contain an &html; tree.</par>
 
 	<par>This requires that <app moreinfo="http://elinks.or.cz/">elinks</app> is
 	installed.</par>
@@ -1308,6 +1308,41 @@ def astext(node, encoding="iso-8859-1", width=72):
 	<par><arg>encoding</arg> specifies the output encoding. <arg>width</arg>
 	specifies the output width.</par>
 	"""
+
+	# Fix the HTML
+	def decorateheader(node, converter, c):
+		content = unicode(node)
+		l = len(content)
+		if c:
+			underline = ((c*l)[:l], br())
+		else:
+			underline = None
+		return node.__class__(
+			br(),
+			node.content.mapped(decorate, converter), br(),
+			underline,
+			node.attrs,
+		)
+		return e.convert(converter)
+
+	def decorate(node, converter):
+		if isinstance(node, xsc.Text):
+			node = node.replace(u"\N{EM DASH}", u"--")
+			node = node.replace(u"\N{EN DASH}", u"-")
+			node = node.replace(u"\u200b", u"")
+			node = node.replace(u"\N{GREEK CAPITAL LETTER ALPHA}", u"Alpha")
+			node = node.replace(u"\N{GREEK CAPITAL LETTER BETA}", u"Beta")
+			node = node.replace(u"\N{GREEK CAPITAL LETTER GAMMA}", u"Gamma")
+			node = node.replace(u"\N{GREEK SMALL LETTER ALPHA}", u"alpha")
+			node = node.replace(u"\N{GREEK SMALL LETTER BETA}", u"beta")
+			node = node.replace(u"\N{GREEK SMALL LETTER GAMMA}", u"gamma")
+		elif isinstance(node, (h1, h2)):
+			node = decorateheader(node, converter, "=")
+		elif isinstance(node, (h3, h4, h5, h6)):
+			node = decorateheader(node, converter, "-")
+		return node
+
+	node = node.mapped(decorate)
 
 	options = [
 		"-dump 1",
