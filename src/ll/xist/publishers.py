@@ -48,11 +48,11 @@ class Publisher(object):
 		<term>&html; (<lit><arg>xhtml</arg>==0</lit>)</term>
 		<item>Elements with a empty content model will be published as
 		<markup>&lt;foo&gt;</markup>.</item>
-		<term>&html; browser compatible &xml; (<lit><arg>xhtml</arg>=1</lit>)</term>
-		<itemElement with an empty content model will be published as <markup>&lt;foo /&gt;</markup>
+		<term>&html; browser compatible &xml; (<lit><arg>xhtml</arg>==1</lit>)</term>
+		<item>Elements with an empty content model will be published as <markup>&lt;foo /&gt;</markup>
 		and others that just happen to be empty as <markup>&lt;foo&gt;&lt;/foo&gt;</markup>. This
 		is the default.</item>
-		<term>Pure &xml; (<lit><arg>xhtml</arg>=1</lit>)</term>
+		<term>Pure &xml; (<lit><arg>xhtml</arg>==2</lit>)</term>
 		<lit>All empty elements will be published as <markup>&lt;foo/&gt;</markup>.</item>
 		</dlist>
 
