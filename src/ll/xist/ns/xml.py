@@ -61,8 +61,11 @@ class XML10(XML):
 	xmlname = "xml10"
 	register = False # don't register this ProcInst, because it will never be parsed from a file, this is just a convenience class
 
-	def __init__(self):
-		super(XML10, self).__init__(u'version="1.0"')
+	def __new__(cls):
+		return XML.__new__(cls, u'version="1.0"')
+
+	def __getnewargs__(self):
+		return ()
 
 
 class XMLStyleSheet(xsc.ProcInst):

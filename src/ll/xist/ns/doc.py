@@ -20,11 +20,11 @@ __version__ = "$Revision$".split()[1]
 
 
 # import __builtin__ to use property, which is also defined here
-import types, inspect, warnings, operator, __builtin__
+import sys, types, inspect, warnings, operator, __builtin__
 
 import ll
 from ll.xist import xsc, parsers, sims, xfind
-from ll.xist.ns import html, text, docbook, fo, specials, xml
+from ll.xist.ns import html, docbook, fo, specials, xml
 
 
 xmlns = "http://xmlns.livinglogic.de/xist/ns/doc"
@@ -395,8 +395,6 @@ class base(xsc.Element):
 		target = converter.target
 		if target.xmlns == docbook.xmlns:
 			return self.convert_docbook(converter)
-		elif target.xmlns == text.xmlns:
-			return self.convert_text(converter)
 		elif target.xmlns == html.xmlns:
 			return self.convert_html(converter)
 		elif target.xmlns == xmlns: # our own namespace
@@ -405,10 +403,6 @@ class base(xsc.Element):
 			return self.convert_fo(converter)
 		else:
 			raise ValueError("unknown conversion target %r" % target)
-
-	def convert_text(self, converter):
-		# Forward to the HTML conversion
-		return self.convert_html(converter)
 
 	def convert_doc(self, converter):
 		e = self.__class__(
@@ -490,21 +484,6 @@ class litblock(block):
 					e.append(c)
 			else:
 				e.append(child)
-		return e.convert(converter)
-
-	def convert_text(self, converter):
-		target = converter.target
-		e = target.pre(class_=u"prog")
-		for child in self.content:
-			child = child.convert(converter)
-			if isinstance(child, xsc.Text):
-				for c in child.content:
-					if c==u"\t":
-						c = u"   "
-					e.append(c)
-			else:
-				e.append(child)
-		e = target.blockquote(e)
 		return e.convert(converter)
 
 	def convert_fo(self, converter):
@@ -1253,19 +1232,8 @@ class example(block):
 				ts.append(child)
 			else:
 				e.append(child)
-
 		if ts:
 			e.append(target.div(ts, class_=u"example-title"))
-
-		return e.convert(converter)
-
-	def convert_text(self, converter):
-		target = converter.target
-		e = xsc.Frag()
-		for child in self.content:
-			if not isinstance(child, title):
-				e.append(child)
-
 		return e.convert(converter)
 
 	def convert_fo(self, converter):
@@ -1514,10 +1482,10 @@ class fodoc(base):
 	def convert(self, converter):
 		context = converter[self]
 		e = self.content
-		converter.push(target=xmlns)
+		converter.push(target=sys.modules[__name__]) # our own module
 		e = e.convert(converter)
 		converter.pop()
-		converter.push(target=fo.xmlns)
+		converter.push(target=fo)
 		e = e.convert(converter)
 		converter.pop()
 

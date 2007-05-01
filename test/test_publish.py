@@ -207,3 +207,7 @@ def test_encoding():
 
 	for encoding in ("utf-8", "utf-16", "utf-16-be", "utf-16-le", "latin-1", "ascii"):
 		yield check, encoding
+
+
+def test_xmlheader():
+	assert xml.XML10().asBytes(encoding="utf-8") == "<?xml version='1.0' encoding='utf-8'?>"
