@@ -84,8 +84,8 @@ print node.conv().asBytes(encoding="us-ascii")
 from ll.xist import parsers
 
 node = parsers.parseURL("http://www.python.org/", tidy=True)
-</prog>p
-u
+</prog>
+
 </section>
 
 
