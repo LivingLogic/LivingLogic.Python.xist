@@ -85,7 +85,7 @@ def getdoc(thing):
 	else:
 		sysid = "DOCSTRING"
 	node = parsers.parseString(text, sysid=sysid, prefixes=xsc.docprefixes())
-	if not list(node/par): # optimization: one paragraph docstrings don't need a <par> element.
+	if not node[par]: # optimization: one paragraph docstrings don't need a <par> element.
 		node = par(node)
 
 	if inspect.ismethod(thing):
@@ -745,12 +745,66 @@ class markup(code):
 		return e.convert(converter)
 
 
+class self(code):
+	"""
+	<par>use this class when referring to the object for which a method has been
+	called, e.g.:</par>
+	<example>
+	<prog>
+		this function fooifies the object &lt;self/&gt;.
+	</prog>
+	</example>
+	"""
+	xmlns = xmlns
+	model = sims.Empty()
+
+	def convert_docbook(self, converter):
+		e = converter.target.varname(u"self")
+		return e.convert(converter)
+
+	def convert_html(self, converter):
+		e = converter.target.code(u"self", class_=u"self")
+		return e.convert(converter)
+
+	def convert_fo(self, converter):
+		e = converter.target.inline(u"self", converter[self].codeattrs)
+		return e.convert(converter)
+
+self_ = self
+
+
+class cls(inline):
+	"""
+	<par>use this class when referring to the object for which a class method has been
+	called, e.g.:</par>
+	<example>
+	<prog>
+		this function fooifies the class &lt;cls/&gt;.
+	</prog>
+	</example>
+	"""
+	xmlns = xmlns
+	model = sims.Empty()
+
+	def convert_docbook(self, converter):
+		e = converter.target.varname(u"cls")
+		return e.convert(converter)
+
+	def convert_html(self, converter):
+		e = converter.target.code(u"cls", class_=u"cls")
+		return e.convert(converter)
+
+	def convert_fo(self, converter):
+		e = converter.target.inline(u"cls", converter[self].codeattrs)
+		return e.convert(converter)
+
+
 class arg(code):
 	"""
 	The name of a function or method argument.
 	"""
 	xmlns = xmlns
-	model = sims.ElementsOrText(rep)
+	model = sims.ElementsOrText(rep, self, cls)
 
 	def convert_docbook(self, converter):
 		e = converter.target.parameter(self.content)
@@ -1239,60 +1293,6 @@ class example(block):
 		for child in self.content:
 			if not isinstance(child, title):
 				e.append(child)
-		return e.convert(converter)
-
-
-class self(code):
-	"""
-	<par>use this class when referring to the object for which a method has been
-	called, e.g.:</par>
-	<example>
-	<prog>
-		this function fooifies the object &lt;self/&gt;.
-	</prog>
-	</example>
-	"""
-	xmlns = xmlns
-	model = sims.Empty()
-
-	def convert_docbook(self, converter):
-		e = converter.target.varname(u"self")
-		return e.convert(converter)
-
-	def convert_html(self, converter):
-		e = converter.target.code(u"self", class_=u"self")
-		return e.convert(converter)
-
-	def convert_fo(self, converter):
-		e = converter.target.inline(u"self", converter[self].codeattrs)
-		return e.convert(converter)
-
-self_ = self
-
-
-class cls(inline):
-	"""
-	<par>use this class when referring to the object for which a class method has been
-	called, e.g.:</par>
-	<example>
-	<prog>
-		this function fooifies the class &lt;cls/&gt;.
-	</prog>
-	</example>
-	"""
-	xmlns = xmlns
-	model = sims.Empty()
-
-	def convert_docbook(self, converter):
-		e = converter.target.varname(u"cls")
-		return e.convert(converter)
-
-	def convert_html(self, converter):
-		e = converter.target.code(u"cls", class_=u"cls")
-		return e.convert(converter)
-
-	def convert_fo(self, converter):
-		e = converter.target.inline(u"cls", converter[self].codeattrs)
 		return e.convert(converter)
 
 
