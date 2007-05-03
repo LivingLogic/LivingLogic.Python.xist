@@ -55,7 +55,7 @@ DESCRIPTION = "\n".join(textwrap.wrap(DESCRIPTION.strip(), width=64, replace_whi
 
 args = dict(
 	name="ll-xist",
-	version="2.15.2",
+	version="3.0",
 	description="An extensible HTML/XML generator",
 	long_description=DESCRIPTION,
 	author="Walter Doerwald",
@@ -87,7 +87,7 @@ args = dict(
 		"scripts/xml2xsc.py",
 	],
 	install_requires=[
-		"ll-core >= 1.7.1",
+		"ll-core >= 1.10",
 		"PyXML >= 0.8.4",
 	],
 	namespace_packages=["ll"],
