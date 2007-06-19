@@ -771,7 +771,7 @@ def test_clone():
 
 		dst = src.clone()
 		assert src is not dst
-		assert src[0] is dst[0]
+		assert src[0] is dst[0] # Text nodes are immutable and shared
 		assert src[1] is not dst[1]
 		assert dst[1] is not dst[2]
 
