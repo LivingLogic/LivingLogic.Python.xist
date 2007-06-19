@@ -208,10 +208,6 @@ class end(xsc.ProcInst):
 	"""
 
 
-# Used for indenting Python source code
-indent = "\t"
-
-
 # The name of al available processing instructions
 targets = set(value.xmlname for value in vars().itervalues() if isinstance(value, type) and issubclass(value, xsc.ProcInst))
 
@@ -258,6 +254,10 @@ def tokenize(string):
 			target = None
 		yield (target, data)
 		pos = pos2+2
+
+
+# Used for indenting Python source code
+indent = "\t"
 
 
 def xml2py(source):
