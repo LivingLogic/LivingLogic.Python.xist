@@ -42,14 +42,14 @@ print node.conv().asBytes(encoding="us-ascii")
 from ll.xist import xsc
 from ll.xist.ns import html, xml, meta
 
-class pypilink(xsc.Element):
+class cheeseshoplink(xsc.Element):
 	class Attrs(xsc.Element.Attrs):
 		class name(xsc.TextAttr): pass
 
 	def convert(self, converter):
 		e = html.a(
-			self["name"],
-			href=("http://www.python.org/pypi?:action=display&amp;name=", self["name"])
+			self.attrs.name,
+			href=("http://cheeseshop.python.org/pypi/", self.attrs.name)
 		)
 		return e.convert(converter)
 
@@ -61,11 +61,11 @@ node = xsc.Frag(
 	html.html(
 		html.head(
 			meta.contenttype(),
-			html.title("PyPI links")
+			html.title("Cheeseshop links")
 		),
 		html.body(
-			html.h1("PyPI links"),
-			html.ul(html.li(pypilink(name=name)) for name in names)
+			html.h1("Cheeseshop links"),
+			html.ul(html.li(cheeseshoplink(name=name)) for name in names)
 		)
 	)
 )
