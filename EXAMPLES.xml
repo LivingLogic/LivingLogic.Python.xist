@@ -30,7 +30,8 @@ node = xsc.Frag(
 print node.conv().asBytes(encoding="us-ascii")
 </prog>
 
-<par> You can also use <lit>with</lit> blocks to generate the same &html;:</par>
+<par> You can also use <lit>with</lit> blocks (and the <lit>+</lit> operator)
+to generate the same &html;:</par>
 
 <prog>
 from __future__ import with_statement
