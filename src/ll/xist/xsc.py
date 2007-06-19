@@ -2697,11 +2697,6 @@ class Element(Node):
 	<par>This class represents &xml;/&xist; elements. All elements implemented
 	by the user must be derived from this class.</par>
 
-	<par>If you not only want to construct a tree via a Python script (by
-	directly instantiating these classes), but to read an &xml; file you must
-	put the element into a namespace. This is done by setting the <lit>xmlns</lit>
-	class attribute to namespace name.</par>
-
 	<par>Elements support the following class variables:</par>
 	<dlist>
 	<term><lit>model</lit></term><item>This is an object that is used for
@@ -2715,15 +2710,14 @@ class Element(Node):
 	and should define all attributes as classes nested inside this
 	<class>Attrs</class> class.</item>
 
-	<term><lit>xmlns</lit></term><item>This is the namespace name of the
-	namespace this element belong to (if it's not set, the element can't be
-	parsed from a file).</item>
+	<term><lit>xmlns</lit></term><item>This is the name of the namespace this
+	element belong to.</item>
 
 	<term><lit>register</lit></term><item>If <lit>register</lit> is false the
 	element won't be registered with the parser.</item>
 
 	<term><lit>xmlname</lit></term><item>If the class name has to be different
-	from the &xml; name (e.g. because the &xml; name is no valid Python identifier)
+	from the &xml; name (e.g. because the &xml; name is not a valid Python identifier)
 	<lit>xmlname</lit> can be used to specify the real &xml; name.</item>
 	</dlist>
 	"""
