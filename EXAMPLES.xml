@@ -46,7 +46,7 @@ with xsc.Frag() as node:
 			+meta.contenttype()
 			+html.title("Example page")
 		with html.body():
-			+html.h1("Welcome to the example page"),
+			+html.h1("Welcome to the example page")
 			with html.p():
 				+xsc.Text("This example page has a link to the ")
 				+html.a("Python home page", href="http://www.python.org/")
