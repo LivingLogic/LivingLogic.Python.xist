@@ -8,6 +8,9 @@
 ##
 ## See xist/__init__.py for the license
 
+
+from __future__ import with_statement
+
 import sys, unittest, cStringIO, warnings
 
 from xml.parsers import expat
@@ -820,3 +823,27 @@ def test_sortedreversed():
 		node2 = node.reversed()
 		assert node == class_(3, 2, 1)
 		assert node2 == class_(1, 2, 3)
+
+
+def test_with():
+	e = html.ul()
+	with e:
+		+html.li(1)
+		+html.li(2)
+
+	assert e == html.ul(html.li(1), html.li(2))
+
+	e = html.p()
+	with e:
+		+html.span(1)
+		with html.b():
+			+html.span(2)
+		+html.span(3)
+
+	assert e == html.p(html.span(1), html.b(html.span(2)), html.span(3))
+
+	e = html.p()
+	with e:
+		+xsc.Text(1)
+
+	assert e == html.p(1)

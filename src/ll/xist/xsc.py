@@ -680,6 +680,9 @@ class Node(object):
 		v.append(name)
 		return "".join(v)
 
+	def __pos__(self):
+		getstack()[-1].append(self)
+
 	def clone(self):
 		"""
 		return a clone of <self/>. Compared to <pyref method="deepcopy"><method>deepcopy</method></pyref> <method>clone</method>
@@ -2729,14 +2732,14 @@ class Element(Node):
 	Attrs = Attrs
 
 	def __enter__(self):
-		getstack().append(self)
+		stack = getstack()
+		if stack:
+			stack[-1].append(self)
+		stack.append(self)
 		return self
 
 	def __exit__(self, type, value, traceback):
 		getstack().pop()
-
-	def __pos__(self):
-		getstack()[-1].append(self)
 
 	def __init__(self, *content, **attrs):
 		"""
