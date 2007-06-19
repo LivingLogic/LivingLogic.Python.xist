@@ -1353,6 +1353,16 @@ class Frag(Node, list):
 			elif child is not Null:
 				list.append(self, child)
 
+	def __enter__(self):
+		stack = getstack()
+		if stack:
+			stack[-1].append(self)
+		stack.append(self)
+		return self
+
+	def __exit__(self, type, value, traceback):
+		getstack().pop()
+
 	def __call__(self, *content):
 		self.extend(content)
 		return self

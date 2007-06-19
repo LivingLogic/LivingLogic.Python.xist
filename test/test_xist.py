@@ -844,3 +844,8 @@ def test_with():
 		+xsc.Text(1)
 
 	assert e == html.p(1)
+
+	with xsc.Frag() as e:
+		+xsc.Text(1)
+
+	assert e == xsc.Frag(1)

@@ -30,6 +30,31 @@ node = xsc.Frag(
 print node.conv().asBytes(encoding="us-ascii")
 </prog>
 
+<par> You can also use <lit>with</lit> blocks to generate the same &html;:</par>
+
+<prog>
+from __future__ import with_statement
+
+from ll.xist import xsc
+from ll.xist.ns import html, xml, meta
+
+with xsc.Frag() as node:
+	+xml.XML10()
+	+html.DocTypeXHTML10transitional()
+	with html.html():
+		with html.head():
+			+meta.contenttype()
+			+html.title("Example page")
+		with html.body():
+			+html.h1("Welcome to the example page"),
+			with html.p():
+				+xsc.Text("This example page has a link to the ")
+				+html.a("Python home page", href="http://www.python.org/")
+				+xsc.Text(".")
+
+print node.conv().asBytes(encoding="us-ascii")
+</prog>
+
 </section>
 
 
