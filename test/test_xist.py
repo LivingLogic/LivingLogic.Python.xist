@@ -826,15 +826,13 @@ def test_sortedreversed():
 
 
 def test_with():
-	e = html.ul()
-	with e:
+	with html.ul() as e:
 		+html.li(1)
 		+html.li(2)
 
 	assert e == html.ul(html.li(1), html.li(2))
 
-	e = html.p()
-	with e:
+	with html.p() as e:
 		+html.span(1)
 		with html.b():
 			+html.span(2)
@@ -842,8 +840,7 @@ def test_with():
 
 	assert e == html.p(html.span(1), html.b(html.span(2)), html.span(3))
 
-	e = html.p()
-	with e:
+	with html.p() as e:
 		+xsc.Text(1)
 
 	assert e == html.p(1)
