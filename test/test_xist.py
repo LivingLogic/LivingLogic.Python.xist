@@ -829,7 +829,6 @@ def test_with():
 	with html.ul() as e:
 		+html.li(1)
 		+html.li(2)
-
 	assert e == html.ul(html.li(1), html.li(2))
 
 	with html.p() as e:
@@ -837,15 +836,29 @@ def test_with():
 		with html.b():
 			+html.span(2)
 		+html.span(3)
-
 	assert e == html.p(html.span(1), html.b(html.span(2)), html.span(3))
 
 	with html.p() as e:
 		+xsc.Text(1)
-
 	assert e == html.p(1)
 
 	with xsc.Frag() as e:
 		+xsc.Text(1)
-
 	assert e == xsc.Frag(1)
+
+	# Test add()
+	with html.p() as e:
+		xsc.add(1)
+	assert e == html.p(1)
+
+	with html.p() as e:
+		xsc.add(class_="foo")
+	assert e == html.p(class_="foo")
+
+	with html.p() as e:
+		xsc.add(dict(class_="foo"))
+	assert e == html.p(class_="foo")
+
+	with html.p() as e:
+		xsc.add(xml.Attrs(lang="en"))
+	assert e == html.p(xml.Attrs(lang="en"))
