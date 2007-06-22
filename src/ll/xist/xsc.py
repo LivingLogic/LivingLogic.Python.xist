@@ -93,7 +93,7 @@ def add(*args, **kwargs):
 	<function>add</function> appends items in <arg>args</arg> and sets attributes
 	in <arg>kwargs</arg> in the currenly active node in the <lit>with</lit> stack.
 	"""
-	return getstack()[-1](*args, **kwargs)
+	getstack()[-1](*args, **kwargs)
 
 
 ###
@@ -679,7 +679,6 @@ class Node(object):
 
 	def __pos__(self):
 		getstack()[-1].append(self)
-		return self
 
 	def clone(self):
 		"""
