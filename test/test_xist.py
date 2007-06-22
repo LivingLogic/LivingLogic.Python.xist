@@ -61,7 +61,7 @@ def test_append():
 		check_lenunicode(node, 6, u"123456")
 		node.append(html.p.Attrs.id(7))
 		check_lenunicode(node, 7, u"1234567")
-		py.test.raises(TypeError, node.append, xml.Attrs(lang="de"))
+		py.test.raises(TypeError, node.append, xml.Attrs(lang=8))
 
 
 def test_extend():

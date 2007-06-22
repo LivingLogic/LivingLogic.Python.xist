@@ -69,7 +69,7 @@ def tonode(value):
 	"""
 	if isinstance(value, Node):
 		if isinstance(value, Attrs):
-			raise TypeError("cannot convert %r" % value)
+			raise IllegalObjectError(value)
 		# we don't have to turn an Attr into a Frag, because this will be done once the Attr is put back into the tree
 		return value
 	elif isinstance(value, (basestring, int, long, float)):
@@ -86,8 +86,7 @@ def tonode(value):
 			return Frag(*list(value))
 		except TypeError:
 			pass
-	warnings.warn(IllegalObjectWarning(value)) # none of the above, so we report it and maybe throw an exception
-	return Null
+	raise IllegalObjectError(value) # none of the above => bail out
 
 
 def add(*args, **kwargs):
@@ -462,16 +461,16 @@ class FileNotFoundWarning(Warning):
 		return "%s: %r not found (%s)" % (self.message, self.filename, self.exc)
 
 
-class IllegalObjectWarning(Warning):
+class IllegalObjectError(TypeError):
 	"""
-	Warning that is issued when &xist; finds an illegal object in its object tree.
+	Exception that is raised when an &xist; constructor gets passed an unconvertable object.
 	"""
 
 	def __init__(self, object):
 		self.object = object
 
 	def __str__(self):
-		return "an illegal object %r of type %s has been found in the XIST tree." % (self.object, type(self.object).__name__)
+		return "can't convert object %r of type %s to an XIST node" % (self.object, type(self.object).__name__)
 
 
 class MalformedCharRefWarning(Warning):
@@ -2660,9 +2659,6 @@ class Attrs(Node, dict):
 		else:
 			loc = ""
 		return "<%s.%s attrs %s%s at 0x%x>" % (self.__class__.__module__, self.__fullname__, info, loc, id(self))
-
-	def __iter__(self):
-		return self.itervalues()
 
 
 def _patchclassnames(dict, name):
