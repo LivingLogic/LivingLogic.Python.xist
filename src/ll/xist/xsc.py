@@ -679,6 +679,7 @@ class Node(object):
 
 	def __pos__(self):
 		getstack()[-1].append(self)
+		return self
 
 	def clone(self):
 		"""
