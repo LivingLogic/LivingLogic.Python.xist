@@ -88,15 +88,12 @@ def tonode(value):
 	return Null
 
 
-def append(*args, **kwargs):
+def add(*args, **kwargs):
 	"""
-	<function>append</function> can be used with XPython. It append items in
-	<arg>args</arg> (or sets attributes in <arg>kwargs</arg>) in the currenty
-	active node.
+	<function>add</function> appends items in <arg>args</arg> and sets attributes
+	in <arg>kwargs</arg> in the currenly active node in the <lit>with</lit> stack.
 	"""
-	stack = getstack()
-	if stack:
-		stack[-1](*args, **kwargs)
+	return getstack()[-1](*args, **kwargs)
 
 
 ###
