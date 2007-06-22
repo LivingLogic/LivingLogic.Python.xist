@@ -59,6 +59,9 @@ def test_append():
 		check_lenunicode(node, 4, u"1234")
 		node.append((5, 6))
 		check_lenunicode(node, 6, u"123456")
+		node.append(html.p.Attrs.id(7))
+		check_lenunicode(node, 7, u"1234567")
+		py.test.raises(TypeError, node.append, xml.Attrs(lang="de"))
 
 
 def test_extend():
@@ -841,6 +844,9 @@ def test_with():
 	with html.p() as e:
 		+xsc.Text(1)
 	assert e == html.p(1)
+
+	with html.p() as e:
+		py.test.raises(TypeError, xml.Attrs(lang="de").__pos__)
 
 	with xsc.Frag() as e:
 		+xsc.Text(1)

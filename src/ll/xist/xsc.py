@@ -68,6 +68,8 @@ def tonode(value):
 	<class>Null</class>).</par>
 	"""
 	if isinstance(value, Node):
+		if isinstance(value, Attrs):
+			raise TypeError("cannot convert %r" % value)
 		# we don't have to turn an Attr into a Frag, because this will be done once the Attr is put back into the tree
 		return value
 	elif isinstance(value, (basestring, int, long, float)):
