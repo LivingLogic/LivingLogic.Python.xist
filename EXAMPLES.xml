@@ -256,7 +256,7 @@ class section(xsc.Element):
 		context = converter[self]
 		elementname = "h%d" % min(context.level, 6)
 		node = xsc.Frag(
-			converter.target.element(elementname)(self["title"]),
+			getattr(converter.target, elementname)(self.attrs.title),
 			self.content
 		)
 		context.level += 1
@@ -264,20 +264,16 @@ class section(xsc.Element):
 		context.level -= 1
 		return node
 
-document = section(title="Python Tutorial")(
-	section(title="Using the Python Interpreter")(
-		section(title="Invoking the Interpreter")(
-			section(title="Argument Passing"),
-			section(title="Interactive Mode")
-		),
-		section(title="The Interpreter and Its Environment")(
-			section(title="Error Handling"),
-			section(title="Executable Python Scripts"),
-			section(title="Source Code Encoding"),
-			section(title="The Interactive Startup File")
-		)
-	)
-)
+with section(title="Python Tutorial") as document:
+	with section(title="Using the Python Interpreter"):
+		with section(title="Invoking the Interpreter"):
+			+section(title="Argument Passing")
+			+section(title="Interactive Mode")
+		with section(title="The Interpreter and Its Environment"):
+			+section(title="Error Handling")
+			+section(title="Executable Python Scripts")
+			+section(title="Source Code Encoding")
+			+section(title="The Interactive Startup File")
 
 print document.conv().asBytes()
 </prog>
