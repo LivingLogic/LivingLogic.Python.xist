@@ -2522,15 +2522,12 @@ class Attrs(Node, dict):
 	def __len__(self):
 		return misc.count(self.values())
 
-	def __iter__(self):
-		return self.keys()
-
 	def keys(self):
 		for value in dict.itervalues(self):
 			if value:
 				yield value.__class__
 
-	iterkeys = keys
+	iterkeys = __iter__ = keys
 
 	def values(self):
 		for value in dict.itervalues(self):
