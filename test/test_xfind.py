@@ -9,10 +9,12 @@
 ## See xist/__init__.py for the license
 
 
+from __future__ import with_statement
+
 import py.test
 
 from ll import misc
-from ll.xist import xsc, xfind, parsers
+from ll.xist import xsc, xfind, parsers, css
 from ll.xist.ns import html
 
 
@@ -215,3 +217,21 @@ def test_item():
 	py.test.raises(IndexError, e[xsc.Text].__getitem__, -11)
 	assert str(misc.item(e[xsc.Text], 10, "x")) == "x"
 	assert str(misc.item(e[xsc.Text], -11, "x")) == "x"
+
+
+def test_css():
+	with html.div(id=1) as e:
+		with html.ul(id=2):
+			+html.li("foo")
+			+html.li()
+
+	assert list(e.walknode(css.FindCSS("div"))) == [e]
+	assert list(e.walknode(css.FindCSS("li"))) == [e[0][0], e[0][1]]
+	assert list(e.walknode(css.FindCSS("div#1"))) == [e]
+	assert list(e.walknode(css.FindCSS("#2"))) == [e[0]]
+	assert list(e.walknode(css.FindCSS(":empty"))) == [e[0][1]]
+	assert list(e.walknode(css.FindCSS("li:empty"))) == [e[0][1]]
+	assert list(e.walknode(css.FindCSS("div :empty"))) == [e[0][1]]
+	assert list(e.walknode(css.FindCSS("div>*:empty"))) == []
+	assert list(e.walknode(css.FindCSS("div>:empty"))) == []
+	assert list(e.walknode(css.FindCSS("li+li"))) == [e[0][1]]

@@ -958,6 +958,8 @@ class Node(object):
 		same as the <arg>filter</arg> argument for <pyref method="walk"><method>walk</method></pyref>.
 		The items produced by the iterator are the nodes themselves.
 		"""
+		if isinstance(filter, type) and issubclass(filter, Node):
+			filter = FindTypeAll(filter)
 		def iterate(path):
 			for path in self._walk(filter, path):
 				yield path[-1]
@@ -969,6 +971,8 @@ class Node(object):
 		same as the <arg>filter</arg> argument for <pyref method="walk"><method>walk</method></pyref>.
 		The items produced by the iterator are copies of the path.
 		"""
+		if isinstance(filter, type) and issubclass(filter, Node):
+			filter = FindTypeAll(filter)
 		def iterate(path):
 			for path in self._walk(filter, path):
 				yield path[:]
