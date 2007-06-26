@@ -620,4 +620,3 @@ class FindCSS(xsc.FindVisitAll):
 
 	def __repr__(self):
 		return "<%s.%s object selectors=%r prefixes=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, ", ".join(str(x) for x in self.selectors), self.prefixes, id(self))
-
