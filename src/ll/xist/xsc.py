@@ -167,8 +167,7 @@ class FindVisitAll(object):
 	"""
 	@misc.notimplemented
 	def match(self, path):
-		"""
-		"""
+		pass
 
 	def __call__(self, path):
 		return (True, entercontent) if self.match(path) else (entercontent,)
