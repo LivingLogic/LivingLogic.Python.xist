@@ -116,11 +116,14 @@ class HasAttributeSelector(Selector):
 			return False
 		return node.attrs.has_xml(self.attributename)
 
+	def __repr__(self):
+		return "%s(%r)" % (self.__class__.__name__, self.attributename)
+
 	def __str__(self):
 		return "[%s]" % self.attributename
 
 
-class AttributeIsSelector(Selector):
+class CSSAttributeIsSelector(Selector):
 	def __init__(self, attributename, attributevalue):
 		self.attributename = attributename
 		self.attributevalue = attributevalue
@@ -134,11 +137,14 @@ class AttributeIsSelector(Selector):
 			return False
 		return unicode(attr) == self.attributevalue
 
+	def __repr__(self):
+		return "%s(%r, %r)" % (self.__class__.__name__, self.attributename, self.attributevalue)
+
 	def __str__(self):
-		return "[%s=%s]" % (self.attributename, self.attributevalue)
+		return "[%s=%r]" % (self.attributename, self.attributevalue)
 
 
-class AttributeListSelector(Selector):
+class CSSAttributeListSelector(Selector):
 	def __init__(self, attributename, attributevalue):
 		self.attributename = attributename
 		self.attributevalue = attributevalue
@@ -150,11 +156,14 @@ class AttributeListSelector(Selector):
 		attr = node.attrs.get_xml(self.attributename)
 		return self.attributevalue in unicode(attr).split()
 
+	def __repr__(self):
+		return "%s(%r, %r)" % (self.__class__.__name__, self.attributename, self.attributevalue)
+
 	def __str__(self):
-		return "[%s~=%s]" % (self.attributename, self.attributevalue)
+		return "[%s~=%r]" % (self.attributename, self.attributevalue)
 
 
-class AttributeLangSelector(Selector):
+class CSSAttributeLangSelector(Selector):
 	def __init__(self, attributename, attributevalue):
 		self.attributename = attributename
 		self.attributevalue = attributevalue
@@ -169,11 +178,14 @@ class AttributeLangSelector(Selector):
 			return False
 		return parts[0] == self.attributevalue
 
+	def __repr__(self):
+		return "%s(%r, %r)" % (self.__class__.__name__, self.attributename, self.attributevalue)
+
 	def __str__(self):
-		return "[%s|=%s]" % (self.attributename, self.attributevalue)
+		return "[%s|=%r]" % (self.attributename, self.attributevalue)
 
 
-class AttributeStartsWithSelector(Selector):
+class CSSAttributeStartsWithSelector(Selector):
 	def __init__(self, attributename, attributevalue):
 		self.attributename = attributename
 		self.attributevalue = attributevalue
@@ -185,11 +197,14 @@ class AttributeStartsWithSelector(Selector):
 		attr = node.attrs.get_xml(self.attributename)
 		return unicode(attr).startswith(self.attributevalue)
 
+	def __repr__(self):
+		return "%s(%r, %r)" % (self.__class__.__name__, self.attributename, self.attributevalue)
+
 	def __str__(self):
-		return "[%s^=%s]" % (self.attributename, self.attributevalue)
+		return "[%s^=%r]" % (self.attributename, self.attributevalue)
 
 
-class AttributeEndsWithSelector(Selector):
+class CSSAttributeEndsWithSelector(Selector):
 	def __init__(self, attributename, attributevalue):
 		self.attributename = attributename
 		self.attributevalue = attributevalue
@@ -201,11 +216,14 @@ class AttributeEndsWithSelector(Selector):
 		attr = node.attrs.get_xml(self.attributename)
 		return unicode(attr).endswith(self.attributevalue)
 
+	def __repr__(self):
+		return "%s(%r, %r)" % (self.__class__.__name__, self.attributename, self.attributevalue)
+
 	def __str__(self):
-		return "[%s$=%s]" % (self.attributename, self.attributevalue)
+		return "[%s$=%r]" % (self.attributename, self.attributevalue)
 
 
-class AttributeContainsSelector(Selector):
+class CSSAttributeContainsSelector(Selector):
 	def __init__(self, attributename, attributevalue):
 		self.attributename = attributename
 		self.attributevalue = attributevalue
@@ -217,8 +235,11 @@ class AttributeContainsSelector(Selector):
 		attr = node.attrs.get_xml(self.attributename)
 		return self.attributevalue in unicode(attr)
 
+	def __repr__(self):
+		return "%s(%r, %r)" % (self.__class__.__name__, self.attributename, self.attributevalue)
+
 	def __str__(self):
-		return "[%s*=%s]" % (self.attributename, self.attributevalue)
+		return "[%s*=%r]" % (self.attributename, self.attributevalue)
 
 
 class CSSClassSelector(Selector):
@@ -474,6 +495,29 @@ class GeneralSiblingCombinator(Combinator):
 		return "%s~%s" % (self.left, self.right)
 
 
+class OrCombinator(Combinator):
+	def __init__(self, *selectors):
+		self.selectors = list(selectors)
+
+	def match(self, path):
+		return any(selector.match(path) for selector in self.selectors)
+
+	def append(self, *selectors):
+		self.selectors.extend(selectors)
+
+	def __len__(self):
+		return len(self.selectors)
+
+	def __getitem__(self, index):
+		return self.selectors[index]
+
+	def __repr__(self):
+		return "%s(%s)" % (self.__class__.__name__, ", ".join(repr(selector) for selector in self.selectors))
+
+	def __str__(self):
+		return ", ".join(str(selector) for selector in self.selectors)
+
+
 class CSSTypeSelector(Selector):
 	def __init__(self, type="*", xmlns="*", *selectors):
 		self.type = type
@@ -522,12 +566,12 @@ class CSSTypeSelector(Selector):
 
 
 _attributecombinator2class = {
-	"=": AttributeIsSelector,
-	"~=": AttributeListSelector,
-	"|=": AttributeLangSelector,
-	"$=": AttributeStartsWithSelector,
-	"$=": AttributeEndsWithSelector,
-	"*=": AttributeContainsSelector,
+	"=": CSSAttributeIsSelector,
+	"~=": CSSAttributeListSelector,
+	"|=": CSSAttributeLangSelector,
+	"$=": CSSAttributeStartsWithSelector,
+	"$=": CSSAttributeEndsWithSelector,
+	"*=": CSSAttributeContainsSelector,
 }
 
 _combinator2class = {
@@ -556,105 +600,96 @@ _function2class = {
 }
 
 
-class FindCSS(xsc.FindVisitAll):
+def findcss(selectors, prefixes=None):
 	"""
-	Tree traversal filter that finds nodes that match a CSS selector.
+	Create a new <class>FindCSS<class>. <arg>selectors</arg> can be a string
+	or a <class>cssutils.css.selector.Selector</class> object. <arg>prefixes</arg>
+	may is a mapping mapping namespace prefixes to namespace names.
 	"""
-
-	def __init__(self, selectors, prefixes=None):
-		"""
-		Create a new <class>FindCSS<class>. <arg>selectors</arg> can be a string
-		or a <class>cssutils.css.selector.Selector</class> object. <arg>prefixes</arg>
-		may is a mapping mapping namespace prefixes to namespace names.
-		"""
-			
-		if isinstance(selectors, basestring):
-			if prefixes is not None:
-				prefixes = dict((key, xsc.nsname(value)) for (key, value) in prefixes.iteritems())
-				selectors = "%s\n%s{}" % ("\n".join("@namespace %s %r;" % (key if key is not None else "", value) for (key, value) in prefixes.iteritems()), selectors)
-			else:
-				selectors = "%s{}" % selectors
-			self.prefixes = prefixes
-			for rule in cssutils.CSSParser().parseString(selectors).cssRules:
-				if isinstance(rule, cssstylerule.CSSStyleRule):
-					selectors = rule.selectorList
-					break
-			else:
-				raise ValueError("can't happen")
+		
+	if isinstance(selectors, basestring):
+		if prefixes is not None:
+			prefixes = dict((key, xsc.nsname(value)) for (key, value) in prefixes.iteritems())
+			selectors = "%s\n%s{}" % ("\n".join("@namespace %s %r;" % (key if key is not None else "", value) for (key, value) in prefixes.iteritems()), selectors)
 		else:
-			raise TypeError # FIXME: cssutils object
-		self.selectors = []
-		for selector in selectors:
-			rule = root = CSSTypeSelector()
-			prefix = None
-			attributename = None
-			attributevalue = None
-			combinator = None
-			inattr = False
-			for x in selector.seq:
-				type = x["type"]
-				value = x["value"]
-				if type == "prefix":
-					prefix = value
-				elif type == "pipe":
-					if prefix != "*":
-						try:
-							xmlns = prefixes[prefix]
-						except KeyError:
-							raise xsc.IllegalPrefixError(prefix)
-						rule.type = xmlns
-					prefix = None
-				elif type == "type":
-					rule.type = value
-				elif type == "id":
-					rule.selectors.append(CSSIDSelector(value.lstrip("#")))
-				elif type == "classname":
-					rule.selectors.append(CSSClassSelector(value))
-				elif type == "pseudoname":
+			selectors = "%s{}" % selectors
+		for rule in cssutils.CSSParser().parseString(selectors).cssRules:
+			if isinstance(rule, cssstylerule.CSSStyleRule):
+				selectors = rule.selectorList
+				break
+		else:
+			raise ValueError("can't happen")
+	else:
+		raise TypeError # FIXME: cssutils object
+	orcombinator = OrCombinator()
+	for selector in selectors:
+		rule = root = CSSTypeSelector()
+		prefix = None
+		attributename = None
+		attributevalue = None
+		combinator = None
+		inattr = False
+		for x in selector.seq:
+			type = x["type"]
+			value = x["value"]
+			if type == "prefix":
+				prefix = value
+			elif type == "pipe":
+				if prefix != "*":
 					try:
-						rule.selectors.append(_pseudoname2class[value]())
+						xmlns = prefixes[prefix]
 					except KeyError:
-						raise ValueError("unknown pseudoname %s" % value)
-				elif type == "function":
+						raise xsc.IllegalPrefixError(prefix)
+					rule.type = xmlns
+				prefix = None
+			elif type == "type":
+				rule.type = value
+			elif type == "id":
+				rule.selectors.append(CSSIDSelector(value.lstrip("#")))
+			elif type == "classname":
+				rule.selectors.append(CSSClassSelector(value))
+			elif type == "pseudoname":
+				try:
+					rule.selectors.append(_pseudoname2class[value]())
+				except KeyError:
+					raise ValueError("unknown pseudoname %s" % value)
+			elif type == "function":
+				try:
+					rule.selectors.append(_function2class[value.rstrip("(")]())
+				except KeyError:
+					raise ValueError("unknown function %s" % value)
+				rule.function = value
+			elif type == "functionvalue":
+				rule.selectors[-1].value = value
+			elif type == "attributename":
+				attributename = value
+			elif type == "attributevalue":
+				if value.startswith("'") and value.endswith("'"):
+					value = value[1:-1]
+				elif value.startswith('"') and value.endswith('"'):
+					value = value[1:-1]
+				attributevalue = value
+			elif type == "attribute selector":
+				combinator = None
+				inattr = True
+			elif type == "attribute selector end":
+				if combinator is None:
+					rule.selectors.append(HasAttributeSelector(attributename))
+				else:
 					try:
-						rule.selectors.append(_function2class[value.rstrip("(")]())
+						rule.selectors.append(_attributecombinator2class[combinator](attributename, attributevalue))
 					except KeyError:
-						raise ValueError("unknown function %s" % value)
-					rule.function = value
-				elif type == "functionvalue":
-					rule.selectors[-1].value = value
-				elif type == "attributename":
-					attributename = value
-				elif type == "attributevalue":
-					attributevalue = value
-				elif type == "attribute selector":
-					combinator = None
-					inattr = True
-				elif type == "attribute selector end":
-					if combinator is None:
-						rule.selectors.append(HasAttributeSelector(attributename))
-					else:
-						try:
-							rule.selectors.append(_attributecombinator2class[combinator](attributename, attributevalue))
-						except KeyError:
-							raise ValueError("unknown combinator %s" % attributevalue)
-					inattr = False
-				elif type == "combinator":
-					if inattr:
-						combinator = value
-					else:
-						try:
-							rule = CSSTypeSelector()
-							root = _combinator2class[value](root, rule)
-						except KeyError:
-							raise ValueError("unknown combinator %s" % value)
-						xmlns = "*"
-			self.selectors.append(root)
-
-	def match(self, path):
-		if not isinstance(path[-1], xsc.Element):
-			return False
-		return any(selector.match(path) for selector in self.selectors)
-
-	def __repr__(self):
-		return "<%s.%s object selectors=%r prefixes=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, ", ".join(str(x) for x in self.selectors), self.prefixes, id(self))
+						raise ValueError("unknown combinator %s" % attributevalue)
+				inattr = False
+			elif type == "combinator":
+				if inattr:
+					combinator = value
+				else:
+					try:
+						rule = CSSTypeSelector()
+						root = _combinator2class[value](root, rule)
+					except KeyError:
+						raise ValueError("unknown combinator %s" % value)
+					xmlns = "*"
+		orcombinator.append(root)
+	return orcombinator if len(orcombinator) != 1 else orcombinator[0]
