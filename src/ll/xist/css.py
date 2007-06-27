@@ -383,73 +383,78 @@ class NthLastOfTypeSelector(FunctionSelector):
 
 
 class Combinator(Selector):
-	def __init__(self, parent):
-		self.parent = parent
+	def __init__(self, left, right):
+		self.left = left
+		self.right = right
 
 
 class ChildCombinator(Combinator):
 	def match(self, path):
-		if not path:
-			return False
-		return self.parent.match(path[:-1])
+		if path and self.right.match(path):
+			return self.left.match(path[:-1])
+		return False
 
 	def __str__(self):
-		return "%s>" % self.parent
+		return "%s>%s" % (self.left, self.right)
 
 
 class DescendantCombinator(Combinator):
 	def match(self, path):
-		while path:
-			path = path[:-1]
-			if self.parent.match(path):
-				return True
+		if path and self.right.match(path):
+			while path:
+				path = path[:-1]
+				if self.left.match(path):
+					return True
 		return False
 
 	def __str__(self):
-		return "%s " % self.parent
+		return "%s %s" % (self.left, self.right)
 
 
 class AdjacentSiblingCombinator(Combinator):
 	def match(self, path):
-		if len(path) < 2:
-			return False
-		# Find sibling
-		node = path[-1]
-		sibling = None
-		for child in path[-2][xsc.Element]:
-			if child is node:
-				break
-			sibling = child
-		if sibling is None:
-			return False
-		return self.parent.match(path[:-1]+[sibling])
+		if len(path) >= 2 and self.right.match(path):
+			# Find sibling
+			node = path[-1]
+			sibling = None
+			for child in path[-2][xsc.Element]:
+				if child is node:
+					break
+				sibling = child
+			if sibling is not None:
+				return self.left.match(path[:-1]+[sibling])
+		return False
 
 	def __str__(self):
-		return "%s+" % self.parent
+		return "%s+%s" % (self.left, self.right)
 
 
 class GeneralSiblingCombinator(Combinator):
 	def match(self, path):
-		if len(path) < 2:
-			return False
-		node = path[-1]
-		for child in path[-2][xsc.Element]:
-			if child is node:
-				return False
-			if self.parent.match(path[:-1]+[child]):
-				return True
-		return False # can't happen
+		if len(path) >= 2 and self.right.match(path):
+			node = path[-1]
+			for child in path[-2][xsc.Element]:
+				if child is node:
+					return False
+				if self.left.match(path[:-1]+[child]):
+					return True
+		return False
 
 	def __str__(self):
-		return "%s~" % self.parent
+		return "%s~%s" % (self.left, self.right)
 
 
 class TypeSelector(Selector):
-	def __init__(self, parentcombinator=None, type="*", xmlns="*", *selectors):
-		self.parentcombinator = parentcombinator
+	def __init__(self, type="*", xmlns="*", *selectors):
 		self.type = type
 		self.xmlns = xmlns
 		self.selectors = [] # id, class, attribute etc. selectors for this node
+
+	def __div__(self, other):
+		return ChildCombinator(self, other)
+
+	def __floordiv__(self, other):
+		return DescendantCombinator(self, other)
 
 	def match(self, path):
 		if not path:
@@ -462,14 +467,10 @@ class TypeSelector(Selector):
 		for selector in self.selectors:
 			if not selector.match(path):
 				return False
-		if self.parentcombinator is not None:
-			return self.parentcombinator.match(path)
 		return True
 
 	def __str__(self):
 		v = []
-		if self.parentcombinator is not None:
-			v.append(str(self.parentcombinator))
 		xmlns = self.xmlns
 		if xmlns != "*":
 			if xmlns is None:
@@ -548,7 +549,7 @@ class FindCSS(xsc.FindVisitAll):
 			raise TypeError # FIXME: cssutils object
 		self.selectors = []
 		for selector in selectors:
-			rule = TypeSelector()
+			rule = root = TypeSelector()
 			prefix = None
 			attributename = None
 			attributevalue = None
@@ -607,11 +608,12 @@ class FindCSS(xsc.FindVisitAll):
 						combinator = value
 					else:
 						try:
-							rule = TypeSelector(parentcombinator=_combinator2class[value](rule))
+							rule = TypeSelector()
+							root = _combinator2class[value](root, rule)
 						except KeyError:
 							raise ValueError("unknown combinator %s" % value)
 						xmlns = "*"
-			self.selectors.append(rule)
+			self.selectors.append(root)
 
 	def match(self, path):
 		if not isinstance(path[-1], xsc.Element):
