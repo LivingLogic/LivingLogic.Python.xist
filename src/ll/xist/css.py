@@ -99,10 +99,10 @@ class Selector(xsc.FindVisitAll):
 	def __floordiv__(self, other):
 		return DescendantCombinator(self, other)
 
-	def __add__(self, other):
+	def __mul__(self, other):
 		return AdjacentSiblingCombinator(self, other)
 
-	def __sub__(self, other):
+	def __pow__(self, other):
 		return GeneralSiblingCombinator(self, other)
 
 
@@ -471,7 +471,7 @@ class AdjacentSiblingCombinator(Combinator):
 		return False
 
 	def __repr__(self):
-		return "%r+%r" % (self.left, self.right)
+		return "%r*%r" % (self.left, self.right)
 
 	def __str__(self):
 		return "%s+%s" % (self.left, self.right)
@@ -489,7 +489,7 @@ class GeneralSiblingCombinator(Combinator):
 		return False
 
 	def __repr__(self):
-		return "%r-%r" % (self.left, self.right)
+		return "%r**%r" % (self.left, self.right)
 
 	def __str__(self):
 		return "%s~%s" % (self.left, self.right)
