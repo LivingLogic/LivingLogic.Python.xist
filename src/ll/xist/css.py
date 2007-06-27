@@ -521,7 +521,7 @@ class OrCombinator(Combinator):
 class CSSTypeSelector(Selector):
 	def __init__(self, type="*", xmlns="*", *selectors):
 		self.type = type
-		self.xmlns = xmlns
+		self.xmlns = xsc.nsname(xmlns)
 		self.selectors = [] # id, class, attribute etc. selectors for this node
 
 	def match(self, path):
