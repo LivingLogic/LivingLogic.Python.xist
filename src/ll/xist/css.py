@@ -221,7 +221,7 @@ class AttributeContainsSelector(Selector):
 		return "[%s*=%s]" % (self.attributename, self.attributevalue)
 
 
-class ClassSelector(Selector):
+class CSSClassSelector(Selector):
 	def __init__(self, classname):
 		self.classname = classname
 
@@ -229,17 +229,23 @@ class ClassSelector(Selector):
 		node = path[-1]
 		return isinstance(node, xsc.Element) and node.Attrs.isallowed("class_") and not node.attrs.class_.isfancy() and self.classname in unicode(node.attrs.class_).split()
 
+	def __repr__(self):
+		return "%s(%r)" % (self.__class__.__name__, self.classname)
+
 	def __str__(self):
 		return ".%s" % (self.classname)
 
 
-class IDSelector(Selector):
+class CSSIDSelector(Selector):
 	def __init__(self, id):
 		self.id = id
 
 	def match(self, path):
 		node = path[-1]
 		return isinstance(node, xsc.Element) and node.Attrs.isallowed("id") and not node.attrs.id.isfancy() and unicode(node.attrs.id) == self.id
+
+	def __repr__(self):
+		return "%s(%r)" % (self.__class__.__name__, self.id)
 
 	def __str__(self):
 		return "#%s" % (self.id)
@@ -468,7 +474,7 @@ class GeneralSiblingCombinator(Combinator):
 		return "%s~%s" % (self.left, self.right)
 
 
-class TypeSelector(Selector):
+class CSSTypeSelector(Selector):
 	def __init__(self, type="*", xmlns="*", *selectors):
 		self.type = type
 		self.xmlns = xmlns
@@ -487,16 +493,28 @@ class TypeSelector(Selector):
 				return False
 		return True
 
+	def __repr__(self):
+		v = [self.__class__.__name__, "("]
+		if self.type != "*" or self.xmlns != "*" or self.selectors:
+			v.append(repr(self.type))
+		if self.xmlns != "*" or self.selectors:
+			v.append(", ")
+			v.append(repr(self.xmlns))
+		for selector in self.selectors:
+			v.append(", ")
+			v.append(repr(selector))
+		v.append(")")
+		return "".join(v)
+
 	def __str__(self):
 		v = []
 		xmlns = self.xmlns
 		if xmlns != "*":
-			if xmlns is None:
-				xmlns = ""
-			v.append(xmlns)
+			if xmlns is not None:
+				v.append(xmlns)
 			v.append("|")
 		type = self.type
-		if type != "*" or self.selectors:
+		if type != "*" or self.selectors or (not self.selectors and self.xmlns=="*"):
 			v.append(type)
 		for selector in self.selectors:
 			v.append(str(selector))
@@ -567,7 +585,7 @@ class FindCSS(xsc.FindVisitAll):
 			raise TypeError # FIXME: cssutils object
 		self.selectors = []
 		for selector in selectors:
-			rule = root = TypeSelector()
+			rule = root = CSSTypeSelector()
 			prefix = None
 			attributename = None
 			attributevalue = None
@@ -589,9 +607,9 @@ class FindCSS(xsc.FindVisitAll):
 				elif type == "type":
 					rule.type = value
 				elif type == "id":
-					rule.selectors.append(IDSelector(value.lstrip("#")))
+					rule.selectors.append(CSSIDSelector(value.lstrip("#")))
 				elif type == "classname":
-					rule.selectors.append(ClassSelector(value))
+					rule.selectors.append(CSSClassSelector(value))
 				elif type == "pseudoname":
 					try:
 						rule.selectors.append(_pseudoname2class[value]())
@@ -626,7 +644,7 @@ class FindCSS(xsc.FindVisitAll):
 						combinator = value
 					else:
 						try:
-							rule = TypeSelector()
+							rule = CSSTypeSelector()
 							root = _combinator2class[value](root, rule)
 						except KeyError:
 							raise ValueError("unknown combinator %s" % value)
