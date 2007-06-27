@@ -93,6 +93,18 @@ class Selector(xsc.FindVisitAll):
 	def __repr__(self):
 		return "<%s.%s object selector=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, str(self), id(self))
 
+	def __div__(self, other):
+		return ChildCombinator(self, other)
+
+	def __floordiv__(self, other):
+		return DescendantCombinator(self, other)
+
+	def __add__(self, other):
+		return AdjacentSiblingCombinator(self, other)
+
+	def __sub__(self, other):
+		return GeneralSiblingCombinator(self, other)
+
 
 class HasAttributeSelector(Selector):
 	def __init__(self, attributename):
@@ -394,6 +406,9 @@ class ChildCombinator(Combinator):
 			return self.left.match(path[:-1])
 		return False
 
+	def __repr__(self):
+		return "%r/%r" % (self.left, self.right)
+
 	def __str__(self):
 		return "%s>%s" % (self.left, self.right)
 
@@ -406,6 +421,9 @@ class DescendantCombinator(Combinator):
 				if self.left.match(path):
 					return True
 		return False
+
+	def __repr__(self):
+		return "%r//%r" % (self.left, self.right)
 
 	def __str__(self):
 		return "%s %s" % (self.left, self.right)
@@ -425,6 +443,9 @@ class AdjacentSiblingCombinator(Combinator):
 				return self.left.match(path[:-1]+[sibling])
 		return False
 
+	def __repr__(self):
+		return "%r+%r" % (self.left, self.right)
+
 	def __str__(self):
 		return "%s+%s" % (self.left, self.right)
 
@@ -440,6 +461,9 @@ class GeneralSiblingCombinator(Combinator):
 					return True
 		return False
 
+	def __repr__(self):
+		return "%r-%r" % (self.left, self.right)
+
 	def __str__(self):
 		return "%s~%s" % (self.left, self.right)
 
@@ -449,12 +473,6 @@ class TypeSelector(Selector):
 		self.type = type
 		self.xmlns = xmlns
 		self.selectors = [] # id, class, attribute etc. selectors for this node
-
-	def __div__(self, other):
-		return ChildCombinator(self, other)
-
-	def __floordiv__(self, other):
-		return DescendantCombinator(self, other)
 
 	def match(self, path):
 		if not path:
