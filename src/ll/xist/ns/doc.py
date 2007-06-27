@@ -93,7 +93,7 @@ def getdoc(thing):
 		realthing = thing
 		while hasattr(realthing, "__wrapped__"):
 			realthing = realthing.__wrapped__
-		for ref in node//pyref:
+		for ref in node.walknode(pyref):
 			if u"module" not in ref.attrs:
 				ref[u"module"] = _getmodulename(realthing)
 				if u"class_" not in ref.attrs:
@@ -104,17 +104,17 @@ def getdoc(thing):
 		# Use the original method instead of the decorator
 		while hasattr(thing, "__wrapped__"):
 			thing = thing.__wrapped__
-		for ref in node//pyref:
+		for ref in node.walknode(pyref):
 			if u"module" not in ref.attrs:
 				ref[u"module"] = _getmodulename(thing)
 	elif inspect.isclass(thing):
-		for ref in node//pyref:
+		for ref in node.walknode(pyref):
 			if u"module" not in ref.attrs:
 				ref[u"module"] = _getmodulename(thing)
 				if u"class_" not in ref.attrs:
 					ref[u"class_"] = thing.__name__
 	elif inspect.ismodule(thing):
-		for ref in node//pyref:
+		for ref in node.walknode(pyref):
 			if u"module" not in ref.attrs:
 				ref[u"module"] = thing.__name__
 	return node
