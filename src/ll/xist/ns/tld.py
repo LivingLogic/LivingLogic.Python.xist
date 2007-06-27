@@ -51,9 +51,9 @@ class attribute(xsc.Element):
 	class Attrs(IdAttrs): pass
 
 	def asxnd(self):
-		e = xnd.Attr(unicode(misc.first(self/name).content), u"xsc.TextAttr")
+		e = xnd.Attr(unicode(self[name][0].content), u"xsc.TextAttr")
 		isrequired = None
-		node = misc.first(self/required, None)
+		node = misc.first(self[required], None)
 		if node is not None:
 			value = unicode(node[0].content)
 			if value in (u"true", u"yes"):
@@ -164,9 +164,9 @@ class tag(xsc.Element):
 	class Attrs(IdAttrs): pass
 
 	def asxnd(self):
-		e = xnd.Element(unicode(misc.first(self/name).content))
+		e = xnd.Element(unicode(self[name][0].content))
 		empty = None
-		node = misc.first(self/bodycontent, None)
+		node = misc.first(self[bodycontent], None)
 		if node is not None:
 			value = unicode(node[0].content)
 			if value in (u"tagdependent", u"JSP"):
@@ -179,10 +179,10 @@ class tag(xsc.Element):
 			e.modeltype = "sims.Empty"
 		else:
 			e.modeltype = "sims.Any"
-		node = misc.first(self/info, None)
+		node = misc.first(self[info], None)
 		if node is not None:
 			e.doc = node.asxnd()
-		for attr in self/attribute:
+		for attr in self[attribute]:
 			e.attrs.append(attr.asxnd())
 		return e
 
@@ -218,14 +218,14 @@ class taglib(xsc.Element):
 	class Attrs(IdAttrs): pass
 
 	def asxnd(self):
-		e = xnd.Module(unicode(misc.first(self/shortname).content))
-		node = misc.first(self/uri, None)
+		e = xnd.Module(unicode(self[shortname][0].content))
+		node = misc.first(self[uri], None)
 		if node is not None:
 			e.url = unicode(node[0].content)
-		node = misc.first(self/info, None)
+		node = misc.first(self[info], None)
 		if node is not None:
 			e.doc = node[0].asxnd()
-		for node in self/tag:
+		for node in self[tag]:
 			e.content.append(node.asxnd())
 		return e
 
