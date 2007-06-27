@@ -277,7 +277,7 @@ class CSSIDSelector(Selector):
 		return "#%s" % (self.id)
 
 
-class FirstChildSelector(Selector):
+class CSSFirstChildSelector(Selector):
 	def match(self, path):
 		return len(path) >= 2 and _is_nth_node(path[-2][xsc.Element], path[-1], 1)
 
@@ -285,7 +285,7 @@ class FirstChildSelector(Selector):
 		return ":first-child"
 
 
-class LastChildSelector(Selector):
+class CSSLastChildSelector(Selector):
 	def match(self, path):
 		return len(path) >= 2 and _is_nth_last_node(path[-2][xsc.Element], path[-1], 1)
 
@@ -293,18 +293,18 @@ class LastChildSelector(Selector):
 		return ":last-child"
 
 
-class FirstOfTypeSelector(Selector):
+class CSSFirstOfTypeSelector(Selector):
 	def match(self, path):
 		if len(path) < 2:
 			return False
 		node = path[-1]
 		return isinstance(node, xsc.Element) and _is_nth_node(misc.Iterator(_children_of_type(path[-2], node.xmlname)), node, 1)
-
 	def __str__(self):
+
 		return ":first-of-type"
 
 
-class LastOfTypeSelector(Selector):
+class CSSLastOfTypeSelector(Selector):
 	def match(self, path):
 		if len(path) < 2:
 			return False
@@ -315,7 +315,7 @@ class LastOfTypeSelector(Selector):
 		return ":last-of-type"
 
 
-class OnlyChildSelector(Selector):
+class CSSOnlyChildSelector(Selector):
 	def match(self, path):
 		if len(path) < 2:
 			return False
@@ -329,7 +329,7 @@ class OnlyChildSelector(Selector):
 		return ":only-child"
 
 
-class OnlyOfTypeSelector(Selector):
+class CSSOnlyOfTypeSelector(Selector):
 	def match(self, path):
 		if len(path) < 2:
 			return False
@@ -345,7 +345,7 @@ class OnlyOfTypeSelector(Selector):
 		return ":only-of-type"
 
 
-class EmptySelector(Selector):
+class CSSEmptySelector(Selector):
 	def match(self, path):
 		if not path:
 			return False
@@ -361,7 +361,7 @@ class EmptySelector(Selector):
 		return ":empty"
 
 
-class RootSelector(Selector):
+class CSSRootSelector(Selector):
 	def match(self, path):
 		return len(path) == 1 and isinstance(path[-1], xsc.Element)
 
@@ -605,14 +605,14 @@ _combinator2class = {
 }
 
 _pseudoname2class = {
-	"first-child": FirstChildSelector,
-	"last-child": LastChildSelector,
-	"first-of-type": FirstOfTypeSelector,
-	"last-of-type": LastOfTypeSelector,
-	"only-child": OnlyChildSelector,
-	"only-of-type": OnlyOfTypeSelector,
-	"empty": EmptySelector,
-	"root": RootSelector,
+	"first-child": CSSFirstChildSelector,
+	"last-child": CSSLastChildSelector,
+	"first-of-type": CSSFirstOfTypeSelector,
+	"last-of-type": CSSLastOfTypeSelector,
+	"only-child": CSSOnlyChildSelector,
+	"only-of-type": CSSOnlyOfTypeSelector,
+	"empty": CSSEmptySelector,
+	"root": CSSRootSelector,
 }
 
 _function2class = {
