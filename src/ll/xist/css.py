@@ -90,19 +90,24 @@ def _children_of_type(node, type):
 
 
 class Selector(xsc.FindVisitAll):
-	def __repr__(self):
-		return "<%s.%s object selector=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, str(self), id(self))
-
 	def __div__(self, other):
+		if isinstance(other, type) and issubclass(other, xsc.Node):
+			other = IsSelector(other)
 		return ChildCombinator(self, other)
 
 	def __floordiv__(self, other):
+		if isinstance(other, type) and issubclass(other, xsc.Node):
+			other = IsSelector(other)
 		return DescendantCombinator(self, other)
 
 	def __mul__(self, other):
+		if isinstance(other, type) and issubclass(other, xsc.Node):
+			other = IsSelector(other)
 		return AdjacentSiblingCombinator(self, other)
 
 	def __pow__(self, other):
+		if isinstance(other, type) and issubclass(other, xsc.Node):
+			other = IsSelector(other)
 		return GeneralSiblingCombinator(self, other)
 
 
@@ -495,27 +500,45 @@ class GeneralSiblingCombinator(Combinator):
 		return "%s~%s" % (self.left, self.right)
 
 
-class OrCombinator(Combinator):
+class OrCombinator(Selector):
 	def __init__(self, *selectors):
-		self.selectors = list(selectors)
+		self.selectors = selectors
 
 	def match(self, path):
 		return any(selector.match(path) for selector in self.selectors)
-
-	def append(self, *selectors):
-		self.selectors.extend(selectors)
-
-	def __len__(self):
-		return len(self.selectors)
-
-	def __getitem__(self, index):
-		return self.selectors[index]
 
 	def __repr__(self):
 		return "%s(%s)" % (self.__class__.__name__, ", ".join(repr(selector) for selector in self.selectors))
 
 	def __str__(self):
 		return ", ".join(str(selector) for selector in self.selectors)
+
+
+class AndCombinator(Selector):
+	def __init__(self, *selectors):
+		self.selectors = selectors
+
+	def match(self, path):
+		return all(selector.match(path) for selector in self.selectors)
+
+	def __repr__(self):
+		return "%s(%s)" % (self.__class__.__name__, ", ".join(repr(selector) for selector in self.selectors))
+
+	def __str__(self):
+		return " and ".join(str(selector) for selector in self.selectors)
+
+
+class IsSelector(Selector):
+	def __init__(self, *types):
+		self.types = types
+
+	def match(self, path):
+		if path:
+			return isinstance(path[-1], self.types)
+		return False
+
+	def __repr__(self):
+		return "%s(%s)" % (self.__class__.__name__, ", ".join("%s.%s" % (type.__module__, type.__name__) for type in self.types))
 
 
 class CSSTypeSelector(Selector):
@@ -621,7 +644,7 @@ def findcss(selectors, prefixes=None):
 			raise ValueError("can't happen")
 	else:
 		raise TypeError # FIXME: cssutils object
-	orcombinator = OrCombinator()
+	orcombinators = []
 	for selector in selectors:
 		rule = root = CSSTypeSelector()
 		prefix = None
@@ -691,5 +714,5 @@ def findcss(selectors, prefixes=None):
 					except KeyError:
 						raise ValueError("unknown combinator %s" % value)
 					xmlns = "*"
-		orcombinator.append(root)
-	return orcombinator if len(orcombinator) != 1 else orcombinator[0]
+		orcombinators.append(root)
+	return orcombinators[0] if len(orcombinators) == 1 else OrCombinator(*orcombinators)

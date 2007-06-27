@@ -163,14 +163,14 @@ class FindTypeTop(object):
 
 class FindVisitAll(object):
 	"""
-	Base class for all filters that visit the complete tree (except attributes).
+	Base class for all filters that visit the complete tree.
 	"""
 	@misc.notimplemented
 	def match(self, path):
 		pass
 
 	def __call__(self, path):
-		return (True, entercontent) if self.match(path) else (entercontent,)
+		return (True, entercontent, enterattrs) if self.match(path) else (entercontent, enterattrs)
 
 
 ###
@@ -607,9 +607,7 @@ class NodeOutsideContextError(Error):
 ### The DOM classes
 ###
 
-import xfind
-
-class _Node_Meta(type, xfind.Operator):
+class _Node_Meta(type):
 	def __new__(cls, name, bases, dict):
 		dict["__fullname__"] = name
 		if "register" not in dict:
@@ -621,12 +619,21 @@ class _Node_Meta(type, xfind.Operator):
 	def __repr__(self):
 		return "<class %s:%s at 0x%x>" % (self.__module__, self.__fullname__, id(self))
 
-	def xwalk(self, iterator):
-		for child in iterator:
-			if isinstance(child, (Frag, Element)):
-				for subchild in child:
-					if isinstance(subchild, self):
-						yield subchild
+	def __div__(self, other):
+		from ll.xist import css
+		return css.IsSelector(self)/other
+
+	def __floordiv__(self, other):
+		from ll.xist import css
+		return css.IsSelector(self)//other
+
+	def __mul__(self, other):
+		from ll.xist import css
+		return css.IsSelector(self)*other
+
+	def __pow__(self, other):
+		from ll.xist import css
+		return css.IsSelector(self)**other
 
 
 class Node(object):
@@ -958,7 +965,8 @@ class Node(object):
 		The items produced by the iterator are the nodes themselves.
 		"""
 		if isinstance(filter, type) and issubclass(filter, Node):
-			filter = FindTypeAll(filter)
+			from ll.xist import css
+			filter = css.IsSelector(filter)
 		def iterate(path):
 			for path in self._walk(filter, path):
 				yield path[-1]
@@ -971,17 +979,12 @@ class Node(object):
 		The items produced by the iterator are copies of the path.
 		"""
 		if isinstance(filter, type) and issubclass(filter, Node):
-			filter = FindTypeAll(filter)
+			from ll.xist import css
+			filter = css.IsSelector(filter)
 		def iterate(path):
 			for path in self._walk(filter, path):
 				yield path[:]
 		return misc.Iterator(iterate([self]))
-
-	def __div__(self, other):
-		return xfind.Expr(self, other)
-
-	def __floordiv__(self, other):
-		return xfind.Expr(self, xfind.all, other)
 
 	def compact(self):
 		"""
@@ -1819,7 +1822,7 @@ class Null(CharacterData):
 Null = Null() # Singleton, the Python way
 
 
-class _Attr_Meta(Frag.__metaclass__, xfind.Operator):
+class _Attr_Meta(Frag.__metaclass__):
 	def __new__(cls, name, bases, dict):
 		# can be overwritten in subclasses, to specify that this attributes is required
 		if "required" in dict:
@@ -1836,13 +1839,6 @@ class _Attr_Meta(Frag.__metaclass__, xfind.Operator):
 		if self.xmlns is not None:
 			getpoolstack()[-1].register(self)
 		return self
-
-	def xwalk(self, iterator):
-		for child in iterator:
-			if isinstance(child, Element):
-				for (attrname, attrvalue) in child.attrs.iteritems():
-					if isinstance(attrvalue, self):
-						yield attrvalue
 
 	def __repr__(self):
 		return "<attribute class %s:%s at 0x%x>" % (self.__module__, self.__fullname__, id(self))
