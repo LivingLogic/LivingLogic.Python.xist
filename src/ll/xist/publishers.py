@@ -79,12 +79,10 @@ class Publisher(object):
 
 		<par>If an element or attribute is encountered whose namespace is not in
 		<arg>prefixes</arg> <arg>prefixdefault</arg> is used as the fallback.</par>
-		<ulist>
 
 		<par><arg>hidexmlns</arg> can be a list or set that contains namespace names
 		for which no <lit>xmlns</lit> attributes should be published. (This can be
 		used to hide the namespaces e.g. for Java taglibs.)</par>
-		</ulist>
 		"""
 		self.base = None
 		self.encoding = encoding
