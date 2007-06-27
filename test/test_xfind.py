@@ -225,13 +225,13 @@ def test_css():
 			+html.li("foo")
 			+html.li()
 
-	assert list(e.walknode(css.FindCSS("div"))) == [e]
-	assert list(e.walknode(css.FindCSS("li"))) == [e[0][0], e[0][1]]
-	assert list(e.walknode(css.FindCSS("div#1"))) == [e]
-	assert list(e.walknode(css.FindCSS("#2"))) == [e[0]]
-	assert list(e.walknode(css.FindCSS(":empty"))) == [e[0][1]]
-	assert list(e.walknode(css.FindCSS("li:empty"))) == [e[0][1]]
-	assert list(e.walknode(css.FindCSS("div :empty"))) == [e[0][1]]
-	assert list(e.walknode(css.FindCSS("div>*:empty"))) == []
-	assert list(e.walknode(css.FindCSS("div>:empty"))) == []
-	assert list(e.walknode(css.FindCSS("li+li"))) == [e[0][1]]
+	assert list(e.walknode(css.findcss("div"))) == [e]
+	assert list(e.walknode(css.findcss("li"))) == [e[0][0], e[0][1]]
+	assert list(e.walknode(css.findcss("div#1"))) == [e]
+	assert list(e.walknode(css.findcss("#2"))) == [e[0]]
+	assert list(e.walknode(css.findcss(":empty"))) == [e[0][1]]
+	assert list(e.walknode(css.findcss("li:empty"))) == [e[0][1]]
+	assert list(e.walknode(css.findcss("div :empty"))) == [e[0][1]]
+	assert list(e.walknode(css.findcss("div>*:empty"))) == []
+	assert list(e.walknode(css.findcss("div>:empty"))) == []
+	assert list(e.walknode(css.findcss("li+li"))) == [e[0][1]]
