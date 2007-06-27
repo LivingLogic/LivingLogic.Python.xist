@@ -110,6 +110,16 @@ class Selector(xsc.FindVisitAll):
 			other = IsSelector(other)
 		return GeneralSiblingCombinator(self, other)
 
+	def __and__(self, other):
+		if isinstance(other, type) and issubclass(other, xsc.Node):
+			other = IsSelector(other)
+		return AndCombinator(self, other)
+
+	def __or__(self, other):
+		if isinstance(other, type) and issubclass(other, xsc.Node):
+			other = IsSelector(other)
+		return AndCombinator(self, other)
+
 
 class HasAttributeSelector(Selector):
 	def __init__(self, attributename):
@@ -539,6 +549,38 @@ class IsSelector(Selector):
 
 	def __repr__(self):
 		return "%s(%s)" % (self.__class__.__name__, ", ".join("%s.%s" % (type.__module__, type.__name__) for type in self.types))
+
+
+class NthChildSelector(Selector):
+	def __init__(self, index):
+		self.index = index
+
+	def match(self, path):
+		if len(path) < 2:
+			return False
+		try:
+			return path[-2][self.index] is path[-1]
+		except IndexError:
+			return False
+
+	def __repr__(self):
+		return "%s(%r)" % (self.__class__.__name__, self.index)
+
+
+class NthOfTypeSelector(Selector):
+	def __init__(self, index):
+		self.index = index
+
+	def match(self, path):
+		if len(path) < 2:
+			return False
+		try:
+			return path[-2][path[-1].__class__][self.index] is path[-1]
+		except IndexError:
+			return False
+
+	def __repr__(self):
+		return "%s(%r)" % (self.__class__.__name__, self.index)
 
 
 class CSSTypeSelector(Selector):

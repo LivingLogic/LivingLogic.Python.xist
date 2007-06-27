@@ -621,19 +621,27 @@ class _Node_Meta(type):
 
 	def __div__(self, other):
 		from ll.xist import css
-		return css.IsSelector(self)/other
+		return css.IsSelector(self) / other
 
 	def __floordiv__(self, other):
 		from ll.xist import css
-		return css.IsSelector(self)//other
+		return css.IsSelector(self) // other
 
 	def __mul__(self, other):
 		from ll.xist import css
-		return css.IsSelector(self)*other
+		return css.IsSelector(self) * other
 
 	def __pow__(self, other):
 		from ll.xist import css
-		return css.IsSelector(self)**other
+		return css.IsSelector(self) ** other
+
+	def __and__(self, other):
+		from ll.xist import css
+		return css.IsSelector(self) & other
+
+	def __or__(self, other):
+		from ll.xist import css
+		return css.IsSelector(self) | other
 
 
 class Node(object):
