@@ -369,12 +369,12 @@ class CSSRootSelector(Selector):
 		return ":root"
 
 
-class FunctionSelector(Selector):
+class CSSFunctionSelector(Selector):
 	def __init__(self, value=None):
 		self.value = value
 
 
-class NthChildSelector(FunctionSelector):
+class CSSNthChildSelector(CSSFunctionSelector):
 	def match(self, path):
 		if len(path) < 2:
 			return False
@@ -387,7 +387,7 @@ class NthChildSelector(FunctionSelector):
 		return ":nth-child(%s)" % self.value
 
 
-class NthLastChildSelector(FunctionSelector):
+class CSSNthLastChildSelector(CSSFunctionSelector):
 	def match(self, path):
 		if len(path) < 2:
 			return False
@@ -400,7 +400,7 @@ class NthLastChildSelector(FunctionSelector):
 		return ":nth-last-child(%s)" % self.value
 
 
-class NthOfTypeSelector(FunctionSelector):
+class CSSNthOfTypeSelector(CSSFunctionSelector):
 	def match(self, path):
 		if len(path) < 2:
 			return False
@@ -413,7 +413,7 @@ class NthOfTypeSelector(FunctionSelector):
 		return ":nth-of-type(%s)" % self.value
 
 
-class NthLastOfTypeSelector(FunctionSelector):
+class CSSNthLastOfTypeSelector(CSSFunctionSelector):
 	def match(self, path):
 		if len(path) < 2:
 			return False
@@ -616,10 +616,10 @@ _pseudoname2class = {
 }
 
 _function2class = {
-	"nth-child": NthChildSelector,
-	"nth-last-child": NthLastChildSelector,
-	"nth-of-type": NthOfTypeSelector,
-	"nth-last-of-type": NthLastOfTypeSelector,
+	"nth-child": CSSNthChildSelector,
+	"nth-last-child": CSSNthLastChildSelector,
+	"nth-of-type": CSSNthOfTypeSelector,
+	"nth-last-of-type": CSSNthLastOfTypeSelector,
 }
 
 
