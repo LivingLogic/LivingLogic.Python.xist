@@ -118,7 +118,7 @@ class Selector(xsc.FindVisitAll):
 	def __or__(self, other):
 		if isinstance(other, type) and issubclass(other, xsc.Node):
 			other = IsSelector(other)
-		return AndCombinator(self, other)
+		return OrCombinator(self, other)
 
 
 class HasAttributeSelector(Selector):
@@ -437,25 +437,38 @@ class CSSNthLastOfTypeSelector(CSSFunctionSelector):
 
 
 class Combinator(Selector):
+	pass
+
+class BinaryCombinator(Combinator):
+	reprsymbol = None
+
 	def __init__(self, left, right):
 		self.left = left
 		self.right = right
 
+	def __repr__(self):
+		left = repr(self.left)
+		if isinstance(self.left, Combinator) and not isinstance(self.left, self.__class__):
+			left = "(%s)" % left
+		right = repr(self.right)
+		if isinstance(self.right, Combinator) and not isinstance(self.right, self.__class__):
+			right = "(%s)" % right
+		return "%s%s%s" % (left, self.reprsymbol, right)
 
-class ChildCombinator(Combinator):
+
+class ChildCombinator(BinaryCombinator):
 	def match(self, path):
 		if path and self.right.match(path):
 			return self.left.match(path[:-1])
 		return False
 
-	def __repr__(self):
-		return "%r/%r" % (self.left, self.right)
+	reprsymbol = " / "
 
 	def __str__(self):
 		return "%s>%s" % (self.left, self.right)
 
 
-class DescendantCombinator(Combinator):
+class DescendantCombinator(BinaryCombinator):
 	def match(self, path):
 		if path and self.right.match(path):
 			while path:
@@ -464,14 +477,13 @@ class DescendantCombinator(Combinator):
 					return True
 		return False
 
-	def __repr__(self):
-		return "%r//%r" % (self.left, self.right)
+	reprsymbol = " // "
 
 	def __str__(self):
 		return "%s %s" % (self.left, self.right)
 
 
-class AdjacentSiblingCombinator(Combinator):
+class AdjacentSiblingCombinator(BinaryCombinator):
 	def match(self, path):
 		if len(path) >= 2 and self.right.match(path):
 			# Find sibling
@@ -485,14 +497,13 @@ class AdjacentSiblingCombinator(Combinator):
 				return self.left.match(path[:-1]+[sibling])
 		return False
 
-	def __repr__(self):
-		return "%r*%r" % (self.left, self.right)
+	reprsymbol = " * "
 
 	def __str__(self):
 		return "%s+%s" % (self.left, self.right)
 
 
-class GeneralSiblingCombinator(Combinator):
+class GeneralSiblingCombinator(BinaryCombinator):
 	def match(self, path):
 		if len(path) >= 2 and self.right.match(path):
 			node = path[-1]
@@ -503,36 +514,43 @@ class GeneralSiblingCombinator(Combinator):
 					return True
 		return False
 
-	def __repr__(self):
-		return "%r**%r" % (self.left, self.right)
+	reprsymbol = " ** "
 
 	def __str__(self):
 		return "%s~%s" % (self.left, self.right)
 
 
-class OrCombinator(Selector):
+class ChainedCombinator(Combinator):
+	reprsymbol = None
+
 	def __init__(self, *selectors):
 		self.selectors = selectors
 
+	def __repr__(self):
+		v = []
+		for selector in self.selectors:
+			s = repr(selector)
+			if isinstance(selector, Combinator) and not isinstance(selector, self.__class__):
+				s = "(%s)" % s
+			v.append(s)
+		return self.reprsymbol.join(v)
+
+
+class OrCombinator(ChainedCombinator):
 	def match(self, path):
 		return any(selector.match(path) for selector in self.selectors)
 
-	def __repr__(self):
-		return "%s(%s)" % (self.__class__.__name__, ", ".join(repr(selector) for selector in self.selectors))
+	reprsymbol = " | "
 
 	def __str__(self):
 		return ", ".join(str(selector) for selector in self.selectors)
 
 
-class AndCombinator(Selector):
-	def __init__(self, *selectors):
-		self.selectors = selectors
-
+class AndCombinator(ChainedCombinator):
 	def match(self, path):
 		return all(selector.match(path) for selector in self.selectors)
 
-	def __repr__(self):
-		return "%s(%s)" % (self.__class__.__name__, ", ".join(repr(selector) for selector in self.selectors))
+	reprsymbol = " & "
 
 	def __str__(self):
 		return " and ".join(str(selector) for selector in self.selectors)
