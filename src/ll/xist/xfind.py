@@ -215,6 +215,17 @@ class attrhasvalue_xml(Selector):
 		return "%s(%r, %r)" % (self.__class__.__name__, self.attrname, self.attrvalue)
 
 
+class inattr(Selector):
+	def match(self, path):
+		return any(isinstance_(node, xsc.Attr) for node in path)
+
+	def __repr__(self):
+		return "inattr"
+
+
+inattr = inattr()
+
+
 class Combinator(Selector):
 	pass
 
