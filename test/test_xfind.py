@@ -14,7 +14,7 @@ from __future__ import with_statement
 import py.test
 
 from ll import misc
-from ll.xist import xsc, xfind, parsers, css
+from ll.xist import xsc, xfind, parsers
 from ll.xist.ns import html
 
 
@@ -40,8 +40,8 @@ def xfindnode():
 
 
 def test_levels():
-	def check(expr, ids):
-		assert "".join(str(e["id"]) for e in expr) == ids
+	def check(node, expr, ids):
+		assert "".join(str(e.attrs.id) for e in node.walknode(expr)) == ids
 
 	ds = [html.div(id=id) for id in xrange(8)]
 	ds[1].append(ds[4:7])
@@ -58,10 +58,9 @@ def test_levels():
 		(ds[0]/html.div, "123"),
 		(ds[0]/html.div/html.div, "4567"),
 		(ds[0]/html.div/html.div/html.div, ""),
-		(ds[0]//xfind.contains(html.div), "012"),
 	]
 	for (got, exp) in tests:
-		yield check, got, exp
+		yield check, rs[0], got, exp
 
 
 def test_hasattr():
@@ -225,13 +224,13 @@ def test_css():
 			+html.li("foo")
 			+html.li()
 
-	assert list(e.walknode(css.findcss("div"))) == [e]
-	assert list(e.walknode(css.findcss("li"))) == [e[0][0], e[0][1]]
-	assert list(e.walknode(css.findcss("div#1"))) == [e]
-	assert list(e.walknode(css.findcss("#2"))) == [e[0]]
-	assert list(e.walknode(css.findcss(":empty"))) == [e[0][1]]
-	assert list(e.walknode(css.findcss("li:empty"))) == [e[0][1]]
-	assert list(e.walknode(css.findcss("div :empty"))) == [e[0][1]]
-	assert list(e.walknode(css.findcss("div>*:empty"))) == []
-	assert list(e.walknode(css.findcss("div>:empty"))) == []
-	assert list(e.walknode(css.findcss("li+li"))) == [e[0][1]]
+	assert list(e.walknode(xfind.css("div"))) == [e]
+	assert list(e.walknode(xfind.css("li"))) == [e[0][0], e[0][1]]
+	assert list(e.walknode(xfind.css("div#1"))) == [e]
+	assert list(e.walknode(xfind.css("#2"))) == [e[0]]
+	assert list(e.walknode(xfind.css(":empty"))) == [e[0][1]]
+	assert list(e.walknode(xfind.css("li:empty"))) == [e[0][1]]
+	assert list(e.walknode(xfind.css("div :empty"))) == [e[0][1]]
+	assert list(e.walknode(xfind.css("div>*:empty"))) == []
+	assert list(e.walknode(xfind.css("div>:empty"))) == []
+	assert list(e.walknode(xfind.css("li+li"))) == [e[0][1]]

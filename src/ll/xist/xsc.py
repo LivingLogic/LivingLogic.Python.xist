@@ -620,32 +620,32 @@ class _Node_Meta(type):
 		return "<class %s:%s at 0x%x>" % (self.__module__, self.__fullname__, id(self))
 
 	def __div__(self, other):
-		from ll.xist import css
-		return css.isinstance(self) / other
+		from ll.xist import xfind
+		return xfind.isinstance(self) / other
 
 	def __floordiv__(self, other):
-		from ll.xist import css
-		return css.isinstance(self) // other
+		from ll.xist import xfind
+		return xfind.isinstance(self) // other
 
 	def __mul__(self, other):
-		from ll.xist import css
-		return css.isinstance(self) * other
+		from ll.xist import xfind
+		return xfind.isinstance(self) * other
 
 	def __pow__(self, other):
-		from ll.xist import css
-		return css.isinstance(self) ** other
+		from ll.xist import xfind
+		return xfind.isinstance(self) ** other
 
 	def __and__(self, other):
-		from ll.xist import css
-		return css.isinstance(self) & other
+		from ll.xist import xfind
+		return xfind.isinstance(self) & other
 
 	def __or__(self, other):
-		from ll.xist import css
-		return css.isinstance(self) | other
+		from ll.xist import xfind
+		return xfind.isinstance(self) | other
 
 	def __invert__(self):
-		from ll.xist import css
-		return css.NotCombinator(css.isinstance(self))
+		from ll.xist import xfind
+		return xfind.NotCombinator(xfind.isinstance(self))
 
 
 class Node(object):
@@ -1000,9 +1000,9 @@ class Node(object):
 		same as the <arg>filter</arg> argument for <pyref method="walk"><method>walk</method></pyref>.
 		The items produced by the iterator are the nodes themselves.
 		"""
-		from ll.xist import css
+		from ll.xist import xfind
 		if isinstance(filter, type) and issubclass(filter, Node):
-			filter = css.isinstance(filter)
+			filter = xfind.isinstance(filter)
 		def iterate(path):
 			for path in self._walk(filter, path):
 				yield path[-1]
@@ -1014,9 +1014,9 @@ class Node(object):
 		same as the <arg>filter</arg> argument for <pyref method="walk"><method>walk</method></pyref>.
 		The items produced by the iterator are copies of the path.
 		"""
-		from ll.xist import css
+		from ll.xist import xfind
 		if isinstance(filter, type) and issubclass(filter, Node):
-			filter = css.isinstance(filter)
+			filter = xfind.isinstance(filter)
 		def iterate(path):
 			for path in self._walk(filter, path):
 				yield path[:]
