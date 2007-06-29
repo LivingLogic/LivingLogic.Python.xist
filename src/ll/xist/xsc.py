@@ -621,27 +621,31 @@ class _Node_Meta(type):
 
 	def __div__(self, other):
 		from ll.xist import css
-		return css.IsSelector(self) / other
+		return css.isinstance(self) / other
 
 	def __floordiv__(self, other):
 		from ll.xist import css
-		return css.IsSelector(self) // other
+		return css.isinstance(self) // other
 
 	def __mul__(self, other):
 		from ll.xist import css
-		return css.IsSelector(self) * other
+		return css.isinstance(self) * other
 
 	def __pow__(self, other):
 		from ll.xist import css
-		return css.IsSelector(self) ** other
+		return css.isinstance(self) ** other
 
 	def __and__(self, other):
 		from ll.xist import css
-		return css.IsSelector(self) & other
+		return css.isinstance(self) & other
 
 	def __or__(self, other):
 		from ll.xist import css
-		return css.IsSelector(self) | other
+		return css.isinstance(self) | other
+
+	def __invert__(self):
+		from ll.xist import css
+		return css.NotCombinator(css.isinstance(self))
 
 
 class Node(object):
@@ -694,6 +698,30 @@ class Node(object):
 
 	def __pos__(self):
 		getstack()[-1].append(self)
+
+	def __div__(self, other):
+		from ll.xist import css
+		return css.IsSelector(self) / other
+
+	def __floordiv__(self, other):
+		from ll.xist import css
+		return css.IsSelector(self) // other
+
+	def __mul__(self, other):
+		from ll.xist import css
+		return css.IsSelector(self) * other
+
+	def __pow__(self, other):
+		from ll.xist import css
+		return css.IsSelector(self) ** other
+
+	def __and__(self, other):
+		from ll.xist import css
+		return css.IsSelector(self) & other
+
+	def __or__(self, other):
+		from ll.xist import css
+		return css.IsSelector(self) | other
 
 	def clone(self):
 		"""
@@ -972,9 +1000,9 @@ class Node(object):
 		same as the <arg>filter</arg> argument for <pyref method="walk"><method>walk</method></pyref>.
 		The items produced by the iterator are the nodes themselves.
 		"""
+		from ll.xist import css
 		if isinstance(filter, type) and issubclass(filter, Node):
-			from ll.xist import css
-			filter = css.IsSelector(filter)
+			filter = css.isinstance(filter)
 		def iterate(path):
 			for path in self._walk(filter, path):
 				yield path[-1]
@@ -986,9 +1014,9 @@ class Node(object):
 		same as the <arg>filter</arg> argument for <pyref method="walk"><method>walk</method></pyref>.
 		The items produced by the iterator are copies of the path.
 		"""
+		from ll.xist import css
 		if isinstance(filter, type) and issubclass(filter, Node):
-			from ll.xist import css
-			filter = css.IsSelector(filter)
+			filter = css.isinstance(filter)
 		def iterate(path):
 			for path in self._walk(filter, path):
 				yield path[:]
