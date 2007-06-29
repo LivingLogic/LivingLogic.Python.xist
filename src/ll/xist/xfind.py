@@ -862,10 +862,11 @@ _function2class = {
 }
 
 
-def findcss(selectors, prefixes=None):
+def css(selectors, prefixes=None):
 	"""
-	Create a new <class>FindCSS<class>. <arg>selectors</arg> can be a string
-	or a <class>cssutils.css.selector.Selector</class> object. <arg>prefixes</arg>
+	Create a walk filter that will yield all nodes that match the specified
+	CSS expression. <arg>selectors</arg> can be a string or a
+	<class>cssutils.css.selector.Selector</class> object. <arg>prefixes</arg>
 	may is a mapping mapping namespace prefixes to namespace names.
 	"""
 		
