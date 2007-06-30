@@ -215,6 +215,42 @@ class attrhasvalue_xml(Selector):
 		return "%s(%r, %r)" % (self.__class__.__name__, self.attrname, self.attrvalue)
 
 
+class attrcontains(Selector):
+	def __init__(self, attrname, attrvalue):
+		self.attrname = attrname
+		self.attrvalue = attrvalue
+
+	def match(self, path):
+		node = path[-1]
+		if not isinstance_(node, xsc.Element) or not node.Attrs.isallowed(self.attrname):
+			return False
+		attr = node.attrs.get(self.attrname)
+		if attr.isfancy(): # if there are PIs, say no
+			return False
+		return self.attrvalue in unicode(attr)
+
+	def __repr__(self):
+		return "%s(%r, %r)" % (self.__class__.__name__, self.attrname, self.attrvalue)
+
+
+class attrcontains_xml(Selector):
+	def __init__(self, attrname, attrvalue):
+		self.attrname = attrname
+		self.attrvalue = attrvalue
+
+	def match(self, path):
+		node = path[-1]
+		if not isinstance_(node, xsc.Element) or not node.Attrs.isallowed_xml(self.attrname):
+			return False
+		attr = node.attrs.get_xml(self.attrname)
+		if attr.isfancy(): # if there are PIs, say no
+			return False
+		return self.attrvalue in unicode(attr)
+
+	def __repr__(self):
+		return "%s(%r, %r)" % (self.__class__.__name__, self.attrname, self.attrvalue)
+
+
 class inattr(Selector):
 	def match(self, path):
 		return any(isinstance_(node, xsc.Attr) for node in path)
