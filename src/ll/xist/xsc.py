@@ -700,28 +700,28 @@ class Node(object):
 		getstack()[-1].append(self)
 
 	def __div__(self, other):
-		from ll.xist import css
-		return css.IsSelector(self) / other
+		from ll.xist import xfind
+		return xfind.IsSelector(self) / other
 
 	def __floordiv__(self, other):
-		from ll.xist import css
-		return css.IsSelector(self) // other
+		from ll.xist import xfind
+		return xfind.IsSelector(self) // other
 
 	def __mul__(self, other):
-		from ll.xist import css
-		return css.IsSelector(self) * other
+		from ll.xist import xfind
+		return xfind.IsSelector(self) * other
 
 	def __pow__(self, other):
-		from ll.xist import css
-		return css.IsSelector(self) ** other
+		from ll.xist import xfind
+		return xfind.IsSelector(self) ** other
 
 	def __and__(self, other):
-		from ll.xist import css
-		return css.IsSelector(self) & other
+		from ll.xist import xfind
+		return xfind.IsSelector(self) & other
 
 	def __or__(self, other):
-		from ll.xist import css
-		return css.IsSelector(self) | other
+		from ll.xist import xfind
+		return xfind.IsSelector(self) | other
 
 	def clone(self):
 		"""
