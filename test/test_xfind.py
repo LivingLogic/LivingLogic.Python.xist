@@ -54,18 +54,18 @@ def test_levels():
 	# 4  5  6  7
 
 	tests = [
-		(ds[0]//html.div, "1234567"),
+		(ds[0]//html.div, "1456273"),
 		(ds[0]/html.div, "123"),
 		(ds[0]/html.div/html.div, "4567"),
 		(ds[0]/html.div/html.div/html.div, ""),
 	]
 	for (got, exp) in tests:
-		yield check, rs[0], got, exp
+		yield check, ds[0], got, exp
 
 
 def test_hasattr():
 	node = xfindnode()
-	res = list(node//xfind.hasattr(html.div.Attrs.id, html.div.Attrs.align))
+	res = list(e.walknode(node//xfind.hasattr(html.div.Attrs.id, html.div.Attrs.align)))
 	assert len(res) == 2
 	assert res[0] is node[0]
 	assert res[1] is node[1][-1]
@@ -82,23 +82,16 @@ def test_hasattrnamed():
 	assert res[0] is node[1]
 
 
-def test_is():
+def test_isinstance():
 	node = xfindnode()
-	res = list(node//xfind.is_(html.h1, html.h2))
+	res = list(node.walknode(xfind.isinstance(html.h1, html.h2)))
 	assert len(res) == 3
 	assert res[0] is node[0][0]
 	assert res[1] is node[1][0]
 	assert res[2] is node[1][-1][0]
 
-	res = list(node//html.h1/xfind.is_(html.h1, html.h2))
-	assert len(res) == 2
-	assert res[0] is node[0][0]
-	assert res[1] is node[1][0]
-
-
-def test_isnot():
 	node = xfindnode()
-	res = list(node//xfind.isnot(xsc.Text, html.p, html.div, html.em))
+	res = list(node.walknode(xsc.Element & ~xfind.isinstance(xsc.Text, html.p, html.div, html.em)))
 	assert len(res) == 3
 	assert res[0] is node[0][0]
 	assert res[1] is node[1][0]
@@ -128,30 +121,51 @@ def test_attr():
 	assert res[1] is node[1][-1]["id"]
 
 
-def test_attrnamed():
+def test_hasattr():
+	# hasattr
 	node = xfindnode()
-	res = list(node//xfind.attrnamed("class_"))
+	res = list(node.walknode(node//xfind.hasattr("class_")))
 	assert len(res) == 1
-	assert res[0] is node[1]["class_"]
+	assert res[0] is node[1]
 
-	res = list(node//xfind.attrnamed_xml("class"))
+	res = list(node.walknode(node//xfind.hasattr(html.div.Attrs.id, html.div.Attrs.align)))
+	assert len(res) == 2
+	assert res[0] is node[0]
+	assert res[1] is node[1][-1]
+
+	# hasattr_xml
+	res = list(node.walknode(node//xfind.hasattr_xml("class")))
 	assert len(res) == 1
-	assert res[0] is node[1]["class_"]
+	assert res[0] is node[1]
+
+	res = list(node.walknode(node//xfind.hasattr_xml(html.div.Attrs.id, html.div.Attrs.align)))
+	assert len(res) == 2
+	assert res[0] is node[0]
+	assert res[1] is node[1][-1]
+
+
+def test_hasid():
+	node = xfindnode()
+	res = list(node.walknode(node//xfind.hasid("id42")))
+	assert len(res) == 1
+	assert res[0] is node[1][-1]
+
+
+def test_hasclass():
+	node = xfindnode()
+	res = list(node.walknode(node//xfind.hasclass("foo")))
+	assert len(res) == 1
+	assert res[0] is node[1]
 
 
 def test_frag():
 	e = parsers.parseString("das ist <b>klaus</b>. das ist <b>erich</b>", prefixes={None: html})
-	# The following won't generate any nodes, because e/xfind.all iterates all
-	# nodes in the tree (but not the Frag root) and ../html.b filters the bold
-	# *children*, but there are none.
-	assert u"".join(map(unicode, e//html.b)) == u""
-	# The following *will* produce these nodes
-	assert u"".join(map(unicode, e//xfind.is_(html.b))) == u"klauserich"
+	assert u"".join(map(unicode, e.walknode(e//html.b))) == u"klauserich"
 
 
 def test_multiall():
-	def check(expr, ids):
-		assert "".join(str(e["id"]) for e in expr) == ids
+	def check(node, expr, ids):
+		assert "".join(str(e.attrs.id) for e in node.walknode(expr)) == ids
 
 	#        ____0____
 	#       /         \
@@ -163,13 +177,12 @@ def test_multiall():
 	ds = [html.div(id=hex(id).lower()[2:]) for id in xrange(15)]
 	for i in xrange(7):
 		ds[i].append(ds[2*i+1:2*i+3])
-	# Using // multiple times might produce certain nodes twice
-	check(ds[0]//html.div//html.div, "34789a56bcde789abcde")
+	check(ds[0], ds[0]//html.div//html.div, "37849a5bc6de")
 
 
 def test_itemsslices():
-	def check(expr, ids):
-		assert "".join(str(e["id"]) for e in expr) == ids
+	def check(node, expr, ids):
+		assert "".join(str(e.attrs.id) for e in node.walknode(expr)) == ids
 
 	#        ____0____
 	#       /    |    \
@@ -183,11 +196,11 @@ def test_itemsslices():
 	ds[3].append(ds[6], ds[7])
 
 	tests = [
-		(ds[0]/html.div[0]/html.div[-1], "5"),
-		(ds[0]/html.div/html.div[-1], "567"),
-		(ds[0]/html.div[-1]/html.div, "67"),
+		(ds[0]/(html.div & xfind.nthchild(0))/(html.div & xfind.nthchild(-1)), "5"),
+		(ds[0]/html.div/(html.div & xfind.nthchild(-1)), "567"),
+		(ds[0]/(html.div & xfind.nthchild(-1))/html.div, "67"),
 		(ds[0]/(html.div/html.div), "455667"), # we get 5 and 6 twice
-		(ds[0]/(html.div/html.div)[2], "5"), # we get 5 and 6 twice
+		(ds[0]/(html.div/html.div) & xfind.nthchild(2), "5"), # we get 5 and 6 twice
 		(ds[0]/html.div[:]/html.div[:], "455667"),
 		(ds[0]/html.div/html.p[0], ""),
 		(ds[0]/html.p[0]/html.p[0], ""),
@@ -203,7 +216,7 @@ def test_itemsslices():
 		(ds[0]/html.div[1:-1]/html.div[-1:], "6"),
 	]
 	for (got, exp) in tests:
-		yield check, got, exp
+		yield check, node, got, exp
 
 
 def test_item():
