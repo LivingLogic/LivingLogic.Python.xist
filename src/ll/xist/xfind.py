@@ -194,35 +194,39 @@ isonlyoftype = isonlyoftype()
 
 
 class hasattr(Selector):
-	def __init__(self, attrname):
-		self.attrname = attrname
+	def __init__(self, *attrnames):
+		self.attrnames = attrnames
 
 	def match(self, path):
 		if not path:
 			return False
 		node = path[-1]
-		if not isinstance_(node, xsc.Element) or not node.Attrs.isallowed(self.attrname):
-			return False
-		return node.attrs.has(self.attrname)
+		if isinstance_(node, xsc.Element):
+			for attrname in self.attrnames:
+				if node.Attrs.isallowed(attrname) and node.attrs.has(attrname):
+					return True
+		return False
 
 	def __repr__(self):
-		return "%s(%r)" % (self.__class__.__name__, self.attrname)
+		return "%s(%s)" % (self.__class__.__name__, ", ".join(repr(attrname) for attrname in self.attrnames))
 
 
 class hasattr_xml(Selector):
-	def __init__(self, attrname):
-		self.attrname = attrname
+	def __init__(self, *attrnames):
+		self.attrnames = attrnames
 
 	def match(self, path):
 		if not path:
 			return False
 		node = path[-1]
-		if not isinstance_(node, xsc.Element) or not node.Attrs.isallowed_xml(self.attrname):
-			return False
-		return node.attrs.has_xml(self.attrname)
+		if isinstance_(node, xsc.Element):
+			for attrname in self.attrnames:
+				if node.Attrs.isallowed_xml(attrname) and node.attrs.has_xml(attrname):
+					return True
+		return False
 
 	def __repr__(self):
-		return "%s(%r)" % (self.__class__.__name__, self.attrname)
+		return "%s(%s)" % (self.__class__.__name__, ", ".join(repr(attrname) for attrname in self.attrnames))
 
 
 class attrhasvalue(Selector):
