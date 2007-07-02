@@ -156,6 +156,8 @@ class hasattr(Selector):
 		self.attrname = attrname
 
 	def match(self, path):
+		if not path:
+			return False
 		node = path[-1]
 		if not isinstance_(node, xsc.Element) or not node.Attrs.isallowed(self.attrname):
 			return False
@@ -170,6 +172,8 @@ class hasattr_xml(Selector):
 		self.attrname = attrname
 
 	def match(self, path):
+		if not path:
+			return False
 		node = path[-1]
 		if not isinstance_(node, xsc.Element) or not node.Attrs.isallowed_xml(self.attrname):
 			return False
@@ -185,6 +189,8 @@ class attrhasvalue(Selector):
 		self.attrvalue = attrvalue
 
 	def match(self, path):
+		if not path:
+			return False
 		node = path[-1]
 		if not isinstance_(node, xsc.Element) or not node.Attrs.isallowed(self.attrname):
 			return False
@@ -203,6 +209,8 @@ class attrhasvalue_xml(Selector):
 		self.attrvalue = attrvalue
 
 	def match(self, path):
+		if not path:
+			return False
 		node = path[-1]
 		if not isinstance_(node, xsc.Element) or not node.Attrs.isallowed_xml(self.attrname):
 			return False
@@ -224,6 +232,8 @@ class attrcontains(Selector):
 		self.attrvalue = attrvalue
 
 	def match(self, path):
+		if not path:
+			return False
 		node = path[-1]
 		if not isinstance_(node, xsc.Element) or not node.Attrs.isallowed(self.attrname):
 			return False
@@ -242,6 +252,8 @@ class attrcontains_xml(Selector):
 		self.attrvalue = attrvalue
 
 	def match(self, path):
+		if not path:
+			return False
 		node = path[-1]
 		if not isinstance_(node, xsc.Element) or not node.Attrs.isallowed_xml(self.attrname):
 			return False
@@ -263,6 +275,8 @@ class attrstartswith(Selector):
 		self.attrvalue = attrvalue
 
 	def match(self, path):
+		if not path:
+			return False
 		node = path[-1]
 		if not isinstance_(node, xsc.Element) or not node.Attrs.isallowed(self.attrname):
 			return False
@@ -281,6 +295,8 @@ class attrstartswith_xml(Selector):
 		self.attrvalue = attrvalue
 
 	def match(self, path):
+		if not path:
+			return False
 		node = path[-1]
 		if not isinstance_(node, xsc.Element) or not node.Attrs.isallowed_xml(self.attrname):
 			return False
@@ -302,6 +318,8 @@ class attrendswith(Selector):
 		self.attrvalue = attrvalue
 
 	def match(self, path):
+		if not path:
+			return False
 		node = path[-1]
 		if not isinstance_(node, xsc.Element) or not node.Attrs.isallowed(self.attrname):
 			return False
@@ -320,6 +338,8 @@ class attrendswith_xml(Selector):
 		self.attrvalue = attrvalue
 
 	def match(self, path):
+		if not path:
+			return False
 		node = path[-1]
 		if not isinstance_(node, xsc.Element) or not node.Attrs.isallowed_xml(self.attrname):
 			return False
@@ -333,6 +353,43 @@ class attrendswith_xml(Selector):
 
 	def __str__(self):
 		return "[%s$=%r]" % (self.attributename, self.attributevalue)
+
+
+class idis(Selector):
+	def __init__(self, id):
+		self.id = id
+
+	def match(self, path):
+		if not path:
+			return False
+		node = path[-1]
+		return isinstance_(node, xsc.Element) and node.Attrs.isallowed("id") and not node.attrs.id.isfancy() and unicode(node.attrs.id) == self.id
+
+	def __repr__(self):
+		return "%s(%r)" % (self.__class__.__name__, self.id)
+
+	def __str__(self):
+		return "#%s" % (self.id)
+
+
+class hasclass(Selector):
+	def __init__(self, classname):
+		self.classname = classname
+
+	def match(self, path):
+		if path:
+			node = path[-1]
+			if isinstance_(node, xsc.Element) and node.Attrs.isallowed_xml("class"):
+				attr = node.attrs.get_xml("class")
+				if not attr.isfancy() and self.classname in unicode(attr).split():
+					return True
+		return False
+
+	def __repr__(self):
+		return "%s(%r)" % (self.__class__.__name__, self.classname)
+
+	def __str__(self):
+		return ".%s" % (self.classname)
 
 
 class inattr(Selector):
@@ -654,36 +711,6 @@ class CSSAttributeLangSelector(Selector):
 		return "[%s|=%r]" % (self.attributename, self.attributevalue)
 
 
-class CSSClassSelector(Selector):
-	def __init__(self, classname):
-		self.classname = classname
-
-	def match(self, path):
-		node = path[-1]
-		return isinstance_(node, xsc.Element) and node.Attrs.isallowed("class_") and not node.attrs.class_.isfancy() and self.classname in unicode(node.attrs.class_).split()
-
-	def __repr__(self):
-		return "%s(%r)" % (self.__class__.__name__, self.classname)
-
-	def __str__(self):
-		return ".%s" % (self.classname)
-
-
-class CSSIDSelector(Selector):
-	def __init__(self, id):
-		self.id = id
-
-	def match(self, path):
-		node = path[-1]
-		return isinstance_(node, xsc.Element) and node.Attrs.isallowed("id") and not node.attrs.id.isfancy() and unicode(node.attrs.id) == self.id
-
-	def __repr__(self):
-		return "%s(%r)" % (self.__class__.__name__, self.id)
-
-	def __str__(self):
-		return "#%s" % (self.id)
-
-
 class CSSFirstChildSelector(Selector):
 	def match(self, path):
 		return len(path) >= 2 and _is_nth_node(path[-2][xsc.Element], path[-1], 1)
@@ -961,9 +988,9 @@ def css(selectors, prefixes=None):
 			elif type == "type":
 				rule.type = value
 			elif type == "id":
-				rule.selectors.append(CSSIDSelector(value.lstrip("#")))
+				rule.selectors.append(idis(value.lstrip("#")))
 			elif type == "classname":
-				rule.selectors.append(CSSClassSelector(value))
+				rule.selectors.append(hasclass(value))
 			elif type == "pseudoname":
 				try:
 					rule.selectors.append(_pseudoname2class[value]())
