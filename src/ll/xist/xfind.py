@@ -31,14 +31,30 @@ from ll.xist import xsc
 
 
 def makeselector(obj):
-	if isinstance_(obj, type) and issubclass(obj, xsc.Node):
-		obj = isinstance(obj)
-	elif callable(obj) and not isinstance_(obj, Selector):
-		obj = CallableSelector(obj)
+	if not isinstance_(obj, xsc.WalkFilter):
+		if isinstance_(obj, type) and issubclass(obj, xsc.Node):
+			obj = isinstance(obj)
+		elif callable(obj):
+			obj = CallableSelector(obj)
+		else:
+			obj = xsc.ConstantWalkFilter(obj)
 	return obj
 
 
-class Selector(xsc.FindVisitAll):
+class Selector(xsc.WalkFilter):
+	"""
+	Base class for all tree traversal filters that visit the complete tree.
+	Whether a node get output can be specified by overwriting the
+	<method>match</method> method.
+	"""
+
+	@misc.notimplemented
+	def match(self, path):
+		pass
+
+	def filter(self, path):
+		return (True, xsc.entercontent, xsc.enterattrs) if self.match(path) else (xsc.entercontent, xsc.enterattrs)
+
 	def __div__(self, other):
 		return ChildCombinator(self, makeselector(other))
 
@@ -75,6 +91,32 @@ class isinstance(Selector):
 			return "%s.%s" % (self.types[0].__module__, self.types[0].__name__)
 		else:
 			return "%s(%s)" % (self.__class__.__name__, ", ".join("%s.%s" % (type.__module__, type.__name__) for type in self.types))
+
+
+class hasname(Selector):
+	def __init__(self, name):
+		self.name = name
+
+	def match(self, path):
+		if path:
+			return path[-1].__class__.__name__ == self.name
+		return False
+
+	def __repr__(self):
+		return "%s(%r)" % (self.__class__.__name__, self.name)
+
+
+class hasname_xml(Selector):
+	def __init__(self, name):
+		self.name = name
+
+	def match(self, path):
+		if path:
+			return path[-1].xmlname == self.name
+		return False
+
+	def __repr__(self):
+		return "%s(%r)" % (self.__class__.__name__, self.name)
 
 
 class IsSelector(Selector):
@@ -355,15 +397,18 @@ class attrendswith_xml(Selector):
 		return "[%s$=%r]" % (self.attributename, self.attributevalue)
 
 
-class idis(Selector):
+class hasid(Selector):
 	def __init__(self, id):
 		self.id = id
 
 	def match(self, path):
-		if not path:
-			return False
-		node = path[-1]
-		return isinstance_(node, xsc.Element) and node.Attrs.isallowed("id") and not node.attrs.id.isfancy() and unicode(node.attrs.id) == self.id
+		if path:
+			node = path[-1]
+			if isinstance_(node, xsc.Element) and node.Attrs.isallowed_xml("id"):
+				attr = node.attrs.get_xml("id")
+				if not attr.isfancy() and unicode(attr) == self.id:
+					return True
+		return False
 
 	def __repr__(self):
 		return "%s(%r)" % (self.__class__.__name__, self.id)
@@ -988,7 +1033,7 @@ def css(selectors, prefixes=None):
 			elif type == "type":
 				rule.type = value
 			elif type == "id":
-				rule.selectors.append(idis(value.lstrip("#")))
+				rule.selectors.append(hasid(value.lstrip("#")))
 			elif type == "classname":
 				rule.selectors.append(hasclass(value))
 			elif type == "pseudoname":

@@ -106,10 +106,21 @@ enterattrs = misc.Const("enterattrs")
 
 
 ###
-### Common tree traversal filters
+### Common walk filters
 ###
 
-class FindType(object):
+class WalkFilter(object):
+	"""
+	A <class>WalkFilter</class> can be passed to the
+	<pyref class="Node" method="walk"><method>walk</method></pyref> method of
+	nodes to specify how to traverse the tree and which nodes to output.
+	"""
+	@misc.notimplemented
+	def filter(self, path):
+		pass
+
+
+class FindType(WalkFilter):
 	"""
 	Tree traversal filter that finds nodes of a certain type on the first level
 	of the tree without decending further down.
@@ -117,11 +128,11 @@ class FindType(object):
 	def __init__(self, *types):
 		self.types = types
 
-	def __call__(self, path):
+	def filter(self, path):
 		return (isinstance(path[-1], self.types), )
 
 
-class FindTypeAll(object):
+class FindTypeAll(WalkFilter):
 	"""
 	Tree traversal filter that finds nodes of a certain type searching the
 	complete tree.
@@ -129,11 +140,11 @@ class FindTypeAll(object):
 	def __init__(self, *types):
 		self.types = types
 
-	def __call__(self, path):
+	def filter(self, path):
 		return (isinstance(path[-1], self.types), entercontent)
 
 
-class FindTypeAllAttrs(object):
+class FindTypeAllAttrs(WalkFilter):
 	"""
 	Tree traversal filter that finds nodes of a certain type searching the
 	complete tree (including attributes).
@@ -141,11 +152,11 @@ class FindTypeAllAttrs(object):
 	def __init__(self, *types):
 		self.types = types
 
-	def __call__(self, path):
+	def filter(self, path):
 		return (isinstance(path[-1], self.types), entercontent, enterattrs)
 
 
-class FindTypeTop(object):
+class FindTypeTop(WalkFilter):
 	"""
 	Tree traversal filter that finds nodes of a certain type searching the
 	complete tree, but traversal of the children of a node is skipped if this
@@ -154,23 +165,33 @@ class FindTypeTop(object):
 	def __init__(self, *types):
 		self.types = types
 
-	def __call__(self, path):
+	def filter(self, path):
 		if isinstance(path[-1], self.types):
 			return (True,)
 		else:
 			return (entercontent,)
 
 
-class FindVisitAll(object):
+class CallableWalkFilter(WalkFilter):
 	"""
-	Base class for all filters that visit the complete tree.
+	Tree traversal filter that returns the result of a function call.
 	"""
-	@misc.notimplemented
-	def match(self, path):
-		pass
+	def __init__(self, func):
+		self.func = func
 
-	def __call__(self, path):
-		return (True, entercontent, enterattrs) if self.match(path) else (entercontent, enterattrs)
+	def filter(self, path):
+		return self.func(path)
+
+
+class ConstantWalkFilter(WalkFilter):
+	"""
+	Tree traversal filter that returns the same value for all nodes.
+	"""
+	def __init__(self, value):
+		self.value = value
+
+	def filter(self, path):
+		return self.value
 
 
 ###
@@ -934,12 +955,7 @@ class Node(object):
 		"""
 		<par>Internal helper for <pyref method="walk"><method>walk</method></pyref>.</par>
 		"""
-		if callable(filter):
-			found = filter(path)
-		else:
-			found = filter
-
-		for option in found:
+		for option in filter.filter(path):
 			if option is not entercontent and option is not enterattrs and option:
 				yield path
 
@@ -992,6 +1008,8 @@ class Node(object):
 		<method>walk</method> reuses this list, so you can't rely on the value
 		of the list being the same across calls to <method>next</method>.</par>
 		"""
+		from ll.xist import xfind
+		filter = xfind.makeselector(filter)
 		return self._walk(filter, [self])
 
 	def walknode(self, filter=(True, entercontent)):
@@ -1001,8 +1019,7 @@ class Node(object):
 		The items produced by the iterator are the nodes themselves.
 		"""
 		from ll.xist import xfind
-		if isinstance(filter, type) and issubclass(filter, Node):
-			filter = xfind.isinstance(filter)
+		filter = xfind.makeselector(filter)
 		def iterate(path):
 			for path in self._walk(filter, path):
 				yield path[-1]
@@ -1015,8 +1032,7 @@ class Node(object):
 		The items produced by the iterator are copies of the path.
 		"""
 		from ll.xist import xfind
-		if isinstance(filter, type) and issubclass(filter, Node):
-			filter = xfind.isinstance(filter)
+		filter = xfind.makeselector(filter)
 		def iterate(path):
 			for path in self._walk(filter, path):
 				yield path[:]
@@ -1948,12 +1964,7 @@ class Attr(Frag):
 				warnings.warn(IllegalAttrValueWarning(self))
 
 	def _walk(self, filter, path):
-		if callable(filter):
-			found = filter(path)
-		else:
-			found = filter
-
-		for option in found:
+		for option in filter.filter(path):
 			if option is entercontent:
 				for result in Frag._walk(self, filter, path):
 					yield result
@@ -3076,12 +3087,7 @@ class Element(Node):
 		return self._decoratenode(node)
 
 	def _walk(self, filter, path):
-		if callable(filter):
-			found = filter(path)
-		else:
-			found = filter
-
-		for option in found:
+		for option in filter.filter(path):
 			if option is entercontent:
 				for result in self.content._walk(filter, path):
 					yield result
