@@ -214,6 +214,9 @@ class attrhasvalue_xml(Selector):
 	def __repr__(self):
 		return "%s(%r, %r)" % (self.__class__.__name__, self.attrname, self.attrvalue)
 
+	def __str__(self):
+		return "[%s=%r]" % (self.attributename, self.attributevalue)
+
 
 class attrcontains(Selector):
 	def __init__(self, attrname, attrvalue):
@@ -249,6 +252,87 @@ class attrcontains_xml(Selector):
 
 	def __repr__(self):
 		return "%s(%r, %r)" % (self.__class__.__name__, self.attrname, self.attrvalue)
+
+	def __str__(self):
+		return "[%s*=%r]" % (self.attrname, self.attrvalue)
+
+
+class attrstartswith(Selector):
+	def __init__(self, attrname, attrvalue):
+		self.attrname = attrname
+		self.attrvalue = attrvalue
+
+	def match(self, path):
+		node = path[-1]
+		if not isinstance_(node, xsc.Element) or not node.Attrs.isallowed(self.attrname):
+			return False
+		attr = node.attrs.get(self.attrname)
+		if attr.isfancy(): # if there are PIs, say no
+			return False
+		return unicode(attr).startswith(self.attrvalue)
+
+	def __repr__(self):
+		return "%s(%r, %r)" % (self.__class__.__name__, self.attrname, self.attrvalue)
+
+
+class attrstartswith_xml(Selector):
+	def __init__(self, attrname, attrvalue):
+		self.attrname = attrname
+		self.attrvalue = attrvalue
+
+	def match(self, path):
+		node = path[-1]
+		if not isinstance_(node, xsc.Element) or not node.Attrs.isallowed_xml(self.attrname):
+			return False
+		attr = node.attrs.get_xml(self.attrname)
+		if attr.isfancy(): # if there are PIs, say no
+			return False
+		return unicode(attr).startswith(self.attrvalue)
+
+	def __repr__(self):
+		return "%s(%r, %r)" % (self.__class__.__name__, self.attrname, self.attrvalue)
+
+	def __str__(self):
+		return "[%s^=%r]" % (self.attrname, self.attrvalue)
+
+
+class attrendswith(Selector):
+	def __init__(self, attrname, attrvalue):
+		self.attrname = attrname
+		self.attrvalue = attrvalue
+
+	def match(self, path):
+		node = path[-1]
+		if not isinstance_(node, xsc.Element) or not node.Attrs.isallowed(self.attrname):
+			return False
+		attr = node.attrs.get(self.attrname)
+		if attr.isfancy(): # if there are PIs, say no
+			return False
+		return unicode(attr).endswith(self.attrvalue)
+
+	def __repr__(self):
+		return "%s(%r, %r)" % (self.__class__.__name__, self.attrname, self.attrvalue)
+
+
+class attrendswith_xml(Selector):
+	def __init__(self, attrname, attrvalue):
+		self.attrname = attrname
+		self.attrvalue = attrvalue
+
+	def match(self, path):
+		node = path[-1]
+		if not isinstance_(node, xsc.Element) or not node.Attrs.isallowed_xml(self.attrname):
+			return False
+		attr = node.attrs.get_xml(self.attrname)
+		if attr.isfancy(): # if there are PIs, say no
+			return False
+		return unicode(attr).startswith(self.attrvalue)
+
+	def __repr__(self):
+		return "%s(%r, %r)" % (self.__class__.__name__, self.attrname, self.attrvalue)
+
+	def __str__(self):
+		return "[%s$=%r]" % (self.attributename, self.attributevalue)
 
 
 class inattr(Selector):
@@ -529,27 +613,6 @@ class CSSHasAttributeSelector(Selector):
 		return "[%s]" % self.attributename
 
 
-class CSSAttributeIsSelector(Selector):
-	def __init__(self, attributename, attributevalue):
-		self.attributename = attributename
-		self.attributevalue = attributevalue
-
-	def match(self, path):
-		node = path[-1]
-		if not isinstance_(node, xsc.Element) or not node.Attrs.isallowed_xml(self.attributename):
-			return False
-		attr = node.attrs.get_xml(self.attributename)
-		if attr.isfancy(): # if there are PIs, say no
-			return False
-		return unicode(attr) == self.attributevalue
-
-	def __repr__(self):
-		return "%s(%r, %r)" % (self.__class__.__name__, self.attributename, self.attributevalue)
-
-	def __str__(self):
-		return "[%s=%r]" % (self.attributename, self.attributevalue)
-
-
 class CSSAttributeListSelector(Selector):
 	def __init__(self, attributename, attributevalue):
 		self.attributename = attributename
@@ -589,63 +652,6 @@ class CSSAttributeLangSelector(Selector):
 
 	def __str__(self):
 		return "[%s|=%r]" % (self.attributename, self.attributevalue)
-
-
-class CSSAttributeStartsWithSelector(Selector):
-	def __init__(self, attributename, attributevalue):
-		self.attributename = attributename
-		self.attributevalue = attributevalue
-
-	def match(self, path):
-		node = path[-1]
-		if not isinstance_(node, xsc.Element) or not node.Attrs.isallowed_xml(self.attributename):
-			return False
-		attr = node.attrs.get_xml(self.attributename)
-		return unicode(attr).startswith(self.attributevalue)
-
-	def __repr__(self):
-		return "%s(%r, %r)" % (self.__class__.__name__, self.attributename, self.attributevalue)
-
-	def __str__(self):
-		return "[%s^=%r]" % (self.attributename, self.attributevalue)
-
-
-class CSSAttributeEndsWithSelector(Selector):
-	def __init__(self, attributename, attributevalue):
-		self.attributename = attributename
-		self.attributevalue = attributevalue
-
-	def match(self, path):
-		node = path[-1]
-		if not isinstance_(node, xsc.Element) or not node.Attrs.isallowed_xml(self.attributename):
-			return False
-		attr = node.attrs.get_xml(self.attributename)
-		return unicode(attr).endswith(self.attributevalue)
-
-	def __repr__(self):
-		return "%s(%r, %r)" % (self.__class__.__name__, self.attributename, self.attributevalue)
-
-	def __str__(self):
-		return "[%s$=%r]" % (self.attributename, self.attributevalue)
-
-
-class CSSAttributeContainsSelector(Selector):
-	def __init__(self, attributename, attributevalue):
-		self.attributename = attributename
-		self.attributevalue = attributevalue
-
-	def match(self, path):
-		node = path[-1]
-		if not isinstance_(node, xsc.Element) or not node.Attrs.isallowed_xml(self.attributename):
-			return False
-		attr = node.attrs.get_xml(self.attributename)
-		return self.attributevalue in unicode(attr)
-
-	def __repr__(self):
-		return "%s(%r, %r)" % (self.__class__.__name__, self.attributename, self.attributevalue)
-
-	def __str__(self):
-		return "[%s*=%r]" % (self.attributename, self.attributevalue)
 
 
 class CSSClassSelector(Selector):
@@ -875,12 +881,12 @@ class CSSTypeSelector(Selector):
 
 
 _attributecombinator2class = {
-	"=": CSSAttributeIsSelector,
+	"=": attrhasvalue_xml,
 	"~=": CSSAttributeListSelector,
 	"|=": CSSAttributeLangSelector,
-	"$=": CSSAttributeStartsWithSelector,
-	"$=": CSSAttributeEndsWithSelector,
-	"*=": CSSAttributeContainsSelector,
+	"^=": attrstartswith_xml,
+	"$=": attrendswith_xml,
+	"*=": attrcontains_xml,
 }
 
 _combinator2class = {
