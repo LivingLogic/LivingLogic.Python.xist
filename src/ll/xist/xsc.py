@@ -1619,11 +1619,6 @@ class Frag(Node, list):
 		other = Frag(*others)
 		list.__setslice__(self, index, index, other)
 
-	def walk(self, filter=(True, entercontent)):
-		from ll.xist import xfind
-		filter = xfind.makeselector(filter)
-		return self._walk(filter, []) # don't put Frags in the path
-
 	def _walk(self, filter, path):
 		path.append(None)
 		for child in self:

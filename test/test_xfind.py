@@ -111,7 +111,7 @@ def test_isroot():
 	assert len(res) == 0
 
 	res = list(node[0].walknode(xfind.isroot))
-	assert len(res) == 0
+	assert len(res) == 1
 	assert res[0] is node[0]
 
 
