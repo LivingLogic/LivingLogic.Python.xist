@@ -96,7 +96,8 @@ def test_hasname():
 def test_is():
 	node = xfindnode()
 
-	# Frags are invisible in the path
+	# Frags will be put into the path, but the walk filter will not be called for the Frag,
+	# so when the first call happens there are already two nodes in the path
 	res = list(node.walknode(node))
 	assert len(res) == 0
 
