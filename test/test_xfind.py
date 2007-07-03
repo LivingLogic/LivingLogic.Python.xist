@@ -104,12 +104,11 @@ def test_is():
 	assert res[0] is node[0]
 
 
-def test_contains():
+def test_isroot():
 	node = xfindnode()
-	res = list(node//xfind.is_(html.h1, html.h2)/xfind.contains(html.em))
-	assert len(res) == 2
-	assert res[0] is node[0][0]
-	assert res[1] is node[1][-1][0]
+	res = list(node.walknode(xfind.isroot))
+	assert len(res) == 1
+	assert res[0] is node[0]
 
 
 def test_child():
