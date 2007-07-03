@@ -34,6 +34,8 @@ def makeselector(obj):
 	if not isinstance_(obj, xsc.WalkFilter):
 		if isinstance_(obj, type) and issubclass(obj, xsc.Node):
 			obj = isinstance(obj)
+		elif isinstance_(obj, xsc.Node):
+			obj = IsSelector(obj)
 		elif callable(obj):
 			obj = CallableSelector(obj)
 		else:
@@ -91,7 +93,7 @@ class isinstance(Selector):
 		if isinstance_(other, type) and issubclass(other, xsc.Node):
 			return isinstance(*(self.types + (other,)))
 		elif isinstance_(other, isinstance):
-			return isinstance(self, *other.types)
+			return isinstance(*(self.types+other.types))
 		return Selector.__or__(self, other)
 
 	def __repr__(self):
