@@ -27,13 +27,14 @@ def xfindnode():
 			align="left",
 		),
 		html.div(
-			html.h1("The headline"),
+			html.h1("The headline", html.img(src="root:gurk.gif")),
 			html.p("The ", html.em("first"), " paragraph."),
 			html.div(
 				html.h2("The ", html.em("important"), " headline"),
 				html.p("The ", html.em("second"), " ", html.em("important"), " paragraph."),
 				id="id42",
 			),
+			html.div(id="id23"),
 			class_="foo",
 		),
 	)
@@ -74,13 +75,13 @@ def test_isinstance():
 		assert len(res) == 3
 		assert res[0] is node[0][0]
 		assert res[1] is node[1][0]
-		assert res[2] is node[1][-1][0]
+		assert res[2] is node[1][2][0]
 
-	yield check, list(node.walknode(xfind.isinstance(html.h1, html.h2)))
-	yield check, list(node.walknode(xfind.isinstance(html.h1) | html.h2))
-	yield check, list(node.walknode(html.h1 | xfind.isinstance(html.h2)))
+	yield check, list(node.walknode(xfind.IsInstanceSelector(html.h1, html.h2)))
+	yield check, list(node.walknode(xfind.IsInstanceSelector(html.h1) | html.h2))
+	yield check, list(node.walknode(html.h1 | xfind.IsInstanceSelector(html.h2)))
 	yield check, list(node.walknode(html.h1 | html.h2))
-	yield check, list(node.walknode(xsc.Element & ~xfind.isinstance(xsc.Text, html.p, html.div, html.em)))
+	yield check, list(node.walknode(xsc.Element & ~(xsc.Text | html.p | html.div | html.em | html.img)))
 
 
 def test_hasname():
@@ -99,7 +100,7 @@ def test_is():
 	res = list(node.walknode(node))
 	assert len(res) == 0
 
-	res = list(node[0].walknode(node[0]))
+	res = list(node.walknode(node[0]))
 	assert len(res) == 1
 	assert res[0] is node[0]
 
@@ -107,58 +108,57 @@ def test_is():
 def test_isroot():
 	node = xfindnode()
 	res = list(node.walknode(xfind.isroot))
-	assert len(res) == 1
+	assert len(res) == 0
+
+	res = list(node[0].walknode(xfind.isroot))
+	assert len(res) == 0
 	assert res[0] is node[0]
 
 
-def test_child():
+def test_isempty():
 	node = xfindnode()
-	res = list(node//html.h1/xfind.child(html.em))
-	assert len(res) == 1
-	assert res[0] is node[0][0][1]
-
-
-def test_attr():
-	node = xfindnode()
-	res = list(node//xfind.attr(html.div.Attrs.id, html.div.Attrs.align))
+	res = list(node.walknode(xfind.isempty))
 	assert len(res) == 2
-	assert res[0] is node[0]["align"]
-	assert res[1] is node[1][-1]["id"]
+	assert res[0] is node[1][0][-1]
+	assert res[1] is node[1][-1]
 
 
 def test_hasattr():
-	# hasattr
 	node = xfindnode()
-	res = list(node.walknode(node//xfind.hasattr("class_")))
+
+	# hasattr
+	res = list(node.walknode(xfind.hasattr("class_")))
 	assert len(res) == 1
 	assert res[0] is node[1]
 
-	res = list(node.walknode(node//xfind.hasattr(html.div.Attrs.id, html.div.Attrs.align)))
-	assert len(res) == 2
+	res = list(node.walknode(xfind.hasattr(html.div.Attrs.id, html.div.Attrs.align)))
+	assert len(res) == 3
 	assert res[0] is node[0]
-	assert res[1] is node[1][-1]
+	assert res[1] is node[1][2]
+	assert res[2] is node[1][3]
 
 	# hasattr_xml
-	res = list(node.walknode(node//xfind.hasattr_xml("class")))
+	res = list(node.walknode(xfind.hasattr_xml("class")))
 	assert len(res) == 1
 	assert res[0] is node[1]
 
-	res = list(node.walknode(node//xfind.hasattr_xml(html.div.Attrs.id, html.div.Attrs.align)))
-	assert len(res) == 2
+	res = list(node.walknode(xfind.hasattr_xml(html.div.Attrs.id, html.div.Attrs.align)))
+	assert len(res) == 3
 	assert res[0] is node[0]
-	assert res[1] is node[1][-1]
+	assert res[1] is node[1][2]
+	assert res[2] is node[1][3]
 
 
 def test_hasid():
 	node = xfindnode()
-	res = list(node.walknode(node//xfind.hasid("id42")))
+	res = list(node.walknode(xfind.hasid("id42")))
 	assert len(res) == 1
-	assert res[0] is node[1][-1]
+	assert res[0] is node[1][2]
 
 
 def test_hasclass():
 	node = xfindnode()
-	res = list(node.walknode(node//xfind.hasclass("foo")))
+	res = list(node.walknode(xfind.hasclass("foo")))
 	assert len(res) == 1
 	assert res[0] is node[1]
 

@@ -16,9 +16,6 @@ __version__ = "$Revision$".split()[1]
 # $Source$
 
 
-# because we want to define isinstance() as a selector
-from __builtin__ import isinstance as isinstance_
-
 try:
 	import cssutils
 	from cssutils.css import cssstylerule
@@ -31,10 +28,10 @@ from ll.xist import xsc
 
 
 def makeselector(obj):
-	if not isinstance_(obj, xsc.WalkFilter):
-		if isinstance_(obj, type) and issubclass(obj, xsc.Node):
-			obj = isinstance(obj)
-		elif isinstance_(obj, xsc.Node):
+	if not isinstance(obj, xsc.WalkFilter):
+		if isinstance(obj, type) and issubclass(obj, xsc.Node):
+			obj = IsInstanceSelector(obj)
+		elif isinstance(obj, xsc.Node):
 			obj = IsSelector(obj)
 		elif callable(obj):
 			obj = CallableSelector(obj)
@@ -79,21 +76,21 @@ class Selector(xsc.WalkFilter):
 		return NotCombinator(self)
 
 
-class isinstance(Selector):
+class IsInstanceSelector(Selector):
 	def __init__(self, *types):
 		self.types = types
 
 	def match(self, path):
 		if path:
-			return isinstance_(path[-1], self.types)
+			return isinstance(path[-1], self.types)
 		return False
 
 	def __or__(self, other):
 		# If other is a type check too, combine self and other into one isinstance instance
-		if isinstance_(other, type) and issubclass(other, xsc.Node):
-			return isinstance(*(self.types + (other,)))
-		elif isinstance_(other, isinstance):
-			return isinstance(*(self.types+other.types))
+		if isinstance(other, type) and issubclass(other, xsc.Node):
+			return IsInstanceSelector(*(self.types + (other,)))
+		elif isinstance(other, IsInstanceSelector):
+			return IsInstanceSelector(*(self.types+other.types))
 		return Selector.__or__(self, other)
 
 	def __repr__(self):
@@ -110,7 +107,7 @@ class hasname(Selector):
 	def match(self, path):
 		if path:
 			node = path[-1]
-			return isinstance(node, (xsc.Element, xsc.ProcInst, xsc.Entity)) and node.__class__.__name__ == self.name
+			return IsInstanceSelector(node, (xsc.Element, xsc.ProcInst, xsc.Entity)) and node.__class__.__name__ == self.name
 		return False
 
 	def __repr__(self):
@@ -124,7 +121,7 @@ class hasname_xml(Selector):
 	def match(self, path):
 		if path:
 			node = path[-1]
-			return isinstance(node, (xsc.Element, xsc.ProcInst, xsc.Entity)) and node.xmlname == self.name
+			return IsInstanceSelector(node, (xsc.Element, xsc.ProcInst, xsc.Entity)) and node.xmlname == self.name
 		return False
 
 	def __repr__(self):
@@ -157,7 +154,7 @@ class isempty(Selector):
 	def match(self, path):
 		if path:
 			node = path[-1]
-			if isinstance_(node, (xsc.Element, xsc.Frag)):
+			if isinstance(node, (xsc.Element, xsc.Frag)):
 				return len(node) == 0
 		return False
 
@@ -173,7 +170,7 @@ class isonlychild(Selector):
 		if len(path) < 2:
 			return False
 		parent = path[-2]
-		if not isinstance_(parent, xsc.Element):
+		if not isinstance(parent, xsc.Element):
 			return False
 		return len(parent)==1 and parent[0] is path[-1]
 
@@ -190,10 +187,10 @@ class isonlyoftype(Selector):
 			return False
 		node = path[-1]
 		parent = path[-2]
-		if not isinstance_(parent, xsc.Element):
+		if not isinstance(parent, xsc.Element):
 			return False
 		for child in parent.content:
-			if isinstance_(child, node.__class__):
+			if isinstance(child, node.__class__):
 				if child is not node:
 					return False
 		return True
@@ -213,7 +210,7 @@ class hasattr(Selector):
 		if not path:
 			return False
 		node = path[-1]
-		if isinstance_(node, xsc.Element):
+		if isinstance(node, xsc.Element):
 			for attrname in self.attrnames:
 				if node.Attrs.isallowed(attrname) and node.attrs.has(attrname):
 					return True
@@ -231,7 +228,7 @@ class hasattr_xml(Selector):
 		if not path:
 			return False
 		node = path[-1]
-		if isinstance_(node, xsc.Element):
+		if isinstance(node, xsc.Element):
 			for attrname in self.attrnames:
 				if node.Attrs.isallowed_xml(attrname) and node.attrs.has_xml(attrname):
 					return True
@@ -250,7 +247,7 @@ class attrhasvalue(Selector):
 		if not path:
 			return False
 		node = path[-1]
-		if not isinstance_(node, xsc.Element) or not node.Attrs.isallowed(self.attrname):
+		if not isinstance(node, xsc.Element) or not node.Attrs.isallowed(self.attrname):
 			return False
 		attr = node.attrs.get(self.attrname)
 		if attr.isfancy(): # if there are PIs, say no
@@ -270,7 +267,7 @@ class attrhasvalue_xml(Selector):
 		if not path:
 			return False
 		node = path[-1]
-		if not isinstance_(node, xsc.Element) or not node.Attrs.isallowed_xml(self.attrname):
+		if not isinstance(node, xsc.Element) or not node.Attrs.isallowed_xml(self.attrname):
 			return False
 		attr = node.attrs.get_xml(self.attrname)
 		if attr.isfancy(): # if there are PIs, say no
@@ -293,7 +290,7 @@ class attrcontains(Selector):
 		if not path:
 			return False
 		node = path[-1]
-		if not isinstance_(node, xsc.Element) or not node.Attrs.isallowed(self.attrname):
+		if not isinstance(node, xsc.Element) or not node.Attrs.isallowed(self.attrname):
 			return False
 		attr = node.attrs.get(self.attrname)
 		if attr.isfancy(): # if there are PIs, say no
@@ -313,7 +310,7 @@ class attrcontains_xml(Selector):
 		if not path:
 			return False
 		node = path[-1]
-		if not isinstance_(node, xsc.Element) or not node.Attrs.isallowed_xml(self.attrname):
+		if not isinstance(node, xsc.Element) or not node.Attrs.isallowed_xml(self.attrname):
 			return False
 		attr = node.attrs.get_xml(self.attrname)
 		if attr.isfancy(): # if there are PIs, say no
@@ -336,7 +333,7 @@ class attrstartswith(Selector):
 		if not path:
 			return False
 		node = path[-1]
-		if not isinstance_(node, xsc.Element) or not node.Attrs.isallowed(self.attrname):
+		if not isinstance(node, xsc.Element) or not node.Attrs.isallowed(self.attrname):
 			return False
 		attr = node.attrs.get(self.attrname)
 		if attr.isfancy(): # if there are PIs, say no
@@ -356,7 +353,7 @@ class attrstartswith_xml(Selector):
 		if not path:
 			return False
 		node = path[-1]
-		if not isinstance_(node, xsc.Element) or not node.Attrs.isallowed_xml(self.attrname):
+		if not isinstance(node, xsc.Element) or not node.Attrs.isallowed_xml(self.attrname):
 			return False
 		attr = node.attrs.get_xml(self.attrname)
 		if attr.isfancy(): # if there are PIs, say no
@@ -379,7 +376,7 @@ class attrendswith(Selector):
 		if not path:
 			return False
 		node = path[-1]
-		if not isinstance_(node, xsc.Element) or not node.Attrs.isallowed(self.attrname):
+		if not isinstance(node, xsc.Element) or not node.Attrs.isallowed(self.attrname):
 			return False
 		attr = node.attrs.get(self.attrname)
 		if attr.isfancy(): # if there are PIs, say no
@@ -399,7 +396,7 @@ class attrendswith_xml(Selector):
 		if not path:
 			return False
 		node = path[-1]
-		if not isinstance_(node, xsc.Element) or not node.Attrs.isallowed_xml(self.attrname):
+		if not isinstance(node, xsc.Element) or not node.Attrs.isallowed_xml(self.attrname):
 			return False
 		attr = node.attrs.get_xml(self.attrname)
 		if attr.isfancy(): # if there are PIs, say no
@@ -420,7 +417,7 @@ class hasid(Selector):
 	def match(self, path):
 		if path:
 			node = path[-1]
-			if isinstance_(node, xsc.Element) and node.Attrs.isallowed_xml("id"):
+			if isinstance(node, xsc.Element) and node.Attrs.isallowed_xml("id"):
 				attr = node.attrs.get_xml("id")
 				if not attr.isfancy() and unicode(attr) == self.id:
 					return True
@@ -440,7 +437,7 @@ class hasclass(Selector):
 	def match(self, path):
 		if path:
 			node = path[-1]
-			if isinstance_(node, xsc.Element) and node.Attrs.isallowed_xml("class"):
+			if isinstance(node, xsc.Element) and node.Attrs.isallowed_xml("class"):
 				attr = node.attrs.get_xml("class")
 				if not attr.isfancy() and self.classname in unicode(attr).split():
 					return True
@@ -455,7 +452,7 @@ class hasclass(Selector):
 
 class inattr(Selector):
 	def match(self, path):
-		return any(isinstance_(node, xsc.Attr) for node in path)
+		return any(isinstance(node, xsc.Attr) for node in path)
 
 	def __repr__(self):
 		return "inattr"
@@ -477,10 +474,10 @@ class BinaryCombinator(Combinator):
 
 	def __repr__(self):
 		left = repr(self.left)
-		if isinstance_(self.left, Combinator) and not isinstance_(self.left, self.__class__):
+		if isinstance(self.left, Combinator) and not isinstance(self.left, self.__class__):
 			left = "(%s)" % left
 		right = repr(self.right)
-		if isinstance_(self.right, Combinator) and not isinstance_(self.right, self.__class__):
+		if isinstance(self.right, Combinator) and not isinstance(self.right, self.__class__):
 			right = "(%s)" % right
 		return "%s%s%s" % (left, self.reprsymbol, right)
 
@@ -559,7 +556,7 @@ class ChainedCombinator(Combinator):
 		v = []
 		for selector in self.selectors:
 			s = repr(selector)
-			if isinstance_(selector, Combinator) and not isinstance_(selector, self.__class__):
+			if isinstance(selector, Combinator) and not isinstance(selector, self.__class__):
 				s = "(%s)" % s
 			v.append(s)
 		return self.reprsymbol.join(v)
@@ -593,7 +590,7 @@ class NotCombinator(Combinator):
 		return not self.selector.match(path)
 
 	def __repr__(self):
-		if isinstance_(self.selector, Combinator) and not isinstance_(self.selector, NotCombinator):
+		if isinstance(self.selector, Combinator) and not isinstance(self.selector, NotCombinator):
 			return "~(%r)" % self.selector
 		else:
 			return "~%r" % self.selector
@@ -660,7 +657,7 @@ def _is_nth_node(iterator, node, index):
 				return i % 2 == 0
 		return False
 	else:
-		if not isinstance_(index, (int, long)):
+		if not isinstance(index, (int, long)):
 			try:
 				index = int(index)
 			except ValueError:
@@ -690,7 +687,7 @@ def _is_nth_last_node(iterator, node, index):
 				pos = i
 		return pos is None or (i-pos) % 2 == 0
 	else:
-		if not isinstance_(index, (int, long)):
+		if not isinstance(index, (int, long)):
 			try:
 				index = int(index)
 			except ValueError:
@@ -706,7 +703,7 @@ def _is_nth_last_node(iterator, node, index):
 
 def _children_of_type(node, type):
 	for child in node.content:
-		if isinstance_(child, xsc.Element) and child.xmlname == type:
+		if isinstance(child, xsc.Element) and child.xmlname == type:
 			yield child
 
 
@@ -720,7 +717,7 @@ class CSSHasAttributeSelector(Selector):
 
 	def match(self, path):
 		node = path[-1]
-		if not isinstance_(node, xsc.Element) or not node.Attrs.isallowed_xml(self.attributename):
+		if not isinstance(node, xsc.Element) or not node.Attrs.isallowed_xml(self.attributename):
 			return False
 		return node.attrs.has_xml(self.attributename)
 
@@ -738,7 +735,7 @@ class CSSAttributeListSelector(Selector):
 
 	def match(self, path):
 		node = path[-1]
-		if not isinstance_(node, xsc.Element) or not node.Attrs.isallowed_xml(self.attributename):
+		if not isinstance(node, xsc.Element) or not node.Attrs.isallowed_xml(self.attributename):
 			return False
 		attr = node.attrs.get_xml(self.attributename)
 		return self.attributevalue in unicode(attr).split()
@@ -757,7 +754,7 @@ class CSSAttributeLangSelector(Selector):
 
 	def match(self, path):
 		node = path[-1]
-		if not isinstance_(node, xsc.Element) or not node.Attrs.isallowed_xml(self.attributename):
+		if not isinstance(node, xsc.Element) or not node.Attrs.isallowed_xml(self.attributename):
 			return False
 		attr = node.attrs.get_xml(self.attributename)
 		parts = unicode(attr).split("-", 1)
@@ -793,7 +790,7 @@ class CSSFirstOfTypeSelector(Selector):
 		if len(path) < 2:
 			return False
 		node = path[-1]
-		return isinstance_(node, xsc.Element) and _is_nth_node(misc.Iterator(_children_of_type(path[-2], node.xmlname)), node, 1)
+		return isinstance(node, xsc.Element) and _is_nth_node(misc.Iterator(_children_of_type(path[-2], node.xmlname)), node, 1)
 	def __str__(self):
 
 		return ":first-of-type"
@@ -804,7 +801,7 @@ class CSSLastOfTypeSelector(Selector):
 		if len(path) < 2:
 			return False
 		node = path[-1]
-		return isinstance_(node, xsc.Element) and _is_nth_last_node(misc.Iterator(_children_of_type(path[-2], node.xmlname)), node, 1)
+		return isinstance(node, xsc.Element) and _is_nth_last_node(misc.Iterator(_children_of_type(path[-2], node.xmlname)), node, 1)
 
 	def __str__(self):
 		return ":last-of-type"
@@ -829,7 +826,7 @@ class CSSOnlyOfTypeSelector(Selector):
 		if len(path) < 2:
 			return False
 		node = path[-1]
-		if not isinstance_(node, xsc.Element):
+		if not isinstance(node, xsc.Element):
 			return False
 		for child in _children_of_type(path[-2], node.xmlname):
 			if child is not node:
@@ -845,10 +842,10 @@ class CSSEmptySelector(Selector):
 		if not path:
 			return False
 		node = path[-1]
-		if not isinstance_(node, xsc.Element):
+		if not isinstance(node, xsc.Element):
 			return False
 		for child in path[-1].content:
-			if isinstance_(child, xsc.Element) or (isinstance_(child, xsc.Text) and child):
+			if isinstance(child, xsc.Element) or (isinstance(child, xsc.Text) and child):
 				return False
 		return True
 
@@ -858,7 +855,7 @@ class CSSEmptySelector(Selector):
 
 class CSSRootSelector(Selector):
 	def match(self, path):
-		return len(path) == 1 and isinstance_(path[-1], xsc.Element)
+		return len(path) == 1 and isinstance(path[-1], xsc.Element)
 
 	def __str__(self):
 		return ":root"
@@ -874,7 +871,7 @@ class CSSNthChildSelector(CSSFunctionSelector):
 		if len(path) < 2:
 			return False
 		node = path[-1]
-		if not isinstance_(node, xsc.Element):
+		if not isinstance(node, xsc.Element):
 			return False
 		return _is_nth_node(path[-2][xsc.Element], node, self.value)
 
@@ -887,7 +884,7 @@ class CSSNthLastChildSelector(CSSFunctionSelector):
 		if len(path) < 2:
 			return False
 		node = path[-1]
-		if not isinstance_(node, xsc.Element):
+		if not isinstance(node, xsc.Element):
 			return False
 		return _is_nth_last_node(path[-2][xsc.Element], node, self.value)
 
@@ -900,7 +897,7 @@ class CSSNthOfTypeSelector(CSSFunctionSelector):
 		if len(path) < 2:
 			return False
 		node = path[-1]
-		if not isinstance_(node, xsc.Element):
+		if not isinstance(node, xsc.Element):
 			return False
 		return _is_nth_node(self._children_of_type(path[-2], node.xmlname), node, self.value)
 
@@ -913,7 +910,7 @@ class CSSNthLastOfTypeSelector(CSSFunctionSelector):
 		if len(path) < 2:
 			return False
 		node = path[-1]
-		if not isinstance_(node, xsc.Element):
+		if not isinstance(node, xsc.Element):
 			return False
 		return _is_nth_last_node(self._children_of_type(path[-2], node.xmlname), node, self.value)
 
@@ -1011,14 +1008,14 @@ def css(selectors, prefixes=None):
 	may is a mapping mapping namespace prefixes to namespace names.
 	"""
 		
-	if isinstance_(selectors, basestring):
+	if isinstance(selectors, basestring):
 		if prefixes is not None:
 			prefixes = dict((key, xsc.nsname(value)) for (key, value) in prefixes.iteritems())
 			selectors = "%s\n%s{}" % ("\n".join("@namespace %s %r;" % (key if key is not None else "", value) for (key, value) in prefixes.iteritems()), selectors)
 		else:
 			selectors = "%s{}" % selectors
 		for rule in cssutils.CSSParser().parseString(selectors).cssRules:
-			if isinstance_(rule, cssstylerule.CSSStyleRule):
+			if isinstance(rule, cssstylerule.CSSStyleRule):
 				selectors = rule.selectorList
 				break
 		else:

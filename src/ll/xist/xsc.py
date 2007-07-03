@@ -642,31 +642,31 @@ class _Node_Meta(type):
 
 	def __div__(self, other):
 		from ll.xist import xfind
-		return xfind.isinstance(self) / other
+		return xfind.IsInstanceSelector(self) / other
 
 	def __floordiv__(self, other):
 		from ll.xist import xfind
-		return xfind.isinstance(self) // other
+		return xfind.IsInstanceSelector(self) // other
 
 	def __mul__(self, other):
 		from ll.xist import xfind
-		return xfind.isinstance(self) * other
+		return xfind.IsInstanceSelector(self) * other
 
 	def __pow__(self, other):
 		from ll.xist import xfind
-		return xfind.isinstance(self) ** other
+		return xfind.IsInstanceSelector(self) ** other
 
 	def __and__(self, other):
 		from ll.xist import xfind
-		return xfind.isinstance(self) & other
+		return xfind.IsInstanceSelector(self) & other
 
 	def __or__(self, other):
 		from ll.xist import xfind
-		return xfind.isinstance(self) | other
+		return xfind.IsInstanceSelector(self) | other
 
 	def __invert__(self):
 		from ll.xist import xfind
-		return xfind.NotCombinator(xfind.isinstance(self))
+		return xfind.NotCombinator(xfind.IsInstanceSelector(self))
 
 
 class Node(object):
@@ -902,7 +902,7 @@ class Node(object):
 		<par>The encoding and xhtml specification are taken from the <arg>publisher</arg>.</par>
 		"""
 
-	def bytes(self, base=None, publisher=None, **publishargs):
+	def iterbytes(self, base=None, publisher=None, **publishargs):
 		"""
 		<par>A generator that will produce this node as a serialized byte string.</par>
 
@@ -915,7 +915,7 @@ class Node(object):
 
 		return publisher.publish(self, base) # return a generator-iterator
 
-	def asBytes(self, base=None, publisher=None, **publishargs):
+	def bytes(self, base=None, publisher=None, **publishargs):
 		"""
 		<par>Return this node as a serialized byte string.</par>
 
@@ -923,7 +923,11 @@ class Node(object):
 		<pyref module="ll.xist.publishers" class="Publisher"><class>ll.xist.publishers.Publisher</class></pyref>
 		constructor.</par>
 		"""
-		return "".join(self.bytes(base, publisher, **publishargs))
+		return "".join(self.iterbytes(base, publisher, **publishargs))
+
+	def asBytes(self, base=None, publisher=None, **publishargs):
+		warnings.warn("asBytes() is deprecated, use bytes() instead", DeprecationWarning)
+		return "".join(self.iterbytes(base, publisher, **publishargs))
 
 	def asString(self, base=None, publisher=None, **publishargs):
 		"""
