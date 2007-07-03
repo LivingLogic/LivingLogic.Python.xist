@@ -84,7 +84,12 @@ def test_isinstance():
 
 
 def test_hasname():
-	pass
+	node = xfindnode()
+
+	def check(expr, res):
+		assert [str(e) for e in node.walknode(expr)] == res
+	yield check, xfind.hasname("em"), ["important", "first", "second", "important", "first", "important", "second", "important"]
+	yield check, xfind.hasname_xml("em"), ["important", "first", "second", "important", "first", "important", "second", "important"]
 
 
 def test_contains():
