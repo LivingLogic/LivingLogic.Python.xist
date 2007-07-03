@@ -86,11 +86,19 @@ class isinstance(Selector):
 			return isinstance_(path[-1], self.types)
 		return False
 
+	def __or__(self, other):
+		# If other is a type check too, combine self and other into one isinstance instance
+		if isinstance_(other, type) and issubclass(other, xsc.Node):
+			return isinstance(*(self.types + (other,)))
+		elif isinstance_(other, isinstance):
+			return isinstance(self, *other.types)
+		return Selector.__or__(self, other)
+
 	def __repr__(self):
 		if len(self.types) == 1:
 			return "%s.%s" % (self.types[0].__module__, self.types[0].__name__)
 		else:
-			return "%s(%s)" % (self.__class__.__name__, ", ".join("%s.%s" % (type.__module__, type.__name__) for type in self.types))
+			return "(%s)" % " | ".join("%s.%s" % (type.__module__, type.__name__) for type in self.types)
 
 
 class hasname(Selector):
