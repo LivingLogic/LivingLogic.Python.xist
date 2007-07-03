@@ -107,7 +107,8 @@ class hasname(Selector):
 
 	def match(self, path):
 		if path:
-			return path[-1].__class__.__name__ == self.name
+			node = path[-1]
+			return isinstance(node, (xsc.Element, xsc.ProcInst, xsc.Entity)) and node.__class__.__name__ == self.name
 		return False
 
 	def __repr__(self):
@@ -120,7 +121,8 @@ class hasname_xml(Selector):
 
 	def match(self, path):
 		if path:
-			return path[-1].xmlname == self.name
+			node = path[-1]
+			return isinstance(node, (xsc.Element, xsc.ProcInst, xsc.Entity)) and node.xmlname == self.name
 		return False
 
 	def __repr__(self):
