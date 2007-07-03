@@ -92,6 +92,18 @@ def test_hasname():
 	yield check, xfind.hasname_xml("em"), ["important", "first", "second", "important", "first", "important", "second", "important"]
 
 
+def test_is():
+	node = xfindnode()
+
+	# Frags are invisible in the path
+	res = list(node.walknode(node))
+	assert len(res) == 0
+
+	res = list(node[0].walknode(node[0]))
+	assert len(res) == 1
+	assert res[0] is node[0]
+
+
 def test_contains():
 	node = xfindnode()
 	res = list(node//xfind.is_(html.h1, html.h2)/xfind.contains(html.em))
