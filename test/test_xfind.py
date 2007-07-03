@@ -63,39 +63,28 @@ def test_levels():
 		yield check, ds[0], got, exp
 
 
-def test_hasattr():
-	node = xfindnode()
-	res = list(e.walknode(node//xfind.hasattr(html.div.Attrs.id, html.div.Attrs.align)))
-	assert len(res) == 2
-	assert res[0] is node[0]
-	assert res[1] is node[1][-1]
-
-
-def test_hasattrnamed():
-	node = xfindnode()
-	res = list(node//xfind.hasattrnamed("class_"))
-	assert len(res) == 1
-	assert res[0] is node[1]
-
-	res = list(node//xfind.hasattrnamed_xml("class"))
-	assert len(res) == 1
-	assert res[0] is node[1]
-
-
 def test_isinstance():
 	node = xfindnode()
-	res = list(node.walknode(xfind.isinstance(html.h1, html.h2)))
-	assert len(res) == 3
+	res = list(node.walknode(html.h1))
+	assert len(res) == 2
 	assert res[0] is node[0][0]
 	assert res[1] is node[1][0]
-	assert res[2] is node[1][-1][0]
 
-	node = xfindnode()
-	res = list(node.walknode(xsc.Element & ~xfind.isinstance(xsc.Text, html.p, html.div, html.em)))
-	assert len(res) == 3
-	assert res[0] is node[0][0]
-	assert res[1] is node[1][0]
-	assert res[2] is node[1][-1][0]
+	def check(res):
+		assert len(res) == 3
+		assert res[0] is node[0][0]
+		assert res[1] is node[1][0]
+		assert res[2] is node[1][-1][0]
+
+	yield check, list(node.walknode(xfind.isinstance(html.h1, html.h2)))
+	yield check, list(node.walknode(xfind.isinstance(html.h1) | html.h2))
+	yield check, list(node.walknode(html.h1 | xfind.isinstance(html.h2)))
+	yield check, list(node.walknode(html.h1 | html.h2))
+	yield check, list(node.walknode(xsc.Element & ~xfind.isinstance(xsc.Text, html.p, html.div, html.em)))
+
+
+def test_hasname():
+	pass
 
 
 def test_contains():
