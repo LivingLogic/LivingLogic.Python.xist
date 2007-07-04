@@ -116,9 +116,9 @@ def test_isroot():
 	assert res[0] is node[0]
 
 
-def test_isempty():
+def test_empty():
 	node = xfindnode()
-	res = list(node.walknode(xfind.isempty))
+	res = list(node.walknode(xfind.empty))
 	assert len(res) == 2
 	assert res[0] is node[1][0][-1]
 	assert res[1] is node[1][-1]
