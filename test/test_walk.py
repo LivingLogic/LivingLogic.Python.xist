@@ -18,27 +18,22 @@ import common
 
 def test_walk_coverage():
 	node = common.createfrag()
-	def filter(*args):
-		return (True, xsc.enterattrs, xsc.entercontent, True)
+	class Filter(xsc.WalkFilter):
+		def filter(self, path):
+			return (True, xsc.enterattrs, xsc.entercontent, True)
 
 	# call only for code coverage
-	for path in node.walk((True, xsc.entercontent, True)):
-		pass
 	for path in node.walk(filter):
 		pass
 
 
 def test_walk_result():
 	def check(node, filter, result):
-		def node2str(node):
-			if isinstance(node, xsc.Text):
-				return "#"
-			else:
-				return node.xmlname
+		filter = filter()
 		def path2str(path):
-			return ".".join(map(node2str, path))
+			return ".".join("#" if isinstance(node, xsc.Text) else node.xmlname for node in path)
 
-		assert map(path2str, node.walk(filter)) == result
+		assert map(path2str, node.walkpath(filter)) == result
 
 	node = html.div(
 		html.tr(
@@ -49,36 +44,46 @@ def test_walk_result():
 		class_=html.i("hinz")
 	)
 
-	def filtertopdown(path):
-		return (isinstance(path[-1], xsc.Element), xsc.entercontent)
-	def filterbottomup(path):
-		return (xsc.entercontent, isinstance(path[-1], xsc.Element))
-	def filtertopdownattrs(path):
-		return (isinstance(path[-1], xsc.Element), xsc.enterattrs, xsc.entercontent)
-	def filterbottomupattrs(path):
-		return (xsc.enterattrs, xsc.entercontent, isinstance(path[-1], xsc.Element))
-	def filtertopdowntextonlyinattr(path):
-		for node in path:
-			if isinstance(node, xsc.Attr):
-				inattr = True
-				break
-		else:
-			inattr = False
-		node = path[-1]
-		if isinstance(node, xsc.Element):
-			return (True, xsc.enterattrs, xsc.entercontent)
-		if inattr and isinstance(node, xsc.Text):
-			return (True, )
-		else:
-			return (xsc.entercontent, )
+	class filtertopdown(xsc.WalkFilter):
+		def filter(self, path):
+			return (isinstance(path[-1], xsc.Element), xsc.entercontent)
 
-	def filtertopdownattrwithoutcontent(path):
-		if isinstance(path[-1], xsc.Element):
-			return (True, xsc.entercontent, xsc.enterattrs)
-		elif isinstance(path[-1], (xsc.Attr, xsc.Text)):
-			return (True, )
-		else:
-			return (xsc.entercontent, )
+	class filterbottomup(xsc.WalkFilter):
+		def filter(self, path):
+			return (xsc.entercontent, isinstance(path[-1], xsc.Element))
+
+	class filtertopdownattrs(xsc.WalkFilter):
+		def filter(self, path):
+			return (isinstance(path[-1], xsc.Element), xsc.enterattrs, xsc.entercontent)
+
+	class filterbottomupattrs(xsc.WalkFilter):
+		def filter(self, path):
+			return (xsc.enterattrs, xsc.entercontent, isinstance(path[-1], xsc.Element))
+
+	class filtertopdowntextonlyinattr(xsc.WalkFilter):
+		def filter(self, path):
+			for node in path:
+				if isinstance(node, xsc.Attr):
+					inattr = True
+					break
+			else:
+				inattr = False
+			node = path[-1]
+			if isinstance(node, xsc.Element):
+				return (True, xsc.enterattrs, xsc.entercontent)
+			if inattr and isinstance(node, xsc.Text):
+				return (True, )
+			else:
+				return (xsc.entercontent, )
+
+	class filtertopdownattrwithoutcontent(xsc.WalkFilter):
+		def filter(self, path):
+			if isinstance(path[-1], xsc.Element):
+				return (True, xsc.entercontent, xsc.enterattrs)
+			elif isinstance(path[-1], (xsc.Attr, xsc.Text)):
+				return (True, )
+			else:
+				return (xsc.entercontent, )
 
 	yield check, node, filtertopdown, ["div", "div.tr", "div.tr.th", "div.tr.td"]
 	yield check, node, filterbottomup, ["div.tr.th", "div.tr.td", "div.tr", "div"]
