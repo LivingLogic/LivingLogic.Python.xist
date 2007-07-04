@@ -176,6 +176,70 @@ def test_hasattr():
 	assert res[2] is node[1][3]
 
 
+def test_attrhasvalue():
+	node = xfindnode()
+
+	def check(attrname, attrvalue, expected):
+		for selector in (xfind.attrhasvalue, xfind.attrhasvalue_xml):
+			got = list(node.walknode(selector(attrname, attrvalue)))
+			assert len(got) == len(expected)
+			for (gotnode, expectednode) in zip(got, expected):
+				assert gotnode is expectednode
+
+	yield check, "align", "left", [node[0]]
+	yield check, html.div.Attrs.align, "left", [node[0]]
+	yield check, "align", "right", []
+	yield check, "gurk", "hurz", []
+
+
+def test_attrcontains():
+	node = xfindnode()
+
+	def check(attrname, attrvalue, expected):
+		for selector in (xfind.attrcontains, xfind.attrcontains_xml):
+			got = list(node.walknode(selector(attrname, attrvalue)))
+			assert len(got) == len(expected)
+			for (gotnode, expectednode) in zip(got, expected):
+				assert gotnode is expectednode
+
+	yield check, "align", "ef", [node[0]]
+	yield check, html.div.Attrs.align, "ef", [node[0]]
+	yield check, "align", "x", []
+	yield check, "gurk", "", []
+
+
+def test_attrstartswith():
+	node = xfindnode()
+
+	def check(attrname, attrvalue, expected):
+		for selector in (xfind.attrstartswith, xfind.attrstartswith_xml):
+			got = list(node.walknode(selector(attrname, attrvalue)))
+			assert len(got) == len(expected)
+			for (gotnode, expectednode) in zip(got, expected):
+				assert gotnode is expectednode
+
+	yield check, "align", "le", [node[0]]
+	yield check, html.div.Attrs.align, "le", [node[0]]
+	yield check, "align", "eft", []
+	yield check, "gurk", "", []
+
+
+def test_attrendswith():
+	node = xfindnode()
+
+	def check(attrname, attrvalue, expected):
+		for selector in (xfind.attrendswith, xfind.attrendswith_xml):
+			got = list(node.walknode(selector(attrname, attrvalue)))
+			assert len(got) == len(expected)
+			for (gotnode, expectednode) in zip(got, expected):
+				assert gotnode is expectednode
+
+	yield check, "align", "ft", [node[0]]
+	yield check, html.div.Attrs.align, "ft", [node[0]]
+	yield check, "align", "lef", []
+	yield check, "gurk", "", []
+
+
 def test_hasid():
 	node = xfindnode()
 	res = list(node.walknode(xfind.hasid("id42")))
