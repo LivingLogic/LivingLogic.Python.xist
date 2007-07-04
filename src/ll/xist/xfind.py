@@ -9,7 +9,78 @@
 ## See xist/__init__.py for the license
 
 """
-This module contains XFind and CSS walk filters and related classes and functions.
+<par>This module contains XFind and CSS selectors and related classes and functions.</par>
+
+<par>A selector is a &xist; tree traversal filter that traverses the complete
+&xml; tree and outputs those nodes specified by the selector. Selectors can
+be combined with various operations and form a language comparable to
+<link href="http://www.w3.org/TR/xpath">XPath</link> but implemented as Python
+expressions. The following code shows some
+examples. First lets define some support code:</par>
+
+<example><title>Support code (put in <filename>help.py</filename>)</title>
+<prog>
+from ll.xist import xsc, xfind, parsers
+from ll.xist.ns import html
+
+node = parsers.parseURL("http://www.python.org", tidy=True)
+
+def output(selector):
+	for n in node.walknode(selector):
+		print n.bytes()
+</prog>
+</example>
+
+<par>We can now use this code in a Python session via <lit>from help import *</lit>.</par>
+
+<tty>
+<prompt>>>> </prompt><input>output(html.a) # all a elements</input>
+<![CDATA[<a id="logolink" href="/" accesskey="1"><img src="/images/python-logo.gif" alt="homepage" id="logo" border="0" /></a>
+<a accesskey="2" href="#left%2dhand%2dnavigation"><img id="skiptonav" alt="skip to navigation" src="/images/trans.gif" border="0" /></a>
+<a accesskey="3" href="#content%2dbody"><img id="skiptocontent" alt="skip to content" src="/images/trans.gif" border="0" /></a>
+<a class="reference" href="/search">Advanced Search</a>
+<a title="About The Python Language" href="/about/">About</a>
+]]><rep>...</rep>
+
+<prompt>>>> </prompt><input>output(html.a/html.img) # images children of a elements</input>
+<![CDATA[<img src="/images/python-logo.gif" alt="homepage" id="logo" border="0" />
+<img id="skiptonav" alt="skip to navigation" src="/images/trans.gif" border="0" />
+<img id="skiptocontent" alt="skip to content" src="/images/trans.gif" border="0" />
+<img alt="success story photo" class="success" src="/images/success/nasa.jpg" />]]>
+
+<prompt>>>> </prompt><input>output(html.ul//html.a) # a descendant of ul elements</input>
+<![CDATA[<a title="About The Python Language" href="/about/">About</a>
+<a title="Major Happenings Within the Python Community" href="/news/">News</a>
+<a title="Tutorials, Library Reference, C API" href="/doc/">Documentation</a>]]>
+
+<prompt>>>> </prompt><input>output(html.img & xfind.attrendswith("src", ".jpg")) # JPEG images</input>
+<![CDATA[<img alt="success story photo" class="success" src="/images/success/nasa.jpg" />]]>
+
+<prompt>>>> </prompt><input>output(html.img & ~xfind.hasattr("title")) # All images without a title attribute</input>
+<![CDATA[<img src="/images/python-logo.gif" border="0" id="logo" alt="homepage" />
+<img id="skiptonav" border="0" src="/images/trans.gif" alt="skip to navigation" />
+<img id="skiptocontent" border="0" src="/images/trans.gif" alt="skip to content" />
+<img alt="success story photo" src="/images/success/nasa.jpg" class="success" />]]>
+
+<prompt>>>> </prompt><input>output(html.a & xfind.hasclass("reference")) # Links with 'reference' class</input>
+<![CDATA[<a class="reference" href="/search">Advanced Search</a>
+<a href="about/success/rackspace" class="reference">Rackspace</a>
+<a href="about/success/ilm" class="reference">Industrial Light and Magic</a>]]>
+
+<prompt>>>> </prompt><input>output(html.a & xfind.hasclass('reference')) # Links with 'reference' class</input>
+<![CDATA[<a class="reference" href="/search">Advanced Search</a>
+<a href="about/success/rackspace" class="reference">Rackspace</a>
+<a href="about/success/ilm" class="reference">Industrial Light and Magic</a>]]>
+
+<prompt>>>> </prompt><input>output(html.ul/html.li[0]) # Every li element that is the first li child of its ul parent</input>
+<![CDATA[<li>
+          <a title="About The Python Language" href="/about/">About</a>
+        </li>
+<li><a title="Manuals for Latest Stable Release" href="http://docs.python.org/">Documentation</a></li>
+<li class="group"><a href="http://wiki.python.org/moin/WebProgramming">Web Programming</a></li>]]>
+
+
+</prog>
 """
 
 __version__ = "$Revision$".split()[1]
@@ -46,7 +117,8 @@ class Selector(xsc.WalkFilter):
 	"""
 	Base class for all tree traversal filters that visit the complete tree.
 	Whether a node get output can be specified by overwriting the
-	<method>match</method> method.
+	<method>match</method> method. Selectors can be compined with various
+	operations (see methods below).
 	"""
 
 	@misc.notimplemented
