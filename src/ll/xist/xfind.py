@@ -116,7 +116,7 @@ def makewalkfilter(obj):
 class Selector(xsc.WalkFilter):
 	"""
 	Base class for all tree traversal filters that visit the complete tree.
-	Whether a node get output can be specified by overwriting the
+	Whether a node gets output can be specified by overwriting the
 	<method>match</method> method. Selectors can be compined with various
 	operations (see methods below).
 	"""
