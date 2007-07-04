@@ -245,15 +245,13 @@ class attrhasvalue(Selector):
 		self.attrvalue = attrvalue
 
 	def match(self, path):
-		if not path:
-			return False
-		node = path[-1]
-		if not isinstance(node, xsc.Element) or not node.Attrs.isallowed(self.attrname):
-			return False
-		attr = node.attrs.get(self.attrname)
-		if attr.isfancy(): # if there are PIs, say no
-			return False
-		return unicode(attr) == self.attrvalue
+		if path:
+			node = path[-1]
+			if isinstance(node, xsc.Element) and node.Attrs.isallowed(self.attrname):
+				attr = node.attrs.get(self.attrname)
+				if not attr.isfancy(): # if there are PIs, say no
+					return unicode(attr) == self.attrvalue
+		return False
 
 	def __repr__(self):
 		return "%s(%r, %r)" % (self.__class__.__name__, self.attrname, self.attrvalue)
@@ -265,15 +263,13 @@ class attrhasvalue_xml(Selector):
 		self.attrvalue = attrvalue
 
 	def match(self, path):
-		if not path:
-			return False
-		node = path[-1]
-		if not isinstance(node, xsc.Element) or not node.Attrs.isallowed_xml(self.attrname):
-			return False
-		attr = node.attrs.get_xml(self.attrname)
-		if attr.isfancy(): # if there are PIs, say no
-			return False
-		return unicode(attr) == self.attrvalue
+		if path:
+			node = path[-1]
+			if isinstance(node, xsc.Element) and node.Attrs.isallowed_xml(self.attrname):
+				attr = node.attrs.get_xml(self.attrname)
+				if not attr.isfancy(): # if there are PIs, say no
+					return unicode(attr) == self.attrvalue
+		return False
 
 	def __repr__(self):
 		return "%s(%r, %r)" % (self.__class__.__name__, self.attrname, self.attrvalue)
@@ -288,15 +284,13 @@ class attrcontains(Selector):
 		self.attrvalue = attrvalue
 
 	def match(self, path):
-		if not path:
-			return False
-		node = path[-1]
-		if not isinstance(node, xsc.Element) or not node.Attrs.isallowed(self.attrname):
-			return False
-		attr = node.attrs.get(self.attrname)
-		if attr.isfancy(): # if there are PIs, say no
-			return False
-		return self.attrvalue in unicode(attr)
+		if path:
+			node = path[-1]
+			if isinstance(node, xsc.Element) and node.Attrs.isallowed(self.attrname):
+				attr = node.attrs.get(self.attrname)
+				if not attr.isfancy(): # if there are PIs, say no
+					return self.attrvalue in unicode(attr)
+		return False
 
 	def __repr__(self):
 		return "%s(%r, %r)" % (self.__class__.__name__, self.attrname, self.attrvalue)
@@ -308,15 +302,13 @@ class attrcontains_xml(Selector):
 		self.attrvalue = attrvalue
 
 	def match(self, path):
-		if not path:
-			return False
-		node = path[-1]
-		if not isinstance(node, xsc.Element) or not node.Attrs.isallowed_xml(self.attrname):
-			return False
-		attr = node.attrs.get_xml(self.attrname)
-		if attr.isfancy(): # if there are PIs, say no
-			return False
-		return self.attrvalue in unicode(attr)
+		if path:
+			node = path[-1]
+			if isinstance(node, xsc.Element) and node.Attrs.isallowed_xml(self.attrname):
+				attr = node.attrs.get_xml(self.attrname)
+				if not attr.isfancy(): # if there are PIs, say no
+					return self.attrvalue in unicode(attr)
+		return False
 
 	def __repr__(self):
 		return "%s(%r, %r)" % (self.__class__.__name__, self.attrname, self.attrvalue)
@@ -331,15 +323,13 @@ class attrstartswith(Selector):
 		self.attrvalue = attrvalue
 
 	def match(self, path):
-		if not path:
-			return False
-		node = path[-1]
-		if not isinstance(node, xsc.Element) or not node.Attrs.isallowed(self.attrname):
-			return False
-		attr = node.attrs.get(self.attrname)
-		if attr.isfancy(): # if there are PIs, say no
-			return False
-		return unicode(attr).startswith(self.attrvalue)
+		if path:
+			node = path[-1]
+			if isinstance(node, xsc.Element) and node.Attrs.isallowed(self.attrname):
+				attr = node.attrs.get(self.attrname)
+				if not attr.isfancy(): # if there are PIs, say no
+					return unicode(attr).startswith(self.attrvalue)
+		return False
 
 	def __repr__(self):
 		return "%s(%r, %r)" % (self.__class__.__name__, self.attrname, self.attrvalue)
@@ -351,15 +341,13 @@ class attrstartswith_xml(Selector):
 		self.attrvalue = attrvalue
 
 	def match(self, path):
-		if not path:
-			return False
-		node = path[-1]
-		if not isinstance(node, xsc.Element) or not node.Attrs.isallowed_xml(self.attrname):
-			return False
-		attr = node.attrs.get_xml(self.attrname)
-		if attr.isfancy(): # if there are PIs, say no
-			return False
-		return unicode(attr).startswith(self.attrvalue)
+		if path:
+			node = path[-1]
+			if isinstance(node, xsc.Element) and node.Attrs.isallowed_xml(self.attrname):
+				attr = node.attrs.get_xml(self.attrname)
+				if not attr.isfancy(): # if there are PIs, say no
+					return unicode(attr).startswith(self.attrvalue)
+		return False
 
 	def __repr__(self):
 		return "%s(%r, %r)" % (self.__class__.__name__, self.attrname, self.attrvalue)
@@ -374,15 +362,13 @@ class attrendswith(Selector):
 		self.attrvalue = attrvalue
 
 	def match(self, path):
-		if not path:
-			return False
-		node = path[-1]
-		if not isinstance(node, xsc.Element) or not node.Attrs.isallowed(self.attrname):
-			return False
-		attr = node.attrs.get(self.attrname)
-		if attr.isfancy(): # if there are PIs, say no
-			return False
-		return unicode(attr).endswith(self.attrvalue)
+		if path:
+			node = path[-1]
+			if isinstance(node, xsc.Element) and node.Attrs.isallowed(self.attrname):
+				attr = node.attrs.get(self.attrname)
+				if not attr.isfancy(): # if there are PIs, say no
+					return unicode(attr).endswith(self.attrvalue)
+		return False
 
 	def __repr__(self):
 		return "%s(%r, %r)" % (self.__class__.__name__, self.attrname, self.attrvalue)
@@ -394,15 +380,13 @@ class attrendswith_xml(Selector):
 		self.attrvalue = attrvalue
 
 	def match(self, path):
-		if not path:
-			return False
-		node = path[-1]
-		if not isinstance(node, xsc.Element) or not node.Attrs.isallowed_xml(self.attrname):
-			return False
-		attr = node.attrs.get_xml(self.attrname)
-		if attr.isfancy(): # if there are PIs, say no
-			return False
-		return unicode(attr).startswith(self.attrvalue)
+		if path:
+			node = path[-1]
+			if isinstance(node, xsc.Element) and node.Attrs.isallowed_xml(self.attrname):
+				attr = node.attrs.get_xml(self.attrname)
+				if not attr.isfancy(): # if there are PIs, say no
+					return unicode(attr).startswith(self.attrvalue)
+		return False
 
 	def __repr__(self):
 		return "%s(%r, %r)" % (self.__class__.__name__, self.attrname, self.attrvalue)
@@ -420,8 +404,8 @@ class hasid(Selector):
 			node = path[-1]
 			if isinstance(node, xsc.Element) and node.Attrs.isallowed_xml("id"):
 				attr = node.attrs.get_xml("id")
-				if not attr.isfancy() and unicode(attr) == self.id:
-					return True
+				if not attr.isfancy():
+					return unicode(attr) == self.id
 		return False
 
 	def __repr__(self):
@@ -440,8 +424,8 @@ class hasclass(Selector):
 			node = path[-1]
 			if isinstance(node, xsc.Element) and node.Attrs.isallowed_xml("class"):
 				attr = node.attrs.get_xml("class")
-				if not attr.isfancy() and self.classname in unicode(attr).split():
-					return True
+				if not attr.isfancy():
+					return self.classname in unicode(attr).split()
 		return False
 
 	def __repr__(self):
@@ -613,17 +597,17 @@ class nthchild(Selector):
 		self.index = index
 
 	def match(self, path):
-		if len(path) < 2:
-			return False
-		if self.index in ("even", "odd"):
-			for (i, child) in enumerate(path[-2]):
-				if child is path[-1]:
-					return (i % 2) == (self.index == "odd")
-			return False # can't happen
-		try:
-			return path[-2][self.index] is path[-1]
-		except IndexError:
-			return False
+		if len(path) >= 2:
+			if self.index in ("even", "odd"):
+				for (i, child) in enumerate(path[-2]):
+					if child is path[-1]:
+						return (i % 2) == (self.index == "odd")
+			else:
+				try:
+					return path[-2][self.index] is path[-1]
+				except IndexError:
+					return False
+		return False
 
 	def __repr__(self):
 		return "%s(%r)" % (self.__class__.__name__, self.index)
@@ -641,18 +625,17 @@ class nthoftype(Selector):
 				yield child
 
 	def match(self, path):
-		if len(path) < 2:
-			return False
-		if self.index in ("even", "odd"):
-			for (i, child) in enumerate(self._find(path)):
-				if child is path[-1]:
-					return (i % 2) == (self.index == "odd")
-			return False
-		else:
-			try:
-				return misc.item(self._find(path), self.index) is path[-1]
-			except IndexError:
-				return False
+		if len(path) >= 2:
+			if self.index in ("even", "odd"):
+				for (i, child) in enumerate(self._find(path)):
+					if child is path[-1]:
+						return (i % 2) == (self.index == "odd")
+			else:
+				try:
+					return misc.item(self._find(path), self.index) is path[-1]
+				except IndexError:
+					return False
+		return False
 
 	def __repr__(self):
 		if self.types:
