@@ -57,22 +57,22 @@ class Selector(xsc.WalkFilter):
 		return (True, xsc.entercontent, xsc.enterattrs) if self.match(path) else (xsc.entercontent, xsc.enterattrs)
 
 	def __div__(self, other):
-		return ChildCombinator(self, makeselector(other))
+		return ChildCombinator(self, makewalkfilter(other))
 
 	def __floordiv__(self, other):
-		return DescendantCombinator(self, makeselector(other))
+		return DescendantCombinator(self, makewalkfilter(other))
 
 	def __mul__(self, other):
-		return AdjacentSiblingCombinator(self, makeselector(other))
+		return AdjacentSiblingCombinator(self, makewalkfilter(other))
 
 	def __pow__(self, other):
-		return GeneralSiblingCombinator(self, makeselector(other))
+		return GeneralSiblingCombinator(self, makewalkfilter(other))
 
 	def __and__(self, other):
-		return AndCombinator(self, makeselector(other))
+		return AndCombinator(self, makewalkfilter(other))
 
 	def __or__(self, other):
-		return OrCombinator(self, makeselector(other))
+		return OrCombinator(self, makewalkfilter(other))
 
 	def __invert__(self):
 		return NotCombinator(self)
@@ -94,6 +94,9 @@ class IsInstanceSelector(Selector):
 		elif isinstance(other, IsInstanceSelector):
 			return IsInstanceSelector(*(self.types+other.types))
 		return Selector.__or__(self, other)
+
+	def __getitem__(self, index):
+		return nthoftype(index, *self.types)
 
 	def __repr__(self):
 		if len(self.types) == 1:
