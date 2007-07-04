@@ -202,12 +202,12 @@ def test_itemsslices():
 	ds[3].append(ds[6], ds[7])
 
 	tests = [
-		(ds[0]/(html.div & xfind.nthchild(0))/(html.div & xfind.nthchild(-1)), "5"),
-		(ds[0]/html.div/(html.div & xfind.nthchild(-1)), "567"),
-		(ds[0]/(html.div & xfind.nthchild(-1))/html.div, "67"),
-		(ds[0]/(html.div/html.div), "455667"), # we get 5 and 6 twice
-		(ds[0]/(html.div/html.div) & xfind.nthchild(2), "5"), # we get 5 and 6 twice
-		(ds[0]/html.div[:]/html.div[:], "455667"),
+		(ds[0]/html.div[0]/html.div[-1], "5"),
+		(ds[0]/html.div/html.div[-1], "567"),
+		(ds[0]/html.div[-1]/html.div, "67"),
+		(ds[0]/html.div/html.div, "455667"), # we get 5 and 6 twice
+		#(ds[0]/(html.div/html.div) & xfind.nthchild(2), "5"), # we get 5 and 6 twice
+		#(ds[0]/html.div[:]/html.div[:], "455667"),
 		(ds[0]/html.div/html.p[0], ""),
 		(ds[0]/html.p[0]/html.p[0], ""),
 	
@@ -216,13 +216,9 @@ def test_itemsslices():
 		# div(id=0) does have div children and those will be yielded.
 		# This is why the sequence starts with "12" and not "14"
 		(ds[0]//html.div, "123455667"),
-	
-		(ds[0]/html.div[1:2], "2"),
-		(ds[0]/html.div[1:-1]/html.div[1:-1], ""),
-		(ds[0]/html.div[1:-1]/html.div[-1:], "6"),
 	]
 	for (got, exp) in tests:
-		yield check, node, got, exp
+		yield check, ds[0], got, exp
 
 
 def test_item():
