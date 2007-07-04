@@ -385,7 +385,7 @@ class attrendswith_xml(Selector):
 			if isinstance(node, xsc.Element) and node.Attrs.isallowed_xml(self.attrname):
 				attr = node.attrs.get_xml(self.attrname)
 				if not attr.isfancy(): # if there are PIs, say no
-					return unicode(attr).startswith(self.attrvalue)
+					return unicode(attr).endswith(self.attrvalue)
 		return False
 
 	def __repr__(self):
