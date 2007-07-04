@@ -48,7 +48,7 @@ def output(selector):
 <img id="skiptocontent" alt="skip to content" src="/images/trans.gif" border="0" />
 <img alt="success story photo" class="success" src="/images/success/nasa.jpg" />]]>
 
-<prompt>>>> </prompt><input>output(html.ul//html.a) # a descendant of ul elements</input>
+<prompt>>>> </prompt><input>output(html.ul//html.a) # a descendants of ul elements</input>
 <![CDATA[<a title="About The Python Language" href="/about/">About</a>
 <a title="Major Happenings Within the Python Community" href="/news/">News</a>
 <a title="Tutorials, Library Reference, C API" href="/doc/">Documentation</a>]]>
