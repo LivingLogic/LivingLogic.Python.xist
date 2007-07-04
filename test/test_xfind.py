@@ -210,12 +210,7 @@ def test_itemsslices():
 		#(ds[0]/html.div[:]/html.div[:], "455667"),
 		(ds[0]/html.div/html.p[0], ""),
 		(ds[0]/html.p[0]/html.p[0], ""),
-	
-		# The following might be a surprise, but is perfectly normal:
-		# each node is visited and the div children are yielded.
-		# div(id=0) does have div children and those will be yielded.
-		# This is why the sequence starts with "12" and not "14"
-		(ds[0]//html.div, "123455667"),
+		(ds[0]//html.div, "145256367"),
 	]
 	for (got, exp) in tests:
 		yield check, ds[0], got, exp
