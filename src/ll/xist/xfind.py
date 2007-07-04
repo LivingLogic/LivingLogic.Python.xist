@@ -615,6 +615,11 @@ class nthchild(Selector):
 		if len(path) < 2:
 			return False
 		try:
+			if self.index in ("even", "odd"):
+				for (i, child) in enumerate(path[-2]):
+					if child is path[-1]:
+						return (i % 2) == (self.index == "odd")
+				return False # can't happen
 			return path[-2][self.index] is path[-1]
 		except IndexError:
 			return False
@@ -624,19 +629,38 @@ class nthchild(Selector):
 
 
 class nthoftype(Selector):
-	def __init__(self, index):
+	def __init__(self, index, *types):
 		self.index = index
+		self.types = types
 
 	def match(self, path):
 		if len(path) < 2:
 			return False
 		try:
-			return path[-2][path[-1].__class__][self.index] is path[-1]
+			types = self.types if self.types else path[-1].__class__
+			if self.index in ("even", "odd"):
+				i = 0
+				for child in path[-2]:
+					if isinstance(child, types):
+						if child is path[-1]:
+							return (i % 2) == (self.index == "odd")
+						i += 1
+			else:
+				i = 0
+				for child in path[-2]:
+					if isinstance(child, types):
+						if child is path[-1]:
+							return i == self.index
+						i += 1
+			return False
 		except IndexError:
 			return False
 
 	def __repr__(self):
-		return "%s(%r)" % (self.__class__.__name__, self.index)
+		if self.types:
+			return "%s(%r, %s)" % (self.__class__.__name__, self.index, ", ".join("%s.%s" % (type.__module__, type.__name__) for type in self.types))
+		else:
+			return "%s(%r)" % (self.__class__.__name__, self.index)
 
 
 ###
