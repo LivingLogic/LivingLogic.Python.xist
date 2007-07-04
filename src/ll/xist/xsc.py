@@ -80,7 +80,7 @@ def tonode(value):
 		return Frag(*value)
 	elif isinstance(value, url_.URL):
 		return Text(value)
-	else:
+	elif not isinstance(value, _Node_Meta): # avoid Node classes (whose __getitem__() returns an xfind selector)
 		# Maybe it's an iterator/generator?
 		try:
 			return Frag(*list(value))
@@ -663,6 +663,10 @@ class _Node_Meta(type):
 	def __or__(self, other):
 		from ll.xist import xfind
 		return xfind.IsInstanceSelector(self) | other
+
+	def __getitem__(self, index):
+		from ll.xist import xfind
+		return xfind.nthoftype(index, self)
 
 	def __invert__(self):
 		from ll.xist import xfind
@@ -1506,7 +1510,7 @@ class Frag(Node, list):
 			for subindex in index:
 				node = node[subindex]
 			return node
-		elif isinstance(index, type) and issubclass(index, Node):
+		elif isinstance(index, _Node_Meta):
 			def iterate(self, index):
 				for child in self:
 					if isinstance(child, index):
@@ -2194,7 +2198,7 @@ class _Attrs_Meta(Node.__metaclass__):
 		# go through the attributes and register them in the cache
 		for key in dir(self):
 			value = getattr(self, key)
-			if isinstance(value, type) and issubclass(value, Attr):
+			if isinstance(value, _Attr_Meta):
 				self.add(value)
 		return self
 
@@ -2717,7 +2721,7 @@ def _patchclassnames(dict, name):
 	else:
 		attrs.__fullname__ = "%s.Attrs" % name
 		for (key, value) in attrs.__dict__.iteritems():
-			if isinstance(value, type) and issubclass(value, Attr):
+			if isinstance(value, _Attr_Meta):
 				value.__fullname__ = "%s.%s" % (name, value.__fullname__)
 
 	# If a Context has been provided patch up its class names
@@ -3007,11 +3011,10 @@ class Element(Node):
 			for subindex in index:
 				node = node[subindex]
 			return node
-		elif isinstance(index, type):
-			if issubclass(index, Node):
-				if issubclass(index, Attr):
-					return self.attrs[index]
-				return self.content[index]
+		elif isinstance(index, _Attr_Meta):
+			return self.attrs[index]
+		elif isinstance(index, _Node_Meta):
+			return self.content[index]
 		elif isinstance(index, (int, long)):
 			return self.content[index]
 		elif isinstance(index, slice):

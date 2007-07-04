@@ -29,7 +29,7 @@ from ll.xist import xsc
 
 def makeselector(obj):
 	if not isinstance(obj, xsc.WalkFilter):
-		if isinstance(obj, type) and issubclass(obj, xsc.Node):
+		if isinstance(obj, xsc._Node_Meta):
 			obj = IsInstanceSelector(obj)
 		elif isinstance(obj, xsc.Node):
 			obj = IsSelector(obj)
@@ -87,7 +87,7 @@ class IsInstanceSelector(Selector):
 
 	def __or__(self, other):
 		# If other is a type check too, combine self and other into one isinstance instance
-		if isinstance(other, type) and issubclass(other, xsc.Node):
+		if isinstance(other, xsc._Node_Meta):
 			return IsInstanceSelector(*(self.types + (other,)))
 		elif isinstance(other, IsInstanceSelector):
 			return IsInstanceSelector(*(self.types+other.types))

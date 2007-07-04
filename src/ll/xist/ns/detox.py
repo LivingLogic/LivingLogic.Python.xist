@@ -209,7 +209,7 @@ class end(xsc.ProcInst):
 
 
 # The name of al available processing instructions
-targets = set(value.xmlname for value in vars().itervalues() if isinstance(value, type) and issubclass(value, xsc.ProcInst))
+targets = set(value.xmlname for value in vars().itervalues() if isinstance(value, xsc._ProcInst_Meta))
 
 
 def tokenize(string):

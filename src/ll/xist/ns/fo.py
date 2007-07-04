@@ -2135,12 +2135,12 @@ def fixattributesandmodel(element):
 varitems = vars().items()
 
 for (key, value) in varitems:
-	if isinstance(value, type) and issubclass(value, xsc.Element):
+	if isinstance(value, xsc._Element_Meta):
 		fixattributesandmodel(value)
 
 # make sure, we assigned a model to every element
 for (key, value) in varitems:
-	if isinstance(value, type) and issubclass(value, xsc.Element):
+	if isinstance(value, xsc._Element_Meta):
 		assert value.model is not None
 
 # don't pollute the namespace
