@@ -23,7 +23,7 @@ def test_walk_coverage():
 			return (True, xsc.enterattrs, xsc.entercontent, True)
 
 	# call only for code coverage
-	for path in node.walk(filter):
+	for path in node.walk(Filter()):
 		pass
 
 

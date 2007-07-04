@@ -37,6 +37,7 @@ def xfindnode():
 			html.div(id="id23"),
 			class_="foo",
 		),
+		html.p(html.em("only")),
 	)
 
 
@@ -89,8 +90,8 @@ def test_hasname():
 
 	def check(expr, res):
 		assert [str(e) for e in node.walknode(expr)] == res
-	yield check, xfind.hasname("em"), ["important", "first", "second", "important", "first", "important", "second", "important"]
-	yield check, xfind.hasname_xml("em"), ["important", "first", "second", "important", "first", "important", "second", "important"]
+	yield check, xfind.hasname("em"), ["important", "first", "second", "important", "first", "important", "second", "important", "only"]
+	yield check, xfind.hasname_xml("em"), ["important", "first", "second", "important", "first", "important", "second", "important", "only"]
 
 
 def test_is():
@@ -123,6 +124,30 @@ def test_empty():
 	assert len(res) == 2
 	assert res[0] is node[1][0][-1]
 	assert res[1] is node[1][-1]
+
+
+def test_onlychild():
+	node = xfindnode()
+	res = list(node.walknode(xfind.onlychild & html.em))
+	assert len(res) == 1
+	assert res[0] is node[2][0]
+
+
+def test_onlyoftype():
+	node = xfindnode()
+	res = list(node.walknode(xfind.onlyoftype & html.h1))
+	assert len(res) == 2
+	assert res[0] is node[0][0]
+	assert res[1] is node[1][0]
+
+	res = list(node.walknode(xfind.onlyoftype & html.div))
+	assert len(res) == 0
+
+	res = list(node.walknode(xfind.onlyoftype & html.p))
+	assert len(res) == 3
+	assert res[0] is node[1][1]
+	assert res[1] is node[1][2][1]
+	assert res[2] is node[2]
 
 
 def test_hasattr():
