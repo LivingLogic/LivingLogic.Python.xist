@@ -1017,7 +1017,7 @@ class Node(object):
 		of the list being the same across calls to <method>next</method>.</par>
 		"""
 		from ll.xist import xfind
-		filter = xfind.makeselector(filter)
+		filter = xfind.makewalkfilter(filter)
 		return self._walk(filter, [self])
 
 	def walknode(self, filter=(True, entercontent)):
@@ -1027,7 +1027,7 @@ class Node(object):
 		The items produced by the iterator are the nodes themselves.
 		"""
 		from ll.xist import xfind
-		filter = xfind.makeselector(filter)
+		filter = xfind.makewalkfilter(filter)
 		def iterate(path):
 			for path in self._walk(filter, path):
 				yield path[-1]
@@ -1040,7 +1040,7 @@ class Node(object):
 		The items produced by the iterator are copies of the path.
 		"""
 		from ll.xist import xfind
-		filter = xfind.makeselector(filter)
+		filter = xfind.makewalkfilter(filter)
 		def iterate(path):
 			for path in self._walk(filter, path):
 				yield path[:]

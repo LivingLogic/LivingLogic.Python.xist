@@ -27,7 +27,7 @@ from ll import misc
 from ll.xist import xsc
 
 
-def makeselector(obj):
+def makewalkfilter(obj):
 	if not isinstance(obj, xsc.WalkFilter):
 		if isinstance(obj, xsc._Node_Meta):
 			obj = IsInstanceSelector(obj)
@@ -35,8 +35,10 @@ def makeselector(obj):
 			obj = IsSelector(obj)
 		elif callable(obj):
 			obj = CallableSelector(obj)
-		else:
+		elif isinstance(obj, tuple):
 			obj = xsc.ConstantWalkFilter(obj)
+		else:
+			raise TypeError("can't convert %r to selector" % obj)
 	return obj
 
 
@@ -614,12 +616,12 @@ class nthchild(Selector):
 	def match(self, path):
 		if len(path) < 2:
 			return False
+		if self.index in ("even", "odd"):
+			for (i, child) in enumerate(path[-2]):
+				if child is path[-1]:
+					return (i % 2) == (self.index == "odd")
+			return False # can't happen
 		try:
-			if self.index in ("even", "odd"):
-				for (i, child) in enumerate(path[-2]):
-					if child is path[-1]:
-						return (i % 2) == (self.index == "odd")
-				return False # can't happen
 			return path[-2][self.index] is path[-1]
 		except IndexError:
 			return False
@@ -633,28 +635,25 @@ class nthoftype(Selector):
 		self.index = index
 		self.types = types
 
+	def _find(self, path):
+		types = self.types if self.types else path[-1].__class__
+		for child in path[-2]:
+			if isinstance(child, types):
+				yield child
+
 	def match(self, path):
 		if len(path) < 2:
 			return False
-		try:
-			types = self.types if self.types else path[-1].__class__
-			if self.index in ("even", "odd"):
-				i = 0
-				for child in path[-2]:
-					if isinstance(child, types):
-						if child is path[-1]:
-							return (i % 2) == (self.index == "odd")
-						i += 1
-			else:
-				i = 0
-				for child in path[-2]:
-					if isinstance(child, types):
-						if child is path[-1]:
-							return i == self.index
-						i += 1
+		if self.index in ("even", "odd"):
+			for (i, child) in enumerate(self._find(path)):
+				if child is path[-1]:
+					return (i % 2) == (self.index == "odd")
 			return False
-		except IndexError:
-			return False
+		else:
+			try:
+				return misc.item(self._find(path), self.index) is path[-1]
+			except IndexError:
+				return False
 
 	def __repr__(self):
 		if self.types:
