@@ -155,7 +155,7 @@ class isroot(Selector):
 isroot = isroot()
 
 
-class isempty(Selector):
+class empty(Selector):
 	def match(self, path):
 		if path:
 			node = path[-1]
@@ -164,13 +164,13 @@ class isempty(Selector):
 		return False
 
 	def __repr__(self):
-		return "isempty"
+		return "empty"
 
 
-isempty = isempty()
+empty = empty()
 
 
-class isonlychild(Selector):
+class onlychild(Selector):
 	def match(self, path):
 		if len(path) >= 2:
 			parent = path[-2]
@@ -179,13 +179,13 @@ class isonlychild(Selector):
 		return False
 
 	def __repr__(self):
-		return "isonlychild"
+		return "onlychild"
 
 
-isonlychild = isonlychild()
+onlychild = onlychild()
 
 
-class isonlyoftype(Selector):
+class onlyoftype(Selector):
 	def match(self, path):
 		if len(path) < 2:
 			return False
@@ -200,10 +200,10 @@ class isonlyoftype(Selector):
 		return True
 
 	def __repr__(self):
-		return "isonlyoftype"
+		return "onlyoftype"
 
 
-isonlyoftype = isonlyoftype()
+onlyoftype = onlyoftype()
 
 
 class hasattr(Selector):
