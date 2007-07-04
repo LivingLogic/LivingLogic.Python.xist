@@ -172,12 +172,11 @@ isempty = isempty()
 
 class isonlychild(Selector):
 	def match(self, path):
-		if len(path) < 2:
-			return False
-		parent = path[-2]
-		if not isinstance(parent, xsc.Element):
-			return False
-		return len(parent)==1 and parent[0] is path[-1]
+		if len(path) >= 2:
+			parent = path[-2]
+			if isinstance(parent, (xsc.Element, xsc.Frag)):
+				return len(parent)==1 and parent[0] is path[-1]
+		return False
 
 	def __repr__(self):
 		return "isonlychild"
