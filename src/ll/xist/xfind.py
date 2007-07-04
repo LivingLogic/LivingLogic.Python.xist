@@ -210,13 +210,12 @@ class hasattr(Selector):
 		self.attrnames = attrnames
 
 	def match(self, path):
-		if not path:
-			return False
-		node = path[-1]
-		if isinstance(node, xsc.Element):
-			for attrname in self.attrnames:
-				if node.Attrs.isallowed(attrname) and node.attrs.has(attrname):
-					return True
+		if path:
+			node = path[-1]
+			if isinstance(node, xsc.Element):
+				for attrname in self.attrnames:
+					if node.Attrs.isallowed(attrname) and node.attrs.has(attrname):
+						return True
 		return False
 
 	def __repr__(self):
@@ -228,13 +227,12 @@ class hasattr_xml(Selector):
 		self.attrnames = attrnames
 
 	def match(self, path):
-		if not path:
-			return False
-		node = path[-1]
-		if isinstance(node, xsc.Element):
-			for attrname in self.attrnames:
-				if node.Attrs.isallowed_xml(attrname) and node.attrs.has_xml(attrname):
-					return True
+		if path:
+			node = path[-1]
+			if isinstance(node, xsc.Element):
+				for attrname in self.attrnames:
+					if node.Attrs.isallowed_xml(attrname) and node.attrs.has_xml(attrname):
+						return True
 		return False
 
 	def __repr__(self):
