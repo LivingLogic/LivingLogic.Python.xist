@@ -174,7 +174,7 @@ class onlychild(Selector):
 	def match(self, path):
 		if len(path) >= 2:
 			parent = path[-2]
-			if isinstance(parent, (xsc.Element, xsc.Frag)):
+			if isinstance(parent, (xsc.Frag, xsc.Element)):
 				return len(parent)==1 and parent[0] is path[-1]
 		return False
 
@@ -187,17 +187,16 @@ onlychild = onlychild()
 
 class onlyoftype(Selector):
 	def match(self, path):
-		if len(path) < 2:
-			return False
-		node = path[-1]
-		parent = path[-2]
-		if not isinstance(parent, xsc.Element):
-			return False
-		for child in parent.content:
-			if isinstance(child, node.__class__):
-				if child is not node:
-					return False
-		return True
+		if len(path) >= 2:
+			node = path[-1]
+			parent = path[-2]
+			if isinstance(parent, (xsc.Frag, xsc.Element)):
+				for child in parent.content:
+					if isinstance(child, node.__class__):
+						if child is not node:
+							return False
+				return True
+		return False
 
 	def __repr__(self):
 		return "onlyoftype"
