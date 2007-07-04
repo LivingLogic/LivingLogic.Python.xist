@@ -98,6 +98,7 @@ def test_is():
 
 	# Frags will be put into the path, but the walk filter will not be called for the Frag,
 	# so when the first call happens there are already two nodes in the path
+	# This is done on purpose: filters should not have to special case Frags
 	res = list(node.walknode(node))
 	assert len(res) == 0
 
