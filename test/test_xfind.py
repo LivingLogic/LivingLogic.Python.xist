@@ -222,6 +222,7 @@ def test_attrstartswith():
 	yield check, html.div.Attrs.align, "le", [node[0]]
 	yield check, "align", "eft", []
 	yield check, "gurk", "", []
+	yield check, "src", "root:", [node[1][0][1]]
 
 
 def test_attrendswith():
@@ -238,6 +239,7 @@ def test_attrendswith():
 	yield check, html.div.Attrs.align, "ft", [node[0]]
 	yield check, "align", "lef", []
 	yield check, "gurk", "", []
+	yield check, "src", ".gif", [node[1][0][1]]
 
 
 def test_hasid():
