@@ -191,7 +191,7 @@ class onlyoftype(Selector):
 			node = path[-1]
 			parent = path[-2]
 			if isinstance(parent, (xsc.Frag, xsc.Element)):
-				for child in parent.content:
+				for child in parent:
 					if isinstance(child, node.__class__):
 						if child is not node:
 							return False
