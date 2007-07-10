@@ -3039,8 +3039,16 @@ class Element(Node):
 		"""
 		if isinstance(index, (basestring, _Attr_Meta)):
 			return self.attrs[index]
-		else:
+		elif isinstance(index, (list, int, long, slice)):
 			return self.content[index]
+		else:
+			def iterate(index):
+				path = [self, None]
+				for child in self:
+					path[-1] = child
+					if index.match(path):
+						yield child
+			return misc.Iterator(iterate(makewalkfilter(index)))
 
 	def __setitem__(self, index, value):
 		"""
@@ -3049,8 +3057,20 @@ class Element(Node):
 		"""
 		if isinstance(index, (basestring, _Attr_Meta)):
 			self.attrs[index] = value
-		else:
+		elif isinstance(index, (list, int, long, slice)):
 			self.content[index] = value
+		else:
+			index = makewalkfilter(index)
+			value = Frag(value)
+			newcontent = []
+			path = [self, None]
+			for child in self:
+				path[-1] = child
+				if index.match(path):
+					newcontent.extend(value)
+				else:
+					newcontent.append(child)
+			self.content[:] = newcontent
 
 	def __delitem__(self, index):
 		"""
@@ -3059,8 +3079,11 @@ class Element(Node):
 		"""
 		if isinstance(index, (basestring, _Attr_Meta)):
 			del self.attrs[index]
-		else:
+		elif isinstance(index, (list, int, long, slice)):
 			del self.content[index]
+		else:
+			index = makewalkfilter(index)
+			sel.content = xsc.Frag(child for child in self if not index.match([self, child]))
 
 	def __getslice__(self, index1, index2):
 		"""

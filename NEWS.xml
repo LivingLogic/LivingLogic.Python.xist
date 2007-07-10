@@ -1,16 +1,33 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
 <section><title>Changes in 3.0 (released ??/??/2007)</title>
 <ulist>
-<item><method>Frag.__delitem__</method> (and <method>Element.__delitem__</method>)
-not supports the new selectors, so you can do <lit>del node[html.p]</lit> to
-delete all <class>html.p</class> child elements of <lit>node</lit> or
-<lit>del node[html.p[1]]</lit> to delete only the second <class>html.p</class> etc.</item>
+<item><par>The methods <method>__getitem__</method>, <method>__setitem__</method>
+and <method>__delitem__</method> for <class>Frag</class> and <class>Element</class>
+now support the new selectors, so you can do:</par>
+<ulist>
+<item><lit>del node[html.p]</lit> to delete all <class>html.p</class> child elements
+of <lit>node</lit>;</item>
+<item><lit>del node[html.p[2]]</lit> to delete only the third
+<class>html.p</class>;</item>
+<item><lit>node[xfind.hasclass("note")] = html.p("There was a note here!")</lit> to
+replace several child nodes with a new one;</item>
+<item><lit>for c in node[xfind.empty]: print c.bytes()</lit> to print all
+empty (element) children of <lit>node</lit>;</item>
+<item><lit>del node[node[0]]</lit> to delete the first child node (which is
+silly, but illustrates that you can pass a node to get/replace/delete
+that node);</item>
+</ulist>
+</item>
+
 <item>The method <method>asBytes</method> has been renamed to <method>bytes</method>
 and <method>bytes</method> has been renamed to <method>iterbytes</method>.</item>
+
 <item>A class attribute <lit>empty</lit> inside element classes will now no
 longer get converted into <lit>model</lit>.</item>
+
 <item><class>ll.xist.ns.doc.pyref</class> now copes better with decorated
 methods.</item>
+
 <item>The deprecated <class>Element</class> methods <method>hasAttr</method>,
 <method>hasattr</method>, <method>isallowedattr</method>, <method>getAttr</method>,
 <method>getattr</method>, <method>setDefaultAttr</method>,
@@ -23,16 +40,20 @@ methods.</item>
 <method>iterallowedattritems</method> and <method>copyDefaultAttrs</method>
 have been removed. The deprecated <class>Attrs</class> method
 <method>copydefaults</method> has been removed too.</item>
+
 <item>The namespace module <module>ll.xist.ns.cond</module> has been removed.</item>
+
 <item>When calling the function <function>ll.xist.parsers.parseURL</function>
 the arguments <arg>headers</arg> and <arg>data</arg> are now passed along
 to the parser's method only if they are specified. This makes it possible to
 pass ssh &url;s to <function>ll.xist.parsers.parseURL</function>.</item>
+
 <item>The methods <method>withnames</method> and <method>withoutnames</method> have
 been split into two that take Python names and two that take XML names.
 Multiple arguments are used now (instead of one argument that must be a sequence).
 Passing a namespace to remove all atrtributes from the namespace is no longer supported.</item>
-<item>The <class>Attrs<class> methods <method>updatenew</method> and
+
+<item>The <class>Attrs</class> methods <method>updatenew</method> and
 <method>updatexisting</method> have been removed.</item>
 </ulist>
 </section>
@@ -221,10 +242,13 @@ in <class>ll.xist.ns.code.pyexec</class> or <class>ll.xist.ns.code.pyeval</class
 will no longer be executed in the <module>ll.xist.sandbox</module> module
 (which has been removed), but in a sandbox dictionary in the converter context
 of the <module>ll.xist.ns.code</module> namespace.</item>
+
 <item>The tests have been ported to <link href="http://codespeak.net/py/current/doc/test.html">py.test</link>.</item>
+
 <item>The method <method>mapped</method> is now callable without arguments.
 In this case a converter will be created on the fly. You can pass constructor
 arguments for this converter to <method>mapped</method> as keyword arguments.</item>
+
 <item>The publishing &api; has changed again: <method>ll.xist.publishers.Publisher.publish</method>
 no longer accepts an argument <arg>stream</arg> to which the byte strings are
 written, but it is a generator now. The publisher methods <method>write</method>
@@ -234,12 +258,14 @@ writing it directly to the stream. There's a new generator method
 <method>bytes</method> for nodes now, which can be passed the same arguments
 as <method>asBytes</method>. These changes should help when using
 &xist; in &wsgi; applications.</item>
+
 <item>The iterator returned from <method>Element.__getitem__</method>,
 <method>Frag.__getitem__</method> and the <method>walk</method> method
 now supports <method>__getitem__</method> itself, so you can write
 <lit><rep>table</rep>[html.tr][0]</lit> to get the first row from a table or
 <lit><rep>page</rep>.walk(xsc.FindTypeAll(html.td))[-1]</lit> to get the last table cell
 from a complete &html; page.</item>
+
 <item>Several bugs in the namespaces <module>ll.xist.ns.meta</module>,
 <module>ll.xist.ns.form</module> and
 <module>ll.xist.ns.specials</module> have been fixed.</item>
@@ -255,6 +281,7 @@ from a complete &html; page.</item>
 attributes must come from a namespace that has been turned into a module
 via <method>makemod</method>, so that this module can be imported on
 unpickling.</item>
+
 <item><par>Two arguments of the <method>walk</method> method have been renamed:
 <arg>filtermode</arg> has been renamed to <arg>inmode</arg> and <arg>walkmode</arg>
 has been renamed to <arg>outmode</arg>. For these modes two new values are
@@ -296,25 +323,32 @@ eggs
 <par>(Don't confuse this with <lit>e.Attrs.href</lit> which is the
 attribute class.)</par>
 </item>
+
 <item><class>Frag</class> and <class>Element</class> now support <class>Node</class>
 subclasses as arguments to their <method>__getitem__</method> method: An iterator
 for all children of the specified type will be returned.</item>
+
 <item>The encoding used for parsing now defaults to <lit>None</lit>. When
 reading from an &url; and no default encoding has been specified the one
 from the <lit>Content-Type</lit> header will be used. If this still doesn't
 result in a usable encoding, <lit>"utf-8"</lit> will be used when parsing &xml;
 and <lit>"iso-8859-1"</lit> will be used when parsing broken &html;.</item>
+
 <item>All error and warning classes from <module>ll.xist.errors</module>
 have been merged into <module>ll.xist.xsc</module>. This avoids import
 problems with circular imports.</item>
+
 <item>The attributes <lit>showLocation</lit> and <lit>showPath</lit>
 of <class>ll.xist.presenters.TreePresenter</class> have been lowercased and
 presenters are properly reset after they've done their job.</item>
+
 <item>The class attribute <lit>xmlname</lit> will no longer be turned into a list
 containing the Python and the &xml; name, but will be the &xml; name only. You
 can get the Python name from <lit><rep>foo</rep>.__class__.__name__</lit>.</item>
+
 <item><class>DeprecationWarning</class>s for <lit>name</lit> and
 <lit>attrHandlers</lit> have finally been removed.</item>
+
 <item>Instances of <class>ll.xist.xsc.Entity</class> subclasses can now be
 compared. <method>__eq__</method> simply checks if the objects are instances
 of the same class.</item>
@@ -333,17 +367,23 @@ documentation.</item>
 <section><title>Changes in 2.8 (released 01/03/2005)</title>
 <ulist>
 <item>&xist; requires Python 2.4 now.</item>
+
 <item><class>ll.xist.ns.specials.x</class> has been renamed to
 <class>ll.xist.ns.specials.ignore</class>.</item>
+
 <item><class>ll.xist.utils.findAttr</class> has been renamed to
 <class>ll.xist.utils.findattr</class>.</item>
+
 <item><class>ll.xist.xfind.item</class> no longer handles slices.</item>
+
 <item>XFind has been enhanced to support item and slice operators, i.e.
 if <lit><rep>foo</rep></lit> is an XFind operator, <lit><rep>foo</rep>[0]</lit>
 is an operator that will produce the first node from <lit><rep>foo</rep></lit>
 (if there is one). Negative values and slices are supported too.</item>
+
 <item>Operators can be chained via division: <lit>html.a/html.b</lit> is an
 operator that can be passed around and applied to a node.</item>
+
 <item>&xist; requires the new core module and makes use of the new
 <z>cooperative displayhook</z> functionality defined there: If you install
 the displayhook you can tweak or replace <lit>ll.xist.presenters.hookpresenter</lit>

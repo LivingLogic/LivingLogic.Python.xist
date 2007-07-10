@@ -266,22 +266,6 @@ def test_charref():
 	assert node.upper() == xsc.Text(u"Ö")
 
 
-def test_getsetitem():
-	for cls in (xsc.Frag, html.div):
-		for attr in ("class_", xml.Attrs.lang):
-			node = cls(html.div("foo", html.div({attr: "gurk"}), "bar"))
-			assert node[[]] is node
-			assert str(node[[0, 1, attr]]) == "gurk"
-			node[[0, 1, attr]] = "hurz"
-			assert str(node[[0, 1, attr]]) == "hurz"
-			i = node[0][xsc.Text]
-			assert str(i.next()) == "foo"
-			assert str(i.next()) == "bar"
-			py.test.raises(StopIteration, i.next)
-			py.test.raises(ValueError, node.__setitem__, [], None)
-			py.test.raises(ValueError, node.__delitem__, [])
-
-
 def test_conv():
 	def mappedmapper(node, converter):
 		if isinstance(node, xsc.Text):
@@ -672,18 +656,50 @@ def test_classrepr():
 	repr(xml.Attrs.lang)
 
 
-def test_itemslice():
+def test_getitem():
 	for cls in (xsc.Frag, html.div):
-		# __get(item|slice)__
-		e = cls(range(6))
+		e = cls(xrange(6))
+		# int
 		assert e[2] == xsc.Text(2)
 		assert e[-1] == xsc.Text(5)
-		assert e[:] == e
-		assert e[:2] == cls(0, 1)
-		assert e[-2:] == cls(4, 5)
-		assert e[::2] == cls(0, 2, 4)
-		assert e[1::2] == cls(1, 3, 5)
-		assert e[::-1] == cls(range(5, -1, -1))
+
+		# slice
+		assert e[:] == xsc.Frag(xrange(6))
+		assert e[:2] == xsc.Frag(0, 1)
+		assert e[-2:] == xsc.Frag(4, 5)
+		assert e[::2] == xsc.Frag(0, 2, 4)
+		assert e[1::2] == xsc.Frag(1, 3, 5)
+		assert e[::-1] == xsc.Frag(xrange(5, -1, -1))
+
+		# selector
+		e = cls((html.dt(i), html.dd(2*i)) for i in xrange(3))
+		assert xsc.Frag(e[html.dt]) == xsc.Frag(html.dt(0), html.dt(1), html.dt(2))
+		assert xsc.Frag(e[html.dt[1]]) == xsc.Frag(html.dt(1))
+		assert e[e[0]][0] is e[0] # selector for a single node (returns an iterator nevertheless)
+		def isgt1(p):
+			return int(str(p[-1]))>1
+		assert xsc.Frag(e[html.dt & isgt1]) == xsc.Frag(html.dt(2))
+		assert xsc.Frag(e[e/html.dt]) == xsc.Frag(html.dt(0), html.dt(1), html.dt(2))
+		assert xsc.Frag(e[e.__class__/html.dt]) == xsc.Frag(html.dt(0), html.dt(1), html.dt(2))
+
+		for attr in ("class_", xml.Attrs.lang):
+			e = cls("foo", html.div("bar", {attr: "gurk"}), "baz")
+			i = e[xsc.Text]
+			assert str(i.next()) == "foo"
+			assert str(i.next()) == "baz"
+			py.test.raises(StopIteration, i.next)
+
+		# list
+		for attr in ("class_", xml.Attrs.lang):
+			node = cls(html.div("foo", html.div("bar", {attr: "gurk"}), "baz"))
+			assert node[[]] == node[:]
+			assert str(node[[0, 1]]) == "bar"
+			assert str(node[[0, 1, attr]]) == "gurk"
+
+
+def test_setitem():
+	for cls in (xsc.Frag, html.div):
+		e = cls(range(6))
 		e[1] = 10
 		assert e == cls(0, 10, 2, 3, 4, 5)
 		e[1] = None
@@ -691,7 +707,6 @@ def test_itemslice():
 		e[1] = ()
 		assert e == cls(0, 3, 4, 5)
 
-		# __set(item|slice)__
 		e = cls(range(6))
 		e[-1] = None
 		assert e == cls(0, 1, 2, 3, 4)
@@ -716,7 +731,16 @@ def test_itemslice():
 		e[::-1] = range(6)
 		assert e == cls(range(5, -1, -1))
 
-		# __del(item|slice)__
+		for attr in ("class_", xml.Attrs.lang):
+			node = cls(html.div("foo", html.div({attr: "gurk"}), "bar"))
+			node[[0, 1, attr]] = "hurz"
+			assert str(node[[0, 1, attr]]) == "hurz"
+			py.test.raises(ValueError, node.__setitem__, [], None)
+			py.test.raises(ValueError, node.__delitem__, [])
+
+
+def test_delitem():
+	for cls in (xsc.Frag, html.div):
 		e = cls(range(6))
 		del e[0]
 		assert e == cls(1, 2, 3, 4, 5)
@@ -754,16 +778,6 @@ def test_itemslice():
 		e = cls(range(6))
 		del e[1::2]
 		assert e == cls(0, 2, 4)
-
-	e = html.div(range(6), id=42)
-	assert e[2] == xsc.Text(2)
-	assert e[-1] == xsc.Text(5)
-	assert e[:] == e
-	assert e[:2] == cls(0, 1, id=42)
-	assert e[-2:] == cls(4, 5, id=42)
-	assert e[::2] == cls(0, 2, 4, id=42)
-	assert e[1::2] == cls(1, 3, 5, id=42)
-	assert e[::-1] == cls(range(5, -1, -1), id=42)
 
 
 def test_clone():
