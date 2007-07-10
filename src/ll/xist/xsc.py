@@ -3037,21 +3037,10 @@ class Element(Node):
 		<par><arg>index</arg> may also be a list, in with case <method>__getitem__</method>
 		will be applied recusively.</par>
 		"""
-		if isinstance(index, list):
-			node = self
-			for subindex in index:
-				node = node[subindex]
-			return node
-		elif isinstance(index, _Attr_Meta):
+		if isinstance(index, (basestring, _Attr_Meta)):
 			return self.attrs[index]
-		elif isinstance(index, _Node_Meta):
-			return self.content[index]
-		elif isinstance(index, (int, long)):
-			return self.content[index]
-		elif isinstance(index, slice):
-			return self.__class__(self.content[index], self.attrs)
 		else:
-			return self.attrs[index]
+			return self.content[index]
 
 	def __setitem__(self, index, value):
 		"""
@@ -3077,7 +3066,7 @@ class Element(Node):
 		"""
 		Returns a copy of the element that contains a slice of the content.
 		"""
-		return self.__class__(self.content[index1:index2], self.attrs)
+		return self.content[index1:index2]
 
 	def __setslice__(self, index1, index2, sequence):
 		"""
