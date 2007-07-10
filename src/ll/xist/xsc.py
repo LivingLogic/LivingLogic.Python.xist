@@ -1527,13 +1527,13 @@ class Frag(Node, list):
 		elif isinstance(index, slice):
 			return self.__class__(list.__getitem__(self, index))
 		else:
-			def iterate(index):
+			def iterate(matcher):
 				path = [self, None]
 				for child in self:
 					path[-1] = child
-					if index.match(path):
+					if matcher(path):
 						yield child
-			return misc.Iterator(iterate(makewalkfilter(index)))
+			return misc.Iterator(iterate(makewalkfilter(index).match))
 
 	def __setitem__(self, index, value):
 		"""
@@ -1560,13 +1560,13 @@ class Frag(Node, list):
 		elif isinstance(index, slice):
 			list.__setitem__(self, index, Frag(value))
 		else:
-			index = makewalkfilter(index)
+			matcher = makewalkfilter(index).match
 			value = Frag(value)
 			newcontent = []
 			path = [self, None]
 			for child in self:
 				path[-1] = child
-				if index.match(path):
+				if matcher(path):
 					newcontent.extend(value)
 				else:
 					newcontent.append(child)
@@ -1592,8 +1592,8 @@ class Frag(Node, list):
 		elif isinstance(index, (int, long, slice)):
 			list.__delitem__(self, index)
 		else:
-			index = makewalkfilter(index)
-			list.__setslice__(self, 0, len(self), [child for child in self if not index.match([self, child])])
+			matcher = makewalkfilter(index).match
+			list.__setslice__(self, 0, len(self), [child for child in self if not matcher([self, child])])
 
 	def __getslice__(self, index1, index2):
 		"""
@@ -3042,13 +3042,13 @@ class Element(Node):
 		elif isinstance(index, (list, int, long, slice)):
 			return self.content[index]
 		else:
-			def iterate(index):
+			def iterate(matcher):
 				path = [self, None]
 				for child in self:
 					path[-1] = child
-					if index.match(path):
+					if matcher(path):
 						yield child
-			return misc.Iterator(iterate(makewalkfilter(index)))
+			return misc.Iterator(iterate(makewalkfilter(index).match))
 
 	def __setitem__(self, index, value):
 		"""
@@ -3060,13 +3060,13 @@ class Element(Node):
 		elif isinstance(index, (list, int, long, slice)):
 			self.content[index] = value
 		else:
-			index = makewalkfilter(index)
+			matcher = makewalkfilter(index).match
 			value = Frag(value)
 			newcontent = []
 			path = [self, None]
 			for child in self:
 				path[-1] = child
-				if index.match(path):
+				if matcher(path):
 					newcontent.extend(value)
 				else:
 					newcontent.append(child)
@@ -3082,8 +3082,8 @@ class Element(Node):
 		elif isinstance(index, (list, int, long, slice)):
 			del self.content[index]
 		else:
-			index = makewalkfilter(index)
-			sel.content = xsc.Frag(child for child in self if not index.match([self, child]))
+			matcher = makewalkfilter(index).match
+			sel.content = xsc.Frag(child for child in self if not matcher([self, child]))
 
 	def __getslice__(self, index1, index2):
 		"""
