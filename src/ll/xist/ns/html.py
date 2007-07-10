@@ -1354,7 +1354,7 @@ def astext(node, encoding="iso-8859-1", width=72):
 		"-verbose 0",
 	]
 
-	text = node.asBytes(encoding=encoding)
+	text = node.bytes(encoding=encoding)
 
 	cmd = "elinks %s" % " ".join(options)
 	(stdin, stdout) = os.popen2(cmd)
