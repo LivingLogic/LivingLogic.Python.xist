@@ -1,6 +1,9 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
 <section><title>Changes in 3.0 (released ??/??/2007)</title>
 <ulist>
+<item><method>Frag.__delitem__</method> not supports the new selectors, so you
+can do <lit>del node[html.p]</lit> to delete all <class>html.p</class> child
+elements of <lit>node</lit> etc.</item>
 <item>The method <method>asBytes</method> has been renamed to <method>bytes</method>
 and <method>bytes</method> has been renamed to <method>iterbytes</method>.</item>
 <item>A class attribute <lit>empty</lit> inside element classes will now no

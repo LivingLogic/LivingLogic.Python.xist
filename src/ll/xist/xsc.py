@@ -1549,10 +1549,13 @@ class Frag(Node, list):
 
 	def __delitem__(self, index):
 		"""
-		<par>Remove the <arg>index</arg>'th content node from the fragment.
+		<par>Remove the <arg>index</arg>'th content node from the fragment
 		If <arg>index</arg> is a list, the innermost index will be deleted,
 		after traversing the rest of <arg>index</arg> recursively.
-		If <arg>index</arg> is an empty list, an exception will be raised.</par>
+		If <arg>index</arg> is an empty list, an exception will be raised.
+		Anything except <class>list</class>s, <class>int</class>s and
+		slices will be turned into a walk filter and any child node matching
+		this filter will be deleted from <self/>.</par>
 		"""
 		if isinstance(index, list):
 			if not index:
@@ -1561,8 +1564,12 @@ class Frag(Node, list):
 			for subindex in index[:-1]:
 				node = node[subindex]
 			del node[index[-1]]
-		else:
+		elif isinstance(index, (int, long, slice)):
 			list.__delitem__(self, index)
+		else:
+			from ll.xist import xfind
+			index = xfind.makewalkfilter(index)
+			list.__setslice__(self, 0, len(self), [child for child in self if not index.match([self, child])])
 
 	def __getslice__(self, index1, index2):
 		"""
@@ -3044,17 +3051,10 @@ class Element(Node):
 		<par>Remove an attribute or content node.</par>
 		<par>For possible types for <arg>index</arg> see <pyref method="__getitem__"><method>__getitem__</method></pyref>.</par>
 		"""
-		if isinstance(index, list):
-			if not index:
-				raise ValueError("can't delete self")
-			node = self
-			for subindex in index[:-1]:
-				node = node[subindex]
-			del node[index[-1]]
-		elif isinstance(index, (int, long, slice)):
-			del self.content[index]
-		else:
+		if isinstance(index, (basestring, _Attr_Meta)):
 			del self.attrs[index]
+		else:
+			del self.content[index]
 
 	def __getslice__(self, index1, index2):
 		"""
