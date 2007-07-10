@@ -194,6 +194,22 @@ class ConstantWalkFilter(WalkFilter):
 		return self.value
 
 
+def makewalkfilter(obj):
+	if not isinstance(obj, WalkFilter):
+		from ll.xist import xfind
+		if isinstance(obj, _Node_Meta):
+			obj = xfind.IsInstanceSelector(obj)
+		elif isinstance(obj, Node):
+			obj = xfind.IsSelector(obj)
+		elif callable(obj):
+			obj = xfind.CallableSelector(obj)
+		elif isinstance(obj, tuple):
+			obj = ConstantWalkFilter(obj)
+		else:
+			raise TypeError("can't convert %r to selector" % obj)
+	return obj
+
+
 ###
 ### Conversion context
 ###
@@ -1016,9 +1032,7 @@ class Node(object):
 		<method>walk</method> reuses this list, so you can't rely on the value
 		of the list being the same across calls to <method>next</method>.</par>
 		"""
-		from ll.xist import xfind
-		filter = xfind.makewalkfilter(filter)
-		return self._walk(filter, [self])
+		return self._walk(makewalkfilter(filter), [self])
 
 	def walknode(self, filter=(True, entercontent)):
 		"""
@@ -1026,8 +1040,7 @@ class Node(object):
 		same as the <arg>filter</arg> argument for <pyref method="walk"><method>walk</method></pyref>.
 		The items produced by the iterator are the nodes themselves.
 		"""
-		from ll.xist import xfind
-		filter = xfind.makewalkfilter(filter)
+		filter = makewalkfilter(filter)
 		def iterate(path):
 			for path in self._walk(filter, path):
 				yield path[-1]
@@ -1039,8 +1052,7 @@ class Node(object):
 		same as the <arg>filter</arg> argument for <pyref method="walk"><method>walk</method></pyref>.
 		The items produced by the iterator are copies of the path.
 		"""
-		from ll.xist import xfind
-		filter = xfind.makewalkfilter(filter)
+		filter = makewalkfilter(filter)
 		def iterate(path):
 			for path in self._walk(filter, path):
 				yield path[:]
@@ -1510,16 +1522,18 @@ class Frag(Node, list):
 			for subindex in index:
 				node = node[subindex]
 			return node
-		elif isinstance(index, _Node_Meta):
-			def iterate(self, index):
-				for child in self:
-					if isinstance(child, index):
-						yield child
-			return misc.Iterator(iterate(self, index))
+		elif isinstance(index, (int, long)):
+			return list.__getitem__(self, index)
 		elif isinstance(index, slice):
 			return self.__class__(list.__getitem__(self, index))
 		else:
-			return list.__getitem__(self, index)
+			def iterate(index):
+				path = [self, None]
+				for child in self:
+					path[-1] = child
+					if index.match(path):
+						yield child
+			return misc.Iterator(iterate(makewalkfilter(index)))
 
 	def __setitem__(self, index, value):
 		"""
@@ -1536,16 +1550,27 @@ class Frag(Node, list):
 			for subindex in index[:-1]:
 				node = node[subindex]
 			node[index[-1]] = value
-		else:
+		elif isinstance(index, (int, long)):
 			value = Frag(value)
-			if isinstance(index, slice):
-				list.__setitem__(self, index, value)
+			if index==-1:
+				l = len(self)
+				list.__setslice__(self, l-1, l, value)
 			else:
-				if index==-1:
-					l = len(self)
-					list.__setslice__(self, l-1, l, value)
+				list.__setslice__(self, index, index+1, value)
+		elif isinstance(index, slice):
+			list.__setitem__(self, index, Frag(value))
+		else:
+			index = makewalkfilter(index)
+			value = Frag(value)
+			newcontent = []
+			path = [self, None]
+			for child in self:
+				path[-1] = child
+				if index.match(path):
+					newcontent.extend(value)
 				else:
-					list.__setslice__(self, index, index+1, value)
+					newcontent.append(child)
+			list.__setslice__(self, 0, len(self), newcontent)
 
 	def __delitem__(self, index):
 		"""
@@ -1567,8 +1592,7 @@ class Frag(Node, list):
 		elif isinstance(index, (int, long, slice)):
 			list.__delitem__(self, index)
 		else:
-			from ll.xist import xfind
-			index = xfind.makewalkfilter(index)
+			index = makewalkfilter(index)
 			list.__setslice__(self, 0, len(self), [child for child in self if not index.match([self, child])])
 
 	def __getslice__(self, index1, index2):
@@ -3034,17 +3058,10 @@ class Element(Node):
 		<par>Set an attribute or content node to the value <arg>value</arg>.</par>
 		<par>For possible types for <arg>index</arg> see <pyref method="__getitem__"><method>__getitem__</method></pyref>.</par>
 		"""
-		if isinstance(index, list):
-			if not index:
-				raise ValueError("can't replace self")
-			node = self
-			for subindex in index[:-1]:
-				node = node[subindex]
-			node[index[-1]] = value
-		elif isinstance(index, (int, long, slice)):
-			self.content[index] = value
-		else:
+		if isinstance(index, (basestring, _Attr_Meta)):
 			self.attrs[index] = value
+		else:
+			self.content[index] = value
 
 	def __delitem__(self, index):
 		"""

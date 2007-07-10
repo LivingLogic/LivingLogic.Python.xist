@@ -98,21 +98,6 @@ from ll import misc
 from ll.xist import xsc
 
 
-def makewalkfilter(obj):
-	if not isinstance(obj, xsc.WalkFilter):
-		if isinstance(obj, xsc._Node_Meta):
-			obj = IsInstanceSelector(obj)
-		elif isinstance(obj, xsc.Node):
-			obj = IsSelector(obj)
-		elif callable(obj):
-			obj = CallableSelector(obj)
-		elif isinstance(obj, tuple):
-			obj = xsc.ConstantWalkFilter(obj)
-		else:
-			raise TypeError("can't convert %r to selector" % obj)
-	return obj
-
-
 class Selector(xsc.WalkFilter):
 	"""
 	Base class for all tree traversal filters that visit the complete tree.
@@ -129,22 +114,22 @@ class Selector(xsc.WalkFilter):
 		return (True, xsc.entercontent, xsc.enterattrs) if self.match(path) else (xsc.entercontent, xsc.enterattrs)
 
 	def __div__(self, other):
-		return ChildCombinator(self, makewalkfilter(other))
+		return ChildCombinator(self, xsc.makewalkfilter(other))
 
 	def __floordiv__(self, other):
-		return DescendantCombinator(self, makewalkfilter(other))
+		return DescendantCombinator(self, xsc.makewalkfilter(other))
 
 	def __mul__(self, other):
-		return AdjacentSiblingCombinator(self, makewalkfilter(other))
+		return AdjacentSiblingCombinator(self, xsc.makewalkfilter(other))
 
 	def __pow__(self, other):
-		return GeneralSiblingCombinator(self, makewalkfilter(other))
+		return GeneralSiblingCombinator(self, xsc.makewalkfilter(other))
 
 	def __and__(self, other):
-		return AndCombinator(self, makewalkfilter(other))
+		return AndCombinator(self, xsc.makewalkfilter(other))
 
 	def __or__(self, other):
-		return OrCombinator(self, makewalkfilter(other))
+		return OrCombinator(self, xsc.makewalkfilter(other))
 
 	def __invert__(self):
 		return NotCombinator(self)
