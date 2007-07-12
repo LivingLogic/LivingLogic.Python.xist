@@ -859,10 +859,9 @@ class Parser(object):
 			self.prefixes = newprefixes = prefixes
 		else:
 			newprefixes = oldprefixes
-		if u":" in name:
-			(prefix, name) = name.split(u":", 1)
-		else:
-			prefix = None
+
+		(prefix, sep, name) = name.rpartition(u":")
+		prefix = prefix or None
 
 		try:
 			xmlns = newprefixes[prefix]
@@ -897,7 +896,15 @@ class Parser(object):
 
 	def endElement(self, name):
 		currentelement = self._nesting[-1][0]
+
+		(prefix, sep, name) = name.rpartition(u":")
+		xmlns = self.prefixes[prefix or None]
+		element = self.pool.element_xml(name, xmlns) # Unfortunately this creates the element a second time.
+		if  element.__class__ is not currentelement.__class__:
+			raise xsc.ElementNestingError(currentelement.__class__, element.__class__)
+
 		currentelement.parsed(self, start=False) # ignore return value
+
 		if self.validate:
 			currentelement.checkvalid()
 		if self.loc:
