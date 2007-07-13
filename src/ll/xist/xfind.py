@@ -33,15 +33,7 @@ def output(selector):
 
 <par>We can now use this code in a Python session via <lit>from help import *</lit>.</par>
 
-<tty>
-<prompt>>>> </prompt><input>output(html.a) # all a elements</input>
-<![CDATA[<a id="logolink" href="/" accesskey="1"><img src="/images/python-logo.gif" alt="homepage" id="logo" border="0" /></a>
-<a accesskey="2" href="#left%2dhand%2dnavigation"><img id="skiptonav" alt="skip to navigation" src="/images/trans.gif" border="0" /></a>
-<a accesskey="3" href="#content%2dbody"><img id="skiptocontent" alt="skip to content" src="/images/trans.gif" border="0" /></a>
-<a class="reference" href="/search">Advanced Search</a>
-<a title="About The Python Language" href="/about/">About</a>
-]]><rep>...</rep>
-
+<prog>
 <prompt>>>> </prompt><input>output(html.a/html.img) # images children of a elements</input>
 <![CDATA[<img src="/images/python-logo.gif" alt="homepage" id="logo" border="0" />
 <img id="skiptonav" alt="skip to navigation" src="/images/trans.gif" border="0" />
@@ -67,18 +59,12 @@ def output(selector):
 <a href="about/success/rackspace" class="reference">Rackspace</a>
 <a href="about/success/ilm" class="reference">Industrial Light and Magic</a>]]>
 
-<prompt>>>> </prompt><input>output(html.a & xfind.hasclass('reference')) # Links with 'reference' class</input>
-<![CDATA[<a class="reference" href="/search">Advanced Search</a>
-<a href="about/success/rackspace" class="reference">Rackspace</a>
-<a href="about/success/ilm" class="reference">Industrial Light and Magic</a>]]>
-
 <prompt>>>> </prompt><input>output(html.ul/html.li[0]) # Every li element that is the first li child of its ul parent</input>
 <![CDATA[<li>
           <a title="About The Python Language" href="/about/">About</a>
         </li>
 <li><a title="Manuals for Latest Stable Release" href="http://docs.python.org/">Documentation</a></li>
 <li class="group"><a href="http://wiki.python.org/moin/WebProgramming">Web Programming</a></li>]]>
-
 
 </prog>
 """
@@ -102,7 +88,7 @@ class Selector(xsc.WalkFilter):
 	"""
 	Base class for all tree traversal filters that visit the complete tree.
 	Whether a node gets output can be specified by overwriting the
-	<method>match</method> method. Selectors can be compined with various
+	<method>match</method> method. Selectors can be combined with various
 	operations (see methods below).
 	"""
 
@@ -136,6 +122,28 @@ class Selector(xsc.WalkFilter):
 
 
 class IsInstanceSelector(Selector):
+	"""
+	<par>Selector that selects all nodes that are instances of the specified type.
+	You can either create an <class>IsInstanceSelector</class> object directly
+	or simply pass a class to a function that expects a walk filter.</par>
+
+	<example>
+	<tty>
+	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
+	<prompt>>>> </prompt><input>from ll.xist.ns import html</input>
+	<prompt>>>> </prompt><input>doc = parsers.parseURL("http://www.python.org", tidy=True)</input>
+	<prompt>>>> </prompt><input>for node in doc.walknode(html.a):</input>
+	<prompt>... </prompt><input>\tprint node.bytes()</input>
+	<prompt>... </prompt><input></input>
+	<![CDATA[<a id="logolink" accesskey="1" href="http://www.python.org/"><img src="http://www.python.org/images/python-logo.gif" id="logo" border="0" alt="homepage" /></a>
+	<a accesskey="2" href="http://www.python.org/#left%2dhand%2dnavigation"><img id="skiptonav" src="http://www.python.org/images/trans.gif" border="0" alt="skip to navigation" /></a>
+	<a accesskey="3" href="http://www.python.org/#content%2dbody"><img id="skiptocontent" src="http://www.python.org/images/trans.gif" border="0" alt="skip to content" /></a>
+	<a class="reference" href="http://www.python.org/search">Advanced Search</a>
+	<a title="About The Python Language" href="http://www.python.org/about/">About</a>]]>
+	<rep>...</rep>
+	</tty>
+	</example>
+	"""
 	def __init__(self, *types):
 		self.types = types
 
@@ -163,6 +171,24 @@ class IsInstanceSelector(Selector):
 
 
 class hasname(Selector):
+	"""
+	<par>Selector that selects all nodes that have a specified Python name (which
+	only selects elements, processing instructions and entities).</par>
+
+	<example>
+	<tty>
+	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
+	<prompt>>>> </prompt><input>doc = parsers.parseURL("http://www.python.org", tidy=True)</input>
+	<prompt>>>> </prompt><input>for node in doc.walknode(xfind.hasname("img")):</input>
+	<prompt>... </prompt><input>\tprint node.bytes()</input>
+	<prompt>... </prompt><input></input>
+	<![CDATA[<img border="0" src="http://www.python.org/images/python-logo.gif" alt="homepage" id="logo" />
+	<img border="0" id="skiptonav" alt="skip to navigation" src="http://www.python.org/images/trans.gif" />
+	<img border="0" id="skiptocontent" alt="skip to content" src="http://www.python.org/images/trans.gif" />
+	<img alt="success story photo" class="success" src="http://www.python.org/images/success/nasa.jpg" />]]>
+	</tty>
+	</example>
+	"""
 	def __init__(self, name):
 		self.name = name
 
@@ -177,6 +203,10 @@ class hasname(Selector):
 
 
 class hasname_xml(Selector):
+	"""
+	<class>hasname_xml</class> work similar to <pyref class="hasname"><class>hasname</class></pyref>
+	except that the specified name is treated as the &xml; name, not the Python name.
+	"""
 	def __init__(self, name):
 		self.name = name
 
@@ -191,6 +221,14 @@ class hasname_xml(Selector):
 
 
 class IsSelector(Selector):
+	"""
+	<par>Selector that selects one specific node in the tree. This can be
+	combined with other selectors via <pyref class="ChildCombinator"><class>ChildCombinator</class>s</pyref>
+	or <pyref class="DescendantCombinator"><class>DescendantCombinator</class>s</pyref>
+	to select children of this specific node. You can either create an
+	<class>IsSelector</class> directly or simply pass a node to a function that
+	expects a walk filter.</par>
+	"""
 	def __init__(self, node):
 		self.node = node
 
@@ -453,6 +491,21 @@ class attrendswith_xml(Selector):
 
 
 class hasid(Selector):
+	"""
+	<par>Selector that selects all element nodes where the <lit>id</lit> attribute
+	has the specified value.</par>
+	<example>
+	<tty>
+	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
+	<prompt>>>> </prompt><input>doc = parsers.parseURL("http://www.python.org", tidy=True)</input>
+	<prompt>>>> </prompt><input>for node in doc.walknode(xfind.hasid("logo")):</input>
+	<prompt>... </prompt><input>\tprint node.bytes()</input>
+	<prompt>... </prompt><input></input>
+	<![CDATA[<img src="http://www.python.org/images/python-logo.gif" id="logo" alt="homepage" border="0" />]]>
+	</tty>
+	</example>
+	"""
+
 	def __init__(self, id):
 		self.id = id
 
@@ -473,6 +526,25 @@ class hasid(Selector):
 
 
 class hasclass(Selector):
+	"""
+	<par>Selector that selects all element nodes where the <lit>class</lit> attribute
+	has the specified value.</par>
+	<example>
+	<tty>
+	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
+	<prompt>>>> </prompt><input>doc = parsers.parseURL("http://www.python.org", tidy=True)</input>
+	<prompt>>>> </prompt><input>for node in doc.walknode(xfind.hasclass("reference")):</input>
+	<prompt>... </prompt><input>\tprint node.bytes()</input>
+	<prompt>... </prompt><input></input>
+	<![CDATA[<a class="reference" href="http://www.python.org/search">Advanced Search</a>
+	<a href="http://www.python.org/about/success/rackspace" class="reference">Rackspace</a>
+	<a href="http://www.python.org/about/success/ilm" class="reference">Industrial Light and Magic</a>
+	<a href="http://www.python.org/about/success/astra" class="reference">AstraZeneca</a>]]>
+	<rep>...</rep>
+	</tty>
+	</example>
+	"""
+
 	def __init__(self, classname):
 		self.classname = classname
 
