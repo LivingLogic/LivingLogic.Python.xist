@@ -1175,7 +1175,7 @@ def css(selectors, prefixes=None):
 						xmlns = prefixes[prefix]
 					except KeyError:
 						raise xsc.IllegalPrefixError(prefix)
-					rule.type = xmlns
+					rule.xmlns = xmlns
 				prefix = None
 			elif type == "type":
 				rule.type = value
