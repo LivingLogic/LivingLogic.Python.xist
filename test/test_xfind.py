@@ -15,7 +15,7 @@ import py.test
 
 from ll import misc
 from ll.xist import xsc, xfind, parsers
-from ll.xist.ns import html
+from ll.xist.ns import html, specials
 
 
 def xfindnode():
@@ -336,3 +336,6 @@ def test_css():
 	assert list(e.walknode(xfind.css("div>*:empty"))) == []
 	assert list(e.walknode(xfind.css("div>:empty"))) == []
 	assert list(e.walknode(xfind.css("li+li"))) == [e[0][1]]
+	assert list(e.walknode(xfind.css("*|li"))) == [e[0][0], e[0][1]]
+	assert list(e.walknode(xfind.css("h|li", prefixes={"h": html}))) == [e[0][0], e[0][1]]
+	assert list(e.walknode(xfind.css("h|li", prefixes={"h": specials}))) == []
