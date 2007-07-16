@@ -8,6 +8,7 @@
 ##
 ## See xist/__init__.py for the license
 
+
 """
 <par>An &xist; module that contains classes for describing &xist; namespace
 modules. From that info a skeleton implementation of the namespace module

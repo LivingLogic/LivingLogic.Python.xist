@@ -8,6 +8,7 @@
 ##
 ## See xist/__init__.py for the license
 
+
 """
 <par>Contains the global attributes for the &xml; namespace (like <lit>xml:lang</lit>),
 and classes for the &xml; declaration.</par>

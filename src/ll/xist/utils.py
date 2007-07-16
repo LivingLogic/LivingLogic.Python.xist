@@ -8,6 +8,7 @@
 ##
 ## See xist/__init__.py for the license
 
+
 """
 <par>This module contains several functions and classes,
 that are used internally by &xist;.</par>

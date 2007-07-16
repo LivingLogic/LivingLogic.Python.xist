@@ -8,6 +8,7 @@
 ##
 ## See xist/__init__.py for the license
 
+
 """
 <par>This package contains all the modules that provide namespaces to
 to &xist;. For example the definition of &html; can be found in the

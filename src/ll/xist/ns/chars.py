@@ -8,6 +8,7 @@
 ##
 ## See xist/__init__.py for the license
 
+
 """
 <par>An &xist; namespace that contains all the character entities defined in &html;.</par>
 """

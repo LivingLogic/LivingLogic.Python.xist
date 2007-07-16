@@ -59,6 +59,17 @@ Passing a namespace to remove all atrtributes from the namespace is no longer su
 </section>
 
 
+<section><title>Changes in 2.15.3 (released 07/16/2007)</title>
+<ulist>
+<item>use a consistent license (MIT) everywhere. This should make
+&xist; Debian compatible.</item>
+<item>Change the Python quotes example, so that it works even if
+there's no <filename>python-quotes.xml</filename> in the current
+directory.</item>
+</ulist>
+</section>
+
+
 <section><title>Changes in 2.15.2 (released 01/24/2007)</title>
 <ulist>
 <item>Fixed a bug in <method>presenters.CodePresenter.__str__</method>.</item>

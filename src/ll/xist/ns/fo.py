@@ -8,6 +8,7 @@
 ##
 ## See xist/__init__.py for the license
 
+
 """
 <par>An &xist; module that contains definitions for the
 <link href="http://www.w3.org/TR/SVG/">&xsl;</link> 1.0 definition.</par>

@@ -8,6 +8,7 @@
 ##
 ## See xist/__init__.py for the license
 
+
 """
 <par>This module contains XFind and CSS selectors and related classes and functions.</par>
 

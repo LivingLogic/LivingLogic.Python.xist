@@ -8,6 +8,7 @@
 ##
 ## See xist/__init__.py for the license
 
+
 """
 <par>An &xist; module that contains elements that simplify
 handling meta data. All elements in this module will generate a

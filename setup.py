@@ -27,7 +27,7 @@ CLASSIFIERS="""
 Development Status :: 5 - Production/Stable
 Environment :: Web Environment
 Intended Audience :: Developers
-License :: OSI Approved :: Python License (CNRI Python License)
+License :: OSI Approved :: MIT License
 Operating System :: OS Independent
 Programming Language :: Python
 Topic :: Internet :: WWW/HTTP :: Dynamic Content
@@ -62,7 +62,7 @@ args = dict(
 	author_email="walter@livinglogic.de",
 	url="http://www.livinglogic.de/Python/xist/",
 	download_url="http://www.livinglogic.de/Python/xist/Download.html",
-	license="Python",
+	license="MIT",
 	classifiers=CLASSIFIERS.strip().splitlines(),
 	keywords=",".join(KEYWORDS.strip().splitlines()),
 	package_dir={"": "src"},

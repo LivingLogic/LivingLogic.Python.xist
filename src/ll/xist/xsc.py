@@ -14,7 +14,6 @@ This module contains all the central &xml; tree classes, the namespace classes,
 exception and warning classes and a few helper classes and functions.
 """
 
-
 __version__ = "$Revision$".split()[1]
 # $Source$
 

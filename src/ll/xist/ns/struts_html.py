@@ -8,6 +8,7 @@
 ##
 ## See xist/__init__.py for the license
 
+
 """
 <par>A module that allows you to embed tags from
 the <link href="http://jakarta.apache.org/struts/">Struts</link>

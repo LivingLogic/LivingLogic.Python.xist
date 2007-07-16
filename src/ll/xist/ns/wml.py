@@ -8,6 +8,7 @@
 ##
 ## See xist/__init__.py for the license
 
+
 """
 <par>An &xist; namespace module that contains definitions for all the elements in &wml; 1.3.</par>
 """

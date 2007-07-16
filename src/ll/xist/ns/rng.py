@@ -8,6 +8,7 @@
 ##
 ## See xist/__init__.py for the license
 
+
 """
 This module is an &xist; namespace for
 <link href="http://relaxng.org/">Relax NG</link> files.

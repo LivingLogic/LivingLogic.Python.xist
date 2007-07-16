@@ -8,10 +8,11 @@
 ##
 ## See xist/__init__.py for the license
 
+
 """
 Module that uses the w3m browser to generate a text version
-of a docbook fragment.
-Usage: python docbooklite2text.py spam.xml spam.txt
+of a doc fragment.
+Usage: python doc2txt.py spam.xml spam.txt
        to generate spam.txt from spam.xml
 """
 

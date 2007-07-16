@@ -8,6 +8,7 @@
 ##
 ## See xist/__init__.py for the license
 
+
 """
 <par>Module that helps to create &xist; namespace modules from &dtd;s.
 Needs <app>xmlproc</app> from the <app>PyXML</app> package.

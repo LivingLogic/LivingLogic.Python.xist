@@ -8,6 +8,7 @@
 ##
 ## See xist/__init__.py for the license
 
+
 """
 <par>A module that allows you to embed &jsp; content as processing instructions.</par>
 """

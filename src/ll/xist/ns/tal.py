@@ -8,6 +8,7 @@
 ##
 ## See xist/__init__.py for the license
 
+
 """
 <par>An &xist; module that contains the global attributes from
 <app>Zope</app>s <z>Template Attribute Language</z>.</par>

@@ -8,6 +8,7 @@
 ##
 ## See xist/__init__.py for the license
 
+
 """
 <par>An &xist; namespace that contains definitions for all the elements
 in <link href="http://www.w3.org/TR/html4/loose.dtd">&html; 4.0 transitional</link>.</par>
