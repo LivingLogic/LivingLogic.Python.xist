@@ -59,9 +59,19 @@ Passing a namespace to remove all atrtributes from the namespace is no longer su
 </section>
 
 
+<section><title>Changes in 2.15.4 (released 07/16/2007)</title>
+<ulist>
+<item>The Python quotes example now always parses the file from
+the original &url;.</item>
+<item>The Python quotes and the media example now print the result
+to <lit>stdout</lit>.</item>
+</ulist>
+</section>
+
+
 <section><title>Changes in 2.15.3 (released 07/16/2007)</title>
 <ulist>
-<item>use a consistent license (MIT) everywhere. This should make
+<item>Use a consistent license (MIT) everywhere. This should make
 &xist; Debian compatible.</item>
 <item>Change the Python quotes example, so that it works even if
 there's no <filename>python-quotes.xml</filename> in the current

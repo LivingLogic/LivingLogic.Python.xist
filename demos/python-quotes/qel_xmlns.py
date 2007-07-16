@@ -178,3 +178,16 @@ class code(xsc.Element):
 	def convert(self, converter):
 		e = html.code(self.content)
 		return e.convert(converter)
+
+
+class br(xsc.Element):
+	def convert(self, converter):
+		e = html.br()
+
+		return e.convert(converter)
+
+
+class __ns__(xsc.Namespace):
+	xmlname = "quotations"
+	xmlurl = "http://www.amk.ca/qel/"
+__ns__.makemod(vars())
