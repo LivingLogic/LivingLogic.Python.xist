@@ -566,6 +566,23 @@ class hasclass(Selector):
 
 
 class inattr(Selector):
+	"""
+	<par>Selector that is true only if the node is an attribute or is inside an
+	attribute.</par>
+	<example>
+	<tty>
+	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
+	<prompt>>>> </prompt><input>doc = parsers.parseURL("http://www.python.org", tidy=True)</input>
+	<prompt>>>> </prompt><input>for node in doc.walknode(xfind.inattr & xsc.Text):</input>
+	<prompt>... </prompt><input>\tprint node.bytes()</input>
+	<prompt>... </prompt><input></input>
+	text/html; charset=utf-8
+	content-type
+	python programming language object oriented web free source	
+	<rep>...</rep>
+	</tty>
+	</example>
+	"""
 	def match(self, path):
 		return any(isinstance(node, xsc.Attr) for node in path)
 
