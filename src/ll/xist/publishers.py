@@ -54,7 +54,7 @@ class Publisher(object):
 		and others that just happen to be empty as <markup>&lt;foo&gt;&lt;/foo&gt;</markup>. This
 		is the default.</item>
 		<term>Pure &xml; (<lit><arg>xhtml</arg>==2</lit>)</term>
-		<lit>All empty elements will be published as <markup>&lt;foo/&gt;</markup>.</item>
+		<item>All empty elements will be published as <markup>&lt;foo/&gt;</markup>.</item>
 		</dlist>
 
 		<par><arg>validate</arg> specifies whether validation should be done before
