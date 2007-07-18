@@ -3,4 +3,6 @@ syntax: glob
 build
 dist
 CVS
+*.pyc
+src/*.egg-info
 
