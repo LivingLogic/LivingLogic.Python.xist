@@ -85,7 +85,7 @@ class if_(xsc.ProcInst):
 		Three
 	<?else?>
 		Something else
-	<?endif?>
+	<?end if?>
 	]]></prog>
 	"""
 	xmlname = "if"
@@ -124,9 +124,9 @@ class def_(xsc.ProcInst):
 					<td><?textexpr person.firstname?></td>
 					<td><?textexpr person.lastname?></td>
 				</tr>
-			<?endfor?>
+			<?end for?>
 		</table>
-	<?enddef?>
+	<?end def?>
 	]]></prog>
 
 	<par>If the generated function contains output (i.e. if there is text content
@@ -155,8 +155,8 @@ class class_(xsc.ProcInst):
 					<li><?textexpr item?></li>
 				<?endfor?>
 			</ul>
-		<?enddef?>
-	<?endclass?>
+		<?end def?>
+	<?end class?>
 	]]></prog>
 	"""
 	xmlname = "class"
@@ -172,7 +172,7 @@ class for_(xsc.ProcInst):
 	<ul>
 		<?for i in xrange(10)?>
 			<li><?expr str(i)?></li>
-		<?endfor?>
+		<?end for?>
 	</ul>
 	]]></prog>
 	"""
@@ -191,7 +191,7 @@ class while_(xsc.ProcInst):
 		<?while True?>
 			<li><?expr str(i)?><?code i += 1?></li>
 			<?code if i > 10: break?>
-		<?endwhile?>
+		<?end while?>
 	</ul>
 	]]></prog>
 	"""
