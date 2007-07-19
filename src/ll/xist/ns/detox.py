@@ -39,6 +39,7 @@ __version__ = "$Revision$".split()[1]
 
 import sys, os, datetime, types
 
+from ll import misc
 from ll.xist import xsc
 
 
@@ -212,50 +213,6 @@ class end(xsc.ProcInst):
 targets = set(value.xmlname for value in vars().itervalues() if isinstance(value, xsc._ProcInst_Meta))
 
 
-def tokenize(string):
-	"""
-	Tokenize the <class>unicode</class> object <arg>string</arg> (which must
-	be an &xml; string) according to the processing instructions in this namespace.
-	<function>tokenize</function> will generate tuples with the first
-	item being the processing instruction target name and the second being the PI
-	data. <z>Text</z> content (i.e. anything other than PIs) will be returned
-	as <lit>(None, <rep>data</rep>)</lit>. Unknown processing instructions
-	will be returned as literal text (i.e. as <lit>(None, u"&lt;?<rep>target</rep>
-	<rep>data</rep>?&gt;")</lit>).
-	"""
-
-	pos = 0
-	while True:
-		pos1 = string.find("<?", pos)
-		if pos1<0:
-			part = string[pos:]
-			if part:
-				yield (None, part)
-			return
-		pos2 = string.find("?>", pos1)
-		if pos2<0:
-			part = string[pos:]
-			if part:
-				yield (None, part)
-			return
-		part = string[pos:pos1]
-		if part:
-			yield (None, part)
-		part = string[pos1+2: pos2].strip()
-		parts = part.split(None, 1)
-		target = parts[0]
-		if len(parts) > 1:
-			data = parts[1]
-		else:
-			data = ""
-		if target not in targets:
-			# return unknown PIs as text
-			data = "<?%s %s?>" % (target, data)
-			target = None
-		yield (target, data)
-		pos = pos2+2
-
-
 # Used for indenting Python source code
 indent = "\t"
 
@@ -278,7 +235,7 @@ def xml2py(source):
 			raise SyntaxError("can't end %s scope: active scope is: %s %s" % (action, stack[-1][0], stack[-1][1]))
 		return stack.pop()
 
-	for (t, s) in tokenize(source):
+	for (t, s) in misc.tokenizepi(source):
 		if t is None:
 			# ignore output outside of functions
 			if stackoutput and stackoutput[-1]:
@@ -324,6 +281,11 @@ def xml2py(source):
 			scope = endscope(s)
 			if scope in ("def", "class"):
 				stackoutput.pop()
+		else: # unknown PI target => treat as text
+			# ignore output outside of functions
+			if stackoutput and stackoutput[-1]:
+				s = "<?%s %s?>" % (t, s)
+				lines.append("%syield %r" % (len(stack)*indent, s))
 	if stack:
 		raise SyntaxError("unclosed scopes remaining: %s" % ", ".join(scope[0] for scope in stack))
 	return "\n".join(lines)
