@@ -136,3 +136,21 @@ def test_scopecheck():
 		+detox.end("for")
 
 	py.test.raises(SyntaxError, makeoutput, e, "gurk")
+
+
+def test_textexpr():
+	with xsc.Frag() as e:
+		with defblock(func="gurk()"):
+			+detox.code("""s = '"a" < "b" & "b" > "a"'""")
+			+detox.textexpr("s")
+
+	assert makeoutput(e, "gurk") == '"a" &lt; "b" &amp; "b" &gt; "a"'
+
+
+def test_attrexpr():
+	with xsc.Frag() as e:
+		with defblock(func="gurk()"):
+			+detox.code("""s = '"a" < "b" & "b" > "a"'""")
+			+detox.attrexpr("s")
+
+	assert makeoutput(e, "gurk") == '&quot;a&quot; &lt; &quot;b&quot; &amp; &quot;b&quot; &gt; &quot;a&quot;'
