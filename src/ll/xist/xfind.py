@@ -252,6 +252,27 @@ isroot = isroot()
 
 
 class empty(Selector):
+	"""
+	<par>Selector that selects all empty elements or fragments.</par>
+
+	<example>
+	<tty>
+	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
+	<prompt>>>> </prompt><input>doc = parsers.parseURL("http://www.python.org", tidy=True)</input>
+	<prompt>>>> </prompt><input>for node in doc.walknode(xfind.empty):</input>
+	<prompt>... </prompt><input>\tprint node.bytes()</input>
+	<prompt>... </prompt><input></input>
+	<![CDATA[<meta content="text/html; charset=utf-8" http-equiv="content-type" />
+	<meta content="python programming language object oriented web free source" name="keywords" />
+	<meta content="      Home page for Python, an interpreted, interactive, object-oriented, extensible
+	      programming language. It provides an extraordinary combination of clarity and
+	      versatility, and is free and comprehensively ported. " name="description" />
+	<link type="application/rss+xml" href="http://www.python.org/channews.rdf" rel="alternate" title="RSS" />]]>
+	<rep>...</rep>
+	</tty>
+	</example>
+	"""
+
 	def match(self, path):
 		if path:
 			node = path[-1]
@@ -267,6 +288,25 @@ empty = empty()
 
 
 class onlychild(Selector):
+	"""
+	<par>Selector that selects all node that are the only child of their parents.</par>
+
+	<example>
+	<tty>
+	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
+	<prompt>>>> </prompt><input>doc = parsers.parseURL("http://www.python.org", tidy=True)</input>
+	<prompt>>>> </prompt><input>for node in doc.walknode(xfind.onlychild & html.a):</input>
+	<prompt>... </prompt><input>\tprint node.bytes()</input>
+	<prompt>... </prompt><input></input>
+	<![CDATA[<a accesskey="2" href="http://www.python.org/#left%2dhand%2dnavigation"><img id="skiptonav" alt="skip to navigation" src="http://www.python.org/images/trans.gif" border="0" /></a>
+	<a accesskey="3" href="http://www.python.org/#content%2dbody"><img id="skiptocontent" alt="skip to content" src="http://www.python.org/images/trans.gif" border="0" /></a>
+	<a href="http://www.python.org/download/releases/2.5.1">Quick Links (2.5.1)</a>
+	<a title="Manuals for Latest Stable Release" href="http://docs.python.org/">Documentation</a>]]>
+	<rep>...</rep>
+	</tty>
+	</example>
+	"""
+
 	def match(self, path):
 		if len(path) >= 2:
 			parent = path[-2]
