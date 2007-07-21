@@ -322,6 +322,25 @@ onlychild = onlychild()
 
 
 class onlyoftype(Selector):
+	"""
+	<par>Selector that selects all nodes that the only nodes of their type among
+	their siblings.</par>
+
+	<example>
+	<tty>
+	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
+	<prompt>>>> </prompt><input>doc = parsers.parseURL("http://www.python.org", tidy=True)</input>
+	<prompt>>>> </prompt><input>for node in doc.walknode(xfind.onlyoftype & xsc.Element):</input>
+	<prompt>... </prompt><input>\tprint repr(node)</input>
+	<prompt>... </prompt><input></input>
+	<![CDATA[<ll.xist.ns.html.html element object (2 children/1 attr) (from http://www.python.org/:4:?) at 0xb6d6e7ec>
+	<ll.xist.ns.html.head element object (13 children/no attrs) (from http://www.python.org/:6:?) at 0xb6cc1f8c>
+	<ll.xist.ns.html.title element object (1 child/no attrs) (from http://www.python.org/:8:?) at 0xb6d79b8c>
+	<ll.xist.ns.html.body element object (19 children/no attrs) (from http://www.python.org/:26:?) at 0xb6d7282c>]]>
+	<rep>...</rep>
+	</tty>
+	</example>
+	"""
 	def match(self, path):
 		if len(path) >= 2:
 			node = path[-1]
@@ -342,6 +361,25 @@ onlyoftype = onlyoftype()
 
 
 class hasattr(Selector):
+	"""
+	<par>Selector that selects all element nodes that have an attribute with one
+	of the specified Python names.</par>
+
+	<example>
+	<tty>
+	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
+	<prompt>>>> </prompt><input>doc = parsers.parseURL("http://www.python.org", tidy=True)</input>
+	<prompt>>>> </prompt><input>for node in doc.walknode(xfind.onlyoftype & xsc.Element):</input>
+	<prompt>... </prompt><input>\tprint repr(node)</input>
+	<prompt>... </prompt><input></input>
+	<![CDATA[<ll.xist.ns.html.html element object (2 children/1 attr) (from http://www.python.org/:4:?) at 0xb6d6e7ec>
+	<ll.xist.ns.html.head element object (13 children/no attrs) (from http://www.python.org/:6:?) at 0xb6cc1f8c>
+	<ll.xist.ns.html.title element object (1 child/no attrs) (from http://www.python.org/:8:?) at 0xb6d79b8c>
+	<ll.xist.ns.html.body element object (19 children/no attrs) (from http://www.python.org/:26:?) at 0xb6d7282c>]]>
+	<rep>...</rep>
+	</tty>
+	</example>
+	"""
 	def __init__(self, *attrnames):
 		self.attrnames = attrnames
 
@@ -359,6 +397,10 @@ class hasattr(Selector):
 
 
 class hasattr_xml(Selector):
+	"""
+	<class>hasattr_xml</class> work similar to <pyref class="hasattr"><class>hasattr</class></pyref>
+	except that the specified names are treated as &xml; names instead of Python names.
+	"""
 	def __init__(self, *attrnames):
 		self.attrnames = attrnames
 
