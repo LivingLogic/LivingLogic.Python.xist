@@ -1,4 +1,3 @@
-#! /usr/bin/env python
 # -*- coding: iso-8859-1 -*-
 
 ## Copyright 1999-2007 by LivingLogic AG, Bayreuth/Germany.
