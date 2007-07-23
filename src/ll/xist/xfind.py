@@ -173,7 +173,9 @@ class IsInstanceSelector(Selector):
 class hasname(Selector):
 	"""
 	<par>Selector that selects all nodes that have a specified Python name (which
-	only selects elements, processing instructions and entities).</par>
+	only selects elements, processing instructions and entities). Also a namespace
+	name can be specified as a second argument, which will only select elements
+	from the specified namespace.</par>
 
 	<example>
 	<tty>
@@ -189,13 +191,17 @@ class hasname(Selector):
 	</tty>
 	</example>
 	"""
-	def __init__(self, name):
+	def __init__(self, name, xmlns=None):
 		self.name = name
+		self.xmlns = xsc.nsname(xmlns)
 
 	def match(self, path):
 		if path:
 			node = path[-1]
-			return IsInstanceSelector(node, (xsc.Element, xsc.ProcInst, xsc.Entity)) and node.__class__.__name__ == self.name
+			if self.xmlns is not None:
+				return isinstance(node, xsc.Element) and node.__class__.__name__ == self.name and node.xmlns == self.xmlns
+			else:
+				return isinstance(node, (xsc.Element, xsc.ProcInst, xsc.Entity)) and node.__class__.__name__ == self.name
 		return False
 
 	def __repr__(self):
@@ -207,13 +213,17 @@ class hasname_xml(Selector):
 	<class>hasname_xml</class> work similar to <pyref class="hasname"><class>hasname</class></pyref>
 	except that the specified name is treated as the &xml; name, not the Python name.
 	"""
-	def __init__(self, name):
+	def __init__(self, name, xmlns=None):
 		self.name = name
+		self.xmlns = xsc.nsname(xmlns)
 
 	def match(self, path):
 		if path:
 			node = path[-1]
-			return IsInstanceSelector(node, (xsc.Element, xsc.ProcInst, xsc.Entity)) and node.xmlname == self.name
+			if self.xmlns is not None:
+				return isinstance(node, xsc.Element) and node.xmlname == self.name and node.xmlns == self.xmlns
+			else:
+				return isinstance(node, (xsc.Element, xsc.ProcInst, xsc.Entity)) and node.xmlname == self.name
 		return False
 
 	def __repr__(self):
@@ -322,7 +332,7 @@ onlychild = onlychild()
 
 class onlyoftype(Selector):
 	"""
-	<par>Selector that selects all nodes that the only nodes of their type among
+	<par>Selector that selects all nodes that are the only nodes of their type among
 	their siblings.</par>
 
 	<example>

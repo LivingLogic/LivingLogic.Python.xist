@@ -90,8 +90,15 @@ def test_hasname():
 
 	def check(expr, res):
 		assert [str(e) for e in node.walknode(expr)] == res
-	yield check, xfind.hasname("em"), ["important", "first", "second", "important", "first", "important", "second", "important", "only"]
-	yield check, xfind.hasname_xml("em"), ["important", "first", "second", "important", "first", "important", "second", "important", "only"]
+	result = ["important", "first", "second", "important", "first", "important", "second", "important", "only"]
+	yield check, xfind.hasname("em"), result
+	yield check, xfind.hasname("em", html), result
+	yield check, xfind.hasname("em", html.xmlns), result
+	yield check, xfind.hasname("em", "gurk"), []
+	yield check, xfind.hasname_xml("em"), result
+	yield check, xfind.hasname_xml("em", html), result
+	yield check, xfind.hasname_xml("em", html.xmlns), result
+	yield check, xfind.hasname_xml("em", "gurk"), []
 
 
 def test_is():
