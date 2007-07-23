@@ -57,7 +57,7 @@ def main():
 	p.add_option("-o", "--output", dest="output", metavar="FILE", help="write output to FILE")
 	p.add_option("-v", "--verbose", action="store_true", dest="verbose")
 	p.add_option("-x", "--xmlns", dest="xmlns", help="the namespace name for this module")
-	p.add_option("-a", "--shareattrs", dest="shareattrs", help="Should identical attributes be shared among elements?", choices=("none", "dupes", "all"), default="dupes")
+	p.add_option("-s", "--shareattrs", dest="shareattrs", help="Should identical attributes be shared among elements?", choices=("none", "dupes", "all"), default="dupes")
 	p.add_option("-m", "--model", dest="model", default="once", help="Add sims information to the namespace", choices=("no", "all", "once"))
 	p.add_option("-d", "--defaults", action="store_true", dest="defaults", help="Output default values for attributes")
 
