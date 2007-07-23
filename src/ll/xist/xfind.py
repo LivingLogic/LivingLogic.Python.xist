@@ -238,6 +238,18 @@ class IsSelector(Selector):
 	to select children of this specific node. You can either create an
 	<class>IsSelector</class> directly or simply pass a node to a function that
 	expects a walk filter.</par>
+
+	<example>
+	<tty>
+	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
+	<prompt>>>> </prompt><input>doc = parsers.parseURL("http://www.python.org", tidy=True)</input>
+	<prompt>>>> </prompt><input>for node in doc.walknode(doc[0]/xsc.Element):</input>
+	<prompt>... </prompt><input>\tprint repr(node)</input>
+	<prompt>... </prompt><input></input>
+	<![CDATA[<ll.xist.ns.html.head element object (13 children/no attrs) (from http://www.python.org/:6:?) at 0xb6c82f4c>
+	<ll.xist.ns.html.body element object (19 children/no attrs) (from http://www.python.org/:26:?) at 0xb6c3154c>]]>
+	</tty>
+	</example>
 	"""
 	def __init__(self, node):
 		self.node = node
