@@ -132,7 +132,7 @@ class IsInstanceSelector(Selector):
 	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
 	<prompt>>>> </prompt><input>from ll.xist.ns import html</input>
 	<prompt>>>> </prompt><input>doc = parsers.parseURL("http://www.python.org", tidy=True)</input>
-	<prompt>>>> </prompt><input>for node in doc.walknode(html.a):</input>
+	<prompt>>>> </prompt><input>for node in doc.walknode(<em>html.a</em>):</input>
 	<prompt>... </prompt><input>\tprint node.bytes()</input>
 	<prompt>... </prompt><input></input>
 	<![CDATA[<a id="logolink" accesskey="1" href="http://www.python.org/"><img src="http://www.python.org/images/python-logo.gif" id="logo" border="0" alt="homepage" /></a>
@@ -181,7 +181,7 @@ class hasname(Selector):
 	<tty>
 	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
 	<prompt>>>> </prompt><input>doc = parsers.parseURL("http://www.python.org", tidy=True)</input>
-	<prompt>>>> </prompt><input>for node in doc.walknode(xfind.hasname("img")):</input>
+	<prompt>>>> </prompt><input>for node in doc.walknode(<em>xfind.hasname("img")</em>):</input>
 	<prompt>... </prompt><input>\tprint node.bytes()</input>
 	<prompt>... </prompt><input></input>
 	<![CDATA[<img border="0" src="http://www.python.org/images/python-logo.gif" alt="homepage" id="logo" />
@@ -210,7 +210,7 @@ class hasname(Selector):
 
 class hasname_xml(Selector):
 	"""
-	<class>hasname_xml</class> work similar to <pyref class="hasname"><class>hasname</class></pyref>
+	<class>hasname_xml</class> works similar to <pyref class="hasname"><class>hasname</class></pyref>
 	except that the specified name is treated as the &xml; name, not the Python name.
 	"""
 	def __init__(self, name, xmlns=None):
@@ -243,7 +243,7 @@ class IsSelector(Selector):
 	<tty>
 	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
 	<prompt>>>> </prompt><input>doc = parsers.parseURL("http://www.python.org", tidy=True)</input>
-	<prompt>>>> </prompt><input>for node in doc.walknode(doc[0]/xsc.Element):</input>
+	<prompt>>>> </prompt><input>for node in doc.walknode(<em>doc[0]/xsc.Element</em>):</input>
 	<prompt>... </prompt><input>\tprint repr(node)</input>
 	<prompt>... </prompt><input></input>
 	<![CDATA[<ll.xist.ns.html.head element object (13 children/no attrs) (from http://www.python.org/:6:?) at 0xb6c82f4c>
@@ -280,7 +280,7 @@ class empty(Selector):
 	<tty>
 	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
 	<prompt>>>> </prompt><input>doc = parsers.parseURL("http://www.python.org", tidy=True)</input>
-	<prompt>>>> </prompt><input>for node in doc.walknode(xfind.empty):</input>
+	<prompt>>>> </prompt><input>for node in doc.walknode(<em>xfind.empty</em>):</input>
 	<prompt>... </prompt><input>\tprint node.bytes()</input>
 	<prompt>... </prompt><input></input>
 	<![CDATA[<meta content="text/html; charset=utf-8" http-equiv="content-type" />
@@ -316,7 +316,7 @@ class onlychild(Selector):
 	<tty>
 	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
 	<prompt>>>> </prompt><input>doc = parsers.parseURL("http://www.python.org", tidy=True)</input>
-	<prompt>>>> </prompt><input>for node in doc.walknode(xfind.onlychild & html.a):</input>
+	<prompt>>>> </prompt><input>for node in doc.walknode(<em>xfind.onlychild &amp; html.a</em>):</input>
 	<prompt>... </prompt><input>\tprint node.bytes()</input>
 	<prompt>... </prompt><input></input>
 	<![CDATA[<a accesskey="2" href="http://www.python.org/#left%2dhand%2dnavigation"><img id="skiptonav" alt="skip to navigation" src="http://www.python.org/images/trans.gif" border="0" /></a>
@@ -351,7 +351,7 @@ class onlyoftype(Selector):
 	<tty>
 	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
 	<prompt>>>> </prompt><input>doc = parsers.parseURL("http://www.python.org", tidy=True)</input>
-	<prompt>>>> </prompt><input>for node in doc.walknode(xfind.onlyoftype & xsc.Element):</input>
+	<prompt>>>> </prompt><input>for node in doc.walknode(<em>xfind.onlyoftype &amp; xsc.Element</em>):</input>
 	<prompt>... </prompt><input>\tprint repr(node)</input>
 	<prompt>... </prompt><input></input>
 	<![CDATA[<ll.xist.ns.html.html element object (2 children/1 attr) (from http://www.python.org/:4:?) at 0xb6d6e7ec>
@@ -362,6 +362,7 @@ class onlyoftype(Selector):
 	</tty>
 	</example>
 	"""
+
 	def match(self, path):
 		if len(path) >= 2:
 			node = path[-1]
@@ -390,7 +391,7 @@ class hasattr(Selector):
 	<tty>
 	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
 	<prompt>>>> </prompt><input>doc = parsers.parseURL("http://www.python.org", tidy=True)</input>
-	<prompt>>>> </prompt><input>for node in doc.walknode(xfind.onlyoftype & xsc.Element):</input>
+	<prompt>>>> </prompt><input>for node in doc.walknode(<em>xfind.onlyoftype &amp; xsc.Element</em>):</input>
 	<prompt>... </prompt><input>\tprint repr(node)</input>
 	<prompt>... </prompt><input></input>
 	<![CDATA[<ll.xist.ns.html.html element object (2 children/1 attr) (from http://www.python.org/:4:?) at 0xb6d6e7ec>
@@ -401,6 +402,7 @@ class hasattr(Selector):
 	</tty>
 	</example>
 	"""
+
 	def __init__(self, *attrnames):
 		self.attrnames = attrnames
 
@@ -419,9 +421,10 @@ class hasattr(Selector):
 
 class hasattr_xml(Selector):
 	"""
-	<class>hasattr_xml</class> work similar to <pyref class="hasattr"><class>hasattr</class></pyref>
+	<class>hasattr_xml</class> works similar to <pyref class="hasattr"><class>hasattr</class></pyref>
 	except that the specified names are treated as &xml; names instead of Python names.
 	"""
+
 	def __init__(self, *attrnames):
 		self.attrnames = attrnames
 
@@ -439,6 +442,26 @@ class hasattr_xml(Selector):
 
 
 class attrhasvalue(Selector):
+	"""
+	<par>Selector that selects all element nodes where an attribute with the
+	specified Python name has the specified value. Note that
+	<pyref module="ll.xist.xsc" class="Attr" method="isfancy">fancy</pyref> attributes
+	will not be considered.</par>
+
+	<example>
+	<tty>
+	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
+	<prompt>>>> </prompt><input>doc = parsers.parseURL("http://www.python.org", tidy=True)</input>
+	<prompt>>>> </prompt><input>for node in doc.walknode(<em>xfind.attrhasvalue("rel", "stylesheet")</em>):</input>
+	<prompt>... </prompt><input>\tprint repr(node)</input>
+	<prompt>... </prompt><input></input>
+	<![CDATA[<link media="screen" type="text/css" href="http://www.python.org/styles/screen-switcher-default.css" rel="stylesheet" id="screen-switcher-stylesheet" />
+	<link media="scReen" type="text/css" rel="stylesheet" href="http://www.python.org/styles/netscape4.css" />
+	<link media="print" type="text/css" rel="stylesheet" href="http://www.python.org/styles/print.css" />]]>
+	</tty>
+	</example>
+	"""
+
 	def __init__(self, attrname, attrvalue):
 		self.attrname = attrname
 		self.attrvalue = attrvalue
@@ -457,6 +480,11 @@ class attrhasvalue(Selector):
 
 
 class attrhasvalue_xml(Selector):
+	"""
+	<class>attrhasvalue_xml</class> works similar to <pyref class="attrhasvalue"><class>attrhasvalue</class></pyref>
+	except that the specified name is treated as an &xml; name instead of a Python name.
+	"""
+
 	def __init__(self, attrname, attrvalue):
 		self.attrname = attrname
 		self.attrvalue = attrvalue
@@ -478,6 +506,28 @@ class attrhasvalue_xml(Selector):
 
 
 class attrcontains(Selector):
+	"""
+	<par>Selector that selects all element nodes where an attribute with the
+	specified Python name contains the specified subtring in its value. Note that
+	<pyref module="ll.xist.xsc" class="Attr" method="isfancy">fancy</pyref> attributes
+	will not be considered.</par>
+
+	<example>
+	<tty>
+	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
+	<prompt>>>> </prompt><input>doc = parsers.parseURL("http://www.python.org", tidy=True)</input>
+	<prompt>>>> </prompt><input>for node in doc.walknode(<em>xfind.attrcontains("rel", "stylesheet")</em>):</input>
+	<prompt>... </prompt><input>\tprint repr(node)</input>
+	<prompt>... </prompt><input></input>
+	<![CDATA[<link type="text/css" id="screen-switcher-stylesheet" media="screen" rel="stylesheet" href="http://www.python.org/styles/screen-switcher-default.css" />
+	<link type="text/css" media="scReen" rel="stylesheet" href="http://www.python.org/styles/netscape4.css" />
+	<link type="text/css" media="print" rel="stylesheet" href="http://www.python.org/styles/print.css" />
+	<link type="text/css" title="large text" media="screen" rel="alternate stylesheet" href="http://www.python.org/styles/largestyles.css" />
+	<link type="text/css" title="default fonts" media="screen" rel="alternate stylesheet" href="http://www.python.org/styles/defaultfonts.css" />]]>
+	</tty>
+	</example>
+	"""
+
 	def __init__(self, attrname, attrvalue):
 		self.attrname = attrname
 		self.attrvalue = attrvalue
@@ -496,6 +546,11 @@ class attrcontains(Selector):
 
 
 class attrcontains_xml(Selector):
+	"""
+	<class>attrcontains_xml</class> works similar to <pyref class="attrcontains"><class>attrcontains</class></pyref>
+	except that the specified name is treated as an &xml; name instead of a Python name.
+	"""
+
 	def __init__(self, attrname, attrvalue):
 		self.attrname = attrname
 		self.attrvalue = attrvalue
@@ -517,6 +572,25 @@ class attrcontains_xml(Selector):
 
 
 class attrstartswith(Selector):
+	"""
+	<par>Selector that selects all element nodes where an attribute with the
+	specified Python name starts with the specified string. Note that
+	<pyref module="ll.xist.xsc" class="Attr" method="isfancy">fancy</pyref> attributes
+	will not be considered.</par>
+
+	<example>
+	<tty>
+	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
+	<prompt>>>> </prompt><input>doc = parsers.parseURL("http://www.python.org", tidy=True)</input>
+	<prompt>>>> </prompt><input>for node in doc.walknode(<em>xfind.attrstartswith("class_", "input-")</em>):</input>
+	<prompt>... </prompt><input>\tprint repr(node)</input>
+	<prompt>... </prompt><input></input>
+	<![CDATA[<input class="input-text" id="q" type="text" name="q" />
+	<input value="search" class="input-button" id="submit" type="submit" name="submit" />]]>
+	</tty>
+	</example>
+	"""
+
 	def __init__(self, attrname, attrvalue):
 		self.attrname = attrname
 		self.attrvalue = attrvalue
@@ -535,6 +609,11 @@ class attrstartswith(Selector):
 
 
 class attrstartswith_xml(Selector):
+	"""
+	<class>attrstartswith_xml</class> works similar to <pyref class="attrstartswith"><class>attrstartswith</class></pyref>
+	except that the specified name is treated as an &xml; name instead of a Python name.
+	"""
+
 	def __init__(self, attrname, attrvalue):
 		self.attrname = attrname
 		self.attrvalue = attrvalue
@@ -556,6 +635,28 @@ class attrstartswith_xml(Selector):
 
 
 class attrendswith(Selector):
+	"""
+	<par>Selector that selects all element nodes where an attribute with the
+	specified Python name ends with the specified string. Note that
+	<pyref module="ll.xist.xsc" class="Attr" method="isfancy">fancy</pyref> attributes
+	will not be considered.</par>
+
+	<example>
+	<tty>
+	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
+	<prompt>>>> </prompt><input>doc = parsers.parseURL("http://www.python.org", tidy=True)</input>
+	<prompt>>>> </prompt><input>for node in doc.walknode(<em>xfind.attrendswith("href", ".css")</em>):</input>
+	<prompt>... </prompt><input>\tprint repr(node)</input>
+	<prompt>... </prompt><input></input>
+	<![CDATA[<link href="http://www.python.org/styles/screen-switcher-default.css" type="text/css" rel="stylesheet" id="screen-switcher-stylesheet" media="screen" />
+	<link type="text/css" rel="stylesheet" href="http://www.python.org/styles/netscape4.css" media="scReen" />
+	<link type="text/css" rel="stylesheet" href="http://www.python.org/styles/print.css" media="print" />
+	<link title="large text" type="text/css" rel="alternate stylesheet" href="http://www.python.org/styles/largestyles.css" media="screen" />
+	<link title="default fonts" type="text/css" rel="alternate stylesheet" href="http://www.python.org/styles/defaultfonts.css" media="screen" />]]>
+	</tty>
+	</example>
+	"""
+
 	def __init__(self, attrname, attrvalue):
 		self.attrname = attrname
 		self.attrvalue = attrvalue
@@ -574,6 +675,11 @@ class attrendswith(Selector):
 
 
 class attrendswith_xml(Selector):
+	"""
+	<class>attrendswith_xml</class> works similar to <pyref class="attrendswith"><class>attrendswith</class></pyref>
+	except that the specified name is treated as an &xml; name instead of a Python name.
+	"""
+
 	def __init__(self, attrname, attrvalue):
 		self.attrname = attrname
 		self.attrvalue = attrvalue
@@ -602,7 +708,7 @@ class hasid(Selector):
 	<tty>
 	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
 	<prompt>>>> </prompt><input>doc = parsers.parseURL("http://www.python.org", tidy=True)</input>
-	<prompt>>>> </prompt><input>for node in doc.walknode(xfind.hasid("logo")):</input>
+	<prompt>>>> </prompt><input>for node in doc.walknode(<em>xfind.hasid("logo")</em>):</input>
 	<prompt>... </prompt><input>\tprint node.bytes()</input>
 	<prompt>... </prompt><input></input>
 	<![CDATA[<img src="http://www.python.org/images/python-logo.gif" id="logo" alt="homepage" border="0" />]]>
@@ -637,7 +743,7 @@ class hasclass(Selector):
 	<tty>
 	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
 	<prompt>>>> </prompt><input>doc = parsers.parseURL("http://www.python.org", tidy=True)</input>
-	<prompt>>>> </prompt><input>for node in doc.walknode(xfind.hasclass("reference")):</input>
+	<prompt>>>> </prompt><input>for node in doc.walknode(<em>xfind.hasclass("reference")</em>):</input>
 	<prompt>... </prompt><input>\tprint node.bytes()</input>
 	<prompt>... </prompt><input></input>
 	<![CDATA[<a class="reference" href="http://www.python.org/search">Advanced Search</a>
@@ -670,13 +776,12 @@ class hasclass(Selector):
 
 class inattr(Selector):
 	"""
-	<par>Selector that is true only if the node is an attribute or is inside an
-	attribute.</par>
+	<par>Selector that selects all attribute nodes and nodes inside of attributes.</par>
 	<example>
 	<tty>
 	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
 	<prompt>>>> </prompt><input>doc = parsers.parseURL("http://www.python.org", tidy=True)</input>
-	<prompt>>>> </prompt><input>for node in doc.walknode(xfind.inattr & xsc.Text):</input>
+	<prompt>>>> </prompt><input>for node in doc.walknode(<em>xfind.inattr &amp; xsc.Text</em>):</input>
 	<prompt>... </prompt><input>\tprint node.bytes()</input>
 	<prompt>... </prompt><input></input>
 	text/html; charset=utf-8
@@ -697,10 +802,17 @@ inattr = inattr()
 
 
 class Combinator(Selector):
-	pass
+	"""
+	<par>A <class>Combinator</class> is a selector that combines two or more other
+	selectors in a certain way.</par>
+	"""
 
 
 class BinaryCombinator(Combinator):
+	"""
+	<par>A <class>BinaryCombinator</class> is a combinator that combines two selector:
+	the left hand selector and the right hand selector.</par>
+	"""
 	reprsymbol = None
 
 	def __init__(self, left, right):
@@ -718,6 +830,30 @@ class BinaryCombinator(Combinator):
 
 
 class ChildCombinator(BinaryCombinator):
+	"""
+	<par>A <class>ChildCombinator</class> is a <class>BinaryCombinator</class>.
+	To match the <class>ChildCombinator</class> the node must match the
+	right hand selector and it's immediate parent must match the left hand
+	selector (i.e. it works similar to the <lit>&gt;</lit> combinator in &css;
+	or the <lit>/</lit> combinator in XPath.</par>
+
+	<par><class>ChildCombinator</class>s can be created via the division operator:</par>
+
+	<example>
+	<tty>
+	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
+	<prompt>>>> </prompt><input>from ll.xist.ns import html</input>
+	<prompt>>>> </prompt><input>doc = parsers.parseURL("http://www.python.org", tidy=True)</input>
+	<prompt>>>> </prompt><input>for node in doc.walknode(<em>html.a/html.img</em>):</input>
+	<prompt>... </prompt><input>\tprint node.bytes()</input>
+	<prompt>... </prompt><input></input>
+	<![CDATA[<img src="http://www.python.org/images/python-logo.gif" alt="homepage" id="logo" border="0" />
+	<img id="skiptonav" alt="skip to navigation" src="http://www.python.org/images/trans.gif" border="0" />
+	<img id="skiptocontent" alt="skip to content" src="http://www.python.org/images/trans.gif" border="0" />
+	<img alt="success story photo" class="success" src="http://www.python.org/images/success/nasa.jpg" />]]>
+	</tty>
+	</example>
+	"""
 	def match(self, path):
 		if path and self.right.match(path):
 			return self.left.match(path[:-1])
@@ -730,6 +866,30 @@ class ChildCombinator(BinaryCombinator):
 
 
 class DescendantCombinator(BinaryCombinator):
+	"""
+	<par>A <class>DescendantCombinator</class> is a <class>BinaryCombinator</class>.
+	To match the <class>DescendantCombinator</class> the node must match the
+	right hand selector and any of it's ancestor nodes must match the left hand
+	selector (i.e. it works similar to the descendant combinator in &css;
+	or the <lit>//</lit> combinator in XPath.</par>
+
+	<par><class>DescendantCombinator</class>s can be created via the floor division
+	operator <lit>//</lit>:</par>
+
+	<example>
+	<tty>
+	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
+	<prompt>>>> </prompt><input>from ll.xist.ns import html</input>
+	<prompt>>>> </prompt><input>doc = parsers.parseURL("http://www.python.org", tidy=True)</input>
+	<prompt>>>> </prompt><input>for node in doc.walknode(<em>html.div//html.img</em>):</input>
+	<prompt>... </prompt><input>\tprint node.bytes()</input>
+	<prompt>... </prompt><input></input>
+	<![CDATA[<img id="skiptonav" alt="skip to navigation" src="http://www.python.org/images/trans.gif" border="0" />
+	<img id="skiptocontent" alt="skip to content" src="http://www.python.org/images/trans.gif" border="0" />
+	<img alt="success story photo" class="success" src="http://www.python.org/images/success/nasa.jpg" />]]>
+	</tty>
+	</example>
+	"""
 	def match(self, path):
 		if path and self.right.match(path):
 			while path:
