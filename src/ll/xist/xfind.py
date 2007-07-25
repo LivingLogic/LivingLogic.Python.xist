@@ -1058,6 +1058,9 @@ class OrCombinator(ChainedCombinator):
 
 	reprsymbol = " | "
 
+	def __or__(self, other):
+		return OrCombinator(*(self.selectors + (xsc.makewalkfilter(other),)))
+
 	def __str__(self):
 		return ", ".join(str(selector) for selector in self.selectors)
 
@@ -1087,6 +1090,9 @@ class AndCombinator(ChainedCombinator):
 
 	def match(self, path):
 		return all(selector.match(path) for selector in self.selectors)
+
+	def __and__(self, other):
+		return AndCombinator(*(self.selectors + (xsc.makewalkfilter(other),)))
 
 	reprsymbol = " & "
 
