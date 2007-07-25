@@ -803,8 +803,8 @@ inattr = inattr()
 
 class Combinator(Selector):
 	"""
-	<par>A <class>Combinator</class> is a selector that combines two or more other
-	selectors in a certain way.</par>
+	<par>A <class>Combinator</class> is a selector that transforms one or combines
+	two or more other selectors in a certain way.</par>
 	"""
 
 
@@ -905,6 +905,39 @@ class DescendantCombinator(BinaryCombinator):
 
 
 class AdjacentSiblingCombinator(BinaryCombinator):
+	"""
+	<par>A <class>AdjacentSiblingCombinator</class> is a <class>BinaryCombinator</class>.
+	To match the <class>AdjacentSiblingCombinator</class> the node must match the
+	right hand selector and the immediately preceding sibling must match the left
+	hand selector.</par>
+
+	<par><class>AdjacentSiblingCombinator</class>s can be created via the
+	multiplication operator <lit>*</lit>. The following example outputs all links
+	inside those <class>p</class> elements that immediately follow a
+	<class>h2</class> element:</par>
+
+	<example>
+	<tty>
+	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
+	<prompt>>>> </prompt><input>from ll.xist.ns import html</input>
+	<prompt>>>> </prompt><input>doc = parsers.parseURL("http://www.python.org", tidy=True)</input>
+	<prompt>>>> </prompt><input>for node in doc.walknode(<em>html.h2*html.p/html.a</em>):</input>
+	<prompt>... </prompt><input>\tprint node.bytes()</input>
+	<prompt>... </prompt><input></input>
+	<![CDATA[<a href="http://www.scipy.org/SciPy2007" class="reference">SciPy Conference</a>
+	<a href="https://www.enthought.com/scipy07/" class="reference">early registration</a>
+	<a href="http://www.europython.org/sections/registration_issues/how-to-register" class="reference">Online registration</a>
+	<a href="http://europython.org/" class="reference">EuroPython 2007</a>
+	<a href="http://www.osdc.com.au/papers/cfp.html" class="reference">Call For Papers</a>
+	<a href="http://www.swa.hpi.uni-potsdam.de/dls07/" class="reference">DLS 2007</a>
+	<a href="http://pythonpapers.cgpublisher.com/" class="reference">The Python Papers</a>
+	<a href="http://www.pyconuk.org/" class="reference">PyCon UK</a>
+	<a href="http://www.pyconuk.org/submit.html" class="reference">proposals for talks</a>
+	<a href="http://www.pycon.it/registration/" class="reference">registration online</a>]]>
+	</tty>
+	</example>
+	"""
+
 	def match(self, path):
 		if len(path) >= 2 and self.right.match(path):
 			# Find sibling
@@ -925,6 +958,35 @@ class AdjacentSiblingCombinator(BinaryCombinator):
 
 
 class GeneralSiblingCombinator(BinaryCombinator):
+	"""
+	<par>A <class>GeneralSiblingCombinator</class> is a <class>BinaryCombinator</class>.
+	To match the <class>GeneralSiblingCombinator</class> the node must match the
+	right hand selector and any of the preceding siblings must match the left
+	hand selector.</par>
+
+	<par><class>AdjacentSiblingCombinator</class>s can be created via the
+	exponentiation operator <lit>**</lit>. The following example outputs all links
+	that are not the first links inside their parent (i.e. they have another link
+	among their preceding siblings):</par>
+
+	<example>
+	<tty>
+	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
+	<prompt>>>> </prompt><input>from ll.xist.ns import html</input>
+	<prompt>>>> </prompt><input>doc = parsers.parseURL("http://www.python.org", tidy=True)</input>
+	<prompt>>>> </prompt><input>for node in doc.walknode(<em>html.a**html.a</em>):</input>
+	<prompt>... </prompt><input>\tprint node.bytes()</input>
+	<prompt>... </prompt><input></input>
+	<![CDATA[<a href="http://www.python.org/about/success/ilm" class="reference">Industrial Light and Magic</a>
+	<a href="http://www.python.org/about/success/astra" class="reference">AstraZeneca</a>
+	<a href="http://www.python.org/about/success/honeywell" class="reference">Honeywell</a>
+	<a href="http://www.python.org/about/success" class="reference">and many others</a>
+	<a href="http://www.zope.org/">Zope</a>]]>
+	<rep>...</rep>
+	</tty>
+	</example>
+	"""
+
 	def match(self, path):
 		if len(path) >= 2 and self.right.match(path):
 			node = path[-1]
@@ -942,6 +1004,11 @@ class GeneralSiblingCombinator(BinaryCombinator):
 
 
 class ChainedCombinator(Combinator):
+	"""
+	<par>A <class>ChainedCombinator</class> combines any number of other
+	selectors.</par>
+	"""
+
 	reprsymbol = None
 
 	def __init__(self, *selectors):
@@ -958,6 +1025,34 @@ class ChainedCombinator(Combinator):
 
 
 class OrCombinator(ChainedCombinator):
+	"""
+	<par>An <class>OrCombinator</class> is a <class>ChainedCombinator</class> where
+	the node must match at least one of the selectors to match the <class>OrCombinator</class>.
+	An <class>OrCombinator</class> can be created with the binary or operator (<lit>|</lit>).</par>
+
+	<example>
+	<tty>
+	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
+	<prompt>>>> </prompt><input>from ll.xist.ns import html</input>
+	<prompt>>>> </prompt><input>doc = parsers.parseURL("http://www.python.org", tidy=True)</input>
+	<prompt>>>> </prompt><input>for node in doc.walknode(<em>xfind.hasattr("href") | xfind.hasattr("src")</em>):</input>
+	<prompt>... </prompt><input>\tprint node.bytes()</input>
+	<prompt>... </prompt><input></input>
+	<![CDATA[<link type="application/rss+xml" title="RSS" rel="alternate" href="http://www.python.org/channews.rdf" />
+	<link media="screen" type="text/css" id="screen-switcher-stylesheet" rel="stylesheet" href="http://www.python.org/styles/screen-switcher-default.css" />
+	<link media="scReen" type="text/css" rel="stylesheet" href="http://www.python.org/styles/netscape4.css" />
+	<link media="print" type="text/css" rel="stylesheet" href="http://www.python.org/styles/print.css" />
+	<link media="screen" type="text/css" title="large text" rel="alternate stylesheet" href="http://www.python.org/styles/largestyles.css" />
+	<link media="screen" type="text/css" title="default fonts" rel="alternate stylesheet" href="http://www.python.org/styles/defaultfonts.css" />
+	<script src="http://www.python.org/js/iotbs2-key-directors-load.js" type="text/javascript"></script>
+	<script src="http://www.python.org/js/iotbs2-directors.js" type="text/javascript"></script>
+	<script src="http://www.python.org/js/iotbs2-core.js" type="text/javascript"></script>
+	<a accesskey="1" id="logolink" href="http://www.python.org/"><img alt="homepage" src="http://www.python.org/images/python-logo.gif" id="logo" border="0" /></a>]]>
+	<rep>...</rep>
+	</tty>
+	</example>
+	"""
+
 	def match(self, path):
 		return any(selector.match(path) for selector in self.selectors)
 
@@ -968,6 +1063,28 @@ class OrCombinator(ChainedCombinator):
 
 
 class AndCombinator(ChainedCombinator):
+	"""
+	<par>An <class>AndCombinator</class> is a <class>ChainedCombinator</class> where
+	the node must match all of the combined selectors to match the <class>AndCombinator</class>.
+	An <class>AndCombinator</class> can be created with the binary and operator (<lit>&amp;</lit>).</par>
+
+	<example>
+	<tty>
+	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
+	<prompt>>>> </prompt><input>from ll.xist.ns import html</input>
+	<prompt>>>> </prompt><input>doc = parsers.parseURL("http://www.python.org", tidy=True)</input>
+	<prompt>>>> </prompt><input>for node in doc.walknode(<em>html.input & xfind.hasattr("id")</em>):</input>
+	<prompt>... </prompt><input>\tprint node.bytes()</input>
+	<prompt>... </prompt><input></input>
+	<![CDATA[<input id="domains" name="domains" value="www.python.org" type="hidden" />
+	<input id="sitesearch" name="sitesearch" value="www.python.org" type="hidden" />
+	<input id="sourceid" name="sourceid" value="google-search" type="hidden" />
+	<input id="q" class="input-text" name="q" type="text" />
+	<input id="submit" value="search" name="submit" type="submit" class="input-button" />]]>
+	</tty>
+	</example>
+	"""
+
 	def match(self, path):
 		return all(selector.match(path) for selector in self.selectors)
 
@@ -978,6 +1095,26 @@ class AndCombinator(ChainedCombinator):
 
 
 class NotCombinator(Combinator):
+	"""
+	<par>A <class>NotCombinator</class> inverts the selection logic of the
+	underlying selector, i.e. a node matches only if it does not match the underlying
+	selector. A <class>NotCombinator</class> can be created with the unary inversion operator (<lit>~</lit>).</par>
+
+	<par>The following example outputs all images that don't have a <lit>border</lit> attribute:</par>
+
+	<example>
+	<tty>
+	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
+	<prompt>>>> </prompt><input>from ll.xist.ns import html</input>
+	<prompt>>>> </prompt><input>doc = parsers.parseURL("http://www.python.org", tidy=True)</input>
+	<prompt>>>> </prompt><input>for node in doc.walknode(<em>html.img &amp; ~xfind.hasattr("border")</em>):</input>
+	<prompt>... </prompt><input>\tprint node.bytes()</input>
+	<prompt>... </prompt><input></input>
+	<![CDATA[<img alt="success story photo" class="success" src="http://www.python.org/images/success/nasa.jpg" />]]>
+	</tty>
+	</example>
+	"""
+
 	def __init__(self, selector):
 		self.selector = selector
 
