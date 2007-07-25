@@ -1268,10 +1268,11 @@ class CSSHasAttributeSelector(Selector):
 		self.attributename = attributename
 
 	def match(self, path):
-		node = path[-1]
-		if not isinstance(node, xsc.Element) or not node.Attrs.isallowed_xml(self.attributename):
-			return False
-		return node.attrs.has_xml(self.attributename)
+		if path:
+			node = path[-1]
+			if isinstance(node, xsc.Element) and node.Attrs.isallowed_xml(self.attributename):
+				return node.attrs.has_xml(self.attributename)
+		return False
 
 	def __repr__(self):
 		return "%s(%r)" % (self.__class__.__name__, self.attributename)
@@ -1286,11 +1287,12 @@ class CSSAttributeListSelector(Selector):
 		self.attributevalue = attributevalue
 
 	def match(self, path):
-		node = path[-1]
-		if not isinstance(node, xsc.Element) or not node.Attrs.isallowed_xml(self.attributename):
-			return False
-		attr = node.attrs.get_xml(self.attributename)
-		return self.attributevalue in unicode(attr).split()
+		if path:
+			node = path[-1]
+			if isinstance(node, xsc.Element) and node.Attrs.isallowed_xml(self.attributename):
+				attr = node.attrs.get_xml(self.attributename)
+				return self.attributevalue in unicode(attr).split()
+		return False
 
 	def __repr__(self):
 		return "%s(%r, %r)" % (self.__class__.__name__, self.attributename, self.attributevalue)
@@ -1305,14 +1307,14 @@ class CSSAttributeLangSelector(Selector):
 		self.attributevalue = attributevalue
 
 	def match(self, path):
-		node = path[-1]
-		if not isinstance(node, xsc.Element) or not node.Attrs.isallowed_xml(self.attributename):
-			return False
-		attr = node.attrs.get_xml(self.attributename)
-		parts = unicode(attr).split("-", 1)
-		if not parts:
-			return False
-		return parts[0] == self.attributevalue
+		if path:
+			node = path[-1]
+			if isinstance(node, xsc.Element) and node.Attrs.isallowed_xml(self.attributename):
+				attr = node.attrs.get_xml(self.attributename)
+				parts = unicode(attr).split("-", 1)
+				if parts:
+					return parts[0] == self.attributevalue
+		return False
 
 	def __repr__(self):
 		return "%s(%r, %r)" % (self.__class__.__name__, self.attributename, self.attributevalue)
@@ -1555,7 +1557,7 @@ _function2class = {
 def css(selectors, prefixes=None):
 	"""
 	Create a walk filter that will yield all nodes that match the specified
-	CSS expression. <arg>selectors</arg> can be a string or a
+	&css; expression. <arg>selectors</arg> can be a string or a
 	<class>cssutils.css.selector.Selector</class> object. <arg>prefixes</arg>
 	may is a mapping mapping namespace prefixes to namespace names.
 	"""
