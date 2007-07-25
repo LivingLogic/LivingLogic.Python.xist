@@ -847,7 +847,7 @@ class ChildCombinator(BinaryCombinator):
 	selector (i.e. it works similar to the <lit>&gt;</lit> combinator in &css;
 	or the <lit>/</lit> combinator in XPath.</par>
 
-	<par><class>ChildCombinator</class>s can be created via the division operator:</par>
+	<par><class>ChildCombinator</class>s can be created via the division operator (<lit>/</lit>):</par>
 
 	<example>
 	<tty>
@@ -884,7 +884,7 @@ class DescendantCombinator(BinaryCombinator):
 	or the <lit>//</lit> combinator in XPath.</par>
 
 	<par><class>DescendantCombinator</class>s can be created via the floor division
-	operator <lit>//</lit>:</par>
+	operator (<lit>//</lit>):</par>
 
 	<example>
 	<tty>
@@ -922,7 +922,7 @@ class AdjacentSiblingCombinator(BinaryCombinator):
 	hand selector.</par>
 
 	<par><class>AdjacentSiblingCombinator</class>s can be created via the
-	multiplication operator <lit>*</lit>. The following example outputs all links
+	multiplication operator (<lit>*</lit>). The following example outputs all links
 	inside those <class>p</class> elements that immediately follow a
 	<class>h2</class> element:</par>
 
@@ -975,7 +975,7 @@ class GeneralSiblingCombinator(BinaryCombinator):
 	hand selector.</par>
 
 	<par><class>AdjacentSiblingCombinator</class>s can be created via the
-	exponentiation operator <lit>**</lit>. The following example outputs all links
+	exponentiation operator (<lit>**</lit>). The following example outputs all links
 	that are not the first links inside their parent (i.e. they have another link
 	among their preceding siblings):</par>
 
