@@ -385,11 +385,13 @@ onlyoftype = onlyoftype()
 class hasattr(Selector):
 	"""
 	<par>Selector that selects all element nodes that have an attribute with one
-	of the specified Python names.</par>
+	of the specified Python names. For selecting nodes with global attributes
+	the attribute class can be passed.</par>
 
 	<example>
 	<tty>
 	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
+	<prompt>>>> </prompt><input>from ll.xist.ns import html, xml</input>
 	<prompt>>>> </prompt><input>doc = parsers.parseURL("http://www.python.org", tidy=True)</input>
 	<prompt>>>> </prompt><input>for node in doc.walknode(<em>xfind.onlyoftype &amp; xsc.Element</em>):</input>
 	<prompt>... </prompt><input>\tprint repr(node)</input>
@@ -399,6 +401,10 @@ class hasattr(Selector):
 	<ll.xist.ns.html.title element object (1 child/no attrs) (from http://www.python.org/:8:?) at 0xb6d79b8c>
 	<ll.xist.ns.html.body element object (19 children/no attrs) (from http://www.python.org/:26:?) at 0xb6d7282c>]]>
 	<rep>...</rep>
+	<prompt>>>> </prompt><input>for node in doc.walknode(<em>xfind.hasattr(xml.Attrs.lang</em>):</input>
+	<prompt>... </prompt><input>\tprint repr(node)</input>
+	<prompt>... </prompt><input></input>
+	<![CDATA[<ll.xist.ns.html.html element object (2 children/2 attrs) (from http://www.python.org/:4:?) at 0xb6d71d4c>]]>
 	</tty>
 	</example>
 	"""
@@ -444,7 +450,8 @@ class hasattr_xml(Selector):
 class attrhasvalue(Selector):
 	"""
 	<par>Selector that selects all element nodes where an attribute with the
-	specified Python name has the specified value. Note that
+	specified Python name has the specified value. For global attributes
+	the attribute class can be passed. Note that
 	<pyref module="ll.xist.xsc" class="Attr" method="isfancy">fancy</pyref> attributes
 	will not be considered.</par>
 
@@ -508,9 +515,10 @@ class attrhasvalue_xml(Selector):
 class attrcontains(Selector):
 	"""
 	<par>Selector that selects all element nodes where an attribute with the
-	specified Python name contains the specified subtring in its value. Note that
-	<pyref module="ll.xist.xsc" class="Attr" method="isfancy">fancy</pyref> attributes
-	will not be considered.</par>
+	specified Python name contains the specified subtring in its value. For
+	global attributes the attribute class can be passed. Note that
+	<pyref module="ll.xist.xsc" class="Attr" method="isfancy">fancy</pyref>
+	attributes will not be considered.</par>
 
 	<example>
 	<tty>
@@ -574,7 +582,8 @@ class attrcontains_xml(Selector):
 class attrstartswith(Selector):
 	"""
 	<par>Selector that selects all element nodes where an attribute with the
-	specified Python name starts with the specified string. Note that
+	specified Python name starts with the specified string. For global attributes
+	the attribute class can be passed. Note that
 	<pyref module="ll.xist.xsc" class="Attr" method="isfancy">fancy</pyref> attributes
 	will not be considered.</par>
 
@@ -637,7 +646,8 @@ class attrstartswith_xml(Selector):
 class attrendswith(Selector):
 	"""
 	<par>Selector that selects all element nodes where an attribute with the
-	specified Python name ends with the specified string. Note that
+	specified Python name ends with the specified string. For global attributes
+	the attribute class can be passed. Note that
 	<pyref module="ll.xist.xsc" class="Attr" method="isfancy">fancy</pyref> attributes
 	will not be considered.</par>
 
@@ -1135,6 +1145,35 @@ class NotCombinator(Combinator):
 
 
 class CallableSelector(Selector):
+	"""
+	<par>A <class>CallableSelector</class> is a selector that calls a user specified
+	callable to select nodes. The callable gets passed the path and must return
+	a bool specifying whether this path is selected. A <class>CallableSelector</class>
+	is created implicitely whenever a callable is passed to a method that expects
+	a walk filter.</par>
+
+	<par>The following example outputs all links that point outside the <lit>python.org</lit> domain:</par>
+
+	<example>
+	<tty>
+	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
+	<prompt>>>> </prompt><input>from ll.xist.ns import html</input>
+	<prompt>>>> </prompt><input>doc = parsers.parseURL("http://www.python.org", tidy=True)</input>
+	<prompt>>>> </prompt><input>def foreignlink(path):</input>
+	<prompt>... </prompt><input>	return path and isinstance(path[-1], html.a) and not path[-1].attrs.href.asURL().server.endswith(".python.org")</input>
+	<prompt>... </prompt><input></input>
+	<prompt>>>> </prompt><input>for node in doc.walknode(<em>foreignlink</em>):</input>
+	<prompt>... </prompt><input>\tprint node.bytes()</input>
+	<prompt>... </prompt><input></input>
+	<![CDATA[<a href="http://homegain.com/" class="reference">HomeGain.com</a>
+	<a href="http://www.zope.org/">Zope</a>
+	<a href="http://www.djangoproject.com/">Django</a>
+	<a href="http://www.turbogears.org/">TurboGears</a>
+	<a href="http://pyxml.sourceforge.net/topics/">XML</a>]]>
+	<rep>..</rep>
+	</tty>
+	</example>
+	"""
 	def __init__(self, func):
 		self.func = func
 
