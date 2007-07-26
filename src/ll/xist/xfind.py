@@ -1485,7 +1485,7 @@ class CSSTypeSelector(Selector):
 			v.append(repr(self.xmlns))
 		for selector in self.selectors:
 			v.append(", ")
-			v.append(repr(selector))
+			v.append(str(selector))
 		v.append(")")
 		return "".join(v)
 
