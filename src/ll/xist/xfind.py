@@ -974,7 +974,7 @@ class GeneralSiblingCombinator(BinaryCombinator):
 		if len(path) >= 2 and self.right.match(path):
 			node = path[-1]
 			for child in path[-2]:
-				if child is node:
+				if child is node: # no previous siblings
 					return False
 				if self.left.match(path[:-1]+[child]):
 					return True
@@ -1341,10 +1341,10 @@ class CSSLastChildSelector(Selector):
 
 class CSSFirstOfTypeSelector(Selector):
 	def match(self, path):
-		if len(path) < 2:
-			return False
-		node = path[-1]
-		return isinstance(node, xsc.Element) and _is_nth_node(misc.Iterator(_children_of_type(path[-2], node.xmlname)), node, 1)
+		if len(path) >= 2:
+			node = path[-1]
+			return isinstance(node, xsc.Element) and _is_nth_node(misc.Iterator(_children_of_type(path[-2], node.xmlname)), node, 1)
+		return False
 
 	def __str__(self):
 		return "CSSFirstOfTypeSelector()"
@@ -1352,10 +1352,10 @@ class CSSFirstOfTypeSelector(Selector):
 
 class CSSLastOfTypeSelector(Selector):
 	def match(self, path):
-		if len(path) < 2:
-			return False
-		node = path[-1]
-		return isinstance(node, xsc.Element) and _is_nth_last_node(misc.Iterator(_children_of_type(path[-2], node.xmlname)), node, 1)
+		if len(path) >= 2:
+			node = path[-1]
+			return isinstance(node, xsc.Element) and _is_nth_last_node(misc.Iterator(_children_of_type(path[-2], node.xmlname)), node, 1)
+		return False
 
 	def __str__(self):
 		return "CSSLastOfTypeSelector()"
@@ -1363,13 +1363,13 @@ class CSSLastOfTypeSelector(Selector):
 
 class CSSOnlyChildSelector(Selector):
 	def match(self, path):
-		if len(path) < 2:
-			return False
-		node = path[-1]
-		for child in path[-2][xsc.Element]:
-			if child is not node:
-				return False
-		return True
+		if len(path) >= 2:
+			node = path[-1]
+			for child in path[-2][xsc.Element]:
+				if child is not node:
+					return False
+			return True
+		return False
 
 	def __str__(self):
 		return "CSSOnlyChildSelector()"
@@ -1377,15 +1377,14 @@ class CSSOnlyChildSelector(Selector):
 
 class CSSOnlyOfTypeSelector(Selector):
 	def match(self, path):
-		if len(path) < 2:
-			return False
-		node = path[-1]
-		if not isinstance(node, xsc.Element):
-			return False
-		for child in _children_of_type(path[-2], node.xmlname):
-			if child is not node:
-				return False
-		return True
+		if len(path) >= 2:
+			node = path[-1]
+			if isinstance(node, xsc.Element):
+				for child in _children_of_type(path[-2], node.xmlname):
+					if child is not node:
+						return False
+				return True
+		return False
 
 	def __str__(self):
 		return "CSSOnlyOfTypeSelector()"
@@ -1393,15 +1392,14 @@ class CSSOnlyOfTypeSelector(Selector):
 
 class CSSEmptySelector(Selector):
 	def match(self, path):
-		if not path:
-			return False
-		node = path[-1]
-		if not isinstance(node, xsc.Element):
-			return False
-		for child in path[-1].content:
-			if isinstance(child, xsc.Element) or (isinstance(child, xsc.Text) and child):
-				return False
-		return True
+		if path:
+			node = path[-1]
+			if isinstance(node, xsc.Element):
+				for child in path[-1].content:
+					if isinstance(child, xsc.Element) or (isinstance(child, xsc.Text) and child):
+						return False
+				return True
+		return False
 
 	def __str__(self):
 		return "CSSEmptySelector()"
@@ -1425,42 +1423,38 @@ class CSSFunctionSelector(Selector):
 
 class CSSNthChildSelector(CSSFunctionSelector):
 	def match(self, path):
-		if len(path) < 2:
-			return False
-		node = path[-1]
-		if not isinstance(node, xsc.Element):
-			return False
-		return _is_nth_node(path[-2][xsc.Element], node, self.value)
+		if len(path) >= 2:
+			node = path[-1]
+			if isinstance(node, xsc.Element):
+				return _is_nth_node(path[-2][xsc.Element], node, self.value)
+		return False
 
 
 class CSSNthLastChildSelector(CSSFunctionSelector):
 	def match(self, path):
-		if len(path) < 2:
-			return False
-		node = path[-1]
-		if not isinstance(node, xsc.Element):
-			return False
-		return _is_nth_last_node(path[-2][xsc.Element], node, self.value)
+		if len(path) >= 2:
+			node = path[-1]
+			if isinstance(node, xsc.Element):
+				return _is_nth_last_node(path[-2][xsc.Element], node, self.value)
+		return False
 
 
 class CSSNthOfTypeSelector(CSSFunctionSelector):
 	def match(self, path):
-		if len(path) < 2:
-			return False
-		node = path[-1]
-		if not isinstance(node, xsc.Element):
-			return False
-		return _is_nth_node(self._children_of_type(path[-2], node.xmlname), node, self.value)
+		if len(path) >= 2:
+			node = path[-1]
+			if isinstance(node, xsc.Element):
+				return _is_nth_node(self._children_of_type(path[-2], node.xmlname), node, self.value)
+		return False
 
 
 class CSSNthLastOfTypeSelector(CSSFunctionSelector):
 	def match(self, path):
-		if len(path) < 2:
-			return False
-		node = path[-1]
-		if not isinstance(node, xsc.Element):
-			return False
-		return _is_nth_last_node(self._children_of_type(path[-2], node.xmlname), node, self.value)
+		if len(path) >= 2:
+			node = path[-1]
+			if isinstance(node, xsc.Element):
+				return _is_nth_last_node(self._children_of_type(path[-2], node.xmlname), node, self.value)
+		return False
 
 
 class CSSTypeSelector(Selector):
@@ -1531,7 +1525,7 @@ class CSSGeneralSiblingCombinator(BinaryCombinator):
 		if len(path) >= 2 and self.right.match(path):
 			node = path[-1]
 			for child in path[-2][xsc.Element]:
-				if child is node:
+				if child is node: # no previous element siblings
 					return False
 				if self.left.match(path[:-1]+[child]):
 					return True
