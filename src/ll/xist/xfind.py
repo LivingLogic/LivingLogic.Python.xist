@@ -953,7 +953,7 @@ class AdjacentSiblingCombinator(BinaryCombinator):
 			# Find sibling
 			node = path[-1]
 			sibling = None
-			for child in path[-2][xsc.Element]:
+			for child in path[-2]:
 				if child is node:
 					break
 				sibling = child
@@ -1000,7 +1000,7 @@ class GeneralSiblingCombinator(BinaryCombinator):
 	def match(self, path):
 		if len(path) >= 2 and self.right.match(path):
 			node = path[-1]
-			for child in path[-2][xsc.Element]:
+			for child in path[-2]:
 				if child is node:
 					return False
 				if self.left.match(path[:-1]+[child]):
@@ -1564,6 +1564,55 @@ class CSSTypeSelector(Selector):
 		return "".join(v)
 
 
+class CSSAdjacentSiblingCombinator(BinaryCombinator):
+	"""
+	<par>A <class>CSSAdjacentSiblingCombinator</class> work similar to an
+	<class>AdjacentSiblingCombinator</class> except that only preceding elements
+	are considered.</par>
+	"""
+
+	def match(self, path):
+		if len(path) >= 2 and self.right.match(path):
+			# Find sibling
+			node = path[-1]
+			sibling = None
+			for child in path[-2][xsc.Element]:
+				if child is node:
+					break
+				sibling = child
+			if sibling is not None:
+				return self.left.match(path[:-1]+[sibling])
+		return False
+
+	reprsymbol = " + "
+
+	def __str__(self):
+		return "%s+%s" % (self.left, self.right)
+
+
+class CSSGeneralSiblingCombinator(BinaryCombinator):
+	"""
+	<par>A <class>CSSGeneralSiblingCombinator</class> work similar to an
+	<class>GeneralSiblingCombinator</class> except that only preceding elements
+	are considered.</par>
+	"""
+
+	def match(self, path):
+		if len(path) >= 2 and self.right.match(path):
+			node = path[-1]
+			for child in path[-2][xsc.Element]:
+				if child is node:
+					return False
+				if self.left.match(path[:-1]+[child]):
+					return True
+		return False
+
+	reprsymbol = " ** "
+
+	def __str__(self):
+		return "%s~%s" % (self.left, self.right)
+
+
 _attributecombinator2class = {
 	"=": attrhasvalue_xml,
 	"~=": CSSAttributeListSelector,
@@ -1576,8 +1625,8 @@ _attributecombinator2class = {
 _combinator2class = {
 	" ": DescendantCombinator,
 	">": ChildCombinator,
-	"+": AdjacentSiblingCombinator,
-	"~": GeneralSiblingCombinator,
+	"+": CSSAdjacentSiblingCombinator,
+	"~": CSSGeneralSiblingCombinator,
 }
 
 _pseudoname2class = {

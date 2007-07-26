@@ -342,7 +342,22 @@ def test_css():
 	assert list(e.walknode(xfind.css("div :empty"))) == [e[0][1]]
 	assert list(e.walknode(xfind.css("div>*:empty"))) == []
 	assert list(e.walknode(xfind.css("div>:empty"))) == []
-	assert list(e.walknode(xfind.css("li+li"))) == [e[0][1]]
 	assert list(e.walknode(xfind.css("*|li"))) == [e[0][0], e[0][1]]
 	assert list(e.walknode(xfind.css("h|li", prefixes={"h": html}))) == [e[0][0], e[0][1]]
 	assert list(e.walknode(xfind.css("h|li", prefixes={"h": specials}))) == []
+
+	with xsc.Frag() as e:
+		+html.div("foo")
+		+xsc.Text("filler")
+		+html.p("foo")
+		+xsc.Text("filler")
+		+html.ul(html.li("foo"))
+
+	assert list(e.walknode(xfind.css("div + p"))) == [e[2]]
+	assert list(e.walknode(xfind.css("div + ul"))) == []
+	assert list(e.walknode(xfind.css("ul + p"))) == []
+	assert list(e.walknode(xfind.css("div ~ p"))) == [e[2]]
+	assert list(e.walknode(xfind.css("div ~ ul"))) == [e[4]]
+	assert list(e.walknode(xfind.css("p ~ div"))) == []
+	assert list(e.walknode(xfind.css("div:first-child + p"))) == [e[2]]
+	assert list(e.walknode(xfind.css("*:first-child + p"))) == [e[2]]
