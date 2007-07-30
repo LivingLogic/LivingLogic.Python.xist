@@ -1445,7 +1445,7 @@ class CSSNthOfTypeSelector(CSSFunctionSelector):
 		if len(path) >= 2:
 			node = path[-1]
 			if isinstance(node, xsc.Element):
-				return _is_nth_node(self._children_of_type(path[-2], node.xmlname), node, self.value)
+				return _is_nth_node(misc.Iterator(_children_of_type(path[-2], node.xmlname)), node, self.value)
 		return False
 
 
@@ -1454,7 +1454,7 @@ class CSSNthLastOfTypeSelector(CSSFunctionSelector):
 		if len(path) >= 2:
 			node = path[-1]
 			if isinstance(node, xsc.Element):
-				return _is_nth_last_node(self._children_of_type(path[-2], node.xmlname), node, self.value)
+				return _is_nth_last_node(misc.Iterator(_children_of_type(path[-2], node.xmlname)), node, self.value)
 		return False
 
 

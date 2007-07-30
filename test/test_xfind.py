@@ -364,6 +364,14 @@ def test_css():
 
 	e = xsc.Frag(html.span(html.b("hurz"), "gurk", html.em("hinz"), html.em("kunz")), html.em("hurz"), html.em("hinz"), "nix", html.i("kunz"))
 	assert list(e.walknode(xfind.css("*:only-of-type"))) == [e[0], e[0][0], e[4]]
+	assert list(e.walknode(xfind.css("*:nth-child(1)"))) == [e[0], e[0][0]]
+	assert list(e.walknode(xfind.css("*:nth-child(2)"))) == [e[0][2], e[1]]
+	assert list(e.walknode(xfind.css("*:nth-last-child(1)"))) == [e[0][3], e[4]]
+	assert list(e.walknode(xfind.css("*:nth-last-child(2)"))) == [e[0][2], e[2]]
+	assert list(e.walknode(xfind.css("*:nth-of-type(1)"))) == [e[0], e[0][0], e[0][2], e[1], e[4]]
+	assert list(e.walknode(xfind.css("*:nth-of-type(2)"))) == [e[0][3], e[2]]
+	assert list(e.walknode(xfind.css("*:nth-last-of-type(1)"))) == [e[0], e[0][0], e[0][3], e[2], e[4]]
+	assert list(e.walknode(xfind.css("*:nth-last-of-type(2)"))) == [e[0][2], e[1]]
 
 	e = xsc.Frag(html.span(html.b("hurz"), "gurk"))
 	assert list(e.walknode(xfind.css("*:only-child"))) == [e[0], e[0][0]]
