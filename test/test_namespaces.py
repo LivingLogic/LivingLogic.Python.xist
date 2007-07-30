@@ -28,7 +28,7 @@ def test_variousnamespaces():
 							node[attrclass] = attrclass.values[0]
 						else:
 							node[attrclass] = "foo"
-				node.conv().asBytes(prefixdefault=True)
+				node.conv().bytes(prefixdefault=True)
 		for obj in vars(ns).itervalues():
 			if isinstance(obj, type) and issubclass(obj, xsc.Entity) and not issubclass(obj, skip):
 				node = obj()
@@ -36,7 +36,7 @@ def test_variousnamespaces():
 		for obj in vars(ns).itervalues():
 			if isinstance(obj, type) and issubclass(obj, xsc.ProcInst) and not issubclass(obj, skip):
 				node = obj()
-				node.conv().asBytes(prefixdefault=True)
+				node.conv().bytes(prefixdefault=True)
 
 	yield check, html
 	yield check, ihtml
