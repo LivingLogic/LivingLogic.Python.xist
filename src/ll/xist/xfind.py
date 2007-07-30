@@ -1414,6 +1414,37 @@ class CSSRootSelector(Selector):
 		return "CSSRootSelector()"
 
 
+class CSSLinkSelector(Selector):
+	def match(self, path):
+		if path:
+			node = path[-1]
+			return isinstance(node, xsc.Element) and node.xmlns=="http://www.w3.org/1999/xhtml" and node.xmlname=="a" and "href" in node.attrs
+		return False
+
+	def __str__(self):
+		return "%s()" % self.__class__.__name__
+
+
+class CSSInvalidPseudoSelector(Selector):
+	def match(self, path):
+		return False
+
+	def __str__(self):
+		return "%s()" % self.__class__.__name__
+
+
+class CSSHoverSelector(CSSInvalidPseudoSelector):
+	pass
+
+
+class CSSActiveSelector(CSSInvalidPseudoSelector):
+	pass
+
+
+class CSSVisitedSelector(CSSInvalidPseudoSelector):
+	pass
+
+
 class CSSFunctionSelector(Selector):
 	def __init__(self, value=None):
 		self.value = value
@@ -1561,10 +1592,10 @@ _pseudoname2class = {
 	"only-of-type": CSSOnlyOfTypeSelector,
 	"empty": CSSEmptySelector,
 	"root": CSSRootSelector,
-	"hover": None, # ignore
-	"link": None, # ignore
-	"visited": None, # ignore
-	"active": None, # ignore
+	"hover": CSSHoverSelector,
+	"link": CSSLinkSelector,
+	"visited": CSSVisitedSelector,
+	"active": CSSActiveSelector,
 }
 
 _function2class = {
@@ -1626,12 +1657,9 @@ def css(selectors, prefixes=None):
 				rule.selectors.append(hasclass(value))
 			elif type == "pseudoname":
 				try:
-					cls = _pseudoname2class[value]
+					rule.selectors.append(_pseudoname2class[value]())
 				except KeyError:
 					raise ValueError("unknown pseudoname %s" % value)
-				else:
-					if cls is not None:
-						rule.selectors.append(cls())
 			elif type == "function":
 				try:
 					rule.selectors.append(_function2class[value.rstrip("(")]())
