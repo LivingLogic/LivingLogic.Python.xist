@@ -375,3 +375,8 @@ def test_css():
 
 	e = xsc.Frag(html.span(html.b("hurz"), "gurk"))
 	assert list(e.walknode(xfind.css("*:only-child"))) == [e[0], e[0][0]]
+
+	e = xsc.Frag(html.em(class_="gurk", lang="en"), html.em(class_="gurk hurz", lang="en-us"), html.em(class_="hurz", lang="de"))
+	assert list(e.walknode(xfind.css("em[class='gurk']"))) == [e[0]]
+	assert list(e.walknode(xfind.css("em[class~='gurk']"))) == [e[0], e[1]]
+	assert list(e.walknode(xfind.css("em[lang|='en']"))) == [e[0], e[1]]
