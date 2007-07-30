@@ -1376,7 +1376,7 @@ def astext(node, encoding="iso-8859-1", width=72):
 try:
 	import cssutils
 	from cssutils import css, stylesheets
-	from cssutils.css import cssstyledeclaration, cssvalue, csscomment
+	from cssutils.css import cssstyledeclaration, cssvalue, csscomment, property as property_
 except ImportError:
 	pass
 
@@ -1396,7 +1396,7 @@ class itercssrules(object_):
 
 	def _fixurl(self, rule, base):
 		for proplist in rule.style.seq:
-			if not isinstance(proplist, csscomment.CSSComment):
+			if isinstance(proplist, property_._Property):
 				for prop in proplist:
 					for (i, value) in enumerate(prop.cssValue.seq):
 							if value.startswith("url(") and value.endswith(")"):
