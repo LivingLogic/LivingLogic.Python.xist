@@ -1263,7 +1263,7 @@ def _is_nth_last_node(iterator, node, index):
 
 
 def _children_of_type(node, type):
-	for child in node.content:
+	for child in node:
 		if isinstance(child, xsc.Element) and child.xmlname == type:
 			yield child
 
