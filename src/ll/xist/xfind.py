@@ -1564,6 +1564,7 @@ _pseudoname2class = {
 	"hover": None, # ignore
 	"link": None, # ignore
 	"visited": None, # ignore
+	"active": None, # ignore
 }
 
 _function2class = {
