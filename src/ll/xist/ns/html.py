@@ -1376,7 +1376,7 @@ def astext(node, encoding="iso-8859-1", width=72):
 try:
 	import cssutils
 	from cssutils import css, stylesheets
-	from cssutils.css import cssstyledeclaration, cssvalue
+	from cssutils.css import cssstyledeclaration, cssvalue, csscomment
 except ImportError:
 	pass
 
@@ -1396,12 +1396,13 @@ class itercssrules(object_):
 
 	def _fixurl(self, rule, base):
 		for proplist in rule.style.seq:
-			for prop in proplist:
-				for (i, value) in enumerate(prop.cssValue.seq):
-						if value.startswith("url(") and value.endswith(")"):
-							if base is not None:
-								value = "url(%s)" % (base/value[4:-1])
-							prop.cssValue.seq[i] = value
+			if not isinstance(proplist, csscomment.CSSComment):
+				for prop in proplist:
+					for (i, value) in enumerate(prop.cssValue.seq):
+							if value.startswith("url(") and value.endswith(")"):
+								if base is not None:
+									value = "url(%s)" % (base/value[4:-1])
+								prop.cssValue.seq[i] = value
 
 	def _doimport(self, parentsheet, base):
 		for rule in parentsheet.cssRules:

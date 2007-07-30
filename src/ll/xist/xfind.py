@@ -1561,6 +1561,9 @@ _pseudoname2class = {
 	"only-of-type": CSSOnlyOfTypeSelector,
 	"empty": CSSEmptySelector,
 	"root": CSSRootSelector,
+	"hover": None, # ignore
+	"link": None, # ignore
+	"visited": None, # ignore
 }
 
 _function2class = {
@@ -1622,9 +1625,12 @@ def css(selectors, prefixes=None):
 				rule.selectors.append(hasclass(value))
 			elif type == "pseudoname":
 				try:
-					rule.selectors.append(_pseudoname2class[value]())
+					cls = _pseudoname2class[value]
 				except KeyError:
 					raise ValueError("unknown pseudoname %s" % value)
+				else:
+					if cls is not None:
+						rule.selectors.append(cls())
 			elif type == "function":
 				try:
 					rule.selectors.append(_function2class[value.rstrip("(")]())
