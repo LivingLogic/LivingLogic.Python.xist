@@ -8,6 +8,8 @@
 ## See xist/__init__.py for the license
 
 
+from __future__ import with_statement
+
 """
 <par>An &xist; namespace that contains definitions for all the elements
 in <link href="http://www.w3.org/TR/html4/loose.dtd">&html; 4.0 transitional</link>.</par>
@@ -16,11 +18,15 @@ in <link href="http://www.w3.org/TR/html4/loose.dtd">&html; 4.0 transitional</li
 __version__ = "$Revision$".split()[1]
 # $Source$
 
-import os, cgi
 
-from ll.xist import xsc, utils, sims
+import os, cgi, contextlib
+
+from ll import url
+from ll.xist import xsc, utils, sims, xfind
 from ll.xist.ns import xml
 
+
+object_ = object
 
 xmlns = "http://www.w3.org/1999/xhtml"
 
@@ -1365,6 +1371,76 @@ def astext(node, encoding="iso-8859-1", width=72):
 	stdout.close()
 	text = "\n".join(line.rstrip() for line in text.splitlines())
 	return text
+
+
+try:
+	import cssutils
+	from cssutils import css, stylesheets
+	from cssutils.css import cssstyledeclaration, cssvalue
+except ImportError:
+	pass
+
+
+class itercssrules(object_):
+	def __init__(self, node, base=None):
+		self.node = node
+		if base is not None:
+			base = url.URL(base)
+		self.base = base
+
+	def _isstyle(self, path):
+		if path:
+			node = path[-1]
+			return (isinstance(node, style) and unicode(node.attrs.type) == "text/css") or (isinstance(node, link) and unicode(node.attrs.rel) == "stylesheet")
+		return False
+
+	def _fixurl(self, rule, base):
+		for proplist in rule.style.seq:
+			for prop in proplist:
+				for (i, value) in enumerate(prop.cssValue.seq):
+						if value.startswith("url(") and value.endswith(")"):
+							if base is not None:
+								value = "url(%s)" % (base/value[4:-1])
+							prop.cssValue.seq[i] = value
+
+	def _doimport(self, parentsheet, base):
+		for rule in parentsheet.cssRules:
+			if rule.type == css.CSSRule.IMPORT_RULE:
+				href = url.URL(rule.href)
+				if base is not None:
+					href = base/href
+				media = rule.media
+				with contextlib.closing(href.open("rb")) as r:
+					href = r.finalurl()
+					text = r.read()
+				sheet = css.CSSStyleSheet(href=str(href), media=media, parentStyleSheet=parentsheet)
+				sheet.cssText = text
+				for rule in self._doimport(sheet, href):
+					yield rule
+			elif rule.type == css.CSSRule.STYLE_RULE:
+				self._fixurl(rule, base)
+				yield rule
+
+	def __iter__(self):
+		import cssutils
+		for cssnode in self.node.walknode(self._isstyle):
+			if isinstance(cssnode, style):
+				stylesheet = cssutils.parseString(unicode(cssnode.content))
+				if self.base is not None:
+					stylesheet.href = str(self.base)
+				for rule in self._doimport(stylesheet, self.base):
+					yield rule
+			else: # link
+				if "href" in cssnode.attrs:
+					href = cssnode.attrs.href.asURL()
+					if self.base is not None:
+						href = self.base/href
+					with contextlib.closing(href.open("rb")) as r:
+						s = r.read()
+					stylesheet = cssutils.parseString(unicode(s))
+					stylesheet.href = str(href)
+					for rule in self._doimport(stylesheet, href):
+						yield rule
 
 
 # Parameter entities defined in the DTD
