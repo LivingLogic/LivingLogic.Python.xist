@@ -1365,10 +1365,11 @@ class CSSOnlyChildSelector(Selector):
 	def match(self, path):
 		if len(path) >= 2:
 			node = path[-1]
-			for child in path[-2][xsc.Element]:
-				if child is not node:
-					return False
-			return True
+			if isinstance(node, xsc.Element):
+				for child in path[-2][xsc.Element]:
+					if child is not node:
+						return False
+				return True
 		return False
 
 	def __str__(self):
