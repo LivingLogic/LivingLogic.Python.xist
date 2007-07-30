@@ -368,6 +368,7 @@ def test_css():
 		+html.em("hinz")
 		+xsc.Text("nix")
 		+html.i("kunz")
+
 	assert list(e.walknode(xfind.css("*:only-of-type"))) == [e[0], e[0][0], e[4]]
 	assert list(e.walknode(xfind.css("*:nth-child(1)"))) == [e[0], e[0][0]]
 	assert list(e.walknode(xfind.css("*:nth-child(2)"))) == [e[0][2], e[1]]
@@ -385,6 +386,7 @@ def test_css():
 		+html.em(class_="gurk", lang="en")
 		+html.em(class_="gurk hurz", lang="en-us")
 		+html.em(class_="hurz", lang="de")
+
 	assert list(e.walknode(xfind.css("em[class='gurk']"))) == [e[0]]
 	assert list(e.walknode(xfind.css("em[class~='gurk']"))) == [e[0], e[1]]
 	assert list(e.walknode(xfind.css("em[lang|='en']"))) == [e[0], e[1]]
