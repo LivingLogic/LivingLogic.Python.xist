@@ -361,3 +361,9 @@ def test_css():
 	assert list(e.walknode(xfind.css("p ~ div"))) == []
 	assert list(e.walknode(xfind.css("div:first-child + p"))) == [e[2]]
 	assert list(e.walknode(xfind.css("*:first-child + p"))) == [e[2]]
+
+	e = xsc.Frag(html.span(html.b("hurz"), "gurk", html.em("hinz"), html.em("kunz")), html.em("hurz"), html.em("hinz"), "nix", html.i("kunz"))
+	assert list(e.walknode(xfind.css("*:only-of-type"))) == [e[0], e[0][0], e[4]]
+
+	e = xsc.Frag(html.span(html.b("hurz"), "gurk"))
+	assert list(e.walknode(xfind.css("*:only-child"))) == [e[0], e[0][0]]
