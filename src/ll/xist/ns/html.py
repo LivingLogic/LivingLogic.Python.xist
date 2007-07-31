@@ -1376,62 +1376,80 @@ def astext(node, encoding="iso-8859-1", width=72):
 try:
 	import cssutils
 	from cssutils import css, stylesheets
-	from cssutils.css import cssstyledeclaration, cssvalue, csscomment, property as property_
+	from cssutils.css import cssstyledeclaration, cssvalue, csscomment
 except ImportError:
 	pass
 
 
+def _isstyle(path):
+	if path:
+		node = path[-1]
+		return (isinstance(node, style) and unicode(node.attrs.type) == "text/css") or (isinstance(node, link) and unicode(node.attrs.rel) == "stylesheet")
+	return False
+
+
 class itercssrules(object_):
-	def __init__(self, node, base=None):
+	def __init__(self, node, base=None, media=None):
 		self.node = node
 		if base is not None:
 			base = url.URL(base)
 		self.base = base
+		self.media = media
 
-	def _isstyle(self, path):
-		if path:
-			node = path[-1]
-			return (isinstance(node, style) and unicode(node.attrs.type) == "text/css") or (isinstance(node, link) and unicode(node.attrs.rel) == "stylesheet")
-		return False
 
 	def _fixurl(self, rule, base):
-		for proplist in rule.style.seq:
-			if isinstance(proplist, property_._Property):
-				for prop in proplist:
-					for (i, value) in enumerate(prop.cssValue.seq):
+		if base is not None:
+			for proplist in rule.style.seq:
+				if not isinstance(proplist, csscomment.CSSComment):
+					for prop in proplist:
+						newvalue = []
+						for value in prop.cssValue.seq:
 							if value.startswith("url(") and value.endswith(")"):
-								if base is not None:
-									value = "url(%s)" % (base/value[4:-1])
-								prop.cssValue.seq[i] = value
+								value = "url(%s)" % (base/value[4:-1])
+							newvalue.append(value)
+						prop.cssValue = "".join(newvalue)
 
 	def _doimport(self, parentsheet, base):
-		for rule in parentsheet.cssRules:
-			if rule.type == css.CSSRule.IMPORT_RULE:
-				href = url.URL(rule.href)
-				if base is not None:
-					href = base/href
-				media = rule.media
-				with contextlib.closing(href.open("rb")) as r:
-					href = r.finalurl()
-					text = r.read()
-				sheet = css.CSSStyleSheet(href=str(href), media=media, parentStyleSheet=parentsheet)
-				sheet.cssText = text
-				for rule in self._doimport(sheet, href):
+		media = self._getmedia(parentsheet)
+		if self.media is None or self.media in media:
+			for rule in parentsheet.cssRules:
+				if rule.type == css.CSSRule.IMPORT_RULE:
+					href = url.URL(rule.href)
+					if base is not None:
+						href = base/href
+					media = rule.media
+					with contextlib.closing(href.open("rb")) as r:
+						href = r.finalurl()
+						text = r.read()
+					sheet = css.CSSStyleSheet(href=str(href), media=media, parentStyleSheet=parentsheet)
+					sheet.cssText = text
+					for rule in self._doimport(sheet, href):
+						yield rule
+				elif rule.type == css.CSSRule.STYLE_RULE:
+					self._fixurl(rule, base)
 					yield rule
-			elif rule.type == css.CSSRule.STYLE_RULE:
-				self._fixurl(rule, base)
-				yield rule
 
 	def __getitem__(self, index):
 		return misc.item(self, index)
 
+	def _getmedia(self, stylesheet):
+		while stylesheet is not None:
+			if stylesheet.media is not None:
+				media = [m.strip() for m in stylesheet.media.split(",")]
+				# FIXME: remove extensions: see http://www.w3.org/TR/css3-mediaqueries/#idx-media-descriptor-1
+				return media
+			stylesheet = stylesheet.parentStyleSheet
+		return None
+		
 	def __iter__(self):
 		import cssutils
-		for cssnode in self.node.walknode(self._isstyle):
+		for cssnode in self.node.walknode(_isstyle):
 			if isinstance(cssnode, style):
 				stylesheet = cssutils.parseString(unicode(cssnode.content))
 				if self.base is not None:
 					stylesheet.href = str(self.base)
+				if "media" in cssnode.attrs:
+					stylesheet.media = unicode(cssnode.attrs.media)
 				for rule in self._doimport(stylesheet, self.base):
 					yield rule
 			else: # link
@@ -1443,8 +1461,36 @@ class itercssrules(object_):
 						s = r.read()
 					stylesheet = cssutils.parseString(unicode(s))
 					stylesheet.href = str(href)
+					if "media" in cssnode.attrs:
+						stylesheet.media = unicode(cssnode.attrs.media)
 					for rule in self._doimport(stylesheet, href):
 						yield rule
+
+
+def _keyrule((name, (value, count))):
+	return count
+
+
+def applycss(node, base=None, media=None):
+	rules = []
+	for rule in itercssrules(node, base=base, media=media):
+		for selector in rule.selectorList:
+			selector = xfind.css(selector)
+			rules.append((selector.cssweight(), selector, rule))
+	rules.sort()
+	for path in node.walk(xsc.Element):
+		if path[-1].Attrs.isallowed("style"):
+			styles = {}
+			count = 0
+			for (weight, selector, rule) in rules:
+				if selector.match(path):
+					for prop in rule.style.seq:
+						for value in prop:
+							styles[prop.name] = (count, prop.name, value.value)
+							count += 1
+					style = " ".join("%s: %s;" % (name, value) for (count, name, value) in sorted(styles.itervalues()))
+					path[-1].attrs.style = style
+		del path[-1][_isstyle] # drop style sheet nodes
 
 
 # Parameter entities defined in the DTD
