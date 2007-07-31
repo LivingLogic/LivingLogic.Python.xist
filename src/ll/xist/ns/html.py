@@ -21,7 +21,7 @@ __version__ = "$Revision$".split()[1]
 
 import os, cgi, contextlib
 
-from ll import url
+from ll import url, misc
 from ll.xist import xsc, utils, sims, xfind
 from ll.xist.ns import xml
 
@@ -1421,6 +1421,9 @@ class itercssrules(object_):
 			elif rule.type == css.CSSRule.STYLE_RULE:
 				self._fixurl(rule, base)
 				yield rule
+
+	def __getitem__(self, index):
+		return misc.item(self, index)
 
 	def __iter__(self):
 		import cssutils

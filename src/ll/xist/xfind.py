@@ -1626,8 +1626,10 @@ def css(selectors, prefixes=None):
 				break
 		else:
 			raise ValueError("can't happen")
+	elif isinstance(selectors, cssstylerule.CSSStyleRule):
+		selectors = selectors.selectorList
 	else:
-		raise TypeError # FIXME: cssutils object
+		raise TypeError("can't handle %r" % type(selectors))
 	orcombinators = []
 	for selector in selectors:
 		rule = root = CSSTypeSelector()
@@ -1637,11 +1639,11 @@ def css(selectors, prefixes=None):
 		combinator = None
 		inattr = False
 		for x in selector.seq:
-			type = x["type"]
-			value = x["value"]
-			if type == "prefix":
-				prefix = value
-			elif type == "pipe":
+			t = x["type"]
+			v = x["value"]
+			if t == "prefix":
+				prefix = v
+			elif t == "pipe":
 				if prefix != "*":
 					try:
 						xmlns = prefixes[prefix]
@@ -1649,37 +1651,35 @@ def css(selectors, prefixes=None):
 						raise xsc.IllegalPrefixError(prefix)
 					rule.xmlns = xmlns
 				prefix = None
-			elif type == "type":
-				rule.type = value
-			elif type == "id":
-				rule.selectors.append(hasid(value.lstrip("#")))
-			elif type == "classname":
-				rule.selectors.append(hasclass(value))
-			elif type == "pseudoname":
+			elif t == "type":
+				rule.type = v
+			elif t == "id":
+				rule.selectors.append(hasid(v.lstrip("#")))
+			elif t == "classname":
+				rule.selectors.append(hasclass(v))
+			elif t == "pseudoname":
 				try:
-					rule.selectors.append(_pseudoname2class[value]())
+					rule.selectors.append(_pseudoname2class[v]())
 				except KeyError:
-					raise ValueError("unknown pseudoname %s" % value)
-			elif type == "function":
+					raise ValueError("unknown pseudoname %s" % v)
+			elif t == "function":
 				try:
-					rule.selectors.append(_function2class[value.rstrip("(")]())
+					rule.selectors.append(_function2class[v.rstrip("(")]())
 				except KeyError:
-					raise ValueError("unknown function %s" % value)
-				rule.function = value
-			elif type == "functionvalue":
-				rule.selectors[-1].value = value
-			elif type == "attributename":
-				attributename = value
-			elif type == "attributevalue":
-				if value.startswith("'") and value.endswith("'"):
-					value = value[1:-1]
-				elif value.startswith('"') and value.endswith('"'):
-					value = value[1:-1]
-				attributevalue = value
-			elif type == "attribute selector":
+					raise ValueError("unknown function %s" % v)
+				rule.function = v
+			elif t == "functionvalue":
+				rule.selectors[-1].value = v
+			elif t == "attributename":
+				attributename = v
+			elif t == "attributevalue":
+				if (v.startswith("'") and v.endswith("'")) or (v.startswith('"') and v.endswith('"')):
+					v = v[1:-1]
+				attributevalue = v
+			elif t == "attribute selector":
 				combinator = None
 				inattr = True
-			elif type == "attribute selector end":
+			elif t == "attribute selector end":
 				if combinator is None:
 					rule.selectors.append(CSSHasAttributeSelector(attributename))
 				else:
@@ -1688,15 +1688,15 @@ def css(selectors, prefixes=None):
 					except KeyError:
 						raise ValueError("unknown combinator %s" % attributevalue)
 				inattr = False
-			elif type == "combinator":
+			elif t == "combinator":
 				if inattr:
-					combinator = value
+					combinator = v
 				else:
 					try:
 						rule = CSSTypeSelector()
-						root = _combinator2class[value](root, rule)
+						root = _combinator2class[v](root, rule)
 					except KeyError:
-						raise ValueError("unknown combinator %s" % value)
+						raise ValueError("unknown combinator %s" % v)
 					xmlns = "*"
 		orcombinators.append(root)
 	return orcombinators[0] if len(orcombinators) == 1 else OrCombinator(*orcombinators)
