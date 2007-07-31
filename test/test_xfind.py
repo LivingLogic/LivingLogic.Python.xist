@@ -390,3 +390,16 @@ def test_css():
 	assert list(e.walknode(xfind.css("em[class='gurk']"))) == [e[0]]
 	assert list(e.walknode(xfind.css("em[class~='gurk']"))) == [e[0], e[1]]
 	assert list(e.walknode(xfind.css("em[lang|='en']"))) == [e[0], e[1]]
+
+
+def test_cssweight():
+	# from http://www.w3.org/TR/css3-selectors/#specificity
+	assert xfind.css("*").cssweight() == (0, 0, 0)
+	assert xfind.css("LI").cssweight() == (0, 0, 1)
+	assert xfind.css("UL LI").cssweight() == (0, 0, 2)
+	assert xfind.css("UL OL+LI").cssweight() == (0, 0, 3)
+	assert xfind.css("UL OL LI.red").cssweight() == (0, 1, 3)
+	assert xfind.css("LI.red.level").cssweight() == (0, 2, 1)
+	assert xfind.css("#x34y").cssweight() == (1, 0, 0)
+	# The following is not supported
+	# assert xfind.css("#s12:not(FOO)").cssweight() == (1, 0, 1)

@@ -85,6 +85,22 @@ from ll import misc
 from ll.xist import xsc
 
 
+class CSSWeight(tuple):
+	"""
+	The specificity of a &CSS; selector as a 3-item tuple as specified by
+	<link href="http://www.w3.org/TR/css3-selectors/#specificity">CSS3</link>.
+	"""
+
+	def __new__(cls, a=0, b=0, c=0):
+		return tuple.__new__(cls, (a, b, c))
+
+	def __add__(self, other):
+		return CSSWeight(self[0]+other[0], self[1]+other[1], self[2]+other[2])
+
+	def __repr__(self):
+		return "CSSWeight(%r, %r, %r)" % (self[0], self[1], self[2])
+
+
 class Selector(xsc.WalkFilter):
 	"""
 	Base class for all tree traversal filters that visit the complete tree.
@@ -120,6 +136,13 @@ class Selector(xsc.WalkFilter):
 
 	def __invert__(self):
 		return NotCombinator(self)
+
+	def cssweight(self):
+		"""
+		Return the &CSS; specificity of <self/> as a
+		<pyref class="CSSWeight"><class>CSSWeight</class></pyref> object.
+		"""
+		return CSSWeight()
 
 
 class IsInstanceSelector(Selector):
@@ -730,6 +753,9 @@ class hasid(Selector):
 	def __str__(self):
 		return "%s(%r)" % (self.__class__.__name__, self.id)
 
+	def cssweight(self):
+		return CSSWeight(1, 0, 0)
+
 
 class hasclass(Selector):
 	"""
@@ -765,6 +791,9 @@ class hasclass(Selector):
 
 	def __str__(self):
 		return "%s(%r)" % (self.__class__.__name__, self.classname)
+
+	def cssweight(self):
+		return CSSWeight(0, 1, 0)
 
 
 class inattr(Selector):
@@ -820,6 +849,9 @@ class BinaryCombinator(Combinator):
 		if isinstance(self.right, Combinator) and not isinstance(self.right, self.__class__):
 			right = "(%s)" % right
 		return "%s%s%s" % (left, self.symbol, right)
+
+	def cssweight(self):
+		return self.left.cssweight()+self.right.cssweight()
 
 
 class ChildCombinator(BinaryCombinator):
@@ -1003,6 +1035,9 @@ class ChainedCombinator(Combinator):
 				s = "(%s)" % s
 			v.append(s)
 		return self.symbol.join(v)
+
+	def cssweight(self):
+		raise TypeError("no weight info for chained combinator")
 
 
 class OrCombinator(ChainedCombinator):
@@ -1273,7 +1308,12 @@ def _children_of_type(node, type):
 ### CSS selectors
 ###
 
-class CSSHasAttributeSelector(Selector):
+class CSSWeightedSelector(Selector):
+	def cssweight(self):
+		return CSSWeight(0, 1, 0)
+
+
+class CSSHasAttributeSelector(CSSWeightedSelector):
 	def __init__(self, attributename):
 		self.attributename = attributename
 
@@ -1288,7 +1328,7 @@ class CSSHasAttributeSelector(Selector):
 		return "%s(%r)" % (self.__class__.__name__, self.attributename)
 
 
-class CSSAttributeListSelector(Selector):
+class CSSAttributeListSelector(CSSWeightedSelector):
 	def __init__(self, attributename, attributevalue):
 		self.attributename = attributename
 		self.attributevalue = attributevalue
@@ -1305,7 +1345,7 @@ class CSSAttributeListSelector(Selector):
 		return "%s(%r, %r)" % (self.__class__.__name__, self.attributename, self.attributevalue)
 
 
-class CSSAttributeLangSelector(Selector):
+class CSSAttributeLangSelector(CSSWeightedSelector):
 	def __init__(self, attributename, attributevalue):
 		self.attributename = attributename
 		self.attributevalue = attributevalue
@@ -1324,7 +1364,7 @@ class CSSAttributeLangSelector(Selector):
 		return "%s(%r, %r)" % (self.__class__.__name__, self.attributename, self.attributevalue)
 
 
-class CSSFirstChildSelector(Selector):
+class CSSFirstChildSelector(CSSWeightedSelector):
 	def match(self, path):
 		return len(path) >= 2 and _is_nth_node(path[-2][xsc.Element], path[-1], 1)
 
@@ -1332,7 +1372,7 @@ class CSSFirstChildSelector(Selector):
 		return "CSSFirstChildSelector()"
 
 
-class CSSLastChildSelector(Selector):
+class CSSLastChildSelector(CSSWeightedSelector):
 	def match(self, path):
 		return len(path) >= 2 and _is_nth_last_node(path[-2][xsc.Element], path[-1], 1)
 
@@ -1340,7 +1380,7 @@ class CSSLastChildSelector(Selector):
 		return "CSSLastChildSelector()"
 
 
-class CSSFirstOfTypeSelector(Selector):
+class CSSFirstOfTypeSelector(CSSWeightedSelector):
 	def match(self, path):
 		if len(path) >= 2:
 			node = path[-1]
@@ -1351,7 +1391,7 @@ class CSSFirstOfTypeSelector(Selector):
 		return "CSSFirstOfTypeSelector()"
 
 
-class CSSLastOfTypeSelector(Selector):
+class CSSLastOfTypeSelector(CSSWeightedSelector):
 	def match(self, path):
 		if len(path) >= 2:
 			node = path[-1]
@@ -1362,7 +1402,7 @@ class CSSLastOfTypeSelector(Selector):
 		return "CSSLastOfTypeSelector()"
 
 
-class CSSOnlyChildSelector(Selector):
+class CSSOnlyChildSelector(CSSWeightedSelector):
 	def match(self, path):
 		if len(path) >= 2:
 			node = path[-1]
@@ -1377,7 +1417,7 @@ class CSSOnlyChildSelector(Selector):
 		return "CSSOnlyChildSelector()"
 
 
-class CSSOnlyOfTypeSelector(Selector):
+class CSSOnlyOfTypeSelector(CSSWeightedSelector):
 	def match(self, path):
 		if len(path) >= 2:
 			node = path[-1]
@@ -1392,7 +1432,7 @@ class CSSOnlyOfTypeSelector(Selector):
 		return "CSSOnlyOfTypeSelector()"
 
 
-class CSSEmptySelector(Selector):
+class CSSEmptySelector(CSSWeightedSelector):
 	def match(self, path):
 		if path:
 			node = path[-1]
@@ -1407,7 +1447,7 @@ class CSSEmptySelector(Selector):
 		return "CSSEmptySelector()"
 
 
-class CSSRootSelector(Selector):
+class CSSRootSelector(CSSWeightedSelector):
 	def match(self, path):
 		return len(path) == 1 and isinstance(path[-1], xsc.Element)
 
@@ -1415,7 +1455,7 @@ class CSSRootSelector(Selector):
 		return "CSSRootSelector()"
 
 
-class CSSLinkSelector(Selector):
+class CSSLinkSelector(CSSWeightedSelector):
 	def match(self, path):
 		if path:
 			node = path[-1]
@@ -1426,7 +1466,7 @@ class CSSLinkSelector(Selector):
 		return "%s()" % self.__class__.__name__
 
 
-class CSSInvalidPseudoSelector(Selector):
+class CSSInvalidPseudoSelector(CSSWeightedSelector):
 	def match(self, path):
 		return False
 
@@ -1446,7 +1486,7 @@ class CSSVisitedSelector(CSSInvalidPseudoSelector):
 	pass
 
 
-class CSSFunctionSelector(Selector):
+class CSSFunctionSelector(CSSWeightedSelector):
 	def __init__(self, value=None):
 		self.value = value
 
@@ -1521,6 +1561,12 @@ class CSSTypeSelector(Selector):
 			v.append(str(selector))
 		v.append(")")
 		return "".join(v)
+
+	def cssweight(self):
+		result = CSSWeight(0, 0, int(self.type != "*"))
+		for selector in self.selectors:
+			result += selector.cssweight()
+		return result
 
 
 class CSSAdjacentSiblingCombinator(BinaryCombinator):
