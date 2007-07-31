@@ -3081,7 +3081,7 @@ class Element(Node):
 			del self.content[index]
 		else:
 			matcher = makewalkfilter(index).match
-			sel.content = xsc.Frag(child for child in self if not matcher([self, child]))
+			self.content = Frag(child for child in self if not matcher([self, child]))
 
 	def __getslice__(self, index1, index2):
 		"""
