@@ -1660,7 +1660,7 @@ def css(selectors, prefixes=None):
 	<class>cssutils.css.selector.Selector</class> object. <arg>prefixes</arg>
 	may is a mapping mapping namespace prefixes to namespace names.
 	"""
-		
+
 	if isinstance(selectors, basestring):
 		if prefixes is not None:
 			prefixes = dict((key, xsc.nsname(value)) for (key, value) in prefixes.iteritems())
