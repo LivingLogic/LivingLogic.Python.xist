@@ -76,6 +76,7 @@ __version__ = "$Revision$".split()[1]
 try:
 	import cssutils
 	from cssutils.css import cssstylerule
+	from cssutils.css import selector as cssselector
 	from cssutils.css import cssnamespacerule
 except ImportError:
 	pass
@@ -1628,6 +1629,8 @@ def css(selectors, prefixes=None):
 			raise ValueError("can't happen")
 	elif isinstance(selectors, cssstylerule.CSSStyleRule):
 		selectors = selectors.selectorList
+	elif isinstance(selectors, cssselector.Selector):
+		selectors = [selectors]
 	else:
 		raise TypeError("can't handle %r" % type(selectors))
 	orcombinators = []
