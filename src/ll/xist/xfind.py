@@ -1486,6 +1486,18 @@ class CSSVisitedSelector(CSSInvalidPseudoSelector):
 	pass
 
 
+class CSSFocusSelector(CSSInvalidPseudoSelector):
+	pass
+
+
+class CSSAfterSelector(CSSInvalidPseudoSelector):
+	pass
+
+
+class CSSBeforeSelector(CSSInvalidPseudoSelector):
+	pass
+
+
 class CSSFunctionSelector(CSSWeightedSelector):
 	def __init__(self, value=None):
 		self.value = value
@@ -1640,9 +1652,12 @@ _pseudoname2class = {
 	"empty": CSSEmptySelector,
 	"root": CSSRootSelector,
 	"hover": CSSHoverSelector,
+	"focus": CSSFocusSelector,
 	"link": CSSLinkSelector,
 	"visited": CSSVisitedSelector,
 	"active": CSSActiveSelector,
+	"after": CSSAfterSelector,
+	"before": CSSBeforeSelector,
 }
 
 _function2class = {
