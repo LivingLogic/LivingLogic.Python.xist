@@ -27,7 +27,7 @@ node = xsc.Frag(
 	)
 )
 
-print node.conv().asBytes(encoding="us-ascii")
+print node.conv().bytes(encoding="us-ascii")
 </prog>
 
 <par> You can also use <lit>with</lit> blocks (and the <lit>+</lit> operator)
@@ -53,7 +53,7 @@ with xsc.Frag() as node:
 				+html.a("Python home page", href="http://www.python.org/")
 				+xsc.Text(".")
 
-print node.conv().asBytes(encoding="us-ascii")
+print node.conv().bytes(encoding="us-ascii")
 </prog>
 
 </section>
@@ -96,7 +96,7 @@ node = xsc.Frag(
 	)
 )
 
-print node.conv().asBytes(encoding="us-ascii")
+print node.conv().bytes(encoding="us-ascii")
 </prog>
 
 </section>
@@ -279,7 +279,7 @@ with section(title="Python Tutorial") as document:
 			+section(title="Source Code Encoding")
 			+section(title="The Interactive Startup File")
 
-print document.conv().asBytes()
+print document.conv().bytes()
 </prog>
 
 <par>The output of this script will be:</par>

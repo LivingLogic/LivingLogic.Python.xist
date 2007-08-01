@@ -1396,7 +1396,6 @@ class itercssrules(object_):
 		self.base = base
 		self.media = media
 
-
 	def _fixurl(self, rule, base):
 		if base is not None:
 			for proplist in rule.style.seq:
@@ -1411,7 +1410,7 @@ class itercssrules(object_):
 
 	def _doimport(self, parentsheet, base):
 		media = self._getmedia(parentsheet)
-		if self.media is None or self.media in media:
+		if media is None or self.media is None or self.media in media:
 			for rule in parentsheet.cssRules:
 				if rule.type == css.CSSRule.IMPORT_RULE:
 					href = url.URL(rule.href)
