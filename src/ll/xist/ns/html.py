@@ -1376,7 +1376,6 @@ def astext(node, encoding="iso-8859-1", width=72):
 try:
 	import cssutils
 	from cssutils import css, stylesheets
-	from cssutils.css import cssstyledeclaration, cssvalue, csscomment
 except ImportError:
 	pass
 
@@ -1399,7 +1398,7 @@ class itercssrules(object_):
 	def _fixurl(self, rule, base):
 		if base is not None:
 			for proplist in rule.style.seq:
-				if not isinstance(proplist, csscomment.CSSComment):
+				if not isinstance(proplist, css.CSSComment):
 					for prop in proplist:
 						newvalue = []
 						for value in prop.cssValue.seq:
@@ -1479,7 +1478,7 @@ def applycss(node, base=None, media=None):
 			for (selector, rule) in rules:
 				if selector.match(path):
 					for prop in rule.style.seq:
-						if not isinstance(prop, csscomment.CSSComment):
+						if not isinstance(prop, css.CSSComment):
 							for value in prop:
 								styles[prop.name] = (count, prop.name, value.value)
 								count += 1
