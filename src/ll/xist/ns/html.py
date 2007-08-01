@@ -1465,22 +1465,18 @@ class itercssrules(object_):
 						yield rule
 
 
-def _keyrule((name, (value, count))):
-	return count
-
-
 def applycss(node, base=None, media=None):
 	rules = []
-	for rule in itercssrules(node, base=base, media=media):
+	for (i, rule) in enumerate(itercssrules(node, base=base, media=media)):
 		for selector in rule.selectorList:
 			selector = xfind.css(selector)
-			rules.append((selector.cssweight(), selector, rule))
-	rules.sort()
+			rules.append((selector, rule))
+	rules.sort(key=lambda (selector, rule): selector.cssweight())
 	for path in node.walk(xsc.Element):
 		if path[-1].Attrs.isallowed("style"):
 			styles = {}
 			count = 0
-			for (weight, selector, rule) in rules:
+			for (selector, rule) in rules:
 				if selector.match(path):
 					for prop in rule.style.seq:
 						if not isinstance(prop, csscomment.CSSComment):
