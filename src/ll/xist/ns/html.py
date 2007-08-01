@@ -1434,9 +1434,8 @@ class itercssrules(object_):
 	def _getmedia(self, stylesheet):
 		while stylesheet is not None:
 			if stylesheet.media is not None:
-				media = [m.strip() for m in stylesheet.media.split(",")]
 				# FIXME: remove extensions: see http://www.w3.org/TR/css3-mediaqueries/#idx-media-descriptor-1
-				return media
+				return stylesheet.media
 			stylesheet = stylesheet.parentStyleSheet
 		return None
 		
@@ -1484,9 +1483,10 @@ def applycss(node, base=None, media=None):
 			for (weight, selector, rule) in rules:
 				if selector.match(path):
 					for prop in rule.style.seq:
-						for value in prop:
-							styles[prop.name] = (count, prop.name, value.value)
-							count += 1
+						if not isinstance(prop, csscomment.CSSComment):
+							for value in prop:
+								styles[prop.name] = (count, prop.name, value.value)
+								count += 1
 					style = " ".join("%s: %s;" % (name, value) for (count, name, value) in sorted(styles.itervalues()))
 					path[-1].attrs.style = style
 		del path[-1][_isstyle] # drop style sheet nodes
