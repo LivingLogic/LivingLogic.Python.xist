@@ -19,7 +19,7 @@ __version__ = "$Revision$".split()[1]
 # $Source$
 
 
-import os, cgi, contextlib
+import os, cgi, contextlib, operator
 
 from ll import url, misc
 from ll.xist import xsc, utils, sims, xfind
@@ -1465,17 +1465,38 @@ class itercssrules(object_):
 
 
 def applycss(node, base=None, media=None):
+	def iterstyles(node, rules):
+		if "style" in node.attrs:
+			style = node.attrs.style
+			if not style.isfancy():
+				# parse the style out of the style attribute
+				stylerule = cssutils.parseString(u"*{%s}" % style).cssRules[0]
+				styleselector = xfind.IsSelector(node)
+				styleweight = xfind.CSSWeight(1, 0, 0)
+				# put the style attribute into the order as the last of the selectors with ID weight (see http://www.w3.org/TR/REC-CSS1#cascading-order)
+				done = False
+				for (weight, selector, rule) in rules:
+					if weight > styleweight and not done:
+						yield (styleweight, styleselector, stylerule)
+						done = True
+					yield (weight, selector, rule)
+				if not done:
+					yield (styleweight, styleselector, stylerule)
+				return
+		for x in rules:
+			yield x
+	
 	rules = []
 	for (i, rule) in enumerate(itercssrules(node, base=base, media=media)):
 		for selector in rule.selectorList:
 			selector = xfind.css(selector)
-			rules.append((selector, rule))
-	rules.sort(key=lambda (selector, rule): selector.cssweight())
+			rules.append((selector.cssweight(), selector, rule))
+	rules.sort(key=operator.itemgetter(0))
 	for path in node.walk(xsc.Element):
 		if path[-1].Attrs.isallowed("style"):
 			styles = {}
 			count = 0
-			for (selector, rule) in rules:
+			for (weight, selector, rule) in iterstyles(path[-1], rules):
 				if selector.match(path):
 					for prop in rule.style.seq:
 						if not isinstance(prop, css.CSSComment):
