@@ -1469,19 +1469,20 @@ def applycss(node, base=None, media=None):
 		if "style" in node.attrs:
 			style = node.attrs.style
 			if not style.isfancy():
-				# parse the style out of the style attribute
-				stylerule = cssutils.parseString(u"*{%s}" % style).cssRules[0]
-				styleselector = xfind.IsSelector(node)
-				styleweight = xfind.CSSWeight(1, 0, 0)
+				styledata = (
+					xfind.CSSWeight(1, 0, 0),
+					xfind.IsSelector(node),
+					cssutils.parseString(u"*{%s}" % style).cssRules[0] # parse the style out of the style attribute
+				)
 				# put the style attribute into the order as the last of the selectors with ID weight (see http://www.w3.org/TR/REC-CSS1#cascading-order)
 				done = False
-				for (weight, selector, rule) in rules:
-					if weight > styleweight and not done:
-						yield (styleweight, styleselector, stylerule)
+				for data in rules:
+					if data[0] > styledata[0] and not done:
+						yield styledata
 						done = True
-					yield (weight, selector, rule)
+					yield data
 				if not done:
-					yield (styleweight, styleselector, stylerule)
+					yield styledata
 				return
 		for x in rules:
 			yield x
@@ -1504,7 +1505,8 @@ def applycss(node, base=None, media=None):
 								styles[prop.name] = (count, prop.name, value.value)
 								count += 1
 					style = " ".join("%s: %s;" % (name, value) for (count, name, value) in sorted(styles.itervalues()))
-					path[-1].attrs.style = style
+					if style:
+						path[-1].attrs.style = style
 		del path[-1][_isstyle] # drop style sheet nodes
 
 
