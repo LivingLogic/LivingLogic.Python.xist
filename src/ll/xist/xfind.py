@@ -1549,17 +1549,15 @@ class CSSTypeSelector(Selector):
 		self.selectors = [] # id, class, attribute etc. selectors for this node
 
 	def match(self, path):
-		if not path:
-			return False
-		node = path[-1]
-		if self.type != "*" and node.xmlname != self.type:
-			return False
-		if self.xmlns != "*" and node.xmlns != self.xmlns:
-			return False
-		for selector in self.selectors:
-			if not selector.match(path):
-				return False
-		return True
+		if path:
+			node = path[-1]
+			if self.type == "*" or node.xmlname == self.type:
+				if self.xmlns == "*" or node.xmlns == self.xmlns:
+					for selector in self.selectors:
+						if not selector.match(path):
+							return False
+					return True
+		return False
 
 	def __str__(self):
 		v = [self.__class__.__name__, "("]

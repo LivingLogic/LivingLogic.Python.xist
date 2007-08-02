@@ -1475,17 +1475,17 @@ def applycss(node, base=None, media=None):
 					cssutils.parseString(u"*{%s}" % style).cssRules[0] # parse the style out of the style attribute
 				)
 				# put the style attribute into the order as the last of the selectors with ID weight (see http://www.w3.org/TR/REC-CSS1#cascading-order)
-				done = False
-				for data in rules:
-					if data[0] > styledata[0] and not done:
+				def doiter():
+					done = False
+					for data in rules:
+						if not done and data[0] > styledata[0]:
+							yield styledata
+							done = True
+						yield data
+					if not done:
 						yield styledata
-						done = True
-					yield data
-				if not done:
-					yield styledata
-				return
-		for x in rules:
-			yield x
+				return doiter()
+		return rules
 	
 	rules = []
 	for (i, rule) in enumerate(itercssrules(node, base=base, media=media)):
