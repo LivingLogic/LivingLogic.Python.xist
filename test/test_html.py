@@ -67,7 +67,7 @@ def test_applycss4():
 	assert list(e.walknode(html.style)) == []
 
 
-def test_applycss4():
+def test_applycss5():
 	with html.html() as e:
 		with html.head():
 			+html.style("p#id42 {color: red;}", type="text/css")
@@ -79,3 +79,28 @@ def test_applycss4():
 	# stylesheet wins (because element name + id has a greater specificity)
 	assert str(e.walknode(html.p)[0].attrs.style) == "color: red;"
 	assert list(e.walknode(html.style)) == []
+
+
+def test_applycss6():
+	with html.html() as e:
+		with html.head():
+			+html.style("p {color: red;}", type="text/css", media="screen")
+		with html.body():
+			+html.p("gurk")
+
+	html.applycss(e, media="screen")
+
+	assert str(e.walknode(html.p)[0].attrs.style) == "color: red;"
+
+
+def test_applycss7():
+	with html.html() as e:
+		with html.head():
+			+html.style("p {color: red;}", type="text/css", media="screen")
+		with html.body():
+			+html.p("gurk")
+
+	html.applycss(e, media="print")
+
+	# Check that media="screen" doesn't pick up the print stylesheet
+	assert str(e.walknode(html.p)[0].attrs.style) == ""

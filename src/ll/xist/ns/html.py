@@ -1387,71 +1387,67 @@ def _isstyle(path):
 	return False
 
 
-class itercssrules(object_):
-	def __init__(self, node, base=None, media=None):
-		self.node = node
-		if base is not None:
-			base = url.URL(base)
-		self.base = base
-		self.media = media
+def _fixurl(rule, base):
+	if base is not None:
+		for proplist in rule.style.seq:
+			if not isinstance(proplist, css.CSSComment):
+				for prop in proplist:
+					newvalue = []
+					for value in prop.cssValue.seq:
+						if value.startswith("url(") and value.endswith(")"):
+							value = "url(%s)" % (base/value[4:-1])
+						newvalue.append(value)
+					prop.cssValue = "".join(newvalue)
 
-	def _fixurl(self, rule, base):
-		if base is not None:
-			for proplist in rule.style.seq:
-				if not isinstance(proplist, css.CSSComment):
-					for prop in proplist:
-						newvalue = []
-						for value in prop.cssValue.seq:
-							if value.startswith("url(") and value.endswith(")"):
-								value = "url(%s)" % (base/value[4:-1])
-							newvalue.append(value)
-						prop.cssValue = "".join(newvalue)
 
-	def _doimport(self, parentsheet, base):
-		media = self._getmedia(parentsheet)
-		if media is None or self.media is None or self.media in media:
-			for rule in parentsheet.cssRules:
-				if rule.type == css.CSSRule.IMPORT_RULE:
-					href = url.URL(rule.href)
-					if base is not None:
-						href = base/href
-					media = rule.media
-					with contextlib.closing(href.open("rb")) as r:
-						href = r.finalurl()
-						text = r.read()
-					sheet = css.CSSStyleSheet(href=str(href), media=media, parentStyleSheet=parentsheet)
-					sheet.cssText = text
-					for rule in self._doimport(sheet, href):
-						yield rule
-				elif rule.type == css.CSSRule.STYLE_RULE:
-					self._fixurl(rule, base)
+def _getmedia(stylesheet):
+	while stylesheet is not None:
+		if stylesheet.media is not None:
+			# FIXME: remove extensions: see http://www.w3.org/TR/css3-mediaqueries/#idx-media-descriptor-1
+			return stylesheet.media
+		stylesheet = stylesheet.parentStyleSheet
+	return None
+
+
+def _doimport(wantmedia, parentsheet, base):
+	havemedia = _getmedia(parentsheet)
+	if wantmedia is None or havemedia is None or wantmedia in havemedia:
+		for rule in parentsheet.cssRules:
+			if rule.type == css.CSSRule.IMPORT_RULE:
+				href = url.URL(rule.href)
+				if base is not None:
+					href = base/href
+				havemedia = rule.media
+				with contextlib.closing(href.open("rb")) as r:
+					href = r.finalurl()
+					text = r.read()
+				sheet = css.CSSStyleSheet(href=str(href), media=havemedia, parentStyleSheet=parentsheet)
+				sheet.cssText = text
+				for rule in self._doimport(wantmedia, sheet, href):
 					yield rule
+			elif rule.type == css.CSSRule.STYLE_RULE:
+				_fixurl(rule, base)
+				yield rule
 
-	def __getitem__(self, index):
-		return misc.item(self, index)
 
-	def _getmedia(self, stylesheet):
-		while stylesheet is not None:
-			if stylesheet.media is not None:
-				# FIXME: remove extensions: see http://www.w3.org/TR/css3-mediaqueries/#idx-media-descriptor-1
-				return stylesheet.media
-			stylesheet = stylesheet.parentStyleSheet
-		return None
-		
-	def __iter__(self):
-		for cssnode in self.node.walknode(_isstyle):
+def itercssrules(node, base=None, media=None):
+	if base is not None:
+		base = url.URL(base)
+
+	def doiter(node, base, media):
+		for cssnode in node.walknode(_isstyle):
 			if isinstance(cssnode, style):
 				stylesheet = cssutils.parseString(unicode(cssnode.content))
-				if self.base is not None:
+				if base is not None:
 					stylesheet.href = str(self.base)
 				if "media" in cssnode.attrs:
 					stylesheet.media = unicode(cssnode.attrs["media"])
-				for rule in self._doimport(stylesheet, self.base):
+				for rule in _doimport(media, stylesheet, base):
 					yield rule
 			else: # link
 				if "href" in cssnode.attrs:
 					href = cssnode.attrs["href"].asURL()
-					if self.base is not None:
+					if base is not None:
 						href = self.base/href
 					with contextlib.closing(href.open("rb")) as r:
 						s = r.read()
@@ -1459,8 +1455,9 @@ class itercssrules(object_):
 					stylesheet.href = str(href)
 					if "media" in cssnode.attrs:
 						stylesheet.media = unicode(cssnode.attrs["media"])
-					for rule in self._doimport(stylesheet, href):
+					for rule in _doimport(media, stylesheet, href):
 						yield rule
+	return misc.Iterator(doiter(node, base, media))
 
 
 def applycss(node, base=None, media=None):
