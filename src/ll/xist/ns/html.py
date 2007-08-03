@@ -1383,7 +1383,7 @@ except ImportError:
 def _isstyle(path):
 	if path:
 		node = path[-1]
-		return (isinstance(node, style) and unicode(node.attrs.type) == "text/css") or (isinstance(node, link) and unicode(node.attrs.rel) == "stylesheet")
+		return (isinstance(node, style) and unicode(node.attrs["type"]) == "text/css") or (isinstance(node, link) and unicode(node.attrs["rel"]) == "stylesheet")
 	return False
 
 
@@ -1439,19 +1439,18 @@ class itercssrules(object_):
 		return None
 		
 	def __iter__(self):
-		import cssutils
 		for cssnode in self.node.walknode(_isstyle):
 			if isinstance(cssnode, style):
 				stylesheet = cssutils.parseString(unicode(cssnode.content))
 				if self.base is not None:
 					stylesheet.href = str(self.base)
 				if "media" in cssnode.attrs:
-					stylesheet.media = unicode(cssnode.attrs.media)
+					stylesheet.media = unicode(cssnode.attrs["media"])
 				for rule in self._doimport(stylesheet, self.base):
 					yield rule
 			else: # link
 				if "href" in cssnode.attrs:
-					href = cssnode.attrs.href.asURL()
+					href = cssnode.attrs["href"].asURL()
 					if self.base is not None:
 						href = self.base/href
 					with contextlib.closing(href.open("rb")) as r:
@@ -1459,7 +1458,7 @@ class itercssrules(object_):
 					stylesheet = cssutils.parseString(unicode(s))
 					stylesheet.href = str(href)
 					if "media" in cssnode.attrs:
-						stylesheet.media = unicode(cssnode.attrs.media)
+						stylesheet.media = unicode(cssnode.attrs["media"])
 					for rule in self._doimport(stylesheet, href):
 						yield rule
 
@@ -1467,7 +1466,7 @@ class itercssrules(object_):
 def applycss(node, base=None, media=None):
 	def iterstyles(node, rules):
 		if "style" in node.attrs:
-			style = node.attrs.style
+			style = node.attrs["style"]
 			if not style.isfancy():
 				styledata = (
 					xfind.CSSWeight(1, 0, 0),
@@ -1494,6 +1493,7 @@ def applycss(node, base=None, media=None):
 			rules.append((selector.cssweight(), selector, rule))
 	rules.sort(key=operator.itemgetter(0))
 	for path in node.walk(xsc.Element):
+		del path[-1][_isstyle] # drop style sheet nodes
 		if path[-1].Attrs.isallowed("style"):
 			styles = {}
 			count = 0
@@ -1506,8 +1506,7 @@ def applycss(node, base=None, media=None):
 								count += 1
 					style = " ".join("%s: %s;" % (name, value) for (count, name, value) in sorted(styles.itervalues()))
 					if style:
-						path[-1].attrs.style = style
-		del path[-1][_isstyle] # drop style sheet nodes
+						path[-1].attrs["style"] = style
 
 
 # Parameter entities defined in the DTD
