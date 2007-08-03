@@ -81,7 +81,8 @@ def test_applycss5():
 	assert list(e.walknode(html.style)) == []
 
 
-def test_applycss6():
+def test_applycss_media():
+	# Check that media="screen" picks up the media stylesheet
 	with html.html() as e:
 		with html.head():
 			+html.style("p {color: red;}", type="text/css", media="screen")
@@ -92,8 +93,7 @@ def test_applycss6():
 
 	assert str(e.walknode(html.p)[0].attrs.style) == "color: red;"
 
-
-def test_applycss7():
+	# Check that media="screen" doesn't pick up the print stylesheet
 	with html.html() as e:
 		with html.head():
 			+html.style("p {color: red;}", type="text/css", media="screen")
@@ -102,5 +102,25 @@ def test_applycss7():
 
 	html.applycss(e, media="print")
 
-	# Check that media="screen" doesn't pick up the print stylesheet
+	assert str(e.walknode(html.p)[0].attrs.style) == ""
+
+	# Check that @media rules are treated properly
+	with html.html() as e:
+		with html.head():
+			+html.style("@media screen { p {color: red;}}", type="text/css")
+		with html.body():
+			+html.p("gurk")
+
+	html.applycss(e, media="screen")
+
+	assert str(e.walknode(html.p)[0].attrs.style) == "color: red;"
+
+	with html.html() as e:
+		with html.head():
+			+html.style("@media screen { p {color: red;}}", type="text/css")
+		with html.body():
+			+html.p("gurk")
+
+	html.applycss(e, media="print")
+
 	assert str(e.walknode(html.p)[0].attrs.style) == ""

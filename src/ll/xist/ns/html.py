@@ -1425,6 +1425,11 @@ def _doimport(wantmedia, parentsheet, base):
 				sheet.cssText = text
 				for rule in self._doimport(wantmedia, sheet, href):
 					yield rule
+			elif rule.type == css.CSSRule.MEDIA_RULE:
+				if wantmedia in rule.media:
+					for subrule in rule.cssRules:
+						_fixurl(subrule, base)
+						yield subrule
 			elif rule.type == css.CSSRule.STYLE_RULE:
 				_fixurl(rule, base)
 				yield rule
