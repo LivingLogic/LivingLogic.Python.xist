@@ -1174,6 +1174,7 @@ class CallableSelector(Selector):
 	</tty>
 	</example>
 	"""
+
 	def __init__(self, func):
 		self.func = func
 
@@ -1185,6 +1186,14 @@ class CallableSelector(Selector):
 
 
 class nthchild(Selector):
+	"""
+	<par>An <class>nthchild</class> is a selector selects each node which is
+	the n-th child of its parent. E.g. <lit>nthchild(0)</lit> selects each
+	first child, <lit>nthchild(-1)</lit> selects each last child. Furthermore
+	<lit>nthchild("even")</lit> selects each first, third, ... child and
+	<lit>nthchild("odd")</lit> selects each second, fourth, ... child.</par>
+	"""
+
 	def __init__(self, index):
 		self.index = index
 
