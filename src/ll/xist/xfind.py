@@ -87,7 +87,7 @@ from ll.xist import xsc
 
 class CSSWeight(tuple):
 	"""
-	The specificity of a &CSS; selector as a 3-item tuple as specified by
+	The specificity of a &css; selector as a 3-item tuple as specified by
 	<link href="http://www.w3.org/TR/css3-selectors/#specificity">CSS3</link>.
 	"""
 
