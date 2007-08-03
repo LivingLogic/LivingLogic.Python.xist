@@ -139,7 +139,7 @@ class Selector(xsc.WalkFilter):
 
 	def cssweight(self):
 		"""
-		Return the &CSS; specificity of <self/> as a
+		Return the &css; specificity of <self/> as a
 		<pyref class="CSSWeight"><class>CSSWeight</class></pyref> object.
 		"""
 		return CSSWeight()
@@ -1187,11 +1187,11 @@ class CallableSelector(Selector):
 
 class nthchild(Selector):
 	"""
-	<par>An <class>nthchild</class> is a selector selects each node which is
-	the n-th child of its parent. E.g. <lit>nthchild(0)</lit> selects each
-	first child, <lit>nthchild(-1)</lit> selects each last child. Furthermore
-	<lit>nthchild("even")</lit> selects each first, third, ... child and
-	<lit>nthchild("odd")</lit> selects each second, fourth, ... child.</par>
+	<par>An <class>nthchild</class> object is a selector that selects every node
+	that is the n-th child of its parent. E.g. <lit>nthchild(0)</lit> selects
+	every first child, <lit>nthchild(-1)</lit> selects each last child.
+	Furthermore <lit>nthchild("even")</lit> selects each first, third, ... child
+	and <lit>nthchild("odd")</lit> selects each second, fourth, ... child.</par>
 	"""
 
 	def __init__(self, index):
@@ -1215,6 +1215,14 @@ class nthchild(Selector):
 
 
 class nthoftype(Selector):
+	"""
+	<par>An <class>nthchild</class> object is a selector that selects every node
+	that is the n-th node of a specified type. Similar to
+	<pyref class="nthchild"><class>nthchild</class></pyref> <class>nthchild</class>
+	supports negative and positive indices as well as <lit>"even"</lit> and
+	<lit>"odd"</lit>.</par>
+	"""
+
 	def __init__(self, index, *types):
 		self.index = index
 		self.types = types
