@@ -1492,11 +1492,11 @@ def applycss(node, base=None, media=None):
 			selector = xfind.css(selector)
 			rules.append((selector.cssweight(), selector, rule))
 	rules.sort(key=operator.itemgetter(0))
+	count = 0
 	for path in node.walk(xsc.Element):
 		del path[-1][_isstyle] # drop style sheet nodes
 		if path[-1].Attrs.isallowed("style"):
 			styles = {}
-			count = 0
 			for (weight, selector, rule) in iterstyles(path[-1], rules):
 				if selector.match(path):
 					for prop in rule.style.seq:
