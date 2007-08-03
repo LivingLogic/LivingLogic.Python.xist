@@ -1217,10 +1217,23 @@ class nthchild(Selector):
 class nthoftype(Selector):
 	"""
 	<par>An <class>nthchild</class> object is a selector that selects every node
-	that is the n-th node of a specified type. Similar to
-	<pyref class="nthchild"><class>nthchild</class></pyref> <class>nthchild</class>
+	that is the n-th node of a specified type among its siblings. Similar to
+	<pyref class="nthchild"><class>nthchild</class></pyref> <class>nthoftype</class>
 	supports negative and positive indices as well as <lit>"even"</lit> and
-	<lit>"odd"</lit>.</par>
+	<lit>"odd"</lit>. Which types are checked can be passed explicitely. If no
+	types are passed the type of the node itself is used.</par>
+
+	<example>
+	<tty>
+	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
+	<prompt>>>> </prompt><input>from ll.xist.ns import html</input>
+	<prompt>>>> </prompt><input>doc = parsers.parseURL("http://www.python.org", tidy=True)</input>
+	<prompt>>>> </prompt><input>for node in doc.walknode(<em>xfind.nthoftype(0, html.h2)</em>):</input>
+	<prompt>... </prompt><input>\tprint node.bytes()</input>
+	<prompt>... </prompt><input></input>
+	<![CDATA[<h2 class="news">SciPy 2007 - Conference for Scientific Computing</h2>]]>
+	</tty>
+	</example>
 	"""
 
 	def __init__(self, index, *types):
