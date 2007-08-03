@@ -1340,11 +1340,18 @@ def _children_of_type(node, type):
 ###
 
 class CSSWeightedSelector(Selector):
+	"""
+	Base class for all &css: pseudo-class selectors.
+	"""
 	def cssweight(self):
 		return CSSWeight(0, 1, 0)
 
 
 class CSSHasAttributeSelector(CSSWeightedSelector):
+	"""
+	A <class>CSSHasAttributeSelector</class> selector selects all element nodes
+	that have an attribute with the specified &xml; name.
+	"""
 	def __init__(self, attributename):
 		self.attributename = attributename
 
