@@ -40,7 +40,6 @@ def test_applycss2():
 	assert list(e.walknode(html.style)) == []
 
 
-
 def test_applycss3():
 	with html.html() as e:
 		with html.head():
@@ -50,5 +49,33 @@ def test_applycss3():
 
 	html.applycss(e)
 
+	assert str(e.walknode(html.p)[0].attrs.style) == "color: red;"
+	assert list(e.walknode(html.style)) == []
+
+
+def test_applycss4():
+	with html.html() as e:
+		with html.head():
+			+html.style("#id42 {color: red;}", type="text/css")
+		with html.body():
+			+html.p("gurk", id="id42", style="color: blue;")
+
+	html.applycss(e)
+
+	# style attribute wins (same specificity, but it is considered to come last)
+	assert str(e.walknode(html.p)[0].attrs.style) == "color: blue;"
+	assert list(e.walknode(html.style)) == []
+
+
+def test_applycss4():
+	with html.html() as e:
+		with html.head():
+			+html.style("p#id42 {color: red;}", type="text/css")
+		with html.body():
+			+html.p("gurk", id="id42", style="color: blue;")
+
+	html.applycss(e)
+
+	# stylesheet wins (because element name + id has a greater specificity)
 	assert str(e.walknode(html.p)[0].attrs.style) == "color: red;"
 	assert list(e.walknode(html.style)) == []
