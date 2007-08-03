@@ -1190,8 +1190,9 @@ class nthchild(Selector):
 	<par>An <class>nthchild</class> object is a selector that selects every node
 	that is the n-th child of its parent. E.g. <lit>nthchild(0)</lit> selects
 	every first child, <lit>nthchild(-1)</lit> selects each last child.
-	Furthermore <lit>nthchild("even")</lit> selects each first, third, ... child
-	and <lit>nthchild("odd")</lit> selects each second, fourth, ... child.</par>
+	Furthermore <lit>nthchild("even")</lit> selects each first, third, fifth, ...
+	child and <lit>nthchild("odd")</lit> selects each second, fourth, sixth, ...
+	child.</par>
 	"""
 
 	def __init__(self, index):
