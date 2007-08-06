@@ -1442,11 +1442,9 @@ def itercssrules(node, base=None, media=None):
 	def doiter(node, base, media):
 		for cssnode in node.walknode(_isstyle):
 			if isinstance(cssnode, style):
-				stylesheet = cssutils.parseString(unicode(cssnode.content))
-				if base is not None:
-					stylesheet.href = str(self.base)
-				if "media" in cssnode.attrs:
-					stylesheet.media = unicode(cssnode.attrs["media"])
+				href = str(self.base) if base is not None else None
+				media = unicode(cssnode.attrs["media"]) if "media" in cssnode.attrs else None
+				stylesheet = cssutils.parseString(unicode(cssnode.content), href=href, media=media)
 				for rule in _doimport(media, stylesheet, base):
 					yield rule
 			else: # link
@@ -1454,12 +1452,10 @@ def itercssrules(node, base=None, media=None):
 					href = cssnode.attrs["href"].asURL()
 					if base is not None:
 						href = self.base/href
+					media = unicode(cssnode.attrs["media"]) if "media" in cssnode.attrs else None
 					with contextlib.closing(href.open("rb")) as r:
 						s = r.read()
-					stylesheet = cssutils.parseString(unicode(s))
-					stylesheet.href = str(href)
-					if "media" in cssnode.attrs:
-						stylesheet.media = unicode(cssnode.attrs["media"])
+					stylesheet = cssutils.parseString(unicode(s), href=str(href), media=media)
 					for rule in _doimport(media, stylesheet, href):
 						yield rule
 	return misc.Iterator(doiter(node, base, media))
