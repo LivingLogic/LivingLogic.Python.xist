@@ -21,9 +21,15 @@ that node);</item>
 
 <item>A generator function <function>itercssrules</function> has been added to
 <module>ll.xist.ns.html</module>. This function can be passed an &xist; tree
-and it will produce all &css; rule defined in any <class>link</class> or
-<class>style</class> or imported by them (via the &css; rule <lit>@import</lit>
-(this requires the <module>cssutils</module> package).</item>
+and it will produce all &css; rules defined in any <class>link</class> or
+<class>style</class> or imported by them (via the &css; rule <lit>@import</lit>)
+This requires the <module>cssutils</module> package.</item>
+
+<item>A function <function>applycss</function> has been added to
+<module>ll.xist.ns.html</module>. This function modifies the &xist; tree
+passed in by removing all &css; (from <class>link</class> or <class>style</class>
+elements) and putting the styles into <lit>style</lit> attributes of the
+affected elements instead.</item>
 
 <item>The method <method>asBytes</method> has been renamed to <method>bytes</method>
 and <method>bytes</method> has been renamed to <method>iterbytes</method>.</item>
