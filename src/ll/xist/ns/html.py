@@ -1484,7 +1484,7 @@ def applycss(node, base=None, media=None):
 				styledata = (
 					xfind.CSSWeight(1, 0, 0),
 					xfind.IsSelector(node),
-					cssutils.parseString(u"*{%s}" % style).cssRules[0] # parse the style out of the style attribute
+					cssutils.parseString(u"*{%s}" % style).cssRules[0].style # parse the style out of the style attribute
 				)
 				# put the style attribute into the order as the last of the selectors with ID weight (see http://www.w3.org/TR/REC-CSS1#cascading-order)
 				def doiter():
@@ -1503,16 +1503,16 @@ def applycss(node, base=None, media=None):
 	for (i, rule) in enumerate(itercssrules(node, base=base, media=media)):
 		for selector in rule.selectorList:
 			selector = xfind.css(selector)
-			rules.append((selector.cssweight(), selector, rule))
+			rules.append((selector.cssweight(), selector, rule.style))
 	rules.sort(key=operator.itemgetter(0))
 	count = 0
 	for path in node.walk(xsc.Element):
 		del path[-1][_isstyle] # drop style sheet nodes
 		if path[-1].Attrs.isallowed("style"):
 			styles = {}
-			for (weight, selector, rule) in iterstyles(path[-1], rules):
+			for (weight, selector, style) in iterstyles(path[-1], rules):
 				if selector.match(path):
-					for prop in rule.style.seq:
+					for prop in style.seq:
 						if not isinstance(prop, css.CSSComment):
 							for value in prop:
 								styles[prop.name] = (count, prop.name, value.value)
