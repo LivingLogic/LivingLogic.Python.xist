@@ -55,6 +55,9 @@ Passing a namespace to remove all atrtributes from the namespace is no longer su
 
 <item>The <class>Attrs</class> methods <method>updatenew</method> and
 <method>updatexisting</method> have been removed.</item>
+
+<item>The <lit>media</lit> attribute of <class>html.link</class> and
+<class>html.style</class> now has a method <method>hasmedia</method>.</item>
 </ulist>
 </section>
 
