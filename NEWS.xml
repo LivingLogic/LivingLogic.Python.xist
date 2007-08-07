@@ -27,9 +27,9 @@ This requires the <module>cssutils</module> package.</item>
 
 <item>A function <function>applycss</function> has been added to
 <module>ll.xist.ns.html</module>. This function modifies the &xist; tree
-passed in by removing all &css; (from <class>link</class> or <class>style</class>
-elements) and putting the styles into <lit>style</lit> attributes of the
-affected elements instead.</item>
+passed in by removing all &css; (from <class>link</class> and <class>style</class>
+elements and their <lit>@import</lit>ed stylesheets) and putting the styles into
+<lit>style</lit> attributes of the affected elements instead.</item>
 
 <item>The method <method>asBytes</method> has been renamed to <method>bytes</method>
 and <method>bytes</method> has been renamed to <method>iterbytes</method>.</item>
