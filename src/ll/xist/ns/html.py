@@ -1460,7 +1460,7 @@ def itercssrules(node, base=None, media=None):
 	The <arg>base</arg> argument will be used as the base &url; for parsing the
 	stylesheet references in the tree (so <lit>None</lit> means the &url;s will be
 	used exactly as they appear in the tree). All &url;s in the style properties
-	will be resolved. If <arg>media<arg> is given, only rules that apply to this
+	will be resolved. If <arg>media</arg> is given, only rules that apply to this
 	media type will be produced.
 	"""
 	if base is not None:
