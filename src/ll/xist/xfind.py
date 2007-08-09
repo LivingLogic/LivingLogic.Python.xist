@@ -67,7 +67,7 @@ class Selector(xsc.WalkFilter):
 
 	def __div__(self, other):
 		"""
-		Create a <pyref class="ChildCombinator"><class>ChildCombinator</class>
+		Create a <pyref class="ChildCombinator"><class>ChildCombinator</class></pyref>
 		with <self/> as the left hand selector and <arg>other</arg> as the right
 		hand selector.
 		"""
@@ -75,7 +75,7 @@ class Selector(xsc.WalkFilter):
 
 	def __floordiv__(self, other):
 		"""
-		Create a <pyref class="DescendantCombinator"><class>DescendantCombinator</class>
+		Create a <pyref class="DescendantCombinator"><class>DescendantCombinator</class></pyref>
 		with <self/> as the left hand selector and <arg>other</arg> as the right
 		hand selector.
 		"""
@@ -83,7 +83,7 @@ class Selector(xsc.WalkFilter):
 
 	def __mul__(self, other):
 		"""
-		Create an <pyref class="AdjacentSiblingCombinator"><class>AdjacentSiblingCombinator</class>
+		Create an <pyref class="AdjacentSiblingCombinator"><class>AdjacentSiblingCombinator</class></pyref>
 		with <self/> as the left hand selector and <arg>other</arg> as the right
 		hand selector.
 		"""
@@ -91,7 +91,7 @@ class Selector(xsc.WalkFilter):
 
 	def __pow__(self, other):
 		"""
-		Create a <pyref class="GeneralSiblingCombinator"><class>GeneralSiblingCombinator</class>
+		Create a <pyref class="GeneralSiblingCombinator"><class>GeneralSiblingCombinator</class></pyref>
 		with <self/> as the left hand selector and <arg>other</arg> as the right
 		hand selector.
 		"""
@@ -99,21 +99,21 @@ class Selector(xsc.WalkFilter):
 
 	def __and__(self, other):
 		"""
-		Create an <pyref class="AndCombinator"><class>AndCombinator</class>
+		Create an <pyref class="AndCombinator"><class>AndCombinator</class></pyref>
 		from <self/> and <arg>other</arg>.
 		"""
 		return AndCombinator(self, xsc.makewalkfilter(other))
 
 	def __or__(self, other):
 		"""
-		Create an <pyref class="OrCombinator"><class>OrCombinator</class>
+		Create an <pyref class="OrCombinator"><class>OrCombinator</class></pyref>
 		from <self/> and <arg>other</arg>.
 		"""
 		return OrCombinator(self, xsc.makewalkfilter(other))
 
 	def __invert__(self):
 		"""
-		Create a <pyref class="NotCombinator"><class>NotCombinator</class>
+		Create a <pyref class="NotCombinator"><class>NotCombinator</class></pyref>
 		inverting <self/>.
 		"""
 		return NotCombinator(self)
