@@ -130,7 +130,8 @@ class IsInstanceSelector(Selector):
 	"""
 	<par>Selector that selects all nodes that are instances of the specified type.
 	You can either create an <class>IsInstanceSelector</class> object directly
-	or simply pass a class to a function that expects a walk filter.</par>
+	or simply pass a class to a function that expects a walk filter (this class
+	will be automatically wrapped in an <class>IsInstanceSelector</class>.</par>
 
 	<example>
 	<tty>
