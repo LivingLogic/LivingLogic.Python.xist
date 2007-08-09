@@ -13,8 +13,6 @@
 configuration files: <link href="http://jakarta.apache.org/struts/dtds/struts-config_1_1.dtd">http://jakarta.apache.org/struts/dtds/struts-config_1_1.dtd</link>.</par>
 """
 
-__version__ = "$Revision$".split()[1]
-# $Source$
 
 from ll.xist import xsc, sims
 from ll.xist.ns import xml

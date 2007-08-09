@@ -13,10 +13,6 @@ This is a namespace module implementing RSS 0.91.
 """
 
 
-__version__ = "$Revision$".split()[1]
-# $Source$
-
-
 from ll.xist import xsc, sims
 
 

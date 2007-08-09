@@ -19,10 +19,6 @@ dtd2xsc --help
 """
 
 
-__version__ = "$Revision$"[11:-2]
-# $Source$
-
-
 import sys, os.path, optparse
 
 from xml.parsers.xmlproc import dtdparser

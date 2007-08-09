@@ -12,8 +12,6 @@
 <par>A XSC module that contains definitions for all the elements in Ruby 1.0.</par>
 """
 
-__version__ = "$Revision$".split()[1]
-# $Source$
 
 from ll.xist import xsc, sims
 

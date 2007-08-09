@@ -14,8 +14,6 @@ forms. These are just abbreviations for the various
 <lit>&lt;input type=<rep>...</rep>&gt;</lit> elements.</par>
 """
 
-__version__ = "$Revision$".split()[1]
-# $Source$
 
 from ll.xist import xsc
 from ll.xist.ns import html

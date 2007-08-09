@@ -12,9 +12,6 @@
 This module contains classes for a very simple validation model.
 """
 
-__version__ = "$Revision$".split()[1]
-# $Source$
-
 
 import warnings
 from ll.xist import xsc

@@ -18,9 +18,6 @@ be combined with various operations and form a language comparable to
 expressions.</par>
 """
 
-__version__ = "$Revision$".split()[1]
-# $Source$
-
 
 try:
 	import cssutils

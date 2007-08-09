@@ -12,8 +12,6 @@
 <par>An &xist; namespace that contains all the character entities defined in &html;.</par>
 """
 
-__version__ = "$Revision$".split()[1]
-# $Source$
 
 from ll.xist import xsc
 

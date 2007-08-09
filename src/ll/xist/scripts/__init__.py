@@ -6,7 +6,3 @@
 ## All Rights Reserved
 ##
 ## See xist/__init__.py for the license
-
-__version__ = "$Revision$".split()[1]
-# $Source$
-

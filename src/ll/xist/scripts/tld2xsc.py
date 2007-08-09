@@ -19,10 +19,6 @@ tld2xsc --help
 """
 
 
-__version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
-# $Source$
-
-
 import sys, optparse
 
 from ll import url

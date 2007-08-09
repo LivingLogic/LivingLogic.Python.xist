@@ -13,8 +13,6 @@
 (<lit>http://www.w3.org/1999/xlink</lit>).</par>
 """
 
-__version__ = "$Revision$".split()[1]
-# $Source$
 
 from ll.xist import xsc, utils
 

@@ -12,8 +12,6 @@
 <par>An &xist; namespace module that contains definitions for all the elements in &wml; 1.3.</par>
 """
 
-__version__ = "$Revision$".split()[1]
-# $Source$
 
 import string
 

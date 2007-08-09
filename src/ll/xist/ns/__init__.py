@@ -32,8 +32,6 @@ and convert to one fixed target namespace (<pyref module="ll.xist.ns.html"><modu
 in most cases).</par>
 """
 
-__version__ = "$Revision$".split()[1]
-# $Source$
 
 __all__ = [
 	"abbr",

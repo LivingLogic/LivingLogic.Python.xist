@@ -13,9 +13,6 @@ This module is an &xist; namespace for
 <link href="http://relaxng.org/">Relax NG</link> files.
 """
 
-__version__ = "$Revision$".split()[1]
-# $Source$
-
 
 from ll.xist import xsc, sims
 

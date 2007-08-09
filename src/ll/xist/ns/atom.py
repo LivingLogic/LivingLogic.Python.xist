@@ -14,10 +14,6 @@ This namespace module implements Atom 1.0 as specified by
 """
 
 
-__version__ = "$Revision ? $".split()[1]
-# $Source$
-
-
 from ll.xist import xsc, sims
 from ll.xist.ns import html
 

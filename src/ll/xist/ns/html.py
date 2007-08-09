@@ -15,9 +15,6 @@ from __future__ import with_statement
 in <link href="http://www.w3.org/TR/html4/loose.dtd">&html; 4.0 transitional</link>.</par>
 """
 
-__version__ = "$Revision$".split()[1]
-# $Source$
-
 
 import os, cgi, contextlib, operator
 

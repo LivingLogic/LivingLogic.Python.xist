@@ -13,9 +13,6 @@ This module is an &xist; namespace for
 <link href="http://kid.lesscode.org/">Kid</link> files.
 """
 
-__version__ = "$Revision$".split()[1]
-# $Source$
-
 
 from ll.xist import xsc, sims
 

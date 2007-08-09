@@ -13,8 +13,6 @@
 i-mode compatible &html;.</par>
 """
 
-__version__ = "$Revision$".split()[1]
-# $Source$
 
 import cgi # for parse_header
 

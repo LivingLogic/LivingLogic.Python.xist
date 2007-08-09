@@ -55,7 +55,5 @@ objects) from
 and <link href="http://dustman.net/andy/python/HyperText/">HyperText</link>.</par>
 """
 
-__version__ = "$Revision$".split()[1]
-# $Source$
 
 __all__ = ["xsc", "publishers", "presenters", "parsers", "converters", "sims", "xnd", "ns"]

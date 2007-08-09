@@ -15,8 +15,6 @@ handling meta data. All elements in this module will generate a
 element when converted.</par>
 """
 
-__version__ = "$Revision$".split()[1]
-# $Source$
 
 from ll.xist import xsc, sims
 from ll.xist.ns import ihtml, html

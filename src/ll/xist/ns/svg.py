@@ -15,10 +15,6 @@ This is a namespace module implementing
 """
 
 
-__version__ = "$Revision$".split()[1]
-# $Source$
-
-
 from ll.xist import xsc, sims
 
 

@@ -12,9 +12,6 @@
 <par>A module that allows you to embed PHP processing instructions.</par>
 """
 
-__version__ = "$Revision$".split()[1]
-# $Source$
-
 
 from ll.xist import xsc, sims
 

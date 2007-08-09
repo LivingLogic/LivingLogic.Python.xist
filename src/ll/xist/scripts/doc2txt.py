@@ -16,9 +16,6 @@ Usage: python doc2txt.py spam.xml spam.txt
        to generate spam.txt from spam.xml
 """
 
-__version__ = tuple(map(int, "$Revision$"[11:-2].split(".")))
-# $Source$
-
 
 import sys, getopt
 

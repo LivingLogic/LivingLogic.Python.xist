@@ -12,8 +12,6 @@
 <par>An &xist; module that allows embedding Python code in &xml;</par>
 """
 
-__version__ = "$Revision$".split()[1]
-# $Source$
 
 import sys
 

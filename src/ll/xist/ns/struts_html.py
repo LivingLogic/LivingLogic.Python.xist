@@ -14,8 +14,6 @@ the <link href="http://jakarta.apache.org/struts/">Struts</link>
 html custom tag library.</par>
 """
 
-__version__ = "$Revision$".split()[1]
-# $Source$
 
 from ll.xist import xsc, sims
 

@@ -12,8 +12,6 @@
 <par>This module contains entities for many abbreviations and acronyms.</par>
 """
 
-__version__ = "$Revision$".split()[1]
-# $Source$
 
 from ll.xist import xsc
 import doc

@@ -12,8 +12,6 @@
 <par>A module that allows you to embed &jsp; content as processing instructions.</par>
 """
 
-__version__ = "$Revision$".split()[1]
-# $Source$
 
 import cgi # for parse_header
 

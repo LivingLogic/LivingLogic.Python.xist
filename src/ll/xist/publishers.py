@@ -13,8 +13,6 @@
 handlers in <pyref module="ll.xist.xsc" class="Node" method="publish"><method>publish</method></pyref>.</par>
 """
 
-__version__ = "$Revision$".split()[1]
-# $Source$
 
 import sys, codecs
 

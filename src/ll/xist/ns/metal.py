@@ -13,8 +13,6 @@
 <app>Zope</app>s <z>Macro Expansion Template Attribute Language</z>.</par>
 """
 
-__version__ = "$Revision$".split()[1]
-# $Source$
 
 from ll.xist import xsc
 

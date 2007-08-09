@@ -12,8 +12,6 @@ This modules contains the base class for the converter objects used in the call 
 <pyref module="ll.xist.xsc" class="Node" method="convert"><method>convert</method></pyref> method.
 """
 
-__version__ = "$Revision$".split()[1]
-# $Source$
 
 from ll import misc
 import xsc

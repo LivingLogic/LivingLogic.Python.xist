@@ -13,8 +13,6 @@
 and classes for the &xml; declaration.</par>
 """
 
-__version__ = "$Revision$".split()[1]
-# $Source$
 
 from ll.xist import xsc, utils, sims
 

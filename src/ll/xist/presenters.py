@@ -15,10 +15,6 @@ nodes on screen (either on the terminal or via
 """
 
 
-__version__ = "$Revision$".split()[1]
-# $Source$
-
-
 import sys, os, keyword, codecs
 
 # IPython/ipipe support

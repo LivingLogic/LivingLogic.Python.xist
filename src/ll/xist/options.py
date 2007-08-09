@@ -13,8 +13,6 @@ Contains everthing related to options in &xist; (apart for syntax highlighting
 which can be found in presenters.py).
 """
 
-__version__ = "$Revision$".split()[1]
-# $Source$
 
 import sys, os
 

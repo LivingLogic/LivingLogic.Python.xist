@@ -13,8 +13,6 @@
 can be used for all conversion target, because they only generate text.</par>
 """
 
-__version__ = "$Revision$".split()[1]
-# $Source$
 
 import sys, types, datetime
 

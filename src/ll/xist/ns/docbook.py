@@ -12,8 +12,6 @@
 <par>An &xist; namespace module that contains definitions for all the elements in DocBook 4.3</par>
 """
 
-__version__ = "$Revision$".split()[1]
-# $Source$
 
 from ll.xist import xsc, sims
 

@@ -3,9 +3,6 @@
 
 # Setup script for XIST
 
-__version__ = tuple(map(int,"$Revision$"[11:-2].split(".")))
-# $Source$
-
 
 try:
 	import setuptools as tools

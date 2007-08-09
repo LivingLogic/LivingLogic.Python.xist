@@ -14,10 +14,6 @@ documentation (in &html;, DocBook and XSL-FO).</par>
 """
 
 
-__version__ = "$Revision$".split()[1]
-# $Source$
-
-
 # import __builtin__ to use property, which is also defined here
 import sys, types, inspect, warnings, operator, __builtin__
 

@@ -13,8 +13,6 @@
 that are used internally by &xist;.</par>
 """
 
-__version__ = "$Revision$".split()[1]
-# $Source$
 
 from ll import url as url_
 

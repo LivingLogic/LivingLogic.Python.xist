@@ -13,8 +13,6 @@
 <link href="http://www.w3.org/TR/SVG/">&xsl;</link> 1.0 definition.</par>
 """
 
-__version__ = "$Revision$".split()[1]
-# $Source$
 
 from ll.xist import xsc, sims
 

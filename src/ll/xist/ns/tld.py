@@ -13,8 +13,6 @@
 descriptor (<lit>.tld</lit>) (&xml;) file format/syntax.</par>
 """
 
-__version__ = "$Revision$".split()[1]
-# $Source$
 
 from ll import misc
 from ll.xist import xsc, sims, xnd, xfind

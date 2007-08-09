@@ -13,8 +13,6 @@
 generating &html;.</par>
 """
 
-__version__ = "$Revision$".split()[1]
-# $Source$
 
 import sys, types, time as time_, string, warnings
 

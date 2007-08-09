@@ -14,8 +14,6 @@ modules. From that info a skeleton implementation of the namespace module
 can be generated.</par>
 """
 
-__version__ = "$Revision$".split()[1]
-# $Source$
 
 import sys, keyword
 
