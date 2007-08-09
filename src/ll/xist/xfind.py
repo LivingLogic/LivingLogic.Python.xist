@@ -167,6 +167,11 @@ class IsInstanceSelector(Selector):
 		return Selector.__or__(self, other)
 
 	def __getitem__(self, index):
+		"""
+		Return an <pyref class="nthoftype"><class>nthoftype</class></pyref>
+		selector that uses <arg>index</arg> as the index as <self/>s types
+		as the types.
+		"""
 		return nthoftype(index, *self.types)
 
 	def __str__(self):
