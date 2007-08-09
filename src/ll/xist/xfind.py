@@ -15,58 +15,7 @@
 &xml; tree and outputs those nodes specified by the selector. Selectors can
 be combined with various operations and form a language comparable to
 <link href="http://www.w3.org/TR/xpath">XPath</link> but implemented as Python
-expressions. The following code shows some
-examples. First lets define some support code:</par>
-
-<example><title>Support code (put in <filename>help.py</filename>)</title>
-<prog>
-from ll.xist import xsc, xfind, parsers
-from ll.xist.ns import html
-
-node = parsers.parseURL("http://www.python.org", tidy=True)
-
-def output(selector):
-	for n in node.walknode(selector):
-		print n.bytes()
-</prog>
-</example>
-
-<par>We can now use this code in a Python session via <lit>from help import *</lit>.</par>
-
-<prog>
-<prompt>>>> </prompt><input>output(html.a/html.img) # images children of a elements</input>
-<![CDATA[<img src="/images/python-logo.gif" alt="homepage" id="logo" border="0" />
-<img id="skiptonav" alt="skip to navigation" src="/images/trans.gif" border="0" />
-<img id="skiptocontent" alt="skip to content" src="/images/trans.gif" border="0" />
-<img alt="success story photo" class="success" src="/images/success/nasa.jpg" />]]>
-
-<prompt>>>> </prompt><input>output(html.ul//html.a) # a descendants of ul elements</input>
-<![CDATA[<a title="About The Python Language" href="/about/">About</a>
-<a title="Major Happenings Within the Python Community" href="/news/">News</a>
-<a title="Tutorials, Library Reference, C API" href="/doc/">Documentation</a>]]>
-
-<prompt>>>> </prompt><input>output(html.img & xfind.attrendswith("src", ".jpg")) # JPEG images</input>
-<![CDATA[<img alt="success story photo" class="success" src="/images/success/nasa.jpg" />]]>
-
-<prompt>>>> </prompt><input>output(html.img & ~xfind.hasattr("title")) # All images without a title attribute</input>
-<![CDATA[<img src="/images/python-logo.gif" border="0" id="logo" alt="homepage" />
-<img id="skiptonav" border="0" src="/images/trans.gif" alt="skip to navigation" />
-<img id="skiptocontent" border="0" src="/images/trans.gif" alt="skip to content" />
-<img alt="success story photo" src="/images/success/nasa.jpg" class="success" />]]>
-
-<prompt>>>> </prompt><input>output(html.a & xfind.hasclass("reference")) # Links with 'reference' class</input>
-<![CDATA[<a class="reference" href="/search">Advanced Search</a>
-<a href="about/success/rackspace" class="reference">Rackspace</a>
-<a href="about/success/ilm" class="reference">Industrial Light and Magic</a>]]>
-
-<prompt>>>> </prompt><input>output(html.ul/html.li[0]) # Every li element that is the first li child of its ul parent</input>
-<![CDATA[<li>
-          <a title="About The Python Language" href="/about/">About</a>
-        </li>
-<li><a title="Manuals for Latest Stable Release" href="http://docs.python.org/">Documentation</a></li>
-<li class="group"><a href="http://wiki.python.org/moin/WebProgramming">Web Programming</a></li>]]>
-
-</prog>
+expressions.</par>
 """
 
 __version__ = "$Revision$".split()[1]
@@ -117,24 +66,56 @@ class Selector(xsc.WalkFilter):
 		return (True, xsc.entercontent, xsc.enterattrs) if self.match(path) else (xsc.entercontent, xsc.enterattrs)
 
 	def __div__(self, other):
+		"""
+		Create a <pyref class="ChildCombinator"><class>ChildCombinator</class>
+		with <self/> as the left hand selector and <arg>other</arg> as the right
+		hand selector.
+		"""
 		return ChildCombinator(self, xsc.makewalkfilter(other))
 
 	def __floordiv__(self, other):
+		"""
+		Create a <pyref class="DescendantCombinator"><class>DescendantCombinator</class>
+		with <self/> as the left hand selector and <arg>other</arg> as the right
+		hand selector.
+		"""
 		return DescendantCombinator(self, xsc.makewalkfilter(other))
 
 	def __mul__(self, other):
+		"""
+		Create an <pyref class="AdjacentSiblingCombinator"><class>AdjacentSiblingCombinator</class>
+		with <self/> as the left hand selector and <arg>other</arg> as the right
+		hand selector.
+		"""
 		return AdjacentSiblingCombinator(self, xsc.makewalkfilter(other))
 
 	def __pow__(self, other):
+		"""
+		Create a <pyref class="GeneralSiblingCombinator"><class>GeneralSiblingCombinator</class>
+		with <self/> as the left hand selector and <arg>other</arg> as the right
+		hand selector.
+		"""
 		return GeneralSiblingCombinator(self, xsc.makewalkfilter(other))
 
 	def __and__(self, other):
+		"""
+		Create an <pyref class="AndCombinator"><class>AndCombinator</class>
+		from <self/> and <arg>other</arg>.
+		"""
 		return AndCombinator(self, xsc.makewalkfilter(other))
 
 	def __or__(self, other):
+		"""
+		Create an <pyref class="OrCombinator"><class>OrCombinator</class>
+		from <self/> and <arg>other</arg>.
+		"""
 		return OrCombinator(self, xsc.makewalkfilter(other))
 
 	def __invert__(self):
+		"""
+		Create a <pyref class="NotCombinator"><class>NotCombinator</class>
+		inverting <self/>.
+		"""
 		return NotCombinator(self)
 
 	def cssweight(self):
