@@ -59,8 +59,7 @@ def tonode(value):
 	it will be returned unchanged. In the case of <lit>None</lit> the &xist; Null
 	(<class>ll.xist.xsc.Null</class>) will be returned. If <arg>value</arg> is
 	iterable, a <class>Frag</class> will be generated from the items.
-	Anything else will issue a warning and will be ignored (by returning
-	<class>Null</class>).</par>
+	Anything else will raise an <class>IllegalObjectError</class> exception.</par>
 	"""
 	if isinstance(value, Node):
 		if isinstance(value, Attrs):
