@@ -242,7 +242,7 @@ def _children_of_type(node, type):
 
 class CSSWeightedSelector(xfind.Selector):
 	"""
-	Base class for all &css: pseudo-class selectors.
+	Base class for all &css; pseudo-class selectors.
 	"""
 	def cssweight(self):
 		return xfind.CSSWeight(0, 1, 0)
