@@ -15,7 +15,7 @@ import py.test
 
 from ll import misc
 from ll.xist import xsc, xfind, parsers
-from ll.xist.ns import html, specials
+from ll.xist.ns import html
 
 
 def xfindnode():
@@ -325,81 +325,3 @@ def test_item():
 	py.test.raises(IndexError, e[xsc.Text].__getitem__, -11)
 	assert str(misc.item(e[xsc.Text], 10, "x")) == "x"
 	assert str(misc.item(e[xsc.Text], -11, "x")) == "x"
-
-
-def test_css():
-	with html.div(id=1) as e:
-		with html.ul(id=2):
-			+html.li("foo")
-			+html.li()
-
-	assert list(e.walknode(xfind.css("div"))) == [e]
-	assert list(e.walknode(xfind.css("li"))) == [e[0][0], e[0][1]]
-	assert list(e.walknode(xfind.css("div#1"))) == [e]
-	assert list(e.walknode(xfind.css("#2"))) == [e[0]]
-	assert list(e.walknode(xfind.css(":empty"))) == [e[0][1]]
-	assert list(e.walknode(xfind.css("li:empty"))) == [e[0][1]]
-	assert list(e.walknode(xfind.css("div :empty"))) == [e[0][1]]
-	assert list(e.walknode(xfind.css("div>*:empty"))) == []
-	assert list(e.walknode(xfind.css("div>:empty"))) == []
-	assert list(e.walknode(xfind.css("*|li"))) == [e[0][0], e[0][1]]
-	assert list(e.walknode(xfind.css("h|li", prefixes={"h": html}))) == [e[0][0], e[0][1]]
-	assert list(e.walknode(xfind.css("h|li", prefixes={"h": specials}))) == []
-
-	with xsc.Frag() as e:
-		+html.div("foo")
-		+xsc.Text("filler")
-		+html.p("foo")
-		+xsc.Text("filler")
-		+html.ul(html.li("foo"))
-
-	assert list(e.walknode(xfind.css("div + p"))) == [e[2]]
-	assert list(e.walknode(xfind.css("div + ul"))) == []
-	assert list(e.walknode(xfind.css("ul + p"))) == []
-	assert list(e.walknode(xfind.css("div ~ p"))) == [e[2]]
-	assert list(e.walknode(xfind.css("div ~ ul"))) == [e[4]]
-	assert list(e.walknode(xfind.css("p ~ div"))) == []
-	assert list(e.walknode(xfind.css("div:first-child + p"))) == [e[2]]
-	assert list(e.walknode(xfind.css("*:first-child + p"))) == [e[2]]
-
-	with xsc.Frag() as e:
-		+html.span(html.b("hurz"), "gurk", html.em("hinz"), html.em("kunz"))
-		+html.em("hurz")
-		+html.em("hinz")
-		+xsc.Text("nix")
-		+html.i("kunz")
-
-	assert list(e.walknode(xfind.css("*:only-of-type"))) == [e[0], e[0][0], e[4]]
-	assert list(e.walknode(xfind.css("*:nth-child(1)"))) == [e[0], e[0][0]]
-	assert list(e.walknode(xfind.css("*:nth-child(2)"))) == [e[0][2], e[1]]
-	assert list(e.walknode(xfind.css("*:nth-last-child(1)"))) == [e[0][3], e[4]]
-	assert list(e.walknode(xfind.css("*:nth-last-child(2)"))) == [e[0][2], e[2]]
-	assert list(e.walknode(xfind.css("*:nth-of-type(1)"))) == [e[0], e[0][0], e[0][2], e[1], e[4]]
-	assert list(e.walknode(xfind.css("*:nth-of-type(2)"))) == [e[0][3], e[2]]
-	assert list(e.walknode(xfind.css("*:nth-last-of-type(1)"))) == [e[0], e[0][0], e[0][3], e[2], e[4]]
-	assert list(e.walknode(xfind.css("*:nth-last-of-type(2)"))) == [e[0][2], e[1]]
-
-	e = xsc.Frag(html.span(html.b("hurz"), "gurk"))
-	assert list(e.walknode(xfind.css("*:only-child"))) == [e[0], e[0][0]]
-
-	with xsc.Frag() as e:
-		+html.em(class_="gurk", lang="en")
-		+html.em(class_="gurk hurz", lang="en-us")
-		+html.em(class_="hurz", lang="de")
-
-	assert list(e.walknode(xfind.css("em[class='gurk']"))) == [e[0]]
-	assert list(e.walknode(xfind.css("em[class~='gurk']"))) == [e[0], e[1]]
-	assert list(e.walknode(xfind.css("em[lang|='en']"))) == [e[0], e[1]]
-
-
-def test_cssweight():
-	# from http://www.w3.org/TR/css3-selectors/#specificity
-	assert xfind.css("*").cssweight() == (0, 0, 0)
-	assert xfind.css("LI").cssweight() == (0, 0, 1)
-	assert xfind.css("UL LI").cssweight() == (0, 0, 2)
-	assert xfind.css("UL OL+LI").cssweight() == (0, 0, 3)
-	assert xfind.css("UL OL LI.red").cssweight() == (0, 1, 3)
-	assert xfind.css("LI.red.level").cssweight() == (0, 2, 1)
-	assert xfind.css("#x34y").cssweight() == (1, 0, 0)
-	# The following is not supported
-	# assert xfind.css("#s12:not(FOO)").cssweight() == (1, 0, 1)
