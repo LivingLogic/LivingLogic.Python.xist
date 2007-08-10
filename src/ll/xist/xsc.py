@@ -1202,7 +1202,7 @@ if ipipe is not None:
 
 	@ipipe.xattrs.when_type(Node)
 	def xattrs_nodeclass(self, mode="default"):
-		yield ipipe.AttributeDescriptor("startloc", doc="the locate in the XML file")
+		yield ipipe.AttributeDescriptor("startloc", doc="the location in the XML file")
 		yield ipipe.FunctionDescriptor(_ipipe_type)
 		yield ipipe.AttributeDescriptor("xmlns", doc="the XML namespace of the node")
 		yield ipipe.FunctionDescriptor(_ipipe_name, "name")
