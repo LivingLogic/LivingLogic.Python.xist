@@ -19,7 +19,6 @@ import contextlib, operator
 try:
 	import cssutils
 	from cssutils import css, stylesheets
-	from cssutils.css import selector as cssselector
 except ImportError:
 	cssutils = None
 
@@ -627,7 +626,7 @@ def selector(selectors, prefixes=None):
 			raise ValueError("can't happen")
 	elif isinstance(selectors, css.CSSStyleRule):
 		selectors = selectors.selectorList
-	elif isinstance(selectors, cssselector.Selector):
+	elif isinstance(selectors, css.Selector):
 		selectors = [selectors]
 	else:
 		raise TypeError("can't handle %r" % type(selectors))
