@@ -9,7 +9,7 @@
 
 
 """
-<par>Contains functions related to the handling of &css;.</par>
+<par>This module ontains functions related to the handling of &css;.</par>
 """
 
 from __future__ import with_statement
@@ -84,17 +84,20 @@ def _doimport(wantmedia, parentsheet, base):
 
 def iterrules(node, base=None, media=None):
 	"""
-	Return an iterator for all &css; rules defined in the &html; tree <arg>node</arg>.
+	<par>Return an iterator for all &css; rules defined in the &html; tree <arg>node</arg>.
 	This will parse the &css; defined in any <class>html.style</class> or
 	<class>html.link</class> element (and recursively in those stylesheets imported
 	via the <lit>@import</lit> rule). The rules will be returned as
 	<class>CSSStyleRule</class> objects from the <module>cssutils</module> package
-	(so this requires <module>cssutils</module>). The <arg>base</arg> argument
-	will be used as the base &url; for parsing the stylesheet references in the
-	tree (so <lit>None</lit> means the &url;s will be used exactly as they appear
-	in the tree). All &url;s in the style properties will be resolved.
-	If <arg>media</arg> is given, only rules that apply to this media type will
-	be produced.
+	(so this requires <module>cssutils</module>).</par>
+
+	<par>The <arg>base</arg> argument will be used as the base &url; for parsing
+	the stylesheet references in the tree (so <lit>None</lit> means the &url;s 
+	will be used exactly as they appear in the tree). All &url;s in the style
+	properties will be resolved.</par>
+
+	<par>If <arg>media</arg> is given, only rules that apply to this media type
+	will be produced.</par>
 	"""
 	if base is not None:
 		base = url.URL(base)
@@ -122,6 +125,21 @@ def iterrules(node, base=None, media=None):
 
 
 def applystylesheets(node, base=None, media=None):
+	"""
+	<par><function>applystylesheets</function> modifies the &xist; tree <arg>node</arg>
+	by removing all &css; (from <class>html.link</class> and <class>html.style</class>
+	elements and their <lit>@import</lit>ed stylesheets) and puts the resulting
+	styles properties into the <lit>style</lit> attribute of the every affected
+	element instead.</par>
+	
+	<par>The <arg>base</arg> argument will be used as the base &url; for parsing
+	the stylesheet references in the tree (so <lit>None</lit> means the &url;s
+	will be used exactly as they appear in the tree). All &url;s in the style
+	properties will be resolved.</par>
+
+	<par>If <arg>media</arg> is given, only rules that apply to this media type
+	will be applied.</par>
+	"""
 	def iterstyles(node, rules):
 		if "style" in node.attrs:
 			style = node.attrs["style"]
