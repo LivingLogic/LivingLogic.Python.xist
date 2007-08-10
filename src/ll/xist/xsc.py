@@ -1583,7 +1583,7 @@ class Frag(Node, list):
 
 	def __getslice__(self, index1, index2):
 		"""
-		Returns slice of the content of the fragment.
+		Returns a slice of the content of the fragment.
 		"""
 		node = self._create()
 		list.extend(node, list.__getslice__(self, index1, index2))
