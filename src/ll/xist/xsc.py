@@ -469,14 +469,6 @@ class IllegalAttrNodeError(Error):
 		return "illegal node of type %s found inside attribute" % self.node.__class__.__name__
 
 
-class NodeNotFoundError(Error):
-	"""
-	Exception that is raised when <pyref module="ll.xist.xsc" class="Node" method="findfirst"><method>findfirst</method></pyref> fails.
-	"""
-	def __str__(self):
-		return "no appropriate node found"
-
-
 class FileNotFoundWarning(Warning):
 	"""
 	Warning that is issued, when a file can't be found.
