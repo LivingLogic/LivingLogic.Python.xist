@@ -79,6 +79,14 @@ Passing a namespace to remove all atrtributes from the namespace is no longer su
 </section>
 
 
+<section><title>Changes in 2.15.5 (released 07/17/2007)</title>
+
+<ulist>
+<item>The Python quotes example no longer contains the &xml; source
+or the generated &html;.</item>
+</ulist>
+
+
 <section><title>Changes in 2.15.4 (released 07/16/2007)</title>
 <ulist>
 <item>The Python quotes example now always parses the file from
