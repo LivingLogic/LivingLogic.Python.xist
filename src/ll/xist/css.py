@@ -22,7 +22,7 @@ try:
 except ImportError:
 	cssutils = None
 
-from ll import misc
+from ll import misc, url
 from ll.xist import xsc, xfind
 from ll.xist.ns import html
 
@@ -34,17 +34,21 @@ def _isstyle(path):
 	return False
 
 
-def _fixurl(rule, base):
-	if base is not None:
-		for proplist in rule.style.seq:
-			if not isinstance(proplist, css.CSSComment):
-				for prop in proplist:
-					newvalue = []
-					for value in prop.cssValue.seq:
-						if value.startswith("url(") and value.endswith(")"):
-							value = "url(%s)" % (base/value[4:-1])
-						newvalue.append(value)
-					prop.cssValue = "".join(newvalue)
+def replaceurl(style, replacer):
+	"""
+	Replace all &url;s appearing in the <class>CSSStyleDeclaration<class>
+	<arg>style</arg>. For each &url; the function <arg>replacer</arg> will be
+	called and the &url; will be replace with the result.
+	"""
+	for proplist in style.seq:
+		if not isinstance(proplist, css.CSSComment):
+			for prop in proplist:
+				newvalue = []
+				for value in prop.cssValue.seq:
+					if value.startswith("url(") and value.endswith(")"):
+						value = "url(%s)" % replacer(url.URL(value[4:-1]))
+					newvalue.append(value)
+				prop.cssValue = "".join(newvalue)
 
 
 def _getmedia(stylesheet):
@@ -57,6 +61,11 @@ def _getmedia(stylesheet):
 
 
 def _doimport(wantmedia, parentsheet, base):
+	def prependbase(u):
+		if base is not None:
+			u = base/u
+		return u
+
 	havemedia = _getmedia(parentsheet)
 	if wantmedia is None or not havemedia or wantmedia in havemedia:
 		for rule in parentsheet.cssRules:
@@ -70,15 +79,15 @@ def _doimport(wantmedia, parentsheet, base):
 					text = r.read()
 				sheet = css.CSSStyleSheet(href=str(href), media=havemedia, parentStyleSheet=parentsheet)
 				sheet.cssText = text
-				for rule in self._doimport(wantmedia, sheet, href):
+				for rule in _doimport(wantmedia, sheet, href):
 					yield rule
 			elif rule.type == css.CSSRule.MEDIA_RULE:
 				if wantmedia in rule.media:
 					for subrule in rule.cssRules:
-						_fixurl(subrule, base)
+						replaceurl(subrule.style, prependbase)
 						yield subrule
 			elif rule.type == css.CSSRule.STYLE_RULE:
-				_fixurl(rule, base)
+				replaceurl(rule.style, prependbase)
 				yield rule
 
 
