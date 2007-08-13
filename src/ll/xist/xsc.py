@@ -16,6 +16,9 @@ exception and warning classes and a few helper classes and functions.
 
 import sys, os, random, copy, warnings, cPickle, threading, weakref, itertools, types
 
+import cssutils
+from cssutils import serialize as cssserialize
+
 from ll import misc, url as url_
 
 try:
@@ -28,7 +31,6 @@ try:
 	import ipipe
 except ImportError:
 	ipipe = None
-
 
 local = threading.local()
 
@@ -2104,18 +2106,26 @@ class StyleAttr(Attr):
 	<par>Attribute class that is used for &css; style attributes.</par>
 	"""
 
+	serializer = cssserialize.CSSSerializer(cssserialize.Preferences(indent=""))
+
 	def parsed(self, parser, start=None):
-		if not self.isfancy():
-			csshandler = cssparsers.ParseHandler(ignorecharset=True)
-			value = csshandler.parseString(unicode(self), base=parser.base)
-			return self.__class__(value)
+		if not self.isfancy() and parser.base is not None:
+			from ll.xist import css
+			def prependbase(u):
+				return parser.base/u
+			style = cssutils.parseString(u"a{%s}" % self).cssRules[0].style
+			css.replaceurl(style, prependbase)
+			return self.__class__(self.serializer.do_css_CSSStyleDeclaration(style))
 		return self
 
 	def _publishattrvalue(self, publisher):
-		if not self.isfancy():
-			csshandler = cssparsers.PublishHandler(ignorecharset=True)
-			value = csshandler.parseString(unicode(self), base=publisher.base)
-			new = Frag(value)
+		if not self.isfancy() and publisher.base is not None:
+			from ll.xist import css
+			def reltobase(u):
+				return u.relative(publisher.base)
+			style = cssutils.parseString(u"a{%s}" % self).cssRules[0].style
+			css.replaceurl(style, reltobase)
+			new = Frag(self.serializer.do_css_CSSStyleDeclaration(style))
 			for part in new.publish(publisher):
 				yield part
 		else:
@@ -2127,9 +2137,12 @@ class StyleAttr(Attr):
 		<par>Return a list of all the <pyref module="ll.url" class="URL"><class>URL</class></pyref>s
 		found in the style attribute.</par>
 		"""
-		csshandler = cssparsers.CollectHandler(ignorecharset=True)
-		csshandler.parseString(unicode(self), base=base)
-		urls = csshandler.urls
+		urls = []
+		def collect(u):
+			urls.append(u)
+			return u
+		s = cssutils.parseString(u"a{%s}" % self)
+		css.replaceurl(s.cssRules[0].style, collect)
 		return urls
 
 
