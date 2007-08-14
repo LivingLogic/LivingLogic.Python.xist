@@ -726,16 +726,19 @@ class Scanner
 										{
 											nextChar();
 										} while (current != -1 && isCSSNameCharacter(current));
-										return TOKEN_DIMENSION;
+										type = TOKEN_DIMENSION;
+										return -1;
 									}
-									return TOKEN_KHZ;
+									type = TOKEN_KHZ;
+									return -1;
 							}
 						default:
 							while (current != -1 && isCSSNameCharacter(current))
 							{
 								nextChar();
 							}
-							return TOKEN_DIMENSION;
+							type = TOKEN_DIMENSION;
+							return -1;
 					}
 				case 'm':
 				case 'M':
@@ -750,9 +753,11 @@ class Scanner
 								{
 									nextChar();
 								} while (current != -1 && isCSSNameCharacter(current));
-								return TOKEN_DIMENSION;
+								type = TOKEN_DIMENSION;
+								return -1;
 							}
-							return TOKEN_MM;
+							type = TOKEN_MM;
+							return -1;
 						case 's':
 						case 'S':
 							nextChar();
@@ -762,15 +767,18 @@ class Scanner
 								{
 									nextChar();
 								} while (current != -1 && isCSSNameCharacter(current));
-								return TOKEN_DIMENSION;
+								type = TOKEN_DIMENSION;
+								return -1;
 							}
-							return TOKEN_MS;
+							type = TOKEN_MS;
+							return -1;
 						default:
 							while (current != -1 && isCSSNameCharacter(current))
 							{
 								nextChar();
 							}
-							return TOKEN_DIMENSION;
+							type = TOKEN_DIMENSION;
+							return -1;
 					}
 					case 'p':
 					case 'P':
@@ -785,9 +793,11 @@ class Scanner
 									{
 										nextChar();
 									} while (current != -1 && isCSSNameCharacter(current));
-									return TOKEN_DIMENSION;
+									type = TOKEN_DIMENSION;
+									return -1;
 								}
-								return TOKEN_PC;
+								type = TOKEN_PC;
+								return -1;
 							case 't':
 							case 'T':
 								nextChar();
@@ -797,9 +807,11 @@ class Scanner
 									{
 										nextChar();
 									} while (current != -1 && isCSSNameCharacter(current));
-									return TOKEN_DIMENSION;
+									type = TOKEN_DIMENSION;
+									return -1;
 								}
-								return TOKEN_PT;
+								type = TOKEN_PT;
+								return -1;
 							case 'x':
 							case 'X':
 								nextChar();
@@ -809,15 +821,18 @@ class Scanner
 									{
 										nextChar();
 									} while (current != -1 && isCSSNameCharacter(current));
-									return TOKEN_DIMENSION;
+									type = TOKEN_DIMENSION;
+									return -1;
 								}
-								return TOKEN_PX;
+								type = TOKEN_PX;
+								return -1;
 							default:
 								while (current != -1 && isCSSNameCharacter(current))
 								{
 									nextChar();
 								}
-								return TOKEN_DIMENSION;
+								type = TOKEN_DIMENSION;
+								return -1;
 						}
 					case 'r':
 					case 'R':
@@ -836,21 +851,25 @@ class Scanner
 											{
 												nextChar();
 											} while (current != -1 && isCSSNameCharacter(current));
-											return TOKEN_DIMENSION;
+											type = TOKEN_DIMENSION;
+											return -1;
 										}
-										return TOKEN_RAD;
+										type = TOKEN_RAD;
+										return -1;
 								}
 							default:
 								while (current != -1 && isCSSNameCharacter(current))
 								{
 									nextChar();
 								}
-								return TOKEN_DIMENSION;
+								type = TOKEN_DIMENSION;
+								return -1;
 						}
 					case 's':
 					case 'S':
 						nextChar();
-						return TOKEN_S;
+						type = TOKEN_S;
+						return -1;
 					default:
 						if (current != -1 && isCSSIdentifierStartCharacter(current))
 						{
@@ -858,9 +877,11 @@ class Scanner
 							{
 								nextChar();
 							} while (current != -1 && isCSSNameCharacter(current));
-							return TOKEN_DIMENSION;
+							type = TOKEN_DIMENSION;
+							return -1;
 						}
-						return (integer) ? TOKEN_INTEGER : TOKEN_REAL;
+						type = (integer) ? TOKEN_INTEGER : TOKEN_REAL;
+						return -1;
 			}
 		}
 
