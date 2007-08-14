@@ -28,6 +28,7 @@
 ******************************************************************************
 */
 
+#define PY_SSIZE_T_CLEAN
 #include "Python.h"
 
 enum Token
@@ -190,7 +191,7 @@ static bool isCSSNameCharacter(int c)
 /* Tests whether the given character is a valid hexadecimal character. */
 static bool isCSSHexadecimalCharacter(int c)
 {
-	return isxdigit(c);
+	return (c < 128) && isxdigit(c);
 }
 
 /* Tests whether the given character is a valid string character. */
@@ -208,18 +209,18 @@ class Scanner
 	private:
 	public:
 		const Py_UNICODE *buffer;
-		int buflen; /* the size of the buffer */
-		int line; /* The current line. */
-		int column; /* The current column. */
-		int current; /* The current char. */
-		int position; /* The current position in the buffer. */
+		Py_ssize_t buflen; /* the size of the buffer */
+		Py_ssize_t line; /* The current line. */
+		Py_ssize_t column; /* The current column. */
+		Py_ssize_t current; /* The current char. */
+		Py_ssize_t position; /* The current position in the buffer. */
 		enum Token type; /* The type of the current lexical unit. */
-		int start; /* The start offset of the last lexical unit. */
-		int end; /* The end offset of the last lexical unit. */
-		int blankCharacters; /* The characters to skip to create the string which represents the current token. */
+		Py_ssize_t start; /* The start offset of the last lexical unit. */
+		Py_ssize_t end; /* The end offset of the last lexical unit. */
+		Py_ssize_t blankCharacters; /* The characters to skip to create the string which represents the current token. */
 
 	public:
-		Scanner(const Py_UNICODE *s, int ibuflen) :
+		Scanner(const Py_UNICODE *s, Py_ssize_t ibuflen) :
 			buffer(s),
 			buflen(ibuflen),
 			line(0),
@@ -234,22 +235,22 @@ class Scanner
 			current = nextChar();
 		}
 
-		int getLine()
+		Py_ssize_t getLine()
 		{
 			return line;
 		}
 
-		int getColumn()
+		Py_ssize_t getColumn()
 		{
 			return column;
 		}
 
-		int getStart()
+		Py_ssize_t getStart()
 		{
 			return start;
 		}
 
-		int getEnd()
+		Py_ssize_t getEnd()
 		{
 			return end;
 		}
@@ -315,7 +316,7 @@ class Scanner
 			if (position>=buflen)
 				return current = -1;
 
-			if (current != 10)
+			if (current != '\n')
 				++column;
 			else
 			{
@@ -964,7 +965,7 @@ class Scanner
 					} while (current != -1 && current != '/');
 					if (current == -1)
 					{
-						PyErr_Format(PyExc_ValueError,"eof while looking for end of comment at line %d column %d", getLine(), getColumn());
+						PyErr_Format(PyExc_ValueError, "eof while looking for end of comment at line %d column %d", getLine(), getColumn());
 						return 0;
 					}
 					nextChar();
@@ -978,7 +979,7 @@ class Scanner
 					nextChar();
 					if (current != '!')
 					{
-						PyErr_Format(PyExc_ValueError,"wrong char while looking for ! at line %d column %d", getLine(), getColumn());
+						PyErr_Format(PyExc_ValueError, "wrong char while looking for ! at line %d column %d", getLine(), getColumn());
 						return 0;
 					}
 					nextChar();
@@ -992,7 +993,7 @@ class Scanner
 							return -1;
 						}
 					}
-					PyErr_Format(PyExc_ValueError,"wrong char while looking for ! at line %d column %d", getLine(), getColumn());
+					PyErr_Format(PyExc_ValueError, "wrong char while looking for ! at line %d column %d", getLine(), getColumn());
 					return 0;
 				case '-':
 					nextChar();
@@ -1008,7 +1009,7 @@ class Scanner
 						type = TOKEN_CDC;
 						return -1;
 					}
-					PyErr_Format(PyExc_ValueError,"wrong char while looking for - or > at line %d column %d", getLine(), getColumn());
+					PyErr_Format(PyExc_ValueError, "wrong char while looking for - or > at line %d column %d", getLine(), getColumn());
 					return 0;
 				case '|':
 					nextChar();
@@ -1018,7 +1019,7 @@ class Scanner
 						type = TOKEN_DASHMATCH;
 						return -1;
 					}
-					PyErr_Format(PyExc_ValueError,"wrong char while looking for = in |= at line %d column %d", getLine(), getColumn());
+					PyErr_Format(PyExc_ValueError, "wrong char while looking for = in |= at line %d column %d", getLine(), getColumn());
 					return 0;
 				case '~':
 					nextChar();
@@ -1028,7 +1029,7 @@ class Scanner
 						type = TOKEN_INCLUDES;
 						return -1;
 					}
-					PyErr_Format(PyExc_ValueError,"wrong char while looking for = in ~= at line %d column %d", getLine(), getColumn());
+					PyErr_Format(PyExc_ValueError, "wrong char while looking for = in ~= at line %d column %d", getLine(), getColumn());
 					return 0;
 				case '#':
 					nextChar();
@@ -1047,7 +1048,7 @@ class Scanner
 						type = TOKEN_HASH;
 						return -1;
 					}
-					PyErr_Format(PyExc_ValueError,"wrong char in # at line %d column %d", getLine(), getColumn());
+					PyErr_Format(PyExc_ValueError, "wrong char in # at line %d column %d", getLine(), getColumn());
 					return 0;
 				case '@':
 					nextChar();
@@ -1417,11 +1418,11 @@ static int callWithString(CSSTokenizer *self, PyObject *callback, const char *da
 }
 */
 
-static int calltoken(CSSTokenizer *self, const char *token, int tokenlen, const Py_UNICODE *data, int datalen)
+static int calltoken(CSSTokenizer *self, const char *token, Py_ssize_t tokenlen, const Py_UNICODE *data, Py_ssize_t datalen, Py_ssize_t line, Py_ssize_t col)
 {
 	if (self->token)
 	{
-		PyObject *res = PyObject_CallFunction(self->token, "s#u#", token, tokenlen, data, datalen);
+		PyObject *res = PyObject_CallFunction(self->token, "s#u#nn", token, tokenlen, data, datalen, line, col);
 		if (!res)
 			return 0;
 		Py_DECREF(res);
@@ -1451,7 +1452,7 @@ static PyObject *parser_register(CSSTokenizer *self, PyObject *args)
 static PyObject *parser_parse(CSSTokenizer *self, PyObject *args)
 {
 	const Py_UNICODE *s;
-	int len;
+	Py_ssize_t len;
 
 	if (!PyArg_ParseTuple(args, "u#:parse", &s, &len))
 		return NULL;
@@ -1467,7 +1468,8 @@ static PyObject *parser_parse(CSSTokenizer *self, PyObject *args)
 	while ((t = scanner.getType()) != TOKEN_EOF)
 	{
 		if (!calltoken(self, token_names[t], strlen(token_names[t]),
-				scanner.buffer+scanner.start, scanner.end-scanner.start))
+				scanner.buffer+scanner.start, scanner.end-scanner.start,
+				scanner.getLine(), scanner.getColumn()))
 			return NULL;
 		if (!scanner.next())
 			return NULL;
