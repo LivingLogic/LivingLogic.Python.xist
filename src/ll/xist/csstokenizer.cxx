@@ -390,8 +390,7 @@ class Scanner
 		/* Scans a single quoted string. return -1 on success, 0 on error */
 		int string1()
 		{
-			nextChar();
-			start = position - 1;
+			start = position;
 			for (;;)
 			{
 				switch (nextChar())
@@ -431,8 +430,7 @@ class Scanner
 		/* Scans a double quoted string. return -1 on success, 0 on error */
 		int string2()
 		{
-			nextChar();
-			start = position - 1;
+			start = position;
 			for (;;)
 			{
 				switch (nextChar())
