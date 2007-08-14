@@ -207,7 +207,7 @@ class Scanner
 {
 	private:
 	public:
-		const char *buffer;
+		const Py_UNICODE *buffer;
 		int buflen; /* the size of the buffer */
 		int line; /* The current line. */
 		int column; /* The current column. */
@@ -219,7 +219,7 @@ class Scanner
 		int blankCharacters; /* The characters to skip to create the string which represents the current token. */
 
 	public:
-		Scanner(const char *s, int ibuflen) :
+		Scanner(const Py_UNICODE *s, int ibuflen) :
 			buffer(s),
 			buflen(ibuflen),
 			line(0),
@@ -382,7 +382,7 @@ class Scanner
 				nextChar();
 				return -1;
 			}
-			PyErr_Format(PyExc_ValueError,"character at line %d col %d", getLine(), getColumn());
+			PyErr_Format(PyExc_ValueError, "character at line %d col %d", getLine(), getColumn());
 			return 0;
 		}
 
@@ -396,7 +396,7 @@ class Scanner
 				switch (nextChar())
 				{
 					case -1:
-						PyErr_Format(PyExc_ValueError,"eof at line %d column %d", getLine(), getColumn());
+						PyErr_Format(PyExc_ValueError, "eof at line %d column %d", getLine(), getColumn());
 						return 0;
 					case '\'':
 						goto breakloop;
@@ -416,7 +416,7 @@ class Scanner
 					default:
 						if (!isCSSStringCharacter(current))
 						{
-							PyErr_Format(PyExc_ValueError,"string1 character at line %d column %d", getLine(), getColumn());
+							PyErr_Format(PyExc_ValueError, "string1 character at line %d column %d", getLine(), getColumn());
 							return 0;
 						}
 				}
@@ -437,7 +437,7 @@ class Scanner
 				switch (nextChar())
 				{
 					case -1:
-						PyErr_Format(PyExc_ValueError,"eof at line %d column %d", getLine(), getColumn());
+						PyErr_Format(PyExc_ValueError, "eof at line %d column %d", getLine(), getColumn());
 						return 0;
 					case '\'':
 						break;
@@ -457,7 +457,7 @@ class Scanner
 					default:
 						if (!isCSSStringCharacter(current))
 						{
-							PyErr_Format(PyExc_ValueError,"string1 character at line %d column %d", getLine(), getColumn());
+							PyErr_Format(PyExc_ValueError, "string1 character at line %d column %d", getLine(), getColumn());
 							return 0;
 						}
 				}
@@ -550,7 +550,7 @@ class Scanner
 					}
 				case 'd':
 				case 'D':
-					switch(nextChar())
+					switch (nextChar())
 					{
 						case 'e':
 						case 'E':
@@ -581,7 +581,7 @@ class Scanner
 					}
 				case 'e':
 				case 'E':
-					switch(nextChar())
+					switch (nextChar())
 					{
 						case 'm':
 						case 'M':
@@ -621,15 +621,15 @@ class Scanner
 					}
 				case 'g':
 				case 'G':
-					switch(nextChar())
+					switch (nextChar())
 					{
 						case 'r':
 						case 'R':
-							switch(nextChar())
+							switch (nextChar())
 							{
 								case 'a':
 								case 'A':
-									switch(nextChar())
+									switch (nextChar())
 									{
 										case 'd':
 										case 'D':
@@ -658,7 +658,7 @@ class Scanner
 				case 'h':
 				case 'H':
 					nextChar();
-					switch(current)
+					switch (current)
 					{
 						case 'z':
 						case 'Z':
@@ -684,7 +684,7 @@ class Scanner
 					}
 				case 'i':
 				case 'I':
-					switch(nextChar())
+					switch (nextChar())
 					{
 						case 'n':
 						case 'N':
@@ -710,11 +710,11 @@ class Scanner
 					}
 				case 'k':
 				case 'K':
-					switch(nextChar())
+					switch (nextChar())
 					{
 						case 'h':
 						case 'H':
-							switch(nextChar())
+							switch (nextChar())
 							{
 								case 'z':
 								case 'Z':
@@ -738,7 +738,7 @@ class Scanner
 					}
 				case 'm':
 				case 'M':
-					switch(nextChar())
+					switch (nextChar())
 					{
 						case 'm':
 						case 'M':
@@ -773,7 +773,7 @@ class Scanner
 					}
 					case 'p':
 					case 'P':
-						switch(nextChar())
+						switch (nextChar())
 						{
 							case 'c':
 							case 'C':
@@ -820,11 +820,11 @@ class Scanner
 						}
 					case 'r':
 					case 'R':
-						switch(nextChar())
+						switch (nextChar())
 						{
 							case 'a':
 							case 'A':
-								switch(nextChar())
+								switch (nextChar())
 								{
 									case 'd':
 									case 'D':
@@ -864,7 +864,7 @@ class Scanner
 		}
 
 		/* Compares the given int with the given character, ignoring case. */
-		static bool isEqualIgnoreCase(int i, char c)
+		static bool isEqualIgnoreCase(int i, Py_UNICODE c)
 		{
 			return (i == -1) ? false : tolower(i) == c;
 		}
@@ -1163,9 +1163,9 @@ class Scanner
 						return -1;
 					}
 					if (current == -1)
-						PyErr_Format(PyExc_ValueError,"eof when parsing !important at line %d column %d", getLine(), getColumn());
+						PyErr_Format(PyExc_ValueError, "eof when parsing !important at line %d column %d", getLine(), getColumn());
 					else
-						PyErr_Format(PyExc_ValueError,"wrong char when parsing !important at line %d column %d", getLine(), getColumn());
+						PyErr_Format(PyExc_ValueError, "wrong char when parsing !important at line %d column %d", getLine(), getColumn());
 					return 0;
 				case '0': case '1': case '2': case '3': case '4':
 				case '5': case '6': case '7': case '8': case '9':
@@ -1280,12 +1280,12 @@ class Scanner
 													}
 													if (current == -1)
 													{
-														PyErr_Format(PyExc_ValueError,"eof while parsing URL at line %d column %d", getLine(), getColumn());
+														PyErr_Format(PyExc_ValueError, "eof while parsing URL at line %d column %d", getLine(), getColumn());
 														return 0;
 													}
 													if (current != ')')
 													{
-														PyErr_Format(PyExc_ValueError,"wrong char while parsing URL at line %d column %d", getLine(), getColumn());
+														PyErr_Format(PyExc_ValueError, "wrong char while parsing URL at line %d column %d", getLine(), getColumn());
 														return 0;
 													}
 													nextChar();
@@ -1301,24 +1301,24 @@ class Scanner
 													}
 													if (current == -1)
 													{
-														PyErr_Format(PyExc_ValueError,"eof while parsing URL at line %d column %d", getLine(), getColumn());
+														PyErr_Format(PyExc_ValueError, "eof while parsing URL at line %d column %d", getLine(), getColumn());
 														return 0;
 													}
 													if (current != ')')
 													{
-														PyErr_Format(PyExc_ValueError,"wrong char while parsing URL at line %d column %d", getLine(), getColumn());
+														PyErr_Format(PyExc_ValueError, "wrong char while parsing URL at line %d column %d", getLine(), getColumn());
 														return 0;
 													}
 													nextChar();
 													type = TOKEN_URI;
 													return -1;
 												case ')':
-													PyErr_Format(PyExc_ValueError,"wrong char while parsing URL at line %d column %d", getLine(), getColumn());
+													PyErr_Format(PyExc_ValueError, "wrong char while parsing URL at line %d column %d", getLine(), getColumn());
 													return 0;
 												default:
 													if (!isCSSURICharacter(current))
 													{
-														PyErr_Format(PyExc_ValueError,"wrong char in URL at line %d column %d", getLine(), getColumn());
+														PyErr_Format(PyExc_ValueError, "wrong char in URL at line %d column %d", getLine(), getColumn());
 														return 0;
 													}
 													start = position - 1;
@@ -1334,12 +1334,12 @@ class Scanner
 													}
 													if (current == -1)
 													{
-														PyErr_Format(PyExc_ValueError,"eof while parsing URL at line %d column %d", getLine(), getColumn());
+														PyErr_Format(PyExc_ValueError, "eof while parsing URL at line %d column %d", getLine(), getColumn());
 														return 0;
 													}
 													if (current != ')')
 													{
-														PyErr_Format(PyExc_ValueError,"wrong char while parsing URL at line %d column %d", getLine(), getColumn());
+														PyErr_Format(PyExc_ValueError, "wrong char while parsing URL at line %d column %d", getLine(), getColumn());
 														return 0;
 													}
 													nextChar();
@@ -1384,7 +1384,7 @@ class Scanner
 						return -1;
 					}
 					nextChar();
-					PyErr_Format(PyExc_ValueError,"illegal char at line %d column %d", getLine(), getColumn());
+					PyErr_Format(PyExc_ValueError, "illegal char at line %d column %d", getLine(), getColumn());
 					return 0;
 			}
 			return -1;
@@ -1417,11 +1417,11 @@ static int callWithString(CSSTokenizer *self, PyObject *callback, const char *da
 }
 */
 
-static int callWith2Strings(CSSTokenizer *self, PyObject *callback, const char *data1, int len1, const char *data2, int len2)
+static int calltoken(CSSTokenizer *self, const char *token, int tokenlen, const Py_UNICODE *data, int datalen)
 {
-	if (callback)
+	if (self->token)
 	{
-		PyObject *res = PyObject_CallFunction(callback, "s#s#", data1, len1, data2, len2);
+		PyObject *res = PyObject_CallFunction(self->token, "s#u#", token, tokenlen, data, datalen);
 		if (!res)
 			return 0;
 		Py_DECREF(res);
@@ -1450,10 +1450,10 @@ static PyObject *parser_register(CSSTokenizer *self, PyObject *args)
 
 static PyObject *parser_parse(CSSTokenizer *self, PyObject *args)
 {
-	const char *s;
+	const Py_UNICODE *s;
 	int len;
 
-	if (!PyArg_ParseTuple(args, "s#:parse", &s, &len))
+	if (!PyArg_ParseTuple(args, "u#:parse", &s, &len))
 		return NULL;
 
 	if (!callWithVoid(self, self->startDocument))
@@ -1466,8 +1466,7 @@ static PyObject *parser_parse(CSSTokenizer *self, PyObject *args)
 		return NULL;
 	while ((t = scanner.getType()) != TOKEN_EOF)
 	{
-		if (!callWith2Strings(self, self->token,
-					token_names[t], strlen(token_names[t]),
+		if (!calltoken(self, token_names[t], strlen(token_names[t]),
 				scanner.buffer+scanner.start, scanner.end-scanner.start))
 			return NULL;
 		if (!scanner.next())
