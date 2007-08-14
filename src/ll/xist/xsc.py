@@ -2108,14 +2108,17 @@ class StyleAttr(Attr):
 
 	serializer = cssserialize.CSSSerializer(cssserialize.Preferences(indent=""))
 
+	def _transform(self, replacer):
+		style = cssutils.parseString(u"a{%s}" % self).cssRules[0].style
+		css.replaceurl(style, replacer)
+		return self.serializer.do_css_CSSStyleDeclaration(style)
+
 	def parsed(self, parser, start=None):
 		if not self.isfancy() and parser.base is not None:
 			from ll.xist import css
 			def prependbase(u):
 				return parser.base/u
-			style = cssutils.parseString(u"a{%s}" % self).cssRules[0].style
-			css.replaceurl(style, prependbase)
-			return self.__class__(self.serializer.do_css_CSSStyleDeclaration(style))
+			return self.__class__(self._transform(prependbase))
 		return self
 
 	def _publishattrvalue(self, publisher):
@@ -2123,10 +2126,7 @@ class StyleAttr(Attr):
 			from ll.xist import css
 			def reltobase(u):
 				return u.relative(publisher.base)
-			style = cssutils.parseString(u"a{%s}" % self).cssRules[0].style
-			css.replaceurl(style, reltobase)
-			new = Frag(self.serializer.do_css_CSSStyleDeclaration(style))
-			for part in new.publish(publisher):
+			for part in Frag(self._transform(reltobase)).publish(publisher):
 				yield part
 		else:
 			for part in super(StyleAttr, self)._publishattrvalue(publisher):
