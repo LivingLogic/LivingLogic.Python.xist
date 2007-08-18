@@ -18,7 +18,7 @@ from xml.parsers import expat
 import py.test
 
 from ll import url
-from ll.xist import xsc, parsers, cssparsers, presenters, converters, helpers, options, sims, xnd, xfind
+from ll.xist import xsc, parsers, css, presenters, converters, helpers, options, sims, xnd, xfind
 from ll.xist.ns import wml, ihtml, html, chars, abbr, specials, htmlspecials, meta, form, php, xml, tld, docbook
 
 import common

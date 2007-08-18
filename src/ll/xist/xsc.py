@@ -2109,9 +2109,10 @@ class StyleAttr(Attr):
 	serializer = cssserialize.CSSSerializer(cssserialize.Preferences(indent=""))
 
 	def _transform(self, replacer):
+		from ll.xist import css
 		style = cssutils.parseString(u"a{%s}" % self).cssRules[0].style
 		css.replaceurl(style, replacer)
-		return self.serializer.do_css_CSSStyleDeclaration(style)
+		return self.serializer.do_css_CSSStyleDeclaration(style).strip()
 
 	def parsed(self, parser, start=None):
 		if not self.isfancy() and parser.base is not None:
@@ -3367,7 +3368,7 @@ class CharRef(Text, Entity):
 		return Text(self.content.upper())
 
 
-import publishers, cssparsers, converters, utils, helpers
+import publishers, converters, utils, helpers
 
 
 ###

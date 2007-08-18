@@ -24,7 +24,7 @@ from xml.sax import expatreader
 from xml.sax import handler
 
 from ll import url
-from ll.xist import xsc, utils, cssparsers, sgmlop
+from ll.xist import xsc, utils, sgmlop
 from ll.xist.ns import html
 
 # from PyXML/dom/html/__init__.py
