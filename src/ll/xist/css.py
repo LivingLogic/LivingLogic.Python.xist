@@ -186,7 +186,7 @@ def applystylesheets(node, base=None, media=None):
 					for prop in style.seq:
 						if not isinstance(prop, css.CSSComment):
 							for value in prop:
-								styles[prop.name] = (count, prop.name, value.cssValue)
+								styles[prop.name] = (count, prop.name, value.cssValue.cssText)
 								count += 1
 					style = " ".join("%s: %s;" % (name, value) for (count, name, value) in sorted(styles.itervalues()))
 					if style:
