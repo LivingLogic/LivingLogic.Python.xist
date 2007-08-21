@@ -34,21 +34,20 @@ def _isstyle(path):
 	return False
 
 
-def replaceurl(style, replacer):
+def replaceurls(style, replacer):
 	"""
 	Replace all &url;s appearing in the <class>CSSStyleDeclaration<class>
 	<arg>style</arg>. For each &url; the function <arg>replacer</arg> will be
 	called and the &url; will be replace with the result.
 	"""
-	for proplist in style.seq:
-		if not isinstance(proplist, css.CSSComment):
-			for prop in proplist:
-				newvalue = []
-				for value in prop.cssValue.seq:
-					if value.startswith("url(") and value.endswith(")"):
-						value = "url(%s)" % replacer(url.URL(value[4:-1]))
-					newvalue.append(value)
-				prop.cssValue = "".join(newvalue)
+	def newreplacer(u):
+		if u.startswith("'") and u.endswith("'"):
+			u = u[1:-1]
+		elif u.startswith('"') and u.endswith('"'):
+			u = u[1:-1]
+		u = replacer(url.URL(u))
+		return unicode(u)
+	style.replaceUrls(newreplacer) # This needs at least r242 of cssutils
 
 
 def _getmedia(stylesheet):
@@ -84,10 +83,10 @@ def _doimport(wantmedia, parentsheet, base):
 			elif rule.type == css.CSSRule.MEDIA_RULE:
 				if wantmedia in rule.media:
 					for subrule in rule.cssRules:
-						replaceurl(subrule.style, prependbase)
+						replaceurls(subrule.style, prependbase)
 						yield subrule
 			elif rule.type == css.CSSRule.STYLE_RULE:
-				replaceurl(rule.style, prependbase)
+				replaceurls(rule.style, prependbase)
 				yield rule
 
 
