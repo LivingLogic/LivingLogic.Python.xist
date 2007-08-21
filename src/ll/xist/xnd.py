@@ -171,11 +171,6 @@ class Module(Base):
 
 		self._adddoc(lines, level)
 
-		# Prevent CVS from messing with the keyword
-		lines.append([level, "__version__ = \"%sRevision ? %s\".split()[1]" % ("$", "$")])
-		lines.append([level, "# %sSource%s" % ("$", "$")])
-		lines.append([0, ""])
-		lines.append([0, ""])
 		lines.append([level, "from ll.xist import xsc, sims"])
 
 		lines.append([0, ""])
