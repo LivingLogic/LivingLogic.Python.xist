@@ -17,4 +17,4 @@ if __name__ == "__main__":
 	e = parsers.parseURL(url, base=base, saxparser=parsers.ExpatParser, nspool=nspool, prefixes=prefixes, validate=False)
 	e = e[qel_xmlns.quotations][0]
 	e = e.compact().conv()
-	print e.asBytes(base=base, encoding="iso-8859-1", validate=False)
+	print e.bytes(base=base, encoding="iso-8859-1", validate=False)

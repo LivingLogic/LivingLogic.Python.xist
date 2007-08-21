@@ -219,7 +219,7 @@ class Test:
 				except Exception:
 					pass
 				for j in xrange(3):
-					assert p.parseString("<a>gurk</a>").asBytes() == "<a>gurk</a>"
+					assert p.parseString("<a>gurk</a>").bytes() == "<a>gurk</a>"
 
 		# A Parser instance should be able to parse multiple XML sources, even when some of the parse calls fail
 		for saxparser in (parsers.SGMLOPParser, parsers.BadEntityParser, parsers.HTMLParser, parsers.ExpatParser):

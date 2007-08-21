@@ -150,7 +150,7 @@ def test_stringify():
 		unicode(node)
 		str(node)
 		node.asString()
-		node.asBytes()
+		node.bytes()
 
 
 def test_astext():

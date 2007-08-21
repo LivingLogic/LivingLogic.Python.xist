@@ -150,4 +150,4 @@ if __name__ == "__main__":
 	node = parsers.parseFile("Media.xml", prefixes=prefixes)
 	node = node[media][0]
 	node = node.conv()
-	print node.asBytes(encoding="us-ascii")
+	print node.bytes(encoding="us-ascii")

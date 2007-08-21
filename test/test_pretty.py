@@ -15,7 +15,7 @@ from ll.xist.ns import html, php
 
 def test_pretty():
 	def check(node, result):
-		assert node.pretty().asBytes() == result
+		assert node.pretty().bytes() == result
 
 	tests = [
 		(html.p("apple", "tree"), "<p>appletree</p>"),

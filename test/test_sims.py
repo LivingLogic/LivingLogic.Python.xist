@@ -42,7 +42,7 @@ def test_empty():
 			model = sims.Empty()
 
 		e = el1()
-		e.asBytes()
+		e.bytes()
 	
 		e = el1("gurk")
 		py.test.raises(sims.EmptyElementWithContentWarning, e.asBytes)
@@ -75,22 +75,22 @@ def test_elements():
 		el11.model = sims.Elements(el11, el21)
 	
 		e = el11()
-		e.asBytes()
+		e.bytes()
 	
 		e = el11("foo")
 		py.test.raises(sims.IllegalTextWarning, e.asBytes)
 	
 		e = el11(php.php("gurk"))
-		e.asBytes()
+		e.bytes()
 	
 		e = el11(xsc.Comment("gurk"))
-		e.asBytes()
+		e.bytes()
 	
 		e = el11(el11())
-		e.asBytes()
+		e.bytes()
 	
 		e = el11(el21())
-		e.asBytes()
+		e.bytes()
 	
 		e = el11(el12())
 		py.test.raises(sims.WrongElementWarning, e.asBytes)
@@ -117,22 +117,22 @@ def test_elementsortext():
 		el11.model = sims.ElementsOrText(el11, el21)
 	
 		e = el11()
-		e.asBytes()
+		e.bytes()
 	
 		e = el11("foo")
-		e.asBytes()
+		e.bytes()
 	
 		e = el11(php.php("gurk"))
-		e.asBytes()
+		e.bytes()
 	
 		e = el11(xsc.Comment("gurk"))
-		e.asBytes()
+		e.bytes()
 	
 		e = el11(el11())
-		e.asBytes()
+		e.bytes()
 	
 		e = el11(el21())
-		e.asBytes()
+		e.bytes()
 	
 		e = el11(el12())
 		py.test.raises(sims.WrongElementWarning, e.asBytes)
@@ -150,23 +150,23 @@ def test_noelements():
 			xmlns = "ns2"
 
 		e = el1()
-		e.asBytes()
+		e.bytes()
 	
 		e = el1("foo")
-		e.asBytes()
+		e.bytes()
 	
 		e = el1(php.php("gurk"))
-		e.asBytes()
+		e.bytes()
 	
 		e = el1(xsc.Comment("gurk"))
-		e.asBytes()
+		e.bytes()
 	
 		e = el1(el1())
 		py.test.raises(sims.ElementWarning, e.asBytes)
 
 		# Elements from a different namespace are OK
 		e = el1(el2())
-		e.asBytes()
+		e.bytes()
 
 
 def test_noelementsortext():
@@ -178,20 +178,20 @@ def test_noelementsortext():
 			xmlns = "ns2"
 
 		e = el1()
-		e.asBytes()
+		e.bytes()
 	
 		e = el1("foo")
 		py.test.raises(sims.IllegalTextWarning, e.asBytes)
 	
 		e = el1(php.php("gurk"))
-		e.asBytes()
+		e.bytes()
 	
 		e = el1(xsc.Comment("gurk"))
-		e.asBytes()
+		e.bytes()
 	
 		e = el1(el1())
 		py.test.raises(sims.ElementWarning, e.asBytes)
 	
 		# Elements from a different namespace are OK
 		e = el1(el2())
-		e.asBytes()
+		e.bytes()

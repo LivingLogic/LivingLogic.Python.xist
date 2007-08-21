@@ -1948,7 +1948,7 @@ class Attr(Frag):
 	<prompt>... </prompt><input>      lang="en"</input>
 	<prompt>... </prompt><input>   )</input>
 	<prompt>... </prompt><input>)</input>
-	&gt;&gt;&gt; print node.asBytes()
+	&gt;&gt;&gt; print node.bytes()
 	&lt;img alt="EGGS" src="&lt;?php echo 'eggs.gif'?&gt;" /&gt;
 	</tty>
 	</example>
