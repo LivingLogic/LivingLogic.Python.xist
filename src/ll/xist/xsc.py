@@ -2111,7 +2111,7 @@ class StyleAttr(Attr):
 	def _transform(self, replacer):
 		from ll.xist import css
 		style = cssutils.parseString(u"a{%s}" % self).cssRules[0].style
-		css.replaceurl(style, replacer)
+		css.replaceurls(style, replacer)
 		return self.serializer.do_css_CSSStyleDeclaration(style).strip()
 
 	def parsed(self, parser, start=None):
@@ -2143,7 +2143,7 @@ class StyleAttr(Attr):
 			urls.append(u)
 			return u
 		s = cssutils.parseString(u"a{%s}" % self)
-		css.replaceurl(s.cssRules[0].style, collect)
+		css.replaceurls(s.cssRules[0].style, collect)
 		return urls
 
 
