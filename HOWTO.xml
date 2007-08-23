@@ -148,7 +148,7 @@ from ll.xist import parsers
 from ll.xist.ns import html
 
 node = parsers.parseString(
-	"&lt;p&gt;Hello &lt;a href="http://www.python.org/"&gt;Python&lt;/a&gt; world!&lt;/p&gt;"
+	"&lt;p&gt;Hello &lt;a href='http://www.python.org/'&gt;Python&lt;/a&gt; world!&lt;/p&gt;"
 )
 </prog>
 </example>
