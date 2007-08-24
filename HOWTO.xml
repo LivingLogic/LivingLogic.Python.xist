@@ -787,7 +787,7 @@ this, we change our example namespace to use the conversion target like this:</p
 import navns
 
 class __ns__(navns):
-	class links(nav.links):
+	class links(navns.links):
 		def convert(self, converter):
 			node = converter.target.table(
 				self.content,
@@ -798,7 +798,7 @@ class __ns__(navns):
 			)
 			return node.convert(converter)
 
-	class link(nav.link):
+	class link(navns.link):
 		def convert(self, converter):
 			target = converter.target
 			node = target.tr(
