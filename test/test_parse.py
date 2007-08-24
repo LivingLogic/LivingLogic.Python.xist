@@ -1,8 +1,8 @@
 #! /usr/bin/env/python
-# -*- coding: iso-8859-1 -*-
+# -*- coding: utf-8 -*-
 
 ## Copyright 1999-2007 by LivingLogic AG, Bayreuth/Germany.
-## Copyright 1999-2007 by Walter Dörwald
+## Copyright 1999-2007 by Walter DÃ¶rwald
 ##
 ## All Rights Reserved
 ##
@@ -78,7 +78,7 @@ def check_parsebadentities(parserfactory):
 		("&amp;amp;", u"&amp;"),
 		("x&foo;&bar;y", u"xFOO\x42y"),
 		("x&foobar;y", u"x&foobar;y"),
-		("&uuml;", u"ü"),
+		("&uuml;", u"Ã¼"),
 		("x&x", u"x&x"),
 		("x&x;", u"x&x;"),
 		("a&amp;b&lt;c&gt;d&quot;e&apos;f", u"a&b<c>d\"e'f"),

@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-# -*- coding: iso-8859-1 -*-
+# -*- coding: utf-8 -*-
 
 from ll.xist import xsc, sims, parsers
 from ll.xist.ns import html, htmlspecials, meta, xml, chars

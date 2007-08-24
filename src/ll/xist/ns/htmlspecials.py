@@ -1,7 +1,7 @@
-# -*- coding: iso-8859-1 -*-
+# -*- coding: utf-8 -*-
 
 ## Copyright 1999-2007 by LivingLogic AG, Bayreuth/Germany.
-## Copyright 1999-2007 by Walter Dörwald
+## Copyright 1999-2007 by Walter DÃ¶rwald
 ##
 ## All Rights Reserved
 ##
@@ -179,7 +179,7 @@ class redirectpage(xsc.Element):
 
 	langs = {
 		"en": (u"Redirection to ", u"Your browser doesn't understand redirects. This page has been redirected to "),
-		"de": (u"Weiterleitung auf ", u"Ihr Browser unterstützt keine Weiterleitung. Diese Seite wurde weitergeleitet auf ")
+		"de": (u"Weiterleitung auf ", u"Ihr Browser unterstÃ¼tzt keine Weiterleitung. Diese Seite wurde weitergeleitet auf ")
 	}
 
 	def convert(self, converter):

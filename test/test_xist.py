@@ -1,8 +1,8 @@
 #! /usr/bin/env/python
-# -*- coding: iso-8859-1 -*-
+# -*- coding: utf-8 -*-
 
 ## Copyright 1999-2007 by LivingLogic AG, Bayreuth/Germany.
-## Copyright 1999-2007 by Walter Dörwald
+## Copyright 1999-2007 by Walter DÃ¶rwald
 ##
 ## All Rights Reserved
 ##
@@ -234,15 +234,15 @@ def test_charref():
 	node = chars.ouml()
 	hash(node)
 	assert len(node) == 1
-	assert node[0] == xsc.Text(u"ö")
-	assert 3*node == xsc.Text(u"ööö")
-	assert node*3 == xsc.Text(u"ööö")
+	assert node[0] == xsc.Text(u"Ã¶")
+	assert 3*node == xsc.Text(u"Ã¶Ã¶Ã¶")
+	assert node*3 == xsc.Text(u"Ã¶Ã¶Ã¶")
 	assert node[1:-2] == xsc.Text()
-	assert node.capitalize() == xsc.Text(u"Ö")
-	assert node.center(5) == xsc.Text(u"  ö  ")
+	assert node.capitalize() == xsc.Text(u"Ã–")
+	assert node.center(5) == xsc.Text(u"  Ã¶  ")
 	assert node.count(u"t") == 0
-	assert node.endswith(u"ö") is True
-	assert node.index(u"ö") == 0
+	assert node.endswith(u"Ã¶") is True
+	assert node.index(u"Ã¶") == 0
 	assert node.isalpha() is True
 	assert node.isalnum() is True
 	assert node.isdecimal() is False
@@ -252,18 +252,18 @@ def test_charref():
 	assert node.isspace() is False
 	assert node.istitle() is False
 	assert node.isupper() is False
-	assert node.ljust(3) == xsc.Text(u"ö  ")
-	assert node.ljust(3, ".") == xsc.Text(u"ö..")
-	assert node.lower() == xsc.Text(u"ö")
-	assert node.replace(u"ö", "x") == xsc.Text("x")
-	assert node.rjust(3) == xsc.Text(u"  ö")
-	assert node.rjust(3, ".") == xsc.Text(u"..ö")
-	assert node.rfind(u"ö") == 0
-	assert node.rindex(u"ö") == 0
-	assert node.startswith(u"ö") is True
-	assert node.swapcase() == xsc.Text(u"Ö")
-	assert node.title() == xsc.Text(u"Ö")
-	assert node.upper() == xsc.Text(u"Ö")
+	assert node.ljust(3) == xsc.Text(u"Ã¶  ")
+	assert node.ljust(3, ".") == xsc.Text(u"Ã¶..")
+	assert node.lower() == xsc.Text(u"Ã¶")
+	assert node.replace(u"Ã¶", "x") == xsc.Text("x")
+	assert node.rjust(3) == xsc.Text(u"  Ã¶")
+	assert node.rjust(3, ".") == xsc.Text(u"..Ã¶")
+	assert node.rfind(u"Ã¶") == 0
+	assert node.rindex(u"Ã¶") == 0
+	assert node.startswith(u"Ã¶") is True
+	assert node.swapcase() == xsc.Text(u"Ã–")
+	assert node.title() == xsc.Text(u"Ã–")
+	assert node.upper() == xsc.Text(u"Ã–")
 
 
 def test_conv():

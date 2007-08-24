@@ -1,7 +1,7 @@
-# -*- coding: iso-8859-1 -*-
+# -*- coding: utf-8 -*-
 
 ## Copyright 2007 by LivingLogic AG, Bayreuth/Germany.
-## Copyright 2007 by Walter Dörwald
+## Copyright 2007 by Walter DÃ¶rwald
 ##
 ## All Rights Reserved
 ##

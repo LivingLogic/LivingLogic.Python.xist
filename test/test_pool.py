@@ -1,8 +1,8 @@
 #! /usr/bin/env/python
-# -*- coding: iso-8859-1 -*-
+# -*- coding: utf-8 -*-
 
 ## Copyright 1999-2007 by LivingLogic AG, Bayreuth/Germany.
-## Copyright 1999-2007 by Walter Dörwald
+## Copyright 1999-2007 by Walter DÃ¶rwald
 ##
 ## All Rights Reserved
 ##
@@ -61,12 +61,12 @@ def test_basics():
 	r = xsc.Pool(chars)
 	assert r.charrefclass("ouml") is chars.ouml
 	assert r.charrefclass_xml("ouml") is chars.ouml
-	assert r.charrefclass(ord(u"ö")) is chars.ouml
-	assert r.charrefclass_xml(ord(u"ö")) is chars.ouml
+	assert r.charrefclass(ord(u"Ã¶")) is chars.ouml
+	assert r.charrefclass_xml(ord(u"Ã¶")) is chars.ouml
 	assert r.charref("ouml") == chars.ouml()
 	assert r.charref_xml("ouml") == chars.ouml()
-	assert r.charref(ord(u"ö")) == chars.ouml()
-	assert r.charref_xml(ord(u"ö")) == chars.ouml()
+	assert r.charref(ord(u"Ã¶")) == chars.ouml()
+	assert r.charref_xml(ord(u"Ã¶")) == chars.ouml()
 	py.test.raises(xsc.IllegalEntityError, r.charrefclass, "nothing")
 	py.test.raises(xsc.IllegalEntityError, r.charrefclass_xml, "nothing")
 
