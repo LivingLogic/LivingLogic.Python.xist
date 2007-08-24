@@ -234,7 +234,7 @@ class cool(xsc.Element):
 <prog>
 &gt;&gt;&gt; node = cool(python())
 &gt;&gt;&gt; print node.conv().asBytes()
-&lt;b&gt;&lt;python /&gt; is cool!&lt;/b&gt;
+&lt;b&gt;&lt;python&gt;&lt;/python&gt; is cool!&lt;/b&gt;
 </prog>
 
 <par>Furthermore <method>convert</method> should never modify <self/>, because
@@ -316,13 +316,13 @@ the dictionary interface:</par>
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>node = html.a(u"Python", href=u"http://www.python.org/")</input>
 <prompt>&gt;&gt;&gt; </prompt><input>print node[u"href"].asBytes()</input>
-http://www.python.org/
+href="http://www.python.org/"
 <prompt>&gt;&gt;&gt; </prompt><input>del node[u"href"]</input>
 <prompt>&gt;&gt;&gt; </prompt><input>print node[u"href"].asBytes()</input>
 
 <prompt>&gt;&gt;&gt; </prompt><input>node[u"href"] = u"http://www.python.org"</input>
 <prompt>&gt;&gt;&gt; </prompt><input>print node[u"href"].asBytes()</input>
-http://www.python.org/
+href="http://www.python.org/"
 </tty>
 </example>
 
