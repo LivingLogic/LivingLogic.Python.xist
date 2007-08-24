@@ -89,6 +89,8 @@ class Publisher(object):
 		self.prefixes = dict((xsc.nsname(xmlns), prefix) for (xmlns, prefix) in prefixes.iteritems())
 		self.prefixdefault = prefixdefault
 		self.hidexmlns = set(xsc.nsname(xmlns) for xmlns in hidexmlns)
+		self._ns2prefix = {}
+		self._prefix2ns = {}
 
 	def encode(self, text):
 		"""
@@ -146,46 +148,53 @@ class Publisher(object):
 			prefix = "ns%d" % suffix
 			suffix += 1
 
+	def getprefix(self, object):
+		"""
+		FIXME: Can be used during publication by custom publish methods: Return the prefix
+		configured for the namespace <arg>xmlns</arg>.
+		"""
+		xmlns = getattr(object, "xmlns")
+		if xmlns is not None:
+			emptyok = isinstance(object, xsc.Element)
+			try:
+				prefix = self._ns2prefix[xmlns]
+			except KeyError: # A namespace we haven't encountered yet
+				if xmlns != xsc.xml_xmlns: # We don't need a namespace mapping for the xml namespace
+					prefix = self.prefixes.get(xmlns, self.prefixdefault)
+					# global attributes always require prefixed names
+					if prefix is True or ((prefix is None or prefix is False) and not emptyok):
+						prefix = self._newprefix()
+					if prefix is not False:
+						try:
+							oldxmlns = self._prefix2ns[prefix]
+						except KeyError:
+							pass
+						else:
+							# If this prefix has already been used for another namespace, we need a new one
+							if oldxmlns != xmlns:
+								prefix = self._newprefix()
+						self._ns2prefix[xmlns] = prefix
+						self._prefix2ns[prefix] = xmlns
+				else:
+					return "xml"
+			else:
+				# We can't use the unprefixed names for global attributes
+				if (prefix is None or prefix is False) and not emptyok:
+					# Use a new one
+					prefix = self._newprefix()
+					self._ns2prefix[xmlns] = prefix
+					self._prefix2ns[prefix] = xmlns
+
 	def publish(self, node, base=None):
 		"""
 		<par>publish the node <arg>node</arg>. This method is a generator that
 		will yield the resulting &xml; byte sequence in fragments.</par>
 		"""
-		def iselorat(path):
-			return (isinstance(path[-1], (xsc.Element, xsc.Attr)), xsc.entercontent, xsc.enterattrs)
-
-		self._ns2prefix = {}
-		self._prefix2ns = {}
+		self._ns2prefix.clear()
+		self._prefix2ns.clear()
 		# iterate through every node in the tree
-		for n in node.walknode(iselorat):
-			ns = n.xmlns
-			if ns is not None:
-				try:
-					prefix = self._ns2prefix[ns]
-				except KeyError: # A namespace we haven't encountered yet
-					if ns != xsc.xml_xmlns: # We don't need an xmlns attribute for the xml namespace
-						prefix = self.prefixes.get(ns, self.prefixdefault)
-						# global attributes always require prefixed names
-						if prefix is True or ((prefix is None or prefix is False) and isinstance(n, xsc.Attr)):
-							prefix = self._newprefix()
-						if prefix is not False:
-							try:
-								oldns = self._prefix2ns[prefix]
-							except KeyError:
-								pass
-							else:
-								# If this prefix has already been used for another namespace, we need a new one
-								if oldns != ns:
-									prefix = self._newprefix()
-							self._ns2prefix[ns] = prefix
-							self._prefix2ns[prefix] = ns
-				else:
-					# We can't use the unprefixes names for global attributes
-					if (prefix is None or prefix is False) and isinstance(n, xsc.Attr):
-						# Use a new one
-						prefix = self._newprefix()
-						self._ns2prefix[ns] = prefix
-						self._prefix2ns[prefix] = ns
+		for n in node.walknode():
+			self.getprefix(n)
 
 		# Do we have to publish xmlns attributes?
 		if self._ns2prefix:
@@ -218,7 +227,8 @@ class Publisher(object):
 		self.__errors = [ "xmlcharrefreplace" ]
 
 		self.publishxmlns = False
-		self._ns2prefix = None
+		self._ns2prefix.clear()
+		self._prefix2ns.clear()
 		self._prefixes = None
 
 		del self.encoder
