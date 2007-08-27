@@ -229,6 +229,5 @@ class Publisher(object):
 		self.publishxmlns = False
 		self._ns2prefix.clear()
 		self._prefix2ns.clear()
-		self._prefixes = None
 
 		del self.encoder
