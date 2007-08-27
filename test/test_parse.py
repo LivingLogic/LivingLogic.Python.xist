@@ -145,7 +145,7 @@ class Test:
 	def test_parseurls(self):
 		# Check proper URL handling when parsing URLAttr or StyleAttr attributes
 		node = parsers.parseString('<a href="4.html" style="background-image: url(3.gif);"/>', base="root:1/2.html", prefixes={None: html})
-		assert str(node[0]["style"]) == "background-image: url(root:1/3.gif);"
+		assert str(node[0]["style"]) == "background-image: url(root:1/3.gif)"
 		assert node[0]["style"].urls() == [url.URL("root:1/3.gif")]
 		assert str(node[0]["href"]) == "root:1/4.html"
 		assert node[0]["href"].forInput(root="gurk/hurz.html") == url.URL("gurk/1/4.html")

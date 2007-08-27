@@ -2106,13 +2106,11 @@ class StyleAttr(Attr):
 	<par>Attribute class that is used for &css; style attributes.</par>
 	"""
 
-	serializer = cssserialize.CSSSerializer(cssserialize.Preferences(indent=""))
-
 	def _transform(self, replacer):
 		from ll.xist import css
 		stylesheet = cssutils.parseString(u"a{%s}" % self)
 		css.replaceurls(stylesheet, replacer)
-		return self.serializer.do_css_CSSStyleDeclaration(stylesheet.cssRules[0].style).strip()
+		return stylesheet.cssRules[0].style.getCssText(separator=" ")
 
 	def parsed(self, parser, start=None):
 		if not self.isfancy() and parser.base is not None:
@@ -2138,12 +2136,13 @@ class StyleAttr(Attr):
 		<par>Return a list of all the <pyref module="ll.url" class="URL"><class>URL</class></pyref>s
 		found in the style attribute.</par>
 		"""
+		from ll.xist import css
 		urls = []
 		def collect(u):
 			urls.append(u)
 			return u
 		s = cssutils.parseString(u"a{%s}" % self)
-		css.replaceurls(s.cssRules[0].style, collect)
+		css.replaceurls(s, collect)
 		return urls
 
 
