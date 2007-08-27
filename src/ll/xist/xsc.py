@@ -3866,6 +3866,28 @@ def getpoolstack():
 	return stack
 
 
+class VPool(list):
+	def __init__(self, *modules):
+		list.__init__(self, list(modules))
+
+	def __getattr__(self, key):
+		for module in self:
+			try:
+				cls = getattr(module, key)
+			except AttributeError:
+				pass
+			else:
+				def factory(*args, **kwargs):
+					obj = cls(*args, **kwargs)
+					obj.pool = self
+					return obj
+				return factory
+		raise AttributeError(key)
+
+	def __repr__(self):
+		return "<%s.%s object with %d items at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, len(self), id(self))
+
+
 ###
 ### Functions for namespace handling
 ###
