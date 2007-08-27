@@ -2110,9 +2110,9 @@ class StyleAttr(Attr):
 
 	def _transform(self, replacer):
 		from ll.xist import css
-		style = cssutils.parseString(u"a{%s}" % self).cssRules[0].style
-		css.replaceurls(style, replacer)
-		return self.serializer.do_css_CSSStyleDeclaration(style).strip()
+		stylesheet = cssutils.parseString(u"a{%s}" % self)
+		css.replaceurls(stylesheet, replacer)
+		return self.serializer.do_css_CSSStyleDeclaration(stylesheet.cssRules[0].style).strip()
 
 	def parsed(self, parser, start=None):
 		if not self.isfancy() and parser.base is not None:
