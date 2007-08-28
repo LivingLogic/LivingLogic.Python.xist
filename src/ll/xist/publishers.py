@@ -193,7 +193,7 @@ class Publisher(object):
 		self._ns2prefix.clear()
 		self._prefix2ns.clear()
 		# iterate through every node in the tree
-		for n in node.walknode():
+		for n in node.walknode(xsc.Node):
 			self.getprefix(n)
 
 		# Do we have to publish xmlns attributes?
