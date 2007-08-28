@@ -211,7 +211,7 @@ class url(xsc.ProcInst):
 
 
 # Control characters (not part of HTML)
-class lf(xsc.CharRef): "line feed"; xmlns = xmlns; codepoint = 10
-class cr(xsc.CharRef): "carriage return"; xmlns = xmlns; codepoint = 13
-class tab(xsc.CharRef): "horizontal tab"; xmlns = xmlns; codepoint = 9
-class esc(xsc.CharRef): "escape"; xmlns = xmlns; codepoint = 27
+class lf(xsc.CharRef): "line feed"; codepoint = 10
+class cr(xsc.CharRef): "carriage return"; codepoint = 13
+class tab(xsc.CharRef): "horizontal tab"; codepoint = 9
+class esc(xsc.CharRef): "escape"; codepoint = 27
