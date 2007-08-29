@@ -22,7 +22,7 @@ Changes in 3.0 (released ??/??/2007)
 	functionality: The generator function :func:`iterrules` can be passed an
 	|XIST| tree and it will produce all |CSS| rules defined in any
 	:class:`html.link` or :class:`html.style` elements or imported by them
-	(via the |CSS| rule ``@import``) This requires the :mod:`cssutils` package.
+	(via the |CSS| rule ``@import``). This requires the :mod:`cssutils` package.
 
 *	The function :func:`applystylesheets` modifies the |XIST| tree passed in by
 	removing all |CSS| (from :class:`html.link` and :class:`html.style` elements

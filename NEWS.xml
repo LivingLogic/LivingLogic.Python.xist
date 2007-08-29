@@ -23,7 +23,7 @@ that node);</item>
 &css; related functionality: The generator function <function>iterrules</function>
 can be passed an &xist; tree and it will produce all &css; rules defined in any
 <class>html.link</class> or <class>html.style</class> elements or imported by them
-(via the &css; rule <lit>@import</lit>) This requires the <module>cssutils</module>
+(via the &css; rule <lit>@import</lit>). This requires the <module>cssutils</module>
 package.</par>
 
 <par>The function <function>applystylesheets</function> modifies the &xist; tree
