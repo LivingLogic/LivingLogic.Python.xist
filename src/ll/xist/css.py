@@ -21,6 +21,9 @@ try:
 	from cssutils import css, stylesheets
 except ImportError:
 	cssutils = None
+else:
+	import logging
+	cssutils.log.setloglevel(logging.FATAL)
 
 from ll import misc, url
 from ll.xist import xsc, xfind
