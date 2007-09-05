@@ -438,6 +438,7 @@ feed(FastParserObject* self, Py_UNICODE* string, Py_ssize_t stringlen, int last)
     if (!self->buffer) {
         length = stringlen;
         self->buffer = malloc((length + 1)*sizeof(Py_UNICODE));
+        self->bufferlen = self->shorttag = self->doctype = 0;
         self->buffertotal = stringlen;
     } else {
         length = self->bufferlen + stringlen;
