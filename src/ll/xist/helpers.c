@@ -63,7 +63,7 @@ static PyObject *escape(PyObject *str, int inattr)
 	}
 	else
 	{
-		PyErr_SetString(PyExc_TypeError, "need str or unicode");
+		PyErr_SetString(PyExc_TypeError, "expected a str or unicode object");
 		return NULL;
 	}
 }
