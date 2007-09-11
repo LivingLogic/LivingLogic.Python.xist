@@ -24,6 +24,8 @@ read ``NEWS`` or the `history web page`_.
 
 .. _history web page: http://www.livinglogic.de/Python/xist/History.html
 
+For the license read ``__init__.py``.
+
 
 Download
 --------
