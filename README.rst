@@ -15,7 +15,7 @@ For documentation read ``HOWTO`` or the `web pages`_.
 
 .. _web pages: http://www.livinglogic.de/Python/xist/
 
-For installation instruction read ``INSTALL`` or `installation web page`_.
+For installation instruction read ``INSTALL`` or the `installation web page`_.
 
 .. _installation web page: http://www.livinglogic.de/Python/xist/Installation.html
 
