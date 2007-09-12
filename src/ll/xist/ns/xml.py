@@ -34,33 +34,13 @@ class Attrs(xsc.Attrs):
 
 class XML(xsc.ProcInst):
 	"""
-	&xml; declaration. The encoding will be automatically set when publishing.
+	&xml; declaration. The encoding will be automatically set when publishing
+	(by the &xml; codec).
 	"""
 	xmlname = "xml"
 
-	def publish(self, publisher):
-		content = self.content
-		encodingfound = utils.findattr(content, u"encoding")
-		versionfound = utils.findattr(content, u"version")
-		standalonefound = utils.findattr(content, u"standalone")
-		if publisher.encoding != encodingfound: # if self has the wrong encoding specification (or none) we construct a new XML ProcInst and publish that (this doesn't lead to infinite recursion, because the next call will skip it)
-			node = XML(u"version='%s' encoding='%s'" % (versionfound, publisher.encoding))
-			if standalonefound is not None:
-				node += u" standalone='%s'" % standalonefound
-			return node.publish(publisher) # return a generator-iterator
-		return xsc.ProcInst.publish(self, publisher) # return a generator-iterator
-
-
-class XML10(XML):
-	"""
-	&xml; declaration with <lit>version="1.0"</lit>.
-	"""
-	xmlns = xmlns
-	xmlname = "xml10"
-	register = False # don't register this ProcInst, because it will never be parsed from a file, this is just a convenience class
-
-	def __init__(self):
-		XML.__init__(self, u'version="1.0"')
+	def __init__(self, version="1.0", encoding="utf-8"):
+		xsc.ProcInst.__init__(self, u'version="%s" encoding="%s"' % (version, encoding))
 
 
 class XMLStyleSheet(xsc.ProcInst):

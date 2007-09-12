@@ -17,6 +17,7 @@ handlers in <pyref module="ll.xist.xsc" class="Node" method="publish"><method>pu
 import sys, codecs
 
 from ll import misc, url
+from ll import xml_codec # registers the "xml" encoding
 
 import xsc, helpers
 
@@ -37,9 +38,11 @@ class Publisher(object):
 	a byte sequence.
 	"""
 
-	def __init__(self, encoding="utf-8", xhtml=1, validate=True, prefixes={}, prefixdefault=False, hidexmlns=()):
+	def __init__(self, encoding=None, xhtml=1, validate=True, prefixes={}, prefixdefault=False, hidexmlns=()):
 		"""
-		<par><arg>encoding</arg> specifies the encoding to be used for the byte sequence.</par>
+		<par><arg>encoding</arg> specifies the encoding to be used for the byte sequence.
+		If <lit>None</lit> is used the encoding in the &xml; declaration will be
+		used. If there is none, UTF-8 will be used.</par>
 
 		<par>With the parameter <arg>xhtml</arg> you can specify if you want &html; output:</par>
 		<dlist>
@@ -213,7 +216,7 @@ class Publisher(object):
 		self.base = url.URL(base)
 		self.node = node
 
-		self.encoder = codecs.getincrementalencoder(self.encoding)()
+		self.encoder = codecs.getincrementalencoder("xml")(encoding=self.encoding)
 
 		for part in self.node.publish(self):
 			yield part

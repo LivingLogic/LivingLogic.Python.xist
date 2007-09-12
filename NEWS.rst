@@ -38,6 +38,9 @@ Changes in 3.0 (released ??/??/2007)
 *	The method :meth:`asBytes` has been renamed to :meth:`bytes` and :meth:`bytes`
 	has been renamed to :meth:`iterbytes`.
 
+* :class:`ll.xist.ns.xml.XML10` is gone now. Use :class`ll.xist.ns.xml.XML`
+  instead.
+
 *	A class attribute :attr:`empty` inside element classes will now no longer get
 	converted into :attr:`model`.
 
