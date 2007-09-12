@@ -1005,7 +1005,9 @@ fastfeed(FastParserObject* self)
         if (q != s && self->handle_data) {
             /* flush any raw data before this tag */
             PyObject* res;
-            res = PyObject_CallFunction(self->handle_data, BUILDFORMAT, s, q-s);
+            res = PyObject_CallFunction(
+                self->handle_data, BUILDFORMAT, s, q-s
+                );
             if (!res)
                 return -1;
             Py_DECREF(res);
@@ -1042,7 +1044,8 @@ fastfeed(FastParserObject* self)
                     while (ISSPACE(*t))
                         t++;
                     res = PyObject_CallFunction(
-                        self->handle_proc, BUILDFORMAT BUILDFORMAT, b, len, t, e-t
+                        self->handle_proc, BUILDFORMAT BUILDFORMAT,
+                        b, len, t, e-t
                         );
                     if (!res)
                         return -1;
@@ -1173,6 +1176,7 @@ fastfeed(FastParserObject* self)
                     b--;
                     goto entity;
                 }
+                #ifndef SGMLOP_UNICODE_SUPPORT
                 if (charref > 255) {
                     /* FIXME: return as unicode */
                     if (self->handle_data && self->strict) {
@@ -1183,7 +1187,9 @@ fastfeed(FastParserObject* self)
                             );
                         return -1;
                     }
-                } else {
+                } else
+                #endif
+                {
                     PyObject* res;
                     ch = charref;
                     res = PyObject_CallFunction(
@@ -1203,7 +1209,9 @@ fastfeed(FastParserObject* self)
                     );
             } else {
                 /* fallback: handle cdata as plain data */
-                res = PyObject_CallFunction(self->handle_data, BUILDFORMAT, b, e-b);
+                res = PyObject_CallFunction(
+                    self->handle_data, BUILDFORMAT, b, e-b
+                    );
             }
             if (!res)
                 return -1;
@@ -1212,7 +1220,9 @@ fastfeed(FastParserObject* self)
             PyObject* res;
             if (self->check && !self->check->comment(self->check, b, e))
                 return -1;
-            res = PyObject_CallFunction(self->handle_comment, BUILDFORMAT, b, e-b);
+            res = PyObject_CallFunction(
+                self->handle_comment, BUILDFORMAT, b, e-b
+                );
             if (!res)
                 return -1;
             Py_DECREF(res);
@@ -1406,6 +1416,7 @@ attrexpand(FastParserObject* self, const CHAR_T* p, const CHAR_T* e)
         charref = entity(q, p);
         if (charref >= 0) {
             /* builtin entity or charref */
+            #ifndef SGMLOP_UNICODE_SUPPORT
             if (charref > 255) {
                 /* FIXME: return as unicode */
                 if (self->handle_data && self->strict) {
@@ -1426,7 +1437,9 @@ attrexpand(FastParserObject* self, const CHAR_T* p, const CHAR_T* e)
                     item = Py_None;
                     Py_INCREF(Py_None);
                 }
-            } else {
+            } else
+            #endif
+            {
                 CHAR_T ch = (CHAR_T) charref;
                 item = BUILDSTRING(&ch, 1);
             }
