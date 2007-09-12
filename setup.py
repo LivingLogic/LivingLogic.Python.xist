@@ -67,7 +67,7 @@ args = dict(
 	ext_modules=[
 		tools.Extension("ll.xist.csstokenizer", ["src/ll/xist/csstokenizer.cxx"]),
 		tools.Extension("ll.xist.helpers", ["src/ll/xist/helpers.c"]),
-		tools.Extension("ll.xist.sgmlop", ["src/ll/xist/sgmlop.c"])
+		tools.Extension("ll.xist.sgmlop", ["src/ll/xist/sgmlop.c"], define_macros=[("SGMLOP_UNICODE_SUPPORT", None)]),
 	],
 	entry_points=dict(
 		console_scripts=[

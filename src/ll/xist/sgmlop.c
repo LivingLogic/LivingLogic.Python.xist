@@ -39,10 +39,10 @@
  * 2003-09-07 fl  Fixed parsing of short PI's (@XMLTOOLKIT24)
  * 2003-09-07 fl  Fixed garbage collection support for Python 2.2 and later
  * 2004-04-04 fl  Fixed parsing of non-ascii attribute values (@XMLTOOLKIT38)
- * 2007-09-05 wd  Python 2.5 updates: use Py_ssize_t
+ * 2007-09-12 wd  Python 2.5 updates: use Py_ssize_t
  *
- * Copyright (c) 1998-2003 by Secret Labs AB
- * Copyright (c) 1998-2003 by Fredrik Lundh
+ * Copyright (c) 1998-2007 by Secret Labs AB
+ * Copyright (c) 1998-2007 by Fredrik Lundh
  * 
  * fredrik@pythonware.com
  * http://www.pythonware.com
@@ -75,13 +75,70 @@
 /* FIXME: basic structural validation? */
 
 static char copyright[] =
-    " SGMLOP 1.1 Copyright (c) 1998-2003 by Secret Labs AB ";
+    " SGMLOP 1.1.2 Copyright (c) 1998-2003 by Secret Labs AB ";
 
 #define PY_SIZE_T_CLEAN
 
 #include "Python.h"
 
 #include <ctype.h>
+
+#ifdef SGMLOP_UNICODE_SUPPORT
+/* use wide character set (experimental) */
+/* FIXME: under Python 1.6, the current version converts Unicode
+   strings to UTF-8, and parses the result as if it was an ASCII
+   string. */
+
+#define CHAR_T            Py_UNICODE
+#define ISALNUM           Py_UNICODE_ISALNUM
+#define TOLOWER           Py_UNICODE_TOLOWER
+#define EMPTYSTRING()     PyUnicode_FromUnicode(NULL, 0)
+#define BUILDSTRING(s, l) PyUnicode_FromUnicode(s, l)
+#define PARSEFORMAT       "u#"
+#define BUILDFORMAT       "u#"
+
+#define ISSPACE(ch) Py_UNICODE_ISSPACE(ch)
+
+#define LETTER(ch) Py_UNICODE_ISALPHA(ch)
+
+#define NAMECHAR(ch)\
+    (Py_UNICODE_ISALNUM(ch) || (ch) == '.' || (ch) == '-' ||\
+     (ch) == '_' || (ch) == ':')
+
+#else
+
+/* 8-bit character set */
+#define CHAR_T            unsigned char
+#define ISALNUM           isalnum
+#define TOLOWER           tolower
+#define EMPTYSTRING()     PyString_FromString("")
+#define BUILDSTRING(s, l) PyString_FromStringAndSize(s, l)
+#define PARSEFORMAT       "t#"
+#define BUILDFORMAT       "s#"
+
+#define ISSPACE(ch)\
+    ((ch) == ' ' || (ch) == '\t' || (ch) == '\r' || (ch) == '\n')
+
+#define LETTER(ch)\
+    (((ch) >= 'a' && (ch) <= 'z') || ((ch) >= 'A' && (ch) <= 'Z') ||\
+     (ch) >= 0x80)
+
+#define DIGIT(ch)\
+    ((ch) >= '0' && (ch) <= '9')
+
+#define NAMECHAR(ch)\
+    (LETTER(ch) || DIGIT(ch) || (ch) == '.' || (ch) == '-' ||\
+     (ch) == '_' || (ch) == ':')
+
+#endif
+
+#if PY_VERSION_HEX >= 0x02050000
+/* use Py_ssize_t (requires Python 2.5 or later) */
+#define INTFORMAT "n"
+#else
+typedef int Py_ssize_t;
+#define INTFORMAT "i"
+#endif
 
 #if PY_VERSION_HEX >= 0x02000000
 /* use garbage collection (requires Python 2.0 or later) */
@@ -120,12 +177,12 @@ typedef int (*traverseproc)(PyObject *, visitproc, void *);
 
 typedef struct {
     /* well-formedness checker */
-    int (*starttag)(void* self, Py_UNICODE* b, Py_UNICODE* e);
-    int (*endtag)(void* self, Py_UNICODE* b, Py_UNICODE* e);
-    int (*attribute)(void* self, Py_UNICODE* b, Py_UNICODE* e);
-    int (*entityref)(void* self, Py_UNICODE* b, Py_UNICODE* e);
-    int (*charref)(void* self, Py_UNICODE* b, Py_UNICODE* e);
-    int (*comment)(void* self, Py_UNICODE* b, Py_UNICODE* e);
+    int (*starttag)(void* self, CHAR_T* b, CHAR_T* e);
+    int (*endtag)(void* self, CHAR_T* b, CHAR_T* e);
+    int (*attribute)(void* self, CHAR_T* b, CHAR_T* e);
+    int (*entityref)(void* self, CHAR_T* b, CHAR_T* e);
+    int (*charref)(void* self, CHAR_T* b, CHAR_T* e);
+    int (*comment)(void* self, CHAR_T* b, CHAR_T* e);
 } Checker;
 
 /* parser type definition */
@@ -147,7 +204,7 @@ typedef struct {
     Checker* check;
 
     /* buffer (holds incomplete tags) */
-    Py_UNICODE* buffer;
+    CHAR_T* buffer;
     Py_ssize_t bufferlen; /* current amount of data */
     Py_ssize_t buffertotal; /* actually allocated */
 
@@ -173,17 +230,17 @@ static int fastfeed(
     FastParserObject* self
     );
 static PyObject* attrparse(
-    FastParserObject* self, const Py_UNICODE *p, const Py_UNICODE *e
+    FastParserObject* self, const CHAR_T *p, const CHAR_T *e
     );
 static PyObject* attrexpand(
-    FastParserObject* self, const Py_UNICODE *p, const Py_UNICODE *e
+    FastParserObject* self, const CHAR_T *p, const CHAR_T *e
     );
 
-static int entity(const Py_UNICODE* b, const Py_UNICODE *e);
+static int entity(const CHAR_T* b, const CHAR_T *e);
 
-static int wf_starttag(Checker* self, Py_UNICODE* b, Py_UNICODE* e);
-static int wf_endtag(Checker* self, Py_UNICODE* b, Py_UNICODE* e);
-static int wf_ok(Checker* self, Py_UNICODE* b, Py_UNICODE* e);
+static int wf_starttag(Checker* self, CHAR_T* b, CHAR_T* e);
+static int wf_endtag(Checker* self, CHAR_T* b, CHAR_T* e);
+static int wf_ok(Checker* self, CHAR_T* b, CHAR_T* e);
 
 static Checker wf_checker = {
     (void*) wf_starttag,
@@ -212,7 +269,7 @@ join(PyObject* list)
     switch (PyList_GET_SIZE(list)) {
     case 0:
         Py_DECREF(list);
-        return PyUnicode_FromUnicode(NULL, 0);
+        return EMPTYSTRING();
     case 1:
         result = PyList_GET_ITEM(list, 0);
         Py_INCREF(result);
@@ -421,7 +478,7 @@ _sgmlop_register(FastParserObject* self, PyObject* args)
    possible, and keeps the rest in a local buffer. */
 
 static PyObject*
-feed(FastParserObject* self, Py_UNICODE* string, Py_ssize_t stringlen, int last)
+feed(FastParserObject* self, CHAR_T* string, Py_ssize_t stringlen, int last)
 {
     /* common subroutine for SGMLParser.feed and SGMLParser.close */
 
@@ -437,13 +494,13 @@ feed(FastParserObject* self, Py_UNICODE* string, Py_ssize_t stringlen, int last)
     /* append new text block to local buffer */
     if (!self->buffer) {
         length = stringlen;
-        self->buffer = malloc((length + 1)*sizeof(Py_UNICODE));
+        self->buffer = malloc((length + 1)*sizeof(CHAR_T));
         self->bufferlen = self->shorttag = self->doctype = 0;
         self->buffertotal = stringlen;
     } else {
         length = self->bufferlen + stringlen;
         if (length > self->buffertotal) {
-            self->buffer = realloc(self->buffer, (length + 1)*sizeof(Py_UNICODE));
+            self->buffer = realloc(self->buffer, (length + 1)*sizeof(CHAR_T));
             self->buffertotal = length;
         }
     }
@@ -451,7 +508,7 @@ feed(FastParserObject* self, Py_UNICODE* string, Py_ssize_t stringlen, int last)
         PyErr_NoMemory();
         return NULL;
     }
-    memcpy(self->buffer + self->bufferlen, string, stringlen*sizeof(Py_UNICODE));
+    memcpy(self->buffer + self->bufferlen, string, stringlen*sizeof(CHAR_T));
     self->bufferlen = length;
 
     self->feed = 1;
@@ -473,7 +530,7 @@ feed(FastParserObject* self, Py_UNICODE* string, Py_ssize_t stringlen, int last)
     if (length > 0 && length < self->bufferlen)
         /* adjust buffer */
         memmove(self->buffer, self->buffer + length,
-                (self->bufferlen - length)*sizeof(Py_UNICODE));
+                (self->bufferlen - length)*sizeof(CHAR_T));
 
     self->bufferlen -= length;
 
@@ -485,7 +542,7 @@ feed(FastParserObject* self, Py_UNICODE* string, Py_ssize_t stringlen, int last)
         self->buffer = NULL;
     }
 
-    return Py_BuildValue("n", self->bufferlen);
+    return Py_BuildValue(INTFORMAT, self->bufferlen);
 }
 
 static PyObject*
@@ -493,9 +550,9 @@ _sgmlop_feed(FastParserObject* self, PyObject* args)
 {
     /* feed a chunk of data to the parser */
 
-    Py_UNICODE* string;
+    CHAR_T* string;
     Py_ssize_t stringlen;
-    if (!PyArg_ParseTuple(args, "u#", &string, &stringlen))
+    if (!PyArg_ParseTuple(args, PARSEFORMAT ":feed", &string, &stringlen))
         return NULL;
 
     return feed(self, string, stringlen, 0);
@@ -505,7 +562,7 @@ static PyObject*
 _sgmlop_close(FastParserObject* self, PyObject* args)
 {
     /* flush parser buffers */
-    Py_UNICODE ch = 0;
+    CHAR_T ch = 0;
 
     if (!PyArg_ParseTuple(args, ":close"))
         return NULL;
@@ -518,9 +575,9 @@ _sgmlop_parse(FastParserObject* self, PyObject* args)
 {
     /* feed a single chunk of data to the parser */
 
-    Py_UNICODE* string;
+    CHAR_T* string;
     Py_ssize_t stringlen;
-    if (!PyArg_ParseTuple(args, "u#", &string, &stringlen))
+    if (!PyArg_ParseTuple(args, PARSEFORMAT ":parse", &string, &stringlen))
         return NULL;
 
     return feed(self, string, stringlen, 1);
@@ -592,17 +649,13 @@ initsgmlop(void)
 /* -------------------------------------------------------------------- */
 /* well-formedness checker */
 
-#define DIGIT(ch) ((ch) >= '0' && (ch) <= '9')
-
-#define NAMECHAR(ch) (Py_UNICODE_ISALNUM(ch) || (ch) == '.' || (ch) == '-' || (ch) == '_' || (ch) == ':')
-
 static int
-wf_tag(Checker* self, Py_UNICODE* b, Py_UNICODE* e)
+wf_tag(Checker* self, CHAR_T* b, CHAR_T* e)
 {
     /* check that the start tag contains a valid name */
     if (b >= e)
         goto err;
-    if (!Py_UNICODE_ISALPHA(*b) && *b != '_' && *b != ':')
+    if (!LETTER(*b) && *b != '_' && *b != ':')
         goto err;
     b++;
     while (b < e) {
@@ -617,7 +670,7 @@ wf_tag(Checker* self, Py_UNICODE* b, Py_UNICODE* e)
 }
 
 static int
-wf_starttag(Checker* self, Py_UNICODE* b, Py_UNICODE* e)
+wf_starttag(Checker* self, CHAR_T* b, CHAR_T* e)
 {
     if (!wf_tag(self, b, e))
         return 0;
@@ -625,7 +678,7 @@ wf_starttag(Checker* self, Py_UNICODE* b, Py_UNICODE* e)
 }
 
 static int
-wf_endtag(Checker* self, Py_UNICODE* b, Py_UNICODE* e)
+wf_endtag(Checker* self, CHAR_T* b, CHAR_T* e)
 {
     if (!wf_tag(self, b, e))
         return 0;
@@ -633,7 +686,7 @@ wf_endtag(Checker* self, Py_UNICODE* b, Py_UNICODE* e)
 }
 
 static int
-wf_ok(Checker* self, Py_UNICODE* b, Py_UNICODE* e)
+wf_ok(Checker* self, CHAR_T* b, CHAR_T* e)
 {
     return 1;
 }
@@ -659,7 +712,7 @@ wf_ok(Checker* self, Py_UNICODE* b, Py_UNICODE* e)
 #define COMMENT 0x800
 
 static int
-entity(const Py_UNICODE* b, const Py_UNICODE* e)
+entity(const CHAR_T* b, const CHAR_T* e)
 {
     /* resolve standard entity (return <0 if non-standard/malformed) */
     if (b < e) {
@@ -677,7 +730,7 @@ entity(const Py_UNICODE* b, const Py_UNICODE* e)
             return '"'; /* &quot; */
         else if (b[0] == '#') {
             /* character entity */
-            const Py_UNICODE *p;
+            const CHAR_T *p;
             int ch = 0;
             b++;
             if (b >= e || *b != 'x')
@@ -711,9 +764,9 @@ entity(const Py_UNICODE* b, const Py_UNICODE* e)
 static Py_ssize_t
 fastfeed(FastParserObject* self)
 {
-    Py_UNICODE *end; /* tail */
-    Py_UNICODE *p, *q, *s; /* scanning pointers */
-    Py_UNICODE *b, *t, *e; /* token start/end */
+    CHAR_T *end; /* tail */
+    CHAR_T *p, *q, *s; /* scanning pointers */
+    CHAR_T *b, *t, *e; /* token start/end */
 
     int token;
 
@@ -796,20 +849,20 @@ fastfeed(FastParserObject* self)
                 token = TAG_END;
                 if (++p >= end)
                     goto eol;
-            } else if (Py_UNICODE_ISSPACE(*p))
+            } else if (ISSPACE(*p))
                 continue;
 
             /* process tag name */
             b = p;
             if (!self->xml)
-                while (Py_UNICODE_ISALNUM(*p) || *p == '-' || *p == '.' ||
+                while (ISALNUM(*p) || *p == '-' || *p == '.' ||
                        *p == ':' || *p == '?') {
-                    *p = Py_UNICODE_TOLOWER(*p);
+                    *p = TOLOWER(*p);
                     if (++p >= end)
                         goto eol;
                 }
             else
-                while (*p != '>' && !Py_UNICODE_ISSPACE(*p) && *p != '/' && *p != '?') {
+                while (*p != '>' && !ISSPACE(*p) && *p != '/' && *p != '?') {
                     if (++p >= end)
                         goto eol;
                 }
@@ -841,7 +894,7 @@ fastfeed(FastParserObject* self)
                 int quote = 0;
                 int last = 0;
                 while ((*p != '>' && *p != '<') || quote) {
-                    if (!Py_UNICODE_ISSPACE(*p)) {
+                    if (!ISSPACE(*p)) {
                         has_attr = 1;
                         /* FIXME: note: end tags cannot have attributes! */
                     }
@@ -909,7 +962,7 @@ fastfeed(FastParserObject* self)
             if (++p >= end)
                 goto eol;
             b = t = p;
-            while (*p != ';' && !Py_UNICODE_ISSPACE(*p))
+            while (*p != ';' && !ISSPACE(*p))
                 if (++p >= end)
                     goto eol;
             e = p;
@@ -926,10 +979,10 @@ fastfeed(FastParserObject* self)
                 token = CHARREF;
                 if (++p >= end)
                     goto eol;
-            } else if (Py_UNICODE_ISSPACE(*p))
+            } else if (ISSPACE(*p))
                 continue;
             b = t = p;
-            while (*p != ';' && *p != '<' && *p != '>' && !Py_UNICODE_ISSPACE(*p))
+            while (*p != ';' && *p != '<' && *p != '>' && !ISSPACE(*p))
                 if (++p >= end)
                     goto eol;
             e = p;
@@ -952,7 +1005,7 @@ fastfeed(FastParserObject* self)
         if (q != s && self->handle_data) {
             /* flush any raw data before this tag */
             PyObject* res;
-            res = PyObject_CallFunction(self->handle_data, "u#", s, q-s);
+            res = PyObject_CallFunction(self->handle_data, BUILDFORMAT, s, q-s);
             if (!res)
                 return -1;
             Py_DECREF(res);
@@ -964,7 +1017,7 @@ fastfeed(FastParserObject* self)
                 if (self->finish_endtag) {
                     PyObject* res;
                     res = PyObject_CallFunction(
-                        self->finish_endtag, "u#", b, t-b
+                        self->finish_endtag, BUILDFORMAT, b, t-b
                         );
                     if (!res)
                         return -1;
@@ -975,7 +1028,9 @@ fastfeed(FastParserObject* self)
                        token == DTD_END) {
                 if (self->handle_special) {
                     PyObject* res;
-                    res = PyObject_CallFunction(self->handle_special, "u#", b, e-b);
+                    res = PyObject_CallFunction(
+                        self->handle_special, BUILDFORMAT, b, e-b
+                        );
                     if (!res)
                         return -1;
                     Py_DECREF(res);
@@ -984,9 +1039,11 @@ fastfeed(FastParserObject* self)
                 if (self->handle_proc) {
                     PyObject* res;
                     Py_ssize_t len = t-b;
-                    while (Py_UNICODE_ISSPACE(*t))
+                    while (ISSPACE(*t))
                         t++;
-                    res = PyObject_CallFunction(self->handle_proc, "u#u#", b, len, t, e-t);
+                    res = PyObject_CallFunction(
+                        self->handle_proc, BUILDFORMAT BUILDFORMAT, b, len, t, e-t
+                        );
                     if (!res)
                         return -1;
                     Py_DECREF(res);
@@ -996,22 +1053,30 @@ fastfeed(FastParserObject* self)
                     PyObject* res;
                     PyObject* attr;
                     Py_ssize_t len = t-b;
-                    if (self->check && !self->check->starttag(self->check, b, t))
-                        return -1;
-                    while (Py_UNICODE_ISSPACE(*t))
+                    if (self->check && !self->check->starttag(
+                        self->check, b, t
+                        ))
+                    return -1;
+                    while (ISSPACE(*t))
                         t++;
                     attr = attrparse(self, t, e);
                     if (!attr)
                         return -1;
-                    res = PyObject_CallFunction(self->finish_starttag, "u#O", b, len, attr);
+                    res = PyObject_CallFunction(
+                        self->finish_starttag, BUILDFORMAT "O", b, len, attr
+                        );
                     Py_DECREF(attr);
                     if (!res)
                         return -1;
                     Py_DECREF(res);
                     if (token == TAG_EMPTY && self->finish_endtag) {
-                        if (self->check && !self->check->endtag(self->check, b, b+len))
+                        if (self->check && !self->check->endtag(
+                            self->check, b, b+len
+                            ))
                             return -1;
-                        res = PyObject_CallFunction(self->finish_endtag, "u#", b, len);
+                        res = PyObject_CallFunction(
+                            self->finish_endtag, BUILDFORMAT, b, len
+                            );
                         if (!res)
                             return -1;
                         Py_DECREF(res);
@@ -1019,18 +1084,22 @@ fastfeed(FastParserObject* self)
                 }
             } else {
                 /* can this really happen? */
-                PyErr_Format(PyExc_RuntimeError, "unknown token: 0x%x", token);
+                PyErr_Format(
+                    PyExc_RuntimeError, "unknown token: 0x%x", token
+                    );
                 return -1;
             }
         } else if (token == ENTITYREF) {
-            Py_UNICODE ch;
+            CHAR_T ch;
             int charref;
   entity:
             if (self->handle_entityref) {
                 PyObject* res;
                 if (self->check && !self->check->entityref(self->check, b, e))
                     return -1;
-                res = PyObject_CallFunction(self->handle_entityref, "u#", b, e-b);
+                res = PyObject_CallFunction(
+                    self->handle_entityref, BUILDFORMAT, b, e-b
+                    );
                 if (!res)
                     return -1;
                 Py_DECREF(res);
@@ -1041,8 +1110,11 @@ fastfeed(FastParserObject* self)
             if (charref > 0) {
                 if (self->handle_data) {
                     PyObject* res;
-                    ch = (Py_UNICODE) charref;
-                    res = PyObject_CallFunction(self->handle_data, "u#", &charref, 1);
+                    /* all builtin entities fit in a CHAR_T */
+                    ch = (CHAR_T) charref;
+                    res = PyObject_CallFunction(
+                        self->handle_data, BUILDFORMAT, &ch, 1
+                        );
                     if (!res)
                         return -1;
                     Py_DECREF(res);
@@ -1056,12 +1128,16 @@ fastfeed(FastParserObject* self)
                 PyObject* ent;
                 if (self->check && !self->check->entityref(self->check, b, e))
                     return -1;
-                ent = PyObject_CallFunction(self->resolve_entityref, "u#", b, e-b);
+                ent = PyObject_CallFunction(
+                    self->resolve_entityref, BUILDFORMAT, b, e-b
+                    );
                 if (!ent)
                     return -1;
                 if (ent != Py_None) {
                     PyObject* res;
-                    res = PyObject_CallFunction(self->handle_data, "O", ent);
+                    res = PyObject_CallFunction(
+                        self->handle_data, "O", ent
+                        );
                     Py_DECREF(ent);
                     if (!res)
                         return -1;
@@ -1072,40 +1148,62 @@ fastfeed(FastParserObject* self)
             if (self->handle_data && self->strict) {
                 /* if the user wants data, but we cannot resolve this
                    entity, flag it as configuration error */
-                PyErr_SetString(PyExc_SyntaxError, "unresolvable entity");
+                PyErr_SetString(
+                    PyExc_SyntaxError, "unresolvable entity"
+                    );
                 return -1;
             }
-        } else if (token == CHARREF && (self->handle_charref || self->handle_data)) {
+        } else if (token == CHARREF && (self->handle_charref ||
+                                        self->handle_data)) {
             if (self->check && !self->check->charref(self->check, b, e))
                 return -1;
             if (self->handle_charref) {
                 PyObject* res;
-                res = PyObject_CallFunction(self->handle_charref, "u#", b, e-b);
+                res = PyObject_CallFunction(
+                    self->handle_charref, BUILDFORMAT, b, e-b
+                    );
                 if (!res)
                     return -1;
                 Py_DECREF(res);
             } else {
                 /* fallback: handle charref's as data */
-                Py_UNICODE ch;
+                CHAR_T ch;
                 int charref = entity(b-1, e);
                 if (charref < 0) {
                     b--;
                     goto entity;
                 }
-                PyObject* res;
-                ch = charref;
-                res = PyObject_CallFunction(self->handle_data, "u#", &ch, 1);
-                if (!res)
-                    return -1;
-                Py_DECREF(res);
+                if (charref > 255) {
+                    /* FIXME: return as unicode */
+                    if (self->handle_data && self->strict) {
+                        /* if the user wants data, but we cannot resolve this
+                           entity, flag it as configuration error */
+                        PyErr_SetString(
+                            PyExc_SyntaxError, "character entity too large"
+                            );
+                        return -1;
+                    }
+                } else {
+                    PyObject* res;
+                    ch = charref;
+                    res = PyObject_CallFunction(
+                        self->handle_data, BUILDFORMAT, &ch, 1
+                        );
+                    if (!res)
+                        return -1;
+                    Py_DECREF(res);
+                }
             }
-        } else if (token == CDATA && (self->handle_cdata || self->handle_data)) {
+        } else if (token == CDATA && (self->handle_cdata ||
+                                      self->handle_data)) {
             PyObject* res;
             if (self->handle_cdata) {
-                res = PyObject_CallFunction(self->handle_cdata, "u#", b, e-b);
+                res = PyObject_CallFunction(
+                    self->handle_cdata, BUILDFORMAT, b, e-b
+                    );
             } else {
                 /* fallback: handle cdata as plain data */
-                res = PyObject_CallFunction(self->handle_data, "u#", b, e-b);
+                res = PyObject_CallFunction(self->handle_data, BUILDFORMAT, b, e-b);
             }
             if (!res)
                 return -1;
@@ -1114,7 +1212,7 @@ fastfeed(FastParserObject* self)
             PyObject* res;
             if (self->check && !self->check->comment(self->check, b, e))
                 return -1;
-            res = PyObject_CallFunction(self->handle_comment, "u#", b, e-b);
+            res = PyObject_CallFunction(self->handle_comment, BUILDFORMAT, b, e-b);
             if (!res)
                 return -1;
             Py_DECREF(res);
@@ -1127,24 +1225,24 @@ fastfeed(FastParserObject* self)
   eol: /* end of line */
     if (q != s && self->handle_data) {
         PyObject* res;
-        res = PyObject_CallFunction(self->handle_data, "u#", s, q-s);
+        res = PyObject_CallFunction(self->handle_data, BUILDFORMAT, s, q-s);
         if (!res)
             return -1;
         Py_DECREF(res);
     }
 
-    /* returns the number of chars consumed in this pass */
+    /* returns the number of characters consumed in this pass */
     return q - self->buffer;
 }
 
 static PyObject*
-attrparse(FastParserObject* self, const Py_UNICODE* p, const Py_UNICODE* end)
+attrparse(FastParserObject* self, const CHAR_T* p, const CHAR_T* end)
 {
     PyObject* attrs;
     PyObject* key = NULL;
     PyObject* value = NULL;
-    const Py_UNICODE* q;
-    const Py_UNICODE* value_start;
+    const CHAR_T* q;
+    const CHAR_T* value_start;
     Py_ssize_t value_length;
     int has_entity;
 
@@ -1156,17 +1254,17 @@ attrparse(FastParserObject* self, const Py_UNICODE* p, const Py_UNICODE* end)
     while (p < end) {
 
         /* skip leading space */
-        while (p < end && Py_UNICODE_ISSPACE(*p))
+        while (p < end && ISSPACE(*p))
             p++;
         if (p >= end)
             break;
 
         /* get attribute name (key) */
         q = p;
-        while (p < end && *p != '=' && !Py_UNICODE_ISSPACE(*p))
+        while (p < end && *p != '=' && !ISSPACE(*p))
             p++;
 
-        key = PyUnicode_FromUnicode(q, p-q);
+        key = BUILDSTRING(q, p-q);
         if (key == NULL)
             goto err;
 
@@ -1177,7 +1275,7 @@ attrparse(FastParserObject* self, const Py_UNICODE* p, const Py_UNICODE* end)
 
         Py_INCREF(value);
 
-        while (p < end && Py_UNICODE_ISSPACE(*p))
+        while (p < end && ISSPACE(*p))
             p++;
 
         if (p < end && *p == '=') {
@@ -1190,7 +1288,7 @@ attrparse(FastParserObject* self, const Py_UNICODE* p, const Py_UNICODE* end)
 
             if (p < end)
                 p++;
-            while (p < end && Py_UNICODE_ISSPACE(*p))
+            while (p < end && ISSPACE(*p))
                 p++;
 
             q = p;
@@ -1206,7 +1304,7 @@ attrparse(FastParserObject* self, const Py_UNICODE* p, const Py_UNICODE* end)
                 if (p < end && *p == *q)
                     p++;
             } else {
-                while (p < end && !Py_UNICODE_ISSPACE(*p) && *p != '>')
+                while (p < end && !ISSPACE(*p) && *p != '>')
                     p++;
                 value_start = q;
                 value_length = p-q;
@@ -1217,7 +1315,7 @@ attrparse(FastParserObject* self, const Py_UNICODE* p, const Py_UNICODE* end)
                     self, value_start, value_start + value_length
                     );
             } else
-                value = PyUnicode_FromUnicode(value_start, value_length);
+                value = BUILDSTRING(value_start, value_length);
 
             if (!value)
                 goto err;
@@ -1266,12 +1364,12 @@ attrparse(FastParserObject* self, const Py_UNICODE* p, const Py_UNICODE* end)
 }
 
 static PyObject*
-attrexpand(FastParserObject* self, const Py_UNICODE* p, const Py_UNICODE* e)
+attrexpand(FastParserObject* self, const CHAR_T* p, const CHAR_T* e)
 {
     /* expand entities in attribute string */
     PyObject* list;
     PyObject* item;
-    const Py_UNICODE* q;
+    const CHAR_T* q;
     int charref;
     int status;
 
@@ -1282,12 +1380,13 @@ attrexpand(FastParserObject* self, const Py_UNICODE* p, const Py_UNICODE* e)
     }
 
     while (p < e) {
+
         /* find character run (q:p) */
         q = p;
         while (p < e && *p != '&')
             p++;
 
-        item = PyUnicode_FromUnicode(q, p-q);
+        item = BUILDSTRING(q, p-q);
         if (!item)
             goto err;
             
@@ -1307,11 +1406,35 @@ attrexpand(FastParserObject* self, const Py_UNICODE* p, const Py_UNICODE* e)
         charref = entity(q, p);
         if (charref >= 0) {
             /* builtin entity or charref */
-            Py_UNICODE ch = (Py_UNICODE) charref;
-            item = PyUnicode_FromUnicode(&ch, 1);
+            if (charref > 255) {
+                /* FIXME: return as unicode */
+                if (self->handle_data && self->strict) {
+                    /* if the user wants data, but we cannot resolve this
+                       entity, flag it as configuration error */
+                    PyErr_SetString(
+                        PyExc_SyntaxError, "character entity too large"
+                        );
+                    goto err;
+                }
+                if (self->resolve_entityref)
+                    /* non-standard; use resolver */
+                    item = PyObject_CallFunction(
+                        self->resolve_entityref, BUILDFORMAT, q, p-q
+                        );
+                else {
+                    /* ignore, for now */
+                    item = Py_None;
+                    Py_INCREF(Py_None);
+                }
+            } else {
+                CHAR_T ch = (CHAR_T) charref;
+                item = BUILDSTRING(&ch, 1);
+            }
         } else if (self->resolve_entityref) {
             /* non-standard; use resolver */
-            item = PyObject_CallFunction(self->resolve_entityref, "u#", q, p-q);
+            item = PyObject_CallFunction(
+                self->resolve_entityref, BUILDFORMAT, q, p-q
+                );
         } else {
             /* ignore */
             item = Py_None;
