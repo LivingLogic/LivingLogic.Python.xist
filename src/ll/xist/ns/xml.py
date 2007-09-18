@@ -59,5 +59,5 @@ class declaration(xsc.Element):
 	model = sims.Empty()
 
 	def convert(self, converter):
-		node = XML10()
+		node = XML()
 		return node.convert(converter)

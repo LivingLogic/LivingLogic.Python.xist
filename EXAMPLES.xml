@@ -9,7 +9,7 @@ from ll.xist import xsc
 from ll.xist.ns import html, xml, meta
 
 node = xsc.Frag(
-	xml.XML10(),
+	xml.XML(),
 	html.DocTypeXHTML10transitional(),
 	html.html(
 		html.head(
@@ -40,7 +40,7 @@ from ll.xist import xsc
 from ll.xist.ns import html, xml, meta
 
 with xsc.Frag() as node:
-	+xml.XML10()
+	+xml.XML()
 	+html.DocTypeXHTML10transitional()
 	with html.html():
 		with html.head():
@@ -82,7 +82,7 @@ class cheeseshoplink(xsc.Element):
 names = ["ll-xist", "cx_Oracle", "PIL"]
 
 node = xsc.Frag(
-	xml.XML10(),
+	xml.XML(),
 	html.DocTypeXHTML10transitional(),
 	html.html(
 		html.head(

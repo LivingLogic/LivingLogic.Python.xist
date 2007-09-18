@@ -20,7 +20,7 @@ def createattr():
 		False,
 		url.URL("http://www.python.org/"),
 		html.abbr(
-			xml.XML10(),
+			xml.XML(),
 			"hurz",
 			specials.tab(),
 			abbr.xist(),
@@ -44,7 +44,7 @@ def createattrs():
 			False,
 			url.URL("http://www.python.org/"),
 			html.abbr(
-				xml.XML10(),
+				xml.XML(),
 				"hurz",
 				specials.tab(),
 				abbr.xist(),
@@ -73,7 +73,7 @@ def createelement():
 			False,
 			url.URL("http://www.python.org/"),
 			html.abbr(
-				xml.XML10(),
+				xml.XML(),
 				"hurz",
 				specials.tab(),
 				abbr.xist(),
@@ -93,7 +93,7 @@ def createelement():
 
 def createfrag():
 	return xsc.Frag(
-		xml.XML10(),
+		xml.XML(),
 		html.DocTypeHTML401transitional(),
 		xsc.Comment("gurk"),
 		"hurz",
@@ -122,7 +122,7 @@ def createfrag():
 				False,
 				url.URL("http://www.python.org/"),
 				html.abbr(
-					xml.XML10(),
+					xml.XML(),
 					"hurz",
 					specials.tab(),
 					abbr.xist(),

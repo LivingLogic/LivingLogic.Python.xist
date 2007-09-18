@@ -17,13 +17,11 @@ is from <app moreinfo="http://pyxml.sf.net/">PyXML</app>). It includes a
 to parse &html; and emit &sax;2 events.</par>
 """
 
-import sys, os, os.path, warnings, cStringIO
+import sys, os, os.path, warnings, cStringIO, codecs, pyexpat
 
-from xml import sax
-from xml.sax import expatreader
-from xml.sax import handler
+from xml.parsers import expat
 
-from ll import url
+from ll import url, xml_codec
 from ll.xist import xsc, utils, sgmlop
 from ll.xist.ns import html
 
@@ -127,223 +125,97 @@ HTML_DTD = {
 }
 
 
-class SGMLOPParser(sax.xmlreader.XMLReader, sax.xmlreader.Locator):
-	"""
-	This is a rudimentary, buggy, halfworking, untested SAX2 drivers for sgmlop that
-	only works in the context of &xist;. And I didn't even know, what I was doing.
-	"""
-	_whichparser = sgmlop.XMLParser
+class Parser(object):
+	def __init__(self):
+		self.application = None
 
-	def __init__(self, bufsize=8000):
-		sax.xmlreader.XMLReader.__init__(self)
-		self.encoding = None
+	def register(self, application):
+		self.application = application
+
+	def begin(self):
+		pass
+
+	def feed(self, data, final)
+		pass
+
+
+class SGMLOPParser(Parser):
+	def __init__(self, encoding=None):
+		Parser.__init__(self)
+		self.encoding = encoding
+		self._decoder = None
 		self._parser = None
-		self._bufsize = bufsize
-
-	def _makestring(self, data):
-		return unicode(data, self.encoding).replace(u"\r\n", u"\n").replace(u"\r", u"\n")
 
 	def reset(self):
 		self.close()
 		self.source = None
 		self.lineNumber = -1
 
-	def feed(self, data):
+	def begin(self):
+		if self._decoder is None:
+			self._decoder = codecs.getincrementaldecoder("xml")(self.encoding)
 		if self._parser is None:
-			self._parser = self._whichparser()
+			self._parser = sgmlop.XMLParser()
 			self._parser.register(self)
-			self._cont_handler.startDocument()
-		self._parser.feed(data)
+
+	def parse(self, data):
+		self.begin()
+		self._parser.feed(self._decoder.decode(data))
+
+	def parsestring(self, data):
+		self.begin()
+		self._parser.parse(self._decoder.decode(data, True))
+		self.close()
+
+	def parseiter(self, data):
+		self.begin()
+		for d in data:
+			self._parser.feed(self._decoder.decode(data))
+		self._parser.feed(self._decoder.decode(""), True)
+		self.close()
+
+	def parsestream(self, stream, size=8192):
+		self.begin()
+		while True:
+			data = stream.read(size)
+			final = not data
+			self._parser.feed(self._decoder.decode(data, final))
+			if final:
+				self.close()
+				break
 
 	def close(self):
 		if self._parser is not None:
-			self._cont_handler.endDocument()
-			self._parser.close()
 			self._parser.register(None)
 			self._parser = None
-
-	def parse(self, source):
-		self.source = source
-		stream = source.getByteStream()
-		encoding = source.getEncoding()
-		if encoding is None:
-			encoding = "utf-8"
-		self.encoding = encoding
-		self.lineNumber = 1
-		self._cont_handler.setDocumentLocator(self)
-		self._cont_handler.startDocument()
-		# we don't keep a column number, because otherwise parsing would be much to slow
-		self.headerJustRead = False # will be used for skipping whitespace after the XML header
-
-		parsed = False
-		try:
-			try:
-				while True:
-					data = stream.read(self._bufsize)
-					if not data:
-						if not parsed:
-							self.feed("")
-						break
-					while True:
-						pos = data.find("\n")
-						if pos==-1:
-							break
-						self.feed(data[:pos+1])
-						self.parsed = True
-						data = data[pos+1:]
-						self.lineNumber += 1
-					self.feed(data)
-					self.parsed = True
-				self._cont_handler.endDocument()
-				self._cont_handler.setDocumentLocator(None)
-			except (SystemExit, KeyboardInterrupt):
-				raise
-			except Exception, exc:
-				errhandler = self.getErrorHandler()
-				if errhandler is not None:
-					errhandler.fatalError(exc)
-				else:
-					raise
-		finally:
-			self.close()
-			self.source = None
-			self.encoding = None
-
-	# Locator methods will be called by the application
-	def getColumnNumber(self):
-		return -1
-
-	def getLineNumber(self):
-		if self._parser is None:
-			return -1
-		return self.lineNumber
-
-	def getPublicId(self):
-		if self.source is None:
-			return None
-		return self.source.getPublicId()
-
-	def getSystemId(self):
-		if self.source is None:
-			return None
-		return self.source.getSystemId()
-
-	def setFeature(self, name, state):
-		if name == handler.feature_namespaces:
-			if state:
-				raise sax.SAXNotSupportedException("no namespace processing available")
-		elif name == handler.feature_external_ges:
-			if state:
-				raise sax.SAXNotSupportedException("processing of external general entities not available")
-		else:
-			sax.xmlreader.IncrementalParser.setFeature(self, name, state)
-
-	def getFeature(self, name):
-		if name == handler.feature_namespaces:
-			return 0
-		else:
-			return sax.xmlreader.IncrementalParser.setFeature(self, name)
+		self._decoder = None
+		self._application = None
 
 	def handle_comment(self, data):
-		self.getContentHandler().comment(self._makestring(data))
-		self.headerJustRead = False
-
-	# don't define handle_charref or handle_cdata, so we will get those through handle_data
-	# but unfortunately we have to define handle_charref here, because of a bug in
-	# sgmlop: unicode characters i.e. "&#8364;" don't work.
-
-	def handle_charref(self, data):
-		data = self._makestring(data)
-		if data.startswith(u"x"):
-			data = unichr(int(data[1:], 16))
-		else:
-			data = unichr(int(data))
-		if not self.headerJustRead or not data.isspace():
-			self.getContentHandler().characters(data)
-			self.headerJustRead = False
+		self._application.handle_comment(data)
 
 	def handle_data(self, data):
-		data = self._makestring(data)
-		if not self.headerJustRead or not data.isspace():
-			self.getContentHandler().characters(data)
-			self.headerJustRead = False
+		self._application.handle_data(data)
+
+	def handle_cdata(self, data):
+		self._application.handle_cdata(data)
 
 	def handle_proc(self, target, data):
-		target = self._makestring(target)
-		data = self._makestring(data)
-		if target != u'xml': # Don't report <?xml?> as a processing instruction
-			self.getContentHandler().processingInstruction(target, data)
-			self.headerJustRead = False
-		else: # extract the encoding
-			encoding = utils.findattr(data, u"encoding")
-			if encoding is not None:
-				self.encoding = encoding
-			self.headerJustRead = True
+		self._application.handle_proc(target, data)
 
 	def handle_entityref(self, name):
-		try:
-			c = {"lt": u"<", "gt": u">", "amp": u"&", "quot": u'"', "apos": u"'"}[name]
-		except KeyError:
-			self.getContentHandler().skippedEntity(self._makestring(name))
-		else:
-			self.getContentHandler().characters(c)
-		self.headerJustRead = False
+		self._application.handle_entityref(name)
 
 	def finish_starttag(self, name, attrs):
-		newattrs = sax.xmlreader.AttributesImpl({})
-		for (attrname, attrvalue) in attrs.items():
-			if attrvalue is None:
-				attrvalue = attrname
-			else:
-				attrvalue = self._string2fragment(self._makestring(attrvalue))
-			newattrs._attrs[self._makestring(attrname)] = attrvalue
-		self.getContentHandler().startElement(self._makestring(name), newattrs)
-		self.headerJustRead = False
+		self._application.handle_enterstarttag(name)
+		for (key, value) in attrs.iteritems():
+			self._application.handle_enterattr(key)
+			self._application.handle_data(value)
+			self._application.handle_leaveattr(key)
+		self._application.handle_leavestarttag(name)
 
 	def finish_endtag(self, name):
-		self.getContentHandler().endElement(self._makestring(name))
-		self.headerJustRead = False
-
-	def _string2fragment(self, text):
-		"""
-		parses a string that might contain entities into a fragment
-		with text nodes, entities and character references.
-		"""
-		if text is None:
-			return xsc.Null
-		pool = getattr(self.getContentHandler(), "pool", None)
-		ct = (pool.text if pool is not None else xsc.Text)
-		node = xsc.Frag()
-		while True:
-			texts = text.split(u"&", 1)
-			text = texts[0]
-			if text:
-				node.append(ct(text))
-			if len(texts)==1:
-				break
-			texts = texts[1].split(u";", 1)
-			name = texts[0]
-			if len(texts)==1:
-				raise xsc.MalformedCharRefWarning(name)
-			if name.startswith(u"#"):
-				try:
-					if name.startswith(u"#x"):
-						node.append(ct(unichr(int(name[2:], 16))))
-					else:
-						node.append(ct(unichr(int(name[1:]))))
-				except ValueError:
-					raise xsc.MalformedCharRefWarning(name)
-			else:
-				try:
-					c = {"lt": u"<", "gt": u">", "amp": u"&", "quot": u'"', "apos": u"'"}[name]
-				except KeyError:
-					node.append(self.getContentHandler().createEntity(name))
-				else:
-					node.append(ct(c))
-			text = texts[1]
-		if not node:
-			node.append(ct(u""))
-		return node
+		self._application.handle_endtag(name)
 
 
 class BadEntityParser(SGMLOPParser):
@@ -497,13 +369,78 @@ class HTMLParser(BadEntityParser):
 			warnings.warn(xsc.IllegalCloseTagWarning(name))
 
 
-class ExpatParser(expatreader.ExpatParser):
-	def external_entity_ref(self, context, base, sysid, pubid):
-		return expatreader.ExpatParser.external_entity_ref(self, context, base, sysid, pubid)
+class ExpatParser(object):
+	def __init__(self, encoding=None):
+		self.encoding = encoding
+		self._parser = None
+		self._application = None
 
-	def reset(self):
-		expatreader.ExpatParser.reset(self)
+	def register(self, application):
+		self._application = application
+
+	def _init(self):
+		self._parser = expat.ParserCreate(self.encoding)
+		self._parser.buffer_text = True
+		self._parser.ordered_attributes = True
 		self._parser.UseForeignDTD(True)
+		self._parser.CharacterDataHandler = self.handle_data
+		self._parser.StartElementHandler = self.handle_startelement
+		self._parser.EndElementHandler = self.handle_endelement
+		self._parser.ProcessingInstructionHandler = self.handle_proc
+		self._parser.CommentHandler = self.handle_comment
+		self._parser.DefaultHandler = self.handle_default
+
+	def handle_default(self, data):
+		if data.startswith("&") and data.endswith(";"):
+			self._application.handle_entityref(data[1:-1])
+
+	def handle_comment(self, data):
+		self._application.handle_comment(data)
+
+	def handle_data(self, data):
+		self._application.handle_data(data)
+
+	def handle_startelement(self, name, attrs):
+		self._application.handle_enterstarttag(name)
+		for i in xrange(0, len(attrs), 2):
+			key = attrs[i]
+			self._application.handle_enterattr(key)
+			self._application.handle_data(attrs[i+1])
+			self._application.handle_leaveattr(key)
+		self._application.handle_leavestarttag(name)
+
+	def handle_endelement(self, name):
+		self._application.handle_endtag(name)
+
+	def handle_proc(self, target, data):
+		self._application.handle_proc(target, data)
+
+	def close(self):
+		if self._parser is not None:
+			self._parser = None
+		self._application = None
+
+	def parsestring(self, data):
+		self._init()
+		self._parser.Parse(data, True)
+		self.close()
+
+	def parseiter(self, data):
+		self._init()
+		for d in data:
+			self._parser.Parse(d)
+		self._parser.Parse(d, True)
+		self.close()
+
+	def parsestream(self, stream, size=8192):
+		self._init()
+		while True:
+			data = stream.read(size)
+			final = not data
+			self._parser.Parse(data, final)
+			if final:
+				self.close()
+				break
 
 
 class LaxAttrs(xsc.Attrs):
@@ -635,6 +572,8 @@ class Parser(object):
 		self.loc = loc
 		self.validate = validate
 		self.encoding = encoding
+		self._attr = None
+		self._attrs = None
 
 	def _parseHTML(self, stream, base, sysid, encoding):
 		"""
@@ -713,6 +652,39 @@ class Parser(object):
 			libxml2.lineNumbersDefault(olddefault)
 		return node
 
+	def begin(self, base=None, encoding=None):
+		parser = self.saxparser(encoding)
+		parser.register(self)
+		self.base = url.URL(base)
+		self._nesting = [ (xsc.Frag(), self.prefixes) ]
+		parser.begin()
+		return parser
+
+	def end(self, parser):
+		return self._nesting[0][0]
+
+	def parsestring(self, data, base=None, encoding=None):
+		parser = self.begin(base=base, encoding=encoding)
+		parse.feed(data, True)
+		return self.end(parser)
+
+	def parseiter(self, data):
+		parser = self.begin(base=base, encoding=encoding)
+		for d in data:
+			parser.feed(d)
+		parser.feed("", True)
+		return self.end(parser)
+
+	def parsestream(self, stream, size=8192):
+		parser = self.begin(base=base, encoding=encoding)
+		while True:
+			data = stream.read(size)
+			final = not data
+			parser.feed(data, final)
+			if final:
+				return self.end(parser)
+
+
 	def _parse(self, stream, base, sysid, encoding):
 		self.base = url.URL(base)
 
@@ -759,10 +731,8 @@ class Parser(object):
 		# it must still record the new namespaces defined by the illegal element.
 		# In this case None is stored in the stack instead of the element node.
 
-		self._nesting = [ (xsc.Frag(), self.prefixes) ]
 		try:
 			parser.parse(source)
-			root = self._nesting[0][0]
 		finally:
 			self._nesting = None
 		return root
@@ -837,18 +807,22 @@ class Parser(object):
 	def setDocumentLocator(self, locator):
 		self._locator = locator
 
-	def startDocument(self):
-		pass
+	def handle_enterstarttag(self, name):
+		self._attrs = {}
 
-	def endDocument(self):
-		pass
+	def handle_enterattr(self, name):
+		node = xsc.Frag()
+		self._attrs[name] = node
+		self._nesting.append((node, self._nesting[-1][1]))
 
-	def startElement(self, name, attrs):
+	def handle_leaveattr(self, name):
+		self._nesting.pop()
+
+	def handle_leavestarttag(self, name):
 		oldprefixes = self.prefixes
 
-		attritems = attrs.items()
 		newprefixes = {}
-		for (attrname, xmlns) in attritems:
+		for (attrname, xmlns) in self._attrs.iteritems():
 			if attrname==u"xmlns" or attrname.startswith(u"xmlns:"):
 				prefix = attrname[6:] or None
 				newprefixes[prefix] = unicode(xmlns)
@@ -870,7 +844,7 @@ class Parser(object):
 		else:
 			node = self.pool.element_xml(name, xmlns)
 
-		for (attrname, attrvalue) in attritems:
+		for (attrname, attrvalue) in self._attrs.iteritems():
 			if attrname != u"xmlns" and not attrname.startswith(u"xmlns:"):
 				if u":" in attrname:
 					(attrprefix, attrname) = attrname.split(u":", 1)
@@ -892,9 +866,9 @@ class Parser(object):
 		self.__appendNode(node)
 		# push new innermost element onto the stack, together with the list of prefix mappings to which we have to return when we leave this element
 		self._nesting.append((node, oldprefixes))
-		self.skippingwhitespace = False
+		self._attrs = None
 
-	def endElement(self, name):
+	def handle_endtag(self, name):
 		currentelement = self._nesting[-1][0]
 
 		(prefix, sep, name) = name.rpartition(u":")
@@ -912,13 +886,7 @@ class Parser(object):
 
 		self.prefixes = self._nesting.pop()[1] # pop the innermost element off the stack and restore the old prefixes mapping (from outside this element)
 
-		self.skippingwhitespace = False
-
-	def characters(self, content):
-		if self.skippingwhitespace:
-			# the following could be content = content.lstrip(), but this would remove nbsps
-			while content and content[0].isspace() and content[0] != u"\xa0":
-				content = content[1:]
+	def handle_data(self, content):
 		if content:
 			node = self.pool.text(content)
 			node = node.parsed(self)
@@ -929,62 +897,30 @@ class Parser(object):
 				last[-1] = node # replace it
 			else:
 				self.__appendNode(node)
-			self.skippingwhitespace = False
 
-	def comment(self, content):
+	def handle_comment(self, content):
 		node = self.pool.comment(content)
 		node = node.parsed(self)
 		self.__appendNode(node)
-		self.skippingwhitespace = False
 
-	def processingInstruction(self, target, data):
-		if target=="x":
-			self.skippingwhitespace = True
-		else:
-			node = self.pool.procinst_xml(target, data)
+	def handle_proc(self, target, content):
+		if target != "xml":
+			node = self.pool.procinst_xml(target, content)
 			node = node.parsed(self)
 			self.__appendNode(node)
-			self.skippingwhitespace = False
 
-	def createEntity(self, name):
-		node = self.pool.entity_xml(name)
-		if isinstance(node, xsc.CharRef):
-			return xsc.Text(unichr(node.codepoint))
+	def handle_entityref(self, name):
+		try:
+			c = {u"lt": u"<", u"gt": u">", u"amp": u"&", u"quot": u'"', u"apos": u"'"}[name]
+		except KeyError:
+			node = self.pool.entity_xml(name)
+			if isinstance(node, xsc.CharRef):
+				self.handle_data(unichr(node.codepoint))
+			else:
+				node = node.parsed(self)
+				self.__appendNode(node)
 		else:
-			node = node.parsed(self)
-			return node
-
-	def skippedEntity(self, name):
-		node = self.pool.entity_xml(name)
-		if isinstance(node, xsc.CharRef):
-			self.characters(unichr(node.codepoint))
-		else:
-			node = node.parsed(self)
-			self.__appendNode(node)
-		self.skippingwhitespace = False
-
-	def __decorateException(self, exception):
-		if not isinstance(exception, sax.SAXParseException):
-			msg = exception.__class__.__name__
-			msg2 = str(exception)
-			if msg2:
-				msg += ": " + msg2
-			exception = sax.SAXParseException(msg, exception, self._locator)
-		return exception
-
-	def error(self, exception):
-		"Handle a recoverable error."
-		# This doesn't work properly with expat, as expat fiddles with the traceback
-		raise self.__decorateException(exception)
-
-	def fatalError(self, exception):
-		"Handle a non-recoverable error."
-		# This doesn't work properly with expat, as expat fiddles with the traceback
-		raise self.__decorateException(exception)
-
-	def warning(self, exception):
-		"Handle a warning."
-		print self.__decorateException(exception)
+			self.handle_data(c)
 
 	def getLocation(self):
 		return xsc.Location(self._locator)
@@ -992,7 +928,7 @@ class Parser(object):
 	def __appendNode(self, node):
 		if self.loc:
 			node.startloc = self.getLocation()
-		self._nesting[-1][0].append(node) # add the new node to the content of the innermost element (or fragment)
+		self._nesting[-1][0].append(node) # add the new node to the content of the innermost element/fragment/(attribute)
 
 
 def parse(stream, base=None, sysid=None, **parserargs):
@@ -1008,17 +944,17 @@ def parse(stream, base=None, sysid=None, **parserargs):
 	return parser.parse(stream, base, sysid)
 
 
-def parseString(text, base=None, sysid=None, **parserargs):
+def parsestring(text, base=None, **parserargs):
 	"""
 	Parse the string <arg>text</arg> (<class>str</class> or <class>unicode</class>) into an
-	&xist; tree. For the arguments <arg>base</arg> and <arg>sysid</arg> see the method
-	<pyref class="Parser" method="parseString"><method>parseString</method></pyref>
+	&xist; tree. For the argument <arg>base</arg> see the method
+	<pyref class="Parser" method="parseString"><method>parsestring</method></pyref>
 	in the <class>Parser</class> class. You can pass any other argument that the
 	<pyref class="Parser" method="__init__"><class>Parser</class> constructor</pyref>
 	takes as keyword arguments via <arg>parserargs</arg>.
 	"""
 	parser = Parser(**parserargs)
-	return parser.parseString(text, base, sysid)
+	return parser.parsestring(text, base)
 
 
 def parseURL(url, base=None, sysid=None, headers=None, data=None, **parserargs):

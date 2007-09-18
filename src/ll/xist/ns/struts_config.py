@@ -245,7 +245,7 @@ class user_struts_config(xsc.Element):
 
 	def convert(self, converter):
 		e = xsc.Frag(
-			xml.XML10(),
+			xml.XML(),
 			u"\n",
 			DocType(),
 			u"\n",

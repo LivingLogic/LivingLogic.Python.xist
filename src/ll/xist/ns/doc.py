@@ -1482,7 +1482,7 @@ class fodoc(base):
 		converter.pop()
 
 		e = xsc.Frag(
-			xml.XML10(), u"\n",
+			xml.XML(), u"\n",
 			fo.root(
 				fo.layout_master_set(
 					fo.simple_page_master(

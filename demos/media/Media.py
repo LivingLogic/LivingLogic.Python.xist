@@ -123,7 +123,7 @@ class media(xsc.Element):
 		lds = xsc.Frag(self[ld]).sorted(key=namekey)
 
 		e = xsc.Frag(
-			xml.XML10(), "\n",
+			xml.XML(), "\n",
 			html.DocTypeXHTML10transitional(), "\n",
 			html.html(
 				html.head(
