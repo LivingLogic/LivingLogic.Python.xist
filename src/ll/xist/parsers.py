@@ -158,11 +158,11 @@ class SGMLOPParser(LLParser):
 		self.lineNumber = -1
 
 	def begin(self):
-		if self._decoder is None:
-			self._decoder = codecs.getincrementaldecoder("xml")(self.encoding)
-		if self._parser is None:
-			self._parser = sgmlop.XMLParser()
-			self._parser.register(self)
+		self._decoder = codecs.getincrementaldecoder("xml")(self.encoding)
+		if self._parser is not None:
+			self._parser.register(None)
+		self._parser = sgmlop.XMLParser()
+		self._parser.register(self)
 
 	def end(self):
 		if self._parser is not None:
