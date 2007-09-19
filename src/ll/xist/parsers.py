@@ -17,13 +17,16 @@ is from <app moreinfo="http://pyxml.sf.net/">PyXML</app>). It includes a
 to parse &html; and emit &sax;2 events.</par>
 """
 
-import sys, os, os.path, warnings, cStringIO, codecs, pyexpat
+from __future__ import with_statement
+
+import sys, os, os.path, warnings, cStringIO, codecs, pyexpat, contextlib
 
 from xml.parsers import expat
 
 from ll import url, xml_codec
 from ll.xist import xsc, utils, sgmlop
 from ll.xist.ns import html
+
 
 # from PyXML/dom/html/__init__.py
 HTML_OPT_END = ["body", "colgroup", "dd", "dt", "head", "html", "li", "option", "p", "tbody", "td", "tfoot", "th", "thead", "tr"]
@@ -639,15 +642,19 @@ class Parser(object):
 		parser.feed("", True)
 		return self.end(parser)
 
-	def parsestream(self, stream, base=None, encoding=None, size=8192):
+	def parsestream(self, stream, base=None, encoding=None, bufsize=8192):
 		parser = self.begin(base=base, encoding=encoding)
 		while True:
-			data = stream.read(size)
+			data = stream.read(bufsize)
 			final = not data
 			parser.feed(data, final)
 			if final:
 				return self.end(parser)
 
+	def parsefile(self, filename, base=None, encoding=None, bufsize=8192):
+		filename = os.path.expanduser(filename)
+		with contextlib.closing(open(filename, "rb")) as stream:
+			return self.parsestring(stream, base=base, encoding=encoding, bufsize=bufsize)
 
 	def _parse(self, stream, base, sysid, encoding):
 		self.base = url.URL(base)
@@ -908,7 +915,7 @@ def parse(stream, base=None, sysid=None, **parserargs):
 	return parser.parse(stream, base, sysid)
 
 
-def parsestring(text, base=None, **parserargs):
+def parsestring(text, base=None, encoding=None, **parserargs):
 	"""
 	Parse the string <arg>text</arg> (<class>str</class> or <class>unicode</class>) into an
 	&xist; tree. For the argument <arg>base</arg> see the method
@@ -918,20 +925,17 @@ def parsestring(text, base=None, **parserargs):
 	takes as keyword arguments via <arg>parserargs</arg>.
 	"""
 	parser = Parser(**parserargs)
-	return parser.parsestring(text, base)
+	return parser.parsestring(text, base=base, encoding=encoding)
 
 
-def parseiter(iterable, base=None, **parserargs):
-	"""
-	Parse the string <arg>text</arg> (<class>str</class> or <class>unicode</class>) into an
-	&xist; tree. For the argument <arg>base</arg> see the method
-	<pyref class="Parser" method="parseString"><method>parsestring</method></pyref>
-	in the <class>Parser</class> class. You can pass any other argument that the
-	<pyref class="Parser" method="__init__"><class>Parser</class> constructor</pyref>
-	takes as keyword arguments via <arg>parserargs</arg>.
-	"""
+def parseiter(iterable, base=None, encoding=None, **parserargs):
 	parser = Parser(**parserargs)
-	return parser.parseiter(iterable, base)
+	return parser.parseiter(iterable, base=base, encoding=encoding)
+
+
+def parsestream(stream, base=None, encoding=None, **parserargs):
+	parser = Parser(**parserargs)
+	return parser.parsestream(stream, base=base, encoding=encoding)
 
 
 def parseURL(url, base=None, sysid=None, headers=None, data=None, **parserargs):
@@ -954,14 +958,14 @@ def parseURL(url, base=None, sysid=None, headers=None, data=None, **parserargs):
 	return parser.parseURL(url, base, sysid, *parseargs)
 
 
-def parseFile(filename, base=None, sysid=None, **parserargs):
+def parsefile(filename, base=None, encoding=None, bufsize=8192, **parserargs):
 	"""
 	Parse &xml; input from the file named <arg>filename</arg>. For the arguments
-	<arg>base</arg> and <arg>sysid</arg> see the method
-	<pyref class="Parser" method="parseFile"><method>parseFile</method></pyref>
+	<arg>base</arg> and <arg>encoding</arg> see the method
+	<pyref class="Parser" method="parsefile"><method>parsefile</method></pyref>
 	in the <class>Parser</class> class. You can pass any other argument that the
 	<pyref class="Parser" method="__init__"><class>Parser</class> constructor</pyref>
 	takes as keyword arguments via <arg>parserargs</arg>.
 	"""
 	parser = Parser(**parserargs)
-	return parser.parseFile(filename, base, sysid)
+	return parser.parsefile(filename, base=base, encoding=encoding, bufsize=bufsize)
