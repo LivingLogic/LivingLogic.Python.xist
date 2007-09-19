@@ -711,7 +711,6 @@ class Parser(object):
 		source.setByteStream(stream)
 		source.setEncoding(encoding)
 
-
 		try:
 			parser.parse(source)
 		finally:
