@@ -638,6 +638,8 @@ class Parser(object):
 
 	def parsestring(self, data, base=None, encoding=None):
 		parser = self._begin(base=base, encoding=encoding)
+		if isinstance(data, unicode):
+			data = data.encode("xml")
 		parser.feed(data, True)
 		return self._end(parser)
 
