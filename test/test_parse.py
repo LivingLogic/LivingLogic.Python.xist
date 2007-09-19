@@ -111,7 +111,7 @@ def test_parselocationexpat():
 	assert len(node[0]) == 1
 	assert str(node[0][0].startloc.url) == "STRING"
 	assert node[0][0].startloc.line == 0
-	assert node[0][0].startloc.column == 3
+	assert node[0][0].startloc.col == 3
 
 
 class Test:
