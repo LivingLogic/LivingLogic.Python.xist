@@ -45,16 +45,16 @@ def test_empty():
 		e.bytes()
 	
 		e = el1("gurk")
-		py.test.raises(sims.EmptyElementWithContentWarning, e.asBytes)
+		py.test.raises(sims.EmptyElementWithContentWarning, e.bytes)
 	
 		e = el1(php.php("gurk"))
-		py.test.raises(sims.EmptyElementWithContentWarning, e.asBytes)
+		py.test.raises(sims.EmptyElementWithContentWarning, e.bytes)
 	
 		e = el1(xsc.Comment("gurk"))
-		py.test.raises(sims.EmptyElementWithContentWarning, e.asBytes)
+		py.test.raises(sims.EmptyElementWithContentWarning, e.bytes)
 	
 		e = el1(el1())
-		py.test.raises(sims.EmptyElementWithContentWarning, e.asBytes)
+		py.test.raises(sims.EmptyElementWithContentWarning, e.bytes)
 
 
 def test_elements():
@@ -78,7 +78,7 @@ def test_elements():
 		e.bytes()
 	
 		e = el11("foo")
-		py.test.raises(sims.IllegalTextWarning, e.asBytes)
+		py.test.raises(sims.IllegalTextWarning, e.bytes)
 	
 		e = el11(php.php("gurk"))
 		e.bytes()
@@ -93,10 +93,10 @@ def test_elements():
 		e.bytes()
 	
 		e = el11(el12())
-		py.test.raises(sims.WrongElementWarning, e.asBytes)
+		py.test.raises(sims.WrongElementWarning, e.bytes)
 	
 		e = el11(el22())
-		py.test.raises(sims.WrongElementWarning, e.asBytes)
+		py.test.raises(sims.WrongElementWarning, e.bytes)
 
 
 def test_elementsortext():
@@ -135,10 +135,10 @@ def test_elementsortext():
 		e.bytes()
 	
 		e = el11(el12())
-		py.test.raises(sims.WrongElementWarning, e.asBytes)
+		py.test.raises(sims.WrongElementWarning, e.bytes)
 	
 		e = el11(el22())
-		py.test.raises(sims.WrongElementWarning, e.asBytes)
+		py.test.raises(sims.WrongElementWarning, e.bytes)
 
 
 def test_noelements():
@@ -162,7 +162,7 @@ def test_noelements():
 		e.bytes()
 	
 		e = el1(el1())
-		py.test.raises(sims.ElementWarning, e.asBytes)
+		py.test.raises(sims.ElementWarning, e.bytes)
 
 		# Elements from a different namespace are OK
 		e = el1(el2())
@@ -181,7 +181,7 @@ def test_noelementsortext():
 		e.bytes()
 	
 		e = el1("foo")
-		py.test.raises(sims.IllegalTextWarning, e.asBytes)
+		py.test.raises(sims.IllegalTextWarning, e.bytes)
 	
 		e = el1(php.php("gurk"))
 		e.bytes()
@@ -190,7 +190,7 @@ def test_noelementsortext():
 		e.bytes()
 	
 		e = el1(el1())
-		py.test.raises(sims.ElementWarning, e.asBytes)
+		py.test.raises(sims.ElementWarning, e.bytes)
 	
 		# Elements from a different namespace are OK
 		e = el1(el2())
