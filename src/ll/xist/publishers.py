@@ -157,8 +157,16 @@ class Publisher(object):
 		Return the encoding currently in effect.
 		"""
 		if self.encoding is not None:
+			# The encoding has been prescribed, so this *will* be used.
 			return self.encoding
 		elif self.encoder is not None:
+			# The encoding is determined by the XML declaration in the output,
+			# so use that if it has been determined already. If the encoder hasn't
+			# determined the encoding yet (e.g. because nothing has been output
+			# yet) use utf-8 (which will be what the encoder eventually will decide
+			# to use too). Note that this will not work if nothing has been output
+			# yet, but later an XML declaration (using a different encoding) will
+			# be output, but this shouldn't happen anyway.
 			return self.encoder.encoding or "utf-8"
 		return "utf-8"
 
