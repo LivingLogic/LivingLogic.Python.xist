@@ -892,9 +892,9 @@ def parse(stream, base=None, sysid=None, **parserargs):
 
 def parsestring(text, base=None, encoding=None, **parserargs):
 	"""
-	Parse the string <arg>text</arg> (<class>str</class> or <class>unicode</class>) into an
-	&xist; tree. For the argument <arg>base</arg> see the method
-	<pyref class="Parser" method="parseString"><method>parsestring</method></pyref>
+	Parse the string <arg>text</arg> (<class>str</class> or <class>unicode</class>)
+	into an &xist; tree. For the arguments <arg>base</arg> and <arg>encoding</arg>
+	see the method <pyref class="Parser" method="parsestring"><method>parsestring</method></pyref>
 	in the <class>Parser</class> class. You can pass any other argument that the
 	<pyref class="Parser" method="__init__"><class>Parser</class> constructor</pyref>
 	takes as keyword arguments via <arg>parserargs</arg>.
