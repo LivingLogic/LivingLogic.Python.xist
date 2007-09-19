@@ -16,7 +16,7 @@ from ll.xist.ns import xml, html, chars, abbr, php
 
 def test_pickle():
 	e = xsc.Frag(
-		xml.XML10(),
+		xml.XML(),
 		html.DocTypeXHTML10transitional(),
 		xsc.Comment("foo"),
 		html.html(xml.Attrs(lang="de"), lang="de"),
