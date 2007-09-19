@@ -100,8 +100,8 @@ def test_parselocationsgmlop():
 	node = parsers.parsestring("<z>gurk&amp;hurz&#42;hinz&#x666;hunz</z>", saxparser=parsers.SGMLOPParser())
 	assert len(node) == 1
 	assert len(node[0]) == 1
-	assert node[0][0].startloc.getSystemId() == "STRING"
-	assert node[0][0].startloc.getLineNumber() == 1
+	assert str(node[0][0].startloc.url) == "STRING"
+	assert node[0][0].startloc.line == 0
 
 
 def test_parselocationexpat():
@@ -109,9 +109,9 @@ def test_parselocationexpat():
 	node = parsers.parsestring("<z>gurk&amp;hurz&#42;hinz&#x666;hunz</z>", saxparser=parsers.ExpatParser())
 	assert len(node) == 1
 	assert len(node[0]) == 1
-	assert node[0][0].startloc.getSystemId() == "STRING"
-	assert node[0][0].startloc.getLineNumber() == 1
-	assert node[0][0].startloc.getColumnNumber() == 3
+	assert str(node[0][0].startloc.url) == "STRING"
+	assert node[0][0].startloc.line == 0
+	assert node[0][0].startloc.column == 3
 
 
 class Test:
