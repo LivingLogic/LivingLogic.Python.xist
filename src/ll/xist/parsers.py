@@ -152,11 +152,6 @@ class SGMLOPParser(LLParser):
 		self._decoder = None
 		self._parser = None
 
-	def reset(self):
-		self.close()
-		self.source = None
-		self.lineNumber = -1
-
 	def begin(self):
 		self._decoder = codecs.getincrementaldecoder("xml")(self.encoding)
 		if self._parser is not None:
@@ -164,7 +159,11 @@ class SGMLOPParser(LLParser):
 		self._parser = sgmlop.XMLParser()
 		self._parser.register(self)
 
+	def feed(self, data, final):
+		self._parser.feed(self._decoder.decode(data, final))
+
 	def end(self):
+		self._parser.close()
 		if self._parser is not None:
 			self._parser.register(None)
 			self._parser = None
@@ -633,6 +632,7 @@ class Parser(object):
 		return parser
 
 	def _end(self, parser):
+		parser.register(None)
 		parser.end()
 		return self._nesting[0][0]
 
