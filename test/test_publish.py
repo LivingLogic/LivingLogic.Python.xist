@@ -210,4 +210,4 @@ def test_encoding():
 
 
 def test_xmlheader():
-	assert xml.XML().bytes(encoding="utf-8") == "<?xml version='1.0' encoding='utf-8'?>"
+	assert xml.XML().bytes(encoding="utf-8") == '<?xml version="1.0" encoding="utf-8"?>'

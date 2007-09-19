@@ -14,7 +14,7 @@ exception and warning classes and a few helper classes and functions.
 """
 
 
-import sys, os, random, copy, warnings, cPickle, threading, weakref, itertools, types
+import sys, os, random, copy, warnings, cPickle, threading, weakref, itertools, types, codecs
 
 import cssutils
 from cssutils import serialize as cssserialize
@@ -933,11 +933,26 @@ class Node(object):
 		"""
 		return "".join(self.iterbytes(base, publisher, **publishargs))
 
-	def asBytes(self, base=None, publisher=None, **publishargs):
-		warnings.warn("asBytes() is deprecated, use bytes() instead", DeprecationWarning)
-		return "".join(self.iterbytes(base, publisher, **publishargs))
+	def iterstring(self, base=None, publisher=None, **publishargs):
+		"""
+		<par>A generator that will produce this node as a serialized byte string.</par>
 
-	def asString(self, base=None, publisher=None, **publishargs):
+		<par>For the possible parameters see the
+		<pyref module="ll.xist.publishers" class="Publisher"><class>ll.xist.publishers.Publisher</class></pyref>
+		constructor.</par>
+		"""
+		if publisher is None:
+			publisher = publishers.Publisher(**publishargs)
+		decoder = codecs.getincrementaldecoder("xml")(encoding=publisher.encoding)
+		for part in publisher.publish(self, base):
+			part = decoder.decode(part, False)
+			if part:
+				yield part
+		part = decoder.decode(part, True)
+		if part:
+			yield part
+
+	def string(self, base=None, publisher=None, **publishargs):
 		"""
 		<par>Return this node as a serialized unicode string.</par>
 
@@ -947,9 +962,9 @@ class Node(object):
 		"""
 		if publisher is None:
 			publisher = publishers.Publisher(**publishargs)
-		encoding = publisher.encoding
+		decoder = codecs.getdecoder("xml")
 		result = "".join(publisher.publish(self, base))
-		return result.decode(encoding)
+		return decoder(result, encoding=publisher.encoding)[0]
 
 	def write(self, stream, *args, **publishargs):
 		"""

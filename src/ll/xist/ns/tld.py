@@ -94,7 +94,7 @@ class info(xsc.Element):
 	class Attrs(IdAttrs): pass
 
 	def asxnd(self):
-		return self.content.asString()
+		return self.content.string()
 
 
 class jspversion(xsc.Element):
