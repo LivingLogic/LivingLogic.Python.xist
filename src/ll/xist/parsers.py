@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ## Copyright 1999-2007 by LivingLogic AG, Bayreuth/Germany.
-## Copyright 1999-2007 by Walter DÃ¶rwald
+## Copyright 1999-2007 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -876,7 +876,7 @@ class Parser(object):
 				node = node.parsed(self)
 				self.__appendNode(node, line, col)
 		else:
-			self.handle_data(c)
+			self.handle_data(c, line, col)
 
 	def getLocation(self):
 		return xsc.Location(self._locator)
