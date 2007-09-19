@@ -149,7 +149,7 @@ def test_stringify():
 	for node in common.allnodes():
 		unicode(node)
 		str(node)
-		node.asString()
+		node.string()
 		node.bytes()
 
 

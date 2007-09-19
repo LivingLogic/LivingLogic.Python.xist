@@ -32,7 +32,7 @@ def test_variousnamespaces():
 		for obj in vars(ns).itervalues():
 			if isinstance(obj, type) and issubclass(obj, xsc.Entity) and not issubclass(obj, skip):
 				node = obj()
-				node.conv().asBytes(prefixdefault=True)
+				node.conv().bytes(prefixdefault=True)
 		for obj in vars(ns).itervalues():
 			if isinstance(obj, type) and issubclass(obj, xsc.ProcInst) and not issubclass(obj, skip):
 				node = obj()

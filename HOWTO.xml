@@ -192,7 +192,7 @@ of the object.</par>
 <example><title>Using the new element</title>
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>node = cool("Python")</input>
-<prompt>&gt;&gt;&gt; </prompt><input>print node.conv().asBytes()</input>
+<prompt>&gt;&gt;&gt; </prompt><input>print node.conv().bytes()</input>
 &lt;b&gt;Python is cool!&lt;/b&gt;
 </tty>
 </example>
@@ -202,7 +202,7 @@ calls
 <pyref module="ll.xist.xsc" class="Node" method="convert"><method>convert</method></pyref>
 with a default <pyref module="ll.xist.converters" class="Converter"><arg>converter</arg></pyref>
 argument. We'll come to converters in a minute.
-<pyref module="ll.xist.xsc" class="Node" method="asBytes"><method>asBytes</method></pyref>
+<pyref module="ll.xist.xsc" class="Node" method="bytes"><method>bytes</method></pyref>
 is a method that converts the node to a byte string. This method will be explained
 when we discuss the publishing interface.</par>
 
@@ -218,7 +218,7 @@ class python(xsc.Element):
 <par>Now we can do the following:</par>
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>node = cool(python())</input>
-<prompt>&gt;&gt;&gt; </prompt><input>print node.conv().asBytes()</input>
+<prompt>&gt;&gt;&gt; </prompt><input>print node.conv().bytes()</input>
 &lt;b&gt;&lt;a href="http://www.python.org/"&gt;Python&lt;/a&gt; is cool!&lt;/b&gt;
 </tty>
 <par>But if we forget to call
@@ -233,7 +233,7 @@ class cool(xsc.Element):
 <par>we would get:</par>
 <prog>
 &gt;&gt;&gt; node = cool(python())
-&gt;&gt;&gt; print node.conv().asBytes()
+&gt;&gt;&gt; print node.conv().bytes()
 &lt;b&gt;&lt;python&gt;&lt;/python&gt; is cool!&lt;/b&gt;
 </prog>
 
@@ -315,13 +315,13 @@ the dictionary interface:</par>
 <example>
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>node = html.a(u"Python", href=u"http://www.python.org/")</input>
-<prompt>&gt;&gt;&gt; </prompt><input>print node[u"href"].asBytes()</input>
+<prompt>&gt;&gt;&gt; </prompt><input>print node[u"href"].bytes()</input>
 href="http://www.python.org/"
 <prompt>&gt;&gt;&gt; </prompt><input>del node[u"href"]</input>
-<prompt>&gt;&gt;&gt; </prompt><input>print node[u"href"].asBytes()</input>
+<prompt>&gt;&gt;&gt; </prompt><input>print node[u"href"].bytes()</input>
 
 <prompt>&gt;&gt;&gt; </prompt><input>node[u"href"] = u"http://www.python.org"</input>
-<prompt>&gt;&gt;&gt; </prompt><input>print node[u"href"].asBytes()</input>
+<prompt>&gt;&gt;&gt; </prompt><input>print node[u"href"].bytes()</input>
 href="http://www.python.org/"
 </tty>
 </example>
@@ -405,7 +405,7 @@ class cool(xsc.Element):
 
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>node = cool(python(), adj=u"totally")</input>
-<prompt>&gt;&gt;&gt; </prompt><input>node.conv().asBytes()</input>
+<prompt>&gt;&gt;&gt; </prompt><input>node.conv().bytes()</input>
 &lt;a href="http://www.python.org/"&gt;Python&lt;/a&gt; is &lt;em&gt;totally&lt;/em&gt; cool!
 </tty>
 
@@ -438,7 +438,7 @@ class cool(xsc.Element):
 <example><title>Using default attributes</title>
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>node = cool(python())</input>
-<prompt>&gt;&gt;&gt; </prompt><input>print node.conv().asBytes()</input>
+<prompt>&gt;&gt;&gt; </prompt><input>print node.conv().bytes()</input>
 &lt;a href="http://www.python.org/"&gt;Python&lt;/a&gt; is &lt;em&gt;absolutely&lt;/em&gt; cool!
 </tty>
 </example>
@@ -450,7 +450,7 @@ as the attribute value:</par>
 <example><title>Removing default attributes</title>
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>node = cool(python(), adj=None)</input>
-<prompt>&gt;&gt;&gt; </prompt><input>print node.conv().asBytes()</input>
+<prompt>&gt;&gt;&gt; </prompt><input>print node.conv().bytes()</input>
 &lt;a href="http://www.python.org/"&gt;Python&lt;/a&gt; is cool!
 </tty>
 </example>
@@ -497,7 +497,7 @@ you can change that with <function>warnings.filterwarnings</function>):</par>
 
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>node = cool(python(), adj=u"pretty")</input>
-<prompt>&gt;&gt;&gt; </prompt><input>print node.asBytes()</input>
+<prompt>&gt;&gt;&gt; </prompt><input>print node.bytes()</input>
 /home/walter/pythonroot/ll/xist/xsc.py:1665: IllegalAttrValueWarning: Attribute value 'pretty' not allowed for __main__:cool.Attrs.adj.
   warnings.warn(errors.IllegalAttrValueWarning(self))
 &lt;cool adj="very"&gt;&lt;python /&gt;&lt;/cool&gt;
@@ -517,7 +517,7 @@ is such an attribute, so we'll get:</par>
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
 <prompt>&gt;&gt;&gt; </prompt><input>node = html.img(src="eggs.png")</input>
-<prompt>&gt;&gt;&gt; </prompt><input>print node.asBytes()</input>
+<prompt>&gt;&gt;&gt; </prompt><input>print node.bytes()</input>
 /home/walter/pythonroot/ll/xist/xsc.py:2046: RequiredAttrMissingWarning: Required attribute 'alt' missing in ll.xist.ns.html:img.Attrs.
   warnings.warn(errors.RequiredAttrMissingWarning(self, attrs.keys()))
 &lt;img src="eggs.png" /&gt;
@@ -705,7 +705,7 @@ __ns__.makemod(vars())
 with links to various homepages for programming languages. We can use it like this:</par>
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>import navns</input>
-<prompt>&gt;&gt;&gt; </prompt><input>print navns.navigation().conv().asBytes()</input>
+<prompt>&gt;&gt;&gt; </prompt><input>print navns.navigation().conv().bytes()</input>
 &lt;div&gt;&lt;a href="http://www.python.org/"&gt;Python&lt;/a&gt;&lt;/div&gt;
 &lt;div&gt;&lt;a href="http://www.perl.org/"&gt;Perl&lt;/a&gt;&lt;/div&gt;
 &lt;div&gt;&lt;a href="http://www.php.net/"&gt;PHP&lt;/a&gt;&lt;/div&gt;
@@ -754,7 +754,7 @@ the following output:</par>
 
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>import nav2ns</input>
-<prompt>&gt;&gt;&gt; </prompt><input>print nav2ns.navigation().conv().asBytes()</input>
+<prompt>&gt;&gt;&gt; </prompt><input>print nav2ns.navigation().conv().bytes()</input>
 &lt;table border="0" cellpadding="0" cellspacing="0" class="navigation"&gt;
 &lt;tr&gt;&lt;td&gt;&lt;a href="http://www.python.org/"&gt;Python&lt;/a&gt;&lt;/td&gt;&lt;/tr&gt;
 &lt;tr&gt;&lt;td&gt;&lt;a href="http://www.perl.org/"&gt;Perl&lt;/a&gt;&lt;/td&gt;&lt;/tr&gt;
@@ -845,7 +845,7 @@ code doesn't contain any illegal tag nesting (i.e. something bad like
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
 <prompt>&gt;&gt;&gt; </prompt><input>node = html.p(html.p(u"foo"))</input>
-<prompt>&gt;&gt;&gt; </prompt><input>print node.asBytes()</input>
+<prompt>&gt;&gt;&gt; </prompt><input>print node.bytes()</input>
 /home/walter/pythonroot/ll/xist/sims.py:238: WrongElementWarning: element &lt;ll.xist.ns.html:p&gt; may not contain element &lt;ll.xist.ns.html:p&gt;
   warnings.warn(WrongElementWarning(node, child, self.elements))
 &lt;p&gt;&lt;p&gt;foo&lt;/p&gt;&lt;/p&gt;
@@ -965,18 +965,19 @@ will be published as <lit>&lt;%= foo&gt;</lit>.</par>
 into its final output form, you have to write the resulting tree
 to a file. This can be done with the publishing &api;. Three methods
 that use the publishing &api; are
-<pyref module="ll.xist.xsc" class="Node" method="bytes"><method>bytes</method></pyref>,
-<pyref module="ll.xist.xsc" class="Node" method="asBytes"><method>asBytes</method></pyref>
+<pyref module="ll.xist.xsc" class="Node" method="iterbytes"><method>iterbytes</method></pyref>,
+<pyref module="ll.xist.xsc" class="Node" method="bytes"><method>bytes</method></pyref>
 and
 <pyref module="ll.xist.xsc" class="Node" method="write"><method>write</method></pyref>.
-<pyref module="ll.xist.xsc" class="Node" method="bytes"><method>bytes</method></pyref>
+<pyref module="ll.xist.xsc" class="Node" method="bytes"><method>iterbytes</method></pyref>
 is a generator that will yield the complete 8-bit &xml; string in fragments.
-<pyref module="ll.xist.xsc" class="Node" method="asBytes"><method>asBytes</method></pyref>
+<pyref module="ll.xist.xsc" class="Node" method="bytes"><method>bytes</method></pyref>
 returns the complete 8-bit &xml; string.</par>
 
 <par>You can specify the encoding with the parameter <arg>encoding</arg>
-(with <lit>"utf-8"</lit> being the default). Unencodable characters will be
-escaped with character references when possible (i.e. inside text nodes, for
+(with the encoding specified in an &xml; declaration being the default, if there
+is no such declaration <lit>"utf-8"</lit> is used). Unencodable characters will
+be escaped with character references when possible (i.e. inside text nodes, for
 comments or processing instructions you'll get an exception):</par>
 
 <tty>
@@ -984,14 +985,14 @@ comments or processing instructions you'll get an exception):</par>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
 <prompt>&gt;&gt;&gt; </prompt><input>s = u"A\e4\u03a9\u8a9e"</input>
 <prompt>&gt;&gt;&gt; </prompt><input>node = html.div(s)</input>
-<prompt>&gt;&gt;&gt; </prompt><input>print node.asBytes(encoding="ascii")</input>
+<prompt>&gt;&gt;&gt; </prompt><input>print node.bytes(encoding="ascii")</input>
 &lt;div&gt;A&amp;#228;&amp;#937;&amp;#35486;&gt;
-<prompt>&gt;&gt;&gt; </prompt><input>print node.asBytes(encoding="iso-8859-1")</input>
+<prompt>&gt;&gt;&gt; </prompt><input>print node.bytes(encoding="iso-8859-1")</input>
 &lt;div&gt;Aä&amp;#937;&amp;#35486;&gt;
-<prompt>&gt;&gt;&gt; </prompt><input>print xsc.Comment(s).asBytes()</input>
+<prompt>&gt;&gt;&gt; </prompt><input>print xsc.Comment(s).bytes()</input>
 Traceback (most recent call last):
   File "&lt;stdin&gt;", line 1, in ?
-  File "/home/walter/pythonroot/ll/xist/xsc.py", line 600, in asBytes
+  File "/home/walter/pythonroot/ll/xist/xsc.py", line 600, in bytes
     publisher.publish(stream, self, base)
   File "/home/walter/pythonroot/ll/xist/publishers.py", line 205, in publish
     self.node.publish(self)
@@ -1010,7 +1011,7 @@ or an <pyref module="ll.xist.ns.meta" class="contenttype">&html; meta header</py
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist import xsc</input>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import xml, meta</input>
 <prompt>&gt;&gt;&gt; </prompt><input>e = xsc.Frag(xml.XML10(), u"\n", meta.contenttype())</input>
-<prompt>&gt;&gt;&gt; </prompt><input>print e.conv().asBytes(encoding="iso-8859-15")</input>
+<prompt>&gt;&gt;&gt; </prompt><input>print e.conv().bytes(encoding="iso-8859-15")</input>
 &lt;?xml version='1.0' encoding='iso-8859-15'?&gt;
 &lt;meta content="text/html; charset=iso-8859-15" http-equiv="Content-Type" /&gt;
 </tty>
@@ -1288,7 +1289,7 @@ those nodes returned by the base iterator. An example:</par>
 <prog>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
 <prompt>&gt;&gt;&gt; </prompt><input>e = html.table(html.tr(html.td(j) for j in xrange(i, i+3)) for i in xrange(1, 10, 3))</input>
-<prompt>&gt;&gt;&gt; </prompt><input>print e.pretty().asBytes()</input>
+<prompt>&gt;&gt;&gt; </prompt><input>print e.pretty().bytes()</input>
 &lt;table&gt;
 	&lt;tr&gt;
 		&lt;td&gt;1&lt;/td&gt;
@@ -1354,7 +1355,7 @@ or a <pyref module="ll.xist.xsc" class="Frag"><class>Frag</class></pyref>:</par>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist import xsc</input>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
 <prompt>&gt;&gt;&gt; </prompt><input>node = html.div(*xrange(10))</input>
-<prompt>&gt;&gt;&gt; </prompt><input>print node.withsep(", ").asBytes()</input>
+<prompt>&gt;&gt;&gt; </prompt><input>print node.withsep(", ").bytes()</input>
 &lt;div&gt;0, 1, 2, 3, 4, 5, 6, 7, 8, 9&lt;/div&gt;
 </tty>
 
@@ -1366,7 +1367,7 @@ or <pyref module="ll.xist.xsc" class="Frag"><class>Frag</class></pyref>:</par>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist import xsc</input>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
 <prompt>&gt;&gt;&gt; </prompt><input>node = html.div(*xrange(10))</input>
-<prompt>&gt;&gt;&gt; </prompt><input>print node.shuffled().withsep(", ").asBytes()</input>
+<prompt>&gt;&gt;&gt; </prompt><input>print node.shuffled().withsep(", ").bytes()</input>
 &lt;div&gt;8, 1, 3, 6, 7, 5, 2, 9, 4, 0&lt;/div&gt;
 </tty>
 
@@ -1380,7 +1381,7 @@ return a reversed or sorted version of an element or fragment:</par>
 <prompt>&gt;&gt;&gt; </prompt><input>def key(n):</input>
 <prompt>... </prompt><input>   return unicode(n)</input>
 <prompt>&gt;&gt;&gt; </prompt><input>node = html.div(8,4,2,1,9,6,3,0,7,5)</input>
-<prompt>&gt;&gt;&gt; </prompt><input>print node.sorted(key=key).reversed().withsep(",").asBytes()</input>
+<prompt>&gt;&gt;&gt; </prompt><input>print node.sorted(key=key).reversed().withsep(",").bytes()</input>
 &lt;div&gt;9,8,7,6,5,4,3,2,1,0&lt;/div&gt;
 </tty>
 
@@ -1425,7 +1426,7 @@ be prepended to all &url;s that are read during parsing:</par>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist import parsers</input>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
 <prompt>&gt;&gt;&gt; </prompt><input>node = parsers.parseString('&lt;img src="eggs.png"/&gt;', base="root:spam/index.html")</input>
-<prompt>&gt;&gt;&gt; </prompt><input>print node.asBytes()</input>
+<prompt>&gt;&gt;&gt; </prompt><input>print node.bytes()</input>
 &lt;img src="root:spam/eggs.png" /&gt;
 </tty>
 
@@ -1490,7 +1491,7 @@ node = html.html(
 	),
 )
 
-print node.pretty().asBytes()
+print node.pretty().bytes()
 </prog>
 </example>
 <par>This will print:</par>

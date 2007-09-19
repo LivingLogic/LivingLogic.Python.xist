@@ -58,7 +58,7 @@ class whileblock(xsc.Element):
 
 
 def makemod(node):
-	return detox.xml2mod(node.conv().asString())
+	return detox.xml2mod(node.conv().string())
 
 
 def makeoutput(node, function, *args, **kwargs):

@@ -35,8 +35,11 @@ Changes in 3.0 (released ??/??/2007)
 *	The ``media`` attribute of :class:`html.link` and :class:`html.style` now has
 	a method :meth:`hasmedia`.
 
-*	The method :meth:`asBytes` has been renamed to :meth:`bytes` and :meth:`bytes`
-	has been renamed to :meth:`iterbytes`.
+*	The node method :meth:`asBytes` has been renamed to :meth:`bytes` and
+	:meth:`bytes` has been renamed to :meth:`iterbytes`.
+
+*	The node method :meth:`asString` has been renamed to :meth:`string` and a
+	new method :meth:`iterstring` has been added.
 
 * :class:`ll.xist.ns.xml.XML10` is gone now. Use :class`ll.xist.ns.xml.XML`
   instead.
