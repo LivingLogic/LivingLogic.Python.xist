@@ -615,46 +615,65 @@ class Parser(object):
 			libxml2.lineNumbersDefault(olddefault)
 		return node
 
-	def begin(self, base=None, encoding=None):
+	def _begin(self, base=None, encoding=None):
 		if self.saxparser is None:
 			parser = SGMLOPParser(encoding=encoding)
 		else:
 			parser = self.saxparser
 		parser.register(self)
 		self.base = url.URL(base)
+		# XIST nodes do not have a parent link, therefore we have to store the
+		# active path through the tree in a stack (which we call ``_nesting``)
+		# together with the namespace prefixes defined by each element.
+		#
+		# After we've finished parsing, the ``Frag`` that we put at the bottom of
+		# the stack will be our document root.
 		self._nesting = [ (xsc.Frag(), self.prefixes) ]
 		parser.begin()
 		return parser
 
-	def end(self, parser):
+	def _end(self, parser):
 		parser.end()
 		return self._nesting[0][0]
 
 	def parsestring(self, data, base=None, encoding=None):
-		parser = self.begin(base=base, encoding=encoding)
+		parser = self._begin(base=base, encoding=encoding)
 		parser.feed(data, True)
-		return self.end(parser)
+		return self._end(parser)
 
 	def parseiter(self, data, base=None, encoding=None):
-		parser = self.begin(base=base, encoding=encoding)
+		parser = self._begin(base=base, encoding=encoding)
 		for d in data:
 			parser.feed(d, False)
 		parser.feed("", True)
-		return self.end(parser)
+		return self._end(parser)
 
 	def parsestream(self, stream, base=None, encoding=None, bufsize=8192):
-		parser = self.begin(base=base, encoding=encoding)
+		"""
+		Parse &xml; input from the stream <arg>stream</arg>. <arg>base</arg>
+		is the base &url; for the parsing process, <arg>encoding</arg> can be
+		used to force the parser to use another encoding. <arg>bufsize</arg> is
+		the buffer size used from reading the stream in blocks.
+		"""
+		parser = self._begin(base=base, encoding=encoding)
 		while True:
 			data = stream.read(bufsize)
 			final = not data
 			parser.feed(data, final)
 			if final:
-				return self.end(parser)
+				return self._end(parser)
 
 	def parsefile(self, filename, base=None, encoding=None, bufsize=8192):
+		"""
+		Parse &xml; input from the file named <arg>filename</arg>. <arg>base</arg>
+		is the base &url; for the parsing process (defaulting to <arg>filename</arg>),
+		for the other arguments see <pyref method="parsestream"><method>parsestream</method</pyref>.
+		"""
+		if base is None:
+			base = url.File(filename)
 		filename = os.path.expanduser(filename)
 		with contextlib.closing(open(filename, "rb")) as stream:
-			return self.parsestring(stream, base=base, encoding=encoding, bufsize=bufsize)
+			return self.parsestream(stream, base=base, encoding=encoding, bufsize=bufsize)
 
 	def _parse(self, stream, base, sysid, encoding):
 		self.base = url.URL(base)
@@ -690,17 +709,6 @@ class Parser(object):
 		source.setByteStream(stream)
 		source.setEncoding(encoding)
 
-		# XIST nodes do not have a parent link, therefore we have to store the
-		# active path through the tree in a stack (which we call _nesting)
-		# together with the namespace prefixes defined by each element.
-		#
-		# After we've finished parsing, the Frag that we put at the bottom of the
-		# stack will be our document root.
-		#
-		# The parser provides the ability to skip illegal elements, attributes,
-		# processing instructions or entity references, but for illegal elements,
-		# it must still record the new namespaces defined by the illegal element.
-		# In this case None is stored in the stack instead of the element node.
 
 		try:
 			parser.parse(source)
@@ -717,24 +725,6 @@ class Parser(object):
 		if sysid is None:
 			sysid = base
 		return self._parse(stream, base, sysid, self.encoding)
-
-	def parseString(self, text, base=None, sysid=None):
-		"""
-		Parse the string <arg>text</arg> (<class>str</class> or <class>unicode</class>)
-		into an &xist; tree. <arg>base</arg> is the base &url; for the parsing process, <arg>sysid</arg>
-		is the &xml; system identifier (defaulting to <arg>base</arg> if it is <lit>None</lit>).
-		"""
-		if isinstance(text, unicode):
-			encoding = "utf-8"
-			text = text.encode(encoding)
-		else:
-			encoding = self.encoding
-		stream = cStringIO.StringIO(text)
-		if base is None:
-			base = url.URL("STRING")
-		if sysid is None:
-			sysid = str(base)
-		return self._parse(stream, base, sysid, encoding)
 
 	def parseURL(self, name, base=None, sysid=None, *args, **kwargs):
 		"""
@@ -756,22 +746,6 @@ class Parser(object):
 		if encoding is None:
 			encoding = stream.encoding()
 		result = self._parse(stream, base, sysid, encoding)
-		stream.close()
-		return result
-
-	def parseFile(self, filename, base=None, sysid=None):
-		"""
-		Parse &xml; input from the file named <arg>filename</arg>. <arg>base</arg> is
-		the base &url; for the parsing process (defaulting to <arg>filename</arg>),
-		<arg>sysid</arg> is the &xml; system identifier (defaulting to <arg>base</arg>).
-		"""
-		filename = os.path.expanduser(filename)
-		stream = open(filename, "rb")
-		if base is None:
-			base = url.File(filename)
-		if sysid is None:
-			sysid = str(base)
-		result = self._parse(stream, base, sysid, self.encoding)
 		stream.close()
 		return result
 
