@@ -87,6 +87,7 @@ class Publisher(object):
 		"""
 		self.base = None
 		self.encoding = encoding
+		self.encoder = None
 		self.xhtml = xhtml
 		self.validate = validate
 		self.prefixes = dict((xsc.nsname(xmlns), prefix) for (xmlns, prefix) in prefixes.iteritems())
@@ -150,6 +151,24 @@ class Publisher(object):
 				return prefix
 			prefix = "ns%d" % suffix
 			suffix += 1
+
+	def getencoding(self):
+		"""
+		Return the encoding currently in effect.
+		"""
+		if self.encoding is not None:
+			# The encoding has been prescribed, so this *will* be used.
+			return self.encoding
+		elif self.encoder is not None:
+			# The encoding is determined by the XML declaration in the output,
+			# so use that if it has been determined already. If the encoder hasn't
+			# determined the encoding yet (e.g. because nothing has been output
+			# yet) use utf-8 (which will be what the encoder eventually will decide
+			# to use too). Note that this will not work if nothing has been output
+			# yet, but later an XML declaration (using a different encoding) will
+			# be output, but this shouldn't happen anyway.
+			return self.encoder.encoding or "utf-8"
+		return "utf-8"
 
 	def getprefix(self, object):
 		"""
@@ -233,4 +252,4 @@ class Publisher(object):
 		self._ns2prefix.clear()
 		self._prefix2ns.clear()
 
-		del self.encoder
+		self.encoder = None
