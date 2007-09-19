@@ -125,7 +125,7 @@ HTML_DTD = {
 }
 
 
-class Parser(object):
+class LLParser(object):
 	def __init__(self):
 		self.application = None
 
@@ -135,13 +135,16 @@ class Parser(object):
 	def begin(self):
 		pass
 
-	def feed(self, data, final)
+	def end(self):
+		pass
+
+	def feed(self, data, final):
 		pass
 
 
-class SGMLOPParser(Parser):
+class SGMLOPParser(LLParser):
 	def __init__(self, encoding=None):
-		Parser.__init__(self)
+		LLParser.__init__(self)
 		self.encoding = encoding
 		self._decoder = None
 		self._parser = None
@@ -158,64 +161,37 @@ class SGMLOPParser(Parser):
 			self._parser = sgmlop.XMLParser()
 			self._parser.register(self)
 
-	def parse(self, data):
-		self.begin()
-		self._parser.feed(self._decoder.decode(data))
-
-	def parsestring(self, data):
-		self.begin()
-		self._parser.parse(self._decoder.decode(data, True))
-		self.close()
-
-	def parseiter(self, data):
-		self.begin()
-		for d in data:
-			self._parser.feed(self._decoder.decode(data))
-		self._parser.feed(self._decoder.decode(""), True)
-		self.close()
-
-	def parsestream(self, stream, size=8192):
-		self.begin()
-		while True:
-			data = stream.read(size)
-			final = not data
-			self._parser.feed(self._decoder.decode(data, final))
-			if final:
-				self.close()
-				break
-
-	def close(self):
+	def end(self):
 		if self._parser is not None:
 			self._parser.register(None)
 			self._parser = None
 		self._decoder = None
-		self._application = None
 
 	def handle_comment(self, data):
-		self._application.handle_comment(data)
+		self.application.handle_comment(data)
 
 	def handle_data(self, data):
-		self._application.handle_data(data)
+		self.application.handle_data(data)
 
 	def handle_cdata(self, data):
-		self._application.handle_cdata(data)
+		self.application.handle_cdata(data)
 
 	def handle_proc(self, target, data):
-		self._application.handle_proc(target, data)
+		self.application.handle_proc(target, data)
 
 	def handle_entityref(self, name):
-		self._application.handle_entityref(name)
+		self.application.handle_entityref(name)
 
 	def finish_starttag(self, name, attrs):
-		self._application.handle_enterstarttag(name)
+		self.application.handle_enterstarttag(name)
 		for (key, value) in attrs.iteritems():
-			self._application.handle_enterattr(key)
-			self._application.handle_data(value)
-			self._application.handle_leaveattr(key)
-		self._application.handle_leavestarttag(name)
+			self.application.handle_enterattr(key)
+			self.application.handle_data(value)
+			self.application.handle_leaveattr(key)
+		self.application.handle_leavestarttag(name)
 
 	def finish_endtag(self, name):
-		self._application.handle_endtag(name)
+		self.application.handle_endtag(name)
 
 
 class BadEntityParser(SGMLOPParser):
@@ -369,78 +345,62 @@ class HTMLParser(BadEntityParser):
 			warnings.warn(xsc.IllegalCloseTagWarning(name))
 
 
-class ExpatParser(object):
-	def __init__(self, encoding=None):
+class ExpatParser(LLParser):
+	def __init__(self, encoding=None, transcode=False):
+		LLParser.__init__(self)
 		self.encoding = encoding
 		self._parser = None
-		self._application = None
+		self._decoder = None
+		self._encoder = None
+		self._transcode = transcode
 
-	def register(self, application):
-		self._application = application
-
-	def _init(self):
+	def begin(self):
 		self._parser = expat.ParserCreate(self.encoding)
 		self._parser.buffer_text = True
 		self._parser.ordered_attributes = True
 		self._parser.UseForeignDTD(True)
-		self._parser.CharacterDataHandler = self.handle_data
+		self._parser.CharacterDataHandler = self.application.handle_data # Pass directly to the application
 		self._parser.StartElementHandler = self.handle_startelement
 		self._parser.EndElementHandler = self.handle_endelement
-		self._parser.ProcessingInstructionHandler = self.handle_proc
-		self._parser.CommentHandler = self.handle_comment
+		self._parser.ProcessingInstructionHandler = self.application.handle_proc # Pass directly to the application
+		self._parser.CommentHandler = self.application.handle_comment # Pass directly to the application
 		self._parser.DefaultHandler = self.handle_default
+		if self._transcode:
+			self._decoder = codecs.getincrementaldecoder("xml")()
+			self._encoder = codecs.getincrementalencoder("xml")(encoding="utf-8")
+
+	def end(self):
+		self._parser = None
+		self._encoder = None
+		self._decoder = None
 
 	def handle_default(self, data):
 		if data.startswith("&") and data.endswith(";"):
-			self._application.handle_entityref(data[1:-1])
+			self.application.handle_entityref(data[1:-1])
 
-	def handle_comment(self, data):
-		self._application.handle_comment(data)
+	# No handle_comment(self, data) (directly passed on to the application)
 
-	def handle_data(self, data):
-		self._application.handle_data(data)
+	# No handle_data(self, data) (directly passed on to the application)
 
 	def handle_startelement(self, name, attrs):
-		self._application.handle_enterstarttag(name)
+		self.application.handle_enterstarttag(name)
 		for i in xrange(0, len(attrs), 2):
 			key = attrs[i]
-			self._application.handle_enterattr(key)
-			self._application.handle_data(attrs[i+1])
-			self._application.handle_leaveattr(key)
-		self._application.handle_leavestarttag(name)
+			self.application.handle_enterattr(key)
+			self.application.handle_data(attrs[i+1])
+			self.application.handle_leaveattr(key)
+		self.application.handle_leavestarttag(name)
 
 	def handle_endelement(self, name):
-		self._application.handle_endtag(name)
+		self.application.handle_endtag(name)
 
-	def handle_proc(self, target, data):
-		self._application.handle_proc(target, data)
+	# No handle_proc(self, target, data) (directly passed on to the application)
 
-	def close(self):
-		if self._parser is not None:
-			self._parser = None
-		self._application = None
-
-	def parsestring(self, data):
-		self._init()
-		self._parser.Parse(data, True)
-		self.close()
-
-	def parseiter(self, data):
-		self._init()
-		for d in data:
-			self._parser.Parse(d)
-		self._parser.Parse(d, True)
-		self.close()
-
-	def parsestream(self, stream, size=8192):
-		self._init()
-		while True:
-			data = stream.read(size)
-			final = not data
-			self._parser.Parse(data, final)
-			if final:
-				self.close()
-				break
+	def feed(self, data, final):
+		if self._transcode:
+			data = self._decoder.decode(data, final)
+			data = self._encoder.encode(data, final)
+		self._parser.Parse(data, final)
 
 
 class LaxAttrs(xsc.Attrs):
@@ -510,7 +470,7 @@ class Parser(object):
 	&sax; events generated by the underlying &sax; parser.</par>
 	"""
 
-	def __init__(self, saxparser=SGMLOPParser, prefixes=None, tidy=False, loc=True, validate=True, encoding=None, pool=None):
+	def __init__(self, saxparser=None, prefixes=None, tidy=False, loc=True, validate=True, encoding=None, pool=None):
 		"""
 		<par>Create a new <class>Parser</class> instance.</par>
 
@@ -653,7 +613,10 @@ class Parser(object):
 		return node
 
 	def begin(self, base=None, encoding=None):
-		parser = self.saxparser(encoding)
+		if self.saxparser is None:
+			parser = SGMLOPParser(encoding=encoding)
+		else:
+			parser = self.saxparser
 		parser.register(self)
 		self.base = url.URL(base)
 		self._nesting = [ (xsc.Frag(), self.prefixes) ]
@@ -661,21 +624,22 @@ class Parser(object):
 		return parser
 
 	def end(self, parser):
+		parser.end()
 		return self._nesting[0][0]
 
 	def parsestring(self, data, base=None, encoding=None):
 		parser = self.begin(base=base, encoding=encoding)
-		parse.feed(data, True)
+		parser.feed(data, True)
 		return self.end(parser)
 
-	def parseiter(self, data):
+	def parseiter(self, data, base=None, encoding=None):
 		parser = self.begin(base=base, encoding=encoding)
 		for d in data:
-			parser.feed(d)
+			parser.feed(d, False)
 		parser.feed("", True)
 		return self.end(parser)
 
-	def parsestream(self, stream, size=8192):
+	def parsestream(self, stream, base=None, encoding=None, size=8192):
 		parser = self.begin(base=base, encoding=encoding)
 		while True:
 			data = stream.read(size)
@@ -955,6 +919,19 @@ def parsestring(text, base=None, **parserargs):
 	"""
 	parser = Parser(**parserargs)
 	return parser.parsestring(text, base)
+
+
+def parseiter(iterable, base=None, **parserargs):
+	"""
+	Parse the string <arg>text</arg> (<class>str</class> or <class>unicode</class>) into an
+	&xist; tree. For the argument <arg>base</arg> see the method
+	<pyref class="Parser" method="parseString"><method>parsestring</method></pyref>
+	in the <class>Parser</class> class. You can pass any other argument that the
+	<pyref class="Parser" method="__init__"><class>Parser</class> constructor</pyref>
+	takes as keyword arguments via <arg>parserargs</arg>.
+	"""
+	parser = Parser(**parserargs)
+	return parser.parseiter(iterable, base)
 
 
 def parseURL(url, base=None, sysid=None, headers=None, data=None, **parserargs):
