@@ -16,5 +16,5 @@ from ll.xist.ns import specials
 
 
 def test_url():
-	node = parsers.parseString("<?url root:images/gurk.gif?>")
+	node = parsers.parsestring("<?url root:images/gurk.gif?>")
 	assert node.bytes(base="root:about/us.html") == "../images/gurk.gif"
