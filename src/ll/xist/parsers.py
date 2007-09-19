@@ -170,30 +170,30 @@ class SGMLOPParser(LLParser):
 		self._decoder = None
 
 	def handle_comment(self, data):
-		self.application.handle_comment(data)
+		self.application.handle_comment(data, None, None)
 
 	def handle_data(self, data):
-		self.application.handle_data(data)
+		self.application.handle_data(data, None, None)
 
 	def handle_cdata(self, data):
-		self.application.handle_cdata(data)
+		self.application.handle_cdata(data, None, None)
 
 	def handle_proc(self, target, data):
-		self.application.handle_proc(target, data)
+		self.application.handle_proc(target, data, None, None)
 
 	def handle_entityref(self, name):
-		self.application.handle_entityref(name)
+		self.application.handle_entityref(name, None, None)
 
 	def finish_starttag(self, name, attrs):
-		self.application.handle_enterstarttag(name)
+		self.application.handle_enterstarttag(name, None, None)
 		for (key, value) in attrs.iteritems():
-			self.application.handle_enterattr(key)
-			self.application.handle_data(value)
-			self.application.handle_leaveattr(key)
-		self.application.handle_leavestarttag(name)
+			self.application.handle_enterattr(key, None, None)
+			self.application.handle_data(value, None, None)
+			self.application.handle_leaveattr(key, None, None)
+		self.application.handle_leavestarttag(name, None, None)
 
 	def finish_endtag(self, name):
-		self.application.handle_endtag(name)
+		self.application.handle_endtag(name, None, None)
 
 
 class BadEntityParser(SGMLOPParser):
@@ -361,11 +361,11 @@ class ExpatParser(LLParser):
 		self._parser.buffer_text = True
 		self._parser.ordered_attributes = True
 		self._parser.UseForeignDTD(True)
-		self._parser.CharacterDataHandler = self.application.handle_data # Pass directly to the application
+		self._parser.CharacterDataHandler = self.handle_data
 		self._parser.StartElementHandler = self.handle_startelement
 		self._parser.EndElementHandler = self.handle_endelement
-		self._parser.ProcessingInstructionHandler = self.application.handle_proc # Pass directly to the application
-		self._parser.CommentHandler = self.application.handle_comment # Pass directly to the application
+		self._parser.ProcessingInstructionHandler = self.handle_proc
+		self._parser.CommentHandler = self.handle_comment
 		self._parser.DefaultHandler = self.handle_default
 		if self._transcode:
 			self._decoder = codecs.getincrementaldecoder("xml")()
@@ -378,25 +378,28 @@ class ExpatParser(LLParser):
 
 	def handle_default(self, data):
 		if data.startswith("&") and data.endswith(";"):
-			self.application.handle_entityref(data[1:-1])
+			self.application.handle_entityref(data[1:-1], self._parser.CurrentLineNumber-1, self._parser.CurrentColumnNumber)
 
-	# No handle_comment(self, data) (directly passed on to the application)
+	def handle_comment(self, data):
+		self.application.handle_comment(data, self._parser.CurrentLineNumber-1, self._parser.CurrentColumnNumber)
 
-	# No handle_data(self, data) (directly passed on to the application)
+	def handle_data(self, data):
+		self.application.handle_data(data, self._parser.CurrentLineNumber-1, self._parser.CurrentColumnNumber)
 
 	def handle_startelement(self, name, attrs):
-		self.application.handle_enterstarttag(name)
+		self.application.handle_enterstarttag(name, self._parser.CurrentLineNumber-1, self._parser.CurrentColumnNumber)
 		for i in xrange(0, len(attrs), 2):
 			key = attrs[i]
-			self.application.handle_enterattr(key)
-			self.application.handle_data(attrs[i+1])
-			self.application.handle_leaveattr(key)
-		self.application.handle_leavestarttag(name)
+			self.application.handle_enterattr(key, self._parser.CurrentLineNumber-1, self._parser.CurrentColumnNumber)
+			self.application.handle_data(attrs[i+1], self._parser.CurrentLineNumber-1, self._parser.CurrentColumnNumber)
+			self.application.handle_leaveattr(key, self._parser.CurrentLineNumber-1, self._parser.CurrentColumnNumber)
+		self.application.handle_leavestarttag(name, self._parser.CurrentLineNumber-1, self._parser.CurrentColumnNumber)
 
 	def handle_endelement(self, name):
-		self.application.handle_endtag(name)
+		self.application.handle_endtag(name, self._parser.CurrentLineNumber-1, self._parser.CurrentColumnNumber)
 
-	# No handle_proc(self, target, data) (directly passed on to the application)
+	def handle_proc(self, target, data):
+		self.application.handle_proc(target, data, self._parser.CurrentLineNumber-1, self._parser.CurrentColumnNumber)
 
 	def feed(self, data, final):
 		if self._transcode:
@@ -529,7 +532,7 @@ class Parser(object):
 				else:
 					self.prefixes[prefix] = xsc.nsname(xmlns)
 
-		self._locator = None
+		self.url = None
 		self.tidy = tidy
 		self.loc = loc
 		self.validate = validate
@@ -561,7 +564,7 @@ class Parser(object):
 				try:
 					newnode = self.pool.element_xml(name, html)
 					if self.loc:
-						newnode.startloc = xsc.Location(sysid=sysid, line=node.lineNo())
+						newnode.startloc = xsc.Location(url=self.base, line=node.lineNo())
 				except xsc.IllegalElementError:
 					newnode = xsc.Frag()
 				else:
@@ -591,11 +594,11 @@ class Parser(object):
 			elif node.type in ("text", "cdata"):
 				newnode = self.pool.text(decode(node.content))
 				if self.loc:
-					newnode.startloc = xsc.Location(sysid=sysid, line=node.lineNo())
+					newnode.startloc = xsc.Location(url=self.base, line=node.lineNo())
 			elif node.type == "comment":
 				newnode = self.pool.comment(decode(node.content))
 				if self.loc:
-					newnode.startloc = xsc.Location(sysid=sysid, line=node.lineNo())
+					newnode.startloc = xsc.Location(url=self.base, line=node.lineNo())
 			else:
 				newnode = xsc.Null
 			return newnode
@@ -637,6 +640,7 @@ class Parser(object):
 		return self._nesting[0][0]
 
 	def parsestring(self, data, base=None, encoding=None):
+		self.url = url.URL(base if base is not None else "STRING")
 		parser = self._begin(base=base, encoding=encoding)
 		if isinstance(data, unicode):
 			data = data.encode("xml")
@@ -644,6 +648,7 @@ class Parser(object):
 		return self._end(parser)
 
 	def parseiter(self, data, base=None, encoding=None):
+		self.url = url.URL(base if base is not None else "ITER")
 		parser = self._begin(base=base, encoding=encoding)
 		for d in data:
 			parser.feed(d, False)
@@ -657,6 +662,7 @@ class Parser(object):
 		used to force the parser to use another encoding. <arg>bufsize</arg> is
 		the buffer size used from reading the stream in blocks.
 		"""
+		self.url = url.URL(base if base is not None else "STREAM")
 		parser = self._begin(base=base, encoding=encoding)
 		while True:
 			data = stream.read(bufsize)
@@ -671,11 +677,18 @@ class Parser(object):
 		is the base &url; for the parsing process (defaulting to <arg>filename</arg>),
 		for the other arguments see <pyref method="parsestream"><method>parsestream</method</pyref>.
 		"""
+		self.url = url.File(filename)
 		if base is None:
-			base = url.File(filename)
+			base = self.url
 		filename = os.path.expanduser(filename)
+		parser = self._begin(base=base, encoding=encoding)
 		with contextlib.closing(open(filename, "rb")) as stream:
-			return self.parsestream(stream, base=base, encoding=encoding, bufsize=bufsize)
+			while True:
+				data = stream.read(bufsize)
+				final = not data
+				parser.feed(data, final)
+				if final:
+					return self._end(parser)
 
 	def _parse(self, stream, base, sysid, encoding):
 		self.base = url.URL(base)
@@ -750,21 +763,18 @@ class Parser(object):
 		stream.close()
 		return result
 
-	def setDocumentLocator(self, locator):
-		self._locator = locator
-
-	def handle_enterstarttag(self, name):
+	def handle_enterstarttag(self, name, line, col):
 		self._attrs = {}
 
-	def handle_enterattr(self, name):
+	def handle_enterattr(self, name, line, col):
 		node = xsc.Frag()
 		self._attrs[name] = node
 		self._nesting.append((node, self._nesting[-1][1]))
 
-	def handle_leaveattr(self, name):
+	def handle_leaveattr(self, name, line, col):
 		self._nesting.pop()
 
-	def handle_leavestarttag(self, name):
+	def handle_leavestarttag(self, name, line, col):
 		oldprefixes = self.prefixes
 
 		newprefixes = {}
@@ -809,12 +819,12 @@ class Parser(object):
 				node.attrs.set_xml(attrname, attrvalue.parsed(self))
 		node.attrs = node.attrs.parsed(self)
 		node = node.parsed(self, start=True)
-		self.__appendNode(node)
+		self.__appendNode(node, line, col)
 		# push new innermost element onto the stack, together with the list of prefix mappings to which we have to return when we leave this element
 		self._nesting.append((node, oldprefixes))
 		self._attrs = None
 
-	def handle_endtag(self, name):
+	def handle_endtag(self, name, line, col):
 		currentelement = self._nesting[-1][0]
 
 		(prefix, sep, name) = name.rpartition(u":")
@@ -828,11 +838,11 @@ class Parser(object):
 		if self.validate:
 			currentelement.checkvalid()
 		if self.loc:
-			currentelement.endloc = self.getLocation()
+			currentelement.endloc = xsc.Location(self.url, line, col)
 
 		self.prefixes = self._nesting.pop()[1] # pop the innermost element off the stack and restore the old prefixes mapping (from outside this element)
 
-	def handle_data(self, content):
+	def handle_data(self, content, line, col):
 		if content:
 			node = self.pool.text(content)
 			node = node.parsed(self)
@@ -842,38 +852,38 @@ class Parser(object):
 				node.startloc = last[-1].startloc # make sure the replacement node has the original location
 				last[-1] = node # replace it
 			else:
-				self.__appendNode(node)
+				self.__appendNode(node, line, col)
 
-	def handle_comment(self, content):
+	def handle_comment(self, content, line, col):
 		node = self.pool.comment(content)
 		node = node.parsed(self)
-		self.__appendNode(node)
+		self.__appendNode(node, line, col)
 
-	def handle_proc(self, target, content):
+	def handle_proc(self, target, data, line, col):
 		if target != "xml":
-			node = self.pool.procinst_xml(target, content)
+			node = self.pool.procinst_xml(target, data)
 			node = node.parsed(self)
-			self.__appendNode(node)
+			self.__appendNode(node, line, col)
 
-	def handle_entityref(self, name):
+	def handle_entityref(self, name, line, col):
 		try:
 			c = {u"lt": u"<", u"gt": u">", u"amp": u"&", u"quot": u'"', u"apos": u"'"}[name]
 		except KeyError:
 			node = self.pool.entity_xml(name)
 			if isinstance(node, xsc.CharRef):
-				self.handle_data(unichr(node.codepoint))
+				self.handle_data(unichr(node.codepoint), line, col)
 			else:
 				node = node.parsed(self)
-				self.__appendNode(node)
+				self.__appendNode(node, line, col)
 		else:
 			self.handle_data(c)
 
 	def getLocation(self):
 		return xsc.Location(self._locator)
 
-	def __appendNode(self, node):
+	def __appendNode(self, node, line, col):
 		if self.loc:
-			node.startloc = self.getLocation()
+			node.startloc = xsc.Location(self.url, line, col)
 		self._nesting[-1][0].append(node) # add the new node to the content of the innermost element/fragment/(attribute)
 
 
