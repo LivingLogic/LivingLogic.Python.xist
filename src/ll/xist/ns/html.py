@@ -251,8 +251,9 @@ class meta(xsc.Element):
 			ctype = unicode(self[u"http_equiv"]).lower()
 			if ctype == u"content-type" and u"content" in self.attrs:
 				(contenttype, options) = cgi.parse_header(unicode(self[u"content"]))
-				if u"charset" not in options or options[u"charset"] != publisher.encoding:
-					options[u"charset"] = publisher.encoding
+				encoding = publisher.getencoding()
+				if u"charset" not in options or options[u"charset"] != encoding:
+					options[u"charset"] = encoding
 					node = self.__class__(
 						self.attrs,
 						http_equiv=u"Content-Type",

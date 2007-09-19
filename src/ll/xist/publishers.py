@@ -87,6 +87,7 @@ class Publisher(object):
 		"""
 		self.base = None
 		self.encoding = encoding
+		self.encoder = None
 		self.xhtml = xhtml
 		self.validate = validate
 		self.prefixes = dict((xsc.nsname(xmlns), prefix) for (xmlns, prefix) in prefixes.iteritems())
@@ -150,6 +151,16 @@ class Publisher(object):
 				return prefix
 			prefix = "ns%d" % suffix
 			suffix += 1
+
+	def getencoding(self):
+		"""
+		Return the encoding currently in effect.
+		"""
+		if self.encoding is not None:
+			return self.encoding
+		elif self.encoder is not None:
+			return self.encoder.encoding or "utf-8"
+		return "utf-8"
 
 	def getprefix(self, object):
 		"""
@@ -233,4 +244,4 @@ class Publisher(object):
 		self._ns2prefix.clear()
 		self._prefix2ns.clear()
 
-		del self.encoder
+		self.encoder = None
