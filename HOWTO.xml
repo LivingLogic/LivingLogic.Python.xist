@@ -202,7 +202,7 @@ calls
 <pyref module="ll.xist.xsc" class="Node" method="convert"><method>convert</method></pyref>
 with a default <pyref module="ll.xist.converters" class="Converter"><arg>converter</arg></pyref>
 argument. We'll come to converters in a minute.
-<pyref module="ll.xist.xsc" class="Node" method="asBytes"><method>asBytes</method></pyref>
+<pyref module="ll.xist.xsc" class="Node" method="bytes"><method>bytes</method></pyref>
 is a method that converts the node to a byte string. This method will be explained
 when we discuss the publishing interface.</par>
 
@@ -965,18 +965,19 @@ will be published as <lit>&lt;%= foo&gt;</lit>.</par>
 into its final output form, you have to write the resulting tree
 to a file. This can be done with the publishing &api;. Three methods
 that use the publishing &api; are
-<pyref module="ll.xist.xsc" class="Node" method="bytes"><method>bytes</method></pyref>,
-<pyref module="ll.xist.xsc" class="Node" method="asBytes"><method>asBytes</method></pyref>
+<pyref module="ll.xist.xsc" class="Node" method="iterbytes"><method>iterbytes</method></pyref>,
+<pyref module="ll.xist.xsc" class="Node" method="bytes"><method>bytes</method></pyref>
 and
 <pyref module="ll.xist.xsc" class="Node" method="write"><method>write</method></pyref>.
-<pyref module="ll.xist.xsc" class="Node" method="bytes"><method>bytes</method></pyref>
+<pyref module="ll.xist.xsc" class="Node" method="bytes"><method>iterbytes</method></pyref>
 is a generator that will yield the complete 8-bit &xml; string in fragments.
-<pyref module="ll.xist.xsc" class="Node" method="asBytes"><method>asBytes</method></pyref>
+<pyref module="ll.xist.xsc" class="Node" method="asBytes"><method>bytes</method></pyref>
 returns the complete 8-bit &xml; string.</par>
 
 <par>You can specify the encoding with the parameter <arg>encoding</arg>
-(with <lit>"utf-8"</lit> being the default). Unencodable characters will be
-escaped with character references when possible (i.e. inside text nodes, for
+(with the encoding specified in an &xml; declaration being the default, if there
+is no such declaration <lit>"utf-8"</lit> is used). Unencodable characters will
+be escaped with character references when possible (i.e. inside text nodes, for
 comments or processing instructions you'll get an exception):</par>
 
 <tty>
