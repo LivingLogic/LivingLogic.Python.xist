@@ -226,7 +226,7 @@ typedef struct {
 staticforward PyTypeObject FastParser_Type;
 
 /* forward declarations */
-static int fastfeed(
+static Py_ssize_t fastfeed(
     FastParserObject* self
     );
 static PyObject* attrparse(
