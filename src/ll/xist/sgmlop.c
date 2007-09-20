@@ -219,7 +219,6 @@ typedef struct {
     PyObject* handle_special;
     PyObject* handle_charref;
     PyObject* handle_entityref;
-    PyObject* resolve_entityref;
     PyObject* handle_data;
     PyObject* handle_cdata;
     PyObject* handle_comment;
@@ -291,7 +290,6 @@ _sgmlop_new(int xml)
     self->handle_special = NULL;
     self->handle_charref = NULL;
     self->handle_entityref = NULL;
-    self->resolve_entityref = NULL;
     self->handle_data = NULL;
     self->handle_cdata = NULL;
     self->handle_comment = NULL;
@@ -343,7 +341,6 @@ _sgmlop_traverse(FastParserObject *self, visitproc visit, void *arg)
     VISIT(handle_special);
     VISIT(handle_charref);
     VISIT(handle_entityref);
-    VISIT(resolve_entityref);
     VISIT(handle_data);
     VISIT(handle_cdata);
     VISIT(handle_comment);
@@ -368,7 +365,6 @@ _sgmlop_clear(FastParserObject* self)
     CLEAR(handle_special);
     CLEAR(handle_charref);
     CLEAR(handle_entityref);
-    CLEAR(resolve_entityref);
     CLEAR(handle_data);
     CLEAR(handle_cdata);
     CLEAR(handle_comment);
@@ -413,7 +409,6 @@ _sgmlop_register(FastParserObject* self, PyObject* args)
     GETCB(handle_special, "handle_special");
     GETCB(handle_charref, "handle_charref");
     GETCB(handle_entityref, "handle_entityref");
-    GETCB(resolve_entityref, "resolve_entityref");
     GETCB(handle_data, "handle_data");
     GETCB(handle_cdata, "handle_cdata");
     GETCB(handle_comment, "handle_comment");
@@ -1077,30 +1072,6 @@ fastfeed(FastParserObject* self)
                     res = PyObject_CallFunction(
                         self->handle_data, BUILDFORMAT, &ch, 1
                         );
-                    if (!res)
-                        return -1;
-                    Py_DECREF(res);
-                    goto next;
-                }
-            }
-            if (self->resolve_entityref && self->handle_data) {
-                /* map entity through resolver, and pass the result to
-                   handle_data.  the resolver should return None if it
-                   cannot map the entity */
-                PyObject* ent;
-                if (self->check && !self->check->entityref(self->check, b, e))
-                    return -1;
-                ent = PyObject_CallFunction(
-                    self->resolve_entityref, BUILDFORMAT, b, e-b
-                    );
-                if (!ent)
-                    return -1;
-                if (ent != Py_None) {
-                    PyObject* res;
-                    res = PyObject_CallFunction(
-                        self->handle_data, "O", ent
-                        );
-                    Py_DECREF(ent);
                     if (!res)
                         return -1;
                     Py_DECREF(res);
