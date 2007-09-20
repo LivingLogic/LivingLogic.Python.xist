@@ -84,19 +84,24 @@ class SGMLOPParser(LLParser):
 	def handle_entityref(self, name):
 		self.application.handle_entityref(name, None, None)
 
-	def finish_starttag(self, name, attrs):
+	def handle_enterstarttag(self, name):
 		self.application.handle_enterstarttag(name, None, None)
-		for (key, value) in attrs.iteritems():
-			self.application.handle_enterattr(key, None, None)
-			self.application.handle_data(value, None, None)
-			self.application.handle_leaveattr(key, None, None)
+
+	def handle_leavestarttag(self, name):
 		self.application.handle_leavestarttag(name, None, None)
 
-	def finish_endtag(self, name):
+	def handle_enterattr(self, name):
+		self.application.handle_enterattr(name, None, None)
+
+	def handle_leaveattr(self, name):
+		self.application.handle_leaveattr(name, None, None)
+
+	def handle_endtag(self, name):
 		self.application.handle_endtag(name, None, None)
 
 
 class ExpatParser(LLParser):
+	print "s ExpatParser(LLParser):"
 	def __init__(self, encoding=None, transcode=False):
 		LLParser.__init__(self)
 		self.encoding = encoding
