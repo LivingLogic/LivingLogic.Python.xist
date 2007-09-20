@@ -222,7 +222,7 @@ class Test:
 					assert p.parsestring("<a>gurk</a>").bytes() == "<a>gurk</a>"
 
 		# A Parser instance should be able to parse multiple XML sources, even when some of the parse calls fail
-		for saxparser in (parsers.SGMLOPParser, parsers.BadEntityParser, parsers.HTMLParser, parsers.ExpatParser):
+		for saxparser in (parsers.SGMLOPParser, parsers.ExpatParser):
 			yield check, saxparser()
 
 
