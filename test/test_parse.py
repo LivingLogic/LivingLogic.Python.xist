@@ -226,8 +226,8 @@ class Test:
 			yield check, saxparser()
 
 
-def test_locationurl():
-	# urls should end up in the location info of the resulting XML tree
+def test_parsestringurl():
+	# Base URLs should end up in the location info of the resulting XML tree
 	node = parsers.parsestring("gurk")
 	assert str(node[0].startloc.url) == "STRING"
 
