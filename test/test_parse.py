@@ -226,16 +226,13 @@ class Test:
 			yield check, saxparser()
 
 
-def test_sysid():
-	# Default system ids and explicitely specified system ids should end up in the location info of the resulting XML tree
+def test_parsestringurl():
+	# Base URLs should end up in the location info of the resulting XML tree
 	node = parsers.parsestring("gurk")
-	assert node[0].startloc.sysid == "STRING"
+	assert str(node[0].startloc.url) == "STRING"
 
 	node = parsers.parsestring("gurk", base="root:gurk.xmlxsc")
-	assert node[0].startloc.sysid == "root:gurk.xmlxsc"
-
-	node = parsers.parsestring("gurk", base="root:gurk.xmlxsc", sysid="hurz")
-	assert node[0].startloc.sysid == "hurz"
+	assert str(node[0].startloc.url) == "root:gurk.xmlxsc"
 
 
 def test_xmlns():
