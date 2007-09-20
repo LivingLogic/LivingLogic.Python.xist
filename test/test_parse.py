@@ -71,30 +71,6 @@ def check_parsestrictentities(source, result, parserfactory):
 	raisesSAX(xsc.IllegalEntityError, check_parseentities, "&baz;", u"", prefixes=prefixes, saxparser=parserfactory())
 
 
-def check_parsebadentities(parserfactory):
-	prefixes = {None: (a.xmlns, chars)}
-	tests = [
-		("&amp;", u"&"),
-		("&amp;amp;", u"&amp;"),
-		("x&foo;&bar;y", u"xFOO\x42y"),
-		("x&foobar;y", u"x&foobar;y"),
-		("&uuml;", u"ü"),
-		("x&x", u"x&x"),
-		("x&x;", u"x&x;"),
-		("a&amp;b&lt;c&gt;d&quot;e&apos;f", u"a&b<c>d\"e'f"),
-		("x&#;y", u"x&#;y"),
-		("x&#32;y", u"x y"),
-		("x&#x20;y", u"x y"),
-		("x&#-32;y", u"x&#-32;y"),
-		("x&#999999999;y", "x&#999999999;y"),
-		("x&#xffffffff;y", "x&#xffffffff;y"),
-		("x&#xffffffff;y", "x&#xffffffff;y"),
-		("x&#xffffffff;y&#", "x&#xffffffff;y&#")
-	]
-	for (source, result) in tests:
-		check_parseentities(source, result, prefixes=prefixes, saxparser=parserfactory())
-
-
 def test_parselocationsgmlop():
 	# Check that SGMLOP gets the location info right (at least the line numbers)
 	node = parsers.parsestring("<z>gurk&amp;hurz&#42;hinz&#x666;hunz</z>", saxparser=parsers.SGMLOPParser())
@@ -203,12 +179,6 @@ class Test:
 			u"""a&bc d %c;<>"'""" % 30000,
 			parsers.ExpatParser
 		)
-
-	def test_parsebadentities_badentity(self):
-		check_parsebadentities(parsers.BadEntityParser)
-
-	def test_parsebadentities_html(self):
-		check_parsebadentities(parsers.HTMLParser)
 
 	def test_multipleparsecalls(self):
 		def check(saxparser):
