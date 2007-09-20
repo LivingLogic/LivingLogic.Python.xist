@@ -26,19 +26,6 @@ from ll.xist.ns import chars, html, ihtml, specials, ruby
 oldfilters = None
 
 
-def raisesSAX(exception, func, *args, **kwargs):
-	# assert that func(*args, **kwargs) raises exception (either directly or wrapped in a SAXParseException)
-	try:
-		func(*args, **kwargs)
-	except exception:
-		pass
-	except sax.SAXParseException, exc:
-		realexc = exc.getException()
-		assert isinstance(realexc, exception)
-	else:
-		raise py.test.fail("exception not raised")
-
-
 class a(xsc.Element):
 	xmlns = "http://www.example.com/foo"
 	class Attrs(xsc.Element.Attrs):
@@ -67,8 +54,8 @@ def check_parsestrictentities(source, result, parserfactory):
 
 	warnings.filterwarnings("error", category=xsc.MalformedCharRefWarning)
 	for bad in ("&", "&#x", "&&", "&#x;", "&#fg;", "&#999999999;", "&#;", "&#y;", "&#x;", "&#xy;"):
-		raisesSAX((xsc.MalformedCharRefWarning, expat.ExpatError), check_parseentities, bad, u"", prefixes=prefixes, saxparser=parserfactory())
-	raisesSAX(xsc.IllegalEntityError, check_parseentities, "&baz;", u"", prefixes=prefixes, saxparser=parserfactory())
+		py.test.raises((xsc.MalformedCharRefWarning, expat.ExpatError), check_parseentities, bad, u"", prefixes=prefixes, saxparser=parserfactory())
+	py.test.raises(xsc.IllegalEntityError, check_parseentities, "&baz;", u"", prefixes=prefixes, saxparser=parserfactory())
 
 
 def test_parselocationsgmlop():
@@ -143,7 +130,7 @@ class Test:
 			assert str(node[0]["required"]) == "foo"
 	
 			warnings.filterwarnings("error", category=xsc.RequiredAttrMissingWarning)
-			raisesSAX(xsc.RequiredAttrMissingWarning, parsers.parsestring, '<Test/>', prefixes=prefixes)
+			py.test.raises(xsc.RequiredAttrMissingWarning, parsers.parsestring, '<Test/>', prefixes=prefixes)
 
 		py.test.raises(xsc.IllegalElementError, parsers.parsestring, '<Test required="foo"/>', prefixes=prefixes)
 
@@ -164,7 +151,7 @@ class Test:
 			assert str(node[0]["withvalues"]) == "bar"
 	
 			warnings.filterwarnings("error", category=xsc.IllegalAttrValueWarning)
-			raisesSAX(xsc.IllegalAttrValueWarning, parsers.parsestring, '<Test withvalues="baz"/>', prefixes=prefixes)
+			py.test.raises(xsc.IllegalAttrValueWarning, parsers.parsestring, '<Test withvalues="baz"/>', prefixes=prefixes)
 
 	def test_parsestrictentities_sgmlop(self):
 		check_parsestrictentities(
