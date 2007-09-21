@@ -3968,13 +3968,13 @@ class Location(object):
 	def offset(self, offset):
 		"""
 		<par>Return a location where the line number is incremented by offset
-		(and the column number is reset to 1).</par>
+		(and the column number is reset to 0).</par>
 		"""
 		if offset==0:
 			return self
 		elif self.line is None:
-			return Location(url=self.url, col=1)
-		return Location(url=self.url, line=self.line+offset, col=1)
+			return Location(url=self.url, col=0)
+		return Location(url=self.url, line=self.line+offset, col=0)
 
 	def __str__(self):
 		url = str(self.url) if self.url is not None else "???"
