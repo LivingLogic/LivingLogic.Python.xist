@@ -468,7 +468,7 @@ class Builder(object):
 				newnode = newnode.parsed(self, start=True)
 				if node.text:
 					newnode.append(node.text)
-				for child in node.getchildren():
+				for child in node:
 					newchild = toxsc(child)
 					newnode.append(newchild)
 					if hasattr(child, "tail") and child.tail:
