@@ -479,6 +479,10 @@ class Builder(object):
 				newnode = self.pool.procinst_xml(node.target, node.text)
 				newnode = newnode.parsed(self)
 				return newnode
+			elif "Comment" in type(node).__name__:
+				newnode = self.pool.comment(node.text)
+				newnode = newnode.parsed(self)
+				return newnode
 			return xsc.Null
 		self.base = url.URL(base)
 		return toxsc(tree)
