@@ -1266,14 +1266,9 @@ attrparse(FastParserObject* self, const CHAR_T* p, const CHAR_T* end)
                     quote = 0;
                 q = p;
                 while (p < end && (quote ? (*p != quote) : !ISSPACE(*p)) && *p != '>') {
-                    if (*p == '&') {
-                        if (is_entity) {
-                            if (handle_entityref(self, q, p))
-                                return -1;
-                        } else {
-                            if (handle_data(self, q, p))
-                                return -1;
-                        }
+                    if (!is_entity && *p == '&') {
+                        if (handle_data(self, q, p))
+                            return -1;
                         is_entity = 1;
                         q = ++p;
                     }
