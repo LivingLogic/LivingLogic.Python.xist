@@ -490,17 +490,6 @@ class Builder(object):
 			self._nesting = None
 		return root
 
-	def parse(self, stream, base=None, sysid=None):
-		"""
-		Parse &xml; from the stream <arg>stream</arg> into an &xist; tree.
-		<arg>base</arg> is the base &url; for the parsing process, <arg>sysid</arg>
-		is the &xml; system identifier (defaulting to <arg>base</arg> if it is <lit>None</lit>).
-		"""
-		if sysid is None:
-			sysid = base
-		return self._parse(stream, base, sysid, self.encoding)
-
-
 	def handle_enterstarttag(self, name, line, col):
 		self._attrs = {}
 
