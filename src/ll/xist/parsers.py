@@ -471,9 +471,13 @@ class Builder(object):
 				for child in node.getchildren():
 					newchild = toxsc(child)
 					newnode.append(newchild)
-					if isinstance(newchild, xsc.Element) and child.tail:
+					if hasattr(child, "tail") and child.tail:
 						newnode.append(child.tail)
 				newnode = newnode.parsed(self, start=False)
+				return newnode
+			elif "ProcessingInstruction" in type(node).__name__:
+				newnode = self.pool.procinst_xml(node.target, node.text)
+				newnode = newnode.parsed(self)
 				return newnode
 			return xsc.Null
 		self.base = url.URL(base)
