@@ -29,6 +29,7 @@ oldfilters = None
 class a(xsc.Element):
 	xmlns = "http://www.example.com/foo"
 	class Attrs(xsc.Element.Attrs):
+		class id(xsc.IDAttr): pass
 		class title(xsc.TextAttr): pass
 
 
@@ -200,6 +201,22 @@ def test_parseentities_sgmlop():
 	yield check, "&#32;", " "
 	yield check, "&#x20;", " "
 	yield check, "&#x3042;", u"\u3042"
+
+
+def test_parseattr_sgmlop():
+	def check(input, output):
+		prefixes = {None: (a.xmlns, chars)}
+		node = parsers.parsestring(input, parser=parsers.SGMLOPParser())
+		node = node.walknode(a)[0]
+		assert unicode(node.attrs.title) == output
+
+	yield check, """<a title=x></a>""", "x"
+	yield check, """<a title=x/>""", "x"
+	yield check, """<a title=x id=42/>""", "x"
+	yield check, """<a title="x" id=42/>""", "x"
+	yield check, """<a title='x' id=42/>""", "x"
+	yield check, """<a title='x"y' id=42/>""", 'x"y'
+	yield check, """<a title="x'y" id=42/>""", "x'y"
 
 
 def test_parsestringurl():
