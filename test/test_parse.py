@@ -50,17 +50,17 @@ def check_parseentities(source, result, **parseargs):
 
 def check_parsestrictentities(source, result, parserfactory):
 	prefixes = {None: (a.xmlns, chars)}
-	check_parseentities(source, result, prefixes=prefixes, saxparser=parserfactory())
+	check_parseentities(source, result, prefixes=prefixes, parser=parserfactory())
 
 	warnings.filterwarnings("error", category=xsc.MalformedCharRefWarning)
 	for bad in ("&", "&#x", "&&", "&#x;", "&#fg;", "&#999999999;", "&#;", "&#y;", "&#x;", "&#xy;"):
-		py.test.raises((xsc.MalformedCharRefWarning, expat.ExpatError), check_parseentities, bad, u"", prefixes=prefixes, saxparser=parserfactory())
-	py.test.raises(xsc.IllegalEntityError, check_parseentities, "&baz;", u"", prefixes=prefixes, saxparser=parserfactory())
+		py.test.raises((xsc.MalformedCharRefWarning, expat.ExpatError), check_parseentities, bad, u"", prefixes=prefixes, parser=parserfactory())
+	py.test.raises(xsc.IllegalEntityError, check_parseentities, "&baz;", u"", prefixes=prefixes, parser=parserfactory())
 
 
 def test_parselocationsgmlop():
 	# Check that SGMLOP gets the location info right (at least the line numbers)
-	node = parsers.parsestring("<z>gurk&amp;hurz&#42;hinz&#x666;hunz</z>", saxparser=parsers.SGMLOPParser())
+	node = parsers.parsestring("<z>gurk&amp;hurz&#42;hinz&#x666;hunz</z>", parser=parsers.SGMLOPParser())
 	assert len(node) == 1
 	assert len(node[0]) == 1
 	assert str(node[0][0].startloc.url) == "STRING"
@@ -69,7 +69,7 @@ def test_parselocationsgmlop():
 
 def test_parselocationexpat():
 	# Check that expat gets the location info right
-	node = parsers.parsestring("<z>gurk&amp;hurz&#42;hinz&#x666;hunz</z>", saxparser=parsers.ExpatParser())
+	node = parsers.parsestring("<z>gurk&amp;hurz&#42;hinz&#x666;hunz</z>", parser=parsers.ExpatParser())
 	assert len(node) == 1
 	assert len(node[0]) == 1
 	assert str(node[0][0].startloc.url) == "STRING"
@@ -153,13 +153,6 @@ class Test:
 			warnings.filterwarnings("error", category=xsc.IllegalAttrValueWarning)
 			py.test.raises(xsc.IllegalAttrValueWarning, parsers.parsestring, '<Test withvalues="baz"/>', prefixes=prefixes)
 
-	def test_parsestrictentities_sgmlop(self):
-		check_parsestrictentities(
-			"a&amp;b&foo;&bar;c&#32;d&#x20;&#30000;;&lt;&gt;&quot;&apos;",
-			u"""a&bFOO\x42c d %c;<>"'""" % 30000,
-			parsers.SGMLOPParser
-		)
-
 	def test_parsestrictentities_expat(self):
 		check_parsestrictentities(
 			"a&amp;bc&#32;d&#x20;&#30000;;&lt;&gt;&quot;&apos;",
@@ -167,20 +160,46 @@ class Test:
 			parsers.ExpatParser
 		)
 
-	def test_multipleparsecalls(self):
-		def check(saxparser):
-			p = parsers.Parser(saxparser=saxparser)
-			for i in xrange(3):
-				try:
-					p.parsestring("<>gurk")
-				except Exception:
-					pass
-				for j in xrange(3):
-					assert p.parsestring("<a>gurk</a>").bytes() == "<a>gurk</a>"
 
-		# A Parser instance should be able to parse multiple XML sources, even when some of the parse calls fail
-		for saxparser in (parsers.SGMLOPParser, parsers.ExpatParser):
-			yield check, saxparser()
+def test_multipleparsecalls():
+	def check(parser):
+		b = parsers.Builder(parser=parser)
+		for i in xrange(3):
+			try:
+				b.parsestring("<>gurk")
+			except Exception:
+				pass
+			for j in xrange(3):
+				assert b.parsestring("<a>gurk</a>").bytes() == "<a>gurk</a>"
+
+	# A Parser instance should be able to parse multiple XML sources, even when some of the parse calls fail
+	for parser in (parsers.SGMLOPParser, parsers.ExpatParser):
+		yield check, parser()
+
+
+def test_parseentities_sgmlop():
+	def check(input, output):
+		prefixes = {None: (a.xmlns, chars)}
+		node = parsers.parsestring("""<a title="%s">%s</a>""" % (input, input), parser=parsers.SGMLOPParser())
+		node = node.walknode(a)[0]
+		assert unicode(node) == output
+		assert unicode(node.attrs.title) == output
+
+	yield check, "a", "a"
+	yield check, ";a;", ";a;"
+	yield check, "&lt;", "<"
+	yield check, "&lt;&gt;", "<>"
+	yield check, "&gt;", ">"
+	yield check, "&apos;", "'"
+	yield check, "&quot;", '"'
+	yield check, "&amp;", "&"
+	yield check, "&amp;", "&"
+	yield check, "a&amp;b", "a&b"
+	yield check, "&foo;", "FOO"
+	yield check, "&bar;", "\x42"
+	yield check, "&#32;", " "
+	yield check, "&#x20;", " "
+	yield check, "&#x3042;", u"\u3042"
 
 
 def test_parsestringurl():
