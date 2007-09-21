@@ -60,12 +60,13 @@ def check_parsestrictentities(source, result, parserfactory):
 
 
 def test_parselocationsgmlop():
-	# Check that SGMLOP gets the location info right (at least the line numbers)
+	# sgmlop doesn't provide any location info, so check only the URL
 	node = parsers.parsestring("<z>gurk&amp;hurz&#42;hinz&#x666;hunz</z>", parser=parsers.SGMLOPParser())
 	assert len(node) == 1
 	assert len(node[0]) == 1
 	assert str(node[0][0].startloc.url) == "STRING"
-	assert node[0][0].startloc.line == 0
+	assert node[0][0].startloc.line is None
+	assert node[0][0].startloc.col is None
 
 
 def test_parselocationexpat():
@@ -75,7 +76,7 @@ def test_parselocationexpat():
 	assert len(node[0]) == 1
 	assert str(node[0][0].startloc.url) == "STRING"
 	assert node[0][0].startloc.line == 0
-	assert node[0][0].startloc.col == 3
+	assert node[0][0].startloc.col == 36 # expat reports the *end* of the text
 
 
 class Test:
