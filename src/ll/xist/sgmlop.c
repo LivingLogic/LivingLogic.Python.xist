@@ -210,13 +210,15 @@ typedef struct {
 
     /* callbacks */
     /* FIXME: move to target object */
-    PyObject* finish_starttag;
-    PyObject* finish_endtag;
+    PyObject* handle_enterstarttag;
+    PyObject* handle_enterattr;
+    PyObject* handle_leaveattr;
+    PyObject* handle_leavestarttag;
+    PyObject* handle_endtag;
     PyObject* handle_proc;
     PyObject* handle_special;
     PyObject* handle_charref;
     PyObject* handle_entityref;
-    PyObject* resolve_entityref;
     PyObject* handle_data;
     PyObject* handle_cdata;
     PyObject* handle_comment;
@@ -226,13 +228,10 @@ typedef struct {
 staticforward PyTypeObject FastParser_Type;
 
 /* forward declarations */
-static int fastfeed(
+static Py_ssize_t fastfeed(
     FastParserObject* self
     );
-static PyObject* attrparse(
-    FastParserObject* self, const CHAR_T *p, const CHAR_T *e
-    );
-static PyObject* attrexpand(
+static int attrparse(
     FastParserObject* self, const CHAR_T *p, const CHAR_T *e
     );
 
@@ -250,66 +249,6 @@ static Checker wf_checker = {
     (void*) wf_ok,
     (void*) wf_ok
 };
-
-/* -------------------------------------------------------------------- */
-/* helpers */
-
-static PyObject*
-join(PyObject* list)
-{
-    /* join list elements (consumes list) */
-
-    PyObject* joiner;
-#if PY_VERSION_HEX >= 0x01060000
-    PyObject* function;
-    PyObject* args;
-#endif
-    PyObject* result;
-
-    switch (PyList_GET_SIZE(list)) {
-    case 0:
-        Py_DECREF(list);
-        return EMPTYSTRING();
-    case 1:
-        result = PyList_GET_ITEM(list, 0);
-        Py_INCREF(result);
-        Py_DECREF(list);
-        return result;
-    }
-
-    /* two or more elements: slice out a suitable separator from the
-       first member, and use that to join the entire list */
-
-    joiner = PySequence_GetSlice(PyList_GET_ITEM(list, 0), 0, 0);
-    if (!joiner)
-        return NULL;
-
-#if PY_VERSION_HEX >= 0x01060000
-    function = PyObject_GetAttrString(joiner, "join");
-    if (!function) {
-        Py_DECREF(joiner);
-        return NULL;
-    }
-    args = PyTuple_New(1);
-    if (!args) {
-        Py_DECREF(function);
-        Py_DECREF(joiner);
-        return NULL;
-    }
-    PyTuple_SET_ITEM(args, 0, list);
-    result = PyObject_CallObject(function, args);
-    Py_DECREF(args); /* also removes list */
-    Py_DECREF(function);
-#else
-    result = call(
-        "string", "join",
-        Py_BuildValue("OO", list, joiner)
-        );
-#endif
-    Py_DECREF(joiner);
-
-    return result;
-}
 
 /* -------------------------------------------------------------------- */
 /* parser */
@@ -342,13 +281,15 @@ _sgmlop_new(int xml)
     self->bufferlen = 0;
     self->buffertotal = 0;
 
-    self->finish_starttag = NULL;
-    self->finish_endtag = NULL;
+    self->handle_enterstarttag = NULL;
+    self->handle_leavestarttag = NULL;
+    self->handle_enterattr = NULL;
+    self->handle_leaveattr = NULL;
+    self->handle_endtag = NULL;
     self->handle_proc = NULL;
     self->handle_special = NULL;
     self->handle_charref = NULL;
     self->handle_entityref = NULL;
-    self->resolve_entityref = NULL;
     self->handle_data = NULL;
     self->handle_cdata = NULL;
     self->handle_comment = NULL;
@@ -391,13 +332,15 @@ _sgmlop_traverse(FastParserObject *self, visitproc visit, void *arg)
             return err;\
     }
 
-    VISIT(finish_starttag);
-    VISIT(finish_endtag);
+    VISIT(handle_enterstarttag);
+    VISIT(handle_leavestarttag);
+    VISIT(handle_enterattr);
+    VISIT(handle_leaveattr);
+    VISIT(handle_endtag);
     VISIT(handle_proc);
     VISIT(handle_special);
     VISIT(handle_charref);
     VISIT(handle_entityref);
-    VISIT(resolve_entityref);
     VISIT(handle_data);
     VISIT(handle_cdata);
     VISIT(handle_comment);
@@ -413,13 +356,15 @@ _sgmlop_clear(FastParserObject* self)
     Py_XDECREF(self->member);\
     self->member = NULL;
 
-    CLEAR(finish_starttag);
-    CLEAR(finish_endtag);
+    CLEAR(handle_enterstarttag);
+    CLEAR(handle_leavestarttag);
+    CLEAR(handle_enterattr);
+    CLEAR(handle_leaveattr);
+    CLEAR(handle_endtag);
     CLEAR(handle_proc);
     CLEAR(handle_special);
     CLEAR(handle_charref);
     CLEAR(handle_entityref);
-    CLEAR(resolve_entityref);
     CLEAR(handle_data);
     CLEAR(handle_cdata);
     CLEAR(handle_comment);
@@ -455,13 +400,15 @@ _sgmlop_register(FastParserObject* self, PyObject* args)
     Py_XDECREF(self->member);\
     self->member = PyObject_GetAttrString(item, name);
 
-    GETCB(finish_starttag, "finish_starttag");
-    GETCB(finish_endtag, "finish_endtag");
+    GETCB(handle_enterstarttag, "handle_enterstarttag");
+    GETCB(handle_leavestarttag, "handle_leavestarttag");
+    GETCB(handle_enterattr, "handle_enterattr");
+    GETCB(handle_leaveattr, "handle_leaveattr");
+    GETCB(handle_endtag, "handle_endtag");
     GETCB(handle_proc, "handle_proc");
     GETCB(handle_special, "handle_special");
     GETCB(handle_charref, "handle_charref");
     GETCB(handle_entityref, "handle_entityref");
-    GETCB(resolve_entityref, "resolve_entityref");
     GETCB(handle_data, "handle_data");
     GETCB(handle_cdata, "handle_cdata");
     GETCB(handle_comment, "handle_comment");
@@ -1016,10 +963,10 @@ fastfeed(FastParserObject* self)
         /* invoke callbacks */
         if (token & TAG) {
             if (token == TAG_END) {
-                if (self->finish_endtag) {
+                if (self->handle_endtag) {
                     PyObject* res;
                     res = PyObject_CallFunction(
-                        self->finish_endtag, BUILDFORMAT, b, t-b
+                        self->handle_endtag, BUILDFORMAT, b, t-b
                         );
                     if (!res)
                         return -1;
@@ -1052,9 +999,9 @@ fastfeed(FastParserObject* self)
                     Py_DECREF(res);
                 }
             } else if (token == TAG_START || token == TAG_EMPTY) {
-                if (self->finish_starttag) {
+                if (self->handle_enterstarttag) {
                     PyObject* res;
-                    PyObject* attr;
+                    int attr;
                     Py_ssize_t len = t-b;
                     if (self->check && !self->check->starttag(
                         self->check, b, t
@@ -1062,23 +1009,30 @@ fastfeed(FastParserObject* self)
                     return -1;
                     while (ISSPACE(*t))
                         t++;
-                    attr = attrparse(self, t, e);
-                    if (!attr)
-                        return -1;
                     res = PyObject_CallFunction(
-                        self->finish_starttag, BUILDFORMAT "O", b, len, attr
+                        self->handle_enterstarttag, BUILDFORMAT, b, len
                         );
-                    Py_DECREF(attr);
                     if (!res)
                         return -1;
                     Py_DECREF(res);
-                    if (token == TAG_EMPTY && self->finish_endtag) {
+                    attr = attrparse(self, t, e);
+                    if (attr)
+                        return -1;
+                    if (self->handle_leavestarttag) {
+                        res = PyObject_CallFunction(
+                            self->handle_leavestarttag, BUILDFORMAT, b, len
+                            );
+                        if (!res)
+                            return -1;
+                        Py_DECREF(res);
+                    }
+                    if (token == TAG_EMPTY && self->handle_endtag) {
                         if (self->check && !self->check->endtag(
                             self->check, b, b+len
                             ))
                             return -1;
                         res = PyObject_CallFunction(
-                            self->finish_endtag, BUILDFORMAT, b, len
+                            self->handle_endtag, BUILDFORMAT, b, len
                             );
                         if (!res)
                             return -1;
@@ -1118,30 +1072,6 @@ fastfeed(FastParserObject* self)
                     res = PyObject_CallFunction(
                         self->handle_data, BUILDFORMAT, &ch, 1
                         );
-                    if (!res)
-                        return -1;
-                    Py_DECREF(res);
-                    goto next;
-                }
-            }
-            if (self->resolve_entityref && self->handle_data) {
-                /* map entity through resolver, and pass the result to
-                   handle_data.  the resolver should return None if it
-                   cannot map the entity */
-                PyObject* ent;
-                if (self->check && !self->check->entityref(self->check, b, e))
-                    return -1;
-                ent = PyObject_CallFunction(
-                    self->resolve_entityref, BUILDFORMAT, b, e-b
-                    );
-                if (!ent)
-                    return -1;
-                if (ent != Py_None) {
-                    PyObject* res;
-                    res = PyObject_CallFunction(
-                        self->handle_data, "O", ent
-                        );
-                    Py_DECREF(ent);
                     if (!res)
                         return -1;
                     Py_DECREF(res);
@@ -1245,21 +1175,44 @@ fastfeed(FastParserObject* self)
     return q - self->buffer;
 }
 
-static PyObject*
+int handle_data(FastParserObject* self, const CHAR_T* b, const CHAR_T* e)
+{
+    if (self->handle_data && b != e) {
+        PyObject* res = PyObject_CallFunction(
+            self->handle_data, BUILDFORMAT, b, e-b
+        );
+        if (!res)
+            return -1;
+        Py_DECREF(res);
+    }
+    return 0;
+}
+
+int handle_entityref(FastParserObject* self, const CHAR_T* b, const CHAR_T* e)
+{
+    int code = entity(b, e);
+    if (code == -1) {
+        if (self->handle_entityref) {
+            PyObject* res = PyObject_CallFunction(
+                self->handle_entityref, BUILDFORMAT, b, e-b
+            );
+            if (!res)
+                return -1;
+            Py_DECREF(res);
+        }
+    } else {
+        CHAR_T c = code;
+        return handle_data(self, &c, &c+1);
+    }
+    return 0;
+}
+
+static int
 attrparse(FastParserObject* self, const CHAR_T* p, const CHAR_T* end)
 {
-    PyObject* attrs;
     PyObject* key = NULL;
     PyObject* value = NULL;
     const CHAR_T* q;
-    const CHAR_T* value_start;
-    Py_ssize_t value_length;
-    int has_entity;
-
-    if (self->xml)
-        attrs = PyDict_New();
-    else
-        attrs = PyList_New(0);
 
     while (p < end) {
 
@@ -1278,199 +1231,96 @@ attrparse(FastParserObject* self, const CHAR_T* p, const CHAR_T* end)
         if (key == NULL)
             goto err;
 
+        if (self->handle_enterattr) {
+            PyObject* res = PyObject_CallFunction(
+                self->handle_enterattr, "O", key
+                );
+            if (!res)
+                return -1;
+            Py_DECREF(res);
+        }
         if (self->xml)
             value = Py_None;
         else
             value = key; /* in SGML mode, default is same as key */
-
         Py_INCREF(value);
 
         while (p < end && ISSPACE(*p))
             p++;
 
         if (p < end && *p == '=') {
-
+            CHAR_T quote;
+            int is_entity = 0;
             /* attribute value found */
             Py_DECREF(value);
-
-            has_entity = 0;
-            value_start = NULL;
 
             if (p < end)
                 p++;
             while (p < end && ISSPACE(*p))
                 p++;
 
-            q = p;
-            if (p < end && (*p == '"' || *p == '\'')) {
-                p++;
-                while (p < end && *p != *q && *p != '>') {
-                    if (*p == '&')
-                        has_entity = 1;
-                    p++;
+            if (p < end) {
+                if (*p == '"' || *p == '\'')
+                    quote = *p++;
+                else
+                    quote = 0;
+                q = p;
+                while (p < end && (quote ? (*p != quote) : !ISSPACE(*p)) && *p != '>') {
+                    if (!is_entity && *p == '&') {
+                        if (handle_data(self, q, p))
+                            return -1;
+                        is_entity = 1;
+                        q = ++p;
+                    }
+                    else if (is_entity && *p == ';') {
+                        if (handle_entityref(self, q, p))
+                            return -1;
+                        is_entity = 0;
+                        q = ++p;
+                    }
+                    else
+                        p++;
                 }
-                value_start = q+1;
-                value_length = p-q-1;
-                if (p < end && *p == *q)
+                if (is_entity) {
+                    if (handle_entityref(self, q, p))
+                        return -1;
+                } else {
+                    if (handle_data(self, q, p))
+                        return -1;
+                }
+                if (quote)
                     p++;
-            } else {
-                while (p < end && !ISSPACE(*p) && *p != '>')
-                    p++;
-                value_start = q;
-                value_length = p-q;
             }
-
-            if (has_entity) {
-                value = attrexpand(
-                    self, value_start, value_start + value_length
-                    );
-            } else
-                value = BUILDSTRING(value_start, value_length);
-
-            if (!value)
-                goto err;
         }
-
-        if (self->xml) {
-
-            /* add to dictionary */
-
-            /* PyString_InternInPlace(&key); */
-            if (PyDict_SetItem(attrs, key, value) < 0)
-                goto err;
-            Py_DECREF(key);
-            Py_DECREF(value);
-
-        } else {
-
-            /* add to list */
-
-            PyObject* res;
-            res = PyTuple_New(2);
-            if (!res)
-                goto err;
-            PyTuple_SET_ITEM(res, 0, key);
-            PyTuple_SET_ITEM(res, 1, value);
-            if (PyList_Append(attrs, res) < 0) {
+        else {
+            /* No attribute value */
+            if (value != Py_None && self->handle_data) {
+                PyObject* res = PyObject_CallFunction(
+                    self->handle_data, "O", value
+                );
+                if (!res)
+                    return -1;
                 Py_DECREF(res);
-                goto err;
             }
-            Py_DECREF(res);
-
         }
-
+        if (self->handle_leaveattr) {
+            PyObject* res = PyObject_CallFunction(
+                self->handle_leaveattr, "O", key
+                );
+            if (!res)
+                return -1;
+            Py_DECREF(res);
+        }
+        Py_DECREF(key);
+        Py_DECREF(value);
         key = NULL;
         value = NULL;
-        
     }
 
-    return attrs;
+    return 0;
 
   err:
     Py_XDECREF(key);
     Py_XDECREF(value);
-    Py_DECREF(attrs);
-    return NULL;
-}
-
-static PyObject*
-attrexpand(FastParserObject* self, const CHAR_T* p, const CHAR_T* e)
-{
-    /* expand entities in attribute string */
-    PyObject* list;
-    PyObject* item;
-    const CHAR_T* q;
-    int charref;
-    int status;
-
-    list = PyList_New(0);
-    if (!list) {
-        Py_DECREF(list);
-        return NULL;
-    }
-
-    while (p < e) {
-
-        /* find character run (q:p) */
-        q = p;
-        while (p < e && *p != '&')
-            p++;
-
-        item = BUILDSTRING(q, p-q);
-        if (!item)
-            goto err;
-            
-        status = PyList_Append(list, item);
-        Py_DECREF(item);
-        if (status < 0)
-            goto err;
-
-        if (p >= e)
-            break;
-        
-        /* expand entity */
-        q = p + 1;
-        while (p < e && *p != ';')
-            p++;
-
-        charref = entity(q, p);
-        if (charref >= 0) {
-            /* builtin entity or charref */
-            #ifndef SGMLOP_UNICODE_SUPPORT
-            if (charref > 255) {
-                /* FIXME: return as unicode */
-                if (self->handle_data && self->strict) {
-                    /* if the user wants data, but we cannot resolve this
-                       entity, flag it as configuration error */
-                    PyErr_SetString(
-                        PyExc_SyntaxError, "character entity too large"
-                        );
-                    goto err;
-                }
-                if (self->resolve_entityref)
-                    /* non-standard; use resolver */
-                    item = PyObject_CallFunction(
-                        self->resolve_entityref, BUILDFORMAT, q, p-q
-                        );
-                else {
-                    /* ignore, for now */
-                    item = Py_None;
-                    Py_INCREF(Py_None);
-                }
-            } else
-            #endif
-            {
-                CHAR_T ch = (CHAR_T) charref;
-                item = BUILDSTRING(&ch, 1);
-            }
-        } else if (self->resolve_entityref) {
-            /* non-standard; use resolver */
-            item = PyObject_CallFunction(
-                self->resolve_entityref, BUILDFORMAT, q, p-q
-                );
-        } else {
-            /* ignore */
-            item = Py_None;
-            Py_INCREF(Py_None);
-        }
-
-        if (!item)
-            goto err;
-
-        if (item != Py_None) {
-            status = PyList_Append(list, item);
-            Py_DECREF(item);
-            if (status < 0)
-                goto err;
-        } else
-            Py_DECREF(item);
-        if (p < e)
-            p++;
-    }
-
-    return join(list);
-
-  err:
-    Py_DECREF(list);
-    return NULL;
+    return -1;
 }

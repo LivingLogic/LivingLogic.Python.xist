@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ## Copyright 1999-2007 by LivingLogic AG, Bayreuth/Germany.
-## Copyright 1999-2007 by Walter DÃ¶rwald
+## Copyright 1999-2007 by Walter Dörwald
 ##
 ## All Rights Reserved
 ##
@@ -17,493 +17,149 @@ is from <app moreinfo="http://pyxml.sf.net/">PyXML</app>). It includes a
 to parse &html; and emit &sax;2 events.</par>
 """
 
-import sys, os, os.path, warnings, cStringIO
+from __future__ import with_statement
 
-from xml import sax
-from xml.sax import expatreader
-from xml.sax import handler
+import sys, os, os.path, warnings, cStringIO, codecs, pyexpat, contextlib
 
-from ll import url
+from xml.parsers import expat
+
+from ll import url, xml_codec
 from ll.xist import xsc, utils, sgmlop
 from ll.xist.ns import html
 
-# from PyXML/dom/html/__init__.py
-HTML_OPT_END = ["body", "colgroup", "dd", "dt", "head", "html", "li", "option", "p", "tbody", "td", "tfoot", "th", "thead", "tr"]
 
-HTML_FORBIDDEN_END = ["area", "base", "basefont", "br", "col", "frame", "hr", "img", "input", "isindex", "link", "meta", "param"]
+class Parser(object):
+	def __init__(self):
+		self.application = None
 
-HTML_DTD = {
-	"col": [],
-	"u": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
-	"p": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
-	"caption": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
-	"q": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
-	"i": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
-	"textarea": ["#PCDATA"],
-	"center": ["#PCDATA", "a", "abbr", "acronym", "address", "applet", "b", "basefont", "bdo", "big", "blockquote", "br", "button", "center", "cite", "code", "del", "dfn", "dir", "div", "dl", "em", "fieldset", "font", "form", "h1", "h2", "h3", "h4", "h5", "h6", "hr", "i", "iframe", "img", "input", "ins", "isindex", "kbd", "label", "map", "menu", "noframes", "noscript", "object", "ol", "p", "pre", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "table", "textarea", "tt", "u", "ul", "var"],
-	"script": ["#PCDATA"],
-	"ol": ["li"],
-	"a": ["#PCDATA", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
-	"legend": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
-	"strong": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
-	"address": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
-	"br": [],
-	"base": [],
-	"object": ["#PCDATA", "a", "abbr", "acronym", "address", "applet", "b", "basefont", "bdo", "big", "blockquote", "br", "button", "center", "cite", "code", "del", "dfn", "dir", "div", "dl", "em", "fieldset", "font", "form", "h1", "h2", "h3", "h4", "h5", "h6", "hr", "i", "iframe", "img", "input", "ins", "isindex", "kbd", "label", "map", "menu", "noframes", "noscript", "object", "ol", "p", "param", "pre", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "table", "textarea", "tt", "u", "ul", "var"],
-	"basefont": [],
-	"map": ["address", "area", "blockquote", "center", "del", "dir", "div", "dl", "fieldset", "form", "h1", "h2", "h3", "h4", "h5", "h6", "hr", "ins", "isindex", "menu", "noframes", "noscript", "ol", "p", "pre", "script", "table", "ul"],
-	"body": ["#PCDATA", "a", "abbr", "acronym", "address", "applet", "b", "basefont", "bdo", "big", "blockquote", "br", "button", "center", "cite", "code", "del", "dfn", "dir", "div", "dl", "em", "fieldset", "font", "form", "h1", "h2", "h3", "h4", "h5", "h6", "hr", "i", "iframe", "img", "input", "ins", "isindex", "kbd", "label", "map", "menu", "noframes", "noscript", "object", "ol", "p", "pre", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "table", "textarea", "tt", "u", "ul", "var"],
-	"samp": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
-	"dl": ["dd", "dt"],
-	"acronym": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
-	"html": ["body", "frameset", "head"],
-	"em": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
-	"label": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
-	"tbody": ["tr"],
-	"bdo": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
-	"sub": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
-	"meta": [],
-	"ins": ["#PCDATA", "a", "abbr", "acronym", "address", "applet", "b", "basefont", "bdo", "big", "blockquote", "br", "button", "center", "cite", "code", "del", "dfn", "dir", "div", "dl", "em", "fieldset", "font", "form", "h1", "h2", "h3", "h4", "h5", "h6", "hr", "i", "iframe", "img", "input", "ins", "isindex", "kbd", "label", "map", "menu", "noframes", "noscript", "object", "ol", "p", "pre", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "table", "textarea", "tt", "u", "ul", "var"],
-	"frame": [],
-	"s": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
-	"title": ["#PCDATA"],
-	"frameset": ["frame", "frameset", "noframes"],
-	"pre": ["#PCDATA", "a", "abbr", "acronym", "b", "bdo", "br", "button", "cite", "code", "dfn", "em", "i", "input", "kbd", "label", "map", "q", "s", "samp", "select", "span", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
-	"dir": ["li"],
-	"div": ["#PCDATA", "a", "abbr", "acronym", "address", "applet", "b", "basefont", "bdo", "big", "blockquote", "br", "button", "center", "cite", "code", "del", "dfn", "dir", "div", "dl", "em", "fieldset", "font", "form", "h1", "h2", "h3", "h4", "h5", "h6", "hr", "i", "iframe", "img", "input", "ins", "isindex", "kbd", "label", "map", "menu", "noframes", "noscript", "object", "ol", "p", "pre", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "table", "textarea", "tt", "u", "ul", "var"],
-	"small": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
-	"iframe": ["#PCDATA", "a", "abbr", "acronym", "address", "applet", "b", "basefont", "bdo", "big", "blockquote", "br", "button", "center", "cite", "code", "del", "dfn", "dir", "div", "dl", "em", "fieldset", "font", "form", "h1", "h2", "h3", "h4", "h5", "h6", "hr", "i", "iframe", "img", "input", "ins", "isindex", "kbd", "label", "map", "menu", "noframes", "noscript", "object", "ol", "p", "pre", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "table", "textarea", "tt", "u", "ul", "var"],
-	"del": ["#PCDATA", "a", "abbr", "acronym", "address", "applet", "b", "basefont", "bdo", "big", "blockquote", "br", "button", "center", "cite", "code", "del", "dfn", "dir", "div", "dl", "em", "fieldset", "font", "form", "h1", "h2", "h3", "h4", "h5", "h6", "hr", "i", "iframe", "img", "input", "ins", "isindex", "kbd", "label", "map", "menu", "noframes", "noscript", "object", "ol", "p", "pre", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "table", "textarea", "tt", "u", "ul", "var"],
-	"applet": ["#PCDATA", "a", "abbr", "acronym", "address", "applet", "b", "basefont", "bdo", "big", "blockquote", "br", "button", "center", "cite", "code", "del", "dfn", "dir", "div", "dl", "em", "fieldset", "font", "form", "h1", "h2", "h3", "h4", "h5", "h6", "hr", "i", "iframe", "img", "input", "ins", "isindex", "kbd", "label", "map", "menu", "noframes", "noscript", "object", "ol", "p", "param", "pre", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "table", "textarea", "tt", "u", "ul", "var"],
-	"ul": ["li"],
-	"isindex": [],
-	"button": ["#PCDATA", "abbr", "acronym", "address", "applet", "b", "basefont", "bdo", "big", "blockquote", "br", "center", "cite", "code", "del", "dfn", "dir", "div", "dl", "em", "font", "h1", "h2", "h3", "h4", "h5", "h6", "hr", "i", "img", "ins", "kbd", "map", "menu", "noframes", "noscript", "object", "ol", "p", "pre", "q", "s", "samp", "script", "small", "span", "strike", "strong", "sub", "sup", "table", "tt", "u", "ul", "var"],
-	"colgroup": ["col"],
-	"b": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
-	"table": ["caption", "col", "colgroup", "tbody", "tfoot", "thead", "tr"],
-	"dt": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
-	"optgroup": ["option"],
-	"abbr": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
-	"link": [],
-	"h4": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
-	"dd": ["#PCDATA", "a", "abbr", "acronym", "address", "applet", "b", "basefont", "bdo", "big", "blockquote", "br", "button", "center", "cite", "code", "del", "dfn", "dir", "div", "dl", "em", "fieldset", "font", "form", "h1", "h2", "h3", "h4", "h5", "h6", "hr", "i", "iframe", "img", "input", "ins", "isindex", "kbd", "label", "map", "menu", "noframes", "noscript", "object", "ol", "p", "pre", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "table", "textarea", "tt", "u", "ul", "var"],
-	"big": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
-	"hr": [],
-	"form": ["#PCDATA", "a", "abbr", "acronym", "address", "applet", "b", "basefont", "bdo", "big", "blockquote", "br", "button", "center", "cite", "code", "del", "dfn", "dir", "div", "dl", "em", "fieldset", "font", "h1", "h2", "h3", "h4", "h5", "h6", "hr", "i", "iframe", "img", "input", "ins", "isindex", "kbd", "label", "map", "menu", "noframes", "noscript", "object", "ol", "p", "pre", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "table", "textarea", "tt", "u", "ul", "var"],
-	"option": ["#PCDATA"],
-	"fieldset": ["#PCDATA", "a", "abbr", "acronym", "address", "applet", "b", "basefont", "bdo", "big", "blockquote", "br", "button", "center", "cite", "code", "del", "dfn", "dir", "div", "dl", "em", "fieldset", "font", "form", "h1", "h2", "h3", "h4", "h5", "h6", "hr", "i", "iframe", "img", "input", "ins", "isindex", "kbd", "label", "legend", "map", "menu", "noframes", "noscript", "object", "ol", "p", "pre", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "table", "textarea", "tt", "u", "ul", "var"],
-	"blockquote": ["#PCDATA", "a", "abbr", "acronym", "address", "applet", "b", "basefont", "bdo", "big", "blockquote", "br", "button", "center", "cite", "code", "del", "dfn", "dir", "div", "dl", "em", "fieldset", "font", "form", "h1", "h2", "h3", "h4", "h5", "h6", "hr", "i", "iframe", "img", "input", "ins", "isindex", "kbd", "label", "map", "menu", "noframes", "noscript", "object", "ol", "p", "pre", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "table", "textarea", "tt", "u", "ul", "var"],
-	"head": ["base", "isindex", "link", "meta", "object", "script", "style", "title"],
-	"thead": ["tr"],
-	"cite": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
-	"td": ["#PCDATA", "a", "abbr", "acronym", "address", "applet", "b", "basefont", "bdo", "big", "blockquote", "br", "button", "center", "cite", "code", "del", "dfn", "dir", "div", "dl", "em", "fieldset", "font", "form", "h1", "h2", "h3", "h4", "h5", "h6", "hr", "i", "iframe", "img", "input", "ins", "isindex", "kbd", "label", "map", "menu", "noframes", "noscript", "object", "ol", "p", "pre", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "table", "textarea", "tt", "u", "ul", "var"],
-	"input": [],
-	"var": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
-	"th": ["#PCDATA", "a", "abbr", "acronym", "address", "applet", "b", "basefont", "bdo", "big", "blockquote", "br", "button", "center", "cite", "code", "del", "dfn", "dir", "div", "dl", "em", "fieldset", "font", "form", "h1", "h2", "h3", "h4", "h5", "h6", "hr", "i", "iframe", "img", "input", "ins", "isindex", "kbd", "label", "map", "menu", "noframes", "noscript", "object", "ol", "p", "pre", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "table", "textarea", "tt", "u", "ul", "var"],
-	"tfoot": ["tr"],
-	"dfn": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
-	"li": ["#PCDATA", "a", "abbr", "acronym", "address", "applet", "b", "basefont", "bdo", "big", "blockquote", "br", "button", "center", "cite", "code", "del", "dfn", "dir", "div", "dl", "em", "fieldset", "font", "form", "h1", "h2", "h3", "h4", "h5", "h6", "hr", "i", "iframe", "img", "input", "ins", "isindex", "kbd", "label", "map", "menu", "noframes", "noscript", "object", "ol", "p", "pre", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "table", "textarea", "tt", "u", "ul", "var"],
-	"param": [],
-	"tr": ["td", "th"],
-	"tt": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
-	"menu": ["li"],
-	"area": [],
-	"img": [],
-	"span": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
-	"style": [],
-	"noscript": ["#PCDATA", "a", "abbr", "acronym", "address", "applet", "b", "basefont", "bdo", "big", "blockquote", "br", "button", "center", "cite", "code", "del", "dfn", "dir", "div", "dl", "em", "fieldset", "font", "form", "h1", "h2", "h3", "h4", "h5", "h6", "hr", "i", "iframe", "img", "input", "ins", "isindex", "kbd", "label", "map", "menu", "noframes", "noscript", "object", "ol", "p", "pre", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "table", "textarea", "tt", "u", "ul", "var"],
-	"noframes": ["#PCDATA", "a", "abbr", "acronym", "address", "applet", "b", "basefont", "bdo", "big", "blockquote", "br", "button", "center", "cite", "code", "del", "dfn", "dir", "div", "dl", "em", "fieldset", "font", "form", "h1", "h2", "h3", "h4", "h5", "h6", "hr", "i", "iframe", "img", "input", "ins", "isindex", "kbd", "label", "map", "menu", "noframes", "noscript", "object", "ol", "p", "pre", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "table", "textarea", "tt", "u", "ul", "var"],
-	"select": ["optgroup", "option"],
-	"font": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
-	"strike": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
-	"sup": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
-	"h5": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
-	"kbd": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
-	"h6": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
-	"h1": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
-	"h3": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
-	"h2": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"],
-	"code": ["#PCDATA", "a", "abbr", "acronym", "applet", "b", "basefont", "bdo", "big", "br", "button", "cite", "code", "del", "dfn", "em", "font", "i", "iframe", "img", "input", "ins", "kbd", "label", "map", "noscript", "object", "q", "s", "samp", "script", "select", "small", "span", "strike", "strong", "sub", "sup", "textarea", "tt", "u", "var"]
-}
+	def begin(self, application):
+		self.application = application
+
+	def end(self):
+		self.application = None
+
+	def feed(self, data, final):
+		pass
 
 
-class SGMLOPParser(sax.xmlreader.XMLReader, sax.xmlreader.Locator):
-	"""
-	This is a rudimentary, buggy, halfworking, untested SAX2 drivers for sgmlop that
-	only works in the context of &xist;. And I didn't even know, what I was doing.
-	"""
-	_whichparser = sgmlop.XMLParser
-
-	def __init__(self, bufsize=8000):
-		sax.xmlreader.XMLReader.__init__(self)
-		self.encoding = None
+class SGMLOPParser(Parser):
+	def __init__(self, encoding=None):
+		Parser.__init__(self)
+		self.encoding = encoding
+		self._decoder = None
 		self._parser = None
-		self._bufsize = bufsize
 
-	def _makestring(self, data):
-		return unicode(data, self.encoding).replace(u"\r\n", u"\n").replace(u"\r", u"\n")
-
-	def reset(self):
-		self.close()
-		self.source = None
-		self.lineNumber = -1
-
-	def feed(self, data):
-		if self._parser is None:
-			self._parser = self._whichparser()
-			self._parser.register(self)
-			self._cont_handler.startDocument()
-		self._parser.feed(data)
-
-	def close(self):
+	def begin(self, application):
+		Parser.begin(self, application)
+		self._decoder = codecs.getincrementaldecoder("xml")(self.encoding)
 		if self._parser is not None:
-			self._cont_handler.endDocument()
-			self._parser.close()
+			self._parser.register(None)
+		self._parser = sgmlop.XMLParser()
+		self._parser.register(self)
+
+	def feed(self, data, final):
+		self._parser.feed(self._decoder.decode(data, final))
+
+	def end(self):
+		Parser.end(self)
+		self._parser.close()
+		if self._parser is not None:
 			self._parser.register(None)
 			self._parser = None
-
-	def parse(self, source):
-		self.source = source
-		stream = source.getByteStream()
-		encoding = source.getEncoding()
-		if encoding is None:
-			encoding = "utf-8"
-		self.encoding = encoding
-		self.lineNumber = 1
-		self._cont_handler.setDocumentLocator(self)
-		self._cont_handler.startDocument()
-		# we don't keep a column number, because otherwise parsing would be much to slow
-		self.headerJustRead = False # will be used for skipping whitespace after the XML header
-
-		parsed = False
-		try:
-			try:
-				while True:
-					data = stream.read(self._bufsize)
-					if not data:
-						if not parsed:
-							self.feed("")
-						break
-					while True:
-						pos = data.find("\n")
-						if pos==-1:
-							break
-						self.feed(data[:pos+1])
-						self.parsed = True
-						data = data[pos+1:]
-						self.lineNumber += 1
-					self.feed(data)
-					self.parsed = True
-				self._cont_handler.endDocument()
-				self._cont_handler.setDocumentLocator(None)
-			except (SystemExit, KeyboardInterrupt):
-				raise
-			except Exception, exc:
-				errhandler = self.getErrorHandler()
-				if errhandler is not None:
-					errhandler.fatalError(exc)
-				else:
-					raise
-		finally:
-			self.close()
-			self.source = None
-			self.encoding = None
-
-	# Locator methods will be called by the application
-	def getColumnNumber(self):
-		return -1
-
-	def getLineNumber(self):
-		if self._parser is None:
-			return -1
-		return self.lineNumber
-
-	def getPublicId(self):
-		if self.source is None:
-			return None
-		return self.source.getPublicId()
-
-	def getSystemId(self):
-		if self.source is None:
-			return None
-		return self.source.getSystemId()
-
-	def setFeature(self, name, state):
-		if name == handler.feature_namespaces:
-			if state:
-				raise sax.SAXNotSupportedException("no namespace processing available")
-		elif name == handler.feature_external_ges:
-			if state:
-				raise sax.SAXNotSupportedException("processing of external general entities not available")
-		else:
-			sax.xmlreader.IncrementalParser.setFeature(self, name, state)
-
-	def getFeature(self, name):
-		if name == handler.feature_namespaces:
-			return 0
-		else:
-			return sax.xmlreader.IncrementalParser.setFeature(self, name)
+		self._decoder = None
 
 	def handle_comment(self, data):
-		self.getContentHandler().comment(self._makestring(data))
-		self.headerJustRead = False
-
-	# don't define handle_charref or handle_cdata, so we will get those through handle_data
-	# but unfortunately we have to define handle_charref here, because of a bug in
-	# sgmlop: unicode characters i.e. "&#8364;" don't work.
-
-	def handle_charref(self, data):
-		data = self._makestring(data)
-		if data.startswith(u"x"):
-			data = unichr(int(data[1:], 16))
-		else:
-			data = unichr(int(data))
-		if not self.headerJustRead or not data.isspace():
-			self.getContentHandler().characters(data)
-			self.headerJustRead = False
+		self.application.handle_comment(data, None, None)
 
 	def handle_data(self, data):
-		data = self._makestring(data)
-		if not self.headerJustRead or not data.isspace():
-			self.getContentHandler().characters(data)
-			self.headerJustRead = False
+		self.application.handle_data(data, None, None)
+
+	def handle_cdata(self, data):
+		self.application.handle_cdata(data, None, None)
 
 	def handle_proc(self, target, data):
-		target = self._makestring(target)
-		data = self._makestring(data)
-		if target != u'xml': # Don't report <?xml?> as a processing instruction
-			self.getContentHandler().processingInstruction(target, data)
-			self.headerJustRead = False
-		else: # extract the encoding
-			encoding = utils.findattr(data, u"encoding")
-			if encoding is not None:
-				self.encoding = encoding
-			self.headerJustRead = True
+		self.application.handle_proc(target, data, None, None)
 
 	def handle_entityref(self, name):
-		try:
-			c = {"lt": u"<", "gt": u">", "amp": u"&", "quot": u'"', "apos": u"'"}[name]
-		except KeyError:
-			self.getContentHandler().skippedEntity(self._makestring(name))
-		else:
-			self.getContentHandler().characters(c)
-		self.headerJustRead = False
+		self.application.handle_entityref(name, None, None)
 
-	def finish_starttag(self, name, attrs):
-		newattrs = sax.xmlreader.AttributesImpl({})
-		for (attrname, attrvalue) in attrs.items():
-			if attrvalue is None:
-				attrvalue = attrname
-			else:
-				attrvalue = self._string2fragment(self._makestring(attrvalue))
-			newattrs._attrs[self._makestring(attrname)] = attrvalue
-		self.getContentHandler().startElement(self._makestring(name), newattrs)
-		self.headerJustRead = False
+	def handle_enterstarttag(self, name):
+		self.application.handle_enterstarttag(name, None, None)
 
-	def finish_endtag(self, name):
-		self.getContentHandler().endElement(self._makestring(name))
-		self.headerJustRead = False
+	def handle_leavestarttag(self, name):
+		self.application.handle_leavestarttag(name, None, None)
 
-	def _string2fragment(self, text):
-		"""
-		parses a string that might contain entities into a fragment
-		with text nodes, entities and character references.
-		"""
-		if text is None:
-			return xsc.Null
-		pool = getattr(self.getContentHandler(), "pool", None)
-		ct = (pool.text if pool is not None else xsc.Text)
-		node = xsc.Frag()
-		while True:
-			texts = text.split(u"&", 1)
-			text = texts[0]
-			if text:
-				node.append(ct(text))
-			if len(texts)==1:
-				break
-			texts = texts[1].split(u";", 1)
-			name = texts[0]
-			if len(texts)==1:
-				raise xsc.MalformedCharRefWarning(name)
-			if name.startswith(u"#"):
-				try:
-					if name.startswith(u"#x"):
-						node.append(ct(unichr(int(name[2:], 16))))
-					else:
-						node.append(ct(unichr(int(name[1:]))))
-				except ValueError:
-					raise xsc.MalformedCharRefWarning(name)
-			else:
-				try:
-					c = {"lt": u"<", "gt": u">", "amp": u"&", "quot": u'"', "apos": u"'"}[name]
-				except KeyError:
-					node.append(self.getContentHandler().createEntity(name))
-				else:
-					node.append(ct(c))
-			text = texts[1]
-		if not node:
-			node.append(ct(u""))
-		return node
+	def handle_enterattr(self, name):
+		self.application.handle_enterattr(name, None, None)
+
+	def handle_leaveattr(self, name):
+		self.application.handle_leaveattr(name, None, None)
+
+	def handle_endtag(self, name):
+		self.application.handle_endtag(name, None, None)
 
 
-class BadEntityParser(SGMLOPParser):
-	"""
-	<par>A &sax;2 parser that recognizes the character entities
-	defined in &html; and tries to pass on unknown or malformed
-	entities to the handler literally.</par>
-	"""
+class ExpatParser(Parser):
+	def __init__(self, encoding=None, transcode=False):
+		Parser.__init__(self)
+		self.encoding = encoding
+		self._parser = None
+		self._decoder = None
+		self._encoder = None
+		self._transcode = transcode
 
-	def handle_entityref(self, name):
-		try:
-			c = {"lt": u"<", "gt": u">", "amp": u"&", "quot": u'"', "apos": u"'"}[name]
-		except KeyError:
-			name = self._makestring(name)
-			try:
-				self.getContentHandler().skippedEntity(name)
-			except xsc.IllegalEntityError:
-				self.getContentHandler().characters(u"&%s;" % name)
-		else:
-			self.getContentHandler().characters(c)
-		self.headerJustRead = False
-
-	def _string2fragment(self, text):
-		"""
-		This version tries to pass illegal content literally.
-		"""
-		if text is None:
-			return xsc.Null
-		node = xsc.Frag()
-		pool = getattr(self.getContentHandler(), "pool", None)
-		ct = (pool.text if pool is not None else xsc.Text)
-		while True:
-			texts = text.split(u"&", 1)
-			text = texts[0]
-			if text:
-				node.append(ct(text))
-			if len(texts)==1:
-				break
-			texts = texts[1].split(u";", 1)
-			name = texts[0]
-			if len(texts)==1: # no ; found, so it's no entity => append it literally
-				name = u"&" + name
-				warnings.warn(xsc.MalformedCharRefWarning(name))
-				node.append(ct(name))
-				break
-			else:
-				if name.startswith(u"#"): # character reference
-					try:
-						if name.startswith(u"#x"): # hexadecimal character reference
-							node.append(ct(unichr(int(name[2:], 16))))
-						else: # decimal character reference
-							node.append(ct(unichr(int(name[1:]))))
-					except (ValueError, OverflowError): # illegal format => append it literally
-						name = u"&%s;" % name
-						warnings.warn(xsc.MalformedCharRefWarning(name))
-						node.append(ct(name))
-				else: # entity reference
-					try:
-						entity = {"lt": u"<", "gt": u">", "amp": u"&", "quot": u'"', "apos": u"'"}[name]
-					except KeyError:
-						try:
-							entity = self.getContentHandler().createEntity(name)
-						except xsc.IllegalEntityError:
-							name = u"&%s;" % name
-							warnings.warn(xsc.MalformedCharRefWarning(name))
-							entity = ct(name)
-					else:
-						entity = ct(entity)
-					node.append(entity)
-			text = texts[1]
-		return node
-
-	def handle_charref(self, data):
-		data = self._makestring(data)
-		try:
-			if data.startswith("x"):
-				data = unichr(int(data[1:], 16))
-			else:
-				data = unichr(int(data))
-		except (ValueError, OverflowError):
-			data = u"&#%s;" % data
-		if not self.headerJustRead or not data.isspace():
-			self.getContentHandler().characters(data)
-			self.headerJustRead = False
-
-
-class HTMLParser(BadEntityParser):
-	"""
-	<par>A &sax;2 parser that can parse &html;.</par>
-	"""
-
-	_whichparser = sgmlop.SGMLParser
-
-	def __init__(self, bufsize=2**16-20):
-		BadEntityParser.__init__(self, bufsize)
-		self._stack = []
-		self.pool = xsc.Pool(html)
-
-	def reset(self):
-		self._stack = []
-		BadEntityParser.reset(self)
-
-	def close(self):
-		while self._stack: # close all open elements
-			self.finish_endtag(self._stack[-1])
-		BadEntityParser.close(self)
-
-	def finish_starttag(self, name, attrs):
-		name = name.lower()
-
-		# guess omitted close tags
-		while self._stack and self._stack[-1] in HTML_OPT_END and name not in HTML_DTD.get(self._stack[-1], []):
-			BadEntityParser.finish_endtag(self, self._stack[-1])
-			del self._stack[-1]
-
-		# Check whether this element is allowed in the current context
-		if self._stack and name not in HTML_DTD.get(self._stack[-1], []):
-			warnings.warn(xsc.IllegalDTDChildWarning(name, self._stack[-1]))
-
-		# Skip unknown attributes (but warn about them)
-		newattrs = {}
-		element = self.pool.element_xml(name, html)
-		for (attrname, attrvalue) in attrs:
-			if attrname=="xmlns" or ":" in attrname or element.Attrs.isallowed_xml(attrname.lower()):
-				newattrs[attrname.lower()] = attrvalue
-			else:
-				warnings.warn(xsc.IllegalAttrError(attrname.lower(), None, True))
-		BadEntityParser.finish_starttag(self, name, newattrs)
-
-		if name in HTML_FORBIDDEN_END:
-			# close tags immediately for which we won't get an end
-			BadEntityParser.finish_endtag(self, name)
-			return 0
-		else:
-			self._stack.append(name)
-		return 1
-
-	def finish_endtag(self, name):
-		name = name.lower()
-		if name in HTML_FORBIDDEN_END:
-			# do nothing: we've already closed it
-			return
-		if name in self._stack:
-			# close any open elements that were not closed explicitely
-			while self._stack and self._stack[-1] != name:
-				BadEntityParser.finish_endtag(self, self._stack[-1])
-				del self._stack[-1]
-			BadEntityParser.finish_endtag(self, name)
-			del self._stack[-1]
-		else:
-			warnings.warn(xsc.IllegalCloseTagWarning(name))
-
-
-class ExpatParser(expatreader.ExpatParser):
-	def external_entity_ref(self, context, base, sysid, pubid):
-		return expatreader.ExpatParser.external_entity_ref(self, context, base, sysid, pubid)
-
-	def reset(self):
-		expatreader.ExpatParser.reset(self)
+	def begin(self, application):
+		Parser.begin(self, application)
+		self._parser = expat.ParserCreate(self.encoding)
+		self._parser.buffer_text = True
+		self._parser.ordered_attributes = True
 		self._parser.UseForeignDTD(True)
+		self._parser.CharacterDataHandler = self.handle_data
+		self._parser.StartElementHandler = self.handle_startelement
+		self._parser.EndElementHandler = self.handle_endelement
+		self._parser.ProcessingInstructionHandler = self.handle_proc
+		self._parser.CommentHandler = self.handle_comment
+		self._parser.DefaultHandler = self.handle_default
+		if self._transcode:
+			self._decoder = codecs.getincrementaldecoder("xml")()
+			self._encoder = codecs.getincrementalencoder("xml")(encoding="utf-8")
+
+	def end(self):
+		Parser.end(self)
+		self._parser = None
+		self._encoder = None
+		self._decoder = None
+
+	def handle_default(self, data):
+		if data.startswith("&") and data.endswith(";"):
+			self.application.handle_entityref(data[1:-1], self._parser.CurrentLineNumber-1, self._parser.CurrentColumnNumber)
+
+	def handle_comment(self, data):
+		self.application.handle_comment(data, self._parser.CurrentLineNumber-1, self._parser.CurrentColumnNumber)
+
+	def handle_data(self, data):
+		self.application.handle_data(data, self._parser.CurrentLineNumber-1, self._parser.CurrentColumnNumber)
+
+	def handle_startelement(self, name, attrs):
+		self.application.handle_enterstarttag(name, self._parser.CurrentLineNumber-1, self._parser.CurrentColumnNumber)
+		for i in xrange(0, len(attrs), 2):
+			key = attrs[i]
+			self.application.handle_enterattr(key, self._parser.CurrentLineNumber-1, self._parser.CurrentColumnNumber)
+			self.application.handle_data(attrs[i+1], self._parser.CurrentLineNumber-1, self._parser.CurrentColumnNumber)
+			self.application.handle_leaveattr(key, self._parser.CurrentLineNumber-1, self._parser.CurrentColumnNumber)
+		self.application.handle_leavestarttag(name, self._parser.CurrentLineNumber-1, self._parser.CurrentColumnNumber)
+
+	def handle_endelement(self, name):
+		self.application.handle_endtag(name, self._parser.CurrentLineNumber-1, self._parser.CurrentColumnNumber)
+
+	def handle_proc(self, target, data):
+		self.application.handle_proc(target, data, self._parser.CurrentLineNumber-1, self._parser.CurrentColumnNumber)
+
+	def feed(self, data, final):
+		if self._transcode:
+			data = self._decoder.decode(data, final)
+			data = self._encoder.encode(data, final)
+		self._parser.Parse(data, final)
 
 
 class LaxAttrs(xsc.Attrs):
@@ -567,36 +223,24 @@ class LaxElement(xsc.Element):
 	Attrs = LaxAttrs
 
 
-class Parser(object):
+class Builder(object):
 	"""
-	<par>It is the job of a <class>Parser</class> to create the object tree from the
-	&sax; events generated by the underlying &sax; parser.</par>
+	<par>It is the job of a <class>Builder</class> to create the object tree from
+	the events generated by the underlying parser.</par>
 	"""
 
-	def __init__(self, saxparser=SGMLOPParser, prefixes=None, tidy=False, loc=True, validate=True, encoding=None, pool=None):
+	def __init__(self, parser=None, prefixes=None, tidy=False, loc=True, validate=True, encoding=None, pool=None):
 		"""
 		<par>Create a new <class>Parser</class> instance.</par>
 
 		<par>Arguments have the following meaning:</par>
 		<dlist>
-		<term><arg>saxparser</arg></term><item><par>a callable that returns an instance of a &sax;2 compatible parser.
-		&xist; itself provides several &sax;2 parsers
-		(all based on Fredrik Lundh's <app>sgmlop</app> from <app moreinfo="http://pyxml.sf.net/">PyXML</app>):</par>
-		<ulist>
-		<item><pyref module="ll.xist.parsers" class="SGMLOPParser"><class>SGMLOPParser</class></pyref>
-		(which is the default if the <arg>saxparser</arg> argument is not given);</item>
-		<item><pyref module="ll.xist.parsers" class="BadEntityParser"><class>BadEntityParser</class></pyref>
-		(which is based on <class>SGMLOPParser</class> and tries to pass on unknown entity references as literal content);</item>
-		<item><pyref module="ll.xist.parsers" class="HTMLParser"><class>HTMLParser</class></pyref> (which is
-		based on BadEntityParser and tries to make sense of &html; sources).</item>
-		</ulist>
-		</item>
+		<term><arg>parser</arg></term><item><par>an instance of the
+		<pyref class="Parser"><class>Larser</class></pyref> class (or any object
+		that provides the appropriate interface.</item>
 
 		<term><arg>tidy</arg></term><item>If <arg>tidy</arg> is true, <link href="http://xmlsoft.org/">libxml2</link>'s
 		&html; parser will be used for parsing broken &html;.</item>
-		<term><arg>nspool</arg></term><item>an instance of <pyref module="ll.xist.xsc" class="NSPool"><class>ll.xist.xsc.NSPool</class></pyref>;
-		From this namespace pool namespaces will be taken when the parser
-		encounters <lit>xmlns</lit> attributes.</item>
 
 		<term><arg>loc</arg></term><item>Should location information be attached to the generated nodes?</item>
 
@@ -604,14 +248,13 @@ class Parser(object):
 
 		<term><arg>encoding</arg></term><item>The default encoding to use, when the
 		source doesn't provide an encoding. The default <lit>None</lit> results in
-		<lit>"utf-8"</lit> for parsing &xml; and <lit>"iso-8859-1"</lit> when parsing
-		broken &html; (when <lit><arg>tidy</arg></lit> is true).</item>
+		the encoding being detected from the &xml; itself.</item>
 
 		<term><arg>pool</arg></term><item>A <pyref module="ll.xist.xsc" class="Pool"><class>ll.xist.xsc.Pool</class></pyref>
 		object which will be used for instantiating all nodes.</item>
 		</dlist>
 		"""
-		self.saxparser = saxparser
+		self.parser = parser
 
 		self.pool = (pool if pool is not None else xsc.getpoolstack()[-1])
 
@@ -630,11 +273,13 @@ class Parser(object):
 				else:
 					self.prefixes[prefix] = xsc.nsname(xmlns)
 
-		self._locator = None
+		self.url = None
 		self.tidy = tidy
 		self.loc = loc
 		self.validate = validate
 		self.encoding = encoding
+		self._attr = None
+		self._attrs = None
 
 	def _parseHTML(self, stream, base, sysid, encoding):
 		"""
@@ -660,7 +305,7 @@ class Parser(object):
 				try:
 					newnode = self.pool.element_xml(name, html)
 					if self.loc:
-						newnode.startloc = xsc.Location(sysid=sysid, line=node.lineNo())
+						newnode.startloc = xsc.Location(url=self.base, line=node.lineNo())
 				except xsc.IllegalElementError:
 					newnode = xsc.Frag()
 				else:
@@ -690,11 +335,11 @@ class Parser(object):
 			elif node.type in ("text", "cdata"):
 				newnode = self.pool.text(decode(node.content))
 				if self.loc:
-					newnode.startloc = xsc.Location(sysid=sysid, line=node.lineNo())
+					newnode.startloc = xsc.Location(url=self.base, line=node.lineNo())
 			elif node.type == "comment":
 				newnode = self.pool.comment(decode(node.content))
 				if self.loc:
-					newnode.startloc = xsc.Location(sysid=sysid, line=node.lineNo())
+					newnode.startloc = xsc.Location(url=self.base, line=node.lineNo())
 			else:
 				newnode = xsc.Null
 			return newnode
@@ -713,10 +358,102 @@ class Parser(object):
 			libxml2.lineNumbersDefault(olddefault)
 		return node
 
+	def _begin(self, base=None, encoding=None):
+		if self.parser is None:
+			parser = SGMLOPParser(encoding=encoding)
+		else:
+			parser = self.parser
+		self.base = url.URL(base)
+		# XIST nodes do not have a parent link, therefore we have to store the
+		# active path through the tree in a stack (which we call ``_nesting``)
+		# together with the namespace prefixes defined by each element.
+		#
+		# After we've finished parsing, the ``Frag`` that we put at the bottom of
+		# the stack will be our document root.
+		self._nesting = [ (xsc.Frag(), self.prefixes) ]
+		parser.begin(self)
+		return parser
+
+	def _end(self, parser):
+		parser.end()
+		return self._nesting[0][0]
+
+	def parsestring(self, data, base=None, encoding=None):
+		self.url = url.URL(base if base is not None else "STRING")
+		parser = self._begin(base=base, encoding=encoding)
+		if isinstance(data, unicode):
+			data = data.encode("xml")
+		parser.feed(data, True)
+		return self._end(parser)
+
+	def parseiter(self, data, base=None, encoding=None):
+		self.url = url.URL(base if base is not None else "ITER")
+		parser = self._begin(base=base, encoding=encoding)
+		for d in data:
+			parser.feed(d, False)
+		parser.feed("", True)
+		return self._end(parser)
+
+	def parsestream(self, stream, base=None, encoding=None, bufsize=8192):
+		"""
+		Parse &xml; input from the stream <arg>stream</arg>. <arg>base</arg>
+		is the base &url; for the parsing process, <arg>encoding</arg> can be
+		used to force the parser to use another encoding. <arg>bufsize</arg> is
+		the buffer size used from reading the stream in blocks.
+		"""
+		self.url = url.URL(base if base is not None else "STREAM")
+		parser = self._begin(base=base, encoding=encoding)
+		while True:
+			data = stream.read(bufsize)
+			final = not data
+			parser.feed(data, final)
+			if final:
+				return self._end(parser)
+
+	def parsefile(self, filename, base=None, encoding=None, bufsize=8192):
+		"""
+		Parse &xml; input from the file named <arg>filename</arg>. <arg>base</arg>
+		is the base &url; for the parsing process (defaulting to <arg>filename</arg>),
+		for the other arguments see <pyref method="parsestream"><method>parsestream</method</pyref>.
+		"""
+		self.url = url.File(filename)
+		if base is None:
+			base = self.url
+		filename = os.path.expanduser(filename)
+		parser = self._begin(base=base, encoding=encoding)
+		with contextlib.closing(open(filename, "rb")) as stream:
+			while True:
+				data = stream.read(bufsize)
+				final = not data
+				parser.feed(data, final)
+				if final:
+					return self._end(parser)
+
+	def parseurl(self, name, base=None, encoding=None, bufsize=8192, *args, **kwargs):
+		"""
+		Parse &xml; input from the &url; <arg>name</arg> which might be a string
+		or an <pyref module="ll.url" class="URL"><class>URL</class></pyref> object
+		into an &xist; tree. <arg>base</arg> is the base &url; for the parsing process
+		(defaulting to the final &url; of the response (i.e. including redirects)).
+		<arg>*args</arg> and <arg>**kwargs</arg> will
+		be passed on to the <method>open</method> call.
+		"""
+		name = url.URL(name)
+		parser = self._begin(base=base, encoding=encoding)
+		with contextlib.closing(name.open("rb", *args, **kwargs)) as stream:
+			if base is None:
+				base = stream.finalurl()
+			while True:
+				data = stream.read(bufsize)
+				final = not data
+				parser.feed(data, final)
+				if final:
+					return self._end(parser)
+
 	def _parse(self, stream, base, sysid, encoding):
 		self.base = url.URL(base)
 
-		parser = self.saxparser()
+		parser = self.parser()
 		# register us for callbacks
 		parser.setErrorHandler(self)
 		parser.setContentHandler(self)
@@ -747,22 +484,8 @@ class Parser(object):
 		source.setByteStream(stream)
 		source.setEncoding(encoding)
 
-		# XIST nodes do not have a parent link, therefore we have to store the
-		# active path through the tree in a stack (which we call _nesting)
-		# together with the namespace prefixes defined by each element.
-		#
-		# After we've finished parsing, the Frag that we put at the bottom of the
-		# stack will be our document root.
-		#
-		# The parser provides the ability to skip illegal elements, attributes,
-		# processing instructions or entity references, but for illegal elements,
-		# it must still record the new namespaces defined by the illegal element.
-		# In this case None is stored in the stack instead of the element node.
-
-		self._nesting = [ (xsc.Frag(), self.prefixes) ]
 		try:
 			parser.parse(source)
-			root = self._nesting[0][0]
 		finally:
 			self._nesting = None
 		return root
@@ -777,78 +500,23 @@ class Parser(object):
 			sysid = base
 		return self._parse(stream, base, sysid, self.encoding)
 
-	def parseString(self, text, base=None, sysid=None):
-		"""
-		Parse the string <arg>text</arg> (<class>str</class> or <class>unicode</class>)
-		into an &xist; tree. <arg>base</arg> is the base &url; for the parsing process, <arg>sysid</arg>
-		is the &xml; system identifier (defaulting to <arg>base</arg> if it is <lit>None</lit>).
-		"""
-		if isinstance(text, unicode):
-			encoding = "utf-8"
-			text = text.encode(encoding)
-		else:
-			encoding = self.encoding
-		stream = cStringIO.StringIO(text)
-		if base is None:
-			base = url.URL("STRING")
-		if sysid is None:
-			sysid = str(base)
-		return self._parse(stream, base, sysid, encoding)
 
-	def parseURL(self, name, base=None, sysid=None, *args, **kwargs):
-		"""
-		Parse &xml; input from the &url; <arg>name</arg> which might be a string
-		or an <pyref module="ll.url" class="URL"><class>URL</class></pyref> object
-		into an &xist; tree. <arg>base</arg> is the base &url; for the parsing process
-		(defaulting to the final &url; of the response (i.e. including redirects)),
-		<arg>sysid</arg> is the &xml; system identifier (defaulting to <arg>base</arg>
-		if it is <lit>None</lit>). <arg>*args</arg> and <arg>**kwargs</arg> will
-		be passed on to the <method>open</method> call.
-		"""
-		name = url.URL(name)
-		stream = name.open("rb", *args, **kwargs)
-		if base is None:
-			base = stream.finalurl()
-		if sysid is None:
-			sysid = str(base)
-		encoding = self.encoding
-		if encoding is None:
-			encoding = stream.encoding()
-		result = self._parse(stream, base, sysid, encoding)
-		stream.close()
-		return result
+	def handle_enterstarttag(self, name, line, col):
+		self._attrs = {}
 
-	def parseFile(self, filename, base=None, sysid=None):
-		"""
-		Parse &xml; input from the file named <arg>filename</arg>. <arg>base</arg> is
-		the base &url; for the parsing process (defaulting to <arg>filename</arg>),
-		<arg>sysid</arg> is the &xml; system identifier (defaulting to <arg>base</arg>).
-		"""
-		filename = os.path.expanduser(filename)
-		stream = open(filename, "rb")
-		if base is None:
-			base = url.File(filename)
-		if sysid is None:
-			sysid = str(base)
-		result = self._parse(stream, base, sysid, self.encoding)
-		stream.close()
-		return result
+	def handle_enterattr(self, name, line, col):
+		node = xsc.Frag()
+		self._attrs[name] = node
+		self._nesting.append((node, self._nesting[-1][1]))
 
-	def setDocumentLocator(self, locator):
-		self._locator = locator
+	def handle_leaveattr(self, name, line, col):
+		self._nesting.pop()
 
-	def startDocument(self):
-		pass
-
-	def endDocument(self):
-		pass
-
-	def startElement(self, name, attrs):
+	def handle_leavestarttag(self, name, line, col):
 		oldprefixes = self.prefixes
 
-		attritems = attrs.items()
 		newprefixes = {}
-		for (attrname, xmlns) in attritems:
+		for (attrname, xmlns) in self._attrs.iteritems():
 			if attrname==u"xmlns" or attrname.startswith(u"xmlns:"):
 				prefix = attrname[6:] or None
 				newprefixes[prefix] = unicode(xmlns)
@@ -870,7 +538,7 @@ class Parser(object):
 		else:
 			node = self.pool.element_xml(name, xmlns)
 
-		for (attrname, attrvalue) in attritems:
+		for (attrname, attrvalue) in self._attrs.iteritems():
 			if attrname != u"xmlns" and not attrname.startswith(u"xmlns:"):
 				if u":" in attrname:
 					(attrprefix, attrname) = attrname.split(u":", 1)
@@ -889,12 +557,12 @@ class Parser(object):
 				node.attrs.set_xml(attrname, attrvalue.parsed(self))
 		node.attrs = node.attrs.parsed(self)
 		node = node.parsed(self, start=True)
-		self.__appendNode(node)
+		self.__appendNode(node, line, col)
 		# push new innermost element onto the stack, together with the list of prefix mappings to which we have to return when we leave this element
 		self._nesting.append((node, oldprefixes))
-		self.skippingwhitespace = False
+		self._attrs = None
 
-	def endElement(self, name):
+	def handle_endtag(self, name, line, col):
 		currentelement = self._nesting[-1][0]
 
 		(prefix, sep, name) = name.rpartition(u":")
@@ -908,17 +576,11 @@ class Parser(object):
 		if self.validate:
 			currentelement.checkvalid()
 		if self.loc:
-			currentelement.endloc = self.getLocation()
+			currentelement.endloc = xsc.Location(self.url, line, col)
 
 		self.prefixes = self._nesting.pop()[1] # pop the innermost element off the stack and restore the old prefixes mapping (from outside this element)
 
-		self.skippingwhitespace = False
-
-	def characters(self, content):
-		if self.skippingwhitespace:
-			# the following could be content = content.lstrip(), but this would remove nbsps
-			while content and content[0].isspace() and content[0] != u"\xa0":
-				content = content[1:]
+	def handle_data(self, content, line, col):
 		if content:
 			node = self.pool.text(content)
 			node = node.parsed(self)
@@ -928,127 +590,97 @@ class Parser(object):
 				node.startloc = last[-1].startloc # make sure the replacement node has the original location
 				last[-1] = node # replace it
 			else:
-				self.__appendNode(node)
-			self.skippingwhitespace = False
+				self.__appendNode(node, line, col)
 
-	def comment(self, content):
+	def handle_comment(self, content, line, col):
 		node = self.pool.comment(content)
 		node = node.parsed(self)
-		self.__appendNode(node)
-		self.skippingwhitespace = False
+		self.__appendNode(node, line, col)
 
-	def processingInstruction(self, target, data):
-		if target=="x":
-			self.skippingwhitespace = True
-		else:
+	def handle_proc(self, target, data, line, col):
+		if target != "xml":
 			node = self.pool.procinst_xml(target, data)
 			node = node.parsed(self)
-			self.__appendNode(node)
-			self.skippingwhitespace = False
+			self.__appendNode(node, line, col)
 
-	def createEntity(self, name):
-		node = self.pool.entity_xml(name)
-		if isinstance(node, xsc.CharRef):
-			return xsc.Text(unichr(node.codepoint))
+	def handle_entityref(self, name, line, col):
+		try:
+			c = {u"lt": u"<", u"gt": u">", u"amp": u"&", u"quot": u'"', u"apos": u"'"}[name]
+		except KeyError:
+			node = self.pool.entity_xml(name)
+			if isinstance(node, xsc.CharRef):
+				self.handle_data(unichr(node.codepoint), line, col)
+			else:
+				node = node.parsed(self)
+				self.__appendNode(node, line, col)
 		else:
-			node = node.parsed(self)
-			return node
-
-	def skippedEntity(self, name):
-		node = self.pool.entity_xml(name)
-		if isinstance(node, xsc.CharRef):
-			self.characters(unichr(node.codepoint))
-		else:
-			node = node.parsed(self)
-			self.__appendNode(node)
-		self.skippingwhitespace = False
-
-	def __decorateException(self, exception):
-		if not isinstance(exception, sax.SAXParseException):
-			msg = exception.__class__.__name__
-			msg2 = str(exception)
-			if msg2:
-				msg += ": " + msg2
-			exception = sax.SAXParseException(msg, exception, self._locator)
-		return exception
-
-	def error(self, exception):
-		"Handle a recoverable error."
-		# This doesn't work properly with expat, as expat fiddles with the traceback
-		raise self.__decorateException(exception)
-
-	def fatalError(self, exception):
-		"Handle a non-recoverable error."
-		# This doesn't work properly with expat, as expat fiddles with the traceback
-		raise self.__decorateException(exception)
-
-	def warning(self, exception):
-		"Handle a warning."
-		print self.__decorateException(exception)
+			self.handle_data(c, line, col)
 
 	def getLocation(self):
 		return xsc.Location(self._locator)
 
-	def __appendNode(self, node):
+	def __appendNode(self, node, line, col):
 		if self.loc:
-			node.startloc = self.getLocation()
-		self._nesting[-1][0].append(node) # add the new node to the content of the innermost element (or fragment)
+			node.startloc = xsc.Location(self.url, line, col)
+		self._nesting[-1][0].append(node) # add the new node to the content of the innermost element/fragment/(attribute)
 
 
-def parse(stream, base=None, sysid=None, **parserargs):
+def parsestring(text, base=None, encoding=None, **builderargs):
+	"""
+	Parse the string <arg>text</arg> (<class>str</class> or <class>unicode</class>)
+	into an &xist; tree. For the arguments <arg>base</arg> and <arg>encoding</arg>
+	see the method <pyref class="Builder" method="parsestring"><method>parsestring</method></pyref>
+	in the <class>Builder</class> class. You can pass any other argument that the
+	<pyref class="Builder" method="__init__"><class>Builder</class> constructor</pyref>
+	takes as keyword arguments via <arg>vuilderargs</arg>.
+	"""
+	builder = Builder(**builderargs)
+	return builder.parsestring(text, base=base, encoding=encoding)
+
+
+def parseiter(iterable, base=None, encoding=None, **builderargs):
+	builder = Builder(**builderargs)
+	return builder.parseiter(iterable, base=base, encoding=encoding)
+
+
+def parsestream(stream, base=None, encoding=None, **builderargs):
 	"""
 	Parse &xml; from the stream <arg>stream</arg> into an &xist; tree.
-	For the arguments <arg>base</arg> and <arg>sysid</arg> see the method
-	<pyref class="Parser" method="parse"><method>parse</method></pyref>
+	For the arguments <arg>base</arg> and <arg>encoding</arg> see the method
+	<pyref class="Builder" method="parse"><method>parse</method></pyref>
 	in the <class>Parser</class> class. You can pass any other argument that the
-	<pyref class="Parser" method="__init__"><class>Parser</class> constructor</pyref>
-	takes as keyword arguments via <arg>parserargs</arg>.
+	<pyref class="Builder" method="__init__"><class>Builder</class> constructor</pyref>
+	takes as keyword arguments via <arg>vuilderargs</arg>.
 	"""
-	parser = Parser(**parserargs)
-	return parser.parse(stream, base, sysid)
+	builder = Builder(**builderargs)
+	return parser.parsestream(stream, base=base, encoding=encoding)
 
 
-def parseString(text, base=None, sysid=None, **parserargs):
+def parsefile(filename, base=None, encoding=None, bufsize=8192, **builderargs):
 	"""
-	Parse the string <arg>text</arg> (<class>str</class> or <class>unicode</class>) into an
-	&xist; tree. For the arguments <arg>base</arg> and <arg>sysid</arg> see the method
-	<pyref class="Parser" method="parseString"><method>parseString</method></pyref>
-	in the <class>Parser</class> class. You can pass any other argument that the
-	<pyref class="Parser" method="__init__"><class>Parser</class> constructor</pyref>
-	takes as keyword arguments via <arg>parserargs</arg>.
+	Parse &xml; input from the file named <arg>filename</arg>. For the arguments
+	<arg>base</arg> and <arg>encoding</arg> see the method
+	<pyref class="Builder" method="parsefile"><method>parsefile</method></pyref>
+	in the <class>Builder</class> class. You can pass any other argument that the
+	<pyref class="Builder" method="__init__"><class>Builder</class> constructor</pyref>
+	takes as keyword arguments via <arg>builderargs</arg>.
 	"""
-	parser = Parser(**parserargs)
-	return parser.parseString(text, base, sysid)
+	builder = Builder(**builderargs)
+	return builder.parsefile(filename, base=base, encoding=encoding, bufsize=bufsize)
 
 
-def parseURL(url, base=None, sysid=None, headers=None, data=None, **parserargs):
+def parseurl(name, base=None, encoding=None, bufsize=8192, headers=None, data=None, **builderargs):
 	"""
 	Parse &xml; input from the &url; <arg>name</arg> which might be a string
 	or an <pyref module="ll.url" class="URL"><class>URL</class></pyref> object
-	into an &xist; tree. For the arguments <arg>base</arg>, <arg>sysid</arg>,
+	into an &xist; tree. For the arguments <arg>base</arg>, <arg>encoding</arg>,
 	<arg>headers</arg> and <arg>data</arg> see the method
-	<pyref class="Parser" method="parseURL"><method>parseURL</method></pyref>
-	in the <class>Parser</class> class. You can pass any other argument that the
-	<pyref class="Parser" method="__init__"><class>Parser</class> constructor</pyref>
-	takes as keyword arguments via <arg>parserargs</arg>.
+	<pyref class="Builder" method="parseurl"><method>parseurl</method></pyref>
+	in the <class>Builder</class> class. You can pass any other argument that the
+	<pyref class="Builder" method="__init__"><class>Builder</class> constructor</pyref>
+	takes as keyword arguments via <arg>builderargs</arg>.
 	"""
-	parser = Parser(**parserargs)
-	parseargs = {}
-	if headers is not None:
-		parseargs["headers"] = headers
-	if data is not None:
-		parseargs["data"] = data
-	return parser.parseURL(url, base, sysid, *parseargs)
+	builder = Builder(**builderargs)
+	return builder.parseurl(name, base=base, encoding=encoding, headers=headers, data=data)
 
 
-def parseFile(filename, base=None, sysid=None, **parserargs):
-	"""
-	Parse &xml; input from the file named <arg>filename</arg>. For the arguments
-	<arg>base</arg> and <arg>sysid</arg> see the method
-	<pyref class="Parser" method="parseFile"><method>parseFile</method></pyref>
-	in the <class>Parser</class> class. You can pass any other argument that the
-	<pyref class="Parser" method="__init__"><class>Parser</class> constructor</pyref>
-	takes as keyword arguments via <arg>parserargs</arg>.
-	"""
-	parser = Parser(**parserargs)
-	return parser.parseFile(filename, base, sysid)

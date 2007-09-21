@@ -202,7 +202,7 @@ def test_encoding():
 			)
 		)
 		s = node.bytes(encoding=encoding)
-		node2 = parsers.parseString(s, saxparser=parsers.ExpatParser, prefixes={None: [html, php, abbr]})
+		node2 = parsers.parsestring(s, parser=parsers.ExpatParser(), prefixes={None: [html, php, abbr]})
 		assert node == node2
 
 	for encoding in ("utf-8", "utf-16", "utf-16-be", "utf-16-le", "latin-1", "ascii"):

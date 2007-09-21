@@ -3952,53 +3952,18 @@ class Location(object):
 	"""
 	<par>Represents a location in an &xml; entity.</par>
 	"""
-	__slots__ = ("sysid", "pubid", "line", "col")
+	__slots__ = ("url", "line", "col", "char")
 
-	def __init__(self, locator=None, sysid=None, pubid=None, line=None, col=None):
+	def __init__(self, url=None, line=None, col=None):
 		"""
-		<par>Create a new <class>Location</class> instance by reading off the
-		current location from the <arg>locator</arg>, which is then stored
-		internally. In addition to that the system ID, public ID, line number and
-		column number can be overwritten by explicit arguments.</par>
+		Create a new <class>Location</class> object using the arguments
+		passed in. <arg>url</arg> is the &url;/filename. <arg>line<arg> is
+		the line number and <arg>col</arg> is the column number (both starting
+		at 0).</par>
 		"""
-		self.sysid = None
-		self.pubid = None
-		self.line = None
-		self.col = None
-
-		if locator is not None:
-			self.sysid = locator.getSystemId()
-			self.pubid = locator.getPublicId()
-			self.line = locator.getLineNumber()
-			self.col = locator.getColumnNumber()
-
-		if sysid is not None:
-			self.sysid = sysid
-
-		if pubid is not None:
-			self.pubid = pubid
-
-		if line is not None:
-			self.line = line
-
-		if col is not None:
-			self.col = col
-
-	def getColumnNumber(self):
-		"<par>Return the column number of this location.</par>"
-		return self.col
-
-	def getLineNumber(self):
-		"<par>Return the line number of this location.</par>"
-		return self.line
-
-	def getPublicId(self):
-		"<par>Return the public identifier for this location.</par>"
-		return self.pubid
-
-	def getSystemId(self):
-		"<par>Return the system identifier for this location.</par>"
-		return self.sysid
+		self.url = url
+		self.line = line
+		self.col = col
 
 	def offset(self, offset):
 		"""
@@ -4008,48 +3973,29 @@ class Location(object):
 		if offset==0:
 			return self
 		elif self.line is None:
-			return Location(sysid=self.sysid, pubid=self.pubid, line=None, col=1)
-		return Location(sysid=self.sysid, pubid=self.pubid, line=self.line+offset, col=1)
+			return Location(url=self.url, col=1)
+		return Location(url=self.url, line=self.line+offset, col=1)
 
 	def __str__(self):
-		# get and format the system ID
-		sysid = self.sysid
-		if sysid is None:
-			sysid = "???"
-		else:
-			sysid = str(sysid)
-
-		# get and format the line number
-		line = self.line
-		if line is None or line < 0:
-			line = "?"
-		else:
-			line = str(line)
-
-		# get and format the column number
-		col = self.col
-		if col is None or col < 0:
-			col = "?"
-		else:
-			col = str(col)
-
-		# now we have the parts => format them
-		return "%s:%s:%s" % (sysid, line, col)
+		url = str(self.url) if self.url is not None else "???"
+		line = str(self.line) if self.line is not None else "?"
+		col = str(self.col) if self.col is not None else "?"
+		return "%s:%s:%s" % (url, line, col)
 
 	def __repr__(self):
-		return "<%s object sysid=%r, pubid=%r, line=%r, col=%r at %08x>" % (self.__class__.__name__, self.sysid, self.pubid, self.line, self.col, id(self))
+		return "%s(%s)" % (self.__class__.__name__, ", ".join("%s=%r" % (attr, getattr(self, attr)) for attr in ("url", "line", "col") if getattr(self, attr) is not None))
 
 	def __eq__(self, other):
-		return self.__class__ is other.__class__ and self.pubid==other.pubid and self.sysid==other.sysid and self.line==other.line and self.col==other.col
+		return self.__class__ is other.__class__ and self.url==other.url and self.line==other.line and self.col==other.col
 
 	def __ne__(self, other):
 		return not self==other
 
 	def __xattrs__(self, mode="default"):
-		return ("sysid", "pubid", "line", "col")
+		return ("url", "line", "col")
 
 	def __xrepr__(self, mode="default"):
-		yield (astyle.style_url, self.sysid)
+		yield (astyle.style_url, self.url)
 		yield (astyle.style_default, ":")
 		for part in ipipe.xrepr(self.line, mode):
 			yield part

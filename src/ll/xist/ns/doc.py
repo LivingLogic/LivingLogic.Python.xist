@@ -68,18 +68,18 @@ def getdoc(thing):
 	text = "\n".join(lines)
 
 	if inspect.ismethod(thing):
-		sysid = "METHOD-DOCSTRING(%s.%s.%s)" % (_getmodulename(thing), thing.im_class.__name__, thing.__name__)
+		base = "METHOD-DOCSTRING(%s.%s.%s)" % (_getmodulename(thing), thing.im_class.__name__, thing.__name__)
 	elif isinstance(thing, __builtin__.property):
-		sysid = "PROPERTY-DOCSTRING(%s.%s)" % (_getmodulename(thing), "unknown")
+		base = "PROPERTY-DOCSTRING(%s.%s)" % (_getmodulename(thing), "unknown")
 	elif inspect.isfunction(thing):
-		sysid = "FUNCTION-DOCSTRING(%s.%s)" % (_getmodulename(thing), thing.__name__)
+		base = "FUNCTION-DOCSTRING(%s.%s)" % (_getmodulename(thing), thing.__name__)
 	elif inspect.isclass(thing):
-		sysid = "CLASS-DOCSTRING(%s.%s)" % (_getmodulename(thing), thing.__name__)
+		base = "CLASS-DOCSTRING(%s.%s)" % (_getmodulename(thing), thing.__name__)
 	elif inspect.ismodule(thing):
-		sysid = "MODULE-DOCSTRING(%s)" % _getmodulename(thing)
+		base = "MODULE-DOCSTRING(%s)" % _getmodulename(thing)
 	else:
-		sysid = "DOCSTRING"
-	node = parsers.parseString(text, sysid=sysid, prefixes=xsc.docprefixes())
+		base = "DOCSTRING"
+	node = parsers.parsestring(text, base=base, prefixes=xsc.docprefixes())
 	if not node[par]: # optimization: one paragraph docstrings don't need a <par> element.
 		node = par(node)
 

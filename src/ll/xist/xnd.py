@@ -526,7 +526,7 @@ def fromdtd(dtd, xmlns=None):
 	ents.sort()
 	for entname in ents:
 		if entname not in ("quot", "apos", "gt", "lt", "amp"):
-			ent = parsers.parseString(dtd.resolve_ge(entname).value)
+			ent = parsers.parsestring(dtd.resolve_ge(entname).value)
 			ns.content.append(CharRef(entname, codepoint=ord(unicode(ent[0])[0])))
 
 	# if the DTD has exactly one value for all fixed "xmlns" attributes and the user didn't specify xmlns, use this one
