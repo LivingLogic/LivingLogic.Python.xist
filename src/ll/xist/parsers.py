@@ -32,14 +32,11 @@ class LLParser(object):
 	def __init__(self):
 		self.application = None
 
-	def register(self, application):
+	def begin(self, application):
 		self.application = application
 
-	def begin(self):
-		pass
-
 	def end(self):
-		pass
+		self.application = None
 
 	def feed(self, data, final):
 		pass
@@ -52,7 +49,8 @@ class SGMLOPParser(LLParser):
 		self._decoder = None
 		self._parser = None
 
-	def begin(self):
+	def begin(self, application):
+		LLParser.begin(self, application)
 		self._decoder = codecs.getincrementaldecoder("xml")(self.encoding)
 		if self._parser is not None:
 			self._parser.register(None)
@@ -63,6 +61,7 @@ class SGMLOPParser(LLParser):
 		self._parser.feed(self._decoder.decode(data, final))
 
 	def end(self):
+		LLParser.end(self)
 		self._parser.close()
 		if self._parser is not None:
 			self._parser.register(None)
@@ -110,7 +109,8 @@ class ExpatParser(LLParser):
 		self._encoder = None
 		self._transcode = transcode
 
-	def begin(self):
+	def begin(self, application):
+		LLParser.begin(self, application)
 		self._parser = expat.ParserCreate(self.encoding)
 		self._parser.buffer_text = True
 		self._parser.ordered_attributes = True
@@ -126,6 +126,7 @@ class ExpatParser(LLParser):
 			self._encoder = codecs.getincrementalencoder("xml")(encoding="utf-8")
 
 	def end(self):
+		LLParser.end(self)
 		self._parser = None
 		self._encoder = None
 		self._decoder = None
@@ -376,7 +377,6 @@ class Parser(object):
 			parser = SGMLOPParser(encoding=encoding)
 		else:
 			parser = self.saxparser
-		parser.register(self)
 		self.base = url.URL(base)
 		# XIST nodes do not have a parent link, therefore we have to store the
 		# active path through the tree in a stack (which we call ``_nesting``)
@@ -385,11 +385,10 @@ class Parser(object):
 		# After we've finished parsing, the ``Frag`` that we put at the bottom of
 		# the stack will be our document root.
 		self._nesting = [ (xsc.Frag(), self.prefixes) ]
-		parser.begin()
+		parser.begin(self)
 		return parser
 
 	def _end(self, parser):
-		parser.register(None)
 		parser.end()
 		return self._nesting[0][0]
 
