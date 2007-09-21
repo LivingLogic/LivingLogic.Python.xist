@@ -3945,7 +3945,7 @@ class apos(CharRef): "apostrophe mark, U+0027 ISOnum"; codepoint = 39
 
 
 ###
-###
+### Location information
 ###
 
 class Location(object):

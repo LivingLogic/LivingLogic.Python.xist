@@ -429,6 +429,27 @@ class Builder(object):
 				if final:
 					return self._end(parser)
 
+	def parseurl(self, name, base=None, encoding=None, bufsize=8192, *args, **kwargs):
+		"""
+		Parse &xml; input from the &url; <arg>name</arg> which might be a string
+		or an <pyref module="ll.url" class="URL"><class>URL</class></pyref> object
+		into an &xist; tree. <arg>base</arg> is the base &url; for the parsing process
+		(defaulting to the final &url; of the response (i.e. including redirects)).
+		<arg>*args</arg> and <arg>**kwargs</arg> will
+		be passed on to the <method>open</method> call.
+		"""
+		name = url.URL(name)
+		parser = self._begin(base=base, encoding=encoding)
+		with contextlib.closing(name.open("rb", *args, **kwargs)) as stream:
+			if base is None:
+				base = stream.finalurl()
+			while True:
+				data = stream.read(bufsize)
+				final = not data
+				parser.feed(data, final)
+				if final:
+					return self._end(parser)
+
 	def _parse(self, stream, base, sysid, encoding):
 		self.base = url.URL(base)
 
@@ -479,28 +500,6 @@ class Builder(object):
 			sysid = base
 		return self._parse(stream, base, sysid, self.encoding)
 
-	def parseURL(self, name, base=None, sysid=None, *args, **kwargs):
-		"""
-		Parse &xml; input from the &url; <arg>name</arg> which might be a string
-		or an <pyref module="ll.url" class="URL"><class>URL</class></pyref> object
-		into an &xist; tree. <arg>base</arg> is the base &url; for the parsing process
-		(defaulting to the final &url; of the response (i.e. including redirects)),
-		<arg>sysid</arg> is the &xml; system identifier (defaulting to <arg>base</arg>
-		if it is <lit>None</lit>). <arg>*args</arg> and <arg>**kwargs</arg> will
-		be passed on to the <method>open</method> call.
-		"""
-		name = url.URL(name)
-		stream = name.open("rb", *args, **kwargs)
-		if base is None:
-			base = stream.finalurl()
-		if sysid is None:
-			sysid = str(base)
-		encoding = self.encoding
-		if encoding is None:
-			encoding = stream.encoding()
-		result = self._parse(stream, base, sysid, encoding)
-		stream.close()
-		return result
 
 	def handle_enterstarttag(self, name, line, col):
 		self._attrs = {}
@@ -657,26 +656,6 @@ def parsestream(stream, base=None, encoding=None, **builderargs):
 	return parser.parsestream(stream, base=base, encoding=encoding)
 
 
-def parseURL(url, base=None, sysid=None, headers=None, data=None, **parserargs):
-	"""
-	Parse &xml; input from the &url; <arg>name</arg> which might be a string
-	or an <pyref module="ll.url" class="URL"><class>URL</class></pyref> object
-	into an &xist; tree. For the arguments <arg>base</arg>, <arg>sysid</arg>,
-	<arg>headers</arg> and <arg>data</arg> see the method
-	<pyref class="Parser" method="parseURL"><method>parseURL</method></pyref>
-	in the <class>Parser</class> class. You can pass any other argument that the
-	<pyref class="Parser" method="__init__"><class>Parser</class> constructor</pyref>
-	takes as keyword arguments via <arg>parserargs</arg>.
-	"""
-	parser = Parser(**parserargs)
-	parseargs = {}
-	if headers is not None:
-		parseargs["headers"] = headers
-	if data is not None:
-		parseargs["data"] = data
-	return parser.parseURL(url, base, sysid, *parseargs)
-
-
 def parsefile(filename, base=None, encoding=None, bufsize=8192, **builderargs):
 	"""
 	Parse &xml; input from the file named <arg>filename</arg>. For the arguments
@@ -688,3 +667,20 @@ def parsefile(filename, base=None, encoding=None, bufsize=8192, **builderargs):
 	"""
 	builder = Builder(**builderargs)
 	return builder.parsefile(filename, base=base, encoding=encoding, bufsize=bufsize)
+
+
+def parseurl(name, base=None, encoding=None, bufsize=8192, headers=None, data=None, **builderargs):
+	"""
+	Parse &xml; input from the &url; <arg>name</arg> which might be a string
+	or an <pyref module="ll.url" class="URL"><class>URL</class></pyref> object
+	into an &xist; tree. For the arguments <arg>base</arg>, <arg>encoding</arg>,
+	<arg>headers</arg> and <arg>data</arg> see the method
+	<pyref class="Builder" method="parseurl"><method>parseurl</method></pyref>
+	in the <class>Builder</class> class. You can pass any other argument that the
+	<pyref class="Builder" method="__init__"><class>Builder</class> constructor</pyref>
+	takes as keyword arguments via <arg>builderargs</arg>.
+	"""
+	builder = Builder(**builderargs)
+	return builder.parseurl(name, base=base, encoding=encoding, headers=headers, data=data)
+
+
