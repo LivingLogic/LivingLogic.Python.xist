@@ -441,8 +441,9 @@ class Builder(object):
 		name = url.URL(name)
 		parser = self._begin(base=base, encoding=encoding)
 		with contextlib.closing(name.open("rb", *args, **kwargs)) as stream:
+			self.url = stream.finalurl()
 			if base is None:
-				base = stream.finalurl()
+				base = self.url
 			while True:
 				data = stream.read(bufsize)
 				final = not data
