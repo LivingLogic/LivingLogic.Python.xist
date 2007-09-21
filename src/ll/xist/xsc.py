@@ -3995,7 +3995,8 @@ class Location(object):
 		return ("url", "line", "col")
 
 	def __xrepr__(self, mode="default"):
-		yield (astyle.style_url, self.url)
+		for part in ipipe.xrepr(self.url, mode):
+			yield part
 		yield (astyle.style_default, ":")
 		for part in ipipe.xrepr(self.line, mode):
 			yield part
