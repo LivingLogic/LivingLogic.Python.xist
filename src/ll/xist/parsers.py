@@ -451,6 +451,34 @@ class Builder(object):
 				if final:
 					return self._end(parser)
 
+	def parseetree(self, tree, base=None):
+		def toxsc(node):
+			if "Element" in type(node).__name__:
+				xmlns = None
+				name = node.tag
+				if node.tag.startswith("{"):
+					(xmlns, sep, name) = node.tag[1:].partition("}")
+				newnode = self.pool.element_xml(name, xmlns)
+				for (attrname, attrvalue) in node.items():
+					if attrname.startswith("{"):
+						(xmlns, sep, attrname) = attrname[1:].partition("}")
+						attrname = self.pool.attrclass_xml(attrname, xmlns)
+					attrvalue = newnode.attrs.set_xml(attrname, attrvalue)
+					newnode.attrs.set_xml(attrname, attrvalue.parsed(self))
+				newnode = newnode.parsed(self, start=True)
+				if node.text:
+					newnode.append(node.text)
+				for child in node.getchildren():
+					newchild = toxsc(child)
+					newnode.append(newchild)
+					if isinstance(newchild, xsc.Element) and child.tail:
+						newnode.append(child.tail)
+				newnode = newnode.parsed(self, start=False)
+				return newnode
+			return xsc.Null
+		self.base = url.URL(base)
+		return toxsc(tree)
+
 	def _parse(self, stream, base, sysid, encoding):
 		self.base = url.URL(base)
 
