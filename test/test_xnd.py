@@ -25,6 +25,7 @@ def xnd2ns(data):
 		mod.__file__ = "test.py"
 		encoding = "iso-8859-1"
 		code = data.aspy(encoding=encoding).encode(encoding)
+		print code
 		code = compile(code, "test.py", "exec")
 		exec code in mod.__dict__
 		return mod
@@ -33,7 +34,19 @@ def xnd2ns(data):
 def test_xmlns():
 	e = xnd.Module(xmlns)()
 	ns = xnd2ns(e)
-	assert ns.xmlns == xmlns
+	assert ns.xsc is xsc
+
+
+def test_element():
+	e = xnd.Module(xmlns)(
+		xnd.Element("foo", xmlns="http://xmlns.foo.com"),
+		xnd.Element("foo", xmlns="http://xmlns.foo2.com"),
+	)
+	ns = xnd2ns(e)
+	assert ns.foo.xmlname == "foo"
+	assert ns.foo.xmlns == "http://xmlns.foo.com"
+	assert ns.foo2.xmlname == "foo"
+	assert ns.foo2.xmlns == "http://xmlns.foo2.com"
 
 
 def test_procinst():

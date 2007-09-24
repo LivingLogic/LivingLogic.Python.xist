@@ -101,9 +101,8 @@ class Base(object):
 
 
 class Module(Base):
-	def __init__(self, xmlns=None, doc=None):
-		Base.__init__(self, "xmlns")
-		self.xmlns = xmlns
+	def __init__(self, doc=None):
+		Base.__init__(self, "____")
 		self.doc = doc
 		self.content = []
 
@@ -172,10 +171,6 @@ class Module(Base):
 		self._adddoc(lines, level)
 
 		lines.append([level, "from ll.xist import xsc, sims"])
-
-		lines.append([0, ""])
-		lines.append([0, ""])
-		lines.append([level, "%s = %s" % (self.pyname, self.simplify(self.xmlns if self.xmlns is not None else "... insert namespace name ..."))])
 
 		# output attribute groups
 		for attrgroup in attrgroups:
@@ -246,15 +241,16 @@ class Module(Base):
 
 
 class Element(Base):
-	def __init__(self, name, modeltype=None, modelargs=None, doc=None):
+	def __init__(self, name, xmlns=None, modeltype=None, modelargs=None, doc=None):
 		Base.__init__(self, name)
+		self.xmlns = xmlns
 		self.attrs = []
 		self.modeltype = modeltype
 		self.modelargs = modelargs
 		self.doc = doc
 
 	def __repr__(self):
-		return "<%s.%s name=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.name, id(self))
+		return "<%s.%s name=%r xmlns=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.name, self.xmlns, id(self))
 
 	def __call__(self, *content):
 		self.attrs.extend(content)
@@ -264,7 +260,8 @@ class Element(Base):
 		lines.append([level, "class %s(xsc.Element):" % self.pyname])
 		newlines = []
 		self._adddoc(newlines, level+1)
-		newlines.append([level+1, "xmlns = xmlns"])
+		if self.xmlns is not None:
+			newlines.append([level+1, "xmlns = %s" % self.simplify(self.xmlns)])
 		if self.pyname != self.name:
 			newlines.append([level+1, "xmlname = %s" % self.simplify(self.name)])
 		# only output model, if it is a bool, otherwise it might reference other element,
@@ -375,7 +372,6 @@ class ProcInst(Base):
 		lines.append([level, "class %s(xsc.ProcInst):" % self.pyname])
 		newlines = []
 		self._adddoc(newlines, level+1)
-		newlines.append([level+1, "xmlns = xmlns"])
 		if self.pyname != self.name:
 			newlines.append([level+1, "xmlname = %s" % self.simplify(self.name)])
 		self._addlines(newlines, lines)
@@ -393,7 +389,6 @@ class Entity(Base):
 		lines.append([level, "class %s(xsc.Entity):" % self.pyname])
 		newlines = []
 		self._adddoc(newlines, level+1)
-		newlines.append([level+1, "xmlns = xmlns"])
 		if self.pyname != self.name:
 			newlines.append([level+1, "xmlname = %s" % self.simplify(self.name)])
 		self._addlines(newlines, lines)
@@ -411,7 +406,6 @@ class CharRef(Entity):
 		lines.append([level, "class %s(xsc.CharRef):" % self.pyname])
 		newlines = []
 		self._adddoc(newlines, level+1)
-		newlines.append([level+1, "xmlns = xmlns"])
 		if self.pyname != self.name:
 			newlines.append([level+1, "xmlname = %s" % self.simplify(self.name)])
 		if self.codepoint > 0xffff:
