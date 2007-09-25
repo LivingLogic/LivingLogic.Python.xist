@@ -182,7 +182,7 @@ def test_multipleparsecalls():
 def test_parseentities_sgmlop():
 	def check(input, output):
 		prefixes = {None: (a.xmlns, chars)}
-		node = parsers.parsestring("""<a title="%s">%s</a>""" % (input, input), parser=parsers.SGMLOPParser())
+		node = parsers.parsestring("""<a title="%s">%s</a>""" % (input, input), parser=parsers.SGMLOPParser(), prefixes=prefixes)
 		node = node.walknode(a)[0]
 		assert unicode(node) == output
 		assert unicode(node.attrs.title) == output
@@ -207,7 +207,7 @@ def test_parseentities_sgmlop():
 def test_parseattr_sgmlop():
 	def check(input, output):
 		prefixes = {None: (a.xmlns, chars)}
-		node = parsers.parsestring(input, parser=parsers.SGMLOPParser())
+		node = parsers.parsestring(input, parser=parsers.SGMLOPParser(), prefixes=prefixes)
 		node = node.walknode(a)[0]
 		assert unicode(node.attrs.title) == output
 
