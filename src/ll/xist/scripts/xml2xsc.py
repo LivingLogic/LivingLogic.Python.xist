@@ -64,6 +64,7 @@ def etree2xnd(sims, node):
 				procinst = xnd.ProcInst(name)
 				procinsts[name] = procinst
 				xndnode = procinst
+			mod(xndnode)
 		elif "Comment" in type(node).__name__:
 			xndnode = "#comment"
 		elif isinstance(node, basestring):
@@ -72,8 +73,10 @@ def etree2xnd(sims, node):
 			else:
 				xndnode = "#text"
 		if len(path) >= 2:
-			parententry = elements[getelementname(path[-2])]
-			parententry[1].add(xndnode)
+			parent = path[-2]
+			if "Element" in type(parent).__name__:
+				parententry = elements[getelementname(parent)]
+				parententry[1].add(xndnode)
 
 	# Put sims info into the element definitions
 	if sims == "none":
