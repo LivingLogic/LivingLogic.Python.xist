@@ -27,6 +27,22 @@ from ll import url
 from ll.xist import xsc, parsers, xnd
 
 
+def getxmlns(dtd):
+	"""
+	Extract the value of all fixed <lit>xmlns</lit> attributes
+	"""
+	found = set()
+	for elemname in dtd.get_elements():
+		element = dtd.get_elem(elemname)
+		for attrname in element.get_attr_list():
+			attr = element.get_attr(attrname)
+			if attrname=="xmlns" or u":" in attrname:
+				if attr.decl=="#FIXED":
+					found.add(attr.default)
+					continue # skip a namespace declaration
+	return found
+
+
 def dtd2xnd(dtd, xmlns=None):
 	"""
 	Convert &dtd; information from the &url; <arg>dtdurl</arg> to an &xist; &dom;
@@ -37,7 +53,13 @@ def dtd2xnd(dtd, xmlns=None):
 
 	ns = xnd.Module()
 
-	foundxmlns = set() # collects all the values of fixed xmlns attributes
+	if xmlns is None:
+		# try to guess the namespace name from the dtd
+		xmlns = getxmlns(dtd)
+		if len(xmlns) == 1:
+			xmlns = iter(xmlns).next()
+		else:
+			xmlns = None
 
 	# Add element info
 	elements = dtd.get_elements()
@@ -52,12 +74,8 @@ def dtd2xnd(dtd, xmlns=None):
 			attrs.sort()
 			for attrname in attrs:
 				dtd_a = dtd_e.get_attr(attrname)
-				if attrname=="xmlns":
-					if dtd_a.decl=="#FIXED":
-						foundxmlns.add(dtd_a.default)
-					continue # skip a namespace declaration
-				elif u":" in attrname:
-					continue # skip global attributes
+				if attrname=="xmlns" or u":" in attrname:
+					continue # skip namespace declarations and global attributes
 				values = []
 				if dtd_a.type == "ID":
 					type = "xsc.IDAttr"

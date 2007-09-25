@@ -51,7 +51,7 @@ def test_convert():
 	"""
 	ns = dtd2mod(dtdstring)
 
-	assert ns.xmlns == "http://xmlns.foo.com/foo"
+	assert ns.foo.xmlns == "http://xmlns.foo.com/foo"
 	assert isinstance(ns.foo.model, sims.Elements)
 	assert len(ns.foo.model.elements) == 1
 	assert ns.foo.model.elements[0] == ns.bar
@@ -113,7 +113,7 @@ def test_quotes():
 	<!ELEMENT foo EMPTY>
 	"""
 	ns = dtd2mod(dtdstring, '"')
-	assert ns.xmlns == '"'
+	assert ns.foo.xmlns == '"'
 
 
 def test_unicode():
@@ -121,7 +121,7 @@ def test_unicode():
 	<!ELEMENT foo EMPTY>
 	"""
 	ns = dtd2mod(dtdstring, u'\u3042')
-	assert ns.xmlns == u'\u3042'
+	assert ns.foo.xmlns == u'\u3042'
 
 
 def test_unicodequotes():
@@ -129,7 +129,7 @@ def test_unicodequotes():
 	<!ELEMENT foo EMPTY>
 	"""
 	ns = dtd2mod(dtdstring, u'"\u3042"')
-	assert ns.xmlns == u'"\u3042"'
+	assert ns.foo.xmlns == u'"\u3042"'
 
 
 def test_badelementname():
@@ -168,12 +168,12 @@ def test_shareattrsdupes():
 		baz2 CDATA             #REQUIRED
 	>
 	"""
-	mod = dtd2mod(dtdstring, "foo", shareattrs=False)
-	assert issubclass(mod.foo.Attrs.baz, mod.baz.baz)
-	assert issubclass(mod.bar.Attrs.baz, mod.baz.baz)
-	assert not hasattr(mod, "baz2")
-	assert not mod.foo.Attrs.baz2.required
-	assert mod.bar.Attrs.baz2.required
+	ns = dtd2mod(dtdstring, "foo", shareattrs=False)
+	assert issubclass(ns.foo.Attrs.baz, ns.baz.baz)
+	assert issubclass(ns.bar.Attrs.baz, ns.baz.baz)
+	assert not hasattr(ns, "baz2")
+	assert not ns.foo.Attrs.baz2.required
+	assert ns.bar.Attrs.baz2.required
 
 
 def test_shareattrsall():
@@ -189,9 +189,9 @@ def test_shareattrsall():
 		bazz CDATA             #REQUIRED
 	>
 	"""
-	mod = dtd2mod(dtdstring, "foo", shareattrs=True)
-	assert issubclass(mod.foo.Attrs.baz, mod.baz.baz)
-	assert issubclass(mod.bar.Attrs.baz, mod.baz.baz)
+	ns = dtd2mod(dtdstring, "foo", shareattrs=True)
+	assert issubclass(ns.foo.Attrs.baz, ns.baz.baz)
+	assert issubclass(ns.bar.Attrs.baz, ns.baz.baz)
 
-	assert not mod.foo.Attrs.bazz.required
-	assert mod.bar.Attrs.bazz.required
+	assert not ns.foo.Attrs.bazz.required
+	assert ns.bar.Attrs.bazz.required
