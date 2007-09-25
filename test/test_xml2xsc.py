@@ -56,7 +56,7 @@ def test_attrs():
 	assert set(a.xmlname for a in mod.foo.Attrs.allowedattrs()) == set("ab")
 
 
-def test_model():
+def test_model1():
 	xml = "<foo><foo/><bar><foo/></bar></foo>"
 	mod = xml2mod(xml, parser=parser, sims="full")
 
@@ -65,3 +65,11 @@ def test_model():
 	assert mod.foo in mod.bar.model.elements
 	assert mod.bar not in mod.bar.model.elements
 
+
+def test_model2():
+	xml = "<foo><bar>gurk<bar/></bar><baz><!--nix--><baz/></baz></foo>"
+	mod = xml2mod(xml, parser=parser, sims="full")
+
+	assert isinstance(mod.foo.model, sims.Elements)
+	assert isinstance(mod.bar.model, sims.ElementsOrText)
+	assert isinstance(mod.baz.model, sims.Elements) # Comments don't count as content
