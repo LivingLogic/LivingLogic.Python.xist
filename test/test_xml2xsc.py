@@ -24,9 +24,9 @@ else:
 	parser = "lxml"
 
 
-def xml2mod(s, parser="etree"):
+def xml2mod(s, parser="etree", sims="simple"):
 	with xsc.Pool():
-		xnd = xml2xsc.stream2xnd(cStringIO.StringIO(s), parser=parser)
+		xnd = xml2xsc.stream2xnd(cStringIO.StringIO(s), parser=parser, sims=sims)
 
 		code = xnd.aspy().encode()
 		code = compile(code, "test.py", "exec")
@@ -54,4 +54,14 @@ def test_attrs():
 	mod = xml2mod(xml, parser=parser)
 
 	assert set(a.xmlname for a in mod.foo.Attrs.allowedattrs()) == set("ab")
+
+
+def test_model():
+	xml = "<foo><foo/><bar><foo/></bar></foo>"
+	mod = xml2mod(xml, parser=parser, sims="full")
+
+	assert mod.foo in mod.foo.model.elements
+	assert mod.bar in mod.foo.model.elements
+	assert mod.foo in mod.bar.model.elements
+	assert mod.bar not in mod.bar.model.elements
 
