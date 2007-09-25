@@ -35,7 +35,7 @@ def getelementname(node):
 
 
 def etree2xnd(sims, node):
-	x = xnd.Module()
+	mod = xnd.Module()
 	elements = {} # maps (name, xmlns) to (xnd.Element, content set, attrname->xnd.Attr map)
 	procinsts = {} # maps name to xnd.ProcInst
 
@@ -48,7 +48,7 @@ def etree2xnd(sims, node):
 			except KeyError:
 				xndnode = xnd.Element(name, xmlns=xmlns)
 				entry = elements[(name, xmlns)] = (xndnode, set(), {})
-				x(xndnode)
+				mod(xndnode)
 			else:
 				xndnode = entry[0]
 			for attrname in node.keys():
@@ -100,7 +100,7 @@ def etree2xnd(sims, node):
 					entry[0].modelargs = elements
 	else:
 		raise ValueError("unknown sims mode %r" % sims)
-	return x
+	return mod
 
 
 def stream2xnd(stream, name="foo", url="http://www.example.com/foons", sims="simple", parser="etree"):
