@@ -103,7 +103,7 @@ def etree2xnd(sims, node):
 	return mod
 
 
-def stream2xnd(stream, name="foo", url="http://www.example.com/foons", sims="simple", parser="etree"):
+def stream2xnd(stream, sims="simple", parser="etree"):
 	if parser == "etree":
 		from xml.etree import cElementTree
 		node = cElementTree.parse(stream).getroot()
