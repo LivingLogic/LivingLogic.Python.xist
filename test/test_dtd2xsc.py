@@ -12,21 +12,19 @@
 import types
 
 from ll.xist import xsc, xnd, sims
+from ll.xist.scripts import dtd2xsc
 
 
 def dtd2mod(s, xmlns=None, shareattrs=None):
-	from xml.parsers.xmlproc import dtdparser
-
-	dtd = dtdparser.load_dtd_string(s)
-	data = xnd.fromdtd(dtd, xmlns)
+	xnd = dtd2xsc.dtd2xnd(s, xmlns)
 
 	if shareattrs is not None:
-		data.shareattrs(shareattrs)
+		xnd.shareattrs(shareattrs)
 
 	mod = types.ModuleType("test")
 	mod.__file__ = "test.py"
 	encoding = "iso-8859-1"
-	code = data.aspy(encoding=encoding).encode(encoding)
+	code = xnd.aspy(encoding=encoding).encode(encoding)
 	code = compile(code, "test.py", "exec")
 	exec code in mod.__dict__
 	return mod
