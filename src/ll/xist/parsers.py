@@ -618,6 +618,8 @@ class Builder(object):
 			else:
 				self.__appendNode(node, line, col)
 
+	handle_cdata = handle_data
+
 	def handle_comment(self, content, line, col):
 		node = self.pool.comment(content)
 		node = node.parsed(self)
