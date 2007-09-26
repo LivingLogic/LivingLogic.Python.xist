@@ -151,6 +151,8 @@ def test_stringify():
 		str(node)
 		node.string()
 		node.bytes()
+		list(node.iterstring())
+		list(node.iterbytes())
 
 
 def test_astext():
