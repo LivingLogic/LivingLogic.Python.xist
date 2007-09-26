@@ -948,7 +948,7 @@ class Node(object):
 			part = decoder.decode(part, False)
 			if part:
 				yield part
-		part = decoder.decode(part, True)
+		part = decoder.decode("", True)
 		if part:
 			yield part
 
