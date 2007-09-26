@@ -756,3 +756,5 @@ def parseetree(tree, base=None, **builderargs):
 	<pyref class="Builder" method="__init__"><class>Builder</class> constructor</pyref>
 	takes as keyword arguments via <arg>builderargs</arg>.
 	"""
+	builder = Builder(**builderargs)
+	return builder.parseetree(tree, base=base)
