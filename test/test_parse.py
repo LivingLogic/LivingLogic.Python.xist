@@ -11,7 +11,7 @@
 
 from __future__ import with_statement
 
-import warnings
+import warnings, cStringIO
 
 from xml.etree import cElementTree
 
@@ -61,47 +61,21 @@ def check_parsestrictentities(source, result, parserfactory):
 	py.test.raises(xsc.IllegalEntityError, check_parseentities, "&baz;", u"", prefixes=prefixes, parser=parserfactory())
 
 
-def text_parsestring():
+def test_parsingmethods():
 	t = u"abc\U00012345\u3042xyz"
-	s = '<a title="%s">%s</a>' % t
+	s = u'<?xml version="1.0" encoding="utf-8"?><a title="%s">%s</a>' % (t, t)
+	b = s.encode("utf-8")
 
-	def check(input):
-		node = parsers.parsestring(input)
-		node = node[0]
+	def check(node):
+		node = node.walknode(a)[0]
 		assert unicode(node) == t
 		assert unicode(node["title"]) == t
-	yield check, s.encode("utf-8")
-	yield check, s # parsestring can parse unicode directly
 
-
-def text_parseiter():
-	t = u"abc\U00012345\u3042xyz"
-	s = '<a title="%s">%s</a>' % t
-
-	node = parsers.parseiter(s.encode("utf-8")) # parse byte by byte
-	node = node[0]
-	assert unicode(node) == t
-	assert unicode(node["title"]) == t
-
-
-def text_parsestream():
-	t = u"abc\U00012345\u3042xyz"
-	s = '<a title="%s">%s</a>' % t
-
-	node = parsers.parseiter(cStringIO.StringIO(s.encode("utf-8")), bufsize=1)
-	node = node[0]
-	assert unicode(node) == t
-	assert unicode(node["title"]) == t
-
-
-def text_parseetree():
-	t = u"abc\U00012345\u3042xyz"
-	s = '<a title="%s">%s</a>' % t
-
-	node = parsers.parseetree(cElementTree.fromstring(s))
-	node = node[0]
-	assert unicode(node) == t
-	assert unicode(node["title"]) == t
+	yield check, parsers.parsestring(b, pool=xsc.Pool(a))
+	yield check, parsers.parsestring(s, pool=xsc.Pool(a)) # parsestring can parse unicode directly
+	yield check, parsers.parseiter(b, pool=xsc.Pool(a)) # parse byte by byte
+	yield check, parsers.parsestream(cStringIO.StringIO(b), bufsize=1, pool=xsc.Pool(a))
+	yield check, parsers.parseetree(cElementTree.fromstring(b), prefixes={None: [a.xmlns]}, pool=xsc.Pool(a))
 
 
 def test_parselocationsgmlop():
