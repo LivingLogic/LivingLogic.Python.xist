@@ -13,6 +13,8 @@ from __future__ import with_statement
 
 import warnings
 
+from xml.etree import cElementTree
+
 import py.test
 
 from xml import sax
@@ -87,6 +89,16 @@ def text_parsestream():
 	s = '<a title="%s">%s</a>' % t
 
 	node = parsers.parseiter(cStringIO.StringIO(s.encode("utf-8")), bufsize=1)
+	node = node[0]
+	assert unicode(node) == t
+	assert unicode(node["title"]) == t
+
+
+def text_parseetree():
+	t = u"abc\U00012345\u3042xyz"
+	s = '<a title="%s">%s</a>' % t
+
+	node = parsers.parseetree(cElementTree.fromstring(s))
 	node = node[0]
 	assert unicode(node) == t
 	assert unicode(node["title"]) == t
