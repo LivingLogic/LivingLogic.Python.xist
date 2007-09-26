@@ -26,7 +26,7 @@ from ll.xist import xsc, xfind, parsers, converters
 from ll.xist.ns import tld
 
 
-def tld2xnd(stream, shareattrs):
+def tld2xnd(stream, shareattrs=None):
 	node = parsers.parsestream(stream)
 
 	# get and convert the taglib object
