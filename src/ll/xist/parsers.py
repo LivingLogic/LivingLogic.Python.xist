@@ -706,17 +706,17 @@ def parseiter(iterable, base=None, encoding=None, **builderargs):
 	return builder.parseiter(iterable, base=base, encoding=encoding)
 
 
-def parsestream(stream, base=None, encoding=None, **builderargs):
+def parsestream(stream, base=None, encoding=None, bufsize=8192, **builderargs):
 	"""
 	Parse &xml; from the stream <arg>stream</arg> into an &xist; tree.
-	For the arguments <arg>base</arg> and <arg>encoding</arg> see the method
-	<pyref class="Builder" method="parse"><method>parse</method></pyref>
+	For the arguments <arg>base</arg>, <arg>encoding</arg> and <arg>bufzise</arg>
+	see the method <pyref class="Builder" method="parse"><method>parse</method></pyref>
 	in the <class>Parser</class> class. You can pass any other argument that the
 	<pyref class="Builder" method="__init__"><class>Builder</class> constructor</pyref>
 	takes as keyword arguments via <arg>builderargs</arg>.
 	"""
 	builder = Builder(**builderargs)
-	return builder.parsestream(stream, base=base, encoding=encoding)
+	return builder.parsestream(stream, base=base, encoding=encoding, bufsize=bugsize)
 
 
 def parsefile(filename, base=None, encoding=None, bufsize=8192, **builderargs):
