@@ -221,7 +221,7 @@ class taglib(xsc.Element):
 		xmlns = unicode(node[0].content) if node is not None else None
 		node = misc.first(self[info], None)
 		if node is not None:
-			e.doc = node[0].asxnd()
+			e.doc = node.asxnd()
 		for node in self[tag]:
 			e2 = node.asxnd()
 			if xmlns is not None and isinstance(e2, xnd.Element):
