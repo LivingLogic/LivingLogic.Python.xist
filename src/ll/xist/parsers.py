@@ -359,6 +359,7 @@ class Builder(object):
 		return node
 
 	def _begin(self, base=None, encoding=None):
+		# Internal helper: create a parser and initialize the stack
 		if self.parser is None:
 			parser = SGMLOPParser(encoding=encoding)
 		else:
@@ -375,6 +376,7 @@ class Builder(object):
 		return parser
 
 	def _end(self, parser):
+		# Internal helper: finish parsing and return the root node
 		parser.end()
 		return self._nesting[0][0]
 
