@@ -237,15 +237,22 @@ class Builder(object):
 		<par>Arguments have the following meaning:</par>
 		<dlist>
 		<term><arg>parser</arg></term><item>an instance of the
-		<pyref class="Parser"><class>Larser</class></pyref> class (or any object
+		<pyref class="Parser"><class>Parser</class></pyref> class (or any object
 		that provides the appropriate interface).</item>
 
-		<term><arg>tidy</arg></term><item>If <arg>tidy</arg> is true, <link href="http://xmlsoft.org/">libxml2</link>'s
-		&html; parser will be used for parsing broken &html;.</item>
+		<term><arg>prefixes</arg></term><item>a mapping that maps namespace
+		prefixes to namespace names/modules) (or lists of namespace names/modules).
+		This is used to preinitialize the namespace prefix mapping.</item>
 
-		<term><arg>loc</arg></term><item>Should location information be attached to the generated nodes?</item>
+		<term><arg>tidy</arg></term><item>If <arg>tidy</arg> is true,
+		<link href="http://xmlsoft.org/">libxml2</link>'s &html; parser will be
+		used for parsing broken &html;.</item>
 
-		<term><arg>validate</arg></term><item>Should the parsed &xml; nodes be validated after parsing?</item>
+		<term><arg>loc</arg></term><item>Should location information be attached
+		to the generated nodes?</item>
+
+		<term><arg>validate</arg></term><item>Should the parsed &xml; nodes be
+		validated after parsing?</item>
 
 		<term><arg>encoding</arg></term><item>The default encoding to use, when the
 		source doesn't provide an encoding. The default <lit>None</lit> results in
@@ -484,6 +491,8 @@ class Builder(object):
 				name = node.tag
 				if node.tag.startswith("{"):
 					(xmlns, sep, name) = node.tag[1:].partition("}")
+				else:
+					xmlns = defaultxmlns
 				newnode = self.pool.element_xml(name, xmlns)
 				for (attrname, attrvalue) in node.items():
 					if attrname.startswith("{"):
@@ -511,6 +520,13 @@ class Builder(object):
 				return newnode
 			return xsc.Null
 		self.base = url.URL(base)
+
+		defaultxmlns = None
+		try:
+			defaultxmlns = self.prefixes[None][0]
+		except (KeyError, IndexError):
+			pass
+
 		return toxsc(tree)
 
 	def _parse(self, stream, base, sysid, encoding):
