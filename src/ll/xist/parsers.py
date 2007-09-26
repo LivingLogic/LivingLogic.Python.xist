@@ -238,7 +238,7 @@ class Builder(object):
 		<dlist>
 		<term><arg>parser</arg></term><item>an instance of the
 		<pyref class="Parser"><class>Larser</class></pyref> class (or any object
-		that provides the appropriate interface.</item>
+		that provides the appropriate interface).</item>
 
 		<term><arg>tidy</arg></term><item>If <arg>tidy</arg> is true, <link href="http://xmlsoft.org/">libxml2</link>'s
 		&html; parser will be used for parsing broken &html;.</item>
