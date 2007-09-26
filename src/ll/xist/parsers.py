@@ -9,7 +9,8 @@
 
 
 """
-<par>This file contains everything you need to parse &xist; objects from files, strings, &url;s etc.</par>
+<par>This file contains everything you need to parse &xist; objects from files,
+strings, &url;s etc.</par>
 
 <par>It contains different &sax;2 parser driver classes (mostly for sgmlop, everything else
 is from <app moreinfo="http://pyxml.sf.net/">PyXML</app>). It includes a
