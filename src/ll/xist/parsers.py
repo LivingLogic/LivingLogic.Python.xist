@@ -396,6 +396,12 @@ class Builder(object):
 		return self._end(parser)
 
 	def parseiter(self, data, base=None, encoding=None):
+		"""
+		Parse the input from the iterator <arg>data<arg> (which must produce the
+		input in chunks of bytes) into an &xist; tree. <arg>base</arg> is the base
+		&url; for the parsing process, <arg>encoding</arg> can be used to force
+		the parser to use the specified encoding.
+		"""
 		self.url = url.URL(base if base is not None else "ITER")
 		parser = self._begin(base=base, encoding=encoding)
 		for d in data:
@@ -405,9 +411,9 @@ class Builder(object):
 
 	def parsestream(self, stream, base=None, encoding=None, bufsize=8192):
 		"""
-		Parse &xml; input from the stream <arg>stream</arg>. <arg>base</arg>
-		is the base &url; for the parsing process, <arg>encoding</arg> can be
-		used to force the parser to use another encoding. <arg>bufsize</arg> is
+		Parse &xml; input from the stream <arg>stream</arg>. <arg>base</arg> is
+		the base &url; for the parsing process, <arg>encoding</arg> can be used
+		to force the parser to use the specified encoding. <arg>bufsize</arg> is
 		the buffer size used from reading the stream in blocks.
 		"""
 		self.url = url.URL(base if base is not None else "STREAM")
@@ -422,8 +428,10 @@ class Builder(object):
 	def parsefile(self, filename, base=None, encoding=None, bufsize=8192):
 		"""
 		Parse &xml; input from the file named <arg>filename</arg>. <arg>base</arg>
-		is the base &url; for the parsing process (defaulting to <arg>filename</arg>),
-		for the other arguments see <pyref method="parsestream"><method>parsestream</method</pyref>.
+		is the base &url; for the parsing process (defaulting to <arg>filename</arg>
+		if not specified), <arg>encoding</arg> can be used to force the parser to
+		use the specified encoding. <arg>bufsize</arg> is the buffer size used
+		from reading the stream in blocks.
 		"""
 		self.url = url.File(filename)
 		if base is None:
@@ -444,8 +452,10 @@ class Builder(object):
 		or an <pyref module="ll.url" class="URL"><class>URL</class></pyref> object
 		into an &xist; tree. <arg>base</arg> is the base &url; for the parsing process
 		(defaulting to the final &url; of the response (i.e. including redirects)).
-		<arg>*args</arg> and <arg>**kwargs</arg> will
-		be passed on to the <method>open</method> call.
+		<arg>encoding</arg> can be used to force the parser to use the specified
+		encoding. <arg>bufsize</arg> is the buffer size used from reading the
+		response in blocks <arg>*args</arg> and <arg>**kwargs</arg> will be passed
+		on to the <method>open</method> call.
 		"""
 		name = url.URL(name)
 		parser = self._begin(base=base, encoding=encoding)
@@ -461,6 +471,12 @@ class Builder(object):
 					return self._end(parser)
 
 	def parseetree(self, tree, base=None):
+		"""
+		Parse &xml; input from the object <arg>tree</arg> which must support the
+		<link href="http://effbot.org/zone/element-index.htm">ElementTree</link>
+		&api;. <arg>base</arg> is the base &url; for the parsing process
+		(i.e. this &url; will be prepended to all links in the tree).
+		"""
 		def toxsc(node):
 			if "Element" in type(node).__name__:
 				xmlns = None
