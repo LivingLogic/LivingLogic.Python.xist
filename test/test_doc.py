@@ -19,4 +19,4 @@ def test_explain():
 	"""
 	This is <function>test_explain</function>.
 	"""
-	assert unicode(doc.explain(test_explain).walknode(xsc.FindTypeAll(doc.function))[0]) == u"test_explain"
+	assert unicode(doc.explain(test_explain).walknode(doc.function)[0]) == u"test_explain"
