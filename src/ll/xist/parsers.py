@@ -529,46 +529,6 @@ class Builder(object):
 
 		return toxsc(tree)
 
-	def _parse(self, stream, base, sysid, encoding):
-		self.base = url.URL(base)
-
-		parser = self.parser()
-		# register us for callbacks
-		parser.setErrorHandler(self)
-		parser.setContentHandler(self)
-		parser.setDTDHandler(self)
-		parser.setEntityResolver(self)
-
-		# Configure the parser
-		try:
-			parser.setFeature(handler.feature_namespaces, False) # We do our own namespace processing
-		except sax.SAXNotSupportedException:
-			pass
-		try:
-			parser.setFeature(handler.feature_external_ges, False) # Don't process external entities, but pass them to skippedEntity
-		except sax.SAXNotSupportedException:
-			pass
-
-		self.skippingwhitespace = False
-
-		if self.tidy:
-			if encoding is None:
-				encoding = "iso-8859-1"
-			return self._parseHTML(stream, base, sysid, encoding)
-
-		if encoding is None:
-			encoding = "utf-8"
-
-		source = sax.xmlreader.InputSource(sysid)
-		source.setByteStream(stream)
-		source.setEncoding(encoding)
-
-		try:
-			parser.parse(source)
-		finally:
-			self._nesting = None
-		return root
-
 	def handle_enterstarttag(self, name, line, col):
 		self._attrs = {}
 
