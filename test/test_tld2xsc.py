@@ -9,25 +9,20 @@
 ## See xist/__init__.py for the license
 
 
-import types
+import types, cStringIO
 
 from ll.xist import xsc, parsers, sims
 from ll.xist.ns import tld
+from ll.xist.scripts import tld2xsc
 
 
-def tld2ns(s, xmlns, shareattrs=None):
-	node = parsers.parsestring(s, prefixes={None: tld}, pool=xsc.Pool(tld))
-	node = node.walknode(xsc.FindType(tld.taglib))[0]
+def tld2ns(s, shareattrs=None):
+	xnd = tld2xsc.tld2xnd(cStringIO.StringIO(s), shareattrs=shareattrs)
 
-	data = node.asxnd()
-
-	if shareattrs is not None:
-		data.shareattrs(shareattrs)
-
-	mod = types.ModuleType(xmlns)
+	mod = types.ModuleType("test")
 	mod.__file__ = "test.py"
 	encoding = "iso-8859-1"
-	code = data.aspy(encoding=encoding).encode(encoding)
+	code = xnd.aspy(encoding=encoding).encode(encoding)
 	code = compile(code, "test.py", "exec")
 	exec code in mod.__dict__
 	return mod
@@ -40,6 +35,7 @@ def test_tld2xsc():
 		<tlibversion>1.0</tlibversion>
 		<jspversion>1.1</jspversion>
 		<shortname>foo</shortname>
+		<uri>http://xmlns.example.com/foo</uri>
 		<tag>
 			<name>bar</name>
 			<tagclass>com.foo.bar</tagclass>
@@ -68,7 +64,7 @@ def test_tld2xsc():
 		</tag>
 	</taglib>
 	"""
-	ns = tld2ns(tldstring, "foo")
+	ns = tld2ns(tldstring)
 	assert ns.bar.xmlname == u"bar"
 	assert isinstance(ns.bar.model, sims.Empty)
 	assert ns.bar.__doc__.strip() == "info"
