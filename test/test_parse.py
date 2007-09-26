@@ -72,6 +72,16 @@ def text_parsestring():
 	yield check, s # parsestring can parse unicode directly
 
 
+def text_parseiter():
+	c = u"\u3042"
+	s = '<a title="%s">%s</a>' % c
+
+	node = parsers.parseiter(s.encode("utf-8")) # parse byte by byte
+	node = node[0]
+	assert unicode(node) == c
+	assert unicode(node["title"]) == c
+
+
 def test_parselocationsgmlop():
 	# sgmlop doesn't provide any location info, so check only the URL
 	node = parsers.parsestring("<z>gurk&amp;hurz&#42;hinz&#x666;hunz</z>", parser=parsers.SGMLOPParser())
