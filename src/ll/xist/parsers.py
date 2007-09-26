@@ -395,17 +395,17 @@ class Builder(object):
 		parser.feed(data, True)
 		return self._end(parser)
 
-	def parseiter(self, data, base=None, encoding=None):
+	def parseiter(self, iterable, base=None, encoding=None):
 		"""
-		Parse the input from the iterator <arg>data<arg> (which must produce the
-		input in chunks of bytes) into an &xist; tree. <arg>base</arg> is the base
-		&url; for the parsing process, <arg>encoding</arg> can be used to force
-		the parser to use the specified encoding.
+		Parse the input from the iterable <arg>iterable<arg> (which must produce
+		the input in chunks of bytes) into an &xist; tree. <arg>base</arg> is the
+		base &url; for the parsing process, <arg>encoding</arg> can be used to
+		force the parser to use the specified encoding.
 		"""
 		self.url = url.URL(base if base is not None else "ITER")
 		parser = self._begin(base=base, encoding=encoding)
-		for d in data:
-			parser.feed(d, False)
+		for chunk in iterable:
+			parser.feed(chunk, False)
 		parser.feed("", True)
 		return self._end(parser)
 
@@ -678,11 +678,11 @@ class Builder(object):
 		self._nesting[-1][0].append(node) # add the new node to the content of the innermost element/fragment/(attribute)
 
 
-def parsestring(text, base=None, encoding=None, **builderargs):
+def parsestring(data, base=None, encoding=None, **builderargs):
 	"""
-	Parse the string <arg>text</arg> (<class>str</class> or <class>unicode</class>)
-	into an &xist; tree. For the arguments <arg>base</arg> and <arg>encoding</arg>
-	see the method <pyref class="Builder" method="parsestring"><method>parsestring</method></pyref>
+	Parse the string <arg>data</arg> into an &xist; tree. For the arguments
+	<arg>base</arg> and <arg>encoding</arg> see the method
+	<pyref class="Builder" method="parsestring"><method>parsestring</method></pyref>
 	in the <class>Builder</class> class. You can pass any other argument that the
 	<pyref class="Builder" method="__init__"><class>Builder</class> constructor</pyref>
 	takes as keyword arguments via <arg>builderargs</arg>.
@@ -692,6 +692,15 @@ def parsestring(text, base=None, encoding=None, **builderargs):
 
 
 def parseiter(iterable, base=None, encoding=None, **builderargs):
+	"""
+	Parse the input from the iterable <arg>iterable<arg> (which must produce the
+	input in chunks of bytes) into an &xist; tree. For the arguments <arg>base</arg>
+	and <arg>encoding</arg> see the method
+	<pyref class="Builder" method="parsestring"><method>parsestring</method></pyref>
+	in the <class>Builder</class> class. You can pass any other argument that the
+	<pyref class="Builder" method="__init__"><class>Builder</class> constructor</pyref>
+	takes as keyword arguments via <arg>builderargs</arg>.
+	"""
 	builder = Builder(**builderargs)
 	return builder.parseiter(iterable, base=base, encoding=encoding)
 
@@ -712,7 +721,7 @@ def parsestream(stream, base=None, encoding=None, **builderargs):
 def parsefile(filename, base=None, encoding=None, bufsize=8192, **builderargs):
 	"""
 	Parse &xml; input from the file named <arg>filename</arg>. For the arguments
-	<arg>base</arg> and <arg>encoding</arg> see the method
+	<arg>base</arg>, <arg>encoding</arg> and <arg>bufsize</arg> see the method
 	<pyref class="Builder" method="parsefile"><method>parsefile</method></pyref>
 	in the <class>Builder</class> class. You can pass any other argument that the
 	<pyref class="Builder" method="__init__"><class>Builder</class> constructor</pyref>
@@ -724,9 +733,8 @@ def parsefile(filename, base=None, encoding=None, bufsize=8192, **builderargs):
 
 def parseurl(name, base=None, encoding=None, bufsize=8192, headers=None, data=None, **builderargs):
 	"""
-	Parse &xml; input from the &url; <arg>name</arg> which might be a string
-	or an <pyref module="ll.url" class="URL"><class>URL</class></pyref> object
-	into an &xist; tree. For the arguments <arg>base</arg>, <arg>encoding</arg>,
+	Parse &xml; input from the &url; <arg>name</arg> into an &xist; tree.
+	For the arguments <arg>base</arg>, <arg>encoding</arg>, <arg>bufsize</arg>,
 	<arg>headers</arg> and <arg>data</arg> see the method
 	<pyref class="Builder" method="parseurl"><method>parseurl</method></pyref>
 	in the <class>Builder</class> class. You can pass any other argument that the
