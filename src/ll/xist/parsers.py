@@ -689,7 +689,7 @@ def parsestring(data, base=None, encoding=None, **builderargs):
 	takes as keyword arguments via <arg>builderargs</arg>.
 	"""
 	builder = Builder(**builderargs)
-	return builder.parsestring(text, base=base, encoding=encoding)
+	return builder.parsestring(data, base=base, encoding=encoding)
 
 
 def parseiter(iterable, base=None, encoding=None, **builderargs):
