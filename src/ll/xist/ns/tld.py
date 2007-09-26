@@ -218,13 +218,15 @@ class taglib(xsc.Element):
 	def asxnd(self):
 		e = xnd.Module(unicode(self[shortname][0].content))
 		node = misc.first(self[uri], None)
-		if node is not None:
-			e.url = unicode(node[0].content)
+		xmlns = unicode(node[0].content) if node is not None else None
 		node = misc.first(self[info], None)
 		if node is not None:
 			e.doc = node[0].asxnd()
 		for node in self[tag]:
-			e.content.append(node.asxnd())
+			e2 = node.asxnd()
+			if xmlns is not None:
+				e2.xmlns = xmlns
+			e.content.append(e2)
 		return e
 
 
