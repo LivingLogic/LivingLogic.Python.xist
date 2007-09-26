@@ -56,17 +56,17 @@ def test_variousnamespaces():
 
 def test_attributeexamples():
 	assert xsc.amp.__name__ == "amp"
-	assert xsc.amp.xmlname == u"amp"
+	assert xsc.amp.xmlname == "amp"
 	assert xsc.amp.xmlns is None
 
 	assert chars.uuml.__name__ == "uuml"
-	assert chars.uuml.xmlname == u"uuml"
+	assert chars.uuml.xmlname == "uuml"
 	assert chars.uuml.xmlns is None
 
 	assert html.a.Attrs.class_.__name__ == "class_"
-	assert html.a.Attrs.class_.xmlname == u"class"
+	assert html.a.Attrs.class_.xmlname == "class"
 	assert html.a.Attrs.class_.xmlns is None
 
 	assert xml.Attrs.lang.__name__ == "lang"
-	assert xml.Attrs.lang.xmlname == u"lang"
+	assert xml.Attrs.lang.xmlname == "lang"
 	assert xml.Attrs.lang.xmlns == xml.xmlns
