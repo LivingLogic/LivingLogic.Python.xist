@@ -60,26 +60,36 @@ def check_parsestrictentities(source, result, parserfactory):
 
 
 def text_parsestring():
-	c = u"\u3042"
-	s = '<a title="%s">%s</a>' % c
+	t = u"abc\U00012345\u3042xyz"
+	s = '<a title="%s">%s</a>' % t
 
 	def check(input):
 		node = parsers.parsestring(input)
 		node = node[0]
-		assert unicode(node) == c
-		assert unicode(node["title"]) == c
+		assert unicode(node) == t
+		assert unicode(node["title"]) == t
 	yield check, s.encode("utf-8")
 	yield check, s # parsestring can parse unicode directly
 
 
 def text_parseiter():
-	c = u"\u3042"
-	s = '<a title="%s">%s</a>' % c
+	t = u"abc\U00012345\u3042xyz"
+	s = '<a title="%s">%s</a>' % t
 
 	node = parsers.parseiter(s.encode("utf-8")) # parse byte by byte
 	node = node[0]
-	assert unicode(node) == c
-	assert unicode(node["title"]) == c
+	assert unicode(node) == t
+	assert unicode(node["title"]) == t
+
+
+def text_parsestream():
+	t = u"abc\U00012345\u3042xyz"
+	s = '<a title="%s">%s</a>' % t
+
+	node = parsers.parseiter(cStringIO.StringIO(s.encode("utf-8")), bufsize=1)
+	node = node[0]
+	assert unicode(node) == t
+	assert unicode(node["title"]) == t
 
 
 def test_parselocationsgmlop():
