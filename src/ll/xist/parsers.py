@@ -746,3 +746,13 @@ def parseurl(name, base=None, encoding=None, bufsize=8192, headers=None, data=No
 	return builder.parseurl(name, base=base, encoding=encoding, headers=headers, data=data)
 
 
+def parseetree(tree, base=None, **builderargs):
+	"""
+	Parse &xml; input from the object <arg>tree</arg> which must support the
+	<link href="http://effbot.org/zone/element-index.htm">ElementTree</link>
+	&api;. For the argument <arg>base</arg> see the method
+	<pyref class="Builder" method="parseetree"><method>parseetree</method></pyref>
+	in the <class>Builder</class> class. You can pass any other argument that the
+	<pyref class="Builder" method="__init__"><class>Builder</class> constructor</pyref>
+	takes as keyword arguments via <arg>builderargs</arg>.
+	"""
