@@ -3435,9 +3435,9 @@ class Pool(object):
 		<item>A module (all <class>Node</class> classes in the
 		module will be registered);</item>
 		<item>A <class>Pool</class> object (this pool object will be added to the
-		base pools. If a class isn't found in <self/> the search continues in these
+		base pools. If a class isn't found in <self/> the search continues in this
 		base pool;</item>
-		<item><lit>True</lit>, which add the current default pool to the base pools.</item>
+		<item><lit>True</lit>, which adds the current default pool to the base pools.</item>
 		</ulist>
 		"""
 		if isinstance(object, type):
