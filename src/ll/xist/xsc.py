@@ -3957,9 +3957,9 @@ class Location(object):
 	def __init__(self, url=None, line=None, col=None):
 		"""
 		Create a new <class>Location</class> object using the arguments
-		passed in. <arg>url</arg> is the &url;/filename. <arg>line<arg> is
+		passed in. <arg>url</arg> is the &url;/filename. <arg>line</arg> is
 		the line number and <arg>col</arg> is the column number (both starting
-		at 0).</par>
+		at 0).
 		"""
 		self.url = url
 		self.line = line
