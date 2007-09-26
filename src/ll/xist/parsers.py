@@ -381,10 +381,17 @@ class Builder(object):
 		return self._nesting[0][0]
 
 	def parsestring(self, data, base=None, encoding=None):
+		"""
+		Parse the string <arg>data</arg> (<class>str</class> or <class>unicode</class>)
+		into an &xist; tree. <arg>base</arg> is the base &url; for the parsing
+		process, <arg>encoding</arg> can be used to force the parser to use the
+		specified encoding.
+		"""
 		self.url = url.URL(base if base is not None else "STRING")
-		parser = self._begin(base=base, encoding=encoding)
 		if isinstance(data, unicode):
-			data = data.encode("xml")
+			encoding = "utf-8"
+			data = data.encode(encoding)
+		parser = self._begin(base=base, encoding=encoding)
 		parser.feed(data, True)
 		return self._end(parser)
 
@@ -662,7 +669,7 @@ def parsestring(text, base=None, encoding=None, **builderargs):
 	see the method <pyref class="Builder" method="parsestring"><method>parsestring</method></pyref>
 	in the <class>Builder</class> class. You can pass any other argument that the
 	<pyref class="Builder" method="__init__"><class>Builder</class> constructor</pyref>
-	takes as keyword arguments via <arg>vuilderargs</arg>.
+	takes as keyword arguments via <arg>builderargs</arg>.
 	"""
 	builder = Builder(**builderargs)
 	return builder.parsestring(text, base=base, encoding=encoding)
@@ -680,7 +687,7 @@ def parsestream(stream, base=None, encoding=None, **builderargs):
 	<pyref class="Builder" method="parse"><method>parse</method></pyref>
 	in the <class>Parser</class> class. You can pass any other argument that the
 	<pyref class="Builder" method="__init__"><class>Builder</class> constructor</pyref>
-	takes as keyword arguments via <arg>vuilderargs</arg>.
+	takes as keyword arguments via <arg>builderargs</arg>.
 	"""
 	builder = Builder(**builderargs)
 	return builder.parsestream(stream, base=base, encoding=encoding)

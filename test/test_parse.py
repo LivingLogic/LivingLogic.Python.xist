@@ -59,6 +59,19 @@ def check_parsestrictentities(source, result, parserfactory):
 	py.test.raises(xsc.IllegalEntityError, check_parseentities, "&baz;", u"", prefixes=prefixes, parser=parserfactory())
 
 
+def text_parsestring():
+	c = u"\u3042"
+	s = '<a title="%s">%s</a>' % c
+
+	def check(input):
+		node = parsers.parsestring(input)
+		node = node[0]
+		assert unicode(node) == c
+		assert unicode(node["title"]) == c
+	yield check, s.encode("utf-8"))
+	yield check, s # parsestring can parse unicode directly
+
+
 def test_parselocationsgmlop():
 	# sgmlop doesn't provide any location info, so check only the URL
 	node = parsers.parsestring("<z>gurk&amp;hurz&#42;hinz&#x666;hunz</z>", parser=parsers.SGMLOPParser())
