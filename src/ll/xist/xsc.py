@@ -32,9 +32,9 @@ try:
 except ImportError:
 	ipipe = None
 
+local = threading.local()
 
 def getstack():
-	local = threading.local()
 	try:
 		stack = getattr(local, "ll.xist.xsc.nodes")
 	except AttributeError:
@@ -3867,13 +3867,11 @@ class Pool(object):
 		copy.bases = self.bases[:]
 		return copy
 
-
 # Default class pool
 defaultpool = Pool()
 
 
 def getpoolstack():
-	local = threading.local()
 	try:
 		stack = getattr(local, "ll.xist.xsc.pools")
 	except AttributeError:
