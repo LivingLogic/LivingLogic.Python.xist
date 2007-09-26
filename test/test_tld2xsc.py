@@ -29,13 +29,15 @@ def tld2ns(s, shareattrs=None):
 
 
 def test_tld2xsc():
+	xmlns = "http://xmlns.example.com/foo"
+
 	tldstring = """<?xml version="1.0" encoding="ISO-8859-1"?>
 	<!DOCTYPE taglib PUBLIC "-//Sun Microsystems, Inc.//DTD JSP Tag Library 1.1//EN" "http://java.sun.com/j2ee/dtds/web-jsptaglibrary_1_1.dtd">
 	<taglib>
 		<tlibversion>1.0</tlibversion>
 		<jspversion>1.1</jspversion>
 		<shortname>foo</shortname>
-		<uri>http://xmlns.example.com/foo</uri>
+		<uri>%s</uri>
 		<tag>
 			<name>bar</name>
 			<tagclass>com.foo.bar</tagclass>
@@ -63,8 +65,9 @@ def test_tld2xsc():
 			</attribute>
 		</tag>
 	</taglib>
-	"""
+	""" % xmlns
 	ns = tld2ns(tldstring)
+	assert ns.bar.xmlns == xmlns
 	assert ns.bar.xmlname == u"bar"
 	assert isinstance(ns.bar.model, sims.Empty)
 	assert ns.bar.__doc__.strip() == "info"
