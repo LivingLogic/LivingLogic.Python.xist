@@ -289,7 +289,7 @@ class Builder(object):
 		self._attr = None
 		self._attrs = None
 
-	def _parseHTML(self, stream, base, sysid, encoding):
+	def _parseHTML(self, data, base, sysid, encoding):
 		"""
 		Internal helper method for parsing &html; via <module>libxml2</module>.
 		"""
@@ -354,7 +354,6 @@ class Builder(object):
 
 		self.base = base
 
-		data = stream.read()
 		try:
 			olddefault = libxml2.lineNumbersDefault(1)
 			doc = libxml2.htmlReadMemory(data, len(data), sysid, encoding, 0x160)
@@ -399,6 +398,8 @@ class Builder(object):
 		if isinstance(data, unicode):
 			encoding = "utf-8"
 			data = data.encode(encoding)
+		if self.tidy:
+			return self._parseHTML(data, base=base, sysid=str(self.url), encoding=encoding)
 		parser = self._begin(base=base, encoding=encoding)
 		parser.feed(data, True)
 		return self._end(parser)
@@ -411,6 +412,8 @@ class Builder(object):
 		force the parser to use the specified encoding.
 		"""
 		self.url = url.URL(base if base is not None else "ITER")
+		if self.tidy:
+			return self._parseHTML("".join(iterable), base=base, sysid=str(self.url), encoding=encoding)
 		parser = self._begin(base=base, encoding=encoding)
 		for chunk in iterable:
 			parser.feed(chunk, False)
@@ -426,6 +429,8 @@ class Builder(object):
 		"""
 		self.url = url.URL(base if base is not None else "STREAM")
 		parser = self._begin(base=base, encoding=encoding)
+		if self.tidy:
+			return self._parseHTML(stream.read(), base=base, sysid=str(self.url), encoding=encoding)
 		while True:
 			data = stream.read(bufsize)
 			final = not data
@@ -445,8 +450,10 @@ class Builder(object):
 		if base is None:
 			base = self.url
 		filename = os.path.expanduser(filename)
-		parser = self._begin(base=base, encoding=encoding)
 		with contextlib.closing(open(filename, "rb")) as stream:
+			if self.tidy:
+				return self._parseHTML(stream.read(), base=base, sysid=str(self.url), encoding=encoding)
+			parser = self._begin(base=base, encoding=encoding)
 			while True:
 				data = stream.read(bufsize)
 				final = not data
@@ -466,11 +473,13 @@ class Builder(object):
 		on to the <method>open</method> call.
 		"""
 		name = url.URL(name)
-		parser = self._begin(base=base, encoding=encoding)
 		with contextlib.closing(name.open("rb", *args, **kwargs)) as stream:
 			self.url = stream.finalurl()
 			if base is None:
 				base = self.url
+			if self.tidy:
+				return self._parseHTML(stream.read(), base=base, sysid=str(self.url), encoding=encoding)
+			parser = self._begin(base=base, encoding=encoding)
 			while True:
 				data = stream.read(bufsize)
 				final = not data
