@@ -37,6 +37,7 @@ def test_tld2xsc():
 		<tlibversion>1.0</tlibversion>
 		<jspversion>1.1</jspversion>
 		<shortname>foo</shortname>
+		<info>just a test</info>
 		<uri>%s</uri>
 		<tag>
 			<name>bar</name>
@@ -68,6 +69,7 @@ def test_tld2xsc():
 	""" % xmlns
 	ns = tld2ns(tldstring)
 	assert ns.bar.xmlns == xmlns
+	assert ns.__doc__.strip() == "just a test"
 	assert ns.bar.xmlname == u"bar"
 	assert isinstance(ns.bar.model, sims.Empty)
 	assert ns.bar.__doc__.strip() == "info"
