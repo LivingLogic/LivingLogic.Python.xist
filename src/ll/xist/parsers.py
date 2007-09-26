@@ -235,7 +235,7 @@ class Builder(object):
 
 		<par>Arguments have the following meaning:</par>
 		<dlist>
-		<term><arg>parser</arg></term><item><par>an instance of the
+		<term><arg>parser</arg></term><item>an instance of the
 		<pyref class="Parser"><class>Larser</class></pyref> class (or any object
 		that provides the appropriate interface.</item>
 
@@ -681,7 +681,7 @@ def parsestream(stream, base=None, encoding=None, **builderargs):
 	takes as keyword arguments via <arg>vuilderargs</arg>.
 	"""
 	builder = Builder(**builderargs)
-	return parser.parsestream(stream, base=base, encoding=encoding)
+	return builder.parsestream(stream, base=base, encoding=encoding)
 
 
 def parsefile(filename, base=None, encoding=None, bufsize=8192, **builderargs):
