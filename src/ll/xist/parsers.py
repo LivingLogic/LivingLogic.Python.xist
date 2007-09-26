@@ -716,7 +716,7 @@ def parsestream(stream, base=None, encoding=None, bufsize=8192, **builderargs):
 	takes as keyword arguments via <arg>builderargs</arg>.
 	"""
 	builder = Builder(**builderargs)
-	return builder.parsestream(stream, base=base, encoding=encoding, bufsize=bugsize)
+	return builder.parsestream(stream, base=base, encoding=encoding, bufsize=bufsize)
 
 
 def parsefile(filename, base=None, encoding=None, bufsize=8192, **builderargs):
