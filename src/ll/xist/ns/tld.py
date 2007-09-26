@@ -224,7 +224,7 @@ class taglib(xsc.Element):
 			e.doc = node[0].asxnd()
 		for node in self[tag]:
 			e2 = node.asxnd()
-			if xmlns is not None:
+			if xmlns is not None and isinstance(e2, xnd.Element):
 				e2.xmlns = xmlns
 			e.content.append(e2)
 		return e
