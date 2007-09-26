@@ -68,7 +68,7 @@ def text_parsestring():
 		node = node[0]
 		assert unicode(node) == c
 		assert unicode(node["title"]) == c
-	yield check, s.encode("utf-8"))
+	yield check, s.encode("utf-8")
 	yield check, s # parsestring can parse unicode directly
 
 
