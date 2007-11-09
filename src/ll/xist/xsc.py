@@ -3458,7 +3458,7 @@ class Pool(object):
 						self._charrefsbypyname[object.__name__] = object
 						self._charrefsbycodepoint[object.codepoint] = object
 			elif issubclass(object, Attr):
-				if object.register:
+				if object.xmlns is not None and object.register:
 					self._attrsbyxmlname[(object.xmlname, object.xmlns)] = object
 					self._attrsbypyname[(object.__name__, object.xmlns)] = object
 			elif issubclass(object, Attrs):
