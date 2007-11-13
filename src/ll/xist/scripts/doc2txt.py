@@ -43,10 +43,12 @@ def xsc2txt(infilename, outfilename, title, width):
 	file.close()
 
 
-def main():
+def main(args=None):
+	if args is None:
+		args = sys.argv[1:]
 	title = None
 	width = 72
-	(options, args) = getopt.getopt(sys.argv[1:], "t:i:w:", ["title=", "import=", "width="])
+	(options, args) = getopt.getopt(args, "t:i:w:", ["title=", "import=", "width="])
 
 	for (option, value) in options:
 		if option=="-t" or option=="--title":

@@ -39,13 +39,13 @@ def tld2xnd(stream, shareattrs=None):
 	return xnd
 
 
-def main():
+def main(args=None):
 	p = optparse.OptionParser(usage="usage: %prog [options] <input.tld >output_xmlns.py")
 	p.add_option("-s", "--shareattrs", dest="shareattrs", help="Should identical attributes be shared among elements?", choices=("none", "dupes", "all"), default="dupes")
 	p.add_option("-m", "--model", dest="model", default="once", help="Add sims information to the namespace", choices=("no", "all", "once"))
 	p.add_option("-d", "--defaults", action="store_true", dest="defaults", help="Output default values for attributes")
 
-	(options, args) = p.parse_args()
+	(options, args) = p.parse_args(args)
 	if len(args) != 0:
 		p.error("incorrect number of arguments")
 		return 1

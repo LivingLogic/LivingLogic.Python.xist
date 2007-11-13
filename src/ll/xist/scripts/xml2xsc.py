@@ -119,13 +119,13 @@ def stream2xnd(stream, sims="simple", parser="etree"):
 	return etree2xnd(sims, node)
 
 
-def main():
+def main(args=None):
 	p = optparse.OptionParser(usage="usage: %prog [options] <input.xml >output.py")
 	p.add_option("-p", "--parser", dest="parser", help="parser module to use for XML parsing (etree or lxml)", choices=("etree", "lxml"), default="etree")
 	choices = ["none", "simple", "full"]
 	p.add_option("-s", "--sims", dest="sims", help="Create sims info? (%s)" % ", ".join(choices), metavar="MODE", default="simple")
 
-	(options, args) = p.parse_args()
+	(options, args) = p.parse_args(args)
 	if len(args) != 0:
 		p.error("incorrect number of arguments")
 		return 1
