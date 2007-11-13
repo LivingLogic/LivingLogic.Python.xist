@@ -3887,15 +3887,17 @@ class VPool(list):
 	def __getattr__(self, key):
 		for module in self:
 			try:
-				cls = getattr(module, key)
+				attr = getattr(module, key)
 			except AttributeError:
 				pass
 			else:
-				def factory(*args, **kwargs):
-					obj = cls(*args, **kwargs)
-					obj.pool = self
-					return obj
-				return factory
+				if isinstance(attr, _Node_Meta):
+					def factory(*args, **kwargs):
+						obj = attr(*args, **kwargs)
+						obj.pool = self
+						return obj
+					return factory
+				return attr
 		raise AttributeError(key)
 
 	def __repr__(self):
