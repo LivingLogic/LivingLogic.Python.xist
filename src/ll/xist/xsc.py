@@ -3609,7 +3609,7 @@ class Pool(object):
 		except KeyError:
 			for base in self.bases:
 				try:
-					return self.base.procinstclass_xml(name)
+					return base.procinstclass_xml(name)
 				except IllegalProcInstError:
 					pass
 			raise IllegalProcInstError(name, True)
@@ -3661,7 +3661,7 @@ class Pool(object):
 		except KeyError:
 			for base in self.bases:
 				try:
-					return self.base.entityclass(name)
+					return base.entityclass(name)
 				except IllegalEntityError:
 					pass
 			raise IllegalEntityError(name, False)
@@ -3677,7 +3677,7 @@ class Pool(object):
 		except KeyError:
 			for base in self.bases:
 				try:
-					return self.base.entityclass_xml(name)
+					return base.entityclass_xml(name)
 				except IllegalEntityError:
 					pass
 			raise IllegalEntityError(name, True)
@@ -3732,7 +3732,7 @@ class Pool(object):
 		except KeyError:
 			for base in self.bases:
 				try:
-					return self.base.charrefclass(name)
+					return base.charrefclass(name)
 				except IllegalEntityError:
 					pass
 			raise IllegalEntityError(name, False)
@@ -3751,7 +3751,7 @@ class Pool(object):
 		except KeyError:
 			for base in self.bases:
 				try:
-					return self.base.charrefclass_xml(name)
+					return base.charrefclass_xml(name)
 				except IllegalEntityError:
 					pass
 			raise IllegalEntityError(name, True)
