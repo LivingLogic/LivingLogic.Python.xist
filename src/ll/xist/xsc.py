@@ -3389,19 +3389,8 @@ import publishers, converters, utils, helpers
 ### XML class pool
 ###
 
-class Pool(object):
-	"""
-	<par>Class pool for <pyref class="Element">element</pyref>,
-	<pyref class="ProcInst">procinst</pyref>, <pyref class="Entity">entity</pyref>,
-	<pyref class="CharRef">charref</pyref> and <pyref class="Attr">attribute</pyref> classes.</par>
-
-	<par>This is used by the parser to map names to classes.</par>
-	"""
-	def __init__(self, *objects):
-		"""
-		<par>Create a new pool. All objects in <arg>objects</arg> will be passed
-		to the <method>register</method> method.</par>
-		"""
+class PoolBase(object):
+	def __init__(self):
 		self._elementsbyxmlname = weakref.WeakValueDictionary()
 		self._elementsbypyname = weakref.WeakValueDictionary()
 		self._procinstsbyxmlname = weakref.WeakValueDictionary()
@@ -3413,9 +3402,6 @@ class Pool(object):
 		self._charrefsbycodepoint = weakref.WeakValueDictionary()
 		self._attrsbyxmlname = weakref.WeakValueDictionary()
 		self._attrsbypyname = weakref.WeakValueDictionary()
-		self.bases = []
-		for object in objects:
-			self.register(object)
 
 	def register(self, object):
 		"""
@@ -3472,10 +3458,6 @@ class Pool(object):
 			for value in object.itervalues():
 				if isinstance(value, type): # This avoids recursive module registration
 					self.register(value)
-		elif object is True:
-			self.bases.append(getpoolstack()[-1])
-		elif isinstance(object, Pool):
-			self.bases.append(object)
 
 	def __enter__(self):
 		getpoolstack().append(self)
@@ -3852,7 +3834,7 @@ class Pool(object):
 		"""
 		Return a copy of <self/>.
 		"""
-		copy = Pool()
+		copy = self.__class__()
 		copy._elementsbyxmlname = self._elementsbyxmlname.copy()
 		copy._elementsbypyname = self._elementsbypyname.copy()
 		copy._procinstsbyxmlname = self._procinstsbyxmlname.copy()
@@ -3864,6 +3846,102 @@ class Pool(object):
 		copy._charrefsbycodepoint = self._charrefsbycodepoint.copy()
 		copy._attrsbyxmlname = self._attrsbyxmlname.copy()
 		copy._attrsbypyname = self._attrsbypyname.copy()
+		return copy
+
+
+class Pool(PoolBase):
+	"""
+	<par>Class pool for <pyref class="Element">element</pyref>,
+	<pyref class="ProcInst">procinst</pyref>, <pyref class="Entity">entity</pyref>,
+	<pyref class="CharRef">charref</pyref> and <pyref class="Attr">attribute</pyref> classes.</par>
+
+	<par>This is used by the parser to map names to classes.</par>
+	"""
+	def __init__(self, *objects):
+		"""
+		<par>Create a new pool. All objects in <arg>objects</arg> will be passed
+		to the <method>register</method> method.</par>
+		"""
+		self._elementsbyxmlname = weakref.WeakValueDictionary()
+		self._elementsbypyname = weakref.WeakValueDictionary()
+		self._procinstsbyxmlname = weakref.WeakValueDictionary()
+		self._procinstsbypyname = weakref.WeakValueDictionary()
+		self._entitiesbyxmlname = weakref.WeakValueDictionary()
+		self._entitiesbypyname = weakref.WeakValueDictionary()
+		self._charrefsbyxmlname = weakref.WeakValueDictionary()
+		self._charrefsbypyname = weakref.WeakValueDictionary()
+		self._charrefsbycodepoint = weakref.WeakValueDictionary()
+		self._attrsbyxmlname = weakref.WeakValueDictionary()
+		self._attrsbypyname = weakref.WeakValueDictionary()
+		self.bases = []
+		for object in objects:
+			self.register(object)
+
+	def register(self, object):
+		"""
+		<par>Register <arg>object</arg> in the pool. <arg>object</arg> can be:</par>
+		<ulist>
+		<item>A <pyref class="Element"><class>Element</class></pyref>,
+		<pyref class="ProcInst"><class>ProcInst</class></pyref>,
+		<pyref class="Entity"><class>Entity</class></pyref>,
+		<pyref class="CharRef"><class>CharRef</class></pyref> class;</item>
+		<item>An <pyref class="Attr"><class>Attr</class></pyref> class
+		for a global attribute;</item>
+		<item>An <pyref class="Attrs"><class>Attrs</class></pyref> class
+		containing global attributes;</item>
+		<item>A <class>dict</class> (all <class>Node</class> classes in the
+		values will be registered, this makes it possible to e.g. register all
+		local variables by passing <lit>vars()</lit>);</item>
+		<item>A module (all <class>Node</class> classes in the
+		module will be registered);</item>
+		<item>A <class>Pool</class> object (this pool object will be added to the
+		base pools. If a class isn't found in <self/> the search continues in this
+		base pool;</item>
+		<item><lit>True</lit>, which adds the current default pool to the base pools.</item>
+		</ulist>
+		"""
+		if isinstance(object, type):
+			if issubclass(object, Element):
+				if object.register:
+					self._elementsbyxmlname[(object.xmlname, object.xmlns)] = object
+					self._elementsbypyname[(object.__name__, object.xmlns)] = object
+			elif issubclass(object, ProcInst):
+				if object.register:
+					self._procinstsbyxmlname[object.xmlname] = object
+					self._procinstsbypyname[object.__name__] = object
+			elif issubclass(object, Entity):
+				if object.register:
+					self._entitiesbyxmlname[object.xmlname] = object
+					self._entitiesbypyname[object.__name__] = object
+					if issubclass(object, CharRef):
+						self._charrefsbyxmlname[object.xmlname] = object
+						self._charrefsbypyname[object.__name__] = object
+						self._charrefsbycodepoint[object.codepoint] = object
+			elif issubclass(object, Attr):
+				if object.xmlns is not None and object.register:
+					self._attrsbyxmlname[(object.xmlname, object.xmlns)] = object
+					self._attrsbypyname[(object.__name__, object.xmlns)] = object
+			elif issubclass(object, Attrs):
+				for attr in object.allowedattrs():
+					self.register(attr)
+		elif isinstance(object, types.ModuleType):
+			for value in object.__dict__.itervalues():
+				if isinstance(value, type): # This avoids recursive module registration
+					self.register(value)
+		elif isinstance(object, dict):
+			for value in object.itervalues():
+				if isinstance(value, type): # This avoids recursive module registration
+					self.register(value)
+		elif object is True:
+			self.bases.append(getpoolstack()[-1])
+		elif isinstance(object, Pool):
+			self.bases.append(object)
+
+	def clone(self):
+		"""
+		Return a copy of <self/>.
+		"""
+		copy = PoolBase.clone(self)
 		copy.bases = self.bases[:]
 		return copy
 
@@ -3880,28 +3958,72 @@ def getpoolstack():
 	return stack
 
 
-class VPool(list):
+class VPool(PoolBase):
 	def __init__(self, *modules):
-		list.__init__(self, list(modules))
+		"""
+		<par>Create a new pool. All modules in <arg>modules</arg> will be passed
+		to the <method>register</method> method.</par>
+		"""
+		PoolBase.__init__(self)
+		self._attrs = weakref.WeakValueDictionary()
+		for module in reversed(modules):
+			self.register(module)
+
+	def register(self, object):
+		if isinstance(object, type):
+			if issubclass(object, Element):
+				if object.register:
+					self._elementsbyxmlname[(object.xmlname, object.xmlns)] = object
+					self._elementsbypyname[(object.__name__, object.xmlns)] = object
+			elif issubclass(object, ProcInst):
+				if object.register:
+					self._procinstsbyxmlname[object.xmlname] = object
+					self._procinstsbypyname[object.__name__] = object
+			elif issubclass(object, Entity):
+				if object.register:
+					self._entitiesbyxmlname[object.xmlname] = object
+					self._entitiesbypyname[object.__name__] = object
+					if issubclass(object, CharRef):
+						self._charrefsbyxmlname[object.xmlname] = object
+						self._charrefsbypyname[object.__name__] = object
+						self._charrefsbycodepoint[object.codepoint] = object
+			elif issubclass(object, Attr):
+				if object.xmlns is not None and object.register:
+					self._attrsbyxmlname[(object.xmlname, object.xmlns)] = object
+					self._attrsbypyname[(object.__name__, object.xmlns)] = object
+			elif issubclass(object, Attrs):
+				for attr in object.allowedattrs():
+					self.register(attr)
+		elif isinstance(object, types.ModuleType):
+			for (key, value) in object.__dict__.iteritems():
+				try:
+					self._attrs[key] = value
+				except TypeError:
+					pass
+				if isinstance(value, type): # This avoids recursive module registration
+					self.register(value)
+		elif isinstance(object, dict):
+			for value in object.itervalues():
+				if isinstance(value, type): # This avoids recursive module registration
+					self.register(value)
 
 	def __getattr__(self, key):
-		for module in self:
-			try:
-				attr = getattr(module, key)
-			except AttributeError:
-				pass
-			else:
-				if isinstance(attr, _Node_Meta):
-					def factory(*args, **kwargs):
-						obj = attr(*args, **kwargs)
-						obj.pool = self
-						return obj
-					return factory
-				return attr
-		raise AttributeError(key)
+		try:
+			attr = self._attrs[key]
+		except KeyError:
+			raise AttributeError(key)
+		else:
+			if isinstance(attr, _Node_Meta):
+				def factory(*args, **kwargs):
+					obj = attr(*args, **kwargs)
+					obj.pool = self
+					return obj
+				factory.__name__ = key
+				return factory
+			return attr
 
 	def __repr__(self):
-		return "<%s.%s object with %d items at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, len(self), id(self))
+		return "<%s.%s object with %d items at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, len(self._attrs), id(self))
 
 
 ###
