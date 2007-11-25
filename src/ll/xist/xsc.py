@@ -3389,8 +3389,8 @@ import publishers, converters, utils, helpers
 ### XML class pool
 ###
 
-class PoolBase(object):
-	def __init__(self):
+class Pool(object):
+	def __init__(self, *objects):
 		self._elementsbyxmlname = weakref.WeakValueDictionary()
 		self._elementsbypyname = weakref.WeakValueDictionary()
 		self._procinstsbyxmlname = weakref.WeakValueDictionary()
@@ -3402,6 +3402,8 @@ class PoolBase(object):
 		self._charrefsbycodepoint = weakref.WeakValueDictionary()
 		self._attrsbyxmlname = weakref.WeakValueDictionary()
 		self._attrsbypyname = weakref.WeakValueDictionary()
+		for object in objects:
+			self.register(object)
 
 	def register(self, object):
 		"""
@@ -3420,10 +3422,6 @@ class PoolBase(object):
 		local variables by passing <lit>vars()</lit>);</item>
 		<item>A module (all <class>Node</class> classes in the
 		module will be registered);</item>
-		<item>A <class>Pool</class> object (this pool object will be added to the
-		base pools. If a class isn't found in <self/> the search continues in this
-		base pool;</item>
-		<item><lit>True</lit>, which adds the current default pool to the base pools.</item>
 		</ulist>
 		"""
 		if isinstance(object, type):
@@ -3475,9 +3473,8 @@ class PoolBase(object):
 	def elementclass(self, name, xmlns):
 		"""
 		Return the element class for the element with the Python name
-		<arg>name</arg> and the namespace <arg>xmlns</arg>. If the class can't
-		be found the search continues in the base pools. If the element can't be
-		found a <class>IllegalElementError</class> will be raised.
+		<arg>name</arg> and the namespace <arg>xmlns</arg>. If the element can't
+		be found a <class>IllegalElementError</class> will be raised.
 		"""
 		if isinstance(xmlns, (list, tuple)):
 			for xmlns in xmlns:
@@ -3492,19 +3489,13 @@ class PoolBase(object):
 				return self._elementsbypyname[(name, xmlns)]
 			except KeyError:
 				pass
-		for base in self.bases:
-			try:
-				return base.elementclass(name, xmlns)
-			except IllegalElementError:
-				pass
 		raise IllegalElementError(name, xmlns, False)
 
 	def elementclass_xml(self, name, xmlns):
 		"""
 		Return the element class for the element type with the &xml; name
-		<arg>name</arg> and the namespace <arg>xmlns</arg>. If the class can't
-		be found the search continues in the base pools. If the element can't be
-		found a <class>IllegalElementError</class> will be raised.
+		<arg>name</arg> and the namespace <arg>xmlns</arg>. If the element can't
+		be found a <class>IllegalElementError</class> will be raised.
 		"""
 		if isinstance(xmlns, (list, tuple)):
 			for xmlns in xmlns:
@@ -3519,26 +3510,19 @@ class PoolBase(object):
 				return self._elementsbyxmlname[(name, xmlns)]
 			except KeyError:
 				pass
-		for base in self.bases:
-			try:
-				return base.elementclass_xml(name, xmlns)
-			except IllegalElementError:
-				pass
 		raise IllegalElementError(name, xmlns, True)
 
 	def element(self, name, xmlns):
 		"""
 		Return an element object for the element type with the Python name
-		<arg>name</arg> and the namespace <arg>xmlns</arg>. If the class can't
-		be found the search continues in the base pools.
+		<arg>name</arg> and the namespace <arg>xmlns</arg>.
 		"""
 		return self.elementclass(name, xmlns)()
 
 	def element_xml(self, name, xmlns):
 		"""
 		Return an element object for the element type with the &xml; name
-		<arg>name</arg> and the namespace <arg>xmlns</arg>. If the class can't
-		be found the search continues in the base pools.
+		<arg>name</arg> and the namespace <arg>xmlns</arg>.
 		"""
 		return self.elementclass_xml(name, xmlns)()
 
@@ -3565,50 +3549,36 @@ class PoolBase(object):
 	def procinstclass(self, name):
 		"""
 		Return the processing instruction class for the PI with the Python name
-		<arg>name</arg>. If the class can't be found the search continues in the
-		base pools. If the element can't be found a <class>IllegalProcInstError</class>
-		will be raised.
+		<arg>name</arg>. If the element can't be found a
+		<class>IllegalProcInstError</class> will be raised.
 		"""
 		try:
 			return self._procinstsbypyname[name]
 		except KeyError:
-			for base in self.bases:
-				try:
-					return self.base.procinstclass(name)
-				except IllegalProcInstError:
-					pass
 			raise IllegalProcInstError(name, False)
 
 	def procinstclass_xml(self, name):
 		"""
 		Return the processing instruction class for the PI with the &xml; name
-		<arg>name</arg>. If the class can't be found the search continues in the
-		base pools. If the element can't be found a <class>IllegalProcInstError</class>
-		will be raised.
+		<arg>name</arg>. If the element can't be found a
+		<class>IllegalProcInstError</class> will be raised.
 		"""
 		try:
 			return self._procinstsbyxmlname[name]
 		except KeyError:
-			for base in self.bases:
-				try:
-					return base.procinstclass_xml(name)
-				except IllegalProcInstError:
-					pass
 			raise IllegalProcInstError(name, True)
 
 	def procinst(self, name, content):
 		"""
 		Return a processing instruction object for the PI type with the Python
-		target name <arg>name</arg>. If the class can't be found the search
-		continues in the base pools.
+		target name <arg>name</arg>.
 		"""
 		return self.procinstclass(name)(content)
 
 	def procinst_xml(self, name, content):
 		"""
 		Return a processing instruction object for the PI type with the &xml;
-		target name <arg>name</arg>. If the class can't be found the search
-		continues in the base pools.
+		target name <arg>name</arg>.
 		"""
 		return self.procinstclass_xml(name)(content)
 
@@ -3635,48 +3605,36 @@ class PoolBase(object):
 	def entityclass(self, name):
 		"""
 		Return the entity for the entity with the Python name <arg>name</arg>.
-		If the class can't be found the search continues in the base pools. If the
-		element can't be found a <class>IllegalEntityError</class> will be raised.
+		If the entity can't be found a <class>IllegalEntityError</class> will
+		be raised.
 		"""
 		try:
 			return self._entitiesbypyname[name]
 		except KeyError:
-			for base in self.bases:
-				try:
-					return base.entityclass(name)
-				except IllegalEntityError:
-					pass
 			raise IllegalEntityError(name, False)
 
 	def entityclass_xml(self, name):
 		"""
 		Return the entity for the entity with the &xml; name <arg>name</arg>.
-		If the class can't be found the search continues in the base pools. If the
-		element can't be found a <class>IllegalEntityError</class> will be raised.
+		If the entity can't be found a <class>IllegalEntityError</class> will be
+		raised.
 		"""
 		try:
 			return self._entitiesbyxmlname[name]
 		except KeyError:
-			for base in self.bases:
-				try:
-					return base.entityclass_xml(name)
-				except IllegalEntityError:
-					pass
 			raise IllegalEntityError(name, True)
 
 	def entity(self, name):
 		"""
 		Return an entity object for the entity with the Python name
-		<arg>name</arg>. If the class can't be found the search continues in
-		the base pools.
+		<arg>name</arg>.
 		"""
 		return self.entityclass(name)()
 
 	def entity_xml(self, name):
 		"""
 		Return an entity object for the entity with the &xml; name
-		<arg>name</arg>. If the class can't be found the search continues in
-		the base pools.
+		<arg>name</arg>.
 		"""
 		return self.entityclass_xml(name)()
 
@@ -3704,53 +3662,41 @@ class PoolBase(object):
 		"""
 		Return the character entity with the Python name <arg>name</arg>.
 		<arg>name</arg> can also be an <class>int</class> specifying the codepoint.
-		If the class can't be found the search continues in the base pools. If the
-		element can't be found a <class>IllegalEntityError</class> will be raised.
+		If the character entity can't be found a <class>IllegalEntityError</class>
+		will be raised.
 		"""
 		try:
 			if isinstance(name, (int, long)):
 				return self._charrefsbycodepoint[name]
 			return self._charrefsbypyname[name]
 		except KeyError:
-			for base in self.bases:
-				try:
-					return base.charrefclass(name)
-				except IllegalEntityError:
-					pass
 			raise IllegalEntityError(name, False)
 
 	def charrefclass_xml(self, name):
 		"""
 		Return the character entity with the &xml; name <arg>name</arg>.
 		<arg>name</arg> can also be an <class>int</class> specifying the codepoint.
-		If the class can't be found the search continues in the base pools. If the
-		element can't be found a <class>IllegalEntityError</class> will be raised.
+		If the character entity can't be found a <class>IllegalEntityError</class>
+		will be raised.
 		"""
 		try:
 			if isinstance(name, (int, long)):
 				return self._charrefsbycodepoint[name]
 			return self._charrefsbyxmlname[name]
 		except KeyError:
-			for base in self.bases:
-				try:
-					return base.charrefclass_xml(name)
-				except IllegalEntityError:
-					pass
 			raise IllegalEntityError(name, True)
 
 	def charref(self, name):
 		"""
 		Return a character entity object for the chacter with the Python name
-		or codepoint <arg>name</arg>. If the class can't be found the search
-		continues in the base pools.
+		or codepoint <arg>name</arg>.
 		"""
 		return self.charrefclass(name)()
 
 	def charref_xml(self, name):
 		"""
 		Return a character entity object for the chacter with the &xml; name
-		or codepoint <arg>name</arg>. If the class can't be found the search
-		continues in the base pools.
+		or codepoint <arg>name</arg>.
 		"""
 		return self.charrefclass_xml(name)()
 
@@ -3777,9 +3723,8 @@ class PoolBase(object):
 	def attrclass(self, name, xmlns):
 		"""
 		Return the aatribute class for the global attribute with the Python name
-		<arg>name</arg> and the namespace <arg>xmlns</arg>. If the class can't be
-		found the search continues in the base pools. If the attribute can't be
-		found a <class>IllegalAttrError</class> will be raised.
+		<arg>name</arg> and the namespace <arg>xmlns</arg>. If the attribute can't
+		be found a <class>IllegalAttrError</class> will be raised.
 		"""
 		if not isinstance(xmlns, (list, tuple)):
 			xmlns = (xmlns,)
@@ -3789,19 +3734,13 @@ class PoolBase(object):
 				return self._attrsbypyname[(name, xmlns)]
 			except KeyError:
 				pass
-		for base in self.bases:
-			try:
-				return base.attrclass(name, xmlns)
-			except IllegalAttrError:
-				pass
 		raise IllegalAttrError(name, xmlns, False)
 
 	def attrclass_xml(self, name, xmlns):
 		"""
 		Return the aatribute class for the global attribute with the &xml; name
-		<arg>name</arg> and the namespace <arg>xmlns</arg>. If the class can't be
-		found the search continues in the base pools. If the attribute can't be
-		found a <class>IllegalAttrError</class> will be raised.
+		<arg>name</arg> and the namespace <arg>xmlns</arg>. If the attribute can't
+		be found a <class>IllegalAttrError</class> will be raised.
 		"""
 		if not isinstance(xmlns, (list, tuple)):
 			xmlns = (xmlns,)
@@ -3810,11 +3749,6 @@ class PoolBase(object):
 			try:
 				return self._attrsbyxmlname[(name, xmlns)]
 			except KeyError:
-				pass
-		for base in self.bases:
-			try:
-				return base.attrclass_xml(name, xmlns)
-			except IllegalAttrError:
 				pass
 		raise IllegalAttrError(name, xmlns, True)
 
@@ -3849,7 +3783,7 @@ class PoolBase(object):
 		return copy
 
 
-class Pool(PoolBase):
+class ChainedPool(Pool):
 	"""
 	<par>Class pool for <pyref class="Element">element</pyref>,
 	<pyref class="ProcInst">procinst</pyref>, <pyref class="Entity">entity</pyref>,
@@ -3862,91 +3796,196 @@ class Pool(PoolBase):
 		<par>Create a new pool. All objects in <arg>objects</arg> will be passed
 		to the <method>register</method> method.</par>
 		"""
-		self._elementsbyxmlname = weakref.WeakValueDictionary()
-		self._elementsbypyname = weakref.WeakValueDictionary()
-		self._procinstsbyxmlname = weakref.WeakValueDictionary()
-		self._procinstsbypyname = weakref.WeakValueDictionary()
-		self._entitiesbyxmlname = weakref.WeakValueDictionary()
-		self._entitiesbypyname = weakref.WeakValueDictionary()
-		self._charrefsbyxmlname = weakref.WeakValueDictionary()
-		self._charrefsbypyname = weakref.WeakValueDictionary()
-		self._charrefsbycodepoint = weakref.WeakValueDictionary()
-		self._attrsbyxmlname = weakref.WeakValueDictionary()
-		self._attrsbypyname = weakref.WeakValueDictionary()
-		self.bases = []
-		for object in objects:
-			self.register(object)
+		self.base = None
+		Pool.__init__(self, *objects)
 
 	def register(self, object):
 		"""
-		<par>Register <arg>object</arg> in the pool. <arg>object</arg> can be:</par>
+		<par>Register <arg>object</arg> in the pool. In addition to the types
+		supported by the base class' <pyref class="Pool"><method>register</method></pyref>
+		method, the following arguments are supported:</par>
 		<ulist>
-		<item>A <pyref class="Element"><class>Element</class></pyref>,
-		<pyref class="ProcInst"><class>ProcInst</class></pyref>,
-		<pyref class="Entity"><class>Entity</class></pyref>,
-		<pyref class="CharRef"><class>CharRef</class></pyref> class;</item>
-		<item>An <pyref class="Attr"><class>Attr</class></pyref> class
-		for a global attribute;</item>
-		<item>An <pyref class="Attrs"><class>Attrs</class></pyref> class
-		containing global attributes;</item>
-		<item>A <class>dict</class> (all <class>Node</class> classes in the
-		values will be registered, this makes it possible to e.g. register all
-		local variables by passing <lit>vars()</lit>);</item>
-		<item>A module (all <class>Node</class> classes in the
-		module will be registered);</item>
 		<item>A <class>Pool</class> object (this pool object will be added to the
 		base pools. If a class isn't found in <self/> the search continues in this
 		base pool;</item>
 		<item><lit>True</lit>, which adds the current default pool to the base pools.</item>
 		</ulist>
 		"""
-		if isinstance(object, type):
-			if issubclass(object, Element):
-				if object.register:
-					self._elementsbyxmlname[(object.xmlname, object.xmlns)] = object
-					self._elementsbypyname[(object.__name__, object.xmlns)] = object
-			elif issubclass(object, ProcInst):
-				if object.register:
-					self._procinstsbyxmlname[object.xmlname] = object
-					self._procinstsbypyname[object.__name__] = object
-			elif issubclass(object, Entity):
-				if object.register:
-					self._entitiesbyxmlname[object.xmlname] = object
-					self._entitiesbypyname[object.__name__] = object
-					if issubclass(object, CharRef):
-						self._charrefsbyxmlname[object.xmlname] = object
-						self._charrefsbypyname[object.__name__] = object
-						self._charrefsbycodepoint[object.codepoint] = object
-			elif issubclass(object, Attr):
-				if object.xmlns is not None and object.register:
-					self._attrsbyxmlname[(object.xmlname, object.xmlns)] = object
-					self._attrsbypyname[(object.__name__, object.xmlns)] = object
-			elif issubclass(object, Attrs):
-				for attr in object.allowedattrs():
-					self.register(attr)
-		elif isinstance(object, types.ModuleType):
-			for value in object.__dict__.itervalues():
-				if isinstance(value, type): # This avoids recursive module registration
-					self.register(value)
-		elif isinstance(object, dict):
-			for value in object.itervalues():
-				if isinstance(value, type): # This avoids recursive module registration
-					self.register(value)
-		elif object is True:
-			self.bases.append(getpoolstack()[-1])
+		Pool.register(self, object)
+		if object is True:
+			self.base = getpoolstack()[-1]
 		elif isinstance(object, Pool):
-			self.bases.append(object)
+			self.base = object
+
+	def elementclass(self, name, xmlns):
+		try:
+			return Pool.elementclass(self, name, xmlns)
+		except IllegalElementError:
+			if self.base is not None:
+				return self.base.elementclass(name, xmlns)
+			raise
+
+	def elementclass_xml(self, name, xmlns):
+		try:
+			return Pool.elementclass_xml(self, name, xmlns)
+		except IllegalElementError:
+			if self.base is not None:
+				return self.base.elementclass_xml(name, xmlns)
+			raise
+
+	def haselement(self, name, xmlns):
+		return Pool.haselement(self, name, xmlns) or (self.base is not None and self.base.haselement(name, xmlns))
+
+	def haselement_xml(self, name, xmlns):
+		return Pool.haselement_xml(self, name, xmlns) or (self.base is not None and self.base.haselement_xml(name, xmlns))
+
+	def procinstclass(self, name):
+		try:
+			return Pool.procinstclass(self, name)
+		except IllegalProcInstError:
+			if self.base is not None:
+				return self.base.procinstclass(name, xmlns)
+			raise
+
+	def procinstclass_xml(self, name):
+		try:
+			return Pool.procinstclass_xml(self, name)
+		except IllegalProcInstError:
+			if self.base is not None:
+				return self.base.procinstclass_xml(name, xmlns)
+			raise
+
+	def procinst(self, name, content):
+		try:
+			return self.procinst(name, content)
+		except IllegalProcInstError:
+			if self.base is not None:
+				return self.base.procinst(name, content)
+			raise
+
+	def procinst_xml(self, name, content):
+		try:
+			return self.procinst_xml(name, content)
+		except IllegalProcInstError:
+			if self.base is not None:
+				return self.base.procinst_xml(name, content)
+			raise
+
+	def hasprocinst(self, name):
+		return Pool.hasprocinst(self, name) or (self.base is not None and self.base.hasprocinst(name))
+
+	def hasprocinst_xml(self, name):
+		return Pool.hasprocinst_xml(self, name) or (self.base is not None and self.base.hasprocinst_xml(name))
+
+	def entityclass(self, name):
+		try:
+			return Pool.entityclass(self, name)
+		except IllegalEntityError:
+			if self.base is not None:
+				return self.base.entityclass(name)
+			raise
+
+	def entityclass_xml(self, name):
+		try:
+			return Pool.entityclass_xml(self, name)
+		except IllegalEntityError:
+			if self.base is not None:
+				return self.base.entityclass_xml(name)
+			raise
+
+	def entity(self, name):
+		try:
+			return Pool.entity(name)
+		except IllegalEntityError:
+			if self.base is not None:
+				return self.base.entity(name)
+			raise
+
+	def entity_xml(self, name):
+		try:
+			return Pool.entity_xml(name)
+		except IllegalEntityError:
+			if self.base is not None:
+				return self.base.entity_xml(name)
+			raise
+
+	def hasentity(self, name):
+		return Pool.hasentity(self, name) or (self.base is not None and self.base.hasentity(name))
+
+	def hasentity_xml(self, name):
+		return Pool.hasentity_xml(self, name) or (self.base is not None and self.base.hasentity_xml(name))
+
+	def charrefs(self):
+		"""
+		Return an iterator for all character entity classes.
+		"""
+		return self._charrefsbypyname.itervalues()
+
+	def charrefclass(self, name):
+		try:
+			return Pool.charrefclass(self, name)
+		except IllegalEntityError:
+			if self.base is not None:
+				return self.base.charrefclass(name)
+			raise
+
+	def charrefclass_xml(self, name):
+		try:
+			return Pool.charrefclass_xml(self, name)
+		except IllegalEntityError:
+			if self.base is not None:
+				return self.base.charrefclass_xml(name)
+			raise
+
+	def charref(self, name):
+		try:
+			return Pool.charref(name)
+		except IllegalEntityError:
+			if self.base is not None:
+				return self.base.charref(name)
+			raise
+
+	def charref_xml(self, name):
+		try:
+			return Pool.charref_xml(name)
+		except IllegalEntityError:
+			if self.base is not None:
+				return self.base.charref_xml(name)
+			raise
+
+	def hascharref(self, name):
+		return Pool.hascharref(self, name) or (self.base is not None and self.base.hascharref(name))
+
+	def hascharref_xml(self, name):
+		return Pool.hascharref_xml(self, name) or (self.base is not None and self.base.hascharref_xml(name))
+
+	def attrclass(self, name, xmlns):
+		try:
+			return Pool.attrclass(self, name, xmlns)
+		except IllegalAttrError:
+			if self.base is not None:
+				return self.base.attrclass(name, xmlns)
+			raise
+
+	def attrclass_xml(self, name, xmlns):
+		try:
+			return Pool.attrclass_xml(self, name, xmlns)
+		except IllegalAttrError:
+			if self.base is not None:
+				return self.base.attrclass_xml(name, xmlns)
+			raise
 
 	def clone(self):
 		"""
 		Return a copy of <self/>.
 		"""
-		copy = PoolBase.clone(self)
-		copy.bases = self.bases[:]
+		copy = Pool.clone(self)
+		copy.base = self.base
 		return copy
 
+
 # Default class pool
-defaultpool = Pool()
+defaultpool = ChainedPool()
 
 
 def getpoolstack():
@@ -3958,13 +3997,13 @@ def getpoolstack():
 	return stack
 
 
-class VPool(PoolBase):
+class VPool(Pool):
 	def __init__(self, *modules):
 		"""
 		<par>Create a new pool. All modules in <arg>modules</arg> will be passed
 		to the <method>register</method> method.</par>
 		"""
-		PoolBase.__init__(self)
+		Pool.__init__(self)
 		self._attrs = weakref.WeakValueDictionary()
 		for module in reversed(modules):
 			self.register(module)

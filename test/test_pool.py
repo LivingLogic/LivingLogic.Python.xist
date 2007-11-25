@@ -219,7 +219,7 @@ def test_stack():
 	assert r2.elementclass_xml("foo", "nix") is foo2
 
 
-def test_base():
+def test_chain():
 	with xsc.Pool() as r1:
 		class foo1(xsc.Element):
 			xmlname = "foo"
@@ -227,7 +227,7 @@ def test_base():
 		class baz(xsc.Element):
 			xmlns = "nix"
 
-	with xsc.Pool(r1) as r2:
+	with xsc.ChainedPool(r1) as r2:
 		class foo2(xsc.Element):
 			xmlname = "foo"
 			xmlns = "nix"
@@ -248,7 +248,7 @@ def test_defaultbase():
 		class foo(xsc.Element):
 			xmlns = "nix"
 
-		with xsc.Pool(True) as r2:
+		with xsc.ChainedPool(True) as r2:
 			class bar(xsc.Element):
 				xmlns = "nix"
 
