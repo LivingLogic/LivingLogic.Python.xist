@@ -4003,48 +4003,17 @@ class VPool(Pool):
 		<par>Create a new pool. All modules in <arg>modules</arg> will be passed
 		to the <method>register</method> method.</par>
 		"""
-		Pool.__init__(self)
 		self._attrs = weakref.WeakValueDictionary()
-		for module in reversed(modules):
-			self.register(module)
+		Pool.__init__(self, *modules[::-1])
 
 	def register(self, object):
-		if isinstance(object, type):
-			if issubclass(object, Element):
-				if object.register:
-					self._elementsbyxmlname[(object.xmlname, object.xmlns)] = object
-					self._elementsbypyname[(object.__name__, object.xmlns)] = object
-			elif issubclass(object, ProcInst):
-				if object.register:
-					self._procinstsbyxmlname[object.xmlname] = object
-					self._procinstsbypyname[object.__name__] = object
-			elif issubclass(object, Entity):
-				if object.register:
-					self._entitiesbyxmlname[object.xmlname] = object
-					self._entitiesbypyname[object.__name__] = object
-					if issubclass(object, CharRef):
-						self._charrefsbyxmlname[object.xmlname] = object
-						self._charrefsbypyname[object.__name__] = object
-						self._charrefsbycodepoint[object.codepoint] = object
-			elif issubclass(object, Attr):
-				if object.xmlns is not None and object.register:
-					self._attrsbyxmlname[(object.xmlname, object.xmlns)] = object
-					self._attrsbypyname[(object.__name__, object.xmlns)] = object
-			elif issubclass(object, Attrs):
-				for attr in object.allowedattrs():
-					self.register(attr)
-		elif isinstance(object, types.ModuleType):
+		Pool.register(self, object)
+		if isinstance(object, types.ModuleType):
 			for (key, value) in object.__dict__.iteritems():
 				try:
 					self._attrs[key] = value
 				except TypeError:
 					pass
-				if isinstance(value, type): # This avoids recursive module registration
-					self.register(value)
-		elif isinstance(object, dict):
-			for value in object.itervalues():
-				if isinstance(value, type): # This avoids recursive module registration
-					self.register(value)
 
 	def __getattr__(self, key):
 		try:
