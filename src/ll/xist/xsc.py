@@ -3402,6 +3402,7 @@ class Pool(object):
 		self._charrefsbycodepoint = weakref.WeakValueDictionary()
 		self._attrsbyxmlname = weakref.WeakValueDictionary()
 		self._attrsbypyname = weakref.WeakValueDictionary()
+		self._attrs = weakref.WeakValueDictionary()
 		for object in objects:
 			self.register(object)
 
@@ -3449,13 +3450,21 @@ class Pool(object):
 				for attr in object.allowedattrs():
 					self.register(attr)
 		elif isinstance(object, types.ModuleType):
-			for value in object.__dict__.itervalues():
+			for (key, value) in object.__dict__.iteritems():
 				if isinstance(value, type): # This avoids recursive module registration
 					self.register(value)
+				try:
+					self._attrs[key] = value
+				except TypeError:
+					pass
 		elif isinstance(object, dict):
-			for value in object.itervalues():
+			for (key, value) in object.iteritems():
 				if isinstance(value, type): # This avoids recursive module registration
 					self.register(value)
+				try:
+					self._attrs[key] = value
+				except TypeError:
+					pass
 
 	def __enter__(self):
 		getpoolstack().append(self)
@@ -3764,6 +3773,12 @@ class Pool(object):
 		"""
 		return Comment(content)
 
+	def __getattr__(self, key):
+		try:
+			return self._attrs[key]
+		except KeyError:
+			raise AttributeError(key)
+
 	def clone(self):
 		"""
 		Return a copy of <self/>.
@@ -3780,6 +3795,7 @@ class Pool(object):
 		copy._charrefsbycodepoint = self._charrefsbycodepoint.copy()
 		copy._attrsbyxmlname = self._attrsbyxmlname.copy()
 		copy._attrsbypyname = self._attrsbypyname.copy()
+		copy._attrs = self._attrs.copy()
 		return copy
 
 
@@ -3997,41 +4013,33 @@ def getpoolstack():
 	return stack
 
 
-class VPool(Pool):
+class VPool(object):
 	def __init__(self, *modules):
 		"""
 		<par>Create a new pool. All modules in <arg>modules</arg> will be passed
 		to the <method>register</method> method.</par>
 		"""
-		self._attrs = weakref.WeakValueDictionary()
-		Pool.__init__(self, *modules[::-1])
-
-	def register(self, object):
-		Pool.register(self, object)
-		if isinstance(object, types.ModuleType):
-			for (key, value) in object.__dict__.iteritems():
-				try:
-					self._attrs[key] = value
-				except TypeError:
-					pass
+		self.modules = modules
 
 	def __getattr__(self, key):
-		try:
-			attr = self._attrs[key]
-		except KeyError:
-			raise AttributeError(key)
-		else:
-			if isinstance(attr, _Node_Meta):
-				def factory(*args, **kwargs):
-					obj = attr(*args, **kwargs)
-					obj.pool = self
-					return obj
-				factory.__name__ = key
-				return factory
-			return attr
+		for module in self.modules:
+			try:
+				attr = getattr(module, key)
+			except AttributeError:
+				pass
+			else:
+				if isinstance(attr, _Node_Meta):
+					def factory(*args, **kwargs):
+						obj = attr(*args, **kwargs)
+						obj.pool = self
+						return obj
+					factory.__name__ = key
+					return factory
+				return attr
+		raise AttributeError(key)
 
 	def __repr__(self):
-		return "<%s.%s object with %d items at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, len(self._attrs), id(self))
+		return "<%s.%s object with %d items at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, len(self.modules), id(self))
 
 
 ###
