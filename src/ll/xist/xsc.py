@@ -4013,16 +4013,16 @@ def getpoolstack():
 	return stack
 
 
-class VPool(object):
+class VPool(list):
 	def __init__(self, *modules):
 		"""
 		<par>Create a new pool. All modules in <arg>modules</arg> will be passed
 		to the <method>register</method> method.</par>
 		"""
-		self.modules = modules
+		list.__init__(self, modules)
 
 	def __getattr__(self, key):
-		for module in self.modules:
+		for module in self:
 			try:
 				attr = getattr(module, key)
 			except AttributeError:
@@ -4039,7 +4039,7 @@ class VPool(object):
 		raise AttributeError(key)
 
 	def __repr__(self):
-		return "<%s.%s object with %d items at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, len(self.modules), id(self))
+		return "<%s.%s object with %d items at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, len(self), id(self))
 
 
 ###
