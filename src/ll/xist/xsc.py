@@ -3873,7 +3873,7 @@ class ChainedPool(Pool):
 
 	def procinst(self, name, content):
 		try:
-			return self.procinst(name, content)
+			return Pool.procinst(self, name, content)
 		except IllegalProcInstError:
 			if self.base is not None:
 				return self.base.procinst(name, content)
@@ -3881,7 +3881,7 @@ class ChainedPool(Pool):
 
 	def procinst_xml(self, name, content):
 		try:
-			return self.procinst_xml(name, content)
+			return Pool.procinst_xml(self, name, content)
 		except IllegalProcInstError:
 			if self.base is not None:
 				return self.base.procinst_xml(name, content)
@@ -3911,7 +3911,7 @@ class ChainedPool(Pool):
 
 	def entity(self, name):
 		try:
-			return Pool.entity(name)
+			return Pool.entity(self, name)
 		except IllegalEntityError:
 			if self.base is not None:
 				return self.base.entity(name)
@@ -3919,7 +3919,7 @@ class ChainedPool(Pool):
 
 	def entity_xml(self, name):
 		try:
-			return Pool.entity_xml(name)
+			return Pool.entity_xml(self, name)
 		except IllegalEntityError:
 			if self.base is not None:
 				return self.base.entity_xml(name)
