@@ -4014,17 +4014,160 @@ def getpoolstack():
 
 
 class VPool(list):
-	def __init__(self, *modules):
+	def __init__(self, *pools):
 		"""
-		<par>Create a new pool. All modules in <arg>modules</arg> will be passed
-		to the <method>register</method> method.</par>
+		<par>Create a new pool.</par>
 		"""
-		list.__init__(self, modules)
+		list.__init__(self, [Pool(pool) if isinstance(pool, types.ModuleType) else pool for pool in pools])
+
+	def elementclass(self, name, xmlns):
+		for pool in self:
+			try:
+				return pool.elementclass(name, xmlns)
+			except IllegalElementError:
+				pass
+		raise IllegalElementError(name, xmlns, False)
+
+	def elementclass_xml(self, name, xmlns):
+		for pool in self:
+			try:
+				return pool.elementclass_xml(name, xmlns)
+			except IllegalElementError:
+				pass
+		raise IllegalElementError(name, xmlns, True)
+
+	def element(self, name, xmlns):
+		result = self.elementclass(name, xmlns)()
+		result.pool = self
+		return result
+
+	def element_xml(self, name, xmlns):
+		result = self.elementclass_xml(name, xmlns)()
+		result.pool = self
+		return result
+
+	def haselement(self, name, xmlns):
+		return any(pool.haselement(name, xmlns) for pool in self)
+
+	def haselement_xml(self, name, xmlns):
+		return any(pool.haselement_xml(name, xmlns) for pool in self)
+
+	def procinstclass(self, name):
+		for pool in self:
+			try:
+				return pool.procinstclass(name)
+			except IllegalProcInstError:
+				pass
+		raise IllegalProcInstError(name, False)
+
+	def procinstclass_xml(self, name):
+		for pool in self:
+			try:
+				return pool.procinstclass_xml(name)
+			except IllegalProcInstError:
+				pass
+		raise IllegalProcInstError(name, True)
+
+	def procinst(self, name):
+		result = self.procinstclass(name)()
+		result.pool = self
+		return result
+
+	def procinst_xml(self, name):
+		result = self.procinstclass_xml(name)()
+		result.pool = self
+		return result
+
+	def hasprocinst(self, name):
+		return any(pool.hasprocinst(name) for pool in self)
+
+	def hasprocinst_xml(self, name):
+		return any(pool.hasprocinst_xml(name) for pool in self)
+
+	def entityclass(self, name):
+		for pool in self:
+			try:
+				return pool.entityclass(name)
+			except IllegalEntityError:
+				pass
+		raise IllegalEntityError(name, False)
+
+	def entityclass_xml(self, name):
+		for pool in self:
+			try:
+				return pool.entityclass_xml(name)
+			except IllegalEntityError:
+				pass
+		raise IllegalEntityError(name, True)
+
+	def entity(self, name):
+		result = self.entityclass(name)()
+		result.pool = self
+		return result
+
+	def entity_xml(self, name):
+		result = self.entityclass_xml(name)()
+		result.pool = self
+		return result
+
+	def hasentity(self, name):
+		return any(pool.hasentity(name) for pool in self)
+
+	def hasentity_xml(self, name):
+		return any(pool.hasentity_xml(name) for pool in self)
+
+	def charrefclass(self, name):
+		for pool in self:
+			try:
+				return pool.charrefclass(name)
+			except IllegalElementError:
+				pass
+		raise IllegalProcInstError(name, False)
+
+	def charrefclass_xml(self, name):
+		for pool in self:
+			try:
+				return pool.charrefclass_xml(name)
+			except IllegalElementError:
+				pass
+		raise IllegalProcInstError(name, True)
+
+	def charref(self, name):
+		result = self.charrefclass(name)()
+		result.pool = self
+		return result
+
+	def charref_xml(self, name):
+		result = self.charrefclass_xml(name)()
+		result.pool = self
+		return result
+
+	def hascharref(self, name):
+		return any(pool.hascharref(name) for pool in self)
+
+	def hascharref_xml(self, name):
+		return any(pool.hascharref_xml(name) for pool in self)
+
+	def attrclass(self, name, xmlns):
+		try:
+			return Pool.attrclass(self, name, xmlns)
+		except IllegalAttrError:
+			if self.base is not None:
+				return self.base.attrclass(name, xmlns)
+			raise
+
+	def attrclass_xml(self, name, xmlns):
+		try:
+			return Pool.attrclass_xml(self, name, xmlns)
+		except IllegalAttrError:
+			if self.base is not None:
+				return self.base.attrclass_xml(name, xmlns)
+			raise
 
 	def __getattr__(self, key):
-		for module in self:
+		for pool in self:
 			try:
-				attr = getattr(module, key)
+				attr = getattr(pool, key)
 			except AttributeError:
 				pass
 			else:
@@ -4037,6 +4180,9 @@ class VPool(list):
 					return factory
 				return attr
 		raise AttributeError(key)
+
+	def clone(self):
+		return self.__class__(*self)
 
 	def __repr__(self):
 		return "<%s.%s object with %d items at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, len(self), id(self))
