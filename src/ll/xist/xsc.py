@@ -4018,7 +4018,27 @@ class VPool(list):
 		"""
 		<par>Create a new pool.</par>
 		"""
-		list.__init__(self, [Pool(pool) if isinstance(pool, types.ModuleType) else pool for pool in pools])
+		list.__init__(self, map(self._fix, pools))
+
+	def _fix(self, pool):
+		if isinstance(pool, types.ModuleType):
+			pool = Pool(pool)
+		return pool
+
+	def __setitem__(self, index, pool):
+		list.__setitem__(self, index, self._fix(pool))
+
+	def __setslice__(self, index1, index2, pools):
+		list.__setslice__(self, index1, index2, map(self._fix, pools))
+
+	def append(self, pool):
+		list.append(self, self._fix(pool))
+
+	def extend(self, pools):
+		list.extend(self, map(self._fix, pools))
+
+	def insert(self, index, pool):
+		list.insert(self, index, self._fix(pool))
 
 	def elementclass(self, name, xmlns):
 		for pool in self:
