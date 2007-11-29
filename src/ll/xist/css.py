@@ -182,9 +182,8 @@ def applystylesheets(node, base=None, media=None):
 				if sel.match(path):
 					for prop in style.seq:
 						if not isinstance(prop, css.CSSComment):
-							for value in prop:
-								styles[prop.name] = (count, prop.name, value.cssValue.cssText)
-								count += 1
+							styles[prop.name] = (count, prop.name, prop.cssValue.cssText)
+							count += 1
 					style = " ".join("%s: %s;" % (name, value) for (count, name, value) in sorted(styles.itervalues()))
 					if style:
 						path[-1].attrs["style"] = style
@@ -654,19 +653,16 @@ def selector(selectors, prefixes=None):
 	else:
 		raise TypeError("can't handle %r" % type(selectors))
 	orcombinators = []
-	for selector in selectors:
+	for selector in selectors.seq:
 		rule = root = CSSTypeSelector()
 		prefix = None
 		attributename = None
 		attributevalue = None
 		combinator = None
 		inattr = False
-		for x in selector.seq:
-			t = x["type"]
-			v = x["value"]
-			if t == "prefix":
-				prefix = v
-			elif t == "pipe":
+		for (t, v) in zip(selector.seq.types, selector.seq.values):
+			if t == "namespace_prefix":
+				prefix = v.rstrip("|")
 				if prefix != "*":
 					try:
 						xmlns = prefixes[prefix]
@@ -674,43 +670,52 @@ def selector(selectors, prefixes=None):
 						raise xsc.IllegalPrefixError(prefix)
 					rule.xmlns = xmlns
 				prefix = None
-			elif t == "type":
-				rule.type = v
-			elif t == "id":
+			elif t == "IDENT":
+				if inattr:
+					attributename = v
+				else:
+					rule.type = v
+			elif t == "universal":
+				rule.type = "*"
+			elif t == "HASH":
 				rule.selectors.append(xfind.hasid(v.lstrip("#")))
-			elif t == "classname":
-				rule.selectors.append(xfind.hasclass(v))
-			elif t == "pseudoname":
-				try:
-					rule.selectors.append(_pseudoname2class[v]())
-				except KeyError:
-					raise ValueError("unknown pseudoname %s" % v)
-			elif t == "function":
-				try:
-					rule.selectors.append(_function2class[v.rstrip("(")]())
-				except KeyError:
-					raise ValueError("unknown function %s" % v)
-				rule.function = v
-			elif t == "functionvalue":
-				rule.selectors[-1].value = v
-			elif t == "attributename":
-				attributename = v
-			elif t == "attributevalue":
-				if (v.startswith("'") and v.endswith("'")) or (v.startswith('"') and v.endswith('"')):
-					v = v[1:-1]
-				attributevalue = v
-			elif t == "attribute selector":
-				combinator = None
-				inattr = True
-			elif t == "attribute selector end":
-				if combinator is None:
-					rule.selectors.append(CSSHasAttributeSelector(attributename))
+			elif t == "class":
+				rule.selectors.append(xfind.hasclass(v.lstrip(".")))
+			elif t is None:
+				if v == "[":
+					inattr = True
+					combinator = None
+				elif v == "]":
+					if combinator is None:
+						rule.selectors.append(CSSHasAttributeSelector(attributename))
+					else:
+						try:
+							rule.selectors.append(_attributecombinator2class[combinator](attributename, attributevalue))
+						except KeyError:
+							raise ValueError("unknown combinator %s" % attributevalue)
+					inattr = False
+				elif v in _attributecombinator2class:
+					combinator = v
+			elif t == "pseudo-class":
+				if v.endswith("("):
+					try:
+						rule.selectors.append(_function2class[v.lstrip(":").rstrip("(")]())
+					except KeyError:
+						raise ValueError("unknown function %s" % v)
+					rule.function = v
 				else:
 					try:
-						rule.selectors.append(_attributecombinator2class[combinator](attributename, attributevalue))
+						rule.selectors.append(_pseudoname2class[v.lstrip(":")]())
 					except KeyError:
-						raise ValueError("unknown combinator %s" % attributevalue)
-				inattr = False
+						raise ValueError("unknown pseudo-class %s" % v)
+			elif t == "NUMBER":
+				# can only appear in a function => set the function value
+				rule.selectors[-1].value = v
+			elif t == "STRING":
+				if (v.startswith("'") and v.endswith("'")) or (v.startswith('"') and v.endswith('"')):
+					v = v[1:-1]
+				# can only appear in a attribute selector => set the attribute value
+				attributevalue = v
 			elif t == "combinator":
 				if inattr:
 					combinator = v
