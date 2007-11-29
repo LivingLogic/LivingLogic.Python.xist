@@ -169,7 +169,7 @@ def applystylesheets(node, base=None, media=None):
 	
 	rules = []
 	for (i, rule) in enumerate(iterrules(node, base=base, media=media)):
-		for sel in rule.selectorList:
+		for sel in rule.selectorList.seq:
 			sel = selector(sel)
 			rules.append((sel.cssweight(), sel, rule.style))
 	rules.sort(key=operator.itemgetter(0))
@@ -642,18 +642,18 @@ def selector(selectors, prefixes=None):
 			selectors = "%s{}" % selectors
 		for rule in cssutils.CSSParser().parseString(selectors).cssRules:
 			if isinstance(rule, css.CSSStyleRule):
-				selectors = rule.selectorList
+				selectors = rule.selectorList.seq
 				break
 		else:
 			raise ValueError("can't happen")
 	elif isinstance(selectors, css.CSSStyleRule):
-		selectors = selectors.selectorList
+		selectors = selectors.selectorList.seq
 	elif isinstance(selectors, css.Selector):
 		selectors = [selectors]
 	else:
 		raise TypeError("can't handle %r" % type(selectors))
 	orcombinators = []
-	for selector in selectors.seq:
+	for selector in selectors:
 		rule = root = CSSTypeSelector()
 		prefix = None
 		attributename = None
