@@ -4168,22 +4168,6 @@ class VPool(list):
 	def hascharref_xml(self, name):
 		return any(pool.hascharref_xml(name) for pool in self)
 
-	def attrclass(self, name, xmlns):
-		try:
-			return Pool.attrclass(self, name, xmlns)
-		except IllegalAttrError:
-			if self.base is not None:
-				return self.base.attrclass(name, xmlns)
-			raise
-
-	def attrclass_xml(self, name, xmlns):
-		try:
-			return Pool.attrclass_xml(self, name, xmlns)
-		except IllegalAttrError:
-			if self.base is not None:
-				return self.base.attrclass_xml(name, xmlns)
-			raise
-
 	def __getattr__(self, key):
 		for pool in self:
 			try:
