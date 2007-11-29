@@ -85,7 +85,7 @@ args = dict(
 	],
 	install_requires=[
 		"ll-core >= 1.10",
-		"PyXML >= 0.8.4",
+		"cssutils == 0.9.4a3",
 	],
 	namespace_packages=["ll"],
 	zip_safe=False,
