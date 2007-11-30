@@ -51,8 +51,7 @@ def replaceurls(stylesheet, replacer):
 def _getmedia(stylesheet):
 	while stylesheet is not None:
 		if stylesheet.media is not None:
-			# FIXME: remove extensions: see http://www.w3.org/TR/css3-mediaqueries/#idx-media-descriptor-1
-			return stylesheet.media
+			return set(mq.mediaType for mq in stylesheet.media)
 		stylesheet = stylesheet.parentStyleSheet
 	return None
 
@@ -80,7 +79,7 @@ def _doimport(wantmedia, parentsheet, base):
 				for rule in _doimport(wantmedia, sheet, href):
 					yield rule
 			elif rule.type == css.CSSRule.MEDIA_RULE:
-				if wantmedia in rule.media:
+				if wantmedia in (mq.mediaType for mq in rule.media):
 					for subrule in rule.cssRules:
 						yield subrule
 			elif rule.type == css.CSSRule.STYLE_RULE:
