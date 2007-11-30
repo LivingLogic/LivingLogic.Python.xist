@@ -630,7 +630,7 @@ def selector(selectors, prefixes=None):
 	Create a walk filter that will yield all nodes that match the specified
 	&css; expression. <arg>selectors</arg> can be a string or a
 	<class>cssutils.css.selector.Selector</class> object. <arg>prefixes</arg>
-	may is a mapping mapping namespace prefixes to namespace names.
+	may be a mapping mapping namespace prefixes to namespace names.
 	"""
 
 	if isinstance(selectors, basestring):
