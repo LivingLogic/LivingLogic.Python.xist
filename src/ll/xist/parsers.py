@@ -232,7 +232,7 @@ class Builder(object):
 
 	def __init__(self, parser=None, prefixes=None, tidy=False, loc=True, validate=True, encoding=None, pool=None):
 		"""
-		<par>Create a new <class>Parser</class> instance.</par>
+		<par>Create a new <class>Builder</class> instance.</par>
 
 		<par>Arguments have the following meaning:</par>
 		<dlist>
@@ -259,7 +259,7 @@ class Builder(object):
 		the encoding being detected from the &xml; itself.</item>
 
 		<term><arg>pool</arg></term><item>A <pyref module="ll.xist.xsc" class="Pool"><class>ll.xist.xsc.Pool</class></pyref>
-		object which will be used for instantiating all nodes.</item>
+		object which will be used for instantiating all nodes during parsing.</item>
 		</dlist>
 		"""
 		self.parser = parser
