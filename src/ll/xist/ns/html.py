@@ -178,8 +178,8 @@ class html(xsc.Element):
 		class id(xsc.IDAttr): pass
 
 	def convert(self, converter):
-		if converter.lang is not None and "lang" not in self.attrs and ("lang", xml) not in self.attrs:
-			node = html(self.content, self.attrs, {"lang": converter.lang, ("lang", xml): converter.lang})
+		if converter.lang is not None and self.Attrs.lang not in self.attrs and xml.Attrs.lang not in self.attrs:
+			node = html(self.content, self.attrs, xml.Attrs(lang=converter.lang), lang=converter.lang)
 			return node.convert(converter)
 		else:
 			return super(html, self).convert(converter)
