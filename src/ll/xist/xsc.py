@@ -4140,7 +4140,7 @@ class VPool(list):
 		for pool in self:
 			try:
 				return pool.charrefclass(name)
-			except IllegalElementError:
+			except IllegalEntityError:
 				pass
 		raise IllegalProcInstError(name, False)
 
@@ -4148,7 +4148,7 @@ class VPool(list):
 		for pool in self:
 			try:
 				return pool.charrefclass_xml(name)
-			except IllegalElementError:
+			except IllegalEntityError:
 				pass
 		raise IllegalProcInstError(name, True)
 
