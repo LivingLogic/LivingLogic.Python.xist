@@ -214,12 +214,3 @@ class Converter(object):
 			return self.contexts[contextclass]
 		except KeyError:
 			return self.contexts.setdefault(contextclass, contextclass())
-
-	# XPython support
-	def __enter__(self):
-		self.push(node=xsc.Frag())
-
-	# XPython support
-	def __leave__(self):
-		self.pop()
-		self.lastnode = self.lastnode.convert(self)
