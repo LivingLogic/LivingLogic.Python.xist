@@ -3812,7 +3812,7 @@ class ChainedPool(Pool):
 		<par>Create a new pool. All objects in <arg>objects</arg> will be passed
 		to the <method>register</method> method.</par>
 		"""
-		self.base = None
+		self.bases = []
 		Pool.__init__(self, *objects)
 
 	def register(self, object):
@@ -3829,166 +3829,120 @@ class ChainedPool(Pool):
 		"""
 		Pool.register(self, object)
 		if object is True:
-			self.base = getpoolstack()[-1]
+			self.bases.append(getpoolstack()[-1])
 		elif isinstance(object, Pool):
-			self.base = object
+			self.bases.append(object)
 
 	def elementclass(self, name, xmlns):
 		try:
 			return Pool.elementclass(self, name, xmlns)
 		except IllegalElementError:
-			if self.base is not None:
-				return self.base.elementclass(name, xmlns)
+			for base in self.bases:
+				return base.elementclass(name, xmlns)
 			raise
 
 	def elementclass_xml(self, name, xmlns):
 		try:
 			return Pool.elementclass_xml(self, name, xmlns)
 		except IllegalElementError:
-			if self.base is not None:
-				return self.base.elementclass_xml(name, xmlns)
+			for base in self.bases:
+				return base.elementclass_xml(name, xmlns)
 			raise
 
 	def haselement(self, name, xmlns):
-		return Pool.haselement(self, name, xmlns) or (self.base is not None and self.base.haselement(name, xmlns))
+		return Pool.haselement(self, name, xmlns) or any(base.haselement(name, xmlns) for base in self.bases)
 
 	def haselement_xml(self, name, xmlns):
-		return Pool.haselement_xml(self, name, xmlns) or (self.base is not None and self.base.haselement_xml(name, xmlns))
+		return Pool.haselement_xml(self, name, xmlns) or any(base.haselement_xml(name, xmlns) for base in self.bases)
 
 	def procinstclass(self, name):
 		try:
 			return Pool.procinstclass(self, name)
 		except IllegalProcInstError:
-			if self.base is not None:
-				return self.base.procinstclass(name, xmlns)
+			for base in self.bases:
+				return base.procinstclass(name, xmlns)
 			raise
 
 	def procinstclass_xml(self, name):
 		try:
 			return Pool.procinstclass_xml(self, name)
 		except IllegalProcInstError:
-			if self.base is not None:
-				return self.base.procinstclass_xml(name, xmlns)
-			raise
-
-	def procinst(self, name, content):
-		try:
-			return Pool.procinst(self, name, content)
-		except IllegalProcInstError:
-			if self.base is not None:
-				return self.base.procinst(name, content)
-			raise
-
-	def procinst_xml(self, name, content):
-		try:
-			return Pool.procinst_xml(self, name, content)
-		except IllegalProcInstError:
-			if self.base is not None:
-				return self.base.procinst_xml(name, content)
+			for base in self.bases:
+				return base.procinstclass_xml(name, xmlns)
 			raise
 
 	def hasprocinst(self, name):
-		return Pool.hasprocinst(self, name) or (self.base is not None and self.base.hasprocinst(name))
+		return Pool.hasprocinst(self, name) or any(base.hasprocinst(name) for base in self.bases)
 
 	def hasprocinst_xml(self, name):
-		return Pool.hasprocinst_xml(self, name) or (self.base is not None and self.base.hasprocinst_xml(name))
+		return Pool.hasprocinst_xml(self, name) or any(base.hasprocinst_xml(name) for base in self.bases)
 
 	def entityclass(self, name):
 		try:
 			return Pool.entityclass(self, name)
 		except IllegalEntityError:
-			if self.base is not None:
-				return self.base.entityclass(name)
+			for base in self.bases:
+				return base.entityclass(name)
 			raise
 
 	def entityclass_xml(self, name):
 		try:
 			return Pool.entityclass_xml(self, name)
 		except IllegalEntityError:
-			if self.base is not None:
-				return self.base.entityclass_xml(name)
-			raise
-
-	def entity(self, name):
-		try:
-			return Pool.entity(self, name)
-		except IllegalEntityError:
-			if self.base is not None:
-				return self.base.entity(name)
-			raise
-
-	def entity_xml(self, name):
-		try:
-			return Pool.entity_xml(self, name)
-		except IllegalEntityError:
-			if self.base is not None:
-				return self.base.entity_xml(name)
+			for base in self.bases:
+				return base.entityclass_xml(name)
 			raise
 
 	def hasentity(self, name):
-		return Pool.hasentity(self, name) or (self.base is not None and self.base.hasentity(name))
+		return Pool.hasentity(self, name) or any(base.hasentity(name) for base in self.bases)
 
 	def hasentity_xml(self, name):
-		return Pool.hasentity_xml(self, name) or (self.base is not None and self.base.hasentity_xml(name))
-
-	def charrefs(self):
-		"""
-		Return an iterator for all character entity classes.
-		"""
-		return self._charrefsbypyname.itervalues()
+		return Pool.hasentity_xml(self, name) or any(base.hasentity_xml(name) for base in self.bases)
 
 	def charrefclass(self, name):
 		try:
 			return Pool.charrefclass(self, name)
 		except IllegalEntityError:
-			if self.base is not None:
-				return self.base.charrefclass(name)
+			for base in self.bases:
+				return base.charrefclass(name)
 			raise
 
 	def charrefclass_xml(self, name):
 		try:
 			return Pool.charrefclass_xml(self, name)
 		except IllegalEntityError:
-			if self.base is not None:
-				return self.base.charrefclass_xml(name)
-			raise
-
-	def charref(self, name):
-		try:
-			return Pool.charref(name)
-		except IllegalEntityError:
-			if self.base is not None:
-				return self.base.charref(name)
-			raise
-
-	def charref_xml(self, name):
-		try:
-			return Pool.charref_xml(name)
-		except IllegalEntityError:
-			if self.base is not None:
-				return self.base.charref_xml(name)
+			for base in self.bases:
+				return base.charrefclass_xml(name)
 			raise
 
 	def hascharref(self, name):
-		return Pool.hascharref(self, name) or (self.base is not None and self.base.hascharref(name))
+		return Pool.hascharref(self, name) or any(base.hascharref(name) for base in self.bases)
 
 	def hascharref_xml(self, name):
-		return Pool.hascharref_xml(self, name) or (self.base is not None and self.base.hascharref_xml(name))
+		return Pool.hascharref_xml(self, name) or any(base.hascharref_xml(name) for base in self.bases)
 
 	def attrclass(self, name, xmlns):
 		try:
 			return Pool.attrclass(self, name, xmlns)
 		except IllegalAttrError:
-			if self.base is not None:
-				return self.base.attrclass(name, xmlns)
+			for base in self.bases:
+				return base.attrclass(name, xmlns)
 			raise
 
 	def attrclass_xml(self, name, xmlns):
 		try:
 			return Pool.attrclass_xml(self, name, xmlns)
 		except IllegalAttrError:
-			if self.base is not None:
-				return self.base.attrclass_xml(name, xmlns)
+			for base in self.bases:
+				return base.attrclass_xml(name, xmlns)
+			raise
+
+	def __getattr__(self, key):
+		try:
+			return Pool.__getattr(self, key)
+		except AttributeError:
+			for base in self.bases:
+				return getattr(base, key)
 			raise
 
 	def clone(self):
@@ -3996,7 +3950,7 @@ class ChainedPool(Pool):
 		Return a copy of <self/>.
 		"""
 		copy = Pool.clone(self)
-		copy.base = self.base
+		copy.bases = self.bases[:]
 		return copy
 
 
@@ -4011,185 +3965,6 @@ def getpoolstack():
 		stack = [defaultpool]
 		setattr(local, "ll.xist.xsc.pools", stack)
 	return stack
-
-
-class VPool(list):
-	def __init__(self, *pools):
-		"""
-		<par>Create a new pool.</par>
-		"""
-		list.__init__(self, map(self._fix, pools))
-
-	def _fix(self, pool):
-		if isinstance(pool, types.ModuleType):
-			pool = Pool(pool)
-		return pool
-
-	def __setitem__(self, index, pool):
-		list.__setitem__(self, index, self._fix(pool))
-
-	def __setslice__(self, index1, index2, pools):
-		list.__setslice__(self, index1, index2, map(self._fix, pools))
-
-	def append(self, pool):
-		list.append(self, self._fix(pool))
-
-	def extend(self, pools):
-		list.extend(self, map(self._fix, pools))
-
-	def insert(self, index, pool):
-		list.insert(self, index, self._fix(pool))
-
-	def elementclass(self, name, xmlns):
-		for pool in self:
-			try:
-				return pool.elementclass(name, xmlns)
-			except IllegalElementError:
-				pass
-		raise IllegalElementError(name, xmlns, False)
-
-	def elementclass_xml(self, name, xmlns):
-		for pool in self:
-			try:
-				return pool.elementclass_xml(name, xmlns)
-			except IllegalElementError:
-				pass
-		raise IllegalElementError(name, xmlns, True)
-
-	def element(self, name, xmlns):
-		result = self.elementclass(name, xmlns)()
-		result.pool = self
-		return result
-
-	def element_xml(self, name, xmlns):
-		result = self.elementclass_xml(name, xmlns)()
-		result.pool = self
-		return result
-
-	def haselement(self, name, xmlns):
-		return any(pool.haselement(name, xmlns) for pool in self)
-
-	def haselement_xml(self, name, xmlns):
-		return any(pool.haselement_xml(name, xmlns) for pool in self)
-
-	def procinstclass(self, name):
-		for pool in self:
-			try:
-				return pool.procinstclass(name)
-			except IllegalProcInstError:
-				pass
-		raise IllegalProcInstError(name, False)
-
-	def procinstclass_xml(self, name):
-		for pool in self:
-			try:
-				return pool.procinstclass_xml(name)
-			except IllegalProcInstError:
-				pass
-		raise IllegalProcInstError(name, True)
-
-	def procinst(self, name):
-		result = self.procinstclass(name)()
-		result.pool = self
-		return result
-
-	def procinst_xml(self, name):
-		result = self.procinstclass_xml(name)()
-		result.pool = self
-		return result
-
-	def hasprocinst(self, name):
-		return any(pool.hasprocinst(name) for pool in self)
-
-	def hasprocinst_xml(self, name):
-		return any(pool.hasprocinst_xml(name) for pool in self)
-
-	def entityclass(self, name):
-		for pool in self:
-			try:
-				return pool.entityclass(name)
-			except IllegalEntityError:
-				pass
-		raise IllegalEntityError(name, False)
-
-	def entityclass_xml(self, name):
-		for pool in self:
-			try:
-				return pool.entityclass_xml(name)
-			except IllegalEntityError:
-				pass
-		raise IllegalEntityError(name, True)
-
-	def entity(self, name):
-		result = self.entityclass(name)()
-		result.pool = self
-		return result
-
-	def entity_xml(self, name):
-		result = self.entityclass_xml(name)()
-		result.pool = self
-		return result
-
-	def hasentity(self, name):
-		return any(pool.hasentity(name) for pool in self)
-
-	def hasentity_xml(self, name):
-		return any(pool.hasentity_xml(name) for pool in self)
-
-	def charrefclass(self, name):
-		for pool in self:
-			try:
-				return pool.charrefclass(name)
-			except IllegalEntityError:
-				pass
-		raise IllegalProcInstError(name, False)
-
-	def charrefclass_xml(self, name):
-		for pool in self:
-			try:
-				return pool.charrefclass_xml(name)
-			except IllegalEntityError:
-				pass
-		raise IllegalProcInstError(name, True)
-
-	def charref(self, name):
-		result = self.charrefclass(name)()
-		result.pool = self
-		return result
-
-	def charref_xml(self, name):
-		result = self.charrefclass_xml(name)()
-		result.pool = self
-		return result
-
-	def hascharref(self, name):
-		return any(pool.hascharref(name) for pool in self)
-
-	def hascharref_xml(self, name):
-		return any(pool.hascharref_xml(name) for pool in self)
-
-	def __getattr__(self, key):
-		for pool in self:
-			try:
-				attr = getattr(pool, key)
-			except AttributeError:
-				pass
-			else:
-				if isinstance(attr, _Node_Meta):
-					def factory(*args, **kwargs):
-						obj = attr(*args, **kwargs)
-						obj.pool = self
-						return obj
-					factory.__name__ = key
-					return factory
-				return attr
-		raise AttributeError(key)
-
-	def clone(self):
-		return self.__class__(*self)
-
-	def __repr__(self):
-		return "<%s.%s object with %d items at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, len(self), id(self))
 
 
 ###
