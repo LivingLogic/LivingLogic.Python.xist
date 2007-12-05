@@ -3832,6 +3832,9 @@ class ChainedPool(Pool):
 			self.bases.append(getpoolstack()[-1])
 		elif isinstance(object, Pool):
 			self.bases.append(object)
+		elif isinstance(object, types.ModuleType) and hasattr(object, "xmlbases"):
+			for module in object.xmlbases:
+				self.register(ChainedPool(module))
 
 	def elementclass(self, name, xmlns):
 		try:
@@ -3939,7 +3942,7 @@ class ChainedPool(Pool):
 
 	def __getattr__(self, key):
 		try:
-			return Pool.__getattr(self, key)
+			return Pool.__getattr__(self, key)
 		except AttributeError:
 			for base in self.bases:
 				return getattr(base, key)
