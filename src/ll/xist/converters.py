@@ -213,4 +213,6 @@ class Converter(object):
 		try:
 			return self.contexts[contextclass]
 		except KeyError:
-			return self.contexts.setdefault(contextclass, contextclass())
+			context = contextclass()
+			self.contexts[contextclass] = context
+			return context
