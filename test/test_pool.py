@@ -227,7 +227,7 @@ def test_chain():
 		class baz(xsc.Element):
 			xmlns = "nix"
 
-	with xsc.ChainedPool(r1) as r2:
+	with xsc.Pool(r1) as r2:
 		class foo2(xsc.Element):
 			xmlname = "foo"
 			xmlns = "nix"
@@ -248,7 +248,7 @@ def test_defaultbase():
 		class foo(xsc.Element):
 			xmlns = "nix"
 
-		with xsc.ChainedPool(True) as r2:
+		with xsc.Pool(True) as r2:
 			class bar(xsc.Element):
 				xmlns = "nix"
 
