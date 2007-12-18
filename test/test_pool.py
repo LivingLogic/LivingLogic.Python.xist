@@ -243,22 +243,6 @@ def test_chain():
 	assert r2.elementclass_xml("baz", "nix") is baz
 
 
-def test_defaultbase():
-	with xsc.Pool() as r1:
-		class foo(xsc.Element):
-			xmlns = "nix"
-
-		with xsc.Pool(True) as r2:
-			class bar(xsc.Element):
-				xmlns = "nix"
-
-	assert r1.elementclass_xml("foo", "nix") is foo
-	py.test.raises(xsc.IllegalElementError, r1.elementclass, "bar", "nix")
-
-	assert r2.elementclass_xml("foo", "nix") is foo
-	assert r2.elementclass_xml("bar", "nix") is bar
-
-
 def test_mixedattrnames():
 	with xsc.Pool() as r:
 		class Attrs(xsc.Attrs):
