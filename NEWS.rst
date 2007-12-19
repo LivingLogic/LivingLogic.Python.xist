@@ -5,9 +5,18 @@ History
 Changes in 3.0 (released ??/??/2007)
 ------------------------------------
 
+*	Tree traversal has been rewritten again. XFind expressions involving multiple
+	uses of ``//`` now work correctly. The method :meth:`walk` now doesn't yield
+	:class:`Cursor` objects, but simple path list (actually it's always the same
+	list, if you want distinct lists use :meth:`walkpath`). Applying XFind
+	expressions to nodes directly is no longer supported, you have to call
+	:meth:`walk`, :meth:`walknode` or :meth:`walkpath` with the XFind expression
+	instead. Many XFind operators have been renamed and/or reimplemented
+	(see the documentation for the :mod:`xfind` module for more information).
+
 *	The methods :meth:`__getitem__`, :meth:`__setitem__` and :meth:`__delitem__`
-	for :class:`Frag` and :class:`Element` now support the new selectors, so you
-	can do:
+	for :class:`Frag` and :class:`Element` now support the new walk filters, so
+	you can do:
 
 	*	``del node[html.p]`` to delete all :class:`html.p` child elements of
 		``node``;
