@@ -1,4 +1,33 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
+<section><title>Migrating to version 3.0</title>
+
+<section><title>Changes to tree traversal</title>
+<par>You can no longer apply XFind expression directly to nodes, so instead of:</par>
+<prog>
+for node in root//html.p:
+	print node
+</prog>
+<par>you have to write:</par>
+<prog>
+for node in root.walknode(html.p):
+	print node
+</prog>
+<par>If you want the search anchored at the root node, you can do the following:</par>
+<prog>
+for node in root.walknode(root/html.p):
+	print node
+</prog>
+<par>This will yield <class>html.p</class> elements only if they are immediate
+children of the <lit>root</lit> node.</par>
+
+<par>Many of the XFind operators have been renamed (and all have been rewritten).
+See the <module>xfind</module> documentation for more info.</par>
+
+</section>
+
+</section>
+
+
 <section><title>Migrating to version 2.15</title>
 
 <section><title>Changes to plain text conversion</title>
@@ -24,6 +53,8 @@ print html.astext(node)
 the value, as it is a &css; color value now. (And if've you've been using
 <lit>color</lit> and a &css; padding of a different color: This will no longer
 work).</par>
+
+</section>
 
 </section>
 
@@ -103,13 +134,14 @@ which will produce the string in pieces).</par>
 
 </section>
 
-
 <section><title>Changes to the <module>xfind</module> module</title>
 
 <par>The functions <function>item</function>, <function>first</function>,
 <function>last</function>, <function>count</function> and
 <function>iterone</function> as well as the class <class>Iterator</class>
 have been moved to the <module>ll</module> module.</par>
+
+</section>
 
 </section>
 
