@@ -29,7 +29,7 @@ See the <module>xfind</module> documentation for more info.</par>
 
 <par>It's no longer possible to turn modules into namespaces. Element classes
 belong to a namespace (in the &xml; sense) simpy if their <lit>xmlns</lit>
-attribute has the same value. So a module definition like this:</par>
+attribute have the same value. So a module definition like this:</par>
 
 <prog>
 from ll.xist import xsc
