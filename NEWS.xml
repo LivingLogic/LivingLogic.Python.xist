@@ -78,7 +78,7 @@ pass ssh &url;s to <function>ll.xist.parsers.parseURL</function>.</item>
 <item>The methods <method>withnames</method> and <method>withoutnames</method> have
 been split into two that take Python names and two that take XML names.
 Multiple arguments are used now (instead of one argument that must be a sequence).
-Passing a namespace to remove all atrtributes from the namespace is no longer supported.</item>
+Passing a namespace to remove all attributes from the namespace is no longer supported.</item>
 
 <item>The <class>Attrs</class> methods <method>updatenew</method> and
 <method>updatexisting</method> have been removed.</item>

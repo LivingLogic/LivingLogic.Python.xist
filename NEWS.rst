@@ -68,7 +68,7 @@ Changes in 3.0 (released ??/??/2007)
 *	The methods :meth:`withnames` and :meth:`withoutnames` have been split into
 	two that take Python names and two that take |XML| names. Multiple arguments
 	are used now (instead of one argument that must be a sequence). Passing a
-	namespace to remove all atrtributes from the namespace is no longer supported.
+	namespace to remove all attributes from the namespace is no longer supported.
 
 *	The :class:`Attrs` methods :meth:`updatenew` and :meth:`updatexisting` have
 	been removed.
