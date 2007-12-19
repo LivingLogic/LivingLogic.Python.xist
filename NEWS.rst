@@ -9,12 +9,13 @@ Changes in 3.0 (released ??/??/2007)
 	for :class:`Frag` and :class:`Element` now support the new selectors, so you
 	can do:
 
-	*	``del node[html.p]`` to delete all :class:`html.p` child elements of ``node``;
+	*	``del node[html.p]`` to delete all :class:`html.p` child elements of
+		``node``;
 	*	``del node[html.p[2]]`` to delete only the third :class:`html.p`;
 	*	``node[xfind.hasclass("note")] = html.p("There was a note here!")`` to
 		replace several child nodes with a new one;
-	*	``for c in node[xfind.empty]: print c.bytes()`` to print all empty (element)
-		children of ``node``;
+	*	``for c in node[xfind.empty]: print c.bytes()`` to print all empty
+		(element) children of ``node``;
 	*	``del node[node[0]]`` to delete the first child node (which is silly, but
 		illustrates that you can pass a node to get/replace/delete that node);
 
@@ -32,7 +33,8 @@ Changes in 3.0 (released ??/??/2007)
 *	The function :func:`selector` return a tree walk filter from a |CSS| selector
 	passed as a string.
 
-*	Constructing trees can now be done with ``with`` blocks. Code looks like this::
+*	Constructing trees can now be done with ``with`` blocks. Code looks like
+	this::
 	
 		with xsc.Frag() as node:
 			+xml.XML()
