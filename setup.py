@@ -13,11 +13,10 @@ import textwrap
 
 
 DESCRIPTION = """
-XIST is an extensible HTML and XML generator. XIST is also a DOM parser
-(built on top of SAX2) with a very simple and pythonesque tree API.
-Every XML element type corresponds to a Python class and these Python
-classes provide a conversion method to transform the XML tree
-(e.g. into HTML). XIST can be considered 'object oriented XSLT'.
+XIST is an extensible HTML and XML generator. XIST is also a DOM parser with a
+very simple and pythonesque tree API. Every XML element type corresponds to a
+Python class and these Python classes provide a conversion method to transform
+the XML tree (e.g. into HTML). XIST can be considered 'object oriented XSLT'.
 """
 
 CLASSIFIERS="""
@@ -84,14 +83,11 @@ args = dict(
 		"scripts/xml2xsc.py",
 	],
 	install_requires=[
-		"ll-core >= 1.10",
+		"ll-core >= 1.11",
 		"cssutils == 0.9.4a3",
 	],
 	namespace_packages=["ll"],
 	zip_safe=False,
-	dependency_links=[
-		"http://sourceforge.net/project/showfiles.php?group_id=6473", # PyXML
-	],
 )
 
 
