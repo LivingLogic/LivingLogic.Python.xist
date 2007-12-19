@@ -35,6 +35,31 @@ elements and their <lit>@import</lit>ed stylesheets) and putting the styles into
 a &css; selector passed as a string.</par>
 </item>
 
+<item>
+<par>Constructing trees can now be done with <lit>with</lit> blocks. Code looks
+like this:</par>
+<prog>
+with xsc.Frag() as node:
+	+xml.XML()
+	+html.DocTypeXHTML10transitional()
+	with html.html():
+		with html.head():
+			+meta.contenttype()
+			+html.title("Example page")
+		with html.body():
+			+html.h1("Welcome to the example page")
+			with html.p():
+				+xsc.Text("This example page has a link to the ")
+				+html.a("Python home page", href="http://www.python.org/")
+				+xsc.Text(".")
+
+print node.conv().bytes(encoding="us-ascii")
+</prog>
+<par>Also the function <function>xsc.append</function> has been renamed to
+<function>add</function> and supports <lit>with</lit> blocks now instead of
+<link href="http://codespeak.net/svn/user/hpk/talks/xpython-talk.txt">XPython</link>.</par>
+</item>
+
 <item>The <lit>media</lit> attribute of <class>html.link</class> and
 <class>html.style</class> now has a method <method>hasmedia</method>.</item>
 
@@ -48,6 +73,9 @@ added.</item>
 
 <item><class>ll.xist.ns.xml.XML10</class> is gone now. Use
 <class>ll.xist.ns.xml.XML</class> instead.</item>
+
+<item><function>xsc.tonode</function> now will raise an exception when it
+can't handle an argument instead of issuing a warning.</item>
 
 <item>A class attribute <lit>empty</lit> inside element classes will now no
 longer get converted into <lit>model</lit>.</item>
