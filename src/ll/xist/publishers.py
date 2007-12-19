@@ -172,12 +172,12 @@ class Publisher(object):
 
 	def getprefix(self, object):
 		"""
-		FIXME: Can be used during publication by custom publish methods: Return the prefix
-		configured for the namespace <arg>xmlns</arg>.
+		Can be used during publication by custom publish methods: Return the prefix
+		configured for object <arg>object</arg>.
 		"""
 		xmlns = getattr(object, "xmlns")
 		if xmlns is not None:
-			emptyok = isinstance(object, xsc.Element)
+			emptyok = isinstance(object, xsc.Element) # If it's e.g. a procinst assume we need a non-empty prefix
 			try:
 				prefix = self._ns2prefix[xmlns]
 			except KeyError: # A namespace we haven't encountered yet
@@ -219,13 +219,17 @@ class Publisher(object):
 			self.getprefix(n)
 
 		# Do we have to publish xmlns attributes?
+		self._publishxmlns = False
 		if self._ns2prefix:
 			# Determine if we have multiple roots
-			if isinstance(node, xsc.Frag) and misc.count(node[xsc.Element]) > 1:
-				raise xsc.MultipleRootsError()
+			if isinstance(node, xsc.Frag):
+				count = 0
+				for child in node:
+					if isinstance(node, xsc.Element) and node.xmlns not in self.hidexmlns:
+						count += 1
+				if count > 1:
+					raise xsc.MultipleRootsError()
 			self._publishxmlns = True
-		else:
-			self._publishxmlns = False
 
 		self.inattr = 0
 		self.__textfilters = [ helpers.escapetext ]

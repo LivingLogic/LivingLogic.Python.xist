@@ -28,14 +28,7 @@ class taglib(xsc.ProcInst):
 
 	def publish(self, publisher):
 		yield publisher.encode(u'<%@ taglib uri="/WEB-INF/struts-html.tld" prefix="')
-		try:
-			prefix = publisher._ns2prefix[xmlns]
-		except KeyError:
-			raise xsc.PrefixNeededError(xmlns)
-		else:
-			if prefix is None:
-				raise xsc.PrefixNeededError(xmlns)
-			yield publisher.encode(prefix)
+		yield publisher.encode(publisher.getprefix(self))
 		yield publisher.encode(u'" %>')
 
 
@@ -396,6 +389,10 @@ class option(Element):
 	model = sims.Any()
 	class Attrs(Element.Attrs):
 		class value(xsc.TextAttr): pass
+		class bundle(xsc.TextAttr): pass
+		class locale(xsc.TextAttr): pass
+		class key(xsc.TextAttr): pass
+		class disabled(xsc.TextAttr): pass
 
 
 class options(Element):
