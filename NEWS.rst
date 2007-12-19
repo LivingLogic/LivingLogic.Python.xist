@@ -32,6 +32,29 @@ Changes in 3.0 (released ??/??/2007)
 *	The function :func:`selector` return a tree walk filter from a |CSS| selector
 	passed as a string.
 
+*	Constructing trees can now be done with ``with`` blocks. Code looks like this::
+	
+		with xsc.Frag() as node:
+			+xml.XML()
+			+html.DocTypeXHTML10transitional()
+			with html.html():
+				with html.head():
+					+meta.contenttype()
+					+html.title("Example page")
+				with html.body():
+					+html.h1("Welcome to the example page")
+					with html.p():
+						+xsc.Text("This example page has a link to the ")
+						+html.a("Python home page", href="http://www.python.org/")
+						+xsc.Text(".")
+	
+		print node.conv().bytes(encoding="us-ascii")
+
+	Also the function :func:`xsc.append` has been renamed to :func:`add` and
+	supports ``with`` blocks now instead of XPython_.
+
+	.. _XPython: http://codespeak.net/svn/user/hpk/talks/xpython-talk.txt
+
 *	The ``media`` attribute of :class:`html.link` and :class:`html.style` now has
 	a method :meth:`hasmedia`.
 
@@ -41,8 +64,11 @@ Changes in 3.0 (released ??/??/2007)
 *	The node method :meth:`asString` has been renamed to :meth:`string` and a
 	new method :meth:`iterstring` has been added.
 
-* :class:`ll.xist.ns.xml.XML10` is gone now. Use :class`ll.xist.ns.xml.XML`
-  instead.
+*	:class:`ll.xist.ns.xml.XML10` is gone now. Use :class`ll.xist.ns.xml.XML`
+	instead.
+
+*	:func:`xsc.tonode` now will raise an exception when it can't handle an
+	argument instead of issuing a warning.
 
 *	A class attribute :attr:`empty` inside element classes will now no longer get
 	converted into :attr:`model`.
