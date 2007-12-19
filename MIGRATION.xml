@@ -25,6 +25,39 @@ See the <module>xfind</module> documentation for more info.</par>
 
 </section>
 
+<section><title>The death of namespace modules</title>
+
+<par>It's no longer possible to turn modules into namespaces. Element classes
+belong to a namespace (in the &xml; sense) simpy if their <lit>xmlns</lit>
+attribute has the same value. So a module definition like this:</par>
+
+<prog>
+from ll.xist import xsc
+
+class foo(xsc.Element):
+	def convert(self, converter):
+		return xsc.Text("foo")
+
+class xmlns(xsc.Namespace):
+	xmlname = "foo"
+	xmlurl = "http://xmlns.example.org/foo"
+xmlns.makemod(vars())
+</prog>
+
+<par>has to be changed into this:</par>
+
+<prog>
+from ll.xist import xsc
+
+class foo(xsc.Element):
+	xmlns = "http://xmlns.example.org/foo"
+
+	def convert(self, converter):
+		return xsc.Text("foo")
+</prog>
+
+</section>
+
 </section>
 
 
