@@ -22,7 +22,7 @@ from cssutils import serialize as cssserialize
 from ll import misc, url as url_
 
 try:
-	 import astyle
+	import astyle
 except ImportError:
 	astyle = None
 
