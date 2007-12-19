@@ -388,22 +388,11 @@ class option(Element):
 	xmlns = xmlns
 	model = sims.Any()
 	class Attrs(Element.Attrs):
-		class value(xsc.TextAttr): pass
 		class bundle(xsc.TextAttr): pass
-		class locale(xsc.TextAttr): pass
-		class key(xsc.TextAttr): pass
+		class dir(xsc.TextAttr): pass
 		class disabled(xsc.TextAttr): pass
-
-
-class options(Element):
-	"""
-	struts html options element
-	"""
-	xmlns = xmlns
-	model = sims.Empty()
-	class Attrs(Element.Attrs):
-		class bundle(xsc.TextAttr): pass
-		class disabled(xsc.TextAttr): pass
+		class filter(xsc.TextAttr): pass
+		class lang(xsc.TextAttr): pass
 		class key(xsc.TextAttr): pass
 		class locale(xsc.TextAttr): pass
 		class style(xsc.TextAttr): pass
@@ -414,7 +403,7 @@ class options(Element):
 
 class options(Element):
 	"""
-	Render a collection of select options
+	struts html options element
 	"""
 	xmlns = xmlns
 	model = sims.Empty()
