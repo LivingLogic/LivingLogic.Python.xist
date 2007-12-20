@@ -177,7 +177,7 @@ def p2p(node, converter):
 		node = node.replace("python", "parrot")
 	return node
 
-node = parsers.parseURL("http://www.python.org/", tidy=True)
+node = parsers.parseurl("http://www.python.org/", tidy=True)
 
 node = node.mapped(p2p)
 node.write(open("parrot_index.html", "wb"))
@@ -193,7 +193,7 @@ makes it possible to output an &xist; tree as usable Python source code:</par>
 
 <tty>
 <prompt>&gt;&gt;&gt;</prompt> <input>from ll.xist import parsers, presenters</input>
-<prompt>&gt;&gt;&gt;</prompt> <input>node = parsers.parseURL("http://www.python.org/", tidy=True)</input>
+<prompt>&gt;&gt;&gt;</prompt> <input>node = parsers.parseurl("http://www.python.org/", tidy=True)</input>
 <prompt>&gt;&gt;&gt;</prompt> <input>print presenters.CodePresenter(node)</input>
 ll.xist.xsc.Frag(
 	ll.xist.ns.html.html(
