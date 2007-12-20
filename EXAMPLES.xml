@@ -109,7 +109,7 @@ print node.conv().bytes(encoding="us-ascii")
 <prog>
 from ll.xist import parsers
 
-node = parsers.parseURL("http://www.python.org/", tidy=True)
+node = parsers.parseurl("http://www.python.org/", tidy=True)
 </prog>
 
 </section>
@@ -123,9 +123,9 @@ inside links on Python's homepage:</par>
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist import parsers</input>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
-<prompt>&gt;&gt;&gt; </prompt><input>node = parsers.parseURL("http://www.python.org/", utidy=True)</input>
-<prompt>&gt;&gt;&gt; </prompt><input>for img in node//html.a/html.img:</input>
-<prompt>... </prompt><input>   print img["src"]</input>
+<prompt>&gt;&gt;&gt; </prompt><input>node = parsers.parseurl("http://www.python.org/", utidy=True)</input>
+<prompt>&gt;&gt;&gt; </prompt><input>for img in node.walknode(html.a/html.img):</input>
+<prompt>... </prompt><input>   print img.atts.src</input>
 <prompt>... </prompt><input></input>
 http://www.python.org/images/python-logo.gif
 http://www.python.org/images/trans.gif
@@ -139,9 +139,9 @@ following:</par>
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist import parsers, xfind</input>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
-<prompt>&gt;&gt;&gt; </prompt><input>node = parsers.parseURL("http://www.python.org/", tidy=True)</input>
-<prompt>&gt;&gt;&gt; </prompt><input>for link in node//html.a/xfind.contains(html.img):</input>
-<prompt>... </prompt><input>   print link["href"], str((link/html.img)[0]["src"])</input>
+<prompt>&gt;&gt;&gt; </prompt><input>node = parsers.parseurl("http://www.python.org/", tidy=True)</input>
+<prompt>&gt;&gt;&gt; </prompt><input>for path in node.walkpath(html.a/html.img):</input>
+<prompt>... </prompt><input>   print path[-2].attrs.href, path[-1].attrs.src</input>
 http://www.python.org/ http://www.python.org/images/python-logo.gif
 http://www.python.org/#left%2dhand%2dnavigation http://www.python.org/images/trans.gif
 http://www.python.org/#content%2dbody http://www.python.org/images/trans.gif
@@ -155,9 +155,9 @@ following:</par>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll import misc</input>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist import parsers</input>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
-<prompt>&gt;&gt;&gt; </prompt><input>node = parsers.parseURL("http://www.python.org/", tidy=True)</input>
-<prompt>&gt;&gt;&gt; </prompt><input>misc.count(node//html.a)</input>
-90
+<prompt>&gt;&gt;&gt; </prompt><input>node = parsers.parseurl("http://www.python.org/", tidy=True)</input>
+<prompt>&gt;&gt;&gt; </prompt><input>misc.count(node.walk(html.a))</input>
+83
 </tty>
 
 </section>
