@@ -245,6 +245,7 @@ The following example will generate &html; <lit>&lt;h1&gt;</lit>, ..., <lit>&lt;
 elements according to the nesting depth of a <lit>&lt;section&gt;</lit> element.</par>
 
 <prog>
+from __future__ import with_statement
 from ll.xist import xsc
 
 class section(xsc.Element):
