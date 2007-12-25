@@ -4,9 +4,7 @@
 from ll.xist import xsc, sims
 
 
-class xmlns(xsc.Namespace):
-	xmlname = "cc"
-	xmlurl = "http://web.resource.org/cc/"
+xmlns = "http://web.resource.org/cc/"
 
 
 class license(xsc.Element):

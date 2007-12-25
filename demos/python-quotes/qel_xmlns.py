@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 
 
+from __future__ import with_statement
+
 from ll.xist import xsc, sims
 from ll.xist.ns import html, meta, chars
 
 
-class xmlns(xsc.Namespace):
-	xmlname = "quotations"
-	xmlurl = "http://www.amk.ca/qel/"
+xmlns = "http://www.amk.ca/qel/"
 
 
 class title(xsc.Element):
@@ -119,22 +119,19 @@ class quotations(xsc.Element):
 	model = sims.Elements(title, editor, description, quotation)
 
 	def convert(self, converter):
-		e = xsc.Frag(
-			html.DocTypeXHTML10transitional(), u"\n",
-			html.html(
-				html.head(
-					meta.contenttype(),
-					html.title(self[title][0].content),
-					meta.stylesheet(href=u"root:python-quotes.css")
-				),
-				html.body(
+		with xsc.Frag() as e:
+			+html.DocTypeXHTML10transitional()
+			with html.html():
+				with html.head():
+					+meta.contenttype()
+					+html.title(self[title][0].content)
+					+meta.stylesheet(href=u"root:python-quotes.css")
+				+html.body(
 					self[title],
 					self[editor],
 					self[description],
 					self[quotation]
 				)
-			)
-		)
 
 		return e.convert(converter)
 
@@ -181,13 +178,9 @@ class code(xsc.Element):
 
 
 class br(xsc.Element):
+	xmlns = xmlns
+
 	def convert(self, converter):
 		e = html.br()
 
 		return e.convert(converter)
-
-
-class __ns__(xsc.Namespace):
-	xmlname = "quotations"
-	xmlurl = "http://www.amk.ca/qel/"
-__ns__.makemod(vars())
