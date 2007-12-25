@@ -31,7 +31,8 @@ class duration(xsc.Element):
 	model = sims.NoElements()
 
 	def convert(self, converter):
-		return xsc.Frag(self.content.convert(converter), " min")
+		e = xsc.Frag(self.content.convert(converter), " min")
+		return e.convert(converter)
 
 
 class place(xsc.Element):
@@ -57,7 +58,8 @@ class price(xsc.Element):
 		class currency(xsc.TextAttr): pass
 
 	def convert(self, converter):
-		return xsc.Frag(self.content, " ", self.attrs.currency).convert(converter)
+		e = xsc.Frag(self.content, " ", self.attrs.currency)
+		return e.convert(converter)
 
 
 class purchase(xsc.Element):
