@@ -4,6 +4,8 @@
 # This example requires CherryPy: http://www.cherrypy.org/
 
 
+from __future__ import with_statement
+
 import sys, os, glob
 
 import cherrypy
@@ -28,11 +30,6 @@ class Icons(object):
 
 	@cherrypy.expose
 	def index(self):
-		table = htmlspecials.plaintable()
-
-		collect = xsc.Frag()
-		i = 0
-
 		def isimg(name):
 			if name.endswith(".gif") or name.endswith(".jpg") or name.endswith(".png"):
 				return os.path.isfile(os.path.join(self.directory, name))
@@ -41,28 +38,29 @@ class Icons(object):
 		names = [name for name in os.listdir(self.directory) if isimg(name)]
 		names.sort()
 
-		for name in names:
-			collect.append(html.td(htmlspecials.autoimg(src=("/images/", name)), html.br(), name, align="center"))
-			i += 1
-			if i == cols:
-				table.append(html.tr(collect))
-				collect = xsc.Frag()
-				i = 0
-		if collect:
-			table.append(html.tr(collect))
+		collect = xsc.Frag()
+		i = 0
 
-		e = xsc.Frag(
-			xml.XML(), "\n",
-			html.DocTypeXHTML10transitional(), "\n",
-			html.html(
-				html.head(
-					meta.contenttype(),
-					html.title("All images from ", specials.z(self.directory)),
-					html.link(rel="stylesheet", type="text/css", href="images.css")
-				)
-			),
-			html.body(table)
-		)
+		with xsc.Frag() as e:
+			+xml.XML()
+			+html.DocTypeXHTML10transitional()
+			with html.html():
+				with html.head():
+					+meta.contenttype()
+					+html.title("All images from ", specials.z(self.directory))
+					+html.link(rel="stylesheet", type="text/css", href="images.css")
+				with html.body():
+					with htmlspecials.plaintable():
+						for name in names:
+							collect.append(html.td(htmlspecials.autoimg(src=("/images/", name)), html.br(), name, align="center"))
+							i += 1
+							if i == cols:
+								+html.tr(collect)
+								collect = xsc.Frag()
+								i = 0
+						if collect:
+							+html.tr(collect)
+
 		return e.conv().bytes()
 
 
