@@ -1,6 +1,21 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
 <section><title>Changes in 3.0 (released ??/??/2007)</title>
 <ulist>
+<item>Namespaces have been greatly simplified. There are no namespace modules any
+longer. An element class can be assigned a namespace by setting the <lit>xmlns</lit>
+class attribute to the namespace name. Global attributes can be assigned a
+namespace by setting the <lit>xmlns</lit> attribute on the attribute class itself
+(<em>not</em> on the <class>Attrs</class> class). The classes <class>Prefixes</class>
+and <class>NSPool</class> are gone too. Instead a new class <class>Pool</class>
+is used to specify which classes should be used for parsing.
+</item>
+
+<item>Dependency on <link href="http://pyxml.sf.net/">PyXML</link> has finally
+been dropped. &xist; now uses its own &xml; parsing &api;. Two parsers
+are available: One based on <link href="http://expat.sourceforge.net/">expat</link>
+and one based on a custom version of
+<link href="http://effbot.org/zone/sgmlop-index.htm">sgmlop</link>.</item>
+
 <item>Tree traversal has been rewritten again. XFind expressions involving
 multiple uses of <lit>//</lit> now work correctly. The method <method>walk</method>
 now doesn't yield <class>Cursor</class> objects, but simple path list
@@ -11,6 +26,7 @@ is no longer supported, you have to call <method>walk</method>,
 expression instead. Many XFind operators have been renamed and/or reimplemented
 (see the documentation for the <module>xfind</module> module for more
 information).</item>
+
 <item><par>The methods <method>__getitem__</method>, <method>__setitem__</method>
 and <method>__delitem__</method> for <class>Frag</class> and <class>Element</class>
 now support the new walk filters, so you can do:</par>
@@ -33,7 +49,8 @@ that node);</item>
 &css; related functionality: The generator function <function>iterrules</function>
 can be passed an &xist; tree and it will produce all &css; rules defined in any
 <class>html.link</class> or <class>html.style</class> elements or imported by them
-(via the &css; rule <lit>@import</lit>). This requires the <module>cssutils</module>
+(via the &css; rule <lit>@import</lit>). This requires the
+<link href="http://cheeseshop.python.org/pypi/cssutils"><module>cssutils</module></link>
 package.</par>
 
 <par>The function <function>applystylesheets</function> modifies the &xist; tree
