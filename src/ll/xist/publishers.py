@@ -83,7 +83,7 @@ class Publisher(object):
 
 		<par><arg>hidexmlns</arg> can be a list or set that contains namespace names
 		for which no <lit>xmlns</lit> attributes should be published. (This can be
-		used to hide the namespaces e.g. for Java taglibs.)</par>
+		used to hide the namespace declarations for e.g. Java taglibs.)</par>
 		"""
 		self.base = None
 		self.encoding = encoding
