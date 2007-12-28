@@ -674,7 +674,7 @@ def parsestring(data, base=None, encoding=None, **builderargs):
 
 def parseiter(iterable, base=None, encoding=None, **builderargs):
 	"""
-	Parse the input from the iterable <arg>iterable<arg> (which must produce the
+	Parse the input from the iterable <arg>iterable</arg> (which must produce the
 	input in chunks of bytes) into an &xist; tree. For the arguments <arg>base</arg>
 	and <arg>encoding</arg> see the method
 	<pyref class="Builder" method="parsestring"><method>parsestring</method></pyref>
