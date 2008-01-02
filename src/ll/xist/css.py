@@ -165,7 +165,7 @@ def applystylesheets(node, base=None, media=None):
 						yield styledata
 				return doiter()
 		return rules
-	
+
 	rules = []
 	for (i, rule) in enumerate(iterrules(node, base=base, media=media)):
 		for sel in rule.selectorList.seq:
