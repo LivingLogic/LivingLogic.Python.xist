@@ -96,7 +96,7 @@ def iterrules(node, base=None, media=None):
 	(so this requires <module>cssutils</module>).</par>
 
 	<par>The <arg>base</arg> argument will be used as the base &url; for parsing
-	the stylesheet references in the tree (so <lit>None</lit> means the &url;s 
+	the stylesheet references in the tree (so <lit>None</lit> means the &url;s
 	will be used exactly as they appear in the tree). All &url;s in the style
 	properties will be resolved.</par>
 
