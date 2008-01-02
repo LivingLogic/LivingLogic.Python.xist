@@ -126,7 +126,7 @@ class IsInstanceSelector(Selector):
 	<tty>
 	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
 	<prompt>>>> </prompt><input>from ll.xist.ns import html</input>
-	<prompt>>>> </prompt><input>doc = parsers.parseURL("http://www.python.org", tidy=True)</input>
+	<prompt>>>> </prompt><input>doc = parsers.parseurl("http://www.python.org", tidy=True)</input>
 	<prompt>>>> </prompt><input>for node in doc.walknode(<em>html.a</em>):</input>
 	<prompt>... </prompt><input>\tprint node.bytes()</input>
 	<prompt>... </prompt><input></input>
@@ -180,7 +180,7 @@ class hasname(Selector):
 	<example>
 	<tty>
 	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
-	<prompt>>>> </prompt><input>doc = parsers.parseURL("http://www.python.org", tidy=True)</input>
+	<prompt>>>> </prompt><input>doc = parsers.parseurl("http://www.python.org", tidy=True)</input>
 	<prompt>>>> </prompt><input>for node in doc.walknode(<em>xfind.hasname("img")</em>):</input>
 	<prompt>... </prompt><input>\tprint node.bytes()</input>
 	<prompt>... </prompt><input></input>
@@ -242,7 +242,7 @@ class IsSelector(Selector):
 	<example>
 	<tty>
 	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
-	<prompt>>>> </prompt><input>doc = parsers.parseURL("http://www.python.org", tidy=True)</input>
+	<prompt>>>> </prompt><input>doc = parsers.parseurl("http://www.python.org", tidy=True)</input>
 	<prompt>>>> </prompt><input>for node in doc.walknode(<em>doc[0]/xsc.Element</em>):</input>
 	<prompt>... </prompt><input>\tprint repr(node)</input>
 	<prompt>... </prompt><input></input>
@@ -279,7 +279,7 @@ class empty(Selector):
 	<example>
 	<tty>
 	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
-	<prompt>>>> </prompt><input>doc = parsers.parseURL("http://www.python.org", tidy=True)</input>
+	<prompt>>>> </prompt><input>doc = parsers.parseurl("http://www.python.org", tidy=True)</input>
 	<prompt>>>> </prompt><input>for node in doc.walknode(<em>xfind.empty</em>):</input>
 	<prompt>... </prompt><input>\tprint node.bytes()</input>
 	<prompt>... </prompt><input></input>
@@ -315,7 +315,7 @@ class onlychild(Selector):
 	<example>
 	<tty>
 	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
-	<prompt>>>> </prompt><input>doc = parsers.parseURL("http://www.python.org", tidy=True)</input>
+	<prompt>>>> </prompt><input>doc = parsers.parseurl("http://www.python.org", tidy=True)</input>
 	<prompt>>>> </prompt><input>for node in doc.walknode(<em>xfind.onlychild &amp; html.a</em>):</input>
 	<prompt>... </prompt><input>\tprint node.bytes()</input>
 	<prompt>... </prompt><input></input>
@@ -350,7 +350,7 @@ class onlyoftype(Selector):
 	<example>
 	<tty>
 	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
-	<prompt>>>> </prompt><input>doc = parsers.parseURL("http://www.python.org", tidy=True)</input>
+	<prompt>>>> </prompt><input>doc = parsers.parseurl("http://www.python.org", tidy=True)</input>
 	<prompt>>>> </prompt><input>for node in doc.walknode(<em>xfind.onlyoftype &amp; xsc.Element</em>):</input>
 	<prompt>... </prompt><input>\tprint repr(node)</input>
 	<prompt>... </prompt><input></input>
@@ -392,7 +392,7 @@ class hasattr(Selector):
 	<tty>
 	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
 	<prompt>>>> </prompt><input>from ll.xist.ns import html, xml</input>
-	<prompt>>>> </prompt><input>doc = parsers.parseURL("http://www.python.org", tidy=True)</input>
+	<prompt>>>> </prompt><input>doc = parsers.parseurl("http://www.python.org", tidy=True)</input>
 	<prompt>>>> </prompt><input>for node in doc.walknode(<em>xfind.onlyoftype &amp; xsc.Element</em>):</input>
 	<prompt>... </prompt><input>\tprint repr(node)</input>
 	<prompt>... </prompt><input></input>
@@ -458,7 +458,7 @@ class attrhasvalue(Selector):
 	<example>
 	<tty>
 	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
-	<prompt>>>> </prompt><input>doc = parsers.parseURL("http://www.python.org", tidy=True)</input>
+	<prompt>>>> </prompt><input>doc = parsers.parseurl("http://www.python.org", tidy=True)</input>
 	<prompt>>>> </prompt><input>for node in doc.walknode(<em>xfind.attrhasvalue("rel", "stylesheet")</em>):</input>
 	<prompt>... </prompt><input>\tprint repr(node)</input>
 	<prompt>... </prompt><input></input>
@@ -520,7 +520,7 @@ class attrcontains(Selector):
 	<example>
 	<tty>
 	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
-	<prompt>>>> </prompt><input>doc = parsers.parseURL("http://www.python.org", tidy=True)</input>
+	<prompt>>>> </prompt><input>doc = parsers.parseurl("http://www.python.org", tidy=True)</input>
 	<prompt>>>> </prompt><input>for node in doc.walknode(<em>xfind.attrcontains("rel", "stylesheet")</em>):</input>
 	<prompt>... </prompt><input>\tprint repr(node)</input>
 	<prompt>... </prompt><input></input>
@@ -584,7 +584,7 @@ class attrstartswith(Selector):
 	<example>
 	<tty>
 	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
-	<prompt>>>> </prompt><input>doc = parsers.parseURL("http://www.python.org", tidy=True)</input>
+	<prompt>>>> </prompt><input>doc = parsers.parseurl("http://www.python.org", tidy=True)</input>
 	<prompt>>>> </prompt><input>for node in doc.walknode(<em>xfind.attrstartswith("class_", "input-")</em>):</input>
 	<prompt>... </prompt><input>\tprint repr(node)</input>
 	<prompt>... </prompt><input></input>
@@ -645,7 +645,7 @@ class attrendswith(Selector):
 	<example>
 	<tty>
 	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
-	<prompt>>>> </prompt><input>doc = parsers.parseURL("http://www.python.org", tidy=True)</input>
+	<prompt>>>> </prompt><input>doc = parsers.parseurl("http://www.python.org", tidy=True)</input>
 	<prompt>>>> </prompt><input>for node in doc.walknode(<em>xfind.attrendswith("href", ".css")</em>):</input>
 	<prompt>... </prompt><input>\tprint repr(node)</input>
 	<prompt>... </prompt><input></input>
@@ -705,7 +705,7 @@ class hasid(Selector):
 	<example>
 	<tty>
 	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
-	<prompt>>>> </prompt><input>doc = parsers.parseURL("http://www.python.org", tidy=True)</input>
+	<prompt>>>> </prompt><input>doc = parsers.parseurl("http://www.python.org", tidy=True)</input>
 	<prompt>>>> </prompt><input>for node in doc.walknode(<em>xfind.hasid("logo")</em>):</input>
 	<prompt>... </prompt><input>\tprint node.bytes()</input>
 	<prompt>... </prompt><input></input>
@@ -740,7 +740,7 @@ class hasclass(Selector):
 	<example>
 	<tty>
 	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
-	<prompt>>>> </prompt><input>doc = parsers.parseURL("http://www.python.org", tidy=True)</input>
+	<prompt>>>> </prompt><input>doc = parsers.parseurl("http://www.python.org", tidy=True)</input>
 	<prompt>>>> </prompt><input>for node in doc.walknode(<em>xfind.hasclass("reference")</em>):</input>
 	<prompt>... </prompt><input>\tprint node.bytes()</input>
 	<prompt>... </prompt><input></input>
@@ -778,7 +778,7 @@ class inattr(Selector):
 	<example>
 	<tty>
 	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
-	<prompt>>>> </prompt><input>doc = parsers.parseURL("http://www.python.org", tidy=True)</input>
+	<prompt>>>> </prompt><input>doc = parsers.parseurl("http://www.python.org", tidy=True)</input>
 	<prompt>>>> </prompt><input>for node in doc.walknode(<em>xfind.inattr &amp; xsc.Text</em>):</input>
 	<prompt>... </prompt><input>\tprint node.bytes()</input>
 	<prompt>... </prompt><input></input>
@@ -844,7 +844,7 @@ class ChildCombinator(BinaryCombinator):
 	<tty>
 	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
 	<prompt>>>> </prompt><input>from ll.xist.ns import html</input>
-	<prompt>>>> </prompt><input>doc = parsers.parseURL("http://www.python.org", tidy=True)</input>
+	<prompt>>>> </prompt><input>doc = parsers.parseurl("http://www.python.org", tidy=True)</input>
 	<prompt>>>> </prompt><input>for node in doc.walknode(<em>html.a/html.img</em>):</input>
 	<prompt>... </prompt><input>\tprint node.bytes()</input>
 	<prompt>... </prompt><input></input>
@@ -878,7 +878,7 @@ class DescendantCombinator(BinaryCombinator):
 	<tty>
 	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
 	<prompt>>>> </prompt><input>from ll.xist.ns import html</input>
-	<prompt>>>> </prompt><input>doc = parsers.parseURL("http://www.python.org", tidy=True)</input>
+	<prompt>>>> </prompt><input>doc = parsers.parseurl("http://www.python.org", tidy=True)</input>
 	<prompt>>>> </prompt><input>for node in doc.walknode(<em>html.div//html.img</em>):</input>
 	<prompt>... </prompt><input>\tprint node.bytes()</input>
 	<prompt>... </prompt><input></input>
@@ -915,7 +915,7 @@ class AdjacentSiblingCombinator(BinaryCombinator):
 	<tty>
 	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
 	<prompt>>>> </prompt><input>from ll.xist.ns import html</input>
-	<prompt>>>> </prompt><input>doc = parsers.parseURL("http://www.python.org", tidy=True)</input>
+	<prompt>>>> </prompt><input>doc = parsers.parseurl("http://www.python.org", tidy=True)</input>
 	<prompt>>>> </prompt><input>for node in doc.walknode(<em>html.h2*html.p/html.a</em>):</input>
 	<prompt>... </prompt><input>\tprint node.bytes()</input>
 	<prompt>... </prompt><input></input>
@@ -965,7 +965,7 @@ class GeneralSiblingCombinator(BinaryCombinator):
 	<tty>
 	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
 	<prompt>>>> </prompt><input>from ll.xist.ns import html</input>
-	<prompt>>>> </prompt><input>doc = parsers.parseURL("http://www.python.org", tidy=True)</input>
+	<prompt>>>> </prompt><input>doc = parsers.parseurl("http://www.python.org", tidy=True)</input>
 	<prompt>>>> </prompt><input>for node in doc.walknode(<em>html.a**html.a</em>):</input>
 	<prompt>... </prompt><input>\tprint node.bytes()</input>
 	<prompt>... </prompt><input></input>
@@ -1026,7 +1026,7 @@ class OrCombinator(ChainedCombinator):
 	<tty>
 	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
 	<prompt>>>> </prompt><input>from ll.xist.ns import html</input>
-	<prompt>>>> </prompt><input>doc = parsers.parseURL("http://www.python.org", tidy=True)</input>
+	<prompt>>>> </prompt><input>doc = parsers.parseurl("http://www.python.org", tidy=True)</input>
 	<prompt>>>> </prompt><input>for node in doc.walknode(<em>xfind.hasattr("href") | xfind.hasattr("src")</em>):</input>
 	<prompt>... </prompt><input>\tprint node.bytes()</input>
 	<prompt>... </prompt><input></input>
@@ -1064,7 +1064,7 @@ class AndCombinator(ChainedCombinator):
 	<tty>
 	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
 	<prompt>>>> </prompt><input>from ll.xist.ns import html</input>
-	<prompt>>>> </prompt><input>doc = parsers.parseURL("http://www.python.org", tidy=True)</input>
+	<prompt>>>> </prompt><input>doc = parsers.parseurl("http://www.python.org", tidy=True)</input>
 	<prompt>>>> </prompt><input>for node in doc.walknode(<em>html.input & xfind.hasattr("id")</em>):</input>
 	<prompt>... </prompt><input>\tprint node.bytes()</input>
 	<prompt>... </prompt><input></input>
@@ -1098,7 +1098,7 @@ class NotCombinator(Combinator):
 	<tty>
 	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
 	<prompt>>>> </prompt><input>from ll.xist.ns import html</input>
-	<prompt>>>> </prompt><input>doc = parsers.parseURL("http://www.python.org", tidy=True)</input>
+	<prompt>>>> </prompt><input>doc = parsers.parseurl("http://www.python.org", tidy=True)</input>
 	<prompt>>>> </prompt><input>for node in doc.walknode(<em>html.img &amp; ~xfind.hasattr("border")</em>):</input>
 	<prompt>... </prompt><input>\tprint node.bytes()</input>
 	<prompt>... </prompt><input></input>
@@ -1134,7 +1134,7 @@ class CallableSelector(Selector):
 	<tty>
 	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
 	<prompt>>>> </prompt><input>from ll.xist.ns import html</input>
-	<prompt>>>> </prompt><input>doc = parsers.parseURL("http://www.python.org", tidy=True)</input>
+	<prompt>>>> </prompt><input>doc = parsers.parseurl("http://www.python.org", tidy=True)</input>
 	<prompt>>>> </prompt><input>def foreignlink(path):</input>
 	<prompt>... </prompt><input>	return path and isinstance(path[-1], html.a) and not path[-1].attrs.href.asURL().server.endswith(".python.org")</input>
 	<prompt>... </prompt><input></input>
@@ -1204,7 +1204,7 @@ class nthoftype(Selector):
 	<tty>
 	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
 	<prompt>>>> </prompt><input>from ll.xist.ns import html</input>
-	<prompt>>>> </prompt><input>doc = parsers.parseURL("http://www.python.org", tidy=True)</input>
+	<prompt>>>> </prompt><input>doc = parsers.parseurl("http://www.python.org", tidy=True)</input>
 	<prompt>>>> </prompt><input>for node in doc.walknode(<em>xfind.nthoftype(0, html.h2)</em>):</input>
 	<prompt>... </prompt><input>\tprint node.bytes()</input>
 	<prompt>... </prompt><input></input>
