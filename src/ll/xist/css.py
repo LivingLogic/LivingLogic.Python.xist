@@ -178,7 +178,7 @@ def applystylesheets(node, base=None, media=None):
 		if path[-1].Attrs.isallowed("style"):
 			styles = {}
 			for (weight, sel, style) in iterstyles(path[-1], rules):
-				if sel.match(path):
+				if sel.matchpath(path):
 					for prop in style.seq:
 						if not isinstance(prop, css.CSSComment):
 							styles[prop.name] = (count, prop.name, prop.cssValue.cssText)
@@ -276,7 +276,7 @@ class CSSHasAttributeSelector(CSSWeightedSelector):
 	def __init__(self, attributename):
 		self.attributename = attributename
 
-	def match(self, path):
+	def matchpath(self, path):
 		if path:
 			node = path[-1]
 			if isinstance(node, xsc.Element) and node.Attrs.isallowed_xml(self.attributename):
@@ -292,7 +292,7 @@ class CSSAttributeListSelector(CSSWeightedSelector):
 		self.attributename = attributename
 		self.attributevalue = attributevalue
 
-	def match(self, path):
+	def matchpath(self, path):
 		if path:
 			node = path[-1]
 			if isinstance(node, xsc.Element) and node.Attrs.isallowed_xml(self.attributename):
@@ -309,7 +309,7 @@ class CSSAttributeLangSelector(CSSWeightedSelector):
 		self.attributename = attributename
 		self.attributevalue = attributevalue
 
-	def match(self, path):
+	def matchpath(self, path):
 		if path:
 			node = path[-1]
 			if isinstance(node, xsc.Element) and node.Attrs.isallowed_xml(self.attributename):
@@ -324,7 +324,7 @@ class CSSAttributeLangSelector(CSSWeightedSelector):
 
 
 class CSSFirstChildSelector(CSSWeightedSelector):
-	def match(self, path):
+	def matchpath(self, path):
 		return len(path) >= 2 and _is_nth_node(path[-2][xsc.Element], path[-1], 1)
 
 	def __str__(self):
@@ -332,7 +332,7 @@ class CSSFirstChildSelector(CSSWeightedSelector):
 
 
 class CSSLastChildSelector(CSSWeightedSelector):
-	def match(self, path):
+	def matchpath(self, path):
 		return len(path) >= 2 and _is_nth_last_node(path[-2][xsc.Element], path[-1], 1)
 
 	def __str__(self):
@@ -340,7 +340,7 @@ class CSSLastChildSelector(CSSWeightedSelector):
 
 
 class CSSFirstOfTypeSelector(CSSWeightedSelector):
-	def match(self, path):
+	def matchpath(self, path):
 		if len(path) >= 2:
 			node = path[-1]
 			return isinstance(node, xsc.Element) and _is_nth_node(misc.Iterator(_children_of_type(path[-2], node.xmlname)), node, 1)
@@ -351,7 +351,7 @@ class CSSFirstOfTypeSelector(CSSWeightedSelector):
 
 
 class CSSLastOfTypeSelector(CSSWeightedSelector):
-	def match(self, path):
+	def matchpath(self, path):
 		if len(path) >= 2:
 			node = path[-1]
 			return isinstance(node, xsc.Element) and _is_nth_last_node(misc.Iterator(_children_of_type(path[-2], node.xmlname)), node, 1)
@@ -362,7 +362,7 @@ class CSSLastOfTypeSelector(CSSWeightedSelector):
 
 
 class CSSOnlyChildSelector(CSSWeightedSelector):
-	def match(self, path):
+	def matchpath(self, path):
 		if len(path) >= 2:
 			node = path[-1]
 			if isinstance(node, xsc.Element):
@@ -377,7 +377,7 @@ class CSSOnlyChildSelector(CSSWeightedSelector):
 
 
 class CSSOnlyOfTypeSelector(CSSWeightedSelector):
-	def match(self, path):
+	def matchpath(self, path):
 		if len(path) >= 2:
 			node = path[-1]
 			if isinstance(node, xsc.Element):
@@ -392,7 +392,7 @@ class CSSOnlyOfTypeSelector(CSSWeightedSelector):
 
 
 class CSSEmptySelector(CSSWeightedSelector):
-	def match(self, path):
+	def matchpath(self, path):
 		if path:
 			node = path[-1]
 			if isinstance(node, xsc.Element):
@@ -407,7 +407,7 @@ class CSSEmptySelector(CSSWeightedSelector):
 
 
 class CSSRootSelector(CSSWeightedSelector):
-	def match(self, path):
+	def matchpath(self, path):
 		return len(path) == 1 and isinstance(path[-1], xsc.Element)
 
 	def __str__(self):
@@ -415,7 +415,7 @@ class CSSRootSelector(CSSWeightedSelector):
 
 
 class CSSLinkSelector(CSSWeightedSelector):
-	def match(self, path):
+	def matchpath(self, path):
 		if path:
 			node = path[-1]
 			return isinstance(node, xsc.Element) and node.xmlns=="http://www.w3.org/1999/xhtml" and node.xmlname=="a" and "href" in node.attrs
@@ -426,7 +426,7 @@ class CSSLinkSelector(CSSWeightedSelector):
 
 
 class CSSInvalidPseudoSelector(CSSWeightedSelector):
-	def match(self, path):
+	def matchpath(self, path):
 		return False
 
 	def __str__(self):
@@ -466,7 +466,7 @@ class CSSFunctionSelector(CSSWeightedSelector):
 
 
 class CSSNthChildSelector(CSSFunctionSelector):
-	def match(self, path):
+	def matchpath(self, path):
 		if len(path) >= 2:
 			node = path[-1]
 			if isinstance(node, xsc.Element):
@@ -475,7 +475,7 @@ class CSSNthChildSelector(CSSFunctionSelector):
 
 
 class CSSNthLastChildSelector(CSSFunctionSelector):
-	def match(self, path):
+	def matchpath(self, path):
 		if len(path) >= 2:
 			node = path[-1]
 			if isinstance(node, xsc.Element):
@@ -484,7 +484,7 @@ class CSSNthLastChildSelector(CSSFunctionSelector):
 
 
 class CSSNthOfTypeSelector(CSSFunctionSelector):
-	def match(self, path):
+	def matchpath(self, path):
 		if len(path) >= 2:
 			node = path[-1]
 			if isinstance(node, xsc.Element):
@@ -493,7 +493,7 @@ class CSSNthOfTypeSelector(CSSFunctionSelector):
 
 
 class CSSNthLastOfTypeSelector(CSSFunctionSelector):
-	def match(self, path):
+	def matchpath(self, path):
 		if len(path) >= 2:
 			node = path[-1]
 			if isinstance(node, xsc.Element):
@@ -507,13 +507,13 @@ class CSSTypeSelector(xfind.Selector):
 		self.xmlns = xsc.nsname(xmlns)
 		self.selectors = [] # id, class, attribute etc. selectors for this node
 
-	def match(self, path):
+	def matchpath(self, path):
 		if path:
 			node = path[-1]
 			if self.type == "*" or node.xmlname == self.type:
 				if self.xmlns == "*" or node.xmlns == self.xmlns:
 					for selector in self.selectors:
-						if not selector.match(path):
+						if not selector.matchpath(path):
 							return False
 					return True
 		return False
@@ -545,8 +545,8 @@ class CSSAdjacentSiblingCombinator(xfind.BinaryCombinator):
 	are considered.</par>
 	"""
 
-	def match(self, path):
-		if len(path) >= 2 and self.right.match(path):
+	def matchpath(self, path):
+		if len(path) >= 2 and self.right.matchpath(path):
 			# Find sibling
 			node = path[-1]
 			sibling = None
@@ -555,7 +555,7 @@ class CSSAdjacentSiblingCombinator(xfind.BinaryCombinator):
 					break
 				sibling = child
 			if sibling is not None:
-				return self.left.match(path[:-1]+[sibling])
+				return self.left.matchpath(path[:-1]+[sibling])
 		return False
 
 	def __str__(self):
@@ -569,13 +569,13 @@ class CSSGeneralSiblingCombinator(xfind.BinaryCombinator):
 	are considered.</par>
 	"""
 
-	def match(self, path):
-		if len(path) >= 2 and self.right.match(path):
+	def matchpath(self, path):
+		if len(path) >= 2 and self.right.matchpath(path):
 			node = path[-1]
 			for child in path[-2][xsc.Element]:
 				if child is node: # no previous element siblings
 					return False
-				if self.left.match(path[:-1]+[child]):
+				if self.left.matchpath(path[:-1]+[child]):
 					return True
 		return False
 

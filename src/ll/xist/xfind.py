@@ -43,16 +43,16 @@ class Selector(xsc.WalkFilter):
 	"""
 	Base class for all tree traversal filters that visit the complete tree.
 	Whether a node gets output can be specified by overwriting the
-	<method>match</method> method. Selectors can be combined with various
+	<method>matchpath</method> method. Selectors can be combined with various
 	operations (see methods below).
 	"""
 
 	@misc.notimplemented
-	def match(self, path):
+	def matchpath(self, path):
 		pass
 
 	def filterpath(self, path):
-		return (True, xsc.entercontent, xsc.enterattrs) if self.match(path) else (xsc.entercontent, xsc.enterattrs)
+		return (True, xsc.entercontent, xsc.enterattrs) if self.matchpath(path) else (xsc.entercontent, xsc.enterattrs)
 
 	def __div__(self, other):
 		"""
@@ -142,7 +142,7 @@ class IsInstanceSelector(Selector):
 	def __init__(self, *types):
 		self.types = types
 
-	def match(self, path):
+	def matchpath(self, path):
 		if path:
 			return isinstance(path[-1], self.types)
 		return False
@@ -195,7 +195,7 @@ class hasname(Selector):
 		self.name = name
 		self.xmlns = xsc.nsname(xmlns)
 
-	def match(self, path):
+	def matchpath(self, path):
 		if path:
 			node = path[-1]
 			if self.xmlns is not None:
@@ -217,7 +217,7 @@ class hasname_xml(Selector):
 		self.name = name
 		self.xmlns = xsc.nsname(xmlns)
 
-	def match(self, path):
+	def matchpath(self, path):
 		if path:
 			node = path[-1]
 			if self.xmlns is not None:
@@ -254,7 +254,7 @@ class IsSelector(Selector):
 	def __init__(self, node):
 		self.node = node
 
-	def match(self, path):
+	def matchpath(self, path):
 		return path and path[-1] is self.node
 
 	def __str__(self):
@@ -262,7 +262,7 @@ class IsSelector(Selector):
 
 
 class isroot(Selector):
-	def match(self, path):
+	def matchpath(self, path):
 		return len(path) == 1
 
 	def __str__(self):
@@ -294,7 +294,7 @@ class empty(Selector):
 	</example>
 	"""
 
-	def match(self, path):
+	def matchpath(self, path):
 		if path:
 			node = path[-1]
 			if isinstance(node, (xsc.Element, xsc.Frag)):
@@ -328,7 +328,7 @@ class onlychild(Selector):
 	</example>
 	"""
 
-	def match(self, path):
+	def matchpath(self, path):
 		if len(path) >= 2:
 			parent = path[-2]
 			if isinstance(parent, (xsc.Frag, xsc.Element)):
@@ -363,7 +363,7 @@ class onlyoftype(Selector):
 	</example>
 	"""
 
-	def match(self, path):
+	def matchpath(self, path):
 		if len(path) >= 2:
 			node = path[-1]
 			parent = path[-2]
@@ -412,7 +412,7 @@ class hasattr(Selector):
 	def __init__(self, *attrnames):
 		self.attrnames = attrnames
 
-	def match(self, path):
+	def matchpath(self, path):
 		if path:
 			node = path[-1]
 			if isinstance(node, xsc.Element):
@@ -434,7 +434,7 @@ class hasattr_xml(Selector):
 	def __init__(self, *attrnames):
 		self.attrnames = attrnames
 
-	def match(self, path):
+	def matchpath(self, path):
 		if path:
 			node = path[-1]
 			if isinstance(node, xsc.Element):
@@ -473,7 +473,7 @@ class attrhasvalue(Selector):
 		self.attrname = attrname
 		self.attrvalue = attrvalue
 
-	def match(self, path):
+	def matchpath(self, path):
 		if path:
 			node = path[-1]
 			if isinstance(node, xsc.Element) and node.Attrs.isallowed(self.attrname):
@@ -496,7 +496,7 @@ class attrhasvalue_xml(Selector):
 		self.attrname = attrname
 		self.attrvalue = attrvalue
 
-	def match(self, path):
+	def matchpath(self, path):
 		if path:
 			node = path[-1]
 			if isinstance(node, xsc.Element) and node.Attrs.isallowed_xml(self.attrname):
@@ -537,7 +537,7 @@ class attrcontains(Selector):
 		self.attrname = attrname
 		self.attrvalue = attrvalue
 
-	def match(self, path):
+	def matchpath(self, path):
 		if path:
 			node = path[-1]
 			if isinstance(node, xsc.Element) and node.Attrs.isallowed(self.attrname):
@@ -560,7 +560,7 @@ class attrcontains_xml(Selector):
 		self.attrname = attrname
 		self.attrvalue = attrvalue
 
-	def match(self, path):
+	def matchpath(self, path):
 		if path:
 			node = path[-1]
 			if isinstance(node, xsc.Element) and node.Attrs.isallowed_xml(self.attrname):
@@ -598,7 +598,7 @@ class attrstartswith(Selector):
 		self.attrname = attrname
 		self.attrvalue = attrvalue
 
-	def match(self, path):
+	def matchpath(self, path):
 		if path:
 			node = path[-1]
 			if isinstance(node, xsc.Element) and node.Attrs.isallowed(self.attrname):
@@ -621,7 +621,7 @@ class attrstartswith_xml(Selector):
 		self.attrname = attrname
 		self.attrvalue = attrvalue
 
-	def match(self, path):
+	def matchpath(self, path):
 		if path:
 			node = path[-1]
 			if isinstance(node, xsc.Element) and node.Attrs.isallowed_xml(self.attrname):
@@ -662,7 +662,7 @@ class attrendswith(Selector):
 		self.attrname = attrname
 		self.attrvalue = attrvalue
 
-	def match(self, path):
+	def matchpath(self, path):
 		if path:
 			node = path[-1]
 			if isinstance(node, xsc.Element) and node.Attrs.isallowed(self.attrname):
@@ -685,7 +685,7 @@ class attrendswith_xml(Selector):
 		self.attrname = attrname
 		self.attrvalue = attrvalue
 
-	def match(self, path):
+	def matchpath(self, path):
 		if path:
 			node = path[-1]
 			if isinstance(node, xsc.Element) and node.Attrs.isallowed_xml(self.attrname):
@@ -717,7 +717,7 @@ class hasid(Selector):
 	def __init__(self, id):
 		self.id = id
 
-	def match(self, path):
+	def matchpath(self, path):
 		if path:
 			node = path[-1]
 			if isinstance(node, xsc.Element) and node.Attrs.isallowed_xml("id"):
@@ -756,7 +756,7 @@ class hasclass(Selector):
 	def __init__(self, classname):
 		self.classname = classname
 
-	def match(self, path):
+	def matchpath(self, path):
 		if path:
 			node = path[-1]
 			if isinstance(node, xsc.Element) and node.Attrs.isallowed_xml("class"):
@@ -789,7 +789,7 @@ class inattr(Selector):
 	</tty>
 	</example>
 	"""
-	def match(self, path):
+	def matchpath(self, path):
 		return any(isinstance(node, xsc.Attr) for node in path)
 
 	def __str__(self):
@@ -855,9 +855,9 @@ class ChildCombinator(BinaryCombinator):
 	</tty>
 	</example>
 	"""
-	def match(self, path):
-		if path and self.right.match(path):
-			return self.left.match(path[:-1])
+	def matchpath(self, path):
+		if path and self.right.matchpath(path):
+			return self.left.matchpath(path[:-1])
 		return False
 
 	symbol = " / "
@@ -888,11 +888,11 @@ class DescendantCombinator(BinaryCombinator):
 	</tty>
 	</example>
 	"""
-	def match(self, path):
-		if path and self.right.match(path):
+	def matchpath(self, path):
+		if path and self.right.matchpath(path):
 			while path:
 				path = path[:-1]
-				if self.left.match(path):
+				if self.left.matchpath(path):
 					return True
 		return False
 
@@ -933,8 +933,8 @@ class AdjacentSiblingCombinator(BinaryCombinator):
 	</example>
 	"""
 
-	def match(self, path):
-		if len(path) >= 2 and self.right.match(path):
+	def matchpath(self, path):
+		if len(path) >= 2 and self.right.matchpath(path):
 			# Find sibling
 			node = path[-1]
 			sibling = None
@@ -943,7 +943,7 @@ class AdjacentSiblingCombinator(BinaryCombinator):
 					break
 				sibling = child
 			if sibling is not None:
-				return self.left.match(path[:-1]+[sibling])
+				return self.left.matchpath(path[:-1]+[sibling])
 		return False
 
 	symbol = " * "
@@ -979,13 +979,13 @@ class GeneralSiblingCombinator(BinaryCombinator):
 	</example>
 	"""
 
-	def match(self, path):
-		if len(path) >= 2 and self.right.match(path):
+	def matchpath(self, path):
+		if len(path) >= 2 and self.right.matchpath(path):
 			node = path[-1]
 			for child in path[-2]:
 				if child is node: # no previous siblings
 					return False
-				if self.left.match(path[:-1]+[child]):
+				if self.left.matchpath(path[:-1]+[child]):
 					return True
 		return False
 
@@ -1045,8 +1045,8 @@ class OrCombinator(ChainedCombinator):
 	</example>
 	"""
 
-	def match(self, path):
-		return any(selector.match(path) for selector in self.selectors)
+	def matchpath(self, path):
+		return any(selector.matchpath(path) for selector in self.selectors)
 
 	symbol = " | "
 
@@ -1077,8 +1077,8 @@ class AndCombinator(ChainedCombinator):
 	</example>
 	"""
 
-	def match(self, path):
-		return all(selector.match(path) for selector in self.selectors)
+	def matchpath(self, path):
+		return all(selector.matchpath(path) for selector in self.selectors)
 
 	def __and__(self, other):
 		return AndCombinator(*(self.selectors + (xsc.makewalkfilter(other),)))
@@ -1110,8 +1110,8 @@ class NotCombinator(Combinator):
 	def __init__(self, selector):
 		self.selector = selector
 
-	def match(self, path):
-		return not self.selector.match(path)
+	def matchpath(self, path):
+		return not self.selector.matchpath(path)
 
 	def __str__(self):
 		if isinstance(self.selector, Combinator) and not isinstance(self.selector, NotCombinator):
@@ -1154,7 +1154,7 @@ class CallableSelector(Selector):
 	def __init__(self, func):
 		self.func = func
 
-	def match(self, path):
+	def matchpath(self, path):
 		return self.func(path)
 
 	def __str__(self):
@@ -1174,7 +1174,7 @@ class nthchild(Selector):
 	def __init__(self, index):
 		self.index = index
 
-	def match(self, path):
+	def matchpath(self, path):
 		if len(path) >= 2:
 			if self.index in ("even", "odd"):
 				for (i, child) in enumerate(path[-2]):
@@ -1223,7 +1223,7 @@ class nthoftype(Selector):
 			if isinstance(child, types):
 				yield child
 
-	def match(self, path):
+	def matchpath(self, path):
 		if len(path) >= 2:
 			if self.index in ("even", "odd"):
 				for (i, child) in enumerate(self._find(path)):

@@ -981,25 +981,25 @@ class Node(object):
 		for part in self.bytes(*args, **publishargs):
 			stream.write(part)
 
-	def _walk(self, filter, path):
+	def _walk(self, walkfilter, path):
 		"""
 		<par>Internal helper for <pyref method="walk"><method>walk</method></pyref>.</par>
 		"""
-		for option in filter.filterpath(path):
+		for option in walkfilter.filterpath(path):
 			if option is not entercontent and option is not enterattrs and option:
 				yield path
 
-	def walk(self, filter=(True, entercontent)):
+	def walk(self, walkfilter=(True, entercontent)):
 		"""
 		<par>Return an iterator for traversing the tree rooted at <self/>.</par>
 
-		<par><arg>filter</arg> is used for specifying whether or not a node should
-		be yielded and when the children of this node should be traversed. If
-		<arg>filter</arg> is callable, it will be called for each node visited
-		during the traversal. A path (i.e. a list of all nodes from the root to
-		the current node) will be passed to the filter on each call and the
-		filter must return a sequence of <z>node handling options</z>.
-		If <arg>filter</arg> is not callable, it must be a sequence of node
+		<par><arg>walkfilter</arg> is used for specifying whether or not a node
+		should be yielded and when the children of this node should be traversed.
+		If <arg>walkfilter</arg> is callable, it will be called for each node
+		visited during the traversal. A path (i.e. a list of all nodes from the
+		root to the current node) will be passed to the filter on each call and
+		the filter must return a sequence of <z>node handling options</z>.
+		If <arg>walkfilter</arg> is not callable, it must be a sequence of node
 		handling options that will be used for all visited nodes.</par>
 
 		<par>Entries in this returned sequence can be the following:</par>
@@ -1038,29 +1038,31 @@ class Node(object):
 		<method>walk</method> reuses this list, so you can't rely on the value
 		of the list being the same across calls to <method>next</method>.</par>
 		"""
-		return self._walk(makewalkfilter(filter), [self])
+		return self._walk(makewalkfilter(walkfilter), [self])
 
-	def walknode(self, filter=(True, entercontent)):
+	def walknode(self, walkfilter=(True, entercontent)):
 		"""
 		Return an iterator for traversing the tree. <arg>filter</arg> works the
-		same as the <arg>filter</arg> argument for <pyref method="walk"><method>walk</method></pyref>.
+		same as the <arg>walkfilter</arg> argument for
+		<pyref method="walk"><method>walk</method></pyref>.
 		The items produced by the iterator are the nodes themselves.
 		"""
-		filter = makewalkfilter(filter)
+		walkfilter = makewalkfilter(walkfilter)
 		def iterate(path):
-			for path in self._walk(filter, path):
+			for path in self._walk(walkfilter, path):
 				yield path[-1]
 		return misc.Iterator(iterate([self]))
 
-	def walkpath(self, filter=(True, entercontent)):
+	def walkpath(self, walkfilter=(True, entercontent)):
 		"""
-		Return an iterator for traversing the tree. <arg>filter</arg> works the
-		same as the <arg>filter</arg> argument for <pyref method="walk"><method>walk</method></pyref>.
-		The items produced by the iterator are copies of the path.
+		Return an iterator for traversing the tree. <arg>walkfilter</arg> works
+		the same as the <arg>walkfilter</arg> argument for
+		<pyref method="walk"><method>walk</method></pyref>. The items produced by
+		the iterator are copies of the path.
 		"""
-		filter = makewalkfilter(filter)
+		walkfilter = makewalkfilter(walkfilter)
 		def iterate(path):
-			for path in self._walk(filter, path):
+			for path in self._walk(walkfilter, path):
 				yield path[:]
 		return misc.Iterator(iterate([self]))
 
@@ -1539,7 +1541,7 @@ class Frag(Node, list):
 					path[-1] = child
 					if matcher(path):
 						yield child
-			return misc.Iterator(iterate(makewalkfilter(index).match))
+			return misc.Iterator(iterate(makewalkfilter(index).matchpath))
 
 	def __setitem__(self, index, value):
 		"""
@@ -1566,7 +1568,7 @@ class Frag(Node, list):
 		elif isinstance(index, slice):
 			list.__setitem__(self, index, Frag(value))
 		else:
-			matcher = makewalkfilter(index).match
+			matcher = makewalkfilter(index).matchpath
 			value = Frag(value)
 			newcontent = []
 			path = [self, None]
@@ -1598,7 +1600,7 @@ class Frag(Node, list):
 		elif isinstance(index, (int, long, slice)):
 			list.__delitem__(self, index)
 		else:
-			matcher = makewalkfilter(index).match
+			matcher = makewalkfilter(index).matchpath
 			list.__setslice__(self, 0, len(self), [child for child in self if not matcher([self, child])])
 
 	def __getslice__(self, index1, index2):
@@ -2008,10 +2010,10 @@ class Attr(Frag):
 			if value not in values:
 				warnings.warn(IllegalAttrValueWarning(self))
 
-	def _walk(self, filter, path):
-		for option in filter.filterpath(path):
+	def _walk(self, walkfilter, path):
+		for option in walkfilter.filterpath(path):
 			if option is entercontent:
-				for result in Frag._walk(self, filter, path):
+				for result in Frag._walk(self, walkfilter, path):
 					yield result
 			elif option is enterattrs:
 				pass
@@ -3065,7 +3067,7 @@ class Element(Node):
 					path[-1] = child
 					if matcher(path):
 						yield child
-			return misc.Iterator(iterate(makewalkfilter(index).match))
+			return misc.Iterator(iterate(makewalkfilter(index).matchpath))
 
 	def __setitem__(self, index, value):
 		"""
@@ -3077,7 +3079,7 @@ class Element(Node):
 		elif isinstance(index, (list, int, long, slice)):
 			self.content[index] = value
 		else:
-			matcher = makewalkfilter(index).match
+			matcher = makewalkfilter(index).matchpath
 			value = Frag(value)
 			newcontent = []
 			path = [self, None]
@@ -3099,7 +3101,7 @@ class Element(Node):
 		elif isinstance(index, (list, int, long, slice)):
 			del self.content[index]
 		else:
-			matcher = makewalkfilter(index).match
+			matcher = makewalkfilter(index).matchpath
 			self.content = Frag(child for child in self if not matcher([self, child]))
 
 	def __getslice__(self, index1, index2):
@@ -3139,13 +3141,13 @@ class Element(Node):
 		node.attrs = self.attrs.compact()
 		return self._decoratenode(node)
 
-	def _walk(self, filter, path):
-		for option in filter.filterpath(path):
+	def _walk(self, walkfilter, path):
+		for option in walkfilter.filterpath(path):
 			if option is entercontent:
-				for result in self.content._walk(filter, path):
+				for result in self.content._walk(walkfilter, path):
 					yield result
 			elif option is enterattrs:
-				for result in self.attrs._walk(filter, path):
+				for result in self.attrs._walk(walkfilter, path):
 					yield result
 			elif option:
 				yield path
