@@ -512,7 +512,7 @@ class attrhasvalue_xml(Selector):
 class attrcontains(Selector):
 	"""
 	<par>Selector that selects all element nodes where an attribute with the
-	specified Python name contains the specified subtring in its value. For
+	specified Python name contains the specified substring in its value. For
 	global attributes the attribute class can be passed. Note that
 	<pyref module="ll.xist.xsc" class="Attr" method="isfancy">fancy</pyref>
 	attributes will not be considered.</par>
