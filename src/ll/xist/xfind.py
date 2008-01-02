@@ -836,7 +836,7 @@ class ChildCombinator(BinaryCombinator):
 	To match the <class>ChildCombinator</class> the node must match the
 	right hand selector and it's immediate parent must match the left hand
 	selector (i.e. it works similar to the <lit>&gt;</lit> combinator in &css;
-	or the <lit>/</lit> combinator in XPath.</par>
+	or the <lit>/</lit> combinator in XPath).</par>
 
 	<par><class>ChildCombinator</class>s can be created via the division operator (<lit>/</lit>):</par>
 
