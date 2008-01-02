@@ -869,7 +869,7 @@ class DescendantCombinator(BinaryCombinator):
 	To match the <class>DescendantCombinator</class> the node must match the
 	right hand selector and any of it's ancestor nodes must match the left hand
 	selector (i.e. it works similar to the descendant combinator in &css;
-	or the <lit>//</lit> combinator in XPath.</par>
+	or the <lit>//</lit> combinator in XPath).</par>
 
 	<par><class>DescendantCombinator</class>s can be created via the floor division
 	operator (<lit>//</lit>):</par>
