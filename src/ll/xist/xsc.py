@@ -112,8 +112,11 @@ class WalkFilter(object):
 	nodes to specify how to traverse the tree and which nodes to output.
 	"""
 	@misc.notimplemented
-	def filter(self, path):
+	def filternode(self, node):
 		pass
+
+	def filterpath(self, path):
+		return self.filternode(path[-1])
 
 
 class FindType(WalkFilter):
@@ -124,8 +127,8 @@ class FindType(WalkFilter):
 	def __init__(self, *types):
 		self.types = types
 
-	def filter(self, path):
-		return (isinstance(path[-1], self.types), )
+	def filternode(self, node):
+		return (isinstance(node, self.types), )
 
 
 class FindTypeAll(WalkFilter):
@@ -136,8 +139,8 @@ class FindTypeAll(WalkFilter):
 	def __init__(self, *types):
 		self.types = types
 
-	def filter(self, path):
-		return (isinstance(path[-1], self.types), entercontent)
+	def filternode(self, node):
+		return (isinstance(node, self.types), entercontent)
 
 
 class FindTypeAllAttrs(WalkFilter):
@@ -148,8 +151,8 @@ class FindTypeAllAttrs(WalkFilter):
 	def __init__(self, *types):
 		self.types = types
 
-	def filter(self, path):
-		return (isinstance(path[-1], self.types), entercontent, enterattrs)
+	def filternode(self, node):
+		return (isinstance(node, self.types), entercontent, enterattrs)
 
 
 class FindTypeTop(WalkFilter):
@@ -161,8 +164,8 @@ class FindTypeTop(WalkFilter):
 	def __init__(self, *types):
 		self.types = types
 
-	def filter(self, path):
-		if isinstance(path[-1], self.types):
+	def filternode(self, node):
+		if isinstance(node, self.types):
 			return (True,)
 		else:
 			return (entercontent,)
@@ -175,7 +178,7 @@ class CallableWalkFilter(WalkFilter):
 	def __init__(self, func):
 		self.func = func
 
-	def filter(self, path):
+	def filterpath(self, path):
 		return self.func(path)
 
 
@@ -186,7 +189,7 @@ class ConstantWalkFilter(WalkFilter):
 	def __init__(self, value):
 		self.value = value
 
-	def filter(self, path):
+	def filterpath(self, path):
 		return self.value
 
 
@@ -982,7 +985,7 @@ class Node(object):
 		"""
 		<par>Internal helper for <pyref method="walk"><method>walk</method></pyref>.</par>
 		"""
-		for option in filter.filter(path):
+		for option in filter.filterpath(path):
 			if option is not entercontent and option is not enterattrs and option:
 				yield path
 
@@ -2006,7 +2009,7 @@ class Attr(Frag):
 				warnings.warn(IllegalAttrValueWarning(self))
 
 	def _walk(self, filter, path):
-		for option in filter.filter(path):
+		for option in filter.filterpath(path):
 			if option is entercontent:
 				for result in Frag._walk(self, filter, path):
 					yield result
@@ -3137,7 +3140,7 @@ class Element(Node):
 		return self._decoratenode(node)
 
 	def _walk(self, filter, path):
-		for option in filter.filter(path):
+		for option in filter.filterpath(path):
 			if option is entercontent:
 				for result in self.content._walk(filter, path):
 					yield result

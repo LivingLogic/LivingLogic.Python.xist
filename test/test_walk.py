@@ -19,7 +19,7 @@ import common
 def test_walk_coverage():
 	node = common.createfrag()
 	class Filter(xsc.WalkFilter):
-		def filter(self, path):
+		def filternode(self, node):
 			return (True, xsc.enterattrs, xsc.entercontent, True)
 
 	# call only for code coverage
@@ -45,23 +45,23 @@ def test_walk_result():
 	)
 
 	class filtertopdown(xsc.WalkFilter):
-		def filter(self, path):
-			return (isinstance(path[-1], xsc.Element), xsc.entercontent)
+		def filternode(self, node):
+			return (isinstance(node, xsc.Element), xsc.entercontent)
 
 	class filterbottomup(xsc.WalkFilter):
-		def filter(self, path):
-			return (xsc.entercontent, isinstance(path[-1], xsc.Element))
+		def filternode(self, node):
+			return (xsc.entercontent, isinstance(node, xsc.Element))
 
 	class filtertopdownattrs(xsc.WalkFilter):
-		def filter(self, path):
-			return (isinstance(path[-1], xsc.Element), xsc.enterattrs, xsc.entercontent)
+		def filternode(self, node):
+			return (isinstance(node, xsc.Element), xsc.enterattrs, xsc.entercontent)
 
 	class filterbottomupattrs(xsc.WalkFilter):
-		def filter(self, path):
-			return (xsc.enterattrs, xsc.entercontent, isinstance(path[-1], xsc.Element))
+		def filternode(self, node):
+			return (xsc.enterattrs, xsc.entercontent, isinstance(node, xsc.Element))
 
 	class filtertopdowntextonlyinattr(xsc.WalkFilter):
-		def filter(self, path):
+		def filterpath(self, path):
 			for node in path:
 				if isinstance(node, xsc.Attr):
 					inattr = True
@@ -77,10 +77,10 @@ def test_walk_result():
 				return (xsc.entercontent, )
 
 	class filtertopdownattrwithoutcontent(xsc.WalkFilter):
-		def filter(self, path):
-			if isinstance(path[-1], xsc.Element):
+		def filternode(self, node):
+			if isinstance(node, xsc.Element):
 				return (True, xsc.entercontent, xsc.enterattrs)
-			elif isinstance(path[-1], (xsc.Attr, xsc.Text)):
+			elif isinstance(node, (xsc.Attr, xsc.Text)):
 				return (True, )
 			else:
 				return (xsc.entercontent, )

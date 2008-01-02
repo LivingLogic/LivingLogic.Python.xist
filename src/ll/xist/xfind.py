@@ -51,7 +51,7 @@ class Selector(xsc.WalkFilter):
 	def match(self, path):
 		pass
 
-	def filter(self, path):
+	def filterpath(self, path):
 		return (True, xsc.entercontent, xsc.enterattrs) if self.match(path) else (xsc.entercontent, xsc.enterattrs)
 
 	def __div__(self, other):
