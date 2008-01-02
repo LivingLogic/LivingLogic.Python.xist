@@ -393,14 +393,6 @@ class hasattr(Selector):
 	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
 	<prompt>>>> </prompt><input>from ll.xist.ns import html, xml</input>
 	<prompt>>>> </prompt><input>doc = parsers.parseurl("http://www.python.org", tidy=True)</input>
-	<prompt>>>> </prompt><input>for node in doc.walknode(<em>xfind.onlyoftype &amp; xsc.Element</em>):</input>
-	<prompt>... </prompt><input>\tprint repr(node)</input>
-	<prompt>... </prompt><input></input>
-	<![CDATA[<ll.xist.ns.html.html element object (2 children/1 attr) (from http://www.python.org/:4:?) at 0xb6d6e7ec>
-	<ll.xist.ns.html.head element object (13 children/no attrs) (from http://www.python.org/:6:?) at 0xb6cc1f8c>
-	<ll.xist.ns.html.title element object (1 child/no attrs) (from http://www.python.org/:8:?) at 0xb6d79b8c>
-	<ll.xist.ns.html.body element object (19 children/no attrs) (from http://www.python.org/:26:?) at 0xb6d7282c>]]>
-	<rep>...</rep>
 	<prompt>>>> </prompt><input>for node in doc.walknode(<em>xfind.hasattr(xml.Attrs.lang</em>):</input>
 	<prompt>... </prompt><input>\tprint repr(node)</input>
 	<prompt>... </prompt><input></input>
