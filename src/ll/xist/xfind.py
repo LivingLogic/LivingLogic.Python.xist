@@ -393,7 +393,7 @@ class hasattr(Selector):
 	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
 	<prompt>>>> </prompt><input>from ll.xist.ns import html, xml</input>
 	<prompt>>>> </prompt><input>doc = parsers.parseurl("http://www.python.org", tidy=True)</input>
-	<prompt>>>> </prompt><input>for node in doc.walknode(<em>xfind.hasattr(xml.Attrs.lang</em>):</input>
+	<prompt>>>> </prompt><input>for node in doc.walknode(<em>xfind.hasattr(xml.Attrs.lang)</em>):</input>
 	<prompt>... </prompt><input>\tprint repr(node)</input>
 	<prompt>... </prompt><input></input>
 	<![CDATA[<ll.xist.ns.html.html element object (2 children/2 attrs) (from http://www.python.org/:4:?) at 0xb6d71d4c>]]>
