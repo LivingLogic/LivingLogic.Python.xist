@@ -20,6 +20,11 @@ for node in root.walknode(root/html.p):
 <par>This will yield <class>html.p</class> elements only if they are immediate
 children of the <lit>root</lit> node.</par>
 
+<par>Passing a callable to the <method>walk</method> method now creates a
+<class>ll.xist.xfind.CallableSelector</class>. If you want the old tree traversal
+logic back, you have to put your code into the <method>filterpath</method> method
+of a <class>WalkFilter</class> object.</par>
+
 <par>Many of the XFind operators have been renamed (and all have been rewritten).
 See the <module>xfind</module> documentation for more info.</par>
 
