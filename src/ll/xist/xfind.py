@@ -1141,7 +1141,7 @@ class CallableSelector(Selector):
 	<prompt>>>> </prompt><input>for node in doc.walknode(<em>foreignlink</em>):</input>
 	<prompt>... </prompt><input>\tprint node.bytes()</input>
 	<prompt>... </prompt><input></input>
-	<![CDATA[<a href="http://homegain.com/" class="reference">HomeGain.com</a>
+	<![CDATA[<a href="http://youtube.com/" class="reference">YouTube.com</a>
 	<a href="http://www.zope.org/">Zope</a>
 	<a href="http://www.djangoproject.com/">Django</a>
 	<a href="http://www.turbogears.org/">TurboGears</a>
