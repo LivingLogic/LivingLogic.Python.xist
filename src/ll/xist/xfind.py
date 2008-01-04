@@ -29,14 +29,14 @@ class CSSWeight(tuple):
 	<link href="http://www.w3.org/TR/css3-selectors/#specificity">CSS3</link>.
 	"""
 
-	def __new__(cls, a=0, b=0, c=0):
-		return tuple.__new__(cls, (a, b, c))
+	def __new__(cls, a=0, b=0, c=0, d=0):
+		return tuple.__new__(cls, (a, b, c, d))
 
 	def __add__(self, other):
-		return CSSWeight(self[0]+other[0], self[1]+other[1], self[2]+other[2])
+		return CSSWeight(self[0]+other[0], self[1]+other[1], self[2]+other[2], self[3]+other[3])
 
 	def __repr__(self):
-		return "CSSWeight(%r, %r, %r)" % (self[0], self[1], self[2])
+		return "CSSWeight(%r, %r, %r, %r)" % (self[0], self[1], self[2], self[3])
 
 
 class Selector(xsc.WalkFilter):
@@ -722,7 +722,7 @@ class hasid(Selector):
 		return "%s(%r)" % (self.__class__.__name__, self.id)
 
 	def cssweight(self):
-		return CSSWeight(1, 0, 0)
+		return CSSWeight(0, 1, 0, 0)
 
 
 class hasclass(Selector):
@@ -761,7 +761,7 @@ class hasclass(Selector):
 		return "%s(%r)" % (self.__class__.__name__, self.classname)
 
 	def cssweight(self):
-		return CSSWeight(0, 1, 0)
+		return CSSWeight(0, 0, 1, 0)
 
 
 class inattr(Selector):

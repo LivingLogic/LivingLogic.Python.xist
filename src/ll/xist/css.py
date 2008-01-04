@@ -14,7 +14,7 @@
 
 from __future__ import with_statement
 
-import contextlib, operator
+import contextlib
 
 try:
 	import cssutils
@@ -145,47 +145,38 @@ def applystylesheets(node, base=None, media=None):
 	will be applied.</par>
 	"""
 	def iterstyles(node, rules):
+		for data in rules:
+			yield data
+		# According to CSS 2.1 (http://www.w3.org/TR/CSS21/cascade.html#specificity)
+		# style attributes have the highest weight, so we yield it last
+		# (CSS 3 uses the same weight)
 		if "style" in node.attrs:
 			style = node.attrs["style"]
 			if not style.isfancy():
-				styledata = (
-					xfind.CSSWeight(1, 0, 0),
+				yield (
 					xfind.IsSelector(node),
 					cssutils.parseString(u"*{%s}" % style).cssRules[0].style # parse the style out of the style attribute
 				)
-				# put the style attribute into the order as the last of the selectors with ID weight (see http://www.w3.org/TR/REC-CSS1#cascading-order)
-				def doiter():
-					done = False
-					for data in rules:
-						if not done and data[0] > styledata[0]:
-							yield styledata
-							done = True
-						yield data
-					if not done:
-						yield styledata
-				return doiter()
-		return rules
 
 	rules = []
 	for (i, rule) in enumerate(iterrules(node, base=base, media=media)):
 		for sel in rule.selectorList:
-			sel = selector(sel)
-			rules.append((sel.cssweight(), sel, rule.style))
-	rules.sort(key=operator.itemgetter(0))
+			rules.append((selector(sel), rule.style))
+	rules.sort(key=lambda(sel, rule): sel.cssweight())
 	count = 0
 	for path in node.walk(xsc.Element):
 		del path[-1][_isstyle] # drop style sheet nodes
 		if path[-1].Attrs.isallowed("style"):
 			styles = {}
-			for (weight, sel, style) in iterstyles(path[-1], rules):
+			for (sel, style) in iterstyles(path[-1], rules):
 				if sel.matchpath(path):
 					for prop in style.seq:
 						if not isinstance(prop, css.CSSComment):
 							styles[prop.name] = (count, prop.name, prop.cssValue.cssText)
 							count += 1
-					style = " ".join("%s: %s;" % (name, value) for (count, name, value) in sorted(styles.itervalues()))
-					if style:
-						path[-1].attrs["style"] = style
+			style = " ".join("%s: %s;" % (name, value) for (count, name, value) in sorted(styles.itervalues()))
+			if style:
+				path[-1].attrs["style"] = style
 
 
 ###
@@ -532,7 +523,7 @@ class CSSTypeSelector(xfind.Selector):
 		return "".join(v)
 
 	def cssweight(self):
-		result = xfind.CSSWeight(0, 0, int(self.type != "*"))
+		result = xfind.CSSWeight(0, 0, 0, int(self.type != "*"))
 		for selector in self.selectors:
 			result += selector.cssweight()
 		return result
