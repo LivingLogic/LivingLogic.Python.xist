@@ -95,8 +95,8 @@ class a(html.a):
 	xmlns = html.xmlns
 
 	def convert(self, converter):
-		e = html.a(self.content, self.attrs, target="_top")
-		return e.convert(converter)
+		node = html.a(self.content, self.attrs, target="_top")
+		return node.convert(converter)
 </prog>
 </example>
 
@@ -124,182 +124,54 @@ name when instantiating the tree nodes.</par>
 </section>
 
 
-<!--
-<par>Each element class that belongs to a namespace can access its
-namespace via the class attribute <lit>__ns__</lit>. When you're subclassing
-namespace classes, the elements in the base namespace will be automatically
-subclassed too. Of course you can explicitly subclass an element class too.
-The following example shows the usefulness of this feature. Define your base
-namespace like this and put it into <filename>navns.py</filename>:</par>
+<section><title>Conversion targets</title>
 
+<par>The <arg>converter</arg> argument passed to the <method>convert</method>
+method has an attribute <lit>target</lit> which is a module or pool and
+specifies the target namespace to which <self/> should be converted.</par>
+
+<par>You can check which conversion is wanted by checking e.g. the
+<lit>xmlns</lit> atribute. Once this is determined you can use element classes
+from the target to create the required &xml; object tree. This makes it possible
+to customize the conversion by passing a chained pool to the
+<method>convert</method> method that extends an existing namespace.</par>
+
+<par>The following example shows how an element be converted to two
+different targets:</par>
+
+<example><title>Using conversion targets</title>
 <prog>
 from ll.xist import xsc
-from ll.xist.ns import html
+from ll.xist.ns import html, fo
 
-languages = [
-	(u"Python", u"http://www.python.org/"),
-	(u"Perl", u"http://www.perl.org/"),
-	(u"PHP", u"http://www.php.net/"),
-	(u"Java", u"http://java.sun.com/")
-]
-
-class navigation(xsc.Element):
+class bold(xsc.Element):
 	def convert(self, converter):
-		node = self.__ns__.links()
-		for (name, url) in languages:
-			node.append(self.__ns__.link(name, href=url))
+		if converter.target.xmlns == html.xmlns:
+			node = converter.target.b(self.content)
+		elif converter.target.xmlns == fo.xmlns:
+			node = converter.target.inline(self.content, font_weight="bold")
+		else:
+			raise TypeError("unsupported conversion target %r" % converter.target)
 		return node.convert(converter)
-
-class links(xsc.Element):
-	def convert(self, converter):
-		node = self.content
-		return node.convert(converter)
-
-class link(xsc.Element):
-	class Attrs(xsc.Element.Attrs):
-		class href(xsc.URLAttr): pass
-
-	def convert(self, converter):
-		node = html.div(html.a(self.content, href=self[u"href"]))
-		return node.convert(converter)
-
-class __ns__(xsc.Namespace):
-	xmlname = "nav"
-	xmlurl = "http://www.example.com/nav"
-__ns__.makemod(vars())
 </prog>
+</example>
 
-<par>This namespace defines a navigation element that generates <class>div</class>s
-with links to various homepages for programming languages. We can use it like this:</par>
-<tty>
-<prompt>&gt;&gt;&gt; </prompt><input>import navns</input>
-<prompt>&gt;&gt;&gt; </prompt><input>print navns.navigation().conv().bytes()</input>
-&lt;div&gt;&lt;a href="http://www.python.org/"&gt;Python&lt;/a&gt;&lt;/div&gt;
-&lt;div&gt;&lt;a href="http://www.perl.org/"&gt;Perl&lt;/a&gt;&lt;/div&gt;
-&lt;div&gt;&lt;a href="http://www.php.net/"&gt;PHP&lt;/a&gt;&lt;/div&gt;
-&lt;div&gt;&lt;a href="http://java.sun.com/"&gt;Java&lt;/a&gt;&lt;/div&gt;
-</tty>
-<par>(Of course the output will all be on one line.)</par>
-
-<par>Now we can define a derived namespace (in the file <filename>nav2ns.py</filename>)
-that overwrites the element classes <class>links</class> and <class>link</class>
-to change how the navigation looks:</par>
-
-<prog>
-from ll.xist import xsc
-from ll.xist.ns import html
-
-import navns
-
-class __ns__(navns):
-	class links(navns.links):
-		def convert(self, converter):
-			node = html.table(
-				self.content,
-				border=0,
-				cellpadding=0,
-				cellspacing=0,
-				class_=u"navigation",
-			)
-			return node.convert(converter)
-
-	class link(navns.link):
-		def convert(self, converter):
-			node = html.tr(
-				html.td(
-					html.a(
-						self.content,
-						href=self[u"href"],
-					)
-				)
-			)
-			return node.convert(converter)
-__ns__.makemod(vars())
-</prog>
-
-<par>When we use the navigation element from the derived namespace we'll get
-the following output:</par>
+<par>The default target for conversion is <module>ll.xist.ns.html</module>.
+Other targets can be specified via the <arg>target</arg> argument in the
+<class>Converter</class> constructor or the <method>conv</method> method:</par>
 
 <tty>
-<prompt>&gt;&gt;&gt; </prompt><input>import nav2ns</input>
-<prompt>&gt;&gt;&gt; </prompt><input>print nav2ns.navigation().conv().bytes()</input>
-&lt;table border="0" cellpadding="0" cellspacing="0" class="navigation"&gt;
-&lt;tr&gt;&lt;td&gt;&lt;a href="http://www.python.org/"&gt;Python&lt;/a&gt;&lt;/td&gt;&lt;/tr&gt;
-&lt;tr&gt;&lt;td&gt;&lt;a href="http://www.perl.org/"&gt;Perl&lt;/a&gt;&lt;/td&gt;&lt;/tr&gt;
-&lt;tr&gt;&lt;td&gt;&lt;a href="http://www.php.net/"&gt;PHP&lt;/a&gt;&lt;/td&gt;&lt;/tr&gt;
-&lt;tr&gt;&lt;td&gt;&lt;a href="http://java.sun.com/"&gt;Java&lt;/a&gt;&lt;/td&gt;&lt;/tr&gt;
-&lt;/table&gt;
+<prompt>>>> </prompt><input>from ll.xist.ns import html, fo</input>
+<prompt>>>> </prompt><input>import foo</input> # This is the code from above
+<prompt>>>> </prompt><input>print foo.bold("foo").conv().bytes()</input>
+<![CDATA[<b>foo</b>]]>
+<prompt>>>> </prompt><input>print foo.bold("foo").conv(target=html).bytes()</input>
+<![CDATA[<b>foo</b>]]>
+<prompt>>>> </prompt><input>print foo.bold("foo").conv(target=fo).bytes()</input>
+<![CDATA[<inline font-weight="bold">foo</inline>]]>
 </tty>
-<par>(again all on one line.)</par>
-
-<par>Notice that we automatically got an element class <class>nav2ns.navigation</class>,
-that this element class inherited the <method>convert</method> method from its
-base class and that the call to <method>convert</method> on the derived class
-did instantiate the link classes from the derived namespace.</par>
-
 </section>
 
-
-<section><title>Namespaces as conversion targets</title>
-
-<par>The <arg>converter</arg> argument passed to the <method>convert</method> method
-has an attribute <lit>target</lit> which is a namespace class and specifies the target
-namespace to which <self/> should be converted.</par>
-
-<par>You can check which conversion is wanted with <function>issubclass</function>.
-Once this is determined you can use element classes from the target to create the
-required &xml; object tree. This makes it possible to customize the conversion by
-passing a derived namespace to the <method>convert</method> method. To demonstrate
-this, we change our example namespace to use the conversion target like this:</par>
-
-<prog>
-import navns
-
-class __ns__(navns):
-	class links(navns.links):
-		def convert(self, converter):
-			node = converter.target.table(
-				self.content,
-				border=0,
-				cellpadding=0,
-				cellspacing=0,
-				class_=u"navigation",
-			)
-			return node.convert(converter)
-
-	class link(navns.link):
-		def convert(self, converter):
-			target = converter.target
-			node = target.tr(
-				target.td(
-					target.a(
-						self.content,
-						href=self[u"href"],
-					)
-				)
-			)
-			return node.convert(converter)
-</prog>
-
-<par>What we might want to do is have all links (i.e. all <class>ll.xist.ns.html.a</class>
-elements) generated with an attribute <lit>target="_top"</lit>. For this we derive
-a new namespace from <class>ll.xist.ns.html</class> and overwrite the <class>a</class>
-element:</par>
-
-<prog>
-from ll.xist.ns import html
-
-class __ns__(html):
-	class a(html.a):
-		def convert(self, converter):
-			node = html.a(self.content, self.attrs, target=u"_top")
-			return node.convert(converter)
-</prog>
-
-<par>Now we can pass this namespace as the conversion target and all links
-will have a <lit>target="_top"</lit>.</par>
-</section>
--->
 
 <section><title>Validation and content models</title>
 
