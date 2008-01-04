@@ -1,4 +1,130 @@
-<section><title>Subclassing namespaces</title>
+<section><title>Converter contexts</title>
+
+<par>Converter contexts can be used to pass around information in recursive
+calls to the <method>convert</method> and <method>mapped</method> methods.
+A <pyref module="ll.xist.converters" class="Converter"><class>Converter</class></pyref>
+object will be passed in all calls, so this object is the place to store
+information. However if each element, procinst and entity class decided on its
+own which attributes names to use, name collisions would be inevitale. To avoid
+this, the following system is used.</par>
+
+<par>When a class wants to store information in a converter, it has to define
+a <class>Context</class> class (normally derived from the <class>Context</class>
+class of its base class). The constructor must initialize the context object
+to a initial state. You can get the context object for a certain class by treating
+the converter as a dictionary with the class (or an instance) as the key like this:</par>
+
+<example><title>Defining and using a converter context</title>
+<prog>
+from ll.xist import xsc
+
+class counter(xsc.Element):
+	class Context(xsc.Element.Context):
+		def __init__(self):
+			xsc.Element.Context.__init__(self)
+			self.count = 0
+
+	def convert(self, converter):
+		context = converter[self]
+		node = xsc.Text(context.count)
+		context.count += 1
+		return node
+</prog>
+</example>
+
+</section>
+
+
+<section><title>Chaining pool and extending namespaces</title>
+
+<par>When using <pyref module="ll.xist.xsc" class="Pool">pools</pyref> it's
+possible to do some sort of <z>namespace subclassing</z>.</par>
+
+<par>Registering a module in a pool not only registers the element, procinst and
+entity classes in the pool for parsing, but each attribute of the module (as
+long as it's weak referencable) is available as an attribute of the pool
+itself:</par>
+
+<example><title>Pool attributes</title>
+<prog>
+from ll.xist import xsc
+from ll.xist.ns import html
+
+pool = xsc.Pool(html)
+print pool.img
+</prog>
+</example>
+
+<par>This outputs <lit><![CDATA[<element class ll.xist.ns.html:img at 0x3eed00>]]></lit>.</par>
+
+<par>It's possible to chain pools together. When an attribute isn't found in
+the first pool, it will be looked up in a second pool (the so called base
+pool):</par>
+
+<example><title>Pool chaining</title>
+<prog>
+from ll.xist import xsc
+from ll.xist.ns import html, svg
+
+hpool = xsc.Pool(html)
+spool = xsc.Pool(svg, hpool)
+print spool.img
+</prog>
+</example>
+
+<par>Here the <lit>hpool</lit> (containing the <module>html</module> namespace)
+will be used, when the attribute can't be found in <lit>spool</lit>. So this
+will again give the output
+<lit><![CDATA[<element class ll.xist.ns.html:img at 0x3eed00>]]></lit>.</par>
+
+<par>It's possible to get automatic pool chaining. If a module has an attribute
+<lit>__bases__</lit> (which must be a sequence of modules), they will
+automatically be wrapped in a pool and used as the base pools for the pool
+created for the first module. This makes it possible to <z>overwrite</z> element
+classes in existing namespaces. For example to replace the <class>a</class>
+class in <module>ll.xist.ns.html</module>, put the following into a module
+<module>html2</module>:</par>
+
+<example><title>Automatic pool chaining (<filename>html2.py</filename>)</title>
+<prog>
+from ll.xist.ns import html
+
+__bases__ = [html]
+
+class a(html.a):
+	xmlns = html.xmlns
+
+	def convert(self, converter):
+		e = html.a(self.content, self.attrs, target="_top")
+		return e.convert(converter)
+</prog>
+</example>
+
+<par>Now you can use the module in a pool:</par>
+
+<example><title>Using a pool chain</title>
+<prog>
+from ll.xist import xsc
+import html2
+
+pool = xsc.Pool(html2)
+print pool.a, pool.b
+</prog>
+</example>
+
+<par>This outputs:</par>
+<tty><![CDATA[
+<element class html2:a at 0x113ec40> <element class ll.xist.ns.html:b at 0x1101fe0>
+]]></tty>
+
+<par>Note that such a chained pool can of course used when parsing &xml;. The
+parser will recursively search for the first class that has the appropriate
+name when instantiating the tree nodes.</par>
+
+</section>
+
+
+<!--
 <par>Each element class that belongs to a namespace can access its
 namespace via the class attribute <lit>__ns__</lit>. When you're subclassing
 namespace classes, the elements in the base namespace will be automatically
@@ -173,7 +299,7 @@ class __ns__(html):
 <par>Now we can pass this namespace as the conversion target and all links
 will have a <lit>target="_top"</lit>.</par>
 </section>
-
+-->
 
 <section><title>Validation and content models</title>
 
