@@ -168,7 +168,7 @@ def applystylesheets(node, base=None, media=None):
 
 	rules = []
 	for (i, rule) in enumerate(iterrules(node, base=base, media=media)):
-		for sel in rule.selectorList.seq:
+		for sel in rule.selectorList:
 			sel = selector(sel)
 			rules.append((sel.cssweight(), sel, rule.style))
 	rules.sort(key=operator.itemgetter(0))

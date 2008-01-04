@@ -84,7 +84,7 @@ args = dict(
 	],
 	install_requires=[
 		"ll-core >= 1.11",
-		"cssutils == 0.9.4a3",
+		"cssutils == 0.9.4b1",
 	],
 	namespace_packages=["ll"],
 	zip_safe=False,
