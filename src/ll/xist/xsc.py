@@ -32,6 +32,10 @@ try:
 except ImportError:
 	ipipe = None
 
+
+__docformat__ = "xist"
+
+
 local = threading.local()
 
 def getstack():
@@ -266,7 +270,7 @@ class RequiredAttrMissingWarning(Warning):
 		self.reqattrs = reqattrs
 
 	def __str__(self):
-		return "Required attribute%s %s missing in %s" % (("s" if len(self.reqattrs)>1 else ""), ", ".join(attr.__class__.__name__ for attr in self.reqattrs), self.attrs._str(fullname=True, xml=False, decorate=False))
+		return "Required attribute%s %s missing in %s" % (("s" if len(self.reqattrs)>1 else ""), ", ".join(repr(attr) for attr in self.reqattrs), self.attrs._str(fullname=True, xml=False, decorate=False))
 
 
 class IllegalDTDChildWarning(Warning):
@@ -2526,7 +2530,7 @@ class Attrs(Node, dict):
 
 	def set_xml(self, name, value):
 		"""
-		<par>Set the attribute with the XML <arg>name</arg> to the value <arg>value</arg>.
+		<par>Set the attribute with the XML <arg>name</arg> to the value <arg>value</arg>.</par>
 		<par>The newly set attribute will be returned.</par>
 		"""
 		attr = self.allowedattr_xml(name)
