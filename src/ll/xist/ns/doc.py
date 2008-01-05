@@ -15,7 +15,24 @@ documentation (in &html;, DocBook and XSL-FO).</par>
 
 
 # import __builtin__ to use property, which is also defined here
-import sys, types, inspect, warnings, operator, __builtin__
+import sys, types, inspect, optparse, collections, warnings, operator, __builtin__
+
+try:
+	from docutils import nodes, utils, parsers as restparsers, frontend
+	from docutils.parsers.rst import roles
+except ImportError:
+	pass
+else:
+	# FIXME: Do the right thing
+	roles.register_generic_role("mod", nodes.literal)
+	roles.register_generic_role("class", nodes.literal)
+	roles.register_generic_role("func", nodes.literal)
+	roles.register_generic_role("meth", nodes.literal)
+	roles.register_generic_role("var", nodes.literal)
+	roles.register_generic_role("exc", nodes.literal)
+	roles.register_generic_role("attr", nodes.literal)
+	roles.register_generic_role("prop", nodes.literal)
+	roles.register_generic_role("option", nodes.literal)
 
 import ll
 from ll.xist import xsc, parsers, sims, xfind
@@ -33,86 +50,93 @@ def _getmodulename(thing):
 		return module.__name__
 
 
-def getdoc(thing):
+def getdoc(thing, format):
 	if thing.__doc__ is None:
 		return xsc.Null
-	lines = thing.__doc__.split("\n")
+	if format.lower() == "plaintext":
+		return xsc.Text(thing.__doc__)
+	elif format.lower() == "restructuredtext":
+		return rest2doc(thing.__doc__)
+	elif format.lower() == "xist":
+		lines = thing.__doc__.split("\n")
 
-	# find first nonempty line
-	for i in xrange(len(lines)):
-		if lines[i] and not lines[i].isspace():
-			if i:
-				del lines[:i]
-			break
-
-	if lines:
-		# find starting white space of this line
-		startwhite = ""
-		for c in lines[0]:
-			if c.isspace():
-				startwhite += c
-			else:
+		# find first nonempty line
+		for i in xrange(len(lines)):
+			if lines[i] and not lines[i].isspace():
+				if i:
+					del lines[:i]
 				break
 
-		# remove this whitespace from every line
-		for i in xrange(len(lines)):
-			if lines[i].startswith(startwhite):
-				lines[i] = lines[i][len(startwhite):]
+		if lines:
+			# find starting white space of this line
+			startwhite = ""
+			for c in lines[0]:
+				if c.isspace():
+					startwhite += c
+				else:
+					break
 
-		# remove empty lines
-		while lines and not lines[0]:
-			del lines[0]
-		while lines and not lines[-1]:
-			del lines[-1]
+			# remove this whitespace from every line
+			for i in xrange(len(lines)):
+				if lines[i].startswith(startwhite):
+					lines[i] = lines[i][len(startwhite):]
+	
+			# remove empty lines
+			while lines and not lines[0]:
+				del lines[0]
+			while lines and not lines[-1]:
+				del lines[-1]
 
-	text = "\n".join(lines)
+		text = "\n".join(lines)
 
-	if inspect.ismethod(thing):
-		base = "METHOD-DOCSTRING(%s.%s.%s)" % (_getmodulename(thing), thing.im_class.__name__, thing.__name__)
-	elif isinstance(thing, __builtin__.property):
-		base = "PROPERTY-DOCSTRING(%s.%s)" % (_getmodulename(thing), "unknown")
-	elif inspect.isfunction(thing):
-		base = "FUNCTION-DOCSTRING(%s.%s)" % (_getmodulename(thing), thing.__name__)
-	elif inspect.isclass(thing):
-		base = "CLASS-DOCSTRING(%s.%s)" % (_getmodulename(thing), thing.__name__)
-	elif inspect.ismodule(thing):
-		base = "MODULE-DOCSTRING(%s)" % _getmodulename(thing)
+		if inspect.ismethod(thing):
+			base = "METHOD-DOCSTRING(%s.%s.%s)" % (_getmodulename(thing), thing.im_class.__name__, thing.__name__)
+		elif isinstance(thing, __builtin__.property):
+			base = "PROPERTY-DOCSTRING(%s.%s)" % (_getmodulename(thing), "unknown")
+		elif inspect.isfunction(thing):
+			base = "FUNCTION-DOCSTRING(%s.%s)" % (_getmodulename(thing), thing.__name__)
+		elif inspect.isclass(thing):
+			base = "CLASS-DOCSTRING(%s.%s)" % (_getmodulename(thing), thing.__name__)
+		elif inspect.ismodule(thing):
+			base = "MODULE-DOCSTRING(%s)" % _getmodulename(thing)
+		else:
+			base = "DOCSTRING"
+		node = parsers.parsestring(text, base=base, prefixes=xsc.docprefixes())
+		if not node[par]: # optimization: one paragraph docstrings don't need a <par> element.
+			node = par(node)
+
+		if inspect.ismethod(thing):
+			# Use the original method instead of the decorator
+			realthing = thing
+			while hasattr(realthing, "__wrapped__"):
+				realthing = realthing.__wrapped__
+			for ref in node.walknode(pyref):
+				if u"module" not in ref.attrs:
+					ref[u"module"] = _getmodulename(realthing)
+					if u"class_" not in ref.attrs:
+						ref[u"class_"] = thing.im_class.__name__
+						if u"method" not in ref.attrs:
+							ref[u"method"] = thing.__name__
+		elif inspect.isfunction(thing):
+			# Use the original method instead of the decorator
+			while hasattr(thing, "__wrapped__"):
+				thing = thing.__wrapped__
+			for ref in node.walknode(pyref):
+				if u"module" not in ref.attrs:
+					ref[u"module"] = _getmodulename(thing)
+		elif inspect.isclass(thing):
+			for ref in node.walknode(pyref):
+				if u"module" not in ref.attrs:
+					ref[u"module"] = _getmodulename(thing)
+					if u"class_" not in ref.attrs:
+						ref[u"class_"] = thing.__name__
+		elif inspect.ismodule(thing):
+			for ref in node.walknode(pyref):
+				if u"module" not in ref.attrs:
+					ref[u"module"] = thing.__name__
+		return node
 	else:
-		base = "DOCSTRING"
-	node = parsers.parsestring(text, base=base, prefixes=xsc.docprefixes())
-	if not node[par]: # optimization: one paragraph docstrings don't need a <par> element.
-		node = par(node)
-
-	if inspect.ismethod(thing):
-		# Use the original method instead of the decorator
-		realthing = thing
-		while hasattr(realthing, "__wrapped__"):
-			realthing = realthing.__wrapped__
-		for ref in node.walknode(pyref):
-			if u"module" not in ref.attrs:
-				ref[u"module"] = _getmodulename(realthing)
-				if u"class_" not in ref.attrs:
-					ref[u"class_"] = thing.im_class.__name__
-					if u"method" not in ref.attrs:
-						ref[u"method"] = thing.__name__
-	elif inspect.isfunction(thing):
-		# Use the original method instead of the decorator
-		while hasattr(thing, "__wrapped__"):
-			thing = thing.__wrapped__
-		for ref in node.walknode(pyref):
-			if u"module" not in ref.attrs:
-				ref[u"module"] = _getmodulename(thing)
-	elif inspect.isclass(thing):
-		for ref in node.walknode(pyref):
-			if u"module" not in ref.attrs:
-				ref[u"module"] = _getmodulename(thing)
-				if u"class_" not in ref.attrs:
-					ref[u"class_"] = thing.__name__
-	elif inspect.ismodule(thing):
-		for ref in node.walknode(pyref):
-			if u"module" not in ref.attrs:
-				ref[u"module"] = thing.__name__
-	return node
+		raise ValueError("unknown format %r" % format)
 
 
 def getsourceline(obj):
@@ -174,7 +198,7 @@ def _codeheader(thing, name, type):
 	return sig
 
 
-def explain(thing, name=None, context=[]):
+def explain(thing, name=None, format=None, context=[]):
 	"""
 	<par>Return a &xml; representation of the documentation of
 	<arg>thing</arg>, which can be a function, method, class or module.</par>
@@ -202,7 +226,9 @@ def explain(thing, name=None, context=[]):
 				visibility = u"special"
 
 	# Determine whether thing has a docstring
-	doc = getdoc(thing)
+	if format is None and inspect.ismodule(thing):
+		format = getattr(thing, "__docformat__", "plaintext")
+	doc = getdoc(thing, format)
 	if doc is xsc.Null:
 		hasdoc = u"nodoc"
 	else:
@@ -237,11 +263,11 @@ def explain(thing, name=None, context=[]):
 		)
 		node = section(title(sig), doc, role=(visibility, u" property ", hasdoc), id=id)
 		if thing.fget is not None:
-			node.append(explain(thing.fget, u"__get__", context))
+			node.append(explain(thing.fget, u"__get__", format, context))
 		if thing.fset is not None:
-			node.append(explain(thing.fset, u"__set__", context))
+			node.append(explain(thing.fset, u"__set__", format, context))
 		if thing.fdel is not None:
-			node.append(explain(thing.fdel, u"__delete__", context))
+			node.append(explain(thing.fdel, u"__delete__", format, context))
 		return node
 	elif inspect.isclass(thing):
 		name = name or thing.__name__
@@ -305,7 +331,7 @@ def explain(thing, name=None, context=[]):
 		if all:
 			all.sort()
 			for (key, subobj, subname) in all:
-				node.append(explain(subobj, subname, context))
+				node.append(explain(subobj, subname, format, context))
 		return node
 	elif inspect.ismodule(thing):
 		name = name or thing.__name__
@@ -322,7 +348,7 @@ def explain(thing, name=None, context=[]):
 			all.sort()
 			for (key, obj, name) in all:
 				node.append(
-					explain(obj, name, context),
+					explain(obj, name, format, context),
 				)
 		return node
 
@@ -1531,3 +1557,87 @@ class fodoc(base):
 			)
 		)
 		return e
+
+
+class ReSTConversionWarning(Warning):
+	pass
+
+
+class ReSTConverter(object):
+	def __init__(self):
+		self.namedrefs = collections.defaultdict()
+		self.namedrefs.default_factory = list
+		self.unnamedrefs = []
+
+	def convert(self, node):
+		if isinstance(node, nodes.document):
+			return xsc.Frag(self.convert(child) for child in node.children)
+		elif isinstance(node, nodes.Text):
+			return xsc.Text(node.astext())
+		elif isinstance(node, nodes.section):
+			return section(self.convert(child) for child in node.children)
+		elif isinstance(node, nodes.title):
+			return title(self.convert(child) for child in node.children)
+		elif isinstance(node, nodes.paragraph):
+			return par(self.convert(child) for child in node.children)
+		elif isinstance(node, nodes.bullet_list):
+			return ulist(self.convert(child) for child in node.children)
+		elif isinstance(node, nodes.list_item):
+			return item(self.convert(child) for child in node.children)
+		elif isinstance(node, nodes.definition_list):
+			return dlist(self.convert(child) for child in node.children)
+		elif isinstance(node, nodes.definition_list_item):
+			return xsc.Frag(self.convert(child) for child in node.children)
+		elif isinstance(node, nodes.term):
+			return term(self.convert(child) for child in node.children)
+		elif isinstance(node, nodes.definition):
+			return item(self.convert(child) for child in node.children)
+		elif isinstance(node, nodes.literal_block):
+			return prog(self.convert(child) for child in node.children)
+		elif isinstance(node, nodes.literal):
+			return lit(self.convert(child) for child in node.children)
+		elif isinstance(node, nodes.emphasis):
+			return em(self.convert(child) for child in node.children)
+		elif isinstance(node, nodes.reference):
+			link = link(self.convert(child) for child in node.children)
+			if "anonymous" in node.attributes:
+				self.unnamedrefs.append(link)
+			else:
+				self.namedrefs[node.attributes["refname"]].append(link)
+			return link
+		elif isinstance(node, nodes.target):
+			uri = node.attributes["refuri"]
+			if "anonymous" in node.attributes:
+				# Set the link on the first unnamed reference
+				self.unnamedrefs[0].attrs.href = uri
+				del self.unnamedrefs[0] # done => remove it
+			else:
+				for name in node.attributes["names"]:
+					try:
+						links = self.namedrefs[name]
+					except KeyError:
+						pass
+					else:
+						for link in links:
+							link.attrs.href = uri
+						del self.namedrefs[name]
+			return xsc.Null
+		elif isinstance(node, nodes.system_message):
+			warnings.warn(ReSTConversionWarning(str(node)))
+			return xsc.Null # ignore system messages
+		else:
+			raise TypeError("can't handle %r" % node.__class__)
+
+
+def rest2doc(string):
+	parser = restparsers.get_parser_class("rst")()
+	defaults = frontend.OptionParser().defaults.copy()
+	defaults["tab_width"] = 3
+	defaults["pep_references"] = 1
+	defaults["rfc_references"] = 1
+
+	doc = utils.new_document("?", optparse.Values(defaults))
+	parser.parse(string, doc)
+
+	conv = ReSTConverter()
+	return conv.convert(doc)
