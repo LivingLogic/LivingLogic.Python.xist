@@ -66,6 +66,12 @@ Changes in 3.0 (released ??/??/2007)
 
 	.. _XPython: http://codespeak.net/svn/user/hpk/talks/xpython-talk.txt
 
+*	A subset of ReST__ is supported now for docstrings when using the
+	:mod:`ll.xist.ns.doc` module. The module attribute :attr:`__docformat__`
+	is now honored (Set it to ``"xist"`` to get XIST docstrings).
+
+	__ http://docutils.sourceforge.net/rst.html
+
 *	The ``media`` attribute of :class:`html.link` and :class:`html.style` now has
 	a method :meth:`hasmedia`.
 

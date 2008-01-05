@@ -87,6 +87,11 @@ print node.conv().bytes(encoding="us-ascii")
 <link href="http://codespeak.net/svn/user/hpk/talks/xpython-talk.txt">XPython</link>.</par>
 </item>
 
+<item>A subset of <link href="http://docutils.sourceforge.net/rst.html">ReST</link>
+is supported now for docstrings when using the <module>ll.xist.ns.doc</module>
+module. The module attribute <lit>__docformat__</lit> is now honored (Set it
+to <lit>"xist"</lit> to get &xist; docstrings).</item>
+
 <item>The <lit>media</lit> attribute of <class>html.link</class> and
 <class>html.style</class> now has a method <method>hasmedia</method>.</item>
 
