@@ -1558,6 +1558,9 @@ class ReSTConverter(object):
 			return xsc.Frag(self.convert(child) for child in node.children)
 		elif isinstance(node, nodes.Text):
 			return xsc.Text(node.astext())
+		elif isinstance(node, nodes.problematic):
+			# We don't do anything about this
+			return xsc.Frag(self.convert(child) for child in node.children)
 		elif isinstance(node, nodes.section):
 			return section(self.convert(child) for child in node.children)
 		elif isinstance(node, nodes.title):
