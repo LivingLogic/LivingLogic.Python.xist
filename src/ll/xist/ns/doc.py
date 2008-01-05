@@ -139,7 +139,7 @@ def getdoc(thing, format):
 					ref[u"module"] = thing.__name__
 		return node
 	else:
-		raise ValueError("unknown format %r" % format)
+		raise ValueError("unsupported __docformat__ %r" % format)
 
 
 def getsourceline(obj):
