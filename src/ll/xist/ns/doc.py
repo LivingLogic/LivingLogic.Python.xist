@@ -15,7 +15,7 @@ documentation (in &html;, DocBook and XSL-FO).</par>
 
 
 # import __builtin__ to use property, which is also defined here
-import sys, types, inspect, optparse, collections, warnings, operator, __builtin__
+import sys, types, inspect, textwrap, optparse, collections, warnings, operator, __builtin__
 
 try:
 	from docutils import nodes, utils, parsers as restparsers, frontend
@@ -56,42 +56,23 @@ def _getmodulename(thing):
 def getdoc(thing, format):
 	if thing.__doc__ is None:
 		return xsc.Null
+
+	# Remove indentation
+	lines = textwrap.dedent(thing.__doc__).split("\n")
+
+	# remove empty lines
+	while lines and not lines[0]:
+		del lines[0]
+	while lines and not lines[-1]:
+		del lines[-1]
+
+	text = "\n".join(lines)
+
 	if format.lower() == "plaintext":
-		return xsc.Text(thing.__doc__)
+		return xsc.Text(text)
 	elif format.lower() == "restructuredtext":
-		return rest2doc(thing.__doc__)
+		return rest2doc(text)
 	elif format.lower() == "xist":
-		lines = thing.__doc__.split("\n")
-
-		# find first nonempty line
-		for i in xrange(len(lines)):
-			if lines[i] and not lines[i].isspace():
-				if i:
-					del lines[:i]
-				break
-
-		if lines:
-			# find starting white space of this line
-			startwhite = ""
-			for c in lines[0]:
-				if c.isspace():
-					startwhite += c
-				else:
-					break
-
-			# remove this whitespace from every line
-			for i in xrange(len(lines)):
-				if lines[i].startswith(startwhite):
-					lines[i] = lines[i][len(startwhite):]
-	
-			# remove empty lines
-			while lines and not lines[0]:
-				del lines[0]
-			while lines and not lines[-1]:
-				del lines[-1]
-
-		text = "\n".join(lines)
-
 		if inspect.ismethod(thing):
 			base = "METHOD-DOCSTRING(%s.%s.%s)" % (_getmodulename(thing), thing.im_class.__name__, thing.__name__)
 		elif isinstance(thing, __builtin__.property):
@@ -1602,12 +1583,12 @@ class ReSTConverter(object):
 		elif isinstance(node, nodes.emphasis):
 			return em(self.convert(child) for child in node.children)
 		elif isinstance(node, nodes.reference):
-			link = link(self.convert(child) for child in node.children)
+			e = link(self.convert(child) for child in node.children)
 			if "anonymous" in node.attributes:
-				self.unnamedrefs.append(link)
+				self.unnamedrefs.append(e)
 			else:
-				self.namedrefs[node.attributes["refname"]].append(link)
-			return link
+				self.namedrefs[node.attributes["refname"]].append(e)
+			return e
 		elif isinstance(node, nodes.target):
 			uri = node.attributes["refuri"]
 			if "anonymous" in node.attributes:
@@ -1617,12 +1598,12 @@ class ReSTConverter(object):
 			else:
 				for name in node.attributes["names"]:
 					try:
-						links = self.namedrefs[name]
+						es = self.namedrefs[name]
 					except KeyError:
 						pass
 					else:
-						for link in links:
-							link.attrs.href = uri
+						for e in es:
+							e.attrs.href = uri
 						del self.namedrefs[name]
 			return xsc.Null
 		elif isinstance(node, nodes.system_message):
