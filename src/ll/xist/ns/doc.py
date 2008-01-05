@@ -227,7 +227,7 @@ def explain(thing, name=None, format=None, context=[]):
 
 	# Determine whether thing has a docstring
 	if format is None and inspect.ismodule(thing):
-		format = getattr(thing, "__docformat__", "plaintext")
+		format = getattr(thing, "__docformat__", "plaintext").split()[0]
 	doc = getdoc(thing, format)
 	if doc is xsc.Null:
 		hasdoc = u"nodoc"
