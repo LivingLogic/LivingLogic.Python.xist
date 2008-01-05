@@ -30,6 +30,9 @@ from ll.xist import xsc, xfind
 from ll.xist.ns import html
 
 
+__docformat__ = "xist"
+
+
 def _isstyle(path):
 	if path:
 		node = path[-1]

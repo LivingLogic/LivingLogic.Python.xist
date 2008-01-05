@@ -39,6 +39,9 @@ from ll.xist import xsc, parsers, sims, xfind
 from ll.xist.ns import html, docbook, fo, specials, xml
 
 
+__docformat__ = "xist"
+
+
 xmlns = "http://xmlns.livinglogic.de/xist/ns/doc"
 
 

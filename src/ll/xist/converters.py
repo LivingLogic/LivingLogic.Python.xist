@@ -17,6 +17,9 @@ from ll import misc
 import xsc
 
 
+__docformat__ = "xist"
+
+
 class ConverterState(object):
 	def __init__(self, node, root, mode, stage, target, lang, makeaction, makeproject):
 		self.node = node

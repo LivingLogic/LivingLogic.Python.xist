@@ -14,6 +14,9 @@ import sys, optparse
 from ll.xist import xsc, xnd, sims
 
 
+__docformat__ = "xist"
+
+
 def iterpath(node):
 	yield [node]
 	if hasattr(node, "text") and node.text:

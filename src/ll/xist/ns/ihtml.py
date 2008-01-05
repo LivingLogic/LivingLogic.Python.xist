@@ -19,6 +19,9 @@ import cgi # for parse_header
 from ll.xist import xsc, sims
 
 
+__docformat__ = "xist"
+
+
 xmlns = "http://www.nttdocomo.co.jp/imode"
 
 

@@ -17,6 +17,9 @@ import warnings
 from ll.xist import xsc
 
 
+__docformat__ = "xist"
+
+
 class SIMSWarning(xsc.Warning):
 	"""
 	Base class for all warning classes in this module.

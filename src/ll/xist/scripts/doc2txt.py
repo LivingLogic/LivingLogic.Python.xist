@@ -23,6 +23,9 @@ from ll.xist import xsc, parsers, converters
 from ll.xist.ns import html, doc, text
 
 
+__docformat__ = "plaintext"
+
+
 def xsc2txt(infilename, outfilename, title, width):
 	e = parsers.parseFile(infilename, prefixes=xsc.DocPrefixes())
 

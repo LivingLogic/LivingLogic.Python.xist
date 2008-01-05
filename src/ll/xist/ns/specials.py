@@ -20,6 +20,9 @@ from ll import url as url_
 from ll.xist import xsc, parsers, sims
 
 
+__docformat__ = "xist"
+
+
 xmlns = "http://xmlns.livinglogic.de/xist/ns/specials"
 
 

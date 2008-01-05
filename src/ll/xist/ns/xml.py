@@ -17,6 +17,9 @@ and classes for the &xml; declaration.</par>
 from ll.xist import xsc, utils, sims
 
 
+__docformat__ = "xist"
+
+
 xmlns = xsc.xml_xmlns
 
 

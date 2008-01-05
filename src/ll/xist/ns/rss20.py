@@ -16,6 +16,9 @@ This is a namespace module implementing RSS 2.0.
 from ll.xist import xsc, sims
 
 
+__docformat__ = "xist"
+
+
 xmlns = "http://feedvalidator.org/docs/rss2.html" # Just a guess
 
 

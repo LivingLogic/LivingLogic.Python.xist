@@ -9,11 +9,14 @@
 
 
 """
-<par>A XSC module that contains definitions for all the elements in Ruby 1.0.</par>
+<par>An &xist; module that contains definitions for all the elements in Ruby 1.0.</par>
 """
 
 
 from ll.xist import xsc, sims
+
+
+__docformat__ = "xist"
 
 
 xmlns = "http://www.w3.org/TR/ruby/xhtml-ruby-1.mod"

@@ -26,6 +26,9 @@ from ll.xist import xsc, xfind, parsers, converters
 from ll.xist.ns import tld
 
 
+__docformat__ = "xist"
+
+
 def tld2xnd(stream, shareattrs=None):
 	node = parsers.parsestream(stream, prefixes={None: tld})
 

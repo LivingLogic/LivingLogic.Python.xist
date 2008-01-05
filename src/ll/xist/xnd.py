@@ -20,6 +20,9 @@ import sys, keyword
 from ll.xist import xsc, parsers, sims
 
 
+__docformat__ = "xist"
+
+
 class Base(object):
 	def __init__(self, name):
 		self.name = name

@@ -23,6 +23,9 @@ from ll import misc
 from ll.xist import xsc
 
 
+__docformat__ = "xist"
+
+
 class CSSWeight(tuple):
 	"""
 	The specificity of a &css; selector as a 3-item tuple as specified by

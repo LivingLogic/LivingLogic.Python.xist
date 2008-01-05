@@ -18,6 +18,9 @@ from ll import misc
 from ll.xist import xsc, sims, xnd, xfind
 
 
+__docformat__ = "xist"
+
+
 xmlns = "http://java.sun.com/j2ee/dtds/web-jsptaglibrary_1_1.dtd"
 
 

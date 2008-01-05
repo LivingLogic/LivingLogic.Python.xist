@@ -16,6 +16,9 @@ This is a namespace module implementing RSS 0.91.
 from ll.xist import xsc, sims
 
 
+__docformat__ = "xist"
+
+
 xmlns = "http://my.netscape.com/publish/formats/rss-0.91.dtd"
 
 

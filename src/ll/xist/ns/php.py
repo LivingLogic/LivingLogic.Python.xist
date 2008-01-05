@@ -16,6 +16,9 @@
 from ll.xist import xsc, sims
 
 
+__docformat__ = "xist"
+
+
 xmlns = "http://www.php.net/"
 
 

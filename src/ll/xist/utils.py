@@ -19,6 +19,9 @@ from ll import url as url_
 import xsc
 
 
+__docformat__ = "xist"
+
+
 def findattr(content, name):
 	startpos = content.find(name)
 	if startpos != -1:

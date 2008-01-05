@@ -18,6 +18,9 @@ from ll.xist import xsc, sims
 from ll.xist.ns import xml
 
 
+__docformat__ = "xist"
+
+
 xmlns = "http://jakarta.apache.org/struts/dtds/struts-config_1_1.dtd"
 
 

@@ -20,6 +20,9 @@ from ll.xist import xsc, sims
 from ll.xist.ns import ihtml, html
 
 
+__docformat__ = "xist"
+
+
 xmlns = "http://xmlns.livinglogic.de/xist/ns/meta"
 
 

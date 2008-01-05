@@ -56,4 +56,8 @@ and <link href="http://dustman.net/andy/python/HyperText/">HyperText</link>.</pa
 """
 
 
+__docformat__ = "xist"
+
+
 __all__ = ["xsc", "publishers", "presenters", "parsers", "converters", "sims", "xnd", "ns"]
+

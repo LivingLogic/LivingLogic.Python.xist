@@ -18,6 +18,9 @@ html custom tag library.</par>
 from ll.xist import xsc, sims
 
 
+__docformat__ = "xist"
+
+
 xmlns = "http://jakarta.apache.org/struts/tags-html"
 
 

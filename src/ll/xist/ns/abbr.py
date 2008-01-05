@@ -17,6 +17,9 @@ from ll.xist import xsc
 import doc
 
 
+__docformat__ = "xist"
+
+
 xmlns = "http://xmlns.livinglogic.de/xist/ns/abbr"
 
 

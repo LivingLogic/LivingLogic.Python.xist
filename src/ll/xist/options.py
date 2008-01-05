@@ -17,6 +17,9 @@ which can be found in presenters.py).
 import sys, os
 
 
+__docformat__ = "xist"
+
+
 def getenvstr(name, default):
 	try:
 		return os.environ[name]

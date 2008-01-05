@@ -18,6 +18,9 @@ from ll.xist import xsc, sims
 from ll.xist.ns import html
 
 
+__docformat__ = "xist"
+
+
 xmlns = "http://www.w3.org/2005/Atom"
 
 

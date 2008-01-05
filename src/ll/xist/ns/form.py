@@ -19,6 +19,9 @@ from ll.xist import xsc
 from ll.xist.ns import html
 
 
+__docformat__ = "xist"
+
+
 xmlns = "http://xmlns.livinglogic.de/xist/ns/form"
 
 

@@ -18,6 +18,9 @@ This is a namespace module implementing
 from ll.xist import xsc, sims
 
 
+__docformat__ = "xist"
+
+
 xmlns = "http://www.w3.org/2000/svg"
 
 

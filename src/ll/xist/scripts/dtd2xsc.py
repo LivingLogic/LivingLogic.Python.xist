@@ -27,6 +27,9 @@ from ll import url
 from ll.xist import xsc, parsers, xnd
 
 
+__docformat__ = "xist"
+
+
 def getxmlns(dtd):
 	"""
 	Extract the value of all fixed <lit>xmlns</lit> attributes

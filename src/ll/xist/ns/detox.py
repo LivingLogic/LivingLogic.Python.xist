@@ -38,6 +38,9 @@ from ll import misc
 from ll.xist import xsc
 
 
+__docformat__ = "xist"
+
+
 class expr(xsc.ProcInst):
 	"""
 	Embed the value of the expression

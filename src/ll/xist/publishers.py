@@ -22,6 +22,9 @@ from ll import xml_codec # registers the "xml" encoding
 import xsc, helpers
 
 
+__docformat__ = "xist"
+
+
 def cssescapereplace(exc):
 	"""
 	PEP 293 codec callback that escapes unencodable character for CSS output.

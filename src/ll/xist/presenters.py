@@ -29,6 +29,9 @@ from ll import misc, url
 import xsc, options
 
 
+__docformat__ = "xist"
+
+
 ###
 ### Colors for output
 ###

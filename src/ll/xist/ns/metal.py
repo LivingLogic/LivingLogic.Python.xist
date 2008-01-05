@@ -17,6 +17,9 @@
 from ll.xist import xsc
 
 
+__docformat__ = "xist"
+
+
 xmlns = "http://xml.zope.org/namespaces/metal"
 
 

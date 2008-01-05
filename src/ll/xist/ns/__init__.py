@@ -33,6 +33,9 @@ in most cases).</par>
 """
 
 
+__docformat__ = "xist"
+
+
 __all__ = [
 	"abbr",
 	"chars",

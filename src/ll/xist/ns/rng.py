@@ -17,6 +17,9 @@ This module is an &xist; namespace for
 from ll.xist import xsc, sims
 
 
+__docformat__ = "xist"
+
+
 xmlns = "http://relaxng.org/ns/structure/1.0"
 
 

@@ -19,6 +19,9 @@ from ll.xist import xsc
 from ll.xist.ns import html
 
 
+__docformat__ = "xist"
+
+
 class Code(object):
 	def __init__(self, text, ignorefirst=False):
 		# get the individual lines; ignore "\r" as this would mess up whitespace handling later

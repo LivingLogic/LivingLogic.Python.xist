@@ -23,6 +23,9 @@ from ll.xist import xsc, utils, sims, xfind
 from ll.xist.ns import xml
 
 
+__docformat__ = "xist"
+
+
 object_ = object
 
 xmlns = "http://www.w3.org/1999/xhtml"
