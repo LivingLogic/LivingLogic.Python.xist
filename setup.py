@@ -13,7 +13,7 @@ import textwrap
 
 
 DESCRIPTION = """
-XIST is an extensible HTML and XML generator. XIST is also a DOM parser with a
+XIST is an extensible HTML and XML generator. XIST is also a XML parser with a
 very simple and pythonesque tree API. Every XML element type corresponds to a
 Python class and these Python classes provide a conversion method to transform
 the XML tree (e.g. into HTML). XIST can be considered 'object oriented XSLT'.
