@@ -614,14 +614,6 @@ class input(inline):
 		return xsc.Text(unicode(self.content))
 
 
-class programlisting(prog):
-	xmlns = xmlns
-
-	def convert(self, converter):
-		warnings.warn(DeprecationWarning("programlisting is deprecated, use prog instead"))
-		return prog.convert(self, converter)
-
-
 class rep(inline):
 	"""
 	Content that may or must be replaced by the user
