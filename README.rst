@@ -1,28 +1,29 @@
-Content
+Purpose
 -------
 
-XIST is an extensible HTML and XML generator written in Python and also
-a DOM parser (built on top of SAX2) with a very simple and pythonesque
-tree API. Every XML element type corresponds to a Python class and these
-Python classes provide a conversion method to transform the XML tree
-(e.g. into HTML). XIST can be considered object oriented XSLT.
+XIST is an extensible HTML and XML generator. XIST is also a XML parser with a
+very simple and pythonesque tree API. Every XML element type corresponds to a
+Python class and these Python classes provide a conversion method to transform
+the XML tree (e.g. into HTML). XIST can be considered 'object oriented XSLT'.
 
 
 Documentation
 -------------
 
-For documentation read ``HOWTO`` or the `web pages`_.
+For documentation read the files in the ``docs/`` directory or the
+`web pages`__.
 
-.. _web pages: http://www.livinglogic.de/Python/xist/
+__ http://www.livinglogic.de/Python/xist/
 
-For installation instruction read ``INSTALL`` or the `installation web page`_.
+For installation instruction read ``INSTALL.rst`` or the
+`installation web page`__.
 
-.. _installation web page: http://www.livinglogic.de/Python/xist/Installation.html
+__ http://www.livinglogic.de/Python/xist/Installation.html
 
 For a history of XIST and a list of new features in this version,
-read ``NEWS`` or the `history web page`_.
+read ``NEWS.rst`` or the `history web page`__.
 
-.. _history web page: http://www.livinglogic.de/Python/xist/History.html
+__ http://www.livinglogic.de/Python/xist/History.html
 
 For the license read ``__init__.py``.
 
