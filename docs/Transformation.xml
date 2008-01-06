@@ -1,13 +1,13 @@
-<par>Apart from the <pyref module="ll.xist.xsc" class="Node" method="convert"><method>convert</method></pyref>
-method, &xist; provides many tools for manipulating an &xml; tree.</par>
+<p>Apart from the <pyref module="ll.xist.xsc" class="Node" method="convert"><meth>convert</meth></pyref>
+method, &xist; provides many tools for manipulating an &xml; tree.</p>
 
 
-<section><title>The <method>withsep</method> method</title>
+<section><h>The <meth>withsep</meth> method</h>
 
-<par>The method <pyref module="ll.xist.xsc" class="Frag" method="withsep"><method>withsep</method></pyref>
+<p>The method <pyref module="ll.xist.xsc" class="Frag" method="withsep"><meth>withsep</meth></pyref>
 can be used to put a seperator node between the child nodes of an
 <pyref module="ll.xist.xsc" class="Element"><class>Element</class></pyref>
-or a <pyref module="ll.xist.xsc" class="Frag"><class>Frag</class></pyref>:</par>
+or a <pyref module="ll.xist.xsc" class="Frag"><class>Frag</class></pyref>:</p>
 
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist import xsc</input>
@@ -20,11 +20,11 @@ or a <pyref module="ll.xist.xsc" class="Frag"><class>Frag</class></pyref>:</par>
 </section>
 
 
-<section><title>The <method>shuffled</method> method</title>
+<section><h>The <meth>shuffled</meth> method</h>
 
-<par>The method <pyref module="ll.xist.xsc" class="Frag" method="shuffled"><method>shuffled</method></pyref>
+<p>The method <pyref module="ll.xist.xsc" class="Frag" method="shuffled"><meth>shuffled</meth></pyref>
 returns a shuffled version of the <pyref module="ll.xist.xsc" class="Element"><class>Element</class></pyref>
-or <pyref module="ll.xist.xsc" class="Frag"><class>Frag</class></pyref>:</par>
+or <pyref module="ll.xist.xsc" class="Frag"><class>Frag</class></pyref>:</p>
 
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist import xsc</input>
@@ -37,11 +37,11 @@ or <pyref module="ll.xist.xsc" class="Frag"><class>Frag</class></pyref>:</par>
 </section>
 
 
-<section><title>The <method>reversed</method> and <method>sorted</method> methods</title>
+<section><h>The <meth>reversed</meth> and <meth>sorted</meth> methods</h>
 
-<par>There are methods named <pyref module="ll.xist.xsc" class="Frag" method="reversed"><method>reversed</method></pyref>
-and <pyref module="ll.xist.xsc" class="Frag" method="sorted"><method>sorted</method></pyref> that
-return a reversed or sorted version of an element or fragment:</par>
+<p>There are methods named <pyref module="ll.xist.xsc" class="Frag" method="reversed"><meth>reversed</meth></pyref>
+and <pyref module="ll.xist.xsc" class="Frag" method="sorted"><meth>sorted</meth></pyref> that
+return a reversed or sorted version of an element or fragment:</p>
 
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist import xsc</input>
@@ -56,12 +56,12 @@ return a reversed or sorted version of an element or fragment:</par>
 </section>
 
 
-<section><title>The <method>mapped</method> method</title>
+<section><h>The <meth>mapped</meth> method</h>
 
-<par>The method <pyref module="ll.xist.xsc" class="Node" method="mapped"><method>mapped</method></pyref>
+<p>The method <pyref module="ll.xist.xsc" class="Node" method="mapped"><meth>mapped</meth></pyref>
 recursively walks the tree and generates a new tree, where all the nodes are mapped
 through a function. An example: To replace <lit>Python</lit> with <lit>Parrot</lit>
-in every text node on the <link href="http://www.python.org/">Python page</link>, do the following:</par>
+in every text node on the <a href="http://www.python.org/">Python page</a>, do the following:</p>
 
 <prog>
 from ll.xist import xsc, parsers
@@ -77,9 +77,9 @@ node = node.mapped(p2p)
 node.write(open("parrot_index.html", "wb"))
 </prog>
 
-<par>The function must either return a new node, in which case this
+<p>The function must either return a new node, in which case this
 new node will be used instead of the old one, or return the
-old node to tell <pyref module="ll.xist.xsc" class="Node" method="mapped"><method>mapped</method></pyref>
-that it should recursively continue with the content of the node.</par>
+old node to tell <pyref module="ll.xist.xsc" class="Node" method="mapped"><meth>mapped</meth></pyref>
+that it should recursively continue with the content of the node.</p>
 
 </section>

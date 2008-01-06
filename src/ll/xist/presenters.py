@@ -11,7 +11,7 @@
 """
 This module contains presenter classes, which are used for displaying &xist;
 nodes on screen (either on the terminal or via
-<pyref module="IPython.Extensions.ipipe"><module>ipipe</module></pyref> browsers).
+<pyref module="IPython.Extensions.ipipe"><mod>ipipe</mod></pyref> browsers).
 """
 
 
@@ -168,10 +168,10 @@ def strtext(text):
 
 class Presenter(table):
 	"""
-	<par>This class is the base of the presenter classes. It is abstract
-	and only serves as documentation for the methods.</par>
-	<par>A <class>Presenter</class> generates a specific
-	string representation of a node to be printed on the screen.</par>
+	<p>This class is the base of the presenter classes. It is abstract
+	and only serves as documentation for the methods.</p>
+	<p>A <class>Presenter</class> generates a specific
+	string representation of a node to be printed on the screen.</p>
 	"""
 
 	def __init__(self, node):
@@ -180,61 +180,61 @@ class Presenter(table):
 	@misc.notimplemented
 	def presentText(self, node):
 		"""
-		<par>present a <pyref module="ll.xist.xsc" class="Text"><class>Text</class></pyref> node.</par>
+		<p>present a <pyref module="ll.xist.xsc" class="Text"><class>Text</class></pyref> node.</p>
 		"""
 
 	@misc.notimplemented
 	def presentFrag(self, node):
 		"""
-		<par>present a <pyref module="ll.xist.xsc" class="Frag"><class>Frag</class></pyref> node.</par>
+		<p>present a <pyref module="ll.xist.xsc" class="Frag"><class>Frag</class></pyref> node.</p>
 		"""
 
 	@misc.notimplemented
 	def presentComment(self, node):
 		"""
-		<par>present a <pyref module="ll.xist.xsc" class="Comment"><class>Comment</class></pyref> node.</par>
+		<p>present a <pyref module="ll.xist.xsc" class="Comment"><class>Comment</class></pyref> node.</p>
 		"""
 
 	@misc.notimplemented
 	def presentDocType(self, node):
 		"""
-		<par>present a <pyref module="ll.xist.xsc" class="DocType"><class>DocType</class></pyref> node.</par>
+		<p>present a <pyref module="ll.xist.xsc" class="DocType"><class>DocType</class></pyref> node.</p>
 		"""
 
 	@misc.notimplemented
 	def presentProcInst(self, node):
 		"""
-		<par>present a <pyref module="ll.xist.xsc" class="ProcInst"><class>ProcInst</class></pyref> node.</par>
+		<p>present a <pyref module="ll.xist.xsc" class="ProcInst"><class>ProcInst</class></pyref> node.</p>
 		"""
 
 	@misc.notimplemented
 	def presentAttrs(self, node):
 		"""
-		<par>present an <pyref module="ll.xist.xsc" class="Attrs"><class>Attrs</class></pyref> node.</par>
+		<p>present an <pyref module="ll.xist.xsc" class="Attrs"><class>Attrs</class></pyref> node.</p>
 		"""
 
 	@misc.notimplemented
 	def presentElement(self, node):
 		"""
-		<par>present an <pyref module="ll.xist.xsc" class="Element"><class>Element</class></pyref> node.</par>
+		<p>present an <pyref module="ll.xist.xsc" class="Element"><class>Element</class></pyref> node.</p>
 		"""
 
 	@misc.notimplemented
 	def presentEntity(self, node):
 		"""
-		<par>present a <pyref module="ll.xist.xsc" class="Entity"><class>Entity</class></pyref> node.</par>
+		<p>present a <pyref module="ll.xist.xsc" class="Entity"><class>Entity</class></pyref> node.</p>
 		"""
 
 	@misc.notimplemented
 	def presentNull(self, node):
 		"""
-		<par>present the <class>Null</class> node.</par>
+		<p>present the <class>Null</class> node.</p>
 		"""
 
 	@misc.notimplemented
 	def presentAttr(self, node):
 		"""
-		<par>present an <pyref module="ll.xist.xsc" class="Attr"><class>Attr</class></pyref> node.</par>
+		<p>present an <pyref module="ll.xist.xsc" class="Attr"><class>Attr</class></pyref> node.</p>
 		"""
 
 
@@ -515,10 +515,10 @@ class TreePresenter(Presenter):
 
 class CodePresenter(Presenter):
 	"""
-	<par>This presenter formats the object as a nested Python object tree.</par>
+	<p>This presenter formats the object as a nested Python object tree.</p>
 
-	<par>This makes it possible to quickly convert &html;/&xml; files to &xist;
-	constructor calls.</par>
+	<p>This makes it possible to quickly convert &html;/&xml; files to &xist;
+	constructor calls.</p>
 	"""
 	def __init__(self, node, indent=None):
 		Presenter.__init__(self, node)

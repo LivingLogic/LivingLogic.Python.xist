@@ -9,7 +9,7 @@
 
 
 """
-<par>An &xist; namespace module that contains definitions for all the elements in &wml; 1.3.</par>
+<p>An &xist; namespace module that contains definitions for all the elements in &wml; 1.3.</p>
 """
 
 

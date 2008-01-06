@@ -25,34 +25,34 @@
 
 
 """
-<par>&xist; is an extensible &html; and &xml; generator written in Python.
+<p>&xist; is an extensible &html; and &xml; generator written in Python.
 &xist; is also a &dom; parser (built on top of &sax;2) with a very simple and
 pythonesque tree &api;. Every &xml; element type corresponds to a Python class and these
 Python classes provide a conversion method to transform the &xml; tree (e.g. into
-&html;). &xist; can be considered <z>object oriented &xslt;</z>.</par>
+&html;). &xist; can be considered <z>object oriented &xslt;</z>.</p>
 
-<par>Some of the significant features of &xist; include:</par>
-<ulist>
+<p>Some of the significant features of &xist; include:</p>
+<ul>
 <item>Easily extensible with new &xml; elements,</item>
 <item>Can be used for offline or online page generation,</item>
 <item>Allows embedding Python code in &xml; files,</item>
 <item>Supports separation of layout and logic,</item>
-<item>Can be used together with <link href="http://www.modpython.org/">mod_python</link>,
-<link href="http://pywx.idyll.org/">PyWX</link> or <link href="http://webware.sf.net/">Webware</link>
+<item>Can be used together with <a href="http://www.modpython.org/">mod_python</a>,
+<a href="http://pywx.idyll.org/">PyWX</a> or <a href="http://webware.sf.net/">Webware</a>
 to generate dynamic pages,</item>
 <item>Fully supports Unicode and &xml; namespaces,</item>
 <item>Provides features to use &xist; together with &jsp;/Struts (when replacing
 Struts tag libraries with &xist; this speeds up pages by a factor of 5&ndash;10.)</item>
-</ulist>
+</ul>
 
-<par>&xist; was written as a replacement for the
-<link href="http://www.linguistik.uni-erlangen.de/~msbethke/software.html">&html; preprocessor &hsc;</link>,
-and borrows some features and ideas from it.</par>
+<p>&xist; was written as a replacement for the
+<a href="http://www.linguistik.uni-erlangen.de/~msbethke/software.html">&html; preprocessor &hsc;</a>,
+and borrows some features and ideas from it.</p>
 
-<par>It also borrows the basic ideas (&xml;/&html; elements as Python
+<p>It also borrows the basic ideas (&xml;/&html; elements as Python
 objects) from
-<link href="http://starship.python.net/crew/friedrich/HTMLgen/html/main.html">HTMLgen</link>
-and <link href="http://dustman.net/andy/python/HyperText/">HyperText</link>.</par>
+<a href="http://starship.python.net/crew/friedrich/HTMLgen/html/main.html">HTMLgen</a>
+and <a href="http://dustman.net/andy/python/HyperText/">HyperText</a>.</p>
 """
 
 

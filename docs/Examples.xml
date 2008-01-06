@@ -1,8 +1,8 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
 
-<section><title>Creating &html;</title>
+<section><h>Creating &html;</h>
 
-<par>You can create and output &html; like this:</par>
+<p>You can create and output &html; like this:</p>
 
 <prog>
 from ll.xist import xsc
@@ -30,8 +30,8 @@ node = xsc.Frag(
 print node.conv().bytes(encoding="us-ascii")
 </prog>
 
-<par> You can also use <lit>with</lit> blocks (and the unary <lit>+</lit> operator)
-to generate the same &html;:</par>
+<p> You can also use <lit>with</lit> blocks (and the unary <lit>+</lit> operator)
+to generate the same &html;:</p>
 
 <prog>
 from __future__ import with_statement
@@ -59,10 +59,10 @@ print node.conv().bytes(encoding="us-ascii")
 </section>
 
 
-<section><title>Defining new elements</title>
+<section><h>Defining new elements</h>
 
-<par>You can define new elements and how they should be converted to &html;
-(or other &xml; vocabularies) like this:</par>
+<p>You can define new elements and how they should be converted to &html;
+(or other &xml; vocabularies) like this:</p>
 
 <prog>
 from ll.xist import xsc
@@ -102,9 +102,9 @@ print node.conv().bytes(encoding="us-ascii")
 </section>
 
 
-<section><title>Parsing &html;</title>
+<section><h>Parsing &html;</h>
 
-<par>Parsing &html; is done like this:</par>
+<p>Parsing &html; is done like this:</p>
 
 <prog>
 from ll.xist import parsers
@@ -115,10 +115,10 @@ node = parsers.parseurl("http://www.python.org/", tidy=True)
 </section>
 
 
-<section><title>Finding and counting nodes</title>
+<section><h>Finding and counting nodes</h>
 
-<par>The following example shows you how to output the &url;s of all images
-inside links on Python's homepage:</par>
+<p>The following example shows you how to output the &url;s of all images
+inside links on Python's homepage:</p>
 
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist import parsers</input>
@@ -133,8 +133,8 @@ http://www.python.org/images/trans.gif
 http://www.python.org/images/success/nasa.jpg
 </tty>
 
-<par>If you want to output both the links and the image &url;s, do the
-following:</par>
+<p>If you want to output both the links and the image &url;s, do the
+following:</p>
 
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist import parsers, xfind</input>
@@ -148,8 +148,8 @@ http://www.python.org/#content%2dbody http://www.python.org/images/trans.gif
 http://www.python.org/about/success/usa http://www.python.org/images/success/nasa.jpg
 </tty>
 
-<par>If you want to count the number of links on the page you can do the
-following:</par>
+<p>If you want to count the number of links on the page you can do the
+following:</p>
 
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll import misc</input>
@@ -163,10 +163,10 @@ following:</par>
 </section>
 
 
-<section><title>Replacing text</title>
+<section><h>Replacing text</h>
 
-<par>This example demonstrates how to make a copy of an &xml; tree with some
-text replacements:</par>
+<p>This example demonstrates how to make a copy of an &xml; tree with some
+text replacements:</p>
 
 <prog>
 from ll.xist import xsc, parsers
@@ -186,10 +186,10 @@ node.write(open("parrot_index.html", "wb"))
 </section>
 
 
-<section><title>Converting &html; to &xist; code</title>
+<section><h>Converting &html; to &xist; code</h>
 
-<par>The class <pyref module="ll.xist.presenters" class="CodePresenter"><class>ll.xist.presenters.CodePresenter</class></pyref>
-makes it possible to output an &xist; tree as usable Python source code:</par>
+<p>The class <pyref module="ll.xist.presenters" class="CodePresenter"><class>ll.xist.presenters.CodePresenter</class></pyref>
+makes it possible to output an &xist; tree as usable Python source code:</p>
 
 <tty>
 <prompt>&gt;&gt;&gt;</prompt> <input>from ll.xist import parsers, presenters</input>
@@ -238,11 +238,11 @@ ll.xist.xsc.Frag(
 </section>
 
 
-<section><title>Using converter contexts to pass information between elements</title>
+<section><h>Using converter contexts to pass information between elements</h>
 
-<par>Converter contexts can be used to pass information between elements.
+<p>Converter contexts can be used to pass information between elements.
 The following example will generate &html; <lit>&lt;h1&gt;</lit>, ..., <lit>&lt;h6&gt;</lit>
-elements according to the nesting depth of a <lit>&lt;section&gt;</lit> element.</par>
+elements according to the nesting depth of a <lit>&lt;section&gt;</lit> element.</p>
 
 <prog>
 from __future__ import with_statement
@@ -283,7 +283,7 @@ with section(title="Python Tutorial") as document:
 print document.conv().bytes()
 </prog>
 
-<par>The output of this script will be:</par>
+<p>The output of this script will be:</p>
 
 <tty>
 &lt;h1&gt;Python Tutorial&lt;/h1&gt;

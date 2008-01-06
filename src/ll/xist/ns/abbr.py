@@ -9,7 +9,7 @@
 
 
 """
-<par>This module contains entities for many abbreviations and acronyms.</par>
+<p>This module contains entities for many abbreviations and acronyms.</p>
 """
 
 

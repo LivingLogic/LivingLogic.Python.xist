@@ -56,16 +56,16 @@ xml_xmlns = "http://www.w3.org/XML/1998/namespace"
 
 def tonode(value):
 	"""
-	<par>convert <arg>value</arg> to an &xist; <pyref class="Node"><class>Node</class></pyref>.</par>
+	<p>convert <arg>value</arg> to an &xist; <pyref class="Node"><class>Node</class></pyref>.</p>
 
-	<par>If <arg>value</arg> is a tuple or list, it will be (recursively) converted
+	<p>If <arg>value</arg> is a tuple or list, it will be (recursively) converted
 	to a <pyref class="Frag"><class>Frag</class></pyref>. Integers, strings, etc.
 	will be converted to a <pyref class="Text"><class>Text</class></pyref>.
 	If <arg>value</arg> is a <pyref class="Node"><class>Node</class></pyref> already,
 	it will be returned unchanged. In the case of <lit>None</lit> the &xist; Null
 	(<class>ll.xist.xsc.Null</class>) will be returned. If <arg>value</arg> is
 	iterable, a <class>Frag</class> will be generated from the items.
-	Anything else will raise an <class>IllegalObjectError</class> exception.</par>
+	Anything else will raise an <class>IllegalObjectError</class> exception.</p>
 	"""
 	if isinstance(value, Node):
 		if isinstance(value, Attrs):
@@ -93,7 +93,7 @@ def tonode(value):
 
 def add(*args, **kwargs):
 	"""
-	<function>add</function> appends items in <arg>args</arg> and sets attributes
+	<func>add</func> appends items in <arg>args</arg> and sets attributes
 	in <arg>kwargs</arg> in the currenly active node in the <lit>with</lit> stack.
 	"""
 	getstack()[-1](*args, **kwargs)
@@ -114,7 +114,7 @@ enterattrs = misc.Const("enterattrs")
 class WalkFilter(object):
 	"""
 	A <class>WalkFilter</class> can be passed to the
-	<pyref class="Node" method="walk"><method>walk</method></pyref> method of
+	<pyref class="Node" method="walk"><meth>walk</meth></pyref> method of
 	nodes to specify how to traverse the tree and which nodes to output.
 	"""
 	@misc.notimplemented
@@ -221,11 +221,11 @@ def makewalkfilter(obj):
 
 class Context(object):
 	"""
-	<par>This is an empty class, that can be used by the
-	<pyref class="Node" method="convert"><method>convert</method></pyref>
+	<p>This is an empty class, that can be used by the
+	<pyref class="Node" method="convert"><meth>convert</meth></pyref>
 	method to hold element or namespace specific data during the convert call.
-	The method <pyref class="Converter" method="__getitem__"><method>Converter.__getitem__</method></pyref>
-	will return a unique instance of this class.</par>
+	The method <pyref class="Converter" method="__getitem__"><meth>Converter.__getitem__</meth></pyref>
+	will return a unique instance of this class.</p>
 	"""
 	__fullname__ = "Context"
 
@@ -243,15 +243,16 @@ class Error(Exception):
 
 class Warning(UserWarning):
 	"""
-	Base class for all warning exceptions (i.e. those that won't
-	result in a program termination.)
+	Base class for all warning exceptions (i.e. those that won't result in a
+	program termination.)
 	"""
 	pass
 
 
 class IllegalAttrValueWarning(Warning):
 	"""
-	Warning that is issued when an attribute has an illegal value when parsing or publishing.
+	Warning that is issued when an attribute has an illegal value when parsing or
+	publishing.
 	"""
 
 	def __init__(self, attr):
@@ -689,8 +690,8 @@ class _Node_Meta(type):
 class Node(object):
 	"""
 	base class for nodes in the document tree. Derived classes must
-	overwrite <pyref method="convert"><method>convert</method></pyref>
-	and may overwrite <pyref method="publish"><method>publish</method></pyref>.
+	overwrite <pyref method="convert"><meth>convert</meth></pyref>
+	and may overwrite <pyref method="publish"><meth>publish</meth></pyref>.
 	"""
 	__metaclass__ = _Node_Meta
 
@@ -763,8 +764,8 @@ class Node(object):
 
 	def clone(self):
 		"""
-		return a clone of <self/>. Compared to <pyref method="deepcopy"><method>deepcopy</method></pyref> <method>clone</method>
-		will create multiple instances of objects that can be found in the tree more than once. <method>clone</method> can't
+		return a clone of <self/>. Compared to <pyref method="deepcopy"><meth>deepcopy</meth></pyref> <meth>clone</meth>
+		will create multiple instances of objects that can be found in the tree more than once. <meth>clone</meth> can't
 		clone trees that contain cycles.
 		"""
 		return self
@@ -790,21 +791,21 @@ class Node(object):
 	@misc.notimplemented
 	def present(self, presenter):
 		"""
-		<par><method>present</method> is used as a central dispatch method for
+		<p><meth>present</meth> is used as a central dispatch method for
 		the <pyref module="ll.xist.presenters">presenter classes</pyref>. Normally
 		it is not called by the user, but internally by the presenter. The user
-		should call <pyref method="repr"><method>repr</method></pyref>
-		instead.</par>
+		should call <pyref method="repr"><meth>repr</meth></pyref>
+		instead.</p>
 		"""
 		# Subclasses of Node implement this method by calling the appropriate present* method in the publisher (i.e. double dispatch)
 
 	def conv(self, converter=None, root=None, mode=None, stage=None, target=None, lang=None, function=None, makeaction=None, makeproject=None):
 		"""
-		<par>Convenience method for calling <pyref method="convert"><method>convert</method></pyref>.</par>
-		<par><method>conv</method> will automatically set <lit><arg>converter</arg>.node</lit> to <self/> to remember the
-		<z>document root node</z> for which <method>conv</method> has been called, this means that you should not call
-		<method>conv</method> in any of the recursive calls, as you would loose this information. Call
-		<pyref method="convert"><method>convert</method></pyref> directly instead.</par>
+		<p>Convenience method for calling <pyref method="convert"><meth>convert</meth></pyref>.</p>
+		<p><meth>conv</meth> will automatically set <lit><arg>converter</arg>.node</lit> to <self/> to remember the
+		<z>document root node</z> for which <meth>conv</meth> has been called, this means that you should not call
+		<meth>conv</meth> in any of the recursive calls, as you would loose this information. Call
+		<pyref method="convert"><meth>convert</meth></pyref> directly instead.</p>
 		"""
 		if converter is None:
 			converter = converters.Converter(node=self, root=root, mode=mode, stage=stage, target=target, lang=lang, makeaction=makeaction, makeproject=makeproject)
@@ -818,24 +819,24 @@ class Node(object):
 	@misc.notimplemented
 	def convert(self, converter):
 		"""
-		<par>implementation of the conversion method. When you define your own
+		<p>implementation of the conversion method. When you define your own
 		element classes you have to overwrite this method and implement the desired
-		conversion.</par>
+		conversion.</p>
 
-		<par>This method must return an instance of <class>Node</class>.
-		It may <em>not</em> change <self/>.</par>
+		<p>This method must return an instance of <class>Node</class>.
+		It may <em>not</em> change <self/>.</p>
 		"""
 		pass
 
 	@misc.notimplemented
 	def __unicode__(self):
 		"""
-		<par>Return the character content of <self/> as a unicode string.
+		<p>Return the character content of <self/> as a unicode string.
 		This means that comments and processing instructions will be filtered out.
-		For elements you'll get the element content.</par>
+		For elements you'll get the element content.</p>
 
-		<par><method>__unicode__</method> can be used everywhere where
-		a plain string representation of the node is required.</par>
+		<p><meth>__unicode__</meth> can be used everywhere where
+		a plain string representation of the node is required.</p>
 		"""
 		pass
 
@@ -860,10 +861,10 @@ class Node(object):
 
 	def asFloat(self, decimal=".", ignore=""):
 		"""
-		<par>Convert the character content of <self/> to an <class>float</class>.
+		<p>Convert the character content of <self/> to an <class>float</class>.
 		<arg>decimal</arg> specifies which decimal separator is used in the value
 		(e.g. <lit>"."</lit> (the default) or <lit>","</lit>).
-		<arg>ignore</arg> specifies which character will be ignored.</par>
+		<arg>ignore</arg> specifies which character will be ignored.</p>
 		"""
 		s = unicode(self)
 		for c in ignore:
@@ -886,46 +887,46 @@ class Node(object):
 
 	def parsed(self, parser, start=None):
 		"""
-		<par>This method will be called by the parser <arg>parser</arg> once after
+		<p>This method will be called by the parser <arg>parser</arg> once after
 		<self/> is created by the parser and must return the node that is to be
 		put into the tree (in most cases this is <self/>, it's used e.g. by
 		<pyref class="URLAttr"><class>URLAttr</class></pyref> to incorporate
 		the base <pyref module="ll.url" class="URL"><class>URL</class></pyref>
-		into the attribute.</par>
+		into the attribute.</p>
 
-		<par>For elements <function>parsed</function> will be called twice:
+		<p>For elements <func>parsed</func> will be called twice:
 		Once at the beginning (i.e. before the content is parsed) with
 		<lit><arg>start</arg>==True</lit> and once at the end after parsing of
 		the content is finished <lit><arg>start</arg>==False</lit>. For the
-		second call the return value will be ignored.</par>
+		second call the return value will be ignored.</p>
 		"""
 		return self
 
 	def checkvalid(self):
 		"""
-		<par>This method will be called when parsing or publishing to check
-		whether <self/> is valid.</par>
+		<p>This method will be called when parsing or publishing to check
+		whether <self/> is valid.</p>
 
-		<par>If <self/> is found to be invalid a warning should be issued through
-		the <pyref module="warnings">Python warning framework</pyref>.</par>
+		<p>If <self/> is found to be invalid a warning should be issued through
+		the <pyref module="warnings">Python warning framework</pyref>.</p>
 		"""
 
 	@misc.notimplemented
 	def publish(self, publisher):
 		"""
-		<par>Generate unicode strings for the node. <arg>publisher</arg> must be an instance of
-		<pyref module="ll.xist.publishers" class="Publisher"><class>ll.xist.publishers.Publisher</class></pyref>.</par>
+		<p>Generate unicode strings for the node. <arg>publisher</arg> must be an instance of
+		<pyref module="ll.xist.publishers" class="Publisher"><class>ll.xist.publishers.Publisher</class></pyref>.</p>
 
-		<par>The encoding and xhtml specification are taken from the <arg>publisher</arg>.</par>
+		<p>The encoding and xhtml specification are taken from the <arg>publisher</arg>.</p>
 		"""
 
 	def iterbytes(self, base=None, publisher=None, **publishargs):
 		"""
-		<par>A generator that will produce this node as a serialized byte string.</par>
+		<p>A generator that will produce this node as a serialized byte string.</p>
 
-		<par>For the possible parameters see the
+		<p>For the possible parameters see the
 		<pyref module="ll.xist.publishers" class="Publisher"><class>ll.xist.publishers.Publisher</class></pyref>
-		constructor.</par>
+		constructor.</p>
 		"""
 		if publisher is None:
 			publisher = publishers.Publisher(**publishargs)
@@ -934,21 +935,21 @@ class Node(object):
 
 	def bytes(self, base=None, publisher=None, **publishargs):
 		"""
-		<par>Return this node as a serialized byte string.</par>
+		<p>Return this node as a serialized byte string.</p>
 
-		<par>For the possible parameters see the
+		<p>For the possible parameters see the
 		<pyref module="ll.xist.publishers" class="Publisher"><class>ll.xist.publishers.Publisher</class></pyref>
-		constructor.</par>
+		constructor.</p>
 		"""
 		return "".join(self.iterbytes(base, publisher, **publishargs))
 
 	def iterstring(self, base=None, publisher=None, **publishargs):
 		"""
-		<par>A generator that will produce this node as a serialized byte string.</par>
+		<p>A generator that will produce this node as a serialized byte string.</p>
 
-		<par>For the possible parameters see the
+		<p>For the possible parameters see the
 		<pyref module="ll.xist.publishers" class="Publisher"><class>ll.xist.publishers.Publisher</class></pyref>
-		constructor.</par>
+		constructor.</p>
 		"""
 		if publisher is None:
 			publisher = publishers.Publisher(**publishargs)
@@ -963,11 +964,11 @@ class Node(object):
 
 	def string(self, base=None, publisher=None, **publishargs):
 		"""
-		<par>Return this node as a serialized unicode string.</par>
+		<p>Return this node as a serialized unicode string.</p>
 
-		<par>For the possible parameters see the
+		<p>For the possible parameters see the
 		<pyref module="ll.xist.publishers" class="Publisher"><class>ll.xist.publishers.Publisher</class></pyref>
-		constructor.</par>
+		constructor.</p>
 		"""
 		if publisher is None:
 			publisher = publishers.Publisher(**publishargs)
@@ -977,19 +978,19 @@ class Node(object):
 
 	def write(self, stream, *args, **publishargs):
 		"""
-		<par>Write <self/> to the file-like object <arg>stream</arg> (which must
-		provide a <method>write</method> method).</par>
+		<p>Write <self/> to the file-like object <arg>stream</arg> (which must
+		provide a <meth>write</meth> method).</p>
 
-		<par>For the rest of the parameters see the
+		<p>For the rest of the parameters see the
 		<pyref module="ll.xist.publishers" class="Publisher"><class>ll.xist.publishers.Publisher</class></pyref>
-		constructor.</par>
+		constructor.</p>
 		"""
 		for part in self.bytes(*args, **publishargs):
 			stream.write(part)
 
 	def _walk(self, walkfilter, path):
 		"""
-		<par>Internal helper for <pyref method="walk"><method>walk</method></pyref>.</par>
+		<p>Internal helper for <pyref method="walk"><meth>walk</meth></pyref>.</p>
 		"""
 		for option in walkfilter.filterpath(path):
 			if option is not entercontent and option is not enterattrs and option:
@@ -997,52 +998,52 @@ class Node(object):
 
 	def walk(self, walkfilter=(True, entercontent)):
 		"""
-		<par>Return an iterator for traversing the tree rooted at <self/>.</par>
+		<p>Return an iterator for traversing the tree rooted at <self/>.</p>
 
-		<par><arg>walkfilter</arg> is used for specifying whether or not a node
+		<p><arg>walkfilter</arg> is used for specifying whether or not a node
 		should be yielded and when the children of this node should be traversed.
 		If <arg>walkfilter</arg> is callable, it will be called for each node
 		visited during the traversal. A path (i.e. a list of all nodes from the
 		root to the current node) will be passed to the filter on each call and
 		the filter must return a sequence of <z>node handling options</z>.
 		If <arg>walkfilter</arg> is not callable, it must be a sequence of node
-		handling options that will be used for all visited nodes.</par>
+		handling options that will be used for all visited nodes.</p>
 
-		<par>Entries in this returned sequence can be the following:</par>
+		<p>Entries in this returned sequence can be the following:</p>
 
-		<dlist>
-		<term><lit>True</lit></term><item>This tells <method>walk</method> to
+		<dl>
+		<term><lit>True</lit></term><item>This tells <meth>walk</meth> to
 		yield this node from the iterator.</item>
 		<term><lit>False</lit></term><item>Don't yield this node from the iterator.</item>
 		<term><lit>enterattrs</lit></term><item>This is a global constant in
-		<module>ll.xist.xsc</module> and tells <method>walk</method> to traverse
+		<mod>ll.xist.xsc</mod> and tells <meth>walk</meth> to traverse
 		the attributes of this node (if it's an
 		<pyref class="Element"><class>Element</class></pyref>, otherwise this
 		option will be ignored).</item>
 		<term><lit>entercontent</lit></term><item>This is a global constant in
-		<module>ll.xist.xsc</module> and tells <method>walk</method> to traverse
+		<mod>ll.xist.xsc</mod> and tells <meth>walk</meth> to traverse
 		the child nodes of this node (if it's an
 		<pyref class="Element"><class>Element</class></pyref>, otherwise this
 		option will be ignored).</item>
-		</dlist>
+		</dl>
 
-		<par>These options will be executed in the order they are specified in the
+		<p>These options will be executed in the order they are specified in the
 		sequence, so to get a top down traversal of a tree (without entering
-		attributes), the following call can be made:</par>
+		attributes), the following call can be made:</p>
 
 		<prog>
 		<rep>node</rep>.walk((True, xsc.entercontent))
 		</prog>
 
-		<par>For a bottom up traversal the following call can be made:</par>
+		<p>For a bottom up traversal the following call can be made:</p>
 
 		<prog>
 		<rep>node</rep>.walk((xsc.entercontent, True))
 		</prog>
 
-		<par>Each item produced by the iterator is a path list.
-		<method>walk</method> reuses this list, so you can't rely on the value
-		of the list being the same across calls to <method>next</method>.</par>
+		<p>Each item produced by the iterator is a path list.
+		<meth>walk</meth> reuses this list, so you can't rely on the value
+		of the list being the same across calls to <meth>next</meth>.</p>
 		"""
 		return self._walk(makewalkfilter(walkfilter), [self])
 
@@ -1050,7 +1051,7 @@ class Node(object):
 		"""
 		Return an iterator for traversing the tree. <arg>filter</arg> works the
 		same as the <arg>walkfilter</arg> argument for
-		<pyref method="walk"><method>walk</method></pyref>.
+		<pyref method="walk"><meth>walk</meth></pyref>.
 		The items produced by the iterator are the nodes themselves.
 		"""
 		walkfilter = makewalkfilter(walkfilter)
@@ -1063,7 +1064,7 @@ class Node(object):
 		"""
 		Return an iterator for traversing the tree. <arg>walkfilter</arg> works
 		the same as the <arg>walkfilter</arg> argument for
-		<pyref method="walk"><method>walk</method></pyref>. The items produced by
+		<pyref method="walk"><meth>walk</meth></pyref>. The items produced by
 		the iterator are copies of the path.
 		"""
 		walkfilter = makewalkfilter(walkfilter)
@@ -1092,14 +1093,14 @@ class Node(object):
 
 	def mapped(self, function, converter=None, **converterargs):
 		"""
-		<par>Return the node mapped through the function <arg>function</arg>. This
+		<p>Return the node mapped through the function <arg>function</arg>. This
 		call works recursively (for <pyref class="Frag"><class>Frag</class></pyref>
-		and <pyref class="Element"><class>Element</class></pyref>).</par>
+		and <pyref class="Element"><class>Element</class></pyref>).</p>
 
-		<par>When you want an unmodified node you simply can return <self/>.
-		<method>mapped</method> will make a copy of it and fill the content
+		<p>When you want an unmodified node you simply can return <self/>.
+		<meth>mapped</meth> will make a copy of it and fill the content
 		recursively. Note that element attributes will not be mapped. When you
-		return a different node from <function>function</function> this node will
+		return a different node from <func>function</func> this node will
 		be incorporated into the result as-is.
 		"""
 		if converter is None:
@@ -1110,38 +1111,38 @@ class Node(object):
 
 	def normalized(self):
 		"""
-		<par>Return a normalized version of <self/>, which means that consecutive
-		<pyref class="Text"><class>Text</class> nodes</pyref> are merged.</par>
+		<p>Return a normalized version of <self/>, which means that consecutive
+		<pyref class="Text"><class>Text</class> nodes</pyref> are merged.</p>
 		"""
 		return self
 
 	def __mul__(self, factor):
 		"""
-		<par>Return a <pyref class="Frag"><class>Frag</class></pyref> with
+		<p>Return a <pyref class="Frag"><class>Frag</class></pyref> with
 		<arg>factor</arg> times the node as an entry. Note that the node will not
-		be copied, i.e. it is a <z>shallow <method>__mul__</method></z>.</par>
+		be copied, i.e. it is a <z>shallow <meth>__mul__</meth></z>.</p>
 		"""
 		return Frag(*factor*[self])
 
 	def __rmul__(self, factor):
 		"""
-		<par>Return a <pyref class="Frag"><class>Frag</class></pyref> with
-		<arg>factor</arg> times the node as an entry.</par>
+		<p>Return a <pyref class="Frag"><class>Frag</class></pyref> with
+		<arg>factor</arg> times the node as an entry.</p>
 		"""
 		return Frag(*[self]*factor)
 
 	def pretty(self, level=0, indent="\t"):
 		"""
-		<par>Return a prettyfied version of <self/>, i.e. one with properly
+		<p>Return a prettyfied version of <self/>, i.e. one with properly
 		nested and indented tags (as far as possible). If an element has mixed
 		content (i.e. <pyref class="Text"><class>Text</class></pyref> and
 		non-<pyref class="Text"><class>Text</class></pyref> nodes) the content
-		will be returned as is.</par>
+		will be returned as is.</p>
 
-		<par>Note that whitespace will prevent pretty printing too, so
-		you might want to call <pyref method="normalized"><method>normalized</method></pyref>
-		and <pyref method="compact"><method>compact</method></pyref> before
-		calling <method>pretty</method> to remove whitespace.</par>
+		<p>Note that whitespace will prevent pretty printing too, so
+		you might want to call <pyref method="normalized"><meth>normalized</meth></pyref>
+		and <pyref method="compact"><meth>compact</meth></pyref> before
+		calling <meth>pretty</meth> to remove whitespace.</p>
 		"""
 		if level:
 			return Frag(indent*level, self)
@@ -1245,13 +1246,13 @@ if ipipe is not None:
 
 class CharacterData(Node):
 	"""
-	<par>Base class for &xml; character data (<pyref class="Text"><class>Text</class></pyref>,
+	<p>Base class for &xml; character data (<pyref class="Text"><class>Text</class></pyref>,
 	<pyref class="ProcInst"><class>ProcInst</class></pyref>,
 	<pyref class="Comment"><class>Comment</class></pyref> and
-	<pyref class="DocType"><class>DocType</class></pyref>)</par>
+	<pyref class="DocType"><class>DocType</class></pyref>)</p>
 
-	<par>Provides nearly the same functionality as <class>UserString</class>,
-	but omits a few methods.</par>
+	<p>Provides nearly the same functionality as <class>UserString</class>,
+	but omits a few methods.</p>
 	"""
 	__slots__ = ("_content",)
 
@@ -1401,9 +1402,9 @@ class CharacterData(Node):
 
 class Text(CharacterData):
 	"""
-	<par>A text node. The characters <markup>&lt;</markup>, <markup>&gt;</markup>, <markup>&amp;</markup>
+	<p>A text node. The characters <markup>&lt;</markup>, <markup>&gt;</markup>, <markup>&amp;</markup>
 	(and <markup>"</markup> inside attributes) will be <z>escaped</z> with the
-	appropriate character entities when this node is published.</par>
+	appropriate character entities when this node is published.</p>
 	"""
 
 	def convert(self, converter):
@@ -1430,8 +1431,8 @@ class Text(CharacterData):
 
 class Frag(Node, list):
 	"""
-	<par>A fragment contains a list of nodes and can be used for dynamically constructing content.
-	The member <lit>content</lit> of an <pyref class="Element"><class>Element</class></pyref> is a <class>Frag</class>.</par>
+	<p>A fragment contains a list of nodes and can be used for dynamically constructing content.
+	The member <lit>content</lit> of an <pyref class="Element"><class>Element</class></pyref> is a <class>Frag</class>.</p>
 	"""
 
 	def __init__(self, *content):
@@ -1466,10 +1467,10 @@ class Frag(Node, list):
 
 	def _create(self):
 		"""
-		<par>internal helper that is used to create an empty clone of <self/>.
+		<p>internal helper that is used to create an empty clone of <self/>.
 		This is overwritten by <pyref class="Attr"><class>Attr</class></pyref>
 		to insure that attributes don't get initialized with the default
-		value when used in various methods that create new attributes.</par>
+		value when used in various methods that create new attributes.</p>
 		"""
 		return self.__class__()
 
@@ -1494,7 +1495,7 @@ class Frag(Node, list):
 
 	def __copy__(self):
 		"""
-		helper for the <pyref module="copy"><module>copy</module></pyref> module.
+		helper for the <pyref module="copy"><mod>copy</mod></pyref> module.
 		"""
 		node = self._create()
 		list.extend(node, self)
@@ -1502,7 +1503,7 @@ class Frag(Node, list):
 
 	def __deepcopy__(self, memo=None):
 		"""
-		helper for the <pyref module="copy"><module>copy</module></pyref> module.
+		helper for the <pyref module="copy"><mod>copy</mod></pyref> module.
 		"""
 		node = self._create()
 		if memo is None:
@@ -1527,9 +1528,9 @@ class Frag(Node, list):
 
 	def __getitem__(self, index):
 		"""
-		<par>Return the <arg>index</arg>'th node for the content of the fragment.
-		If <arg>index</arg> is a list <method>__getitem__</method> will work
-		recursively. If <arg>index</arg> is an empty list, <self/> will be returned.</par>
+		<p>Return the <arg>index</arg>'th node for the content of the fragment.
+		If <arg>index</arg> is a list <meth>__getitem__</meth> will work
+		recursively. If <arg>index</arg> is an empty list, <self/> will be returned.</p>
 		"""
 		if isinstance(index, list):
 			node = self
@@ -1551,11 +1552,11 @@ class Frag(Node, list):
 
 	def __setitem__(self, index, value):
 		"""
-		<par>Allows you to replace the <arg>index</arg>'th content node of the fragment
+		<p>Allows you to replace the <arg>index</arg>'th content node of the fragment
 		with the new value <arg>value</arg> (which will be converted to a node).
-		If  <arg>index</arg> is a list <method>__setitem__</method> will be applied
+		If  <arg>index</arg> is a list <meth>__setitem__</meth> will be applied
 		to the innermost index after traversing the rest of <arg>index</arg> recursively.
-		If <arg>index</arg> is an empty list, an exception will be raised.</par>
+		If <arg>index</arg> is an empty list, an exception will be raised.</p>
 		"""
 		if isinstance(index, list):
 			if not index:
@@ -1588,13 +1589,13 @@ class Frag(Node, list):
 
 	def __delitem__(self, index):
 		"""
-		<par>Remove the <arg>index</arg>'th content node from the fragment
+		<p>Remove the <arg>index</arg>'th content node from the fragment
 		If <arg>index</arg> is a list, the innermost index will be deleted,
 		after traversing the rest of <arg>index</arg> recursively.
 		If <arg>index</arg> is an empty list, an exception will be raised.
 		Anything except <class>list</class>s, <class>int</class>s and
 		slices will be turned into a walk filter and any child node matching
-		this filter will be deleted from <self/>.</par>
+		this filter will be deleted from <self/>.</p>
 		"""
 		if isinstance(index, list):
 			if not index:
@@ -1629,7 +1630,7 @@ class Frag(Node, list):
 		"""
 		Return a <pyref class="Frag"><class>Frag</class></pyref> with
 		<arg>factor</arg> times the content of <self/>. Note that no copies of the
-		content will be generated, so this is a <z>shallow <method>__mul__</method></z>.
+		content will be generated, so this is a <z>shallow <meth>__mul__</meth></z>.
 		"""
 		node = self._create()
 		list.extend(node, list.__mul__(self, factor))
@@ -1645,7 +1646,7 @@ class Frag(Node, list):
 
 	def append(self, *others):
 		"""
-		<par>Append every item in <arg>others</arg> to <self/>.</par>
+		<p>Append every item in <arg>others</arg> to <self/>.</p>
 		"""
 		for other in others:
 			other = tonode(other)
@@ -1656,13 +1657,13 @@ class Frag(Node, list):
 
 	def extend(self, items):
 		"""
-		<par>Append all items from the sequence <arg>items</arg> to <self/>.</par>
+		<p>Append all items from the sequence <arg>items</arg> to <self/>.</p>
 		"""
 		self.append(items)
 
 	def insert(self, index, *others):
 		"""
-		<par>Insert all items in <arg>others</arg> at the position <arg>index</arg>.
+		<p>Insert all items in <arg>others</arg> at the position <arg>index</arg>.
 		(this is the same as <lit><self/>[<arg>index</arg>:<arg>index</arg>] = <arg>others</arg></lit>)
 		"""
 		other = Frag(*others)
@@ -1687,10 +1688,10 @@ class Frag(Node, list):
 
 	def withsep(self, separator, clone=False):
 		"""
-		<par>Return a version of <self/> with a separator node between the nodes of <self/>.</par>
+		<p>Return a version of <self/> with a separator node between the nodes of <self/>.</p>
 
-		<par>if <arg>clone</arg> is false one node will be inserted several times,
-		if <arg>clone</arg> is true, clones of this node will be used.</par>
+		<p>if <arg>clone</arg> is false one node will be inserted several times,
+		if <arg>clone</arg> is true, clones of this node will be used.</p>
 		"""
 		node = self._create()
 		newseparator = tonode(separator)
@@ -1704,15 +1705,15 @@ class Frag(Node, list):
 
 	def sorted(self, cmp=None, key=None, reverse=False):
 		"""
-		<par>Return a sorted version of the <self/>. <arg>cmp</arg>, <arg>key</arg>
+		<p>Return a sorted version of the <self/>. <arg>cmp</arg>, <arg>key</arg>
 		and <arg>reverse</arg> have to same meaning as for the builtin function
-		<function>sorted</function>.
+		<func>sorted</func>.
 		"""
 		return self.__class__(sorted(self, cmp, key, reverse))
 
 	def reversed(self):
 		"""
-		<par>Return a reversed version of the <self/>.</par>
+		<p>Return a reversed version of the <self/>.</p>
 		"""
 		node = list(self)
 		node.reverse()
@@ -1720,9 +1721,9 @@ class Frag(Node, list):
 
 	def filtered(self, function):
 		"""
-		<par>Return a filtered version of the <self/>, i.e. a copy of <self/>,
-		where only content nodes for which <function>function</function> returns
-		true will be copied.</par>
+		<p>Return a filtered version of the <self/>, i.e. a copy of <self/>,
+		where only content nodes for which <func>function</func> returns
+		true will be copied.</p>
 		"""
 		node = self._create()
 		list.extend(node, (child for child in self if function(child)))
@@ -1730,8 +1731,8 @@ class Frag(Node, list):
 
 	def shuffled(self):
 		"""
-		<par>Return a shuffled version of <self/>, i.e. a copy of <self/> where
-		the content nodes are randomly reshuffled.</par>
+		<p>Return a shuffled version of <self/>, i.e. a copy of <self/> where
+		the content nodes are randomly reshuffled.</p>
 		"""
 		content = list(self)
 		node = self._create()
@@ -1852,10 +1853,10 @@ class _ProcInst_Meta(Node.__metaclass__):
 
 class ProcInst(CharacterData):
 	"""
-	<par>Base class for processing instructions. This class is abstract.</par>
+	<p>Base class for processing instructions. This class is abstract.</p>
 
-	<par>Processing instructions for specific targets must
-	be implemented as subclasses of <class>ProcInst</class>.</par>
+	<p>Processing instructions for specific targets must
+	be implemented as subclasses of <class>ProcInst</class>.</p>
 	"""
 	__metaclass__ = _ProcInst_Meta
 
@@ -1951,19 +1952,19 @@ class _Attr_Meta(Frag.__metaclass__):
 
 class Attr(Frag):
 	"""
-	<par>Base class of all attribute classes.</par>
+	<p>Base class of all attribute classes.</p>
 
-	<par>The content of an attribute may be any other &xist; node. This is different from
+	<p>The content of an attribute may be any other &xist; node. This is different from
 	a normal &dom;, where only text and character references are allowed. The reason for
 	this is to allow dynamic content (implemented as elements or processing instructions)
-	to be put into attributes.</par>
+	to be put into attributes.</p>
 
-	<par>Of course, this dynamic content when finally converted to &html; will normally result in
+	<p>Of course, this dynamic content when finally converted to &html; will normally result in
 	a fragment consisting only of text and character references. But note that it is allowed
 	to have elements and processing instructions inside of attributes even when publishing.
 	Processing instructions will be published as is and for elements their content will be
-	published.</par>
-	<example><title>Elements inside attributes</title>
+	published.</p>
+	<example><h>Elements inside attributes</h>
 	<tty>
 	<prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html, php</input>
 	<prompt>&gt;&gt;&gt; </prompt><input>node = html.img(</input>
@@ -1986,8 +1987,8 @@ class Attr(Frag):
 
 	def isfancy(self):
 		"""
-		<par>Return whether <self/> contains nodes other than
-		<pyref class="Text"><class>Text</class></pyref>.</par>
+		<p>Return whether <self/> contains nodes other than
+		<pyref class="Text"><class>Text</class></pyref>.</p>
 		"""
 		for child in self:
 			if not isinstance(child, Text):
@@ -2003,12 +2004,12 @@ class Attr(Frag):
 
 	def checkvalid(self):
 		"""
-		<par>Check whether <self/> has an allowed value, i.e. one
+		<p>Check whether <self/> has an allowed value, i.e. one
 		that is specified in the class attribute <lit>values</lit>.
 		If the value is not allowed a warning will be issued through
-		the Python warning framework.</par>
-		<par>If <self/> is <pyref method="isfancy">isfancy</pyref>,
-		no check will be done.</par>
+		the Python warning framework.</p>
+		<p>If <self/> is <pyref method="isfancy">isfancy</pyref>,
+		no check will be done.</p>
 		"""
 		values = self.__class__.values
 		if len(self) and isinstance(values, tuple) and not self.isfancy():
@@ -2068,41 +2069,41 @@ class Attr(Frag):
 
 class TextAttr(Attr):
 	"""
-	<par>Attribute class that is used for normal text attributes.</par>
+	<p>Attribute class that is used for normal text attributes.</p>
 	"""
 
 
 class IDAttr(Attr):
 	"""
-	<par>Attribute used for ids.</par>
+	<p>Attribute used for ids.</p>
 	"""
 
 
 class NumberAttr(Attr):
 	"""
-	<par>Attribute class that is used for when the attribute value may be any kind
-	of number.</par>
+	<p>Attribute class that is used for when the attribute value may be any kind
+	of number.</p>
 	"""
 
 
 class IntAttr(NumberAttr):
 	"""
-	<par>Attribute class that is used when the attribute value may be an
-	integer.</par>
+	<p>Attribute class that is used when the attribute value may be an
+	integer.</p>
 	"""
 
 
 class FloatAttr(NumberAttr):
 	"""
-	<par>Attribute class that is used when the attribute value may be a
-	floating point value.</par>
+	<p>Attribute class that is used when the attribute value may be a
+	floating point value.</p>
 	"""
 
 
 class BoolAttr(Attr):
 	"""
-	<par>Attribute class that is used for boolean attributes. When publishing
-	the value will always be the attribute name, regardless of the real value.</par>
+	<p>Attribute class that is used for boolean attributes. When publishing
+	the value will always be the attribute name, regardless of the real value.</p>
 	"""
 
 	# We can't simply overwrite _publishattrvalue(), because for xhtml==0 we don't output a "proper" attribute
@@ -2123,13 +2124,13 @@ class BoolAttr(Attr):
 
 class ColorAttr(Attr):
 	"""
-	<par>Attribute class that is used for a color attributes.</par>
+	<p>Attribute class that is used for a color attributes.</p>
 	"""
 
 
 class StyleAttr(Attr):
 	"""
-	<par>Attribute class that is used for &css; style attributes.</par>
+	<p>Attribute class that is used for &css; style attributes.</p>
 	"""
 
 	def _transform(self, replacer):
@@ -2159,8 +2160,8 @@ class StyleAttr(Attr):
 
 	def urls(self, base=None):
 		"""
-		<par>Return a list of all the <pyref module="ll.url" class="URL"><class>URL</class></pyref>s
-		found in the style attribute.</par>
+		<p>Return a list of all the <pyref module="ll.url" class="URL"><class>URL</class></pyref>s
+		found in the style attribute.</p>
 		"""
 		from ll.xist import css
 		urls = []
@@ -2174,8 +2175,8 @@ class StyleAttr(Attr):
 
 class URLAttr(Attr):
 	"""
-	<par>Attribute class that is used for &url;s. See the module <pyref module="ll.url"><module>ll.url</module></pyref>
-	for more information about &url; handling.</par>
+	<p>Attribute class that is used for &url;s. See the module <pyref module="ll.url"><mod>ll.url</mod></pyref>
+	for more information about &url; handling.</p>
 	"""
 
 	def parsed(self, parser, start=None):
@@ -2188,8 +2189,8 @@ class URLAttr(Attr):
 
 	def asURL(self):
 		"""
-		<par>Return <self/> as a <pyref module="ll.url" class="URL"><class>URL</class></pyref>
-		instance (note that non-character content will be filtered out).</par>
+		<p>Return <self/> as a <pyref module="ll.url" class="URL"><class>URL</class></pyref>
+		instance (note that non-character content will be filtered out).</p>
 		"""
 		return url_.URL(Attr.__unicode__(self))
 
@@ -2198,11 +2199,11 @@ class URLAttr(Attr):
 
 	def forInput(self, root=None):
 		"""
-		<par>return a <pyref module="ll.url" class="URL"><class>URL</class></pyref> pointing
+		<p>return a <pyref module="ll.url" class="URL"><class>URL</class></pyref> pointing
 		to the real location of the referenced resource. <arg>root</arg> must be the
 		root &url; relative to which <self/> will be interpreted and usually
 		comes from the <lit>root</lit> attribute of the <arg>converter</arg> argument in
-		<pyref class="Node" method="convert"><method>convert</method></pyref>.</par>
+		<pyref class="Node" method="convert"><meth>convert</meth></pyref>.</p>
 		"""
 		u = self.asURL()
 		if u.scheme == "root":
@@ -2271,8 +2272,8 @@ class _Attrs_Meta(Node.__metaclass__):
 
 class Attrs(Node, dict):
 	"""
-	<par>An attribute map. Allowed entries are specified through nested subclasses
-	of <pyref class="Attr"><class>Attr</class></pyref>.</par>
+	<p>An attribute map. Allowed entries are specified through nested subclasses
+	of <pyref class="Attr"><class>Attr</class></pyref>.</p>
 	"""
 	__metaclass__ = _Attrs_Meta
 
@@ -2468,9 +2469,9 @@ class Attrs(Node, dict):
 
 	def has(self, name):
 		"""
-		<par>return whether <self/> has an attribute with a Python name <arg>name</arg>.
+		<p>return whether <self/> has an attribute with a Python name <arg>name</arg>.
 		<arg>name</arg> may also be an attribute class (either from <lit><self/>.Attrs</lit>
-		are a global attribute).</par>
+		are a global attribute).</p>
 		"""
 		try:
 			attr = dict.__getitem__(self, self.allowedattr(name))
@@ -2480,9 +2481,9 @@ class Attrs(Node, dict):
 
 	def has_xml(self, name):
 		"""
-		<par>return whether <self/> has an attribute with an XML name <arg>name</arg>.
+		<p>return whether <self/> has an attribute with an XML name <arg>name</arg>.
 		<arg>name</arg> may also be an attribute class (either from <lit><self/>.Attrs</lit>
-		or for a global attribute).</par>
+		or for a global attribute).</p>
 		"""
 		try:
 			attr = dict.__getitem__(self, self.allowedattr_xml(name))
@@ -2495,11 +2496,11 @@ class Attrs(Node, dict):
 
 	def get(self, name, default=None):
 		"""
-		<par>works like the dictionary method <method>get</method>,
+		<p>works like the dictionary method <meth>get</meth>,
 		it returns the attribute with the Python name <arg>name</arg>,
 		or <arg>default</arg> if <self/> has no such attribute.
 		<arg>name</arg> may also be an attribute class (either from
-		<lit><self/>.Attrs</lit> or for a global attribute).</par>
+		<lit><self/>.Attrs</lit> or for a global attribute).</p>
 		"""
 		attr = self.attr(name)
 		if not attr:
@@ -2508,11 +2509,11 @@ class Attrs(Node, dict):
 
 	def get_xml(self, name, default=None):
 		"""
-		<par>works like the dictionary method <method>get</method>,
+		<p>works like the dictionary method <meth>get</meth>,
 		it returns the attribute with the XML name <arg>name</arg>,
 		or <arg>default</arg> if <self/> has no such attribute.
 		<arg>name</arg> may also be an attribute class (either from
-		<lit><self/>.Attrs</lit> or for a global attribute).</par>
+		<lit><self/>.Attrs</lit> or for a global attribute).</p>
 		"""
 		attr = self.attr_xml(name)
 		if not attr:
@@ -2521,9 +2522,9 @@ class Attrs(Node, dict):
 
 	def set(self, name, value):
 		"""
-		<par>Set the attribute with the Python <arg>name</arg> to the value <arg>value</arg>.
-		<arg>name</arg> may be a string or an attribute class.</par>
-		<par>The newly set attribute will be returned.</par>
+		<p>Set the attribute with the Python <arg>name</arg> to the value <arg>value</arg>.
+		<arg>name</arg> may be a string or an attribute class.</p>
+		<p>The newly set attribute will be returned.</p>
 		"""
 		attr = self.allowedattr(name)
 		value = attr(value)
@@ -2532,8 +2533,8 @@ class Attrs(Node, dict):
 
 	def set_xml(self, name, value):
 		"""
-		<par>Set the attribute with the XML <arg>name</arg> to the value <arg>value</arg>.</par>
-		<par>The newly set attribute will be returned.</par>
+		<p>Set the attribute with the XML <arg>name</arg> to the value <arg>value</arg>.</p>
+		<p>The newly set attribute will be returned.</p>
 		"""
 		attr = self.allowedattr_xml(name)
 		value = attr(value)
@@ -2542,10 +2543,10 @@ class Attrs(Node, dict):
 
 	def setdefault(self, name, default):
 		"""
-		<par>works like the dictionary method <method>setdefault</method>,
+		<p>works like the dictionary method <meth>setdefault</meth>,
 		it returns the attribute with the Python name <arg>name</arg>.
 		If <self/> has no such attribute, it will be set to <arg>default</arg>
-		and <arg>default</arg> will be returned as the new attribute value.</par>
+		and <arg>default</arg> will be returned as the new attribute value.</p>
 		"""
 		value = self.attr(name)
 		if not value:
@@ -2556,10 +2557,10 @@ class Attrs(Node, dict):
 
 	def setdefault_xml(self, name, default):
 		"""
-		<par>works like the dictionary method <method>setdefault</method>,
+		<p>works like the dictionary method <meth>setdefault</meth>,
 		it returns the attribute with the XML name <arg>name</arg>.
 		If <self/> has no such attribute, it will be set to <arg>default</arg>
-		and <arg>default</arg> will be returned as the new attribute value.</par>
+		and <arg>default</arg> will be returned as the new attribute value.</p>
 		"""
 		value = self.attr_xml(name)
 		if not value:
@@ -2585,7 +2586,7 @@ class Attrs(Node, dict):
 	@classmethod
 	def allowedattrs(cls):
 		"""
-		<par>Return an iterator over all allowed attribute classes.
+		<p>Return an iterator over all allowed attribute classes.
 		"""
 		return cls._bypyname.itervalues()
 
@@ -2711,8 +2712,8 @@ class Attrs(Node, dict):
 
 	def withnames(self, *names):
 		"""
-		<par>Return a copy of <self/> where only the attributes with Python names
-		in <arg>names</arg> are kept, all others are removed.</par>
+		<p>Return a copy of <self/> where only the attributes with Python names
+		in <arg>names</arg> are kept, all others are removed.</p>
 		"""
 		def isok(node):
 			return isinstance(node, names)
@@ -2722,8 +2723,8 @@ class Attrs(Node, dict):
 
 	def withnames_xml(self, *names):
 		"""
-		<par>Return a copy of <self/> where only the attributes with XML names
-		in <arg>names</arg> are kept, all others are removed.</par>
+		<p>Return a copy of <self/> where only the attributes with XML names
+		in <arg>names</arg> are kept, all others are removed.</p>
 		"""
 		def isok(node):
 			return isinstance(node, names)
@@ -2733,8 +2734,8 @@ class Attrs(Node, dict):
 
 	def withoutnames(self, *names):
 		"""
-		<par>Return a copy of <self/> where all the attributes with Python names
-		in <arg>names</arg> are removed.</par>
+		<p>Return a copy of <self/> where all the attributes with Python names
+		in <arg>names</arg> are removed.</p>
 		"""
 		def isok(node):
 			return not isinstance(node, names)
@@ -2744,8 +2745,8 @@ class Attrs(Node, dict):
 
 	def withoutnames_xml(self, *names):
 		"""
-		<par>Return a copy of <self/> where all the attributes with XML names
-		in <arg>names</arg> are removed.</par>
+		<p>Return a copy of <self/> where all the attributes with XML names
+		in <arg>names</arg> are removed.</p>
 		"""
 		def isok(node):
 			return not isinstance(node, names)
@@ -2809,14 +2810,14 @@ class _Element_Meta(Node.__metaclass__):
 
 class Element(Node):
 	"""
-	<par>This class represents &xml;/&xist; elements. All elements implemented
-	by the user must be derived from this class.</par>
+	<p>This class represents &xml;/&xist; elements. All elements implemented
+	by the user must be derived from this class.</p>
 
-	<par>Elements support the following class variables:</par>
-	<dlist>
+	<p>Elements support the following class variables:</p>
+	<dl>
 	<term><lit>model</lit></term><item>This is an object that is used for
 	validating the content of the element. See the module
-	<pyref module="ll.xist.sims"><module>ll.xist.sims</module></pyref>
+	<pyref module="ll.xist.sims"><mod>ll.xist.sims</mod></pyref>
 	for more info. If <lit>model</lit> is <lit>None</lit> validation will
 	be skipped, otherwise it will be performed when parsing or publishing.</item>
 
@@ -2834,7 +2835,7 @@ class Element(Node):
 	<term><lit>xmlname</lit></term><item>If the class name has to be different
 	from the &xml; name (e.g. because the &xml; name is not a valid Python identifier)
 	<lit>xmlname</lit> can be used to specify the real &xml; name.</item>
-	</dlist>
+	</dl>
 	"""
 	__metaclass__ = _Element_Meta
 
@@ -2855,10 +2856,10 @@ class Element(Node):
 
 	def __init__(self, *content, **attrs):
 		"""
-		<par>Create a new <class>Element</class> instance.</par>
+		<p>Create a new <class>Element</class> instance.</p>
 
-		<par>positional arguments are treated as content nodes.
-		Keyword arguments and dictionaries are treated as attributes.</par>
+		<p>positional arguments are treated as content nodes.
+		Keyword arguments and dictionaries are treated as attributes.</p>
 		"""
 		self.attrs = self.Attrs()
 		newcontent = []
@@ -2923,19 +2924,19 @@ class Element(Node):
 
 	def append(self, *items):
 		"""
-		<par>Append every item in <arg>items</arg> to the element content.</par>
+		<p>Append every item in <arg>items</arg> to the element content.</p>
 		"""
 		self.content.append(*items)
 
 	def extend(self, items):
 		"""
-		<par>Append all items in <arg>items</arg> to element content.</par>
+		<p>Append all items in <arg>items</arg> to element content.</p>
 		"""
 		self.content.extend(items)
 
 	def insert(self, index, *items):
 		"""
-		<par>Insert every item in <arg>items</arg> at the position <arg>index</arg>.</par>
+		<p>Insert every item in <arg>items</arg> at the position <arg>index</arg>.</p>
 		"""
 		self.content.insert(index, *items)
 
@@ -2971,12 +2972,12 @@ class Element(Node):
 
 	def _addimagesizeattributes(self, url, widthattr=None, heightattr=None):
 		"""
-		<par>Automatically set image width and height attributes.</par>
+		<p>Automatically set image width and height attributes.</p>
 
-		<par>The size of the image with the &url; <arg>url</arg> will be determined and
+		<p>The size of the image with the &url; <arg>url</arg> will be determined and
 		the width of the image will be put into the attribute with the name <arg>widthattr</arg>
 		if <arg>widthattr</arg> is not <lit>None</lit> and the attribute is not set. The
-		same will happen for the height, which will be put into the <arg>heighattr</arg>.</par>
+		same will happen for the height, which will be put into the <arg>heighattr</arg>.</p>
 		"""
 
 		try:
@@ -3003,7 +3004,7 @@ class Element(Node):
 		"""
 		Does the full publication of the element. If you need full elements
 		inside attributes (e.g. for &jsp; tag libraries), you can overwrite
-		<method>publish</method> and simply call this method.
+		<meth>publish</meth> and simply call this method.
 		"""
 		name = self._publishname(publisher)
 		yield publisher.encode(u"<")
@@ -3055,12 +3056,12 @@ class Element(Node):
 
 	def __getitem__(self, index):
 		"""
-		<par>If <arg>index</arg> is a string, return the attribute with this (Python) name.</par>
-		<par>If <arg>index</arg> is a tuple consisting of a namespace and a string,
-		return the global attribute with this (Python) name.</par>
-		<par>If <arg>index</arg> is a number return the appropriate content node.</par>
-		<par><arg>index</arg> may also be a list, in with case <method>__getitem__</method>
-		will be applied recusively.</par>
+		<p>If <arg>index</arg> is a string, return the attribute with this (Python) name.</p>
+		<p>If <arg>index</arg> is a tuple consisting of a namespace and a string,
+		return the global attribute with this (Python) name.</p>
+		<p>If <arg>index</arg> is a number return the appropriate content node.</p>
+		<p><arg>index</arg> may also be a list, in with case <meth>__getitem__</meth>
+		will be applied recusively.</p>
 		"""
 		if isinstance(index, (basestring, _Attr_Meta)):
 			return self.attrs[index]
@@ -3077,8 +3078,8 @@ class Element(Node):
 
 	def __setitem__(self, index, value):
 		"""
-		<par>Set an attribute or content node to the value <arg>value</arg>.</par>
-		<par>For possible types for <arg>index</arg> see <pyref method="__getitem__"><method>__getitem__</method></pyref>.</par>
+		<p>Set an attribute or content node to the value <arg>value</arg>.</p>
+		<p>For possible types for <arg>index</arg> see <pyref method="__getitem__"><meth>__getitem__</meth></pyref>.</p>
 		"""
 		if isinstance(index, (basestring, _Attr_Meta)):
 			self.attrs[index] = value
@@ -3099,8 +3100,8 @@ class Element(Node):
 
 	def __delitem__(self, index):
 		"""
-		<par>Remove an attribute or content node.</par>
-		<par>For possible types for <arg>index</arg> see <pyref method="__getitem__"><method>__getitem__</method></pyref>.</par>
+		<p>Remove an attribute or content node.</p>
+		<p>For possible types for <arg>index</arg> see <pyref method="__getitem__"><meth>__getitem__</meth></pyref>.</p>
 		"""
 		if isinstance(index, (basestring, _Attr_Meta)):
 			del self.attrs[index]
@@ -3160,9 +3161,9 @@ class Element(Node):
 
 	def withsep(self, separator, clone=False):
 		"""
-		<par>returns a version of <self/> with a separator node between the child
+		<p>returns a version of <self/> with a separator node between the child
 		nodes of <self/>. For more info see
-		<pyref class="Frag" method="withsep"><method>Frag.withsep</method></pyref>.</par>
+		<pyref class="Frag" method="withsep"><meth>Frag.withsep</meth></pyref>.</p>
 		"""
 		node = self.__class__()
 		node.attrs = self.attrs.clone()
@@ -3275,8 +3276,8 @@ class _Entity_Meta(Node.__metaclass__):
 
 class Entity(Node):
 	"""
-	<par>Class for entities. Derive your own entities from it and overwrite
-	<pyref class="Node" method="convert"><method>convert</method></pyref>.</par>
+	<p>Class for entities. Derive your own entities from it and overwrite
+	<pyref class="Node" method="convert"><meth>convert</meth></pyref>.</p>
 	"""
 	__metaclass__ = _Entity_Meta
 
@@ -3318,8 +3319,8 @@ class _CharRef_Meta(Entity.__metaclass__): # don't subclass Text.__metaclass__, 
 
 class CharRef(Text, Entity):
 	"""
-	<par>A simple character reference, the codepoint is in the class attribute
-	<lit>codepoint</lit>.</par>
+	<p>A simple character reference, the codepoint is in the class attribute
+	<lit>codepoint</lit>.</p>
 	"""
 	__metaclass__ = _CharRef_Meta
 	register = None
@@ -3418,8 +3419,8 @@ class Pool(misc.Pool):
 
 	def register(self, object):
 		"""
-		<par>Register <arg>object</arg> in the pool. <arg>object</arg> can be:</par>
-		<ulist>
+		<p>Register <arg>object</arg> in the pool. <arg>object</arg> can be:</p>
+		<ul>
 		<item>A <pyref class="Element"><class>Element</class></pyref>,
 		<pyref class="ProcInst"><class>ProcInst</class></pyref>,
 		<pyref class="Entity"><class>Entity</class></pyref>,
@@ -3433,7 +3434,7 @@ class Pool(misc.Pool):
 		local variables by passing <lit>vars()</lit>);</item>
 		<item>A module (all <class>Node</class> classes in the
 		module will be registered);</item>
-		</ulist>
+		</ul>
 		"""
 		if isinstance(object, type):
 			if issubclass(object, Element):
@@ -3889,7 +3890,7 @@ class apos(CharRef): "apostrophe mark, U+0027 ISOnum"; codepoint = 39
 
 class Location(object):
 	"""
-	<par>Represents a location in an &xml; entity.</par>
+	<p>Represents a location in an &xml; entity.</p>
 	"""
 	__slots__ = ("url", "line", "col", "char")
 
@@ -3906,8 +3907,8 @@ class Location(object):
 
 	def offset(self, offset):
 		"""
-		<par>Return a location where the line number is incremented by offset
-		(and the column number is reset to 0).</par>
+		<p>Return a location where the line number is incremented by offset
+		(and the column number is reset to 0).</p>
 		"""
 		if offset==0:
 			return self

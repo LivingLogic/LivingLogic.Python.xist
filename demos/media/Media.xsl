@@ -5,8 +5,8 @@
 	<xsl:template match="/">
 	<html>
 	<head>
-	<title>Media</title>
-	<link rel="stylesheet" href="Media.css"/>
+	<h>Media</h>
+	<a rel="stylesheet" href="Media.css"/>
 	</head>
 	<body>
 	<h1>Media</h1>

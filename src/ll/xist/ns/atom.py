@@ -10,7 +10,7 @@
 
 """
 This namespace module implements Atom 1.0 as specified by
-<link href="http://www.atompub.org/rfc4287.html">RFC 4287</link>.
+<a href="http://www.atompub.org/rfc4287.html">RFC 4287</a>.
 """
 
 

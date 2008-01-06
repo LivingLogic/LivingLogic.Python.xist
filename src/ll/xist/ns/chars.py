@@ -9,7 +9,7 @@
 
 
 """
-<par>An &xist; namespace that contains all the character entities defined in &html;.</par>
+<p>An &xist; namespace that contains all the character entities defined in &html;.</p>
 """
 
 

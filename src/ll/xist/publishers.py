@@ -9,8 +9,8 @@
 
 
 """
-<par>This module contains classes that may be used as publishing
-handlers in <pyref module="ll.xist.xsc" class="Node" method="publish"><method>publish</method></pyref>.</par>
+<p>This module contains classes that may be used as publishing
+handlers in <pyref module="ll.xist.xsc" class="Node" method="publish"><meth>publish</meth></pyref>.</p>
 """
 
 
@@ -43,12 +43,12 @@ class Publisher(object):
 
 	def __init__(self, encoding=None, xhtml=1, validate=True, prefixes={}, prefixdefault=False, hidexmlns=()):
 		"""
-		<par><arg>encoding</arg> specifies the encoding to be used for the byte sequence.
+		<p><arg>encoding</arg> specifies the encoding to be used for the byte sequence.
 		If <lit>None</lit> is used the encoding in the &xml; declaration will be
-		used. If there is none, UTF-8 will be used.</par>
+		used. If there is none, UTF-8 will be used.</p>
 
-		<par>With the parameter <arg>xhtml</arg> you can specify if you want &html; output:</par>
-		<dlist>
+		<p>With the parameter <arg>xhtml</arg> you can specify if you want &html; output:</p>
+		<dl>
 		<term>&html; (<lit><arg>xhtml</arg>==0</lit>)</term>
 		<item>Elements with a empty content model will be published as
 		<markup>&lt;foo&gt;</markup>.</item>
@@ -58,17 +58,17 @@ class Publisher(object):
 		is the default.</item>
 		<term>Pure &xml; (<lit><arg>xhtml</arg>==2</lit>)</term>
 		<item>All empty elements will be published as <markup>&lt;foo/&gt;</markup>.</item>
-		</dlist>
+		</dl>
 
-		<par><arg>validate</arg> specifies whether validation should be done before
-		publishing.</par>
+		<p><arg>validate</arg> specifies whether validation should be done before
+		publishing.</p>
 
-		<par><arg>prefixes</arg> is a dictionary that specifies which namespace
+		<p><arg>prefixes</arg> is a dictionary that specifies which namespace
 		prefixes should be used for publishing. Keys in the dictionary are either
 		namespace names or objects that have an <lit>xmlns</lit> attribute which
-		is the namespace name. Value can be:</par>
+		is the namespace name. Value can be:</p>
 
-		<dlist>
+		<dl>
 		<term><lit>False</lit></term>
 		<item>Treat elements in this namespace as if they are not in any namespace
 		(if global attributes from this namespace are encountered, a prefix will
@@ -81,12 +81,12 @@ class Publisher(object):
 		<term>A string</term>
 		<item>Use this prefix for the namespace.</item>
 
-		<par>If an element or attribute is encountered whose namespace is not in
-		<arg>prefixes</arg> <arg>prefixdefault</arg> is used as the fallback.</par>
+		<p>If an element or attribute is encountered whose namespace is not in
+		<arg>prefixes</arg> <arg>prefixdefault</arg> is used as the fallback.</p>
 
-		<par><arg>hidexmlns</arg> can be a list or set that contains namespace names
+		<p><arg>hidexmlns</arg> can be a list or set that contains namespace names
 		for which no <lit>xmlns</lit> attributes should be published. (This can be
-		used to hide the namespace declarations for e.g. Java taglibs.)</par>
+		used to hide the namespace declarations for e.g. Java taglibs.)</p>
 		"""
 		self.base = None
 		self.encoding = encoding
@@ -108,7 +108,7 @@ class Publisher(object):
 
 	def encodetext(self, text):
 		"""
-		<par>Encode <arg>test</arg> as text data. <arg>text</arg> must
+		<p>Encode <arg>test</arg> as text data. <arg>text</arg> must
 		be a <class>unicode</class> object. The publisher will apply the configured
 		encoding, error handling and the current text filter (which escapes
 		characters that can't appear in text data (like <lit>&lt;</lit> etc.))
@@ -121,28 +121,28 @@ class Publisher(object):
 
 	def pushtextfilter(self, filter):
 		"""
-		<par>pushes a new text filter function on the text filter stack.
+		<p>pushes a new text filter function on the text filter stack.
 		This function is responsible for escaping characters that can't appear
 		in text data (like <lit>&lt;</lit>)). This is used to switch on escaping
-		of <lit>"</lit> inside attribute values.</par>
+		of <lit>"</lit> inside attribute values.</p>
 		"""
 		self.__textfilters.append(filter)
 
 	def poptextfilter(self):
 		"""
-		<par>pops the current text filter function from the stack.</par>
+		<p>pops the current text filter function from the stack.</p>
 		"""
 		self.__textfilters.pop()
 
 	def pusherrors(self, errors):
 		"""
-		<par>pushes a new error handling scheme onto the error handling stack.</par>
+		<p>pushes a new error handling scheme onto the error handling stack.</p>
 		"""
 		self.__errors.append(errors)
 
 	def poperrors(self):
 		"""
-		<par>pop the current error handling scheme from the error handling stack.</par>
+		<p>pop the current error handling scheme from the error handling stack.</p>
 		"""
 		self.__errors.pop()
 
@@ -212,8 +212,8 @@ class Publisher(object):
 
 	def publish(self, node, base=None):
 		"""
-		<par>publish the node <arg>node</arg>. This method is a generator that
-		will yield the resulting &xml; byte sequence in fragments.</par>
+		<p>publish the node <arg>node</arg>. This method is a generator that
+		will yield the resulting &xml; byte sequence in fragments.</p>
 		"""
 		self._ns2prefix.clear()
 		self._prefix2ns.clear()

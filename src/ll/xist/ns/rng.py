@@ -10,7 +10,7 @@
 
 """
 This module is an &xist; namespace for
-<link href="http://relaxng.org/">Relax NG</link> files.
+<a href="http://relaxng.org/">Relax NG</a> files.
 """
 
 

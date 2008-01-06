@@ -9,8 +9,8 @@
 
 
 """
-<par>An &xist; module that contains the elements and entities for
-i-mode compatible &html;.</par>
+<p>An &xist; module that contains the elements and entities for
+i-mode compatible &html;.</p>
 """
 
 

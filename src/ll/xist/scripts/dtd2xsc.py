@@ -10,9 +10,9 @@
 
 
 """
-<par>Module that helps to create &xist; namespace modules from &dtd;s.
+<p>Module that helps to create &xist; namespace modules from &dtd;s.
 Needs <app>xmlproc</app> from the <app>PyXML</app> package.
-For usage information type:</par>
+For usage information type:</p>
 <prog>
 dtd2xsc --help
 </prog>
@@ -49,7 +49,7 @@ def getxmlns(dtd):
 def dtd2xnd(dtd, xmlns=None):
 	"""
 	Convert &dtd; information from the &url; <arg>dtdurl</arg> to an &xist; &dom;
-	using the <pyref module="ll.xist.xnd"><module>xnd</module></pyref> functionality.
+	using the <pyref module="ll.xist.xnd"><mod>xnd</mod></pyref> functionality.
 	"""
 
 	dtd = dtdparser.load_dtd_string(dtd)

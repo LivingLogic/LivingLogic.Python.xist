@@ -9,7 +9,7 @@
 
 
 """
-<par>A module that allows you to embed &jsp; content as processing instructions.</par>
+<p>A module that allows you to embed &jsp; content as processing instructions.</p>
 """
 
 
@@ -104,9 +104,9 @@ class End(scriptlet):
 
 class block(xsc.Element):
 	"""
-	<par>This element embeds its content in <lit>{}</lit> brackets.</par>
-	<par>Note that the content itself will not be turned into a scriptlet
-	automatically but will be used as-is.</par>
+	<p>This element embeds its content in <lit>{}</lit> brackets.</p>
+	<p>Note that the content itself will not be turned into a scriptlet
+	automatically but will be used as-is.</p>
 	"""
 	xmlns = xmlns
 	model = sims.Any()

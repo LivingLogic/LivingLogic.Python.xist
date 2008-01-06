@@ -9,8 +9,8 @@
 
 
 """
-<par>An &xist; module that contains a collection of useful elements for
-generating &html;.</par>
+<p>An &xist; module that contains a collection of useful elements for
+generating &html;.</p>
 """
 
 
@@ -28,8 +28,8 @@ xmlns = "http://xmlns.livinglogic.de/xist/ns/htmlspecials"
 
 class plaintable(html.table):
 	"""
-	<par>a &html; table where the values of the attributes <lit>cellpadding</lit>,
-	<lit>cellspacing</lit> and <lit>border</lit> default to <lit>0</lit>.</par>
+	<p>a &html; table where the values of the attributes <lit>cellpadding</lit>,
+	<lit>cellspacing</lit> and <lit>border</lit> default to <lit>0</lit>.</p>
 	"""
 	xmlns = xmlns
 	class Attrs(html.table.Attrs):
@@ -47,8 +47,8 @@ class plaintable(html.table):
 
 class plainbody(html.body):
 	"""
-	<par>a &html; body where the attributes <lit>leftmargin</lit>, <lit>topmargin</lit>,
-	<lit>marginheight</lit> and <lit>marginwidth</lit> default to <lit>0</lit>.</par>
+	<p>a &html; body where the attributes <lit>leftmargin</lit>, <lit>topmargin</lit>,
+	<lit>marginheight</lit> and <lit>marginwidth</lit> default to <lit>0</lit>.</p>
 	"""
 	xmlns = xmlns
 	class Attrs(html.body.Attrs):
@@ -85,14 +85,14 @@ class _pixelbase(html.img):
 
 class pixel(_pixelbase):
 	"""
-	<par>element for single transparent pixel image.</par>
+	<p>element for single transparent pixel image.</p>
 	
-	<par>You can specify the pixel color via the <lit>color</lit>
-	attribute (which will set the background-color in the style attribute.</par>
+	<p>You can specify the pixel color via the <lit>color</lit>
+	attribute (which will set the background-color in the style attribute.</p>
 
-	<par>In addition to that you can specify width and height attributes
+	<p>In addition to that you can specify width and height attributes
 	(and every other allowed attribute for the <class>img</class> element)
-	as usual.</par>
+	as usual.</p>
 	"""
 	xmlns = xmlns
 	class Attrs(_pixelbase.Attrs):
@@ -123,9 +123,9 @@ class pixel(_pixelbase):
 
 class autoimg(html.img):
 	"""
-	<par>An image were width and height attributes are automatically generated.</par>
+	<p>An image were width and height attributes are automatically generated.</p>
 	
-	<par>If the attributes are already there, they won't be modified.</par>
+	<p>If the attributes are already there, they won't be modified.</p>
 	"""
 	xmlns = xmlns
 	def convert(self, converter):
@@ -141,10 +141,10 @@ class autoimg(html.img):
 
 class autopixel(_pixelbase):
 	"""
-	<par>A pixel image were width and height attributes are automatically generated.</par>
+	<p>A pixel image were width and height attributes are automatically generated.</p>
 	
-	<par>This works like <pyref class="pixel"><class>pixel</class></pyref> but the
-	size is <z>inherited</z> from the image specified via the <lit>src</lit> attribute.</par>
+	<p>This works like <pyref class="pixel"><class>pixel</class></pyref> but the
+	size is <z>inherited</z> from the image specified via the <lit>src</lit> attribute.</p>
 	"""
 	xmlns = xmlns
 	def convert(self, converter):
@@ -160,9 +160,9 @@ class autopixel(_pixelbase):
 
 class autoinput(html.input):
 	"""
-	<par>Extends <pyref module="ll.xist.ns.html" class="input"><class>input</class></pyref>
+	<p>Extends <pyref module="ll.xist.ns.html" class="input"><class>input</class></pyref>
 	with the ability to automatically set the size, if this element
-	has <lit>type=="image"</lit>.</par>
+	has <lit>type=="image"</lit>.</p>
 	"""
 	xmlns = xmlns
 	def convert(self, converter):
@@ -203,7 +203,7 @@ class redirectpage(xsc.Element):
 
 class javascript(html.script):
 	"""
-	<par>can be used for javascript.</par>
+	<p>can be used for javascript.</p>
 	"""
 	xmlns = xmlns
 	class Attrs(html.script.Attrs):

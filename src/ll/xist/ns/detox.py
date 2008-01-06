@@ -9,10 +9,10 @@
 
 
 '''
-<par>This module is an &xist; namespace. It provides a simple template language
-based on processing instructions embedded in &xml; or plain text.</par>
+<p>This module is an &xist; namespace. It provides a simple template language
+based on processing instructions embedded in &xml; or plain text.</p>
 
-<par>The following example is a simple <z>Hello, World</z> type template:</par>
+<p>The following example is a simple <z>Hello, World</z> type template:</p>
 
 <prog><![CDATA[
 from ll.xist.ns import detox
@@ -57,21 +57,21 @@ class attrexpr(xsc.ProcInst):
 
 class code(xsc.ProcInst):
 	"""
-	<par>Embed the PI data literally in the generated code.</par>
+	<p>Embed the PI data literally in the generated code.</p>
 
-	<par>For example <lit>&lt;?code foo = 42?&gt;</lit> will put the
-	statement <lit>foo = 42</lit> into the generated Python source.</par>
+	<p>For example <lit>&lt;?code foo = 42?&gt;</lit> will put the
+	statement <lit>foo = 42</lit> into the generated Python source.</p>
 	"""
 
 
 class if_(xsc.ProcInst):
 	"""
-	<par>Starts an if block. An if block can contain zero or more
+	<p>Starts an if block. An if block can contain zero or more
 	<pyref class="elif_"><class>elif_</class></pyref> blocks, followed by zero
 	or one <pyref class="else_"><class>else_</class></pyref> block and must
-	be closed with an <pyref class="endif"><class>endif</class></pyref> PI.</par>
+	be closed with an <pyref class="endif"><class>endif</class></pyref> PI.</p>
 
-	<par>For example:</par>
+	<p>For example:</p>
 
 	<prog><![CDATA[
 	<?code import random?>
@@ -106,10 +106,10 @@ class else_(xsc.ProcInst):
 
 class def_(xsc.ProcInst):
 	"""
-	<par>Start a function (or method) definition. A function definition must be
-	closed with an <pyref class="enddef"><class>enddef</class></pyref> PI.</par>
+	<p>Start a function (or method) definition. A function definition must be
+	closed with an <pyref class="enddef"><class>enddef</class></pyref> PI.</p>
 
-	<par>Example:</par>
+	<p>Example:</p>
 
 	<prog><![CDATA[
 	<?def persontable(persons)?>
@@ -128,24 +128,24 @@ class def_(xsc.ProcInst):
 	<?end def?>
 	]]></prog>
 
-	<par>If the generated function contains output (i.e. if there is text content
+	<p>If the generated function contains output (i.e. if there is text content
 	or <pyref class="expr"><class>expr</class></pyref>,
 	<pyref class="textexpr"><class>textexpr</class></pyref> or
 	<pyref class="attrexpr"><class>attrexpr</class></pyref> PIs before the matching
 	<pyref class="enddef"><class>enddef</class></pyref>) the generated function
-	will be a generator function.</par>
+	will be a generator function.</p>
 
-	<par>Output outside of a function definition will be ignored.</par>
+	<p>Output outside of a function definition will be ignored.</p>
 	"""
 	xmlname = "def"
 
 
 class class_(xsc.ProcInst):
 	"""
-	<par>Start a class definition. A class definition must be closed with an
-	<pyref class="endclass"><class>endclass</class></pyref> PI.</par>
+	<p>Start a class definition. A class definition must be closed with an
+	<pyref class="endclass"><class>endclass</class></pyref> PI.</p>
 
-	<par>Example:</par>
+	<p>Example:</p>
 	<prog><![CDATA[
 	<?class mylist(list)?>
 		<?def output(self)?>
@@ -163,10 +163,10 @@ class class_(xsc.ProcInst):
 
 class for_(xsc.ProcInst):
 	"""
-	<par>Start a <lit>for</lit> loop. A for loop must be closed with an
-	<pyref class="endfor"><class>endfor</class></pyref> PI.</par>
+	<p>Start a <lit>for</lit> loop. A for loop must be closed with an
+	<pyref class="endfor"><class>endfor</class></pyref> PI.</p>
 
-	<par>For example:</par>
+	<p>For example:</p>
 	<prog><![CDATA[
 	<ul>
 		<?for i in xrange(10)?>
@@ -180,10 +180,10 @@ class for_(xsc.ProcInst):
 
 class while_(xsc.ProcInst):
 	"""
-	<par>Start a <lit>while</lit> loop. A while loop must be closed with an
-	<pyref class="endwhile"><class>endwhile</class></pyref> PI.</par>
+	<p>Start a <lit>while</lit> loop. A while loop must be closed with an
+	<pyref class="endwhile"><class>endwhile</class></pyref> PI.</p>
 
-	<par>For example:</par>
+	<p>For example:</p>
 	<prog><![CDATA[
 	<?code i = 0?>
 	<ul>
@@ -199,11 +199,11 @@ class while_(xsc.ProcInst):
 
 class end(xsc.ProcInst):
 	"""
-	<par>Ends a <pyref class="while_">while</pyref> or
+	<p>Ends a <pyref class="while_">while</pyref> or
 	<pyref class="for_">for</pyref> loop or a
 	<pyref class="if_">if</pyref>, <pyref class="def_">def</pyref> or
 	<pyref class="class_">class</pyref> block.
-	</par>
+	</p>
 	"""
 
 

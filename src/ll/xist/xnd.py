@@ -9,9 +9,9 @@
 
 
 """
-<par>An &xist; module that contains classes for describing &xist; namespace
+<p>An &xist; module that contains classes for describing &xist; namespace
 modules. From that info a skeleton implementation of the namespace module
-can be generated.</par>
+can be generated.</p>
 """
 
 
@@ -30,12 +30,12 @@ class Base(object):
 
 	def assignname(self, names, name=None):
 		"""
-		<par>Assign a modified version of <arg>name</arg> to <lit>pyname</lit>,
+		<p>Assign a modified version of <arg>name</arg> to <lit>pyname</lit>,
 		that is a valid Python identifier. This is done by replacing illegal
 		characters with <lit>_</lit> and appending an <lit>_</lit> when the name
 		collides with a Python keyword. Furthermore it is made sure that the new
 		name is not in the list <arg>names</arg>. (If <arg>name</arg> is <lit>None</lit>
-		<lit><self/>.name</lit> is used.)</par>
+		<lit><self/>.name</lit> is used.)</p>
 		"""
 		newname = []
 		if name is None:
@@ -59,9 +59,9 @@ class Base(object):
 	@classmethod
 	def simplify(cls, value):
 		"""
-		<par>Return a string, whose value can be used as an intializer for an attribute values.
+		<p>Return a string, whose value can be used as an intializer for an attribute values.
 		(If the value is an <class>int</class> strip the quotes, if it fits into ASCII drop
-		the <lit>u</lit> prefix.)</par>
+		the <lit>u</lit> prefix.)</p>
 		"""
 		try:
 			value = int(value)
@@ -118,11 +118,11 @@ class Module(Base):
 
 	def _findgroups(self):
 		"""
-		<par>This method finds all attribute groups defined for any attribute.
+		<p>This method finds all attribute groups defined for any attribute.
 		As an attribute group can be referenced multiple times (in fact that's
 		the reason for the attribute groups existence), we have to make sure
 		to list an attribute group only once. Furthermore the attribute groups
-		should appear in the order in which they are referenced.</par>
+		should appear in the order in which they are referenced.</p>
 		"""
 		# find all attribute groups defined for the attributes
 		attrgroups = []

@@ -9,7 +9,7 @@
 
 
 """
-<par>An &xist; module that allows embedding Python code in &xml;</par>
+<p>An &xist; module that allows embedding Python code in &xml;</p>
 """
 
 
@@ -90,13 +90,13 @@ class _base(xsc.ProcInst):
 
 class pyexec(_base):
 	"""
-	<par>Here the content of the processing instruction is executed as
+	<p>Here the content of the processing instruction is executed as
 	Python code. Execution is done when the node is converted. When converted
-	such a node will result in an empty <lit>Null</lit> node.</par>
+	such a node will result in an empty <lit>Null</lit> node.</p>
 
-	<par>These processing instructions will be evaluated and executed in the
+	<p>These processing instructions will be evaluated and executed in the
 	namespace of the module sandbox (which is a dictionary in the converter
-	context for the namespace).</par>
+	context for the namespace).</p>
 	"""
 
 	def convert(self, converter):
@@ -108,24 +108,24 @@ class pyexec(_base):
 
 class pyeval(_base):
 	"""
-	<par>Here the code will be executed when the node is converted to &html;
+	<p>Here the code will be executed when the node is converted to &html;
 	as if it was the body of a function, so you can return an expression
 	here. Although the content is used as a function body no indentation
 	is neccessary or allowed. The returned value will be converted to a
-	node and this resulting node will be converted.</par>
+	node and this resulting node will be converted.</p>
 
-	<par>These processing instructions will be evaluated and executed in the
-	namespace of the module sandbox.</par>
+	<p>These processing instructions will be evaluated and executed in the
+	namespace of the module sandbox.</p>
 
-	<par>Note that you should not define the symbol <lit>__</lit> in any of your &xist;
-	processing instructions, as it is used by &xist; for internal purposes.</par>
+	<p>Note that you should not define the symbol <lit>__</lit> in any of your &xist;
+	processing instructions, as it is used by &xist; for internal purposes.</p>
 	"""
 
 	def convert(self, converter):
 		"""
-		<par>Evaluates the code as if it was the body of a Python funtion.
+		<p>Evaluates the code as if it was the body of a Python funtion.
 		The <arg>converter</arg> argument will be available
-		under the name <arg>converter</arg> as an argument to the function.</par>
+		under the name <arg>converter</arg> as an argument to the function.</p>
 		"""
 		code = Code(self.content, True)
 		code.funcify()

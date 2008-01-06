@@ -9,8 +9,8 @@
 
 
 """
-<par>Namespace module for <link href="http://jakarta.apache.org/struts/">Struts</link>
-configuration files: <link href="http://jakarta.apache.org/struts/dtds/struts-config_1_1.dtd">http://jakarta.apache.org/struts/dtds/struts-config_1_1.dtd</link>.</par>
+<p>Namespace module for <a href="http://jakarta.apache.org/struts/">Struts</a>
+configuration files: <a href="http://jakarta.apache.org/struts/dtds/struts-config_1_1.dtd">http://jakarta.apache.org/struts/dtds/struts-config_1_1.dtd</a>.</p>
 """
 
 

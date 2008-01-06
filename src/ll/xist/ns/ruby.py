@@ -9,7 +9,7 @@
 
 
 """
-<par>An &xist; module that contains definitions for all the elements in Ruby 1.0.</par>
+<p>An &xist; module that contains definitions for all the elements in Ruby 1.0.</p>
 """
 
 

@@ -9,13 +9,13 @@
 
 
 """
-<par>This module contains XFind and CSS selectors and related classes and functions.</par>
+<p>This module contains XFind and CSS selectors and related classes and functions.</p>
 
-<par>A selector is a &xist; tree traversal filter that traverses the complete
+<p>A selector is a &xist; tree traversal filter that traverses the complete
 &xml; tree and outputs those nodes specified by the selector. Selectors can
 be combined with various operations and form a language comparable to
-<link href="http://www.w3.org/TR/xpath">XPath</link> but implemented as Python
-expressions.</par>
+<a href="http://www.w3.org/TR/xpath">XPath</a> but implemented as Python
+expressions.</p>
 """
 
 
@@ -29,7 +29,7 @@ __docformat__ = "xist"
 class CSSWeight(tuple):
 	"""
 	The specificity of a &css; selector as a 3-item tuple as specified by
-	<link href="http://www.w3.org/TR/css3-selectors/#specificity">CSS3</link>.
+	<a href="http://www.w3.org/TR/css3-selectors/#specificity">CSS3</a>.
 	"""
 
 	def __new__(cls, a=0, b=0, c=0, d=0):
@@ -46,7 +46,7 @@ class Selector(xsc.WalkFilter):
 	"""
 	Base class for all tree traversal filters that visit the complete tree.
 	Whether a node gets output can be specified by overwriting the
-	<method>matchpath</method> method. Selectors can be combined with various
+	<meth>matchpath</meth> method. Selectors can be combined with various
 	operations (see methods below).
 	"""
 
@@ -120,10 +120,10 @@ class Selector(xsc.WalkFilter):
 
 class IsInstanceSelector(Selector):
 	"""
-	<par>Selector that selects all nodes that are instances of the specified type.
+	<p>Selector that selects all nodes that are instances of the specified type.
 	You can either create an <class>IsInstanceSelector</class> object directly
 	or simply pass a class to a function that expects a walk filter (this class
-	will be automatically wrapped in an <class>IsInstanceSelector</class>).</par>
+	will be automatically wrapped in an <class>IsInstanceSelector</class>).</p>
 
 	<example>
 	<tty>
@@ -175,10 +175,10 @@ class IsInstanceSelector(Selector):
 
 class hasname(Selector):
 	"""
-	<par>Selector that selects all nodes that have a specified Python name (which
+	<p>Selector that selects all nodes that have a specified Python name (which
 	only selects elements, processing instructions and entities). Also a namespace
 	name can be specified as a second argument, which will only select elements
-	from the specified namespace.</par>
+	from the specified namespace.</p>
 
 	<example>
 	<tty>
@@ -235,12 +235,12 @@ class hasname_xml(Selector):
 
 class IsSelector(Selector):
 	"""
-	<par>Selector that selects one specific node in the tree. This can be
+	<p>Selector that selects one specific node in the tree. This can be
 	combined with other selectors via <pyref class="ChildCombinator"><class>ChildCombinator</class>s</pyref>
 	or <pyref class="DescendantCombinator"><class>DescendantCombinator</class>s</pyref>
 	to select children of this specific node. You can either create an
 	<class>IsSelector</class> directly or simply pass a node to a function that
-	expects a walk filter.</par>
+	expects a walk filter.</p>
 
 	<example>
 	<tty>
@@ -277,7 +277,7 @@ isroot = isroot()
 
 class empty(Selector):
 	"""
-	<par>Selector that selects all empty elements or fragments.</par>
+	<p>Selector that selects all empty elements or fragments.</p>
 
 	<example>
 	<tty>
@@ -291,7 +291,7 @@ class empty(Selector):
 	<meta content="      Home page for Python, an interpreted, interactive, object-oriented, extensible
 	      programming language. It provides an extraordinary combination of clarity and
 	      versatility, and is free and comprehensively ported. " name="description" />
-	<link type="application/rss+xml" href="http://www.python.org/channews.rdf" rel="alternate" title="RSS" />]]>
+	<a type="application/rss+xml" href="http://www.python.org/channews.rdf" rel="alternate" title="RSS" />]]>
 	<rep>...</rep>
 	</tty>
 	</example>
@@ -313,7 +313,7 @@ empty = empty()
 
 class onlychild(Selector):
 	"""
-	<par>Selector that selects all node that are the only child of their parents.</par>
+	<p>Selector that selects all node that are the only child of their parents.</p>
 
 	<example>
 	<tty>
@@ -347,8 +347,8 @@ onlychild = onlychild()
 
 class onlyoftype(Selector):
 	"""
-	<par>Selector that selects all nodes that are the only nodes of their type among
-	their siblings.</par>
+	<p>Selector that selects all nodes that are the only nodes of their type among
+	their siblings.</p>
 
 	<example>
 	<tty>
@@ -387,9 +387,9 @@ onlyoftype = onlyoftype()
 
 class hasattr(Selector):
 	"""
-	<par>Selector that selects all element nodes that have an attribute with one
+	<p>Selector that selects all element nodes that have an attribute with one
 	of the specified Python names. For selecting nodes with global attributes
-	the attribute class can be passed.</par>
+	the attribute class can be passed.</p>
 
 	<example>
 	<tty>
@@ -444,11 +444,11 @@ class hasattr_xml(Selector):
 
 class attrhasvalue(Selector):
 	"""
-	<par>Selector that selects all element nodes where an attribute with the
+	<p>Selector that selects all element nodes where an attribute with the
 	specified Python name has the specified value. For global attributes
 	the attribute class can be passed. Note that
 	<pyref module="ll.xist.xsc" class="Attr" method="isfancy">fancy</pyref> attributes
-	will not be considered.</par>
+	will not be considered.</p>
 
 	<example>
 	<tty>
@@ -457,9 +457,9 @@ class attrhasvalue(Selector):
 	<prompt>>>> </prompt><input>for node in doc.walknode(<em>xfind.attrhasvalue("rel", "stylesheet")</em>):</input>
 	<prompt>... </prompt><input>\tprint repr(node)</input>
 	<prompt>... </prompt><input></input>
-	<![CDATA[<link media="screen" type="text/css" href="http://www.python.org/styles/screen-switcher-default.css" rel="stylesheet" id="screen-switcher-stylesheet" />
-	<link media="scReen" type="text/css" rel="stylesheet" href="http://www.python.org/styles/netscape4.css" />
-	<link media="print" type="text/css" rel="stylesheet" href="http://www.python.org/styles/print.css" />]]>
+	<![CDATA[<a media="screen" type="text/css" href="http://www.python.org/styles/screen-switcher-default.css" rel="stylesheet" id="screen-switcher-stylesheet" />
+	<a media="scReen" type="text/css" rel="stylesheet" href="http://www.python.org/styles/netscape4.css" />
+	<a media="print" type="text/css" rel="stylesheet" href="http://www.python.org/styles/print.css" />]]>
 	</tty>
 	</example>
 	"""
@@ -506,11 +506,11 @@ class attrhasvalue_xml(Selector):
 
 class attrcontains(Selector):
 	"""
-	<par>Selector that selects all element nodes where an attribute with the
+	<p>Selector that selects all element nodes where an attribute with the
 	specified Python name contains the specified substring in its value. For
 	global attributes the attribute class can be passed. Note that
 	<pyref module="ll.xist.xsc" class="Attr" method="isfancy">fancy</pyref>
-	attributes will not be considered.</par>
+	attributes will not be considered.</p>
 
 	<example>
 	<tty>
@@ -519,11 +519,11 @@ class attrcontains(Selector):
 	<prompt>>>> </prompt><input>for node in doc.walknode(<em>xfind.attrcontains("rel", "stylesheet")</em>):</input>
 	<prompt>... </prompt><input>\tprint repr(node)</input>
 	<prompt>... </prompt><input></input>
-	<![CDATA[<link type="text/css" id="screen-switcher-stylesheet" media="screen" rel="stylesheet" href="http://www.python.org/styles/screen-switcher-default.css" />
-	<link type="text/css" media="scReen" rel="stylesheet" href="http://www.python.org/styles/netscape4.css" />
-	<link type="text/css" media="print" rel="stylesheet" href="http://www.python.org/styles/print.css" />
-	<link type="text/css" title="large text" media="screen" rel="alternate stylesheet" href="http://www.python.org/styles/largestyles.css" />
-	<link type="text/css" title="default fonts" media="screen" rel="alternate stylesheet" href="http://www.python.org/styles/defaultfonts.css" />]]>
+	<![CDATA[<a type="text/css" id="screen-switcher-stylesheet" media="screen" rel="stylesheet" href="http://www.python.org/styles/screen-switcher-default.css" />
+	<a type="text/css" media="scReen" rel="stylesheet" href="http://www.python.org/styles/netscape4.css" />
+	<a type="text/css" media="print" rel="stylesheet" href="http://www.python.org/styles/print.css" />
+	<a type="text/css" title="large text" media="screen" rel="alternate stylesheet" href="http://www.python.org/styles/largestyles.css" />
+	<a type="text/css" title="default fonts" media="screen" rel="alternate stylesheet" href="http://www.python.org/styles/defaultfonts.css" />]]>
 	</tty>
 	</example>
 	"""
@@ -570,11 +570,11 @@ class attrcontains_xml(Selector):
 
 class attrstartswith(Selector):
 	"""
-	<par>Selector that selects all element nodes where an attribute with the
+	<p>Selector that selects all element nodes where an attribute with the
 	specified Python name starts with the specified string. For global attributes
 	the attribute class can be passed. Note that
 	<pyref module="ll.xist.xsc" class="Attr" method="isfancy">fancy</pyref> attributes
-	will not be considered.</par>
+	will not be considered.</p>
 
 	<example>
 	<tty>
@@ -631,11 +631,11 @@ class attrstartswith_xml(Selector):
 
 class attrendswith(Selector):
 	"""
-	<par>Selector that selects all element nodes where an attribute with the
+	<p>Selector that selects all element nodes where an attribute with the
 	specified Python name ends with the specified string. For global attributes
 	the attribute class can be passed. Note that
 	<pyref module="ll.xist.xsc" class="Attr" method="isfancy">fancy</pyref> attributes
-	will not be considered.</par>
+	will not be considered.</p>
 
 	<example>
 	<tty>
@@ -644,11 +644,11 @@ class attrendswith(Selector):
 	<prompt>>>> </prompt><input>for node in doc.walknode(<em>xfind.attrendswith("href", ".css")</em>):</input>
 	<prompt>... </prompt><input>\tprint repr(node)</input>
 	<prompt>... </prompt><input></input>
-	<![CDATA[<link href="http://www.python.org/styles/screen-switcher-default.css" type="text/css" rel="stylesheet" id="screen-switcher-stylesheet" media="screen" />
-	<link type="text/css" rel="stylesheet" href="http://www.python.org/styles/netscape4.css" media="scReen" />
-	<link type="text/css" rel="stylesheet" href="http://www.python.org/styles/print.css" media="print" />
-	<link title="large text" type="text/css" rel="alternate stylesheet" href="http://www.python.org/styles/largestyles.css" media="screen" />
-	<link title="default fonts" type="text/css" rel="alternate stylesheet" href="http://www.python.org/styles/defaultfonts.css" media="screen" />]]>
+	<![CDATA[<a href="http://www.python.org/styles/screen-switcher-default.css" type="text/css" rel="stylesheet" id="screen-switcher-stylesheet" media="screen" />
+	<a type="text/css" rel="stylesheet" href="http://www.python.org/styles/netscape4.css" media="scReen" />
+	<a type="text/css" rel="stylesheet" href="http://www.python.org/styles/print.css" media="print" />
+	<a title="large text" type="text/css" rel="alternate stylesheet" href="http://www.python.org/styles/largestyles.css" media="screen" />
+	<a title="default fonts" type="text/css" rel="alternate stylesheet" href="http://www.python.org/styles/defaultfonts.css" media="screen" />]]>
 	</tty>
 	</example>
 	"""
@@ -695,8 +695,8 @@ class attrendswith_xml(Selector):
 
 class hasid(Selector):
 	"""
-	<par>Selector that selects all element nodes where the <lit>id</lit> attribute
-	has the specified value.</par>
+	<p>Selector that selects all element nodes where the <lit>id</lit> attribute
+	has the specified value.</p>
 	<example>
 	<tty>
 	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
@@ -730,8 +730,8 @@ class hasid(Selector):
 
 class hasclass(Selector):
 	"""
-	<par>Selector that selects all element nodes where the <lit>class</lit> attribute
-	has the specified value.</par>
+	<p>Selector that selects all element nodes where the <lit>class</lit> attribute
+	has the specified value.</p>
 	<example>
 	<tty>
 	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
@@ -769,7 +769,7 @@ class hasclass(Selector):
 
 class inattr(Selector):
 	"""
-	<par>Selector that selects all attribute nodes and nodes inside of attributes.</par>
+	<p>Selector that selects all attribute nodes and nodes inside of attributes.</p>
 	<example>
 	<tty>
 	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
@@ -796,15 +796,15 @@ inattr = inattr()
 
 class Combinator(Selector):
 	"""
-	<par>A <class>Combinator</class> is a selector that transforms one or combines
-	two or more other selectors in a certain way.</par>
+	<p>A <class>Combinator</class> is a selector that transforms one or combines
+	two or more other selectors in a certain way.</p>
 	"""
 
 
 class BinaryCombinator(Combinator):
 	"""
-	<par>A <class>BinaryCombinator</class> is a combinator that combines two selector:
-	the left hand selector and the right hand selector.</par>
+	<p>A <class>BinaryCombinator</class> is a combinator that combines two selector:
+	the left hand selector and the right hand selector.</p>
 	"""
 	symbol = None
 
@@ -827,13 +827,13 @@ class BinaryCombinator(Combinator):
 
 class ChildCombinator(BinaryCombinator):
 	"""
-	<par>A <class>ChildCombinator</class> is a <class>BinaryCombinator</class>.
+	<p>A <class>ChildCombinator</class> is a <class>BinaryCombinator</class>.
 	To match the <class>ChildCombinator</class> the node must match the
 	right hand selector and it's immediate parent must match the left hand
 	selector (i.e. it works similar to the <lit>&gt;</lit> combinator in &css;
-	or the <lit>/</lit> combinator in XPath).</par>
+	or the <lit>/</lit> combinator in XPath).</p>
 
-	<par><class>ChildCombinator</class>s can be created via the division operator (<lit>/</lit>):</par>
+	<p><class>ChildCombinator</class>s can be created via the division operator (<lit>/</lit>):</p>
 
 	<example>
 	<tty>
@@ -860,14 +860,14 @@ class ChildCombinator(BinaryCombinator):
 
 class DescendantCombinator(BinaryCombinator):
 	"""
-	<par>A <class>DescendantCombinator</class> is a <class>BinaryCombinator</class>.
+	<p>A <class>DescendantCombinator</class> is a <class>BinaryCombinator</class>.
 	To match the <class>DescendantCombinator</class> the node must match the
 	right hand selector and any of it's ancestor nodes must match the left hand
 	selector (i.e. it works similar to the descendant combinator in &css;
-	or the <lit>//</lit> combinator in XPath).</par>
+	or the <lit>//</lit> combinator in XPath).</p>
 
-	<par><class>DescendantCombinator</class>s can be created via the floor division
-	operator (<lit>//</lit>):</par>
+	<p><class>DescendantCombinator</class>s can be created via the floor division
+	operator (<lit>//</lit>):</p>
 
 	<example>
 	<tty>
@@ -896,15 +896,15 @@ class DescendantCombinator(BinaryCombinator):
 
 class AdjacentSiblingCombinator(BinaryCombinator):
 	"""
-	<par>A <class>AdjacentSiblingCombinator</class> is a <class>BinaryCombinator</class>.
+	<p>A <class>AdjacentSiblingCombinator</class> is a <class>BinaryCombinator</class>.
 	To match the <class>AdjacentSiblingCombinator</class> the node must match the
 	right hand selector and the immediately preceding sibling must match the left
-	hand selector.</par>
+	hand selector.</p>
 
-	<par><class>AdjacentSiblingCombinator</class>s can be created via the
+	<p><class>AdjacentSiblingCombinator</class>s can be created via the
 	multiplication operator (<lit>*</lit>). The following example outputs all links
 	inside those <class>p</class> elements that immediately follow a
-	<class>h2</class> element:</par>
+	<class>h2</class> element:</p>
 
 	<example>
 	<tty>
@@ -946,15 +946,15 @@ class AdjacentSiblingCombinator(BinaryCombinator):
 
 class GeneralSiblingCombinator(BinaryCombinator):
 	"""
-	<par>A <class>GeneralSiblingCombinator</class> is a <class>BinaryCombinator</class>.
+	<p>A <class>GeneralSiblingCombinator</class> is a <class>BinaryCombinator</class>.
 	To match the <class>GeneralSiblingCombinator</class> the node must match the
 	right hand selector and any of the preceding siblings must match the left
-	hand selector.</par>
+	hand selector.</p>
 
-	<par><class>AdjacentSiblingCombinator</class>s can be created via the
+	<p><class>AdjacentSiblingCombinator</class>s can be created via the
 	exponentiation operator (<lit>**</lit>). The following example outputs all links
 	that are not the first links inside their parent (i.e. they have another link
-	among their preceding siblings):</par>
+	among their preceding siblings):</p>
 
 	<example>
 	<tty>
@@ -989,8 +989,8 @@ class GeneralSiblingCombinator(BinaryCombinator):
 
 class ChainedCombinator(Combinator):
 	"""
-	<par>A <class>ChainedCombinator</class> combines any number of other
-	selectors.</par>
+	<p>A <class>ChainedCombinator</class> combines any number of other
+	selectors.</p>
 	"""
 
 	symbol = None
@@ -1013,9 +1013,9 @@ class ChainedCombinator(Combinator):
 
 class OrCombinator(ChainedCombinator):
 	"""
-	<par>An <class>OrCombinator</class> is a <class>ChainedCombinator</class> where
+	<p>An <class>OrCombinator</class> is a <class>ChainedCombinator</class> where
 	the node must match at least one of the selectors to match the <class>OrCombinator</class>.
-	An <class>OrCombinator</class> can be created with the binary or operator (<lit>|</lit>).</par>
+	An <class>OrCombinator</class> can be created with the binary or operator (<lit>|</lit>).</p>
 
 	<example>
 	<tty>
@@ -1025,12 +1025,12 @@ class OrCombinator(ChainedCombinator):
 	<prompt>>>> </prompt><input>for node in doc.walknode(<em>xfind.hasattr("href") | xfind.hasattr("src")</em>):</input>
 	<prompt>... </prompt><input>\tprint node.bytes()</input>
 	<prompt>... </prompt><input></input>
-	<![CDATA[<link type="application/rss+xml" title="RSS" rel="alternate" href="http://www.python.org/channews.rdf" />
-	<link media="screen" type="text/css" id="screen-switcher-stylesheet" rel="stylesheet" href="http://www.python.org/styles/screen-switcher-default.css" />
-	<link media="scReen" type="text/css" rel="stylesheet" href="http://www.python.org/styles/netscape4.css" />
-	<link media="print" type="text/css" rel="stylesheet" href="http://www.python.org/styles/print.css" />
-	<link media="screen" type="text/css" title="large text" rel="alternate stylesheet" href="http://www.python.org/styles/largestyles.css" />
-	<link media="screen" type="text/css" title="default fonts" rel="alternate stylesheet" href="http://www.python.org/styles/defaultfonts.css" />
+	<![CDATA[<a type="application/rss+xml" title="RSS" rel="alternate" href="http://www.python.org/channews.rdf" />
+	<a media="screen" type="text/css" id="screen-switcher-stylesheet" rel="stylesheet" href="http://www.python.org/styles/screen-switcher-default.css" />
+	<a media="scReen" type="text/css" rel="stylesheet" href="http://www.python.org/styles/netscape4.css" />
+	<a media="print" type="text/css" rel="stylesheet" href="http://www.python.org/styles/print.css" />
+	<a media="screen" type="text/css" title="large text" rel="alternate stylesheet" href="http://www.python.org/styles/largestyles.css" />
+	<a media="screen" type="text/css" title="default fonts" rel="alternate stylesheet" href="http://www.python.org/styles/defaultfonts.css" />
 	<script src="http://www.python.org/js/iotbs2-key-directors-load.js" type="text/javascript"></script>
 	<script src="http://www.python.org/js/iotbs2-directors.js" type="text/javascript"></script>
 	<script src="http://www.python.org/js/iotbs2-core.js" type="text/javascript"></script>
@@ -1051,9 +1051,9 @@ class OrCombinator(ChainedCombinator):
 
 class AndCombinator(ChainedCombinator):
 	"""
-	<par>An <class>AndCombinator</class> is a <class>ChainedCombinator</class> where
+	<p>An <class>AndCombinator</class> is a <class>ChainedCombinator</class> where
 	the node must match all of the combined selectors to match the <class>AndCombinator</class>.
-	An <class>AndCombinator</class> can be created with the binary and operator (<lit>&amp;</lit>).</par>
+	An <class>AndCombinator</class> can be created with the binary and operator (<lit>&amp;</lit>).</p>
 
 	<example>
 	<tty>
@@ -1083,11 +1083,11 @@ class AndCombinator(ChainedCombinator):
 
 class NotCombinator(Combinator):
 	"""
-	<par>A <class>NotCombinator</class> inverts the selection logic of the
+	<p>A <class>NotCombinator</class> inverts the selection logic of the
 	underlying selector, i.e. a node matches only if it does not match the underlying
-	selector. A <class>NotCombinator</class> can be created with the unary inversion operator (<lit>~</lit>).</par>
+	selector. A <class>NotCombinator</class> can be created with the unary inversion operator (<lit>~</lit>).</p>
 
-	<par>The following example outputs all images that don't have a <lit>border</lit> attribute:</par>
+	<p>The following example outputs all images that don't have a <lit>border</lit> attribute:</p>
 
 	<example>
 	<tty>
@@ -1117,13 +1117,13 @@ class NotCombinator(Combinator):
 
 class CallableSelector(Selector):
 	"""
-	<par>A <class>CallableSelector</class> is a selector that calls a user specified
+	<p>A <class>CallableSelector</class> is a selector that calls a user specified
 	callable to select nodes. The callable gets passed the path and must return
 	a bool specifying whether this path is selected. A <class>CallableSelector</class>
 	is created implicitely whenever a callable is passed to a method that expects
-	a walk filter.</par>
+	a walk filter.</p>
 
-	<par>The following example outputs all links that point outside the <lit>python.org</lit> domain:</par>
+	<p>The following example outputs all links that point outside the <lit>python.org</lit> domain:</p>
 
 	<example>
 	<tty>
@@ -1158,12 +1158,12 @@ class CallableSelector(Selector):
 
 class nthchild(Selector):
 	"""
-	<par>An <class>nthchild</class> object is a selector that selects every node
+	<p>An <class>nthchild</class> object is a selector that selects every node
 	that is the n-th child of its parent. E.g. <lit>nthchild(0)</lit> selects
 	every first child, <lit>nthchild(-1)</lit> selects each last child.
 	Furthermore <lit>nthchild("even")</lit> selects each first, third, fifth, ...
 	child and <lit>nthchild("odd")</lit> selects each second, fourth, sixth, ...
-	child.</par>
+	child.</p>
 	"""
 
 	def __init__(self, index):
@@ -1188,12 +1188,12 @@ class nthchild(Selector):
 
 class nthoftype(Selector):
 	"""
-	<par>An <class>nthchild</class> object is a selector that selects every node
+	<p>An <class>nthchild</class> object is a selector that selects every node
 	that is the n-th node of a specified type among its siblings. Similar to
 	<pyref class="nthchild"><class>nthchild</class></pyref> <class>nthoftype</class>
 	supports negative and positive indices as well as <lit>"even"</lit> and
 	<lit>"odd"</lit>. Which types are checked can be passed explicitely. If no
-	types are passed the type of the node itself is used.</par>
+	types are passed the type of the node itself is used.</p>
 
 	<example>
 	<tty>

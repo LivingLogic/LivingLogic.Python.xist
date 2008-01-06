@@ -9,7 +9,7 @@
 
 
 """
-<par>A module that allows you to embed PHP processing instructions.</par>
+<p>A module that allows you to embed PHP processing instructions.</p>
 """
 
 
@@ -24,8 +24,8 @@ xmlns = "http://www.php.net/"
 
 class php(xsc.ProcInst):
 	"""
-	<par>&php; processing instruction
-	(must be used with an explicit target php to work with &xml;)</par>
+	<p>&php; processing instruction
+	(must be used with an explicit target php to work with &xml;)</p>
 	"""
 
 

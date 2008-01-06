@@ -9,8 +9,8 @@
 
 
 """
-<par>This module contains several functions and classes,
-that are used internally by &xist;.</par>
+<p>This module contains several functions and classes,
+that are used internally by &xist;.</p>
 """
 
 

@@ -1,20 +1,20 @@
-<section><title>Converter contexts</title>
+<section><h>Converter contexts</h>
 
-<par>Converter contexts can be used to pass around information in recursive
-calls to the <method>convert</method> and <method>mapped</method> methods.
+<p>Converter contexts can be used to pass around information in recursive
+calls to the <meth>convert</meth> and <meth>mapped</meth> methods.
 A <pyref module="ll.xist.converters" class="Converter"><class>Converter</class></pyref>
 object will be passed in all calls, so this object is the place to store
 information. However if each element, procinst and entity class decided on its
 own which attributes names to use, name collisions would be inevitale. To avoid
-this, the following system is used.</par>
+this, the following system is used.</p>
 
-<par>When a class wants to store information in a converter, it has to define
+<p>When a class wants to store information in a converter, it has to define
 a <class>Context</class> class (normally derived from the <class>Context</class>
 class of its base class). The constructor must initialize the context object
 to a initial state. You can get the context object for a certain class by treating
-the converter as a dictionary with the class (or an instance) as the key like this:</par>
+the converter as a dictionary with the class (or an instance) as the key like this:</p>
 
-<example><title>Defining and using a converter context</title>
+<example><h>Defining and using a converter context</h>
 <prog>
 from ll.xist import xsc
 
@@ -35,17 +35,17 @@ class counter(xsc.Element):
 </section>
 
 
-<section><title>Chaining pool and extending namespaces</title>
+<section><h>Chaining pool and extending namespaces</h>
 
-<par>When using <pyref module="ll.xist.xsc" class="Pool">pools</pyref> it's
-possible to do some sort of <z>namespace subclassing</z>.</par>
+<p>When using <pyref module="ll.xist.xsc" class="Pool">pools</pyref> it's
+possible to do some sort of <z>namespace subclassing</z>.</p>
 
-<par>Registering a module in a pool not only registers the element, procinst and
+<p>Registering a module in a pool not only registers the element, procinst and
 entity classes in the pool for parsing, but each attribute of the module (as
 long as it's weak referencable) is available as an attribute of the pool
-itself:</par>
+itself:</p>
 
-<example><title>Pool attributes</title>
+<example><h>Pool attributes</h>
 <prog>
 from ll.xist import xsc
 from ll.xist.ns import html
@@ -55,13 +55,13 @@ print pool.img
 </prog>
 </example>
 
-<par>This outputs <lit><![CDATA[<element class ll.xist.ns.html:img at 0x3eed00>]]></lit>.</par>
+<p>This outputs <lit><![CDATA[<element class ll.xist.ns.html:img at 0x3eed00>]]></lit>.</p>
 
-<par>It's possible to chain pools together. When an attribute isn't found in
+<p>It's possible to chain pools together. When an attribute isn't found in
 the first pool, it will be looked up in a second pool (the so called base
-pool):</par>
+pool):</p>
 
-<example><title>Pool chaining</title>
+<example><h>Pool chaining</h>
 <prog>
 from ll.xist import xsc
 from ll.xist.ns import html, svg
@@ -72,20 +72,20 @@ print spool.img
 </prog>
 </example>
 
-<par>Here the <lit>hpool</lit> (containing the <module>html</module> namespace)
+<p>Here the <lit>hpool</lit> (containing the <mod>html</mod> namespace)
 will be used, when the attribute can't be found in <lit>spool</lit>. So this
 will again give the output
-<lit><![CDATA[<element class ll.xist.ns.html:img at 0x3eed00>]]></lit>.</par>
+<lit><![CDATA[<element class ll.xist.ns.html:img at 0x3eed00>]]></lit>.</p>
 
-<par>It's possible to get automatic pool chaining. If a module has an attribute
+<p>It's possible to get automatic pool chaining. If a module has an attribute
 <lit>__bases__</lit> (which must be a sequence of modules), they will
 automatically be wrapped in a pool and used as the base pools for the pool
 created for the first module. This makes it possible to <z>overwrite</z> element
 classes in existing namespaces. For example to replace the <class>a</class>
-class in <module>ll.xist.ns.html</module>, put the following into a module
-<module>html2</module>:</par>
+class in <mod>ll.xist.ns.html</mod>, put the following into a module
+<mod>html2</mod>:</p>
 
-<example><title>Automatic pool chaining (<filename>html2.py</filename>)</title>
+<example><h>Automatic pool chaining (<filename>html2.py</filename>)</h>
 <prog>
 from ll.xist.ns import html
 
@@ -100,9 +100,9 @@ class a(html.a):
 </prog>
 </example>
 
-<par>Now you can use the module in a pool:</par>
+<p>Now you can use the module in a pool:</p>
 
-<example><title>Using a pool chain</title>
+<example><h>Using a pool chain</h>
 <prog>
 from ll.xist import xsc
 import html2
@@ -112,34 +112,34 @@ print pool.a, pool.b
 </prog>
 </example>
 
-<par>This outputs:</par>
+<p>This outputs:</p>
 <tty><![CDATA[
 <element class html2:a at 0x113ec40> <element class ll.xist.ns.html:b at 0x1101fe0>
 ]]></tty>
 
-<par>Note that such a chained pool can of course used when parsing &xml;. The
+<p>Note that such a chained pool can of course used when parsing &xml;. The
 parser will recursively search for the first class that has the appropriate
-name when instantiating the tree nodes.</par>
+name when instantiating the tree nodes.</p>
 
 </section>
 
 
-<section><title>Conversion targets</title>
+<section><h>Conversion targets</h>
 
-<par>The <arg>converter</arg> argument passed to the <method>convert</method>
+<p>The <arg>converter</arg> argument passed to the <meth>convert</meth>
 method has an attribute <lit>target</lit> which is a module or pool and
-specifies the target namespace to which <self/> should be converted.</par>
+specifies the target namespace to which <self/> should be converted.</p>
 
-<par>You can check which conversion is wanted by checking e.g. the
+<p>You can check which conversion is wanted by checking e.g. the
 <lit>xmlns</lit> atribute. Once this is determined you can use element classes
 from the target to create the required &xml; object tree. This makes it possible
 to customize the conversion by passing a chained pool to the
-<method>convert</method> method that extends an existing namespace.</par>
+<meth>convert</meth> method that extends an existing namespace.</p>
 
-<par>The following example shows how an element be converted to two
-different targets:</par>
+<p>The following example shows how an element be converted to two
+different targets:</p>
 
-<example><title>Using conversion targets</title>
+<example><h>Using conversion targets</h>
 <prog>
 from ll.xist import xsc
 from ll.xist.ns import html, fo
@@ -156,9 +156,9 @@ class bold(xsc.Element):
 </prog>
 </example>
 
-<par>The default target for conversion is <module>ll.xist.ns.html</module>.
+<p>The default target for conversion is <mod>ll.xist.ns.html</mod>.
 Other targets can be specified via the <arg>target</arg> argument in the
-<class>Converter</class> constructor or the <method>conv</method> method:</par>
+<class>Converter</class> constructor or the <meth>conv</meth> method:</p>
 
 <tty>
 <prompt>>>> </prompt><input>from ll.xist.ns import html, fo</input>
@@ -173,12 +173,12 @@ Other targets can be specified via the <arg>target</arg> argument in the
 </section>
 
 
-<section><title>Validation and content models</title>
+<section><h>Validation and content models</h>
 
-<par>When generating &html; you might want to make sure that your generated
+<p>When generating &html; you might want to make sure that your generated
 code doesn't contain any illegal tag nesting (i.e. something bad like
 <markup>&lt;p&gt;&lt;p&gt;foo&lt;/p&gt;&lt;/p&gt;</markup>). The module
-<module>ll.xist.ns.html</module> does this automatically:</par>
+<mod>ll.xist.ns.html</mod> does this automatically:</p>
 
 <example>
 <tty>
@@ -191,14 +191,14 @@ code doesn't contain any illegal tag nesting (i.e. something bad like
 </tty>
 </example>
 
-<par>For your own elements you can specify the content model too. This is done
+<p>For your own elements you can specify the content model too. This is done
 by setting the class attribute <lit>model</lit> inside the element class.
-<lit>model</lit> must be an object that provides a <method>checkvalid</method>
+<lit>model</lit> must be an object that provides a <meth>checkvalid</meth>
 method. This method will be called during parsing or publishing with the element
 as an argument. When invalid content is detected, the Python warning framework
-should be used to issue a warning.</par>
+should be used to issue a warning.</p>
 
-<par>The module <module>ll.xist.sims</module> contains several classes that
+<p>The module <mod>ll.xist.sims</mod> contains several classes that
 provide simple validation methods:
 <pyref module="ll.xist.sims" class="Empty"><class>Empty</class></pyref>
 can be used to ensure that the element doesn't have any content (like
@@ -213,11 +213,11 @@ will warn about elements from the same namespace and non-whitespace text content
 <pyref module="ll.xist.sims" class="Elements"><class>Elements</class></pyref>
 will only allow the elements specified in the constructor.
 <pyref module="ll.xist.sims" class="ElementsOrText"><class>ElementsOrText</class></pyref>
-will only allow the elements specified in the constructor and text.</par>
+will only allow the elements specified in the constructor and text.</p>
 
-<par>None of these classes will check the number of child elements or their
-order.</par>
+<p>None of these classes will check the number of child elements or their
+order.</p>
 
-<par>For more info see the <pyref module="ll.xist.sims"><module>sims</module></pyref>
-module.</par>
+<p>For more info see the <pyref module="ll.xist.sims"><mod>sims</mod></pyref>
+module.</p>
 </section>

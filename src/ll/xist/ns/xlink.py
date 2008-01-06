@@ -9,8 +9,8 @@
 
 
 """
-<par>Contains the global attributes for the xlink namespace
-(<lit>http://www.w3.org/1999/xlink</lit>).</par>
+<p>Contains the global attributes for the xlink namespace
+(<lit>http://www.w3.org/1999/xlink</lit>).</p>
 """
 
 

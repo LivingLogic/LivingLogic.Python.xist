@@ -57,6 +57,26 @@ has to be changed into this::
 		def convert(self, converter):
 			return xsc.Text("foo")
 
+Renamed :mod:`doc` classes
+--------------------------
+
+Many classes in the :mod:`ll.xist.ns.doc` module have been renamed. The
+following names have changed:
+
+*	``function`` to ``func``;
+*	``method`` to ``meth``;
+*	``module`` to ``mod``;
+*	``property`` to ``prop``;
+*	``title`` to ``h``;
+*	``par`` to ``p``;
+*	``olist`` to ``ol``;
+*	``ulist`` to ``ul``;
+*	``dlist`` to ``dl``;
+*	``item`` to ``li`` or ``dd`` (depending on whether it's inside a :class:`ol`,
+	:class:`ul` or  :class:`dl`);
+*	``term`` to ``dt``;
+*	``link`` to ``a``.
+
 
 Migrating to version 2.15
 =========================

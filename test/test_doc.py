@@ -15,8 +15,11 @@ from ll.xist import xsc
 from ll.xist.ns import doc
 
 
+__docformat__ = "xist"
+
+
 def test_explain():
 	"""
-	This is <function>test_explain</function>.
+	This is <func>test_explain</func>.
 	"""
-	assert unicode(doc.explain(test_explain).walknode(doc.function)[0]) == u"test_explain"
+	assert unicode(doc.explain(test_explain, format="xist").walknode(doc.func)[0]) == u"test_explain"

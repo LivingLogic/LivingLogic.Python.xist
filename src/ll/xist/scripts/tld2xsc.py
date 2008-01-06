@@ -10,9 +10,9 @@
 
 
 """
-<par>Module that helps to create &xist; namespace modules from TLD files
+<p>Module that helps to create &xist; namespace modules from TLD files
 (Java tag library descriptors).
-For usage information type:</par>
+For usage information type:</p>
 <prog>
 tld2xsc --help
 </prog>

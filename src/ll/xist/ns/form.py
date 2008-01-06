@@ -9,9 +9,9 @@
 
 
 """
-<par>An &xist; module that contains elements that are useful for
+<p>An &xist; module that contains elements that are useful for
 forms. These are just abbreviations for the various
-<lit>&lt;input type=<rep>...</rep>&gt;</lit> elements.</par>
+<lit>&lt;input type=<rep>...</rep>&gt;</lit> elements.</p>
 """
 
 

@@ -9,7 +9,7 @@
 
 
 """
-<par>An &xist; namespace module that contains definitions for all the elements in DocBook 4.3</par>
+<p>An &xist; namespace module that contains definitions for all the elements in DocBook 4.3</p>
 """
 
 

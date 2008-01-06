@@ -11,8 +11,8 @@
 from __future__ import with_statement
 
 """
-<par>An &xist; namespace that contains definitions for all the elements
-in <link href="http://www.w3.org/TR/html4/loose.dtd">&html; 4.0 transitional</link>.</par>
+<p>An &xist; namespace that contains definitions for all the elements
+in <a href="http://www.w3.org/TR/html4/loose.dtd">&html; 4.0 transitional</a>.</p>
 """
 
 
@@ -1321,14 +1321,14 @@ class nobr(xsc.Element): # deprecated
 
 def astext(node, encoding="iso-8859-1", width=72):
 	"""
-	<par>Return the node <arg>node</arg> as a formatted plain string. <arg>node</arg>
-	must contain an &html; tree.</par>
+	<p>Return the node <arg>node</arg> as a formatted plain string. <arg>node</arg>
+	must contain an &html; tree.</p>
 
-	<par>This requires that <app moreinfo="http://elinks.or.cz/">elinks</app> is
-	installed.</par>
+	<p>This requires that <app moreinfo="http://elinks.or.cz/">elinks</app> is
+	installed.</p>
 
-	<par><arg>encoding</arg> specifies the output encoding. <arg>width</arg>
-	specifies the output width.</par>
+	<p><arg>encoding</arg> specifies the output encoding. <arg>width</arg>
+	specifies the output width.</p>
 	"""
 
 	# Fix the HTML

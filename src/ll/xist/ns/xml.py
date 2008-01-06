@@ -9,8 +9,8 @@
 
 
 """
-<par>Contains the global attributes for the &xml; namespace (like <lit>xml:lang</lit>),
-and classes for the &xml; declaration.</par>
+<p>Contains the global attributes for the &xml; namespace (like <lit>xml:lang</lit>),
+and classes for the &xml; declaration.</p>
 """
 
 
@@ -55,7 +55,7 @@ class XMLStyleSheet(xsc.ProcInst):
 
 class declaration(xsc.Element):
 	"""
-	<par>The &xml; declaration as an element. This makes it possible to generate
+	<p>The &xml; declaration as an element. This makes it possible to generate
 	a declaration from within an &xml; file.
 	"""
 	xmlns = xmlns

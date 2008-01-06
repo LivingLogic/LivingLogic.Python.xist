@@ -72,6 +72,9 @@ Changes in 3.0 (released ??/??/2007)
 
 	__ http://docutils.sourceforge.net/rst.html
 
+*	Many classes in the :mod:`ll.xist.ns.doc` have been renamed to more familiar
+	names (from HTML, XHTML 2 or ReST).
+
 *	The ``media`` attribute of :class:`html.link` and :class:`html.style` now has
 	a method :meth:`hasmedia`.
 

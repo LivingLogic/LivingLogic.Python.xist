@@ -9,8 +9,8 @@
 
 
 """
-<par>An &xist; module that contains a collection of useful elements that
-can be used for all conversion target, because they only generate text.</par>
+<p>An &xist; module that contains a collection of useful elements that
+can be used for all conversion target, because they only generate text.</p>
 """
 
 
@@ -28,7 +28,7 @@ xmlns = "http://xmlns.livinglogic.de/xist/ns/specials"
 
 class z(xsc.Element):
 	"""
-	<par>Put the content into double quotes.</par>
+	<p>Put the content into double quotes.</p>
 	"""
 	xmlns = xmlns
 	model = sims.Any()
@@ -40,8 +40,8 @@ class z(xsc.Element):
 
 class filesize(xsc.Element):
 	"""
-	<par>the size (in bytes) of the file whose URL is the attribute href
-	as a text node.</par>
+	<p>the size (in bytes) of the file whose URL is the attribute href
+	as a text node.</p>
 	"""
 	xmlns = xmlns
 	model = sims.Empty()
@@ -58,21 +58,21 @@ class filesize(xsc.Element):
 
 class filetime(xsc.Element):
 	"""
-	<par>the time of the last modification of the file whose &url; is in the attribute <lit>href</lit>
-	as a text node. This will always be an &utc; timestamp.</par>
+	<p>the time of the last modification of the file whose &url; is in the attribute <lit>href</lit>
+	as a text node. This will always be an &utc; timestamp.</p>
 	"""
 	xmlns = xmlns
 	model = sims.Empty()
 	class Attrs(xsc.Element.Attrs):
 		class href(xsc.URLAttr):
 			"""
-			<par>The &url; of the file.</par>
+			<p>The &url; of the file.</p>
 			"""
 			required = True
 
 		class format(xsc.TextAttr):
 			"""
-			<par>A <function>strftime</function> compatible formatstring for formatting the timestamp.</par>
+			<p>A <func>strftime</func> compatible formatstring for formatting the timestamp.</p>
 			"""
 			default = u"%d. %b. %Y, %H:%M"
 
@@ -83,21 +83,21 @@ class filetime(xsc.Element):
 
 class time(xsc.Element):
 	"""
-	<par>the current time (i.e. the time when <pyref method="convert"><method>convert</method></pyref>
+	<p>the current time (i.e. the time when <pyref method="convert"><meth>convert</meth></pyref>
 	is called). You can specify the format of the string in the attribute <lit>format</lit>, which is a
-	<function>strftime</function> compatible string.</par>
+	<func>strftime</func> compatible string.</p>
 	"""
 	xmlns = xmlns
 	model = sims.Empty()
 	class Attrs(xsc.Element.Attrs):
 		class format(xsc.TextAttr):
 			"""
-			<par>A <function>strftime</function> compatible formatstring for formatting the timestamp.</par>
+			<p>A <func>strftime</func> compatible formatstring for formatting the timestamp.</p>
 			"""
 			default = u"%d. %b. %Y, %H:%M"
 		class utc(xsc.BoolAttr):
 			"""
-			<par>Should &utc; be used or local time?</par>
+			<p>Should &utc; be used or local time?</p>
 			"""
 
 	def convert(self, converter):
@@ -112,10 +112,10 @@ class time(xsc.Element):
 
 class ignore(xsc.Element):
 	"""
-	<par>Element that will be ignored when converted.</par>
+	<p>Element that will be ignored when converted.</p>
 
-	<par><class>ignore</class> can be used to comment out stuff.
-	The content of the element must of course still be wellformed.</par>
+	<p><class>ignore</class> can be used to comment out stuff.
+	The content of the element must of course still be wellformed.</p>
 	"""
 	xmlns = xmlns
 	model = sims.Any()
@@ -154,11 +154,11 @@ class loremipsum(xsc.Element):
 
 class wrap(xsc.Element):
 	"""
-	<par>a wrapper element that returns its content when converted.</par>
+	<p>a wrapper element that returns its content when converted.</p>
 
-	<par>This is e.g. useful if you want to parse a
-	file that starts with <pyref module="ll.xist.ns.jsp"><module>&jsp;</module></pyref>
-	processing instructions.</par>
+	<p>This is e.g. useful if you want to parse a
+	file that starts with <pyref module="ll.xist.ns.jsp"><mod>&jsp;</mod></pyref>
+	processing instructions.</p>
 	"""
 	xmlns = xmlns
 	model = sims.Any()

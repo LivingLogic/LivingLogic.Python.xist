@@ -9,8 +9,8 @@
 
 
 """
-<par>An &xist; module that contains the global attributes from
-<app>Zope</app>s <z>Template Attribute Language</z>.</par>
+<p>An &xist; module that contains the global attributes from
+<app>Zope</app>s <z>Template Attribute Language</z>.</p>
 """
 
 

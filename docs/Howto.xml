@@ -1,23 +1,23 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
-<par>&xist; is an extensible &html;/&xml; generator written in Python.
+<p>&xist; is an extensible &html;/&xml; generator written in Python.
 It was developed as a replacement for an &html; preprocessor named
 <app moreinfo="http://www.linguistik.uni-erlangen.de/~msbethke/hsc/">HSC</app>
 and borrows some features and ideas from it. It also borrows the basic ideas
 (&xml;/&html; elements as Python objects) from
 <app moreinfo="http://starship.python.net/crew/friedrich/HTMLgen/html/main.html">HTMLgen</app>
-or <app moreinfo="http://dustman.net/andy/python/HyperText/">HyperText</app>.</par>
+or <app moreinfo="http://dustman.net/andy/python/HyperText/">HyperText</app>.</p>
 
-<par>(If you're impatient, there's also a
-<link href="Examples.html">list of examples</link> that shows what can
-be done with &xist;.)</par>
+<p>(If you're impatient, there's also a
+<a href="Examples.html">list of examples</a> that shows what can
+be done with &xist;.)</p>
 
-<section><title>Overview</title>
-<par>&xist; can be used as a compiler that reads an input &xml; file and
+<section><h>Overview</h>
+<p>&xist; can be used as a compiler that reads an input &xml; file and
 generates a transformed output file, or it could be used for generating &xml;
 dynamically inside a web server (but note that handling object trees <em>is</em>
 slower than simply sending string fragments). In either case generating the
-final &html; or &xml; output requires the following three steps:</par>
-<ulist>
+final &html; or &xml; output requires the following three steps:</p>
+<ul>
 <item>Generating a source &xml; tree: This can be done either by
 parsing an &xml; file, or by directly constructing the
 tree &mdash; as <app>HTMLgen</app> and <app>HyperText</app>
@@ -26,22 +26,22 @@ and pythonic &api; for that.</item>
 <item>Converting the source tree into a target tree: This target
 tree can be a &html; tree or a &svg; tree or XSL-FO tree or any other
 &xml; tree you like. Every node class provides a
-<method>convert</method> method for performing this conversion. For
+<meth>convert</meth> method for performing this conversion. For
 your own &xml; element types you have to define your
 own element classes and implement an appropriate
-<method>convert</method> method. This is possible for
+<meth>convert</meth> method. This is possible for
 processing instructions and entity references too.</item>
 <item>Publishing the target tree: For generating the final
 output a <class>Publisher</class> object is used that generates
 the encoded byte string fragments that can be written to an output stream
 (or yielded from a WSGI application, etc.).</item>
-</ulist>
+</ul>
 </section>
 
 
-<section><title>Constructing &xml; trees</title>
-<par>Like any other &xml; tree &api;, &xist; provides the usual classes:</par>
-<ulist>
+<section><h>Constructing &xml; trees</h>
+<p>Like any other &xml; tree &api;, &xist; provides the usual classes:</p>
+<ul>
 <item><pyref module="ll.xist.xsc" class="Element"><class>Element</class></pyref> for &xml; elements;</item>
 <item><pyref module="ll.xist.xsc" class="Attr"><class>Attr</class></pyref> for attributes;</item>
 <item><pyref module="ll.xist.xsc" class="Attrs"><class>Attrs</class></pyref> for attribute mappings;</item>
@@ -56,30 +56,30 @@ the encoded byte string fragments that can be written to an output stream
 (e.g. <markup>&amp;parrot;</markup>) and</item>
 <item><pyref module="ll.xist.xsc" class="DocType"><class>DocType</class></pyref> for document type
 declarations (e.g. <markup>&lt;!DOCTYPE html PUBLIC <rep>...</rep>&gt;</markup>).</item>
-</ulist>
+</ul>
 
-<section><title>&xml; trees as Python objects</title>
-<par>&xist; works somewhat different from a normal &dom; &api;.
+<section><h>&xml; trees as Python objects</h>
+<p>&xist; works somewhat different from a normal &dom; &api;.
 Instead of only one element class, &xist; has one class for every element
 type. All the elements from different &xml; vocabularies known to &xist; are
-defined in modules in the <pyref module="ll.xist.ns"><module>ll.xist.ns</module></pyref>
+defined in modules in the <pyref module="ll.xist.ns"><mod>ll.xist.ns</mod></pyref>
 subpackage. (Of course it's possible to define additional element classes for your
 own &xml; vocabulary). The definition of &html; can be found in
-<pyref module="ll.xist.ns.html"><module>ll.xist.ns.html</module></pyref>
-for example.</par>
+<pyref module="ll.xist.ns.html"><mod>ll.xist.ns.html</mod></pyref>
+for example.</p>
 
-<par>Every element class has a constructor of the form:</par>
+<p>Every element class has a constructor of the form:</p>
 <prog>
 __init__(self, *content, **attrs)
 </prog>
-<par>Positional arguments (i.e. items in <arg>content</arg>)
+<p>Positional arguments (i.e. items in <arg>content</arg>)
 will be the child nodes of the element node. Keyword arguments will be attributes.
 You can pass most of Python's builtin types to such a constructor.
 Strings (<class>str</class> and <class>unicode</class>) and integers
 will be automatically converted to
 <pyref module="ll.xist.xsc" class="Text"><class>Text</class></pyref> objects.
-Constructing an &html; element works like this:</par>
-<example><title>The first example</title>
+Constructing an &html; element works like this:</p>
+<example><h>The first example</h>
 <prog>
 from ll.xist.ns import html
 
@@ -91,11 +91,11 @@ node = html.div(
 </prog>
 </example>
 
-<par>For attribute names that collide with Python keywords
+<p>For attribute names that collide with Python keywords
 or are not legal identifiers (most notably <lit>class</lit> in &html;)
 the attribute name must be slightly modified, so that it's a legal
-Python identifier (for <lit>class</lit> an underscore is appended):</par>
-<example><title>Illegal attribute names</title>
+Python identifier (for <lit>class</lit> an underscore is appended):</p>
+<example><h>Illegal attribute names</h>
 <prog>
 node = html.div(
 	"Hello world!",
@@ -103,11 +103,11 @@ node = html.div(
 )
 </prog>
 </example>
-<par>(Don't worry: This modified attribute name will be mapped to the real official attribute
-name once the output is generated.)</par>
+<p>(Don't worry: This modified attribute name will be mapped to the real official attribute
+name once the output is generated.)</p>
 
-<par>You can pass attributes as a dictionary too:</par>
-<example><title>Passing attributes as dictionaries</title>
+<p>You can pass attributes as a dictionary too:</p>
+<example><h>Passing attributes as dictionaries</h>
 <prog>
 node = html.div(
 	"Hello world!",
@@ -116,11 +116,11 @@ node = html.div(
 </prog>
 </example>
 
-<par>Furthermore it's possible to use <lit>with</lit> blocks to construct
+<p>Furthermore it's possible to use <lit>with</lit> blocks to construct
 &xist; trees. Inside a <lit>with</lit> block the unary <lit>+</lit> operator
-or the <function>add</function> function can be used to add nodes or attributes
-to the current level of the tree:</par>
-<example><title>Using <lit>with</lit> blocks</title>
+or the <func>add</func> function can be used to add nodes or attributes
+to the current level of the tree:</p>
+<example><h>Using <lit>with</lit> blocks</h>
 <prog>
 with html.div(class_="quote") as node:
 	with html.h1("Confucius (551-479 BC)"):
@@ -134,11 +134,11 @@ with html.div(class_="quote") as node:
 
 </section>
 
-<section><title>Generating &xml; trees from &xml; files</title>
-<par>&xml; trees can also be generated by parsing &xml; files.
-For this the module <pyref module="ll.xist.parsers"><module>ll.xist.parsers</module></pyref>
-provides several functions:</par>
-<dlist>
+<section><h>Generating &xml; trees from &xml; files</h>
+<p>&xml; trees can also be generated by parsing &xml; files.
+For this the module <pyref module="ll.xist.parsers"><mod>ll.xist.parsers</mod></pyref>
+provides several functions:</p>
+<dl>
 <term><lit>parsestring(data, base=None, encoding=None, **builderargs)</lit></term>
 <item>Parse the string <arg>data</arg> into an &xist; tree.</item>
 <term><lit>parseiter(iterable, base=None, encoding=None, **builderargs)</lit></term>
@@ -152,10 +152,10 @@ input in chunks of bytes) into an &xist; tree.</item>
 <item>Parse &xml; input from the &url; <arg>name</arg> into an &xist; tree.</item>
 <term><lit>parseetree(tree, base=None, **builderargs)</lit></term>
 <item>Parse &xml; input from the object <arg>tree</arg> which must support the
-<link href="http://effbot.org/zone/element-index.htm">ElementTree</link> &api;.</item>
-</dlist>
-<par>For example, parsing a string can be done like this:</par>
-<example><title>Parsing a string</title>
+<a href="http://effbot.org/zone/element-index.htm">ElementTree</a> &api;.</item>
+</dl>
+<p>For example, parsing a string can be done like this:</p>
+<example><h>Parsing a string</h>
 <prog>
 from ll.xist import parsers
 from ll.xist.ns import html
@@ -166,21 +166,21 @@ node = parsers.parsestring(
 </prog>
 </example>
 
-<par>For further info about the arguments to the parsing functions, see the
+<p>For further info about the arguments to the parsing functions, see the
 documentation for
-<pyref module="ll.xist.parsers" class="Builder"><class>ll.xist.parsers.Builder</class></pyref>.</par>
+<pyref module="ll.xist.parsers" class="Builder"><class>ll.xist.parsers.Builder</class></pyref>.</p>
 </section>
 </section>
 
 
-<section><title>Defining new elements and converting &xml; trees</title>
+<section><h>Defining new elements and converting &xml; trees</h>
 
-<par>To be able to parse an &xml; file, you have to provide an element class
+<p>To be able to parse an &xml; file, you have to provide an element class
 for every element type that appears in the file. These classes either come from
 modules provided by &xist; or you can define your own. Defining your own
-element class for an element named <lit>cool</lit> works like this:</par>
+element class for an element named <lit>cool</lit> works like this:</p>
 
-<example><title>Defining a new element</title>
+<example><h>Defining a new element</h>
 <prog>
 class cool(xsc.Element):
 	def convert(self, converter):
@@ -189,20 +189,20 @@ class cool(xsc.Element):
 </prog>
 </example>
 
-<par>You have to derive your new class from
+<p>You have to derive your new class from
 <pyref module="ll.xist.xsc" class="Element"><class>xsc.Element</class></pyref>.
 The name of the class will be the element name. For element type names that
 are invalid Python identifiers, you can use the class attribute <lit>xmlname</lit>
-in the element class to overwrite the element name.</par>
-<par>To be able to convert an element of this type to a new &xml; tree
+in the element class to overwrite the element name.</p>
+<p>To be able to convert an element of this type to a new &xml; tree
 (probably &html; in most cases), you have to implement the
-<pyref module="ll.xist.xsc" class="Node" method="convert"><method>convert</method></pyref>
+<pyref module="ll.xist.xsc" class="Node" method="convert"><meth>convert</meth></pyref>
 method. In this method you can build a new &xml; tree from the content and attributes
-of the object.</par>
+of the object.</p>
 
-<par>Using this new element is simple</par>
+<p>Using this new element is simple</p>
 
-<example><title>Using the new element</title>
+<example><h>Using the new element</h>
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>node = cool("Python")</input>
 <prompt>&gt;&gt;&gt; </prompt><input>print node.conv().bytes()</input>
@@ -210,59 +210,59 @@ of the object.</par>
 </tty>
 </example>
 
-<par><pyref module="ll.xist.xsc" class="Node" method="conv"><method>conv</method></pyref> simply
+<p><pyref module="ll.xist.xsc" class="Node" method="conv"><meth>conv</meth></pyref> simply
 calls
-<pyref module="ll.xist.xsc" class="Node" method="convert"><method>convert</method></pyref>
+<pyref module="ll.xist.xsc" class="Node" method="convert"><meth>convert</meth></pyref>
 with a default <pyref module="ll.xist.converters" class="Converter"><arg>converter</arg></pyref>
 argument. We'll come to converters in a minute.
-<pyref module="ll.xist.xsc" class="Node" method="bytes"><method>bytes</method></pyref>
+<pyref module="ll.xist.xsc" class="Node" method="bytes"><meth>bytes</meth></pyref>
 is a method that converts the node to a byte string. This method will be explained
-when we discuss the publishing interface.</par>
+when we discuss the publishing interface.</p>
 
-<par>Note that it is vital for your own <method>convert</method>
-methods that you recursively call <method>convert</method>
+<p>Note that it is vital for your own <meth>convert</meth>
+methods that you recursively call <meth>convert</meth>
 on your own content, because otherwise some unconverted nodes
-might remain in the tree. Let's define a new element:</par>
+might remain in the tree. Let's define a new element:</p>
 <prog>
 class python(xsc.Element):
 	def convert(self, converter):
 		return html.a(u"Python", href=u"http://www.python.org/")
 </prog>
-<par>Now we can do the following:</par>
+<p>Now we can do the following:</p>
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>node = cool(python())</input>
 <prompt>&gt;&gt;&gt; </prompt><input>print node.conv().bytes()</input>
 &lt;b&gt;&lt;a href="http://www.python.org/"&gt;Python&lt;/a&gt; is cool!&lt;/b&gt;
 </tty>
-<par>But if we forget to call
-<pyref module="ll.xist.xsc" class="Node" method="convert"><method>convert</method></pyref>
+<p>But if we forget to call
+<pyref module="ll.xist.xsc" class="Node" method="convert"><meth>convert</meth></pyref>
 for our own content, i.e. if the element <pyref class="cool"><class>cool</class></pyref>
-was written like this:</par>
+was written like this:</p>
 <prog>
 class cool(xsc.Element):
 	def convert(self, converter):
 		return html.b(self.content, " is cool!")
 </prog>
-<par>we would get:</par>
+<p>we would get:</p>
 <prog>
 &gt;&gt;&gt; node = cool(python())
 &gt;&gt;&gt; print node.conv().bytes()
 &lt;b&gt;&lt;python&gt;&lt;/python&gt; is cool!&lt;/b&gt;
 </prog>
 
-<par>Furthermore <method>convert</method> should never modify <self/>, because
-<method>convert</method> might be called multiple times for the same node.</par>
+<p>Furthermore <meth>convert</meth> should never modify <self/>, because
+<meth>convert</meth> might be called multiple times for the same node.</p>
 
-<section><title>Converters</title>
-<par><pyref module="ll.xist.xsc" class="Node" method="conv"><method>conv</method></pyref>
+<section><h>Converters</h>
+<p><pyref module="ll.xist.xsc" class="Node" method="conv"><meth>conv</meth></pyref>
 is a convenience method that creates a default converter for you and calls
-<pyref module="ll.xist.xsc" class="Node" method="convert"><method>convert</method></pyref>.
-This converter is created once and is passed to all <method>convert</method>
+<pyref module="ll.xist.xsc" class="Node" method="convert"><meth>convert</meth></pyref>.
+This converter is created once and is passed to all <meth>convert</meth>
 calls. It is used to store parameters for the conversion process and it allows
-<method>convert</method> methods to store additional information, so that it is
+<meth>convert</meth> methods to store additional information, so that it is
 available elsewhere during the conversion process. You can also call
-<pyref module="ll.xist.xsc" class="Node" method="convert"><method>convert</method></pyref>
-yourself, which would look like this:</par>
+<pyref module="ll.xist.xsc" class="Node" method="convert"><meth>convert</meth></pyref>
+yourself, which would look like this:</p>
 
 <prog>
 from ll.xist import converters
@@ -272,13 +272,13 @@ node = cool(python())
 node = node.convert(converters.Converter())
 </prog>
 
-<par>You can pass the following arguments to the
-<pyref module="ll.xist.converters" class="Converter"><class>Converter</class></pyref> constructor:</par>
-<dlist>
+<p>You can pass the following arguments to the
+<pyref module="ll.xist.converters" class="Converter"><class>Converter</class></pyref> constructor:</p>
+<dl>
 <term><arg>root</arg></term><item><arg>root</arg> (which defaults to <lit>None</lit>) is the root &url;
-for the conversion process. When you want to resolve a link in some of your own <method>convert</method> methods,
+for the conversion process. When you want to resolve a link in some of your own <meth>convert</meth> methods,
 the &url; must be interpreted relative to this root &url; (You can use
-<pyref module="ll.xist.xsc" class="URLAttr" method="forInput"><method>URLAttr.forInput</method></pyref>
+<pyref module="ll.xist.xsc" class="URLAttr" method="forInput"><meth>URLAttr.forInput</meth></pyref>
 for that).</item>
 <term><arg>mode</arg></term><item><arg>mode</arg> (which defaults to <lit>None</lit>) works the same way
 as modes in &xslt;. You can use this for implementing different conversion modes.</item>
@@ -294,12 +294,12 @@ would do the conversion when <lit><arg>stage</arg>=="deliver"</lit> and simply r
 when <lit><arg>stage</arg>=="cache"</lit>, so it would still be part of the cached &xml; tree
 and would be converted to &html; on every request.</item>
 <term><arg>target</arg></term><item><arg>target</arg> (which defaults to
-<pyref module="ll.xist.ns.html"><module>ll.xist.ns.html</module></pyref>) specifies what the output should be.
+<pyref module="ll.xist.ns.html"><mod>ll.xist.ns.html</mod></pyref>) specifies what the output should be.
 Values must be <pyref module="ll.xist.xsc" class="Namespace">namespace subclasses</pyref>
 (see below for an explanation of namespaces).</item>
-<term><arg>lang</arg></term><item><par><arg>lang</arg> (which defaults to <lit>None</lit>) is the language
-in which the result tree should be. This can be used in the <method>convert</method> method
-to implement different conversions for different languages, e.g.:</par>
+<term><arg>lang</arg></term><item><p><arg>lang</arg> (which defaults to <lit>None</lit>) is the language
+in which the result tree should be. This can be used in the <meth>convert</meth> method
+to implement different conversions for different languages, e.g.:</p>
 <prog>
 class note(xsc.Element):
 	def convert(self, converter):
@@ -316,17 +316,17 @@ class note(xsc.Element):
 		return node.convert(converter)
 </prog>
 </item>
-</dlist>
+</dl>
 
-<par>Additional arguments are passed when a converter is created in the context of
-a <pyref module="ll.make"><module>make</module></pyref> script.</par>
+<p>Additional arguments are passed when a converter is created in the context of
+a <pyref module="ll.make"><mod>make</mod></pyref> script.</p>
 
 </section>
 
-<section><title>Attributes</title>
-<par>Setting and accessing the attributes of an element works either via
+<section><h>Attributes</h>
+<p>Setting and accessing the attributes of an element works either via
 a dictionary interface or by accessing the &xml; attributes as Python attributes
-of the elements <lit>attrs</lit> attribute:</par>
+of the elements <lit>attrs</lit> attribute:</p>
 <example>
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>node = html.a(u"Python", href=u"http://www.python.org/")</input>
@@ -341,27 +341,27 @@ href="http://www.python.org/"
 </tty>
 </example>
 
-<par>All attribute values are instances of subclasses of the class
+<p>All attribute values are instances of subclasses of the class
 <pyref module="ll.xist.xsc" class="Attr"><class>Attr</class></pyref>.
-Available subclasses are:</par>
+Available subclasses are:</p>
 
-<ulist>
+<ul>
 <item><pyref module="ll.xist.xsc" class="TextAttr"><class>TextAttr</class></pyref>, for normal text attributes;</item>
 <item><pyref module="ll.xist.xsc" class="URLAttr"><class>URLAttr</class></pyref>, for attributes that are &url;s;</item>
 <item><pyref module="ll.xist.xsc" class="BoolAttr"><class>BoolAttr</class></pyref>, for boolean attributes (for such an attribute
 only its presence is important, it's value will always be the same as the attribute name when publishing);</item>
 <item><pyref module="ll.xist.xsc" class="IntAttr"><class>IntAttr</class></pyref>, for integer attributes;</item>
 <item><pyref module="ll.xist.xsc" class="ColorAttr"><class>ColorAttr</class></pyref>, for color attributes (e.g. <lit>#ffffff</lit>).</item>
-</ulist>
+</ul>
 
-<par><class>IntAttr</class> and <class>ColorAttr</class> mostly serve as documentation
-of the attributes purpose. Both classes have no added functionality.</par>
+<p><class>IntAttr</class> and <class>ColorAttr</class> mostly serve as documentation
+of the attributes purpose. Both classes have no added functionality.</p>
 
-<par><pyref module="ll.xist.xsc" class="Attr"><class>Attr</class></pyref> itself is derived from
+<p><pyref module="ll.xist.xsc" class="Attr"><class>Attr</class></pyref> itself is derived from
 <pyref module="ll.xist.xsc" class="Frag"><class>Frag</class></pyref> so it is possible
-to use all the sequence methods on an attribute.</par>
+to use all the sequence methods on an attribute.</p>
 
-<par>Unset attributes will be treated like empty ones so the following is possible:</par>
+<p>Unset attributes will be treated like empty ones so the following is possible:</p>
 
 <example>
 <prog>
@@ -370,12 +370,12 @@ node["spam"].append("ham")
 </prog>
 </example>
 
-<par>This also means that after <lit>del node["spam"][:]</lit> the attribute
+<p>This also means that after <lit>del node["spam"][:]</lit> the attribute
 will be empty again and will be considered to be unset.
-Such attributes will be skipped when publishing.</par>
+Such attributes will be skipped when publishing.</p>
 
-<par>The main purpose of this is to allow you to construct values conditionally
-and then use those values as attribute values:</par>
+<p>The main purpose of this is to allow you to construct values conditionally
+and then use those values as attribute values:</p>
 
 <prog>
 import random
@@ -388,19 +388,19 @@ else:
 node = html.div(u"foo", class_=class_)
 </prog>
 
-<par>In 50% of the cases the generated <class>div</class> element will not
-have a <lit>class</lit> attribute.</par>
+<p>In 50% of the cases the generated <class>div</class> element will not
+have a <lit>class</lit> attribute.</p>
 
-<section><title>Defining attributes</title>
+<section><h>Defining attributes</h>
 
-<par>When you define a new element you have to specify the attributes allowed
+<p>When you define a new element you have to specify the attributes allowed
 for this element. For this use the class attribute <lit>Attrs</lit>
 (which must be a class derived from
 <pyref module="ll.xist.xsc" class="Element.Attrs"><class>xsc.Element.Attrs</class></pyref>)
 and define the attributes by deriving them from one of the existing attribute classes.
-We could extend our example element in the following way:</par>
+We could extend our example element in the following way:</p>
 
-<example><title>Using attributes</title>
+<example><h>Using attributes</h>
 <prog>
 class cool(xsc.Element):
 	class Attrs(xsc.Element.Attrs):
@@ -415,7 +415,7 @@ class cool(xsc.Element):
 </prog>
 </example>
 
-<par>and use it like this:</par>
+<p>and use it like this:</p>
 
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>node = cool(python(), adj=u"totally")</input>
@@ -426,11 +426,11 @@ class cool(xsc.Element):
 </section>
 
 
-<section><title>Default attributes</title>
-<par>It is possible to define default values for attributes via
-the class attribute <lit>default</lit>:</par>
+<section><h>Default attributes</h>
+<p>It is possible to define default values for attributes via
+the class attribute <lit>default</lit>:</p>
 
-<example><title>Defining default attributes</title>
+<example><h>Defining default attributes</h>
 <prog>
 class cool(xsc.Element):
 	class Attrs(xsc.Element.Attrs):
@@ -446,10 +446,10 @@ class cool(xsc.Element):
 </prog>
 </example>
 
-<par>Now if we instantiate the class without specifying
-<lit>adj</lit> we'll get the default:</par>
+<p>Now if we instantiate the class without specifying
+<lit>adj</lit> we'll get the default:</p>
 
-<example><title>Using default attributes</title>
+<example><h>Using default attributes</h>
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>node = cool(python())</input>
 <prompt>&gt;&gt;&gt; </prompt><input>print node.conv().bytes()</input>
@@ -457,11 +457,11 @@ class cool(xsc.Element):
 </tty>
 </example>
 
-<par>If we want a <class>cool</class> instance without
+<p>If we want a <class>cool</class> instance without
 an <lit>adj</lit> attribute, we can pass <lit>None</lit>
-as the attribute value:</par>
+as the attribute value:</p>
 
-<example><title>Removing default attributes</title>
+<example><h>Removing default attributes</h>
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>node = cool(python(), adj=None)</input>
 <prompt>&gt;&gt;&gt; </prompt><input>print node.conv().bytes()</input>
@@ -471,12 +471,12 @@ as the attribute value:</par>
 
 </section>
 
-<section><title>Allowed attribute values</title>
-<par>It's possible to specify that an attribute has a fixed set of allowed
+<section><h>Allowed attribute values</h>
+<p>It's possible to specify that an attribute has a fixed set of allowed
 values. This can be done with the class attribute <lit>values</lit>. We could
-extend our example to look like this:</par>
+extend our example to look like this:</p>
 
-<example><title>Defining allowed attribute values</title>
+<example><h>Defining allowed attribute values</h>
 <prog>
 class cool(xsc.Element):
 	class Attrs(xsc.Element.Attrs):
@@ -493,9 +493,9 @@ class cool(xsc.Element):
 </prog>
 </example>
 
-<par>These values won't be checked when we create our <class>cool</class>
+<p>These values won't be checked when we create our <class>cool</class>
 instance. Only when this node is parsed from a file will the warning
-be issued:</par>
+be issued:</p>
 
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>s = '&lt;cool adj="pretty"&gt;&lt;python/&gt;&lt;/cool&gt;'</input>
@@ -504,10 +504,10 @@ be issued:</par>
   warnings.warn(IllegalAttrValueWarning(self))
 </tty>
 
-<par>The warning will also be issued if we publish such a node,
+<p>The warning will also be issued if we publish such a node,
 but note that for warnings Python's warning framework is used,
 so the warning will be printed only once (but of course
-you can change that with <function>warnings.filterwarnings</function>):</par>
+you can change that with <func>warnings.filterwarnings</func>):</p>
 
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>node = cool(python(), adj=u"pretty")</input>
@@ -519,15 +519,15 @@ you can change that with <function>warnings.filterwarnings</function>):</par>
 
 </section>
 
-<section><title>Required attributes</title>
-<par>Finally it's possible to specify that an attribute is required.
+<section><h>Required attributes</h>
+<p>Finally it's possible to specify that an attribute is required.
 This again will only be checked when parsing or publishing. To specify that an
 attribute is required simply add the class attribute <lit>required</lit>
 with the value <lit>True</lit>. The attribute <lit>alt</lit> of the
 class <pyref module="ll.xist.ns.html" class="img"><class>ll.xist.ns.html.img</class></pyref>
-is such an attribute, so we'll get:</par>
+is such an attribute, so we'll get:</p>
 
-<example><title>Missing required attributes</title>
+<example><h>Missing required attributes</h>
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
 <prompt>&gt;&gt;&gt; </prompt><input>node = html.img(src="eggs.png")</input>
@@ -542,14 +542,14 @@ is such an attribute, so we'll get:</par>
 
 </section>
 
-<section><title>Namespaces and pools</title>
+<section><h>Namespaces and pools</h>
 
-<par>Now that you've defined your own elements, you have to tell the parser
+<p>Now that you've defined your own elements, you have to tell the parser
 about them, so they can be instantiated when a file is parsed. First you have to
 assign an &xml; namespace to these classes. This is done by setting the class
-attribute <lit>xmlns</lit> to the namespace name:</par>
+attribute <lit>xmlns</lit> to the namespace name:</p>
 
-<example><title>Assigning a namespace to elements</title>
+<example><h>Assigning a namespace to elements</h>
 <prog>
 from ll.xist import xsc, parsers
 from ll.xist.ns import html
@@ -571,19 +571,19 @@ class cool(xsc.Element):
 </prog>
 </example>
 
-<par>When parsing the parser fetches the classes it uses from a <class>Pool</class>
-object. We can put our two classes into a pool like this:</par>
+<p>When parsing the parser fetches the classes it uses from a <class>Pool</class>
+object. We can put our two classes into a pool like this:</p>
 
-<example><title>Putting elements in a pool</title>
+<example><h>Putting elements in a pool</h>
 <prog>
 pool = xsc.Pool(python, cool)
 </prog>
 </example>
 
-<par>It's also possible to register the element classes in a pool directly at
-class construction time via a <lit>with</lit> block like this:</par>
+<p>It's also possible to register the element classes in a pool directly at
+class construction time via a <lit>with</lit> block like this:</p>
 
-<example><title>Populating a pool with a <lit>with</lit> block</title>
+<example><h>Populating a pool with a <lit>with</lit> block</h>
 <prog>
 from __future__ import with_statement
 
@@ -608,9 +608,9 @@ with xsc.Pool() as pool:
 </prog>
 </example>
 
-<par>Now you can use this pool for parsing:</par>
+<p>Now you can use this pool for parsing:</p>
 
-<example><title>Parsing &xml;</title>
+<example><h>Parsing &xml;</h>
 <prog><![CDATA[
 s = '<cool xmlns="http://xmlns.example.org/foo"><python/></cool>'
 
@@ -618,10 +618,10 @@ node = parsers.parsestring(s, pool=pool)
 ]]></prog>
 </example>
 
-<par>It's also possible to call the parsing function with a predefined mapping
-between namespace names and namespace prefixes:</par>
+<p>It's also possible to call the parsing function with a predefined mapping
+between namespace names and namespace prefixes:</p>
 
-<example><title>Parsing &xml; with predefined prefix mapping</title>
+<example><h>Parsing &xml; with predefined prefix mapping</h>
 <prog><![CDATA[
 s = '<cool><python/></cool>'
 
@@ -629,11 +629,11 @@ node = parsers.parsestring(s, pool=pool, prefixes={None: "http://xmlns.example.o
 ]]></prog>
 </example>
 
-<par>If you have many elements, registering them in a pool becomes cumbersome.
+<p>If you have many elements, registering them in a pool becomes cumbersome.
 In this case you can put your element classes into a module and then
-register the module in the pool:</par>
+register the module in the pool:</p>
 
-<example><title>Registering modules in a pool</title>
+<example><h>Registering modules in a pool</h>
 <prog>
 import foo_xmlns # This is the module containing the element classes
 
@@ -643,10 +643,10 @@ pool = xsc.Pool(foo_xmlns)
 
 </section>
 
-<section><title>Global attributes</title>
-<par>You can define global attributes belonging to a certain namespace by defining
+<section><h>Global attributes</h>
+<p>You can define global attributes belonging to a certain namespace by defining
 a global <class>Attrs</class> class and giving each attribute a namespace name
-via <lit>xmlns</lit>:</par>
+via <lit>xmlns</lit>:</p>
 
 <prog>
 class Attrs(xsc.Attrs):
@@ -654,11 +654,11 @@ class Attrs(xsc.Attrs):
 		xmlns = "http://www.example.com/foo"
 </prog>
 
-<par>To make this global attribute know to the parsing, you simply can put
-the <class>Attrs</class> in the pool used for parsing.</par>
+<p>To make this global attribute know to the parsing, you simply can put
+the <class>Attrs</class> in the pool used for parsing.</p>
 
-<par>Setting and accessing such an attribute can be done by using the
-attribute class instead of the attribute name like this:</par>
+<p>Setting and accessing such an attribute can be done by using the
+attribute class instead of the attribute name like this:</p>
 
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
@@ -667,8 +667,8 @@ attribute class instead of the attribute name like this:</par>
 'bar'
 </tty>
 
-<par>An alternate way of specifying a global attribute in a constructor looks
-like this:</par>
+<p>An alternate way of specifying a global attribute in a constructor looks
+like this:</p>
 
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
@@ -679,13 +679,13 @@ like this:</par>
 
 </section>
 
-<section><title>Entities</title>
+<section><h>Entities</h>
 
-<par>In the same way as defining new element types, you can define new entities.
+<p>In the same way as defining new element types, you can define new entities.
 The following example is from the module
-<pyref module="ll.xist.ns.abbr"><module>ll.xist.ns.abbr</module></pyref>:</par>
+<pyref module="ll.xist.ns.abbr"><mod>ll.xist.ns.abbr</mod></pyref>:</p>
 
-<example><title>Defining new entities</title>
+<example><h>Defining new entities</h>
 <prog>
 from ll.xist import xsc
 from ll.xist.ns import html
@@ -700,9 +700,9 @@ class html(xsc.Entity):
 </prog>
 </example>
 
-<par>You can use this entity in your &xml; files like this:</par>
+<p>You can use this entity in your &xml; files like this:</p>
 
-<example><title>Using the newly defined entity</title>
+<example><h>Using the newly defined entity</h>
 <prog>
 &lt;cool adj="very"&gt;&amp;html;&lt;/cool&gt;
 </prog>
@@ -710,15 +710,15 @@ class html(xsc.Entity):
 
 </section>
 
-<section><title>Processing instructions</title>
-<par>Defining processing instructions works just like elements and entities.
+<section><h>Processing instructions</h>
+<p>Defining processing instructions works just like elements and entities.
 Derive a new class from
 <pyref module="ll.xist.xsc" class="ProcInst"><class>ll.xist.xsc.ProcInst</class></pyref>
-and implement <pyref module="ll.xist.xsc" class="Node" method="convert"><method>convert</method></pyref>.
+and implement <pyref module="ll.xist.xsc" class="Node" method="convert"><meth>convert</meth></pyref>.
 The following example implements a processing instruction that returns an
-uppercase version of its content as a text node.</par>
+uppercase version of its content as a text node.</p>
 
-<example><title>Defining new processing instructions</title>
+<example><h>Defining new processing instructions</h>
 <prog>
 class upper(xsc.ProcInst):
 	def convert(self, converter):
@@ -726,46 +726,46 @@ class upper(xsc.ProcInst):
 </prog>
 </example>
 
-<par>It can be used in an &xml; file like this:</par>
+<p>It can be used in an &xml; file like this:</p>
 
-<example><title>Using the newly defined processing instruction</title>
+<example><h>Using the newly defined processing instruction</h>
 <prog>
 &lt;cool&gt;&lt;?upper foo?&gt;&lt;/cool&gt;
 </prog>
 </example>
 
-<par>There are namespaces containing processing instruction classes that don't
-provide a <method>convert</method> method. These processing instruction objects
+<p>There are namespaces containing processing instruction classes that don't
+provide a <meth>convert</meth> method. These processing instruction objects
 will then be published as &xml; processing instructions. One example is the
-namespace <pyref module="ll.xist.ns.php"><module>ll.xist.ns.php</module></pyref>.</par>
+namespace <pyref module="ll.xist.ns.php"><mod>ll.xist.ns.php</mod></pyref>.</p>
 
-<par>Other namespaces (like <pyref module="ll.xist.ns.jsp"><module>ll.xist.ns.jsp</module></pyref>)
+<p>Other namespaces (like <pyref module="ll.xist.ns.jsp"><mod>ll.xist.ns.jsp</mod></pyref>)
 contain processing instruction classes, but they will be published in a different
 (not &xml; compatible) format. For example <lit>ll.xist.ns.jsp.expression("foo")</lit>
-will be published as <lit>&lt;%= foo&gt;</lit>.</par>
+will be published as <lit>&lt;%= foo&gt;</lit>.</p>
 
 </section>
 
 </section>
 
 
-<section><title>Publishing &xml; trees</title>
+<section><h>Publishing &xml; trees</h>
 
-<par>After creating the &xml; tree and converting the tree
+<p>After creating the &xml; tree and converting the tree
 into its final output form, you have to write the resulting tree
 to a file. This can be done with the publishing &api;. Three methods
 that use the publishing &api; are
-<pyref module="ll.xist.xsc" class="Node" method="iterbytes"><method>iterbytes</method></pyref>,
-<pyref module="ll.xist.xsc" class="Node" method="bytes"><method>bytes</method></pyref>
+<pyref module="ll.xist.xsc" class="Node" method="iterbytes"><meth>iterbytes</meth></pyref>,
+<pyref module="ll.xist.xsc" class="Node" method="bytes"><meth>bytes</meth></pyref>
 and
-<pyref module="ll.xist.xsc" class="Node" method="write"><method>write</method></pyref>.
-<pyref module="ll.xist.xsc" class="Node" method="bytes"><method>iterbytes</method></pyref>
+<pyref module="ll.xist.xsc" class="Node" method="write"><meth>write</meth></pyref>.
+<pyref module="ll.xist.xsc" class="Node" method="bytes"><meth>iterbytes</meth></pyref>
 is a generator that will yield the complete 8-bit &xml; string in fragments.
-<pyref module="ll.xist.xsc" class="Node" method="bytes"><method>bytes</method></pyref>
-returns the complete 8-bit &xml; string.</par>
+<pyref module="ll.xist.xsc" class="Node" method="bytes"><meth>bytes</meth></pyref>
+returns the complete 8-bit &xml; string.</p>
 
-<par>Writing a node to a file can be done with the method
-<pyref module="ll.xist.xsc" class="Node" method="write"><method>write</method></pyref>:</par>
+<p>Writing a node to a file can be done with the method
+<pyref module="ll.xist.xsc" class="Node" method="write"><meth>write</meth></pyref>:</p>
 
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html</input>
@@ -773,17 +773,17 @@ returns the complete 8-bit &xml; string.</par>
 <prompt>&gt;&gt;&gt; </prompt><input>node.write(open("foo.html", "wb"), encoding="ascii")</input>
 </tty>
 
-<par>All these methods use the method
-<pyref module="ll.xist.xsc" class="Node" method="publish"><method>publish</method></pyref> internally.
-<pyref module="ll.xist.xsc" class="Node" method="publish"><method>publish</method></pyref> gets passed
-an instance of <pyref module="ll.xist.publishers" class="Publisher"><class>ll.xist.publisher.Publisher</class></pyref>.</par>
+<p>All these methods use the method
+<pyref module="ll.xist.xsc" class="Node" method="publish"><meth>publish</meth></pyref> internally.
+<pyref module="ll.xist.xsc" class="Node" method="publish"><meth>publish</meth></pyref> gets passed
+an instance of <pyref module="ll.xist.publishers" class="Publisher"><class>ll.xist.publisher.Publisher</class></pyref>.</p>
 
-<section><title>Specifying an encoding</title>
-<par>You can specify the encoding with the parameter <arg>encoding</arg>
+<section><h>Specifying an encoding</h>
+<p>You can specify the encoding with the parameter <arg>encoding</arg>
 (with the encoding specified in an &xml; declaration being the default, if there
 is no such declaration <lit>"utf-8"</lit> is used). Unencodable characters will
 be escaped with character references when possible (i.e. inside text nodes, for
-comments or processing instructions you'll get an exception):</par>
+comments or processing instructions you'll get an exception):</p>
 
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist import xsc</input>
@@ -812,9 +812,9 @@ Traceback (most recent call last):
 UnicodeEncodeError: 'ascii' codec can't encode characters in position 4-5: ordinal not in range(128)
 </tty>
 
-<par>When you include an <pyref module="ll.xist.ns.xml" class="XML">&xml; header</pyref>
+<p>When you include an <pyref module="ll.xist.ns.xml" class="XML">&xml; header</pyref>
 or an <pyref module="ll.xist.ns.meta" class="contenttype">&html; meta header</pyref>,
-&xist; will automatically insert the correct encoding when publishing:</par>
+&xist; will automatically insert the correct encoding when publishing:</p>
 
 <tty>
 <prompt>&gt;&gt;&gt; </prompt><input>from ll.xist import xsc</input>
@@ -826,11 +826,11 @@ or an <pyref module="ll.xist.ns.meta" class="contenttype">&html; meta header</py
 </tty>
 </section>
 
-<section><title>&html; compatibility</title>
-<par>Another useful parameter is <arg>xhtml</arg>,
-it specifies whether you want pure &html; or &xhtml; as output:</par>
+<section><h>&html; compatibility</h>
+<p>Another useful parameter is <arg>xhtml</arg>,
+it specifies whether you want pure &html; or &xhtml; as output:</p>
 
-<dlist>
+<dl>
 <term><lit>xhtml==0</lit></term><item>This will give you pure &html;, i.e. no
 final <lit>/</lit> for elements with an empty content model, so you'll get e.g.
 <markup>&lt;br&gt;</markup> in the output. Elements that don't have an empty
@@ -842,16 +842,16 @@ Elements with an empty content model will be published like this:
 <term><lit>xhtml==2</lit></term><item>This gives full &xml; output. Every empty
 element will be published with an empty tag (without an additional space):
 <markup>&lt;br/&gt;</markup> or <markup>&lt;div/&gt;</markup>.</item>
-</dlist>
+</dl>
 </section>
 
-<section><title>Namespaces</title>
+<section><h>Namespaces</h>
 
-<par>By default &xist; doesn't output any namespace declarations. The simplest
+<p>By default &xist; doesn't output any namespace declarations. The simplest
 way to change that, is to pass <lit>True</lit> for the <arg>prefixdefault</arg>
-argument when publishing:</par>
+argument when publishing:</p>
 
-<example><title>Publishing namespace info</title>
+<example><h>Publishing namespace info</h>
 <prog>
 from ll.xist.ns import html
 
@@ -869,8 +869,8 @@ print e.bytes(prefixdefault=True)
 </prog>
 </example>
 
-<par>Using <lit>True</lit> allows &xist; to choose its own prefixes. The code
-above will output (rewrapped for clarity):</par>
+<p>Using <lit>True</lit> allows &xist; to choose its own prefixes. The code
+above will output (rewrapped for clarity):</p>
 <prog><![CDATA[
 <ns:html xmlns:ns="http://www.w3.org/1999/xhtml">
 <ns:head><ns:title>The page</ns:title></ns:head>
@@ -878,39 +878,39 @@ above will output (rewrapped for clarity):</par>
 </ns:html>
 ]]></prog>
 
-<par>You can also use a fixed prefix:</par>
+<p>You can also use a fixed prefix:</p>
 
 <prog>
 print e.bytes(prefixdefault="h")
 </prog>
 
-<par>This will output (again rewrapped):</par>
+<p>This will output (again rewrapped):</p>
 <prog><![CDATA[
 <h:html xmlns:h="http://www.w3.org/1999/xhtml">
 <h:head><h:title>The page</h:title></h:head>
 <h:body><h:h1>The header</h:h1><h:p>The content</h:p></h:body>
 </h:html>]]></prog>
 
-<par>If you want the empty prefix you can use <lit>None</lit>:</par>
+<p>If you want the empty prefix you can use <lit>None</lit>:</p>
 
 <prog>
 print e.bytes(prefixdefault=None)
 </prog>
 
-<par>This will output (again rewrapped):</par>
+<p>This will output (again rewrapped):</p>
 <prog><![CDATA[
 <html xmlns="http://www.w3.org/1999/xhtml">
-<head><title>The page</title></head>
+<head><h>The page</h></head>
 <body><h1>The header</h1><p>The content</p></body>
 </html>]]></prog>
 
-<par>When elements from more than one namespace are present in the tree,
+<p>When elements from more than one namespace are present in the tree,
 <arg>prefixdefault</arg> is unreliable. The first namespace encountered will
 get the prefix specified by <arg>prefixdefault</arg>, all others will get a
 different prefix. &xist; will never use the same prefix for different namespaces.
-&xist; will also refuse to use an empty prefix for global attributes:</par>
+&xist; will also refuse to use an empty prefix for global attributes:</p>
 
-<example><title>Publishing global attributes</title>
+<example><h>Publishing global attributes</h>
 <prog>
 from __future__ import with_statement
 from ll.xist import xsc
@@ -937,11 +937,11 @@ print e.bytes(prefixdefault=None)
 </prog>
 </example>
 
-<par>This will output:</par>
+<p>This will output:</p>
 
 <prog><![CDATA[
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:ns="http://www.w3.org/1999/xlink">
-<head><title>The page</title></head>
+<head><h>The page</h></head>
 <body>
 <h1>The header</h1>
 <p>The <a ns:href="http://www.python.org/" ns:type="simple" ns:title="Python" href="http://www.python.org/">Python</a> homepage</p>
@@ -949,19 +949,19 @@ print e.bytes(prefixdefault=None)
 </html>]]>
 </prog>
 
-<par>In the case of multiple namespaces you can use the <arg>prefixes</arg>
+<p>In the case of multiple namespaces you can use the <arg>prefixes</arg>
 argument to specify an explicit prefix for each namespace. So we could change
-the publishing statement from our example above to:</par>
+the publishing statement from our example above to:</p>
 
 <prog>
 print e.bytes(prefixes={http://www.w3.org/1999/xhtml": None, "http://www.w3.org/1999/xlink": "xl"})
 </prog>
 
-<par>which would give us the output:</par>
+<p>which would give us the output:</p>
 
 <prog><![CDATA[
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:xl="http://www.w3.org/1999/xlink">
-<head><title>The page</title></head>
+<head><h>The page</h></head>
 <body>
 <h1>The header</h1>
 <p>The <a xl:href="http://www.python.org/" xl:type="simple" xl:title="Python" href="http://www.python.org/">Python</a> homepage</p>
@@ -969,30 +969,30 @@ print e.bytes(prefixes={http://www.w3.org/1999/xhtml": None, "http://www.w3.org/
 </html>]]>
 </prog>
 
-<par>Note that we can shorten the publishing call from above to:</par>
+<p>Note that we can shorten the publishing call from above to:</p>
 
 <prog>
 print e.bytes(prefixes={html.xmlns: None, xlink.xmlns: "xl"})
 </prog>
 
-<par>or even to:</par>
+<p>or even to:</p>
 
 <prog>
 print e.bytes(prefixes={html: None, xlink: "xl"})
 </prog>
 
-<par>Finally it's possible to suppress output of namespace declarations
-for certain namespaces by using the <arg>hidexmlns</arg> attribute:</par>
+<p>Finally it's possible to suppress output of namespace declarations
+for certain namespaces by using the <arg>hidexmlns</arg> attribute:</p>
 </section>
 
 <prog>
 print e.bytes(prefixes={html: None, xlink: "xl"}, hidexmlns=[html, xlink])
 </prog>
 
-<par>This will output:</par>
+<p>This will output:</p>
 <prog><![CDATA[
 <html>
-<head><title>The page</title></head>
+<head><h>The page</h></head>
 <body>
 <h1>The header</h1>
 <p>The <a xl:href="http://www.python.org/" xl:type="simple" xl:title="Python" href="http://www.python.org/">Python</a> homepage</p>

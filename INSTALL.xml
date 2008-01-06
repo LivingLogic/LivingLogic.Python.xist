@@ -1,80 +1,80 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
-<section><title>Requirements</title>
-<par>To use &xist; you need the following software packages:</par>
-<olist>
-<item><link href="http://www.python.org/">Python 2.5</link>,</item>
-<item><link href="root:core/index.html">ll-core</link> (1.11 or newer),</item>
+<section><h>Requirements</h>
+<p>To use &xist; you need the following software packages:</p>
+<ol>
+<item><a href="http://www.python.org/">Python 2.5</a>,</item>
+<item><a href="root:core/index.html">ll-core</a> (1.11 or newer),</item>
 <item>if you want to use automatic image size calculation: the
-<link href="http://www.pythonware.com/products/pil/">Python Imaging Library</link>,</item>
-<item>if you want to parse broken &html;: <link href="http://www.xmlsoft.org/">libxml2</link>
+<a href="http://www.pythonware.com/products/pil/">Python Imaging Library</a>,</item>
+<item>if you want to parse broken &html;: <a href="http://www.xmlsoft.org/">libxml2</a>
 (including its Python wrapper),</item>
-<item>if you want want to use the function <function>ll.xist.ns.html.astext</function>
-to convert &html; to plain text: <link href="http://elinks.or.cz/">elinks</link>,</item>
+<item>if you want want to use the function <func>ll.xist.ns.html.astext</func>
+to convert &html; to plain text: <a href="http://elinks.or.cz/">elinks</a>,</item>
 <item>if you want to install this package as an egg:
-<link href="http://peak.telecommunity.com/DevCenter/setuptools">setuptools</link>.</item>
-<item>if you want to run the test suite: <link href="http://codespeak.net/py/current/doc/test.html">py.test</link>,</item>
+<a href="http://peak.telecommunity.com/DevCenter/setuptools">setuptools</a>.</item>
+<item>if you want to run the test suite: <a href="http://codespeak.net/py/current/doc/test.html">py.test</a>,</item>
 <item>and a C compiler supported by <app>distutils</app>, if you want
 to install the source distribution.</item>
-</olist>
+</ol>
 </section>
 
 
-<section><title>Installation</title>
-<par><app moreinfo="http://peak.telecommunity.com/DevCenter/setuptools">setuptools</app>
-is used for installation so you can install this module with the following command:</par>
+<section><h>Installation</h>
+<p><app moreinfo="http://peak.telecommunity.com/DevCenter/setuptools">setuptools</app>
+is used for installation so you can install this module with the following command:</p>
 
 <prog>
 easy_install ll-xist
 </prog>
 
-<par>If you want to install from source, you can download one of the
-<link href="root:xist/Download.html">distribution archives</link>, unpack it,
-enter the directory and execute the following command:</par>
+<p>If you want to install from source, you can download one of the
+<a href="root:xist/Download.html">distribution archives</a>, unpack it,
+enter the directory and execute the following command:</p>
 <prog>
 python setup.py install
 </prog>
 
-<par>This will copy <filename>*.py</filename> files, compile <filename>*.c</filename>
+<p>This will copy <filename>*.py</filename> files, compile <filename>*.c</filename>
 files and install everything in the <dirname>site-packages</dirname>
-directory as the <module>ll.xist</module> package.</par>
+directory as the <mod>ll.xist</mod> package.</p>
 
-<par>For Windows a binary distribution is provided. To install it,
-double click it, and follow the instructions.</par>
+<p>For Windows a binary distribution is provided. To install it,
+double click it, and follow the instructions.</p>
 
-<par>If you have difficulties installing this software, send a problem report
-to Walter Dörwald (<email>walter@livinglogic.de</email>).</par>
+<p>If you have difficulties installing this software, send a problem report
+to Walter Dörwald (<email>walter@livinglogic.de</email>).</p>
 </section>
 
 
-<section><title>Character encoding</title>
-<par>When you pass an 8bit string in the constructor
+<section><h>Character encoding</h>
+<p>When you pass an 8bit string in the constructor
 of an &xist; element, these strings have to
 be converted to Unicode. &xist; assumes that these 8bit strings
-are in the system default encoding, which normally is &ascii;.</par>
+are in the system default encoding, which normally is &ascii;.</p>
 
-<par>If your strings contain non-&ascii; characters you <em>must</em>
+<p>If your strings contain non-&ascii; characters you <em>must</em>
 pass them as unicode strings to the &xist; constructors and you <em>must</em>
 specify the encoding you're using in your source code in the first or second
 line of your script (see
-<link href="http://www.python.org/peps/pep-0263.html">PEP 263</link> for
-a detailed description).</par>
+<a href="http://www.python.org/peps/pep-0263.html">PEP 263</a> for
+a detailed description).</p>
 </section>
 
 
-<section><title>IPython display hooks</title>
-<par>If you're using &xist; in an
-<link href="http://ipython.scipy.org/">IPython shell</link>, &xist; allows you
+<section><h>IPython display hooks</h>
+<p>If you're using &xist; in an
+<a href="http://ipython.scipy.org/">IPython shell</a>, &xist; allows you
 to browse through your trees using any of the browsers provided by IPython's
-<link href="http://projects.scipy.org/ipython/ipython/wiki/UsingIPipe">ipipe module</link>.</par>
+<a href="http://projects.scipy.org/ipython/ipython/wiki/UsingIPipe">ipipe module</a>.</p>
 
-<par>You can specify which format gets used by changing the value of the
-<lit>defaultpresenter</lit> variable in the module <module>ll.xist.presenters</module>:</par>
+<p>You can specify which format gets used by changing the value of the
+<lit>defaultpresenter</lit> variable in the module <mod>ll.xist.presenters</mod>:</p>
 
 <prog>
 from ll.xist import presenters
 presenters.defaultpresenter = presenters.TreePresenter
 </prog>
 
-<par>Setting this value to <lit>None</lit> turns off the display hook.</par>
+<p>Setting this value to <lit>None</lit> turns off the display hook.</p>
 
 </section>

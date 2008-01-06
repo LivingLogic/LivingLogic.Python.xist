@@ -1,40 +1,40 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
-<section><title>Migrating to version 3.0</title>
+<section><h>Migrating to version 3.0</h>
 
-<section><title>Changes to tree traversal</title>
-<par>You can no longer apply XFind expression directly to nodes, so instead of:</par>
+<section><h>Changes to tree traversal</h>
+<p>You can no longer apply XFind expression directly to nodes, so instead of:</p>
 <prog>
 for node in root//html.p:
 	print node
 </prog>
-<par>you have to write:</par>
+<p>you have to write:</p>
 <prog>
 for node in root.walknode(html.p):
 	print node
 </prog>
-<par>If you want the search anchored at the root node, you can do the following:</par>
+<p>If you want the search anchored at the root node, you can do the following:</p>
 <prog>
 for node in root.walknode(root/html.p):
 	print node
 </prog>
-<par>This will yield <class>html.p</class> elements only if they are immediate
-children of the <lit>root</lit> node.</par>
+<p>This will yield <class>html.p</class> elements only if they are immediate
+children of the <lit>root</lit> node.</p>
 
-<par>Passing a callable to the <method>walk</method> method now creates a
+<p>Passing a callable to the <meth>walk</meth> method now creates a
 <class>ll.xist.xfind.CallableSelector</class>. If you want the old tree traversal
-logic back, you have to put your code into the <method>filterpath</method> method
-of a <class>WalkFilter</class> object.</par>
+logic back, you have to put your code into the <meth>filterpath</meth> method
+of a <class>WalkFilter</class> object.</p>
 
-<par>Many of the XFind operators have been renamed (and all have been rewritten).
-See the <module>xfind</module> documentation for more info.</par>
+<p>Many of the XFind operators have been renamed (and all have been rewritten).
+See the <mod>xfind</mod> documentation for more info.</p>
 
 </section>
 
-<section><title>The death of namespace modules</title>
+<section><h>The death of namespace modules</h>
 
-<par>It's no longer possible to turn modules into namespaces. Element classes
+<p>It's no longer possible to turn modules into namespaces. Element classes
 belong to a namespace (in the &xml; sense) simpy if their <lit>xmlns</lit>
-attribute have the same value. So a module definition like this:</par>
+attribute have the same value. So a module definition like this:</p>
 
 <prog>
 from ll.xist import xsc
@@ -49,7 +49,7 @@ class xmlns(xsc.Namespace):
 xmlns.makemod(vars())
 </prog>
 
-<par>has to be changed into this:</par>
+<p>has to be changed into this:</p>
 
 <prog>
 from ll.xist import xsc
@@ -63,19 +63,40 @@ class foo(xsc.Element):
 
 </section>
 
+<section><h>Renamed <mod>doc</mod> classes</h>
+
+<p>Many classes in the <mod>ll.xist.ns.doc</mod> module have been renamed.
+The following names have changed:</p>
+
+<ul>
+<li><lit>function</lit> to <lit>func</lit>;</li>
+<li><lit>method</lit> to <lit>meth</lit>;</li>
+<li><lit>module</lit> to <lit>mod</lit>;</li>
+<li><lit>property</lit> to <lit>prop</lit>;</li>
+<li><lit>title</lit> to <lit>h</lit>;</li>
+<li><lit>par</lit> to <lit>p</lit>;</li>
+<li><lit>olist</lit> to <lit>ol</lit>;</li>
+<li><lit>ulist</lit> to <lit>ul</lit>;</li>
+<li><lit>dlist</lit> to <lit>dl</lit>;</li>
+<li><lit>item</lit> to <lit>li</lit> or </lit>dd</lit> (depending on whether
+it's inside a <class>ol</class>, <class>ul</class> or <class>dl</class>);</li>
+<li><lit>term</lit> to <lit>dt</lit>;</li>
+<li><lit>link</lit> to <lit>a</lit>.</li>
+</ul>
+
 </section>
 
 
-<section><title>Migrating to version 2.15</title>
+<section><h>Migrating to version 2.15</h>
 
-<section><title>Changes to plain text conversion</title>
+<section><h>Changes to plain text conversion</h>
 
-<par>The node method <method>asText</method> has been moved to the
-<module>html</module> namespace, so you have to replace:</par>
+<p>The node method <meth>asText</meth> has been moved to the
+<mod>html</mod> namespace, so you have to replace:</p>
 
 <prog>print node.asText()</prog>
 
-<par>with:</par>
+<p>with:</p>
 
 <prog>
 from ll.xist.ns import html
@@ -84,28 +105,28 @@ print html.astext(node)
 
 </section>
 
-<section><title>Changes to <class>htmlspecials.pixel</class></title>
+<section><h>Changes to <class>htmlspecials.pixel</class></h>
 
-<par>If you've been using the <lit>color</lit> attribute for
+<p>If you've been using the <lit>color</lit> attribute for
 <class>htmlspecials.pixel</class>, you have to add a <lit>#</lit> in from of
 the value, as it is a &css; color value now. (And if've you've been using
 <lit>color</lit> and a &css; padding of a different color: This will no longer
-work).</par>
+work).</p>
 
 </section>
 
 </section>
 
 
-<section><title>Migrating to version 2.14</title>
+<section><h>Migrating to version 2.14</h>
 
-<section><title>Changes to presenters</title>
+<section><h>Changes to presenters</h>
 
-<par>Presenters work differently now. Instead of:</par>
+<p>Presenters work differently now. Instead of:</p>
 
 <prog>print node.asrepr(presenters.CodePresenter)</prog>
 
-<par>simply do the following:</par>
+<p>simply do the following:</p>
 
 <prog>print presenters.CodePresenter(node)</prog>
 
@@ -114,237 +135,237 @@ work).</par>
 </section>
 
 
-<section><title>Migrating to version 2.13</title>
+<section><h>Migrating to version 2.13</h>
 
-<section><title>Changes to <module>ll.xist.xsc</module></title>
+<section><h>Changes to <mod>ll.xist.xsc</mod></h>
 
-<par><method>xsc.Namespace.tokenize</method> no longer has an <arg>encoding</arg>
+<p><meth>xsc.Namespace.tokenize</meth> no longer has an <arg>encoding</arg>
 argument, but operates on a unicode string directly. You can either use the
-result of a <method>asString</method> call or decode the result of an
-<method>asBytes</method> call yourself.</par>
+result of a <meth>asString</meth> call or decode the result of an
+<meth>asBytes</meth> call yourself.</p>
 </section>
 
 </section>
 
 
-<section><title>Migrating to version 2.11</title>
+<section><h>Migrating to version 2.11</h>
 
-<section><title>Changes to <module>ll.xist.xsc</module></title>
+<section><h>Changes to <mod>ll.xist.xsc</mod></h>
 
-<par>The function <function>ToNode</function> has been renamed to
-<function>tonode</function>.</par>
+<p>The function <func>ToNode</func> has been renamed to
+<func>tonode</func>.</p>
 
-<par><class>ll.xist.Context</class> no longer subclasses <class>list</class>.
+<p><class>ll.xist.Context</class> no longer subclasses <class>list</class>.
 If you need a stack for your context, simply add the list as an attribute
-of the context object.</par>
+of the context object.</p>
 
 </section>
 
-<section><title>Code rearrangements</title>
+<section><h>Code rearrangements</h>
 
-<par>The iterator stuff from <module>ll.xist.xfind</module> has been moved to
-the <module>ll</module> package/module, i.e. you have to use
-<function>ll.first</function> instead of <function>ll.xist.xfind.first</function>.</par>
+<p>The iterator stuff from <mod>ll.xist.xfind</mod> has been moved to
+the <mod>ll</mod> package/module, i.e. you have to use
+<func>ll.first</func> instead of <func>ll.xist.xfind.first</func>.</p>
 
 </section>
 
-<section><title>Changes to the <method>walk</method> method</title>
+<section><h>Changes to the <meth>walk</meth> method</h>
 
-<par>The <method>walk</method> method has changed again. There are no inmodes
+<p>The <meth>walk</meth> method has changed again. There are no inmodes
 and outmodes any longer. Instead input and output are <class>Cursor</class>
-objects. If you're using your own <method>walk</method> filters, you have to
-update them. For different output modes you can use the methods <method>walknode</method>,
-<method>walkpath</method> or <method>walkindex</method> instead of using
-the cursor yielded by <method>walk</method>.</par>
+objects. If you're using your own <meth>walk</meth> filters, you have to
+update them. For different output modes you can use the methods <meth>walknode</meth>,
+<meth>walkpath</meth> or <meth>walkindex</meth> instead of using
+the cursor yielded by <meth>walk</meth>.</p>
 
-<par>The node methods <method>find</method> and <method>findfirst</method>
+<p>The node methods <meth>find</meth> and <meth>findfirst</meth>
 have been removed. Use <lit>xsc.Frag(node.walk(<rep>...</rep>)</lit> or
-<lit>node.walk(<rep>...</rep>)[0]</lit> instead.</par>
+<lit>node.walk(<rep>...</rep>)[0]</lit> instead.</p>
 
 </section>
 
-<section><title>Changes to publishing</title>
+<section><h>Changes to publishing</h>
 
-<par>Publishing has changed: If you've used the method <method>repr</method>
+<p>Publishing has changed: If you've used the method <meth>repr</meth>
 before to get a string representation of an &xml; tree, you have to use
-<method>asrepr</method> instead now (<method>repr</method> is a generator
-which will produce the string in pieces).</par>
+<meth>asrepr</meth> instead now (<meth>repr</meth> is a generator
+which will produce the string in pieces).</p>
 
 </section>
 
-<section><title>Changes to the <module>xfind</module> module</title>
+<section><h>Changes to the <mod>xfind</mod> module</h>
 
-<par>The functions <function>item</function>, <function>first</function>,
-<function>last</function>, <function>count</function> and
-<function>iterone</function> as well as the class <class>Iterator</class>
-have been moved to the <module>ll</module> module.</par>
-
-</section>
+<p>The functions <func>item</func>, <func>first</func>,
+<func>last</func>, <func>count</func> and
+<func>iterone</func> as well as the class <class>Iterator</class>
+have been moved to the <mod>ll</mod> module.</p>
 
 </section>
 
+</section>
 
-<section><title>Migrating to version 2.10</title>
 
-<section><title>Changes to publishing</title>
-<par>Publishing has been changed from using a stream &api; to using a
-iterator &api;. If you've been using <method>Publisher.write</method> or
-<method>Publisher.writetext</method> (in your own <method>publish</method>
+<section><h>Migrating to version 2.10</h>
+
+<section><h>Changes to publishing</h>
+<p>Publishing has been changed from using a stream &api; to using a
+iterator &api;. If you've been using <meth>Publisher.write</meth> or
+<meth>Publisher.writetext</meth> (in your own <meth>publish</meth>
 methods) you must update your code by replacing <lit>publisher.write(<rep>foo</rep>)</lit>
 with <lit>yield publisher.encode(<rep>foo</rep>)</lit> and
 <lit>publisher.writetext(<rep>foo</rep>)</lit> with
-<lit>yield publisher.encodetext(<rep>foo</rep>)</lit>.</par>
+<lit>yield publisher.encodetext(<rep>foo</rep>)</lit>.</p>
 </section>
 
-<section><title>Changes to the test suite</title>
-<par>The test suite now uses <link href="http://codespeak.net/py/current/doc/test.html">py.test</link>,
-so if you want to run it you'll need py.test.</par>
+<section><h>Changes to the test suite</h>
+<p>The test suite now uses <a href="http://codespeak.net/py/current/doc/test.html">py.test</a>,
+so if you want to run it you'll need py.test.</p>
 </section>
 
-<section><title>Changes to <module>ll.xist.ns.code</module></title>
-<par>The code in a <class>ll.xist.ns.code.pyexec</class> object is no longer
+<section><h>Changes to <mod>ll.xist.ns.code</mod></h>
+<p>The code in a <class>ll.xist.ns.code.pyexec</class> object is no longer
 executed at construction time, but at conversion time. So if you relied on
 this fact (e.g. to make a namespace available for parsing the rest of the
-&xml; file) you will have to change your code.</par>
+&xml; file) you will have to change your code.</p>
 </section>
 
-<section><title>Removed namespaces</title>
-<par>The namespace modules <module>ll.xist.ns.css</module> and
-<module>ll.xist.ns.cssspecials</module> have been removed.</par>
+<section><h>Removed namespaces</h>
+<p>The namespace modules <mod>ll.xist.ns.css</mod> and
+<mod>ll.xist.ns.cssspecials</mod> have been removed.</p>
 </section>
 
 </section>
 
 
-<section><title>Migrating to version 2.9</title>
+<section><h>Migrating to version 2.9</h>
 
-<section><title>Changes to exceptions</title>
-<par>All exception classes have been moved from <module>ll.xist.errors</module>
-to <module>ll.xist.xsc</module>.</par>
+<section><h>Changes to exceptions</h>
+<p>All exception classes have been moved from <mod>ll.xist.errors</mod>
+to <mod>ll.xist.xsc</mod>.</p>
 </section>
 
-<section><title>Changes to &xml; name handling</title>
-<par>The class attribute <lit>xmlname</lit> no longer gets replaced with a tuple
+<section><h>Changes to &xml; name handling</h>
+<p>The class attribute <lit>xmlname</lit> no longer gets replaced with a tuple
 containing both the Python and the &xml; name. If you want to get the Python name,
-use <lit><rep>foo</rep>.__class__.__name__</lit>.</par>
+use <lit><rep>foo</rep>.__class__.__name__</lit>.</p>
 </section>
 
-<section><title>Changes to the methods <method>walk</method>, <method>find</method> and <method>findfirst</method></title>
-<par>The argument <arg>filtermode</arg> has been renamed to <arg>inmode</arg>
-and (for <method>walk</method>) <arg>walkmode</arg> has been renamed to <arg>outmode</arg>.</par>
+<section><h>Changes to the methods <meth>walk</meth>, <meth>find</meth> and <meth>findfirst</meth></h>
+<p>The argument <arg>filtermode</arg> has been renamed to <arg>inmode</arg>
+and (for <meth>walk</meth>) <arg>walkmode</arg> has been renamed to <arg>outmode</arg>.</p>
 </section>
 
 </section>
 
 
-<section><title>Migrating to version 2.8</title>
+<section><h>Migrating to version 2.8</h>
 
-<section><title>Changes to display hooks</title>
-<par>The way &xist; uses <function>sys.displayhook</function> has been
+<section><h>Changes to display hooks</h>
+<p>The way &xist; uses <func>sys.displayhook</func> has been
 enhanced. To make use of this, you might want to update your Python
 startup script. For more info see the
-<link href="root:xist/Installation.html">installation instructions</link>.</par>
+<a href="root:xist/Installation.html">installation instructions</a>.</p>
 </section>
 
-<section><title>Changes to the <lit>xmlns</lit> attribute</title>
-<par>Each element (or entity, or processing instruction) class had an attribute
+<section><h>Changes to the <lit>xmlns</lit> attribute</h>
+<p>Each element (or entity, or processing instruction) class had an attribute
 <lit>xmlns</lit> that references the namespace module. This attribute has been
-renamed to <lit>__ns__</lit>.</par>
+renamed to <lit>__ns__</lit>.</p>
 </section>
 
-<section><title>Other minor changes</title>
-<par><class>ll.xist.ns.specials.x</class> has been renamed to
-<class>ll.xist.ns.specials.ignore</class>.</par>
-<par><class>ll.xist.xfind.item</class> no longer handles slices.
+<section><h>Other minor changes</h>
+<p><class>ll.xist.ns.specials.x</class> has been renamed to
+<class>ll.xist.ns.specials.ignore</class>.</p>
+<p><class>ll.xist.xfind.item</class> no longer handles slices.
 If you've used that functionality, you may now use slices
 on XFind operators, and materilize the result, i.e. replace
 <lit>xfind.slice(<rep>foo</rep>, 1, -1)</lit>
 with <lit>list(<rep>foo</rep>[1:-1])</lit>, if <lit><rep>foo</rep></lit> is
-an XFind operator. Otherwise you can use <lit>list(<rep>foo</rep>)[1:-1]</lit>.</par>
+an XFind operator. Otherwise you can use <lit>list(<rep>foo</rep>)[1:-1]</lit>.</p>
 </section>
 
 </section>
 
 
-<section><title>Migrating to version 2.7</title>
+<section><h>Migrating to version 2.7</h>
 
-<section><title>Changes to <module>ll.xist.xfind</module></title>
-<par>The functions <function>xfind.first</function> and
-<function>xfind.last</function> now use <function>xfind.item</function>, so
+<section><h>Changes to <mod>ll.xist.xfind</mod></h>
+<p>The functions <func>xfind.first</func> and
+<func>xfind.last</func> now use <func>xfind.item</func>, so
 they will raise an <class>IndexError</class> when no default value is passed.
-To get the old behaviour, simply pass <lit>None</lit> as the default.</par>
+To get the old behaviour, simply pass <lit>None</lit> as the default.</p>
 </section>
 
 </section>
 
 
-<section><title>Migrating to version 2.6</title>
+<section><h>Migrating to version 2.6</h>
 
-<section><title>Changes to the publishing &api;</title>
-<par>The top level publishing method in the publisher has been
-renamed from <method>dopublication</method> to <method>publish</method>.
+<section><h>Changes to the publishing &api;</h>
+<p>The top level publishing method in the publisher has been
+renamed from <meth>dopublication</meth> to <meth>publish</meth>.
 If you're using the publishing &api; directly (instead of the node methods
-<method>asBytes</method> and <method>write</method>), you'll have to
-update your code.</par>
-<par>The method that writes a unicode object to the output stream has
-been renamed from <method>publish</method> to <method>write</method>.
-This is only relevant when you've overwritten the <method>publish</method>
+<meth>asBytes</meth> and <meth>write</meth>), you'll have to
+update your code.</p>
+<p>The method that writes a unicode object to the output stream has
+been renamed from <meth>publish</meth> to <meth>write</meth>.
+This is only relevant when you've overwritten the <meth>publish</meth>
 method in your own node class (e.g. in &jsp; tag library directives
-or similar stuff, or for special nodes that publish some text literally).</par>
+or similar stuff, or for special nodes that publish some text literally).</p>
 </section>
 
-<section><title>Changes to the presentation &api;</title>
-<par>The presentation &api; has been changed too: The top level presentation
-method in the presenter has been renamed from <method>dopresentation</method> to
-<method>present</method>. This is only relevant if you've written your own
+<section><h>Changes to the presentation &api;</h>
+<p>The presentation &api; has been changed too: The top level presentation
+method in the presenter has been renamed from <meth>dopresentation</meth> to
+<meth>present</meth>. This is only relevant if you've written your own
 presenter, or are using the presentation &api; directly (instead of the node
-method <method>repr</method>).</par>
+method <meth>repr</meth>).</p>
 </section>
 
-<section><title>Parsing &html;</title>
-<par>Parsing &html; is now done via libxml2's &html; parser, instead of using
+<section><h>Parsing &html;</h>
+<p>Parsing &html; is now done via libxml2's &html; parser, instead of using
 µTidyLib of mxTidy. You can no longer pass arguments to tidy. Only the boolean
 values of the <arg>tidy</arg> argument will be used. There are no other visible
-changes to the &api; but the result of parsing might have changed.</par>
+changes to the &api; but the result of parsing might have changed.</p>
 </section>
 
-<section><title>Removed &api;s and scripts</title>
-<par>The script <filename>xscmake.py</filename> has been removed.</par>
+<section><h>Removed &api;s and scripts</h>
+<p>The script <filename>xscmake.py</filename> has been removed.</p>
 
-<par>The <method>visit</method> method has been removed.</par>
+<p>The <meth>visit</meth> method has been removed.</p>
 
-<par><method>ll.xist.xsc.FindOld</method> has been removed.</par>
+<p><meth>ll.xist.xsc.FindOld</meth> has been removed.</p>
 
-<par><class>ll.xist.ns.xml.header</class> has been renamed to
-<class>ll.xist.ns.xml.declaration</class>.</par>
-
-</section>
+<p><class>ll.xist.ns.xml.header</class> has been renamed to
+<class>ll.xist.ns.xml.declaration</class>.</p>
 
 </section>
 
+</section>
 
-<section><title>Migrating to version 2.5</title>
 
-<section><title>Changes to content model</title>
-<par>The boolean class attribute <lit>empty</lit> for element classes has been
+<section><h>Migrating to version 2.5</h>
+
+<section><h>Changes to content model</h>
+<p>The boolean class attribute <lit>empty</lit> for element classes has been
 replaced by an object <lit>model</lit>. <lit>empty</lit> is still supported,
 but issues a <class>PendingDeprecationWarning</class>. If you don't want to specify
 a proper content model for your own elements you can replace <lit>empty = False</lit>
 with <lit>model = True</lit> (which is a shortcut for <lit>model = sims.Any()</lit>)
 and <lit>empty = True</lit> with <lit>model = False</lit> (which is a shortcut
-for <lit>model = sims.Empty()</lit>).</par>
+for <lit>model = sims.Empty()</lit>).</p>
 </section>
 
 </section>
 
 
-<section><title>Migrating to version 2.4</title>
+<section><h>Migrating to version 2.4</h>
 
-<section><title>Changes to parsing</title>
-<par>Parsing has changed internally, but the module level parsing functions in
-<module>ll.xist.parsers</module> are still available (and will create a parser
-on the fly), but a few arguments have changed:</par>
-<dlist>
+<section><h>Changes to parsing</h>
+<p>Parsing has changed internally, but the module level parsing functions in
+<mod>ll.xist.parsers</mod> are still available (and will create a parser
+on the fly), but a few arguments have changed:</p>
+<dl>
 <term><arg>handler</arg></term><item>This argument is no longer available, if you
 need a special handler, you have to subclass <class>ll.xist.parsers.Parser</class>
 and call its parsing methods.</item>
@@ -352,18 +373,18 @@ and call its parsing methods.</item>
 <arg>saxparser</arg> and is <em>not</em> a &sax;2 parser instance any longer,
 but a callable that will create a &sax;2 parser.</item>
 <term><arg>sysid</arg></term><item><arg>sysid</arg> is now available for all
-parsing functions not just <function>parseString</function>.</item>
-</dlist>
+parsing functions not just <func>parseString</func>.</item>
+</dl>
 </section>
 
-<section><title>Changes to converter contexts</title>
-<par><method>ll.xist.converters.Converter.__getitem__</method> now doesn't use
+<section><h>Changes to converter contexts</h>
+<p><meth>ll.xist.converters.Converter.__getitem__</meth> now doesn't use
 the key passed in, but <lit><rep>key</rep>.Context</lit> as the real dictionary
-key. This has the following consequences:</par>
-<ulist>
-<item><par>If you want a unique context for your own element class,
+key. This has the following consequences:</p>
+<ul>
+<item><p>If you want a unique context for your own element class,
 you <em>must</em> implement a new <class>Context</class> class (otherwise you'd
-get <class>ll.xist.xsc.Element.Context</class>):</par>
+get <class>ll.xist.xsc.Element.Context</class>):</p>
 <example>
 <prog>
 class Foo(xsc.Element):
@@ -377,92 +398,92 @@ class Foo(xsc.Element):
 </example>
 </item>
 <item>Subclasses that don't overwrite <class>Context</class> (as well as instances
-of those classes) can be passed to <method>ll.xist.converters.Converter.__getitem__</method>
+of those classes) can be passed to <meth>ll.xist.converters.Converter.__getitem__</meth>
 and the unique base class context object will be returned.</item>
-</ulist>
+</ul>
 </section>
 
-<section><title>Changed namespaces</title>
-<par>The character reference classes from <module>ll.xist.ns.ihtml</module>
-that are duplicates of those in <module>ll.xist.ns.chars</module> have been removed, so you
-have to use <module>ll.xist.ns.chars</module> for those characters in addition to
-<module>ll.xist.ns.ihtml</module>
-</par>
+<section><h>Changed namespaces</h>
+<p>The character reference classes from <mod>ll.xist.ns.ihtml</mod>
+that are duplicates of those in <mod>ll.xist.ns.chars</mod> have been removed, so you
+have to use <mod>ll.xist.ns.chars</mod> for those characters in addition to
+<mod>ll.xist.ns.ihtml</mod>
+</p>
 </section>
 
 </section>
 
 
-<section><title>Migrating to version 2.3</title>
+<section><h>Migrating to version 2.3</h>
 
-<section><title>Changes in namespace handling</title>
-<par>Namespace handling has changed. There are no entity or processing instruction
+<section><h>Changes in namespace handling</h>
+<p>Namespace handling has changed. There are no entity or processing instruction
 prefixes any longer and creating a proper <class>Prefixes</class> object has
-been simplified. For example:</par>
+been simplified. For example:</p>
 <prog>
 prefixes = xsc.Prefixes()
 prefixes.addElementPrefixMapping(None, html)
 prefixes.addElementPrefixMapping("svg", svg)
 </prog>
-<par>can be simplified to:</par>
+<p>can be simplified to:</p>
 <prog>
 prefixes = xsc.Prefixes(html, svg=svg)
 </prog>
-<par>The three arguments <arg>elementmode</arg>, <arg>entitymode</arg> and
+<p>The three arguments <arg>elementmode</arg>, <arg>entitymode</arg> and
 <arg>procinstmode</arg> for the publishing methods have been combined into
-<arg>prefixmode</arg>, which is used for elements only.</par>
+<arg>prefixmode</arg>, which is used for elements only.</p>
 </section>
 
-<section><title>Changed namespaces</title>
-<par>The character reference classes from <module>ll.xist.ns.html</module>
-have been moved to a separate namespace <module>ll.xist.ns.chars</module>.</par>
-<par>The processing instructions <class>eval_</class> and <class>exec_</class>
-from the <module>ll.xist.ns.code</module> module have been renamed to
-<class>pyeval</class> and <class>pyexec</class>.</par>
+<section><h>Changed namespaces</h>
+<p>The character reference classes from <mod>ll.xist.ns.html</mod>
+have been moved to a separate namespace <mod>ll.xist.ns.chars</mod>.</p>
+<p>The processing instructions <class>eval_</class> and <class>exec_</class>
+from the <mod>ll.xist.ns.code</mod> module have been renamed to
+<class>pyeval</class> and <class>pyexec</class>.</p>
 </section>
 
-<section><title>Changed method names</title>
-<par>The method names <method>beginPublication</method>, <method>endPublication</method>
-and <method>doPublication</method> have been lowercased.</par>
+<section><h>Changed method names</h>
+<p>The method names <meth>beginPublication</meth>, <meth>endPublication</meth>
+and <meth>doPublication</meth> have been lowercased.</p>
 </section>
 </section>
 
 
-<section><title>Migrating to version 2.2</title>
+<section><h>Migrating to version 2.2</h>
 
-<section><title>Attribute methods</title>
+<section><h>Attribute methods</h>
 
-<par>The <class>Element</class> methods for accessing attributes
+<p>The <class>Element</class> methods for accessing attributes
 have been deprecated. So instead of <lit><rep>node</rep>.hasattr("<rep>attr</rep>")</lit>,
-you should use:</par>
+you should use:</p>
 
 <prog>
 "<rep>attr</rep>" in <rep>node</rep>.attrs
 </prog>
 
-<par>The same holds for checking whether an attribute is allowed. You can use the following code:</par>
+<p>The same holds for checking whether an attribute is allowed. You can use the following code:</p>
 
 <prog>
 "<rep>attr</rep>" in <rep>node</rep>.Attrs
 </prog>
 
-<par>or:</par>
+<p>or:</p>
 
 <prog>
 "<rep>attr</rep>" in <rep>NodeClass</rep>.Attrs
 </prog>
 
-<par>or:</par>
+<p>or:</p>
 
 <prog>
 <rep>NodeClass</rep>.isallowed("<rep>attr</rep>")
 </prog>
 
-<par>Many <class>Attrs</class> methods have gained an additional parameter
+<p>Many <class>Attrs</class> methods have gained an additional parameter
 <arg>xml</arg>, which specifies whether an attribute name should be
 treated as the &xml; or the Python name of the attribute. Make sure
 that you're not mixing up your arguments in the function call. The
-safest method for this is using keyword arguments, e.g.:</par>
+safest method for this is using keyword arguments, e.g.:</p>
 
 <prog>
 <rep>node</rep>.attr.get("<rep>attr</rep>", default=42)
@@ -470,30 +491,30 @@ safest method for this is using keyword arguments, e.g.:</par>
 
 </section>
 
-<section><title>JSP directive page element</title>
+<section><h>JSP directive page element</h>
 
-<par>A <lit>contentType</lit> attribute is no longer generated for the
+<p>A <lit>contentType</lit> attribute is no longer generated for the
 <class>ll.xist.ns.jsp.directive_page</class>. You have to explicitely use an attribute
 <lit>contentType="<rep>text/html</rep>"</lit> to get a <lit>contentType</lit> attribute
 in the resulting &jsp;. The <lit>charset</lit> option is generated automatically
-from the encoding specified in the publisher.</par>
+from the encoding specified in the publisher.</p>
 
 </section>
 
-<section><title><class>autoimg</class> changes</title>
+<section><h><class>autoimg</class> changes</h>
 
-<par><class>ll.xist.htmlspecials.autoimg</class> will no longer touches existing <lit>width</lit>
+<p><class>ll.xist.htmlspecials.autoimg</class> will no longer touches existing <lit>width</lit>
 or <lit>height</lit> attributes, so e.g. setting the width to twice the image size via
 <lit>width="2*%(width)s"</lit> no longer works. You have to implement your own
-version of <class>autoimg</class> if you need this.</par>
+version of <class>autoimg</class> if you need this.</p>
 
 </section>
 
-<section><title><method>find</method> changes</title>
+<section><h><meth>find</meth> changes</h>
 
-<par><method>find</method> has been completely rewritten to use the new tree traversal filters.
+<p><meth>find</meth> has been completely rewritten to use the new tree traversal filters.
 For backwards compatibility a filter functor <class>ll.xist.xsc.FindOld</class> exists that
-takes the same arguments as the old <method>find</method> method. I.e. you can replace:</par>
+takes the same arguments as the old <meth>find</meth> method. I.e. you can replace:</p>
 <prog>
 node.find(
 	type=html.a,
@@ -501,7 +522,7 @@ node.find(
 	searchchildren=True
 )
 </prog>
-<par>with:</par>
+<p>with:</p>
 <prog>
 node.find(
 	xsc.FindOld(
@@ -512,37 +533,37 @@ node.find(
 	skiproot=True
 )
 </prog>
-<par>But one minor difference remains: when <arg>skiproot</arg> is set to true in the new
-<method>find</method> method, the attributes of the root element will <em>not</em> be traversed.
-With the old method they would be traversed.</par>
+<p>But one minor difference remains: when <arg>skiproot</arg> is set to true in the new
+<meth>find</meth> method, the attributes of the root element will <em>not</em> be traversed.
+With the old method they would be traversed.</p>
 
 </section>
 
-<section><title><class>doc</class> changes</title>
+<section><h><class>doc</class> changes</h>
 
-<par><class>programlisting</class> has been renamed to <class>prog</class>.</par>
+<p><class>programlisting</class> has been renamed to <class>prog</class>.</p>
 
 </section>
 
-<section><title>Namespace changes</title>
+<section><h>Namespace changes</h>
 
-<par>Namespaces can no longer be instantiated. Instead you have to derive a class
+<p>Namespaces can no longer be instantiated. Instead you have to derive a class
 from <class>Namespace</class>. The <arg>xmlprefix</arg> argument from the constructor
 becomes a class attribute <lit>xmlname</lit> and the argument <arg>xmlname</arg>
-becomes <lit>xmlurl</lit>.</par>
+becomes <lit>xmlurl</lit>.</p>
 
-<par>Adding element classes to the namespace is now done with the
-<class>Namespace</class> classmethod <method>update</method>.
+<p>Adding element classes to the namespace is now done with the
+<class>Namespace</class> classmethod <meth>update</meth>.
 If you want the turn a namespace into a module, you can use the classmethod
-<method>makemod</method> instead of <method>update</method>.</par>
+<meth>makemod</meth> instead of <meth>update</meth>.</p>
 
-<example><title>Old method</title>
+<example><h>Old method</h>
 <prog>
 xmlns = xsc.Namespace("foo", "http://www.foo.com/", vars()
 </prog>
 </example>
 
-<example><title>New method</title>
+<example><h>New method</h>
 <prog>
 class xmlns(xsc.Namespace):
 	xmlname = "foo"
@@ -556,30 +577,30 @@ xmlns.makemod(vars())
 </section>
 
 
-<section><title>Migrating to version 2.1</title>
+<section><h>Migrating to version 2.1</h>
 
-<ulist>
-<item>The method <method>withSep</method> has been renamed
-to <method>withsep</method>.</item>
+<ul>
+<item>The method <meth>withSep</meth> has been renamed
+to <meth>withsep</meth>.</item>
 
 <item>The argument <arg>defaultEncoding</arg> for the various
 parsing functions has been renamed to <arg>encoding</arg>.</item>
-</ulist>
+</ul>
 
 </section>
 
 
-<section><title>Migrating to version 2.0</title>
+<section><h>Migrating to version 2.0</h>
 
-<section><title>Attribute handling</title>
+<section><h>Attribute handling</h>
 
-<par>The biggest change is in the way attributes are defined. In older
+<p>The biggest change is in the way attributes are defined. In older
 versions you had to define a class attribute <lit>attrHandlers</lit>
 that mapped attribute names to attribute classes. This created problems
 with <z>illegal</z> attribute names (e.g. <lit>class</lit> and <lit>http-equiv</lit>
 in &html;), so for them an ugly workaround was implemented. With 2.0
 this is no longer neccessary. Defining attributes is done via a
-class <class>Attrs</class> nested inside the element class like this:</par>
+class <class>Attrs</class> nested inside the element class like this:</p>
 
 <example>
 <prog>
@@ -595,7 +616,7 @@ class foo(xsc.Element):
 </prog>
 </example>
 
-<par>Default values, set of allowed attributes values and
+<p>Default values, set of allowed attributes values and
 whether the attribute is required can be defined via
 class attributes as shown above. You should (directly
 or indirecty) inherit from <class>xsc.Element.Attrs</class>,
@@ -603,7 +624,7 @@ because this class implements handling of global attributes.
 If you want to inherit some attributes (e.g. from your
 base class), you can derive from the appropriate
 <class>Attrs</class> class. Removing an attribute you inherited
-can be done like this:</par>
+can be done like this:</p>
 
 <example>
 <prog>
@@ -613,19 +634,19 @@ class bar(foo):
 </prog>
 </example>
 
-<par>This removes the attribute <lit>baz</lit> inherited
-from <class>foo</class>.</par>
+<p>This removes the attribute <lit>baz</lit> inherited
+from <class>foo</class>.</p>
 
-<par>For attribute names that are no legal Python identifiers,
+<p>For attribute names that are no legal Python identifiers,
 the same method can be used as for element classes: Define
 the real &xml; name via a class attribute. This class attribute
-has been renamed from <lit>name</lit> to <lit>xmlname</lit>.</par>
+has been renamed from <lit>name</lit> to <lit>xmlname</lit>.</p>
 
-<par>This also means that you always have to use the Python
+<p>This also means that you always have to use the Python
 name when using attributes now. The &xml; name will only
-be used for parsing and publishing.</par>
+be used for parsing and publishing.</p>
 
-<par>&xist; 2.0 tries to be as backwards compatible as
+<p>&xist; 2.0 tries to be as backwards compatible as
 possible: An existing <lit>attrHandlers</lit> attribute
 will be converted to an <class>Attrs</class> class on the
 fly (and will generate a <class>DeprecationWarning</class> when
@@ -634,33 +655,33 @@ automatically generate an <lit>attrHandlers</lit> attribute,
 so it's possible to derive from new element classes in the old way.
 The only situation where this won't work, is with
 attributes where the Python and &xml; name differ, you
-have to use <z>new style</z> attributes there.</par>
+have to use <z>new style</z> attributes there.</p>
 </section>
 
-<section><title>Namespace support</title>
+<section><h>Namespace support</h>
 
-<par>&xist; supports &xml; namespaces now and for parsing it's
+<p>&xist; supports &xml; namespaces now and for parsing it's
 possible to configure which namespaces should be available
 for instantiating classes from. For more info about this
-refer to the documentation for the class <pyref module="ll.xist.xsc" class="Prefixes"><class>Prefixes</class></pyref>.</par>
+refer to the documentation for the class <pyref module="ll.xist.xsc" class="Prefixes"><class>Prefixes</class></pyref>.</p>
 
-<par>Before 2.0 the &xml; name for a namespace object
+<p>Before 2.0 the &xml; name for a namespace object
 was pretty useless, now it can be used as the namespace
 name in <lit>xmlns</lit> attributes and it will be used
 for that when publishing and specifying an <lit>elementmode</lit>
 of <lit>2</lit> in the call to the publishing method or the constructor
-of the publisher.</par>
+of the publisher.</p>
 
-<par>Namespace objects should now be named <lit>xmlns</lit>
-instead of <lit>namespace</lit> as before.</par>
+<p>Namespace objects should now be named <lit>xmlns</lit>
+instead of <lit>namespace</lit> as before.</p>
 
 </section>
 
-<section><title>Global attributes</title>
+<section><h>Global attributes</h>
 
-<par>Global attributes are supported now, e.g. the attributes
+<p>Global attributes are supported now, e.g. the attributes
 <lit>xml:lang</lit> and <lit>xml:space</lit> can be specified
-in an element constructor like this:</par>
+in an element constructor like this:</p>
 
 <example>
 <prog>
@@ -675,54 +696,54 @@ node = html.html(
 </prog>
 </example>
 
-<par>Instead of the module object (which must contain a
+<p>Instead of the module object (which must contain a
 namespace object named <lit>xmlns</lit>), you can also
 pass the namespace object itself (i.e. <lit>xml.xmlns</lit>)
-or the namespace name (i.e. <lit>"http://www.w3.org/XML/1998/namespace"</lit>).</par>
+or the namespace name (i.e. <lit>"http://www.w3.org/XML/1998/namespace"</lit>).</p>
 
 </section>
 
-<section><title>Namespace changes</title>
+<section><h>Namespace changes</h>
 
-<par>The classes <class>XML</class> and <class>XML10</class>
-have been moved from <module>ll.xist.xsc</module> to
-<module>ll.xist.ns.xml</module>.</par>
+<p>The classes <class>XML</class> and <class>XML10</class>
+have been moved from <mod>ll.xist.xsc</mod> to
+<mod>ll.xist.ns.xml</mod>.</p>
 
-<par>All the classes in <module>ll.xist.ns.specials</module>
+<p>All the classes in <mod>ll.xist.ns.specials</mod>
 that are specific to &html; generation have been moved
-to the new module <module>ll.xist.ns.htmlspecials</module>.</par>
+to the new module <mod>ll.xist.ns.htmlspecials</mod>.</p>
 
-<par>The module <module>ll.xist.ns.html</module> has been updated
+<p>The module <mod>ll.xist.ns.html</mod> has been updated
 to the &xhtml; specification, so there might be some changes.
 The new feature for specifying attribute restrictions has
 been used, so e.g. you'll get warnings for missing <lit>alt</lit>
 attributes in <class>img</class> elements. These warnings
 are issued via the warning framework. Refer to the documentation
-for the <module>warnings</module> module to find out how to
-configure the handling of these warnings.</par>
+for the <mod>warnings</mod> module to find out how to
+configure the handling of these warnings.</p>
 
 </section>
 
-<section><title>Miscellaneous</title>
+<section><h>Miscellaneous</h>
 
-<par>&xist; now requires at least Python 2.2.1 because
+<p>&xist; now requires at least Python 2.2.1 because
 the integer constants <lit>True</lit> and <lit>False</lit>
 are used throughout the code wherever appropriate. These
 constants will become instances of the new class <class>bool</class>
 in Python 2.3. You might want to change your code too, to
 use these new constant (e.g. when setting the element
-class attribute <lit>empty</lit>).</par>
+class attribute <lit>empty</lit>).</p>
 
-<par>Using mixed case method names was a bad idea, because
+<p>Using mixed case method names was a bad idea, because
 this conflicts with Python's convention of using
 all lowercase names (without underscores). These method
 names will be fixed in the next few &xist; versions.
 The first names that where changed were the element methods
-<method>getAttr</method> and <method>hasAttr</method>, which
-have been renamed to <method>getattr</method> and
-<method>hasattr</method> respectively. <method>getAttr</method>
-and <method>hasAttr</method> are still there and can be called
+<meth>getAttr</meth> and <meth>hasAttr</meth>, which
+have been renamed to <meth>getattr</meth> and
+<meth>hasattr</meth> respectively. <meth>getAttr</meth>
+and <meth>hasAttr</meth> are still there and can be called
 without generating <class>DeprecationWarning</class>s, but they
-will start to generate warnings in the upcoming versions.</par>
+will start to generate warnings in the upcoming versions.</p>
 
 </section>

@@ -10,7 +10,7 @@
 
 """
 This module is an &xist; namespace for
-<link href="http://kid.lesscode.org/">Kid</link> files.
+<a href="http://kid.lesscode.org/">Kid</a> files.
 """
 
 

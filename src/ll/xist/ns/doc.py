@@ -9,13 +9,12 @@
 
 
 """
-<par>This namespace module provides classes that can be used for generating
-documentation (in &html;, DocBook and XSL-FO).</par>
+<p>This namespace module provides classes that can be used for generating
+documentation (in &html;, DocBook and XSL-FO).</p>
 """
 
 
-# import __builtin__ to use property, which is also defined here
-import sys, types, inspect, textwrap, optparse, collections, warnings, operator, __builtin__
+import sys, types, inspect, textwrap, optparse, collections, warnings, operator
 
 try:
 	from docutils import nodes, utils, parsers as restparsers, frontend
@@ -96,7 +95,7 @@ def getdoc(thing, format):
 	elif format.lower() == "xist":
 		if inspect.ismethod(thing):
 			base = "METHOD-DOCSTRING(%s.%s.%s)" % (_getmodulename(thing), thing.im_class.__name__, thing.__name__)
-		elif isinstance(thing, __builtin__.property):
+		elif isinstance(thing, property):
 			base = "PROPERTY-DOCSTRING(%s.%s)" % (_getmodulename(thing), "unknown")
 		elif inspect.isfunction(thing):
 			base = "FUNCTION-DOCSTRING(%s.%s)" % (_getmodulename(thing), thing.__name__)
@@ -107,8 +106,8 @@ def getdoc(thing, format):
 		else:
 			base = "DOCSTRING"
 		node = parsers.parsestring(text, base=base, prefixes=xsc.docprefixes())
-		if not node[par]: # optimization: one paragraph docstrings don't need a <par> element.
-			node = par(node)
+		if not node[p]: # optimization: one paragraph docstrings don't need a <p> element.
+			node = p(node)
 
 		if inspect.ismethod(thing):
 			# Use the original method instead of the decorator
@@ -145,7 +144,7 @@ def getdoc(thing, format):
 
 
 def getsourceline(obj):
-	if isinstance(obj, __builtin__.property):
+	if isinstance(obj, property):
 		pos = 999999999
 		if obj.fget is not None:
 			pos = min(pos, obj.fget.func_code.co_firstlineno)
@@ -175,7 +174,7 @@ def _codeheader(thing, name, type):
 		offset -= len(defaults)
 	for i in xrange(len(args)):
 		if i == 0:
-			if issubclass(type, method):
+			if issubclass(type, meth):
 				if args[i] == "self":
 					sig.append(arg(self()))
 				elif args[i] == "cls":
@@ -205,13 +204,13 @@ def _codeheader(thing, name, type):
 
 def explain(thing, name=None, format=None, context=[]):
 	"""
-	<par>Return a &xml; representation of the documentation of
-	<arg>thing</arg>, which can be a function, method, class or module.</par>
+	<p>Return a &xml; representation of the documentation of
+	<arg>thing</arg>, which can be a function, method, class or module.</p>
 
-	<par>If <arg>thing</arg> is not a module, you must pass the context
+	<p>If <arg>thing</arg> is not a module, you must pass the context
 	in <arg>context</arg>, i.e. a list of names of objects into which <arg>thing</arg>
 	is nested. This means the first entry will always be the module name, and
-	the other entries will be class names.</par>
+	the other entries will be class names.</p>
 	"""
 
 	def _append(all, obj, var):
@@ -247,26 +246,26 @@ def explain(thing, name=None, format=None, context=[]):
 		id = "-".join(info[1] for info in context[1:]) or None
 		sig = xsc.Frag()
 		if name != thing.__name__ and not (thing.__name__.startswith("__") and name=="_" + thing.im_class.__name__ + thing.__name__):
-			sig.append(method(name), u" = ")
-		sig.append(u"def ", _codeheader(thing.im_func, thing.__name__, method), u":")
-		return section(title(sig), doc, role=(visibility, u" method ", hasdoc), id=id or None)
+			sig.append(meth(name), u" = ")
+		sig.append(u"def ", _codeheader(thing.im_func, thing.__name__, meth), u":")
+		return section(h(sig), doc, role=(visibility, u" method ", hasdoc), id=id or None)
 	elif inspect.isfunction(thing):
 		name = name or thing.__name__
 		context = context + [(thing, name)]
 		id = u"-".join(info[1] for info in context[1:]) or None
 		sig = xsc.Frag(
 			u"def ",
-			_codeheader(thing, name, function),
+			_codeheader(thing, name, func),
 			u":"
 		)
-		return section(title(sig), doc, role=(visibility, u" function ", hasdoc), id=id)
-	elif isinstance(thing, __builtin__.property):
+		return section(h(sig), doc, role=(visibility, u" function ", hasdoc), id=id)
+	elif isinstance(thing, property):
 		context = context + [(thing, name)]
 		id = u"-".join(info[1] for info in context[1:]) or None
 		sig = xsc.Frag(
 			u"property ", name, u":"
 		)
-		node = section(title(sig), doc, role=(visibility, u" property ", hasdoc), id=id)
+		node = section(h(sig), doc, role=(visibility, u" property ", hasdoc), id=id)
 		if thing.fget is not None:
 			node.append(explain(thing.fget, u"__get__", format, context))
 		if thing.fset is not None:
@@ -299,7 +298,7 @@ def explain(thing, name=None, format=None, context=[]):
 			bases.insert(0, u"\u200b(") # use "ZERO WIDTH SPACE" to allow linebreaks
 			bases.append(u")")
 		node = section(
-			title(
+			h(
 				u"class ",
 				class_(name),
 				bases,
@@ -316,7 +315,7 @@ def explain(thing, name=None, format=None, context=[]):
 		classes = []
 		for varname in thing.__dict__.keys():
 			obj = getattr(thing, varname)
-			if isinstance(obj, __builtin__.property):
+			if isinstance(obj, property):
 				properties.append((obj, varname))
 				_append(all, obj, varname)
 			elif inspect.isclass(obj):
@@ -682,7 +681,7 @@ class lit(code):
 		return e.convert(converter)
 
 
-class function(code):
+class func(code):
 	"""
 	The name of a function or subroutine, as in a programming language
 	"""
@@ -698,7 +697,7 @@ class function(code):
 		return e.convert(converter)
 
 
-class method(code):
+class meth(code):
 	"""
 	The name of a method or memberfunction in a programming language
 	"""
@@ -714,7 +713,7 @@ class method(code):
 		return e.convert(converter)
 
 
-class property(code):
+class prop(code):
 	"""
 	The name of a property in a programming language
 	"""
@@ -765,8 +764,8 @@ class markup(code):
 
 class self(code):
 	"""
-	<par>use this class when referring to the object for which a method has been
-	called, e.g.:</par>
+	<p>use this class when referring to the object for which a method has been
+	called, e.g.:</p>
 	<example>
 	<prog>
 		this function fooifies the object &lt;self/&gt;.
@@ -793,8 +792,8 @@ self_ = self
 
 class cls(inline):
 	"""
-	<par>use this class when referring to the object for which a class method has been
-	called, e.g.:</par>
+	<p>use this class when referring to the object for which a class method has been
+	called, e.g.:</p>
 	<example>
 	<prog>
 		this function fooifies the class &lt;cls/&gt;.
@@ -833,7 +832,7 @@ class arg(code):
 		return e.convert(converter)
 
 
-class module(code):
+class mod(code):
 	"""
 	The name of a Python module.
 	"""
@@ -957,7 +956,7 @@ class app(inline):
 		return e.convert(converter)
 
 
-class title(base):
+class h(base):
 	"""
 	The text of the title of a <pyref class="section"><class>section</class></pyref>
 	or an <pyref class="example"><class>example</class></pyref>
@@ -983,7 +982,7 @@ class section(block):
 	A recursive section
 	"""
 	xmlns = xmlns
-	model = sims.Elements(title, block)
+	model = sims.Elements(h, block)
 	class Attrs(xsc.Element.Attrs):
 		class role(xsc.TextAttr): pass
 		class id(xsc.IDAttr): pass
@@ -1001,7 +1000,7 @@ class section(block):
 		ts = xsc.Frag()
 		cs = html.div(class_=u"content")
 		for child in self:
-			if isinstance(child, title):
+			if isinstance(child, h):
 				ts.append(child)
 			else:
 				cs.append(child)
@@ -1012,8 +1011,7 @@ class section(block):
 		#	e.append(target.a(name=self[u"id"], id=self[u"id"]))
 		hclass = getattr(target, u"h%d" % level, target.h6)
 		for t in ts:
-			h = hclass(t.content)
-			e.append(h)
+			e.append(hclass(t.content))
 		e.append(cs)
 		# make sure to call the inner convert() before popping the number off of the stack
 		e = e.convert(converter)
@@ -1034,7 +1032,7 @@ class section(block):
 			(u"12pt", u"15pt", u"2pt")
 		]
 		for child in self.content:
-			if isinstance(child, title):
+			if isinstance(child, h):
 				ts.append(child.content)
 			else:
 				cs.append(child)
@@ -1075,7 +1073,7 @@ class section(block):
 		return e
 
 
-class par(block):
+class p(block):
 	"""
 	A paragraph
 	"""
@@ -1101,9 +1099,9 @@ class par(block):
 		return e.convert(converter)
 
 
-class term(block):
+class dt(block):
 	"""
-	A term inside a <pyref class="dlist"><class>dlist</class></pyref>
+	A term inside a <pyref class="dl"><class>dl</class></pyref>
 	"""
 	xmlns = xmlns
 	model = sims.ElementsOrText(inline)
@@ -1124,9 +1122,11 @@ class term(block):
 		return e.convert(converter)
 
 
-class item(block):
+class li(block):
 	"""
-	A wrapper for the elements of a list item
+	A wrapper for the elements of a list item in
+	<pyref class="ul"><class>ul</class></pyref> or
+	<pyref class="ol"><class>ol</class></pyref>.
 	"""
 	xmlns = xmlns
 	model = sims.ElementsOrText(block, inline) # if it contains no block elements, the content will be promoted to a paragraph
@@ -1143,10 +1143,7 @@ class item(block):
 		context = converter[self]
 		if not context.lists:
 			raise xsc.NodeOutsideContextError(self, list)
-		if context.lists[-1][0] == "dlist":
-			e = converter.target.dd(self.content)
-		else:
-			e = converter.target.li(self.content)
+		e = converter.target.li(self.content)
 		return e.convert(converter)
 
 	def convert_fo(self, converter):
@@ -1154,51 +1151,86 @@ class item(block):
 		context = converter[self]
 		context.lists[-1][1] += 1
 		type = context.lists[-1][0]
-		if type=="ulist":
+		if type=="ul":
 			label = u"\u2022"
-		elif type=="olist":
+		elif type=="ol":
 			label = "%d." % context.lists[-1][1]
 		context.indentcount += 1
 		if self[block]: # Do we have a block in our content?
 			content = self.content # yes => use the content as is
 		else:
-			content = par(self.content) # no => wrap it in a paragraph
-		if type=="dlist":
-			e = target.block(
+			content = p(self.content) # no => wrap it in a paragraph
+		e = target.list_item(
+			target.list_item_label(
+				target.block(label),
+				start_indent=context.labelindent()
+			),
+			target.list_item_body(
 				content,
 				start_indent=context.indent()
 			)
+		)
+		context.indentcount -= 1
+		return e.convert(converter)
+
+
+class dd(block):
+	"""
+	A wrapper for the elements of a list item
+	<pyref class="dl"><class>dl</class></pyref>
+	"""
+	xmlns = xmlns
+	model = sims.ElementsOrText(block, inline) # if it contains no block elements, the content will be promoted to a paragraph
+
+	def convert_docbook(self, converter):
+		if self[block]:
+			content = self.content
 		else:
-			e = target.list_item(
-				target.list_item_label(
-					target.block(label),
-					start_indent=context.labelindent()
-				),
-				target.list_item_body(
-					content,
-					start_indent=context.indent()
-				)
-			)
+			content = converter.target.para(self.content)
+		e = converter.target.listitem(content)
+		return e.convert(converter)
+
+	def convert_html(self, converter):
+		context = converter[self]
+		if not context.lists:
+			raise xsc.NodeOutsideContextError(self, list)
+		e = converter.target.dd(self.content)
+		return e.convert(converter)
+
+	def convert_fo(self, converter):
+		target = converter.target
+		context = converter[self]
+		context.lists[-1][1] += 1
+		type = context.lists[-1][0]
+		context.indentcount += 1
+		if self[block]: # Do we have a block in our content?
+			content = self.content # yes => use the content as is
+		else:
+			content = p(self.content) # no => wrap it in a paragraph
+		e = target.block(
+			content,
+			start_indent=context.indent()
+		)
 		context.indentcount -= 1
 		return e.convert(converter)
 
 
 class list(block):
 	"""
-	Common baseclass for <pyref class="ulist"><class>ulist</class></pyref>,
-	<pyref class="olist"><class>olist</class></pyref> and
-	<pyref class="dlist"><class>dlist</class></pyref>.
+	Common baseclass for <pyref class="ul"><class>ul</class></pyref>,
+	<pyref class="ol"><class>ol</class></pyref> and
+	<pyref class="dl"><class>dl</class></pyref>.
 	"""
 	xmlns = xmlns
 	register = False
 
 
-class ulist(list):
+class ul(list):
 	"""
 	A list in which each entry is marked with a bullet or other dingbat
 	"""
 	xmlns = xmlns
-	model = sims.Elements(item)
+	model = sims.Elements(li)
 
 	def convert_docbook(self, converter):
 		e = converter.target.itemizedlist(self.content.convert(converter))
@@ -1206,26 +1238,26 @@ class ulist(list):
 
 	def convert_html(self, converter):
 		context = converter[self]
-		context.lists.append(["ulist", 0])
+		context.lists.append(["ul", 0])
 		e = converter.target.ul(self.content.convert(converter))
 		del context.lists[-1]
 		return e
 
 	def convert_fo(self, converter):
 		context = converter[self]
-		context.lists.append(["ulist", 0])
+		context.lists.append(["ul", 0])
 		e = converter.target.list_block(self.content, line_height=u"130%")
 		e = e.convert(converter)
 		del context.lists[-1]
 		return e
 
 
-class olist(list):
+class ol(list):
 	"""
 	A list in which each entry is marked with a sequentially incremented label
 	"""
 	xmlns = xmlns
-	model = sims.Elements(item)
+	model = sims.Elements(li)
 
 	def convert_docbook(self, converter):
 		e = converter.target.orderedlist(self.content.convert(converter))
@@ -1233,33 +1265,33 @@ class olist(list):
 
 	def convert_html(self, converter):
 		context = converter[self]
-		context.lists.append(["olist", 0])
+		context.lists.append(["ol", 0])
 		e = converter.target.ol(self.content.convert(converter))
 		del context.lists[-1]
 		return e
 
 	def convert_fo(self, converter):
 		context = converter[self]
-		context.lists.append(["olist", 0])
+		context.lists.append(["ol", 0])
 		e = converter.target.list_block(self.content, line_height=u"130%")
 		e = e.convert(converter)
 		del context.lists[-1]
 		return e
 
 
-class dlist(list):
+class dl(list):
 	"""
 	A list in which each entry is marked with a label
 	"""
 	xmlns = xmlns
-	model = sims.Elements(term, item)
+	model = sims.Elements(dt, dd)
 
 	def convert_docbook(self, converter):
 		e = converter.target.variablelist()
 		collect = converter.target.varlistentry()
 		for child in self.content:
 			collect.append(child)
-			if isinstance(child, item):
+			if isinstance(child, dd):
 				e.append(collect)
 				collect = converter.target.varlistentry()
 		if collect:
@@ -1268,14 +1300,14 @@ class dlist(list):
 
 	def convert_html(self, converter):
 		context = converter[self]
-		context.lists.append(["dlist", 0])
+		context.lists.append(["dl", 0])
 		e = converter.target.dl(self.content.convert(converter))
 		del context.lists[-1]
 		return e
 
 	def convert_fo(self, converter):
 		context = converter[self]
-		context.lists.append(["dlist", 0])
+		context.lists.append(["dl", 0])
 		e = self.content.convert(converter)
 		del context.lists[-1]
 		return e
@@ -1286,7 +1318,7 @@ class example(block):
 	A formal example
 	"""
 	xmlns = xmlns
-	model = sims.Elements(title, block)
+	model = sims.Elements(h, block)
 
 	def convert_docbook(self, converter):
 		e = converter.target.example(self.content)
@@ -1297,7 +1329,7 @@ class example(block):
 		ts = xsc.Frag()
 		e = xsc.Frag()
 		for child in self:
-			if isinstance(child, title):
+			if isinstance(child, h):
 				ts.append(child)
 			else:
 				e.append(child)
@@ -1309,12 +1341,12 @@ class example(block):
 		# FIXME: handle title
 		e = xsc.Frag()
 		for child in self.content:
-			if not isinstance(child, title):
+			if not isinstance(child, h):
 				e.append(child)
 		return e.convert(converter)
 
 
-class link(inline):
+class a(inline):
 	"""
 	A hypertext link.
 	"""
@@ -1577,21 +1609,21 @@ class ReSTConverter(object):
 		elif isinstance(node, nodes.section):
 			return section(self.convert(child) for child in node.children)
 		elif isinstance(node, nodes.title):
-			return title(self.convert(child) for child in node.children)
+			return h(self.convert(child) for child in node.children)
 		elif isinstance(node, nodes.paragraph):
-			return par(self.convert(child) for child in node.children)
+			return p(self.convert(child) for child in node.children)
 		elif isinstance(node, nodes.bullet_list):
-			return ulist(self.convert(child) for child in node.children)
+			return ul(self.convert(child) for child in node.children)
 		elif isinstance(node, nodes.list_item):
-			return item(self.convert(child) for child in node.children)
+			return li(self.convert(child) for child in node.children)
 		elif isinstance(node, nodes.definition_list):
-			return dlist(self.convert(child) for child in node.children)
+			return dl(self.convert(child) for child in node.children)
 		elif isinstance(node, nodes.definition_list_item):
 			return xsc.Frag(self.convert(child) for child in node.children)
 		elif isinstance(node, nodes.term):
-			return term(self.convert(child) for child in node.children)
+			return dt(self.convert(child) for child in node.children)
 		elif isinstance(node, nodes.definition):
-			return item(self.convert(child) for child in node.children)
+			return dd(self.convert(child) for child in node.children)
 		elif isinstance(node, nodes.literal_block):
 			return prog(self.convert(child) for child in node.children)
 		elif isinstance(node, nodes.literal):
@@ -1604,7 +1636,7 @@ class ReSTConverter(object):
 			except AttributeError:
 				return xsc.Frag(self.convert(child) for child in node.children)
 		elif isinstance(node, nodes.reference):
-			e = link(self.convert(child) for child in node.children)
+			e = a(self.convert(child) for child in node.children)
 			if "anonymous" in node.attributes:
 				self.unnamedrefs.append(e)
 			else:
