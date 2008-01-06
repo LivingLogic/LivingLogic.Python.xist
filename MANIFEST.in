@@ -1,15 +1,13 @@
-include NEWS
+include README.rst
+include NEWS.rst
 include NEWS.xml
-include INSTALL
+include INSTALL.rst
 include INSTALL.xml
-include MIGRATION
+include MIGRATION.rst
 include MIGRATION.xml
-include EXAMPLES
-include EXAMPLES.xml
-include HOWTO
-include HOWTO.xml
-include CREDITS
-include README
+include CREDITS.rst
+recursive-include docs *.rst
+recursive-include docs *.xml
 include Makefile
 recursive-include demos *
 recursive-include scripts *.py
