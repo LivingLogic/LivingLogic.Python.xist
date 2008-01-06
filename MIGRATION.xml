@@ -79,7 +79,7 @@ The following names have changed:</p>
 <li><lit>ulist</lit> to <lit>ul</lit>;</li>
 <li><lit>dlist</lit> to <lit>dl</lit>;</li>
 <li><lit>item</lit> to <lit>li</lit> or </lit>dd</lit> (depending on whether
-it's inside a <class>ol</class>, <class>ul</class> or <class>dl</class>);</li>
+it's inside an <class>ol</class>, <class>ul</class> or <class>dl</class>);</li>
 <li><lit>term</lit> to <lit>dt</lit>;</li>
 <li><lit>link</lit> to <lit>a</lit>.</li>
 </ul>

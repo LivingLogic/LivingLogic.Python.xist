@@ -72,8 +72,8 @@ following names have changed:
 *	``olist`` to ``ol``;
 *	``ulist`` to ``ul``;
 *	``dlist`` to ``dl``;
-*	``item`` to ``li`` or ``dd`` (depending on whether it's inside a :class:`ol`,
-	:class:`ul` or  :class:`dl`);
+*	``item`` to ``li`` or ``dd`` (depending on whether it's inside an :class:`ol`,
+	:class:`ul` or :class:`dl`);
 *	``term`` to ``dt``;
 *	``link`` to ``a``.
 
