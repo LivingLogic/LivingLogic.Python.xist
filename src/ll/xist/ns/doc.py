@@ -36,7 +36,7 @@ else:
 
 import ll
 from ll.xist import xsc, parsers, sims, xfind
-from ll.xist.ns import html, docbook, fo, specials, xml
+from ll.xist.ns import html, docbook, fo, specials, xml, abbr as abbr_
 
 
 __docformat__ = "xist"
@@ -1585,6 +1585,11 @@ class ReSTConverter(object):
 			return lit(self.convert(child) for child in node.children)
 		elif isinstance(node, nodes.emphasis):
 			return em(self.convert(child) for child in node.children)
+		elif isinstance(node, nodes.substitution_reference):
+			try:
+				return getattr(abbr_, node.attributes["refname"].lower())()
+			except AttributeError:
+				return xsc.Frag(self.convert(child) for child in node.children)
 		elif isinstance(node, nodes.reference):
 			e = link(self.convert(child) for child in node.children)
 			if "anonymous" in node.attributes:
