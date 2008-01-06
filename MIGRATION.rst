@@ -78,7 +78,7 @@ Changes to :class:`htmlspecials.pixel`
 --------------------------------------
 
 If you've been using the ``color`` attribute for :class:`htmlspecials.pixel`,
-you have to add a ``#`` in from of the value, as it is a &css; color value now.
+you have to add a ``#`` in from of the value, as it is a CSS color value now.
 (And if've you've been using ``color`` and a CSS padding of a different color:
 This will no longer work).
 
@@ -618,7 +618,7 @@ The classes :class:`XML` and :class:`XML10` have been moved from
 All the classes in :mod:`ll.xist.ns.specials` that are specific to HTML
 generation have been moved to the new module :mod:`ll.xist.ns.htmlspecials`.
 
-The module :mod:`ll.xist.ns.html` has been updated to the &xhtml; specification,
+The module :mod:`ll.xist.ns.html` has been updated to the XHTML specification,
 so there might be some changes. The new feature for specifying attribute
 restrictions has been used, so e.g. you'll get warnings for missing ``alt``
 attributes in :class:`img` elements. These warnings are issued via the warning
