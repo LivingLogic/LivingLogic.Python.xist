@@ -33,6 +33,7 @@ else:
 	roles.register_generic_role("attr", nodes.literal)
 	roles.register_generic_role("prop", nodes.literal)
 	roles.register_generic_role("option", nodes.literal)
+	roles.register_generic_role("const", nodes.literal)
 
 import ll
 from ll.xist import xsc, parsers, sims, xfind
