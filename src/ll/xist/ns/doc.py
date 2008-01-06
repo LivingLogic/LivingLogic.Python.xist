@@ -20,20 +20,40 @@ import sys, types, inspect, textwrap, optparse, collections, warnings, operator,
 try:
 	from docutils import nodes, utils, parsers as restparsers, frontend
 	from docutils.parsers.rst import roles
+	from docutils.parsers.rst.languages import en
 except ImportError:
 	pass
 else:
 	# FIXME: Do the right thing
 	roles.register_generic_role("mod", nodes.literal)
+	en.roles["mod"] = "mod"
+
 	roles.register_generic_role("class", nodes.literal)
+	en.roles["class"] = "class"
+
 	roles.register_generic_role("func", nodes.literal)
+	en.roles["func"] = "func"
+
 	roles.register_generic_role("meth", nodes.literal)
+	en.roles["meth"] = "meth"
+
 	roles.register_generic_role("var", nodes.literal)
+	en.roles["var"] = "var"
+
 	roles.register_generic_role("exc", nodes.literal)
+	en.roles["exc"] = "exc"
+
 	roles.register_generic_role("attr", nodes.literal)
+	en.roles["attr"] = "attr"
+
 	roles.register_generic_role("prop", nodes.literal)
+	en.roles["prop"] = "prop"
+
 	roles.register_generic_role("option", nodes.literal)
+	en.roles["option"] = "option"
+
 	roles.register_generic_role("const", nodes.literal)
+	en.roles["const"] = "const"
 
 import ll
 from ll.xist import xsc, parsers, sims, xfind
