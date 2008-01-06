@@ -324,18 +324,18 @@ Parsing has changed internally, but the module level parsing functions in
 :mod:`ll.xist.parsers` are still available (and will create a parser on the
 fly), but a few arguments have changed:
 
-	:var:`handler`
-		This argument is no longer available, if you need a special handler, you
-		have to subclass :class:`ll.xist.parsers.Parser` and call its parsing
-		methods.
+:var:`handler`
+	This argument is no longer available, if you need a special handler, you
+	have to subclass :class:`ll.xist.parsers.Parser` and call its parsing
+	methods.
 
-	:var:`parser`
-		This argument has been renamed to :var:`saxparser` and is *not* a SAX2
-		parser instance any longer, but a callable that will create a SAX2 parser.
+:var:`parser`
+	This argument has been renamed to :var:`saxparser` and is *not* a SAX2
+	parser instance any longer, but a callable that will create a SAX2 parser.
 
-	:var:`sysid`
-		:var:`sysid` is now available for all parsing functions not just
-		:func:`parseString`.
+:var:`sysid`
+	:var:`sysid` is now available for all parsing functions not just
+	:func:`parseString`.
 
 Changes to converter contexts
 -----------------------------
@@ -344,22 +344,22 @@ Changes to converter contexts
 in, but ``key.Context`` as the real dictionary key. This has the following
 consequences:
 
-	*	If you want a unique context for your own element class, you *must*
-		implement a new :class:`Context` class (otherwise you'd get
-		:class:`ll.xist.xsc.Element.Context`)::
+*	If you want a unique context for your own element class, you *must*
+	implement a new :class:`Context` class (otherwise you'd get
+	:class:`ll.xist.xsc.Element.Context`)::
 
-			class Foo(xsc.Element):
-				empty = False
+		class Foo(xsc.Element):
+			empty = False
 
-				class Context(xsc.Element.Context):
-					def __init_(self):
-						xsc.Element.Context.__init__(self)
-						...
+			class Context(xsc.Element.Context):
+				def __init_(self):
+					xsc.Element.Context.__init__(self)
+					...
 
-	*	Subclasses that don't overwrite :class:`Context` (as well as instances of
-		those classes) can be passed to
-		:meth:`ll.xist.converters.Converter.__getitem__` and the unique base class
-		context object will be returned.
+*	Subclasses that don't overwrite :class:`Context` (as well as instances of
+	those classes) can be passed to
+	:meth:`ll.xist.converters.Converter.__getitem__` and the unique base class
+	context object will be returned.
 
 Changed namespaces
 ------------------
