@@ -49,15 +49,15 @@ class Publisher(object):
 
 		<p>With the parameter <arg>xhtml</arg> you can specify if you want &html; output:</p>
 		<dl>
-		<term>&html; (<lit><arg>xhtml</arg>==0</lit>)</term>
-		<item>Elements with a empty content model will be published as
-		<markup>&lt;foo&gt;</markup>.</item>
-		<term>&html; browser compatible &xml; (<lit><arg>xhtml</arg>==1</lit>)</term>
-		<item>Elements with an empty content model will be published as <markup>&lt;foo /&gt;</markup>
+		<dt>&html; (<lit><arg>xhtml</arg>==0</lit>)</dt>
+		<dd>Elements with a empty content model will be published as
+		<markup>&lt;foo&gt;</markup>.</dd>
+		<dt>&html; browser compatible &xml; (<lit><arg>xhtml</arg>==1</lit>)</dt>
+		<dd>Elements with an empty content model will be published as <markup>&lt;foo /&gt;</markup>
 		and others that just happen to be empty as <markup>&lt;foo&gt;&lt;/foo&gt;</markup>. This
-		is the default.</item>
-		<term>Pure &xml; (<lit><arg>xhtml</arg>==2</lit>)</term>
-		<item>All empty elements will be published as <markup>&lt;foo/&gt;</markup>.</item>
+		is the default.</dd>
+		<dt>Pure &xml; (<lit><arg>xhtml</arg>==2</lit>)</dt>
+		<dd>All empty elements will be published as <markup>&lt;foo/&gt;</markup>.</dd>
 		</dl>
 
 		<p><arg>validate</arg> specifies whether validation should be done before
@@ -69,17 +69,18 @@ class Publisher(object):
 		is the namespace name. Value can be:</p>
 
 		<dl>
-		<term><lit>False</lit></term>
-		<item>Treat elements in this namespace as if they are not in any namespace
+		<dt><lit>False</lit></dt>
+		<dd>Treat elements in this namespace as if they are not in any namespace
 		(if global attributes from this namespace are encountered, a prefix will
-		be used nonetheless).</item>
-		<term><lit>None</lit></term>
-		<item>Treat the namespace as the default namespaces (i.e. use unprefixed
-		element names). Global attributes will again result in a prefix.</item>
-		<term><lit>True</lit></term>
-		<item>The publisher uses a unique non-empty prefix for this namespace.</item>
-		<term>A string</term>
-		<item>Use this prefix for the namespace.</item>
+		be used nonetheless).</dd>
+		<dt><lit>None</lit></dt>
+		<dd>Treat the namespace as the default namespaces (i.e. use unprefixed
+		element names). Global attributes will again result in a prefix.</dd>
+		<dt><lit>True</lit></dt>
+		<dd>The publisher uses a unique non-empty prefix for this namespace.</dd>
+		<dt>A string</dt>
+		<dd>Use this prefix for the namespace.</dd>
+		</dl>
 
 		<p>If an element or attribute is encountered whose namespace is not in
 		<arg>prefixes</arg> <arg>prefixdefault</arg> is used as the fallback.</p>

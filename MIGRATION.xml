@@ -78,7 +78,7 @@ The following names have changed:</p>
 <li><lit>olist</lit> to <lit>ol</lit>;</li>
 <li><lit>ulist</lit> to <lit>ul</lit>;</li>
 <li><lit>dlist</lit> to <lit>dl</lit>;</li>
-<li><lit>item</lit> to <lit>li</lit> or </lit>dd</lit> (depending on whether
+<li><lit>item</lit> to <lit>li</lit> or <lit>dd</lit> (depending on whether
 it's inside an <class>ol</class>, <class>ul</class> or <class>dl</class>);</li>
 <li><lit>term</lit> to <lit>dt</lit>;</li>
 <li><lit>link</lit> to <lit>a</lit>.</li>
@@ -366,14 +366,14 @@ for <lit>model = sims.Empty()</lit>).</p>
 <mod>ll.xist.parsers</mod> are still available (and will create a parser
 on the fly), but a few arguments have changed:</p>
 <dl>
-<term><arg>handler</arg></term><item>This argument is no longer available, if you
+<dt><arg>handler</arg></dt><dd>This argument is no longer available, if you
 need a special handler, you have to subclass <class>ll.xist.parsers.Parser</class>
-and call its parsing methods.</item>
-<term><arg>parser</arg></term><item>This argument has been renamed to
+and call its parsing methods.</dd>
+<dt><arg>parser</arg></dt><dd>This argument has been renamed to
 <arg>saxparser</arg> and is <em>not</em> a &sax;2 parser instance any longer,
-but a callable that will create a &sax;2 parser.</item>
-<term><arg>sysid</arg></term><item><arg>sysid</arg> is now available for all
-parsing functions not just <func>parseString</func>.</item>
+but a callable that will create a &sax;2 parser.</dd>
+<dt><arg>sysid</arg></dt><dd><arg>sysid</arg> is now available for all
+parsing functions not just <func>parseString</func>.</dd>
 </dl>
 </section>
 
@@ -382,7 +382,7 @@ parsing functions not just <func>parseString</func>.</item>
 the key passed in, but <lit><rep>key</rep>.Context</lit> as the real dictionary
 key. This has the following consequences:</p>
 <ul>
-<item><p>If you want a unique context for your own element class,
+<li><p>If you want a unique context for your own element class,
 you <em>must</em> implement a new <class>Context</class> class (otherwise you'd
 get <class>ll.xist.xsc.Element.Context</class>):</p>
 <example>
@@ -396,10 +396,10 @@ class Foo(xsc.Element):
 			<rep>...</rep>
 </prog>
 </example>
-</item>
-<item>Subclasses that don't overwrite <class>Context</class> (as well as instances
+</li>
+<li>Subclasses that don't overwrite <class>Context</class> (as well as instances
 of those classes) can be passed to <meth>ll.xist.converters.Converter.__getitem__</meth>
-and the unique base class context object will be returned.</item>
+and the unique base class context object will be returned.</li>
 </ul>
 </section>
 
@@ -580,11 +580,11 @@ xmlns.makemod(vars())
 <section><h>Migrating to version 2.1</h>
 
 <ul>
-<item>The method <meth>withSep</meth> has been renamed
-to <meth>withsep</meth>.</item>
+<li>The method <meth>withSep</meth> has been renamed
+to <meth>withsep</meth>.</li>
 
-<item>The argument <arg>defaultEncoding</arg> for the various
-parsing functions has been renamed to <arg>encoding</arg>.</item>
+<li>The argument <arg>defaultEncoding</arg> for the various
+parsing functions has been renamed to <arg>encoding</arg>.</li>
 </ul>
 
 </section>

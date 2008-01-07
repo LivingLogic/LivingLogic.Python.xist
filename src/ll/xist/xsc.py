@@ -1012,19 +1012,19 @@ class Node(object):
 		<p>Entries in this returned sequence can be the following:</p>
 
 		<dl>
-		<term><lit>True</lit></term><item>This tells <meth>walk</meth> to
-		yield this node from the iterator.</item>
-		<term><lit>False</lit></term><item>Don't yield this node from the iterator.</item>
-		<term><lit>enterattrs</lit></term><item>This is a global constant in
+		<dt><lit>True</lit></dt><dd>This tells <meth>walk</meth> to
+		yield this node from the iterator.</dd>
+		<dt><lit>False</lit></dt><dd>Don't yield this node from the iterator.</dd>
+		<dt><lit>enterattrs</lit></dt><dd>This is a global constant in
 		<mod>ll.xist.xsc</mod> and tells <meth>walk</meth> to traverse
 		the attributes of this node (if it's an
 		<pyref class="Element"><class>Element</class></pyref>, otherwise this
-		option will be ignored).</item>
-		<term><lit>entercontent</lit></term><item>This is a global constant in
+		option will be ignored).</dd>
+		<dt><lit>entercontent</lit></dt><dd>This is a global constant in
 		<mod>ll.xist.xsc</mod> and tells <meth>walk</meth> to traverse
 		the child nodes of this node (if it's an
 		<pyref class="Element"><class>Element</class></pyref>, otherwise this
-		option will be ignored).</item>
+		option will be ignored).</dd>
 		</dl>
 
 		<p>These options will be executed in the order they are specified in the
@@ -2815,26 +2815,26 @@ class Element(Node):
 
 	<p>Elements support the following class variables:</p>
 	<dl>
-	<term><lit>model</lit></term><item>This is an object that is used for
+	<dt><lit>model</lit></dt><dd>This is an object that is used for
 	validating the content of the element. See the module
 	<pyref module="ll.xist.sims"><mod>ll.xist.sims</mod></pyref>
 	for more info. If <lit>model</lit> is <lit>None</lit> validation will
-	be skipped, otherwise it will be performed when parsing or publishing.</item>
+	be skipped, otherwise it will be performed when parsing or publishing.</dd>
 
-	<term><lit>Attrs</lit></term><item>This is a class derived from
+	<dt><lit>Attrs</lit></dt><dd>This is a class derived from
 	<pyref class="Element.Attrs"><class>Element.Attrs</class></pyref>
 	and should define all attributes as classes nested inside this
-	<class>Attrs</class> class.</item>
+	<class>Attrs</class> class.</dd>
 
-	<term><lit>xmlns</lit></term><item>This is the name of the namespace this
-	element belong to.</item>
+	<dt><lit>xmlns</lit></dt><dd>This is the name of the namespace this
+	element belong to.</dd>
 
-	<term><lit>register</lit></term><item>If <lit>register</lit> is false the
-	element won't be registered with the parser.</item>
+	<dt><lit>register</lit></dt><dd>If <lit>register</lit> is false the
+	element won't be registered with the parser.</dd>
 
-	<term><lit>xmlname</lit></term><item>If the class name has to be different
+	<dt><lit>xmlname</lit></dt><dd>If the class name has to be different
 	from the &xml; name (e.g. because the &xml; name is not a valid Python identifier)
-	<lit>xmlname</lit> can be used to specify the real &xml; name.</item>
+	<lit>xmlname</lit> can be used to specify the real &xml; name.</dd>
 	</dl>
 	"""
 	__metaclass__ = _Element_Meta
@@ -3421,19 +3421,19 @@ class Pool(misc.Pool):
 		"""
 		<p>Register <arg>object</arg> in the pool. <arg>object</arg> can be:</p>
 		<ul>
-		<item>A <pyref class="Element"><class>Element</class></pyref>,
+		<li>A <pyref class="Element"><class>Element</class></pyref>,
 		<pyref class="ProcInst"><class>ProcInst</class></pyref>,
 		<pyref class="Entity"><class>Entity</class></pyref>,
-		<pyref class="CharRef"><class>CharRef</class></pyref> class;</item>
-		<item>An <pyref class="Attr"><class>Attr</class></pyref> class
-		for a global attribute;</item>
-		<item>An <pyref class="Attrs"><class>Attrs</class></pyref> class
-		containing global attributes;</item>
-		<item>A <class>dict</class> (all <class>Node</class> classes in the
+		<pyref class="CharRef"><class>CharRef</class></pyref> class;</li>
+		<li>An <pyref class="Attr"><class>Attr</class></pyref> class
+		for a global attribute;</li>
+		<li>An <pyref class="Attrs"><class>Attrs</class></pyref> class
+		containing global attributes;</li>
+		<li>A <class>dict</class> (all <class>Node</class> classes in the
 		values will be registered, this makes it possible to e.g. register all
-		local variables by passing <lit>vars()</lit>);</item>
-		<item>A module (all <class>Node</class> classes in the
-		module will be registered);</item>
+		local variables by passing <lit>vars()</lit>);</li>
+		<li>A module (all <class>Node</class> classes in the
+		module will be registered);</li>
 		</ul>
 		"""
 		if isinstance(object, type):

@@ -33,16 +33,16 @@ Python classes provide a conversion method to transform the &xml; tree (e.g. int
 
 <p>Some of the significant features of &xist; include:</p>
 <ul>
-<item>Easily extensible with new &xml; elements,</item>
-<item>Can be used for offline or online page generation,</item>
-<item>Allows embedding Python code in &xml; files,</item>
-<item>Supports separation of layout and logic,</item>
-<item>Can be used together with <a href="http://www.modpython.org/">mod_python</a>,
+<li>Easily extensible with new &xml; elements,</li>
+<li>Can be used for offline or online page generation,</li>
+<li>Allows embedding Python code in &xml; files,</li>
+<li>Supports separation of layout and logic,</li>
+<li>Can be used together with <a href="http://www.modpython.org/">mod_python</a>,
 <a href="http://pywx.idyll.org/">PyWX</a> or <a href="http://webware.sf.net/">Webware</a>
-to generate dynamic pages,</item>
-<item>Fully supports Unicode and &xml; namespaces,</item>
-<item>Provides features to use &xist; together with &jsp;/Struts (when replacing
-Struts tag libraries with &xist; this speeds up pages by a factor of 5&ndash;10.)</item>
+to generate dynamic pages,</li>
+<li>Fully supports Unicode and &xml; namespaces,</li>
+<li>Provides features to use &xist; together with &jsp;/Struts (when replacing
+Struts tag libraries with &xist; this speeds up pages by a factor of 5&ndash;10.)</li>
 </ul>
 
 <p>&xist; was written as a replacement for the

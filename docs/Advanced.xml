@@ -35,7 +35,7 @@ class counter(xsc.Element):
 </section>
 
 
-<section><h>Chaining pool and extending namespaces</h>
+<section><h>Chaining pools and extending namespaces</h>
 
 <p>When using <pyref module="ll.xist.xsc" class="Pool">pools</pyref> it's
 possible to do some sort of <z>namespace subclassing</z>.</p>

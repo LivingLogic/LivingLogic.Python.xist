@@ -24,19 +24,19 @@ must return a sequence of <z>node handling options</z>. A node handling option
 is one of the following:</p>
 
 <dl>
-<term><lit>True</lit></term><item>This tells <meth>walk</meth> to
-yield this node from the generator;</item>
-<term><lit>False</lit></term><item>Don't yield this node from the generator;</item>
-<term><lit>enterattrs</lit></term><item>This is a global constant in
+<dt><lit>True</lit></dt><dd>This tells <meth>walk</meth> to
+yield this node from the generator;</dd>
+<dt><lit>False</lit></dt><dd>Don't yield this node from the generator;</dd>
+<dt><lit>enterattrs</lit></dt><dd>This is a global constant in
 <mod>ll.xist.xsc</mod> and tells <meth>walk</meth> to traverse
 the attributes of this node (if it's an
 <pyref class="Element"><class>Element</class></pyref>, otherwise this
-option will be ignored);</item>
-<term><lit>entercontent</lit></term><item>This is a global constant in
+option will be ignored);</dd>
+<dt><lit>entercontent</lit></dt><dd>This is a global constant in
 <mod>ll.xist.xsc</mod> and tells <meth>walk</meth> to traverse
 the child nodes of this node (if it's an
 <pyref class="Element"><class>Element</class></pyref>, otherwise this
-option will be ignored);</item>
+option will be ignored);</dd>
 </dl>
 
 <p>These options will be executed in the order they are specified in the

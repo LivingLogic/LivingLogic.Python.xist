@@ -41,11 +41,10 @@ class attribute(xsc.Element):
 	<p>The attribute tag defines an attribute for the nesting tag</p>
 	<p>An attribute definition is composed of:</p>
 	<ul>
-		<item>the attributes name (required)</item>
-		<item>if the attribute is required or optional (optional)</item>
-		<item>if the attributes value may be dynamically calculated at
-				runtime by a scriptlet expression (optional)
-		</item>
+	<li>the attributes name (required)</li>
+	<li>if the attribute is required or optional (optional)</li>
+	<li>if the attributes value may be dynamically calculated at runtime by a
+	scriptlet expression (optional)</li>
 	</ul>
 	"""
 	xmlns = xmlns
@@ -74,12 +73,12 @@ class bodycontent(xsc.Element):
 
 	<p>There are currently three values specified:</p>
 	<ul>
-		<item><lit>tagdependent</lit>: The body of the tag is interpreted
+		<li><lit>tagdependent</lit>: The body of the tag is interpreted
 			by the tag implementation itself, and is most likely in a
 			different <z>language</z>, e.g embedded &sql; statements.
-		</item>
-		<item><lit>JSP</lit>: The body of the tag contains nested &jsp; syntax</item>
-		<item><lit>empty</lit>: The body must be empty</item>
+		</li>
+		<li><lit>JSP</lit>: The body of the tag contains nested &jsp; syntax</li>
+		<li><lit>empty</lit>: The body must be empty</li>
 	</ul>
 	<p>The default (if not defined) is <lit>JSP</lit>.</p>
 	<p>Valid values: <lit>tagdependent</lit>, <lit>JSP</lit>,
@@ -153,12 +152,12 @@ class tag(xsc.Element):
 	"""
 	<p>The tag defines a unique tag in this tag library, defining:</p>
 	<ul>
-		<item>the unique tag/element name</item>
-		<item>the subclass of <class>javax.servlet.jsp.tagext.Tag</class> implementation class</item>
-		<item>an optional subclass of <class>javax.servlet.jsp.tagext.TagExtraInfo</class></item>
-		<item>the body content type (hint)</item>
-		<item>optional tag-specific information</item>
-		<item>any attributes</item>
+		<li>the unique tag/element name</li>
+		<li>the subclass of <class>javax.servlet.jsp.tagext.Tag</class> implementation class</li>
+		<li>an optional subclass of <class>javax.servlet.jsp.tagext.TagExtraInfo</class></li>
+		<li>the body content type (hint)</li>
+		<li>optional tag-specific information</li>
+		<li>any attributes</li>
 	</ul>
 	"""
 	xmlns = xmlns
@@ -202,17 +201,17 @@ class taglib(xsc.Element):
 	"""
 	<p>The taglib tag is the document root, it defines:</p>
 	<ul>
-		<item><lit>tlibversion</lit>: The version of the tag library implementation</item>
-		<item><lit>jspversion</lit>: The version of JSP the tag library depends upon</item>
-		<item><lit>shortname</lit>: A simple default short name that could be used by
+		<li><lit>tlibversion</lit>: The version of the tag library implementation</li>
+		<li><lit>jspversion</lit>: The version of JSP the tag library depends upon</li>
+		<li><lit>shortname</lit>: A simple default short name that could be used by
 					a &jsp; authoring tool to create names with a mnemonic
 					value; for example, the it may be used as the prefered
 					prefix value in taglib directives.
-		</item>
-		<item><lit>uri</lit>: A &url; uniquely identifying this taglib</item>
-		<item><lit>info</lit>: A simple string describing the <z>use</z> of
+		</li>
+		<li><lit>uri</lit>: A &url; uniquely identifying this taglib</li>
+		<li><lit>info</lit>: A simple string describing the <z>use</z> of
 				this taglib, should be user discernable
-		</item>
+		</li>
 	</ul>
 	"""
 	xmlns = xmlns

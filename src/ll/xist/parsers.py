@@ -235,30 +235,30 @@ class Builder(object):
 
 		<p>Arguments have the following meaning:</p>
 		<dl>
-		<term><arg>parser</arg></term><item>an instance of the
+		<dt><arg>parser</arg></dt><dd>an instance of the
 		<pyref class="Parser"><class>Parser</class></pyref> class (or any object
-		that provides the appropriate interface).</item>
+		that provides the appropriate interface).</dd>
 
-		<term><arg>prefixes</arg></term><item>a mapping that maps namespace
+		<dt><arg>prefixes</arg></dt><dd>a mapping that maps namespace
 		prefixes to namespace names/modules) (or lists of namespace names/modules).
-		This is used to preinitialize the namespace prefix mapping.</item>
+		This is used to preinitialize the namespace prefix mapping.</dd>
 
-		<term><arg>tidy</arg></term><item>If <arg>tidy</arg> is true,
+		<dt><arg>tidy</arg></dt><dd>If <arg>tidy</arg> is true,
 		<a href="http://xmlsoft.org/">libxml2</a>'s &html; parser will be
-		used for parsing broken &html;.</item>
+		used for parsing broken &html;.</dd>
 
-		<term><arg>loc</arg></term><item>Should location information be attached
-		to the generated nodes?</item>
+		<dt><arg>loc</arg></dt><dd>Should location information be attached
+		to the generated nodes?</dd>
 
-		<term><arg>validate</arg></term><item>Should the parsed &xml; nodes be
-		validated after parsing?</item>
+		<dt><arg>validate</arg></dt><dd>Should the parsed &xml; nodes be
+		validated after parsing?</dd>
 
-		<term><arg>encoding</arg></term><item>The default encoding to use, when the
+		<dt><arg>encoding</arg></dt><dd>The default encoding to use, when the
 		source doesn't provide an encoding. The default <lit>None</lit> results in
-		the encoding being detected from the &xml; itself.</item>
+		the encoding being detected from the &xml; itself.</dd>
 
-		<term><arg>pool</arg></term><item>A <pyref module="ll.xist.xsc" class="Pool"><class>ll.xist.xsc.Pool</class></pyref>
-		object which will be used for instantiating all nodes during parsing.</item>
+		<dt><arg>pool</arg></dt><dd>A <pyref module="ll.xist.xsc" class="Pool"><class>ll.xist.xsc.Pool</class></pyref>
+		object which will be used for instantiating all nodes during parsing.</dd>
 		</dl>
 		"""
 		self.parser = parser
