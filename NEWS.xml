@@ -87,6 +87,8 @@ print node.conv().bytes(encoding="us-ascii")
 <a href="http://codespeak.net/svn/user/hpk/talks/xpython-talk.txt">XPython</a>.</p>
 </li>
 
+<li>Parsing has been rewritten, so PyXML is no longer required.</li>
+
 <li>A subset of <a href="http://docutils.sourceforge.net/rst.html">ReST</a>
 is supported now for docstrings when using the <mod>ll.xist.ns.doc</mod>
 module. The module attribute <lit>__docformat__</lit> is now honored (Set it

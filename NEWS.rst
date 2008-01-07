@@ -66,6 +66,8 @@ Changes in 3.0 (released 01/07/2008)
 
 	.. _XPython: http://codespeak.net/svn/user/hpk/talks/xpython-talk.txt
 
+*	Parsing has been rewritten, so PyXML is no longer required.
+
 *	A subset of ReST__ is supported now for docstrings when using the
 	:mod:`ll.xist.ns.doc` module. The module attribute :attr:`__docformat__`
 	is now honored (Set it to ``"xist"`` to get XIST docstrings).
