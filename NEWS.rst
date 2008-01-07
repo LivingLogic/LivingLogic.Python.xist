@@ -2,7 +2,7 @@ History
 =======
 
 
-Changes in 3.0 (released 01/07/2007)
+Changes in 3.0 (released 01/07/2008)
 ------------------------------------
 
 *	Tree traversal has been rewritten again. XFind expressions involving multiple
