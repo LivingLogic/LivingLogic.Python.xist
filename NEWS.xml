@@ -18,7 +18,7 @@ and one based on a custom version of
 
 <li>Tree traversal has been rewritten again. XFind expressions involving
 multiple uses of <lit>//</lit> now work correctly. The method <meth>walk</meth>
-now doesn't yield <class>Cursor</class> objects, but simple path list
+now doesn't yield <class>Cursor</class> objects, but simple path lists
 (actually it's always the same list, if you want distinct lists use
 <meth>walkpath</meth>). Applying XFind expressions to nodes directly
 is no longer supported, you have to call <meth>walk</meth>,

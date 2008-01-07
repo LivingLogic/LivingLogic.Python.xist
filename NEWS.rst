@@ -7,7 +7,7 @@ Changes in 3.0 (released 01/07/2007)
 
 *	Tree traversal has been rewritten again. XFind expressions involving multiple
 	uses of ``//`` now work correctly. The method :meth:`walk` now doesn't yield
-	:class:`Cursor` objects, but simple path list (actually it's always the same
+	:class:`Cursor` objects, but simple path lists (actually it's always the same
 	list, if you want distinct lists use :meth:`walkpath`). Applying XFind
 	expressions to nodes directly is no longer supported, you have to call
 	:meth:`walk`, :meth:`walknode` or :meth:`walkpath` with the XFind expression
