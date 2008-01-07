@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
-<section><h>Changes in 3.0 (released ??/??/2007)</h>
+<section><h>Changes in 3.0 (released 01/07/2007)</h>
 <ul>
 <li>Namespaces have been greatly simplified. There are no namespace modules any
 longer. An element class can be assigned a namespace by setting the <lit>xmlns</lit>
