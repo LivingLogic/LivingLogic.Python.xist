@@ -2,19 +2,19 @@
 <section><h>Requirements</h>
 <p>To use &xist; you need the following software packages:</p>
 <ol>
-<item><a href="http://www.python.org/">Python 2.5</a>,</item>
-<item><a href="root:core/index.html">ll-core</a> (1.11 or newer),</item>
-<item>if you want to use automatic image size calculation: the
-<a href="http://www.pythonware.com/products/pil/">Python Imaging Library</a>,</item>
-<item>if you want to parse broken &html;: <a href="http://www.xmlsoft.org/">libxml2</a>
-(including its Python wrapper),</item>
-<item>if you want want to use the function <func>ll.xist.ns.html.astext</func>
-to convert &html; to plain text: <a href="http://elinks.or.cz/">elinks</a>,</item>
-<item>if you want to install this package as an egg:
-<a href="http://peak.telecommunity.com/DevCenter/setuptools">setuptools</a>.</item>
-<item>if you want to run the test suite: <a href="http://codespeak.net/py/current/doc/test.html">py.test</a>,</item>
-<item>and a C compiler supported by <app>distutils</app>, if you want
-to install the source distribution.</item>
+<li><a href="http://www.python.org/">Python 2.5</a>,</li>
+<li><a href="root:core/index.html">ll-core</a> (1.11 or newer),</li>
+<li>if you want to use automatic image size calculation: the
+<a href="http://www.pythonware.com/products/pil/">Python Imaging Library</a>,</li>
+<li>if you want to parse broken &html;: <a href="http://www.xmlsoft.org/">libxml2</a>
+(including its Python wrapper),</li>
+<li>if you want want to use the function <func>ll.xist.ns.html.astext</func>
+to convert &html; to plain text: <a href="http://elinks.or.cz/">elinks</a>,</li>
+<li>if you want to install this package as an egg:
+<a href="http://peak.telecommunity.com/DevCenter/setuptools">setuptools</a>.</li>
+<li>if you want to run the test suite: <a href="http://codespeak.net/py/current/doc/test.html">py.test</a>,</li>
+<li>and a C compiler supported by <app>distutils</app>, if you want
+to install the source distribution.</li>
 </ol>
 </section>
 
