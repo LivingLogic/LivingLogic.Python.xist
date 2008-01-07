@@ -5,6 +5,22 @@ History
 Changes in 3.0 (released 01/07/2008)
 ------------------------------------
 
+*	Namespaces have been greatly simplified. There are no namespace modules any
+	longer. An element class can be assigned a namespace by setting the ``xmlns``
+	class attribute to the namespace name. Global attributes can be assigned a
+	namespace by setting the ``xmlns`` attribute on the attribute class itself
+	(*not* on the :class:`Attrs` class). The classes :class:`Prefixes` and
+	:class:`NSPool` are gone too. Instead a new class :class:`Pool` is used to
+	specify which classes should be used for parsing.
+
+*	Dependency on PyXML_ has finally been dropped. XIST now uses its own XML
+	parsing API. Two parsers are available: One based on expat_ and one based on
+	a custom version of sgmlop_.
+
+	.. _PyXML: http://pyxml.sf.net/
+	.. _expat: http://expat.sourceforge.net/
+	.. _sgmlop: http://effbot.org/zone/sgmlop-index.htm
+
 *	Tree traversal has been rewritten again. XFind expressions involving multiple
 	uses of ``//`` now work correctly. The method :meth:`walk` now doesn't yield
 	:class:`Cursor` objects, but simple path lists (actually it's always the same
@@ -65,8 +81,6 @@ Changes in 3.0 (released 01/07/2008)
 	supports ``with`` blocks now instead of XPython_.
 
 	.. _XPython: http://codespeak.net/svn/user/hpk/talks/xpython-talk.txt
-
-*	Parsing has been rewritten, so PyXML is no longer required.
 
 *	A subset of ReST__ is supported now for docstrings when using the
 	:mod:`ll.xist.ns.doc` module. The module attribute :attr:`__docformat__`
