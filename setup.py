@@ -72,7 +72,6 @@ args = dict(
 	package_dir={"": "src"},
 	packages=["ll", "ll.xist", "ll.xist.ns", "ll.xist.scripts"],
 	ext_modules=[
-		tools.Extension("ll.xist.csstokenizer", ["src/ll/xist/csstokenizer.cxx"]),
 		tools.Extension("ll.xist.helpers", ["src/ll/xist/helpers.c"]),
 		tools.Extension("ll.xist.sgmlop", ["src/ll/xist/sgmlop.c"], define_macros=[("SGMLOP_UNICODE_SUPPORT", None)]),
 	],
