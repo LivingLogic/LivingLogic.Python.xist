@@ -46,14 +46,22 @@ iHTML
 Relax NG
 """
 
-DESCRIPTION = "\n".join(textwrap.wrap(DESCRIPTION.strip(), width=64, replace_whitespace=True))
+try:
+	news = list(open("NEWS.rst", "r"))
+except IOError:
+	description = DESCRIPTION.strip()
+else:
+	underlines = [i for (i, line) in enumerate(news) if line.startswith("---")]
+	news = news[underlines[0]-1:underlines[1]-1]
+	news = "".join(news)
+	description = "%s\n\n\n%s" % (DESCRIPTION.strip(), news)
 
 
 args = dict(
 	name="ll-xist",
 	version="3.0",
 	description="An extensible HTML/XML generator",
-	long_description=DESCRIPTION,
+	long_description=description,
 	author="Walter Doerwald",
 	author_email="walter@livinglogic.de",
 	url="http://www.livinglogic.de/Python/xist/",
