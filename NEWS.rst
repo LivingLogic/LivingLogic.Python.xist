@@ -44,18 +44,18 @@ Changes in 3.0 (released 01/07/2008)
 	*	``del node[node[0]]`` to delete the first child node (which is silly, but
 		illustrates that you can pass a node to get/replace/delete that node);
 
-*	A new module :mod:`ll.xist.css` has been added which contains |CSS| related
+*	A new module :mod:`ll.xist.css` has been added which contains CSS related
 	functionality: The generator function :func:`iterrules` can be passed an
-	|XIST| tree and it will produce all |CSS| rules defined in any
+	XIST tree and it will produce all CSS rules defined in any
 	:class:`html.link` or :class:`html.style` elements or imported by them
-	(via the |CSS| rule ``@import``). This requires the :mod:`cssutils` package.
+	(via the CSS rule ``@import``). This requires the :mod:`cssutils` package.
 
-*	The function :func:`applystylesheets` modifies the |XIST| tree passed in by
-	removing all |CSS| (from :class:`html.link` and :class:`html.style` elements
+*	The function :func:`applystylesheets` modifies the XIST tree passed in by
+	removing all CSS (from :class:`html.link` and :class:`html.style` elements
 	and their ``@import``ed stylesheets) and putting the styles into ``style``
 	attributes of the affected elements instead.
 
-*	The function :func:`selector` return a tree walk filter from a |CSS| selector
+*	The function :func:`selector` return a tree walk filter from a CSS selector
 	passed as a string.
 
 *	Constructing trees can now be done with ``with`` blocks. Code looks like
@@ -124,11 +124,11 @@ Changes in 3.0 (released 01/07/2008)
 
 *	When calling the function :func:`ll.xist.parsers.parseURL` the arguments
 	:var:`headers` and :var:`data` are now passed along to the parser's method
-	only if they are specified. This makes it possible to pass ssh |URL|s to
+	only if they are specified. This makes it possible to pass ssh URLs to
 	:func:`ll.xist.parsers.parseURL`.
 
 *	The methods :meth:`withnames` and :meth:`withoutnames` have been split into
-	two that take Python names and two that take |XML| names. Multiple arguments
+	two that take Python names and two that take XML names. Multiple arguments
 	are used now (instead of one argument that must be a sequence). Passing a
 	namespace to remove all attributes from the namespace is no longer supported.
 
@@ -139,14 +139,14 @@ Changes in 3.0 (released 01/07/2008)
 Changes in 2.15.5 (released 07/17/2007)
 ---------------------------------------
 
-*	The Python quotes example no longer contains the |XML| source or the generated
-	|HTML|.
+*	The Python quotes example no longer contains the XML source or the generated
+	HTML.
 
 
 Changes in 2.15.4 (released 07/16/2007)
 ---------------------------------------
 
-*	The Python quotes example now always parses the file from the original |URL|.
+*	The Python quotes example now always parses the file from the original URL.
 
 *	The Python quotes and the media example now print the result to ``stdout``.
 
@@ -154,7 +154,7 @@ Changes in 2.15.4 (released 07/16/2007)
 Changes in 2.15.3 (released 07/16/2007)
 ---------------------------------------
 
-*	Use a consistent license (MIT) everywhere. This should make |XIST| Debian
+*	Use a consistent license (MIT) everywhere. This should make XIST Debian
 	compatible.
 
 *	Change the Python quotes example, so that it works even if there's no
@@ -182,12 +182,12 @@ Changes in 2.15.1 (released 09/25/2006)
 *	Readded the spacer pixel.
 
 
-* Changes in 2.15 (released 09/24/2006)
----------------------------------------
+Changes in 2.15 (released 09/24/2006)
+-------------------------------------
 
-*	|XIST| has been made compatible with Python 2.5: Code has been updated
+*	XIST has been made compatible with Python 2.5: Code has been updated
 	to use the proper C API for memory management and :pep:`353` support has been
-	added. |XIST| now includes its own fixed version of :mod:`sgmlop`.
+	added. XIST now includes its own fixed version of :mod:`sgmlop`.
 
 *	The :class:`ll.xist.xsc.Attrs` methods :meth:`with` and :meth:`without` have
 	been renamed to :meth:`withnames` and :meth:`withoutnames` for Python 2.5
@@ -198,14 +198,14 @@ Changes in 2.15.1 (released 09/25/2006)
 	The same change has been implemented
 	for :class:`ll.xist.ns.htmlspecials.autopixel`. It's now possible to overwrite
 	the default ``src`` attribute value of ``root:px/spc.gif`` either via the
-	|XML| attribute or via the converter context.
+	XML attribute or via the converter context.
 
 *	The node method :meth:`asText` has been made a function, moved into the
 	:mod:`html` namespace and renamed to :func:`astext`. Furthermore elinks_ is
 	used for plain text formatting now instead of w3m_.
 
 	.. _elinks: http://elinks.or.cz/
-	.. _w3m: http://w3m.sourceforge.net/
+	.. _w3m: http://w3m.sf.net/
 
 
 Changes in 2.14.2 (released 07/04/2006)
@@ -232,19 +232,19 @@ Changes in 2.14 (released 06/28/2006)
 *	A new namespace :mod:`ll.xist.ns.detox` has been added that is similar to
 	:mod:`ll.toxic` but can be used to generate Python code instead of
 	PL/SQL code. Using :mod:`detox` templates is about 50 times faster than using
-	|XIST| trees directly and about 10 times faster than Kid_.
+	XIST trees directly and about 10 times faster than Kid_.
 
 	.. _Kid: http://kid.lesscode.org/
 
 *	Presenters are now compatible to `IPython`_'s :mod:`ipipe` module. This means
-	that you can browse |XIST| trees interactively if you have IPython installed.
+	that you can browse XIST trees interactively if you have IPython installed.
 	:class:`NormalPresenter` and the :class:`Node` methods :meth:`repr` and
 	:meth:`asrepr` have been removed.
 
 	.. _IPython: http://ipython.scipy.org/
 
 *	A new processing instruction :class:`ll.xist.ns.specials.url` has been added
-	that does the same |URL| transformation as :class:`ll.xist.xsc.URLAttr` does.
+	that does the same URL transformation as :class:`ll.xist.xsc.URLAttr` does.
 
 *	On publishing :class:`ll.xist.ns.html.html` now only adds a ``lang`` and
 	``xml:lang`` attribute, if neither of them exists.
@@ -265,7 +265,7 @@ Changes in 2.13 (released 10/31/2005)
 
 *	A new processing instruction class :class:`ll.xist.ns.specials.literal` has
 	been added, that will output its content literally when published. This can
-	be used for embedding preformatted |XML| (e.g. from a database) into an |XIST|
+	be used for embedding preformatted XML (e.g. from a database) into an XIST
 	tree.
 
 
@@ -277,20 +277,20 @@ Changes in 2.12 (released 10/13/2005)
 	.. _Relax NG: http://www.relaxng.org/
 	.. _Kid: http://kid.lesscode.org/
 
-*	|XIST| requires version 1.0 of the core package now.
+*	XIST requires version 1.0 of the core package now.
 
-*	The class name for the DocBook |DTD| class has been fixed.
+*	The class name for the DocBook DTD class has been fixed.
 
 
 Changes in 2.11 (released 07/29/2005)
 -------------------------------------
 
 *	A script :file:`xml2xsc.py` has been added, that can be used to parse an
-	|XML| file and generate a rudimentary |XIST| namespace from it.
+	XML file and generate a rudimentary XIST namespace from it.
 
 *	A :class:`DocType` for XHTML 1.1 has been added (suggested by Elvelind Grandin).
 
-*	Line number information is now added when parsing |HTML|.
+*	Line number information is now added when parsing HTML.
 
 *	The :meth:`sorted` method now supports the same arguments (:var:`cmp`,
 	:var:`key` and :var:`reverse`) as :meth:`list.sort` and :func:`sorted`
@@ -302,8 +302,8 @@ Changes in 2.11 (released 07/29/2005)
 *	New methods :meth:`walknode`, :meth:`walkpath` and :meth:`walkindex` have been
 	added.
 
-*	Presenters use an iterator |API| instead of a stream |API| now. Dumping an
-	|XML| tree presentation to the terminal can now start immediately instead
+*	Presenters use an iterator API instead of a stream API now. Dumping an
+	XML tree presentation to the terminal can now start immediately instead
 	of having to wait for the complete string to be formatted.
 
 *	Fixed a bug with element/attribute names that contained a ``.`` character.
@@ -313,7 +313,7 @@ Changes in 2.11 (released 07/29/2005)
 	ended the parser restored the wrong prefix mapping.
 
 *	The :dir:`python-quotes` demo has been updated to use the current version of
-	AMK's |XML| file.
+	AMK's XML file.
 
 *	Removed iterator stuff from :mod:`ll.xist.xfind`, as this is now part of the
 	:mod:`ll` package/module.
@@ -349,21 +349,21 @@ Changes in 2.10 (released 05/20/2005)
 	converter will be created on the fly. You can pass constructor arguments for
 	this converter to :meth:`mapped` as keyword arguments.
 
-*	The publishing |API| has changed again:
+*	The publishing API has changed again:
 	:meth:`ll.xist.publishers.Publisher.publish` no longer accepts an argument
 	:var:`stream` to which the byte strings are written, but it is a generator
 	now. The publisher methods :meth:`write` and :meth:`writetext` have been
 	renamed to :meth:`encode` and :meth:`encodetext` and return the encoded byte
 	string, instead of writing it directly to the stream. There's a new generator
 	method :meth:`bytes` for nodes now, which can be passed the same arguments
-	as :meth:`asBytes`. These changes should help when using |XIST| in |WSGI|
+	as :meth:`asBytes`. These changes should help when using XIST in WSGI
 	applications.
 
 *	The iterator returned from :meth:`Element.__getitem__`,
 	:meth:`Frag.__getitem__` and the :meth:`walk` method now supports
 	:meth:`__getitem__` itself, so you can write ``table[html.tr][0]`` to get
 	the first row from a table or ``page.walk(xsc.FindTypeAll(html.td))[-1]`` to
-	get the last table cell from a complete |HTML| page.
+	get the last table cell from a complete HTML page.
 
 *	Several bugs in the namespaces :mod:`ll.xist.ns.meta`, :mod:`ll.xist.ns.form`
 	and :mod:`ll.xist.ns.specials` have been fixed.
@@ -375,7 +375,7 @@ Changes in 2.10 (released 05/20/2005)
 Changes in 2.9 (released 04/21/2005)
 ------------------------------------
 
-*	|XIST| trees can now be pickled. The only restriction is that global
+*	XIST trees can now be pickled. The only restriction is that global
 	attributes must come from a namespace that has been turned into a module via
 	:meth:`makemod`, so that this module can be imported on unpickling.
 
@@ -408,7 +408,7 @@ Changes in 2.9 (released 04/21/2005)
 		>>> print e["href"]
 		kunz
 
-	|XML| attributes can now be accessed as Python attributes, i.e.::
+	XML attributes can now be accessed as Python attributes, i.e.::
 
 		>>> from ll.xist.ns import html
 		>>> e = html.a("spam", href="eggs")
@@ -422,10 +422,10 @@ Changes in 2.9 (released 04/21/2005)
 	of the specified type will be returned.
 
 *	The encoding used for parsing now defaults to :const:`None`. When reading
-	from an |URL| and no default encoding has been specified the one from the
+	from an URL and no default encoding has been specified the one from the
 	``Content-Type`` header will be used. If this still doesn't result in a
-	usable encoding, ``"utf-8"`` will be used when parsing |XML| and
-	``"iso-8859-1"`` will be used when parsing broken |HTML|.
+	usable encoding, ``"utf-8"`` will be used when parsing XML and
+	``"iso-8859-1"`` will be used when parsing broken HTML.
 
 *	All error and warning classes from :mod:`ll.xist.errors` have been merged
 	into :mod:`ll.xist.xsc`. This avoids import problems with circular imports.
@@ -435,7 +435,7 @@ Changes in 2.9 (released 04/21/2005)
 	are properly reset after they've done their job.
 
 *	The class attribute :attr:`xmlname` will no longer be turned into a list
-	containing the Python and the |XML| name, but will be the |XML| name only.
+	containing the Python and the XML name, but will be the XML name only.
 	You can get the Python name of :class:`foo` from ``foo.__class__.__name__``.
 
 *	:class:`DeprecationWarning`s for :attr:`name` and :attr:`attrHandlers` have
@@ -454,7 +454,7 @@ Changes in 2.8.1 (released 03/22/2005)
 Changes in 2.8 (released 01/03/2005)
 ------------------------------------
 
-*	|XIST| requires Python 2.4 now.
+*	XIST requires Python 2.4 now.
 
 *	:class:`ll.xist.ns.specials.x` has been renamed to
 	:class:`ll.xist.ns.specials.ignore`.
@@ -472,7 +472,7 @@ Changes in 2.8 (released 01/03/2005)
 *	Operators can be chained via division: ``html.a/html.b`` is an operator that
 	can be passed around and applied to a node.
 
-*	|XIST| requires the new core module and makes use of the new
+*	XIST requires the new core module and makes use of the new
 	"cooperative displayhook" functionality defined there: If you install the
 	displayhook you can tweak or replace ``ll.xist.presenters.hookpresenter``
 	to change the output.
@@ -506,7 +506,7 @@ Changes in 2.6.1 (released 11/02/2004)
 
 *	Fixed a bug in :meth:`ll.xist.xfind.Finder.__floordiv__`.
 
-*	Restricted characters as defined in `|XML| 1.1`_ will now be published as
+*	Restricted characters as defined in `XML 1.1`_ will now be published as
 	character references.
 
 	.. _XML 1.1:  http://www.w3.org/TR/2004/REC-xml11-20040204/#NT-RestrictedChar
@@ -519,9 +519,9 @@ Changes in 2.6 (released 10/26/2004)
 	possible to pass iterators and generators (and generator expressions in
 	Python 2.4) to :class:`Frag` and :class:`Element` constructors.
 
-*	A new |API| named XFind has been added for iterating through |XML| trees.
+*	A new API named XFind has been added for iterating through XML trees.
 	XFind expressions look somewhat like XPath expressions but are pure Python
-	expressions. For example finding all images inside links in an |HTML| page
+	expressions. For example finding all images inside links in an HTML page
 	can be done like this::
 
 		from ll.xist import parsers, xfind
@@ -533,20 +533,20 @@ Changes in 2.6 (released 10/26/2004)
 *	The module :mod:`ll.xist.xfind` contains several operators that can be used
 	in XFind expressions.
 
-*	Parsing broken |HTML| is now done with the |HTML| parser from libxml2_. The
+*	Parsing broken HTML is now done with the HTML parser from libxml2_. The
 	parsing functions no longer accept options for tidy, only the boolean value
 	of the :var:`tidy` argument is used.
 
 	.. _libxml2: http://www.xmlsoft.org/
 
-*	The publishing |API| has been simplified: Publication can now be done with
+*	The publishing API has been simplified: Publication can now be done with
 	a call to :meth:`ll.xist.publishers.Publisher.publish`, passing in a
 	:class:`ll.xist.xsc.Node`. Writing strings to the publisher output is
 	now done with :meth:`ll.xist.publishers.Publisher.write`. The methods
 	:meth:`beginPublication` and :meth:`endPublication` have been
 	removed.
 
-*	The presentation |API| has been simplified in the same way: You'll get a
+*	The presentation API has been simplified in the same way: You'll get a
 	presentation by calling: ``string = presenter.present(node)``. The methods
 	:meth:`beginPresentation` and :meth:`endPresentation` have been removed.
 
@@ -555,7 +555,7 @@ Changes in 2.6 (released 10/26/2004)
 	exception, but this can now be reconfigured via Python's warning framework.
 
 *	The classmethod :meth:`tokenize` from :mod:`ll.toxic` has been moved to
-	:class:`ll.xist.xsc.Namespace`, so it's now possible to tokenize an |XML|
+	:class:`ll.xist.xsc.Namespace`, so it's now possible to tokenize an XML
 	string for other processing instructions as well.
 
 *	A new class :class:`ll.xist.xsc.NSPool` has been added. An :class:`NSPool`
@@ -591,7 +591,7 @@ Changes in 2.5 (released 06/30/2004)
 	warning framework.
 
 *	All namespace modules have been updated to use :mod:`sims` information.
-	The |SVG| module has been updated to |SVG| 1.1. The docbook module has been
+	The SVG module has been updated to SVG 1.1. The docbook module has been
 	updated to DocBook 4.3.
 
 *	It's possible to switch off validation during parsing and publishing.
@@ -672,8 +672,8 @@ Changes in 2.5 (released 06/30/2004)
 			lang="en",
 		)
 
-*	Creating skeleton implementations of |XIST| namespaces is no longer done
-	via |XML| conversion (i.e. the namespace module :mod:`ll.xist.ns.xndl`),
+*	Creating skeleton implementations of XIST namespaces is no longer done
+	via XML conversion (i.e. the namespace module :mod:`ll.xist.ns.xndl`),
 	but through the new module :mod:`ll.xist.xnd`. The script :file:`dtdxsc.py`
 	will automatically generate :mod:`sims` information.
 
@@ -682,7 +682,7 @@ Changes in 2.5 (released 06/30/2004)
 	publishing, :class:`CharRef`s will be handled like :class:`Text` nodes.
 
 *	:class:`ll.xist.ns.meta.contenttype` now has an attribute ``mimetype``
-	(defaulting to ``"text/html"``) for specifying the |MIME| type.
+	(defaulting to ``"text/html"``) for specifying the MIME type.
 
 *	:class:`ll.xist.ns.htmlspecials.caps` has been removed.
 
@@ -692,15 +692,15 @@ Changes in 2.5 (released 06/30/2004)
 *	Pretty printing has been changed: Whitespace will only be added now if
 	there are no text nodes in element content.
 
-*	Two mailing lists are now available: One for discussion about |XIST| and
-	one for |XIST| announcements.
+*	Two mailing lists are now available: One for discussion about XIST and
+	one for XIST announcements.
 
 
 Changes in 2.4.1 (released 01/05/2004)
 --------------------------------------
 
 *	Changed the xmlname of :class:`ll.xist.ns.jsp.directive_page` back again
-	(it's ``directive.page`` only for the |XML| form, which we don't use anyway.)
+	(it's ``directive.page`` only for the XML form, which we don't use anyway.)
 
 *	Drop the default value for
 	:class:`ll.xist.ns.jsp.directive_page.Attrs.language`, as this attribute can
@@ -718,11 +718,11 @@ Changes in 2.4 (released 01/02/2004)
 	and has been made reusable, i.e. it is possible to instantiate a parser once
 	and use it multiple times for parsing. All the classes derived from
 	:class:`xml.sax.xmlreader.InputSource` have been dropped and the methods
-	for parsing strings, |URL|s and files have been implemented as methods of
+	for parsing strings, URLs and files have been implemented as methods of
 	the parser. Most of the arguments that had to be passed to the various
 	parsing functions are passed to the parser constructor now. The basic
 	parsing functionality is implemented by parsing streams instead of
-	:class:`InputSource`s.
+	:class:`InputSource` objects.
 
 *	Similar to the changes for parsing, publishers have been changed to be
 	reusable and most arguments to the publishing functions are available as
@@ -738,7 +738,7 @@ Changes in 2.4 (released 01/02/2004)
 *	Added a find functor :class:`FindTypeAllAttrs` that searches content and
 	attributes.
 
-*	Fixed the |XML| name for :class:`ll.xist.ns.jsp.directive_page`.
+*	Fixed the XML name for :class:`ll.xist.ns.jsp.directive_page`.
 
 *	All character references in :mod:`ll.xist.ns.ihtml` that exist in
 	:mod:`ll.xist.ns.chars` too have been removed.
@@ -747,16 +747,16 @@ Changes in 2.4 (released 01/02/2004)
 Changes in 2.3 (released 12/08/2003)
 ------------------------------------
 
-*	It's now possible to parse |XML| without generating location information for
+*	It's now possible to parse XML without generating location information for
 	each node, by passing ``loc=False`` to the constructor of the :class:`Handler`.
 
 *	The :class:`HTMLParser` no longer complains about global attributes or
 	``xmlns``.
 
-*	|XIST| now supports uTidylib_ in addition to mxTidy. uTidylib is found
+*	XIST now supports uTidylib_ in addition to mxTidy. uTidylib is found
 	it is preferred over mxTidy.
 
-	.. uTidylib: http://utidylib.sf.net/
+	.. _uTidylib: http://utidylib.sf.net/
 
 *	It's possible now to pass arguments to tidy simple by passing an argument
 	dictionary for the :var:`tidy` argument in the parsing functions.
@@ -767,8 +767,8 @@ Changes in 2.3 (released 12/08/2003)
 	:class:`ll.xist.ns.htmlspecials.autopixel` now check whether their
 	:attr:`color` attribute is ok.
 
-*	The base |URL| is now set correctly when parsing from an |URL| even if the
-	original |URL| does a redirect. (This requires :mod:`ll.url` version 0.11.3).
+*	The base URL is now set correctly when parsing from an URL even if the
+	original URL does a redirect. (This requires :mod:`ll.url` version 0.11.3).
 
 *	Namespace handling has been rewritten again, to be more standards compliant:
 	Now there is no prefixes for entities and processing instructions any longer.
@@ -877,11 +877,11 @@ Changes in 2.2 (released 07/31/2003)
 *	Calling :meth:`mapped` through :meth:`conv` has been removed. You again
 	have to call :meth:`mapped` directly and pass a node and a converter.
 
-*	The |HTML| handling of the :class:`HTMLParser` has been improved (it now
+*	The HTML handling of the :class:`HTMLParser` has been improved (it now
 	uses code from :mod:`xml.sax.drivers2.drv_sgmlop_html` (which is part of 
 	PyXML_.
 
-	.. _PyXML: http://pyxml.sf.net
+	.. _PyXML: http://pyxml.sf.net/
 
 *	The core functionality found in the script :file:`dtd2xsc.py` has been moved
 	to a class method :meth:`ll.xist.ns.xndl.fromdtd` in the
@@ -904,7 +904,7 @@ Changes in 2.1.4 (released 06/13/2003)
 --------------------------------------
 
 *	Remove the checks for attributes in attributes and moved the publication
-	code for the full element into a separate method. This allows |JSP| tag
+	code for the full element into a separate method. This allows JSP tag
 	library namespaces to simply overwrite :meth:`publish` to publish the element
 	even inside attributes. (This is the same fix as in release 1.5.10).
 
@@ -920,7 +920,7 @@ Changes in 2.1.3 (released 05/07/2003)
 Changes in 2.1.2 (released 02/27/2003)
 --------------------------------------
 
-*	:class:`ll.xist.ns.struts_config11.plug_in` now allows content (as the |DTD|
+*	:class:`ll.xist.ns.struts_config11.plug_in` now allows content (as the DTD
 	states). (This is the same fix as in release 1.5.8.)
 
 
@@ -937,9 +937,9 @@ Changes in 2.1 (released 12/09/2002)
 ------------------------------------
 
 *	Added a new namespace module :mod:`ll.xist.ns.xndl` that contains the
-	"|XIST| namespace definition language", i.e. elements that describe an
-	|XIST| namespace and can be used by various scripts to generate skeleton
-	namespace modules. The first of these script is the |DTD| to namespace
+	"XIST namespace definition language", i.e. elements that describe an
+	XIST namespace and can be used by various scripts to generate skeleton
+	namespace modules. The first of these script is the DTD to namespace
 	converter :file:`dtd2xsc.py`.
 
 *	Added a new namespace module :mod:`ll.xist.ns.tld` that contains the
@@ -971,7 +971,7 @@ Changes in 2.0.8 (released 11/20/2002)
 
 *	:func:`ll.xist.ns.doc.getDoc` has been renamed to :func:`getdoc`.
 
-*	The |CSS| parser was dropping the ``%`` from percentage values. This has
+*	The CSS parser was dropping the ``%`` from percentage values. This has
 	been fixed.
 
 
@@ -1035,7 +1035,7 @@ Changes in 2.0.1 (released 10/17/2002)
 Changes in 2.0 (released 10/16/2002)
 ------------------------------------
 
-*	|XIST| now requires at least Python 2.2.1.
+*	XIST now requires at least Python 2.2.1.
 
 *	Attribute handling has been largely rewritten. Instead of a class attribute
 	:attr:`attrHandlers`, the attributes are now defined through a nested class
@@ -1051,7 +1051,7 @@ Changes in 2.0 (released 10/16/2002)
 	via :attr:`values`, which is a list of allowed values, and whether the
 	attribute is required or not via :attr:`required`.
 
-*	|XIST| now has real namespace support. The new class
+*	XIST now has real namespace support. The new class
 	:class:`ll.xist.xsc.Prefixes` can be used to define a mapping between
 	prefixes and namespace names. This can be used for parsing and publishing.
 	Namespace support is even available for entities and processing instruction.
@@ -1060,9 +1060,9 @@ Changes in 2.0 (released 10/16/2002)
 	``xlink`` namespaces have been added (and :class:`ll.xist.xsc.XML` was
 	moved to :mod:`ll.xist.ns.xml`).
 
-*	A new namespace module for |SVG| 1.0 has been added: :mod:`ll.xist.ns.svg`.
+*	A new namespace module for SVG 1.0 has been added: :mod:`ll.xist.ns.svg`.
 
-*	The |HTML| specific parts of :mod:`ll.xist.ns.specials` have been split off
+*	The HTML specific parts of :mod:`ll.xist.ns.specials` have been split off
 	into a separate module :mod:`ll.xist.ns.htmlspecials`.
 
 *	Comparison of attributes with strings has been removed. You have to use
@@ -1071,18 +1071,18 @@ Changes in 2.0 (released 10/16/2002)
 *	The :class:`HTMLParser` now removes unknown attributes instead of
 	complaining.
 
-*	There is a new parser class :class:`BadEntityParser`, which is a |SAX|2
-	parser that recognizes the character entities defined in |HTML| and tries to
+*	There is a new parser class :class:`BadEntityParser`, which is a SAX2
+	parser that recognizes the character entities defined in HTML and tries to
 	pass on unknown or malformed entities to the handler literally.
 
 *	To give all nodes a chance to do something after they have been parsed (e.g.
-	to prepend the base |URL| for :class:`URLAttr` nodes), the parser now calls
+	to prepend the base URL for :class:`URLAttr` nodes), the parser now calls
 	the method :meth:`parsed` immediately after node creation. This is used for
 	the new class :class:`StyleAttr`, which uses the :class:`CSSTokenizer`, to
-	prepend the base |URL| to all |URL|s found in a style attribute.
+	prepend the base URL to all URLs found in a style attribute.
 
 *	The pixel images have been moved to the directory :dir:`px` to make image
-	|URL|s shorter.
+	URLs shorter.
 
 
 Changes in 1.6.1 (released 08/25/2003)
@@ -1122,14 +1122,14 @@ Changes in 1.5.12 (released 06/17/2003)
 Changes in 1.5.11 (released 06/13/2003)
 ---------------------------------------
 
-*	Updated :mod:`ll.xist.ns.jsp` to |JSP| 1.2.
+*	Updated :mod:`ll.xist.ns.jsp` to JSP 1.2.
 
 
 Changes in 1.5.10 (released 06/13/2003)
 ---------------------------------------
 
 *	Remove the checks for attributes in attributes and moved the publication
-	code for the full element into a separate method. This allows |JSP| tag
+	code for the full element into a separate method. This allows JSP tag
 	library namespaces to simply overwrite :meth:`publish` to publish the element
 	even inside attributes.
 
@@ -1145,7 +1145,7 @@ Changes in 1.5.8 (released 02/27/2003)
 --------------------------------------
 
 *	:class:`ll.xist.ns.struts_config11.plug_in` now allows content (as the
-	|DTD| states).
+	DTD states).
 
 
 Changes in 1.5.7 (released 11/12/2002)
@@ -1180,7 +1180,7 @@ Changes in 1.5.3 (released 09/25/2002)
 --------------------------------------
 
 *	Added new processing instruction class :class:`ll.xist.ns.php.expression`
-	that generates a |PHP| ``print`` statement from its content.
+	that generates a PHP ``print`` statement from its content.
 
 
 Changes in 1.5.2 (released 09/19/2002)
@@ -1199,8 +1199,8 @@ Changes in 1.5.1 (released 09/17/2002)
 *	The :class:`HTMLParser` now removes unknown attributes instead of
 	complaining.
 
-*	There is a new parser class :class:`BadEntityParser`, which is a |SAX|2
-	parser that recognizes the character entities defined in |HTML| and tries to
+*	There is a new parser class :class:`BadEntityParser`, which is a SAX2
+	parser that recognizes the character entities defined in HTML and tries to
 	pass on unknown or malformed entities to the handler literally.
 
 *	To give all nodes a chance to do something after they have been parsed (e.g.
@@ -1212,15 +1212,15 @@ Changes in 1.5.1 (released 09/17/2002)
 *	The :class:`HTMLParser` now removes unknown attributes instead of
 	complaining.
 
-*	There is a new parser class :class:`BadEntityParser`, which is a |SAX|2
-	parser that recognizes the character entities defined in |HTML| and tries to
+*	There is a new parser class :class:`BadEntityParser`, which is a SAX2
+	parser that recognizes the character entities defined in HTML and tries to
 	pass on unknown or malformed entities to the handler literally.
 
 *	To give all nodes a chance to do something after they have been parsed (e.g.
-	to prepend the base |URL| for :class:`URLAttr` nodes), the parser now calls
+	to prepend the base URL for :class:`URLAttr` nodes), the parser now calls
 	the method :meth:`parsed` immediately after node creation. This is used for
 	the new class :class:`StyleAttr`, which uses the :class:`CSSTokenizer`, to
-	prepend to base |URL| to all |URL|s found in a style attribute.
+	prepend to base URL to all URLs found in a style attribute.
 
 
 Changes in 1.4.3 (released 04/29/2002)
@@ -1230,7 +1230,7 @@ Changes in 1.4.3 (released 04/29/2002)
 	modify Struts_ configuration files conforming to the `Struts 1.1 DTD`_.
 
 	.. _Struts: http://jakarta.apache.org/struts/
-	.. _Struts DTD: http://jakarta.apache.org/struts/dtds/struts-config_1_1.dtd
+	.. _Struts 1.1 DTD: http://jakarta.apache.org/struts/dtds/struts-config_1_1.dtd
 
 
 Changes in 1.4.2 (released 03/22/2002)
@@ -1262,7 +1262,7 @@ Changes in 1.4.1 (released 03/21/2002)
 Changes in 1.4 (released 03/18/2002)
 ------------------------------------
 
-*	Reimplemented |URL| handling again. Now the new global module :mod:`url` is
+*	Reimplemented URL handling again. Now the new global module :mod:`url` is
 	used for that.
 
 
@@ -1297,10 +1297,10 @@ Changes in 1.3 (released 02/12/2002)
 	:class:`block` instance will simply be enclosed in a ``{}`` block.
 	:mod:`xist.ns.php` got such a class too.
 
-*	Added a new module :mod:`xist.ns.ihtml` for i-mode |HTML|.
+*	Added a new module :mod:`xist.ns.ihtml` for i-mode HTML.
 
 *	Added new modules :mod:`xist.ns.css` and :mod:`xist.ns.cssspecials` for
-	generating |CSS|.
+	generating CSS.
 
 *	Now the various attributes of the :class:`Converter` object are collected in
 	a :class:`ConverterState` object and it's possible to push and pop those
@@ -1314,7 +1314,7 @@ Changes in 1.3 (released 02/12/2002)
 *	:func:`parseString` has an additional parameter :var:`systemId` which will be
 	the system id of the :class:`InputSource`.
 
-*	The distribution now includes the makefile and the |XML| source files so now
+*	The distribution now includes the makefile and the XML source files so now
 	the distribution can rebuild ifself.
 
 *	Various other small bugfixes and enhancements.
@@ -1327,7 +1327,7 @@ Changes in 1.2.5 (released 12/03/2001)
 	generates a ``<meta http-equiv="Content-Script-Type" ...>`` element.
 
 *	:func:`xist.ns.doc.explain` now generates anchor elements for the class,
-	function and method description, so now the links on the |XIST| webpages
+	function and method description, so now the links on the XIST webpages
 	work.
 
 *	Docstrings and documentation has been reworked. Now :class:`xist.ns.doc.pyref`
@@ -1378,7 +1378,7 @@ Changes in 1.2 (released 10/03/2001)
 
 *	:class:`xist.ns.meta.keywords` and :class:`xist.ns.meta.description` no
 	longer call :meth:`asPlainString` on their content. This makes it possible
-	to e.g. generate the keywords via |JSP|::
+	to e.g. generate the keywords via JSP::
 
 		>>> from xist import parsers
 		>>> from xist.ns import meta, jsp
@@ -1426,7 +1426,7 @@ Changes in 1.1.3 (released 09/17/2001)
 *	Processing instructions are now allowed inside attributes when publishing.
 
 *	:mod:`xist.ns.docbooklite` has been renamed to :mod:`xist.ns.doc`. It can
-	now generate |HTML| and Docbook output and has improved a lot. The |XIST|
+	now generate HTML and Docbook output and has improved a lot. The XIST
 	web pages now use this for automatic documentation generation. The doc
 	example has been removed.
 
@@ -1486,7 +1486,7 @@ Changes in 1.1 (released 07/19/2001)
 Changes in 1.0 (released 06/18/2001)
 ------------------------------------
 
-*	New module for |WML| 1.3.
+*	New module for WML 1.3.
 
 *	The publishing interface has changed internally and publishing should be
 	faster now.
@@ -1495,7 +1495,7 @@ Changes in 1.0 (released 06/18/2001)
 	if namespace prefixes should be output for the element names.
 
 *	Part of the implementation of the publishing stuff has been moved to C, so
-	now you'll need a C compiler to install |XIST|.
+	now you'll need a C compiler to install XIST.
 
 *	When publishing ``"``, it will now only be replaced with ``&quot;`` inside
 	attributes.
@@ -1508,7 +1508,7 @@ Changes in 1.0 (released 06/18/2001)
 	:meth:`asHTML` has been renamed to :meth:`convert`.
 
 *	There is now a tool :file:`dtd2xsc.py` in the :dir:`scripts` directory that
-	creates a skeleton |XIST| module from a |DTD| (this requires xmlproc from the
+	creates a skeleton XIST module from a DTD (this requires xmlproc from the
 	PyXML package).
 
 *	New preliminary module for DocBook 4.12. (Incomplete: :meth:`convert` methods
@@ -1519,15 +1519,15 @@ Changes in 1.0 (released 06/18/2001)
 
 	.. _W3C Ruby draft: http://www.w3.org/TR/ruby/xhtml11-ruby-1.mod
 
-*	:file:`sql.py` has been removed from |XIST|, but is available as a
+*	:file:`sql.py` has been removed from XIST, but is available as a
 	separate module.
 
 *	The parsing interface has been changed. Parsing is now done with the
 	functions :func:`parseFile`, :func:`parseString`, :func:`parseURL` and
 	:func:`parseTidyURL` in the module :mod:`parsers`. It's now possible to
 	specify which parser should be used for parsing by passing a SAX2 parser
-	instance to any of these functions. |XIST| now includes a rudimentary
-	SAX2 driver for :class:`sgmlop` and a rudimentary |HTML| parser that
+	instance to any of these functions. XIST now includes a rudimentary
+	SAX2 driver for :class:`sgmlop` and a rudimentary HTML parser that
 	emits SAX2 events.
 
 *	The python-quotes example has been updated to work with expat.
@@ -1545,7 +1545,7 @@ Changes in 1.0 (released 06/18/2001)
 	object.
 
 *	New namespace modules :file:`ns/jsp.py` and :file:`ns/struts_html.py` have
-	been added that allow you to use JSP_ and Struts_ tags with |XIST|.
+	been added that allow you to use JSP_ and Struts_ tags with XIST.
 
 	.. _JSP: http://java.sun.com/products/jsp/
 	.. _Struts: http://jakarta.apache.org/struts/
@@ -1580,7 +1580,7 @@ Changes in 1.0 (released 06/18/2001)
 	and :attr:`ext` are merged.
 
 *	The special treatment of sequences as constructor arguments to :class:`Frag`
-	and :class:`Element` has been removed, so |XIST| will no longer remove one
+	and :class:`Element` has been removed, so XIST will no longer remove one
 	level of nesting. If you still want that, use a ``*`` argument.
 
 *	:class:`Frag` and :class:`Element` now have a new method :meth:`mapped`,
@@ -1601,7 +1601,7 @@ Changes in 1.0 (released 06/18/2001)
 		``if element["attrname"]`` instead of ``if element.hasAttr("attrname")``
 		(which still works, and should be a little faster);
 
-	*	When you construct an |XIST| tree and the presence or absence of an
+	*	When you construct an XIST tree and the presence or absence of an
 		attribute is tied to a condition, you can construct the attribute in
 		advance and use it afterwards in the tree construction::
 
@@ -1616,7 +1616,7 @@ Changes in 1.0 (released 06/18/2001)
 
 *	:class:`xist.ns.cond.If` (and :class:`xist.ns.cond.ElIf`) can now be used to
 	test for attributes of the converter. I.e. it's possible to write the
-	following |XML|::
+	following XML::
 
 		<if lang="en">Title
 		<elif lang="de">Überschrift
@@ -1656,7 +1656,7 @@ Changes in 0.4.7 (released 11/24/2000)
 *	:class:`providers.TidyURIProvider` now uses :func:`os.popen3` for piping the
 	file through tidy, so now there will be no more temporary files. The call to
 	tidy now includes options that hopefully make the output more suited to
-	|XIST|.
+	XIST.
 
 *	Incorparated a new :file:`url.py` by Hartmut Goebel, that fixes many problem
 	(e.g. optimizing ``http://server/foo/bar/../../baz.gif`` now works.)
@@ -1748,15 +1748,15 @@ Changes in 0.4.1 (released 09/21/2000)
 Changes in 0.4 (released 09/19/2000)
 ------------------------------------
 
-*	|XIST| now requires at least Python 2.0b1.
+*	XIST now requires at least Python 2.0b1.
 
 *	A new bugfixed version of the sgmlop source is available from the
-	`|FTP| site`_.
+	`FTP site`_.
 
 	.. _FTP site: ftp://ftp.livinglogic.de/pub/livinglogic/xist/
 
-*	|XIST| now completely supports Unicode. For output any encoding known to
-	Python can be used, so now you can output your |HTML| in ASCII, Latin-1,
+*	XIST now completely supports Unicode. For output any encoding known to
+	Python can be used, so now you can output your HTML in ASCII, Latin-1,
 	UTF-8, UTF-16, ...
 
 *	All publishers have been updated to support Unicode. The publishing interface
@@ -1799,23 +1799,22 @@ Changes in 0.4 (released 09/19/2000)
 	be specified on the command line (e.g. ``--encoding utf-8 --xhtml 2``)
 
 *	Handling of multiline ``<?xsc-eval?>`` and ``<?xsc-exec?>`` has been
-	enhanced, although |XIST| will not be able to guess the correct indentation
-	in all cases. As a workarround simply add a Python comment to the beginning::
+	enhanced, although XIST will not be able to guess the correct indentation
+	in all cases. As a workarround simply add a Python comment to the beginning. So the
+	following won't work::
 
 		<?xsc-exec
 			for i in xrange(10):
 				do(i)
 		?>
 
-	won't work
+	But this will::
 
 		<?xsc-exec
 			#
 			for i in xrange(10):
 				do(i)
 		?>
-
-	will.
 
 *	Make functionality has been moved to :file:`make.py`, as certain modules
 	can't be used as the main script, because reimporting them in processing
@@ -1888,7 +1887,7 @@ Changes in 0.3.5 (released 07/02/2000)
 *	Image size calculation is now done for ``<nput type="image">``. The ``size``
 	attribute is set to the image width.
 
-*	Manipulating the path in an |URL| is now done via the usual
+*	Manipulating the path in an URL is now done via the usual
 	:meth:`__setitem__`/:meth:`__getitem__` stuff, which keeps the path in a
 	consistent state::
 
@@ -1911,7 +1910,7 @@ Changes in 0.3.4 (released 05/31/2000)
 --------------------------------------
 
 *	Location information is now copied over in :meth:`clone`, :meth:`asHTML`
-	and :meth:`compact` where appropriate, so you know even in the |HTML| tree
+	and :meth:`compact` where appropriate, so you know even in the HTML tree
 	where something came from.</item>
 
 *	``xsc.repransi`` can now have three values::
