@@ -270,3 +270,7 @@ def test_xmlns():
 	e = parsers.parsestring(s, pool=xsc.Pool(specials.z))
 	assert isinstance(e[0], specials.z)
 	py.test.raises(xsc.IllegalElementError, parsers.parsestring, s, pool=xsc.Pool())
+
+def test_parseemptyattribute():
+	e = parsers.parsestring("<a target=''/>", pool=xsc.Pool(html))
+	assert "target" in e[0].attrs

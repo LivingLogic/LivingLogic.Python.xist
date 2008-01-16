@@ -26,7 +26,7 @@ typedef int Py_ssize_t;
 #define STRINGLIB_NEW  PyUnicode_FromUnicode
 #define STRINGLIB_STR  PyUnicode_AS_UNICODE
 
-#include "helpers.h"
+#include "helpers_include.c"
 
 #undef STRINGLIB_NAME
 #undef STRINGLIB_CHAR
@@ -42,7 +42,7 @@ typedef int Py_ssize_t;
 #define STRINGLIB_NEW PyString_FromStringAndSize
 #define STRINGLIB_STR PyString_AS_STRING
 
-#include "helpers.h"
+#include "helpers_include.c"
 
 #undef STRINGLIB_NAME
 #undef STRINGLIB_CHAR

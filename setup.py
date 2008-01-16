@@ -59,7 +59,7 @@ else:
 
 args = dict(
 	name="ll-xist",
-	version="3.0",
+	version="3.1",
 	description="An extensible HTML/XML generator",
 	long_description=description,
 	author="Walter Doerwald",
@@ -72,7 +72,7 @@ args = dict(
 	package_dir={"": "src"},
 	packages=["ll", "ll.xist", "ll.xist.ns", "ll.xist.scripts"],
 	ext_modules=[
-		tools.Extension("ll.xist.helpers", ["src/ll/xist/helpers.c"]),
+		tools.Extension("ll.xist.helpers", ["src/ll/xist/helpers.c", "src/ll/xist/helpers_include.c"]),
 		tools.Extension("ll.xist.sgmlop", ["src/ll/xist/sgmlop.c"], define_macros=[("SGMLOP_UNICODE_SUPPORT", None)]),
 	],
 	entry_points=dict(

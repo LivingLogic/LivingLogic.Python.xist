@@ -1,3 +1,14 @@
+Migrating to version 3.1
+========================
+
+Changes to URL handling
+-----------------------
+
+URLs containing processing instructions will no longer be transformed in
+any way. If you need the old behaviour you can wrap the initial part of
+the attribute value into an :class:`specials.url` PI.
+
+
 Migrating to version 3.0
 ========================
 

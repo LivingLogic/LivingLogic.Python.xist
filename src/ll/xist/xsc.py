@@ -2180,12 +2180,14 @@ class URLAttr(Attr):
 	"""
 
 	def parsed(self, parser, start=None):
-		return self.__class__(utils.replaceInitialURL(self, lambda u: parser.base/u))
+		return self.__class__(url_.URL(parser.base/unicode(self)))
 
 	def _publishattrvalue(self, publisher):
-		new = utils.replaceInitialURL(self, lambda u: u.relative(publisher.base))
-		for part in new.publish(publisher):
-			yield part
+		if self.isfancy():
+			return Attr._publishattrvalue(self, publisher)
+		else:
+			new = Attr(url_.URL(unicode(self)).relative(publisher.base))
+			return new._publishattrvalue(publisher)
 
 	def asURL(self):
 		"""
@@ -2193,9 +2195,6 @@ class URLAttr(Attr):
 		instance (note that non-character content will be filtered out).</p>
 		"""
 		return url_.URL(Attr.__unicode__(self))
-
-	def __unicode__(self):
-		return self.asURL().url
 
 	def forInput(self, root=None):
 		"""
@@ -3432,8 +3431,8 @@ class Pool(misc.Pool):
 		<li>A <class>dict</class> (all <class>Node</class> classes in the
 		values will be registered, this makes it possible to e.g. register all
 		local variables by passing <lit>vars()</lit>);</li>
-		<li>A module (all <class>Node</class> classes in the
-		module will be registered);</li>
+		<li>A module (all <class>Node</class> classes and the <lit>xmlns</lit> attribute
+		if it's a string) in the module will be registered);</li>
 		</ul>
 		"""
 		if isinstance(object, type):
@@ -3465,6 +3464,8 @@ class Pool(misc.Pool):
 			for (key, value) in object.__dict__.iteritems():
 				if isinstance(value, type): # This avoids recursive module registration
 					self.register(value)
+				elif key == "xmlns" and type(value) is str:
+					self.xmlns = value
 		elif isinstance(object, dict):
 			super(Pool, self).register(object)
 			for (key, value) in object.iteritems():

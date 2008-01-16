@@ -8,6 +8,7 @@
 */
 
 
+#ifdef STRINGLIB_NAME
 static PyObject *STRINGLIB_NAME(PyObject *str, Py_ssize_t inattr)
 {
 	Py_ssize_t i;
@@ -112,3 +113,4 @@ static PyObject *STRINGLIB_NAME(PyObject *str, Py_ssize_t inattr)
 		return result;
 	}
 }
+#endif

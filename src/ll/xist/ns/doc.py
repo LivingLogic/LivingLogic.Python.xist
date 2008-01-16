@@ -54,6 +54,15 @@ else:
 	roles.register_generic_role("const", nodes.literal)
 	en.roles["const"] = "const"
 
+	roles.register_generic_role("file", nodes.literal)
+	en.roles["file"] = "file"
+
+	roles.register_generic_role("dir", nodes.literal)
+	en.roles["dir"] = "dir"
+
+	roles.register_generic_role("data", nodes.literal)
+	en.roles["data"] = "data"
+
 import ll
 from ll.xist import xsc, parsers, sims, xfind
 from ll.xist.ns import html, docbook, fo, specials, xml, abbr as abbr_
@@ -1671,7 +1680,9 @@ def rest2doc(string):
 	defaults = frontend.OptionParser().defaults.copy()
 	defaults["tab_width"] = 3
 	defaults["pep_references"] = 1
+	defaults["pep_base_url"] = "http://www.python.org/dev/peps/"
 	defaults["rfc_references"] = 1
+	defaults["rfc_base_url"] = "http://www.faqs.org/rfcs/"
 
 	doc = utils.new_document("?", optparse.Values(defaults))
 	parser.parse(string, doc)

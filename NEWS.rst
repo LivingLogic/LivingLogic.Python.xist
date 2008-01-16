@@ -2,6 +2,21 @@ History
 =======
 
 
+Changes in 3.1 (released 01/18/2008)
+------------------------------------
+
+*	Added missing source file ``helpers_include.c`` to the source distributions.
+
+*	If an :class:`URLAttr` attribute contains a processing instruction XIST will
+	no longer transform the URL in any way.
+
+*	Fixed a parser bug, where attributes where dropped when the attribute value
+	was empty.
+
+*	Putting a module into a :class:`Pool` object now copies the ``xmlns`` attribute
+ 	too. This makes it possible to use :class:`Pool` objects as conversion targets.
+
+
 Changes in 3.0 (released 01/07/2008)
 ------------------------------------
 

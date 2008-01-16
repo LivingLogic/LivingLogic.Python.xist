@@ -546,7 +546,10 @@ class Builder(object):
 		self._nesting.append((node, self._nesting[-1][1]))
 
 	def handle_leaveattr(self, name, line, col):
-		self._nesting.pop()
+		(node, prefixes) = self._nesting.pop()
+		# if the attribute was empty, ``handle_data`` is newer called, so we have to add an empty text node, to prevent the attribute from disappearing
+		if not node:
+			node.append("")
 
 	def handle_leavestarttag(self, name, line, col):
 		oldprefixes = self.prefixes

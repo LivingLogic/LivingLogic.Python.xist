@@ -1,4 +1,16 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
+<section><h>Migrating to version 3.1</h>
+
+<section><h>Changes to &url; handling</h>
+<p>&url;s containing processing instructions will no longer
+be transformed in any way. If you need the old behaviour
+you can wrap the initial part of the attribute value into
+an <class>specials.url</class> PI.</p>
+</section>
+
+</section>
+
+
 <section><h>Migrating to version 3.0</h>
 
 <section><h>Changes to tree traversal</h>
