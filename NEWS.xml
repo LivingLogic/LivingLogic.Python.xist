@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='iso-8859-1'?>
+<?xml version='1.0' encoding='utf-8'?>
 <section><h>Changes in 3.0 (released 01/07/2008)</h>
 <ul>
 <li>Namespaces have been greatly simplified. There are no namespace modules any
@@ -1740,7 +1740,7 @@ can now be used to test for attributes of the converter. I.e. it's possible to
 write the following &xml;:</p>
 <prog>
 &lt;if lang="en"&gt;Title
-&lt;elif lang="de"&gt;Überschrift
+&lt;elif lang="de"&gt;Ãœberschrift
 &lt;/if&gt;
 </prog>
 </li>
