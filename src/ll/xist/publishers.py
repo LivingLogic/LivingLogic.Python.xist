@@ -210,6 +210,7 @@ class Publisher(object):
 					prefix = self._newprefix()
 					self._ns2prefix[xmlns] = prefix
 					self._prefix2ns[prefix] = xmlns
+			return prefix
 
 	def publish(self, node, base=None):
 		"""

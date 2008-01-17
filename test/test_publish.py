@@ -12,7 +12,7 @@
 import sys, re
 
 from ll.xist import xsc, helpers, parsers
-from ll.xist.ns import html, xml, php, abbr, xlink, specials
+from ll.xist.ns import html, xml, php, abbr, xlink, specials, struts_html
 
 
 # The following includes \x00 in addition to those characters defined in
@@ -211,3 +211,7 @@ def test_encoding():
 
 def test_xmlheader():
 	assert xml.XML().bytes(encoding="utf-8") == '<?xml version="1.0" encoding="utf-8"?>'
+
+
+def test_struts_html():
+	assert 'prefix="xyzzx"' in struts_html.taglib().bytes(prefixdefault="xyzzx")
