@@ -60,7 +60,7 @@ else:
 args = dict(
 	name="ll-xist",
 	version="3.1",
-	description="An extensible HTML/XML generator",
+	description="Extensible HTML/XML generator",
 	long_description=description,
 	author="Walter Doerwald",
 	author_email="walter@livinglogic.de",
