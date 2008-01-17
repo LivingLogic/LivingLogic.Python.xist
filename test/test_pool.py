@@ -194,7 +194,7 @@ def test_names2():
 
 	# Test elements
 	assert set(r.elements()) == set([el_])
-	
+
 	# Test entities
 	assert set(r.entities()) == set([cr_, en_])
 
@@ -252,7 +252,7 @@ def test_mixedattrnames():
 			class A(xsc.TextAttr):
 				xmlns = "test"
 				xmlname = "a"
-	
+
 		class Test(xsc.Element):
 			xmlns = "test"
 			class Attrs(xsc.Element.Attrs):
