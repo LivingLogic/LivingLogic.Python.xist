@@ -1,8 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <section><h>Changes in 3.1 (released 01/18/2008)</h>
 <ul>
-<li>Added missing source file <filename>helpers_include.c</filename> to
-the source distributions.</li>
+<li>Fixed the problem that the source distibution didn't include header files.</li>
 <li>If an <class>URLAttr</class> attribute contains a processing instruction
 &xist; will no longer transform the &url; in any way.</li>
 <li>Fixed a parser bug, where attributes where dropped when the attribute

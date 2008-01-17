@@ -5,7 +5,7 @@ History
 Changes in 3.1 (released 01/18/2008)
 ------------------------------------
 
-*	Added missing source file ``helpers_include.c`` to the source distributions.
+*	Fixed the problem that the source distibution didn't include header files.
 
 *	If an :class:`URLAttr` attribute contains a processing instruction XIST will
 	no longer transform the URL in any way.
