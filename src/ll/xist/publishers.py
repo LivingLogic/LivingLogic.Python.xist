@@ -180,37 +180,38 @@ class Publisher(object):
 		configured for object <arg>object</arg>.
 		"""
 		xmlns = getattr(object, "xmlns")
-		if xmlns is not None:
-			emptyok = isinstance(object, xsc.Element) # If it's e.g. a procinst assume we need a non-empty prefix
-			try:
-				prefix = self._ns2prefix[xmlns]
-			except KeyError: # A namespace we haven't encountered yet
-				if xmlns != xsc.xml_xmlns: # We don't need a namespace mapping for the xml namespace
-					prefix = self.prefixes.get(xmlns, self.prefixdefault)
-					# global attributes always require prefixed names
-					if prefix is True or ((prefix is None or prefix is False) and not emptyok):
-						prefix = self._newprefix()
-					if prefix is not False:
-						try:
-							oldxmlns = self._prefix2ns[prefix]
-						except KeyError:
-							pass
-						else:
-							# If this prefix has already been used for another namespace, we need a new one
-							if oldxmlns != xmlns:
-								prefix = self._newprefix()
-						self._ns2prefix[xmlns] = prefix
-						self._prefix2ns[prefix] = xmlns
-				else:
-					return "xml"
-			else:
-				# We can't use the unprefixed names for global attributes
-				if (prefix is None or prefix is False) and not emptyok:
-					# Use a new one
+		if xmlns is None:
+			return None
+		emptyok = isinstance(object, xsc.Element) # If it's e.g. a procinst assume we need a non-empty prefix
+		try:
+			prefix = self._ns2prefix[xmlns]
+		except KeyError: # A namespace we haven't encountered yet
+			if xmlns != xsc.xml_xmlns: # We don't need a namespace mapping for the xml namespace
+				prefix = self.prefixes.get(xmlns, self.prefixdefault)
+				# global attributes always require prefixed names
+				if prefix is True or ((prefix is None or prefix is False) and not emptyok):
 					prefix = self._newprefix()
+				if prefix is not False:
+					try:
+						oldxmlns = self._prefix2ns[prefix]
+					except KeyError:
+						pass
+					else:
+						# If this prefix has already been used for another namespace, we need a new one
+						if oldxmlns != xmlns:
+							prefix = self._newprefix()
 					self._ns2prefix[xmlns] = prefix
 					self._prefix2ns[prefix] = xmlns
-			return prefix
+			else:
+				prefix = "xml"
+		else:
+			# We can't use the unprefixed names for global attributes
+			if (prefix is None or prefix is False) and not emptyok:
+				# Use a new one
+				prefix = self._newprefix()
+				self._ns2prefix[xmlns] = prefix
+				self._prefix2ns[prefix] = xmlns
+		return prefix
 
 	def publish(self, node, base=None):
 		"""
