@@ -291,3 +291,7 @@ def test_mixedattrnames():
 	]
 	for (name, value) in tests:
 		yield check, name, value
+
+def test_xmlns():
+	p = xsc.Pool(html)
+	assert p.xmlns == html.xmlns
