@@ -186,7 +186,9 @@ class Publisher(object):
 		try:
 			prefix = self._ns2prefix[xmlns]
 		except KeyError: # A namespace we haven't encountered yet
-			if xmlns != xsc.xml_xmlns: # We don't need a namespace mapping for the xml namespace
+			if xmlns == xsc.xml_xmlns: # We don't need a namespace mapping for the xml namespace
+				prefix = "xml"
+			else:
 				prefix = self.prefixes.get(xmlns, self.prefixdefault)
 				# global attributes always require prefixed names
 				if prefix is True or ((prefix is None or prefix is False) and not emptyok):
@@ -202,8 +204,6 @@ class Publisher(object):
 							prefix = self._newprefix()
 					self._ns2prefix[xmlns] = prefix
 					self._prefix2ns[prefix] = xmlns
-			else:
-				prefix = "xml"
 		else:
 			# We can't use the unprefixed names for global attributes
 			if (prefix is None or prefix is False) and not emptyok:
