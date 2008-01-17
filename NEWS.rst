@@ -10,7 +10,7 @@ Changes in 3.1 (released 01/18/2008)
 *	If an :class:`URLAttr` attribute contains a processing instruction XIST will
 	no longer transform the URL in any way.
 
-*	Fixed a parser bug, where attributes where dropped when the attribute value
+*	Fixed a parser bug, where attributes were dropped when the attribute value
 	was empty.
 
 *	Putting a module into a :class:`Pool` object now copies the ``xmlns`` attribute

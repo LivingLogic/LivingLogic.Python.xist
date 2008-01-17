@@ -4,7 +4,7 @@
 <li>Fixed the problem that the source distibution didn't include header files.</li>
 <li>If an <class>URLAttr</class> attribute contains a processing instruction
 &xist; will no longer transform the &url; in any way.</li>
-<li>Fixed a parser bug, where attributes where dropped when the attribute
+<li>Fixed a parser bug, where attributes were dropped when the attribute
 value was empty.</li>
 <li>Putting a module into a <class>Pool</class> object now copies the
 <lit>xmlns</lit> attribute too. This makes it possible to use <class>Pool</class>
