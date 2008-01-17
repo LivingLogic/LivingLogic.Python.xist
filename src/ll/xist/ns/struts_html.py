@@ -28,6 +28,7 @@ class taglib(xsc.ProcInst):
 	"""
 	creates a standard struts taglib header
 	"""
+	xmlns = xmlns
 
 	def publish(self, publisher):
 		yield publisher.encode(u'<%@ taglib uri="/WEB-INF/struts-html.tld" prefix="')
