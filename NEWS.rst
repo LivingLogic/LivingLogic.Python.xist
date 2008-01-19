@@ -1362,7 +1362,8 @@ Changes in 1.2.4 (released 11/23/2001)
 	``value`` to :class:`xist.ns.html.li`.
 
 
-*	Changes in 1.2.3 (released 11/22/2001)
+Changes in 1.2.3 (released 11/22/2001)
+--------------------------------------
 
 *	Added missing :meth:`asPlainString` methods to :class:`Comment` and
 	:class:`DocType`.
