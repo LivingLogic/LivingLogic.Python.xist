@@ -1931,11 +1931,11 @@ Changes in 0.3.4 (released 05/31/2000)
 
 *	``xsc.repransi`` can now have three values::
 
-	``0``
+	0
 		coloring is off
-	``1``
+	1
 		coloring is on for a dark background
-	``2``
+	2
 		coloring is on for a light background
 
 *	All ``repransi`` variables are now arrays with two strings, the first for
