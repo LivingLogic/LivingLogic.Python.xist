@@ -31,7 +31,7 @@ class directive(xsc.Element):
 
 	def publish(self, publisher):
 		yield publisher.encode(u"<%@ ")
-		yield self._publishname(publisher)
+		yield publisher.encode(self._publishname(publisher))
 		for part in self.attrs.publish(publisher):
 			yield part
 		yield publisher.encode(u"%>")
