@@ -1927,7 +1927,7 @@ Changes in 0.3.4 (released 05/31/2000)
 
 *	Location information is now copied over in :meth:`clone`, :meth:`asHTML`
 	and :meth:`compact` where appropriate, so you know even in the HTML tree
-	where something came from.</item>
+	where something came from.
 
 *	``xsc.repransi`` can now have three values::
 
@@ -1946,7 +1946,7 @@ Changes in 0.3.3 (released 05/30/2000)
 --------------------------------------
 
 *	The workaround for the trailing CDATA bug in sgmlop has been removed, so now
-	you'll need a newer version of sgmlop> (included in PyXML 0.5.5.1).
+	you'll need a newer version of sgmlop (included in PyXML 0.5.5.1).
 
 
 Changes before 0.3.3
