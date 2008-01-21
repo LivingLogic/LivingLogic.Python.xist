@@ -749,9 +749,9 @@ class CodePresenter(Presenter):
 defaultpresenter = TreePresenter
 
 try:
-	from IPython import generics, ipapi
+	from IPython import ipapi, generics
 	import ipipe
-except ImportError:
+except Exception:
 	pass
 else:
 	if hasattr(ipipe, "display_tableobject"):
