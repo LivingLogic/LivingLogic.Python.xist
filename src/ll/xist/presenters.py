@@ -749,14 +749,20 @@ class CodePresenter(Presenter):
 defaultpresenter = TreePresenter
 
 try:
-	from IPython import ipapi
-	api = ipapi.get()
-except (ImportError, AttributeError):
-	api = None
-
-if api is not None:
-	def displayhook(self, obj):
-		if isinstance(obj, xsc.Node) and defaultpresenter is not None:
-			obj = defaultpresenter(obj)
-		raise ipapi.TryNext(obj)
-	api.set_hook("result_display", displayhook)
+	from IPython import generics, ipapi
+	import ipipe
+except ImportError:
+	pass
+else:
+	if hasattr(ipipe, "display_tableobject"):
+		@generics.result_display.when_type(xsc.Node)
+		def displayhook(obj):
+			if defaultpresenter is not None:
+				return ipipe.display_tableobject(defaultpresenter(obj))
+			raise ipapi.TryNext
+	else:
+		@generics.result_display.when_type(xsc.Node)
+		def displayhook(obj):
+			if defaultpresenter is not None:
+				return ipipe.displayhook(None, defaultpresenter(obj))
+			raise ipapi.TryNext
