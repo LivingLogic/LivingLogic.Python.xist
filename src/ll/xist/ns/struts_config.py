@@ -35,12 +35,12 @@ class DocType(xsc.DocType):
 
 
 class ElementWithID(xsc.Element):
+	xmlns = xmlns
 	class Attrs(xsc.Element.Attrs):
 		class id(xsc.IDAttr): pass
 
 
 class action(ElementWithID):
-	xmlns = xmlns
 	class Attrs(ElementWithID.Attrs):
 		class attribute(xsc.TextAttr): pass
 		class className(xsc.TextAttr): pass
@@ -60,14 +60,12 @@ class action(ElementWithID):
 
 
 class action_mappings(ElementWithID):
-	xmlns = xmlns
 	xmlname = "action-mappings"
 	class Attrs(ElementWithID.Attrs):
 		class type(xsc.TextAttr): pass
 
 
 class controller(ElementWithID):
-	xmlns = xmlns
 	class Attrs(ElementWithID.Attrs):
 		class bufferSize(xsc.TextAttr): pass
 		class className(xsc.TextAttr): pass
@@ -86,7 +84,6 @@ class controller(ElementWithID):
 
 
 class data_source(ElementWithID):
-	xmlns = xmlns
 	xmlname = "data-source"
 	class Attrs(ElementWithID.Attrs):
 		class className(xsc.TextAttr): pass
@@ -95,22 +92,18 @@ class data_source(ElementWithID):
 
 
 class data_sources(ElementWithID):
-	xmlns = xmlns
 	xmlname = "data-sources"
 
 
 class description(ElementWithID):
-	xmlns = xmlns
 	pass
 
 
 class display_name(ElementWithID):
-	xmlns = xmlns
 	xmlname = "display-name"
 
 
 class exception(ElementWithID):
-	xmlns = xmlns
 	class Attrs(ElementWithID.Attrs):
 		class bundle(xsc.TextAttr): pass
 		class className(xsc.TextAttr): pass
@@ -122,7 +115,6 @@ class exception(ElementWithID):
 
 
 class form_bean(ElementWithID):
-	xmlns = xmlns
 	xmlname = "form-bean"
 	class Attrs(ElementWithID.Attrs):
 		class className(xsc.TextAttr): pass
@@ -132,14 +124,12 @@ class form_bean(ElementWithID):
 
 
 class form_beans(ElementWithID):
-	xmlns = xmlns
 	xmlname = "form-beans"
 	class Attrs(ElementWithID.Attrs):
 		class type(xsc.TextAttr): pass
 
 
 class form_property(xsc.Element):
-	xmlns = xmlns
 	xmlname = "form-property"
 	class Attrs(xsc.Element.Attrs):
 		class className(xsc.TextAttr): pass
@@ -150,7 +140,6 @@ class form_property(xsc.Element):
 
 
 class forward(ElementWithID):
-	xmlns = xmlns
 	class Attrs(ElementWithID.Attrs):
 		class className(xsc.TextAttr): pass
 		class contextRelative(xsc.TextAttr): values = (u"true", u"false", u"yes", u"no")
@@ -160,28 +149,24 @@ class forward(ElementWithID):
 
 
 class global_exceptions(ElementWithID):
-	xmlns = xmlns
 	xmlname = "global-exceptions"
 
 
 class global_forwards(ElementWithID):
-	xmlns = xmlns
 	xmlname = "global-forwards"
 	class Attrs(ElementWithID.Attrs):
 		class type(xsc.TextAttr): pass
 
 
 class icon(ElementWithID):
-	xmlns = xmlns
+	pass
 
 
 class large_icon(ElementWithID):
-	xmlns = xmlns
 	xmlname = "large-icon"
 
 
 class message_resources(ElementWithID):
-	xmlns = xmlns
 	xmlname = "message-resources"
 	class Attrs(ElementWithID.Attrs):
 		class className(xsc.TextAttr): pass
@@ -192,14 +177,12 @@ class message_resources(ElementWithID):
 
 
 class plug_in(ElementWithID):
-	xmlns = xmlns
 	xmlname = "plug-in"
 	class Attrs(ElementWithID.Attrs):
 		class className(xsc.TextAttr): required = True
 
 
 class set_property(ElementWithID):
-	xmlns = xmlns
 	xmlname = "set-property"
 	class Attrs(ElementWithID.Attrs):
 		class property(xsc.TextAttr): required = True
@@ -207,12 +190,10 @@ class set_property(ElementWithID):
 
 
 class small_icon(ElementWithID):
-	xmlns = xmlns
 	xmlname = "small-icon"
 
 
 class struts_config(ElementWithID):
-	xmlns = xmlns
 	xmlname = "struts-config"
 
 
