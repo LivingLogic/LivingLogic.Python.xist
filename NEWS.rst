@@ -1,7 +1,3 @@
-History
-=======
-
-
 Changes in 3.1 (released 01/18/2008)
 ------------------------------------
 
@@ -93,9 +89,9 @@ Changes in 3.0 (released 01/07/2008)
 		print node.conv().bytes(encoding="us-ascii")
 
 	Also the function :func:`xsc.append` has been renamed to :func:`add` and
-	supports ``with`` blocks now instead of XPython_.
+	supports ``with`` blocks now instead of XPython__.
 
-	.. _XPython: http://codespeak.net/svn/user/hpk/talks/xpython-talk.txt
+	__ http://codespeak.net/svn/user/hpk/talks/xpython-talk.txt
 
 *	A subset of ReST__ is supported now for docstrings when using the
 	:mod:`ll.xist.ns.doc` module. The module attribute :attr:`__docformat__`
@@ -115,7 +111,7 @@ Changes in 3.0 (released 01/07/2008)
 *	The node method :meth:`asString` has been renamed to :meth:`string` and a
 	new method :meth:`iterstring` has been added.
 
-*	:class:`ll.xist.ns.xml.XML10` is gone now. Use :class`ll.xist.ns.xml.XML`
+*	:class:`ll.xist.ns.xml.XML10` is gone now. Use :class:`ll.xist.ns.xml.XML`
 	instead.
 
 *	:func:`xsc.tonode` now will raise an exception when it can't handle an
@@ -247,16 +243,16 @@ Changes in 2.14 (released 06/28/2006)
 *	A new namespace :mod:`ll.xist.ns.detox` has been added that is similar to
 	:mod:`ll.toxic` but can be used to generate Python code instead of
 	PL/SQL code. Using :mod:`detox` templates is about 50 times faster than using
-	XIST trees directly and about 10 times faster than Kid_.
+	XIST trees directly and about 10 times faster than Kid__.
 
-	.. _Kid: http://kid.lesscode.org/
+	__ http://kid.lesscode.org/
 
-*	Presenters are now compatible to `IPython`_'s :mod:`ipipe` module. This means
+*	Presenters are now compatible to IPython__ :mod:`ipipe` module. This means
 	that you can browse XIST trees interactively if you have IPython installed.
 	:class:`NormalPresenter` and the :class:`Node` methods :meth:`repr` and
 	:meth:`asrepr` have been removed.
 
-	.. _IPython: http://ipython.scipy.org/
+	__ http://ipython.scipy.org/
 
 *	A new processing instruction :class:`ll.xist.ns.specials.url` has been added
 	that does the same URL transformation as :class:`ll.xist.xsc.URLAttr` does.
@@ -894,9 +890,9 @@ Changes in 2.2 (released 07/31/2003)
 
 *	The HTML handling of the :class:`HTMLParser` has been improved (it now
 	uses code from :mod:`xml.sax.drivers2.drv_sgmlop_html` (which is part of 
-	PyXML_.
+	PyXML__.
 
-	.. _PyXML: http://pyxml.sf.net/
+	__ http://pyxml.sf.net/
 
 *	The core functionality found in the script :file:`dtd2xsc.py` has been moved
 	to a class method :meth:`ll.xist.ns.xndl.fromdtd` in the
@@ -1567,9 +1563,9 @@ Changes in 1.0 (released 06/18/2001)
 	.. _Struts: http://jakarta.apache.org/struts/
 
 *	A new method :meth:`asText` was added, that returns the node as a formatted
-	plain ASCII text (this requires that w3m_ is installed.)
+	plain ASCII text (this requires that w3m__ is installed.)
 
-	.. _w3m: http://w3m.sf.net/
+	__ http://w3m.sf.net/
 
 *	:file:`make.py` has been renamed to :file:`xscmake.py` and moved to the
 	:dir:`scripts` directory, it will be installed as a callable script with
