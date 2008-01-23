@@ -220,27 +220,42 @@ def test_stack():
 
 
 def test_chain():
-	with xsc.Pool() as r1:
+	with xsc.Pool() as p1:
 		class foo1(xsc.Element):
 			xmlname = "foo"
 			xmlns = "nix"
 		class baz(xsc.Element):
 			xmlns = "nix"
 
-	with xsc.Pool(r1) as r2:
+	with xsc.Pool(p1) as p2:
 		class foo2(xsc.Element):
 			xmlname = "foo"
 			xmlns = "nix"
 		class bar(xsc.Element):
 			xmlns = "nix"
 
-	assert r1.elementclass_xml("foo", "nix") is foo1
-	py.test.raises(xsc.IllegalElementError, r1.elementclass, "bar", "nix")
-	assert r1.elementclass_xml("baz", "nix") is baz
+	assert p1.elementclass_xml("foo", "nix") is foo1
+	py.test.raises(xsc.IllegalElementError, p1.elementclass, "bar", "nix")
+	assert p1.elementclass_xml("baz", "nix") is baz
 
-	assert r2.elementclass_xml("foo", "nix") is foo2
-	assert r2.elementclass_xml("bar", "nix") is bar
-	assert r2.elementclass_xml("baz", "nix") is baz
+	assert p2.elementclass_xml("foo", "nix") is foo2
+	assert p2.elementclass_xml("bar", "nix") is bar
+	assert p2.elementclass_xml("baz", "nix") is baz
+
+
+def test_chain2():
+	with xsc.Pool() as p1:
+		class foo1(xsc.Element):
+			xmlname = "foo"
+			xmlns = "nix"
+
+	with xsc.Pool() as p2:
+		class foo2(xsc.Element):
+			xmlname = "foo"
+			xmlns = "nix"
+
+	p = xsc.Pool(p1, p2)
+	assert r2.elementclass_xml("foo2", "nix") is foo2
 
 
 def test_mixedattrnames():
