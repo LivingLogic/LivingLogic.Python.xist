@@ -1,28 +1,37 @@
+Changes in 3.2 (released ??/??/2008)
+------------------------------------
+
+*	:class:`ll.xist.xsc.Pool` doesn't use a :class:`WeakValueDictionary` any
+	longer. This means it can now store *any* object. A method :meth:`clear`
+	has been added, which removes all registered objects.
+
+
 Changes in 3.1 (released 01/18/2008)
 ------------------------------------
 
 *	Fixed the problem that the source distibution didn't include header files.
 
-*	If an :class:`URLAttr` attribute contains a processing instruction XIST will
-	no longer transform the URL in any way.
+*	If an :class:`URLAttr` attribute contains a processing instruction XIST
+	will no longer transform the URL in any way.
 
 *	Fixed a parser bug, where attributes were dropped when the attribute value
 	was empty.
 
-*	Putting a module into a :class:`Pool` object now copies the ``xmlns`` attribute
- 	too. This makes it possible to use :class:`Pool` objects as conversion targets.
+*	Putting a module into a :class:`Pool` object now copies the ``xmlns``
+	attribute too. This makes it possible to use :class:`Pool` objects as
+	conversion targets.
 
 
 Changes in 3.0 (released 01/07/2008)
 ------------------------------------
 
 *	Namespaces have been greatly simplified. There are no namespace modules any
-	longer. An element class can be assigned a namespace by setting the ``xmlns``
-	class attribute to the namespace name. Global attributes can be assigned a
-	namespace by setting the ``xmlns`` attribute on the attribute class itself
-	(*not* on the :class:`Attrs` class). The classes :class:`Prefixes` and
-	:class:`NSPool` are gone too. Instead a new class :class:`Pool` is used to
-	specify which classes should be used for parsing.
+	longer. An element class can be assigned a namespace by setting the
+	``xmlns`` class attribute to the namespace name. Global attributes can be
+	assigned a namespace by setting the ``xmlns`` attribute on the attribute
+	class itself (*not* on the :class:`Attrs` class). The classes
+	:class:`Prefixes` and :class:`NSPool` are gone too. Instead a new class
+	:class:`Pool` is used to specify which classes should be used for parsing.
 
 *	Dependency on PyXML_ has finally been dropped. XIST now uses its own XML
 	parsing API. Two parsers are available: One based on expat_ and one based on
@@ -32,14 +41,15 @@ Changes in 3.0 (released 01/07/2008)
 	.. _expat: http://expat.sourceforge.net/
 	.. _sgmlop: http://effbot.org/zone/sgmlop-index.htm
 
-*	Tree traversal has been rewritten again. XFind expressions involving multiple
-	uses of ``//`` now work correctly. The method :meth:`walk` now doesn't yield
-	:class:`Cursor` objects, but simple path lists (actually it's always the same
-	list, if you want distinct lists use :meth:`walkpath`). Applying XFind
-	expressions to nodes directly is no longer supported, you have to call
-	:meth:`walk`, :meth:`walknode` or :meth:`walkpath` with the XFind expression
-	instead. Many XFind operators have been renamed and/or reimplemented
-	(see the documentation for the :mod:`xfind` module for more information).
+*	Tree traversal has been rewritten again. XFind expressions involving
+	multiple uses of ``//`` now work correctly. The method :meth:`walk` now
+	doesn't yield :class:`Cursor` objects, but simple path lists (actually it's
+	always the same list, if you want distinct lists use :meth:`walkpath`).
+	Applying XFind expressions to nodes directly is no longer supported, you
+	have to call :meth:`walk`, :meth:`walknode` or :meth:`walkpath` with the
+	XFind expression instead. Many XFind operators have been renamed and/or
+	reimplemented (see the documentation for the :mod:`xfind` module for more
+	information).
 
 *	The methods :meth:`__getitem__`, :meth:`__setitem__` and :meth:`__delitem__`
 	for :class:`Frag` and :class:`Element` now support the new walk filters, so
@@ -52,8 +62,9 @@ Changes in 3.0 (released 01/07/2008)
 		replace several child nodes with a new one;
 	*	``for c in node[xfind.empty]: print c.bytes()`` to print all empty
 		(element) children of ``node``;
-	*	``del node[node[0]]`` to delete the first child node (which is silly, but
-		illustrates that you can pass a node to get/replace/delete that node);
+	*	``del node[node[0]]`` to delete the first child node (which is silly,
+		but illustrates that you can pass a node to get/replace/delete that
+		node);
 
 *	A new module :mod:`ll.xist.css` has been added which contains CSS related
 	functionality: The generator function :func:`iterrules` can be passed an
@@ -99,11 +110,11 @@ Changes in 3.0 (released 01/07/2008)
 
 	__ http://docutils.sourceforge.net/rst.html
 
-*	Many classes in the :mod:`ll.xist.ns.doc` have been renamed to more familiar
-	names (from HTML, XHTML 2 or ReST).
+*	Many classes in the :mod:`ll.xist.ns.doc` have been renamed to more
+	familiar names (from HTML, XHTML 2 or ReST).
 
-*	The ``media`` attribute of :class:`html.link` and :class:`html.style` now has
-	a method :meth:`hasmedia`.
+*	The ``media`` attribute of :class:`html.link` and :class:`html.style` now
+	has a method :meth:`hasmedia`.
 
 *	The node method :meth:`asBytes` has been renamed to :meth:`bytes` and
 	:meth:`bytes` has been renamed to :meth:`iterbytes`.
@@ -117,19 +128,21 @@ Changes in 3.0 (released 01/07/2008)
 *	:func:`xsc.tonode` now will raise an exception when it can't handle an
 	argument instead of issuing a warning.
 
-*	A class attribute :attr:`empty` inside element classes will now no longer get
-	converted into :attr:`model`.
+*	A class attribute :attr:`empty` inside element classes will now no longer
+	get converted into :attr:`model`.
 
 *	:class:`ll.xist.ns.doc.pyref` now copes better with decorated methods.
 
 *	The deprecated :class:`Element` methods :meth:`hasAttr`, :meth:`hasattr`,
-	:meth:`isallowedattr`, :meth:`getAttr`, :meth:`getattr`, :meth:`setDefaultAttr`,
-	:meth:`setdefaultattr`, :meth:`attrkeys`, :meth:`attrvalues`, :meth:`attritems`,
-	:meth:`iterattrkeys`, :meth:`iterattrvalues`, :meth:`iterattritems`,
-	:meth:`allowedattrkeys`, :meth:`allowedattrvalues`, :meth:`allowedattritems`,
+	:meth:`isallowedattr`, :meth:`getAttr`, :meth:`getattr`,
+	:meth:`setDefaultAttr`, :meth:`setdefaultattr`, :meth:`attrkeys`,
+	:meth:`attrvalues`, :meth:`attritems`, :meth:`iterattrkeys`,
+	:meth:`iterattrvalues`, :meth:`iterattritems`, :meth:`allowedattrkeys`,
+	:meth:`allowedattrvalues`, :meth:`allowedattritems`,
 	:meth:`iterallowedattrkeys`, :meth:`iterallowedattrvalues`,
 	:meth:`iterallowedattritems` and :meth:`copyDefaultAttrs` have been removed.
-	The deprecated :class:`Attrs` method :meth:`copydefaults` has been removed too.
+	The deprecated :class:`Attrs` method :meth:`copydefaults` has been removed
+	too.
 
 *	The namespace module :mod:`ll.xist.ns.cond` has been removed.
 
@@ -141,7 +154,8 @@ Changes in 3.0 (released 01/07/2008)
 *	The methods :meth:`withnames` and :meth:`withoutnames` have been split into
 	two that take Python names and two that take XML names. Multiple arguments
 	are used now (instead of one argument that must be a sequence). Passing a
-	namespace to remove all attributes from the namespace is no longer supported.
+	namespace to remove all attributes from the namespace is no longer
+	supported.
 
 *	The :class:`Attrs` methods :meth:`updatenew` and :meth:`updatexisting` have
 	been removed.
@@ -150,8 +164,8 @@ Changes in 3.0 (released 01/07/2008)
 Changes in 2.15.5 (released 07/17/2007)
 ---------------------------------------
 
-*	The Python quotes example no longer contains the XML source or the generated
-	HTML.
+*	The Python quotes example no longer contains the XML source or the
+	generated HTML.
 
 
 Changes in 2.15.4 (released 07/16/2007)
@@ -197,17 +211,17 @@ Changes in 2.15 (released 09/24/2006)
 -------------------------------------
 
 *	XIST has been made compatible with Python 2.5: Code has been updated
-	to use the proper C API for memory management and :pep:`353` support has been
-	added. XIST now includes its own fixed version of :mod:`sgmlop`.
+	to use the proper C API for memory management and :pep:`353` support has
+	been added. XIST now includes its own fixed version of :mod:`sgmlop`.
 
 *	The :class:`ll.xist.xsc.Attrs` methods :meth:`with` and :meth:`without` have
 	been renamed to :meth:`withnames` and :meth:`withoutnames` for Python 2.5
 	compatibility.
 
-*	:class:`ll.xist.ns.htmlspecials.pixel` no longer handles colors via different
-	GIFs. It uses the ``background-color`` in the ``style`` attribute instead.
-	The same change has been implemented
-	for :class:`ll.xist.ns.htmlspecials.autopixel`. It's now possible to overwrite
+*	:class:`ll.xist.ns.htmlspecials.pixel` no longer handles colors via
+	different GIFs. It uses the ``background-color`` in the ``style`` attribute
+	instead. The same change has been implemented for
+	:class:`ll.xist.ns.htmlspecials.autopixel`. It's now possible to overwrite
 	the default ``src`` attribute value of ``root:px/spc.gif`` either via the
 	XML attribute or via the converter context.
 
@@ -242,8 +256,8 @@ Changes in 2.14 (released 06/28/2006)
 
 *	A new namespace :mod:`ll.xist.ns.detox` has been added that is similar to
 	:mod:`ll.toxic` but can be used to generate Python code instead of
-	PL/SQL code. Using :mod:`detox` templates is about 50 times faster than using
-	XIST trees directly and about 10 times faster than Kid__.
+	PL/SQL code. Using :mod:`detox` templates is about 50 times faster than
+	using XIST trees directly and about 10 times faster than Kid__.
 
 	__ http://kid.lesscode.org/
 
@@ -266,8 +280,8 @@ Changes in 2.14 (released 06/28/2006)
 Changes in 2.13 (released 10/31/2005)
 -------------------------------------
 
-*	:meth:`ll.xist.xsc.Namespace.tokenize` requires a :class:`unicode` object as
-	input now. This makes it possible to use encodings that are not ASCII
+*	:meth:`ll.xist.xsc.Namespace.tokenize` requires a :class:`unicode` object
+	as input now. This makes it possible to use encodings that are not ASCII
 	compatible (such as UTF-16). The :var:`encoding` argument is gone.
 
 *	:meth:`ll.xist.xsc.Node.asString` uses the :var:`encoding` argument to
@@ -299,7 +313,8 @@ Changes in 2.11 (released 07/29/2005)
 *	A script :file:`xml2xsc.py` has been added, that can be used to parse an
 	XML file and generate a rudimentary XIST namespace from it.
 
-*	A :class:`DocType` for XHTML 1.1 has been added (suggested by Elvelind Grandin).
+*	A :class:`DocType` for XHTML 1.1 has been added (suggested by Elvelind
+	Grandin).
 
 *	Line number information is now added when parsing HTML.
 
@@ -310,8 +325,8 @@ Changes in 2.11 (released 07/29/2005)
 *	The :meth:`walk` doesn't yield the node directly, but yields a :class:`Cursor`
 	object now, with has several ways of referencing the node.
 
-*	New methods :meth:`walknode`, :meth:`walkpath` and :meth:`walkindex` have been
-	added.
+*	New methods :meth:`walknode`, :meth:`walkpath` and :meth:`walkindex` have
+	been added.
 
 *	Presenters use an iterator API instead of a stream API now. Dumping an
 	XML tree presentation to the terminal can now start immediately instead
@@ -347,8 +362,8 @@ Changes in 2.10 (released 05/20/2005)
 
 *	The content of the processing instruction :class:`ll.xist.ns.code.pyexec`
 	will not be executed at construction time, but at conversion time. The code
-	in :class:`ll.xist.ns.code.pyexec` or :class:`ll.xist.ns.code.pyeval` will no
-	longer be executed in the :mod:`ll.xist.sandbox` module (which has been
+	in :class:`ll.xist.ns.code.pyexec` or :class:`ll.xist.ns.code.pyeval` will
+	no longer be executed in the :mod:`ll.xist.sandbox` module (which has been
 	removed), but in a sandbox dictionary in the converter context of the
 	:mod:`ll.xist.ns.code` namespace.
 
@@ -364,17 +379,17 @@ Changes in 2.10 (released 05/20/2005)
 	:meth:`ll.xist.publishers.Publisher.publish` no longer accepts an argument
 	:var:`stream` to which the byte strings are written, but it is a generator
 	now. The publisher methods :meth:`write` and :meth:`writetext` have been
-	renamed to :meth:`encode` and :meth:`encodetext` and return the encoded byte
-	string, instead of writing it directly to the stream. There's a new generator
-	method :meth:`bytes` for nodes now, which can be passed the same arguments
-	as :meth:`asBytes`. These changes should help when using XIST in WSGI
-	applications.
+	renamed to :meth:`encode` and :meth:`encodetext` and return the encoded
+	byte string, instead of writing it directly to the stream. There's a new
+	generator method :meth:`bytes` for nodes now, which can be passed the same
+	arguments as :meth:`asBytes`. These changes should help when using XIST in
+	WSGI applications.
 
 *	The iterator returned from :meth:`Element.__getitem__`,
 	:meth:`Frag.__getitem__` and the :meth:`walk` method now supports
 	:meth:`__getitem__` itself, so you can write ``table[html.tr][0]`` to get
-	the first row from a table or ``page.walk(xsc.FindTypeAll(html.td))[-1]`` to
-	get the last table cell from a complete HTML page.
+	the first row from a table or ``page.walk(xsc.FindTypeAll(html.td))[-1]``
+	to get the last table cell from a complete HTML page.
 
 *	Several bugs in the namespaces :mod:`ll.xist.ns.meta`, :mod:`ll.xist.ns.form`
 	and :mod:`ll.xist.ns.specials` have been fixed.
@@ -395,15 +410,16 @@ Changes in 2.9 (released 04/21/2005)
 	:var:`outmode`. For these modes two new values are supported:
 
 	:const:`ll.xist.xsc.walkindex`
-		The value passed to the filter function or yielded from the iterator is a
-		list containing child indizes and attribute names that specify the path to
-		the node in question.
+		The value passed to the filter function or yielded from the iterator is
+		a list containing child indizes and attribute names that specify the path
+		to the node in question.
 
 	:const:`ll.xist.xsc.walkrootindex`
-		The filter function will be called with two arguments: The first is the root
-		node of the tree (i.e. the node for which :meth:`walk` has been called),
-		the second one is an index path (just like for ``ll.xist.xsc.walkindex``).
-		If used as an :var:`outmode` a tuple with these two values will be yielded.
+		The filter function will be called with two arguments: The first is the
+		root node of the tree (i.e. the node for which :meth:`walk` has been
+		called), the second one is an index path (just like for
+		``ll.xist.xsc.walkindex``). If used as an :var:`outmode` a tuple with
+		these two values will be yielded.
 
 * Attribute mappings now support :meth:`__getitem__`, :meth:`__setitem__` and
 	:meth:`__delitem__` with list arguments, i.e. you can do::
@@ -442,8 +458,8 @@ Changes in 2.9 (released 04/21/2005)
 	into :mod:`ll.xist.xsc`. This avoids import problems with circular imports.
 
 *	The attributes :attr:`showLocation` and :attr:`showPath` of
-	:class:`ll.xist.presenters.TreePresenter` have been lowercased and presenters
-	are properly reset after they've done their job.
+	:class:`ll.xist.presenters.TreePresenter` have been lowercased and
+	presenters are properly reset after they've done their job.
 
 *	The class attribute :attr:`xmlname` will no longer be turned into a list
 	containing the Python and the XML name, but will be the XML name only.
@@ -476,12 +492,12 @@ Changes in 2.8 (released 01/03/2005)
 *	:class:`ll.xist.xfind.item` no longer handles slices.
 
 *	XFind has been enhanced to support item and slice operators, i.e. if
-	``foo`` is an XFind operator, ``foo[0]`` is an operator that will produce the
-	first node from ``foo`` (if there is one). Negative values and slices are
-	supported too.
+	``foo`` is an XFind operator, ``foo[0]`` is an operator that will produce
+	the first node from ``foo`` (if there is one). Negative values and slices
+	are supported too.
 
-*	Operators can be chained via division: ``html.a/html.b`` is an operator that
-	can be passed around and applied to a node.
+*	Operators can be chained via division: ``html.a/html.b`` is an operator
+	that can be passed around and applied to a node.
 
 *	XIST requires the new core module and makes use of the new
 	"cooperative displayhook" functionality defined there: If you install the
@@ -492,13 +508,13 @@ Changes in 2.8 (released 01/03/2005)
 Changes in 2.7 (released 11/24/2004)
 ------------------------------------
 
-*	The transparent pixel used by :class:`ll.xist.ns.htmlspecials.pixel` has been
-	renamed to :file:`spc.gif` to avoid problems with IE.
+*	The transparent pixel used by :class:`ll.xist.ns.htmlspecials.pixel` has
+	been renamed to :file:`spc.gif` to avoid problems with IE.
 
 *	Removed a debug print in :class:`ll.xist.xfind.Finder.__getitem__`.
 
-*	:mod:`ll.xist.xfind` now has a new function :func:`item`, that can be used to
-	get a certain item or slice from an iterator. :func:`xfind.first` and
+*	:mod:`ll.xist.xfind` now has a new function :func:`item`, that can be used
+	to get a certain item or slice from an iterator. :func:`xfind.first` and
 	:func:`xfind.last` have been changed to use :func:`xfind.item`, so you now
 	have to pass a default value to get the old behaviour.
 
@@ -517,10 +533,10 @@ Changes in 2.6.1 (released 11/02/2004)
 
 *	Fixed a bug in :meth:`ll.xist.xfind.Finder.__floordiv__`.
 
-*	Restricted characters as defined in `XML 1.1`_ will now be published as
+*	Restricted characters as defined in `XML 1.1`__ will now be published as
 	character references.
 
-	.. _XML 1.1:  http://www.w3.org/TR/2004/REC-xml11-20040204/#NT-RestrictedChar
+	__  http://www.w3.org/TR/2004/REC-xml11-20040204/#NT-RestrictedChar
 
 
 Changes in 2.6 (released 10/26/2004)
@@ -579,7 +595,8 @@ Changes in 2.6 (released 10/26/2004)
 *	Elements :class:`hostname`, :class:`tty`, :class:`prompt` and :class:`input`
 	were added to :mod:`ll.xist.ns.doc`.
 
-*	The method :meth:`ll.xist.xsc.Attrs.set` now returns the new attribute object.
+*	The method :meth:`ll.xist.xsc.Attrs.set` now returns the new attribute
+	object.
 
 *	The :meth:`visit` method has been removed.
 
@@ -640,8 +657,8 @@ Changes in 2.5 (released 06/30/2004)
 			)
 		)
 
-*	Experimental support for Holger Krekel's XPython_ has been added. Code might
-	look like this::
+*	Experimental support for Holger Krekel's XPython_ has been added. Code
+	might look like this::
 
 		from ll.xist import xsc, converters
 		from ll.xist.ns import html, meta
@@ -673,8 +690,8 @@ Changes in 2.5 (released 06/30/2004)
 	.. _XPython: http://codespeak.net/svn/user/hpk/talks/xpython-talk.txt
 
 *	Creating global attributes has been simplified. Passing an instance of
-	:class:`ll.xist.xsc.Namespace.Attrs` to an :class:`Element` constructor now
-	does the right thing::
+	:class:`ll.xist.xsc.Namespace.Attrs` to an :class:`Element` constructor
+	now does the right thing::
 
 		from ll.xist.ns import html, xml
 		node = html.html(
@@ -688,8 +705,8 @@ Changes in 2.5 (released 06/30/2004)
 	but through the new module :mod:`ll.xist.xnd`. The script :file:`dtdxsc.py`
 	will automatically generate :mod:`sims` information.
 
-*	:class:`ll.xist.xsc.CharRef` now inherits from :class:`ll.xist.xsc.Text` too,
-	so you don't have to special case :class:`CharRef`s any more. When
+*	:class:`ll.xist.xsc.CharRef` now inherits from :class:`ll.xist.xsc.Text`
+	too, so you don't have to special case :class:`CharRef`s any more. When
 	publishing, :class:`CharRef`s will be handled like :class:`Text` nodes.
 
 *	:class:`ll.xist.ns.meta.contenttype` now has an attribute ``mimetype``
@@ -697,8 +714,8 @@ Changes in 2.5 (released 06/30/2004)
 
 *	:class:`ll.xist.ns.htmlspecials.caps` has been removed.
 
-*	Registering elements in namespace classes has been rewritten to use a cache
-	now.
+*	Registering elements in namespace classes has been rewritten to use a
+	cache now.
 
 *	Pretty printing has been changed: Whitespace will only be added now if
 	there are no text nodes in element content.
@@ -759,7 +776,8 @@ Changes in 2.3 (released 12/08/2003)
 ------------------------------------
 
 *	It's now possible to parse XML without generating location information for
-	each node, by passing ``loc=False`` to the constructor of the :class:`Handler`.
+	each node, by passing ``loc=False`` to the constructor of the
+	:class:`Handler`.
 
 *	The :class:`HTMLParser` no longer complains about global attributes or
 	``xmlns``.
@@ -801,11 +819,11 @@ Changes in 2.3 (released 12/08/2003)
 Changes in 2.2 (released 07/31/2003)
 ------------------------------------
 
-*	Namespace handling has been completely rewritten. Namespaces are now classes
-	derived from :class:`ll.xist.xsc.Namespace`. Defining element classes can be
-	done inside or outside the namespace class. If the element classes are
-	defined outside the namespace class, they can be moved inside the namespace
-	with a simple attribute assignment::
+*	Namespace handling has been completely rewritten. Namespaces are now
+	classes derived from :class:`ll.xist.xsc.Namespace`. Defining element
+	classes can be done inside or outside the namespace class. If the element
+	classes are defined outside the namespace class, they can be moved inside
+	the namespace with a simple attribute assignment::
 
 		class foo(xsc.Element):
 			empty = False
@@ -862,16 +880,17 @@ Changes in 2.2 (released 07/31/2003)
 	optional.
 
 *	The converter has a new property :func:`node`. :var:`node` can't be passed
-	to :meth:`conv` but will be set to :var:`self` by :meth:`conv` automatically.
-	This makes it possible to access the "document root" during conversion.
+	to :meth:`conv` but will be set to :var:`self` by :meth:`conv`
+	automatically. This makes it possible to access the "document root" during
+	conversion.
 
 *	:class:`ll.xist.ns.htmlspecials.autoimg` no longer touches existing width
-	and height attributes. This means that %-formatting of the existing attributes
-	is no longer done.
+	and height attributes. This means that %-formatting of the existing
+	attributes is no longer done.
 
-*	Added a new class :class:`ll.xist.ns.htmlspecials.autopixel` that works like
-	:class:`ll.xist.ns.htmlspecials.pixel` but inherits the size for the image
-	specified via the ``src`` attribute.
+*	Added a new class :class:`ll.xist.ns.htmlspecials.autopixel` that works
+	like :class:`ll.xist.ns.htmlspecials.pixel` but inherits the size for the
+	image specified via the ``src`` attribute.
 
 *	:class:`Frag` and :class:`Element` now support extended slices.
 
@@ -894,15 +913,15 @@ Changes in 2.2 (released 07/31/2003)
 
 	__ http://pyxml.sf.net/
 
-*	The core functionality found in the script :file:`dtd2xsc.py` has been moved
-	to a class method :meth:`ll.xist.ns.xndl.fromdtd` in the
+*	The core functionality found in the script :file:`dtd2xsc.py` has been
+	moved to a class method :meth:`ll.xist.ns.xndl.fromdtd` in the
 	:mod:`ll.xist.ns.xndl` namespace.
 
 *	:class:`ll.xist.parsers.ExpatParser` is now a real subclass instead of an
-	alias for :class:`xml.sax.expatreader.ExpatParser` It reports unknown entity
-	references to the application (if loading of external entities is switched
-	off, which is done by :class:`ll.xist.parsers.Handler` and only outside of
-	attributes).
+	alias for :class:`xml.sax.expatreader.ExpatParser` It reports unknown
+	entity references to the application (if loading of external entities is
+	switched off, which is done by :class:`ll.xist.parsers.Handler` and only
+	outside of attributes).
 
 *	Namespaces have been added for Zope's TAL and METAL specifications.
 
@@ -916,8 +935,8 @@ Changes in 2.1.4 (released 06/13/2003)
 
 *	Remove the checks for attributes in attributes and moved the publication
 	code for the full element into a separate method. This allows JSP tag
-	library namespaces to simply overwrite :meth:`publish` to publish the element
-	even inside attributes. (This is the same fix as in release 1.5.10).
+	library namespaces to simply overwrite :meth:`publish` to publish the
+	element even inside attributes. (This is the same fix as in release 1.5.10).
 
 
 Changes in 2.1.3 (released 05/07/2003)
@@ -938,10 +957,10 @@ Changes in 2.1.2 (released 02/27/2003)
 Changes in 2.1.1 (released 02/11/2003)
 --------------------------------------
 
-*	Added a few elements and attributes to :mod:`ll.xist.ns.doc`: :class:`username`,
-	which is used for the name of a user account, :class:`xref`, which is used
-	for internal cross references and the attribute ``id`` for :class:`section`,
-	which specifies the target for an :class:`xref`.
+*	Added a few elements and attributes to :mod:`ll.xist.ns.doc`:
+	:class:`username`, which is used for the name of a user account,
+	:class:`xref`, which is used for internal cross references and the attribute
+	``id`` for :class:`section`, which specifies the target for an :class:`xref`.
 
 
 Changes in 2.1 (released 12/09/2002)
@@ -1028,12 +1047,12 @@ Changes in 2.0.2 (released 10/21/2002)
 *	Fixed a bug in :meth:`Frag.__rmul__` (by reusing :meth:`__mul__`).
 
 *	Fixed a bug with the backwards compatible prefix mapping: Defining element
-	classes in ``exec`` processing instructions didn't work, because the prefixes
-	object used for parsing wouldn't be updated when the namespace object is
-	defined inside the processing instruction. Now using the default for the
-	:var:`prefixes` argument in calls to the parsing functions uses one global
-	shared :class:`Prefixes` instances where all the namespaces that are newly
-	defined will be registered too.
+	classes in ``exec`` processing instructions didn't work, because the
+	prefixes object used for parsing wouldn't be updated when the namespace
+	object is defined inside the processing instruction. Now using the default
+	for the :var:`prefixes` argument in calls to the parsing functions uses one
+	global shared :class:`Prefixes` instances where all the namespaces that are
+	newly defined will be registered too.
 
 
 Changes in 2.0.1 (released 10/17/2002)
@@ -1053,14 +1072,14 @@ Changes in 2.0 (released 10/16/2002)
 	named :class:`Attrs` inside the element. This class must be derived from
 	:class:`ll.xist.Element.Attrs` (or one of its subclasses if you want to
 	inherit attributes from this class). Defining attributes is done through
-	classes nested inside this attributes class and derived from any of the known
-	attribute classes (like :class:`TextAttr`, :class:`URLAttr` etc.). The class
-	name will be the attribute name (and can be overwritten with a class
-	attribute :attr:`xmlname`. This makes it possible to have docstrings for
-	attributes. Furthermore it's possible to define an attribute default value
-	via the class attribute :attr:`default`, allowed values for the attribute
-	via :attr:`values`, which is a list of allowed values, and whether the
-	attribute is required or not via :attr:`required`.
+	classes nested inside this attributes class and derived from any of the
+	known attribute classes (like :class:`TextAttr`, :class:`URLAttr` etc.).
+	The class name will be the attribute name (and can be overwritten with a
+	class attribute :attr:`xmlname`. This makes it possible to have docstrings
+	for attributes. Furthermore it's possible to define an attribute default
+	value via the class attribute :attr:`default`, allowed values for the
+	attribute via :attr:`values`, which is a list of allowed values, and
+	whether the attribute is required or not via :attr:`required`.
 
 *	XIST now has real namespace support. The new class
 	:class:`ll.xist.xsc.Prefixes` can be used to define a mapping between
@@ -1141,8 +1160,8 @@ Changes in 1.5.10 (released 06/13/2003)
 
 *	Remove the checks for attributes in attributes and moved the publication
 	code for the full element into a separate method. This allows JSP tag
-	library namespaces to simply overwrite :meth:`publish` to publish the element
-	even inside attributes.
+	library namespaces to simply overwrite :meth:`publish` to publish the
+	element even inside attributes.
 
 
 Changes in 1.5.9 (released 04/30/2003)
@@ -1260,9 +1279,9 @@ Changes in 1.4.1 (released 03/21/2002)
 	flag to the remaining functions :func:`parseString`, :func:`parseFile` and
 	:func:`parseURL` to specify whether the source should be tidied.
 
-*	To prevent an element from being registered in a :class:`Namespace` the class
-	attribute :attr:`register` can be used now. This makes it possible to have a
-	name for the element even when it's not registered.
+*	To prevent an element from being registered in a :class:`Namespace` the
+	class attribute :attr:`register` can be used now. This makes it possible
+	to have a name for the element even when it's not registered.
 
 *	:mod:`xist.ns.form` elements now have all the attributes that the
 	corresponding elements from :mod:`xist.ns.html` have.
@@ -1291,12 +1310,12 @@ Changes in 1.3 (released 02/12/2002)
 ------------------------------------
 
 *	Ported to Python 2.2. :class:`Node` is now derived from :class:`object`,
-	:class:`Frag` from :class:`list` and there's a new class :class:`Attrs` which
-	is derived from :class:`dict` for the attribute mappings. All presenters
-	have been adapted to work with :class:`Attrs`. In addition to the usual
-	dictionary methods and operators :class:`Attrs` has a method :meth:`without`
-	that returns a copy of the :class:`Attrs` instance with some specified
-	attributes removed.
+	:class:`Frag` from :class:`list` and there's a new class :class:`Attrs`
+	which is derived from :class:`dict` for the attribute mappings. All
+	presenters have been adapted to work with :class:`Attrs`. In addition to
+	the usual dictionary methods and operators :class:`Attrs` has a
+	method :meth:`without` that returns a copy of the :class:`Attrs` instance
+	with some specified attributes removed.
 
 *	All the node classes now have a new method :meth:`walk` that generates all
 	nodes in the tree using the new generator feature of Python 2.2.
@@ -1319,11 +1338,11 @@ Changes in 1.3 (released 02/12/2002)
 	a :meth:`convert` call and revert back to a previous state afterwards.
 
 *	:func:`parseURL` and :func:`parseTidyURL` now have an additional parameter
-	:var:`headers` which is a list of string pairs specifying additional headers
-	to be passed in with the request.
+	:var:`headers` which is a list of string pairs specifying additional
+	headers to be passed in with the request.
 
-*	:func:`parseString` has an additional parameter :var:`systemId` which will be
-	the system id of the :class:`InputSource`.
+*	:func:`parseString` has an additional parameter :var:`systemId` which will
+	be the system id of the :class:`InputSource`.
 
 *	The distribution now includes the makefile and the XML source files so now
 	the distribution can rebuild ifself.
@@ -1368,11 +1387,11 @@ Changes in 1.2.3 (released 11/22/2001)
 Changes in 1.2.2 (released 11/16/2001)
 --------------------------------------
 
-*	:meth:`xist.url.URL.fileSize` and :meth:`xist.url.URL.imageSize` now use the
-	warning framework to report errors.
+*	:meth:`xist.url.URL.fileSize` and :meth:`xist.url.URL.imageSize` now use
+	the warning framework to report errors.
 
-*	There is a new presenter named :class:`CodePresenter` that dumps the tree as
-	Python source code.
+*	There is a new presenter named :class:`CodePresenter` that dumps the tree
+	as Python source code.
 
 *	The filenames of the pixel images used by :class:`xist.ns.specials.pixel`
 	have changed. These images are now included.
@@ -1401,12 +1420,12 @@ Changes in 1.2 (released 10/03/2001)
 		>>> print e.conv().asBytes()
 		<meta name="keywords" content="<%= "foo" %>" />
 
-*	When an element occurs inside an attribute during publishing, there won't be
-	an exception raised any more. Instead the content of the element will be
+*	When an element occurs inside an attribute during publishing, there won't
+	be an exception raised any more. Instead the content of the element will be
 	published. This fixes problems with abbreviation entities inside attributes.
 
-*	:class:`xist.parsers.TidyURLInputSource` now uses the new experimental eGenix
-	mx Extension package, which includes a Python port of tidy.
+*	:class:`xist.parsers.TidyURLInputSource` now uses the new experimental
+	eGenix mx Extension package, which includes a Python port of tidy.
 
 *	:meth:`__repr__` now uses the new class :class:`presenters.PlainPresenter`
 	which gives a little more info than the default :meth:`__repr__`.
@@ -1422,8 +1441,8 @@ Changes in 1.2 (released 10/03/2001)
 	like immutable objects and to merge them with :class:`fileutils.Filename`.
 
 *	:class:`xist.ns.specials.php` has been moved to its own module
-	(:mod:`xist.ns.php`). This module provided additional convenience processing
-	instructions (just like :mod:`xist.ns.jsp` does).
+	(:mod:`xist.ns.php`). This module provided additional convenience
+	processing instructions (just like :mod:`xist.ns.jsp` does).
 
 
 Changes in 1.1.3 (released 09/17/2001)
@@ -1515,17 +1534,17 @@ Changes in 1.0 (released 06/18/2001)
 *	All the :meth:`asHTML` methods now have an additional argument
 	:var:`converter`. This makes it possible to implement different processing
 	modes or stages for new elements. All currently implemented elements and
-	entities ignore this argument, but pass it on in the call to their childrens'
-	:meth:`asHTML` method. As the name :meth:`asHTML` no longer makes sense,
-	:meth:`asHTML` has been renamed to :meth:`convert`.
+	entities ignore this argument, but pass it on in the call to their
+	childrens' :meth:`asHTML` method. As the name :meth:`asHTML` no longer
+	makes sense, :meth:`asHTML` has been renamed to :meth:`convert`.
 
 *	There is now a tool :file:`dtd2xsc.py` in the :dir:`scripts` directory that
 	creates a skeleton XIST module from a DTD (this requires xmlproc from the
 	PyXML package).
 
-*	New preliminary module for DocBook 4.12. (Incomplete: :meth:`convert` methods
-	and Unicode character entities are missing; any volunteers for implementing
-	375 classes?)
+*	New preliminary module for DocBook 4.12. (Incomplete: :meth:`convert`
+	methods and Unicode character entities are missing; any volunteers for
+	implementing 375 classes?)
 
 *	New module :file:`ruby.py` that implements the `W3C Ruby draft`_.
 
@@ -1548,8 +1567,8 @@ Changes in 1.0 (released 06/18/2001)
 
 *	All abbreviation entities have been moved to a new module :file:`abbr.py`.
 
-*	All the modules that provide new elements and entitites have been moved to a
-	subpackage :mod:`ns`.
+*	All the modules that provide new elements and entitites have been moved
+	to a subpackage :mod:`ns`.
 
 *	:class:`Frag` and :class:`Element` now have new methods :meth:`sorted`,
 	:meth:`reversed`, :meth:`filtered` and :meth:`shuffled` that return sorted,
@@ -1571,22 +1590,22 @@ Changes in 1.0 (released 06/18/2001)
 	:dir:`scripts` directory, it will be installed as a callable script with
 	``python setup.py install_scripts``.
 
-*	:file:`xscmake.py` has a new option :option:`--files`/:option:`-f`. The argument
-	is a file containing a list of filenames (one name per line) that should be
-	converted.
+*	:file:`xscmake.py` has a new option :option:`--files`/:option:`-f`.
+	The argument is a file containing a list of filenames (one name per line)
+	that should be converted.
 
-*	:file:`xscmake.py` has a new option :option:`--parser`/:option:`-r` for specifying
-	which parser to use. Allowed values are ``sgmlop`` and ``expat``.
+*	:file:`xscmake.py` has a new option :option:`--parser`/:option:`-r` for
+	specifying which parser to use. Allowed values are ``sgmlop`` and ``expat``.
 
-*	:file:`xscmake.py` has a new option :option:`--namespace`/:option:`-n` that can be
-	used for appending :class:`Namespace` objects to the :class:`Namespaces`
-	object used by :file:`xscmake.py`::
+*	:file:`xscmake.py` has a new option :option:`--namespace`/:option:`-n`
+	that can be used for appending :class:`Namespace` objects to the
+	:class:`Namespaces` object used by :file:`xscmake.py`::
 
 		xscmake.py -n html -n spam eggs.xsc
 
-	With this call the parser will find element classes from the module with the
-	prefix name ``spam`` before those from ``html`` and those before anything
-	else.
+	With this call the parser will find element classes from the module with
+	the prefix name ``spam`` before those from ``html`` and those before
+	anything else.
 
 *	:class:`xist.url.URL` no longer has an attribute :attr:`ext`. :attr:`file`
 	and :attr:`ext` are merged.
@@ -1623,11 +1642,11 @@ Changes in 1.0 (released 06/18/2001)
 				align = None
 			node = html.div("spam", align=align)
 
-		So, when the ``condition`` is false, the node will not have the attribute
-		``align`` set.
+		So, when the ``condition`` is false, the node will not have the
+		attribute ``align`` set.
 
-*	:class:`xist.ns.cond.If` (and :class:`xist.ns.cond.ElIf`) can now be used to
-	test for attributes of the converter. I.e. it's possible to write the
+*	:class:`xist.ns.cond.If` (and :class:`xist.ns.cond.ElIf`) can now be used
+	to test for attributes of the converter. I.e. it's possible to write the
 	following XML::
 
 		<if lang="en">Title
@@ -1665,16 +1684,16 @@ Changes in 0.4.7 (released 11/24/2000)
 *	:meth:`providers.Providers.popNamespace` can now pop multiple namespaces
 	at once.
 
-*	:class:`providers.TidyURIProvider` now uses :func:`os.popen3` for piping the
-	file through tidy, so now there will be no more temporary files. The call to
-	tidy now includes options that hopefully make the output more suited to
-	XIST.
+*	:class:`providers.TidyURIProvider` now uses :func:`os.popen3` for piping
+	the file through tidy, so now there will be no more temporary files. The
+	call to tidy now includes options that hopefully make the output more
+	suited to XIST.
 
 *	Incorparated a new :file:`url.py` by Hartmut Goebel, that fixes many problem
 	(e.g. optimizing ``http://server/foo/bar/../../baz.gif`` now works.)
 
-*	:file:`make.py` includes a new option :option:`--path` for adding directories
-	to :data:`sys.path`.
+*	:file:`make.py` includes a new option :option:`--path` for adding
+	directories to :data:`sys.path`.
 
 
 Changes in 0.4.6 (released 11/03/2000)
@@ -1698,18 +1717,18 @@ Changes in 0.4.5 (released 11/01/2000)
 Changes in 0.4.4 (releases 10/27/2000)
 --------------------------------------
 
-*	Now testing if characters can be encoded with the specified encoding is done
-	directy. This means, that escaping unencodable characters now works even with
-	exotic encodings (tested with `JapaneseCodecs 1.0.1`_.
+*	Now testing if characters can be encoded with the specified encoding is
+	done directy. This means, that escaping unencodable characters now works
+	even with exotic encodings (tested with `JapaneseCodecs 1.0.1`__.
 
-	.. _JapaneseCodecs 1.0.1: http://pseudo.grad.sccs.chukyo-u.ac.jp/~kajiyama/python/
+	__ http://pseudo.grad.sccs.chukyo-u.ac.jp/~kajiyama/python/
 
 *	The :class:`URLAttr` constructor now can handle a single parameter of the
 	type :class:`URL`.
 
 *	The URL to string conversion function have changed: :meth:`URL.asString`
-	returns the URL with path markers, :meth:`URL.asPlainString` returns the URL
-	without path markers.
+	returns the URL with path markers, :meth:`URL.asPlainString` returns the
+	URL without path markers.
 
 *	Added the ``i18n`` attribute to the :class:`font` element.
 
@@ -1722,21 +1741,21 @@ Changes in 0.4.4 (releases 10/27/2000)
 Changes in 0.4.3 (released 10/19/2000)
 --------------------------------------
 
-*	Now processing instruction classes are registered in the same way as elements
-	and entities are.
+*	Now processing instruction classes are registered in the same way as
+	elements and entities are.
 
 *	The leaf nodes (:class:`Text`, :class:`Comment`, :class:`ProcInst`) are now
-	considered immutable. This means that their :meth:`asHTML` method can simply
-	return :var:`self`, because now those nodes can be shared between trees.
-	Functionality for manipulation the objects is provided by a mixin class very
-	similar to :class:`UserString`. All this results in a speedup of about 10%
-	for the python-quotes example.
+	considered immutable. This means that their :meth:`asHTML` method can
+	simply return :var:`self`, because now those nodes can be shared between
+	trees. Functionality for manipulation the objects is provided by a mixin
+	class very similar to :class:`UserString`. All this results in a speedup
+	of about 10% for the python-quotes example.
 
 *	Small optimizations in the :meth:`asHTML` methods of :class:`Element` and
-	:class:`Frag` optimized away many calls to :meth:`append`, :meth:`extend` and
-	:meth:`ToNode` and result in a speedup of about 30% for the python-quotes
-	example. One consequence of this is that :class:`Null` objects will no longer
-	be ignored.
+	:class:`Frag` optimized away many calls to :meth:`append`, :meth:`extend`
+	and :meth:`ToNode` and result in a speedup of about 30% for the
+	python-quotes example. One consequence of this is that :class:`Null`
+	objects will no longer be ignored.
 
 
 Changes in 0.4.2 (released 09/24/2000)
@@ -1771,26 +1790,26 @@ Changes in 0.4 (released 09/19/2000)
 	Python can be used, so now you can output your HTML in ASCII, Latin-1,
 	UTF-8, UTF-16, ...
 
-*	All publishers have been updated to support Unicode. The publishing interface
-	has been streamlined (:var:`encoding` and :var:`XHTML` parameters are now
-	attributes of the publisher).
+*	All publishers have been updated to support Unicode. The publishing
+	interface has been streamlined (:var:`encoding` and :var:`XHTML` parameters
+	are now attributes of the publisher).
 
 *	:meth:`asString` will now always return a Unicode string. If you want a byte
 	string use :meth:`asBytes` instead, where the encoding can be specified as
 	an argument.
 
-*	There an additional publisher class :class:`FilePublisher`, which can be used
-	for publishing to a file (or anything else that has a :meth:`write` and a
-	:meth:`writelines` method, and is supported by the stream writer available
-	through :func:`codecs.lookup`).
+*	There an additional publisher class :class:`FilePublisher`, which can be
+	used for publishing to a file (or anything else that has a :meth:`write`
+	and a :meth:`writelines` method, and is supported by the stream writer
+	available through :func:`codecs.lookup`).
 
-*	Element and attribute names are no longer converted to lowercase. If you have
-	an attribute name which clashes with a Python keyword (e.g. ``class``) append
-	an underscore (``_``), which will be removed before accessing the attribute.
-	This is the "official" Python method for handling these cases.
+*	Element and attribute names are no longer converted to lowercase. If you
+	have an attribute name which clashes with a Python keyword (e.g. ``class``)
+	append an underscore (``_``), which will be removed before accessing the
+	attribute. This is the "official" Python method for handling these cases.
 
-*	Elements and entities are no longer registered one by one. Now you can build
-	:class:`Namespace` objects which are used for searching and there are
+*	Elements and entities are no longer registered one by one. Now you can
+	build :class:`Namespace` objects which are used for searching and there are
 	:meth:`pushNamespace` and :meth:`popNamespace` functions in :mod:`XSC.xsc`.
 	For more info, see the source.
 
@@ -1807,13 +1826,13 @@ Changes in 0.4 (released 09/19/2000)
 	elements from :file:`db.py` have been moved to :file:`sql.py` and
 	:file:`form.py` respectively.
 
-*	When using :func:`xsc.make` the encoding and XHTML parameters to use can now
-	be specified on the command line (e.g. ``--encoding utf-8 --xhtml 2``)
+*	When using :func:`xsc.make` the encoding and XHTML parameters to use can
+	now be specified on the command line (e.g. ``--encoding utf-8 --xhtml 2``)
 
 *	Handling of multiline ``<?xsc-eval?>`` and ``<?xsc-exec?>`` has been
 	enhanced, although XIST will not be able to guess the correct indentation
-	in all cases. As a workarround simply add a Python comment to the beginning. So the
-	following won't work::
+	in all cases. As a workarround simply add a Python comment to the beginning.
+	So the following won't work::
 
 		<?xsc-exec
 			for i in xrange(10):
@@ -1941,8 +1960,8 @@ Changes in 0.3.4 (released 05/31/2000)
 Changes in 0.3.3 (released 05/30/2000)
 --------------------------------------
 
-*	The workaround for the trailing CDATA bug in sgmlop has been removed, so now
-	you'll need a newer version of sgmlop (included in PyXML 0.5.5.1).
+*	The workaround for the trailing CDATA bug in sgmlop has been removed, so
+	now you'll need a newer version of sgmlop (included in PyXML 0.5.5.1).
 
 
 Changes before 0.3.3
