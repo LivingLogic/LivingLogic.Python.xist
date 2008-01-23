@@ -1001,8 +1001,8 @@ class ReSTConverter(object):
 			raise TypeError("can't handle %r" % node.__class__)
 
 
-def fromstring(string):
-	doc = core.publish_doctree(string)
+def fromstring(string, **options):
+	doc = core.publish_doctree(string, settings_overrides=options)
 	elements = globals()
 
 	def toxist(node):
@@ -1023,11 +1023,11 @@ def fromstring(string):
 	return toxist(doc)
 
 
-def fromstream(stream):
-	return fromstring(stream.read())
+def fromstream(stream, **options):
+	return fromstring(stream.read(), **options)
 
 
-def fromfile(filename):
+def fromfile(filename, **options):
 		filename = os.path.expanduser(filename)
 		with contextlib.closing(open(filename, "rb")) as stream:
-			return fromstream(stream)
+			return fromstream(stream, **options)
