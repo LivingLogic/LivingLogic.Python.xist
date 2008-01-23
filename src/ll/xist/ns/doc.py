@@ -14,54 +14,9 @@ documentation (in &html;, DocBook and XSL-FO).</p>
 """
 
 
-import sys, types, inspect, textwrap, optparse, collections, warnings, operator
+from __future__ import with_statement
 
-try:
-	from docutils import nodes, utils, parsers as restparsers, frontend
-	from docutils.parsers.rst import roles
-	from docutils.parsers.rst.languages import en
-except ImportError:
-	pass
-else:
-	# FIXME: Do the right thing
-	roles.register_generic_role("mod", nodes.literal)
-	en.roles["mod"] = "mod"
-
-	roles.register_generic_role("class", nodes.literal)
-	en.roles["class"] = "class"
-
-	roles.register_generic_role("func", nodes.literal)
-	en.roles["func"] = "func"
-
-	roles.register_generic_role("meth", nodes.literal)
-	en.roles["meth"] = "meth"
-
-	roles.register_generic_role("var", nodes.literal)
-	en.roles["var"] = "var"
-
-	roles.register_generic_role("exc", nodes.literal)
-	en.roles["exc"] = "exc"
-
-	roles.register_generic_role("attr", nodes.literal)
-	en.roles["attr"] = "attr"
-
-	roles.register_generic_role("prop", nodes.literal)
-	en.roles["prop"] = "prop"
-
-	roles.register_generic_role("option", nodes.literal)
-	en.roles["option"] = "option"
-
-	roles.register_generic_role("const", nodes.literal)
-	en.roles["const"] = "const"
-
-	roles.register_generic_role("file", nodes.literal)
-	en.roles["file"] = "file"
-
-	roles.register_generic_role("dir", nodes.literal)
-	en.roles["dir"] = "dir"
-
-	roles.register_generic_role("data", nodes.literal)
-	en.roles["data"] = "data"
+import sys, types, inspect, textwrap, warnings, operator
 
 import ll
 from ll.xist import xsc, parsers, sims, xfind
@@ -100,7 +55,8 @@ def getdoc(thing, format):
 	if format.lower() == "plaintext":
 		return xsc.Text(text)
 	elif format.lower() == "restructuredtext":
-		return rest2doc(text)
+		from ll.xist.ns import rest
+		return rest.fromstring(text).conv()
 	elif format.lower() == "xist":
 		if inspect.ismethod(thing):
 			base = "METHOD-DOCSTRING(%s.%s.%s)" % (_getmodulename(thing), thing.im_class.__name__, thing.__name__)
@@ -209,6 +165,18 @@ def _codeheader(thing, name, type):
 	sig.insert(0, type(name), u"\u200b(") # use "ZERO WIDTH SPACE" to allow linebreaks
 	sig.append(u")")
 	return sig
+
+
+class _stack(object):
+	def __init__(self, context, obj):
+		self.context = context
+		self.obj = obj
+
+	def __enter__(self):
+		self.context.stack.append(self.obj)
+
+	def __exit__(self, type, value, traceback):
+		self.context.stack.pop()
 
 
 def explain(thing, name=None, format=None, context=[]):
@@ -379,8 +347,9 @@ class base(xsc.Element):
 	class Context(xsc.Element.Context):
 		def __init__(self):
 			xsc.Element.Context.__init__(self)
+			self.stack = []
 			self.sections = [0]
-			self.lists = []
+			self.firstheaderlevel = None
 
 			self.llblue = u"#006499"
 			self.llgreen = u"#9fc94d"
@@ -453,6 +422,10 @@ class block(base):
 	xmlns = xmlns
 	register = False
 
+	def convert_html(self, converter):
+		e = converter.target.div(self.content)
+		return e.convert(converter)
+
 
 class inline(base):
 	"""
@@ -460,6 +433,10 @@ class inline(base):
 	"""
 	xmlns = xmlns
 	register = False
+
+	def convert_html(self, converter):
+		e = converter.target.span(self.content)
+		return e.convert(converter)
 
 
 class abbr(inline):
@@ -470,7 +447,7 @@ class abbr(inline):
 		class lang(xsc.TextAttr): pass
 
 	def convert_docbook(self, converter):
-		e = converter.target.abbrev(self.content, lang=self[u"lang"])
+		e = converter.target.abbrev(self.content, lang=self.attrs.lang)
 		return e.convert(converter)
 
 	def convert_html(self, converter):
@@ -501,10 +478,9 @@ class litblock(block):
 	A literal text block (like source code or a shell dump)
 	"""
 	xmlns = xmlns
-	register = False
 	model = sims.ElementsOrText(inline)
 
-	cssclass = None
+	cssclass = "litblock"
 
 	def convert_html(self, converter):
 		target = converter.target
@@ -686,7 +662,7 @@ class lit(code):
 		return e.convert(converter)
 
 	def convert_html(self, converter):
-		e = converter.target.code(self.content, class_=u"literal")
+		e = converter.target.code(self.content, class_=u"lit")
 		return e.convert(converter)
 
 
@@ -701,10 +677,6 @@ class func(code):
 		e = converter.target.function(self.content)
 		return e.convert(converter)
 
-	def convert_html(self, converter):
-		e = converter.target.code(self.content, class_=u"function")
-		return e.convert(converter)
-
 
 class meth(code):
 	"""
@@ -717,8 +689,16 @@ class meth(code):
 		e = converter.target.methodname(self.content)
 		return e.convert(converter)
 
-	def convert_html(self, converter):
-		e = converter.target.code(self.content, class_=u"method")
+
+class attr(code):
+	"""
+	The name of an attribute of a class/object
+	"""
+	xmlns = xmlns
+	model = sims.ElementsOrText(rep)
+
+	def convert_docbook(self, converter):
+		e = converter.target.methodname(self.content)
 		return e.convert(converter)
 
 
@@ -733,10 +713,6 @@ class prop(code):
 		e = converter.target.varname(self.content, role=u"property")
 		return e.convert(converter)
 
-	def convert_html(self, converter):
-		e = converter.target.code(self.content, class_=u"property")
-		return e.convert(converter)
-
 
 class class_(code):
 	"""
@@ -748,10 +724,6 @@ class class_(code):
 
 	def convert_docbook(self, converter):
 		e = converter.target.classname(self.content)
-		return e.convert(converter)
-
-	def convert_html(self, converter):
-		e = converter.target.code(self.content, class_=u"class")
 		return e.convert(converter)
 
 
@@ -825,7 +797,7 @@ class cls(inline):
 		return e.convert(converter)
 
 
-class arg(code):
+class var(code):
 	"""
 	The name of a function or method argument.
 	"""
@@ -834,10 +806,6 @@ class arg(code):
 
 	def convert_docbook(self, converter):
 		e = converter.target.parameter(self.content)
-		return e.convert(converter)
-
-	def convert_html(self, converter):
-		e = converter.target.code(self.content, class_=u"arg")
 		return e.convert(converter)
 
 
@@ -857,23 +825,7 @@ class mod(code):
 		return e.convert(converter)
 
 
-class parameter(code):
-	"""
-	A value or a symbolic reference to a value
-	"""
-	xmlns = xmlns
-	model = sims.ElementsOrText(rep)
-
-	def convert_docbook(self, converter):
-		e = converter.target.parameter(self.content)
-		return e.convert(converter)
-
-	def convert_html(self, converter):
-		e = converter.target.code(self.content, class_=u"parameter")
-		return e.convert(converter)
-
-
-class filename(code):
+class file(code):
 	"""
 	The name of a file
 	"""
@@ -889,7 +841,7 @@ class filename(code):
 		return e.convert(converter)
 
 
-class dirname(code):
+class dir(code):
 	"""
 	The name of directory
 	"""
@@ -901,7 +853,7 @@ class dirname(code):
 		return e.convert(converter)
 
 
-class username(code):
+class user(code):
 	"""
 	The name of a user account
 	"""
@@ -912,12 +864,8 @@ class username(code):
 		e = converter.target.literal(self.content, role=u"username")
 		return e.convert(converter)
 
-	def convert_html(self, converter):
-		e = converter.target.code(self.content, class_=u"username")
-		return e.convert(converter)
 
-
-class hostname(code):
+class host(code):
 	"""
 	The name of a computer
 	"""
@@ -928,8 +876,28 @@ class hostname(code):
 		e = converter.target.literal(self.content, role=u"hostname")
 		return e.convert(converter)
 
-	def convert_html(self, converter):
-		e = converter.target.code(self.content, class_=u"hostname")
+
+class const(code):
+	"""
+	The name of a constant
+	"""
+	xmlns = xmlns
+	model = sims.ElementsOrText(rep)
+
+	def convert_docbook(self, converter):
+		e = converter.target.literal(self.content, role=u"constant")
+		return e.convert(converter)
+
+
+class data(code):
+	"""
+	The name of a data object
+	"""
+	xmlns = xmlns
+	model = sims.ElementsOrText(rep)
+
+	def convert_docbook(self, converter):
+		e = converter.target.literal(self.content, role=u"data")
 		return e.convert(converter)
 
 
@@ -943,12 +911,12 @@ class app(inline):
 		class moreinfo(xsc.URLAttr): pass
 
 	def convert_docbook(self, converter):
-		e = converter.target.application(self.content, moreinfo=self[u"moreinfo"])
+		e = converter.target.application(self.content, moreinfo=self.attrs.moreinfo)
 		return e.convert(converter)
 
 	def convert_html(self, converter):
 		if u"moreinfo" in self.attrs:
-			e = converter.target.a(self.content, class_=u"app", href=self[u"moreinfo"])
+			e = converter.target.a(self.content, class_=u"app", href=self.attrs.moreinfo)
 		else:
 			e = converter.target.span(self.content, class_=u"app")
 		return e.convert(converter)
@@ -958,7 +926,7 @@ class app(inline):
 			e = converter.target.basic_link(
 				self.content,
 				converter[self].linkattrs,
-				external_destination=self[u"moreinfo"]
+				external_destination=self.attrs.moreinfo
 			)
 		else:
 			e = self.content
@@ -978,7 +946,20 @@ class h(base):
 		return e.convert(converter)
 
 	def convert_html(self, converter):
-		e = self.content
+		context = converter[self]
+		if context.stack:
+		 	if isinstance(context.stack[-1], example):
+				e = self.content
+			elif isinstance(context.stack[-1], section):
+				level = len(context.sections)
+				if context.firstheaderlevel is None:
+					context.firstheaderlevel = level
+				e = getattr(converter.target, "h%d" % (context.firstheaderlevel+level), converter.target.h6)(self.content)
+			else:
+				raise ValueError("unknown node %r on the stack" % context.stack[-1])
+		else:
+			context.firstheaderlevel = 0
+			e = converter.target.h1(self.content)
 		return e.convert(converter)
 
 	def convert_fo(self, converter):
@@ -997,7 +978,7 @@ class section(block):
 		class id(xsc.IDAttr): pass
 
 	def convert_docbook(self, converter):
-		e = converter.target.section(self.content, role=self[u"role"], id=self[u"id"])
+		e = converter.target.section(self.content, role=self.attrs.role, id=self.attrs.id)
 		return e.convert(converter)
 
 	def convert_html(self, converter):
@@ -1013,19 +994,20 @@ class section(block):
 				ts.append(child)
 			else:
 				cs.append(child)
-		e = target.div(class_=(u"section level", level), id=self[u"id"])
-		if u"role" in self.attrs:
-			e[u"class_"].append(u" ", self.attrs[u"role"])
-		#if u"id" in self.attrs:
-		#	e.append(target.a(name=self[u"id"], id=self[u"id"]))
+		e = target.div(class_=(u"section level", level), id=self.attrs.id)
+		if "role" in self.attrs:
+			e.attrs.class_.append(" ", self.attrs.role)
+		#if "id" in self.attrs:
+		#	e.append(target.a(name=self.attrs.id, id=self.attrs.id))
 		hclass = getattr(target, u"h%d" % level, target.h6)
 		for t in ts:
 			e.append(hclass(t.content))
 		e.append(cs)
-		# make sure to call the inner convert() before popping the number off of the stack
-		e = e.convert(converter)
-		del context.sections[-1]
-		return e
+		with _stack(context, self):
+			# make sure to call the inner convert() before popping the number off of the stack
+			e = e.convert(converter)
+			del context.sections[-1]
+			return e
 
 	def convert_fo(self, converter):
 		context = converter[self]
@@ -1046,7 +1028,7 @@ class section(block):
 			else:
 				cs.append(child)
 		p = props[min(len(context.sections)-1, len(props)-1)]
-		isref = unicode(self[u"role"].convert(converter)) in (u"class", u"method", u"property", u"function", u"module")
+		isref = unicode(self.attrs.role.convert(converter)) in (u"class", u"method", u"property", u"function", u"module")
 
 		number = None
 		if isref:
@@ -1092,11 +1074,11 @@ class p(block):
 		class type(xsc.TextAttr): pass
 
 	def convert_docbook(self, converter):
-		e = converter.target.para(self.content, role=self[u"type"])
+		e = converter.target.para(self.content, role=self.attrs.type)
 		return e.convert(converter)
 
 	def convert_html(self, converter):
-		e = converter.target.p(self.content, class_=self[u"type"])
+		e = converter.target.p(self.content, class_=self.attrs.type)
 		return e.convert(converter)
 
 	def convert_fo(self, converter):
@@ -1149,9 +1131,6 @@ class li(block):
 		return e.convert(converter)
 
 	def convert_html(self, converter):
-		context = converter[self]
-		if not context.lists:
-			raise xsc.NodeOutsideContextError(self, list)
 		e = converter.target.li(self.content)
 		return e.convert(converter)
 
@@ -1200,9 +1179,6 @@ class dd(block):
 		return e.convert(converter)
 
 	def convert_html(self, converter):
-		context = converter[self]
-		if not context.lists:
-			raise xsc.NodeOutsideContextError(self, list)
 		e = converter.target.dd(self.content)
 		return e.convert(converter)
 
@@ -1246,11 +1222,8 @@ class ul(list):
 		return e.convert(converter)
 
 	def convert_html(self, converter):
-		context = converter[self]
-		context.lists.append(["ul", 0])
-		e = converter.target.ul(self.content.convert(converter))
-		del context.lists[-1]
-		return e
+		with _stack(converter[self], self):
+			return converter.target.ul(self.content.convert(converter))
 
 	def convert_fo(self, converter):
 		context = converter[self]
@@ -1273,11 +1246,8 @@ class ol(list):
 		return e.convert(converter)
 
 	def convert_html(self, converter):
-		context = converter[self]
-		context.lists.append(["ol", 0])
-		e = converter.target.ol(self.content.convert(converter))
-		del context.lists[-1]
-		return e
+		with _stack(converter[self], self):
+			return converter.target.ol(self.content.convert(converter))
 
 	def convert_fo(self, converter):
 		context = converter[self]
@@ -1308,11 +1278,8 @@ class dl(list):
 		return e.convert(converter)
 
 	def convert_html(self, converter):
-		context = converter[self]
-		context.lists.append(["dl", 0])
-		e = converter.target.dl(self.content.convert(converter))
-		del context.lists[-1]
-		return e
+		with _stack(converter[self], self):
+			return converter.target.dl(self.content.convert(converter))
 
 	def convert_fo(self, converter):
 		context = converter[self]
@@ -1344,7 +1311,8 @@ class example(block):
 				e.append(child)
 		if ts:
 			e.append(target.div(ts, class_=u"example-title"))
-		return e.convert(converter)
+		with _stack(converter[self], self):
+			return e.convert(converter)
 
 	def convert_fo(self, converter):
 		# FIXME: handle title
@@ -1366,11 +1334,11 @@ class a(inline):
 		class hreflang(xsc.TextAttr): pass
 
 	def convert_docbook(self, converter):
-		e = converter.target.link(self.content, linkend=self[u"href"])
+		e = converter.target.link(self.content, linkend=self.attrs.href)
 		return e.convert(converter)
 
 	def convert_html(self, converter):
-		e = converter.target.a(self.content, href=self[u"href"], hreflang=self[u"hreflang"])
+		e = converter.target.a(self.content, href=self.attrs.href, hreflang=self.attrs.hreflang)
 		return e.convert(converter)
 
 	def convert_fo(self, converter):
@@ -1378,7 +1346,7 @@ class a(inline):
 			e = converter.target.basic_link(
 				self.content,
 				converter[self].linkattrs,
-				external_destination=self[u"href"]
+				external_destination=self.attrs.href
 			)
 		else:
 			e = self.content
@@ -1395,11 +1363,11 @@ class xref(inline):
 		class ref(xsc.TextAttr): pass
 
 	def convert_docbook(self, converter):
-		e = converter.target.link(self.content, linkend=self[u"ref"])
+		e = converter.target.link(self.content, linkend=self.attrs.ref)
 		return e.convert(converter)
 
 	def convert_html(self, converter):
-		e = converter.target.a(self.content, href=(u"#", self[u"ref"]))
+		e = converter.target.a(self.content, href=(u"#", self.attrs.ref))
 		return e.convert(convertert)
 
 	def convert_fo(self, converter):
@@ -1407,7 +1375,7 @@ class xref(inline):
 			e = converter.target.basic_link(
 				self.content,
 				converter[self].linkattrs,
-				internal_destination=self[u"ref"]
+				internal_destination=self.attrs.ref
 			)
 		else:
 			e = self.content
@@ -1486,23 +1454,23 @@ class pyref(inline):
 		if target.xmlns == xmlns: # our own namespace
 			return self.convert_doc(converter)
 		if u"function" in self.attrs:
-			function = unicode(self[u"function"].convert(converter))
+			function = unicode(self.attrs.function.convert(converter))
 		else:
 			function = None
 		if u"method" in self.attrs:
-			method = unicode(self[u"method"].convert(converter))
+			method = unicode(self.attrs.method.convert(converter))
 		else:
 			method = None
 		if u"property" in self.attrs:
-			prop = unicode(self[u"property"].convert(converter))
+			prop = unicode(self.attrs.property.convert(converter))
 		else:
 			prop = None
 		if u"class_" in self.attrs:
-			class__ = unicode(self[u"class_"].convert(converter)).replace(u".", u"-")
+			class__ = unicode(self.attrs.class_.convert(converter)).replace(u".", u"-")
 		else:
 			class__ = None
 		if u"module" in self.attrs:
-			module = unicode(self[u"module"].convert(converter))
+			module = unicode(self.attrs.module.convert(converter))
 			if module.startswith(u"ll."):
 				module = module[3:].replace(u".", u"/")
 			elif module == "ll":
@@ -1595,97 +1563,3 @@ class fodoc(base):
 			)
 		)
 		return e
-
-
-class ReSTConversionWarning(Warning):
-	pass
-
-
-class ReSTConverter(object):
-	def __init__(self):
-		self.namedrefs = collections.defaultdict()
-		self.namedrefs.default_factory = list
-		self.unnamedrefs = []
-
-	def convert(self, node):
-		if isinstance(node, nodes.document):
-			return xsc.Frag(self.convert(child) for child in node.children)
-		elif isinstance(node, nodes.Text):
-			return xsc.Text(node.astext())
-		elif isinstance(node, nodes.problematic):
-			# We don't do anything about this
-			return xsc.Frag(self.convert(child) for child in node.children)
-		elif isinstance(node, nodes.section):
-			return section(self.convert(child) for child in node.children)
-		elif isinstance(node, nodes.title):
-			return h(self.convert(child) for child in node.children)
-		elif isinstance(node, nodes.paragraph):
-			return p(self.convert(child) for child in node.children)
-		elif isinstance(node, nodes.bullet_list):
-			return ul(self.convert(child) for child in node.children)
-		elif isinstance(node, nodes.list_item):
-			return li(self.convert(child) for child in node.children)
-		elif isinstance(node, nodes.definition_list):
-			return dl(self.convert(child) for child in node.children)
-		elif isinstance(node, nodes.definition_list_item):
-			return xsc.Frag(self.convert(child) for child in node.children)
-		elif isinstance(node, nodes.term):
-			return dt(self.convert(child) for child in node.children)
-		elif isinstance(node, nodes.definition):
-			return dd(self.convert(child) for child in node.children)
-		elif isinstance(node, nodes.literal_block):
-			return prog(self.convert(child) for child in node.children)
-		elif isinstance(node, nodes.literal):
-			return lit(self.convert(child) for child in node.children)
-		elif isinstance(node, nodes.emphasis):
-			return em(self.convert(child) for child in node.children)
-		elif isinstance(node, nodes.substitution_reference):
-			try:
-				return getattr(abbr_, node.attributes["refname"].lower())()
-			except AttributeError:
-				return xsc.Frag(self.convert(child) for child in node.children)
-		elif isinstance(node, nodes.reference):
-			e = a(self.convert(child) for child in node.children)
-			if "anonymous" in node.attributes:
-				self.unnamedrefs.append(e)
-			else:
-				self.namedrefs[node.attributes["refname"]].append(e)
-			return e
-		elif isinstance(node, nodes.target):
-			uri = node.attributes["refuri"]
-			if "anonymous" in node.attributes:
-				# Set the link on the first unnamed reference
-				self.unnamedrefs[0].attrs.href = uri
-				del self.unnamedrefs[0] # done => remove it
-			else:
-				for name in node.attributes["names"]:
-					try:
-						es = self.namedrefs[name]
-					except KeyError:
-						pass
-					else:
-						for e in es:
-							e.attrs.href = uri
-						del self.namedrefs[name]
-			return xsc.Null
-		elif isinstance(node, nodes.system_message):
-			warnings.warn(ReSTConversionWarning(str(node)))
-			return xsc.Null # ignore system messages
-		else:
-			raise TypeError("can't handle %r" % node.__class__)
-
-
-def rest2doc(string):
-	parser = restparsers.get_parser_class("rst")()
-	defaults = frontend.OptionParser().defaults.copy()
-	defaults["tab_width"] = 3
-	defaults["pep_references"] = 1
-	defaults["pep_base_url"] = "http://www.python.org/dev/peps/"
-	defaults["rfc_references"] = 1
-	defaults["rfc_base_url"] = "http://www.faqs.org/rfcs/"
-
-	doc = utils.new_document("?", optparse.Values(defaults))
-	parser.parse(string, doc)
-
-	conv = ReSTConverter()
-	return conv.convert(doc)
