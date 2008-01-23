@@ -154,16 +154,19 @@ class directive_page(directive):
 		class pageEncoding(xsc.TextAttr): pass
 
 	def publish(self, publisher):
-		# Only a contentType attribute trigger the special code
-		if u"contentType" in self.attrs and not self[u"contentType"].isfancy() and not self[u"pageEncoding"].isfancy():
-			(contenttype, options) = cgi.parse_header(unicode(self[u"contentType"]))
-			pageencoding = unicode(self[u"pageEncoding"])
-			if u"charset" not in options or not (options[u"charset"] == pageencoding == publisher.encoding):
-				options[u"charset"] = publisher.encoding
+		# Only a contentType attribute triggers the special code
+		if u"contentType" in self.attrs and not self.attrs.contentType.isfancy() and not self.attrs.pageEncoding.isfancy():
+			(contenttype, options) = cgi.parse_header(unicode(self.attrs.contentType))
+			pageencoding = unicode(self.attrs.pageEncoding)
+			encoding = publisher.encoding
+			if encoding is None:
+				encoding = "utf-8"
+			if u"charset" not in options or not (options[u"charset"] == pageencoding == encoding):
+				options[u"charset"] = encoding
 				node = self.__class__(
 					self.attrs,
 					contentType=(contenttype, u"; ", u"; ".join("%s=%s" % option for option in options.items())),
-					pageEncoding=publisher.encoding
+					pageEncoding=encoding
 				)
 				return node.publish(publisher) # return a generator-iterator
 		return super(directive_page, self).publish(publisher) # return a generator-iterator
