@@ -1944,7 +1944,7 @@ Changes in 0.3.4 (released 05/31/2000)
 	and :meth:`compact` where appropriate, so you know even in the HTML tree
 	where something came from.
 
-*	``xsc.repransi`` can now have three values::
+*	``xsc.repransi`` can now have three values:
 
 	0
 		coloring is off
