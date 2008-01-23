@@ -2793,10 +2793,7 @@ class _Element_Meta(Node.__metaclass__):
 	def __new__(cls, name, bases, dict):
 		if "model" in dict and isinstance(dict["model"], bool):
 			from ll.xist import sims
-			if dict["model"]:
-				dict["model"] = sims.Any()
-			else:
-				dict["model"] = sims.Empty()
+			dict["model"] = sims.Any() if dict["model"] else sims.Empty()
 		_patchclassnames(dict, name)
 		self = super(_Element_Meta, cls).__new__(cls, name, bases, dict)
 		if dict.get("register") is not None:
@@ -3402,18 +3399,17 @@ import publishers, converters, utils, helpers
 
 class Pool(misc.Pool):
 	def __init__(self, *objects):
-		self._elementsbyxmlname = weakref.WeakValueDictionary()
-		self._elementsbypyname = weakref.WeakValueDictionary()
-		self._procinstsbyxmlname = weakref.WeakValueDictionary()
-		self._procinstsbypyname = weakref.WeakValueDictionary()
-		self._entitiesbyxmlname = weakref.WeakValueDictionary()
-		self._entitiesbypyname = weakref.WeakValueDictionary()
-		self._charrefsbyxmlname = weakref.WeakValueDictionary()
-		self._charrefsbypyname = weakref.WeakValueDictionary()
-		self._charrefsbycodepoint = weakref.WeakValueDictionary()
-		self._attrsbyxmlname = weakref.WeakValueDictionary()
-		self._attrsbypyname = weakref.WeakValueDictionary()
-		self._attrs = weakref.WeakValueDictionary()
+		self._elementsbyxmlname = {}
+		self._elementsbypyname = {}
+		self._procinstsbyxmlname = {}
+		self._procinstsbypyname = {}
+		self._entitiesbyxmlname = {}
+		self._entitiesbypyname = {}
+		self._charrefsbyxmlname = {}
+		self._charrefsbypyname = {}
+		self._charrefsbycodepoint = {}
+		self._attrsbyxmlname = {}
+		self._attrsbypyname = {}
 		misc.Pool.__init__(self, *objects)
 
 	def register(self, object):
@@ -3464,8 +3460,6 @@ class Pool(misc.Pool):
 			for (key, value) in object.__dict__.iteritems():
 				if isinstance(value, type): # This avoids recursive module registration
 					self.register(value)
-				elif key == "xmlns" and type(value) is str:
-					self.xmlns = value
 		elif isinstance(object, dict):
 			super(Pool, self).register(object)
 			for (key, value) in object.iteritems():
@@ -3507,7 +3501,10 @@ class Pool(misc.Pool):
 			except KeyError:
 				pass
 		for base in self.bases:
-			return base.elementclass(name, xmlns)
+			try:
+				return base.elementclass(name, xmlns)
+			except IllegalElementError:
+				pass
 		raise IllegalElementError(name, xmlns, False)
 
 	def elementclass_xml(self, name, xmlns):
@@ -3530,7 +3527,10 @@ class Pool(misc.Pool):
 			except KeyError:
 				pass
 		for base in self.bases:
-			return base.elementclass_xml(name, xmlns)
+			try:
+				return base.elementclass_xml(name, xmlns)
+			except IllegalElementError:
+				pass
 		raise IllegalElementError(name, xmlns, True)
 
 	def element(self, name, xmlns):
@@ -3577,7 +3577,10 @@ class Pool(misc.Pool):
 			return self._procinstsbypyname[name]
 		except KeyError:
 			for base in self.bases:
-				return base.procinstclass(name, xmlns)
+				try:
+					return base.procinstclass(name)
+				except IllegalProcInstError:
+					pass
 			raise IllegalProcInstError(name, False)
 
 	def procinstclass_xml(self, name):
@@ -3590,7 +3593,10 @@ class Pool(misc.Pool):
 			return self._procinstsbyxmlname[name]
 		except KeyError:
 			for base in self.bases:
-				return base.procinstclass_xml(name, xmlns)
+				try:
+					return base.procinstclass_xml(name)
+				except IllegalProcInstError:
+					pass
 			raise IllegalProcInstError(name, True)
 
 	def procinst(self, name, content):
@@ -3637,7 +3643,10 @@ class Pool(misc.Pool):
 			return self._entitiesbypyname[name]
 		except KeyError:
 			for base in self.bases:
-				return base.entityclass(name)
+				try:
+					return base.entityclass(name)
+				except IllegalEntityError:
+					pass
 			raise IllegalEntityError(name, False)
 
 	def entityclass_xml(self, name):
@@ -3650,7 +3659,10 @@ class Pool(misc.Pool):
 			return self._entitiesbyxmlname[name]
 		except KeyError:
 			for base in self.bases:
-				return base.entityclass_xml(name)
+				try:
+					return base.entityclass_xml(name)
+				except IllegalEntityError:
+					pass
 			raise IllegalEntityError(name, True)
 
 	def entity(self, name):
@@ -3700,7 +3712,10 @@ class Pool(misc.Pool):
 			return self._charrefsbypyname[name]
 		except KeyError:
 			for base in self.bases:
-				return base.charrefclass(name)
+				try:
+					return base.charrefclass(name)
+				except IllegalEntityError:
+					pass
 			raise IllegalEntityError(name, False)
 
 	def charrefclass_xml(self, name):
@@ -3716,7 +3731,10 @@ class Pool(misc.Pool):
 			return self._charrefsbyxmlname[name]
 		except KeyError:
 			for base in self.bases:
-				return base.charrefclass_xml(name)
+				try:
+					return base.charrefclass_xml(name)
+				except IllegalEntityError:
+					pass
 			raise IllegalEntityError(name, True)
 
 	def charref(self, name):
@@ -3770,7 +3788,10 @@ class Pool(misc.Pool):
 			except KeyError:
 				pass
 		for base in self.bases:
-			return base.attrclass(name, xmlns)
+			try:
+				return base.attrclass(name, xmlns)
+			except IllegalAttrError:
+				pass
 		raise IllegalAttrError(name, xmlns, False)
 
 	def attrclass_xml(self, name, xmlns):
@@ -3788,7 +3809,10 @@ class Pool(misc.Pool):
 			except KeyError:
 				pass
 		for base in self.bases:
-			return base.attrclass_xml(name, xmlns)
+			try:
+				return base.attrclass_xml(name, xmlns)
+			except IllegalAttrError:
+				pass
 		raise IllegalAttrError(name, xmlns, True)
 
 	def text(self, content):
@@ -3810,6 +3834,20 @@ class Pool(misc.Pool):
 			for base in self.bases:
 				return getattr(base, key)
 			raise AttributeError(key)
+
+	def clear(self):
+		self._elementsbyxmlname.clear()
+		self._elementsbypyname.clear()
+		self._procinstsbyxmlname.clear()
+		self._procinstsbypyname.clear()
+		self._entitiesbyxmlname.clear()
+		self._entitiesbypyname.clear()
+		self._charrefsbyxmlname.clear()
+		self._charrefsbypyname.clear()
+		self._charrefsbycodepoint.clear()
+		self._attrsbyxmlname.clear()
+		self._attrsbypyname.clear()
+		misc.Pool.clear()
 
 	def clone(self):
 		"""
