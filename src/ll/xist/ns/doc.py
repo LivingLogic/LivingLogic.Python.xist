@@ -727,6 +727,18 @@ class class_(code):
 		return e.convert(converter)
 
 
+class exc(code):
+	"""
+	The name of a exception class.
+	"""
+	xmlns = xmlns
+	model = sims.ElementsOrText(rep)
+
+	def convert_docbook(self, converter):
+		e = converter.target.classname(self.content)
+		return e.convert(converter)
+
+
 class markup(code):
 	"""
 	A string of formatting markup in text that is to be represented literally
