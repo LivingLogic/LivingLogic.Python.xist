@@ -141,27 +141,27 @@ def _codeheader(thing, name, type):
 		if i == 0:
 			if issubclass(type, meth):
 				if args[i] == "self":
-					sig.append(arg(self()))
+					sig.append(var(self()))
 				elif args[i] == "cls":
-					sig.append(arg(cls()))
+					sig.append(var(cls()))
 				else:
-					sig.append(arg(args[i]))
+					sig.append(var(args[i]))
 			else:
-				sig.append(arg(args[i]))
+				sig.append(var(args[i]))
 		else:
 			if sig:
 				sig.append(u", ")
-			sig.append(arg(args[i]))
+			sig.append(var(args[i]))
 		if i >= offset:
 			sig.append(u"=", lit(repr(defaults[i-offset])))
 	if varargs:
 		if sig:
 			sig.append(u", ")
-		sig.append(u"*", arg(varargs))
+		sig.append(u"*", var(varargs))
 	if varkw:
 		if sig:
 			sig.append(u", ")
-		sig.append(u"**", arg(varkw))
+		sig.append(u"**", var(varkw))
 	sig.insert(0, type(name), u"\u200b(") # use "ZERO WIDTH SPACE" to allow linebreaks
 	sig.append(u")")
 	return sig
