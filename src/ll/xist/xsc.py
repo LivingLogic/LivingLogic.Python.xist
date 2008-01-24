@@ -9,7 +9,7 @@
 
 
 """
-This module contains all the central &xml; tree classes, the namespace classes,
+This module contains all the central XML tree classes, the namespace classes,
 exception and warning classes and a few helper classes and functions.
 """
 
@@ -33,7 +33,7 @@ except ImportError:
 	ipipe = None
 
 
-__docformat__ = "xist"
+__docformat__ = "reStructuredText"
 
 
 local = threading.local()
@@ -56,16 +56,15 @@ xml_xmlns = "http://www.w3.org/XML/1998/namespace"
 
 def tonode(value):
 	"""
-	<p>convert <arg>value</arg> to an &xist; <pyref class="Node"><class>Node</class></pyref>.</p>
+	convert :var:`value` to an XIST :class:`Node`.
 
-	<p>If <arg>value</arg> is a tuple or list, it will be (recursively) converted
-	to a <pyref class="Frag"><class>Frag</class></pyref>. Integers, strings, etc.
-	will be converted to a <pyref class="Text"><class>Text</class></pyref>.
-	If <arg>value</arg> is a <pyref class="Node"><class>Node</class></pyref> already,
-	it will be returned unchanged. In the case of <lit>None</lit> the &xist; Null
-	(<class>ll.xist.xsc.Null</class>) will be returned. If <arg>value</arg> is
-	iterable, a <class>Frag</class> will be generated from the items.
-	Anything else will raise an <class>IllegalObjectError</class> exception.</p>
+	If :var:`value` is a tuple or list, it will be (recursively) converted to a
+	:class:`Frag`. Integers, strings, etc. will be converted to a :class:`Text`.
+	If :var:`value` is a :class:`Node` already, it will be returned unchanged.
+	In the case of :const:`None` the XIST Null (:data:`ll.xist.xsc.Null`) will be
+	returned. If :var:`value` is iterable, a :class:`Frag` will be generated
+	from the items. Anything else will raise an :exc:`IllegalObjectError`
+	exception.
 	"""
 	if isinstance(value, Node):
 		if isinstance(value, Attrs):
@@ -93,8 +92,8 @@ def tonode(value):
 
 def add(*args, **kwargs):
 	"""
-	<func>add</func> appends items in <arg>args</arg> and sets attributes
-	in <arg>kwargs</arg> in the currenly active node in the <lit>with</lit> stack.
+	:func:`add` appends items in :var:`args` and sets attributes in
+	:var:`kwargs` in the currenly active node in the ``with`` stack.
 	"""
 	getstack()[-1](*args, **kwargs)
 
@@ -113,9 +112,8 @@ enterattrs = misc.Const("enterattrs")
 
 class WalkFilter(object):
 	"""
-	A <class>WalkFilter</class> can be passed to the
-	<pyref class="Node" method="walk"><meth>walk</meth></pyref> method of
-	nodes to specify how to traverse the tree and which nodes to output.
+	A :class:`WalkFilter` can be passed to the :meth:`walk` method of nodes to
+	specify how to traverse the tree and which nodes to output.
 	"""
 	@misc.notimplemented
 	def filternode(self, node):
@@ -221,11 +219,9 @@ def makewalkfilter(obj):
 
 class Context(object):
 	"""
-	<p>This is an empty class, that can be used by the
-	<pyref class="Node" method="convert"><meth>convert</meth></pyref>
-	method to hold element or namespace specific data during the convert call.
-	The method <pyref class="Converter" method="__getitem__"><meth>Converter.__getitem__</meth></pyref>
-	will return a unique instance of this class.</p>
+	This is an empty class, that can be used by the :meth:`convert` method to
+	hold element or namespace specific data during the convert call. The method
+	:meth:`Converter.__getitem__` will return a unique instance of this class.
 	"""
 	__fullname__ = "Context"
 
@@ -236,7 +232,7 @@ class Context(object):
 
 class Error(Exception):
 	"""
-	Base class for all &xist; exceptions
+	Base class for all XIST exceptions
 	"""
 	pass
 
@@ -251,8 +247,8 @@ class Warning(UserWarning):
 
 class IllegalAttrValueWarning(Warning):
 	"""
-	Warning that is issued when an attribute has an illegal value when parsing or
-	publishing.
+	Warning that is issued when an attribute has an illegal value when parsing
+	or publishing.
 	"""
 
 	def __init__(self, attr):
@@ -265,7 +261,8 @@ class IllegalAttrValueWarning(Warning):
 
 class RequiredAttrMissingWarning(Warning):
 	"""
-	Warning that is issued when a required attribute is missing during parsing or publishing.
+	Warning that is issued when a required attribute is missing during parsing
+	or publishing.
 	"""
 
 	def __init__(self, attrs, reqattrs):
@@ -274,44 +271,6 @@ class RequiredAttrMissingWarning(Warning):
 
 	def __str__(self):
 		return "Required attribute%s %s missing in %s" % (("s" if len(self.reqattrs)>1 else ""), ", ".join(repr(attr) for attr in self.reqattrs), self.attrs._str(fullname=True, xml=False, decorate=False))
-
-
-class IllegalDTDChildWarning(Warning):
-	"""
-	Warning that is issued when the <pyref module="ll.xist.parsers" class="HTMLParser"><class>HTMLParser</class></pyref>
-	detects an element that is not allowed inside its parent element according to the &html; &dtd;
-	"""
-
-	def __init__(self, childname, parentname):
-		self.childname = childname
-		self.parentname = parentname
-
-	def __str__(self):
-		return "Element %s not allowed as a child of element %s" % (self.childname, self.parentname)
-
-
-class IllegalCloseTagWarning(Warning):
-	"""
-	Warning that is issued when the <pyref module="ll.xist.parsers" class="HTMLParser"><class>HTMLParser</class></pyref>
-	finds an end tag that has no corresponding start tag.
-	"""
-
-	def __init__(self, name):
-		self.name = name
-
-	def __str__(self):
-		return "Element %s has never been opened" % (self.name,)
-
-
-class PrefixNeededError(Error, ValueError):
-	"""
-	Exception that is raised when something requires a prefix on publishing.
-	"""
-	def __init__(self, xmlns):
-		self.xmlns = xmlns
-
-	def __str__(self):
-		return "namespace %s needs a prefix" % nsclark(self.xmlns)
 
 
 class IllegalPrefixError(Error, LookupError):
@@ -418,7 +377,8 @@ class IllegalAttrError(Error, LookupError):
 
 class AmbiguousNodeError(Error, LookupError):
 	"""
-	exception that is raised, when an node class is ambiguous (most commonly for processing instructions or entities)
+	Exception that is raised, when an node class is ambiguous (most commonly
+	for processing instructions or entities)
 	"""
 
 	type = "node"
@@ -457,7 +417,7 @@ class MultipleRootsError(Error):
 class ElementNestingError(Error):
 	"""
 	Exception that is raised, when an element has an illegal nesting
-	(e.g. <lit>&lt;a&gt;&lt;b&gt;&lt;/a&gt;&lt;/b&gt;</lit>)
+	(e.g. ``&lt;a&gt;&lt;b&gt;&lt;/a&gt;&lt;/b&gt;``)
 	"""
 
 	def __init__(self, expectedelement, foundelement):
@@ -497,7 +457,8 @@ class FileNotFoundWarning(Warning):
 
 class IllegalObjectError(TypeError):
 	"""
-	Exception that is raised when an &xist; constructor gets passed an unconvertable object.
+	Exception that is raised when an XIST constructor gets passed an
+	unconvertable object.
 	"""
 
 	def __init__(self, object):
@@ -507,9 +468,10 @@ class IllegalObjectError(TypeError):
 		return "can't convert object %r of type %s to an XIST node" % (self.object, type(self.object).__name__)
 
 
-class MalformedCharRefWarning(Warning):
+class AmbiguousNodeError(Warning):
 	"""
-	Exception that is raised when a character reference is malformed (e.g. <lit>&amp;#foo;</lit>)
+	Exception that is raised when a character reference is malformed
+	(e.g. ``&amp;#foo;``)
 	"""
 
 	def __init__(self, name):
@@ -522,9 +484,8 @@ class MalformedCharRefWarning(Warning):
 class IllegalCommentContentWarning(Warning):
 	"""
 	Warning that is issued when there is an illegal comment, i.e. one
-	containing <lit>--</lit> or ending in <lit>-</lit>.
-	(This can only happen, when the comment is instantiated by the
-	program, not when parsed from an &xml; file.)
+	containing ``--`` or ending in ``-``. (This can only happen, when the
+	comment is instantiated by the program, not when parsed from an XML file.)
 	"""
 
 	def __init__(self, comment):
@@ -536,9 +497,10 @@ class IllegalCommentContentWarning(Warning):
 
 class IllegalProcInstFormatError(Error):
 	"""
-	Exception that is raised, when there is an illegal processing instruction, i.e. one containing <lit>?&gt;</lit>.
-	(This can only happen, when the processing instruction is instantiated by the
-	program, not when parsed from an &xml; file.)
+	Exception that is raised, when there is an illegal processing instruction,
+	i.e. one containing ``?>``. (This can only happen, when the processing
+	instruction is instantiated by the program, not when parsed from an XML
+	file.)
 	"""
 
 	def __init__(self, procinst):
@@ -550,10 +512,10 @@ class IllegalProcInstFormatError(Error):
 
 class IllegalXMLDeclFormatError(Error):
 	"""
-	Exception that is raised, when there is an illegal XML declaration,
-	i.e. there something wrong in <lit>&lt;?xml ...?&gt;</lit>.
-	(This can only happen, when the processing instruction is instantiated by the
-	program, not when parsed from an &xml; file.)
+	Exception that is raised, when there is an illegal XML declaration, i.e.
+	there something wrong in ``<?xml ...?>``. (This can only happen, when the
+	processing instruction is instantiated by the program, not when parsed
+	from an XML file.)
 	"""
 
 	def __init__(self, procinst):
@@ -578,14 +540,16 @@ warnings.filterwarnings("error", category=IllegalElementParseWarning)
 
 class IllegalProcInstParseWarning(IllegalProcInstError, ParseWarning):
 	"""
-	Warning about an illegal processing instruction that is issued during parsing.
+	Warning about an illegal processing instruction that is issued during
+	parsing.
 	"""
 warnings.filterwarnings("error", category=IllegalProcInstParseWarning)
 
 
 class AmbiguousProcInstParseWarning(AmbiguousProcInstError, ParseWarning):
 	"""
-	Warning about an ambigous processing instruction that is issued during parsing.
+	Warning about an ambigous processing instruction that is issued during
+	parsing.
 	"""
 warnings.filterwarnings("error", category=AmbiguousProcInstParseWarning)
 
@@ -613,7 +577,8 @@ warnings.filterwarnings("error", category=IllegalCharRefParseWarning)
 
 class AmbiguousCharRefParseWarning(AmbiguousCharRefError, ParseWarning):
 	"""
-	Warning about an ambigous character references that is issued during parsing.
+	Warning about an ambigous character references that is issued during
+	parsing.
 	"""
 warnings.filterwarnings("error", category=AmbiguousCharRefParseWarning)
 
@@ -627,7 +592,8 @@ warnings.filterwarnings("error", category=IllegalAttrParseWarning)
 
 class NodeOutsideContextError(Error):
 	"""
-	Error that is raised, when a convert method can't find required context info.
+	Error that is raised, when a convert method can't find required context
+	info.
 	"""
 
 	def __init__(self, node, outerclass):
@@ -689,23 +655,23 @@ class _Node_Meta(type):
 
 class Node(object):
 	"""
-	base class for nodes in the document tree. Derived classes must
-	overwrite <pyref method="convert"><meth>convert</meth></pyref>
-	and may overwrite <pyref method="publish"><meth>publish</meth></pyref>.
+	base class for nodes in the document tree. Derived classes may
+	overwrite :meth:`convert` or :meth:`publish`.
 	"""
 	__metaclass__ = _Node_Meta
 
-	# location of this node in the XML file (will be hidden in derived classes, but is
-	# specified here, so that no special tests are required. In derived classes
-	# this will be set by the parser)
+	# location of this node in the XML file (will be hidden in derived classes,
+	# but is specified here, so that no special tests are required. In derived
+	# classes this will be set by the parser)
 	startloc = None
 	endloc = None
 
 	# Subclasses relevant for parsing (i.e. Element, ProcInst, Entity and CharRef)
-	# have an additional class attribute named register. This attribute may have three values:
-	# False: Don't register for parsing.
-	# True:  Use for parsing.
-	# If register is not set it defaults to True
+	# have an additional class attribute named register. This attribute may have
+	# three values:
+	# :const:`False`: Don't register for parsing.
+	# :const:`True`:  Use for parsing.
+	# If register is not set it defaults to :const:`True`
 
 	Context = Context
 
@@ -764,15 +730,15 @@ class Node(object):
 
 	def clone(self):
 		"""
-		return a clone of <self/>. Compared to <pyref method="deepcopy"><meth>deepcopy</meth></pyref> <meth>clone</meth>
-		will create multiple instances of objects that can be found in the tree more than once. <meth>clone</meth> can't
-		clone trees that contain cycles.
+		return a clone of ``self``. Compared to :meth:`deepcopy` :meth:`clone`
+		will create multiple instances of objects that can be found in the tree
+		more than once. :meth:`clone` can't clone trees that contain cycles.
 		"""
 		return self
 
 	def copy(self):
 		"""
-		Return a shallow copy of <self/>.
+		Return a shallow copy of ``self``.
 		"""
 		return self.__copy__()
 
@@ -781,7 +747,7 @@ class Node(object):
 
 	def deepcopy(self):
 		"""
-		Return a deep copy of <self/>.
+		Return a deep copy of ``self``.
 		"""
 		return self.__deepcopy__()
 
@@ -791,21 +757,23 @@ class Node(object):
 	@misc.notimplemented
 	def present(self, presenter):
 		"""
-		<p><meth>present</meth> is used as a central dispatch method for
-		the <pyref module="ll.xist.presenters">presenter classes</pyref>. Normally
-		it is not called by the user, but internally by the presenter. The user
-		should call <pyref method="repr"><meth>repr</meth></pyref>
-		instead.</p>
+		:meth:`present` is used as a central dispatch method for the
+		presenter classes. Normally it is not called by the user, but internally
+		by the presenter. The user should use the appropriate presenter class
+		directly.
 		"""
-		# Subclasses of Node implement this method by calling the appropriate present* method in the publisher (i.e. double dispatch)
+		# Subclasses of ``Node`` implement this method by calling the appropriate
+		# ``present*`` method in the publisher (i.e. double dispatch)
 
 	def conv(self, converter=None, root=None, mode=None, stage=None, target=None, lang=None, function=None, makeaction=None, makeproject=None):
 		"""
-		<p>Convenience method for calling <pyref method="convert"><meth>convert</meth></pyref>.</p>
-		<p><meth>conv</meth> will automatically set <lit><arg>converter</arg>.node</lit> to <self/> to remember the
-		<z>document root node</z> for which <meth>conv</meth> has been called, this means that you should not call
-		<meth>conv</meth> in any of the recursive calls, as you would loose this information. Call
-		<pyref method="convert"><meth>convert</meth></pyref> directly instead.</p>
+		Convenience method for calling :meth:`convert`.
+
+		:meth:`conv` will automatically set ``:var:`converter`.node`` to ``self``
+		to remember the "document root node" for which :meth:`conv` has been
+		called, this means that you should not call :meth:`conv` in any of the
+		recursive calls, as you would loose this information. Call :meth:`convert`
+		directly instead.
 		"""
 		if converter is None:
 			converter = converters.Converter(node=self, root=root, mode=mode, stage=stage, target=target, lang=lang, makeaction=makeaction, makeproject=makeproject)
@@ -819,52 +787,51 @@ class Node(object):
 	@misc.notimplemented
 	def convert(self, converter):
 		"""
-		<p>implementation of the conversion method. When you define your own
-		element classes you have to overwrite this method and implement the desired
-		conversion.</p>
+		implementation of the conversion method. When you define your own element
+		classes you have to overwrite this method and implement the desired
+		conversion.
 
-		<p>This method must return an instance of <class>Node</class>.
-		It may <em>not</em> change <self/>.</p>
+		This method must return an instance of :class:`Node`. It may *not* change
+		``self``.
 		"""
-		pass
 
 	@misc.notimplemented
 	def __unicode__(self):
 		"""
-		<p>Return the character content of <self/> as a unicode string.
-		This means that comments and processing instructions will be filtered out.
-		For elements you'll get the element content.</p>
+		Return the character content of ``self`` as a unicode string. This means
+		that comments and processing instructions will be filtered out. For
+		elements you'll get the element content.
 
-		<p><meth>__unicode__</meth> can be used everywhere where
-		a plain string representation of the node is required.</p>
+		:meth:`__unicode__` can be used everywhere where a plain string
+		representation of the node is required.
 		"""
 		pass
 
 	def __str__(self):
 		"""
-		Return the character content of <self/> as a string (if possible, i.e.
+		Return the character content of ``self`` as a string (if possible, i.e.
 		there are no characters that are unencodable in the default encoding).
 		"""
 		return str(unicode(self))
 
 	def __int__(self):
 		"""
-		Convert the character content of <self/> to an <class>int</class>.
+		Convert the character content of ``self`` to an :class:`int`.
 		"""
 		return int(unicode(self))
 
 	def __long__(self):
 		"""
-		Convert the character content of <self/> to an <class>long</class>.
+		Convert the character content of ``self`` to an :class:`long`.
 		"""
 		return long(unicode(self))
 
 	def asFloat(self, decimal=".", ignore=""):
 		"""
-		<p>Convert the character content of <self/> to an <class>float</class>.
-		<arg>decimal</arg> specifies which decimal separator is used in the value
-		(e.g. <lit>"."</lit> (the default) or <lit>","</lit>).
-		<arg>ignore</arg> specifies which character will be ignored.</p>
+		Convert the character content of ``self`` to an :class:`float`.
+		:var:`decimal` specifies which decimal separator is used in the value
+		(e.g. ``"."`` (the default) or ``","``). :var:`ignore` specifies which
+		characters will be ignored.</p>
 		"""
 		s = unicode(self)
 		for c in ignore:
@@ -875,58 +842,55 @@ class Node(object):
 
 	def __float__(self):
 		"""
-		Convert the character content of <self/> to an <class>float</class>.
+		Convert the character content of ``self`` to an :class:`float`.
 		"""
 		return self.asFloat()
 
 	def __complex__(self):
 		"""
-		Convert the character content of <self/> to an <class>complex</class>.
+		Convert the character content of ``self`` to an :class:`complex`.
 		"""
 		return complex(unicode(self))
 
 	def parsed(self, parser, start=None):
 		"""
-		<p>This method will be called by the parser <arg>parser</arg> once after
-		<self/> is created by the parser and must return the node that is to be
-		put into the tree (in most cases this is <self/>, it's used e.g. by
-		<pyref class="URLAttr"><class>URLAttr</class></pyref> to incorporate
-		the base <pyref module="ll.url" class="URL"><class>URL</class></pyref>
-		into the attribute.</p>
+		This method will be called by the parser :var:`parser` once after
+		``self`` is created by the parser and must return the node that is to be
+		put into the tree (in most cases this is ``self``, it's used e.g. by
+		:class:`URLAttr` to incorporate the base URL into the attribute.
 
-		<p>For elements <func>parsed</func> will be called twice:
-		Once at the beginning (i.e. before the content is parsed) with
-		<lit><arg>start</arg>==True</lit> and once at the end after parsing of
-		the content is finished <lit><arg>start</arg>==False</lit>. For the
-		second call the return value will be ignored.</p>
+		For elements :func:`parsed` will be called twice: Once at the beginning
+		(i.e. before the content is parsed) with :var:`start` being :const:`True`
+		and once at the end after parsing of the content is finished with
+		``:var:`start` being :const:`False`. For the second call the return value
+		will be ignored.
 		"""
 		return self
 
 	def checkvalid(self):
 		"""
-		<p>This method will be called when parsing or publishing to check
-		whether <self/> is valid.</p>
+		This method will be called when parsing or publishing to check whether
+		``self`` is valid.
 
-		<p>If <self/> is found to be invalid a warning should be issued through
-		the <pyref module="warnings">Python warning framework</pyref>.</p>
+		If ``self`` is found to be invalid a warning should be issued through
+		the Python warning framework.
 		"""
 
 	@misc.notimplemented
 	def publish(self, publisher):
 		"""
-		<p>Generate unicode strings for the node. <arg>publisher</arg> must be an instance of
-		<pyref module="ll.xist.publishers" class="Publisher"><class>ll.xist.publishers.Publisher</class></pyref>.</p>
+		Generate unicode strings for the node. :var:`publisher` must be an
+		instance of :class:`ll.xist.publishers.Publisher`.
 
-		<p>The encoding and xhtml specification are taken from the <arg>publisher</arg>.</p>
+		The encoding and xhtml specification are taken from the :var:`publisher`.
 		"""
 
 	def iterbytes(self, base=None, publisher=None, **publishargs):
 		"""
-		<p>A generator that will produce this node as a serialized byte string.</p>
+		A generator that will produce this node as a serialized byte string.
 
-		<p>For the possible parameters see the
-		<pyref module="ll.xist.publishers" class="Publisher"><class>ll.xist.publishers.Publisher</class></pyref>
-		constructor.</p>
+		For the possible parameters see the :class:`ll.xist.publishers.Publisher`
+		constructor.
 		"""
 		if publisher is None:
 			publisher = publishers.Publisher(**publishargs)
@@ -935,21 +899,19 @@ class Node(object):
 
 	def bytes(self, base=None, publisher=None, **publishargs):
 		"""
-		<p>Return this node as a serialized byte string.</p>
+		Return ``self`` as a serialized byte string.
 
-		<p>For the possible parameters see the
-		<pyref module="ll.xist.publishers" class="Publisher"><class>ll.xist.publishers.Publisher</class></pyref>
-		constructor.</p>
+		For the possible parameters see the :class:`ll.xist.publishers.Publisher`
+		constructor.
 		"""
 		return "".join(self.iterbytes(base, publisher, **publishargs))
 
 	def iterstring(self, base=None, publisher=None, **publishargs):
 		"""
-		<p>A generator that will produce this node as a serialized byte string.</p>
+		A generator that will produce a serialized byte string of ``self``.
 
-		<p>For the possible parameters see the
-		<pyref module="ll.xist.publishers" class="Publisher"><class>ll.xist.publishers.Publisher</class></pyref>
-		constructor.</p>
+		For the possible parameters see the :class:`ll.xist.publishers.Publisher`
+		constructor.
 		"""
 		if publisher is None:
 			publisher = publishers.Publisher(**publishargs)
@@ -964,11 +926,10 @@ class Node(object):
 
 	def string(self, base=None, publisher=None, **publishargs):
 		"""
-		<p>Return this node as a serialized unicode string.</p>
+		Return a serialized unicode string for ``self``.
 
-		<p>For the possible parameters see the
-		<pyref module="ll.xist.publishers" class="Publisher"><class>ll.xist.publishers.Publisher</class></pyref>
-		constructor.</p>
+		For the possible parameters see the :class:`ll.xist.publishers.Publisher`
+		constructor.
 		"""
 		if publisher is None:
 			publisher = publishers.Publisher(**publishargs)
@@ -978,19 +939,18 @@ class Node(object):
 
 	def write(self, stream, *args, **publishargs):
 		"""
-		<p>Write <self/> to the file-like object <arg>stream</arg> (which must
-		provide a <meth>write</meth> method).</p>
+		Write ``self`` to the file-like object :var:`stream` (which must provide
+		a :meth:`write` method).
 
-		<p>For the rest of the parameters see the
-		<pyref module="ll.xist.publishers" class="Publisher"><class>ll.xist.publishers.Publisher</class></pyref>
-		constructor.</p>
+		For the rest of the parameters see the :class:`ll.xist.publishers.Publisher`
+		constructor.
 		"""
 		for part in self.bytes(*args, **publishargs):
 			stream.write(part)
 
 	def _walk(self, walkfilter, path):
 		"""
-		<p>Internal helper for <pyref method="walk"><meth>walk</meth></pyref>.</p>
+		Internal helper for :meth:`walk`.
 		"""
 		for option in walkfilter.filterpath(path):
 			if option is not entercontent and option is not enterattrs and option:
@@ -998,61 +958,51 @@ class Node(object):
 
 	def walk(self, walkfilter=(True, entercontent)):
 		"""
-		<p>Return an iterator for traversing the tree rooted at <self/>.</p>
+		Return an iterator for traversing the tree rooted at ``self``.
 
-		<p><arg>walkfilter</arg> is used for specifying whether or not a node
-		should be yielded and when the children of this node should be traversed.
-		If <arg>walkfilter</arg> is callable, it will be called for each node
-		visited during the traversal. A path (i.e. a list of all nodes from the
-		root to the current node) will be passed to the filter on each call and
-		the filter must return a sequence of <z>node handling options</z>.
-		If <arg>walkfilter</arg> is not callable, it must be a sequence of node
-		handling options that will be used for all visited nodes.</p>
+		:var:`walkfilter` is used for specifying whether or not a node should be
+		yielded and when the children of this node should be traversed. If
+		:var:`walkfilter` is callable, it will be called for each node visited
+		during the traversal. A path (i.e. a list of all nodes from the root to
+		the current node) will be passed to the filter on each call and the
+		filter must return a sequence of "node handling options". If
+		:var:`walkfilter` is not callable, it must be a sequence of node
+		handling options that will be used for all visited nodes.
 
-		<p>Entries in this returned sequence can be the following:</p>
+		Entries in this returned sequence can be the following:
 
-		<dl>
-		<dt><lit>True</lit></dt><dd>This tells <meth>walk</meth> to
-		yield this node from the iterator.</dd>
-		<dt><lit>False</lit></dt><dd>Don't yield this node from the iterator.</dd>
-		<dt><lit>enterattrs</lit></dt><dd>This is a global constant in
-		<mod>ll.xist.xsc</mod> and tells <meth>walk</meth> to traverse
-		the attributes of this node (if it's an
-		<pyref class="Element"><class>Element</class></pyref>, otherwise this
-		option will be ignored).</dd>
-		<dt><lit>entercontent</lit></dt><dd>This is a global constant in
-		<mod>ll.xist.xsc</mod> and tells <meth>walk</meth> to traverse
-		the child nodes of this node (if it's an
-		<pyref class="Element"><class>Element</class></pyref>, otherwise this
-		option will be ignored).</dd>
-		</dl>
+		:const:`True`
+			This tells :meth:`walk` to yield this node from the iterator.
 
-		<p>These options will be executed in the order they are specified in the
+		:const:`False`
+			Don't yield this node from the iterator.
+
+		:const:`enterattrs`
+			This is a global constant in :mod:`ll.xist.xsc` and tells :meth:`walk`
+			to traverse the attributes of this node (if it's an :class:`Element`,
+			otherwise this option will be ignored).
+
+		:const:`entercontent`
+			This is a global constant in :mod:`ll.xist.xsc` and tells :meth:`walk`
+			to traverse the child nodes of this node (if it's an :class:`Element`,
+			otherwise this option will be ignored).
+
+		These options will be executed in the order they are specified in the
 		sequence, so to get a top down traversal of a tree (without entering
-		attributes), the following call can be made:</p>
+		attributes), ``(True, xsc.entercontent)`` can be used. For a bottom up
+		traversal ``(xsc.entercontent, True)`` can be used.
 
-		<prog>
-		<rep>node</rep>.walk((True, xsc.entercontent))
-		</prog>
-
-		<p>For a bottom up traversal the following call can be made:</p>
-
-		<prog>
-		<rep>node</rep>.walk((xsc.entercontent, True))
-		</prog>
-
-		<p>Each item produced by the iterator is a path list.
-		<meth>walk</meth> reuses this list, so you can't rely on the value
-		of the list being the same across calls to <meth>next</meth>.</p>
+		Each item produced by the iterator is a path list. :meth:`walk` reuses
+		this list, so you can't rely on the value of the list being the same
+		across calls to :meth:`next`.
 		"""
 		return self._walk(makewalkfilter(walkfilter), [self])
 
 	def walknode(self, walkfilter=(True, entercontent)):
 		"""
-		Return an iterator for traversing the tree. <arg>filter</arg> works the
-		same as the <arg>walkfilter</arg> argument for
-		<pyref method="walk"><meth>walk</meth></pyref>.
-		The items produced by the iterator are the nodes themselves.
+		Return an iterator for traversing the tree. :var:`filter` works the same
+		as the :var:`walkfilter` argument for :meth:`walk`. The items produced
+		by the iterator are the nodes themselves.
 		"""
 		walkfilter = makewalkfilter(walkfilter)
 		def iterate(path):
@@ -1062,10 +1012,9 @@ class Node(object):
 
 	def walkpath(self, walkfilter=(True, entercontent)):
 		"""
-		Return an iterator for traversing the tree. <arg>walkfilter</arg> works
-		the same as the <arg>walkfilter</arg> argument for
-		<pyref method="walk"><meth>walk</meth></pyref>. The items produced by
-		the iterator are copies of the path.
+		Return an iterator for traversing the tree. :var:`walkfilter` works
+		the same as the :var:`walkfilter` argument for :meth:`walk`. The items
+		produced by the iterator are copies of the path.
 		"""
 		walkfilter = makewalkfilter(walkfilter)
 		def iterate(path):
@@ -1075,16 +1024,16 @@ class Node(object):
 
 	def compact(self):
 		"""
-		Return a version of <self/>, where textnodes or character references that
-		contain only linefeeds are removed, i.e. potentially needless whitespace
-		is removed.
+		Return a version of ``self``, where textnodes or character references
+		that contain only linefeeds are removed, i.e. potentially needless
+		whitespace is removed.
 		"""
 		return self
 
 	def _decoratenode(self, node):
 		"""
-		Decorate the <pyref class="Node"><class>Node</class></pyref>
-		<arg>node</arg> with the same location information as <self/>.
+		Decorate the :class:`Node` :var:`node` with the same location information
+		as ``self``.
 		"""
 
 		node.startloc = self.startloc
@@ -1093,15 +1042,14 @@ class Node(object):
 
 	def mapped(self, function, converter=None, **converterargs):
 		"""
-		<p>Return the node mapped through the function <arg>function</arg>. This
-		call works recursively (for <pyref class="Frag"><class>Frag</class></pyref>
-		and <pyref class="Element"><class>Element</class></pyref>).</p>
+		Return the node mapped through the function :var:`function`. This call
+		works recursively (for :class:`Frag` and :class:`Element`).
 
-		<p>When you want an unmodified node you simply can return <self/>.
-		<meth>mapped</meth> will make a copy of it and fill the content
-		recursively. Note that element attributes will not be mapped. When you
-		return a different node from <func>function</func> this node will
-		be incorporated into the result as-is.
+		When you want an unmodified node you simply can return ``self``.
+		:meth:`mapped` will make a copy of it and fill the content recursively.
+		Note that element attributes will not be mapped. When you return a
+		different node from :func:`function` this node will be incorporated
+		into the result as-is.
 		"""
 		if converter is None:
 			converter = converters.Converter(**converterargs)
@@ -1111,38 +1059,35 @@ class Node(object):
 
 	def normalized(self):
 		"""
-		<p>Return a normalized version of <self/>, which means that consecutive
-		<pyref class="Text"><class>Text</class> nodes</pyref> are merged.</p>
+		Return a normalized version of ``self``, which means that consecutive
+		:class:`Text` nodes are merged.
 		"""
 		return self
 
 	def __mul__(self, factor):
 		"""
-		<p>Return a <pyref class="Frag"><class>Frag</class></pyref> with
-		<arg>factor</arg> times the node as an entry. Note that the node will not
-		be copied, i.e. it is a <z>shallow <meth>__mul__</meth></z>.</p>
+		Return a :class:`Frag` with :var:`factor` times the node as an entry.
+		Note that the node will not be copied, i.e. this is a
+		"shallow :meth:`__mul__`".
 		"""
 		return Frag(*factor*[self])
 
 	def __rmul__(self, factor):
 		"""
-		<p>Return a <pyref class="Frag"><class>Frag</class></pyref> with
-		<arg>factor</arg> times the node as an entry.</p>
+		Return a :class:`Frag` with :var:`factor` times the node as an entry.
 		"""
 		return Frag(*[self]*factor)
 
 	def pretty(self, level=0, indent="\t"):
 		"""
-		<p>Return a prettyfied version of <self/>, i.e. one with properly
-		nested and indented tags (as far as possible). If an element has mixed
-		content (i.e. <pyref class="Text"><class>Text</class></pyref> and
-		non-<pyref class="Text"><class>Text</class></pyref> nodes) the content
-		will be returned as is.</p>
+		Return a prettyfied version of ``self``, i.e. one with properly nested
+		and indented tags (as far as possible). If an element has mixed content
+		(i.e. :class:`Text` and non-:class:`Text` nodes) the content will be
+		returned as is.
 
-		<p>Note that whitespace will prevent pretty printing too, so
-		you might want to call <pyref method="normalized"><meth>normalized</meth></pyref>
-		and <pyref method="compact"><meth>compact</meth></pyref> before
-		calling <meth>pretty</meth> to remove whitespace.</p>
+		Note that whitespace will prevent pretty printing too, so you might want
+		to call :meth:`normalized` and :meth:`compact` before calling
+		:meth:`pretty` to remove whitespace.
 		"""
 		if level:
 			return Frag(indent*level, self)
@@ -1246,13 +1191,11 @@ if ipipe is not None:
 
 class CharacterData(Node):
 	"""
-	<p>Base class for &xml; character data (<pyref class="Text"><class>Text</class></pyref>,
-	<pyref class="ProcInst"><class>ProcInst</class></pyref>,
-	<pyref class="Comment"><class>Comment</class></pyref> and
-	<pyref class="DocType"><class>DocType</class></pyref>)</p>
+	Base class for XML character data (:class:`Text`, :class:`ProcInst`,
+	:class:`Comment` and :class:`DocType`).
 
-	<p>Provides nearly the same functionality as <class>UserString</class>,
-	but omits a few methods.</p>
+	(Provides nearly the same functionality as :class:`UserString`,
+	but omits a few methods.)
 	"""
 	__slots__ = ("_content",)
 
@@ -1267,7 +1210,7 @@ class CharacterData(Node):
 
 	class content(misc.propclass):
 		"""
-		The text content of the node as a <class>unicode</class> object.
+		The text content of the node as a :class:`unicode` object.
 		"""
 		def __get__(self):
 			return self._content
@@ -1402,9 +1345,9 @@ class CharacterData(Node):
 
 class Text(CharacterData):
 	"""
-	<p>A text node. The characters <markup>&lt;</markup>, <markup>&gt;</markup>, <markup>&amp;</markup>
-	(and <markup>"</markup> inside attributes) will be <z>escaped</z> with the
-	appropriate character entities when this node is published.</p>
+	A text node. The characters ``<``, ``>``, ``&`` (and ``"`` inside
+	attributes) will be "escaped" with the appropriate character entities when
+	this node is published.
 	"""
 
 	def convert(self, converter):
@@ -1431,8 +1374,9 @@ class Text(CharacterData):
 
 class Frag(Node, list):
 	"""
-	<p>A fragment contains a list of nodes and can be used for dynamically constructing content.
-	The member <lit>content</lit> of an <pyref class="Element"><class>Element</class></pyref> is a <class>Frag</class>.</p>
+	A fragment contains a list of nodes and can be used for dynamically
+	constructing content. The attribute :attr:`content` of an :class:`Element`
+	is a :class:`Frag`.
 	"""
 
 	def __init__(self, *content):
@@ -1467,16 +1411,16 @@ class Frag(Node, list):
 
 	def _create(self):
 		"""
-		<p>internal helper that is used to create an empty clone of <self/>.
-		This is overwritten by <pyref class="Attr"><class>Attr</class></pyref>
-		to insure that attributes don't get initialized with the default
-		value when used in various methods that create new attributes.</p>
+		internal helper that is used to create an empty clone of ``self``.
 		"""
+		# This is overwritten by :class:`Attr` to insure that attributes don't
+		# get initialized with the default value when used in various methods
+		# that create new attributes.
 		return self.__class__()
 
 	def clear(self):
 		"""
-		Make <self/> empty.
+		Make ``self`` empty.
 		"""
 		del self[:]
 
@@ -1495,7 +1439,7 @@ class Frag(Node, list):
 
 	def __copy__(self):
 		"""
-		helper for the <pyref module="copy"><mod>copy</mod></pyref> module.
+		helper for the :mod:`copy` module.
 		"""
 		node = self._create()
 		list.extend(node, self)
@@ -1503,7 +1447,7 @@ class Frag(Node, list):
 
 	def __deepcopy__(self, memo=None):
 		"""
-		helper for the <pyref module="copy"><mod>copy</mod></pyref> module.
+		helper for the :mod:`copy` module.
 		"""
 		node = self._create()
 		if memo is None:
@@ -1528,9 +1472,10 @@ class Frag(Node, list):
 
 	def __getitem__(self, index):
 		"""
-		<p>Return the <arg>index</arg>'th node for the content of the fragment.
-		If <arg>index</arg> is a list <meth>__getitem__</meth> will work
-		recursively. If <arg>index</arg> is an empty list, <self/> will be returned.</p>
+		Return the :var:`index`'th node for the content of the fragment. If
+		:var:`index` is a list :meth:`__getitem__` will work recursively.
+		If :var:`index` is an empty list, ``self`` will be returned.
+		:meth:`__getitem__` also supports walk filters.
 		"""
 		if isinstance(index, list):
 			node = self
@@ -1552,11 +1497,12 @@ class Frag(Node, list):
 
 	def __setitem__(self, index, value):
 		"""
-		<p>Allows you to replace the <arg>index</arg>'th content node of the fragment
-		with the new value <arg>value</arg> (which will be converted to a node).
-		If  <arg>index</arg> is a list <meth>__setitem__</meth> will be applied
-		to the innermost index after traversing the rest of <arg>index</arg> recursively.
-		If <arg>index</arg> is an empty list, an exception will be raised.</p>
+		Allows you to replace the :var:`index`'th content node of the fragment
+		with the new value :var:`value` (which will be converted to a node).
+		If  :var:`index` is a list :meth:`__setitem__` will be applied to the
+		innermost index after traversing the rest of :var:`index` recursively.
+		If :var:`index` is an empty list, an exception will be raised.
+		:meth:`__setitem__` also supports walk filters.
 		"""
 		if isinstance(index, list):
 			if not index:
@@ -1589,13 +1535,12 @@ class Frag(Node, list):
 
 	def __delitem__(self, index):
 		"""
-		<p>Remove the <arg>index</arg>'th content node from the fragment
-		If <arg>index</arg> is a list, the innermost index will be deleted,
-		after traversing the rest of <arg>index</arg> recursively.
-		If <arg>index</arg> is an empty list, an exception will be raised.
-		Anything except <class>list</class>s, <class>int</class>s and
-		slices will be turned into a walk filter and any child node matching
-		this filter will be deleted from <self/>.</p>
+		Remove the :var:`index`'th content node from the fragment If :var:`index`
+		is a list, the innermost index will be deleted, after traversing the rest
+		of :var:`index` recursively. If :var:`index` is an empty list, an
+		exception will be raised. Anything except :class:`list`, :class:`int` and
+		:class:`slice` objects will be turned into a walk filter and any child
+		node matching this filter will be deleted from ``self``.
 		"""
 		if isinstance(index, list):
 			if not index:
@@ -1628,9 +1573,9 @@ class Frag(Node, list):
 
 	def __mul__(self, factor):
 		"""
-		Return a <pyref class="Frag"><class>Frag</class></pyref> with
-		<arg>factor</arg> times the content of <self/>. Note that no copies of the
-		content will be generated, so this is a <z>shallow <meth>__mul__</meth></z>.
+		Return a :class:`Frag` with :var:`factor` times the content of ``self``.
+		Note that no copies of the content will be generated, so this is a
+		"shallow :meth:`__mul__`".
 		"""
 		node = self._create()
 		list.extend(node, list.__mul__(self, factor))
@@ -1646,7 +1591,7 @@ class Frag(Node, list):
 
 	def append(self, *others):
 		"""
-		<p>Append every item in <arg>others</arg> to <self/>.</p>
+		Append every item in :var:`others` to ``self``.
 		"""
 		for other in others:
 			other = tonode(other)
@@ -1657,14 +1602,14 @@ class Frag(Node, list):
 
 	def extend(self, items):
 		"""
-		<p>Append all items from the sequence <arg>items</arg> to <self/>.</p>
+		Append all items from the sequence :var:`items` to ``self``.
 		"""
 		self.append(items)
 
 	def insert(self, index, *others):
 		"""
-		<p>Insert all items in <arg>others</arg> at the position <arg>index</arg>.
-		(this is the same as <lit><self/>[<arg>index</arg>:<arg>index</arg>] = <arg>others</arg></lit>)
+		Insert all items in :var:`others` at the position :var:`index`. (this is
+		the same as ``self[index:index] = others``)
 		"""
 		other = Frag(*others)
 		list.__setslice__(self, index, index, other)
@@ -1688,10 +1633,11 @@ class Frag(Node, list):
 
 	def withsep(self, separator, clone=False):
 		"""
-		<p>Return a version of <self/> with a separator node between the nodes of <self/>.</p>
+		Return a version of ``self`` with a separator node between the nodes of
+		``self``.
 
-		<p>if <arg>clone</arg> is false one node will be inserted several times,
-		if <arg>clone</arg> is true, clones of this node will be used.</p>
+		if :var:`clone` is false one node will be inserted several times, if
+		:var:`clone` is true, clones of this node will be used.
 		"""
 		node = self._create()
 		newseparator = tonode(separator)
@@ -1705,15 +1651,15 @@ class Frag(Node, list):
 
 	def sorted(self, cmp=None, key=None, reverse=False):
 		"""
-		<p>Return a sorted version of the <self/>. <arg>cmp</arg>, <arg>key</arg>
-		and <arg>reverse</arg> have to same meaning as for the builtin function
-		<func>sorted</func>.
+		Return a sorted version of the ``self``. :var:`cmp`, :var:`key` and
+		:var:`reverse` have to same meaning as for the builtin function
+		:func:`sorted`.
 		"""
 		return self.__class__(sorted(self, cmp, key, reverse))
 
 	def reversed(self):
 		"""
-		<p>Return a reversed version of the <self/>.</p>
+		Return a reversed version of the ``self``.
 		"""
 		node = list(self)
 		node.reverse()
@@ -1721,9 +1667,9 @@ class Frag(Node, list):
 
 	def filtered(self, function):
 		"""
-		<p>Return a filtered version of the <self/>, i.e. a copy of <self/>,
-		where only content nodes for which <func>function</func> returns
-		true will be copied.</p>
+		Return a filtered version of the ``self``, i.e. a copy of ``self``,
+		where only content nodes for which :func:`function` returns true will
+		be copied.
 		"""
 		node = self._create()
 		list.extend(node, (child for child in self if function(child)))
@@ -1731,8 +1677,8 @@ class Frag(Node, list):
 
 	def shuffled(self):
 		"""
-		<p>Return a shuffled version of <self/>, i.e. a copy of <self/> where
-		the content nodes are randomly reshuffled.</p>
+		Return a shuffled version of ``self``, i.e. a copy of ``self`` where the
+		content nodes are randomly reshuffled.
 		"""
 		content = list(self)
 		node = self._create()
@@ -1788,7 +1734,7 @@ class Frag(Node, list):
 
 class Comment(CharacterData):
 	"""
-	An &xml; comment.
+	An XML comment.
 	"""
 
 	def convert(self, converter):
@@ -1818,7 +1764,7 @@ class _DocType_Meta(Node.__metaclass__):
 
 class DocType(CharacterData):
 	"""
-	An &xml; document type declaration.
+	An XML document type declaration.
 	"""
 
 	__metaclass__ = _DocType_Meta
@@ -1853,10 +1799,10 @@ class _ProcInst_Meta(Node.__metaclass__):
 
 class ProcInst(CharacterData):
 	"""
-	<p>Base class for processing instructions. This class is abstract.</p>
+	Base class for processing instructions.
 
-	<p>Processing instructions for specific targets must
-	be implemented as subclasses of <class>ProcInst</class>.</p>
+	Processing instructions for specific targets must be implemented as
+	subclasses of :class:`ProcInst`.
 	"""
 	__metaclass__ = _ProcInst_Meta
 
@@ -1952,33 +1898,31 @@ class _Attr_Meta(Frag.__metaclass__):
 
 class Attr(Frag):
 	"""
-	<p>Base class of all attribute classes.</p>
+	Base class of all attribute classes.
 
-	<p>The content of an attribute may be any other &xist; node. This is different from
-	a normal &dom;, where only text and character references are allowed. The reason for
-	this is to allow dynamic content (implemented as elements or processing instructions)
-	to be put into attributes.</p>
+	The content of an attribute may be any other XIST node. This is different
+	from a normal DOM, where only text and character references are allowed.
+	The reason for this is to allow dynamic content (implemented as elements or
+	processing instructions) to be put into attributes.
 
-	<p>Of course, this dynamic content when finally converted to &html; will normally result in
-	a fragment consisting only of text and character references. But note that it is allowed
-	to have elements and processing instructions inside of attributes even when publishing.
-	Processing instructions will be published as is and for elements their content will be
-	published.</p>
-	<example><h>Elements inside attributes</h>
-	<tty>
-	<prompt>&gt;&gt;&gt; </prompt><input>from ll.xist.ns import html, php</input>
-	<prompt>&gt;&gt;&gt; </prompt><input>node = html.img(</input>
-	<prompt>... </prompt><input>   src=php.php("echo 'eggs.gif'"),</input>
-	<prompt>... </prompt><input>   alt=html.abbr(</input>
-	<prompt>... </prompt><input>      "EGGS",</input>
-	<prompt>... </prompt><input>      title="Extensible Graphics Generation System",</input>
-	<prompt>... </prompt><input>      lang="en"</input>
-	<prompt>... </prompt><input>   )</input>
-	<prompt>... </prompt><input>)</input>
-	&gt;&gt;&gt; print node.bytes()
-	&lt;img alt="EGGS" src="&lt;?php echo 'eggs.gif'?&gt;" /&gt;
-	</tty>
-	</example>
+	Of course, this dynamic content when finally converted to HTML should
+	normally result in a fragment consisting only of text and character
+	references. But note that it is allowed to have elements and processing
+	instructions inside of attributes even when publishing. Processing
+	instructions will be published as is and for elements their content will be
+	published::
+
+		>>> from ll.xist.ns import html, php
+		>>> node = html.img(
+		...    src=php.php("echo 'eggs.gif'"),
+		...    alt=html.abbr(
+		...       "EGGS",
+		...       title="Extensible Graphics Generation System",
+		...       lang="en"
+		...    )
+		... )
+		>>> print node.bytes()
+		<img alt="EGGS" src="<?php echo 'eggs.gif'?>" />
 	"""
 	__metaclass__ = _Attr_Meta
 	required = False
@@ -1987,8 +1931,7 @@ class Attr(Frag):
 
 	def isfancy(self):
 		"""
-		<p>Return whether <self/> contains nodes other than
-		<pyref class="Text"><class>Text</class></pyref>.</p>
+		Return whether ``self`` contains nodes other than :class:`Text`.
 		"""
 		for child in self:
 			if not isinstance(child, Text):
@@ -2004,12 +1947,12 @@ class Attr(Frag):
 
 	def checkvalid(self):
 		"""
-		<p>Check whether <self/> has an allowed value, i.e. one
-		that is specified in the class attribute <lit>values</lit>.
-		If the value is not allowed a warning will be issued through
-		the Python warning framework.</p>
-		<p>If <self/> is <pyref method="isfancy">isfancy</pyref>,
-		no check will be done.</p>
+		Check whether ``self`` has an allowed value, i.e. one that is specified
+		in the class attribute ``values``. If the value is not allowed a warning
+		will be issued through the Python warning framework.
+
+		If ``self`` is "fancy" (i.e. contains non-:class:`Text` nodes), no check
+		will be done.
 		"""
 		values = self.__class__.values
 		if len(self) and isinstance(values, tuple) and not self.isfancy():
@@ -2036,7 +1979,8 @@ class Attr(Frag):
 
 	def _publishattrvalue(self, publisher):
 		# Internal helper that is used to publish the attribute value
-		# (can be overwritten in subclass (done by e.g. StyleAttr and URLAttr)
+		# (can be overwritten in subclass (done by e.g. :class:`StyleAttr` and
+		# :class:`URLAttr`)
 		return Frag.publish(self, publisher)
 
 	def publish(self, publisher):
@@ -2069,41 +2013,41 @@ class Attr(Frag):
 
 class TextAttr(Attr):
 	"""
-	<p>Attribute class that is used for normal text attributes.</p>
+	Attribute class that is used for normal text attributes.
 	"""
 
 
 class IDAttr(Attr):
 	"""
-	<p>Attribute used for ids.</p>
+	Attribute used for ids.
 	"""
 
 
 class NumberAttr(Attr):
 	"""
-	<p>Attribute class that is used for when the attribute value may be any kind
-	of number.</p>
+	Attribute class that is used for when the attribute value may be any kind
+	of number.
 	"""
 
 
 class IntAttr(NumberAttr):
 	"""
-	<p>Attribute class that is used when the attribute value may be an
-	integer.</p>
+	Attribute class that is used when the attribute value may be an
+	integer.
 	"""
 
 
 class FloatAttr(NumberAttr):
 	"""
-	<p>Attribute class that is used when the attribute value may be a
-	floating point value.</p>
+	Attribute class that is used when the attribute value may be a
+	floating point value.
 	"""
 
 
 class BoolAttr(Attr):
 	"""
-	<p>Attribute class that is used for boolean attributes. When publishing
-	the value will always be the attribute name, regardless of the real value.</p>
+	Attribute class that is used for boolean attributes. When publishing
+	the value will always be the attribute name, regardless of the real value.
 	"""
 
 	# We can't simply overwrite _publishattrvalue(), because for xhtml==0 we don't output a "proper" attribute
@@ -2124,13 +2068,13 @@ class BoolAttr(Attr):
 
 class ColorAttr(Attr):
 	"""
-	<p>Attribute class that is used for a color attributes.</p>
+	Attribute class that is used for a color attributes.
 	"""
 
 
 class StyleAttr(Attr):
 	"""
-	<p>Attribute class that is used for &css; style attributes.</p>
+	Attribute class that is used for CSS style attributes.
 	"""
 
 	def _transform(self, replacer):
@@ -2160,8 +2104,8 @@ class StyleAttr(Attr):
 
 	def urls(self, base=None):
 		"""
-		<p>Return a list of all the <pyref module="ll.url" class="URL"><class>URL</class></pyref>s
-		found in the style attribute.</p>
+		Return a list of all the URLs (as :class:`URL` objects) found in the style
+		attribute.
 		"""
 		from ll.xist import css
 		urls = []
@@ -2175,8 +2119,8 @@ class StyleAttr(Attr):
 
 class URLAttr(Attr):
 	"""
-	<p>Attribute class that is used for &url;s. See the module <pyref module="ll.url"><mod>ll.url</mod></pyref>
-	for more information about &url; handling.</p>
+	Attribute class that is used for URLs. See the module :mod:`ll.url` for more
+	information about URL handling.
 	"""
 
 	def parsed(self, parser, start=None):
@@ -2191,18 +2135,17 @@ class URLAttr(Attr):
 
 	def asURL(self):
 		"""
-		<p>Return <self/> as a <pyref module="ll.url" class="URL"><class>URL</class></pyref>
-		instance (note that non-character content will be filtered out).</p>
+		Return ``self`` as a :class:`URL` object (note that non-:class:`Text`
+		content will be filtered out).
 		"""
 		return url_.URL(Attr.__unicode__(self))
 
 	def forInput(self, root=None):
 		"""
-		<p>return a <pyref module="ll.url" class="URL"><class>URL</class></pyref> pointing
-		to the real location of the referenced resource. <arg>root</arg> must be the
-		root &url; relative to which <self/> will be interpreted and usually
-		comes from the <lit>root</lit> attribute of the <arg>converter</arg> argument in
-		<pyref class="Node" method="convert"><meth>convert</meth></pyref>.</p>
+		return a :class:`URL` pointing to the real location of the referenced
+		resource. :var:`root` must be the root URL relative to which ``self``
+		will be interpreted and usually comes from the ``root`` attribute of the
+		:var:`converter` argument in :meth:`convert`.
 		"""
 		u = self.asURL()
 		if u.scheme == "root":
@@ -2230,15 +2173,13 @@ class URLAttr(Attr):
 
 	def openread(self, root=None):
 		"""
-		Return a <pyref module="ll.url" class="ReadResource"><class>ReadResource</class></pyref>
-		for reading from the &url;.
+		Return a :class:`Resource` for reading from the URL.
 		"""
 		return self.forInput(root).openread()
 
 	def openwrite(self, root=None):
 		"""
-		Return a <pyref module="ll.url" class="WriteResource"><class>WriteResource</class></pyref>
-		for writing to the &url;.
+		Return a :class:`Resource` for writing to the URL.
 		"""
 		return self.forInput(root).openwrite()
 
@@ -2271,8 +2212,8 @@ class _Attrs_Meta(Node.__metaclass__):
 
 class Attrs(Node, dict):
 	"""
-	<p>An attribute map. Allowed entries are specified through nested subclasses
-	of <pyref class="Attr"><class>Attr</class></pyref>.</p>
+	An attribute map. Allowed entries are specified through nested subclasses
+	of :class:`Attr`.
 	"""
 	__metaclass__ = _Attrs_Meta
 
@@ -2365,11 +2306,8 @@ class Attrs(Node, dict):
 
 	def checkvalid(self):
 		# collect required attributes
-		attrs = set()
-		for value in self.allowedattrs():
-			if value.required:
-				attrs.add(value)
-		# Check each attribute and remove it from the list of required ones
+		attrs = set(value for value in self.allowedattrs() if value.required)
+		# Check each existing attribute and remove it from the list of required ones
 		for value in self.values():
 			value.checkvalid()
 			try:
@@ -2468,9 +2406,9 @@ class Attrs(Node, dict):
 
 	def has(self, name):
 		"""
-		<p>return whether <self/> has an attribute with a Python name <arg>name</arg>.
-		<arg>name</arg> may also be an attribute class (either from <lit><self/>.Attrs</lit>
-		are a global attribute).</p>
+		Return whether ``self`` has an attribute with a Python name :var:`name`.
+		:var:`name` may also be an attribute class (either from ``self.Attrs``
+		or a global attribute).
 		"""
 		try:
 			attr = dict.__getitem__(self, self.allowedattr(name))
@@ -2480,9 +2418,8 @@ class Attrs(Node, dict):
 
 	def has_xml(self, name):
 		"""
-		<p>return whether <self/> has an attribute with an XML name <arg>name</arg>.
-		<arg>name</arg> may also be an attribute class (either from <lit><self/>.Attrs</lit>
-		or for a global attribute).</p>
+		Similar to :meth:`has`, but :var:`name` is treated as the XML name
+		instead of the Python name.
 		"""
 		try:
 			attr = dict.__getitem__(self, self.allowedattr_xml(name))
@@ -2495,11 +2432,10 @@ class Attrs(Node, dict):
 
 	def get(self, name, default=None):
 		"""
-		<p>works like the dictionary method <meth>get</meth>,
-		it returns the attribute with the Python name <arg>name</arg>,
-		or <arg>default</arg> if <self/> has no such attribute.
-		<arg>name</arg> may also be an attribute class (either from
-		<lit><self/>.Attrs</lit> or for a global attribute).</p>
+		works like the dictionary method :meth:`get`, it returns the attribute
+		with the Python name :var:`name`, or :var:`default` if ``self`` has no
+		such attribute. :var:`name` may also be an attribute class (either from
+		``self.Attrs`` or a global attribute).
 		"""
 		attr = self.attr(name)
 		if not attr:
@@ -2508,11 +2444,8 @@ class Attrs(Node, dict):
 
 	def get_xml(self, name, default=None):
 		"""
-		<p>works like the dictionary method <meth>get</meth>,
-		it returns the attribute with the XML name <arg>name</arg>,
-		or <arg>default</arg> if <self/> has no such attribute.
-		<arg>name</arg> may also be an attribute class (either from
-		<lit><self/>.Attrs</lit> or for a global attribute).</p>
+		Similar to :meth:`get`, but :var:`name` is treated as the XML name
+		instead of the Python name.
 		"""
 		attr = self.attr_xml(name)
 		if not attr:
@@ -2521,9 +2454,9 @@ class Attrs(Node, dict):
 
 	def set(self, name, value):
 		"""
-		<p>Set the attribute with the Python <arg>name</arg> to the value <arg>value</arg>.
-		<arg>name</arg> may be a string or an attribute class.</p>
-		<p>The newly set attribute will be returned.</p>
+		Set the attribute with the Python :var:`name` to the value :var:`value`.
+		:var:`name` may be a string or an attribute class. The newly set attribute
+		will be returned.
 		"""
 		attr = self.allowedattr(name)
 		value = attr(value)
@@ -2532,8 +2465,8 @@ class Attrs(Node, dict):
 
 	def set_xml(self, name, value):
 		"""
-		<p>Set the attribute with the XML <arg>name</arg> to the value <arg>value</arg>.</p>
-		<p>The newly set attribute will be returned.</p>
+		Similar to :meth:`set`, but :var:`name` is treated as the XML name
+		instead of the Python name.
 		"""
 		attr = self.allowedattr_xml(name)
 		value = attr(value)
@@ -2542,10 +2475,10 @@ class Attrs(Node, dict):
 
 	def setdefault(self, name, default):
 		"""
-		<p>works like the dictionary method <meth>setdefault</meth>,
-		it returns the attribute with the Python name <arg>name</arg>.
-		If <self/> has no such attribute, it will be set to <arg>default</arg>
-		and <arg>default</arg> will be returned as the new attribute value.</p>
+		Works like the dictionary method :meth:`setdefault`, it returns the
+		attribute with the Python name :var:`name`. If ``self`` has no such
+		attribute, it will be set to :var:`default` and :var:`default` will be
+		returned as the new attribute value.
 		"""
 		value = self.attr(name)
 		if not value:
@@ -2556,10 +2489,8 @@ class Attrs(Node, dict):
 
 	def setdefault_xml(self, name, default):
 		"""
-		<p>works like the dictionary method <meth>setdefault</meth>,
-		it returns the attribute with the XML name <arg>name</arg>.
-		If <self/> has no such attribute, it will be set to <arg>default</arg>
-		and <arg>default</arg> will be returned as the new attribute value.</p>
+		Similar to :meth:`setdefault`, but :var:`name` is treated as the XML name
+		instead of the Python name.
 		"""
 		value = self.attr_xml(name)
 		if not value:
@@ -2570,7 +2501,8 @@ class Attrs(Node, dict):
 
 	def update(self, *args, **kwargs):
 		"""
-		Copies attributes over from all mappings in <arg>args</arg> and from <arg>kwargs</arg>.
+		Copies attributes over from all mappings in :var:`args` and from
+		:var:`kwargs`.
 		"""
 		for mapping in args + (kwargs,):
 			if mapping is not None:
@@ -2585,7 +2517,7 @@ class Attrs(Node, dict):
 	@classmethod
 	def allowedattrs(cls):
 		"""
-		<p>Return an iterator over all allowed attribute classes.
+		Return an iterator over all allowed attribute classes.
 		"""
 		return cls._bypyname.itervalues()
 
@@ -2679,7 +2611,7 @@ class Attrs(Node, dict):
 
 	def filtered(self, function):
 		"""
-		returns a filtered version of the <self/>.
+		Return a filtered version of the ``self``.
 		"""
 		node = self._create()
 		for (name, value) in self.items():
@@ -2711,8 +2643,8 @@ class Attrs(Node, dict):
 
 	def withnames(self, *names):
 		"""
-		<p>Return a copy of <self/> where only the attributes with Python names
-		in <arg>names</arg> are kept, all others are removed.</p>
+		Return a copy of ``self`` where only the attributes with Python names
+		in :var:`names` are kept, all others are removed.
 		"""
 		def isok(node):
 			return isinstance(node, names)
@@ -2722,8 +2654,8 @@ class Attrs(Node, dict):
 
 	def withnames_xml(self, *names):
 		"""
-		<p>Return a copy of <self/> where only the attributes with XML names
-		in <arg>names</arg> are kept, all others are removed.</p>
+		Return a copy of ``self`` where only the attributes with XML names
+		in :var:`names` are kept, all others are removed.
 		"""
 		def isok(node):
 			return isinstance(node, names)
@@ -2733,8 +2665,8 @@ class Attrs(Node, dict):
 
 	def withoutnames(self, *names):
 		"""
-		<p>Return a copy of <self/> where all the attributes with Python names
-		in <arg>names</arg> are removed.</p>
+		Return a copy of ``self`` where all the attributes with Python names
+		in :var:`names` are removed.
 		"""
 		def isok(node):
 			return not isinstance(node, names)
@@ -2744,8 +2676,8 @@ class Attrs(Node, dict):
 
 	def withoutnames_xml(self, *names):
 		"""
-		<p>Return a copy of <self/> where all the attributes with XML names
-		in <arg>names</arg> are removed.</p>
+		Return a copy of ``self`` where all the attributes with XML names
+		in :var:`names` are removed.
 		"""
 		def isok(node):
 			return not isinstance(node, names)
@@ -2769,7 +2701,7 @@ class Attrs(Node, dict):
 
 
 def _patchclassnames(dict, name):
-	# If an Attrs class has been provided patch up its class names
+	# If an :class:`Attrs` class has been provided patch up its class names
 	try:
 		attrs = dict["Attrs"]
 	except KeyError:
@@ -2806,32 +2738,32 @@ class _Element_Meta(Node.__metaclass__):
 
 class Element(Node):
 	"""
-	<p>This class represents &xml;/&xist; elements. All elements implemented
-	by the user must be derived from this class.</p>
+	This class represents XML/XIST elements. All elements implemented by the
+	user must be derived from this class.
 
-	<p>Elements support the following class variables:</p>
-	<dl>
-	<dt><lit>model</lit></dt><dd>This is an object that is used for
-	validating the content of the element. See the module
-	<pyref module="ll.xist.sims"><mod>ll.xist.sims</mod></pyref>
-	for more info. If <lit>model</lit> is <lit>None</lit> validation will
-	be skipped, otherwise it will be performed when parsing or publishing.</dd>
+	Elements support the following class variables:
 
-	<dt><lit>Attrs</lit></dt><dd>This is a class derived from
-	<pyref class="Element.Attrs"><class>Element.Attrs</class></pyref>
-	and should define all attributes as classes nested inside this
-	<class>Attrs</class> class.</dd>
+	:attr:`model` : object with :meth:`checkvalid` method
+		This is an object that is used for validating the content of the element.
+		See the module :mod:`ll.xist.sims` for more info. If ``model`` is
+		:const:`None` validation will be skipped, otherwise it will be performed
+		when parsing or publishing.
 
-	<dt><lit>xmlns</lit></dt><dd>This is the name of the namespace this
-	element belong to.</dd>
+	:attr:`Attrs` : :class:`Element.Attrs` subclass
+		This is a class derived from :class:`Element.Attrs` and must define all
+		attributes as classes nested inside this :class:`Attrs` class.
 
-	<dt><lit>register</lit></dt><dd>If <lit>register</lit> is false the
-	element won't be registered with the parser.</dd>
+	:attr:`xmlns` : string
+		This is the name of the namespace this element belong to.
 
-	<dt><lit>xmlname</lit></dt><dd>If the class name has to be different
-	from the &xml; name (e.g. because the &xml; name is not a valid Python identifier)
-	<lit>xmlname</lit> can be used to specify the real &xml; name.</dd>
-	</dl>
+	:attr:`register` : bool
+		If :attr:`register` is false the element will never be registered in a
+		:class:`Pool`. The default is :const:`True`.
+
+	:attr:`xmlname` : string
+		If the class name has to be different from the XML name (e.g. because the
+		XML name is not a valid Python identifier) :attr:`xmlname` can be used to
+		specify the real XML name. Otherwise the XML name will be the Python name.
 	"""
 	__metaclass__ = _Element_Meta
 
@@ -2840,22 +2772,12 @@ class Element(Node):
 
 	Attrs = Attrs
 
-	def __enter__(self):
-		stack = getstack()
-		if stack:
-			stack[-1].append(self)
-		stack.append(self)
-		return self
-
-	def __exit__(self, type, value, traceback):
-		getstack().pop()
-
 	def __init__(self, *content, **attrs):
 		"""
-		<p>Create a new <class>Element</class> instance.</p>
+		Create a new :class:`Element` instance.
 
-		<p>positional arguments are treated as content nodes.
-		Keyword arguments and dictionaries are treated as attributes.</p>
+		Positional arguments are treated as content nodes. Keyword arguments and
+		dictionaries are treated as attributes.
 		"""
 		self.attrs = self.Attrs()
 		newcontent = []
@@ -2890,7 +2812,33 @@ class Element(Node):
 				key = obj
 			self.attrs[key] = value
 
+	def __enter__(self):
+		"""
+		:class:`Element` nodes can be used in with blocks to build XIST trees.
+		Inside a with block ``+`` and :func:`add` can be used to append node to
+		the currently active element in the with block::
+
+			with html.ul() as node:
+				+html.li("I hear and I forget.")
+				+html.li("I see and I believe.")
+				+html.li("I do and I understand.")
+				xsc.add(class_="quote")
+			print node.bytes()
+		"""
+		stack = getstack()
+		if stack:
+			stack[-1].append(self)
+		stack.append(self)
+		return self
+
+	def __exit__(self, type, value, traceback):
+		getstack().pop()
+
 	def __call__(self, *content, **attrs):
+		"""
+		Calling an element add items in :var:`content` to the element content
+		and set attributes from :var:`attrs`. The element itself will be returned.
+		"""
 		for child in content:
 			if isinstance(child, dict):
 				self.attrs.update(child)
@@ -2920,19 +2868,19 @@ class Element(Node):
 
 	def append(self, *items):
 		"""
-		<p>Append every item in <arg>items</arg> to the element content.</p>
+		Append every item in :var:`items` to the element content.
 		"""
 		self.content.append(*items)
 
 	def extend(self, items):
 		"""
-		<p>Append all items in <arg>items</arg> to element content.</p>
+		Append all items in :var:`items` to element content.
 		"""
 		self.content.extend(items)
 
 	def insert(self, index, *items):
 		"""
-		<p>Insert every item in <arg>items</arg> at the position <arg>index</arg>.</p>
+		Insert every item in :var:`items` at the position :var:`index`.
 		"""
 		self.content.insert(index, *items)
 
@@ -2944,7 +2892,7 @@ class Element(Node):
 
 	def clone(self):
 		node = self.__class__() # "virtual" constructor
-		node.content = self.content.clone() # this is faster than passing it in the constructor (no tonode call)
+		node.content = self.content.clone() # this is faster than passing it in the constructor (no :func:`tonode` call)
 		node.attrs = self.attrs.clone()
 		return self._decoratenode(node)
 
@@ -2968,12 +2916,13 @@ class Element(Node):
 
 	def _addimagesizeattributes(self, url, widthattr=None, heightattr=None):
 		"""
-		<p>Automatically set image width and height attributes.</p>
+		Automatically set image width and height attributes.
 
-		<p>The size of the image with the &url; <arg>url</arg> will be determined and
-		the width of the image will be put into the attribute with the name <arg>widthattr</arg>
-		if <arg>widthattr</arg> is not <lit>None</lit> and the attribute is not set. The
-		same will happen for the height, which will be put into the <arg>heighattr</arg>.</p>
+		The size of the image with the URL :var:`url` will be determined and the
+		width of the image will be put into the attribute with the name
+		:var:`widthattr` if :var:`widthattr` is not :const:`None` and the
+		attribute is not set already. The same will happen for the height, which
+		will be put into the attribute named :var:`heighattr`.
 		"""
 
 		try:
@@ -2999,8 +2948,8 @@ class Element(Node):
 	def _publishfull(self, publisher):
 		"""
 		Does the full publication of the element. If you need full elements
-		inside attributes (e.g. for &jsp; tag libraries), you can overwrite
-		<meth>publish</meth> and simply call this method.
+		inside attributes (e.g. for JSP tag libraries), you can overwrite
+		:meth:`publish` and simply call this method.
 		"""
 		name = self._publishname(publisher)
 		yield publisher.encode(u"<")
@@ -3052,12 +3001,13 @@ class Element(Node):
 
 	def __getitem__(self, index):
 		"""
-		<p>If <arg>index</arg> is a string, return the attribute with this (Python) name.</p>
-		<p>If <arg>index</arg> is a tuple consisting of a namespace and a string,
-		return the global attribute with this (Python) name.</p>
-		<p>If <arg>index</arg> is a number return the appropriate content node.</p>
-		<p><arg>index</arg> may also be a list, in with case <meth>__getitem__</meth>
-		will be applied recusively.</p>
+		If :var:`index` is a string, return the attribute with this (Python)
+		name. If :var:`index` is an attribute class, return the attribute
+		that is an instance of this class. If :var:`index` is a number or slice
+		return the appropriate content node. :var:`index` may also be a list, in
+		with case :meth:`__getitem__` will be applied recusively.
+		:meth:`__getitem__` also supports walk filters.
+
 		"""
 		if isinstance(index, (basestring, _Attr_Meta)):
 			return self.attrs[index]
@@ -3074,8 +3024,8 @@ class Element(Node):
 
 	def __setitem__(self, index, value):
 		"""
-		<p>Set an attribute or content node to the value <arg>value</arg>.</p>
-		<p>For possible types for <arg>index</arg> see <pyref method="__getitem__"><meth>__getitem__</meth></pyref>.</p>
+		Set an attribute or content node to the value :var:`value`. For possible
+		types for :var:`index` see :meth:`__getitem__`.
 		"""
 		if isinstance(index, (basestring, _Attr_Meta)):
 			self.attrs[index] = value
@@ -3096,8 +3046,8 @@ class Element(Node):
 
 	def __delitem__(self, index):
 		"""
-		<p>Remove an attribute or content node.</p>
-		<p>For possible types for <arg>index</arg> see <pyref method="__getitem__"><meth>__getitem__</meth></pyref>.</p>
+		Remove an attribute or content node. For possible types for :var:`index`
+		see :meth:`__getitem__`.
 		"""
 		if isinstance(index, (basestring, _Attr_Meta)):
 			del self.attrs[index]
@@ -3109,19 +3059,19 @@ class Element(Node):
 
 	def __getslice__(self, index1, index2):
 		"""
-		Returns a copy of the element that contains a slice of the content.
+		Return a copy of the element that contains a slice of the content.
 		"""
 		return self.content[index1:index2]
 
 	def __setslice__(self, index1, index2, sequence):
 		"""
-		Replaces a slice of the content of the element.
+		Replace a slice of the content of the element.
 		"""
 		self.content[index1:index2] = sequence
 
 	def __delslice__(self, index1, index2):
 		"""
-		Removes a slice of the content of the element.
+		Remove a slice of the content of the element.
 		"""
 		del self.content[index1:index2]
 
@@ -3131,7 +3081,7 @@ class Element(Node):
 
 	def __len__(self):
 		"""
-		return the number of children.
+		Return the number of children.
 		"""
 		return len(self.content)
 
@@ -3157,9 +3107,8 @@ class Element(Node):
 
 	def withsep(self, separator, clone=False):
 		"""
-		<p>returns a version of <self/> with a separator node between the child
-		nodes of <self/>. For more info see
-		<pyref class="Frag" method="withsep"><meth>Frag.withsep</meth></pyref>.</p>
+		Return a version of ``self`` with a separator node between the child
+		nodes of ``self``. For more info see :meth:`Frag.withsep`.
 		"""
 		node = self.__class__()
 		node.attrs = self.attrs.clone()
@@ -3168,9 +3117,9 @@ class Element(Node):
 
 	def sorted(self, cmp=None, key=None, reverse=False):
 		"""
-		returns a sorted version of <self/>. <arg>compare</arg> is a comparison
-		function. If <arg>compare</arg> is omitted, the character content will
-		be compared.
+		Return a sorted version of ``self``. :var:`compare` is a comparison
+		function. The arguments :var:`cmp`, :var:`key` and :var:`reverse` have
+		the same meaning as fot the builtin :func:`sorted` function.
 		"""
 		node = self.__class__()
 		node.attrs = self.attrs.clone()
@@ -3179,7 +3128,7 @@ class Element(Node):
 
 	def reversed(self):
 		"""
-		returns a reversed version of <self/>.
+		Return a reversed version of ``self``.
 		"""
 		node = self.__class__()
 		node.attrs = self.attrs.clone()
@@ -3188,7 +3137,7 @@ class Element(Node):
 
 	def filtered(self, function):
 		"""
-		returns a filtered version of the <self/>.
+		Return a filtered version of the ``self``.
 		"""
 		node = self.__class__()
 		node.attrs = self.attrs.clone()
@@ -3197,7 +3146,7 @@ class Element(Node):
 
 	def shuffled(self):
 		"""
-		returns a shuffled version of the <self/>.
+		Return a shuffled version of the ``self``.
 		"""
 		node = self.__class__()
 		node.attrs = self.attrs.clone()
@@ -3272,8 +3221,8 @@ class _Entity_Meta(Node.__metaclass__):
 
 class Entity(Node):
 	"""
-	<p>Class for entities. Derive your own entities from it and overwrite
-	<pyref class="Node" method="convert"><meth>convert</meth></pyref>.</p>
+	Class for entities. Derive your own entities from it and overwrite
+	:meth:`convert`.
 	"""
 	__metaclass__ = _Entity_Meta
 
@@ -3315,8 +3264,8 @@ class _CharRef_Meta(Entity.__metaclass__): # don't subclass Text.__metaclass__, 
 
 class CharRef(Text, Entity):
 	"""
-	<p>A simple character reference, the codepoint is in the class attribute
-	<lit>codepoint</lit>.</p>
+	A simple named character reference, the codepoint is in the class attribute
+	:attr:`codepoint`.
 	"""
 	__metaclass__ = _CharRef_Meta
 	register = None
@@ -3398,7 +3347,16 @@ import publishers, converters, utils, helpers
 ###
 
 class Pool(misc.Pool):
+	"""
+	A :class:`Pool` stores a collection of XIST classes and can be passed to a
+	parser. The parser will ask the pool which classes to use when elements,
+	processing instructions etc. have to be instantiated.
+	"""
 	def __init__(self, *objects):
+		"""
+		Create a :class:`Pool` object. All items in :var:`objects` will be
+		registered in the pool.
+		"""
 		self._elementsbyxmlname = {}
 		self._elementsbypyname = {}
 		self._procinstsbyxmlname = {}
@@ -3414,22 +3372,19 @@ class Pool(misc.Pool):
 
 	def register(self, object):
 		"""
-		<p>Register <arg>object</arg> in the pool. <arg>object</arg> can be:</p>
-		<ul>
-		<li>A <pyref class="Element"><class>Element</class></pyref>,
-		<pyref class="ProcInst"><class>ProcInst</class></pyref>,
-		<pyref class="Entity"><class>Entity</class></pyref>,
-		<pyref class="CharRef"><class>CharRef</class></pyref> class;</li>
-		<li>An <pyref class="Attr"><class>Attr</class></pyref> class
-		for a global attribute;</li>
-		<li>An <pyref class="Attrs"><class>Attrs</class></pyref> class
-		containing global attributes;</li>
-		<li>A <class>dict</class> (all <class>Node</class> classes in the
-		values will be registered, this makes it possible to e.g. register all
-		local variables by passing <lit>vars()</lit>);</li>
-		<li>A module (all <class>Node</class> classes and the <lit>xmlns</lit> attribute
-		if it's a string) in the module will be registered);</li>
-		</ul>
+		Register :var:`object` in the pool. :var:`object` can be:
+
+		*	A :class:`Element`, :class:`ProcInst`, :class:`Entity`, or
+			:class:`CharRef` class;
+
+		*	An :class:`Attr` class for a global attribute;
+
+		*	An :class:`Attrs` class containing global attributes;
+
+		*	A :class:`dict` (all values will be registered, this makes it possible
+			to e.g. register all local variables by passing ``vars()``);
+
+		*	A module (all attributes in the module will be registered).
 		"""
 		if isinstance(object, type):
 			if issubclass(object, Element):
@@ -3483,9 +3438,9 @@ class Pool(misc.Pool):
 
 	def elementclass(self, name, xmlns):
 		"""
-		Return the element class for the element with the Python name
-		<arg>name</arg> and the namespace <arg>xmlns</arg>. If the element can't
-		be found a <class>IllegalElementError</class> will be raised.
+		Return the element class for the element with the Python name :var:`name`
+		and the namespace :var:`xmlns`. If the element can't be found a
+		:exc:`IllegalElementError` will be raised.
 		"""
 		if isinstance(xmlns, (list, tuple)):
 			for xmlns in xmlns:
@@ -3509,9 +3464,9 @@ class Pool(misc.Pool):
 
 	def elementclass_xml(self, name, xmlns):
 		"""
-		Return the element class for the element type with the &xml; name
-		<arg>name</arg> and the namespace <arg>xmlns</arg>. If the element can't
-		be found a <class>IllegalElementError</class> will be raised.
+		Return the element class for the element type with the XML name
+		:var:`name` and the namespace :var:`xmlns`. If the element can't
+		be found a :exc:`IllegalElementError` will be raised.
 		"""
 		if isinstance(xmlns, (list, tuple)):
 			for xmlns in xmlns:
@@ -3536,28 +3491,28 @@ class Pool(misc.Pool):
 	def element(self, name, xmlns):
 		"""
 		Return an element object for the element type with the Python name
-		<arg>name</arg> and the namespace <arg>xmlns</arg>.
+		:var:`name` and the namespace :var:`xmlns`.
 		"""
 		return self.elementclass(name, xmlns)()
 
 	def element_xml(self, name, xmlns):
 		"""
-		Return an element object for the element type with the &xml; name
-		<arg>name</arg> and the namespace <arg>xmlns</arg>.
+		Return an element object for the element type with the XML name
+		:var:`name` and the namespace :var:`xmlns`.
 		"""
 		return self.elementclass_xml(name, xmlns)()
 
 	def haselement(self, name, xmlns):
 		"""
-		Is there a registered element class in <self/> for the element type
-		with the Python name <arg>name</arg> and the namespace <arg>xmlns</arg>?
+		Is there a registered element class in ``self`` for the element type
+		with the Python name :var:`name` and the namespace :var:`xmlns`?
 		"""
 		return (name, nsname(xmlns)) in self._elementsbypyname or any(base.haselement(name, xmlns) for base in self.bases)
 
 	def haselement_xml(self, name, xmlns):
 		"""
-		Is there a registered element class in <self/> for the element type
-		with the &xml; name <arg>name</arg> and the namespace <arg>xmlns</arg>?
+		Is there a registered element class in ``self`` for the element type
+		with the XML name :var:`name` and the namespace :var:`xmlns`?
 		"""
 		return (name, nsname(xmlns)) in self._elementsbyxmlname or any(base.haselement_xml(name, xmlns) for base in self.bases)
 
@@ -3570,8 +3525,8 @@ class Pool(misc.Pool):
 	def procinstclass(self, name):
 		"""
 		Return the processing instruction class for the PI with the Python name
-		<arg>name</arg>. If the element can't be found a
-		<class>IllegalProcInstError</class> will be raised.
+		:var:`name`. If the element can't be found a :exc:`IllegalProcInstError`
+		will be raised.
 		"""
 		try:
 			return self._procinstsbypyname[name]
@@ -3585,9 +3540,9 @@ class Pool(misc.Pool):
 
 	def procinstclass_xml(self, name):
 		"""
-		Return the processing instruction class for the PI with the &xml; name
-		<arg>name</arg>. If the element can't be found a
-		<class>IllegalProcInstError</class> will be raised.
+		Return the processing instruction class for the PI with the XML name
+		:var:`name`. If the element can't be found a :exc:`IllegalProcInstError`
+		will be raised.
 		"""
 		try:
 			return self._procinstsbyxmlname[name]
@@ -3602,28 +3557,28 @@ class Pool(misc.Pool):
 	def procinst(self, name, content):
 		"""
 		Return a processing instruction object for the PI type with the Python
-		target name <arg>name</arg>.
+		target name :var:`name`.
 		"""
 		return self.procinstclass(name)(content)
 
 	def procinst_xml(self, name, content):
 		"""
-		Return a processing instruction object for the PI type with the &xml;
-		target name <arg>name</arg>.
+		Return a processing instruction object for the PI type with the XML
+		target name :var:`name`.
 		"""
 		return self.procinstclass_xml(name)(content)
 
 	def hasprocinst(self, name):
 		"""
-		Is there a registered processing instruction class in <self/> for the
-		PI with the Python name <arg>name</arg>?
+		Is there a registered processing instruction class in ``self`` for the
+		PI with the Python name :var:`name`?
 		"""
 		return name in self._procinstsbypyname or any(base.hasprocinst(name) for base in self.bases)
 
 	def hasprocinst_xml(self, name):
 		"""
-		Is there a registered processing instruction class in <self/> for the
-		PI with the &xml; name <arg>name</arg>?
+		Is there a registered processing instruction class in ``self`` for the
+		PI with the XML name :var:`name`?
 		"""
 		return name in self._procinstsbyxmlname or any(base.hasprocinst_xml(name) for base in self.bases)
 
@@ -3635,9 +3590,8 @@ class Pool(misc.Pool):
 
 	def entityclass(self, name):
 		"""
-		Return the entity for the entity with the Python name <arg>name</arg>.
-		If the entity can't be found a <class>IllegalEntityError</class> will
-		be raised.
+		Return the entity for the entity with the Python name :var:`name`.
+		If the entity can't be found a :exc:`IllegalEntityError` will be raised.
 		"""
 		try:
 			return self._entitiesbypyname[name]
@@ -3651,9 +3605,8 @@ class Pool(misc.Pool):
 
 	def entityclass_xml(self, name):
 		"""
-		Return the entity for the entity with the &xml; name <arg>name</arg>.
-		If the entity can't be found a <class>IllegalEntityError</class> will be
-		raised.
+		Return the entity for the entity with the XML name :var:`name`.
+		If the entity can't be found a :exc:`IllegalEntityError` will be raised.
 		"""
 		try:
 			return self._entitiesbyxmlname[name]
@@ -3667,29 +3620,27 @@ class Pool(misc.Pool):
 
 	def entity(self, name):
 		"""
-		Return an entity object for the entity with the Python name
-		<arg>name</arg>.
+		Return an entity object for the entity with the Python name :var:`name`.
 		"""
 		return self.entityclass(name)()
 
 	def entity_xml(self, name):
 		"""
-		Return an entity object for the entity with the &xml; name
-		<arg>name</arg>.
+		Return an entity object for the entity with the XML name :var:`name`.
 		"""
 		return self.entityclass_xml(name)()
 
 	def hasentity(self, name):
 		"""
-		Is there a registered entity class in <self/> for the entity with the
-		Python name <arg>name</arg>?
+		Is there a registered entity class in ``self`` for the entity with the
+		Python name :var:`name`?
 		"""
 		return name in self._entitiesbypyname or any(base.hasentity(name) for base in self.bases)
 
 	def hasentity_xml(self, name):
 		"""
-		Is there a registered entity class in <self/> for the entity with the
-		&xml; name <arg>name</arg>?
+		Is there a registered entity class in ``self`` for the entity with the
+		XML name :var:`name`?
 		"""
 		return name in self._entitiesbyxmlname or any(base.hasentity_xml(name) for base in self.bases)
 
@@ -3701,9 +3652,9 @@ class Pool(misc.Pool):
 
 	def charrefclass(self, name):
 		"""
-		Return the character entity with the Python name <arg>name</arg>.
-		<arg>name</arg> can also be an <class>int</class> specifying the codepoint.
-		If the character entity can't be found a <class>IllegalEntityError</class>
+		Return the character entity with the Python name :var:`name`.
+		:var:`name` can also be an :class:`int` specifying the codepoint.
+		If the character entity can't be found a :exc:`IllegalEntityError`
 		will be raised.
 		"""
 		try:
@@ -3720,9 +3671,9 @@ class Pool(misc.Pool):
 
 	def charrefclass_xml(self, name):
 		"""
-		Return the character entity with the &xml; name <arg>name</arg>.
-		<arg>name</arg> can also be an <class>int</class> specifying the codepoint.
-		If the character entity can't be found a <class>IllegalEntityError</class>
+		Return the character entity with the XML name :var:`name`.
+		:var:`name` can also be an :class:`int` specifying the codepoint.
+		If the character entity can't be found a :exc:`IllegalEntityError`
 		will be raised.
 		"""
 		try:
@@ -3739,22 +3690,22 @@ class Pool(misc.Pool):
 
 	def charref(self, name):
 		"""
-		Return a character entity object for the chacter with the Python name
-		or codepoint <arg>name</arg>.
+		Return a character entity object for the character with the Python name
+		or codepoint :var:`name`.
 		"""
 		return self.charrefclass(name)()
 
 	def charref_xml(self, name):
 		"""
-		Return a character entity object for the chacter with the &xml; name
-		or codepoint <arg>name</arg>.
+		Return a character entity object for the character with the XML name
+		or codepoint :var:`name`.
 		"""
 		return self.charrefclass_xml(name)()
 
 	def hascharref(self, name):
 		"""
-		Is there a registered character entity class in <self/> with the Python
-		name or codepoint <arg>name</arg>?
+		Is there a registered character entity class in ``self`` with the Python
+		name or codepoint :var:`name`?
 		"""
 		if isinstance(name, (int, long)):
 			has = name in self._charrefsbycodepoint
@@ -3764,8 +3715,8 @@ class Pool(misc.Pool):
 
 	def hascharref_xml(self, name):
 		"""
-		Is there a registered character entity class in <self/> with the &xml;
-		name or codepoint <arg>name</arg>?
+		Is there a registered character entity class in ``self`` with the XML
+		name or codepoint :var:`name`?
 		"""
 		if isinstance(name, (int, long)):
 			has = name in self._charrefsbycodepoint
@@ -3776,8 +3727,8 @@ class Pool(misc.Pool):
 	def attrclass(self, name, xmlns):
 		"""
 		Return the aatribute class for the global attribute with the Python name
-		<arg>name</arg> and the namespace <arg>xmlns</arg>. If the attribute can't
-		be found a <class>IllegalAttrError</class> will be raised.
+		:var:`name` and the namespace :var:`xmlns`. If the attribute can't
+		be found a :exc:`IllegalAttrError` will be raised.
 		"""
 		if not isinstance(xmlns, (list, tuple)):
 			xmlns = (xmlns,)
@@ -3796,9 +3747,9 @@ class Pool(misc.Pool):
 
 	def attrclass_xml(self, name, xmlns):
 		"""
-		Return the aatribute class for the global attribute with the &xml; name
-		<arg>name</arg> and the namespace <arg>xmlns</arg>. If the attribute can't
-		be found a <class>IllegalAttrError</class> will be raised.
+		Return the attribute class for the global attribute with the XML name
+		:var:`name` and the namespace :var:`xmlns`. If the attribute can't
+		be found a :exc:`IllegalAttrError` will be raised.
 		"""
 		if not isinstance(xmlns, (list, tuple)):
 			xmlns = (xmlns,)
@@ -3817,13 +3768,13 @@ class Pool(misc.Pool):
 
 	def text(self, content):
 		"""
-		Create a text node with the content <arg>content</arg>.
+		Create a text node with the content :var:`content`.
 		"""
 		return Text(content)
 
 	def comment(self, content):
 		"""
-		Create a comment node with the content <arg>content</arg>.
+		Create a comment node with the content :var:`content`.
 		"""
 		return Comment(content)
 
@@ -3836,6 +3787,9 @@ class Pool(misc.Pool):
 			raise AttributeError(key)
 
 	def clear(self):
+		"""
+		Make <self/> empty.
+		"""
 		self._elementsbyxmlname.clear()
 		self._elementsbypyname.clear()
 		self._procinstsbyxmlname.clear()
@@ -3851,7 +3805,7 @@ class Pool(misc.Pool):
 
 	def clone(self):
 		"""
-		Return a copy of <self/>.
+		Return a copy of ``self``.
 		"""
 		copy = Pool.clone(self)
 		copy._elementsbyxmlname = self._elementsbyxmlname.copy()
@@ -3887,7 +3841,7 @@ def getpoolstack():
 
 def docprefixes():
 	"""
-	Return a prefix mapping suitable for parsing &xist; docstrings.
+	Return a prefix mapping suitable for parsing XIST docstrings.
 	"""
 	from ll.xist.ns import html, chars, abbr, doc, specials
 	return {None: (doc, specials, html, chars, abbr)}
@@ -3895,8 +3849,8 @@ def docprefixes():
 
 def nsname(xmlns):
 	"""
-	If <arg>xmlns</arg> is a module, return <lit><arg>xmlns</arg>.xmlns</lit>.
-	Else return <arg>xmlns</arg> unchanged.
+	If :var:`xmlns` is a module, return ``xmlns.xmlns``, else return
+	:var:`xmlns` unchanged.
 	"""
 	if xmlns is not None and not isinstance(xmlns, basestring):
 		xmlns = xmlns.xmlns
@@ -3905,8 +3859,8 @@ def nsname(xmlns):
 
 def nsclark(xmlns):
 	"""
-	Return a namespace name in Clark notation. <arg>xmlns</arg> can be
-	<lit>None</lit>, a string or a module.
+	Return a namespace name in Clark notation. :var:`xmlns` can be :const:`None`,
+	a string or a module.
 	"""
 	if xmlns is None:
 		return "{}"
@@ -3929,16 +3883,15 @@ class apos(CharRef): "apostrophe mark, U+0027 ISOnum"; codepoint = 39
 
 class Location(object):
 	"""
-	<p>Represents a location in an &xml; entity.</p>
+	Represents a location in an XML entity.
 	"""
 	__slots__ = ("url", "line", "col", "char")
 
 	def __init__(self, url=None, line=None, col=None):
 		"""
-		Create a new <class>Location</class> object using the arguments
-		passed in. <arg>url</arg> is the &url;/filename. <arg>line</arg> is
-		the line number and <arg>col</arg> is the column number (both starting
-		at 0).
+		Create a new :class:`Location` object using the arguments passed in.
+		:var:`url` is the URL/filename. :var:`line` is the line number and
+		:var:`col` is the column number (both starting at 0).
 		"""
 		self.url = url
 		self.line = line
@@ -3946,8 +3899,8 @@ class Location(object):
 
 	def offset(self, offset):
 		"""
-		<p>Return a location where the line number is incremented by offset
-		(and the column number is reset to 0).</p>
+		Return a location where the line number is incremented by offset
+		(and the column number is reset to 0).
 		"""
 		if offset==0:
 			return self
