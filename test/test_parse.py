@@ -55,9 +55,8 @@ def check_parsestrictentities(source, result, parserfactory):
 	prefixes = {None: (a.xmlns, chars)}
 	check_parseentities(source, result, prefixes=prefixes, parser=parserfactory())
 
-	warnings.filterwarnings("error", category=xsc.MalformedCharRefWarning)
 	for bad in ("&", "&#x", "&&", "&#x;", "&#fg;", "&#999999999;", "&#;", "&#y;", "&#x;", "&#xy;"):
-		py.test.raises((xsc.MalformedCharRefWarning, expat.ExpatError), check_parseentities, bad, u"", prefixes=prefixes, parser=parserfactory())
+		py.test.raises(expat.ExpatError, check_parseentities, bad, u"", prefixes=prefixes, parser=parserfactory())
 	py.test.raises(xsc.IllegalEntityError, check_parseentities, "&baz;", u"", prefixes=prefixes, parser=parserfactory())
 
 
