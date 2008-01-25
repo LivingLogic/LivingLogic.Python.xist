@@ -16,7 +16,7 @@ This is a namespace module implementing RSS 0.91.
 from ll.xist import xsc, sims
 
 
-__docformat__ = "xist"
+__docformat__ = "reStructuredText"
 
 
 xmlns = "http://my.netscape.com/publish/formats/rss-0.91.dtd"
@@ -33,8 +33,8 @@ class DocType(xsc.DocType):
 
 class channel(xsc.Element):
 	"""
-	Information about a particular channel. Everything pertaining to an individual
-	channel is contained within this tag.
+	Information about a particular channel. Everything pertaining to an
+	individual channel is contained within this tag.
 	"""
 	xmlns = xmlns
 
@@ -55,23 +55,22 @@ class day(xsc.Element):
 
 class description(xsc.Element):
 	"""
-	A plain text description of an <class>item</class>, <class>channel</class>,
-	<class>image</class>, or <class>textinput</class>.
+	A plain text description of an :class:`item`, :class:`channel`,
+	:class:`image`, or :class:`textinput`.
 	"""
 	xmlns = xmlns
 
 
 class docs(xsc.Element):
 	"""
-	This tag should contain a &url; that references a description of the channel.
+	This tag should contain a URL that references a description of the channel.
 	"""
 	xmlns = xmlns
 
 
 class height(xsc.Element):
 	"""
-	Specifies the height of an <pyref class="image"><class>image</class></pyref>.
-	Should be an integer value.
+	Specifies the height of an :class:`image`. Should be an integer value.
 	"""
 	xmlns = xmlns
 
@@ -79,27 +78,24 @@ class height(xsc.Element):
 class hour(xsc.Element):
 	"""
 	Specifies an hour of the day. Should be an integer value between 0 and 23.
-	See <pyref class="skipHours"><class>skipHours</class></pyref>.
+	See :class:`skipHours`.
 	"""
 	xmlns = xmlns
 
 
 class image(xsc.Element):
 	"""
-	Specifies an image associated with a
-	<pyref class="channel"><class>channel</class></pyref>.
+	Specifies an image associated with a :class:`channel`
 	"""
 	xmlns = xmlns
 
 
 class item(xsc.Element):
 	"""
-	An item that is associated with a <pyref class="channel"><class>channel</class></pyref>.
-	The item should represent a web-page, or subsection within a web page.
-	It should have a unique URL associated with it. Each item must contain a
-	<pyref class="title"><class>title</class></pyref> and a
-	<pyref class="link"><class>link</class></pyref>. A
-	<pyref class="description"><class>description</class></pyref> is optional.
+	An item that is associated with a :class:`channel`. The item should
+	represent a web-page, or subsection within a web page. It should have a
+	unique URL associated with it. Each item must contain a :class:`title` and a
+	:class:`link`. A :class:`description` is optional.
 	"""
 	xmlns = xmlns
 
@@ -121,8 +117,7 @@ class lastBuildDate(xsc.Element):
 class link(xsc.Element):
 	"""
 	This is a url that a user is expected to click on, as opposed to a
-	<pyref class="url"><class>url</class></pyref> that is for loading a resource,
-	such as an image.
+	:class:`url` that is for loading a resource, such as an image.
 	"""
 	xmlns = xmlns
 
@@ -137,9 +132,9 @@ class managingEditor(xsc.Element):
 
 class name(xsc.Element):
 	"""
-	The name of an object, corresponding to the <lit>name</lit> attribute of an
-	&html; <pyref module="ll.xist.ns.html" class="input"><class>input</class></pyref> element.
-	Currently, this only applies to <pyref class="textinput"><class>textinput</class></pyref>.
+	The name of an object, corresponding to the ``name`` attribute of an
+	HTML :class:`input` element. Currently, this only applies to
+	:class:`textinput`.
 	"""
 	xmlns = xmlns
 
@@ -172,19 +167,19 @@ class rss(xsc.Element):
 
 class skipDays(xsc.Element):
 	"""
-	A list of <pyref class="day"><class>day</class></pyref>s of the week, in English,
-	indicating the days of the week when your channel will not be updated. As
-	with <pyref class="activeHours"><class>activeHours</class></pyref>, if you
-	know your channel will never be updated on Saturday or Sunday, for example.
+	A list of :class:`day`\s of the week, in English, indicating the days of
+	the week when your channel will not be updated. As with :class:`activeHours`,
+	if you know your channel will never be updated on Saturday or Sunday, for
+	example.
 	"""
 	xmlns = xmlns
 
 
 class skipHours(xsc.Element):
 	"""
-	A list of <pyref class="hour"><class>hours</class></pyref> indicating the
-	hours in the day, GMT, when the channel is unlikely to be updated. If this
-	sub-item is omitted, the channel is assumed to be updated hourly.
+	A list of :class:`hour`\s indicating the hours in the day, GMT, when the
+	channel is unlikely to be updated. If this sub-item is omitted, the channel
+	is assumed to be updated hourly.
 	"""
 	xmlns = xmlns
 
@@ -199,13 +194,11 @@ class textinput(xsc.Element):
 
 class title(xsc.Element):
 	"""
-	An identifying string for a resource. When used in an
-	<pyref class="item"><class>item</class></pyref>, this is the name of the item's
-	link. When used in an <pyref class="image"><class>image</class></pyref>, this
-	is the <z>alt</z> text for the image. When used in a
-	<pyref class="channel"><class>channel</class></pyref>, this is the channel's
-	title. When used in a <pyref class="textinput"><class>textinput</class></pyref>,
-	this is the the textinput's title.
+	An identifying string for a resource. When used in an :class:`item`, this is
+	the name of the item's link. When used in an :class:`image`, this is the
+	"alt" text for the image. When used in a :class:`channel`, this is the
+	channel's title. When used in a :class:`textinput`, this is the textinput's
+	title.
 	"""
 	xmlns = xmlns
 
@@ -213,8 +206,8 @@ class title(xsc.Element):
 class url(xsc.Element):
 	"""
 	Location to load a resource from. Note that this is slightly different from
-	the <pyref class="link"><class>link</class></pyref> tag, which specifies where
-	a user should be re-directed to if a resource is selected.
+	the :class:`link` tag, which specifies where a user should be re-directed to
+	if a resource is selected.
 	"""
 	xmlns = xmlns
 
@@ -229,8 +222,7 @@ class webMaster(xsc.Element):
 
 class width(xsc.Element):
 	"""
-	Specifies the width of an <pyref class="image"><class>image</class></pyref>.
-	Should be an integer value.
+	Specifies the width of an :class:`image`. Should be an integer value.
 	"""
 	xmlns = xmlns
 

@@ -9,15 +9,15 @@
 
 
 """
-<p>An &xist; module that contains the global attributes from
-<app>Zope</app>s <z>Template Attribute Language</z>.</p>
+An XIST module that contains the global attributes from Zopes
+"Template Attribute Language".
 """
 
 
 from ll.xist import xsc
 
 
-__docformat__ = "xist"
+__docformat__ = "reStructuredText"
 
 
 xmlns = "http://xml.zope.org/namespaces/tal"

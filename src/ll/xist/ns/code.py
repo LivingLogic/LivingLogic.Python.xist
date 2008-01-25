@@ -9,7 +9,7 @@
 
 
 """
-<p>An &xist; module that allows embedding Python code in &xml;</p>
+An XIST module that allows embedding Python code in XML.
 """
 
 
@@ -19,7 +19,7 @@ from ll.xist import xsc
 from ll.xist.ns import html
 
 
-__docformat__ = "xist"
+__docformat__ = "reStructuredText"
 
 
 class Code(object):
@@ -90,13 +90,14 @@ class _base(xsc.ProcInst):
 
 class pyexec(_base):
 	"""
-	<p>Here the content of the processing instruction is executed as
-	Python code. Execution is done when the node is converted. When converted
-	such a node will result in an empty <lit>Null</lit> node.</p>
+	When converting a :class:`pyexec` object the content of the processing
+	instruction is executed as Python code. Execution is done when the node
+	is converted. When converted such a node will result in an empty
+	:data:`Null` node.
 
-	<p>These processing instructions will be evaluated and executed in the
-	namespace of the module sandbox (which is a dictionary in the converter
-	context for the namespace).</p>
+	These processing instructions will be evaluated and executed in the
+	namespace of the module sandbox (which will be store in the converter
+	context).
 	"""
 
 	def convert(self, converter):
@@ -108,24 +109,25 @@ class pyexec(_base):
 
 class pyeval(_base):
 	"""
-	<p>Here the code will be executed when the node is converted to &html;
-	as if it was the body of a function, so you can return an expression
-	here. Although the content is used as a function body no indentation
-	is neccessary or allowed. The returned value will be converted to a
-	node and this resulting node will be converted.</p>
+	The content of a :class:`pyeval` processing instruction will be executed
+	when the node is converted as if it was the body of a function, so you
+	can return an expression here. Although the content is used as a function
+	body no indentation is neccessary or allowed. The returned value will be
+	converted to a node and this resulting node will be converted.
 
-	<p>These processing instructions will be evaluated and executed in the
-	namespace of the module sandbox.</p>
+	These processing instructions will be evaluated and executed in the
+	namespace of the module sandbox (which will be store in the converter
+	context).
 
-	<p>Note that you should not define the symbol <lit>__</lit> in any of your &xist;
-	processing instructions, as it is used by &xist; for internal purposes.</p>
+	Note that you should not define the symbol ``__`` in any of your XIST
+	processing instructions, as it is used by XIST for internal purposes.
 	"""
 
 	def convert(self, converter):
 		"""
-		<p>Evaluates the code as if it was the body of a Python funtion.
-		The <arg>converter</arg> argument will be available
-		under the name <arg>converter</arg> as an argument to the function.</p>
+		Evaluates the code as if it was the body of a Python funtion. The
+		:var:`converter` argument will be available under the name
+		:var:`converter` as an argument to the function.
 		"""
 		code = Code(self.content, True)
 		code.funcify()

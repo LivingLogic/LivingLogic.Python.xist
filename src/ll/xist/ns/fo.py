@@ -9,15 +9,16 @@
 
 
 """
-<p>An &xist; module that contains definitions for the
-<a href="http://www.w3.org/TR/SVG/">&xsl;</a> 1.0 definition.</p>
+An XIST module that contains definitions for the XSL__ 1.0 definition.
+
+__ http://www.w3.org/TR/xsl11/
 """
 
 
 from ll.xist import xsc, sims
 
 
-__docformat__ = "xist"
+__docformat__ = "reStructuredText"
 
 
 xmlns = "http://www.w3.org/1999/XSL/Format"

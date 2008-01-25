@@ -8,8 +8,8 @@
 ## See xist/__init__.py for the license
 
 """
-This modules contains the base class for the converter objects used in the call to the
-<pyref module="ll.xist.xsc" class="Node" method="convert"><meth>convert</meth></pyref> method.
+This modules contains the base class for the converter objects used in the call
+to the :meth:`convert` method of :class:`Node` objects.
 """
 
 
@@ -17,7 +17,7 @@ from ll import misc
 import xsc
 
 
-__docformat__ = "xist"
+__docformat__ = "reStructuredText"
 
 
 class ConverterState(object):
@@ -37,25 +37,24 @@ class ConverterState(object):
 
 class Converter(object):
 	"""
-	<p>An instance of this class is passed around in calls to the
-	<pyref module="ll.xist.xsc" class="Node" method="convert"><meth>convert</meth></pyref> method.
-	This instance can be used when some element needs to keep state across a nested convert call.
-	A typical example are nested chapter/subchapter elements with automatic numbering.
-	For an example see the element <pyref module="ll.xist.ns.doc" class="section"><class>ll.xist.ns.doc.section</class></pyref>.</p>
+	An instance of this class is passed around in calls to the :meth:`convert`
+	method. This object can be used when some element needs to keep state across
+	a nested :meth:`convert` call. A typical example are nested
+	chapter/subchapter elements with automatic numbering. For an example see the
+	element :class:`ll.xist.ns.doc.section`.
 	"""
 	def __init__(self, node=None, root=None, mode=None, stage=None, target=None, lang=None, makeaction=None, makeproject=None):
 		"""
-		<p>Create a <class>Converter</class>.</p>
-		<p>Arguments are used to initialize the <class>Converter</class> properties of the
-		same name.</p>
+		Create a :class:`Converter`. Arguments are used to initialize the
+		:class:`Converter` properties of the same name.
 		"""
 		self.states = [ ConverterState(node=node, root=root, mode=mode, stage=stage, target=target, lang=lang, makeaction=makeaction, makeproject=makeproject)]
 		self.contexts = {}
 
 	class node(misc.propclass):
 		"""
-		<p>The root node for which conversion has been called. This is automatically set by the
-		<pyref module="ll.xist.xsc" class="Node" method="conv"><meth>conv</meth></pyref> method.</p>
+		The root node for which conversion has been called. This is automatically
+		set by the :meth:`conv` method of :class:`Node` objects.
 		"""
 		def __get__(self):
 			return self.states[-1].node
@@ -68,8 +67,8 @@ class Converter(object):
 
 	class root(misc.propclass):
 		"""
-		<p>The root &url; for the conversion. Resolving &url;s during the conversion process should be done
-		relative to <lit>root</lit>.</p>
+		The root URL for the conversion. Resolving URLs during the conversion
+		process should be done relative to :prop:`root`.
 		"""
 		def __get__(self):
 			return self.states[-1].root
@@ -82,8 +81,8 @@ class Converter(object):
 
 	class mode(misc.propclass):
 		"""
-		<p>The conversion mode. This corresponds directly to the mode in &xslt;.
-		The default is <lit>None</lit>.</p>
+		The conversion mode. This corresponds directly to the mode in XSLT
+		The default is :const:`None`.
 		"""
 		def __get__(self):
 			return self.states[-1].mode
@@ -96,9 +95,9 @@ class Converter(object):
 
 	class stage(misc.propclass):
 		"""
-		<p>If your conversion is done in multiple steps or stages you can use this property
-		to specify in which stage the conversion process currently is. The default is
-		<lit>"deliver"</lit>.</p>
+		If your conversion is done in multiple steps or stages you can use this
+		property to specify in which stage the conversion process currently is.
+		The default is :const:`"deliver"`.
 		"""
 		def __get__(self):
 			if self.states[-1].stage is None:
@@ -114,8 +113,8 @@ class Converter(object):
 
 	class target(misc.propclass):
 		"""
-		<p>Specifies the conversion target. This must be a
-		namespace module or simiar object.</p>
+		Specifies the conversion target. This must be a namespace module or
+		similar object.
 		"""
 		def __get__(self):
 			if self.states[-1].target is None:
@@ -132,7 +131,7 @@ class Converter(object):
 
 	class lang(misc.propclass):
 		"""
-		<p>The target language. The default is <lit>None</lit>.</p>
+		<p>The target language. The default is ``None``.</p>
 		"""
 		def __get__(self):
 			return self.states[-1].lang
@@ -145,9 +144,10 @@ class Converter(object):
 
 	class makeaction(misc.propclass):
 		"""
-		<p>If an &xist; conversion is done by an <pyref module="ll.make" class="XISTConvertAction"><class>XISTConvertAction</class></pyref>
-		this property will hold the action object during that conversion. If you're not using the
-		<pyref module="ll.make"><mod>make</mod></pyref> module you can simply ignore this property. The default is <lit>None</lit>.</p>
+		If an XIST conversion is done by an :class:`ll.make.XISTConvertAction`
+		this property will hold the action object during that conversion. If
+		you're not using the :mod:`ll.make` module you can simply ignore this
+		property. The default is :const:`None`.
 		"""
 		def __get__(self):
 			return self.states[-1].makeaction
@@ -160,9 +160,10 @@ class Converter(object):
 
 	class makeproject(misc.propclass):
 		"""
-		<p>If an &xist; conversion is done by an <pyref module="ll.make" class="XISTConvertAction"><class>XISTConvertAction</class></pyref>
-		this property will hold the <pyref module="ll.make" class="Project"><class>Project</class></pyref> object during that conversion.
-		If you're not using the <pyref module="ll.make"><mod>make</mod></pyref> module you can simply ignore this property.
+		If an XIST conversion is done by an :class:`ll.make.XISTConvertAction`
+		this property will hold the :class:`Project` object during that conversion.
+		If you're not using the :mod:`ll.make` module you can simply ignore this
+		property.
 		"""
 		def __get__(self):
 			return self.states[-1].makeproject
@@ -202,17 +203,15 @@ class Converter(object):
 
 	def __getitem__(self, obj):
 		"""
-		<p>Return a context object for <arg>obj</arg>, which should be an
-		<pyref module="ll.xist.xsc" class="Node"><class>Node</class></pyref> subclass.
-		Each of these classes that defines its own
-		<pyref module="ll.xist.xsc" class="Element.Context"><class>Context</class></pyref>
-		class gets a unique instance of this class. This instance will be created
-		on the first access and the element can store information there that needs
-		to be available across calls to
-		<pyref module="ll.xist.xsc" class="Node" method="convert"><meth>convert</meth></pyref>.</p>
+		Return a context object for :var:`obj`, which should be an
+		:class:`ll.xist.xsc.Node`</pyref> instance or subclass. Each of these
+		classes that defines its own :class:`Context` class gets a unique
+		instance of this class. This instance will be created on the first access
+		and the element can store information there that needs to be available
+		across calls to :meth:`convert`.
 		"""
 		contextclass = obj.Context
-		# don't use setdefault(), as constructing the Context object might involve some overhead
+		# don't use :meth:`setdefault`, as constructing the context object might involve some overhead
 		try:
 			return self.contexts[contextclass]
 		except KeyError:

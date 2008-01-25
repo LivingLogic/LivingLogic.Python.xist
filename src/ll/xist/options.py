@@ -9,7 +9,7 @@
 
 
 """
-Contains everthing related to options in &xist; (apart for syntax highlighting
+Contains everthing related to options in XIST (apart for syntax highlighting
 which can be found in presenters.py).
 """
 
@@ -17,7 +17,7 @@ which can be found in presenters.py).
 import sys, os
 
 
-__docformat__ = "xist"
+__docformat__ = "reStructuredText"
 
 
 def getenvstr(name, default):

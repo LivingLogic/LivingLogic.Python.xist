@@ -9,13 +9,14 @@
 
 
 """
-<p>This module contains XFind and CSS selectors and related classes and functions.</p>
+This module contains XFind and CSS selectors and related classes and functions.
 
-<p>A selector is a &xist; tree traversal filter that traverses the complete
-&xml; tree and outputs those nodes specified by the selector. Selectors can
-be combined with various operations and form a language comparable to
-<a href="http://www.w3.org/TR/xpath">XPath</a> but implemented as Python
-expressions.</p>
+A selector is a XIST tree traversal filter that traverses the complete XML tree
+and outputs those nodes specified by the selector. Selectors can be combined
+with various operations and form a language comparable to XPath__ but
+implemented as Python expressions.
+
+__ http://www.w3.org/TR/xpath
 """
 
 
@@ -23,13 +24,14 @@ from ll import misc
 from ll.xist import xsc
 
 
-__docformat__ = "xist"
+__docformat__ = "reStructuredText"
 
 
 class CSSWeight(tuple):
 	"""
-	The specificity of a &css; selector as a 3-item tuple as specified by
-	<a href="http://www.w3.org/TR/css3-selectors/#specificity">CSS3</a>.
+	The specificity of a CSS selector as a 3-item tuple as specified by CSS3__.
+	
+	__ http://www.w3.org/TR/css3-selectors/#specificity
 	"""
 
 	def __new__(cls, a=0, b=0, c=0, d=0):
@@ -46,8 +48,8 @@ class Selector(xsc.WalkFilter):
 	"""
 	Base class for all tree traversal filters that visit the complete tree.
 	Whether a node gets output can be specified by overwriting the
-	<meth>matchpath</meth> method. Selectors can be combined with various
-	operations (see methods below).
+	:meth:`matchpath` method. Selectors can be combined with various operations
+	(see methods below).
 	"""
 
 	@misc.notimplemented
@@ -59,88 +61,76 @@ class Selector(xsc.WalkFilter):
 
 	def __div__(self, other):
 		"""
-		Create a <pyref class="ChildCombinator"><class>ChildCombinator</class></pyref>
-		with <self/> as the left hand selector and <arg>other</arg> as the right
-		hand selector.
+		Create a :class:`ChildCombinator` with :var:`self` as the left hand
+		selector and :var:`other` as the right hand selector.
 		"""
 		return ChildCombinator(self, xsc.makewalkfilter(other))
 
 	def __floordiv__(self, other):
 		"""
-		Create a <pyref class="DescendantCombinator"><class>DescendantCombinator</class></pyref>
-		with <self/> as the left hand selector and <arg>other</arg> as the right
-		hand selector.
+		Create a :class:`DescendantCombinator` with :var:`self` as the left hand
+		selector and :var:`other` as the right hand selector.
 		"""
 		return DescendantCombinator(self, xsc.makewalkfilter(other))
 
 	def __mul__(self, other):
 		"""
-		Create an <pyref class="AdjacentSiblingCombinator"><class>AdjacentSiblingCombinator</class></pyref>
-		with <self/> as the left hand selector and <arg>other</arg> as the right
-		hand selector.
+		Create an :class:`AdjacentSiblingCombinator` with :var:`self` as the left
+		hand selector and :var:`other` as the right hand selector.
 		"""
 		return AdjacentSiblingCombinator(self, xsc.makewalkfilter(other))
 
 	def __pow__(self, other):
 		"""
-		Create a <pyref class="GeneralSiblingCombinator"><class>GeneralSiblingCombinator</class></pyref>
-		with <self/> as the left hand selector and <arg>other</arg> as the right
-		hand selector.
+		Create a :class:`GeneralSiblingCombinator` with :var:`self` as the left
+		hand selector and :var:`other` as the right hand selector.
 		"""
 		return GeneralSiblingCombinator(self, xsc.makewalkfilter(other))
 
 	def __and__(self, other):
 		"""
-		Create an <pyref class="AndCombinator"><class>AndCombinator</class></pyref>
-		from <self/> and <arg>other</arg>.
+		Create an :class:`AndCombinator` from :var:`self` and :var:`other`.
 		"""
 		return AndCombinator(self, xsc.makewalkfilter(other))
 
 	def __or__(self, other):
 		"""
-		Create an <pyref class="OrCombinator"><class>OrCombinator</class></pyref>
-		from <self/> and <arg>other</arg>.
+		Create an :class:`OrCombinator` from :var:`self` and :var:`other`.
 		"""
 		return OrCombinator(self, xsc.makewalkfilter(other))
 
 	def __invert__(self):
 		"""
-		Create a <pyref class="NotCombinator"><class>NotCombinator</class></pyref>
-		inverting <self/>.
+		Create a :class:`NotCombinator` inverting :var:`self`.
 		"""
 		return NotCombinator(self)
 
 	def cssweight(self):
 		"""
-		Return the &css; specificity of <self/> as a
-		<pyref class="CSSWeight"><class>CSSWeight</class></pyref> object.
+		Return the CSS specificity of :var:`self` as a :class:`CSSWeight` object.
 		"""
 		return CSSWeight()
 
 
 class IsInstanceSelector(Selector):
 	"""
-	<p>Selector that selects all nodes that are instances of the specified type.
-	You can either create an <class>IsInstanceSelector</class> object directly
+	Selector that selects all nodes that are instances of the specified type.
+	You can either create an :class:`IsInstanceSelector` object directly
 	or simply pass a class to a function that expects a walk filter (this class
-	will be automatically wrapped in an <class>IsInstanceSelector</class>).</p>
+	will be automatically wrapped in an :class:`IsInstanceSelector`)::
 
-	<example>
-	<tty>
-	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
-	<prompt>>>> </prompt><input>from ll.xist.ns import html</input>
-	<prompt>>>> </prompt><input>doc = parsers.parseurl("http://www.python.org", tidy=True)</input>
-	<prompt>>>> </prompt><input>for node in doc.walknode(<em>html.a</em>):</input>
-	<prompt>... </prompt><input>\tprint node.bytes()</input>
-	<prompt>... </prompt><input></input>
-	<![CDATA[<a id="logolink" accesskey="1" href="http://www.python.org/"><img src="http://www.python.org/images/python-logo.gif" id="logo" border="0" alt="homepage" /></a>
-	<a accesskey="2" href="http://www.python.org/#left%2dhand%2dnavigation"><img id="skiptonav" src="http://www.python.org/images/trans.gif" border="0" alt="skip to navigation" /></a>
-	<a accesskey="3" href="http://www.python.org/#content%2dbody"><img id="skiptocontent" src="http://www.python.org/images/trans.gif" border="0" alt="skip to content" /></a>
-	<a class="reference" href="http://www.python.org/search">Advanced Search</a>
-	<a title="About The Python Language" href="http://www.python.org/about/">About</a>]]>
-	<rep>...</rep>
-	</tty>
-	</example>
+		>>> from ll.xist import parsers, xfind
+		>>> from ll.xist.ns import html
+		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
+		>>> for node in doc.walknode(html.a):
+		... 	print node.bytes()
+		... 
+		<a id="logolink" accesskey="1" href="http://www.python.org/"><img src="http://www.python.org/images/python-logo.gif" id="logo" border="0" alt="homepage" /></a>
+		<a accesskey="2" href="http://www.python.org/#left%2dhand%2dnavigation"><img id="skiptonav" src="http://www.python.org/images/trans.gif" border="0" alt="skip to navigation" /></a>
+		<a accesskey="3" href="http://www.python.org/#content%2dbody"><img id="skiptocontent" src="http://www.python.org/images/trans.gif" border="0" alt="skip to content" /></a>
+		<a class="reference" href="http://www.python.org/search">Advanced Search</a>
+		<a title="About The Python Language" href="http://www.python.org/about/">About</a>
+		...
 	"""
 	def __init__(self, *types):
 		self.types = types
@@ -160,9 +150,8 @@ class IsInstanceSelector(Selector):
 
 	def __getitem__(self, index):
 		"""
-		Return an <pyref class="nthoftype"><class>nthoftype</class></pyref>
-		selector that uses <arg>index</arg> as the index and <self/>s types
-		as the types.
+		Return an :class:`nthoftype` selector that uses :var:`index` as the
+		index and ``self.types`` as the types.
 		"""
 		return nthoftype(index, *self.types)
 
@@ -175,24 +164,20 @@ class IsInstanceSelector(Selector):
 
 class hasname(Selector):
 	"""
-	<p>Selector that selects all nodes that have a specified Python name (which
+	Selector that selects all nodes that have a specified Python name (which
 	only selects elements, processing instructions and entities). Also a namespace
 	name can be specified as a second argument, which will only select elements
-	from the specified namespace.</p>
+	from the specified namespace::
 
-	<example>
-	<tty>
-	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
-	<prompt>>>> </prompt><input>doc = parsers.parseurl("http://www.python.org", tidy=True)</input>
-	<prompt>>>> </prompt><input>for node in doc.walknode(<em>xfind.hasname("img")</em>):</input>
-	<prompt>... </prompt><input>\tprint node.bytes()</input>
-	<prompt>... </prompt><input></input>
-	<![CDATA[<img border="0" src="http://www.python.org/images/python-logo.gif" alt="homepage" id="logo" />
-	<img border="0" id="skiptonav" alt="skip to navigation" src="http://www.python.org/images/trans.gif" />
-	<img border="0" id="skiptocontent" alt="skip to content" src="http://www.python.org/images/trans.gif" />
-	<img alt="success story photo" class="success" src="http://www.python.org/images/success/nasa.jpg" />]]>
-	</tty>
-	</example>
+		>>> from ll.xist import parsers, xfind
+		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
+		>>> for node in doc.walknode(xfind.hasname("img")):
+		... 	print node.bytes()
+		... 
+		<img border="0" src="http://www.python.org/images/python-logo.gif" alt="homepage" id="logo" />
+		<img border="0" id="skiptonav" alt="skip to navigation" src="http://www.python.org/images/trans.gif" />
+		<img border="0" id="skiptocontent" alt="skip to content" src="http://www.python.org/images/trans.gif" />
+		<img alt="success story photo" class="success" src="http://www.python.org/images/success/nasa.jpg" />
 	"""
 	def __init__(self, name, xmlns=None):
 		self.name = name
@@ -213,8 +198,8 @@ class hasname(Selector):
 
 class hasname_xml(Selector):
 	"""
-	<class>hasname_xml</class> works similar to <pyref class="hasname"><class>hasname</class></pyref>
-	except that the specified name is treated as the &xml; name, not the Python name.
+	:class:`hasname_xml` works similar to :class:`hasname` except that the
+	specified name is treated as the XML name, not the Python name.
 	"""
 	def __init__(self, name, xmlns=None):
 		self.name = name
@@ -235,24 +220,19 @@ class hasname_xml(Selector):
 
 class IsSelector(Selector):
 	"""
-	<p>Selector that selects one specific node in the tree. This can be
-	combined with other selectors via <pyref class="ChildCombinator"><class>ChildCombinator</class>s</pyref>
-	or <pyref class="DescendantCombinator"><class>DescendantCombinator</class>s</pyref>
-	to select children of this specific node. You can either create an
-	<class>IsSelector</class> directly or simply pass a node to a function that
-	expects a walk filter.</p>
+	Selector that selects one specific node in the tree. This can be combined
+	with other selectors via :class:`ChildCombinator` or
+	:class:`DescendantCombinator` selectors to select children of this specific
+	node. You can either create an :class:`IsSelector` directly or simply pass
+	a node to a function that expects a walk filter::
 
-	<example>
-	<tty>
-	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
-	<prompt>>>> </prompt><input>doc = parsers.parseurl("http://www.python.org", tidy=True)</input>
-	<prompt>>>> </prompt><input>for node in doc.walknode(<em>doc[0]/xsc.Element</em>):</input>
-	<prompt>... </prompt><input>\tprint repr(node)</input>
-	<prompt>... </prompt><input></input>
-	<![CDATA[<ll.xist.ns.html.head element object (13 children/no attrs) (from http://www.python.org/:6:?) at 0xb6c82f4c>
-	<ll.xist.ns.html.body element object (19 children/no attrs) (from http://www.python.org/:26:?) at 0xb6c3154c>]]>
-	</tty>
-	</example>
+		>>> from ll.xist import parsers, xfind
+		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
+		>>> for node in doc.walknode(doc[0]/xsc.Element):
+		... 	print repr(node)
+		... 
+		<ll.xist.ns.html.head element object (13 children/no attrs) (from http://www.python.org/:6:?) at 0xb6c82f4c>
+		<ll.xist.ns.html.body element object (19 children/no attrs) (from http://www.python.org/:26:?) at 0xb6c3154c>
 	"""
 	def __init__(self, node):
 		self.node = node
@@ -277,24 +257,20 @@ isroot = isroot()
 
 class empty(Selector):
 	"""
-	<p>Selector that selects all empty elements or fragments.</p>
+	Selector that selects all empty elements or fragments::
 
-	<example>
-	<tty>
-	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
-	<prompt>>>> </prompt><input>doc = parsers.parseurl("http://www.python.org", tidy=True)</input>
-	<prompt>>>> </prompt><input>for node in doc.walknode(<em>xfind.empty</em>):</input>
-	<prompt>... </prompt><input>\tprint node.bytes()</input>
-	<prompt>... </prompt><input></input>
-	<![CDATA[<meta content="text/html; charset=utf-8" http-equiv="content-type" />
-	<meta content="python programming language object oriented web free source" name="keywords" />
-	<meta content="      Home page for Python, an interpreted, interactive, object-oriented, extensible
-	      programming language. It provides an extraordinary combination of clarity and
-	      versatility, and is free and comprehensively ported. " name="description" />
-	<a type="application/rss+xml" href="http://www.python.org/channews.rdf" rel="alternate" title="RSS" />]]>
-	<rep>...</rep>
-	</tty>
-	</example>
+		>>> from ll.xist import parsers, xfind
+		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
+		>>> for node in doc.walknode(xfind.empty):
+		... 	print node.bytes()
+		... 
+		<meta content="text/html; charset=utf-8" http-equiv="content-type" />
+		<meta content="python programming language object oriented web free source" name="keywords" />
+		<meta content="      Home page for Python, an interpreted, interactive, object-oriented, extensible
+		      programming language. It provides an extraordinary combination of clarity and
+		      versatility, and is free and comprehensively ported. " name="description" />
+		<a type="application/rss+xml" href="http://www.python.org/channews.rdf" rel="alternate" title="RSS" />
+		...
 	"""
 
 	def matchpath(self, path):
@@ -313,22 +289,18 @@ empty = empty()
 
 class onlychild(Selector):
 	"""
-	<p>Selector that selects all node that are the only child of their parents.</p>
+	Selector that selects all node that are the only child of their parents::
 
-	<example>
-	<tty>
-	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
-	<prompt>>>> </prompt><input>doc = parsers.parseurl("http://www.python.org", tidy=True)</input>
-	<prompt>>>> </prompt><input>for node in doc.walknode(<em>xfind.onlychild &amp; html.a</em>):</input>
-	<prompt>... </prompt><input>\tprint node.bytes()</input>
-	<prompt>... </prompt><input></input>
-	<![CDATA[<a accesskey="2" href="http://www.python.org/#left%2dhand%2dnavigation"><img id="skiptonav" alt="skip to navigation" src="http://www.python.org/images/trans.gif" border="0" /></a>
-	<a accesskey="3" href="http://www.python.org/#content%2dbody"><img id="skiptocontent" alt="skip to content" src="http://www.python.org/images/trans.gif" border="0" /></a>
-	<a href="http://www.python.org/download/releases/2.5.1">Quick Links (2.5.1)</a>
-	<a title="Manuals for Latest Stable Release" href="http://docs.python.org/">Documentation</a>]]>
-	<rep>...</rep>
-	</tty>
-	</example>
+		>>> from ll.xist import parsers, xfind
+		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
+		>>> for node in doc.walknode(<em>xfind.onlychild & html.a</em>):
+		... 	print node.bytes()
+		... 
+		<a accesskey="2" href="http://www.python.org/#left%2dhand%2dnavigation"><img id="skiptonav" alt="skip to navigation" src="http://www.python.org/images/trans.gif" border="0" /></a>
+		<a accesskey="3" href="http://www.python.org/#content%2dbody"><img id="skiptocontent" alt="skip to content" src="http://www.python.org/images/trans.gif" border="0" /></a>
+		<a href="http://www.python.org/download/releases/2.5.1">Quick Links (2.5.1)</a>
+		<a title="Manuals for Latest Stable Release" href="http://docs.python.org/">Documentation</a>
+		...
 	"""
 
 	def matchpath(self, path):
@@ -347,23 +319,19 @@ onlychild = onlychild()
 
 class onlyoftype(Selector):
 	"""
-	<p>Selector that selects all nodes that are the only nodes of their type among
-	their siblings.</p>
+	Selector that selects all nodes that are the only nodes of their type among
+	their siblings::
 
-	<example>
-	<tty>
-	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
-	<prompt>>>> </prompt><input>doc = parsers.parseurl("http://www.python.org", tidy=True)</input>
-	<prompt>>>> </prompt><input>for node in doc.walknode(<em>xfind.onlyoftype &amp; xsc.Element</em>):</input>
-	<prompt>... </prompt><input>\tprint repr(node)</input>
-	<prompt>... </prompt><input></input>
-	<![CDATA[<ll.xist.ns.html.html element object (2 children/1 attr) (from http://www.python.org/:4:?) at 0xb6d6e7ec>
-	<ll.xist.ns.html.head element object (13 children/no attrs) (from http://www.python.org/:6:?) at 0xb6cc1f8c>
-	<ll.xist.ns.html.title element object (1 child/no attrs) (from http://www.python.org/:8:?) at 0xb6d79b8c>
-	<ll.xist.ns.html.body element object (19 children/no attrs) (from http://www.python.org/:26:?) at 0xb6d7282c>]]>
-	<rep>...</rep>
-	</tty>
-	</example>
+		>>> from ll.xist import parsers, xfind
+		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
+		>>> for node in doc.walknode(xfind.onlyoftype & xsc.Element):
+		... 	print repr(node)
+		... 
+		<ll.xist.ns.html.html element object (2 children/1 attr) (from http://www.python.org/:4:?) at 0xb6d6e7ec>
+		<ll.xist.ns.html.head element object (13 children/no attrs) (from http://www.python.org/:6:?) at 0xb6cc1f8c>
+		<ll.xist.ns.html.title element object (1 child/no attrs) (from http://www.python.org/:8:?) at 0xb6d79b8c>
+		<ll.xist.ns.html.body element object (19 children/no attrs) (from http://www.python.org/:26:?) at 0xb6d7282c>
+		...
 	"""
 
 	def matchpath(self, path):
@@ -387,21 +355,17 @@ onlyoftype = onlyoftype()
 
 class hasattr(Selector):
 	"""
-	<p>Selector that selects all element nodes that have an attribute with one
+	Selector that selects all element nodes that have an attribute with one
 	of the specified Python names. For selecting nodes with global attributes
-	the attribute class can be passed.</p>
+	the attribute class can be passed::
 
-	<example>
-	<tty>
-	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
-	<prompt>>>> </prompt><input>from ll.xist.ns import html, xml</input>
-	<prompt>>>> </prompt><input>doc = parsers.parseurl("http://www.python.org", tidy=True)</input>
-	<prompt>>>> </prompt><input>for node in doc.walknode(<em>xfind.hasattr(xml.Attrs.lang)</em>):</input>
-	<prompt>... </prompt><input>\tprint repr(node)</input>
-	<prompt>... </prompt><input></input>
-	<![CDATA[<ll.xist.ns.html.html element object (2 children/2 attrs) (from http://www.python.org/:4:?) at 0xb6d71d4c>]]>
-	</tty>
-	</example>
+		>>> from ll.xist import parsers, xfind
+		>>> from ll.xist.ns import html, xml
+		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
+		>>> for node in doc.walknode(xfind.hasattr(xml.Attrs.lang)):
+		... 	print repr(node)
+		... 
+		<ll.xist.ns.html.html element object (2 children/2 attrs) (from http://www.python.org/:4:?) at 0xb6d71d4c>
 	"""
 
 	def __init__(self, *attrnames):
@@ -422,8 +386,8 @@ class hasattr(Selector):
 
 class hasattr_xml(Selector):
 	"""
-	<class>hasattr_xml</class> works similar to <pyref class="hasattr"><class>hasattr</class></pyref>
-	except that the specified names are treated as &xml; names instead of Python names.
+	:class:`hasattr_xml` works similar to :class:`hasattr` except that the
+	specified names are treated as XML names instead of Python names.
 	"""
 
 	def __init__(self, *attrnames):
@@ -444,24 +408,19 @@ class hasattr_xml(Selector):
 
 class attrhasvalue(Selector):
 	"""
-	<p>Selector that selects all element nodes where an attribute with the
-	specified Python name has the specified value. For global attributes
-	the attribute class can be passed. Note that
-	<pyref module="ll.xist.xsc" class="Attr" method="isfancy">fancy</pyref> attributes
-	will not be considered.</p>
+	Selector that selects all element nodes where an attribute with the
+	specified Python name has the specified value. For global attributes the
+	attribute class can be passed. Note that "fancy" attributes (i.e. those
+	containing non-text) will not be considered::
 
-	<example>
-	<tty>
-	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
-	<prompt>>>> </prompt><input>doc = parsers.parseurl("http://www.python.org", tidy=True)</input>
-	<prompt>>>> </prompt><input>for node in doc.walknode(<em>xfind.attrhasvalue("rel", "stylesheet")</em>):</input>
-	<prompt>... </prompt><input>\tprint repr(node)</input>
-	<prompt>... </prompt><input></input>
-	<![CDATA[<a media="screen" type="text/css" href="http://www.python.org/styles/screen-switcher-default.css" rel="stylesheet" id="screen-switcher-stylesheet" />
-	<a media="scReen" type="text/css" rel="stylesheet" href="http://www.python.org/styles/netscape4.css" />
-	<a media="print" type="text/css" rel="stylesheet" href="http://www.python.org/styles/print.css" />]]>
-	</tty>
-	</example>
+		>>> from ll.xist import parsers, xfind
+		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
+		>>> for node in doc.walknode(xfind.attrhasvalue("rel", "stylesheet")):
+		... 	print repr(node)
+		... 
+		<a media="screen" type="text/css" href="http://www.python.org/styles/screen-switcher-default.css" rel="stylesheet" id="screen-switcher-stylesheet" />
+		<a media="scReen" type="text/css" rel="stylesheet" href="http://www.python.org/styles/netscape4.css" />
+		<a media="print" type="text/css" rel="stylesheet" href="http://www.python.org/styles/print.css" />
 	"""
 
 	def __init__(self, attrname, attrvalue):
@@ -483,8 +442,8 @@ class attrhasvalue(Selector):
 
 class attrhasvalue_xml(Selector):
 	"""
-	<class>attrhasvalue_xml</class> works similar to <pyref class="attrhasvalue"><class>attrhasvalue</class></pyref>
-	except that the specified name is treated as an &xml; name instead of a Python name.
+	:class:`attrhasvalue_xml` works similar to :class:`attrhasvalue` except that
+	the specified name is treated as an XML name instead of a Python name.
 	"""
 
 	def __init__(self, attrname, attrvalue):
@@ -506,26 +465,21 @@ class attrhasvalue_xml(Selector):
 
 class attrcontains(Selector):
 	"""
-	<p>Selector that selects all element nodes where an attribute with the
+	Selector that selects all element nodes where an attribute with the
 	specified Python name contains the specified substring in its value. For
-	global attributes the attribute class can be passed. Note that
-	<pyref module="ll.xist.xsc" class="Attr" method="isfancy">fancy</pyref>
-	attributes will not be considered.</p>
+	global attributes the attribute class can be passed. Note that "fancy"
+	attributes (i.e. those containing non-text) will not be considered::
 
-	<example>
-	<tty>
-	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
-	<prompt>>>> </prompt><input>doc = parsers.parseurl("http://www.python.org", tidy=True)</input>
-	<prompt>>>> </prompt><input>for node in doc.walknode(<em>xfind.attrcontains("rel", "stylesheet")</em>):</input>
-	<prompt>... </prompt><input>\tprint repr(node)</input>
-	<prompt>... </prompt><input></input>
-	<![CDATA[<a type="text/css" id="screen-switcher-stylesheet" media="screen" rel="stylesheet" href="http://www.python.org/styles/screen-switcher-default.css" />
-	<a type="text/css" media="scReen" rel="stylesheet" href="http://www.python.org/styles/netscape4.css" />
-	<a type="text/css" media="print" rel="stylesheet" href="http://www.python.org/styles/print.css" />
-	<a type="text/css" title="large text" media="screen" rel="alternate stylesheet" href="http://www.python.org/styles/largestyles.css" />
-	<a type="text/css" title="default fonts" media="screen" rel="alternate stylesheet" href="http://www.python.org/styles/defaultfonts.css" />]]>
-	</tty>
-	</example>
+		>>> from ll.xist import parsers, xfind
+		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
+		>>> for node in doc.walknode(xfind.attrcontains("rel", "stylesheet")):
+		... \tprint repr(node)
+		... 
+		<a type="text/css" id="screen-switcher-stylesheet" media="screen" rel="stylesheet" href="http://www.python.org/styles/screen-switcher-default.css" />
+		<a type="text/css" media="scReen" rel="stylesheet" href="http://www.python.org/styles/netscape4.css" />
+		<a type="text/css" media="print" rel="stylesheet" href="http://www.python.org/styles/print.css" />
+		<a type="text/css" title="large text" media="screen" rel="alternate stylesheet" href="http://www.python.org/styles/largestyles.css" />
+		<a type="text/css" title="default fonts" media="screen" rel="alternate stylesheet" href="http://www.python.org/styles/defaultfonts.css" />
 	"""
 
 	def __init__(self, attrname, attrvalue):
@@ -547,8 +501,8 @@ class attrcontains(Selector):
 
 class attrcontains_xml(Selector):
 	"""
-	<class>attrcontains_xml</class> works similar to <pyref class="attrcontains"><class>attrcontains</class></pyref>
-	except that the specified name is treated as an &xml; name instead of a Python name.
+	:class:`attrcontains_xml` works similar to :class:`attrcontains` except that
+	the specified name is treated as an XML name instead of a Python name.
 	"""
 
 	def __init__(self, attrname, attrvalue):
@@ -570,23 +524,18 @@ class attrcontains_xml(Selector):
 
 class attrstartswith(Selector):
 	"""
-	<p>Selector that selects all element nodes where an attribute with the
-	specified Python name starts with the specified string. For global attributes
-	the attribute class can be passed. Note that
-	<pyref module="ll.xist.xsc" class="Attr" method="isfancy">fancy</pyref> attributes
-	will not be considered.</p>
+	Selector that selects all element nodes where an attribute with the
+	specified Python name starts with the specified string. For global
+	attributes the attribute class can be passed. Note that "fancy" attributes
+	(i.e. those containing non-text) will not be considered::
 
-	<example>
-	<tty>
-	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
-	<prompt>>>> </prompt><input>doc = parsers.parseurl("http://www.python.org", tidy=True)</input>
-	<prompt>>>> </prompt><input>for node in doc.walknode(<em>xfind.attrstartswith("class_", "input-")</em>):</input>
-	<prompt>... </prompt><input>\tprint repr(node)</input>
-	<prompt>... </prompt><input></input>
-	<![CDATA[<input class="input-text" id="q" type="text" name="q" />
-	<input value="search" class="input-button" id="submit" type="submit" name="submit" />]]>
-	</tty>
-	</example>
+		>>> from ll.xist import parsers, xfind
+		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
+		>>> for node in doc.walknode(xfind.attrstartswith("class_", "input-")):
+		... 	print repr(node)
+		... 
+		<input class="input-text" id="q" type="text" name="q" />
+		<input value="search" class="input-button" id="submit" type="submit" name="submit" />
 	"""
 
 	def __init__(self, attrname, attrvalue):
@@ -608,8 +557,8 @@ class attrstartswith(Selector):
 
 class attrstartswith_xml(Selector):
 	"""
-	<class>attrstartswith_xml</class> works similar to <pyref class="attrstartswith"><class>attrstartswith</class></pyref>
-	except that the specified name is treated as an &xml; name instead of a Python name.
+	:class:`attrstartswith_xml` works similar to :class:`attrstartswith` except
+	that the specified name is treated as an XML name instead of a Python name.
 	"""
 
 	def __init__(self, attrname, attrvalue):
@@ -631,26 +580,21 @@ class attrstartswith_xml(Selector):
 
 class attrendswith(Selector):
 	"""
-	<p>Selector that selects all element nodes where an attribute with the
+	Selector that selects all element nodes where an attribute with the
 	specified Python name ends with the specified string. For global attributes
-	the attribute class can be passed. Note that
-	<pyref module="ll.xist.xsc" class="Attr" method="isfancy">fancy</pyref> attributes
-	will not be considered.</p>
+	the attribute class can be passed. Note that "fancy" attributes (i.e. those
+	containing non-text) will not be considered::
 
-	<example>
-	<tty>
-	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
-	<prompt>>>> </prompt><input>doc = parsers.parseurl("http://www.python.org", tidy=True)</input>
-	<prompt>>>> </prompt><input>for node in doc.walknode(<em>xfind.attrendswith("href", ".css")</em>):</input>
-	<prompt>... </prompt><input>\tprint repr(node)</input>
-	<prompt>... </prompt><input></input>
-	<![CDATA[<a href="http://www.python.org/styles/screen-switcher-default.css" type="text/css" rel="stylesheet" id="screen-switcher-stylesheet" media="screen" />
-	<a type="text/css" rel="stylesheet" href="http://www.python.org/styles/netscape4.css" media="scReen" />
-	<a type="text/css" rel="stylesheet" href="http://www.python.org/styles/print.css" media="print" />
-	<a title="large text" type="text/css" rel="alternate stylesheet" href="http://www.python.org/styles/largestyles.css" media="screen" />
-	<a title="default fonts" type="text/css" rel="alternate stylesheet" href="http://www.python.org/styles/defaultfonts.css" media="screen" />]]>
-	</tty>
-	</example>
+		>>> from ll.xist import parsers, xfind
+		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
+		>>> for node in doc.walknode(xfind.attrendswith("href", ".css")):
+		... 	print repr(node)
+		... 
+		<a href="http://www.python.org/styles/screen-switcher-default.css" type="text/css" rel="stylesheet" id="screen-switcher-stylesheet" media="screen" />
+		<a type="text/css" rel="stylesheet" href="http://www.python.org/styles/netscape4.css" media="scReen" />
+		<a type="text/css" rel="stylesheet" href="http://www.python.org/styles/print.css" media="print" />
+		<a title="large text" type="text/css" rel="alternate stylesheet" href="http://www.python.org/styles/largestyles.css" media="screen" />
+		<a title="default fonts" type="text/css" rel="alternate stylesheet" href="http://www.python.org/styles/defaultfonts.css" media="screen" />
 	"""
 
 	def __init__(self, attrname, attrvalue):
@@ -672,8 +616,8 @@ class attrendswith(Selector):
 
 class attrendswith_xml(Selector):
 	"""
-	<class>attrendswith_xml</class> works similar to <pyref class="attrendswith"><class>attrendswith</class></pyref>
-	except that the specified name is treated as an &xml; name instead of a Python name.
+	:class:`attrendswith_xml` works similar to :class:`attrendswith` except that
+	the specified name is treated as an XML name instead of a Python name.
 	"""
 
 	def __init__(self, attrname, attrvalue):
@@ -695,18 +639,15 @@ class attrendswith_xml(Selector):
 
 class hasid(Selector):
 	"""
-	<p>Selector that selects all element nodes where the <lit>id</lit> attribute
-	has the specified value.</p>
-	<example>
-	<tty>
-	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
-	<prompt>>>> </prompt><input>doc = parsers.parseurl("http://www.python.org", tidy=True)</input>
-	<prompt>>>> </prompt><input>for node in doc.walknode(<em>xfind.hasid("logo")</em>):</input>
-	<prompt>... </prompt><input>\tprint node.bytes()</input>
-	<prompt>... </prompt><input></input>
-	<![CDATA[<img src="http://www.python.org/images/python-logo.gif" id="logo" alt="homepage" border="0" />]]>
-	</tty>
-	</example>
+	Selector that selects all element nodes where the ``id`` attribute has the
+	specified value::
+
+		>>> from ll.xist import parsers, xfind
+		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
+		>>> for node in doc.walknode(xfind.hasid("logo")):
+		... 	print node.bytes()
+		... 
+		<img src="http://www.python.org/images/python-logo.gif" id="logo" alt="homepage" border="0" />
 	"""
 
 	def __init__(self, id):
@@ -730,22 +671,19 @@ class hasid(Selector):
 
 class hasclass(Selector):
 	"""
-	<p>Selector that selects all element nodes where the <lit>class</lit> attribute
-	has the specified value.</p>
-	<example>
-	<tty>
-	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
-	<prompt>>>> </prompt><input>doc = parsers.parseurl("http://www.python.org", tidy=True)</input>
-	<prompt>>>> </prompt><input>for node in doc.walknode(<em>xfind.hasclass("reference")</em>):</input>
-	<prompt>... </prompt><input>\tprint node.bytes()</input>
-	<prompt>... </prompt><input></input>
-	<![CDATA[<a class="reference" href="http://www.python.org/search">Advanced Search</a>
-	<a href="http://www.python.org/about/success/rackspace" class="reference">Rackspace</a>
-	<a href="http://www.python.org/about/success/ilm" class="reference">Industrial Light and Magic</a>
-	<a href="http://www.python.org/about/success/astra" class="reference">AstraZeneca</a>]]>
-	<rep>...</rep>
-	</tty>
-	</example>
+	Selector that selects all element nodes where the ``class`` attribute has
+	the specified value::
+
+		>>> from ll.xist import parsers, xfind
+		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
+		>>> for node in doc.walknode(xfind.hasclass("reference")<):
+		... 	print node.bytes()
+		... 
+		<a class="reference" href="http://www.python.org/search">Advanced Search</a>
+		<a href="http://www.python.org/about/success/rackspace" class="reference">Rackspace</a>
+		<a href="http://www.python.org/about/success/ilm" class="reference">Industrial Light and Magic</a>
+		<a href="http://www.python.org/about/success/astra" class="reference">AstraZeneca</a>
+		...
 	"""
 
 	def __init__(self, classname):
@@ -769,20 +707,17 @@ class hasclass(Selector):
 
 class inattr(Selector):
 	"""
-	<p>Selector that selects all attribute nodes and nodes inside of attributes.</p>
-	<example>
-	<tty>
-	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
-	<prompt>>>> </prompt><input>doc = parsers.parseurl("http://www.python.org", tidy=True)</input>
-	<prompt>>>> </prompt><input>for node in doc.walknode(<em>xfind.inattr &amp; xsc.Text</em>):</input>
-	<prompt>... </prompt><input>\tprint node.bytes()</input>
-	<prompt>... </prompt><input></input>
+	Selector that selects all attribute nodes and nodes inside of attributes::
+
+	>>> from ll.xist import parsers, xfind
+	>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
+	>>> for node in doc.walknode(xfind.inattr & xsc.Text):
+	... 	print node.bytes()
+	... 
 	text/html; charset=utf-8
 	content-type
 	python programming language object oriented web free source	
-	<rep>...</rep>
-	</tty>
-	</example>
+	...
 	"""
 	def matchpath(self, path):
 		return any(isinstance(node, xsc.Attr) for node in path)
@@ -796,15 +731,15 @@ inattr = inattr()
 
 class Combinator(Selector):
 	"""
-	<p>A <class>Combinator</class> is a selector that transforms one or combines
+	<p>A :class:`Combinator` is a selector that transforms one or combines
 	two or more other selectors in a certain way.</p>
 	"""
 
 
 class BinaryCombinator(Combinator):
 	"""
-	<p>A <class>BinaryCombinator</class> is a combinator that combines two selector:
-	the left hand selector and the right hand selector.</p>
+	A :class:`BinaryCombinator` is a combinator that combines two selector:
+	the left hand selector and the right hand selector.
 	"""
 	symbol = None
 
@@ -827,28 +762,24 @@ class BinaryCombinator(Combinator):
 
 class ChildCombinator(BinaryCombinator):
 	"""
-	<p>A <class>ChildCombinator</class> is a <class>BinaryCombinator</class>.
-	To match the <class>ChildCombinator</class> the node must match the
-	right hand selector and it's immediate parent must match the left hand
-	selector (i.e. it works similar to the <lit>&gt;</lit> combinator in &css;
-	or the <lit>/</lit> combinator in XPath).</p>
+	A :class:`ChildCombinator` is a :class:`BinaryCombinator`. To match the
+	:class:`ChildCombinator` the node must match the right hand selector and
+	it's immediate parent must match the left hand selector (i.e. it works
+	similar to the ``>`` combinator in CSS or the ``/`` combinator in XPath).
 
-	<p><class>ChildCombinator</class>s can be created via the division operator (<lit>/</lit>):</p>
+	:class:`ChildCombinator` objects can be created via the division operator
+	(``/``)::
 
-	<example>
-	<tty>
-	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
-	<prompt>>>> </prompt><input>from ll.xist.ns import html</input>
-	<prompt>>>> </prompt><input>doc = parsers.parseurl("http://www.python.org", tidy=True)</input>
-	<prompt>>>> </prompt><input>for node in doc.walknode(<em>html.a/html.img</em>):</input>
-	<prompt>... </prompt><input>\tprint node.bytes()</input>
-	<prompt>... </prompt><input></input>
-	<![CDATA[<img src="http://www.python.org/images/python-logo.gif" alt="homepage" id="logo" border="0" />
-	<img id="skiptonav" alt="skip to navigation" src="http://www.python.org/images/trans.gif" border="0" />
-	<img id="skiptocontent" alt="skip to content" src="http://www.python.org/images/trans.gif" border="0" />
-	<img alt="success story photo" class="success" src="http://www.python.org/images/success/nasa.jpg" />]]>
-	</tty>
-	</example>
+		>>> from ll.xist import parsers, xfind
+		>>> from ll.xist.ns import html
+		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
+		>>> for node in doc.walknode(html.a/html.img):
+		... 	print node.bytes()
+		... 
+		<img src="http://www.python.org/images/python-logo.gif" alt="homepage" id="logo" border="0" />
+		<img id="skiptonav" alt="skip to navigation" src="http://www.python.org/images/trans.gif" border="0" />
+		<img id="skiptocontent" alt="skip to content" src="http://www.python.org/images/trans.gif" border="0" />
+		<img alt="success story photo" class="success" src="http://www.python.org/images/success/nasa.jpg" />
 	"""
 	def matchpath(self, path):
 		if path and self.right.matchpath(path):
@@ -860,28 +791,24 @@ class ChildCombinator(BinaryCombinator):
 
 class DescendantCombinator(BinaryCombinator):
 	"""
-	<p>A <class>DescendantCombinator</class> is a <class>BinaryCombinator</class>.
-	To match the <class>DescendantCombinator</class> the node must match the
-	right hand selector and any of it's ancestor nodes must match the left hand
-	selector (i.e. it works similar to the descendant combinator in &css;
-	or the <lit>//</lit> combinator in XPath).</p>
+	A :class:`DescendantCombinator` is a :class:`BinaryCombinator`. To match the
+	:class:`DescendantCombinator` the node must match the right hand selector
+	and any of it's ancestor nodes must match the left hand selector (i.e. it
+	works similar to the descendant combinator in CSS or the ``//`` combinator
+	in XPath).
 
-	<p><class>DescendantCombinator</class>s can be created via the floor division
-	operator (<lit>//</lit>):</p>
+	:class:`DescendantCombinator` objects can be created via the floor division
+	operator (``//``)::
 
-	<example>
-	<tty>
-	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
-	<prompt>>>> </prompt><input>from ll.xist.ns import html</input>
-	<prompt>>>> </prompt><input>doc = parsers.parseurl("http://www.python.org", tidy=True)</input>
-	<prompt>>>> </prompt><input>for node in doc.walknode(<em>html.div//html.img</em>):</input>
-	<prompt>... </prompt><input>\tprint node.bytes()</input>
-	<prompt>... </prompt><input></input>
-	<![CDATA[<img id="skiptonav" alt="skip to navigation" src="http://www.python.org/images/trans.gif" border="0" />
-	<img id="skiptocontent" alt="skip to content" src="http://www.python.org/images/trans.gif" border="0" />
-	<img alt="success story photo" class="success" src="http://www.python.org/images/success/nasa.jpg" />]]>
-	</tty>
-	</example>
+		>>> from ll.xist import parsers, xfind
+		>>> from ll.xist.ns import html
+		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
+		>>> for node in doc.walknode(html.div//html.img):
+		... 	print node.bytes()
+		... 
+		<img id="skiptonav" alt="skip to navigation" src="http://www.python.org/images/trans.gif" border="0" />
+		<img id="skiptocontent" alt="skip to content" src="http://www.python.org/images/trans.gif" border="0" />
+		<img alt="success story photo" class="success" src="http://www.python.org/images/success/nasa.jpg" />
 	"""
 	def matchpath(self, path):
 		if path and self.right.matchpath(path):
@@ -896,36 +823,32 @@ class DescendantCombinator(BinaryCombinator):
 
 class AdjacentSiblingCombinator(BinaryCombinator):
 	"""
-	<p>A <class>AdjacentSiblingCombinator</class> is a <class>BinaryCombinator</class>.
-	To match the <class>AdjacentSiblingCombinator</class> the node must match the
-	right hand selector and the immediately preceding sibling must match the left
-	hand selector.</p>
+	A :class:`AdjacentSiblingCombinator` is a :class:`BinaryCombinator`.
+	To match the :class:`AdjacentSiblingCombinator` the node must match the
+	right hand selector and the immediately preceding sibling must match the
+	left hand selector.
 
-	<p><class>AdjacentSiblingCombinator</class>s can be created via the
-	multiplication operator (<lit>*</lit>). The following example outputs all links
-	inside those <class>p</class> elements that immediately follow a
-	<class>h2</class> element:</p>
+	:class:`AdjacentSiblingCombinator` objects can be created via the
+	multiplication operator (``*``). The following example outputs all links
+	inside those :class:`p` elements that immediately follow a :class:`h2`
+	element::
 
-	<example>
-	<tty>
-	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
-	<prompt>>>> </prompt><input>from ll.xist.ns import html</input>
-	<prompt>>>> </prompt><input>doc = parsers.parseurl("http://www.python.org", tidy=True)</input>
-	<prompt>>>> </prompt><input>for node in doc.walknode(<em>html.h2*html.p/html.a</em>):</input>
-	<prompt>... </prompt><input>\tprint node.bytes()</input>
-	<prompt>... </prompt><input></input>
-	<![CDATA[<a href="http://www.scipy.org/SciPy2007" class="reference">SciPy Conference</a>
-	<a href="https://www.enthought.com/scipy07/" class="reference">early registration</a>
-	<a href="http://www.europython.org/sections/registration_issues/how-to-register" class="reference">Online registration</a>
-	<a href="http://europython.org/" class="reference">EuroPython 2007</a>
-	<a href="http://www.osdc.com.au/papers/cfp.html" class="reference">Call For Papers</a>
-	<a href="http://www.swa.hpi.uni-potsdam.de/dls07/" class="reference">DLS 2007</a>
-	<a href="http://pythonpapers.cgpublisher.com/" class="reference">The Python Papers</a>
-	<a href="http://www.pyconuk.org/" class="reference">PyCon UK</a>
-	<a href="http://www.pyconuk.org/submit.html" class="reference">proposals for talks</a>
-	<a href="http://www.pycon.it/registration/" class="reference">registration online</a>]]>
-	</tty>
-	</example>
+		>>> from ll.xist import parsers, xfind
+		>>> from ll.xist.ns import html
+		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
+		>>> for node in doc.walknode(html.h2*html.p/html.a):
+		... 	print node.bytes()
+		... 
+		<a href="http://www.scipy.org/SciPy2007" class="reference">SciPy Conference</a>
+		<a href="https://www.enthought.com/scipy07/" class="reference">early registration</a>
+		<a href="http://www.europython.org/sections/registration_issues/how-to-register" class="reference">Online registration</a>
+		<a href="http://europython.org/" class="reference">EuroPython 2007</a>
+		<a href="http://www.osdc.com.au/papers/cfp.html" class="reference">Call For Papers</a>
+		<a href="http://www.swa.hpi.uni-potsdam.de/dls07/" class="reference">DLS 2007</a>
+		<a href="http://pythonpapers.cgpublisher.com/" class="reference">The Python Papers</a>
+		<a href="http://www.pyconuk.org/" class="reference">PyCon UK</a>
+		<a href="http://www.pyconuk.org/submit.html" class="reference">proposals for talks</a>
+		<a href="http://www.pycon.it/registration/" class="reference">registration online</a>
 	"""
 
 	def matchpath(self, path):
@@ -946,32 +869,28 @@ class AdjacentSiblingCombinator(BinaryCombinator):
 
 class GeneralSiblingCombinator(BinaryCombinator):
 	"""
-	<p>A <class>GeneralSiblingCombinator</class> is a <class>BinaryCombinator</class>.
-	To match the <class>GeneralSiblingCombinator</class> the node must match the
+	A :class:`GeneralSiblingCombinator` is a :class:`BinaryCombinator`.
+	To match the :class:`GeneralSiblingCombinator` the node must match the
 	right hand selector and any of the preceding siblings must match the left
-	hand selector.</p>
+	hand selector.
 
-	<p><class>AdjacentSiblingCombinator</class>s can be created via the
-	exponentiation operator (<lit>**</lit>). The following example outputs all links
-	that are not the first links inside their parent (i.e. they have another link
-	among their preceding siblings):</p>
+	:class:`AdjacentSiblingCombinator` objects can be created via the
+	exponentiation operator (``**``). The following example outputs all links
+	that are not the first links inside their parent (i.e. they have another
+	link among their preceding siblings)::
 
-	<example>
-	<tty>
-	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
-	<prompt>>>> </prompt><input>from ll.xist.ns import html</input>
-	<prompt>>>> </prompt><input>doc = parsers.parseurl("http://www.python.org", tidy=True)</input>
-	<prompt>>>> </prompt><input>for node in doc.walknode(<em>html.a**html.a</em>):</input>
-	<prompt>... </prompt><input>\tprint node.bytes()</input>
-	<prompt>... </prompt><input></input>
-	<![CDATA[<a href="http://www.python.org/about/success/ilm" class="reference">Industrial Light and Magic</a>
-	<a href="http://www.python.org/about/success/astra" class="reference">AstraZeneca</a>
-	<a href="http://www.python.org/about/success/honeywell" class="reference">Honeywell</a>
-	<a href="http://www.python.org/about/success" class="reference">and many others</a>
-	<a href="http://www.zope.org/">Zope</a>]]>
-	<rep>...</rep>
-	</tty>
-	</example>
+		>>> from ll.xist import parsers, xfind
+		>>> from ll.xist.ns import html
+		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
+		>>> for node in doc.walknode(html.a**html.a):
+		... 	print node.bytes()
+		... 
+		<a href="http://www.python.org/about/success/ilm" class="reference">Industrial Light and Magic</a>
+		<a href="http://www.python.org/about/success/astra" class="reference">AstraZeneca</a>
+		<a href="http://www.python.org/about/success/honeywell" class="reference">Honeywell</a>
+		<a href="http://www.python.org/about/success" class="reference">and many others</a>
+		<a href="http://www.zope.org/">Zope</a>
+		...
 	"""
 
 	def matchpath(self, path):
@@ -989,8 +908,7 @@ class GeneralSiblingCombinator(BinaryCombinator):
 
 class ChainedCombinator(Combinator):
 	"""
-	<p>A <class>ChainedCombinator</class> combines any number of other
-	selectors.</p>
+	A :class:`ChainedCombinator` combines any number of other selectors.
 	"""
 
 	symbol = None
@@ -1013,31 +931,27 @@ class ChainedCombinator(Combinator):
 
 class OrCombinator(ChainedCombinator):
 	"""
-	<p>An <class>OrCombinator</class> is a <class>ChainedCombinator</class> where
-	the node must match at least one of the selectors to match the <class>OrCombinator</class>.
-	An <class>OrCombinator</class> can be created with the binary or operator (<lit>|</lit>).</p>
+	An :class:`OrCombinator` is a :class:`ChainedCombinator` where the node must
+	match at least one of the selectors to match the :class:`OrCombinator`. An
+	:class:`OrCombinator` can be created with the binary or operator (``|``)::
 
-	<example>
-	<tty>
-	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
-	<prompt>>>> </prompt><input>from ll.xist.ns import html</input>
-	<prompt>>>> </prompt><input>doc = parsers.parseurl("http://www.python.org", tidy=True)</input>
-	<prompt>>>> </prompt><input>for node in doc.walknode(<em>xfind.hasattr("href") | xfind.hasattr("src")</em>):</input>
-	<prompt>... </prompt><input>\tprint node.bytes()</input>
-	<prompt>... </prompt><input></input>
-	<![CDATA[<a type="application/rss+xml" title="RSS" rel="alternate" href="http://www.python.org/channews.rdf" />
-	<a media="screen" type="text/css" id="screen-switcher-stylesheet" rel="stylesheet" href="http://www.python.org/styles/screen-switcher-default.css" />
-	<a media="scReen" type="text/css" rel="stylesheet" href="http://www.python.org/styles/netscape4.css" />
-	<a media="print" type="text/css" rel="stylesheet" href="http://www.python.org/styles/print.css" />
-	<a media="screen" type="text/css" title="large text" rel="alternate stylesheet" href="http://www.python.org/styles/largestyles.css" />
-	<a media="screen" type="text/css" title="default fonts" rel="alternate stylesheet" href="http://www.python.org/styles/defaultfonts.css" />
-	<script src="http://www.python.org/js/iotbs2-key-directors-load.js" type="text/javascript"></script>
-	<script src="http://www.python.org/js/iotbs2-directors.js" type="text/javascript"></script>
-	<script src="http://www.python.org/js/iotbs2-core.js" type="text/javascript"></script>
-	<a accesskey="1" id="logolink" href="http://www.python.org/"><img alt="homepage" src="http://www.python.org/images/python-logo.gif" id="logo" border="0" /></a>]]>
-	<rep>...</rep>
-	</tty>
-	</example>
+		>>> from ll.xist import parsers, xfind
+		>>> from ll.xist.ns import html
+		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
+		>>> for node in doc.walknode(xfind.hasattr("href") | xfind.hasattr("src")):
+		... 	print node.bytes()
+		... 
+		<a type="application/rss+xml" title="RSS" rel="alternate" href="http://www.python.org/channews.rdf" />
+		<a media="screen" type="text/css" id="screen-switcher-stylesheet" rel="stylesheet" href="http://www.python.org/styles/screen-switcher-default.css" />
+		<a media="scReen" type="text/css" rel="stylesheet" href="http://www.python.org/styles/netscape4.css" />
+		<a media="print" type="text/css" rel="stylesheet" href="http://www.python.org/styles/print.css" />
+		<a media="screen" type="text/css" title="large text" rel="alternate stylesheet" href="http://www.python.org/styles/largestyles.css" />
+		<a media="screen" type="text/css" title="default fonts" rel="alternate stylesheet" href="http://www.python.org/styles/defaultfonts.css" />
+		<script src="http://www.python.org/js/iotbs2-key-directors-load.js" type="text/javascript"></script>
+		<script src="http://www.python.org/js/iotbs2-directors.js" type="text/javascript"></script>
+		<script src="http://www.python.org/js/iotbs2-core.js" type="text/javascript"></script>
+		<a accesskey="1" id="logolink" href="http://www.python.org/"><img alt="homepage" src="http://www.python.org/images/python-logo.gif" id="logo" border="0" /></a>
+		...
 	"""
 
 	def matchpath(self, path):
@@ -1051,25 +965,22 @@ class OrCombinator(ChainedCombinator):
 
 class AndCombinator(ChainedCombinator):
 	"""
-	<p>An <class>AndCombinator</class> is a <class>ChainedCombinator</class> where
-	the node must match all of the combined selectors to match the <class>AndCombinator</class>.
-	An <class>AndCombinator</class> can be created with the binary and operator (<lit>&amp;</lit>).</p>
+	An :class:`AndCombinator` is a :class:`ChainedCombinator` where the node
+	must match all of the combined selectors to match the :class:`AndCombinator`.
+	An :class:`AndCombinator` can be created with the binary and operator
+	(``&``)::
 
-	<example>
-	<tty>
-	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
-	<prompt>>>> </prompt><input>from ll.xist.ns import html</input>
-	<prompt>>>> </prompt><input>doc = parsers.parseurl("http://www.python.org", tidy=True)</input>
-	<prompt>>>> </prompt><input>for node in doc.walknode(<em>html.input & xfind.hasattr("id")</em>):</input>
-	<prompt>... </prompt><input>\tprint node.bytes()</input>
-	<prompt>... </prompt><input></input>
-	<![CDATA[<input id="domains" name="domains" value="www.python.org" type="hidden" />
-	<input id="sitesearch" name="sitesearch" value="www.python.org" type="hidden" />
-	<input id="sourceid" name="sourceid" value="google-search" type="hidden" />
-	<input id="q" class="input-text" name="q" type="text" />
-	<input id="submit" value="search" name="submit" type="submit" class="input-button" />]]>
-	</tty>
-	</example>
+		>>> from ll.xist import parsers, xfind
+		>>> from ll.xist.ns import html
+		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
+		>>> for node in doc.walknode(html.input & xfind.hasattr("id")):
+		... 	print node.bytes()
+		... 
+		<input id="domains" name="domains" value="www.python.org" type="hidden" />
+		<input id="sitesearch" name="sitesearch" value="www.python.org" type="hidden" />
+		<input id="sourceid" name="sourceid" value="google-search" type="hidden" />
+		<input id="q" class="input-text" name="q" type="text" />
+		<input id="submit" value="search" name="submit" type="submit" class="input-button" />
 	"""
 
 	def matchpath(self, path):
@@ -1083,23 +994,21 @@ class AndCombinator(ChainedCombinator):
 
 class NotCombinator(Combinator):
 	"""
-	<p>A <class>NotCombinator</class> inverts the selection logic of the
-	underlying selector, i.e. a node matches only if it does not match the underlying
-	selector. A <class>NotCombinator</class> can be created with the unary inversion operator (<lit>~</lit>).</p>
+	A :class:`NotCombinator` inverts the selection logic of the underlying
+	selector, i.e. a node matches only if it does not match the underlying
+	selector. A :class:`NotCombinator` can be created with the unary inversion
+	operator (``~``).
 
-	<p>The following example outputs all images that don't have a <lit>border</lit> attribute:</p>
+	The following example outputs all images that don't have a ``border``
+	attribute::
 
-	<example>
-	<tty>
-	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
-	<prompt>>>> </prompt><input>from ll.xist.ns import html</input>
-	<prompt>>>> </prompt><input>doc = parsers.parseurl("http://www.python.org", tidy=True)</input>
-	<prompt>>>> </prompt><input>for node in doc.walknode(<em>html.img &amp; ~xfind.hasattr("border")</em>):</input>
-	<prompt>... </prompt><input>\tprint node.bytes()</input>
-	<prompt>... </prompt><input></input>
-	<![CDATA[<img alt="success story photo" class="success" src="http://www.python.org/images/success/nasa.jpg" />]]>
-	</tty>
-	</example>
+		>>> from ll.xist import parsers, xfind
+		>>> from ll.xist.ns import html
+		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
+		>>> for node in doc.walknode(html.img & ~xfind.hasattr("border")):
+		... 	print node.bytes()
+		... 
+		<img alt="success story photo" class="success" src="http://www.python.org/images/success/nasa.jpg" />
 	"""
 
 	def __init__(self, selector):
@@ -1117,33 +1026,30 @@ class NotCombinator(Combinator):
 
 class CallableSelector(Selector):
 	"""
-	<p>A <class>CallableSelector</class> is a selector that calls a user specified
+	A :class:`CallableSelector` is a selector that calls a user specified
 	callable to select nodes. The callable gets passed the path and must return
-	a bool specifying whether this path is selected. A <class>CallableSelector</class>
-	is created implicitely whenever a callable is passed to a method that expects
-	a walk filter.</p>
+	a bool specifying whether this path is selected. A :class:`CallableSelector`
+	is created implicitely whenever a callable is passed to a method that
+	expects a walk filter.
 
-	<p>The following example outputs all links that point outside the <lit>python.org</lit> domain:</p>
+	The following example outputs all links that point outside the ``python.org``
+	domain::
 
-	<example>
-	<tty>
-	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
-	<prompt>>>> </prompt><input>from ll.xist.ns import html</input>
-	<prompt>>>> </prompt><input>doc = parsers.parseurl("http://www.python.org", tidy=True)</input>
-	<prompt>>>> </prompt><input>def foreignlink(path):</input>
-	<prompt>... </prompt><input>	return path and isinstance(path[-1], html.a) and not path[-1].attrs.href.asURL().server.endswith(".python.org")</input>
-	<prompt>... </prompt><input></input>
-	<prompt>>>> </prompt><input>for node in doc.walknode(<em>foreignlink</em>):</input>
-	<prompt>... </prompt><input>\tprint node.bytes()</input>
-	<prompt>... </prompt><input></input>
-	<![CDATA[<a href="http://youtube.com/" class="reference">YouTube.com</a>
-	<a href="http://www.zope.org/">Zope</a>
-	<a href="http://www.djangoproject.com/">Django</a>
-	<a href="http://www.turbogears.org/">TurboGears</a>
-	<a href="http://pyxml.sourceforge.net/topics/">XML</a>]]>
-	<rep>..</rep>
-	</tty>
-	</example>
+		>>> from ll.xist import parsers, xfind
+		>>> from ll.xist.ns import html
+		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
+		>>> def foreignlink(path):
+		... 	return path and isinstance(path[-1], html.a) and not path[-1].attrs.href.asURL().server.endswith(".python.org")
+		... 
+		>>> for node in doc.walknode(foreignlink):
+		... 	print node.bytes()
+		... 
+		<a href="http://youtube.com/" class="reference">YouTube.com</a>
+		<a href="http://www.zope.org/">Zope</a>
+		<a href="http://www.djangoproject.com/">Django</a>
+		<a href="http://www.turbogears.org/">TurboGears</a>
+		<a href="http://pyxml.sourceforge.net/topics/">XML</a>
+		..
 	"""
 
 	def __init__(self, func):
@@ -1158,12 +1064,11 @@ class CallableSelector(Selector):
 
 class nthchild(Selector):
 	"""
-	<p>An <class>nthchild</class> object is a selector that selects every node
-	that is the n-th child of its parent. E.g. <lit>nthchild(0)</lit> selects
-	every first child, <lit>nthchild(-1)</lit> selects each last child.
-	Furthermore <lit>nthchild("even")</lit> selects each first, third, fifth, ...
-	child and <lit>nthchild("odd")</lit> selects each second, fourth, sixth, ...
-	child.</p>
+	An :class:`nthchild` object is a selector that selects every node that is
+	the n-th child of its parent. E.g. ``nthchild(0)`` selects every first
+	child, ``nthchild(-1)`` selects each last child. Furthermore
+	``nthchild("even")`` selects each first, third, fifth, ... child and
+	``nthchild("odd")`` selects each second, fourth, sixth, ... child.
 	"""
 
 	def __init__(self, index):
@@ -1188,24 +1093,19 @@ class nthchild(Selector):
 
 class nthoftype(Selector):
 	"""
-	<p>An <class>nthchild</class> object is a selector that selects every node
-	that is the n-th node of a specified type among its siblings. Similar to
-	<pyref class="nthchild"><class>nthchild</class></pyref> <class>nthoftype</class>
-	supports negative and positive indices as well as <lit>"even"</lit> and
-	<lit>"odd"</lit>. Which types are checked can be passed explicitely. If no
-	types are passed the type of the node itself is used.</p>
+	An :class:`nthchild` object is a selector that selects every node that is
+	the n-th node of a specified type among its siblings. Similar to
+	:class:`nthchild` :class:`nthoftype` supports negative and positive indices
+	as well as ``"even"`` and ``"odd"``. Which types are checked can be passed
+	explicitely. If no types are passed the type of the node itself is used::
 
-	<example>
-	<tty>
-	<prompt>>>> </prompt><input>from ll.xist import parsers, xfind</input>
-	<prompt>>>> </prompt><input>from ll.xist.ns import html</input>
-	<prompt>>>> </prompt><input>doc = parsers.parseurl("http://www.python.org", tidy=True)</input>
-	<prompt>>>> </prompt><input>for node in doc.walknode(<em>xfind.nthoftype(0, html.h2)</em>):</input>
-	<prompt>... </prompt><input>\tprint node.bytes()</input>
-	<prompt>... </prompt><input></input>
-	<![CDATA[<h2 class="news">SciPy 2007 - Conference for Scientific Computing</h2>]]>
-	</tty>
-	</example>
+		>>> from ll.xist import parsers, xfind
+		>>> from ll.xist.ns import html
+		>>> doc = parsers.parseurl("http://www.python.org", tidy=True)
+		>>> for node in doc.walknode(xfind.nthoftype(0, html.h2)):
+		... 	print node.bytes()
+		... 
+		<h2 class="news">SciPy 2007 - Conference for Scientific Computing</h2>
 	"""
 
 	def __init__(self, index, *types):
@@ -1236,5 +1136,3 @@ class nthoftype(Selector):
 			return "%s(%r, %s)" % (self.__class__.__name__, self.index, ", ".join("%s.%s" % (type.__module__, type.__name__) for type in self.types))
 		else:
 			return "%s(%r)" % (self.__class__.__name__, self.index)
-
-

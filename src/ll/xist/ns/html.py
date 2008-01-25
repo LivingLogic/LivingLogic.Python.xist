@@ -11,8 +11,10 @@
 from __future__ import with_statement
 
 """
-<p>An &xist; namespace that contains definitions for all the elements
-in <a href="http://www.w3.org/TR/html4/loose.dtd">&html; 4.0 transitional</a>.</p>
+An XIST namespace that contains definitions for all the elements in 
+`HTML 4.0 transitional`__.
+
+__ http://www.w3.org/TR/html4/loose.dtd
 """
 
 
@@ -23,7 +25,7 @@ from ll.xist import xsc, utils, sims, xfind
 from ll.xist.ns import xml
 
 
-__docformat__ = "xist"
+__docformat__ = "reStructuredText"
 
 
 object_ = object
@@ -47,9 +49,8 @@ class MediaDescAttr(xsc.TextAttr):
 
 	def hasmedia(self, media):
 		"""
-		Return whether <self> contains the media type <arg>media</arg>. Returns
-		<lit>True</lit> if <arg>media</arg> is <lit>None</lit> or <self/> is
-		empty.
+		Return whether :var:`self` contains the media type :var:`media`. Returns
+		``True`` if :var:`media` is ``None`` or :var:`self` is empty.
 		"""
 		if media is not None and self:
 			return media in set(m.strip() for m in unicode(self).split(","))
@@ -235,8 +236,8 @@ class base(xsc.Element):
 
 class meta(xsc.Element):
 	"""
-	generic metainformation. If the <lit>http-equiv</lit> attribute
-	has the value "content-type" the encoding in the <lit>content</lit>
+	generic metainformation. If the ``http-equiv`` attribute
+	has the value "content-type" the encoding in the ``content``
 	attribute will be set automatically when publishing.
 	"""
 	xmlns = xmlns
@@ -1321,14 +1322,15 @@ class nobr(xsc.Element): # deprecated
 
 def astext(node, encoding="iso-8859-1", width=72):
 	"""
-	<p>Return the node <arg>node</arg> as a formatted plain string. <arg>node</arg>
-	must contain an &html; tree.</p>
+	Return the node :var:`node` as a formatted plain string. :var:`node` must
+	contain an HTML tree.
 
-	<p>This requires that <app moreinfo="http://elinks.or.cz/">elinks</app> is
-	installed.</p>
+	This requires that elinks__ is installed.
 
-	<p><arg>encoding</arg> specifies the output encoding. <arg>width</arg>
-	specifies the output width.</p>
+	__ http://elinks.or.cz/
+
+	:var:`encoding` specifies the output encoding. :var:`width` specifies the
+	output width.
 	"""
 
 	# Fix the HTML

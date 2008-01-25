@@ -9,14 +9,14 @@
 
 
 """
-<p>An &xist; module that contains definitions for all the elements in Ruby 1.0.</p>
+An XIST module that contains definitions for all the elements in Ruby 1.0.
 """
 
 
 from ll.xist import xsc, sims
 
 
-__docformat__ = "xist"
+__docformat__ = "reStructuredText"
 
 
 xmlns = "http://www.w3.org/TR/ruby/xhtml-ruby-1.mod"
@@ -33,7 +33,7 @@ class DocTypeRuby10(xsc.DocType):
 
 class rb(xsc.Element):
 	"""
-	The <class>rb</class> element is the container for the text of the ruby base.
+	The :class:`rb` element is the container for the text of the ruby base.
 	"""
 	xmlns = xmlns
 	model = sims.NoElements()
@@ -41,7 +41,7 @@ class rb(xsc.Element):
 
 class rbc(xsc.Element):
 	"""
-	The <class>rbc</class> (<z>ruby base component</z>) element is the container for <pyref class="rb"><class>rb</class></pyref> elements.
+	The :class:`rbc` (<z>ruby base component</z>) element is the container for <pyref class="rb">:class:`rb`</pyref> elements.
 	"""
 	xmlns = xmlns
 	model = sims.Elements(rb)
@@ -49,7 +49,8 @@ class rbc(xsc.Element):
 
 class rp(xsc.Element):
 	"""
-	The <class>rp</class> element is intended to contain parenthesis characters in simple ruby.
+	The :class:`rp` element is intended to contain parenthesis characters in
+	simple ruby.
 	"""
 	xmlns = xmlns
 	model = sims.NoElements()
@@ -57,7 +58,7 @@ class rp(xsc.Element):
 
 class rt(xsc.Element):
 	"""
-	The <class>rt</class> element is the container for the ruby text.
+	The :class:`rt` element is the container for the ruby text.
 	"""
 	xmlns = xmlns
 	model = sims.NoElements()
@@ -67,7 +68,8 @@ class rt(xsc.Element):
 
 class rtc(xsc.Element):
 	"""
-	The <class>rtc</class> (<z>ruby text component</z>) element is the container for <pyref class="rt"><class>rt</class></pyref> elements.
+	The :class:`rtc` ("ruby text component") element is the container for
+	:class:`rt` elements.
 	"""
 	xmlns = xmlns
 	model = sims.Elements(rt)
@@ -75,11 +77,9 @@ class rtc(xsc.Element):
 
 class ruby(xsc.Element):
 	"""
-	The <class>ruby</class> element is an inline (or text-level) element that serves as the
-	container for either the <pyref class="rb"><class>rb</class></pyref>,
-	<pyref class="rt"><class>rt</class></pyref> and optional
-	<pyref class="rp><class>rp</class></pyref> elements or the
-	<pyref class="rbc"><class>rbc</class></pyref> and <pyref class="irtc"><class>rtc</class></pyref> elements.
+	The :class:`ruby` element is an inline (or text-level) element that serves
+	as the container for either the :class:`rb`, :class:`rt` and optional
+	:class:`rp` elements or the :class:`rbc` and :class:`rtc` elements.
 	"""
 	xmlns = xmlns
 	model = sims.Elements(rb, rt, rp, rbc, rtc)

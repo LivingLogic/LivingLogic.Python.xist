@@ -9,10 +9,12 @@
 
 
 """
-This module contains presenter classes, which are used for displaying &xist;
-nodes on screen (either on the terminal or via
-<pyref module="IPython.Extensions.ipipe"><mod>ipipe</mod></pyref> browsers).
+This module contains presenter classes, which are used for displaying XIST
+nodes on screen (either on the terminal or via :mod:`ipipe` browsers).
 """
+
+
+__docformat__ = "reStructuredText"
 
 
 import sys, os, keyword, codecs
@@ -29,7 +31,7 @@ from ll import misc, url
 import xsc, options
 
 
-__docformat__ = "xist"
+__docformat__ = "reStructuredText"
 
 
 ###
@@ -168,10 +170,11 @@ def strtext(text):
 
 class Presenter(table):
 	"""
-	<p>This class is the base of the presenter classes. It is abstract
-	and only serves as documentation for the methods.</p>
-	<p>A <class>Presenter</class> generates a specific
-	string representation of a node to be printed on the screen.</p>
+	This class is the base of the presenter classes. It is abstract and only
+	serves as documentation for the methods.
+
+	A :class:`Presenter` generates a specific string representation of a node
+	to be printed on the screen.
 	"""
 
 	def __init__(self, node):
@@ -180,61 +183,61 @@ class Presenter(table):
 	@misc.notimplemented
 	def presentText(self, node):
 		"""
-		<p>present a <pyref module="ll.xist.xsc" class="Text"><class>Text</class></pyref> node.</p>
+		Present a :class:`ll.xist.xsc.Text` node.
 		"""
 
 	@misc.notimplemented
 	def presentFrag(self, node):
 		"""
-		<p>present a <pyref module="ll.xist.xsc" class="Frag"><class>Frag</class></pyref> node.</p>
+		Present a :class:`ll.xist.xsc.Frag` node.
 		"""
 
 	@misc.notimplemented
 	def presentComment(self, node):
 		"""
-		<p>present a <pyref module="ll.xist.xsc" class="Comment"><class>Comment</class></pyref> node.</p>
+		Present a :class:`ll.xist.xsc.Comment` node.
 		"""
 
 	@misc.notimplemented
 	def presentDocType(self, node):
 		"""
-		<p>present a <pyref module="ll.xist.xsc" class="DocType"><class>DocType</class></pyref> node.</p>
+		Present a :class:`ll.xist.xsc.DocType` node.
 		"""
 
 	@misc.notimplemented
 	def presentProcInst(self, node):
 		"""
-		<p>present a <pyref module="ll.xist.xsc" class="ProcInst"><class>ProcInst</class></pyref> node.</p>
+		Present a :class:`ll.xist.xsc.ProcInst` node.
 		"""
 
 	@misc.notimplemented
 	def presentAttrs(self, node):
 		"""
-		<p>present an <pyref module="ll.xist.xsc" class="Attrs"><class>Attrs</class></pyref> node.</p>
+		Present an :class:`ll.xist.xsc.Attrs` node.
 		"""
 
 	@misc.notimplemented
 	def presentElement(self, node):
 		"""
-		<p>present an <pyref module="ll.xist.xsc" class="Element"><class>Element</class></pyref> node.</p>
+		Present an :class:`ll.xist.xsc.Element` node.
 		"""
 
 	@misc.notimplemented
 	def presentEntity(self, node):
 		"""
-		<p>present a <pyref module="ll.xist.xsc" class="Entity"><class>Entity</class></pyref> node.</p>
+		Present a :class:`ll.xist.xsc.Entity` node.
 		"""
 
 	@misc.notimplemented
 	def presentNull(self, node):
 		"""
-		<p>present the <class>Null</class> node.</p>
+		Present the :data:`ll.xist.xsc.Null` node.
 		"""
 
 	@misc.notimplemented
 	def presentAttr(self, node):
 		"""
-		<p>present an <pyref module="ll.xist.xsc" class="Attr"><class>Attr</class></pyref> node.</p>
+		Present an :class:`ll.xist.xsc.Attr` node.
 		"""
 
 
@@ -515,10 +518,10 @@ class TreePresenter(Presenter):
 
 class CodePresenter(Presenter):
 	"""
-	<p>This presenter formats the object as a nested Python object tree.</p>
+	This presenter formats the object as a nested Python object tree.
 
-	<p>This makes it possible to quickly convert &html;/&xml; files to &xist;
-	constructor calls.</p>
+	This makes it possible to quickly convert HTML/XML files to XIST constructor
+	calls.
 	"""
 	def __init__(self, node, indent=None):
 		Presenter.__init__(self, node)
@@ -745,7 +748,7 @@ class CodePresenter(Presenter):
 		return self.presentFrag(node)
 
 
-# used by the IPython displayhook below (set to None to disable)
+# used by the IPython displayhook below (set to :const:`None` to disable)
 defaultpresenter = TreePresenter
 
 try:

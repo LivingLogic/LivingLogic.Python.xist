@@ -9,8 +9,11 @@
 
 
 """
-<p>Namespace module for <a href="http://jakarta.apache.org/struts/">Struts</a>
-configuration files: <a href="http://jakarta.apache.org/struts/dtds/struts-config_1_1.dtd">http://jakarta.apache.org/struts/dtds/struts-config_1_1.dtd</a>.</p>
+Namespace module for Struts__ configuration files: 
+http://jakarta.apache.org/struts/dtds/struts-config_1_1.dtd.
+
+
+__ http://jakarta.apache.org/struts/
 """
 
 
@@ -18,7 +21,7 @@ from ll.xist import xsc, sims
 from ll.xist.ns import xml
 
 
-__docformat__ = "xist"
+__docformat__ = "reStructuredText"
 
 
 xmlns = "http://jakarta.apache.org/struts/dtds/struts-config_1_1.dtd"

@@ -9,8 +9,8 @@
 
 
 """
-<p>An &xist; module that contains a collection of useful elements that
-can be used for all conversion target, because they only generate text.</p>
+An XIST module that contains a collection of useful elements that can be used
+for all conversion target, because they only generate text.
 """
 
 
@@ -20,7 +20,7 @@ from ll import url as url_
 from ll.xist import xsc, parsers, sims
 
 
-__docformat__ = "xist"
+__docformat__ = "reStructuredText"
 
 
 xmlns = "http://xmlns.livinglogic.de/xist/ns/specials"
@@ -28,7 +28,7 @@ xmlns = "http://xmlns.livinglogic.de/xist/ns/specials"
 
 class z(xsc.Element):
 	"""
-	<p>Put the content into double quotes.</p>
+	Put the content into double quotes.
 	"""
 	xmlns = xmlns
 	model = sims.Any()
@@ -40,8 +40,8 @@ class z(xsc.Element):
 
 class filesize(xsc.Element):
 	"""
-	<p>the size (in bytes) of the file whose URL is the attribute href
-	as a text node.</p>
+	The size (in bytes) of the file whose URL is the attribute href as a
+	text node.
 	"""
 	xmlns = xmlns
 	model = sims.Empty()
@@ -58,21 +58,21 @@ class filesize(xsc.Element):
 
 class filetime(xsc.Element):
 	"""
-	<p>the time of the last modification of the file whose &url; is in the attribute <lit>href</lit>
-	as a text node. This will always be an &utc; timestamp.</p>
+	The time of the last modification of the file whose URL is in the attribute
+	``href`` as a text node. This will always be an UTC timestamp.
 	"""
 	xmlns = xmlns
 	model = sims.Empty()
 	class Attrs(xsc.Element.Attrs):
 		class href(xsc.URLAttr):
 			"""
-			<p>The &url; of the file.</p>
+			The URL of the file.
 			"""
 			required = True
 
 		class format(xsc.TextAttr):
 			"""
-			<p>A <func>strftime</func> compatible formatstring for formatting the timestamp.</p>
+			A :func:`strftime` compatible formatstring for formatting the timestamp.
 			"""
 			default = u"%d. %b. %Y, %H:%M"
 
@@ -83,21 +83,21 @@ class filetime(xsc.Element):
 
 class time(xsc.Element):
 	"""
-	<p>the current time (i.e. the time when <pyref method="convert"><meth>convert</meth></pyref>
-	is called). You can specify the format of the string in the attribute <lit>format</lit>, which is a
-	<func>strftime</func> compatible string.</p>
+	the current time (i.e. the time when :meth:`convert` is called). You can
+	specify the format of the string in the attribute ``format``, which is a
+	:func:`strftime` compatible string.
 	"""
 	xmlns = xmlns
 	model = sims.Empty()
 	class Attrs(xsc.Element.Attrs):
 		class format(xsc.TextAttr):
 			"""
-			<p>A <func>strftime</func> compatible formatstring for formatting the timestamp.</p>
+			A :func:`strftime` compatible formatstring for formatting the timestamp.
 			"""
 			default = u"%d. %b. %Y, %H:%M"
 		class utc(xsc.BoolAttr):
 			"""
-			<p>Should &utc; be used or local time?</p>
+			Should UTC be used or local time?
 			"""
 
 	def convert(self, converter):
@@ -112,10 +112,10 @@ class time(xsc.Element):
 
 class ignore(xsc.Element):
 	"""
-	<p>Element that will be ignored when converted.</p>
+	Element that will be ignored when converted.
 
-	<p><class>ignore</class> can be used to comment out stuff.
-	The content of the element must of course still be wellformed.</p>
+	:class:`ignore` can be used to comment out stuff. The content of the
+	element must of course still be wellformed.
 	"""
 	xmlns = xmlns
 	model = sims.Any()
@@ -154,11 +154,10 @@ class loremipsum(xsc.Element):
 
 class wrap(xsc.Element):
 	"""
-	<p>a wrapper element that returns its content when converted.</p>
+	A wrapper element that returns its content when converted.
 
-	<p>This is e.g. useful if you want to parse a
-	file that starts with <pyref module="ll.xist.ns.jsp"><mod>&jsp;</mod></pyref>
-	processing instructions.</p>
+	This is e.g. useful if you want to parse a file that starts with
+	:mod:`ll.xist.ns.jsp` processing instructions.
 	"""
 	xmlns = xmlns
 	model = sims.Any()
@@ -193,8 +192,8 @@ class AttrDecorator(xsc.Element):
 
 class literal(xsc.ProcInst):
 	"""
-	<class>literal</class> is a processing instruction that will output
-	its content literally when published.
+	:class:`literal` is a processing instruction that will output its content
+	literally when published.
 	"""
 	def publish(self, publisher):
 		yield publisher.encode(self.content)
@@ -202,9 +201,9 @@ class literal(xsc.ProcInst):
 
 class url(xsc.ProcInst):
 	"""
-	<class>url</class> is a processing instruction containing an &url;.
-	On publishing it will be replaced by an &url; that is relative to the base
-	&url; of the publisher.
+	:class:`url` is a processing instruction containing an URL. On publishing
+	it will be replaced by an URL that is relative to the base URL of the
+	publisher.
 	"""
 	def parsed(self, parser, start=None):
 		return self.__class__(unicode(parser.base/self.content))

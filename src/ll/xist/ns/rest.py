@@ -10,6 +10,8 @@
 
 from __future__ import with_statement
 
+__docformat__ = "reStructuredText"
+
 import os, optparse, collections, contextlib
 
 from ll import url

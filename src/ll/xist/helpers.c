@@ -70,10 +70,8 @@ static PyObject *escape(PyObject *str, int inattr)
 
 
 static char escapetext__doc__[] =
-"escapetext(unicode) -> unicode\n\
-\n\
-Return a copy of the string S, where every occurrence of\n\
-'<', '>', '&' and restricted characters has been replaced\n\
+"Return a copy of the argument string, where every occurrence of\n\
+``<``, ``>``, ``&`` and restricted characters has been replaced\n\
 with its XML character entity or character reference.";
 
 
@@ -84,10 +82,8 @@ static PyObject *escapetext(PyObject *self, PyObject *arg)
 
 
 static char escapeattr__doc__[] =
-"escapeattr(unicode) -> unicode\n\
-\n\
-Return a copy of the string S, where every occurrence of\n\
-'<', '>', '&', '\"' and restricted characters has been replaced\n\
+"Return a copy of the argument string, where every occurrence of\n\
+``<``, ``>``, ``&``, ``\"``` and restricted characters has been replaced\n\
 with their XML character entity or character reference.";
 
 
@@ -98,10 +94,8 @@ static PyObject *escapeattr(PyObject *self, PyObject *arg)
 
 
 static char cssescapereplace__doc__[] =
-"cssescapereplace(unicode, encoding) -> unicode\n\
-\n\
-Return a copy of the string S, where every unencodable character\n\
-in the specified encoding has been replaced with a \\xx hexadecimal\n\
+"Return a copy of the argument string, where every unencodable character\n\
+in the specified encoding has been replaced with a ``\\xx`` hexadecimal\n\
 escape sequence.";
 
 

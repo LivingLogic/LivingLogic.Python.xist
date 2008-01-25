@@ -9,8 +9,7 @@
 
 
 """
-This namespace module implements Atom 1.0 as specified by
-<a href="http://www.atompub.org/rfc4287.html">RFC 4287</a>.
+This namespace module implements Atom 1.0 as specified by :rfc:`4287`.
 """
 
 
@@ -18,7 +17,7 @@ from ll.xist import xsc, sims
 from ll.xist.ns import html
 
 
-__docformat__ = "xist"
+__docformat__ = "reStructuredText"
 
 
 xmlns = "http://www.w3.org/2005/Atom"
@@ -26,8 +25,8 @@ xmlns = "http://www.w3.org/2005/Atom"
 
 class feed(xsc.Element):
 	"""
-	The <class>feed</class> element is the document (i.e., top-level) element of
-	an Atom Feed Document, acting as a container for metadata and data associated
+	The :class:`feed` element is the document (i.e., top-level) element of an
+	Atom Feed Document, acting as a container for metadata and data associated
 	with the feed.
 	"""
 	xmlns = xmlns
@@ -35,7 +34,7 @@ class feed(xsc.Element):
 
 class entry(xsc.Element):
 	"""
-	The <class>entry</class> element represents an individual entry, acting as a
+	The :class:`entry` element represents an individual entry, acting as a
 	container for metadata and data associated with the entry.
 	"""
 	xmlns = xmlns
@@ -43,8 +42,8 @@ class entry(xsc.Element):
 
 class content(xsc.Element):
 	"""
-	The <class>content</class> element either contains or links to the content of
-	the <pyref class="entry><class>entry</class></pyref>.
+	The :class:`content` element either contains or links to the content of
+	the :class:`entry`.
 	"""
 	xmlns = xmlns
 	class Attrs(xsc.Element.Attrs):
@@ -54,18 +53,16 @@ class content(xsc.Element):
 
 class author(xsc.Element):
 	"""
-	The <class>author</class> element indicates the author of the
-	<pyref class="entry"><class>entry</class></pyref> or
-	<pyref class="feed"><class>feed</class></pyref>.
+	The :class:`author` element indicates the author of the
+	:class:`entry` or :class:`feed`.
 	"""
 	xmlns = xmlns
 
 
 class category(xsc.Element):
 	"""
-	The <class>category</class> element conveys information about a category
-	associated with an <pyref class="entry"><class>entry</class></pyref> or
-	<pyref class="feed"><class>feed</class></pyref>.
+	The :class:`category` element conveys information about a category
+	associated with an :class:`entry` or :class:`feed`.
 	"""
 	xmlns = xmlns
 	class Attrs(xsc.Element.Attrs):
@@ -76,16 +73,15 @@ class category(xsc.Element):
 
 class contributor(xsc.Element):
 	"""
-	The <class>contributor</class> element indicates a person or other entity
-	who contributed <pyref class="entry"><class>entry</class></pyref> or
-	<pyref class="feed"><class>feed</class></pyref>.
+	The :class:`contributor` element indicates a person or other entity
+	who contributed :class:`entry` or :class:`feed`.
 	"""
 	xmlns = xmlns
 
 
 class generator(xsc.Element):
 	"""
-	The <class>generator</class> element's content identifies the agent used to
+	The :class:`generator` element's content identifies the agent used to
 	generate a feed, for debugging and other purposes.
 	"""
 	xmlns = xmlns
@@ -96,7 +92,7 @@ class generator(xsc.Element):
 
 class icon(xsc.Element):
 	"""
-	The <class>icon</class> element's content is an IRI reference that identifies
+	The :class:`icon` element's content is an IRI reference that identifies
 	an image that provides iconic visual identification for a feed.
 	"""
 	xmlns = xmlns
@@ -104,18 +100,16 @@ class icon(xsc.Element):
 
 class id(xsc.Element):
 	"""
-	The <class>id</class> element conveys a permanent, universally unique identifier
-	for an <pyref class="entry"><class>entry</class></pyref> or
-	<pyref class="feed"><class>feed</class></pyref>.
+	The :class:`id` element conveys a permanent, universally unique identifier
+	for an :class:`entry` or :class:`feed`.
 	"""
 	xmlns = xmlns
 
 
 class link(xsc.Element):
 	"""
-	The <class>link</class> element defines a reference from an
-	<pyref class="entry"><class>entry</class></pyref> or
-	<pyref class="feed"><class>feed</class></pyref> to a Web resource.
+	The :class:`link` element defines a reference from an
+	:class:`entry` or :class:`feed` to a Web resource.
 	"""
 	xmlns = xmlns
 	class Attrs(xsc.Element.Attrs):
@@ -129,25 +123,24 @@ class link(xsc.Element):
 
 class logo(xsc.Element):
 	"""
-	The <class>logo</class> element's content is an IRI reference that identifies
-	an image that provides visual identification for a <pyref class="feed"><class>feed</class></pyref>.
+	The :class:`logo` element's content is an IRI reference that identifies
+	an image that provides visual identification for a :class:`feed`.
 	"""
 	xmlns = xmlns
 
 
 class published(xsc.Element):
 	"""
-	The <class>published</class> element indicatesg an instant in time associated
-	with an event early in the life cycle of the <pyref class="entry"><class>entry</class></pyref>.
+	The :class:`published` element indicatesg an instant in time associated
+	with an event early in the life cycle of the :class:`entry`.
 	"""
 	xmlns = xmlns
 
 
 class rights(xsc.Element):
 	"""
-	The <class>rights</class> element contains text that conveys information about
-	rights held in and over an <pyref class="entry"><class>entry</class></pyref>
-	or <pyref class="feed"><class>feed</class></pyref>.
+	The :class:`rights` element contains text that conveys information about
+	rights held in and over an :class:`entry` or :class:`feed`.
 	"""
 	xmlns = xmlns
 	class Attrs(xsc.Element.Attrs):
@@ -156,22 +149,21 @@ class rights(xsc.Element):
 
 class source(xsc.Element):
 	"""
-	If an <pyref class="entry"><class>entry</class></pyref> is copied from one
-	<pyref class="feed"><class>feed</class></pyref> into another <class>feed</class>,
-	then the source <class>feed</class>'s metadata (all child elements of <class>feed</class>
-	other than the <class>entry</class> elements) may be preserved within
-	the copied entry by adding a <class>source</class> child element, if it is not
-	already present in the <class>entry</class>, and including some or all of the
-	source <class>feed</class>'s Metadata elements as the <class>source</class>
-	element's children.
+	If an :class:`entry` is copied from one :class:`feed` into another
+	:class:`feed`, then the source :class:`feed`'s metadata (all child elements
+	of :class:`feed` other than the :class:`entry` elements) may be preserved
+	within the copied entry by adding a :class:`source` child element, if it is
+	not already present in the :class:`entry`, and including some or all of the
+	source :class:`feed`'s Metadata elements as the :class:`source` element's
+	children.
 	"""
 	xmlns = xmlns
 
 
 class subtitle(xsc.Element):
 	"""
-	The <class>subtitle</class> element contains text that conveys a human-readable
-	description or subtitle for a <pyref class="feed"><class>feed</class></pyref>.
+	The :class:`subtitle` element contains text that conveys a human-readable
+	description or subtitle for a :class:`feed`.
 	"""
 	xmlns = xmlns
 	class Attrs(xsc.Element.Attrs):
@@ -180,7 +172,7 @@ class subtitle(xsc.Element):
 
 class summary(xsc.Element):
 	"""
-	The <class>summary</class> element contains text that conveys a short summary,
+	The :class:`summary` element contains text that conveys a short summary,
 	abstract, or excerpt of an entry.
 	"""
 	xmlns = xmlns
@@ -190,9 +182,8 @@ class summary(xsc.Element):
 
 class title(xsc.Element):
 	"""
-	The <class>title</class> element contains text that conveys a human-readable
-	title for an <pyref class="entry"><class>entry</class></pyref> or
-	<pyref class="feed"><class>feed</class></pyref>.
+	The :class:`title` element contains text that conveys a human-readable
+	title for an :class:`entry` or :class:`feed`.
 	"""
 	xmlns = xmlns
 	class Attrs(xsc.Element.Attrs):
@@ -201,31 +192,32 @@ class title(xsc.Element):
 
 class updated(xsc.Element):
 	"""
-	The <class>updated</class> element contains a date indicating the most recent
-	instant in time when an <pyref class="entry"><class>entry</class></pyref> or
-	<pyref class="feed"><class>feed</class></pyref> was modified in a way the
-	publisher considers significant.
+	The :class:`updated` element contains a date indicating the most recent
+	instant in time when an :class:`entry` or :class:`feed` was modified in a
+	way the publisher considers significant.
 	"""
 	xmlns = xmlns
 
 
 class email(xsc.Element):
 	"""
-	The <class>email</class> element's content conveys an e-mail address associated with the person.
+	The :class:`email` element's content conveys an e-mail address associated
+	with the person.
 	"""
 	xmlns = xmlns
 
 
 class uri(xsc.Element):
 	"""
-	The <class>uri</class> element's content conveys an IRI associated with the person.
+	The :class:`uri` element's content conveys an IRI associated with the person.
 	"""
 	xmlns = xmlns
 
 
 class name(xsc.Element):
 	"""
-	The <class>name</class> element's content conveys a human-readable name for the person.
+	The :class:`name` element's content conveys a human-readable name for the
+	person.
 	"""
 	xmlns = xmlns
 

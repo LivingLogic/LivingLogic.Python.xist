@@ -10,13 +10,15 @@
 
 
 """
-<p>Module that helps to create &xist; namespace modules from TLD files
-(Java tag library descriptors).
-For usage information type:</p>
-<prog>
-tld2xsc --help
-</prog>
+Module that helps to create XIST namespace modules from TLD files (Java tag
+library descriptors).
+
+For usage information type::
+
+	$ tld2xsc --help
 """
+
+__docformat__ = "reStructuredText"
 
 
 import sys, optparse
@@ -26,7 +28,7 @@ from ll.xist import xsc, xfind, parsers, converters
 from ll.xist.ns import tld
 
 
-__docformat__ = "xist"
+__docformat__ = "reStructuredText"
 
 
 def tld2xnd(stream, shareattrs=None):

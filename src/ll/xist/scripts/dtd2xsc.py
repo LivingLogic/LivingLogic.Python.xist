@@ -10,13 +10,18 @@
 
 
 """
-<p>Module that helps to create &xist; namespace modules from &dtd;s.
-Needs <app>xmlproc</app> from the <app>PyXML</app> package.
-For usage information type:</p>
-<prog>
-dtd2xsc --help
-</prog>
+Module that helps to create XIST namespace modules from DTDs. Needs xmlproc__
+
+__http://www.garshol.priv.no/download/software/xmlproc/
+
+For usage information type::
+
+	$ dtd2xsc --help
+
 """
+
+
+__docformat__ = "reStructuredText"
 
 
 import sys, os.path, optparse
@@ -27,12 +32,12 @@ from ll import url
 from ll.xist import xsc, parsers, xnd
 
 
-__docformat__ = "xist"
+__docformat__ = "reStructuredText"
 
 
 def getxmlns(dtd):
 	"""
-	Extract the value of all fixed <lit>xmlns</lit> attributes
+	Extract the value of all fixed ``xmlns`` attributes
 	"""
 	found = set()
 	for elemname in dtd.get_elements():
@@ -48,8 +53,8 @@ def getxmlns(dtd):
 
 def dtd2xnd(dtd, xmlns=None):
 	"""
-	Convert &dtd; information from the &url; <arg>dtdurl</arg> to an &xist; &dom;
-	using the <pyref module="ll.xist.xnd"><mod>xnd</mod></pyref> functionality.
+	Convert DTD information from the URL :var:`dtdurl` to an XIST DOM using the
+	:mod:`ll.xist.xnd` functionality.
 	"""
 
 	dtd = dtdparser.load_dtd_string(dtd)

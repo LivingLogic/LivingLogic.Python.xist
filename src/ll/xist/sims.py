@@ -17,7 +17,7 @@ import warnings
 from ll.xist import xsc
 
 
-__docformat__ = "xist"
+__docformat__ = "reStructuredText"
 
 
 class SIMSWarning(xsc.Warning):
@@ -29,7 +29,7 @@ class SIMSWarning(xsc.Warning):
 class EmptyElementWithContentWarning(SIMSWarning):
 	"""
 	Warning that is issued when an element has content, but it shouldn't
-	(i.e. <lit>model</lit> is <pyref class="Empty"><class>Empty</class></pyref>)
+	(i.e. :attr:`model` is :class:`Empty`)
 	"""
 
 	def __init__(self, node):
@@ -87,8 +87,7 @@ class IllegalTextWarning(SIMSWarning):
 
 def badtext(node):
 	"""
-	Return whether <arg>node</arg> is a text node (i.e.
-	<pyref module="ll.xist" class="Text"><class>Text</class></pyref>
+	Return whether :var:`node` is a text node (i.e. :class:`ll.xist.xsc.Text`
 	that does not consist of whitespace only).
 	"""
 	if isinstance(node, xsc.Text):
@@ -108,7 +107,7 @@ class Empty(object):
 
 	def checkvalid(self, node):
 		"""
-		check that the content of <arg>node</arg> is valid.
+		check that the content of :var:`node` is valid.
 		"""
 		if isinstance(node, xsc.Element):
 			if len(node):
@@ -117,8 +116,8 @@ class Empty(object):
 
 class NoElements(object):
 	"""
-	This validator checks that an element does not have child elements
-	from the same namespace.
+	This validator checks that an element does not have child elements from the
+	same namespace.
 	"""
 	empty = False
 
@@ -127,7 +126,7 @@ class NoElements(object):
 
 	def checkvalid(self, node):
 		"""
-		check that the content of <arg>node</arg> is valid.
+		check that the content of :var:`node` is valid.
 		"""
 		if isinstance(node, xsc.Element):
 			for child in node.content:
@@ -147,7 +146,7 @@ class NoElementsOrText(object):
 
 	def checkvalid(self, node):
 		"""
-		check that the content of <arg>node</arg> is valid.
+		check that the content of :var:`node` is valid.
 		"""
 		if isinstance(node, xsc.Element):
 			for child in node.content:
@@ -167,10 +166,10 @@ class Elements(object):
 
 	def __init__(self, *elements):
 		"""
-		Every element in <lit>elements</lit> may be in the content of the
-		node to which this validator is attached. Any other element from one
-		of the namespaces of those elements is invalid. Elements from other
-		namespaces are OK.
+		Every element in :var:`elements` may be in the content of the node to
+		which this validator is attached. Any other element from one of the
+		namespaces of those elements is invalid. Elements from other namespaces
+		are OK.
 		"""
 		self.elements = elements
 
@@ -179,7 +178,7 @@ class Elements(object):
 
 	def checkvalid(self, node):
 		"""
-		check that the content of <arg>node</arg> is valid.
+		check that the content of :var:`node` is valid.
 		"""
 		ns = None
 		if isinstance(node, xsc.Element):
@@ -195,16 +194,16 @@ class Elements(object):
 
 class ElementsOrText(Elements):
 	"""
-	This validator checks that an element doesn't have child elements
-	from the same namespace except those specified in the constructor.
+	This validator checks that an element doesn't have child elements from the
+	same namespace except those specified in the constructor.
 	"""
 
 	def __init__(self, *elements):
 		"""
-		Every element in <lit>elements</lit> may be in the content of the
-		node to which this validator is attached. Any other element from one
-		of the namespaces of those elements is invalid. Elements from other
-		namespaces are OK.
+		Every element in :var:`elements` may be in the content of the node to
+		which this validator is attached. Any other element from one of the
+		namespaces of those elements is invalid. Elements from other namespaces
+		are OK.
 		"""
 		self.elements = elements
 
@@ -213,7 +212,7 @@ class ElementsOrText(Elements):
 
 	def checkvalid(self, node):
 		"""
-		check that the content of <arg>node</arg> is valid.
+		Check that the content of :var:`node` is valid.
 		"""
 		ns = None
 		if isinstance(node, xsc.Element):
@@ -236,8 +235,8 @@ class Any(object):
 
 	def checkvalid(self, node):
 		"""
-		Check that the content of <arg>node</arg> is valid.
-		This method does nothing as anything is valid.
+		Check that the content of :var:`node` is valid. This method does nothing
+		as anything is valid.
 		"""
 
 

@@ -9,16 +9,16 @@
 
 
 """
-<p>A module that allows you to embed tags from
-the <a href="http://jakarta.apache.org/struts/">Struts</a>
-html custom tag library.</p>
+A module that allows you to embed tags from Struts__ html custom tag library.
+
+__ http://jakarta.apache.org/struts/
 """
 
 
 from ll.xist import xsc, sims
 
 
-__docformat__ = "xist"
+__docformat__ = "reStructuredText"
 
 
 xmlns = "http://jakarta.apache.org/struts/tags-html"
@@ -26,7 +26,7 @@ xmlns = "http://jakarta.apache.org/struts/tags-html"
 
 class taglib(xsc.ProcInst):
 	"""
-	creates a standard struts taglib header
+	Creates a standard struts taglib header
 	"""
 	xmlns = xmlns
 
@@ -38,7 +38,7 @@ class taglib(xsc.ProcInst):
 
 class Element(xsc.Element):
 	"""
-	common base class for all the struts html elements
+	Common base class for all the struts html elements
 	"""
 	register = False
 
@@ -72,7 +72,7 @@ class PartMouseElement(Element):
 
 class MouseElement(PartMouseElement):
 	"""
-	common base class for all the struts elements which have mouse attributes
+	Common base class for all the struts elements which have mouse attributes
 	"""
 	xmlns = xmlns
 	class Attrs(PartMouseElement.Attrs):
@@ -83,7 +83,7 @@ class MouseElement(PartMouseElement):
 
 class base(Element):
 	"""
-	document base URI
+	Document base URI
 	"""
 	xmlns = xmlns
 	model = sims.Empty()
@@ -94,7 +94,7 @@ class base(Element):
 
 class button(MouseElement):
 	"""
-	a button
+	A button
 	"""
 	xmlns = xmlns
 	model = sims.Any()
@@ -104,7 +104,7 @@ class button(MouseElement):
 
 class cancel(MouseElement):
 	"""
-	a cancel button
+	A cancel button
 	"""
 	xmlns = xmlns
 	model = sims.Any()
@@ -112,7 +112,7 @@ class cancel(MouseElement):
 
 class checkbox(MouseElement):
 	"""
-	a html checkbox element
+	A html checkbox element
 	"""
 	xmlns = xmlns
 	model = sims.Any()
@@ -123,7 +123,8 @@ class checkbox(MouseElement):
 
 class errors(Element):
 	"""
-	displays error messages which have been generated from an action or a validation method
+	Displays error messages which have been generated from an action or a
+	validation method
 	"""
 	xmlns = xmlns
 	model = sims.Empty()
@@ -136,7 +137,7 @@ class errors(Element):
 
 class file(MouseElement):
 	"""
-	html input element of type file
+	HTML input element of type file
 	"""
 	xmlns = xmlns
 	model = sims.Any()
@@ -150,7 +151,7 @@ class file(MouseElement):
 
 class form(Element):
 	"""
-	html form
+	HTML form
 	"""
 	xmlns = xmlns
 	model = sims.Any()
@@ -298,7 +299,8 @@ class img(Element):
 
 class javascript(Element):
 	"""
-	Render JavaScript validation based on the validation rules loaded by the ValidatorPlugIn.
+	Render JavaScript validation based on the validation rules loaded by the
+	ValidatorPlugIn.
 	"""
 	xmlns = xmlns
 	model = sims.Empty()

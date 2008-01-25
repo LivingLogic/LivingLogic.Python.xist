@@ -25,38 +25,25 @@
 
 
 """
-<p>&xist; is an extensible &html; and &xml; generator written in Python.
-&xist; is also a &dom; parser (built on top of &sax;2) with a very simple and
-pythonesque tree &api;. Every &xml; element type corresponds to a Python class and these
-Python classes provide a conversion method to transform the &xml; tree (e.g. into
-&html;). &xist; can be considered <z>object oriented &xslt;</z>.</p>
+XIST is an extensible HTML and XML generator. XIST is also a XML parser with a
+very simple and pythonesque tree API. Every XML element type corresponds to a
+Python class and these Python classes provide a conversion method to transform
+the XML tree (e.g. into HTML). XIST can be considered 'object oriented XSLT'.
 
-<p>Some of the significant features of &xist; include:</p>
-<ul>
-<li>Easily extensible with new &xml; elements,</li>
-<li>Can be used for offline or online page generation,</li>
-<li>Allows embedding Python code in &xml; files,</li>
-<li>Supports separation of layout and logic,</li>
-<li>Can be used together with <a href="http://www.modpython.org/">mod_python</a>,
-<a href="http://pywx.idyll.org/">PyWX</a> or <a href="http://webware.sf.net/">Webware</a>
-to generate dynamic pages,</li>
-<li>Fully supports Unicode and &xml; namespaces,</li>
-<li>Provides features to use &xist; together with &jsp;/Struts (when replacing
-Struts tag libraries with &xist; this speeds up pages by a factor of 5&ndash;10.)</li>
-</ul>
+XIST was written as a replacement for the HTML preprocessor HSC__, and borrows
+some features and ideas from it.
 
-<p>&xist; was written as a replacement for the
-<a href="http://www.linguistik.uni-erlangen.de/~msbethke/software.html">&html; preprocessor &hsc;</a>,
-and borrows some features and ideas from it.</p>
+__ http://www.linguistik.uni-erlangen.de/~msbethke/software.html
 
-<p>It also borrows the basic ideas (&xml;/&html; elements as Python
-objects) from
-<a href="http://starship.python.net/crew/friedrich/HTMLgen/html/main.html">HTMLgen</a>
-and <a href="http://dustman.net/andy/python/HyperText/">HyperText</a>.</p>
+It also borrows the basic ideas (XML/HTML elements as Python objects) from
+HTMLgen_ and HyperText_.
+
+.. _HTMLgen: http://starship.python.net/crew/friedrich/HTMLgen/html/main.html
+.. _HyperText: http://dustman.net/andy/python/HyperText
 """
 
 
-__docformat__ = "xist"
+__docformat__ = "reStructuredText"
 
 
 __all__ = ["xsc", "publishers", "presenters", "parsers", "converters", "sims", "xnd", "ns"]

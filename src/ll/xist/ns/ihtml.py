@@ -9,8 +9,7 @@
 
 
 """
-<p>An &xist; module that contains the elements and entities for
-i-mode compatible &html;.</p>
+An XIST module that contains the elements and entities for i-mode compatible HTML.
 """
 
 
@@ -19,7 +18,7 @@ import cgi # for parse_header
 from ll.xist import xsc, sims
 
 
-__docformat__ = "xist"
+__docformat__ = "reStructuredText"
 
 
 xmlns = "http://www.nttdocomo.co.jp/imode"
@@ -95,8 +94,9 @@ class br(xsc.Element):
 	class Attrs(xsc.Element.Attrs):
 		class clear(xsc.TextAttr):
 			"""
-			Designates the way a character string wraps around an inline image by deciding where line feeding takes place.
-			Depending on the attribute, it also cancels the wraparound function. (1.0)
+			Designates the way a character string wraps around an inline image by
+			deciding where line feeding takes place. Depending on the attribute,
+			it also cancels the wraparound function. (1.0)
 			"""
 
 
@@ -109,14 +109,15 @@ class center(xsc.Element):
 
 class dd(xsc.Element):
 	"""
-	Creates a definition list. (See <pyref class="dl"><class>dl</class></pyref>) (1.0)
+	Creates a definition list. (See :class:`dl`) (1.0)
 	"""
 	xmlns = xmlns
 
 
 class dir(xsc.Element):
 	"""
-	Creates a list of menus or directories. Each list item must be a <pyref class="li"><class>li</class></pyref>. (1.0)
+	Creates a list of menus or directories. Each list item must be a
+	:class:`li`. (1.0)
 	"""
 	xmlns = xmlns
 
@@ -130,8 +131,8 @@ class div(xsc.Element):
 
 class dl(xsc.Element):
 	"""
-	Creates a definition list. The content consists of <pyref class="dd"><class>dd</class></pyref> and
-	<pyref class="dt"><class>dt</class></pyref> elements. (1.0)
+	Creates a definition list. The content consists of :class:`dd` and
+	:class:`dt` elements. (1.0)
 	"""
 	xmlns = xmlns
 
@@ -168,7 +169,8 @@ class form(xsc.Element):
 
 class head(xsc.Element):
 	"""
-	Designates the information that is used as the page title and/or by the server. The <class>head</class> tag follows the <pyref class="html"><class>html</class></pyref> tag. (1.0)
+	Designates the information that is used as the page title and/or by the
+	server. The :class:`head` tag follows the :class:`html` tag. (1.0)
 	"""
 	xmlns = xmlns
 
@@ -266,8 +268,9 @@ class img(xsc.Element):
 			"the image URL (1.0)"
 		class align(xsc.TextAttr):
 			"""
-			Defines the way the image and character string are laid out, and how the character string
-			wraps around the image. <lit>top</lit>, <lit>middle</lit> or <lit>bottom</lit>. (1.0)
+			Defines the way the image and character string are laid out, and how
+			the character string wraps around the image. ``top``, ``middle`` or
+			``bottom``. (1.0)
 			"""
 		class width(xsc.TextAttr):
 			"Sets the image width (1.0)"
@@ -286,14 +289,14 @@ class input(xsc.Element):
 	class Attrs(xsc.Element.Attrs):
 		class type(xsc.TextAttr):
 			"""
-			Displays a textbox (<lit>text</lit>), a password input textbox (<lit>password</lit>),
-			checkbox (<lit>checkbox</lit>), radio button (<lit>radio</lit>), hidden field (<lit>hidden</lit>),
-			submit (<lit>submit</lit>) or reset (<lit>reset</lit>) (1.0)
+			Displays a textbox (``text``), a password input textbox (``password``),
+			checkbox (``checkbox``), radio button (``radio``), hidden field
+			(``hidden``), submit (``submit``) or reset (``reset``) (1.0)
 			"""
 		class name(xsc.TextAttr):
 			"""
-			Designates the name of the field employed to pass the data, obtained using the <class>input</class> tag,
-			to an &cgi; script and others. (1.0)
+			Designates the name of the field employed to pass the data, obtained
+			using the :class:`input` tag, to an CGI script and others. (1.0)
 			"""
 		class size(xsc.IntAttr):
 			"Designates the width of the textbox by number of characters. (1.0)"
@@ -317,8 +320,8 @@ class li(xsc.Element):
 	class Attrs(xsc.Element.Attrs):
 		class type(xsc.TextAttr):
 			"""
-			Designates number format of a list. <lit>1</lit> is numeric, <lit>A</lit> is capital Roman letters,
-			and <lit>a</lit> is lower-case Roman letters. (2.0)
+			Designates number format of a list. ``1`` is numeric, ``A`` is capital
+			Roman letters, and ``a`` is lower-case Roman letters. (2.0)
 			"""
 		class value(xsc.IntAttr):
 			"Designates the starting number of a list. (2.0)"
@@ -332,12 +335,12 @@ class marquee(xsc.Element):
 	class Attrs(xsc.Element.Attrs):
 		class behaviour(xsc.TextAttr):
 			"""
-			Designates whether text will scroll off screen, stop at the edge of the screen, etc.
-			(<lit>scroll</lit>, <lit>slide</lit> or <lit>alternate</lit>) (2.0)
+			Designates whether text will scroll off screen, stop at the edge of
+			the screen, etc. (``scroll``, ``slide`` or ``alternate``) (2.0)
 			"""
 		class direction(xsc.TextAttr):
 			"""
-			Designates which direction text will scroll. (<lit>left</lit> or <lit>right</lit>) (2.0)
+			Designates which direction text will scroll. (``left`` or ``right``) (2.0)
 			"""
 		class loop(xsc.IntAttr):
 			"Designates how many times the text will scroll. (2.0)"
@@ -367,10 +370,10 @@ class meta(xsc.Element):
 		class name(xsc.TextAttr):
 			"Designates the name of the meta field"
 		class http_equiv(xsc.TextAttr):
-			"Designates the HTTP header fields you want to emulate. (Fixed to <lit>Content-Type</lit>) (2.0)"
+			"Designates the HTTP header fields you want to emulate. (Fixed to ``Content-Type``) (2.0)"
 			xmlname = "http-equiv"
 		class content(xsc.TextAttr):
-			"Designates content type (Fixed <lit>to text/html; charset=SHIFT_JIS</lit>) (2.0)"
+			"Designates content type (Fixed ``to text/html; charset=SHIFT_JIS``) (2.0)"
 
 	def publish(self, publisher):
 		if "http_equiv" in self.attrs:
@@ -409,8 +412,8 @@ class ol(xsc.Element):
 	class Attrs(xsc.Element.Attrs):
 		class type(xsc.TextAttr):
 			"""
-			Designates number format of a list. <lit>1</lit> is numeric, <lit>A</lit> is capital Roman letters,
-			and <lit>a</lit> is lower-case Roman letters. (2.0)
+			Designates number format of a list. ``1`` is numeric, ``A`` is capital Roman letters,
+			and ``a`` is lower-case Roman letters. (2.0)
 			"""
 		class start(xsc.IntAttr):
 			"Designates the starting number of a list. (2.0)"
@@ -444,7 +447,8 @@ class plaintext(xsc.Element):
 
 class pre(xsc.Element):
 	"""
-	Displays a source file exactly as entered, including line feeds and blank spaces.
+	Displays a source file exactly as entered, including line feeds and blank
+	spaces.
 	"""
 	xmlns = xmlns
 
@@ -465,8 +469,8 @@ class textarea(xsc.Element):
 	class Attrs(xsc.Element.Attrs):
 		class name(xsc.TextAttr):
 			"""
-			Designates the name of the field employed to pass the data, obtained using the
-			TEXTAREA tag, to a CGI script and others. (1.0)
+			Designates the name of the field employed to pass the data, obtained
+			using the TEXTAREA tag, to a CGI script and others. (1.0)
 			"""
 		class accesschar(xsc.TextAttr):
 			"(1.0)"

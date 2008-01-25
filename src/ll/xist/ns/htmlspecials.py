@@ -9,8 +9,8 @@
 
 
 """
-<p>An &xist; module that contains a collection of useful elements for
-generating &html;.</p>
+An XIST module that contains a collection of useful elements for generating
+HTML.
 """
 
 
@@ -20,7 +20,7 @@ from ll.xist import xsc, parsers, sims
 from ll.xist.ns import ihtml, html, meta, specials
 
 
-__docformat__ = "xist"
+__docformat__ = "reStructuredText"
 
 
 xmlns = "http://xmlns.livinglogic.de/xist/ns/htmlspecials"
@@ -28,8 +28,8 @@ xmlns = "http://xmlns.livinglogic.de/xist/ns/htmlspecials"
 
 class plaintable(html.table):
 	"""
-	<p>a &html; table where the values of the attributes <lit>cellpadding</lit>,
-	<lit>cellspacing</lit> and <lit>border</lit> default to <lit>0</lit>.</p>
+	a HTML table where the values of the attributes ``cellpadding``,
+	``cellspacing`` and ``border`` default to ``0``.
 	"""
 	xmlns = xmlns
 	class Attrs(html.table.Attrs):
@@ -47,8 +47,8 @@ class plaintable(html.table):
 
 class plainbody(html.body):
 	"""
-	<p>a &html; body where the attributes <lit>leftmargin</lit>, <lit>topmargin</lit>,
-	<lit>marginheight</lit> and <lit>marginwidth</lit> default to <lit>0</lit>.</p>
+	a HTML body where the attributes ``leftmargin``, ``topmargin``,
+	``marginheight`` and ``marginwidth`` default to ``0``.
 	"""
 	xmlns = xmlns
 	class Attrs(html.body.Attrs):
@@ -75,7 +75,7 @@ class _pixelbase(html.img):
 	class Attrs(html.img.Attrs):
 		class color(xsc.TextAttr):
 			"""
-			The pixel color as a &css; value. Leave it blank to get a transparent
+			The pixel color as a CSS value. Leave it blank to get a transparent
 			pixel.
 			"""
 
@@ -85,14 +85,13 @@ class _pixelbase(html.img):
 
 class pixel(_pixelbase):
 	"""
-	<p>element for single transparent pixel image.</p>
+	Element for single transparent pixel image.
 	
-	<p>You can specify the pixel color via the <lit>color</lit>
-	attribute (which will set the background-color in the style attribute.</p>
+	You can specify the pixel color via the ``color`` attribute (which will set
+	the background-color in the style attribute.
 
-	<p>In addition to that you can specify width and height attributes
-	(and every other allowed attribute for the <class>img</class> element)
-	as usual.</p>
+	In addition to that you can specify width and height attributes (and every
+	other allowed attribute for the :class:`img` element) as usual.
 	"""
 	xmlns = xmlns
 	class Attrs(_pixelbase.Attrs):
@@ -123,9 +122,9 @@ class pixel(_pixelbase):
 
 class autoimg(html.img):
 	"""
-	<p>An image were width and height attributes are automatically generated.</p>
+	An image were width and height attributes are automatically generated.
 	
-	<p>If the attributes are already there, they won't be modified.</p>
+	If the attributes are already there, they won't be modified.
 	"""
 	xmlns = xmlns
 	def convert(self, converter):
@@ -141,10 +140,10 @@ class autoimg(html.img):
 
 class autopixel(_pixelbase):
 	"""
-	<p>A pixel image were width and height attributes are automatically generated.</p>
+	A pixel image were width and height attributes are automatically generated.
 	
-	<p>This works like <pyref class="pixel"><class>pixel</class></pyref> but the
-	size is <z>inherited</z> from the image specified via the <lit>src</lit> attribute.</p>
+	This works like :class:`pixel` but the size is "inherited" from the image
+	specified via the ``src`` attribute.
 	"""
 	xmlns = xmlns
 	def convert(self, converter):
@@ -160,9 +159,8 @@ class autopixel(_pixelbase):
 
 class autoinput(html.input):
 	"""
-	<p>Extends <pyref module="ll.xist.ns.html" class="input"><class>input</class></pyref>
-	with the ability to automatically set the size, if this element
-	has <lit>type=="image"</lit>.</p>
+	Extends :class:`ll.xist.ns.html.input` with the ability to automatically
+	set the size, if this element has ``type=="image"``.
 	"""
 	xmlns = xmlns
 	def convert(self, converter):
@@ -203,7 +201,7 @@ class redirectpage(xsc.Element):
 
 class javascript(html.script):
 	"""
-	<p>can be used for javascript.</p>
+	Can be used for javascript.
 	"""
 	xmlns = xmlns
 	class Attrs(html.script.Attrs):

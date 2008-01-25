@@ -9,10 +9,9 @@
 
 
 """
-<p>An &xist; module that contains elements that simplify
-handling meta data. All elements in this module will generate a
-<pyref module="ll.xist.ns.html" class="meta"><class>html.meta</class></pyref>
-element when converted.</p>
+An XIST module that contains elements that simplify handling meta data. All
+elements in this module will generate a :class:`ll.xist.ns.html.meta` element
+when converted.
 """
 
 
@@ -20,7 +19,7 @@ from ll.xist import xsc, sims
 from ll.xist.ns import ihtml, html
 
 
-__docformat__ = "xist"
+__docformat__ = "reStructuredText"
 
 
 xmlns = "http://xmlns.livinglogic.de/xist/ns/meta"
@@ -28,11 +27,11 @@ xmlns = "http://xmlns.livinglogic.de/xist/ns/meta"
 
 class contenttype(html.meta):
 	"""
-	<p>Can be used for a <markup>&lt;meta http-equiv="Content-Type" content="text/html"/&gt;</markup>,
+	Can be used for a ``<meta http-equiv="Content-Type" content="text/html"/>``,
 	where the character set will be automatically inserted on a call to
-	<pyref module="ll.xist.xsc" class="Node" method="publish"><meth>publish</meth></pyref>.</p>
+	:meth:`ll.xist.xsc.None.publish`.
 
-	<p>Usage is simple: <markup>&lt;meta:contenttype/&gt;</markup></p>
+	Usage is simple: ``meta.contenttype()``.
 	"""
 	xmlns = xmlns
 	class Attrs(html.meta.Attrs):
@@ -62,9 +61,9 @@ class contenttype(html.meta):
 
 class contentscripttype(html.meta):
 	"""
-	<p>Can be used for a <markup>&lt;meta http-equiv="Content-Script-Type" content="..."/&gt;</markup>.</p>
+	Can be used for a ``<meta http-equiv="Content-Script-Type" content="..."/>``.
 
-	<p>Usage is simple: <markup>&lt;meta:contentscripttype type="text/javascript"/&gt;</markup></p>
+	Usage is simple: ``<markup>meta.contentscripttype(type="text/javascript")``.
 	"""
 	xmlns = xmlns
 	class Attrs(html.meta.Attrs):
@@ -82,9 +81,9 @@ class contentscripttype(html.meta):
 
 class keywords(html.meta):
 	"""
-	<p>Can be used for a <markup>&lt;meta name="keywords" content="..."/&gt;</markup>.</p>
+	Can be used for a ``<meta name="keywords" content="..."/>``.
 
-	<p>Usage is simple: <markup>&lt;meta:keywords&gt;foo, bar&lt;/meta:keywords&gt;</markup></p>
+	Usage is simple: ``meta.keywords("foo, bar")``.
 	"""
 	xmlns = xmlns
 	model = sims.NoElements()
@@ -102,9 +101,9 @@ class keywords(html.meta):
 
 class description(html.meta):
 	"""
-	<p>Can be used for a <markup>&lt;meta name="description" content="..."/&gt;</markup>.</p>
+	Can be used for a ``<meta name="description" content="..."/>``.
 
-	<p>Usage is simple: <markup>&lt;meta:description&gt;This page describes the ...&lt;/meta:description&gt;</markup></p>
+	Usage is simple: ``meta.description("This page describes the ...")``.
 	"""
 	xmlns = xmlns
 	model = sims.NoElements()
@@ -122,9 +121,9 @@ class description(html.meta):
 
 class stylesheet(html.link):
 	"""
-	<p>Can be used for a <markup>&lt;link rel="stylesheet" type="text/css" href="..."/&gt;</markup>.</p>
+	Can be used for a ``<link rel="stylesheet" type="text/css" href="..."/>``.
 
-	<p>Usage is simple: <markup>&lt;meta:stylesheet href="root:stylesheets/main.css"/&gt;</markup></p>
+	Usage is simple: ``meta.stylesheet(href="root:stylesheets/main.css")``.
 	"""
 	xmlns = xmlns
 	class Attrs(html.link.Attrs):
@@ -138,9 +137,9 @@ class stylesheet(html.link):
 
 class made(html.link):
 	"""
-	<p>Can be used for a <markup>&lt;link rel="made" href="mailto:..."/&gt;</markup>.</p>
+	Can be used for a ``<link rel="made" href="mailto:..."/>``.
 
-	<p>Usage is simple: <markup>&lt;meta:made href="foobert@bar.org"/&gt;</markup>.</p>
+	Usage is simple: ``meta.made(href="foobert@bar.org")``.
 	"""
 	xmlns = xmlns
 	class Attrs(html.link.Attrs):
@@ -153,9 +152,8 @@ class made(html.link):
 
 class author(xsc.Element):
 	"""
-	<p>Can be used to embed author information in the header.
-	It will generate <markup>&lt;link rel="made"/&gt;</markup> and
-	<markup>&lt;meta name="author"/&gt;</markup> elements.</p>
+	Can be used to embed author information in the header. It will generate
+	``<link rel="made"/>`` and ``<meta name="author"/>`` elements.
 	"""
 	xmlns = xmlns
 	model = sims.Empty()
@@ -177,7 +175,7 @@ class author(xsc.Element):
 
 class refresh(xsc.Element):
 	"""
-	<p>A refresh header.</p>
+	A refresh header.
 	"""
 	xmlns = xmlns
 	model = sims.Empty()

@@ -9,7 +9,7 @@
 
 
 """
-<p>This module contains entities for many abbreviations and acronyms.</p>
+This module contains entities for many abbreviations and acronyms.
 """
 
 
@@ -17,7 +17,7 @@ from ll.xist import xsc
 import doc
 
 
-__docformat__ = "xist"
+__docformat__ = "reStructuredText"
 
 
 xmlns = "http://xmlns.livinglogic.de/xist/ns/abbr"

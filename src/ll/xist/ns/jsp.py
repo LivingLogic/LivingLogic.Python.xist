@@ -9,7 +9,7 @@
 
 
 """
-<p>A module that allows you to embed &jsp; content as processing instructions.</p>
+A module that allows you to embed JSP content as processing instructions.
 """
 
 
@@ -18,7 +18,7 @@ import cgi # for parse_header
 from ll.xist import xsc, sims
 
 
-__docformat__ = "xist"
+__docformat__ = "reStructuredText"
 
 
 xmlns = "http://java.sun.com/JSP/Page"
@@ -39,7 +39,7 @@ class directive(xsc.Element):
 
 class scriptlet(xsc.ProcInst):
 	"""
-	will be published as <markup>&lt;% <rep>content</rep> %&gt;</markup>
+	Will be published as ``<% content %>``.
 	"""
 
 	def publish(self, publisher):
@@ -50,7 +50,7 @@ class scriptlet(xsc.ProcInst):
 
 class expression(xsc.ProcInst):
 	"""
-	will be published as <markup>&lt;%= <rep>content</rep> %&gt;</markup>
+	Will be published as ``<%= content %>``.
 	"""
 
 	def publish(self, publisher):
@@ -61,7 +61,7 @@ class expression(xsc.ProcInst):
 
 class declaration(xsc.ProcInst):
 	"""
-	will be published as <markup>&lt;%! <rep>content</rep> %&gt;</markup>
+	Will be published as ``<%! content %>``.
 	"""
 
 	def publish(self, publisher):
@@ -104,9 +104,9 @@ class End(scriptlet):
 
 class block(xsc.Element):
 	"""
-	<p>This element embeds its content in <lit>{}</lit> brackets.</p>
-	<p>Note that the content itself will not be turned into a scriptlet
-	automatically but will be used as-is.</p>
+	This element embeds its content in ``{}`` brackets. Note that the content
+	itself will not be turned into a scriptlet automatically but will be used
+	as-is.
 	"""
 	xmlns = xmlns
 	model = sims.Any()

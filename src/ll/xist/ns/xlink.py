@@ -9,15 +9,15 @@
 
 
 """
-<p>Contains the global attributes for the xlink namespace
-(<lit>http://www.w3.org/1999/xlink</lit>).</p>
+Contains the global attributes for the xlink namespace
+(``http://www.w3.org/1999/xlink``).
 """
 
 
 from ll.xist import xsc, utils
 
 
-__docformat__ = "xist"
+__docformat__ = "reStructuredText"
 
 
 xmlns  = "http://www.w3.org/1999/xlink"

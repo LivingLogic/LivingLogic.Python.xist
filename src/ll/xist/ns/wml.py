@@ -9,14 +9,15 @@
 
 
 """
-<p>An &xist; namespace module that contains definitions for all the elements in &wml; 1.3.</p>
+An XIST namespace module that contains definitions for all the elements in
+WML 1.3.
 """
 
 
 from ll.xist import xsc, sims
 
 
-__docformat__ = "xist"
+__docformat__ = "reStructuredText"
 
 
 xmlns = "http://www.wapforum.org/DTD/wml13.dtd"
@@ -58,7 +59,7 @@ class wml(xsc.Element):
 
 class card(xsc.Element):
 	"""
-	defines and names a new card
+	Defines and names a new card
 	"""
 	xmlns = xmlns
 	class Attrs(allattrs):
@@ -69,7 +70,7 @@ class card(xsc.Element):
 
 class do(xsc.Element):
 	"""
-	mechanism used to allow user actions within a card
+	Mechanism used to allow user actions within a card
 	"""
 	xmlns = xmlns
 	class Attrs(coreattrs):
@@ -81,7 +82,7 @@ class do(xsc.Element):
 
 class onevent(xsc.Element):
 	"""
-	specifies an action to be performed when specific events occur
+	Specifies an action to be performed when specific events occur
 	"""
 	xmlns = xmlns
 	class Attrs(coreattrs):
@@ -90,7 +91,7 @@ class onevent(xsc.Element):
 
 class head(xsc.Element):
 	"""
-	provides information for an entire deck
+	Provides information for an entire deck
 	"""
 	xmlns = xmlns
 	class Attrs(coreattrs):
@@ -99,7 +100,7 @@ class head(xsc.Element):
 
 class template(xsc.Element):
 	"""
-	specifies a template containing settings that will be used deck wide
+	Specifies a template containing settings that will be used deck wide
 	"""
 	xmlns = xmlns
 	class Attrs(allattrs):
@@ -108,7 +109,7 @@ class template(xsc.Element):
 
 class access(xsc.Element):
 	"""
-	applies access-control rules to a deck effectively restricting referred access
+	Applies access-control rules to a deck effectively restricting referred access
 	"""
 	xmlns = xmlns
 	class Attrs(coreattrs):
@@ -118,7 +119,7 @@ class access(xsc.Element):
 
 class meta(xsc.Element):
 	"""
-	specifies deck-specific meta information within a <pyref class="head"><class>head</class></pyref> block
+	Specifies deck-specific meta information within a :class:`head` block
 	"""
 	xmlns = xmlns
 	class Attrs(coreattrs):
@@ -131,7 +132,7 @@ class meta(xsc.Element):
 
 class go(xsc.Element):
 	"""
-	opens a specified URL using GET or POST methods
+	Opens a specified URL using GET or POST methods
 	"""
 	xmlns = xmlns
 	class Attrs(coreattrs):
@@ -145,7 +146,7 @@ class go(xsc.Element):
 
 class prev(xsc.Element):
 	"""
-	returns to the previous card
+	Returns to the previous card
 	"""
 	xmlns = xmlns
 	class Attrs(coreattrs):
@@ -154,7 +155,7 @@ class prev(xsc.Element):
 
 class refresh(xsc.Element):
 	"""
-	refreshes (or resets) variables to initial or updated values
+	Refreshes (or resets) variables to initial or updated values
 	"""
 	xmlns = xmlns
 	class Attrs(coreattrs):
@@ -163,7 +164,7 @@ class refresh(xsc.Element):
 
 class noop(xsc.Element):
 	"""
-	does nothing (as in no operation)
+	Does nothing (as in no operation)
 	"""
 	xmlns = xmlns
 	class Attrs(coreattrs):
@@ -172,7 +173,7 @@ class noop(xsc.Element):
 
 class postfield(xsc.Element):
 	"""
-	specifies a field and value to be sent to a URL
+	Specifies a field and value to be sent to a URL
 	"""
 	xmlns = xmlns
 	class Attrs(coreattrs):
@@ -182,7 +183,7 @@ class postfield(xsc.Element):
 
 class setvar(xsc.Element):
 	"""
-	sets a variable to a specified value
+	Sets a variable to a specified value
 	"""
 	xmlns = xmlns
 	class Attrs(coreattrs):
@@ -192,7 +193,7 @@ class setvar(xsc.Element):
 
 class select(xsc.Element):
 	"""
-	displays a list of options for user selection
+	Displays a list of options for user selection
 	"""
 	xmlns = xmlns
 	class Attrs(coreattrs):
@@ -207,7 +208,8 @@ class select(xsc.Element):
 
 class optgroup(xsc.Element):
 	"""
-	groups options together so that the browser can optimize the display appropriately
+	Groups options together so that the browser can optimize the display
+	appropriately
 	"""
 	xmlns = xmlns
 	class Attrs(coreattrs):
@@ -216,7 +218,7 @@ class optgroup(xsc.Element):
 
 class option(xsc.Element):
 	"""
-	creates options within a <pyref class="select"><class>select</class></pyref> list
+	Creates options within a :class:`select` list
 	"""
 	xmlns = xmlns
 	class Attrs(coreattrs):
@@ -227,7 +229,7 @@ class option(xsc.Element):
 
 class input(xsc.Element):
 	"""
-	prompts for user input which will be saved to a variable
+	Prompts for user input which will be saved to a variable
 	"""
 	xmlns = xmlns
 	class Attrs(coreattrs):
@@ -245,7 +247,8 @@ class input(xsc.Element):
 
 class fieldset(xsc.Element):
 	"""
-	groups input field together so that the browser can optimize the display appropriately
+	Groups input field together so that the browser can optimize the display
+	appropriately
 	"""
 	xmlns = xmlns
 	class Attrs(coreattrs):
@@ -254,7 +257,7 @@ class fieldset(xsc.Element):
 
 class timer(xsc.Element):
 	"""
-	invokes a timer after a specified amount of inactivity
+	Invokes a timer after a specified amount of inactivity
 	"""
 	xmlns = xmlns
 	class Attrs(coreattrs):
@@ -264,7 +267,7 @@ class timer(xsc.Element):
 
 class img(xsc.Element):
 	"""
-	displays an image in the browser
+	Displays an image in the browser
 	"""
 	xmlns = xmlns
 	class Attrs(coreattrs):
@@ -280,8 +283,8 @@ class img(xsc.Element):
 
 class anchor(xsc.Element):
 	"""
-	creates an anchor (also called a link) associated with <pyref class="go"><class>go</class></pyref>,
-	<pyref class="prev"><class>prev</class></pyref> or <pyref class="refresh"><class>refresh</class></pyref> tasks.
+	Creates an anchor (also called a link) associated with :class:`go`,
+	:class:`prev` or :class:`refresh` tasks.
 	"""
 	xmlns = xmlns
 	class Attrs(coreattrs):
@@ -291,7 +294,7 @@ class anchor(xsc.Element):
 
 class a(xsc.Element):
 	"""
-	creates an anchor (also called a link)
+	Creates an anchor (also called a link)
 	"""
 	xmlns = xmlns
 	class Attrs(coreattrs):
@@ -302,7 +305,7 @@ class a(xsc.Element):
 
 class table(xsc.Element):
 	"""
-	creates a columnar table providing control over table alignment
+	Creates a columnar table providing control over table alignment
 	"""
 	xmlns = xmlns
 	class Attrs(coreattrs):
@@ -313,7 +316,7 @@ class table(xsc.Element):
 
 class tr(xsc.Element):
 	"""
-	creates rows within a table
+	Creates rows within a table
 	"""
 	xmlns = xmlns
 	class Attrs(coreattrs):
@@ -322,7 +325,7 @@ class tr(xsc.Element):
 
 class td(xsc.Element):
 	"""
-	creates cells within table rows
+	Creates cells within table rows
 	"""
 	xmlns = xmlns
 	class Attrs(coreattrs):
@@ -331,7 +334,7 @@ class td(xsc.Element):
 
 class em(xsc.Element):
 	"""
-	displays all text between <markup>&lt;em&gt;</markup> and <markup>&lt;/em&gt;</markup> formatted with emphasis
+	Displays all text between ``<em>`` and ``</em>`` formatted with emphasis
 	"""
 	xmlns = xmlns
 	class Attrs(coreattrs):
@@ -340,7 +343,8 @@ class em(xsc.Element):
 
 class strong(xsc.Element):
 	"""
-	displays all text between <markup>&lt;strong&gt;</markup> and <markup>&lt;/strong&gt;</markup> formatted with strong emphasis
+	Displays all text between ``<strong>`` and ``</strong>`` formatted with
+	strong emphasis
 	"""
 	xmlns = xmlns
 	class Attrs(coreattrs):
@@ -349,7 +353,7 @@ class strong(xsc.Element):
 
 class b(xsc.Element):
 	"""
-	displays all text between <markup>&lt;b&gt;</markup> and <markup>&lt;/b&gt;</markup> in bold text
+	Displays all text between ``<b>`` and ``</b>`` in bold text
 	"""
 	xmlns = xmlns
 	class Attrs(coreattrs):
@@ -358,7 +362,7 @@ class b(xsc.Element):
 
 class i(xsc.Element):
 	"""
-	displays all text between <markup>&lt;i&gt;</markup> and <markup>&lt;/i&gt;</markup> in italic text
+	``Displays all text between ``<i>`` and ``</i>`` in italic text
 	"""
 	xmlns = xmlns
 	class Attrs(coreattrs):
@@ -367,7 +371,7 @@ class i(xsc.Element):
 
 class u(xsc.Element):
 	"""
-	displays all text between <markup>&lt;u&gt;</markup> and <markup>&lt;/u&gt;</markup> as underlined text
+	Displays all text between ``<u>`` and ``</u>`` as underlined text
 	"""
 	xmlns = xmlns
 	class Attrs(coreattrs):
@@ -376,7 +380,7 @@ class u(xsc.Element):
 
 class big(xsc.Element):
 	"""
-	displays all text between <markup>&lt;big&gt;</markup> and <markup>&lt;/big&gt;</markup> in a large font
+	Displays all text between ``<big>`` and ``</big>`` in a large font
 	"""
 	xmlns = xmlns
 	class Attrs(coreattrs):
@@ -385,7 +389,7 @@ class big(xsc.Element):
 
 class small(xsc.Element):
 	"""
-	displays all text between <markup>&lt;small&gt;</markup> and <markup>&lt;/small&gt;</markup> in a small font
+	Displays all text between ``<small>`` and ``</small>`` in a small font
 	"""
 	xmlns = xmlns
 	class Attrs(coreattrs):
@@ -394,7 +398,8 @@ class small(xsc.Element):
 
 class p(xsc.Element):
 	"""
-	creates a paragraph, establishing alignment and wrapping for all text within it
+	Creates a paragraph, establishing alignment and wrapping for all text
+	within it
 	"""
 	xmlns = xmlns
 	class Attrs(coreattrs):
@@ -404,7 +409,7 @@ class p(xsc.Element):
 
 class br(xsc.Element):
 	"""
-	forces a line break
+	Forces a line break
 	"""
 	xmlns = xmlns
 	class Attrs(coreattrs):
@@ -413,7 +418,7 @@ class br(xsc.Element):
 
 class pre(xsc.Element):
 	"""
-	preformatted text
+	Preformatted text
 	"""
 	xmlns = xmlns
 	class Attrs(coreattrs):

@@ -9,8 +9,8 @@
 
 
 """
-<p>This namespace module provides classes that can be used for generating
-documentation (in &html;, DocBook and XSL-FO).</p>
+This namespace module provides classes that can be used for generating
+documentation (in HTML, DocBook and XSL-FO).
 """
 
 
@@ -23,7 +23,7 @@ from ll.xist import xsc, parsers, sims, xfind
 from ll.xist.ns import html, docbook, fo, specials, xml, abbr as abbr_
 
 
-__docformat__ = "xist"
+__docformat__ = "reStructuredText"
 
 
 xmlns = "http://xmlns.livinglogic.de/xist/ns/doc"
@@ -181,13 +181,13 @@ class _stack(object):
 
 def explain(thing, name=None, format=None, context=[]):
 	"""
-	<p>Return a &xml; representation of the documentation of
-	<arg>thing</arg>, which can be a function, method, class or module.</p>
+	Return a XML representation of the doc string of :var:`thing`, which can be
+	a function, method, class or module.
 
-	<p>If <arg>thing</arg> is not a module, you must pass the context
-	in <arg>context</arg>, i.e. a list of names of objects into which <arg>thing</arg>
-	is nested. This means the first entry will always be the module name, and
-	the other entries will be class names.</p>
+	If :var:`thing` is not a module, you must pass the context in :var:`context`,
+	i.e. a list of names of objects into which :var:`thing` is nested. This
+	means the first entry will always be the module name, and the other entries
+	will be class names.
 	"""
 
 	def _append(all, obj, var):
@@ -338,8 +338,7 @@ def explain(thing, name=None, format=None, context=[]):
 
 class base(xsc.Element):
 	"""
-	The base of all element classes. Used for dispatching
-	to conversion targets.
+	The base of all element classes. Used for dispatching to conversion targets.
 	"""
 	xmlns = xmlns
 	register = False
@@ -463,7 +462,7 @@ class abbr(inline):
 
 class tab(xsc.Element):
 	"""
-	Used for displaying a tab character in the &html; output.
+	Used for displaying a tab character in the HTML output.
 	"""
 	xmlns = xmlns
 	register = False
@@ -539,7 +538,7 @@ class litblock(block):
 
 class prog(litblock):
 	"""
-	A literal listing of all or part of a program
+	A literal listing of all or part of a program.
 	"""
 	xmlns = xmlns
 	cssclass = u"prog"
@@ -551,7 +550,7 @@ class prog(litblock):
 
 class tty(litblock):
 	"""
-	A dump of a shell session
+	A dump of a shell session.
 	"""
 	xmlns = xmlns
 	cssclass = u"tty"
@@ -563,7 +562,7 @@ class tty(litblock):
 
 class prompt(inline):
 	"""
-	The prompt in a <pyref class="tty"><class>tty</class></pyref> dump.
+	The prompt in a :class:`tty` dump.
 	"""
 	xmlns = xmlns
 
@@ -581,8 +580,7 @@ class prompt(inline):
 
 class input(inline):
 	"""
-	Can be used inside a <pyref class="tty"><class>tty</class></pyref> to mark
-	the parts typed by the user.
+	Can be used inside a :class:`tty` to mark the parts typed by the user.
 	"""
 	xmlns = xmlns
 
@@ -600,7 +598,7 @@ class input(inline):
 
 class rep(inline):
 	"""
-	Content that may or must be replaced by the user
+	Content that may or must be replaced by the user.
 	"""
 	xmlns = xmlns
 	model = sims.NoElements()
@@ -704,7 +702,7 @@ class attr(code):
 
 class prop(code):
 	"""
-	The name of a property in a programming language
+	The name of a property in a programming language.
 	"""
 	xmlns = xmlns
 	model = sims.ElementsOrText(rep)
@@ -716,7 +714,7 @@ class prop(code):
 
 class class_(code):
 	"""
-	The name of a class, in the object-oriented programming sense
+	The name of a class, in the object-oriented programming sense.
 	"""
 	xmlns = xmlns
 	xmlname = "class"
@@ -757,13 +755,10 @@ class markup(code):
 
 class self(code):
 	"""
-	<p>use this class when referring to the object for which a method has been
-	called, e.g.:</p>
-	<example>
-	<prog>
-		this function fooifies the object &lt;self/&gt;.
-	</prog>
-	</example>
+	Use this class when referring to the object for which a method has been
+	called, e.g.::
+
+		this function fooifies the object <self/>;.
 	"""
 	xmlns = xmlns
 	model = sims.Empty()
@@ -785,13 +780,10 @@ self_ = self
 
 class cls(inline):
 	"""
-	<p>use this class when referring to the object for which a class method has been
-	called, e.g.:</p>
-	<example>
-	<prog>
-		this function fooifies the class &lt;cls/&gt;.
-	</prog>
-	</example>
+	Use this class when referring to the object for which a class method has
+	been called, e.g.::
+
+		this function fooifies the class <cls/>.
 	"""
 	xmlns = xmlns
 	model = sims.Empty()
@@ -855,7 +847,7 @@ class file(code):
 
 class dir(code):
 	"""
-	The name of directory
+	The name of a directory
 	"""
 	xmlns = xmlns
 	model = sims.ElementsOrText(rep)
@@ -947,8 +939,7 @@ class app(inline):
 
 class h(base):
 	"""
-	The text of the title of a <pyref class="section"><class>section</class></pyref>
-	or an <pyref class="example"><class>example</class></pyref>
+	The text of the title of a :class:`section` or an :class:`example`.
 	"""
 	xmlns = xmlns
 	model = sims.ElementsOrText(inline)
@@ -981,7 +972,7 @@ class h(base):
 
 class section(block):
 	"""
-	A recursive section
+	A recursive section.
 	"""
 	xmlns = xmlns
 	model = sims.Elements(h, block)
@@ -1104,7 +1095,7 @@ class p(block):
 
 class dt(block):
 	"""
-	A term inside a <pyref class="dl"><class>dl</class></pyref>
+	A term inside a :class:`dl`.
 	"""
 	xmlns = xmlns
 	model = sims.ElementsOrText(inline)
@@ -1127,9 +1118,7 @@ class dt(block):
 
 class li(block):
 	"""
-	A wrapper for the elements of a list item in
-	<pyref class="ul"><class>ul</class></pyref> or
-	<pyref class="ol"><class>ol</class></pyref>.
+	A wrapper for the elements of a list item in :class:`ul` or :class:`ol`.
 	"""
 	xmlns = xmlns
 	model = sims.ElementsOrText(block, inline) # if it contains no block elements, the content will be promoted to a paragraph
@@ -1176,8 +1165,7 @@ class li(block):
 
 class dd(block):
 	"""
-	A wrapper for the elements of a list item
-	<pyref class="dl"><class>dl</class></pyref>
+	A wrapper for the elements of a list item :class:`dl`.
 	"""
 	xmlns = xmlns
 	model = sims.ElementsOrText(block, inline) # if it contains no block elements, the content will be promoted to a paragraph
@@ -1214,9 +1202,7 @@ class dd(block):
 
 class list(block):
 	"""
-	Common baseclass for <pyref class="ul"><class>ul</class></pyref>,
-	<pyref class="ol"><class>ol</class></pyref> and
-	<pyref class="dl"><class>dl</class></pyref>.
+	Common baseclass for :class:`ul`, :class:`ol` and :class:`dl`.
 	"""
 	xmlns = xmlns
 	register = False
@@ -1224,7 +1210,7 @@ class list(block):
 
 class ul(list):
 	"""
-	A list in which each entry is marked with a bullet or other dingbat
+	A list in which each entry is marked with a bullet or other dingbat.
 	"""
 	xmlns = xmlns
 	model = sims.Elements(li)
@@ -1248,7 +1234,7 @@ class ul(list):
 
 class ol(list):
 	"""
-	A list in which each entry is marked with a sequentially incremented label
+	A list in which each entry is marked with a sequentially incremented label.
 	"""
 	xmlns = xmlns
 	model = sims.Elements(li)
@@ -1272,7 +1258,7 @@ class ol(list):
 
 class dl(list):
 	"""
-	A list in which each entry is marked with a label
+	A list in which each entry is marked with a label.
 	"""
 	xmlns = xmlns
 	model = sims.Elements(dt, dd)
@@ -1303,7 +1289,7 @@ class dl(list):
 
 class example(block):
 	"""
-	A formal example
+	A formal example.
 	"""
 	xmlns = xmlns
 	model = sims.Elements(h, block)
@@ -1420,7 +1406,7 @@ class email(inline):
 
 class em(inline):
 	"""
-	Emphasized text
+	Emphasized text.
 	"""
 	xmlns = xmlns
 	model = sims.ElementsOrText(inline)
@@ -1443,8 +1429,7 @@ class em(inline):
 
 class pyref(inline):
 	"""
-	reference to a Python object:
-	module, class, method, property or function
+	Reference to a Python object: module, class, method, property or function.
 	"""
 	xmlns = xmlns
 	model = sims.ElementsOrText(inline)

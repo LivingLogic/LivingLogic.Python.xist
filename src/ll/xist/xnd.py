@@ -9,9 +9,9 @@
 
 
 """
-<p>An &xist; module that contains classes for describing &xist; namespace
-modules. From that info a skeleton implementation of the namespace module
-can be generated.</p>
+An XIST module that contains classes for describing XIST namespace modules.
+From that info a skeleton implementation of the namespace module can be
+generated.
 """
 
 
@@ -20,7 +20,7 @@ import sys, keyword
 from ll.xist import xsc, parsers, sims
 
 
-__docformat__ = "xist"
+__docformat__ = "reStructuredText"
 
 
 class Base(object):
@@ -30,12 +30,11 @@ class Base(object):
 
 	def assignname(self, names, name=None):
 		"""
-		<p>Assign a modified version of <arg>name</arg> to <lit>pyname</lit>,
-		that is a valid Python identifier. This is done by replacing illegal
-		characters with <lit>_</lit> and appending an <lit>_</lit> when the name
-		collides with a Python keyword. Furthermore it is made sure that the new
-		name is not in the list <arg>names</arg>. (If <arg>name</arg> is <lit>None</lit>
-		<lit><self/>.name</lit> is used.)</p>
+		Assign a modified version of :var:`name` to :attr:`pyname`, that is a
+		valid Python identifier. This is done by replacing illegal characters
+		with ``_`` and appending an ``_`` when the name collides with a Python
+		keyword. Furthermore it is made sure that the new name is not in the list
+		:var:`names`. (If :var:`name` is :const:`None` ``self.name`` is used.)
 		"""
 		newname = []
 		if name is None:
@@ -59,9 +58,9 @@ class Base(object):
 	@classmethod
 	def simplify(cls, value):
 		"""
-		<p>Return a string, whose value can be used as an intializer for an attribute values.
-		(If the value is an <class>int</class> strip the quotes, if it fits into ASCII drop
-		the <lit>u</lit> prefix.)</p>
+		Return a string, whose value can be used as an intializer for an attribute
+		value. (If the value is an :class:`int` strip the quotes, if it fits into
+		ASCII drop the ``u`` prefix.)
 		"""
 		try:
 			value = int(value)
@@ -118,11 +117,11 @@ class Module(Base):
 
 	def _findgroups(self):
 		"""
-		<p>This method finds all attribute groups defined for any attribute.
-		As an attribute group can be referenced multiple times (in fact that's
-		the reason for the attribute groups existence), we have to make sure
-		to list an attribute group only once. Furthermore the attribute groups
-		should appear in the order in which they are referenced.</p>
+		This method finds all attribute groups defined for any attribute. As an
+		attribute group can be referenced multiple times (in fact that's the
+		reason for the attribute groups existence), we have to make sure to list
+		an attribute group only once. Furthermore the attribute groups should
+		appear in the order in which they are referenced.
 		"""
 		# find all attribute groups defined for the attributes
 		attrgroups = []
@@ -328,7 +327,7 @@ class Attr(Base):
 		if values is None:
 			values = []
 		self.values = values
-		self.shared = None # if this attribute is part of a group <lit>shared</lit> will point to the group
+		self.shared = None # if this attribute is part of a group ``shared`` will point to the group
 
 	def __repr__(self):
 		return "<%s.%s name=%r type=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.name, self.type, id(self))

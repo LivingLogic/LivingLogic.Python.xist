@@ -9,14 +9,15 @@
 
 
 """
-<p>An &xist; namespace module that contains definitions for all the elements in DocBook 4.3</p>
+An XIST namespace module that contains definitions for all the elements in
+DocBook 4.3
 """
 
 
 from ll.xist import xsc, sims
 
 
-__docformat__ = "xist"
+__docformat__ = "reStructuredText"
 
 
 xmlns = "http://www.docbook.org/xml/4.3/docbookx.dtd"

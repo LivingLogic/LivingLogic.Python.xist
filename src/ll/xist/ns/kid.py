@@ -9,15 +9,16 @@
 
 
 """
-This module is an &xist; namespace for
-<a href="http://kid.lesscode.org/">Kid</a> files.
+This module is an XIST namespace for Kid__ files.
+
+__ http://kid.lesscode.org/
 """
 
 
 from ll.xist import xsc, sims
 
 
-__docformat__ = "xist"
+__docformat__ = "reStructuredText"
 
 
 xmlns = "http://purl.org/kid/ns#"
@@ -29,18 +30,18 @@ class Attrs(xsc.Attrs):
 	"""
 	class for_(xsc.TextAttr):
 		"""
-		The <class>for_</class> attribute may appear on any element to signify
-		that the element should be processed multiple times, once for each
-		value in the sequence specified.
+		The :class:`for_` attribute may appear on any element to signify that
+		the element should be processed multiple times, once for each value in
+		the sequence specified.
 		"""
 		xmlns = xmlns
 		xmlname = "for"
 
 	class if_(xsc.TextAttr):
 		"""
-		The <class>if_</class> attribute may appear on any element to signify
-		that the element and its decendant items should be output only if the
-		boolean expression specified evaluates to true in Python.
+		The :class:`if_` attribute may appear on any element to signify that
+		the element and its decendant items should be output only if the boolean
+		expression specified evaluates to true in Python.
 		"""
 		xmlns = xmlns
 		xmlname = "if"
@@ -55,52 +56,50 @@ class Attrs(xsc.Attrs):
 
 	class replace(xsc.TextAttr):
 		"""
-		<class>replace</class> is shorthand for specifying a
-		<class>content</class> and a <markup>strip="True"</markup>
-		on the same element.
+		:class:`replace` is shorthand for specifying a :class:`content` and a
+		``strip="True"`` on the same element.
 		"""
 		xmlns = xmlns
 
 	class strip(xsc.TextAttr):
 		"""
-		The <class>strip</class> attribute may apppear on any element to
-		signify that the containing element should not be output.
+		The :class:`strip` attribute may apppear on any element to signify that
+		the containing element should not be output.
 		"""
 		xmlns = xmlns
 
 	class attrs(xsc.TextAttr):
 		"""
-		The <class>attrs</class> attribute may appear on any element to
-		specify a set of attributes that should be set on the element
-		when it is processed.
+		The :class:`attrs` attribute may appear on any element to specify a set
+		of attributes that should be set on the element when it is processed.
 		"""
 		xmlns = xmlns
 
 	class def_(xsc.TextAttr):
 		"""
-		The <class>def_</class> attribute may appear on any element to
-		create a <z>Named Template Function</z>.
+		The :class:`def_` attribute may appear on any element to create a
+		"Named Template Function".
 		"""
 		xmlns = xmlns
 		xmlname = "def"
 
 	class match(xsc.TextAttr):
 		"""
-		The <class>match</class> attribute may appear on any element to
-		create a <z>Match Template</z>.
+		The :class:`match` attribute may appear on any element to create a
+		"Match Template".
 		"""
 		xmlns = xmlns
 
 	class extends(xsc.TextAttr):
 		"""
-		The <class>extends</class> attribute may appear on the root element
-		to specify that the template should inherit the Named Template Functions
-		and Match Templates defined in another template (or set of templates).
+		The :class:`extends` attribute may appear on the root element to specify
+		that the template should inherit the Named Template Functions and Match
+		Templates defined in another template (or set of templates).
 		"""
 		xmlns = xmlns
 
 
 class python(xsc.ProcInst):
 	"""
-	The <class>python</class> processing instruction contains Python code.
+	The :class:`python` processing instruction contains Python code.
 	"""

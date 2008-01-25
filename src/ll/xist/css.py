@@ -9,7 +9,7 @@
 
 
 """
-<p>This module ontains functions related to the handling of &css;.</p>
+This module contains functions related to the handling of CSS.
 """
 
 from __future__ import with_statement
@@ -30,7 +30,7 @@ from ll.xist import xsc, xfind
 from ll.xist.ns import html
 
 
-__docformat__ = "xist"
+__docformat__ = "reStructuredText"
 
 
 def _isstyle(path):
@@ -42,9 +42,9 @@ def _isstyle(path):
 
 def replaceurls(stylesheet, replacer):
 	"""
-	Replace all &url;s appearing in the <class>CSSStyleSheet<class>
-	<arg>stylesheet</arg>. For each &url; the function <arg>replacer</arg> will
-	be called and the &url; will be replaced with the result.
+	Replace all URLs appearing in the :class:`CSSStyleSheet` :var:`stylesheet`.
+	For each URL the function :var:`replacer` will be called and the URL will
+	be replaced with the result.
 	"""
 	def newreplacer(u):
 		return unicode(replacer(url.URL(u)))
@@ -91,20 +91,20 @@ def _doimport(wantmedia, parentsheet, base):
 
 def iterrules(node, base=None, media=None):
 	"""
-	<p>Return an iterator for all &css; rules defined in the &html; tree <arg>node</arg>.
-	This will parse the &css; defined in any <class>html.style</class> or
-	<class>html.link</class> element (and recursively in those stylesheets imported
-	via the <lit>@import</lit> rule). The rules will be returned as
-	<class>CSSStyleRule</class> objects from the <mod>cssutils</mod> package
-	(so this requires <mod>cssutils</mod>).</p>
+	Return an iterator for all CSS rules defined in the HTML tree :var:`node`.
+	This will parse the CSS defined in any :class:`html.style` or
+	:class:`html.link` element (and recursively in those stylesheets imported
+	via the ``@import`` rule). The rules will be returned as
+	:class:`CSSStyleRule` objects from the :mod:`cssutils` package (so this
+	requires :mod:`cssutils`).
 
-	<p>The <arg>base</arg> argument will be used as the base &url; for parsing
-	the stylesheet references in the tree (so <lit>None</lit> means the &url;s
-	will be used exactly as they appear in the tree). All &url;s in the style
-	properties will be resolved.</p>
+	The :var:`base` argument will be used as the base URL for parsing the
+	stylesheet references in the tree (so :const:`None` means the URLs will be
+	used exactly as they appear in the tree). All URLs in the style properties
+	will be resolved.
 
-	<p>If <arg>media</arg> is given, only rules that apply to this media type
-	will be produced.</p>
+	If :var:`media` is given, only rules that apply to this media type will
+	be produced.
 	"""
 	if base is not None:
 		base = url.URL(base)
@@ -133,19 +133,18 @@ def iterrules(node, base=None, media=None):
 
 def applystylesheets(node, base=None, media=None):
 	"""
-	<p><func>applystylesheets</func> modifies the &xist; tree <arg>node</arg>
-	by removing all &css; (from <class>html.link</class> and <class>html.style</class>
-	elements and their <lit>@import</lit>ed stylesheets) and puts the resulting
-	styles properties into the <lit>style</lit> attribute of the every affected
-	element instead.</p>
+	:func:`applystylesheets` modifies the XIST tree :var:`node` by removing all
+	CSS (from :class:`html.link` and :class:`html.style` elements and their
+	``@import``ed stylesheets) and puts the resulting styles properties into
+	the ``style`` attribute of the every affected element instead.
 	
-	<p>The <arg>base</arg> argument will be used as the base &url; for parsing
-	the stylesheet references in the tree (so <lit>None</lit> means the &url;s
-	will be used exactly as they appear in the tree). All &url;s in the style
-	properties will be resolved.</p>
+	The :var:`base` argument will be used as the base URL for parsing the
+	stylesheet references in the tree (so :const:`None` means the URLs will be
+	used exactly as they appear in the tree). All URLs in the style properties
+	will be resolved.
 
-	<p>If <arg>media</arg> is given, only rules that apply to this media type
-	will be applied.</p>
+	If :var:`media` is given, only rules that apply to this media type will
+	be applied.
 	"""
 	def iterstyles(node, rules):
 		for data in rules:
@@ -187,7 +186,7 @@ def applystylesheets(node, base=None, media=None):
 ###
 
 def _is_nth_node(iterator, node, index):
-	# Return whether node is the index'th node in iterator (starting at 1)
+	# Return whether :var:`node` is the :var:`index`'th node in :var:`iterator` (starting at 1)
 	# index is an int or int string or "even" or "odd"
 	if index == "even":
 		for (i, child) in enumerate(iterator):
@@ -215,7 +214,7 @@ def _is_nth_node(iterator, node, index):
 
 
 def _is_nth_last_node(iterator, node, index):
-	# Return whether node is the index'th last node in iterator
+	# Return whether :var:`node` is the :var:`index`'th last node in :var:`iterator`
 	# index is an int or int string or "even" or "odd"
 	if index == "even":
 		pos = None
@@ -256,7 +255,7 @@ def _children_of_type(node, type):
 
 class CSSWeightedSelector(xfind.Selector):
 	"""
-	Base class for all &css; pseudo-class selectors.
+	Base class for all CSS pseudo-class selectors.
 	"""
 	def cssweight(self):
 		return xfind.CSSWeight(0, 1, 0)
@@ -264,8 +263,8 @@ class CSSWeightedSelector(xfind.Selector):
 
 class CSSHasAttributeSelector(CSSWeightedSelector):
 	"""
-	A <class>CSSHasAttributeSelector</class> selector selects all element nodes
-	that have an attribute with the specified &xml; name.
+	A :class:`CSSHasAttributeSelector` selector selects all element nodes
+	that have an attribute with the specified XML name.
 	"""
 	def __init__(self, attributename):
 		self.attributename = attributename
@@ -534,9 +533,9 @@ class CSSTypeSelector(xfind.Selector):
 
 class CSSAdjacentSiblingCombinator(xfind.BinaryCombinator):
 	"""
-	<p>A <class>CSSAdjacentSiblingCombinator</class> work similar to an
-	<class>AdjacentSiblingCombinator</class> except that only preceding elements
-	are considered.</p>
+	A :class:`CSSAdjacentSiblingCombinator` work similar to an
+	:class:`AdjacentSiblingCombinator` except that only preceding elements
+	are considered.
 	"""
 
 	def matchpath(self, path):
@@ -558,9 +557,9 @@ class CSSAdjacentSiblingCombinator(xfind.BinaryCombinator):
 
 class CSSGeneralSiblingCombinator(xfind.BinaryCombinator):
 	"""
-	<p>A <class>CSSGeneralSiblingCombinator</class> work similar to an
-	<class>GeneralSiblingCombinator</class> except that only preceding elements
-	are considered.</p>
+	A :class:`CSSGeneralSiblingCombinator` work similar to an
+	:class:`GeneralSiblingCombinator` except that only preceding elements
+	are considered.
 	"""
 
 	def matchpath(self, path):
@@ -622,8 +621,8 @@ _function2class = {
 def selector(selectors, prefixes=None):
 	"""
 	Create a walk filter that will yield all nodes that match the specified
-	&css; expression. <arg>selectors</arg> can be a string or a
-	<class>cssutils.css.selector.Selector</class> object. <arg>prefixes</arg>
+	CSS expression. :var:`selectors` can be a string or a
+	:class:`cssutils.css.selector.Selector` object. :var:`prefixes`
 	may be a mapping mapping namespace prefixes to namespace names.
 	"""
 

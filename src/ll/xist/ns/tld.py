@@ -9,8 +9,8 @@
 
 
 """
-<p>This is the &xist; namespace for the JavaServer Pages 1.1 Tag Library
-descriptor (<lit>.tld</lit>) (&xml;) file format/syntax.</p>
+This is the XIST namespace for the JavaServer Pages 1.1 Tag Library
+descriptor (``.tld``) (XML) file format/syntax.
 """
 
 
@@ -18,7 +18,7 @@ from ll import misc
 from ll.xist import xsc, sims, xnd, xfind
 
 
-__docformat__ = "xist"
+__docformat__ = "reStructuredText"
 
 
 xmlns = "http://java.sun.com/j2ee/dtds/web-jsptaglibrary_1_1.dtd"
@@ -30,7 +30,7 @@ class IdAttrs(xsc.Attrs):
 
 class DocTypeTLD11(xsc.DocType):
 	"""
-	<p>document type for tag library descriptors version 1.1</p>
+	Document type for tag library descriptors version 1.1
 	"""
 	def __init__(self):
 		xsc.DocType.__init__(self, 'taglib PUBLIC "-//Sun Microsystems, Inc.//DTD JSP Tag Library 1.1//EN" "http://java.sun.com/j2ee/dtds/web-jsptaglibrary_1_1.dtd"')
@@ -38,14 +38,15 @@ class DocTypeTLD11(xsc.DocType):
 
 class attribute(xsc.Element):
 	"""
-	<p>The attribute tag defines an attribute for the nesting tag</p>
-	<p>An attribute definition is composed of:</p>
-	<ul>
-	<li>the attributes name (required)</li>
-	<li>if the attribute is required or optional (optional)</li>
-	<li>if the attributes value may be dynamically calculated at runtime by a
-	scriptlet expression (optional)</li>
-	</ul>
+	The attribute tag defines an attribute for the nesting tag. An attribute
+	definition is composed of:
+
+	*	the attributes name (required)
+
+	*	if the attribute is required or optional (optional)
+
+	*	if the attributes value may be dynamically calculated at runtime by a
+		scriptlet expression (optional)
 	"""
 	xmlns = xmlns
 	class Attrs(IdAttrs): pass
@@ -68,21 +69,22 @@ class attribute(xsc.Element):
 
 class bodycontent(xsc.Element):
 	"""
-	<p>Provides a hint as to the content of the body of this tag.
-	Primarily intended for use by page composition tools.</p>
+	Provides a hint as to the content of the body of this tag. Primarily
+	intended for use by page composition tools.
 
-	<p>There are currently three values specified:</p>
-	<ul>
-		<li><lit>tagdependent</lit>: The body of the tag is interpreted
-			by the tag implementation itself, and is most likely in a
-			different <z>language</z>, e.g embedded &sql; statements.
-		</li>
-		<li><lit>JSP</lit>: The body of the tag contains nested &jsp; syntax</li>
-		<li><lit>empty</lit>: The body must be empty</li>
-	</ul>
-	<p>The default (if not defined) is <lit>JSP</lit>.</p>
-	<p>Valid values: <lit>tagdependent</lit>, <lit>JSP</lit>,
-	<lit>empty</lit>.</p>
+	There are currently three values specified:
+
+	``tagdependent``
+		The body of the tag is interpreted by the tag implementation itself,
+		and is most likely in a different "language", e.g embedded SQL statements.
+
+	``JSP``
+		The body of the tag contains nested JSP syntax.
+
+		``empty``
+			The body must be empty.
+
+	The default (if not defined) is ``JSP``.
 	"""
 	xmlns = xmlns
 	class Attrs(IdAttrs): pass
@@ -90,7 +92,7 @@ class bodycontent(xsc.Element):
 
 class info(xsc.Element):
 	"""
-	<p>Defines an arbitrary text string describing the tag library.</p>
+	Defines an arbitrary text string describing the tag library.
 	"""
 	xmlns = xmlns
 	class Attrs(IdAttrs): pass
@@ -101,8 +103,8 @@ class info(xsc.Element):
 
 class jspversion(xsc.Element):
 	"""
-	<p>Describes the &jsp; version (number) this taglibrary requires in
-	order to function (dewey decimal). The default is <lit>1.1</lit>.</p>
+	Describes the JSP version (number) this taglibrary requires in order to
+	function (dewey decimal). The default is ``1.1``.
 	"""
 	xmlns = xmlns
 	class Attrs(IdAttrs): pass
@@ -110,7 +112,7 @@ class jspversion(xsc.Element):
 
 class name(xsc.Element):
 	"""
-	<p>Defines the canonical name of a tag or attribute being defined.</p>
+	Defines the canonical name of a tag or attribute being defined.
 	"""
 	xmlns = xmlns
 	class Attrs(IdAttrs): pass
@@ -118,9 +120,8 @@ class name(xsc.Element):
 
 class required(xsc.Element):
 	"""
-	<p>Defines if the nesting attribute is required or optional.</p>
-	<p>Valid values: <lit>true</lit>, <lit>false</lit>, <lit>yes</lit>,
-	<lit>no</lit>.</p>
+	Defines if the nesting attribute is required or optional. Valid value are
+	``true``, ``false``, ``yes`` and ``no``.
 	"""
 	xmlns = xmlns
 	class Attrs(IdAttrs): pass
@@ -128,12 +129,10 @@ class required(xsc.Element):
 
 class rtexprvalue(xsc.Element):
 	"""
-	<p>Defines if the nesting attribute can have scriptlet expressions as
-	a value, i.e the value of the attribute may be dynamically calculated
-	at request time, as opposed to a static value determined at translation
-	time.</p>
-	<p>Valid values: <lit>true</lit>, <lit>false</lit>, <lit>yes</lit>,
-	<lit>no</lit>.</p>
+	Defines if the nesting attribute can have scriptlet expressions as a value,
+	i.e the value of the attribute may be dynamically calculated at request
+	time, as opposed to a static value determined at translation time. Valid
+	value are ``true``, ``false``, ``yes`` and ``no``.
 	"""
 	xmlns = xmlns
 	class Attrs(IdAttrs): pass
@@ -141,8 +140,8 @@ class rtexprvalue(xsc.Element):
 
 class shortname(xsc.Element):
 	"""
-	<p>Defines a short (default) shortname to be used for tags and
-	variable names used/created by this tag library.</p>
+	Defines a short (default) shortname to be used for tags and variable names
+	used/created by this tag library.
 	"""
 	xmlns = xmlns
 	class Attrs(IdAttrs): pass
@@ -150,15 +149,19 @@ class shortname(xsc.Element):
 
 class tag(xsc.Element):
 	"""
-	<p>The tag defines a unique tag in this tag library, defining:</p>
-	<ul>
-		<li>the unique tag/element name</li>
-		<li>the subclass of <class>javax.servlet.jsp.tagext.Tag</class> implementation class</li>
-		<li>an optional subclass of <class>javax.servlet.jsp.tagext.TagExtraInfo</class></li>
-		<li>the body content type (hint)</li>
-		<li>optional tag-specific information</li>
-		<li>any attributes</li>
-	</ul>
+	The tag defines a unique tag in this tag library, defining:
+
+	*	the unique tag/element name
+
+	*	the subclass of :class:`javax.servlet.jsp.tagext.Tag` implementation class
+
+	*	an optional subclass of :class:`javax.servlet.jsp.tagext.TagExtraInfo`
+
+	*	the body content type (hint)
+
+	*	optional tag-specific information
+
+	*	any attributes
 	"""
 	xmlns = xmlns
 	class Attrs(IdAttrs): pass
@@ -189,9 +192,10 @@ class tag(xsc.Element):
 
 class tagclass(xsc.Element):
 	"""
-	<p>Defines the subclass of <class>javax.serlvet.jsp.tagext.Tag</class>
-	that implements the request time semantics for this tag.</p>
-	<p>The content has to be a fully qualified Java class name.</p>
+	Defines the subclass of :class:`javax.serlvet.jsp.tagext.Tag` that
+	implements the request time semantics for this tag.
+
+	The content has to be a fully qualified Java class name.
 	"""
 	xmlns = xmlns
 	class Attrs(IdAttrs): pass
@@ -199,20 +203,25 @@ class tagclass(xsc.Element):
 
 class taglib(xsc.Element):
 	"""
-	<p>The taglib tag is the document root, it defines:</p>
-	<ul>
-		<li><lit>tlibversion</lit>: The version of the tag library implementation</li>
-		<li><lit>jspversion</lit>: The version of JSP the tag library depends upon</li>
-		<li><lit>shortname</lit>: A simple default short name that could be used by
-					a &jsp; authoring tool to create names with a mnemonic
-					value; for example, the it may be used as the prefered
-					prefix value in taglib directives.
-		</li>
-		<li><lit>uri</lit>: A &url; uniquely identifying this taglib</li>
-		<li><lit>info</lit>: A simple string describing the <z>use</z> of
-				this taglib, should be user discernable
-		</li>
-	</ul>
+	The taglib tag is the document root, it defines:
+	
+	``tlibversion``
+		The version of the tag library implementation
+
+	``jspversion``
+		The version of JSP the tag library depends upon
+
+	``shortname``
+		A simple default short name that could be used by a JSP authoring tool
+		to create names with a mnemonic value; for example, the it may be used
+		as the prefered prefix value in taglib directives.
+
+	``uri``
+		A URL uniquely identifying this taglib
+
+	``info``
+		A simple string describing the "use" of this taglib, should be user
+		discernable.
 	"""
 	xmlns = xmlns
 	class Attrs(IdAttrs): pass
@@ -234,10 +243,9 @@ class taglib(xsc.Element):
 
 class teiclass(xsc.Element):
 	"""
-	<p>Defines the subclass of <class>javax.servlet.jsp.tagext.TagExtraInfo</class>
-	for this tag. If this is not given, the class is not consulted at
-	translation time.</p>
-	<p>The content has to be a fully qualified Java class name.</p>
+	Defines the subclass of :class:`javax.servlet.jsp.tagext.TagExtraInfo` for
+	this tag. If this is not given, the class is not consulted at translation
+	time. The content has to be a fully qualified Java class name.
 	"""
 	xmlns = xmlns
 	class Attrs(IdAttrs): pass
@@ -245,7 +253,7 @@ class teiclass(xsc.Element):
 
 class tlibversion(xsc.Element):
 	"""
-	<p>Describes this version (number) of the taglibrary (dewey decimal).</p>
+	Describes this version (number) of the taglibrary (dewey decimal).
 	"""
 	xmlns = xmlns
 	class Attrs(IdAttrs): pass
@@ -253,8 +261,8 @@ class tlibversion(xsc.Element):
 
 class uri(xsc.Element):
 	"""
-	<p>Defines a public URI that uniquely identifies this version of
-	the taglibrary. Leave it empty if it does not apply.</p>
+	Defines a public URI that uniquely identifies this version of the taglibrary.
+	Leave it empty if it does not apply.
 	"""
 	xmlns = xmlns
 	class Attrs(IdAttrs): pass

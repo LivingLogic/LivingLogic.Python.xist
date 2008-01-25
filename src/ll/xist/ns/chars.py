@@ -9,14 +9,14 @@
 
 
 """
-<p>An &xist; namespace that contains all the character entities defined in &html;.</p>
+An XIST namespace that contains all the character entities defined in HTML.
 """
 
 
 from ll.xist import xsc
 
 
-__docformat__ = "xist"
+__docformat__ = "reStructuredText"
 
 
 xmlns = "http://xmlns.livinglogic.de/xist/ns/chars"

@@ -10,15 +10,16 @@
 
 
 """
-This is a namespace module implementing
-<a href="http://www.w3.org/TR/SVG11/">&svg; 1.1</a>.
+This is a namespace module implementing `SVG 1.1`__.
+
+__ http://www.w3.org/TR/SVG11/
 """
 
 
 from ll.xist import xsc, sims
 
 
-__docformat__ = "xist"
+__docformat__ = "reStructuredText"
 
 
 xmlns = "http://www.w3.org/2000/svg"

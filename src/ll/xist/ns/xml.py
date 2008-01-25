@@ -9,15 +9,15 @@
 
 
 """
-<p>Contains the global attributes for the &xml; namespace (like <lit>xml:lang</lit>),
-and classes for the &xml; declaration.</p>
+Contains the global attributes for the XML namespace (like ``xml:lang``),
+and classes for the XML declaration.
 """
 
 
 from ll.xist import xsc, utils, sims
 
 
-__docformat__ = "xist"
+__docformat__ = "reStructuredText"
 
 
 xmlns = xsc.xml_xmlns
@@ -37,8 +37,8 @@ class Attrs(xsc.Attrs):
 
 class XML(xsc.ProcInst):
 	"""
-	&xml; declaration. The encoding will be automatically set when publishing
-	(by the &xml; codec).
+	XML declaration. The encoding will be automatically set when publishing
+	(by the XML codec).
 	"""
 	xmlname = "xml"
 
@@ -55,8 +55,8 @@ class XMLStyleSheet(xsc.ProcInst):
 
 class declaration(xsc.Element):
 	"""
-	<p>The &xml; declaration as an element. This makes it possible to generate
-	a declaration from within an &xml; file.
+	The XML declaration as an element. This makes it possible to generate a
+	declaration from within an XML file.
 	"""
 	xmlns = xmlns
 	model = sims.Empty()

@@ -9,14 +9,14 @@
 
 
 """
-<p>A module that allows you to embed PHP processing instructions.</p>
+A module that allows you to embed PHP processing instructions.
 """
 
 
 from ll.xist import xsc, sims
 
 
-__docformat__ = "xist"
+__docformat__ = "reStructuredText"
 
 
 xmlns = "http://www.php.net/"
@@ -24,8 +24,8 @@ xmlns = "http://www.php.net/"
 
 class php(xsc.ProcInst):
 	"""
-	<p>&php; processing instruction
-	(must be used with an explicit target php to work with &xml;)</p>
+	PHP processing instruction (must be used with an explicit target php to work
+	with XML)
 	"""
 
 

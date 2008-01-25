@@ -9,31 +9,26 @@
 
 
 """
-<p>This package contains all the modules that provide namespaces to
-to &xist;. For example the definition of &html; can be found in the
-module <pyref module="ll.xist.ns.html"><mod>xist.ns.html</mod></pyref>.</p>
+This package contains all the modules that provide namespaces to to XIST.
+For example the definition of HTML can be found in the module
+:mod:`ll.xist.ns.html`.
 
-<p>Some of these namespaces can be considered target namespaces (e.g.
-<pyref module="ll.xist.ns.html"><mod>html</mod></pyref>,
-<pyref module="ll.xist.ns.ihtml"><mod>ihtml</mod></pyref>,
-<pyref module="ll.xist.ns.wml"><mod>wml</mod></pyref> and
-<pyref module="ll.xist.ns.docbook"><mod>docbook</mod></pyref>). The element and
-entity classes in these namespaces don't implement a convert method, i.e. they inherit the
-<pyref module="ll.xist.xsc" class="Element" method="convert"><meth>convert</meth></pyref> method
-from <pyref module="ll.xist.xsc" class="Element"><class>Element</class></pyref>.</p>
+Some of these namespaces can be considered target namespaces (e.g.
+:mod:`ll.xist.ns.html`, :mod:`ll.xist.ns.ihtml`,:mod:`ll.xist.ns.wml` and
+:mod:`ll.xist.ns.docbook`). The element and entity classes in these namespaces
+don't implement a convert method, i.e. they inherit the :meth:`convert` method
+from :class:`ll.xist.xsc.Element.convert`.
 
-<p>Other namespace modules provide additional functionality through
-new element classes. Calling <pyref module="ll.xist.xsc" class="Node" method="convert"><meth>convert</meth></pyref>
-on these elements might convert them to one of these target namespaces
-(depending on the <lit>target</lit> attribute of the
-<pyref module="ll.xist.converters" class="Converter"><class>Converter</class></pyref> object
-passed around.) Some of these namespace modules completely ignore the target
-and convert to one fixed target namespace (<pyref module="ll.xist.ns.html"><mod>html</mod></pyref>
-in most cases).</p>
+Other namespace modules provide additional functionality through new element
+classes. Calling :meth:`ll.xist.xsc.Node.convert` on these elements might
+convert them to one of these target namespaces (depending on the :attr:`target`
+attribute of the :class:`ll.xist.converters.Converter` object passed around.)
+Some of these namespace modules completely ignore the target and convert to one
+fixed target namespace (:mod:`ll.xist.ns.html` in most cases).
 """
 
 
-__docformat__ = "xist"
+__docformat__ = "reStructuredText"
 
 
 __all__ = [
@@ -67,4 +62,3 @@ __all__ = [
 	"xlink",
 	"xml"
 ]
-

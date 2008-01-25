@@ -9,15 +9,16 @@
 
 
 """
-This module is an &xist; namespace for
-<a href="http://relaxng.org/">Relax NG</a> files.
+This module is an XIST namespace for `Relax NG`__ files.
+
+__ http://relaxng.org/
 """
 
 
 from ll.xist import xsc, sims
 
 
-__docformat__ = "xist"
+__docformat__ = "reStructuredText"
 
 
 xmlns = "http://relaxng.org/ns/structure/1.0"
@@ -25,7 +26,7 @@ xmlns = "http://relaxng.org/ns/structure/1.0"
 
 class base(xsc.Element):
 	"""
-	<z>Abstract</z> basis class, providing common attributes.
+	"Abstract" basis class, providing common attributes.
 	"""
 	register = False
 	
@@ -46,7 +47,7 @@ class anyName(base):
 
 class attribute(base):
 	"""
-	Specifies an &xml; attribute.
+	Specifies an XML attribute.
 	"""
 	xmlns = xmlns
 	# Restriction:
@@ -61,8 +62,9 @@ class attribute(base):
 
 class choice(base):
 	"""
-	nameclass: a name matches choice if, and only if, it matches at least one of the subname classes
-	pattern: it matches a node if, and only if, at least one of its subpatterns matches the node
+	nameclass: a name matches choice if, and only if, it matches at least one of
+	the subname classes. pattern: it matches a node if, and only if, at least
+	one of its subpatterns matches the node
 	"""
 	xmlns = xmlns
 
@@ -78,7 +80,8 @@ class data(base):
 
 class define(base):
 	"""
-	Defines a part of a grammar pattern (also a pattern), recursion possible only inside an element.
+	Defines a part of a grammar pattern (also a pattern), recursion possible
+	only inside an element.
 	"""
 	xmlns = xmlns
 	class Attrs(base.Attrs):
@@ -88,7 +91,8 @@ class define(base):
 
 class div(base):
 	"""
-	Allows logical divisions, no effect on validation, annotations can be made here
+	Allows logical divisions, no effect on validation, annotations can be made
+	here
 	"""
 	xmlns = xmlns
 	class Attrs(base.Attrs):
@@ -97,7 +101,7 @@ class div(base):
 
 class element_(base):
 	"""
-	Specifies an &xml; element.
+	Specifies an XML element.
 	"""
 	xmlns = xmlns
 	xmlname = "element"
@@ -117,9 +121,9 @@ class empty(base):
 
 class except_(base):
 	"""
-	An <class>except_</class> element can remove a name class from another
-	(this class has no attributes) (inside a <class>name</class> element) or
-	it is used to remove a set of values from a data pattern.
+	An :class:`except_` element can remove a name class from another (this class
+	has no attributes) (inside a :class:`name` element) or it is used to remove
+	a set of values from a data pattern.
 	"""
 	xmlns = xmlns
 	xmlname = "except"
@@ -137,12 +141,12 @@ class externalRef(base):
 
 class grammar(base):
 	"""
-	A <class>grammar</class> element has a single <class>start</class> child element,
-	and zero or more <class>define</class> child elements. The <class>start</class>
-	and <class>define</class> elements contain patterns. These patterns can
-	contain <class>ref</class> elements that refer to patterns defined by any of
-	the <class>define</class> elements in that grammar element. A <class>grammar</class>
-	pattern is matched by matching the pattern contained in the <class>start</class> element.
+	A :class:`grammar` element has a single :class:`start` child element, and
+	zero or more :class:`define` child elements. The :class:`start` and
+	:class:`define` elements contain patterns. These patterns can contain
+	:class:`ref` elements that refer to patterns defined by any of the
+	:class:`define` elements in that grammar element. A :class:`grammar` pattern
+	is matched by matching the pattern contained in the :class:`start` element.
 	"""
 	xmlns = xmlns
 
@@ -158,9 +162,9 @@ class group(base):
 
 class include(base):
 	"""
-	Includes an extern grammar pattern.
-	Can contain define parts to overwrite that part (same name) in the extern pattern.
-	A possible start element inside include overwrites the start element of the extern pattern.
+	Includes an extern grammar pattern. Can contain define parts to overwrite
+	that part (same name) in the extern pattern. A possible start element
+	inside include overwrites the start element of the extern pattern.
 	"""
 	xmlns = xmlns
 	class Attrs(base.Attrs):
@@ -184,8 +188,7 @@ class list(base):
 
 class mixed(base):
 	"""
-	<markup>&lt;mixed&gt; p &lt;/mixed&gt;</markup> is short for
-	<markup>&lt;interleave&gt; &lt;text/&gt; p &lt;/interleave&gt;</markup>
+	``<mixed> p </mixed>`` is short for ``<interleave> <text/> p </interleave>``
 	"""
 	xmlns = xmlns
 
@@ -232,7 +235,8 @@ class optional(base):
 
 class param(base):
 	"""
-	Specifies parameters passed to the datatype library to determine whether a value is valid per a datatype.
+	Specifies parameters passed to the datatype library to determine whether a
+	value is valid per a datatype.
 	"""
 	xmlns = xmlns
 	model = sims.NoElements()
@@ -242,7 +246,8 @@ class param(base):
 
 class parentRef(base):
 	"""
-	Escapes out of the current grammar and references a definition from the parent of the current grammar.
+	Escapes out of the current grammar and references a definition from the
+	parent of the current grammar.
 	"""
 	xmlns = xmlns
 	model = sims.Empty()
@@ -252,7 +257,8 @@ class parentRef(base):
 
 class ref(base):
 	"""
-	A <class>ref</class> pattern refers to a definition from the nearest grammar ancestor.
+	A :class:`ref` pattern refers to a definition from the nearest grammar
+	ancestor.
 	"""
 	xmlns = xmlns
 	model = sims.Empty()
@@ -262,7 +268,7 @@ class ref(base):
 
 class start(base):
 	"""
-	Required start tag inside a <class>grammar</class> tag.
+	Required start tag inside a :class:`grammar` tag.
 	"""
 	xmlns = xmlns
 	class Attrs(base.Attrs):
@@ -279,13 +285,13 @@ class text(base):
 
 class value(base):
 	"""
-	By default, the <class>value</class> pattern will consider the string in the pattern
-	to match the string in the document if the two strings are the same after
-	the whitespace in both strings is normalized. Whitespace normalization
+	By default, the :class:`value` pattern will consider the string in the
+	pattern to match the string in the document if the two strings are the same
+	after the whitespace in both strings is normalized. Whitespace normalization
 	strips leading and trailing whitespace characters, and collapses sequences
-	of one or more whitespace characters to a single space character.
-	This corresponds to the behaviour of an &xml; parser for an attribute
-	that is declared as other than CDATA.
+	of one or more whitespace characters to a single space character. This
+	corresponds to the behaviour of an XML parser for an attribute that is
+	declared as other than CDATA.
 	"""
 	xmlns = xmlns
 	model = sims.NoElements()

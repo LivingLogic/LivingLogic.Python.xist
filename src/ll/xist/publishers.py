@@ -9,8 +9,8 @@
 
 
 """
-<p>This module contains classes that may be used as publishing
-handlers in <pyref module="ll.xist.xsc" class="Node" method="publish"><meth>publish</meth></pyref>.</p>
+This module contains classes that may be used as publishing handlers in
+:meth:`ll.xist.xsc.None.publish`.
 """
 
 
@@ -22,12 +22,12 @@ from ll import xml_codec # registers the "xml" encoding
 import xsc, helpers
 
 
-__docformat__ = "xist"
+__docformat__ = "reStructuredText"
 
 
 def cssescapereplace(exc):
 	"""
-	PEP 293 codec callback that escapes unencodable character for CSS output.
+	:pep:`293` codec callback that escapes unencodable character for CSS output.
 	"""
 	if not isinstance(exc, UnicodeEncodeError):
 		raise TypeError("don't know how to handle %r" % exc)
@@ -37,57 +37,66 @@ codecs.register_error("cssescapereplace", cssescapereplace)
 
 class Publisher(object):
 	"""
-	A <class>Publisher</class> object is used for serializing an &xist; tree into
-	a byte sequence.
+	A :class:`Publisher` object is used for serializing an XIST tree into a byte
+	sequence.
 	"""
 
 	def __init__(self, encoding=None, xhtml=1, validate=True, prefixes={}, prefixdefault=False, hidexmlns=()):
 		"""
-		<p><arg>encoding</arg> specifies the encoding to be used for the byte sequence.
-		If <lit>None</lit> is used the encoding in the &xml; declaration will be
-		used. If there is none, UTF-8 will be used.</p>
+		Create a publisher. Arguments have the following meaning:
 
-		<p>With the parameter <arg>xhtml</arg> you can specify if you want &html; output:</p>
-		<dl>
-		<dt>&html; (<lit><arg>xhtml</arg>==0</lit>)</dt>
-		<dd>Elements with a empty content model will be published as
-		<markup>&lt;foo&gt;</markup>.</dd>
-		<dt>&html; browser compatible &xml; (<lit><arg>xhtml</arg>==1</lit>)</dt>
-		<dd>Elements with an empty content model will be published as <markup>&lt;foo /&gt;</markup>
-		and others that just happen to be empty as <markup>&lt;foo&gt;&lt;/foo&gt;</markup>. This
-		is the default.</dd>
-		<dt>Pure &xml; (<lit><arg>xhtml</arg>==2</lit>)</dt>
-		<dd>All empty elements will be published as <markup>&lt;foo/&gt;</markup>.</dd>
-		</dl>
+		:var:`encoding` : string or :const:`None`
+			Specifies the encoding to be used for the byte sequence. If
+			:const:`None` is used the encoding in the XML declaration will be used.
+			If there is none, UTF-8 will be used.
 
-		<p><arg>validate</arg> specifies whether validation should be done before
-		publishing.</p>
+		:var:`xhtml` : int
+			With the parameter :var:`xhtml` you can specify if you want HTML
+			output:
 
-		<p><arg>prefixes</arg> is a dictionary that specifies which namespace
-		prefixes should be used for publishing. Keys in the dictionary are either
-		namespace names or objects that have an <lit>xmlns</lit> attribute which
-		is the namespace name. Value can be:</p>
+			HTML (``xhtml==0``)
+				Elements with a empty content model will be published as ``<foo>``.
 
-		<dl>
-		<dt><lit>False</lit></dt>
-		<dd>Treat elements in this namespace as if they are not in any namespace
-		(if global attributes from this namespace are encountered, a prefix will
-		be used nonetheless).</dd>
-		<dt><lit>None</lit></dt>
-		<dd>Treat the namespace as the default namespaces (i.e. use unprefixed
-		element names). Global attributes will again result in a prefix.</dd>
-		<dt><lit>True</lit></dt>
-		<dd>The publisher uses a unique non-empty prefix for this namespace.</dd>
-		<dt>A string</dt>
-		<dd>Use this prefix for the namespace.</dd>
-		</dl>
+			HTML browser compatible XML (``xhtml==1``)
+				Elements with an empty content model will be published as ``<foo />``
+				and others that just happen to be empty as ``<foo></foo>``. This is
+				the default.
 
-		<p>If an element or attribute is encountered whose namespace is not in
-		<arg>prefixes</arg> <arg>prefixdefault</arg> is used as the fallback.</p>
+			Pure XML (``xhtml==2``)
+				All empty elements will be published as <foo/>.
 
-		<p><arg>hidexmlns</arg> can be a list or set that contains namespace names
-		for which no <lit>xmlns</lit> attributes should be published. (This can be
-		used to hide the namespace declarations for e.g. Java taglibs.)</p>
+		:var:`validate` : bool
+			Specifies whether validation should be done before publishing.
+
+		:var:`prefixes` : mapping
+			A dictionary that specifies which namespace prefixes should be used
+			for publishing. Keys in the dictionary are either namespace names or
+			objects that have an ``xmlns`` attribute which is the namespace name.
+			Value can be:
+
+			:const:`False`
+				Treat elements in this namespace as if they are not in any
+				namespace (if global attributes from this namespace are encountered,
+				a prefix willbe used nonetheless).
+
+			:const:`None`
+				Treat the namespace as the default namespaces (i.e. use unprefixed
+				element names). Global attributes will again result in a prefix.
+
+			:const:`True`
+				The publisher uses a unique non-empty prefix for this namespace.
+
+			A string
+				Use this prefix for the namespace.
+
+		:var:`prefixdefault` : string or :const:`None`
+			If an element or attribute is encountered whose namespace name is not
+			in :var:`prefixes` :var:`prefixdefault` is used as the fallback.
+
+		:var:`hidexmlns` : list or set
+			:var:`hidexmlns` can be a list or set that contains namespace names
+			for which no ``xmlns`` attributes should be published. (This can be
+			used to hide the namespace declarations for e.g. Java taglibs.)
 		"""
 		self.base = None
 		self.encoding = encoding
@@ -102,18 +111,18 @@ class Publisher(object):
 
 	def encode(self, text):
 		"""
-		Encode <arg>text</arg> with the encoding and error handling currently
+		Encode :var:`text` with the encoding and error handling currently
 		active and return the resulting byte string.
 		"""
 		return self.encoder.encode(text)
 
 	def encodetext(self, text):
 		"""
-		<p>Encode <arg>test</arg> as text data. <arg>text</arg> must
-		be a <class>unicode</class> object. The publisher will apply the configured
-		encoding, error handling and the current text filter (which escapes
-		characters that can't appear in text data (like <lit>&lt;</lit> etc.))
-		and return the resulting <class>str</class> object.
+		Encode :var:`test` as text data. :var:`text` must be a :class:`unicode`
+		object. The publisher will apply the configured encoding, error handling
+		and the current text filter (which escapes characters that can't appear
+		in text data (like ````` etc.)) and return the resulting :class:`str`
+		object.
 		"""
 		self.encoder.errors = self.__errors[-1]
 		result = self.encoder.encode(self.__textfilters[-1](text))
@@ -122,28 +131,28 @@ class Publisher(object):
 
 	def pushtextfilter(self, filter):
 		"""
-		<p>pushes a new text filter function on the text filter stack.
-		This function is responsible for escaping characters that can't appear
-		in text data (like <lit>&lt;</lit>)). This is used to switch on escaping
-		of <lit>"</lit> inside attribute values.</p>
+		Pushes a new text filter function on the text filter stack. This function
+		is responsible for escaping characters that can't appear in text data
+		(like ``<``)). This is used to switch on escaping of ``"`` inside
+		attribute values.
 		"""
 		self.__textfilters.append(filter)
 
 	def poptextfilter(self):
 		"""
-		<p>pops the current text filter function from the stack.</p>
+		Pops the current text filter function from the stack.
 		"""
 		self.__textfilters.pop()
 
 	def pusherrors(self, errors):
 		"""
-		<p>pushes a new error handling scheme onto the error handling stack.</p>
+		Pushes a new error handling scheme onto the error handling stack.
 		"""
 		self.__errors.append(errors)
 
 	def poperrors(self):
 		"""
-		<p>pop the current error handling scheme from the error handling stack.</p>
+		Pop the current error handling scheme from the error handling stack.
 		"""
 		self.__errors.pop()
 
@@ -176,8 +185,8 @@ class Publisher(object):
 
 	def getprefix(self, object):
 		"""
-		Can be used during publication by custom publish methods: Return the prefix
-		configured for object <arg>object</arg>.
+		Can be used during publication by custom publish methods: Return the
+		prefix configured for object :var:`object`.
 		"""
 		xmlns = getattr(object, "xmlns")
 		if xmlns is None:
@@ -215,8 +224,8 @@ class Publisher(object):
 
 	def publish(self, node, base=None):
 		"""
-		<p>publish the node <arg>node</arg>. This method is a generator that
-		will yield the resulting &xml; byte sequence in fragments.</p>
+		Publish the node :var:`node`. This method is a generator that will yield
+		the resulting XML byte sequence in fragments.
 		"""
 		self._ns2prefix.clear()
 		self._prefix2ns.clear()

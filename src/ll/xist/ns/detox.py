@@ -9,26 +9,24 @@
 
 
 '''
-<p>This module is an &xist; namespace. It provides a simple template language
-based on processing instructions embedded in &xml; or plain text.</p>
+This module is an XIST namespace. It provides a simple template language
+based on processing instructions embedded in XML or plain text.
 
-<p>The following example is a simple <z>Hello, World</z> type template:</p>
+The following example is a simple "Hello, World" type template::
 
-<prog><![CDATA[
-from ll.xist.ns import detox
+	from ll.xist.ns import detox
 
-template = """
-<?def helloworld(n=10)?>
-	<?for i in xrange(n)?>
-		Hello, World!
-	<?endfor?>
-<?enddef?>
-"""
+	template = """
+	<?def helloworld(n=10)?>
+		<?for i in xrange(n)?>
+			Hello, World!
+		<?end for?>
+	<?end def?>
+	"""
 
-module = detox.xml2mod(template)
+	module = detox.xml2mod(template)
 
-print "".join(module.helloworld())
-]]></prog>
+	print "".join(module.helloworld())
 '''
 
 
@@ -38,7 +36,7 @@ from ll import misc
 from ll.xist import xsc
 
 
-__docformat__ = "xist"
+__docformat__ = "reStructuredText"
 
 
 class expr(xsc.ProcInst):
@@ -57,35 +55,32 @@ class attrexpr(xsc.ProcInst):
 
 class code(xsc.ProcInst):
 	"""
-	<p>Embed the PI data literally in the generated code.</p>
+	Embed the PI data literally in the generated code.
 
-	<p>For example <lit>&lt;?code foo = 42?&gt;</lit> will put the
-	statement <lit>foo = 42</lit> into the generated Python source.</p>
+	For example ``<?code foo = 42?>`` will put the statement ``foo = 42`` into
+	the generated Python source.
 	"""
 
 
 class if_(xsc.ProcInst):
 	"""
-	<p>Starts an if block. An if block can contain zero or more
-	<pyref class="elif_"><class>elif_</class></pyref> blocks, followed by zero
-	or one <pyref class="else_"><class>else_</class></pyref> block and must
-	be closed with an <pyref class="endif"><class>endif</class></pyref> PI.</p>
+	Starts an if block. An if block can contain zero or more :class:`elif_`
+	blocks, followed by zero or one :class:`else_` block and must be closed
+	with an :class:`endif` PI.
 
-	<p>For example:</p>
+	For example::
 
-	<prog><![CDATA[
-	<?code import random?>
-	<?code n = random.choice("123?")?>
-	<?if n == "1"?>
-		One
-	<?elif n == "2"?>
-		Two
-	<?elif n == "3"?>
-		Three
-	<?else?>
-		Something else
-	<?end if?>
-	]]></prog>
+		<?code import random?>
+		<?code n = random.choice("123?")?>
+		<?if n == "1"?>
+			One
+		<?elif n == "2"?>
+			Two
+		<?elif n == "3"?>
+			Three
+		<?else?>
+			Something else
+		<?end if?>
 	"""
 	xmlname = "if"
 
@@ -106,104 +101,91 @@ class else_(xsc.ProcInst):
 
 class def_(xsc.ProcInst):
 	"""
-	<p>Start a function (or method) definition. A function definition must be
-	closed with an <pyref class="enddef"><class>enddef</class></pyref> PI.</p>
+	Start a function (or method) definition. A function definition must be
+	closed with an :class:`end` PI.
 
-	<p>Example:</p>
+	Example::
 
-	<prog><![CDATA[
-	<?def persontable(persons)?>
-		<table>
-			<tr>
-				<th>first name</th>
-				<th>last name</th>
-			</tr>
-			<?for person in persons?>
+		<?def persontable(persons)?>
+			<table>
 				<tr>
-					<td><?textexpr person.firstname?></td>
-					<td><?textexpr person.lastname?></td>
+					<th>first name</th>
+					<th>last name</th>
 				</tr>
-			<?end for?>
-		</table>
-	<?end def?>
-	]]></prog>
+				<?for person in persons?>
+					<tr>
+						<td><?textexpr person.firstname?></td>
+						<td><?textexpr person.lastname?></td>
+					</tr>
+				<?end for?>
+			</table>
+		<?end def?>
 
-	<p>If the generated function contains output (i.e. if there is text content
-	or <pyref class="expr"><class>expr</class></pyref>,
-	<pyref class="textexpr"><class>textexpr</class></pyref> or
-	<pyref class="attrexpr"><class>attrexpr</class></pyref> PIs before the matching
-	<pyref class="enddef"><class>enddef</class></pyref>) the generated function
-	will be a generator function.</p>
+	If the generated function contains output (i.e. if there is text content
+	or :class:`expr`, :class:`textexpr` or :class:`attrexpr` PIs before the
+	matching :class:`end`) the generated function will be a generator function.
 
-	<p>Output outside of a function definition will be ignored.</p>
+	Output outside of a function definition will be ignored.
 	"""
 	xmlname = "def"
 
 
 class class_(xsc.ProcInst):
 	"""
-	<p>Start a class definition. A class definition must be closed with an
-	<pyref class="endclass"><class>endclass</class></pyref> PI.</p>
+	Start a class definition. A class definition must be closed with an
+	:class:`end` PI.
 
-	<p>Example:</p>
-	<prog><![CDATA[
-	<?class mylist(list)?>
-		<?def output(self)?>
-			<ul>
-				<?for item in self?>
-					<li><?textexpr item?></li>
-				<?endfor?>
-			</ul>
-		<?end def?>
-	<?end class?>
-	]]></prog>
+	Example::
+
+		<?class mylist(list)?>
+			<?def output(self)?>
+				<ul>
+					<?for item in self?>
+						<li><?textexpr item?></li>
+					<?endfor?>
+				</ul>
+			<?end def?>
+		<?end class?>
 	"""
 	xmlname = "class"
 
 
 class for_(xsc.ProcInst):
 	"""
-	<p>Start a <lit>for</lit> loop. A for loop must be closed with an
-	<pyref class="endfor"><class>endfor</class></pyref> PI.</p>
+	Start a ``for`` loop. A for loop must be closed with an :class:`end` PI.
 
-	<p>For example:</p>
-	<prog><![CDATA[
-	<ul>
-		<?for i in xrange(10)?>
-			<li><?expr str(i)?></li>
-		<?end for?>
-	</ul>
-	]]></prog>
+	For example::
+
+		<ul>
+			<?for i in xrange(10)?>
+				<li><?expr str(i)?></li>
+			<?end for?>
+		</ul>
 	"""
 	xmlname = "for"
 
 
 class while_(xsc.ProcInst):
 	"""
-	<p>Start a <lit>while</lit> loop. A while loop must be closed with an
-	<pyref class="endwhile"><class>endwhile</class></pyref> PI.</p>
+	Start a ``while`` loop. A while loop must be closed with an :class:`end` PI.
 
-	<p>For example:</p>
-	<prog><![CDATA[
-	<?code i = 0?>
-	<ul>
-		<?while True?>
-			<li><?expr str(i)?><?code i += 1?></li>
-			<?code if i > 10: break?>
-		<?end while?>
-	</ul>
-	]]></prog>
+	For example::
+
+		<?code i = 0?>
+		<ul>
+			<?while True?>
+				<li><?expr str(i)?><?code i += 1?></li>
+				<?code if i > 10: break?>
+			<?end while?>
+		</ul>
 	"""
 	xmlname = "while"
 
 
 class end(xsc.ProcInst):
 	"""
-	<p>Ends a <pyref class="while_">while</pyref> or
-	<pyref class="for_">for</pyref> loop or a
-	<pyref class="if_">if</pyref>, <pyref class="def_">def</pyref> or
-	<pyref class="class_">class</pyref> block.
-	</p>
+	Ends a :class:`while_` or :class:`for` loop or a :class:`if_`, :class:`def_`
+	or :class:`class_` block.
 	"""
 
 

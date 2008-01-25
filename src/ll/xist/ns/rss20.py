@@ -16,7 +16,7 @@ This is a namespace module implementing RSS 2.0.
 from ll.xist import xsc, sims
 
 
-__docformat__ = "xist"
+__docformat__ = "reStructuredText"
 
 
 xmlns = "http://feedvalidator.org/docs/rss2.html" # Just a guess
@@ -36,39 +36,33 @@ class rss(xsc.Element):
 
 class channel(xsc.Element):
 	"""
-	Information about a particular channel. Everything pertaining to an individual
-	channel is contained within this tag.
+	Information about a particular channel. Everything pertaining to an
+	individual channel is contained within this tag.
 	"""
 	xmlns = xmlns
 
 
 class title(xsc.Element):
 	"""
-	The name of the <pyref class="channel"><class>channel</class></pyref>,
-	<pyref class="item"><class>item</class></pyref>,
-	<pyref class="image"><class>image</class></pyref> or
-	<pyref class="textInput"><class>textInput</class></pyref>.
+	The name of the :class:`channel`, :class:`item`, :class:`image` or
+	:class:`textInput`.
 	"""
 	xmlns = xmlns
 
 
 class link(xsc.Element):
 	"""
-	The &url;to the &html; website corresponding to the
-	<pyref class="channel"><class>channel</class></pyref>,
-	<pyref class="item"><class>item</class></pyref> or
-	<pyref class="image"><class>image</class></pyref>.
-	Inside <pyref class="textInput"><class>textInput</class></pyref> element it's
-	the &url; of the CGI script that processes text input requests.
+	The URLto the HTML website corresponding to the :class:`channel`,
+	:class:`item` or :class:`image`. Inside :class:`textInput` element it's
+	the URL of the CGI script that processes text input requests.
 	"""
 	xmlns = xmlns
 
 
 class description(xsc.Element):
 	"""
-	Phrase or sentence describing the <pyref class="channel"><class>channel</class></pyref>,
-	<pyref class="item"><class>item</class></pyref> or
-	<pyref class="textInput"><class>textInput</class></pyref>.
+	Phrase or sentence describing the :class:`channel`, :class:`item` or
+	:class:`textInput`.
 	"""
 	xmlns = xmlns
 
@@ -154,8 +148,9 @@ class cloud(xsc.Element):
 
 class ttl(xsc.Element):
 	"""
-	<class>ttl</class> stands for time to live. It's a number of minutes that
-	indicates how long a channel can be cached before refreshing from the source.
+	:class:`ttl` stands for time to live. It's a number of minutes that
+	indicates how long a channel can be cached before refreshing from the
+	source.
 	"""
 	xmlns = xmlns
 
@@ -176,8 +171,7 @@ class textInput(xsc.Element):
 
 class name(xsc.Element):
 	"""
-	The name of the text object in the 
-	<pyref class="textInput"><class>textInput</class></pyref> area.
+	The name of the text object in the  :class:`textInput` area.
 	"""
 	xmlns = xmlns
 
@@ -206,7 +200,7 @@ class day(xsc.Element):
 class hour(xsc.Element):
 	"""
 	Specifies an hour of the day. Should be an integer value between 0 and 23.
-	See <pyref class="skipHours"><class>skipHours</class></pyref>.
+	See :class:`skipHours`.
 	"""
 	xmlns = xmlns
 
@@ -234,25 +228,24 @@ class height(xsc.Element):
 
 class item(xsc.Element):
 	"""
-	An item that is associated with a <pyref class="channel"><class>channel</class></pyref>.
-	The item should represent a web-page, or subsection within a web page.
-	It should have a unique &url; associated with it. Each item must contain a
-	<pyref class="title"><class>title</class></pyref> or
-	<pyref class="description"><class>description</class></pyref>.
+	An item that is associated with a :class:`channel`. The item should
+	represent a web-page, or subsection within a web page. It should have a
+	unique URL associated with it. Each item must contain a :class:`title` or
+	:class:`description`.
 	"""
 	xmlns = xmlns
 
 
 class author(xsc.Element):
 	"""
-	Author of an <pyref class="item"><class>item</class></pyref>.
+	Author of an :class:`item`.
 	"""
 	xmlns = xmlns
 
 
 class comments(xsc.Element):
 	"""
-	&url; of a page for comments relating to the item.
+	URL of a page for comments relating to the item.
 	"""
 	xmlns = xmlns
 

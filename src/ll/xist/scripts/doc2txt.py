@@ -17,6 +17,9 @@ Usage: python doc2txt.py spam.xml spam.txt
 """
 
 
+__docformat__ = "reStructuredText"
+
+
 import sys, getopt
 
 from ll.xist import xsc, parsers, converters

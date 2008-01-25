@@ -14,7 +14,7 @@ import sys, optparse
 from ll.xist import xsc, xnd, sims
 
 
-__docformat__ = "xist"
+__docformat__ = "reStructuredText"
 
 
 def iterpath(node):
