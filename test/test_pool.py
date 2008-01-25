@@ -246,16 +246,14 @@ def test_chain():
 def test_chain2():
 	with xsc.Pool() as p1:
 		class foo1(xsc.Element):
-			xmlname = "foo"
 			xmlns = "nix"
 
 	with xsc.Pool() as p2:
 		class foo2(xsc.Element):
-			xmlname = "foo"
 			xmlns = "nix"
 
 	p = xsc.Pool(p1, p2)
-	assert r2.elementclass_xml("foo2", "nix") is foo2
+	assert p.elementclass_xml("foo2", "nix") is foo2
 
 
 def test_mixedattrnames():
