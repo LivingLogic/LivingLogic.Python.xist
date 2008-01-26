@@ -162,67 +162,6 @@ class ExpatParser(Parser):
 		self._parser.Parse(data, final)
 
 
-class LaxAttrs(xsc.Attrs):
-	@classmethod
-	def _allowedattrkey(cls, name, xmlns=None):
-		if xmlns is not None:
-			xmlns = xsc.nsname(xmlns)
-			try:
-				return (xsc.getpoolstack()[-1].attrname(name, xmlns), xmlns) # ask namespace about global attribute
-			except xsc.IllegalAttrError:
-				return (name, xmlns)
-		return name
-
-	@classmethod
-	def _allowedattrkey_xml(cls, name, xmlns=None):
-		if xmlns is not None:
-			xmlns = xsc.nsname(xmlns)
-			try:
-				return (xsc.getpoolstack()[-1].attrname_xml(name, xmlns), xmlns) # ask namespace about global attribute
-			except xsc.IllegalAttrError:
-				return (name, xmlns)
-		return name
-
-	def set(self, name, xmlns=None, value=None):
-		attr = self.allowedattr(name, xmlns)(value)()
-		attr.xmlname = name
-		dict.__setitem__(self, self._allowedattrkey(name, xmlns), attr) # put the attribute in our dict
-		return attr
-
-	def set_xml(self, name, xmlns=None, value=None):
-		attr = self.allowedattr_xml(name, xmlns)(value)()
-		attr.xmlname = name
-		dict.__setitem__(self, self._allowedattrkey_xml(name, xmlns), attr) # put the attribute in our dict
-		return attr
-
-	@classmethod
-	def allowedattr(cls, name, xmlns):
-		if xmlns is not None:
-			xmlns = xsc.nsname(xmlns)
-			try:
-				return xsc.getpoolstack()[-1].attrclass(name, xmlns) # return global attribute
-			except xsc.IllegalAttrError:
-				return xsc.TextAttr
-		else:
-			return xsc.TextAttr
-
-	@classmethod
-	def allowedattr(cls, name, xmlns, xml=False):
-		if xmlns is not None:
-			xmlns = xsc.nsname(xmlns)
-			try:
-				return xsc.getpoolstack()[-1].attrclass_xml(name, xmlns) # return global attribute
-			except xsc.IllegalAttrError:
-				return xsc.TextAttr
-		else:
-			return xsc.TextAttr
-
-
-class LaxElement(xsc.Element):
-	register = None
-	Attrs = LaxAttrs
-
-
 class Builder(object):
 	"""
 	It is the job of a :class:`Builder` to create the object tree from the
