@@ -29,7 +29,6 @@ else:
 	class mod(nodes.literal):
 		pass
 
-	# FIXME: Do the right thing
 	roles.register_generic_role("mod", mod)
 	en.roles["mod"] = "mod"
 
