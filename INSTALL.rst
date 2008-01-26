@@ -5,8 +5,6 @@ To use XIST you need the following software packages:
 
 	1.	`Python 2.5`_;
 
-	2.	`ll-core`_ (version 1.11 or newer);
-
 	3.	`Python Imaging Library`_;
 
 	4.	`libxml2`_ and its Python wrapper (if you want to parse "broken" HTML);
@@ -18,11 +16,10 @@ To use XIST you need the following software packages:
 
 	7.	`py.test`_ (if you want to run the test suite)
 
-	8.	and a C compiler supported by distutils, if you want to install the source
-		distribution.
+	8.	and a C compiler supported by distutils, if you want to install the
+		source distribution.
 
 	.. _Python 2.5: http://www.python.org/
-	.. _ll-core: http://www.livinglogic.de/Python/core
 	.. _Python Imaging Library: http://www.pythonware.com/products/pil/
 	.. _libxml2: http://www.xmlsoft.org/
 	.. _elinks: http://elinks.or.cz/
@@ -47,13 +44,10 @@ following command::
 __ http://www.livinglogic.de/xist/Download.html
 
 This will copy ``*.py`` files, compile ``*.c`` files and install everything in
-the ``site-packages`` directory as the :mod:`ll.xist` package.
+the ``site-packages`` directory as the :mod:`ll` AND :mod:`ll.xist` package.
 
-<p>For Windows a binary distribution is provided. To install it,
+For Windows a binary distribution is provided. To install it,
 double click it, and follow the instructions.
-
-If you have difficulties installing this software, send a problem report
-to Walter Dörwald (walter@livinglogic.de).
 
 
 Character encoding
