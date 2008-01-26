@@ -14,7 +14,7 @@ This module contains entities for many abbreviations and acronyms.
 
 
 from ll.xist import xsc
-import doc
+from ll.xist.ns import doc
 
 
 __docformat__ = "reStructuredText"
