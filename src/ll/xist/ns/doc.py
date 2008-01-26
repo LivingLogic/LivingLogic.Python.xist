@@ -20,7 +20,7 @@ import sys, types, inspect, textwrap, warnings, operator
 
 import ll
 from ll.xist import xsc, parsers, sims, xfind
-from ll.xist.ns import html, docbook, fo, specials, xml, abbr as abbr_
+from ll.xist.ns import html, docbook, fo, specials, xml
 
 
 __docformat__ = "reStructuredText"
