@@ -1034,10 +1034,8 @@ class Node(object):
 		return self
 
 	def _decoratenode(self, node):
-		"""
-		Decorate the :class:`Node` :var:`node` with the same location information
-		as ``self``.
-		"""
+		# Decorate the :class:`Node` :var:`node` with the same location
+		# information as ``self``.
 
 		node.startloc = self.startloc
 		node.endloc = self.endloc
