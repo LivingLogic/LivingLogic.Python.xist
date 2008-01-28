@@ -13,7 +13,7 @@ import py.test
 from ll.xist import xsc
 from ll.xist.ns import html, xml
 
-import common
+import xist_common as common
 
 
 def test_walk_coverage():

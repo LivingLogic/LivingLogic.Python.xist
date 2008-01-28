@@ -52,24 +52,26 @@ def getdoc(thing, format):
 
 	text = "\n".join(lines)
 
-	if format.lower() == "plaintext":
+	if inspect.ismethod(thing):
+		base = "METHOD-DOCSTRING(%s.%s.%s)" % (_getmodulename(thing), thing.im_class.__name__, thing.__name__)
+	elif isinstance(thing, property):
+		base = "PROPERTY-DOCSTRING(%s.%s)" % (_getmodulename(thing), "unknown")
+	elif inspect.isfunction(thing):
+		base = "FUNCTION-DOCSTRING(%s.%s)" % (_getmodulename(thing), thing.__name__)
+	elif inspect.isclass(thing):
+		base = "CLASS-DOCSTRING(%s.%s)" % (_getmodulename(thing), thing.__name__)
+	elif inspect.ismodule(thing):
+		base = "MODULE-DOCSTRING(%s)" % _getmodulename(thing)
+	else:
+		base = "DOCSTRING"
+
+	lformat = format.lower()
+	if lformat == "plaintext":
 		return xsc.Text(text)
-	elif format.lower() == "restructuredtext":
+	elif lformat == "restructuredtext":
 		from ll.xist.ns import rest
-		return rest.fromstring(text).conv()
-	elif format.lower() == "xist":
-		if inspect.ismethod(thing):
-			base = "METHOD-DOCSTRING(%s.%s.%s)" % (_getmodulename(thing), thing.im_class.__name__, thing.__name__)
-		elif isinstance(thing, property):
-			base = "PROPERTY-DOCSTRING(%s.%s)" % (_getmodulename(thing), "unknown")
-		elif inspect.isfunction(thing):
-			base = "FUNCTION-DOCSTRING(%s.%s)" % (_getmodulename(thing), thing.__name__)
-		elif inspect.isclass(thing):
-			base = "CLASS-DOCSTRING(%s.%s)" % (_getmodulename(thing), thing.__name__)
-		elif inspect.ismodule(thing):
-			base = "MODULE-DOCSTRING(%s)" % _getmodulename(thing)
-		else:
-			base = "DOCSTRING"
+		return rest.fromstring(text, base=base)
+	elif lformat == "xist":
 		node = parsers.parsestring(text, base=base, prefixes=xsc.docprefixes())
 		if not node[p]: # optimization: one paragraph docstrings don't need a <p> element.
 			node = p(node)

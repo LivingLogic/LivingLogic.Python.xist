@@ -1,8 +1,9 @@
-#! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
 ## Copyright 1999-2008 by LivingLogic AG, Bayreuth/Germany
 ## Copyright 1999-2008 by Walter Dörwald
+##
+## All Rights Reserved
 ##
 ## Permission is hereby granted, free of charge, to any person obtaining a copy
 ## of this software and associated documentation files (the "Software"), to deal
@@ -27,4 +28,3 @@ try:
 	__import__("pkg_resources").declare_namespace(__name__)
 except Exception:
 	pass
-

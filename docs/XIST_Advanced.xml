@@ -85,7 +85,7 @@ classes in existing namespaces. For example to replace the <class>a</class>
 class in <mod>ll.xist.ns.html</mod>, put the following into a module
 <mod>html2</mod>:</p>
 
-<example><h>Automatic pool chaining (<filename>html2.py</filename>)</h>
+<example><h>Automatic pool chaining (<file>html2.py</file>)</h>
 <prog>
 from ll.xist.ns import html
 

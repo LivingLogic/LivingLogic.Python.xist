@@ -41,7 +41,8 @@ class rb(xsc.Element):
 
 class rbc(xsc.Element):
 	"""
-	The :class:`rbc` (<z>ruby base component</z>) element is the container for <pyref class="rb">:class:`rb`</pyref> elements.
+	The :class:`rbc` (ruby base component) element is the container for
+	:class:`rb` elements.
 	"""
 	xmlns = xmlns
 	model = sims.Elements(rb)

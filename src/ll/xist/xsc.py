@@ -733,7 +733,7 @@ class Node(object):
 
 	def clone(self):
 		"""
-		return a clone of ``self``. Compared to :meth:`deepcopy` :meth:`clone`
+		return a clone of :var:`self`. Compared to :meth:`deepcopy` :meth:`clone`
 		will create multiple instances of objects that can be found in the tree
 		more than once. :meth:`clone` can't clone trees that contain cycles.
 		"""
@@ -741,7 +741,7 @@ class Node(object):
 
 	def copy(self):
 		"""
-		Return a shallow copy of ``self``.
+		Return a shallow copy of :var:`self`.
 		"""
 		return self.__copy__()
 
@@ -750,7 +750,7 @@ class Node(object):
 
 	def deepcopy(self):
 		"""
-		Return a deep copy of ``self``.
+		Return a deep copy of :var:`self`.
 		"""
 		return self.__deepcopy__()
 
@@ -772,7 +772,7 @@ class Node(object):
 		"""
 		Convenience method for calling :meth:`convert`.
 
-		:meth:`conv` will automatically set ``:var:`converter`.node`` to ``self``
+		:meth:`conv` will automatically set ``:var:`converter`.node`` to :var:`self`
 		to remember the "document root node" for which :meth:`conv` has been
 		called, this means that you should not call :meth:`conv` in any of the
 		recursive calls, as you would loose this information. Call :meth:`convert`
@@ -795,13 +795,13 @@ class Node(object):
 		conversion.
 
 		This method must return an instance of :class:`Node`. It may *not* change
-		``self``.
+		:var:`self`.
 		"""
 
 	@misc.notimplemented
 	def __unicode__(self):
 		"""
-		Return the character content of ``self`` as a unicode string. This means
+		Return the character content of :var:`self` as a unicode string. This means
 		that comments and processing instructions will be filtered out. For
 		elements you'll get the element content.
 
@@ -812,29 +812,29 @@ class Node(object):
 
 	def __str__(self):
 		"""
-		Return the character content of ``self`` as a string (if possible, i.e.
+		Return the character content of :var:`self` as a string (if possible, i.e.
 		there are no characters that are unencodable in the default encoding).
 		"""
 		return str(unicode(self))
 
 	def __int__(self):
 		"""
-		Convert the character content of ``self`` to an :class:`int`.
+		Convert the character content of :var:`self` to an :class:`int`.
 		"""
 		return int(unicode(self))
 
 	def __long__(self):
 		"""
-		Convert the character content of ``self`` to an :class:`long`.
+		Convert the character content of :var:`self` to an :class:`long`.
 		"""
 		return long(unicode(self))
 
 	def asFloat(self, decimal=".", ignore=""):
 		"""
-		Convert the character content of ``self`` to an :class:`float`.
+		Convert the character content of :var:`self` to an :class:`float`.
 		:var:`decimal` specifies which decimal separator is used in the value
 		(e.g. ``"."`` (the default) or ``","``). :var:`ignore` specifies which
-		characters will be ignored.</p>
+		characters will be ignored.
 		"""
 		s = unicode(self)
 		for c in ignore:
@@ -845,27 +845,27 @@ class Node(object):
 
 	def __float__(self):
 		"""
-		Convert the character content of ``self`` to an :class:`float`.
+		Convert the character content of :var:`self` to an :class:`float`.
 		"""
 		return self.asFloat()
 
 	def __complex__(self):
 		"""
-		Convert the character content of ``self`` to an :class:`complex`.
+		Convert the character content of :var:`self` to an :class:`complex`.
 		"""
 		return complex(unicode(self))
 
 	def parsed(self, parser, start=None):
 		"""
 		This method will be called by the parser :var:`parser` once after
-		``self`` is created by the parser and must return the node that is to be
-		put into the tree (in most cases this is ``self``, it's used e.g. by
-		:class:`URLAttr` to incorporate the base URL into the attribute.
+		:var:`self` is created by the parser and must return the node that is to
+		be put into the tree (in most cases this is :var:`self`, it's used e.g.
+		by :class:`URLAttr` to incorporate the base URL into the attribute.
 
 		For elements :func:`parsed` will be called twice: Once at the beginning
 		(i.e. before the content is parsed) with :var:`start` being :const:`True`
 		and once at the end after parsing of the content is finished with
-		``:var:`start` being :const:`False`. For the second call the return value
+		:var:`start` being :const:`False`. For the second call the return value
 		will be ignored.
 		"""
 		return self
@@ -873,9 +873,9 @@ class Node(object):
 	def checkvalid(self):
 		"""
 		This method will be called when parsing or publishing to check whether
-		``self`` is valid.
+		:var`self` is valid.
 
-		If ``self`` is found to be invalid a warning should be issued through
+		If :var:`self` is found to be invalid a warning should be issued through
 		the Python warning framework.
 		"""
 
@@ -902,7 +902,7 @@ class Node(object):
 
 	def bytes(self, base=None, publisher=None, **publishargs):
 		"""
-		Return ``self`` as a serialized byte string.
+		Return :var:`self` as a serialized byte string.
 
 		For the possible parameters see the :class:`ll.xist.publishers.Publisher`
 		constructor.
@@ -911,7 +911,7 @@ class Node(object):
 
 	def iterstring(self, base=None, publisher=None, **publishargs):
 		"""
-		A generator that will produce a serialized byte string of ``self``.
+		A generator that will produce a serialized byte string of :var:`self`.
 
 		For the possible parameters see the :class:`ll.xist.publishers.Publisher`
 		constructor.
@@ -929,7 +929,7 @@ class Node(object):
 
 	def string(self, base=None, publisher=None, **publishargs):
 		"""
-		Return a serialized unicode string for ``self``.
+		Return a serialized unicode string for :var:`self`.
 
 		For the possible parameters see the :class:`ll.xist.publishers.Publisher`
 		constructor.
@@ -942,7 +942,7 @@ class Node(object):
 
 	def write(self, stream, *args, **publishargs):
 		"""
-		Write ``self`` to the file-like object :var:`stream` (which must provide
+		Write :var:`self` to the file-like object :var:`stream` (which must provide
 		a :meth:`write` method).
 
 		For the rest of the parameters see the :class:`ll.xist.publishers.Publisher`
@@ -961,7 +961,7 @@ class Node(object):
 
 	def walk(self, walkfilter=(True, entercontent)):
 		"""
-		Return an iterator for traversing the tree rooted at ``self``.
+		Return an iterator for traversing the tree rooted at :var:`self`.
 
 		:var:`walkfilter` is used for specifying whether or not a node should be
 		yielded and when the children of this node should be traversed. If
@@ -1027,7 +1027,7 @@ class Node(object):
 
 	def compact(self):
 		"""
-		Return a version of ``self``, where textnodes or character references
+		Return a version of :var:`self`, where textnodes or character references
 		that contain only linefeeds are removed, i.e. potentially needless
 		whitespace is removed.
 		"""
@@ -1035,7 +1035,7 @@ class Node(object):
 
 	def _decoratenode(self, node):
 		# Decorate the :class:`Node` :var:`node` with the same location
-		# information as ``self``.
+		# information as :var:`self`.
 
 		node.startloc = self.startloc
 		node.endloc = self.endloc
@@ -1046,7 +1046,7 @@ class Node(object):
 		Return the node mapped through the function :var:`function`. This call
 		works recursively (for :class:`Frag` and :class:`Element`).
 
-		When you want an unmodified node you simply can return ``self``.
+		When you want an unmodified node you simply can return :var:`self`.
 		:meth:`mapped` will make a copy of it and fill the content recursively.
 		Note that element attributes will not be mapped. When you return a
 		different node from :func:`function` this node will be incorporated
@@ -1060,7 +1060,7 @@ class Node(object):
 
 	def normalized(self):
 		"""
-		Return a normalized version of ``self``, which means that consecutive
+		Return a normalized version of :var:`self`, which means that consecutive
 		:class:`Text` nodes are merged.
 		"""
 		return self
@@ -1081,7 +1081,7 @@ class Node(object):
 
 	def pretty(self, level=0, indent="\t"):
 		"""
-		Return a prettyfied version of ``self``, i.e. one with properly nested
+		Return a prettyfied version of :var:`self`, i.e. one with properly nested
 		and indented tags (as far as possible). If an element has mixed content
 		(i.e. :class:`Text` and non-:class:`Text` nodes) the content will be
 		returned as is.
@@ -1412,7 +1412,7 @@ class Frag(Node, list):
 
 	def _create(self):
 		"""
-		internal helper that is used to create an empty clone of ``self``.
+		internal helper that is used to create an empty clone of :var:`self`.
 		"""
 		# This is overwritten by :class:`Attr` to insure that attributes don't
 		# get initialized with the default value when used in various methods
@@ -1421,7 +1421,7 @@ class Frag(Node, list):
 
 	def clear(self):
 		"""
-		Make ``self`` empty.
+		Make :var:`self` empty.
 		"""
 		del self[:]
 
@@ -1475,7 +1475,7 @@ class Frag(Node, list):
 		"""
 		Return the :var:`index`'th node for the content of the fragment. If
 		:var:`index` is a list :meth:`__getitem__` will work recursively.
-		If :var:`index` is an empty list, ``self`` will be returned.
+		If :var:`index` is an empty list, :var:`self` will be returned.
 		:meth:`__getitem__` also supports walk filters.
 		"""
 		if isinstance(index, list):
@@ -1541,7 +1541,7 @@ class Frag(Node, list):
 		of :var:`index` recursively. If :var:`index` is an empty list, an
 		exception will be raised. Anything except :class:`list`, :class:`int` and
 		:class:`slice` objects will be turned into a walk filter and any child
-		node matching this filter will be deleted from ``self``.
+		node matching this filter will be deleted from :var:`self`.
 		"""
 		if isinstance(index, list):
 			if not index:
@@ -1574,7 +1574,7 @@ class Frag(Node, list):
 
 	def __mul__(self, factor):
 		"""
-		Return a :class:`Frag` with :var:`factor` times the content of ``self``.
+		Return a :class:`Frag` with :var:`factor` times the content of :var:`self`.
 		Note that no copies of the content will be generated, so this is a
 		"shallow :meth:`__mul__`".
 		"""
@@ -1592,7 +1592,7 @@ class Frag(Node, list):
 
 	def append(self, *others):
 		"""
-		Append every item in :var:`others` to ``self``.
+		Append every item in :var:`others` to :var:`self`.
 		"""
 		for other in others:
 			other = tonode(other)
@@ -1603,7 +1603,7 @@ class Frag(Node, list):
 
 	def extend(self, items):
 		"""
-		Append all items from the sequence :var:`items` to ``self``.
+		Append all items from the sequence :var:`items` to :var:`self`.
 		"""
 		self.append(items)
 
@@ -1634,8 +1634,8 @@ class Frag(Node, list):
 
 	def withsep(self, separator, clone=False):
 		"""
-		Return a version of ``self`` with a separator node between the nodes of
-		``self``.
+		Return a version of :var:`self` with a separator node between the nodes of
+		:var:`self`.
 
 		if :var:`clone` is false one node will be inserted several times, if
 		:var:`clone` is true, clones of this node will be used.
@@ -1652,7 +1652,7 @@ class Frag(Node, list):
 
 	def sorted(self, cmp=None, key=None, reverse=False):
 		"""
-		Return a sorted version of the ``self``. :var:`cmp`, :var:`key` and
+		Return a sorted version of the :var:`self`. :var:`cmp`, :var:`key` and
 		:var:`reverse` have to same meaning as for the builtin function
 		:func:`sorted`.
 		"""
@@ -1660,7 +1660,7 @@ class Frag(Node, list):
 
 	def reversed(self):
 		"""
-		Return a reversed version of the ``self``.
+		Return a reversed version of the :var:`self`.
 		"""
 		node = list(self)
 		node.reverse()
@@ -1668,7 +1668,7 @@ class Frag(Node, list):
 
 	def filtered(self, function):
 		"""
-		Return a filtered version of the ``self``, i.e. a copy of ``self``,
+		Return a filtered version of the :var:`self`, i.e. a copy of :var:`self`,
 		where only content nodes for which :func:`function` returns true will
 		be copied.
 		"""
@@ -1678,7 +1678,7 @@ class Frag(Node, list):
 
 	def shuffled(self):
 		"""
-		Return a shuffled version of ``self``, i.e. a copy of ``self`` where the
+		Return a shuffled version of :var:`self`, i.e. a copy of :var:`self` where the
 		content nodes are randomly reshuffled.
 		"""
 		content = list(self)
@@ -1869,7 +1869,7 @@ class Null(CharacterData):
 		return u""
 
 	def __repr__(self):
-		return "<null>"
+		return "ll.xist.xsc.Null"
 
 
 Null = Null() # Singleton, the Python way
@@ -1932,7 +1932,7 @@ class Attr(Frag):
 
 	def isfancy(self):
 		"""
-		Return whether ``self`` contains nodes other than :class:`Text`.
+		Return whether :var:`self` contains nodes other than :class:`Text`.
 		"""
 		for child in self:
 			if not isinstance(child, Text):
@@ -1948,11 +1948,11 @@ class Attr(Frag):
 
 	def checkvalid(self):
 		"""
-		Check whether ``self`` has an allowed value, i.e. one that is specified
+		Check whether :var:`self` has an allowed value, i.e. one that is specified
 		in the class attribute ``values``. If the value is not allowed a warning
 		will be issued through the Python warning framework.
 
-		If ``self`` is "fancy" (i.e. contains non-:class:`Text` nodes), no check
+		If :var:`self` is "fancy" (i.e. contains non-:class:`Text` nodes), no check
 		will be done.
 		"""
 		values = self.__class__.values
@@ -2136,7 +2136,7 @@ class URLAttr(Attr):
 
 	def asURL(self):
 		"""
-		Return ``self`` as a :class:`URL` object (note that non-:class:`Text`
+		Return :var:`self` as a :class:`URL` object (note that non-:class:`Text`
 		content will be filtered out).
 		"""
 		return url_.URL(Attr.__unicode__(self))
@@ -2144,7 +2144,7 @@ class URLAttr(Attr):
 	def forInput(self, root=None):
 		"""
 		return a :class:`URL` pointing to the real location of the referenced
-		resource. :var:`root` must be the root URL relative to which ``self``
+		resource. :var:`root` must be the root URL relative to which :var:`self`
 		will be interpreted and usually comes from the ``root`` attribute of the
 		:var:`converter` argument in :meth:`convert`.
 		"""
@@ -2407,7 +2407,7 @@ class Attrs(Node, dict):
 
 	def has(self, name):
 		"""
-		Return whether ``self`` has an attribute with a Python name :var:`name`.
+		Return whether :var:`self` has an attribute with a Python name :var:`name`.
 		:var:`name` may also be an attribute class (either from ``self.Attrs``
 		or a global attribute).
 		"""
@@ -2434,7 +2434,7 @@ class Attrs(Node, dict):
 	def get(self, name, default=None):
 		"""
 		works like the dictionary method :meth:`get`, it returns the attribute
-		with the Python name :var:`name`, or :var:`default` if ``self`` has no
+		with the Python name :var:`name`, or :var:`default` if :var:`self` has no
 		such attribute. :var:`name` may also be an attribute class (either from
 		``self.Attrs`` or a global attribute).
 		"""
@@ -2477,7 +2477,7 @@ class Attrs(Node, dict):
 	def setdefault(self, name, default):
 		"""
 		Works like the dictionary method :meth:`setdefault`, it returns the
-		attribute with the Python name :var:`name`. If ``self`` has no such
+		attribute with the Python name :var:`name`. If :var:`self` has no such
 		attribute, it will be set to :var:`default` and :var:`default` will be
 		returned as the new attribute value.
 		"""
@@ -2612,7 +2612,7 @@ class Attrs(Node, dict):
 
 	def filtered(self, function):
 		"""
-		Return a filtered version of the ``self``.
+		Return a filtered version of the :var:`self`.
 		"""
 		node = self._create()
 		for (name, value) in self.items():
@@ -2644,7 +2644,7 @@ class Attrs(Node, dict):
 
 	def withnames(self, *names):
 		"""
-		Return a copy of ``self`` where only the attributes with Python names
+		Return a copy of :var:`self` where only the attributes with Python names
 		in :var:`names` are kept, all others are removed.
 		"""
 		def isok(node):
@@ -2655,7 +2655,7 @@ class Attrs(Node, dict):
 
 	def withnames_xml(self, *names):
 		"""
-		Return a copy of ``self`` where only the attributes with XML names
+		Return a copy of :var:`self` where only the attributes with XML names
 		in :var:`names` are kept, all others are removed.
 		"""
 		def isok(node):
@@ -2666,7 +2666,7 @@ class Attrs(Node, dict):
 
 	def withoutnames(self, *names):
 		"""
-		Return a copy of ``self`` where all the attributes with Python names
+		Return a copy of :var:`self` where all the attributes with Python names
 		in :var:`names` are removed.
 		"""
 		def isok(node):
@@ -2677,7 +2677,7 @@ class Attrs(Node, dict):
 
 	def withoutnames_xml(self, *names):
 		"""
-		Return a copy of ``self`` where all the attributes with XML names
+		Return a copy of :var:`self` where all the attributes with XML names
 		in :var:`names` are removed.
 		"""
 		def isok(node):
@@ -3108,8 +3108,8 @@ class Element(Node):
 
 	def withsep(self, separator, clone=False):
 		"""
-		Return a version of ``self`` with a separator node between the child
-		nodes of ``self``. For more info see :meth:`Frag.withsep`.
+		Return a version of :var:`self` with a separator node between the child
+		nodes of :var:`self`. For more info see :meth:`Frag.withsep`.
 		"""
 		node = self.__class__()
 		node.attrs = self.attrs.clone()
@@ -3118,7 +3118,7 @@ class Element(Node):
 
 	def sorted(self, cmp=None, key=None, reverse=False):
 		"""
-		Return a sorted version of ``self``. :var:`compare` is a comparison
+		Return a sorted version of :var:`self`. :var:`compare` is a comparison
 		function. The arguments :var:`cmp`, :var:`key` and :var:`reverse` have
 		the same meaning as fot the builtin :func:`sorted` function.
 		"""
@@ -3129,7 +3129,7 @@ class Element(Node):
 
 	def reversed(self):
 		"""
-		Return a reversed version of ``self``.
+		Return a reversed version of :var:`self`.
 		"""
 		node = self.__class__()
 		node.attrs = self.attrs.clone()
@@ -3138,7 +3138,7 @@ class Element(Node):
 
 	def filtered(self, function):
 		"""
-		Return a filtered version of the ``self``.
+		Return a filtered version of the :var:`self`.
 		"""
 		node = self.__class__()
 		node.attrs = self.attrs.clone()
@@ -3147,7 +3147,7 @@ class Element(Node):
 
 	def shuffled(self):
 		"""
-		Return a shuffled version of the ``self``.
+		Return a shuffled version of the :var:`self`.
 		"""
 		node = self.__class__()
 		node.attrs = self.attrs.clone()
@@ -3505,14 +3505,14 @@ class Pool(misc.Pool):
 
 	def haselement(self, name, xmlns):
 		"""
-		Is there a registered element class in ``self`` for the element type
+		Is there a registered element class in :var:`self` for the element type
 		with the Python name :var:`name` and the namespace :var:`xmlns`?
 		"""
 		return (name, nsname(xmlns)) in self._elementsbypyname or any(base.haselement(name, xmlns) for base in self.bases)
 
 	def haselement_xml(self, name, xmlns):
 		"""
-		Is there a registered element class in ``self`` for the element type
+		Is there a registered element class in :var:`self` for the element type
 		with the XML name :var:`name` and the namespace :var:`xmlns`?
 		"""
 		return (name, nsname(xmlns)) in self._elementsbyxmlname or any(base.haselement_xml(name, xmlns) for base in self.bases)
@@ -3571,14 +3571,14 @@ class Pool(misc.Pool):
 
 	def hasprocinst(self, name):
 		"""
-		Is there a registered processing instruction class in ``self`` for the
+		Is there a registered processing instruction class in :var:`self` for the
 		PI with the Python name :var:`name`?
 		"""
 		return name in self._procinstsbypyname or any(base.hasprocinst(name) for base in self.bases)
 
 	def hasprocinst_xml(self, name):
 		"""
-		Is there a registered processing instruction class in ``self`` for the
+		Is there a registered processing instruction class in :var:`self` for the
 		PI with the XML name :var:`name`?
 		"""
 		return name in self._procinstsbyxmlname or any(base.hasprocinst_xml(name) for base in self.bases)
@@ -3633,14 +3633,14 @@ class Pool(misc.Pool):
 
 	def hasentity(self, name):
 		"""
-		Is there a registered entity class in ``self`` for the entity with the
+		Is there a registered entity class in :var:`self` for the entity with the
 		Python name :var:`name`?
 		"""
 		return name in self._entitiesbypyname or any(base.hasentity(name) for base in self.bases)
 
 	def hasentity_xml(self, name):
 		"""
-		Is there a registered entity class in ``self`` for the entity with the
+		Is there a registered entity class in :var:`self` for the entity with the
 		XML name :var:`name`?
 		"""
 		return name in self._entitiesbyxmlname or any(base.hasentity_xml(name) for base in self.bases)
@@ -3705,7 +3705,7 @@ class Pool(misc.Pool):
 
 	def hascharref(self, name):
 		"""
-		Is there a registered character entity class in ``self`` with the Python
+		Is there a registered character entity class in :var:`self` with the Python
 		name or codepoint :var:`name`?
 		"""
 		if isinstance(name, (int, long)):
@@ -3716,7 +3716,7 @@ class Pool(misc.Pool):
 
 	def hascharref_xml(self, name):
 		"""
-		Is there a registered character entity class in ``self`` with the XML
+		Is there a registered character entity class in :var:`self` with the XML
 		name or codepoint :var:`name`?
 		"""
 		if isinstance(name, (int, long)):
@@ -3789,7 +3789,7 @@ class Pool(misc.Pool):
 
 	def clear(self):
 		"""
-		Make <self/> empty.
+		Make :var:`self` empty.
 		"""
 		self._elementsbyxmlname.clear()
 		self._elementsbypyname.clear()
@@ -3806,7 +3806,7 @@ class Pool(misc.Pool):
 
 	def clone(self):
 		"""
-		Return a copy of ``self``.
+		Return a copy of :var:`self`.
 		"""
 		copy = Pool.clone(self)
 		copy._elementsbyxmlname = self._elementsbyxmlname.copy()

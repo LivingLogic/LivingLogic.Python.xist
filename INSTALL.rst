@@ -5,18 +5,18 @@ To use XIST you need the following software packages:
 
 	1.	`Python 2.5`_;
 
-	3.	`Python Imaging Library`_;
+	2.	`Python Imaging Library`_;
 
-	4.	`libxml2`_ and its Python wrapper (if you want to parse "broken" HTML);
+	3.	`libxml2`_ and its Python wrapper (if you want to parse "broken" HTML);
 
-	5.	`elinks`_ (if you want want to use the function
+	4.	`elinks`_ (if you want want to use the function
 		:func:`ll.xist.ns.html.astext`);
 
-	6.	`setuptools`_ (if you want to install this package as an egg);
+	5.	`setuptools`_ (if you want to install this package as an egg);
 
-	7.	`py.test`_ (if you want to run the test suite)
+	6.	`py.test`_ (if you want to run the test suite)
 
-	8.	and a C compiler supported by distutils, if you want to install the
+	7.	and a C compiler supported by distutils, if you want to install the
 		source distribution.
 
 	.. _Python 2.5: http://www.python.org/

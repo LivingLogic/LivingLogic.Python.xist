@@ -9,7 +9,7 @@ try:
 except ImportError:
 	from distutils import core as tools
 
-import textwrap
+import textwrap, re
 
 
 DESCRIPTION = """
@@ -17,23 +17,143 @@ XIST is an extensible HTML and XML generator. XIST is also a XML parser with a
 very simple and pythonesque tree API. Every XML element type corresponds to a
 Python class and these Python classes provide a conversion method to transform
 the XML tree (e.g. into HTML). XIST can be considered 'object oriented XSLT'.
+
+XIST also includes the following modules:
+
+*	:mod:`ll.astyle` can be used for colored terminal output (via ANSI escape
+	sequences).
+
+*	:mod:`color` provides classes and functions for handling RGB color values.
+	This includes the ability to convert between different color models
+	(RGB, HSV, HLS) as well as to and from CSS format, and several functions
+	for modifying and mixing colors.
+
+*	:mod:`ll.make` is an object oriented make replacement. Like make it allows
+	you to specify dependencies between files and actions to be executed
+	when files don't exist or are out of date with respect to one
+	of their sources. But unlike make you can do this in a object oriented
+	way and targets are not only limited to files, but you can implement
+	e.g. dependencies on database records.
+
+*	:mod:`ll.misc` provides several small utility functions and classes.
+
+*	:mod:`ll.sisyphus` provides classes for running Python scripts as cron jobs.
+
+*	:mod:`ll.daemon` can be used on UNIX to fork a daemon process.
+
+*	:mod:`ll.url` provides classes for parsing and constructing RFC 2396
+	compliant URLs.
+
+*	:mod:`ll.xpit` is a module that makes it possible to embed Python
+	expressions in text (as XML style processing instructions).
+
+*	:mod:`ll.xml_codec` contains a complete codec for encoding and decoding XML.
 """
 
 CLASSIFIERS="""
+# Common
 Development Status :: 5 - Production/Stable
-Environment :: Web Environment
 Intended Audience :: Developers
 License :: OSI Approved :: MIT License
 Operating System :: OS Independent
 Programming Language :: Python
+Topic :: Software Development :: Libraries :: Python Modules
+
+# ansistyle
+Topic :: Terminals
+Topic :: Text Processing :: General
+
+# color
+Topic :: Multimedia :: Graphics
+
+# make
+Topic :: Software Development :: Build Tools
+
+# daemon
+Environment :: No Input/Output (Daemon)
+Operating System :: POSIX
+
+# url
+Topic :: Internet
+Topic :: Internet :: File Transfer Protocol (FTP)
+Topic :: Internet :: WWW/HTTP
+
+# xpit
+Topic :: Text Processing :: Filters
+
+# xml_codec
+Topic :: Text Processing :: Markup :: XML
+
+# XIST
+Environment :: Web Environment
 Topic :: Internet :: WWW/HTTP :: Dynamic Content
 Topic :: Internet :: WWW/HTTP :: Site Management
-Topic :: Software Development :: Libraries :: Python Modules
 Topic :: Text Processing :: Markup :: HTML
 Topic :: Text Processing :: Markup :: XML
+
+# TOXIC
+Topic :: Database
 """
 
 KEYWORDS = """
+# misc
+property
+decorator
+iterator
+
+# ansistyle
+ANSI
+escape sequence
+color
+terminal
+
+# color
+RGB
+HSV
+HSB
+HLS
+CSS
+red
+green
+blue
+hue
+saturation
+value
+brightness
+luminance
+
+# make
+make
+build
+
+# sisyphus
+cron
+job
+
+# daemon
+daemon
+UNIX
+fork
+
+# url
+URL
+RFC 2396
+HTTP
+FTP
+ssh
+py.execnet
+
+# xpit
+text
+template
+processing instruction
+
+# xml_codec
+XML
+codec
+decoding
+
+# XIST
 XML
 HTML
 XHTML
@@ -44,6 +164,16 @@ SVG
 WML
 iHTML
 Relax NG
+
+# TOXIC
+Oracle
+user defined function
+PL/SQL
+XML
+HTML
+processing instruction
+PI
+embed
 """
 
 try:
@@ -51,32 +181,42 @@ try:
 except IOError:
 	description = DESCRIPTION.strip()
 else:
+	# Extract the first section (which are the changes for the current version)
 	underlines = [i for (i, line) in enumerate(news) if line.startswith("---")]
 	news = news[underlines[0]-1:underlines[1]-1]
 	news = "".join(news)
-	description = "%s\n\n\n%s" % (DESCRIPTION.strip(), news)
+	descr = "%s\n\n\n%s" % (DESCRIPTION.strip(), news)
+
+	# Get rid of text roles PyPI doesn't know about
+	descr = re.subn(":[a-z]+:`([a-zA-Z0-9_.]+)`", "``\\1``", descr)[0]
+
 
 
 args = dict(
 	name="ll-xist",
-	version="3.1",
+	version="3.2",
 	description="Extensible HTML/XML generator",
-	long_description=description,
+	long_description=descr,
 	author="Walter Doerwald",
 	author_email="walter@livinglogic.de",
 	url="http://www.livinglogic.de/Python/xist/",
 	download_url="http://www.livinglogic.de/Python/xist/Download.html",
 	license="MIT",
-	classifiers=CLASSIFIERS.strip().splitlines(),
-	keywords=",".join(KEYWORDS.strip().splitlines()),
+	classifiers=sorted(set(c for c in CLASSIFIERS.strip().splitlines() if c.strip() and not c.strip().startswith("#"))),
+	keywords=", ".join(sorted(set(k.strip() for k in KEYWORDS.strip().splitlines() if k.strip() and not k.strip().startswith("#")))),
 	package_dir={"": "src"},
-	packages=["ll", "ll.xist", "ll.xist.ns", "ll.xist.scripts"],
+	packages=["ll", "ll.scripts", "ll.xist", "ll.xist.ns", "ll.xist.scripts"],
 	ext_modules=[
+		tools.Extension("ll._url", ["src/ll/_url.c"]),
+		tools.Extension("ll._ansistyle", ["src/ll/_ansistyle.c"]),
+		tools.Extension("ll._misc", ["src/ll/_misc.c"]),
+		tools.Extension("ll._xml_codec", ["src/ll/_xml_codec.c", "src/ll/_xml_codec_include.c"]),
 		tools.Extension("ll.xist.helpers", ["src/ll/xist/helpers.c", "src/ll/xist/helpers_include.c"]),
 		tools.Extension("ll.xist.sgmlop", ["src/ll/xist/sgmlop.c"], define_macros=[("SGMLOP_UNICODE_SUPPORT", None)]),
 	],
 	entry_points=dict(
 		console_scripts=[
+			"ucp = ll.scripts.ucp:main",
 			"dtd2xsc = ll.xist.scripts.dtd2xsc:main",
 			"tld2xsc = ll.xist.scripts.tld2xsc:main",
 			"doc2txt = ll.xist.scripts.doc2txt:main",
@@ -84,14 +224,14 @@ args = dict(
 		]
 	),
 	scripts=[
+		"scripts/ucp.py",
 		"scripts/dtd2xsc.py",
 		"scripts/tld2xsc.py",
 		"scripts/doc2txt.py",
 		"scripts/xml2xsc.py",
 	],
 	install_requires=[
-		"ll-core >= 1.11",
-		"cssutils == 0.9.4b1",
+		"cssutils >= 0.9.4a1, <0.9.5",
 	],
 	namespace_packages=["ll"],
 	zip_safe=False,

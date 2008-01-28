@@ -1,9 +1,20 @@
 Changes in 3.2 (released ??/??/2008)
 ------------------------------------
 
-*	:class:`ll.xist.xsc.Pool` doesn't use a :class:`WeakValueDictionary` any
-	longer. This means it can now store *any* object. A method :meth:`clear`
-	has been added, which removes all registered objects.
+*	The core package has been moved into XIST, installing XIST now only requires
+	one package.
+
+*	:mod:`ll.toxic` has been moved into XIST and is now available as
+	:mod:`ll.xist.ns.toxic`.
+
+*	When a :class:`ll.make.XISTParseAction` object is executed the content of
+	the pool will now be extended by the content of the pool from the
+	:class:`XISTPoolAction` instead of being replaced.
+
+*	:class:`ll.make.Pool` and :class:`ll.xist.xsc.Pool` no longer use a
+	:class:`WeakValueDictionary`, but a simple :class:`dict`. This means they
+	can now store *any* object. A method :meth:`clear` has been added, which
+	removes all registered objects.
 
 
 Changes in 3.1 (released 01/18/2008)
@@ -14,7 +25,7 @@ Changes in 3.1 (released 01/18/2008)
 *	If an :class:`URLAttr` attribute contains a processing instruction XIST
 	will no longer transform the URL in any way.
 
-*	Fixed a parser bug, where attributes were dropped when the attribute value
+*	Fixed a parser bug where attributes were dropped when the attribute value
 	was empty.
 
 *	Putting a module into a :class:`Pool` object now copies the ``xmlns``
