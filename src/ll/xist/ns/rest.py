@@ -560,6 +560,9 @@ class system_message(BaseElement):
 		class line(xsc.TextAttr): pass
 		class type(xsc.TextAttr): pass
 
+	def convert(self, converter):
+		# A warning has already been issued by docutils, we don't have to do anything
+		return xsc.Null 
 
 class raw(BaseElement):
 	class Attrs(BaseElement.Attrs):
@@ -919,8 +922,6 @@ problematic.model = sims.ElementsOrText(*PE_inline_elements)
 generated.model = sims.ElementsOrText(*PE_inline_elements)
 
 
-
-
 class ReSTConversionWarning(Warning):
 	pass
 
@@ -1002,8 +1003,8 @@ class ReSTConverter(object):
 			raise TypeError("can't handle %r" % node.__class__)
 
 
-def fromstring(string, **options):
-	doc = core.publish_doctree(string, settings_overrides=options)
+def fromstring(string, base=None, **options):
+	doc = core.publish_doctree(string, source_path=base, settings_overrides=options)
 	elements = globals()
 
 	def toxist(node):
@@ -1024,11 +1025,13 @@ def fromstring(string, **options):
 	return toxist(doc)
 
 
-def fromstream(stream, **options):
-	return fromstring(stream.read(), **options)
+def fromstream(stream, base=None, **options):
+	return fromstring(stream.read(), base, **options)
 
 
-def fromfile(filename, **options):
+def fromfile(filename, base=None, **options):
 		filename = os.path.expanduser(filename)
+		if base is None:
+			base = filename
 		with contextlib.closing(open(filename, "rb")) as stream:
-			return fromstream(stream, **options)
+			return fromstream(stream, base, **options)
