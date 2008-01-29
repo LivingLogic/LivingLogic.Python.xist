@@ -16,6 +16,9 @@ Changes in 3.2 (released ??/??/2008)
 	can now store *any* object. A method :meth:`clear` has been added, which
 	removes all registered objects.
 
+*	Fixed a bug in :func:`ll.xist.css.iterrules` that surfaced when a
+	:var:`base` argument was given.
+
 
 Changes in 3.1 (released 01/18/2008)
 ------------------------------------
