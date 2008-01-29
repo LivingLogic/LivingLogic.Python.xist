@@ -67,6 +67,7 @@ def _doimport(wantmedia, parentsheet, base):
 
 	havemedia = _getmedia(parentsheet)
 	if wantmedia is None or not havemedia or wantmedia in havemedia:
+		replaceurls(parentsheet, prependbase)
 		for rule in parentsheet.cssRules:
 			if rule.type == css.CSSRule.IMPORT_RULE:
 				href = url.URL(rule.href)
@@ -78,7 +79,6 @@ def _doimport(wantmedia, parentsheet, base):
 					text = r.read()
 				sheet = css.CSSStyleSheet(href=str(href), media=havemedia, parentStyleSheet=parentsheet)
 				sheet.cssText = text
-				replaceurls(sheet, prependbase)
 				for rule in _doimport(wantmedia, sheet, href):
 					yield rule
 			elif rule.type == css.CSSRule.MEDIA_RULE:

@@ -19,6 +19,8 @@ Changes in 3.2 (released ??/??/2008)
 *	Fixed a bug in :func:`ll.xist.css.iterrules` that surfaced when a
 	:var:`base` argument was given.
 
+*	Fixed a second bug in :func:`ll.xist.css.iterrules` where the ``href`` of a
+	:class:`link` element wasn't applied to the URLs in the stylesheet.
 
 Changes in 3.1 (released 01/18/2008)
 ------------------------------------
