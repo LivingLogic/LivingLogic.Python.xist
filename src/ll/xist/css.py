@@ -121,7 +121,7 @@ def iterrules(node, base=None, media=None):
 				if "href" in cssnode.attrs:
 					href = cssnode.attrs["href"].asURL()
 					if base is not None:
-						href = self.base/href
+						href = base/href
 					if cssnode.attrs.media.hasmedia(media):
 						with contextlib.closing(href.open("rb")) as r:
 							s = r.read()
