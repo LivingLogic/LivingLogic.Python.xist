@@ -49,7 +49,7 @@ node.write(open("spam.html", "wb"), base="root:spam.html")
 </prog>
 <p>the following will happen: The &url; <lit>#top</lit>
 will be parsed as <lit>root:spam.htmlxsc#top</lit>. After
-conversion this will be written to <filename>spam.html</filename>
+conversion this will be written to <file>spam.html</file>
 relative to the &url; <lit>root:spam.html</lit>, which results
 in <lit>spam.html#top</lit>, which works, but is not what you
 want.</p>
