@@ -30,7 +30,7 @@ call, this &url; will stay the same when publishing.</li>
 reverted for publishing. In most cases the base &url; should be a
 <lit>root</lit> &url; when you parse local files.</li>
 <li>When you parse remote web pages you can either
-omit the <arg>base</arg> argument, so it will default to the
+omit the <var>base</var> argument, so it will default to the
 &url; being parsing, so that links, images, etc. on the page
 will still point back to their original location, or you
 might want to use the empty &url; <lit>URL()</lit> as the
@@ -49,7 +49,7 @@ node.write(open("spam.html", "wb"), base="root:spam.html")
 </prog>
 <p>the following will happen: The &url; <lit>#top</lit>
 will be parsed as <lit>root:spam.htmlxsc#top</lit>. After
-conversion this will be written to <filename>spam.html</filename>
+conversion this will be written to <file>spam.html</file>
 relative to the &url; <lit>root:spam.html</lit>, which results
 in <lit>spam.html#top</lit>, which works, but is not what you
 want.</p>
@@ -85,19 +85,19 @@ print node.pretty().bytes()
 </example>
 <p>This will print:</p>
 <example>
-<tty>
-&lt;html&gt;
-	&lt;head&gt;
-		&lt;title&gt;foo&lt;/title&gt;
-	&lt;/head&gt;
-	&lt;body&gt;
-		&lt;div&gt;
-			&lt;h1&gt;The &lt;em&gt;foo&lt;/em&gt; page!&lt;/h1&gt;
-			&lt;p&gt;Welcome to the &lt;em&gt;foo&lt;/em&gt; page.&lt;/p&gt;
-		&lt;/div&gt;
-	&lt;/body&gt;
-&lt;/html&gt;
-</tty>
+<tty><![CDATA[
+<html>
+	<head>
+		<title>foo</title>
+	</head>
+	<body>
+		<div>
+			<h1>The <em>foo</em> page!</h1>
+			<p>Welcome to the <em>foo</em> page.</p>
+		</div>
+	</body>
+</html>
+]]></tty>
 </example>
 <p>Element content will only be modified if it doesn't contain
 <class>Text</class> nodes, so mixed content will not be touched.</p>
@@ -130,7 +130,7 @@ executed when the processing instruction node is converted.</p>
 for a <pyref module="ll.xist.ns.code" class="pyeval"><lit>pyeval</lit></pyref> processing instruction is whatever the
 Python code in the content returns. The processing instruction content is treated as the body
 of a function, so you can put multiple return statements there.
-The converter is available as the parameter <arg>converter</arg> inside
+The converter is available as the parameter <var>converter</var> inside
 the processing instruction. For example, consider the following &xml; file:</p>
 
 <prog>

@@ -22,7 +22,7 @@ import sys, types, collections, weakref
 from ll._misc import *
 
 
-__docformat__ = "xist"
+__docformat__ = "reStructuredText"
 
 
 def notimplemented(function):

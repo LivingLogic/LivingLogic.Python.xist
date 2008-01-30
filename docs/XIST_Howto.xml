@@ -68,7 +68,7 @@ for example.</p>
 <prog>
 __init__(self, *content, **attrs)
 </prog>
-<p>Positional arguments (i.e. items in <arg>content</arg>)
+<p>Positional arguments (i.e. items in <var>content</var>)
 will be the child nodes of the element node. Keyword arguments will be attributes.
 You can pass most of Python's builtin types to such a constructor.
 Strings (<class>str</class> and <class>unicode</class>) and integers
@@ -136,30 +136,28 @@ For this the module <pyref module="ll.xist.parsers"><mod>ll.xist.parsers</mod></
 provides several functions:</p>
 <dl>
 <dt><lit>parsestring(data, base=None, encoding=None, **builderargs)</lit></dt>
-<dd>Parse the string <arg>data</arg> into an &xist; tree.</dd>
+<dd>Parse the string <var>data</var> into an &xist; tree.</dd>
 <dt><lit>parseiter(iterable, base=None, encoding=None, **builderargs)</lit></dt>
-<dd>Parse the input from the iterable <arg>iterable</arg> (which must produce the
+<dd>Parse the input from the iterable <var>iterable</var> (which must produce the
 input in chunks of bytes) into an &xist; tree.</dd>
 <dt><lit>parsestream(stream, base=None, encoding=None, bufsize=8192, **builderargs)</lit></dt>
-<dd>Parse &xml; from the stream <arg>stream</arg> into an &xist; tree.</dd>
+<dd>Parse &xml; from the stream <var>stream</var> into an &xist; tree.</dd>
 <dt><lit>parsefile(filename, base=None, encoding=None, bufsize=8192, **builderargs)</lit></dt>
-<dd>Parse &xml; input from the file named <arg>filename</arg>.</dd>
+<dd>Parse &xml; input from the file named <var>filename</var>.</dd>
 <dt><lit>parseurl(name, base=None, encoding=None, bufsize=8192, headers=None, data=None, **builderargs)</lit></dt>
-<dd>Parse &xml; input from the &url; <arg>name</arg> into an &xist; tree.</dd>
+<dd>Parse &xml; input from the &url; <var>name</var> into an &xist; tree.</dd>
 <dt><lit>parseetree(tree, base=None, **builderargs)</lit></dt>
-<dd>Parse &xml; input from the object <arg>tree</arg> which must support the
+<dd>Parse &xml; input from the object <var>tree</var> which must support the
 <a href="http://effbot.org/zone/element-index.htm">ElementTree</a> &api;.</dd>
 </dl>
 <p>For example, parsing a string can be done like this:</p>
 <example><h>Parsing a string</h>
-<prog>
+<prog><![CDATA[
 from ll.xist import parsers
 from ll.xist.ns import html
 
-node = parsers.parsestring(
-	"&lt;p&gt;Hello &lt;a href='http://www.python.org/'&gt;Python&lt;/a&gt; world!&lt;/p&gt;"
-)
-</prog>
+node = parsers.parsestring("<p>Hello <a href='http://www.python.org/'>Python</a> world!</p>")
+]]></prog>
 </example>
 
 <p>For further info about the arguments to the parsing functions, see the
@@ -209,7 +207,7 @@ of the object.</p>
 <p><pyref module="ll.xist.xsc" class="Node" method="conv"><meth>conv</meth></pyref> simply
 calls
 <pyref module="ll.xist.xsc" class="Node" method="convert"><meth>convert</meth></pyref>
-with a default <pyref module="ll.xist.converters" class="Converter"><arg>converter</arg></pyref>
+with a default <pyref module="ll.xist.converters" class="Converter"><var>converter</var></pyref>
 argument. We'll come to converters in a minute.
 <pyref module="ll.xist.xsc" class="Node" method="bytes"><meth>bytes</meth></pyref>
 is a method that converts the node to a byte string. This method will be explained
@@ -271,29 +269,29 @@ node = node.convert(converters.Converter())
 <p>You can pass the following arguments to the
 <pyref module="ll.xist.converters" class="Converter"><class>Converter</class></pyref> constructor:</p>
 <dl>
-<dt><arg>root</arg></dt><dd><arg>root</arg> (which defaults to <lit>None</lit>) is the root &url;
+<dt><var>root</var></dt><dd><var>root</var> (which defaults to <lit>None</lit>) is the root &url;
 for the conversion process. When you want to resolve a link in some of your own <meth>convert</meth> methods,
 the &url; must be interpreted relative to this root &url; (You can use
 <pyref module="ll.xist.xsc" class="URLAttr" method="forInput"><meth>URLAttr.forInput</meth></pyref>
 for that).</dd>
-<dt><arg>mode</arg></dt><dd><arg>mode</arg> (which defaults to <lit>None</lit>) works the same way
+<dt><var>mode</var></dt><dd><var>mode</var> (which defaults to <lit>None</lit>) works the same way
 as modes in &xslt;. You can use this for implementing different conversion modes.</dd>
-<dt><arg>stage</arg></dt><dd><arg>stage</arg> (which defaults to <lit>"deliver"</lit>)
+<dt><var>stage</var></dt><dd><var>stage</var> (which defaults to <lit>"deliver"</lit>)
 allows you to implement multi stage conversion: Suppose that you want to deliver a dynamically
 constructed web page with &xist; that contains results from a database query and the current time.
 The data in the database changes infrequently, so it doesn't make sense to do the query on
 every request. The query is done every few minutes and the resulting &html; tree is
 stored in the servlet (using any of the available Python servlet technologies).
-For this conversion the <arg>stage</arg> would be <lit>"cache"</lit> and your database &xml;
-element would do the query when <lit><arg>stage</arg>=="cache"</lit>. Your time display element
-would do the conversion when <lit><arg>stage</arg>=="deliver"</lit> and simply returns itself
-when <lit><arg>stage</arg>=="cache"</lit>, so it would still be part of the cached &xml; tree
+For this conversion the <var>stage</var> would be <lit>"cache"</lit> and your database &xml;
+element would do the query when <lit><var>stage</var>=="cache"</lit>. Your time display element
+would do the conversion when <lit><var>stage</var>=="deliver"</lit> and simply returns itself
+when <lit><var>stage</var>=="cache"</lit>, so it would still be part of the cached &xml; tree
 and would be converted to &html; on every request.</dd>
-<dt><arg>target</arg></dt><dd><arg>target</arg> (which defaults to
+<dt><var>target</var></dt><dd><var>target</var> (which defaults to
 <pyref module="ll.xist.ns.html"><mod>ll.xist.ns.html</mod></pyref>) specifies what the output should be.
 Values must be <pyref module="ll.xist.xsc" class="Namespace">namespace subclasses</pyref>
 (see below for an explanation of namespaces).</dd>
-<dt><arg>lang</arg></dt><dd><p><arg>lang</arg> (which defaults to <lit>None</lit>) is the language
+<dt><var>lang</var></dt><dd><p><var>lang</var> (which defaults to <lit>None</lit>) is the language
 in which the result tree should be. This can be used in the <meth>convert</meth> method
 to implement different conversions for different languages, e.g.:</p>
 <prog>
@@ -775,7 +773,7 @@ returns the complete 8-bit &xml; string.</p>
 an instance of <pyref module="ll.xist.publishers" class="Publisher"><class>ll.xist.publisher.Publisher</class></pyref>.</p>
 
 <section><h>Specifying an encoding</h>
-<p>You can specify the encoding with the parameter <arg>encoding</arg>
+<p>You can specify the encoding with the parameter <var>encoding</var>
 (with the encoding specified in an &xml; declaration being the default, if there
 is no such declaration <lit>"utf-8"</lit> is used). Unencodable characters will
 be escaped with character references when possible (i.e. inside text nodes, for
@@ -823,7 +821,7 @@ or an <pyref module="ll.xist.ns.meta" class="contenttype">&html; meta header</py
 </section>
 
 <section><h>&html; compatibility</h>
-<p>Another useful parameter is <arg>xhtml</arg>,
+<p>Another useful parameter is <var>xhtml</var>,
 it specifies whether you want pure &html; or &xhtml; as output:</p>
 
 <dl>
@@ -844,7 +842,7 @@ element will be published with an empty tag (without an additional space):
 <section><h>Namespaces</h>
 
 <p>By default &xist; doesn't output any namespace declarations. The simplest
-way to change that, is to pass <lit>True</lit> for the <arg>prefixdefault</arg>
+way to change that, is to pass <lit>True</lit> for the <var>prefixdefault</var>
 argument when publishing:</p>
 
 <example><h>Publishing namespace info</h>
@@ -901,8 +899,8 @@ print e.bytes(prefixdefault=None)
 </html>]]></prog>
 
 <p>When elements from more than one namespace are present in the tree,
-<arg>prefixdefault</arg> is unreliable. The first namespace encountered will
-get the prefix specified by <arg>prefixdefault</arg>, all others will get a
+<var>prefixdefault</var> is unreliable. The first namespace encountered will
+get the prefix specified by <var>prefixdefault</var>, all others will get a
 different prefix. &xist; will never use the same prefix for different namespaces.
 &xist; will also refuse to use an empty prefix for global attributes:</p>
 
@@ -945,7 +943,7 @@ print e.bytes(prefixdefault=None)
 </html>]]>
 </prog>
 
-<p>In the case of multiple namespaces you can use the <arg>prefixes</arg>
+<p>In the case of multiple namespaces you can use the <var>prefixes</var>
 argument to specify an explicit prefix for each namespace. So we could change
 the publishing statement from our example above to:</p>
 
@@ -978,7 +976,7 @@ print e.bytes(prefixes={html: None, xlink: "xl"})
 </prog>
 
 <p>Finally it's possible to suppress output of namespace declarations
-for certain namespaces by using the <arg>hidexmlns</arg> attribute:</p>
+for certain namespaces by using the <var>hidexmlns</var> attribute:</p>
 </section>
 
 <prog>

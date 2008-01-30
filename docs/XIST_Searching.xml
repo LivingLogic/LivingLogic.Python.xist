@@ -224,7 +224,7 @@ module.</p>
 
 <section><h>&css; selectors</h>
 
-<p>It's also possible to use &css; selectors as walk filter. The module
+<p>It's also possible to use &css; selectors as walk filters. The module
 <pyref module="ll.xist.css"><mod>ll.xist.css</mod></pyref> provides a
 function <func>selector</func> that turns a &css; selector expression
 into a walk filter:</p>
