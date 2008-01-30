@@ -70,7 +70,7 @@ If you're using XIST in an `IPython`_ shell, XIST allows you to browse through
 your trees using any of the browsers provided by IPython's `ipipe module`_.
 
 	.. _IPython: http://ipython.scipy.org/
-	.. _ipipe module: http://projects.scipy.org/ipython/ipython/wiki/UsingIPipe
+	.. _ipipe module: http://ipython.scipy.org/moin/UsingIPipe
 
 You can specify which format gets used by changing the value of the
 ``defaultpresenter`` variable in the module :mod:`ll.xist.presenters`::
