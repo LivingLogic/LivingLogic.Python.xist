@@ -41,7 +41,7 @@ following command::
 
 	$ python setup.py install
 
-__ http://www.livinglogic.de/xist/Download.html
+__ http://www.livinglogic.de/Python/Download.html#xist
 
 This will copy ``*.py`` files, compile ``*.c`` files and install everything in
 the ``site-packages`` directory as the :mod:`ll` AND :mod:`ll.xist` package.
