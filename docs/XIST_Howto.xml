@@ -152,14 +152,12 @@ input in chunks of bytes) into an &xist; tree.</dd>
 </dl>
 <p>For example, parsing a string can be done like this:</p>
 <example><h>Parsing a string</h>
-<prog>
+<prog><![CDATA[
 from ll.xist import parsers
 from ll.xist.ns import html
 
-node = parsers.parsestring(
-	"&lt;p&gt;Hello &lt;a href='http://www.python.org/'&gt;Python&lt;/a&gt; world!&lt;/p&gt;"
-)
-</prog>
+node = parsers.parsestring("<p>Hello <a href='http://www.python.org/'>Python</a> world!</p>")
+]]></prog>
 </example>
 
 <p>For further info about the arguments to the parsing functions, see the
