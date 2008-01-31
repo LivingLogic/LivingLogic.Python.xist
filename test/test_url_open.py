@@ -190,8 +190,8 @@ def test_readline():
 			assert r.read().startswith(firstline)
 
 	yield check, __file__.rstrip("c"), "#!/usr/bin/env python\n"
-	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst", "Content\n"
-	yield check, "http://www.livinglogic.de/Python/", "<?xml version='1.0' encoding='utf-8'?>\n"
+	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/setup.py", "#! /usr/bin/env python\n"
+	yield check, "http://www.livinglogic.de/Python/", '<?xml version="1.0" encoding="utf-8"?>\n'
 
 
 def test_iter():
@@ -203,8 +203,8 @@ def test_iter():
 			list(r)
 
 	yield check, __file__.rstrip("c"), "#!/usr/bin/env python\n"
-	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst", "Content\n"
-	yield check, "http://www.livinglogic.de/Python/", "<?xml version='1.0' encoding='utf-8'?>\n"
+	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/setup.py", "#! /usr/bin/env python\n"
+	yield check, "http://www.livinglogic.de/Python/", '<?xml version="1.0" encoding="utf-8"?>\n'
 
 
 def test_seek_tell():
@@ -261,15 +261,15 @@ def test_owner():
 
 
 def test_stat():
-	def check(u, size):
+	def check(u):
 		with context:
 			u = url.URL(u)
 			stat = u.stat()
-			assert stat.st_size == size
+			assert stat.st_size > 1000
 			assert stat.st_mode & 0600 == 0600
 
-	yield check, url.File(__file__)/"../README.rst", 2342
-	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.core/README.rst", 2342
+	yield check, url.File(__file__)/"../README.rst"
+	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.core/README.rst"
 
 
 def test_group():
@@ -402,8 +402,8 @@ def test_resheaders():
 			for (k, v) in headers.iteritems():
 				assert realheaders[k] == v
 
-	yield check, url.File(__file__)/"../README.rst", {"Content-type": "application/octet-stream", "Content-Length": "2342"}
-	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.core/README.rst", {"Content-Type": "application/octet-stream", "Content-Length": "2342"}
+	yield check, url.File(__file__)/"../README.rst", {"Content-type": "application/octet-stream"}
+	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.core/README.rst", {"Content-Type": "application/octet-stream"}
 	yield check, "http://www.livinglogic.de/Python/core/", {"Content-type": "text/html", "Connection": "close", "Server": "Apache"}
 
 
@@ -414,7 +414,7 @@ def test_resdata():
 			realdata = u.open("rb").resdata()
 			assert realdata.splitlines(True)[0] == firstline
 
-	yield check, "http://www.livinglogic.de/Python/", "<?xml version='1.0' encoding='utf-8'?>\n"
+	yield check, "http://www.livinglogic.de/Python/", '<?xml version="1.0" encoding="utf-8"?>\n'
 
 
 def test_mkdir_rmdir():
@@ -462,7 +462,7 @@ def test_dir():
 				assert u in pu.dirs()
 
 	yield check, os.path.basename(__file__), os.path.dirname(__file__), True
-	yield check, "usr/", "/", False
+	yield check, "lib/", "/usr/", False
 	yield check, "README.rst", "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/", True
 	yield check, "LivingLogic/", "ssh://livpython@www.livinglogic.de/~/", False
 
