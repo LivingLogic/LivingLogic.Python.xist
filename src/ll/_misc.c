@@ -264,8 +264,8 @@ static PyMethodDef _functions[] = {
 };
 
 static char module__doc__[] =
-"This module contains the functions :func:`item` :func:`first`, :func:`last` and
-:func:`count`.";
+"This module contains the functions :func:`item` :func:`first`, :func:`last`\n\
+and :func:`count`.";
 
 
 PyMODINIT_FUNC
