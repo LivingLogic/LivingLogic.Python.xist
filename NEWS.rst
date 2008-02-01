@@ -502,8 +502,8 @@ Changes in 2.8 (released 01/03/2005)
 *	:class:`ll.xist.ns.specials.x` has been renamed to
 	:class:`ll.xist.ns.specials.ignore`.
 
-*	:class:`ll.xist.utils.findAttr` has been renamed to
-	:class:`ll.xist.utils.findattr`.
+*	:func:`ll.xist.utils.findAttr` has been renamed to
+	:func:`ll.xist.utils.findattr`.
 
 *	:class:`ll.xist.xfind.item` no longer handles slices.
 
