@@ -21,7 +21,7 @@ import sys, os, os.path, warnings, cStringIO, codecs, pyexpat, contextlib
 from xml.parsers import expat
 
 from ll import url, xml_codec
-from ll.xist import xsc, utils, sgmlop
+from ll.xist import xsc, sgmlop
 from ll.xist.ns import html
 
 

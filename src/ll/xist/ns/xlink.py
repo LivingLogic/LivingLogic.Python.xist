@@ -14,7 +14,7 @@ Contains the global attributes for the xlink namespace
 """
 
 
-from ll.xist import xsc, utils
+from ll.xist import xsc
 
 
 __docformat__ = "reStructuredText"

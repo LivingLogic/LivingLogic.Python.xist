@@ -21,7 +21,7 @@ __ http://www.w3.org/TR/html4/loose.dtd
 import os, cgi, contextlib, operator
 
 from ll import url, misc
-from ll.xist import xsc, utils, sims, xfind
+from ll.xist import xsc, sims, xfind
 from ll.xist.ns import xml
 
 

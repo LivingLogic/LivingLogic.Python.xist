@@ -3340,7 +3340,7 @@ class CharRef(Text, Entity):
 		return Text(self.content.upper())
 
 
-import publishers, converters, utils, helpers
+import publishers, converters, helpers
 
 
 ###

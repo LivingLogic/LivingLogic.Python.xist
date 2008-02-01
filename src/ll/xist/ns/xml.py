@@ -14,7 +14,7 @@ and classes for the XML declaration.
 """
 
 
-from ll.xist import xsc, utils, sims
+from ll.xist import xsc, sims
 
 
 __docformat__ = "reStructuredText"
