@@ -190,7 +190,8 @@ else:
 	# Get rid of text roles PyPI doesn't know about
 	descr = re.subn(":[a-z]+:`([a-zA-Z0-9_.]+)`", "``\\1``", descr)[0]
 
-
+	# Expand tabs (so they won't show up as 8 spacces in the Windows installer)
+	descr = descr.expandtabs(2)
 
 args = dict(
 	name="ll-xist",
