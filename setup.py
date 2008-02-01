@@ -232,7 +232,7 @@ args = dict(
 		"scripts/xml2xsc.py",
 	],
 	install_requires=[
-		"cssutils >= 0.9.4a1, <0.9.5",
+		"cssutils == 0.9.4b1",
 	],
 	namespace_packages=["ll"],
 	zip_safe=False,
