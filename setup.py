@@ -23,7 +23,7 @@ XIST also includes the following modules:
 *	:mod:`ll.astyle` can be used for colored terminal output (via ANSI escape
 	sequences).
 
-*	:mod:`color` provides classes and functions for handling RGB color values.
+*	:mod:`ll.color` provides classes and functions for handling RGB color values.
 	This includes the ability to convert between different color models
 	(RGB, HSV, HLS) as well as to and from CSS format, and several functions
 	for modifying and mixing colors.
