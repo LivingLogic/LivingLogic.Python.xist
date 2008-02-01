@@ -1,4 +1,4 @@
-Changes in 3.2 (released ??/??/2008)
+Changes in 3.2 (released 02/01/2008)
 ------------------------------------
 
 *	The core package has been moved into XIST, installing XIST now only requires
