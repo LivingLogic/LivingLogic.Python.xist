@@ -99,11 +99,8 @@ def test_applystylesheets1():
 			+html.style("p {color: red;}", type="text/css")
 		with html.body():
 			+html.p("gurk")
-	print e.bytes()
 
 	css.applystylesheets(e)
-
-	print e.bytes()
 
 	assert str(e.walknode(html.p)[0].attrs.style) == "color: red;"
 	assert list(e.walknode(html.style)) == []
