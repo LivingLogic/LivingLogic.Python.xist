@@ -50,7 +50,7 @@ XIST also includes the following modules:
 *	:mod:`ll.xml_codec` contains a complete codec for encoding and decoding XML.
 """
 
-CLASSIFIERS="""
+CLASSIFIERS = """
 # Common
 Development Status :: 5 - Production/Stable
 Intended Audience :: Developers
