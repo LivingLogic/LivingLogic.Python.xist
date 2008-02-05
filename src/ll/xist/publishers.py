@@ -41,7 +41,7 @@ class Publisher(object):
 	sequence.
 	"""
 
-	def __init__(self, encoding=None, xhtml=1, validate=True, prefixes={}, prefixdefault=False, hidexmlns=()):
+	def __init__(self, encoding=None, xhtml=1, validate=True, prefixes={}, prefixdefault=False, hidexmlns=(), showxmlns=()):
 		"""
 		Create a publisher. Arguments have the following meaning:
 
@@ -97,6 +97,11 @@ class Publisher(object):
 			:var:`hidexmlns` can be a list or set that contains namespace names
 			for which no ``xmlns`` attributes should be published. (This can be
 			used to hide the namespace declarations for e.g. Java taglibs.)
+
+		:var:`showxmlns` : list or set
+			:var:`showxmlns` can be a list or set that contains namespace names
+			for which ``xmlns`` attributes *will* be published, even if there are
+			no elements from this namespace in the tree.
 		"""
 		self.base = None
 		self.encoding = encoding
@@ -106,6 +111,7 @@ class Publisher(object):
 		self.prefixes = dict((xsc.nsname(xmlns), prefix) for (xmlns, prefix) in prefixes.iteritems())
 		self.prefixdefault = prefixdefault
 		self.hidexmlns = set(xsc.nsname(xmlns) for xmlns in hidexmlns)
+		self.showxmlns = set(xsc.nsname(xmlns) for xmlns in showxmlns)
 		self._ns2prefix = {}
 		self._prefix2ns = {}
 
@@ -183,14 +189,51 @@ class Publisher(object):
 			return self.encoder.encoding or "utf-8"
 		return "utf-8"
 
-	def getprefix(self, object):
+	def getnamespaceprefix(self, xmlns):
 		"""
-		Can be used during publication by custom publish methods: Return the
-		prefix configured for object :var:`object`.
+		Return (and register) a namespace prefix for the namespace name
+		:var:`xmlns`. This honors the namespace configuration via ``self.prefixes``
+		and ``self.prefixdefault``. Furthermore the same prefix will be returned
+		from now on (except when the empty prefix becomes invalid once global
+		attributes are encountered)
+		"""
+		if xmlns is None:
+			return None
+
+		if xmlns == xsc.xml_xmlns: # We don't need a namespace mapping for the xml namespace
+			prefix = "xml"
+		else:
+			try:
+				prefix = self._ns2prefix[xmlns]
+			except KeyError: # A namespace we haven't encountered yet
+				prefix = self.prefixes.get(xmlns, self.prefixdefault)
+				if prefix is True:
+					prefix = self._newprefix()
+				if prefix is not False:
+					try:
+						oldxmlns = self._prefix2ns[prefix]
+					except KeyError:
+						pass
+					else:
+						# If this prefix has already been used for another namespace, we need a new one
+						if oldxmlns != xmlns:
+							prefix = self._newprefix()
+					self._ns2prefix[xmlns] = prefix
+					self._prefix2ns[prefix] = xmlns
+		return prefix
+
+	def getobjectprefix(self, object):
+		"""
+		Get and register a namespace prefix for the namespace :var:`object` lives
+		in (specified by the :attr:`xmlns` attribute of :var:`object`). Similar
+		to :meth:`getnamespaceprefix` this honors the namespace configuration via
+		``self.prefixes`` and ``self.prefixdefault`` (except when a global
+		attribute requires a non-empty prefix).
 		"""
 		xmlns = getattr(object, "xmlns")
 		if xmlns is None:
 			return None
+
 		if xmlns == xsc.xml_xmlns: # We don't need a namespace mapping for the xml namespace
 			prefix = "xml"
 		else:
@@ -231,7 +274,10 @@ class Publisher(object):
 		self._prefix2ns.clear()
 		# iterate through every node in the tree
 		for n in node.walknode(xsc.Node):
-			self.getprefix(n)
+			self.getobjectprefix(n)
+		# Add the prefixes forced by ``self.showxmlns``
+		for xmlns in self.showxmlns:
+			self.getnamespaceprefix(xmlns)
 
 		# Do we have to publish xmlns attributes?
 		self._publishxmlns = False

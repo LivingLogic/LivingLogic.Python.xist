@@ -32,7 +32,7 @@ class taglib(xsc.ProcInst):
 
 	def publish(self, publisher):
 		yield publisher.encode(u'<%@ taglib uri="/WEB-INF/struts-html.tld" prefix="')
-		yield publisher.encode(publisher.getprefix(self))
+		yield publisher.encode(publisher.getobjectprefix(self))
 		yield publisher.encode(u'" %>')
 
 

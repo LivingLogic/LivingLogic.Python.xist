@@ -215,3 +215,9 @@ def test_xmlheader():
 
 def test_struts_html():
 	assert 'prefix="xyzzx"' in struts_html.taglib().bytes(prefixdefault="xyzzx")
+
+
+def test_publish_forcexmlns():
+	e = html.html()
+	s = e.bytes(prefixes={html: "h", specials: "s"}, showxmlns=[specials])
+	assert 'xmlns:s="%s"' % specials.xmlns in s

@@ -1,3 +1,11 @@
+Changes in 3.2.1 (released 02/05/2008)
+--------------------------------------
+
+*	It's now possible to force the publisher to output certain ``xmlns``
+	attributes via the :var:`showxmlns` argument to the :class:`Publisher`
+	constructor.
+
+
 Changes in 3.2 (released 02/01/2008)
 ------------------------------------
 
@@ -21,6 +29,7 @@ Changes in 3.2 (released 02/01/2008)
 
 *	Fixed a second bug in :func:`ll.xist.css.iterrules` where the ``href`` of a
 	:class:`link` element wasn't applied to the URLs in the stylesheet.
+
 
 Changes in 3.1 (released 01/18/2008)
 ------------------------------------
