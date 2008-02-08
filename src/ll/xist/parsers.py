@@ -51,7 +51,7 @@ class SGMLOPParser(Parser):
 
 	def begin(self, application):
 		Parser.begin(self, application)
-		self._decoder = codecs.getincrementaldecoder("xml")(self.encoding)
+		self._decoder = codecs.getincrementaldecoder("xml")(encoding=self.encoding)
 		if self._parser is not None:
 			self._parser.register(None)
 		self._parser = sgmlop.XMLParser()
