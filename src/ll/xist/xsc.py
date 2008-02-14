@@ -1823,6 +1823,8 @@ class ProcInst(CharacterData):
 		return presenter.presentProcInst(self) # return a generator-iterator
 
 	def publish(self, publisher):
+		if publisher.validate:
+			self.checkvalid()
 		content = self.content
 		if u"?>" in content:
 			raise IllegalProcInstFormatError(self)
