@@ -11,6 +11,7 @@
 
 import py.test
 
+from ll import url
 from ll.xist import xsc, parsers
 from ll.xist.ns import specials, html, jsp
 
@@ -26,3 +27,9 @@ def test_url():
 def test_fancyurl():	
 	node = html.a("gurk", href=("http://", jsp.expression("server")))
 	assert node.bytes(base="root:about/us.html") == '<a href="http://<%= server %>">gurk</a>'
+
+
+def test_replaceurls():	
+	node = html.div("gurk", style="background-image: url(gurk.gif);")
+	node.attrs.style.replaceurls(lambda u: url.URL("http://www.example.org")/u)
+	assert str(node.attrs.style) == "background-image: url(http://www.example.org/gurk.gif)"
