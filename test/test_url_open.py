@@ -165,7 +165,7 @@ def test_mimetype():
 
 	yield check, __file__.rstrip("c"), "text/x-python"
 	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/setup.py", "text/x-python"
-	yield check, "http://www.livinglogic.de/Python/core/", "text/html"
+	yield check, "http://www.livinglogic.de/Python/xist/", "text/html"
 
 
 def test_readline():
@@ -269,7 +269,7 @@ def test_stat():
 			assert stat.st_mode & 0600 == 0600
 
 	yield check, url.File(__file__)/"../README.rst"
-	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.core/README.rst"
+	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst"
 
 
 def test_group():
@@ -301,7 +301,7 @@ def test_mdate():
 
 	yield check, __file__.rstrip("c"), 2006, 10, 24
 	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst", 2006, 6, 29
-	yield check, "http://www.livinglogic.de/Python/core", 2006, 10, 3
+	yield check, "http://www.livinglogic.de/Python/xist", 2006, 10, 3
 
 
 def test_adate():
@@ -403,8 +403,8 @@ def test_resheaders():
 				assert realheaders[k] == v
 
 	yield check, url.File(__file__)/"../README.rst", {"Content-type": "application/octet-stream"}
-	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.core/README.rst", {"Content-Type": "application/octet-stream"}
-	yield check, "http://www.livinglogic.de/Python/core/", {"Content-type": "text/html", "Connection": "close", "Server": "Apache"}
+	yield check, "ssh://livpython@www.livinglogic.de/~/checkouts/LivingLogic.Python.xist/README.rst", {"Content-Type": "application/octet-stream"}
+	yield check, "http://www.livinglogic.de/Python/xist/", {"Content-type": "text/html", "Connection": "close", "Server": "Apache"}
 
 
 def test_resdata():
