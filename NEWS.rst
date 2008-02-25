@@ -1,3 +1,11 @@
+Changes in 3.2.2 (released ??/??/????)
+--------------------------------------
+
+*	A new method :meth:`replaceurls` has been added to
+	:class:`ll.xist.xsc.StyleAttr`. With this method all URLs in a ``style``
+	attribute can be replaced.
+
+
 Changes in 3.2.1 (released 02/05/2008)
 --------------------------------------
 

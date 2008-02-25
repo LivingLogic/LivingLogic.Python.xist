@@ -2084,6 +2084,13 @@ class StyleAttr(Attr):
 		css.replaceurls(stylesheet, replacer)
 		return stylesheet.cssRules[0].style.getCssText(separator=" ")
 
+	def replaceurls(self, replacer):
+		"""
+		Replace each URL in the style. Each URL will be passed to the callable
+		:var:`replacer` and replaced with the return value.
+		"""
+		self[:] = self._transform(replacer)
+
 	def parsed(self, parser, start=None):
 		if not self.isfancy() and parser.base is not None:
 			from ll.xist import css
