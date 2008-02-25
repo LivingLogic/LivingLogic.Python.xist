@@ -1,9 +1,15 @@
-Changes in 3.2.2 (released ??/??/????)
+Changes in 3.2.2 (released 02/25/2008)
 --------------------------------------
 
 *	A new method :meth:`replaceurls` has been added to
 	:class:`ll.xist.xsc.StyleAttr`. With this method all URLs in a ``style``
 	attribute can be replaced.
+
+*	Fixed a bug in :meth:`ll.xist.parsers.SGMLOPParser.begin`: The encoding
+	wasn't passed properly to the XML decoder.
+
+*	:meth:`ll.xist.xsc.ProcInst.publish` now calls the :meth:`checkvalid`
+	method too.
 
 
 Changes in 3.2.1 (released 02/05/2008)
