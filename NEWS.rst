@@ -1,3 +1,10 @@
+Changes in 3.2.3 (released ??/??/2008)
+--------------------------------------
+
+*	:mod:`cssutils` 0.9.5 is used now. This simplifies the implementation of
+	:func:`css.selector`.
+
+
 Changes in 3.2.2 (released 02/25/2008)
 --------------------------------------
 

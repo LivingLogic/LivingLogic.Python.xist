@@ -495,7 +495,7 @@ class CSSNthLastOfTypeSelector(CSSFunctionSelector):
 
 
 class CSSTypeSelector(xfind.Selector):
-	def __init__(self, type="*", xmlns="*", *selectors):
+	def __init__(self, type=None, xmlns=None, *selectors):
 		self.type = type
 		self.xmlns = xsc.nsname(xmlns)
 		self.selectors = [] # id, class, attribute etc. selectors for this node
@@ -503,8 +503,8 @@ class CSSTypeSelector(xfind.Selector):
 	def matchpath(self, path):
 		if path:
 			node = path[-1]
-			if self.type == "*" or node.xmlname == self.type:
-				if self.xmlns == "*" or node.xmlns == self.xmlns:
+			if self.type is None or node.xmlname == self.type:
+				if self.xmlns is None or node.xmlns == self.xmlns:
 					for selector in self.selectors:
 						if not selector.matchpath(path):
 							return False
@@ -513,9 +513,9 @@ class CSSTypeSelector(xfind.Selector):
 
 	def __str__(self):
 		v = [self.__class__.__name__, "("]
-		if self.type != "*" or self.xmlns != "*" or self.selectors:
+		if self.type is not None or self.xmlns is not None or self.selectors:
 			v.append(repr(self.type))
-		if self.xmlns != "*" or self.selectors:
+		if self.xmlns is not None or self.selectors:
 			v.append(", ")
 			v.append(repr(self.xmlns))
 		for selector in self.selectors:
@@ -525,7 +525,7 @@ class CSSTypeSelector(xfind.Selector):
 		return "".join(v)
 
 	def cssweight(self):
-		result = xfind.CSSWeight(0, 0, 0, int(self.type != "*"))
+		result = xfind.CSSWeight(0, 0, 0, int(self.type is not None))
 		for selector in self.selectors:
 			result += selector.cssweight()
 		return result
@@ -575,22 +575,6 @@ class CSSGeneralSiblingCombinator(xfind.BinaryCombinator):
 	def __str__(self):
 		return "%s(%s, %s)" % (self.__class__.__name__, self.left, self.right)
 
-
-_attributecombinator2class = {
-	"=": xfind.attrhasvalue_xml,
-	"~=": CSSAttributeListSelector,
-	"|=": CSSAttributeLangSelector,
-	"^=": xfind.attrstartswith_xml,
-	"$=": xfind.attrendswith_xml,
-	"*=": xfind.attrcontains_xml,
-}
-
-_combinator2class = {
-	" ": xfind.DescendantCombinator,
-	">": xfind.ChildCombinator,
-	"+": CSSAdjacentSiblingCombinator,
-	"~": CSSGeneralSiblingCombinator,
-}
 
 _pseudoname2class = {
 	"first-child": CSSFirstChildSelector,
@@ -652,42 +636,43 @@ def selector(selectors, prefixes=None):
 		attributevalue = None
 		combinator = None
 		inattr = False
-		for (t, v) in zip(selector.seq.types, selector.seq.values):
-			if t == "namespace_prefix":
-				prefix = v.rstrip("|")
-				if prefix != "*":
-					try:
-						xmlns = prefixes[prefix]
-					except KeyError:
-						raise xsc.IllegalPrefixError(prefix)
-					rule.xmlns = xmlns
-				prefix = None
-			elif t == "IDENT":
-				if inattr:
-					attributename = v
-				else:
-					rule.type = v
-			elif t == "universal":
-				rule.type = "*"
-			elif t == "HASH":
+		for item in selector.seq:
+			t = item.type
+			v = item.value
+			print (t,v)
+			if t == "type-selector":
+				rule.xmlns = v[0] if v[0] != -1 else None
+				rule.type = v[1]
+			if t == "universal":
+				rule.xmlns = v[0] if v[0] != -1 else None
+				rule.type = None
+			elif t == "id":
 				rule.selectors.append(xfind.hasid(v.lstrip("#")))
 			elif t == "class":
 				rule.selectors.append(xfind.hasclass(v.lstrip(".")))
-			elif t is None:
-				if v == "[":
-					inattr = True
-					combinator = None
-				elif v == "]":
-					if combinator is None:
-						rule.selectors.append(CSSHasAttributeSelector(attributename))
-					else:
-						try:
-							rule.selectors.append(_attributecombinator2class[combinator](attributename, attributevalue))
-						except KeyError:
-							raise ValueError("unknown combinator %s" % attributevalue)
-					inattr = False
-				elif v in _attributecombinator2class:
-					combinator = v
+			elif t == "attribute-start":
+				inattr = True
+				combinator = None
+			elif t == "attribute-end":
+				if combinator is None:
+					rule.selectors.append(CSSHasAttributeSelector(attributename))
+				else:
+					rule.selectors.append(combinator(attributename, attributevalue))
+				inattr = False
+			elif t == "attribute-selector":
+				attributename = v
+			elif t == "equals":
+				combinator = xfind.attrhasvalue_xml
+			elif t == "includes":
+				combinator = CSSAttributeListSelector
+			elif t == "dashmatch":
+				combinator = CSSAttributeLangSelector
+			elif t == "prefixmatch":
+				combinator = xfind.attrstartswith_xml
+			elif t == "suffixmatch":
+				combinator = xfind.attrendswith_xml
+			elif t == "substringmatch":
+				combinator = xfind.attrcontains_xml
 			elif t == "pseudo-class":
 				if v.endswith("("):
 					try:
@@ -704,19 +689,19 @@ def selector(selectors, prefixes=None):
 				# can only appear in a function => set the function value
 				rule.selectors[-1].value = v
 			elif t == "STRING":
-				if (v.startswith("'") and v.endswith("'")) or (v.startswith('"') and v.endswith('"')):
-					v = v[1:-1]
 				# can only appear in a attribute selector => set the attribute value
 				attributevalue = v
-			elif t == "combinator":
-				if inattr:
-					combinator = v
-				else:
-					try:
-						rule = CSSTypeSelector()
-						root = _combinator2class[v](root, rule)
-					except KeyError:
-						raise ValueError("unknown combinator %s" % v)
-					xmlns = "*"
+			elif t == "child":
+				rule = CSSTypeSelector()
+				root = xfind.ChildCombinator(root, rule)
+			elif t == "descendant":
+				rule = CSSTypeSelector()
+				root = xfind.DescendantCombinator(root, rule)
+			elif t == "adjacent-sibling":
+				rule = CSSTypeSelector()
+				root = CSSAdjacentSiblingCombinator(root, rule)
+			elif t == "following-sibling":
+				rule = CSSTypeSelector()
+				root = CSSGeneralSiblingCombinator(root, rule)
 		orcombinators.append(root)
 	return orcombinators[0] if len(orcombinators) == 1 else xfind.OrCombinator(*orcombinators)
