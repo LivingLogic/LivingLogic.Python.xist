@@ -184,7 +184,8 @@ def xml2ora(string):
 		elif t == "proc":
 			foundproc = True
 		else:
-			raise ValueError("PI target %r unknown" % t)
+			# Treat unknown PIs as text
+			foundplsql.append((-1, u"<?%s %s?>" % (t, s))
 
 	result = []
 	if foundargs:
