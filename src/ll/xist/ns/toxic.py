@@ -185,7 +185,7 @@ def xml2ora(string):
 			foundproc = True
 		else:
 			# Treat unknown PIs as text
-			foundplsql.append((-1, u"<?%s %s?>" % (t, s))
+			foundplsql.append((-1, u"<?%s %s?>" % (t, s)))
 
 	result = []
 	if foundargs:
