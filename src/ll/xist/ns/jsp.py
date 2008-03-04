@@ -21,11 +21,7 @@ from ll.xist import xsc, sims
 __docformat__ = "reStructuredText"
 
 
-xmlns = "http://java.sun.com/JSP/Page"
-
-
 class directive(xsc.Element):
-	xmlns = xmlns
 	model = sims.Empty()
 	register = False # only serves as a base class
 
@@ -71,7 +67,6 @@ class declaration(xsc.ProcInst):
 
 
 class If(scriptlet):
-	xmlns = xmlns
 	xmlname = "if"
 
 	def convert(self, converter):
@@ -79,7 +74,6 @@ class If(scriptlet):
 
 
 class Else(scriptlet):
-	xmlns = xmlns
 	xmlname = "else"
 
 	def convert(self, converter):
@@ -87,7 +81,6 @@ class Else(scriptlet):
 
 
 class ElIf(scriptlet):
-	xmlns = xmlns
 	xmlname = "elif"
 
 	def convert(self, converter):
@@ -95,7 +88,6 @@ class ElIf(scriptlet):
 
 
 class End(scriptlet):
-	xmlns = xmlns
 	xmlname = "end"
 
 	def convert(self, converter):
@@ -108,7 +100,6 @@ class block(xsc.Element):
 	itself will not be turned into a scriptlet automatically but will be used
 	as-is.
 	"""
-	xmlns = xmlns
 	model = sims.Any()
 
 	def convert(self, converter):
@@ -121,14 +112,12 @@ class block(xsc.Element):
 
 
 class directive_include(directive):
-	xmlns = xmlns
 	xmlname = "include"
 	class Attrs(directive.Attrs):
 		class file(xsc.TextAttr): pass
 
 
 class directive_taglib(directive):
-	xmlns = xmlns
 	xmlname = "taglib"
 	class Attrs(directive.Attrs):
 		class uri(xsc.TextAttr): pass
@@ -136,7 +125,6 @@ class directive_taglib(directive):
 
 
 class directive_page(directive):
-	xmlns = xmlns
 	xmlname = "page"
 	class Attrs(directive.Attrs):
 		class language(xsc.TextAttr):

@@ -1,8 +1,17 @@
-Changes in 3.2.3 (released ??/??/2008)
+Changes in 3.2.3 (released 03/04/2008)
 --------------------------------------
 
 *	:mod:`cssutils` 0.9.5 is used now. This simplifies the implementation of
 	:func:`css.selector`.
+
+*	A function :func:`ll.xist.css.geturls` has been added. This returns a list of
+	all the URLs in a :mod:`cssutils` stylesheet.
+
+*	:func:`toxic.xml2ora` now treats unknown processing instructions as text.
+	This makes it possible to e.g. output an XML header via toxic.
+
+*	The pseudo-elements in :mod:`ll.xist.ns.jsp` are no longer in a namespace,
+	so they will always be published without any prefixes.
 
 
 Changes in 3.2.2 (released 02/25/2008)
