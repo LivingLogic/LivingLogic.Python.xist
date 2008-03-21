@@ -14,11 +14,11 @@ This module contains functions related to the handling of CSS.
 
 from __future__ import with_statement
 
-import contextlib
+import os, contextlib
 
 try:
 	import cssutils
-	from cssutils import css, stylesheets
+	from cssutils import css, stylesheets, codec
 except ImportError:
 	cssutils = None
 else:
@@ -48,7 +48,15 @@ def replaceurls(stylesheet, replacer):
 	"""
 	def newreplacer(u):
 		return unicode(replacer(url.URL(u)))
-	stylesheet.replaceUrls(newreplacer) # This needs at least r242 of cssutils
+	cssutils.replaceUrls(stylesheet, newreplacer)
+
+
+def geturls(stylesheet):
+	"""
+	Return a list of all URLs appearing in the :class:`CSSStyleSheet`
+	:var:`stylesheet`.
+	"""
+	return [url.URL(u) for u in cssutils.getUrls(stylesheet)] # This requires cssutils 0.9.5b1
 
 
 def _getmedia(stylesheet):
@@ -639,7 +647,6 @@ def selector(selectors, prefixes=None):
 		for item in selector.seq:
 			t = item.type
 			v = item.value
-			print (t,v)
 			if t == "type-selector":
 				rule.xmlns = v[0] if v[0] != -1 else None
 				rule.type = v[1]
@@ -705,3 +712,72 @@ def selector(selectors, prefixes=None):
 				root = CSSGeneralSiblingCombinator(root, rule)
 		orcombinators.append(root)
 	return orcombinators[0] if len(orcombinators) == 1 else xfind.OrCombinator(*orcombinators)
+
+
+def parsestring(data, base=None, encoding=None):
+	"""
+	Parse the string :var:`data` into a :mod:`cssutils` stylesheet. :var:`base`
+	is the base URL for the parsing process, :var:`encoding` can be used to force
+	the parser to use the specified encoding.
+	"""
+	if encoding is None:
+		encoding = "css"
+	if base is not None:
+		base = url.URL(base)
+		href = str(base)
+	else:
+		href = None
+	stylesheet = cssutils.parseString(data.decode(encoding), href=href)
+	if base is not None:
+		def prependbase(u):
+			return base/u
+		replaceurls(stylesheet, prependbase)
+	return stylesheet
+
+
+def parsestream(stream, base=None, encoding=None):
+	"""
+	Parse a :mod:`cssutils` stylesheet from the stream :var:`stream`. :var:`base`
+	is the base URL for the parsing process, :var:`encoding` can be used to force
+	the parser to use the specified encoding.
+	"""
+	return parsestring(stream.read(), base=base, encoding=None)
+
+
+def parsefile(filename, base=None, encoding=None):
+	"""
+	Parse a :mod:`cssutils` stylesheet from the file named :var:`filename`.
+	:var:`base` is the base URL for the parsing process (defaulting to the
+	filename itself), :var:`encoding` can be used to force the parser to use the
+	specified encoding.
+	"""
+	filename = os.path.expanduser(filename)
+	if base is None:
+		base = filename
+	with contextlib.closing(open(filename, "rb")) as stream:
+		return parsestream(stream, base=base, encoding=encoding)
+
+
+def parseurl(name, base=None, encoding=None, *args, **kwargs):
+	"""
+	Parse a :mod:`cssutils` stylesheet from the URL :var:`name`. :var:`base` is
+	the base URL for the parsing process ((defaulting to the final URL of the
+	response (i.e. including redirects), :var:`encoding` can be used to force
+	the parser to use the specified encoding. :var:`arg` and :var:`kwargs` are
+	passed on to :meth:`URL.openread`, so you can pass POST data and request
+	headers.
+	"""
+	with contextlib.closing(url.URL(name).openread(*args, **kwargs)) as stream:
+		if base is None:
+			base = stream.finalurl()
+		return parsestream(stream, base=base, encoding=encoding)
+
+
+def write(stylesheet, stream, base=None, encoding=None):
+	if base is not None:
+		def reltobase(u):
+			return u.relative(base)
+		replaceurls(stylesheet, reltobase)
+	if encoding is not None:
+		stylesheet.encoding = encoding
+	stream.write(stylesheet.cssText)

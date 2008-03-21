@@ -11,6 +11,7 @@
 
 from __future__ import with_statement
 
+from ll import url
 from ll.xist import xsc, css
 from ll.xist.ns import html, specials
 
@@ -203,3 +204,14 @@ def test_applystylesheets_media():
 	css.applystylesheets(e, media="print")
 
 	assert str(e.walknode(html.p)[0].attrs.style) == ""
+
+
+def test_parse():
+	s = css.parsestring("@charset 'utf-8'; div{background-image: url(gurk.gif);}")
+	urls = set(css.geturls(s))
+	assert urls == set([url.URL("gurk.gif")])
+
+	s = css.parsestring("@charset 'utf-8'; div{background-image: url(gurk.gif);}", base="root:")
+	urls = set(css.geturls(s))
+	assert urls == set([url.URL("root:gurk.gif")])
+
