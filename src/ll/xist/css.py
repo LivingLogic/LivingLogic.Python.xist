@@ -97,7 +97,7 @@ def _doimport(wantmedia, parentsheet, base):
 				yield rule
 
 
-def iterrules(node, base=None, media=None):
+def iterrules(node, base=None, media=None, title=None):
 	"""
 	Return an iterator for all CSS rules defined in the HTML tree :var:`node`.
 	This will parse the CSS defined in any :class:`html.style` or
@@ -113,15 +113,41 @@ def iterrules(node, base=None, media=None):
 
 	If :var:`media` is given, only rules that apply to this media type will
 	be produced.
+
+	:var:`title` can be used to specify which stylesheet group should be used.
+	If :var:`title` is :const:`None`, only the persistent and preferred
+	stylesheets will be used. If :var:`title` is a string only the persistent
+	stylesheets and alternate stylesheets with that style name will be used.
+
+	For a description of "persistent", "preferred" and "alternate" stylesheets
+	see <http://www.w3.org/TR/2002/WD-xhtml2-20020805/mod-styleSheet.html#sec_20.1.2.>
 	"""
 	if base is not None:
 		base = url.URL(base)
 
-	def doiter(node, base, media):
+	def matchlink(node):
+		if node.attrs.media.hasmedia(media):
+			if title is None:
+				if "title" not in node.attrs and "alternate" not in unicode(node.attrs.rel).split():
+					return True
+			elif not node.attrs.title.isfancy() and unicode(node.attrs.title) == title and "alternate" in unicode(node.attrs.rel).split():
+				return True
+		return False
+
+	def matchstyle(node):
+		if node.attrs.media.hasmedia(media):
+			if title is None:
+				if "title" not in node.attrs:
+					return True
+			elif unicode(node.attrs.title) == title:
+				return True
+		return False
+
+	def doiter(node):
 		for cssnode in node.walknode(_isstyle):
 			if isinstance(cssnode, html.style):
 				href = str(self.base) if base is not None else None
-				if cssnode.attrs.media.hasmedia(media):
+				if matchstyle(cssnode):
 					stylesheet = cssutils.parseString(unicode(cssnode.content), href=href, media=unicode(cssnode.attrs.media))
 					for rule in _doimport(media, stylesheet, base):
 						yield rule
@@ -130,29 +156,24 @@ def iterrules(node, base=None, media=None):
 					href = cssnode.attrs["href"].asURL()
 					if base is not None:
 						href = base/href
-					if cssnode.attrs.media.hasmedia(media):
+					if matchlink(cssnode):
 						with contextlib.closing(href.open("rb")) as r:
 							s = r.read()
 						stylesheet = cssutils.parseString(unicode(s), href=str(href), media=unicode(cssnode.attrs.media))
 						for rule in _doimport(media, stylesheet, href):
 							yield rule
-	return misc.Iterator(doiter(node, base, media))
+	return misc.Iterator(doiter(node))
 
 
-def applystylesheets(node, base=None, media=None):
+def applystylesheets(node, base=None, media=None, title=None):
 	"""
 	:func:`applystylesheets` modifies the XIST tree :var:`node` by removing all
 	CSS (from :class:`html.link` and :class:`html.style` elements and their
 	``@import``ed stylesheets) and puts the resulting styles properties into
 	the ``style`` attribute of every affected element instead.
 	
-	The :var:`base` argument will be used as the base URL for parsing the
-	stylesheet references in the tree (so :const:`None` means the URLs will be
-	used exactly as they appear in the tree). All URLs in the style properties
-	will be resolved.
-
-	If :var:`media` is given, only rules that apply to this media type will
-	be applied.
+	For the meaning of :var:`base`, :var:`media` and :var:`title` see
+	:func:`iterrules`.
 	"""
 	def iterstyles(node, rules):
 		for data in rules:
@@ -170,7 +191,7 @@ def applystylesheets(node, base=None, media=None):
 				)
 
 	rules = []
-	for (i, rule) in enumerate(iterrules(node, base=base, media=media)):
+	for (i, rule) in enumerate(iterrules(node, base=base, media=media, title=title)):
 		for sel in rule.selectorList:
 			rules.append((sel.specificity, selector(sel), rule.style))
 	rules.sort(key=lambda(spec, sel, rule): spec)

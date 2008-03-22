@@ -193,6 +193,27 @@ def test_applystylesheets_media():
 	assert str(e.walknode(html.p)[0].attrs.style) == ""
 
 
+def test_applystylesheets_title():
+	def makenode():
+		with html.html() as e:
+			with html.head():
+				+html.style("p {color: red;}", type="text/css")
+				+html.style("p {color: blue;}", type="text/css", title="blue")
+			with html.body():
+				+html.p("gurk")
+		return e
+
+	# Check that title=None uses only the titleless stylesheets
+	e = makenode()
+	css.applystylesheets(e, title=None)
+	assert str(e.walknode(html.p)[0].attrs.style) == "color: red;"
+
+	# Check that title="blue" uses only the stylesheet with the specified title
+	e = makenode()
+	css.applystylesheets(e, title="blue")
+	assert str(e.walknode(html.p)[0].attrs.style) == "color: blue;"
+
+
 def test_parse():
 	s = css.parsestring("@charset 'utf-8'; div{background-image: url(gurk.gif);}")
 	urls = set(css.geturls(s))
