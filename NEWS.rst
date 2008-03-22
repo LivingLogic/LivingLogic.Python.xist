@@ -9,6 +9,10 @@ Changes in 3.2.4 (released ??/??/2008)
 
 *	:mod:`cssutils` 0.9.5b1 is required now.
 
+*	:func:`ll.xist.css.iterrules` and :func:`ll.xist.css.applystylesheets` now
+	support specifying whether the preferred stylesheets or an alternate
+	stylesheet group should be used.
+
 
 Changes in 3.2.3 (released 03/04/2008)
 --------------------------------------
