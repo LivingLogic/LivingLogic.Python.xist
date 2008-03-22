@@ -27,23 +27,6 @@ from ll.xist import xsc
 __docformat__ = "reStructuredText"
 
 
-class CSSWeight(tuple):
-	"""
-	The specificity of a CSS selector as a 3-item tuple as specified by CSS3__.
-	
-	__ http://www.w3.org/TR/css3-selectors/#specificity
-	"""
-
-	def __new__(cls, a=0, b=0, c=0, d=0):
-		return tuple.__new__(cls, (a, b, c, d))
-
-	def __add__(self, other):
-		return CSSWeight(self[0]+other[0], self[1]+other[1], self[2]+other[2], self[3]+other[3])
-
-	def __repr__(self):
-		return "CSSWeight(%r, %r, %r, %r)" % (self[0], self[1], self[2], self[3])
-
-
 class Selector(xsc.WalkFilter):
 	"""
 	Base class for all tree traversal filters that visit the complete tree.
@@ -104,12 +87,6 @@ class Selector(xsc.WalkFilter):
 		Create a :class:`NotCombinator` inverting :var:`self`.
 		"""
 		return NotCombinator(self)
-
-	def cssweight(self):
-		"""
-		Return the CSS specificity of :var:`self` as a :class:`CSSWeight` object.
-		"""
-		return CSSWeight()
 
 
 class IsInstanceSelector(Selector):
@@ -665,9 +642,6 @@ class hasid(Selector):
 	def __str__(self):
 		return "%s(%r)" % (self.__class__.__name__, self.id)
 
-	def cssweight(self):
-		return CSSWeight(0, 1, 0, 0)
-
 
 class hasclass(Selector):
 	"""
@@ -700,9 +674,6 @@ class hasclass(Selector):
 
 	def __str__(self):
 		return "%s(%r)" % (self.__class__.__name__, self.classname)
-
-	def cssweight(self):
-		return CSSWeight(0, 0, 1, 0)
 
 
 class inattr(Selector):
@@ -755,9 +726,6 @@ class BinaryCombinator(Combinator):
 		if isinstance(self.right, Combinator) and not isinstance(self.right, self.__class__):
 			right = "(%s)" % right
 		return "%s%s%s" % (left, self.symbol, right)
-
-	def cssweight(self):
-		return self.left.cssweight()+self.right.cssweight()
 
 
 class ChildCombinator(BinaryCombinator):
@@ -924,9 +892,6 @@ class ChainedCombinator(Combinator):
 				s = "(%s)" % s
 			v.append(s)
 		return self.symbol.join(v)
-
-	def cssweight(self):
-		raise TypeError("no weight info for chained combinator")
 
 
 class OrCombinator(ChainedCombinator):

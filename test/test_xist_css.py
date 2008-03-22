@@ -81,19 +81,6 @@ def test_css():
 	assert list(e.walknode(css.selector("em[lang|='en']"))) == [e[0], e[1]]
 
 
-def test_cssweight():
-	# from http://www.w3.org/TR/css3-selectors/#specificity
-	assert css.selector("*").cssweight() == (0, 0, 0, 0)
-	assert css.selector("LI").cssweight() == (0, 0, 0, 1)
-	assert css.selector("UL LI").cssweight() == (0, 0, 0, 2)
-	assert css.selector("UL OL+LI").cssweight() == (0, 0, 0, 3)
-	assert css.selector("UL OL LI.red").cssweight() == (0, 0, 1, 3)
-	assert css.selector("LI.red.level").cssweight() == (0, 0, 2, 1)
-	assert css.selector("#x34y").cssweight() == (0, 1, 0, 0)
-	# The following is not supported
-	# assert css.selector("#s12:not(FOO)").cssweight() == (0, 1, 0, 1)
-
-
 def test_applystylesheets1():
 	with html.html() as e:
 		with html.head():

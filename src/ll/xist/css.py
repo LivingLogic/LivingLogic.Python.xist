@@ -164,6 +164,7 @@ def applystylesheets(node, base=None, media=None):
 			style = node.attrs["style"]
 			if not style.isfancy():
 				yield (
+					(1, 0, 0, 0),
 					xfind.IsSelector(node),
 					cssutils.parseString(u"*{%s}" % style).cssRules[0].style # parse the style out of the style attribute
 				)
@@ -171,14 +172,14 @@ def applystylesheets(node, base=None, media=None):
 	rules = []
 	for (i, rule) in enumerate(iterrules(node, base=base, media=media)):
 		for sel in rule.selectorList:
-			rules.append((selector(sel), rule.style))
-	rules.sort(key=lambda(sel, rule): sel.cssweight())
+			rules.append((sel.specificity, selector(sel), rule.style))
+	rules.sort(key=lambda(spec, sel, rule): spec)
 	count = 0
 	for path in node.walk(xsc.Element):
 		del path[-1][_isstyle] # drop style sheet nodes
 		if path[-1].Attrs.isallowed("style"):
 			styles = {}
-			for (sel, style) in iterstyles(path[-1], rules):
+			for (spec, sel, style) in iterstyles(path[-1], rules):
 				if sel.matchpath(path):
 					for prop in style.seq:
 						if not isinstance(prop, css.CSSComment):
@@ -265,8 +266,6 @@ class CSSWeightedSelector(xfind.Selector):
 	"""
 	Base class for all CSS pseudo-class selectors.
 	"""
-	def cssweight(self):
-		return xfind.CSSWeight(0, 1, 0)
 
 
 class CSSHasAttributeSelector(CSSWeightedSelector):
@@ -531,12 +530,6 @@ class CSSTypeSelector(xfind.Selector):
 			v.append(str(selector))
 		v.append(")")
 		return "".join(v)
-
-	def cssweight(self):
-		result = xfind.CSSWeight(0, 0, 0, int(self.type is not None))
-		for selector in self.selectors:
-			result += selector.cssweight()
-		return result
 
 
 class CSSAdjacentSiblingCombinator(xfind.BinaryCombinator):
