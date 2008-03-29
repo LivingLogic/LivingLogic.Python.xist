@@ -13,6 +13,11 @@ Changes in 3.2.4 (released ??/??/2008)
 	support specifying whether the preferred stylesheets or an alternate
 	stylesheet group should be used.
 
+*	:meth:`ll.xist.xsc.ProcInst.__mul__` and
+	:meth:`ll.xist.xsc.ProcInst.__rmul__` now return a fragment containing
+	the node repeated a number of times instead of one processing instruction
+	node containing repeated content.
+
 
 Changes in 3.2.3 (released 03/04/2008)
 --------------------------------------

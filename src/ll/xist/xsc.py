@@ -1844,6 +1844,12 @@ class ProcInst(CharacterData):
 			loc = ""
 		return "<%s.%s procinst content=%r%s at 0x%x>" % (self.__class__.__module__, self.__fullname__, self.content, loc, id(self))
 
+	def __mul__(self, n):
+		return Node.__mul__(self, n)
+
+	def __rmul__(self, n):
+		return Node.__rmul__(self, n)
+
 
 class Null(CharacterData):
 	"""
