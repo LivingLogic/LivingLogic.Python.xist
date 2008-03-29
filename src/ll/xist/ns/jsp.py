@@ -21,6 +21,9 @@ from ll.xist import xsc, sims
 __docformat__ = "reStructuredText"
 
 
+xmlns = "http://java.sun.com/JSP/Page"
+
+
 class directive(xsc.Element):
 	model = sims.Empty()
 	register = False # only serves as a base class
