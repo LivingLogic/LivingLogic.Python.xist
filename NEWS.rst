@@ -4,7 +4,7 @@ Changes in 3.2.4 (released 04/02/2008)
 *	The following functions have been added to :mod:`ll.xist.css`:
 	:func:`parsestring`, :func:`parsestream`, :func:`parsefile`, :func:`parseurl`
 	and :func:`write`. They parse CSS resources and are similar to the XML/HTML
-	parsing function in that they apply the specified base URL to all URL in the
+	parsing function in that they apply the specified base URL to all URLs in the
 	style sheet.
 
 *	:mod:`cssutils` 0.9.5b2 is required now.
