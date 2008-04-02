@@ -151,9 +151,6 @@ def dtd2xnd(dtd, xmlns=None):
 			ent = parsers.parsestring(dtd.resolve_ge(entname).value)
 			ns.content.append(xnd.CharRef(entname, codepoint=ord(unicode(ent[0])[0])))
 
-	# if the DTD has exactly one value for all fixed "xmlns" attributes and the user didn't specify xmlns, use this one
-	if xmlns is None and len(foundxmlns)==1:
-		ns.xmlns = foundxmlns.pop()
 	return ns
 
 
