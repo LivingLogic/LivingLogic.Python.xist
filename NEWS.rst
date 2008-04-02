@@ -1,4 +1,4 @@
-Changes in 3.2.4 (released ??/??/2008)
+Changes in 3.2.4 (released 04/02/2008)
 --------------------------------------
 
 *	The following functions have been added to :mod:`ll.xist.css`:
@@ -7,7 +7,7 @@ Changes in 3.2.4 (released ??/??/2008)
 	parsing function in that they apply the specified base URL to all URL in the
 	style sheet.
 
-*	:mod:`cssutils` 0.9.5b1 is required now.
+*	:mod:`cssutils` 0.9.5b2 is required now.
 
 *	:func:`ll.xist.css.iterrules` and :func:`ll.xist.css.applystylesheets` now
 	support specifying whether the preferred stylesheets or an alternate
@@ -17,6 +17,17 @@ Changes in 3.2.4 (released ??/??/2008)
 	:meth:`ll.xist.xsc.ProcInst.__rmul__` now return a fragment containing
 	the node repeated a number of times instead of one processing instruction
 	node containing repeated content.
+
+*	The constructor for :class:`ll.xist.parsers.ExpatParser` now takes two
+	additional arguments:
+
+	:var:`xmldecl`
+		If this is true the XML declaration will appear in the resulting XIST
+		tree.
+
+	:var:`doctype`
+		If this is true the doctype declaration will appear in the resulting
+		XIST tree (however any interal DTD subset will be dropped).
 
 
 Changes in 3.2.3 (released 03/04/2008)

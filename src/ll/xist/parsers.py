@@ -22,28 +22,47 @@ from xml.parsers import expat
 
 from ll import url, xml_codec
 from ll.xist import xsc, sgmlop
-from ll.xist.ns import html
+from ll.xist.ns import xml, html
 
 
 __docformat__ = "reStructuredText"
 
 
 class Parser(object):
+	"""
+	Basic parser interface.
+	"""
 	def __init__(self):
 		self.application = None
 
 	def begin(self, application):
+		"""
+		Start parsing. Events will be passed to :var:`application`, which must
+		implement a handler for each event type.
+		"""
 		self.application = application
 
 	def end(self):
+		"""
+		Finish parsing.
+		"""
 		self.application = None
 
 	def feed(self, data, final):
-		pass
+		"""
+		Feed :var:`data` (a byte string) to the parser. If :var:`final` is true
+		this will be the last call to :meth:`feed`.
+		"""
 
 
 class SGMLOPParser(Parser):
+	"""
+	A parser based of :mod:`sgmlop`.
+	"""
 	def __init__(self, encoding=None):
+		"""
+		Create a new :class:`SGMLOPParser` object.
+		"""
 		Parser.__init__(self)
 		self.encoding = encoding
 		self._decoder = None
@@ -51,11 +70,18 @@ class SGMLOPParser(Parser):
 
 	def begin(self, application):
 		Parser.begin(self, application)
-		self._decoder = codecs.getincrementaldecoder("xml")(encoding=self.encoding)
-		if self._parser is not None:
-			self._parser.register(None)
-		self._parser = sgmlop.XMLParser()
-		self._parser.register(self)
+		try:
+			self._decoder = codecs.getincrementaldecoder("xml")(encoding=self.encoding)
+			if self._parser is not None:
+				self._parser.register(None)
+			self._parser = sgmlop.XMLParser()
+			self._parser.register(self)
+		except Exception:
+			if self._parser is not None:
+				self._parser.register(None)
+				self._parser = None
+			self._decoder = None
+			raise
 
 	def feed(self, data, final):
 		self._parser.feed(self._decoder.decode(data, final))
@@ -100,29 +126,46 @@ class SGMLOPParser(Parser):
 
 
 class ExpatParser(Parser):
-	def __init__(self, encoding=None, transcode=False):
+	def __init__(self, encoding=None, transcode=False, xmldecl=False, doctype=False):
 		Parser.__init__(self)
 		self.encoding = encoding
 		self._parser = None
 		self._decoder = None
 		self._encoder = None
+		self._xmldecl = xmldecl
+		self._doctype = doctype
+		self._indoctype = False
 		self._transcode = transcode
 
 	def begin(self, application):
 		Parser.begin(self, application)
-		self._parser = expat.ParserCreate(self.encoding)
-		self._parser.buffer_text = True
-		self._parser.ordered_attributes = True
-		self._parser.UseForeignDTD(True)
-		self._parser.CharacterDataHandler = self.handle_data
-		self._parser.StartElementHandler = self.handle_startelement
-		self._parser.EndElementHandler = self.handle_endelement
-		self._parser.ProcessingInstructionHandler = self.handle_proc
-		self._parser.CommentHandler = self.handle_comment
-		self._parser.DefaultHandler = self.handle_default
-		if self._transcode:
-			self._decoder = codecs.getincrementaldecoder("xml")()
-			self._encoder = codecs.getincrementalencoder("xml")(encoding="utf-8")
+		try:
+			self._parser = expat.ParserCreate(self.encoding)
+			self._parser.buffer_text = True
+			self._parser.ordered_attributes = True
+			self._parser.UseForeignDTD(True)
+			self._parser.CharacterDataHandler = self.handle_data
+			self._parser.StartElementHandler = self.handle_startelement
+			self._parser.EndElementHandler = self.handle_endelement
+			self._parser.ProcessingInstructionHandler = self.handle_proc
+			self._parser.CommentHandler = self.handle_comment
+			self._parser.DefaultHandler = self.handle_default
+
+			if self._xmldecl:
+				self._parser.XmlDeclHandler = self.handle_xmldecl
+
+			# Always required, as we want to recognize whether a comment or PI is in the internal DTD subset
+			self._parser.StartDoctypeDeclHandler = self.handle_begindoctype
+			self._parser.EndDoctypeDeclHandler = self.handle_enddoctype
+
+			if self._transcode:
+				self._decoder = codecs.getincrementaldecoder("xml")()
+				self._encoder = codecs.getincrementalencoder("xml")(encoding="utf-8")
+		except Exception:
+			self._parser = None
+			self._encoder = None
+			self._decoder = None
+			raise
 
 	def end(self):
 		Parser.end(self)
@@ -130,12 +173,31 @@ class ExpatParser(Parser):
 		self._encoder = None
 		self._decoder = None
 
+	def handle_xmldecl(self, version, encoding, standalone):
+		standalone = (bool(standalone) if standalone != -1 else None)
+		self.application.handle_xmldecl(version, encoding, standalone, self._parser.CurrentLineNumber-1, self._parser.CurrentColumnNumber)
+
+	def handle_begindoctype(self, doctypename, systemid, publicid, has_internal_subset):
+		if publicid:
+			content = u'%s PUBLIC "%s" "%s"' % (doctypename, publicid, systemid)
+		elif systemid:
+			content = u'%s SYSTEM "%s"' % (doctypename, systemid)
+		else:
+			content = doctypename
+		self._indoctype = True
+		if self._doctype:
+			self.application.handle_doctype(content, self._parser.CurrentLineNumber-1, self._parser.CurrentColumnNumber)
+
+	def handle_enddoctype(self):
+		self._indoctype = False
+
 	def handle_default(self, data):
 		if data.startswith("&") and data.endswith(";"):
 			self.application.handle_entityref(data[1:-1], self._parser.CurrentLineNumber-1, self._parser.CurrentColumnNumber)
 
 	def handle_comment(self, data):
-		self.application.handle_comment(data, self._parser.CurrentLineNumber-1, self._parser.CurrentColumnNumber)
+		if not self._indoctype:
+			self.application.handle_comment(data, self._parser.CurrentLineNumber-1, self._parser.CurrentColumnNumber)
 
 	def handle_data(self, data):
 		self.application.handle_data(data, self._parser.CurrentLineNumber-1, self._parser.CurrentColumnNumber)
@@ -153,7 +215,8 @@ class ExpatParser(Parser):
 		self.application.handle_endtag(name, self._parser.CurrentLineNumber-1, self._parser.CurrentColumnNumber)
 
 	def handle_proc(self, target, data):
-		self.application.handle_proc(target, data, self._parser.CurrentLineNumber-1, self._parser.CurrentColumnNumber)
+		if not self._indoctype:
+			self.application.handle_proc(target, data, self._parser.CurrentLineNumber-1, self._parser.CurrentColumnNumber)
 
 	def feed(self, data, final):
 		if self._transcode:
@@ -436,7 +499,8 @@ class Builder(object):
 		__ http://effbot.org/zone/element-index.htm
 		"""
 		def toxsc(node):
-			if "Element" in type(node).__name__:
+			name = type(node).__name__
+			if "Element" in name:
 				xmlns = None
 				name = node.tag
 				if node.tag.startswith("{"):
@@ -460,11 +524,11 @@ class Builder(object):
 						newnode.append(child.tail)
 				newnode = newnode.parsed(self, start=False)
 				return newnode
-			elif "ProcessingInstruction" in type(node).__name__:
+			elif "ProcessingInstruction" in name:
 				newnode = self.pool.procinst_xml(node.target, node.text)
 				newnode = newnode.parsed(self)
 				return newnode
-			elif "Comment" in type(node).__name__:
+			elif "Comment" in name:
 				newnode = self.pool.comment(node.text)
 				newnode = newnode.parsed(self)
 				return newnode
@@ -478,6 +542,14 @@ class Builder(object):
 			pass
 
 		return toxsc(tree)
+
+	def handle_xmldecl(self, version, encoding, standalone, line, col):
+		node = xml.XML(version=version, encoding=encoding, standalone=standalone)
+		self.__appendNode(node, line, col)
+
+	def handle_doctype(self, content, line, col):
+		node = xsc.DocType(content)
+		self.__appendNode(node, line, col)
 
 	def handle_enterstarttag(self, name, line, col):
 		self._attrs = {}

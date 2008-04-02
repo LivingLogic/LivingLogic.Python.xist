@@ -195,7 +195,7 @@ else:
 
 args = dict(
 	name="ll-xist",
-	version="3.2.3",
+	version="3.2.4",
 	description="Extensible HTML/XML generator",
 	long_description=descr,
 	author="Walter Doerwald",
@@ -232,7 +232,7 @@ args = dict(
 		"scripts/xml2xsc.py",
 	],
 	install_requires=[
-		"cssutils == 0.9.5b1",
+		"cssutils == 0.9.5b2",
 	],
 	namespace_packages=["ll"],
 	zip_safe=False,

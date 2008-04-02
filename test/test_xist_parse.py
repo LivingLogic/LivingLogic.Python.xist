@@ -22,7 +22,7 @@ from xml.parsers import expat
 
 from ll import url
 from ll.xist import xsc, parsers
-from ll.xist.ns import chars, html, ihtml, specials, ruby
+from ll.xist.ns import xml, chars, html, ihtml, specials, ruby
 
 
 oldfilters = None
@@ -270,6 +270,48 @@ def test_xmlns():
 	assert isinstance(e[0], specials.z)
 	py.test.raises(xsc.IllegalElementError, parsers.parsestring, s, pool=xsc.Pool())
 
+
 def test_parseemptyattribute():
 	e = parsers.parsestring("<a target=''/>", pool=xsc.Pool(html))
 	assert "target" in e[0].attrs
+
+
+def test_expat_xmldecl():
+	e = parsers.parsestring("<?xml version='1.0' encoding='utf-8' standalone='yes'?><a/>", parser=parsers.ExpatParser())
+	assert not isinstance(e[0], xml.XML)
+
+	e = parsers.parsestring("<a/>", parser=parsers.ExpatParser(xmldecl=True))
+	assert not isinstance(e[0], xml.XML)
+
+	e = parsers.parsestring("<?xml version='1.0'?><a/>", parser=parsers.ExpatParser(xmldecl=True))
+	assert isinstance(e[0], xml.XML)
+	assert e[0].content == u'version="1.0"'
+
+	e = parsers.parsestring("<?xml version='1.0' encoding='utf-8'?><a/>", parser=parsers.ExpatParser(xmldecl=True))
+	assert isinstance(e[0], xml.XML)
+	assert e[0].content == u'version="1.0" encoding="utf-8"'
+
+	e = parsers.parsestring("<?xml version='1.0' encoding='utf-8' standalone='yes'?><a/>", parser=parsers.ExpatParser(xmldecl=True))
+	assert isinstance(e[0], xml.XML)
+	assert e[0].content == u'version="1.0" encoding="utf-8" standalone="yes"'
+
+
+def test_expat_doctype():
+	e = parsers.parsestring('<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd"><a/>', parser=parsers.ExpatParser())
+	assert not isinstance(e[0], xsc.DocType)
+
+	e = parsers.parsestring('<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd"><a/>', parser=parsers.ExpatParser(doctype=True))
+	assert isinstance(e[0], xsc.DocType)
+	assert e[0].content == html.DocTypeXHTML11().content
+
+	e = parsers.parsestring('<!DOCTYPE html><a/>', parser=parsers.ExpatParser(doctype=True))
+	assert isinstance(e[0], xsc.DocType)
+	assert e[0].content == "html"
+
+	e = parsers.parsestring('<!DOCTYPE html SYSTEM "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd"><a/>', parser=parsers.ExpatParser(doctype=True))
+	assert isinstance(e[0], xsc.DocType)
+	assert e[0].content == u'html SYSTEM "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd"'
+
+	e = parsers.parsestring('<!DOCTYPE a [<!ELEMENT a EMPTY><!--gurk-->]><a/>', parser=parsers.ExpatParser(doctype=True))
+	assert isinstance(e[0], xsc.DocType)
+	assert e[0].content == u'a' # Internal subset gets dropped
