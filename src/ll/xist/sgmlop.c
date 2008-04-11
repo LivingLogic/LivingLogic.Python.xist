@@ -1211,7 +1211,6 @@ static int
 attrparse(FastParserObject* self, const CHAR_T* p, const CHAR_T* end)
 {
     PyObject* key = NULL;
-    PyObject* value = NULL;
     const CHAR_T* q;
 
     while (p < end) {
@@ -1236,14 +1235,9 @@ attrparse(FastParserObject* self, const CHAR_T* p, const CHAR_T* end)
                 self->handle_enterattr, "O", key
                 );
             if (!res)
-                return -1;
+                goto err;
             Py_DECREF(res);
         }
-        if (self->xml)
-            value = Py_None;
-        else
-            value = key; /* in SGML mode, default is same as key */
-        Py_INCREF(value);
 
         while (p < end && ISSPACE(*p))
             p++;
@@ -1252,7 +1246,6 @@ attrparse(FastParserObject* self, const CHAR_T* p, const CHAR_T* end)
             CHAR_T quote;
             int is_entity = 0;
             /* attribute value found */
-            Py_DECREF(value);
 
             if (p < end)
                 p++;
@@ -1268,13 +1261,13 @@ attrparse(FastParserObject* self, const CHAR_T* p, const CHAR_T* end)
                 while (p < end && (quote ? (*p != quote) : !ISSPACE(*p)) && *p != '>') {
                     if (!is_entity && *p == '&') {
                         if (handle_data(self, q, p))
-                            return -1;
+                            goto err;
                         is_entity = 1;
                         q = ++p;
                     }
                     else if (is_entity && *p == ';') {
                         if (handle_entityref(self, q, p))
-                            return -1;
+                            goto err;
                         is_entity = 0;
                         q = ++p;
                     }
@@ -1283,10 +1276,10 @@ attrparse(FastParserObject* self, const CHAR_T* p, const CHAR_T* end)
                 }
                 if (is_entity) {
                     if (handle_entityref(self, q, p))
-                        return -1;
+                        goto err;
                 } else {
                     if (handle_data(self, q, p))
-                        return -1;
+                        goto err;
                 }
                 if (quote)
                     p++;
@@ -1294,12 +1287,12 @@ attrparse(FastParserObject* self, const CHAR_T* p, const CHAR_T* end)
         }
         else {
             /* No attribute value */
-            if (value != Py_None && self->handle_data) {
+            if (!self->xml && self->handle_data) {
                 PyObject* res = PyObject_CallFunction(
-                    self->handle_data, "O", value
+                    self->handle_data, "O", key
                 );
                 if (!res)
-                    return -1;
+                    goto err;
                 Py_DECREF(res);
             }
         }
@@ -1308,19 +1301,16 @@ attrparse(FastParserObject* self, const CHAR_T* p, const CHAR_T* end)
                 self->handle_leaveattr, "O", key
                 );
             if (!res)
-                return -1;
+                goto err;
             Py_DECREF(res);
         }
         Py_DECREF(key);
-        Py_DECREF(value);
         key = NULL;
-        value = NULL;
     }
 
     return 0;
 
   err:
     Py_XDECREF(key);
-    Py_XDECREF(value);
     return -1;
 }
