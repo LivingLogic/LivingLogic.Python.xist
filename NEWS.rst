@@ -1,3 +1,17 @@
+Changes in 3.2.5 (released 04/11/2008)
+--------------------------------------
+
+*	A refcounting bug in the attribute parsing code of :mod:`sgmlop` has been
+	fixed.
+
+*	The helper function :func:`cssescapereplace` has been removed, as it's no
+	longer needed.
+
+*	Pure Python versions of :func:`helpers.excapetext` and
+	:func:`helpers.excapeattr` have been added, in case the C module is not
+	available.
+
+
 Changes in 3.2.4 (released 04/02/2008)
 --------------------------------------
 
