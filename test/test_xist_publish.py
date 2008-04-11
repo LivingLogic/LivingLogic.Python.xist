@@ -179,18 +179,6 @@ def test_helpersescapeattr():
 	assert helpers.escapeattr(escape_input) == escape_output
 
 
-def test_helpercssescapereplace():
-	escape_output = []
-	for c in escape_input:
-		try:
-			c.encode("ascii")
-			escape_output.append(c)
-		except UnicodeError:
-			escape_output.append((u"\\%x" % ord(c)).upper())
-	escape_output = u"".join(escape_output)
-	assert helpers.cssescapereplace(escape_input, "ascii") == escape_output
-
-
 def test_encoding():
 	def check(encoding):
 		node = xsc.Frag(

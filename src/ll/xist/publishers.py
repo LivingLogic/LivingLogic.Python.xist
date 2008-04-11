@@ -25,16 +25,6 @@ import xsc, helpers
 __docformat__ = "reStructuredText"
 
 
-def cssescapereplace(exc):
-	"""
-	:pep:`293` codec callback that escapes unencodable characters for CSS output.
-	"""
-	if not isinstance(exc, UnicodeEncodeError):
-		raise TypeError("don't know how to handle %r" % exc)
-	return (helpers.cssescapereplace(exc.object[exc.start:exc.end], exc.encoding), exc.end)
-codecs.register_error("cssescapereplace", cssescapereplace)
-
-
 class Publisher(object):
 	"""
 	A :class:`Publisher` object is used for serializing an XIST tree into a byte
