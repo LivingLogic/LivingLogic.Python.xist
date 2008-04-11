@@ -27,7 +27,7 @@ __docformat__ = "reStructuredText"
 
 def cssescapereplace(exc):
 	"""
-	:pep:`293` codec callback that escapes unencodable character for CSS output.
+	:pep:`293` codec callback that escapes unencodable characters for CSS output.
 	"""
 	if not isinstance(exc, UnicodeEncodeError):
 		raise TypeError("don't know how to handle %r" % exc)
