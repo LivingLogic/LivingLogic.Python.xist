@@ -1998,7 +1998,7 @@ class Attr(Frag):
 		publisher.inattr += 1
 		yield publisher.encode(self._publishname(publisher)) # publish the XML name, not the Python name
 		yield publisher.encode(u"=\"")
-		publisher.pushtextfilter(helpers.escapeattr)
+		publisher.pushtextfilter(misc.xmlescape)
 		for part in self._publishattrvalue(publisher):
 			yield part
 		publisher.poptextfilter()
@@ -2068,7 +2068,7 @@ class BoolAttr(Attr):
 		yield publisher.encode(name) # publish the XML name, not the Python name
 		if publisher.xhtml>0:
 			yield publisher.encode(u"=\"")
-			publisher.pushtextfilter(helpers.escapeattr)
+			publisher.pushtextfilter(misc.xmlescape)
 			yield publisher.encode(name)
 			publisher.poptextfilter()
 			yield publisher.encode(u"\"")
@@ -3355,7 +3355,7 @@ class CharRef(Text, Entity):
 		return Text(self.content.upper())
 
 
-import publishers, converters, helpers
+import publishers, converters
 
 
 ###

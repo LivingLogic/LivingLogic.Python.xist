@@ -19,7 +19,7 @@ import sys, codecs
 from ll import misc, url
 from ll import xml_codec # registers the "xml" encoding
 
-import xsc, helpers
+import xsc
 
 
 __docformat__ = "reStructuredText"
@@ -283,7 +283,7 @@ class Publisher(object):
 			self._publishxmlns = True
 
 		self.inattr = 0
-		self.__textfilters = [ helpers.escapetext ]
+		self.__textfilters = [ misc.xmlescape ]
 
 		self.__errors = [ "xmlcharrefreplace" ]
 
@@ -299,7 +299,7 @@ class Publisher(object):
 			yield rest
 	
 		self.inattr = 0
-		self.__textfilters = [ helpers.escapetext ]
+		self.__textfilters = [ misc.xmlescape ]
 
 		self.__errors = [ "xmlcharrefreplace" ]
 

@@ -1,3 +1,17 @@
+Changes in 3.2.6 (released 05/07/2008)
+--------------------------------------
+
+*	A new action class :class:`EvalAction` has been added to :mod:`ll.make`.
+
+*	:func:`ll.xist.helpers.escapetext` and :func:`ll.xist.helpers.escapeattr`
+	have been merged into one function that escapes all special characters
+	(including ``'`` and ``"``) and has been renamed/moved to
+	:func:`ll.misc.xmlescape`.
+
+*	Python versions of all the functions in the module :mod:`ll.misc` have been
+	added that will be used, in case the C module is not available.
+
+
 Changes in 3.2.5 (released 04/11/2008)
 --------------------------------------
 
@@ -8,7 +22,7 @@ Changes in 3.2.5 (released 04/11/2008)
 	longer needed.
 
 *	Pure Python versions of :func:`helpers.excapetext` and
-	:func:`helpers.excapeattr` have been added, in case the C module is not
+	:func:`helpers.escapeattr` have been added, in case the C module is not
 	available.
 
 

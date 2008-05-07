@@ -9,15 +9,8 @@
 ## See xist/__init__.py for the license
 
 
-import sys, re
-
-from ll.xist import xsc, helpers, parsers
+from ll.xist import xsc, parsers
 from ll.xist.ns import html, xml, php, abbr, xlink, specials, struts_html
-
-
-# The following includes \x00 in addition to those characters defined in
-# http://www.w3.org/TR/2004/REC-xml11-20040204/#NT-RestrictedChar
-restrictedchars = re.compile(u"[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F-\x84\x86-\x9F]")
 
 
 def test_publishelement():
@@ -133,50 +126,11 @@ def test_publishempty():
 
 
 def test_publishescaped():
-	s = u"""<&'"\xff>"""
+	s = u"""\x04<&'"\xff>"""
 	node = xsc.Text(s)
-	assert node.bytes(encoding="ascii") == """&lt;&amp;'"&#255;&gt;"""
+	assert node.bytes(encoding="ascii") == """&#4;&lt;&amp;&apos;&quot;&#255;&gt;"""
 	node = html.span(class_=s)
-	assert node.bytes(encoding="ascii", xhtml=2) == """<span class="&lt;&amp;'&quot;&#255;&gt;"/>"""
-
-
-escape_input = u"".join([unichr(i) for i in xrange(1000)] + [unichr(i) for i in xrange(sys.maxunicode-10, sys.maxunicode+1)])
-
-
-def test_helpersescapetext():
-	escape_output = []
-	for c in escape_input:
-		if c==u"&":
-			escape_output.append(u"&amp;")
-		elif c==u"<":
-			escape_output.append(u"&lt;")
-		elif c==u">":
-			escape_output.append(u"&gt;")
-		elif restrictedchars.match(c) is not None:
-			escape_output.append(u"&#%d;" % ord(c))
-		else:
-			escape_output.append(c)
-	escape_output = "".join(escape_output)
-	assert helpers.escapetext(escape_input) == escape_output
-
-
-def test_helpersescapeattr():
-	escape_output = []
-	for c in escape_input:
-		if c==u"&":
-			escape_output.append(u"&amp;")
-		elif c==u"<":
-			escape_output.append(u"&lt;")
-		elif c==u">":
-			escape_output.append(u"&gt;")
-		elif c==u'"':
-			escape_output.append(u"&quot;")
-		elif restrictedchars.match(c) is not None:
-			escape_output.append(u"&#%d;" % ord(c))
-		else:
-			escape_output.append(c)
-	escape_output = "".join(escape_output)
-	assert helpers.escapeattr(escape_input) == escape_output
+	assert node.bytes(encoding="ascii", xhtml=2) == """<span class="&#4;&lt;&amp;&apos;&quot;&#255;&gt;"/>"""
 
 
 def test_encoding():

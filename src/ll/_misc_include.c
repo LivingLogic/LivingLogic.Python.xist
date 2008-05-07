@@ -4,12 +4,12 @@
 **
 ** All Rights Reserved
 **
-** See xist/__init__.py for the license
+** See __init__.py for the license
 */
 
 
 #ifdef STRINGLIB_NAME
-static PyObject *STRINGLIB_NAME(PyObject *str, Py_ssize_t inattr)
+static PyObject *STRINGLIB_NAME(PyObject *str)
 {
 	Py_ssize_t i;
 	Py_ssize_t oldsize;
@@ -25,8 +25,10 @@ static PyObject *STRINGLIB_NAME(PyObject *str, Py_ssize_t inattr)
 			newsize += 4; /* &gt; */
 		else if (ch == (STRINGLIB_CHAR)'&')
 			newsize += 5; /* &amp; */
-		else if ((ch == (STRINGLIB_CHAR)'"') && inattr)
+		else if ((ch == (STRINGLIB_CHAR)'"'))
 			newsize += 6; /* &quot; */
+		else if ((ch == (STRINGLIB_CHAR)'\''))
+			newsize += 6; /* &apos; */
 		else if (ch <= 0x8)
 			newsize += 4;
 		else if ((ch >= 0xB) && (ch <= 0x1F) && (ch != 0xD))
@@ -74,13 +76,22 @@ static PyObject *STRINGLIB_NAME(PyObject *str, Py_ssize_t inattr)
 				*p++ = (STRINGLIB_CHAR)'p';
 				*p++ = (STRINGLIB_CHAR)';';
 			}
-			else if ((ch == (STRINGLIB_CHAR)'"') && inattr)
+			else if ((ch == (STRINGLIB_CHAR)'"'))
 			{
 				*p++ = (STRINGLIB_CHAR)'&';
 				*p++ = (STRINGLIB_CHAR)'q';
 				*p++ = (STRINGLIB_CHAR)'u';
 				*p++ = (STRINGLIB_CHAR)'o';
 				*p++ = (STRINGLIB_CHAR)'t';
+				*p++ = (STRINGLIB_CHAR)';';
+			}
+			else if ((ch == (STRINGLIB_CHAR)'\''))
+			{
+				*p++ = (STRINGLIB_CHAR)'&';
+				*p++ = (STRINGLIB_CHAR)'a';
+				*p++ = (STRINGLIB_CHAR)'p';
+				*p++ = (STRINGLIB_CHAR)'o';
+				*p++ = (STRINGLIB_CHAR)'s';
 				*p++ = (STRINGLIB_CHAR)';';
 			}
 			else if (ch <= 0x8)

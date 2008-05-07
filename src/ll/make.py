@@ -1081,6 +1081,17 @@ class EncodeAction(PipeAction):
 		return "<%s.%s object encoding=%r at 0x%x>" % (self.__class__.__module__, self.__class__.__name__, self.encoding, id(self))
 
 
+class EvalAction(PipeAction):
+	"""
+	This action evaluates an input string and returns the resulting output
+	object.
+	"""
+
+	def execute(self, project, data):
+		project.writestep(self, "Evaluating input")
+		return eval(input)
+
+
 class TOXICAction(PipeAction):
 	"""
 	This action transforms an XML string into an Oracle procedure body via the
