@@ -283,7 +283,7 @@ class Publisher(object):
 			self._publishxmlns = True
 
 		self.inattr = 0
-		self.__textfilters = [ misc.xmlescape ]
+		self.__textfilters = [ misc.xmlescape_text ]
 
 		self.__errors = [ "xmlcharrefreplace" ]
 
@@ -299,7 +299,7 @@ class Publisher(object):
 			yield rest
 	
 		self.inattr = 0
-		self.__textfilters = [ misc.xmlescape ]
+		self.__textfilters = [ misc.xmlescape_text ]
 
 		self.__errors = [ "xmlcharrefreplace" ]
 

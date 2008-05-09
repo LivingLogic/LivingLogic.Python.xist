@@ -43,15 +43,15 @@
 #undef STRINGLIB_STR
 
 
-static PyObject *xmlescape(PyObject *self, PyObject *arg)
+static PyObject *_xmlescape(PyObject *arg, int doquot, int doapos)
 {
 	if (PyUnicode_Check(arg))
 	{
-		return xmlescape_unicode(arg);
+		return xmlescape_unicode(arg, doquot, doapos);
 	}
 	else if (PyString_Check(arg))
 	{
-		return xmlescape_str(arg);
+		return xmlescape_str(arg, doquot, doapos);
 	}
 	else
 	{
@@ -60,11 +60,40 @@ static PyObject *xmlescape(PyObject *self, PyObject *arg)
 	}
 }
 
+static PyObject *xmlescape(PyObject *self, PyObject *arg)
+{
+	return _xmlescape(arg, 1, 1);
+}
+
 
 static char xmlescape_doc[] =
 "Return a copy of the argument string, where every occurrence of ``<``, ``>``,\n\
 ``&``, ``\"``, ``'`` and every restricted character has been replaced with\n\
 their XML character entity or character reference.";
+
+
+static PyObject *xmlescape_text(PyObject *self, PyObject *arg)
+{
+	return _xmlescape(arg, 0, 0);
+}
+
+
+static char xmlescape_text_doc[] =
+"Return a copy of the argument string, where every occurrence of ``<``, ``>``,\n\
+``&`` and every restricted character has been replaced with their XML character\n\
+entity or character reference.";
+
+
+static PyObject *xmlescape_attr(PyObject *self, PyObject *arg)
+{
+	return _xmlescape(arg, 1, 0);
+}
+
+
+static char xmlescape_attr_doc[] =
+"Return a copy of the argument string, where every occurrence of ``<``, ``>``,\n\
+``&``, , ``\"`` and every restricted character has been replaced with their\n\
+XML character entity or character reference.";
 
 
 static PyObject *item(PyObject *self, PyObject *args)
@@ -312,17 +341,20 @@ will exhaust the iterator.");
 
 
 static PyMethodDef _functions[] = {
-	{"item",      (PyCFunction)item,      METH_VARARGS, item_doc},
-	{"first",     (PyCFunction)first,     METH_VARARGS, first_doc},
-	{"last",      (PyCFunction)last,      METH_VARARGS, last_doc},
-	{"count",     (PyCFunction)count,     METH_O,       count_doc},
-	{"xmlescape", (PyCFunction)xmlescape, METH_O,       xmlescape_doc},
+	{"item",           (PyCFunction)item,      METH_VARARGS,      item_doc},
+	{"first",          (PyCFunction)first,     METH_VARARGS,      first_doc},
+	{"last",           (PyCFunction)last,      METH_VARARGS,      last_doc},
+	{"count",          (PyCFunction)count,     METH_O,            count_doc},
+	{"xmlescape",      (PyCFunction)xmlescape, METH_O,            xmlescape_doc},
+	{"xmlescape_text", (PyCFunction)xmlescape_text, METH_O,       xmlescape_text_doc},
+	{"xmlescape_attr", (PyCFunction)xmlescape_attr, METH_O,       xmlescape_attr_doc},
 	{NULL,     NULL} /* sentinel */
 };
 
 static char module__doc__[] =
 "This module contains the functions :func:`item` :func:`first`, :func:`last`\n\
-:func:`count` and :func:`xmlescape`";
+:func:`count`, :func:`xmlescape`, :func:`xmlescape_text` and\n\
+:func:`xmlescape_attr`";
 
 
 PyMODINIT_FUNC

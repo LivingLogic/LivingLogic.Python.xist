@@ -128,9 +128,9 @@ def test_publishempty():
 def test_publishescaped():
 	s = u"""\x04<&'"\xff>"""
 	node = xsc.Text(s)
-	assert node.bytes(encoding="ascii") == """&#4;&lt;&amp;&apos;&quot;&#255;&gt;"""
+	assert node.bytes(encoding="ascii") == """&#4;&lt;&amp;'"&#255;&gt;"""
 	node = html.span(class_=s)
-	assert node.bytes(encoding="ascii", xhtml=2) == """<span class="&#4;&lt;&amp;&apos;&quot;&#255;&gt;"/>"""
+	assert node.bytes(encoding="ascii", xhtml=2) == """<span class="&#4;&lt;&amp;'&quot;&#255;&gt;"/>"""
 
 
 def test_encoding():

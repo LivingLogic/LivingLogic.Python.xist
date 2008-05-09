@@ -1,3 +1,12 @@
+Changes in 3.2.7 (released ??/??/2008)
+--------------------------------------
+
+*	:func:`ll.misc.xmlescape` now escapes ``'`` as ``&#39;`` for IE compatibility.
+
+*	Functions :func:`ll.misc.xmlescape_text` and :func:`ll.misc.xmlescape_attr`
+	have been added that implement the functionality from XIST 3.2.5 and earlier.
+
+
 Changes in 3.2.6 (released 05/07/2008)
 --------------------------------------
 

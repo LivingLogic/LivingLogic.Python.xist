@@ -9,7 +9,7 @@
 
 
 #ifdef STRINGLIB_NAME
-static PyObject *STRINGLIB_NAME(PyObject *str)
+static PyObject *STRINGLIB_NAME(PyObject *str, int doquot, int doapos)
 {
 	Py_ssize_t i;
 	Py_ssize_t oldsize;
@@ -25,10 +25,10 @@ static PyObject *STRINGLIB_NAME(PyObject *str)
 			newsize += 4; /* &gt; */
 		else if (ch == (STRINGLIB_CHAR)'&')
 			newsize += 5; /* &amp; */
-		else if ((ch == (STRINGLIB_CHAR)'"'))
+		else if ((ch == (STRINGLIB_CHAR)'"') && doquot)
 			newsize += 6; /* &quot; */
-		else if ((ch == (STRINGLIB_CHAR)'\''))
-			newsize += 6; /* &apos; */
+		else if ((ch == (STRINGLIB_CHAR)'\'') && doapos)
+			newsize += 5; /* &#39; */
 		else if (ch <= 0x8)
 			newsize += 4;
 		else if ((ch >= 0xB) && (ch <= 0x1F) && (ch != 0xD))
@@ -76,7 +76,7 @@ static PyObject *STRINGLIB_NAME(PyObject *str)
 				*p++ = (STRINGLIB_CHAR)'p';
 				*p++ = (STRINGLIB_CHAR)';';
 			}
-			else if ((ch == (STRINGLIB_CHAR)'"'))
+			else if ((ch == (STRINGLIB_CHAR)'"') && doquot)
 			{
 				*p++ = (STRINGLIB_CHAR)'&';
 				*p++ = (STRINGLIB_CHAR)'q';
@@ -85,13 +85,12 @@ static PyObject *STRINGLIB_NAME(PyObject *str)
 				*p++ = (STRINGLIB_CHAR)'t';
 				*p++ = (STRINGLIB_CHAR)';';
 			}
-			else if ((ch == (STRINGLIB_CHAR)'\''))
+			else if ((ch == (STRINGLIB_CHAR)'\'') && doapos)
 			{
 				*p++ = (STRINGLIB_CHAR)'&';
-				*p++ = (STRINGLIB_CHAR)'a';
-				*p++ = (STRINGLIB_CHAR)'p';
-				*p++ = (STRINGLIB_CHAR)'o';
-				*p++ = (STRINGLIB_CHAR)'s';
+				*p++ = (STRINGLIB_CHAR)'#';
+				*p++ = (STRINGLIB_CHAR)'3';
+				*p++ = (STRINGLIB_CHAR)'9';
 				*p++ = (STRINGLIB_CHAR)';';
 			}
 			else if (ch <= 0x8)
