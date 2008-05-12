@@ -86,6 +86,10 @@ Topic :: Internet
 Topic :: Internet :: File Transfer Protocol (FTP)
 Topic :: Internet :: WWW/HTTP
 
+# sxtl
+Topic :: Internet :: WWW/HTTP :: Dynamic Content
+Topic :: Text Processing :: General
+
 # xpit
 Topic :: Text Processing :: Filters
 
