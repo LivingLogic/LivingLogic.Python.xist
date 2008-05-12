@@ -6,7 +6,7 @@
 ##
 ## All Rights Reserved
 ##
-## See xist/__init__.py for the license
+## See ll/__init__.py for the license
 
 
 import types, cStringIO

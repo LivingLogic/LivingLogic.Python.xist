@@ -4,7 +4,7 @@
 **
 ** All Rights Reserved
 **
-** See __init__.py for the license
+** See ll/__init__.py for the license
 */
 
 #ifdef STRINGLIB_CHAR
