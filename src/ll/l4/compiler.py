@@ -496,96 +496,6 @@ class Template(object):
 		self.source = None
 		self.opcodes = None
 
-	def __iter__(self):
-		return iter(self.opcodes)
-
-	@classmethod
-	def _tokenize(cls, source, startdelim, enddelim):
-		pattern = u"%s(print|code|for|if|elif|else|end)(\s*(.*?)\s*)?%s" % (re.escape(startdelim), re.escape(enddelim))
-		pos = 0
-		for match in re.finditer(pattern, source):
-			if match.start() != pos:
-				yield Location(source, None, pos, match.start(), pos, match.start())
-			yield Location(source, source[match.start(1):match.end(1)], match.start(), match.end(), match.start(3), match.end(3))
-			pos = match.end()
-		end = len(source)
-		if pos != end:
-			yield Location(source, None, pos, end, pos, end)
-
-	@classmethod
-	def _compile(cls, string, startdelim, enddelim):
-		# This stack stores for each nested for/foritem/if/elif/else the following information:
-		# 1) Which construct we're in (i.e. "if" or "for")
-		# For ifs:
-		# 2) How many if's or elif's we have seen (this is used for simulating elif's via nested if's, for each additional elif, we have one more endif to add)
-		# 3) Whether we've already seen the else
-		stack = []
-		for location in cls._tokenize(string, startdelim, enddelim):
-			try:
-				if location.type is None:
-					yield Opcode(None, location=location)
-				elif location.type == "print":
-					for (r, op) in parseexpr(location):
-						yield op
-					yield Opcode("print", r1=r, location=location)
-				elif location.type == "code":
-					for (r, op) in parsestmt(location):
-						yield op
-				elif location.type == "if":
-					for (r, op) in parseexpr(location):
-						yield op
-					yield Opcode("if", r1=r, location=location)
-					stack.append(("if", 1, False))
-				elif location.type == "elif":
-					if not stack or stack[-1][0] != "if":
-						raise BlockError("elif doesn't match any if")
-					elif stack[-1][2]:
-						raise BlockError("else already seen in elif")
-					yield Opcode("else", location=location)
-					for (r, op) in parseexpr(location):
-						yield op
-					yield Opcode("if", r1=r, location=location)
-					stack[-1] = ("if", stack[-1][1]+1, False)
-				elif location.type == "else":
-					if not stack or stack[-1][0] != "if":
-						raise BlockError("else doesn't match any if")
-					elif stack[-1][2]:
-						raise BlockError("duplicate else")
-					yield Opcode("else", location=location)
-					stack[-1] = ("if", stack[-1][1], True)
-				elif location.type == "end":
-					if not stack:
-						raise BlockError("not in any block")
-					code = location.code
-					if code:
-						if code == "if":
-							if stack[-1][0] != "if":
-								raise BlockError("endif doesn't match any if")
-						elif code == "for":
-							if stack[-1][0] != "for":
-								raise BlockError("endfor doesn't match any for")
-						else:
-							raise BlockError("illegal end value %r" % code)
-					last = stack.pop()
-					if last[0] == "if":
-						for i in xrange(last[1]):
-							yield Opcode("endif", location=location)
-					else: # last[0] == "for":
-						yield Opcode("endfor", location=location)
-				elif location.type == "for":
-					for (r, op) in parsefor(location):
-						yield op
-					stack.append(("for",))
-				else: # Can't happen
-					raise ValueError("unknown tag %r" % location.type)
-			except Error, exc:
-				exc.decorate(location)
-				raise
-			except Exception, exc:
-				raise
-				raise Error(exc).decorate(location)
-		if stack:
-			raise BlockError("unclosed blocks")
 
 	@classmethod
 	def fromsrc(cls, source, startdelim="<?", enddelim="?>"):
@@ -721,6 +631,9 @@ class Template(object):
 			stream.write(u"\n")
 		return stream.getvalue().encode("utf-8")
 
+	def __iter__(self):
+		return iter(self.opcodes)
+
 	def format(self, indent="\t"):
 		"""
 		Format the list of opcodes. This is a generator yielding lines to be output
@@ -741,6 +654,94 @@ class Template(object):
 				yield "%s%s" % (i*indent, opcode)
 			if opcode.code in ("for", "if", "else"):
 				i += 1
+
+	@classmethod
+	def _tokenize(cls, source, startdelim, enddelim):
+		pattern = u"%s(print|code|for|if|elif|else|end)(\s*(.*?)\s*)?%s" % (re.escape(startdelim), re.escape(enddelim))
+		pos = 0
+		for match in re.finditer(pattern, source):
+			if match.start() != pos:
+				yield Location(source, None, pos, match.start(), pos, match.start())
+			yield Location(source, source[match.start(1):match.end(1)], match.start(), match.end(), match.start(3), match.end(3))
+			pos = match.end()
+		end = len(source)
+		if pos != end:
+			yield Location(source, None, pos, end, pos, end)
+
+	@classmethod
+	def _compile(cls, string, startdelim, enddelim):
+		# This stack stores for each nested for/foritem/if/elif/else the following information:
+		# 1) Which construct we're in (i.e. "if" or "for")
+		# For ifs:
+		# 2) How many if's or elif's we have seen (this is used for simulating elif's via nested if's, for each additional elif, we have one more endif to add)
+		# 3) Whether we've already seen the else
+		stack = []
+		for location in cls._tokenize(string, startdelim, enddelim):
+			try:
+				if location.type is None:
+					yield Opcode(None, location=location)
+				elif location.type == "print":
+					for (r, op) in parseexpr(location):
+						yield op
+					yield Opcode("print", r1=r, location=location)
+				elif location.type == "code":
+					for (r, op) in parsestmt(location):
+						yield op
+				elif location.type == "if":
+					for (r, op) in parseexpr(location):
+						yield op
+					yield Opcode("if", r1=r, location=location)
+					stack.append(("if", 1, False))
+				elif location.type == "elif":
+					if not stack or stack[-1][0] != "if":
+						raise BlockError("elif doesn't match any if")
+					elif stack[-1][2]:
+						raise BlockError("else already seen in elif")
+					yield Opcode("else", location=location)
+					for (r, op) in parseexpr(location):
+						yield op
+					yield Opcode("if", r1=r, location=location)
+					stack[-1] = ("if", stack[-1][1]+1, False)
+				elif location.type == "else":
+					if not stack or stack[-1][0] != "if":
+						raise BlockError("else doesn't match any if")
+					elif stack[-1][2]:
+						raise BlockError("duplicate else")
+					yield Opcode("else", location=location)
+					stack[-1] = ("if", stack[-1][1], True)
+				elif location.type == "end":
+					if not stack:
+						raise BlockError("not in any block")
+					code = location.code
+					if code:
+						if code == "if":
+							if stack[-1][0] != "if":
+								raise BlockError("endif doesn't match any if")
+						elif code == "for":
+							if stack[-1][0] != "for":
+								raise BlockError("endfor doesn't match any for")
+						else:
+							raise BlockError("illegal end value %r" % code)
+					last = stack.pop()
+					if last[0] == "if":
+						for i in xrange(last[1]):
+							yield Opcode("endif", location=location)
+					else: # last[0] == "for":
+						yield Opcode("endfor", location=location)
+				elif location.type == "for":
+					for (r, op) in parsefor(location):
+						yield op
+					stack.append(("for",))
+				else: # Can't happen
+					raise ValueError("unknown tag %r" % location.type)
+			except Error, exc:
+				exc.decorate(location)
+				raise
+			except Exception, exc:
+				raise
+				raise Error(exc).decorate(location)
+		if stack:
+			raise BlockError("unclosed blocks")
 
 	def __str__(self):
 		return "\n".join(self.format())
