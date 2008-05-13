@@ -450,7 +450,7 @@ class Location(object):
 		else:
 			line = 1
 			col = self.starttag + 1
-		return "%s at %d (line %d, col %d)" % (self.tag, self.starttag+1, line, col)
+		return "%r at %d (line %d, col %d)" % (self.tag, self.starttag+1, line, col)
 
 
 ###
