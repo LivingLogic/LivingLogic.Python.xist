@@ -1801,7 +1801,7 @@ class CallMeth(AST):
 
 class Scanner(spark.GenericScanner):
 	def __init__(self):
-		spark.GenericScanner.__init__(self, re.UNICODE, "normal")
+		spark.GenericScanner.__init__(self, re.UNICODE)
 		self.collectstr = []
 
 	def tokenize(self, location):
@@ -1818,53 +1818,53 @@ class Scanner(spark.GenericScanner):
 			raise Error(exc).decorate(location)
 		return self.rv
 
-	@spark.token("in|not|or|and|\\(|\\)|\\[|\\]|\\.|,|==|\\!=|=|\\+=|\\-=|\\*=|/=|//=|%=|%|:|\\+|-|\\*|/|//", "normal")
+	@spark.token("in|not|or|and|\\(|\\)|\\[|\\]|\\.|,|==|\\!=|=|\\+=|\\-=|\\*=|/=|//=|%=|%|:|\\+|-|\\*|/|//", "default")
 	def token(self, s):
 		self.rv.append(Token(s))
 
-	@spark.token("None", "normal")
+	@spark.token("None", "default")
 	def none(self, s):
 		self.rv.append(None_())
 
-	@spark.token("True", "normal")
+	@spark.token("True", "default")
 	def true(self, s):
 		self.rv.append(True_())
 
-	@spark.token("False", "normal")
+	@spark.token("False", "default")
 	def false(self, s):
 		self.rv.append(False_())
 
-	@spark.token("[a-zA-Z_][\\w]*", "normal")
+	@spark.token("[a-zA-Z_][\\w]*", "default")
 	def name(self, s):
 		self.rv.append(Name(s))
 
 	# We don't have negatve numbers, this is handled by constant folding in the AST for unary minus
-	@spark.token("\\d+\\.\\d*([eE][+-]?\\d+)?", "normal")
-	@spark.token("\\d+(\\.\\d*)?[eE][+-]?\\d+", "normal")
+	@spark.token("\\d+\\.\\d*([eE][+-]?\\d+)?", "default")
+	@spark.token("\\d+(\\.\\d*)?[eE][+-]?\\d+", "default")
 	def float(self, s):
 		self.rv.append(Float(float(s)))
 
-	@spark.token("0[xX][\\da-fA-F]+", "normal")
+	@spark.token("0[xX][\\da-fA-F]+", "default")
 	def hexint(self, s):
 		self.rv.append(Int(int(s[2:], 16)))
 
-	@spark.token("0[oO][0-7]+", "normal")
+	@spark.token("0[oO][0-7]+", "default")
 	def octint(self, s):
 		self.rv.append(Int(int(s[2:], 8)))
 
-	@spark.token("0[bB][01]+", "normal")
+	@spark.token("0[bB][01]+", "default")
 	def binint(self, s):
 		self.rv.append(Int(int(s[2:], 2)))
 
-	@spark.token("\\d+", "normal")
+	@spark.token("\\d+", "default")
 	def int(self, s):
 		self.rv.append(Int(int(s)))
 
-	@spark.token("'", "normal")
+	@spark.token("'", "default")
 	def beginstr1(self, s):
 		self.mode = "str1"
 
-	@spark.token('"', "normal")
+	@spark.token('"', "default")
 	def beginstr2(self, s):
 		self.mode = "str2"
 
@@ -1875,7 +1875,7 @@ class Scanner(spark.GenericScanner):
 		self.collectstr = []
 		self.mode = "normal"
 
-	@spark.token("\\s+", "normal")
+	@spark.token("\\s+", "default")
 	def whitespace(self, s):
 		pass
 
@@ -1938,7 +1938,7 @@ class Scanner(spark.GenericScanner):
 	def error(self, s, pos):
 		raise LexicalError(s)
 
-	@spark.token("(.|\\n)+")
+	@spark.token("(.|\\n)+", "default", "str1", "str2")
 	def default(self, s):
 		raise LexicalError(s)
 

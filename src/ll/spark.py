@@ -56,8 +56,8 @@ def _sparknames(instance):
 
 
 class GenericScanner(object):
-	def __init__(self, flags=0, mode=None):
-		self.mode = mode
+	def __init__(self, flags=0):
+		self.mode = "default"
 		self.res = {}
 		for (mode, patterns) in self.reflect().iteritems():
 			pattern = re.compile('|'.join(patterns), re.VERBOSE|flags)
@@ -88,6 +88,7 @@ class GenericScanner(object):
 	def tokenize(self, s):
 		self.string = s
 		self.pos = 0
+		self.mode = "default"
 		n = len(s)
 		while self.pos < n:
 			(pattern, index2func) = self.res[self.mode]
