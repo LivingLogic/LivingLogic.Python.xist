@@ -69,10 +69,10 @@ class GenericScanner(object):
 		for name in _sparknames(self):
 			func = getattr(self, name)
 			for (mode, patterns) in func.spark.iteritems():
-					pattern = '(?P<%s>%s)' % (name, '|'.join(patterns))
-					if mode not in res:
-						res[mode] = []
-					res[mode].append(pattern)
+				pattern = '(?P<%s>%s)' % (name, '|'.join(patterns))
+				if mode not in res:
+					res[mode] = []
+				res[mode].append(pattern)
 		return res
 
 	def error(self, s, pos):
