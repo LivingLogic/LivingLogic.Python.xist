@@ -496,7 +496,6 @@ class Template(object):
 		self.source = None
 		self.opcodes = None
 
-
 	@classmethod
 	def fromsrc(cls, source, startdelim="<?", enddelim="?>"):
 		self = cls()
