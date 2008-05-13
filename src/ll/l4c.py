@@ -1021,7 +1021,7 @@ class Template(object):
 			self._indent += 1
 		yield self._code("import sys")
 		yield self._code("from ll.misc import xmlescape")
-		yield self._code("from ll.l4 import compiler")
+		yield self._code("from ll import l4c")
 		yield self._code("variables = dict(data=data)")
 		yield self._code("source = %r" % self.source)
 		yield self._code("locations = %r" % (tuple((oc.location.type, oc.location.starttag, oc.location.endtag, oc.location.startcode, oc.location.endcode) for oc in self.opcodes),))
@@ -1116,7 +1116,7 @@ class Template(object):
 				elif opcode.code == "mod":
 					yield self._code("reg%d = reg%d %% reg%d" % (opcode.r1, opcode.r2, opcode.r3))
 				elif opcode.code == "callfunc0":
-					raise compiler.UnknownFunctionError(opcode.arg)
+					raise l4c.UnknownFunctionError(opcode.arg)
 				elif opcode.code == "callfunc1":
 					if opcode.arg == "xmlescape":
 						yield self._code("reg%d = xmlescape(reg%d)" % (opcode.r1, opcode.r2))
@@ -1155,31 +1155,31 @@ class Template(object):
 					elif opcode.arg == "bin":
 						yield self._code('reg%d = "0b" + ("".join("1" if reg%d & 1<<i else "0" for i in xrange(100)).rstrip("0"))[::-1]' % (opcode.r1, opcode.r2))
 					else:
-						raise compiler.UnknownFunctionError(opcode.arg)
+						raise UnknownFunctionError(opcode.arg)
 				elif opcode.code == "callfunc2":
-					raise compiler.UnknownFunctionError(opcode.arg)
+					raise UnknownFunctionError(opcode.arg)
 				elif opcode.code == "callmeth0":
 					if opcode.arg in ("split", "rsplit", "strip", "lstrip", "rstrip", "upper", "lower"):
 						yield self._code("reg%d = reg%d.%s()" % (opcode.r1, opcode.r2, opcode.arg))
 					elif opcode.arg == "items":
 						yield self._code("reg%d = reg%d.iteritems()" % (opcode.r1, opcode.r2))
 					else:
-						raise compiler.UnknownMethodError(opcode.arg)
+						raise UnknownMethodError(opcode.arg)
 				elif opcode.code == "callmeth1":
 					if opcode.arg in ("split", "rsplit", "strip", "lstrip", "rstrip", "startswith", "endswith", "find"):
 						yield self._code("reg%d = reg%d.%s(reg%d)" % (opcode.r1, opcode.r2, opcode.arg, opcode.r3))
 					else:
-						raise compiler.UnknownMethodError(opcode.arg)
+						raise UnknownMethodError(opcode.arg)
 				elif opcode.code == "callmeth2":
 					if opcode.arg in ("split", "rsplit", "find"):
 						yield self._code("reg%d = reg%d.%s(reg%d, reg%d)" % (opcode.r1, opcode.r2, opcode.arg, opcode.r3, opcode.r4))
 					else:
-						raise compiler.UnknownMethodError(opcode.arg)
+						raise UnknownMethodError(opcode.arg)
 				elif opcode.code == "callmeth3":
 					if opcode.arg == "find":
 						yield self._code("reg%d = reg%d.%s(reg%d, reg%d, reg%d)" % (opcode.r1, opcode.r2, opcode.arg, opcode.r3, opcode.r4, opcode.r5))
 					else:
-						raise compiler.UnknownMethodError(opcode.arg)
+						raise UnknownMethodError(opcode.arg)
 				elif opcode.code == "if":
 					yield self._code("if reg%d:" % opcode.r1)
 					self._indent += 1
@@ -1191,22 +1191,22 @@ class Template(object):
 					self._indent -= 1
 					yield self._code("# end if")
 				else:
-					raise compiler.UnknownOpcodeError(opcode.code)
-		except compiler.Error, exc:
+					raise UnknownOpcodeError(opcode.code)
+		except Error, exc:
 			exc.decorate(opcode.location)
 			raise
 		except Exception, exc:
-			raise compiler.Error(exc).decorate(opcode.location)
+			raise Error(exc).decorate(opcode.location)
 		self._indent -= 1
-		buildloc = "compiler.Location(source, *locations[sys.exc_info()[2].tb_lineno-startline])"
-		yield self._code("except compiler.Error, exc:")
+		buildloc = "l4c.Location(source, *locations[sys.exc_info()[2].tb_lineno-startline])"
+		yield self._code("except l4c.Error, exc:")
 		self._indent += 1
 		yield self._code("exc.decorate(%s)" % buildloc)
 		yield self._code("raise")
 		self._indent -= 1
 		yield self._code("except Exception, exc:")
 		self._indent += 1
-		yield self._code("raise compiler.Error(exc).decorate(%s)" % buildloc)
+		yield self._code("raise l4c.Error(exc).decorate(%s)" % buildloc)
 
 	def pythonfunction(self):
 		if self._pythonfunction is None:
