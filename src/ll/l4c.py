@@ -10,9 +10,387 @@
 
 from __future__ import division
 
+"""
+:mod:`ll.l4c` provides templating for XML/HTML as well as any other text-based
+format. A template defines placeholders for data output and basic logic (like
+loops and conditional blocks), that define how the final rendered output will
+look.
+
+:mod:`ll.l4` compiles a template to a bytecode format, which makes it possible
+to implement renderers for these templates in multiple programming languages.
+
+
+Data objects
+============
+
+To render a template the renderer gets passed a data object. What :mod:`ll.l4`
+supports in this data object is very similar to what JSON_ supports.
+
+	.. _JSON: http://www.json.org/
+
+Supported types are:
+
+	*	strings
+	*	integers
+	*	floats
+	*	The "null" value (``None``)
+	*	boolean values (``True`` and ``False``)
+	*	lists
+	*	dictionaries
+
+Note that depending on the implementation language of the renderer additional
+types might be supported, e.g. a Python renderer will probably support tuples
+and lists and anything supporting :meth:`__getitem__` (or :meth:`__iter__ when
+the list is used in a loop) for lists, Java might support anything implementing
+the ``List`` interface (or the ``Collection`` interface if the list is used in a
+loop).
+
+The data object itself will be available inside the template code under the name
+``data``.
+
+The template code tries to mimic Python syntax as far as possible, but is
+limited to what is required for template and does not allow executing arbitrary
+Python statements.
+
+
+Embedding
+=========
+
+In the template any text surrounded by ``<?`` and ``?>`` is a "template tag".
+The first word inside the template is the tag type. It defines what the tag
+does. For example ``<?print foo?>`` is a print tag (it prints the value of the
+variable ``foo``). A complete example template looks like this::
+
+	<?if data?>
+	<ul>
+	<?for lang in data?>
+	<li><?print xmlescape(lang)?></li>
+	<?end for?>
+	</ul>
+	<?end if?>
+
+(For text formats where the delimiters ``<?`` and ``?>`` collide with elements
+that are used often or where using these delimiters is inconvenient it's
+possible to specify a different delimiter pair when compiling the template.)
+
+A complete Python program that renders the template might look like this::
+
+	from ll.l4 import renderers
+
+	tmpl = '''<?if data?>
+	<ul>
+	<?for lang in data?>
+	<li><?print xmlescape(lang)?></li>
+	<?end for?>
+	</ul>
+	<?end if?>'''
+
+	f = renderers.PythonCode(tmpl).function()
+
+	data = [u"Python", u"Java", u"PHP"]
+
+	print u"".join(f(data))
+
+The method :meth:`PythonCode.function` returns a Python generator that renders
+the template with the data object passed in.
+
+
+Template code
+=============
+
+:mod:`ll.l4` supports the following tag types:
+
+
+``print``
+---------
+
+The ``print`` tag outputs the value of a variable or any other expression. If
+the expression doesn't evaluate to a string it will be converted to a string
+first. The format of the string depends on the renderer, but should follow
+Python's ``unicode()`` output as much as possible (except that for ``None`` no
+output may be produced)::
+
+	<h1><?print person.lastname?>, <?print person.firstname?></h1>
+
+
+``for``
+-------
+
+The ``for`` tag can be used to loop over the items in a list, the characters in
+a string or the keys in a dictionary. The end of the loop body must be marked
+with an ``<?end for?>`` tag::
+
+	<ul>
+	<?for person in data.persons?>
+	<li><?print person.lastname?>, <?person.firstname?></li>
+	<?end for?>
+	</ul>
+
+In ``for`` loops tuple unpacking is supported for tuples of length 1 and 2, so
+you can do the following::
+
+	<?for (key, value) in data.items?>
+
+if ``items`` is an iterable containing lists with two elements.
+
+
+``if``
+------
+
+The ``if`` tag can be used to output a part of the template only when a
+condition is true. The end of the ``if`` block must be marked with an
+``<?end if?>`` tag. The truth value of an object is the same as in Python:
+
+	*	``None`` is false.
+	*	The integer ``0`` and the float value ``0.0`` are false.
+	*	Empty strings, lists and dictionaries are false.
+	*	``False`` is false.
+	*	Anything else is true.
+
+For example we can output the person list only if there are any persons::
+
+	<?if data.persons?>
+	<ul>
+	<?for person in data.persons?>
+	<li><?print person.lastname?>, <?person.firstname?></li>
+	<?end for?>
+	</ul>
+	<?end if?>
+
+``elif`` and ``else`` are supported too::
+
+	<?if data.persons?>
+	<ul>
+	<?for person in data.persons?>
+	<li><?print person.lastname?>, <?person.firstname?></li>
+	<?end for?>
+	</ul>
+	<?else?>
+	<p>No persons found!</p>
+	<?end if?>
+
+or::
+
+	<?if len(data.persons)==0?>
+	No persons found!
+	<?elif len(data.persons)==1?>
+	One person found!
+	<?else?>
+	<?print len(data.persons)?> persons found!
+	<?end if?>
+
+
+``code``
+--------
+
+The ``code`` tag can be used to define or modify variables. Apart from the
+assigment operator ``=``, the following augmented assignment operators are
+supported:
+
+	*	``+=`` (adds a value to the variable)
+	*	``-=`` (subtracts a value from the variable)
+	*	``*=`` (multiplies the variable by a value)
+	*	``/=`` (divides the variable by a value)
+	*	``//=`` (divides the variable by a value, rounding down to the next
+		smallest integer)
+	*	``&=`` (Does a modulo operation and replaces the variable value with the
+		result)
+
+For example the following template will output ``40``::
+
+	<?code x = 17?>
+	<?code x += 23?>
+	<?print x?>
+
+
+Expressions
+-----------
+
+:mod:`ll.l4` supports many of the operators supported by Python. Getitem style
+element access is available, i.e. in the expression ``a[b]`` the following type
+combinations are supported:
+
+	*	string, integer: Returns the ``b``th character from the string ``a``. Note
+		that negative ``b`` values are supported and are relative to the end, so
+		``a[-1]`` is the last character.
+
+	*	list, integer: Returns the ``b``th list entry of the list ``a``. Negative
+		``b`` values are supported too.
+
+	*	dict, string: Return the value from the dictionary ``a`` corresponding to
+		the key ``b``. (Note that some implemenations might support keys other
+		than strings too.)
+
+Slices are also supported (for list and string objects). As in Python one or
+both of the indexes may be missing to start at the first or end at the last
+character/item. Negative indexes are relative to the end. Indexes that are out
+of bounds are simply clipped::
+
+	*	``<?print "Hello, World!"[7:-1]?>`` prints ``World``.
+
+	*	``<?print "Hello, World!"[:-1]?>`` prints ``Hello, World``.
+
+The following binary operators are supported: ``+``, ``-``, ``*``, ``/``,
+``//`` (truncating division) and ``&`` (modulo).
+
+The usual boolean operators ``not``, ``and`` and ``or`` are supported. However
+``and`` and ``or`` don't short-circuit and always return ``True`` or ``False``
+(instead of one of the operators).
+
+The two comparison operators ``==`` and ``!=`` are supported.
+
+Containment test via the ``in`` operator can be done, in the expression
+``a in b`` the following type combinations are supported:
+
+	*	string, string: Checks whether ``a`` is a substring of ``b``.
+	*	any object, list: Checks whether the object ``a`` is in the list ``b``
+		(comparison is done by value not by identity)
+	*	string, dict: Checks whether the key ``a`` is in the dictionary ``b``.
+		(Note that some implementations might support keys other than strings too.)
+
+The inverted containment test (via ``not in``) is available too.
+
+
+Functions
+---------
+
+:mod:`ll.l4` supports a number of functions.
+
+``isnone``
+::::::::::
+
+``isnone(foo)`` returns ``True`` if ``foo`` is ``None``, else ``False`` is
+returned.
+
+``isbool``
+::::::::::
+
+``isbool(foo)`` returns ``True`` if ``foo`` is ``True`` or ``False``, else
+``False`` is returned.
+
+``isint``
+:::::::::
+
+``isint(foo)`` returns ``True`` if ``foo`` is an integer object, else ``False``
+is returned.
+
+``isfloat``
+::::::::::::
+
+``isfloat(foo)`` returns ``True`` if ``foo`` is a float object, else ``False``
+is returned.
+
+``isstr``
+::::::::::::
+
+``isstr(foo)`` returns ``True`` if ``foo`` is a string object, else ``False``
+is returned.
+
+``islist``
+::::::::::::
+
+``islist(foo)`` returns ``True`` if ``foo`` is a list object, else ``False``
+is returned.
+
+``isdict``
+::::::::::::
+
+``isdict(foo)`` returns ``True`` if ``foo`` is a dictionary object, else
+``False`` is returned.
+
+``int``
+:::::::
+
+``int(foo)`` converts ``foo`` to an integer. ``foo`` can be a string, a float
+a boolean or an integer.
+
+``str``
+:::::::
+
+``str(foo)`` converts ``foo`` to a string. If ``foo`` is ``None`` the result
+will be the empty string. For lists and dictionaries the exact format is
+undefined, but should follow Python's repr format.
+
+``repr``
+:::::::
+
+``repr(foo)`` converts ``foo`` to a string representation that is useful for
+debugging proposes. The output is the same as for Python's :func:`repr` function.
+
+``len``
+:::::::
+
+``len(foo)`` returns the length of a string, or the number of items in a list
+or dictionary.
+
+``enumerate``
+:::::::::::::
+
+Enumerates the items of the argument (which must be iterable, i.e. a string,
+a list or dictionary). For example the following code::
+
+	<?for (i, c) in "foo"?><?print i?>=<?print c?>;<?end for?>
+
+prints::
+
+	``0=f;1=o;2=o``
+	
+
+``xmlescape``
+:::::::::::::
+
+``xmlescape`` replaces the characters ``&``, ``<``, ``>``, ``'`` and ``"``
+with the appropriate XML entity references in the argument. For example::
+
+	<?print xmlescape("<'foo' & 'bar'>")?>
+
+prints:
+
+	``&lt;&apos;foo&apos; &amp; ;&apos;bar&apos&gt;``
+
+
+``chr``
+:::::::
+
+``chr(x)`` returns a one-character string with a character with the codepoint
+``x`` which must be an integer.
+
+
+``ord``
+:::::::
+
+The argument for ``ord`` must be a one-character string. ``ord`` returns the
+codepoint of that character as an integer.
+
+
+``hex``
+:::::::
+
+Return the hexadecimal representation of the integer argument (with a leading
+``0x``).
+
+
+``oct``
+:::::::
+
+Return the octal representation of the integer argument (with a leading ``0o``).
+
+
+``bin``
+:::::::
+
+Return the binary representation of the integer argument (with a leading ``0b``).
+
+
+Methods
+-------
+
+"""
+
+
 import re, StringIO
 
-import spark
+from ll import spark
 
 
 ###
@@ -495,6 +873,9 @@ class Template(object):
 	def __init__(self):
 		self.source = None
 		self.opcodes = None
+		# The following is used for comverting the opcodes back to executable Python code
+		self._indent = 0
+		self._pythonfunction = None
 
 	@classmethod
 	def fromsrc(cls, source, startdelim="<?", enddelim="?>"):
@@ -609,7 +990,7 @@ class Template(object):
 		_writeint(u"#", len(self.opcodes))
 		stream.write(u"\n")
 		lastlocation = None
-		for opcode in self:
+		for opcode in self.opcodes:
 			stream.write(unicode(opcode.r1) if opcode.r1 is not None else u"-")
 			stream.write(unicode(opcode.r2) if opcode.r2 is not None else u"-")
 			stream.write(unicode(opcode.r3) if opcode.r3 is not None else u"-")
@@ -630,8 +1011,216 @@ class Template(object):
 			stream.write(u"\n")
 		return stream.getvalue().encode("utf-8")
 
-	def __iter__(self):
-		return iter(self.opcodes)
+	def _code(self, code):
+		return "%s%s\n" % ("\t"*self._indent, code)
+
+	def pythonsource(self, function=None):
+		self._indent = 0
+		if function is not None:
+			yield self._code("def %s(data):" % function)
+			self._indent += 1
+		yield self._code("import sys")
+		yield self._code("from ll.misc import xmlescape")
+		yield self._code("from ll.l4 import compiler")
+		yield self._code("variables = dict(data=data)")
+		yield self._code("source = %r" % self.source)
+		yield self._code("locations = %r" % (tuple((oc.location.type, oc.location.starttag, oc.location.endtag, oc.location.startcode, oc.location.endcode) for oc in self.opcodes),))
+		for i in xrange(10):
+			yield self._code("reg%d = None" % i)
+
+		yield self._code("try:")
+		self._indent += 1
+		yield self._code("startline = sys._getframe().f_lineno+1") # The source line of the first opcode
+		try:
+			for opcode in self.opcodes:
+				# The following code ensures that each opcode outputs exactly one source code line
+				# This makes it possible in case of an error to find out which opcode produced the error
+				if opcode.code is None:
+					yield self._code("yield %r" % opcode.location.code)
+				elif opcode.code == "loadstr":
+					yield self._code("reg%d = %r" % (opcode.r1, opcode.arg))
+				elif opcode.code == "loadint":
+					yield self._code("reg%d = %s" % (opcode.r1, opcode.arg))
+				elif opcode.code == "loadfloat":
+					yield self._code("reg%d = %s" % (opcode.r1, opcode.arg))
+				elif opcode.code == "loadnone":
+					yield self._code("reg%d = None" % opcode.r1)
+				elif opcode.code == "loadfalse":
+					yield self._code("reg%d = False" % opcode.r1)
+				elif opcode.code == "loadtrue":
+					yield self._code("reg%d = True" % opcode.r1)
+				elif opcode.code == "loadvar":
+					yield self._code("reg%d = variables[%r]" % (opcode.r1, opcode.arg))
+				elif opcode.code == "storevar":
+					yield self._code("variables[%r] = reg%d" % (opcode.arg, opcode.r1))
+				elif opcode.code == "addvar":
+					yield self._code("variables[%r] += reg%d" % (opcode.arg, opcode.r1))
+				elif opcode.code == "subvar":
+					yield self._code("variables[%r] -= reg%d" % (opcode.arg, opcode.r1))
+				elif opcode.code == "mulvar":
+					yield self._code("variables[%r] *= reg%d" % (opcode.arg, opcode.r1))
+				elif opcode.code == "truedivvar":
+					yield self._code("variables[%r] /= reg%d" % (opcode.arg, opcode.r1))
+				elif opcode.code == "floordivvar":
+					yield self._code("variables[%r] //= reg%d" % (opcode.arg, opcode.r1))
+				elif opcode.code == "modvar":
+					yield self._code("variables[%r] %= reg%d" % (opcode.arg, opcode.r1))
+				elif opcode.code == "delvar":
+					yield self._code("del variables[%r]" % opcode.arg)
+				elif opcode.code == "getattr":
+					yield self._code("reg%d = reg%d[%r]" % (opcode.r1, opcode.r2, opcode.arg))
+				elif opcode.code == "getitem":
+					yield self._code("reg%d = reg%d[reg%d]" % (opcode.r1, opcode.r2, opcode.r3))
+				elif opcode.code == "getslice12":
+					yield self._code("reg%d = reg%d[reg%d:reg%d]" % (opcode.r1, opcode.r2, opcode.r3, opcode.r4))
+				elif opcode.code == "getslice1":
+					yield self._code("reg%d = reg%d[reg%d:]" % (opcode.r1, opcode.r2, opcode.r3))
+				elif opcode.code == "getslice2":
+					yield self._code("reg%d = reg%d[:reg%d]" % (opcode.r1, opcode.r2, opcode.r3))
+				elif opcode.code == "getslice":
+					yield self._code("reg%d = reg%d[:]" % (opcode.r1, opcode.r2))
+				elif opcode.code == "print":
+					yield self._code("if reg%d is not None: yield unicode(reg%d)" % (opcode.r1, opcode.r1))
+				elif opcode.code == "for":
+					yield self._code("for reg%d in reg%d:" % (opcode.r1, opcode.r2))
+					self._indent += 1
+				elif opcode.code == "endfor":
+					self._indent -= 1
+					yield self._code("# end for")
+				elif opcode.code == "not":
+					yield self._code("reg%d = not reg%d" % (opcode.r1, opcode.r2))
+				elif opcode.code == "neg":
+					yield self._code("reg%d = -reg%d" % (opcode.r1, opcode.r2))
+				elif opcode.code == "contains":
+					yield self._code("reg%d = reg%d in reg%d" % (opcode.r1, opcode.r2, opcode.r3))
+				elif opcode.code == "notcontains":
+					yield self._code("reg%d = reg%d not in reg%d" % (opcode.r1, opcode.r2, opcode.r3))
+				elif opcode.code == "equals":
+					yield self._code("reg%d = reg%d == reg%d" % (opcode.r1, opcode.r2, opcode.r3))
+				elif opcode.code == "notequals":
+					yield self._code("reg%d = reg%d != reg%d" % (opcode.r1, opcode.r2, opcode.r3))
+				elif opcode.code == "add":
+					yield self._code("reg%d = reg%d + reg%d" % (opcode.r1, opcode.r2, opcode.r3))
+				elif opcode.code == "sub":
+					yield self._code("reg%d = reg%d - reg%d" % (opcode.r1, opcode.r2, opcode.r3))
+				elif opcode.code == "mul":
+					yield self._code("reg%d = reg%d * reg%d" % (opcode.r1, opcode.r2, opcode.r3))
+				elif opcode.code == "floordiv":
+					yield self._code("reg%d = reg%d // reg%d" % (opcode.r1, opcode.r2, opcode.r3))
+				elif opcode.code == "truediv":
+					yield self._code("reg%d = reg%d / reg%d" % (opcode.r1, opcode.r2, opcode.r3))
+				elif opcode.code == "and":
+					yield self._code("reg%d = bool(reg%d and reg%d)" % (opcode.r1, opcode.r2, opcode.r3))
+				elif opcode.code == "or":
+					yield self._code("reg%d = bool(reg%d or reg%d)" % (opcode.r1, opcode.r2, opcode.r3))
+				elif opcode.code == "mod":
+					yield self._code("reg%d = reg%d %% reg%d" % (opcode.r1, opcode.r2, opcode.r3))
+				elif opcode.code == "callfunc0":
+					raise compiler.UnknownFunctionError(opcode.arg)
+				elif opcode.code == "callfunc1":
+					if opcode.arg == "xmlescape":
+						yield self._code("reg%d = xmlescape(reg%d)" % (opcode.r1, opcode.r2))
+					elif opcode.arg == "str":
+						yield self._code("reg%d = unicode(reg%d) if reg%d is not None else u''" % (opcode.r1, opcode.r2, opcode.r2))
+					elif opcode.arg == "int":
+						yield self._code("reg%d = int(reg%d)" % (opcode.r1, opcode.r2))
+					elif opcode.arg == "len":
+						yield self._code("reg%d = len(reg%d)" % (opcode.r1, opcode.r2))
+					elif opcode.arg == "enumerate":
+						yield self._code("reg%d = enumerate(reg%d)" % (opcode.r1, opcode.r2))
+					elif opcode.arg == "isnone":
+						yield self._code("reg%d = reg%d is None" % (opcode.r1, opcode.r2))
+					elif opcode.arg == "isstr":
+						yield self._code("reg%d = isinstance(reg%d, basestring)" % (opcode.r1, opcode.r2))
+					elif opcode.arg == "isint":
+						yield self._code("reg%d = isinstance(reg%d, (int, long)) and not isinstance(reg%d, bool)" % (opcode.r1, opcode.r2, opcode.r2))
+					elif opcode.arg == "isfloat":
+						yield self._code("reg%d = isinstance(reg%d, float)" % (opcode.r1, opcode.r2))
+					elif opcode.arg == "isbool":
+						yield self._code("reg%d = isinstance(reg%d, bool)" % (opcode.r1, opcode.r2))
+					elif opcode.arg == "islist":
+						yield self._code("reg%d = isinstance(reg%d, (list, tuple))" % (opcode.r1, opcode.r2))
+					elif opcode.arg == "isdict":
+						yield self._code("reg%d = isinstance(reg%d, dict)" % (opcode.r1, opcode.r2))
+					elif opcode.arg == "repr":
+						yield self._code("reg%d = unicode(repr(reg%d))" % (opcode.r1, opcode.r2))
+					elif opcode.arg == "chr":
+						yield self._code("reg%d = unichr(reg%d)" % (opcode.r1, opcode.r2))
+					elif opcode.arg == "ord":
+						yield self._code("reg%d = ord(reg%d)" % (opcode.r1, opcode.r2))
+					elif opcode.arg == "hex":
+						yield self._code("reg%d = hex(reg%d)" % (opcode.r1, opcode.r2))
+					elif opcode.arg == "oct":
+						yield self._code('reg%d = "0o%%s" % oct(reg%d)[2:]' % (opcode.r1, opcode.r2))
+					elif opcode.arg == "bin":
+						yield self._code('reg%d = "0b" + ("".join("1" if reg%d & 1<<i else "0" for i in xrange(100)).rstrip("0"))[::-1]' % (opcode.r1, opcode.r2))
+					else:
+						raise compiler.UnknownFunctionError(opcode.arg)
+				elif opcode.code == "callfunc2":
+					raise compiler.UnknownFunctionError(opcode.arg)
+				elif opcode.code == "callmeth0":
+					if opcode.arg in ("split", "rsplit", "strip", "lstrip", "rstrip", "upper", "lower"):
+						yield self._code("reg%d = reg%d.%s()" % (opcode.r1, opcode.r2, opcode.arg))
+					elif opcode.arg == "items":
+						yield self._code("reg%d = reg%d.iteritems()" % (opcode.r1, opcode.r2))
+					else:
+						raise compiler.UnknownMethodError(opcode.arg)
+				elif opcode.code == "callmeth1":
+					if opcode.arg in ("split", "rsplit", "strip", "lstrip", "rstrip", "startswith", "endswith", "find"):
+						yield self._code("reg%d = reg%d.%s(reg%d)" % (opcode.r1, opcode.r2, opcode.arg, opcode.r3))
+					else:
+						raise compiler.UnknownMethodError(opcode.arg)
+				elif opcode.code == "callmeth2":
+					if opcode.arg in ("split", "rsplit", "find"):
+						yield self._code("reg%d = reg%d.%s(reg%d, reg%d)" % (opcode.r1, opcode.r2, opcode.arg, opcode.r3, opcode.r4))
+					else:
+						raise compiler.UnknownMethodError(opcode.arg)
+				elif opcode.code == "callmeth3":
+					if opcode.arg == "find":
+						yield self._code("reg%d = reg%d.%s(reg%d, reg%d, reg%d)" % (opcode.r1, opcode.r2, opcode.arg, opcode.r3, opcode.r4, opcode.r5))
+					else:
+						raise compiler.UnknownMethodError(opcode.arg)
+				elif opcode.code == "if":
+					yield self._code("if reg%d:" % opcode.r1)
+					self._indent += 1
+				elif opcode.code == "else":
+					self._indent -= 1
+					yield self._code("else:")
+					self._indent += 1
+				elif opcode.code == "endif":
+					self._indent -= 1
+					yield self._code("# end if")
+				else:
+					raise compiler.UnknownOpcodeError(opcode.code)
+		except compiler.Error, exc:
+			exc.decorate(opcode.location)
+			raise
+		except Exception, exc:
+			raise compiler.Error(exc).decorate(opcode.location)
+		self._indent -= 1
+		buildloc = "compiler.Location(source, *locations[sys.exc_info()[2].tb_lineno-startline])"
+		yield self._code("except compiler.Error, exc:")
+		self._indent += 1
+		yield self._code("exc.decorate(%s)" % buildloc)
+		yield self._code("raise")
+		self._indent -= 1
+		yield self._code("except Exception, exc:")
+		self._indent += 1
+		yield self._code("raise compiler.Error(exc).decorate(%s)" % buildloc)
+
+	def pythonfunction(self):
+		if self._pythonfunction is None:
+			code = "".join(self.pythonsource("render"))
+			ns = {}
+			exec code.encode("utf-8") in ns
+			self._pythonfunction = ns["render"]
+		return self._pythonfunction
+
+	def render(self, data):
+		return self.pythonfunction()(data)
+
+	def renderstring(self, data):
+		return "".join(self.render(data))
 
 	def format(self, indent="\t"):
 		"""
