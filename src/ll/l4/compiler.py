@@ -4,6 +4,8 @@
 ## Copyright 2008 by Walter Dörwald
 ##
 ## All Rights Reserved
+##
+## See ll/__init__.py for the license
 
 
 from __future__ import division

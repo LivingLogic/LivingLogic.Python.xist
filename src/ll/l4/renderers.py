@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
 
+## Copyright 2008 by LivingLogic AG, Bayreuth/Germany
+## Copyright 2008 by Walter Dörwald
+##
+## All Rights Reserved
+##
+## See ll/__init__.py for the license
+
 from __future__ import division
 
 from ll import misc
