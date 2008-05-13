@@ -9,19 +9,19 @@
 
 
 """
-:mod:`ll.sxtl` provides templating for XML/HTML as well as any other text-based
+:mod:`ll.l4` provides templating for XML/HTML as well as any other text-based
 format. A template defines placeholders for data output and basic logic (like
 loops and conditional blocks), that define how the final rendered output will
 look.
 
-:mod:`ll.sxtl` compiles a template to a bytecode format, which makes it possible
+:mod:`ll.l4` compiles a template to a bytecode format, which makes it possible
 to implement renderers for these templates in multiple programming languages.
 
 
 Data objects
 ============
 
-To render a template the renderer gets passed a data object. What :mod:`ll.sxtl`
+To render a template the renderer gets passed a data object. What :mod:`ll.l4`
 supports in this data object is very similar to what JSON_ supports.
 
 	.. _JSON: http://www.json.org/
@@ -73,7 +73,7 @@ possible to specify a different delimiter pair when compiling the template.)
 
 A complete Python program that renders the template might look like this::
 
-	from ll.sxtl import renderers
+	from ll.l4 import renderers
 
 	tmpl = '''<?if data?>
 	<ul>
@@ -96,7 +96,7 @@ the template with the data object passed in.
 Template code
 =============
 
-:mod:`ll.sxtl` supports the following tag types:
+:mod:`ll.l4` supports the following tag types:
 
 
 ``print``
@@ -204,7 +204,7 @@ For example the following template will output ``40``::
 Expressions
 -----------
 
-:mod:`ll.sxtl` supports many of the operators supported by Python. Getitem style
+:mod:`ll.l4` supports many of the operators supported by Python. Getitem style
 element access is available, i.e. in the expression ``a[b]`` the following type
 combinations are supported:
 
@@ -252,7 +252,7 @@ The inverted containment test (via ``not in``) is available too.
 Functions
 ---------
 
-:mod:`ll.sxtl` supports a number of functions.
+:mod:`ll.l4` supports a number of functions.
 
 ``isnone``
 ::::::::::

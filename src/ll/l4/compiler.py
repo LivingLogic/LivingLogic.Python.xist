@@ -642,8 +642,8 @@ class Template(object):
 		stream = StringIO.StringIO(bin)
 		header = stream.readline()
 		header = header.rstrip()
-		if header != "sxtl":
-			raise ValueError("invalid header, expected 'sxtl', got %r" % header)
+		if header != "l4":
+			raise ValueError("invalid header, expected 'l4', got %r" % header)
 		version = stream.readline()
 		version = version.rstrip()
 		if version != "1":
@@ -692,7 +692,7 @@ class Template(object):
 			stream.write(string)
 
 		stream = StringIO.StringIO()
-		stream.write(u"sxtl\n1\n")
+		stream.write(u"l4\n1\n")
 		_writestr(u"s", self.source)
 		stream.write(u"\n")
 		_writeint(u"#", len(self.opcodes))

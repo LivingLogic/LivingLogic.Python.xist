@@ -3,7 +3,7 @@
 from __future__ import division
 
 from ll import misc
-from ll.sxtl import compiler
+from ll.l4 import compiler
 from ll.xist import xsc
 
 
@@ -359,7 +359,7 @@ class PythonCode(Renderer):
 			self.indent += 1
 		yield self.code("import sys")
 		yield self.code("from ll.misc import xmlescape")
-		yield self.code("from ll.sxtl import compiler")
+		yield self.code("from ll.l4 import compiler")
 		yield self.code("variables = dict(data=data)")
 		yield self.code("source = %r" % self.template.source)
 		yield self.code("locations = %r" % (tuple((oc.location.type, oc.location.starttag, oc.location.endtag, oc.location.startcode, oc.location.endcode) for oc in self.template),))

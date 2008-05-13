@@ -1,5 +1,7 @@
-Changes in 3.2.7 (released ??/??/2008)
---------------------------------------
+Changes in 3.3 (released ??/??/2008)
+------------------------------------
+
+*	XIST has gained it's fourth templating language
 
 *	:func:`ll.misc.xmlescape` now escapes ``'`` as ``&#39;`` for IE compatibility.
 
