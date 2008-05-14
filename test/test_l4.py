@@ -69,6 +69,8 @@ def test_string():
 	yield check, u'''<?print "\\b"?>''', {}, u'\b'
 	yield check, u'''<?print "\\a"?>''', {}, u'\a'
 	yield check, u'''<?print "\\e"?>''', {}, u'\x1b'
+	yield check, u'''<?print "\\""?>''', {}, u'"'
+	yield check, u'''<?print "\\'"?>''', {}, u"'"
 	yield check, u'''<?print "\u20ac"?>''', {}, u'\u20ac'
 	yield check, u'''<?print "\\xff"?>''', {}, u'\xff'
 	yield check, u'''<?print "\\u20ac"?>''', {}, u'\u20ac'
