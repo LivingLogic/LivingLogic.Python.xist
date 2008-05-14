@@ -930,7 +930,7 @@ class Template(object):
 
 		self = cls()
 		if isinstance(data, str):
-			data = data.decode("utf-8")
+			data = data.decode("utf-8-sig")
 		stream = StringIO.StringIO(data)
 		header = stream.readline()
 		header = header.rstrip()
@@ -971,52 +971,54 @@ class Template(object):
 	def load(cls, stream):
 		return cls.loads(stream.read())
 
-	def dump(self, stream):
-		stream = codecs.getwriter("utf-8")(stream)
+	def iterdump(self):
+		encoder = codecs.getincrementalencoder("utf-8-sig")()
 
 		def _writeint(term, number):
-			stream.write(unicode(number))
-			stream.write(term)
+			yield encoder.encode(unicode(number))
+			yield encoder.encode(term)
 
 		def _writestr(term, string):
 			if string:
-				stream.write(str(len(string)))
+				yield encoder.encode(unicode(len(string)))
 			if string is None:
 				term = term.upper()
-			stream.write(term)
+			yield encoder.encode(term)
 			if string is not None:
-				stream.write(string)
+				yield encoder.encode(string)
 
-		stream.write(u"l4\n1\n")
-		_writestr(u"s", self.source)
-		stream.write(u"\n")
-		_writeint(u"#", len(self.opcodes))
-		stream.write(u"\n")
+		yield encoder.encode(u"l4\n1\n")
+		for p in _writestr(u"s", self.source): yield p
+		yield encoder.encode(u"\n")
+		for p in _writeint(u"#", len(self.opcodes)): yield p
+		yield encoder.encode(u"\n")
 		lastlocation = None
 		for opcode in self.opcodes:
-			stream.write(unicode(opcode.r1) if opcode.r1 is not None else u"-")
-			stream.write(unicode(opcode.r2) if opcode.r2 is not None else u"-")
-			stream.write(unicode(opcode.r3) if opcode.r3 is not None else u"-")
-			stream.write(unicode(opcode.r4) if opcode.r4 is not None else u"-")
-			stream.write(unicode(opcode.r5) if opcode.r5 is not None else u"-")
-			_writestr(u"c", opcode.code)
-			_writestr(u"a", opcode.arg)
+			yield encoder.encode(unicode(opcode.r1) if opcode.r1 is not None else u"-")
+			yield encoder.encode(unicode(opcode.r2) if opcode.r2 is not None else u"-")
+			yield encoder.encode(unicode(opcode.r3) if opcode.r3 is not None else u"-")
+			yield encoder.encode(unicode(opcode.r4) if opcode.r4 is not None else u"-")
+			yield encoder.encode(unicode(opcode.r5) if opcode.r5 is not None else u"-")
+			for p in _writestr(u"c", opcode.code): yield p
+			for p in _writestr(u"a", opcode.arg): yield p
 			if opcode.location is not lastlocation:
 				lastlocation = opcode.location
-				stream.write(u"*")
-				_writestr(u"t", lastlocation.type)
-				_writeint(u"<", lastlocation.starttag)
-				_writeint(u">", lastlocation.endtag)
-				_writeint(u"[", lastlocation.startcode)
-				_writeint(u"]", lastlocation.endcode)
+				yield encoder.encode(u"*")
+				for p in _writestr(u"t", lastlocation.type): yield p
+				for p in _writeint(u"<", lastlocation.starttag): yield p
+				for p in _writeint(u">", lastlocation.endtag): yield p
+				for p in _writeint(u"[", lastlocation.startcode): yield p
+				for p in _writeint(u"]", lastlocation.endcode): yield p
 			else:
-				stream.write(u"^")
-			stream.write(u"\n")
+				yield encoder.encode(u"^")
+			yield encoder.encode(u"\n")
+
+	def dump(self, stream):
+		for part in self.iterdump():
+			stream.write(part)
 
 	def dumps(self):
-		stream = StringIO.StringIO()
-		self.dump(stream)
-		return stream.getvalue()
+		return ''.join(self.iterdump())
 
 	def _code(self, code):
 		return "%s%s\n" % ("\t"*self._indent, code)
@@ -1226,7 +1228,7 @@ class Template(object):
 	def render(self, data):
 		return self.pythonfunction()(data)
 
-	def renderstring(self, data):
+	def renders(self, data):
 		return "".join(self.render(data))
 
 	def format(self, indent="\t"):
