@@ -1428,7 +1428,7 @@ class Value(Const):
 
 	def compile(self, registers, location):
 		r = allocreg(registers, location)
-		yield (r, Opcode("load%s" % self.type, r1=r, arg=self.value, location=location))
+		yield (r, Opcode("load%s" % self.type, r1=r, arg=unicode(self.value), location=location))
 
 
 class Int(Value):
@@ -1437,6 +1437,10 @@ class Int(Value):
 
 class Float(Value):
 	type = "float"
+
+	def compile(self, registers, location):
+		r = allocreg(registers, location)
+		yield (r, Opcode("load%s" % self.type, r1=r, arg=repr(self.value), location=location))
 
 
 class Str(Value):
