@@ -1878,7 +1878,7 @@ class Scanner(spark.GenericScanner):
 	def endstr(self, s):
 		self.rv.append(Str("".join(self.collectstr)))
 		self.collectstr = []
-		self.mode = "normal"
+		self.mode = "default"
 
 	@spark.token("\\s+", "default")
 	def whitespace(self, s):
