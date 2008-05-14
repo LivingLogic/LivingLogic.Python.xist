@@ -1258,6 +1258,11 @@ class Template(object):
 
 	@classmethod
 	def _compile(cls, string, startdelim, enddelim):
+		scanner = Scanner()
+		parseexpr = ExprParser(scanner).compile
+		parsestmt = StmtParser(scanner).compile
+		parsefor = ForParser(scanner).compile
+
 		# This stack stores for each nested for/foritem/if/elif/else the following information:
 		# 1) Which construct we're in (i.e. "if" or "for")
 		# For ifs:
@@ -1948,9 +1953,9 @@ class Scanner(spark.GenericScanner):
 ###
 
 class ExprParser(spark.GenericParser):
-	def __init__(self, start="expr0"):
+	def __init__(self, scanner, start="expr0"):
 		spark.GenericParser.__init__(self, start)
-		self.scanner = Scanner()
+		self.scanner = scanner
 
 	def compile(self, location):
 		try:
@@ -2237,8 +2242,3 @@ class StmtParser(ExprParser):
 	@spark.rule('stmt ::= name %= expr0')
 	def stmt_imod(self, (name, _0, value)):
 		return ModVar(name, value)
-
-
-parseexpr = ExprParser().compile
-parsestmt = StmtParser().compile
-parsefor = ForParser().compile
