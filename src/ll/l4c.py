@@ -873,7 +873,7 @@ class Template(object):
 	def __init__(self):
 		self.source = None
 		self.opcodes = None
-		# The following is used for comverting the opcodes back to executable Python code
+		# The following is used for converting the opcodes back to executable Python code
 		self._indent = 0
 		self._pythonfunction = None
 
