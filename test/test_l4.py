@@ -9,13 +9,25 @@
 ## See ll/__init__.py for the license
 
 
+import cStringIO
+
 from ll import l4c
 
 def check(source, data, result):
-	t1 = l4c.Template.fromsrc(source)
+	# Check with tempalte compiled from source
+	t1 = l4c.compile(source)
 	assert t1.renderstring(data) == result
-	t2 = l4c.Template.frombin(t1.asbin())
+
+	# Check with template loaded again via the string interface
+	t2 = l4c.loads(t1.dumps())
 	assert t2.renderstring(data) == result
+
+	# Check with template loaded again via the stream interface
+	stream = cStringIO.StringIO()
+	t1.dump(stream)
+	stream.seek(0)
+	t3 = l4c.load(stream)
+	assert t3.renderstring(data) == result
 
 
 def test_text():

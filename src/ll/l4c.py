@@ -388,7 +388,7 @@ Methods
 """
 
 
-import re, StringIO
+import re, StringIO, codecs
 
 from ll import spark
 
@@ -878,14 +878,14 @@ class Template(object):
 		self._pythonfunction = None
 
 	@classmethod
-	def fromsrc(cls, source, startdelim="<?", enddelim="?>"):
+	def compile(cls, source, startdelim="<?", enddelim="?>"):
 		self = cls()
 		self.source = source
 		self.opcodes = list(cls._compile(source, startdelim, enddelim))
 		return self
 
 	@classmethod
-	def frombin(cls, bin):
+	def loads(cls, data):
 		def _readint(term):
 			i = 0
 			while True:
@@ -929,9 +929,9 @@ class Template(object):
 				raise ValueError("invalid linefeed %r" % c)
 
 		self = cls()
-		if isinstance(bin, str):
-			bin = bin.decode("utf-8")
-		stream = StringIO.StringIO(bin)
+		if isinstance(data, str):
+			data = data.decode("utf-8")
+		stream = StringIO.StringIO(data)
 		header = stream.readline()
 		header = header.rstrip()
 		if header != "l4":
@@ -967,10 +967,13 @@ class Template(object):
 			self.opcodes.append(Opcode(code, r1, r2, r3, r4, r5, arg, location))
 		return self
 
-	def assrc(self):
-		return self.source
+	@classmethod
+	def load(cls, stream):
+		return cls.loads(stream.read())
 
-	def asbin(self):
+	def dump(self, stream):
+		stream = codecs.getwriter("utf-8")(stream)
+
 		def _writeint(term, number):
 			stream.write(unicode(number))
 			stream.write(term)
@@ -981,9 +984,9 @@ class Template(object):
 			if string is None:
 				term = term.upper()
 			stream.write(term)
-			stream.write(string)
+			if string is not None:
+				stream.write(string)
 
-		stream = StringIO.StringIO()
 		stream.write(u"l4\n1\n")
 		_writestr(u"s", self.source)
 		stream.write(u"\n")
@@ -1009,7 +1012,11 @@ class Template(object):
 			else:
 				stream.write(u"^")
 			stream.write(u"\n")
-		return stream.getvalue().encode("utf-8")
+
+	def dumps(self):
+		stream = StringIO.StringIO()
+		self.dump(stream)
+		return stream.getvalue()
 
 	def _code(self, code):
 		return "%s%s\n" % ("\t"*self._indent, code)
@@ -1341,6 +1348,11 @@ class Template(object):
 
 	def __unicode__(self):
 		return u"\n".join(self.format())
+
+
+compile = Template.compile
+load = Template.load
+loads = Template.loads
 
 
 ###
