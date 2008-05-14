@@ -1813,7 +1813,7 @@ class Scanner(spark.GenericScanner):
 		self.rv = []
 		try:
 			spark.GenericScanner.tokenize(self, location.code)
-			if self.mode != "normal":
+			if self.mode != "default":
 				raise UnterminatedStringError()
 		except Error, exc:
 			exc.decorate(location)
