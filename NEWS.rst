@@ -1,3 +1,9 @@
+Changes in 3.2.7 (released 05/16/2008)
+--------------------------------------
+
+*	Added the missing file ``_misc_include.c`` to the distribution archives.
+
+
 Changes in 3.2.6 (released 05/07/2008)
 --------------------------------------
 
