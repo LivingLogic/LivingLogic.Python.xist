@@ -1,3 +1,14 @@
+Migrating to version 3.2.6
+==========================
+
+Changes to escaping
+-------------------
+
+The functions :mod:`ll.xist.helpers.escapetext` and
+:mod:`ll.xist.helpers.escapeattr` have been merged into :mod:`ll.misc.xmlescape`
+and all the characters ``<``, ``>``, ``&``, ``"`` and ``'`` are escaped now.
+
+
 Migrating to version 3.1
 ========================
 

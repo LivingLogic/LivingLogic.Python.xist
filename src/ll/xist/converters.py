@@ -5,7 +5,7 @@
 ##
 ## All Rights Reserved
 ##
-## See xist/__init__.py for the license
+## See ll/__init__.py for the license
 
 """
 This modules contains the base class for the converter objects used in the call

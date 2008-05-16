@@ -1,3 +1,21 @@
+Changes in 3.3 (released ??/??/2008)
+------------------------------------
+
+*	XIST has gained its fourth templating language: ``L4`` the
+	"LivingLogic Layout Language". This templating language is similar in
+	capabilities to `Django's templating language`__. However ``l4`` templates
+	are compiled to an internal bytecode format, which makes it possible to
+	implement template renderers in other languages and makes the template code
+	"secure" (i.e.template code can't open or delete files).
+
+	__ http://www.djangoproject.com/documentation/templates/
+
+*	:func:`ll.misc.xmlescape` now escapes ``'`` as ``&#39;`` for IE compatibility.
+
+*	Functions :func:`ll.misc.xmlescape_text` and :func:`ll.misc.xmlescape_attr`
+	have been added that implement the functionality from XIST 3.2.5 and earlier.
+
+
 Changes in 3.2.7 (released 05/16/2008)
 --------------------------------------
 

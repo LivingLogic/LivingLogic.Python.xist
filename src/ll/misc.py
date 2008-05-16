@@ -6,7 +6,7 @@
 ##
 ## All Rights Reserved
 ##
-## See __init__.py for the license
+## See ll/__init__.py for the license
 
 
 """
@@ -85,6 +85,13 @@ except ImportError:
 			count += 1
 		return count
 
+	def _xmlescape(string, maps):
+		for (s, r) in maps:
+			string = string.replace(s, r)
+		for c in "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x0b\x0c\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1f\x7f\x80\x81\x82\x83\x84\x86\x87\x88\x89\x8a\x8b\x8c\x8d\x8e\x8f\x90\x91\x92\x93\x94\x95\x96\x97\x98\x99\x9a\x9b\x9c\x9d\x9e\x9f":
+			string = string.replace(c, "&#%d;" % ord(c))
+		return string
+
 	def xmlescape(string):
 		"""
 		Return a copy of the argument string, where every occurrence of ``<``,
@@ -98,11 +105,34 @@ except ImportError:
 			("'", "&apos;"),
 			('"', "&quot;"),
 		)
-		for (s, r) in maps:
-			string = string.replace(s, r)
-		for c in "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x0b\x0c\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1f\x7f\x80\x81\x82\x83\x84\x86\x87\x88\x89\x8a\x8b\x8c\x8d\x8e\x8f\x90\x91\x92\x93\x94\x95\x96\x97\x98\x99\x9a\x9b\x9c\x9d\x9e\x9f":
-			string = string.replace(c, "&#%d;" % ord(c))
-		return string
+		return _xmlescape(string, maps)
+
+	def xmlescape_text(string):
+		"""
+		Return a copy of the argument string, where every occurrence of ``<``,
+		``>``, ``&``, and every restricted character has been replaced with their
+		XML character entity or character reference.
+		"""
+		maps = (
+			("&", "&amp;"),
+			("<", "&lt;"),
+			(">", "&gt;"),
+		)
+		return _xmlescape(string, maps)
+
+	def xmlescape_attr(string):
+		"""
+		Return a copy of the argument string, where every occurrence of ``<``,
+		``>``, ``&``, ``"`` and every restricted character has been replaced with
+		their XML character entity or character reference.
+		"""
+		maps = (
+			("&", "&amp;"),
+			("<", "&lt;"),
+			(">", "&gt;"),
+			("'", "&apos;"),
+		)
+		return _xmlescape(string, maps)
 
 
 __docformat__ = "reStructuredText"

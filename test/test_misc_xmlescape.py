@@ -6,7 +6,7 @@
 ##
 ## All Rights Reserved
 ##
-## See __init__.py for the license
+## See ll/__init__.py for the license
 
 
 import sys, re
@@ -41,3 +41,41 @@ def test_xmlescape():
 			escape_output.append(c)
 	escape_output = "".join(escape_output)
 	assert misc.xmlescape(escape_input) == escape_output
+
+
+def test_xmlescape_text():
+	escape_output = []
+	for c in escape_input:
+		if c==u"&":
+			escape_output.append(u"&amp;")
+		elif c==u"<":
+			escape_output.append(u"&lt;")
+		elif c==u">":
+			escape_output.append(u"&gt;")
+		elif restrictedchars.match(c) is not None:
+			escape_output.append(u"&#%d;" % ord(c))
+		else:
+			escape_output.append(c)
+	escape_output = "".join(escape_output)
+	assert misc.xmlescape_text(escape_input) == escape_output
+
+
+
+
+def test_xmlescape():
+	escape_output = []
+	for c in escape_input:
+		if c==u"&":
+			escape_output.append(u"&amp;")
+		elif c==u"<":
+			escape_output.append(u"&lt;")
+		elif c==u">":
+			escape_output.append(u"&gt;")
+		elif c==u'"':
+			escape_output.append(u"&quot;")
+		elif restrictedchars.match(c) is not None:
+			escape_output.append(u"&#%d;" % ord(c))
+		else:
+			escape_output.append(c)
+	escape_output = "".join(escape_output)
+	assert misc.xmlescape_attr(escape_input) == escape_output

@@ -5,7 +5,7 @@
 ##
 ## All Rights Reserved
 ##
-## See xist/__init__.py for the license
+## See ll/__init__.py for the license
 
 
 """
@@ -1998,7 +1998,7 @@ class Attr(Frag):
 		publisher.inattr += 1
 		yield publisher.encode(self._publishname(publisher)) # publish the XML name, not the Python name
 		yield publisher.encode(u"=\"")
-		publisher.pushtextfilter(misc.xmlescape)
+		publisher.pushtextfilter(misc.xmlescape_attr)
 		for part in self._publishattrvalue(publisher):
 			yield part
 		publisher.poptextfilter()
