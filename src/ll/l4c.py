@@ -1356,7 +1356,6 @@ class Template(object):
 				exc.decorate(location)
 				raise
 			except Exception, exc:
-				raise
 				raise Error(exc).decorate(location)
 		if stack:
 			raise BlockError("unclosed blocks")
