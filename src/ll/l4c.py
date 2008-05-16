@@ -75,7 +75,7 @@ possible to specify a different delimiter pair when compiling the template.)
 
 A complete Python program that renders the template might look like this::
 
-	from ll.l4 import renderers
+	from ll import l4c
 
 	tmpl = '''<?if data?>
 	<ul>
@@ -85,7 +85,7 @@ A complete Python program that renders the template might look like this::
 	</ul>
 	<?end if?>'''
 
-	f = renderers.PythonCode(tmpl).function()
+	f = l4c.compile(tmpl).pythonfunction()
 
 	data = [u"Python", u"Java", u"PHP"]
 
@@ -760,7 +760,7 @@ class Opcode(object):
 		self.jump = None
 
 	def __repr__(self):
-		v = ["<", self.__class__.__name__, " code=", self.code]
+		v = ["<", self.__class__.__name__, " code=%r" % self.code]
 		for attrname in ("r1", "r2", "r3", "r4", "r5", "arg"):
 			attr = getattr(self, attrname)
 			if attr is not None:
@@ -2209,8 +2209,8 @@ class ExprParser(spark.GenericParser):
 
 
 class ForParser(ExprParser):
-	def __init__(self, start="for"):
-		ExprParser.__init__(self, start)
+	def __init__(self, scanner, start="for"):
+		ExprParser.__init__(self, scanner, start)
 
 	@spark.rule('for ::= name in expr0')
 	def for0(self, (iter, _0, cont)):
@@ -2230,8 +2230,8 @@ class ForParser(ExprParser):
 
 
 class StmtParser(ExprParser):
-	def __init__(self, start="stmt"):
-		ExprParser.__init__(self, start)
+	def __init__(self, scanner, start="stmt"):
+		ExprParser.__init__(self, scanner, start)
 
 	@spark.rule('stmt ::= name = expr0')
 	def stmt_assign(self, (name, _0, value)):
