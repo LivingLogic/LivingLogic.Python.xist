@@ -103,6 +103,8 @@ def test_string():
 	yield check, u'''<?print "\\xff"?>''', {}, u'\xff'
 	yield check, u'''<?print "\\u20ac"?>''', {}, u'\u20ac'
 	yield checkcompileerror, u'''<?print "?>''', {}, "Unterminated string"
+	yield check, u'''<?print "\\xxx"?>''', {}, "\\xxx"
+	yield check, u'''<?print "a\nb"?>''', {}, "a\nb"
 
 	yield check, '<?if ""?>yes<?else?>no<?end if?>', {}, 'no'
 	yield check, '<?if "foo"?>yes<?else?>no<?end if?>', {}, 'yes'
