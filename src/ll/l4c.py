@@ -1254,7 +1254,7 @@ class Template(object):
 
 	@classmethod
 	def _tokenize(cls, source, startdelim, enddelim):
-		pattern = u"%s(print|code|for|if|elif|else|end)(\s*(.*?)\s*)?%s" % (re.escape(startdelim), re.escape(enddelim))
+		pattern = u"%s(print|code|for|if|elif|else|end)(\s*((.|\\n)*?)\s*)?%s" % (re.escape(startdelim), re.escape(enddelim))
 		pos = 0
 		for match in re.finditer(pattern, source):
 			if match.start() != pos:
@@ -1954,7 +1954,7 @@ class Scanner(spark.GenericScanner):
 	def escaped16bitchar(self, s):
 		self.collectstr.append(unichr(int(s[2:], 16)))
 
-	@spark.token(".", "str1", "str2")
+	@spark.token(".|\\n", "str1", "str2")
 	def text(self, s):
 		self.collectstr.append(s)
 
