@@ -1997,11 +1997,15 @@ class Scanner(spark.GenericScanner):
 ###
 
 class ExprParser(spark.GenericParser):
+	emptyerror = "expression required"
+
 	def __init__(self, scanner, start="expr0"):
 		spark.GenericParser.__init__(self, start)
 		self.scanner = scanner
 
 	def compile(self, location):
+		if not location.code:
+			raise ValueError(self.emptyerror)
 		try:
 			ast = self.parse(self.scanner.tokenize(location))
 			registers = set(xrange(10))
@@ -2235,6 +2239,8 @@ class ExprParser(spark.GenericParser):
 
 
 class ForParser(ExprParser):
+	emptyerror = "loop expression required"
+
 	def __init__(self, scanner, start="for"):
 		ExprParser.__init__(self, scanner, start)
 
@@ -2256,6 +2262,8 @@ class ForParser(ExprParser):
 
 
 class StmtParser(ExprParser):
+	emptyerror = "statement required"
+
 	def __init__(self, scanner, start="stmt"):
 		ExprParser.__init__(self, scanner, start)
 

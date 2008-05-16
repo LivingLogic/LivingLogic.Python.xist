@@ -211,3 +211,32 @@ def test_for_dict():
 
 def test_for_nested():
 	yield check, u'''<?for list in data?>[<?for n in list?>(<?print n?>)<?end for?>]<?end for?>''', [[1, 2, 3], [4, 5, 6], [7, 8, 9]], u'[(1)(2)(3)][(4)(5)(6)][(7)(8)(9)]'
+
+
+def test_if():
+	yield check, u'''<?if data?><?print data?><?end if?>''', 42, u'42'
+
+
+def test_else():
+	yield check, u'''<?if data?><?print data?><?else?>no<?end if?>''', 42, u'42'
+	yield check, u'''<?if data?><?print data?><?else?>no<?end if?>''', 0, u'no'
+
+
+def test_block_errors():
+	yield checkcompileerror, u'''<?for x in data?>''', {}, "unclosed blocks"
+	yield checkcompileerror, u'''<?for x in data?><?end if?>''', {}, "endif doesn't match any if"
+	yield checkcompileerror, u'''<?end?>''', {}, "not in any block"
+	yield checkcompileerror, u'''<?end for?>''', {}, "not in any block"
+	yield checkcompileerror, u'''<?end if?>''', {}, "not in any block"
+	yield checkcompileerror, u'''<?else?>''', {}, "else doesn't match any if"
+	yield checkcompileerror, u'''<?if data?>''', {}, "unclosed blocks"
+	yield checkcompileerror, u'''<?if data?><?else?>''', {}, "unclosed blocks"
+	yield checkcompileerror, u'''<?if data?><?else?><?else?>''', {}, "duplicate else"
+	yield checkcompileerror, u'''<?if data?><?else?><?elif data?>''', {}, "else already seen"
+	yield checkcompileerror, u'''<?if data?><?elif data?><?elif data?><?else?><?elif data?>''', {}, "else already seen"
+
+
+def test_empty():
+	yield checkcompileerror, u'''<?print?>''', {}, "expression required"
+	yield checkcompileerror, u'''<?for?>''', {}, "loop expression required"
+	yield checkcompileerror, u'''<?code?>''', {}, "statement required"
