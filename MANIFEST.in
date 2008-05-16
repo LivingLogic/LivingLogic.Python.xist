@@ -1,14 +1,9 @@
 include README.rst
 include NEWS.rst
-include NEWS.xml
 include OLDNEWS.rst
-include OLDNEWS.xml
 include INSTALL.rst
-include INSTALL.xml
 include MIGRATION.rst
-include MIGRATION.xml
 include OLDMIGRATION.rst
-include OLDMIGRATION.xml
 include CREDITS.rst
 recursive-include docs *.rst
 recursive-include docs *.xml
