@@ -122,3 +122,37 @@ def test_string():
 
 	yield check, '<?if ""?>yes<?else?>no<?end if?>', {}, 'no'
 	yield check, '<?if "foo"?>yes<?else?>no<?end if?>', {}, 'yes'
+
+
+def test_code_storevar():
+	yield check, u'''<?code x = 42?><?print x?>''', {}, u'42'
+	yield check, u'''<?code x = "xyzzy"?><?print x?>''', {}, u'xyzzy'
+
+
+def test_code_addvar():
+	yield check, u'''<?code x = 17?><?code x += 23?><?print x?>''', {}, u'40'
+	yield check, u'''<?code x = "xyz"?><?code x += "zy"?><?print x?>''', {}, u'xyzzy'
+
+
+def test_code_subvar():
+	yield check, u'''<?code x = 17?><?code x -= 23?><?print x?>''', {}, u'-6'
+
+
+def test_code_mulvar():
+	yield check, u'''<?code x = 17?><?code x *= 23?><?print x?>''', {}, u'391'
+	yield check, u'''<?code x = 17?><?code x *= "xyzzy"?><?print x?>''', {}, 17*u'xyzzy'
+	yield check, u'''<?code x = "xyzzy"?><?code x *= 17?><?print x?>''', {}, 17*u'xyzzy'
+
+
+def test_code_floordivvar():
+	yield check, u'''<?code x = 5?><?code x //= 2?><?print x?>''', {}, u'2'
+	yield check, u'''<?code x = -5?><?code x //= 2?><?print x?>''', {}, u'-3'
+
+
+def test_code_truedivvar():
+	yield check, u'''<?code x = 5?><?code x /= 2?><?print x?>''', {}, u'2.5'
+	yield check, u'''<?code x = -5?><?code x /= 2?><?print x?>''', {}, u'-2.5'
+
+
+def test_code_modvar():
+	yield check, u'''<?code x = 1729?><?code x %= 23?><?print x?>''', {}, u'4'
