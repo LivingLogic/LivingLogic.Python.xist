@@ -238,5 +238,7 @@ def test_block_errors():
 
 def test_empty():
 	yield checkcompileerror, u'''<?print?>''', {}, "expression required"
+	yield checkcompileerror, u'''<?if?>''', {}, "expression required"
+	yield checkcompileerror, u'''<<?if x?><?elif?><?end if?>''', {}, "expression required"
 	yield checkcompileerror, u'''<?for?>''', {}, "loop expression required"
 	yield checkcompileerror, u'''<?code?>''', {}, "statement required"
