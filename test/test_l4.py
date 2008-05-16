@@ -88,6 +88,20 @@ def test_int():
 	yield check, '<?if -1?>yes<?else?>no<?end if?>', {}, 'yes'
 
 
+def test_float():
+	yield check, '<?print 0.?>', {}, '0.0'
+	yield check, '<?print 42.?>', {}, '42.0'
+	yield check, '<?print -42.?>', {}, '-42.0'
+	yield check, '<?print 1E42?>', {}, '1e+42'
+	yield check, '<?print 1e42?>', {}, '1e+42'
+	yield check, '<?print -1E42?>', {}, '-1e+42'
+	yield check, '<?print -1e42?>', {}, '-1e+42'
+
+	yield check, '<?if 0.?>yes<?else?>no<?end if?>', {}, 'no'
+	yield check, '<?if 1.?>yes<?else?>no<?end if?>', {}, 'yes'
+	yield check, '<?if -1.?>yes<?else?>no<?end if?>', {}, 'yes'
+
+
 def test_string():
 	yield check, u'''<?print "foo"?>''', {}, u'foo'
 	yield check, u'''<?print "\\n"?>''', {}, u'\n'
