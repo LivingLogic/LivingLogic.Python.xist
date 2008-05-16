@@ -42,6 +42,38 @@ def checkcompileerror(source, data, msg):
 		py.test.fail("Didn't raise exception")
 
 
+def checkrunerror(source, data, msg):
+	# Check with template compiled from source
+	t1 = l4c.compile(source)
+	try:
+		t1.renders(data)
+	except Exception, exc:
+		assert msg in str(exc)
+	else:
+		py.test.fail("Didn't raise exception")
+
+	# Check with template loaded again via the string interface
+	t2 = l4c.loads(t1.dumps())
+	try:
+		t2.renders(data)
+	except Exception, exc:
+		assert msg in str(exc)
+	else:
+		py.test.fail("Didn't raise exception")
+
+	# Check with template loaded again via the stream interface
+	stream = cStringIO.StringIO()
+	t1.dump(stream)
+	stream.seek(0)
+	t3 = l4c.load(stream)
+	try:
+		t3.renders(data)
+	except Exception, exc:
+		assert msg in str(exc)
+	else:
+		py.test.fail("Didn't raise exception")
+
+
 def test_text():
 	yield check, 'gurk', {}, 'gurk'
 	yield check, u'gurk', {}, u'gurk'
@@ -156,3 +188,7 @@ def test_code_truedivvar():
 
 def test_code_modvar():
 	yield check, u'''<?code x = 1729?><?code x %= 23?><?print x?>''', {}, u'4'
+
+
+def test_code_delvar():
+	yield checkrunerror, u'''<?code x = 1729?><?code del x?><?print x?>''', {}, u'KeyError'

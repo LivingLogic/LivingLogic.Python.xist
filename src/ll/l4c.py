@@ -1735,6 +1735,17 @@ class ModVar(ChangeVar):
 	opcode = "modvar"
 
 
+class DelVar(AST):
+	def __init__(self, name):
+		self.name = name
+
+	def __repr__(self):
+		return "%s(%r)" % (self.__class__.__name__, self.name)
+
+	def compile(self, registers, location):
+		yield (None, Opcode("delvar", arg=self.name.name, location=location))
+
+
 class CallFunc(AST):
 	def __init__(self, name, args):
 		self.name = name
@@ -1841,7 +1852,7 @@ class Scanner(spark.GenericScanner):
 			raise Error(exc).decorate(location)
 		return self.rv
 
-	@spark.token("in|not|or|and|\\(|\\)|\\[|\\]|\\.|,|==|\\!=|=|\\+=|\\-=|\\*=|/=|//=|%=|%|:|\\+|-|\\*|/|//", "default")
+	@spark.token("in|not|or|and|del|\\(|\\)|\\[|\\]|\\.|,|==|\\!=|=|\\+=|\\-=|\\*=|/=|//=|%=|%|:|\\+|-|\\*|/|//", "default")
 	def token(self, s):
 		self.rv.append(Token(s))
 
@@ -2260,3 +2271,7 @@ class StmtParser(ExprParser):
 	@spark.rule('stmt ::= name %= expr0')
 	def stmt_imod(self, (name, _0, value)):
 		return ModVar(name, value)
+
+	@spark.rule('stmt ::= del name')
+	def stmt_del(self, (_0, name)):
+		return DelVar(name)
