@@ -14,7 +14,7 @@ import cStringIO
 from ll import l4c
 
 def check(source, data, result):
-	# Check with tempalte compiled from source
+	# Check with template compiled from source
 	t1 = l4c.compile(source)
 	assert t1.renders(data) == result
 
