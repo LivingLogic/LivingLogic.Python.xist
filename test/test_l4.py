@@ -209,5 +209,5 @@ def test_for_dict():
 	yield check, u'''<?for c in sorted(data)?>(<?print c?>)<?end for?>''', dict(a=1, b=2, c=3), u'(a)(b)(c)'
 
 
-def test_nested_for():
+def test_for_nested():
 	yield check, u'''<?for list in data?>[<?for n in list?>(<?print n?>)<?end for?>]<?end for?>''', [[1, 2, 3], [4, 5, 6], [7, 8, 9]], u'[(1)(2)(3)][(4)(5)(6)][(7)(8)(9)]'
