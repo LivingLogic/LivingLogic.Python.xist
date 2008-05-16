@@ -349,6 +349,20 @@ prints:
 	``&lt;&apos;foo&apos; &amp; ;&apos;bar&apos&gt;``
 
 
+``sorted``
+:::::::::::::
+
+``sorted`` returns a sorted list with the items from it's argument. For example::
+
+	<?for c in sorted('bar')?><?print c?><?end for?>
+
+prints:
+
+	``abr``
+
+Supported arguments are string, lists and dictionaries.
+
+
 ``chr``
 :::::::
 
@@ -1163,6 +1177,8 @@ class Template(object):
 						yield self._code('reg%d = "0o%%s" % oct(reg%d)[2:]' % (opcode.r1, opcode.r2))
 					elif opcode.arg == "bin":
 						yield self._code('reg%d = "0b" + ("".join("1" if reg%d & 1<<i else "0" for i in xrange(100)).rstrip("0"))[::-1]' % (opcode.r1, opcode.r2))
+					elif opcode.arg == "sorted":
+						yield self._code("reg%d = sorted(reg%d)" % (opcode.r1, opcode.r2))
 					else:
 						raise UnknownFunctionError(opcode.arg)
 				elif opcode.code == "callfunc2":

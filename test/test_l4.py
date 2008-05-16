@@ -192,3 +192,18 @@ def test_code_modvar():
 
 def test_code_delvar():
 	yield checkrunerror, u'''<?code x = 1729?><?code del x?><?print x?>''', {}, u'KeyError'
+
+
+def test_for_string():
+	yield check, u'''<?for c in data?>(<?print c?>)<?end for?>''', "", u''
+	yield check, u'''<?for c in data?>(<?print c?>)<?end for?>''', "gurk", u'(g)(u)(r)(k)'
+
+
+def test_for_list():
+	yield check, u'''<?for c in data?>(<?print c?>)<?end for?>''', "", u''
+	yield check, u'''<?for c in data?>(<?print c?>)<?end for?>''', "gurk", u'(g)(u)(r)(k)'
+
+
+def test_for_dict():
+	yield check, u'''<?for c in data?>(<?print c?>)<?end for?>''', {}, u''
+	yield check, u'''<?for c in sorted(data)?>(<?print c?>)<?end for?>''', dict(a=1, b=2, c=3), u'(a)(b)(c)'
