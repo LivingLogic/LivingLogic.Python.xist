@@ -1073,7 +1073,7 @@ class Template(object):
 				elif opcode.code == "floordivvar":
 					yield self._code("variables[%r] //= reg%d" % (opcode.arg, opcode.r1))
 				elif opcode.code == "modvar":
-					yield self._code("variables[%r] %= reg%d" % (opcode.arg, opcode.r1))
+					yield self._code("variables[%r] %%= reg%d" % (opcode.arg, opcode.r1))
 				elif opcode.code == "delvar":
 					yield self._code("del variables[%r]" % opcode.arg)
 				elif opcode.code == "getattr":
