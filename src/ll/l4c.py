@@ -759,6 +759,11 @@ class Opcode(object):
 		Call the method named :attr:`arg` on the object in register :attr:`r2`
 		using the objects in register :attr:`r3`, :attr:`r4` and :attr:`r5` as
 		arguments and store the return value in register :attr:`r1`.
+
+	``"render"``:
+		Render the template whose name is in the attribute :attr:`arg`. The
+		content of register :attr:`r1` will be passed as the data object to the
+		template.
 	"""
 	__slots__ = ("code", "r1", "r2", "r3", "r4", "r5", "arg", "location", "jump")
 
@@ -879,6 +884,8 @@ class Opcode(object):
 			return "r%r = r%r.%s(r%r, r%r)" % (self.r1, self.r2, self.arg, self.r3, self.r4)
 		elif self.code == "callmeth3":
 			return "r%r = r%r.%s(r%r, r%r, r%r)" % (self.r1, self.r2, self.arg, self.r3, self.r4, self.r5)
+		elif self.code == "render":
+			return "render %s(r%r)" % (self.arg, self.r1)
 		else:
 			raise UnknownOpcodeError(self.code)
 
@@ -1040,7 +1047,7 @@ class Template(object):
 	def pythonsource(self, function=None):
 		self._indent = 0
 		if function is not None:
-			yield self._code("def %s(data):" % function)
+			yield self._code("def %s(data, templates=None):" % function)
 			self._indent += 1
 		yield self._code("import sys")
 		yield self._code("from ll.misc import xmlescape")
@@ -1215,6 +1222,8 @@ class Template(object):
 				elif opcode.code == "endif":
 					self._indent -= 1
 					yield self._code("# end if")
+				elif opcode.code == "render":
+					yield self._code("for chunk in templates[%r](reg%d, templates): yield chunk" % (opcode.arg, opcode.r1))
 				else:
 					raise UnknownOpcodeError(opcode.code)
 		except Error, exc:
@@ -1241,11 +1250,14 @@ class Template(object):
 			self._pythonfunction = ns["render"]
 		return self._pythonfunction
 
-	def render(self, data):
-		return self.pythonfunction()(data)
+	def __call__(self, data, templates=None):
+		return self.pythonfunction()(data, templates)
 
-	def renders(self, data):
-		return "".join(self.render(data))
+	def render(self, data, templates=None):
+		return self.pythonfunction()(data, templates)
+
+	def renders(self, data, templates=None):
+		return "".join(self.render(data, templates))
 
 	def format(self, indent="\t"):
 		"""
@@ -1270,7 +1282,7 @@ class Template(object):
 
 	@classmethod
 	def _tokenize(cls, source, startdelim, enddelim):
-		pattern = u"%s(print|code|for|if|elif|else|end)(\s*((.|\\n)*?)\s*)?%s" % (re.escape(startdelim), re.escape(enddelim))
+		pattern = u"%s(print|code|for|if|elif|else|end|render)(\s*((.|\\n)*?)\s*)?%s" % (re.escape(startdelim), re.escape(enddelim))
 		pos = 0
 		for match in re.finditer(pattern, source):
 			if match.start() != pos:
@@ -1287,6 +1299,7 @@ class Template(object):
 		parseexpr = ExprParser(scanner).compile
 		parsestmt = StmtParser(scanner).compile
 		parsefor = ForParser(scanner).compile
+		parserender = RenderParser(scanner).compile
 
 		# This stack stores for each nested for/foritem/if/elif/else the following information:
 		# 1) Which construct we're in (i.e. "if" or "for")
@@ -1350,6 +1363,9 @@ class Template(object):
 					for (r, op) in parsefor(location):
 						yield op
 					stack.append(("for",))
+				elif location.type == "render":
+					for (r, op) in parserender(location):
+						yield op
 				else: # Can't happen
 					raise ValueError("unknown tag %r" % location.type)
 			except Error, exc:
@@ -1844,6 +1860,22 @@ class CallMeth(AST):
 			raise ValueError("%d arguments not supported" % len(self.args))
 
 
+class Render(AST):
+
+	def __init__(self, name, value):
+		self.name = name
+		self.value = value
+
+	def __repr__(self):
+		return "%s(%r, %r)" % (self.__class__.__name__, self.name, self.value)
+
+	def compile(self, registers, location):
+		for (r, op) in self.value.compile(registers, location):
+			yield (r, op)
+		yield (r, Opcode("render", r1=r, arg=self.name.name, location=location))
+		freereg(registers, r)
+
+
 ###
 ### Tokenizer
 ###
@@ -2298,3 +2330,14 @@ class StmtParser(ExprParser):
 	@spark.rule('stmt ::= del name')
 	def stmt_del(self, (_0, name)):
 		return DelVar(name)
+
+
+class RenderParser(ExprParser):
+	emptyerror = "render statement required"
+
+	def __init__(self, scanner, start="render"):
+		ExprParser.__init__(self, scanner, start)
+
+	@spark.rule('render ::= name ( expr0 )')
+	def render(self, (name, _1, expr, _2)):
+		return Render(name, expr)
