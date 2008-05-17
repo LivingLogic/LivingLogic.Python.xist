@@ -243,3 +243,8 @@ def test_empty():
 	yield checkcompileerror, "loop expression required", '<?for?>'
 	yield checkcompileerror, "statement required", '<?code?>'
 	yield checkcompileerror, "render statement required", '<?render?>'
+
+
+def test_render():
+	t = l4c.compile('(<?print data?>)')
+	yield check, '(f)(o)(o)', '<?for i in data?><?render t(i)?><?end for?>', 'foo', dict(t=t)
