@@ -608,7 +608,7 @@ class Opcode(object):
 	if the opcode requires an additional argument (like a variable name or a
 	string value) this will be stored in the :attr:`arg` attribute.
 
-	The following types of opcodes are available:
+	The following opcodes are available:
 
 	:const:`None`:
 		Print text. The text is available from ``location.code``.
