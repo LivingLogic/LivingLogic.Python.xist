@@ -49,7 +49,7 @@ The data object itself will be available inside the template code under the name
 ``data``.
 
 The template code tries to mimic Python syntax as far as possible, but is
-limited to what is required for template and does not allow executing arbitrary
+limited to what is required for templates and does not allow executing arbitrary
 Python statements.
 
 
