@@ -77,7 +77,7 @@ A complete Python program that renders the template might look like this::
 
 	from ll import l4c
 
-	tmpl = '''<?if data?>
+	code = '''<?if data?>
 	<ul>
 	<?for lang in data?>
 	<li><?print xmlescape(lang)?></li>
@@ -85,7 +85,7 @@ A complete Python program that renders the template might look like this::
 	</ul>
 	<?end if?>'''
 
-	tmpl = l4c.compile(tmpl)
+	tmpl = l4c.compile(code)
 
 	data = [u"Python", u"Java", u"PHP"]
 
