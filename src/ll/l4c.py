@@ -16,7 +16,7 @@ format. A template defines placeholders for data output and basic logic (like
 loops and conditional blocks), that define how the final rendered output will
 look.
 
-:mod:`ll.l4` compiles a template to a bytecode format, which makes it possible
+:mod:`ll.l4c` compiles a template to a bytecode format, which makes it possible
 to implement renderers for these templates in multiple programming languages.
 
 
