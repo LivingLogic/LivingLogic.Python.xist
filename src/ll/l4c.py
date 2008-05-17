@@ -1047,7 +1047,7 @@ class Template(object):
 	def pythonsource(self, function=None):
 		self._indent = 0
 		if function is not None:
-			yield self._code("def %s(data, templates=None):" % function)
+			yield self._code("def %s(data, templates={}):" % function)
 			self._indent += 1
 		yield self._code("import sys")
 		yield self._code("from ll.misc import xmlescape")
@@ -1250,13 +1250,13 @@ class Template(object):
 			self._pythonfunction = ns["render"]
 		return self._pythonfunction
 
-	def __call__(self, data, templates=None):
+	def __call__(self, data, templates={}):
 		return self.pythonfunction()(data, templates)
 
-	def render(self, data, templates=None):
+	def render(self, data, templates={}):
 		return self.pythonfunction()(data, templates)
 
-	def renders(self, data, templates=None):
+	def renders(self, data, templates={}):
 		return "".join(self.render(data, templates))
 
 	def format(self, indent="\t"):
