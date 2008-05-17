@@ -85,11 +85,11 @@ A complete Python program that renders the template might look like this::
 	</ul>
 	<?end if?>'''
 
-	f = l4c.compile(tmpl).pythonfunction()
+	tmpl = l4c.compile(tmpl)
 
 	data = [u"Python", u"Java", u"PHP"]
 
-	print u"".join(f(data))
+	print u"".join(tmpl(data))
 
 The method :meth:`PythonCode.function` returns a Python generator that renders
 the template with the data object passed in.
