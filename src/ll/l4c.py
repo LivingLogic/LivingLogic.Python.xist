@@ -669,8 +669,8 @@ class Opcode(object):
 	``"getitem"``:
 		Get an item from the object in register :attr:`r2`. If this object is a
 		list the object in register :attr:`r3` will be used as the index. If it is
-		a dictionary :attr:`r3` will be used as the the key. The result will be
-		stored in register :attr:`r1`.
+		a dictionary :attr:`r3` will be used as the key. The result will be stored
+		in register :attr:`r1`.
 
 	``"getslice12"``:
 		Get an slice from the object in register :attr:`r2`. The object in
