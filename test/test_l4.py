@@ -318,8 +318,19 @@ def test_bracket():
 
 def test_function_xmlescape():
 	yield checkrunerror, "function u?'xmlescape' unknown", "<?print xmlescape()?>"
-	yield check, "&lt;&gt;&amp;&#39;&quot;gurk", "<?print xmlescape(data)?>", '<>&\'"gurk'
 	yield checkrunerror, "function u?'xmlescape' unknown", "<?print xmlescape(1, 2)?>"
+	yield check, "&lt;&gt;&amp;&#39;&quot;gurk", "<?print xmlescape(data)?>", '<>&\'"gurk'
+
+
+def test_function_xmlescape():
+	yield checkrunerror, "function u?'str' unknown", "<?print str()?>"
+	yield checkrunerror, "function u?'str' unknown", "<?print str(1, 2)?>"
+	yield check, "", "<?print str(data)?>", None
+	yield check, "True", "<?print str(data)?>", True
+	yield check, "False", "<?print str(data)?>", False
+	yield check, "42", "<?print str(data)?>", 42
+	yield check, "4.2", "<?print str(data)?>", 4.2
+	yield check, "foo", "<?print str(data)?>", "foo"
 
 
 def test_render():
