@@ -276,12 +276,15 @@ def test_mod():
 
 
 def test_nested():
-	s = "4"
+	sc = "4"
+	sv = "x"
 	n = 4
-	for i in xrange(10):
-		s = "(%s)+(%s)" % (s, s)
+	for i in xrange(8): # when using 10 compiling the variable will run out of registers
+		sc = "(%s)+(%s)" % (sc, sc)
+		sv = "(%s)+(%s)" % (sv, sv)
 		n = n+n
-	yield check, str(n), '<?print %s?>' % s
+	yield check, str(n), '<?print %s?>' % sc
+	yield check, str(n), '<?code x=4?><?print %s?>' % sv
 
 
 def test_render():
