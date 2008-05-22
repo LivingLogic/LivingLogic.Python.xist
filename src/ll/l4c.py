@@ -2161,55 +2161,55 @@ class ExprParser(spark.GenericParser):
 	def expr_callfunc2(self, (name, _0, arg0, _1, arg1, _2, arg2, _3)):
 		return CallFunc(name, [arg0, arg1, arg2])
 
+	@spark.rule('expr9 ::= expr9 . name')
+	def expr_getattr(self, (expr, _0, name)):
+		return GetAttr(expr, name)
+
+	@spark.rule('expr9 ::= expr9 . name ( )')
+	def expr_callmeth0(self, (expr, _0, name, _1, _2)):
+		return CallMeth(name, expr, [])
+
+	@spark.rule('expr9 ::= expr9 . name ( expr0 )')
+	def expr_callmeth1(self, (expr, _0, name, _1, arg1, _2)):
+		return CallMeth(name, expr, [arg1])
+
+	@spark.rule('expr9 ::= expr9 . name ( expr0 , expr0 )')
+	def expr_callmeth2(self, (expr, _0, name, _1, arg1, _2, arg2, _3)):
+		return CallMeth(name, expr, [arg1, arg2])
+
+	@spark.rule('expr9 ::= expr9 . name ( expr0 , expr0 , expr0 )')
+	def expr_callmeth3(self, (expr, _0, name, _1, arg1, _2, arg2, _3, arg3, _4)):
+		return CallMeth(name, expr, [arg1, arg2, arg3])
+
 	@spark.rule('expr9 ::= expr9 [ expr0 ]')
 	def expr_getitem(self, (expr, _0, key, _1)):
 		if isinstance(expr, Const) and isinstance(key, Const): # Constant folding
 			return self.makeconst(expr.value[key.value])
 		return GetItem(expr, key)
 
-	@spark.rule('expr9 ::= expr9 [ expr0 : expr0 ]')
+	@spark.rule('expr8 ::= expr8 [ expr0 : expr0 ]')
 	def expr_getslice12(self, (expr, _0, index1, _1, index2, _2)):
 		if isinstance(expr, Const) and isinstance(index1, Const) and isinstance(index2, Const): # Constant folding
 			return self.makeconst(expr.value[index1.value:index1.value])
 		return GetSlice12(expr, index1, index2)
 
-	@spark.rule('expr9 ::= expr9 [ expr0 : ]')
+	@spark.rule('expr8 ::= expr8 [ expr0 : ]')
 	def expr_getslice1(self, (expr, _0, index1, _1, _2)):
 		if isinstance(expr, Const) and isinstance(index1, Const): # Constant folding
 			return self.makeconst(expr.value[index1.value:])
 		return GetSlice1(expr, index1)
 
-	@spark.rule('expr9 ::= expr9 [ : expr0 ]')
+	@spark.rule('expr8 ::= expr8 [ : expr0 ]')
 	def expr_getslice2(self, (expr, _0, _1, index2, _2)):
 		if isinstance(expr, Const) and isinstance(index2, Const): # Constant folding
 			return self.makeconst(expr.value[:index2.value])
 		return GetSlice2(expr, index2)
 
-	@spark.rule('expr9 ::= expr9 [ : ]')
+	@spark.rule('expr8 ::= expr8 [ : ]')
 	def expr_getslice(self, (expr, _0, _1, _2)):
 		if isinstance(expr, Const): # Constant folding
 			return self.makeconst(expr.value[:])
 		return GetSlice(expr)
-
-	@spark.rule('expr8 ::= expr8 . name')
-	def expr_getattr(self, (expr, _0, name)):
-		return GetAttr(expr, name)
-
-	@spark.rule('expr8 ::= expr8 . name ( )')
-	def expr_callmeth0(self, (expr, _0, name, _1, _2)):
-		return CallMeth(name, expr, [])
-
-	@spark.rule('expr8 ::= expr8 . name ( expr0 )')
-	def expr_callmeth1(self, (expr, _0, name, _1, arg1, _2)):
-		return CallMeth(name, expr, [arg1])
-
-	@spark.rule('expr8 ::= expr8 . name ( expr0 , expr0 )')
-	def expr_callmeth2(self, (expr, _0, name, _1, arg1, _2, arg2, _3)):
-		return CallMeth(name, expr, [arg1, arg2])
-
-	@spark.rule('expr8 ::= expr8 . name ( expr0 , expr0 , expr0 )')
-	def expr_callmeth3(self, (expr, _0, name, _1, arg1, _2, arg2, _3, arg3, _4)):
-		return CallMeth(name, expr, [arg1, arg2, arg3])
 
 	@spark.rule('expr7 ::= - expr7')
 	def expr_neg(self, (_0, expr)):
