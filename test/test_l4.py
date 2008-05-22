@@ -9,7 +9,7 @@
 ## See ll/__init__.py for the license
 
 
-import cStringIO
+import re, cStringIO
 
 import py.test
 
@@ -37,7 +37,7 @@ def checkcompileerror(msg, source):
 	try:
 		l4c.compile(source)
 	except Exception, exc:
-		assert msg in str(exc)
+		assert re.search(msg, str(exc)) is not None
 	else:
 		py.test.fail("Didn't raise exception")
 
@@ -48,7 +48,7 @@ def checkrunerror(msg, source, data={}, templates={}):
 	try:
 		t1.renders(data, templates)
 	except Exception, exc:
-		assert msg in str(exc)
+		assert re.search(msg, str(exc)) is not None
 	else:
 		py.test.fail("Didn't raise exception")
 
@@ -57,7 +57,7 @@ def checkrunerror(msg, source, data={}, templates={}):
 	try:
 		t2.renders(data, templates)
 	except Exception, exc:
-		assert msg in str(exc)
+		assert re.search(msg, str(exc)) is not None
 	else:
 		py.test.fail("Didn't raise exception")
 
@@ -69,7 +69,7 @@ def checkrunerror(msg, source, data={}, templates={}):
 	try:
 		t3.renders(data, templates)
 	except Exception, exc:
-		assert msg in str(exc)
+		assert re.search(msg, str(exc)) is not None
 	else:
 		py.test.fail("Didn't raise exception")
 
@@ -232,8 +232,8 @@ def test_block_errors():
 	yield checkcompileerror, "unclosed blocks", '<?if data?>'
 	yield checkcompileerror, "unclosed blocks", '<?if data?><?else?>'
 	yield checkcompileerror, "duplicate else", '<?if data?><?else?><?else?>'
-	yield checkcompileerror, "else already seen", '<?if data?><?else?><?elif data?>'
-	yield checkcompileerror, "else already seen", '<?if data?><?elif data?><?elif data?><?else?><?elif data?>'
+	yield checkcompileerror, "else already seen in elif", '<?if data?><?else?><?elif data?>'
+	yield checkcompileerror, "else already seen in elif", '<?if data?><?elif data?><?elif data?><?else?><?elif data?>'
 
 
 def test_empty():
@@ -314,6 +314,11 @@ def test_bracket():
 
 	yield check, "4", '<?print %s?>' % sc
 	yield check, "4", '<?code x=4?><?print %s?>' % sv
+
+
+def test_function_xmlescape():
+	yield checkrunerror, "function u?'xmlescape' unknown", "<?print xmlescape()?>"
+	yield check, "&lt;&gt;&amp;&#39;&quot;gurk", "<?print xmlescape(data)?>", '<>&\'"gurk'
 
 
 def test_render():
