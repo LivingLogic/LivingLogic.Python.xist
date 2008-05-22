@@ -322,7 +322,7 @@ def test_function_xmlescape():
 	yield check, "&lt;&gt;&amp;&#39;&quot;gurk", "<?print xmlescape(data)?>", '<>&\'"gurk'
 
 
-def test_function_xmlescape():
+def test_function_str():
 	yield checkrunerror, "function u?'str' unknown", "<?print str()?>"
 	yield checkrunerror, "function u?'str' unknown", "<?print str(1, 2)?>"
 	yield check, "", "<?print str(data)?>", None
@@ -340,6 +340,8 @@ def test_function_int():
 	yield check, "0", "<?print int(data)?>", False
 	yield check, "42", "<?print int(data)?>", 42
 	yield check, "4", "<?print int(data)?>", 4.2
+	yield check, "42", "<?print int(data)?>", "42"
+	yield checkrunerror, "invalid literal for int\\(\\) with base 10: 'foo'", "<?print int(data)?>", "foo"
 
 
 def test_render():
