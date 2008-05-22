@@ -278,7 +278,7 @@ def test_mod():
 def test_nested():
 	s = "4"
 	n = 4
-	for i in xrange(12):
+	for i in xrange(10):
 		s = "(%s)+(%s)" % (s, s)
 		n = n+n
 	yield check, str(n), '<?print %s?>' % s
