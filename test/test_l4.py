@@ -508,6 +508,34 @@ def test_function_ord():
 	yield check, str(0x20ac), code, u"\u20ac"
 
 
+def test_function_hex():
+	yield checkrunerror, "function u?'hex' unknown", "<?print hex()?>"
+	yield checkrunerror, "function u?'hex' unknown", "<?print hex(1, 2)?>"
+	code = "<?print hex(data)?>"
+	yield check, "0x0", code, 0
+	yield check, "0xff", code, 0xff
+	yield check, "0xffff", code, 0xffff
+	yield check, "-0xffff", code, -0xffff
+
+
+def test_function_oct():
+	yield checkrunerror, "function u?'oct' unknown", "<?print oct()?>"
+	yield checkrunerror, "function u?'oct' unknown", "<?print oct(1, 2)?>"
+	code = "<?print oct(data)?>"
+	yield check, "0o0", code, 0
+	yield check, "0o77", code, 077
+	yield check, "0o7777", code, 07777
+	yield check, "-0o7777", code, -07777
+
+def test_function_bin():
+	yield checkrunerror, "function u?'bin' unknown", "<?print bin()?>"
+	yield checkrunerror, "function u?'bin' unknown", "<?print bin(1, 2)?>"
+	code = "<?print bin(data)?>"
+	yield check, "0b0", code, 0
+	yield check, "0b11", code, 3
+	yield check, "-0b1111", code, -15
+
+
 def test_render():
 	t = l4c.compile('(<?print data?>)')
 	yield check, '(f)(o)(o)', '<?for i in data?><?render t(i)?><?end for?>', 'foo', dict(t=t)

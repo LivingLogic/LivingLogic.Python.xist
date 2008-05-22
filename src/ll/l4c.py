@@ -1198,9 +1198,9 @@ class Template(object):
 					elif opcode.arg == "hex":
 						yield self._code("reg%d = hex(reg%d)" % (opcode.r1, opcode.r2))
 					elif opcode.arg == "oct":
-						yield self._code('reg%d = "0o%%s" % oct(reg%d)[2:]' % (opcode.r1, opcode.r2))
+						yield self._code('reg%d = l4c._oct(reg%d)' % (opcode.r1, opcode.r2))
 					elif opcode.arg == "bin":
-						yield self._code('reg%d = "0b" + ("".join("1" if reg%d & 1<<i else "0" for i in xrange(100)).rstrip("0"))[::-1]' % (opcode.r1, opcode.r2))
+						yield self._code('reg%d = l4c._bin(reg%d)' % (opcode.r1, opcode.r2))
 					elif opcode.arg == "sorted":
 						yield self._code("reg%d = sorted(reg%d)" % (opcode.r1, opcode.r2))
 					elif opcode.arg == "range":
@@ -2381,3 +2381,33 @@ class RenderParser(ExprParser):
 	@spark.rule('render ::= name ( expr0 )')
 	def render(self, (name, _1, expr, _2)):
 		return Render(name, expr)
+
+
+def _oct(value):
+	"""
+	Helper for the ``oct`` function.
+	"""
+	if value == 0:
+		return "0o0"
+	elif value < 0:
+		return "-0o" + oct(value)[2:]
+	else:
+		return "0o" + oct(value)[1:]
+
+
+def _bin(value):
+	"""
+	Helper for the ``bin`` function.
+	"""
+	if value == 0:
+		return "0b0"
+	if value < 0:
+		value = -value
+		prefix = "-0b"
+	else:
+		prefix = "0b"
+	v = []
+	while value:
+		v.append(str(value&1))
+		value >>= 1
+	return prefix+"".join(v)[::-1]
