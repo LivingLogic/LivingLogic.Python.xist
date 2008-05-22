@@ -1828,8 +1828,6 @@ class CallFunc(AST):
 				yield (r0, op)
 			for (r1, op) in self.args[1].compile(registers, location):
 				yield (r1, op)
-			(r0, arg0) = self.args[0].compile(registers, location)
-			(r1, arg1) = self.args[1].compile(registers, location)
 			yield (r0, Opcode("callfunc2", r1=r0, r2=r0, r3=r1, arg=self.name.name, location=location))
 			freereg(registers, r1)
 		elif len(self.args) == 3:
@@ -1932,7 +1930,6 @@ class Scanner(spark.GenericScanner):
 			exc.decorate(location)
 			raise
 		except Exception, exc:
-			raise
 			raise Error(exc).decorate(location)
 		return self.rv
 
@@ -2083,7 +2080,6 @@ class ExprParser(spark.GenericParser):
 			exc.decorate(location)
 			raise
 		except Exception, exc:
-			raise
 			raise Error(exc).decorate(location)
 
 	def typestring(self, token):
@@ -2158,7 +2154,7 @@ class ExprParser(spark.GenericParser):
 		return CallFunc(name, [arg0, arg1])
 
 	@spark.rule('expr10 ::= name ( expr0 , expr0 , expr0 )')
-	def expr_callfunc2(self, (name, _0, arg0, _1, arg1, _2, arg2, _3)):
+	def expr_callfunc3(self, (name, _0, arg0, _1, arg1, _2, arg2, _3)):
 		return CallFunc(name, [arg0, arg1, arg2])
 
 	@spark.rule('expr9 ::= expr9 . name')
