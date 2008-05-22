@@ -1933,7 +1933,7 @@ class Scanner(spark.GenericScanner):
 			raise Error(exc).decorate(location)
 		return self.rv
 
-	@spark.token("in|not|or|and|del|\\(|\\)|\\[|\\]|\\.|,|==|\\!=|=|\\+=|\\-=|\\*=|//=|/=|%=|%|:|\\+|-|\\*|//|/", "default")
+	@spark.token("\\(|\\)|\\[|\\]|\\.|,|==|\\!=|=|\\+=|\\-=|\\*=|//=|/=|%=|%|:|\\+|-|\\*|//|/", "default")
 	def token(self, s):
 		self.rv.append(Token(s))
 
@@ -1951,7 +1951,10 @@ class Scanner(spark.GenericScanner):
 
 	@spark.token("[a-zA-Z_][\\w]*", "default")
 	def name(self, s):
-		self.rv.append(Name(s))
+		if s in ("in", "not", "or", "and", "del"):
+			self.rv.append(Token(s))
+		else:
+			self.rv.append(Name(s))
 
 	# We don't have negatve numbers, this is handled by constant folding in the AST for unary minus
 	@spark.token("\\d+\\.\\d*([eE][+-]?\\d+)?", "default")
