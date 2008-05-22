@@ -527,6 +527,7 @@ def test_function_oct():
 	yield check, "0o7777", code, 07777
 	yield check, "-0o7777", code, -07777
 
+
 def test_function_bin():
 	yield checkrunerror, "function u?'bin' unknown", "<?print bin()?>"
 	yield checkrunerror, "function u?'bin' unknown", "<?print bin(1, 2)?>"
