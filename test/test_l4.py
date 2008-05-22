@@ -275,6 +275,15 @@ def test_mod():
 	yield check, str(42%17), '<?code x=42?><?code y=17?><?print x%y?>'
 
 
+def test_nested():
+	s = "4"
+	n = 4
+	for i in xrange(12):
+		s = "(%s)+(%s)" % (s, s)
+		n = n+n
+	yield check, str(n), '<?print %s?>' % s
+
+
 def test_render():
 	t = l4c.compile('(<?print data?>)')
 	yield check, '(f)(o)(o)', '<?for i in data?><?render t(i)?><?end for?>', 'foo', dict(t=t)
