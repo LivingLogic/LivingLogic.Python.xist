@@ -336,12 +336,26 @@ def test_function_str():
 def test_function_int():
 	yield checkrunerror, "function u?'int' unknown", "<?print int()?>"
 	yield checkrunerror, "function u?'int' unknown", "<?print int(1, 2)?>"
+	yield checkrunerror, "int\\(\\) argument must be a string or a number, not 'NoneType'", "<?print int(data)?>", None
 	yield check, "1", "<?print int(data)?>", True
 	yield check, "0", "<?print int(data)?>", False
 	yield check, "42", "<?print int(data)?>", 42
 	yield check, "4", "<?print int(data)?>", 4.2
 	yield check, "42", "<?print int(data)?>", "42"
 	yield checkrunerror, "invalid literal for int\\(\\) with base 10: 'foo'", "<?print int(data)?>", "foo"
+
+
+def test_function_len():
+	yield checkrunerror, "function u?'len' unknown", "<?print len()?>"
+	yield checkrunerror, "function u?'len' unknown", "<?print len(1, 2)?>"
+	yield checkrunerror, "object of type 'NoneType' has no len", "<?print len(data)?>", None
+	yield checkrunerror, "object of type 'bool' has no len", "<?print len(data)?>", True
+	yield checkrunerror, "object of type 'bool' has no len", "<?print len(data)?>", False
+	yield checkrunerror, "object of type 'int' has no len", "<?print len(data)?>", 42
+	yield checkrunerror, "object of type 'float' has no len", "<?print len(data)?>", 4.2
+	yield check, "42", "<?print len(data)?>", 42*"?"
+	yield check, "42", "<?print len(data)?>", 42*[None]
+	yield check, "42", "<?print len(data)?>", dict.fromkeys(xrange(42))
 
 
 def test_render():
