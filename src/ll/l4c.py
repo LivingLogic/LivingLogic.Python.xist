@@ -396,6 +396,15 @@ Return the octal representation of the integer argument (with a leading ``0o``).
 Return the binary representation of the integer argument (with a leading ``0b``).
 
 
+``range``
+::::::::::
+
+``range`` returns an object that can be iterated and will produce consecutive
+integers up to the specified argument. With two arguments the first is the start
+value and the second is the stop value. With three arguments the third one is
+the step size (which can be negative).
+
+
 Methods
 -------
 
@@ -546,7 +555,8 @@ class BlockError(Error):
 class UnknownFunctionError(Error):
 	"""
 	Exception that is raised the function to be executed by the ``callfunc0``,
-	``callfunc1`` or ``callfunc2`` opcodes is unknown to the renderer.
+	``callfunc1``, ``callfunc2`` or ``callfunc3`` opcodes is unknown to the
+	renderer.
 	"""
 
 	def __init__(self, funcname):
@@ -741,6 +751,11 @@ class Opcode(object):
 		:attr:`r2` and :attr:`r3` as the two arguments and store the return value
 		in register :attr:`r1`.
 
+	``"callfunc3"``:
+		Call the function named :attr:`arg` with the contents of register
+		:attr:`r2`, :attr:`r3` and :attr:`r4` as the three arguments and store
+		the return value in register :attr:`r1`.
+
 	``"callmeth0"``:
 		Call the method named :attr:`arg` on the object in register :attr:`r2`
 		and store the return value in register :attr:`r1`.
@@ -876,6 +891,8 @@ class Opcode(object):
 			return "r%r = %s(r%r)" % (self.r1, self.arg, self.r2)
 		elif self.code == "callfunc2":
 			return "r%r = %s(r%r, r%r)" % (self.r1, self.arg, self.r2, self.r3)
+		elif self.code == "callfunc3":
+			return "r%r = %s(r%r, r%r, r%r)" % (self.r1, self.arg, self.r2, self.r3, self.r4)
 		elif self.code == "callmeth0":
 			return "r%r = r%r.%s()" % (self.r1, self.r2, self.arg)
 		elif self.code == "callmeth1":
@@ -1186,10 +1203,20 @@ class Template(object):
 						yield self._code('reg%d = "0b" + ("".join("1" if reg%d & 1<<i else "0" for i in xrange(100)).rstrip("0"))[::-1]' % (opcode.r1, opcode.r2))
 					elif opcode.arg == "sorted":
 						yield self._code("reg%d = sorted(reg%d)" % (opcode.r1, opcode.r2))
+					elif opcode.arg == "range":
+						yield self._code("reg%d = xrange(reg%d)" % (opcode.r1, opcode.r2))
 					else:
 						raise UnknownFunctionError(opcode.arg)
 				elif opcode.code == "callfunc2":
-					raise UnknownFunctionError(opcode.arg)
+					if opcode.arg == "range":
+						yield self._code("reg%d = xrange(reg%d, reg%d)" % (opcode.r1, opcode.r2, opcode.r3))
+					else:
+						raise UnknownFunctionError(opcode.arg)
+				elif opcode.code == "callfunc3":
+					if opcode.arg == "range":
+						yield self._code("reg%d = xrange(reg%d, reg%d, reg%d)" % (opcode.r1, opcode.r2, opcode.r3, opcode.r4))
+					else:
+						raise UnknownFunctionError(opcode.arg)
 				elif opcode.code == "callmeth0":
 					if opcode.arg in ("split", "rsplit", "strip", "lstrip", "rstrip", "upper", "lower"):
 						yield self._code("reg%d = reg%d.%s()" % (opcode.r1, opcode.r2, opcode.arg))
@@ -1805,6 +1832,16 @@ class CallFunc(AST):
 			(r1, arg1) = self.args[1].compile(registers, location)
 			yield (r0, Opcode("callfunc2", r1=r0, r2=r0, r3=r1, arg=self.name.name, location=location))
 			freereg(registers, r1)
+		elif len(self.args) == 3:
+			for (r0, op) in self.args[0].compile(registers, location):
+				yield (r0, op)
+			for (r1, op) in self.args[1].compile(registers, location):
+				yield (r1, op)
+			for (r2, op) in self.args[2].compile(registers, location):
+				yield (r2, op)
+			yield (r0, Opcode("callfunc3", r1=r0, r2=r0, r3=r1, r4=r2, arg=self.name.name, location=location))
+			freereg(registers, r1)
+			freereg(registers, r2)
 		else:
 			raise ValueError("%d arguments not supported" % len(self.args))
 
@@ -2119,6 +2156,10 @@ class ExprParser(spark.GenericParser):
 	@spark.rule('expr10 ::= name ( expr0 , expr0 )')
 	def expr_callfunc2(self, (name, _0, arg0, _1, arg1, _2)):
 		return CallFunc(name, [arg0, arg1])
+
+	@spark.rule('expr10 ::= name ( expr0 , expr0 , expr0 )')
+	def expr_callfunc2(self, (name, _0, arg0, _1, arg1, _2, arg2, _3)):
+		return CallFunc(name, [arg0, arg1, arg2])
 
 	@spark.rule('expr9 ::= expr9 [ expr0 ]')
 	def expr_getitem(self, (expr, _0, key, _1)):
