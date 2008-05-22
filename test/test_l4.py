@@ -245,6 +245,36 @@ def test_empty():
 	yield checkcompileerror, "render statement required", '<?render?>'
 
 
+def test_add():
+	yield check, '42', '<?code x=21?><?code y=21?><?print x+y?>'
+	yield check, 'foobar', '<?code x="foo"?><?code y="bar"?><?print x+y?>'
+	yield check, '(f)(o)(o)(b)(a)(r)', '<?for i in data.foo+data.bar?>(<?print i?>)<?end for?>', dict(foo="foo", bar="bar")
+
+
+def test_sub():
+	yield check, '0', '<?code x=21?><?code y=21?><?print x-y?>'
+
+
+
+def test_mul():
+	yield check, str(17*23), '<?code x=17?><?code y=23?><?print x*y?>'
+	yield check, 17*"foo", '<?code x=17?><?code y="foo"?><?print x*y?>'
+	yield check, "foo"*17, '<?code x="foo"?><?code y=17?><?print x*y?>'
+	yield check, "(foo)(bar)(foo)(bar)(foo)(bar)", '<?for i in 3*data?>(<?print i?>)<?end for?>', ["foo", "bar"]
+
+
+def test_truediv():
+	yield check, "0.5", '<?code x=1?><?code y=2?><?print x/y?>'
+
+
+def test_floordiv():
+	yield check, "0", '<?code x=1?><?code y=2?><?print x//y?>'
+
+
+def test_mod():
+	yield check, str(42%17), '<?code x=42?><?code y=17?><?print x%y?>'
+
+
 def test_render():
 	t = l4c.compile('(<?print data?>)')
 	yield check, '(f)(o)(o)', '<?for i in data?><?render t(i)?><?end for?>', 'foo', dict(t=t)
