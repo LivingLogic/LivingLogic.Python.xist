@@ -350,7 +350,7 @@ prints:
 
 
 ``sorted``
-:::::::::::::
+::::::::::
 
 ``sorted`` returns a sorted list with the items from it's argument. For example::
 
