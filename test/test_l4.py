@@ -358,6 +358,20 @@ def test_function_len():
 	yield check, "42", "<?print len(data)?>", dict.fromkeys(xrange(42))
 
 
+def test_function_enumerate():
+	yield checkrunerror, "function u?'enumerate' unknown", "<?print enumerate()?>"
+	yield checkrunerror, "function u?'enumerate' unknown", "<?print enumerate(1, 2)?>"
+	code = "<?for (i, value) in enumerate(data)?><?print i?>:<?print value?>\n<?end for?>"
+	yield checkrunerror, "'NoneType' object is not iterable", code, None
+	yield checkrunerror, "'bool' object is not iterable", code, True
+	yield checkrunerror, "'bool' object is not iterable", code, False
+	yield checkrunerror, "'int' object is not iterable", code, 42
+	yield checkrunerror, "'float' object is not iterable", code, 4.2
+	yield check, "0:f\n1:o\n2:o\n", code, "foo"
+	yield check, "0:foo\n1:bar\n", code, ["foo", "bar"]
+	yield check, "0:foo\n", code, dict(foo=True)
+
+
 def test_render():
 	t = l4c.compile('(<?print data?>)')
 	yield check, '(f)(o)(o)', '<?for i in data?><?render t(i)?><?end for?>', 'foo', dict(t=t)
