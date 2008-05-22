@@ -1936,7 +1936,7 @@ class Scanner(spark.GenericScanner):
 			raise Error(exc).decorate(location)
 		return self.rv
 
-	@spark.token("in|not|or|and|del|\\(|\\)|\\[|\\]|\\.|,|==|\\!=|=|\\+=|\\-=|\\*=|/=|//=|%=|%|:|\\+|-|\\*|/|//", "default")
+	@spark.token("in|not|or|and|del|\\(|\\)|\\[|\\]|\\.|,|==|\\!=|=|\\+=|\\-=|\\*=|//=|/=|%=|%|:|\\+|-|\\*|//|/", "default")
 	def token(self, s):
 		self.rv.append(Token(s))
 
