@@ -275,6 +275,10 @@ def test_mod():
 	yield check, str(42%17), '<?code x=42?><?code y=17?><?print x%y?>'
 
 
+def test_mod():
+	yield check, str(42%17), '<?code x=42?><?code y=17?><?print x%y?>'
+
+
 def test_nested():
 	sc = "4"
 	sv = "x"
@@ -289,14 +293,27 @@ def test_nested():
 
 def test_precedence():
 	yield check, "14", '<?print 2+3*4?>'
+	yield check, "20", '<?print (2+3)*4?>'
 	yield check, "10", '<?print -2+-3*-4?>'
 	yield check, "14", '<?print --2+--3*--4?>'
+	yield check, "14", '<?print (-(-2))+(-((-3)*-(-4)))?>'
 	yield check, "42", '<?print 2*data.value?>', dict(value=21)
 	yield check, "42", '<?print data.value[0]?>', dict(value=[42])
 	yield check, "42", '<?print data[0].value?>', [dict(value=42)]
 	yield check, "42", '<?print data[0][0][0]?>', [[[42]]]
 	yield check, "42", '<?print data.value.value[0]?>', dict(value=dict(value=[42]))
 	yield check, "42", '<?print data.value.value[0].value.value[0]?>', dict(value=dict(value=[dict(value=dict(value=[42]))]))
+
+
+def test_bracket():
+	sc = "4"
+	sv = "x"
+	for i in xrange(10):
+		sc = "(%s)" % sc
+		sv = "(%s)" % sv
+
+	yield check, "4", '<?print %s?>' % sc
+	yield check, "4", '<?code x=4?><?print %s?>' % sv
 
 
 def test_render():
