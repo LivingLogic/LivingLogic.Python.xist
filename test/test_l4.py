@@ -537,6 +537,15 @@ def test_function_bin():
 	yield check, "-0b1111", code, -15
 
 
+def test_function_sorted():
+	yield checkrunerror, "function u?'sorted' unknown", "<?print sorted()?>"
+	yield checkrunerror, "function u?'sorted' unknown", "<?print sorted(1, 2)?>"
+	code = "<?for i in sorted(data)?><?print i?><?end for?>"
+	yield check, "gkru", code, "gurk"
+	yield check, "24679", code, "92746"
+	yield check, "012", code, {0: "zero", 1: "one", 2: "two"}
+
+
 def test_render():
 	t = l4c.compile('(<?print data?>)')
 	yield check, '(f)(o)(o)', '<?for i in data?><?render t(i)?><?end for?>', 'foo', dict(t=t)
