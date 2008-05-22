@@ -372,6 +372,111 @@ def test_function_enumerate():
 	yield check, "0:foo\n", code, dict(foo=True)
 
 
+def test_function_isnone():
+	yield checkrunerror, "function u?'isnone' unknown", "<?print isnone()?>"
+	yield checkrunerror, "function u?'isnone' unknown", "<?print isnone(1, 2)?>"
+	code = "<?print isnone(data)?>"
+	yield check, "True", code, None
+	yield check, "False", code, True
+	yield check, "False", code, False
+	yield check, "False", code, 42
+	yield check, "False", code, 4.2
+	yield check, "False", code, "foo"
+	yield check, "False", code, ()
+	yield check, "False", code, []
+	yield check, "False", code, {}
+
+
+def test_function_isbool():
+	yield checkrunerror, "function u?'isbool' unknown", "<?print isbool()?>"
+	yield checkrunerror, "function u?'isbool' unknown", "<?print isbool(1, 2)?>"
+	code = "<?print isbool(data)?>"
+	yield check, "False", code, None
+	yield check, "True", code, True
+	yield check, "True", code, False
+	yield check, "False", code, 42
+	yield check, "False", code, 4.2
+	yield check, "False", code, "foo"
+	yield check, "False", code, ()
+	yield check, "False", code, []
+	yield check, "False", code, {}
+
+
+def test_function_isint():
+	yield checkrunerror, "function u?'isint' unknown", "<?print isint()?>"
+	yield checkrunerror, "function u?'isint' unknown", "<?print isint(1, 2)?>"
+	code = "<?print isint(data)?>"
+	yield check, "False", code, None
+	yield check, "False", code, True
+	yield check, "False", code, False
+	yield check, "True", code, 42
+	yield check, "False", code, 4.2
+	yield check, "False", code, "foo"
+	yield check, "False", code, ()
+	yield check, "False", code, []
+	yield check, "False", code, {}
+
+
+def test_function_isfloat():
+	yield checkrunerror, "function u?'isfloat' unknown", "<?print isfloat()?>"
+	yield checkrunerror, "function u?'isfloat' unknown", "<?print isfloat(1, 2)?>"
+	code = "<?print isfloat(data)?>"
+	yield check, "False", code, None
+	yield check, "False", code, True
+	yield check, "False", code, False
+	yield check, "False", code, 42
+	yield check, "True", code, 4.2
+	yield check, "False", code, "foo"
+	yield check, "False", code, ()
+	yield check, "False", code, []
+	yield check, "False", code, {}
+
+
+def test_function_isstr():
+	yield checkrunerror, "function u?'isstr' unknown", "<?print isstr()?>"
+	yield checkrunerror, "function u?'isstr' unknown", "<?print isstr(1, 2)?>"
+	code = "<?print isstr(data)?>"
+	yield check, "False", code, None
+	yield check, "False", code, True
+	yield check, "False", code, False
+	yield check, "False", code, 42
+	yield check, "False", code, 4.2
+	yield check, "True", code, "foo"
+	yield check, "False", code, ()
+	yield check, "False", code, []
+	yield check, "False", code, {}
+
+
+def test_function_islist():
+	yield checkrunerror, "function u?'islist' unknown", "<?print islist()?>"
+	yield checkrunerror, "function u?'islist' unknown", "<?print islist(1, 2)?>"
+	code = "<?print islist(data)?>"
+	yield check, "False", code, None
+	yield check, "False", code, True
+	yield check, "False", code, False
+	yield check, "False", code, 42
+	yield check, "False", code, 4.2
+	yield check, "False", code, "foo"
+	yield check, "True", code, ()
+	yield check, "True", code, []
+	yield check, "False", code, {}
+
+
+def test_function_isdict():
+	yield checkrunerror, "function u?'isdict' unknown", "<?print isdict()?>"
+	yield checkrunerror, "function u?'isdict' unknown", "<?print isdict(1, 2)?>"
+	code = "<?print isdict(data)?>"
+	yield check, "False", code, None
+	yield check, "False", code, True
+	yield check, "False", code, False
+	yield check, "False", code, 42
+	yield check, "False", code, 4.2
+	yield check, "False", code, "foo"
+	yield check, "False", code, ()
+	yield check, "False", code, []
+	yield check, "True", code, {}
+
+
 def test_render():
 	t = l4c.compile('(<?print data?>)')
 	yield check, '(f)(o)(o)', '<?for i in data?><?render t(i)?><?end for?>', 'foo', dict(t=t)
