@@ -287,6 +287,18 @@ def test_nested():
 	yield check, str(n), '<?code x=4?><?print %s?>' % sv
 
 
+def test_precedence():
+	yield check, "14", '<?print 2+3*4?>'
+	yield check, "10", '<?print -2+-3*-4?>'
+	yield check, "14", '<?print --2+--3*--4?>'
+	yield check, "42", '<?print 2*data.value?>', dict(value=21)
+	yield check, "42", '<?print data.value[0]?>', dict(value=[42])
+	yield check, "42", '<?print data[0].value?>', [dict(value=42)]
+	yield check, "42", '<?print data[0][0][0]?>', [[[42]]]
+	yield check, "42", '<?print data.value.value[0]?>', dict(value=dict(value=[42]))
+	yield check, "42", '<?print data.value.value[0].value.value[0]?>', dict(value=dict(value=[dict(value=dict(value=[42]))]))
+
+
 def test_render():
 	t = l4c.compile('(<?print data?>)')
 	yield check, '(f)(o)(o)', '<?for i in data?><?render t(i)?><?end for?>', 'foo', dict(t=t)
