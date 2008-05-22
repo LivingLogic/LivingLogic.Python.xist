@@ -499,6 +499,15 @@ def test_function_chr():
 	yield check, u"\u20ac", code, 0x20ac
 
 
+def test_function_ord():
+	yield checkrunerror, "function u?'ord' unknown", "<?print ord()?>"
+	yield checkrunerror, "function u?'ord' unknown", "<?print ord(1, 2)?>"
+	code = "<?print ord(data)?>"
+	yield check, "0", code, "\x00"
+	yield check, str(ord("a")), code, "a"
+	yield check, str(0x20ac), code, u"\u20ac"
+
+
 def test_render():
 	t = l4c.compile('(<?print data?>)')
 	yield check, '(f)(o)(o)', '<?for i in data?><?render t(i)?><?end for?>', 'foo', dict(t=t)
