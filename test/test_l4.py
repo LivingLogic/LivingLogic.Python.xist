@@ -490,6 +490,15 @@ def test_function_repr():
 	# no test for tuples, lists and dicts
 
 
+def test_function_chr():
+	yield checkrunerror, "function u?'chr' unknown", "<?print chr()?>"
+	yield checkrunerror, "function u?'chr' unknown", "<?print chr(1, 2)?>"
+	code = "<?print chr(data)?>"
+	yield check, "\x00", code, 0
+	yield check, "a", code, ord("a")
+	yield check, u"\u20ac", code, 0x20ac
+
+
 def test_render():
 	t = l4c.compile('(<?print data?>)')
 	yield check, '(f)(o)(o)', '<?for i in data?><?render t(i)?><?end for?>', 'foo', dict(t=t)
