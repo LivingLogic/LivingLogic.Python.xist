@@ -546,6 +546,27 @@ def test_function_sorted():
 	yield check, "012", code, {0: "zero", 1: "one", 2: "two"}
 
 
+def test_function_range():
+	yield checkrunerror, "function u?'sorted' unknown", "<?print sorted()?>"
+	code = "<?for i in range(data)?><?print i?><?end for?>"
+	yield check, "", code, -10
+	yield check, "", code, 0
+	yield check, "0", code, 1
+	yield check, "01234", code, 5
+	code = "<?for i in range(data[0], data[1])?><?print i?><?end for?>"
+	yield check, "", code, [0, -10]
+	yield check, "", code, [0, 0]
+	yield check, "01234", code, [0, 5]
+	yield check, "-5-4-3-2-101234", code, [-5, 5]
+	code = "<?for i in range(data[0], data[1], data[2])?><?print i?><?end for?>"
+	yield check, "", code, [0, -10, 1]
+	yield check, "", code, [0, 0, 1]
+	yield check, "02468", code, [0, 10, 2]
+	yield check, "", code, [0, 10, -2]
+	yield check, "108642", code, [10, 0, -2]
+	yield check, "", code, [10, 0, 2]
+
+
 def test_render():
 	t = l4c.compile('(<?print data?>)')
 	yield check, '(f)(o)(o)', '<?for i in data?><?render t(i)?><?end for?>', 'foo', dict(t=t)
