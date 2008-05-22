@@ -1163,7 +1163,7 @@ class Template(object):
 				elif opcode.code == "mod":
 					yield self._code("reg%d = reg%d %% reg%d" % (opcode.r1, opcode.r2, opcode.r3))
 				elif opcode.code == "callfunc0":
-					raise l4c.UnknownFunctionError(opcode.arg)
+					raise UnknownFunctionError(opcode.arg)
 				elif opcode.code == "callfunc1":
 					if opcode.arg == "xmlescape":
 						yield self._code("reg%d = xmlescape(reg%d)" % (opcode.r1, opcode.r2))
