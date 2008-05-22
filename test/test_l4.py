@@ -477,6 +477,19 @@ def test_function_isdict():
 	yield check, "True", code, {}
 
 
+def test_function_repr():
+	yield checkrunerror, "function u?'repr' unknown", "<?print repr()?>"
+	yield checkrunerror, "function u?'repr' unknown", "<?print repr(1, 2)?>"
+	code = "<?print repr(data)?>"
+	yield check, "None", code, None
+	yield check, "True", code, True
+	yield check, "False", code, False
+	yield check, "42", code, 42
+	# no test for float
+	yield check, "'foo'", code, "foo"
+	# no test for tuples, lists and dicts
+
+
 def test_render():
 	t = l4c.compile('(<?print data?>)')
 	yield check, '(f)(o)(o)', '<?for i in data?><?render t(i)?><?end for?>', 'foo', dict(t=t)
