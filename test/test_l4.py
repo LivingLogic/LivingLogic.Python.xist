@@ -333,6 +333,15 @@ def test_function_xmlescape():
 	yield check, "foo", "<?print str(data)?>", "foo"
 
 
+def test_function_int():
+	yield checkrunerror, "function u?'int' unknown", "<?print int()?>"
+	yield checkrunerror, "function u?'int' unknown", "<?print int(1, 2)?>"
+	yield check, "1", "<?print int(data)?>", True
+	yield check, "0", "<?print int(data)?>", False
+	yield check, "42", "<?print int(data)?>", 42
+	yield check, "4", "<?print int(data)?>", 4.2
+
+
 def test_render():
 	t = l4c.compile('(<?print data?>)')
 	yield check, '(f)(o)(o)', '<?for i in data?><?render t(i)?><?end for?>', 'foo', dict(t=t)
