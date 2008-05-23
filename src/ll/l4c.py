@@ -911,16 +911,11 @@ class Template(object):
 	def __init__(self):
 		self.source = None
 		self.opcodes = None
+		self.registers = None # using during compilation to keep track of available registers
+		self.location = None # Used during compilation to store the location of the tag in the sourcecode
 		# The following is used for converting the opcodes back to executable Python code
 		self._indent = 0
 		self._pythonfunction = None
-
-	@classmethod
-	def compile(cls, source, startdelim="<?", enddelim="?>"):
-		self = cls()
-		self.source = source
-		self.opcodes = list(cls._compile(source, startdelim, enddelim))
-		return self
 
 	@classmethod
 	def loads(cls, data):
@@ -1307,8 +1302,7 @@ class Template(object):
 			if opcode.code in ("for", "if", "else"):
 				i += 1
 
-	@classmethod
-	def _tokenize(cls, source, startdelim, enddelim):
+	def _tokenize(self, source, startdelim, enddelim):
 		pattern = u"%s(print|code|for|if|elif|else|end|render)(\s*((.|\\n)*?)\s*)?%s" % (re.escape(startdelim), re.escape(enddelim))
 		pos = 0
 		for match in re.finditer(pattern, source):
@@ -1320,8 +1314,19 @@ class Template(object):
 		if pos != end:
 			yield Location(source, None, pos, end, pos, end)
 
-	@classmethod
-	def _compile(cls, string, startdelim, enddelim):
+	def _allocreg(self):
+		try:
+			return self.registers.pop()
+		except KeyError:
+			raise OutOfRegistersError()
+
+	def _freereg(self, register):
+		self.registers.add(register)
+
+	def opcode(self, name, r1=None, r2=None, r3=None, r4=None, r5=None, arg=None):
+		self.opcodes.append(Opcode(name, r1, r2, r3, r4, r5, arg, self.location))
+
+	def _compile(self, source, startdelim, enddelim):
 		scanner = Scanner()
 		parseexpr = ExprParser(scanner).compile
 		parsestmt = StmtParser(scanner).compile
@@ -1334,38 +1339,39 @@ class Template(object):
 		# 2) How many if's or elif's we have seen (this is used for simulating elif's via nested if's, for each additional elif, we have one more endif to add)
 		# 3) Whether we've already seen the else
 		stack = []
-		for location in cls._tokenize(string, startdelim, enddelim):
+
+		self.source = source
+		self.opcodes = []
+
+		for location in self._tokenize(source, startdelim, enddelim):
+			self.location = location
 			try:
 				if location.type is None:
-					yield Opcode(None, location=location)
+					self.opcode(None)
 				elif location.type == "print":
-					for (r, op) in parseexpr(location):
-						yield op
-					yield Opcode("print", r1=r, location=location)
+					r = parseexpr(self)
+					self.opcode("print", r1=r)
 				elif location.type == "code":
-					for (r, op) in parsestmt(location):
-						yield op
+					parsestmt(self)
 				elif location.type == "if":
-					for (r, op) in parseexpr(location):
-						yield op
-					yield Opcode("if", r1=r, location=location)
+					r = parseexpr(self)
+					self.opcode("if", r1=r)
 					stack.append(("if", 1, False))
 				elif location.type == "elif":
 					if not stack or stack[-1][0] != "if":
 						raise BlockError("elif doesn't match any if")
 					elif stack[-1][2]:
 						raise BlockError("else already seen in elif")
-					yield Opcode("else", location=location)
-					for (r, op) in parseexpr(location):
-						yield op
-					yield Opcode("if", r1=r, location=location)
+					self.opcode("else")
+					r = parseexpr(self)
+					self.opcode("if", r1=r)
 					stack[-1] = ("if", stack[-1][1]+1, False)
 				elif location.type == "else":
 					if not stack or stack[-1][0] != "if":
 						raise BlockError("else doesn't match any if")
 					elif stack[-1][2]:
 						raise BlockError("duplicate else")
-					yield Opcode("else", location=location)
+					self.opcode("else")
 					stack[-1] = ("if", stack[-1][1], True)
 				elif location.type == "end":
 					if not stack:
@@ -1383,16 +1389,14 @@ class Template(object):
 					last = stack.pop()
 					if last[0] == "if":
 						for i in xrange(last[1]):
-							yield Opcode("endif", location=location)
+							self.opcode("endif")
 					else: # last[0] == "for":
-						yield Opcode("endfor", location=location)
+						self.opcode("endfor")
 				elif location.type == "for":
-					for (r, op) in parsefor(location):
-						yield op
+					parsefor(self)
 					stack.append(("for",))
 				elif location.type == "render":
-					for (r, op) in parserender(location):
-						yield op
+					parserender(self)
 				else: # Can't happen
 					raise ValueError("unknown tag %r" % location.type)
 			except Error, exc:
@@ -1400,6 +1404,8 @@ class Template(object):
 				raise
 			except Exception, exc:
 				raise Error(exc).decorate(location)
+			finally:
+				self.location = None
 		if stack:
 			raise BlockError("unclosed blocks")
 
@@ -1410,24 +1416,13 @@ class Template(object):
 		return u"\n".join(self.format())
 
 
-compile = Template.compile
+def compile(source, startdelim="<?", enddelim="?>"):
+	template = Template()
+	template._compile(source, startdelim, enddelim)
+	return template
+
 load = Template.load
 loads = Template.loads
-
-
-###
-### Helper functions for register allocation
-###
-
-def allocreg(registers, location):
-	try:
-		return registers.pop()
-	except KeyError:
-		raise OutOfRegistersError()
-
-
-def freereg(registers, register):
-	registers.add(register)
 
 
 ###
@@ -1461,9 +1456,10 @@ class None_(Const):
 	def __repr__(self):
 		return "%s()" % self.__class__.__name__
 
-	def compile(self, registers, location):
-		r = allocreg(registers, location)
-		yield (r, Opcode("loadnone", r1=r, location=location))
+	def compile(self, template):
+		r = template._allocreg()
+		template.opcode("loadnone", r1=r)
+		return r
 
 
 class True_(Const):
@@ -1473,9 +1469,10 @@ class True_(Const):
 	def __repr__(self):
 		return "%s()" % self.__class__.__name__
 
-	def compile(self, registers, location):
-		r = allocreg(registers, location)
-		yield (r, Opcode("loadtrue", r1=r, location=location))
+	def compile(self, template):
+		r = template._allocreg()
+		template.opcode("loadtrue", r1=r)
+		return r
 
 
 class False_(Const):
@@ -1485,10 +1482,10 @@ class False_(Const):
 	def __repr__(self):
 		return "%s()" % self.__class__.__name__
 
-	def compile(self, registers, location):
-		r = allocreg(registers, location)
-		yield (r, Opcode("loadfalse", r1=r, location=location))
-
+	def compile(self, template):
+		r = template._allocreg()
+		template.opcode("loadfalse", r1=r)
+		return r
 
 
 class Value(Const):
@@ -1498,9 +1495,10 @@ class Value(Const):
 	def __repr__(self):
 		return "%s(%r)" % (self.__class__.__name__, self.value)
 
-	def compile(self, registers, location):
-		r = allocreg(registers, location)
-		yield (r, Opcode("load%s" % self.type, r1=r, arg=unicode(self.value), location=location))
+	def compile(self, template):
+		r = template._allocreg()
+		template.opcode("load%s" % self.type, r1=r, arg=unicode(self.value))
+		return r
 
 
 class Int(Value):
@@ -1510,9 +1508,10 @@ class Int(Value):
 class Float(Value):
 	type = "float"
 
-	def compile(self, registers, location):
-		r = allocreg(registers, location)
-		yield (r, Opcode("load%s" % self.type, r1=r, arg=repr(self.value), location=location))
+	def compile(self, template):
+		r = template._allocreg()
+		template.opcode("load%s" % self.type, r1=r, arg=repr(self.value))
+		return r
 
 
 class Str(Value):
@@ -1528,9 +1527,10 @@ class Name(AST):
 	def __repr__(self):
 		return "%s(%r)" % (self.__class__.__name__, self.name)
 
-	def compile(self, registers, location):
-		r = allocreg(registers, location)
-		yield (r, Opcode("loadvar", r1=r, arg=self.name, location=location))
+	def compile(self, template):
+		r = template._allocreg()
+		template.opcode("loadvar", r1=r, arg=self.name)
+		return r
 
 
 class For(AST):
@@ -1541,22 +1541,21 @@ class For(AST):
 	def __repr__(self):
 		return "%s(%r, %r)" % (self.__class__.__name__, self.iter, self.cont)
 
-	def compile(self, registers, location):
-		for (rc, op) in self.cont.compile(registers, location):
-			yield (rc, op)
-		ri = allocreg(registers, location)
-		yield (rc, Opcode("for", r1=ri, r2=rc, location=location))
+	def compile(self, template):
+		rc = self.cont.compile(template)
+		ri = template._allocreg()
+		template.opcode("for", r1=ri, r2=rc)
 		if isinstance(self.iter, list):
 			for (i, iter) in enumerate(self.iter):
-				rii = allocreg(registers, location)
-				yield (rii, Opcode("loadint", r1=rii, arg=str(i), location=location))
-				yield (rii, Opcode("getitem", r1=rii, r2=ri, r3=rii, location=location))
-				yield (rii, Opcode("storevar", r1=rii, arg=iter.name, location=location))
-				freereg(registers, rii)
+				rii = template._allocreg()
+				template.opcode("loadint", r1=rii, arg=str(i))
+				template.opcode("getitem", r1=rii, r2=ri, r3=rii)
+				template.opcode("storevar", r1=rii, arg=iter.name)
+				template._freereg(rii)
 		else:
-			yield (ri, Opcode("storevar", r1=ri, arg=self.iter.name, location=location))
-		freereg(registers, ri)
-		freereg(registers, rc)
+			template.opcode("storevar", r1=ri, arg=self.iter.name)
+		template._freereg(ri)
+		template._freereg(rc)
 
 
 class GetAttr(AST):
@@ -1567,10 +1566,10 @@ class GetAttr(AST):
 	def __repr__(self):
 		return "%s(%r, %r)" % (self.__class__.__name__, self.obj, self.attr)
 
-	def compile(self, registers, location):
-		for (r, op) in self.obj.compile(registers, location):
-			yield (r, op)
-		yield (r, Opcode("getattr", r1=r, r2=r, arg=self.attr.name, location=location))
+	def compile(self, template):
+		r = self.obj.compile(template)
+		template.opcode("getattr", r1=r, r2=r, arg=self.attr.name)
+		return r
 
 
 class GetItem(AST):
@@ -1581,13 +1580,12 @@ class GetItem(AST):
 	def __repr__(self):
 		return "%s(%r, %r)" % (self.__class__.__name__, self.obj, self.key)
 
-	def compile(self, registers, location):
-		for (r1, op) in self.obj.compile(registers, location):
-			yield (r1, op)
-		for (r2, op) in self.key.compile(registers, location):
-			yield (r2, op)
-		yield (r1, Opcode("getitem", r1=r1, r2=r1, r3=r2, location=location))
-		freereg(registers, r2)
+	def compile(self, template):
+		r1 = self.obj.compile(template)
+		r2 = self.key.compile(template)
+		template.opcode("getitem", r1=r1, r2=r1, r3=r2)
+		template._freereg(r2)
+		return r1
 
 
 class GetSlice12(AST):
@@ -1599,16 +1597,14 @@ class GetSlice12(AST):
 	def __repr__(self):
 		return "%s(%r, %r, %r)" % (self.__class__.__name__, self.obj, self.index1, self.index2)
 
-	def compile(self, registers, location):
-		for (r1, op) in self.obj.compile(registers, location):
-			yield (r1, op)
-		for (r2, op) in self.index1.compile(registers, location):
-			yield (r2, op)
-		for (r3, op) in self.index2.compile(registers, location):
-			yield (r3, op)
-		yield (r1, Opcode("getslice12", r1=r1, r2=r1, r3=r2, r4=r3, location=location))
-		freereg(registers, r2)
-		freereg(registers, r3)
+	def compile(self, template):
+		r1 = self.obj.compile(template)
+		r2 = self.index1.compile(template)
+		r3 = self.index2.compile(template)
+		template.opcode("getslice12", r1=r1, r2=r1, r3=r2, r4=r3)
+		template._freereg(r2)
+		template._freereg(r3)
+		return r1
 
 
 class GetSlice1(AST):
@@ -1619,13 +1615,12 @@ class GetSlice1(AST):
 	def __repr__(self):
 		return "%s(%r, %r)" % (self.__class__.__name__, self.obj, self.index1)
 
-	def compile(self, registers, location):
-		for (r1, op) in self.obj.compile(registers, location):
-			yield (r1, op)
-		for (r2, op) in self.index1.compile(registers, location):
-			yield (r2, op)
-		yield (r1, Opcode("getslice1", r1=r1, r2=r1, r3=r2, location=location))
-		freereg(registers, r2)
+	def compile(self, template):
+		r1 = self.obj.compile(template)
+		r2 = self.index1.compile(template)
+		template.opcode("getslice1", r1=r1, r2=r1, r3=r2)
+		template._freereg(r2)
+		return r1
 
 
 class GetSlice2(AST):
@@ -1636,13 +1631,12 @@ class GetSlice2(AST):
 	def __repr__(self):
 		return "%s(%r, %r)" % (self.__class__.__name__, self.obj, self.index2)
 
-	def compile(self, registers, location):
-		for (r1, op) in self.obj.compile(registers, location):
-			yield (r1, op)
-		for (r2, op) in self.index2.compile(registers, location):
-			yield (r2, op)
-		yield (r1, Opcode("getslice2", r1=r1, r2=r1, r3=r2, location=location))
-		freereg(registers, r2)
+	def compile(self, template):
+		r1 = self.obj.compile(template)
+		r2 = self.index2.compile(template)
+		template.opcode("getslice2", r1=r1, r2=r1, r3=r2)
+		template._freereg(r2)
+		return r1
 
 
 class GetSlice(AST):
@@ -1652,10 +1646,10 @@ class GetSlice(AST):
 	def __repr__(self):
 		return "%s(%r)" % (self.__class__.__name__, self.obj)
 
-	def compile(self, registers, location):
-		for (r1, op) in self.obj.compile(registers, location):
-			yield (r1, op)
-		yield (r1, Opcode("getslice", r1=r1, r2=r1, location=location))
+	def compile(self, template):
+		r1 = self.obj.compile(template)
+		template.opcode("getslice", r1=r1, r2=r1)
+		return r1
 
 
 class Unary(AST):
@@ -1667,10 +1661,10 @@ class Unary(AST):
 	def __repr__(self):
 		return "%s(%r)" % (self.__class__.__name__, self.obj)
 
-	def compile(self, registers, location):
-		for (r, op) in self.obj.compile(registers, location):
-			yield (r, op)
-		yield (r, Opcode(self.opcode, r1=r, r2=r, location=location))
+	def compile(self, template):
+		r = self.obj.compile(template)
+		template.opcode(self.opcode, r1=r, r2=r)
+		return r
 
 
 class Not(Unary):
@@ -1691,13 +1685,12 @@ class Binary(AST):
 	def __repr__(self):
 		return "%s(%r, %r)" % (self.__class__.__name__, self.obj1, self.obj2)
 
-	def compile(self, registers, location):
-		for (r1, op) in self.obj1.compile(registers, location):
-			yield (r1, op)
-		for (r2, op) in self.obj2.compile(registers, location):
-			yield (r2, op)
-		yield (r1, Opcode(self.opcode, r1=r1, r2=r1, r3=r2, location=location))
-		freereg(registers, r2)
+	def compile(self, template):
+		r1 = self.obj1.compile(template)
+		r2 = self.obj2.compile(template)
+		template.opcode(self.opcode, r1=r1, r2=r1, r3=r2)
+		template._freereg(r2)
+		return r1
 
 
 class Equal(Binary):
@@ -1758,11 +1751,10 @@ class ChangeVar(AST):
 	def __repr__(self):
 		return "%s(%r, %r)" % (self.__class__.__name__, self.name, self.value)
 
-	def compile(self, registers, location):
-		for (r, op) in self.value.compile(registers, location):
-			yield (r, op)
-		yield (r, Opcode(self.opcode, r1=r, arg=self.name.name, location=location))
-		freereg(registers, r)
+	def compile(self, template):
+		r = self.value.compile(template)
+		template.opcode(self.opcode, r1=r, arg=self.name.name)
+		template._freereg(r)
 
 
 class StoreVar(ChangeVar):
@@ -1800,8 +1792,8 @@ class DelVar(AST):
 	def __repr__(self):
 		return "%s(%r)" % (self.__class__.__name__, self.name)
 
-	def compile(self, registers, location):
-		yield (None, Opcode("delvar", arg=self.name.name, location=location))
+	def compile(self, template):
+		template.opcode("delvar", arg=self.name.name)
 
 
 class CallFunc(AST):
@@ -1815,31 +1807,29 @@ class CallFunc(AST):
 		else:
 			return "%s(%r)" % (self.__class__.__name__, self.name)
 
-	def compile(self, registers, location):
+	def compile(self, template):
 		if len(self.args) == 0:
-			r = allocreg(registers, location)
-			yield (r, Opcode("callfunc0", r1=r, arg=self.name.name, location=location))
+			r = template._allocreg()
+			template.opcode("callfunc0", r1=r, arg=self.name.name)
+			return r
 		elif len(self.args) == 1:
-			for (r0, op) in self.args[0].compile(registers, location):
-				yield (r0, op)
-			yield (r0, Opcode("callfunc1", r1=r0, r2=r0, arg=self.name.name, location=location))
+			r0 = self.args[0].compile(template)
+			template.opcode("callfunc1", r1=r0, r2=r0, arg=self.name.name)
+			return r0
 		elif len(self.args) == 2:
-			for (r0, op) in self.args[0].compile(registers, location):
-				yield (r0, op)
-			for (r1, op) in self.args[1].compile(registers, location):
-				yield (r1, op)
-			yield (r0, Opcode("callfunc2", r1=r0, r2=r0, r3=r1, arg=self.name.name, location=location))
-			freereg(registers, r1)
+			r0 = self.args[0].compile(template)
+			r1 = self.args[1].compile(template)
+			template.opcode("callfunc2", r1=r0, r2=r0, r3=r1, arg=self.name.name)
+			template._freereg(r1)
+			return r0
 		elif len(self.args) == 3:
-			for (r0, op) in self.args[0].compile(registers, location):
-				yield (r0, op)
-			for (r1, op) in self.args[1].compile(registers, location):
-				yield (r1, op)
-			for (r2, op) in self.args[2].compile(registers, location):
-				yield (r2, op)
-			yield (r0, Opcode("callfunc3", r1=r0, r2=r0, r3=r1, r4=r2, arg=self.name.name, location=location))
-			freereg(registers, r1)
-			freereg(registers, r2)
+			r0 = self.args[0].compile(template)
+			r1 = self.args[1].compile(template)
+			r2 = self.args[2].compile(template)
+			template.opcode("callfunc3", r1=r0, r2=r0, r3=r1, r4=r2, arg=self.name.name)
+			template._freereg(r1)
+			template._freereg(r2)
+			return r0
 		else:
 			raise ValueError("%d arguments not supported" % len(self.args))
 
@@ -1856,41 +1846,35 @@ class CallMeth(AST):
 		else:
 			return "%s(%r, %r)" % (self.__class__.__name__, self.name, self.obj)
 
-	def compile(self, registers, location):
+	def compile(self, template):
 		if len(self.args) == 0:
-			for (r, op) in self.obj.compile(registers, location):
-				yield (r, op)
-			yield (r, Opcode("callmeth0", r1=r, r2=r, arg=self.name.name, location=location))
+			r = self.obj.compile(template)
+			template.opcode("callmeth0", r1=r, r2=r, arg=self.name.name)
+			return r
 		elif len(self.args) == 1:
-			for (r, op) in self.obj.compile(registers, location):
-				yield (r, op)
-			for (r0, op) in self.args[0].compile(registers, location):
-				yield (r0, op)
-			yield (r, Opcode("callmeth1", r1=r, r2=r, r3=r0, arg=self.name.name, location=location))
-			freereg(registers, r0)
+			r = self.obj.compile(template)
+			r0 = self.args[0].compile(template)
+			template.opcode("callmeth1", r1=r, r2=r, r3=r0, arg=self.name.name)
+			template._freereg(r0)
+			return r
 		elif len(self.args) == 2:
-			for (r, op) in self.obj.compile(registers, location):
-				yield (r, op)
-			for (r0, op) in self.args[0].compile(registers, location):
-				yield (r0, op)
-			for (r1, op) in self.args[1].compile(registers, location):
-				yield (r1, op)
-			yield (r, Opcode("callmeth2", r1=r, r2=r, r3=r0, r4=r1, arg=self.name.name, location=location))
-			freereg(registers, r0)
-			freereg(registers, r1)
+			r = self.obj.compile(template)
+			r0 = self.args[0].compile(template)
+			r1 = self.args[1].compile(template)
+			template.opcode("callmeth2", r1=r, r2=r, r3=r0, r4=r1, arg=self.name.name)
+			template._freereg(r0)
+			template._freereg(r1)
+			return r
 		elif len(self.args) == 3:
-			for (r, op) in self.obj.compile(registers, location):
-				yield (r, op)
-			for (r0, op) in self.args[0].compile(registers, location):
-				yield (r0, op)
-			for (r1, op) in self.args[1].compile(registers, location):
-				yield (r1, op)
-			for (r2, op) in self.args[2].compile(registers, location):
-				yield (r2, op)
-			yield (r, Opcode("callmeth3", r1=r, r2=r, r3=r0, r4=r1, r5=r2, arg=self.name.name, location=location))
-			freereg(registers, r0)
-			freereg(registers, r1)
-			freereg(registers, r2)
+			r = self.obj.compile(template)
+			r0 = self.args[0].compile(template)
+			r1 = self.args[1].compile(template)
+			r2 = self.args[2].compile(template)
+			template.opcode("callmeth3", r1=r, r2=r, r3=r0, r4=r1, r5=r2, arg=self.name.name)
+			template._freereg(r0)
+			template._freereg(r1)
+			template._freereg(r2)
+			return r
 		else:
 			raise ValueError("%d arguments not supported" % len(self.args))
 
@@ -1904,11 +1888,10 @@ class Render(AST):
 	def __repr__(self):
 		return "%s(%r, %r)" % (self.__class__.__name__, self.name, self.value)
 
-	def compile(self, registers, location):
-		for (r, op) in self.value.compile(registers, location):
-			yield (r, op)
-		yield (r, Opcode("render", r1=r, arg=self.name.name, location=location))
-		freereg(registers, r)
+	def compile(self, template):
+		r = self.value.compile(template)
+		template.opcode("render", r1=r, arg=self.name.name)
+		template._freereg(r)
 
 
 ###
@@ -2072,18 +2055,21 @@ class ExprParser(spark.GenericParser):
 		spark.GenericParser.__init__(self, start)
 		self.scanner = scanner
 
-	def compile(self, location):
+	def compile(self, template):
+		location = template.location
 		if not location.code:
 			raise ValueError(self.emptyerror)
+		template.registers = set(xrange(10))
 		try:
 			ast = self.parse(self.scanner.tokenize(location))
-			registers = set(xrange(10))
-			return ast.compile(registers, location) # return a generator-iterator
+			return ast.compile(template)
 		except Error, exc:
 			exc.decorate(location)
 			raise
 		except Exception, exc:
 			raise Error(exc).decorate(location)
+		finally:
+			template.registers = None
 
 	def typestring(self, token):
 		return token.type
