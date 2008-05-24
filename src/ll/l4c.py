@@ -2179,7 +2179,7 @@ class ExprParser(spark.GenericParser):
 	@spark.rule('expr2 ::= expr3')
 	@spark.rule('expr1 ::= expr2')
 	@spark.rule('expr0 ::= expr1')
-	def expr_droppecedence(self, (expr, )):
+	def expr_dropprecedence(self, (expr, )):
 		return expr
 
 
