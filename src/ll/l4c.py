@@ -1572,22 +1572,6 @@ class GetAttr(AST):
 		return r
 
 
-class GetItem(AST):
-	def __init__(self, obj, key):
-		self.obj = obj
-		self.key = key
-
-	def __repr__(self):
-		return "%s(%r, %r)" % (self.__class__.__name__, self.obj, self.key)
-
-	def compile(self, template):
-		r1 = self.obj.compile(template)
-		r2 = self.key.compile(template)
-		template.opcode("getitem", r1=r1, r2=r1, r3=r2)
-		template._freereg(r2)
-		return r1
-
-
 class GetSlice12(AST):
 	def __init__(self, obj, index1, index2):
 		self.obj = obj
@@ -1607,51 +1591,6 @@ class GetSlice12(AST):
 		return r1
 
 
-class GetSlice1(AST):
-	def __init__(self, obj, index1):
-		self.obj = obj
-		self.index1 = index1
-
-	def __repr__(self):
-		return "%s(%r, %r)" % (self.__class__.__name__, self.obj, self.index1)
-
-	def compile(self, template):
-		r1 = self.obj.compile(template)
-		r2 = self.index1.compile(template)
-		template.opcode("getslice1", r1=r1, r2=r1, r3=r2)
-		template._freereg(r2)
-		return r1
-
-
-class GetSlice2(AST):
-	def __init__(self, obj, index2):
-		self.obj = obj
-		self.index2 = index2
-
-	def __repr__(self):
-		return "%s(%r, %r)" % (self.__class__.__name__, self.obj, self.index2)
-
-	def compile(self, template):
-		r1 = self.obj.compile(template)
-		r2 = self.index2.compile(template)
-		template.opcode("getslice2", r1=r1, r2=r1, r3=r2)
-		template._freereg(r2)
-		return r1
-
-
-class GetSlice(AST):
-	def __init__(self, obj):
-		self.obj = obj
-
-	def __repr__(self):
-		return "%s(%r)" % (self.__class__.__name__, self.obj)
-
-	def compile(self, template):
-		r1 = self.obj.compile(template)
-		template.opcode("getslice", r1=r1, r2=r1)
-		return r1
-
-
 class Unary(AST):
 	opcode = None
 
@@ -1665,6 +1604,10 @@ class Unary(AST):
 		r = self.obj.compile(template)
 		template.opcode(self.opcode, r1=r, r2=r)
 		return r
+
+
+class GetSlice(Unary):
+	opcode = "getslice"
 
 
 class Not(Unary):
@@ -1691,6 +1634,18 @@ class Binary(AST):
 		template.opcode(self.opcode, r1=r1, r2=r1, r3=r2)
 		template._freereg(r2)
 		return r1
+
+
+class GetItem(Binary):
+	opcode = "getitem"
+
+
+class GetSlice1(Binary):
+	opcode = "getslice1"
+
+
+class GetSlice2(Binary):
+	opcode = "getslice2"
 
 
 class Equal(Binary):
