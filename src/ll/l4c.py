@@ -1812,26 +1812,14 @@ class CallFunc(AST):
 			r = template._allocreg()
 			template.opcode("callfunc0", r1=r, arg=self.name.name)
 			return r
-		elif len(self.args) == 1:
-			r0 = self.args[0].compile(template)
-			template.opcode("callfunc1", r1=r0, r2=r0, arg=self.name.name)
-			return r0
-		elif len(self.args) == 2:
-			r0 = self.args[0].compile(template)
-			r1 = self.args[1].compile(template)
-			template.opcode("callfunc2", r1=r0, r2=r0, r3=r1, arg=self.name.name)
-			template._freereg(r1)
-			return r0
-		elif len(self.args) == 3:
-			r0 = self.args[0].compile(template)
-			r1 = self.args[1].compile(template)
-			r2 = self.args[2].compile(template)
-			template.opcode("callfunc3", r1=r0, r2=r0, r3=r1, r4=r2, arg=self.name.name)
-			template._freereg(r1)
-			template._freereg(r2)
-			return r0
-		else:
+		elif len(self.args) > 3:
 			raise ValueError("%d arguments not supported" % len(self.args))
+		else:
+			rs = [arg.compile(template) for arg in self.args]
+			template.opcode("callfunc%d" % len(self.args), rs[0], *rs, **dict(arg=self.name.name)) # Replace **dict(arg=) with arg= in Python 2.6?
+			for i in xrange(1, len(self.args)):
+				template._freereg(rs[i])
+			return rs[0]
 
 
 class CallMeth(AST):
@@ -1847,37 +1835,14 @@ class CallMeth(AST):
 			return "%s(%r, %r)" % (self.__class__.__name__, self.name, self.obj)
 
 	def compile(self, template):
-		if len(self.args) == 0:
-			r = self.obj.compile(template)
-			template.opcode("callmeth0", r1=r, r2=r, arg=self.name.name)
-			return r
-		elif len(self.args) == 1:
-			r = self.obj.compile(template)
-			r0 = self.args[0].compile(template)
-			template.opcode("callmeth1", r1=r, r2=r, r3=r0, arg=self.name.name)
-			template._freereg(r0)
-			return r
-		elif len(self.args) == 2:
-			r = self.obj.compile(template)
-			r0 = self.args[0].compile(template)
-			r1 = self.args[1].compile(template)
-			template.opcode("callmeth2", r1=r, r2=r, r3=r0, r4=r1, arg=self.name.name)
-			template._freereg(r0)
-			template._freereg(r1)
-			return r
-		elif len(self.args) == 3:
-			r = self.obj.compile(template)
-			r0 = self.args[0].compile(template)
-			r1 = self.args[1].compile(template)
-			r2 = self.args[2].compile(template)
-			template.opcode("callmeth3", r1=r, r2=r, r3=r0, r4=r1, r5=r2, arg=self.name.name)
-			template._freereg(r0)
-			template._freereg(r1)
-			template._freereg(r2)
-			return r
-		else:
+		if len(self.args) > 3:
 			raise ValueError("%d arguments not supported" % len(self.args))
-
+		ro = self.obj.compile(template)
+		rs = [arg.compile(template) for arg in self.args]
+		template.opcode("callmeth%d" % len(self.args), r1=ro, r2=ro, *rs, **dict(arg=self.name.name))
+		for r in rs:
+			template._freereg(r)
+		return ro
 
 class Render(AST):
 
