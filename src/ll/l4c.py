@@ -2167,7 +2167,7 @@ class ExprParser(spark.GenericParser):
 			return self.makeconst(bool(obj1.value or obj2.value))
 		return Or(obj1, obj2)
 
-	# This rule makes operators of different precedences interoperable, by allowing an expression to "drop" its precedence.
+	# These rules make operators of different precedences interoperable, by allowing an expression to "drop" its precedence.
 	@spark.rule('expr10 ::= expr11')
 	@spark.rule('expr9 ::= expr10')
 	@spark.rule('expr8 ::= expr9')
