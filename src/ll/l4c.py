@@ -1448,7 +1448,6 @@ class Const(AST):
 	"""
 	Common baseclass for all constants (used for type testing in constant folding)
 	"""
-	type = None
 
 	def __repr__(self):
 		return "%s()" % self.__class__.__name__
