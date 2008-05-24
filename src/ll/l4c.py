@@ -1448,44 +1448,30 @@ class Const(AST):
 	"""
 	Common baseclass for all constants (used for type testing in constant folding)
 	"""
-
-
-class None_(Const):
-	type = "none"
+	type = None
 
 	def __repr__(self):
 		return "%s()" % self.__class__.__name__
 
 	def compile(self, template):
 		r = template._allocreg()
-		template.opcode("loadnone", r1=r)
+		template.opcode("load%s" % self.type, r1=r)
 		return r
+
+
+class None_(Const):
+	type = "none"
+	value = None
 
 
 class True_(Const):
 	type = "true"
 	value = True
 
-	def __repr__(self):
-		return "%s()" % self.__class__.__name__
-
-	def compile(self, template):
-		r = template._allocreg()
-		template.opcode("loadtrue", r1=r)
-		return r
-
 
 class False_(Const):
 	type = "false"
 	value = False
-
-	def __repr__(self):
-		return "%s()" % self.__class__.__name__
-
-	def compile(self, template):
-		r = template._allocreg()
-		template.opcode("loadfalse", r1=r)
-		return r
 
 
 class Value(Const):
