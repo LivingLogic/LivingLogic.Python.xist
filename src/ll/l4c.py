@@ -2004,32 +2004,14 @@ class ExprParser(spark.GenericParser):
 	#    2) Brackets, which can be used to boost the precedence of an expression to the level of an atomic expression.
 
 	@spark.rule('expr11 ::= none')
-	def expr_none(self, (none,)):
-		return none
-
 	@spark.rule('expr11 ::= true')
-	def expr_true(self, (true,)):
-		return true
-
 	@spark.rule('expr11 ::= false')
-	def expr_false(self, (false,)):
-		return false
-
 	@spark.rule('expr11 ::= str')
-	def expr_str(self, (value,)):
-		return value
-
 	@spark.rule('expr11 ::= int')
-	def expr_int(self, (value,)):
-		return value
-
 	@spark.rule('expr11 ::= float')
-	def expr_float(self, (value,)):
-		return value
-
 	@spark.rule('expr11 ::= name')
-	def expr_name(self, (name,)):
-		return name
+	def expr_atom(self, (atom,)):
+		return atom
 
 	@spark.rule('expr11 ::= ( expr0 )')
 	def expr_bracket(self, (_0, expr, _1)):
