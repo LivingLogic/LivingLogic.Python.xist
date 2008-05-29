@@ -801,6 +801,8 @@ class Opcode(object):
 			attr = getattr(self, attrname)
 			if attr is not None:
 				v.append(" %s=%r" % (attrname, attr))
+		if self.code is None:
+			v.append(" text=%r" % self.location.code)
 		v.append(" at 0x%x>" % id(self))
 		return "".join(v)
 
