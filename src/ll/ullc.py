@@ -1487,7 +1487,7 @@ class Value(Const):
 		self.value = value
 
 	def __repr__(self):
-		return "%s(%r)" % (self.__class__.__name__, self.value)
+		return "%s(%r, %r, %r)" % (self.__class__.__name__, self.start, self.end, self.value)
 
 	def compile(self, template):
 		r = template._allocreg()
@@ -1520,7 +1520,7 @@ class Name(AST):
 		self.name = name
 
 	def __repr__(self):
-		return "%s(%r)" % (self.__class__.__name__, self.name)
+		return "%s(%r, %r, %r)" % (self.__class__.__name__, self.start, self.end, self.name)
 
 	def compile(self, template):
 		r = template._allocreg()
@@ -1535,7 +1535,7 @@ class For(AST):
 		self.cont = cont
 
 	def __repr__(self):
-		return "%s(%r, %r)" % (self.__class__.__name__, self.iter, self.cont)
+		return "%s(%r, %r, %r, %r)" % (self.__class__.__name__, self.start, self.end, self.iter, self.cont)
 
 	def compile(self, template):
 		rc = self.cont.compile(template)
@@ -1561,7 +1561,7 @@ class GetAttr(AST):
 		self.attr = attr
 
 	def __repr__(self):
-		return "%s(%r, %r)" % (self.__class__.__name__, self.obj, self.attr)
+		return "%s(%r, %r, %r, %r)" % (self.__class__.__name__, self.start, self.end, self.obj, self.attr)
 
 	def compile(self, template):
 		r = self.obj.compile(template)
@@ -1577,7 +1577,7 @@ class GetSlice12(AST):
 		self.index2 = index2
 
 	def __repr__(self):
-		return "%s(%r, %r, %r)" % (self.__class__.__name__, self.obj, self.index1, self.index2)
+		return "%s(%r, %r, %r, %r, %r)" % (self.__class__.__name__, self.start, self.end, self.obj, self.index1, self.index2)
 
 	def compile(self, template):
 		r1 = self.obj.compile(template)
@@ -1597,7 +1597,7 @@ class Unary(AST):
 		self.obj = obj
 
 	def __repr__(self):
-		return "%s(%r)" % (self.__class__.__name__, self.obj)
+		return "%s(%r, %r, %r)" % (self.__class__.__name__, self.start, self.end, self.obj)
 
 	def compile(self, template):
 		r = self.obj.compile(template)
@@ -1626,7 +1626,7 @@ class Binary(AST):
 		self.obj2 = obj2
 
 	def __repr__(self):
-		return "%s(%r, %r)" % (self.__class__.__name__, self.obj1, self.obj2)
+		return "%s(%r, %r, %r, %r)" % (self.__class__.__name__, self.start, self.end, self.obj1, self.obj2)
 
 	def compile(self, template):
 		r1 = self.obj1.compile(template)
@@ -1705,7 +1705,7 @@ class ChangeVar(AST):
 		self.value = value
 
 	def __repr__(self):
-		return "%s(%r, %r)" % (self.__class__.__name__, self.name, self.value)
+		return "%s(%r, %r, %r, %r)" % (self.__class__.__name__, self.start, self.end, self.name, self.value)
 
 	def compile(self, template):
 		r = self.value.compile(template)
@@ -1747,7 +1747,7 @@ class DelVar(AST):
 		self.name = name
 
 	def __repr__(self):
-		return "%s(%r)" % (self.__class__.__name__, self.name)
+		return "%s(%r, %r, %r)" % (self.__class__.__name__, self.start, self.end, self.name)
 
 	def compile(self, template):
 		template.opcode("delvar", arg=self.name.name)
@@ -1761,9 +1761,9 @@ class CallFunc(AST):
 
 	def __repr__(self):
 		if self.args:
-			return "%s(%r, %s)" % (self.__class__.__name__, self.name, repr(self.args)[1:-1])
+			return "%s(%r, %r, %r, %s)" % (self.__class__.__name__, self.start, self.end, self.name, repr(self.args)[1:-1])
 		else:
-			return "%s(%r)" % (self.__class__.__name__, self.name)
+			return "%s(%r, %r, %r)" % (self.__class__.__name__, self.start, self.end, self.name)
 
 	def compile(self, template):
 		if len(self.args) == 0:
@@ -1789,9 +1789,9 @@ class CallMeth(AST):
 
 	def __repr__(self):
 		if self.args:
-			return "%s(%r, %r, %s)" % (self.__class__.__name__, self.name, self.obj, repr(self.args)[1:-1])
+			return "%s(%r, %r, %r, %r, %s)" % (self.__class__.__name__, self.start, self.end, self.name, self.obj, repr(self.args)[1:-1])
 		else:
-			return "%s(%r, %r)" % (self.__class__.__name__, self.name, self.obj)
+			return "%s(%r, %r, %r, %r)" % (self.__class__.__name__, self.start, self.end, self.name, self.obj)
 
 	def compile(self, template):
 		if len(self.args) > 3:
@@ -1811,7 +1811,7 @@ class Render(AST):
 		self.value = value
 
 	def __repr__(self):
-		return "%s(%r, %r)" % (self.__class__.__name__, self.name, self.value)
+		return "%s(%r, %r, %r, %r)" % (self.__class__.__name__, self.start, self.end, self.name, self.value)
 
 	def compile(self, template):
 		r = self.value.compile(template)
