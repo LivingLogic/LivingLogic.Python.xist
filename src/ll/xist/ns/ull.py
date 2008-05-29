@@ -17,7 +17,7 @@ from ll.xist import xsc
 
 class print_(xsc.ProcInst):
 	"""
-	Prints the expression in the processing instruction.
+	Prints the expression in the processing instruction data.
 	"""
 	xmlname = "print"
 
