@@ -13,29 +13,29 @@ import re, cStringIO
 
 import py.test
 
-from ll import l4c
+from ll import ullc
 
 
 def check(result, source, data={}, templates={}):
 	# Check with template compiled from source
-	t1 = l4c.compile(source)
+	t1 = ullc.compile(source)
 	assert t1.renders(data, templates) == result
 
 	# Check with template loaded again via the string interface
-	t2 = l4c.loads(t1.dumps())
+	t2 = ullc.loads(t1.dumps())
 	assert t2.renders(data, templates) == result
 
 	# Check with template loaded again via the stream interface
 	stream = cStringIO.StringIO()
 	t1.dump(stream)
 	stream.seek(0)
-	t3 = l4c.load(stream)
+	t3 = ullc.load(stream)
 	assert t3.renders(data, templates) == result
 
 
 def checkcompileerror(msg, source):
 	try:
-		l4c.compile(source)
+		ullc.compile(source)
 	except Exception, exc:
 		assert re.search(msg, str(exc)) is not None
 	else:
@@ -44,7 +44,7 @@ def checkcompileerror(msg, source):
 
 def checkrunerror(msg, source, data={}, templates={}):
 	# Check with template compiled from source
-	t1 = l4c.compile(source)
+	t1 = ullc.compile(source)
 	try:
 		t1.renders(data, templates)
 	except Exception, exc:
@@ -53,7 +53,7 @@ def checkrunerror(msg, source, data={}, templates={}):
 		py.test.fail("Didn't raise exception")
 
 	# Check with template loaded again via the string interface
-	t2 = l4c.loads(t1.dumps())
+	t2 = ullc.loads(t1.dumps())
 	try:
 		t2.renders(data, templates)
 	except Exception, exc:
@@ -65,7 +65,7 @@ def checkrunerror(msg, source, data={}, templates={}):
 	stream = cStringIO.StringIO()
 	t1.dump(stream)
 	stream.seek(0)
-	t3 = l4c.load(stream)
+	t3 = ullc.load(stream)
 	try:
 		t3.renders(data, templates)
 	except Exception, exc:
@@ -568,5 +568,5 @@ def test_function_range():
 
 
 def test_render():
-	t = l4c.compile('(<?print data?>)')
+	t = ullc.compile('(<?print data?>)')
 	yield check, '(f)(o)(o)', '<?for i in data?><?render t(i)?><?end for?>', 'foo', dict(t=t)

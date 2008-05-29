@@ -11,19 +11,19 @@
 from __future__ import division
 
 """
-:mod:`ll.l4c` provides templating for XML/HTML as well as any other text-based
+:mod:`ll.ullc` provides templating for XML/HTML as well as any other text-based
 format. A template defines placeholders for data output and basic logic (like
 loops and conditional blocks), that define how the final rendered output will
 look.
 
-:mod:`ll.l4c` compiles a template to a bytecode format, which makes it possible
+:mod:`ll.ullc` compiles a template to a bytecode format, which makes it possible
 to implement renderers for these templates in multiple programming languages.
 
 
 Data objects
 ============
 
-To render a template the renderer gets passed a data object. What :mod:`ll.l4`
+To render a template the renderer gets passed a data object. What :mod:`ll.ull`
 supports in this data object is very similar to what JSON_ supports.
 
 	.. _JSON: http://www.json.org/
@@ -75,7 +75,7 @@ possible to specify a different delimiter pair when compiling the template.)
 
 A complete Python program that renders the template might look like this::
 
-	from ll import l4c
+	from ll import ullc
 
 	code = '''<?if data?>
 	<ul>
@@ -85,7 +85,7 @@ A complete Python program that renders the template might look like this::
 	</ul>
 	<?end if?>'''
 
-	tmpl = l4c.compile(code)
+	tmpl = ullc.compile(code)
 
 	data = [u"Python", u"Java", u"PHP"]
 
@@ -98,7 +98,7 @@ the template with the data object passed in.
 Template code
 =============
 
-:mod:`ll.l4` supports the following tag types:
+:mod:`ll.ull` supports the following tag types:
 
 
 ``print``
@@ -206,7 +206,7 @@ For example the following template will output ``40``::
 Expressions
 -----------
 
-:mod:`ll.l4` supports many of the operators supported by Python. Getitem style
+:mod:`ll.ull` supports many of the operators supported by Python. Getitem style
 element access is available, i.e. in the expression ``a[b]`` the following type
 combinations are supported:
 
@@ -254,7 +254,7 @@ The inverted containment test (via ``not in``) is available too.
 Functions
 ---------
 
-:mod:`ll.l4` supports a number of functions.
+:mod:`ll.ull` supports a number of functions.
 
 ``isnone``
 ::::::::::
@@ -967,8 +967,8 @@ class Template(object):
 		stream = StringIO.StringIO(data)
 		header = stream.readline()
 		header = header.rstrip()
-		if header != "l4":
-			raise ValueError("invalid header, expected 'l4', got %r" % header)
+		if header != "ull":
+			raise ValueError("invalid header, expected 'ull', got %r" % header)
 		version = stream.readline()
 		version = version.rstrip()
 		if version != "1":
@@ -1020,7 +1020,7 @@ class Template(object):
 			if string is not None:
 				yield encoder.encode(string)
 
-		yield encoder.encode(u"l4\n1\n")
+		yield encoder.encode(u"ull\n1\n")
 		for p in _writestr(u"s", self.source): yield p
 		yield encoder.encode(u"\n")
 		for p in _writeint(u"#", len(self.opcodes)): yield p
@@ -1063,7 +1063,7 @@ class Template(object):
 			self._indent += 1
 		yield self._code("import sys")
 		yield self._code("from ll.misc import xmlescape")
-		yield self._code("from ll import l4c")
+		yield self._code("from ll import ullc")
 		yield self._code("variables = dict(data=data)")
 		yield self._code("source = %r" % self.source)
 		yield self._code("locations = %r" % (tuple((oc.location.type, oc.location.starttag, oc.location.endtag, oc.location.startcode, oc.location.endcode) for oc in self.opcodes),))
@@ -1193,9 +1193,9 @@ class Template(object):
 					elif opcode.arg == "hex":
 						yield self._code("reg%d = hex(reg%d)" % (opcode.r1, opcode.r2))
 					elif opcode.arg == "oct":
-						yield self._code('reg%d = l4c._oct(reg%d)' % (opcode.r1, opcode.r2))
+						yield self._code('reg%d = ullc._oct(reg%d)' % (opcode.r1, opcode.r2))
 					elif opcode.arg == "bin":
-						yield self._code('reg%d = l4c._bin(reg%d)' % (opcode.r1, opcode.r2))
+						yield self._code('reg%d = ullc._bin(reg%d)' % (opcode.r1, opcode.r2))
 					elif opcode.arg == "sorted":
 						yield self._code("reg%d = sorted(reg%d)" % (opcode.r1, opcode.r2))
 					elif opcode.arg == "range":
@@ -1254,15 +1254,15 @@ class Template(object):
 		except Exception, exc:
 			raise Error(exc).decorate(opcode.location)
 		self._indent -= 1
-		buildloc = "l4c.Location(source, *locations[sys.exc_info()[2].tb_lineno-startline])"
-		yield self._code("except l4c.Error, exc:")
+		buildloc = "ullc.Location(source, *locations[sys.exc_info()[2].tb_lineno-startline])"
+		yield self._code("except ullc.Error, exc:")
 		self._indent += 1
 		yield self._code("exc.decorate(%s)" % buildloc)
 		yield self._code("raise")
 		self._indent -= 1
 		yield self._code("except Exception, exc:")
 		self._indent += 1
-		yield self._code("raise l4c.Error(exc).decorate(%s)" % buildloc)
+		yield self._code("raise ullc.Error(exc).decorate(%s)" % buildloc)
 
 	def pythonfunction(self):
 		if self._pythonfunction is None:
