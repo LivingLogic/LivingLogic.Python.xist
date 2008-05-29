@@ -79,14 +79,7 @@ class GenericScanner(object):
 		print "Lexical error at position %s" % pos
 		raise SystemExit
 
-	def position(self, newpos=None):
-		oldpos = self.pos
-		if newpos is not None:
-			self.pos = newpos
-		return self.string, oldpos
-		
 	def tokenize(self, s):
-		self.string = s
 		start = 0
 		self.mode = "default"
 		n = len(s)
