@@ -371,7 +371,7 @@ class IllegalAttrError(Error, LookupError):
 
 	def __str__(self):
 		if isinstance(self.name, basestring):
-			return "no local attribute with %s name %s in %r" % (("Python", "XML")[self.xml], self.name, self.cls)
+			return "no local attribute with %s name %r in %r" % (("Python", "XML")[self.xml], self.name, self.cls)
 		elif self.name.xmlns is None:
 			return "no local attribute with class %r in %r" % (self.name, self.cls)
 		else:
