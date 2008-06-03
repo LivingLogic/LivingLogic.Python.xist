@@ -934,18 +934,18 @@ class Template(object):
 				else:
 					raise ValueError("invalid terminator, expected %r, got %r" % (term, c))
 
-		def _readstr(term):
+		def _readstr(term1, term0):
 			i = 0
 			while True:
 				c = stream.read(1)
 				if c.isdigit():
 					i = 10*i+int(c)
-				elif c == term:
+				elif c == term1:
 					break
-				elif c.lower() == term:
+				elif c == term0:
 					return None
 				else:
-					raise ValueError("invalid terminator, expected %r, got %r" % (term, c))
+					raise ValueError("invalid terminator, expected %r or %r, got %r" % (term1, term0, c))
 			s = stream.read(i)
 			if len(s) != i:
 				raise ValueError("short read")
@@ -953,7 +953,7 @@ class Template(object):
 
 		def _readspec():
 			c = stream.read(1)
-			if c == u"-":
+			if c == "-":
 				return None
 			elif c.isdigit():
 				return int(c)
@@ -962,7 +962,7 @@ class Template(object):
 
 		def _readcr():
 			c = stream.read(1)
-			if c != u"\n":
+			if c != "\n":
 				raise ValueError("invalid linefeed %r" % c)
 
 		self = cls()
@@ -975,7 +975,7 @@ class Template(object):
 		version = version.rstrip()
 		if version != "1":
 			raise ValueError("invalid version, expected 1 got, %r" % version)
-		self.source = _readstr("s")
+		self.source = _readstr("s", "S")
 		self.opcodes = []
 		_readcr()
 		count = _readint(u"#")
@@ -987,14 +987,14 @@ class Template(object):
 			r3 = _readspec()
 			r4 = _readspec()
 			r5 = _readspec()
-			code = _readstr(u"c")
-			arg = _readstr(u"a")
+			code = _readstr("c", "C")
+			arg = _readstr("a", "A")
 			locspec = stream.read(1)
 			if locspec == u"^":
 				if location is None:
 					raise ValueError("no previous location")
 			elif locspec == u"*":
-				location = Location(self.source, _readstr("t"), _readint("<"), _readint(">"), _readint("["), _readint("]"))
+				location = Location(self.source, _readstr("t", "T"), _readint("<"), _readint(">"), _readint("["), _readint("]"))
 			else:
 				raise ValueError("invalid location spec %r" % locspec)
 			_readcr()
@@ -1011,40 +1011,40 @@ class Template(object):
 			yield unicode(number)
 			yield term
 
-		def _writestr(term, string):
+		def _writestr(term1, term0, string):
 			if string:
-				yield unicode(len(string))
+				yield str(len(string))
 			if string is None:
-				term = term.upper()
-			yield term
-			if string is not None:
+				yield term0
+			else:
+				yield term1
 				yield string
 
-		yield u"ull\n1\n"
-		for p in _writestr(u"s", self.source): yield p
-		yield u"\n"
-		for p in _writeint(u"#", len(self.opcodes)): yield p
-		yield u"\n"
+		yield "ull\n1\n"
+		for p in _writestr("s", "S", self.source): yield p
+		yield "\n"
+		for p in _writeint("#", len(self.opcodes)): yield p
+		yield "\n"
 		lastlocation = None
 		for opcode in self.opcodes:
-			yield unicode(opcode.r1) if opcode.r1 is not None else u"-"
-			yield unicode(opcode.r2) if opcode.r2 is not None else u"-"
-			yield unicode(opcode.r3) if opcode.r3 is not None else u"-"
-			yield unicode(opcode.r4) if opcode.r4 is not None else u"-"
-			yield unicode(opcode.r5) if opcode.r5 is not None else u"-"
-			for p in _writestr(u"c", opcode.code): yield p
-			for p in _writestr(u"a", opcode.arg): yield p
+			yield str(opcode.r1) if opcode.r1 is not None else u"-"
+			yield str(opcode.r2) if opcode.r2 is not None else u"-"
+			yield str(opcode.r3) if opcode.r3 is not None else u"-"
+			yield str(opcode.r4) if opcode.r4 is not None else u"-"
+			yield str(opcode.r5) if opcode.r5 is not None else u"-"
+			for p in _writestr("c", "C", opcode.code): yield p
+			for p in _writestr("a", "A", opcode.arg): yield p
 			if opcode.location is not lastlocation:
 				lastlocation = opcode.location
 				yield u"*"
-				for p in _writestr(u"t", lastlocation.type): yield p
-				for p in _writeint(u"<", lastlocation.starttag): yield p
-				for p in _writeint(u">", lastlocation.endtag): yield p
-				for p in _writeint(u"[", lastlocation.startcode): yield p
-				for p in _writeint(u"]", lastlocation.endcode): yield p
+				for p in _writestr("t", "T", lastlocation.type): yield p
+				for p in _writeint("<", lastlocation.starttag): yield p
+				for p in _writeint(">", lastlocation.endtag): yield p
+				for p in _writeint("[", lastlocation.startcode): yield p
+				for p in _writeint("]", lastlocation.endcode): yield p
 			else:
-				yield u"^"
-			yield u"\n"
+				yield "^"
+			yield "\n"
 
 	def dump(self, stream):
 		for part in self.iterdump():
