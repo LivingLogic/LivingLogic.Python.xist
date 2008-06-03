@@ -411,7 +411,7 @@ Methods
 """
 
 
-import re, StringIO, codecs
+import re, StringIO
 
 from ll import spark
 
@@ -966,8 +966,6 @@ class Template(object):
 				raise ValueError("invalid linefeed %r" % c)
 
 		self = cls()
-		if isinstance(data, str):
-			data = data.decode("utf-8-sig")
 		stream = StringIO.StringIO(data)
 		header = stream.readline()
 		header = header.rstrip()
@@ -1009,46 +1007,44 @@ class Template(object):
 		return cls.loads(stream.read())
 
 	def iterdump(self):
-		encoder = codecs.getincrementalencoder("utf-8-sig")()
-
 		def _writeint(term, number):
-			yield encoder.encode(unicode(number))
-			yield encoder.encode(term)
+			yield unicode(number)
+			yield term
 
 		def _writestr(term, string):
 			if string:
-				yield encoder.encode(unicode(len(string)))
+				yield unicode(len(string))
 			if string is None:
 				term = term.upper()
-			yield encoder.encode(term)
+			yield term
 			if string is not None:
-				yield encoder.encode(string)
+				yield string
 
-		yield encoder.encode(u"ull\n1\n")
+		yield u"ull\n1\n"
 		for p in _writestr(u"s", self.source): yield p
-		yield encoder.encode(u"\n")
+		yield u"\n"
 		for p in _writeint(u"#", len(self.opcodes)): yield p
-		yield encoder.encode(u"\n")
+		yield u"\n"
 		lastlocation = None
 		for opcode in self.opcodes:
-			yield encoder.encode(unicode(opcode.r1) if opcode.r1 is not None else u"-")
-			yield encoder.encode(unicode(opcode.r2) if opcode.r2 is not None else u"-")
-			yield encoder.encode(unicode(opcode.r3) if opcode.r3 is not None else u"-")
-			yield encoder.encode(unicode(opcode.r4) if opcode.r4 is not None else u"-")
-			yield encoder.encode(unicode(opcode.r5) if opcode.r5 is not None else u"-")
+			yield unicode(opcode.r1) if opcode.r1 is not None else u"-"
+			yield unicode(opcode.r2) if opcode.r2 is not None else u"-"
+			yield unicode(opcode.r3) if opcode.r3 is not None else u"-"
+			yield unicode(opcode.r4) if opcode.r4 is not None else u"-"
+			yield unicode(opcode.r5) if opcode.r5 is not None else u"-"
 			for p in _writestr(u"c", opcode.code): yield p
 			for p in _writestr(u"a", opcode.arg): yield p
 			if opcode.location is not lastlocation:
 				lastlocation = opcode.location
-				yield encoder.encode(u"*")
+				yield u"*"
 				for p in _writestr(u"t", lastlocation.type): yield p
 				for p in _writeint(u"<", lastlocation.starttag): yield p
 				for p in _writeint(u">", lastlocation.endtag): yield p
 				for p in _writeint(u"[", lastlocation.startcode): yield p
 				for p in _writeint(u"]", lastlocation.endcode): yield p
 			else:
-				yield encoder.encode(u"^")
-			yield encoder.encode(u"\n")
+				yield u"^"
+			yield u"\n"
 
 	def dump(self, stream):
 		for part in self.iterdump():

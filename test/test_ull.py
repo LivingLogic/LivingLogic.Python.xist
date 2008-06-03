@@ -9,7 +9,7 @@
 ## See ll/__init__.py for the license
 
 
-import re, cStringIO
+import re, StringIO
 
 import py.test
 
@@ -26,7 +26,7 @@ def check(result, source, data={}, templates={}):
 	assert t2.renders(data, templates) == result
 
 	# Check with template loaded again via the stream interface
-	stream = cStringIO.StringIO()
+	stream = StringIO.StringIO()
 	t1.dump(stream)
 	stream.seek(0)
 	t3 = ullc.load(stream)
@@ -62,7 +62,7 @@ def checkrunerror(msg, source, data={}, templates={}):
 		py.test.fail("Didn't raise exception")
 
 	# Check with template loaded again via the stream interface
-	stream = cStringIO.StringIO()
+	stream = StringIO.StringIO()
 	t1.dump(stream)
 	stream.seek(0)
 	t3 = ullc.load(stream)
