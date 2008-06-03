@@ -975,7 +975,7 @@ class Template(object):
 		version = version.rstrip()
 		if version != "1":
 			raise ValueError("invalid version, expected 1 got, %r" % version)
-		self.source = _readstr("s", "S")
+		self.source = _readstr("'", '"')
 		self.opcodes = []
 		_readcr()
 		count = _readint(u"#")
@@ -987,14 +987,14 @@ class Template(object):
 			r3 = _readspec()
 			r4 = _readspec()
 			r5 = _readspec()
-			code = _readstr("c", "C")
-			arg = _readstr("a", "A")
+			code = _readstr(":", ".")
+			arg = _readstr(";", ",")
 			locspec = stream.read(1)
 			if locspec == u"^":
 				if location is None:
 					raise ValueError("no previous location")
 			elif locspec == u"*":
-				location = Location(self.source, _readstr("t", "T"), _readint("<"), _readint(">"), _readint("["), _readint("]"))
+				location = Location(self.source, _readstr("=", "-"), _readint("<"), _readint(">"), _readint("["), _readint("]"))
 			else:
 				raise ValueError("invalid location spec %r" % locspec)
 			_readcr()
@@ -1021,7 +1021,7 @@ class Template(object):
 				yield string
 
 		yield "ull\n1\n"
-		for p in _writestr("s", "S", self.source): yield p
+		for p in _writestr("'", '"', self.source): yield p
 		yield "\n"
 		for p in _writeint("#", len(self.opcodes)): yield p
 		yield "\n"
@@ -1032,12 +1032,12 @@ class Template(object):
 			yield str(opcode.r3) if opcode.r3 is not None else u"-"
 			yield str(opcode.r4) if opcode.r4 is not None else u"-"
 			yield str(opcode.r5) if opcode.r5 is not None else u"-"
-			for p in _writestr("c", "C", opcode.code): yield p
-			for p in _writestr("a", "A", opcode.arg): yield p
+			for p in _writestr(":", ".", opcode.code): yield p
+			for p in _writestr(";", ",", opcode.arg): yield p
 			if opcode.location is not lastlocation:
 				lastlocation = opcode.location
 				yield u"*"
-				for p in _writestr("t", "T", lastlocation.type): yield p
+				for p in _writestr("=", "-", lastlocation.type): yield p
 				for p in _writeint("<", lastlocation.starttag): yield p
 				for p in _writeint(">", lastlocation.endtag): yield p
 				for p in _writeint("[", lastlocation.startcode): yield p
